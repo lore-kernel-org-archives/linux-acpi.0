@@ -1,141 +1,76 @@
-From: Gabriele Paoloni <gabriele.paoloni@huawei.com>
-Subject: RE: [RFC PATCH v2 2/3] PCI: hisi: Make the HiSilicon PCIe host
- controller ECAM compliant
-Date: Tue, 9 Feb 2016 15:56:26 +0000
-Message-ID: <EE11001F9E5DDD47B7634E2F8A612F2E1ECAF200@lhreml503-mbs>
-References: <1454935264-6076-1-git-send-email-gabriele.paoloni@huawei.com>
- <2599997.xBRrI3qHak@wuerfel>
- <EE11001F9E5DDD47B7634E2F8A612F2E1ECAD436@lhreml503-mbs>
- <3763449.y3Mfs92xrA@wuerfel>
+From: Arnd Bergmann <arnd@arndb.de>
+Subject: Re: [RFC PATCH v2 1/3] PCI: hisi: re-architect Hip05/Hip06 controllers driver to preapare for ACPI
+Date: Tue, 09 Feb 2016 17:27:05 +0100
+Message-ID: <5968234.D2a3VCM72k@wuerfel>
+References: <1454935264-6076-1-git-send-email-gabriele.paoloni@huawei.com> <3113837.YSNyDAf4HQ@wuerfel> <EE11001F9E5DDD47B7634E2F8A612F2E1ECAD249@lhreml503-mbs>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="Windows-1252"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from lhrrgout.huawei.com ([194.213.3.17]:37109 "EHLO
-	lhrrgout.huawei.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756437AbcBIP5O convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 9 Feb 2016 10:57:14 -0500
-In-Reply-To: <3763449.y3Mfs92xrA@wuerfel>
-Content-Language: en-US
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7Bit
+Return-path: <linux-pci-owner@vger.kernel.org>
+In-Reply-To: <EE11001F9E5DDD47B7634E2F8A612F2E1ECAD249@lhreml503-mbs>
+Sender: linux-pci-owner@vger.kernel.org
+To: Gabriele Paoloni <gabriele.paoloni@huawei.com>
+Cc: "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "Guohanjun (Hanjun Guo)" <guohanjun@huawei.com>, "Wangzhou (B)" <wangzhou1@hisilicon.com>, "liudongdong (C)" <liudongdong3@huawei.com>, Linuxarm <linuxarm@huawei.com>, qiujiang <qiujiang@huawei.com>, "bhelgaas@google.com" <bhelgaas@google.com>, "Lorenzo.Pieralisi@arm.com" <Lorenzo.Pieralisi@arm.com>, "tn@semihalf.com" <tn@semihalf.com>, "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "xuwei (O)" <xuwei5@hisilicon.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "jcm@redhat.com" <jcm@redhat.com>, zhangjukuo <zhangjukuo@huawei.com>, "Liguozhu (Kenneth)" <liguozhu@hisilicon.com>
 List-Id: linux-acpi@vger.kernel.org
-To: Arnd Bergmann <arnd@arndb.de>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
-Cc: "Lorenzo.Pieralisi@arm.com" <Lorenzo.Pieralisi@arm.com>, "jcm@redhat.com" <jcm@redhat.com>, "tn@semihalf.com" <tn@semihalf.com>, "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>, Linuxarm <linuxarm@huawei.com>, "xuwei (O)" <xuwei5@hisilicon.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "Wangzhou (B)" <wangzhou1@hisilicon.com>, "liudongdong (C)" <liudongdong3@huawei.com>, "Guohanjun (Hanjun Guo)" <guohanjun@huawei.com>, "bhelgaas@google.com" <bhelgaas@google.com>, zhangjukuo <zhangjukuo@huawei.com>, "Liguozhu (Kenneth)" <liguozhu@hisilicon.com>, qiujiang <qiujiang@huawei.com>
 
-> -----Original Message-----
-> From: Arnd Bergmann [mailto:arnd@arndb.de]
-> Sent: 09 February 2016 15:32
-> To: linux-arm-kernel@lists.infradead.org
-> Cc: Gabriele Paoloni; Lorenzo.Pieralisi@arm.com; jcm@redhat.com;
-> tn@semihalf.com; linux-pci@vger.kernel.org; Linuxarm; xuwei (O); linux-
-> kernel@vger.kernel.org; linux-acpi@vger.kernel.org; Wangzhou (B);
-> liudongdong (C); Guohanjun (Hanjun Guo); bhelgaas@google.com;
-> zhangjukuo; Liguozhu (Kenneth); qiujiang
-> Subject: Re: [RFC PATCH v2 2/3] PCI: hisi: Make the HiSilicon PCIe host
-> controller ECAM compliant
-> 
-> On Monday 08 February 2016 17:21:27 Gabriele Paoloni wrote:
-> > Hi Arnd
-> >
-> > > -----Original Message-----
-> > > From: Arnd Bergmann [mailto:arnd@arndb.de]
-> > > Sent: 08 February 2016 16:30
-> > > To: Gabriele Paoloni
-> > > Cc: linux-arm-kernel@lists.infradead.org; Guohanjun (Hanjun Guo);
-> > > Wangzhou (B); liudongdong (C); Linuxarm; qiujiang;
-> bhelgaas@google.com;
-> > > Lorenzo.Pieralisi@arm.com; tn@semihalf.com; linux-
-> pci@vger.kernel.org;
-> > > linux-kernel@vger.kernel.org; xuwei (O); linux-acpi@vger.kernel.org;
-> > > jcm@redhat.com; zhangjukuo; Liguozhu (Kenneth)
-> > > Subject: Re: [RFC PATCH v2 2/3] PCI: hisi: Make the HiSilicon PCIe
-> host
-> > > controller ECAM compliant
+On Monday 08 February 2016 16:51:19 Gabriele Paoloni wrote:
+> > From: Arnd Bergmann [mailto:arnd@arndb.de]
+> > On Monday 08 February 2016 16:06:54 Gabriele Paoloni wrote:
+> > > > On Monday 08 February 2016 12:41:02 Gabriele Paoloni wrote:
+> > int
+> > > > size,
+> > > > > +                         u32 *val)
+> > > > > +{
+> > > > > +   u32 reg;
+> > > > > +   u32 reg_val;
+> > > > > +   void *walker = &reg_val;
+> > > > > +
+> > > > > +   walker += (where & 0x3);
+> > > > > +   reg = where & ~0x3;
+> > > > > +   reg_val = readl(reg_base + reg);
+> > > > > +
+> > > > > +   if (size == 1)
+> > > > > +           *val = *(u8 __force *) walker;
+> > > > > +   else if (size == 2)
+> > > > > +           *val = *(u16 __force *) walker;
+> > > > > +   else if (size == 4)
+> > > > > +           *val = reg_val;
+> > > > > +   else
+> > > > > +           return PCIBIOS_BAD_REGISTER_NUMBER;
+> > > > > +
+> > > > > +   return PCIBIOS_SUCCESSFUL;
+> > > > > +}
+> > > >
+> > > > Isn't this the same hack that Qualcomm are using?
 > > >
-> > > On Monday 08 February 2016 15:55:35 Gabriele Paoloni wrote:
-> > > > > Doesn't this break backwards compatibility?
-> > > >
-> > > > Well Hip05/Hip06 SoCs are used into evaluation boards
-> > > > For the Estuary project.
-> > > >
-> > > > https://github.com/hisilicon/estuary
-> > > >
-> > > > As this new driver gets upstream we'll merge this new driver into
-> > > estuary
-> > > > and release a new version of the firmware to support it.
+> > > As far as I can see Qualcomm defines its own config access
+> > > mechanism only for RC config read and also it seems they're
+> > > having problems with reporting the device class...
 > > >
-> > > So what happens to folks running the old firmware then?
-> >
-> > So far we haven't released the PCIe nodes dtsi upstream and we think
-> > we can handle the firmware upgrade for our current users either
-> > by pointing them to the updated Estuary branch or by internal
-> > channels
-> 
-> The dts files in the kernel tree are not really that important,
-> the question is whether you are breaking things for real users.
-> 
-> If the upstream drivers work on some released firmware version,
-> they should keep working.
-> 
+> > > https://github.com/torvalds/linux/blob/master/drivers/pci/host/pcie-
+> > qcom.c#L474
 > > >
-> > > > > I think you need to use a new compatible string in the firmware
-> > > > > if you change the register layout, and then change the driver
-> > > > > to support both the old and the new layout.
-> > > >
-> > > > You are right, for some reason in this patchset I missed the
-> > > Documentation
-> > > > update that I posted in the previous one, i.e.:
-> > > >
-> > > > --- a/Documentation/devicetree/bindings/pci/hisilicon-pcie.txt
-> > > > +++ b/Documentation/devicetree/bindings/pci/hisilicon-pcie.txt
-> > > > @@ -23,8 +23,8 @@ Optional properties:
-> > > >  Hip05 Example (note that Hip06 is the same except compatible):
-> > > >         pcie@0xb0080000 {
-> > > >                 compatible = "hisilicon,hip05-pcie", "snps,dw-
-> pcie";
-> > > > -               reg = <0 0xb0080000 0 0x10000>, <0x220 0x00000000
-> 0
-> > > 0x2000>;
-> > > > -               reg-names = "rc_dbi", "config";
-> > > > +               reg = <0 0xb0080000 0 0x10000>, <0x220 0x00100000
-> 0
-> > > 0x0f00000>;
-> > > > +               reg-names = "rc_dbi", "ecam-cfg";
-> > > >
+> > > Our problem is that our HW can only perform 32b rd/wr accesses
+> > > So we can't use readw/readb/writew/writeb...
 > > >
-> > > That is not the compatible string, it's an undocumented register
-> set.
-> >
-> > Sorry, I misunderstood here, got it now :)
-> >
-> > > You can either define the a new compatible string that gives the
-> > > "config"
-> > > registers a new meaning, or you change the binding to allow two
-> either
-> > > a "config" or an "ecam-cfg" register set, and let the driver handle
-> > > both.
-> >
-> > As per reply above I think that it would be quite easy for us to
-> > let out current users update the BIOS so I don't think there is any
-> > value in maintaining two version of the drivers one of which will
-> > not be used.
-> >
-> > What do you think?
+> > >
+> > 
+> > Sorry, my mistake, I meant Cavium not Qualcomm.
+> > See https://lkml.org/lkml/2016/2/5/689 for the patches.
 > 
-> Requiring a BIOS update for a kernel update is really bad, even more
-> so when the same BIOS update breaks older kernels.
-
-Well I see your point.
-
-To be honest I won't expect many users of the old BIOS version since
-as I said we plan to send out the BIOS update to pretty much every user,
-however on the other side it is not too much effort for me to add code
-to support both ECAM/non ECAM, 
-so ok I'll fix this in v3,
-
-Many Thanks
-
-Gab
-
+> Well, looking at it Cavium seems quite different, 
 > 
-> 	Arnd
+> On read they need to trigger the retrieval of the
+> config space info writing to the lower 32b of a 64b register,
+> then they need to read data back on the upper 64b of the
+> same register and adjust the content to remove the garbage...
+> 
+> We just use 32b accesses and adjust grab the appropriate
+> bytes depending on the read/write sizes...
+
+Hmm, I must have misremembered that too then, let me try once more ;-)
+
+The above appears to reimplement pci_generic_config_read32(). Can you
+just use that instead?
+
+	Arnd
