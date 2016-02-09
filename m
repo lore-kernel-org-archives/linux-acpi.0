@@ -1,148 +1,188 @@
-From: Bjorn Helgaas <helgaas@kernel.org>
-Subject: Re: [PATCH] PCI: ACPI: IA64: fix IO port generic range check
-Date: Tue, 9 Feb 2016 11:00:06 -0600
-Message-ID: <20160209170006.GA21247@localhost>
-References: <1454322357-10912-1-git-send-email-lorenzo.pieralisi@arm.com>
+From: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+Subject: Re: [PATCH V4 12/23] x86, ia64, pci: Remove ACPI companion device
+ from platform specific data.
+Date: Tue, 9 Feb 2016 17:28:00 +0000
+Message-ID: <20160209172800.GB22868@red-moon>
+References: <1454606941-9523-1-git-send-email-tn@semihalf.com>
+ <1454606941-9523-13-git-send-email-tn@semihalf.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.136]:45687 "EHLO mail.kernel.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756466AbcBIRAN (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 9 Feb 2016 12:00:13 -0500
+Return-path: <linux-pci-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <1454322357-10912-1-git-send-email-lorenzo.pieralisi@arm.com>
-Sender: linux-acpi-owner@vger.kernel.org
+In-Reply-To: <1454606941-9523-13-git-send-email-tn@semihalf.com>
+Sender: linux-pci-owner@vger.kernel.org
+To: Tomasz Nowicki <tn@semihalf.com>
+Cc: bhelgaas@google.com, arnd@arndb.de, will.deacon@arm.com, catalin.marinas@arm.com, rjw@rjwysocki.net, hanjun.guo@linaro.org, okaya@codeaurora.org, jiang.liu@linux.intel.com, Stefano.Stabellini@eu.citrix.com, robert.richter@caviumnetworks.com, mw@semihalf.com, Liviu.Dudau@arm.com, ddaney@caviumnetworks.com, wangyijing@huawei.com, Suravee.Suthikulpanit@amd.com, msalter@redhat.com, linux-pci@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linaro-acpi@lists.linaro.org, jchandra@broadcom.com, jcm@redhat.com
 List-Id: linux-acpi@vger.kernel.org
-To: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
-Cc: linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Bjorn Helgaas <bhelgaas@google.com>, Hanjun Guo <hanjun.guo@linaro.org>, Jiang Liu <jiang.liu@linux.intel.com>, Tony Luck <tony.luck@intel.com>, Tomasz Nowicki <tn@semihalf.com>, Mark Salter <msalter@redhat.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>
 
-Hi Lorenzo,
+Tomasz,
 
-On Mon, Feb 01, 2016 at 10:25:57AM +0000, Lorenzo Pieralisi wrote:
-> The [0 - 64k] ACPI PCI IO port resource boundary check in:
+On Thu, Feb 04, 2016 at 06:28:50PM +0100, Tomasz Nowicki wrote:
+> Since PCI core code is setting ACPI companion device for us now,
+> platform specific ACPI companion device setting turns out to be dead now.
+> Therefore we can get rid of it, including related companion reference
+> from PCI sysdata structure.
 > 
-> acpi_dev_ioresource_flags()
-> 
-> is currently applied blindly in the ACPI resource parsing to all
-> architectures, but only x86 suffers from that IO space limitation.
-> The check in generic ACPI code leaves other arches (ie IA64) IO space
-> broken (ie kernel can't claim IO resources since the host bridge
-> IO resource is disabled and discarded by ACPI core code, eg log on
-> IA64):
-> 
-> pci 0000:00:03.0: [1002:515e] type 00 class 0x030000
-> 
-> pci 0000:00:03.0: reg 0x10: [mem 0x80000000-0x87ffffff pref]
-> 
-> pci 0000:00:03.0: reg 0x14: [io  0x1000-0x10ff]
-> 
-> pci 0000:00:03.0: reg 0x18: [mem 0x88020000-0x8802ffff]
-> 
-> pci 0000:00:03.0: reg 0x30: [mem 0x88000000-0x8801ffff pref]
-> 
-> pci 0000:00:03.0: supports D1 D2
-> 
-> pci 0000:00:03.0: can't claim BAR 1 [io  0x1000-0x10ff]: no compatible
-> bridge window
-
-I think your text and code changes make sense, but I don't understand
-this example.  I guess there must have been a host bridge window from
-_CRS that got discarded, which would lead to this error for any I/O
-resources in the tree below that bridge.
-
-I guess that probably doesn't show up in the dmesg log, except that
-the root bus doesn't have any I/O resources, because we only show the
-root bus resources, not the original _CRS resources.
-
-This seems like something we might explicitly note in dmesg, i.e.,
-maybe we should log a warning when we discard an invalid resource.
-
-> For this reason, the IO port resources boundaries check in generic ACPI
-> parsing code should be moved to x86 arch code so that more arches (ie
-> ARM64) can benefit from the generic ACPI resources parsing interface
-> without incurring in unexpected resource filtering, fixing at the same
-> time current breakage on IA64.
-> 
-> This patch moves the IO ports boundary [0 - 64k] check to x86 arch code
-> code that validates the PCI host bridge resources.
-> 
-> Fixes: 3772aea7d6f3 ("ia64/PCI/ACPI: Use common ACPI resource parsing
-> interface for host bridge")
-> Signed-off-by: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
-> Cc: Bjorn Helgaas <bhelgaas@google.com>
-> Cc: Hanjun Guo <hanjun.guo@linaro.org>
-> Cc: Jiang Liu <jiang.liu@linux.intel.com>
-> Cc: Tony Luck <tony.luck@intel.com>
-> Cc: Tomasz Nowicki <tn@semihalf.com>
-> Cc: Mark Salter <msalter@redhat.com>
-> Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+> Signed-off-by: Tomasz Nowicki <tn@semihalf.com>
+> Tested-by: Duc Dang <dhdang@apm.com>
+> Tested-by: Dongdong Liu <liudongdong3@huawei.com>
+> Tested-by: Hanjun Guo <hanjun.guo@linaro.org>
+> Tested-by: Graeme Gregory <graeme.gregory@linaro.org>
+> Tested-by: Sinan Kaya <okaya@codeaurora.org>
 > ---
->  arch/x86/pci/acpi.c     | 18 +++++++++++++-----
->  drivers/acpi/resource.c |  3 ---
->  2 files changed, 13 insertions(+), 8 deletions(-)
-> 
-> diff --git a/arch/x86/pci/acpi.c b/arch/x86/pci/acpi.c
-> index 3cd6983..e20dbe5 100644
-> --- a/arch/x86/pci/acpi.c
-> +++ b/arch/x86/pci/acpi.c
-> @@ -275,11 +275,14 @@ static void pci_acpi_root_release_info(struct acpi_pci_root_info *ci)
->   *     to access PCI configuration space.
->   *
->   * So explicitly filter out PCI CFG IO ports[0xCF8-0xCFF].
-> + *
-> + * Furthermore, IO ports address space is limited to 16k on x86,
-> + * any IO resource exceeding the boundary must therefore be discarded.
->   */
-> -static bool resource_is_pcicfg_ioport(struct resource *res)
-> +static bool ioport_valid(struct resource *res)
->  {
-> -	return (res->flags & IORESOURCE_IO) &&
-> -		res->start == 0xCF8 && res->end == 0xCFF;
-> +	return !(res->start == 0xCF8 && res->end == 0xCFF) &&
-> +	       !(res->end >= 0x10003);
->  }
+>  arch/ia64/hp/common/sba_iommu.c    |  2 +-
+>  arch/ia64/include/asm/pci.h        |  1 -
+>  arch/ia64/pci/pci.c                | 16 ----------------
+>  arch/ia64/sn/kernel/io_acpi_init.c |  4 ++--
+>  arch/x86/include/asm/pci.h         |  3 ---
+>  arch/x86/pci/acpi.c                | 17 -----------------
+>  6 files changed, 3 insertions(+), 40 deletions(-)
+
+This patch has to be squashed with the previous one otherwise it
+has bisectability issues (ie the previous patch passes the parent
+to the pci_create_root_bus() call so, without this patch applied,
+the companion initialization would fail).
+
+Other than that:
+
+Reviewed-by: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+
+> diff --git a/arch/ia64/hp/common/sba_iommu.c b/arch/ia64/hp/common/sba_iommu.c
+> index a6d6190..78e4444 100644
+> --- a/arch/ia64/hp/common/sba_iommu.c
+> +++ b/arch/ia64/hp/common/sba_iommu.c
+> @@ -1981,7 +1981,7 @@ sba_connect_bus(struct pci_bus *bus)
+>  	if (PCI_CONTROLLER(bus)->iommu)
+>  		return;
 >  
->  static int pci_acpi_root_prepare_resources(struct acpi_pci_root_info *ci)
-> @@ -287,13 +290,18 @@ static int pci_acpi_root_prepare_resources(struct acpi_pci_root_info *ci)
->  	struct acpi_device *device = ci->bridge;
->  	int busnum = ci->root->secondary.start;
->  	struct resource_entry *entry, *tmp;
-> +	struct resource *res;
->  	int status;
+> -	handle = acpi_device_handle(PCI_CONTROLLER(bus)->companion);
+> +	handle = acpi_device_handle(ACPI_COMPANION(bus->bridge));
+>  	if (!handle)
+>  		return;
 >  
->  	status = acpi_pci_probe_root_resources(ci);
->  	if (pci_use_crs) {
-> -		resource_list_for_each_entry_safe(entry, tmp, &ci->resources)
-> -			if (resource_is_pcicfg_ioport(entry->res))
-> +		resource_list_for_each_entry_safe(entry, tmp, &ci->resources) {
-> +			res = entry->res;
-> +
-> +			if (res->flags & IORESOURCE_IO && !ioport_valid(res))
->  				resource_list_destroy_entry(entry);
-> +		}
-> +
->  		return status;
+> diff --git a/arch/ia64/include/asm/pci.h b/arch/ia64/include/asm/pci.h
+> index 07039d1..5050748 100644
+> --- a/arch/ia64/include/asm/pci.h
+> +++ b/arch/ia64/include/asm/pci.h
+> @@ -65,7 +65,6 @@ extern int pci_mmap_legacy_page_range(struct pci_bus *bus,
+>  #define pci_legacy_write platform_pci_legacy_write
+>  
+>  struct pci_controller {
+> -	struct acpi_device *companion;
+>  	void *iommu;
+>  	int segment;
+>  	int node;		/* nearest node with memory or NUMA_NO_NODE for global allocation */
+> diff --git a/arch/ia64/pci/pci.c b/arch/ia64/pci/pci.c
+> index 8f6ac2f..978d6af 100644
+> --- a/arch/ia64/pci/pci.c
+> +++ b/arch/ia64/pci/pci.c
+> @@ -301,28 +301,12 @@ struct pci_bus *pci_acpi_scan_root(struct acpi_pci_root *root)
 >  	}
 >  
-> diff --git a/drivers/acpi/resource.c b/drivers/acpi/resource.c
-> index d02fd53..c112e1d 100644
-> --- a/drivers/acpi/resource.c
-> +++ b/drivers/acpi/resource.c
-> @@ -127,9 +127,6 @@ static void acpi_dev_ioresource_flags(struct resource *res, u64 len,
->  	if (!acpi_dev_resource_len_valid(res->start, res->end, len, true))
->  		res->flags |= IORESOURCE_DISABLED | IORESOURCE_UNSET;
+>  	info->controller.segment = root->segment;
+> -	info->controller.companion = device;
+>  	info->controller.node = acpi_get_node(device->handle);
+>  	INIT_LIST_HEAD(&info->io_resources);
+>  	return acpi_pci_root_create(root, &pci_acpi_root_ops,
+>  				    &info->common, &info->controller);
+>  }
 >  
-> -	if (res->end >= 0x10003)
-> -		res->flags |= IORESOURCE_DISABLED | IORESOURCE_UNSET;
+> -int pcibios_root_bridge_prepare(struct pci_host_bridge *bridge)
+> -{
+> -	/*
+> -	 * We pass NULL as parent to pci_create_root_bus(), so if it is not NULL
+> -	 * here, pci_create_root_bus() has been called by someone else and
+> -	 * sysdata is likely to be different from what we expect.  Let it go in
+> -	 * that case.
+> -	 */
+> -	if (!bridge->dev.parent) {
+> -		struct pci_controller *controller = bridge->bus->sysdata;
+> -		ACPI_COMPANION_SET(&bridge->dev, controller->companion);
+> -	}
+> -	return 0;
+> -}
 > -
->  	if (io_decode == ACPI_DECODE_16)
->  		res->flags |= IORESOURCE_IO_16BIT_ADDR;
->  	if (translation_type == ACPI_SPARSE_TRANSLATION)
+>  void pcibios_fixup_device_resources(struct pci_dev *dev)
+>  {
+>  	int idx;
+> diff --git a/arch/ia64/sn/kernel/io_acpi_init.c b/arch/ia64/sn/kernel/io_acpi_init.c
+> index 0640739..bcfddc2 100644
+> --- a/arch/ia64/sn/kernel/io_acpi_init.c
+> +++ b/arch/ia64/sn/kernel/io_acpi_init.c
+> @@ -132,7 +132,7 @@ sn_get_bussoft_ptr(struct pci_bus *bus)
+>  	struct acpi_resource_vendor_typed *vendor;
+>  
+>  
+> -	handle = acpi_device_handle(PCI_CONTROLLER(bus)->companion);
+> +	handle = acpi_device_handle(ACPI_COMPANION(bus->bridge));
+>  	status = acpi_get_vendor_resource(handle, METHOD_NAME__CRS,
+>  					  &sn_uuid, &buffer);
+>  	if (ACPI_FAILURE(status)) {
+> @@ -360,7 +360,7 @@ sn_acpi_get_pcidev_info(struct pci_dev *dev, struct pcidev_info **pcidev_info,
+>  	acpi_status status;
+>  	struct acpi_buffer name_buffer = { ACPI_ALLOCATE_BUFFER, NULL };
+>  
+> -	rootbus_handle = acpi_device_handle(PCI_CONTROLLER(dev)->companion);
+> +	rootbus_handle = acpi_device_handle(ACPI_COMPANION(dev->bus->bridge));
+>          status = acpi_evaluate_integer(rootbus_handle, METHOD_NAME__SEG, NULL,
+>                                         &segment);
+>          if (ACPI_SUCCESS(status)) {
+> diff --git a/arch/x86/include/asm/pci.h b/arch/x86/include/asm/pci.h
+> index 4625943..a98c022 100644
+> --- a/arch/x86/include/asm/pci.h
+> +++ b/arch/x86/include/asm/pci.h
+> @@ -14,9 +14,6 @@
+>  struct pci_sysdata {
+>  	int		domain;		/* PCI domain */
+>  	int		node;		/* NUMA node */
+> -#ifdef CONFIG_ACPI
+> -	struct acpi_device *companion;	/* ACPI companion device */
+> -#endif
+>  #ifdef CONFIG_X86_64
+>  	void		*iommu;		/* IOMMU private data */
+>  #endif
+> diff --git a/arch/x86/pci/acpi.c b/arch/x86/pci/acpi.c
+> index 8e89921..d5086d1 100644
+> --- a/arch/x86/pci/acpi.c
+> +++ b/arch/x86/pci/acpi.c
+> @@ -341,7 +341,6 @@ struct pci_bus *pci_acpi_scan_root(struct acpi_pci_root *root)
+>  		struct pci_sysdata sd = {
+>  			.domain = domain,
+>  			.node = node,
+> -			.companion = root->device
+>  		};
+>  
+>  		memcpy(bus->sysdata, &sd, sizeof(sd));
+> @@ -356,7 +355,6 @@ struct pci_bus *pci_acpi_scan_root(struct acpi_pci_root *root)
+>  		else {
+>  			info->sd.domain = domain;
+>  			info->sd.node = node;
+> -			info->sd.companion = root->device;
+>  			bus = acpi_pci_root_create(root, &acpi_pci_root_ops,
+>  						   &info->common, &info->sd);
+>  		}
+> @@ -374,21 +372,6 @@ struct pci_bus *pci_acpi_scan_root(struct acpi_pci_root *root)
+>  	return bus;
+>  }
+>  
+> -int pcibios_root_bridge_prepare(struct pci_host_bridge *bridge)
+> -{
+> -	/*
+> -	 * We pass NULL as parent to pci_create_root_bus(), so if it is not NULL
+> -	 * here, pci_create_root_bus() has been called by someone else and
+> -	 * sysdata is likely to be different from what we expect.  Let it go in
+> -	 * that case.
+> -	 */
+> -	if (!bridge->dev.parent) {
+> -		struct pci_sysdata *sd = bridge->bus->sysdata;
+> -		ACPI_COMPANION_SET(&bridge->dev, sd->companion);
+> -	}
+> -	return 0;
+> -}
+> -
+>  int __init pci_acpi_init(void)
+>  {
+>  	struct pci_dev *dev = NULL;
 > -- 
-> 2.5.1
+> 1.9.1
 > 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
