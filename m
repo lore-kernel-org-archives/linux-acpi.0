@@ -1,166 +1,192 @@
-From: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
-Subject: Re: [PATCH] PCI: ACPI: IA64: fix IO port generic range check
-Date: Tue, 9 Feb 2016 18:11:39 +0000
-Message-ID: <20160209181139.GD22868@red-moon>
-References: <1454322357-10912-1-git-send-email-lorenzo.pieralisi@arm.com>
- <20160209170006.GA21247@localhost>
+From: Mark Rutland <mark.rutland@arm.com>
+Subject: Re: [RFC PATCH v3 2/3] PCI: hisi: Add ECAM support to HiSilicon PCIe
+ host controller
+Date: Tue, 9 Feb 2016 18:16:42 +0000
+Message-ID: <20160209181641.GB4348@leverpostej>
+References: <1455039260-6040-1-git-send-email-gabriele.paoloni@huawei.com>
+ <1455039260-6040-3-git-send-email-gabriele.paoloni@huawei.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from foss.arm.com ([217.140.101.70]:42369 "EHLO foss.arm.com"
+Received: from foss.arm.com ([217.140.101.70]:42453 "EHLO foss.arm.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754143AbcBISJl (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 9 Feb 2016 13:09:41 -0500
+	id S1754331AbcBISRN (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 9 Feb 2016 13:17:13 -0500
 Content-Disposition: inline
-In-Reply-To: <20160209170006.GA21247@localhost>
+In-Reply-To: <1455039260-6040-3-git-send-email-gabriele.paoloni@huawei.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Bjorn Helgaas <helgaas@kernel.org>
-Cc: linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Bjorn Helgaas <bhelgaas@google.com>, Hanjun Guo <hanjun.guo@linaro.org>, Jiang Liu <jiang.liu@linux.intel.com>, Tony Luck <tony.luck@intel.com>, Tomasz Nowicki <tn@semihalf.com>, Mark Salter <msalter@redhat.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>
+To: Gabriele Paoloni <gabriele.paoloni@huawei.com>
+Cc: guohanjun@huawei.com, wangzhou1@hisilicon.com, liudongdong3@huawei.com, linuxarm@huawei.com, qiujiang@huawei.com, bhelgaas@google.com, arnd@arndb.de, Lorenzo.Pieralisi@arm.com, tn@semihalf.com, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, xuwei5@hisilicon.com, linux-acpi@vger.kernel.org, jcm@redhat.com, zhangjukuo@huawei.com, liguozhu@hisilicon.com, linux-arm-kernel@lists.infradead.org
 
-Hi Bjorn,
-
-On Tue, Feb 09, 2016 at 11:00:06AM -0600, Bjorn Helgaas wrote:
-> Hi Lorenzo,
+On Tue, Feb 09, 2016 at 05:34:19PM +0000, Gabriele Paoloni wrote:
+> From: gabriele paoloni <gabriele.paoloni@huawei.com>
 > 
-> On Mon, Feb 01, 2016 at 10:25:57AM +0000, Lorenzo Pieralisi wrote:
-> > The [0 - 64k] ACPI PCI IO port resource boundary check in:
-> > 
-> > acpi_dev_ioresource_flags()
-> > 
-> > is currently applied blindly in the ACPI resource parsing to all
-> > architectures, but only x86 suffers from that IO space limitation.
-> > The check in generic ACPI code leaves other arches (ie IA64) IO space
-> > broken (ie kernel can't claim IO resources since the host bridge
-> > IO resource is disabled and discarded by ACPI core code, eg log on
-> > IA64):
-> > 
-> > pci 0000:00:03.0: [1002:515e] type 00 class 0x030000
-> > 
-> > pci 0000:00:03.0: reg 0x10: [mem 0x80000000-0x87ffffff pref]
-> > 
-> > pci 0000:00:03.0: reg 0x14: [io  0x1000-0x10ff]
-> > 
-> > pci 0000:00:03.0: reg 0x18: [mem 0x88020000-0x8802ffff]
-> > 
-> > pci 0000:00:03.0: reg 0x30: [mem 0x88000000-0x8801ffff pref]
-> > 
-> > pci 0000:00:03.0: supports D1 D2
-> > 
-> > pci 0000:00:03.0: can't claim BAR 1 [io  0x1000-0x10ff]: no compatible
-> > bridge window
-> 
-> I think your text and code changes make sense, but I don't understand
-> this example.  I guess there must have been a host bridge window from
-> _CRS that got discarded, which would lead to this error for any I/O
-> resources in the tree below that bridge.
+> This patch modifies the current Hip05/Hip06 PCIe host
+> controller driver to add support for ECAM compliant
+> platforms.
+> This is needed in preparation for the ACPI based driver
+> to allow both DT and ACPI drivers to use the same BIOS
+> (that configure the Designware iATUs).
+> This commit doesn't break backward compatibility with
+> previous non-ECAM platforms.
 
-Exactly, claiming IO space fails since the root bridge aperture from
-_CRS was discarded by core ACPI code.
+Please forgive my ignorance, but if the system can be made ECAM
+compliant, why can the generic ECAM driver not be used in that case?
 
-> I guess that probably doesn't show up in the dmesg log, except that
-> the root bus doesn't have any I/O resources, because we only show the
-> root bus resources, not the original _CRS resources.
-
-Yep.
-
-> This seems like something we might explicitly note in dmesg, i.e.,
-> maybe we should log a warning when we discard an invalid resource.
-
-Yes, I can do that, with a separate patch (unless you want it to go
-in via this fix). I will send a v2 with a rephrased commit log to show
-how the root bus resources have to look like and how they look currently,
-reporting the regression.
+That would require no changes to this driver/binding.
 
 Thanks,
-Lorenzo
+Mark.
 
-> > For this reason, the IO port resources boundaries check in generic ACPI
-> > parsing code should be moved to x86 arch code so that more arches (ie
-> > ARM64) can benefit from the generic ACPI resources parsing interface
-> > without incurring in unexpected resource filtering, fixing at the same
-> > time current breakage on IA64.
-> > 
-> > This patch moves the IO ports boundary [0 - 64k] check to x86 arch code
-> > code that validates the PCI host bridge resources.
-> > 
-> > Fixes: 3772aea7d6f3 ("ia64/PCI/ACPI: Use common ACPI resource parsing
-> > interface for host bridge")
-> > Signed-off-by: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
-> > Cc: Bjorn Helgaas <bhelgaas@google.com>
-> > Cc: Hanjun Guo <hanjun.guo@linaro.org>
-> > Cc: Jiang Liu <jiang.liu@linux.intel.com>
-> > Cc: Tony Luck <tony.luck@intel.com>
-> > Cc: Tomasz Nowicki <tn@semihalf.com>
-> > Cc: Mark Salter <msalter@redhat.com>
-> > Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-> > ---
-> >  arch/x86/pci/acpi.c     | 18 +++++++++++++-----
-> >  drivers/acpi/resource.c |  3 ---
-> >  2 files changed, 13 insertions(+), 8 deletions(-)
-> > 
-> > diff --git a/arch/x86/pci/acpi.c b/arch/x86/pci/acpi.c
-> > index 3cd6983..e20dbe5 100644
-> > --- a/arch/x86/pci/acpi.c
-> > +++ b/arch/x86/pci/acpi.c
-> > @@ -275,11 +275,14 @@ static void pci_acpi_root_release_info(struct acpi_pci_root_info *ci)
-> >   *     to access PCI configuration space.
-> >   *
-> >   * So explicitly filter out PCI CFG IO ports[0xCF8-0xCFF].
-> > + *
-> > + * Furthermore, IO ports address space is limited to 16k on x86,
-> > + * any IO resource exceeding the boundary must therefore be discarded.
-> >   */
-> > -static bool resource_is_pcicfg_ioport(struct resource *res)
-> > +static bool ioport_valid(struct resource *res)
-> >  {
-> > -	return (res->flags & IORESOURCE_IO) &&
-> > -		res->start == 0xCF8 && res->end == 0xCFF;
-> > +	return !(res->start == 0xCF8 && res->end == 0xCFF) &&
-> > +	       !(res->end >= 0x10003);
-> >  }
-> >  
-> >  static int pci_acpi_root_prepare_resources(struct acpi_pci_root_info *ci)
-> > @@ -287,13 +290,18 @@ static int pci_acpi_root_prepare_resources(struct acpi_pci_root_info *ci)
-> >  	struct acpi_device *device = ci->bridge;
-> >  	int busnum = ci->root->secondary.start;
-> >  	struct resource_entry *entry, *tmp;
-> > +	struct resource *res;
-> >  	int status;
-> >  
-> >  	status = acpi_pci_probe_root_resources(ci);
-> >  	if (pci_use_crs) {
-> > -		resource_list_for_each_entry_safe(entry, tmp, &ci->resources)
-> > -			if (resource_is_pcicfg_ioport(entry->res))
-> > +		resource_list_for_each_entry_safe(entry, tmp, &ci->resources) {
-> > +			res = entry->res;
-> > +
-> > +			if (res->flags & IORESOURCE_IO && !ioport_valid(res))
-> >  				resource_list_destroy_entry(entry);
-> > +		}
-> > +
-> >  		return status;
-> >  	}
-> >  
-> > diff --git a/drivers/acpi/resource.c b/drivers/acpi/resource.c
-> > index d02fd53..c112e1d 100644
-> > --- a/drivers/acpi/resource.c
-> > +++ b/drivers/acpi/resource.c
-> > @@ -127,9 +127,6 @@ static void acpi_dev_ioresource_flags(struct resource *res, u64 len,
-> >  	if (!acpi_dev_resource_len_valid(res->start, res->end, len, true))
-> >  		res->flags |= IORESOURCE_DISABLED | IORESOURCE_UNSET;
-> >  
-> > -	if (res->end >= 0x10003)
-> > -		res->flags |= IORESOURCE_DISABLED | IORESOURCE_UNSET;
-> > -
-> >  	if (io_decode == ACPI_DECODE_16)
-> >  		res->flags |= IORESOURCE_IO_16BIT_ADDR;
-> >  	if (translation_type == ACPI_SPARSE_TRANSLATION)
-> > -- 
-> > 2.5.1
-> > 
-> > --
-> > To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
-> > the body of a message to majordomo@vger.kernel.org
-> > More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> Signed-off-by: Gabriele Paoloni <gabriele.paoloni@huawei.com>
+> Signed-off-by: Dongdong Liu <liudongdong3@huawei.com>
+> ---
+>  .../devicetree/bindings/pci/hisilicon-pcie.txt     | 15 +++++---
+>  drivers/pci/host/pcie-designware.c                 |  4 +--
+>  drivers/pci/host/pcie-designware.h                 |  2 ++
+>  drivers/pci/host/pcie-hisi.c                       | 40 ++++++++++++++++++++++
+>  4 files changed, 53 insertions(+), 8 deletions(-)
+> 
+> diff --git a/Documentation/devicetree/bindings/pci/hisilicon-pcie.txt b/Documentation/devicetree/bindings/pci/hisilicon-pcie.txt
+> index b721bea..5a4c1e7 100644
+> --- a/Documentation/devicetree/bindings/pci/hisilicon-pcie.txt
+> +++ b/Documentation/devicetree/bindings/pci/hisilicon-pcie.txt
+> @@ -9,10 +9,13 @@ Additional properties are described here:
+>  
+>  Required properties
+>  - compatible: Should contain "hisilicon,hip05-pcie" or "hisilicon,hip06-pcie".
+> -- reg: Should contain rc_dbi, config registers location and length.
+> -- reg-names: Must include the following entries:
+> +- reg: Should contain rc_dbi and  either config or ecam-cfg registers
+> +       location and length (it depends on the platform BIOS).
+> +- reg-names: Must include
+>    "rc_dbi": controller configuration registers;
+> -  "config": PCIe configuration space registers.
+> +  and one of the following entries:
+> +    "config": PCIe configuration space registers for non-ECAM platforms.
+> +    "ecam-cfg": PCIe configuration space registers for ECAM platforms
+>  - msi-parent: Should be its_pcie which is an ITS receiving MSI interrupts.
+>  - port-id: Should be 0, 1, 2 or 3.
+>  
+> @@ -23,8 +26,10 @@ Optional properties:
+>  Hip05 Example (note that Hip06 is the same except compatible):
+>  	pcie@0xb0080000 {
+>  		compatible = "hisilicon,hip05-pcie", "snps,dw-pcie";
+> -		reg = <0 0xb0080000 0 0x10000>, <0x220 0x00000000 0 0x2000>;
+> -		reg-names = "rc_dbi", "config";
+> +		reg = <0 0xb0080000 0 0x10000>,
+> +			  <0x220 0x00000000 0 0x2000>
+> +			/* or <0x220 0x00100000 0 0x0f00000> for ecam-cfg*/;
+> +		reg-names = "rc_dbi", "config" /* or "ecam-cfg" */;
+>  		bus-range = <0  15>;
+>  		msi-parent = <&its_pcie>;
+>  		#address-cells = <3>;
+> diff --git a/drivers/pci/host/pcie-designware.c b/drivers/pci/host/pcie-designware.c
+> index 2171682..5f19ea4 100644
+> --- a/drivers/pci/host/pcie-designware.c
+> +++ b/drivers/pci/host/pcie-designware.c
+> @@ -69,8 +69,6 @@
+>  #define PCIE_ATU_FUNC(x)		(((x) & 0x7) << 16)
+>  #define PCIE_ATU_UPPER_TARGET		0x91C
+>  
+> -static struct pci_ops dw_pcie_ops;
+> -
+>  int dw_pcie_cfg_read(void __iomem *addr, int size, u32 *val)
+>  {
+>  	if ((uintptr_t)addr & (size - 1)) {
+> @@ -690,7 +688,7 @@ static int dw_pcie_wr_conf(struct pci_bus *bus, u32 devfn,
+>  	return dw_pcie_wr_other_conf(pp, bus, devfn, where, size, val);
+>  }
+>  
+> -static struct pci_ops dw_pcie_ops = {
+> +struct pci_ops dw_pcie_ops = {
+>  	.read = dw_pcie_rd_conf,
+>  	.write = dw_pcie_wr_conf,
+>  };
+> diff --git a/drivers/pci/host/pcie-designware.h b/drivers/pci/host/pcie-designware.h
+> index 2356d29..3f42655 100644
+> --- a/drivers/pci/host/pcie-designware.h
+> +++ b/drivers/pci/host/pcie-designware.h
+> @@ -80,4 +80,6 @@ int dw_pcie_link_up(struct pcie_port *pp);
+>  void dw_pcie_setup_rc(struct pcie_port *pp);
+>  int dw_pcie_host_init(struct pcie_port *pp);
+>  
+> +extern struct pci_ops dw_pcie_ops;
+> +
+>  #endif /* _PCIE_DESIGNWARE_H */
+> diff --git a/drivers/pci/host/pcie-hisi.c b/drivers/pci/host/pcie-hisi.c
+> index 458d0f8..d3e2047 100644
+> --- a/drivers/pci/host/pcie-hisi.c
+> +++ b/drivers/pci/host/pcie-hisi.c
+> @@ -43,6 +43,18 @@ struct pcie_soc_ops {
+>  	int (*hisi_pcie_link_up)(struct hisi_pcie *pcie);
+>  };
+>  
+> +static inline int hisi_rd_ecam_conf(struct pcie_port *pp, struct pci_bus *bus,
+> +		unsigned int devfn, int where, int size, u32 *value)
+> +{
+> +	return pci_generic_config_read(bus, devfn, where, size, value);
+> +}
+> +
+> +static inline int hisi_wr_ecam_conf(struct pcie_port *pp, struct pci_bus *bus,
+> +		unsigned int devfn, int where, int size, u32 value)
+> +{
+> +	return pci_generic_config_write(bus, devfn, where, size, value);
+> +}
+> +
+>  static inline int hisi_pcie_cfg_read(struct pcie_port *pp, int where,
+>  		int size, u32 *val)
+>  {
+> @@ -72,6 +84,17 @@ struct pcie_host_ops hisi_pcie_host_ops = {
+>  		.link_up = hisi_pcie_link_up,
+>  };
+>  
+> +static void __iomem *hisi_pci_map_cfg_bus_cam(struct pci_bus *bus,
+> +					     unsigned int devfn,
+> +					     int where)
+> +{
+> +	void __iomem *addr;
+> +	struct pcie_port *pp = bus->sysdata;
+> +
+> +	addr = pp->va_cfg1_base + where;
+> +
+> +	return addr;
+> +}
+>  
+>  static int hisi_add_pcie_port(struct pcie_port *pp,
+>  				     struct platform_device *pdev)
+> @@ -137,6 +160,23 @@ static int hisi_pcie_probe(struct platform_device *pdev)
+>  
+>  	hisi_pcie->pp.dbi_base = hisi_pcie->reg_base;
+>  
+> +	reg = platform_get_resource_byname(pdev, IORESOURCE_MEM, "ecam-cfg");
+> +	if (reg) {
+> +		/* ECAM driver version */
+> +		hisi_pcie->pp.va_cfg0_base =
+> +				devm_ioremap_resource(&pdev->dev, reg);
+> +		if (IS_ERR(hisi_pcie->pp.va_cfg0_base)) {
+> +			dev_err(pp->dev, "cannot get ecam-cfg\n");
+> +			return PTR_ERR(hisi_pcie->pp.va_cfg0_base);
+> +		}
+> +		hisi_pcie->pp.va_cfg1_base = hisi_pcie->pp.va_cfg0_base;
+> +
+> +		dw_pcie_ops.map_bus = hisi_pci_map_cfg_bus_cam;
+> +
+> +		hisi_pcie_host_ops.rd_other_conf = hisi_rd_ecam_conf;
+> +		hisi_pcie_host_ops.wr_other_conf = hisi_wr_ecam_conf;
+> +	}
+> +
+>  	ret = hisi_add_pcie_port(pp, pdev);
+>  	if (ret)
+>  		return ret;
+> -- 
+> 1.9.1
+> 
+> 
+> 
+> _______________________________________________
+> linux-arm-kernel mailing list
+> linux-arm-kernel@lists.infradead.org
+> http://lists.infradead.org/mailman/listinfo/linux-arm-kernel
 > 
