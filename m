@@ -1,76 +1,181 @@
-From: Arnd Bergmann <arnd@arndb.de>
-Subject: Re: [RFC PATCH v2 1/3] PCI: hisi: re-architect Hip05/Hip06 controllers driver to preapare for ACPI
-Date: Tue, 09 Feb 2016 17:27:05 +0100
-Message-ID: <5968234.D2a3VCM72k@wuerfel>
-References: <1454935264-6076-1-git-send-email-gabriele.paoloni@huawei.com> <3113837.YSNyDAf4HQ@wuerfel> <EE11001F9E5DDD47B7634E2F8A612F2E1ECAD249@lhreml503-mbs>
+From: Bjorn Helgaas <helgaas@kernel.org>
+Subject: Re: Problems since commit Recognize that Interrupt Line 255 means
+ "not connected"
+Date: Tue, 9 Feb 2016 10:44:35 -0600
+Message-ID: <20160209164435.GB20171@localhost>
+References: <56B52990.3030103@gmail.com>
+ <1676062.Zh6hUgWIix@vostro.rjw.lan>
+ <56B5AA4B.5040705@gmail.com>
+ <20160206151922.GB22119@localhost>
+ <56B61492.40507@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7Bit
-Return-path: <linux-pci-owner@vger.kernel.org>
-In-Reply-To: <EE11001F9E5DDD47B7634E2F8A612F2E1ECAD249@lhreml503-mbs>
-Sender: linux-pci-owner@vger.kernel.org
-To: Gabriele Paoloni <gabriele.paoloni@huawei.com>
-Cc: "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "Guohanjun (Hanjun Guo)" <guohanjun@huawei.com>, "Wangzhou (B)" <wangzhou1@hisilicon.com>, "liudongdong (C)" <liudongdong3@huawei.com>, Linuxarm <linuxarm@huawei.com>, qiujiang <qiujiang@huawei.com>, "bhelgaas@google.com" <bhelgaas@google.com>, "Lorenzo.Pieralisi@arm.com" <Lorenzo.Pieralisi@arm.com>, "tn@semihalf.com" <tn@semihalf.com>, "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "xuwei (O)" <xuwei5@hisilicon.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "jcm@redhat.com" <jcm@redhat.com>, zhangjukuo <zhangjukuo@huawei.com>, "Liguozhu (Kenneth)" <liguozhu@hisilicon.com>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail.kernel.org ([198.145.29.136]:44147 "EHLO mail.kernel.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752448AbcBIQoj (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 9 Feb 2016 11:44:39 -0500
+Content-Disposition: inline
+In-Reply-To: <56B61492.40507@gmail.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Heiner Kallweit <hkallweit1@gmail.com>
+Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Chen Fan <chen.fan.fnst@cn.fujitsu.com>, linux-acpi@vger.kernel.org, Bjorn Helgaas <bhelgaas@google.com>, Linux PCI <linux-pci@vger.kernel.org>
 
-On Monday 08 February 2016 16:51:19 Gabriele Paoloni wrote:
-> > From: Arnd Bergmann [mailto:arnd@arndb.de]
-> > On Monday 08 February 2016 16:06:54 Gabriele Paoloni wrote:
-> > > > On Monday 08 February 2016 12:41:02 Gabriele Paoloni wrote:
-> > int
-> > > > size,
-> > > > > +                         u32 *val)
-> > > > > +{
-> > > > > +   u32 reg;
-> > > > > +   u32 reg_val;
-> > > > > +   void *walker = &reg_val;
-> > > > > +
-> > > > > +   walker += (where & 0x3);
-> > > > > +   reg = where & ~0x3;
-> > > > > +   reg_val = readl(reg_base + reg);
-> > > > > +
-> > > > > +   if (size == 1)
-> > > > > +           *val = *(u8 __force *) walker;
-> > > > > +   else if (size == 2)
-> > > > > +           *val = *(u16 __force *) walker;
-> > > > > +   else if (size == 4)
-> > > > > +           *val = reg_val;
-> > > > > +   else
-> > > > > +           return PCIBIOS_BAD_REGISTER_NUMBER;
-> > > > > +
-> > > > > +   return PCIBIOS_SUCCESSFUL;
-> > > > > +}
-> > > >
-> > > > Isn't this the same hack that Qualcomm are using?
-> > >
-> > > As far as I can see Qualcomm defines its own config access
-> > > mechanism only for RC config read and also it seems they're
-> > > having problems with reporting the device class...
-> > >
-> > > https://github.com/torvalds/linux/blob/master/drivers/pci/host/pcie-
-> > qcom.c#L474
-> > >
-> > > Our problem is that our HW can only perform 32b rd/wr accesses
-> > > So we can't use readw/readb/writew/writeb...
-> > >
-> > >
+On Sat, Feb 06, 2016 at 04:43:14PM +0100, Heiner Kallweit wrote:
+> Am 06.02.2016 um 16:19 schrieb Bjorn Helgaas:
+> > On Sat, Feb 06, 2016 at 09:09:47AM +0100, Heiner Kallweit wrote:
+> >> Am 06.02.2016 um 00:37 schrieb Rafael J. Wysocki:
+> >>> On Saturday, February 06, 2016 12:00:32 AM Heiner Kallweit wrote:
+> >>>> Since commit a44c386a361e "x86/PCI/ACPI: Recognize that Interrupt Line 255
+> >>>> means "not connected"" I get several "PCI INT not connected" warnings on
+> >>>> a Zotac CI321 and EHCI failes to load:
+> >>>
+> >>> That doesn't follow clearly from your report, but I'm assuming that it works
+> >>> correctly without that commit, right?
+> >>>
+> >> Right, w/o this commit it looks like this:
+> >>
+> >> dmesg
+> >> ehci-pci 0000:00:1d.0: irq 23, io mem 0xf7d1b000
+> >>
+> >> /proc/interrupts
+> >> IO-APIC  23-fasteoi   ehci_hcd:usb3
 > > 
-> > Sorry, my mistake, I meant Cavium not Qualcomm.
-> > See https://lkml.org/lkml/2016/2/5/689 for the patches.
-> 
-> Well, looking at it Cavium seems quite different, 
-> 
-> On read they need to trigger the retrieval of the
-> config space info writing to the lower 32b of a 64b register,
-> then they need to read data back on the upper 64b of the
-> same register and adjust the content to remove the garbage...
-> 
-> We just use 32b accesses and adjust grab the appropriate
-> bytes depending on the read/write sizes...
+> > Thanks a lot for your report!  This is a bit of a minefield, and I was
+> > worried that we'd trip over something with a44c386a361e.
+> > 
+> > Oops, I think I see a problem with a44c386a361e.  We're checking for
+> > Interrupt Line == 255 even before we try to look it up in the _PRT.  I
+> > think we should only check Interrupt Line *after* everything else has
+> > failed.  Can you try the patch below instead of a44c386a361e?
+> > 
+> With the attached patch everything is fine. No warnings and EHCI loads properly.
 
-Hmm, I must have misremembered that too then, let me try once more ;-)
+Great, thanks a lot for testing this!
 
-The above appears to reimplement pci_generic_config_read32(). Can you
-just use that instead?
+Chen, will you update and repost your patch?  I know Rafael already
+had it on a branch, but I think he dropped it, so we need to get the
+update merged somehow.
 
-	Arnd
+Bjorn
+
+> > If the patch below doesn't work, would you mind collecting the
+> > complete output of "lspci -vvv" and the complete dmesg logs from
+> > kernels with and without a44c386a361e, and putting them somewhere
+> > (maybe a bugzilla.kernel.org report)?
+> > 
+> > Bjorn
+> > 
+> > 
+> > diff --git a/drivers/acpi/pci_irq.c b/drivers/acpi/pci_irq.c
+> > index d30184c..807a0a8 100644
+> > --- a/drivers/acpi/pci_irq.c
+> > +++ b/drivers/acpi/pci_irq.c
+> > @@ -33,6 +33,7 @@
+> >  #include <linux/pci.h>
+> >  #include <linux/acpi.h>
+> >  #include <linux/slab.h>
+> > +#include <linux/interrupt.h>
+> >  
+> >  #define PREFIX "ACPI: "
+> >  
+> > @@ -387,6 +388,23 @@ static inline int acpi_isa_register_gsi(struct pci_dev *dev)
+> >  }
+> >  #endif
+> >  
+> > +static inline bool acpi_pci_irq_valid(struct pci_dev *dev, u8 pin)
+> > +{
+> > +#ifdef CONFIG_X86
+> > +	/*
+> > +	 * On x86, Interrupt Line 0xff means "unknown" or "no connection"
+> > +	 * (PCI 3.0, Section 6.2.4, footnote on page 223).
+> > +	 */
+> > +	if (dev->irq == 0xff) {
+> > +		dev->irq = IRQ_NOTCONNECTED;
+> > +		dev_warn(&dev->dev, "PCI INT %c: not connected\n",
+> > +			 pin_name(pin));
+> > +		return false;
+> > +	}
+> > +#endif
+> > +	return true;
+> > +}
+> > +
+> >  int acpi_pci_irq_enable(struct pci_dev *dev)
+> >  {
+> >  	struct acpi_prt_entry *entry;
+> > @@ -431,11 +449,14 @@ int acpi_pci_irq_enable(struct pci_dev *dev)
+> >  	} else
+> >  		gsi = -1;
+> >  
+> > -	/*
+> > -	 * No IRQ known to the ACPI subsystem - maybe the BIOS / 
+> > -	 * driver reported one, then use it. Exit in any case.
+> > -	 */
+> >  	if (gsi < 0) {
+> > +		/*
+> > +		 * No IRQ known to the ACPI subsystem - maybe the BIOS /
+> > +		 * driver reported one, then use it. Exit in any case.
+> > +		 */
+> > +		if (!acpi_pci_irq_valid(dev, pin))
+> > +			return 0;
+> > +
+> >  		if (acpi_isa_register_gsi(dev))
+> >  			dev_warn(&dev->dev, "PCI INT %c: no GSI\n",
+> >  				 pin_name(pin));
+> > diff --git a/include/linux/interrupt.h b/include/linux/interrupt.h
+> > index 0e95fcc..358076e 100644
+> > --- a/include/linux/interrupt.h
+> > +++ b/include/linux/interrupt.h
+> > @@ -125,6 +125,16 @@ struct irqaction {
+> >  
+> >  extern irqreturn_t no_action(int cpl, void *dev_id);
+> >  
+> > +/*
+> > + * If a (PCI) device interrupt is not connected we set dev->irq to
+> > + * IRQ_NOTCONNECTED. This causes request_irq() to fail with -ENOTCONN, so we
+> > + * can distingiush that case from other error returns.
+> > + *
+> > + * 0x80000000 is guaranteed to be outside the available range of interrupts
+> > + * and easy to distinguish from other possible incorrect values.
+> > + */
+> > +#define IRQ_NOTCONNECTED	(1U << 31)
+> > +
+> >  extern int __must_check
+> >  request_threaded_irq(unsigned int irq, irq_handler_t handler,
+> >  		     irq_handler_t thread_fn,
+> > diff --git a/kernel/irq/manage.c b/kernel/irq/manage.c
+> > index 8411872..e79e60f 100644
+> > --- a/kernel/irq/manage.c
+> > +++ b/kernel/irq/manage.c
+> > @@ -1609,6 +1609,9 @@ int request_threaded_irq(unsigned int irq, irq_handler_t handler,
+> >  	struct irq_desc *desc;
+> >  	int retval;
+> >  
+> > +	if (irq == IRQ_NOTCONNECTED)
+> > +		return -ENOTCONN;
+> > +
+> >  	/*
+> >  	 * Sanity-check: shared interrupts must pass in a real dev-ID,
+> >  	 * otherwise we'll have trouble later trying to figure out
+> > @@ -1699,9 +1702,13 @@ EXPORT_SYMBOL(request_threaded_irq);
+> >  int request_any_context_irq(unsigned int irq, irq_handler_t handler,
+> >  			    unsigned long flags, const char *name, void *dev_id)
+> >  {
+> > -	struct irq_desc *desc = irq_to_desc(irq);
+> > +	struct irq_desc *desc;
+> >  	int ret;
+> >  
+> > +	if (irq == IRQ_NOTCONNECTED)
+> > +		return -ENOTCONN;
+> > +
+> > +	desc = irq_to_desc(irq);
+> >  	if (!desc)
+> >  		return -EINVAL;
+> >  
+> > 
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
