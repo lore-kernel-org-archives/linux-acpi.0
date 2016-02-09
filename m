@@ -1,60 +1,73 @@
-From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: platform_get_irq_byname() supported on ACPI?
-Date: Mon, 08 Feb 2016 23:37:08 +0100
-Message-ID: <14142046.8lM1qrtiEy@vostro.rjw.lan>
-References: <56B8C6E1.1040804@codeaurora.org>
+From: Stefano Stabellini <stefano.stabellini@eu.citrix.com>
+Subject: Re: [PATCH v4 01/17] Xen: ACPI: Hide UART used by Xen
+Date: Tue, 9 Feb 2016 11:19:02 +0000
+Message-ID: <alpine.DEB.2.02.1602091116240.27008@kaball.uk.xensource.com>
+References: <1454641552-12576-1-git-send-email-zhaoshenglong@huawei.com>
+ <CAJZ5v0id-035AtyQ_SccPuCxD7+pa6GCgj3WBAojM+rFqssGQQ@mail.gmail.com>
+ <alpine.DEB.2.02.1602081054350.27008@kaball.uk.xensource.com>
+ <2213954.ztOe55fprN@vostro.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="US-ASCII"
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from v094114.home.net.pl ([79.96.170.134]:42626 "HELO
-	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1756658AbcBHWf5 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 8 Feb 2016 17:35:57 -0500
-In-Reply-To: <56B8C6E1.1040804@codeaurora.org>
+Received: from smtp.citrix.com ([66.165.176.89]:1473 "EHLO SMTP.CITRIX.COM"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S932911AbcBILT0 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 9 Feb 2016 06:19:26 -0500
+In-Reply-To: <2213954.ztOe55fprN@vostro.rjw.lan>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Timur Tabi <timur@codeaurora.org>
-Cc: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: Stefano Stabellini <stefano.stabellini@eu.citrix.com>, "Rafael J. Wysocki" <rafael@kernel.org>, Shannon Zhao <zhaoshenglong@huawei.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, ard.biesheuvel@linaro.org, stefano.stabellini@citrix.com, david.vrabel@citrix.com, Catalin Marinas <catalin.marinas@arm.com>, Will Deacon <will.deacon@arm.com>, Mark Rutland <mark.rutland@arm.com>, julien.grall@citrix.com, xen-devel@lists.xen.org, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, linux-efi@vger.kernel.org, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, ian.campbell@citrix.com, Shannon Zhao <shannon.zhao@linaro.org>, peter.huangpeng@huawei.com, Len Brown <lenb@kernel.org>, "open list:ACPI" <linux-acpi@vger.kernel.org>
 
-On Monday, February 08, 2016 10:48:33 AM Timur Tabi wrote:
-> Is there support for the platform_get_irq_byname() function on ACPI systems?
+On Mon, 8 Feb 2016, Rafael J. Wysocki wrote:
+> On Monday, February 08, 2016 10:57:01 AM Stefano Stabellini wrote:
+> > On Sat, 6 Feb 2016, Rafael J. Wysocki wrote:
+> > > On Fri, Feb 5, 2016 at 4:05 AM, Shannon Zhao <zhaoshenglong@huawei.com> wrote:
+> > > > From: Shannon Zhao <shannon.zhao@linaro.org>
+> > > >
+> > > > ACPI 6.0 introduces a new table STAO to list the devices which are used
+> > > > by Xen and can't be used by Dom0. On Xen virtual platforms, the physical
+> > > > UART is used by Xen. So here it hides UART from Dom0.
+> > > >
+> > > > Signed-off-by: Shannon Zhao <shannon.zhao@linaro.org>
+> > > > Reviewed-by: Stefano Stabellini <stefano.stabellini@eu.citrix.com>
+> > > 
+> > > Well, this doesn't look right to me.
+> > > 
+> > > We need to find a nicer way to achieve what you want.
+> > 
+> > I take that you are talking about how to honor the STAO table in Linux.
+> > Do you have any concrete suggestions?
 > 
-> I'm working on adding ACPI support for a driver that currently only 
-> supports device tree.  This driver has code like this:
+> I do.
 > 
-> 	ret = platform_get_irq_byname(pdev, "core0_irq");
+> The last hunk of the patch is likely what it needs to be, although I'm
+> not sure if the place it is added to is the right one.  That's a minor thing,
+> though.
 > 
-> This function works fine on device tree, but it fails on our ACPI system 
-> because our ACPI nodes don't appear to have any way to attach a name to 
-> an IRQ resource:
+> The other part is problematic.  Not that as it doesn't work, but because of
+> how it works.  With these changes the device will be visible to the OS (in
+> fact to user space even), but will never be "present".  I'm not sure if
+> that's what you want?
+> 
+> It might be better to add a check to acpi_bus_type_and_status() that will
+> evaluate the "should ignore?" thing and return -ENODEV if this is true.  This
+> way the device won't be visible at all.
 
-That's correct.
+Something like below?  Actually your suggestion is better, thank you!
 
-> 
-> Method (_CRS, 0x0, Serialized) {
-> 	Name (RBUF, ResourceTemplate() {
-> 		[snip]
-> 		Interrupt (ResourceConsumer, Level, ActiveHigh,
-> 			Exclusive, , , )
-> 			{0x120, 0x121, 0x122, 0x123}
-> 	})
-> 	Return (RBUF)
-> }
-> 
-> I would hate to have to do something like this:
-> 
-> ret = platform_get_irq_byname(pdev, "core0_irq");
-> if (ret)
-> 	/* ACPI doesn't support named resources */
-> 	ret = platform_get_irq(pdev, 0);
-
-That's the only way ATM, though.
-
-In theory _DSD might be used to provide a name for the IRQ resource, but
-that hasn't been explored yet (and there's no support in the code, of
-course).
-
-Thanks,
-Rafael
+diff --git a/drivers/acpi/scan.c b/drivers/acpi/scan.c
+index 78d5f02..4778c51 100644
+--- a/drivers/acpi/scan.c
++++ b/drivers/acpi/scan.c
+@@ -1455,6 +1455,9 @@ static int acpi_bus_type_and_status(acpi_handle handle, int *type,
+ 	if (ACPI_FAILURE(status))
+ 		return -ENODEV;
+ 
++	if (acpi_check_device_is_ignored(handle))
++		return -ENODEV;
++
+ 	switch (acpi_type) {
+ 	case ACPI_TYPE_ANY:		/* for ACPI_ROOT_OBJECT */
+ 	case ACPI_TYPE_DEVICE:
 
