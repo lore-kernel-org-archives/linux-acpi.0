@@ -1,93 +1,166 @@
 From: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
-Subject: Re: [PATCH V4 11/23] pci, acpi: Move ACPI host bridge device
- companion assignment to core code.
-Date: Tue, 9 Feb 2016 18:02:27 +0000
-Message-ID: <20160209180227.GC22868@red-moon>
-References: <1454606941-9523-1-git-send-email-tn@semihalf.com>
- <1454606941-9523-12-git-send-email-tn@semihalf.com>
+Subject: Re: [PATCH] PCI: ACPI: IA64: fix IO port generic range check
+Date: Tue, 9 Feb 2016 18:11:39 +0000
+Message-ID: <20160209181139.GD22868@red-moon>
+References: <1454322357-10912-1-git-send-email-lorenzo.pieralisi@arm.com>
+ <20160209170006.GA21247@localhost>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from foss.arm.com ([217.140.101.70]:42325 "EHLO foss.arm.com"
+Received: from foss.arm.com ([217.140.101.70]:42369 "EHLO foss.arm.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752854AbcBISAa (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 9 Feb 2016 13:00:30 -0500
+	id S1754143AbcBISJl (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 9 Feb 2016 13:09:41 -0500
 Content-Disposition: inline
-In-Reply-To: <1454606941-9523-12-git-send-email-tn@semihalf.com>
+In-Reply-To: <20160209170006.GA21247@localhost>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Tomasz Nowicki <tn@semihalf.com>
-Cc: bhelgaas@google.com, arnd@arndb.de, will.deacon@arm.com, catalin.marinas@arm.com, rjw@rjwysocki.net, hanjun.guo@linaro.org, okaya@codeaurora.org, jiang.liu@linux.intel.com, Stefano.Stabellini@eu.citrix.com, robert.richter@caviumnetworks.com, mw@semihalf.com, Liviu.Dudau@arm.com, ddaney@caviumnetworks.com, wangyijing@huawei.com, Suravee.Suthikulpanit@amd.com, msalter@redhat.com, linux-pci@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linaro-acpi@lists.linaro.org, jchandra@broadcom.com, jcm@redhat.com
+To: Bjorn Helgaas <helgaas@kernel.org>
+Cc: linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Bjorn Helgaas <bhelgaas@google.com>, Hanjun Guo <hanjun.guo@linaro.org>, Jiang Liu <jiang.liu@linux.intel.com>, Tony Luck <tony.luck@intel.com>, Tomasz Nowicki <tn@semihalf.com>, Mark Salter <msalter@redhat.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>
 
-On Thu, Feb 04, 2016 at 06:28:49PM +0100, Tomasz Nowicki wrote:
-> Currently we have two platforms (x86 & ia64) capable of PCI ACPI host
-> bridge initialization. They both use sysdata to pass down parent
-> device reference and both rely on NULL parent in pci_create_root_bus()
-> to validate sysdata content.
+Hi Bjorn,
+
+On Tue, Feb 09, 2016 at 11:00:06AM -0600, Bjorn Helgaas wrote:
+> Hi Lorenzo,
 > 
-> It looks hacky and prevents us from getting some firmware specific
-> info for PCI host controller e.g. PCI bus domain number.
-> However, we overcome that blocker by passing down parent
-> device via pci_create_root_bus parameter (as the ACPI device type)
-> and using ACPI_COMPANION_SET in core code for ACPI boot method.
-> ACPI_COMPANION_SET is safe to run for all cases DT, ACPI and DT&ACPI.
+> On Mon, Feb 01, 2016 at 10:25:57AM +0000, Lorenzo Pieralisi wrote:
+> > The [0 - 64k] ACPI PCI IO port resource boundary check in:
+> > 
+> > acpi_dev_ioresource_flags()
+> > 
+> > is currently applied blindly in the ACPI resource parsing to all
+> > architectures, but only x86 suffers from that IO space limitation.
+> > The check in generic ACPI code leaves other arches (ie IA64) IO space
+> > broken (ie kernel can't claim IO resources since the host bridge
+> > IO resource is disabled and discarded by ACPI core code, eg log on
+> > IA64):
+> > 
+> > pci 0000:00:03.0: [1002:515e] type 00 class 0x030000
+> > 
+> > pci 0000:00:03.0: reg 0x10: [mem 0x80000000-0x87ffffff pref]
+> > 
+> > pci 0000:00:03.0: reg 0x14: [io  0x1000-0x10ff]
+> > 
+> > pci 0000:00:03.0: reg 0x18: [mem 0x88020000-0x8802ffff]
+> > 
+> > pci 0000:00:03.0: reg 0x30: [mem 0x88000000-0x8801ffff pref]
+> > 
+> > pci 0000:00:03.0: supports D1 D2
+> > 
+> > pci 0000:00:03.0: can't claim BAR 1 [io  0x1000-0x10ff]: no compatible
+> > bridge window
 > 
-> Suggested-by: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
-> Signed-off-by: Tomasz Nowicki <tn@semihalf.com>
-> Tested-by: Duc Dang <dhdang@apm.com>
-> Tested-by: Dongdong Liu <liudongdong3@huawei.com>
-> Tested-by: Hanjun Guo <hanjun.guo@linaro.org>
-> Tested-by: Graeme Gregory <graeme.gregory@linaro.org>
-> Tested-by: Sinan Kaya <okaya@codeaurora.org>
-> ---
->  drivers/acpi/pci_root.c | 5 ++++-
->  drivers/pci/probe.c     | 2 ++
->  2 files changed, 6 insertions(+), 1 deletion(-)
-> 
-> diff --git a/drivers/acpi/pci_root.c b/drivers/acpi/pci_root.c
-> index ae3fe4e..a65c8c2 100644
-> --- a/drivers/acpi/pci_root.c
-> +++ b/drivers/acpi/pci_root.c
-> @@ -846,7 +846,10 @@ struct pci_bus *acpi_pci_root_create(struct acpi_pci_root *root,
->  
->  	pci_acpi_root_add_resources(info);
->  	pci_add_resource(&info->resources, &root->secondary);
-> -	bus = pci_create_root_bus(NULL, busnum, ops->pci_ops,
-> +
-> +	/* Root bridge device needs to be sure of parent ACPI type */
+> I think your text and code changes make sense, but I don't understand
+> this example.  I guess there must have been a host bridge window from
+> _CRS that got discarded, which would lead to this error for any I/O
+> resources in the tree below that bridge.
 
-You can improve the comment.
+Exactly, claiming IO space fails since the root bridge aperture from
+_CRS was discarded by core ACPI code.
 
-"pci_create_root_bus() needs to detect the parent device type,
-so initialize its companion data accordingly".
+> I guess that probably doesn't show up in the dmesg log, except that
+> the root bus doesn't have any I/O resources, because we only show the
+> root bus resources, not the original _CRS resources.
 
-> +	ACPI_COMPANION_SET(&device->dev, device);
-> +	bus = pci_create_root_bus(&device->dev, busnum, ops->pci_ops,
->  				  sysdata, &info->resources);
->  	if (!bus)
->  		goto out_release_info;
-> diff --git a/drivers/pci/probe.c b/drivers/pci/probe.c
-> index 6d7ab9b..81dd3a2 100644
-> --- a/drivers/pci/probe.c
-> +++ b/drivers/pci/probe.c
-> @@ -2100,6 +2100,8 @@ struct pci_bus *pci_create_root_bus(struct device *parent, int bus,
->  	bridge->dev.parent = parent;
->  	bridge->dev.release = pci_release_host_bridge_dev;
->  	dev_set_name(&bridge->dev, "pci%04x:%02x", pci_domain_nr(b), bus);
-> +	ACPI_COMPANION_SET(&bridge->dev,
-> +			   parent ? to_acpi_device_node(parent->fwnode) : NULL);
-if (parent)
-	ACPI_COMPANION_SET(&bridge->dev, ACPI_COMPANION(parent));
+Yep.
 
-?
+> This seems like something we might explicitly note in dmesg, i.e.,
+> maybe we should log a warning when we discard an invalid resource.
 
-It seems fine to me, hopefully Rafael can have a look to countercheck.
+Yes, I can do that, with a separate patch (unless you want it to go
+in via this fix). I will send a v2 with a rephrased commit log to show
+how the root bus resources have to look like and how they look currently,
+reporting the regression.
 
-Reviewed-by: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+Thanks,
+Lorenzo
 
->  	error = pcibios_root_bridge_prepare(bridge);
->  	if (error) {
->  		kfree(bridge);
-> -- 
-> 1.9.1
+> > For this reason, the IO port resources boundaries check in generic ACPI
+> > parsing code should be moved to x86 arch code so that more arches (ie
+> > ARM64) can benefit from the generic ACPI resources parsing interface
+> > without incurring in unexpected resource filtering, fixing at the same
+> > time current breakage on IA64.
+> > 
+> > This patch moves the IO ports boundary [0 - 64k] check to x86 arch code
+> > code that validates the PCI host bridge resources.
+> > 
+> > Fixes: 3772aea7d6f3 ("ia64/PCI/ACPI: Use common ACPI resource parsing
+> > interface for host bridge")
+> > Signed-off-by: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+> > Cc: Bjorn Helgaas <bhelgaas@google.com>
+> > Cc: Hanjun Guo <hanjun.guo@linaro.org>
+> > Cc: Jiang Liu <jiang.liu@linux.intel.com>
+> > Cc: Tony Luck <tony.luck@intel.com>
+> > Cc: Tomasz Nowicki <tn@semihalf.com>
+> > Cc: Mark Salter <msalter@redhat.com>
+> > Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+> > ---
+> >  arch/x86/pci/acpi.c     | 18 +++++++++++++-----
+> >  drivers/acpi/resource.c |  3 ---
+> >  2 files changed, 13 insertions(+), 8 deletions(-)
+> > 
+> > diff --git a/arch/x86/pci/acpi.c b/arch/x86/pci/acpi.c
+> > index 3cd6983..e20dbe5 100644
+> > --- a/arch/x86/pci/acpi.c
+> > +++ b/arch/x86/pci/acpi.c
+> > @@ -275,11 +275,14 @@ static void pci_acpi_root_release_info(struct acpi_pci_root_info *ci)
+> >   *     to access PCI configuration space.
+> >   *
+> >   * So explicitly filter out PCI CFG IO ports[0xCF8-0xCFF].
+> > + *
+> > + * Furthermore, IO ports address space is limited to 16k on x86,
+> > + * any IO resource exceeding the boundary must therefore be discarded.
+> >   */
+> > -static bool resource_is_pcicfg_ioport(struct resource *res)
+> > +static bool ioport_valid(struct resource *res)
+> >  {
+> > -	return (res->flags & IORESOURCE_IO) &&
+> > -		res->start == 0xCF8 && res->end == 0xCFF;
+> > +	return !(res->start == 0xCF8 && res->end == 0xCFF) &&
+> > +	       !(res->end >= 0x10003);
+> >  }
+> >  
+> >  static int pci_acpi_root_prepare_resources(struct acpi_pci_root_info *ci)
+> > @@ -287,13 +290,18 @@ static int pci_acpi_root_prepare_resources(struct acpi_pci_root_info *ci)
+> >  	struct acpi_device *device = ci->bridge;
+> >  	int busnum = ci->root->secondary.start;
+> >  	struct resource_entry *entry, *tmp;
+> > +	struct resource *res;
+> >  	int status;
+> >  
+> >  	status = acpi_pci_probe_root_resources(ci);
+> >  	if (pci_use_crs) {
+> > -		resource_list_for_each_entry_safe(entry, tmp, &ci->resources)
+> > -			if (resource_is_pcicfg_ioport(entry->res))
+> > +		resource_list_for_each_entry_safe(entry, tmp, &ci->resources) {
+> > +			res = entry->res;
+> > +
+> > +			if (res->flags & IORESOURCE_IO && !ioport_valid(res))
+> >  				resource_list_destroy_entry(entry);
+> > +		}
+> > +
+> >  		return status;
+> >  	}
+> >  
+> > diff --git a/drivers/acpi/resource.c b/drivers/acpi/resource.c
+> > index d02fd53..c112e1d 100644
+> > --- a/drivers/acpi/resource.c
+> > +++ b/drivers/acpi/resource.c
+> > @@ -127,9 +127,6 @@ static void acpi_dev_ioresource_flags(struct resource *res, u64 len,
+> >  	if (!acpi_dev_resource_len_valid(res->start, res->end, len, true))
+> >  		res->flags |= IORESOURCE_DISABLED | IORESOURCE_UNSET;
+> >  
+> > -	if (res->end >= 0x10003)
+> > -		res->flags |= IORESOURCE_DISABLED | IORESOURCE_UNSET;
+> > -
+> >  	if (io_decode == ACPI_DECODE_16)
+> >  		res->flags |= IORESOURCE_IO_16BIT_ADDR;
+> >  	if (translation_type == ACPI_SPARSE_TRANSLATION)
+> > -- 
+> > 2.5.1
+> > 
+> > --
+> > To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
+> > the body of a message to majordomo@vger.kernel.org
+> > More majordomo info at  http://vger.kernel.org/majordomo-info.html
 > 
