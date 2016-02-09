@@ -1,73 +1,98 @@
-From: Stefano Stabellini <stefano.stabellini@eu.citrix.com>
-Subject: Re: [PATCH v4 01/17] Xen: ACPI: Hide UART used by Xen
-Date: Tue, 9 Feb 2016 11:19:02 +0000
-Message-ID: <alpine.DEB.2.02.1602091116240.27008@kaball.uk.xensource.com>
-References: <1454641552-12576-1-git-send-email-zhaoshenglong@huawei.com>
- <CAJZ5v0id-035AtyQ_SccPuCxD7+pa6GCgj3WBAojM+rFqssGQQ@mail.gmail.com>
- <alpine.DEB.2.02.1602081054350.27008@kaball.uk.xensource.com>
- <2213954.ztOe55fprN@vostro.rjw.lan>
+From: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+Subject: Re: [PATCH] PCI: ACPI: IA64: fix IO port generic range check
+Date: Tue, 9 Feb 2016 14:57:04 +0000
+Message-ID: <20160209145704.GA22868@red-moon>
+References: <1454322357-10912-1-git-send-email-lorenzo.pieralisi@arm.com>
+ <56AF4359.1020709@linaro.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="US-ASCII"
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp.citrix.com ([66.165.176.89]:1473 "EHLO SMTP.CITRIX.COM"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932911AbcBILT0 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 9 Feb 2016 06:19:26 -0500
-In-Reply-To: <2213954.ztOe55fprN@vostro.rjw.lan>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-pci-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <56AF4359.1020709@linaro.org>
+Sender: linux-pci-owner@vger.kernel.org
+To: Hanjun Guo <hanjun.guo@linaro.org>
+Cc: linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Bjorn Helgaas <bhelgaas@google.com>, Jiang Liu <jiang.liu@linux.intel.com>, Tony Luck <tony.luck@intel.com>, Tomasz Nowicki <tn@semihalf.com>, Mark Salter <msalter@redhat.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: Stefano Stabellini <stefano.stabellini@eu.citrix.com>, "Rafael J. Wysocki" <rafael@kernel.org>, Shannon Zhao <zhaoshenglong@huawei.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, ard.biesheuvel@linaro.org, stefano.stabellini@citrix.com, david.vrabel@citrix.com, Catalin Marinas <catalin.marinas@arm.com>, Will Deacon <will.deacon@arm.com>, Mark Rutland <mark.rutland@arm.com>, julien.grall@citrix.com, xen-devel@lists.xen.org, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, linux-efi@vger.kernel.org, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, ian.campbell@citrix.com, Shannon Zhao <shannon.zhao@linaro.org>, peter.huangpeng@huawei.com, Len Brown <lenb@kernel.org>, "open list:ACPI" <linux-acpi@vger.kernel.org>
 
-On Mon, 8 Feb 2016, Rafael J. Wysocki wrote:
-> On Monday, February 08, 2016 10:57:01 AM Stefano Stabellini wrote:
-> > On Sat, 6 Feb 2016, Rafael J. Wysocki wrote:
-> > > On Fri, Feb 5, 2016 at 4:05 AM, Shannon Zhao <zhaoshenglong@huawei.com> wrote:
-> > > > From: Shannon Zhao <shannon.zhao@linaro.org>
-> > > >
-> > > > ACPI 6.0 introduces a new table STAO to list the devices which are used
-> > > > by Xen and can't be used by Dom0. On Xen virtual platforms, the physical
-> > > > UART is used by Xen. So here it hides UART from Dom0.
-> > > >
-> > > > Signed-off-by: Shannon Zhao <shannon.zhao@linaro.org>
-> > > > Reviewed-by: Stefano Stabellini <stefano.stabellini@eu.citrix.com>
-> > > 
-> > > Well, this doesn't look right to me.
-> > > 
-> > > We need to find a nicer way to achieve what you want.
-> > 
-> > I take that you are talking about how to honor the STAO table in Linux.
-> > Do you have any concrete suggestions?
-> 
-> I do.
-> 
-> The last hunk of the patch is likely what it needs to be, although I'm
-> not sure if the place it is added to is the right one.  That's a minor thing,
-> though.
-> 
-> The other part is problematic.  Not that as it doesn't work, but because of
-> how it works.  With these changes the device will be visible to the OS (in
-> fact to user space even), but will never be "present".  I'm not sure if
-> that's what you want?
-> 
-> It might be better to add a check to acpi_bus_type_and_status() that will
-> evaluate the "should ignore?" thing and return -ENODEV if this is true.  This
-> way the device won't be visible at all.
+Hi,
 
-Something like below?  Actually your suggestion is better, thank you!
+On Mon, Feb 01, 2016 at 07:36:57PM +0800, Hanjun Guo wrote:
+> On 2016/2/1 18:25, Lorenzo Pieralisi wrote:
+> >The [0 - 64k] ACPI PCI IO port resource boundary check in:
+> >
+> >acpi_dev_ioresource_flags()
+> >
+> >is currently applied blindly in the ACPI resource parsing to all
+> >architectures, but only x86 suffers from that IO space limitation.
+> >The check in generic ACPI code leaves other arches (ie IA64) IO space
+> >broken (ie kernel can't claim IO resources since the host bridge
+> >IO resource is disabled and discarded by ACPI core code, eg log on
+> >IA64):
+> >
+> >pci 0000:00:03.0: [1002:515e] type 00 class 0x030000
+> >
+> >pci 0000:00:03.0: reg 0x10: [mem 0x80000000-0x87ffffff pref]
+> >
+> >pci 0000:00:03.0: reg 0x14: [io  0x1000-0x10ff]
+> >
+> >pci 0000:00:03.0: reg 0x18: [mem 0x88020000-0x8802ffff]
+> >
+> >pci 0000:00:03.0: reg 0x30: [mem 0x88000000-0x8801ffff pref]
+> >
+> >pci 0000:00:03.0: supports D1 D2
+> >
+> >pci 0000:00:03.0: can't claim BAR 1 [io  0x1000-0x10ff]: no compatible
+> >bridge window
+> >
+> >For this reason, the IO port resources boundaries check in generic ACPI
+> >parsing code should be moved to x86 arch code so that more arches (ie
+> >ARM64) can benefit from the generic ACPI resources parsing interface
+> >without incurring in unexpected resource filtering, fixing at the same
+> >time current breakage on IA64.
+> >
+> >This patch moves the IO ports boundary [0 - 64k] check to x86 arch code
+> >code that validates the PCI host bridge resources.
+> >
+> >Fixes: 3772aea7d6f3 ("ia64/PCI/ACPI: Use common ACPI resource parsing
+> >interface for host bridge")
+> >Signed-off-by: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+> >Cc: Bjorn Helgaas <bhelgaas@google.com>
+> >Cc: Hanjun Guo <hanjun.guo@linaro.org>
+> >Cc: Jiang Liu <jiang.liu@linux.intel.com>
+> >Cc: Tony Luck <tony.luck@intel.com>
+> >Cc: Tomasz Nowicki <tn@semihalf.com>
+> >Cc: Mark Salter <msalter@redhat.com>
+> >Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+> >---
+> >  arch/x86/pci/acpi.c     | 18 +++++++++++++-----
+> >  drivers/acpi/resource.c |  3 ---
+> >  2 files changed, 13 insertions(+), 8 deletions(-)
+> >
+> >diff --git a/arch/x86/pci/acpi.c b/arch/x86/pci/acpi.c
+> >index 3cd6983..e20dbe5 100644
+> >--- a/arch/x86/pci/acpi.c
+> >+++ b/arch/x86/pci/acpi.c
+> >@@ -275,11 +275,14 @@ static void pci_acpi_root_release_info(struct acpi_pci_root_info *ci)
+> >   *     to access PCI configuration space.
+> >   *
+> >   * So explicitly filter out PCI CFG IO ports[0xCF8-0xCFF].
+> >+ *
+> >+ * Furthermore, IO ports address space is limited to 16k on x86,
+> 
+> Minor typo for '16k', should be '64k'? or we can just specify
+> the magic number 0x10003?
+> 
+> By the way, I tested this patch both on x86 and ia64 box,
+> and PCI for both box is working properly after boot,
+> 
+> Tested-by: Hanjun Guo <hanjun.guo@linaro.org>
 
-diff --git a/drivers/acpi/scan.c b/drivers/acpi/scan.c
-index 78d5f02..4778c51 100644
---- a/drivers/acpi/scan.c
-+++ b/drivers/acpi/scan.c
-@@ -1455,6 +1455,9 @@ static int acpi_bus_type_and_status(acpi_handle handle, int *type,
- 	if (ACPI_FAILURE(status))
- 		return -ENODEV;
- 
-+	if (acpi_check_device_is_ignored(handle))
-+		return -ENODEV;
-+
- 	switch (acpi_type) {
- 	case ACPI_TYPE_ANY:		/* for ACPI_ROOT_OBJECT */
- 	case ACPI_TYPE_DEVICE:
+Any comment on this patch ? It actually fixes IO space on IA64
+as described in the commit log, it would be good if IA64 folks
+can confirm.
 
+I need to update a comment but would like to check first if the fix
+itself is ok.
+
+Thanks a lot,
+Lorenzo
