@@ -1,61 +1,87 @@
-From: "Rafael J. Wysocki" <rafael@kernel.org>
-Subject: Re: Problems since commit Recognize that Interrupt Line 255 means
- "not connected"
-Date: Tue, 9 Feb 2016 20:24:25 +0100
-Message-ID: <CAJZ5v0huANzD29-oB9tpQXodx936MtRf+316PYPAuYh1h_Pa+w@mail.gmail.com>
-References: <56B52990.3030103@gmail.com>
-	<1676062.Zh6hUgWIix@vostro.rjw.lan>
-	<56B5AA4B.5040705@gmail.com>
-	<20160206151922.GB22119@localhost>
-	<56B61492.40507@gmail.com>
-	<20160209164435.GB20171@localhost>
+From: Valdis.Kletnieks@vt.edu
+Subject: Re: [PATCH v12 2/4] PM / Domains: add setter for dev.pm_domain
+Date: Tue, 09 Feb 2016 15:14:35 -0500
+Message-ID: <43751.1455048875@turing-police.cc.vt.edu>
+References: <1452181575-9206-1-git-send-email-tomeu.vizoso@collabora.com>
+ <CAHp75VdWPUZ8F5rsGn3M1e5Pgpcg1CErBej9PE_3+ZPke5CDFA@mail.gmail.com>
+ <CAHp75Vf9TS-AxJALQjiwNjMCT8ct5SBanYzrEsV9aj=DsUw-OA@mail.gmail.com>
+ <1783906.XctYjeUNLr@vostro.rjw.lan>
+ <44858.1454967873@turing-police.cc.vt.edu>
+ <CAJZ5v0jUipo06fpSQsKi+5Po_32ntgc3Ns29=17SgQr2PSj+kA@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-pci-owner@vger.kernel.org>
-In-Reply-To: <20160209164435.GB20171@localhost>
-Sender: linux-pci-owner@vger.kernel.org
-To: Bjorn Helgaas <helgaas@kernel.org>
-Cc: Heiner Kallweit <hkallweit1@gmail.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Chen Fan <chen.fan.fnst@cn.fujitsu.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Bjorn Helgaas <bhelgaas@google.com>, Linux PCI <linux-pci@vger.kernel.org>
+Content-Type: multipart/mixed; boundary="===============0252255705=="
+Return-path: <dri-devel-bounces@lists.freedesktop.org>
+In-Reply-To: <CAJZ5v0jUipo06fpSQsKi+5Po_32ntgc3Ns29=17SgQr2PSj+kA@mail.gmail.com>
+List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/dri-devel>,
+ <mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
+List-Archive: <https://lists.freedesktop.org/archives/dri-devel>
+List-Post: <mailto:dri-devel@lists.freedesktop.org>
+List-Help: <mailto:dri-devel-request@lists.freedesktop.org?subject=help>
+List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/dri-devel>,
+ <mailto:dri-devel-request@lists.freedesktop.org?subject=subscribe>
+Errors-To: dri-devel-bounces@lists.freedesktop.org
+Sender: "dri-devel" <dri-devel-bounces@lists.freedesktop.org>
+To: "Rafael J. Wysocki" <rafael@kernel.org>
+Cc: Ulf Hansson <ulf.hansson@linaro.org>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Russell King <linux@arm.linux.org.uk>, Tomeu Vizoso <tomeu.vizoso@collabora.com>, "linux-pm@vger.kernel.org" <linux-pm@vger.kernel.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Kevin Hilman <khilman@kernel.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Andy Shevchenko <andy.shevchenko@gmail.com>, Alan Stern <stern@rowland.harvard.edu>, dri-devel@lists.freedesktop.org, Pavel Machek <pavel@ucw.cz>, Tomas Winkler <tomas.winkler@intel.com>, Len Brown <lenb@kernel.org>, linux-arm Mailing List <linux-arm-kernel@lists.infradead.org>, Tony Lindgren <tony@atomide.com>
 List-Id: linux-acpi@vger.kernel.org
 
-On Tue, Feb 9, 2016 at 5:44 PM, Bjorn Helgaas <helgaas@kernel.org> wrote:
-> On Sat, Feb 06, 2016 at 04:43:14PM +0100, Heiner Kallweit wrote:
->> Am 06.02.2016 um 16:19 schrieb Bjorn Helgaas:
->> > On Sat, Feb 06, 2016 at 09:09:47AM +0100, Heiner Kallweit wrote:
->> >> Am 06.02.2016 um 00:37 schrieb Rafael J. Wysocki:
->> >>> On Saturday, February 06, 2016 12:00:32 AM Heiner Kallweit wrote:
->> >>>> Since commit a44c386a361e "x86/PCI/ACPI: Recognize that Interrupt Line 255
->> >>>> means "not connected"" I get several "PCI INT not connected" warnings on
->> >>>> a Zotac CI321 and EHCI failes to load:
->> >>>
->> >>> That doesn't follow clearly from your report, but I'm assuming that it works
->> >>> correctly without that commit, right?
->> >>>
->> >> Right, w/o this commit it looks like this:
->> >>
->> >> dmesg
->> >> ehci-pci 0000:00:1d.0: irq 23, io mem 0xf7d1b000
->> >>
->> >> /proc/interrupts
->> >> IO-APIC  23-fasteoi   ehci_hcd:usb3
->> >
->> > Thanks a lot for your report!  This is a bit of a minefield, and I was
->> > worried that we'd trip over something with a44c386a361e.
->> >
->> > Oops, I think I see a problem with a44c386a361e.  We're checking for
->> > Interrupt Line == 255 even before we try to look it up in the _PRT.  I
->> > think we should only check Interrupt Line *after* everything else has
->> > failed.  Can you try the patch below instead of a44c386a361e?
->> >
->> With the attached patch everything is fine. No warnings and EHCI loads properly.
->
-> Great, thanks a lot for testing this!
->
-> Chen, will you update and repost your patch?  I know Rafael already
-> had it on a branch, but I think he dropped it, so we need to get the
-> update merged somehow.
+--===============0252255705==
+Content-Type: multipart/signed; boundary="==_Exmh_1455048875_2220P";
+	 micalg=pgp-sha1; protocol="application/pgp-signature"
+Content-Transfer-Encoding: 7bit
 
-I'd prefer a new updated patch if that's possible.
+--==_Exmh_1455048875_2220P
+Content-Type: text/plain; charset=us-ascii
 
-Thanks,
-Rafael
+On Mon, 08 Feb 2016 22:50:39 +0100, "Rafael J. Wysocki" said:
+> On Mon, Feb 8, 2016 at 10:44 PM,  <Valdis.Kletnieks@vt.edu> wrote:
+
+> > My Dell Latitude laptopi on next-20160201 is throwing a similar error
+> > at shutdown, except the traceback continues:
+> >
+> > mei_me_remove+0xbd/0xc0
+> > pci_device_shutdown+0x32/0x50
+> > device_shutdown+0xe2/0x210
+> >
+> > (sorry, that's all I have, transcribing from one frame of video shot while
+> > the system was shutting down....)
+>
+> This should be fixed in 4.5-rc3, so please retest.
+
+Confirming that next-20160201 has the problem, but it is fixed as of next-20160208.
+
+--==_Exmh_1455048875_2220P
+Content-Type: application/pgp-signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+Comment: Exmh version 2.5 07/13/2001
+
+iQIVAwUBVrpIqwdmEQWDXROgAQIApRAAs86TY9ql0NfW5ebbST9a4zpS2N14eLd9
+gHbI7eVnVSoBEPpA0v4iFIjOhMoYg0HBcLRZiCkvGz4sKFJBi3jfMQVSf+WDUB7t
+t/TyOhz2tSxapeiCKWyV/OGS0w1iTh14Jp0QETvPtW3zQqFJck8rYful9WGpBu8z
+84JRm2t3IHazprR8rELLC/LgJVpjIX+YoQMD8Ncviqgp/PhpAx1T23xoNSWprbOg
+zc2zwJyB8kUFUcFJjnQ/7hv64qM7mYn0NdkhFKLkn0nwpADhV+P1IYZn9NYv+rAX
+KgSfacwtOhe+9O/WP5kjnS5WVbuh4w9mDM9oCAdhG8hK5+1gA+CJ77jW98hiUSBx
+QHSsQSnvYXqr1dFPWPa1yp0qClYLkO2CEUkcM8MdpQSpqA2rBJRjr5LUGl+yo6z9
+yjwYw7nh2e7HbhrjkrpXAlS23e2OxfpgK5ShRmtGLzPKAZwLh/VpmAqGZ1EsgQiP
+FkDxrCcVhki9eirwA4C9tOdyJVZnx46hEpuMefYl83QFMWzJnHoByfX0lcB4f5Os
+rD3jNQsxuky18wWEikf3FfKqnSEiiWzk07IwrYgIMs57gmtIne/CUyrMqcLGrNq3
+nrwOqCKSIu7113MJrYMlOCqzF03n7u5BFCfS4I/Muw+bR5Ki79wr2tgOG0LG3MLe
+BIraoSAmkoM=
+=g8TO
+-----END PGP SIGNATURE-----
+
+--==_Exmh_1455048875_2220P--
+
+--===============0252255705==
+Content-Type: text/plain; charset="utf-8"
+MIME-Version: 1.0
+Content-Transfer-Encoding: base64
+Content-Disposition: inline
+
+X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX18KZHJpLWRldmVs
+IG1haWxpbmcgbGlzdApkcmktZGV2ZWxAbGlzdHMuZnJlZWRlc2t0b3Aub3JnCmh0dHBzOi8vbGlz
+dHMuZnJlZWRlc2t0b3Aub3JnL21haWxtYW4vbGlzdGluZm8vZHJpLWRldmVsCg==
+
+--===============0252255705==--
