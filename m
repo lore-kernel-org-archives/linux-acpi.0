@@ -1,89 +1,85 @@
-From: Lukas Wunner <lukas@wunner.de>
-Subject: Re: linux-next: build failure after merge of the
-	drm-misc tree
-Date: Wed, 10 Feb 2016 14:17:41 +0100
-Message-ID: <20160210131741.GA15492@wunner.de>
-References: <20160210122451.55391e43@canb.auug.org.au>
- <20160210084138.GA15392@wunner.de>
+From: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+Subject: Re: [PATCH v7 5/5] PCI: ACPI: Add a generic ACPI based host
+ controller
+Date: Wed, 10 Feb 2016 13:30:37 +0000
+Message-ID: <20160210133037.GA25060@red-moon>
+References: <1454058340-7904-1-git-send-email-jchandra@broadcom.com>
+ <1454058340-7904-6-git-send-email-jchandra@broadcom.com>
+ <20160205001907.GJ7031@localhost>
+ <CAKc_7PXYtFt1MQE-UGO0O5vvQ+xFKa2b5=F8wXB=EN-JUJVzZw@mail.gmail.com>
+ <20160205094740.GA31547@red-moon>
+ <CAKc_7PVNm7z8nv_+Tr9FYhrVAA+-vh4CDMB83WAyT8tdi+CHzA@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <intel-gfx-bounces@lists.freedesktop.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-pci-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20160210084138.GA15392@wunner.de>
-List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/intel-gfx>,
- <mailto:intel-gfx-request@lists.freedesktop.org?subject=unsubscribe>
-List-Archive: <https://lists.freedesktop.org/archives/intel-gfx>
-List-Post: <mailto:intel-gfx@lists.freedesktop.org>
-List-Help: <mailto:intel-gfx-request@lists.freedesktop.org?subject=help>
-List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/intel-gfx>,
- <mailto:intel-gfx-request@lists.freedesktop.org?subject=subscribe>
-Errors-To: intel-gfx-bounces@lists.freedesktop.org
-Sender: "Intel-gfx" <intel-gfx-bounces@lists.freedesktop.org>
-To: Stephen Rothwell <sfr@canb.auug.org.au>
-Cc: Daniel Vetter <daniel.vetter@ffwll.ch>, intel-gfx@lists.freedesktop.org, "Rafael J. Wysocki" <rjw@rjwysocki.net>, linux-kernel@vger.kernel.org, dri-devel@lists.freedesktop.org, linux-acpi@vger.kernel.org, linux-next@vger.kernel.org, Darren Hart <dvhart@linux.intel.com>
+In-Reply-To: <CAKc_7PVNm7z8nv_+Tr9FYhrVAA+-vh4CDMB83WAyT8tdi+CHzA@mail.gmail.com>
+Sender: linux-pci-owner@vger.kernel.org
+To: Jayachandran Chandrashekaran Nair <jayachandran.chandrashekaran@broadcom.com>
+Cc: Bjorn Helgaas <helgaas@kernel.org>, Jayachandran C <jchandra@broadcom.com>, linux-pci@vger.kernel.org, Bjorn Helgaas <bhelgaas@google.com>, linux-acpi@vger.kernel.org, Arnd Bergmann <arnd@arndb.de>, linux-arm-kernel@lists.infradead.org, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Tomasz Nowicki <tn@semihalf.com>, xen-devel@lists.xenproject.org
 List-Id: linux-acpi@vger.kernel.org
 
-SGksCgpPbiBXZWQsIEZlYiAxMCwgMjAxNiBhdCAwOTo0MTozOEFNICswMTAwLCBMdWthcyBXdW5u
-ZXIgd3JvdGU6Cj4gT24gV2VkLCBGZWIgMTAsIDIwMTYgYXQgMTI6MjQ6NTFQTSArMTEwMCwgU3Rl
-cGhlbiBSb3Rod2VsbCB3cm90ZToKPiA+IEhpIGFsbCwKPiA+IAo+ID4gQWZ0ZXIgbWVyZ2luZyB0
-aGUgZHJtLW1pc2MgdHJlZSwgdG9kYXkncyBsaW51eC1uZXh0IGJ1aWxkIChhcm0KPiA+IG11bHRp
-X3Y3X2RlZmNvbmZpZykgZmFpbGVkIGxpa2UgdGhpczoKPiA+IAo+ID4gSW4gZmlsZSBpbmNsdWRl
-ZCBmcm9tIGRyaXZlcnMvZ3B1L2RybS9ub3V2ZWF1L25vdXZlYXVfZHJtLmM6MjU6MDoKPiA+IGlu
-Y2x1ZGUvbGludXgvYXBwbGUtZ211eC5oOiBJbiBmdW5jdGlvbiAnYXBwbGVfZ211eF9wcmVzZW50
-JzoKPiA+IGluY2x1ZGUvbGludXgvYXBwbGUtZ211eC5oOjM2OjQyOiBlcnJvcjogaW1wbGljaXQg
-ZGVjbGFyYXRpb24gb2YgZnVuY3Rpb24gJ2FjcGlfZGV2X3ByZXNlbnQnIFstV2Vycm9yPWltcGxp
-Y2l0LWZ1bmN0aW9uLWRlY2xhcmF0aW9uXQo+ID4gICByZXR1cm4gSVNfRU5BQkxFRChDT05GSUdf
-QVBQTEVfR01VWCkgJiYgYWNwaV9kZXZfcHJlc2VudChHTVVYX0FDUElfSElEKTsKPiA+ICAgICAg
-ICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIF4KPiA+IAo+ID4gQ2F1c2VkIGJ5
-IGNvbW1pdAo+ID4gCj4gPiAgIDI0MTMzMDZjMjU2NiAoImFwcGxlLWdtdXg6IEFkZCBoZWxwZXIg
-Zm9yIHByZXNlbmNlIGRldGVjdCIpCj4gPiAKPiA+IEkgaGF2ZSB1c2VkIHRoZSBkcm0tbWlzYyB0
-cmVlIGZyb20gbmV4dC0yMDE2MDIwOSBmb3IgdG9kYXkuCj4gCj4gVWdoLCBhcG9sb2dpZXMsIEkg
-ZGlkbid0IGhhdmUgYSBub24tQUNQSSBwbGF0Zm9ybSBhdmFpbGFibGUgdG8gdGVzdAo+IHRoaXMg
-b24uCj4gCj4gU29sdXRpb24gaXMgdG8gZWl0aGVyIGFkZCB0byBpbmNsdWRlL2xpbnV4L2FjcGku
-aAo+IAo+IHN0YXRpYyBpbmxpbmUgYm9vbCBhY3BpX2Rldl9wcmVzZW50KGNvbnN0IGNoYXIgKmhp
-ZCkKPiB7Cj4gCXJldHVybiBmYWxzZTsKPiB9Cj4gCj4gc29tZXdoZXJlIGJlbG93Cj4gCj4gI2Vs
-c2UJLyogIUNPTkZJR19BQ1BJICovCj4gCj4gb3IgYWx0ZXJuYXRpdmVseSB0byBhZGQgdG8gaW5j
-bHVkZS9saW51eC9hcHBsZS1nbXV4LmgKPiAKPiBJU19FTkFCTEVEKENPTkZJR19BQ1BJKQo+IAo+
-IGluIGFwcGxlX2dtdXhfcHJlc2VudCgpLgo+IAo+IEknbGwgY2hlY2sgdGhlIG90aGVyIHVzZXJz
-IG9mIGFjcGlfZGV2X3ByZXNlbnQoKSB0byBzZWUgd2hpY2ggb2YKPiB0aGVzZSB0d28gc29sdXRp
-b25zIGlzIG1vcmUgYXBwcm9wcmlhdGUgYW5kIHdpbGwgcG9zdCBhIGZpeCBzaG9ydGx5LgoKVGhl
-IHBhdGNoIGluY2x1ZGVkIGJlbG93IGZpeGVzIHRoZSBidWlsZCBpZiBDT05GSUdfQUNQSSBpcyBu
-b3Qgc2V0LgoKQERhbmllbCBWZXR0ZXI6IFdvdWxkIGl0IGJlIHBvc3NpYmxlIHRvIHNxdWFzaCB0
-aGlzIHdpdGggMjQxMzMwNmMyNTY2CigiYXBwbGUtZ211eDogQWRkIGhlbHBlciBmb3IgcHJlc2Vu
-Y2UgZGV0ZWN0Iikgb24gdG9waWMvZHJtLW1pc2Mgc28KYXMgdG8gYXZvaWQgYnVpbGQgYnJlYWth
-Z2UgZm9yIGFueW9uZSB0cnlpbmcgdG8gYmlzZWN0IGJldHdlZW4gdGhhdApjb21taXQgYW5kIHRo
-aXMgZml4PwoKSSBjaGVja2VkIGFsbCBvdGhlciB1c2VycyBvZiBhY3BpX2Rldl9wcmVzZW50KCkg
-YW5kIGFsbCBvZiB0aGVtIGFyZQpvbmx5IGNvbXBpbGVkIGlmIENPTkZJR19BQ1BJIGlzIHNldC4g
-SGVuY2UgSSBvcHRlZCB0byBmaXggdGhpcyBpbgo8bGludXgvYXBwbGUtZ211eC5oPiByYXRoZXIg
-dGhhbiBpbiA8bGludXgvYWNwaS5oPi4KClRoYW5rcyBhZ2FpbiBTdGVwaGVuIGZvciByZXBvcnRp
-bmcgdGhpcyBhdCBzdWNoIGFuIGVhcmx5IHN0YWdlLAp0aG91Z2ggZG91YnRsZXNzbHkgaXQgd291
-bGQgaGF2ZSBiZWVuIGJldHRlciBpZiBJIGhhZCB0aG91Z2h0IG9mCnRoaXMgcG9zc2liaWxpdHkg
-d2hlbiBwcmVwYXJpbmcgdGhlIG9yaWdpbmFsIHBhdGNoLCBvciBpZiBJIGhhZApjb21waWxlLXRl
-c3RlZCB3aXRob3V0IENPTkZJR19BQ1BJLiA6LSgKCkx1a2FzCgotLSA+OCAtLQpTdWJqZWN0OiBb
-UEFUQ0hdIGFwcGxlLWdtdXg6IEZpeCBidWlsZCBicmVha2FnZSBpZiAhQ09ORklHX0FDUEkKClRo
-ZSBEUk0gZHJpdmVycyBpOTE1LCBub3V2ZWF1IGFuZCByYWRlb24gbWF5IGJlIGNvbXBpbGVkIHdp
-dGgKQ09ORklHX0FDUEkgbm90IHNldCwgaW4gd2hpY2ggY2FzZSBhY3BpX2Rldl9wcmVzZW50KCkg
-aXMgdW5kZWZpbmVkLgoKQWRkIGEgbm8tb3Agc3R1YiBmb3IgYXBwbGVfZ211eF9wcmVzZW50KCkg
-d2hpY2ggaXMgdXNlZCBpZgpDT05GSUdfQVBQTEVfR01VWCBpcyBub3QgZW5hYmxlZCB0byBhdm9p
-ZCBidWlsZCBicmVha2FnZS4KKENPTkZJR19BUFBMRV9HTVVYIGRlcGVuZHMgb24gQ09ORklHX0FD
-UEkuKQoKUmVwb3J0ZWQtYnk6IFN0ZXBoZW4gUm90aHdlbGwgPHNmckBjYW5iLmF1dWcub3JnLmF1
-PgpTaWduZWQtb2ZmLWJ5OiBMdWthcyBXdW5uZXIgPGx1a2FzQHd1bm5lci5kZT4KLS0tCiBpbmNs
-dWRlL2xpbnV4L2FwcGxlLWdtdXguaCB8IDEzICsrKysrKysrKysrKy0KIDEgZmlsZSBjaGFuZ2Vk
-LCAxMiBpbnNlcnRpb25zKCspLCAxIGRlbGV0aW9uKC0pCgpkaWZmIC0tZ2l0IGEvaW5jbHVkZS9s
-aW51eC9hcHBsZS1nbXV4LmggYi9pbmNsdWRlL2xpbnV4L2FwcGxlLWdtdXguaAppbmRleCBmZWVi
-YzI4Li5iMmQzMmUwIDEwMDY0NAotLS0gYS9pbmNsdWRlL2xpbnV4L2FwcGxlLWdtdXguaAorKysg
-Yi9pbmNsdWRlL2xpbnV4L2FwcGxlLWdtdXguaApAQCAtMjIsNiArMjIsOCBAQAogCiAjZGVmaW5l
-IEdNVVhfQUNQSV9ISUQgIkFQUDAwMEIiCiAKKyNpZiBJU19FTkFCTEVEKENPTkZJR19BUFBMRV9H
-TVVYKQorCiAvKioKICAqIGFwcGxlX2dtdXhfcHJlc2VudCgpIC0gZGV0ZWN0IGlmIGdtdXggaXMg
-YnVpbHQgaW50byB0aGUgbWFjaGluZQogICoKQEAgLTMzLDcgKzM1LDE2IEBACiAgKi8KIHN0YXRp
-YyBpbmxpbmUgYm9vbCBhcHBsZV9nbXV4X3ByZXNlbnQodm9pZCkKIHsKLQlyZXR1cm4gSVNfRU5B
-QkxFRChDT05GSUdfQVBQTEVfR01VWCkgJiYgYWNwaV9kZXZfcHJlc2VudChHTVVYX0FDUElfSElE
-KTsKKwlyZXR1cm4gYWNwaV9kZXZfcHJlc2VudChHTVVYX0FDUElfSElEKTsKIH0KIAorI2Vsc2Ug
-IC8qICFDT05GSUdfQVBQTEVfR01VWCAqLworCitzdGF0aWMgaW5saW5lIGJvb2wgYXBwbGVfZ211
-eF9wcmVzZW50KHZvaWQpCit7CisJcmV0dXJuIGZhbHNlOworfQorCisjZW5kaWYgLyogIUNPTkZJ
-R19BUFBMRV9HTVVYICovCisKICNlbmRpZiAvKiBMSU5VWF9BUFBMRV9HTVVYX0ggKi8KLS0gCjEu
-OC41LjIgKEFwcGxlIEdpdC00OCkKCl9fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fX19fX19fCkludGVsLWdmeCBtYWlsaW5nIGxpc3QKSW50ZWwtZ2Z4QGxpc3RzLmZyZWVk
-ZXNrdG9wLm9yZwpodHRwczovL2xpc3RzLmZyZWVkZXNrdG9wLm9yZy9tYWlsbWFuL2xpc3RpbmZv
-L2ludGVsLWdmeAo=
+On Mon, Feb 08, 2016 at 04:57:46PM +0530, Jayachandran Chandrashekaran Nair wrote:
+> Lorenzo,
+> 
+> On Fri, Feb 5, 2016 at 3:17 PM, Lorenzo Pieralisi
+> <lorenzo.pieralisi@arm.com> wrote:
+> > On Fri, Feb 05, 2016 at 02:05:37PM +0530, Jayachandran Chandrashekaran Nair wrote:
+> >
+> > [...]
+> >
+> >> pci_host_acpi.c is a generic implementation of these using a sysdata
+> >> pointing to acpi_pci_root_info, and using a pointer to the pci_mmcfg_region
+> >> to access ECAM area, Maybe I can rename this file to
+> >> pci_acpi_host_generic.c to reflect this better.
+> >
+> > Maybe you should stop sending this series and work with Tomasz to
+> > get this done, you are confusing everyone and I am really really
+> > annoyed about this.
+> >
+> > Do you realize there is no point in having two patch series doing
+> > the same thing and wasting everyone's review time ?
+> >
+> > Do you realize he started this work long before you and went through
+> > several rounds of review already (I told you before but in case you
+> > forgot) ?
+> >
+> > Tomasz posted a version yesterday, integrating comments following months
+> > of review and testing and I think it is ready to get upstream:
+> >
+> > https://lkml.org/lkml/2016/2/4/646
+> >
+> > Did you even consider reviewing his code or helping him instead of
+> > churning out more patches doing the *SAME* thing ?
+> 
+> This is getting ridiculous, I had replied to your earlier mails on why
+> my patchset is NOT doing the exact same thing. I had also explained
+> why helping was not feasible.
+> 
+> The basic point again: I am trying to give a much simpler patchset
+> to solve the same problem, I take it that you haven't reviewed my
+> patchset before writing this mail. I would have appreciated
+> a technical discussion rather than this pointless flamefest.
+> 
+> If you have reviewed it, you can see that there are just 5 patches
+> instead of 23, and that overall it is a much simpler approach.
+
+Ok, let's make it constructive. I think there is part of your
+implementation that definitely makes sense (in particular the way you
+cleaned-up the x86 MCFG unadulterated mess - patch 1), I will ask
+Tomasz to integrate it, please work together on this.
+
+I have nothing against your patchset, my point is that we can't keep
+reviewing and testing two series (and I mean on ARM64 AND x86), please
+understand my point, it is very time consuming to understand the
+differences and make sure we don't break x86 in the process and I would
+have to ask you to add all the code that I already reviewed in Tomasz's
+set, I just do not want to do that.
+
+I will reply to Tomasz, let's work together to have a single final
+implementation please, I do not think I am asking too much here and
+yes, by integrating part of your code I think Tomasz's patchset is
+ready to go, obviously subject to Bjorn's review and opinion.
+
+Thanks,
+Lorenzo
