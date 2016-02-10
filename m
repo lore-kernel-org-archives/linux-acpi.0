@@ -1,91 +1,89 @@
-From: Marc Zyngier <marc.zyngier@arm.com>
-Subject: Re: [PATCH V3 10/10] acpi, gicv3, its: Use MADT ITS subtable to do
- PCI/MSI domain initialization.
-Date: Wed, 10 Feb 2016 12:02:45 +0000
-Message-ID: <56BB26E5.6060703@arm.com>
-References: <1453209083-3358-1-git-send-email-tn@semihalf.com>
- <1453209083-3358-11-git-send-email-tn@semihalf.com>
+From: Lukas Wunner <lukas@wunner.de>
+Subject: Re: linux-next: build failure after merge of the
+	drm-misc tree
+Date: Wed, 10 Feb 2016 14:17:41 +0100
+Message-ID: <20160210131741.GA15492@wunner.de>
+References: <20160210122451.55391e43@canb.auug.org.au>
+ <20160210084138.GA15392@wunner.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from foss.arm.com ([217.140.101.70]:46603 "EHLO foss.arm.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753843AbcBJMCt (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 10 Feb 2016 07:02:49 -0500
-In-Reply-To: <1453209083-3358-11-git-send-email-tn@semihalf.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <intel-gfx-bounces@lists.freedesktop.org>
+Content-Disposition: inline
+In-Reply-To: <20160210084138.GA15392@wunner.de>
+List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/intel-gfx>,
+ <mailto:intel-gfx-request@lists.freedesktop.org?subject=unsubscribe>
+List-Archive: <https://lists.freedesktop.org/archives/intel-gfx>
+List-Post: <mailto:intel-gfx@lists.freedesktop.org>
+List-Help: <mailto:intel-gfx-request@lists.freedesktop.org?subject=help>
+List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/intel-gfx>,
+ <mailto:intel-gfx-request@lists.freedesktop.org?subject=subscribe>
+Errors-To: intel-gfx-bounces@lists.freedesktop.org
+Sender: "Intel-gfx" <intel-gfx-bounces@lists.freedesktop.org>
+To: Stephen Rothwell <sfr@canb.auug.org.au>
+Cc: Daniel Vetter <daniel.vetter@ffwll.ch>, intel-gfx@lists.freedesktop.org, "Rafael J. Wysocki" <rjw@rjwysocki.net>, linux-kernel@vger.kernel.org, dri-devel@lists.freedesktop.org, linux-acpi@vger.kernel.org, linux-next@vger.kernel.org, Darren Hart <dvhart@linux.intel.com>
 List-Id: linux-acpi@vger.kernel.org
-To: Tomasz Nowicki <tn@semihalf.com>, tglx@linutronix.de, jason@lakedaemon.net, rjw@rjwysocki.net, lorenzo.pieralisi@arm.com, robert.richter@caviumnetworks.com, shijie.huang@arm.com, guohanjun@huawei.com, Suravee.Suthikulpanit@amd.com
-Cc: mw@semihalf.com, graeme.gregory@linaro.org, Catalin.Marinas@arm.com, will.deacon@arm.com, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, hanjun.guo@linaro.org, linux-arm-kernel@lists.infradead.org, ddaney.cavm@gmail.com
 
-On 19/01/16 13:11, Tomasz Nowicki wrote:
-> After refactoring DT code, we let ACPI to build ITS PCI MSI domain
-> and do requester ID to device ID translation using IORT table.
-> 
-> We have now full PCI MSI domain stack, thus we can enable ITS initialization
-> from GICv3 core driver for ACPI scenario.
-> 
-> Signed-off-by: Tomasz Nowicki <tn@semihalf.com>
-> ---
->  drivers/irqchip/irq-gic-v3-its-pci-msi.c | 44 +++++++++++++++++++++++++++++++-
->  drivers/irqchip/irq-gic-v3.c             |  3 +--
->  drivers/pci/msi.c                        |  3 +++
->  3 files changed, 47 insertions(+), 3 deletions(-)
-> 
-> diff --git a/drivers/irqchip/irq-gic-v3-its-pci-msi.c b/drivers/irqchip/irq-gic-v3-its-pci-msi.c
-> index 06165cb..7f0a958 100644
-> --- a/drivers/irqchip/irq-gic-v3-its-pci-msi.c
-> +++ b/drivers/irqchip/irq-gic-v3-its-pci-msi.c
-> @@ -15,6 +15,8 @@
->   * along with this program.  If not, see <http://www.gnu.org/licenses/>.
->   */
->  
-> +#include <linux/acpi.h>
-> +#include <linux/iort.h>
->  #include <linux/msi.h>
->  #include <linux/of.h>
->  #include <linux/of_irq.h>
-> @@ -143,10 +145,50 @@ static int __init its_pci_of_msi_init(void)
->  	return 0;
->  }
->  
-> +#ifdef CONFIG_ACPI
-> +
-> +static int __init
-> +its_pci_msi_parse_madt(struct acpi_subtable_header *header,
-> +		    const unsigned long end)
-> +{
-> +	struct acpi_madt_generic_translator *its_entry;
-> +	struct fwnode_handle *domain_handle;
-> +
-> +	its_entry = (struct acpi_madt_generic_translator *)header;
-> +	domain_handle = iort_find_its_domain_token(its_entry->translation_id);
-> +	if (!domain_handle) {
-> +		pr_err("ITS@0x%lx: Unable to locate ITS domain handle\n",
-> +		       (long)its_entry->base_address);
-> +		return 0;
-> +	}
-> +
-> +	if (its_pci_msi_init_one(domain_handle))
-> +		return 0;
-> +
-> +	pci_msi_register_fwnode_provider(&iort_find_pci_domain_token);
-
-I'm a bit worried by this. You are registering this for each and every
-ITS that gets probed (useless, but why not). But also, you're using a
-hook that is designed to work at the bus level, without caring for the
-actual PCI devices. That's fine for something like GICv2m, which exposes
-a single domain, but I can't picture how this works when you have
-devices sitting behind a single RC that talk to different ITSs.
-
-My understanding is that IORT was behaving in a similar way the msi-map
-property works, so I'm a bit puzzled here.
-
-Can you please shed some light on that?
-
-Thanks,
-
-	M.
--- 
-Jazz is not dead. It just smells funny...
+SGksCgpPbiBXZWQsIEZlYiAxMCwgMjAxNiBhdCAwOTo0MTozOEFNICswMTAwLCBMdWthcyBXdW5u
+ZXIgd3JvdGU6Cj4gT24gV2VkLCBGZWIgMTAsIDIwMTYgYXQgMTI6MjQ6NTFQTSArMTEwMCwgU3Rl
+cGhlbiBSb3Rod2VsbCB3cm90ZToKPiA+IEhpIGFsbCwKPiA+IAo+ID4gQWZ0ZXIgbWVyZ2luZyB0
+aGUgZHJtLW1pc2MgdHJlZSwgdG9kYXkncyBsaW51eC1uZXh0IGJ1aWxkIChhcm0KPiA+IG11bHRp
+X3Y3X2RlZmNvbmZpZykgZmFpbGVkIGxpa2UgdGhpczoKPiA+IAo+ID4gSW4gZmlsZSBpbmNsdWRl
+ZCBmcm9tIGRyaXZlcnMvZ3B1L2RybS9ub3V2ZWF1L25vdXZlYXVfZHJtLmM6MjU6MDoKPiA+IGlu
+Y2x1ZGUvbGludXgvYXBwbGUtZ211eC5oOiBJbiBmdW5jdGlvbiAnYXBwbGVfZ211eF9wcmVzZW50
+JzoKPiA+IGluY2x1ZGUvbGludXgvYXBwbGUtZ211eC5oOjM2OjQyOiBlcnJvcjogaW1wbGljaXQg
+ZGVjbGFyYXRpb24gb2YgZnVuY3Rpb24gJ2FjcGlfZGV2X3ByZXNlbnQnIFstV2Vycm9yPWltcGxp
+Y2l0LWZ1bmN0aW9uLWRlY2xhcmF0aW9uXQo+ID4gICByZXR1cm4gSVNfRU5BQkxFRChDT05GSUdf
+QVBQTEVfR01VWCkgJiYgYWNwaV9kZXZfcHJlc2VudChHTVVYX0FDUElfSElEKTsKPiA+ICAgICAg
+ICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIF4KPiA+IAo+ID4gQ2F1c2VkIGJ5
+IGNvbW1pdAo+ID4gCj4gPiAgIDI0MTMzMDZjMjU2NiAoImFwcGxlLWdtdXg6IEFkZCBoZWxwZXIg
+Zm9yIHByZXNlbmNlIGRldGVjdCIpCj4gPiAKPiA+IEkgaGF2ZSB1c2VkIHRoZSBkcm0tbWlzYyB0
+cmVlIGZyb20gbmV4dC0yMDE2MDIwOSBmb3IgdG9kYXkuCj4gCj4gVWdoLCBhcG9sb2dpZXMsIEkg
+ZGlkbid0IGhhdmUgYSBub24tQUNQSSBwbGF0Zm9ybSBhdmFpbGFibGUgdG8gdGVzdAo+IHRoaXMg
+b24uCj4gCj4gU29sdXRpb24gaXMgdG8gZWl0aGVyIGFkZCB0byBpbmNsdWRlL2xpbnV4L2FjcGku
+aAo+IAo+IHN0YXRpYyBpbmxpbmUgYm9vbCBhY3BpX2Rldl9wcmVzZW50KGNvbnN0IGNoYXIgKmhp
+ZCkKPiB7Cj4gCXJldHVybiBmYWxzZTsKPiB9Cj4gCj4gc29tZXdoZXJlIGJlbG93Cj4gCj4gI2Vs
+c2UJLyogIUNPTkZJR19BQ1BJICovCj4gCj4gb3IgYWx0ZXJuYXRpdmVseSB0byBhZGQgdG8gaW5j
+bHVkZS9saW51eC9hcHBsZS1nbXV4LmgKPiAKPiBJU19FTkFCTEVEKENPTkZJR19BQ1BJKQo+IAo+
+IGluIGFwcGxlX2dtdXhfcHJlc2VudCgpLgo+IAo+IEknbGwgY2hlY2sgdGhlIG90aGVyIHVzZXJz
+IG9mIGFjcGlfZGV2X3ByZXNlbnQoKSB0byBzZWUgd2hpY2ggb2YKPiB0aGVzZSB0d28gc29sdXRp
+b25zIGlzIG1vcmUgYXBwcm9wcmlhdGUgYW5kIHdpbGwgcG9zdCBhIGZpeCBzaG9ydGx5LgoKVGhl
+IHBhdGNoIGluY2x1ZGVkIGJlbG93IGZpeGVzIHRoZSBidWlsZCBpZiBDT05GSUdfQUNQSSBpcyBu
+b3Qgc2V0LgoKQERhbmllbCBWZXR0ZXI6IFdvdWxkIGl0IGJlIHBvc3NpYmxlIHRvIHNxdWFzaCB0
+aGlzIHdpdGggMjQxMzMwNmMyNTY2CigiYXBwbGUtZ211eDogQWRkIGhlbHBlciBmb3IgcHJlc2Vu
+Y2UgZGV0ZWN0Iikgb24gdG9waWMvZHJtLW1pc2Mgc28KYXMgdG8gYXZvaWQgYnVpbGQgYnJlYWth
+Z2UgZm9yIGFueW9uZSB0cnlpbmcgdG8gYmlzZWN0IGJldHdlZW4gdGhhdApjb21taXQgYW5kIHRo
+aXMgZml4PwoKSSBjaGVja2VkIGFsbCBvdGhlciB1c2VycyBvZiBhY3BpX2Rldl9wcmVzZW50KCkg
+YW5kIGFsbCBvZiB0aGVtIGFyZQpvbmx5IGNvbXBpbGVkIGlmIENPTkZJR19BQ1BJIGlzIHNldC4g
+SGVuY2UgSSBvcHRlZCB0byBmaXggdGhpcyBpbgo8bGludXgvYXBwbGUtZ211eC5oPiByYXRoZXIg
+dGhhbiBpbiA8bGludXgvYWNwaS5oPi4KClRoYW5rcyBhZ2FpbiBTdGVwaGVuIGZvciByZXBvcnRp
+bmcgdGhpcyBhdCBzdWNoIGFuIGVhcmx5IHN0YWdlLAp0aG91Z2ggZG91YnRsZXNzbHkgaXQgd291
+bGQgaGF2ZSBiZWVuIGJldHRlciBpZiBJIGhhZCB0aG91Z2h0IG9mCnRoaXMgcG9zc2liaWxpdHkg
+d2hlbiBwcmVwYXJpbmcgdGhlIG9yaWdpbmFsIHBhdGNoLCBvciBpZiBJIGhhZApjb21waWxlLXRl
+c3RlZCB3aXRob3V0IENPTkZJR19BQ1BJLiA6LSgKCkx1a2FzCgotLSA+OCAtLQpTdWJqZWN0OiBb
+UEFUQ0hdIGFwcGxlLWdtdXg6IEZpeCBidWlsZCBicmVha2FnZSBpZiAhQ09ORklHX0FDUEkKClRo
+ZSBEUk0gZHJpdmVycyBpOTE1LCBub3V2ZWF1IGFuZCByYWRlb24gbWF5IGJlIGNvbXBpbGVkIHdp
+dGgKQ09ORklHX0FDUEkgbm90IHNldCwgaW4gd2hpY2ggY2FzZSBhY3BpX2Rldl9wcmVzZW50KCkg
+aXMgdW5kZWZpbmVkLgoKQWRkIGEgbm8tb3Agc3R1YiBmb3IgYXBwbGVfZ211eF9wcmVzZW50KCkg
+d2hpY2ggaXMgdXNlZCBpZgpDT05GSUdfQVBQTEVfR01VWCBpcyBub3QgZW5hYmxlZCB0byBhdm9p
+ZCBidWlsZCBicmVha2FnZS4KKENPTkZJR19BUFBMRV9HTVVYIGRlcGVuZHMgb24gQ09ORklHX0FD
+UEkuKQoKUmVwb3J0ZWQtYnk6IFN0ZXBoZW4gUm90aHdlbGwgPHNmckBjYW5iLmF1dWcub3JnLmF1
+PgpTaWduZWQtb2ZmLWJ5OiBMdWthcyBXdW5uZXIgPGx1a2FzQHd1bm5lci5kZT4KLS0tCiBpbmNs
+dWRlL2xpbnV4L2FwcGxlLWdtdXguaCB8IDEzICsrKysrKysrKysrKy0KIDEgZmlsZSBjaGFuZ2Vk
+LCAxMiBpbnNlcnRpb25zKCspLCAxIGRlbGV0aW9uKC0pCgpkaWZmIC0tZ2l0IGEvaW5jbHVkZS9s
+aW51eC9hcHBsZS1nbXV4LmggYi9pbmNsdWRlL2xpbnV4L2FwcGxlLWdtdXguaAppbmRleCBmZWVi
+YzI4Li5iMmQzMmUwIDEwMDY0NAotLS0gYS9pbmNsdWRlL2xpbnV4L2FwcGxlLWdtdXguaAorKysg
+Yi9pbmNsdWRlL2xpbnV4L2FwcGxlLWdtdXguaApAQCAtMjIsNiArMjIsOCBAQAogCiAjZGVmaW5l
+IEdNVVhfQUNQSV9ISUQgIkFQUDAwMEIiCiAKKyNpZiBJU19FTkFCTEVEKENPTkZJR19BUFBMRV9H
+TVVYKQorCiAvKioKICAqIGFwcGxlX2dtdXhfcHJlc2VudCgpIC0gZGV0ZWN0IGlmIGdtdXggaXMg
+YnVpbHQgaW50byB0aGUgbWFjaGluZQogICoKQEAgLTMzLDcgKzM1LDE2IEBACiAgKi8KIHN0YXRp
+YyBpbmxpbmUgYm9vbCBhcHBsZV9nbXV4X3ByZXNlbnQodm9pZCkKIHsKLQlyZXR1cm4gSVNfRU5B
+QkxFRChDT05GSUdfQVBQTEVfR01VWCkgJiYgYWNwaV9kZXZfcHJlc2VudChHTVVYX0FDUElfSElE
+KTsKKwlyZXR1cm4gYWNwaV9kZXZfcHJlc2VudChHTVVYX0FDUElfSElEKTsKIH0KIAorI2Vsc2Ug
+IC8qICFDT05GSUdfQVBQTEVfR01VWCAqLworCitzdGF0aWMgaW5saW5lIGJvb2wgYXBwbGVfZ211
+eF9wcmVzZW50KHZvaWQpCit7CisJcmV0dXJuIGZhbHNlOworfQorCisjZW5kaWYgLyogIUNPTkZJ
+R19BUFBMRV9HTVVYICovCisKICNlbmRpZiAvKiBMSU5VWF9BUFBMRV9HTVVYX0ggKi8KLS0gCjEu
+OC41LjIgKEFwcGxlIEdpdC00OCkKCl9fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
+X19fX19fX19fX19fCkludGVsLWdmeCBtYWlsaW5nIGxpc3QKSW50ZWwtZ2Z4QGxpc3RzLmZyZWVk
+ZXNrdG9wLm9yZwpodHRwczovL2xpc3RzLmZyZWVkZXNrdG9wLm9yZy9tYWlsbWFuL2xpc3RpbmZv
+L2ludGVsLWdmeAo=
