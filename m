@@ -1,36 +1,56 @@
-From: Brian Norris <briannorris@chromium.org>
-Subject: [PATCH] ACPI / fan: Make struct dev_pm_ops const
-Date: Wed, 10 Feb 2016 15:23:27 -0800
-Message-ID: <1455146607-66183-1-git-send-email-briannorris@chromium.org>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Zhang Rui <rui.zhang@intel.com>
-Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Brian Norris <computersforpeace@gmail.com>, Kaiyen Chang <kaiyen.chang@intel.com>, Brian Norris <briannorris@chromium.org>
+From: Al Stone <ahs3@redhat.com>
+Subject: Re: [PATCH 0/3] ACPI: parse the SPCR table
+Date: Wed, 10 Feb 2016 16:39:27 -0700
+Message-ID: <56BBCA2F.3020604@redhat.com>
+References: <1453722324-22407-1-git-send-email-aleksey.makarov@linaro.org>
+ <56A6494E.3090303@hurleysoftware.com> <56A8B570.2060501@linaro.org>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mx1.redhat.com ([209.132.183.28]:42312 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751160AbcBJXj3 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 10 Feb 2016 18:39:29 -0500
+In-Reply-To: <56A8B570.2060501@linaro.org>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Aleksey Makarov <aleksey.makarov@linaro.org>, Peter Hurley <peter@hurleysoftware.com>, linux-acpi@vger.kernel.org
+Cc: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-serial@vger.kernel.org, Graeme Gregory <graeme.gregory@linaro.org>, Russell King <linux@arm.linux.org.uk>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, Leif Lindholm <leif.lindholm@linaro.org>
 
-From: Kaiyen Chang <kaiyen.chang@intel.com>
+On 01/27/2016 05:17 AM, Aleksey Makarov wrote:
+> 
+> 
+> On 01/25/2016 07:11 PM, Peter Hurley wrote:
+>> On 01/25/2016 03:45 AM, Aleksey Makarov wrote:
+>>> This patchset is based on the patchset by Leif Lindholm [1]
+>>>
+>>> 'ARM Server Base Boot Requirements' [2] mention SPCR 
+>>> (Serial Port Console Redirection Table) [3] as a mandatory
+>>> ACPI table that specifies the configuration of serial console.
+>>>
+>>> Licensing concerns have prevented implementing it in the past, but as of
+>>> 10 August 2015, these tables have both been released also under 
+>>> OWF 1.0 [4].
+>>
+>> This license has a patent retaliation provision, which makes it
+>> incompatible with GPLv2.
+>>
+>> *If the license applies to this code*, then this patch set does not
+>> meet the criteria for submission.
+> 
+> The license applies not to this code but to the document describing the tables.
 
-Silence the following checkpatch warning:
-WARNING: struct dev_pm_ops should normally be const.
+Just for the record, the SPCR table struct definition has been part
+of the Linux kernel since at least commit b24aad44 on 2009-07-24
+(line 1112 of include/acpi/actbl2.h) -- or so git blame tells me.
 
-Signed-off-by: Kaiyen Chang <kaiyen.chang@intel.com>
-Signed-off-by: Brian Norris <briannorris@chromium.org>
----
- drivers/acpi/fan.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
-
-diff --git a/drivers/acpi/fan.c b/drivers/acpi/fan.c
-index 6322db64b4a4..384cfc3083e1 100644
---- a/drivers/acpi/fan.c
-+++ b/drivers/acpi/fan.c
-@@ -46,7 +46,7 @@ MODULE_DEVICE_TABLE(acpi, fan_device_ids);
- #ifdef CONFIG_PM_SLEEP
- static int acpi_fan_suspend(struct device *dev);
- static int acpi_fan_resume(struct device *dev);
--static struct dev_pm_ops acpi_fan_pm = {
-+static const struct dev_pm_ops acpi_fan_pm = {
- 	.resume = acpi_fan_resume,
- 	.freeze = acpi_fan_suspend,
- 	.thaw = acpi_fan_resume,
 -- 
-2.7.0.rc3.207.g0ac5344
+ciao,
+al
+-----------------------------------
+Al Stone
+Software Engineer
+Red Hat, Inc.
+ahs3@redhat.com
+-----------------------------------
