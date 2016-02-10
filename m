@@ -1,85 +1,98 @@
-From: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
-Subject: Re: [PATCH v7 5/5] PCI: ACPI: Add a generic ACPI based host
- controller
-Date: Wed, 10 Feb 2016 13:30:37 +0000
-Message-ID: <20160210133037.GA25060@red-moon>
-References: <1454058340-7904-1-git-send-email-jchandra@broadcom.com>
- <1454058340-7904-6-git-send-email-jchandra@broadcom.com>
- <20160205001907.GJ7031@localhost>
- <CAKc_7PXYtFt1MQE-UGO0O5vvQ+xFKa2b5=F8wXB=EN-JUJVzZw@mail.gmail.com>
- <20160205094740.GA31547@red-moon>
- <CAKc_7PVNm7z8nv_+Tr9FYhrVAA+-vh4CDMB83WAyT8tdi+CHzA@mail.gmail.com>
+From: Daniel Vetter <daniel@ffwll.ch>
+Subject: Re: linux-next: build failure after merge of the drm-misc tree
+Date: Wed, 10 Feb 2016 14:37:00 +0100
+Message-ID: <20160210133700.GZ11240@phenom.ffwll.local>
+References: <20160210122451.55391e43@canb.auug.org.au>
+ <20160210084138.GA15392@wunner.de>
+ <20160210131741.GA15492@wunner.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-pci-owner@vger.kernel.org>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <dri-devel-bounces@lists.freedesktop.org>
 Content-Disposition: inline
-In-Reply-To: <CAKc_7PVNm7z8nv_+Tr9FYhrVAA+-vh4CDMB83WAyT8tdi+CHzA@mail.gmail.com>
-Sender: linux-pci-owner@vger.kernel.org
-To: Jayachandran Chandrashekaran Nair <jayachandran.chandrashekaran@broadcom.com>
-Cc: Bjorn Helgaas <helgaas@kernel.org>, Jayachandran C <jchandra@broadcom.com>, linux-pci@vger.kernel.org, Bjorn Helgaas <bhelgaas@google.com>, linux-acpi@vger.kernel.org, Arnd Bergmann <arnd@arndb.de>, linux-arm-kernel@lists.infradead.org, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Tomasz Nowicki <tn@semihalf.com>, xen-devel@lists.xenproject.org
+In-Reply-To: <20160210131741.GA15492@wunner.de>
+List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/dri-devel>,
+ <mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
+List-Archive: <https://lists.freedesktop.org/archives/dri-devel>
+List-Post: <mailto:dri-devel@lists.freedesktop.org>
+List-Help: <mailto:dri-devel-request@lists.freedesktop.org?subject=help>
+List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/dri-devel>,
+ <mailto:dri-devel-request@lists.freedesktop.org?subject=subscribe>
+Errors-To: dri-devel-bounces@lists.freedesktop.org
+Sender: "dri-devel" <dri-devel-bounces@lists.freedesktop.org>
+To: Lukas Wunner <lukas@wunner.de>
+Cc: Stephen Rothwell <sfr@canb.auug.org.au>, Daniel Vetter <daniel.vetter@ffwll.ch>, intel-gfx@lists.freedesktop.org, "Rafael J. Wysocki" <rjw@rjwysocki.net>, linux-kernel@vger.kernel.org, dri-devel@lists.freedesktop.org, linux-acpi@vger.kernel.org, linux-next@vger.kernel.org, Darren Hart <dvhart@linux.intel.com>
 List-Id: linux-acpi@vger.kernel.org
 
-On Mon, Feb 08, 2016 at 04:57:46PM +0530, Jayachandran Chandrashekaran Nair wrote:
-> Lorenzo,
-> 
-> On Fri, Feb 5, 2016 at 3:17 PM, Lorenzo Pieralisi
-> <lorenzo.pieralisi@arm.com> wrote:
-> > On Fri, Feb 05, 2016 at 02:05:37PM +0530, Jayachandran Chandrashekaran Nair wrote:
-> >
-> > [...]
-> >
-> >> pci_host_acpi.c is a generic implementation of these using a sysdata
-> >> pointing to acpi_pci_root_info, and using a pointer to the pci_mmcfg_region
-> >> to access ECAM area, Maybe I can rename this file to
-> >> pci_acpi_host_generic.c to reflect this better.
-> >
-> > Maybe you should stop sending this series and work with Tomasz to
-> > get this done, you are confusing everyone and I am really really
-> > annoyed about this.
-> >
-> > Do you realize there is no point in having two patch series doing
-> > the same thing and wasting everyone's review time ?
-> >
-> > Do you realize he started this work long before you and went through
-> > several rounds of review already (I told you before but in case you
-> > forgot) ?
-> >
-> > Tomasz posted a version yesterday, integrating comments following months
-> > of review and testing and I think it is ready to get upstream:
-> >
-> > https://lkml.org/lkml/2016/2/4/646
-> >
-> > Did you even consider reviewing his code or helping him instead of
-> > churning out more patches doing the *SAME* thing ?
-> 
-> This is getting ridiculous, I had replied to your earlier mails on why
-> my patchset is NOT doing the exact same thing. I had also explained
-> why helping was not feasible.
-> 
-> The basic point again: I am trying to give a much simpler patchset
-> to solve the same problem, I take it that you haven't reviewed my
-> patchset before writing this mail. I would have appreciated
-> a technical discussion rather than this pointless flamefest.
-> 
-> If you have reviewed it, you can see that there are just 5 patches
-> instead of 23, and that overall it is a much simpler approach.
-
-Ok, let's make it constructive. I think there is part of your
-implementation that definitely makes sense (in particular the way you
-cleaned-up the x86 MCFG unadulterated mess - patch 1), I will ask
-Tomasz to integrate it, please work together on this.
-
-I have nothing against your patchset, my point is that we can't keep
-reviewing and testing two series (and I mean on ARM64 AND x86), please
-understand my point, it is very time consuming to understand the
-differences and make sure we don't break x86 in the process and I would
-have to ask you to add all the code that I already reviewed in Tomasz's
-set, I just do not want to do that.
-
-I will reply to Tomasz, let's work together to have a single final
-implementation please, I do not think I am asking too much here and
-yes, by integrating part of your code I think Tomasz's patchset is
-ready to go, obviously subject to Bjorn's review and opinion.
-
-Thanks,
-Lorenzo
+T24gV2VkLCBGZWIgMTAsIDIwMTYgYXQgMDI6MTc6NDFQTSArMDEwMCwgTHVrYXMgV3VubmVyIHdy
+b3RlOgo+IEhpLAo+IAo+IE9uIFdlZCwgRmViIDEwLCAyMDE2IGF0IDA5OjQxOjM4QU0gKzAxMDAs
+IEx1a2FzIFd1bm5lciB3cm90ZToKPiA+IE9uIFdlZCwgRmViIDEwLCAyMDE2IGF0IDEyOjI0OjUx
+UE0gKzExMDAsIFN0ZXBoZW4gUm90aHdlbGwgd3JvdGU6Cj4gPiA+IEhpIGFsbCwKPiA+ID4gCj4g
+PiA+IEFmdGVyIG1lcmdpbmcgdGhlIGRybS1taXNjIHRyZWUsIHRvZGF5J3MgbGludXgtbmV4dCBi
+dWlsZCAoYXJtCj4gPiA+IG11bHRpX3Y3X2RlZmNvbmZpZykgZmFpbGVkIGxpa2UgdGhpczoKPiA+
+ID4gCj4gPiA+IEluIGZpbGUgaW5jbHVkZWQgZnJvbSBkcml2ZXJzL2dwdS9kcm0vbm91dmVhdS9u
+b3V2ZWF1X2RybS5jOjI1OjA6Cj4gPiA+IGluY2x1ZGUvbGludXgvYXBwbGUtZ211eC5oOiBJbiBm
+dW5jdGlvbiAnYXBwbGVfZ211eF9wcmVzZW50JzoKPiA+ID4gaW5jbHVkZS9saW51eC9hcHBsZS1n
+bXV4Lmg6MzY6NDI6IGVycm9yOiBpbXBsaWNpdCBkZWNsYXJhdGlvbiBvZiBmdW5jdGlvbiAnYWNw
+aV9kZXZfcHJlc2VudCcgWy1XZXJyb3I9aW1wbGljaXQtZnVuY3Rpb24tZGVjbGFyYXRpb25dCj4g
+PiA+ICAgcmV0dXJuIElTX0VOQUJMRUQoQ09ORklHX0FQUExFX0dNVVgpICYmIGFjcGlfZGV2X3By
+ZXNlbnQoR01VWF9BQ1BJX0hJRCk7Cj4gPiA+ICAgICAgICAgICAgICAgICAgICAgICAgICAgICAg
+ICAgICAgICAgICAgIF4KPiA+ID4gCj4gPiA+IENhdXNlZCBieSBjb21taXQKPiA+ID4gCj4gPiA+
+ICAgMjQxMzMwNmMyNTY2ICgiYXBwbGUtZ211eDogQWRkIGhlbHBlciBmb3IgcHJlc2VuY2UgZGV0
+ZWN0IikKPiA+ID4gCj4gPiA+IEkgaGF2ZSB1c2VkIHRoZSBkcm0tbWlzYyB0cmVlIGZyb20gbmV4
+dC0yMDE2MDIwOSBmb3IgdG9kYXkuCj4gPiAKPiA+IFVnaCwgYXBvbG9naWVzLCBJIGRpZG4ndCBo
+YXZlIGEgbm9uLUFDUEkgcGxhdGZvcm0gYXZhaWxhYmxlIHRvIHRlc3QKPiA+IHRoaXMgb24uCj4g
+PiAKPiA+IFNvbHV0aW9uIGlzIHRvIGVpdGhlciBhZGQgdG8gaW5jbHVkZS9saW51eC9hY3BpLmgK
+PiA+IAo+ID4gc3RhdGljIGlubGluZSBib29sIGFjcGlfZGV2X3ByZXNlbnQoY29uc3QgY2hhciAq
+aGlkKQo+ID4gewo+ID4gCXJldHVybiBmYWxzZTsKPiA+IH0KPiA+IAo+ID4gc29tZXdoZXJlIGJl
+bG93Cj4gPiAKPiA+ICNlbHNlCS8qICFDT05GSUdfQUNQSSAqLwo+ID4gCj4gPiBvciBhbHRlcm5h
+dGl2ZWx5IHRvIGFkZCB0byBpbmNsdWRlL2xpbnV4L2FwcGxlLWdtdXguaAo+ID4gCj4gPiBJU19F
+TkFCTEVEKENPTkZJR19BQ1BJKQo+ID4gCj4gPiBpbiBhcHBsZV9nbXV4X3ByZXNlbnQoKS4KPiA+
+IAo+ID4gSSdsbCBjaGVjayB0aGUgb3RoZXIgdXNlcnMgb2YgYWNwaV9kZXZfcHJlc2VudCgpIHRv
+IHNlZSB3aGljaCBvZgo+ID4gdGhlc2UgdHdvIHNvbHV0aW9ucyBpcyBtb3JlIGFwcHJvcHJpYXRl
+IGFuZCB3aWxsIHBvc3QgYSBmaXggc2hvcnRseS4KPiAKPiBUaGUgcGF0Y2ggaW5jbHVkZWQgYmVs
+b3cgZml4ZXMgdGhlIGJ1aWxkIGlmIENPTkZJR19BQ1BJIGlzIG5vdCBzZXQuCj4gCj4gQERhbmll
+bCBWZXR0ZXI6IFdvdWxkIGl0IGJlIHBvc3NpYmxlIHRvIHNxdWFzaCB0aGlzIHdpdGggMjQxMzMw
+NmMyNTY2Cj4gKCJhcHBsZS1nbXV4OiBBZGQgaGVscGVyIGZvciBwcmVzZW5jZSBkZXRlY3QiKSBv
+biB0b3BpYy9kcm0tbWlzYyBzbwo+IGFzIHRvIGF2b2lkIGJ1aWxkIGJyZWFrYWdlIGZvciBhbnlv
+bmUgdHJ5aW5nIHRvIGJpc2VjdCBiZXR3ZWVuIHRoYXQKPiBjb21taXQgYW5kIHRoaXMgZml4Pwo+
+IAo+IEkgY2hlY2tlZCBhbGwgb3RoZXIgdXNlcnMgb2YgYWNwaV9kZXZfcHJlc2VudCgpIGFuZCBh
+bGwgb2YgdGhlbSBhcmUKPiBvbmx5IGNvbXBpbGVkIGlmIENPTkZJR19BQ1BJIGlzIHNldC4gSGVu
+Y2UgSSBvcHRlZCB0byBmaXggdGhpcyBpbgo+IDxsaW51eC9hcHBsZS1nbXV4Lmg+IHJhdGhlciB0
+aGFuIGluIDxsaW51eC9hY3BpLmg+Lgo+IAo+IFRoYW5rcyBhZ2FpbiBTdGVwaGVuIGZvciByZXBv
+cnRpbmcgdGhpcyBhdCBzdWNoIGFuIGVhcmx5IHN0YWdlLAo+IHRob3VnaCBkb3VidGxlc3NseSBp
+dCB3b3VsZCBoYXZlIGJlZW4gYmV0dGVyIGlmIEkgaGFkIHRob3VnaHQgb2YKPiB0aGlzIHBvc3Np
+YmlsaXR5IHdoZW4gcHJlcGFyaW5nIHRoZSBvcmlnaW5hbCBwYXRjaCwgb3IgaWYgSSBoYWQKPiBj
+b21waWxlLXRlc3RlZCB3aXRob3V0IENPTkZJR19BQ1BJLiA6LSgKClNpbmNlICFBQ1BJIGFuZCBl
+bmFibGluZyBBUFBMRV9HTVVYIGlzIGEgYml0IGEgZnJpbmdlIGNvbmZpZyBJIGRvbid0IHRoaW5r
+CnRoaXMgd2lsbCBodXJ0IGJpc2VjdGFiaWxpdHkgYXQgYWxsIG9uIGEgcmVhbCBzeXN0ZW0uIFNv
+IGp1c3QgYXBwbGllZCB0aGlzCm9uZSBvbiB0b3Agb2YgZHJtLW1pc2MuCgpUaGFua3MsIERhbmll
+bAoKPiAKPiBMdWthcwo+IAo+IC0tID44IC0tCj4gU3ViamVjdDogW1BBVENIXSBhcHBsZS1nbXV4
+OiBGaXggYnVpbGQgYnJlYWthZ2UgaWYgIUNPTkZJR19BQ1BJCj4gCj4gVGhlIERSTSBkcml2ZXJz
+IGk5MTUsIG5vdXZlYXUgYW5kIHJhZGVvbiBtYXkgYmUgY29tcGlsZWQgd2l0aAo+IENPTkZJR19B
+Q1BJIG5vdCBzZXQsIGluIHdoaWNoIGNhc2UgYWNwaV9kZXZfcHJlc2VudCgpIGlzIHVuZGVmaW5l
+ZC4KPiAKPiBBZGQgYSBuby1vcCBzdHViIGZvciBhcHBsZV9nbXV4X3ByZXNlbnQoKSB3aGljaCBp
+cyB1c2VkIGlmCj4gQ09ORklHX0FQUExFX0dNVVggaXMgbm90IGVuYWJsZWQgdG8gYXZvaWQgYnVp
+bGQgYnJlYWthZ2UuCj4gKENPTkZJR19BUFBMRV9HTVVYIGRlcGVuZHMgb24gQ09ORklHX0FDUEku
+KQo+IAo+IFJlcG9ydGVkLWJ5OiBTdGVwaGVuIFJvdGh3ZWxsIDxzZnJAY2FuYi5hdXVnLm9yZy5h
+dT4KPiBTaWduZWQtb2ZmLWJ5OiBMdWthcyBXdW5uZXIgPGx1a2FzQHd1bm5lci5kZT4KPiAtLS0K
+PiAgaW5jbHVkZS9saW51eC9hcHBsZS1nbXV4LmggfCAxMyArKysrKysrKysrKystCj4gIDEgZmls
+ZSBjaGFuZ2VkLCAxMiBpbnNlcnRpb25zKCspLCAxIGRlbGV0aW9uKC0pCj4gCj4gZGlmZiAtLWdp
+dCBhL2luY2x1ZGUvbGludXgvYXBwbGUtZ211eC5oIGIvaW5jbHVkZS9saW51eC9hcHBsZS1nbXV4
+LmgKPiBpbmRleCBmZWViYzI4Li5iMmQzMmUwIDEwMDY0NAo+IC0tLSBhL2luY2x1ZGUvbGludXgv
+YXBwbGUtZ211eC5oCj4gKysrIGIvaW5jbHVkZS9saW51eC9hcHBsZS1nbXV4LmgKPiBAQCAtMjIs
+NiArMjIsOCBAQAo+ICAKPiAgI2RlZmluZSBHTVVYX0FDUElfSElEICJBUFAwMDBCIgo+ICAKPiAr
+I2lmIElTX0VOQUJMRUQoQ09ORklHX0FQUExFX0dNVVgpCj4gKwo+ICAvKioKPiAgICogYXBwbGVf
+Z211eF9wcmVzZW50KCkgLSBkZXRlY3QgaWYgZ211eCBpcyBidWlsdCBpbnRvIHRoZSBtYWNoaW5l
+Cj4gICAqCj4gQEAgLTMzLDcgKzM1LDE2IEBACj4gICAqLwo+ICBzdGF0aWMgaW5saW5lIGJvb2wg
+YXBwbGVfZ211eF9wcmVzZW50KHZvaWQpCj4gIHsKPiAtCXJldHVybiBJU19FTkFCTEVEKENPTkZJ
+R19BUFBMRV9HTVVYKSAmJiBhY3BpX2Rldl9wcmVzZW50KEdNVVhfQUNQSV9ISUQpOwo+ICsJcmV0
+dXJuIGFjcGlfZGV2X3ByZXNlbnQoR01VWF9BQ1BJX0hJRCk7Cj4gIH0KPiAgCj4gKyNlbHNlICAv
+KiAhQ09ORklHX0FQUExFX0dNVVggKi8KPiArCj4gK3N0YXRpYyBpbmxpbmUgYm9vbCBhcHBsZV9n
+bXV4X3ByZXNlbnQodm9pZCkKPiArewo+ICsJcmV0dXJuIGZhbHNlOwo+ICt9Cj4gKwo+ICsjZW5k
+aWYgLyogIUNPTkZJR19BUFBMRV9HTVVYICovCj4gKwo+ICAjZW5kaWYgLyogTElOVVhfQVBQTEVf
+R01VWF9IICovCj4gLS0gCj4gMS44LjUuMiAoQXBwbGUgR2l0LTQ4KQo+IAoKLS0gCkRhbmllbCBW
+ZXR0ZXIKU29mdHdhcmUgRW5naW5lZXIsIEludGVsIENvcnBvcmF0aW9uCmh0dHA6Ly9ibG9nLmZm
+d2xsLmNoCl9fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fCmRy
+aS1kZXZlbCBtYWlsaW5nIGxpc3QKZHJpLWRldmVsQGxpc3RzLmZyZWVkZXNrdG9wLm9yZwpodHRw
+czovL2xpc3RzLmZyZWVkZXNrdG9wLm9yZy9tYWlsbWFuL2xpc3RpbmZvL2RyaS1kZXZlbAo=
