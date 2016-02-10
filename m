@@ -1,98 +1,129 @@
-From: Daniel Vetter <daniel@ffwll.ch>
-Subject: Re: linux-next: build failure after merge of the drm-misc tree
-Date: Wed, 10 Feb 2016 14:37:00 +0100
-Message-ID: <20160210133700.GZ11240@phenom.ffwll.local>
-References: <20160210122451.55391e43@canb.auug.org.au>
- <20160210084138.GA15392@wunner.de>
- <20160210131741.GA15492@wunner.de>
+From: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+Subject: Re: [PATCH V4 15/23] acpi, mcfg: Implement two calls that might be
+ used to inject/remove MCFG region.
+Date: Wed, 10 Feb 2016 14:06:03 +0000
+Message-ID: <20160210140602.GB25060@red-moon>
+References: <1454606941-9523-1-git-send-email-tn@semihalf.com>
+ <1454606941-9523-16-git-send-email-tn@semihalf.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <dri-devel-bounces@lists.freedesktop.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from foss.arm.com ([217.140.101.70]:47535 "EHLO foss.arm.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751027AbcBJOEH (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 10 Feb 2016 09:04:07 -0500
 Content-Disposition: inline
-In-Reply-To: <20160210131741.GA15492@wunner.de>
-List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/dri-devel>,
- <mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
-List-Archive: <https://lists.freedesktop.org/archives/dri-devel>
-List-Post: <mailto:dri-devel@lists.freedesktop.org>
-List-Help: <mailto:dri-devel-request@lists.freedesktop.org?subject=help>
-List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/dri-devel>,
- <mailto:dri-devel-request@lists.freedesktop.org?subject=subscribe>
-Errors-To: dri-devel-bounces@lists.freedesktop.org
-Sender: "dri-devel" <dri-devel-bounces@lists.freedesktop.org>
-To: Lukas Wunner <lukas@wunner.de>
-Cc: Stephen Rothwell <sfr@canb.auug.org.au>, Daniel Vetter <daniel.vetter@ffwll.ch>, intel-gfx@lists.freedesktop.org, "Rafael J. Wysocki" <rjw@rjwysocki.net>, linux-kernel@vger.kernel.org, dri-devel@lists.freedesktop.org, linux-acpi@vger.kernel.org, linux-next@vger.kernel.org, Darren Hart <dvhart@linux.intel.com>
+In-Reply-To: <1454606941-9523-16-git-send-email-tn@semihalf.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Tomasz Nowicki <tn@semihalf.com>
+Cc: bhelgaas@google.com, arnd@arndb.de, will.deacon@arm.com, catalin.marinas@arm.com, rjw@rjwysocki.net, hanjun.guo@linaro.org, okaya@codeaurora.org, jiang.liu@linux.intel.com, Stefano.Stabellini@eu.citrix.com, robert.richter@caviumnetworks.com, mw@semihalf.com, Liviu.Dudau@arm.com, ddaney@caviumnetworks.com, wangyijing@huawei.com, Suravee.Suthikulpanit@amd.com, msalter@redhat.com, linux-pci@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linaro-acpi@lists.linaro.org, jchandra@broadcom.com, jcm@redhat.com
 
-T24gV2VkLCBGZWIgMTAsIDIwMTYgYXQgMDI6MTc6NDFQTSArMDEwMCwgTHVrYXMgV3VubmVyIHdy
-b3RlOgo+IEhpLAo+IAo+IE9uIFdlZCwgRmViIDEwLCAyMDE2IGF0IDA5OjQxOjM4QU0gKzAxMDAs
-IEx1a2FzIFd1bm5lciB3cm90ZToKPiA+IE9uIFdlZCwgRmViIDEwLCAyMDE2IGF0IDEyOjI0OjUx
-UE0gKzExMDAsIFN0ZXBoZW4gUm90aHdlbGwgd3JvdGU6Cj4gPiA+IEhpIGFsbCwKPiA+ID4gCj4g
-PiA+IEFmdGVyIG1lcmdpbmcgdGhlIGRybS1taXNjIHRyZWUsIHRvZGF5J3MgbGludXgtbmV4dCBi
-dWlsZCAoYXJtCj4gPiA+IG11bHRpX3Y3X2RlZmNvbmZpZykgZmFpbGVkIGxpa2UgdGhpczoKPiA+
-ID4gCj4gPiA+IEluIGZpbGUgaW5jbHVkZWQgZnJvbSBkcml2ZXJzL2dwdS9kcm0vbm91dmVhdS9u
-b3V2ZWF1X2RybS5jOjI1OjA6Cj4gPiA+IGluY2x1ZGUvbGludXgvYXBwbGUtZ211eC5oOiBJbiBm
-dW5jdGlvbiAnYXBwbGVfZ211eF9wcmVzZW50JzoKPiA+ID4gaW5jbHVkZS9saW51eC9hcHBsZS1n
-bXV4Lmg6MzY6NDI6IGVycm9yOiBpbXBsaWNpdCBkZWNsYXJhdGlvbiBvZiBmdW5jdGlvbiAnYWNw
-aV9kZXZfcHJlc2VudCcgWy1XZXJyb3I9aW1wbGljaXQtZnVuY3Rpb24tZGVjbGFyYXRpb25dCj4g
-PiA+ICAgcmV0dXJuIElTX0VOQUJMRUQoQ09ORklHX0FQUExFX0dNVVgpICYmIGFjcGlfZGV2X3By
-ZXNlbnQoR01VWF9BQ1BJX0hJRCk7Cj4gPiA+ICAgICAgICAgICAgICAgICAgICAgICAgICAgICAg
-ICAgICAgICAgICAgIF4KPiA+ID4gCj4gPiA+IENhdXNlZCBieSBjb21taXQKPiA+ID4gCj4gPiA+
-ICAgMjQxMzMwNmMyNTY2ICgiYXBwbGUtZ211eDogQWRkIGhlbHBlciBmb3IgcHJlc2VuY2UgZGV0
-ZWN0IikKPiA+ID4gCj4gPiA+IEkgaGF2ZSB1c2VkIHRoZSBkcm0tbWlzYyB0cmVlIGZyb20gbmV4
-dC0yMDE2MDIwOSBmb3IgdG9kYXkuCj4gPiAKPiA+IFVnaCwgYXBvbG9naWVzLCBJIGRpZG4ndCBo
-YXZlIGEgbm9uLUFDUEkgcGxhdGZvcm0gYXZhaWxhYmxlIHRvIHRlc3QKPiA+IHRoaXMgb24uCj4g
-PiAKPiA+IFNvbHV0aW9uIGlzIHRvIGVpdGhlciBhZGQgdG8gaW5jbHVkZS9saW51eC9hY3BpLmgK
-PiA+IAo+ID4gc3RhdGljIGlubGluZSBib29sIGFjcGlfZGV2X3ByZXNlbnQoY29uc3QgY2hhciAq
-aGlkKQo+ID4gewo+ID4gCXJldHVybiBmYWxzZTsKPiA+IH0KPiA+IAo+ID4gc29tZXdoZXJlIGJl
-bG93Cj4gPiAKPiA+ICNlbHNlCS8qICFDT05GSUdfQUNQSSAqLwo+ID4gCj4gPiBvciBhbHRlcm5h
-dGl2ZWx5IHRvIGFkZCB0byBpbmNsdWRlL2xpbnV4L2FwcGxlLWdtdXguaAo+ID4gCj4gPiBJU19F
-TkFCTEVEKENPTkZJR19BQ1BJKQo+ID4gCj4gPiBpbiBhcHBsZV9nbXV4X3ByZXNlbnQoKS4KPiA+
-IAo+ID4gSSdsbCBjaGVjayB0aGUgb3RoZXIgdXNlcnMgb2YgYWNwaV9kZXZfcHJlc2VudCgpIHRv
-IHNlZSB3aGljaCBvZgo+ID4gdGhlc2UgdHdvIHNvbHV0aW9ucyBpcyBtb3JlIGFwcHJvcHJpYXRl
-IGFuZCB3aWxsIHBvc3QgYSBmaXggc2hvcnRseS4KPiAKPiBUaGUgcGF0Y2ggaW5jbHVkZWQgYmVs
-b3cgZml4ZXMgdGhlIGJ1aWxkIGlmIENPTkZJR19BQ1BJIGlzIG5vdCBzZXQuCj4gCj4gQERhbmll
-bCBWZXR0ZXI6IFdvdWxkIGl0IGJlIHBvc3NpYmxlIHRvIHNxdWFzaCB0aGlzIHdpdGggMjQxMzMw
-NmMyNTY2Cj4gKCJhcHBsZS1nbXV4OiBBZGQgaGVscGVyIGZvciBwcmVzZW5jZSBkZXRlY3QiKSBv
-biB0b3BpYy9kcm0tbWlzYyBzbwo+IGFzIHRvIGF2b2lkIGJ1aWxkIGJyZWFrYWdlIGZvciBhbnlv
-bmUgdHJ5aW5nIHRvIGJpc2VjdCBiZXR3ZWVuIHRoYXQKPiBjb21taXQgYW5kIHRoaXMgZml4Pwo+
-IAo+IEkgY2hlY2tlZCBhbGwgb3RoZXIgdXNlcnMgb2YgYWNwaV9kZXZfcHJlc2VudCgpIGFuZCBh
-bGwgb2YgdGhlbSBhcmUKPiBvbmx5IGNvbXBpbGVkIGlmIENPTkZJR19BQ1BJIGlzIHNldC4gSGVu
-Y2UgSSBvcHRlZCB0byBmaXggdGhpcyBpbgo+IDxsaW51eC9hcHBsZS1nbXV4Lmg+IHJhdGhlciB0
-aGFuIGluIDxsaW51eC9hY3BpLmg+Lgo+IAo+IFRoYW5rcyBhZ2FpbiBTdGVwaGVuIGZvciByZXBv
-cnRpbmcgdGhpcyBhdCBzdWNoIGFuIGVhcmx5IHN0YWdlLAo+IHRob3VnaCBkb3VidGxlc3NseSBp
-dCB3b3VsZCBoYXZlIGJlZW4gYmV0dGVyIGlmIEkgaGFkIHRob3VnaHQgb2YKPiB0aGlzIHBvc3Np
-YmlsaXR5IHdoZW4gcHJlcGFyaW5nIHRoZSBvcmlnaW5hbCBwYXRjaCwgb3IgaWYgSSBoYWQKPiBj
-b21waWxlLXRlc3RlZCB3aXRob3V0IENPTkZJR19BQ1BJLiA6LSgKClNpbmNlICFBQ1BJIGFuZCBl
-bmFibGluZyBBUFBMRV9HTVVYIGlzIGEgYml0IGEgZnJpbmdlIGNvbmZpZyBJIGRvbid0IHRoaW5r
-CnRoaXMgd2lsbCBodXJ0IGJpc2VjdGFiaWxpdHkgYXQgYWxsIG9uIGEgcmVhbCBzeXN0ZW0uIFNv
-IGp1c3QgYXBwbGllZCB0aGlzCm9uZSBvbiB0b3Agb2YgZHJtLW1pc2MuCgpUaGFua3MsIERhbmll
-bAoKPiAKPiBMdWthcwo+IAo+IC0tID44IC0tCj4gU3ViamVjdDogW1BBVENIXSBhcHBsZS1nbXV4
-OiBGaXggYnVpbGQgYnJlYWthZ2UgaWYgIUNPTkZJR19BQ1BJCj4gCj4gVGhlIERSTSBkcml2ZXJz
-IGk5MTUsIG5vdXZlYXUgYW5kIHJhZGVvbiBtYXkgYmUgY29tcGlsZWQgd2l0aAo+IENPTkZJR19B
-Q1BJIG5vdCBzZXQsIGluIHdoaWNoIGNhc2UgYWNwaV9kZXZfcHJlc2VudCgpIGlzIHVuZGVmaW5l
-ZC4KPiAKPiBBZGQgYSBuby1vcCBzdHViIGZvciBhcHBsZV9nbXV4X3ByZXNlbnQoKSB3aGljaCBp
-cyB1c2VkIGlmCj4gQ09ORklHX0FQUExFX0dNVVggaXMgbm90IGVuYWJsZWQgdG8gYXZvaWQgYnVp
-bGQgYnJlYWthZ2UuCj4gKENPTkZJR19BUFBMRV9HTVVYIGRlcGVuZHMgb24gQ09ORklHX0FDUEku
-KQo+IAo+IFJlcG9ydGVkLWJ5OiBTdGVwaGVuIFJvdGh3ZWxsIDxzZnJAY2FuYi5hdXVnLm9yZy5h
-dT4KPiBTaWduZWQtb2ZmLWJ5OiBMdWthcyBXdW5uZXIgPGx1a2FzQHd1bm5lci5kZT4KPiAtLS0K
-PiAgaW5jbHVkZS9saW51eC9hcHBsZS1nbXV4LmggfCAxMyArKysrKysrKysrKystCj4gIDEgZmls
-ZSBjaGFuZ2VkLCAxMiBpbnNlcnRpb25zKCspLCAxIGRlbGV0aW9uKC0pCj4gCj4gZGlmZiAtLWdp
-dCBhL2luY2x1ZGUvbGludXgvYXBwbGUtZ211eC5oIGIvaW5jbHVkZS9saW51eC9hcHBsZS1nbXV4
-LmgKPiBpbmRleCBmZWViYzI4Li5iMmQzMmUwIDEwMDY0NAo+IC0tLSBhL2luY2x1ZGUvbGludXgv
-YXBwbGUtZ211eC5oCj4gKysrIGIvaW5jbHVkZS9saW51eC9hcHBsZS1nbXV4LmgKPiBAQCAtMjIs
-NiArMjIsOCBAQAo+ICAKPiAgI2RlZmluZSBHTVVYX0FDUElfSElEICJBUFAwMDBCIgo+ICAKPiAr
-I2lmIElTX0VOQUJMRUQoQ09ORklHX0FQUExFX0dNVVgpCj4gKwo+ICAvKioKPiAgICogYXBwbGVf
-Z211eF9wcmVzZW50KCkgLSBkZXRlY3QgaWYgZ211eCBpcyBidWlsdCBpbnRvIHRoZSBtYWNoaW5l
-Cj4gICAqCj4gQEAgLTMzLDcgKzM1LDE2IEBACj4gICAqLwo+ICBzdGF0aWMgaW5saW5lIGJvb2wg
-YXBwbGVfZ211eF9wcmVzZW50KHZvaWQpCj4gIHsKPiAtCXJldHVybiBJU19FTkFCTEVEKENPTkZJ
-R19BUFBMRV9HTVVYKSAmJiBhY3BpX2Rldl9wcmVzZW50KEdNVVhfQUNQSV9ISUQpOwo+ICsJcmV0
-dXJuIGFjcGlfZGV2X3ByZXNlbnQoR01VWF9BQ1BJX0hJRCk7Cj4gIH0KPiAgCj4gKyNlbHNlICAv
-KiAhQ09ORklHX0FQUExFX0dNVVggKi8KPiArCj4gK3N0YXRpYyBpbmxpbmUgYm9vbCBhcHBsZV9n
-bXV4X3ByZXNlbnQodm9pZCkKPiArewo+ICsJcmV0dXJuIGZhbHNlOwo+ICt9Cj4gKwo+ICsjZW5k
-aWYgLyogIUNPTkZJR19BUFBMRV9HTVVYICovCj4gKwo+ICAjZW5kaWYgLyogTElOVVhfQVBQTEVf
-R01VWF9IICovCj4gLS0gCj4gMS44LjUuMiAoQXBwbGUgR2l0LTQ4KQo+IAoKLS0gCkRhbmllbCBW
-ZXR0ZXIKU29mdHdhcmUgRW5naW5lZXIsIEludGVsIENvcnBvcmF0aW9uCmh0dHA6Ly9ibG9nLmZm
-d2xsLmNoCl9fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fCmRy
-aS1kZXZlbCBtYWlsaW5nIGxpc3QKZHJpLWRldmVsQGxpc3RzLmZyZWVkZXNrdG9wLm9yZwpodHRw
-czovL2xpc3RzLmZyZWVkZXNrdG9wLm9yZy9tYWlsbWFuL2xpc3RpbmZvL2RyaS1kZXZlbAo=
+On Thu, Feb 04, 2016 at 06:28:53PM +0100, Tomasz Nowicki wrote:
+> Lets abstract two calls which allow to inject and remove MCFG regions
+> which may come from DSDT table. These calls will be used for x86 and ARM64
+> PCI host bridge driver in the later patches.
+> 
+> Signed-off-by: Tomasz Nowicki <tn@semihalf.com>
+> Tested-by: Duc Dang <dhdang@apm.com>
+> Tested-by: Dongdong Liu <liudongdong3@huawei.com>
+> Tested-by: Hanjun Guo <hanjun.guo@linaro.org>
+> Tested-by: Graeme Gregory <graeme.gregory@linaro.org>
+> Tested-by: Sinan Kaya <okaya@codeaurora.org>
+> ---
+>  drivers/acpi/mcfg.c      | 38 ++++++++++++++++++++++++++++++++++++++
+>  include/linux/pci-acpi.h |  9 +++++++++
+>  2 files changed, 47 insertions(+)
+> 
+> diff --git a/drivers/acpi/mcfg.c b/drivers/acpi/mcfg.c
+> index 3e1e7be..dca4c4e 100644
+> --- a/drivers/acpi/mcfg.c
+> +++ b/drivers/acpi/mcfg.c
+> @@ -10,6 +10,7 @@
+>  #include <linux/acpi.h>
+>  #include <linux/ecam.h>
+>  #include <linux/pci.h>
+> +#include <linux/pci-acpi.h>
+>  
+>  #define	PREFIX	"MCFG: "
+>  
+> @@ -77,6 +78,43 @@ int __init acpi_parse_mcfg(struct acpi_table_header *header)
+>  	return 0;
+>  }
+>  
+> +int pci_mmcfg_setup_map(struct acpi_pci_root_info *ci)
+> +{
+> +	struct pci_mmcfg_region *cfg;
+> +	struct acpi_pci_root *root;
+> +	int seg, start, end, err;
+> +
+> +	root = ci->root;
+> +	seg = root->segment;
+> +	start = root->secondary.start;
+> +	end = root->secondary.end;
+> +
+> +	cfg = pci_mmconfig_lookup(seg, start);
+> +	if (cfg)
+> +		return 0;
+> +
+> +	cfg = pci_mmconfig_alloc(seg, start, end, root->mcfg_addr);
+> +	if (!cfg)
+> +		return -ENOMEM;
+> +
+> +	err = pci_mmconfig_inject(cfg);
+> +	return err;
+
+When you integrate Jayachandran's patch this whole function will
+become a pci_mmconfig_insert() and that's where hot_added should
+be set.
+
+> +}
+> +
+> +void pci_mmcfg_teardown_map(struct acpi_pci_root_info *ci)
+> +{
+> +	struct acpi_pci_root *root = ci->root;
+> +	struct pci_mmcfg_region *cfg;
+> +
+> +	cfg = pci_mmconfig_lookup(root->segment, root->secondary.start);
+> +	if (!cfg)
+> +		return;
+> +
+> +	if (cfg->hot_added)
+
+Move the hot_added check in pci_mmconfig_delete() (that does the look
+up again), we do not want to carry out pci_mmconfig_lookup only to
+check that flag here (and we miss rcu locking for the look-up BTW).
+
+Thanks,
+Lorenzo
+
+> +		pci_mmconfig_delete(root->segment, root->secondary.start,
+> +				    root->secondary.end);
+> +}
+> +
+>  int __init __weak acpi_mcfg_check_entry(struct acpi_table_mcfg *mcfg,
+>  					struct acpi_mcfg_allocation *cfg)
+>  {
+> diff --git a/include/linux/pci-acpi.h b/include/linux/pci-acpi.h
+> index a72e22d..65b91f3 100644
+> --- a/include/linux/pci-acpi.h
+> +++ b/include/linux/pci-acpi.h
+> @@ -80,6 +80,15 @@ extern struct pci_bus *acpi_pci_root_create(struct acpi_pci_root *root,
+>  void acpi_pci_add_bus(struct pci_bus *bus);
+>  void acpi_pci_remove_bus(struct pci_bus *bus);
+>  
+> +#ifdef	CONFIG_PCI_MMCONFIG
+> +int pci_mmcfg_setup_map(struct acpi_pci_root_info *ci);
+> +void pci_mmcfg_teardown_map(struct acpi_pci_root_info *ci);
+> +#else
+> +static inline int pci_mmcfg_setup_map(struct acpi_pci_root_info *ci)
+> +{ return 0; }
+> +static inline void pci_mmcfg_teardown_map(struct acpi_pci_root_info *ci) { }
+> +#endif
+> +
+>  #ifdef	CONFIG_ACPI_PCI_SLOT
+>  void acpi_pci_slot_init(void);
+>  void acpi_pci_slot_enumerate(struct pci_bus *bus);
+> -- 
+> 1.9.1
+> 
