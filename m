@@ -1,51 +1,33 @@
 From: Marc Zyngier <marc.zyngier@arm.com>
-Subject: Re: [PATCH V3 00/10] Introduce ACPI world to GICv3 & ITS irqchip
-Date: Wed, 10 Feb 2016 10:19:06 +0000
-Message-ID: <56BB0E9A.6010809@arm.com>
+Subject: Re: [PATCH V3 04/10] irqchip / GICv3: remove gic root node in ITS
+Date: Wed, 10 Feb 2016 10:25:39 +0000
+Message-ID: <56BB1023.4090005@arm.com>
 References: <1453209083-3358-1-git-send-email-tn@semihalf.com>
- <56BAFAE8.4070308@semihalf.com>
+ <1453209083-3358-5-git-send-email-tn@semihalf.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset=windows-1252
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <56BAFAE8.4070308@semihalf.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Tomasz Nowicki <tn@semihalf.com>, tglx@linutronix.de, jason@lakedaemon.net, rjw@rjwysocki.net, lorenzo.pieralisi@arm.com, robert.richter@caviumnetworks.com, shijie.huang@arm.com, guohanjun@huawei.com, Suravee.Suthikulpanit@amd.com
-Cc: graeme.gregory@linaro.org, Catalin.Marinas@arm.com, will.deacon@arm.com, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, hanjun.guo@linaro.org, ddaney.cavm@gmail.com, mw@semihalf.com, linux-arm-kernel@lists.infradead.org
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from foss.arm.com ([217.140.101.70]:45964 "EHLO foss.arm.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752708AbcBJKZo (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 10 Feb 2016 05:25:44 -0500
+In-Reply-To: <1453209083-3358-5-git-send-email-tn@semihalf.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Tomasz Nowicki <tn@semihalf.com>, tglx@linutronix.de, jason@lakedaemon.net, rjw@rjwysocki.net, lorenzo.pieralisi@arm.com, robert.richter@caviumnetworks.com, shijie.huang@arm.com, guohanjun@huawei.com, Suravee.Suthikulpanit@amd.com
+Cc: mw@semihalf.com, graeme.gregory@linaro.org, Catalin.Marinas@arm.com, will.deacon@arm.com, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, hanjun.guo@linaro.org, linux-arm-kernel@lists.infradead.org, ddaney.cavm@gmail.com
 
-Thomasz,
-
-On 10/02/16 08:55, Tomasz Nowicki wrote:
-> On 19.01.2016 14:11, Tomasz Nowicki wrote:
->> Patches base on Suravee's ACPI GICv2m support:
->> https://lkml.org/lkml/2015/12/10/475
->>
->> The following git branch contains submitted patches along with
->> the useful patches from the test point of view (mainly ACPI ARM64 PCI support).
->> https://github.com/semihalf-nowicki-tomasz/linux.git (gicv3-its-acpi-v3)
->>
+On 19/01/16 13:11, Tomasz Nowicki wrote:
+> From: Hanjun Guo <hanjun.guo@linaro.org>
 > 
-> Hi Marc,
+> The gic_root_node defined in ITS driver is not actually
+> used, and the ITS driver seems will not use it in the
+> future, so just remove it.
 > 
-> Can you please have a look at this series. I think your previous 
-> concerns have been addressed.
+> Signed-off-by: Hanjun Guo <hanjun.guo@linaro.org>
 
-I've just acked the first 3 patches, which I believe are good to go.
-
-The ITS support is a separate thing, mostly because it introduces a
-completely new infrastructure (IORT). I'll review that separately (no
-need to resend the patches though).
-
-Thanks,
+Acked-by: Marc Zyngier <marc.zyngier@arm.com>
 
 	M.
 -- 
