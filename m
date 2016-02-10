@@ -1,37 +1,49 @@
 From: Marc Zyngier <marc.zyngier@arm.com>
-Subject: Re: [PATCH V3 02/10] irqchip / GICv3: Add ACPI support for GICv3+
- initialization
-Date: Wed, 10 Feb 2016 09:55:46 +0000
-Message-ID: <56BB0922.3040507@arm.com>
+Subject: Re: [PATCH V3 03/10] irqchip,GICv3,ACPI: Add redistributor support
+ via GICC structures.
+Date: Wed, 10 Feb 2016 10:16:31 +0000
+Message-ID: <56BB0DFF.1040802@arm.com>
 References: <1453209083-3358-1-git-send-email-tn@semihalf.com>
- <1453209083-3358-3-git-send-email-tn@semihalf.com>
+ <1453209083-3358-4-git-send-email-tn@semihalf.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=windows-1252
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1453209083-3358-3-git-send-email-tn@semihalf.com>
-Sender: linux-kernel-owner@vger.kernel.org
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from foss.arm.com ([217.140.101.70]:45886 "EHLO foss.arm.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1757350AbcBJKQg (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 10 Feb 2016 05:16:36 -0500
+In-Reply-To: <1453209083-3358-4-git-send-email-tn@semihalf.com>
+Sender: linux-acpi-owner@vger.kernel.org
+List-Id: linux-acpi@vger.kernel.org
 To: Tomasz Nowicki <tn@semihalf.com>, tglx@linutronix.de, jason@lakedaemon.net, rjw@rjwysocki.net, lorenzo.pieralisi@arm.com, robert.richter@caviumnetworks.com, shijie.huang@arm.com, guohanjun@huawei.com, Suravee.Suthikulpanit@amd.com
 Cc: mw@semihalf.com, graeme.gregory@linaro.org, Catalin.Marinas@arm.com, will.deacon@arm.com, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, hanjun.guo@linaro.org, linux-arm-kernel@lists.infradead.org, ddaney.cavm@gmail.com
-List-Id: linux-acpi@vger.kernel.org
 
 On 19/01/16 13:11, Tomasz Nowicki wrote:
-> With the refator of gic_of_init(), GICv3/4 can be initialized
-> by gic_init_bases() with gic distributor base address and gic
-> redistributor region(s).
+> Following ACPI spec:
+> On systems supporting GICv3 and above, GICR Base Address in MADT GICC
+> structure holds the 64-bit physical address of the associated Redistributor.
+> If all of the GIC Redistributors are in the always-on power domain,
+> GICR structures should be used to describe the Redistributors instead,
+> and this field must be set to 0.
 > 
-> So get the redistributor region base addresses from MADT GIC
-> redistributor subtable, and the distributor base address from
-> GICD subtable to init GICv3 irqchip in ACPI way.
+> It means that we have two ways to initialize registirbutors map.
+> 1. via GICD structure which can accommodate many redistributors as a region
+> 2. via GICC which is able to describe single redistributor
 > 
-> Note: GIC redistributor base address may also be provided in
-> GICC structures on systems supporting GICv3 and above if the GIC
-> Redistributors are not in the always-on power domain, this
-> patch didn't implement such feature yet.
-> Also, ACPI ITS initialization will be added in the following patches.
+> This patch is going to add support for second option.
+> Considering redistributors, GICD and GICC subtables have be mutually
+> exclusive. While discovering and mapping redistributor, we need to know
+> its size in advance. For the GICC case, redistributor can be in
+> a power-domain that is off, thus we cannot relay on GICR TYPER register.
+> Therefore, we get GIC version from distributor register and map 2xSZ_64K
+> for GICv3 and 4xSZ_64K for GICv4.
 > 
-> Signed-off-by: Tomasz Nowicki <tn@semihalf.com>
 > Signed-off-by: Hanjun Guo <hanjun.guo@linaro.org>
+> Signed-off-by: Tomasz Nowicki <tn@semihalf.com>
+
+This is incredibly convoluted, but I'm not sure there is a better way
+given the current ACPI API. Still, it hurts.
 
 Acked-by: Marc Zyngier <marc.zyngier@arm.com>
 
