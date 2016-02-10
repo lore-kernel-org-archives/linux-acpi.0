@@ -1,129 +1,82 @@
-From: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
-Subject: Re: [PATCH V4 15/23] acpi, mcfg: Implement two calls that might be
- used to inject/remove MCFG region.
-Date: Wed, 10 Feb 2016 14:06:03 +0000
-Message-ID: <20160210140602.GB25060@red-moon>
-References: <1454606941-9523-1-git-send-email-tn@semihalf.com>
- <1454606941-9523-16-git-send-email-tn@semihalf.com>
+From: Gabriele Paoloni <gabriele.paoloni@huawei.com>
+Subject: RE: [RFC PATCH v3 3/3] PCI/ACPI: hisi: Add ACPI support for
+ HiSilicon SoCs Host Controllers
+Date: Wed, 10 Feb 2016 14:45:09 +0000
+Message-ID: <EE11001F9E5DDD47B7634E2F8A612F2E1ECB1D30@lhreml503-mbs>
+References: <1455039260-6040-1-git-send-email-gabriele.paoloni@huawei.com>
+ <1455039260-6040-4-git-send-email-gabriele.paoloni@huawei.com>
+ <20160209182429.GD4348@leverpostej>
+ <EE11001F9E5DDD47B7634E2F8A612F2E1ECB1591@lhreml503-mbs>
+ <20160210111234.GC2632@leverpostej>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from foss.arm.com ([217.140.101.70]:47535 "EHLO foss.arm.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751027AbcBJOEH (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 10 Feb 2016 09:04:07 -0500
-Content-Disposition: inline
-In-Reply-To: <1454606941-9523-16-git-send-email-tn@semihalf.com>
+Received: from lhrrgout.huawei.com ([194.213.3.17]:53689 "EHLO
+	lhrrgout.huawei.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751301AbcBJOpb convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 10 Feb 2016 09:45:31 -0500
+In-Reply-To: <20160210111234.GC2632@leverpostej>
+Content-Language: en-US
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Tomasz Nowicki <tn@semihalf.com>
-Cc: bhelgaas@google.com, arnd@arndb.de, will.deacon@arm.com, catalin.marinas@arm.com, rjw@rjwysocki.net, hanjun.guo@linaro.org, okaya@codeaurora.org, jiang.liu@linux.intel.com, Stefano.Stabellini@eu.citrix.com, robert.richter@caviumnetworks.com, mw@semihalf.com, Liviu.Dudau@arm.com, ddaney@caviumnetworks.com, wangyijing@huawei.com, Suravee.Suthikulpanit@amd.com, msalter@redhat.com, linux-pci@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linaro-acpi@lists.linaro.org, jchandra@broadcom.com, jcm@redhat.com
+To: Mark Rutland <mark.rutland@arm.com>
+Cc: "Guohanjun (Hanjun Guo)" <guohanjun@huawei.com>, "Wangzhou (B)" <wangzhou1@hisilicon.com>, "liudongdong (C)" <liudongdong3@huawei.com>, Linuxarm <linuxarm@huawei.com>, qiujiang <qiujiang@huawei.com>, "bhelgaas@google.com" <bhelgaas@google.com>, "arnd@arndb.de" <arnd@arndb.de>, "Lorenzo.Pieralisi@arm.com" <Lorenzo.Pieralisi@arm.com>, "tn@semihalf.com" <tn@semihalf.com>, "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "xuwei (O)" <xuwei5@hisilicon.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "jcm@redhat.com" <jcm@redhat.com>, zhangjukuo <zhangjukuo@huawei.com>, "Liguozhu (Kenneth)" <liguozhu@hisilicon.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
-On Thu, Feb 04, 2016 at 06:28:53PM +0100, Tomasz Nowicki wrote:
-> Lets abstract two calls which allow to inject and remove MCFG regions
-> which may come from DSDT table. These calls will be used for x86 and ARM64
-> PCI host bridge driver in the later patches.
+> -----Original Message-----
+> From: linux-kernel-owner@vger.kernel.org [mailto:linux-kernel-
+> owner@vger.kernel.org] On Behalf Of Mark Rutland
+> Sent: 10 February 2016 11:13
+> To: Gabriele Paoloni
+> Cc: Guohanjun (Hanjun Guo); Wangzhou (B); liudongdong (C); Linuxarm;
+> qiujiang; bhelgaas@google.com; arnd@arndb.de;
+> Lorenzo.Pieralisi@arm.com; tn@semihalf.com; linux-pci@vger.kernel.org;
+> linux-kernel@vger.kernel.org; xuwei (O); linux-acpi@vger.kernel.org;
+> jcm@redhat.com; zhangjukuo; Liguozhu (Kenneth); linux-arm-
+> kernel@lists.infradead.org
+> Subject: Re: [RFC PATCH v3 3/3] PCI/ACPI: hisi: Add ACPI support for
+> HiSilicon SoCs Host Controllers
 > 
-> Signed-off-by: Tomasz Nowicki <tn@semihalf.com>
-> Tested-by: Duc Dang <dhdang@apm.com>
-> Tested-by: Dongdong Liu <liudongdong3@huawei.com>
-> Tested-by: Hanjun Guo <hanjun.guo@linaro.org>
-> Tested-by: Graeme Gregory <graeme.gregory@linaro.org>
-> Tested-by: Sinan Kaya <okaya@codeaurora.org>
-> ---
->  drivers/acpi/mcfg.c      | 38 ++++++++++++++++++++++++++++++++++++++
->  include/linux/pci-acpi.h |  9 +++++++++
->  2 files changed, 47 insertions(+)
+> On Wed, Feb 10, 2016 at 09:52:36AM +0000, Gabriele Paoloni wrote:
+> > Hi Mark
+> >
+> > > On Tue, Feb 09, 2016 at 05:34:20PM +0000, Gabriele Paoloni wrote:
+> > > > From: gabriele paoloni <gabriele.paoloni@huawei.com>
+> > > > +/*
+> > > > + * Retrieve rc_dbi base and size from _DSD
+> > > > + * Name (_DSD, Package () {
+> > > > + *	ToUUID("daffd814-6eba-4d8c-8a91-bc9bbf4aa301"),
+> > > > + *	Package () {
+> > > > + *	Package () {"rc-dbi", Package () { 0x0, 0xb0080000, 0x0,
+> 0x10000
+> > > }},
+> > > > + *	}
+> > > > + *	})
+> > > > + */
+> > >
+> > > As above, this does not look right. ACPI has standard mechanisms
+> for
+> > > describing addresses. Making something up like this is not a good
+> idea.
+> >
+> > I am quite new to ACPI, may I ask you to explain a bit?
 > 
-> diff --git a/drivers/acpi/mcfg.c b/drivers/acpi/mcfg.c
-> index 3e1e7be..dca4c4e 100644
-> --- a/drivers/acpi/mcfg.c
-> +++ b/drivers/acpi/mcfg.c
-> @@ -10,6 +10,7 @@
->  #include <linux/acpi.h>
->  #include <linux/ecam.h>
->  #include <linux/pci.h>
-> +#include <linux/pci-acpi.h>
->  
->  #define	PREFIX	"MCFG: "
->  
-> @@ -77,6 +78,43 @@ int __init acpi_parse_mcfg(struct acpi_table_header *header)
->  	return 0;
->  }
->  
-> +int pci_mmcfg_setup_map(struct acpi_pci_root_info *ci)
-> +{
-> +	struct pci_mmcfg_region *cfg;
-> +	struct acpi_pci_root *root;
-> +	int seg, start, end, err;
-> +
-> +	root = ci->root;
-> +	seg = root->segment;
-> +	start = root->secondary.start;
-> +	end = root->secondary.end;
-> +
-> +	cfg = pci_mmconfig_lookup(seg, start);
-> +	if (cfg)
-> +		return 0;
-> +
-> +	cfg = pci_mmconfig_alloc(seg, start, end, root->mcfg_addr);
-> +	if (!cfg)
-> +		return -ENOMEM;
-> +
-> +	err = pci_mmconfig_inject(cfg);
-> +	return err;
+> ACPI has standard mechanisms for describing certain resources, and
+> these
+> should not be described in _DSD. Memory or IO address regions are such
+> resources (in _CRS, IIRC), and should not be described in _DSD.
 
-When you integrate Jayachandran's patch this whole function will
-become a pci_mmconfig_insert() and that's where hot_added should
-be set.
+Hi Mark,
 
-> +}
-> +
-> +void pci_mmcfg_teardown_map(struct acpi_pci_root_info *ci)
-> +{
-> +	struct acpi_pci_root *root = ci->root;
-> +	struct pci_mmcfg_region *cfg;
-> +
-> +	cfg = pci_mmconfig_lookup(root->segment, root->secondary.start);
-> +	if (!cfg)
-> +		return;
-> +
-> +	if (cfg->hot_added)
+In my case I think in need to look into the MCFG object as the problem
+I have is RC using a different range than the rest of the hierarchy.
 
-Move the hot_added check in pci_mmconfig_delete() (that does the look
-up again), we do not want to carry out pci_mmconfig_lookup only to
-check that flag here (and we miss rcu locking for the look-up BTW).
+I'll investigate this and try to come with a solution in v4
 
-Thanks,
-Lorenzo
+Many Thanks
 
-> +		pci_mmconfig_delete(root->segment, root->secondary.start,
-> +				    root->secondary.end);
-> +}
-> +
->  int __init __weak acpi_mcfg_check_entry(struct acpi_table_mcfg *mcfg,
->  					struct acpi_mcfg_allocation *cfg)
->  {
-> diff --git a/include/linux/pci-acpi.h b/include/linux/pci-acpi.h
-> index a72e22d..65b91f3 100644
-> --- a/include/linux/pci-acpi.h
-> +++ b/include/linux/pci-acpi.h
-> @@ -80,6 +80,15 @@ extern struct pci_bus *acpi_pci_root_create(struct acpi_pci_root *root,
->  void acpi_pci_add_bus(struct pci_bus *bus);
->  void acpi_pci_remove_bus(struct pci_bus *bus);
->  
-> +#ifdef	CONFIG_PCI_MMCONFIG
-> +int pci_mmcfg_setup_map(struct acpi_pci_root_info *ci);
-> +void pci_mmcfg_teardown_map(struct acpi_pci_root_info *ci);
-> +#else
-> +static inline int pci_mmcfg_setup_map(struct acpi_pci_root_info *ci)
-> +{ return 0; }
-> +static inline void pci_mmcfg_teardown_map(struct acpi_pci_root_info *ci) { }
-> +#endif
-> +
->  #ifdef	CONFIG_ACPI_PCI_SLOT
->  void acpi_pci_slot_init(void);
->  void acpi_pci_slot_enumerate(struct pci_bus *bus);
-> -- 
-> 1.9.1
+Gab 
+
 > 
+> Thanks,
+> Mark.
