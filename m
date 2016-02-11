@@ -1,81 +1,95 @@
-From: Marc Zyngier <marc.zyngier@arm.com>
-Subject: Re: [PATCH V3 00/10] Introduce ACPI world to GICv3 & ITS irqchip
-Date: Thu, 11 Feb 2016 11:47:22 +0000
-Message-ID: <56BC74CA.3020003@arm.com>
-References: <1453209083-3358-1-git-send-email-tn@semihalf.com>
+From: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+Subject: Re: [PATCH V4 22/23] arm64, pci, acpi: Assign legacy IRQs once
+ device is enable.
+Date: Thu, 11 Feb 2016 11:58:53 +0000
+Message-ID: <20160211115843.GA24136@red-moon>
+References: <1454606941-9523-1-git-send-email-tn@semihalf.com>
+ <1454606941-9523-23-git-send-email-tn@semihalf.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from foss.arm.com ([217.140.101.70]:53402 "EHLO foss.arm.com"
+Received: from foss.arm.com ([217.140.101.70]:53487 "EHLO foss.arm.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752061AbcBKLr2 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 11 Feb 2016 06:47:28 -0500
-In-Reply-To: <1453209083-3358-1-git-send-email-tn@semihalf.com>
+	id S1750885AbcBKL5B (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 11 Feb 2016 06:57:01 -0500
+Content-Disposition: inline
+In-Reply-To: <1454606941-9523-23-git-send-email-tn@semihalf.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Tomasz Nowicki <tn@semihalf.com>, tglx@linutronix.de, jason@lakedaemon.net, rjw@rjwysocki.net, lorenzo.pieralisi@arm.com, robert.richter@caviumnetworks.com, shijie.huang@arm.com, guohanjun@huawei.com, Suravee.Suthikulpanit@amd.com
-Cc: mw@semihalf.com, graeme.gregory@linaro.org, Catalin.Marinas@arm.com, will.deacon@arm.com, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, hanjun.guo@linaro.org, linux-arm-kernel@lists.infradead.org, ddaney.cavm@gmail.com
+To: Tomasz Nowicki <tn@semihalf.com>
+Cc: bhelgaas@google.com, arnd@arndb.de, will.deacon@arm.com, catalin.marinas@arm.com, rjw@rjwysocki.net, hanjun.guo@linaro.org, okaya@codeaurora.org, jiang.liu@linux.intel.com, Stefano.Stabellini@eu.citrix.com, robert.richter@caviumnetworks.com, mw@semihalf.com, Liviu.Dudau@arm.com, ddaney@caviumnetworks.com, wangyijing@huawei.com, Suravee.Suthikulpanit@amd.com, msalter@redhat.com, linux-pci@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linaro-acpi@lists.linaro.org, jchandra@broadcom.com, jcm@redhat.com
 
-Thomas, Hanjun,
+On Thu, Feb 04, 2016 at 06:29:00PM +0100, Tomasz Nowicki wrote:
+> This is the last step before enabling generic ACPI PCI host controller
+> for ARM64. We need to take care of legacy IRQ mapping for non-MSI(X)
+> PCI devices. pcibios_enable_device() boot order is not sensitive to
+> ACPI device enumeration, so it is the best place to assign device's IRQs.
 
-On 19/01/16 13:11, Tomasz Nowicki wrote:
-> Patches base on Suravee's ACPI GICv2m support:
-> https://lkml.org/lkml/2015/12/10/475
-> 
-> The following git branch contains submitted patches along with
-> the useful patches from the test point of view (mainly ACPI ARM64 PCI support).
-> https://github.com/semihalf-nowicki-tomasz/linux.git (gicv3-its-acpi-v3)
-> 
-> Series has been tested on Cavium ThunderX server.
-> 
-> v2 -> v3
-> - rebased on top of 4.4
-> - fixes and improvements for redistributor init via GICC structures
-> - fixes as per kbuild reports
-> 
-> v1 -> v2
-> - rebased on top of 4.4-rc4
-> - use pci_msi_domain_get_msi_rid for requester ID to device ID translation
-> 
-> Hanjun Guo (1):
->   irqchip / GICv3: remove gic root node in ITS
-> 
-> Tomasz Nowicki (9):
->   irqchip / GICv3: Refactor gic_of_init() for GICv3 driver
->   irqchip / GICv3: Add ACPI support for GICv3+ initialization
->   irqchip,GICv3,ACPI: Add redistributor support via GICC structures.
->   irqchip, gicv3, its: Mark its_init() and its children as __init
->   irqchip, GICv3, ITS: Refator ITS dt init code to prepare for ACPI.
->   ARM64, ACPI, PCI: I/O Remapping Table (IORT) initial support.
->   irqchip, gicv3, its: Probe ITS in the ACPI way.
->   acpi, gicv3, msi: Factor out code that might be reused for ACPI
->     equivalent.
->   acpi, gicv3, its: Use MADT ITS subtable to do PCI/MSI domain
->     initialization.
-> 
->  drivers/acpi/Kconfig                     |   3 +
->  drivers/acpi/Makefile                    |   1 +
->  drivers/acpi/iort.c                      | 326 +++++++++++++++++++++++++++++
->  drivers/irqchip/Kconfig                  |   1 +
->  drivers/irqchip/irq-gic-v3-its-pci-msi.c |  85 ++++++--
->  drivers/irqchip/irq-gic-v3-its.c         | 143 +++++++++----
->  drivers/irqchip/irq-gic-v3.c             | 344 ++++++++++++++++++++++++++-----
->  drivers/pci/msi.c                        |   3 +
->  include/linux/iort.h                     |  38 ++++
->  include/linux/irqchip/arm-gic-v3.h       |   2 +-
->  10 files changed, 845 insertions(+), 101 deletions(-)
->  create mode 100644 drivers/acpi/iort.c
->  create mode 100644 include/linux/iort.h
-> 
+I guess you are referring to:
 
-I've so far queued the first 5 patches of this series (basic ACPI
-support for GICv3 and associated cleanups). The rest needs additional
-discussion (see my comments on patch 10), and requires some form of Ack
-from the ACPI maintainers (at least for patch 7).
+https://lists.linaro.org/pipermail/linaro-acpi/2015-October/005944.html
 
-Thanks,
+It is weird that the dependency can't be enforced, I will have a look
+into this, it would be nice to have DT and ACPI legacy IRQs mapping
+confined in pcibios_add_device() so that we can remove them in one go
+when Matthew's series is merged.
 
-	M.
--- 
-Jazz is not dead. It just smells funny...
+As for the MSI check, by reading commit history its need I think
+it harks back to bba6f6fc, which was supposed to be a quick hack and it
+has been in the kernel for 9 years :), is it really needed ?
+
+> NOTE: *This is going to be temporary solution*. There is ongoing work
+> which aims for cleaning legacy IRQ allocation, see [1].
+> We can consider this patch as the necessary evil which will be removed
+> once [1] series hits mailnline in the near future.
+> 
+> 1. http://comments.gmane.org/gmane.linux.kernel.pci/46461
+> 
+> Signed-off-by: Tomasz Nowicki <tn@semihalf.com>
+> ---
+>  arch/arm64/kernel/pci.c | 14 ++++++++++++--
+>  1 file changed, 12 insertions(+), 2 deletions(-)
+> 
+> diff --git a/arch/arm64/kernel/pci.c b/arch/arm64/kernel/pci.c
+> index 023b983..d1a701f 100644
+> --- a/arch/arm64/kernel/pci.c
+> +++ b/arch/arm64/kernel/pci.c
+> @@ -39,16 +39,26 @@ resource_size_t pcibios_align_resource(void *data, const struct resource *res,
+>  }
+>  
+>  /**
+> - * pcibios_enable_device - Enable I/O and memory.
+> + * pcibios_enable_device - Enable I/O, memory and legacy IRQs for ACPI.
+>   * @dev: PCI device to be enabled
+>   * @mask: bitmask of BARs to enable
+>   */
+>  int pcibios_enable_device(struct pci_dev *dev, int mask)
+>  {
+> +	int ret;
+> +
+>  	if (pci_has_flag(PCI_PROBE_ONLY))
+>  		return 0;
+>  
+> -	return pci_enable_resources(dev, mask);
+> +	ret = pci_enable_resources(dev, mask);
+> +	if (ret < 0)
+> +		return ret;
+> +
+> +#ifdef CONFIG_ACPI
+> +	if (!pci_dev_msi_enabled(dev))
+> +		return acpi_pci_irq_enable(dev);
+
+You need a guard here anyway, we do not want to probe ACPI IRQ if
+it is disabled (ie acpi_pci_disabled). Same goes for DT in
+pcibios_add_device(), which is not making this code any nicer.
+
+Lorenzo
+
+> +#endif
+> +	return 0;
+>  }
+>  
+>  /*
+> -- 
+> 1.9.1
+> 
