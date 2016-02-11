@@ -1,155 +1,209 @@
-From: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
-Subject: [PATCH v2] PCI: ACPI: IA64: fix IO port generic range check
-Date: Thu, 11 Feb 2016 17:47:07 +0000
-Message-ID: <1455212827-9382-1-git-send-email-lorenzo.pieralisi@arm.com>
-Return-path: <linux-ia64-owner@vger.kernel.org>
-Sender: linux-ia64-owner@vger.kernel.org
-To: linux-pci@vger.kernel.org
-Cc: linux-acpi@vger.kernel.org, linux-ia64@vger.kernel.org, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Bjorn Helgaas <bhelgaas@google.com>, Hanjun Guo <hanjun.guo@linaro.org>, Jiang Liu <jiang.liu@linux.intel.com>, Tony Luck <tony.luck@intel.com>, Tomasz Nowicki <tn@semihalf.com>, Mark Salter <msalter@redhat.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>
+From: Lukas Wunner <lukas@wunner.de>
+Subject: Re: [PATCH 0/2] Use acpi_dev_present()
+Date: Thu, 11 Feb 2016 19:31:57 +0100
+Message-ID: <20160211183157.GA15803@wunner.de>
+References: <cover.1453060661.git.lukas@wunner.de>
+ <20160119211229.GB3253@malice.jf.intel.com>
+ <5367662.pAQ7mO39ru@vostro.rjw.lan>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mailout3.hostsharing.net ([176.9.242.54]:44082 "EHLO
+	mailout3.hostsharing.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750978AbcBKSbi (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 11 Feb 2016 13:31:38 -0500
+Content-Disposition: inline
+In-Reply-To: <5367662.pAQ7mO39ru@vostro.rjw.lan>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: Darren Hart <dvhart@infradead.org>, Lv Zheng <lv.zheng@intel.com>, Robert Moore <robert.moore@intel.com>, platform-driver-x86@vger.kernel.org, "Lee, Chun-Yi" <jlee@suse.com>, Corentin Chary <corentin.chary@gmail.com>, acpi4asus-user@lists.sourceforge.net, linux-acpi@vger.kernel.org
 
-The [0 - 64k] ACPI PCI IO port resource boundary check in:
+Hi Rafael,
 
-acpi_dev_ioresource_flags()
+thanks a lot for your patience.
 
-is currently applied blindly in the ACPI resource parsing to all
-architectures, but only x86 suffers from that IO space limitation.
+On Tue, Jan 19, 2016 at 10:59:04PM +0100, Rafael J. Wysocki wrote:
+> On Tuesday, January 19, 2016 01:12:29 PM Darren Hart wrote:
+> > On Sun, Jan 17, 2016 at 09:49:41PM +0100, Lukas Wunner wrote:
+> > > Hi Darren,
+> > > 
+> > > the acpi_dev_present() API has now landed in Linus' tree.
+> > > Thus, after Linus' tree gets merged back into yours,
+> > > it would be possible to use the API in the pdx86 drivers
+> > > as per the following patches.
+> > > 
+> > > I've also pushed these to GitHub in case anyone prefers
+> > > perusing them in a browser:
+> > > https://github.com/l1k/linux/commits/acpi_dev_present_pdx86
+> > > 
+> > > This is a repost of patches submitted in November, the only
+> > > change is one line added to the commit messages to reference
+> > > the commit which introduces the API:
+> > > http://thread.gmane.org/gmane.linux.alsa.devel/147414/focus=8004
+> > > http://thread.gmane.org/gmane.linux.alsa.devel/147414/focus=8005
+> > 
+> > Who's tree did the API make it in through? That would likely be the best tree to
+> > pull these 2 patches in from.
+> > 
+> > Robert, Lv, Rafael? Would one of you prefer to take these 2 patches using the
+> > new API?
+> 
+> It was my tree and I can take these patches, but in that case I'd like the
+> function's name to be changed as discussed elsewhere.
+> 
+> Executive summary is that we have acpi_dev_present() and acpi_device_is_present()
+> now and they serve different purposes which is kind of confusing.  Moreover,
+> acpi_dev_present() doesn't check if the device is actually present, so
+> I would like it to be renamed to acpi_device_found() or similar.
 
-On arches (ie IA64 and ARM64) where IO space is memory mapped,
-the PCI root bridges IO resource windows are firstly initialized from
-the _CRS (in acpi_decode_space()) and contain the CPU physical address
-at which a root bridge decodes IO space in the CPU physical address
-space with the offset value representing the offset required to translate
-the PCI bus address into the CPU physical address.
+There are 4 users of acpi_dev_present in linux-next (3 in sound/soc/intel/,
+1 in include/linux/apple-gmux.h). I expect 1 other user to appear in i915.
 
-The IO resource windows are then parsed and updated in arch code
-before creating and enumerating PCI buses (eg IA64 add_io_space())
-to map in an arch specific way the obtained CPU physical address range
-to a slice of virtual address space reserved to map PCI IO space,
-ending up with PCI bridges resource windows containing IO
-resources like the following on a working IA64 configuration:
+I've created a patch (based on linux-next and included below as an RFC)
+to rename acpi_dev_present to acpi_dev_found in the function declaration
+as well as at all call sites. I've also rebased the 2 pdx86 patches onto
+this and pushed the branch to GitHub:
+https://github.com/l1k/linux/commits/acpi_dev_found
 
-PCI host bridge to bus 0000:00
-pci_bus 0000:00: root bus resource [io  0x1000000-0x100ffff window] (bus
-address [0x0000-0xffff])
-pci_bus 0000:00: root bus resource [mem 0x000a0000-0x000fffff window]
-pci_bus 0000:00: root bus resource [mem 0x80000000-0x8fffffff window]
-pci_bus 0000:00: root bus resource [mem 0x80004000000-0x800ffffffff window]
-pci_bus 0000:00: root bus resource [bus 00]
+My plan is currently to wait until all users are merged into 4.6,
+then rebase my branch onto Linus' tree and post the resulting patches.
+This will be either late during the 4.6 merge window or immediately
+after it has closed. You could then either pick up the patches for
+4.6 or 4.7, whichever you prefer.
 
-This implies that the [0 - 64K] check in acpi_dev_ioresource_flags()
-leaves platforms with memory mapped IO space (ie IA64) broken (ie kernel
-can't claim IO resources since the host bridge IO resource is disabled
-and discarded by ACPI core code, see log on IA64 with missing root bridge
-IO resource, silently filtered by current [0 - 64k] check in
-acpi_dev_ioresource_flags()):
+If you'd prefer a different way of moving forward or would like
+something changed in the patch below, please let me know and
+I will be happy to adjust accordingly.
 
-PCI host bridge to bus 0000:00
-pci_bus 0000:00: root bus resource [mem 0x000a0000-0x000fffff window]
-pci_bus 0000:00: root bus resource [mem 0x80000000-0x8fffffff window]
-pci_bus 0000:00: root bus resource [mem 0x80004000000-0x800ffffffff window]
-pci_bus 0000:00: root bus resource [bus 00]
+Thanks again,
 
-[...]
+Lukas
 
-pci 0000:00:03.0: [1002:515e] type 00 class 0x030000
-pci 0000:00:03.0: reg 0x10: [mem 0x80000000-0x87ffffff pref]
-pci 0000:00:03.0: reg 0x14: [io  0x1000-0x10ff]
-pci 0000:00:03.0: reg 0x18: [mem 0x88020000-0x8802ffff]
-pci 0000:00:03.0: reg 0x30: [mem 0x88000000-0x8801ffff pref]
-pci 0000:00:03.0: supports D1 D2
-pci 0000:00:03.0: can't claim BAR 1 [io  0x1000-0x10ff]: no compatible
-bridge window
+-- >8 --
+Subject: [RFC] ACPI / utils: Rename acpi_dev_present()
 
-For this reason, the IO port resources boundaries check in generic ACPI
-parsing code should be moved to x86 arch code so that more arches (ie
-ARM64) can benefit from the generic ACPI resources parsing interface
-without incurring in unexpected resource filtering, fixing at the same
-time current breakage on IA64.
+acpi_dev_present() was originally named after pci_dev_present()
+to signify the similarity of the two functions.
 
-This patch moves the IO ports boundary [0 - 64k] check to x86 arch code
-code that validates the PCI host bridge resources.
+However Rafael J. Wysocki pointed out that the exported function
+acpi_dev_present() is easily confused with the non-exported
+acpi_device_is_present(). Additionally in ACPI parlance the term
+"present" usually refers to the "device is present" bit returned
+by the _STA control method, yet acpi_dev_present() merely checks
+presence in the namespace. It does not invoke _STA at all, let
+alone check the "device is present" bit.
 
-Fixes: 3772aea7d6f3 ("ia64/PCI/ACPI: Use common ACPI resource parsing
-interface for host bridge")
-Signed-off-by: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
-Tested-by: Hanjun Guo <hanjun.guo@linaro.org>
-Cc: Bjorn Helgaas <bhelgaas@google.com>
-Cc: Hanjun Guo <hanjun.guo@linaro.org>
-Cc: Jiang Liu <jiang.liu@linux.intel.com>
-Cc: Tony Luck <tony.luck@intel.com>
-Cc: Tomasz Nowicki <tn@semihalf.com>
-Cc: Mark Salter <msalter@redhat.com>
+As suggested by Rafael, rename the function to acpi_dev_found()
+and adjust all existing call sites.
+
 Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Signed-off-by: Lukas Wunner <lukas@wunner.de>
 ---
-v1 -> v2
+ drivers/acpi/utils.c                         | 6 +++---
+ include/acpi/acpi_bus.h                      | 2 +-
+ include/linux/apple-gmux.h                   | 2 +-
+ sound/soc/intel/boards/cht_bsw_max98090_ti.c | 2 +-
+ sound/soc/intel/boards/cht_bsw_rt5645.c      | 2 +-
+ sound/soc/intel/common/sst-match-acpi.c      | 2 +-
+ 6 files changed, 8 insertions(+), 8 deletions(-)
 
-- Updated commit log to report missing IO resources
-- Fixed function ioport_valid() comment 16k/64k typo
-
-v1: https://lkml.org/lkml/2016/2/1/157
-
- arch/x86/pci/acpi.c     | 18 +++++++++++++-----
- drivers/acpi/resource.c |  3 ---
- 2 files changed, 13 insertions(+), 8 deletions(-)
-
-diff --git a/arch/x86/pci/acpi.c b/arch/x86/pci/acpi.c
-index 3cd6983..cec68e7 100644
---- a/arch/x86/pci/acpi.c
-+++ b/arch/x86/pci/acpi.c
-@@ -275,11 +275,14 @@ static void pci_acpi_root_release_info(struct acpi_pci_root_info *ci)
-  *     to access PCI configuration space.
+diff --git a/drivers/acpi/utils.c b/drivers/acpi/utils.c
+index f2f9873..41b80ff 100644
+--- a/drivers/acpi/utils.c
++++ b/drivers/acpi/utils.c
+@@ -711,7 +711,7 @@ bool acpi_check_dsm(acpi_handle handle, const u8 *uuid, int rev, u64 funcs)
+ EXPORT_SYMBOL(acpi_check_dsm);
+ 
+ /**
+- * acpi_dev_present - Detect presence of a given ACPI device in the system.
++ * acpi_dev_found - Detect presence of a given ACPI device in the namespace.
+  * @hid: Hardware ID of the device.
   *
-  * So explicitly filter out PCI CFG IO ports[0xCF8-0xCFF].
-+ *
-+ * Furthermore, IO ports address space is limited to 64k on x86,
-+ * any IO resource exceeding the boundary must therefore be discarded.
+  * Return %true if the device was present at the moment of invocation.
+@@ -723,7 +723,7 @@ EXPORT_SYMBOL(acpi_check_dsm);
+  * instead). Calling from module_init() is fine (which is synonymous
+  * with device_initcall()).
   */
--static bool resource_is_pcicfg_ioport(struct resource *res)
-+static bool ioport_valid(struct resource *res)
+-bool acpi_dev_present(const char *hid)
++bool acpi_dev_found(const char *hid)
  {
--	return (res->flags & IORESOURCE_IO) &&
--		res->start == 0xCF8 && res->end == 0xCFF;
-+	return !(res->start == 0xCF8 && res->end == 0xCFF) &&
-+	       !(res->end >= 0x10003);
+ 	struct acpi_device_bus_id *acpi_device_bus_id;
+ 	bool found = false;
+@@ -738,7 +738,7 @@ bool acpi_dev_present(const char *hid)
+ 
+ 	return found;
  }
+-EXPORT_SYMBOL(acpi_dev_present);
++EXPORT_SYMBOL(acpi_dev_found);
  
- static int pci_acpi_root_prepare_resources(struct acpi_pci_root_info *ci)
-@@ -287,13 +290,18 @@ static int pci_acpi_root_prepare_resources(struct acpi_pci_root_info *ci)
- 	struct acpi_device *device = ci->bridge;
- 	int busnum = ci->root->secondary.start;
- 	struct resource_entry *entry, *tmp;
-+	struct resource *res;
- 	int status;
- 
- 	status = acpi_pci_probe_root_resources(ci);
- 	if (pci_use_crs) {
--		resource_list_for_each_entry_safe(entry, tmp, &ci->resources)
--			if (resource_is_pcicfg_ioport(entry->res))
-+		resource_list_for_each_entry_safe(entry, tmp, &ci->resources) {
-+			res = entry->res;
-+
-+			if (res->flags & IORESOURCE_IO && !ioport_valid(res))
- 				resource_list_destroy_entry(entry);
-+		}
-+
- 		return status;
+ /*
+  * acpi_backlight= handling, this is done here rather then in video_detect.c
+diff --git a/include/acpi/acpi_bus.h b/include/acpi/acpi_bus.h
+index 14362a8..a84fd15 100644
+--- a/include/acpi/acpi_bus.h
++++ b/include/acpi/acpi_bus.h
+@@ -87,7 +87,7 @@ acpi_evaluate_dsm_typed(acpi_handle handle, const u8 *uuid, int rev, int func,
+ 	  .package.elements = (eles)			\
  	}
  
-diff --git a/drivers/acpi/resource.c b/drivers/acpi/resource.c
-index d02fd53..c112e1d 100644
---- a/drivers/acpi/resource.c
-+++ b/drivers/acpi/resource.c
-@@ -127,9 +127,6 @@ static void acpi_dev_ioresource_flags(struct resource *res, u64 len,
- 	if (!acpi_dev_resource_len_valid(res->start, res->end, len, true))
- 		res->flags |= IORESOURCE_DISABLED | IORESOURCE_UNSET;
+-bool acpi_dev_present(const char *hid);
++bool acpi_dev_found(const char *hid);
  
--	if (res->end >= 0x10003)
--		res->flags |= IORESOURCE_DISABLED | IORESOURCE_UNSET;
--
- 	if (io_decode == ACPI_DECODE_16)
- 		res->flags |= IORESOURCE_IO_16BIT_ADDR;
- 	if (translation_type == ACPI_SPARSE_TRANSLATION)
+ #ifdef CONFIG_ACPI
+ 
+diff --git a/include/linux/apple-gmux.h b/include/linux/apple-gmux.h
+index b2d32e0..714186d 100644
+--- a/include/linux/apple-gmux.h
++++ b/include/linux/apple-gmux.h
+@@ -35,7 +35,7 @@
+  */
+ static inline bool apple_gmux_present(void)
+ {
+-	return acpi_dev_present(GMUX_ACPI_HID);
++	return acpi_dev_found(GMUX_ACPI_HID);
+ }
+ 
+ #else  /* !CONFIG_APPLE_GMUX */
+diff --git a/sound/soc/intel/boards/cht_bsw_max98090_ti.c b/sound/soc/intel/boards/cht_bsw_max98090_ti.c
+index e609f08..ac60b04 100644
+--- a/sound/soc/intel/boards/cht_bsw_max98090_ti.c
++++ b/sound/soc/intel/boards/cht_bsw_max98090_ti.c
+@@ -296,7 +296,7 @@ static int snd_cht_mc_probe(struct platform_device *pdev)
+ 	if (!drv)
+ 		return -ENOMEM;
+ 
+-	drv->ts3a227e_present = acpi_dev_present("104C227E");
++	drv->ts3a227e_present = acpi_dev_found("104C227E");
+ 	if (!drv->ts3a227e_present) {
+ 		/* no need probe TI jack detection chip */
+ 		snd_soc_card_cht.aux_dev = NULL;
+diff --git a/sound/soc/intel/boards/cht_bsw_rt5645.c b/sound/soc/intel/boards/cht_bsw_rt5645.c
+index e6cf800..edcf130 100644
+--- a/sound/soc/intel/boards/cht_bsw_rt5645.c
++++ b/sound/soc/intel/boards/cht_bsw_rt5645.c
+@@ -346,7 +346,7 @@ static int snd_cht_mc_probe(struct platform_device *pdev)
+ 		return -ENOMEM;
+ 
+ 	for (i = 0; i < ARRAY_SIZE(snd_soc_cards); i++) {
+-		if (acpi_dev_present(snd_soc_cards[i].codec_id)) {
++		if (acpi_dev_found(snd_soc_cards[i].codec_id)) {
+ 			dev_dbg(&pdev->dev,
+ 				"found codec %s\n", snd_soc_cards[i].codec_id);
+ 			card = snd_soc_cards[i].soc_card;
+diff --git a/sound/soc/intel/common/sst-match-acpi.c b/sound/soc/intel/common/sst-match-acpi.c
+index 0b8ee04..e45b278 100644
+--- a/sound/soc/intel/common/sst-match-acpi.c
++++ b/sound/soc/intel/common/sst-match-acpi.c
+@@ -21,7 +21,7 @@ struct sst_acpi_mach *sst_acpi_find_machine(struct sst_acpi_mach *machines)
+ 	struct sst_acpi_mach *mach;
+ 
+ 	for (mach = machines; mach->id[0]; mach++)
+-		if (acpi_dev_present(mach->id))
++		if (acpi_dev_found(mach->id))
+ 			return mach;
+ 
+ 	return NULL;
 -- 
-2.5.1
+1.8.5.2 (Apple Git-48)
 
