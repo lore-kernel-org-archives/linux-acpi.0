@@ -1,97 +1,121 @@
-From: Stefano Stabellini <stefano.stabellini-mvvWK6WmYclDPfheJLI6IQ@public.gmane.org>
-Subject: Re: [PATCH v4 01/17] Xen: ACPI: Hide UART used by Xen
-Date: Fri, 12 Feb 2016 11:50:24 +0000
-Message-ID: <alpine.DEB.2.02.1602121138090.27008@kaball.uk.xensource.com>
-References: <1454641552-12576-1-git-send-email-zhaoshenglong@huawei.com>
- <44113385.2QnPtvxQx0@vostro.rjw.lan>
- <alpine.DEB.2.02.1602111557430.27008@kaball.uk.xensource.com>
- <1667812.hY9vsC2epc@vostro.rjw.lan>
+From: Tomasz Nowicki <tn@semihalf.com>
+Subject: Re: [PATCH V3 10/10] acpi, gicv3, its: Use MADT ITS subtable to do
+ PCI/MSI domain initialization.
+Date: Fri, 12 Feb 2016 13:26:55 +0100
+Message-ID: <56BDCF8F.1080208@semihalf.com>
+References: <1453209083-3358-1-git-send-email-tn@semihalf.com>
+ <1453209083-3358-11-git-send-email-tn@semihalf.com>
+ <56BB26E5.6060703@arm.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="US-ASCII"
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1667812.hY9vsC2epc-sKB8Sp2ER+y1GS7QM15AGw@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Rafael J. Wysocki" <rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org>
-Cc: Stefano Stabellini <stefano.stabellini-mvvWK6WmYclDPfheJLI6IQ@public.gmane.org>, "Rafael J. Wysocki" <rafael-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Shannon Zhao <zhaoshenglong-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>, "linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org" <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>, ard.biesheuvel-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org, stefano.stabellini-Sxgqhf6Nn4DQT0dZR+AlfA@public.gmane.org, david.vrabel-Sxgqhf6Nn4DQT0dZR+AlfA@public.gmane.org, Catalin Marinas <catalin.marinas-5wv7dgnIgG8@public.gmane.org>, Will Deacon <will.deacon-5wv7dgnIgG8@public.gmane.org>, Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>, julien.grall-Sxgqhf6Nn4DQT0dZR+AlfA@public.gmane.org, xen-devel-GuqFBffKawuEi8DpZVb4nw@public.gmane.org, "devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-efi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Linux Kernel Mailing List <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, ian.campbell-Sxgqhf6Nn4DQT0dZR+AlfA@public.gmane.org, Shannon Zhao <shannon.zhao-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, peter.huangpeng-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, Len Brown <lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, "open list:ACPI" <linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-wm0-f44.google.com ([74.125.82.44]:34626 "EHLO
+	mail-wm0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752364AbcBLM3H (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 12 Feb 2016 07:29:07 -0500
+Received: by mail-wm0-f44.google.com with SMTP id 128so60167083wmz.1
+        for <linux-acpi@vger.kernel.org>; Fri, 12 Feb 2016 04:29:05 -0800 (PST)
+In-Reply-To: <56BB26E5.6060703@arm.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Marc Zyngier <marc.zyngier@arm.com>, tglx@linutronix.de, jason@lakedaemon.net, rjw@rjwysocki.net, lorenzo.pieralisi@arm.com, robert.richter@caviumnetworks.com, shijie.huang@arm.com, guohanjun@huawei.com, Suravee.Suthikulpanit@amd.com, Charles Garcia-Tobin <charles.garcia-tobin@arm.com>
+Cc: mw@semihalf.com, graeme.gregory@linaro.org, Catalin.Marinas@arm.com, will.deacon@arm.com, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, hanjun.guo@linaro.org, linux-arm-kernel@lists.infradead.org, ddaney.cavm@gmail.com
 
-On Thu, 11 Feb 2016, Rafael J. Wysocki wrote:
-> On Thursday, February 11, 2016 04:04:14 PM Stefano Stabellini wrote:
-> > On Wed, 10 Feb 2016, Rafael J. Wysocki wrote:
-> > > On Tuesday, February 09, 2016 11:19:02 AM Stefano Stabellini wrote:
-> > > > On Mon, 8 Feb 2016, Rafael J. Wysocki wrote:
-> > > > > On Monday, February 08, 2016 10:57:01 AM Stefano Stabellini wrote:
-> > > > > > On Sat, 6 Feb 2016, Rafael J. Wysocki wrote:
-> > > > > > > On Fri, Feb 5, 2016 at 4:05 AM, Shannon Zhao <zhaoshenglong-hv44wF8Li93QT0dZR+AlfA@public.gmane.org> wrote:
-> > > > > > > > From: Shannon Zhao <shannon.zhao-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
-> > > > > > > >
-> > > > > > > > ACPI 6.0 introduces a new table STAO to list the devices which are used
-> > > > > > > > by Xen and can't be used by Dom0. On Xen virtual platforms, the physical
-> > > > > > > > UART is used by Xen. So here it hides UART from Dom0.
-> > > > > > > >
-> > > > > > > > Signed-off-by: Shannon Zhao <shannon.zhao-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
-> > > > > > > > Reviewed-by: Stefano Stabellini <stefano.stabellini-mvvWK6WmYclDPfheJLI6IQ@public.gmane.org>
-> > > > > > > 
-> > > > > > > Well, this doesn't look right to me.
-> > > > > > > 
-> > > > > > > We need to find a nicer way to achieve what you want.
-> > > > > > 
-> > > > > > I take that you are talking about how to honor the STAO table in Linux.
-> > > > > > Do you have any concrete suggestions?
-> > > > > 
-> > > > > I do.
-> > > > > 
-> > > > > The last hunk of the patch is likely what it needs to be, although I'm
-> > > > > not sure if the place it is added to is the right one.  That's a minor thing,
-> > > > > though.
-> > > > > 
-> > > > > The other part is problematic.  Not that as it doesn't work, but because of
-> > > > > how it works.  With these changes the device will be visible to the OS (in
-> > > > > fact to user space even), but will never be "present".  I'm not sure if
-> > > > > that's what you want?
-> > > > > 
-> > > > > It might be better to add a check to acpi_bus_type_and_status() that will
-> > > > > evaluate the "should ignore?" thing and return -ENODEV if this is true.  This
-> > > > > way the device won't be visible at all.
-> > > > 
-> > > > Something like below?  Actually your suggestion is better, thank you!
-> > > > 
-> > > > diff --git a/drivers/acpi/scan.c b/drivers/acpi/scan.c
-> > > > index 78d5f02..4778c51 100644
-> > > > --- a/drivers/acpi/scan.c
-> > > > +++ b/drivers/acpi/scan.c
-> > > > @@ -1455,6 +1455,9 @@ static int acpi_bus_type_and_status(acpi_handle handle, int *type,
-> > > >  	if (ACPI_FAILURE(status))
-> > > >  		return -ENODEV;
-> > > >  
-> > > > +	if (acpi_check_device_is_ignored(handle))
-> > > > +		return -ENODEV;
-> > > > +
-> > > >  	switch (acpi_type) {
-> > > >  	case ACPI_TYPE_ANY:		/* for ACPI_ROOT_OBJECT */
-> > > >  	case ACPI_TYPE_DEVICE:
-> > > > 
-> > > 
-> > > I thought about doing that under ACPI_TYPE_DEVICE, because it shouldn't be
-> > > applicable to the other types.  But generally, yes.
-> > 
-> > I was pondering about it myself. Maybe an ACPI_TYPE_PROCESSOR object
-> > could theoretically be hidden with the STAO?
-> 
-> But this patch won't check for it anyway, will it?
-> 
-> It seems to be only checking against the UART address or have I missed
-> anything?
++ Charles
 
-You are right, this patch only checks for the UART address, which is
-critical.
+On 10.02.2016 13:02, Marc Zyngier wrote:
+> On 19/01/16 13:11, Tomasz Nowicki wrote:
+>> After refactoring DT code, we let ACPI to build ITS PCI MSI domain
+>> and do requester ID to device ID translation using IORT table.
+>>
+>> We have now full PCI MSI domain stack, thus we can enable ITS initialization
+>> from GICv3 core driver for ACPI scenario.
+>>
+>> Signed-off-by: Tomasz Nowicki <tn@semihalf.com>
+>> ---
+>>   drivers/irqchip/irq-gic-v3-its-pci-msi.c | 44 +++++++++++++++++++++++++++++++-
+>>   drivers/irqchip/irq-gic-v3.c             |  3 +--
+>>   drivers/pci/msi.c                        |  3 +++
+>>   3 files changed, 47 insertions(+), 3 deletions(-)
+>>
+>> diff --git a/drivers/irqchip/irq-gic-v3-its-pci-msi.c b/drivers/irqchip/irq-gic-v3-its-pci-msi.c
+>> index 06165cb..7f0a958 100644
+>> --- a/drivers/irqchip/irq-gic-v3-its-pci-msi.c
+>> +++ b/drivers/irqchip/irq-gic-v3-its-pci-msi.c
+>> @@ -15,6 +15,8 @@
+>>    * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+>>    */
+>>
+>> +#include <linux/acpi.h>
+>> +#include <linux/iort.h>
+>>   #include <linux/msi.h>
+>>   #include <linux/of.h>
+>>   #include <linux/of_irq.h>
+>> @@ -143,10 +145,50 @@ static int __init its_pci_of_msi_init(void)
+>>   	return 0;
+>>   }
+>>
+>> +#ifdef CONFIG_ACPI
+>> +
+>> +static int __init
+>> +its_pci_msi_parse_madt(struct acpi_subtable_header *header,
+>> +		    const unsigned long end)
+>> +{
+>> +	struct acpi_madt_generic_translator *its_entry;
+>> +	struct fwnode_handle *domain_handle;
+>> +
+>> +	its_entry = (struct acpi_madt_generic_translator *)header;
+>> +	domain_handle = iort_find_its_domain_token(its_entry->translation_id);
+>> +	if (!domain_handle) {
+>> +		pr_err("ITS@0x%lx: Unable to locate ITS domain handle\n",
+>> +		       (long)its_entry->base_address);
+>> +		return 0;
+>> +	}
+>> +
+>> +	if (its_pci_msi_init_one(domain_handle))
+>> +		return 0;
+>> +
+>> +	pci_msi_register_fwnode_provider(&iort_find_pci_domain_token);
+>
+> I'm a bit worried by this. You are registering this for each and every
+> ITS that gets probed (useless, but why not). But also, you're using a
+> hook that is designed to work at the bus level, without caring for the
+> actual PCI devices. That's fine for something like GICv2m, which exposes
+> a single domain, but I can't picture how this works when you have
+> devices sitting behind a single RC that talk to different ITSs.
+>
+> My understanding is that IORT was behaving in a similar way the msi-map
+> property works, so I'm a bit puzzled here.
+>
+> Can you please shed some light on that?
+>
 
-However the STAO also has a "Name List" field with a list of paths in
-ACPI namespace to hide. If not implementing proper "Name List" support,
-at least, as part of this patch, it would be nice to check for the
-presence of the Name List field in the table, and print a warning such
-as "STAO Name List not yet supported" when the field is present.
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+I see your point now. It is possible to describe such case in IORT, for 
+example:
+
+********************************************
+RC0 node:
+---------------
+Mapping 0:
+<input ID range> -> <output ID range>
+<0:100> -> <0:100>
+parent -> ITS0
+---------------
+Mapping 1:
+<input ID range> -> <output ID range>
+<101:200> -> <101:200>
+parent -> ITS1
+---------------
+********************************************
+
+So for this scenario I cannot use pci_host_bridge_acpi_msi_domain() to 
+find IRQ domain based on bus device (unless there is only one ITS bound 
+to e.g. RC), I should rather add ACPI implementation to 
+pci_msi_get_device_domain on per-device MSI basis. Do you agree?
+
+BTW. I should have put IORT specification link to changelog:
+http://infocenter.arm.com/help/topic/com.arm.doc.den0049a/DEN0049A_IO_Remapping_Table.pdf
+
+Thanks,
+Tomasz
