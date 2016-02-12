@@ -1,40 +1,90 @@
-From: "Rafael J. Wysocki" <rafael@kernel.org>
-Subject: Re: [PATCH v2 3/9] ACPI: introduce acpi_table_parse2()
-Date: Sat, 13 Feb 2016 00:08:38 +0100
-Message-ID: <CAJZ5v0ji3rR3HkC7BjygkqXxOrEn3qSKA42i1Rj9tBqZ71Dh+w@mail.gmail.com>
-References: <1455299022-11641-1-git-send-email-aleksey.makarov@linaro.org>
-	<1455299022-11641-4-git-send-email-aleksey.makarov@linaro.org>
-	<20160212185130.GA10095@kroah.com>
+From: Dan Williams <dan.j.williams@intel.com>
+Subject: Re: [PATCH 3/3] ACPI: Change NFIT driver to set PMEM type to iomem entry
+Date: Fri, 12 Feb 2016 15:32:18 -0800
+Message-ID: <CAPcyv4i=TpX=V6mN0zrsqvUyonKY1WkbP=wJ0QqjQtj_kiSJQw@mail.gmail.com>
+References: <1454439311-23690-1-git-send-email-toshi.kani@hpe.com>
+	<1454439311-23690-4-git-send-email-toshi.kani@hpe.com>
+	<CAPcyv4ik0GRYkYdaKvu4rPC9a+Q-e93uCZMpx1W8=Cvwwdh6jw@mail.gmail.com>
+	<1455316203.2925.132.camel@hpe.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-lf0-f66.google.com ([209.85.215.66]:33236 "EHLO
-	mail-lf0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750852AbcBLXIk (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 12 Feb 2016 18:08:40 -0500
-In-Reply-To: <20160212185130.GA10095@kroah.com>
+Received: from mail-yw0-f179.google.com ([209.85.161.179]:34037 "EHLO
+	mail-yw0-f179.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750977AbcBLXcT (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 12 Feb 2016 18:32:19 -0500
+Received: by mail-yw0-f179.google.com with SMTP id h129so77187544ywb.1
+        for <linux-acpi@vger.kernel.org>; Fri, 12 Feb 2016 15:32:18 -0800 (PST)
+In-Reply-To: <1455316203.2925.132.camel@hpe.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: Aleksey Makarov <aleksey.makarov@linaro.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, "linux-serial@vger.kernel.org" <linux-serial@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Russell King <linux@arm.linux.org.uk>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, Leif Lindholm <leif.lindholm@linaro.org>, Graeme Gregory <graeme.gregory@linaro.org>, Al Stone <ahs3@redhat.com>, Christopher Covington <cov@codeaurora.org>, Len Brown <lenb@kernel.org>
+To: Toshi Kani <toshi.kani@hpe.com>
+Cc: Ingo Molnar <mingo@kernel.org>, Borislav Petkov <bp@suse.de>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Andrew Morton <akpm@linux-foundation.org>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, Linux ACPI <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
 
-On Fri, Feb 12, 2016 at 7:51 PM, Greg Kroah-Hartman
-<gregkh@linuxfoundation.org> wrote:
-> On Fri, Feb 12, 2016 at 08:43:34PM +0300, Aleksey Makarov wrote:
->> The function acpi_table_parse() has some problems:
->> 1 It can be called only from __init code
->> 2 It does not pass any data to the handler
->> 3 It just throws out the value returned from the handler
+On Fri, Feb 12, 2016 at 2:30 PM, Toshi Kani <toshi.kani@hpe.com> wrote:
+> On Fri, 2016-02-12 at 11:41 -0800, Dan Williams wrote:
+>> On Tue, Feb 2, 2016 at 10:55 AM, Toshi Kani <toshi.kani@hpe.com> wrote:
+>> > Change acpi_nfit_register_region() to call iomem_set_desc() with
+>> > IORES_DESC_PERSISTENT_MEMORY for NFIT_SPA_PM ranges found in ACPI
+>> > NFIT table.
+>> >
+>> > When FW sets E820_PMEM in e820 and EFI_PERSISTENT_MEMORY in EFI,
+>> > this code simply sets PMEM type again to "Persistent Memory" entries
+>> > in the iomem table.  When FW sets reserved type for persistent
+>> > memory ranges, it sets PMEM type to "reserved" entries covering
+>> > PMEM ranges.
+>> >
+>> > This allows the EINJ driver, which calls region_intersects() with
+>> > IORES_DESC_PERSISTENT_MEMORY to check persistent memory ranges,
+>> > to work continuously even if FW sets reserved type to persistent
+>> > memory in e820 and EFI.
+>> >
+>> > Signed-off-by: Toshi Kani <toshi.kani@hpe.com>
+>> > Cc: Rafael J. Wysocki <rjw@rjwysocki.net>
+>> > Cc: Dan Williams <dan.j.williams@intel.com>
+>> > Cc: Ingo Molnar <mingo@kernel.org>
+>> > Cc: Borislav Petkov <bp@suse.de>
+>> > Cc: Andrew Morton <akpm@linux-foundation.org>
+>> > ---
+>> >  drivers/acpi/nfit.c |    6 ++++++
+>> >  1 file changed, 6 insertions(+)
+>> >
+>> > diff --git a/drivers/acpi/nfit.c b/drivers/acpi/nfit.c
+>> > index ad6d8c6..add04f0 100644
+>> > --- a/drivers/acpi/nfit.c
+>> > +++ b/drivers/acpi/nfit.c
+>> > @@ -1781,6 +1781,12 @@ static int acpi_nfit_register_region(struct
+>> > acpi_nfit_desc *acpi_desc,
+>> >
+>> >         nvdimm_bus = acpi_desc->nvdimm_bus;
+>> >         if (nfit_spa_type(spa) == NFIT_SPA_PM) {
+>> > +               rc = iomem_set_desc(spa->address, spa->length,
+>> > +                                       IORES_DESC_PERSISTENT_MEMORY);
+>> > +               if (rc)
+>> > +                       dev_dbg(acpi_desc->dev,
+>> > +                               "error setting iomem desc: %d\n", rc);
+>> > +
 >>
->> These issues are addressed in this patch
+>> Hmm, if we set the type on driver load, should we clear the type on
+>> driver unload?
 >
-> Why not just fix acpi_table_parse(), like you have, and not add a new
-> API call with a "2" at the end of it.  That seems crazy to try to
-> maintain that level of apis.
+> I think this type update should stay for the life-cycle of this iomem entry
+> itself since this range is PMEM even after the driver is unloaded.  This is
+> an extension of the boot-time iomem table initialization from e820/EFI,
+> which allows ACPI to set a correct type.  This is independent from driver's
+> resource allocations.
 >
-> But I'm not the acpi maintainer(s), so it's their call...
+>> Actually it might be more straightforward to specify a type at
+>> request_region() time.  That way it gets released at release_region().
+>> We're already setting a resource name at request_region time, adding a
+>> type annotation at the time seems appropriate.
+>
+> I first considered simply setting "namespaceX.X" as PMEM.  However,
+> region_intersects() and its friends only check the top-level entries, not
+> their children, of the iomem table.  And I think a child should have the
+> same type as the parent as I fixed it in patch 1/3.
 
-The ACPI maintainer agrees.
-
-Thanks,
-Rafael
+Did we investigate updating region_intersects() to check children?
+When a child sub-divides a region with different types it may be the
+wrong answer to check the parent.  Is there a problem with moving
+checking to the child?
