@@ -1,96 +1,88 @@
-From: Tomasz Nowicki <tn@semihalf.com>
-Subject: Re: [PATCH V4 15/23] acpi, mcfg: Implement two calls that might be
- used to inject/remove MCFG region.
-Date: Fri, 12 Feb 2016 09:56:54 +0100
-Message-ID: <56BD9E56.5070805@semihalf.com>
-References: <1454606941-9523-1-git-send-email-tn@semihalf.com>
- <1454606941-9523-16-git-send-email-tn@semihalf.com>
- <20160210140602.GB25060@red-moon>
+From: Will Deacon <will.deacon@arm.com>
+Subject: Re: [PATCH V1 6/6] acpi: apei: handle SEA notification type for ARMv8
+Date: Fri, 12 Feb 2016 09:51:44 +0000
+Message-ID: <20160212095143.GC25087@arm.com>
+References: <1454699608-22760-1-git-send-email-tbaicar@codeaurora.org>
+ <1454699608-22760-7-git-send-email-tbaicar@codeaurora.org>
+ <20160210180332.GU1052@arm.com>
+ <56BD0D43.4060901@codeaurora.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-pci-owner@vger.kernel.org>
-In-Reply-To: <20160210140602.GB25060@red-moon>
-Sender: linux-pci-owner@vger.kernel.org
-To: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
-Cc: bhelgaas@google.com, arnd@arndb.de, will.deacon@arm.com, catalin.marinas@arm.com, rjw@rjwysocki.net, hanjun.guo@linaro.org, okaya@codeaurora.org, jiang.liu@linux.intel.com, Stefano.Stabellini@eu.citrix.com, robert.richter@caviumnetworks.com, mw@semihalf.com, Liviu.Dudau@arm.com, ddaney@caviumnetworks.com, wangyijing@huawei.com, Suravee.Suthikulpanit@amd.com, msalter@redhat.com, linux-pci@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linaro-acpi@lists.linaro.org, jchandra@broadcom.com, jcm@redhat.com
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from foss.arm.com ([217.140.101.70]:60051 "EHLO foss.arm.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750995AbcBLJvm (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 12 Feb 2016 04:51:42 -0500
+Content-Disposition: inline
+In-Reply-To: <56BD0D43.4060901@codeaurora.org>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: "Baicar, Tyler" <tbaicar@codeaurora.org>
+Cc: fu.wei@linaro.org, timur@codeaurora.org, harba@codeaurora.org, rruigrok@codeaurora.org, ahs3@redhat.com, Catalin Marinas <catalin.marinas@arm.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Matt Fleming <matt@codeblueprint.co.uk>, Robert Moore <robert.moore@intel.com>, Lv Zheng <lv.zheng@intel.com>, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, linux-efi@vger.kernel.org, devel@acpica.org, Naveen Kaje <nkaje@codeaurora.org>, "Jonathan (Zhixiong) Zhang" <zjzhang@codeaurora.org>
 
-On 10.02.2016 15:06, Lorenzo Pieralisi wrote:
-> On Thu, Feb 04, 2016 at 06:28:53PM +0100, Tomasz Nowicki wrote:
->> >Lets abstract two calls which allow to inject and remove MCFG regions
->> >which may come from DSDT table. These calls will be used for x86 and ARM64
->> >PCI host bridge driver in the later patches.
->> >
->> >Signed-off-by: Tomasz Nowicki<tn@semihalf.com>
->> >Tested-by: Duc Dang<dhdang@apm.com>
->> >Tested-by: Dongdong Liu<liudongdong3@huawei.com>
->> >Tested-by: Hanjun Guo<hanjun.guo@linaro.org>
->> >Tested-by: Graeme Gregory<graeme.gregory@linaro.org>
->> >Tested-by: Sinan Kaya<okaya@codeaurora.org>
->> >---
->> >  drivers/acpi/mcfg.c      | 38 ++++++++++++++++++++++++++++++++++++++
->> >  include/linux/pci-acpi.h |  9 +++++++++
->> >  2 files changed, 47 insertions(+)
->> >
->> >diff --git a/drivers/acpi/mcfg.c b/drivers/acpi/mcfg.c
->> >index 3e1e7be..dca4c4e 100644
->> >--- a/drivers/acpi/mcfg.c
->> >+++ b/drivers/acpi/mcfg.c
->> >@@ -10,6 +10,7 @@
->> >  #include <linux/acpi.h>
->> >  #include <linux/ecam.h>
->> >  #include <linux/pci.h>
->> >+#include <linux/pci-acpi.h>
->> >
->> >  #define	PREFIX	"MCFG: "
->> >
->> >@@ -77,6 +78,43 @@ int __init acpi_parse_mcfg(struct acpi_table_header *header)
->> >  	return 0;
->> >  }
->> >
->> >+int pci_mmcfg_setup_map(struct acpi_pci_root_info *ci)
->> >+{
->> >+	struct pci_mmcfg_region *cfg;
->> >+	struct acpi_pci_root *root;
->> >+	int seg, start, end, err;
->> >+
->> >+	root = ci->root;
->> >+	seg = root->segment;
->> >+	start = root->secondary.start;
->> >+	end = root->secondary.end;
->> >+
->> >+	cfg = pci_mmconfig_lookup(seg, start);
->> >+	if (cfg)
->> >+		return 0;
->> >+
->> >+	cfg = pci_mmconfig_alloc(seg, start, end, root->mcfg_addr);
->> >+	if (!cfg)
->> >+		return -ENOMEM;
->> >+
->> >+	err = pci_mmconfig_inject(cfg);
->> >+	return err;
-> When you integrate Jayachandran's patch this whole function will
-> become a pci_mmconfig_insert() and that's where hot_added should
-> be set.
->
->> >+}
->> >+
->> >+void pci_mmcfg_teardown_map(struct acpi_pci_root_info *ci)
->> >+{
->> >+	struct acpi_pci_root *root = ci->root;
->> >+	struct pci_mmcfg_region *cfg;
->> >+
->> >+	cfg = pci_mmconfig_lookup(root->segment, root->secondary.start);
->> >+	if (!cfg)
->> >+		return;
->> >+
->> >+	if (cfg->hot_added)
-> Move the hot_added check in pci_mmconfig_delete() (that does the look
-> up again), we do not want to carry out pci_mmconfig_lookup only to
-> check that flag here (and we miss rcu locking for the look-up BTW).
+On Thu, Feb 11, 2016 at 03:37:55PM -0700, Baicar, Tyler wrote:
+> On 2/10/2016 11:03 AM, Will Deacon wrote:
+> >On Fri, Feb 05, 2016 at 12:13:28PM -0700, Tyler Baicar wrote:
+> >>diff --git a/drivers/acpi/apei/ghes.c b/drivers/acpi/apei/ghes.c
+> >>index 6c68100..ed64b97 100644
+> >>--- a/drivers/acpi/apei/ghes.c
+> >>+++ b/drivers/acpi/apei/ghes.c
+> >>@@ -50,6 +50,10 @@
+> >>  #include <acpi/apei.h>
+> >>  #include <asm/tlbflush.h>
+> >>+#ifdef CONFIG_HAVE_ACPI_APEI_SEA
+> >>+#include <asm/system_misc.h>
+> >>+#endif
+> >>+
+> >>  #include "apei-internal.h"
+> >>  #define GHES_PFX	"GHES: "
+> >>@@ -784,6 +788,62 @@ static struct notifier_block ghes_notifier_sci = {
+> >>  	.notifier_call = ghes_notify_sci,
+> >>  };
+> >>+#ifdef CONFIG_HAVE_ACPI_APEI_SEA
+> >>+static LIST_HEAD(ghes_sea);
+> >>+
+> >>+static int ghes_notify_sea(struct notifier_block *this,
+> >>+				  unsigned long event, void *data)
+> >>+{
+> >>+	struct ghes *ghes;
+> >>+	int ret = NOTIFY_DONE;
+> >>+
+> >>+	rcu_read_lock();
+> >>+	list_for_each_entry_rcu(ghes, &ghes_sea, list) {
+> >>+		if (!ghes_proc(ghes))
+> >>+			ret = NOTIFY_OK;
+> >>+	}
+> >>+	rcu_read_unlock();
+> >>+
+> >>+	return ret;
+> >>+}
+> >>+
+> >>+static struct notifier_block ghes_notifier_sea = {
+> >>+	.notifier_call = ghes_notify_sea,
+> >>+};
+> >>+
+> >>+static int ghes_sea_add(struct ghes *ghes)
+> >>+{
+> >>+	mutex_lock(&ghes_list_mutex);
+> >Can you just use spin_lock, to be consistent with our other excception
+> >hooks?
+> This mutex is being used throughout ghes.c for editing the lists, so I think
+> this is the proper (or at least consistent) implementation. This mutex was
+> defined specifically for editing the lists according to the comment above
+> the mutex definition:
+> 
+> "All error sources notified with SCI shares one notifier function, so they
+> need to be linked and checked one by one. This is applied to NMI too. RCU is
+> used for these lists, so ghes_list_mutex is only used for list changing, not
+> for traversing."
+> 
+> The use of this mutex is identical to the way that SCI and NMI use it when
+> adding or deleting from the lists. Should I add to this comment that this
+> applies to SEA as well?
 
-Makes sense to me, I will follow your suggestion.
+No, it's fine. I overlooked the fact that this was under drivers/acpi/,
+so if you're consistent with other code under there then there's no need
+to change anything.
 
-Thanks,
-Tomasz
+Will
