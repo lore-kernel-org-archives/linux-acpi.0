@@ -1,121 +1,108 @@
-From: Tomasz Nowicki <tn@semihalf.com>
-Subject: Re: [PATCH V3 10/10] acpi, gicv3, its: Use MADT ITS subtable to do
- PCI/MSI domain initialization.
-Date: Fri, 12 Feb 2016 13:26:55 +0100
-Message-ID: <56BDCF8F.1080208@semihalf.com>
-References: <1453209083-3358-1-git-send-email-tn@semihalf.com>
- <1453209083-3358-11-git-send-email-tn@semihalf.com>
- <56BB26E5.6060703@arm.com>
+From: Dave Young <dyoung@redhat.com>
+Subject: Re: [PATCH] x86/efi: skip bgrt init for kexec reboot
+Date: Fri, 12 Feb 2016 20:45:42 +0800
+Message-ID: <20160212124542.GA7051@dhcp-128-65.nay.redhat.com>
+References: <20160127112044.GA2961@dhcp-128-65.nay.redhat.com>
+ <20160203214200.GA15110@dhcp-128-65.nay.redhat.com>
+ <20160203225333.GA31246@codeblueprint.co.uk>
+ <20160204100329.GA2586@codeblueprint.co.uk>
+ <20160204110903.GA2977@dhcp-128-65.nay.redhat.com>
+ <20160204115656.GB2586@codeblueprint.co.uk>
+ <20160205004115.GA3651@dhcp-128-65.nay.redhat.com>
+ <20160211160931.GL4134@codeblueprint.co.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-wm0-f44.google.com ([74.125.82.44]:34626 "EHLO
-	mail-wm0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752364AbcBLM3H (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 12 Feb 2016 07:29:07 -0500
-Received: by mail-wm0-f44.google.com with SMTP id 128so60167083wmz.1
-        for <linux-acpi@vger.kernel.org>; Fri, 12 Feb 2016 04:29:05 -0800 (PST)
-In-Reply-To: <56BB26E5.6060703@arm.com>
+Received: from mx1.redhat.com ([209.132.183.28]:36949 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752309AbcBLMpx (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 12 Feb 2016 07:45:53 -0500
+Content-Disposition: inline
+In-Reply-To: <20160211160931.GL4134@codeblueprint.co.uk>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Marc Zyngier <marc.zyngier@arm.com>, tglx@linutronix.de, jason@lakedaemon.net, rjw@rjwysocki.net, lorenzo.pieralisi@arm.com, robert.richter@caviumnetworks.com, shijie.huang@arm.com, guohanjun@huawei.com, Suravee.Suthikulpanit@amd.com, Charles Garcia-Tobin <charles.garcia-tobin@arm.com>
-Cc: mw@semihalf.com, graeme.gregory@linaro.org, Catalin.Marinas@arm.com, will.deacon@arm.com, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, hanjun.guo@linaro.org, linux-arm-kernel@lists.infradead.org, ddaney.cavm@gmail.com
+To: Matt Fleming <matt@codeblueprint.co.uk>
+Cc: linux-efi@vger.kernel.org, kexec@lists.infradead.org, linux-kernel@vger.kernel.org, Borislav Petkov <bp@alien8.de>, linux-acpi@vger.kernel.org, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Josh Triplett <josh@joshtriplett.org>, Matthew Garrett <mjg59@srcf.ucam.org>
 
-+ Charles
+On 02/11/16 at 04:09pm, Matt Fleming wrote:
+> On Fri, 05 Feb, at 08:41:15AM, Dave Young wrote:
+> > On 02/04/16 at 11:56am, Matt Fleming wrote:
+> > > On Thu, 04 Feb, at 07:09:03PM, Dave Young wrote:
+> > > > 
+> > > > Consider the original code path, maybe change it to efi_kexec_setup will
+> > > > be better to remind people? Or something else like a wraper function with
+> > > > similar name..
+> > >  
+> > > Possibly. I had considered adding a new efi_enabled() bit for
+> > > KEXEC_BOOT, but I'm worried that'll just encourage more uses.
+> > > 
+> > > The best approach is going to be to see whether we can reduce the uses
+> > > of efi_setup and the associated special code. Once we've completed
+> > > that exercise, we can think about the best name for this variable.
+> > 
+> > Ok, thanks.
+> > 
+> > > 
+> > > > For building ACPI tables we need do it in kernel instead of kexec-tools
+> > > > because of kexec_file_load for secure boot case so we still need a conditional
+> > > > code path for kexec..
+> > > 
+> > > Note that it may not be necessary to build any ACPI tables at all,
+> > > provided that things like acpi_get_table() fail gracefully for kexec.
+> > > I'm assuming that's the problem that you discovered when writing this
+> > > patch.
+> > > 
+> > > And yes, I don't expect you can build the ACPI table from userspace,
+> > > but it should at least be possible to do it in setup_boot_parameters()
+> > > or so when you setup the EFI table pointers (efi.config_tables), etc.
+> > > I think that would be a natural home for this feature.
+> > 
+> > Thing is we support both kexec_load and kexec_file_load, if we do something
+> > in kernel loader we will need do same in userspace kexec-tools as well.
+>  
+> Actually, on thinking about it a little bit more, any changes we make
+> would have to be on the second kernel side, because otherwise you end
+> up with incompatibilities between kernel versions.
 
-On 10.02.2016 13:02, Marc Zyngier wrote:
-> On 19/01/16 13:11, Tomasz Nowicki wrote:
->> After refactoring DT code, we let ACPI to build ITS PCI MSI domain
->> and do requester ID to device ID translation using IORT table.
->>
->> We have now full PCI MSI domain stack, thus we can enable ITS initialization
->> from GICv3 core driver for ACPI scenario.
->>
->> Signed-off-by: Tomasz Nowicki <tn@semihalf.com>
->> ---
->>   drivers/irqchip/irq-gic-v3-its-pci-msi.c | 44 +++++++++++++++++++++++++++++++-
->>   drivers/irqchip/irq-gic-v3.c             |  3 +--
->>   drivers/pci/msi.c                        |  3 +++
->>   3 files changed, 47 insertions(+), 3 deletions(-)
->>
->> diff --git a/drivers/irqchip/irq-gic-v3-its-pci-msi.c b/drivers/irqchip/irq-gic-v3-its-pci-msi.c
->> index 06165cb..7f0a958 100644
->> --- a/drivers/irqchip/irq-gic-v3-its-pci-msi.c
->> +++ b/drivers/irqchip/irq-gic-v3-its-pci-msi.c
->> @@ -15,6 +15,8 @@
->>    * along with this program.  If not, see <http://www.gnu.org/licenses/>.
->>    */
->>
->> +#include <linux/acpi.h>
->> +#include <linux/iort.h>
->>   #include <linux/msi.h>
->>   #include <linux/of.h>
->>   #include <linux/of_irq.h>
->> @@ -143,10 +145,50 @@ static int __init its_pci_of_msi_init(void)
->>   	return 0;
->>   }
->>
->> +#ifdef CONFIG_ACPI
->> +
->> +static int __init
->> +its_pci_msi_parse_madt(struct acpi_subtable_header *header,
->> +		    const unsigned long end)
->> +{
->> +	struct acpi_madt_generic_translator *its_entry;
->> +	struct fwnode_handle *domain_handle;
->> +
->> +	its_entry = (struct acpi_madt_generic_translator *)header;
->> +	domain_handle = iort_find_its_domain_token(its_entry->translation_id);
->> +	if (!domain_handle) {
->> +		pr_err("ITS@0x%lx: Unable to locate ITS domain handle\n",
->> +		       (long)its_entry->base_address);
->> +		return 0;
->> +	}
->> +
->> +	if (its_pci_msi_init_one(domain_handle))
->> +		return 0;
->> +
->> +	pci_msi_register_fwnode_provider(&iort_find_pci_domain_token);
->
-> I'm a bit worried by this. You are registering this for each and every
-> ITS that gets probed (useless, but why not). But also, you're using a
-> hook that is designed to work at the bus level, without caring for the
-> actual PCI devices. That's fine for something like GICv2m, which exposes
-> a single domain, but I can't picture how this works when you have
-> devices sitting behind a single RC that talk to different ITSs.
->
-> My understanding is that IORT was behaving in a similar way the msi-map
-> property works, so I'm a bit puzzled here.
->
-> Can you please shed some light on that?
->
+Hmm, agreed.
 
-I see your point now. It is possible to describe such case in IORT, for 
-example:
+> 
+> For example, changing the data we pass in the SETUP_EFI chain is a bad
+> idea becuase you then have to care about exactly which kernel version
+> you kexec loaded.
+> 
+> > Another way is we probably can retain the boot service areas for kexec
+> > boot, but yes it is another special handling for kexec :(. Is this way
+> > better to you?
+> 
+> Unfortunately retaining Boot Services areas is infeasible because they
+> can be *really* large, i.e. multiple gigabytes in size.
 
-********************************************
-RC0 node:
----------------
-Mapping 0:
-<input ID range> -> <output ID range>
-<0:100> -> <0:100>
-parent -> ITS0
----------------
-Mapping 1:
-<input ID range> -> <output ID range>
-<101:200> -> <101:200>
-parent -> ITS1
----------------
-********************************************
+Yes, rethink about this issue, how about something like below:
+---
 
-So for this scenario I cannot use pci_host_bridge_acpi_msi_domain() to 
-find IRQ domain based on bus device (unless there is only one ITS bound 
-to e.g. RC), I should rather add ACPI implementation to 
-pci_msi_get_device_domain on per-device MSI basis. Do you agree?
+For kexec reboot the bgrt image address could contains random data because
+we have freed boot service areas in 1st kernel boot phase. One possible
+result is kmalloc fail in efi_bgrt_init due to large random image size.
 
-BTW. I should have put IORT specification link to changelog:
-http://infocenter.arm.com/help/topic/com.arm.doc.den0049a/DEN0049A_IO_Remapping_Table.pdf
+bgrt table finished it's task after copying bgrt image thus let's
+change the table status to be invalid at the end of efi_bgrt_init. 
 
-Thanks,
-Tomasz
+Signed-off-by: Dave Young <dyoung@redhat.com>
+---
+ arch/x86/platform/efi/efi-bgrt.c |    6 ++++++
+ 1 file changed, 6 insertions(+)
+
+--- linux-x86.orig/arch/x86/platform/efi/efi-bgrt.c
++++ linux-x86/arch/x86/platform/efi/efi-bgrt.c
+@@ -107,4 +107,10 @@ void __init efi_bgrt_init(void)
+ 	memcpy_fromio(bgrt_image, image, bgrt_image_size);
+ 	if (ioremapped)
+ 		early_iounmap(image, bmp_header.size);
++
++	/*
++	 * Invalidate bgrt table because kexec reboot will access the bgrt image
++	 * which stays in freed boot service area.
++	 */
++	bgrt_tab->status &= 0xfe;
+ }
