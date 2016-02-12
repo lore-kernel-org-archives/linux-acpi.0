@@ -1,252 +1,183 @@
-From: Aleksey Makarov <aleksey.makarov@linaro.org>
-Subject: [PATCH v2 4/9] ACPI: parse SPCR and enable matching console
-Date: Fri, 12 Feb 2016 20:43:35 +0300
-Message-ID: <1455299022-11641-5-git-send-email-aleksey.makarov@linaro.org>
-References: <1455299022-11641-1-git-send-email-aleksey.makarov@linaro.org>
+From: kbuild test robot <lkp@intel.com>
+Subject: Re: [PATCH v2 3/9] ACPI: introduce acpi_table_parse2()
+Date: Sat, 13 Feb 2016 02:44:16 +0800
+Message-ID: <201602130210.rOqbMzRs%fengguang.wu@intel.com>
+References: <1455299022-11641-4-git-send-email-aleksey.makarov@linaro.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <1455299022-11641-1-git-send-email-aleksey.makarov@linaro.org>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: linux-acpi@vger.kernel.org
-Cc: Russell King <linux@arm.linux.org.uk>, Graeme Gregory <graeme.gregory@linaro.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, linux-kernel@vger.kernel.org, Leif Lindholm <leif.lindholm@linaro.org>, Aleksey Makarov <aleksey.makarov@linaro.org>, Christopher Covington <cov@codeaurora.org>, linux-serial@vger.kernel.org, Al Stone <ahs3@redhat.com>, linux-arm-kernel@lists.infradead.org, Len Brown <lenb@kernel.org>
+Content-Type: multipart/mixed; boundary="uAKRQypu60I7Lcqm"
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga14.intel.com ([192.55.52.115]:52198 "EHLO mga14.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751242AbcBLSpx (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 12 Feb 2016 13:45:53 -0500
+Content-Disposition: inline
+In-Reply-To: <1455299022-11641-4-git-send-email-aleksey.makarov@linaro.org>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+Cc: kbuild-all@01.org, linux-acpi@vger.kernel.org, linux-serial@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Aleksey Makarov <aleksey.makarov@linaro.org>, Russell King <linux@arm.linux.org.uk>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, Leif Lindholm <leif.lindholm@linaro.org>, Graeme Gregory <graeme.gregory@linaro.org>, Al Stone <ahs3@redhat.com>, Christopher Covington <cov@codeaurora.org>, Len Brown <lenb@kernel.org>
 
-'ARM Server Base Boot Requiremets' [1] mentions SPCR (Serial Port
-Console Redirection Table) [2] as a mandatory ACPI table that
-specifies the configuration of serial console.
 
-Parse this table and check if any registered console match the
-description.  If it does, enable that console.
+--uAKRQypu60I7Lcqm
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-In the original submission [3] the ACPI devices are traversed to find
-one that has the same address as specified by SPCR. Then while
-registering a serial device it is checked if it has an ACPI companion
-and it is the same device that was found at traversal. If so,
-add_preferred_console() was used to specify the device as preferred.
-The console name and index are known at the time of registration of
-serial device.
+Hi Aleksey,
 
-The problem is that SPCR can specify the console not only by the base
-address but also with PCI Device ID/PCI Vendor ID or PCI Bus
-Number/PCI Device Number.  In general, there is no way to get serial
-name and index from the SPCR table.
+[auto build test ERROR on pm/linux-next]
+[also build test ERROR on v4.5-rc3 next-20160212]
+[if your patch is applied to the wrong git tree, please drop us a note to help improving the system]
 
-To implement that, introduce a new member
+url:    https://github.com/0day-ci/linux/commits/Aleksey-Makarov/ACPI-parse-the-SPCR-table/20160213-015350
+base:   https://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm.git linux-next
+config: i386-tinyconfig (attached as .config)
+reproduce:
+        # save the attached .config to linux build tree
+        make ARCH=i386 
 
-        int (*acpi_match)(struct console *, struct acpi_table_spcr *)
+All errors (new ones prefixed by >>):
 
-of struct console.  It allows drivers to check if they provide a
-matching console device.
+   arch/x86/kernel/i8259.o: In function `acpi_table_parse2':
+>> i8259.c:(.text+0x2c4): multiple definition of `acpi_table_parse2'
+   arch/x86/kernel/setup.o:setup.c:(.text+0x3): first defined here
+   arch/x86/kernel/irqinit.o: In function `acpi_table_parse2':
+   irqinit.c:(.text+0x0): multiple definition of `acpi_table_parse2'
+   arch/x86/kernel/setup.o:setup.c:(.text+0x3): first defined here
+   arch/x86/kernel/bootflag.o: In function `acpi_table_parse2':
+   bootflag.c:(.text+0x0): multiple definition of `acpi_table_parse2'
+   arch/x86/kernel/setup.o:setup.c:(.text+0x3): first defined here
+   arch/x86/kernel/e820.o: In function `acpi_table_parse2':
+   e820.c:(.text+0x0): multiple definition of `acpi_table_parse2'
+   arch/x86/kernel/setup.o:setup.c:(.text+0x3): first defined here
+   arch/x86/kernel/pci-dma.o: In function `acpi_table_parse2':
+   pci-dma.c:(.text+0x0): multiple definition of `acpi_table_parse2'
+   arch/x86/kernel/setup.o:setup.c:(.text+0x3): first defined here
+   arch/x86/kernel/rtc.o: In function `acpi_table_parse2':
+   rtc.c:(.text+0x43): multiple definition of `acpi_table_parse2'
+   arch/x86/kernel/setup.o:setup.c:(.text+0x3): first defined here
 
-[1] http://infocenter.arm.com/help/index.jsp?topic=/com.arm.doc.den0044a/index.html
-[2] http://msdn.microsoft.com/en-us/library/windows/hardware/dn639131(v=vs.85).aspx
-[3] https://lkml.kernel.org/g/1441716217-23786-1-git-send-email-leif.lindholm@linaro.org
-
-Signed-off-by: Aleksey Makarov <aleksey.makarov@linaro.org>
 ---
- drivers/acpi/Kconfig    |  3 ++
- drivers/acpi/Makefile   |  1 +
- drivers/acpi/spcr.c     | 77 +++++++++++++++++++++++++++++++++++++++++++++++++
- include/linux/console.h | 12 ++++++++
- kernel/printk/printk.c  | 22 ++++++++++++--
- 5 files changed, 113 insertions(+), 2 deletions(-)
- create mode 100644 drivers/acpi/spcr.c
+0-DAY kernel test infrastructure                Open Source Technology Center
+https://lists.01.org/pipermail/kbuild-all                   Intel Corporation
 
-diff --git a/drivers/acpi/Kconfig b/drivers/acpi/Kconfig
-index 65fb483..5611eb6 100644
---- a/drivers/acpi/Kconfig
-+++ b/drivers/acpi/Kconfig
-@@ -77,6 +77,9 @@ config ACPI_DEBUGGER_USER
- 
- endif
- 
-+config ACPI_SPCR_TABLE
-+	bool
-+
- config ACPI_SLEEP
- 	bool
- 	depends on SUSPEND || HIBERNATION
-diff --git a/drivers/acpi/Makefile b/drivers/acpi/Makefile
-index 346101c..708b143 100644
---- a/drivers/acpi/Makefile
-+++ b/drivers/acpi/Makefile
-@@ -81,6 +81,7 @@ obj-$(CONFIG_ACPI_EC_DEBUGFS)	+= ec_sys.o
- obj-$(CONFIG_ACPI_CUSTOM_METHOD)+= custom_method.o
- obj-$(CONFIG_ACPI_BGRT)		+= bgrt.o
- obj-$(CONFIG_ACPI_CPPC_LIB)	+= cppc_acpi.o
-+obj-$(CONFIG_ACPI_SPCR_TABLE)	+= spcr.o
- obj-$(CONFIG_ACPI_DEBUGGER_USER) += acpi_dbg.o
- 
- # processor has its own "processor." module_param namespace
-diff --git a/drivers/acpi/spcr.c b/drivers/acpi/spcr.c
-new file mode 100644
-index 0000000..0475840
---- /dev/null
-+++ b/drivers/acpi/spcr.c
-@@ -0,0 +1,77 @@
-+/*
-+ * Copyright (c) 2012, Intel Corporation
-+ * Copyright (c) 2015, Red Hat, Inc.
-+ * Copyright (c) 2015, 2016 Linaro Ltd.
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License version 2 as
-+ * published by the Free Software Foundation.
-+ *
-+ */
-+
-+#include <linux/acpi.h>
-+#include <linux/console.h>
-+#include <linux/kernel.h>
-+
-+struct spcr_table_handler_match_data {
-+	struct console *console;
-+	char **options;
-+};
-+
-+static int spcr_table_handler_match(struct acpi_table_header *t, void *d)
-+{
-+	struct acpi_table_spcr *table = (struct acpi_table_spcr *)t;
-+	struct spcr_table_handler_match_data *data = d;
-+	int err;
-+
-+	if (table->header.revision < 2)
-+		return -EOPNOTSUPP;
-+
-+	err = data->console->acpi_match(data->console, table);
-+	if (err < 0)
-+		return err;
-+
-+	if (data->options) {
-+		switch (table->baud_rate) {
-+		case 3:
-+			*data->options = "9600";
-+			break;
-+		case 4:
-+			*data->options = "19200";
-+			break;
-+		case 6:
-+			*data->options = "57600";
-+			break;
-+		case 7:
-+			*data->options = "115200";
-+			break;
-+		default:
-+			*data->options = "";
-+			break;
-+		}
-+	}
-+
-+	return err;
-+}
-+
-+/**
-+ * acpi_console_match - Check if console matches one specified by SPCR.
-+ *
-+ * @console:	console to match
-+ * @options:	if the console matches, this will return options for the console
-+ *		as in kernel command line
-+ *
-+ * Return: a non-error value if the console matches.
-+ */
-+int acpi_console_match(struct console *console, char **options)
-+{
-+	struct spcr_table_handler_match_data d = {
-+		.console = console,
-+		.options = options,
-+	};
-+
-+	if (acpi_disabled || !console->acpi_match || console_set_on_cmdline)
-+		return -ENODEV;
-+
-+	return acpi_table_parse2(ACPI_SIG_SPCR, spcr_table_handler_match, &d);
-+}
-diff --git a/include/linux/console.h b/include/linux/console.h
-index ea731af..dcc2b59 100644
---- a/include/linux/console.h
-+++ b/include/linux/console.h
-@@ -15,6 +15,7 @@
- #define _LINUX_CONSOLE_H_ 1
- 
- #include <linux/types.h>
-+#include <linux/errno.h>
- 
- struct vc_data;
- struct console_font_op;
-@@ -117,6 +118,7 @@ static inline int con_debug_leave(void)
- #define CON_BRL		(32) /* Used for a braille device */
- #define CON_EXTENDED	(64) /* Use the extended output format a la /dev/kmsg */
- 
-+struct acpi_table_spcr;
- struct console {
- 	char	name[16];
- 	void	(*write)(struct console *, const char *, unsigned);
-@@ -125,6 +127,7 @@ struct console {
- 	void	(*unblank)(void);
- 	int	(*setup)(struct console *, char *);
- 	int	(*match)(struct console *, char *name, int idx, char *options);
-+	int	(*acpi_match)(struct console *, struct acpi_table_spcr *);
- 	short	flags;
- 	short	index;
- 	int	cflag;
-@@ -132,6 +135,15 @@ struct console {
- 	struct	 console *next;
- };
- 
-+#ifdef CONFIG_ACPI_SPCR_TABLE
-+int acpi_console_match(struct console *c, char **options);
-+#else
-+static inline int acpi_console_match(struct console *c, char **options)
-+{
-+	return -ENODEV;
-+}
-+#endif
-+
- /*
-  * for_each_console() allows you to iterate on each console
-  */
-diff --git a/kernel/printk/printk.c b/kernel/printk/printk.c
-index 0cc9542..5c270cf 100644
---- a/kernel/printk/printk.c
-+++ b/kernel/printk/printk.c
-@@ -2572,8 +2572,26 @@ void register_console(struct console *newcon)
- 		break;
- 	}
- 
--	if (!(newcon->flags & CON_ENABLED))
--		return;
-+	if (!(newcon->flags & CON_ENABLED)) {
-+		char *opts;
-+		int err;
-+
-+		if (newcon->flags & CON_BOOT)
-+			return;
-+
-+		err = acpi_console_match(newcon, &opts);
-+		if (err < 0)
-+			return;
-+
-+		if (newcon->index < 0)
-+			newcon->index = 0;
-+
-+		if (newcon->setup && newcon->setup(newcon, opts) != 0)
-+			return;
-+
-+		newcon->flags |= CON_ENABLED | CON_CONSDEV;
-+		has_preferred = true;
-+	}
- 
- 	/*
- 	 * If we have a bootconsole, and are switching to a real console,
--- 
-2.7.0
+--uAKRQypu60I7Lcqm
+Content-Type: application/octet-stream
+Content-Disposition: attachment; filename=".config.gz"
+Content-Transfer-Encoding: base64
+
+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
+
+--uAKRQypu60I7Lcqm--
