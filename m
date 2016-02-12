@@ -1,122 +1,90 @@
-From: Marc Zyngier <marc.zyngier@arm.com>
-Subject: Re: [PATCH V3 10/10] acpi, gicv3, its: Use MADT ITS subtable to do
- PCI/MSI domain initialization.
-Date: Fri, 12 Feb 2016 13:22:41 +0000
-Message-ID: <56BDDCA1.2090909@arm.com>
-References: <1453209083-3358-1-git-send-email-tn@semihalf.com>
- <1453209083-3358-11-git-send-email-tn@semihalf.com>
- <56BB26E5.6060703@arm.com> <56BDCF8F.1080208@semihalf.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+From: Aleksey Makarov <aleksey.makarov@linaro.org>
+Subject: [PATCH v2 0/9] ACPI: parse the SPCR table
+Date: Fri, 12 Feb 2016 20:43:31 +0300
+Message-ID: <1455299022-11641-1-git-send-email-aleksey.makarov@linaro.org>
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <56BDCF8F.1080208@semihalf.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Tomasz Nowicki <tn@semihalf.com>, tglx@linutronix.de, jason@lakedaemon.net, rjw@rjwysocki.net, lorenzo.pieralisi@arm.com, robert.richter@caviumnetworks.com, shijie.huang@arm.com, guohanjun@huawei.com, Suravee.Suthikulpanit@amd.com, Charles Garcia-Tobin <charles.garcia-tobin@arm.com>
-Cc: mw@semihalf.com, graeme.gregory@linaro.org, Catalin.Marinas@arm.com, will.deacon@arm.com, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, hanjun.guo@linaro.org, linux-arm-kernel@lists.infradead.org, ddaney.cavm@gmail.com
+To: linux-acpi@vger.kernel.org
+Cc: linux-serial@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Aleksey Makarov <aleksey.makarov@linaro.org>, Russell King <linux@arm.linux.org.uk>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, Leif Lindholm <leif.lindholm@linaro.org>, Graeme Gregory <graeme.gregory@linaro.org>, Al Stone <ahs3@redhat.com>, Christopher Covington <cov@codeaurora.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On 12/02/16 12:26, Tomasz Nowicki wrote:
-> + Charles
-> 
-> On 10.02.2016 13:02, Marc Zyngier wrote:
->> On 19/01/16 13:11, Tomasz Nowicki wrote:
->>> After refactoring DT code, we let ACPI to build ITS PCI MSI domain
->>> and do requester ID to device ID translation using IORT table.
->>>
->>> We have now full PCI MSI domain stack, thus we can enable ITS initialization
->>> from GICv3 core driver for ACPI scenario.
->>>
->>> Signed-off-by: Tomasz Nowicki <tn@semihalf.com>
->>> ---
->>>   drivers/irqchip/irq-gic-v3-its-pci-msi.c | 44 +++++++++++++++++++++++++++++++-
->>>   drivers/irqchip/irq-gic-v3.c             |  3 +--
->>>   drivers/pci/msi.c                        |  3 +++
->>>   3 files changed, 47 insertions(+), 3 deletions(-)
->>>
->>> diff --git a/drivers/irqchip/irq-gic-v3-its-pci-msi.c b/drivers/irqchip/irq-gic-v3-its-pci-msi.c
->>> index 06165cb..7f0a958 100644
->>> --- a/drivers/irqchip/irq-gic-v3-its-pci-msi.c
->>> +++ b/drivers/irqchip/irq-gic-v3-its-pci-msi.c
->>> @@ -15,6 +15,8 @@
->>>    * along with this program.  If not, see <http://www.gnu.org/licenses/>.
->>>    */
->>>
->>> +#include <linux/acpi.h>
->>> +#include <linux/iort.h>
->>>   #include <linux/msi.h>
->>>   #include <linux/of.h>
->>>   #include <linux/of_irq.h>
->>> @@ -143,10 +145,50 @@ static int __init its_pci_of_msi_init(void)
->>>   	return 0;
->>>   }
->>>
->>> +#ifdef CONFIG_ACPI
->>> +
->>> +static int __init
->>> +its_pci_msi_parse_madt(struct acpi_subtable_header *header,
->>> +		    const unsigned long end)
->>> +{
->>> +	struct acpi_madt_generic_translator *its_entry;
->>> +	struct fwnode_handle *domain_handle;
->>> +
->>> +	its_entry = (struct acpi_madt_generic_translator *)header;
->>> +	domain_handle = iort_find_its_domain_token(its_entry->translation_id);
->>> +	if (!domain_handle) {
->>> +		pr_err("ITS@0x%lx: Unable to locate ITS domain handle\n",
->>> +		       (long)its_entry->base_address);
->>> +		return 0;
->>> +	}
->>> +
->>> +	if (its_pci_msi_init_one(domain_handle))
->>> +		return 0;
->>> +
->>> +	pci_msi_register_fwnode_provider(&iort_find_pci_domain_token);
->>
->> I'm a bit worried by this. You are registering this for each and every
->> ITS that gets probed (useless, but why not). But also, you're using a
->> hook that is designed to work at the bus level, without caring for the
->> actual PCI devices. That's fine for something like GICv2m, which exposes
->> a single domain, but I can't picture how this works when you have
->> devices sitting behind a single RC that talk to different ITSs.
->>
->> My understanding is that IORT was behaving in a similar way the msi-map
->> property works, so I'm a bit puzzled here.
->>
->> Can you please shed some light on that?
->>
-> 
-> I see your point now. It is possible to describe such case in IORT, for 
-> example:
-> 
-> ********************************************
-> RC0 node:
-> ---------------
-> Mapping 0:
-> <input ID range> -> <output ID range>
-> <0:100> -> <0:100>
-> parent -> ITS0
-> ---------------
-> Mapping 1:
-> <input ID range> -> <output ID range>
-> <101:200> -> <101:200>
-> parent -> ITS1
-> ---------------
-> ********************************************
-> 
-> So for this scenario I cannot use pci_host_bridge_acpi_msi_domain() to 
-> find IRQ domain based on bus device (unless there is only one ITS bound 
-> to e.g. RC), I should rather add ACPI implementation to 
-> pci_msi_get_device_domain on per-device MSI basis. Do you agree?
+This patchset is based on the patchset by Leif Lindholm [1]
 
-That's what I was angling for, having had that in mind when writing that
-particular piece of code (see 54fa97eeb for the rational).
+'ARM Server Base Boot Requirements' [2] mentions SPCR (Serial Port
+Console Redirection Table) [3] as a mandatory ACPI table that
+specifies the configuration of serial console.
 
-You should also split the plugging of IORT into the MSI layer from the
-ITS driver (last hunk of this patch).
+SPCR support is included in QEMU's ARM mach-virt since 2.4 release.
 
-Thanks,
+Parse the SPCR table and check if any registered console matches the
+description.  If it does, enable that console.
 
-	M.
+Also add an implementation of this member function to the pl011 and 8250
+drivers, fix a minor issue in printk.c and use SPCR to tell if SBSA serial
+driver should use 32-bit access to registers.
+To be able to access SPCR table each time any console is registered
+change __init to __ref for early_acpi_os_unmap_memory()
+and introduce acpi_table_parse2() in separate patches.
+
+The patchset should be applied to tty-next.
+
+v2:
+- don't use SPCR if user specified console in command line
+- fix initialization order of newcon->index = 0
+- rename some variables at printk.c (Joe Perches, Peter Hurley)
+- enable ACPI_SPCR_TABLE in a separate patch (Andy Shevchenko)
+- remove the retry loop for console registering (Peter Hurley).
+  Instead, obtain SPCR with acpi_get_table().  That works after
+  call to acpi_early_init() i. e. in any *_initcall()
+- describe design decision behind introducing acpi_match() (Peter Hurley)
+- fix compilation for x86 + ACPI (Graeme Gregory)
+- introduce DBG2 constants in a separate patch (Andy Shevchenko)
+- fix a typo in DBG2 constants (Andy Shevchenko)
+- add ACPI_DBG2_ARM_SBSA_32BIT constant (Christopher Covington)
+- add support for ACPI_DBG2_ARM_SBSA_* consoles (Christopher Covington)
+- add documentation for functions
+- add a patch that uses SPCR to find if SBSA serial driver should use 32-bit
+  accessor functions (Christopher Covington)
+- change __init to __ref for early_acpi_os_unmap_memory() in a separate patch
+- introduce acpi_table_parse2() in a separate patch
+- fix fetching the SPCR table early (Mark Salter)
+- add a patch from Mark Salter that introduces support for matching 8250-based
+  consoles
+
+v1:
+https://lkml.kernel.org/g/1453722324-22407-1-git-send-email-aleksey.makarov@linaro.org
+
+[1] https://lkml.kernel.org/g/1441716217-23786-1-git-send-email-leif.lindholm@linaro.org
+[2] http://infocenter.arm.com/help/index.jsp?topic=/com.arm.doc.den0044a/index.html
+[3] https://msdn.microsoft.com/en-us/library/windows/hardware/dn639132(v=vs.85).aspx
+
+Aleksey Makarov (8):
+  printk: fix name and type of some variables
+  ACPI: Change __init to __ref for early_acpi_os_unmap_memory()
+  ACPI: introduce acpi_table_parse2()
+  ACPI: parse SPCR and enable matching console
+  ACPI: enable ACPI_SPCR_TABLE on ARM64
+  ACPI: add definition of DBG2 subtypes
+  serial: pl011: add acpi_match
+  serial: pl011: use SPCR to setup 32-bit access
+
+Mark Salter (1):
+  serial: 8250: add acpi_match
+
+ arch/arm64/Kconfig                  |   1 +
+ drivers/acpi/Kconfig                |   3 +
+ drivers/acpi/Makefile               |   1 +
+ drivers/acpi/osl.c                  |   6 +-
+ drivers/acpi/spcr.c                 | 106 ++++++++++++++++++++++++++++++++++++
+ drivers/acpi/tables.c               |  49 ++++++++++++++---
+ drivers/tty/serial/8250/8250_core.c |  23 ++++++++
+ drivers/tty/serial/amba-pl011.c     |  24 ++++++++
+ include/acpi/actbl2.h               |   5 ++
+ include/linux/acpi.h                |   8 +++
+ include/linux/console.h             |  17 ++++++
+ kernel/printk/printk.c              |  40 ++++++++++----
+ 12 files changed, 264 insertions(+), 19 deletions(-)
+ create mode 100644 drivers/acpi/spcr.c
+
 -- 
-Jazz is not dead. It just smells funny...
+2.7.0
