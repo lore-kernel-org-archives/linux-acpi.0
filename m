@@ -1,106 +1,73 @@
-From: Toshi Kani <toshi.kani@hpe.com>
-Subject: Re: [PATCH 3/3] ACPI: Change NFIT driver to set PMEM type to iomem
- entry
-Date: Fri, 12 Feb 2016 15:30:03 -0700
-Message-ID: <1455316203.2925.132.camel@hpe.com>
-References: <1454439311-23690-1-git-send-email-toshi.kani@hpe.com>
-	 <1454439311-23690-4-git-send-email-toshi.kani@hpe.com>
-	 <CAPcyv4ik0GRYkYdaKvu4rPC9a+Q-e93uCZMpx1W8=Cvwwdh6jw@mail.gmail.com>
+From: "Moore, Robert" <robert.moore@intel.com>
+Subject: RE: [PATCH v2 6/9] ACPI: add definition of DBG2 subtypes
+Date: Fri, 12 Feb 2016 22:47:19 +0000
+Message-ID: <94F2FBAB4432B54E8AACC7DFDE6C92E37DA9BA10@ORSMSX112.amr.corp.intel.com>
+References: <1455299022-11641-1-git-send-email-aleksey.makarov@linaro.org>
+ <1455299022-11641-7-git-send-email-aleksey.makarov@linaro.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <CAPcyv4ik0GRYkYdaKvu4rPC9a+Q-e93uCZMpx1W8=Cvwwdh6jw@mail.gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Dan Williams <dan.j.williams@intel.com>
-Cc: Ingo Molnar <mingo@kernel.org>, Borislav Petkov <bp@suse.de>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Andrew Morton <akpm@linux-foundation.org>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, Linux ACPI <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga01.intel.com ([192.55.52.88]:40942 "EHLO mga01.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751212AbcBLWrZ convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 12 Feb 2016 17:47:25 -0500
+In-Reply-To: <1455299022-11641-7-git-send-email-aleksey.makarov@linaro.org>
+Content-Language: en-US
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Aleksey Makarov <aleksey.makarov@linaro.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
+Cc: "linux-serial@vger.kernel.org" <linux-serial@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Russell King <linux@arm.linux.org.uk>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, Leif Lindholm <leif.lindholm@linaro.org>, Graeme Gregory <graeme.gregory@linaro.org>, Al Stone <ahs3@redhat.com>, Christopher Covington <cov@codeaurora.org>, "Zheng, Lv" <lv.zheng@intel.com>, "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>, Len Brown <lenb@kernel.org>, "devel@acpica.org" <devel@acpica.org>
 
-On Fri, 2016-02-12 at 11:41 -0800, Dan Williams wrote:
-> On Tue, Feb 2, 2016 at 10:55 AM, Toshi Kani <toshi.kani@hpe.com> wrot=
-e:
-> > Change acpi_nfit_register_region() to call iomem_set_desc() with
-> > IORES_DESC_PERSISTENT_MEMORY for NFIT_SPA_PM ranges found in ACPI
-> > NFIT table.
-> >=20
-> > When FW sets E820_PMEM in e820 and EFI_PERSISTENT_MEMORY in EFI,
-> > this code simply sets PMEM type again to "Persistent Memory" entrie=
-s
-> > in the iomem table.=C2=A0=C2=A0When FW sets reserved type for persi=
-stent
-> > memory ranges, it sets PMEM type to "reserved" entries covering
-> > PMEM ranges.
-> >=20
-> > This allows the EINJ driver, which calls region_intersects() with
-> > IORES_DESC_PERSISTENT_MEMORY to check persistent memory ranges,
-> > to work continuously even if FW sets reserved type to persistent
-> > memory in e820 and EFI.
-> >=20
-> > Signed-off-by: Toshi Kani <toshi.kani@hpe.com>
-> > Cc: Rafael J. Wysocki <rjw@rjwysocki.net>
-> > Cc: Dan Williams <dan.j.williams@intel.com>
-> > Cc: Ingo Molnar <mingo@kernel.org>
-> > Cc: Borislav Petkov <bp@suse.de>
-> > Cc: Andrew Morton <akpm@linux-foundation.org>
-> > ---
-> > =C2=A0drivers/acpi/nfit.c |=C2=A0=C2=A0=C2=A0=C2=A06 ++++++
-> > =C2=A01 file changed, 6 insertions(+)
-> >=20
-> > diff --git a/drivers/acpi/nfit.c b/drivers/acpi/nfit.c
-> > index ad6d8c6..add04f0 100644
-> > --- a/drivers/acpi/nfit.c
-> > +++ b/drivers/acpi/nfit.c
-> > @@ -1781,6 +1781,12 @@ static int acpi_nfit_register_region(struct
-> > acpi_nfit_desc *acpi_desc,
-> >=20
-> > =C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0nvdimm_bus =3D acpi=
-_desc->nvdimm_bus;
-> > =C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0if (nfit_spa_type(s=
-pa) =3D=3D NFIT_SPA_PM) {
-> > +=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=
-=C2=A0=C2=A0=C2=A0=C2=A0rc =3D iomem_set_desc(spa->address, spa->length=
-,
-> > +=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=
-=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=
-=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=
-=C2=A0=C2=A0=C2=A0=C2=A0IORES_DESC_PERSISTENT_MEMORY);
-> > +=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=
-=C2=A0=C2=A0=C2=A0=C2=A0if (rc)
-> > +=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=
-=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=
-dev_dbg(acpi_desc->dev,
-> > +=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=
-=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=
-=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0"error setting iomem de=
-sc: %d\n", rc);
-> > +
->=20
-> Hmm, if we set the type on driver load, should we clear the type on
-> driver unload?
-
-I think this type update should stay for the life-cycle of this iomem e=
-ntry
-itself since this range is PMEM even after the driver is unloaded. =C2=A0=
-This is
-an extension of the boot-time iomem table initialization from e820/EFI,
-which allows ACPI to set a correct type. =C2=A0This is independent from=
- driver's
-resource allocations.
-
-> Actually it might be more straightforward to specify a type at
-> request_region() time.=C2=A0=C2=A0That way it gets released at releas=
-e_region().
-> We're already setting a resource name at request_region time, adding =
-a
-> type annotation at the time seems appropriate.
-
-I first considered simply setting "namespaceX.X" as PMEM. =C2=A0However=
-,
-region_intersects() and its friends only check the top-level entries, n=
-ot
-their children, of the iomem table. =C2=A0And I think a child should ha=
-ve the
-same type as the parent as I fixed it in patch 1/3.
-
+OK, we'll take these for the next release of ACPICA.
 Thanks,
--Toshi
+Bob
+
+
+> -----Original Message-----
+> From: Aleksey Makarov [mailto:aleksey.makarov@linaro.org]
+> Sent: Friday, February 12, 2016 9:44 AM
+> To: linux-acpi@vger.kernel.org
+> Cc: linux-serial@vger.kernel.org; linux-kernel@vger.kernel.org; linux-arm-
+> kernel@lists.infradead.org; Aleksey Makarov; Russell King; Greg Kroah-
+> Hartman; Rafael J . Wysocki; Leif Lindholm; Graeme Gregory; Al Stone;
+> Christopher Covington; Moore, Robert; Zheng, Lv; Wysocki, Rafael J; Len
+> Brown; devel@acpica.org
+> Subject: [PATCH v2 6/9] ACPI: add definition of DBG2 subtypes
+> 
+> The recent version of Microsoft Debug Port Table 2 (DBG2) [1] specifies
+> additional serial debug port subtypes.  These constants are also referred
+> by Serial Port Console Redirection Table (SPCR) [2]
+> 
+> Add these constants.
+> 
+> [1] https://msdn.microsoft.com/en-
+> us/library/windows/hardware/dn639131(v=vs.85).aspx
+> [2] https://msdn.microsoft.com/en-
+> us/library/windows/hardware/dn639132(v=vs.85).aspx
+> 
+> Signed-off-by: Aleksey Makarov <aleksey.makarov@linaro.org>
+> Tested-by: Christopher Covington <cov@codeaurora.org>
+> ---
+>  include/acpi/actbl2.h | 5 +++++
+>  1 file changed, 5 insertions(+)
+> 
+> diff --git a/include/acpi/actbl2.h b/include/acpi/actbl2.h index
+> a4ef625..e9930ab 100644
+> --- a/include/acpi/actbl2.h
+> +++ b/include/acpi/actbl2.h
+> @@ -371,6 +371,11 @@ struct acpi_dbg2_device {
+> 
+>  #define ACPI_DBG2_16550_COMPATIBLE  0x0000
+>  #define ACPI_DBG2_16550_SUBSET      0x0001
+> +#define ACPI_DBG2_ARM_PL011         0x0003
+> +#define ACPI_DBG2_ARM_SBSA_32BIT    0x000d
+> +#define ACPI_DBG2_ARM_SBSA_GENERIC  0x000e
+> +#define ACPI_DBG2_ARM_DCC           0x000f
+> +#define ACPI_DBG2_BCM2835           0x0010
+> 
+>  #define ACPI_DBG2_1394_STANDARD     0x0000
+> 
+> --
+> 2.7.0
+
