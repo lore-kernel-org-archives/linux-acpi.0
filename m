@@ -1,103 +1,163 @@
 From: Hanjun Guo <hanjun.guo@linaro.org>
-Subject: Re: [PATCH V3 06/10] irqchip, GICv3, ITS: Refator ITS dt init code to
- prepare for ACPI.
-Date: Sun, 14 Feb 2016 16:06:23 +0800
-Message-ID: <56C0357F.9010904@linaro.org>
-References: <1453209083-3358-1-git-send-email-tn@semihalf.com>
- <1453209083-3358-7-git-send-email-tn@semihalf.com> <56BB1548.5050402@arm.com>
+Subject: Re: [PATCH v2] PCI: ACPI: IA64: fix IO port generic range check
+Date: Sun, 14 Feb 2016 16:33:52 +0800
+Message-ID: <56C03BF0.6020505@linaro.org>
+References: <1455212827-9382-1-git-send-email-lorenzo.pieralisi@arm.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=windows-1252; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-pa0-f50.google.com ([209.85.220.50]:32787 "EHLO
-	mail-pa0-f50.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751372AbcBNIGc (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sun, 14 Feb 2016 03:06:32 -0500
-Received: by mail-pa0-f50.google.com with SMTP id fl4so57315122pad.0
-        for <linux-acpi@vger.kernel.org>; Sun, 14 Feb 2016 00:06:31 -0800 (PST)
-In-Reply-To: <56BB1548.5050402@arm.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Return-path: <linux-ia64-owner@vger.kernel.org>
+In-Reply-To: <1455212827-9382-1-git-send-email-lorenzo.pieralisi@arm.com>
+Sender: linux-ia64-owner@vger.kernel.org
+To: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, linux-pci@vger.kernel.org
+Cc: linux-acpi@vger.kernel.org, linux-ia64@vger.kernel.org, Bjorn Helgaas <bhelgaas@google.com>, Jiang Liu <jiang.liu@linux.intel.com>, Tony Luck <tony.luck@intel.com>, Tomasz Nowicki <tn@semihalf.com>, Mark Salter <msalter@redhat.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>
 List-Id: linux-acpi@vger.kernel.org
-To: Marc Zyngier <marc.zyngier@arm.com>, Tomasz Nowicki <tn@semihalf.com>, tglx@linutronix.de, jason@lakedaemon.net, rjw@rjwysocki.net, lorenzo.pieralisi@arm.com, robert.richter@caviumnetworks.com, shijie.huang@arm.com, guohanjun@huawei.com, Suravee.Suthikulpanit@amd.com
-Cc: mw@semihalf.com, graeme.gregory@linaro.org, Catalin.Marinas@arm.com, will.deacon@arm.com, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org, ddaney.cavm@gmail.com
 
-On 2016/2/10 18:47, Marc Zyngier wrote:
-> On 19/01/16 13:11, Tomasz Nowicki wrote:
->> Similarly to GICv3 core, we need to extract common code before adding
->> ACPI support. No functional changes.
->>
->> Signed-off-by: Hanjun Guo <hanjun.guo@linaro.org>
->> Signed-off-by: Tomasz Nowicki <tn@semihalf.com>
->> ---
->>   drivers/irqchip/irq-gic-v3-its.c   | 82 +++++++++++++++++++++++---------------
->>   drivers/irqchip/irq-gic-v3.c       |  6 +--
->>   include/linux/irqchip/arm-gic-v3.h |  2 +-
->>   3 files changed, 52 insertions(+), 38 deletions(-)
->>
->> diff --git a/drivers/irqchip/irq-gic-v3-its.c b/drivers/irqchip/irq-gic-v3-its.c
->> index 2bbed18..fecb7a6 100644
->> --- a/drivers/irqchip/irq-gic-v3-its.c
->> +++ b/drivers/irqchip/irq-gic-v3-its.c
->> @@ -813,7 +813,7 @@ static void its_free_tables(struct its_node *its)
->>   	}
->>   }
->>
->> -static int its_alloc_tables(const char *node_name, struct its_node *its)
->> +static int its_alloc_tables(struct its_node *its)
->>   {
->>   	int err;
->>   	int i;
->> @@ -868,8 +868,8 @@ static int its_alloc_tables(const char *node_name, struct its_node *its)
->>   				    order);
->>   			if (order >= MAX_ORDER) {
->>   				order = MAX_ORDER - 1;
->> -				pr_warn("%s: Device Table too large, reduce its page order to %u\n",
->> -					node_name, order);
->> +				pr_warn("ITS@0x%lx: Device Table too large, reduce its page order to %u\n",
->> +					its->phys_base, order);
->>   			}
->>   		}
->>
->> @@ -878,8 +878,8 @@ static int its_alloc_tables(const char *node_name, struct its_node *its)
->>   		if (alloc_pages > GITS_BASER_PAGES_MAX) {
->>   			alloc_pages = GITS_BASER_PAGES_MAX;
->>   			order = get_order(GITS_BASER_PAGES_MAX * psz);
->> -			pr_warn("%s: Device Table too large, reduce its page order to %u (%u pages)\n",
->> -				node_name, order, alloc_pages);
->> +			pr_warn("ITS@0x%lx: Device Table too large, reduce its page order to %u (%u pages)\n",
->> +				its->phys_base, order, alloc_pages);
->>   		}
->>
->>   		base = (void *)__get_free_pages(GFP_KERNEL | __GFP_ZERO, order);
->> @@ -948,8 +948,8 @@ retry_baser:
->>   		}
->>
->>   		if (val != tmp) {
->> -			pr_err("ITS: %s: GITS_BASER%d doesn't stick: %lx %lx\n",
->> -			       node_name, i,
->> +			pr_err("ITS@0x%lx: GITS_BASER%d doesn't stick: %lx %lx\n",
->> +			       its->phys_base, i,
->>   			       (unsigned long) val, (unsigned long) tmp);
->>   			err = -ENXIO;
->>   			goto out_free;
->> @@ -1424,10 +1424,11 @@ static void its_enable_quirks(struct its_node *its)
->>   	gic_enable_quirks(iidr, its_quirks, its);
->>   }
->>
->> -static int __init its_probe(struct device_node *node,
->> -			    struct irq_domain *parent)
->> +static int __init its_probe_one(phys_addr_t phys_base, unsigned long size,
->> +				struct irq_domain *parent,
->> +				bool is_msi_controller,
+On 2016/2/12 1:47, Lorenzo Pieralisi wrote:
+> The [0 - 64k] ACPI PCI IO port resource boundary check in:
 >
-> I really question the fact that you are keeping this msi_controller
-> thing. Let's face it: if this is not an MSI controller, then the whole
-> thing is absolutely pointless.
+> acpi_dev_ioresource_flags()
 >
-> So I'd rather you simplify the whole in a separate patch, and just don't
-> bother initializing the ITS if it cannot be used for MSIs.
+> is currently applied blindly in the ACPI resource parsing to all
+> architectures, but only x86 suffers from that IO space limitation.
+>
+> On arches (ie IA64 and ARM64) where IO space is memory mapped,
+> the PCI root bridges IO resource windows are firstly initialized from
+> the _CRS (in acpi_decode_space()) and contain the CPU physical address
+> at which a root bridge decodes IO space in the CPU physical address
+> space with the offset value representing the offset required to translate
+> the PCI bus address into the CPU physical address.
+>
+> The IO resource windows are then parsed and updated in arch code
+> before creating and enumerating PCI buses (eg IA64 add_io_space())
+> to map in an arch specific way the obtained CPU physical address range
+> to a slice of virtual address space reserved to map PCI IO space,
+> ending up with PCI bridges resource windows containing IO
+> resources like the following on a working IA64 configuration:
+>
+> PCI host bridge to bus 0000:00
+> pci_bus 0000:00: root bus resource [io  0x1000000-0x100ffff window] (bus
+> address [0x0000-0xffff])
+> pci_bus 0000:00: root bus resource [mem 0x000a0000-0x000fffff window]
+> pci_bus 0000:00: root bus resource [mem 0x80000000-0x8fffffff window]
+> pci_bus 0000:00: root bus resource [mem 0x80004000000-0x800ffffffff window]
+> pci_bus 0000:00: root bus resource [bus 00]
+>
+> This implies that the [0 - 64K] check in acpi_dev_ioresource_flags()
+> leaves platforms with memory mapped IO space (ie IA64) broken (ie kernel
+> can't claim IO resources since the host bridge IO resource is disabled
+> and discarded by ACPI core code, see log on IA64 with missing root bridge
+> IO resource, silently filtered by current [0 - 64k] check in
+> acpi_dev_ioresource_flags()):
+>
+> PCI host bridge to bus 0000:00
+> pci_bus 0000:00: root bus resource [mem 0x000a0000-0x000fffff window]
+> pci_bus 0000:00: root bus resource [mem 0x80000000-0x8fffffff window]
+> pci_bus 0000:00: root bus resource [mem 0x80004000000-0x800ffffffff window]
+> pci_bus 0000:00: root bus resource [bus 00]
+>
+> [...]
+>
+> pci 0000:00:03.0: [1002:515e] type 00 class 0x030000
+> pci 0000:00:03.0: reg 0x10: [mem 0x80000000-0x87ffffff pref]
+> pci 0000:00:03.0: reg 0x14: [io  0x1000-0x10ff]
+> pci 0000:00:03.0: reg 0x18: [mem 0x88020000-0x8802ffff]
+> pci 0000:00:03.0: reg 0x30: [mem 0x88000000-0x8801ffff pref]
+> pci 0000:00:03.0: supports D1 D2
+> pci 0000:00:03.0: can't claim BAR 1 [io  0x1000-0x10ff]: no compatible
+> bridge window
+>
+> For this reason, the IO port resources boundaries check in generic ACPI
+> parsing code should be moved to x86 arch code so that more arches (ie
+> ARM64) can benefit from the generic ACPI resources parsing interface
+> without incurring in unexpected resource filtering, fixing at the same
+> time current breakage on IA64.
+>
+> This patch moves the IO ports boundary [0 - 64k] check to x86 arch code
+> code that validates the PCI host bridge resources.
+>
+> Fixes: 3772aea7d6f3 ("ia64/PCI/ACPI: Use common ACPI resource parsing
+> interface for host bridge")
+> Signed-off-by: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+> Tested-by: Hanjun Guo <hanjun.guo@linaro.org>
+> Cc: Bjorn Helgaas <bhelgaas@google.com>
+> Cc: Hanjun Guo <hanjun.guo@linaro.org>
+> Cc: Jiang Liu <jiang.liu@linux.intel.com>
+> Cc: Tony Luck <tony.luck@intel.com>
+> Cc: Tomasz Nowicki <tn@semihalf.com>
+> Cc: Mark Salter <msalter@redhat.com>
+> Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+> ---
+> v1 -> v2
+>
+> - Updated commit log to report missing IO resources
+> - Fixed function ioport_valid() comment 16k/64k typo
+>
+> v1: https://lkml.org/lkml/2016/2/1/157
+>
+>   arch/x86/pci/acpi.c     | 18 +++++++++++++-----
+>   drivers/acpi/resource.c |  3 ---
+>   2 files changed, 13 insertions(+), 8 deletions(-)
+>
+> diff --git a/arch/x86/pci/acpi.c b/arch/x86/pci/acpi.c
+> index 3cd6983..cec68e7 100644
+> --- a/arch/x86/pci/acpi.c
+> +++ b/arch/x86/pci/acpi.c
+> @@ -275,11 +275,14 @@ static void pci_acpi_root_release_info(struct acpi_pci_root_info *ci)
+>    *     to access PCI configuration space.
+>    *
+>    * So explicitly filter out PCI CFG IO ports[0xCF8-0xCFF].
+> + *
+> + * Furthermore, IO ports address space is limited to 64k on x86,
+> + * any IO resource exceeding the boundary must therefore be discarded.
+>    */
+> -static bool resource_is_pcicfg_ioport(struct resource *res)
+> +static bool ioport_valid(struct resource *res)
+>   {
+> -	return (res->flags & IORESOURCE_IO) &&
+> -		res->start == 0xCF8 && res->end == 0xCFF;
+> +	return !(res->start == 0xCF8 && res->end == 0xCFF) &&
+> +	       !(res->end >= 0x10003);
+>   }
+>
+>   static int pci_acpi_root_prepare_resources(struct acpi_pci_root_info *ci)
+> @@ -287,13 +290,18 @@ static int pci_acpi_root_prepare_resources(struct acpi_pci_root_info *ci)
+>   	struct acpi_device *device = ci->bridge;
+>   	int busnum = ci->root->secondary.start;
+>   	struct resource_entry *entry, *tmp;
+> +	struct resource *res;
+>   	int status;
+>
+>   	status = acpi_pci_probe_root_resources(ci);
+>   	if (pci_use_crs) {
+> -		resource_list_for_each_entry_safe(entry, tmp, &ci->resources)
+> -			if (resource_is_pcicfg_ioport(entry->res))
+> +		resource_list_for_each_entry_safe(entry, tmp, &ci->resources) {
+> +			res = entry->res;
+> +
+> +			if (res->flags & IORESOURCE_IO && !ioport_valid(res))
+>   				resource_list_destroy_entry(entry);
+> +		}
+> +
+>   		return status;
+>   	}
+>
+> diff --git a/drivers/acpi/resource.c b/drivers/acpi/resource.c
+> index d02fd53..c112e1d 100644
+> --- a/drivers/acpi/resource.c
+> +++ b/drivers/acpi/resource.c
+> @@ -127,9 +127,6 @@ static void acpi_dev_ioresource_flags(struct resource *res, u64 len,
+>   	if (!acpi_dev_resource_len_valid(res->start, res->end, len, true))
+>   		res->flags |= IORESOURCE_DISABLED | IORESOURCE_UNSET;
+>
+> -	if (res->end >= 0x10003)
+> -		res->flags |= IORESOURCE_DISABLED | IORESOURCE_UNSET;
+> -
+>   	if (io_decode == ACPI_DECODE_16)
+>   		res->flags |= IORESOURCE_IO_16BIT_ADDR;
+>   	if (translation_type == ACPI_SPARSE_TRANSLATION)
 
-Agree, that will simplify the code a lot.
+Reviewed-by: Hanjun Guo <hanjun.guo@linaro.org>
 
 Thanks
 Hanjun
