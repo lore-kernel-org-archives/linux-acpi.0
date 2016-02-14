@@ -1,163 +1,99 @@
-From: Hanjun Guo <hanjun.guo@linaro.org>
-Subject: Re: [PATCH v2] PCI: ACPI: IA64: fix IO port generic range check
-Date: Sun, 14 Feb 2016 16:33:52 +0800
-Message-ID: <56C03BF0.6020505@linaro.org>
-References: <1455212827-9382-1-git-send-email-lorenzo.pieralisi@arm.com>
+From: Jiang Qiu <qiujiang-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
+Subject: Re: [RFC PATCH] SPI/ACPI: DesignWare: Add ACPI support for Designware
+ SPI driver
+Date: Sun, 14 Feb 2016 17:31:14 +0800
+Message-ID: <56C04962.7080206@huawei.com>
+References: <1454656280-130658-1-git-send-email-qiujiang@huawei.com>
+ <20160205110900.GA12311@sirena.org.uk>
+Reply-To: <qiujiang-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-ia64-owner@vger.kernel.org>
-In-Reply-To: <1455212827-9382-1-git-send-email-lorenzo.pieralisi@arm.com>
-Sender: linux-ia64-owner@vger.kernel.org
-To: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, linux-pci@vger.kernel.org
-Cc: linux-acpi@vger.kernel.org, linux-ia64@vger.kernel.org, Bjorn Helgaas <bhelgaas@google.com>, Jiang Liu <jiang.liu@linux.intel.com>, Tony Luck <tony.luck@intel.com>, Tomasz Nowicki <tn@semihalf.com>, Mark Salter <msalter@redhat.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Content-Type: text/plain; charset=UTF-8;
+	format=flowed
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-spi-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20160205110900.GA12311-GFdadSzt00ze9xe1eoZjHA@public.gmane.org>
+Sender: linux-spi-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Mark Brown <broonie-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: linux-spi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linuxarm-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, haifeng.wei-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, charles.chenxin-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, Andy Shevchenko <andriy.shevchenko-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, Jarkko Nikula <jarkko.nikula-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On 2016/2/12 1:47, Lorenzo Pieralisi wrote:
-> The [0 - 64k] ACPI PCI IO port resource boundary check in:
->
-> acpi_dev_ioresource_flags()
->
-> is currently applied blindly in the ACPI resource parsing to all
-> architectures, but only x86 suffers from that IO space limitation.
->
-> On arches (ie IA64 and ARM64) where IO space is memory mapped,
-> the PCI root bridges IO resource windows are firstly initialized from
-> the _CRS (in acpi_decode_space()) and contain the CPU physical address
-> at which a root bridge decodes IO space in the CPU physical address
-> space with the offset value representing the offset required to translate
-> the PCI bus address into the CPU physical address.
->
-> The IO resource windows are then parsed and updated in arch code
-> before creating and enumerating PCI buses (eg IA64 add_io_space())
-> to map in an arch specific way the obtained CPU physical address range
-> to a slice of virtual address space reserved to map PCI IO space,
-> ending up with PCI bridges resource windows containing IO
-> resources like the following on a working IA64 configuration:
->
-> PCI host bridge to bus 0000:00
-> pci_bus 0000:00: root bus resource [io  0x1000000-0x100ffff window] (bus
-> address [0x0000-0xffff])
-> pci_bus 0000:00: root bus resource [mem 0x000a0000-0x000fffff window]
-> pci_bus 0000:00: root bus resource [mem 0x80000000-0x8fffffff window]
-> pci_bus 0000:00: root bus resource [mem 0x80004000000-0x800ffffffff window]
-> pci_bus 0000:00: root bus resource [bus 00]
->
-> This implies that the [0 - 64K] check in acpi_dev_ioresource_flags()
-> leaves platforms with memory mapped IO space (ie IA64) broken (ie kernel
-> can't claim IO resources since the host bridge IO resource is disabled
-> and discarded by ACPI core code, see log on IA64 with missing root bridge
-> IO resource, silently filtered by current [0 - 64k] check in
-> acpi_dev_ioresource_flags()):
->
-> PCI host bridge to bus 0000:00
-> pci_bus 0000:00: root bus resource [mem 0x000a0000-0x000fffff window]
-> pci_bus 0000:00: root bus resource [mem 0x80000000-0x8fffffff window]
-> pci_bus 0000:00: root bus resource [mem 0x80004000000-0x800ffffffff window]
-> pci_bus 0000:00: root bus resource [bus 00]
->
-> [...]
->
-> pci 0000:00:03.0: [1002:515e] type 00 class 0x030000
-> pci 0000:00:03.0: reg 0x10: [mem 0x80000000-0x87ffffff pref]
-> pci 0000:00:03.0: reg 0x14: [io  0x1000-0x10ff]
-> pci 0000:00:03.0: reg 0x18: [mem 0x88020000-0x8802ffff]
-> pci 0000:00:03.0: reg 0x30: [mem 0x88000000-0x8801ffff pref]
-> pci 0000:00:03.0: supports D1 D2
-> pci 0000:00:03.0: can't claim BAR 1 [io  0x1000-0x10ff]: no compatible
-> bridge window
->
-> For this reason, the IO port resources boundaries check in generic ACPI
-> parsing code should be moved to x86 arch code so that more arches (ie
-> ARM64) can benefit from the generic ACPI resources parsing interface
-> without incurring in unexpected resource filtering, fixing at the same
-> time current breakage on IA64.
->
-> This patch moves the IO ports boundary [0 - 64k] check to x86 arch code
-> code that validates the PCI host bridge resources.
->
-> Fixes: 3772aea7d6f3 ("ia64/PCI/ACPI: Use common ACPI resource parsing
-> interface for host bridge")
-> Signed-off-by: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
-> Tested-by: Hanjun Guo <hanjun.guo@linaro.org>
-> Cc: Bjorn Helgaas <bhelgaas@google.com>
-> Cc: Hanjun Guo <hanjun.guo@linaro.org>
-> Cc: Jiang Liu <jiang.liu@linux.intel.com>
-> Cc: Tony Luck <tony.luck@intel.com>
-> Cc: Tomasz Nowicki <tn@semihalf.com>
-> Cc: Mark Salter <msalter@redhat.com>
-> Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-> ---
-> v1 -> v2
->
-> - Updated commit log to report missing IO resources
-> - Fixed function ioport_valid() comment 16k/64k typo
->
-> v1: https://lkml.org/lkml/2016/2/1/157
->
->   arch/x86/pci/acpi.c     | 18 +++++++++++++-----
->   drivers/acpi/resource.c |  3 ---
->   2 files changed, 13 insertions(+), 8 deletions(-)
->
-> diff --git a/arch/x86/pci/acpi.c b/arch/x86/pci/acpi.c
-> index 3cd6983..cec68e7 100644
-> --- a/arch/x86/pci/acpi.c
-> +++ b/arch/x86/pci/acpi.c
-> @@ -275,11 +275,14 @@ static void pci_acpi_root_release_info(struct acpi_pci_root_info *ci)
->    *     to access PCI configuration space.
->    *
->    * So explicitly filter out PCI CFG IO ports[0xCF8-0xCFF].
-> + *
-> + * Furthermore, IO ports address space is limited to 64k on x86,
-> + * any IO resource exceeding the boundary must therefore be discarded.
->    */
-> -static bool resource_is_pcicfg_ioport(struct resource *res)
-> +static bool ioport_valid(struct resource *res)
->   {
-> -	return (res->flags & IORESOURCE_IO) &&
-> -		res->start == 0xCF8 && res->end == 0xCFF;
-> +	return !(res->start == 0xCF8 && res->end == 0xCFF) &&
-> +	       !(res->end >= 0x10003);
->   }
->
->   static int pci_acpi_root_prepare_resources(struct acpi_pci_root_info *ci)
-> @@ -287,13 +290,18 @@ static int pci_acpi_root_prepare_resources(struct acpi_pci_root_info *ci)
->   	struct acpi_device *device = ci->bridge;
->   	int busnum = ci->root->secondary.start;
->   	struct resource_entry *entry, *tmp;
-> +	struct resource *res;
->   	int status;
->
->   	status = acpi_pci_probe_root_resources(ci);
->   	if (pci_use_crs) {
-> -		resource_list_for_each_entry_safe(entry, tmp, &ci->resources)
-> -			if (resource_is_pcicfg_ioport(entry->res))
-> +		resource_list_for_each_entry_safe(entry, tmp, &ci->resources) {
-> +			res = entry->res;
-> +
-> +			if (res->flags & IORESOURCE_IO && !ioport_valid(res))
->   				resource_list_destroy_entry(entry);
-> +		}
-> +
->   		return status;
->   	}
->
-> diff --git a/drivers/acpi/resource.c b/drivers/acpi/resource.c
-> index d02fd53..c112e1d 100644
-> --- a/drivers/acpi/resource.c
-> +++ b/drivers/acpi/resource.c
-> @@ -127,9 +127,6 @@ static void acpi_dev_ioresource_flags(struct resource *res, u64 len,
->   	if (!acpi_dev_resource_len_valid(res->start, res->end, len, true))
->   		res->flags |= IORESOURCE_DISABLED | IORESOURCE_UNSET;
->
-> -	if (res->end >= 0x10003)
-> -		res->flags |= IORESOURCE_DISABLED | IORESOURCE_UNSET;
-> -
->   	if (io_decode == ACPI_DECODE_16)
->   		res->flags |= IORESOURCE_IO_16BIT_ADDR;
->   	if (translation_type == ACPI_SPARSE_TRANSLATION)
+Hi Mark,
 
-Reviewed-by: Hanjun Guo <hanjun.guo@linaro.org>
+Many thanks for your review, I'm so sorry for late reply because The=20
+Chinese
+new year holiday. See my replies below.
 
-Thanks
-Hanjun
+Best Regards
+Jiang
+
+=E5=9C=A8 2016/2/5 19:09, Mark Brown =E5=86=99=E9=81=93:
+> On Fri, Feb 05, 2016 at 03:11:20PM +0800, qiujiang wrote:
+>
+>> This patch added ACPI support for DesignWare SPI mmio driver. It
+>> was based the corresponding DT driver and compatible for this two
+>> way. This patch has been tested on Hisilicon D02 board. It relies
+>> on the GPIO patchset.
+> Intel are heavy users of this driver on their systems which also use
+> ACPI.  Have you discussed this binding with them?  I've copied Andy a=
+nd
+> Jarkko who've worked on the driver recently.
+  I'm going to ask Andy to get some ideas that how to use this spi-dw-m=
+mio
+  driver by ACPI binding.
+>
+> Please use subject lines matching the style for the subsystem.  This
+> makes it easier for people to identify relevant patches.
+Thanks for the reminder, I will fix it in the next version.
+>
+>> +	char propname[32];
+> That's a magic number, where did it come from and why is it a magic
+> nummber?
+I'm sorry for here without any comments. This number define is come fro=
+m
+gpiolib.c. It means the max size of gpio property name. The reference c=
+ode
+located in line 1815 of gpiolib.c.
+>> +	if (ACPI_COMPANION(&pdev->dev)) {
+>> +		for (i =3D 0; i < dws->num_cs; i++) {
+>> +			snprintf(propname, sizeof(propname), "cs%d", i);
+>> +			gpiod =3D devm_gpiod_get(&pdev->dev,
+>> +				propname, GPIOD_ASIS);
+>> +			if (IS_ERR(gpiod)) {
+>> +				dev_err(&pdev->dev, "Get gpio desc failed!\n");
+>> +				return PTR_ERR(gpiod);
+>> +			}
+>> +		}
+>> +	}
+> I'm not seeing anywhere where we store the GPIO in this loop.  It is
+> therefore unclear to me how the chip select is going to work?
+In DT binding, of_get_named_gpio and devm_gpio_request were used to=20
+parse gpio
+pins defined in DTs and then request these pins. Similarly, for ACPI,=20
+devm_gpiod_get
+can do that two operation in a single function. It is a unified=20
+interface to ACPI and DT
+binding.
+
+If the gpiod is valid, the corresponding gpio pins has been requested.=20
+We do not need
+to save this gpiod any more.
+
+which gpio pin was used is defined in spi_device, named cs_gpio, the=20
+configuration to the
+gpio pins will be done in the setup callback routine of each device.=20
+What the spi master
+should do is just request these pins to the gpio subsystem.
+>> +static const struct acpi_device_id dw_spi_mmio_acpi_match[] =3D {
+>> +		{"HISI0171", 0},
+>> +		{ }
+>> +};
+>> +MODULE_DEVICE_TABLE(acpi, dw_spi_mmio_acpi_match);
+> I really do wish ACPI had some more sensible system for allocating
+> device IDs so the tables were a little more legible. :(
+This is really a question, I will do this feedback to ACPI maintainers.
+
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-spi" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
