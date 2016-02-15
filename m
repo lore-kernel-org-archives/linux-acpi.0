@@ -1,56 +1,69 @@
-From: Hanjun Guo <guohanjun-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
-Subject: Re: [RFC PATCH] SPI/ACPI: DesignWare: Add ACPI support for Designware
- SPI driver
-Date: Mon, 15 Feb 2016 16:27:51 +0800
-Message-ID: <56C18C07.2030209@huawei.com>
-References: <1454656280-130658-1-git-send-email-qiujiang@huawei.com>
- <20160205110900.GA12311@sirena.org.uk>
+From: Aleksey Makarov <aleksey.makarov@linaro.org>
+Subject: Re: [PATCH v2 3/9] ACPI: introduce acpi_table_parse2()
+Date: Mon, 15 Feb 2016 15:51:52 +0300
+Message-ID: <56C1C9E8.2050300@linaro.org>
+References: <1455299022-11641-1-git-send-email-aleksey.makarov@linaro.org>
+ <1455299022-11641-4-git-send-email-aleksey.makarov@linaro.org>
+ <CAJZ5v0i2RCEEZwCN+Ran3Qmasn4yEk1rbfWkZ5QbEkUQWvaJ+g@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"
+Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-spi-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20160205110900.GA12311-GFdadSzt00ze9xe1eoZjHA@public.gmane.org>
-Sender: linux-spi-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Mark Brown <broonie-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, qiujiang <qiujiang-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
-Cc: Andy Shevchenko <andriy.shevchenko-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, charles.chenxin-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, linuxarm-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Jarkko Nikula <jarkko.nikula-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, linux-spi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-lf0-f54.google.com ([209.85.215.54]:36367 "EHLO
+	mail-lf0-f54.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752939AbcBOM5a (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 15 Feb 2016 07:57:30 -0500
+Received: by mail-lf0-f54.google.com with SMTP id 78so88433972lfy.3
+        for <linux-acpi@vger.kernel.org>; Mon, 15 Feb 2016 04:57:29 -0800 (PST)
+In-Reply-To: <CAJZ5v0i2RCEEZwCN+Ran3Qmasn4yEk1rbfWkZ5QbEkUQWvaJ+g@mail.gmail.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-
-On 2016/2/5 19:09, Mark Brown wrote:
-> On Fri, Feb 05, 2016 at 03:11:20PM +0800, qiujiang wrote:
->
->> This patch added ACPI support for DesignWare SPI mmio driver. It
->> was based the corresponding DT driver and compatible for this two
->> way. This patch has been tested on Hisilicon D02 board. It relies
->> on the GPIO patchset.
-> Intel are heavy users of this driver on their systems which also use
-> ACPI.  Have you discussed this binding with them?  I've copied Andy and
-> Jarkko who've worked on the driver recently.
-
-There is no ACPI code in this driver yet, seems "PRP0001" is used to reuse
-this driver directly.
-
-[...]
->
->> +static const struct acpi_device_id dw_spi_mmio_acpi_match[] = {
->> +		{"HISI0171", 0},
->> +		{ }
->> +};
->> +MODULE_DEVICE_TABLE(acpi, dw_spi_mmio_acpi_match);
-> I really do wish ACPI had some more sensible system for allocating
-> device IDs so the tables were a little more legible. :(
-
-Hmm, I agree. but for now, every OEM can request ACPI or PNP ID with specific
-prefixes, and they can manage it by themselves, that would flexible for OEM verdors
-to develop firmware and driver.
-
-For this driver in particular, if DesignWare provides the ACPI or PNP ID, that would
-be great for all OEMs can reuse it.
-
-Thanks
-Hanjun
+To: "Rafael J. Wysocki" <rafael@kernel.org>
+Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, "linux-serial@vger.kernel.org" <linux-serial@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Russell King <linux@arm.linux.org.uk>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, Leif Lindholm <leif.lindholm@linaro.org>, Graeme Gregory <graeme.gregory@linaro.org>, Al Stone <ahs3@redhat.com>, Christopher Covington <cov@codeaurora.org>, Len Brown <lenb@kernel.org>
 
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-spi" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
+On 02/13/2016 02:07 AM, Rafael J. Wysocki wrote:
+> On Fri, Feb 12, 2016 at 6:43 PM, Aleksey Makarov
+> <aleksey.makarov@linaro.org> wrote:
+>> The function acpi_table_parse() has some problems:
+>> 1 It can be called only from __init code
+>> 2 It does not pass any data to the handler
+>> 3 It just throws out the value returned from the handler
+> 
+> So why are those problems?
+
+1.  We need this function to be non-__init because we need access to
+some tables at unpredictable time--it may be before or after
+the init functions are removed.  For example, SPCR (Serial Port Console
+Redirection) table is needed each time a new console is registered.
+It can be quite early (console_initcall) or when a module is inserted.
+
+2. Having an additional pointer to void is very useful because it allows
+drivers to pass (local) data to the handler.  Without this, we would need 
+to have global data and a mutex as it was done in drivers/acpi/scan.c
+(vars ape, acpi_probe_count, acpi_probe_lock).
+
+3. Passing the value returned from the callback is less important as it 
+could be modelled by having a (return) field in the data passed to 
+the handler.  It is very convenient though.
+
+I use these three properties in my next patch of this series.
+
+>> These issues are addressed in this patch
+> 
+> How are they addressed?
+
+A new function acpi_table_parse2() has been created that is just 
+the old acpi_table_parse() without __init, taking the handler with 
+additional data pointer and respecting the value returned from 
+the handler.  The old acpi_table_parse() was implemented witht this 
+new function.  Dropping __init was made possible by the previous 
+patch where the attribute of the function early_acpi_os_unmap_memory()
+was changed from __init to __ref and by dropping __init from 
+acpi_apic_instance.
+
+I understand why this approach is not good and I am going to fix it.
+
+Thank you
+Aleksey Makarov
