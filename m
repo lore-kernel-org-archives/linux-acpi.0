@@ -1,43 +1,51 @@
-From: One Thousand Gnomes <gnomes-qBU/x9rampVanCEyBjwyrvXRex20P6io@public.gmane.org>
-Subject: Re: [RFC PATCH] SPI/ACPI: DesignWare: Add ACPI support for
- Designware SPI driver
-Date: Mon, 15 Feb 2016 18:09:21 +0000
-Message-ID: <20160215180921.2692941e@lxorguk.ukuu.org.uk>
-References: <1454656280-130658-1-git-send-email-qiujiang@huawei.com>
-	<20160205110900.GA12311@sirena.org.uk>
-	<56C18C07.2030209@huawei.com>
-	<20160215174540.GS18988@sirena.org.uk>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-spi-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20160215174540.GS18988-GFdadSzt00ze9xe1eoZjHA@public.gmane.org>
-Sender: linux-spi-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Mark Brown <broonie-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: Hanjun Guo <guohanjun-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>, qiujiang <qiujiang-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>, Andy Shevchenko <andriy.shevchenko-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, charles.chenxin-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, linuxarm-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Jarkko Nikula <jarkko.nikula-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, linux-spi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+From: Aleksey Makarov <aleksey.makarov@linaro.org>
+Subject: [PATCH v3 1/5] ACPI: change __init to __ref for early_acpi_os_unmap_memory()
+Date: Mon, 15 Feb 2016 21:05:25 +0300
+Message-ID: <1455559532-8305-2-git-send-email-aleksey.makarov@linaro.org>
+References: <1455559532-8305-1-git-send-email-aleksey.makarov@linaro.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1455559532-8305-1-git-send-email-aleksey.makarov@linaro.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: linux-acpi@vger.kernel.org
+Cc: linux-serial@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Aleksey Makarov <aleksey.makarov@linaro.org>, Russell King <linux@arm.linux.org.uk>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, Leif Lindholm <leif.lindholm@linaro.org>, Graeme Gregory <graeme.gregory@linaro.org>, Al Stone <ahs3@redhat.com>, Christopher Covington <cov@codeaurora.org>, Len Brown <lenb@kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On Mon, 15 Feb 2016 17:45:40 +0000
-Mark Brown <broonie-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org> wrote:
+early_acpi_os_unmap_memory() is marked as __init because it calls
+__acpi_unmap_table(), but only when acpi_gbl_permanent_mmap is not set.
 
-> On Mon, Feb 15, 2016 at 04:27:51PM +0800, Hanjun Guo wrote:
-> > On 2016/2/5 19:09, Mark Brown wrote:  
-> 
-> > > Intel are heavy users of this driver on their systems which also use
-> > > ACPI.  Have you discussed this binding with them?  I've copied Andy and
-> > > Jarkko who've worked on the driver recently.  
-> 
-> > There is no ACPI code in this driver yet, seems "PRP0001" is used to reuse
-> > this driver directly.  
-> 
-> No, on Intel systems the devices appear on the PCI bus.
+acpi_gbl_permanent_mmap is set in __init acpi_early_init()
+so it is safe to call early_acpi_os_unmap_memory() from anywhere
 
-They may be ACPI or PCI enumerated - depends upon the system and
-firmware. See drivers/acpi/acpi_lpss.c
+We need this function to be non-__init because we need access to
+some tables at unpredictable time--it may be before or after
+acpi_gbl_permanent_mmap is set.  For example, SPCR (Serial Port Console
+Redirection) table is needed each time a new console is registered.
+It can be quite early (console_initcall) or when a module is inserted.
+When this table accessed before acpi_gbl_permanent_mmap is set,
+the pointer should be unmapped.  This is exactly what this function
+does.
 
+Signed-off-by: Aleksey Makarov <aleksey.makarov@linaro.org>
+---
+ drivers/acpi/osl.c | 6 +++++-
+ 1 file changed, 5 insertions(+), 1 deletion(-)
 
-Alan
---
-To unsubscribe from this list: send the line "unsubscribe linux-spi" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+diff --git a/drivers/acpi/osl.c b/drivers/acpi/osl.c
+index 67da6fb..8a552cd 100644
+--- a/drivers/acpi/osl.c
++++ b/drivers/acpi/osl.c
+@@ -497,7 +497,11 @@ void __ref acpi_os_unmap_memory(void *virt, acpi_size size)
+ }
+ EXPORT_SYMBOL_GPL(acpi_os_unmap_memory);
+ 
+-void __init early_acpi_os_unmap_memory(void __iomem *virt, acpi_size size)
++/*
++ * acpi_gbl_permanent_mmap is set in __init acpi_early_init()
++ * so it is safe to call early_acpi_os_unmap_memory() from anywhere
++ */
++void __ref early_acpi_os_unmap_memory(void __iomem *virt, acpi_size size)
+ {
+ 	if (!acpi_gbl_permanent_mmap)
+ 		__acpi_unmap_table(virt, size);
+-- 
+2.7.1
