@@ -1,68 +1,135 @@
-From: Chen Fan <chen.fan.fnst@cn.fujitsu.com>
-Subject: Re: Problems since commit Recognize that Interrupt Line 255 means
- "not connected"
-Date: Mon, 15 Feb 2016 11:02:48 +0800
-Message-ID: <56C13FD8.9080409@cn.fujitsu.com>
-References: <56B52990.3030103@gmail.com>	<1676062.Zh6hUgWIix@vostro.rjw.lan>	<56B5AA4B.5040705@gmail.com>	<20160206151922.GB22119@localhost>	<56B61492.40507@gmail.com>	<20160209164435.GB20171@localhost> <CAJZ5v0huANzD29-oB9tpQXodx936MtRf+316PYPAuYh1h_Pa+w@mail.gmail.com>
+From: "Huang\, Ying" <ying.huang@intel.com>
+Subject: Re: [PATCH 0/2] ACPI, APEI: Memory leaks
+Date: Mon, 15 Feb 2016 11:21:55 +0800
+Message-ID: <871t8ed5f0.fsf@yhuang-dev.intel.com>
+References: <1454352468-14371-1-git-send-email-johunt@akamai.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cn.fujitsu.com ([59.151.112.132]:56300 "EHLO
-	heian.cn.fujitsu.com" rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1751519AbcBODIL (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sun, 14 Feb 2016 22:08:11 -0500
-In-Reply-To: <CAJZ5v0huANzD29-oB9tpQXodx936MtRf+316PYPAuYh1h_Pa+w@mail.gmail.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1454352468-14371-1-git-send-email-johunt@akamai.com> (Joshua
+	Hunt's message of "Mon, 1 Feb 2016 13:47:46 -0500")
+Sender: linux-kernel-owner@vger.kernel.org
+To: Chen Gong <gong.chen@intel.com>
+Cc: Huang Ying <ying.huang@intel.com>, linux-acpi@vger.kernel.org, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, linux-kernel@vger.kernel.org, Joshua Hunt <johunt@akamai.com>
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rafael@kernel.org>, Bjorn Helgaas <helgaas@kernel.org>
-Cc: Heiner Kallweit <hkallweit1@gmail.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Bjorn Helgaas <bhelgaas@google.com>, Linux PCI <linux-pci@vger.kernel.org>
 
+Hi, Gong,
 
-On 02/10/2016 03:24 AM, Rafael J. Wysocki wrote:
-> On Tue, Feb 9, 2016 at 5:44 PM, Bjorn Helgaas <helgaas@kernel.org> wrote:
->> On Sat, Feb 06, 2016 at 04:43:14PM +0100, Heiner Kallweit wrote:
->>> Am 06.02.2016 um 16:19 schrieb Bjorn Helgaas:
->>>> On Sat, Feb 06, 2016 at 09:09:47AM +0100, Heiner Kallweit wrote:
->>>>> Am 06.02.2016 um 00:37 schrieb Rafael J. Wysocki:
->>>>>> On Saturday, February 06, 2016 12:00:32 AM Heiner Kallweit wrote:
->>>>>>> Since commit a44c386a361e "x86/PCI/ACPI: Recognize that Interrupt Line 255
->>>>>>> means "not connected"" I get several "PCI INT not connected" warnings on
->>>>>>> a Zotac CI321 and EHCI failes to load:
->>>>>> That doesn't follow clearly from your report, but I'm assuming that it works
->>>>>> correctly without that commit, right?
->>>>>>
->>>>> Right, w/o this commit it looks like this:
->>>>>
->>>>> dmesg
->>>>> ehci-pci 0000:00:1d.0: irq 23, io mem 0xf7d1b000
->>>>>
->>>>> /proc/interrupts
->>>>> IO-APIC  23-fasteoi   ehci_hcd:usb3
->>>> Thanks a lot for your report!  This is a bit of a minefield, and I was
->>>> worried that we'd trip over something with a44c386a361e.
->>>>
->>>> Oops, I think I see a problem with a44c386a361e.  We're checking for
->>>> Interrupt Line == 255 even before we try to look it up in the _PRT.  I
->>>> think we should only check Interrupt Line *after* everything else has
->>>> failed.  Can you try the patch below instead of a44c386a361e?
->>>>
->>> With the attached patch everything is fine. No warnings and EHCI loads properly.
->> Great, thanks a lot for testing this!
->>
->> Chen, will you update and repost your patch?  I know Rafael already
->> had it on a branch, but I think he dropped it, so we need to get the
->> update merged somehow.
-> I'd prefer a new updated patch if that's possible.
-patch is coming soon, thank all of your help.
+Joshua Hunt <johunt@akamai.com> writes:
 
-Chen
+> While investigating a possible memory leak using kmemleak I came across the
+> following five leaks coming from APEI and ERST:
 >
-> Thanks,
-> Rafael
+> unreferenced object 0xffff880402b6ee80 (size 32):
+>   comm "swapper/0", pid 1, jiffies 4294669373 (age 318.183s)
+>   hex dump (first 32 bytes):
+>     58 fe ab fa 03 88 ff ff 58 fe ab fa 03 88 ff ff  X.......X.......
+>     18 50 ea dc 00 00 00 00 3f 50 ea dc 00 00 00 00  .P......?P......
+>   backtrace:
+>     [<ffffffff82195c33>] create_object+0x103/0x2c0
+>     [<ffffffff826868b2>] kmemleak_alloc+0x82/0xc0
+>     [<ffffffff8218248b>] kmem_cache_alloc_trace+0x17b/0x210
+>     [<ffffffff8241a6fa>] apei_res_add+0x19a/0x200
+>     [<ffffffff8241a7e2>] collect_res_callback+0x82/0xa0
+>     [<ffffffff8241a225>] apei_exec_for_each_entry+0x85/0xb0
+>     [<ffffffff8241a26a>] apei_exec_collect_resources+0x1a/0x20
+>     [<ffffffff82afe532>] erst_init+0x3d6/0x3e5
+>     [<ffffffff820004bd>] do_one_initcall+0x19d/0x1d0
+>     [<ffffffff82ac1152>] kernel_init_freeable+0x13d/0x1d6
+>     [<ffffffff82684a8e>] kernel_init+0xe/0xf0
+>     [<ffffffff826909d2>] ret_from_fork+0x42/0x70
+>     [<ffffffffffffffff>] 0xffffffffffffffff
+> unreferenced object 0xffff880402b6ee40 (size 32):
+>   comm "swapper/0", pid 1, jiffies 4294670231 (age 317.326s)
+>   hex dump (first 32 bytes):
+>     68 fe ab fa 03 88 ff ff 68 fe ab fa 03 88 ff ff  h.......h.......
+>     b2 00 00 00 00 00 00 00 b3 00 00 00 00 00 00 00  ................
+>   backtrace:
+>     [<ffffffff82195c33>] create_object+0x103/0x2c0
+>     [<ffffffff826868b2>] kmemleak_alloc+0x82/0xc0
+>     [<ffffffff8218248b>] kmem_cache_alloc_trace+0x17b/0x210
+>     [<ffffffff8241a6fa>] apei_res_add+0x19a/0x200
+>     [<ffffffff8241a7fc>] collect_res_callback+0x9c/0xa0
+>     [<ffffffff8241a225>] apei_exec_for_each_entry+0x85/0xb0
+>     [<ffffffff8241a26a>] apei_exec_collect_resources+0x1a/0x20
+>     [<ffffffff82afe532>] erst_init+0x3d6/0x3e5
+>     [<ffffffff820004bd>] do_one_initcall+0x19d/0x1d0
+>     [<ffffffff82ac1152>] kernel_init_freeable+0x13d/0x1d6
+>     [<ffffffff82684a8e>] kernel_init+0xe/0xf0
+>     [<ffffffff826909d2>] ret_from_fork+0x42/0x70
+>     [<ffffffffffffffff>] 0xffffffffffffffff
+> unreferenced object 0xffff880402b6ee20 (size 32):
+>   comm "swapper/0", pid 1, jiffies 4294672240 (age 315.317s)
+>   hex dump (first 32 bytes):
+>     88 fd ab fa 03 88 ff ff 00 ee b6 02 04 88 ff ff  ................
+>     00 d0 15 cd 00 00 00 00 00 40 16 cd 00 00 00 00  .........@......
+>   backtrace:
+>     [<ffffffff82195c33>] create_object+0x103/0x2c0
+>     [<ffffffff826868b2>] kmemleak_alloc+0x82/0xc0
+>     [<ffffffff8218248b>] kmem_cache_alloc_trace+0x17b/0x210
+>     [<ffffffff8241a6fa>] apei_res_add+0x19a/0x200
+>     [<ffffffff8241a81a>] apei_get_res_callback+0x1a/0x20
+>     [<ffffffff823d0f8b>] acpi_nvs_for_each_region+0x2b/0x50
+>     [<ffffffff8241ae95>] apei_resources_request+0x95/0x380
+>     [<ffffffff82afe23e>] erst_init+0xe2/0x3e5
+>     [<ffffffff820004bd>] do_one_initcall+0x19d/0x1d0
+>     [<ffffffff82ac1152>] kernel_init_freeable+0x13d/0x1d6
+>     [<ffffffff82684a8e>] kernel_init+0xe/0xf0
+>     [<ffffffff826909d2>] ret_from_fork+0x42/0x70
+>     [<ffffffffffffffff>] 0xffffffffffffffff
+> unreferenced object 0xffff880402b6ee00 (size 32):
+>   comm "swapper/0", pid 1, jiffies 4294672400 (age 315.157s)
+>   hex dump (first 32 bytes):
+>     20 ee b6 02 04 88 ff ff 88 fd ab fa 03 88 ff ff   ...............
+>     00 80 f3 dc 00 00 00 00 00 60 a9 dd 00 00 00 00  .........`......
+>   backtrace:
+>     [<ffffffff82195c33>] create_object+0x103/0x2c0
+>     [<ffffffff826868b2>] kmemleak_alloc+0x82/0xc0
+>     [<ffffffff8218248b>] kmem_cache_alloc_trace+0x17b/0x210
+>     [<ffffffff8241a6fa>] apei_res_add+0x19a/0x200
+>     [<ffffffff8241a81a>] apei_get_res_callback+0x1a/0x20
+>     [<ffffffff823d0f8b>] acpi_nvs_for_each_region+0x2b/0x50
+>     [<ffffffff8241ae95>] apei_resources_request+0x95/0x380
+>     [<ffffffff82afe23e>] erst_init+0xe2/0x3e5
+>     [<ffffffff820004bd>] do_one_initcall+0x19d/0x1d0
+>     [<ffffffff82ac1152>] kernel_init_freeable+0x13d/0x1d6
+>     [<ffffffff82684a8e>] kernel_init+0xe/0xf0
+>     [<ffffffff826909d2>] ret_from_fork+0x42/0x70
+>     [<ffffffffffffffff>] 0xffffffffffffffff
+> unreferenced object 0xffff880402b6ede0 (size 32):
+>   comm "swapper/0", pid 1, jiffies 4294672863 (age 314.698s)
+>   hex dump (first 32 bytes):
+>     a8 fd ab fa 03 88 ff ff a8 fd ab fa 03 88 ff ff  ................
+>     00 00 00 f8 00 00 00 00 00 00 00 fc 00 00 00 00  ................
+>   backtrace:
+>     [<ffffffff82195c33>] create_object+0x103/0x2c0
+>     [<ffffffff826868b2>] kmemleak_alloc+0x82/0xc0
+>     [<ffffffff8218248b>] kmem_cache_alloc_trace+0x17b/0x210
+>     [<ffffffff8241a6fa>] apei_res_add+0x19a/0x200
+>     [<ffffffff8241a81a>] apei_get_res_callback+0x1a/0x20
+>     [<ffffffff82582d61>] pci_mmcfg_for_each_region+0x51/0x60
+>     [<ffffffff8241b14a>] apei_resources_request+0x34a/0x380
+>     [<ffffffff82afe23e>] erst_init+0xe2/0x3e5
+>     [<ffffffff820004bd>] do_one_initcall+0x19d/0x1d0
+>     [<ffffffff82ac1152>] kernel_init_freeable+0x13d/0x1d6
+>     [<ffffffff82684a8e>] kernel_init+0xe/0xf0
+>     [<ffffffff826909d2>] ret_from_fork+0x42/0x70
+>     [<ffffffffffffffff>] 0xffffffffffffffff
 >
+> The issue has been reported a handful of times upstream. Here is one of the previous
+> reports: https://lkml.org/lkml/2013/8/11/149
 >
+> This series resolves the reported leaks and kmemleak is clean with these patches applied.
 >
+> Joshua Hunt (2):
+>   ACPI, APEI: Fix leaked resources
+>   ACPI, APEI, ERST: Fixed leaked resources in erst_init
+>
+>  drivers/acpi/apei/apei-base.c |    5 +++++
+>  drivers/acpi/apei/erst.c      |    2 ++
+>  2 files changed, 7 insertions(+)
 
+Do you have time to take a look at this patchset?
 
-
+Best Regards,
+Huang, Ying
