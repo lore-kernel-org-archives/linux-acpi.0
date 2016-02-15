@@ -1,123 +1,92 @@
-From: Sinan Kaya <okaya@codeaurora.org>
-Subject: [PATCH] acpi, pci, irq: account for early penalty assignment
-Date: Mon, 15 Feb 2016 11:41:47 -0500
-Message-ID: <1455554508-18174-1-git-send-email-okaya@codeaurora.org>
-Return-path: <linux-pci-owner@vger.kernel.org>
-Sender: linux-pci-owner@vger.kernel.org
-To: linux-acpi@vger.kernel.org, timur@codeaurora.org, cov@codeaurora.org
-Cc: linux-pci@vger.kernel.org, ravikanth.nalla@hpe.com, lenb@kernel.org, harish.k@hpe.com, ashwin.reghunandanan@hpe.com, bhelgaas@google.com, rjw@rjwysocki.net, Sinan Kaya <okaya@codeaurora.org>, linux-kernel@vger.kernel.org
+From: Mark Brown <broonie@kernel.org>
+Subject: Re: [RFC PATCH] SPI/ACPI: DesignWare: Add ACPI support for
+ Designware SPI driver
+Date: Mon, 15 Feb 2016 17:44:38 +0000
+Message-ID: <20160215174438.GR18988@sirena.org.uk>
+References: <1454656280-130658-1-git-send-email-qiujiang@huawei.com>
+ <20160205110900.GA12311@sirena.org.uk>
+ <56C04962.7080206@huawei.com>
+Mime-Version: 1.0
+Content-Type: multipart/signed; micalg=pgp-sha256;
+	protocol="application/pgp-signature"; boundary="phbq2bkSb+hZnunM"
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mezzanine.sirena.org.uk ([106.187.55.193]:52622 "EHLO
+	mezzanine.sirena.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751374AbcBORos (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 15 Feb 2016 12:44:48 -0500
+Content-Disposition: inline
+In-Reply-To: <56C04962.7080206@huawei.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Jiang Qiu <qiujiang@huawei.com>
+Cc: linux-spi@vger.kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linuxarm@huawei.com, haifeng.wei@huawei.com, charles.chenxin@huawei.com, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Jarkko Nikula <jarkko.nikula@linux.intel.com>
 
-A crash has been observed when assigning penalty on x86 systems.
 
-It looks like this problem happens on x86 platforms with IOAPIC and an SCI
-interrupt override in the ACPI table with interrupt number greater than
-16. (22 in this example)
+--phbq2bkSb+hZnunM
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-The bug has been introduced by "ACPI, PCI, irq: remove interrupt count
-restriction" commit. The code was using kmalloc to resize the interrupt
-list. In this use case, the set penalty call is coming from early phase
-and the heap is not initialized yet.
+On Sun, Feb 14, 2016 at 05:31:14PM +0800, Jiang Qiu wrote:
+> =E5=9C=A8 2016/2/5 19:09, Mark Brown =E5=86=99=E9=81=93:
+> >On Fri, Feb 05, 2016 at 03:11:20PM +0800, qiujiang wrote:
 
-BUG: unable to handle kernel NULL pointer dereference at 0000000000000018
-IP: [<ffffffff811e8b9d>] kmem_cache_alloc_trace+0xad/0x1c0
-PGD 0
-Oops: 0000 [#1] SMP
-Modules linked in:
-CPU: 0 PID: 0 Comm: swapper Not tainted 4.5.0-rc2Feb-3_RK #1
-Hardware name: HP Superdome2 16s, BIOS Bundle: 007.006.000 SFW: 033.162.000
-10/30/2015
-[<ffffffff813bc190>] acpi_irq_set_penalty+0x60/0x8e
-[<ffffffff813bc1df>] acpi_irq_add_penalty+0x21/0x26
-[<ffffffff813bc76d>] acpi_penalize_sci_irq+0x25/0x28
-[<ffffffff81b8260d>] acpi_sci_ioapic_setup+0x68/0x78
-[<ffffffff81b830fc>] acpi_boot_init+0x2cc/0x533
-[<ffffffff810677c8>] ? set_pte_vaddr_pud+0x48/0x50
-[<ffffffff81b828cf>] ? acpi_parse_x2apic+0x77/0x77
-[<ffffffff81b82858>] ? dmi_ignore_irq0_timer_override+0x30/0x30
-[<ffffffff81b77c1e>] setup_arch+0xc24/0xce9
-[<ffffffff81b6e120>] ? early_idt_handler_array+0x120/0x120
-[<ffffffff81b6ed94>] start_kernel+0xfc/0x506
-[<ffffffff81b6e120>] ? early_idt_handler_array+0x120/0x120
-[<ffffffff81b6e120>] ? early_idt_handler_array+0x120/0x120
-[<ffffffff81b6e5ee>] x86_64_start_reservations+0x2a/0x2c
-[<ffffffff81b6e73c>] x86_64_start_kernel+0x14c/0x16f
+Please fix your mail client to word wrap within paragraphs at something
+substantially less than 80 columns.  Doing this makes your messages much
+easier to read and reply to.  Your mail has lines wrapped alternately at
+normal length and half length which is difficult to read, I've reflowed
+this time.
 
-Besides from the use case above, there is one more situation where
-set_penalty is being called from the init context like. There is support
-for setting the penalty through kernel command line.
+> >>+	char propname[32];
 
-Adding support to be called from early context for limited number of
-interrupts.
+> >That's a magic number, where did it come from and why is it a magic
+> >nummber?
 
-Signed-off-by: Sinan Kaya <okaya@codeaurora.org>
----
- drivers/acpi/pci_link.c | 32 ++++++++++++++++++++++++++++----
- 1 file changed, 28 insertions(+), 4 deletions(-)
+> I'm sorry for here without any comments. This number define is come from
+> gpiolib.c. It means the max size of gpio property name. The reference code
+> located in line 1815 of gpiolib.c.
 
-diff --git a/drivers/acpi/pci_link.c b/drivers/acpi/pci_link.c
-index fa28635..24b69e1 100644
---- a/drivers/acpi/pci_link.c
-+++ b/drivers/acpi/pci_link.c
-@@ -47,6 +47,7 @@ ACPI_MODULE_NAME("pci_link");
- #define ACPI_PCI_LINK_FILE_INFO		"info"
- #define ACPI_PCI_LINK_FILE_STATUS	"state"
- #define ACPI_PCI_LINK_MAX_POSSIBLE	16
-+#define ACPI_PCI_LINK_MAX_EARLY_IRQINFO 1024
- 
- static int acpi_pci_link_add(struct acpi_device *device,
- 			     const struct acpi_device_id *not_used);
-@@ -470,9 +471,13 @@ struct irq_penalty_info {
- 	int irq;
- 	int penalty;
- 	struct list_head node;
-+	bool early;
- };
- 
- static LIST_HEAD(acpi_irq_penalty_list);
-+static int early_init_done;
-+static struct irq_penalty_info early_irq_infos[ACPI_PCI_LINK_MAX_EARLY_IRQINFO];
-+static int early_irq_info_counter;
- 
- static int acpi_irq_get_penalty(int irq)
- {
-@@ -507,10 +512,20 @@ static int acpi_irq_set_penalty(int irq, int new_penalty)
- 		}
- 	}
- 
--	/* nope, let's allocate a slot for this IRQ */
--	irq_info = kzalloc(sizeof(*irq_info), GFP_KERNEL);
--	if (!irq_info)
--		return -ENOMEM;
-+	if (!early_init_done) {
-+		if (early_irq_info_counter < ARRAY_SIZE(early_irq_infos)) {
-+			irq_info = &early_irq_infos[early_irq_info_counter];
-+			irq_info->early = true;
-+			early_irq_info_counter++;
-+		} else {
-+			return -ENOMEM;
-+		}
-+	} else {
-+		/* nope, let's allocate a slot for this IRQ */
-+		irq_info = kzalloc(sizeof(*irq_info), GFP_KERNEL);
-+		if (!irq_info)
-+			return -ENOMEM;
-+	}
- 
- 	irq_info->irq = irq;
- 	irq_info->penalty = new_penalty;
-@@ -968,3 +983,12 @@ void __init acpi_pci_link_init(void)
- 	register_syscore_ops(&irqrouter_syscore_ops);
- 	acpi_scan_add_handler(&pci_link_handler);
- }
-+
-+
-+static int acpi_pci_link_subsys_init(void)
-+{
-+	early_init_done = true;
-+	return 0;
-+}
-+
-+subsys_initcall(acpi_pci_link_subsys_init)
--- 
-1.8.2.1
+That really isn't helping here.  The problem is that you've got a random
+magic number thrown in here with no documentation.
+
+> >I'm not seeing anywhere where we store the GPIO in this loop.  It is
+> >therefore unclear to me how the chip select is going to work?
+
+> In DT binding, of_get_named_gpio and devm_gpio_request were used to
+> parse gpio pins defined in DTs and then request these pins. Similarly,
+> for ACPI, devm_gpiod_get can do that two operation in a single
+> function. It is a unified interface to ACPI and DT binding.
+
+> If the gpiod is valid, the corresponding gpio pins has been requested.
+> We do not need to save this gpiod any more.
+
+No, that makes no sense at all.  If we're requesting a GPIO to use as
+chip select we can't just then ignore the GPIO, we need to control it at
+some point and...
+
+> which gpio pin was used is defined in spi_device, named cs_gpio, the
+> configuration to the gpio pins will be done in the setup callback
+> routine of each device. What the spi master should do is just request
+> these pins to the gpio subsystem.
+
+=2E..this would be a complete failure of abstraction - you appear to be
+suggesting that the client devices should also separately request the
+GPIOs and set them up.  That's at best going to be redundant and is
+likely to introduce bugs.
+
+--phbq2bkSb+hZnunM
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2
+
+iQEcBAEBCAAGBQJWwg6FAAoJECTWi3JdVIfQClAH/jcwz+KMQc5oMHgGB6kfiTT6
+JDlWD7jzbG3FCzOlm8KBc1iuoLkSkL34D0PqO8hVOT1UcQFXkkwz9ahKJy4MN4H4
+YV/mcZgoINXfh9VwjAvLJ9Oqywb3KoknF1TA/CSvtVm9a/MkJmkwQiUWxWqAP83p
+1JVWwJCNQSe/jE5mic59Nw0tUChcJ1cRBU3blrRRxdE85RrMm+V5rb2tUVcz1dsW
+jU0FgB9nz+jkqCFUEO971ApC+y42wIySR3fR/muPK0qOZUZirS52IBhtsS0j7ODd
+fprNGs/W/aHM/+DUBslXTFZ++sUv0tWyzFkSBcNp6Nx8MNQ8n9oEBkvzG7Cfcog=
+=LkdD
+-----END PGP SIGNATURE-----
+
+--phbq2bkSb+hZnunM--
