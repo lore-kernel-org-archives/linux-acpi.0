@@ -1,281 +1,123 @@
-From: Alexey Klimov <alexey.klimov@arm.com>
-Subject: Re: [PATCH V3 1/4] ACPI / CPPC: Optimize PCC Read Write operations
-Date: Mon, 15 Feb 2016 16:37:20 +0000
-Message-ID: <20160215163719.GA22453@arm.com>
-References: <1455134762-31400-1-git-send-email-pprakash@codeaurora.org>
- <1455134762-31400-2-git-send-email-pprakash@codeaurora.org>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from foss.arm.com ([217.140.101.70]:46397 "EHLO foss.arm.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751377AbcBOQh1 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 15 Feb 2016 11:37:27 -0500
-Content-Disposition: inline
-In-Reply-To: <1455134762-31400-2-git-send-email-pprakash@codeaurora.org>
-Sender: linux-acpi-owner@vger.kernel.org
+From: Sinan Kaya <okaya@codeaurora.org>
+Subject: [PATCH] acpi, pci, irq: account for early penalty assignment
+Date: Mon, 15 Feb 2016 11:41:47 -0500
+Message-ID: <1455554508-18174-1-git-send-email-okaya@codeaurora.org>
+Return-path: <linux-pci-owner@vger.kernel.org>
+Sender: linux-pci-owner@vger.kernel.org
+To: linux-acpi@vger.kernel.org, timur@codeaurora.org, cov@codeaurora.org
+Cc: linux-pci@vger.kernel.org, ravikanth.nalla@hpe.com, lenb@kernel.org, harish.k@hpe.com, ashwin.reghunandanan@hpe.com, bhelgaas@google.com, rjw@rjwysocki.net, Sinan Kaya <okaya@codeaurora.org>, linux-kernel@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Prashanth Prakash <pprakash@codeaurora.org>
-Cc: rjw@rjwysocki.net, linux-acpi@vger.kernel.org, linaro-acpi@lists.linaro.org, ashwin.chaugule@linaro.org, timur@codeaurora.org
 
-Hi Prashanth and Ashwin,
+A crash has been observed when assigning penalty on x86 systems.
 
-On Wed, Feb 10, 2016 at 01:05:59PM -0700, Prashanth Prakash wrote:
-> From: Ashwin Chaugule <ashwin.chaugule@linaro.org>
-> 
-> Previously the send_pcc_cmd() code checked if the
-> PCC operation had completed before returning from
-> the function. This check was performed regardless
-> of the PCC op type (i.e. Read/Write). Knowing
-> the type of cmd can be used to optimize the check
-> and avoid needless waiting. e.g. with Write ops,
-> the actual Writing is done before calling send_pcc_cmd().
-> And the subsequent Writes will check if the channel is
-> free at the entry of send_pcc_cmd() anyway.
-> 
-> However, for Read cmds, we need to wait for the cmd
-> completion bit to be flipped, since the actual Read
-> ops follow after returning from the send_pcc_cmd(). So,
-> only do the looping check at the end for Read ops.
-> 
-> Also, instead of using udelay() calls, use ktime as a
-> means to check for deadlines. The current deadline
-> in which the Remote should flip the cmd completion bit
-> is defined as N * Nominal latency. Where N is arbitrary
-> and large enough to work on slow emulators and Nominal
-> latency comes from the ACPI table (PCCT). This helps
-> in working around the CONFIG_HZ effects on udelay()
-> and also avoids needing different ACPI tables for Silicon
-> and Emulation platforms.
-> 
-> Signed-off-by: Ashwin Chaugule <ashwin.chaugule@linaro.org>
-> Signed-off-by: Prashanth Prakash <pprakash@codeaurora.org>
-> ---
->  drivers/acpi/cppc_acpi.c | 99 ++++++++++++++++++++++++++++++++++--------------
->  1 file changed, 71 insertions(+), 28 deletions(-)
-> 
-> diff --git a/drivers/acpi/cppc_acpi.c b/drivers/acpi/cppc_acpi.c
-> index 6730f96..6ae327e 100644
-> --- a/drivers/acpi/cppc_acpi.c
-> +++ b/drivers/acpi/cppc_acpi.c
-> @@ -39,6 +39,7 @@
->  
->  #include <linux/cpufreq.h>
->  #include <linux/delay.h>
-> +#include <linux/ktime.h>
->  
->  #include <acpi/cppc_acpi.h>
->  /*
-> @@ -63,25 +64,53 @@ static struct mbox_chan *pcc_channel;
->  static void __iomem *pcc_comm_addr;
->  static u64 comm_base_addr;
->  static int pcc_subspace_idx = -1;
-> -static u16 pcc_cmd_delay;
->  static bool pcc_channel_acquired;
-> +static ktime_t deadline;
->  
->  /*
->   * Arbitrary Retries in case the remote processor is slow to respond
-> - * to PCC commands.
-> + * to PCC commands. Keeping it high enough to cover emulators where
-> + * the processors run painfully slow.
->   */
->  #define NUM_RETRIES 500
->  
-> +static int check_pcc_chan(void)
-> +{
-> +	int ret = -EIO;
-> +	struct acpi_pcct_shared_memory __iomem *generic_comm_base = pcc_comm_addr;
-> +	ktime_t next_deadline = ktime_add(ktime_get(), deadline);
-> +
-> +	/* Retry in case the remote processor was too slow to catch up. */
-> +	while (!ktime_after(ktime_get(), next_deadline)) {
-> +		if (readw_relaxed(&generic_comm_base->status) & PCC_CMD_COMPLETE) {
+It looks like this problem happens on x86 platforms with IOAPIC and an SCI
+interrupt override in the ACPI table with interrupt number greater than
+16. (22 in this example)
 
-What do you think about polling for error too?
-Firmware might set error bit and kernel will spin here for full cycle (maybe even
-more than one time).
+The bug has been introduced by "ACPI, PCI, irq: remove interrupt count
+restriction" commit. The code was using kmalloc to resize the interrupt
+list. In this use case, the set penalty call is coming from early phase
+and the heap is not initialized yet.
 
+BUG: unable to handle kernel NULL pointer dereference at 0000000000000018
+IP: [<ffffffff811e8b9d>] kmem_cache_alloc_trace+0xad/0x1c0
+PGD 0
+Oops: 0000 [#1] SMP
+Modules linked in:
+CPU: 0 PID: 0 Comm: swapper Not tainted 4.5.0-rc2Feb-3_RK #1
+Hardware name: HP Superdome2 16s, BIOS Bundle: 007.006.000 SFW: 033.162.000
+10/30/2015
+[<ffffffff813bc190>] acpi_irq_set_penalty+0x60/0x8e
+[<ffffffff813bc1df>] acpi_irq_add_penalty+0x21/0x26
+[<ffffffff813bc76d>] acpi_penalize_sci_irq+0x25/0x28
+[<ffffffff81b8260d>] acpi_sci_ioapic_setup+0x68/0x78
+[<ffffffff81b830fc>] acpi_boot_init+0x2cc/0x533
+[<ffffffff810677c8>] ? set_pte_vaddr_pud+0x48/0x50
+[<ffffffff81b828cf>] ? acpi_parse_x2apic+0x77/0x77
+[<ffffffff81b82858>] ? dmi_ignore_irq0_timer_override+0x30/0x30
+[<ffffffff81b77c1e>] setup_arch+0xc24/0xce9
+[<ffffffff81b6e120>] ? early_idt_handler_array+0x120/0x120
+[<ffffffff81b6ed94>] start_kernel+0xfc/0x506
+[<ffffffff81b6e120>] ? early_idt_handler_array+0x120/0x120
+[<ffffffff81b6e120>] ? early_idt_handler_array+0x120/0x120
+[<ffffffff81b6e5ee>] x86_64_start_reservations+0x2a/0x2c
+[<ffffffff81b6e73c>] x86_64_start_kernel+0x14c/0x16f
 
-> +			ret = 0;
-> +			break;
-> +		}
-> +		/*
-> +		 * Reducing the bus traffic in case this loop takes longer than
-> +		 * a few retries.
-> +		 */
-> +		udelay(3);
-> +	}
-> +
-> +	return ret;
-> +}
-> +
->  static int send_pcc_cmd(u16 cmd)
->  {
-> -	int retries, result = -EIO;
-> -	struct acpi_pcct_hw_reduced *pcct_ss = pcc_channel->con_priv;
-> +	int ret = -EIO;
->  	struct acpi_pcct_shared_memory *generic_comm_base =
->  		(struct acpi_pcct_shared_memory *) pcc_comm_addr;
-> -	u32 cmd_latency = pcct_ss->latency;
->  
-> -	/* Min time OS should wait before sending next command. */
-> -	udelay(pcc_cmd_delay);
+Besides from the use case above, there is one more situation where
+set_penalty is being called from the init context like. There is support
+for setting the penalty through kernel command line.
 
-Ouch.
-This delay is Minimum Request Turnaround Time and specification is strict about this:
-The minimum amount of time that OSPM must wait after the
-completion of a command before issuing the next command, in microseconds.
+Adding support to be called from early context for limited number of
+interrupts.
 
-And you're going to completely remove delay that described as "must wait" regardless if it's
-write or read command. In my view completion of a command is when CMD complete bit is set to 1.
-This field in table is not optional.
+Signed-off-by: Sinan Kaya <okaya@codeaurora.org>
+---
+ drivers/acpi/pci_link.c | 32 ++++++++++++++++++++++++++++----
+ 1 file changed, 28 insertions(+), 4 deletions(-)
 
-Even worse, what if platform report latency = 0 (or very close to zero) and turnaround time as very large number?
-
-Well, my other comments here are minor things but this one looks like main issue of this patch.
-
-
-
-> +	/*
-> +	 * For CMD_WRITE we know for a fact the caller should have checked
-> +	 * the channel before writing to PCC space
-> +	 */
-> +	if (cmd == CMD_READ) {
-> +		ret = check_pcc_chan();
-> +		if (ret)
-> +			return ret;
-> +	}
->  
->  	/* Write to the shared comm region. */
->  	writew(cmd, &generic_comm_base->command);
-> @@ -90,26 +119,25 @@ static int send_pcc_cmd(u16 cmd)
->  	writew(0, &generic_comm_base->status);
->  
->  	/* Ring doorbell */
-> -	result = mbox_send_message(pcc_channel, &cmd);
-> -	if (result < 0) {
-> +	ret = mbox_send_message(pcc_channel, &cmd);
-> +	if (ret < 0) {
->  		pr_err("Err sending PCC mbox message. cmd:%d, ret:%d\n",
-> -				cmd, result);
-> -		return result;
-> +				cmd, ret);
-> +		return ret;
->  	}
->  
-> -	/* Wait for a nominal time to let platform process command. */
-> -	udelay(cmd_latency);
-> -
-> -	/* Retry in case the remote processor was too slow to catch up. */
-> -	for (retries = NUM_RETRIES; retries > 0; retries--) {
-> -		if (readw_relaxed(&generic_comm_base->status) & PCC_CMD_COMPLETE) {
-> -			result = 0;
-> -			break;
-> -		}
-> -	}
-> +	/*
-> +	 * For READs we need to ensure the cmd completed to ensure
-> +	 * the ensuing read()s can proceed. For WRITEs we dont care
-> +	 * because the actual write()s are done before coming here
-> +	 * and the next READ or WRITE will check if the channel
-> +	 * is busy/free at the entry of this call.
-> +	 */
-> +	if (cmd == CMD_READ)
-> +		ret = check_pcc_chan();
->  
-> -	mbox_client_txdone(pcc_channel, result);
-> -	return result;
-> +	mbox_client_txdone(pcc_channel, ret);
-> +	return ret;
->  }
->  
->  static void cppc_chan_tx_done(struct mbox_client *cl, void *msg, int ret)
-> @@ -306,6 +334,7 @@ static int register_pcc_channel(int pcc_subspace_idx)
->  {
->  	struct acpi_pcct_hw_reduced *cppc_ss;
->  	unsigned int len;
-> +	u64 usecs_lat;
->  
->  	if (pcc_subspace_idx >= 0) {
->  		pcc_channel = pcc_mbox_request_channel(&cppc_mbox_cl,
-> @@ -335,7 +364,14 @@ static int register_pcc_channel(int pcc_subspace_idx)
->  		 */
->  		comm_base_addr = cppc_ss->base_address;
->  		len = cppc_ss->length;
-> -		pcc_cmd_delay = cppc_ss->min_turnaround_time;
-> +
-> +		/*
-> +		 * cppc_ss->latency is just a Nominal value. In reality
-> +		 * the remote processor could be much slower to reply.
-> +		 * So add an arbitrary amount of wait on top of Nominal.
-
-Specification requires platform to report accurate values.
-If remote party requires arbitrary amount on top that means someone screwed up
-values in firmware.
-That's not only slowness of remote processor but broken/inaccurate values given by firmware.
-I think if you want this comment you need to blame firmware too.
-
-
-> +		 */
-> +		usecs_lat = NUM_RETRIES * cppc_ss->latency;
-> +		deadline = ns_to_ktime(usecs_lat * NSEC_PER_USEC);
->  
->  		pcc_comm_addr = acpi_os_ioremap(comm_base_addr, len);
->  		if (!pcc_comm_addr) {
-> @@ -604,7 +640,7 @@ int cppc_get_perf_caps(int cpunum, struct cppc_perf_caps *perf_caps)
->  			(ref_perf->cpc_entry.reg.space_id == ACPI_ADR_SPACE_PLATFORM_COMM) ||
->  			(nom_perf->cpc_entry.reg.space_id == ACPI_ADR_SPACE_PLATFORM_COMM)) {
->  		/* Ring doorbell once to update PCC subspace */
-> -		if (send_pcc_cmd(CMD_READ)) {
-> +		if (send_pcc_cmd(CMD_READ) < 0) {
-
-Somewhere in previous email I asked you to point me to specs with words about init values before
-issuing first PCC command. Thanks for that.
-However I still think that comment should be added about init value of status register.
-Please add it unless you have something to come up with. I think such comment will be useful.
-
-
->  			ret = -EIO;
->  			goto out_err;
->  		}
-> @@ -662,7 +698,7 @@ int cppc_get_perf_ctrs(int cpunum, struct cppc_perf_fb_ctrs *perf_fb_ctrs)
->  	if ((delivered_reg->cpc_entry.reg.space_id == ACPI_ADR_SPACE_PLATFORM_COMM) ||
->  			(reference_reg->cpc_entry.reg.space_id == ACPI_ADR_SPACE_PLATFORM_COMM)) {
->  		/* Ring doorbell once to update PCC subspace */
-> -		if (send_pcc_cmd(CMD_READ)) {
-> +		if (send_pcc_cmd(CMD_READ) < 0) {
->  			ret = -EIO;
->  			goto out_err;
->  		}
-> @@ -713,6 +749,13 @@ int cppc_set_perf(int cpu, struct cppc_perf_ctrls *perf_ctrls)
->  
->  	spin_lock(&pcc_lock);
->  
-> +	/* If this is PCC reg, check if channel is free before writing */
-> +	if (desired_reg->cpc_entry.reg.space_id == ACPI_ADR_SPACE_PLATFORM_COMM) {
-> +		ret = check_pcc_chan();
-> +		if (ret)
-> +			goto busy_channel;
-> +	}
-> +
->  	/*
->  	 * Skip writing MIN/MAX until Linux knows how to come up with
->  	 * useful values.
-> @@ -722,10 +765,10 @@ int cppc_set_perf(int cpu, struct cppc_perf_ctrls *perf_ctrls)
->  	/* Is this a PCC reg ?*/
->  	if (desired_reg->cpc_entry.reg.space_id == ACPI_ADR_SPACE_PLATFORM_COMM) {
->  		/* Ring doorbell so Remote can get our perf request. */
-> -		if (send_pcc_cmd(CMD_WRITE))
-> +		if (send_pcc_cmd(CMD_WRITE) < 0)
->  			ret = -EIO;
->  	}
-> -
-> +busy_channel:
->  	spin_unlock(&pcc_lock);
->  
->  	return ret;
-
-Best regards,
-Alexey.
+diff --git a/drivers/acpi/pci_link.c b/drivers/acpi/pci_link.c
+index fa28635..24b69e1 100644
+--- a/drivers/acpi/pci_link.c
++++ b/drivers/acpi/pci_link.c
+@@ -47,6 +47,7 @@ ACPI_MODULE_NAME("pci_link");
+ #define ACPI_PCI_LINK_FILE_INFO		"info"
+ #define ACPI_PCI_LINK_FILE_STATUS	"state"
+ #define ACPI_PCI_LINK_MAX_POSSIBLE	16
++#define ACPI_PCI_LINK_MAX_EARLY_IRQINFO 1024
  
+ static int acpi_pci_link_add(struct acpi_device *device,
+ 			     const struct acpi_device_id *not_used);
+@@ -470,9 +471,13 @@ struct irq_penalty_info {
+ 	int irq;
+ 	int penalty;
+ 	struct list_head node;
++	bool early;
+ };
+ 
+ static LIST_HEAD(acpi_irq_penalty_list);
++static int early_init_done;
++static struct irq_penalty_info early_irq_infos[ACPI_PCI_LINK_MAX_EARLY_IRQINFO];
++static int early_irq_info_counter;
+ 
+ static int acpi_irq_get_penalty(int irq)
+ {
+@@ -507,10 +512,20 @@ static int acpi_irq_set_penalty(int irq, int new_penalty)
+ 		}
+ 	}
+ 
+-	/* nope, let's allocate a slot for this IRQ */
+-	irq_info = kzalloc(sizeof(*irq_info), GFP_KERNEL);
+-	if (!irq_info)
+-		return -ENOMEM;
++	if (!early_init_done) {
++		if (early_irq_info_counter < ARRAY_SIZE(early_irq_infos)) {
++			irq_info = &early_irq_infos[early_irq_info_counter];
++			irq_info->early = true;
++			early_irq_info_counter++;
++		} else {
++			return -ENOMEM;
++		}
++	} else {
++		/* nope, let's allocate a slot for this IRQ */
++		irq_info = kzalloc(sizeof(*irq_info), GFP_KERNEL);
++		if (!irq_info)
++			return -ENOMEM;
++	}
+ 
+ 	irq_info->irq = irq;
+ 	irq_info->penalty = new_penalty;
+@@ -968,3 +983,12 @@ void __init acpi_pci_link_init(void)
+ 	register_syscore_ops(&irqrouter_syscore_ops);
+ 	acpi_scan_add_handler(&pci_link_handler);
+ }
++
++
++static int acpi_pci_link_subsys_init(void)
++{
++	early_init_done = true;
++	return 0;
++}
++
++subsys_initcall(acpi_pci_link_subsys_init)
+-- 
+1.8.2.1
