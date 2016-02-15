@@ -1,103 +1,64 @@
-From: Aleksey Makarov <aleksey.makarov@linaro.org>
-Subject: [PATCH v3 0/5] ACPI: parse the SPCR table
-Date: Mon, 15 Feb 2016 21:05:24 +0300
-Message-ID: <1455559532-8305-1-git-send-email-aleksey.makarov@linaro.org>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: linux-acpi@vger.kernel.org
-Cc: linux-serial@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Aleksey Makarov <aleksey.makarov@linaro.org>, Russell King <linux@arm.linux.org.uk>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, Leif Lindholm <leif.lindholm@linaro.org>, Graeme Gregory <graeme.gregory@linaro.org>, Al Stone <ahs3@redhat.com>, Christopher Covington <cov@codeaurora.org>
+From: Linus Walleij <linus.walleij@linaro.org>
+Subject: Re: [RFC PATCH] GPIO/ACPI: DesignWare: Add GPIO-signaled ACPI events
+ support for power button
+Date: Mon, 15 Feb 2016 19:25:23 +0100
+Message-ID: <CACRpkdZNCt_TtA6SR86dVCR7vq5cpVmbzxeTguc7go6vVRkuTg@mail.gmail.com>
+References: <1454653542-122055-1-git-send-email-qiujiang@huawei.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-ob0-f170.google.com ([209.85.214.170]:36277 "EHLO
+	mail-ob0-f170.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751649AbcBOSZY (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 15 Feb 2016 13:25:24 -0500
+Received: by mail-ob0-f170.google.com with SMTP id gc3so122572412obb.3
+        for <linux-acpi@vger.kernel.org>; Mon, 15 Feb 2016 10:25:24 -0800 (PST)
+In-Reply-To: <1454653542-122055-1-git-send-email-qiujiang@huawei.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: qiujiang <qiujiang@huawei.com>, Mika Westerberg <mika.westerberg@linux.intel.com>
+Cc: Alexandre Courbot <gnurou@gmail.com>, "linux-gpio@vger.kernel.org" <linux-gpio@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, linuxarm@huawei.com, haifeng.wei@huawei.com, charles.chenxin@huawei.com
 
-This patchset is based on the patchset by Leif Lindholm [1]
+Mika can you help out looking at this patch. Tell me if you need a copy
+of the whole patch, I'm not smart with ACPI.
 
-'ARM Server Base Boot Requirements' [2] mentions SPCR (Serial Port
-Console Redirection Table) [3] as a mandatory ACPI table that
-specifies the configuration of serial console.
+On Fri, Feb 5, 2016 at 7:25 AM, qiujiang <qiujiang@huawei.com> wrote:
 
-SPCR support is included in QEMU's ARM mach-virt since 2.4 release.
+> This patch modifies the DesignWare GPIO controller driver to
+> support the GPIO-signaled ACPI Events. This is used for power
+> button function on ARM server.
+>
+> To make it work, the _AEI and _EVT object must be defined in
+> the corresponding GPIO driver's dsdt table in UEFI. At the same
+> time, ACPI daemon component is also necessary.
+>
+> Signed-off-by: qiujiang <qiujiang@huawei.com>
 
-Introduce a new function acpi_console_check().  At the uart port
-registration, this function checks if the ACPI SPCR table specifies
-its argument of type struct uart_port to be a console
-and if so calls add_preferred_console().
+(...)
+> --- a/drivers/gpio/gpio-dwapb.c
+> +++ b/drivers/gpio/gpio-dwapb.c
+> @@ -23,6 +23,11 @@
+>  #include <linux/spinlock.h>
+>  #include <linux/platform_data/gpio-dwapb.h>
+>  #include <linux/slab.h>
+> +#include <linux/acpi.h>
+> +#include <linux/gpio.h>
 
-Use SPCR to tell if SBSA serial driver should use 32-bit access to registers.
+You should only need <linux/driver.h>
 
-To be able to access SPCR table each time any console is registered
-change __init to __ref for early_acpi_os_unmap_memory().
+> +#include "gpiolib.h"
 
-The patchset should be applied to tty-next.
+I guess this is for some acpi_gpiochip* functions that ACPI GPIO
+drivers need like this:
 
-v3:
-Greg Kroah-Hartman did not like v2 so I have rewritten this patchset:
+> +       /* Add GPIO-signaled ACPI event support */
+> +       if (pp->irq)
+> +               acpi_gpiochip_request_interrupts(&(port->bgc.gc));
 
-- drop acpi_match() member of struct console
-- drop implementations of this member for pl011 and 8250
-- drop the patch that renames some vars in printk.c as it is not needed anymore
-- drpo patch that introduces system wide acpi_table_parse2().
-  Instead introduce a custom acpi_table_parse_spcr() in spcr.c
+Hm, maybe these should be in "gpiolib-acpi.h" or so.
 
-Instead of introducing a new match_acpi() member of struct console,
-this patchset introduces a new function acpi_console_check().
-This function is called when a new uart is registered at serial_core.c
-the same way OF code checks for console.  If the registered uart is the
-console specified by SPCR table, this function calls add_preferred_console()
+Overall the patch looks sane to me, but I need some ACPI
+person to tell.
 
-The restrictions of this approach are:
-
-- only serial consoles can be set up
-- only consoles specified by the memory/io address can be set up
-  (SPCR can specify devices by PCI id/PCI address)
-
-v2:
-https://lkml.kernel.org/g/1455299022-11641-1-git-send-email-aleksey.makarov@linaro.org
-- don't use SPCR if user specified console in command line
-- fix initialization order of newcon->index = 0
-- rename some variables at printk.c (Joe Perches, Peter Hurley)
-- enable ACPI_SPCR_TABLE in a separate patch (Andy Shevchenko)
-- remove the retry loop for console registering (Peter Hurley).
-  Instead, obtain SPCR with acpi_get_table().  That works after
-  call to acpi_early_init() i. e. in any *_initcall()
-- describe design decision behind introducing acpi_match() (Peter Hurley)
-- fix compilation for x86 + ACPI (Graeme Gregory)
-- introduce DBG2 constants in a separate patch (Andy Shevchenko)
-- fix a typo in DBG2 constants (Andy Shevchenko)
-- add ACPI_DBG2_ARM_SBSA_32BIT constant (Christopher Covington)
-- add support for ACPI_DBG2_ARM_SBSA_* consoles (Christopher Covington)
-- add documentation for functions
-- add a patch that uses SPCR to find if SBSA serial driver should use 32-bit
-  accessor functions (Christopher Covington)
-- change __init to __ref for early_acpi_os_unmap_memory() in a separate patch
-- introduce acpi_table_parse2() in a separate patch
-- fix fetching the SPCR table early (Mark Salter)
-- add a patch from Mark Salter that introduces support for matching 8250-based
-  consoles
-
-v1:
-https://lkml.kernel.org/g/1453722324-22407-1-git-send-email-aleksey.makarov@linaro.org
-
-[1] https://lkml.kernel.org/g/1441716217-23786-1-git-send-email-leif.lindholm@linaro.org
-[2] http://infocenter.arm.com/help/index.jsp?topic=/com.arm.doc.den0044a/index.html
-[3] https://msdn.microsoft.com/en-us/library/windows/hardware/dn639132(v=vs.85).aspx
-
-Aleksey Makarov (5):
-  ACPI: change __init to __ref for early_acpi_os_unmap_memory()
-  ACPI: parse SPCR and enable matching console
-  ACPI: enable ACPI_SPCR_TABLE on ARM64
-  ACPI: add definition of DBG2 subtypes
-  serial: pl011: use SPCR to setup 32-bit access
-
- arch/arm64/Kconfig               |   1 +
- drivers/acpi/Kconfig             |   3 +
- drivers/acpi/Makefile            |   1 +
- drivers/acpi/osl.c               |   6 +-
- drivers/acpi/spcr.c              | 122 +++++++++++++++++++++++++++++++++++++++
- drivers/tty/serial/amba-pl011.c  |   2 +
- drivers/tty/serial/serial_core.c |  14 ++++-
- include/acpi/actbl2.h            |   5 ++
- include/linux/acpi.h             |  15 +++++
- 9 files changed, 166 insertions(+), 3 deletions(-)
- create mode 100644 drivers/acpi/spcr.c
-
--- 
-2.7.1
+Yours,
+Linus Walleij
