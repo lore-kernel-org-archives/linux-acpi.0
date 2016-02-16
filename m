@@ -1,40 +1,30 @@
-From: Mark Salter <msalter@redhat.com>
-Subject: Re: [PATCH v3 0/5] ACPI: parse the SPCR table
-Date: Tue, 16 Feb 2016 14:11:43 -0500
-Message-ID: <1455649903.5681.6.camel@redhat.com>
-References: <1455559532-8305-1-git-send-email-aleksey.makarov@linaro.org>
+From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Subject: Re: [PATCH v6 1/2] ACPI: introduce a function to find the first physical device
+Date: Tue, 16 Feb 2016 20:20:32 +0100
+Message-ID: <2136886.lSJtFgotV7@vostro.rjw.lan>
+References: <2019009.4Y5n3ZF6bK@vostro.rjw.lan> <1455627160-10299-1-git-send-email-aleksey.makarov@linaro.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1455559532-8305-1-git-send-email-aleksey.makarov@linaro.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Aleksey Makarov <aleksey.makarov@linaro.org>, linux-acpi@vger.kernel.org
-Cc: linux-serial@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Russell King <linux@arm.linux.org.uk>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, Leif Lindholm <leif.lindholm@linaro.org>, Graeme Gregory <graeme.gregory@linaro.org>, Al Stone <ahs3@redhat.com>, Christopher Covington <cov@codeaurora.org>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7Bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from v094114.home.net.pl ([79.96.170.134]:61010 "HELO
+	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1755485AbcBPTTL (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 16 Feb 2016 14:19:11 -0500
+In-Reply-To: <1455627160-10299-1-git-send-email-aleksey.makarov@linaro.org>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Aleksey Makarov <aleksey.makarov@linaro.org>
+Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Graeme Gregory <graeme.gregory@linaro.org>, Russell King <linux@arm.linux.org.uk>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Shannon Zhao <shannon.zhao@linaro.org>, Andy Shevchenko <andy.shevchenko@gmail.com>, Vladimir Zapolskiy <vz@mleia.com>, Len Brown <lenb@kernel.org>
 
-On Mon, 2016-02-15 at 21:05 +0300, Aleksey Makarov wrote:
-> This patchset is based on the patchset by Leif Lindholm [1]
->=20
-> 'ARM Server Base Boot Requirements' [2] mentions SPCR (Serial Port
-> Console Redirection Table) [3] as a mandatory ACPI table that
-> specifies the configuration of serial console.
->=20
-> SPCR support is included in QEMU's ARM mach-virt since 2.4 release.
->=20
-> Introduce a new function acpi_console_check().=C2=A0 At the uart port
-> registration, this function checks if the ACPI SPCR table specifies
-> its argument of type struct uart_port to be a console
-> and if so calls add_preferred_console().
->=20
-> Use SPCR to tell if SBSA serial driver should use 32-bit access to re=
-gisters.
->=20
-> To be able to access SPCR table each time any console is registered
-> change __init to __ref for early_acpi_os_unmap_memory().
->=20
-> The patchset should be applied to tty-next.
+On Tuesday, February 16, 2016 03:52:38 PM Aleksey Makarov wrote:
+> Factor out the code that finds the first physical device
+> of a given ACPI device.  It is used in several places.
+> 
+> Signed-off-by: Aleksey Makarov <aleksey.makarov@linaro.org>
 
-On Mustang, m400, and Seattle:
+OK, I've queued up this one and the [2/2] for v4.6.
 
-Tested-by: Mark Salter <msalter@redhat.com>
+Thanks,
+Rafael
+
