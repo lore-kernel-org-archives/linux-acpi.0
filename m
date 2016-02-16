@@ -1,146 +1,155 @@
-From: "Rafael J. Wysocki" <rafael@kernel.org>
-Subject: Re: [PATCH] acpi, pci, irq: account for early penalty assignment
-Date: Tue, 16 Feb 2016 01:26:45 +0100
-Message-ID: <CAJZ5v0iszEN+ep8yGNX35RP04_ZwnF1K_w+VW5tFR9Jz2_ZJqw@mail.gmail.com>
-References: <1455554508-18174-1-git-send-email-okaya@codeaurora.org>
+From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Subject: Re: [PATCH v6 1/2] ACPI: introduce a function to find the first physical device
+Date: Tue, 16 Feb 2016 02:20:36 +0100
+Message-ID: <2019009.4Y5n3ZF6bK@vostro.rjw.lan>
+References: <1453300171-25473-1-git-send-email-aleksey.makarov@linaro.org> <1453300171-25473-2-git-send-email-aleksey.makarov@linaro.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1455554508-18174-1-git-send-email-okaya@codeaurora.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Sinan Kaya <okaya@codeaurora.org>
-Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Timur Tabi <timur@codeaurora.org>, Christopher Covington <cov@codeaurora.org>, Linux PCI <linux-pci@vger.kernel.org>, ravikanth.nalla@hpe.com, Len Brown <lenb@kernel.org>, harish.k@hpe.com, ashwin.reghunandanan@hpe.com, Bjorn Helgaas <bhelgaas@google.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7Bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from v094114.home.net.pl ([79.96.170.134]:45458 "HELO
+	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1751491AbcBPBTP (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 15 Feb 2016 20:19:15 -0500
+In-Reply-To: <1453300171-25473-2-git-send-email-aleksey.makarov@linaro.org>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Aleksey Makarov <aleksey.makarov@linaro.org>
+Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Graeme Gregory <graeme.gregory@linaro.org>, Russell King <linux@arm.linux.org.uk>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Shannon Zhao <shannon.zhao@linaro.org>, Andy Shevchenko <andy.shevchenko@gmail.com>, Vladimir Zapolskiy <vz@mleia.com>, Len Brown <lenb@kernel.org>
 
-On Mon, Feb 15, 2016 at 5:41 PM, Sinan Kaya <okaya@codeaurora.org> wrote:
-> A crash has been observed when assigning penalty on x86 systems.
->
-> It looks like this problem happens on x86 platforms with IOAPIC and an SCI
-> interrupt override in the ACPI table with interrupt number greater than
-> 16. (22 in this example)
->
-> The bug has been introduced by "ACPI, PCI, irq: remove interrupt count
-> restriction" commit. The code was using kmalloc to resize the interrupt
-> list. In this use case, the set penalty call is coming from early phase
-> and the heap is not initialized yet.
->
-> BUG: unable to handle kernel NULL pointer dereference at 0000000000000018
-> IP: [<ffffffff811e8b9d>] kmem_cache_alloc_trace+0xad/0x1c0
-> PGD 0
-> Oops: 0000 [#1] SMP
-> Modules linked in:
-> CPU: 0 PID: 0 Comm: swapper Not tainted 4.5.0-rc2Feb-3_RK #1
-> Hardware name: HP Superdome2 16s, BIOS Bundle: 007.006.000 SFW: 033.162.000
-> 10/30/2015
-> [<ffffffff813bc190>] acpi_irq_set_penalty+0x60/0x8e
-> [<ffffffff813bc1df>] acpi_irq_add_penalty+0x21/0x26
-> [<ffffffff813bc76d>] acpi_penalize_sci_irq+0x25/0x28
-> [<ffffffff81b8260d>] acpi_sci_ioapic_setup+0x68/0x78
-> [<ffffffff81b830fc>] acpi_boot_init+0x2cc/0x533
-> [<ffffffff810677c8>] ? set_pte_vaddr_pud+0x48/0x50
-> [<ffffffff81b828cf>] ? acpi_parse_x2apic+0x77/0x77
-> [<ffffffff81b82858>] ? dmi_ignore_irq0_timer_override+0x30/0x30
-> [<ffffffff81b77c1e>] setup_arch+0xc24/0xce9
-> [<ffffffff81b6e120>] ? early_idt_handler_array+0x120/0x120
-> [<ffffffff81b6ed94>] start_kernel+0xfc/0x506
-> [<ffffffff81b6e120>] ? early_idt_handler_array+0x120/0x120
-> [<ffffffff81b6e120>] ? early_idt_handler_array+0x120/0x120
-> [<ffffffff81b6e5ee>] x86_64_start_reservations+0x2a/0x2c
-> [<ffffffff81b6e73c>] x86_64_start_kernel+0x14c/0x16f
->
-> Besides from the use case above, there is one more situation where
-> set_penalty is being called from the init context like. There is support
-> for setting the penalty through kernel command line.
->
-> Adding support to be called from early context for limited number of
-> interrupts.
->
-> Signed-off-by: Sinan Kaya <okaya@codeaurora.org>
+On Wednesday, January 20, 2016 08:29:26 PM Aleksey Makarov wrote:
+> Factor out the code that finds the first physical device
+> of a given ACPI device.  It is used in several places.
+> 
+> Reviewed-by: Andy Shevchenko <andy.shevchenko@gmail.com>
 
-This looks somewhat hackish to me to be honest.
+I guess the above doesn't apply any more, does it?
 
+> Signed-off-by: Aleksey Makarov <aleksey.makarov@linaro.org>
 > ---
->  drivers/acpi/pci_link.c | 32 ++++++++++++++++++++++++++++----
->  1 file changed, 28 insertions(+), 4 deletions(-)
->
-> diff --git a/drivers/acpi/pci_link.c b/drivers/acpi/pci_link.c
-> index fa28635..24b69e1 100644
-> --- a/drivers/acpi/pci_link.c
-> +++ b/drivers/acpi/pci_link.c
-> @@ -47,6 +47,7 @@ ACPI_MODULE_NAME("pci_link");
->  #define ACPI_PCI_LINK_FILE_INFO                "info"
->  #define ACPI_PCI_LINK_FILE_STATUS      "state"
->  #define ACPI_PCI_LINK_MAX_POSSIBLE     16
-> +#define ACPI_PCI_LINK_MAX_EARLY_IRQINFO 1024
->
->  static int acpi_pci_link_add(struct acpi_device *device,
->                              const struct acpi_device_id *not_used);
-> @@ -470,9 +471,13 @@ struct irq_penalty_info {
->         int irq;
->         int penalty;
->         struct list_head node;
-> +       bool early;
-
-Where is this field used ->
-
->  };
->
->  static LIST_HEAD(acpi_irq_penalty_list);
-> +static int early_init_done;
-> +static struct irq_penalty_info early_irq_infos[ACPI_PCI_LINK_MAX_EARLY_IRQINFO];
-> +static int early_irq_info_counter;
->
->  static int acpi_irq_get_penalty(int irq)
+>  drivers/acpi/acpi_platform.c | 19 ++-----------------
+>  drivers/acpi/bus.c           | 33 ++++++++++++++++++++++-----------
+>  drivers/acpi/internal.h      |  1 +
+>  3 files changed, 25 insertions(+), 28 deletions(-)
+> 
+> diff --git a/drivers/acpi/acpi_platform.c b/drivers/acpi/acpi_platform.c
+> index 296b7a1..c3af108 100644
+> --- a/drivers/acpi/acpi_platform.c
+> +++ b/drivers/acpi/acpi_platform.c
+> @@ -43,7 +43,6 @@ static const struct acpi_device_id forbidden_id_list[] = {
+>  struct platform_device *acpi_create_platform_device(struct acpi_device *adev)
 >  {
-> @@ -507,10 +512,20 @@ static int acpi_irq_set_penalty(int irq, int new_penalty)
->                 }
->         }
->
-> -       /* nope, let's allocate a slot for this IRQ */
-> -       irq_info = kzalloc(sizeof(*irq_info), GFP_KERNEL);
-> -       if (!irq_info)
-> -               return -ENOMEM;
-> +       if (!early_init_done) {
-> +               if (early_irq_info_counter < ARRAY_SIZE(early_irq_infos)) {
-> +                       irq_info = &early_irq_infos[early_irq_info_counter];
-> +                       irq_info->early = true;
+>  	struct platform_device *pdev = NULL;
+> -	struct acpi_device *acpi_parent;
+>  	struct platform_device_info pdevinfo;
+>  	struct resource_entry *rentry;
+>  	struct list_head resource_list;
+> @@ -82,22 +81,8 @@ struct platform_device *acpi_create_platform_device(struct acpi_device *adev)
+>  	 * attached to it, that physical device should be the parent of the
+>  	 * platform device we are about to create.
+>  	 */
+> -	pdevinfo.parent = NULL;
+> -	acpi_parent = adev->parent;
+> -	if (acpi_parent) {
+> -		struct acpi_device_physical_node *entry;
+> -		struct list_head *list;
+> -
+> -		mutex_lock(&acpi_parent->physical_node_lock);
+> -		list = &acpi_parent->physical_node_list;
+> -		if (!list_empty(list)) {
+> -			entry = list_first_entry(list,
+> -					struct acpi_device_physical_node,
+> -					node);
+> -			pdevinfo.parent = entry->dev;
+> -		}
+> -		mutex_unlock(&acpi_parent->physical_node_lock);
+> -	}
+> +	pdevinfo.parent = adev->parent ?
+> +		acpi_get_first_physical_node(adev->parent) : NULL;
+>  	pdevinfo.name = dev_name(&adev->dev);
+>  	pdevinfo.id = -1;
+>  	pdevinfo.res = resources;
+> diff --git a/drivers/acpi/bus.c b/drivers/acpi/bus.c
+> index a212cef..832b26d 100644
+> --- a/drivers/acpi/bus.c
+> +++ b/drivers/acpi/bus.c
+> @@ -478,24 +478,35 @@ static void acpi_device_remove_notify_handler(struct acpi_device *device)
+>                               Device Matching
+>     -------------------------------------------------------------------------- */
+>  
+> -static struct acpi_device *acpi_primary_dev_companion(struct acpi_device *adev,
+> -						      const struct device *dev)
+> +/**
+> + * acpi_device_fix_parent - Get first physical node of an ACPI device
 
--> except for being set here?
+Please fix the function name here.
 
-> +                       early_irq_info_counter++;
-> +               } else {
-> +                       return -ENOMEM;
-> +               }
-> +       } else {
-> +               /* nope, let's allocate a slot for this IRQ */
-> +               irq_info = kzalloc(sizeof(*irq_info), GFP_KERNEL);
-> +               if (!irq_info)
-> +                       return -ENOMEM;
-> +       }
->
->         irq_info->irq = irq;
->         irq_info->penalty = new_penalty;
-> @@ -968,3 +983,12 @@ void __init acpi_pci_link_init(void)
->         register_syscore_ops(&irqrouter_syscore_ops);
->         acpi_scan_add_handler(&pci_link_handler);
->  }
+> + * @adev: ACPI device in question
+> + */
+> +struct device *acpi_get_first_physical_node(struct acpi_device *adev)
+>  {
+>  	struct mutex *physical_node_lock = &adev->physical_node_lock;
+> +	struct device *node = NULL;
+>  
+>  	mutex_lock(physical_node_lock);
+> -	if (list_empty(&adev->physical_node_list)) {
+> -		adev = NULL;
+> -	} else {
+> -		const struct acpi_device_physical_node *node;
+>  
+> +	if (!list_empty(&adev->physical_node_list))
+>  		node = list_first_entry(&adev->physical_node_list,
+> -					struct acpi_device_physical_node, node);
+> -		if (node->dev != dev)
+> -			adev = NULL;
+> -	}
+> +				struct acpi_device_physical_node, node)->dev;
 > +
+
+No, you don't have to change all that code.
+
+Exercise: rework this function with as few lines of code changed as you possibly can.
+
+>  	mutex_unlock(physical_node_lock);
+> -	return adev;
 > +
-> +static int acpi_pci_link_subsys_init(void)
-> +{
-> +       early_init_done = true;
-
-Why do you need yet another subsys_initcall do set this?  Can't it be
-set in, say, acpi_init()?
-
-And isn't there any existing way to check that?  Like checking
-acpi_gbl_permanent_mmap or something?
-
-> +       return 0;
+> +	return node;
 > +}
 > +
-> +subsys_initcall(acpi_pci_link_subsys_init)
-> --
+> +static struct acpi_device *acpi_primary_dev_companion(struct acpi_device *adev,
+> +						      const struct device *dev)
+> +{
+> +	const struct device *node = acpi_get_first_physical_node(adev);
+
+s/node/phys_dev/ ?
+
+> +
+> +	if (node && node == dev)
+> +		return adev;
+> +
+> +	return NULL;
+
+return phys_dev && phys_dev == dev ? adev : NULL;
+
+One line of code instead of 4.
+
+>  }
+>  
+>  /**
+> diff --git a/drivers/acpi/internal.h b/drivers/acpi/internal.h
+> index 11d87bf..ee9312ba 100644
+> --- a/drivers/acpi/internal.h
+> +++ b/drivers/acpi/internal.h
+> @@ -98,6 +98,7 @@ bool acpi_device_is_present(struct acpi_device *adev);
+>  bool acpi_device_is_battery(struct acpi_device *adev);
+>  bool acpi_device_is_first_physical_node(struct acpi_device *adev,
+>  					const struct device *dev);
+> +struct device *acpi_get_first_physical_node(struct acpi_device *adev);
+>  
+>  /* --------------------------------------------------------------------------
+>                       Device Matching and Notification
+> 
 
 Thanks,
 Rafael
+
