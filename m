@@ -1,50 +1,129 @@
-From: Mika Westerberg <mika.westerberg@linux.intel.com>
-Subject: Re: [RFC PATCH] GPIO/ACPI: DesignWare: Add GPIO-signaled ACPI events
- support for power button
-Date: Tue, 16 Feb 2016 14:49:01 +0200
-Message-ID: <20160216124901.GM1742@lahna.fi.intel.com>
-References: <1454653542-122055-1-git-send-email-qiujiang@huawei.com>
- <20160216092449.GE1742@lahna.fi.intel.com>
- <56C3195A.7050001@huawei.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-gpio-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <56C3195A.7050001@huawei.com>
-Sender: linux-gpio-owner@vger.kernel.org
-To: Jiang Qiu <qiujiang@huawei.com>
-Cc: linus.walleij@linaro.org, gnurou@gmail.com, linux-gpio@vger.kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linuxarm@huawei.com, haifeng.wei@huawei.com, charles.chenxin@huawei.com
+From: Aleksey Makarov <aleksey.makarov@linaro.org>
+Subject: [PATCH v6 1/2] ACPI: introduce a function to find the first physical device
+Date: Tue, 16 Feb 2016 15:52:38 +0300
+Message-ID: <1455627160-10299-1-git-send-email-aleksey.makarov@linaro.org>
+References: <2019009.4Y5n3ZF6bK@vostro.rjw.lan>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-lf0-f51.google.com ([209.85.215.51]:35458 "EHLO
+	mail-lf0-f51.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932114AbcBPM6X (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 16 Feb 2016 07:58:23 -0500
+Received: by mail-lf0-f51.google.com with SMTP id l143so108154540lfe.2
+        for <linux-acpi@vger.kernel.org>; Tue, 16 Feb 2016 04:58:22 -0800 (PST)
+In-Reply-To: <2019009.4Y5n3ZF6bK@vostro.rjw.lan>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: linux-acpi@vger.kernel.org
+Cc: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Aleksey Makarov <aleksey.makarov@linaro.org>, Graeme Gregory <graeme.gregory@linaro.org>, Russell King <linux@arm.linux.org.uk>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, Shannon Zhao <shannon.zhao@linaro.org>, Andy Shevchenko <andy.shevchenko@gmail.com>, Vladimir Zapolskiy <vz@mleia.com>, Len Brown <lenb@kernel.org>
 
-On Tue, Feb 16, 2016 at 08:43:06PM +0800, Jiang Qiu wrote:
-> Device(GPI0) {
->         Name(_HID, "HISI0181")
-> 	Name(_ADR, 0) // _ADR: Address
->         Name(_UID, 0)
-> 		
-> 	Name (_CRS, ResourceTemplate ()  {
-> 		Memory32Fixed (ReadWrite, 0x802e0000, 0x10000)
-> 		Interrupt (ResourceConsumer, Level, ActiveHigh,
-> 		Exclusive,,,) {344}
-> 	})
-> 		
-> 	Device(PRTa) {
-> 		Name (_DSD, Package () {
-> 			ToUUID("daffd814-6eba-4d8c-8a91-bc9bbf4aa301"),
-> 			Package () {
-> 				Package () {"reg",0},
-> 				Package () {"snps,nr-gpios",32},
-> 			}
-> 		})
-> 	}
-> 		
-> 	Name (_AEI, ResourceTemplate () {	
-> 		GpioInt(Edge, ActiveLow, ExclusiveAndWake, PullUp, ,
-> 		" \\_SB.GPI0") {8}
-> 	})
-> 		
-> 	Method (_E08, 0x0, NotSerialized) {
-> 		Notify (\_SB.PWRB, 0x80)
-> 	}
+Factor out the code that finds the first physical device
+of a given ACPI device.  It is used in several places.
 
-OK, it looks sane to me. Thanks for sharing.
+Signed-off-by: Aleksey Makarov <aleksey.makarov@linaro.org>
+---
+ drivers/acpi/acpi_platform.c | 19 ++-----------------
+ drivers/acpi/bus.c           | 26 ++++++++++++++++++++------
+ drivers/acpi/internal.h      |  1 +
+ 3 files changed, 23 insertions(+), 23 deletions(-)
+
+diff --git a/drivers/acpi/acpi_platform.c b/drivers/acpi/acpi_platform.c
+index 296b7a1..c3af108 100644
+--- a/drivers/acpi/acpi_platform.c
++++ b/drivers/acpi/acpi_platform.c
+@@ -43,7 +43,6 @@ static const struct acpi_device_id forbidden_id_list[] = {
+ struct platform_device *acpi_create_platform_device(struct acpi_device *adev)
+ {
+ 	struct platform_device *pdev = NULL;
+-	struct acpi_device *acpi_parent;
+ 	struct platform_device_info pdevinfo;
+ 	struct resource_entry *rentry;
+ 	struct list_head resource_list;
+@@ -82,22 +81,8 @@ struct platform_device *acpi_create_platform_device(struct acpi_device *adev)
+ 	 * attached to it, that physical device should be the parent of the
+ 	 * platform device we are about to create.
+ 	 */
+-	pdevinfo.parent = NULL;
+-	acpi_parent = adev->parent;
+-	if (acpi_parent) {
+-		struct acpi_device_physical_node *entry;
+-		struct list_head *list;
+-
+-		mutex_lock(&acpi_parent->physical_node_lock);
+-		list = &acpi_parent->physical_node_list;
+-		if (!list_empty(list)) {
+-			entry = list_first_entry(list,
+-					struct acpi_device_physical_node,
+-					node);
+-			pdevinfo.parent = entry->dev;
+-		}
+-		mutex_unlock(&acpi_parent->physical_node_lock);
+-	}
++	pdevinfo.parent = adev->parent ?
++		acpi_get_first_physical_node(adev->parent) : NULL;
+ 	pdevinfo.name = dev_name(&adev->dev);
+ 	pdevinfo.id = -1;
+ 	pdevinfo.res = resources;
+diff --git a/drivers/acpi/bus.c b/drivers/acpi/bus.c
+index a212cef..d27e0f4 100644
+--- a/drivers/acpi/bus.c
++++ b/drivers/acpi/bus.c
+@@ -478,24 +478,38 @@ static void acpi_device_remove_notify_handler(struct acpi_device *device)
+                              Device Matching
+    -------------------------------------------------------------------------- */
+ 
+-static struct acpi_device *acpi_primary_dev_companion(struct acpi_device *adev,
+-						      const struct device *dev)
++/**
++ * acpi_get_first_physical_node - Get first physical node of an ACPI device
++ * @adev:	ACPI device in question
++ *
++ * Return: First physical node of ACPI device @adev
++ */
++struct device *acpi_get_first_physical_node(struct acpi_device *adev)
+ {
+ 	struct mutex *physical_node_lock = &adev->physical_node_lock;
++	struct device *phys_dev;
+ 
+ 	mutex_lock(physical_node_lock);
+ 	if (list_empty(&adev->physical_node_list)) {
+-		adev = NULL;
++		phys_dev = NULL;
+ 	} else {
+ 		const struct acpi_device_physical_node *node;
+ 
+ 		node = list_first_entry(&adev->physical_node_list,
+ 					struct acpi_device_physical_node, node);
+-		if (node->dev != dev)
+-			adev = NULL;
++
++		phys_dev = node->dev;
+ 	}
+ 	mutex_unlock(physical_node_lock);
+-	return adev;
++	return phys_dev;
++}
++
++static struct acpi_device *acpi_primary_dev_companion(struct acpi_device *adev,
++						      const struct device *dev)
++{
++	const struct device *phys_dev = acpi_get_first_physical_node(adev);
++
++	return phys_dev && phys_dev == dev ? adev : NULL;
+ }
+ 
+ /**
+diff --git a/drivers/acpi/internal.h b/drivers/acpi/internal.h
+index 11d87bf..ee9312ba 100644
+--- a/drivers/acpi/internal.h
++++ b/drivers/acpi/internal.h
+@@ -98,6 +98,7 @@ bool acpi_device_is_present(struct acpi_device *adev);
+ bool acpi_device_is_battery(struct acpi_device *adev);
+ bool acpi_device_is_first_physical_node(struct acpi_device *adev,
+ 					const struct device *dev);
++struct device *acpi_get_first_physical_node(struct acpi_device *adev);
+ 
+ /* --------------------------------------------------------------------------
+                      Device Matching and Notification
+-- 
+2.7.1
+
