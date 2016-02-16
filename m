@@ -1,129 +1,138 @@
-From: Aleksey Makarov <aleksey.makarov@linaro.org>
-Subject: [PATCH v6 1/2] ACPI: introduce a function to find the first physical device
-Date: Tue, 16 Feb 2016 15:52:38 +0300
-Message-ID: <1455627160-10299-1-git-send-email-aleksey.makarov@linaro.org>
-References: <2019009.4Y5n3ZF6bK@vostro.rjw.lan>
+From: Tomasz Nowicki <tn@semihalf.com>
+Subject: [PATCH V5 00/15] MMCONFIG refactoring and support for ARM64 PCI hostbridge init based on ACPI
+Date: Tue, 16 Feb 2016 14:53:30 +0100
+Message-ID: <1455630825-27253-1-git-send-email-tn@semihalf.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-lf0-f51.google.com ([209.85.215.51]:35458 "EHLO
-	mail-lf0-f51.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932114AbcBPM6X (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 16 Feb 2016 07:58:23 -0500
-Received: by mail-lf0-f51.google.com with SMTP id l143so108154540lfe.2
-        for <linux-acpi@vger.kernel.org>; Tue, 16 Feb 2016 04:58:22 -0800 (PST)
-In-Reply-To: <2019009.4Y5n3ZF6bK@vostro.rjw.lan>
+Received: from mail-wm0-f41.google.com ([74.125.82.41]:33990 "EHLO
+	mail-wm0-f41.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932254AbcBPNxx (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 16 Feb 2016 08:53:53 -0500
+Received: by mail-wm0-f41.google.com with SMTP id b205so111050081wmb.1
+        for <linux-acpi@vger.kernel.org>; Tue, 16 Feb 2016 05:53:52 -0800 (PST)
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
-Cc: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Aleksey Makarov <aleksey.makarov@linaro.org>, Graeme Gregory <graeme.gregory@linaro.org>, Russell King <linux@arm.linux.org.uk>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, Shannon Zhao <shannon.zhao@linaro.org>, Andy Shevchenko <andy.shevchenko@gmail.com>, Vladimir Zapolskiy <vz@mleia.com>, Len Brown <lenb@kernel.org>
+To: helgaas@kernel.org, arnd@arndb.de, will.deacon@arm.com, catalin.marinas@arm.com, rafael@kernel.org, hanjun.guo@linaro.org, Lorenzo.Pieralisi@arm.com, okaya@codeaurora.org, jiang.liu@linux.intel.com, jchandra@broadcom.com, Stefano.Stabellini@eu.citrix.com
+Cc: robert.richter@caviumnetworks.com, mw@semihalf.com, Liviu.Dudau@arm.com, ddaney@caviumnetworks.com, wangyijing@huawei.com, Suravee.Suthikulpanit@amd.com, msalter@redhat.com, linux-pci@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linaro-acpi@lists.linaro.org, jcm@redhat.com, Tomasz Nowicki <tn@semihalf.com>
 
-Factor out the code that finds the first physical device
-of a given ACPI device.  It is used in several places.
+>From the functionality point of view this series might be split into the
+following logic parts:
+1. Make MMCONFIG code arch-agnostic which allows all architectures to collect
+   PCI config regions and used when necessary.
+2. Move non-arch specific bits to the core code.
+3. Use MMCONFIG code and implement generic ACPI based PCI host controller driver.
+4. Enable above driver on ARM64
 
-Signed-off-by: Aleksey Makarov <aleksey.makarov@linaro.org>
----
- drivers/acpi/acpi_platform.c | 19 ++-----------------
- drivers/acpi/bus.c           | 26 ++++++++++++++++++++------
- drivers/acpi/internal.h      |  1 +
- 3 files changed, 23 insertions(+), 23 deletions(-)
+Patches has been built on top of 4.5-rc3 and can be found here:
+git@github.com:semihalf-nowicki-tomasz/linux.git (pci-acpi-v5)
 
-diff --git a/drivers/acpi/acpi_platform.c b/drivers/acpi/acpi_platform.c
-index 296b7a1..c3af108 100644
---- a/drivers/acpi/acpi_platform.c
-+++ b/drivers/acpi/acpi_platform.c
-@@ -43,7 +43,6 @@ static const struct acpi_device_id forbidden_id_list[] = {
- struct platform_device *acpi_create_platform_device(struct acpi_device *adev)
- {
- 	struct platform_device *pdev = NULL;
--	struct acpi_device *acpi_parent;
- 	struct platform_device_info pdevinfo;
- 	struct resource_entry *rentry;
- 	struct list_head resource_list;
-@@ -82,22 +81,8 @@ struct platform_device *acpi_create_platform_device(struct acpi_device *adev)
- 	 * attached to it, that physical device should be the parent of the
- 	 * platform device we are about to create.
- 	 */
--	pdevinfo.parent = NULL;
--	acpi_parent = adev->parent;
--	if (acpi_parent) {
--		struct acpi_device_physical_node *entry;
--		struct list_head *list;
--
--		mutex_lock(&acpi_parent->physical_node_lock);
--		list = &acpi_parent->physical_node_list;
--		if (!list_empty(list)) {
--			entry = list_first_entry(list,
--					struct acpi_device_physical_node,
--					node);
--			pdevinfo.parent = entry->dev;
--		}
--		mutex_unlock(&acpi_parent->physical_node_lock);
--	}
-+	pdevinfo.parent = adev->parent ?
-+		acpi_get_first_physical_node(adev->parent) : NULL;
- 	pdevinfo.name = dev_name(&adev->dev);
- 	pdevinfo.id = -1;
- 	pdevinfo.res = resources;
-diff --git a/drivers/acpi/bus.c b/drivers/acpi/bus.c
-index a212cef..d27e0f4 100644
---- a/drivers/acpi/bus.c
-+++ b/drivers/acpi/bus.c
-@@ -478,24 +478,38 @@ static void acpi_device_remove_notify_handler(struct acpi_device *device)
-                              Device Matching
-    -------------------------------------------------------------------------- */
- 
--static struct acpi_device *acpi_primary_dev_companion(struct acpi_device *adev,
--						      const struct device *dev)
-+/**
-+ * acpi_get_first_physical_node - Get first physical node of an ACPI device
-+ * @adev:	ACPI device in question
-+ *
-+ * Return: First physical node of ACPI device @adev
-+ */
-+struct device *acpi_get_first_physical_node(struct acpi_device *adev)
- {
- 	struct mutex *physical_node_lock = &adev->physical_node_lock;
-+	struct device *phys_dev;
- 
- 	mutex_lock(physical_node_lock);
- 	if (list_empty(&adev->physical_node_list)) {
--		adev = NULL;
-+		phys_dev = NULL;
- 	} else {
- 		const struct acpi_device_physical_node *node;
- 
- 		node = list_first_entry(&adev->physical_node_list,
- 					struct acpi_device_physical_node, node);
--		if (node->dev != dev)
--			adev = NULL;
-+
-+		phys_dev = node->dev;
- 	}
- 	mutex_unlock(physical_node_lock);
--	return adev;
-+	return phys_dev;
-+}
-+
-+static struct acpi_device *acpi_primary_dev_companion(struct acpi_device *adev,
-+						      const struct device *dev)
-+{
-+	const struct device *phys_dev = acpi_get_first_physical_node(adev);
-+
-+	return phys_dev && phys_dev == dev ? adev : NULL;
- }
- 
- /**
-diff --git a/drivers/acpi/internal.h b/drivers/acpi/internal.h
-index 11d87bf..ee9312ba 100644
---- a/drivers/acpi/internal.h
-+++ b/drivers/acpi/internal.h
-@@ -98,6 +98,7 @@ bool acpi_device_is_present(struct acpi_device *adev);
- bool acpi_device_is_battery(struct acpi_device *adev);
- bool acpi_device_is_first_physical_node(struct acpi_device *adev,
- 					const struct device *dev);
-+struct device *acpi_get_first_physical_node(struct acpi_device *adev);
- 
- /* --------------------------------------------------------------------------
-                      Device Matching and Notification
+NOTE, this patch set depends on Lorenzo's fixes:
+https://patchwork.ozlabs.org/patch/576450/
+which can be found in pci-acpi-v5 branch.
+
+This has been tested on Cavium ThunderX server, JunoR2, HP RX2660 IA64, x86,
+Hip05, X-Gene and QEMU-aarch64. Any help in reviewing and testing is very appreciated.
+
+v4 -> v5
+- dropped MCFG refactoring group patches 1-6 from series v4 and integrated Jayachandran's patch
+  https://patchwork.ozlabs.org/patch/575525/
+- rewrite PCI legacy IRQs allocation
+- squashed two patches 11 and 12 from series v4, fixed bisection issue
+- changelog improvements
+- rebased to 4.5-rc3
+
+v3 -> v4
+- dropped Jiang's fix http://lkml.iu.edu/hypermail/linux/kernel/1601.1/04318.html
+- added Lorenzo's fix patch 19/24
+- ACPI PCI bus domain number assigning cleanup
+- changed resource management, we now claim and reassign resources
+- improvements for applying quirks
+- dropped Matthew's http://www.spinics.net/lists/linux-pci/msg45950.html dependency
+- rebased to 4.5-rc1
+
+v2 -> v3
+- fix legacy IRQ assigning and IO ports registration
+- remove reference to arch specific companion device for ia64
+- move ACPI PCI host controller driver to pci_root.c
+- drop generic domain assignment for x86 and ia64 as I am not
+  able to run all necessary test variants
+- drop patch which cleaned legacy IRQ assignment since it belongs to
+  Mathew's series:
+  https://patchwork.ozlabs.org/patch/557504/
+- extend MCFG quirk code
+- rebased to 4.4
+
+v1 -> v2
+- moved non-arch specific piece of code to dirver/acpi/ directory
+- fixed IO resource handling
+- introduced PCI config accessors quirks matching
+- moved ACPI_COMPANION_SET to generic code
+
+v1 - https://lkml.org/lkml/2015/10/27/504
+v2 - https://lkml.org/lkml/2015/12/16/246
+v3 - http://lkml.iu.edu/hypermail/linux/kernel/1601.1/04308.html
+v4 - https://lkml.org/lkml/2016/2/4/646
+
+Jayachandran C (1):
+  ACPI: MCFG: Move mmcfg_list management to drivers/acpi
+
+Lorenzo Pieralisi (1):
+  drivers: pci: add generic code to claim bus resources
+
+Tomasz Nowicki (13):
+  acpi, pci, mcfg: Provide default RAW ACPI PCI config space accessors.
+  arm64, acpi: Use MCFG library and empty PCI config space accessors
+    from pci_mcfg.c file.
+  pci, acpi, ecam: Add flag to indicate whether ECAM region was hot
+    added or not.
+  x86, pci: Cleanup platform specific MCFG data by using ECAM hot_added
+    flag.
+  pci, acpi, x86, ia64: Move ACPI host bridge device companion
+    assignment to core code.
+  pci, acpi: Provide generic way to assign bus domain number.
+  x86, ia64: Include acpi_pci_{add|remove}_bus to the default
+    pcibios_{add|remove}_bus implementation.
+  acpi, mcfg: Add default PCI config accessors implementation and
+    initial support for related quirks.
+  pci, of: Move the PCI I/O space management to PCI core code.
+  pci, acpi: Support for ACPI based generic PCI host controller
+    initialization
+  pci, acpi: Match PCI config space accessors against platfrom specific
+    quirks.
+  arm64, pci, acpi: Assign legacy IRQs once device is enable.
+  arm64, pci, acpi: Start using ACPI based PCI host bridge driver for
+    ARM64.
+
+ arch/arm64/Kconfig                 |   5 +
+ arch/arm64/kernel/pci.c            |  35 +---
+ arch/ia64/hp/common/sba_iommu.c    |   2 +-
+ arch/ia64/include/asm/pci.h        |   1 -
+ arch/ia64/pci/pci.c                |  26 ---
+ arch/ia64/sn/kernel/io_acpi_init.c |   4 +-
+ arch/x86/include/asm/pci.h         |   3 -
+ arch/x86/include/asm/pci_x86.h     |  24 +--
+ arch/x86/pci/acpi.c                |  47 +----
+ arch/x86/pci/common.c              |  10 -
+ arch/x86/pci/mmconfig-shared.c     | 269 ++++---------------------
+ arch/x86/pci/mmconfig_32.c         |   1 +
+ arch/x86/pci/mmconfig_64.c         |   1 +
+ arch/x86/pci/numachip.c            |   1 +
+ drivers/acpi/Kconfig               |   7 +
+ drivers/acpi/Makefile              |   1 +
+ drivers/acpi/pci_mcfg.c            | 392 +++++++++++++++++++++++++++++++++++++
+ drivers/acpi/pci_root.c            | 154 ++++++++++++++-
+ drivers/of/address.c               | 116 +----------
+ drivers/pci/pci.c                  | 126 +++++++++++-
+ drivers/pci/probe.c                |   5 +
+ drivers/pci/setup-bus.c            |  63 ++++++
+ drivers/xen/pci.c                  |   5 +-
+ include/acpi/acpi_bus.h            |   1 +
+ include/asm-generic/vmlinux.lds.h  |   7 +
+ include/linux/of_address.h         |   9 -
+ include/linux/pci-acpi.h           |  68 +++++++
+ include/linux/pci.h                |   6 +
+ 28 files changed, 892 insertions(+), 497 deletions(-)
+ create mode 100644 drivers/acpi/pci_mcfg.c
+
 -- 
-2.7.1
+1.9.1
 
