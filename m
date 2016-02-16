@@ -1,130 +1,136 @@
 From: Tomasz Nowicki <tn@semihalf.com>
-Subject: [PATCH V5 11/15] drivers: pci: add generic code to claim bus resources
-Date: Tue, 16 Feb 2016 14:53:41 +0100
-Message-ID: <1455630825-27253-12-git-send-email-tn@semihalf.com>
+Subject: [PATCH V5 07/15] pci,
+ acpi: Provide generic way to assign bus domain number.
+Date: Tue, 16 Feb 2016 14:53:37 +0100
+Message-ID: <1455630825-27253-8-git-send-email-tn@semihalf.com>
 References: <1455630825-27253-1-git-send-email-tn@semihalf.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
 In-Reply-To: <1455630825-27253-1-git-send-email-tn@semihalf.com>
-Sender: linux-kernel-owner@vger.kernel.org
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
 To: helgaas@kernel.org, arnd@arndb.de, will.deacon@arm.com, catalin.marinas@arm.com, rafael@kernel.org, hanjun.guo@linaro.org, Lorenzo.Pieralisi@arm.com, okaya@codeaurora.org, jiang.liu@linux.intel.com, jchandra@broadcom.com, Stefano.Stabellini@eu.citrix.com
-Cc: robert.richter@caviumnetworks.com, mw@semihalf.com, Liviu.Dudau@arm.com, ddaney@caviumnetworks.com, wangyijing@huawei.com, Suravee.Suthikulpanit@amd.com, msalter@redhat.com, linux-pci@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linaro-acpi@lists.linaro.org, jcm@redhat.com, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Bjorn Helgaas <bhelgaas@google.com>, Yinghai Lu <yinghai@kernel.org>
+Cc: jcm@redhat.com, linaro-acpi@lists.linaro.org, linux-pci@vger.kernel.org, Liviu.Dudau@arm.com, ddaney@caviumnetworks.com, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, robert.richter@caviumnetworks.com, Suravee.Suthikulpanit@amd.com, msalter@redhat.com, wangyijing@huawei.com, Tomasz Nowicki <tn@semihalf.com>, mw@semihalf.com, linux-arm-kernel@lists.infradead.org
 List-Id: linux-acpi@vger.kernel.org
 
-From: Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>
+As we now have valid PCI host bridge device reference we can
+introduce code that is going to find its bus domain number using
+ACPI _SEG method.
 
-PCI core code contains a set of functions, eg:
+Note that _SEG method is optional, therefore _SEG absence means
+that all PCI buses belong to domain 0.
 
-pci_assign_unassigned_bus_resources()
+While at it, for the sake of code clarity we put ACPI and DT domain
+assign methods into the corresponding helpers.
 
-that allow to assign the PCI resources for a given bus after
-enumeration.
-
-On systems where the PCI BARs are immutable (ie they must not and can
-not be assigned), PCI resources must be claimed in order to be
-validated and inserted in the PCI resources tree, but there is no generic
-PCI kernel function for that purpose and the resource claiming is
-implemented in an arch specific fashion which resulted in arches
-implementations that contain duplicated code.
-
-This patch, based on the ia64 resource claiming arch implementation,
-implements a set of functions in core PCI code that provides a PCI core
-interface for resources claiming for a given PCI bus hierarchy, paving
-the way for further resource claiming consolidation across architectures.
-
-Signed-off-by: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
-Cc: Arnd Bergmann <arnd@arndb.de>
-Cc: Bjorn Helgaas <bhelgaas@google.com>
-Cc: Yinghai Lu <yinghai@kernel.org>
+Signed-off-by: Tomasz Nowicki <tn@semihalf.com>
+Reviewed-by: Liviu Dudau <Liviu.Dudau@arm.com>
+Tested-by: Suravee Suthikulpanit <Suravee.Suthikulpanit@amd.com>
+Tested-by: Jeremy Linton <jeremy.linton@arm.com>
+Tested-by: Duc Dang <dhdang@apm.com>
+Tested-by: Dongdong Liu <liudongdong3@huawei.com>
+Tested-by: Hanjun Guo <hanjun.guo@linaro.org>
+Tested-by: Graeme Gregory <graeme.gregory@linaro.org>
+Tested-by: Sinan Kaya <okaya@codeaurora.org>
 ---
- drivers/pci/setup-bus.c | 63 +++++++++++++++++++++++++++++++++++++++++++++++++
- include/linux/pci.h     |  1 +
- 2 files changed, 64 insertions(+)
+ drivers/acpi/pci_root.c  | 18 ++++++++++++++++++
+ drivers/pci/pci.c        | 11 +++++++++--
+ include/linux/pci-acpi.h |  2 ++
+ 3 files changed, 29 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/pci/setup-bus.c b/drivers/pci/setup-bus.c
-index 7796d0a..c959398 100644
---- a/drivers/pci/setup-bus.c
-+++ b/drivers/pci/setup-bus.c
-@@ -1424,6 +1424,69 @@ void pci_bus_assign_resources(const struct pci_bus *bus)
+diff --git a/drivers/acpi/pci_root.c b/drivers/acpi/pci_root.c
+index c2bd6dd..3b284dc 100644
+--- a/drivers/acpi/pci_root.c
++++ b/drivers/acpi/pci_root.c
+@@ -419,6 +419,24 @@ out:
  }
- EXPORT_SYMBOL(pci_bus_assign_resources);
+ EXPORT_SYMBOL(acpi_pci_osc_control_set);
  
-+static void pci_claim_device_resources(struct pci_dev *dev)
++int acpi_pci_bus_domain_nr(struct device *parent)
 +{
-+	int i;
++	struct acpi_device *acpi_dev = to_acpi_device(parent);
++	unsigned long long segment = 0;
++	acpi_status status;
 +
-+	for (i = 0; i < PCI_BRIDGE_RESOURCES; i++) {
-+		struct resource *r = &dev->resource[i];
++	/*
++	 * If _SEG method does not exist, following ACPI spec (6.5.6)
++	 * all PCI buses belong to domain 0.
++	 */
++	status = acpi_evaluate_integer(acpi_dev->handle, METHOD_NAME__SEG, NULL,
++				       &segment);
++	if (ACPI_FAILURE(status) && status != AE_NOT_FOUND)
++		dev_err(&acpi_dev->dev, "can't evaluate _SEG\n");
 +
-+		if (!r->flags || r->parent)
-+			continue;
-+
-+		pci_claim_resource(dev, i);
-+	}
++	return segment;
 +}
 +
-+static void pci_claim_bridge_resources(struct pci_dev *dev)
-+{
-+	int i;
-+
-+	for (i = PCI_BRIDGE_RESOURCES; i < PCI_NUM_RESOURCES; i++) {
-+		struct resource *r = &dev->resource[i];
-+
-+		if (!r->flags || r->parent)
-+			continue;
-+
-+		pci_claim_bridge_resource(dev, i);
-+	}
+ static void negotiate_os_control(struct acpi_pci_root *root, int *no_aspm)
+ {
+ 	u32 support, control, requested;
+diff --git a/drivers/pci/pci.c b/drivers/pci/pci.c
+index 602eb42..d6c768e 100644
+--- a/drivers/pci/pci.c
++++ b/drivers/pci/pci.c
+@@ -19,6 +19,7 @@
+ #include <linux/spinlock.h>
+ #include <linux/string.h>
+ #include <linux/log2.h>
++#include <linux/pci-acpi.h>
+ #include <linux/pci-aspm.h>
+ #include <linux/pm_wakeup.h>
+ #include <linux/interrupt.h>
+@@ -4769,7 +4770,7 @@ int pci_get_new_domain_nr(void)
+ }
+ 
+ #ifdef CONFIG_PCI_DOMAINS_GENERIC
+-void pci_bus_assign_domain_nr(struct pci_bus *bus, struct device *parent)
++static int of_pci_bus_domain_nr(struct device *parent)
+ {
+ 	static int use_dt_domains = -1;
+ 	int domain = of_get_pci_domain_nr(parent->of_node);
+@@ -4811,7 +4812,13 @@ void pci_bus_assign_domain_nr(struct pci_bus *bus, struct device *parent)
+ 		domain = -1;
+ 	}
+ 
+-	bus->domain_nr = domain;
++	return domain;
 +}
 +
-+static void pci_bus_allocate_dev_resources(struct pci_bus *b)
++void pci_bus_assign_domain_nr(struct pci_bus *bus, struct device *parent)
 +{
-+	struct pci_dev *dev;
-+	struct pci_bus *child;
-+
-+	list_for_each_entry(dev, &b->devices, bus_list) {
-+		pci_claim_device_resources(dev);
-+
-+		child = dev->subordinate;
-+		if (child)
-+			pci_bus_allocate_dev_resources(child);
-+	}
-+}
-+
-+static void pci_bus_allocate_resources(struct pci_bus *b)
-+{
-+	struct pci_bus *child;
-+
-+	/* Depth-First Search on bus tree */
-+	if (b->self) {
-+		pci_read_bridge_bases(b);
-+		pci_claim_bridge_resources(b->self);
-+	}
-+
-+	list_for_each_entry(child, &b->children, node)
-+		pci_bus_allocate_resources(child);
-+}
-+
-+void pci_bus_claim_resources(struct pci_bus *b)
-+{
-+	pci_bus_allocate_resources(b);
-+	pci_bus_allocate_dev_resources(b);
-+}
-+EXPORT_SYMBOL(pci_bus_claim_resources);
-+
- static void __pci_bridge_assign_resources(const struct pci_dev *bridge,
- 					  struct list_head *add_head,
- 					  struct list_head *fail_head)
-diff --git a/include/linux/pci.h b/include/linux/pci.h
-index dac677c..6faf994 100644
---- a/include/linux/pci.h
-+++ b/include/linux/pci.h
-@@ -1119,6 +1119,7 @@ ssize_t pci_write_vpd(struct pci_dev *dev, loff_t pos, size_t count, const void
- /* Helper functions for low-level code (drivers/pci/setup-[bus,res].c) */
- resource_size_t pcibios_retrieve_fw_addr(struct pci_dev *dev, int idx);
- void pci_bus_assign_resources(const struct pci_bus *bus);
-+void pci_bus_claim_resources(struct pci_bus *bus);
- void pci_bus_size_bridges(struct pci_bus *bus);
- int pci_claim_resource(struct pci_dev *, int);
- int pci_claim_bridge_resource(struct pci_dev *bridge, int i);
++	bus->domain_nr = acpi_disabled ? of_pci_bus_domain_nr(parent) :
++					 acpi_pci_bus_domain_nr(parent);
+ }
+ #endif
+ #endif
+diff --git a/include/linux/pci-acpi.h b/include/linux/pci-acpi.h
+index 94d8f38..b4f87ba9 100644
+--- a/include/linux/pci-acpi.h
++++ b/include/linux/pci-acpi.h
+@@ -22,6 +22,7 @@ static inline acpi_status pci_acpi_remove_pm_notifier(struct acpi_device *dev)
+ {
+ 	return acpi_remove_pm_notifier(dev);
+ }
++extern int acpi_pci_bus_domain_nr(struct device *parent);
+ extern phys_addr_t acpi_pci_root_get_mcfg_addr(acpi_handle handle);
+ 
+ static inline acpi_handle acpi_find_root_bridge_handle(struct pci_dev *pdev)
+@@ -143,6 +144,7 @@ extern struct list_head pci_mmcfg_list;
+ #else	/* CONFIG_ACPI */
+ static inline void acpi_pci_add_bus(struct pci_bus *bus) { }
+ static inline void acpi_pci_remove_bus(struct pci_bus *bus) { }
++static inline int acpi_pci_bus_domain_nr(struct device *parent) { return -1; }
+ #endif	/* CONFIG_ACPI */
+ 
+ #ifdef CONFIG_ACPI_APEI
 -- 
 1.9.1
