@@ -1,181 +1,50 @@
-From: Sinan Kaya <okaya@codeaurora.org>
-Subject: Re: [PATCH] acpi, pci, irq: account for early penalty assignment
-Date: Mon, 15 Feb 2016 21:15:15 -0500
-Message-ID: <56C28633.60003@codeaurora.org>
-References: <1455554508-18174-1-git-send-email-okaya@codeaurora.org>
- <CAJZ5v0iszEN+ep8yGNX35RP04_ZwnF1K_w+VW5tFR9Jz2_ZJqw@mail.gmail.com>
+From: Aaron Lu <aaron.lu@intel.com>
+Subject: Re: [PATCH 3/3] drivers/acpi: make pmic/intel_pmic_crc.c explicitly
+ non-modular
+Date: Tue, 16 Feb 2016 10:52:15 +0800
+Message-ID: <56C28EDF.9010804@intel.com>
+References: <1455514071-26368-1-git-send-email-paul.gortmaker@windriver.com>
+ <1455514071-26368-4-git-send-email-paul.gortmaker@windriver.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp.codeaurora.org ([198.145.29.96]:42787 "EHLO
-	smtp.codeaurora.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752314AbcBPCPV (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 15 Feb 2016 21:15:21 -0500
-In-Reply-To: <CAJZ5v0iszEN+ep8yGNX35RP04_ZwnF1K_w+VW5tFR9Jz2_ZJqw@mail.gmail.com>
+Received: from mga01.intel.com ([192.55.52.88]:15049 "EHLO mga01.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752532AbcBPCwf (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 15 Feb 2016 21:52:35 -0500
+In-Reply-To: <1455514071-26368-4-git-send-email-paul.gortmaker@windriver.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rafael@kernel.org>
-Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Timur Tabi <timur@codeaurora.org>, Christopher Covington <cov@codeaurora.org>, Linux PCI <linux-pci@vger.kernel.org>, ravikanth.nalla@hpe.com, Len Brown <lenb@kernel.org>, harish.k@hpe.com, ashwin.reghunandanan@hpe.com, Bjorn Helgaas <bhelgaas@google.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+To: Paul Gortmaker <paul.gortmaker@windriver.com>, linux-kernel@vger.kernel.org
+Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org
 
-On 2/15/2016 7:26 PM, Rafael J. Wysocki wrote:
-> On Mon, Feb 15, 2016 at 5:41 PM, Sinan Kaya <okaya@codeaurora.org> wrote:
->> A crash has been observed when assigning penalty on x86 systems.
->>
->> It looks like this problem happens on x86 platforms with IOAPIC and an SCI
->> interrupt override in the ACPI table with interrupt number greater than
->> 16. (22 in this example)
->>
->> The bug has been introduced by "ACPI, PCI, irq: remove interrupt count
->> restriction" commit. The code was using kmalloc to resize the interrupt
->> list. In this use case, the set penalty call is coming from early phase
->> and the heap is not initialized yet.
->>
->> BUG: unable to handle kernel NULL pointer dereference at 0000000000000018
->> IP: [<ffffffff811e8b9d>] kmem_cache_alloc_trace+0xad/0x1c0
->> PGD 0
->> Oops: 0000 [#1] SMP
->> Modules linked in:
->> CPU: 0 PID: 0 Comm: swapper Not tainted 4.5.0-rc2Feb-3_RK #1
->> Hardware name: HP Superdome2 16s, BIOS Bundle: 007.006.000 SFW: 033.162.000
->> 10/30/2015
->> [<ffffffff813bc190>] acpi_irq_set_penalty+0x60/0x8e
->> [<ffffffff813bc1df>] acpi_irq_add_penalty+0x21/0x26
->> [<ffffffff813bc76d>] acpi_penalize_sci_irq+0x25/0x28
->> [<ffffffff81b8260d>] acpi_sci_ioapic_setup+0x68/0x78
->> [<ffffffff81b830fc>] acpi_boot_init+0x2cc/0x533
->> [<ffffffff810677c8>] ? set_pte_vaddr_pud+0x48/0x50
->> [<ffffffff81b828cf>] ? acpi_parse_x2apic+0x77/0x77
->> [<ffffffff81b82858>] ? dmi_ignore_irq0_timer_override+0x30/0x30
->> [<ffffffff81b77c1e>] setup_arch+0xc24/0xce9
->> [<ffffffff81b6e120>] ? early_idt_handler_array+0x120/0x120
->> [<ffffffff81b6ed94>] start_kernel+0xfc/0x506
->> [<ffffffff81b6e120>] ? early_idt_handler_array+0x120/0x120
->> [<ffffffff81b6e120>] ? early_idt_handler_array+0x120/0x120
->> [<ffffffff81b6e5ee>] x86_64_start_reservations+0x2a/0x2c
->> [<ffffffff81b6e73c>] x86_64_start_kernel+0x14c/0x16f
->>
->> Besides from the use case above, there is one more situation where
->> set_penalty is being called from the init context like. There is support
->> for setting the penalty through kernel command line.
->>
->> Adding support to be called from early context for limited number of
->> interrupts.
->>
->> Signed-off-by: Sinan Kaya <okaya@codeaurora.org>
+On 02/15/2016 01:27 PM, Paul Gortmaker wrote:
+> The Kconfig currently controlling compilation of this code is:
 > 
-> This looks somewhat hackish to me to be honest.
-I know.
+> drivers/acpi/Kconfig:config CRC_PMIC_OPREGION
+> drivers/acpi/Kconfig:   bool "ACPI operation region support for CrystalCove PMIC"
+> 
+> ...meaning that it currently is not being built as a module by anyone.
+> 
+> Lets remove the couple modular references, so that when reading
+> the driver there is no doubt it is builtin-only.
+> 
+> Since module_init translates to device_initcall in the non-modular
+> case, the init ordering remains unchanged with this commit.
+> 
+> We also delete the MODULE_LICENSE tag etc. since all that information
+> is already contained at the top of the file in the comments.
+> 
+> Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+> Cc: Len Brown <lenb@kernel.org>
+> Cc: Aaron Lu <aaron.lu@intel.com>
+> Cc: linux-acpi@vger.kernel.org
+> Signed-off-by: Paul Gortmaker <paul.gortmaker@windriver.com>
 
-This is the reason why I wanted to discuss this patch on the list. I hate the
-fact that I broke something unintentionally (who would think that kzalloc
- wouldn't work). I'm trying to restore the functionality and I don't like
-what I see with the early_memxxx family of functions. 
+Acked-by: Aaron Lu <aaron.lu@intel.com>
 
-They all require a fixed size memory allocation from the system memory. Not a
-general purpose early_kzalloc function for instance.
-
-> 
->> ---
->>  drivers/acpi/pci_link.c | 32 ++++++++++++++++++++++++++++----
->>  1 file changed, 28 insertions(+), 4 deletions(-)
->>
->> diff --git a/drivers/acpi/pci_link.c b/drivers/acpi/pci_link.c
->> index fa28635..24b69e1 100644
->> --- a/drivers/acpi/pci_link.c
->> +++ b/drivers/acpi/pci_link.c
->> @@ -47,6 +47,7 @@ ACPI_MODULE_NAME("pci_link");
->>  #define ACPI_PCI_LINK_FILE_INFO                "info"
->>  #define ACPI_PCI_LINK_FILE_STATUS      "state"
->>  #define ACPI_PCI_LINK_MAX_POSSIBLE     16
->> +#define ACPI_PCI_LINK_MAX_EARLY_IRQINFO 1024
->>
->>  static int acpi_pci_link_add(struct acpi_device *device,
->>                              const struct acpi_device_id *not_used);
->> @@ -470,9 +471,13 @@ struct irq_penalty_info {
->>         int irq;
->>         int penalty;
->>         struct list_head node;
->> +       bool early;
-> 
-> Where is this field used ->
-> 
-got rid of it.
-
->>  };
->>
->>  static LIST_HEAD(acpi_irq_penalty_list);
->> +static int early_init_done;
->> +static struct irq_penalty_info early_irq_infos[ACPI_PCI_LINK_MAX_EARLY_IRQINFO];
->> +static int early_irq_info_counter;
->>
->>  static int acpi_irq_get_penalty(int irq)
->>  {
->> @@ -507,10 +512,20 @@ static int acpi_irq_set_penalty(int irq, int new_penalty)
->>                 }
->>         }
->>
->> -       /* nope, let's allocate a slot for this IRQ */
->> -       irq_info = kzalloc(sizeof(*irq_info), GFP_KERNEL);
->> -       if (!irq_info)
->> -               return -ENOMEM;
->> +       if (!early_init_done) {
->> +               if (early_irq_info_counter < ARRAY_SIZE(early_irq_infos)) {
->> +                       irq_info = &early_irq_infos[early_irq_info_counter];
->> +                       irq_info->early = true;
-> 
-> -> except for being set here?
-thanks, removed.
-
-> 
->> +                       early_irq_info_counter++;
->> +               } else {
->> +                       return -ENOMEM;
->> +               }
->> +       } else {
->> +               /* nope, let's allocate a slot for this IRQ */
->> +               irq_info = kzalloc(sizeof(*irq_info), GFP_KERNEL);
->> +               if (!irq_info)
->> +                       return -ENOMEM;
->> +       }
->>
->>         irq_info->irq = irq;
->>         irq_info->penalty = new_penalty;
->> @@ -968,3 +983,12 @@ void __init acpi_pci_link_init(void)
->>         register_syscore_ops(&irqrouter_syscore_ops);
->>         acpi_scan_add_handler(&pci_link_handler);
->>  }
->> +
->> +
->> +static int acpi_pci_link_subsys_init(void)
->> +{
->> +       early_init_done = true;
-> 
-> Why do you need yet another subsys_initcall do set this?  Can't it be
-> set in, say, acpi_init()?
-> 
-> And isn't there any existing way to check that?  Like checking
-> acpi_gbl_permanent_mmap or something?
-
-I'll use acpi_gbl_permanent_mmap.
-
-> 
->> +       return 0;
->> +}
->> +
->> +subsys_initcall(acpi_pci_link_subsys_init)
->> --
-> 
-> Thanks,
-> Rafael
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-pci" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
-
-
--- 
-Sinan Kaya
-Qualcomm Technologies, Inc. on behalf of Qualcomm Innovation Center, Inc.
-Qualcomm Innovation Center, Inc. is a member of Code Aurora Forum, a Linux Foundation Collaborative Project
+Initially I want to make it a module, but then people told me it's not
+safe to remove operation region handler during runtime, so it became
+always builtin. We can change it back to module once the above problem
+is solved.
