@@ -1,63 +1,97 @@
 From: Tomasz Nowicki <tn@semihalf.com>
-Subject: [PATCH V5 14/15] arm64, pci, acpi: Assign legacy IRQs once device is enable.
-Date: Tue, 16 Feb 2016 14:53:44 +0100
-Message-ID: <1455630825-27253-15-git-send-email-tn@semihalf.com>
+Subject: [PATCH V5 09/15] acpi, mcfg: Add default PCI config accessors implementation and initial support for related quirks.
+Date: Tue, 16 Feb 2016 14:53:39 +0100
+Message-ID: <1455630825-27253-10-git-send-email-tn@semihalf.com>
 References: <1455630825-27253-1-git-send-email-tn@semihalf.com>
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-wm0-f50.google.com ([74.125.82.50]:36842 "EHLO
-	mail-wm0-f50.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932624AbcBPNyU (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 16 Feb 2016 08:54:20 -0500
-Received: by mail-wm0-f50.google.com with SMTP id g62so108515013wme.1
-        for <linux-acpi@vger.kernel.org>; Tue, 16 Feb 2016 05:54:20 -0800 (PST)
+Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1455630825-27253-1-git-send-email-tn@semihalf.com>
-Sender: linux-acpi-owner@vger.kernel.org
-List-Id: linux-acpi@vger.kernel.org
+Sender: linux-kernel-owner@vger.kernel.org
 To: helgaas@kernel.org, arnd@arndb.de, will.deacon@arm.com, catalin.marinas@arm.com, rafael@kernel.org, hanjun.guo@linaro.org, Lorenzo.Pieralisi@arm.com, okaya@codeaurora.org, jiang.liu@linux.intel.com, jchandra@broadcom.com, Stefano.Stabellini@eu.citrix.com
 Cc: robert.richter@caviumnetworks.com, mw@semihalf.com, Liviu.Dudau@arm.com, ddaney@caviumnetworks.com, wangyijing@huawei.com, Suravee.Suthikulpanit@amd.com, msalter@redhat.com, linux-pci@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linaro-acpi@lists.linaro.org, jcm@redhat.com, Tomasz Nowicki <tn@semihalf.com>
+List-Id: linux-acpi@vger.kernel.org
 
-This is the last step before enabling generic ACPI PCI host controller
-for ARM64. We need to take care of legacy IRQ mapping for non-MSI(X)
-PCI devices. pcibios_alloc_irq() evaluation is not sensitive to
-ACPI device enumeration order, so it is the best place to assign
-device's IRQs for ACPI boot method. Also, it does not hurt DT to be
-initialized form the same place.
-
-NOTE: *This is going to be temporary solution*. There is ongoing work
-which aims for cleaning legacy IRQ allocation from arch specific code.
-We can consider this patch as the necessary evil which will be removed
-once cleanup series lands in mailnline in the near future.
+We use generic accessors from access.c by default. However, we already
+know platforms that need special handling while accessing to PCI config
+space. These platforms will need different accessors set matched against
+platform ID, domain, bus touple. Therefore we are going to add (in future)
+DECLARE_ACPI_MCFG_FIXUP which will register platform specific custom
+accessors. For now, we let pci_mcfg_get_ops to take acpi_pci_root structure
+as an arguments and left some space for quirk matching algorithm.
 
 Signed-off-by: Tomasz Nowicki <tn@semihalf.com>
-Suggested-by: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+Tested-by: Duc Dang <dhdang@apm.com>
+Tested-by: Dongdong Liu <liudongdong3@huawei.com>
+Tested-by: Hanjun Guo <hanjun.guo@linaro.org>
+Tested-by: Graeme Gregory <graeme.gregory@linaro.org>
+Tested-by: Sinan Kaya <okaya@codeaurora.org>
 ---
- arch/arm64/kernel/pci.c | 11 ++++++++---
- 1 file changed, 8 insertions(+), 3 deletions(-)
+ drivers/acpi/pci_mcfg.c  | 30 ++++++++++++++++++++++++++++++
+ include/linux/pci-acpi.h | 12 ++++++++++++
+ 2 files changed, 42 insertions(+)
 
-diff --git a/arch/arm64/kernel/pci.c b/arch/arm64/kernel/pci.c
-index 023b983..6e77e1b 100644
---- a/arch/arm64/kernel/pci.c
-+++ b/arch/arm64/kernel/pci.c
-@@ -52,11 +52,16 @@ int pcibios_enable_device(struct pci_dev *dev, int mask)
+diff --git a/drivers/acpi/pci_mcfg.c b/drivers/acpi/pci_mcfg.c
+index 3282f2a..0062257 100644
+--- a/drivers/acpi/pci_mcfg.c
++++ b/drivers/acpi/pci_mcfg.c
+@@ -41,6 +41,36 @@ int __weak raw_pci_write(unsigned int domain, unsigned int bus,
+ 	return PCIBIOS_DEVICE_NOT_FOUND;
  }
  
- /*
-- * Try to assign the IRQ number from DT when adding a new device
-+ * Try to assign the IRQ number when probing a new device
-  */
--int pcibios_add_device(struct pci_dev *dev)
-+int pcibios_alloc_irq(struct pci_dev *dev)
++void __iomem *
++pci_mcfg_dev_base(struct pci_bus *bus, unsigned int devfn, int offset)
++{
++	struct pci_mmcfg_region *cfg;
++
++	cfg = pci_mmconfig_lookup(pci_domain_nr(bus), bus->number);
++	if (cfg && cfg->virt)
++		return cfg->virt +
++			(PCI_MMCFG_BUS_OFFSET(bus->number) | (devfn << 12)) +
++			offset;
++	return NULL;
++}
++
++/* Default generic PCI config accessors */
++static struct pci_ops default_pci_mcfg_ops = {
++	.map_bus = pci_mcfg_dev_base,
++	.read = pci_generic_config_read,
++	.write = pci_generic_config_write,
++};
++
++struct pci_ops *pci_mcfg_get_ops(struct acpi_pci_root *root)
++{
++	/*
++	 * TODO: Match against platform specific quirks and return
++	 * corresponding PCI config space accessor set.
++	 */
++
++	return &default_pci_mcfg_ops;
++}
++
+ static void list_add_sorted(struct pci_mmcfg_region *new)
  {
--	dev->irq = of_irq_parse_and_map_pci(dev, 0, 0);
-+	if (acpi_disabled)
-+		dev->irq = of_irq_parse_and_map_pci(dev, 0, 0);
-+#ifdef CONFIG_ACPI
-+	else
-+		return acpi_pci_irq_enable(dev);
-+#endif
+ 	struct pci_mmcfg_region *cfg;
+diff --git a/include/linux/pci-acpi.h b/include/linux/pci-acpi.h
+index b4f87ba9..3dc6a8c 100644
+--- a/include/linux/pci-acpi.h
++++ b/include/linux/pci-acpi.h
+@@ -141,6 +141,18 @@ extern struct list_head pci_mmcfg_list;
+ #define PCI_MMCFG_BUS_OFFSET(bus)      ((bus) << 20)
+ #define PCI_MMCFG_OFFSET(bus, devfn)   ((bus) << 20 | (devfn) << 12)
  
- 	return 0;
- }
++#ifdef	CONFIG_PCI_MMCONFIG
++extern struct pci_ops *pci_mcfg_get_ops(struct acpi_pci_root *root);
++extern void __iomem *pci_mcfg_dev_base(struct pci_bus *bus, unsigned int devfn,
++				       int offset);
++#else
++static inline struct pci_ops *pci_mcfg_get_ops(struct acpi_pci_root *root)
++{ return NULL; }
++static inline void __iomem *pci_mcfg_dev_base(struct pci_bus *bus,
++					      unsigned int devfn, int offset)
++{ return NULL; }
++#endif
++
+ #else	/* CONFIG_ACPI */
+ static inline void acpi_pci_add_bus(struct pci_bus *bus) { }
+ static inline void acpi_pci_remove_bus(struct pci_bus *bus) { }
 -- 
 1.9.1
-
