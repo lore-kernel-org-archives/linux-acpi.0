@@ -1,66 +1,90 @@
-From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Subject: [PATCH v1 06/10] device property: switch to use UUID API
-Date: Wed, 17 Feb 2016 14:17:24 +0200
-Message-ID: <1455711448-124103-7-git-send-email-andriy.shevchenko@linux.intel.com>
-References: <1455711448-124103-1-git-send-email-andriy.shevchenko@linux.intel.com>
+From: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+Subject: Re: [PATCH V5 02/15] acpi, pci, mcfg: Provide default RAW ACPI PCI
+ config space accessors.
+Date: Wed, 17 Feb 2016 12:39:33 +0000
+Message-ID: <20160217123933.GB9794@red-moon>
+References: <1455630825-27253-1-git-send-email-tn@semihalf.com>
+ <1455630825-27253-3-git-send-email-tn@semihalf.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1455711448-124103-1-git-send-email-andriy.shevchenko@linux.intel.com>
+Content-Disposition: inline
+In-Reply-To: <1455630825-27253-3-git-send-email-tn@semihalf.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Theodore Ts'o <tytso@mit.edu>, Arnd Bergmann <arnd@arndb.de>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Jarkko Sakkinen <jarkko.sakkinen@linux.intel.com>, Jani Nikula <jani.nikula@linux.intel.com>, David Airlie <airlied@linux.ie>, Benjamin Tissoires <benjamin.tissoires@redhat.com>, Bjorn Helgaas <bhelgaas@google.com>, Mathias Nyman <mathias.nyman@intel.com>, Matt Fleming <matt@codeblueprint.co.uk>, Lv Zheng <lv.zheng@intel.com>, Mark Brown <broonie@kernel.org>, Zhang Rui <rui.zhang@intel.com>, Mika Westerberg <mika.westerberg@linux.intel.com>, Andrew Morton <akpm@linux-foundation.org>, Rasmus Villemoes <linux@rasmusvillemoes.dk>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, dri-devel@lists.freedesktop.org, linux-efi@vger.kernel.org, linux-api@vger.kernel.org, linux-nvdimm@lists.01.org
-Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+To: Tomasz Nowicki <tn@semihalf.com>
+Cc: helgaas@kernel.org, arnd@arndb.de, will.deacon@arm.com, catalin.marinas@arm.com, rafael@kernel.org, hanjun.guo@linaro.org, okaya@codeaurora.org, jiang.liu@linux.intel.com, jchandra@broadcom.com, Stefano.Stabellini@eu.citrix.com, robert.richter@caviumnetworks.com, mw@semihalf.com, Liviu.Dudau@arm.com, ddaney@caviumnetworks.com, wangyijing@huawei.com, Suravee.Suthikulpanit@amd.com, msalter@redhat.com, linux-pci@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linaro-acpi@lists.linaro.org, jcm@redhat.com
 List-Id: linux-acpi@vger.kernel.org
 
-Switch to use a generic UUID API instead of custom approach. It allows to
-define UUIDs, compare them, and validate.
+On Tue, Feb 16, 2016 at 02:53:32PM +0100, Tomasz Nowicki wrote:
+> Lets keep RAW ACPI PCI config space accessors empty by default,
+> since we are note sure if they are necessary accross all archs.
+> Once we sort this out, we can provide generic version or let
+> architectures to overwrite, like now x86.
 
-Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
----
- drivers/acpi/property.c | 18 ++++++++----------
- 1 file changed, 8 insertions(+), 10 deletions(-)
+"ACPICA code requires raw PCI bus accessors in order to give AML
+access to PCI_Config regions in platforms where they are actually
+used. The raw PCI bus accessors implementation is arch-dependent,
+therefore this patch adds a weak generic implementation (for now
+empty but can be generalized if common functionality is found among
+arches) allowing arches where PCI_Config regions are currently required
+to override it (eg x86) as needed and providing at the same time
+default stubs for arches that do not require them".
 
-diff --git a/drivers/acpi/property.c b/drivers/acpi/property.c
-index 2aee416..1e75305 100644
---- a/drivers/acpi/property.c
-+++ b/drivers/acpi/property.c
-@@ -25,15 +25,13 @@ static int acpi_data_get_property_array(struct acpi_device_data *data,
- 					const union acpi_object **obj);
- 
- /* ACPI _DSD device properties UUID: daffd814-6eba-4d8c-8a91-bc9bbf4aa301 */
--static const u8 prp_uuid[16] = {
--	0x14, 0xd8, 0xff, 0xda, 0xba, 0x6e, 0x8c, 0x4d,
--	0x8a, 0x91, 0xbc, 0x9b, 0xbf, 0x4a, 0xa3, 0x01
--};
-+static const uuid_le prp_uuid =
-+	UUID_LE(0xdaffd814, 0x6eba, 0x4d8c,
-+		0x8a, 0x91, 0xbc, 0x9b, 0xbf, 0x4a, 0xa3, 0x01);
- /* ACPI _DSD data subnodes UUID: dbb8e3e6-5886-4ba6-8795-1319f52a966b */
--static const u8 ads_uuid[16] = {
--	0xe6, 0xe3, 0xb8, 0xdb, 0x86, 0x58, 0xa6, 0x4b,
--	0x87, 0x95, 0x13, 0x19, 0xf5, 0x2a, 0x96, 0x6b
--};
-+static const uuid_le ads_uuid =
-+	UUID_LE(0xdbb8e3e6, 0x5886, 0x4ba6,
-+		0x87, 0x95, 0x13, 0x19, 0xf5, 0x2a, 0x96, 0x6b);
- 
- static bool acpi_enumerate_nondev_subnodes(acpi_handle scope,
- 					   const union acpi_object *desc,
-@@ -138,7 +136,7 @@ static bool acpi_enumerate_nondev_subnodes(acpi_handle scope,
- 		    || links->type != ACPI_TYPE_PACKAGE)
- 			break;
- 
--		if (memcmp(uuid->buffer.pointer, ads_uuid, sizeof(ads_uuid)))
-+		if (uuid_le_cmp(*(uuid_le *)uuid->buffer.pointer, ads_uuid))
- 			continue;
- 
- 		return acpi_add_nondev_subnodes(scope, links, &data->subnodes);
-@@ -245,7 +243,7 @@ static bool acpi_extract_properties(const union acpi_object *desc,
- 		    || properties->type != ACPI_TYPE_PACKAGE)
- 			break;
- 
--		if (memcmp(uuid->buffer.pointer, prp_uuid, sizeof(prp_uuid)))
-+		if (uuid_le_cmp(*(uuid_le *)uuid->buffer.pointer, prp_uuid))
- 			continue;
- 
- 		/*
--- 
-2.7.0
+?
+
+> Suggested-by: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+> Signed-off-by: Tomasz Nowicki <tn@semihalf.com>
+> Tested-by: Suravee Suthikulpanit <Suravee.Suthikulpanit@amd.com>
+> Tested-by: Jeremy Linton <jeremy.linton@arm.com>
+> Tested-by: Duc Dang <dhdang@apm.com>
+> Tested-by: Dongdong Liu <liudongdong3@huawei.com>
+> Tested-by: Hanjun Guo <hanjun.guo@linaro.org>
+> Tested-by: Graeme Gregory <graeme.gregory@linaro.org>
+> Tested-by: Sinan Kaya <okaya@codeaurora.org>
+> ---
+>  drivers/acpi/pci_mcfg.c | 20 ++++++++++++++++++++
+>  1 file changed, 20 insertions(+)
+> 
+> diff --git a/drivers/acpi/pci_mcfg.c b/drivers/acpi/pci_mcfg.c
+> index ea84365..0467b00 100644
+> --- a/drivers/acpi/pci_mcfg.c
+> +++ b/drivers/acpi/pci_mcfg.c
+> @@ -21,6 +21,26 @@
+>  static DEFINE_MUTEX(pci_mmcfg_lock);
+>  LIST_HEAD(pci_mmcfg_list);
+>  
+> +/*
+> + * raw_pci_read/write - raw ACPI PCI config space accessors.
+> + *
+> + * By defauly (__weak) these accessors are empty and should be overwritten
+
+s/defauly/default
+
+> + * by architectures which support operations on ACPI PCI_Config regions,
+> + * see osl.c file.
+
+Add the path or remove the file reference.
+
+> + */
+> +
+> +int __weak raw_pci_read(unsigned int domain, unsigned int bus,
+> +			unsigned int devfn, int reg, int len, u32 *val)
+> +{
+> +	return PCIBIOS_DEVICE_NOT_FOUND;
+> +}
+> +
+> +int __weak raw_pci_write(unsigned int domain, unsigned int bus,
+> +			 unsigned int devfn, int reg, int len, u32 val)
+> +{
+> +	return PCIBIOS_DEVICE_NOT_FOUND;
+> +}
+> +
+>  static void list_add_sorted(struct pci_mmcfg_region *new)
+>  {
+>  	struct pci_mmcfg_region *cfg;
+
+Note: this patch is not strictly required, but it is nice because
+it removes the raw/dumb/empty accessors from ARM64 code (where they do not
+belong), so:
+
+Reviewed-by: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
