@@ -1,66 +1,50 @@
-From: "Rafael J. Wysocki" <rafael@kernel.org>
-Subject: Re: [PATCH v2 0/3] PCI: Revert "Implement pcibios_alloc_irq() and pcibios_free_irq()"
-Date: Wed, 17 Feb 2016 20:47:16 +0100
-Message-ID: <CAJZ5v0g1TBiRhALk5Q8PbC2FOXvOCJJsfNBcTVBLFpjDFvp0ag@mail.gmail.com>
-References: <20160217182718.302.10272.stgit@bhelgaas-glaptop2.roam.corp.google.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+From: Prashanth Prakash <pprakash@codeaurora.org>
+Subject: [PATCH V4 0/5] acpi: cppc optimization patches
+Date: Wed, 17 Feb 2016 13:20:58 -0700
+Message-ID: <1455740463-19192-1-git-send-email-pprakash@codeaurora.org>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-lb0-f181.google.com ([209.85.217.181]:36637 "EHLO
-	mail-lb0-f181.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S964976AbcBQTrS convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 17 Feb 2016 14:47:18 -0500
-In-Reply-To: <20160217182718.302.10272.stgit@bhelgaas-glaptop2.roam.corp.google.com>
+Received: from smtp.codeaurora.org ([198.145.29.96]:53028 "EHLO
+	smtp.codeaurora.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S964970AbcBQUVY (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 17 Feb 2016 15:21:24 -0500
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Bjorn Helgaas <bhelgaas@google.com>
-Cc: Linux PCI <linux-pci@vger.kernel.org>, =?UTF-8?B?0J7Qu9C10LPQnNC+0YDQvtC3?= <oleg.moroz@mcc.vniiem.ru>, Joerg Roedel <jroedel@suse.de>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Sunjin Yang <fan4326@gmail.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Thomas Gleixner <tglx@linutronix.de>, Yinghai Lu <yinghai@kernel.org>, Jiang Liu <jiang.liu@linux.intel.com>
+To: rjw@rjwysocki.net
+Cc: ashwin.chaugule@linaro.org, linux-acpi@vger.kernel.org, linaro-acpi@lists.linaro.org, alexey.klimov@arm.com, Prashanth Prakash <pprakash@codeaurora.org>
 
-On Wed, Feb 17, 2016 at 7:36 PM, Bjorn Helgaas <bhelgaas@google.com> wr=
-ote:
-> These are clean reverts of 991de2e59090 ("PCI, x86: Implement
-> pcibios_alloc_irq() and pcibios_free_irq()") and related changes.
->
-> We have two reports of drivers broken in v4.3 by Jiang's change,
-> 991de2e59090 ("PCI, x86: Implement pcibios_alloc_irq() and
-> pcibios_free_irq()").
->
-> It would be best to fix the problem instead of reverting 991de2e59090=
-, but
-> I don't have time to do that myself, and we haven't heard from Jiang,=
- so
-> the only choice I have is to revert the commit.
->
-> Note that reverting will likely break IOAPIC hotplug.
->
-> =D0=9E=D0=BB=D0=B5=D0=B3 and Sunjin, can you please test this and see=
- whether it fixes your
-> drivers?  This patch is based on v4.5-rc1.
->
-> I intend to merge these for v4.5 unless I hear objections.
->
-> They're on my for-linus branch, so they should appear in linux-next
-> tomorrow.
->
-> Changes from the v1 posting:
->   - Explicitly revert related patches instead of resolving conflicts
->     manually
-> ---
->
-> Bjorn Helgaas (3):
->       Revert "x86/PCI: Don't alloc pcibios-irq when MSI is enabled"
->       Revert "PCI: Add helpers to manage pci_dev->irq and pci_dev->ir=
-q_managed"
->       Revert "PCI, x86: Implement pcibios_alloc_irq() and pcibios_fre=
-e_irq()"
+Changes in V4: 
+[1] Added another patch which decides if or when to send a request to the 
+platform based on the Minimum Request Turnaround Time(MRTT) and Maximum 
+Periodic Access Rate(MPAR) to make sure the implementation is compliant
+to ACPI spec
+[2] Fixed the condition for pr_debug message in cppc_chan_tx_done() 
 
-ACK for all three FWIW.
+Changes in V3: Addressed the review comments from Alexey, Ashwin and Timur
 
-Thanks,
-Rafael
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Changes in V2: Fixed compilation error on i386
+
+This series introduces changes to reduce the time required to send a frequency
+transition requests to the platform while using the cppc-cpufreq driver.
+
+With these changes we see significant improvement in the average time to send
+freq. transition request to the platform. Profiling on an ARM platform showed
+that the average transaction time per request reduced from 200us to under 20us.
+
+Ashwin Chaugule (1):
+  ACPI / CPPC: Optimize PCC Read Write operations
+
+Prashanth Prakash (4):
+  acpi: cppc: optimized cpc_read and cpc_write
+  mailbox: pcc: optimized pcc_send_data
+  acpi: cppc: replace writeX/readX to PCC with relaxed version
+  acpi/cppc: use MRTT/MPAR to decide if/when a req can be sent
+
+ drivers/acpi/cppc_acpi.c | 237 ++++++++++++++++++++++++++++++++++++++---------
+ drivers/mailbox/pcc.c    | 111 ++++++++++++++++++++--
+ 2 files changed, 295 insertions(+), 53 deletions(-)
+
+-- 
+Qualcomm Technologies, Inc. on behalf
+of the Qualcomm Innovation Center, Inc.  The Qualcomm Innovation Center, Inc. 
+is a member of the Code Aurora Forum, a Linux Foundation Collaborative Project.
+
