@@ -1,90 +1,157 @@
-From: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
-Subject: Re: [PATCH V5 02/15] acpi, pci, mcfg: Provide default RAW ACPI PCI
- config space accessors.
-Date: Wed, 17 Feb 2016 12:39:33 +0000
-Message-ID: <20160217123933.GB9794@red-moon>
-References: <1455630825-27253-1-git-send-email-tn@semihalf.com>
- <1455630825-27253-3-git-send-email-tn@semihalf.com>
+From: Aleksey Makarov <aleksey.makarov@linaro.org>
+Subject: Re: [PATCH v3 1/5] ACPI: change __init to __ref for
+ early_acpi_os_unmap_memory()
+Date: Wed, 17 Feb 2016 16:08:21 +0300
+Message-ID: <56C470C5.2080203@linaro.org>
+References: <1455559532-8305-1-git-send-email-aleksey.makarov@linaro.org>
+ <1455559532-8305-2-git-send-email-aleksey.makarov@linaro.org>
+ <1AE640813FDE7649BE1B193DEA596E883BB4BDBB@SHSMSX101.ccr.corp.intel.com>
+ <1AE640813FDE7649BE1B193DEA596E883BB4BDCF@SHSMSX101.ccr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <1455630825-27253-3-git-send-email-tn@semihalf.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Tomasz Nowicki <tn@semihalf.com>
-Cc: helgaas@kernel.org, arnd@arndb.de, will.deacon@arm.com, catalin.marinas@arm.com, rafael@kernel.org, hanjun.guo@linaro.org, okaya@codeaurora.org, jiang.liu@linux.intel.com, jchandra@broadcom.com, Stefano.Stabellini@eu.citrix.com, robert.richter@caviumnetworks.com, mw@semihalf.com, Liviu.Dudau@arm.com, ddaney@caviumnetworks.com, wangyijing@huawei.com, Suravee.Suthikulpanit@amd.com, msalter@redhat.com, linux-pci@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linaro-acpi@lists.linaro.org, jcm@redhat.com
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-lb0-f182.google.com ([209.85.217.182]:36742 "EHLO
+	mail-lb0-f182.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S965250AbcBQNI2 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 17 Feb 2016 08:08:28 -0500
+Received: by mail-lb0-f182.google.com with SMTP id x1so9030129lbj.3
+        for <linux-acpi@vger.kernel.org>; Wed, 17 Feb 2016 05:08:27 -0800 (PST)
+In-Reply-To: <1AE640813FDE7649BE1B193DEA596E883BB4BDCF@SHSMSX101.ccr.corp.intel.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: "Zheng, Lv" <lv.zheng@intel.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
+Cc: "linux-serial@vger.kernel.org" <linux-serial@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Russell King <linux@arm.linux.org.uk>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, Leif Lindholm <leif.lindholm@linaro.org>, Graeme Gregory <graeme.gregory@linaro.org>, Al Stone <ahs3@redhat.com>, Christopher Covington <cov@codeaurora.org>, Len Brown <lenb@kernel.org>
 
-On Tue, Feb 16, 2016 at 02:53:32PM +0100, Tomasz Nowicki wrote:
-> Lets keep RAW ACPI PCI config space accessors empty by default,
-> since we are note sure if they are necessary accross all archs.
-> Once we sort this out, we can provide generic version or let
-> architectures to overwrite, like now x86.
+Hi Lv,
 
-"ACPICA code requires raw PCI bus accessors in order to give AML
-access to PCI_Config regions in platforms where they are actually
-used. The raw PCI bus accessors implementation is arch-dependent,
-therefore this patch adds a weak generic implementation (for now
-empty but can be generalized if common functionality is found among
-arches) allowing arches where PCI_Config regions are currently required
-to override it (eg x86) as needed and providing at the same time
-default stubs for arches that do not require them".
+Thank you for review.
 
-?
+On 02/17/2016 05:51 AM, Zheng, Lv wrote:
 
-> Suggested-by: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
-> Signed-off-by: Tomasz Nowicki <tn@semihalf.com>
-> Tested-by: Suravee Suthikulpanit <Suravee.Suthikulpanit@amd.com>
-> Tested-by: Jeremy Linton <jeremy.linton@arm.com>
-> Tested-by: Duc Dang <dhdang@apm.com>
-> Tested-by: Dongdong Liu <liudongdong3@huawei.com>
-> Tested-by: Hanjun Guo <hanjun.guo@linaro.org>
-> Tested-by: Graeme Gregory <graeme.gregory@linaro.org>
-> Tested-by: Sinan Kaya <okaya@codeaurora.org>
-> ---
->  drivers/acpi/pci_mcfg.c | 20 ++++++++++++++++++++
->  1 file changed, 20 insertions(+)
+[..]
+
+>>> early_acpi_os_unmap_memory() is marked as __init because it calls
+>>> __acpi_unmap_table(), but only when acpi_gbl_permanent_mmap is not set.
+>>>
+>>> acpi_gbl_permanent_mmap is set in __init acpi_early_init()
+>>> so it is safe to call early_acpi_os_unmap_memory() from anywhere
+>>>
+>>> We need this function to be non-__init because we need access to
+>>> some tables at unpredictable time--it may be before or after
+>>> acpi_gbl_permanent_mmap is set.  For example, SPCR (Serial Port Console
+>>> Redirection) table is needed each time a new console is registered.
+>>> It can be quite early (console_initcall) or when a module is inserted.
+>>> When this table accessed before acpi_gbl_permanent_mmap is set,
+>>> the pointer should be unmapped.  This is exactly what this function
+>>> does.
+>> [Lv Zheng]
+>> Why don't you use another API instead of early_acpi_os_unmap_memory() in
+>> case you want to unmap things in any cases.
+>> acpi_os_unmap_memory() should be the one to match this purpose.
+>> It checks acpi_gbl_ppermanent_mmap in acpi_os_unmap_iomem().
+
+As far as I understand, there exist two steps in ACPI initialization:
+
+1. Before acpi_gbl_permanent_mmap is set, tables received with acpi_get_table_with_size()
+   are mapped by early_memremap().  If a subsystem gets such a pointer it should be unmapped.
+
+2  After acpi_gbl_permanent_mmap is set this pointer should not be unmapped at all.
+
+That exactly what early_acpi_os_unmap_memory() does--it checks acpi_gbl_permanent_mmap.
+If I had used acpi_os_unmap_memory() after acpi_gbl_permanent_mmap had been set,
+it would have tried to free that pointer with an oops (actually, I checked that and got that oops).
+
+So using acpi_os_unmap_memory() is not an option here, but early_acpi_os_unmap_memory()
+match perfectly.
+
+>> And in fact early_acpi_os_unmap_memory() should be removed.
+
+I don't think so -- I have explained why.  It does different thing.
+Probably it (and/or other functions in that api) should be renamed.
+
+> [Lv Zheng] 
+> One more thing is:
+> If you can't switch your driver to use acpi_os_unmap_memory() instead of early_acpi_os_unmap_memory(),
+> then it implies that your driver does have a defect.
+
+I still don't understand what defect, sorry.
+
+> There is an early bootup requirement in Linux.
+> Maps acquired during the early stage should be freed by the driver during the early stage.
+> And the driver should re-acquire the memory map after booting.
+
+Exactly.  That's why I use early_acpi_os_unmap_memory().  The point is that that code can be
+called *before* acpi_gbl_permanent_mmap is set (at early initialization of for example 8250 console)
+or *after* acpi_gbl_permanent_mmap is set (at insertion of a module that registers a console), 
+We just can not tell if the received table pointer should or sould not be freed with early_memunmap()
+(actually __acpi_unmap_table() or whatever) without checking acpi_gbl_permanent_mmap,
+but that's all too low level.
+
+Another option, as you describe, is to get this pointer early, don't free it untill
+acpi_gbl_permanent_mmap is set, then free it (with early_acpi_os_unmap_memory(), that's 
+ok because acpi_gbl_permanent_mmap is set in an init code), then get the persistent 
+pointer to the table.  The problem with it is that we can not just watch acpi_gbl_permanent_mmap
+to catch this exact moment.  And also accessing acpi_gbl_permanent_mmap is not good as it probably is 
+an implementation detail (i. e. too lowlevel) of the ACPI code.
+Or I probably miss what you are suggesting.
+
+> This is because, during early bootup stage, there are only limited slots available for drivers to map memory.
+> So by changing __init to __ref here, you probably will hide many such defects.
+
+What defects?  This funcions checks acpi_gbl_permanent_mmap.
+BTW, exactly the same thing is done in the beginning of acpi_os_unmap_memory() and than's ok, 
+that function is __ref.
+
+> And solving issues in this way doesn't seem to be an improvement.
+
+Could you please tell me where I am wrong?  I still don't understand your point.
+
+Thank you
+Aleksey Makarov
+
 > 
-> diff --git a/drivers/acpi/pci_mcfg.c b/drivers/acpi/pci_mcfg.c
-> index ea84365..0467b00 100644
-> --- a/drivers/acpi/pci_mcfg.c
-> +++ b/drivers/acpi/pci_mcfg.c
-> @@ -21,6 +21,26 @@
->  static DEFINE_MUTEX(pci_mmcfg_lock);
->  LIST_HEAD(pci_mmcfg_list);
->  
-> +/*
-> + * raw_pci_read/write - raw ACPI PCI config space accessors.
-> + *
-> + * By defauly (__weak) these accessors are empty and should be overwritten
-
-s/defauly/default
-
-> + * by architectures which support operations on ACPI PCI_Config regions,
-> + * see osl.c file.
-
-Add the path or remove the file reference.
-
-> + */
-> +
-> +int __weak raw_pci_read(unsigned int domain, unsigned int bus,
-> +			unsigned int devfn, int reg, int len, u32 *val)
-> +{
-> +	return PCIBIOS_DEVICE_NOT_FOUND;
-> +}
-> +
-> +int __weak raw_pci_write(unsigned int domain, unsigned int bus,
-> +			 unsigned int devfn, int reg, int len, u32 val)
-> +{
-> +	return PCIBIOS_DEVICE_NOT_FOUND;
-> +}
-> +
->  static void list_add_sorted(struct pci_mmcfg_region *new)
->  {
->  	struct pci_mmcfg_region *cfg;
-
-Note: this patch is not strictly required, but it is nice because
-it removes the raw/dumb/empty accessors from ARM64 code (where they do not
-belong), so:
-
-Reviewed-by: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+> Thanks and best regards
+> -Lv
+> 
+>>
+>> Thanks and best regards
+>> -Lv
+>>
+>>>
+>>> Signed-off-by: Aleksey Makarov <aleksey.makarov@linaro.org>
+>>> ---
+>>>  drivers/acpi/osl.c | 6 +++++-
+>>>  1 file changed, 5 insertions(+), 1 deletion(-)
+>>>
+>>> diff --git a/drivers/acpi/osl.c b/drivers/acpi/osl.c
+>>> index 67da6fb..8a552cd 100644
+>>> --- a/drivers/acpi/osl.c
+>>> +++ b/drivers/acpi/osl.c
+>>> @@ -497,7 +497,11 @@ void __ref acpi_os_unmap_memory(void *virt,
+>>> acpi_size size)
+>>>  }
+>>>  EXPORT_SYMBOL_GPL(acpi_os_unmap_memory);
+>>>
+>>> -void __init early_acpi_os_unmap_memory(void __iomem *virt, acpi_size
+>> size)
+>>> +/*
+>>> + * acpi_gbl_permanent_mmap is set in __init acpi_early_init()
+>>> + * so it is safe to call early_acpi_os_unmap_memory() from anywhere
+>>> + */
+>>> +void __ref early_acpi_os_unmap_memory(void __iomem *virt, acpi_size
+>> size)
+>>>  {
+>>>  	if (!acpi_gbl_permanent_mmap)
+>>>  		__acpi_unmap_table(virt, size);
+>>> --
+>>> 2.7.1
+>>>
+>>> --
+>>> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
+>>> the body of a message to majordomo@vger.kernel.org
+>>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>> --
+>> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
+>> the body of a message to majordomo@vger.kernel.org
+>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
