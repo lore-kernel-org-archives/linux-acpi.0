@@ -1,139 +1,158 @@
-From: Prashanth Prakash <pprakash@codeaurora.org>
-Subject: [PATCH V4 5/5] acpi/cppc: use MRTT/MPAR to decide if/when a req can be sent
-Date: Wed, 17 Feb 2016 13:21:03 -0700
-Message-ID: <1455740463-19192-6-git-send-email-pprakash@codeaurora.org>
-References: <1455740463-19192-1-git-send-email-pprakash@codeaurora.org>
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp.codeaurora.org ([198.145.29.96]:53116 "EHLO
-	smtp.codeaurora.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S965477AbcBQUV1 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 17 Feb 2016 15:21:27 -0500
-In-Reply-To: <1455740463-19192-1-git-send-email-pprakash@codeaurora.org>
-Sender: linux-acpi-owner@vger.kernel.org
+From: Toshi Kani <toshi.kani@hpe.com>
+Subject: Re: [PATCH 3/3] ACPI: Change NFIT driver to set PMEM type to iomem
+ entry
+Date: Wed, 17 Feb 2016 15:56:00 -0700
+Message-ID: <1455749760.2925.291.camel@hpe.com>
+References: <1454439311-23690-1-git-send-email-toshi.kani@hpe.com>
+	 <1454439311-23690-4-git-send-email-toshi.kani@hpe.com>
+	 <CAPcyv4ik0GRYkYdaKvu4rPC9a+Q-e93uCZMpx1W8=Cvwwdh6jw@mail.gmail.com>
+	 <1455316203.2925.132.camel@hpe.com>
+	 <CAPcyv4i=TpX=V6mN0zrsqvUyonKY1WkbP=wJ0QqjQtj_kiSJQw@mail.gmail.com>
+	 <1455674441.2925.204.camel@hpe.com>	<1455732020.2925.255.camel@hpe.com>
+	 <CAPcyv4hSJCzUdt-7SjWoT49NSSnv4nzpC=K0rq1E6DWTb6ctkA@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <CAPcyv4hSJCzUdt-7SjWoT49NSSnv4nzpC=K0rq1E6DWTb6ctkA@mail.gmail.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Dan Williams <dan.j.williams@intel.com>
+Cc: "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Linux ACPI <linux-acpi@vger.kernel.org>, Andrew Morton <akpm@linux-foundation.org>, Borislav Petkov <bp@suse.de>, Ingo Molnar <mingo@kernel.org>
 List-Id: linux-acpi@vger.kernel.org
-To: rjw@rjwysocki.net
-Cc: ashwin.chaugule@linaro.org, linux-acpi@vger.kernel.org, linaro-acpi@lists.linaro.org, alexey.klimov@arm.com, Prashanth Prakash <pprakash@codeaurora.org>
 
-The ACPI spec defines Minimum Request Turnaround Time(MRTT) and
-Maximum Periodic Access Rate(MPAR) to prevent the OSPM from sending
-too many requests than the platform can handle. For further details
-on these parameters please refer to section 14.1.3 of ACPI 6.0 spec.
+On Wed, 2016-02-17 at 11:34 -0800, Dan Williams wrote:
+> On Wed, Feb 17, 2016 at 10:00 AM, Toshi Kani <toshi.kani@hpe.com> wro=
+te:
+> > On Tue, 2016-02-16 at 19:00 -0700, Toshi Kani wrote:
+> > > On Fri, 2016-02-12 at 15:32 -0800, Dan Williams wrote:
+> > > > On Fri, Feb 12, 2016 at 2:30 PM, Toshi Kani <toshi.kani@hpe.com=
+>
+> > > > wrote:
+=C2=A0:
+> > > Here are three options I can think of.
+> > >=20
+> > > 1) Set pmem type to "reserved" (This patch-set)
+> > > =C2=A0- Add a new iomem_set_desc(), which sets a given type to a =
+top-level
+> > > entry.=C2=A0=C2=A0Change the ACPI NFIT driver to call it to set p=
+mem type to
+> > > "reserved" entry.
+> > > =C2=A0- region_intersects() finds a pmem entry by checking top-le=
+vel
+> > > entries (no change).
+> > >=20
+> > > 2) Change region_intersects() to check children's type
+> > > =C2=A0- Add a new request_region_ext(), which is an extension to
+> > > request_region() to allow specifying a type of resource.=C2=A0=C2=
+=A0It puts a
+> > > new child entry under "reserved".=C2=A0=C2=A0Change the pmem driv=
+er to call
+> > > this func.
+> > > =C2=A0- Change region_intersects() to check children's type for f=
+inding
+> > > this child pmem entry.
+> > >=20
+> > > 3) Pmem driver to call insert_resource()
+> > > =C2=A0- Change the pmem driver to call insert_resource(), which p=
+uts a new
+> > > pmem entry as the parent of "reserved".
+> > > =C2=A0- region_intersects() finds a pmem entry by checking top-le=
+vel
+> > > entries (no change).
+> > > =C2=A0- Add a new release_resource_self(), which releases a given=
+ entry
+> > > and keeps its children if any.=C2=A0=C2=A0Change the pmem driver =
+to call it for
+> > > release.
+> >=20
+> > Thinking=C2=A0further,=C2=A03)=C2=A0needs=C2=A0to=C2=A0be=C2=A0modi=
+fied=C2=A0as=C2=A0follows.=C2=A0=C2=A0insert_resource(
+> > ) should only be allowed for producers of resource (ex. nfit), not
+> > consumers (ex. pmem).=C2=A0=C2=A0It also needs to export insert_res=
+ource().
+> >=20
+> > 3) NFIT driver to call insert_resource()
+> > =C2=A0- Change the ACPI nfit driver to call insert_resource() when =
+a target
+> > range is not marked as PMEM (i.e. "reserved") or not present in iom=
+em.
+> > =C2=A0This puts a new PMEM entry as the parent of "reserved".
+> > =C2=A0- region_intersects() finds a pmem entry by checking top-leve=
+l entries
+> > (no change).
+> > =C2=A0- Add a new release_resource_self(), which releases a given e=
+ntry and
+> > keeps its children if any.=C2=A0=C2=A0Change the nfit driver to cal=
+l it for
+> > release.
+> >=20
+> > > This patch-set implements 1).=C2=A0=C2=A0The pmem type is set to =
+"reserved" for
+> > > its life-cycle.=C2=A0=C2=A0This option is simplest.
+> > >=20
+> > > For 2), the changes to region_intersects() may be too complex for
+> > > maintenance.
+> >=20
+> > I should have said "region_intersects() may be overly complicated f=
+or
+> > this purpose and maintenance".
+> >=20
+> > > Here are a few examples when region_intersects() is called
+> > > with addr [1-10] where iomem has entry P and its children.
+> > >=20
+> > > Case A: P is fully covered by children C1 & C2.=C2=A0=C2=A0region=
+_intersects()
+> > > ignores P's type, but checks C1 and C2's.
+> > >=20
+> > > =C2=A0 P [1-10] + C1 [1-5]
+> > > =C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=
++ C2 [6-10]
+> > >=20
+> > > Case B: C2 is fully covered by C3, but P is not.=C2=A0=C2=A0regio=
+n_intersects()
+> > > ignores C2's type, but checks P, C1, C3's.
+> > >=20
+> > > =C2=A0 P [1-10] + C1 [1-2]
+> > > =C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=
++ C2 [6-10] + C3 [6-10]
+> > >=20
+> > > I think region_intersects() will need to construct a flat table f=
+rom
+> > > the tree while making recursive calls to walk thru all children.
+> > >=20
+> > > 3) is similar to 2), but avoids the changes to region_intersects(=
+)
+> > > since insert_resource() inserts a new entry as the parent to
+> > > "reserved".
+> >=20
+> > 3) is actually similar to 1) as both options change the producer si=
+de.
+> >=20
+> > > =C2=A0However, a new interface is necessary to put "reserved" bac=
+k to top-
+> > > level when releasing the added entry.
+> > >=20
+> > > My recommendation is go with either 1) or 3).=C2=A0=C2=A0What do =
+you think?
+> >=20
+> > I think we should modify the producer side, so 1) or 3) are still m=
+y
+> > recommendation.
+> >=20
+>=20
+> I think 3 is the most promising option.=C2=A0=C2=A0It aligns the acpi=
+/nfit
+> driver closer with the acpi/pci_root driver that is also doing
+> insert_resource() for each root bridge, and removing those resources
+> when the bridge is disabled/removed.
+>=20
+> I'd still want to maintain the ability of nfit to be built as a
+> module, so we would need to split the resource registration into a
+> separate built-in object file from nfit.ko.
 
-This patch includes MRTT/MPAR in deciding if or when a CPPC request
-can be sent to the platform to make sure CPPC implementation is
-compliant to the spec.
+Sounds good. =C2=A0I will implement 3), and add an ACPI built-in wrappe=
+r
+function to call insert_resource().
 
-Signed-off-by: Prashanth Prakash <pprakash@codeaurora.org>
----
- drivers/acpi/cppc_acpi.c | 56 +++++++++++++++++++++++++++++++++++++++++++++++-
- 1 file changed, 55 insertions(+), 1 deletion(-)
-
-diff --git a/drivers/acpi/cppc_acpi.c b/drivers/acpi/cppc_acpi.c
-index 8a0911a..f00dc7e 100644
---- a/drivers/acpi/cppc_acpi.c
-+++ b/drivers/acpi/cppc_acpi.c
-@@ -66,6 +66,7 @@ static u64 comm_base_addr;
- static int pcc_subspace_idx = -1;
- static bool pcc_channel_acquired;
- static ktime_t deadline;
-+static unsigned int pcc_mpar, pcc_mrtt;
- 
- /* pcc mapped address + header size + offset within PCC subspace */
- #define GET_PCC_VADDR(offs) (pcc_comm_addr + 0x8 + (offs))
-@@ -85,6 +86,11 @@ static int check_pcc_chan(void)
- 
- 	/* Retry in case the remote processor was too slow to catch up. */
- 	while (!ktime_after(ktime_get(), next_deadline)) {
-+		/*
-+		 * Per spec, prior to boot the PCC space wil be initialized by
-+		 * platform and should have set the command completion bit when
-+		 * PCC can be used by OSPM
-+		 */
- 		if (readw_relaxed(&generic_comm_base->status) & PCC_CMD_COMPLETE) {
- 			ret = 0;
- 			break;
-@@ -104,6 +110,9 @@ static int send_pcc_cmd(u16 cmd)
- 	int ret = -EIO;
- 	struct acpi_pcct_shared_memory *generic_comm_base =
- 		(struct acpi_pcct_shared_memory *) pcc_comm_addr;
-+	static ktime_t last_cmd_cmpl_time, last_mpar_reset;
-+	static int mpar_count;
-+	unsigned int time_delta;
- 
- 	/*
- 	 * For CMD_WRITE we know for a fact the caller should have checked
-@@ -115,6 +124,41 @@ static int send_pcc_cmd(u16 cmd)
- 			return ret;
- 	}
- 
-+	/*
-+	 * Handle the Minimum Request Turnaround Time(MRTT)
-+	 * "The minimum amount of time that OSPM must wait after the completion
-+	 * of a command before issuing the next command, in microseconds"
-+	 */
-+	if (pcc_mrtt) {
-+		time_delta = ktime_us_delta(ktime_get(), last_cmd_cmpl_time);
-+		if (pcc_mrtt > time_delta)
-+			udelay(pcc_mrtt - time_delta);
-+	}
-+
-+	/*
-+	 * Handle the non-zero Maximum Periodic Access Rate(MPAR)
-+	 * "The maximum number of periodic requests that the subspace channel can
-+	 * support, reported in commands per minute. 0 indicates no limitation."
-+	 *
-+	 * This parameter should be ideally zero or large enough so that it can
-+	 * handle maximum number of requests that all the cores in the system can
-+	 * collectively generate. If it is not, we will follow the spec and just
-+	 * not send the request to the platform after hitting the MPAR limit in
-+	 * any 60s window
-+	 */
-+	if (pcc_mpar) {
-+		if (mpar_count == 0) {
-+			time_delta = ktime_ms_delta(ktime_get(), last_mpar_reset);
-+			if (time_delta < 60 * MSEC_PER_SEC) {
-+				pr_debug("PCC cmd not sent due to MPAR limit");
-+				return -EIO;
-+			}
-+			last_mpar_reset = ktime_get();
-+			mpar_count = pcc_mpar;
-+		}
-+		mpar_count--;
-+	}
-+
- 	/* Write to the shared comm region. */
- 	writew_relaxed(cmd, &generic_comm_base->command);
- 
-@@ -135,9 +179,17 @@ static int send_pcc_cmd(u16 cmd)
- 	 * because the actual write()s are done before coming here
- 	 * and the next READ or WRITE will check if the channel
- 	 * is busy/free at the entry of this call.
-+	 *
-+	 * If Minimum Request Turnaround Time is non-zero, we need
-+	 * to record the completion time of both READ and WRITE
-+	 * command for proper handling of MRTT, so we need to check
-+	 * for pcc_mrtt in addition to CMD_READ
- 	 */
--	if (cmd == CMD_READ)
-+	if (cmd == CMD_READ || pcc_mrtt) {
- 		ret = check_pcc_chan();
-+		if (pcc_mrtt)
-+			last_cmd_cmpl_time = ktime_get();
-+	}
- 
- 	mbox_client_txdone(pcc_channel, ret);
- 	return ret;
-@@ -375,6 +427,8 @@ static int register_pcc_channel(int pcc_subspace_idx)
- 		 */
- 		usecs_lat = NUM_RETRIES * cppc_ss->latency;
- 		deadline = ns_to_ktime(usecs_lat * NSEC_PER_USEC);
-+		pcc_mrtt = cppc_ss->min_turnaround_time;
-+		pcc_mpar = cppc_ss->max_access_rate;
- 
- 		pcc_comm_addr = acpi_os_ioremap(comm_base_addr, len);
- 		if (!pcc_comm_addr) {
--- 
-Qualcomm Technologies, Inc. on behalf
-of the Qualcomm Innovation Center, Inc.  The Qualcomm Innovation Center, Inc. 
-is a member of the Code Aurora Forum, a Linux Foundation Collaborative Project.
-
+Thanks!
+-Toshi
