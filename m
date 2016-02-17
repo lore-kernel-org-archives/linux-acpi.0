@@ -1,124 +1,246 @@
-From: "Zheng, Lv" <lv.zheng@intel.com>
-Subject: RE: [PATCH v3 1/5] ACPI: change __init to __ref for
- early_acpi_os_unmap_memory()
-Date: Wed, 17 Feb 2016 02:51:51 +0000
-Message-ID: <1AE640813FDE7649BE1B193DEA596E883BB4BDCF@SHSMSX101.ccr.corp.intel.com>
-References: <1455559532-8305-1-git-send-email-aleksey.makarov@linaro.org>
- <1455559532-8305-2-git-send-email-aleksey.makarov@linaro.org>
- <1AE640813FDE7649BE1B193DEA596E883BB4BDBB@SHSMSX101.ccr.corp.intel.com>
+From: qiujiang <qiujiang@huawei.com>
+Subject: [PATCH v1] GPIO/ACPI: DesignWare: Add GPIO-signaled ACPI events support for power button
+Date: Wed, 17 Feb 2016 15:28:10 +0800
+Message-ID: <1455694090-41713-1-git-send-email-qiujiang@huawei.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga03.intel.com ([134.134.136.65]:49732 "EHLO mga03.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S933169AbcBQCv4 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 16 Feb 2016 21:51:56 -0500
-In-Reply-To: <1AE640813FDE7649BE1B193DEA596E883BB4BDBB@SHSMSX101.ccr.corp.intel.com>
-Content-Language: en-US
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain
+Return-path: <linux-gpio-owner@vger.kernel.org>
+Sender: linux-gpio-owner@vger.kernel.org
+To: linus.walleij@linaro.org, gnurou@gmail.com, mika.westerberg@linux.intel.com
+Cc: linux-gpio@vger.kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linuxarm@huawei.com, haifeng.wei@huawei.com, charles.chenxin@huawei.com, qiujiang <qiujiang@huawei.com>
 List-Id: linux-acpi@vger.kernel.org
-To: "Zheng, Lv" <lv.zheng@intel.com>, Aleksey Makarov <aleksey.makarov@linaro.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
-Cc: "linux-serial@vger.kernel.org" <linux-serial@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Russell King <linux@arm.linux.org.uk>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, Leif Lindholm <leif.lindholm@linaro.org>, Graeme Gregory <graeme.gregory@linaro.org>, Al Stone <ahs3@redhat.com>, Christopher Covington <cov@codeaurora.org>, Len Brown <lenb@kernel.org>
 
-Hi,
+This patch modifies the DesignWare GPIO controller driver to
+support the GPIO-signaled ACPI Events. This is used for power
+button function on ARM server.
 
-> From: linux-acpi-owner@vger.kernel.org [mailto:linux-acpi-
-> owner@vger.kernel.org] On Behalf Of Zheng, Lv
-> Subject: RE: [PATCH v3 1/5] ACPI: change __init to __ref for
-> early_acpi_os_unmap_memory()
-> 
-> Hi,
-> 
-> > -----Original Message-----
-> > From: linux-acpi-owner@vger.kernel.org [mailto:linux-acpi-
-> > owner@vger.kernel.org] On Behalf Of Aleksey Makarov
-> > Sent: Tuesday, February 16, 2016 2:05 AM
-> > To: linux-acpi@vger.kernel.org
-> > Cc: linux-serial@vger.kernel.org; linux-kernel@vger.kernel.org; linux-arm-
-> > kernel@lists.infradead.org; Aleksey Makarov <aleksey.makarov@linaro.org>;
-> > Russell King <linux@arm.linux.org.uk>; Greg Kroah-Hartman
-> > <gregkh@linuxfoundation.org>; Rafael J . Wysocki <rjw@rjwysocki.net>; Leif
-> > Lindholm <leif.lindholm@linaro.org>; Graeme Gregory
-> > <graeme.gregory@linaro.org>; Al Stone <ahs3@redhat.com>; Christopher
-> > Covington <cov@codeaurora.org>; Len Brown <lenb@kernel.org>
-> > Subject: [PATCH v3 1/5] ACPI: change __init to __ref for
-> > early_acpi_os_unmap_memory()
-> >
-> > early_acpi_os_unmap_memory() is marked as __init because it calls
-> > __acpi_unmap_table(), but only when acpi_gbl_permanent_mmap is not set.
-> >
-> > acpi_gbl_permanent_mmap is set in __init acpi_early_init()
-> > so it is safe to call early_acpi_os_unmap_memory() from anywhere
-> >
-> > We need this function to be non-__init because we need access to
-> > some tables at unpredictable time--it may be before or after
-> > acpi_gbl_permanent_mmap is set.  For example, SPCR (Serial Port Console
-> > Redirection) table is needed each time a new console is registered.
-> > It can be quite early (console_initcall) or when a module is inserted.
-> > When this table accessed before acpi_gbl_permanent_mmap is set,
-> > the pointer should be unmapped.  This is exactly what this function
-> > does.
-> [Lv Zheng]
-> Why don't you use another API instead of early_acpi_os_unmap_memory() in
-> case you want to unmap things in any cases.
-> acpi_os_unmap_memory() should be the one to match this purpose.
-> It checks acpi_gbl_ppermanent_mmap in acpi_os_unmap_iomem().
-> And in fact early_acpi_os_unmap_memory() should be removed.
-[Lv Zheng] 
-One more thing is:
-If you can't switch your driver to use acpi_os_unmap_memory() instead of early_acpi_os_unmap_memory(),
-then it implies that your driver does have a defect.
+To make it work, the _AEI and _EVT object must be defined in
+the corresponding GPIO driver's dsdt table in UEFI as follow:
 
-There is an early bootup requirement in Linux.
-Maps acquired during the early stage should be freed by the driver during the early stage.
-And the driver should re-acquire the memory map after booting.
+Device(GPI0) {
+        Name(_HID, "HISI0181")
+	Name(_ADR, 0) // _ADR: Address
+        Name(_UID, 0)
 
-This is because, during early bootup stage, there are only limited slots available for drivers to map memory.
-So by changing __init to __ref here, you probably will hide many such defects.
-And solving issues in this way doesn't seem to be an improvement.
+	Name (_CRS, ResourceTemplate ()  {
+		Memory32Fixed (ReadWrite, 0x802e0000, 0x10000)
+		Interrupt (ResourceConsumer, Level, ActiveHigh,
+		Exclusive,,,) {344}
+	})
 
-Thanks and best regards
--Lv
+	Device(PRTa) {
+		Name (_DSD, Package () {
+			Package () {
+				Package () {"reg",0},
+				Package () {"snps,nr-gpios",32},
+		}
+		})
+	}
 
-> 
-> Thanks and best regards
-> -Lv
-> 
-> >
-> > Signed-off-by: Aleksey Makarov <aleksey.makarov@linaro.org>
-> > ---
-> >  drivers/acpi/osl.c | 6 +++++-
-> >  1 file changed, 5 insertions(+), 1 deletion(-)
-> >
-> > diff --git a/drivers/acpi/osl.c b/drivers/acpi/osl.c
-> > index 67da6fb..8a552cd 100644
-> > --- a/drivers/acpi/osl.c
-> > +++ b/drivers/acpi/osl.c
-> > @@ -497,7 +497,11 @@ void __ref acpi_os_unmap_memory(void *virt,
-> > acpi_size size)
-> >  }
-> >  EXPORT_SYMBOL_GPL(acpi_os_unmap_memory);
-> >
-> > -void __init early_acpi_os_unmap_memory(void __iomem *virt, acpi_size
-> size)
-> > +/*
-> > + * acpi_gbl_permanent_mmap is set in __init acpi_early_init()
-> > + * so it is safe to call early_acpi_os_unmap_memory() from anywhere
-> > + */
-> > +void __ref early_acpi_os_unmap_memory(void __iomem *virt, acpi_size
-> size)
-> >  {
-> >  	if (!acpi_gbl_permanent_mmap)
-> >  		__acpi_unmap_table(virt, size);
-> > --
-> > 2.7.1
-> >
-> > --
-> > To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
-> > the body of a message to majordomo@vger.kernel.org
-> > More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+	Name (_AEI, ResourceTemplate () {
+		GpioInt(Edge, ActiveLow, ExclusiveAndWake, PullUp, ,
+		" \\_SB.GPI0") {8}
+	})
+
+	Method (_E08, 0x0, NotSerialized) {
+		Notify (\_SB.PWRB, 0x80)
+	}
+}
+
+Signed-off-by: qiujiang <qiujiang@huawei.com>
+---
+ drivers/gpio/gpio-dwapb.c                | 71 ++++++++++++++++++++------------
+ include/linux/platform_data/gpio-dwapb.h |  2 +-
+ 2 files changed, 45 insertions(+), 28 deletions(-)
+
+diff --git a/drivers/gpio/gpio-dwapb.c b/drivers/gpio/gpio-dwapb.c
+index fcd5b0a..e482e32 100644
+--- a/drivers/gpio/gpio-dwapb.c
++++ b/drivers/gpio/gpio-dwapb.c
+@@ -7,6 +7,7 @@
+  *
+  * All enquiries to support@picochip.com
+  */
++#include <linux/acpi.h>
+ #include <linux/basic_mmio_gpio.h>
+ #include <linux/err.h>
+ #include <linux/init.h>
+@@ -24,6 +25,8 @@
+ #include <linux/platform_data/gpio-dwapb.h>
+ #include <linux/slab.h>
+ 
++#include "gpiolib.h"
++
+ #define GPIO_SWPORTA_DR		0x00
+ #define GPIO_SWPORTA_DDR	0x04
+ #define GPIO_SWPORTB_DR		0x0c
+@@ -296,14 +299,14 @@ static void dwapb_configure_irqs(struct dwapb_gpio *gpio,
+ 				 struct dwapb_port_property *pp)
+ {
+ 	struct gpio_chip *gc = &port->bgc.gc;
+-	struct device_node *node = pp->node;
++	struct fwnode_handle  *fwnode = pp->fwnode;
+ 	struct irq_chip_generic	*irq_gc = NULL;
+ 	unsigned int hwirq, ngpio = gc->ngpio;
+ 	struct irq_chip_type *ct;
+ 	int err, i;
+ 
+-	gpio->domain = irq_domain_add_linear(node, ngpio,
+-					     &irq_generic_chip_ops, gpio);
++	gpio->domain = irq_domain_create_linear(fwnode,
++				ngpio, &irq_generic_chip_ops, gpio);
+ 	if (!gpio->domain)
+ 		return;
+ 
+@@ -421,7 +424,7 @@ static int dwapb_gpio_add_port(struct dwapb_gpio *gpio,
+ 	}
+ 
+ #ifdef CONFIG_OF_GPIO
+-	port->bgc.gc.of_node = pp->node;
++	port->bgc.gc.of_node = to_of_node(pp->fwnode);
+ #endif
+ 	port->bgc.gc.ngpio = pp->ngpio;
+ 	port->bgc.gc.base = pp->gpio_base;
+@@ -440,6 +443,10 @@ static int dwapb_gpio_add_port(struct dwapb_gpio *gpio,
+ 	else
+ 		port->is_registered = true;
+ 
++	/* Add GPIO-signaled ACPI event support */
++	if (pp->irq)
++		acpi_gpiochip_request_interrupts(&(port->bgc.gc));
++
+ 	return err;
+ }
+ 
+@@ -453,19 +460,15 @@ static void dwapb_gpio_unregister(struct dwapb_gpio *gpio)
+ }
+ 
+ static struct dwapb_platform_data *
+-dwapb_gpio_get_pdata_of(struct device *dev)
++dwapb_gpio_get_pdata(struct device *dev)
+ {
+-	struct device_node *node, *port_np;
++	struct fwnode_handle *fwnode;
+ 	struct dwapb_platform_data *pdata;
+ 	struct dwapb_port_property *pp;
+ 	int nports;
+ 	int i;
+ 
+-	node = dev->of_node;
+-	if (!IS_ENABLED(CONFIG_OF_GPIO) || !node)
+-		return ERR_PTR(-ENODEV);
+-
+-	nports = of_get_child_count(node);
++	nports = device_get_child_node_count(dev);
+ 	if (nports == 0)
+ 		return ERR_PTR(-ENODEV);
+ 
+@@ -480,21 +483,19 @@ dwapb_gpio_get_pdata_of(struct device *dev)
+ 	pdata->nports = nports;
+ 
+ 	i = 0;
+-	for_each_child_of_node(node, port_np) {
+-		pp = &pdata->properties[i++];
+-		pp->node = port_np;
++	device_for_each_child_node(dev, fwnode) {
++		pp = &pdata->properties[i];
++		pp->fwnode = fwnode;
+ 
+-		if (of_property_read_u32(port_np, "reg", &pp->idx) ||
++		if (fwnode_property_read_u32(fwnode, "reg", &pp->idx) ||
+ 		    pp->idx >= DWAPB_MAX_PORTS) {
+-			dev_err(dev, "missing/invalid port index for %s\n",
+-				port_np->full_name);
++			dev_err(dev, "missing/invalid port index\n");
+ 			return ERR_PTR(-EINVAL);
+ 		}
+ 
+-		if (of_property_read_u32(port_np, "snps,nr-gpios",
++		if (fwnode_property_read_u32(fwnode, "snps,nr-gpios",
+ 					 &pp->ngpio)) {
+-			dev_info(dev, "failed to get number of gpios for %s\n",
+-				 port_np->full_name);
++			dev_info(dev, "failed to get number of gpios\n");
+ 			pp->ngpio = 32;
+ 		}
+ 
+@@ -502,18 +503,27 @@ dwapb_gpio_get_pdata_of(struct device *dev)
+ 		 * Only port A can provide interrupts in all configurations of
+ 		 * the IP.
+ 		 */
+-		if (pp->idx == 0 &&
+-		    of_property_read_bool(port_np, "interrupt-controller")) {
+-			pp->irq = irq_of_parse_and_map(port_np, 0);
++		 if (dev->of_node && pp->idx == 0 &&
++			 of_property_read_bool(to_of_node(fwnode),
++			 "interrupt-controller")) {
++			pp->irq = irq_of_parse_and_map(to_of_node(fwnode), 0);
+ 			if (!pp->irq) {
+-				dev_warn(dev, "no irq for bank %s\n",
+-					 port_np->full_name);
++			dev_warn(dev, "no irq for bank %s\n",
++				  to_of_node(fwnode)->full_name);
+ 			}
+ 		}
+ 
++		if (has_acpi_companion(dev) && pp->idx == 0)
++			pp->irq = platform_get_irq(to_platform_device(dev), 0);
++
+ 		pp->irq_shared	= false;
+ 		pp->gpio_base	= -1;
+-		pp->name	= port_np->full_name;
++
++		if (dev->of_node)
++			pp->name = to_of_node(fwnode)->full_name;
++
++		if (has_acpi_companion(dev))
++			pp->name = acpi_dev_name(to_acpi_device_node(fwnode));
+ 	}
+ 
+ 	return pdata;
+@@ -529,7 +539,7 @@ static int dwapb_gpio_probe(struct platform_device *pdev)
+ 	struct dwapb_platform_data *pdata = dev_get_platdata(dev);
+ 
+ 	if (!pdata) {
+-		pdata = dwapb_gpio_get_pdata_of(dev);
++		pdata = dwapb_gpio_get_pdata(dev);
+ 		if (IS_ERR(pdata))
+ 			return PTR_ERR(pdata);
+ 	}
+@@ -586,6 +596,12 @@ static const struct of_device_id dwapb_of_match[] = {
+ };
+ MODULE_DEVICE_TABLE(of, dwapb_of_match);
+ 
++static const struct acpi_device_id dwapb_acpi_match[] = {
++	{"HISI0181", 0},
++	{ }
++};
++MODULE_DEVICE_TABLE(acpi, dwapb_acpi_match);
++
+ #ifdef CONFIG_PM_SLEEP
+ static int dwapb_gpio_suspend(struct device *dev)
+ {
+@@ -680,6 +696,7 @@ static struct platform_driver dwapb_gpio_driver = {
+ 		.name	= "gpio-dwapb",
+ 		.pm	= &dwapb_gpio_pm_ops,
+ 		.of_match_table = of_match_ptr(dwapb_of_match),
++		.acpi_match_table = ACPI_PTR(dwapb_acpi_match),
+ 	},
+ 	.probe		= dwapb_gpio_probe,
+ 	.remove		= dwapb_gpio_remove,
+diff --git a/include/linux/platform_data/gpio-dwapb.h b/include/linux/platform_data/gpio-dwapb.h
+index 28702c8..80954f2 100644
+--- a/include/linux/platform_data/gpio-dwapb.h
++++ b/include/linux/platform_data/gpio-dwapb.h
+@@ -15,7 +15,7 @@
+ #define GPIO_DW_APB_H
+ 
+ struct dwapb_port_property {
+-	struct device_node *node;
++	struct fwnode_handle  *fwnode;
+ 	const char	*name;
+ 	unsigned int	idx;
+ 	unsigned int	ngpio;
+-- 
+1.9.1
+
