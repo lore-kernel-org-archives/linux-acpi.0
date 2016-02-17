@@ -1,62 +1,66 @@
-From: Sudeep Holla <sudeep.holla@arm.com>
-Subject: Re: [PATCH v3 4/5] ACPI / processor_idle : introduce
- ARCH_SUPPORTS_ACPI_PROCESSOR_CSTATE
-Date: Wed, 17 Feb 2016 12:21:34 +0000
-Message-ID: <56C465CE.50403@arm.com>
-References: <1449065446-26115-1-git-send-email-sudeep.holla@arm.com>
- <1449065446-26115-5-git-send-email-sudeep.holla@arm.com>
- <12469811.iv3SctjXxl@vostro.rjw.lan>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
+From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Subject: [PATCH v1 06/10] device property: switch to use UUID API
+Date: Wed, 17 Feb 2016 14:17:24 +0200
+Message-ID: <1455711448-124103-7-git-send-email-andriy.shevchenko@linux.intel.com>
+References: <1455711448-124103-1-git-send-email-andriy.shevchenko@linux.intel.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <12469811.iv3SctjXxl@vostro.rjw.lan>
+In-Reply-To: <1455711448-124103-1-git-send-email-andriy.shevchenko@linux.intel.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: Sudeep Holla <sudeep.holla@arm.com>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linux-ia64@vger.kernel.org, x86@kernel.org, Al Stone <al.stone@linaro.org>, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, Mahesh Sivasubramanian <msivasub@codeaurora.org>, Ashwin Chaugule <ashwin.chaugule@linaro.org>, Prashanth Prakash <pprakash@codeaurora.org>
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Theodore Ts'o <tytso@mit.edu>, Arnd Bergmann <arnd@arndb.de>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Jarkko Sakkinen <jarkko.sakkinen@linux.intel.com>, Jani Nikula <jani.nikula@linux.intel.com>, David Airlie <airlied@linux.ie>, Benjamin Tissoires <benjamin.tissoires@redhat.com>, Bjorn Helgaas <bhelgaas@google.com>, Mathias Nyman <mathias.nyman@intel.com>, Matt Fleming <matt@codeblueprint.co.uk>, Lv Zheng <lv.zheng@intel.com>, Mark Brown <broonie@kernel.org>, Zhang Rui <rui.zhang@intel.com>, Mika Westerberg <mika.westerberg@linux.intel.com>, Andrew Morton <akpm@linux-foundation.org>, Rasmus Villemoes <linux@rasmusvillemoes.dk>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, dri-devel@lists.freedesktop.org, linux-efi@vger.kernel.org, linux-api@vger.kernel.org, linux-nvdimm@lists.01.org
+Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
 List-Id: linux-acpi@vger.kernel.org
 
+Switch to use a generic UUID API instead of custom approach. It allows to
+define UUIDs, compare them, and validate.
 
+Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+---
+ drivers/acpi/property.c | 18 ++++++++----------
+ 1 file changed, 8 insertions(+), 10 deletions(-)
 
-On 16/02/16 20:18, Rafael J. Wysocki wrote:
-> On Wednesday, December 02, 2015 02:10:45 PM Sudeep Holla wrote:
->> ACPI 6.0 adds a new method to specify the CPU idle states(C-states)
->> called Low Power Idle(LPI) states. Since new architectures like ARM64
->> use only LPIs, introduce ARCH_SUPPORTS_ACPI_PROCESSOR_CSTATE to
->> encapsulate all the code supporting the old style C-states(_CST)
->
-> No.
->
-> The way it really should work is to check if the firmware supports LPI
-> (and what kind of it) and try to use _CST if LPI is not supported.
->
-
-Agreed
-
-> If LPI is supported by the firmware, use it if the LPI objects are
-> present as expected or fall back to using _CST otherwise.
->
-
-I have something similar but I need to reverse the order I think.
-
-> This way it all should work without any new Kconfig options.
->
-
-I agree with you in terms of avoiding new Kconfig option. However the
-main reason for adding it is to avoid declaring dummy functions and
-variables on ARM64.
-
-It's hard to justify the maintainers as it's totally useless on ARM64.
-E.g. boot_option_idle_override, IDLE_NOMWAIT, acpi_unlazy_tlb,
-arch_safe_halt.
-
-Other option is to push those under CONFIG_X86, but then I don't have
-much idea on what are all needed for IA64, so took an option that
-encapsulates everything under CSTATE feature Kconfig, which is not user
-visible and selected by archs supporting it by default.
-
-I am open to any other alternative.
-
+diff --git a/drivers/acpi/property.c b/drivers/acpi/property.c
+index 2aee416..1e75305 100644
+--- a/drivers/acpi/property.c
++++ b/drivers/acpi/property.c
+@@ -25,15 +25,13 @@ static int acpi_data_get_property_array(struct acpi_device_data *data,
+ 					const union acpi_object **obj);
+ 
+ /* ACPI _DSD device properties UUID: daffd814-6eba-4d8c-8a91-bc9bbf4aa301 */
+-static const u8 prp_uuid[16] = {
+-	0x14, 0xd8, 0xff, 0xda, 0xba, 0x6e, 0x8c, 0x4d,
+-	0x8a, 0x91, 0xbc, 0x9b, 0xbf, 0x4a, 0xa3, 0x01
+-};
++static const uuid_le prp_uuid =
++	UUID_LE(0xdaffd814, 0x6eba, 0x4d8c,
++		0x8a, 0x91, 0xbc, 0x9b, 0xbf, 0x4a, 0xa3, 0x01);
+ /* ACPI _DSD data subnodes UUID: dbb8e3e6-5886-4ba6-8795-1319f52a966b */
+-static const u8 ads_uuid[16] = {
+-	0xe6, 0xe3, 0xb8, 0xdb, 0x86, 0x58, 0xa6, 0x4b,
+-	0x87, 0x95, 0x13, 0x19, 0xf5, 0x2a, 0x96, 0x6b
+-};
++static const uuid_le ads_uuid =
++	UUID_LE(0xdbb8e3e6, 0x5886, 0x4ba6,
++		0x87, 0x95, 0x13, 0x19, 0xf5, 0x2a, 0x96, 0x6b);
+ 
+ static bool acpi_enumerate_nondev_subnodes(acpi_handle scope,
+ 					   const union acpi_object *desc,
+@@ -138,7 +136,7 @@ static bool acpi_enumerate_nondev_subnodes(acpi_handle scope,
+ 		    || links->type != ACPI_TYPE_PACKAGE)
+ 			break;
+ 
+-		if (memcmp(uuid->buffer.pointer, ads_uuid, sizeof(ads_uuid)))
++		if (uuid_le_cmp(*(uuid_le *)uuid->buffer.pointer, ads_uuid))
+ 			continue;
+ 
+ 		return acpi_add_nondev_subnodes(scope, links, &data->subnodes);
+@@ -245,7 +243,7 @@ static bool acpi_extract_properties(const union acpi_object *desc,
+ 		    || properties->type != ACPI_TYPE_PACKAGE)
+ 			break;
+ 
+-		if (memcmp(uuid->buffer.pointer, prp_uuid, sizeof(prp_uuid)))
++		if (uuid_le_cmp(*(uuid_le *)uuid->buffer.pointer, prp_uuid))
+ 			continue;
+ 
+ 		/*
 -- 
-Regards,
-Sudeep
+2.7.0
