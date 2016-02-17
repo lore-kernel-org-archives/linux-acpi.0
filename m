@@ -1,128 +1,98 @@
-From: Dan Williams <dan.j.williams@intel.com>
-Subject: Re: [PATCH v1 05/10] ACPI: switch to use generic UUID API
-Date: Wed, 17 Feb 2016 09:49:35 -0800
-Message-ID: <CAPcyv4inMjmt8eH_=bNE_=NMeYGmS75B5LxB=f7Cd762=3UKyQ@mail.gmail.com>
-References: <1455711448-124103-1-git-send-email-andriy.shevchenko@linux.intel.com>
- <1455711448-124103-6-git-send-email-andriy.shevchenko@linux.intel.com>
+From: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+Subject: Re: [PATCH V5 14/15] arm64, pci, acpi: Assign legacy IRQs once
+ device is enable.
+Date: Wed, 17 Feb 2016 18:18:55 +0000
+Message-ID: <20160217181855.GB11132@red-moon>
+References: <1455630825-27253-1-git-send-email-tn@semihalf.com>
+ <1455630825-27253-15-git-send-email-tn@semihalf.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <dri-devel-bounces@lists.freedesktop.org>
-In-Reply-To: <1455711448-124103-6-git-send-email-andriy.shevchenko@linux.intel.com>
-List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/dri-devel>,
- <mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
-List-Archive: <https://lists.freedesktop.org/archives/dri-devel>
-List-Post: <mailto:dri-devel@lists.freedesktop.org>
-List-Help: <mailto:dri-devel-request@lists.freedesktop.org?subject=help>
-List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/dri-devel>,
- <mailto:dri-devel-request@lists.freedesktop.org?subject=subscribe>
-Errors-To: dri-devel-bounces@lists.freedesktop.org
-Sender: "dri-devel" <dri-devel-bounces@lists.freedesktop.org>
-To: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Cc: linux-efi@vger.kernel.org, Rasmus Villemoes <linux@rasmusvillemoes.dk>, Maling list - DRI developers <dri-devel@lists.freedesktop.org>, Benjamin Tissoires <benjamin.tissoires@redhat.com>, Lv Zheng <lv.zheng@intel.com>, Matt Fleming <matt@codeblueprint.co.uk>, Arnd Bergmann <arnd@arndb.de>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, Linux ACPI <linux-acpi@vger.kernel.org>, Zhang Rui <rui.zhang@intel.com>, Mathias Nyman <mathias.nyman@intel.com>, Mark Brown <broonie@kernel.org>, Jarkko Sakkinen <jarkko.sakkinen@linux.intel.com>, Bjorn Helgaas <bhelgaas@google.com>, Mika Westerberg <mika.westerberg@linux.intel.com>, Theodore Ts'o <tytso@mit.edu>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, linux-api@vger.kernel.org, Andrew Morton <akpm@linux-foundation>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from foss.arm.com ([217.140.101.70]:34519 "EHLO foss.arm.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S964925AbcBQSQw (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 17 Feb 2016 13:16:52 -0500
+Content-Disposition: inline
+In-Reply-To: <1455630825-27253-15-git-send-email-tn@semihalf.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Tomasz Nowicki <tn@semihalf.com>
+Cc: helgaas@kernel.org, arnd@arndb.de, will.deacon@arm.com, catalin.marinas@arm.com, rafael@kernel.org, hanjun.guo@linaro.org, okaya@codeaurora.org, jiang.liu@linux.intel.com, jchandra@broadcom.com, Stefano.Stabellini@eu.citrix.com, robert.richter@caviumnetworks.com, mw@semihalf.com, Liviu.Dudau@arm.com, ddaney@caviumnetworks.com, wangyijing@huawei.com, Suravee.Suthikulpanit@amd.com, msalter@redhat.com, linux-pci@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linaro-acpi@lists.linaro.org, jcm@redhat.com, Duc Dang <dhdang@apm.com>
 
-T24gV2VkLCBGZWIgMTcsIDIwMTYgYXQgNDoxNyBBTSwgQW5keSBTaGV2Y2hlbmtvCjxhbmRyaXku
-c2hldmNoZW5rb0BsaW51eC5pbnRlbC5jb20+IHdyb3RlOgo+IEluc3RlYWQgb2Ygb3BlbmNvZGlu
-ZyB0aGUgZXhpc3RpbmcgbGlicmFyeSBmdW5jdGlvbnMgbGV0J3MgdXNlIHRoZW0gZGlyZWN0bHku
-Cj4KPiBUaGUgY29udmVyc2lvbiBmaXhlcyBhIHBvdGVudGlhbCBidWcgaW4gaW50MzQweF90aGVy
-bWFsIGFzIHdlbGwgc2luY2Ugd2UgaGF2ZQo+IHRvIHVzZSBtZW1jbXAoKSBvbiBiaW5hcnkgZGF0
-YS4KPgo+IFNpZ25lZC1vZmYtYnk6IEFuZHkgU2hldmNoZW5rbyA8YW5kcml5LnNoZXZjaGVua29A
-bGludXguaW50ZWwuY29tPgo+IC0tLQo+ICBkcml2ZXJzL2FjcGkvYWNwaV9leHRsb2cuYyAgICAg
-ICAgICAgICAgICAgICAgICAgIHwgIDggKysrLS0tCj4gIGRyaXZlcnMvYWNwaS9idXMuYyAgICAg
-ICAgICAgICAgICAgICAgICAgICAgICAgICAgfCAyOSArKy0tLS0tLS0tLS0tLS0tLS0tCj4gIGRy
-aXZlcnMvYWNwaS9uZml0LmMgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgfCAzNCArKysr
-KysrKysrKy0tLS0tLS0tLS0tLQo+ICBkcml2ZXJzL2FjcGkvbmZpdC5oICAgICAgICAgICAgICAg
-ICAgICAgICAgICAgICAgIHwgIDMgKy0KPiAgZHJpdmVycy9hY3BpL3V0aWxzLmMgICAgICAgICAg
-ICAgICAgICAgICAgICAgICAgICB8ICA0ICstLQo+ICBkcml2ZXJzL2NoYXIvdHBtL3RwbV9jcmIu
-YyAgICAgICAgICAgICAgICAgICAgICAgIHwgIDkgKysrLS0tCj4gIGRyaXZlcnMvY2hhci90cG0v
-dHBtX3BwaS5jICAgICAgICAgICAgICAgICAgICAgICAgfCAyMCArKysrKystLS0tLS0tCj4gIGRy
-aXZlcnMvZ3B1L2RybS9pOTE1L2ludGVsX2FjcGkuYyAgICAgICAgICAgICAgICAgfCAxNCArKysr
-LS0tLS0tCj4gIGRyaXZlcnMvZ3B1L2RybS9ub3V2ZWF1L25vdXZlYXVfYWNwaS5jICAgICAgICAg
-ICAgfCAyMCArKysrKystLS0tLS0tCj4gIGRyaXZlcnMvZ3B1L2RybS9ub3V2ZWF1L252a20vc3Vi
-ZGV2L214bS9iYXNlLmMgICAgfCAgOSArKystLS0KPiAgZHJpdmVycy9oaWQvaTJjLWhpZC9pMmMt
-aGlkLmMgICAgICAgICAgICAgICAgICAgICB8ICA5ICsrKy0tLQo+ICBkcml2ZXJzL2lvbW11L2Rt
-YXIuYyAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIHwgMTEgKysrKy0tLS0KPiAgZHJpdmVy
-cy9wY2kvcGNpLWFjcGkuYyAgICAgICAgICAgICAgICAgICAgICAgICAgICB8IDExICsrKystLS0t
-Cj4gIGRyaXZlcnMvcGNpL3BjaS1sYWJlbC5jICAgICAgICAgICAgICAgICAgICAgICAgICAgfCAg
-NCArLS0KPiAgZHJpdmVycy90aGVybWFsL2ludDM0MHhfdGhlcm1hbC9pbnQzNDAwX3RoZXJtYWwu
-YyB8ICA2ICsrLS0KPiAgZHJpdmVycy91c2IvaG9zdC94aGNpLXBjaS5jICAgICAgICAgICAgICAg
-ICAgICAgICB8ICA5ICsrKy0tLQo+ICBpbmNsdWRlL2FjcGkvYWNwaV9idXMuaCAgICAgICAgICAg
-ICAgICAgICAgICAgICAgIHwgMTAgKysrKy0tLQo+ICBpbmNsdWRlL2xpbnV4L2FjcGkuaCAgICAg
-ICAgICAgICAgICAgICAgICAgICAgICAgIHwgIDIgKy0KPiAgaW5jbHVkZS9saW51eC9wY2ktYWNw
-aS5oICAgICAgICAgICAgICAgICAgICAgICAgICB8ICAyICstCj4gIHNvdW5kL3NvYy9pbnRlbC9z
-a3lsYWtlL3NrbC1uaGx0LmMgICAgICAgICAgICAgICAgfCAgNyArKystLQo+ICAyMCBmaWxlcyBj
-aGFuZ2VkLCA5MiBpbnNlcnRpb25zKCspLCAxMjkgZGVsZXRpb25zKC0pCj4KWy4uXQo+IGRpZmYg
-LS1naXQgYS9kcml2ZXJzL2FjcGkvbmZpdC5jIGIvZHJpdmVycy9hY3BpL25maXQuYwo+IGluZGV4
-IGFkNmQ4YzYuLjNiZWI5OWIgMTAwNjQ0Cj4gLS0tIGEvZHJpdmVycy9hY3BpL25maXQuYwo+ICsr
-KyBiL2RyaXZlcnMvYWNwaS9uZml0LmMKPiBAQCAtNDMsMTEgKzQzLDExIEBAIHN0cnVjdCBuZml0
-X3RhYmxlX3ByZXYgewo+ICAgICAgICAgc3RydWN0IGxpc3RfaGVhZCBmbHVzaGVzOwo+ICB9Owo+
-Cj4gLXN0YXRpYyB1OCBuZml0X3V1aWRbTkZJVF9VVUlEX01BWF1bMTZdOwo+ICtzdGF0aWMgdXVp
-ZF9sZSBuZml0X3V1aWRbTkZJVF9VVUlEX01BWF07Cj4KPiAtY29uc3QgdTggKnRvX25maXRfdXVp
-ZChlbnVtIG5maXRfdXVpZHMgaWQpCj4gK2NvbnN0IHV1aWRfbGUgKnRvX25maXRfdXVpZChlbnVt
-IG5maXRfdXVpZHMgaWQpCj4gIHsKPiAtICAgICAgIHJldHVybiBuZml0X3V1aWRbaWRdOwo+ICsg
-ICAgICAgcmV0dXJuICZuZml0X3V1aWRbaWRdOwo+ICB9Cj4gIEVYUE9SVF9TWU1CT0wodG9fbmZp
-dF91dWlkKTsKPgo+IEBAIC04Myw3ICs4Myw3IEBAIHN0YXRpYyBpbnQgYWNwaV9uZml0X2N0bChz
-dHJ1Y3QgbnZkaW1tX2J1c19kZXNjcmlwdG9yICpuZF9kZXNjLAo+ICAgICAgICAgY29uc3QgY2hh
-ciAqY21kX25hbWUsICogZGltbV9uYW1lOwo+ICAgICAgICAgdW5zaWduZWQgbG9uZyBkc21fbWFz
-azsKPiAgICAgICAgIGFjcGlfaGFuZGxlIGhhbmRsZTsKPiAtICAgICAgIGNvbnN0IHU4ICp1dWlk
-Owo+ICsgICAgICAgY29uc3QgdXVpZF9sZSAqdXVpZDsKPiAgICAgICAgIHUzMiBvZmZzZXQ7Cj4g
-ICAgICAgICBpbnQgcmMsIGk7Cj4KPiBAQCAtMjI1LDcgKzIyNSw3IEBAIHN0YXRpYyBpbnQgbmZp
-dF9zcGFfdHlwZShzdHJ1Y3QgYWNwaV9uZml0X3N5c3RlbV9hZGRyZXNzICpzcGEpCj4gICAgICAg
-ICBpbnQgaTsKPgo+ICAgICAgICAgZm9yIChpID0gMDsgaSA8IE5GSVRfVVVJRF9NQVg7IGkrKykK
-PiAtICAgICAgICAgICAgICAgaWYgKG1lbWNtcCh0b19uZml0X3V1aWQoaSksIHNwYS0+cmFuZ2Vf
-Z3VpZCwgMTYpID09IDApCj4gKyAgICAgICAgICAgICAgIGlmICghdXVpZF9sZV9jbXAoKnRvX25m
-aXRfdXVpZChpKSwgKih1dWlkX2xlICopc3BhLT5yYW5nZV9ndWlkKSkKPiAgICAgICAgICAgICAg
-ICAgICAgICAgICByZXR1cm4gaTsKPiAgICAgICAgIHJldHVybiAtMTsKPiAgfQo+IEBAIC04Mjks
-NyArODI5LDcgQEAgc3RhdGljIGludCBhY3BpX25maXRfYWRkX2RpbW0oc3RydWN0IGFjcGlfbmZp
-dF9kZXNjICphY3BpX2Rlc2MsCj4gIHsKPiAgICAgICAgIHN0cnVjdCBhY3BpX2RldmljZSAqYWRl
-diwgKmFkZXZfZGltbTsKPiAgICAgICAgIHN0cnVjdCBkZXZpY2UgKmRldiA9IGFjcGlfZGVzYy0+
-ZGV2Owo+IC0gICAgICAgY29uc3QgdTggKnV1aWQgPSB0b19uZml0X3V1aWQoTkZJVF9ERVZfRElN
-TSk7Cj4gKyAgICAgICBjb25zdCB1dWlkX2xlICp1dWlkID0gdG9fbmZpdF91dWlkKE5GSVRfREVW
-X0RJTU0pOwo+ICAgICAgICAgaW50IGk7Cj4KPiAgICAgICAgIG5maXRfbWVtLT5kc21fbWFzayA9
-IGFjcGlfZGVzYy0+ZGltbV9kc21fZm9yY2VfZW47Cj4gQEAgLTkwOSw3ICs5MDksNyBAQCBzdGF0
-aWMgaW50IGFjcGlfbmZpdF9yZWdpc3Rlcl9kaW1tcyhzdHJ1Y3QgYWNwaV9uZml0X2Rlc2MgKmFj
-cGlfZGVzYykKPiAgc3RhdGljIHZvaWQgYWNwaV9uZml0X2luaXRfZHNtcyhzdHJ1Y3QgYWNwaV9u
-Zml0X2Rlc2MgKmFjcGlfZGVzYykKPiAgewo+ICAgICAgICAgc3RydWN0IG52ZGltbV9idXNfZGVz
-Y3JpcHRvciAqbmRfZGVzYyA9ICZhY3BpX2Rlc2MtPm5kX2Rlc2M7Cj4gLSAgICAgICBjb25zdCB1
-OCAqdXVpZCA9IHRvX25maXRfdXVpZChORklUX0RFVl9CVVMpOwo+ICsgICAgICAgY29uc3QgdXVp
-ZF9sZSAqdXVpZCA9IHRvX25maXRfdXVpZChORklUX0RFVl9CVVMpOwo+ICAgICAgICAgc3RydWN0
-IGFjcGlfZGV2aWNlICphZGV2Owo+ICAgICAgICAgaW50IGk7Cj4KPiBAQCAtMjA3OSwxNiArMjA3
-OSwxNiBAQCBzdGF0aWMgX19pbml0IGludCBuZml0X2luaXQodm9pZCkKPiAgICAgICAgIEJVSUxE
-X0JVR19PTihzaXplb2Yoc3RydWN0IGFjcGlfbmZpdF9jb250cm9sX3JlZ2lvbikgIT0gODApOwo+
-ICAgICAgICAgQlVJTERfQlVHX09OKHNpemVvZihzdHJ1Y3QgYWNwaV9uZml0X2RhdGFfcmVnaW9u
-KSAhPSA0MCk7Cj4KPiAtICAgICAgIGFjcGlfc3RyX3RvX3V1aWQoVVVJRF9WT0xBVElMRV9NRU1P
-UlksIG5maXRfdXVpZFtORklUX1NQQV9WT0xBVElMRV0pOwo+IC0gICAgICAgYWNwaV9zdHJfdG9f
-dXVpZChVVUlEX1BFUlNJU1RFTlRfTUVNT1JZLCBuZml0X3V1aWRbTkZJVF9TUEFfUE1dKTsKPiAt
-ICAgICAgIGFjcGlfc3RyX3RvX3V1aWQoVVVJRF9DT05UUk9MX1JFR0lPTiwgbmZpdF91dWlkW05G
-SVRfU1BBX0RDUl0pOwo+IC0gICAgICAgYWNwaV9zdHJfdG9fdXVpZChVVUlEX0RBVEFfUkVHSU9O
-LCBuZml0X3V1aWRbTkZJVF9TUEFfQkRXXSk7Cj4gLSAgICAgICBhY3BpX3N0cl90b191dWlkKFVV
-SURfVk9MQVRJTEVfVklSVFVBTF9ESVNLLCBuZml0X3V1aWRbTkZJVF9TUEFfVkRJU0tdKTsKPiAt
-ICAgICAgIGFjcGlfc3RyX3RvX3V1aWQoVVVJRF9WT0xBVElMRV9WSVJUVUFMX0NELCBuZml0X3V1
-aWRbTkZJVF9TUEFfVkNEXSk7Cj4gLSAgICAgICBhY3BpX3N0cl90b191dWlkKFVVSURfUEVSU0lT
-VEVOVF9WSVJUVUFMX0RJU0ssIG5maXRfdXVpZFtORklUX1NQQV9QRElTS10pOwo+IC0gICAgICAg
-YWNwaV9zdHJfdG9fdXVpZChVVUlEX1BFUlNJU1RFTlRfVklSVFVBTF9DRCwgbmZpdF91dWlkW05G
-SVRfU1BBX1BDRF0pOwo+IC0gICAgICAgYWNwaV9zdHJfdG9fdXVpZChVVUlEX05GSVRfQlVTLCBu
-Zml0X3V1aWRbTkZJVF9ERVZfQlVTXSk7Cj4gLSAgICAgICBhY3BpX3N0cl90b191dWlkKFVVSURf
-TkZJVF9ESU1NLCBuZml0X3V1aWRbTkZJVF9ERVZfRElNTV0pOwo+ICsgICAgICAgdXVpZF9sZV90
-b19iaW4oVVVJRF9WT0xBVElMRV9NRU1PUlksICZuZml0X3V1aWRbTkZJVF9TUEFfVk9MQVRJTEVd
-KTsKPiArICAgICAgIHV1aWRfbGVfdG9fYmluKFVVSURfUEVSU0lTVEVOVF9NRU1PUlksICZuZml0
-X3V1aWRbTkZJVF9TUEFfUE1dKTsKPiArICAgICAgIHV1aWRfbGVfdG9fYmluKFVVSURfQ09OVFJP
-TF9SRUdJT04sICZuZml0X3V1aWRbTkZJVF9TUEFfRENSXSk7Cj4gKyAgICAgICB1dWlkX2xlX3Rv
-X2JpbihVVUlEX0RBVEFfUkVHSU9OLCAmbmZpdF91dWlkW05GSVRfU1BBX0JEV10pOwo+ICsgICAg
-ICAgdXVpZF9sZV90b19iaW4oVVVJRF9WT0xBVElMRV9WSVJUVUFMX0RJU0ssICZuZml0X3V1aWRb
-TkZJVF9TUEFfVkRJU0tdKTsKPiArICAgICAgIHV1aWRfbGVfdG9fYmluKFVVSURfVk9MQVRJTEVf
-VklSVFVBTF9DRCwgJm5maXRfdXVpZFtORklUX1NQQV9WQ0RdKTsKPiArICAgICAgIHV1aWRfbGVf
-dG9fYmluKFVVSURfUEVSU0lTVEVOVF9WSVJUVUFMX0RJU0ssICZuZml0X3V1aWRbTkZJVF9TUEFf
-UERJU0tdKTsKPiArICAgICAgIHV1aWRfbGVfdG9fYmluKFVVSURfUEVSU0lTVEVOVF9WSVJUVUFM
-X0NELCAmbmZpdF91dWlkW05GSVRfU1BBX1BDRF0pOwo+ICsgICAgICAgdXVpZF9sZV90b19iaW4o
-VVVJRF9ORklUX0JVUywgJm5maXRfdXVpZFtORklUX0RFVl9CVVNdKTsKPiArICAgICAgIHV1aWRf
-bGVfdG9fYmluKFVVSURfTkZJVF9ESU1NLCAmbmZpdF91dWlkW05GSVRfREVWX0RJTU1dKTsKCkkg
-ZG9uJ3Qgc2VlIHRoZSBiZW5lZml0IG9mIHRoaXMgY2hhbmdlLiAgRm9yIHRoZSBORklUIGRyaXZl
-ciB3ZSB3ZW50CnRocm91Z2ggYSBmaXJlIGRyaWxsIHRyeWluZyB0byBtYWtlIHN1cmUgdGhlIEFD
-UEkgc3BlYyBmb3JtYXQgb2YgYQpVVUlEIG1hdGNoZWQgdGhlIExpbnV4IGludGVycHJldGF0aW9u
-LCBhbmQgdGhpcyBjaGFuZ2UgbWFrZXMgdGhhdApoYXJkZXIgdG8gZGV0ZXJtaW5lLiAgQUNQSSBk
-cml2ZXJzIHNob3VsZCB1c2UgQUNQSUNBIHV1aWQgaGVscGVyCnJvdXRpbmVzIGluIG15IG9waW5p
-b24uCl9fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fCmRyaS1k
-ZXZlbCBtYWlsaW5nIGxpc3QKZHJpLWRldmVsQGxpc3RzLmZyZWVkZXNrdG9wLm9yZwpodHRwczov
-L2xpc3RzLmZyZWVkZXNrdG9wLm9yZy9tYWlsbWFuL2xpc3RpbmZvL2RyaS1kZXZlbAo=
+[+ Duc, this needs testing on DT PCI hosts that do not call pci_fixup_irqs()]
+
+On Tue, Feb 16, 2016 at 02:53:44PM +0100, Tomasz Nowicki wrote:
+
+Subject is wrong, leftover from previous posting (ie you do not allocate
+at device enable anymore).
+
+> This is the last step before enabling generic ACPI PCI host controller
+> for ARM64. We need to take care of legacy IRQ mapping for non-MSI(X)
+
+You do not check MSIs anymore.
+
+> PCI devices. pcibios_alloc_irq() evaluation is not sensitive to
+> ACPI device enumeration order, so it is the best place to assign
+> device's IRQs for ACPI boot method. Also, it does not hurt DT to be
+> initialized form the same place.
+> 
+> NOTE: *This is going to be temporary solution*. There is ongoing work
+> which aims for cleaning legacy IRQ allocation from arch specific code.
+> We can consider this patch as the necessary evil which will be removed
+> once cleanup series lands in mailnline in the near future.
+
+"To enable PCI legacy IRQs on platforms booting with ACPI, arch code
+should include ACPI specific callbacks that parse and set-up the
+device IRQ number, equivalent to the DT boot path. Owing to the current
+ACPI core scan handlers implementation, ACPI PCI legacy IRQs bindings
+cannot be parsed at device add time, since that would trigger ACPI scan
+handlers ordering issues depending on how the ACPI tables are defined.
+
+To solve this problem and consolidate FW PCI legacy IRQs parsing in
+one single pcibios callback (pending final removal), this patch moves
+DT PCI IRQ parsing to the pcibios_alloc_irq() callback (called by
+PCI core code at device probe time) and adds ACPI PCI legacy IRQs
+parsing to the same callback too, so that FW PCI legacy IRQs parsing
+is confined in one single arch callback that can be easily removed
+when code parsing PCI legacy IRQs is consolidated and moved to core
+PCI code".
+
+?
+
+> Signed-off-by: Tomasz Nowicki <tn@semihalf.com>
+> Suggested-by: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+> ---
+>  arch/arm64/kernel/pci.c | 11 ++++++++---
+>  1 file changed, 8 insertions(+), 3 deletions(-)
+> 
+> diff --git a/arch/arm64/kernel/pci.c b/arch/arm64/kernel/pci.c
+> index 023b983..6e77e1b 100644
+> --- a/arch/arm64/kernel/pci.c
+> +++ b/arch/arm64/kernel/pci.c
+> @@ -52,11 +52,16 @@ int pcibios_enable_device(struct pci_dev *dev, int mask)
+>  }
+>  
+>  /*
+> - * Try to assign the IRQ number from DT when adding a new device
+> + * Try to assign the IRQ number when probing a new device
+>   */
+> -int pcibios_add_device(struct pci_dev *dev)
+> +int pcibios_alloc_irq(struct pci_dev *dev)
+>  {
+> -	dev->irq = of_irq_parse_and_map_pci(dev, 0, 0);
+> +	if (acpi_disabled)
+> +		dev->irq = of_irq_parse_and_map_pci(dev, 0, 0);
+> +#ifdef CONFIG_ACPI
+> +	else
+> +		return acpi_pci_irq_enable(dev);
+> +#endif
+>  
+>  	return 0;
+>  }
+
+It is good this code is now in one single function, it will be removed
+more quickly :D
+
+So pending APM X-gene DT testing:
+
+Reviewed-by: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
