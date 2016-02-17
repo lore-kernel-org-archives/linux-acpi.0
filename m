@@ -1,62 +1,62 @@
-From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Subject: [PATCH v1 07/10] sysctl: drop away useless label
-Date: Wed, 17 Feb 2016 14:17:25 +0200
-Message-ID: <1455711448-124103-8-git-send-email-andriy.shevchenko@linux.intel.com>
-References: <1455711448-124103-1-git-send-email-andriy.shevchenko@linux.intel.com>
+From: Sudeep Holla <sudeep.holla@arm.com>
+Subject: Re: [PATCH v3 4/5] ACPI / processor_idle : introduce
+ ARCH_SUPPORTS_ACPI_PROCESSOR_CSTATE
+Date: Wed, 17 Feb 2016 12:21:34 +0000
+Message-ID: <56C465CE.50403@arm.com>
+References: <1449065446-26115-1-git-send-email-sudeep.holla@arm.com>
+ <1449065446-26115-5-git-send-email-sudeep.holla@arm.com>
+ <12469811.iv3SctjXxl@vostro.rjw.lan>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1455711448-124103-1-git-send-email-andriy.shevchenko@linux.intel.com>
+In-Reply-To: <12469811.iv3SctjXxl@vostro.rjw.lan>
 Sender: linux-kernel-owner@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Theodore Ts'o <tytso@mit.edu>, Arnd Bergmann <arnd@arndb.de>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Jarkko Sakkinen <jarkko.sakkinen@linux.intel.com>, Jani Nikula <jani.nikula@linux.intel.com>, David Airlie <airlied@linux.ie>, Benjamin Tissoires <benjamin.tissoires@redhat.com>, Bjorn Helgaas <bhelgaas@google.com>, Mathias Nyman <mathias.nyman@intel.com>, Matt Fleming <matt@codeblueprint.co.uk>, Lv Zheng <lv.zheng@intel.com>, Mark Brown <broonie@kernel.org>, Zhang Rui <rui.zhang@intel.com>, Mika Westerberg <mika.westerberg@linux.intel.com>, Andrew Morton <akpm@linux-foundation.org>, Rasmus Villemoes <linux@rasmusvillemoes.dk>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, dri-devel@lists.freedesktop.org, linux-efi@vger.kernel.org, linux-api@vger.kernel.org, linux-nvdimm@lists.01.org
-Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: Sudeep Holla <sudeep.holla@arm.com>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linux-ia64@vger.kernel.org, x86@kernel.org, Al Stone <al.stone@linaro.org>, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, Mahesh Sivasubramanian <msivasub@codeaurora.org>, Ashwin Chaugule <ashwin.chaugule@linaro.org>, Prashanth Prakash <pprakash@codeaurora.org>
 List-Id: linux-acpi@vger.kernel.org
 
-We have no locking in bin_uuid(). Thus, we may remove the out label and use
-return statements directly.
 
-Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
----
- kernel/sysctl_binary.c | 12 ++++--------
- 1 file changed, 4 insertions(+), 8 deletions(-)
 
-diff --git a/kernel/sysctl_binary.c b/kernel/sysctl_binary.c
-index 7e7746a..509abe4 100644
---- a/kernel/sysctl_binary.c
-+++ b/kernel/sysctl_binary.c
-@@ -1123,15 +1123,14 @@ static ssize_t bin_uuid(struct file *file,
- 
- 		result = kernel_read(file, 0, buf, sizeof(buf) - 1);
- 		if (result < 0)
--			goto out;
-+			return result;
- 
- 		buf[result] = '\0';
- 
- 		/* Convert the uuid to from a string to binary */
- 		for (i = 0; i < 16; i++) {
--			result = -EIO;
- 			if (!isxdigit(str[0]) || !isxdigit(str[1]))
--				goto out;
-+				return -EIO;
- 
- 			uuid[i] = (hex_to_bin(str[0]) << 4) |
- 					hex_to_bin(str[1]);
-@@ -1143,15 +1142,12 @@ static ssize_t bin_uuid(struct file *file,
- 		if (oldlen > 16)
- 			oldlen = 16;
- 
--		result = -EFAULT;
- 		if (copy_to_user(oldval, uuid, oldlen))
--			goto out;
-+			return -EFAULT;
- 
- 		copied = oldlen;
- 	}
--	result = copied;
--out:
--	return result;
-+	return copied;
- }
- 
- static ssize_t bin_dn_node_address(struct file *file,
+On 16/02/16 20:18, Rafael J. Wysocki wrote:
+> On Wednesday, December 02, 2015 02:10:45 PM Sudeep Holla wrote:
+>> ACPI 6.0 adds a new method to specify the CPU idle states(C-states)
+>> called Low Power Idle(LPI) states. Since new architectures like ARM64
+>> use only LPIs, introduce ARCH_SUPPORTS_ACPI_PROCESSOR_CSTATE to
+>> encapsulate all the code supporting the old style C-states(_CST)
+>
+> No.
+>
+> The way it really should work is to check if the firmware supports LPI
+> (and what kind of it) and try to use _CST if LPI is not supported.
+>
+
+Agreed
+
+> If LPI is supported by the firmware, use it if the LPI objects are
+> present as expected or fall back to using _CST otherwise.
+>
+
+I have something similar but I need to reverse the order I think.
+
+> This way it all should work without any new Kconfig options.
+>
+
+I agree with you in terms of avoiding new Kconfig option. However the
+main reason for adding it is to avoid declaring dummy functions and
+variables on ARM64.
+
+It's hard to justify the maintainers as it's totally useless on ARM64.
+E.g. boot_option_idle_override, IDLE_NOMWAIT, acpi_unlazy_tlb,
+arch_safe_halt.
+
+Other option is to push those under CONFIG_X86, but then I don't have
+much idea on what are all needed for IA64, so took an option that
+encapsulates everything under CSTATE feature Kconfig, which is not user
+visible and selected by archs supporting it by default.
+
+I am open to any other alternative.
+
 -- 
-2.7.0
+Regards,
+Sudeep
