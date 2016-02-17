@@ -1,132 +1,90 @@
-From: Toshi Kani <toshi.kani@hpe.com>
-Subject: Re: [PATCH 3/3] ACPI: Change NFIT driver to set PMEM type to iomem
- entry
-Date: Tue, 16 Feb 2016 19:00:41 -0700
-Message-ID: <1455674441.2925.204.camel@hpe.com>
-References: <1454439311-23690-1-git-send-email-toshi.kani@hpe.com>
-	 <1454439311-23690-4-git-send-email-toshi.kani@hpe.com>
-	 <CAPcyv4ik0GRYkYdaKvu4rPC9a+Q-e93uCZMpx1W8=Cvwwdh6jw@mail.gmail.com>
-	 <1455316203.2925.132.camel@hpe.com>
-	 <CAPcyv4i=TpX=V6mN0zrsqvUyonKY1WkbP=wJ0QqjQtj_kiSJQw@mail.gmail.com>
+From: Dave Airlie <airlied@gmail.com>
+Subject: Lenovo W541, windows 10 and ACPI PM
+Date: Wed, 17 Feb 2016 11:57:49 +1000
+Message-ID: <CAPM=9tyY9bkCh2+-Sn3AXN+R4rZOS1z--bZoycGBmStQS2-bMw@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <CAPcyv4i=TpX=V6mN0zrsqvUyonKY1WkbP=wJ0QqjQtj_kiSJQw@mail.gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Dan Williams <dan.j.williams@intel.com>
-Cc: Ingo Molnar <mingo@kernel.org>, Borislav Petkov <bp@suse.de>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Andrew Morton <akpm@linux-foundation.org>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, Linux ACPI <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
+Content-Type: multipart/mixed; boundary=001a11c3cd70bdb61f052bed9378
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-lb0-f182.google.com ([209.85.217.182]:35455 "EHLO
+	mail-lb0-f182.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933619AbcBQB5v (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 16 Feb 2016 20:57:51 -0500
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Linux ACPI <linux-acpi@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>, dri-devel <dri-devel@lists.freedesktop.org>
 
-On Fri, 2016-02-12 at 15:32 -0800, Dan Williams wrote:
-> On Fri, Feb 12, 2016 at 2:30 PM, Toshi Kani <toshi.kani@hpe.com> wrot=
-e:
-> > On Fri, 2016-02-12 at 11:41 -0800, Dan Williams wrote:
-> > > On Tue, Feb 2, 2016 at 10:55 AM, Toshi Kani <toshi.kani@hpe.com> =
-wro
-=C2=A0:
-> > > Hmm, if we set the type on driver load, should we clear the type =
-on
-> > > driver unload?
-> >=20
-> > I think this type update should stay for the life-cycle of this iom=
-em
-> > entry itself since this range is PMEM even after the driver is
-> > unloaded.=C2=A0=C2=A0This is an extension of the boot-time iomem ta=
-ble
-> > initialization from e820/EFI, which allows ACPI to set a correct
-> > type.=C2=A0=C2=A0This is independent from driver's resource allocat=
-ions.
-> >=20
-> > > Actually it might be more straightforward to specify a type at
-> > > request_region() time.=C2=A0=C2=A0That way it gets released at
-> > > release_region(). =C2=A0We're already setting a resource name at
-> > > request_region time, adding a type annotation at the time seems
-> > > appropriate.
-> >=20
-> > I first considered simply setting "namespaceX.X" as PMEM.=C2=A0=C2=A0=
-However,
-> > region_intersects() and its friends only check the top-level entrie=
-s,
-> > not their children, of the iomem table.=C2=A0=C2=A0And I think a ch=
-ild should
-> > have the same type as the parent as I fixed it in patch 1/3.
->=20
-> Did we investigate updating region_intersects() to check children?
-> When a child sub-divides a region with different types it may be the
-> wrong answer to check the parent.=C2=A0=C2=A0Is there a problem with =
-moving
-> checking to the child?
+--001a11c3cd70bdb61f052bed9378
+Content-Type: text/plain; charset=UTF-8
 
-Here are three options I can think of.
+So we got a bug filed in Fedora 23 that the nvidia GPU wasn't stalling
+on resume from runtime poweroff. When we looked into it, we noticed
+the GPU wasn't powering off and the delay was from things going to
+hell after that.
 
-1) Set pmem type to "reserved" (This patch-set)
-=C2=A0- Add a new iomem_set_desc(), which sets a given type to a top-le=
-vel
-entry. =C2=A0Change the ACPI NFIT driver to call it to set pmem type to
-"reserved" entry.
-=C2=A0- region_intersects() finds a pmem entry by checking top-level en=
-tries (no
-change).
+I dug out the DSDT and noticed it has special Windows 10 handling code
+for the SB.PCI0.PEG.VID device. Adding acpi_osi="!Windows 2013" made
+things work again and everyone rejoiced and had battery life again.
 
-2) Change region_intersects() to check children's type
-=C2=A0- Add a new request_region_ext(), which is an extension to
-request_region() to allow specifying a type of resource. =C2=A0It puts =
-a new
-child entry under "reserved". =C2=A0Change the pmem driver to call this=
- func.
-=C2=A0- Change region_intersects() to check children's type for finding=
- this
-child pmem entry.
+Now what to do about this? I doubt this is restricted to the W541
+laptop, I assume all Optimus laptops that support windows 10 will have
+this problem, so I'm not sure blacklisting on a case by case basis is
+going to help.
 
-3) Pmem driver to call insert_resource()
-=C2=A0- Change the pmem driver to call insert_resource(), which puts a =
-new pmem
-entry as the parent of "reserved".
-=C2=A0- region_intersects() finds a pmem entry by checking top-level en=
-tries (no
-change).
-=C2=A0- Add a new release_resource_self(), which releases a given entry=
- and
-keeps its children if any. =C2=A0Change the pmem driver to call it for =
-release.
+More information from investigation:
+On Win7/8 paths, the way to poweroff the GPU is to call an ACPI _DSM
+on the VID device that sets a magic bit, then the next time you go
+into D3 the _PS3 method gets called and powers the device down. This
+is to make up for the lack of D3cold in Windows at the time I suspect.
 
+Now with Win10, the PCI0.PEG device has power resource methods,
+specifically PR3 which enables D3cold. However nouveau is bound to the
+VID device not the PEG device, so never attempts to power it down
+using those methods. I've hacked up the attached patch, and it does
+indeed power the device down, but I've no idea how this is meant to
+work in real world.
 
-This patch-set implements 1). =C2=A0The pmem type is set to "reserved" =
-for its
-life-cycle. =C2=A0This option is simplest.
+Dave.
 
-=46or 2), the changes to region_intersects() may be too complex for
-maintenance. =C2=A0Here are a few examples when region_intersects() is =
-called
-with addr [1-10] where iomem has entry P and its children.
+--001a11c3cd70bdb61f052bed9378
+Content-Type: text/x-patch; charset=US-ASCII;
+	name="0001-nouveau-hack-the-parent-power-down-so-the-GPU-powers.patch"
+Content-Disposition: attachment;
+	filename="0001-nouveau-hack-the-parent-power-down-so-the-GPU-powers.patch"
+Content-Transfer-Encoding: base64
+X-Attachment-Id: f_ikq6ul660
 
-Case A: P is fully covered by children C1 & C2. =C2=A0region_intersects=
-()
-ignores P's type, but checks C1 and C2's.
-=C2=A0=C2=A0
-=C2=A0 P [1-10] + C1 [1-5]
-=C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0+ C2 [6-10]
-
-Case B: C2 is fully covered by C3, but P is not. =C2=A0region_intersect=
-s()
-ignores C2's type, but checks P, C1, C3's.
-
-=C2=A0 P [1-10] + C1 [1-2]
-=C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0+ C2 [6-10] + C3 [6-10]
-
-I think region_intersects() will need to construct a flat table from th=
-e
-tree while making recursive calls to walk thru all children.
-
-3) is similar to 2), but avoids the changes to region_intersects() sinc=
-e
-insert_resource() inserts a new entry as the parent to "reserved".
-=C2=A0However, a new interface is necessary to put "reserved" back to t=
-op-level
-when releasing the added entry.
-
-My recommendation is go with either 1) or 3). =C2=A0What do you think?
-
-Thanks,
--Toshi
+RnJvbSA3NTNiYmIyMDJiOGU0NjRjYjQyNTM3MjI2NjA0MmNjN2Q2MGQzNTEzIE1vbiBTZXAgMTcg
+MDA6MDA6MDAgMjAwMQpGcm9tOiBEYXZlIEFpcmxpZSA8YWlybGllZEByZWRoYXQuY29tPgpEYXRl
+OiBXZWQsIDE3IEZlYiAyMDE2IDIzOjIxOjEzICsxMDAwClN1YmplY3Q6IFtQQVRDSF0gbm91dmVh
+dTogaGFjayB0aGUgcGFyZW50IHBvd2VyIGRvd24gc28gdGhlIEdQVSBwb3dlcnMgZG93bi4KCi0t
+LQogZHJpdmVycy9hY3BpL2RldmljZV9wbS5jICAgICAgICAgICAgICB8ICAzICsrKwogZHJpdmVy
+cy9ncHUvZHJtL25vdXZlYXUvbm91dmVhdV9kcm0uYyB8IDE2ICsrKysrKysrKysrKysrKysKIDIg
+ZmlsZXMgY2hhbmdlZCwgMTkgaW5zZXJ0aW9ucygrKQoKZGlmZiAtLWdpdCBhL2RyaXZlcnMvYWNw
+aS9kZXZpY2VfcG0uYyBiL2RyaXZlcnMvYWNwaS9kZXZpY2VfcG0uYwppbmRleCBjZDJjM2Q2Li44
+Njk2ODg5IDEwMDY0NAotLS0gYS9kcml2ZXJzL2FjcGkvZGV2aWNlX3BtLmMKKysrIGIvZHJpdmVy
+cy9hY3BpL2RldmljZV9wbS5jCkBAIC0xMTcsNiArMTE3LDkgQEAgaW50IGFjcGlfZGV2aWNlX2dl
+dF9wb3dlcihzdHJ1Y3QgYWNwaV9kZXZpY2UgKmRldmljZSwgaW50ICpzdGF0ZSkKIAkgICAgJiYg
+cmVzdWx0ID09IEFDUElfU1RBVEVfRDApCiAJCWRldmljZS0+cGFyZW50LT5wb3dlci5zdGF0ZSA9
+IEFDUElfU1RBVEVfRDA7CiAKKwlpZiAocmVzdWx0ID09IEFDUElfU1RBVEVfVU5LTk9XTikKKwkJ
+cmVzdWx0ID0gZGV2aWNlLT5wYXJlbnQgPworCQkJZGV2aWNlLT5wYXJlbnQtPnBvd2VyLnN0YXRl
+IDogQUNQSV9TVEFURV9EMDsKIAkqc3RhdGUgPSByZXN1bHQ7CiAKICBvdXQ6CmRpZmYgLS1naXQg
+YS9kcml2ZXJzL2dwdS9kcm0vbm91dmVhdS9ub3V2ZWF1X2RybS5jIGIvZHJpdmVycy9ncHUvZHJt
+L25vdXZlYXUvbm91dmVhdV9kcm0uYwppbmRleCAyZjJmMjUyLi5kOWIyYmQ2IDEwMDY0NAotLS0g
+YS9kcml2ZXJzL2dwdS9kcm0vbm91dmVhdS9ub3V2ZWF1X2RybS5jCisrKyBiL2RyaXZlcnMvZ3B1
+L2RybS9ub3V2ZWF1L25vdXZlYXVfZHJtLmMKQEAgLTcxNSw2ICs3MTUsMTQgQEAgbm91dmVhdV9w
+bW9wc19ydW50aW1lX3N1c3BlbmQoc3RydWN0IGRldmljZSAqZGV2KQogCXBjaV9kaXNhYmxlX2Rl
+dmljZShwZGV2KTsKIAlwY2lfaWdub3JlX2hvdHBsdWcocGRldik7CiAJcGNpX3NldF9wb3dlcl9z
+dGF0ZShwZGV2LCBQQ0lfRDNjb2xkKTsKKwl7CisJCXN0cnVjdCBhY3BpX2RldmljZSAqYWRldjsK
+KwkJaW50IHI7CisKKwkJciA9IGFjcGlfYnVzX2dldF9kZXZpY2UoQUNQSV9IQU5ETEUoJnBkZXYt
+PmRldiksICZhZGV2KTsKKwkJaWYgKCFyKQorCQkJYWNwaV9kZXZpY2Vfc2V0X3Bvd2VyKGFkZXYt
+PnBhcmVudCwgQUNQSV9TVEFURV9EM19DT0xEKTsKKwl9CiAJZHJtX2Rldi0+c3dpdGNoX3Bvd2Vy
+X3N0YXRlID0gRFJNX1NXSVRDSF9QT1dFUl9EWU5BTUlDX09GRjsKIAlyZXR1cm4gcmV0OwogfQpA
+QCAtNzMwLDYgKzczOCwxNCBAQCBub3V2ZWF1X3Btb3BzX3J1bnRpbWVfcmVzdW1lKHN0cnVjdCBk
+ZXZpY2UgKmRldikKIAlpZiAobm91dmVhdV9ydW50aW1lX3BtID09IDApCiAJCXJldHVybiAtRUlO
+VkFMOwogCisJeworCQlzdHJ1Y3QgYWNwaV9kZXZpY2UgKmFkZXY7CisJCWludCByOworCisJCXIg
+PSBhY3BpX2J1c19nZXRfZGV2aWNlKEFDUElfSEFORExFKCZwZGV2LT5kZXYpLCAmYWRldik7CisJ
+CWlmICghcikKKwkJCWFjcGlfZGV2aWNlX3NldF9wb3dlcihhZGV2LT5wYXJlbnQsIEFDUElfU1RB
+VEVfRDApOworCX0KIAlwY2lfc2V0X3Bvd2VyX3N0YXRlKHBkZXYsIFBDSV9EMCk7CiAJcGNpX3Jl
+c3RvcmVfc3RhdGUocGRldik7CiAJcmV0ID0gcGNpX2VuYWJsZV9kZXZpY2UocGRldik7Ci0tIAoy
+LjUuMAoK
+--001a11c3cd70bdb61f052bed9378--
