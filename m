@@ -1,69 +1,49 @@
 From: Sudeep Holla <sudeep.holla@arm.com>
-Subject: Re: [PATCH v3 0/5] ACPI / processor_idle: Add ACPI v6.0 LPI support
-Date: Wed, 17 Feb 2016 11:37:51 +0000
-Message-ID: <56C45B8F.4000509@arm.com>
+Subject: Re: [PATCH v3 1/5] ACPI / processor : add support for ACPI0010
+ processor container
+Date: Wed, 17 Feb 2016 11:54:54 +0000
+Message-ID: <56C45F8E.3060608@arm.com>
 References: <1449065446-26115-1-git-send-email-sudeep.holla@arm.com>
- <4399656.WBgE1pMnz5@vostro.rjw.lan>
+ <1449065446-26115-2-git-send-email-sudeep.holla@arm.com>
+ <1911447.Jqz0QvxEGY@vostro.rjw.lan>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=utf-8; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <4399656.WBgE1pMnz5@vostro.rjw.lan>
-Sender: linux-kernel-owner@vger.kernel.org
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from foss.arm.com ([217.140.101.70]:60083 "EHLO foss.arm.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S932252AbcBQLy6 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 17 Feb 2016 06:54:58 -0500
+In-Reply-To: <1911447.Jqz0QvxEGY@vostro.rjw.lan>
+Sender: linux-acpi-owner@vger.kernel.org
+List-Id: linux-acpi@vger.kernel.org
 To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
 Cc: Sudeep Holla <sudeep.holla@arm.com>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linux-ia64@vger.kernel.org, x86@kernel.org, Al Stone <al.stone@linaro.org>, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, Mahesh Sivasubramanian <msivasub@codeaurora.org>, Ashwin Chaugule <ashwin.chaugule@linaro.org>, Prashanth Prakash <pprakash@codeaurora.org>
-List-Id: linux-acpi@vger.kernel.org
 
 
 
-On 16/02/16 20:08, Rafael J. Wysocki wrote:
-> On Wednesday, December 02, 2015 02:10:41 PM Sudeep Holla wrote:
->> ACPI 6.0 introduced LPI(Low Power Idle) states that provides an alternate
->> method to describe processor idle states. It extends the specification
->> to allow the expression of idle states like C-states selectable by the
->> OSPM when a processor goes idle, but may affect more than one processor,
->> and may affect other system components.
+On 16/02/16 20:10, Rafael J. Wysocki wrote:
+> On Wednesday, December 02, 2015 02:10:42 PM Sudeep Holla wrote:
+>> ACPI 6.0 adds support for optional processor container device which may
+>> contain child objects that are either processor devices or other processor
+>> containers. This allows representing hierarchical processor topologies.
 >>
->> LPI extensions leverages the processor container device(again introduced
->> in ACPI 6.0) allowing to express which parts of the system are affected
->> by a given LPI state. It defines the local power states for each node
->> in a hierarchical processor topology. The OSPM can use _LPI object to
->> select a local power state for each level of processor hierarchy in the
->> system. They used to produce a composite power state request that is
->> presented to the platform by the OSPM.
+>> It is declared using the _HID of ACPI0010. It is an abstract container
+>> used to represent CPU topology and should not be used to hotplug
+>> purposes.
 >>
->> Since multiple processors affect the idle state for any non-leaf hierarchy
->> node, coordination of idle state requests between the processors is
->> required. ACPI supports two different coordination schemes: Platform
->> coordinated and  OS initiated.
->>
->> This series aims at providing basic and initial support for platform
->> coordinated LPI states.
->>
->> v2[2]->v3:
->> 	- rebased against v4.4-rc3
->> 	- fixed couple of issues reported by Prashanth and review comments
->> 	  from Ashwin
->>
->> v1[1]->v2[2]:
->> 	- Fixed support for ACPI0010 processor container
->> 	- moved sleep state code out of processor_idle
->>
->> Note the ARM64 specific changes are not part of this series as it's still
->> WIP and there are other consolidation happening in there. For reference
->> and testing, I have pushed a branch[3]
+>> This patch enables the support for these ACPI processor containers and
+>> ensures the generic container/module devices are not created for them.
 >
-> Sorry for the slow response here.
+> I wouldn't say that it "enables the support".  What it actually does is
+> to prevent platform devices from being created for processor container
+> objects.
+>
+> I can apply it right away with this changelog modification, though.
 >
 
-No problem, I saw you were quite busy with cpufreq timers past couple of
-weeks so didn't bother you.
-
-> It doesn't look too bad overall, but there are some things in it I'd like to
-> be done differenty.  Please see comments on the individual patches.
->
-
-OK, thanks for the review, will look at them.
+Ah my mistake, didn't change the log message from first version.
+Will post the patch with update log, you can change it further if required.
 
 -- 
 Regards,
