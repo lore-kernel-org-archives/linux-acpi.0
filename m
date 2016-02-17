@@ -1,140 +1,66 @@
-From: Dan Williams <dan.j.williams@intel.com>
-Subject: Re: [PATCH 3/3] ACPI: Change NFIT driver to set PMEM type to iomem entry
-Date: Wed, 17 Feb 2016 11:34:55 -0800
-Message-ID: <CAPcyv4hSJCzUdt-7SjWoT49NSSnv4nzpC=K0rq1E6DWTb6ctkA@mail.gmail.com>
-References: <1454439311-23690-1-git-send-email-toshi.kani@hpe.com>
-	<1454439311-23690-4-git-send-email-toshi.kani@hpe.com>
-	<CAPcyv4ik0GRYkYdaKvu4rPC9a+Q-e93uCZMpx1W8=Cvwwdh6jw@mail.gmail.com>
-	<1455316203.2925.132.camel@hpe.com>
-	<CAPcyv4i=TpX=V6mN0zrsqvUyonKY1WkbP=wJ0QqjQtj_kiSJQw@mail.gmail.com>
-	<1455674441.2925.204.camel@hpe.com>
-	<1455732020.2925.255.camel@hpe.com>
+From: "Rafael J. Wysocki" <rafael@kernel.org>
+Subject: Re: [PATCH v2 0/3] PCI: Revert "Implement pcibios_alloc_irq() and pcibios_free_irq()"
+Date: Wed, 17 Feb 2016 20:47:16 +0100
+Message-ID: <CAJZ5v0g1TBiRhALk5Q8PbC2FOXvOCJJsfNBcTVBLFpjDFvp0ag@mail.gmail.com>
+References: <20160217182718.302.10272.stgit@bhelgaas-glaptop2.roam.corp.google.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1455732020.2925.255.camel@hpe.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Toshi Kani <toshi.kani@hpe.com>
-Cc: "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Linux ACPI <linux-acpi@vger.kernel.org>, Andrew Morton <akpm@linux-foundation.org>, Borislav Petkov <bp@suse.de>, Ingo Molnar <mingo@kernel.org>
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-lb0-f181.google.com ([209.85.217.181]:36637 "EHLO
+	mail-lb0-f181.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S964976AbcBQTrS convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 17 Feb 2016 14:47:18 -0500
+In-Reply-To: <20160217182718.302.10272.stgit@bhelgaas-glaptop2.roam.corp.google.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Bjorn Helgaas <bhelgaas@google.com>
+Cc: Linux PCI <linux-pci@vger.kernel.org>, =?UTF-8?B?0J7Qu9C10LPQnNC+0YDQvtC3?= <oleg.moroz@mcc.vniiem.ru>, Joerg Roedel <jroedel@suse.de>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Sunjin Yang <fan4326@gmail.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Thomas Gleixner <tglx@linutronix.de>, Yinghai Lu <yinghai@kernel.org>, Jiang Liu <jiang.liu@linux.intel.com>
 
-On Wed, Feb 17, 2016 at 10:00 AM, Toshi Kani <toshi.kani@hpe.com> wrote:
-> On Tue, 2016-02-16 at 19:00 -0700, Toshi Kani wrote:
->> On Fri, 2016-02-12 at 15:32 -0800, Dan Williams wrote:
->> > On Fri, Feb 12, 2016 at 2:30 PM, Toshi Kani <toshi.kani@hpe.com> wrote:
->> > > On Fri, 2016-02-12 at 11:41 -0800, Dan Williams wrote:
->> > > > On Tue, Feb 2, 2016 at 10:55 AM, Toshi Kani <toshi.kani@hpe.com>
->> > > > wro
->>  :
->> > > > Hmm, if we set the type on driver load, should we clear the type on
->> > > > driver unload?
->> > >
->> > > I think this type update should stay for the life-cycle of this iomem
->> > > entry itself since this range is PMEM even after the driver is
->> > > unloaded.  This is an extension of the boot-time iomem table
->> > > initialization from e820/EFI, which allows ACPI to set a correct
->> > > type.  This is independent from driver's resource allocations.
->> > >
->> > > > Actually it might be more straightforward to specify a type at
->> > > > request_region() time.  That way it gets released at
->> > > > release_region().  We're already setting a resource name at
->> > > > request_region time, adding a type annotation at the time seems
->> > > > appropriate.
->> > >
->> > > I first considered simply setting "namespaceX.X" as PMEM.  However,
->> > > region_intersects() and its friends only check the top-level entries,
->> > > not their children, of the iomem table.  And I think a child should
->> > > have the same type as the parent as I fixed it in patch 1/3.
->> >
->> > Did we investigate updating region_intersects() to check children?
->> > When a child sub-divides a region with different types it may be the
->> > wrong answer to check the parent.  Is there a problem with moving
->> > checking to the child?
->>
->> Here are three options I can think of.
->>
->> 1) Set pmem type to "reserved" (This patch-set)
->>  - Add a new iomem_set_desc(), which sets a given type to a top-level
->> entry.  Change the ACPI NFIT driver to call it to set pmem type to
->> "reserved" entry.
->>  - region_intersects() finds a pmem entry by checking top-level entries
->> (no change).
->>
->> 2) Change region_intersects() to check children's type
->>  - Add a new request_region_ext(), which is an extension to
->> request_region() to allow specifying a type of resource.  It puts a new
->> child entry under "reserved".  Change the pmem driver to call this func.
->>  - Change region_intersects() to check children's type for finding this
->> child pmem entry.
->>
->> 3) Pmem driver to call insert_resource()
->>  - Change the pmem driver to call insert_resource(), which puts a new
->> pmem entry as the parent of "reserved".
->>  - region_intersects() finds a pmem entry by checking top-level entries
->> (no change).
->>  - Add a new release_resource_self(), which releases a given entry and
->> keeps its children if any.  Change the pmem driver to call it for
->> release.
+On Wed, Feb 17, 2016 at 7:36 PM, Bjorn Helgaas <bhelgaas@google.com> wr=
+ote:
+> These are clean reverts of 991de2e59090 ("PCI, x86: Implement
+> pcibios_alloc_irq() and pcibios_free_irq()") and related changes.
 >
-> Thinking further, 3) needs to be modified as follows.  insert_resource()
-> should only be allowed for producers of resource (ex. nfit), not consumers
-> (ex. pmem).  It also needs to export insert_resource().
+> We have two reports of drivers broken in v4.3 by Jiang's change,
+> 991de2e59090 ("PCI, x86: Implement pcibios_alloc_irq() and
+> pcibios_free_irq()").
 >
-> 3) NFIT driver to call insert_resource()
->  - Change the ACPI nfit driver to call insert_resource() when a target
-> range is not marked as PMEM (i.e. "reserved") or not present in iomem.
->  This puts a new PMEM entry as the parent of "reserved".
->  - region_intersects() finds a pmem entry by checking top-level entries (no
-> change).
->  - Add a new release_resource_self(), which releases a given entry and
-> keeps its children if any.  Change the nfit driver to call it for release.
+> It would be best to fix the problem instead of reverting 991de2e59090=
+, but
+> I don't have time to do that myself, and we haven't heard from Jiang,=
+ so
+> the only choice I have is to revert the commit.
 >
->> This patch-set implements 1).  The pmem type is set to "reserved" for its
->> life-cycle.  This option is simplest.
->>
->> For 2), the changes to region_intersects() may be too complex for
->> maintenance.
+> Note that reverting will likely break IOAPIC hotplug.
 >
-> I should have said "region_intersects() may be overly complicated for this
-> purpose and maintenance".
+> =D0=9E=D0=BB=D0=B5=D0=B3 and Sunjin, can you please test this and see=
+ whether it fixes your
+> drivers?  This patch is based on v4.5-rc1.
 >
->> Here are a few examples when region_intersects() is called
->> with addr [1-10] where iomem has entry P and its children.
->>
->> Case A: P is fully covered by children C1 & C2.  region_intersects()
->> ignores P's type, but checks C1 and C2's.
->>
->>   P [1-10] + C1 [1-5]
->>            + C2 [6-10]
->>
->> Case B: C2 is fully covered by C3, but P is not.  region_intersects()
->> ignores C2's type, but checks P, C1, C3's.
->>
->>   P [1-10] + C1 [1-2]
->>            + C2 [6-10] + C3 [6-10]
->>
->> I think region_intersects() will need to construct a flat table from the
->> tree while making recursive calls to walk thru all children.
->>
->> 3) is similar to 2), but avoids the changes to region_intersects() since
->> insert_resource() inserts a new entry as the parent to "reserved".
+> I intend to merge these for v4.5 unless I hear objections.
 >
-> 3) is actually similar to 1) as both options change the producer side.
+> They're on my for-linus branch, so they should appear in linux-next
+> tomorrow.
 >
->>  However, a new interface is necessary to put "reserved" back to top-
->> level when releasing the added entry.
->>
->> My recommendation is go with either 1) or 3).  What do you think?
+> Changes from the v1 posting:
+>   - Explicitly revert related patches instead of resolving conflicts
+>     manually
+> ---
 >
-> I think we should modify the producer side, so 1) or 3) are still my
-> recommendation.
->
+> Bjorn Helgaas (3):
+>       Revert "x86/PCI: Don't alloc pcibios-irq when MSI is enabled"
+>       Revert "PCI: Add helpers to manage pci_dev->irq and pci_dev->ir=
+q_managed"
+>       Revert "PCI, x86: Implement pcibios_alloc_irq() and pcibios_fre=
+e_irq()"
 
-I think 3 is the most promising option.  It aligns the acpi/nfit
-driver closer with the acpi/pci_root driver that is also doing
-insert_resource() for each root bridge, and removing those resources
-when the bridge is disabled/removed.
+ACK for all three FWIW.
 
-I'd still want to maintain the ability of nfit to be built as a
-module, so we would need to split the resource registration into a
-separate built-in object file from nfit.ko.
+Thanks,
+Rafael
+--
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
