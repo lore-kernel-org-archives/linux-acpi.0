@@ -1,121 +1,160 @@
-From: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
-Subject: Re: [PATCH V5 09/15] acpi, mcfg: Add default PCI config accessors
- implementation and initial support for related quirks.
-Date: Wed, 17 Feb 2016 18:39:30 +0000
-Message-ID: <20160217183930.GC11132@red-moon>
-References: <1455630825-27253-1-git-send-email-tn@semihalf.com>
- <1455630825-27253-10-git-send-email-tn@semihalf.com>
+From: Bjorn Helgaas <bhelgaas@google.com>
+Subject: [PATCH v2 2/3] Revert "PCI: Add helpers to manage pci_dev->irq and
+ pci_dev->irq_managed"
+Date: Wed, 17 Feb 2016 12:37:14 -0600
+Message-ID: <20160217183714.302.80092.stgit@bhelgaas-glaptop2.roam.corp.google.com>
+References: <20160217182718.302.10272.stgit@bhelgaas-glaptop2.roam.corp.google.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <1455630825-27253-10-git-send-email-tn@semihalf.com>
+In-Reply-To: <20160217182718.302.10272.stgit@bhelgaas-glaptop2.roam.corp.google.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Tomasz Nowicki <tn@semihalf.com>
-Cc: helgaas@kernel.org, arnd@arndb.de, will.deacon@arm.com, catalin.marinas@arm.com, rafael@kernel.org, hanjun.guo@linaro.org, okaya@codeaurora.org, jiang.liu@linux.intel.com, jchandra@broadcom.com, Stefano.Stabellini@eu.citrix.com, robert.richter@caviumnetworks.com, mw@semihalf.com, Liviu.Dudau@arm.com, ddaney@caviumnetworks.com, wangyijing@huawei.com, Suravee.Suthikulpanit@amd.com, msalter@redhat.com, linux-pci@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linaro-acpi@lists.linaro.org, jcm@redhat.com
+To: linux-pci@vger.kernel.org
+Cc: =?utf-8?b?0J7Qu9C10LM=?= =?utf-8?b?0JzQvtGA0L7Qtw==?= <oleg.moroz@mcc.vniiem.ru>, Joerg Roedel <jroedel@suse.de>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, linux-kernel@vger.kernel.org, Sunjin Yang <fan4326@gmail.com>, linux-acpi@vger.kernel.org, Thomas Gleixner <tglx@linutronix.de>, Yinghai Lu <yinghai@kernel.org>, Jiang Liu <jiang.liu@linux.intel.com>
 List-Id: linux-acpi@vger.kernel.org
 
-On Tue, Feb 16, 2016 at 02:53:39PM +0100, Tomasz Nowicki wrote:
-> We use generic accessors from access.c by default. However, we already
-> know platforms that need special handling while accessing to PCI config
-> space. These platforms will need different accessors set matched against
-> platform ID, domain, bus touple. Therefore we are going to add (in future)
-> DECLARE_ACPI_MCFG_FIXUP which will register platform specific custom
-> accessors. For now, we let pci_mcfg_get_ops to take acpi_pci_root structure
-> as an arguments and left some space for quirk matching algorithm.
+Revert 811a4e6fce09 ("PCI: Add helpers to manage pci_dev->irq and
+pci_dev->irq_managed").
 
-You should not describe the future (because you do not know if/when
-that will be implemented), you should describe what the patch does
-in its current form.
+This is part of reverting 991de2e59090 ("PCI, x86: Implement
+pcibios_alloc_irq() and pcibios_free_irq()") to fix regressions it
+introduced.
 
-"This patch implements MCFG based PCI bus operations through MCFG
-map function and generic PCI accessors".
+Link: https://bugzilla.kernel.org/show_bug.cgi?id=111211
+Fixes: 991de2e59090 ("PCI, x86: Implement pcibios_alloc_irq() and pcibios_free_irq()")
+Signed-off-by: Bjorn Helgaas <bhelgaas@google.com>
+CC: Jiang Liu <jiang.liu@linux.intel.com>
+---
+ arch/x86/pci/intel_mid_pci.c |    4 ++--
+ arch/x86/pci/irq.c           |   10 ++++++----
+ drivers/acpi/pci_irq.c       |   10 ++++++----
+ include/linux/pci.h          |   17 -----------------
+ 4 files changed, 14 insertions(+), 27 deletions(-)
 
-> Signed-off-by: Tomasz Nowicki <tn@semihalf.com>
-> Tested-by: Duc Dang <dhdang@apm.com>
-> Tested-by: Dongdong Liu <liudongdong3@huawei.com>
-> Tested-by: Hanjun Guo <hanjun.guo@linaro.org>
-> Tested-by: Graeme Gregory <graeme.gregory@linaro.org>
-> Tested-by: Sinan Kaya <okaya@codeaurora.org>
-> ---
->  drivers/acpi/pci_mcfg.c  | 30 ++++++++++++++++++++++++++++++
->  include/linux/pci-acpi.h | 12 ++++++++++++
->  2 files changed, 42 insertions(+)
-> 
-> diff --git a/drivers/acpi/pci_mcfg.c b/drivers/acpi/pci_mcfg.c
-> index 3282f2a..0062257 100644
-> --- a/drivers/acpi/pci_mcfg.c
-> +++ b/drivers/acpi/pci_mcfg.c
-> @@ -41,6 +41,36 @@ int __weak raw_pci_write(unsigned int domain, unsigned int bus,
->  	return PCIBIOS_DEVICE_NOT_FOUND;
->  }
->  
-> +void __iomem *
-> +pci_mcfg_dev_base(struct pci_bus *bus, unsigned int devfn, int offset)
-> +{
-> +	struct pci_mmcfg_region *cfg;
-> +
-> +	cfg = pci_mmconfig_lookup(pci_domain_nr(bus), bus->number);
-> +	if (cfg && cfg->virt)
-> +		return cfg->virt +
-> +			(PCI_MMCFG_BUS_OFFSET(bus->number) | (devfn << 12)) +
-> +			offset;
-> +	return NULL;
-> +}
-> +
-> +/* Default generic PCI config accessors */
-> +static struct pci_ops default_pci_mcfg_ops = {
-> +	.map_bus = pci_mcfg_dev_base,
-> +	.read = pci_generic_config_read,
-> +	.write = pci_generic_config_write,
-> +};
-
-Nit: s/default_pci_mcfg_ops/pci_mcfg_ops
-
-> +
-> +struct pci_ops *pci_mcfg_get_ops(struct acpi_pci_root *root)
-> +{
-> +	/*
-> +	 * TODO: Match against platform specific quirks and return
-> +	 * corresponding PCI config space accessor set.
-> +	 */
-
-Remove this comment, see above.
-
-> +
-> +	return &default_pci_mcfg_ops;
-
-See above.
-
-> +}
-> +
->  static void list_add_sorted(struct pci_mmcfg_region *new)
->  {
->  	struct pci_mmcfg_region *cfg;
-> diff --git a/include/linux/pci-acpi.h b/include/linux/pci-acpi.h
-> index b4f87ba9..3dc6a8c 100644
-> --- a/include/linux/pci-acpi.h
-> +++ b/include/linux/pci-acpi.h
-> @@ -141,6 +141,18 @@ extern struct list_head pci_mmcfg_list;
->  #define PCI_MMCFG_BUS_OFFSET(bus)      ((bus) << 20)
->  #define PCI_MMCFG_OFFSET(bus, devfn)   ((bus) << 20 | (devfn) << 12)
->  
-> +#ifdef	CONFIG_PCI_MMCONFIG
-> +extern struct pci_ops *pci_mcfg_get_ops(struct acpi_pci_root *root);
-> +extern void __iomem *pci_mcfg_dev_base(struct pci_bus *bus, unsigned int devfn,
-> +				       int offset);
-> +#else
-> +static inline struct pci_ops *pci_mcfg_get_ops(struct acpi_pci_root *root)
-> +{ return NULL; }
-> +static inline void __iomem *pci_mcfg_dev_base(struct pci_bus *bus,
-> +					      unsigned int devfn, int offset)
-> +{ return NULL; }
-> +#endif
-> +
->  #else	/* CONFIG_ACPI */
->  static inline void acpi_pci_add_bus(struct pci_bus *bus) { }
->  static inline void acpi_pci_remove_bus(struct pci_bus *bus) { }
-
-I think it can even be squashed, anyway:
-
-Reviewed-by: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+diff --git a/arch/x86/pci/intel_mid_pci.c b/arch/x86/pci/intel_mid_pci.c
+index 0d24e7c..8826ff5 100644
+--- a/arch/x86/pci/intel_mid_pci.c
++++ b/arch/x86/pci/intel_mid_pci.c
+@@ -215,7 +215,7 @@ static int intel_mid_pci_irq_enable(struct pci_dev *dev)
+ 	int polarity;
+ 	int ret;
+ 
+-	if (pci_has_managed_irq(dev))
++	if (dev->irq_managed && dev->irq > 0)
+ 		return 0;
+ 
+ 	switch (intel_mid_identify_cpu()) {
+@@ -256,7 +256,7 @@ static int intel_mid_pci_irq_enable(struct pci_dev *dev)
+ 
+ static void intel_mid_pci_irq_disable(struct pci_dev *dev)
+ {
+-	if (pci_has_managed_irq(dev)) {
++	if (dev->irq_managed && dev->irq > 0) {
+ 		mp_unmap_irq(dev->irq);
+ 		dev->irq_managed = 0;
+ 		/*
+diff --git a/arch/x86/pci/irq.c b/arch/x86/pci/irq.c
+index 32e7034..72108f0 100644
+--- a/arch/x86/pci/irq.c
++++ b/arch/x86/pci/irq.c
+@@ -1202,7 +1202,7 @@ static int pirq_enable_irq(struct pci_dev *dev)
+ 			struct pci_dev *temp_dev;
+ 			int irq;
+ 
+-			if (pci_has_managed_irq(dev))
++			if (dev->irq_managed && dev->irq > 0)
+ 				return 0;
+ 
+ 			irq = IO_APIC_get_PCI_irq_vector(dev->bus->number,
+@@ -1230,7 +1230,8 @@ static int pirq_enable_irq(struct pci_dev *dev)
+ 			}
+ 			dev = temp_dev;
+ 			if (irq >= 0) {
+-				pci_set_managed_irq(dev, irq);
++				dev->irq_managed = 1;
++				dev->irq = irq;
+ 				dev_info(&dev->dev, "PCI->APIC IRQ transform: "
+ 					 "INT %c -> IRQ %d\n", 'A' + pin - 1, irq);
+ 				return 0;
+@@ -1258,8 +1259,9 @@ static int pirq_enable_irq(struct pci_dev *dev)
+ 
+ static void pirq_disable_irq(struct pci_dev *dev)
+ {
+-	if (io_apic_assign_pci_irqs && pci_has_managed_irq(dev)) {
++	if (io_apic_assign_pci_irqs && dev->irq_managed && dev->irq) {
+ 		mp_unmap_irq(dev->irq);
+-		pci_reset_managed_irq(dev);
++		dev->irq = 0;
++		dev->irq_managed = 0;
+ 	}
+ }
+diff --git a/drivers/acpi/pci_irq.c b/drivers/acpi/pci_irq.c
+index d30184c..9032db7 100644
+--- a/drivers/acpi/pci_irq.c
++++ b/drivers/acpi/pci_irq.c
+@@ -406,7 +406,7 @@ int acpi_pci_irq_enable(struct pci_dev *dev)
+ 		return 0;
+ 	}
+ 
+-	if (pci_has_managed_irq(dev))
++	if (dev->irq_managed && dev->irq > 0)
+ 		return 0;
+ 
+ 	entry = acpi_pci_irq_lookup(dev, pin);
+@@ -451,7 +451,8 @@ int acpi_pci_irq_enable(struct pci_dev *dev)
+ 		kfree(entry);
+ 		return rc;
+ 	}
+-	pci_set_managed_irq(dev, rc);
++	dev->irq = rc;
++	dev->irq_managed = 1;
+ 
+ 	if (link)
+ 		snprintf(link_desc, sizeof(link_desc), " -> Link[%s]", link);
+@@ -474,7 +475,7 @@ void acpi_pci_irq_disable(struct pci_dev *dev)
+ 	u8 pin;
+ 
+ 	pin = dev->pin;
+-	if (!pin || !pci_has_managed_irq(dev))
++	if (!pin || !dev->irq_managed || dev->irq <= 0)
+ 		return;
+ 
+ 	entry = acpi_pci_irq_lookup(dev, pin);
+@@ -496,6 +497,7 @@ void acpi_pci_irq_disable(struct pci_dev *dev)
+ 	dev_dbg(&dev->dev, "PCI INT %c disabled\n", pin_name(pin));
+ 	if (gsi >= 0) {
+ 		acpi_unregister_gsi(gsi);
+-		pci_reset_managed_irq(dev);
++		dev->irq_managed = 0;
++		dev->irq = 0;
+ 	}
+ }
+diff --git a/include/linux/pci.h b/include/linux/pci.h
+index 27df4a6..2771625 100644
+--- a/include/linux/pci.h
++++ b/include/linux/pci.h
+@@ -988,23 +988,6 @@ static inline int pci_is_managed(struct pci_dev *pdev)
+ 	return pdev->is_managed;
+ }
+ 
+-static inline void pci_set_managed_irq(struct pci_dev *pdev, unsigned int irq)
+-{
+-	pdev->irq = irq;
+-	pdev->irq_managed = 1;
+-}
+-
+-static inline void pci_reset_managed_irq(struct pci_dev *pdev)
+-{
+-	pdev->irq = 0;
+-	pdev->irq_managed = 0;
+-}
+-
+-static inline bool pci_has_managed_irq(struct pci_dev *pdev)
+-{
+-	return pdev->irq_managed && pdev->irq > 0;
+-}
+-
+ void pci_disable_device(struct pci_dev *dev);
+ 
+ extern unsigned int pcibios_max_latency;
