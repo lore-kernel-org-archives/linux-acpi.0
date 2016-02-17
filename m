@@ -1,140 +1,95 @@
 From: Prashanth Prakash <pprakash@codeaurora.org>
-Subject: [PATCH V4 2/5] acpi: cppc: optimized cpc_read and cpc_write
-Date: Wed, 17 Feb 2016 13:21:00 -0700
-Message-ID: <1455740463-19192-3-git-send-email-pprakash@codeaurora.org>
+Subject: [PATCH V4 4/5] acpi: cppc: replace writeX/readX to PCC with relaxed version
+Date: Wed, 17 Feb 2016 13:21:02 -0700
+Message-ID: <1455740463-19192-5-git-send-email-pprakash@codeaurora.org>
 References: <1455740463-19192-1-git-send-email-pprakash@codeaurora.org>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp.codeaurora.org ([198.145.29.96]:53061 "EHLO
+Received: from smtp.codeaurora.org ([198.145.29.96]:53144 "EHLO
 	smtp.codeaurora.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S964970AbcBQUVZ (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 17 Feb 2016 15:21:25 -0500
+	with ESMTP id S965451AbcBQUV2 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 17 Feb 2016 15:21:28 -0500
 In-Reply-To: <1455740463-19192-1-git-send-email-pprakash@codeaurora.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: rjw@rjwysocki.net
 Cc: ashwin.chaugule@linaro.org, linux-acpi@vger.kernel.org, linaro-acpi@lists.linaro.org, alexey.klimov@arm.com, Prashanth Prakash <pprakash@codeaurora.org>
 
-cpc_read and cpc_write are used while holding the pcc_lock spin_lock,
-so they need to be as fast as possible. acpi_os_read/write_memory
-APIs linearly search through a list for cached mapping which is
-quite expensive. Since the PCC subspace is already mapped into
-virtual address space during initialization, we can just add the
-offset and access the necessary CPPC registers.
+We do not have a strict read/write order requirement while accessing
+PCC subspace. The only requirement is all access should be committed
+before triggering the PCC doorbell to transfer the ownership of PCC
+to the platform and this requirement is enforced by the PCC driver.
 
-This patch + similar changes to PCC driver reduce the time per freq.
-transition from around 200us to about 20us for cppc cpufreq driver
+Profiling on a many core system shows improvement of about 1.8us on
+average per freq change request(about 10% improvement on average).
+Since these operations are executed while holding the pcc_lock,
+reducing this time helps the CPPC implementation to scale much
+better as the number of cores increases.
 
 Signed-off-by: Prashanth Prakash <pprakash@codeaurora.org>
 Acked-by: Ashwin Chaugule <ashwin.chaugule@linaro.org>
 ---
- drivers/acpi/cppc_acpi.c | 80 ++++++++++++++++++++++++++++++++++++++----------
- 1 file changed, 64 insertions(+), 16 deletions(-)
+ drivers/acpi/cppc_acpi.c | 20 ++++++++++----------
+ 1 file changed, 10 insertions(+), 10 deletions(-)
 
 diff --git a/drivers/acpi/cppc_acpi.c b/drivers/acpi/cppc_acpi.c
-index 026cdd4..6970b44 100644
+index 6970b44..8a0911a 100644
 --- a/drivers/acpi/cppc_acpi.c
 +++ b/drivers/acpi/cppc_acpi.c
-@@ -67,6 +67,9 @@ static int pcc_subspace_idx = -1;
- static bool pcc_channel_acquired;
- static ktime_t deadline;
+@@ -116,10 +116,10 @@ static int send_pcc_cmd(u16 cmd)
+ 	}
  
-+/* pcc mapped address + header size + offset within PCC subspace */
-+#define GET_PCC_VADDR(offs) (pcc_comm_addr + 0x8 + (offs))
-+
- /*
-  * Arbitrary Retries in case the remote processor is slow to respond
-  * to PCC commands. Keeping it high enough to cover emulators where
-@@ -582,29 +585,74 @@ void acpi_cppc_processor_exit(struct acpi_processor *pr)
- }
- EXPORT_SYMBOL_GPL(acpi_cppc_processor_exit);
+ 	/* Write to the shared comm region. */
+-	writew(cmd, &generic_comm_base->command);
++	writew_relaxed(cmd, &generic_comm_base->command);
  
--static u64 get_phys_addr(struct cpc_reg *reg)
--{
--	/* PCC communication addr space begins at byte offset 0x8. */
--	if (reg->space_id == ACPI_ADR_SPACE_PLATFORM_COMM)
--		return (u64)comm_base_addr + 0x8 + reg->address;
--	else
--		return reg->address;
--}
-+/*
-+ * Since cpc_read and cpc_write are called while holding pcc_lock, it should be
-+ * as fast as possible. We have already mapped the PCC subspace during init, so
-+ * we can directly write to it.
-+ */
+ 	/* Flip CMD COMPLETE bit */
+-	writew(0, &generic_comm_base->status);
++	writew_relaxed(0, &generic_comm_base->status);
  
--static void cpc_read(struct cpc_reg *reg, u64 *val)
-+static int cpc_read(struct cpc_reg *reg, u64 *val)
- {
--	u64 addr = get_phys_addr(reg);
-+	int ret_val = 0;
-+
-+	*val = 0;
-+	if (reg->space_id == ACPI_ADR_SPACE_PLATFORM_COMM) {
-+		void __iomem *vaddr = GET_PCC_VADDR(reg->address);
+ 	/* Ring doorbell */
+ 	ret = mbox_send_message(pcc_channel, &cmd);
+@@ -601,16 +601,16 @@ static int cpc_read(struct cpc_reg *reg, u64 *val)
  
--	acpi_os_read_memory((acpi_physical_address)addr,
--			val, reg->bit_width);
-+		switch (reg->bit_width) {
-+		case 8:
-+			*val = readb(vaddr);
-+			break;
-+		case 16:
-+			*val = readw(vaddr);
-+			break;
-+		case 32:
-+			*val = readl(vaddr);
-+			break;
-+		case 64:
-+			*val = readq(vaddr);
-+			break;
-+		default:
-+			pr_debug("Error: Cannot read %u bit width from PCC\n",
-+				reg->bit_width);
-+			ret_val = -EFAULT;
-+		}
-+	} else
-+		ret_val = acpi_os_read_memory((acpi_physical_address)reg->address,
-+					val, reg->bit_width);
-+	return ret_val;
- }
+ 		switch (reg->bit_width) {
+ 		case 8:
+-			*val = readb(vaddr);
++			*val = readb_relaxed(vaddr);
+ 			break;
+ 		case 16:
+-			*val = readw(vaddr);
++			*val = readw_relaxed(vaddr);
+ 			break;
+ 		case 32:
+-			*val = readl(vaddr);
++			*val = readl_relaxed(vaddr);
+ 			break;
+ 		case 64:
+-			*val = readq(vaddr);
++			*val = readq_relaxed(vaddr);
+ 			break;
+ 		default:
+ 			pr_debug("Error: Cannot read %u bit width from PCC\n",
+@@ -632,16 +632,16 @@ static int cpc_write(struct cpc_reg *reg, u64 val)
  
--static void cpc_write(struct cpc_reg *reg, u64 val)
-+static int cpc_write(struct cpc_reg *reg, u64 val)
- {
--	u64 addr = get_phys_addr(reg);
-+	int ret_val = 0;
-+
-+	if (reg->space_id == ACPI_ADR_SPACE_PLATFORM_COMM) {
-+		void __iomem *vaddr = GET_PCC_VADDR(reg->address);
- 
--	acpi_os_write_memory((acpi_physical_address)addr,
--			val, reg->bit_width);
-+		switch (reg->bit_width) {
-+		case 8:
-+			writeb(val, vaddr);
-+			break;
-+		case 16:
-+			writew(val, vaddr);
-+			break;
-+		case 32:
-+			writel(val, vaddr);
-+			break;
-+		case 64:
-+			writeq(val, vaddr);
-+			break;
-+		default:
-+			pr_debug("Error: Cannot write %u bit width to PCC\n",
-+				reg->bit_width);
-+			ret_val = -EFAULT;
-+			break;
-+		}
-+	} else
-+		ret_val = acpi_os_write_memory((acpi_physical_address)reg->address,
-+				val, reg->bit_width);
-+	return ret_val;
- }
- 
- /**
+ 		switch (reg->bit_width) {
+ 		case 8:
+-			writeb(val, vaddr);
++			writeb_relaxed(val, vaddr);
+ 			break;
+ 		case 16:
+-			writew(val, vaddr);
++			writew_relaxed(val, vaddr);
+ 			break;
+ 		case 32:
+-			writel(val, vaddr);
++			writel_relaxed(val, vaddr);
+ 			break;
+ 		case 64:
+-			writeq(val, vaddr);
++			writeq_relaxed(val, vaddr);
+ 			break;
+ 		default:
+ 			pr_debug("Error: Cannot write %u bit width to PCC\n",
 -- 
 Qualcomm Technologies, Inc. on behalf
 of the Qualcomm Innovation Center, Inc.  The Qualcomm Innovation Center, Inc. 
