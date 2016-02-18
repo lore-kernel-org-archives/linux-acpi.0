@@ -1,148 +1,45 @@
-From: Ashwin Chaugule <ashwin.chaugule@linaro.org>
-Subject: Re: [PATCH V4 5/5] acpi/cppc: use MRTT/MPAR to decide if/when a req
- can be sent
-Date: Thu, 18 Feb 2016 14:57:18 -0500
-Message-ID: <CAJ5Y-eYzVdCU0X9fsVnwfD+QmXvTAxaqoy2RJaxeyDMRNMi75g@mail.gmail.com>
-References: <1455740463-19192-1-git-send-email-pprakash@codeaurora.org> <1455740463-19192-6-git-send-email-pprakash@codeaurora.org>
+From: "Rafael J. Wysocki" <rafael@kernel.org>
+Subject: Re: [PATCH 1/2] ACPICA: Tables: Add function to remove ACPI tables
+Date: Thu, 18 Feb 2016 21:15:28 +0100
+Message-ID: <CAJZ5v0hAmCKc8Qn7sKQhdGhoAXH=zmXubx295K_Nbm9npOYzBw@mail.gmail.com>
+References: <1455723910-16710-1-git-send-email-matt@codeblueprint.co.uk>
+	<1455723910-16710-2-git-send-email-matt@codeblueprint.co.uk>
+	<1AE640813FDE7649BE1B193DEA596E883BB4D2A6@SHSMSX101.ccr.corp.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-lf0-f54.google.com ([209.85.215.54]:35390 "EHLO
-	mail-lf0-f54.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1947656AbcBRT5l (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 18 Feb 2016 14:57:41 -0500
-Received: by mail-lf0-f54.google.com with SMTP id l143so40139720lfe.2
-        for <linux-acpi@vger.kernel.org>; Thu, 18 Feb 2016 11:57:39 -0800 (PST)
-In-Reply-To: <1455740463-19192-6-git-send-email-pprakash@codeaurora.org>
+Received: from mail-lb0-f196.google.com ([209.85.217.196]:36218 "EHLO
+	mail-lb0-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1946717AbcBRUPa (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 18 Feb 2016 15:15:30 -0500
+In-Reply-To: <1AE640813FDE7649BE1B193DEA596E883BB4D2A6@SHSMSX101.ccr.corp.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Prashanth Prakash <pprakash@codeaurora.org>
-Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, linux acpi <linux-acpi@vger.kernel.org>, Linaro ACPI Mailman List <linaro-acpi@lists.linaro.org>, Alexey Klimov <alexey.klimov@arm.com>
+To: "Zheng, Lv" <lv.zheng@intel.com>, Matt Fleming <matt@codeblueprint.co.uk>
+Cc: Dave Young <dyoung@redhat.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-efi@vger.kernel.org" <linux-efi@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "kexec@lists.infradead.org" <kexec@lists.infradead.org>, "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>, Josh Triplett <josh@joshtriplett.org>, Borislav Petkov <bp@alien8.de>, Matthew Garrett <mjg59@srcf.ucam.org>, Vivek Goyal <vgoyal@redhat.com>
 
-On 17 February 2016 at 15:21, Prashanth Prakash <pprakash@codeaurora.org> wrote:
-> The ACPI spec defines Minimum Request Turnaround Time(MRTT) and
-> Maximum Periodic Access Rate(MPAR) to prevent the OSPM from sending
-> too many requests than the platform can handle. For further details
-> on these parameters please refer to section 14.1.3 of ACPI 6.0 spec.
+On Thu, Feb 18, 2016 at 3:34 AM, Zheng, Lv <lv.zheng@intel.com> wrote:
+> Hi,
 >
-> This patch includes MRTT/MPAR in deciding if or when a CPPC request
-> can be sent to the platform to make sure CPPC implementation is
-> compliant to the spec.
->
-> Signed-off-by: Prashanth Prakash <pprakash@codeaurora.org>
-> ---
->  drivers/acpi/cppc_acpi.c | 56 +++++++++++++++++++++++++++++++++++++++++++++++-
->  1 file changed, 55 insertions(+), 1 deletion(-)
+>> From: linux-acpi-owner@vger.kernel.org [mailto:linux-acpi-
+>> owner@vger.kernel.org] On Behalf Of Matt Fleming
+> [Lv Zheng]
+> First, is it possible for you to submit an ACPICA patch instead of a Linux patch.
+> The reasoning for doing this can be found at:
+> https://acpica.org/Licensing
 
-Acked-by: Ashwin Chaugule <ashwin.chaugule@linaro.org>
+Actually, the reason is that, as a rule, the process for ACPICA
+patches is that they first go to upstream ACPICA and they are acquired
+by Linux from there.
 
->
-> diff --git a/drivers/acpi/cppc_acpi.c b/drivers/acpi/cppc_acpi.c
-> index 8a0911a..f00dc7e 100644
-> --- a/drivers/acpi/cppc_acpi.c
-> +++ b/drivers/acpi/cppc_acpi.c
-> @@ -66,6 +66,7 @@ static u64 comm_base_addr;
->  static int pcc_subspace_idx = -1;
->  static bool pcc_channel_acquired;
->  static ktime_t deadline;
-> +static unsigned int pcc_mpar, pcc_mrtt;
->
->  /* pcc mapped address + header size + offset within PCC subspace */
->  #define GET_PCC_VADDR(offs) (pcc_comm_addr + 0x8 + (offs))
-> @@ -85,6 +86,11 @@ static int check_pcc_chan(void)
->
->         /* Retry in case the remote processor was too slow to catch up. */
->         while (!ktime_after(ktime_get(), next_deadline)) {
-> +               /*
-> +                * Per spec, prior to boot the PCC space wil be initialized by
-> +                * platform and should have set the command completion bit when
-> +                * PCC can be used by OSPM
-> +                */
->                 if (readw_relaxed(&generic_comm_base->status) & PCC_CMD_COMPLETE) {
->                         ret = 0;
->                         break;
-> @@ -104,6 +110,9 @@ static int send_pcc_cmd(u16 cmd)
->         int ret = -EIO;
->         struct acpi_pcct_shared_memory *generic_comm_base =
->                 (struct acpi_pcct_shared_memory *) pcc_comm_addr;
-> +       static ktime_t last_cmd_cmpl_time, last_mpar_reset;
-> +       static int mpar_count;
-> +       unsigned int time_delta;
->
->         /*
->          * For CMD_WRITE we know for a fact the caller should have checked
-> @@ -115,6 +124,41 @@ static int send_pcc_cmd(u16 cmd)
->                         return ret;
->         }
->
-> +       /*
-> +        * Handle the Minimum Request Turnaround Time(MRTT)
-> +        * "The minimum amount of time that OSPM must wait after the completion
-> +        * of a command before issuing the next command, in microseconds"
-> +        */
-> +       if (pcc_mrtt) {
-> +               time_delta = ktime_us_delta(ktime_get(), last_cmd_cmpl_time);
-> +               if (pcc_mrtt > time_delta)
-> +                       udelay(pcc_mrtt - time_delta);
-> +       }
-> +
-> +       /*
-> +        * Handle the non-zero Maximum Periodic Access Rate(MPAR)
-> +        * "The maximum number of periodic requests that the subspace channel can
-> +        * support, reported in commands per minute. 0 indicates no limitation."
-> +        *
-> +        * This parameter should be ideally zero or large enough so that it can
-> +        * handle maximum number of requests that all the cores in the system can
-> +        * collectively generate. If it is not, we will follow the spec and just
-> +        * not send the request to the platform after hitting the MPAR limit in
-> +        * any 60s window
-> +        */
-> +       if (pcc_mpar) {
-> +               if (mpar_count == 0) {
-> +                       time_delta = ktime_ms_delta(ktime_get(), last_mpar_reset);
-> +                       if (time_delta < 60 * MSEC_PER_SEC) {
-> +                               pr_debug("PCC cmd not sent due to MPAR limit");
-> +                               return -EIO;
-> +                       }
-> +                       last_mpar_reset = ktime_get();
-> +                       mpar_count = pcc_mpar;
-> +               }
-> +               mpar_count--;
-> +       }
-> +
->         /* Write to the shared comm region. */
->         writew_relaxed(cmd, &generic_comm_base->command);
->
-> @@ -135,9 +179,17 @@ static int send_pcc_cmd(u16 cmd)
->          * because the actual write()s are done before coming here
->          * and the next READ or WRITE will check if the channel
->          * is busy/free at the entry of this call.
-> +        *
-> +        * If Minimum Request Turnaround Time is non-zero, we need
-> +        * to record the completion time of both READ and WRITE
-> +        * command for proper handling of MRTT, so we need to check
-> +        * for pcc_mrtt in addition to CMD_READ
->          */
-> -       if (cmd == CMD_READ)
-> +       if (cmd == CMD_READ || pcc_mrtt) {
->                 ret = check_pcc_chan();
-> +               if (pcc_mrtt)
-> +                       last_cmd_cmpl_time = ktime_get();
-> +       }
->
->         mbox_client_txdone(pcc_channel, ret);
->         return ret;
-> @@ -375,6 +427,8 @@ static int register_pcc_channel(int pcc_subspace_idx)
->                  */
->                 usecs_lat = NUM_RETRIES * cppc_ss->latency;
->                 deadline = ns_to_ktime(usecs_lat * NSEC_PER_USEC);
-> +               pcc_mrtt = cppc_ss->min_turnaround_time;
-> +               pcc_mpar = cppc_ss->max_access_rate;
->
->                 pcc_comm_addr = acpi_os_ioremap(comm_base_addr, len);
->                 if (!pcc_comm_addr) {
-> --
-> Qualcomm Technologies, Inc. on behalf
-> of the Qualcomm Innovation Center, Inc.  The Qualcomm Innovation Center, Inc.
-> is a member of the Code Aurora Forum, a Linux Foundation Collaborative Project.
->
+While there are some exceptions from that process, there also are good
+reasons for that process to be followed, including the licensing one
+mentioned by Lv.
+
+All that said, Matt, if you agree that the patch can be applied under
+the BSD license, I think we can offer help with converting it to the
+upstream ACPICA coding conventions and applying it there.  Lv, would
+you be able to take care of that?
+
+Thanks,
+Rafael
