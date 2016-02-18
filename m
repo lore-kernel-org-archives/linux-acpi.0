@@ -1,157 +1,59 @@
 From: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
-Subject: Re: [PATCH V5 00/15] MMCONFIG refactoring and support for ARM64 PCI
- hostbridge init based on ACPI
-Date: Thu, 18 Feb 2016 12:59:28 +0000
-Message-ID: <20160218125928.GA13045@red-moon>
+Subject: Re: [Linaro-acpi] [PATCH V5 01/15] ACPI: MCFG: Move mmcfg_list
+ management to drivers/acpi
+Date: Thu, 18 Feb 2016 13:20:38 +0000
+Message-ID: <20160218132038.GA13229@red-moon>
 References: <1455630825-27253-1-git-send-email-tn@semihalf.com>
+ <1455630825-27253-2-git-send-email-tn@semihalf.com>
+ <56C5B83F.4010602@huawei.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from foss.arm.com ([217.140.101.70]:39002 "EHLO foss.arm.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1946068AbcBRNSg (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 18 Feb 2016 08:18:36 -0500
 Content-Disposition: inline
-In-Reply-To: <1455630825-27253-1-git-send-email-tn@semihalf.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Tomasz Nowicki <tn@semihalf.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Bjorn Helgaas <bhelgaas@google.com>
-Cc: helgaas@kernel.org, arnd@arndb.de, will.deacon@arm.com, catalin.marinas@arm.com, rafael@kernel.org, hanjun.guo@linaro.org, okaya@codeaurora.org, jiang.liu@linux.intel.com, jchandra@broadcom.com, Stefano.Stabellini@eu.citrix.com, robert.richter@caviumnetworks.com, mw@semihalf.com, Liviu.Dudau@arm.com, ddaney@caviumnetworks.com, wangyijing@huawei.com, Suravee.Suthikulpanit@amd.com, msalter@redhat.com, linux-pci@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linaro-acpi@lists.linaro.org, jcm@redhat.com
+In-Reply-To: <56C5B83F.4010602@huawei.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: "liudongdong (C)" <liudongdong3@huawei.com>
+Cc: Tomasz Nowicki <tn@semihalf.com>, helgaas@kernel.org, arnd@arndb.de, will.deacon@arm.com, catalin.marinas@arm.com, rafael@kernel.org, hanjun.guo@linaro.org, okaya@codeaurora.org, jiang.liu@linux.intel.com, jchandra@broadcom.com, Stefano.Stabellini@eu.citrix.com, jcm@redhat.com, linaro-acpi@lists.linaro.org, linux-pci@vger.kernel.org, Liviu.Dudau@arm.com, ddaney@caviumnetworks.com, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, robert.richter@caviumnetworks.com, wangyijing@huawei.com, mw@semihalf.com, linux-arm-kernel@lists.infradead.org
 
-Hi Bjorn, Rafael,
+On Thu, Feb 18, 2016 at 08:25:35PM +0800, liudongdong (C) wrote:
 
-On Tue, Feb 16, 2016 at 02:53:30PM +0100, Tomasz Nowicki wrote:
-> From the functionality point of view this series might be split into the
-> following logic parts:
-> 1. Make MMCONFIG code arch-agnostic which allows all architectures to collect
->    PCI config regions and used when necessary.
-> 2. Move non-arch specific bits to the core code.
-> 3. Use MMCONFIG code and implement generic ACPI based PCI host controller driver.
-> 4. Enable above driver on ARM64
+[...]
 
-I think that apart from some pending review comments that will force
-some minor patches update, the overall structure of this patchset is in
-a reasonable shape, I would be grateful if you could have a look
-from PCI and ACPI perspectives to see if there is some serious
-rework needed and/or you want us to do things differently.
+> >+/*
+> >+ * Map a pci_mmcfg_region, can be overrriden by arch
+> >+ */
+> >+int __weak pci_mmconfig_map_resource(struct device *dev,
+> >+	struct pci_mmcfg_region *mcfg)
+> >+{
+> >+	struct resource *tmp;
+> >+	void __iomem *vaddr;
+> >+
+> >+	tmp = insert_resource_conflict(&iomem_resource, &mcfg->res);
+> >+	if (tmp) {
+> >+		dev_warn(dev, "MMCONFIG %pR conflicts with %s %pR\n",
+> >+			&mcfg->res, tmp->name, tmp);
+> >+		return -EBUSY;
+> >+	}
+> >+
+> >+	vaddr =  ioremap(mcfg->res.start, resource_size(&mcfg->res));
+               ^^
+	       while at it, stray white space
 
-In particular, the MCFG rework (along with some PCI core changes
-ie PCI ACPI bridge companion) affects x86 so we definitely need
-some feedback on that code, otherwise we are stuck and can't
-enable ACPI PCI support for ARM64.
+> >+	if (!vaddr) {
+> >+		release_resource(&mcfg->res);
+> >+		return -ENOMEM;
+> >+	}
+> >+
+> >+	mcfg->virt = vaddr;
+> Here should be changed to
+> 	mcfg->virt = vaddr - PCI_MMCFG_BUS_OFFSET(mcfg->start_bus);
+> 
+> or when pcie host "start_bus" is not 0, the configuraion access will be wrong.
+Well spotted, thanks.
 
-Thank you very much.
-
-Cheers,
 Lorenzo
-
-> Patches has been built on top of 4.5-rc3 and can be found here:
-> git@github.com:semihalf-nowicki-tomasz/linux.git (pci-acpi-v5)
-> 
-> NOTE, this patch set depends on Lorenzo's fixes:
-> https://patchwork.ozlabs.org/patch/576450/
-> which can be found in pci-acpi-v5 branch.
-> 
-> This has been tested on Cavium ThunderX server, JunoR2, HP RX2660 IA64, x86,
-> Hip05, X-Gene and QEMU-aarch64. Any help in reviewing and testing is very appreciated.
-> 
-> v4 -> v5
-> - dropped MCFG refactoring group patches 1-6 from series v4 and integrated Jayachandran's patch
->   https://patchwork.ozlabs.org/patch/575525/
-> - rewrite PCI legacy IRQs allocation
-> - squashed two patches 11 and 12 from series v4, fixed bisection issue
-> - changelog improvements
-> - rebased to 4.5-rc3
-> 
-> v3 -> v4
-> - dropped Jiang's fix http://lkml.iu.edu/hypermail/linux/kernel/1601.1/04318.html
-> - added Lorenzo's fix patch 19/24
-> - ACPI PCI bus domain number assigning cleanup
-> - changed resource management, we now claim and reassign resources
-> - improvements for applying quirks
-> - dropped Matthew's http://www.spinics.net/lists/linux-pci/msg45950.html dependency
-> - rebased to 4.5-rc1
-> 
-> v2 -> v3
-> - fix legacy IRQ assigning and IO ports registration
-> - remove reference to arch specific companion device for ia64
-> - move ACPI PCI host controller driver to pci_root.c
-> - drop generic domain assignment for x86 and ia64 as I am not
->   able to run all necessary test variants
-> - drop patch which cleaned legacy IRQ assignment since it belongs to
->   Mathew's series:
->   https://patchwork.ozlabs.org/patch/557504/
-> - extend MCFG quirk code
-> - rebased to 4.4
-> 
-> v1 -> v2
-> - moved non-arch specific piece of code to dirver/acpi/ directory
-> - fixed IO resource handling
-> - introduced PCI config accessors quirks matching
-> - moved ACPI_COMPANION_SET to generic code
-> 
-> v1 - https://lkml.org/lkml/2015/10/27/504
-> v2 - https://lkml.org/lkml/2015/12/16/246
-> v3 - http://lkml.iu.edu/hypermail/linux/kernel/1601.1/04308.html
-> v4 - https://lkml.org/lkml/2016/2/4/646
-> 
-> Jayachandran C (1):
->   ACPI: MCFG: Move mmcfg_list management to drivers/acpi
-> 
-> Lorenzo Pieralisi (1):
->   drivers: pci: add generic code to claim bus resources
-> 
-> Tomasz Nowicki (13):
->   acpi, pci, mcfg: Provide default RAW ACPI PCI config space accessors.
->   arm64, acpi: Use MCFG library and empty PCI config space accessors
->     from pci_mcfg.c file.
->   pci, acpi, ecam: Add flag to indicate whether ECAM region was hot
->     added or not.
->   x86, pci: Cleanup platform specific MCFG data by using ECAM hot_added
->     flag.
->   pci, acpi, x86, ia64: Move ACPI host bridge device companion
->     assignment to core code.
->   pci, acpi: Provide generic way to assign bus domain number.
->   x86, ia64: Include acpi_pci_{add|remove}_bus to the default
->     pcibios_{add|remove}_bus implementation.
->   acpi, mcfg: Add default PCI config accessors implementation and
->     initial support for related quirks.
->   pci, of: Move the PCI I/O space management to PCI core code.
->   pci, acpi: Support for ACPI based generic PCI host controller
->     initialization
->   pci, acpi: Match PCI config space accessors against platfrom specific
->     quirks.
->   arm64, pci, acpi: Assign legacy IRQs once device is enable.
->   arm64, pci, acpi: Start using ACPI based PCI host bridge driver for
->     ARM64.
-> 
->  arch/arm64/Kconfig                 |   5 +
->  arch/arm64/kernel/pci.c            |  35 +---
->  arch/ia64/hp/common/sba_iommu.c    |   2 +-
->  arch/ia64/include/asm/pci.h        |   1 -
->  arch/ia64/pci/pci.c                |  26 ---
->  arch/ia64/sn/kernel/io_acpi_init.c |   4 +-
->  arch/x86/include/asm/pci.h         |   3 -
->  arch/x86/include/asm/pci_x86.h     |  24 +--
->  arch/x86/pci/acpi.c                |  47 +----
->  arch/x86/pci/common.c              |  10 -
->  arch/x86/pci/mmconfig-shared.c     | 269 ++++---------------------
->  arch/x86/pci/mmconfig_32.c         |   1 +
->  arch/x86/pci/mmconfig_64.c         |   1 +
->  arch/x86/pci/numachip.c            |   1 +
->  drivers/acpi/Kconfig               |   7 +
->  drivers/acpi/Makefile              |   1 +
->  drivers/acpi/pci_mcfg.c            | 392 +++++++++++++++++++++++++++++++++++++
->  drivers/acpi/pci_root.c            | 154 ++++++++++++++-
->  drivers/of/address.c               | 116 +----------
->  drivers/pci/pci.c                  | 126 +++++++++++-
->  drivers/pci/probe.c                |   5 +
->  drivers/pci/setup-bus.c            |  63 ++++++
->  drivers/xen/pci.c                  |   5 +-
->  include/acpi/acpi_bus.h            |   1 +
->  include/asm-generic/vmlinux.lds.h  |   7 +
->  include/linux/of_address.h         |   9 -
->  include/linux/pci-acpi.h           |  68 +++++++
->  include/linux/pci.h                |   6 +
->  28 files changed, 892 insertions(+), 497 deletions(-)
->  create mode 100644 drivers/acpi/pci_mcfg.c
-> 
-> -- 
-> 1.9.1
-> 
