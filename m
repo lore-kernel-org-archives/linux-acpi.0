@@ -1,56 +1,40 @@
-From: "Rafael J. Wysocki" <rafael@kernel.org>
-Subject: Re: [PATCH 1/2] ACPICA: Tables: Add function to remove ACPI tables
-Date: Thu, 18 Feb 2016 21:45:59 +0100
-Message-ID: <CAJZ5v0gSNscOwpY9Edg4nLJWX8JMdo7v81vFrgzMLUkCMuFJ1Q@mail.gmail.com>
-References: <1455723910-16710-1-git-send-email-matt@codeblueprint.co.uk>
-	<1455723910-16710-2-git-send-email-matt@codeblueprint.co.uk>
-	<1AE640813FDE7649BE1B193DEA596E883BB4D2A6@SHSMSX101.ccr.corp.intel.com>
-	<CAJZ5v0hAmCKc8Qn7sKQhdGhoAXH=zmXubx295K_Nbm9npOYzBw@mail.gmail.com>
-	<20160218204123.GA17042@codeblueprint.co.uk>
+From: Jeremy Linton <jeremy.linton@arm.com>
+Subject: Re: [PATCH v3 0/5] ACPI: parse the SPCR table
+Date: Thu, 18 Feb 2016 15:15:44 -0600
+Message-ID: <56C63480.5020605@arm.com>
+References: <1455559532-8305-1-git-send-email-aleksey.makarov@linaro.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-lb0-f193.google.com ([209.85.217.193]:35289 "EHLO
-	mail-lb0-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1947698AbcBRUqC (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 18 Feb 2016 15:46:02 -0500
-In-Reply-To: <20160218204123.GA17042@codeblueprint.co.uk>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1455559532-8305-1-git-send-email-aleksey.makarov@linaro.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Aleksey Makarov <aleksey.makarov@linaro.org>, linux-acpi@vger.kernel.org
+Cc: Russell King <linux@arm.linux.org.uk>, Graeme Gregory <graeme.gregory@linaro.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, linux-kernel@vger.kernel.org, Leif Lindholm <leif.lindholm@linaro.org>, Christopher Covington <cov@codeaurora.org>, linux-serial@vger.kernel.org, Al Stone <ahs3@redhat.com>, linux-arm-kernel@lists.infradead.org
 List-Id: linux-acpi@vger.kernel.org
-To: Matt Fleming <matt@codeblueprint.co.uk>
-Cc: "Rafael J. Wysocki" <rafael@kernel.org>, "Zheng, Lv" <lv.zheng@intel.com>, Dave Young <dyoung@redhat.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-efi@vger.kernel.org" <linux-efi@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "kexec@lists.infradead.org" <kexec@lists.infradead.org>, "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>, Josh Triplett <josh@joshtriplett.org>, Borislav Petkov <bp@alien8.de>, Matthew Garrett <mjg59@srcf.ucam.org>, Vivek Goyal <vgoyal@redhat.com>
 
-On Thu, Feb 18, 2016 at 9:41 PM, Matt Fleming <matt@codeblueprint.co.uk> wrote:
-> On Thu, 18 Feb, at 09:15:28PM, Rafael J. Wysocki wrote:
->>
->> Actually, the reason is that, as a rule, the process for ACPICA
->> patches is that they first go to upstream ACPICA and they are acquired
->> by Linux from there.
->>
->> While there are some exceptions from that process, there also are good
->> reasons for that process to be followed, including the licensing one
->> mentioned by Lv.
->>
->> All that said, Matt, if you agree that the patch can be applied under
->> the BSD license, I think we can offer help with converting it to the
->> upstream ACPICA coding conventions and applying it there.  Lv, would
->> you be able to take care of that?
+On 02/15/2016 12:05 PM, Aleksey Makarov wrote:
+> This patchset is based on the patchset by Leif Lindholm [1]
 >
-> I don't have any problem with that, but can we hold off on this patch
-> for now? There's another approach to fixing the BGRT issue with kexec
-> that's being discussed which would supersede this,
+> 'ARM Server Base Boot Requirements' [2] mentions SPCR (Serial Port
+> Console Redirection Table) [3] as a mandatory ACPI table that
+> specifies the configuration of serial console.
 >
->   https://lkml.kernel.org/r/20160218141544.GH2651@codeblueprint.co.uk
+> SPCR support is included in QEMU's ARM mach-virt since 2.4 release.
 >
-> Assuming this patch does get picked up again, I'm happy to respin it
-> against upstream ACPICA, but how do I go about getting dependent
-> patches merged, PATCH 2/2 in this case?
+> Introduce a new function acpi_console_check().  At the uart port
+> registration, this function checks if the ACPI SPCR table specifies
+> its argument of type struct uart_port to be a console
+> and if so calls add_preferred_console().
+>
+> Use SPCR to tell if SBSA serial driver should use 32-bit access to registers.
+>
+> To be able to access SPCR table each time any console is registered
+> change __init to __ref for early_acpi_os_unmap_memory().
+>
+> The patchset should be applied to tty-next.
+(trimming)
 
-We generate a Linux version of the patch out of the upstream ACPICA
-sources (semi-automatically) and that can be merged into Linux in
-advance.  We don't do that as a rule, but it can be done.  That at
-least ensures that we'll be consistent with future ACPICA updates from
-the upstream.
+This works on the JunoR2 with a new enough firmware to have the SPCR table.
 
-Thanks,
-Rafael
+Tested-by: Jeremy Linton <jeremy.linton@arm.com>
