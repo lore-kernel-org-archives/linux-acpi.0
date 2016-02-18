@@ -1,62 +1,106 @@
-From: Mika Westerberg <mika.westerberg@linux.intel.com>
-Subject: Re: [PATCH v1 06/10] device property: switch to use UUID API
-Date: Thu, 18 Feb 2016 13:07:54 +0200
-Message-ID: <20160218110754.GG1742@lahna.fi.intel.com>
-References: <1455711448-124103-1-git-send-email-andriy.shevchenko@linux.intel.com>
- <1455711448-124103-7-git-send-email-andriy.shevchenko@linux.intel.com>
+From: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+Subject: Re: [PATCH V5 04/15] pci, acpi, ecam: Add flag to indicate whether
+ ECAM region was hot added or not.
+Date: Thu, 18 Feb 2016 12:32:16 +0000
+Message-ID: <20160218123216.GB12626@red-moon>
+References: <1455630825-27253-1-git-send-email-tn@semihalf.com>
+ <1455630825-27253-5-git-send-email-tn@semihalf.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga02.intel.com ([134.134.136.20]:28529 "EHLO mga02.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750926AbcBRLID (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 18 Feb 2016 06:08:03 -0500
+Return-path: <linux-pci-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <1455711448-124103-7-git-send-email-andriy.shevchenko@linux.intel.com>
-Sender: linux-acpi-owner@vger.kernel.org
+In-Reply-To: <1455630825-27253-5-git-send-email-tn@semihalf.com>
+Sender: linux-pci-owner@vger.kernel.org
+To: Tomasz Nowicki <tn@semihalf.com>
+Cc: helgaas@kernel.org, arnd@arndb.de, will.deacon@arm.com, catalin.marinas@arm.com, rafael@kernel.org, hanjun.guo@linaro.org, okaya@codeaurora.org, jiang.liu@linux.intel.com, jchandra@broadcom.com, Stefano.Stabellini@eu.citrix.com, robert.richter@caviumnetworks.com, mw@semihalf.com, Liviu.Dudau@arm.com, ddaney@caviumnetworks.com, wangyijing@huawei.com, Suravee.Suthikulpanit@amd.com, msalter@redhat.com, linux-pci@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linaro-acpi@lists.linaro.org, jcm@redhat.com
 List-Id: linux-acpi@vger.kernel.org
-To: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Theodore Ts'o <tytso@mit.edu>, Arnd Bergmann <arnd@arndb.de>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Jarkko Sakkinen <jarkko.sakkinen@linux.intel.com>, Jani Nikula <jani.nikula@linux.intel.com>, David Airlie <airlied@linux.ie>, Benjamin Tissoires <benjamin.tissoires@redhat.com>, Bjorn Helgaas <bhelgaas@google.com>, Mathias Nyman <mathias.nyman@intel.com>, Matt Fleming <matt@codeblueprint.co.uk>, Lv Zheng <lv.zheng@intel.com>, Mark Brown <broonie@kernel.org>, Zhang Rui <rui.zhang@intel.com>, Andrew Morton <akpm@linux-foundation.org>, Rasmus Villemoes <linux@rasmusvillemoes.dk>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, dri-devel@lists.freedesktop.org, linux-efi@vger.kernel.org, linux-api@vger.kernel.org, linux-nvdimm@lists.01.org
 
-On Wed, Feb 17, 2016 at 02:17:24PM +0200, Andy Shevchenko wrote:
-> Switch to use a generic UUID API instead of custom approach. It allows to
-> define UUIDs, compare them, and validate.
+On Tue, Feb 16, 2016 at 02:53:34PM +0100, Tomasz Nowicki wrote:
+> There are two ways we can get ECAM (aka MCFG) regions using ACPI,
+> first from MCFG static table and second from _CBA method. We cannot remove
+> static regions, however regions coming from _CBA should be removed while
+> removing bridge device.
 > 
-> Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+> In the light of above we need flag to mark hot added ECAM entries
+> and user to call pci_mmconfig_insert while adding regions from _CBA method.
+> Similarly pci_mmconfig_delete while removing hot added regions.
+
+"According to the PCI firmware specification, ACPI provides two standard
+mechanisms to retrieve ECAM memory mapped configuration regions (aka MCFG).
+For non-hot-removable bridges, ECAM bridge configurations are retrieved from
+the static MCFG table and have to be considered non-hot-removable for the
+current boot; hot-removable PCI host bridges configurations are retrieved
+through bridges _CBA methods.
+
+When ECAM regions are added through _CBA methods, they can be marked
+as hot-added so that, upon respective PCI host bridge hot-removal, they can
+be unmapped and deleted in that no longer needed.
+
+This patch adds a flag to MCFG regions allowing to mark them as hot-added,
+so that upon corresponding PCI bridge hot-removal they can be deleted since
+no longer needed."
+
+> Signed-off-by: Tomasz Nowicki <tn@semihalf.com>
+> Tested-by: Suravee Suthikulpanit <Suravee.Suthikulpanit@amd.com>
+> Tested-by: Jeremy Linton <jeremy.linton@arm.com>
+> Tested-by: Duc Dang <dhdang@apm.com>
+> Tested-by: Dongdong Liu <liudongdong3@huawei.com>
+> Tested-by: Hanjun Guo <hanjun.guo@linaro.org>
+> Tested-by: Graeme Gregory <graeme.gregory@linaro.org>
+> Tested-by: Sinan Kaya <okaya@codeaurora.org>
 > ---
->  drivers/acpi/property.c | 18 ++++++++----------
->  1 file changed, 8 insertions(+), 10 deletions(-)
+>  drivers/acpi/pci_mcfg.c  | 4 +++-
+>  include/linux/pci-acpi.h | 1 +
+>  2 files changed, 4 insertions(+), 1 deletion(-)
+
+It would be great if x86 people can have a look, we no longer
+associate a MCFG region to a bridge structure, the end result
+should be equivalent though, so:
+
+Reviewed-by: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+
 > 
-> diff --git a/drivers/acpi/property.c b/drivers/acpi/property.c
-> index 2aee416..1e75305 100644
-> --- a/drivers/acpi/property.c
-> +++ b/drivers/acpi/property.c
-> @@ -25,15 +25,13 @@ static int acpi_data_get_property_array(struct acpi_device_data *data,
->  					const union acpi_object **obj);
+> diff --git a/drivers/acpi/pci_mcfg.c b/drivers/acpi/pci_mcfg.c
+> index 0467b00..3282f2a 100644
+> --- a/drivers/acpi/pci_mcfg.c
+> +++ b/drivers/acpi/pci_mcfg.c
+> @@ -74,6 +74,7 @@ static struct pci_mmcfg_region *pci_mmconfig_alloc(int segment, int start,
+>  	new->segment = segment;
+>  	new->start_bus = start;
+>  	new->end_bus = end;
+> +	new->hot_added = false;
 >  
->  /* ACPI _DSD device properties UUID: daffd814-6eba-4d8c-8a91-bc9bbf4aa301 */
-> -static const u8 prp_uuid[16] = {
-> -	0x14, 0xd8, 0xff, 0xda, 0xba, 0x6e, 0x8c, 0x4d,
-> -	0x8a, 0x91, 0xbc, 0x9b, 0xbf, 0x4a, 0xa3, 0x01
-> -};
-> +static const uuid_le prp_uuid =
-> +	UUID_LE(0xdaffd814, 0x6eba, 0x4d8c,
-> +		0x8a, 0x91, 0xbc, 0x9b, 0xbf, 0x4a, 0xa3, 0x01);
->  /* ACPI _DSD data subnodes UUID: dbb8e3e6-5886-4ba6-8795-1319f52a966b */
-> -static const u8 ads_uuid[16] = {
-> -	0xe6, 0xe3, 0xb8, 0xdb, 0x86, 0x58, 0xa6, 0x4b,
-> -	0x87, 0x95, 0x13, 0x19, 0xf5, 0x2a, 0x96, 0x6b
-> -};
-> +static const uuid_le ads_uuid =
-> +	UUID_LE(0xdbb8e3e6, 0x5886, 0x4ba6,
-> +		0x87, 0x95, 0x13, 0x19, 0xf5, 0x2a, 0x96, 0x6b);
-
-This looks better than the original but it is still not too readable.
-
-I think it would be better to have uuid as string like:
-
-static const char *ads_uuid = "dbb8e3e6-5886-4ba6-8795-1319f52a966b";
-
-and then convert that to the right byte presentation when first time
-used. That would match the uuid format in the ACPI (and device
-properties) spec. and thus make it easier to read and understand.
+>  	res = &new->res;
+>  	res->start = addr + PCI_MMCFG_BUS_OFFSET(start);
+> @@ -205,6 +206,7 @@ int pci_mmconfig_insert(struct device *dev, u16 seg, u8 start, u8 end,
+>  	}
+>  	rc = pci_mmconfig_map_resource(dev, cfg);
+>  	if (!rc) {
+> +		cfg->hot_added = true;
+>  		list_add_sorted(cfg);
+>  		dev_info(dev, "MMCONFIG at %pR (base %#lx)\n",
+>  				 &cfg->res, (unsigned long)addr);
+> @@ -228,7 +230,7 @@ int pci_mmconfig_delete(u16 seg, u8 start, u8 end)
+>  	mutex_lock(&pci_mmcfg_lock);
+>  	list_for_each_entry_rcu(cfg, &pci_mmcfg_list, list)
+>  		if (cfg->segment == seg && cfg->start_bus == start &&
+> -		    cfg->end_bus == end) {
+> +		    cfg->end_bus == end && cfg->hot_added) {
+>  			list_del_rcu(&cfg->list);
+>  			synchronize_rcu();
+>  			pci_mmconfig_unmap_resource(cfg);
+> diff --git a/include/linux/pci-acpi.h b/include/linux/pci-acpi.h
+> index e9450ef..94d8f38 100644
+> --- a/include/linux/pci-acpi.h
+> +++ b/include/linux/pci-acpi.h
+> @@ -119,6 +119,7 @@ struct pci_mmcfg_region {
+>  	u8 start_bus;
+>  	u8 end_bus;
+>  	char name[PCI_MMCFG_RESOURCE_NAME_LEN];
+> +	bool hot_added;
+>  };
+>  
+>  extern int pci_mmconfig_insert(struct device *dev, u16 seg, u8 start, u8 end,
+> -- 
+> 1.9.1
+> 
