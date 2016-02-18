@@ -1,47 +1,173 @@
-From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [PATCH v5 RESEND 0/5] Make cpuid <-> nodeid mapping persistent
-Date: Thu, 18 Feb 2016 03:11:46 +0100
-Message-ID: <1672109.ebeP8evnQp@vostro.rjw.lan>
-References: <1453702100-2597-1-git-send-email-tangchen@cn.fujitsu.com> <CAJZ5v0go7tZiDkh2novJKiDmYv_ge7Y-rQLC5ohRC=qSDJ+5-Q@mail.gmail.com> <56C525F9.1040107@cn.fujitsu.com>
+From: "Zheng, Lv" <lv.zheng@intel.com>
+Subject: RE: [PATCH 1/2] ACPICA: Tables: Add function to remove ACPI tables
+Date: Thu, 18 Feb 2016 02:34:46 +0000
+Message-ID: <1AE640813FDE7649BE1B193DEA596E883BB4D2A6@SHSMSX101.ccr.corp.intel.com>
+References: <1455723910-16710-1-git-send-email-matt@codeblueprint.co.uk>
+ <1455723910-16710-2-git-send-email-matt@codeblueprint.co.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from v094114.home.net.pl ([79.96.170.134]:63047 "HELO
-	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1423871AbcBRCKX (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 17 Feb 2016 21:10:23 -0500
-In-Reply-To: <56C525F9.1040107@cn.fujitsu.com>
+Received: from mga03.intel.com ([134.134.136.65]:24484 "EHLO mga03.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1422737AbcBRCg2 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 17 Feb 2016 21:36:28 -0500
+In-Reply-To: <1455723910-16710-2-git-send-email-matt@codeblueprint.co.uk>
+Content-Language: en-US
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Zhu Guihua <zhugh.fnst@cn.fujitsu.com>
-Cc: "Rafael J. Wysocki" <rafael@kernel.org>, chen.tang@easystack.cn, cl@linux.com, Tejun Heo <tj@kernel.org>, Jiang Liu <jiang.liu@linux.intel.com>, mika.j.penttila@gmail.com, Ingo Molnar <mingo@redhat.com>, Andrew Morton <akpm@linux-foundation.org>, "H. Peter Anvin" <hpa@zytor.com>, yasu.isimatu@gmail.com, isimatu.yasuaki@jp.fujitsu.com, kamezawa.hiroyu@jp.fujitsu.com, izumi.taku@jp.fujitsu.com, gongzhaogang@inspur.com, Len Brown <len.brown@intel.com>, x86@kernel.org, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Linux Memory Management List <linux-mm@kvack.org>
+To: Matt Fleming <matt@codeblueprint.co.uk>, Dave Young <dyoung@redhat.com>
+Cc: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-efi@vger.kernel.org" <linux-efi@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "kexec@lists.infradead.org" <kexec@lists.infradead.org>, "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>, Josh Triplett <josh@joshtriplett.org>, Borislav Petkov <bp@alien8.de>, Matthew Garrett <mjg59@srcf.ucam.org>, Vivek Goyal <vgoyal@redhat.com>
 
-On Thursday, February 18, 2016 10:01:29 AM Zhu Guihua wrote:
-> Hi Rafael,
+Hi, 
+
+> From: linux-acpi-owner@vger.kernel.org [mailto:linux-acpi-
+> owner@vger.kernel.org] On Behalf Of Matt Fleming
+[Lv Zheng] 
+First, is it possible for you to submit an ACPICA patch instead of a Linux patch.
+The reasoning for doing this can be found at:
+https://acpica.org/Licensing
+
+> Subject: [PATCH 1/2] ACPICA: Tables: Add function to remove ACPI tables
 > 
-> On 02/03/2016 08:02 PM, Rafael J. Wysocki wrote:
-> > Hi,
-> >
-> > On Wed, Feb 3, 2016 at 10:14 AM, Zhu Guihua <zhugh.fnst@cn.fujitsu.com> wrote:
-> >> On 01/25/2016 02:12 PM, Tang Chen wrote:
-> >>> Hi Rafael, Len,
-> >>>
-> >>> Would you please help to review the ACPI part of this patch-set ?
-> >>
-> >> Can anyone help to review this?
-> > I'm planning to look into this more thoroughly in the next few days.
+> There are existing internal functions that allow the removal of ACPI
+> tables, but they're not exposed to the OS in any useful way.
 > 
-> Were you reviewing this ?
+> Introduce acpi_remove_table() which allows tables to be invalidated in
+> the global table list, resulting in failure of subsequent calls to
+> acpi_get_table() for those tables.
+> 
+> The rationale for this change is the ability to remove the BGRT table
+> during kexec boot. The BGRT table refers to memory regions that are no
+> longer reserved by the firmware once the kexec kernel boots, having
+> been released for general allocation by the previous kernel.
+> 
+> Cc: Dave Young <dyoung@redhat.com>
+> Cc: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+> Cc: Josh Triplett <josh@joshtriplett.org>
+> Cc: Borislav Petkov <bp@alien8.de>
+> Cc: Matthew Garrett <mjg59@srcf.ucam.org>
+> Cc: Vivek Goyal <vgoyal@redhat.com>
+> Cc: <kexec@lists.infradead.org>
+> Signed-off-by: Matt Fleming <matt@codeblueprint.co.uk>
+> ---
+>  drivers/acpi/acpica/tbxface.c | 54
+> +++++++++++++++++++++++++++++++++++++++++++
+>  include/acpi/acpixf.h         |  3 +++
+>  2 files changed, 57 insertions(+)
+> 
+> diff --git a/drivers/acpi/acpica/tbxface.c b/drivers/acpi/acpica/tbxface.c
+> index 326df65decef..999eecd89601 100644
+> --- a/drivers/acpi/acpica/tbxface.c
+> +++ b/drivers/acpi/acpica/tbxface.c
+> @@ -480,3 +480,57 @@ cleanup:
+>  }
+> 
+>  ACPI_EXPORT_SYMBOL(acpi_remove_table_handler)
+> +
+> +/**************************************************************
+> *****************
+> + *
+> + * FUNCTION:    acpi_remove_table
+[Lv Zheng] 
+I'd prefer acpi_uninstall_table() in order to keep the consistencies of the function naming.
+There is in fact a state machine defined by the table manager design:
+UNINSTALLED - install -> INSTALLED/INVALIDATED - validate -> VALIDATED/UNLOADED - load -> LOADED
+LOADED -> unload -> UNLOADED/VALIDATED -> invalidate - INVALIDATED/INSTALLED -> uninstall -> UNINSTALLED
 
-Yes.
+> + *
+> + * PARAMETERS:  signature           - ACPI signature of needed table
+> + *              instance            - Which instance (for SSDTs)
+> + *
+> + * RETURN:      Status
+> + *
+> + * DESCRIPTION: Finds and removes an ACPI table.
+> + *
+> +
+> ****************************************************************
+> **************/
+> +acpi_status
+[Lv Zheng] 
+You need to put __init here.
+Otherwise another API (for example, acpi_unload_table()) should be provided instead of this.
 
-They generally look OK to me, but then I'd like the x86 maintainers to have
-a look at them too.
+> acpi_remove_table(char *signature, u32 instance)
+[Lv Zheng] 
+I'm not sure if using instance is a good idea here.
+We have extensions not upstreamed that have something to do with the table indexing.
+But well, it doesn't look bad for now.
 
-There still are a few things I need to verify, but should be able to do that
-by the end of this week.
+> +{
+> +	struct acpi_table_desc *table_desc;
+> +	acpi_status status;
+> +	u32 i;
+> +	u32 j;
+> +
+> +	/* Parameter validation */
+> +	if (!signature) {
+> +		return (AE_BAD_PARAMETER);
+> +	}
+> +
+> +	/* Walk the root table list */
+> +
+> +	for (i = 0, j = 0; i < acpi_gbl_root_table_list.current_table_count;
+> +	     i++) {
+> +		if (!ACPI_COMPARE_NAME
+> +		    (&(acpi_gbl_root_table_list.tables[i].signature),
+> +		     signature)) {
+> +			continue;
+> +		}
+[Lv Zheng] 
+After removing a table, the instance no remains 2 for the next table of the same signature.
+Is it intentional?
 
-Thanks,
-Rafael
+> +
+> +		if (++j < instance) {
+> +			continue;
+> +		}
+> +
+> +		table_desc = &acpi_gbl_root_table_list.tables[i];
+> +
+> +		status = acpi_tb_validate_table(table_desc);
+> +		if (ACPI_FAILURE(status)) {
+> +			return (status);
+> +		}
+[Lv Zheng] 
+You needn't invoke acpi_tb_validate_table() here.
 
+> +
+> +		acpi_tb_uninstall_table(table_desc);
+> +		return (AE_OK);
+> +	}
+> +
+> +	return (AE_NOT_FOUND);
+> +}
+> +
+> +ACPI_EXPORT_SYMBOL(acpi_remove_table);
+> diff --git a/include/acpi/acpixf.h b/include/acpi/acpixf.h
+> index c96621e87c19..47e51612293e 100644
+> --- a/include/acpi/acpixf.h
+> +++ b/include/acpi/acpixf.h
+> @@ -505,6 +505,9 @@ ACPI_EXTERNAL_RETURN_STATUS(acpi_status
+>  ACPI_EXTERNAL_RETURN_STATUS(acpi_status
+>  			     acpi_remove_table_handler(acpi_table_handler
+>  						       handler))
+> +ACPI_EXTERNAL_RETURN_STATUS(acpi_status
+> +			     acpi_remove_table(acpi_string signature,
+> +					       u32 instance))
+> 
+[Lv Zheng] 
+It is better to move this declaration close to acpi_install_table().
+
+Thanks and best regards
+-Lv
+
+>  /*
+>   * Namespace and name interfaces
+> --
+> 2.6.2
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
