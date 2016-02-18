@@ -1,158 +1,64 @@
-From: Toshi Kani <toshi.kani@hpe.com>
-Subject: Re: [PATCH 3/3] ACPI: Change NFIT driver to set PMEM type to iomem
- entry
-Date: Wed, 17 Feb 2016 15:56:00 -0700
-Message-ID: <1455749760.2925.291.camel@hpe.com>
-References: <1454439311-23690-1-git-send-email-toshi.kani@hpe.com>
-	 <1454439311-23690-4-git-send-email-toshi.kani@hpe.com>
-	 <CAPcyv4ik0GRYkYdaKvu4rPC9a+Q-e93uCZMpx1W8=Cvwwdh6jw@mail.gmail.com>
-	 <1455316203.2925.132.camel@hpe.com>
-	 <CAPcyv4i=TpX=V6mN0zrsqvUyonKY1WkbP=wJ0QqjQtj_kiSJQw@mail.gmail.com>
-	 <1455674441.2925.204.camel@hpe.com>	<1455732020.2925.255.camel@hpe.com>
-	 <CAPcyv4hSJCzUdt-7SjWoT49NSSnv4nzpC=K0rq1E6DWTb6ctkA@mail.gmail.com>
+From: "Rafael J. Wysocki" <rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org>
+Subject: Re: [PATCH v1 06/10] device property: switch to use UUID API
+Date: Thu, 18 Feb 2016 01:03:39 +0100
+Message-ID: <7544228.v4QPX4F7J7@vostro.rjw.lan>
+References: <1455711448-124103-1-git-send-email-andriy.shevchenko@linux.intel.com> <1455711448-124103-7-git-send-email-andriy.shevchenko@linux.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <CAPcyv4hSJCzUdt-7SjWoT49NSSnv4nzpC=K0rq1E6DWTb6ctkA@mail.gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Dan Williams <dan.j.williams@intel.com>
-Cc: "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Linux ACPI <linux-acpi@vger.kernel.org>, Andrew Morton <akpm@linux-foundation.org>, Borislav Petkov <bp@suse.de>, Ingo Molnar <mingo@kernel.org>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7Bit
+Return-path: <linux-efi-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1455711448-124103-7-git-send-email-andriy.shevchenko-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
+Sender: linux-efi-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Andy Shevchenko <andriy.shevchenko-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
+Cc: Theodore Ts'o <tytso-3s7WtUTddSA@public.gmane.org>, Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>, Greg Kroah-Hartman <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>, Jarkko Sakkinen <jarkko.sakkinen-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, Jani Nikula <jani.nikula-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, David Airlie <airlied-cv59FeDIM0c@public.gmane.org>, Benjamin Tissoires <benjamin.tissoires-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Bjorn Helgaas <bhelgaas-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>, Mathias Nyman <mathias.nyman-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Matt Fleming <matt-mF/unelCI9GS6iBeEJttW/XRex20P6io@public.gmane.org>, Lv Zheng <lv.zheng-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Mark Brown <broonie-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Zhang Rui <rui.zhang-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Mika Westerberg <mika.westerberg-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, Andrew Morton <akpm-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org>, Rasmus Villemoes <linux-qQsb+v5E8BnlAoU/VqSP6n9LOBIZ5rWg@public.gmane.org>, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, dri-devel-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org, linux-efi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-api-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Wed, 2016-02-17 at 11:34 -0800, Dan Williams wrote:
-> On Wed, Feb 17, 2016 at 10:00 AM, Toshi Kani <toshi.kani@hpe.com> wro=
-te:
-> > On Tue, 2016-02-16 at 19:00 -0700, Toshi Kani wrote:
-> > > On Fri, 2016-02-12 at 15:32 -0800, Dan Williams wrote:
-> > > > On Fri, Feb 12, 2016 at 2:30 PM, Toshi Kani <toshi.kani@hpe.com=
->
-> > > > wrote:
-=C2=A0:
-> > > Here are three options I can think of.
-> > >=20
-> > > 1) Set pmem type to "reserved" (This patch-set)
-> > > =C2=A0- Add a new iomem_set_desc(), which sets a given type to a =
-top-level
-> > > entry.=C2=A0=C2=A0Change the ACPI NFIT driver to call it to set p=
-mem type to
-> > > "reserved" entry.
-> > > =C2=A0- region_intersects() finds a pmem entry by checking top-le=
-vel
-> > > entries (no change).
-> > >=20
-> > > 2) Change region_intersects() to check children's type
-> > > =C2=A0- Add a new request_region_ext(), which is an extension to
-> > > request_region() to allow specifying a type of resource.=C2=A0=C2=
-=A0It puts a
-> > > new child entry under "reserved".=C2=A0=C2=A0Change the pmem driv=
-er to call
-> > > this func.
-> > > =C2=A0- Change region_intersects() to check children's type for f=
-inding
-> > > this child pmem entry.
-> > >=20
-> > > 3) Pmem driver to call insert_resource()
-> > > =C2=A0- Change the pmem driver to call insert_resource(), which p=
-uts a new
-> > > pmem entry as the parent of "reserved".
-> > > =C2=A0- region_intersects() finds a pmem entry by checking top-le=
-vel
-> > > entries (no change).
-> > > =C2=A0- Add a new release_resource_self(), which releases a given=
- entry
-> > > and keeps its children if any.=C2=A0=C2=A0Change the pmem driver =
-to call it for
-> > > release.
-> >=20
-> > Thinking=C2=A0further,=C2=A03)=C2=A0needs=C2=A0to=C2=A0be=C2=A0modi=
-fied=C2=A0as=C2=A0follows.=C2=A0=C2=A0insert_resource(
-> > ) should only be allowed for producers of resource (ex. nfit), not
-> > consumers (ex. pmem).=C2=A0=C2=A0It also needs to export insert_res=
-ource().
-> >=20
-> > 3) NFIT driver to call insert_resource()
-> > =C2=A0- Change the ACPI nfit driver to call insert_resource() when =
-a target
-> > range is not marked as PMEM (i.e. "reserved") or not present in iom=
-em.
-> > =C2=A0This puts a new PMEM entry as the parent of "reserved".
-> > =C2=A0- region_intersects() finds a pmem entry by checking top-leve=
-l entries
-> > (no change).
-> > =C2=A0- Add a new release_resource_self(), which releases a given e=
-ntry and
-> > keeps its children if any.=C2=A0=C2=A0Change the nfit driver to cal=
-l it for
-> > release.
-> >=20
-> > > This patch-set implements 1).=C2=A0=C2=A0The pmem type is set to =
-"reserved" for
-> > > its life-cycle.=C2=A0=C2=A0This option is simplest.
-> > >=20
-> > > For 2), the changes to region_intersects() may be too complex for
-> > > maintenance.
-> >=20
-> > I should have said "region_intersects() may be overly complicated f=
-or
-> > this purpose and maintenance".
-> >=20
-> > > Here are a few examples when region_intersects() is called
-> > > with addr [1-10] where iomem has entry P and its children.
-> > >=20
-> > > Case A: P is fully covered by children C1 & C2.=C2=A0=C2=A0region=
-_intersects()
-> > > ignores P's type, but checks C1 and C2's.
-> > >=20
-> > > =C2=A0 P [1-10] + C1 [1-5]
-> > > =C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=
-+ C2 [6-10]
-> > >=20
-> > > Case B: C2 is fully covered by C3, but P is not.=C2=A0=C2=A0regio=
-n_intersects()
-> > > ignores C2's type, but checks P, C1, C3's.
-> > >=20
-> > > =C2=A0 P [1-10] + C1 [1-2]
-> > > =C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=
-+ C2 [6-10] + C3 [6-10]
-> > >=20
-> > > I think region_intersects() will need to construct a flat table f=
-rom
-> > > the tree while making recursive calls to walk thru all children.
-> > >=20
-> > > 3) is similar to 2), but avoids the changes to region_intersects(=
-)
-> > > since insert_resource() inserts a new entry as the parent to
-> > > "reserved".
-> >=20
-> > 3) is actually similar to 1) as both options change the producer si=
-de.
-> >=20
-> > > =C2=A0However, a new interface is necessary to put "reserved" bac=
-k to top-
-> > > level when releasing the added entry.
-> > >=20
-> > > My recommendation is go with either 1) or 3).=C2=A0=C2=A0What do =
-you think?
-> >=20
-> > I think we should modify the producer side, so 1) or 3) are still m=
-y
-> > recommendation.
-> >=20
->=20
-> I think 3 is the most promising option.=C2=A0=C2=A0It aligns the acpi=
-/nfit
-> driver closer with the acpi/pci_root driver that is also doing
-> insert_resource() for each root bridge, and removing those resources
-> when the bridge is disabled/removed.
->=20
-> I'd still want to maintain the ability of nfit to be built as a
-> module, so we would need to split the resource registration into a
-> separate built-in object file from nfit.ko.
+On Wednesday, February 17, 2016 02:17:24 PM Andy Shevchenko wrote:
+> Switch to use a generic UUID API instead of custom approach. It allows to
+> define UUIDs, compare them, and validate.
+> 
+> Signed-off-by: Andy Shevchenko <andriy.shevchenko-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
+> ---
+>  drivers/acpi/property.c | 18 ++++++++----------
+>  1 file changed, 8 insertions(+), 10 deletions(-)
+> 
+> diff --git a/drivers/acpi/property.c b/drivers/acpi/property.c
+> index 2aee416..1e75305 100644
+> --- a/drivers/acpi/property.c
+> +++ b/drivers/acpi/property.c
+> @@ -25,15 +25,13 @@ static int acpi_data_get_property_array(struct acpi_device_data *data,
+>  					const union acpi_object **obj);
+>  
+>  /* ACPI _DSD device properties UUID: daffd814-6eba-4d8c-8a91-bc9bbf4aa301 */
+> -static const u8 prp_uuid[16] = {
+> -	0x14, 0xd8, 0xff, 0xda, 0xba, 0x6e, 0x8c, 0x4d,
+> -	0x8a, 0x91, 0xbc, 0x9b, 0xbf, 0x4a, 0xa3, 0x01
+> -};
+> +static const uuid_le prp_uuid =
+> +	UUID_LE(0xdaffd814, 0x6eba, 0x4d8c,
+> +		0x8a, 0x91, 0xbc, 0x9b, 0xbf, 0x4a, 0xa3, 0x01);
+>  /* ACPI _DSD data subnodes UUID: dbb8e3e6-5886-4ba6-8795-1319f52a966b */
+> -static const u8 ads_uuid[16] = {
+> -	0xe6, 0xe3, 0xb8, 0xdb, 0x86, 0x58, 0xa6, 0x4b,
+> -	0x87, 0x95, 0x13, 0x19, 0xf5, 0x2a, 0x96, 0x6b
+> -};
+> +static const uuid_le ads_uuid =
+> +	UUID_LE(0xdbb8e3e6, 0x5886, 0x4ba6,
+> +		0x87, 0x95, 0x13, 0x19, 0xf5, 0x2a, 0x96, 0x6b);
+>  
+>  static bool acpi_enumerate_nondev_subnodes(acpi_handle scope,
+>  					   const union acpi_object *desc,
+> @@ -138,7 +136,7 @@ static bool acpi_enumerate_nondev_subnodes(acpi_handle scope,
+>  		    || links->type != ACPI_TYPE_PACKAGE)
+>  			break;
+>  
+> -		if (memcmp(uuid->buffer.pointer, ads_uuid, sizeof(ads_uuid)))
+> +		if (uuid_le_cmp(*(uuid_le *)uuid->buffer.pointer, ads_uuid))
 
-Sounds good. =C2=A0I will implement 3), and add an ACPI built-in wrappe=
-r
-function to call insert_resource().
+Maybe it's too late, but I don't quite understand the pointer manipulations here.
 
-Thanks!
--Toshi
+I can see why you need a type conversion (although it looks ugly), but why do you
+need to dereference it too?
+
+Thanks,
+Rafael
