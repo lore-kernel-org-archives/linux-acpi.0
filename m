@@ -1,46 +1,33 @@
-From: Zhu Guihua <zhugh.fnst@cn.fujitsu.com>
-Subject: Re: [PATCH v5 RESEND 0/5] Make cpuid <-> nodeid mapping persistent
-Date: Thu, 18 Feb 2016 10:01:29 +0800
-Message-ID: <56C525F9.1040107@cn.fujitsu.com>
-References: <1453702100-2597-1-git-send-email-tangchen@cn.fujitsu.com>	<56A5BCDB.4090208@cn.fujitsu.com>	<56B1C504.4060905@cn.fujitsu.com> <CAJZ5v0go7tZiDkh2novJKiDmYv_ge7Y-rQLC5ohRC=qSDJ+5-Q@mail.gmail.com>
+From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Subject: Re: [PATCH v3 0/5] ACPI / processor_idle: Add ACPI v6.0 LPI support
+Date: Thu, 18 Feb 2016 03:08:34 +0100
+Message-ID: <2183854.zPdZWsHIaW@vostro.rjw.lan>
+References: <1449065446-26115-1-git-send-email-sudeep.holla@arm.com> <4399656.WBgE1pMnz5@vostro.rjw.lan> <56C45B8F.4000509@arm.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cn.fujitsu.com ([59.151.112.132]:54440 "EHLO
-	heian.cn.fujitsu.com" rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1424573AbcBRCEB (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 17 Feb 2016 21:04:01 -0500
-In-Reply-To: <CAJZ5v0go7tZiDkh2novJKiDmYv_ge7Y-rQLC5ohRC=qSDJ+5-Q@mail.gmail.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7Bit
+Return-path: <linux-ia64-owner@vger.kernel.org>
+In-Reply-To: <56C45B8F.4000509@arm.com>
+Sender: linux-ia64-owner@vger.kernel.org
+To: Sudeep Holla <sudeep.holla@arm.com>
+Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linux-ia64@vger.kernel.org, x86@kernel.org, Al Stone <al.stone@linaro.org>, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, Mahesh Sivasubramanian <msivasub@codeaurora.org>, Ashwin Chaugule <ashwin.chaugule@linaro.org>, Prashanth Prakash <pprakash@codeaurora.org>
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rafael@kernel.org>
-Cc: chen.tang@easystack.cn, cl@linux.com, Tejun Heo <tj@kernel.org>, Jiang Liu <jiang.liu@linux.intel.com>, mika.j.penttila@gmail.com, Ingo Molnar <mingo@redhat.com>, Andrew Morton <akpm@linux-foundation.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, "H. Peter Anvin" <hpa@zytor.com>, yasu.isimatu@gmail.com, isimatu.yasuaki@jp.fujitsu.com, kamezawa.hiroyu@jp.fujitsu.com, izumi.taku@jp.fujitsu.com, gongzhaogang@inspur.com, Len Brown <len.brown@intel.com>, x86@kernel.org, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Linux Memory Management List <linux-mm@kvack.org>
 
-Hi Rafael,
+On Wednesday, February 17, 2016 11:37:51 AM Sudeep Holla wrote:
+> 
 
-On 02/03/2016 08:02 PM, Rafael J. Wysocki wrote:
-> Hi,
->
-> On Wed, Feb 3, 2016 at 10:14 AM, Zhu Guihua <zhugh.fnst@cn.fujitsu.com> wrote:
->> On 01/25/2016 02:12 PM, Tang Chen wrote:
->>> Hi Rafael, Len,
->>>
->>> Would you please help to review the ACPI part of this patch-set ?
->>
->> Can anyone help to review this?
-> I'm planning to look into this more thoroughly in the next few days.
+[cut]
 
-Were you reviewing this ?
+> > Sorry for the slow response here.
+> >
+> 
+> No problem, I saw you were quite busy with cpufreq timers past couple of
+> weeks so didn't bother you.
 
-Thanks.
+Well, thanks for that!
 
-> Thanks,
-> Rafael
->
->
-> .
->
+In fact I'm not done with cpufreq yet for the time being as it turns out.
 
-
+Thanks,
+Rafael
 
