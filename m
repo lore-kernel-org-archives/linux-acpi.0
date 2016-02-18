@@ -1,28 +1,82 @@
-From: Timur Tabi <timur@codeaurora.org>
-Subject: Re: [PATCH V2] acpi, pci, irq: account for early penalty assignment
-Date: Thu, 18 Feb 2016 09:12:19 -0600
-Message-ID: <56C5DF53.9030709@codeaurora.org>
-References: <1455801582-21595-1-git-send-email-okaya@codeaurora.org>
+From: Bjorn Helgaas <helgaas@kernel.org>
+Subject: Re: [PATCH v2 0/3] PCI: Revert "Implement pcibios_alloc_irq() and
+ pcibios_free_irq()"
+Date: Thu, 18 Feb 2016 10:03:19 -0600
+Message-ID: <20160218160319.GC17588@localhost>
+References: <20160217182718.302.10272.stgit@bhelgaas-glaptop2.roam.corp.google.com>
+ <56C55305.2050404@mcc.vniiem.ru>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-pci-owner@vger.kernel.org>
-In-Reply-To: <1455801582-21595-1-git-send-email-okaya@codeaurora.org>
+Content-Disposition: inline
+In-Reply-To: <56C55305.2050404@mcc.vniiem.ru>
 Sender: linux-pci-owner@vger.kernel.org
-To: Sinan Kaya <okaya@codeaurora.org>, linux-acpi@vger.kernel.org, cov@codeaurora.org
-Cc: linux-pci@vger.kernel.org, ravikanth.nalla@hpe.com, lenb@kernel.org, harish.k@hpe.com, ashwin.reghunandanan@hpe.com, bhelgaas@google.com, rjw@rjwysocki.net, linux-kernel@vger.kernel.org
+To: =?utf-8?B?0JzQvtGA0L7QtyDQntC70LXQsw==?= <oleg.moroz@mcc.vniiem.ru>
+Cc: Bjorn Helgaas <bhelgaas@google.com>, linux-pci@vger.kernel.org, Joerg Roedel <jroedel@suse.de>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, linux-kernel@vger.kernel.org, Sunjin Yang <fan4326@gmail.com>, linux-acpi@vger.kernel.org, Thomas Gleixner <tglx@linutronix.de>, Yinghai Lu <yinghai@kernel.org>, Jiang Liu <jiang.liu@linux.intel.com>
 List-Id: linux-acpi@vger.kernel.org
 
-Sinan Kaya wrote:
-> @@ -968,3 +978,4 @@ void __init acpi_pci_link_init(void)
->   	register_syscore_ops(&irqrouter_syscore_ops);
->   	acpi_scan_add_handler(&pci_link_handler);
->   }
-> +
+On Thu, Feb 18, 2016 at 08:13:41AM +0300, =D0=9C=D0=BE=D1=80=D0=BE=D0=B7=
+ =D0=9E=D0=BB=D0=B5=D0=B3 wrote:
+> On 17.02.2016 21:36, Bjorn Helgaas wrote:
+> >These are clean reverts of 991de2e59090 ("PCI, x86: Implement
+> >pcibios_alloc_irq() and pcibios_free_irq()") and related changes.
+> >
+> >We have two reports of drivers broken in v4.3 by Jiang's change,
+> >991de2e59090 ("PCI, x86: Implement pcibios_alloc_irq() and
+> >pcibios_free_irq()").
+> >
+> >It would be best to fix the problem instead of reverting 991de2e5909=
+0, but
+> >I don't have time to do that myself, and we haven't heard from Jiang=
+, so
+> >the only choice I have is to revert the commit.
+> >
+> >Note that reverting will likely break IOAPIC hotplug.
+> >
+> >=D0=9E=D0=BB=D0=B5=D0=B3 and Sunjin, can you please test this and se=
+e whether it fixes your
+> >drivers?  This patch is based on v4.5-rc1.
+> >
+> >I intend to merge these for v4.5 unless I hear objections.
+> >
+> >They're on my for-linus branch, so they should appear in linux-next
+> >tomorrow.
+> >
+> >Changes from the v1 posting:
+> >   - Explicitly revert related patches instead of resolving conflict=
+s
+> >     manually
+> >---
+> >
+> >Bjorn Helgaas (3):
+> >       Revert "x86/PCI: Don't alloc pcibios-irq when MSI is enabled"
+> >       Revert "PCI: Add helpers to manage pci_dev->irq and pci_dev->=
+irq_managed"
+> >       Revert "PCI, x86: Implement pcibios_alloc_irq() and pcibios_f=
+ree_irq()"
+> >
+> >
+> >  arch/x86/include/asm/pci_x86.h |    2 ++
+> >  arch/x86/pci/common.c          |   26 ++++++++++----------------
+> >  arch/x86/pci/intel_mid_pci.c   |    9 +++------
+> >  arch/x86/pci/irq.c             |   23 +++++++++++++++++++----
+> >  drivers/acpi/pci_irq.c         |   17 +++++++++++++----
+> >  include/linux/pci.h            |   17 -----------------
+> >  6 files changed, 47 insertions(+), 47 deletions(-)
+> As i undestand this patch will appear in kernel git repo tomorrow? I
+> don't need to apply in manyally to v4.5-rc1?
 
-Unrelated whitespace change.
+These are included in the next-20160218 tag in the linux-next git repo =
+(not
+Linus' repo) at:
 
--- 
-Qualcomm Innovation Center, Inc.
-The Qualcomm Innovation Center, Inc. is a member of the Code Aurora
-Forum, a Linux Foundation collaborative project.
+  git://git.kernel.org/pub/scm/linux/kernel/git/next/linux-next.git
+
+You browse this at:
+
+  https://git.kernel.org/cgit/linux/kernel/git/next/linux-next.git/
+
+If you'd rather, you can also apply the patches yourself to v4.5-rc1.
+
+Bjorn
