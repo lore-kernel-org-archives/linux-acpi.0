@@ -1,64 +1,62 @@
-From: =?UTF-8?B?0JzQvtGA0L7QtyDQntC70LXQsw==?= <oleg.moroz@mcc.vniiem.ru>
-Subject: Re: [PATCH v2 0/3] PCI: Revert "Implement pcibios_alloc_irq() and
- pcibios_free_irq()"
-Date: Thu, 18 Feb 2016 08:13:41 +0300
-Message-ID: <56C55305.2050404@mcc.vniiem.ru>
-References: <20160217182718.302.10272.stgit@bhelgaas-glaptop2.roam.corp.google.com>
+From: Mika Westerberg <mika.westerberg@linux.intel.com>
+Subject: Re: [PATCH v1 06/10] device property: switch to use UUID API
+Date: Thu, 18 Feb 2016 13:07:54 +0200
+Message-ID: <20160218110754.GG1742@lahna.fi.intel.com>
+References: <1455711448-124103-1-git-send-email-andriy.shevchenko@linux.intel.com>
+ <1455711448-124103-7-git-send-email-andriy.shevchenko@linux.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8;
-	format=flowed
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20160217182718.302.10272.stgit@bhelgaas-glaptop2.roam.corp.google.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Bjorn Helgaas <bhelgaas@google.com>, linux-pci@vger.kernel.org
-Cc: Joerg Roedel <jroedel@suse.de>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, linux-kernel@vger.kernel.org, Sunjin Yang <fan4326@gmail.com>, linux-acpi@vger.kernel.org, Thomas Gleixner <tglx@linutronix.de>, Yinghai Lu <yinghai@kernel.org>, Jiang Liu <jiang.liu@linux.intel.com>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga02.intel.com ([134.134.136.20]:28529 "EHLO mga02.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750926AbcBRLID (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 18 Feb 2016 06:08:03 -0500
+Content-Disposition: inline
+In-Reply-To: <1455711448-124103-7-git-send-email-andriy.shevchenko@linux.intel.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Theodore Ts'o <tytso@mit.edu>, Arnd Bergmann <arnd@arndb.de>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Jarkko Sakkinen <jarkko.sakkinen@linux.intel.com>, Jani Nikula <jani.nikula@linux.intel.com>, David Airlie <airlied@linux.ie>, Benjamin Tissoires <benjamin.tissoires@redhat.com>, Bjorn Helgaas <bhelgaas@google.com>, Mathias Nyman <mathias.nyman@intel.com>, Matt Fleming <matt@codeblueprint.co.uk>, Lv Zheng <lv.zheng@intel.com>, Mark Brown <broonie@kernel.org>, Zhang Rui <rui.zhang@intel.com>, Andrew Morton <akpm@linux-foundation.org>, Rasmus Villemoes <linux@rasmusvillemoes.dk>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, dri-devel@lists.freedesktop.org, linux-efi@vger.kernel.org, linux-api@vger.kernel.org, linux-nvdimm@lists.01.org
 
-On 17.02.2016 21:36, Bjorn Helgaas wrote:
-> These are clean reverts of 991de2e59090 ("PCI, x86: Implement
-> pcibios_alloc_irq() and pcibios_free_irq()") and related changes.
->
-> We have two reports of drivers broken in v4.3 by Jiang's change,
-> 991de2e59090 ("PCI, x86: Implement pcibios_alloc_irq() and
-> pcibios_free_irq()").
->
-> It would be best to fix the problem instead of reverting 991de2e59090=
-, but
-> I don't have time to do that myself, and we haven't heard from Jiang,=
- so
-> the only choice I have is to revert the commit.
->
-> Note that reverting will likely break IOAPIC hotplug.
->
-> =D0=9E=D0=BB=D0=B5=D0=B3 and Sunjin, can you please test this and see=
- whether it fixes your
-> drivers?  This patch is based on v4.5-rc1.
->
-> I intend to merge these for v4.5 unless I hear objections.
->
-> They're on my for-linus branch, so they should appear in linux-next
-> tomorrow.
->
-> Changes from the v1 posting:
->    - Explicitly revert related patches instead of resolving conflicts
->      manually
+On Wed, Feb 17, 2016 at 02:17:24PM +0200, Andy Shevchenko wrote:
+> Switch to use a generic UUID API instead of custom approach. It allows to
+> define UUIDs, compare them, and validate.
+> 
+> Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
 > ---
->
-> Bjorn Helgaas (3):
->        Revert "x86/PCI: Don't alloc pcibios-irq when MSI is enabled"
->        Revert "PCI: Add helpers to manage pci_dev->irq and pci_dev->i=
-rq_managed"
->        Revert "PCI, x86: Implement pcibios_alloc_irq() and pcibios_fr=
-ee_irq()"
->
->
->   arch/x86/include/asm/pci_x86.h |    2 ++
->   arch/x86/pci/common.c          |   26 ++++++++++----------------
->   arch/x86/pci/intel_mid_pci.c   |    9 +++------
->   arch/x86/pci/irq.c             |   23 +++++++++++++++++++----
->   drivers/acpi/pci_irq.c         |   17 +++++++++++++----
->   include/linux/pci.h            |   17 -----------------
->   6 files changed, 47 insertions(+), 47 deletions(-)
-As i undestand this patch will appear in kernel git repo tomorrow? I=20
-don't need to apply in manyally to v4.5-rc1?
+>  drivers/acpi/property.c | 18 ++++++++----------
+>  1 file changed, 8 insertions(+), 10 deletions(-)
+> 
+> diff --git a/drivers/acpi/property.c b/drivers/acpi/property.c
+> index 2aee416..1e75305 100644
+> --- a/drivers/acpi/property.c
+> +++ b/drivers/acpi/property.c
+> @@ -25,15 +25,13 @@ static int acpi_data_get_property_array(struct acpi_device_data *data,
+>  					const union acpi_object **obj);
+>  
+>  /* ACPI _DSD device properties UUID: daffd814-6eba-4d8c-8a91-bc9bbf4aa301 */
+> -static const u8 prp_uuid[16] = {
+> -	0x14, 0xd8, 0xff, 0xda, 0xba, 0x6e, 0x8c, 0x4d,
+> -	0x8a, 0x91, 0xbc, 0x9b, 0xbf, 0x4a, 0xa3, 0x01
+> -};
+> +static const uuid_le prp_uuid =
+> +	UUID_LE(0xdaffd814, 0x6eba, 0x4d8c,
+> +		0x8a, 0x91, 0xbc, 0x9b, 0xbf, 0x4a, 0xa3, 0x01);
+>  /* ACPI _DSD data subnodes UUID: dbb8e3e6-5886-4ba6-8795-1319f52a966b */
+> -static const u8 ads_uuid[16] = {
+> -	0xe6, 0xe3, 0xb8, 0xdb, 0x86, 0x58, 0xa6, 0x4b,
+> -	0x87, 0x95, 0x13, 0x19, 0xf5, 0x2a, 0x96, 0x6b
+> -};
+> +static const uuid_le ads_uuid =
+> +	UUID_LE(0xdbb8e3e6, 0x5886, 0x4ba6,
+> +		0x87, 0x95, 0x13, 0x19, 0xf5, 0x2a, 0x96, 0x6b);
+
+This looks better than the original but it is still not too readable.
+
+I think it would be better to have uuid as string like:
+
+static const char *ads_uuid = "dbb8e3e6-5886-4ba6-8795-1319f52a966b";
+
+and then convert that to the right byte presentation when first time
+used. That would match the uuid format in the ACPI (and device
+properties) spec. and thus make it easier to read and understand.
