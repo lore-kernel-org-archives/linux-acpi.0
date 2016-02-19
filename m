@@ -1,7 +1,7 @@
 From: Lv Zheng <lv.zheng@intel.com>
-Subject: [PATCH 13/15] ACPICA: Revert "Parser: Fix for SuperName method invocation"
-Date: Fri, 19 Feb 2016 14:17:36 +0800
-Message-ID: <0d00c36c2c3ecd737d02a50922d38eb6ecc29ac5.1455857585.git.lv.zheng@intel.com>
+Subject: [PATCH 14/15] ACPICA: Utilities: Update trace mechinism for acquire_object
+Date: Fri, 19 Feb 2016 14:17:43 +0800
+Message-ID: <d8588335d08ee7ea5d281766f8db41439f54fec3.1455857585.git.lv.zheng@intel.com>
 References: <cover.1455857575.git.lv.zheng@intel.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <cover.1455857575.git.lv.zheng@intel.com>
@@ -12,55 +12,44 @@ List-Id: linux-acpi@vger.kernel.org
 
 From: Bob Moore <robert.moore@intel.com>
 
-ACPICA commit eade8f78f2aa21e8eabc3380a5728db47273bcf1
+ACPICA commit 0824ab90e03c2e4239e890615f447e7962b1daa2
 
-This reverts commit 4b86d1046d06e462dae83ebcd5a66cc132a08f8f.
+Was not using the correct macro. Updated a comment in
+acoutput.h
 
-Support for method invocations as part of super_name will be
-removed from the ACPI specification, since no AML interpreter
-supports it.
-
-Link: https://github.com/acpica/acpica/commit/eade8f78
+Link: https://github.com/acpica/acpica/commit/0824ab90
 Signed-off-by: Bob Moore <robert.moore@intel.com>
 Signed-off-by: Lv Zheng <lv.zheng@intel.com>
 ---
- drivers/acpi/acpica/psargs.c |    9 ++++-----
- 1 file changed, 4 insertions(+), 5 deletions(-)
+ drivers/acpi/acpica/utcache.c |    2 +-
+ include/acpi/acoutput.h       |    2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/acpi/acpica/psargs.c b/drivers/acpi/acpica/psargs.c
-index 3052185..d48cbed 100644
---- a/drivers/acpi/acpica/psargs.c
-+++ b/drivers/acpi/acpica/psargs.c
-@@ -269,8 +269,7 @@ acpi_ps_get_next_namepath(struct acpi_walk_state *walk_state,
- 	 */
- 	if (ACPI_SUCCESS(status) &&
- 	    possible_method_call && (node->type == ACPI_TYPE_METHOD)) {
--		if (GET_CURRENT_ARG_TYPE(walk_state->arg_types) ==
--		    ARGP_SUPERNAME) {
-+		if (walk_state->opcode == AML_UNLOAD_OP) {
- 			/*
- 			 * acpi_ps_get_next_namestring has increased the AML pointer,
- 			 * so we need to restore the saved AML pointer for method call.
-@@ -697,7 +696,7 @@ static union acpi_parse_object *acpi_ps_get_next_field(struct acpi_parse_state
-  *
-  * PARAMETERS:  walk_state          - Current state
-  *              parser_state        - Current parser state object
-- *              arg_type            - The parser argument type (ARGP_*)
-+ *              arg_type            - The argument type (AML_*_ARG)
-  *              return_arg          - Where the next arg is returned
-  *
-  * RETURN:      Status, and an op object containing the next argument.
-@@ -817,9 +816,9 @@ acpi_ps_get_next_arg(struct acpi_walk_state *walk_state,
- 				return_ACPI_STATUS(AE_NO_MEMORY);
- 			}
+diff --git a/drivers/acpi/acpica/utcache.c b/drivers/acpi/acpica/utcache.c
+index c9a720f..f8e9978 100644
+--- a/drivers/acpi/acpica/utcache.c
++++ b/drivers/acpi/acpica/utcache.c
+@@ -245,7 +245,7 @@ void *acpi_os_acquire_object(struct acpi_memory_list *cache)
+ 	acpi_status status;
+ 	void *object;
  
--			/* super_name allows argument to be a method call */
-+			/* To support super_name arg of Unload */
+-	ACPI_FUNCTION_NAME(os_acquire_object);
++	ACPI_FUNCTION_TRACE(os_acquire_object);
  
--			if (arg_type == ARGP_SUPERNAME) {
-+			if (walk_state->opcode == AML_UNLOAD_OP) {
- 				status =
- 				    acpi_ps_get_next_namepath(walk_state,
- 							      parser_state, arg,
+ 	if (!cache) {
+ 		return_PTR(NULL);
+diff --git a/include/acpi/acoutput.h b/include/acpi/acoutput.h
+index 5bfc619..34f601e 100644
+--- a/include/acpi/acoutput.h
++++ b/include/acpi/acoutput.h
+@@ -262,7 +262,7 @@
+ #define ACPI_GET_FUNCTION_NAME          _acpi_function_name
+ 
+ /*
+- * The Name parameter should be the procedure name as a quoted string.
++ * The Name parameter should be the procedure name as a non-quoted string.
+  * The function name is also used by the function exit macros below.
+  * Note: (const char) is used to be compatible with the debug interfaces
+  * and macros such as __func__.
 -- 
 1.7.10
