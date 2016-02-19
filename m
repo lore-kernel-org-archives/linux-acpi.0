@@ -1,72 +1,73 @@
-From: "Zheng, Lv" <lv.zheng@intel.com>
-Subject: RE: [PATCH 00/14] ACPI 2.0: Enable TermList interpretion and early
- opeartion region accesses for table loading
-Date: Fri, 19 Feb 2016 06:40:40 +0000
-Message-ID: <1AE640813FDE7649BE1B193DEA596E883BB4D6A2@SHSMSX101.ccr.corp.intel.com>
-References: <cover.1454730659.git.lv.zheng@intel.com>
+From: Linus Walleij <linus.walleij@linaro.org>
+Subject: Re: [PATCH v1] GPIO/ACPI: DesignWare: Add GPIO-signaled ACPI events
+ support for power button
+Date: Fri, 19 Feb 2016 09:35:37 +0100
+Message-ID: <CACRpkda1JJOg9ZdSL5ccE9oohekNvaDtxiOOTqvOWGhcxVPGjA@mail.gmail.com>
+References: <1455694090-41713-1-git-send-email-qiujiang@huawei.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga11.intel.com ([192.55.52.93]:28008 "EHLO mga11.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1161045AbcBSGkp convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 19 Feb 2016 01:40:45 -0500
-In-Reply-To: <cover.1454730659.git.lv.zheng@intel.com>
-Content-Language: en-US
+Received: from mail-ob0-f181.google.com ([209.85.214.181]:33536 "EHLO
+	mail-ob0-f181.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1946116AbcBSIfh (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 19 Feb 2016 03:35:37 -0500
+Received: by mail-ob0-f181.google.com with SMTP id jq7so101287955obb.0
+        for <linux-acpi@vger.kernel.org>; Fri, 19 Feb 2016 00:35:37 -0800 (PST)
+In-Reply-To: <1455694090-41713-1-git-send-email-qiujiang@huawei.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, "Brown, Len" <len.brown@intel.com>
-Cc: Lv Zheng <zetalog@gmail.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
+To: qiujiang <qiujiang@huawei.com>
+Cc: Alexandre Courbot <gnurou@gmail.com>, Mika Westerberg <mika.westerberg@linux.intel.com>, "linux-gpio@vger.kernel.org" <linux-gpio@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, linuxarm@huawei.com, haifeng.wei@huawei.com, charles.chenxin@huawei.com
 
-Hi, Rafael
+On Wed, Feb 17, 2016 at 8:28 AM, qiujiang <qiujiang@huawei.com> wrote:
 
-> From: Zheng, Lv
-> Subject: [PATCH 00/14] ACPI 2.0: Enable TermList interpretion and early
-> opeartion region accesses for table loading
-> 
+> This patch modifies the DesignWare GPIO controller driver to
+> support the GPIO-signaled ACPI Events. This is used for power
+> button function on ARM server.
+>
+> To make it work, the _AEI and _EVT object must be defined in
+> the corresponding GPIO driver's dsdt table in UEFI as follow:
+>
+> Device(GPI0) {
+>         Name(_HID, "HISI0181")
+>         Name(_ADR, 0) // _ADR: Address
+>         Name(_UID, 0)
+>
+>         Name (_CRS, ResourceTemplate ()  {
+>                 Memory32Fixed (ReadWrite, 0x802e0000, 0x10000)
+>                 Interrupt (ResourceConsumer, Level, ActiveHigh,
+>                 Exclusive,,,) {344}
+>         })
+>
+>         Device(PRTa) {
+>                 Name (_DSD, Package () {
+>                         Package () {
+>                                 Package () {"reg",0},
+>                                 Package () {"snps,nr-gpios",32},
+>                 }
+>                 })
+>         }
+>
+>         Name (_AEI, ResourceTemplate () {
+>                 GpioInt(Edge, ActiveLow, ExclusiveAndWake, PullUp, ,
+>                 " \\_SB.GPI0") {8}
+>         })
+>
+>         Method (_E08, 0x0, NotSerialized) {
+>                 Notify (\_SB.PWRB, 0x80)
+>         }
+> }
+>
+> Signed-off-by: qiujiang <qiujiang@huawei.com>
 
-<skip>
+This patch doesn't apply to my tree. Please do the following:
 
-> 
-> PATCH 01-02: The initrd installation testing facility.
-> PATCH 03-07: Entropy reduction stuff in ACPICA.
+- Rebase on the "devel" branch in the linux-gpio tree:
+  https://git.kernel.org/cgit/linux/kernel/git/linusw/linux-gpio.git/log/?h=devel
 
-PATCH 03-06 were just sent in ACPICA 20160212 release series.
-So this patchset need to be re-arranged and sent again after the 20160212 release cycle.
+- Split in two parts as suggested by Andy S.
 
-But PATCH 01-02 looks not so closely related to this patchset.
-Maybe you can help to check to see if they are upstreamable.
-If they are merged, then I needn't send them again in v2 series.
-Thanks in advance.
+- Add Mika's ACKs.
 
-Best regards
--Lv
-
-> PATCH 08-10: Entropy reduction stuff in EC driver and ACPI subsystem's
->              initialization order.
-> PATCH 12:    The first step enabling.
-> PATCH 13:    The code to facilitate AML 2.0 table loading.
-> PATCH 14:    The second step enabling.
-> 
-> Lv Zheng (14):
->   ACPI / OSL: Cleanup initrd table override code
->   ACPI / OSL: Add support to install tables via initrd
->   ACPI 2.0 / AML: Make default region accessible during the table load
->   ACPI 2.0 / AML: Tune _REG evaluations order in the initialization
->     steps
->   ACPI 2.0 / AML: Ensure \_SB._INI executed before any _REG
->   ACPI 2.0 / AML: Rename acpi_gbl_reg_methods_enabled to
->     acpi_gbl_namespace_initialized
->   ACPICA: Events: Fix an issue that _REG association can happen before
->     namespace is initialized
->   ACPI 2.0 / ECDT: Split EC_FLAGS_HANDLERS_INSTALLED
->   ACPI 2.0 / ECDT: Remove early namespace reference from EC
->   ACPI 2.0 / ECDT: Enable correct ECDT initialization order
->   ACPI 2.0 / AML: Improve module level execution by moving the
->     If/Else/While execution to per-table basis
->   ACPI 2.0 / AML: Add TermList parsing support for table loading
->   ACPI 2.0 / AML: Enable correct ACPI subsystem initialization order
->     for new table loading mode
->   ACPI 2.0 / AML: Fix module level execution by correctly parsing table
->     as TermList
+Yours,
+Linus Walleij
