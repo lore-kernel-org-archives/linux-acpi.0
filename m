@@ -1,146 +1,816 @@
-From: "Moore, Robert" <robert.moore@intel.com>
-Subject: RE: [PATCH 1/2] ACPI/NFIT: Update Control Region Structure per ACPI
- 6.1
-Date: Fri, 19 Feb 2016 22:55:10 +0000
-Message-ID: <94F2FBAB4432B54E8AACC7DFDE6C92E37E44763A@ORSMSX110.amr.corp.intel.com>
-References: <1455923333-13629-1-git-send-email-toshi.kani@hpe.com>
-	<1455923333-13629-2-git-send-email-toshi.kani@hpe.com>
- <CAPcyv4jUj=NzEHbZjiOUAqOva2ujwWfGSQHcFR-HVXdBwB2LvA@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+From: al.stone@linaro.org
+Subject: [PATCH] ARM64: ACPI: Update documentation for latest specification version
+Date: Fri, 19 Feb 2016 16:54:01 -0700
+Message-ID: <1455926041-9579-1-git-send-email-al.stone@linaro.org>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga01.intel.com ([192.55.52.88]:45418 "EHLO mga01.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1425895AbcBSWzO (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 19 Feb 2016 17:55:14 -0500
-In-Reply-To: <CAPcyv4jUj=NzEHbZjiOUAqOva2ujwWfGSQHcFR-HVXdBwB2LvA@mail.gmail.com>
-Content-Language: en-US
+Received: from mail-ob0-f175.google.com ([209.85.214.175]:35684 "EHLO
+	mail-ob0-f175.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1427316AbcBSXyM (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 19 Feb 2016 18:54:12 -0500
+Received: by mail-ob0-f175.google.com with SMTP id xk3so124480385obc.2
+        for <linux-acpi@vger.kernel.org>; Fri, 19 Feb 2016 15:54:12 -0800 (PST)
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Williams, Dan J" <dan.j.williams@intel.com>, Toshi Kani <toshi.kani@hpe.com>
-Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, "Elliott, Robert (Persistent Memory)" <elliott@hpe.com>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, Linux ACPI <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "devel@acpica.org" <devel@acpica.org>, "Zheng, Lv" <lv.zheng@intel.com>
+To: linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Cc: linaro-acpi@lists.linaro.org, patches@linaro.org, linaro-kernel@lists.linaro.org, Al Stone <al.stone@linaro.org>
 
-TW9yZSBpbXBvcnRhbnRseSwgdGhlIGNoYW5nZXMgdG8gYWN0YmwxLmggbmVlZCB0byBiZSBiYWNr
-cG9ydGVkIHRvIHRoZSBuYXRpdmUgQUNQSUNBIGZvcm1hdC4NCg0KDQo+IC0tLS0tT3JpZ2luYWwg
-TWVzc2FnZS0tLS0tDQo+IEZyb206IERhbiBXaWxsaWFtcyBbbWFpbHRvOmRhbi5qLndpbGxpYW1z
-QGludGVsLmNvbV0NCj4gU2VudDogRnJpZGF5LCBGZWJydWFyeSAxOSwgMjAxNiAyOjM1IFBNDQo+
-IFRvOiBUb3NoaSBLYW5pDQo+IENjOiBSYWZhZWwgSi4gV3lzb2NraTsgTW9vcmUsIFJvYmVydDsg
-RWxsaW90dCwgUm9iZXJ0IChQZXJzaXN0ZW50IE1lbW9yeSk7DQo+IGxpbnV4LW52ZGltbUBsaXN0
-cy4wMS5vcmc7IExpbnV4IEFDUEk7IGxpbnV4LWtlcm5lbEB2Z2VyLmtlcm5lbC5vcmc7DQo+IGRl
-dmVsQGFjcGljYS5vcmc7IFpoZW5nLCBMdg0KPiBTdWJqZWN0OiBSZTogW1BBVENIIDEvMl0gQUNQ
-SS9ORklUOiBVcGRhdGUgQ29udHJvbCBSZWdpb24gU3RydWN0dXJlIHBlcg0KPiBBQ1BJIDYuMQ0K
-PiANCj4gT24gRnJpLCBGZWIgMTksIDIwMTYgYXQgMzowOCBQTSwgVG9zaGkgS2FuaSA8dG9zaGku
-a2FuaUBocGUuY29tPiB3cm90ZToNCj4gPiBBQ1BJIDYuMSwgVGFibGUgNS0xMzMsIHVwZGF0ZXMg
-TlZESU1NIENvbnRyb2wgUmVnaW9uIFN0cnVjdHVyZSBhcw0KPiA+IGZvbGxvd3MuDQo+ID4gIC0g
-VmFsaWQgRmllbGRzLCBNYW51ZmFjdHVyaW5nIExvY2F0aW9uLCBhbmQgTWFudWZhY3R1cmluZyBE
-YXRlDQo+ID4gICAgYXJlIGFkZGVkIGZyb20gcmVzZXJ2ZWQgcmFuZ2UuICBObyBjaGFuZ2UgaW4g
-dGhlIHN0cnVjdHVyZSBzaXplLg0KPiA+ICAtIElEcyBkZWZpbmVkIGFzIFNQRCB2YWx1ZXMgYXJl
-IGFycmF5cyBvZiBieXRlcy4gIFRoZSBzcGVjDQo+ID4gICAgY2xhcmlmaWVkIHRoYXQgdGhleSBu
-ZWVkIHRvIGJlIHJlcHJlc2VudGVkIGFzIGFycmF5cyBvZiBieXRlcw0KPiA+ICAgIGFzIHdlbGwu
-DQo+ID4NCj4gPiBUaGlzIHBhdGNoIG1ha2VzIHRoZSBmb2xsb3dpbmcgY2hhbmdlcyB0byBzdXBw
-b3J0IHRoaXMgdXBkYXRlLg0KPiA+ICAtIENoYW5nZSAnc3RydWN0IGFjcGlfbmZpdF9jb250cm9s
-X3JlZ2lvbicgdG8gcmVmbGVjdCB0aGUgdXBkYXRlLg0KPiA+ICAgIFNQRCBJRHMgYXJlIGRlZmlu
-ZWQgYXMgYXJyYXlzIG9mIGJ5dGVzLCBzbyB0aGF0IHRoZXkgY2FuIGJlDQo+ID4gICAgdHJlYXRl
-ZCBpbiB0aGUgc2FtZSB3YXkgcmVnYXJkbGVzcyBvZiBDUFUgZW5kaWFubmVzcyBhbmQgYXJlDQo+
-ID4gICAgbm90IG1pc3MtdHJlYXRlZCBhcyBsaXR0bGUtZW5kaWFuIG51bWVyaWMgdmFsdWVzLg0K
-PiA+ICAtIENoYW5nZSB0aGUgTkZJVCBkcml2ZXIgdG8gc2hvdyBTUEQgSUQgdmFsdWVzIGFzIGFy
-cmF5IG9mIGJ5dGVzDQo+ID4gICAgaW4gc3lzZnMuDQo+ID4gIC0gQ2hhbmdlIHRoZSBORklUIGRy
-aXZlciB0byBzaG93IE1hbnVmYWN0dXJpbmcgTG9jYXRpb24gYW5kDQo+ID4gICAgTWFudWZhY3R1
-cmluZyBEYXRlIHdoZW4gdGhleSBhcmUgdmFsaWQuDQo+ID4gIC0gQ2hhbmdlIHRoZSBORklUIGRy
-aXZlciB0byBzaG93IGFuIE5WRElNTSB1bmlxdWUgSUQgYXMgZGVmaW5lZA0KPiA+ICAgIGluIHNl
-Y3Rpb24gNS4yLjI1Ljkgb2YgdGhlIHNwZWMuDQo+ID4gIC0gQ2hhbmdlIHNwcmludGYgZm9ybWF0
-IHRvIHVzZSAiMHgiIGluc3RlYWQgb2YgIiMiIHNpbmNlICIlIzAyeCINCj4gPiAgICBkb2VzIG5v
-dCBwcmVwZW5kICcwJyBpbiBzb21lIHJlYXNvbi4NCj4gPg0KPiA+IGxpbms6IGh0dHA6Ly93d3cu
-dWVmaS5vcmcvc2l0ZXMvZGVmYXVsdC9maWxlcy9yZXNvdXJjZXMvQUNQSV82XzEucGRmDQo+ID4g
-U2lnbmVkLW9mZi1ieTogVG9zaGkgS2FuaSA8dG9zaGkua2FuaUBocGUuY29tPg0KPiA+IENjOiBS
-YWZhZWwgSi4gV3lzb2NraSA8cmp3QHJqd3lzb2NraS5uZXQ+DQo+ID4gQ2M6IERhbiBXaWxsaWFt
-cyA8ZGFuLmoud2lsbGlhbXNAaW50ZWwuY29tPg0KPiA+IENjOiBSb2JlcnQgTW9vcmUgPHJvYmVy
-dC5tb29yZUBpbnRlbC5jb20+DQo+ID4gQ2M6IFJvYmVydCBFbGxpb3R0IDxlbGxpb3R0QGhwZS5j
-b20+DQo+ID4gQ2M6IDxkZXZlbEBhY3BpY2Eub3JnPg0KPiA+IC0tLQ0KPiA+ICBkcml2ZXJzL2Fj
-cGkvbmZpdC5jICAgfCAgIDc1DQo+ICsrKysrKysrKysrKysrKysrKysrKysrKysrKysrKysrKysr
-KysrKysrKy0tLS0tLS0NCj4gPiAgaW5jbHVkZS9hY3BpL2FjdGJsMS5oIHwgICAyNCArKysrKysr
-KysrLS0tLS0tDQo+ID4gIDIgZmlsZXMgY2hhbmdlZCwgODAgaW5zZXJ0aW9ucygrKSwgMTkgZGVs
-ZXRpb25zKC0pDQo+IA0KPiBIaSBUb3NoaSwNCj4gDQo+IEkgZ2VuZXJhbCBsb29rcyBnb29kLCBi
-dXQgbm90ZSB0aGF0IGNoYW5nZXMgdG8gaW5jbHVkZS9hY3BpL2FjdGJsMS5oIG5lZWQNCj4gdG8g
-Z28gdGhyb3VnaCB0aGUgQUNQSUNBIHByb2plY3QuICBUaGVuIHRoZWlyIG5vcm1hbCBpbXBvcnQg
-cHJvY2VzcyB3aWxsDQo+IGJyaW5nIGl0IGludG8gdGhlIGtlcm5lbC4gIEkgYWRkZWQgTHYgdG8g
-dGhlIGNjLg0KPiANCj4gPg0KPiA+IGRpZmYgLS1naXQgYS9kcml2ZXJzL2FjcGkvbmZpdC5jIGIv
-ZHJpdmVycy9hY3BpL25maXQuYyBpbmRleA0KPiA+IGFkNmQ4YzYuLjA2Njc3ZDkgMTAwNjQ0DQo+
-ID4gLS0tIGEvZHJpdmVycy9hY3BpL25maXQuYw0KPiA+ICsrKyBiL2RyaXZlcnMvYWNwaS9uZml0
-LmMNCj4gPiBAQCAtNzIyLDcgKzcyMiw4IEBAIHN0YXRpYyBzc2l6ZV90IHZlbmRvcl9zaG93KHN0
-cnVjdCBkZXZpY2UgKmRldiwgIHsNCj4gPiAgICAgICAgIHN0cnVjdCBhY3BpX25maXRfY29udHJv
-bF9yZWdpb24gKmRjciA9IHRvX25maXRfZGNyKGRldik7DQo+ID4NCj4gPiAtICAgICAgIHJldHVy
-biBzcHJpbnRmKGJ1ZiwgIiUjeFxuIiwgZGNyLT52ZW5kb3JfaWQpOw0KPiA+ICsgICAgICAgcmV0
-dXJuIHNwcmludGYoYnVmLCAiMHglMDJ4JTAyeFxuIiwNCj4gPiArICAgICAgICAgICAgICAgICAg
-ICAgICAgICAgICAgIGRjci0+dmVuZG9yX2lkWzBdLCBkY3ItPnZlbmRvcl9pZFsxXSk7DQo+ID4g
-IH0NCj4gPiAgc3RhdGljIERFVklDRV9BVFRSX1JPKHZlbmRvcik7DQo+ID4NCj4gPiBAQCAtNzMx
-LDcgKzczMiw4IEBAIHN0YXRpYyBzc2l6ZV90IHJldl9pZF9zaG93KHN0cnVjdCBkZXZpY2UgKmRl
-diwgIHsNCj4gPiAgICAgICAgIHN0cnVjdCBhY3BpX25maXRfY29udHJvbF9yZWdpb24gKmRjciA9
-IHRvX25maXRfZGNyKGRldik7DQo+ID4NCj4gPiAtICAgICAgIHJldHVybiBzcHJpbnRmKGJ1Ziwg
-IiUjeFxuIiwgZGNyLT5yZXZpc2lvbl9pZCk7DQo+ID4gKyAgICAgICByZXR1cm4gc3ByaW50Zihi
-dWYsICIweCUwMnglMDJ4XG4iLA0KPiA+ICsgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAg
-ZGNyLT5yZXZpc2lvbl9pZFswXSwNCj4gPiArIGRjci0+cmV2aXNpb25faWRbMV0pOw0KPiA+ICB9
-DQo+ID4gIHN0YXRpYyBERVZJQ0VfQVRUUl9STyhyZXZfaWQpOw0KPiA+DQo+ID4gQEAgLTc0MCw3
-ICs3NDIsOCBAQCBzdGF0aWMgc3NpemVfdCBkZXZpY2Vfc2hvdyhzdHJ1Y3QgZGV2aWNlICpkZXYs
-ICB7DQo+ID4gICAgICAgICBzdHJ1Y3QgYWNwaV9uZml0X2NvbnRyb2xfcmVnaW9uICpkY3IgPSB0
-b19uZml0X2RjcihkZXYpOw0KPiA+DQo+ID4gLSAgICAgICByZXR1cm4gc3ByaW50ZihidWYsICIl
-I3hcbiIsIGRjci0+ZGV2aWNlX2lkKTsNCj4gPiArICAgICAgIHJldHVybiBzcHJpbnRmKGJ1Ziwg
-IjB4JTAyeCUwMnhcbiIsDQo+ID4gKyAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICBkY3It
-PmRldmljZV9pZFswXSwgZGNyLT5kZXZpY2VfaWRbMV0pOw0KPiA+ICB9DQo+ID4gIHN0YXRpYyBE
-RVZJQ0VfQVRUUl9STyhkZXZpY2UpOw0KPiA+DQo+ID4gQEAgLTc0OSw3ICs3NTIsNyBAQCBzdGF0
-aWMgc3NpemVfdCBmb3JtYXRfc2hvdyhzdHJ1Y3QgZGV2aWNlICpkZXYsICB7DQo+ID4gICAgICAg
-ICBzdHJ1Y3QgYWNwaV9uZml0X2NvbnRyb2xfcmVnaW9uICpkY3IgPSB0b19uZml0X2RjcihkZXYp
-Ow0KPiA+DQo+ID4gLSAgICAgICByZXR1cm4gc3ByaW50ZihidWYsICIlI3hcbiIsIGRjci0+Y29k
-ZSk7DQo+ID4gKyAgICAgICByZXR1cm4gc3ByaW50ZihidWYsICIweCUwMnglMDJ4XG4iLCBkY3It
-PmNvZGVbMF0sDQo+ID4gKyBkY3ItPmNvZGVbMV0pOw0KPiA+ICB9DQo+ID4gIHN0YXRpYyBERVZJ
-Q0VfQVRUUl9STyhmb3JtYXQpOw0KPiA+DQo+ID4gQEAgLTc1OCw3ICs3NjEsOSBAQCBzdGF0aWMg
-c3NpemVfdCBzZXJpYWxfc2hvdyhzdHJ1Y3QgZGV2aWNlICpkZXYsICB7DQo+ID4gICAgICAgICBz
-dHJ1Y3QgYWNwaV9uZml0X2NvbnRyb2xfcmVnaW9uICpkY3IgPSB0b19uZml0X2RjcihkZXYpOw0K
-PiA+DQo+ID4gLSAgICAgICByZXR1cm4gc3ByaW50ZihidWYsICIlI3hcbiIsIGRjci0+c2VyaWFs
-X251bWJlcik7DQo+ID4gKyAgICAgICByZXR1cm4gc3ByaW50ZihidWYsICIweCUwMnglMDJ4JTAy
-eCUwMnhcbiIsDQo+ID4gKyAgICAgICAgICAgICAgICAgICAgICAgZGNyLT5zZXJpYWxfbnVtYmVy
-WzBdLCBkY3ItPnNlcmlhbF9udW1iZXJbMV0sDQo+ID4gKyAgICAgICAgICAgICAgICAgICAgICAg
-ZGNyLT5zZXJpYWxfbnVtYmVyWzJdLCBkY3ItPnNlcmlhbF9udW1iZXJbM10pOw0KPiA+ICB9DQo+
-ID4gIHN0YXRpYyBERVZJQ0VfQVRUUl9STyhzZXJpYWwpOw0KPiANCj4gVGhlc2UgZml4dXBzIGxv
-b2sgZ29vZC4NCj4gDQo+IENhbiB3ZSBzcGxpdCB0aGUgbmV3IHN5c2ZzIGF0dHJpYnV0ZXMgYmVs
-b3cgaW50byB0aGVpciBvd24gcGF0Y2g/ICBPbmUNCj4gbW9yZSBjb21tZW50cyBiZWxvdzoNCj4g
-DQo+ID4NCj4gPiBAQCAtNzc2LDYgKzc4MSw0NSBAQCBzdGF0aWMgc3NpemVfdCBmbGFnc19zaG93
-KHN0cnVjdCBkZXZpY2UgKmRldiwgIH0NCj4gPiBzdGF0aWMgREVWSUNFX0FUVFJfUk8oZmxhZ3Mp
-Ow0KPiA+DQo+ID4gK3N0YXRpYyBzc2l6ZV90IG1mZ19sb2NhdGlvbl9zaG93KHN0cnVjdCBkZXZp
-Y2UgKmRldiwNCj4gPiArICAgICAgICAgICAgICAgc3RydWN0IGRldmljZV9hdHRyaWJ1dGUgKmF0
-dHIsIGNoYXIgKmJ1Zikgew0KPiA+ICsgICAgICAgc3RydWN0IGFjcGlfbmZpdF9jb250cm9sX3Jl
-Z2lvbiAqZGNyID0gdG9fbmZpdF9kY3IoZGV2KTsNCj4gPiArDQo+ID4gKyAgICAgICByZXR1cm4g
-c3ByaW50ZihidWYsICIweCUwMnhcbiIsIGRjci0+bWFudWZhY3R1cmluZ19sb2NhdGlvbik7DQo+
-ID4gK30gc3RhdGljIERFVklDRV9BVFRSX1JPKG1mZ19sb2NhdGlvbik7DQo+ID4gKw0KPiA+ICtz
-dGF0aWMgc3NpemVfdCBtZmdfZGF0ZV9zaG93KHN0cnVjdCBkZXZpY2UgKmRldiwNCj4gPiArICAg
-ICAgICAgICAgICAgc3RydWN0IGRldmljZV9hdHRyaWJ1dGUgKmF0dHIsIGNoYXIgKmJ1Zikgew0K
-PiA+ICsgICAgICAgc3RydWN0IGFjcGlfbmZpdF9jb250cm9sX3JlZ2lvbiAqZGNyID0gdG9fbmZp
-dF9kY3IoZGV2KTsNCj4gPiArDQo+ID4gKyAgICAgICByZXR1cm4gc3ByaW50ZihidWYsICIweCUw
-MnglMDJ4XG4iLA0KPiA+ICsgICAgICAgICAgICAgICAgICAgICAgIGRjci0+bWFudWZhY3R1cmlu
-Z19kYXRlWzBdLA0KPiA+ICtkY3ItPm1hbnVmYWN0dXJpbmdfZGF0ZVsxXSk7IH0gc3RhdGljIERF
-VklDRV9BVFRSX1JPKG1mZ19kYXRlKTsNCj4gPiArDQo+ID4gK3N0YXRpYyBzc2l6ZV90IHVuaXF1
-ZV9pZF9zaG93KHN0cnVjdCBkZXZpY2UgKmRldiwNCj4gPiArICAgICAgICAgICAgICAgc3RydWN0
-IGRldmljZV9hdHRyaWJ1dGUgKmF0dHIsIGNoYXIgKmJ1Zikgew0KPiA+ICsgICAgICAgc3RydWN0
-IGFjcGlfbmZpdF9jb250cm9sX3JlZ2lvbiAqZGNyID0gdG9fbmZpdF9kY3IoZGV2KTsNCj4gPiAr
-DQo+ID4gKyAgICAgICBpZiAoZGNyLT52YWxpZF9maWVsZHMgJiBBQ1BJX05GSVRfQ09OVFJPTF9N
-RkdfSU5GT19WQUxJRCkNCj4gPiArICAgICAgICAgICAgICAgcmV0dXJuIHNwcmludGYoYnVmLCAi
-JTAyeCUwMngtJTAyeC0lMDJ4JTAyeC0NCj4gJTAyeCUwMnglMDJ4JTAyeFxuIiwNCj4gPiArICAg
-ICAgICAgICAgICAgICAgICAgICBkY3ItPnZlbmRvcl9pZFswXSwgZGNyLT52ZW5kb3JfaWRbMV0s
-DQo+ID4gKyAgICAgICAgICAgICAgICAgICAgICAgZGNyLT5tYW51ZmFjdHVyaW5nX2xvY2F0aW9u
-LA0KPiA+ICsgICAgICAgICAgICAgICAgICAgICAgIGRjci0+bWFudWZhY3R1cmluZ19kYXRlWzBd
-LCBkY3ItDQo+ID5tYW51ZmFjdHVyaW5nX2RhdGVbMV0sDQo+ID4gKyAgICAgICAgICAgICAgICAg
-ICAgICAgZGNyLT5zZXJpYWxfbnVtYmVyWzBdLCBkY3ItPnNlcmlhbF9udW1iZXJbMV0sDQo+ID4g
-KyAgICAgICAgICAgICAgICAgICAgICAgZGNyLT5zZXJpYWxfbnVtYmVyWzJdLCBkY3ItPnNlcmlh
-bF9udW1iZXJbM10pOw0KPiA+ICsgICAgICAgZWxzZQ0KPiA+ICsgICAgICAgICAgICAgICByZXR1
-cm4gc3ByaW50ZihidWYsICIlMDJ4JTAyeC0lMDJ4JTAyeCUwMnglMDJ4XG4iLA0KPiA+ICsgICAg
-ICAgICAgICAgICAgICAgICAgIGRjci0+dmVuZG9yX2lkWzBdLCBkY3ItPnZlbmRvcl9pZFsxXSwN
-Cj4gPiArICAgICAgICAgICAgICAgICAgICAgICBkY3ItPnNlcmlhbF9udW1iZXJbMF0sIGRjci0+
-c2VyaWFsX251bWJlclsxXSwNCj4gPiArICAgICAgICAgICAgICAgICAgICAgICBkY3ItPnNlcmlh
-bF9udW1iZXJbMl0sIGRjci0+c2VyaWFsX251bWJlclszXSk7DQo+ID4gK30gc3RhdGljIERFVklD
-RV9BVFRSX1JPKHVuaXF1ZV9pZCk7DQo+IA0KPiBMZXQncyBqdXN0IGNhbGwgaXQgJ2lkJyBhcyBu
-b3QgdG8gY29uZnVzZSBpdCB3aXRoIGEgJ3V1aWQnLiAgQWxzbyBpZiB0aGUNCj4gbWFudWZhY3R1
-cmluZyBpbmZvIGlzIGluY29ycG9yYXRlZCBpbnRvIHRoZSBpZCB0aGVuIEkgZG9uJ3QgdGhpbmsg
-d2UgbmVlZA0KPiBzZXBhcmF0ZSAnbWZnX2xvY2F0aW9uJyBhbmQgJ21mZ19kYXRlJyBhdHRyaWJ1
-dGVzLiAgSWYgdXNlcnNwYWNlIHJlYWxseQ0KPiB3YW50cyB0aG9zZSBzZXBhcmF0ZWx5IGl0IGNh
-biBqdXN0IGR1bXAgdGhlIE5GSVQgdGFibGUuDQo=
+From: Al Stone <al.stone@linaro.org>	
+
+The ACPI 6.1 specification was recently released at the end of January 2016,
+but the arm64 kernel documentation for the use of ACPI was written for the
+5.1 version of the spec.  There were significant additions to the spec that
+had not yet been mentioned -- for example, the 6.0 mechanisms added to make
+it easier to define processors and low power idle states, as well as the
+6.1 addition allowing regular interrupts (not just from GPIO) be used to
+signal ACPI general purpose events.
+
+This patch reflects going back through and examining the specs in detail
+and updating content appropriately.  Whilst there, a few odds and ends of
+typos were caught as well.  This brings the documentation up to date with
+ACPI 6.1 for arm64.
+
+Signed-off-by: Al Stone <al.stone@linaro.org>
+---
+ Documentation/arm64/acpi_object_usage.txt | 433 ++++++++++++++++++++++--------
+ Documentation/arm64/arm-acpi.txt          |  28 +-
+ 2 files changed, 346 insertions(+), 115 deletions(-)
+
+diff --git a/Documentation/arm64/acpi_object_usage.txt b/Documentation/arm64/acpi_object_usage.txt
+index a6e1a18..e321235 100644
+--- a/Documentation/arm64/acpi_object_usage.txt
++++ b/Documentation/arm64/acpi_object_usage.txt
+@@ -13,13 +13,14 @@ For ACPI on arm64, tables also fall into the following categories:
+ 
+        -- Required: DSDT, FADT, GTDT, MADT, MCFG, RSDP, SPCR, XSDT
+ 
+-       -- Recommended: BERT, EINJ, ERST, HEST, SSDT
++       -- Recommended: BERT, EINJ, ERST, HEST, IORT, PCCT, SSDT
+ 
+-       -- Optional: BGRT, CPEP, CSRT, DRTM, ECDT, FACS, FPDT, MCHI, MPST,
+-          MSCT, RASF, SBST, SLIT, SPMI, SRAT, TCPA, TPM2, UEFI
++       -- Optional: BGRT, CPEP, CSRT, DBG2, DRTM, ECDT, FACS, FPDT, MCHI,
++          MPST, MSCT, NFIT, PMTT, RASF, SBST, SLIT, SPMI, SRAT, STAO, TCPA,
++	  TPM2, UEFI, XENV
+ 
+-       -- Not supported: BOOT, DBG2, DBGP, DMAR, ETDT, HPET, IBFT, IVRS,
+-          LPIT, MSDM, RSDT, SLIC, WAET, WDAT, WDRT, WPBT
++       -- Not supported: BOOT, DBGP, DMAR, ETDT, HPET, IBFT, IVRS, LPIT, 
++          MSDM, OEMx, PSDT, RSDT, SLIC, WAET, WDAT, WDRT, WPBT
+ 
+ 
+ Table  Usage for ARMv8 Linux
+@@ -50,7 +51,9 @@ CSRT   Signature Reserved (signature == "CSRT")
+ 
+ DBG2   Signature Reserved (signature == "DBG2")
+        == DeBuG port table 2 ==
+-       Microsoft only table, will not be supported.
++       License has changed and should be usable.  Patches are available as of
++       this writing, but they have not been accepted into the kernel.  Optional
++       if used instead of earlycon=<device> on the command line.
+ 
+ DBGP   Signature Reserved (signature == "DBGP")
+        == DeBuG Port table ==
+@@ -133,10 +136,11 @@ GTDT   Section 5.2.24 (signature == "GTDT")
+ 
+ HEST   Section 18.3.2 (signature == "HEST")
+        == Hardware Error Source Table ==
+-       Until further error source types are defined, use only types 6 (AER
+-       Root Port), 7 (AER Endpoint), 8 (AER Bridge), or 9 (Generic Hardware
+-       Error Source).  Firmware first error handling is possible if and only
+-       if Trusted Firmware is being used on arm64.
++       ARM-specific error sources have been defined; please use those or the
++       PCI types such as type 6 (AER Root Port), 7 (AER Endpoint), or 8 (AER 
++       Bridge), or use type 9 (Generic Hardware Error Source).  Firmware first
++       error handling is possible if and only if Trusted Firmware is being 
++       used on arm64.
+ 
+        Must be supplied if RAS support is provided by the platform.  It
+        is recommended this table be supplied.
+@@ -149,20 +153,26 @@ IBFT   Signature Reserved (signature == "IBFT")
+        == iSCSI Boot Firmware Table ==
+        Microsoft defined table, support TBD.
+ 
++IORT   Signature Reserved (signature == "IORT")
++       == Input Output Remapping Table ==
++       arm64 only table, required in order to describe the SMMU and/or ITS 
++       when it is provided by the platform.
++
+ IVRS   Signature Reserved (signature == "IVRS")
+        == I/O Virtualization Reporting Structure ==
+        x86_64 (AMD) only table, will not be supported.
+ 
+ LPIT   Signature Reserved (signature == "LPIT")
+        == Low Power Idle Table ==
+-       x86 only table as of ACPI 5.1; future versions have been adapted for
+-       use with ARM and will be recommended in order to support ACPI power
+-       management.
++       x86 only table as of ACPI 5.1; starting with ACPI 6.0, processor
++       descriptions and power states on ARM platforms should use the DSDT
++       and define processor container devices (_HID ACPI0010, Section 8.4,
++       and more specifically 8.4.3 and and 8.4.4).
+ 
+ MADT   Section 5.2.12 (signature == "APIC")
+        == Multiple APIC Description Table ==
+        Required for arm64.  Only the GIC interrupt controller structures
+-       should be used (types 0xA - 0xE).
++       should be used (types 0xA - 0xF).
+ 
+ MCFG   Signature Reserved (signature == "MCFG")
+        == Memory-mapped ConFiGuration space ==
+@@ -176,14 +186,38 @@ MPST   Section 5.2.21 (signature == "MPST")
+        == Memory Power State Table ==
+        Optional, not currently supported.
+ 
++MSCT   Section 5.2.19 (signature == "MSCT")
++       == Maximum System Characteristic Table ==
++       Optional, not currently supported.
++
+ MSDM   Signature Reserved (signature == "MSDM")
+        == Microsoft Data Management table ==
+        Microsoft only table, will not be supported.
+ 
+-MSCT   Section 5.2.19 (signature == "MSCT")
+-       == Maximum System Characteristic Table ==
++NFIT   Section 5.2.25 (signature == "NFIT")
++       == NVDIMM Firmware Interface Table ==
+        Optional, not currently supported.
+ 
++OEMx   Signature of "OEMx" only
++       == OEM Specific Tables ==
++       All tables starting with a signature of "OEM" are reserved for OEM
++       use.  Since these are not meant to be of general use but are limited
++       to very specific end users, they are not recommended for use and are
++       not supported by the kernel for arm64.
++
++PCCT   Section 14.1 (signature == "PCCT)
++       == Platform Communications Channel Table ==
++       Recommend for use on arm64, and required when using CPPC to control
++       power on the platform.
++
++PMTT   Section 5.2.21.12 (signature == "PMTT")
++       == Platform Memory Topology Table ==
++       Optional, but useful, but not currently supported.
++
++PSDT   Section 5.2.11.3 (signature == "PSDT")
++       == Persistent System Description Table ==
++       Obsolete table, will not be supported.
++
+ RASF   Section 5.2.20 (signature == "RASF")
+        == RAS Feature table ==
+        Optional, not currently supported.
+@@ -195,7 +229,7 @@ RSDP   Section 5.2.5 (signature == "RSD PTR")
+ RSDT   Section 5.2.7 (signature == "RSDT")
+        == Root System Description Table ==
+        Since this table can only provide 32-bit addresses, it is deprecated
+-       on arm64, and will not be used.
++       on arm64, and will not be used.  If provided, it will be ignored.
+ 
+ SBST   Section 5.2.14 (signature == "SBST")
+        == Smart Battery Subsystem Table ==
+@@ -207,7 +241,7 @@ SLIC   Signature Reserved (signature == "SLIC")
+ 
+ SLIT   Section 5.2.17 (signature == "SLIT")
+        == System Locality distance Information Table ==
+-       Optional in general, but required for NUMA systems.
++       Optional in general, but required for arm64 NUMA systems.
+ 
+ SPCR   Signature Reserved (signature == "SPCR")
+        == Serial Port Console Redirection table ==
+@@ -220,7 +254,7 @@ SPMI   Signature Reserved (signature == "SPMI")
+ SRAT   Section 5.2.16 (signature == "SRAT")
+        == System Resource Affinity Table ==
+        Optional, but if used, only the GICC Affinity structures are read.
+-       To support NUMA, this table is required.
++       To support arm64 NUMA, this table is required.
+ 
+ SSDT   Section 5.2.11.2 (signature == "SSDT")
+        == Secondary System Description Table ==
+@@ -235,6 +269,11 @@ SSDT   Section 5.2.11.2 (signature == "SSDT")
+        These tables are optional, however.  ACPI tables should contain only
+        one DSDT but can contain many SSDTs.
+ 
++STAO   Signature Reserved (signature == "STAO")
++       == _STA Override table ==
++       Optional, but only necessary in virtualized environments in order to
++       hide devices from guest OSs.
++
+ TCPA   Signature Reserved (signature == "TCPA")
+        == Trusted Computing Platform Alliance table ==
+        Optional, not currently supported, and may need changes to fully
+@@ -266,6 +305,10 @@ WPBT   Signature Reserved (signature == "WPBT")
+        == Windows Platform Binary Table ==
+        Microsoft only table, will not be supported.
+ 
++XENV   Signature Reserved (signature == "XENV")
++       == Xen project table ==
++       Optional, used only by Xen at present.
++
+ XSDT   Section 5.2.8 (signature == "XSDT")
+        == eXtended System Description Table ==
+        Required for arm64.
+@@ -273,31 +316,50 @@ XSDT   Section 5.2.8 (signature == "XSDT")
+ 
+ ACPI Objects
+ ------------
+-The expectations on individual ACPI objects are discussed in the list that
+-follows:
++The expectations on individual ACPI objects that are likely to be used are
++shown in the list that follows:
+ 
+ Name   Section         Usage for ARMv8 Linux
+ ----   ------------    -------------------------------------------------
++_ACx   11.4.1          Use as needed.
++
+ _ADR   6.1.1           Use as needed.
+ 
++_ALx   11.4.2          Use as needed.
++
++_ART   11.4.3          Use as needed.
++
+ _BBN   6.5.5           Use as needed; PCI-specific.
+ 
+-_BDN   6.5.3           Optional; not likely to be used on arm64.
++_CCA   6.2.17          This method must be defined for all bus masters
++                       on arm64 -- there are no assumptions made about
++		       whether such devices are cache coherent or not.
++		       The _CCA value is inherited by all descendants of
++		       these devices so it does not need to be repeated.
++                       Without _CCA on arm64, the kernel does not know what
++		       to do about setting up DMA for the device.
++
++_CDM   6.2.1           Use as needed, to be used only for processor devices.
+ 
+-_CCA   6.2.17          This method should be defined for all bus masters
+-                       on arm64.  While cache coherency is assumed, making
+-                       it explicit ensures the kernel will set up DMA as
+-                       it should.
++_CID   6.1.2           Use as needed, see also _HID.
+ 
+-_CDM   6.2.1           Optional, to be used only for processor devices.
++_CLS   6.1.3           Use as needed, see also _HID.
+ 
+-_CID   6.1.2           Use as needed.
++_CPC   8.4.7.1         Use as needed; power management specific.  CPPC is
++                       recommended on arm64.
+ 
+-_CLS   6.1.3           Use as needed.
++_CR3   11.4.5          Use as needed.
+ 
+ _CRS   6.2.2           Required on arm64.
+ 
+-_DCK   6.5.2           Optional; not likely to be used on arm64.
++_CRT   11.4.4          Use as needed.
++
++_CSD   8.4.2.2         Use as needed, used only in conjuction with _CST.
++
++_CST   8.4.2.1         Low power idle states (8.4.4) are recommended instead
++                       of C-states.
++
++_CWS   9.18.6          Use as needed.
+ 
+ _DDN   6.1.4           This field can be used for a device name.  However,
+                        it is meant for DOS device names (e.g., COM1), so be
+@@ -305,11 +367,11 @@ _DDN   6.1.4           This field can be used for a device name.  However,
+ 
+ _DEP   6.5.8           Use as needed.
+ 
+-_DIS   6.2.3           Optional, for power management use.
++_DIS   6.2.3           Use as needed, for power management use.
+ 
+-_DLM   5.7.5           Optional.
++_DLM   5.7.5           Use as needed.
+ 
+-_DMA   6.2.4           Optional.
++_DMA   6.2.4           Use as needed.
+ 
+ _DSD   6.2.5           To be used with caution.  If this object is used, try
+                        to use it within the constraints already defined by the
+@@ -325,19 +387,29 @@ _DSD   6.2.5           To be used with caution.  If this object is used, try
+                        with the UEFI Forum; this may cause some iteration as
+                        more than one OS will be registering entries.
+ 
+-_DSM                   Do not use this method.  It is not standardized, the
++_DSM   9.1.1           Do not use this method.  It is not standardized, the
+                        return values are not well documented, and it is
+                        currently a frequent source of error.
+ 
+-_DSW   7.2.1           Use as needed; power management specific.
++_DSW   7.3.1           Use as needed; power management specific.
+ 
+-_EDL   6.3.1           Optional.
++_DTI   11.4.6          Use as needed.
+ 
+-_EJD   6.3.2           Optional.
++_EDL   6.3.1           Use as needed.
+ 
+-_EJx   6.3.3           Optional.
++_EJD   6.3.2           Use as needed.
+ 
+-_FIX   6.2.7           x86 specific, not used on arm64.
++_EJx   6.3.3           Use as needed.
++
++_FIF   11.3.1.1        Use as needed.
++
++_FPS   11.3.1.2        Use as needed.
++
++_FSL   11.3.1.3        Use as needed.
++
++_FST   11.3.1.4        Use as needed.
++
++_GCP   9.18.2          Use as needed.
+ 
+ \_GL   5.7.1           This object is not to be used in hardware reduced
+                        mode, and therefore should not be used on arm64.
+@@ -349,35 +421,56 @@ _GLK   6.5.7           This object requires a global lock be defined; there
+ \_GPE  5.3.1           This namespace is for x86 use only.  Do not use it
+                        on arm64.
+ 
+-_GSB   6.2.7           Optional.
++_GRT   9.18.3          Use as needed.
++
++_GSB   6.2.7           Use as needed.
++
++_GTF   9.9.1.1         Use as needed.
++
++_GWS   9.18.5          Use as needed.
+ 
+ _HID   6.1.5           Use as needed.  This is the primary object to use in
+                        device probing, though _CID and _CLS may also be used.
+ 
+-_HPP   6.2.8           Optional, PCI specific.
++_HOT   11.4.7          Use as needed.
++
++_HPP   6.2.8           Use as needed, PCI specific.
+ 
+-_HPX   6.2.9           Optional, PCI specific.
++_HPX   6.2.9           Use as needed, PCI specific.
+ 
+-_HRV   6.1.6           Optional, use as needed to clarify device behavior; in
++_HRV   6.1.6           Use as needed, use as needed to clarify device behavior; in
+                        some cases, this may be easier to use than _DSD.
+ 
+ _INI   6.5.1           Not required, but can be useful in setting up devices
+                        when UEFI leaves them in a state that may not be what
+                        the driver expects before it starts probing.
+ 
+-_IRC   7.2.15          Use as needed; power management specific.
++_IRC   7.3.15          Use as needed; power management specific.
++
++_LCK   6.3.4           Use as needed.
++
++_LPI   8.4.4.3         Use as needed, but recommended for use with processor
++                       definitions (_HID ACPI0010) on arm64.
+ 
+-_LCK   6.3.4           Optional.
++_MAT   6.2.10          Use as needed; see also the MADT.
+ 
+-_MAT   6.2.10          Optional; see also the MADT.
++_MBM   9.13.2.1        Use as needed.
+ 
+-_MLS   6.1.7           Optional, but highly recommended for use in
++_MLS   6.1.7           Use as needed, but highly recommended for use in
+                        internationalization.
+ 
+-_OFF   7.1.2           It is recommended to define this method for any device
++_MSG   9.2.2           Use as needed.
++
++_MSM   9.13.2.2        Use as needed.
++
++_MTL   11.4.8          Use as needed.
++
++_NTT   11.4.9          Use as needed.
++
++_OFF   7.2.2           It is recommended to define this method for any device
+                        that can be turned on or off.
+ 
+-_ON    7.1.3           It is recommended to define this method for any device
++_ON    7.2.3           It is recommended to define this method for any device
+                        that can be turned on or off.
+ 
+ \_OS   5.7.3           This method will return "Linux" by default (this is
+@@ -405,115 +498,219 @@ _OSC   6.2.11          This method can be a global method in ACPI (i.e.,
+                        being used or what functionality is provided.  The
+                        _OSC method is to be used instead.
+ 
+-_OST   6.3.5           Optional.
++_OST   6.3.5           Use as needed.
++
++_PCT   8.4.6.1         Use as needed; power management specific.
+ 
+ _PDC   8.4.1           Deprecated, do not use on arm64.
+ 
++_PDL   8.4.6.2         Use as needed; power management specific.
++
+ \_PIC  5.8.1           The method should not be used.  On arm64, the only
+                        interrupt model available is GIC.
+ 
+-_PLD   6.1.8           Optional.
++_PLD   6.1.8           Use as needed.
++
++_PPC   8.4.6.3         Use as needed; power management specific.
++
++_PPE   8.4.8           Use as needed.
+ 
+ \_PR   5.3.1           This namespace is for x86 use only on legacy systems.
+                        Do not use it on arm64.
+ 
+-_PRS   6.2.12          Optional.
++_PRE   7.3.12          Use as needed; power management specific.
++
++_PRR   7.3.26          Use as needed; power management specific.
++
++_PRS   6.2.12          Use as needed.
+ 
+ _PRT   6.2.13          Required as part of the definition of all PCI root
+                        devices.
+ 
+-_PRW   7.2.13          Use as needed; power management specific.
++_PRW   7.3.13          Use as needed; power management specific.
+ 
+-_PRx   7.2.8-11        Use as needed; power management specific.  If _PR0 is
++_PRx   7.3.8-11        Use as needed; power management specific.  If _PR0 is
+                        defined, _PR3 must also be defined.
+ 
+-_PSC   7.2.6           Use as needed; power management specific.
++_PSC   7.3.6           Use as needed; power management specific.
++
++_PSD   8.4.6.5         Use as needed; power management specific.
+ 
+-_PSE   7.2.7           Use as needed; power management specific.
++_PSE   7.3.7           Use as needed; power management specific.
+ 
+-_PSW   7.2.14          Use as needed; power management specific.
++_PSL   11.4.10         Use as needed.
+ 
+-_PSx   7.2.2-5         Use as needed; power management specific.  If _PS0 is
++_PSS   8.4.6.2         Use as needed; power management specific.
++
++_PSV   11.4.11         Use as needed.
++
++_PSW   7.3.14          Use as needed; power management specific.
++
++_PSx   7.3.2-5         Use as needed; power management specific.  If _PS0 is
+                        defined, _PS3 must also be defined.  If clocks or
+                        regulators need adjusting to be consistent with power
+                        usage, change them in these methods.
+ 
+-\_PTS  7.3.1           Use as needed; power management specific.
++_PTC   8.4.5.1         Use as needed; power management specific.
++
++\_PTS  7.4.1           Use as needed; power management specific.
++
++_PUR   8.5.1.1         Use as needed.
++
++_PXM   6.2.14          Use as needed.
+ 
+-_PXM   6.2.14          Optional.
++_RDI   8.4.4.4         Use as needed, but recommended for use with processor
++                       definitions (_HID ACPI0010) on arm64.
+ 
+ _REG   6.5.4           Use as needed.
+ 
+ \_REV  5.7.4           Always returns the latest version of ACPI supported.
+ 
+-_RMV   6.3.6           Optional.
++_RMV   6.3.6           Use as needed.
++
++_RST   7.3.25          Use as needed; power management specific.
++
++_RTV   11.4.12         Use as needed.
+ 
+ \_SB   5.3.1           Required on arm64; all devices must be defined in this
+                        namespace.
+ 
++_SCP   11.4.13         Use as needed.
++
++_SDD   9.9.3.3.1       Use as needed.
++
+ _SEG   6.5.6           Use as needed; PCI-specific.
+ 
+-\_SI   5.3.1,          Optional.
+-       9.1
++\_SI   5.3.1,          Use as needed.
++       9.2
++
++_SLI   6.2.15          Use as needed; recommended when SLIT table is in use.
+ 
+-_SLI   6.2.15          Optional; recommended when SLIT table is in use.
++_SRT   9.18.4          Use as needed.
+ 
+ _STA   6.3.7,          It is recommended to define this method for any device
+-       7.1.4           that can be turned on or off.
++       7.2.4           that can be turned on or off.  See also the STAO table
++       		       that provides overrides to hide devices in virtualized
++		       environments.
+ 
+-_SRS   6.2.16          Optional; see also _PRS.
++_SRS   6.2.16          Use as needed; see also _PRS.
++
++_SST   9.2.1           Use as needed.
+ 
+ _STR   6.1.10          Recommended for conveying device names to end users;
+                        this is preferred over using _DDN.
+ 
++_SST   9.2.1           Use as needed.
++
++_STP   9.18.7          Use as needed.
++
++_STV   9.18.8          Use as needed.
++
+ _SUB   6.1.9           Use as needed; _HID or _CID are preferred.
+ 
+-_SUN   6.1.11          Optional.
++_SUN   6.1.11          Use as needed, but recommended.
+ 
+-\_Sx   7.3.2           Use as needed; power management specific.
++\_Sx   7.4.2           Use as needed; power management specific.
+ 
+-_SxD   7.2.16-19       Use as needed; power management specific.
++_SxD   7.3.16-19       Use as needed; power management specific.
+ 
+-_SxW   7.2.20-24       Use as needed; power management specific.
++_SxW   7.3.20-24       Use as needed; power management specific.
+ 
+-_SWS   7.3.3           Use as needed; power management specific; this may
++_SWS   7.4.3           Use as needed; power management specific; this may
+                        require specification changes for use on arm64.
+ 
+-\_TTS  7.3.4           Use as needed; power management specific.
++_TC1   11.4.14         Use as needed.
++
++_TC2   11.4.15         Use as needed.
++
++_TDL   8.4.5.5         Use as needed; power management specific.
++
++_TFP   11.4.16         Use as needed.
++
++_TIP   9.18.9          Use as needed.
++
++_TIV   9.18.10         Use as needed.
++
++_TMP   11.4.17         Use as needed.
++
++_TPC   8.4.5.3         Use as needed; power management specific.
+ 
+-\_TZ   5.3.1           Optional.
++_TPT   11.4.18         Use as needed.
++
++_TRT   11.4.19         Use as needed.
++
++_TSD   8.4.5.4         Use as needed; power management specific.
++
++_TSN   11.4.20         Use as needed.
++
++_TSP   11.4.21         Use as needed.
++
++_TSS   8.4.5.2         Use as needed; power management specific.
++
++_TST   11.4.22         Use as needed.
++
++\_TTS  7.4.4           Use as needed; power management specific.
++
++\_TZ   5.3.1           Use as needed.
++
++_TZD   11.4.23         Use as needed.
++
++_TZM   11.4.24         Use as needed.
++
++_TZP   11.4.25         Use as needed.
+ 
+ _UID   6.1.12          Recommended for distinguishing devices of the same
+                        class; define it if at all possible.
+ 
+-\_WAK  7.3.5           Use as needed; power management specific.
++_UPC   9.14            Use as needed.
++
++\_WAK  7.4.5           Use as needed; power management specific.
++
++
+ 
+ 
+ ACPI Event Model
+ ----------------
+ Do not use GPE block devices; these are not supported in the hardware reduced
+ profile used by arm64.  Since there are no GPE blocks defined for use on ARM
+-platforms, GPIO-signaled interrupts should be used for creating system events.
++platforms, ACPI events must be signaled differently.
++
++There are two options: GPIO-signaled interrupts (Section 5.6.5), and 
++interrupt-signaled events (Section 5.6.9).  Interrupt-signaled events are a
++new feature in the ACPI 6.1 specification.  Either -- or both -- can be used
++on a given platform, and which to use may be dependent of limitations in any
++given SoC.  If possible, interrupt-signaled events are recommended.
+ 
+ 
+ ACPI Processor Control
+ ----------------------
+-Section 8 of the ACPI specification is currently undergoing change that
+-should be completed in the 6.0 version of the specification.  Processor
+-performance control will be handled differently for arm64 at that point
+-in time.  Processor aggregator devices (section 8.5) will not be used,
+-for example, but another similar mechanism instead.
+-
+-While UEFI constrains what we can say until the release of 6.0, it is
+-recommended that CPPC (8.4.5) be used as the primary model.  This will
+-still be useful into the future.  C-states and P-states will still be
+-provided, but most of the current design work appears to favor CPPC.
++Section 8 of the ACPI specification changed significantly in version 6.0.
++Processors should now be defined as Device objects with _HID ACPI0007; do
++not use the deprecated Processor statement in ASL.  All multiprocessor systems
++should also define a hierarchy of processors, done with Processor Container
++Devices (see Section 8.4.3.1, _HID ACPI0010); do not use processor aggregator
++devices (Section 8.5) to describe processor topology.  Section 8.4 of the
++specification describes the semantics of these object definitions and how 
++they interrelate.
++
++Most importantly, the processor hierarchy defined also defines the low power
++idle states that are available to the platform, along with the rules for
++determining which processors can be turned on or off and the circumstances
++that control that.  Without this information, the processors will run in
++whatever power state they were left in by UEFI.
++
++Note too, that the processor Device objects defined and the entries in the
++MADT for GICs are expected to be in sychronization.  The _UID of the Device
++object must correspond to processor IDs used in the MADT.
++
++It is recommended that CPPC (8.4.5) be used as the primary model for processor
++performance control on arm64.  C-states and P-states may become available at
++some point in the future, but most current design work appears to favor CPPC.
+ 
+ Further, it is essential that the ARMv8 SoC provide a fully functional
+ implementation of PSCI; this will be the only mechanism supported by ACPI
+-to control CPU power state (including secondary CPU booting).
+-
+-More details will be provided on the release of the ACPI 6.0 specification.
++to control CPU power state.  Booting of secondary CPUs may be possible using
++parking protocol, but only PSCI is to be used for ARM servers.
+ 
+ 
+ ACPI System Address Map Interfaces
+@@ -535,21 +732,25 @@ used to indicate fatal errors that cannot be corrected, and require immediate
+ attention.
+ 
+ Since there is no direct equivalent of the x86 SCI or NMI, arm64 handles
+-these slightly differently.  The SCI is handled as a normal GPIO-signaled
+-interrupt; given that these are corrected (or correctable) errors being
+-reported, this is sufficient.  The NMI is emulated as the highest priority
+-GPIO-signaled interrupt possible.  This implies some caution must be used
+-since there could be interrupts at higher privilege levels or even interrupts
+-at the same priority as the emulated NMI.  In Linux, this should not be the
+-case but one should be aware it could happen.
++these slightly differently.  The SCI is handled as a high priority interrupt;
++given that these are corrected (or correctable) errors being reported, this
++is sufficient.  The NMI is emulated as the highest priority interrupt 
++possible.  This implies some caution must be used since there could be 
++interrupts at higher privilege levels or even interrupts at the same priority
++as the emulated NMI.  In Linux, this should not be the case but one should 
++be aware it could happen.
+ 
+ 
+ ACPI Objects Not Supported on ARM64
+ -----------------------------------
+ While this may change in the future, there are several classes of objects
+ that can be defined, but are not currently of general interest to ARM servers.
++Some of these objects have x86 equivalents, and may actually make sense in ARM
++servers.  However, there is either no hardware available at present, or there
++may not even be a non-ARM implementation yet.  Hence, they are not currently
++supported.
+ 
+-These are not supported:
++The following classes of objects are not supported:
+ 
+        -- Section 9.2: ambient light sensor devices
+ 
+@@ -571,16 +772,6 @@ These are not supported:
+ 
+        -- Section 9.18: time and alarm devices (see 9.15)
+ 
+-
+-ACPI Objects Not Yet Implemented
+---------------------------------
+-While these objects have x86 equivalents, and they do make some sense in ARM
+-servers, there is either no hardware available at present, or in some cases
+-there may not yet be a non-ARM implementation.  Hence, they are currently not
+-implemented though that may change in the future.
+-
+-Not yet implemented are:
+-
+        -- Section 10: power source and power meter devices
+ 
+        -- Section 11: thermal management
+@@ -589,5 +780,31 @@ Not yet implemented are:
+ 
+        -- Section 13: SMBus interfaces
+ 
+-       -- Section 17: NUMA support (prototypes have been submitted for
+-          review)
++
++This also mean that there is no support for the following objects:
++
++Name   Section                     Name   Section
++----   ------------                ----   ------------
++_ALC   9.3.4                       _FDM   9.10.3
++_ALI   9.3.2                       _FIX   6.2.7
++_ALP   9.3.6                       _GAI   10.4.5
++_ALR   9.3.5                       _GHL   10.4.7
++_ALT   9.3.3                       _GTM   9.9.2.1.1
++_BCT   10.2.2.10                   _LID   9.5.1
++_BDN   6.5.3                       _PAI   10.4.4
++_BIF   10.2.2.1                    _PCL   10.3.2
++_BIX   10.2.2.1                    _PIF   10.3.3
++_BLT   9.2.3                       _PMC   10.4.1
++_BMA   10.2.2.4                    _PMD   10.4.8
++_BMC   10.2.2.12                   _PMM   10.4.3
++_BMD   10.2.2.11                   _PRL   10.3.4
++_BMS   10.2.2.5                    _PSR   10.3.1
++_BST   10.2.2.6                    _PTP   10.4.2
++_BTH   10.2.2.7                    _SBS   10.1.3
++_BTM   10.2.2.9                    _SHL   10.4.6
++_BTP   10.2.2.8                    _STM   9.9.2.1.1
++_DCK   6.5.2                       _UPD   9.16.1
++_EC    12.12                       _UPP   9.16.2
++_FDE   9.10.1                      _WPC   10.5.2
++_FDI   9.10.2                      _WPP   10.5.3
++
+diff --git a/Documentation/arm64/arm-acpi.txt b/Documentation/arm64/arm-acpi.txt
+index 570a4f8..12381c1 100644
+--- a/Documentation/arm64/arm-acpi.txt
++++ b/Documentation/arm64/arm-acpi.txt
+@@ -57,11 +57,11 @@ The short form of the rationale for ACPI on ARM is:
+ 
+ -- The new ACPI governance process works well and Linux is now at the same
+    table as hardware vendors and other OS vendors.  In fact, there is no
+-   longer any reason to feel that ACPI is only belongs to Windows or that
++   longer any reason to feel that ACPI only belongs to Windows or that
+    Linux is in any way secondary to Microsoft in this arena.  The move of
+    ACPI governance into the UEFI forum has significantly opened up the
+    specification development process, and currently, a large portion of the
+-   changes being made to ACPI is being driven by Linux.
++   changes being made to ACPI are being driven by Linux.
+ 
+ Key to the use of ACPI is the support model.  For servers in general, the
+ responsibility for hardware behaviour cannot solely be the domain of the
+@@ -159,7 +159,7 @@ Further, the ACPI core will only use the 64-bit address fields in the FADT
+ (Fixed ACPI Description Table).  Any 32-bit address fields in the FADT will
+ be ignored on arm64.
+ 
+-Hardware reduced mode (see Section 4.1 of the ACPI 5.1 specification) will
++Hardware reduced mode (see Section 4.1 of the ACPI 6.1 specification) will
+ be enforced by the ACPI core on arm64.  Doing so allows the ACPI core to
+ run less complex code since it no longer has to provide support for legacy
+ hardware from other architectures.  Any fields that are not to be used for
+@@ -167,7 +167,7 @@ hardware reduced mode must be set to zero.
+ 
+ For the ACPI core to operate properly, and in turn provide the information
+ the kernel needs to configure devices, it expects to find the following
+-tables (all section numbers refer to the ACPI 5.1 specfication):
++tables (all section numbers refer to the ACPI 6.1 specfication):
+ 
+     -- RSDP (Root System Description Pointer), section 5.2.5
+ 
+@@ -185,9 +185,22 @@ tables (all section numbers refer to the ACPI 5.1 specfication):
+     -- If PCI is supported, the MCFG (Memory mapped ConFiGuration
+        Table), section 5.2.6, specifically Table 5-31.
+ 
++    -- If booting without a console=<device> kernel parameter is
++       supported, the SPCR (Serial Port Console Redirection table),
++       section 5.2.6, specifically Table 5-31.
++
++    -- If virtualization is supported, the IORT (Input Output Remapping
++       Table, section 5.2.6, specifically Table 5-31.
++
++    -- If NUMA is supported, the SRAT (System Resource Affinity Table)
++       and SLIT (System Locality distance Information Table), sections
++       5.2.16 and 5.2.17, respectively.
++
+ If the above tables are not all present, the kernel may or may not be
+ able to boot properly since it may not be able to configure all of the
+-devices available.
++devices available.  This list of tables is not meant to be all inclusive;
++in some environments other tables may be needed (e.g., any of the APEI
++tables from section 18) to support specific functionality.
+ 
+ 
+ ACPI Detection
+@@ -233,7 +246,7 @@ that looks like this: Name(KEY0, "value0").  An ACPI device driver would
+ then retrieve the value of the property by evaluating the KEY0 object.
+ However, using Name() this way has multiple problems: (1) ACPI limits
+ names ("KEY0") to four characters unlike DT; (2) there is no industry
+-wide registry that maintains a list of names, minimzing re-use; (3)
++wide registry that maintains a list of names, minimizing re-use; (3)
+ there is also no registry for the definition of property values ("value0"),
+ again making re-use difficult; and (4) how does one maintain backward
+ compatibility as new hardware comes out?  The _DSD method was created
+@@ -434,7 +447,8 @@ The ACPI specification changes regularly.  During the year 2014, for instance,
+ version 5.1 was released and version 6.0 substantially completed, with most of
+ the changes being driven by ARM-specific requirements.  Proposed changes are
+ presented and discussed in the ASWG (ACPI Specification Working Group) which
+-is a part of the UEFI Forum.
++is a part of the UEFI Forum.  The current version of the ACPI specification
++is 6.1 release in January 2016.
+ 
+ Participation in this group is open to all UEFI members.  Please see
+ http://www.uefi.org/workinggroup for details on group membership.
+-- 
+2.5.0
+
