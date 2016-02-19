@@ -1,7 +1,7 @@
 From: Lv Zheng <lv.zheng@intel.com>
-Subject: [PATCH 08/15] ACPICA: Tables: make default region accessible during the table load
-Date: Fri, 19 Feb 2016 14:16:56 +0800
-Message-ID: <40c173ec33aef07904819aa8bf101903b6bfbeb9.1455857583.git.lv.zheng@intel.com>
+Subject: [PATCH 09/15] ACPICA: ACPICA: Tune _REG evaluations order in the initialization steps
+Date: Fri, 19 Feb 2016 14:17:05 +0800
+Message-ID: <ad226aa20fb8e3f4391c0c5ecea0258063be32ea.1455857583.git.lv.zheng@intel.com>
 References: <cover.1455857575.git.lv.zheng@intel.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <cover.1455857575.git.lv.zheng@intel.com>
@@ -10,90 +10,81 @@ To: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, "Rafael J. Wysocki" <rjw@r
 Cc: Lv Zheng <lv.zheng@intel.com>, Lv Zheng <zetalog@gmail.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Bob Moore <robert.moore@intel.com>
 List-Id: linux-acpi@vger.kernel.org
 
-ACPICA commit 016b2a0917cca9cf0d40c38a1541017d9cf569dd
+ACPICA commit 77e0c7a482ac30ef857cf3c33d075e5fe5b5e449
 
-It is proven that the default regions should be accessible during the
-table loading in order to execute module level AML code.
-This patch moves default region handler installation code earlier in
-order to make this happen.
-Note that by putting the code here, we actually allow OSPMs to override
-default region handlers between acpi_initialize_subsystem() and
-acpi_load_tables(), without the need to introduce region handler override
-mechanism in acpi_install_address_space_handler(). OSPMs are also couraged
-to check acpi_install_address_space_handler() return value to determine if
-acpi_remove_address_space_handler() should be invoked before installing new
-address space handler. Lv Zheng.
+This patch tunes _REG evaluations to be later than all table loading
+facilities:
+1. acpi_load_tables(): _REG is currently invoked after this function.
+2. acpi_ns_exec_module_code_list(): this executes module level code, the
+   execution should be a part of the table loading while we currently
+   support this in a deferred way.
+3. acpi_ns_initialize_objects(): this parses Region/Field/Buffer/Package where
+   pkg_length primitive can be seen in the grammar, the parsing should be a
+   part of the table loading while we currently support this in a deferred
+   way.
+Control method evaluation should happen after loading the tables. So this
+patch changes the order of _REG evaluation when
+acpi_gbl_group_module_level_code experiment is enabled. Lv Zheng.
 
-Link: https://github.com/acpica/acpica/commit/016b2a09
+Link: https://github.com/acpica/acpica/commit/77e0c7a4
 Signed-off-by: Lv Zheng <lv.zheng@intel.com>
 Signed-off-by: Bob Moore <robert.moore@intel.com>
 ---
- drivers/acpi/acpica/tbxfload.c |   22 ++++++++++++++++++++++
- drivers/acpi/acpica/utxfinit.c |   12 +++++++-----
- 2 files changed, 29 insertions(+), 5 deletions(-)
+ drivers/acpi/acpica/utxfinit.c |   35 ++++++++++++++++++-----------------
+ 1 file changed, 18 insertions(+), 17 deletions(-)
 
-diff --git a/drivers/acpi/acpica/tbxfload.c b/drivers/acpi/acpica/tbxfload.c
-index c89943b..9496b84 100644
---- a/drivers/acpi/acpica/tbxfload.c
-+++ b/drivers/acpi/acpica/tbxfload.c
-@@ -47,6 +47,7 @@
- #include "accommon.h"
- #include "acnamesp.h"
- #include "actables.h"
-+#include "acevents.h"
+diff --git a/drivers/acpi/acpica/utxfinit.c b/drivers/acpi/acpica/utxfinit.c
+index e1ffd7a..9415830 100644
+--- a/drivers/acpi/acpica/utxfinit.c
++++ b/drivers/acpi/acpica/utxfinit.c
+@@ -262,23 +262,6 @@ acpi_status __init acpi_initialize_objects(u32 flags)
  
- #define _COMPONENT          ACPI_TABLES
- ACPI_MODULE_NAME("tbxfload")
-@@ -68,6 +69,27 @@ acpi_status __init acpi_load_tables(void)
+ 	ACPI_FUNCTION_TRACE(acpi_initialize_objects);
  
- 	ACPI_FUNCTION_TRACE(acpi_load_tables);
+-	/*
+-	 * Run all _REG methods
+-	 *
+-	 * Note: Any objects accessed by the _REG methods will be automatically
+-	 * initialized, even if they contain executable AML (see the call to
+-	 * acpi_ns_initialize_objects below).
+-	 */
+-	acpi_gbl_reg_methods_enabled = TRUE;
+-	if (!(flags & ACPI_NO_ADDRESS_SPACE_INIT)) {
+-		ACPI_DEBUG_PRINT((ACPI_DB_EXEC,
+-				  "[Init] Executing _REG OpRegion methods\n"));
+-
+-		status = acpi_ev_initialize_op_regions();
+-		if (ACPI_FAILURE(status)) {
+-			return_ACPI_STATUS(status);
+-		}
+-	}
+ #ifdef ACPI_EXEC_APP
+ 	/*
+ 	 * This call implements the "initialization file" option for acpi_exec.
+@@ -319,6 +302,24 @@ acpi_status __init acpi_initialize_objects(u32 flags)
+ 	}
  
-+	/*
-+	 * Install the default operation region handlers. These are the
-+	 * handlers that are defined by the ACPI specification to be
-+	 * "always accessible" -- namely, system_memory, system_IO, and
-+	 * PCI_Config. This also means that no _REG methods need to be
-+	 * run for these address spaces. We need to have these handlers
-+	 * installed before any AML code can be executed, especially any
-+	 * module-level code (11/2015).
-+	 * Note that we allow OSPMs to install their own region handlers
-+	 * between acpi_initialize_subsystem() and acpi_load_tables() to use
-+	 * their customized default region handlers.
+ 	/*
++	 * Run all _REG methods
++	 *
++	 * Note: Any objects accessed by the _REG methods will be automatically
++	 * initialized, even if they contain executable AML (see the call to
++	 * acpi_ns_initialize_objects below).
 +	 */
-+	if (acpi_gbl_group_module_level_code) {
-+		status = acpi_ev_install_region_handlers();
-+		if (ACPI_FAILURE(status) && status != AE_ALREADY_EXISTS) {
-+			ACPI_EXCEPTION((AE_INFO, status,
-+					"During Region initialization"));
++	acpi_gbl_reg_methods_enabled = TRUE;
++	if (!(flags & ACPI_NO_ADDRESS_SPACE_INIT)) {
++		ACPI_DEBUG_PRINT((ACPI_DB_EXEC,
++				  "[Init] Executing _REG OpRegion methods\n"));
++
++		status = acpi_ev_initialize_op_regions();
++		if (ACPI_FAILURE(status)) {
 +			return_ACPI_STATUS(status);
 +		}
 +	}
 +
- 	/* Load the namespace from the tables */
- 
- 	status = acpi_tb_load_namespace();
-diff --git a/drivers/acpi/acpica/utxfinit.c b/drivers/acpi/acpica/utxfinit.c
-index 721b87c..e1ffd7a 100644
---- a/drivers/acpi/acpica/utxfinit.c
-+++ b/drivers/acpi/acpica/utxfinit.c
-@@ -163,11 +163,13 @@ acpi_status __init acpi_enable_subsystem(u32 flags)
- 	 * installed before any AML code can be executed, especially any
- 	 * module-level code (11/2015).
++	/*
+ 	 * Initialize all device objects in the namespace. This runs the device
+ 	 * _STA and _INI methods.
  	 */
--	status = acpi_ev_install_region_handlers();
--	if (ACPI_FAILURE(status)) {
--		ACPI_EXCEPTION((AE_INFO, status,
--				"During Region initialization"));
--		return_ACPI_STATUS(status);
-+	if (!acpi_gbl_group_module_level_code) {
-+		status = acpi_ev_install_region_handlers();
-+		if (ACPI_FAILURE(status)) {
-+			ACPI_EXCEPTION((AE_INFO, status,
-+					"During Region initialization"));
-+			return_ACPI_STATUS(status);
-+		}
- 	}
- #if (!ACPI_REDUCED_HARDWARE)
- 
 -- 
 1.7.10
