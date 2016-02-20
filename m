@@ -1,105 +1,150 @@
 From: Dan Williams <dan.j.williams@intel.com>
-Subject: [PATCH 1/2] libnvdimm,
- tools/testing/nvdimm: fix 'ars_status' output buffer sizing
-Date: Sat, 20 Feb 2016 14:46:43 -0800
-Message-ID: <20160220224643.20667.43436.stgit@dwillia2-desk3.amr.corp.intel.com>
+Subject: [PATCH 2/2] nfit: update address range scrub commands to the acpi
+ 6.1 format
+Date: Sat, 20 Feb 2016 14:46:48 -0800
+Message-ID: <20160220224648.20667.43800.stgit@dwillia2-desk3.amr.corp.intel.com>
 References: <20160220224637.20667.84618.stgit@dwillia2-desk3.amr.corp.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga04.intel.com ([192.55.52.120]:54549 "EHLO mga04.intel.com"
+Received: from mga14.intel.com ([192.55.52.115]:60370 "EHLO mga14.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1759607AbcBTWrH (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sat, 20 Feb 2016 17:47:07 -0500
+	id S1759607AbcBTWrN (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sat, 20 Feb 2016 17:47:13 -0500
 In-Reply-To: <20160220224637.20667.84618.stgit@dwillia2-desk3.amr.corp.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: linux-nvdimm@lists.01.org
-Cc: linux-acpi@vger.kernel.org, stable@vger.kernel.org
+Cc: Linda Knippers <linda.knippers@hpe.com>, Vishal Verma <vishal.l.verma@intel.com>, stable@vger.kernel.org, linux-acpi@vger.kernel.org
 
-Use the output length specified in the command to size the receive
-buffer rather than the arbitrary 4K limit.
+The original format of these commands from the "NVDIMM DSM Interface
+Example" [1] are superseded by the ACPI 6.1 definition of the "NVDIMM Root
+Device _DSMs" [2].
 
-This bug was hiding the fact that the ndctl implementation of
-ndctl_bus_cmd_new_ars_status() was not specifying an output buffer size.
+[1]: http://pmem.io/documents/NVDIMM_DSM_Interface_Example.pdf
+[2]: http://www.uefi.org/sites/default/files/resources/ACPI_6_1.pdf
+     "9.20.7 NVDIMM Root Device _DSMs"
 
+Changes include:
+1/ New 'restart' fields in ars_status, unfortunately these are
+   implemented in the middle of the existing definition so this change
+   is not backwards compatible.  The expectation is that shipping
+   platforms will only ever support the ACPI 6.1 definition.
+
+2/ New status values for ars_start ('busy') and ars_status ('overflow').
+
+Cc: Vishal Verma <vishal.l.verma@intel.com>
+Cc: Linda Knippers <linda.knippers@hpe.com>
 Cc: <stable@vger.kernel.org>
 Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 ---
- drivers/nvdimm/bus.c             |    8 ++++----
- include/linux/libnvdimm.h        |    1 -
- tools/testing/nvdimm/test/nfit.c |    8 ++++++--
- 3 files changed, 10 insertions(+), 7 deletions(-)
+ drivers/acpi/nfit.c        |    6 +++---
+ drivers/nvdimm/bus.c       |   12 ++++++------
+ include/linux/libnvdimm.h  |    2 +-
+ include/uapi/linux/ndctl.h |   11 +++++++++--
+ 4 files changed, 19 insertions(+), 12 deletions(-)
 
+diff --git a/drivers/acpi/nfit.c b/drivers/acpi/nfit.c
+index 424b362e8fdc..3edb1324b9d5 100644
+--- a/drivers/acpi/nfit.c
++++ b/drivers/acpi/nfit.c
+@@ -1503,9 +1503,7 @@ static int ars_do_start(struct nvdimm_bus_descriptor *nd_desc,
+ 		case 1:
+ 			/* ARS unsupported, but we should never get here */
+ 			return 0;
+-		case 2:
+-			return -EINVAL;
+-		case 3:
++		case 6:
+ 			/* ARS is in progress */
+ 			msleep(1000);
+ 			break;
+@@ -1537,6 +1535,8 @@ static int ars_get_status(struct nvdimm_bus_descriptor *nd_desc,
+ 		case 2:
+ 			/* No ARS performed for the current boot */
+ 			return 0;
++		case 3:
++			/* TODO: error list overflow support */
+ 		default:
+ 			return -ENXIO;
+ 		}
 diff --git a/drivers/nvdimm/bus.c b/drivers/nvdimm/bus.c
-index 7e2c43f701bc..99953b34fa1d 100644
+index 99953b34fa1d..5d28e9405f32 100644
 --- a/drivers/nvdimm/bus.c
 +++ b/drivers/nvdimm/bus.c
-@@ -392,8 +392,8 @@ static const struct nd_cmd_desc __nd_cmd_bus_descs[] = {
- 		.out_sizes = { 4, },
+@@ -382,14 +382,14 @@ static const struct nd_cmd_desc __nd_cmd_bus_descs[] = {
+ 	[ND_CMD_ARS_CAP] = {
+ 		.in_num = 2,
+ 		.in_sizes = { 8, 8, },
+-		.out_num = 2,
+-		.out_sizes = { 4, 4, },
++		.out_num = 4,
++		.out_sizes = { 4, 4, 4, 4, },
+ 	},
+ 	[ND_CMD_ARS_START] = {
+-		.in_num = 4,
+-		.in_sizes = { 8, 8, 2, 6, },
+-		.out_num = 1,
+-		.out_sizes = { 4, },
++		.in_num = 5,
++		.in_sizes = { 8, 8, 2, 1, 5, },
++		.out_num = 2,
++		.out_sizes = { 4, 4, },
  	},
  	[ND_CMD_ARS_STATUS] = {
--		.out_num = 2,
--		.out_sizes = { 4, UINT_MAX, },
-+		.out_num = 3,
-+		.out_sizes = { 4, 4, UINT_MAX, },
- 	},
- };
- 
-@@ -442,8 +442,8 @@ u32 nd_cmd_out_size(struct nvdimm *nvdimm, int cmd,
- 		return in_field[1];
- 	else if (nvdimm && cmd == ND_CMD_VENDOR && idx == 2)
- 		return out_field[1];
--	else if (!nvdimm && cmd == ND_CMD_ARS_STATUS && idx == 1)
--		return ND_CMD_ARS_STATUS_MAX;
-+	else if (!nvdimm && cmd == ND_CMD_ARS_STATUS && idx == 2)
-+		return out_field[1] - 8;
- 
- 	return UINT_MAX;
- }
+ 		.out_num = 3,
 diff --git a/include/linux/libnvdimm.h b/include/linux/libnvdimm.h
-index bed40dff0e86..c736382fd260 100644
+index c736382fd260..141ffdd59960 100644
 --- a/include/linux/libnvdimm.h
 +++ b/include/linux/libnvdimm.h
-@@ -28,7 +28,6 @@ enum {
+@@ -26,7 +26,7 @@ enum {
+ 
+ 	/* need to set a limit somewhere, but yes, this is likely overkill */
  	ND_IOCTL_MAX_BUFLEN = SZ_4M,
- 	ND_CMD_MAX_ELEM = 4,
+-	ND_CMD_MAX_ELEM = 4,
++	ND_CMD_MAX_ELEM = 5,
  	ND_CMD_MAX_ENVELOPE = 16,
--	ND_CMD_ARS_STATUS_MAX = SZ_4K,
  	ND_MAX_MAPPINGS = 32,
  
- 	/* region flag indicating to direct-map persistent memory by default */
-diff --git a/tools/testing/nvdimm/test/nfit.c b/tools/testing/nvdimm/test/nfit.c
-index 90bd2ea41032..b3281dcd4a5d 100644
---- a/tools/testing/nvdimm/test/nfit.c
-+++ b/tools/testing/nvdimm/test/nfit.c
-@@ -217,13 +217,16 @@ static int nfit_test_cmd_set_config_data(struct nd_cmd_set_config_hdr *nd_cmd,
- 	return rc;
- }
+diff --git a/include/uapi/linux/ndctl.h b/include/uapi/linux/ndctl.h
+index 5b4a4be06e2b..cc68b92124d4 100644
+--- a/include/uapi/linux/ndctl.h
++++ b/include/uapi/linux/ndctl.h
+@@ -66,14 +66,18 @@ struct nd_cmd_ars_cap {
+ 	__u64 length;
+ 	__u32 status;
+ 	__u32 max_ars_out;
++	__u32 clear_err_unit;
++	__u32 reserved;
+ } __packed;
  
-+#define NFIT_TEST_ARS_RECORDS 4
-+
- static int nfit_test_cmd_ars_cap(struct nd_cmd_ars_cap *nd_cmd,
- 		unsigned int buf_len)
- {
- 	if (buf_len < sizeof(*nd_cmd))
- 		return -EINVAL;
+ struct nd_cmd_ars_start {
+ 	__u64 address;
+ 	__u64 length;
+ 	__u16 type;
+-	__u8 reserved[6];
++	__u8 flags;
++	__u8 reserved[5];
+ 	__u32 status;
++	__u32 scrub_time;
+ } __packed;
  
--	nd_cmd->max_ars_out = 256;
-+	nd_cmd->max_ars_out = sizeof(struct nd_cmd_ars_status)
-+		+ NFIT_TEST_ARS_RECORDS * sizeof(struct nd_ars_record);
- 	nd_cmd->status = (ND_ARS_PERSISTENT | ND_ARS_VOLATILE) << 16;
- 
- 	return 0;
-@@ -246,7 +249,8 @@ static int nfit_test_cmd_ars_status(struct nd_cmd_ars_status *nd_cmd,
- 	if (buf_len < sizeof(*nd_cmd))
- 		return -EINVAL;
- 
--	nd_cmd->out_length = 256;
-+	nd_cmd->out_length = sizeof(struct nd_cmd_ars_status);
-+	/* TODO: emit error records */
- 	nd_cmd->num_records = 0;
- 	nd_cmd->address = 0;
- 	nd_cmd->length = -1ULL;
+ struct nd_cmd_ars_status {
+@@ -81,11 +85,14 @@ struct nd_cmd_ars_status {
+ 	__u32 out_length;
+ 	__u64 address;
+ 	__u64 length;
++	__u64 restart_address;
++	__u64 restart_length;
+ 	__u16 type;
++	__u16 flags;
+ 	__u32 num_records;
+ 	struct nd_ars_record {
+ 		__u32 handle;
+-		__u32 flags;
++		__u32 reserved;
+ 		__u64 err_address;
+ 		__u64 length;
+ 	} __packed records[0];
 
