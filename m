@@ -1,150 +1,283 @@
-From: Dan Williams <dan.j.williams@intel.com>
-Subject: [PATCH 2/2] nfit: update address range scrub commands to the acpi
- 6.1 format
-Date: Sat, 20 Feb 2016 14:46:48 -0800
-Message-ID: <20160220224648.20667.43800.stgit@dwillia2-desk3.amr.corp.intel.com>
-References: <20160220224637.20667.84618.stgit@dwillia2-desk3.amr.corp.intel.com>
+From: Yury Norov <ynorov@caviumnetworks.com>
+Subject: Re: [PATCH v3 2/5] ACPI: parse SPCR and enable matching console
+Date: Sun, 21 Feb 2016 12:42:20 +0300
+Message-ID: <20160221094220.GA3181@yury-N73SV>
+References: <1455559532-8305-1-git-send-email-aleksey.makarov@linaro.org>
+ <1455559532-8305-3-git-send-email-aleksey.makarov@linaro.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga14.intel.com ([192.55.52.115]:60370 "EHLO mga14.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1759607AbcBTWrN (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sat, 20 Feb 2016 17:47:13 -0500
-In-Reply-To: <20160220224637.20667.84618.stgit@dwillia2-desk3.amr.corp.intel.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+Content-Disposition: inline
+In-Reply-To: <1455559532-8305-3-git-send-email-aleksey.makarov@linaro.org>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Aleksey Makarov <aleksey.makarov@linaro.org>
+Cc: Russell King <linux@arm.linux.org.uk>, Graeme Gregory <graeme.gregory@linaro.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, linux-kernel@vger.kernel.org, Leif Lindholm <leif.lindholm@linaro.org>, linux-acpi@vger.kernel.org, Christopher Covington <cov@codeaurora.org>, linux-serial@vger.kernel.org, Jiri Slaby <jslaby@suse.com>, Al Stone <ahs3@redhat.com>, linux-arm-kernel@lists.infradead.org, Len Brown <lenb@kernel.org>
 List-Id: linux-acpi@vger.kernel.org
-To: linux-nvdimm@lists.01.org
-Cc: Linda Knippers <linda.knippers@hpe.com>, Vishal Verma <vishal.l.verma@intel.com>, stable@vger.kernel.org, linux-acpi@vger.kernel.org
 
-The original format of these commands from the "NVDIMM DSM Interface
-Example" [1] are superseded by the ACPI 6.1 definition of the "NVDIMM Root
-Device _DSMs" [2].
+On Mon, Feb 15, 2016 at 09:05:26PM +0300, Aleksey Makarov wrote:
+> 'ARM Server Base Boot Requiremets' [1] mentions SPCR (Serial Port
+> Console Redirection Table) [2] as a mandatory ACPI table that
+> specifies the configuration of serial console.
+> 
+> Parse this table and check if any registered console match the
+> description.  If it does, enable that console.
+> 
+> Introduce a new function acpi_console_check().  At the uart port
+> registration, this function checks if the ACPI SPCR table specifies
+> its argument of type struct uart_port to be a console
+> and if so calls add_preferred_console().
+> 
+> [1] http://infocenter.arm.com/help/index.jsp?topic=/com.arm.doc.den0044a/index.html
+> [2] http://msdn.microsoft.com/en-us/library/windows/hardware/dn639131(v=vs.85).aspx
+> 
+> Signed-off-by: Aleksey Makarov <aleksey.makarov@linaro.org>
+> ---
+>  drivers/acpi/Kconfig             |  3 ++
+>  drivers/acpi/Makefile            |  1 +
+>  drivers/acpi/spcr.c              | 97 ++++++++++++++++++++++++++++++++++++++++
+>  drivers/tty/serial/serial_core.c | 14 +++++-
+>  include/linux/acpi.h             | 10 +++++
+>  5 files changed, 123 insertions(+), 2 deletions(-)
+>  create mode 100644 drivers/acpi/spcr.c
+> 
+> diff --git a/drivers/acpi/Kconfig b/drivers/acpi/Kconfig
+> index 65fb483..5611eb6 100644
+> --- a/drivers/acpi/Kconfig
+> +++ b/drivers/acpi/Kconfig
+> @@ -77,6 +77,9 @@ config ACPI_DEBUGGER_USER
+>  
+>  endif
+>  
+> +config ACPI_SPCR_TABLE
+> +	bool
+> +
+>  config ACPI_SLEEP
+>  	bool
+>  	depends on SUSPEND || HIBERNATION
+> diff --git a/drivers/acpi/Makefile b/drivers/acpi/Makefile
+> index 346101c..708b143 100644
+> --- a/drivers/acpi/Makefile
+> +++ b/drivers/acpi/Makefile
+> @@ -81,6 +81,7 @@ obj-$(CONFIG_ACPI_EC_DEBUGFS)	+= ec_sys.o
+>  obj-$(CONFIG_ACPI_CUSTOM_METHOD)+= custom_method.o
+>  obj-$(CONFIG_ACPI_BGRT)		+= bgrt.o
+>  obj-$(CONFIG_ACPI_CPPC_LIB)	+= cppc_acpi.o
+> +obj-$(CONFIG_ACPI_SPCR_TABLE)	+= spcr.o
+>  obj-$(CONFIG_ACPI_DEBUGGER_USER) += acpi_dbg.o
+>  
+>  # processor has its own "processor." module_param namespace
+> diff --git a/drivers/acpi/spcr.c b/drivers/acpi/spcr.c
+> new file mode 100644
+> index 0000000..a1eca91
+> --- /dev/null
+> +++ b/drivers/acpi/spcr.c
+> @@ -0,0 +1,97 @@
+> +/*
+> + * Copyright (c) 2012, Intel Corporation
+> + * Copyright (c) 2015, Red Hat, Inc.
+> + * Copyright (c) 2015, 2016 Linaro Ltd.
+> + *
+> + * This program is free software; you can redistribute it and/or modify
+> + * it under the terms of the GNU General Public License version 2 as
+> + * published by the Free Software Foundation.
+> + *
+> + */
+> +
+> +#define pr_fmt(fmt) "ACPI: SPCR: " fmt
+> +
+> +#include <linux/acpi.h>
+> +#include <linux/console.h>
+> +#include <linux/kernel.h>
+> +#include <linux/serial_core.h>
+> +
+> +static int acpi_table_parse_spcr(int (*handler)(struct acpi_table_spcr *table,
+> +						void *data), void *data)
+> +{
+> +	struct acpi_table_spcr *table = NULL;
+Hi Alexey,
 
-[1]: http://pmem.io/documents/NVDIMM_DSM_Interface_Example.pdf
-[2]: http://www.uefi.org/sites/default/files/resources/ACPI_6_1.pdf
-     "9.20.7 NVDIMM Root Device _DSMs"
+Few minor comments...
 
-Changes include:
-1/ New 'restart' fields in ars_status, unfortunately these are
-   implemented in the middle of the existing definition so this change
-   is not backwards compatible.  The expectation is that shipping
-   platforms will only ever support the ACPI 6.1 definition.
+Are you sure you need thin initialization?
 
-2/ New status values for ars_start ('busy') and ars_status ('overflow').
+> +	acpi_size table_size;
+> +	acpi_status status;
+> +	int err;
+> +
+> +	status = acpi_get_table_with_size(ACPI_SIG_SPCR, 0,
+> +					  (struct acpi_table_header **)&table,
+> +					  &table_size);
+> +
+> +	if (ACPI_FAILURE(status))
+> +		return -ENODEV;
+> +
+> +	err = handler(table, data);
+> +
+> +	early_acpi_os_unmap_memory(table, table_size);
+> +
+> +	return err;
+> +}
+> +
+> +static int spcr_table_handler_check(struct acpi_table_spcr *table, void *data)
 
-Cc: Vishal Verma <vishal.l.verma@intel.com>
-Cc: Linda Knippers <linda.knippers@hpe.com>
-Cc: <stable@vger.kernel.org>
-Signed-off-by: Dan Williams <dan.j.williams@intel.com>
----
- drivers/acpi/nfit.c        |    6 +++---
- drivers/nvdimm/bus.c       |   12 ++++++------
- include/linux/libnvdimm.h  |    2 +-
- include/uapi/linux/ndctl.h |   11 +++++++++--
- 4 files changed, 19 insertions(+), 12 deletions(-)
+The name of function is not clear for me.
+You're not only checking here, but also
+adding console. 
 
-diff --git a/drivers/acpi/nfit.c b/drivers/acpi/nfit.c
-index 424b362e8fdc..3edb1324b9d5 100644
---- a/drivers/acpi/nfit.c
-+++ b/drivers/acpi/nfit.c
-@@ -1503,9 +1503,7 @@ static int ars_do_start(struct nvdimm_bus_descriptor *nd_desc,
- 		case 1:
- 			/* ARS unsupported, but we should never get here */
- 			return 0;
--		case 2:
--			return -EINVAL;
--		case 3:
-+		case 6:
- 			/* ARS is in progress */
- 			msleep(1000);
- 			break;
-@@ -1537,6 +1535,8 @@ static int ars_get_status(struct nvdimm_bus_descriptor *nd_desc,
- 		case 2:
- 			/* No ARS performed for the current boot */
- 			return 0;
-+		case 3:
-+			/* TODO: error list overflow support */
- 		default:
- 			return -ENXIO;
- 		}
-diff --git a/drivers/nvdimm/bus.c b/drivers/nvdimm/bus.c
-index 99953b34fa1d..5d28e9405f32 100644
---- a/drivers/nvdimm/bus.c
-+++ b/drivers/nvdimm/bus.c
-@@ -382,14 +382,14 @@ static const struct nd_cmd_desc __nd_cmd_bus_descs[] = {
- 	[ND_CMD_ARS_CAP] = {
- 		.in_num = 2,
- 		.in_sizes = { 8, 8, },
--		.out_num = 2,
--		.out_sizes = { 4, 4, },
-+		.out_num = 4,
-+		.out_sizes = { 4, 4, 4, 4, },
- 	},
- 	[ND_CMD_ARS_START] = {
--		.in_num = 4,
--		.in_sizes = { 8, 8, 2, 6, },
--		.out_num = 1,
--		.out_sizes = { 4, },
-+		.in_num = 5,
-+		.in_sizes = { 8, 8, 2, 1, 5, },
-+		.out_num = 2,
-+		.out_sizes = { 4, 4, },
- 	},
- 	[ND_CMD_ARS_STATUS] = {
- 		.out_num = 3,
-diff --git a/include/linux/libnvdimm.h b/include/linux/libnvdimm.h
-index c736382fd260..141ffdd59960 100644
---- a/include/linux/libnvdimm.h
-+++ b/include/linux/libnvdimm.h
-@@ -26,7 +26,7 @@ enum {
- 
- 	/* need to set a limit somewhere, but yes, this is likely overkill */
- 	ND_IOCTL_MAX_BUFLEN = SZ_4M,
--	ND_CMD_MAX_ELEM = 4,
-+	ND_CMD_MAX_ELEM = 5,
- 	ND_CMD_MAX_ENVELOPE = 16,
- 	ND_MAX_MAPPINGS = 32,
- 
-diff --git a/include/uapi/linux/ndctl.h b/include/uapi/linux/ndctl.h
-index 5b4a4be06e2b..cc68b92124d4 100644
---- a/include/uapi/linux/ndctl.h
-+++ b/include/uapi/linux/ndctl.h
-@@ -66,14 +66,18 @@ struct nd_cmd_ars_cap {
- 	__u64 length;
- 	__u32 status;
- 	__u32 max_ars_out;
-+	__u32 clear_err_unit;
-+	__u32 reserved;
- } __packed;
- 
- struct nd_cmd_ars_start {
- 	__u64 address;
- 	__u64 length;
- 	__u16 type;
--	__u8 reserved[6];
-+	__u8 flags;
-+	__u8 reserved[5];
- 	__u32 status;
-+	__u32 scrub_time;
- } __packed;
- 
- struct nd_cmd_ars_status {
-@@ -81,11 +85,14 @@ struct nd_cmd_ars_status {
- 	__u32 out_length;
- 	__u64 address;
- 	__u64 length;
-+	__u64 restart_address;
-+	__u64 restart_length;
- 	__u16 type;
-+	__u16 flags;
- 	__u32 num_records;
- 	struct nd_ars_record {
- 		__u32 handle;
--		__u32 flags;
-+		__u32 reserved;
- 		__u64 err_address;
- 		__u64 length;
- 	} __packed records[0];
+> +{
+> +	struct uart_port *uport = data;
+> +	char *options;
+> +
+> +	if (table->header.revision < 2)
+> +		return -EOPNOTSUPP;
+> +
+> +	switch (table->baud_rate) {
 
+You don't need 'options' if your big condition returns false,
+so you can evaluate it inside conditional block.
+
+> +	case 3:
+> +		options = "9600";
+> +		break;
+> +	case 4:
+> +		options = "19200";
+> +		break;
+> +	case 6:
+> +		options = "57600";
+> +		break;
+> +	case 7:
+> +		options = "115200";
+> +		break;
+> +	default:
+> +		options = "";
+> +		break;
+
+'break' isnot needed here
+
+> +	}
+> +
+> +	if ((table->serial_port.space_id == ACPI_ADR_SPACE_SYSTEM_MEMORY &&
+
+Nitpick: just for better readability, I'd split it onto a set of
+separated checks:
+
+        foo() {
+                if (!cond1)
+                        return 0;
+
+                if (!cond2)
+                        return 0;
+                ...
+
+                switch () {
+                case 1:
+                        ...
+                case 2:
+                        ...
+                case 3:
+                        ...
+                default:
+                        ...
+                }
+                
+                return 1;
+        }
+
+> +	     table->serial_port.address == (u64)uport->mapbase) ||
+> +	    (table->serial_port.space_id == ACPI_ADR_SPACE_SYSTEM_IO &&
+> +	     table->serial_port.address == (u64)uport->iobase)) {
+> +		pr_info("adding preferred console [%s%d]\n", uport->cons->name,
+> +			uport->line);
+> +		add_preferred_console(uport->cons->name, uport->line, options);
+> +		return 1;
+> +
+> +	}
+> +
+> +	return 0;
+> +}
+> +
+> +/**
+> + * acpi_console_check - Check if uart matches the console specified by SPCR.
+> + *
+> + * @uport:	uart port to check
+> + *
+> + * This function checks if the ACPI SPCR table specifies @uport to be a console
+> + * and if so calls add_preferred_console()
+> + *
+> + * Return: a non-error value if the console matches.
+> + */
+> +bool acpi_console_check(struct uart_port *uport)
+> +{
+> +	if (acpi_disabled || console_set_on_cmdline)
+> +		return false;
+> +
+> +	return acpi_table_parse_spcr(spcr_table_handler_check, uport) > 0;
+> +}
+> diff --git a/drivers/tty/serial/serial_core.c b/drivers/tty/serial/serial_core.c
+> index a126a60..459ab54 100644
+> --- a/drivers/tty/serial/serial_core.c
+> +++ b/drivers/tty/serial/serial_core.c
+> @@ -34,6 +34,7 @@
+>  #include <linux/serial_core.h>
+>  #include <linux/delay.h>
+>  #include <linux/mutex.h>
+> +#include <linux/acpi.h>
+>  
+>  #include <asm/irq.h>
+>  #include <asm/uaccess.h>
+> @@ -2654,8 +2655,17 @@ int uart_add_one_port(struct uart_driver *drv, struct uart_port *uport)
+>  		spin_lock_init(&uport->lock);
+>  		lockdep_set_class(&uport->lock, &port_lock_key);
+>  	}
+> -	if (uport->cons && uport->dev)
+> -		of_console_check(uport->dev->of_node, uport->cons->name, uport->line);
+> +
+> +	/*
+> +	 * Support both open FW and ACPI access to console definitions.
+> +	 * Both of_console_check() and acpi_console_check() will call
+> +	 * add_preferred_console() if a console definition is found.
+> +	 */
+> +	if (uport->cons && uport->dev) {
+> +		if (!acpi_console_check(uport))
+> +			of_console_check(uport->dev->of_node, uport->cons->name,
+> +					 uport->line);
+> +	}
+>  
+>  	uart_configure_port(drv, state, uport);
+>  
+> diff --git a/include/linux/acpi.h b/include/linux/acpi.h
+> index 06ed7e5..ea0c297 100644
+> --- a/include/linux/acpi.h
+> +++ b/include/linux/acpi.h
+> @@ -1004,4 +1004,14 @@ static inline struct fwnode_handle *acpi_get_next_subnode(struct device *dev,
+>  #define acpi_probe_device_table(t)	({ int __r = 0; __r;})
+>  #endif
+>  
+> +struct uart_port;
+> +#ifdef CONFIG_ACPI_SPCR_TABLE
+> +bool acpi_console_check(struct uart_port *uport);
+> +#else
+> +static inline bool acpi_console_check(struct uart_port *uport)
+> +{
+> +	return FALSE;
+> +}
+> +#endif
+> +
+>  #endif	/*_LINUX_ACPI_H*/
+> -- 
+> 2.7.1
+> 
+> 
+> _______________________________________________
+> linux-arm-kernel mailing list
+> linux-arm-kernel@lists.infradead.org
+> http://lists.infradead.org/mailman/listinfo/linux-arm-kernel
