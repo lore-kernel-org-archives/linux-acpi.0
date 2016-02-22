@@ -1,53 +1,121 @@
-From: Sudeep Holla <sudeep.holla@arm.com>
-Subject: Re: [PATCH v3 4/5] ACPI / processor_idle : introduce
- ARCH_SUPPORTS_ACPI_PROCESSOR_CSTATE
-Date: Mon, 22 Feb 2016 13:46:26 +0000
-Message-ID: <56CB1132.1060202@arm.com>
-References: <1449065446-26115-1-git-send-email-sudeep.holla@arm.com>
- <1449065446-26115-5-git-send-email-sudeep.holla@arm.com>
- <12469811.iv3SctjXxl@vostro.rjw.lan> <56C465CE.50403@arm.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <56C465CE.50403@arm.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: Sudeep Holla <sudeep.holla@arm.com>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linux-ia64@vger.kernel.org, x86@kernel.org, Al Stone <al.stone@linaro.org>, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, Mahesh Sivasubramanian <msivasub@codeaurora.org>, Ashwin Chaugule <ashwin.chaugule@linaro.org>, Prashanth Prakash <pprakash@codeaurora.org>
+From: Aleksey Makarov <aleksey.makarov@linaro.org>
+Subject: [PATCH 1/8] arm64: move acpi/dt decision earlier in boot process
+Date: Mon, 22 Feb 2016 16:46:49 +0300
+Message-ID: <1456148818-26257-2-git-send-email-aleksey.makarov@linaro.org>
+References: <1456148818-26257-1-git-send-email-aleksey.makarov@linaro.org>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-lb0-f169.google.com ([209.85.217.169]:32992 "EHLO
+	mail-lb0-f169.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755190AbcBVNrd (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 22 Feb 2016 08:47:33 -0500
+Received: by mail-lb0-f169.google.com with SMTP id x4so82807788lbm.0
+        for <linux-acpi@vger.kernel.org>; Mon, 22 Feb 2016 05:47:32 -0800 (PST)
+In-Reply-To: <1456148818-26257-1-git-send-email-aleksey.makarov@linaro.org>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: linux-acpi@vger.kernel.org
+Cc: linux-serial@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Aleksey Makarov <aleksey.makarov@linaro.org>, Russell King <linux@arm.linux.org.uk>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, Leif Lindholm <leif.lindholm@linaro.org>, Graeme Gregory <graeme.gregory@linaro.org>, Al Stone <ahs3@redhat.com>, Christopher Covington <cov@codeaurora.org>, Catalin Marinas <catalin.marinas@arm.com>, Will Deacon <will.deacon@arm.com>
 
-Hi Rafael,
+From: Leif Lindholm <leif.lindholm@linaro.org>
 
-On 17/02/16 12:21, Sudeep Holla wrote:
->
->
-> On 16/02/16 20:18, Rafael J. Wysocki wrote:
+In order to support selecting earlycon via either ACPI or DT, move
+the decision on whether to attempt ACPI configuration into the
+early_param handling. Then make acpi_boot_table_init() bail out if
+acpi_disabled.
 
-[..]
+Signed-off-by: Leif Lindholm <leif.lindholm@linaro.org>
+---
+ arch/arm64/kernel/acpi.c | 54 ++++++++++++++++++++++++++----------------------
+ 1 file changed, 29 insertions(+), 25 deletions(-)
 
->
->> This way it all should work without any new Kconfig options.
->>
->
-> I agree with you in terms of avoiding new Kconfig option. However the
-> main reason for adding it is to avoid declaring dummy functions and
-> variables on ARM64.
->
-> It's hard to justify the maintainers as it's totally useless on ARM64.
-> E.g. boot_option_idle_override, IDLE_NOMWAIT, acpi_unlazy_tlb,
-> arch_safe_halt.
->
-> Other option is to push those under CONFIG_X86, but then I don't have
-> much idea on what are all needed for IA64, so took an option that
-> encapsulates everything under CSTATE feature Kconfig, which is not user
-> visible and selected by archs supporting it by default.
->
-> I am open to any other alternative.
->
-
-Whatever alternative methods I tried so far ended up much horrible than
-this. So any suggestions are much appreciated.
-
+diff --git a/arch/arm64/kernel/acpi.c b/arch/arm64/kernel/acpi.c
+index d1ce8e2..7a944f7 100644
+--- a/arch/arm64/kernel/acpi.c
++++ b/arch/arm64/kernel/acpi.c
+@@ -44,6 +44,19 @@ EXPORT_SYMBOL(acpi_pci_disabled);
+ static bool param_acpi_off __initdata;
+ static bool param_acpi_force __initdata;
+ 
++static int __init dt_scan_depth1_nodes(unsigned long node,
++				       const char *uname, int depth,
++				       void *data)
++{
++	/*
++	 * Return 1 as soon as we encounter a node at depth 1 that is
++	 * not the /chosen node.
++	 */
++	if (depth == 1 && (strcmp(uname, "chosen") != 0))
++		return 1;
++	return 0;
++}
++
+ static int __init parse_acpi(char *arg)
+ {
+ 	if (!arg)
+@@ -57,23 +70,27 @@ static int __init parse_acpi(char *arg)
+ 	else
+ 		return -EINVAL;	/* Core will print when we return error */
+ 
+-	return 0;
+-}
+-early_param("acpi", parse_acpi);
++	/*
++	 * Enable ACPI instead of device tree unless
++	 * - ACPI has been disabled explicitly (acpi=off), or
++	 * - the device tree is not empty (it has more than just a /chosen node)
++	 *   and ACPI has not been force enabled (acpi=force)
++	 */
++	if (param_acpi_off ||
++	    (!param_acpi_force && of_scan_flat_dt(dt_scan_depth1_nodes, NULL)))
++		return 0;
+ 
+-static int __init dt_scan_depth1_nodes(unsigned long node,
+-				       const char *uname, int depth,
+-				       void *data)
+-{
+ 	/*
+-	 * Return 1 as soon as we encounter a node at depth 1 that is
+-	 * not the /chosen node.
++	 * ACPI is disabled at this point. Enable it in order to parse
++	 * the ACPI tables and carry out sanity checks
+ 	 */
+-	if (depth == 1 && (strcmp(uname, "chosen") != 0))
+-		return 1;
++	enable_acpi();
++
+ 	return 0;
+ }
+ 
++early_param("acpi", parse_acpi);
++
+ /*
+  * __acpi_map_table() will be called before page_init(), so early_ioremap()
+  * or early_memremap() should be called here to for ACPI table mapping.
+@@ -181,23 +198,10 @@ out:
+  */
+ void __init acpi_boot_table_init(void)
+ {
+-	/*
+-	 * Enable ACPI instead of device tree unless
+-	 * - ACPI has been disabled explicitly (acpi=off), or
+-	 * - the device tree is not empty (it has more than just a /chosen node)
+-	 *   and ACPI has not been force enabled (acpi=force)
+-	 */
+-	if (param_acpi_off ||
+-	    (!param_acpi_force && of_scan_flat_dt(dt_scan_depth1_nodes, NULL)))
++	if (acpi_disabled)
+ 		return;
+ 
+ 	/*
+-	 * ACPI is disabled at this point. Enable it in order to parse
+-	 * the ACPI tables and carry out sanity checks
+-	 */
+-	enable_acpi();
+-
+-	/*
+ 	 * If ACPI tables are initialized and FADT sanity checks passed,
+ 	 * leave ACPI enabled and carry on booting; otherwise disable ACPI
+ 	 * on initialization error.
 -- 
-Regards,
-Sudeep
+2.7.1
+
