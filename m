@@ -1,96 +1,86 @@
-From: Matthias Brugger <matthias.bgg@gmail.com>
-Subject: Re: [PATCH 1/8] arm64: move acpi/dt decision earlier in boot process
-Date: Mon, 22 Feb 2016 16:45:17 +0100
-Message-ID: <56CB2D0D.3090408@gmail.com>
-References: <1456148818-26257-1-git-send-email-aleksey.makarov@linaro.org>
- <1456148818-26257-2-git-send-email-aleksey.makarov@linaro.org>
+From: Leif Liddy <leif.linux@gmail.com>
+Subject: ACPI: SPI slave device
+Date: Mon, 22 Feb 2016 20:37:25 +0100
+Message-ID: <CAAbRKOs8nV=N3Vis=E_sGFs9QT-ir5D_xvBv6AWTZU2JPwYbjg@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-wm0-f44.google.com ([74.125.82.44]:37996 "EHLO
-	mail-wm0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751161AbcBVPpV (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 22 Feb 2016 10:45:21 -0500
-In-Reply-To: <1456148818-26257-2-git-send-email-aleksey.makarov@linaro.org>
+Received: from mail-ig0-f171.google.com ([209.85.213.171]:37150 "EHLO
+	mail-ig0-f171.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751236AbcBVTh0 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 22 Feb 2016 14:37:26 -0500
+Received: by mail-ig0-f171.google.com with SMTP id 5so89554495igt.0
+        for <linux-acpi@vger.kernel.org>; Mon, 22 Feb 2016 11:37:25 -0800 (PST)
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Aleksey Makarov <aleksey.makarov@linaro.org>, linux-acpi@vger.kernel.org
-Cc: Russell King <linux@arm.linux.org.uk>, Graeme Gregory <graeme.gregory@linaro.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, linux-kernel@vger.kernel.org, Leif Lindholm <leif.lindholm@linaro.org>, Christopher Covington <cov@codeaurora.org>, linux-serial@vger.kernel.org, Catalin Marinas <catalin.marinas@arm.com>, Will Deacon <will.deacon@arm.com>, Al Stone <ahs3@redhat.com>, linux-arm-kernel@lists.infradead.org
+To: linux-acpi@vger.kernel.org
+
+I'm extremely new to kernel development, and I'm reaching out to the
+ACPI community in an effort to gain a better understanding of the
+issue I'm experiencing.
+
+The macbook8,1 (early 2015) has a keyboard/trackpad that is seen by
+ACPI as a single SPI slave device.
+The appears the only method the access the keyboard/trackpad is via
+the SPI bus, and that's what I'm trying to get working.
+
+I've recently submitted a kernel patch that binds the spi-pxa2xx
+driver to the Wildcat Point-LP Serial IO GSPI Controller. With this
+patch, the SPI controller appears to be working.
+http://www.spinics.net/lists/linux-spi/msg06867.html
+
+----------LSHW INFO------------
+*-serial:1
+             description: Serial bus controller
+             product: Wildcat Point-LP Serial IO GSPI Controller #1
+             vendor: Intel Corporation
+             physical id: 15.4
+             bus info: pci@0000:00:15.4
+             version: 03
+             width: 32 bits
+             clock: 33MHz
+             capabilities: pm cap_list
+             configuration: driver=3Dpxa2xx_spi_pci latency=3D0
+             resources: irq:21 memory:c181a000-c181afff
 
 
+I'm now attempting to write an SPI protocol driver, but I have no idea
+on how to reference the SPI slave device as it only exists in the ACPI
+name space.
+I'm not sure if I should be using a platform or an acpi driver to
+register/enable it.
 
-On 22/02/16 14:46, Aleksey Makarov wrote:
-> From: Leif Lindholm <leif.lindholm@linaro.org>
->
-> In order to support selecting earlycon via either ACPI or DT, move
-> the decision on whether to attempt ACPI configuration into the
-> early_param handling. Then make acpi_boot_table_init() bail out if
-> acpi_disabled.
->
-> Signed-off-by: Leif Lindholm <leif.lindholm@linaro.org>
-> ---
->   arch/arm64/kernel/acpi.c | 54 ++++++++++++++++++++++++++----------------------
->   1 file changed, 29 insertions(+), 25 deletions(-)
->
-> diff --git a/arch/arm64/kernel/acpi.c b/arch/arm64/kernel/acpi.c
-> index d1ce8e2..7a944f7 100644
-> --- a/arch/arm64/kernel/acpi.c
-> +++ b/arch/arm64/kernel/acpi.c
-> @@ -44,6 +44,19 @@ EXPORT_SYMBOL(acpi_pci_disabled);
->   static bool param_acpi_off __initdata;
->   static bool param_acpi_force __initdata;
->
-> +static int __init dt_scan_depth1_nodes(unsigned long node,
-> +				       const char *uname, int depth,
-> +				       void *data)
-> +{
-> +	/*
-> +	 * Return 1 as soon as we encounter a node at depth 1 that is
-> +	 * not the /chosen node.
-> +	 */
-> +	if (depth == 1 && (strcmp(uname, "chosen") != 0))
-> +		return 1;
-> +	return 0;
-> +}
-> +
->   static int __init parse_acpi(char *arg)
->   {
->   	if (!arg)
-> @@ -57,23 +70,27 @@ static int __init parse_acpi(char *arg)
->   	else
->   		return -EINVAL;	/* Core will print when we return error */
->
-> -	return 0;
-> -}
-> -early_param("acpi", parse_acpi);
-> +	/*
-> +	 * Enable ACPI instead of device tree unless
-> +	 * - ACPI has been disabled explicitly (acpi=off), or
-> +	 * - the device tree is not empty (it has more than just a /chosen node)
-> +	 *   and ACPI has not been force enabled (acpi=force)
-> +	 */
-> +	if (param_acpi_off ||
-> +	    (!param_acpi_force && of_scan_flat_dt(dt_scan_depth1_nodes, NULL)))
-> +		return 0;
->
-> -static int __init dt_scan_depth1_nodes(unsigned long node,
-> -				       const char *uname, int depth,
-> -				       void *data)
-> -{
->   	/*
-> -	 * Return 1 as soon as we encounter a node at depth 1 that is
-> -	 * not the /chosen node.
-> +	 * ACPI is disabled at this point. Enable it in order to parse
-> +	 * the ACPI tables and carry out sanity checks
->   	 */
-> -	if (depth == 1 && (strcmp(uname, "chosen") != 0))
-> -		return 1;
-> +	enable_acpi();
-> +
+=E2=80=93------------UDEV INFO---------------
 
-So we only enable ACPI if we pass acpi=force as kernel parameter?
-I'm not sure if this is what you wanted to do.
+P: /devices/LNXSYSTM:00/LNXSYBUS:00/PNP0A08:00/INT33C1:00/APP000D:00
+E: DEVPATH=3D/devices/LNXSYSTM:00/LNXSYBUS:00/PNP0A08:00/INT33C1:00/APP=
+000D:00
+E: ID_VENDOR_FROM_DATABASE=3DApple Computer Inc
+E: MODALIAS=3Dacpi:APP000D:APPLE-SPI-TOPCASE:
+E: SUBSYSTEM=3Dacpi
+E: USEC_INITIALIZED=3D13574842
 
-Regards,
-Matthias
+**INT33C1 is the SPI master controller
+**APP000D is the slave device
+
+
+The ACPI DSDT table (decoded):
+https://bugzilla.kernel.org/attachment.cgi?id=3D202141
+
+
+The full bug report:
+https://bugzilla.kernel.org/show_bug.cgi?id=3D108331
+
+
+Any help no matter how brief would be useful.
+
+
+Thanks,
+
+Leif Liddy
+--
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
