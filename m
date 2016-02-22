@@ -1,254 +1,234 @@
-From: "Zheng, Lv" <lv.zheng@intel.com>
-Subject: RE: [PATCH v3 1/5] ACPI: change __init to __ref for
+From: Peter Hurley <peter@hurleysoftware.com>
+Subject: Re: [PATCH v3 1/5] ACPI: change __init to __ref for
  early_acpi_os_unmap_memory()
-Date: Mon, 22 Feb 2016 02:24:23 +0000
-Message-ID: <1AE640813FDE7649BE1B193DEA596E883BB4D949@SHSMSX101.ccr.corp.intel.com>
+Date: Sun, 21 Feb 2016 21:37:39 -0800
+Message-ID: <56CA9EA3.9020000@hurleysoftware.com>
 References: <1455559532-8305-1-git-send-email-aleksey.makarov@linaro.org>
  <1455559532-8305-2-git-send-email-aleksey.makarov@linaro.org>
  <1AE640813FDE7649BE1B193DEA596E883BB4BDBB@SHSMSX101.ccr.corp.intel.com>
  <1AE640813FDE7649BE1B193DEA596E883BB4BDCF@SHSMSX101.ccr.corp.intel.com>
  <56C470C5.2080203@linaro.org>
  <1AE640813FDE7649BE1B193DEA596E883BB4D2DA@SHSMSX101.ccr.corp.intel.com>
- <56C63FB5.2030907@hurleysoftware.com>
- <1AE640813FDE7649BE1B193DEA596E883BB4D5A0@SHSMSX101.ccr.corp.intel.com>
- <56C6F660.9020407@linaro.org>
+ <56C63FB5.2030907@hurleysoftware.com> <56C6F19D.7070206@linaro.org>
+ <56C733FE.8070308@hurleysoftware.com>
+ <79D370BB-B7A3-4540-B7FB-81D5806853D6@codeaurora.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga02.intel.com ([134.134.136.20]:36094 "EHLO mga02.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752419AbcBVCY3 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sun, 21 Feb 2016 21:24:29 -0500
-In-Reply-To: <56C6F660.9020407@linaro.org>
-Content-Language: en-US
+Received: from mail-pa0-f45.google.com ([209.85.220.45]:33339 "EHLO
+	mail-pa0-f45.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751371AbcBVFhq (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 22 Feb 2016 00:37:46 -0500
+Received: by mail-pa0-f45.google.com with SMTP id fl4so85236378pad.0
+        for <linux-acpi@vger.kernel.org>; Sun, 21 Feb 2016 21:37:46 -0800 (PST)
+In-Reply-To: <79D370BB-B7A3-4540-B7FB-81D5806853D6@codeaurora.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Aleksey Makarov <aleksey.makarov@linaro.org>, Peter Hurley <peter@hurleysoftware.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
-Cc: "linux-serial@vger.kernel.org" <linux-serial@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Russell King <linux@arm.linux.org.uk>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, Leif Lindholm <leif.lindholm@linaro.org>, Graeme Gregory <graeme.gregory@linaro.org>, Al Stone <ahs3@redhat.com>, Christopher Covington <cov@codeaurora.org>, Len Brown <lenb@kernel.org>
+To: Christopher Covington <cov@codeaurora.org>, Aleksey Makarov <aleksey.makarov@linaro.org>, "Zheng, Lv" <lv.zheng@intel.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, harba@codeaurora.org
+Cc: "linux-serial@vger.kernel.org" <linux-serial@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Russell King <linux@arm.linux.org.uk>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, Leif Lindholm <leif.lindholm@linaro.org>, Graeme Gregory <graeme.gregory@linaro.org>, Al Stone <ahs3@redhat.com>, Len Brown <lenb@kernel.org>
 
-SGksDQoNCj4gRnJvbTogQWxla3NleSBNYWthcm92IFttYWlsdG86YWxla3NleS5tYWthcm92QGxp
-bmFyby5vcmddDQo+IFN1YmplY3Q6IFJlOiBbUEFUQ0ggdjMgMS81XSBBQ1BJOiBjaGFuZ2UgX19p
-bml0IHRvIF9fcmVmIGZvcg0KPiBlYXJseV9hY3BpX29zX3VubWFwX21lbW9yeSgpDQo+IA0KPiBI
-aSBMdiwNCj4gDQo+IE9uIDAyLzE5LzIwMTYgMDU6NTggQU0sIFpoZW5nLCBMdiB3cm90ZToNCj4g
-PiBIaSwNCj4gPg0KPiA+PiBGcm9tOiBQZXRlciBIdXJsZXkgW21haWx0bzpwZXRlckBodXJsZXlz
-b2Z0d2FyZS5jb21dDQo+ID4+IFN1YmplY3Q6IFJlOiBbUEFUQ0ggdjMgMS81XSBBQ1BJOiBjaGFu
-Z2UgX19pbml0IHRvIF9fcmVmIGZvcg0KPiA+PiBlYXJseV9hY3BpX29zX3VubWFwX21lbW9yeSgp
-DQo+ID4+DQo+ID4+IE9uIDAyLzE3LzIwMTYgMDc6MzYgUE0sIFpoZW5nLCBMdiB3cm90ZToNCj4g
-Pj4+IEhpLA0KPiA+Pj4NCj4gPj4+PiBGcm9tOiBBbGVrc2V5IE1ha2Fyb3YgW21haWx0bzphbGVr
-c2V5Lm1ha2Fyb3ZAbGluYXJvLm9yZ10NCj4gPj4+PiBTdWJqZWN0OiBSZTogW1BBVENIIHYzIDEv
-NV0gQUNQSTogY2hhbmdlIF9faW5pdCB0byBfX3JlZiBmb3INCj4gPj4+PiBlYXJseV9hY3BpX29z
-X3VubWFwX21lbW9yeSgpDQo+ID4+Pj4NCj4gPj4+PiBIaSBMdiwNCj4gPj4+Pg0KPiA+Pj4+IFRo
-YW5rIHlvdSBmb3IgcmV2aWV3Lg0KPiA+Pj4+DQo+ID4+Pj4gT24gMDIvMTcvMjAxNiAwNTo1MSBB
-TSwgWmhlbmcsIEx2IHdyb3RlOg0KPiA+Pj4+DQo+ID4+Pj4gWy4uXQ0KPiA+Pj4+DQo+ID4+Pj4+
-Pj4gZWFybHlfYWNwaV9vc191bm1hcF9tZW1vcnkoKSBpcyBtYXJrZWQgYXMgX19pbml0IGJlY2F1
-c2UgaXQgY2FsbHMNCj4gPj4+Pj4+PiBfX2FjcGlfdW5tYXBfdGFibGUoKSwgYnV0IG9ubHkgd2hl
-biBhY3BpX2dibF9wZXJtYW5lbnRfbW1hcCBpcw0KPiBub3QNCj4gPj4+PiBzZXQuDQo+ID4+Pj4+
-Pj4NCj4gPj4+Pj4+PiBhY3BpX2dibF9wZXJtYW5lbnRfbW1hcCBpcyBzZXQgaW4gX19pbml0IGFj
-cGlfZWFybHlfaW5pdCgpDQo+ID4+Pj4+Pj4gc28gaXQgaXMgc2FmZSB0byBjYWxsIGVhcmx5X2Fj
-cGlfb3NfdW5tYXBfbWVtb3J5KCkgZnJvbSBhbnl3aGVyZQ0KPiA+Pj4+Pj4+DQo+ID4+Pj4+Pj4g
-V2UgbmVlZCB0aGlzIGZ1bmN0aW9uIHRvIGJlIG5vbi1fX2luaXQgYmVjYXVzZSB3ZSBuZWVkIGFj
-Y2VzcyB0bw0KPiA+Pj4+Pj4+IHNvbWUgdGFibGVzIGF0IHVucHJlZGljdGFibGUgdGltZS0taXQg
-bWF5IGJlIGJlZm9yZSBvciBhZnRlcg0KPiA+Pj4+Pj4+IGFjcGlfZ2JsX3Blcm1hbmVudF9tbWFw
-IGlzIHNldC4gIEZvciBleGFtcGxlLCBTUENSIChTZXJpYWwgUG9ydA0KPiA+PiBDb25zb2xlDQo+
-ID4+Pj4+Pj4gUmVkaXJlY3Rpb24pIHRhYmxlIGlzIG5lZWRlZCBlYWNoIHRpbWUgYSBuZXcgY29u
-c29sZSBpcyByZWdpc3RlcmVkLg0KPiA+Pj4+Pj4+IEl0IGNhbiBiZSBxdWl0ZSBlYXJseSAoY29u
-c29sZV9pbml0Y2FsbCkgb3Igd2hlbiBhIG1vZHVsZSBpcyBpbnNlcnRlZC4NCj4gPj4+Pj4+PiBX
-aGVuIHRoaXMgdGFibGUgYWNjZXNzZWQgYmVmb3JlIGFjcGlfZ2JsX3Blcm1hbmVudF9tbWFwIGlz
-IHNldCwNCj4gPj4+Pj4+PiB0aGUgcG9pbnRlciBzaG91bGQgYmUgdW5tYXBwZWQuICBUaGlzIGlz
-IGV4YWN0bHkgd2hhdCB0aGlzIGZ1bmN0aW9uDQo+ID4+Pj4+Pj4gZG9lcy4NCj4gPj4+Pj4+IFtM
-diBaaGVuZ10NCj4gPj4+Pj4+IFdoeSBkb24ndCB5b3UgdXNlIGFub3RoZXIgQVBJIGluc3RlYWQg
-b2YNCj4gPj4gZWFybHlfYWNwaV9vc191bm1hcF9tZW1vcnkoKQ0KPiA+Pj4+IGluDQo+ID4+Pj4+
-PiBjYXNlIHlvdSB3YW50IHRvIHVubWFwIHRoaW5ncyBpbiBhbnkgY2FzZXMuDQo+ID4+Pj4+PiBh
-Y3BpX29zX3VubWFwX21lbW9yeSgpIHNob3VsZCBiZSB0aGUgb25lIHRvIG1hdGNoIHRoaXMgcHVy
-cG9zZS4NCj4gPj4+Pj4+IEl0IGNoZWNrcyBhY3BpX2dibF9wcGVybWFuZW50X21tYXAgaW4gYWNw
-aV9vc191bm1hcF9pb21lbSgpLg0KPiA+Pj4+DQo+ID4+Pj4gQXMgZmFyIGFzIEkgdW5kZXJzdGFu
-ZCwgdGhlcmUgZXhpc3QgdHdvIHN0ZXBzIGluIEFDUEkgaW5pdGlhbGl6YXRpb246DQo+ID4+Pj4N
-Cj4gPj4+PiAxLiBCZWZvcmUgYWNwaV9nYmxfcGVybWFuZW50X21tYXAgaXMgc2V0LCB0YWJsZXMg
-cmVjZWl2ZWQgd2l0aA0KPiA+Pj4+IGFjcGlfZ2V0X3RhYmxlX3dpdGhfc2l6ZSgpDQo+ID4+Pj4g
-ICAgYXJlIG1hcHBlZCBieSBlYXJseV9tZW1yZW1hcCgpLiAgSWYgYSBzdWJzeXN0ZW0gZ2V0cyBz
-dWNoIGEgcG9pbnRlciBpdA0KPiA+Pj4+IHNob3VsZCBiZSB1bm1hcHBlZC4NCj4gPj4+Pg0KPiA+
-Pj4+IDIgIEFmdGVyIGFjcGlfZ2JsX3Blcm1hbmVudF9tbWFwIGlzIHNldCB0aGlzIHBvaW50ZXIg
-c2hvdWxkIG5vdCBiZQ0KPiA+PiB1bm1hcHBlZA0KPiA+Pj4+IGF0IGFsbC4NCj4gPj4+Pg0KPiA+
-Pj4gW0x2IFpoZW5nXQ0KPiA+Pj4gVGhpcyBzdGF0ZW1lbnQgaXMgd3JvbmcsIHRoaXMgc2hvdWxk
-IGJlOg0KPiA+Pj4gQXMgbG9uZyBhcyB0aGVyZSBpcyBhIF9fcmVmZXJlbmNlX18gdG8gdGhlIG1h
-cHBlZCB0YWJsZSwgdGhlIHBvaW50ZXIgc2hvdWxkDQo+ID4+IG5vdCBiZSB1bm1hcHBlZC4NCj4g
-Pj4+IEluIGZhY3QsIHdlIGhhdmUgYSBzZXJpZXMgdG8gaW50cm9kdWNlIGFjcGlfcHV0X3RhYmxl
-KCkgdG8gYWNoaWV2ZSB0aGlzLg0KPiA+Pj4gU28geW91ciBhcmd1bWVudCBpcyB3cm9uZyBmcm9t
-IHZlcnkgZmlyc3QgcG9pbnQuDQo+ID4+Pg0KPiA+Pj4+IFRoYXQgZXhhY3RseSB3aGF0IGVhcmx5
-X2FjcGlfb3NfdW5tYXBfbWVtb3J5KCkgZG9lcy0taXQgY2hlY2tzDQo+ID4+Pj4gYWNwaV9nYmxf
-cGVybWFuZW50X21tYXAuDQo+ID4+Pj4gSWYgSSBoYWQgdXNlZCBhY3BpX29zX3VubWFwX21lbW9y
-eSgpIGFmdGVyIGFjcGlfZ2JsX3Blcm1hbmVudF9tbWFwDQo+ID4+IGhhZA0KPiA+Pj4+IGJlZW4g
-c2V0LA0KPiA+Pj4+IGl0IHdvdWxkIGhhdmUgdHJpZWQgdG8gZnJlZSB0aGF0IHBvaW50ZXIgd2l0
-aCBhbiBvb3BzIChhY3R1YWxseSwgSSBjaGVja2VkDQo+IHRoYXQNCj4gPj4+PiBhbmQgZ290IHRo
-YXQgb29wcykuDQo+ID4+Pj4NCj4gPj4+PiBTbyB1c2luZyBhY3BpX29zX3VubWFwX21lbW9yeSgp
-IGlzIG5vdCBhbiBvcHRpb24gaGVyZSwgYnV0DQo+ID4+Pj4gZWFybHlfYWNwaV9vc191bm1hcF9t
-ZW1vcnkoKQ0KPiA+Pj4+IG1hdGNoIHBlcmZlY3RseS4NCj4gPj4+IFtMdiBaaGVuZ10NCj4gPj4+
-IEkgZG9uJ3QgdGhpbmsgc28uDQo+ID4+PiBGb3IgZGVmaW5pdGlvbiBibG9jayB0YWJsZXMsIHdl
-IGtub3cgZm9yIHN1cmUgdGhlcmUgd2lsbCBhbHdheXMgYmUNCj4gcmVmZXJlbmNlcywNCj4gPj4g
-dW50aWwgIlVubG9hZCIgb3Bjb2RlIGlzIGludm9rZWQgYnkgdGhlIEFNTCBpbnRlcnByZXRlci4N
-Cj4gPj4+IEJ1dCBmb3IgdGhlIGRhdGEgdGFibGVzLCBPU1BNcyBzaG91bGQgdXNlIHRoZW0gaW4g
-dGhpcyB3YXk6DQo+ID4+PiAxLiBtYXAgdGhlIHRhYmxlDQo+ID4+PiAyLiBwYXJzZSB0aGUgdGFi
-bGUgYW5kIGNvbnZlcnQgaXQgdG8gT1Mgc3BlY2lmaWMgc3RydWN0dXJlcw0KPiA+Pj4gMy4gdW5t
-YXAgdGhlIHRhYmxlDQo+ID4+PiBUaGlzIGhlbHBzIHRvIHNocmluayB2aXJ0dWFsIG1lbW9yeSBh
-ZGRyZXNzIHNwYWNlIHVzYWdlcy4NCj4gPj4+DQo+ID4+PiBTbyBmcm9tIHRoaXMgcG9pbnQgb2Yg
-dmlldywgYWxsIGRhdGEgdGFibGVzIHNob3VsZCBiZSB1bm1hcHBlZCByaWdodCBhZnRlcg0KPiA+
-PiBiZWluZyBwYXJzZWQuDQo+ID4+PiBXaHkgZG8geW91IG5lZWQgdGhlIG1hcCB0byBiZSBwZXJz
-aXN0ZW50IGluIHRoZSBrZXJuZWwgYWRkcmVzcyBzcGFjZT8NCj4gPj4+IFlvdSBjYW4gYWx3YXlz
-IG1hcCBhIHNtYWxsIHRhYmxlLCBidXQgd2hhdCBpZiB0aGUgdGFibGUgc2l6ZSBpcyB2ZXJ5IGJp
-Zz8NCj4gPj4+DQo+ID4+Pj4NCj4gPj4+Pj4+IEFuZCBpbiBmYWN0IGVhcmx5X2FjcGlfb3NfdW5t
-YXBfbWVtb3J5KCkgc2hvdWxkIGJlIHJlbW92ZWQuDQo+ID4+Pj4NCj4gPj4+PiBJIGRvbid0IHRo
-aW5rIHNvIC0tIEkgaGF2ZSBleHBsYWluZWQgd2h5LiAgSXQgZG9lcyBkaWZmZXJlbnQgdGhpbmcu
-DQo+ID4+Pj4gUHJvYmFibHkgaXQgKGFuZC9vciBvdGhlciBmdW5jdGlvbnMgaW4gdGhhdCBhcGkp
-IHNob3VsZCBiZSByZW5hbWVkLg0KPiA+Pj4+DQo+ID4+PiBbTHYgWmhlbmddDQo+ID4+PiBKdXN0
-IGxldCBtZSBhc2sgb25lIG1vcmUgcXVlc3Rpb24uDQo+ID4+PiBlYXJ5X2FjcGlfb3NfdW5tYXBf
-bWVtb3J5KCkgaXMgbm90IHVzZWQgaW5zaWRlIG9mIEFDUElDQS4NCj4gPj4+IEhvdyBBQ1BJQ0Eg
-Y2FuIHdvcmsgd2l0aCBqdXN0IGFjcGlfb3NfdW5tYXBfbWVtb3J5KCk/DQo+ID4+PiBZb3UgY2Fu
-IGNoZWNrIGRyaXZlcnMvYWNwaS90Ynh4eC5jLg0KPiA+Pj4gRXNwZWNpYWxseTogYWNwaV90Yl9y
-ZWxlYXNlX3RlbXBfdGFibGUoKSBhbmQgdGhlIGNvZGUgaW52b2tpbmcgaXQuDQo+ID4+Pg0KPiA+
-Pj4+PiBbTHYgWmhlbmddDQo+ID4+Pj4+IE9uZSBtb3JlIHRoaW5nIGlzOg0KPiA+Pj4+PiBJZiB5
-b3UgY2FuJ3Qgc3dpdGNoIHlvdXIgZHJpdmVyIHRvIHVzZSBhY3BpX29zX3VubWFwX21lbW9yeSgp
-IGluc3RlYWQNCj4gb2YNCj4gPj4+PiBlYXJseV9hY3BpX29zX3VubWFwX21lbW9yeSgpLA0KPiA+
-Pj4+PiB0aGVuIGl0IGltcGxpZXMgdGhhdCB5b3VyIGRyaXZlciBkb2VzIGhhdmUgYSBkZWZlY3Qu
-DQo+ID4+Pj4NCj4gPj4+PiBJIHN0aWxsIGRvbid0IHVuZGVyc3RhbmQgd2hhdCBkZWZlY3QsIHNv
-cnJ5Lg0KPiA+Pj4gW0x2IFpoZW5nXQ0KPiA+Pj4gSWYgeW91IGNhbid0IGVuc3VyZSB0aGlzIHNl
-cXVlbmNlIGZvciB1c2luZyB0aGUgZGF0YSB0YWJsZXM6DQo+ID4+PiAxLiBtYXAgdGhlIHRhYmxl
-DQo+ID4+PiAyLiBwYXJzZSB0aGUgdGFibGUgYW5kIGNvbnZlcnQgaXQgdG8gT1Mgc3BlY2lmaWMg
-c3RydWN0dXJlDQo+ID4+PiAzLiB1bm1hcCB0aGUgdGFibGUNCj4gPj4+IEl0IGltcGxpZXMgdGhl
-cmUgaXMgYSBidWcgaW4gdGhlIGRyaXZlciBvciBhIGJ1ZyBpbiB0aGUgQUNQSSBzdWJzeXN0ZW0g
-Y29yZS4NCj4gPj4NCj4gPj4gRXhhY3RseS4NCj4gPiBbTHYgWmhlbmddDQo+ID4gU28gaXQgbG9v
-a3MgdG8gbWU6DQo+ID4gQ2hhbmdpbmcgX19pbml0IHRvIF9fcmVmIGhlcmUgaXMgZW50aXJlbHkg
-bm90IGFjY2VwdGFibGUuDQo+ID4gVGhpcyBBUEkgc2hvdWxkIHN0YXkgYmVpbmcgaW52b2tlZCBk
-dXJpbmcgZWFybHkgc3RhZ2UuDQo+ID4gT3RoZXJ3aXNlLCBpdCBtYXkgbGVhdmUgdXMgdW50cmFj
-a2FibGUgY29kZSB0aGF0IG1hcHMgdGFibGVzIGR1cmluZyBlYXJseQ0KPiBzdGFnZSBhbmQgbGVh
-a3MgbWFwcyB0byB0aGUgbGF0ZSBzdGFnZS4NCj4gPiBJZiBMaW51eCBjb250YWlucyBzdWNoIGtp
-bmQgb2YgY29kZSwgSSdtIGFmcmFpZCwgaXQgd2lsbCBiZWNvbWUgaW1wb3NzaWJsZSB0bw0KPiBp
-bnRyb2R1Y2UgYWNwaV9wdXRfdGFibGUoKSB0byBjbGVhbiB1cCB0aGUgbWFwcGluZ3MuDQo+ID4g
-QmVjYXVzZSB3aGVuIGFjcGlfcHV0X3RhYmxlKCkgaXMgY2FsbGVkIGR1cmluZyB0aGUgbGF0ZSBz
-dGFnZSB0byBmcmVlIGEgbWFwDQo+IGFjcXVpcmVkIGR1cmluZyB0aGUgZWFybHkgc3RhZ2UsIGl0
-IHRoZW4gb2J2aW91c2x5IHdpbGwgZW5kIHVwIHdpdGggcGFuaWMuDQo+IA0KPiBDYW4geW91IHBs
-ZWFzZSBzdWdnZ2VzdCBhIGNvbW1vbiBtZXRob2QgdG8gYWNjZXNzIEFDUEkgdGFibGVzIHRoYXQN
-Cj4gd29ya3MgYm90aCBiZWZvcmUgKmFuZCogYWZ0ZXIgYWNwaV9nYmxfcGVybWFuZW50X21tYXAg
-aXMgc2V0IGFuZCBfX2luaXQNCj4gY29kZQ0KPiBpcyByZW1vdmVkPw0KW0x2IFpoZW5nXSANCkRv
-IG5vdCBjaGFuZ2UgX19pbml0IGZvciBub3cuDQoNCkN1cnJlbnRseSB5b3Ugc2hvdWxkOg0KMS4g
-YmVmb3JlIGFjcGlfZ2JsX3Blcm1hbmVudF9tbWFwIGlzIHNldDoNCmFjcGlfZ2V0X3RhYmxlX3dp
-dGhfc2l6ZSgpDQpwYXJzZSB0aGUgdGFibGUNCmVhcmx5X2FjcGlfb3NfdW5tYXBfbWVtb3J5KCkN
-CkRvIHlvdXIgZHJpdmVyIGVhcmx5IHN0dWZmIGhlcmUNCg0KMi4gYWZ0ZXIgYWNwaV9nYmxfcGVy
-bWFuZW50X21tYXAgaXMgc2V0Og0KYWNwaV9nZXRfdGFibGUoKQ0KUGFyc2UgdGhlIHRhYmxlDQpE
-byB5b3VyIGRyaXZlciBsYXRlIHN0dWZmIGhlcmUNCjwtIG5vdGUgdGhlcmUgaXMgbm8gQVBJIG5v
-dyBiZWluZyBhbiBpbnZlcnNlIG9mIGFjcGlfZ2V0X3RhYmxlKCkuDQoNCkJlc2lkZXMsIEknbSBh
-Ym91dCB0byBpbnNlcnQgZXJyb3IgbWVzc2FnZXMgYmV0d2VlbiAxIGFuZCAyLg0KSWYgYW4gZWFy
-bHkgbWFwIGlzIG5vdCByZWxlYXNlLCBlcnJvciBtZXNzYWdlIHdpbGwgYmUgcHJvbXB0ZWQgdG8g
-dGhlIGRldmVsb3BlcnMuDQoNCkFuZCBpZiB5b3UgZG9uJ3QgZm9sbG93IHRoZSBhYm92ZSBydWxl
-cywgaXQgbWVhbiB5b3UgYXJlIHRyeWluZyB0byBsYXkgYSBtaW5lLCB3YWl0aW5nIGZvciBtZSB0
-byBzdGVwIG9uIGl0Lg0KVGhhdCdzIHdoeSB0aGlzIGNoYW5nZSBpcyBlbnRpcmVseSBub3QgYWNj
-ZXB0YWJsZS4NCg0KSSdtIGFib3V0IHRvIHNlbmQgb3V0IHRoZSBjbGVhbnVwIHNlcmllcyBpbiAx
-IHdlZWssIGFuZCB3aWxsIENjIHlvdS4NCllvdSBjYW4gcmViYXNlIHlvdXIgY29kZSBvbiB0b3Ag
-b2YgdGhlIGNsZWFudXAgc2VyaWVzLg0KDQpUaGFua3MgYW5kIGJlc3QgcmVnYXJkcw0KLUx2DQoN
-Cj4gDQo+ID4gVGhhbmtzIGFuZCBiZXN0IHJlZ2FyZHMNCj4gPiAtTHYNCj4gPg0KPiA+PiBUaGUg
-Y2VudHJhbCBwcm9ibGVtIGhlcmUgaXMgdGhlIHdheSBBbGVrc2V5IGlzIHRyeWluZyB0byBob29r
-dXAgYSBjb25zb2xlLg0KPiA+Pg0KPiA+PiBXaGF0IHNob3VsZCBiZSBoYXBwZW5pbmcgaW4gdGhp
-cyBzZXJpZXMgaXM6DQo+ID4+IDEuIGVhcmx5IG1hcCBTUENSDQo+ID4+IDIuIHBhcnNlIHRoZSBT
-UENSIHRhYmxlDQo+ID4+IDMuIGNhbGwgYWRkX3ByZWZlcnJlZF9jb25zb2xlKCkgdG8gYWRkIHRo
-ZSBTUENSIGNvbnNvbGUgdG8gdGhlIGNvbnNvbGUNCj4gdGFibGUNCj4gPj4gNC4gdW5tYXAgU1BD
-Ug0KPiA+Pg0KPiA+PiBUaGlzIHRyaXZpYWwgYW5kIHVub2J0cnVzaXZlIG1ldGhvZCB3b3VsZCBh
-bHJlYWR5IGhhdmUgYSA4MjUwIGNvbnNvbGUNCj4gPj4gcnVubmluZyB2aWEgU1BDUi4gSSd2ZSBh
-bHJlYWR5IHBvaW50ZWQgdGhpcyBvdXQgaW4gcHJldmlvdXMgcmV2aWV3cy4NCj4gPj4NCj4gPj4g
-RnVydGhlciwgdGhlIGFib3ZlIG1ldGhvZCAqd2lsbCBiZSByZXF1aXJlZCBhbnl3YXkqIGZvciB0
-aGUgREJHMiB0YWJsZSB0bw0KPiA+PiBzdGFydCBhbiBlYXJseWNvbiwgd2hpY2ggSSd2ZSBhbHJl
-YWR5IHBvaW50ZWQgb3V0IGluIHByZXZpb3VzIHJldmlld3MuDQo+ID4+DQo+ID4+IFRoZW4gdG8g
-ZW5hYmxlIGFtYmEtcGwwMTEgY29uc29sZSB2aWEgQUNQSSwgYWRkIGEgY29uc29sZSBtYXRjaCgp
-IG1ldGhvZA0KPiA+PiBzaW1pbGFyIHRvIHRoZSA4MjUwIGNvbnNvbGUgbWF0Y2goKSBtZXRob2Qs
-IHVuaXY4MjUwX2NvbnNvbGVfbWF0Y2goKS4NCj4gPj4NCj4gPj4gRldJVywgUENJIGVhcmx5Y29u
-ICsgY29uc29sZSBzdXBwb3J0IHdhcyBhbHJlYWR5IHN1Ym1pdHRlZCBvbmNlIGJlZm9yZQ0KPiBi
-dXQNCj4gPj4gbmV2ZXIgcGlja2VkIHVwIGJ5IEdyZWdLSC4gSSB0aGluayBJJ2xsIGp1c3QgZ3Jh
-YiB0aGF0IGFuZCByZS1zdWJtaXQgc28NCj4gPj4geW91IHdvdWxkIGtub3cgd2hhdCB0byBlbWl0
-IGZvciBjb25zb2xlIG9wdGlvbnMgaW4gdGhlDQo+ID4+IGFkZF9wcmVmZXJyZWRfY29uc29sZSgp
-Lg0KPiA+Pg0KPiA+Pg0KPiA+PiBSZWdhcmRzLA0KPiA+PiBQZXRlciBIdXJsZXkNCj4gPj4NCj4g
-Pj4NCj4gPj4+Pj4gVGhlcmUgaXMgYW4gZWFybHkgYm9vdHVwIHJlcXVpcmVtZW50IGluIExpbnV4
-Lg0KPiA+Pj4+PiBNYXBzIGFjcXVpcmVkIGR1cmluZyB0aGUgZWFybHkgc3RhZ2Ugc2hvdWxkIGJl
-IGZyZWVkIGJ5IHRoZSBkcml2ZXIgZHVyaW5nDQo+ID4+IHRoZQ0KPiA+Pj4+IGVhcmx5IHN0YWdl
-Lg0KPiA+Pj4+PiBBbmQgdGhlIGRyaXZlciBzaG91bGQgcmUtYWNxdWlyZSB0aGUgbWVtb3J5IG1h
-cCBhZnRlciBib290aW5nLg0KPiA+Pj4+DQo+ID4+Pj4gRXhhY3RseS4gIFRoYXQncyB3aHkgSSB1
-c2UgZWFybHlfYWNwaV9vc191bm1hcF9tZW1vcnkoKS4gIFRoZSBwb2ludCBpcw0KPiB0aGF0DQo+
-ID4+Pj4gdGhhdCBjb2RlIGNhbiBiZQ0KPiA+Pj4+IGNhbGxlZCAqYmVmb3JlKiBhY3BpX2dibF9w
-ZXJtYW5lbnRfbW1hcCBpcyBzZXQgKGF0IGVhcmx5IGluaXRpYWxpemF0aW9uDQo+IG9mDQo+ID4+
-IGZvcg0KPiA+Pj4+IGV4YW1wbGUgODI1MCBjb25zb2xlKQ0KPiA+Pj4+IG9yICphZnRlciogYWNw
-aV9nYmxfcGVybWFuZW50X21tYXAgaXMgc2V0IChhdCBpbnNlcnRpb24gb2YgYSBtb2R1bGUNCj4g
-dGhhdA0KPiA+Pj4+IHJlZ2lzdGVycyBhIGNvbnNvbGUpLA0KPiA+Pj4+IFdlIGp1c3QgY2FuIG5v
-dCB0ZWxsIGlmIHRoZSByZWNlaXZlZCB0YWJsZSBwb2ludGVyIHNob3VsZCBvciBzb3VsZCBub3Qg
-YmUNCj4gZnJlZWQNCj4gPj4+PiB3aXRoIGVhcmx5X21lbXVubWFwKCkNCj4gPj4+PiAoYWN0dWFs
-bHkgX19hY3BpX3VubWFwX3RhYmxlKCkgb3Igd2hhdGV2ZXIpIHdpdGhvdXQgY2hlY2tpbmcNCj4g
-Pj4+PiBhY3BpX2dibF9wZXJtYW5lbnRfbW1hcCwNCj4gPj4+PiBidXQgdGhhdCdzIGFsbCB0b28g
-bG93IGxldmVsLg0KPiA+Pj4gW0x2IFpoZW5nXQ0KPiA+Pj4gVGhlIGRyaXZlciBzaG91bGQgbWFr
-ZSBzdXJlIHRoYXQ6DQo+ID4+PiBNYXAvdW5tYXAgaXMgcGFpcmVkIGR1cmluZyBlYXJseSBzdGFn
-ZS4NCj4gPj4+IEZvciBsYXRlIHN0YWdlLCBpdCBzaG91bGQgYmUgYW5vdGhlciBwYWlyIG9mIG1h
-cC91bm1hcC4NCj4gPj4+DQo+ID4+Pj4NCj4gPj4+PiBBbm90aGVyIG9wdGlvbiwgYXMgeW91IGRl
-c2NyaWJlLCBpcyB0byBnZXQgdGhpcyBwb2ludGVyIGVhcmx5LCBkb24ndCBmcmVlIGl0DQo+ID4+
-PiBbTHYgWmhlbmddDQo+ID4+PiBJIG1lYW4geW91IHNob3VsZCBmcmVlIGl0IGVhcmx5Lg0KPiA+
-Pj4NCj4gPj4+PiB1bnRpbGwgYWNwaV9nYmxfcGVybWFuZW50X21tYXAgaXMgc2V0LCB0aGVuIGZy
-ZWUgaXQgKHdpdGgNCj4gPj4+PiBlYXJseV9hY3BpX29zX3VubWFwX21lbW9yeSgpLCB0aGF0J3MN
-Cj4gPj4+PiBvayBiZWNhdXNlIGFjcGlfZ2JsX3Blcm1hbmVudF9tbWFwIGlzIHNldCBpbiBhbiBp
-bml0IGNvZGUpLCB0aGVuIGdldA0KPiB0aGUNCj4gPj4+PiBwZXJzaXN0ZW50DQo+ID4+Pj4gcG9p
-bnRlciB0byB0aGUgdGFibGUuICBUaGUgcHJvYmxlbSB3aXRoIGl0IGlzIHRoYXQgd2UgY2FuIG5v
-dCBqdXN0IHdhdGNoDQo+ID4+Pj4gYWNwaV9nYmxfcGVybWFuZW50X21tYXANCj4gPj4+PiB0byBj
-YXRjaCB0aGlzIGV4YWN0IG1vbWVudC4gIEFuZCBhbHNvIGFjY2Vzc2luZw0KPiBhY3BpX2dibF9w
-ZXJtYW5lbnRfbW1hcA0KPiA+PiBpcw0KPiA+Pj4+IG5vdCBnb29kIGFzIGl0IHByb2JhYmx5IGlz
-DQo+ID4+Pj4gYW4gaW1wbGVtZW50YXRpb24gZGV0YWlsIChpLiBlLiB0b28gbG93bGV2ZWwpIG9m
-IHRoZSBBQ1BJIGNvZGUuDQo+ID4+Pj4gT3IgSSBwcm9iYWJseSBtaXNzIHdoYXQgeW91IGFyZSBz
-dWdnZXN0aW5nLg0KPiA+Pj4+DQo+ID4+PiBbTHYgWmhlbmddDQo+ID4+PiBJIG1lYW4sIHlvdSBz
-aG91bGQ6DQo+ID4+PiBEdXJpbmcgZWFybHkgc3RhZ2U6DQo+ID4+PiBhY3BpX29zX21hcF9tZW1v
-cnkoKQ0KPiA+Pj4gUGFyc2UgdGhlIHRhYmxlLg0KPiA+Pj4gYWNwaV9vc191bm1hcF9tZW1vcnko
-KS4NCj4gPj4+DQo+ID4+Pj4+IFRoaXMgaXMgYmVjYXVzZSwgZHVyaW5nIGVhcmx5IGJvb3R1cCBz
-dGFnZSwgdGhlcmUgYXJlIG9ubHkgbGltaXRlZCBzbG90cw0KPiA+Pj4+IGF2YWlsYWJsZSBmb3Ig
-ZHJpdmVycyB0byBtYXAgbWVtb3J5Lg0KPiA+Pj4+PiBTbyBieSBjaGFuZ2luZyBfX2luaXQgdG8g
-X19yZWYgaGVyZSwgeW91IHByb2JhYmx5IHdpbGwgaGlkZSBtYW55IHN1Y2gNCj4gPj4gZGVmZWN0
-cy4NCj4gPj4+Pg0KPiA+Pj4+IFdoYXQgZGVmZWN0cz8gIFRoaXMgZnVuY2lvbnMgY2hlY2tzIGFj
-cGlfZ2JsX3Blcm1hbmVudF9tbWFwLg0KPiA+Pj4+IEJUVywgZXhhY3RseSB0aGUgc2FtZSB0aGlu
-ZyBpcyBkb25lIGluIHRoZSBiZWdpbm5pbmcgb2YNCj4gPj4+PiBhY3BpX29zX3VubWFwX21lbW9y
-eSgpIGFuZCB0aGFuJ3Mgb2ssDQo+ID4+Pj4gdGhhdCBmdW5jdGlvbiBpcyBfX3JlZi4NCj4gPj4+
-Pg0KPiA+Pj4+PiBBbmQgc29sdmluZyBpc3N1ZXMgaW4gdGhpcyB3YXkgZG9lc24ndCBzZWVtIHRv
-IGJlIGFuIGltcHJvdmVtZW50Lg0KPiA+Pj4+DQo+ID4+Pj4gQ291bGQgeW91IHBsZWFzZSB0ZWxs
-IG1lIHdoZXJlIEkgYW0gd3Jvbmc/ICBJIHN0aWxsIGRvbid0IHVuZGVyc3RhbmQgeW91cg0KPiA+
-PiBwb2ludC4NCj4gPj4+IFtMdiBaaGVuZ10NCj4gPj4+IEJ1dCBhbnl3YXksIHRoZSBkZWZlY3Qg
-c2hvdWxkIGJlIGluIEFDUEkgc3Vic3lzdGVtIGNvcmUuDQo+ID4+PiBUaGUgY2F1c2Ugc2hvdWxk
-IGJlIHRoZSBBUEkgaXRzZWxmIC0gYWNwaV9nZXRfdGFibGUoKS4NCj4gPj4+DQo+ID4+PiBTbyBJ
-IGFncmVlIHlvdSBjYW4gdXNlIGVhcmx5X2FjcGlfb3NfdW5tYXBfbWVtb3J5KCkgZHVyaW5nIHRo
-ZSBwZXJpb2QNCj4gdGhlDQo+ID4+IHJvb3QgY2F1c2VzIGFyZSBub3QgY2xlYW5lZCB1cC4NCj4g
-Pj4+IEJ1dCB0aGUgYm90dG9tIGxpbmUgaXM6IHRoZSBkcml2ZXIgbmVlZCB0byBlbnN1cmUgdGhh
-dA0KPiA+PiBlYXJseV9hY3BpX29zX3VubWFwX21lbW9yeSgpIGlzIGFsd2F5cyBpbnZva2VkLg0K
-PiA+Pj4gQXMgbG9uZyBhcyB5b3UgY2FuIGVuc3VyZSB0aGlzLCBJIGRvbid0IGhhdmUgb2JqZWN0
-aW9ucyBmb3IgZGVwbG95aW5nDQo+ID4+IGVhcmx5X2FjcGlfb3NfdW5tYXBfbWVtb3J5KCkgIGZv
-ciBub3cuDQo+ID4+Pg0KPiA+Pj4gVGhhbmtzIGFuZCBiZXN0IHJlZ2FyZHMNCj4gPj4+IC1Mdg0K
-PiA+Pj4NCj4gPj4+Pg0KPiA+Pj4+IFRoYW5rIHlvdQ0KPiA+Pj4+IEFsZWtzZXkgTWFrYXJvdg0K
-PiA+Pj4+DQo+ID4+Pj4+DQo+ID4+Pj4+IFRoYW5rcyBhbmQgYmVzdCByZWdhcmRzDQo+ID4+Pj4+
-IC1Mdg0KPiA+Pj4+Pg0KPiA+Pj4+Pj4NCj4gPj4+Pj4+IFRoYW5rcyBhbmQgYmVzdCByZWdhcmRz
-DQo+ID4+Pj4+PiAtTHYNCj4gPj4+Pj4+DQo+ID4+Pj4+Pj4NCj4gPj4+Pj4+PiBTaWduZWQtb2Zm
-LWJ5OiBBbGVrc2V5IE1ha2Fyb3YgPGFsZWtzZXkubWFrYXJvdkBsaW5hcm8ub3JnPg0KPiA+Pj4+
-Pj4+IC0tLQ0KPiA+Pj4+Pj4+ICBkcml2ZXJzL2FjcGkvb3NsLmMgfCA2ICsrKysrLQ0KPiA+Pj4+
-Pj4+ICAxIGZpbGUgY2hhbmdlZCwgNSBpbnNlcnRpb25zKCspLCAxIGRlbGV0aW9uKC0pDQo+ID4+
-Pj4+Pj4NCj4gPj4+Pj4+PiBkaWZmIC0tZ2l0IGEvZHJpdmVycy9hY3BpL29zbC5jIGIvZHJpdmVy
-cy9hY3BpL29zbC5jDQo+ID4+Pj4+Pj4gaW5kZXggNjdkYTZmYi4uOGE1NTJjZCAxMDA2NDQNCj4g
-Pj4+Pj4+PiAtLS0gYS9kcml2ZXJzL2FjcGkvb3NsLmMNCj4gPj4+Pj4+PiArKysgYi9kcml2ZXJz
-L2FjcGkvb3NsLmMNCj4gPj4+Pj4+PiBAQCAtNDk3LDcgKzQ5NywxMSBAQCB2b2lkIF9fcmVmIGFj
-cGlfb3NfdW5tYXBfbWVtb3J5KHZvaWQNCj4gKnZpcnQsDQo+ID4+Pj4+Pj4gYWNwaV9zaXplIHNp
-emUpDQo+ID4+Pj4+Pj4gIH0NCj4gPj4+Pj4+PiAgRVhQT1JUX1NZTUJPTF9HUEwoYWNwaV9vc191
-bm1hcF9tZW1vcnkpOw0KPiA+Pj4+Pj4+DQo+ID4+Pj4+Pj4gLXZvaWQgX19pbml0IGVhcmx5X2Fj
-cGlfb3NfdW5tYXBfbWVtb3J5KHZvaWQgX19pb21lbSAqdmlydCwNCj4gPj4gYWNwaV9zaXplDQo+
-ID4+Pj4+PiBzaXplKQ0KPiA+Pj4+Pj4+ICsvKg0KPiA+Pj4+Pj4+ICsgKiBhY3BpX2dibF9wZXJt
-YW5lbnRfbW1hcCBpcyBzZXQgaW4gX19pbml0IGFjcGlfZWFybHlfaW5pdCgpDQo+ID4+Pj4+Pj4g
-KyAqIHNvIGl0IGlzIHNhZmUgdG8gY2FsbCBlYXJseV9hY3BpX29zX3VubWFwX21lbW9yeSgpIGZy
-b20NCj4gYW55d2hlcmUNCj4gPj4+Pj4+PiArICovDQo+ID4+Pj4+Pj4gK3ZvaWQgX19yZWYgZWFy
-bHlfYWNwaV9vc191bm1hcF9tZW1vcnkodm9pZCBfX2lvbWVtICp2aXJ0LA0KPiA+PiBhY3BpX3Np
-emUNCj4gPj4+Pj4+IHNpemUpDQo+ID4+Pj4+Pj4gIHsNCj4gPj4+Pj4+PiAgCWlmICghYWNwaV9n
-YmxfcGVybWFuZW50X21tYXApDQo+ID4+Pj4+Pj4gIAkJX19hY3BpX3VubWFwX3RhYmxlKHZpcnQs
-IHNpemUpOw0KPiA+Pj4+Pj4+IC0tDQo+ID4+Pj4+Pj4gMi43LjENCj4gPj4+Pj4+Pg0KPiA+Pj4+
-Pj4+IC0tDQo+ID4+Pj4+Pj4gVG8gdW5zdWJzY3JpYmUgZnJvbSB0aGlzIGxpc3Q6IHNlbmQgdGhl
-IGxpbmUgInVuc3Vic2NyaWJlIGxpbnV4LWFjcGkiIGluDQo+ID4+Pj4+Pj4gdGhlIGJvZHkgb2Yg
-YSBtZXNzYWdlIHRvIG1ham9yZG9tb0B2Z2VyLmtlcm5lbC5vcmcNCj4gPj4+Pj4+PiBNb3JlIG1h
-am9yZG9tbyBpbmZvIGF0ICBodHRwOi8vdmdlci5rZXJuZWwub3JnL21ham9yZG9tby0NCj4gaW5m
-by5odG1sDQo+ID4+Pj4+PiAtLQ0KPiA+Pj4+Pj4gVG8gdW5zdWJzY3JpYmUgZnJvbSB0aGlzIGxp
-c3Q6IHNlbmQgdGhlIGxpbmUgInVuc3Vic2NyaWJlIGxpbnV4LWFjcGkiIGluDQo+ID4+Pj4+PiB0
-aGUgYm9keSBvZiBhIG1lc3NhZ2UgdG8gbWFqb3Jkb21vQHZnZXIua2VybmVsLm9yZw0KPiA+Pj4+
-Pj4gTW9yZSBtYWpvcmRvbW8gaW5mbyBhdCAgaHR0cDovL3ZnZXIua2VybmVsLm9yZy9tYWpvcmRv
-bW8taW5mby5odG1sDQo+ID4NCg==
+On 02/19/2016 09:20 AM, Christopher Covington wrote:
+> 
+> 
+> On February 19, 2016 10:25:50 AM EST, Peter Hurley <peter@hurleysoftware.com> wrote:
+>> On 02/19/2016 02:42 AM, Aleksey Makarov wrote:
+>>> Hi Peter,
+>>>
+>>> Thank you for review.
+>>>
+>>> On 02/19/2016 01:03 AM, Peter Hurley wrote:
+>>>> On 02/17/2016 07:36 PM, Zheng, Lv wrote:
+>>>>> Hi,
+>>>>>
+>>>>>> From: Aleksey Makarov [mailto:aleksey.makarov@linaro.org]
+>>>>>> Subject: Re: [PATCH v3 1/5] ACPI: change __init to __ref for
+>>>>>> early_acpi_os_unmap_memory()
+>>>>>>
+>>>>>> Hi Lv,
+>>>>>>
+>>>>>> Thank you for review.
+>>>>>>
+>>>>>> On 02/17/2016 05:51 AM, Zheng, Lv wrote:
+>>>>>>
+>>>>>> [..]
+>>>>>>
+>>>>>>>>> early_acpi_os_unmap_memory() is marked as __init because it
+>> calls
+>>>>>>>>> __acpi_unmap_table(), but only when acpi_gbl_permanent_mmap is
+>> not
+>>>>>> set.
+>>>>>>>>>
+>>>>>>>>> acpi_gbl_permanent_mmap is set in __init acpi_early_init()
+>>>>>>>>> so it is safe to call early_acpi_os_unmap_memory() from
+>> anywhere
+>>>>>>>>>
+>>>>>>>>> We need this function to be non-__init because we need access
+>> to
+>>>>>>>>> some tables at unpredictable time--it may be before or after
+>>>>>>>>> acpi_gbl_permanent_mmap is set.  For example, SPCR (Serial Port
+>> Console
+>>>>>>>>> Redirection) table is needed each time a new console is
+>> registered.
+>>>>>>>>> It can be quite early (console_initcall) or when a module is
+>> inserted.
+>>>>>>>>> When this table accessed before acpi_gbl_permanent_mmap is set,
+>>>>>>>>> the pointer should be unmapped.  This is exactly what this
+>> function
+>>>>>>>>> does.
+>>>>>>>> [Lv Zheng]
+>>>>>>>> Why don't you use another API instead of
+>> early_acpi_os_unmap_memory()
+>>>>>> in
+>>>>>>>> case you want to unmap things in any cases.
+>>>>>>>> acpi_os_unmap_memory() should be the one to match this purpose.
+>>>>>>>> It checks acpi_gbl_ppermanent_mmap in acpi_os_unmap_iomem().
+>>>>>>
+>>>>>> As far as I understand, there exist two steps in ACPI
+>> initialization:
+>>>>>>
+>>>>>> 1. Before acpi_gbl_permanent_mmap is set, tables received with
+>>>>>> acpi_get_table_with_size()
+>>>>>>    are mapped by early_memremap().  If a subsystem gets such a
+>> pointer it
+>>>>>> should be unmapped.
+>>>>>>
+>>>>>> 2  After acpi_gbl_permanent_mmap is set this pointer should not be
+>> unmapped
+>>>>>> at all.
+>>>>>>
+>>>>> [Lv Zheng] 
+>>>>> This statement is wrong, this should be:
+>>>>> As long as there is a __reference__ to the mapped table, the
+>> pointer should not be unmapped.
+>>>>> In fact, we have a series to introduce acpi_put_table() to achieve
+>> this.
+>>>>> So your argument is wrong from very first point.
+>>>>>
+>>>>>> That exactly what early_acpi_os_unmap_memory() does--it checks
+>>>>>> acpi_gbl_permanent_mmap.
+>>>>>> If I had used acpi_os_unmap_memory() after acpi_gbl_permanent_mmap
+>> had
+>>>>>> been set,
+>>>>>> it would have tried to free that pointer with an oops (actually, I
+>> checked that
+>>>>>> and got that oops).
+>>>>>>
+>>>>>> So using acpi_os_unmap_memory() is not an option here, but
+>>>>>> early_acpi_os_unmap_memory()
+>>>>>> match perfectly.
+>>>>> [Lv Zheng] 
+>>>>> I don't think so.
+>>>>> For definition block tables, we know for sure there will always be
+>> references, until "Unload" opcode is invoked by the AML interpreter.
+>>>>> But for the data tables, OSPMs should use them in this way:
+>>>>> 1. map the table
+>>>>> 2. parse the table and convert it to OS specific structures
+>>>>> 3. unmap the table
+>>>>> This helps to shrink virtual memory address space usages.
+>>>>>
+>>>>> So from this point of view, all data tables should be unmapped
+>> right after being parsed.
+>>>>> Why do you need the map to be persistent in the kernel address
+>> space?
+>>>>> You can always map a small table, but what if the table size is
+>> very big?
+>>>>>
+>>>>>>
+>>>>>>>> And in fact early_acpi_os_unmap_memory() should be removed.
+>>>>>>
+>>>>>> I don't think so -- I have explained why.  It does different
+>> thing.
+>>>>>> Probably it (and/or other functions in that api) should be
+>> renamed.
+>>>>>>
+>>>>> [Lv Zheng] 
+>>>>> Just let me ask one more question.
+>>>>> eary_acpi_os_unmap_memory() is not used inside of ACPICA.
+>>>>> How ACPICA can work with just acpi_os_unmap_memory()?
+>>>>> You can check drivers/acpi/tbxxx.c.
+>>>>> Especially: acpi_tb_release_temp_table() and the code invoking it.
+>>>>>
+>>>>>>> [Lv Zheng]
+>>>>>>> One more thing is:
+>>>>>>> If you can't switch your driver to use acpi_os_unmap_memory()
+>> instead of
+>>>>>> early_acpi_os_unmap_memory(),
+>>>>>>> then it implies that your driver does have a defect.
+>>>>>>
+>>>>>> I still don't understand what defect, sorry.
+>>>>> [Lv Zheng] 
+>>>>> If you can't ensure this sequence for using the data tables:
+>>>>> 1. map the table
+>>>>> 2. parse the table and convert it to OS specific structure
+>>>>> 3. unmap the table
+>>>>> It implies there is a bug in the driver or a bug in the ACPI
+>> subsystem core.
+>>>>
+>>>> Exactly.
+>>>>
+>>>> The central problem here is the way Aleksey is trying to hookup a
+>> console.
+>>>>
+>>>> What should be happening in this series is:
+>>>> 1. early map SPCR
+>>>> 2. parse the SPCR table
+>>>> 3. call add_preferred_console() to add the SPCR console to the
+>> console table
+>>>> 4. unmap SPCR
+>>>
+>>> This does not work.  
+>>>
+>>> SPCR specifies address of the console, but add_preferred_console()
+>> accepts
+>>> name of console and its index.  There are no general method to
+>> translate address
+>>> to name at such an early stage.
+>>
+>>
+>> 	add_preferred_console(uart, 0, "io,0x3f8,115200");
+>>
+>> This will start a console with the 8250 driver. I've already pointed
+>> this out to you in an earlier review. This is what existing firmware
+>> already does.
+>>
+>> This is also the method you will use to start an earlycon from the
+>> DBG2 table, by additionally calling setup_earlycon().
+> 
+> Can the device specified in DBG2 be used for both earlycon and KGDB?
+
+I don't see why not. Since earlycon is a bootconsole, it's disabled when
+the first regular console starts. I use earlycon + KGDB now on the same
+device (ttyS0 == uart0 @ mmio 0x44e09000):
+
+[    0.000000] Booting Linux on physical CPU 0x0
+[    0.000000] Linux version 4.5.0-rc2+ (peter@thor) (gcc version 5.1.1 20150608 (Linaro GCC 5.1-2015.08) ) #60 PREE
+MPT Sun Feb 21 20:17:16 PST 2016
+[    0.000000] CPU: ARMv7 Processor [413fc082] revision 2 (ARMv7), cr=10c5387d
+[    0.000000] CPU: PIPT / VIPT nonaliasing data cache, VIPT aliasing instruction cache
+[    0.000000] Machine model: TI AM335x BeagleBone Black
+[    0.000000] earlycon: omap8250 at MMIO 0x44e09000 (options '')
+[    0.000000] bootconsole [omap8250] enabled
+
+....
+
+[    3.086800] Serial: 8250/16550 driver, 32 ports, IRQ sharing disabled
+[    3.099818] console [ttyS0] disabled
+[    3.112402] 44e09000.serial: ttyS0 at MMIO 0x44e09000 (irq = 158, base_baud = 3000000) is a 8250
+[    3.121575] console [ttyS0] enabled
+[    3.121575] console [ttyS0] enabled
+[    3.128678] bootconsole [omap8250] disabled
+[    3.128678] bootconsole [omap8250] disabled
+[    3.152397] 481a8000.serial: ttyS4 at MMIO 0x481a8000 (irq = 159, base_baud = 3000000) is a 8250
+[    3.176393] 481aa000.serial: ttyS5 at MMIO 0x481aa000 (irq = 160, base_baud = 3000000) is a 8250
+[    3.185998] KGDB: Registered I/O driver kgdboc
+[    3.200374] KGDB: Waiting for connection from remote gdb...
+
+
+> If it can only be used for one, let's make sure the choice of
+> earlycon vs KGDB is intentional rather than accidental.
+
+If anything, a future feature would be to run KGDB over earlycon.
+
+Regards,
+Peter Hurley
