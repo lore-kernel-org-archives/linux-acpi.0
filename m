@@ -1,52 +1,99 @@
-From: Sudeep Holla <sudeep.holla@arm.com>
-Subject: Re: [PATCH v3 4/5] ACPI / processor_idle : introduce
- ARCH_SUPPORTS_ACPI_PROCESSOR_CSTATE
-Date: Tue, 23 Feb 2016 09:32:14 +0000
-Message-ID: <56CC271E.2020402@arm.com>
-References: <1449065446-26115-1-git-send-email-sudeep.holla@arm.com>
- <1449065446-26115-5-git-send-email-sudeep.holla@arm.com>
- <12469811.iv3SctjXxl@vostro.rjw.lan> <56C465CE.50403@arm.com>
- <56CB1132.1060202@arm.com>
- <CAJZ5v0jUMcfJw983eJwXExc2Du2Vuycb5A_X+S_QwJzyAysO5g@mail.gmail.com>
+From: Graeme Gregory <gg@slimlogic.co.uk>
+Subject: Re: [PATCH 1/8] arm64: move acpi/dt decision earlier in boot process
+Date: Tue, 23 Feb 2016 13:57:31 +0000
+Message-ID: <20160223135731.GA24781@xora-haswell.xora.org.uk>
+References: <1456148818-26257-1-git-send-email-aleksey.makarov@linaro.org>
+ <1456148818-26257-2-git-send-email-aleksey.makarov@linaro.org>
+ <56CB2D0D.3090408@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from foss.arm.com ([217.140.101.70]:35406 "EHLO foss.arm.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750758AbcBWJcT (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 23 Feb 2016 04:32:19 -0500
-In-Reply-To: <CAJZ5v0jUMcfJw983eJwXExc2Du2Vuycb5A_X+S_QwJzyAysO5g@mail.gmail.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <56CB2D0D.3090408@gmail.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Matthias Brugger <matthias.bgg@gmail.com>
+Cc: Aleksey Makarov <aleksey.makarov@linaro.org>, linux-acpi@vger.kernel.org, Russell King <linux@arm.linux.org.uk>, Graeme Gregory <graeme.gregory@linaro.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, linux-kernel@vger.kernel.org, Leif Lindholm <leif.lindholm@linaro.org>, Christopher Covington <cov@codeaurora.org>, linux-serial@vger.kernel.org, Catalin Marinas <catalin.marinas@arm.com>, Will Deacon <will.deacon@arm.com>, Al Stone <ahs3@redhat.com>, linux-arm-kernel@lists.infradead.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rafael@kernel.org>
-Cc: Sudeep Holla <sudeep.holla@arm.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, "linux-ia64@vger.kernel.org" <linux-ia64@vger.kernel.org>, x86@kernel.org, Al Stone <al.stone@linaro.org>, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, Mahesh Sivasubramanian <msivasub@codeaurora.org>, Ashwin Chaugule <ashwin.chaugule@linaro.org>, Prashanth Prakash <pprakash@codeaurora.org>
 
+On Mon, Feb 22, 2016 at 04:45:17PM +0100, Matthias Brugger wrote:
+> 
+> 
+> On 22/02/16 14:46, Aleksey Makarov wrote:
+> >From: Leif Lindholm <leif.lindholm@linaro.org>
+> >
+> >In order to support selecting earlycon via either ACPI or DT, move
+> >the decision on whether to attempt ACPI configuration into the
+> >early_param handling. Then make acpi_boot_table_init() bail out if
+> >acpi_disabled.
+> >
+> >Signed-off-by: Leif Lindholm <leif.lindholm@linaro.org>
+> >---
+> >  arch/arm64/kernel/acpi.c | 54 ++++++++++++++++++++++++++----------------------
+> >  1 file changed, 29 insertions(+), 25 deletions(-)
+> >
+> >diff --git a/arch/arm64/kernel/acpi.c b/arch/arm64/kernel/acpi.c
+> >index d1ce8e2..7a944f7 100644
+> >--- a/arch/arm64/kernel/acpi.c
+> >+++ b/arch/arm64/kernel/acpi.c
+> >@@ -44,6 +44,19 @@ EXPORT_SYMBOL(acpi_pci_disabled);
+> >  static bool param_acpi_off __initdata;
+> >  static bool param_acpi_force __initdata;
+> >
+> >+static int __init dt_scan_depth1_nodes(unsigned long node,
+> >+				       const char *uname, int depth,
+> >+				       void *data)
+> >+{
+> >+	/*
+> >+	 * Return 1 as soon as we encounter a node at depth 1 that is
+> >+	 * not the /chosen node.
+> >+	 */
+> >+	if (depth == 1 && (strcmp(uname, "chosen") != 0))
+> >+		return 1;
+> >+	return 0;
+> >+}
+> >+
+> >  static int __init parse_acpi(char *arg)
+> >  {
+> >  	if (!arg)
+> >@@ -57,23 +70,27 @@ static int __init parse_acpi(char *arg)
+> >  	else
+> >  		return -EINVAL;	/* Core will print when we return error */
+> >
+> >-	return 0;
+> >-}
+> >-early_param("acpi", parse_acpi);
+> >+	/*
+> >+	 * Enable ACPI instead of device tree unless
+> >+	 * - ACPI has been disabled explicitly (acpi=off), or
+> >+	 * - the device tree is not empty (it has more than just a /chosen node)
+> >+	 *   and ACPI has not been force enabled (acpi=force)
+> >+	 */
+> >+	if (param_acpi_off ||
+> >+	    (!param_acpi_force && of_scan_flat_dt(dt_scan_depth1_nodes, NULL)))
+> >+		return 0;
+> >
+> >-static int __init dt_scan_depth1_nodes(unsigned long node,
+> >-				       const char *uname, int depth,
+> >-				       void *data)
+> >-{
+> >  	/*
+> >-	 * Return 1 as soon as we encounter a node at depth 1 that is
+> >-	 * not the /chosen node.
+> >+	 * ACPI is disabled at this point. Enable it in order to parse
+> >+	 * the ACPI tables and carry out sanity checks
+> >  	 */
+> >-	if (depth == 1 && (strcmp(uname, "chosen") != 0))
+> >-		return 1;
+> >+	enable_acpi();
+> >+
+> 
+> So we only enable ACPI if we pass acpi=force as kernel parameter?
+> I'm not sure if this is what you wanted to do.
+> 
 
+The current preference from ARM64 maintainers was that is both ACPI
+tables and a DT were presented then DT should take precedence.
 
-On 22/02/16 23:28, Rafael J. Wysocki wrote:
-> On Mon, Feb 22, 2016 at 2:46 PM, Sudeep Holla <sudeep.holla@arm.com> wrote:
->> Hi Rafael,
->>
->> On 17/02/16 12:21, Sudeep Holla wrote:
+With no DT provided the code should use ACPI.
 
-[...]
-
->>
->> Whatever alternative methods I tried so far ended up much horrible than
->> this. So any suggestions are much appreciated.
->
-> Well, you have to give me some time here, sorry.
->
-
-Sorry for the nag.
-
-> I'm still not done with cpufreq at this point and it's going to
-> consume some more cycles I'm afraid.
->
-
-I understand, will wait patiently :)
-
--- 
-Regards,
-Sudeep
+Graeme
