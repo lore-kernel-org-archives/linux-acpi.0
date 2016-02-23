@@ -1,101 +1,120 @@
-From: Leif Liddy <leif.linux@gmail.com>
-Subject: Re: ACPI SPI slave device
-Date: Tue, 23 Feb 2016 15:18:26 +0100
-Message-ID: <CAAbRKOvktig4w9RPngCV4PBYZmO+3emCPwjMT1XMSxNesY+M6A@mail.gmail.com>
-References: <CAAbRKOuTsBe0SBvcD-q+bBOSdkv_OWBu0-YWeMfKnM1o4MhT4A@mail.gmail.com>
-	<20160223073819.GK1770@lahna.fi.intel.com>
+From: Matthias Brugger <matthias.bgg@gmail.com>
+Subject: Re: [PATCH 1/8] arm64: move acpi/dt decision earlier in boot process
+Date: Tue, 23 Feb 2016 15:37:26 +0100
+Message-ID: <56CC6EA6.4020909@gmail.com>
+References: <1456148818-26257-1-git-send-email-aleksey.makarov@linaro.org>
+ <1456148818-26257-2-git-send-email-aleksey.makarov@linaro.org>
+ <56CB2D0D.3090408@gmail.com>
+ <20160223135731.GA24781@xora-haswell.xora.org.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-ig0-f195.google.com ([209.85.213.195]:34285 "EHLO
-	mail-ig0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752508AbcBWOS1 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 23 Feb 2016 09:18:27 -0500
-Received: by mail-ig0-f195.google.com with SMTP id sv7so8469172igc.1
-        for <linux-acpi@vger.kernel.org>; Tue, 23 Feb 2016 06:18:27 -0800 (PST)
-In-Reply-To: <20160223073819.GK1770@lahna.fi.intel.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20160223135731.GA24781@xora-haswell.xora.org.uk>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Graeme Gregory <gg@slimlogic.co.uk>
+Cc: Aleksey Makarov <aleksey.makarov@linaro.org>, linux-acpi@vger.kernel.org, Russell King <linux@arm.linux.org.uk>, Graeme Gregory <graeme.gregory@linaro.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, linux-kernel@vger.kernel.org, Leif Lindholm <leif.lindholm@linaro.org>, Christopher Covington <cov@codeaurora.org>, linux-serial@vger.kernel.org, Catalin Marinas <catalin.marinas@arm.com>, Will Deacon <will.deacon@arm.com>, Al Stone <ahs3@redhat.com>, linux-arm-kernel@lists.infradead.org
 List-Id: linux-acpi@vger.kernel.org
-To: Mika Westerberg <mika.westerberg@linux.intel.com>
-Cc: linux-acpi@vger.kernel.org
-
-The device does have SPISerialbus() in _CRS.
-
-Looks like this guy is having the same issue.
-https://www.mail-archive.com/linux-yocto@yoctoproject.org/msg04044.html
-
-"Slave devices were not enumerated by ACPI data because the ACPI handle
-for the spi-pxa2xx controller was NULL if it was itself enumerated by
-PCI.
-
-Upstream-status: Inappropriate, real fix forthcoming"
 
 
-I'm going to try out his patch and see what happens..
 
-On Tue, Feb 23, 2016 at 8:38 AM, Mika Westerberg
-<mika.westerberg@linux.intel.com> wrote:
-> On Tue, Feb 23, 2016 at 02:54:45AM +0100, Leif Liddy wrote:
->> I'm new to kernel development, and there's few fairly large gaps in =
-my
->> understanding about
->> how drivers are meant to work, but hopefully you guys can point me i=
-n
->> the right direction.
->>
->> The macbook8,1 (early 2015) has a keyboard/trackpad that is seen by
->> ACPI as a single SPI slave device.
->> It appears the only method to access the keyboard/trackpad is via
->> the SPI bus --my goal is the get keyboard/trackpad working.
->>
->> I've recently submitted a kernel patch that binds the spi-pxa2xx-pci
->> driver to the Wildcat Point-LP Serial IO GSPI Controller. With this
->> patch, the SPI controller appears to be working...
->> http://www.spinics.net/lists/linux-spi/msg06867.html
->>
->> ----------LSHW INFO------------
->> *-serial:1
->>              description: Serial bus controller
->>              product: Wildcat Point-LP Serial IO GSPI Controller #1
->>              vendor: Intel Corporation
->>              physical id: 15.4
->>              bus info: pci@0000:00:15.4
->>              version: 03
->>              width: 32 bits
->>              clock: 33MHz
->>              capabilities: pm cap_list
->>              configuration: driver=3Dpxa2xx_spi_pci latency=3D0
->>              resources: irq:21 memory:c181a000-c181afff
+On 23/02/16 14:57, Graeme Gregory wrote:
+> On Mon, Feb 22, 2016 at 04:45:17PM +0100, Matthias Brugger wrote:
 >>
 >>
->> What I'm having trouble with is sorting out how to register the SPI
->> slave device with the SPI controller.
->> **no slave devices are found when I modprobe the driver.
->> I'm not sure if this is something that should be done by the spi
->> driver (by calling an acpi function), or whether I must manually do
->> it.
+>> On 22/02/16 14:46, Aleksey Makarov wrote:
+>>> From: Leif Lindholm <leif.lindholm@linaro.org>
+>>>
+>>> In order to support selecting earlycon via either ACPI or DT, move
+>>> the decision on whether to attempt ACPI configuration into the
+>>> early_param handling. Then make acpi_boot_table_init() bail out if
+>>> acpi_disabled.
+>>>
+>>> Signed-off-by: Leif Lindholm <leif.lindholm@linaro.org>
+>>> ---
+>>>   arch/arm64/kernel/acpi.c | 54 ++++++++++++++++++++++++++----------------------
+>>>   1 file changed, 29 insertions(+), 25 deletions(-)
+>>>
+>>> diff --git a/arch/arm64/kernel/acpi.c b/arch/arm64/kernel/acpi.c
+>>> index d1ce8e2..7a944f7 100644
+>>> --- a/arch/arm64/kernel/acpi.c
+>>> +++ b/arch/arm64/kernel/acpi.c
+>>> @@ -44,6 +44,19 @@ EXPORT_SYMBOL(acpi_pci_disabled);
+>>>   static bool param_acpi_off __initdata;
+>>>   static bool param_acpi_force __initdata;
+>>>
+>>> +static int __init dt_scan_depth1_nodes(unsigned long node,
+>>> +				       const char *uname, int depth,
+>>> +				       void *data)
+>>> +{
+>>> +	/*
+>>> +	 * Return 1 as soon as we encounter a node at depth 1 that is
+>>> +	 * not the /chosen node.
+>>> +	 */
+>>> +	if (depth == 1 && (strcmp(uname, "chosen") != 0))
+>>> +		return 1;
+>>> +	return 0;
+>>> +}
+>>> +
+>>>   static int __init parse_acpi(char *arg)
+>>>   {
+>>>   	if (!arg)
+>>> @@ -57,23 +70,27 @@ static int __init parse_acpi(char *arg)
+>>>   	else
+>>>   		return -EINVAL;	/* Core will print when we return error */
+
+If argument of parse_acpi is neither "off" nor "force" we return with 
+-EINVAL here. Actually parse_acpi will be only called if we pass "acpi=" 
+as kernel parameter. Therefor we can get rid of "acpi=off" as this is 
+the _new_ standard. IMHO we should introduce "acpi=on" if we really want 
+to change the standard behavior.
+
+>>>
+>>> -	return 0;
+>>> -}
+>>> -early_param("acpi", parse_acpi);
+>>> +	/*
+>>> +	 * Enable ACPI instead of device tree unless
+>>> +	 * - ACPI has been disabled explicitly (acpi=off), or
+>>> +	 * - the device tree is not empty (it has more than just a /chosen node)
+>>> +	 *   and ACPI has not been force enabled (acpi=force)
+>>> +	 */
+>>> +	if (param_acpi_off ||
+>>> +	    (!param_acpi_force && of_scan_flat_dt(dt_scan_depth1_nodes, NULL)))
+>>> +		return 0;
+
+Or param_acpi_off is true or param_acpi_force is true, the depth of the 
+DT has no influence.
+
+>>>
+>>> -static int __init dt_scan_depth1_nodes(unsigned long node,
+>>> -				       const char *uname, int depth,
+>>> -				       void *data)
+>>> -{
+>>>   	/*
+>>> -	 * Return 1 as soon as we encounter a node at depth 1 that is
+>>> -	 * not the /chosen node.
+>>> +	 * ACPI is disabled at this point. Enable it in order to parse
+>>> +	 * the ACPI tables and carry out sanity checks
+>>>   	 */
+>>> -	if (depth == 1 && (strcmp(uname, "chosen") != 0))
+>>> -		return 1;
+>>> +	enable_acpi();
+>>> +
 >>
->> =E2=80=93------------UDEV INFO---------------
+>> So we only enable ACPI if we pass acpi=force as kernel parameter?
+>> I'm not sure if this is what you wanted to do.
 >>
->> P: /devices/LNXSYSTM:00/LNXSYBUS:00/PNP0A08:00/INT33C1:00/APP000D:00
->> E: DEVPATH=3D/devices/LNXSYSTM:00/LNXSYBUS:00/PNP0A08:00/INT33C1:00/=
-APP000D:00
->> E: ID_VENDOR_FROM_DATABASE=3DApple Computer Inc
->> E: MODALIAS=3Dacpi:APP000D:APPLE-SPI-TOPCASE:
->> E: SUBSYSTEM=3Dacpi
->> E: USEC_INITIALIZED=3D13574842
->>
->> **INT33C1 is the SPI master controller
->> **APP000D is the slave device
 >
-> If the device has ACPI SpiSerialBus() resource in _CRS it should be
-> enumerated automatically by the Linux SPI core. See
-> Documentation/acpi/enumeration.txt.
+> The current preference from ARM64 maintainers was that is both ACPI
+> tables and a DT were presented then DT should take precedence.
 >
-> You should also see the device listed under /sys/bus/spi/devices.
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> With no DT provided the code should use ACPI.
+
+ From my understanding in this patch that can never happen.
+
+On which version is this set based on?
+I'm looking on v4.5-rc5 ATM.
+
+Regards,
+Matthias
