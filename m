@@ -1,90 +1,125 @@
-From: Leif Liddy <leif.linux@gmail.com>
-Subject: ACPI SPI slave device
-Date: Tue, 23 Feb 2016 02:54:45 +0100
-Message-ID: <CAAbRKOuTsBe0SBvcD-q+bBOSdkv_OWBu0-YWeMfKnM1o4MhT4A@mail.gmail.com>
+From: Gabriele Paoloni <gabriele.paoloni@huawei.com>
+Subject: RE: [RFC PATCH v3 3/3] PCI/ACPI: hisi: Add ACPI support for
+ HiSilicon SoCs Host Controllers
+Date: Tue, 23 Feb 2016 02:47:22 +0000
+Message-ID: <EE11001F9E5DDD47B7634E2F8A612F2E1ECC5F00@lhreml503-mbs>
+References: <1455039260-6040-1-git-send-email-gabriele.paoloni@huawei.com>
+ <1455039260-6040-4-git-send-email-gabriele.paoloni@huawei.com>
+ <20160209182429.GD4348@leverpostej>
+ <EE11001F9E5DDD47B7634E2F8A612F2E1ECB1591@lhreml503-mbs>
+ <20160210111234.GC2632@leverpostej>
+ <EE11001F9E5DDD47B7634E2F8A612F2E1ECB1D30@lhreml503-mbs>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-ig0-f171.google.com ([209.85.213.171]:33185 "EHLO
-	mail-ig0-f171.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753265AbcBWByp convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 22 Feb 2016 20:54:45 -0500
-Received: by mail-ig0-f171.google.com with SMTP id y8so101185931igp.0
-        for <linux-acpi@vger.kernel.org>; Mon, 22 Feb 2016 17:54:45 -0800 (PST)
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset="Windows-1252"
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-pci-owner@vger.kernel.org>
+In-Reply-To: <EE11001F9E5DDD47B7634E2F8A612F2E1ECB1D30@lhreml503-mbs>
+Content-Language: en-US
+Sender: linux-pci-owner@vger.kernel.org
+To: 'Mark Rutland' <mark.rutland@arm.com>
+Cc: "Guohanjun (Hanjun Guo)" <guohanjun@huawei.com>, "Wangzhou (B)" <wangzhou1@hisilicon.com>, "liudongdong (C)" <liudongdong3@huawei.com>, Linuxarm <linuxarm@huawei.com>, qiujiang <qiujiang@huawei.com>, "'bhelgaas@google.com'" <bhelgaas@google.com>, "'arnd@arndb.de'" <arnd@arndb.de>, "'Lorenzo.Pieralisi@arm.com'" <Lorenzo.Pieralisi@arm.com>, "'tn@semihalf.com'" <tn@semihalf.com>, "'linux-pci@vger.kernel.org'" <linux-pci@vger.kernel.org>, "'linux-kernel@vger.kernel.org'" <linux-kernel@vger.kernel.org>, "xuwei (O)" <xuwei5@hisilicon.com>, "'linux-acpi@vger.kernel.org'" <linux-acpi@vger.kernel.org>, "'jcm@redhat.com'" <jcm@redhat.com>, zhangjukuo <zhangjukuo@huawei.com>, "Liguozhu (Kenneth)" <liguozhu@hisilicon.com>, "'linux-arm-kernel@lists.infradead.org'" <linux-arm-kernel@lists.infradead.org>, Gabriele Paoloni <gabriele.paoloni@huawei.com>
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
 
-I'm new to kernel development, and there's few fairly large gaps in my
-understanding about
-how drivers are meant to work, but hopefully you guys can point me in
-the right direction.
+Hi Mark
 
-The macbook8,1 (early 2015) has a keyboard/trackpad that is seen by
-ACPI as a single SPI slave device.
-It appears the only method to access the keyboard/trackpad is via
-the SPI bus --my goal is the get keyboard/trackpad working.
+> -----Original Message-----
+> From: Gabriele Paoloni
+> Sent: 10 February 2016 22:45
+> To: Mark Rutland
+> Cc: Guohanjun (Hanjun Guo); Wangzhou (B); liudongdong (C); Linuxarm;
+> qiujiang; bhelgaas@google.com; arnd@arndb.de; Lorenzo.Pieralisi@arm.com;
+> tn@semihalf.com; linux-pci@vger.kernel.org; linux-
+> kernel@vger.kernel.org; xuwei (O); linux-acpi@vger.kernel.org;
+> jcm@redhat.com; zhangjukuo; Liguozhu (Kenneth); linux-arm-
+> kernel@lists.infradead.org
+> Subject: RE: [RFC PATCH v3 3/3] PCI/ACPI: hisi: Add ACPI support for
+> HiSilicon SoCs Host Controllers
+> 
+> > -----Original Message-----
+> > From: linux-kernel-owner@vger.kernel.org [mailto:linux-kernel-
+> > owner@vger.kernel.org] On Behalf Of Mark Rutland
+> > Sent: 10 February 2016 11:13
+> > To: Gabriele Paoloni
+> > Cc: Guohanjun (Hanjun Guo); Wangzhou (B); liudongdong (C); Linuxarm;
+> > qiujiang; bhelgaas@google.com; arnd@arndb.de;
+> > Lorenzo.Pieralisi@arm.com; tn@semihalf.com; linux-pci@vger.kernel.org;
+> > linux-kernel@vger.kernel.org; xuwei (O); linux-acpi@vger.kernel.org;
+> > jcm@redhat.com; zhangjukuo; Liguozhu (Kenneth); linux-arm-
+> > kernel@lists.infradead.org
+> > Subject: Re: [RFC PATCH v3 3/3] PCI/ACPI: hisi: Add ACPI support for
+> > HiSilicon SoCs Host Controllers
+> >
+> > On Wed, Feb 10, 2016 at 09:52:36AM +0000, Gabriele Paoloni wrote:
+> > > Hi Mark
+> > >
+> > > > On Tue, Feb 09, 2016 at 05:34:20PM +0000, Gabriele Paoloni wrote:
+> > > > > From: gabriele paoloni <gabriele.paoloni@huawei.com>
+> > > > > +/*
+> > > > > + * Retrieve rc_dbi base and size from _DSD
+> > > > > + * Name (_DSD, Package () {
+> > > > > + *	ToUUID("daffd814-6eba-4d8c-8a91-bc9bbf4aa301"),
+> > > > > + *	Package () {
+> > > > > + *	Package () {"rc-dbi", Package () { 0x0, 0xb0080000, 0x0,
+> > 0x10000
+> > > > }},
+> > > > > + *	}
+> > > > > + *	})
+> > > > > + */
+> > > >
+> > > > As above, this does not look right. ACPI has standard mechanisms
+> > for
+> > > > describing addresses. Making something up like this is not a good
+> > idea.
+> > >
+> > > I am quite new to ACPI, may I ask you to explain a bit?
+> >
+> > ACPI has standard mechanisms for describing certain resources, and
+> > these
+> > should not be described in _DSD. Memory or IO address regions are
+> such
+> > resources (in _CRS, IIRC), and should not be described in _DSD.
+> 
+> Hi Mark,
+> 
+> In my case I think in need to look into the MCFG object as the problem
+> I have is RC using a different range than the rest of the hierarchy.
+> 
+> I'll investigate this and try to come with a solution in v4
 
-I've recently submitted a kernel patch that binds the spi-pxa2xx-pci
-driver to the Wildcat Point-LP Serial IO GSPI Controller. With this
-patch, the SPI controller appears to be working...
-http://www.spinics.net/lists/linux-spi/msg06867.html
+I have looked into this and in our case we cannot use the
+standard MCFG object to pass the RC config space addresses.
 
-----------LSHW INFO------------
-*-serial:1
-             description: Serial bus controller
-             product: Wildcat Point-LP Serial IO GSPI Controller #1
-             vendor: Intel Corporation
-             physical id: 15.4
-             bus info: pci@0000:00:15.4
-             version: 03
-             width: 32 bits
-             clock: 33MHz
-             capabilities: pm cap_list
-             configuration: driver=3Dpxa2xx_spi_pci latency=3D0
-             resources: irq:21 memory:c181a000-c181afff
+The reason is that in our HW we have the config base addresses of the 
+root complex ports that are less than 0x100000 byte distant one from
+the other as we only map the first 0x10000 bytes.
 
+Now the MCFG acpi framework always fix the MCFG resource size to 0x100000
+for each bus; therefore if we pass our RC addresses through MCFG we end
+up with a resource conflict.
 
-What I'm having trouble with is sorting out how to register the SPI
-slave device with the SPI controller.
-**no slave devices are found when I modprobe the driver.
-I'm not sure if this is something that should be done by the spi
-driver (by calling an acpi function), or whether I must manually do
-it.
+To give you a practical example we are in a situation where we have:
 
-=E2=80=93------------UDEV INFO---------------
+port0: [0x00000000b0080000 - 0x00000000b0080000 + 0x10000]
+port1: [0x00000000b0090000 - 0x00000000b0090000 + 0x10000]
+port2: [0x00000000b00A0000 - 0x00000000b00A0000 + 0x10000]
+port3: [0x00000000b00B0000 - 0x00000000b00B0000 + 0x10000]
+  
+So if we pass the base addresses through MCFG the resources
+will overlap as MCFG will consider 0x100000 size for each base
+address of the root complex (only the RC bus uses that address)
 
-P: /devices/LNXSYSTM:00/LNXSYBUS:00/PNP0A08:00/INT33C1:00/APP000D:00
-E: DEVPATH=3D/devices/LNXSYSTM:00/LNXSYBUS:00/PNP0A08:00/INT33C1:00/APP=
-000D:00
-E: ID_VENDOR_FROM_DATABASE=3DApple Computer Inc
-E: MODALIAS=3Dacpi:APP000D:APPLE-SPI-TOPCASE:
-E: SUBSYSTEM=3Dacpi
-E: USEC_INITIALIZED=3D13574842
+So far I do not see many option other than using _DSD to pass
+these RC config base addresses.
 
-**INT33C1 is the SPI master controller
-**APP000D is the slave device
+Thanks and Regards
 
-----------------SPI modules loaded-----------
+Gab 
 
-spi_pxa2xx_platform    24576  0
-spi_pxa2xx_pci         16384  0
-
-
-The ACPI DSDT table (decoded):
-https://bugzilla.kernel.org/attachment.cgi?id=3D202141
-
-
-The full bug report:
-https://bugzilla.kernel.org/show_bug.cgi?id=3D108331
-
-
-ANY help would be appreciated
-
-Leif Liddy
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
+> Many Thanks
+> 
+> Gab
+> 
+> >
+> > Thanks,
+> > Mark.
