@@ -1,31 +1,131 @@
-From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [UPDATE] [PATCH v3 2/5] ACPI / sleep: move acpi_processor_sleep to sleep.c
-Date: Wed, 24 Feb 2016 00:42:06 +0100
-Message-ID: <1701970.yNzfYrMntI@vostro.rjw.lan>
-References: <1449065446-26115-3-git-send-email-sudeep.holla@arm.com> <1455710603-14994-1-git-send-email-sudeep.holla@arm.com>
+From: Bjorn Helgaas <helgaas@kernel.org>
+Subject: Re: [RFC PATCH v3 3/3] PCI/ACPI: hisi: Add ACPI support for
+ HiSilicon SoCs Host Controllers
+Date: Tue, 23 Feb 2016 19:14:18 -0600
+Message-ID: <20160224011418.GB13026@localhost>
+References: <1455039260-6040-1-git-send-email-gabriele.paoloni@huawei.com>
+ <1455039260-6040-4-git-send-email-gabriele.paoloni@huawei.com>
+ <20160209182429.GD4348@leverpostej>
+ <EE11001F9E5DDD47B7634E2F8A612F2E1ECB1591@lhreml503-mbs>
+ <20160210111234.GC2632@leverpostej>
+ <EE11001F9E5DDD47B7634E2F8A612F2E1ECB1D30@lhreml503-mbs>
+ <EE11001F9E5DDD47B7634E2F8A612F2E1ECC5F00@lhreml503-mbs>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7Bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1455710603-14994-1-git-send-email-sudeep.holla@arm.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Sudeep Holla <sudeep.holla@arm.com>
-Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linux-ia64@vger.kernel.org, x86@kernel.org, Al Stone <al.stone@linaro.org>, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, Mahesh Sivasubramanian <msivasub@codeaurora.org>, Ashwin Chaugule <ashwin.chaugule@linaro.org>, Prashanth Prakash <pprakash@codeaurora.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail.kernel.org ([198.145.29.136]:60625 "EHLO mail.kernel.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753483AbcBXBOW (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 23 Feb 2016 20:14:22 -0500
+Content-Disposition: inline
+In-Reply-To: <EE11001F9E5DDD47B7634E2F8A612F2E1ECC5F00@lhreml503-mbs>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Gabriele Paoloni <gabriele.paoloni@huawei.com>
+Cc: 'Mark Rutland' <mark.rutland@arm.com>, "Guohanjun (Hanjun Guo)" <guohanjun@huawei.com>, "Wangzhou (B)" <wangzhou1@hisilicon.com>, "liudongdong (C)" <liudongdong3@huawei.com>, Linuxarm <linuxarm@huawei.com>, qiujiang <qiujiang@huawei.com>, "'bhelgaas@google.com'" <bhelgaas@google.com>, "'arnd@arndb.de'" <arnd@arndb.de>, "'Lorenzo.Pieralisi@arm.com'" <Lorenzo.Pieralisi@arm.com>, "'tn@semihalf.com'" <tn@semihalf.com>, "'linux-pci@vger.kernel.org'" <linux-pci@vger.kernel.org>, "'linux-kernel@vger.kernel.org'" <linux-kernel@vger.kernel.org>, "xuwei (O)" <xuwei5@hisilicon.com>, "'linux-acpi@vger.kernel.org'" <linux-acpi@vger.kernel.org>, "'jcm@redhat.com'" <jcm@redhat.com>, zhangjukuo <zhangjukuo@huawei.com>, "Liguozhu (Kenneth)" <liguozhu@hisilicon.com>, "'linux-arm-kernel@lists.infradead.org'" <linux-arm-kernel@lists.infradead.org>
 
-On Wednesday, February 17, 2016 12:03:23 PM Sudeep Holla wrote:
-> acpi_processor_sleep is neither related nor used by CPUIdle framework.
-> It's used in system suspend/resume path as a syscore operation. It makes
-> more sense to move it to acpi/sleep.c where all the S-state transition
-> (a.k.a. Linux system suspend/hiberate) related code are present.
+On Tue, Feb 23, 2016 at 02:47:22AM +0000, Gabriele Paoloni wrote:
+> > -----Original Message-----
+> > From: Gabriele Paoloni
+> > Sent: 10 February 2016 22:45
+> > To: Mark Rutland
+> > Cc: Guohanjun (Hanjun Guo); Wangzhou (B); liudongdong (C); Linuxarm;
+> > qiujiang; bhelgaas@google.com; arnd@arndb.de; Lorenzo.Pieralisi@arm.com;
+> > tn@semihalf.com; linux-pci@vger.kernel.org; linux-
+> > kernel@vger.kernel.org; xuwei (O); linux-acpi@vger.kernel.org;
+> > jcm@redhat.com; zhangjukuo; Liguozhu (Kenneth); linux-arm-
+> > kernel@lists.infradead.org
+> > Subject: RE: [RFC PATCH v3 3/3] PCI/ACPI: hisi: Add ACPI support for
+> > HiSilicon SoCs Host Controllers
+> > 
+> > > -----Original Message-----
+> > > From: linux-kernel-owner@vger.kernel.org [mailto:linux-kernel-
+> > > owner@vger.kernel.org] On Behalf Of Mark Rutland
+> > > Sent: 10 February 2016 11:13
+> > > To: Gabriele Paoloni
+> > > Cc: Guohanjun (Hanjun Guo); Wangzhou (B); liudongdong (C); Linuxarm;
+> > > qiujiang; bhelgaas@google.com; arnd@arndb.de;
+> > > Lorenzo.Pieralisi@arm.com; tn@semihalf.com; linux-pci@vger.kernel.org;
+> > > linux-kernel@vger.kernel.org; xuwei (O); linux-acpi@vger.kernel.org;
+> > > jcm@redhat.com; zhangjukuo; Liguozhu (Kenneth); linux-arm-
+> > > kernel@lists.infradead.org
+> > > Subject: Re: [RFC PATCH v3 3/3] PCI/ACPI: hisi: Add ACPI support for
+> > > HiSilicon SoCs Host Controllers
+> > >
+> > > On Wed, Feb 10, 2016 at 09:52:36AM +0000, Gabriele Paoloni wrote:
+> > > > Hi Mark
+> > > >
+> > > > > On Tue, Feb 09, 2016 at 05:34:20PM +0000, Gabriele Paoloni wrote:
+> > > > > > From: gabriele paoloni <gabriele.paoloni@huawei.com>
+> > > > > > +/*
+> > > > > > + * Retrieve rc_dbi base and size from _DSD
+> > > > > > + * Name (_DSD, Package () {
+> > > > > > + *	ToUUID("daffd814-6eba-4d8c-8a91-bc9bbf4aa301"),
+> > > > > > + *	Package () {
+> > > > > > + *	Package () {"rc-dbi", Package () { 0x0, 0xb0080000, 0x0,
+> > > 0x10000
+> > > > > }},
+> > > > > > + *	}
+> > > > > > + *	})
+> > > > > > + */
+> > > > >
+> > > > > As above, this does not look right. ACPI has standard mechanisms
+> > > for
+> > > > > describing addresses. Making something up like this is not a good
+> > > idea.
+> > > >
+> > > > I am quite new to ACPI, may I ask you to explain a bit?
+> > >
+> > > ACPI has standard mechanisms for describing certain resources, and
+> > > these
+> > > should not be described in _DSD. Memory or IO address regions are
+> > such
+> > > resources (in _CRS, IIRC), and should not be described in _DSD.
+> > 
+> > Hi Mark,
+> > 
+> > In my case I think in need to look into the MCFG object as the problem
+> > I have is RC using a different range than the rest of the hierarchy.
+> > 
+> > I'll investigate this and try to come with a solution in v4
 > 
-> Also make it depend on CONFIG_ACPI_SYSTEM_POWER_STATES_SUPPORT so that
-> it's not compiled on architecture like ARM64 where S-states are not
-> yet defined in ACPI.
+> I have looked into this and in our case we cannot use the
+> standard MCFG object to pass the RC config space addresses.
 > 
-> Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-> Signed-off-by: Sudeep Holla <sudeep.holla@arm.com>
+> The reason is that in our HW we have the config base addresses of the 
+> root complex ports that are less than 0x100000 byte distant one from
+> the other as we only map the first 0x10000 bytes.
 
-Queued up for 4.6, thanks!
+The ECAM spec requires 4096 bytes per function, 8 functions per
+device, 32 devices per bus, which means you need 0x100000 bytes of
+address space per bus.  If your device doesn't supply that, it doesn't
+really implement ECAM, and you probably can't use the standard ways of
+describing ECAM (MCFG, _CBA).
 
-Rafael
+> Now the MCFG acpi framework always fix the MCFG resource size to 0x100000
+> for each bus; therefore if we pass our RC addresses through MCFG we end
+> up with a resource conflict.
+> 
+> To give you a practical example we are in a situation where we have:
+> 
+> port0: [0x00000000b0080000 - 0x00000000b0080000 + 0x10000]
+> port1: [0x00000000b0090000 - 0x00000000b0090000 + 0x10000]
+> port2: [0x00000000b00A0000 - 0x00000000b00A0000 + 0x10000]
+> port3: [0x00000000b00B0000 - 0x00000000b00B0000 + 0x10000]
+>   
+> So if we pass the base addresses through MCFG the resources
+> will overlap as MCFG will consider 0x100000 size for each base
+> address of the root complex (only the RC bus uses that address)
+> 
+> So far I do not see many option other than using _DSD to pass
+> these RC config base addresses.
+
+I don't want to take over Mark's discussion, but I really do not think
+_DSD is the correct way to fix this.  _CRS is like a generalized PCI
+BAR.  A PCI device is only allowed to respond to address space
+reported via a BAR.  An ACPI device is only allowed to respond to
+address space reported via _CRS.  Those are important rules because
+they mean we can manage address space with generic code instead of
+device-specific code.
+
+Bjorn
