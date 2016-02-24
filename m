@@ -1,159 +1,78 @@
-From: qiujiang <qiujiang@huawei.com>
-Subject: [PATCH v3 1/2] gpio: designware: switch device node to fwnode
-Date: Wed, 24 Feb 2016 20:33:29 +0800
-Message-ID: <1456317210-42742-2-git-send-email-qiujiang@huawei.com>
-References: <1456317210-42742-1-git-send-email-qiujiang@huawei.com>
+From: "Rafael J. Wysocki" <rafael@kernel.org>
+Subject: Re: [PATCH] acpi, pci, irq: account for early penalty assignment
+Date: Wed, 24 Feb 2016 14:04:48 +0100
+Message-ID: <CAJZ5v0j7CwbBw+i1Fc6OCkHO5AZvdLo8yeDhk4asyCFB68ghKg@mail.gmail.com>
+References: <1455554508-18174-1-git-send-email-okaya@codeaurora.org>
+	<CAJZ5v0iszEN+ep8yGNX35RP04_ZwnF1K_w+VW5tFR9Jz2_ZJqw@mail.gmail.com>
+	<56C28633.60003@codeaurora.org>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1456317210-42742-1-git-send-email-qiujiang@huawei.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: linus.walleij@linaro.org, gnurou@gmail.com
-Cc: mika.westerberg@linux.intel.com, andy.shevchenko@gmail.com, linux-kernel@vger.kernel.org, linux-gpio@vger.kernel.org, linux-acpi@vger.kernel.org, linuxarm@huawei.com, haifeng.wei@huawei.com, charles.chenxin@huawei.com
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-lf0-f51.google.com ([209.85.215.51]:33688 "EHLO
+	mail-lf0-f51.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750763AbcBXNEu (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 24 Feb 2016 08:04:50 -0500
+In-Reply-To: <56C28633.60003@codeaurora.org>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Sinan Kaya <okaya@codeaurora.org>
+Cc: "Rafael J. Wysocki" <rafael@kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Timur Tabi <timur@codeaurora.org>, Christopher Covington <cov@codeaurora.org>, Linux PCI <linux-pci@vger.kernel.org>, ravikanth.nalla@hpe.com, Len Brown <lenb@kernel.org>, harish.k@hpe.com, ashwin.reghunandanan@hpe.com, Bjorn Helgaas <bhelgaas@google.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
 
-This patch switch device node to fwnode in dwapb_port_property,
-so as to apply a unified data structure for DT and ACPI.
+Hi,
 
-This change also needs to be done in intel_quark_i2c_gpio driver,
-since it depends on gpio-dwapb driver.
+On Tue, Feb 16, 2016 at 3:15 AM, Sinan Kaya <okaya@codeaurora.org> wrote:
+> On 2/15/2016 7:26 PM, Rafael J. Wysocki wrote:
+>> On Mon, Feb 15, 2016 at 5:41 PM, Sinan Kaya <okaya@codeaurora.org> wrote:
+>>> A crash has been observed when assigning penalty on x86 systems.
+>>>
+>>> It looks like this problem happens on x86 platforms with IOAPIC and an SCI
+>>> interrupt override in the ACPI table with interrupt number greater than
+>>> 16. (22 in this example)
+>>>
+>>> The bug has been introduced by "ACPI, PCI, irq: remove interrupt count
+>>> restriction" commit. The code was using kmalloc to resize the interrupt
+>>> list. In this use case, the set penalty call is coming from early phase
+>>> and the heap is not initialized yet.
+>>>
+>>> BUG: unable to handle kernel NULL pointer dereference at 0000000000000018
+>>> IP: [<ffffffff811e8b9d>] kmem_cache_alloc_trace+0xad/0x1c0
+>>> PGD 0
+>>> Oops: 0000 [#1] SMP
+>>> Modules linked in:
+>>> CPU: 0 PID: 0 Comm: swapper Not tainted 4.5.0-rc2Feb-3_RK #1
+>>> Hardware name: HP Superdome2 16s, BIOS Bundle: 007.006.000 SFW: 033.162.000
+>>> 10/30/2015
+>>> [<ffffffff813bc190>] acpi_irq_set_penalty+0x60/0x8e
+>>> [<ffffffff813bc1df>] acpi_irq_add_penalty+0x21/0x26
+>>> [<ffffffff813bc76d>] acpi_penalize_sci_irq+0x25/0x28
+>>> [<ffffffff81b8260d>] acpi_sci_ioapic_setup+0x68/0x78
+>>> [<ffffffff81b830fc>] acpi_boot_init+0x2cc/0x533
+>>> [<ffffffff810677c8>] ? set_pte_vaddr_pud+0x48/0x50
+>>> [<ffffffff81b828cf>] ? acpi_parse_x2apic+0x77/0x77
+>>> [<ffffffff81b82858>] ? dmi_ignore_irq0_timer_override+0x30/0x30
+>>> [<ffffffff81b77c1e>] setup_arch+0xc24/0xce9
+>>> [<ffffffff81b6e120>] ? early_idt_handler_array+0x120/0x120
+>>> [<ffffffff81b6ed94>] start_kernel+0xfc/0x506
+>>> [<ffffffff81b6e120>] ? early_idt_handler_array+0x120/0x120
+>>> [<ffffffff81b6e120>] ? early_idt_handler_array+0x120/0x120
+>>> [<ffffffff81b6e5ee>] x86_64_start_reservations+0x2a/0x2c
+>>> [<ffffffff81b6e73c>] x86_64_start_kernel+0x14c/0x16f
+>>>
+>>> Besides from the use case above, there is one more situation where
+>>> set_penalty is being called from the init context like. There is support
+>>> for setting the penalty through kernel command line.
+>>>
+>>> Adding support to be called from early context for limited number of
+>>> interrupts.
+>>>
+>>> Signed-off-by: Sinan Kaya <okaya@codeaurora.org>
+>>
+>> This looks somewhat hackish to me to be honest.
+> I know.
 
-Acked-by: Mika Westerberg <mika.westerberg@linux.intel.com>
-Signed-off-by: qiujiang <qiujiang@huawei.com>
----
- drivers/gpio/gpio-dwapb.c                | 36 ++++++++++++++++----------------
- drivers/mfd/intel_quark_i2c_gpio.c       |  2 +-
- include/linux/platform_data/gpio-dwapb.h |  2 +-
- 3 files changed, 20 insertions(+), 20 deletions(-)
+So after an e-mail exchange with Bjorn I've decided to revert the
+problematic commit for 4.5, so please submit it again with the fix
+folded in (or a better way to address the issue if you have one).
 
-diff --git a/drivers/gpio/gpio-dwapb.c b/drivers/gpio/gpio-dwapb.c
-index 597de1e..0ebbdf1 100644
---- a/drivers/gpio/gpio-dwapb.c
-+++ b/drivers/gpio/gpio-dwapb.c
-@@ -290,14 +290,14 @@ static void dwapb_configure_irqs(struct dwapb_gpio *gpio,
- 				 struct dwapb_port_property *pp)
- {
- 	struct gpio_chip *gc = &port->gc;
--	struct device_node *node = pp->node;
-+	struct fwnode_handle  *fwnode = pp->fwnode;
- 	struct irq_chip_generic	*irq_gc = NULL;
- 	unsigned int hwirq, ngpio = gc->ngpio;
- 	struct irq_chip_type *ct;
- 	int err, i;
- 
--	gpio->domain = irq_domain_add_linear(node, ngpio,
--					     &irq_generic_chip_ops, gpio);
-+	gpio->domain = irq_domain_create_linear(fwnode, ngpio,
-+						 &irq_generic_chip_ops, gpio);
- 	if (!gpio->domain)
- 		return;
- 
-@@ -415,7 +415,7 @@ static int dwapb_gpio_add_port(struct dwapb_gpio *gpio,
- 	}
- 
- #ifdef CONFIG_OF_GPIO
--	port->gc.of_node = pp->node;
-+	port->gc.of_node = to_of_node(pp->fwnode);
- #endif
- 	port->gc.ngpio = pp->ngpio;
- 	port->gc.base = pp->gpio_base;
-@@ -449,17 +449,16 @@ static void dwapb_gpio_unregister(struct dwapb_gpio *gpio)
- static struct dwapb_platform_data *
- dwapb_gpio_get_pdata_of(struct device *dev)
- {
--	struct device_node *node, *port_np;
-+	struct fwnode_handle *fwnode;
- 	struct dwapb_platform_data *pdata;
- 	struct dwapb_port_property *pp;
- 	int nports;
- 	int i;
- 
--	node = dev->of_node;
--	if (!IS_ENABLED(CONFIG_OF_GPIO) || !node)
-+	if (!IS_ENABLED(CONFIG_OF_GPIO) || !(dev->of_node))
- 		return ERR_PTR(-ENODEV);
- 
--	nports = of_get_child_count(node);
-+	nports = device_get_child_node_count(dev);
- 	if (nports == 0)
- 		return ERR_PTR(-ENODEV);
- 
-@@ -474,21 +473,21 @@ dwapb_gpio_get_pdata_of(struct device *dev)
- 	pdata->nports = nports;
- 
- 	i = 0;
--	for_each_child_of_node(node, port_np) {
-+	device_for_each_child_node(dev, fwnode)  {
- 		pp = &pdata->properties[i++];
--		pp->node = port_np;
-+		pp->fwnode = fwnode;
- 
--		if (of_property_read_u32(port_np, "reg", &pp->idx) ||
-+		if (fwnode_property_read_u32(fwnode, "reg", &pp->idx) ||
- 		    pp->idx >= DWAPB_MAX_PORTS) {
- 			dev_err(dev, "missing/invalid port index for %s\n",
--				port_np->full_name);
-+				to_of_node(fwnode)->full_name);
- 			return ERR_PTR(-EINVAL);
- 		}
- 
--		if (of_property_read_u32(port_np, "snps,nr-gpios",
-+		if (fwnode_property_read_u32(fwnode, "snps,nr-gpios",
- 					 &pp->ngpio)) {
- 			dev_info(dev, "failed to get number of gpios for %s\n",
--				 port_np->full_name);
-+				 to_of_node(fwnode)->full_name);
- 			pp->ngpio = 32;
- 		}
- 
-@@ -497,17 +496,18 @@ dwapb_gpio_get_pdata_of(struct device *dev)
- 		 * the IP.
- 		 */
- 		if (pp->idx == 0 &&
--		    of_property_read_bool(port_np, "interrupt-controller")) {
--			pp->irq = irq_of_parse_and_map(port_np, 0);
-+			of_property_read_bool(to_of_node(fwnode),
-+				"interrupt-controller")) {
-+			pp->irq = irq_of_parse_and_map(to_of_node(fwnode), 0);
- 			if (!pp->irq) {
- 				dev_warn(dev, "no irq for bank %s\n",
--					 port_np->full_name);
-+					 to_of_node(fwnode)->full_name);
- 			}
- 		}
- 
- 		pp->irq_shared	= false;
- 		pp->gpio_base	= -1;
--		pp->name	= port_np->full_name;
-+		pp->name = to_of_node(fwnode)->full_name;
- 	}
- 
- 	return pdata;
-diff --git a/drivers/mfd/intel_quark_i2c_gpio.c b/drivers/mfd/intel_quark_i2c_gpio.c
-index 0421374..265bd3c 100644
---- a/drivers/mfd/intel_quark_i2c_gpio.c
-+++ b/drivers/mfd/intel_quark_i2c_gpio.c
-@@ -227,7 +227,7 @@ static int intel_quark_gpio_setup(struct pci_dev *pdev, struct mfd_cell *cell)
- 		return -ENOMEM;
- 
- 	/* Set the properties for portA */
--	pdata->properties->node		= NULL;
-+	pdata->properties->fwnode	= NULL;
- 	pdata->properties->name		= "intel-quark-x1000-gpio-portA";
- 	pdata->properties->idx		= 0;
- 	pdata->properties->ngpio	= INTEL_QUARK_MFD_NGPIO;
-diff --git a/include/linux/platform_data/gpio-dwapb.h b/include/linux/platform_data/gpio-dwapb.h
-index 28702c8..80954f2 100644
---- a/include/linux/platform_data/gpio-dwapb.h
-+++ b/include/linux/platform_data/gpio-dwapb.h
-@@ -15,7 +15,7 @@
- #define GPIO_DW_APB_H
- 
- struct dwapb_port_property {
--	struct device_node *node;
-+	struct fwnode_handle  *fwnode;
- 	const char	*name;
- 	unsigned int	idx;
- 	unsigned int	ngpio;
--- 
-1.9.1
+Thanks,
+Rafael
