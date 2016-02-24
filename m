@@ -1,189 +1,183 @@
-From: Gabriele Paoloni <gabriele.paoloni@huawei.com>
-Subject: RE: [RFC PATCH v3 3/3] PCI/ACPI: hisi: Add ACPI support for
- HiSilicon SoCs Host Controllers
-Date: Wed, 24 Feb 2016 06:46:09 +0000
-Message-ID: <EE11001F9E5DDD47B7634E2F8A612F2E1ECCAD6A@lhreml503-mbs>
-References: <1455039260-6040-1-git-send-email-gabriele.paoloni@huawei.com>
- <1455039260-6040-4-git-send-email-gabriele.paoloni@huawei.com>
- <20160209182429.GD4348@leverpostej>
- <EE11001F9E5DDD47B7634E2F8A612F2E1ECB1591@lhreml503-mbs>
- <20160210111234.GC2632@leverpostej>
- <EE11001F9E5DDD47B7634E2F8A612F2E1ECB1D30@lhreml503-mbs>
- <EE11001F9E5DDD47B7634E2F8A612F2E1ECC5F00@lhreml503-mbs>
- <20160224011418.GB13026@localhost>
+From: qiujiang <qiujiang@huawei.com>
+Subject: [PATCH v3 2/2] gpio: designware: add gpio-signaled acpi events support for power button
+Date: Wed, 24 Feb 2016 20:33:30 +0800
+Message-ID: <1456317210-42742-3-git-send-email-qiujiang@huawei.com>
+References: <1456317210-42742-1-git-send-email-qiujiang@huawei.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="Windows-1252"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from lhrrgout.huawei.com ([194.213.3.17]:21859 "EHLO
-	lhrrgout.huawei.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750888AbcBXGqY convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 24 Feb 2016 01:46:24 -0500
-In-Reply-To: <20160224011418.GB13026@localhost>
-Content-Language: en-US
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1456317210-42742-1-git-send-email-qiujiang@huawei.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: linus.walleij@linaro.org, gnurou@gmail.com
+Cc: mika.westerberg@linux.intel.com, andy.shevchenko@gmail.com, linux-kernel@vger.kernel.org, linux-gpio@vger.kernel.org, linux-acpi@vger.kernel.org, linuxarm@huawei.com, haifeng.wei@huawei.com, charles.chenxin@huawei.com
 List-Id: linux-acpi@vger.kernel.org
-To: Bjorn Helgaas <helgaas@kernel.org>
-Cc: 'Mark Rutland' <mark.rutland@arm.com>, "Guohanjun (Hanjun Guo)" <guohanjun@huawei.com>, "Wangzhou (B)" <wangzhou1@hisilicon.com>, "liudongdong (C)" <liudongdong3@huawei.com>, Linuxarm <linuxarm@huawei.com>, qiujiang <qiujiang@huawei.com>, "'bhelgaas@google.com'" <bhelgaas@google.com>, "'arnd@arndb.de'" <arnd@arndb.de>, "'Lorenzo.Pieralisi@arm.com'" <Lorenzo.Pieralisi@arm.com>, "'tn@semihalf.com'" <tn@semihalf.com>, "'linux-pci@vger.kernel.org'" <linux-pci@vger.kernel.org>, "'linux-kernel@vger.kernel.org'" <linux-kernel@vger.kernel.org>, "xuwei (O)" <xuwei5@hisilicon.com>, "'linux-acpi@vger.kernel.org'" <linux-acpi@vger.kernel.org>, "'jcm@redhat.com'" <jcm@redhat.com>, zhangjukuo <zhangjukuo@huawei.com>, "Liguozhu (Kenneth)" <liguozhu@hisilicon.com>, "'linux-arm-kernel@lists.infradead.org'" <linux-arm-kernel@lists.infradead.org>
 
+This patch modifies the designware gpio controller driver to
+support the gpio-signaled acpi events. This is used for power
+button on hisilicon D02 board(an arm64 platform).
 
-Hi Bjorn, many thanks for replying
+The corresponding DSDT table is defined as follows:
+Device(GPI0) {
+        Name(_HID, "HISI0181")
+        Name(_ADR, 0)
+        Name(_UID, 0)
 
-> -----Original Message-----
-> From: Bjorn Helgaas [mailto:helgaas@kernel.org]
-> Sent: 24 February 2016 09:14
-> To: Gabriele Paoloni
-> Cc: 'Mark Rutland'; Guohanjun (Hanjun Guo); Wangzhou (B); liudongdong
-> (C); Linuxarm; qiujiang; 'bhelgaas@google.com'; 'arnd@arndb.de';
-> 'Lorenzo.Pieralisi@arm.com'; 'tn@semihalf.com'; 'linux-
-> pci@vger.kernel.org'; 'linux-kernel@vger.kernel.org'; xuwei (O);
-> 'linux-acpi@vger.kernel.org'; 'jcm@redhat.com'; zhangjukuo; Liguozhu
-> (Kenneth); 'linux-arm-kernel@lists.infradead.org'
-> Subject: Re: [RFC PATCH v3 3/3] PCI/ACPI: hisi: Add ACPI support for
-> HiSilicon SoCs Host Controllers
-> 
-> On Tue, Feb 23, 2016 at 02:47:22AM +0000, Gabriele Paoloni wrote:
-> > > -----Original Message-----
-> > > From: Gabriele Paoloni
-> > > Sent: 10 February 2016 22:45
-> > > To: Mark Rutland
-> > > Cc: Guohanjun (Hanjun Guo); Wangzhou (B); liudongdong (C); Linuxarm;
-> > > qiujiang; bhelgaas@google.com; arnd@arndb.de;
-> Lorenzo.Pieralisi@arm.com;
-> > > tn@semihalf.com; linux-pci@vger.kernel.org; linux-
-> > > kernel@vger.kernel.org; xuwei (O); linux-acpi@vger.kernel.org;
-> > > jcm@redhat.com; zhangjukuo; Liguozhu (Kenneth); linux-arm-
-> > > kernel@lists.infradead.org
-> > > Subject: RE: [RFC PATCH v3 3/3] PCI/ACPI: hisi: Add ACPI support
-> for
-> > > HiSilicon SoCs Host Controllers
-> > >
-> > > > -----Original Message-----
-> > > > From: linux-kernel-owner@vger.kernel.org [mailto:linux-kernel-
-> > > > owner@vger.kernel.org] On Behalf Of Mark Rutland
-> > > > Sent: 10 February 2016 11:13
-> > > > To: Gabriele Paoloni
-> > > > Cc: Guohanjun (Hanjun Guo); Wangzhou (B); liudongdong (C);
-> Linuxarm;
-> > > > qiujiang; bhelgaas@google.com; arnd@arndb.de;
-> > > > Lorenzo.Pieralisi@arm.com; tn@semihalf.com; linux-
-> pci@vger.kernel.org;
-> > > > linux-kernel@vger.kernel.org; xuwei (O); linux-
-> acpi@vger.kernel.org;
-> > > > jcm@redhat.com; zhangjukuo; Liguozhu (Kenneth); linux-arm-
-> > > > kernel@lists.infradead.org
-> > > > Subject: Re: [RFC PATCH v3 3/3] PCI/ACPI: hisi: Add ACPI support
-> for
-> > > > HiSilicon SoCs Host Controllers
-> > > >
-> > > > On Wed, Feb 10, 2016 at 09:52:36AM +0000, Gabriele Paoloni wrote:
-> > > > > Hi Mark
-> > > > >
-> > > > > > On Tue, Feb 09, 2016 at 05:34:20PM +0000, Gabriele Paoloni
-> wrote:
-> > > > > > > From: gabriele paoloni <gabriele.paoloni@huawei.com>
-> > > > > > > +/*
-> > > > > > > + * Retrieve rc_dbi base and size from _DSD
-> > > > > > > + * Name (_DSD, Package () {
-> > > > > > > + *	ToUUID("daffd814-6eba-4d8c-8a91-bc9bbf4aa301"),
-> > > > > > > + *	Package () {
-> > > > > > > + *	Package () {"rc-dbi", Package () { 0x0, 0xb0080000,
-> 0x0,
-> > > > 0x10000
-> > > > > > }},
-> > > > > > > + *	}
-> > > > > > > + *	})
-> > > > > > > + */
-> > > > > >
-> > > > > > As above, this does not look right. ACPI has standard
-> mechanisms
-> > > > for
-> > > > > > describing addresses. Making something up like this is not a
-> good
-> > > > idea.
-> > > > >
-> > > > > I am quite new to ACPI, may I ask you to explain a bit?
-> > > >
-> > > > ACPI has standard mechanisms for describing certain resources,
-> and
-> > > > these
-> > > > should not be described in _DSD. Memory or IO address regions are
-> > > such
-> > > > resources (in _CRS, IIRC), and should not be described in _DSD.
-> > >
-> > > Hi Mark,
-> > >
-> > > In my case I think in need to look into the MCFG object as the
-> problem
-> > > I have is RC using a different range than the rest of the hierarchy.
-> > >
-> > > I'll investigate this and try to come with a solution in v4
-> >
-> > I have looked into this and in our case we cannot use the
-> > standard MCFG object to pass the RC config space addresses.
-> >
-> > The reason is that in our HW we have the config base addresses of the
-> > root complex ports that are less than 0x100000 byte distant one from
-> > the other as we only map the first 0x10000 bytes.
-> 
-> The ECAM spec requires 4096 bytes per function, 8 functions per
-> device, 32 devices per bus, which means you need 0x100000 bytes of
-> address space per bus.  If your device doesn't supply that, it doesn't
-> really implement ECAM, and you probably can't use the standard ways of
-> describing ECAM (MCFG, _CBA).
+        Name (_CRS, ResourceTemplate ()  {
+                Memory32Fixed (ReadWrite, 0x802e0000, 0x10000)
+                Interrupt (ResourceConsumer, Level, ActiveHigh,
+                Exclusive,,,) {344}
+        })
 
-Correct, our host bridge is non ECAM only for the RC bus config space;
-for any other bus underneath the root bus we support ECAM access, so
-we need a quirk for the RC config rd/wr  
+        Device(PRTa) {
+                Name (_DSD, Package () {
+                        Package () {
+                                Package () {"reg",0},
+                                Package () {"snps,nr-gpios",32},
+                }
+                })
+        }
 
-> 
-> > Now the MCFG acpi framework always fix the MCFG resource size to
-> 0x100000
-> > for each bus; therefore if we pass our RC addresses through MCFG we
-> end
-> > up with a resource conflict.
-> >
-> > To give you a practical example we are in a situation where we have:
-> >
-> > port0: [0x00000000b0080000 - 0x00000000b0080000 + 0x10000]
-> > port1: [0x00000000b0090000 - 0x00000000b0090000 + 0x10000]
-> > port2: [0x00000000b00A0000 - 0x00000000b00A0000 + 0x10000]
-> > port3: [0x00000000b00B0000 - 0x00000000b00B0000 + 0x10000]
-> >
-> > So if we pass the base addresses through MCFG the resources
-> > will overlap as MCFG will consider 0x100000 size for each base
-> > address of the root complex (only the RC bus uses that address)
-> >
-> > So far I do not see many option other than using _DSD to pass
-> > these RC config base addresses.
-> 
-> I don't want to take over Mark's discussion, but I really do not think
-> _DSD is the correct way to fix this.  _CRS is like a generalized PCI
-> BAR.  A PCI device is only allowed to respond to address space
-> reported via a BAR.  An ACPI device is only allowed to respond to
-> address space reported via _CRS.  Those are important rules because
-> they mean we can manage address space with generic code instead of
-> device-specific code.
+        Name (_AEI, ResourceTemplate () {
+                GpioInt(Edge, ActiveLow, ExclusiveAndWake, PullUp, ,
+                " \\_SB.GPI0") {8}
+        })
 
->From what I see in 
-http://lxr.free-electrons.com/source/drivers/acpi/pci_root.c#L723
-acpi_pci_probe_root_resources() parses the _CRS method and
-it only works for MEM and IO resources, so I don't think it is 
-right to pass a config space address by _CRS or to modify the 
-current ACPI framework to support this.
+        Method (_E08, 0x0, NotSerialized) {
+                Notify (\_SB.PWRB, 0x80)
+        }
+}
 
-On the other side, since this is an exception only for the config
-space address of our host controller (as said before all the buses
-below the root one support ECAM), I think that it is right to put
-this address as a device specific data (in fact the rest of the
-config space addresses will be parsed from MCFG).
-I thought the purpose of the quirks from Nowicki patchset were meant
-to handle this sort of special cases...
+Acked-by: Mika Westerberg <mika.westerberg@linux.intel.com>
+Signed-off-by: qiujiang <qiujiang@huawei.com>
+---
+ drivers/gpio/gpio-dwapb.c | 38 +++++++++++++++++++++++++++-----------
+ 1 file changed, 27 insertions(+), 11 deletions(-)
 
-
-Thanks and Regards
-
-Gab
-
-> 
-> Bjorn
+diff --git a/drivers/gpio/gpio-dwapb.c b/drivers/gpio/gpio-dwapb.c
+index 0ebbdf1..d961d3b 100644
+--- a/drivers/gpio/gpio-dwapb.c
++++ b/drivers/gpio/gpio-dwapb.c
+@@ -7,6 +7,7 @@
+  *
+  * All enquiries to support@picochip.com
+  */
++#include <linux/acpi.h>
+ #include <linux/gpio/driver.h>
+ /* FIXME: for gpio_get_value(), replace this with direct register read */
+ #include <linux/gpio.h>
+@@ -25,6 +26,7 @@
+ #include <linux/spinlock.h>
+ #include <linux/platform_data/gpio-dwapb.h>
+ #include <linux/slab.h>
++#include "gpiolib.h"
+ 
+ #define GPIO_SWPORTA_DR		0x00
+ #define GPIO_SWPORTA_DDR	0x04
+@@ -434,6 +436,10 @@ static int dwapb_gpio_add_port(struct dwapb_gpio *gpio,
+ 	else
+ 		port->is_registered = true;
+ 
++	/* Add GPIO-signaled ACPI event support */
++	if (pp->irq)
++		acpi_gpiochip_request_interrupts(&(port->gc));
++
+ 	return err;
+ }
+ 
+@@ -447,7 +453,7 @@ static void dwapb_gpio_unregister(struct dwapb_gpio *gpio)
+ }
+ 
+ static struct dwapb_platform_data *
+-dwapb_gpio_get_pdata_of(struct device *dev)
++dwapb_gpio_get_pdata(struct device *dev)
+ {
+ 	struct fwnode_handle *fwnode;
+ 	struct dwapb_platform_data *pdata;
+@@ -455,9 +461,6 @@ dwapb_gpio_get_pdata_of(struct device *dev)
+ 	int nports;
+ 	int i;
+ 
+-	if (!IS_ENABLED(CONFIG_OF_GPIO) || !(dev->of_node))
+-		return ERR_PTR(-ENODEV);
+-
+ 	nports = device_get_child_node_count(dev);
+ 	if (nports == 0)
+ 		return ERR_PTR(-ENODEV);
+@@ -479,15 +482,13 @@ dwapb_gpio_get_pdata_of(struct device *dev)
+ 
+ 		if (fwnode_property_read_u32(fwnode, "reg", &pp->idx) ||
+ 		    pp->idx >= DWAPB_MAX_PORTS) {
+-			dev_err(dev, "missing/invalid port index for %s\n",
+-				to_of_node(fwnode)->full_name);
++			dev_err(dev, "missing/invalid port index\n");
+ 			return ERR_PTR(-EINVAL);
+ 		}
+ 
+ 		if (fwnode_property_read_u32(fwnode, "snps,nr-gpios",
+ 					 &pp->ngpio)) {
+-			dev_info(dev, "failed to get number of gpios for %s\n",
+-				 to_of_node(fwnode)->full_name);
++			dev_info(dev, "failed to get number of gpios\n");
+ 			pp->ngpio = 32;
+ 		}
+ 
+@@ -495,7 +496,7 @@ dwapb_gpio_get_pdata_of(struct device *dev)
+ 		 * Only port A can provide interrupts in all configurations of
+ 		 * the IP.
+ 		 */
+-		if (pp->idx == 0 &&
++		if (dev->of_node && pp->idx == 0 &&
+ 			of_property_read_bool(to_of_node(fwnode),
+ 				"interrupt-controller")) {
+ 			pp->irq = irq_of_parse_and_map(to_of_node(fwnode), 0);
+@@ -505,9 +506,17 @@ dwapb_gpio_get_pdata_of(struct device *dev)
+ 			}
+ 		}
+ 
++		if (has_acpi_companion(dev) && pp->idx == 0)
++			pp->irq = platform_get_irq(to_platform_device(dev), 0);
++
+ 		pp->irq_shared	= false;
+ 		pp->gpio_base	= -1;
+-		pp->name = to_of_node(fwnode)->full_name;
++
++		if (dev->of_node)
++			pp->name = to_of_node(fwnode)->full_name;
++
++		if (has_acpi_companion(dev))
++			pp->name = acpi_dev_name(to_acpi_device_node(fwnode));
+ 	}
+ 
+ 	return pdata;
+@@ -523,7 +532,7 @@ static int dwapb_gpio_probe(struct platform_device *pdev)
+ 	struct dwapb_platform_data *pdata = dev_get_platdata(dev);
+ 
+ 	if (!pdata) {
+-		pdata = dwapb_gpio_get_pdata_of(dev);
++		pdata = dwapb_gpio_get_pdata(dev);
+ 		if (IS_ERR(pdata))
+ 			return PTR_ERR(pdata);
+ 	}
+@@ -580,6 +589,12 @@ static const struct of_device_id dwapb_of_match[] = {
+ };
+ MODULE_DEVICE_TABLE(of, dwapb_of_match);
+ 
++static const struct acpi_device_id dwapb_acpi_match[] = {
++	{"HISI0181", 0},
++	{ }
++};
++MODULE_DEVICE_TABLE(acpi, dwapb_acpi_match);
++
+ #ifdef CONFIG_PM_SLEEP
+ static int dwapb_gpio_suspend(struct device *dev)
+ {
+@@ -674,6 +689,7 @@ static struct platform_driver dwapb_gpio_driver = {
+ 		.name	= "gpio-dwapb",
+ 		.pm	= &dwapb_gpio_pm_ops,
+ 		.of_match_table = of_match_ptr(dwapb_of_match),
++		.acpi_match_table = ACPI_PTR(dwapb_acpi_match),
+ 	},
+ 	.probe		= dwapb_gpio_probe,
+ 	.remove		= dwapb_gpio_remove,
+-- 
+1.9.1
