@@ -1,131 +1,162 @@
-From: Bjorn Helgaas <helgaas@kernel.org>
-Subject: Re: [RFC PATCH v3 3/3] PCI/ACPI: hisi: Add ACPI support for
- HiSilicon SoCs Host Controllers
-Date: Tue, 23 Feb 2016 19:14:18 -0600
-Message-ID: <20160224011418.GB13026@localhost>
-References: <1455039260-6040-1-git-send-email-gabriele.paoloni@huawei.com>
- <1455039260-6040-4-git-send-email-gabriele.paoloni@huawei.com>
- <20160209182429.GD4348@leverpostej>
- <EE11001F9E5DDD47B7634E2F8A612F2E1ECB1591@lhreml503-mbs>
- <20160210111234.GC2632@leverpostej>
- <EE11001F9E5DDD47B7634E2F8A612F2E1ECB1D30@lhreml503-mbs>
- <EE11001F9E5DDD47B7634E2F8A612F2E1ECC5F00@lhreml503-mbs>
+From: Dan Williams <dan.j.williams@intel.com>
+Subject: [PATCH v2] libnvdimm,
+ tools/testing/nvdimm: fix 'ars_status' output buffer sizing
+Date: Tue, 23 Feb 2016 17:20:19 -0800
+Message-ID: <20160224011823.20330.75415.stgit@dwillia2-desk3.amr.corp.intel.com>
+References: <20160220224643.20667.43436.stgit@dwillia2-desk3.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.136]:60625 "EHLO mail.kernel.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753483AbcBXBOW (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 23 Feb 2016 20:14:22 -0500
-Content-Disposition: inline
-In-Reply-To: <EE11001F9E5DDD47B7634E2F8A612F2E1ECC5F00@lhreml503-mbs>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <stable-owner@vger.kernel.org>
+In-Reply-To: <20160220224643.20667.43436.stgit@dwillia2-desk3.amr.corp.intel.com>
+Sender: stable-owner@vger.kernel.org
+To: linux-nvdimm@lists.01.org
+Cc: Vishal Verma <vishal.l.verma@intel.com>, stable@vger.kernel.org, linux-acpi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Gabriele Paoloni <gabriele.paoloni@huawei.com>
-Cc: 'Mark Rutland' <mark.rutland@arm.com>, "Guohanjun (Hanjun Guo)" <guohanjun@huawei.com>, "Wangzhou (B)" <wangzhou1@hisilicon.com>, "liudongdong (C)" <liudongdong3@huawei.com>, Linuxarm <linuxarm@huawei.com>, qiujiang <qiujiang@huawei.com>, "'bhelgaas@google.com'" <bhelgaas@google.com>, "'arnd@arndb.de'" <arnd@arndb.de>, "'Lorenzo.Pieralisi@arm.com'" <Lorenzo.Pieralisi@arm.com>, "'tn@semihalf.com'" <tn@semihalf.com>, "'linux-pci@vger.kernel.org'" <linux-pci@vger.kernel.org>, "'linux-kernel@vger.kernel.org'" <linux-kernel@vger.kernel.org>, "xuwei (O)" <xuwei5@hisilicon.com>, "'linux-acpi@vger.kernel.org'" <linux-acpi@vger.kernel.org>, "'jcm@redhat.com'" <jcm@redhat.com>, zhangjukuo <zhangjukuo@huawei.com>, "Liguozhu (Kenneth)" <liguozhu@hisilicon.com>, "'linux-arm-kernel@lists.infradead.org'" <linux-arm-kernel@lists.infradead.org>
 
-On Tue, Feb 23, 2016 at 02:47:22AM +0000, Gabriele Paoloni wrote:
-> > -----Original Message-----
-> > From: Gabriele Paoloni
-> > Sent: 10 February 2016 22:45
-> > To: Mark Rutland
-> > Cc: Guohanjun (Hanjun Guo); Wangzhou (B); liudongdong (C); Linuxarm;
-> > qiujiang; bhelgaas@google.com; arnd@arndb.de; Lorenzo.Pieralisi@arm.com;
-> > tn@semihalf.com; linux-pci@vger.kernel.org; linux-
-> > kernel@vger.kernel.org; xuwei (O); linux-acpi@vger.kernel.org;
-> > jcm@redhat.com; zhangjukuo; Liguozhu (Kenneth); linux-arm-
-> > kernel@lists.infradead.org
-> > Subject: RE: [RFC PATCH v3 3/3] PCI/ACPI: hisi: Add ACPI support for
-> > HiSilicon SoCs Host Controllers
-> > 
-> > > -----Original Message-----
-> > > From: linux-kernel-owner@vger.kernel.org [mailto:linux-kernel-
-> > > owner@vger.kernel.org] On Behalf Of Mark Rutland
-> > > Sent: 10 February 2016 11:13
-> > > To: Gabriele Paoloni
-> > > Cc: Guohanjun (Hanjun Guo); Wangzhou (B); liudongdong (C); Linuxarm;
-> > > qiujiang; bhelgaas@google.com; arnd@arndb.de;
-> > > Lorenzo.Pieralisi@arm.com; tn@semihalf.com; linux-pci@vger.kernel.org;
-> > > linux-kernel@vger.kernel.org; xuwei (O); linux-acpi@vger.kernel.org;
-> > > jcm@redhat.com; zhangjukuo; Liguozhu (Kenneth); linux-arm-
-> > > kernel@lists.infradead.org
-> > > Subject: Re: [RFC PATCH v3 3/3] PCI/ACPI: hisi: Add ACPI support for
-> > > HiSilicon SoCs Host Controllers
-> > >
-> > > On Wed, Feb 10, 2016 at 09:52:36AM +0000, Gabriele Paoloni wrote:
-> > > > Hi Mark
-> > > >
-> > > > > On Tue, Feb 09, 2016 at 05:34:20PM +0000, Gabriele Paoloni wrote:
-> > > > > > From: gabriele paoloni <gabriele.paoloni@huawei.com>
-> > > > > > +/*
-> > > > > > + * Retrieve rc_dbi base and size from _DSD
-> > > > > > + * Name (_DSD, Package () {
-> > > > > > + *	ToUUID("daffd814-6eba-4d8c-8a91-bc9bbf4aa301"),
-> > > > > > + *	Package () {
-> > > > > > + *	Package () {"rc-dbi", Package () { 0x0, 0xb0080000, 0x0,
-> > > 0x10000
-> > > > > }},
-> > > > > > + *	}
-> > > > > > + *	})
-> > > > > > + */
-> > > > >
-> > > > > As above, this does not look right. ACPI has standard mechanisms
-> > > for
-> > > > > describing addresses. Making something up like this is not a good
-> > > idea.
-> > > >
-> > > > I am quite new to ACPI, may I ask you to explain a bit?
-> > >
-> > > ACPI has standard mechanisms for describing certain resources, and
-> > > these
-> > > should not be described in _DSD. Memory or IO address regions are
-> > such
-> > > resources (in _CRS, IIRC), and should not be described in _DSD.
-> > 
-> > Hi Mark,
-> > 
-> > In my case I think in need to look into the MCFG object as the problem
-> > I have is RC using a different range than the rest of the hierarchy.
-> > 
-> > I'll investigate this and try to come with a solution in v4
-> 
-> I have looked into this and in our case we cannot use the
-> standard MCFG object to pass the RC config space addresses.
-> 
-> The reason is that in our HW we have the config base addresses of the 
-> root complex ports that are less than 0x100000 byte distant one from
-> the other as we only map the first 0x10000 bytes.
+Use the output length specified in the command to size the receive
+buffer rather than the arbitrary 4K limit.
 
-The ECAM spec requires 4096 bytes per function, 8 functions per
-device, 32 devices per bus, which means you need 0x100000 bytes of
-address space per bus.  If your device doesn't supply that, it doesn't
-really implement ECAM, and you probably can't use the standard ways of
-describing ECAM (MCFG, _CBA).
+This bug was hiding the fact that the ndctl implementation of
+ndctl_bus_cmd_new_ars_status() was not specifying an output buffer size.
 
-> Now the MCFG acpi framework always fix the MCFG resource size to 0x100000
-> for each bus; therefore if we pass our RC addresses through MCFG we end
-> up with a resource conflict.
-> 
-> To give you a practical example we are in a situation where we have:
-> 
-> port0: [0x00000000b0080000 - 0x00000000b0080000 + 0x10000]
-> port1: [0x00000000b0090000 - 0x00000000b0090000 + 0x10000]
-> port2: [0x00000000b00A0000 - 0x00000000b00A0000 + 0x10000]
-> port3: [0x00000000b00B0000 - 0x00000000b00B0000 + 0x10000]
->   
-> So if we pass the base addresses through MCFG the resources
-> will overlap as MCFG will consider 0x100000 size for each base
-> address of the root complex (only the RC bus uses that address)
-> 
-> So far I do not see many option other than using _DSD to pass
-> these RC config base addresses.
+Cc: <stable@vger.kernel.org>
+Cc: Vishal Verma <vishal.l.verma@intel.com>
+Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+---
 
-I don't want to take over Mark's discussion, but I really do not think
-_DSD is the correct way to fix this.  _CRS is like a generalized PCI
-BAR.  A PCI device is only allowed to respond to address space
-reported via a BAR.  An ACPI device is only allowed to respond to
-address space reported via _CRS.  Those are important rules because
-they mean we can manage address space with generic code instead of
-device-specific code.
+Changes in v2:
+Fixed ars_get_status() to pass the correct size of the output buffer.
+It was only allowing enough space for the zero-records case.
 
-Bjorn
+ drivers/acpi/nfit.c              |   13 +++++++------
+ drivers/nvdimm/bus.c             |    8 ++++----
+ include/linux/libnvdimm.h        |    1 -
+ tools/testing/nvdimm/test/nfit.c |    8 ++++++--
+ 4 files changed, 17 insertions(+), 13 deletions(-)
+
+diff --git a/drivers/acpi/nfit.c b/drivers/acpi/nfit.c
+index 424b362e8fdc..1d4b9c6bdf45 100644
+--- a/drivers/acpi/nfit.c
++++ b/drivers/acpi/nfit.c
+@@ -1516,13 +1516,13 @@ static int ars_do_start(struct nvdimm_bus_descriptor *nd_desc,
+ }
+ 
+ static int ars_get_status(struct nvdimm_bus_descriptor *nd_desc,
+-		struct nd_cmd_ars_status *cmd)
++		struct nd_cmd_ars_status *cmd, u32 size)
+ {
+ 	int rc;
+ 
+ 	while (1) {
+ 		rc = nd_desc->ndctl(nd_desc, NULL, ND_CMD_ARS_STATUS, cmd,
+-			sizeof(*cmd));
++			size);
+ 		if (rc || cmd->status & 0xffff)
+ 			return -ENXIO;
+ 
+@@ -1580,6 +1580,7 @@ static int acpi_nfit_find_poison(struct acpi_nfit_desc *acpi_desc,
+ 	struct nd_cmd_ars_start *ars_start = NULL;
+ 	struct nd_cmd_ars_cap *ars_cap = NULL;
+ 	u64 start, len, cur, remaining;
++	u32 ars_status_size;
+ 	int rc;
+ 
+ 	ars_cap = kzalloc(sizeof(*ars_cap), GFP_KERNEL);
+@@ -1609,14 +1610,14 @@ static int acpi_nfit_find_poison(struct acpi_nfit_desc *acpi_desc,
+ 	 * Check if a full-range ARS has been run. If so, use those results
+ 	 * without having to start a new ARS.
+ 	 */
+-	ars_status = kzalloc(ars_cap->max_ars_out + sizeof(*ars_status),
+-			GFP_KERNEL);
++	ars_status_size = ars_cap->max_ars_out;
++	ars_status = kzalloc(ars_status_size, GFP_KERNEL);
+ 	if (!ars_status) {
+ 		rc = -ENOMEM;
+ 		goto out;
+ 	}
+ 
+-	rc = ars_get_status(nd_desc, ars_status);
++	rc = ars_get_status(nd_desc, ars_status, ars_status_size);
+ 	if (rc)
+ 		goto out;
+ 
+@@ -1646,7 +1647,7 @@ static int acpi_nfit_find_poison(struct acpi_nfit_desc *acpi_desc,
+ 		if (rc)
+ 			goto out;
+ 
+-		rc = ars_get_status(nd_desc, ars_status);
++		rc = ars_get_status(nd_desc, ars_status, ars_status_size);
+ 		if (rc)
+ 			goto out;
+ 
+diff --git a/drivers/nvdimm/bus.c b/drivers/nvdimm/bus.c
+index 7e2c43f701bc..99953b34fa1d 100644
+--- a/drivers/nvdimm/bus.c
++++ b/drivers/nvdimm/bus.c
+@@ -392,8 +392,8 @@ static const struct nd_cmd_desc __nd_cmd_bus_descs[] = {
+ 		.out_sizes = { 4, },
+ 	},
+ 	[ND_CMD_ARS_STATUS] = {
+-		.out_num = 2,
+-		.out_sizes = { 4, UINT_MAX, },
++		.out_num = 3,
++		.out_sizes = { 4, 4, UINT_MAX, },
+ 	},
+ };
+ 
+@@ -442,8 +442,8 @@ u32 nd_cmd_out_size(struct nvdimm *nvdimm, int cmd,
+ 		return in_field[1];
+ 	else if (nvdimm && cmd == ND_CMD_VENDOR && idx == 2)
+ 		return out_field[1];
+-	else if (!nvdimm && cmd == ND_CMD_ARS_STATUS && idx == 1)
+-		return ND_CMD_ARS_STATUS_MAX;
++	else if (!nvdimm && cmd == ND_CMD_ARS_STATUS && idx == 2)
++		return out_field[1] - 8;
+ 
+ 	return UINT_MAX;
+ }
+diff --git a/include/linux/libnvdimm.h b/include/linux/libnvdimm.h
+index bed40dff0e86..c736382fd260 100644
+--- a/include/linux/libnvdimm.h
++++ b/include/linux/libnvdimm.h
+@@ -28,7 +28,6 @@ enum {
+ 	ND_IOCTL_MAX_BUFLEN = SZ_4M,
+ 	ND_CMD_MAX_ELEM = 4,
+ 	ND_CMD_MAX_ENVELOPE = 16,
+-	ND_CMD_ARS_STATUS_MAX = SZ_4K,
+ 	ND_MAX_MAPPINGS = 32,
+ 
+ 	/* region flag indicating to direct-map persistent memory by default */
+diff --git a/tools/testing/nvdimm/test/nfit.c b/tools/testing/nvdimm/test/nfit.c
+index 90bd2ea41032..b3281dcd4a5d 100644
+--- a/tools/testing/nvdimm/test/nfit.c
++++ b/tools/testing/nvdimm/test/nfit.c
+@@ -217,13 +217,16 @@ static int nfit_test_cmd_set_config_data(struct nd_cmd_set_config_hdr *nd_cmd,
+ 	return rc;
+ }
+ 
++#define NFIT_TEST_ARS_RECORDS 4
++
+ static int nfit_test_cmd_ars_cap(struct nd_cmd_ars_cap *nd_cmd,
+ 		unsigned int buf_len)
+ {
+ 	if (buf_len < sizeof(*nd_cmd))
+ 		return -EINVAL;
+ 
+-	nd_cmd->max_ars_out = 256;
++	nd_cmd->max_ars_out = sizeof(struct nd_cmd_ars_status)
++		+ NFIT_TEST_ARS_RECORDS * sizeof(struct nd_ars_record);
+ 	nd_cmd->status = (ND_ARS_PERSISTENT | ND_ARS_VOLATILE) << 16;
+ 
+ 	return 0;
+@@ -246,7 +249,8 @@ static int nfit_test_cmd_ars_status(struct nd_cmd_ars_status *nd_cmd,
+ 	if (buf_len < sizeof(*nd_cmd))
+ 		return -EINVAL;
+ 
+-	nd_cmd->out_length = 256;
++	nd_cmd->out_length = sizeof(struct nd_cmd_ars_status);
++	/* TODO: emit error records */
+ 	nd_cmd->num_records = 0;
+ 	nd_cmd->address = 0;
+ 	nd_cmd->length = -1ULL;
