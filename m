@@ -1,96 +1,84 @@
-From: Sinan Kaya <okaya@codeaurora.org>
-Subject: Re: [PATCH] acpi, pci, irq: account for early penalty assignment
-Date: Wed, 24 Feb 2016 09:41:17 -0500
-Message-ID: <56CDC10D.9050206@codeaurora.org>
-References: <1455554508-18174-1-git-send-email-okaya@codeaurora.org>
- <CAJZ5v0iszEN+ep8yGNX35RP04_ZwnF1K_w+VW5tFR9Jz2_ZJqw@mail.gmail.com>
- <56C28633.60003@codeaurora.org>
- <CAJZ5v0j7CwbBw+i1Fc6OCkHO5AZvdLo8yeDhk4asyCFB68ghKg@mail.gmail.com>
+From: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+Subject: Re: [PATCH v3] ARM64: kernel: implement ACPI parking protocol
+Date: Wed, 24 Feb 2016 15:03:14 +0000
+Message-ID: <20160224150314.GD25385@red-moon>
+References: <1453806638-23167-1-git-send-email-lorenzo.pieralisi@arm.com>
+ <20160202182657.GC15706@e104818-lin.cambridge.arm.com>
+ <20160203112112.GA18387@red-moon>
+ <20160203161834.GB26487@MBP.local>
+ <20160224141832.GA26630@red-moon>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp.codeaurora.org ([198.145.29.96]:41945 "EHLO
-	smtp.codeaurora.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750718AbcBXOlU (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 24 Feb 2016 09:41:20 -0500
-In-Reply-To: <CAJZ5v0j7CwbBw+i1Fc6OCkHO5AZvdLo8yeDhk4asyCFB68ghKg@mail.gmail.com>
+Received: from foss.arm.com ([217.140.101.70]:44535 "EHLO foss.arm.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753517AbcBXPBF (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 24 Feb 2016 10:01:05 -0500
+Content-Disposition: inline
+In-Reply-To: <20160224141832.GA26630@red-moon>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rafael@kernel.org>
-Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Timur Tabi <timur@codeaurora.org>, Christopher Covington <cov@codeaurora.org>, Linux PCI <linux-pci@vger.kernel.org>, ravikanth.nalla@hpe.com, Len Brown <lenb@kernel.org>, harish.k@hpe.com, ashwin.reghunandanan@hpe.com, Bjorn Helgaas <bhelgaas@google.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+To: Catalin Marinas <catalin.marinas@arm.com>
+Cc: Mark Rutland <mark.rutland@arm.com>, Sudeep Holla <sudeep.holla@arm.com>, Will Deacon <will.deacon@arm.com>, linux-acpi@vger.kernel.org, Hanjun Guo <hanjun.guo@linaro.org>, Mark Salter <msalter@redhat.com>, Al Stone <ahs3@redhat.com>, linux-arm-kernel@lists.infradead.org, Loc Ho <lho@apm.com>, Itaru Kitayama <itaru.kitayama@riken.jp>
 
-On 2/24/2016 8:04 AM, Rafael J. Wysocki wrote:
-> Hi,
-> 
-> On Tue, Feb 16, 2016 at 3:15 AM, Sinan Kaya <okaya@codeaurora.org> wrote:
->> On 2/15/2016 7:26 PM, Rafael J. Wysocki wrote:
->>> On Mon, Feb 15, 2016 at 5:41 PM, Sinan Kaya <okaya@codeaurora.org> wrote:
->>>> A crash has been observed when assigning penalty on x86 systems.
->>>>
->>>> It looks like this problem happens on x86 platforms with IOAPIC and an SCI
->>>> interrupt override in the ACPI table with interrupt number greater than
->>>> 16. (22 in this example)
->>>>
->>>> The bug has been introduced by "ACPI, PCI, irq: remove interrupt count
->>>> restriction" commit. The code was using kmalloc to resize the interrupt
->>>> list. In this use case, the set penalty call is coming from early phase
->>>> and the heap is not initialized yet.
->>>>
->>>> BUG: unable to handle kernel NULL pointer dereference at 0000000000000018
->>>> IP: [<ffffffff811e8b9d>] kmem_cache_alloc_trace+0xad/0x1c0
->>>> PGD 0
->>>> Oops: 0000 [#1] SMP
->>>> Modules linked in:
->>>> CPU: 0 PID: 0 Comm: swapper Not tainted 4.5.0-rc2Feb-3_RK #1
->>>> Hardware name: HP Superdome2 16s, BIOS Bundle: 007.006.000 SFW: 033.162.000
->>>> 10/30/2015
->>>> [<ffffffff813bc190>] acpi_irq_set_penalty+0x60/0x8e
->>>> [<ffffffff813bc1df>] acpi_irq_add_penalty+0x21/0x26
->>>> [<ffffffff813bc76d>] acpi_penalize_sci_irq+0x25/0x28
->>>> [<ffffffff81b8260d>] acpi_sci_ioapic_setup+0x68/0x78
->>>> [<ffffffff81b830fc>] acpi_boot_init+0x2cc/0x533
->>>> [<ffffffff810677c8>] ? set_pte_vaddr_pud+0x48/0x50
->>>> [<ffffffff81b828cf>] ? acpi_parse_x2apic+0x77/0x77
->>>> [<ffffffff81b82858>] ? dmi_ignore_irq0_timer_override+0x30/0x30
->>>> [<ffffffff81b77c1e>] setup_arch+0xc24/0xce9
->>>> [<ffffffff81b6e120>] ? early_idt_handler_array+0x120/0x120
->>>> [<ffffffff81b6ed94>] start_kernel+0xfc/0x506
->>>> [<ffffffff81b6e120>] ? early_idt_handler_array+0x120/0x120
->>>> [<ffffffff81b6e120>] ? early_idt_handler_array+0x120/0x120
->>>> [<ffffffff81b6e5ee>] x86_64_start_reservations+0x2a/0x2c
->>>> [<ffffffff81b6e73c>] x86_64_start_kernel+0x14c/0x16f
->>>>
->>>> Besides from the use case above, there is one more situation where
->>>> set_penalty is being called from the init context like. There is support
->>>> for setting the penalty through kernel command line.
->>>>
->>>> Adding support to be called from early context for limited number of
->>>> interrupts.
->>>>
->>>> Signed-off-by: Sinan Kaya <okaya@codeaurora.org>
->>>
->>> This looks somewhat hackish to me to be honest.
->> I know.
-> 
-> So after an e-mail exchange with Bjorn I've decided to revert the
-> problematic commit for 4.5, so please submit it again with the fix
-> folded in (or a better way to address the issue if you have one).
-> 
+On Wed, Feb 24, 2016 at 02:18:32PM +0000, Lorenzo Pieralisi wrote:
 
-OK, I'll post a new version of the removed patch with this included. We can 
-discuss on the list if there is a better way of doing things.
+[...]
 
-> Thanks,
-> Rafael
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-pci" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
+>  static int acpi_parking_protocol_cpu_boot(unsigned int cpu)
+>  {
+>  	struct cpu_mailbox_entry *cpu_entry = &cpu_mailbox_entries[cpu];
+> @@ -107,7 +108,11 @@ static int acpi_parking_protocol_cpu_boot(unsigned int cpu)
+>  
+>  	arch_send_wakeup_ipi_mask(cpumask_of(cpu));
+>  
+> -	iounmap(mailbox);
+> +	/*
+> +	 * stash the mailbox address mapping to use it for checks
+> +	 * in post boot method
+> +	 */
+> +	cpu_entry->mailbox = mailbox;
 
+The mailbox VA entry should be stashed before setting up the mailbox
+and sending the IPI, anyway, if Loc and Itaru can test it I will wrap
+this change into the final version with appropriate log.
 
--- 
-Sinan Kaya
-Qualcomm Technologies, Inc. on behalf of Qualcomm Innovation Center, Inc.
-Qualcomm Innovation Center, Inc. is a member of Code Aurora Forum, a Linux Foundation Collaborative Project
+Lorenzo
+
+>  
+>  	return 0;
+>  }
+> @@ -116,32 +121,15 @@ static void acpi_parking_protocol_cpu_postboot(void)
+>  {
+>  	int cpu = smp_processor_id();
+>  	struct cpu_mailbox_entry *cpu_entry = &cpu_mailbox_entries[cpu];
+> -	struct parking_protocol_mailbox __iomem *mailbox;
+> +	struct parking_protocol_mailbox __iomem *mailbox = cpu_entry->mailbox;
+>  	__le64 entry_point;
+>  
+> -	/*
+> -	 * Map mailbox memory with attribute device nGnRE (ie ioremap -
+> -	 * this deviates from the parking protocol specifications since
+> -	 * the mailboxes are required to be mapped nGnRnE; the attribute
+> -	 * discrepancy is harmless insofar as the protocol specification
+> -	 * is concerned).
+> -	 * If the mailbox is mistakenly allocated in the linear mapping
+> -	 * by FW ioremap will fail since the mapping will be prevented
+> -	 * by the kernel (it clashes with the linear mapping attributes
+> -	 * specifications).
+> -	 */
+> -	mailbox = ioremap(cpu_entry->mailbox_addr, sizeof(*mailbox));
+> -	if (!mailbox)
+> -		return;
+> -
+>  	entry_point = readl_relaxed(&mailbox->entry_point);
+>  	/*
+>  	 * Check if firmware has cleared the entry_point as expected
+>  	 * by the protocol specification.
+>  	 */
+>  	WARN_ON(entry_point);
+> -
+> -	iounmap(mailbox);
+>  }
+>  
+>  const struct cpu_operations acpi_parking_protocol_ops = {
