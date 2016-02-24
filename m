@@ -1,8 +1,8 @@
 From: "Moore, Robert" <robert.moore@intel.com>
 Subject: RE: [PATCH 12/15] ACPICA: ACPI 6.1: Add full support for this
  version of ACPI spec
-Date: Wed, 24 Feb 2016 16:22:34 +0000
-Message-ID: <94F2FBAB4432B54E8AACC7DFDE6C92E37E44BC3C@ORSMSX110.amr.corp.intel.com>
+Date: Wed, 24 Feb 2016 17:02:09 +0000
+Message-ID: <94F2FBAB4432B54E8AACC7DFDE6C92E37E44BC86@ORSMSX110.amr.corp.intel.com>
 References: <cover.1455857575.git.lv.zheng@intel.com>
  <deb7863aba0b4ca2b350f206355a06c4701a2b23.1455857585.git.lv.zheng@intel.com>
  <56C8DD6F.5070506@codeaurora.org>
@@ -10,16 +10,24 @@ Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 8BIT
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga01.intel.com ([192.55.52.88]:46991 "EHLO mga01.intel.com"
+Received: from mga02.intel.com ([134.134.136.20]:3690 "EHLO mga02.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755579AbcBXQWi convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 24 Feb 2016 11:22:38 -0500
+	id S1756421AbcBXRCo convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 24 Feb 2016 12:02:44 -0500
 In-Reply-To: <56C8DD6F.5070506@codeaurora.org>
 Content-Language: en-US
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: "Abdulhamid, Harb" <harba@codeaurora.org>, "Zheng, Lv" <lv.zheng@intel.com>, "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, "Brown, Len" <len.brown@intel.com>
 Cc: Lv Zheng <zetalog@gmail.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Al Stone <ahs3@redhat.com>, "fu.wei@linaro.org" <fu.wei@linaro.org>, "tbaicar@codeaurora.org" <tbaicar@codeaurora.org>, "rruigrok@codeaurora.org" <rruigrok@codeaurora.org>
+
+Yes, looks like we missed the revision update for the generic update.
+
+We will update the actbl1.h file
+
+Thanks,
+Bob
+
 
 > -----Original Message-----
 > From: Abdulhamid, Harb [mailto:harba@codeaurora.org]
@@ -41,15 +49,6 @@ Cc: Lv Zheng <zetalog@gmail.com>, "linux-kernel@vger.kernel.org" <linux-kernel@v
 > > 2) New _HID values
 > I don't see where you are adding new _HID values in this patch.
 > 
-
-Not everything in the patch actually makes it into the Linux kernel. The new _HID values are for the AcpiHelp tables, which in turn are also used by the disassembler.
-
-
-
-
-
-
-
 > > 3) New subtable for HEST
 > >
 > > Link: https://github.com/acpica/acpica/commit/5f21bdda
