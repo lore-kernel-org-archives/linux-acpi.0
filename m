@@ -1,85 +1,33 @@
-From: =?UTF-8?B?0J7Qu9C10LMg0JzQvtGA0L7Qtw==?= <oleg.moroz@mcc.vniiem.ru>
-Subject: Re: [PATCH v2 0/3] PCI: Revert "Implement pcibios_alloc_irq() and
- pcibios_free_irq()"
-Date: Wed, 24 Feb 2016 21:30:56 +0300
-Message-ID: <56CDF6E0.2060005@mcc.vniiem.ru>
-References: <20160217182718.302.10272.stgit@bhelgaas-glaptop2.roam.corp.google.com>
- <56C55305.2050404@mcc.vniiem.ru> <20160218160319.GC17588@localhost>
+From: "Rafael J. Wysocki" <rafael@kernel.org>
+Subject: Re: [PATCH v2 3/8] ACPI: add definitions of DBG2 subtypes
+Date: Wed, 24 Feb 2016 21:03:45 +0100
+Message-ID: <CAJZ5v0hO0pD+N5y5au4mgMj0YQrO3A0cvFwNVOsvE9i353K6iA@mail.gmail.com>
+References: <1456333819-13482-1-git-send-email-aleksey.makarov@linaro.org>
+	<1456333819-13482-4-git-send-email-aleksey.makarov@linaro.org>
+	<94F2FBAB4432B54E8AACC7DFDE6C92E37E44BCB5@ORSMSX110.amr.corp.intel.com>
+	<56CDE77C.2050301@linaro.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8;
-	format=flowed
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20160218160319.GC17588@localhost>
+In-Reply-To: <56CDE77C.2050301@linaro.org>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Bjorn Helgaas <helgaas@kernel.org>
-Cc: Bjorn Helgaas <bhelgaas@google.com>, linux-pci@vger.kernel.org, Joerg Roedel <jroedel@suse.de>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, linux-kernel@vger.kernel.org, Sunjin Yang <fan4326@gmail.com>, linux-acpi@vger.kernel.org, Thomas Gleixner <tglx@linutronix.de>, Yinghai Lu <yinghai@kernel.org>, Jiang Liu <jiang.liu@linux.intel.com>
+To: Aleksey Makarov <aleksey.makarov@linaro.org>
+Cc: "Moore, Robert" <robert.moore@intel.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-serial@vger.kernel.org" <linux-serial@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Russell King <linux@arm.linux.org.uk>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, Leif Lindholm <leif.lindholm@linaro.org>, Graeme Gregory <graeme.gregory@linaro.org>, Al Stone <ahs3@redhat.com>, Christopher Covington <cov@codeaurora.org>, Len Brown <lenb@kernel.org>, "Zheng, Lv" <lv.zheng@intel.com>, "devel@acpica.org" <devel@acpica.org>
 List-Id: linux-acpi@vger.kernel.org
 
-I've checked next next-20160218 tag and confirm that it works.
+On Wed, Feb 24, 2016 at 6:25 PM, Aleksey Makarov
+<aleksey.makarov@linaro.org> wrote:
+>
+>
+> On 02/24/2016 08:17 PM, Moore, Robert wrote:
+>> I've got these for the next release of ACPICA
+>
+> It have not been pulled to linux-next but is required for the patchset.
 
-18.02.2016 19:03, Bjorn Helgaas =D0=BF=D0=B8=D1=88=D0=B5=D1=82:
-> On Thu, Feb 18, 2016 at 08:13:41AM +0300, =D0=9C=D0=BE=D1=80=D0=BE=D0=
-=B7 =D0=9E=D0=BB=D0=B5=D0=B3 wrote:
->> On 17.02.2016 21:36, Bjorn Helgaas wrote:
->>> These are clean reverts of 991de2e59090 ("PCI, x86: Implement
->>> pcibios_alloc_irq() and pcibios_free_irq()") and related changes.
->>>
->>> We have two reports of drivers broken in v4.3 by Jiang's change,
->>> 991de2e59090 ("PCI, x86: Implement pcibios_alloc_irq() and
->>> pcibios_free_irq()").
->>>
->>> It would be best to fix the problem instead of reverting 991de2e590=
-90, but
->>> I don't have time to do that myself, and we haven't heard from Jian=
-g, so
->>> the only choice I have is to revert the commit.
->>>
->>> Note that reverting will likely break IOAPIC hotplug.
->>>
->>> =D0=9E=D0=BB=D0=B5=D0=B3 and Sunjin, can you please test this and s=
-ee whether it fixes your
->>> drivers?  This patch is based on v4.5-rc1.
->>>
->>> I intend to merge these for v4.5 unless I hear objections.
->>>
->>> They're on my for-linus branch, so they should appear in linux-next
->>> tomorrow.
->>>
->>> Changes from the v1 posting:
->>>    - Explicitly revert related patches instead of resolving conflic=
-ts
->>>      manually
->>> ---
->>>
->>> Bjorn Helgaas (3):
->>>        Revert "x86/PCI: Don't alloc pcibios-irq when MSI is enabled=
-"
->>>        Revert "PCI: Add helpers to manage pci_dev->irq and pci_dev-=
->irq_managed"
->>>        Revert "PCI, x86: Implement pcibios_alloc_irq() and pcibios_=
-free_irq()"
->>>
->>>
->>>   arch/x86/include/asm/pci_x86.h |    2 ++
->>>   arch/x86/pci/common.c          |   26 ++++++++++----------------
->>>   arch/x86/pci/intel_mid_pci.c   |    9 +++------
->>>   arch/x86/pci/irq.c             |   23 +++++++++++++++++++----
->>>   drivers/acpi/pci_irq.c         |   17 +++++++++++++----
->>>   include/linux/pci.h            |   17 -----------------
->>>   6 files changed, 47 insertions(+), 47 deletions(-)
->> As i undestand this patch will appear in kernel git repo tomorrow? I
->> don't need to apply in manyally to v4.5-rc1?
-> These are included in the next-20160218 tag in the linux-next git rep=
-o (not
-> Linus' repo) at:
->
->    git://git.kernel.org/pub/scm/linux/kernel/git/next/linux-next.git
->
-> You browse this at:
->
->    https://git.kernel.org/cgit/linux/kernel/git/next/linux-next.git/
->
-> If you'd rather, you can also apply the patches yourself to v4.5-rc1.
->
-> Bjorn
+No, it hasn't.
+
+It will go to linux-next when I get ACPICA patches for the next
+release from the upstream.
+
+Thanks,
+Rafael
