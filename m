@@ -1,80 +1,183 @@
-From: Andy Shevchenko <andy.shevchenko@gmail.com>
-Subject: Re: [PATCH v3 2/2] gpio: designware: add gpio-signaled acpi events
- support for power button
-Date: Wed, 24 Feb 2016 15:49:02 +0200
-Message-ID: <CAHp75VeFydKKc6GmWbLJ2uSBmxG2ObGX51i-NrNBAdaR57nXCA@mail.gmail.com>
-References: <1456317210-42742-1-git-send-email-qiujiang@huawei.com>
-	<1456317210-42742-3-git-send-email-qiujiang@huawei.com>
+From: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+Subject: Re: [PATCH v3] ARM64: kernel: implement ACPI parking protocol
+Date: Wed, 24 Feb 2016 14:18:32 +0000
+Message-ID: <20160224141832.GA26630@red-moon>
+References: <1453806638-23167-1-git-send-email-lorenzo.pieralisi@arm.com>
+ <20160202182657.GC15706@e104818-lin.cambridge.arm.com>
+ <20160203112112.GA18387@red-moon>
+ <20160203161834.GB26487@MBP.local>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1456317210-42742-3-git-send-email-qiujiang@huawei.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: qiujiang <qiujiang@huawei.com>
-Cc: Linus Walleij <linus.walleij@linaro.org>, Alexandre Courbot <gnurou@gmail.com>, Mika Westerberg <mika.westerberg@linux.intel.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-gpio@vger.kernel.org" <linux-gpio@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, linuxarm@huawei.com, haifeng.wei@huawei.com, charles.chenxin@huawei.com
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from foss.arm.com ([217.140.101.70]:44244 "EHLO foss.arm.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752006AbcBXOQZ (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 24 Feb 2016 09:16:25 -0500
+Content-Disposition: inline
+In-Reply-To: <20160203161834.GB26487@MBP.local>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Catalin Marinas <catalin.marinas@arm.com>
+Cc: Mark Rutland <mark.rutland@arm.com>, Sudeep Holla <sudeep.holla@arm.com>, Will Deacon <will.deacon@arm.com>, linux-acpi@vger.kernel.org, Hanjun Guo <hanjun.guo@linaro.org>, Mark Salter <msalter@redhat.com>, Al Stone <ahs3@redhat.com>, linux-arm-kernel@lists.infradead.org, Loc Ho <lho@apm.com>, Itaru Kitayama <itaru.kitayama@riken.jp>
 
-On Wed, Feb 24, 2016 at 2:33 PM, qiujiang <qiujiang@huawei.com> wrote:
-> This patch modifies the designware gpio controller driver to
-> support the gpio-signaled acpi events. This is used for power
-> button on hisilicon D02 board(an arm64 platform).
+[+ Itaru]
 
-> @@ -434,6 +436,10 @@ static int dwapb_gpio_add_port(struct dwapb_gpio *gpio,
->         else
->                 port->is_registered = true;
->
-> +       /* Add GPIO-signaled ACPI event support */
-> +       if (pp->irq)
-> +               acpi_gpiochip_request_interrupts(&(port->gc));
+On Wed, Feb 03, 2016 at 04:18:36PM +0000, Catalin Marinas wrote:
+> On Wed, Feb 03, 2016 at 11:21:12AM +0000, Lorenzo Pieralisi wrote:
+> > On Tue, Feb 02, 2016 at 06:26:58PM +0000, Catalin Marinas wrote:
+> > > On Tue, Jan 26, 2016 at 11:10:38AM +0000, Lorenzo Pieralisi wrote:
+> > > > The SBBR and ACPI specifications allow ACPI based systems that do not
+> > > > implement PSCI (eg systems with no EL3) to boot through the ACPI parking
+> > > > protocol specification[1].
+> > > > 
+> > > > This patch implements the ACPI parking protocol CPU operations, and adds
+> > > > code that eases parsing the parking protocol data structures to the
+> > > > ARM64 SMP initializion carried out at the same time as cpus enumeration.
+> > > > 
+> > > > To wake-up the CPUs from the parked state, this patch implements a
+> > > > wakeup IPI for ARM64 (ie arch_send_wakeup_ipi_mask()) that mirrors the
+> > > > ARM one, so that a specific IPI is sent for wake-up purpose in order
+> > > > to distinguish it from other IPI sources.
+> > > > 
+> > > > Given the current ACPI MADT parsing API, the patch implements a glue
+> > > > layer that helps passing MADT GICC data structure from SMP initialization
+> > > > code to the parking protocol implementation somewhat overriding the CPU
+> > > > operations interfaces. This to avoid creating a completely trasparent
+> > > > DT/ACPI CPU operations layer that would require creating opaque
+> > > > structure handling for CPUs data (DT represents CPU through DT nodes, ACPI
+> > > > through static MADT table entries), which seems overkill given that ACPI
+> > > > on ARM64 mandates only two booting protocols (PSCI and parking protocol),
+> > > > so there is no need for further protocol additions.
+> > > > 
+> > > > Based on the original work by Mark Salter <msalter@redhat.com>
+> > > > 
+> > > > [1] https://acpica.org/sites/acpica/files/MP%20Startup%20for%20ARM%20platforms.docx
+> > > > 
+> > > > Signed-off-by: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+> > > > Cc: Will Deacon <will.deacon@arm.com>
+> > > > Cc: Hanjun Guo <hanjun.guo@linaro.org>
+> > > > Cc: Loc Ho <lho@apm.com>
+> > > > Cc: Sudeep Holla <sudeep.holla@arm.com>
+> > > > Cc: Catalin Marinas <catalin.marinas@arm.com>
+> > > > Cc: Mark Rutland <mark.rutland@arm.com>
+> > > > Cc: Mark Salter <msalter@redhat.com>
+> > > > Cc: Al Stone <ahs3@redhat.com>
+> > > 
+> > > Applied, with a minor addition just to warn people from not using it in
+> > > other configurations (#ifdef still needed otherwise the
+> > > acpi_parking_protocol_valid symbol is not available; but I prefer uglier
+> > > code than people starting to use this IPI in their firmware):
+> > 
+> > It makes sense, we could include asm/acpi.h in smp.c (which is not
+> > included by linux/acpi.h if !CONFIG_ACPI) to pull in the symbol and
+> > remove the ifdef if you think it is cleaner.
+> 
+> I don't think it's worth.
+> 
+> BTW, the acpi_parking_protocol_valid() definition has an __init
+> annotation while the declaration does not. I removed the __init
+> altogether since I get a section mismatch warning when being called from
+> handle_IPI.
 
-Redundant parens.
+Catalin,
 
-> @@ -447,7 +453,7 @@ static void dwapb_gpio_unregister(struct dwapb_gpio *gpio)
->  }
->
->  static struct dwapb_platform_data *
-> -dwapb_gpio_get_pdata_of(struct device *dev)
-> +dwapb_gpio_get_pdata(struct device *dev)
->  {
->         struct fwnode_handle *fwnode;
->         struct dwapb_platform_data *pdata;
-> @@ -455,9 +461,6 @@ dwapb_gpio_get_pdata_of(struct device *dev)
->         int nports;
->         int i;
->
+Itaru spotted an issue related to ioremapping the mailbox in the
+cpu_postboot method where I can't really use ioremap since irqs
+are disabled on the secondaries coming up at that point, I missed
+that, apologies (I wanted to avoid leaving the mailboxes mapped
+after boot).
 
-> -       if (!IS_ENABLED(CONFIG_OF_GPIO) || !(dev->of_node))
-> -               return ERR_PTR(-ENODEV);
-> -
+So, options to fix it:
 
-I think it belongs to patch 1.
+(1) we leave the mailboxes mapped
+(2) we remove the FW check in the postboot method (running on
+    secondaries)
+(3) I add a cpu_ops method to clean-up resources used for
+    booting secondaries and there I can unmap the mailboxes
 
-> @@ -479,15 +482,13 @@ dwapb_gpio_get_pdata_of(struct device *dev)
->
->                 if (fwnode_property_read_u32(fwnode, "reg", &pp->idx) ||
->                     pp->idx >= DWAPB_MAX_PORTS) {
-> -                       dev_err(dev, "missing/invalid port index for %s\n",
-> -                               to_of_node(fwnode)->full_name);
-> +                       dev_err(dev, "missing/invalid port index\n");
+Frankly, they are all unappealing, I would go for (1), patch below, Itaru
+can you give it a go please on Mustang against arm64 for-next/core ?
 
-Ditto.
+Thanks,
+Lorenzo
 
-> -                       dev_info(dev, "failed to get number of gpios for %s\n",
-> -                                to_of_node(fwnode)->full_name);
-> +                       dev_info(dev, "failed to get number of gpios\n");
-
-Ditto.
-
-> @@ -495,7 +496,7 @@ dwapb_gpio_get_pdata_of(struct device *dev)
->                  * Only port A can provide interrupts in all configurations of
->                  * the IP.
->                  */
-> -               if (pp->idx == 0 &&
-> +               if (dev->of_node && pp->idx == 0 &&
-
-Why is it needed?
-
-
--- 
-With Best Regards,
-Andy Shevchenko
+-- >8 --
+diff --git a/arch/arm64/kernel/acpi_parking_protocol.c b/arch/arm64/kernel/acpi_parking_protocol.c
+index 4b1e5a7..b56fc0d 100644
+--- a/arch/arm64/kernel/acpi_parking_protocol.c
++++ b/arch/arm64/kernel/acpi_parking_protocol.c
+@@ -21,7 +21,14 @@
+ 
+ #include <asm/cpu_ops.h>
+ 
++struct parking_protocol_mailbox {
++	__le32 cpu_id;
++	__le32 reserved;
++	__le64 entry_point;
++};
++
+ struct cpu_mailbox_entry {
++	struct parking_protocol_mailbox __iomem *mailbox;
+ 	phys_addr_t mailbox_addr;
+ 	u8 version;
+ 	u8 gic_cpu_id;
+@@ -59,12 +66,6 @@ static int acpi_parking_protocol_cpu_prepare(unsigned int cpu)
+ 	return 0;
+ }
+ 
+-struct parking_protocol_mailbox {
+-	__le32 cpu_id;
+-	__le32 reserved;
+-	__le64 entry_point;
+-};
+-
+ static int acpi_parking_protocol_cpu_boot(unsigned int cpu)
+ {
+ 	struct cpu_mailbox_entry *cpu_entry = &cpu_mailbox_entries[cpu];
+@@ -107,7 +108,11 @@ static int acpi_parking_protocol_cpu_boot(unsigned int cpu)
+ 
+ 	arch_send_wakeup_ipi_mask(cpumask_of(cpu));
+ 
+-	iounmap(mailbox);
++	/*
++	 * stash the mailbox address mapping to use it for checks
++	 * in post boot method
++	 */
++	cpu_entry->mailbox = mailbox;
+ 
+ 	return 0;
+ }
+@@ -116,32 +121,15 @@ static void acpi_parking_protocol_cpu_postboot(void)
+ {
+ 	int cpu = smp_processor_id();
+ 	struct cpu_mailbox_entry *cpu_entry = &cpu_mailbox_entries[cpu];
+-	struct parking_protocol_mailbox __iomem *mailbox;
++	struct parking_protocol_mailbox __iomem *mailbox = cpu_entry->mailbox;
+ 	__le64 entry_point;
+ 
+-	/*
+-	 * Map mailbox memory with attribute device nGnRE (ie ioremap -
+-	 * this deviates from the parking protocol specifications since
+-	 * the mailboxes are required to be mapped nGnRnE; the attribute
+-	 * discrepancy is harmless insofar as the protocol specification
+-	 * is concerned).
+-	 * If the mailbox is mistakenly allocated in the linear mapping
+-	 * by FW ioremap will fail since the mapping will be prevented
+-	 * by the kernel (it clashes with the linear mapping attributes
+-	 * specifications).
+-	 */
+-	mailbox = ioremap(cpu_entry->mailbox_addr, sizeof(*mailbox));
+-	if (!mailbox)
+-		return;
+-
+ 	entry_point = readl_relaxed(&mailbox->entry_point);
+ 	/*
+ 	 * Check if firmware has cleared the entry_point as expected
+ 	 * by the protocol specification.
+ 	 */
+ 	WARN_ON(entry_point);
+-
+-	iounmap(mailbox);
+ }
+ 
+ const struct cpu_operations acpi_parking_protocol_ops = {
