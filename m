@@ -1,199 +1,172 @@
 From: Dan Williams <dan.j.williams@intel.com>
-Subject: [PATCH 2/8] libnvdimm: protect nvdimm_{bus|namespace}_add_poison()
- with nvdimm_bus_lock()
-Date: Tue, 23 Feb 2016 18:17:08 -0800
-Message-ID: <20160224021708.22776.34242.stgit@dwillia2-desk3.amr.corp.intel.com>
+Subject: [PATCH 3/8] libnvdimm: async notification support
+Date: Tue, 23 Feb 2016 18:17:14 -0800
+Message-ID: <20160224021714.22776.50929.stgit@dwillia2-desk3.amr.corp.intel.com>
 References: <20160224021655.22776.87952.stgit@dwillia2-desk3.amr.corp.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga14.intel.com ([192.55.52.115]:8024 "EHLO mga14.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753826AbcBXCRi (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 23 Feb 2016 21:17:38 -0500
+Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <20160224021655.22776.87952.stgit@dwillia2-desk3.amr.corp.intel.com>
-Sender: linux-acpi-owner@vger.kernel.org
-List-Id: linux-acpi@vger.kernel.org
+Sender: linux-kernel-owner@vger.kernel.org
 To: linux-nvdimm@lists.01.org
-Cc: Vishal Verma <vishal.l.verma@intel.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
+Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+List-Id: linux-acpi@vger.kernel.org
 
-In preparation for making poison list retrieval asynchronus to region
-registration, add protection for walking and mutating the bus-level
-poison list.
+In preparation for asynchronous address range scrub support add an ability for
+the pmem driver to dynamically consume address range scrub results.
 
-Cc: Vishal Verma <vishal.l.verma@intel.com>
 Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 ---
- drivers/nvdimm/core.c |  101 +++++++++++++++++++++++++++++++------------------
- 1 file changed, 63 insertions(+), 38 deletions(-)
+ drivers/nvdimm/bus.c    |   26 ++++++++++++++++++++++++++
+ drivers/nvdimm/nd.h     |    2 ++
+ drivers/nvdimm/pmem.c   |   15 +++++++++++++++
+ drivers/nvdimm/region.c |   12 ++++++++++++
+ include/linux/nd.h      |    7 +++++++
+ 5 files changed, 62 insertions(+)
 
-diff --git a/drivers/nvdimm/core.c b/drivers/nvdimm/core.c
-index 2e2832b83c93..f309e6bf6833 100644
---- a/drivers/nvdimm/core.c
-+++ b/drivers/nvdimm/core.c
-@@ -408,33 +408,11 @@ static void __add_badblock_range(struct badblocks *bb, u64 ns_offset, u64 len)
- 		set_badblock(bb, start_sector, num_sectors);
+diff --git a/drivers/nvdimm/bus.c b/drivers/nvdimm/bus.c
+index c3ba888e3e3a..2508251439e7 100644
+--- a/drivers/nvdimm/bus.c
++++ b/drivers/nvdimm/bus.c
+@@ -133,6 +133,32 @@ static int nvdimm_bus_remove(struct device *dev)
+ 	return rc;
  }
  
--/**
-- * nvdimm_namespace_add_poison() - Convert a list of poison ranges to badblocks
-- * @ndns:	the namespace containing poison ranges
-- * @bb:		badblocks instance to populate
-- * @offset:	offset at the start of the namespace before 'sector 0'
-- *
-- * The poison list generated during NFIT initialization may contain multiple,
-- * possibly overlapping ranges in the SPA (System Physical Address) space.
-- * Compare each of these ranges to the namespace currently being initialized,
-- * and add badblocks to the gendisk for all matching sub-ranges
-- */
--void nvdimm_namespace_add_poison(struct nd_namespace_common *ndns,
--		struct badblocks *bb, resource_size_t offset)
-+static void namespace_add_poison(struct list_head *poison_list,
-+		struct badblocks *bb, struct resource *res)
- {
--	struct nd_namespace_io *nsio = to_nd_namespace_io(&ndns->dev);
--	struct nd_region *nd_region = to_nd_region(ndns->dev.parent);
--	struct nvdimm_bus *nvdimm_bus;
--	struct list_head *poison_list;
--	u64 ns_start, ns_end, ns_size;
- 	struct nd_poison *pl;
- 
--	ns_size = nvdimm_namespace_capacity(ndns) - offset;
--	ns_start = nsio->res.start + offset;
--	ns_end = nsio->res.end;
--
--	nvdimm_bus = to_nvdimm_bus(nd_region->dev.parent);
--	poison_list = &nvdimm_bus->poison_list;
- 	if (list_empty(poison_list))
- 		return;
- 
-@@ -442,37 +420,69 @@ void nvdimm_namespace_add_poison(struct nd_namespace_common *ndns,
- 		u64 pl_end = pl->start + pl->length - 1;
- 
- 		/* Discard intervals with no intersection */
--		if (pl_end < ns_start)
-+		if (pl_end < res->start)
- 			continue;
--		if (pl->start > ns_end)
-+		if (pl->start >  res->end)
- 			continue;
- 		/* Deal with any overlap after start of the namespace */
--		if (pl->start >= ns_start) {
-+		if (pl->start >= res->start) {
- 			u64 start = pl->start;
- 			u64 len;
- 
--			if (pl_end <= ns_end)
-+			if (pl_end <= res->end)
- 				len = pl->length;
- 			else
--				len = ns_start + ns_size - pl->start;
--			__add_badblock_range(bb, start - ns_start, len);
-+				len = res->start + resource_size(res)
-+					- pl->start;
-+			__add_badblock_range(bb, start - res->start, len);
- 			continue;
- 		}
- 		/* Deal with overlap for poison starting before the namespace */
--		if (pl->start < ns_start) {
-+		if (pl->start < res->start) {
- 			u64 len;
- 
--			if (pl_end < ns_end)
--				len = pl->start + pl->length - ns_start;
-+			if (pl_end < res->end)
-+				len = pl->start + pl->length - res->start;
- 			else
--				len = ns_size;
-+				len = resource_size(res);
- 			__add_badblock_range(bb, 0, len);
- 		}
- 	}
- }
-+
-+/**
-+ * nvdimm_namespace_add_poison() - Convert a list of poison ranges to badblocks
-+ * @ndns:	the namespace containing poison ranges
-+ * @bb:		badblocks instance to populate
-+ * @offset:	offset at the start of the namespace before 'sector 0'
-+ *
-+ * The poison list generated during NFIT initialization may contain multiple,
-+ * possibly overlapping ranges in the SPA (System Physical Address) space.
-+ * Compare each of these ranges to the namespace currently being initialized,
-+ * and add badblocks to the gendisk for all matching sub-ranges
-+ */
-+void nvdimm_namespace_add_poison(struct nd_namespace_common *ndns,
-+		struct badblocks *bb, resource_size_t offset)
++void nd_device_notify(struct device *dev, enum nvdimm_event event)
 +{
-+	struct nd_namespace_io *nsio = to_nd_namespace_io(&ndns->dev);
-+	struct nd_region *nd_region = to_nd_region(ndns->dev.parent);
-+	struct nvdimm_bus *nvdimm_bus;
-+	struct list_head *poison_list;
-+	struct resource res = {
-+		.start = nsio->res.start + offset,
-+		.end = nsio->res.end,
-+	};
++	device_lock(dev);
++	if (dev->driver) {
++		struct nd_device_driver *nd_drv;
 +
-+	nvdimm_bus = to_nvdimm_bus(nd_region->dev.parent);
-+	poison_list = &nvdimm_bus->poison_list;
-+
-+	nvdimm_bus_lock(&nvdimm_bus->dev);
-+	namespace_add_poison(poison_list, bb, &res);
-+	nvdimm_bus_unlock(&nvdimm_bus->dev);
++		nd_drv = to_nd_device_driver(dev->driver);
++		if (nd_drv->notify)
++			nd_drv->notify(dev, event);
++	}
++	device_unlock(dev);
 +}
- EXPORT_SYMBOL_GPL(nvdimm_namespace_add_poison);
++EXPORT_SYMBOL(nd_device_notify);
++
++void nvdimm_region_notify(struct nd_region *nd_region, enum nvdimm_event event)
++{
++	struct nvdimm_bus *nvdimm_bus = walk_to_nvdimm_bus(&nd_region->dev);
++
++	if (!nvdimm_bus)
++		return;
++
++	/* caller is responsible for holding a reference on the device */
++	nd_device_notify(&nd_region->dev, event);
++}
++EXPORT_SYMBOL_GPL(nvdimm_region_notify);
++
+ static struct bus_type nvdimm_bus_type = {
+ 	.name = "nd",
+ 	.uevent = nvdimm_bus_uevent,
+diff --git a/drivers/nvdimm/nd.h b/drivers/nvdimm/nd.h
+index ba1633b9da31..78b82f6dd191 100644
+--- a/drivers/nvdimm/nd.h
++++ b/drivers/nvdimm/nd.h
+@@ -18,6 +18,7 @@
+ #include <linux/mutex.h>
+ #include <linux/ndctl.h>
+ #include <linux/types.h>
++#include <linux/nd.h>
+ #include "label.h"
  
--static int __add_poison(struct nvdimm_bus *nvdimm_bus, u64 addr, u64 length)
-+static int add_poison(struct nvdimm_bus *nvdimm_bus, u64 addr, u64 length)
- {
- 	struct nd_poison *pl;
- 
-@@ -487,12 +497,12 @@ static int __add_poison(struct nvdimm_bus *nvdimm_bus, u64 addr, u64 length)
+ enum {
+@@ -168,6 +169,7 @@ int nd_integrity_init(struct gendisk *disk, unsigned long meta_size);
+ void wait_nvdimm_bus_probe_idle(struct device *dev);
+ void nd_device_register(struct device *dev);
+ void nd_device_unregister(struct device *dev, enum nd_async_mode mode);
++void nd_device_notify(struct device *dev, enum nvdimm_event event);
+ int nd_uuid_store(struct device *dev, u8 **uuid_out, const char *buf,
+ 		size_t len);
+ ssize_t nd_sector_size_show(unsigned long current_lbasize,
+diff --git a/drivers/nvdimm/pmem.c b/drivers/nvdimm/pmem.c
+index 8d0b54670184..efc2a5e671c6 100644
+--- a/drivers/nvdimm/pmem.c
++++ b/drivers/nvdimm/pmem.c
+@@ -488,12 +488,27 @@ static int nd_pmem_remove(struct device *dev)
  	return 0;
  }
  
--int nvdimm_bus_add_poison(struct nvdimm_bus *nvdimm_bus, u64 addr, u64 length)
-+static int bus_add_poison(struct nvdimm_bus *nvdimm_bus, u64 addr, u64 length)
- {
- 	struct nd_poison *pl;
- 
- 	if (list_empty(&nvdimm_bus->poison_list))
--		return __add_poison(nvdimm_bus, addr, length);
-+		return add_poison(nvdimm_bus, addr, length);
- 
- 	/*
- 	 * There is a chance this is a duplicate, check for those first.
-@@ -512,7 +522,18 @@ int nvdimm_bus_add_poison(struct nvdimm_bus *nvdimm_bus, u64 addr, u64 length)
- 	 * as any overlapping ranges will get resolved when the list is consumed
- 	 * and converted to badblocks
- 	 */
--	return __add_poison(nvdimm_bus, addr, length);
-+	return add_poison(nvdimm_bus, addr, length);
++static void nd_pmem_notify(struct device *dev, enum nvdimm_event event)
++{
++	struct pmem_device *pmem = dev_get_drvdata(dev);
++	struct nd_namespace_common *ndns = pmem->ndns;
++
++	if (event != NVDIMM_REVALIDATE_POISON)
++		return;
++
++	if (is_nd_btt(dev))
++		nvdimm_namespace_add_poison(ndns, &pmem->bb, 0);
++	else
++		nvdimm_namespace_add_poison(ndns, &pmem->bb, pmem->data_offset);
 +}
 +
-+int nvdimm_bus_add_poison(struct nvdimm_bus *nvdimm_bus, u64 addr, u64 length)
-+{
-+	int rc;
-+
-+	nvdimm_bus_lock(&nvdimm_bus->dev);
-+	rc = bus_add_poison(nvdimm_bus, addr, length);
-+	nvdimm_bus_unlock(&nvdimm_bus->dev);
-+
-+	return rc;
+ MODULE_ALIAS("pmem");
+ MODULE_ALIAS_ND_DEVICE(ND_DEVICE_NAMESPACE_IO);
+ MODULE_ALIAS_ND_DEVICE(ND_DEVICE_NAMESPACE_PMEM);
+ static struct nd_device_driver nd_pmem_driver = {
+ 	.probe = nd_pmem_probe,
+ 	.remove = nd_pmem_remove,
++	.notify = nd_pmem_notify,
+ 	.drv = {
+ 		.name = "nd_pmem",
+ 	},
+diff --git a/drivers/nvdimm/region.c b/drivers/nvdimm/region.c
+index 7da63eac78ee..4b7715e29cff 100644
+--- a/drivers/nvdimm/region.c
++++ b/drivers/nvdimm/region.c
+@@ -93,9 +93,21 @@ static int nd_region_remove(struct device *dev)
+ 	return 0;
  }
- EXPORT_SYMBOL_GPL(nvdimm_bus_add_poison);
  
-@@ -553,7 +574,11 @@ void nvdimm_bus_unregister(struct nvdimm_bus *nvdimm_bus)
- 
- 	nd_synchronize();
- 	device_for_each_child(&nvdimm_bus->dev, NULL, child_unregister);
++static int child_notify(struct device *dev, void *data)
++{
++	nd_device_notify(dev, *(enum nvdimm_event *) data);
++	return 0;
++}
 +
-+	nvdimm_bus_lock(&nvdimm_bus->dev);
- 	free_poison_list(&nvdimm_bus->poison_list);
-+	nvdimm_bus_unlock(&nvdimm_bus->dev);
++static void nd_region_notify(struct device *dev, enum nvdimm_event event)
++{
++	device_for_each_child(dev, &event, child_notify);
++}
 +
- 	nvdimm_bus_destroy_ndctl(nvdimm_bus);
+ static struct nd_device_driver nd_region_driver = {
+ 	.probe = nd_region_probe,
+ 	.remove = nd_region_remove,
++	.notify = nd_region_notify,
+ 	.drv = {
+ 		.name = "nd_region",
+ 	},
+diff --git a/include/linux/nd.h b/include/linux/nd.h
+index 507e47c86737..5489ab756d1a 100644
+--- a/include/linux/nd.h
++++ b/include/linux/nd.h
+@@ -16,11 +16,16 @@
+ #include <linux/ndctl.h>
+ #include <linux/device.h>
  
- 	device_unregister(&nvdimm_bus->dev);
-
++enum nvdimm_event {
++	NVDIMM_REVALIDATE_POISON,
++};
++
+ struct nd_device_driver {
+ 	struct device_driver drv;
+ 	unsigned long type;
+ 	int (*probe)(struct device *dev);
+ 	int (*remove)(struct device *dev);
++	void (*notify)(struct device *dev, enum nvdimm_event event);
+ };
+ 
+ static inline struct nd_device_driver *to_nd_device_driver(
+@@ -144,6 +149,8 @@ static inline int nvdimm_write_bytes(struct nd_namespace_common *ndns,
+ 	MODULE_ALIAS("nd:t" __stringify(type) "*")
+ #define ND_DEVICE_MODALIAS_FMT "nd:t%d"
+ 
++struct nd_region;
++void nvdimm_region_notify(struct nd_region *nd_region, enum nvdimm_event event);
+ int __must_check __nd_driver_register(struct nd_device_driver *nd_drv,
+ 		struct module *module, const char *mod_name);
+ #define nd_driver_register(driver) \
