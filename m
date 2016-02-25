@@ -1,37 +1,65 @@
-From: Loc Ho <lho@apm.com>
-Subject: Re: [PATCH v3] ARM64: kernel: implement ACPI parking protocol
-Date: Thu, 25 Feb 2016 12:58:11 -0800
-Message-ID: <CAPw-ZTmMVMztB6GTZPCtgoUKt9J2xAo1vBREzFZPUpZiS12Z+A@mail.gmail.com>
-References: <1453806638-23167-1-git-send-email-lorenzo.pieralisi@arm.com>
-	<20160202182657.GC15706@e104818-lin.cambridge.arm.com>
-	<20160203112112.GA18387@red-moon>
-	<20160203161834.GB26487@MBP.local>
-	<20160224141832.GA26630@red-moon>
-	<56CE3C9E.7070505@riken.jp>
-	<20160225092427.GA31728@red-moon>
+From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Subject: Re: [RFC PATCH v3 3/3] PCI/ACPI: hisi: Add ACPI support for HiSilicon SoCs Host Controllers
+Date: Thu, 25 Feb 2016 22:24:34 +0100
+Message-ID: <8105311.kD8XXIcipM@vostro.rjw.lan>
+References: <20160209182429.GD4348@leverpostej> <20160225120750.GA32016@red-moon> <20160225195912.GA4818@localhost>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-lf0-f43.google.com ([209.85.215.43]:33589 "EHLO
-	mail-lf0-f43.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751161AbcBYU6N (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 25 Feb 2016 15:58:13 -0500
-Received: by mail-lf0-f43.google.com with SMTP id m1so41396930lfg.0
-        for <linux-acpi@vger.kernel.org>; Thu, 25 Feb 2016 12:58:12 -0800 (PST)
-In-Reply-To: <20160225092427.GA31728@red-moon>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7Bit
+Return-path: <linux-pci-owner@vger.kernel.org>
+In-Reply-To: <20160225195912.GA4818@localhost>
+Sender: linux-pci-owner@vger.kernel.org
+To: Bjorn Helgaas <helgaas@kernel.org>
+Cc: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Gabriele Paoloni <gabriele.paoloni@huawei.com>, 'Mark Rutland' <mark.rutland@arm.com>, "Guohanjun (Hanjun Guo)" <guohanjun@huawei.com>, "Wangzhou (B)" <wangzhou1@hisilicon.com>, "liudongdong (C)" <liudongdong3@huawei.com>, Linuxarm <linuxarm@huawei.com>, qiujiang <qiujiang@huawei.com>, "'bhelgaas@google.com'" <bhelgaas@google.com>, "'arnd@arndb.de'" <arnd@arndb.de>, "'tn@semihalf.com'" <tn@semihalf.com>, "'linux-pci@vger.kernel.org'" <linux-pci@vger.kernel.org>, "'linux-kernel@vger.kernel.org'" <linux-kernel@vger.kernel.org>, "xuwei (O)" <xuwei5@hisilicon.com>, "'linux-acpi@vger.kernel.org'" <linux-acpi@vger.kernel.org>, "'jcm@redhat.com'" <jcm@redhat.com>, zhangjukuo <zhangjukuo@huawei.com>, "Liguozhu (Kenneth)" <liguozhu@hisilicon.com>, "'linux-arm-kernel@lists.infradead.org'" <linux-arm-kernel@lists.infradead.org>
 List-Id: linux-acpi@vger.kernel.org
-To: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
-Cc: Itaru Kitayama <itaru.kitayama@riken.jp>, Catalin Marinas <catalin.marinas@arm.com>, Mark Rutland <mark.rutland@arm.com>, Sudeep Holla <sudeep.holla@arm.com>, Will Deacon <will.deacon@arm.com>, linux-acpi@vger.kernel.org, Hanjun Guo <hanjun.guo@linaro.org>, Mark Salter <msalter@redhat.com>, Al Stone <ahs3@redhat.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
-Hi,
+On Thursday, February 25, 2016 01:59:12 PM Bjorn Helgaas wrote:
+> On Thu, Feb 25, 2016 at 12:07:50PM +0000, Lorenzo Pieralisi wrote:
+> > On Thu, Feb 25, 2016 at 03:01:19AM +0000, Gabriele Paoloni wrote:
+> > 
+> > [...]
+> > 
+> > > > I think the relevant spec is the PCI Firmware Spec, r3.0, sec 4.1.2.
+> > > > Note 2 in that section says the address range of an MMCFG region
+> > > > must be reserved by declaring a motherboard resource, i.e., included
+> > > > in the _CRS of a PNP0C02 or similar device.
+> > > 
+> > > I had a look a this. So yes the specs says that we should use the 
+> > > PNP0C02 device if MCFG is not supported. 
+> > 
+> > AFAIK, PNP0C02 is a resource reservation mechanism, the spec says that
+> > MCFG regions must be reserved using PNP0C02, even though its
+> > current usage on x86 is a bit unfathomable to me, in particular
+> > in relation to MCFG resources retrieved for hotpluggable bridges (ie
+> > through _CBA, which I think consider the MCFG region as reserved
+> > by default, regardless of PNP0c02):
+> > 
+> > see pci_mmcfg_check_reserved() arch/x86/pci/mmconfig-shared.c
+> 
+> I don't know how _CBA-related resources would be reserved.  I haven't
+> personally worked with any host bridges that supply _CBA, so I don't
+> know whether or how they handled it.
+> 
+> I think the spec intent was that the Consumer/Producer bit (Extended
+> Address Space Descriptor, General Flags Bit[0], see ACPI spec sec
+> 6.4.3.5.4) would be used.  Resources such as ECAM areas would be
+> marked "Consumer", meaning the bridge consumed that space itself, and
+> windows passed down to the PCI bus would be marked "Producer".
+> 
+> But BIOSes didn't use that bit consistently, so we couldn't rely on
+> it.  I verified experimentally that Windows didn't pay attention to
+> that bit either, at least for DWord descriptors:
+> https://bugzilla.kernel.org/show_bug.cgi?id=15701
+> 
+> It's conceivable that we could still use that bit in Extended Address
+> Space descriptors, or maybe some hack like pay attention if the bridge
+> has _CBA, or some such.
 
-> -- >8 --
-> diff --git a/arch/arm64/kernel/acpi_parking_protocol.c b/arch/arm64/kernel/acpi_parking_protocol.c
+Last time I asked the firmware vendor people in the ASWG about that,
+the answer was that the Consumer/Producer bit was useless as they had
+never paid any attention to it in general.
 
-I applies this to 4.5.0-rc5-next-20160225+ and boot just fine on
-Mustang and Merlin with 8 CPU's.
+It may be good to update the spec to say something along these lines, actually.
 
-Tested-by: Loc Ho <lho@apm.com>
-
--Loc
+Thanks,
+Rafael
