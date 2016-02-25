@@ -1,165 +1,123 @@
-From: Aleksey Makarov <aleksey.makarov@linaro.org>
-Subject: Re: [PATCH v2 1/8] arm64: move acpi/dt decision earlier in boot
- process
-Date: Thu, 25 Feb 2016 18:53:35 +0300
-Message-ID: <56CF237F.6090706@linaro.org>
-References: <1456333819-13482-1-git-send-email-aleksey.makarov@linaro.org>
- <1456333819-13482-2-git-send-email-aleksey.makarov@linaro.org>
- <56CDF4D4.6000506@suse.com>
+From: Lukas Wunner <lukas@wunner.de>
+Subject: Re: [alsa-devel] [PATCH 0/1] ALSA: hda - Use acpi_dev_present()
+Date: Thu, 25 Feb 2016 17:59:05 +0100
+Message-ID: <20160225165905.GA20348@wunner.de>
+References: <cover.1452790983.git.lukas@wunner.de>
+ <s5hmvs7l6ys.wl-tiwai@suse.de>
+ <20160220224724.GA19638@wunner.de>
+ <s5h1t86xyt1.wl-tiwai@suse.de>
+ <56CB18A7.3000207@linux.intel.com>
+ <20160222202331.GA20052@wunner.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-lb0-f178.google.com ([209.85.217.178]:34655 "EHLO
-	mail-lb0-f178.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932938AbcBYPyQ (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 25 Feb 2016 10:54:16 -0500
-Received: by mail-lb0-f178.google.com with SMTP id of3so31258352lbc.1
-        for <linux-acpi@vger.kernel.org>; Thu, 25 Feb 2016 07:54:15 -0800 (PST)
-In-Reply-To: <56CDF4D4.6000506@suse.com>
+Received: from mailout3.hostsharing.net ([176.9.242.54]:46948 "EHLO
+	mailout3.hostsharing.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752104AbcBYQ6T (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 25 Feb 2016 11:58:19 -0500
+Content-Disposition: inline
+In-Reply-To: <20160222202331.GA20052@wunner.de>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Matthias Brugger <mbrugger@suse.com>, linux-acpi@vger.kernel.org
-Cc: Russell King <linux@arm.linux.org.uk>, Graeme Gregory <graeme.gregory@linaro.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, linux-kernel@vger.kernel.org, Leif Lindholm <leif.lindholm@linaro.org>, Christopher Covington <cov@codeaurora.org>, linux-serial@vger.kernel.org, Catalin Marinas <catalin.marinas@arm.com>, Will Deacon <will.deacon@arm.com>, Al Stone <ahs3@redhat.com>, linux-arm-kernel@lists.infradead.org
+To: Pierre-Louis Bossart <pierre-louis.bossart@linux.intel.com>, Vinod Koul <vinod.koul@intel.com>
+Cc: Takashi Iwai <tiwai@suse.de>, Hui Wang <hui.wang@canonical.com>, alsa-devel@alsa-project.org, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Robert Moore <robert.moore@intel.com>, linux-acpi@vger.kernel.org
 
-Hi Matthias,
+Hi Pierre-Louis, Hi Vinod,
 
-On 02/24/2016 09:22 PM, Matthias Brugger wrote:
+On Mon, Feb 22, 2016 at 09:23:31PM +0100, Lukas Wunner wrote:
+> On Mon, Feb 22, 2016 at 08:18:15AM -0600, Pierre-Louis Bossart wrote:
+> > On 02/21/2016 02:17 AM, Takashi Iwai wrote:
+> > > On Sat, 20 Feb 2016 23:47:24 +0100,
+> > > Lukas Wunner wrote:
+> > >>
+> > >> Hi Takashi,
+> > >>
+> > >> On Fri, Jan 15, 2016 at 06:58:19AM +0100, Takashi Iwai wrote:
+> > >>> On Thu, 14 Jan 2016 22:05:03 +0100, Lukas Wunner wrote:
+> > >>>> Hi Takashi,
+> > >>>>
+> > >>>> the acpi_dev_present() API has now landed in Linus' tree.
+> > >>>> Thus, after Linus' tree gets merged back into yours,
+> > >>>> it would be possible to use the API in the Thinkpad hda drivers
+> > >>>> as per the following patch.
+> > >>>>
+> > >>>> I've also pushed it to GitHub in case anyone prefers
+> > >>>> perusing it in a browser:
+> > >>>> https://github.com/l1k/linux/commit/a1473d726b57eaf97c4de8812c5967603068e261
+> > >>>>
+> > >>>> An ack for this patch was kindly provided by Hui Wang with:
+> > >>>> Message-ID: <5653C291.9090607@canonical.com>
+> > >>>> http://mailman.alsa-project.org/pipermail/alsa-devel/2015-November/100962.html
+> > >>>
+> > >>> A back merge is ugly and I'd like to avoid it.
+> > >>> This is no urgent fix but rather a cleanup, right?  If so, I'd
+> > >>> postpone this to 4.6.
+> > >>
+> > >> I've noticed this patch isn't in one of your trees, so it looks
+> > >> like it's not queued for 4.6 yet. If there are objections against
+> > >> it please let me know. If there aren't, I'd like to gently remind
+> > >> of the patch's existence.
+> > > 
+> > > Sorry for the delay, it's merged now.
+> >  
+> > heads-up: we've identified that the ACPI subsystem reports devices as
+> > present even if they are explicitly disabled in the BIOS _STA routine.
+> > we have a couple of WIP patches to work around this issue that is
+> > blocking for some CHT-T devices, and they pretty much amount to a
+> > revert and addition of an explicit presence test
 > 
+> Thanks for the heads-up. I'm confused though that you're sending this
+> in reply to the thinkpad_helper.c patch, I assume this only concerns
+> the ASoC patch?
 > 
-> On 24/02/16 18:10, Aleksey Makarov wrote:
->> From: Leif Lindholm <leif.lindholm@linaro.org>
->>
->> In order to support selecting earlycon via either ACPI or DT, move
->> the decision on whether to attempt ACPI configuration into the
->> early_param handling. Then make acpi_boot_table_init() bail out if
->> acpi_disabled.
->>
->> Signed-off-by: Leif Lindholm <leif.lindholm@linaro.org>
->> Signed-off-by: Aleksey Makarov <aleksey.makarov@linaro.org>
->> ---
->>   arch/arm64/kernel/acpi.c | 62 +++++++++++++++++++++++-------------------------
->>   1 file changed, 30 insertions(+), 32 deletions(-)
->>
->> diff --git a/arch/arm64/kernel/acpi.c b/arch/arm64/kernel/acpi.c
->> index d1ce8e2..3faa323 100644
->> --- a/arch/arm64/kernel/acpi.c
->> +++ b/arch/arm64/kernel/acpi.c
->> @@ -41,26 +41,8 @@ EXPORT_SYMBOL(acpi_disabled);
->>   int acpi_pci_disabled = 1;    /* skip ACPI PCI scan and IRQ initialization */
->>   EXPORT_SYMBOL(acpi_pci_disabled);
->>
->> -static bool param_acpi_off __initdata;
->>   static bool param_acpi_force __initdata;
->>
->> -static int __init parse_acpi(char *arg)
->> -{
->> -    if (!arg)
->> -        return -EINVAL;
->> -
->> -    /* "acpi=off" disables both ACPI table parsing and interpreter */
->> -    if (strcmp(arg, "off") == 0)
->> -        param_acpi_off = true;
->> -    else if (strcmp(arg, "force") == 0) /* force ACPI to be enabled */
->> -        param_acpi_force = true;
->> -    else
->> -        return -EINVAL;    /* Core will print when we return error */
->> -
->> -    return 0;
->> -}
->> -early_param("acpi", parse_acpi);
->> -
->>   static int __init dt_scan_depth1_nodes(unsigned long node,
->>                          const char *uname, int depth,
->>                          void *data)
->> @@ -74,6 +56,35 @@ static int __init dt_scan_depth1_nodes(unsigned long node,
->>       return 0;
->>   }
->>
->> +static int __init parse_acpi(char *arg)
->> +{
->> +    if (!arg)
->> +        return -EINVAL;
->> +
->> +    /*
->> +     * Enable ACPI instead of device tree unless
->> +     * - ACPI has been disabled explicitly (acpi=off), or
->> +     * - the device tree is not empty (it has more than just a /chosen node)
->> +     *   and ACPI has not been force enabled (acpi=force)
->> +     */
->> +    if (strcmp(arg, "off") == 0)
->> +        return 0;
->> +    else if (strcmp(arg, "force") == 0)
->> +        param_acpi_force = true;
->> +    else if (of_scan_flat_dt(dt_scan_depth1_nodes, NULL))
+> As you've correctly observed, acpi_dev_present() only checks presence
+> of a HID in the namespace and does not invoke the _STA control method.
+> However the code that it replaced also only checked presence in the
+> namespace, so this is not an issue introduced by my patch but rather
+> one which was present all along.
 > 
-> I think we should strcmp for "on" here and return an error on other values. IMHO an update to Documentation/kernel-parameters.txt would be convenient.
-
-Actually this patch is not correct at all.
-
-on x86:
-- if default is off then "acpi=force" enables it.
-- if default is on  then "acpi=off"   disables it.
-
-on ARM64 by default OF is preferred to ACPI, but ACPI is used if OF does not provide any nontrivial data.
-So we need both "force" and "off"
-- "acpi=force" forces ACPI,
-- "acpi=off" disables ACPI
-
-The patch makes incorrect code transformation, it changes the default behaviour.
-
-This patch should just be dropped.  The rest of the patchset does not depend on it.
-
-> I still wonder if we really want to change the default to ACPI disabled.
-> But that's a decision the maintainers have to take.
-
-I did not realize that the patch changes default.
-
-Thank you
-Aleksey Makarov
-
-> Regards,
-> Matthias
+> If you need to check the "device is present" bit returned by _STA,
+> you need a pointer to the struct acpi_device. This will allow you
+> to call acpi_bus_get_status() and check its return value for
+> ACPI_STA_DEVICE_PRESENT.
 > 
->> +        return 0;
->> +
->> +    /*
->> +     * ACPI is disabled at this point. Enable it in order to parse
->> +     * the ACPI tables and carry out sanity checks
->> +     */
->> +    enable_acpi();
->> +
->> +    return 0;
->> +}
->> +
->> +early_param("acpi", parse_acpi);
->> +
->>   /*
->>    * __acpi_map_table() will be called before page_init(), so early_ioremap()
->>    * or early_memremap() should be called here to for ACPI table mapping.
->> @@ -181,23 +192,10 @@ out:
->>    */
->>   void __init acpi_boot_table_init(void)
->>   {
->> -    /*
->> -     * Enable ACPI instead of device tree unless
->> -     * - ACPI has been disabled explicitly (acpi=off), or
->> -     * - the device tree is not empty (it has more than just a /chosen node)
->> -     *   and ACPI has not been force enabled (acpi=force)
->> -     */
->> -    if (param_acpi_off ||
->> -        (!param_acpi_force && of_scan_flat_dt(dt_scan_depth1_nodes, NULL)))
->> +    if (acpi_disabled)
->>           return;
->>
->>       /*
->> -     * ACPI is disabled at this point. Enable it in order to parse
->> -     * the ACPI tables and carry out sanity checks
->> -     */
->> -    enable_acpi();
->> -
->> -    /*
->>        * If ACPI tables are initialized and FADT sanity checks passed,
->>        * leave ACPI enabled and carry on booting; otherwise disable ACPI
->>        * on initialization error.
->>
+> We cannot easily add this to acpi_dev_present() because that function
+> no longer does an expensive namespace walk but rather a cheap list
+> iteration which does not yield a pointer to the struct acpi_device.
+> 
+> In the first version of acpi_dev_present() I was in fact doing a
+> namespace walk with acpi_get_devices() but Robert Moore objected
+> to that, calling it "truly brute force":
+> http://mailman.alsa-project.org/pipermail/alsa-devel/2015-November/101046.html
+> 
+> Hence if possible you should try to avoid that as well. You may
+> want to consider adding a helper to drivers/acpi/utils.c which
+> takes a HID and returns a struct acpi_device*, it might come in
+> handy for others as well.
+
+Forgot to mention:
+
+There's one driver where you currently check for the presence of a
+specific ACPI device twice. It would probably be good if you could
+eliminate the second check.
+
+I've explained this in detail in an e-mail to linux-acpi in December
+but only cc'ed Mark Brown as I wasn't sure who's responsible for the
+driver: http://www.spinics.net/lists/linux-acpi/msg62068.html
+
+Quote:
+
+> * 1 is a driver for a platform_device (cht_bsw_rt5645.c) which was
+>   instantiated by atom/sst/sst_acpi.c. The driver is responsible
+>   for two chips and differentiates between the two by detecting the
+>   presence of a particular HID. It would be possible to refactor the
+>   code so that atom/sst/sst_acpi.c passes down the matched HID to
+>   cht_bsw_rt5645.c, then it wouldn't be necessary to match for a
+>   second time. Also, the only difference between the two chipsets
+>   seems to be a minute change in struct snd_soc_dapm_route, so I'm
+>   wondering if it's necessary to differentiate between the chipsets
+>   at all.
+
+Best regards,
+
+Lukas
