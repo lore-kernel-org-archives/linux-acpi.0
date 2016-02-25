@@ -1,73 +1,100 @@
-From: Andy Shevchenko <andy.shevchenko@gmail.com>
-Subject: Re: [PATCH v3 1/2] gpio: designware: switch device node to fwnode
-Date: Thu, 25 Feb 2016 15:43:03 +0200
-Message-ID: <CAHp75Vecxx+YBrZ9d4oZzqS_X3cxUQ4UaSvjqjhuaoJ4O9xauw@mail.gmail.com>
-References: <1456317210-42742-1-git-send-email-qiujiang@huawei.com>
-	<1456317210-42742-2-git-send-email-qiujiang@huawei.com>
-	<CAHp75Vd4dNJpuiMMizYbOpv+pZd30RcNA+kPoF6_4Vukk62iFw@mail.gmail.com>
-	<56CEEC58.9050303@huawei.com>
+From: Bjorn Helgaas <helgaas@kernel.org>
+Subject: Re: [PATCH v2 0/3] PCI: Revert "Implement pcibios_alloc_irq() and
+ pcibios_free_irq()"
+Date: Thu, 25 Feb 2016 08:53:10 -0600
+Message-ID: <20160225145310.GA23155@localhost>
+References: <20160217182718.302.10272.stgit@bhelgaas-glaptop2.roam.corp.google.com>
+ <56C55305.2050404@mcc.vniiem.ru>
+ <20160218160319.GC17588@localhost>
+ <56CDF6E0.2060005@mcc.vniiem.ru>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-yk0-f173.google.com ([209.85.160.173]:35290 "EHLO
-	mail-yk0-f173.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1759644AbcBYNnF convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 25 Feb 2016 08:43:05 -0500
-In-Reply-To: <56CEEC58.9050303@huawei.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <56CDF6E0.2060005@mcc.vniiem.ru>
+Sender: linux-kernel-owner@vger.kernel.org
+To: =?utf-8?B?0J7Qu9C10LMg0JzQvtGA0L7Qtw==?= <oleg.moroz@mcc.vniiem.ru>
+Cc: Bjorn Helgaas <bhelgaas@google.com>, linux-pci@vger.kernel.org, Joerg Roedel <jroedel@suse.de>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, linux-kernel@vger.kernel.org, Sunjin Yang <fan4326@gmail.com>, linux-acpi@vger.kernel.org, Thomas Gleixner <tglx@linutronix.de>, Yinghai Lu <yinghai@kernel.org>, Jiang Liu <jiang.liu@linux.intel.com>
 List-Id: linux-acpi@vger.kernel.org
-To: qiujiang <qiujiang@huawei.com>
-Cc: Linus Walleij <linus.walleij@linaro.org>, Alexandre Courbot <gnurou@gmail.com>, Mika Westerberg <mika.westerberg@linux.intel.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-gpio@vger.kernel.org" <linux-gpio@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, linuxarm@huawei.com, haifeng.wei@huawei.com, charles.chenxin@huawei.com
 
-On Thu, Feb 25, 2016 at 1:58 PM, Jiang Qiu <qiujiang@huawei.com> wrote:
-> =E5=9C=A8 2016/2/24 21:46, Andy Shevchenko =E5=86=99=E9=81=93:
->> On Wed, Feb 24, 2016 at 2:33 PM, qiujiang <qiujiang@huawei.com> wrot=
-e:
+On Wed, Feb 24, 2016 at 09:30:56PM +0300, =D0=9E=D0=BB=D0=B5=D0=B3 =D0=9C=
+=D0=BE=D1=80=D0=BE=D0=B7 wrote:
+> I've checked next next-20160218 tag and confirm that it works.
 
->>  - why do you use fwnode_*() instead of device_property_*() calls?
->> What prevents us to move to device property API directly?
-> Yes, it looks more reasonable by using devce_property. Howerver,
-> device_get_child_node_count was used here to find each child node. Th=
-is
-> API output the fwnode_handle for each child node directly, but device
-> property APIs need 'dev' data instead. Actually, the effects of fwnod=
-e_*()
-> and device_*() are the same. So, I used fwnode_*() APIs here.
+Thanks a lot for testing this!  I added your tested-by to the commit.
 
-Right, looks okay then.
+I apologize again for the inconvenience of this.  Thank you very much
+for your effort in reporting it and helping track it down.
 
->>> -       node =3D dev->of_node;
->>> -       if (!IS_ENABLED(CONFIG_OF_GPIO) || !node)
->>> +       if (!IS_ENABLED(CONFIG_OF_GPIO) || !(dev->of_node))
->>>                 return ERR_PTR(-ENODEV);
->>
->> So, since you converted to fwnode, do you still need this check?
->>
-> Although this patch coverted device node to fwnode, only DTs binding =
-was
-> supported here, and patch2 support ACPI will remove this check.
+Bjorn
 
-Yes, but like I said below device_get_child_node_count() will take
-care of that, will it?
-
->>>
->>> -       nports =3D of_get_child_count(node);
->>> +       nports =3D device_get_child_node_count(dev);
->>>         if (nports =3D=3D 0)
->>>                 return ERR_PTR(-ENODEV);
->>
->> ...I think this one fail if it will not found any child.
-> This one fail? yes, it will return to failure.
-> I am not very clear here.
-
-See above.
-
---=20
-With Best Regards,
-Andy Shevchenko
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 18.02.2016 19:03, Bjorn Helgaas =D0=BF=D0=B8=D1=88=D0=B5=D1=82:
+> >On Thu, Feb 18, 2016 at 08:13:41AM +0300, =D0=9C=D0=BE=D1=80=D0=BE=D0=
+=B7 =D0=9E=D0=BB=D0=B5=D0=B3 wrote:
+> >>On 17.02.2016 21:36, Bjorn Helgaas wrote:
+> >>>These are clean reverts of 991de2e59090 ("PCI, x86: Implement
+> >>>pcibios_alloc_irq() and pcibios_free_irq()") and related changes.
+> >>>
+> >>>We have two reports of drivers broken in v4.3 by Jiang's change,
+> >>>991de2e59090 ("PCI, x86: Implement pcibios_alloc_irq() and
+> >>>pcibios_free_irq()").
+> >>>
+> >>>It would be best to fix the problem instead of reverting 991de2e59=
+090, but
+> >>>I don't have time to do that myself, and we haven't heard from Jia=
+ng, so
+> >>>the only choice I have is to revert the commit.
+> >>>
+> >>>Note that reverting will likely break IOAPIC hotplug.
+> >>>
+> >>>=D0=9E=D0=BB=D0=B5=D0=B3 and Sunjin, can you please test this and =
+see whether it fixes your
+> >>>drivers?  This patch is based on v4.5-rc1.
+> >>>
+> >>>I intend to merge these for v4.5 unless I hear objections.
+> >>>
+> >>>They're on my for-linus branch, so they should appear in linux-nex=
+t
+> >>>tomorrow.
+> >>>
+> >>>Changes from the v1 posting:
+> >>>   - Explicitly revert related patches instead of resolving confli=
+cts
+> >>>     manually
+> >>>---
+> >>>
+> >>>Bjorn Helgaas (3):
+> >>>       Revert "x86/PCI: Don't alloc pcibios-irq when MSI is enable=
+d"
+> >>>       Revert "PCI: Add helpers to manage pci_dev->irq and pci_dev=
+->irq_managed"
+> >>>       Revert "PCI, x86: Implement pcibios_alloc_irq() and pcibios=
+_free_irq()"
+> >>>
+> >>>
+> >>>  arch/x86/include/asm/pci_x86.h |    2 ++
+> >>>  arch/x86/pci/common.c          |   26 ++++++++++----------------
+> >>>  arch/x86/pci/intel_mid_pci.c   |    9 +++------
+> >>>  arch/x86/pci/irq.c             |   23 +++++++++++++++++++----
+> >>>  drivers/acpi/pci_irq.c         |   17 +++++++++++++----
+> >>>  include/linux/pci.h            |   17 -----------------
+> >>>  6 files changed, 47 insertions(+), 47 deletions(-)
+> >>As i undestand this patch will appear in kernel git repo tomorrow? =
+I
+> >>don't need to apply in manyally to v4.5-rc1?
+> >These are included in the next-20160218 tag in the linux-next git re=
+po (not
+> >Linus' repo) at:
+> >
+> >   git://git.kernel.org/pub/scm/linux/kernel/git/next/linux-next.git
+> >
+> >You browse this at:
+> >
+> >   https://git.kernel.org/cgit/linux/kernel/git/next/linux-next.git/
+> >
+> >If you'd rather, you can also apply the patches yourself to v4.5-rc1=
+=2E
+> >
+> >Bjorn
+>=20
