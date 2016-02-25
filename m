@@ -1,191 +1,127 @@
-From: "Williams, Dan J" <dan.j.williams@intel.com>
-Subject: [GIT PULL] libnvdimm, nfit: fixes for 4.5-rc6
-Date: Thu, 25 Feb 2016 05:47:31 +0000
-Message-ID: <1456379247.29791.20.camel@intel.com>
+From: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+Subject: Re: [PATCH v3] ARM64: kernel: implement ACPI parking protocol
+Date: Thu, 25 Feb 2016 09:24:27 +0000
+Message-ID: <20160225092427.GA31728@red-moon>
+References: <1453806638-23167-1-git-send-email-lorenzo.pieralisi@arm.com>
+ <20160202182657.GC15706@e104818-lin.cambridge.arm.com>
+ <20160203112112.GA18387@red-moon>
+ <20160203161834.GB26487@MBP.local>
+ <20160224141832.GA26630@red-moon>
+ <56CE3C9E.7070505@riken.jp>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-7"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga01.intel.com ([192.55.52.88]:28531 "EHLO mga01.intel.com"
+Received: from foss.arm.com ([217.140.101.70]:49981 "EHLO foss.arm.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750739AbcBYFre convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 25 Feb 2016 00:47:34 -0500
-Content-Language: en-US
-Content-ID: <AAFD07A2ED9D9A42B24E672C8AB16578@intel.com>
+	id S1760152AbcBYJWT (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 25 Feb 2016 04:22:19 -0500
+Content-Disposition: inline
+In-Reply-To: <56CE3C9E.7070505@riken.jp>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "torvalds@linux-foundation.org" <torvalds@linux-foundation.org>, "akpm@linux-foundation.org" <akpm@linux-foundation.org>
-Cc: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
+To: Itaru Kitayama <itaru.kitayama@riken.jp>
+Cc: Catalin Marinas <catalin.marinas@arm.com>, Mark Rutland <mark.rutland@arm.com>, Sudeep Holla <sudeep.holla@arm.com>, Will Deacon <will.deacon@arm.com>, linux-acpi@vger.kernel.org, Hanjun Guo <hanjun.guo@linaro.org>, Mark Salter <msalter@redhat.com>, Al Stone <ahs3@redhat.com>, linux-arm-kernel@lists.infradead.org, Loc Ho <lho@apm.com>
 
-Hi Linus, please pull from:
+On Thu, Feb 25, 2016 at 08:28:30AM +0900, Itaru Kitayama wrote:
+> Lorenzo,
+> 
+> On Mustang the lockdep warning I reported to you is disappeared and
+> the system gets to
+> the prompt as you implemented, however only 7 CPUs out of 8 brought up.
 
-+AKA- git://git.kernel.org/pub/scm/linux/kernel/git/nvdimm/nvdimm libnvdimm-fixes
+It is because, as I mentioned in the other reply to this thread,
+the VA should be stashed before setting up the mailboxes, patch below,
+that should be final (I tested it on AMD Seattle too), please give it a go.
 
-...to receive:
+Thanks,
+Lorenzo
 
-1/ Two fixes for compatibility with the ACPI 6.1 specification.
-+AKA-Without these fixes multi-interface DIMMs will fail to be probed, and
-address range scrub commands to find memory errors will give results
-that the kernel will mis-interpret. +AKA-For multi-interface DIMMs Linux
-will accept either the original 6.0 implementation or 6.1. +AKA-For address
-range scrub we'll only support 6.1 since ACPI formalized this DSM
-differently than the original example +AFs-1+AF0- implemented in v4.2. +AKA-The
-expectation is that production systems will only ever ship the ACPI 6.1
-address range scrub command definition.+AKA-
-
-2/ The wider async address range scrub work targeting 4.6 discovered
-that the original synchronous implementation in 4.5 is not sizing its
-return buffer correctly.
-
-3/ Arnd caught that my recent fix to the size of the pfn+AF8-t flags missed
-updating the flags variable used in the pmem driver.
-
-4/ Toshi found that we mishandle the memremap() return value in
-devm+AF8-memremap().
-
-This branch has received a clean build success notification from the
-kbuild robot across 105 configs.
-
-+AFs-1+AF0-:+AKA-http://pmem.io/documents/NVDIMM+AF8-DSM+AF8-Interface+AF8-Example.pdf
-
-
-The following changes since commit 18558cae0272f8fd9647e69d3fec1565a7949865:
-
-+AKA- Linux 4.5-rc4 (2016-02-14 13:05:20 -0800)
-
-are available in the git repository at:
-
-+AKA- git://git.kernel.org/pub/scm/linux/kernel/git/nvdimm/nvdimm libnvdimm-fixes
-
-for you to fetch changes up to c45442055dfdeb265cc20c9eeaa9fd11a75fbf51:
-
-+AKA- nvdimm: use 'u64' for pfn flags (2016-02-23 17:17:20 -0800)
-
-----------------------------------------------------------------
-Arnd Bergmann (1):
-+AKAAoACgAKAAoACg-nvdimm: use 'u64' for pfn flags
-
-Dan Williams (3):
-+AKAAoACgAKAAoACg-nfit: fix multi-interface dimm handling, acpi6.1 compatibility
-+AKAAoACgAKAAoACg-libnvdimm, tools/testing/nvdimm: fix 'ars+AF8-status' output buffer sizing
-+AKAAoACgAKAAoACg-nfit: update address range scrub commands to the acpi 6.1 format
-
-Toshi Kani (1):
-+AKAAoACgAKAAoACg-devm+AF8-memremap: Fix error value when memremap failed
-
-+AKA-drivers/acpi/nfit.c+AKAAoACgAKAAoACgAKAAoACgAKAAoACgAKAAoAB8- 90 +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+---------------------
-+AKA-drivers/nvdimm/bus.c+AKAAoACgAKAAoACgAKAAoACgAKAAoACgAKAAfA- 20 +-+-+-+------
-+AKA-drivers/nvdimm/pmem.c+AKAAoACgAKAAoACgAKAAoACgAKAAoACgAHwAoACg-2 +--
-+AKA-include/linux/libnvdimm.h+AKAAoACgAKAAoACgAKAAoAB8AKAAoA-3 +--
-+AKA-include/uapi/linux/ndctl.h+AKAAoACgAKAAoACgAKAAfA- 11 +-+-+-+--
-+AKA-kernel/memremap.c+AKAAoACgAKAAoACgAKAAoACgAKAAoACgAKAAoACgAKAAfACgAKA-4 +--
-+AKA-tools/testing/nvdimm/test/nfit.c +AHwAoACg-8 +-+-+--
-+AKA-7 files changed, 75 insertions(+-), 63 deletions(-)
-
-commit c45442055dfdeb265cc20c9eeaa9fd11a75fbf51
-Author: Arnd Bergmann +ADw-arnd+AEA-arndb.de+AD4-
-Date:+AKAAoACg-Mon Feb 22 22:58:34 2016 +-0100
-
-+AKAAoACgAKA-nvdimm: use 'u64' for pfn flags
-+AKAAoACgAKA-
-+AKAAoACgAKA-A recent bugfix changed pfn+AF8-t to always be 64-bit wide, but did not
-+AKAAoACgAKA-change the code in pmem.c, which is now broken on 32-bit architectures
-+AKAAoACgAKA-as reported by gcc:
-+AKAAoACgAKA-
-+AKAAoACgAKA-In file included from ../drivers/nvdimm/pmem.c:28:0:
-+AKAAoACgAKA-drivers/nvdimm/pmem.c: In function 'pmem+AF8-alloc':
-+AKAAoACgAKA-include/linux/pfn+AF8-t.h:15:17: error: large integer implicitly truncated to unsigned type +AFs--Werror+AD0-overflow+AF0-
-+AKAAoACgAKAAoAAj-define PFN+AF8-DEV (1ULL +ADwAPA- (BITS+AF8-PER+AF8-LONG+AF8-LONG - 3))
-+AKAAoACgAKA-
-+AKAAoACgAKA-This changes the intermediate pfn+AF8-flags in struct pmem+AF8-device to
-+AKAAoACgAKA-be 64 bit wide as well, so they can store the flags correctly.
-+AKAAoACgAKA-
-+AKAAoACgAKA-Signed-off-by: Arnd Bergmann +ADw-arnd+AEA-arndb.de+AD4-
-+AKAAoACgAKA-Fixes: db78c22230d0 (+ACI-mm: fix pfn+AF8-t vs highmem+ACI-)
-+AKAAoACgAKA-Signed-off-by: Dan Williams +ADw-dan.j.williams+AEA-intel.com+AD4-
-
-commit 93f834df9c2d4e362dfdc4b05daa0a4e18814836
-Author: Toshi Kani +ADw-toshi.kani+AEA-hpe.com+AD4-
-Date:+AKAAoACg-Sat Feb 20 14:32:24 2016 -0800
-
-+AKAAoACgAKA-devm+AF8-memremap: Fix error value when memremap failed
-+AKAAoACgAKA-
-+AKAAoACgAKA-devm+AF8-memremap() returns an ERR+AF8-PTR() value in case of error.
-+AKAAoACgAKA-However, it returns NULL when memremap() failed.+AKAAoA-This causes
-+AKAAoACgAKA-the caller, such as the pmem driver, to proceed and oops later.
-+AKAAoACgAKA-
-+AKAAoACgAKA-Change devm+AF8-memremap() to return ERR+AF8-PTR(-ENXIO) when memremap()
-+AKAAoACgAKA-failed.
-+AKAAoACgAKA-
-+AKAAoACgAKA-Signed-off-by: Toshi Kani +ADw-toshi.kani+AEA-hpe.com+AD4-
-+AKAAoACgAKA-Cc: Andrew Morton +ADw-akpm+AEA-linux-foundation.org+AD4-
-+AKAAoACgAKA-Cc: +ADw-stable+AEA-vger.kernel.org+AD4-
-+AKAAoACgAKA-Reviewed-by: Ross Zwisler +ADw-ross.zwisler+AEA-linux.intel.com+AD4-
-+AKAAoACgAKA-Signed-off-by: Dan Williams +ADw-dan.j.williams+AEA-intel.com+AD4-
-
-commit 4577b0665515e0abc7bc72562d6328d179598815
-Author: Dan Williams +ADw-dan.j.williams+AEA-intel.com+AD4-
-Date:+AKAAoACg-Wed Feb 17 13:08:58 2016 -0800
-
-+AKAAoACgAKA-nfit: update address range scrub commands to the acpi 6.1 format
-+AKAAoACgAKA-
-+AKAAoACgAKA-The original format of these commands from the +ACI-NVDIMM DSM Interface
-+AKAAoACgAKA-Example+ACI- +AFs-1+AF0- are superseded by the ACPI 6.1 definition of the +ACI-NVDIMM Root
-+AKAAoACgAKA-Device +AF8-DSMs+ACI- +AFs-2+AF0-.
-+AKAAoACgAKA-
-+AKAAoACgAKAAWw-1+AF0-: http://pmem.io/documents/NVDIMM+AF8-DSM+AF8-Interface+AF8-Example.pdf
-+AKAAoACgAKAAWw-2+AF0-: http://www.uefi.org/sites/default/files/resources/ACPI+AF8-6+AF8-1.pdf
-+AKAAoACgAKAAoACgAKAAoACgACI-9.20.7 NVDIMM Root Device +AF8-DSMs+ACI-
-+AKAAoACgAKA-
-+AKAAoACgAKA-Changes include:
-+AKAAoACgAKA-1/ New 'restart' fields in ars+AF8-status, unfortunately these are
-+AKAAoACgAKAAoACgAKA-implemented in the middle of the existing definition so this change
-+AKAAoACgAKAAoACgAKA-is not backwards compatible.+AKAAoA-The expectation is that shipping
-+AKAAoACgAKAAoACgAKA-platforms will only ever support the ACPI 6.1 definition.
-+AKAAoACgAKA-
-+AKAAoACgAKA-2/ New status values for ars+AF8-start ('busy') and ars+AF8-status ('overflow').
-+AKAAoACgAKA-
-+AKAAoACgAKA-Cc: Vishal Verma +ADw-vishal.l.verma+AEA-intel.com+AD4-
-+AKAAoACgAKA-Cc: Linda Knippers +ADw-linda.knippers+AEA-hpe.com+AD4-
-+AKAAoACgAKA-Cc: +ADw-stable+AEA-vger.kernel.org+AD4-
-+AKAAoACgAKA-Signed-off-by: Dan Williams +ADw-dan.j.williams+AEA-intel.com+AD4-
-
-commit 747ffe11b440ef9ea752888806d3aac677ca52a4
-Author: Dan Williams +ADw-dan.j.williams+AEA-intel.com+AD4-
-Date:+AKAAoACg-Fri Feb 19 15:21:14 2016 -0800
-
-+AKAAoACgAKA-libnvdimm, tools/testing/nvdimm: fix 'ars+AF8-status' output buffer sizing
-+AKAAoACgAKA-
-+AKAAoACgAKA-Use the output length specified in the command to size the receive
-+AKAAoACgAKA-buffer rather than the arbitrary 4K limit.
-+AKAAoACgAKA-
-+AKAAoACgAKA-This bug was hiding the fact that the ndctl implementation of
-+AKAAoACgAKA-ndctl+AF8-bus+AF8-cmd+AF8-new+AF8-ars+AF8-status() was not specifying an output buffer size.
-+AKAAoACgAKA-
-+AKAAoACgAKA-Cc: +ADw-stable+AEA-vger.kernel.org+AD4-
-+AKAAoACgAKA-Cc: Vishal Verma +ADw-vishal.l.verma+AEA-intel.com+AD4-
-+AKAAoACgAKA-Signed-off-by: Dan Williams +ADw-dan.j.williams+AEA-intel.com+AD4-
-
-commit 6697b2cf69d4363266ca47eaebc49ef13dabc1c9
-Author: Dan Williams +ADw-dan.j.williams+AEA-intel.com+AD4-
-Date:+AKAAoACg-Thu Feb 4 16:51:00 2016 -0800
-
-+AKAAoACgAKA-nfit: fix multi-interface dimm handling, acpi6.1 compatibility
-+AKAAoACgAKA-
-+AKAAoACgAKA-ACPI 6.1 clarified that multi-interface dimms require multiple control
-+AKAAoACgAKA-region entries (DCRs) per dimm.+AKAAoA-Previously we were assuming that a
-+AKAAoACgAKA-control region is only present when block-data-windows are present.
-+AKAAoACgAKA-This implementation was done with an eye to be compatibility with the
-+AKAAoACgAKA-looser ACPI 6.0 interpretation of this table.
-+AKAAoACgAKA-
-+AKAAoACgAKA-1/ When coalescing the memory device (MEMDEV) tables for a single dimm,
-+AKAAoACgAKA-coalesce on device+AF8-handle rather than control region index.
-+AKAAoACgAKA-
-+AKAAoACgAKA-2/ Whenever we disocver a control region with non-zero block windows
-+AKAAoACgAKA-re-scan for block-data-window (BDW) entries.
-+AKAAoACgAKA-
-+AKAAoACgAKA-We may need to revisit this if a DIMM ever implements a format interface
-+AKAAoACgAKA-outside of blk or pmem, but that is not on the foreseeable horizon.
-+AKAAoACgAKA-
-+AKAAoACgAKA-Cc: +ADw-stable+AEA-vger.kernel.org+AD4-
-+AKAAoACgAKA-Signed-off-by: Dan Williams +ADw-dan.j.williams+AEA-intel.com+AD4
+-- >8 --
+diff --git a/arch/arm64/kernel/acpi_parking_protocol.c b/arch/arm64/kernel/acpi_parking_protocol.c
+index 4b1e5a7..dd671ef 100644
+--- a/arch/arm64/kernel/acpi_parking_protocol.c
++++ b/arch/arm64/kernel/acpi_parking_protocol.c
+@@ -21,7 +21,14 @@
+ 
+ #include <asm/cpu_ops.h>
+ 
++struct parking_protocol_mailbox {
++	__le32 cpu_id;
++	__le32 reserved;
++	__le64 entry_point;
++};
++
+ struct cpu_mailbox_entry {
++	struct parking_protocol_mailbox __iomem *mailbox;
+ 	phys_addr_t mailbox_addr;
+ 	u8 version;
+ 	u8 gic_cpu_id;
+@@ -59,12 +66,6 @@ static int acpi_parking_protocol_cpu_prepare(unsigned int cpu)
+ 	return 0;
+ }
+ 
+-struct parking_protocol_mailbox {
+-	__le32 cpu_id;
+-	__le32 reserved;
+-	__le64 entry_point;
+-};
+-
+ static int acpi_parking_protocol_cpu_boot(unsigned int cpu)
+ {
+ 	struct cpu_mailbox_entry *cpu_entry = &cpu_mailbox_entries[cpu];
+@@ -97,6 +98,12 @@ static int acpi_parking_protocol_cpu_boot(unsigned int cpu)
+ 	}
+ 
+ 	/*
++	 * stash the mailbox address mapping to use it for further checks
++	 * in postboot method
++	 */
++	cpu_entry->mailbox = mailbox;
++
++	/*
+ 	 * We write the entry point and cpu id as LE regardless of the
+ 	 * native endianness of the kernel. Therefore, any boot-loaders
+ 	 * that read this address need to convert this address to the
+@@ -107,8 +114,6 @@ static int acpi_parking_protocol_cpu_boot(unsigned int cpu)
+ 
+ 	arch_send_wakeup_ipi_mask(cpumask_of(cpu));
+ 
+-	iounmap(mailbox);
+-
+ 	return 0;
+ }
+ 
+@@ -116,32 +121,15 @@ static void acpi_parking_protocol_cpu_postboot(void)
+ {
+ 	int cpu = smp_processor_id();
+ 	struct cpu_mailbox_entry *cpu_entry = &cpu_mailbox_entries[cpu];
+-	struct parking_protocol_mailbox __iomem *mailbox;
++	struct parking_protocol_mailbox __iomem *mailbox = cpu_entry->mailbox;
+ 	__le64 entry_point;
+ 
+-	/*
+-	 * Map mailbox memory with attribute device nGnRE (ie ioremap -
+-	 * this deviates from the parking protocol specifications since
+-	 * the mailboxes are required to be mapped nGnRnE; the attribute
+-	 * discrepancy is harmless insofar as the protocol specification
+-	 * is concerned).
+-	 * If the mailbox is mistakenly allocated in the linear mapping
+-	 * by FW ioremap will fail since the mapping will be prevented
+-	 * by the kernel (it clashes with the linear mapping attributes
+-	 * specifications).
+-	 */
+-	mailbox = ioremap(cpu_entry->mailbox_addr, sizeof(*mailbox));
+-	if (!mailbox)
+-		return;
+-
+ 	entry_point = readl_relaxed(&mailbox->entry_point);
+ 	/*
+ 	 * Check if firmware has cleared the entry_point as expected
+ 	 * by the protocol specification.
+ 	 */
+ 	WARN_ON(entry_point);
+-
+-	iounmap(mailbox);
+ }
+ 
+ const struct cpu_operations acpi_parking_protocol_ops = {
