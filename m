@@ -1,152 +1,56 @@
-From: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
-Subject: [PATCH] arm64: kernel: acpi: fix ioremap in ACPI parking protocol cpu_postboot
-Date: Fri, 26 Feb 2016 11:50:12 +0000
-Message-ID: <1456487412-4833-1-git-send-email-lorenzo.pieralisi@arm.com>
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from foss.arm.com ([217.140.101.70]:58781 "EHLO foss.arm.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752293AbcBZLsJ (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 26 Feb 2016 06:48:09 -0500
-Sender: linux-acpi-owner@vger.kernel.org
+From: Andy Shevchenko <andriy.shevchenko-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
+Subject: Re: [PATCH v1 05/10] ACPI: switch to use generic UUID API
+Date: Fri, 26 Feb 2016 15:46:31 +0200
+Message-ID: <1456494391.13244.137.camel@linux.intel.com>
+References: <1455711448-124103-1-git-send-email-andriy.shevchenko@linux.intel.com>
+	 <1455711448-124103-6-git-send-email-andriy.shevchenko@linux.intel.com>
+	 <CAPcyv4inMjmt8eH_=bNE_=NMeYGmS75B5LxB=f7Cd762=3UKyQ@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-api-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <CAPcyv4inMjmt8eH_=bNE_=NMeYGmS75B5LxB=f7Cd762=3UKyQ-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+Sender: linux-api-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Dan Williams <dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: "Rafael J. Wysocki" <rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org>, Theodore Ts'o <tytso-3s7WtUTddSA@public.gmane.org>, Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>, Greg Kroah-Hartman <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>, Jarkko Sakkinen <jarkko.sakkinen-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, Jani Nikula <jani.nikula-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, David Airlie <airlied-cv59FeDIM0c@public.gmane.org>, Benjamin Tissoires <benjamin.tissoires-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Bjorn Helgaas <bhelgaas-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>, Mathias Nyman <mathias.nyman-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Matt Fleming <matt-mF/unelCI9GS6iBeEJttW/XRex20P6io@public.gmane.org>, Lv Zheng <lv.zheng-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Mark Brown <broonie-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Zhang Rui <rui.zhang-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Mika Westerberg <mika.westerberg-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, Andrew Morton <akpm-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org>, Rasmus Villemoes <linux-qQsb+v5E8BnlAoU/VqSP6n9LOBIZ5rWg@public.gmane.org>, Linux ACPI <linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Maling list - DRI developers <dri-devel-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org>, linux-efi-u79uwXL29TbrhsbdSgBK9A@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-arm-kernel@lists.infradead.org
-Cc: linux-acpi@vger.kernel.org, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Will Deacon <will.deacon@arm.com>, Hanjun Guo <hanjun.guo@linaro.org>, Loc Ho <lho@apm.com>, Itaru Kitayama <itaru.kitayama@riken.jp>, Sudeep Holla <sudeep.holla@arm.com>, Catalin Marinas <catalin.marinas@arm.com>, Mark Rutland <mark.rutland@arm.com>, Mark Salter <msalter@redhat.com>, Al Stone <ahs3@redhat.com>
 
-When secondary cpus are booted through the ACPI parking protocol, the
-booted cpu should check that FW has correctly cleared its mailbox entry
-point value to make sure the boot process was correctly executed.
-The entry point check is carried in the cpu_ops->cpu_postboot method, that
-is executed by secondary cpus when entering the kernel with irqs disabled.
+On Wed, 2016-02-17 at 09:49 -0800, Dan Williams wrote:
+> On Wed, Feb 17, 2016 at 4:17 AM, Andy Shevchenko
+> <andriy.shevchenko-VuQAYsv1563Yd54FQh9/CA@public.gmane.org> wrote:
+> > Instead of opencoding the existing library functions let's use them
+> > directly.
+> >=20
+> > The conversion fixes a potential bug in int340x_thermal as well
+> > since we have
+> > to use memcmp() on binary data.
 
-The ACPI parking protocol cpu_ops maps/unmaps the mailboxes on the
-primary CPU to trigger secondary boot in the cpu_ops->cpu_boot method
-and on secondary processors to carry out FW checks on the booted CPU
-to verify the boot protocol was successfully executed in the
-cpu_ops->cpu_postboot method.
+[..]
 
-Therefore, the cpu_ops->cpu_postboot method is forced to ioremap/unmap the
-mailboxes, which is wrong in that ioremap cannot be safely be carried out
-with irqs disabled.
+> > +=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0uuid_le_to_bin(UUID_NFIT=
+_BUS, &nfit_uuid[NFIT_DEV_BUS]);
+> > +=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0uuid_le_to_bin(UUID_NFIT=
+_DIMM, &nfit_uuid[NFIT_DEV_DIMM]);
+>=20
+> I don't see the benefit of this change.
 
-To fix this issue, this patch reshuffles the code so that the mailboxes
-are still mapped after the boot processor executes the cpu_ops->cpu_boot
-method for a given cpu, and the VA at which a mailbox is mapped for a given
-cpu is stashed in the per-cpu data struct so that secondary cpus can
-retrieve them in the cpu_ops->cpu_postboot and complete the required
-FW checks.
+The benefit is to have less places (ideally one) which provides UUID
+helper routines for kernel.
 
-Signed-off-by: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
-Reported-by: Itaru Kitayama <itaru.kitayama@riken.jp>
-Tested-by: Loc Ho <lho@apm.com>
-Tested-by: Itaru Kitayama <itaru.kitayama@riken.jp>
-Cc: Will Deacon <will.deacon@arm.com>
-Cc: Hanjun Guo <hanjun.guo@linaro.org>
-Cc: Loc Ho <lho@apm.com>
-Cc: Itaru Kitayama <itaru.kitayama@riken.jp>
-Cc: Sudeep Holla <sudeep.holla@arm.com>
-Cc: Catalin Marinas <catalin.marinas@arm.com>
-Cc: Mark Rutland <mark.rutland@arm.com>
-Cc: Mark Salter <msalter@redhat.com>
-Cc: Al Stone <ahs3@redhat.com>
----
-It applies to the arm64 tree, for-next/core branch.
+> =C2=A0=C2=A0For the NFIT driver we went
+> through a fire drill trying to make sure the ACPI spec format of a
+> UUID matched the Linux interpretation, and this change makes that
+> harder to determine.=C2=A0=C2=A0
 
-Tested on AMD (Seattle), APM (Mustang and Merlin), sorry for all this churn.
+How harder? At least you look into one place and see exactly all
+functions related. Besides this series actually uses the same approach
+that was used in ACPI.
 
-Thanks,
-Lorenzo
+> ACPI drivers should use ACPICA uuid helper
+> routines in my opinion.
 
- arch/arm64/kernel/acpi_parking_protocol.c | 40 +++++++++++--------------------
- 1 file changed, 14 insertions(+), 26 deletions(-)
+As far as I can see ACPICA lacks of needed API.
 
-diff --git a/arch/arm64/kernel/acpi_parking_protocol.c b/arch/arm64/kernel/acpi_parking_protocol.c
-index 4b1e5a7..a32b401 100644
---- a/arch/arm64/kernel/acpi_parking_protocol.c
-+++ b/arch/arm64/kernel/acpi_parking_protocol.c
-@@ -21,7 +21,14 @@
- 
- #include <asm/cpu_ops.h>
- 
-+struct parking_protocol_mailbox {
-+	__le32 cpu_id;
-+	__le32 reserved;
-+	__le64 entry_point;
-+};
-+
- struct cpu_mailbox_entry {
-+	struct parking_protocol_mailbox __iomem *mailbox;
- 	phys_addr_t mailbox_addr;
- 	u8 version;
- 	u8 gic_cpu_id;
-@@ -59,12 +66,6 @@ static int acpi_parking_protocol_cpu_prepare(unsigned int cpu)
- 	return 0;
- }
- 
--struct parking_protocol_mailbox {
--	__le32 cpu_id;
--	__le32 reserved;
--	__le64 entry_point;
--};
--
- static int acpi_parking_protocol_cpu_boot(unsigned int cpu)
- {
- 	struct cpu_mailbox_entry *cpu_entry = &cpu_mailbox_entries[cpu];
-@@ -97,6 +98,12 @@ static int acpi_parking_protocol_cpu_boot(unsigned int cpu)
- 	}
- 
- 	/*
-+	 * stash the mailbox address mapping to use it for further FW
-+	 * checks in the postboot method
-+	 */
-+	cpu_entry->mailbox = mailbox;
-+
-+	/*
- 	 * We write the entry point and cpu id as LE regardless of the
- 	 * native endianness of the kernel. Therefore, any boot-loaders
- 	 * that read this address need to convert this address to the
-@@ -107,8 +114,6 @@ static int acpi_parking_protocol_cpu_boot(unsigned int cpu)
- 
- 	arch_send_wakeup_ipi_mask(cpumask_of(cpu));
- 
--	iounmap(mailbox);
--
- 	return 0;
- }
- 
-@@ -116,32 +121,15 @@ static void acpi_parking_protocol_cpu_postboot(void)
- {
- 	int cpu = smp_processor_id();
- 	struct cpu_mailbox_entry *cpu_entry = &cpu_mailbox_entries[cpu];
--	struct parking_protocol_mailbox __iomem *mailbox;
-+	struct parking_protocol_mailbox __iomem *mailbox = cpu_entry->mailbox;
- 	__le64 entry_point;
- 
--	/*
--	 * Map mailbox memory with attribute device nGnRE (ie ioremap -
--	 * this deviates from the parking protocol specifications since
--	 * the mailboxes are required to be mapped nGnRnE; the attribute
--	 * discrepancy is harmless insofar as the protocol specification
--	 * is concerned).
--	 * If the mailbox is mistakenly allocated in the linear mapping
--	 * by FW ioremap will fail since the mapping will be prevented
--	 * by the kernel (it clashes with the linear mapping attributes
--	 * specifications).
--	 */
--	mailbox = ioremap(cpu_entry->mailbox_addr, sizeof(*mailbox));
--	if (!mailbox)
--		return;
--
- 	entry_point = readl_relaxed(&mailbox->entry_point);
- 	/*
- 	 * Check if firmware has cleared the entry_point as expected
- 	 * by the protocol specification.
- 	 */
- 	WARN_ON(entry_point);
--
--	iounmap(mailbox);
- }
- 
- const struct cpu_operations acpi_parking_protocol_ops = {
--- 
-2.5.1
-
+--=20
+Andy Shevchenko <andriy.shevchenko-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
+Intel Finland Oy
