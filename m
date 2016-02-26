@@ -1,65 +1,137 @@
-From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [RFC PATCH v3 3/3] PCI/ACPI: hisi: Add ACPI support for HiSilicon SoCs Host Controllers
-Date: Thu, 25 Feb 2016 22:24:34 +0100
-Message-ID: <8105311.kD8XXIcipM@vostro.rjw.lan>
-References: <20160209182429.GD4348@leverpostej> <20160225120750.GA32016@red-moon> <20160225195912.GA4818@localhost>
+From: Itaru Kitayama <itaru.kitayama@riken.jp>
+Subject: Re: [PATCH v3] ARM64: kernel: implement ACPI parking protocol
+Date: Fri, 26 Feb 2016 09:23:56 +0900
+Message-ID: <56CF9B1C.6050303@riken.jp>
+References: <1453806638-23167-1-git-send-email-lorenzo.pieralisi@arm.com>
+ <20160202182657.GC15706@e104818-lin.cambridge.arm.com>
+ <20160203112112.GA18387@red-moon> <20160203161834.GB26487@MBP.local>
+ <20160224141832.GA26630@red-moon> <56CE3C9E.7070505@riken.jp>
+ <20160225092427.GA31728@red-moon>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7Bit
-Return-path: <linux-pci-owner@vger.kernel.org>
-In-Reply-To: <20160225195912.GA4818@localhost>
-Sender: linux-pci-owner@vger.kernel.org
-To: Bjorn Helgaas <helgaas@kernel.org>
-Cc: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Gabriele Paoloni <gabriele.paoloni@huawei.com>, 'Mark Rutland' <mark.rutland@arm.com>, "Guohanjun (Hanjun Guo)" <guohanjun@huawei.com>, "Wangzhou (B)" <wangzhou1@hisilicon.com>, "liudongdong (C)" <liudongdong3@huawei.com>, Linuxarm <linuxarm@huawei.com>, qiujiang <qiujiang@huawei.com>, "'bhelgaas@google.com'" <bhelgaas@google.com>, "'arnd@arndb.de'" <arnd@arndb.de>, "'tn@semihalf.com'" <tn@semihalf.com>, "'linux-pci@vger.kernel.org'" <linux-pci@vger.kernel.org>, "'linux-kernel@vger.kernel.org'" <linux-kernel@vger.kernel.org>, "xuwei (O)" <xuwei5@hisilicon.com>, "'linux-acpi@vger.kernel.org'" <linux-acpi@vger.kernel.org>, "'jcm@redhat.com'" <jcm@redhat.com>, zhangjukuo <zhangjukuo@huawei.com>, "Liguozhu (Kenneth)" <liguozhu@hisilicon.com>, "'linux-arm-kernel@lists.infradead.org'" <linux-arm-kernel@lists.infradead.org>
+Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from postman4.riken.jp ([134.160.33.86]:53371 "EHLO postman.riken.jp"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1750717AbcBZAYA (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 25 Feb 2016 19:24:00 -0500
+In-Reply-To: <20160225092427.GA31728@red-moon>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+Cc: Catalin Marinas <catalin.marinas@arm.com>, Mark Rutland <mark.rutland@arm.com>, Sudeep Holla <sudeep.holla@arm.com>, Will Deacon <will.deacon@arm.com>, linux-acpi@vger.kernel.org, Hanjun Guo <hanjun.guo@linaro.org>, Mark Salter <msalter@redhat.com>, Al Stone <ahs3@redhat.com>, linux-arm-kernel@lists.infradead.org, Loc Ho <lho@apm.com>
 
-On Thursday, February 25, 2016 01:59:12 PM Bjorn Helgaas wrote:
-> On Thu, Feb 25, 2016 at 12:07:50PM +0000, Lorenzo Pieralisi wrote:
-> > On Thu, Feb 25, 2016 at 03:01:19AM +0000, Gabriele Paoloni wrote:
-> > 
-> > [...]
-> > 
-> > > > I think the relevant spec is the PCI Firmware Spec, r3.0, sec 4.1.2.
-> > > > Note 2 in that section says the address range of an MMCFG region
-> > > > must be reserved by declaring a motherboard resource, i.e., included
-> > > > in the _CRS of a PNP0C02 or similar device.
-> > > 
-> > > I had a look a this. So yes the specs says that we should use the 
-> > > PNP0C02 device if MCFG is not supported. 
-> > 
-> > AFAIK, PNP0C02 is a resource reservation mechanism, the spec says that
-> > MCFG regions must be reserved using PNP0C02, even though its
-> > current usage on x86 is a bit unfathomable to me, in particular
-> > in relation to MCFG resources retrieved for hotpluggable bridges (ie
-> > through _CBA, which I think consider the MCFG region as reserved
-> > by default, regardless of PNP0c02):
-> > 
-> > see pci_mmcfg_check_reserved() arch/x86/pci/mmconfig-shared.c
-> 
-> I don't know how _CBA-related resources would be reserved.  I haven't
-> personally worked with any host bridges that supply _CBA, so I don't
-> know whether or how they handled it.
-> 
-> I think the spec intent was that the Consumer/Producer bit (Extended
-> Address Space Descriptor, General Flags Bit[0], see ACPI spec sec
-> 6.4.3.5.4) would be used.  Resources such as ECAM areas would be
-> marked "Consumer", meaning the bridge consumed that space itself, and
-> windows passed down to the PCI bus would be marked "Producer".
-> 
-> But BIOSes didn't use that bit consistently, so we couldn't rely on
-> it.  I verified experimentally that Windows didn't pay attention to
-> that bit either, at least for DWord descriptors:
-> https://bugzilla.kernel.org/show_bug.cgi?id=15701
-> 
-> It's conceivable that we could still use that bit in Extended Address
-> Space descriptors, or maybe some hack like pay attention if the bridge
-> has _CBA, or some such.
+Hi Lorenzo,
 
-Last time I asked the firmware vendor people in the ASWG about that,
-the answer was that the Consumer/Producer bit was useless as they had
-never paid any attention to it in general.
+I have applied your latest patch on top of today's HEAD of for-next/core 
+(cac4b8cd),
+and confirmed the kernel boots fine with acpi=force. No lockdep warning 
+was seen,
+all 8 CPUs were successfully brought up.
 
-It may be good to update the spec to say something along these lines, actually.
+Itaru
 
-Thanks,
-Rafael
+On 2/25/16 6:24 PM, Lorenzo Pieralisi wrote:
+> On Thu, Feb 25, 2016 at 08:28:30AM +0900, Itaru Kitayama wrote:
+>> Lorenzo,
+>>
+>> On Mustang the lockdep warning I reported to you is disappeared and
+>> the system gets to
+>> the prompt as you implemented, however only 7 CPUs out of 8 brought up.
+> It is because, as I mentioned in the other reply to this thread,
+> the VA should be stashed before setting up the mailboxes, patch below,
+> that should be final (I tested it on AMD Seattle too), please give it a go.
+>
+> Thanks,
+> Lorenzo
+>
+> -- >8 --
+> diff --git a/arch/arm64/kernel/acpi_parking_protocol.c b/arch/arm64/kernel/acpi_parking_protocol.c
+> index 4b1e5a7..dd671ef 100644
+> --- a/arch/arm64/kernel/acpi_parking_protocol.c
+> +++ b/arch/arm64/kernel/acpi_parking_protocol.c
+> @@ -21,7 +21,14 @@
+>   
+>   #include <asm/cpu_ops.h>
+>   
+> +struct parking_protocol_mailbox {
+> +	__le32 cpu_id;
+> +	__le32 reserved;
+> +	__le64 entry_point;
+> +};
+> +
+>   struct cpu_mailbox_entry {
+> +	struct parking_protocol_mailbox __iomem *mailbox;
+>   	phys_addr_t mailbox_addr;
+>   	u8 version;
+>   	u8 gic_cpu_id;
+> @@ -59,12 +66,6 @@ static int acpi_parking_protocol_cpu_prepare(unsigned int cpu)
+>   	return 0;
+>   }
+>   
+> -struct parking_protocol_mailbox {
+> -	__le32 cpu_id;
+> -	__le32 reserved;
+> -	__le64 entry_point;
+> -};
+> -
+>   static int acpi_parking_protocol_cpu_boot(unsigned int cpu)
+>   {
+>   	struct cpu_mailbox_entry *cpu_entry = &cpu_mailbox_entries[cpu];
+> @@ -97,6 +98,12 @@ static int acpi_parking_protocol_cpu_boot(unsigned int cpu)
+>   	}
+>   
+>   	/*
+> +	 * stash the mailbox address mapping to use it for further checks
+> +	 * in postboot method
+> +	 */
+> +	cpu_entry->mailbox = mailbox;
+> +
+> +	/*
+>   	 * We write the entry point and cpu id as LE regardless of the
+>   	 * native endianness of the kernel. Therefore, any boot-loaders
+>   	 * that read this address need to convert this address to the
+> @@ -107,8 +114,6 @@ static int acpi_parking_protocol_cpu_boot(unsigned int cpu)
+>   
+>   	arch_send_wakeup_ipi_mask(cpumask_of(cpu));
+>   
+> -	iounmap(mailbox);
+> -
+>   	return 0;
+>   }
+>   
+> @@ -116,32 +121,15 @@ static void acpi_parking_protocol_cpu_postboot(void)
+>   {
+>   	int cpu = smp_processor_id();
+>   	struct cpu_mailbox_entry *cpu_entry = &cpu_mailbox_entries[cpu];
+> -	struct parking_protocol_mailbox __iomem *mailbox;
+> +	struct parking_protocol_mailbox __iomem *mailbox = cpu_entry->mailbox;
+>   	__le64 entry_point;
+>   
+> -	/*
+> -	 * Map mailbox memory with attribute device nGnRE (ie ioremap -
+> -	 * this deviates from the parking protocol specifications since
+> -	 * the mailboxes are required to be mapped nGnRnE; the attribute
+> -	 * discrepancy is harmless insofar as the protocol specification
+> -	 * is concerned).
+> -	 * If the mailbox is mistakenly allocated in the linear mapping
+> -	 * by FW ioremap will fail since the mapping will be prevented
+> -	 * by the kernel (it clashes with the linear mapping attributes
+> -	 * specifications).
+> -	 */
+> -	mailbox = ioremap(cpu_entry->mailbox_addr, sizeof(*mailbox));
+> -	if (!mailbox)
+> -		return;
+> -
+>   	entry_point = readl_relaxed(&mailbox->entry_point);
+>   	/*
+>   	 * Check if firmware has cleared the entry_point as expected
+>   	 * by the protocol specification.
+>   	 */
+>   	WARN_ON(entry_point);
+> -
+> -	iounmap(mailbox);
+>   }
+>   
+>   const struct cpu_operations acpi_parking_protocol_ops = {
+
