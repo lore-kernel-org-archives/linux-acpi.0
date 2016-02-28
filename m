@@ -1,45 +1,48 @@
-From: Eric Engestrom <eric.engestrom@imgtec.com>
-Subject: [PATCH] acpi: remove left over dead code
-Date: Mon, 29 Feb 2016 16:27:04 +0000
-Message-ID: <1456763224-32409-1-git-send-email-eric.engestrom@imgtec.com>
+From: "Mr. DOUGLAS" <douglascontact6048@live.com>
+Subject: =?utf-8?q?INFORMA=C3=87=C3=83O_IMPORTANTE__RE=3A_Consultoria_de_Investime?=
+ =?utf-8?q?nto_em_sua_Localidade=2E?=
+Date: Sun, 28 Feb 2016 04:39:20 -0800
+Message-ID: <20160228133825.7B0CC8FAF21__43215.4777263806$1456764216$gmane$org@webmail.cefet-rj.br>
+Reply-To: johnsondouglas8738@gmail.com
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mailapp01.imgtec.com ([195.59.15.196]:20238 "EHLO
-	mailapp01.imgtec.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752955AbcB2Q1B (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 29 Feb 2016 11:27:01 -0500
+Received: from webmail.cefet-rj.br ([200.9.149.52]:42072 "EHLO
+	webmail.cefet-rj.br" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751062AbcB2QnQ convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 29 Feb 2016 11:43:16 -0500
+Content-Description: Mail message body
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Zhang Rui <rui.zhang@intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
-Cc: Eric Engestrom <eric.engestrom@imgtec.com>
+To: Recipients <douglascontact6048@live.com>
 
-39fe394d05be43481ceac8b3db19dfd5189097f6 ("ACPI video: remove deprecated
-procfs I/F") removed everything that would've used this variable.
+Oi,
 
-Signed-off-by: Eric Engestrom <eric.engestrom@imgtec.com>
----
- drivers/acpi/acpi_video.c | 7 -------
- 1 file changed, 7 deletions(-)
+Temos planejado investir alguns fundos no seu pa=EDs.
 
-diff --git a/drivers/acpi/acpi_video.c b/drivers/acpi/acpi_video.c
-index a76f8be..4361bc9 100644
---- a/drivers/acpi/acpi_video.c
-+++ b/drivers/acpi/acpi_video.c
-@@ -218,13 +218,6 @@ struct acpi_video_device {
- 	struct thermal_cooling_device *cooling_dev;
- };
- 
--static const char device_decode[][30] = {
--	"motherboard VGA device",
--	"PCI VGA device",
--	"AGP VGA device",
--	"UNKNOWN",
--};
--
- static void acpi_video_device_notify(acpi_handle handle, u32 event, void *data);
- static void acpi_video_device_rebind(struct acpi_video_bus *video);
- static void acpi_video_device_bind(struct acpi_video_bus *video,
--- 
-2.7.1
+Responder se voc=EA estiver interessado.
 
+Sauda=E7=F5es,
+Sir Henry Neville Lindley Keswick
+Presidente da Jardine Matheson Holdings Ltd
+https://en.wikipedia.org/wiki/Keswick_family
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D
+
+Hi friend,
+
+Our family is interested in investing funds in your locality.
+
+More information for you interest .
+
+Greetings,
+Sir Henry Neville Lindley Keswick
+Chairman of Jardine Matheson Holdings Ltd
+https://en.wikipedia.org/wiki/Keswick_family
+--
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
