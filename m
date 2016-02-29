@@ -1,120 +1,141 @@
-From: "Prakash, Prashanth" <pprakash@codeaurora.org>
-Subject: Re: [PATCH V3 1/4] ACPI / CPPC: Optimize PCC Read Write operations
-Date: Mon, 29 Feb 2016 12:20:49 -0700
-Message-ID: <56D49A11.80800@codeaurora.org>
-References: <1455134762-31400-1-git-send-email-pprakash@codeaurora.org>
- <1455134762-31400-2-git-send-email-pprakash@codeaurora.org>
- <20160215163719.GA22453@arm.com>
- <CAJ5Y-eb=0NnH67DfcuYn519S4n3QtXYtEF6m-G3zetcOS+cXcg@mail.gmail.com>
- <20160229173958.GA4809@arm.com>
+From: Bjorn Helgaas <helgaas@kernel.org>
+Subject: Re: [PATCH V2] acpi, pci, irq: account for early penalty assignment
+Date: Mon, 29 Feb 2016 13:24:20 -0600
+Message-ID: <20160229192420.GC3653@localhost>
+References: <1455801582-21595-1-git-send-email-okaya@codeaurora.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp.codeaurora.org ([198.145.29.96]:51100 "EHLO
-	smtp.codeaurora.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751447AbcB2TUw (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 29 Feb 2016 14:20:52 -0500
-In-Reply-To: <20160229173958.GA4809@arm.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-pci-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <1455801582-21595-1-git-send-email-okaya@codeaurora.org>
+Sender: linux-pci-owner@vger.kernel.org
+To: Sinan Kaya <okaya@codeaurora.org>
+Cc: linux-acpi@vger.kernel.org, timur@codeaurora.org, cov@codeaurora.org, linux-pci@vger.kernel.org, ravikanth.nalla@hpe.com, lenb@kernel.org, harish.k@hpe.com, ashwin.reghunandanan@hpe.com, bhelgaas@google.com, rjw@rjwysocki.net, linux-kernel@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Alexey Klimov <alexey.klimov@arm.com>
-Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, linux acpi <linux-acpi@vger.kernel.org>, Linaro ACPI Mailman List <linaro-acpi@lists.linaro.org>, Timur Tabi <timur@codeaurora.org>, Ashwin Chaugule <ashwin.chaugule@linaro.org>
 
-Hi Alexey,
+On Thu, Feb 18, 2016 at 08:19:41AM -0500, Sinan Kaya wrote:
+> A crash has been observed when assigning penalty on x86 systems.
+> 
+> It looks like this problem happens on x86 platforms with IOAPIC and an SCI
+> interrupt override in the ACPI table with interrupt number greater than
+> 16. (22 in this example)
+> 
+> The bug has been introduced by "ACPI, PCI, irq: remove interrupt count
+> restriction" commit. The code was using kmalloc to resize the interrupt
 
-On 2/29/2016 10:39 AM, Alexey Klimov wrote:
-> On Tue, Feb 16, 2016 at 01:47:15PM -0500, Ashwin Chaugule wrote:
->> Hi Alexey,
->>
->> On 15 February 2016 at 11:37, Alexey Klimov <alexey.klimov@arm.com> wrote:
->>> Hi Prashanth and Ashwin,
->>>
->>> On Wed, Feb 10, 2016 at 01:05:59PM -0700, Prashanth Prakash wrote:
->>>> From: Ashwin Chaugule <ashwin.chaugule@linaro.org>
->>>>
->>>> Previously the send_pcc_cmd() code checked if the
->>>> PCC operation had completed before returning from
->>>> the function. This check was performed regardless
->>>> of the PCC op type (i.e. Read/Write). Knowing
->>>> the type of cmd can be used to optimize the check
->>>> and avoid needless waiting. e.g. with Write ops,
->>>> the actual Writing is done before calling send_pcc_cmd().
->>>> And the subsequent Writes will check if the channel is
->>>> free at the entry of send_pcc_cmd() anyway.
->>>>
->>>> However, for Read cmds, we need to wait for the cmd
->>>> completion bit to be flipped, since the actual Read
->>>> ops follow after returning from the send_pcc_cmd(). So,
->>>> only do the looping check at the end for Read ops.
->>>>
->>>> Also, instead of using udelay() calls, use ktime as a
->>>> means to check for deadlines. The current deadline
->>>> in which the Remote should flip the cmd completion bit
->>>> is defined as N * Nominal latency. Where N is arbitrary
->>>> and large enough to work on slow emulators and Nominal
->>>> latency comes from the ACPI table (PCCT). This helps
->>>> in working around the CONFIG_HZ effects on udelay()
->>>> and also avoids needing different ACPI tables for Silicon
->>>> and Emulation platforms.
->>>>
->>>> Signed-off-by: Ashwin Chaugule <ashwin.chaugule@linaro.org>
->>>> Signed-off-by: Prashanth Prakash <pprakash@codeaurora.org>
->>>> ---
->>>>  drivers/acpi/cppc_acpi.c | 99 ++++++++++++++++++++++++++++++++++--------------
->>>>  1 file changed, 71 insertions(+), 28 deletions(-)
->> [..]
->>
->>>>  /*
->>>>   * Arbitrary Retries in case the remote processor is slow to respond
->>>> - * to PCC commands.
->>>> + * to PCC commands. Keeping it high enough to cover emulators where
->>>> + * the processors run painfully slow.
->>>>   */
->>>>  #define NUM_RETRIES 500
->>>>
->>>> +static int check_pcc_chan(void)
->>>> +{
->>>> +     int ret = -EIO;
->>>> +     struct acpi_pcct_shared_memory __iomem *generic_comm_base = pcc_comm_addr;
->>>> +     ktime_t next_deadline = ktime_add(ktime_get(), deadline);
->>>> +
->>>> +     /* Retry in case the remote processor was too slow to catch up. */
->>>> +     while (!ktime_after(ktime_get(), next_deadline)) {
->>>> +             if (readw_relaxed(&generic_comm_base->status) & PCC_CMD_COMPLETE) {
->>> What do you think about polling for error too?
->>> Firmware might set error bit and kernel will spin here for full cycle (maybe even
->>> more than one time).
->>>
->> Hm. I dont think thats useful since we dont do anything special if the
->> firmware errors out. Perhaps at some later point we can stop sending
->> new requests if there are firmware errors, but then how would we know
->> when to resume?
-> The suggestion is to jump out of polling loop quickly instead of spinning for full cycle.
-> With longer delays given by firmware the spinning issue on error will be worse.
-> This is not going to change behaviour on error paths (or in other words I don't suggest
-> to change error path behaviour right now).
->
-> Does specification describe any resume after error path? I don't see anything.
-The specification doesn't really say how to handle the error. While it doesn't say resume after
-error, it  also doesn't say abort all commands after an error.
-The only thing I see with respect to error bit is "If set, an error occurred executing the last
-command."
+When referring to a previous commit, please include the SHA1, e.g.,
 
-So, all we know is there was a an error with the execution of the last command and I am not
-sure it is correct to assume all the future usage of the channel should be aborted because the
-failure of the last command.
+  b5bd02695471 ("ACPI, PCI, irq: remove interrupt count restriction")
 
-Given the above ambiguity, I think it is better to keep the current implementation as is. If
-some platforms shows a behavior where after an error the channel becomes completely
-useless, then we can maintain some sort of internal state that decides not to use the channel
-after say X number of consecutive errors.
-> <snip>
->
-> Best regards,
-> Alexey Klimov.
->
->
->
+> list. In this use case, the set penalty call is coming from early phase
+> and the heap is not initialized yet.
+> 
+> BUG: unable to handle kernel NULL pointer dereference at 0000000000000018
+> IP: [<ffffffff811e8b9d>] kmem_cache_alloc_trace+0xad/0x1c0
+> PGD 0
+> Oops: 0000 [#1] SMP
+> Modules linked in:
+> CPU: 0 PID: 0 Comm: swapper Not tainted 4.5.0-rc2Feb-3_RK #1
+> Hardware name: HP Superdome2 16s, BIOS Bundle: 007.006.000 SFW: 033.162.000
+> 10/30/2015
+> [<ffffffff813bc190>] acpi_irq_set_penalty+0x60/0x8e
+> [<ffffffff813bc1df>] acpi_irq_add_penalty+0x21/0x26
+> [<ffffffff813bc76d>] acpi_penalize_sci_irq+0x25/0x28
+> [<ffffffff81b8260d>] acpi_sci_ioapic_setup+0x68/0x78
+> [<ffffffff81b830fc>] acpi_boot_init+0x2cc/0x533
+> [<ffffffff810677c8>] ? set_pte_vaddr_pud+0x48/0x50
+> [<ffffffff81b828cf>] ? acpi_parse_x2apic+0x77/0x77
+> [<ffffffff81b82858>] ? dmi_ignore_irq0_timer_override+0x30/0x30
+> [<ffffffff81b77c1e>] setup_arch+0xc24/0xce9
+> [<ffffffff81b6e120>] ? early_idt_handler_array+0x120/0x120
+> [<ffffffff81b6ed94>] start_kernel+0xfc/0x506
+> [<ffffffff81b6e120>] ? early_idt_handler_array+0x120/0x120
+> [<ffffffff81b6e120>] ? early_idt_handler_array+0x120/0x120
+> [<ffffffff81b6e5ee>] x86_64_start_reservations+0x2a/0x2c
+> [<ffffffff81b6e73c>] x86_64_start_kernel+0x14c/0x16f
+> 
+> Besides from the use case above, there is one more situation where
+> set_penalty is being called from the init context like. There is support
+> for setting the penalty through kernel command line.
+> 
+> Adding support to be called from early context for limited number of
+> interrupts.
 
+I can't believe this whole IRQ penalty thing needs to be so
+complicated.
 
+The only time we actually use the penalty information is when we're
+attaching a driver to a PCI device, i.e., in this path:
+
+  pci_device_probe
+    pcibios_alloc_irq
+      pcibios_enable_irq
+
+That happens pretty late, so there's no "can't allocate memory during
+early boot" problem.
+
+I bet the only thing that might happen early enough to be an issue is
+the acpi_penalize_sci_irq() thing, which is a special case that
+doesn't need to be handled generically.
+
+> Reported-by: Nalla, Ravikanth <ravikanth.nalla@hpe.com>
+> Signed-off-by: Sinan Kaya <okaya@codeaurora.org>
+> ---
+>  drivers/acpi/pci_link.c | 19 +++++++++++++++----
+>  1 file changed, 15 insertions(+), 4 deletions(-)
+> 
+> diff --git a/drivers/acpi/pci_link.c b/drivers/acpi/pci_link.c
+> index fa28635..14fe3ca 100644
+> --- a/drivers/acpi/pci_link.c
+> +++ b/drivers/acpi/pci_link.c
+> @@ -47,6 +47,7 @@ ACPI_MODULE_NAME("pci_link");
+>  #define ACPI_PCI_LINK_FILE_INFO		"info"
+>  #define ACPI_PCI_LINK_FILE_STATUS	"state"
+>  #define ACPI_PCI_LINK_MAX_POSSIBLE	16
+> +#define ACPI_PCI_LINK_MAX_EARLY_IRQINFO 1024
+>  
+>  static int acpi_pci_link_add(struct acpi_device *device,
+>  			     const struct acpi_device_id *not_used);
+> @@ -473,6 +474,8 @@ struct irq_penalty_info {
+>  };
+>  
+>  static LIST_HEAD(acpi_irq_penalty_list);
+> +static struct irq_penalty_info early_irq_infos[ACPI_PCI_LINK_MAX_EARLY_IRQINFO];
+> +static int early_irq_info_counter;
+>  
+>  static int acpi_irq_get_penalty(int irq)
+>  {
+> @@ -507,10 +510,17 @@ static int acpi_irq_set_penalty(int irq, int new_penalty)
+>  		}
+>  	}
+>  
+> -	/* nope, let's allocate a slot for this IRQ */
+> -	irq_info = kzalloc(sizeof(*irq_info), GFP_KERNEL);
+> -	if (!irq_info)
+> -		return -ENOMEM;
+> +	if (!acpi_gbl_permanent_mmap) {
+> +		if (early_irq_info_counter < ARRAY_SIZE(early_irq_infos))
+> +			irq_info = &early_irq_infos[early_irq_info_counter++];
+> +		else
+> +			return -ENOMEM;
+> +	} else {
+> +		/* nope, let's allocate a slot for this IRQ */
+> +		irq_info = kzalloc(sizeof(*irq_info), GFP_KERNEL);
+> +		if (!irq_info)
+> +			return -ENOMEM;
+> +	}
+>  
+>  	irq_info->irq = irq;
+>  	irq_info->penalty = new_penalty;
+> @@ -968,3 +978,4 @@ void __init acpi_pci_link_init(void)
+>  	register_syscore_ops(&irqrouter_syscore_ops);
+>  	acpi_scan_add_handler(&pci_link_handler);
+>  }
+> +
+> -- 
+> 1.8.2.1
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
