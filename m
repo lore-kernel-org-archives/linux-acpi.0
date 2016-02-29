@@ -1,209 +1,94 @@
-From: qiujiang <qiujiang@huawei.com>
-Subject: [PATCH v4 1/2] gpio: designware: switch device node to fwnode and add acpi binding
-Date: Mon, 29 Feb 2016 21:13:15 +0800
-Message-ID: <1456751596-98963-2-git-send-email-qiujiang@huawei.com>
-References: <1456751596-98963-1-git-send-email-qiujiang@huawei.com>
+From: Andy Shevchenko <andy.shevchenko@gmail.com>
+Subject: Re: [PATCH v4 1/4] ACPI: parse SPCR and enable matching console
+Date: Mon, 29 Feb 2016 15:29:41 +0200
+Message-ID: <CAHp75VdswvD23xqRNUX=fwMt5HReR-wcSo+RYweB6FYqWPar8w@mail.gmail.com>
+References: <1456747355-15692-1-git-send-email-aleksey.makarov@linaro.org>
+	<1456747355-15692-2-git-send-email-aleksey.makarov@linaro.org>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-gpio-owner@vger.kernel.org>
-In-Reply-To: <1456751596-98963-1-git-send-email-qiujiang@huawei.com>
-Sender: linux-gpio-owner@vger.kernel.org
-To: linus.walleij@linaro.org, gnurou@gmail.com
-Cc: mika.westerberg@linux.intel.com, andy.shevchenko@gmail.com, linux-kernel@vger.kernel.org, linux-gpio@vger.kernel.org, linux-acpi@vger.kernel.org, linuxarm@huawei.com, haifeng.wei@huawei.com, charles.chenxin@huawei.com
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1456747355-15692-2-git-send-email-aleksey.makarov@linaro.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Aleksey Makarov <aleksey.makarov@linaro.org>
+Cc: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-serial@vger.kernel.org" <linux-serial@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, linux-arm Mailing List <linux-arm-kernel@lists.infradead.org>, Russell King <linux@arm.linux.org.uk>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, Leif Lindholm <leif.lindholm@linaro.org>, Graeme Gregory <graeme.gregory@linaro.org>, Al Stone <ahs3@redhat.com>, Christopher Covington <cov@codeaurora.org>, Yury Norov <ynorov@caviumnetworks.com>, Peter Hurley <peter@hurleysoftware.com>, "Zheng, Lv" <lv.zheng@intel.com>, Len Brown <lenb@kernel.org>, Jiri Slaby <jslaby@suse.com>
 List-Id: linux-acpi@vger.kernel.org
 
-This patch switches device node to fwnode and adds acpi
-binding. As a result, DT and acpi bingdings are compatible
-for this driver.
+On Mon, Feb 29, 2016 at 2:02 PM, Aleksey Makarov
+<aleksey.makarov@linaro.org> wrote:
+> 'ARM Server Base Boot Requiremets' [1] mentions SPCR (Serial Port
+> Console Redirection Table) [2] as a mandatory ACPI table that
+> specifies the configuration of serial console.
+>
+> Parse this table and check if any registered console match the
+> description.  If it does, enable that console.
+>
+> Introduce a new function acpi_console_check().  At the uart port
+> registration, this function checks if the ACPI SPCR table specifies
+> its argument of type struct uart_port to be a console
+> and if so calls add_preferred_console().
 
-Acked-by: Mika Westerberg <mika.westerberg@linux.intel.com>
-Signed-off-by: qiujiang <qiujiang@huawei.com>
----
- drivers/gpio/gpio-dwapb.c                | 62 +++++++++++++++++++-------------
- drivers/mfd/intel_quark_i2c_gpio.c       |  2 +-
- include/linux/platform_data/gpio-dwapb.h |  2 +-
- 3 files changed, 39 insertions(+), 27 deletions(-)
+> +       if (ACPI_FAILURE(status)) {
+> +               pr_err("could not get the table\n");
 
-diff --git a/drivers/gpio/gpio-dwapb.c b/drivers/gpio/gpio-dwapb.c
-index 597de1e..7a37c65 100644
---- a/drivers/gpio/gpio-dwapb.c
-+++ b/drivers/gpio/gpio-dwapb.c
-@@ -7,6 +7,7 @@
-  *
-  * All enquiries to support@picochip.com
-  */
-+#include <linux/acpi.h>
- #include <linux/gpio/driver.h>
- /* FIXME: for gpio_get_value(), replace this with direct register read */
- #include <linux/gpio.h>
-@@ -290,14 +291,14 @@ static void dwapb_configure_irqs(struct dwapb_gpio *gpio,
- 				 struct dwapb_port_property *pp)
- {
- 	struct gpio_chip *gc = &port->gc;
--	struct device_node *node = pp->node;
-+	struct fwnode_handle  *fwnode = pp->fwnode;
- 	struct irq_chip_generic	*irq_gc = NULL;
- 	unsigned int hwirq, ngpio = gc->ngpio;
- 	struct irq_chip_type *ct;
- 	int err, i;
- 
--	gpio->domain = irq_domain_add_linear(node, ngpio,
--					     &irq_generic_chip_ops, gpio);
-+	gpio->domain = irq_domain_create_linear(fwnode, ngpio,
-+						 &irq_generic_chip_ops, gpio);
- 	if (!gpio->domain)
- 		return;
- 
-@@ -415,7 +416,8 @@ static int dwapb_gpio_add_port(struct dwapb_gpio *gpio,
- 	}
- 
- #ifdef CONFIG_OF_GPIO
--	port->gc.of_node = pp->node;
-+	port->gc.of_node = is_of_node(pp->fwnode) ?
-+		to_of_node(pp->fwnode) : NULL;
- #endif
- 	port->gc.ngpio = pp->ngpio;
- 	port->gc.base = pp->gpio_base;
-@@ -447,19 +449,15 @@ static void dwapb_gpio_unregister(struct dwapb_gpio *gpio)
+Is it worse to have on error level? Is it possible to have firmware
+without this table? I think it would be a normal case for non-arm
+world.
+I'm also not sure if this message useful even on warn level.
+
+> +               return -ENOENT;
+> +       }
+> +
+> +       if (table->header.revision < 2) {
+> +               err = -EINVAL;
+> +               pr_err("wrong table version\n");
+
+And this one quite good to have, indeed.
+
+> + * acpi_console_check - Check if uart matches the console specified by SPCR.
+> + *
+> + * @uport:     uart port to check
+> + *
+
+Since you use sections, you may add:
++ * Description:
+
+> + * This function checks if the ACPI SPCR table specifies @uport to be a console
+> + * and if so calls add_preferred_console()
+> + *
+> + * Return: a non-error value if the console matches.
+
+> @@ -2654,8 +2655,17 @@ int uart_add_one_port(struct uart_driver *drv, struct uart_port *uport)
+>                 spin_lock_init(&uport->lock);
+>                 lockdep_set_class(&uport->lock, &port_lock_key);
+>         }
+> -       if (uport->cons && uport->dev)
+> -               of_console_check(uport->dev->of_node, uport->cons->name, uport->line);
+> +
+> +       /*
+> +        * Support both open FW and ACPI access to console definitions.
+> +        * Both of_console_check() and acpi_console_check() will call
+> +        * add_preferred_console() if a console definition is found.
+> +        */
+> +       if (uport->cons && uport->dev) {
+> +               if (!acpi_console_check(uport))
+
+if (cond1) {
+ if (cond2) {
+...
  }
- 
- static struct dwapb_platform_data *
--dwapb_gpio_get_pdata_of(struct device *dev)
-+dwapb_gpio_get_pdata(struct device *dev)
- {
--	struct device_node *node, *port_np;
-+	struct fwnode_handle *fwnode;
- 	struct dwapb_platform_data *pdata;
- 	struct dwapb_port_property *pp;
- 	int nports;
- 	int i;
- 
--	node = dev->of_node;
--	if (!IS_ENABLED(CONFIG_OF_GPIO) || !node)
--		return ERR_PTR(-ENODEV);
--
--	nports = of_get_child_count(node);
-+	nports = device_get_child_node_count(dev);
- 	if (nports == 0)
- 		return ERR_PTR(-ENODEV);
- 
-@@ -474,21 +472,19 @@ dwapb_gpio_get_pdata_of(struct device *dev)
- 	pdata->nports = nports;
- 
- 	i = 0;
--	for_each_child_of_node(node, port_np) {
-+	device_for_each_child_node(dev, fwnode)  {
- 		pp = &pdata->properties[i++];
--		pp->node = port_np;
-+		pp->fwnode = fwnode;
- 
--		if (of_property_read_u32(port_np, "reg", &pp->idx) ||
-+		if (fwnode_property_read_u32(fwnode, "reg", &pp->idx) ||
- 		    pp->idx >= DWAPB_MAX_PORTS) {
--			dev_err(dev, "missing/invalid port index for %s\n",
--				port_np->full_name);
-+			dev_err(dev, "missing/invalid port index\n");
- 			return ERR_PTR(-EINVAL);
- 		}
- 
--		if (of_property_read_u32(port_np, "snps,nr-gpios",
-+		if (fwnode_property_read_u32(fwnode, "snps,nr-gpios",
- 					 &pp->ngpio)) {
--			dev_info(dev, "failed to get number of gpios for %s\n",
--				 port_np->full_name);
-+			dev_info(dev, "failed to get number of gpios\n");
- 			pp->ngpio = 32;
- 		}
- 
-@@ -496,18 +492,27 @@ dwapb_gpio_get_pdata_of(struct device *dev)
- 		 * Only port A can provide interrupts in all configurations of
- 		 * the IP.
- 		 */
--		if (pp->idx == 0 &&
--		    of_property_read_bool(port_np, "interrupt-controller")) {
--			pp->irq = irq_of_parse_and_map(port_np, 0);
-+		if (dev->of_node && pp->idx == 0 &&
-+			of_property_read_bool(to_of_node(fwnode),
-+				"interrupt-controller")) {
-+			pp->irq = irq_of_parse_and_map(to_of_node(fwnode), 0);
- 			if (!pp->irq) {
- 				dev_warn(dev, "no irq for bank %s\n",
--					 port_np->full_name);
-+					 to_of_node(fwnode)->full_name);
- 			}
- 		}
- 
-+		if (has_acpi_companion(dev) && pp->idx == 0)
-+			pp->irq = platform_get_irq(to_platform_device(dev), 0);
-+
- 		pp->irq_shared	= false;
- 		pp->gpio_base	= -1;
--		pp->name	= port_np->full_name;
-+
-+		if (dev->of_node)
-+			pp->name = to_of_node(fwnode)->full_name;
-+
-+		if (has_acpi_companion(dev))
-+			pp->name = acpi_dev_name(to_acpi_device_node(fwnode));
- 	}
- 
- 	return pdata;
-@@ -523,7 +528,7 @@ static int dwapb_gpio_probe(struct platform_device *pdev)
- 	struct dwapb_platform_data *pdata = dev_get_platdata(dev);
- 
- 	if (!pdata) {
--		pdata = dwapb_gpio_get_pdata_of(dev);
-+		pdata = dwapb_gpio_get_pdata(dev);
- 		if (IS_ERR(pdata))
- 			return PTR_ERR(pdata);
- 	}
-@@ -580,6 +585,12 @@ static const struct of_device_id dwapb_of_match[] = {
- };
- MODULE_DEVICE_TABLE(of, dwapb_of_match);
- 
-+static const struct acpi_device_id dwapb_acpi_match[] = {
-+	{"HISI0181", 0},
-+	{ }
-+};
-+MODULE_DEVICE_TABLE(acpi, dwapb_acpi_match);
-+
- #ifdef CONFIG_PM_SLEEP
- static int dwapb_gpio_suspend(struct device *dev)
- {
-@@ -674,6 +685,7 @@ static struct platform_driver dwapb_gpio_driver = {
- 		.name	= "gpio-dwapb",
- 		.pm	= &dwapb_gpio_pm_ops,
- 		.of_match_table = of_match_ptr(dwapb_of_match),
-+		.acpi_match_table = ACPI_PTR(dwapb_acpi_match),
- 	},
- 	.probe		= dwapb_gpio_probe,
- 	.remove		= dwapb_gpio_remove,
-diff --git a/drivers/mfd/intel_quark_i2c_gpio.c b/drivers/mfd/intel_quark_i2c_gpio.c
-index 0421374..265bd3c 100644
---- a/drivers/mfd/intel_quark_i2c_gpio.c
-+++ b/drivers/mfd/intel_quark_i2c_gpio.c
-@@ -227,7 +227,7 @@ static int intel_quark_gpio_setup(struct pci_dev *pdev, struct mfd_cell *cell)
- 		return -ENOMEM;
- 
- 	/* Set the properties for portA */
--	pdata->properties->node		= NULL;
-+	pdata->properties->fwnode	= NULL;
- 	pdata->properties->name		= "intel-quark-x1000-gpio-portA";
- 	pdata->properties->idx		= 0;
- 	pdata->properties->ngpio	= INTEL_QUARK_MFD_NGPIO;
-diff --git a/include/linux/platform_data/gpio-dwapb.h b/include/linux/platform_data/gpio-dwapb.h
-index 28702c8..80954f2 100644
---- a/include/linux/platform_data/gpio-dwapb.h
-+++ b/include/linux/platform_data/gpio-dwapb.h
-@@ -15,7 +15,7 @@
- #define GPIO_DW_APB_H
- 
- struct dwapb_port_property {
--	struct device_node *node;
-+	struct fwnode_handle  *fwnode;
- 	const char	*name;
- 	unsigned int	idx;
- 	unsigned int	ngpio;
--- 
-1.9.1
+}
 
+is equivalent to
+if (cond1 && cond2) {
+...
+}
+
+> +                       of_console_check(uport->dev->of_node, uport->cons->name,
+> +                                        uport->line);
+> +       }
+
+
+
+-- 
+With Best Regards,
+Andy Shevchenko
