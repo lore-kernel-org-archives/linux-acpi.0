@@ -1,102 +1,122 @@
-From: Shannon Zhao <zhaoshenglong-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH v4 01/17] Xen: ACPI: Hide UART used by Xen
-Date: Mon, 29 Feb 2016 10:02:36 +0800
-Message-ID: <56D3A6BC.8020005@huawei.com>
-References: <1454641552-12576-1-git-send-email-zhaoshenglong@huawei.com> <44113385.2QnPtvxQx0@vostro.rjw.lan> <alpine.DEB.2.02.1602111557430.27008@kaball.uk.xensource.com> <1667812.hY9vsC2epc@vostro.rjw.lan>
+From: Jayachandran Chandrashekaran Nair
+	<jayachandran.chandrashekaran@broadcom.com>
+Subject: Re: [PATCH V4 17/23] acpi, mcfg: Add default PCI config accessors
+ implementation and initial support for related quirks.
+Date: Mon, 29 Feb 2016 13:33:41 +0530
+Message-ID: <CAKc_7PWD_jcj323q9moSd4urc7FD1gr9KLqBL+Ox60Mv+zsrmQ@mail.gmail.com>
+References: <1454606941-9523-1-git-send-email-tn@semihalf.com> <1454606941-9523-18-git-send-email-tn@semihalf.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-efi-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1667812.hY9vsC2epc-sKB8Sp2ER+y1GS7QM15AGw@public.gmane.org>
-Sender: linux-efi-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Rafael J. Wysocki" <rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org>, Stefano Stabellini <stefano.stabellini-mvvWK6WmYclDPfheJLI6IQ@public.gmane.org>
-Cc: "Rafael J. Wysocki" <rafael-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, "linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org" <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>, ard.biesheuvel-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org, stefano.stabellini-Sxgqhf6Nn4DQT0dZR+AlfA@public.gmane.org, david.vrabel-Sxgqhf6Nn4DQT0dZR+AlfA@public.gmane.org, Catalin Marinas <catalin.marinas-5wv7dgnIgG8@public.gmane.org>, Will Deacon <will.deacon-5wv7dgnIgG8@public.gmane.org>, Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>, julien.grall-Sxgqhf6Nn4DQT0dZR+AlfA@public.gmane.org, xen-devel-GuqFBffKawuEi8DpZVb4nw@public.gmane.org, "devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-efi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Linux Kernel Mailing List <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, ian.campbell-Sxgqhf6Nn4DQT0dZR+AlfA@public.gmane.org, Shannon Zhao <shannon.zhao-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, peter.huangpeng-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, Len Brown <lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, ACPI <linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-yw0-f174.google.com ([209.85.161.174]:33605 "EHLO
+	mail-yw0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751992AbcB2IEW (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 29 Feb 2016 03:04:22 -0500
+Received: by mail-yw0-f174.google.com with SMTP id u200so115226123ywf.0
+        for <linux-acpi@vger.kernel.org>; Mon, 29 Feb 2016 00:04:22 -0800 (PST)
+In-Reply-To: <1454606941-9523-18-git-send-email-tn@semihalf.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Tomasz Nowicki <tn@semihalf.com>
+Cc: Bjorn Helgaas <bhelgaas@google.com>, Arnd Bergmann <arnd@arndb.de>, Will Deacon <will.deacon@arm.com>, Catalin Marinas <catalin.marinas@arm.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Hanjun Guo <hanjun.guo@linaro.org>, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, okaya@codeaurora.org, jiang.liu@linux.intel.com, Stefano Stabellini <Stefano.Stabellini@eu.citrix.com>, robert.richter@caviumnetworks.com, Marcin Wojtas <mw@semihalf.com>, Liviu.Dudau@arm.com, David Daney <ddaney@caviumnetworks.com>, wangyijing@huawei.com, Suravee.Suthikulpanit@amd.com, msalter@redhat.com, linux-pci@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linaro-acpi@lists.linaro.org, Jayachandran Chandrashekaran Nair <jchandra@broadcom.com>, Jon Masters <jcm@redhat.com>
+
+On Thu, Feb 4, 2016 at 10:58 PM, Tomasz Nowicki <tn@semihalf.com> wrote:
+> We use generic accessors from access.c by default. However, we already
+> know platforms that need special handling while accessing to PCI config
+> space. These platforms will need different accessors set matched against
+> platform ID, domain, bus touple. Therefore we are going to add (in future)
+> DECLARE_ACPI_MCFG_FIXUP which will register platform specific custom
+> accessors. For now, we let pci_mcfg_get_ops to take acpi_pci_root structure
+> as an arguments and left some space for quirk matching algorithm.
+>
+> Signed-off-by: Tomasz Nowicki <tn@semihalf.com>
+> Tested-by: Duc Dang <dhdang@apm.com>
+> Tested-by: Dongdong Liu <liudongdong3@huawei.com>
+> Tested-by: Hanjun Guo <hanjun.guo@linaro.org>
+> Tested-by: Graeme Gregory <graeme.gregory@linaro.org>
+> Tested-by: Sinan Kaya <okaya@codeaurora.org>
+> ---
+>  drivers/acpi/mcfg.c      | 30 ++++++++++++++++++++++++++++++
+>  include/linux/pci-acpi.h |  8 ++++++++
+>  2 files changed, 38 insertions(+)
+>
+> diff --git a/drivers/acpi/mcfg.c b/drivers/acpi/mcfg.c
+> index dca4c4e..dfc2d14 100644
+> --- a/drivers/acpi/mcfg.c
+> +++ b/drivers/acpi/mcfg.c
+> @@ -34,6 +34,36 @@ int __weak raw_pci_write(unsigned int domain, unsigned int bus,
+>         return PCIBIOS_DEVICE_NOT_FOUND;
+>  }
+>
+> +void __iomem *
+> +pci_mcfg_dev_base(struct pci_bus *bus, unsigned int devfn, int offset)
+> +{
+> +       struct pci_mmcfg_region *cfg;
+> +
+> +       cfg = pci_mmconfig_lookup(pci_domain_nr(bus), bus->number);
+
+In the existing code, calls to pci_mmconfig_lookup() is done inside an
+rcu_read_lock/rcu_read_unlock pair. Any reason that is not required here?
+
+Also, you can avoid having to do the lookup every time by saving a cfg pointer
+see http://lists.infradead.org/pipermail/linux-arm-kernel/2016-January/396921.html
 
 
+> +       if (cfg && cfg->virt)
+> +               return cfg->virt +
+> +                       (PCI_MMCFG_BUS_OFFSET(bus->number) | (devfn << 12)) +
+> +                       offset;
 
-On 2016/2/12 6:22, Rafael J. Wysocki wrote:
-> On Thursday, February 11, 2016 04:04:14 PM Stefano Stabellini wrote:
->> > On Wed, 10 Feb 2016, Rafael J. Wysocki wrote:
->>> > > On Tuesday, February 09, 2016 11:19:02 AM Stefano Stabellini wrote:
->>>> > > > On Mon, 8 Feb 2016, Rafael J. Wysocki wrote:
->>>>> > > > > On Monday, February 08, 2016 10:57:01 AM Stefano Stabellini wrote:
->>>>>> > > > > > On Sat, 6 Feb 2016, Rafael J. Wysocki wrote:
->>>>>>> > > > > > > On Fri, Feb 5, 2016 at 4:05 AM, Shannon Zhao <zhaoshenglong-hv44wF8Li93QT0dZR+AlfA@public.gmane.org> wrote:
->>>>>>>> > > > > > > > From: Shannon Zhao <shannon.zhao-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
->>>>>>>> > > > > > > >
->>>>>>>> > > > > > > > ACPI 6.0 introduces a new table STAO to list the devices which are used
->>>>>>>> > > > > > > > by Xen and can't be used by Dom0. On Xen virtual platforms, the physical
->>>>>>>> > > > > > > > UART is used by Xen. So here it hides UART from Dom0.
->>>>>>>> > > > > > > >
->>>>>>>> > > > > > > > Signed-off-by: Shannon Zhao <shannon.zhao-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
->>>>>>>> > > > > > > > Reviewed-by: Stefano Stabellini <stefano.stabellini-mvvWK6WmYclDPfheJLI6IQ@public.gmane.org>
->>>>>>> > > > > > > 
->>>>>>> > > > > > > Well, this doesn't look right to me.
->>>>>>> > > > > > > 
->>>>>>> > > > > > > We need to find a nicer way to achieve what you want.
->>>>>> > > > > > 
->>>>>> > > > > > I take that you are talking about how to honor the STAO table in Linux.
->>>>>> > > > > > Do you have any concrete suggestions?
->>>>> > > > > 
->>>>> > > > > I do.
->>>>> > > > > 
->>>>> > > > > The last hunk of the patch is likely what it needs to be, although I'm
->>>>> > > > > not sure if the place it is added to is the right one.  That's a minor thing,
->>>>> > > > > though.
->>>>> > > > > 
->>>>> > > > > The other part is problematic.  Not that as it doesn't work, but because of
->>>>> > > > > how it works.  With these changes the device will be visible to the OS (in
->>>>> > > > > fact to user space even), but will never be "present".  I'm not sure if
->>>>> > > > > that's what you want?
->>>>> > > > > 
->>>>> > > > > It might be better to add a check to acpi_bus_type_and_status() that will
->>>>> > > > > evaluate the "should ignore?" thing and return -ENODEV if this is true.  This
->>>>> > > > > way the device won't be visible at all.
->>>> > > > 
->>>> > > > Something like below?  Actually your suggestion is better, thank you!
->>>> > > > 
->>>> > > > diff --git a/drivers/acpi/scan.c b/drivers/acpi/scan.c
->>>> > > > index 78d5f02..4778c51 100644
->>>> > > > --- a/drivers/acpi/scan.c
->>>> > > > +++ b/drivers/acpi/scan.c
->>>> > > > @@ -1455,6 +1455,9 @@ static int acpi_bus_type_and_status(acpi_handle handle, int *type,
->>>> > > >  	if (ACPI_FAILURE(status))
->>>> > > >  		return -ENODEV;
->>>> > > >  
->>>> > > > +	if (acpi_check_device_is_ignored(handle))
->>>> > > > +		return -ENODEV;
->>>> > > > +
->>>> > > >  	switch (acpi_type) {
->>>> > > >  	case ACPI_TYPE_ANY:		/* for ACPI_ROOT_OBJECT */
->>>> > > >  	case ACPI_TYPE_DEVICE:
->>>> > > > 
->>> > > 
->>> > > I thought about doing that under ACPI_TYPE_DEVICE, because it shouldn't be
->>> > > applicable to the other types.  But generally, yes.
->> > 
->> > I was pondering about it myself. Maybe an ACPI_TYPE_PROCESSOR object
->> > could theoretically be hidden with the STAO?
-> But this patch won't check for it anyway, will it?
-> 
-> It seems to be only checking against the UART address or have I missed
-> anything?
-> 
->> > I added the check before
->> > the switch because I thought that there would be no harm in being
->> > caution about it.
->> > 
->> > 
->>> > > Plus I'd move the table checks to acpi_scan_init(), so the UART address can
->>> > > be a static variable in scan.c.
->>> > >
->>> > > Also maybe rename acpi_check_device_is_ignored() to something like
->>> > > acpi_device_should_be_hidden().
->> > 
->> > Both make sense. Shannon, are you happy to make these changes?
-> Plus maybe make acpi_device_should_be_hidden() print a (KERN_INFO) message
-> when it decides to hide something?
-Ok, will update this patch. Thanks a lot!
+PCI_MMCFG_OFFSET(bus->number, devfn) would be better
 
--- 
-Shannon
+> +       return NULL;
+> +}
+> +
+> +/* Default generic PCI config accessors */
+> +static struct pci_ops default_pci_mcfg_ops = {
+> +       .map_bus = pci_mcfg_dev_base,
+> +       .read = pci_generic_config_read,
+> +       .write = pci_generic_config_write,
+> +};
+> +
+> +struct pci_ops *pci_mcfg_get_ops(struct acpi_pci_root *root)
+> +{
+> +       /*
+> +        * TODO: Match against platform specific quirks and return
+> +        * corresponding PCI config space accessor set.
+> +        */
+> +
+> +       return &default_pci_mcfg_ops;
+> +}
+
+Is it necessary to make these non-static, even in the next patch, the
+functions are only used from this file.
+
+> +
+>  int __init acpi_parse_mcfg(struct acpi_table_header *header)
+>  {
+>         struct acpi_table_mcfg *mcfg;
+> diff --git a/include/linux/pci-acpi.h b/include/linux/pci-acpi.h
+> index 65b91f3..c974586 100644
+> --- a/include/linux/pci-acpi.h
+> +++ b/include/linux/pci-acpi.h
+> @@ -83,10 +83,18 @@ void acpi_pci_remove_bus(struct pci_bus *bus);
+>  #ifdef CONFIG_PCI_MMCONFIG
+>  int pci_mmcfg_setup_map(struct acpi_pci_root_info *ci);
+>  void pci_mmcfg_teardown_map(struct acpi_pci_root_info *ci);
+> +struct pci_ops *pci_mcfg_get_ops(struct acpi_pci_root *root);
+> +void __iomem *
+> +pci_mcfg_dev_base(struct pci_bus *bus, unsigned int devfn, int offset);
+>  #else
+>  static inline int pci_mmcfg_setup_map(struct acpi_pci_root_info *ci)
+>  { return 0; }
+>  static inline void pci_mmcfg_teardown_map(struct acpi_pci_root_info *ci) { }
+> +static inline struct pci_ops *pci_mcfg_get_ops(struct acpi_pci_root *root)
+> +{ return NULL; }
+> +static inline void __iomem *
+> +pci_mcfg_dev_base(struct pci_bus *bus, unsigned int devfn, int offset)
+> +{ return NULL; }
+>  #endif
+>  #ifdef CONFIG_ACPI_PCI_SLOT
+
+JC.
