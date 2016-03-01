@@ -1,123 +1,45 @@
-From: Aleksey Makarov <aleksey.makarov@linaro.org>
-Subject: Re: [PATCH v3 1/7] of/serial: move earlycon early_param handling to
- serial
-Date: Tue, 1 Mar 2016 19:31:52 +0300
-Message-ID: <56D5C3F8.5050102@linaro.org>
-References: <1456749726-30261-1-git-send-email-aleksey.makarov@linaro.org>
- <1456749726-30261-2-git-send-email-aleksey.makarov@linaro.org>
- <56D5AC3B.3090806@hurleysoftware.com>
+From: David Miller <davem@davemloft.net>
+Subject: Re: [RFC][PATCH] tags: Fix DEFINE_PER_CPU expansions
+Date: Tue, 01 Mar 2016 11:36:42 -0500 (EST)
+Message-ID: <20160301.113642.1119377555960644780.davem@davemloft.net>
+References: <20160301102625.GQ6357@twins.programming.kicks-ass.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
+Content-Type: Text/Plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-lb0-f172.google.com ([209.85.217.172]:33444 "EHLO
-	mail-lb0-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751270AbcCAQcq (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 1 Mar 2016 11:32:46 -0500
-Received: by mail-lb0-f172.google.com with SMTP id ed16so24350612lbb.0
-        for <linux-acpi@vger.kernel.org>; Tue, 01 Mar 2016 08:32:45 -0800 (PST)
-In-Reply-To: <56D5AC3B.3090806@hurleysoftware.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20160301102625.GQ6357@twins.programming.kicks-ass.net>
+Sender: linux-kernel-owner@vger.kernel.org
+To: peterz@infradead.org
+Cc: linux-kernel@vger.kernel.org, akpm@linux-foundation.org, rjw@rjwysocki.net, konrad.wilk@oracle.com, mingo@kernel.org, paulmck@linux.vnet.ibm.com, tj@kernel.org, linux-acpi@vger.kernel.org, netdev@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Peter Hurley <peter@hurleysoftware.com>, linux-acpi@vger.kernel.org
-Cc: linux-serial@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Russell King <linux@arm.linux.org.uk>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, Leif Lindholm <leif.lindholm@linaro.org>, Graeme Gregory <graeme.gregory@linaro.org>, Al Stone <ahs3@redhat.com>, Christopher Covington <cov@codeaurora.org>, Matthias Brugger <mbrugger@suse.com>, Rob Herring <robh+dt@kernel.org>, Frank Rowand <frowand.list@gmail.com>, Grant Likely <grant.likely@linaro.org>, Jiri Slaby <jslaby@suse.com>, devicetree@vger.kernel.org
 
+From: Peter Zijlstra <peterz@infradead.org>
+Date: Tue, 1 Mar 2016 11:26:25 +0100
 
-
-On 03/01/2016 05:50 PM, Peter Hurley wrote:
-> On 02/29/2016 04:41 AM, Aleksey Makarov wrote:
->> From: Leif Lindholm <leif.lindholm@linaro.org>
->>
->> We have multiple "earlycon" early_param handlers - merge the DT one into
->> the main earlycon one. This means the earlycon early_param handler does
->> not just return success if no options are specified.
 > 
-> Why is this patch necessary?
+> $ make tags
+>   GEN     tags
+> ctags: Warning: drivers/acpi/processor_idle.c:64: null expansion of name pattern "\1"
+> ctags: Warning: drivers/xen/events/events_2l.c:41: null expansion of name pattern "\1"
+> ctags: Warning: kernel/locking/lockdep.c:151: null expansion of name pattern "\1"
+> ctags: Warning: kernel/rcu/rcutorture.c:133: null expansion of name pattern "\1"
+> ctags: Warning: kernel/rcu/rcutorture.c:135: null expansion of name pattern "\1"
+> ctags: Warning: kernel/workqueue.c:323: null expansion of name pattern "\1"
+> ctags: Warning: net/ipv4/syncookies.c:53: null expansion of name pattern "\1"
+> ctags: Warning: net/ipv6/syncookies.c:44: null expansion of name pattern "\1"
+> ctags: Warning: net/rds/page.c:45: null expansion of name pattern "\1"
 > 
-> Is this cleanup or required for some reason in other parts of this
-> series?
-
-It's a cleanup.
-
-Also, without this, the series has to introduce a new (third) handler for "earlycon=".
-
->> Signed-off-by: Leif Lindholm <leif.lindholm@linaro.org>
->> Signed-off-by: Aleksey Makarov <aleksey.makarov@linaro.org>
->> ---
->>  drivers/of/fdt.c              | 11 +----------
->>  drivers/tty/serial/earlycon.c |  3 ++-
->>  include/linux/of_fdt.h        |  2 ++
->>  3 files changed, 5 insertions(+), 11 deletions(-)
->>
->> diff --git a/drivers/of/fdt.c b/drivers/of/fdt.c
->> index 3349d2a..0547256 100644
->> --- a/drivers/of/fdt.c
->> +++ b/drivers/of/fdt.c
->> @@ -805,7 +805,7 @@ static inline void early_init_dt_check_for_initrd(unsigned long node)
->>  
->>  #ifdef CONFIG_SERIAL_EARLYCON
->>  
->> -static int __init early_init_dt_scan_chosen_serial(void)
->> +int __init early_init_dt_scan_chosen_serial(void)
->>  {
->>  	int offset;
->>  	const char *p, *q, *options = NULL;
->> @@ -849,15 +849,6 @@ static int __init early_init_dt_scan_chosen_serial(void)
->>  	}
->>  	return -ENODEV;
->>  }
->> -
->> -static int __init setup_of_earlycon(char *buf)
->> -{
->> -	if (buf)
->> -		return 0;
->> -
->> -	return early_init_dt_scan_chosen_serial();
->> -}
->> -early_param("earlycon", setup_of_earlycon);
->>  #endif
->>  
->>  /**
->> diff --git a/drivers/tty/serial/earlycon.c b/drivers/tty/serial/earlycon.c
->> index 067783f..d217366 100644
->> --- a/drivers/tty/serial/earlycon.c
->> +++ b/drivers/tty/serial/earlycon.c
->> @@ -17,6 +17,7 @@
->>  #include <linux/kernel.h>
->>  #include <linux/init.h>
->>  #include <linux/io.h>
->> +#include <linux/of_fdt.h>
->>  #include <linux/serial_core.h>
->>  #include <linux/sizes.h>
->>  #include <linux/of.h>
->> @@ -209,7 +210,7 @@ static int __init param_setup_earlycon(char *buf)
->>  	 * don't generate a warning from parse_early_params() in that case
->>  	 */
->>  	if (!buf || !buf[0])
->> -		return 0;
->> +		return early_init_dt_scan_chosen_serial();
->>  
->>  	err = setup_earlycon(buf);
->>  	if (err == -ENOENT || err == -EALREADY)
->> diff --git a/include/linux/of_fdt.h b/include/linux/of_fdt.h
->> index 2fbe868..56b2a43 100644
->> --- a/include/linux/of_fdt.h
->> +++ b/include/linux/of_fdt.h
->> @@ -63,6 +63,7 @@ extern int early_init_dt_scan_chosen(unsigned long node, const char *uname,
->>  				     int depth, void *data);
->>  extern int early_init_dt_scan_memory(unsigned long node, const char *uname,
->>  				     int depth, void *data);
->> +extern int early_init_dt_scan_chosen_serial(void);
->>  extern void early_init_fdt_scan_reserved_mem(void);
->>  extern void early_init_fdt_reserve_self(void);
->>  extern void early_init_dt_add_memory_arch(u64 base, u64 size);
->> @@ -91,6 +92,7 @@ extern void early_get_first_memblock_info(void *, phys_addr_t *);
->>  extern u64 of_flat_dt_translate_address(unsigned long node);
->>  extern void of_fdt_limit_memory(int limit);
->>  #else /* CONFIG_OF_FLATTREE */
->> +static inline int early_init_dt_scan_chosen_serial(void) { return -ENODEV; }
->>  static inline void early_init_fdt_scan_reserved_mem(void) {}
->>  static inline void early_init_fdt_reserve_self(void) {}
->>  static inline const char *of_flat_dt_get_machine_name(void) { return NULL; }
->>
+> Which are all the result of the DEFINE_PER_CPU pattern:
 > 
+> scripts/tags.sh:200:	'/\<DEFINE_PER_CPU([^,]*, *\([[:alnum:]_]*\)/\1/v/'
+> scripts/tags.sh:201:	'/\<DEFINE_PER_CPU_SHARED_ALIGNED([^,]*, *\([[:alnum:]_]*\)/\1/v/'
+> 
+> The below cures them. All except the workqueue one are within reasonable
+> distance of the 80 char limit. TJ do you have any preference on how to
+> fix the wq one, or shall we just not care its too long?
+> 
+> Signed-off-by: Peter Zijlstra (Intel) <peterz@infradead.org>
+
+For the networking bits:
+
+Acked-by: David S. Miller <davem@davemloft.net>
