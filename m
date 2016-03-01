@@ -1,8 +1,8 @@
 From: Jiang Qiu <qiujiang@huawei.com>
 Subject: Re: [PATCH v4 1/2] gpio: designware: switch device node to fwnode and
  add acpi binding
-Date: Tue, 1 Mar 2016 09:09:32 +0800
-Message-ID: <56D4EBCC.3070406@huawei.com>
+Date: Tue, 1 Mar 2016 14:41:42 +0800
+Message-ID: <56D539A6.1080906@huawei.com>
 References: <1456751596-98963-1-git-send-email-qiujiang@huawei.com>
  <1456751596-98963-2-git-send-email-qiujiang@huawei.com>
  <CAHp75Ves-+6pj_LZccxkKugXxJ9NJUwSotSCRf6=aOveBOx=Jg@mail.gmail.com>
@@ -10,16 +10,12 @@ Reply-To: <qiujiang@huawei.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from szxga01-in.huawei.com ([58.251.152.64]:17928 "EHLO
-	szxga01-in.huawei.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752710AbcCABKK (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 29 Feb 2016 20:10:10 -0500
+Return-path: <linux-gpio-owner@vger.kernel.org>
 In-Reply-To: <CAHp75Ves-+6pj_LZccxkKugXxJ9NJUwSotSCRf6=aOveBOx=Jg@mail.gmail.com>
-Sender: linux-acpi-owner@vger.kernel.org
-List-Id: linux-acpi@vger.kernel.org
+Sender: linux-gpio-owner@vger.kernel.org
 To: Andy Shevchenko <andy.shevchenko@gmail.com>
 Cc: Linus Walleij <linus.walleij@linaro.org>, Alexandre Courbot <gnurou@gmail.com>, Mika Westerberg <mika.westerberg@linux.intel.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-gpio@vger.kernel.org" <linux-gpio@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, linuxarm@huawei.com, haifeng.wei@huawei.com, charles.chenxin@huawei.com
+List-Id: linux-acpi@vger.kernel.org
 
 =E5=9C=A8 2016/2/29 21:51, Andy Shevchenko =E5=86=99=E9=81=93:
 > On Mon, Feb 29, 2016 at 3:13 PM, qiujiang <qiujiang@huawei.com> wrote=
@@ -44,7 +40,6 @@ t:
 >=20
 > Does it sound okay to you?
 >=20
-Sure, I will do that ASAP, thank you.
 > If you do that I give my
 > Acked-by: Andy Shevchenko <andy.shevchenko@gmail.com>
 > to intel_quark_i2c_gpio.c part and
@@ -108,6 +103,9 @@ ice(dev), 0);
 >=20
 > And here you have to provide something in case of default / built-in
 > device properties.
+Sorry, I'm not very clear here about the case of default / built-in dev=
+ice
+properties, can you give a example about what will the code look like ?
 >=20
 >=20
 >> +               if (has_acpi_companion(dev))
@@ -148,7 +146,7 @@ de(fwnode));
 >=20
 
 --
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+To unsubscribe from this list: send the line "unsubscribe linux-gpio" i=
 n
 the body of a message to majordomo@vger.kernel.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
