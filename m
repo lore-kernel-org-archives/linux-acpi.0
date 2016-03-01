@@ -1,126 +1,89 @@
-From: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
-Subject: Re: [RFC PATCH v3 3/3] PCI/ACPI: hisi: Add ACPI support for
- HiSilicon SoCs Host Controllers
-Date: Tue, 1 Mar 2016 19:22:47 +0000
-Message-ID: <20160301192247.GA21324@red-moon>
-References: <EE11001F9E5DDD47B7634E2F8A612F2E1ECB1591@lhreml503-mbs>
- <20160210111234.GC2632@leverpostej>
- <EE11001F9E5DDD47B7634E2F8A612F2E1ECB1D30@lhreml503-mbs>
- <EE11001F9E5DDD47B7634E2F8A612F2E1ECC5F00@lhreml503-mbs>
- <20160224011418.GB13026@localhost>
- <EE11001F9E5DDD47B7634E2F8A612F2E1ECCAD6A@lhreml503-mbs>
- <20160224152538.GA19700@localhost>
- <EE11001F9E5DDD47B7634E2F8A612F2E1ECCD209@lhreml503-mbs>
- <20160225120750.GA32016@red-moon>
- <20160225195912.GA4818@localhost>
+From: "Paul E. McKenney" <paulmck@linux.vnet.ibm.com>
+Subject: Re: [RFC][PATCH] tags: Fix DEFINE_PER_CPU expansions
+Date: Tue, 1 Mar 2016 08:56:50 -0800
+Message-ID: <20160301165650.GN3577@linux.vnet.ibm.com>
+References: <20160301102625.GQ6357@twins.programming.kicks-ass.net>
+Reply-To: paulmck@linux.vnet.ibm.com
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from foss.arm.com ([217.140.101.70]:53764 "EHLO foss.arm.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751403AbcCATUh (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 1 Mar 2016 14:20:37 -0500
+Received: from e37.co.us.ibm.com ([32.97.110.158]:43009 "EHLO
+	e37.co.us.ibm.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752263AbcCATVD (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 1 Mar 2016 14:21:03 -0500
+Received: from localhost
+	by e37.co.us.ibm.com with IBM ESMTP SMTP Gateway: Authorized Use Only! Violators will be prosecuted
+	for <linux-acpi@vger.kernel.org> from <paulmck@linux.vnet.ibm.com>;
+	Tue, 1 Mar 2016 12:21:02 -0700
 Content-Disposition: inline
-In-Reply-To: <20160225195912.GA4818@localhost>
+In-Reply-To: <20160301102625.GQ6357@twins.programming.kicks-ass.net>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Bjorn Helgaas <helgaas@kernel.org>
-Cc: Gabriele Paoloni <gabriele.paoloni@huawei.com>, 'Mark Rutland' <mark.rutland@arm.com>, "Guohanjun (Hanjun Guo)" <guohanjun@huawei.com>, "Wangzhou (B)" <wangzhou1@hisilicon.com>, "liudongdong (C)" <liudongdong3@huawei.com>, Linuxarm <linuxarm@huawei.com>, qiujiang <qiujiang@huawei.com>, "'bhelgaas@google.com'" <bhelgaas@google.com>, "'arnd@arndb.de'" <arnd@arndb.de>, "'tn@semihalf.com'" <tn@semihalf.com>, "'linux-pci@vger.kernel.org'" <linux-pci@vger.kernel.org>, "'linux-kernel@vger.kernel.org'" <linux-kernel@vger.kernel.org>, "xuwei (O)" <xuwei5@hisilicon.com>, "'linux-acpi@vger.kernel.org'" <linux-acpi@vger.kernel.org>, "'jcm@redhat.com'" <jcm@redhat.com>, zhangjukuo <zhangjukuo@huawei.com>, "Liguozhu (Kenneth)" <liguozhu@hisilicon.com>, "'linux-arm-kernel@lists.infradead.org'" <linux-arm-kernel@lists.infradead.org>
+To: Peter Zijlstra <peterz@infradead.org>
+Cc: linux-kernel@vger.kernel.org, Andrew Morton <akpm@linux-foundation.org>, rjw@rjwysocki.net, konrad.wilk@oracle.com, Ingo Molnar <mingo@kernel.org>, tj@kernel.org, davem@davemloft.net, linux-acpi@vger.kernel.org, netdev@vger.kernel.org
 
-Hi Bjorn,
-
-On Thu, Feb 25, 2016 at 01:59:12PM -0600, Bjorn Helgaas wrote:
-> On Thu, Feb 25, 2016 at 12:07:50PM +0000, Lorenzo Pieralisi wrote:
-> > On Thu, Feb 25, 2016 at 03:01:19AM +0000, Gabriele Paoloni wrote:
-
-[...]
-
-> > I do not understand how PNP0c02 works, currently, by the way.
-> > 
-> > If I read x86 code correctly, the unassigned PCI bus resources are
-> > assigned in arch/x86/pci/i386.c (?) fs_initcall(pcibios_assign_resources),
-> > with a comment:
-> > 
-> > /**
-> >  * called in fs_initcall (one below subsys_initcall),
-> >  * give a chance for motherboard reserve resources
-> >  */
-> > 
-> > Problem is, motherboard resources are requested through (?):
-> > 
-> > drivers/pnp/system.c
-> > 
-> > which is also initialized at fs_initcall, so it might be called after
-> > core x86 code reassign resources, defeating the purpose PNP0c02 was
-> > designed for, namely, request motherboard regions before resources
-> > are assigned, am I wrong ?
+On Tue, Mar 01, 2016 at 11:26:25AM +0100, Peter Zijlstra wrote:
 > 
-> I think you're right.  This is a long-standing screwup in Linux.
-> IMHO, ACPI resources should be parsed and reserved by the ACPI core,
-> before any PCI resource management (since PCI host bridges are
-> represented in ACPI).  But historically PCI devices have enumerated
-> before ACPI got involved.  And the ACPI core doesn't really pay
-> attention to _CRS for most devices (with the exception of PNP0C02).
+> $ make tags
+>   GEN     tags
+> ctags: Warning: drivers/acpi/processor_idle.c:64: null expansion of name pattern "\1"
+> ctags: Warning: drivers/xen/events/events_2l.c:41: null expansion of name pattern "\1"
+> ctags: Warning: kernel/locking/lockdep.c:151: null expansion of name pattern "\1"
+> ctags: Warning: kernel/rcu/rcutorture.c:133: null expansion of name pattern "\1"
+> ctags: Warning: kernel/rcu/rcutorture.c:135: null expansion of name pattern "\1"
+> ctags: Warning: kernel/workqueue.c:323: null expansion of name pattern "\1"
+> ctags: Warning: net/ipv4/syncookies.c:53: null expansion of name pattern "\1"
+> ctags: Warning: net/ipv6/syncookies.c:44: null expansion of name pattern "\1"
+> ctags: Warning: net/rds/page.c:45: null expansion of name pattern "\1"
 > 
-> IMO the PNP0C02 code in drivers/pnp/system.c should really be done in
-> the ACPI core for all ACPI devices, similar to the way the PCI core
-> reserves BAR space for all PCI devices, even if we don't have drivers
-> for them.  I've tried to fix this in the past, but it is really a
-> nightmare to unravel everything.
+> Which are all the result of the DEFINE_PER_CPU pattern:
 > 
-> Because the ACPI core doesn't reserve resources for the _CRS of all
-> ACPI devices, we're already vulnerable to the problem of placing a
-> device on top of another ACPI device.  We don't see problems because
-> on x86, at least, most ACPI devices are already configured by the BIOS
-> to be enabled and non-overlapping.  But x86 has the advantage of
-> having extensive test coverage courtesy of Windows, and as long as
-> _CRS has the right stuff in it, we at least have the potential of
-> fixing problems in Linux.
-
-Thank you for the explanation, that's very useful.
-
-I think it is quite important for all ARM developers to understand this
-discussion, so I have two questions.
-
-By "fixing problems in Linux" above, you mean that, given that we
-do have a validated _CRS space, we can request/reserve the region the _CRS
-reports to prevent assigning those resources to other devices, correct ?
-
-> If the platform doesn't report resource usage correctly on ARM, we may
-> not find problems (because we don't have the Windows test suite) and
-> if we have resource assignment problems because _CRS is lacking, we'll
-> have no way to fix them.
-
-And I think here you mean we can't prevent assigning resource space to
-devices that do not necessarily own it because since some devices _CRS
-are borked/missing we have no way to detect the address space allocated
-to them and we may end up with resources conflicts.
-
-Thank you in advance for the explanation, I find this discussion
-extremely helpful.
-
-Lorenzo
-
-> > As per last Tomasz's patchset, we claim and assign unassigned PCI
-> > resources upon ACPI PCI host bridge probing (which happens at
-> > subsys_initcall time, courtesy of ACPI current code); at that time the
-> > kernel did not even register the PNP0c02 driver (drivers/pnp/system.c)
-> > (it does that at fs_initcall). On the other hand, we insert MCFG
-> > regions into the resource tree upon MCFG parsing, so I do not
-> > see why we need to rely on PNP0c02 to do that for us (granted, the
-> > mechanism is part of the PCI fw specs, which are x86 centric anyway
-> > ie we can't certainly rely on Int15 e820 to detect reserved memory
-> > on ARM :D)
-> > 
-> > There is lots of legacy x86 here and Bjorn definitely has more
-> > visibility into that than I have, the ARM world must understand
-> > how this works to make sure we have an agreement.
+> scripts/tags.sh:200:	'/\<DEFINE_PER_CPU([^,]*, *\([[:alnum:]_]*\)/\1/v/'
+> scripts/tags.sh:201:	'/\<DEFINE_PER_CPU_SHARED_ALIGNED([^,]*, *\([[:alnum:]_]*\)/\1/v/'
 > 
-> As you say, there is lots of unpleasant x86 legacy here.  Possibly ARM
-> has a chance to clean this up and do it more sanely; I'm not sure
-> whether it's feasible to reverse the ACPI/PCI init order there or not.
+> The below cures them. All except the workqueue one are within reasonable
+> distance of the 80 char limit. TJ do you have any preference on how to
+> fix the wq one, or shall we just not care its too long?
 > 
-> Rafael, any thoughts on this whole thing?
-> 
-> Bjorn
-> 
+> Signed-off-by: Peter Zijlstra (Intel) <peterz@infradead.org>
+
+For rcutorture, the initializers are zero.  Would it make more sense to
+remove the initializers completely in favor of C's default initialization
+as shown below?
+
+							Thanx, Paul
+
+------------------------------------------------------------------------
+
+commit 9bd8e9f0c56cfc19ca5b68a73edd80b16bec4af8
+Author: Paul E. McKenney <paulmck@linux.vnet.ibm.com>
+Date:   Tue Mar 1 08:52:19 2016 -0800
+
+    rcutorture: Remove redundant initialization to zero
+    
+    The current code initializes the global per-CPU variables
+    rcu_torture_count and rcu_torture_batch to zero.  However, C does this
+    initialization by default, and explicit initialization of per-CPU
+    variables now needs a different syntax if "make tags" is to work.
+    This commit therefore removes the initialization.
+    
+    Reported-by: Peter Zijlstra <peterz@infradead.org>
+    Signed-off-by: Paul E. McKenney <paulmck@linux.vnet.ibm.com>
+
+diff --git a/kernel/rcu/rcutorture.c b/kernel/rcu/rcutorture.c
+index 1c2dc23ae07d..f5fd9acc0f9b 100644
+--- a/kernel/rcu/rcutorture.c
++++ b/kernel/rcu/rcutorture.c
+@@ -131,9 +131,9 @@ static unsigned long rcu_torture_current_version;
+ static struct rcu_torture rcu_tortures[10 * RCU_TORTURE_PIPE_LEN];
+ static DEFINE_SPINLOCK(rcu_torture_lock);
+ static DEFINE_PER_CPU(long [RCU_TORTURE_PIPE_LEN + 1],
+-		      rcu_torture_count) = { 0 };
++		      rcu_torture_count);
+ static DEFINE_PER_CPU(long [RCU_TORTURE_PIPE_LEN + 1],
+-		      rcu_torture_batch) = { 0 };
++		      rcu_torture_batch);
+ static atomic_t rcu_torture_wcount[RCU_TORTURE_PIPE_LEN + 1];
+ static atomic_t n_rcu_torture_alloc;
+ static atomic_t n_rcu_torture_alloc_fail;
+
