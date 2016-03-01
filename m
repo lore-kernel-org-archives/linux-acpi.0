@@ -1,133 +1,70 @@
-From: Toshi Kani <toshi.kani@hpe.com>
-Subject: Re: [PATCH v2 1/3] ACPI/NFIT: Update Control Region Structure to
- comply ACPI 6.1
-Date: Tue, 01 Mar 2016 10:36:59 -0700
-Message-ID: <1456853819.15454.45.camel@hpe.com>
-References: <1456178130-26468-1-git-send-email-toshi.kani@hpe.com>
-	 <1456178130-26468-2-git-send-email-toshi.kani@hpe.com>
-	 <94F2FBAB4432B54E8AACC7DFDE6C92E37E44D64B@ORSMSX110.amr.corp.intel.com>
-	 <1456850284.15454.23.camel@hpe.com>
-	 <94F2FBAB4432B54E8AACC7DFDE6C92E37E44D6E1@ORSMSX110.amr.corp.intel.com>
+From: Aleksey Makarov <aleksey.makarov@linaro.org>
+Subject: Re: [PATCH v3 6/7] ACPI: enable ACPI_DBG2_TABLE on ARM64
+Date: Tue, 1 Mar 2016 20:02:58 +0300
+Message-ID: <56D5CB42.3030806@linaro.org>
+References: <1456749726-30261-1-git-send-email-aleksey.makarov@linaro.org>
+ <1456749726-30261-7-git-send-email-aleksey.makarov@linaro.org>
+ <56D5ACBB.50408@hurleysoftware.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from g4t3427.houston.hp.com ([15.201.208.55]:51994 "EHLO
-	g4t3427.houston.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751320AbcCARCS (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 1 Mar 2016 12:02:18 -0500
-In-Reply-To: <94F2FBAB4432B54E8AACC7DFDE6C92E37E44D6E1@ORSMSX110.amr.corp.intel.com>
+Received: from mail-lf0-f41.google.com ([209.85.215.41]:33413 "EHLO
+	mail-lf0-f41.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752941AbcCARDz (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 1 Mar 2016 12:03:55 -0500
+Received: by mail-lf0-f41.google.com with SMTP id v124so24600992lff.0
+        for <linux-acpi@vger.kernel.org>; Tue, 01 Mar 2016 09:03:49 -0800 (PST)
+In-Reply-To: <56D5ACBB.50408@hurleysoftware.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Moore, Robert" <robert.moore@intel.com>, "rjw@rjwysocki.net" <rjw@rjwysocki.net>, "Williams, Dan J" <dan.j.williams@intel.com>
-Cc: "Zheng, Lv" <lv.zheng@intel.com>, "elliott@hpe.com" <elliott@hpe.com>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "devel@acpica.org" <devel@acpica.org>
+To: Peter Hurley <peter@hurleysoftware.com>, linux-acpi@vger.kernel.org
+Cc: linux-serial@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Russell King <linux@arm.linux.org.uk>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, Leif Lindholm <leif.lindholm@linaro.org>, Graeme Gregory <graeme.gregory@linaro.org>, Al Stone <ahs3@redhat.com>, Christopher Covington <cov@codeaurora.org>, Matthias Brugger <mbrugger@suse.com>, Catalin Marinas <catalin.marinas@arm.com>, Will Deacon <will.deacon@arm.com>
 
-On Tue, 2016-03-01 at 16:03 +0000, Moore, Robert wrote:
-> We have a bunch of macros in include/acmacros.h -- like this:
->=20
-> ACPI_MOVE_16_TO_16(d, s)
 
-There is a problem in using the ACPICA byte-swap macros. =C2=A0ACPI is =
-little-
-endian arch, so the macros are set to perform byte-swappings when the C=
-PU
-arch is big-endian. =C2=A0This case, however, is the other way around. =
-=C2=A0The
-fields in question are defined & stored as arrays of bytes. =C2=A0If yo=
-u treat
-them as multi-bytes numeric values, then you need to byte-swap them whe=
-n
-the CPU arch is little-endian because arrays of bytes have the same
-addressing as big-endian.
 
-Another issue is that it is not clear who needs to perform the byte-
-swapping among ACPICA and drivers. =C2=A0If ACPICA, drivers must agree =
-that
-these fields are always treated as multi-bytes numeric values despite o=
-f
-the spec. =C2=A0If drivers, we need to make sure that only a single dri=
-ver
-performs this byte-swapping one time as ACPI tables are global structur=
-es.
+On 03/01/2016 05:52 PM, Peter Hurley wrote:
+> On 02/29/2016 04:42 AM, Aleksey Makarov wrote:
+>> SBBR mentions DBG2 as a mandatory ACPI table.
+>> So enable it for ARM64
+> 
+> Why does this have to be opted-in per-arch?
 
-I think it is much clearer to define the structure according to the ACP=
-I
-spec.
+DBG2 can specify earlycons.  They should start as soon as possible.
+On ARM64 it is just after boot tables become available (in arch_init()).
+So it has to be per-arch unless we decide not to start earlycons on 
+DBG2 ports.
 
-Thanks,
--Toshi
-
-> > -----Original Message-----
-> > From: Toshi Kani [mailto:toshi.kani@hpe.com]
-> > Sent: Tuesday, March 01, 2016 8:38 AM
-> > To: Moore, Robert; rjw@rjwysocki.net; Williams, Dan J
-> > Cc: Zheng, Lv; elliott@hpe.com; linux-nvdimm@lists.01.org; linux-
-> > acpi@vger.kernel.org; linux-kernel@vger.kernel.org; devel@acpica.or=
-g
-> > Subject: Re: [PATCH v2 1/3] ACPI/NFIT: Update Control Region Struct=
-ure
-> > to
-> > comply ACPI 6.1
-> >=20
-> > On Tue, 2016-03-01 at 15:13 +0000, Moore, Robert wrote:
-> > >=20
-> > > > -----Original Message-----
-> > > > From: Toshi Kani [mailto:toshi.kani@hpe.com]
-> > > > Sent: Monday, February 22, 2016 1:55 PM
-> > > > To: rjw@rjwysocki.net; Williams, Dan J
-> > > > Cc: Moore, Robert; Zheng, Lv; elliott@hpe.com;
-> > > > linux-nvdimm@lists.01.or g; linux-acpi@vger.kernel.org;
-> > > > linux-kernel@vger.kernel.org; devel@acpica.org; Toshi Kani
-> > > > Subject: [PATCH v2 1/3] ACPI/NFIT: Update Control Region Struct=
-ure
-> > > > to comply ACPI 6.1
-> > > >=20
-> > > > ACPI 6.1, Table 5-133, updates NVDIMM Control Region Structure =
-as
-> > > > follows.
-> > > > =C2=A0- Valid Fields, Manufacturing Location, and Manufacturing=
- Date
-> > > > =C2=A0=C2=A0=C2=A0are added from reserved range.=C2=A0=C2=A0No =
-change in the structure size.
-> > > > =C2=A0- IDs defined as SPD values are arrays of bytes.=C2=A0=C2=
-=A0The spec
-> > > > =C2=A0=C2=A0=C2=A0clarified that they need to be represented as=
- arrays of bytes
-> > > > =C2=A0=C2=A0=C2=A0as well.
-> > > >=20
-> > > > This patch makes the following changes to support this update.
-> > > > =C2=A0- Change 'struct acpi_nfit_control_region' to reflect the=
- update.
-> > > > =C2=A0=C2=A0=C2=A0SPD IDs are defined as arrays of bytes, so th=
-at they can be
-> > > > =C2=A0=C2=A0=C2=A0treated in the same way regardless of CPU end=
-ianness and are
-> > > > =C2=A0=C2=A0=C2=A0not miss-treated as little-endian numeric val=
-ues.
-> > >=20
-> > >=20
-> > > I don't think we are going to start changing the ACPI tables defi=
-ned
-> > > in the ACPICA headers because of this. We do in fact have macros =
-for
-> > > this purpose.
-> >=20
-> > Can you elaborate what macros you suggest to use for this purpose?
-> >=20
-> > Thanks,
-> > -Toshi
-> N=EF=BF=BD=EF=BF=BD=EF=BF=BD=EF=BF=BD=EF=BF=BDr=EF=BF=BD=EF=BF=BDy=EF=
-=BF=BD=EF=BF=BD=EF=BF=BDb=EF=BF=BDX=EF=BF=BD=EF=BF=BD=C7=A7v=EF=BF=BD^=EF=
-=BF=BD)=DE=BA{.n=EF=BF=BD+=EF=BF=BD=EF=BF=BD=EF=BF=BD=EF=BF=BD{=EF=BF=BD=
-i=EF=BF=BDb=EF=BF=BD{ay=EF=BF=BD=1D=CA=87=DA=99=EF=BF=BD,j=07=EF=BF=BD=EF=
-=BF=BDf=EF=BF=BD=EF=BF=BD=EF=BF=BDh=EF=BF=BD=EF=BF=BD=EF=BF=BDz=EF=BF=BD=
-=1E=EF=BF=BDw=EF=BF=BD=EF=BF=BD=EF=BF=BD
-> =0C=EF=BF=BD=EF=BF=BD=EF=BF=BDj:+v=EF=BF=BD=EF=BF=BD=EF=BF=BDw=EF=BF=BD=
-j=EF=BF=BDm=EF=BF=BD=EF=BF=BD=EF=BF=BD=EF=BF=BD=07=EF=BF=BD=EF=BF=BD=EF=
-=BF=BD=EF=BF=BDzZ+=EF=BF=BD=EF=BF=BD=EF=BF=BD=EF=BF=BD=EF=BF=BD=DD=A2j"=
-=EF=BF=BD=EF=BF=BD!=EF=BF=BDi
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>> Signed-off-by: Aleksey Makarov <aleksey.makarov@linaro.org>
+>> ---
+>>  arch/arm64/Kconfig       | 1 +
+>>  arch/arm64/kernel/acpi.c | 2 ++
+>>  2 files changed, 3 insertions(+)
+>>
+>> diff --git a/arch/arm64/Kconfig b/arch/arm64/Kconfig
+>> index 9dc5209..0b614d4 100644
+>> --- a/arch/arm64/Kconfig
+>> +++ b/arch/arm64/Kconfig
+>> @@ -3,6 +3,7 @@ config ARM64
+>>  	select ACPI_CCA_REQUIRED if ACPI
+>>  	select ACPI_GENERIC_GSI if ACPI
+>>  	select ACPI_REDUCED_HARDWARE_ONLY if ACPI
+>> +	select ACPI_DBG2_TABLE if ACPI
+>>  	select ARCH_HAS_DEVMEM_IS_ALLOWED
+>>  	select ARCH_HAS_ATOMIC64_DEC_IF_POSITIVE
+>>  	select ARCH_HAS_ELF_RANDOMIZE
+>> diff --git a/arch/arm64/kernel/acpi.c b/arch/arm64/kernel/acpi.c
+>> index d1ce8e2..3370046 100644
+>> --- a/arch/arm64/kernel/acpi.c
+>> +++ b/arch/arm64/kernel/acpi.c
+>> @@ -208,6 +208,8 @@ void __init acpi_boot_table_init(void)
+>>  		pr_err("Failed to init ACPI tables\n");
+>>  		if (!param_acpi_force)
+>>  			disable_acpi();
+>> +	} else {
+>> +		acpi_probe_device_table(dbg2);
+>>  	}
+>>  }
+>>  
+>>
+> 
