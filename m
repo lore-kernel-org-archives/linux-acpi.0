@@ -1,150 +1,115 @@
-From: Peter Hurley <peter@hurleysoftware.com>
-Subject: Re: [PATCH v3 1/7] of/serial: move earlycon early_param handling to
- serial
-Date: Tue, 1 Mar 2016 10:26:12 -0800
-Message-ID: <56D5DEC4.6070209@hurleysoftware.com>
-References: <1456749726-30261-1-git-send-email-aleksey.makarov@linaro.org>
- <1456749726-30261-2-git-send-email-aleksey.makarov@linaro.org>
- <56D5AC3B.3090806@hurleysoftware.com> <56D5C3F8.5050102@linaro.org>
- <56D5D035.2060704@hurleysoftware.com> <56D5D6ED.7050806@gmail.com>
+From: Toshi Kani <toshi.kani@hpe.com>
+Subject: Re: [PATCH v2 1/3] ACPI/NFIT: Update Control Region Structure to
+ comply ACPI 6.1
+Date: Tue, 01 Mar 2016 12:10:38 -0700
+Message-ID: <1456859438.15454.78.camel@hpe.com>
+References: <1456178130-26468-1-git-send-email-toshi.kani@hpe.com>
+	 <1456178130-26468-2-git-send-email-toshi.kani@hpe.com>
+	 <94F2FBAB4432B54E8AACC7DFDE6C92E37E44D64B@ORSMSX110.amr.corp.intel.com>
+	 <1456850284.15454.23.camel@hpe.com>
+	 <94F2FBAB4432B54E8AACC7DFDE6C92E37E44D6E1@ORSMSX110.amr.corp.intel.com>
+	 <1456853819.15454.45.camel@hpe.com>
+	 <94F2FBAB4432B54E8AACC7DFDE6C92E37E44D782@ORSMSX110.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <56D5D6ED.7050806@gmail.com>
+In-Reply-To: <94F2FBAB4432B54E8AACC7DFDE6C92E37E44D782@ORSMSX110.amr.corp.intel.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Aleksey Makarov <amakarov.linux@gmail.com>, Aleksey Makarov <aleksey.makarov@linaro.org>, linux-acpi@vger.kernel.org
-Cc: linux-serial@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Russell King <linux@arm.linux.org.uk>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, Leif Lindholm <leif.lindholm@linaro.org>, Graeme Gregory <graeme.gregory@linaro.org>, Al Stone <ahs3@redhat.com>, Christopher Covington <cov@codeaurora.org>, Matthias Brugger <mbrugger@suse.com>, Rob Herring <robh+dt@kernel.org>, Frank Rowand <frowand.list@gmail.com>, Grant Likely <grant.likely@linaro.org>, Jiri Slaby <jslaby@suse.com>, devicetree@vger.kernel.org
+To: "Moore, Robert" <robert.moore@intel.com>, "rjw@rjwysocki.net" <rjw@rjwysocki.net>, "Williams, Dan J" <dan.j.williams@intel.com>
+Cc: "Zheng, Lv" <lv.zheng@intel.com>, "elliott@hpe.com" <elliott@hpe.com>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "devel@acpica.org" <devel@acpica.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On 03/01/2016 09:52 AM, Aleksey Makarov wrote:
-> 
-> 
-> On 03/01/2016 08:24 PM, Peter Hurley wrote:
->> On 03/01/2016 08:31 AM, Aleksey Makarov wrote:
->>>
->>>
->>> On 03/01/2016 05:50 PM, Peter Hurley wrote:
->>>> On 02/29/2016 04:41 AM, Aleksey Makarov wrote:
->>>>> From: Leif Lindholm <leif.lindholm@linaro.org>
->>>>>
->>>>> We have multiple "earlycon" early_param handlers - merge the DT one into
->>>>> the main earlycon one. This means the earlycon early_param handler does
->>>>> not just return success if no options are specified.
->>>>
->>>> Why is this patch necessary?
->>>>
->>>> Is this cleanup or required for some reason in other parts of this
->>>> series?
->>>
->>> It's a cleanup.
->>>
->>> Also, without this, the series has to introduce a new (third) handler for "earlycon=".
->>
->> Not if it were opt-in like OF is via the same blank
->> "earlycon" parameter.
-> 
-> So you are suggesting to enable ACPI earlycon with just "earlyon" without 
-> any arguments to this paramener, right?  That's good idea as OF and ACPI
-> can not be used simultaneously to specify earlycon.  Actually that is
-> how it worked in the original submussion. I will change this in the next version.
-> 
-> Still I think that having this parameter parsed in one place is a good idea.
-> Or would you prefer to drop this patch?
+On Tue, 2016-03-01 at 17:37 +0000, Moore, Robert wrote:
+>=20
+> > -----Original Message-----
+> > From: Toshi Kani [mailto:toshi.kani@hpe.com]
+> > Sent: Tuesday, March 01, 2016 9:37 AM
+> > To: Moore, Robert; rjw@rjwysocki.net; Williams, Dan J
+> > Cc: Zheng, Lv; elliott@hpe.com; linux-nvdimm@lists.01.org; linux-
+> > acpi@vger.kernel.org; linux-kernel@vger.kernel.org; devel@acpica.or=
+g
+> > Subject: Re: [PATCH v2 1/3] ACPI/NFIT: Update Control Region Struct=
+ure
+> > to
+> > comply ACPI 6.1
+> >=20
+> > On Tue, 2016-03-01 at 16:03 +0000, Moore, Robert wrote:
+> > > We have a bunch of macros in include/acmacros.h -- like this:
+> > >=20
+> > > ACPI_MOVE_16_TO_16(d, s)
+> >=20
+> > There is a problem in using the ACPICA byte-swap macros. =C2=A0ACPI=
+ is
+> > little-endian arch, so the macros are set to perform byte-swappings
+> > when the CPU arch is big-endian. =C2=A0This case, however, is the o=
+ther way
+> > around. =C2=A0The fields in question are defined & stored as arrays=
+ of
+> > bytes.
+>=20
+> That's not what I see in the ACPI spec. The fields are defined like a=
+ny
+> other ACPI table.
+>=20
+> Vendor ID 2 6=C2=A0
+> Identifier indicating the vendor of the NVDIMM.
+> This field shall be set to the value of the NVDIMM SPD Module
+> Manufacturer ID Code field a with byte 0 set to DDR4 SPD byte
+> 320 and byte 1 set to DDR4 SPD byte 321.
 
-No need to drop it, imo; the cleanup is fine with me.
+They are different from other fields because the spec defines "byte
+locations" of the fields. =C2=A0The above case, Vendor ID, is defined t=
+hat:
+=C2=A0-=C2=A0byte 0 set to DDR4 SPD byte 320
+=C2=A0-=C2=A0byte 1 set to DDR4 SPD byte 321
 
-But it really helps if either the commit message or the cover letter
-describes the purpose and not just the effect (ie., the why and not just
-the what).
+=46or instance, if SPD byte 320 is 0x12 and 321 is 0x34, then this fiel=
+d is
+stored as (0x12, 0x34). =C2=A0If you read this field as a 16-bit int va=
+lue, you
+will get 0x3412 on little-endian CPUs, such as x86.
 
-Regards,
-Peter Hurley
+Section 5.2.25.9 of ACPI 6.1 further clarifies that Vendor ID needs to =
+be
+represented as ("%02x%02x", byte0, byte1), which is "1234" in this case=
+=2E
 
+So, we will need to byte-swap when it is handled as a 16-bit int value =
+on
+little-endian CPUs. =C2=A0This is different from other fields with mult=
+i-byte
+numeric values, which are stored in little-endian format in ACPI.
 
->>>>> Signed-off-by: Leif Lindholm <leif.lindholm@linaro.org>
->>>>> Signed-off-by: Aleksey Makarov <aleksey.makarov@linaro.org>
->>>>> ---
->>>>>  drivers/of/fdt.c              | 11 +----------
->>>>>  drivers/tty/serial/earlycon.c |  3 ++-
->>>>>  include/linux/of_fdt.h        |  2 ++
->>>>>  3 files changed, 5 insertions(+), 11 deletions(-)
->>>>>
->>>>> diff --git a/drivers/of/fdt.c b/drivers/of/fdt.c
->>>>> index 3349d2a..0547256 100644
->>>>> --- a/drivers/of/fdt.c
->>>>> +++ b/drivers/of/fdt.c
->>>>> @@ -805,7 +805,7 @@ static inline void early_init_dt_check_for_initrd(unsigned long node)
->>>>>  
->>>>>  #ifdef CONFIG_SERIAL_EARLYCON
->>>>>  
->>>>> -static int __init early_init_dt_scan_chosen_serial(void)
->>>>> +int __init early_init_dt_scan_chosen_serial(void)
->>>>>  {
->>>>>  	int offset;
->>>>>  	const char *p, *q, *options = NULL;
->>>>> @@ -849,15 +849,6 @@ static int __init early_init_dt_scan_chosen_serial(void)
->>>>>  	}
->>>>>  	return -ENODEV;
->>>>>  }
->>>>> -
->>>>> -static int __init setup_of_earlycon(char *buf)
->>>>> -{
->>>>> -	if (buf)
->>>>> -		return 0;
->>>>> -
->>>>> -	return early_init_dt_scan_chosen_serial();
->>>>> -}
->>>>> -early_param("earlycon", setup_of_earlycon);
->>>>>  #endif
->>>>>  
->>>>>  /**
->>>>> diff --git a/drivers/tty/serial/earlycon.c b/drivers/tty/serial/earlycon.c
->>>>> index 067783f..d217366 100644
->>>>> --- a/drivers/tty/serial/earlycon.c
->>>>> +++ b/drivers/tty/serial/earlycon.c
->>>>> @@ -17,6 +17,7 @@
->>>>>  #include <linux/kernel.h>
->>>>>  #include <linux/init.h>
->>>>>  #include <linux/io.h>
->>>>> +#include <linux/of_fdt.h>
->>>>>  #include <linux/serial_core.h>
->>>>>  #include <linux/sizes.h>
->>>>>  #include <linux/of.h>
->>>>> @@ -209,7 +210,7 @@ static int __init param_setup_earlycon(char *buf)
->>>>>  	 * don't generate a warning from parse_early_params() in that case
->>>>>  	 */
->>>>>  	if (!buf || !buf[0])
->>>>> -		return 0;
->>>>> +		return early_init_dt_scan_chosen_serial();
->>>>>  
->>>>>  	err = setup_earlycon(buf);
->>>>>  	if (err == -ENOENT || err == -EALREADY)
->>>>> diff --git a/include/linux/of_fdt.h b/include/linux/of_fdt.h
->>>>> index 2fbe868..56b2a43 100644
->>>>> --- a/include/linux/of_fdt.h
->>>>> +++ b/include/linux/of_fdt.h
->>>>> @@ -63,6 +63,7 @@ extern int early_init_dt_scan_chosen(unsigned long node, const char *uname,
->>>>>  				     int depth, void *data);
->>>>>  extern int early_init_dt_scan_memory(unsigned long node, const char *uname,
->>>>>  				     int depth, void *data);
->>>>> +extern int early_init_dt_scan_chosen_serial(void);
->>>>>  extern void early_init_fdt_scan_reserved_mem(void);
->>>>>  extern void early_init_fdt_reserve_self(void);
->>>>>  extern void early_init_dt_add_memory_arch(u64 base, u64 size);
->>>>> @@ -91,6 +92,7 @@ extern void early_get_first_memblock_info(void *, phys_addr_t *);
->>>>>  extern u64 of_flat_dt_translate_address(unsigned long node);
->>>>>  extern void of_fdt_limit_memory(int limit);
->>>>>  #else /* CONFIG_OF_FLATTREE */
->>>>> +static inline int early_init_dt_scan_chosen_serial(void) { return -ENODEV; }
->>>>>  static inline void early_init_fdt_scan_reserved_mem(void) {}
->>>>>  static inline void early_init_fdt_reserve_self(void) {}
->>>>>  static inline const char *of_flat_dt_get_machine_name(void) { return NULL; }
->>>>>
->>>>
->>
->> --
->> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
->> the body of a message to majordomo@vger.kernel.org
->> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->>
+Hence, my patch avoids this byte-swapping as I described in the change =
+log
+below.
+
+|=C2=A0=C2=A0- Change 'struct acpi_nfit_control_region' to reflect the =
+update.
+|=C2=A0=C2=A0=C2=A0=C2=A0SPD IDs are defined as arrays of bytes, so tha=
+t they can be
+|=C2=A0=C2=A0=C2=A0=C2=A0treated in the same way regardless of CPU endi=
+anness and are
+|=C2=A0=C2=A0=C2=A0=C2=A0not miss-treated as little-endian numeric valu=
+es.
+
+I hope this makes it clear now.
+
+> > Another issue is that it is not clear who needs to perform the byte=
+-
+> > swapping among ACPICA and drivers.=C2=A0=C2=A0If ACPICA, drivers mu=
+st agree that
+>
+> ACPICA does not ever do anything with the "data tables" like NFIT, ot=
+her
+> than handing off the table when requested by a driver.
+
+So, this means that the alternative is to change the NFIT driver to do =
+the
+byte-swapping for the fields when the CPU arch is little-endian. =C2=A0=
+If we
+cannot change the structure, we will have to take this course...
+
+Thanks,
+-Toshi
