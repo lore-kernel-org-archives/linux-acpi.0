@@ -1,83 +1,162 @@
-From: Toshi Kani <toshi.kani@hpe.com>
-Subject: Re: [PATCH v2 1/3] ACPI/NFIT: Update Control Region Structure to
- comply ACPI 6.1
-Date: Tue, 01 Mar 2016 12:18:53 -0700
-Message-ID: <1456859933.15454.83.camel@hpe.com>
-References: <1456178130-26468-1-git-send-email-toshi.kani@hpe.com>
-	 <1456178130-26468-2-git-send-email-toshi.kani@hpe.com>
-	 <94F2FBAB4432B54E8AACC7DFDE6C92E37E44D64B@ORSMSX110.amr.corp.intel.com>
-	 <1456850284.15454.23.camel@hpe.com>
-	 <94F2FBAB4432B54E8AACC7DFDE6C92E37E44D6E1@ORSMSX110.amr.corp.intel.com>
-	 <1456853819.15454.45.camel@hpe.com>
-	 <CAPcyv4hS44abMCs1sxdLW0YgMjP33Td0LbEWhXi9jqJ_ARU7CA@mail.gmail.com>
+From: Sinan Kaya <okaya@codeaurora.org>
+Subject: Re: [PATCH V2] acpi, pci, irq: account for early penalty assignment
+Date: Tue, 1 Mar 2016 13:49:34 -0500
+Message-ID: <56D5E43E.7050406@codeaurora.org>
+References: <1455801582-21595-1-git-send-email-okaya@codeaurora.org>
+ <20160229192420.GC3653@localhost> <56D4A53A.1070708@codeaurora.org>
+ <20160229223453.GA12162@localhost>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <CAPcyv4hS44abMCs1sxdLW0YgMjP33Td0LbEWhXi9jqJ_ARU7CA@mail.gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Dan Williams <dan.j.williams@intel.com>
-Cc: "Moore, Robert" <robert.moore@intel.com>, "rjw@rjwysocki.net" <rjw@rjwysocki.net>, "Zheng, Lv" <lv.zheng@intel.com>, "elliott@hpe.com" <elliott@hpe.com>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "devel@acpica.org" <devel@acpica.org>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from smtp.codeaurora.org ([198.145.29.96]:48962 "EHLO
+	smtp.codeaurora.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751062AbcCAStj (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 1 Mar 2016 13:49:39 -0500
+In-Reply-To: <20160229223453.GA12162@localhost>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Bjorn Helgaas <helgaas@kernel.org>
+Cc: linux-acpi@vger.kernel.org, timur@codeaurora.org, cov@codeaurora.org, linux-pci@vger.kernel.org, ravikanth.nalla@hpe.com, lenb@kernel.org, harish.k@hpe.com, ashwin.reghunandanan@hpe.com, bhelgaas@google.com, rjw@rjwysocki.net, linux-kernel@vger.kernel.org
 
-On Tue, 2016-03-01 at 10:14 -0800, Dan Williams wrote:
-> On Tue, Mar 1, 2016 at 9:36 AM, Toshi Kani <toshi.kani@hpe.com> wrote=
-:
-> > On Tue, 2016-03-01 at 16:03 +0000, Moore, Robert wrote:
-> > > We have a bunch of macros in include/acmacros.h -- like this:
-> > >=20
-> > > ACPI_MOVE_16_TO_16(d, s)
-> >=20
-> > There is a problem in using the ACPICA byte-swap macros.=C2=A0=C2=A0=
-ACPI is
-> > little-
-> > endian arch, so the macros are set to perform byte-swappings when t=
-he
-> > CPU
-> > arch is big-endian.=C2=A0=C2=A0This case, however, is the other way=
- around.=C2=A0=C2=A0The
-> > fields in question are defined & stored as arrays of bytes.=C2=A0=C2=
-=A0If you
-> > treat
-> > them as multi-bytes numeric values, then you need to byte-swap them
-> > when
-> > the CPU arch is little-endian because arrays of bytes have the same
-> > addressing as big-endian.
-> >=20
-> > Another issue is that it is not clear who needs to perform the byte=
--
-> > swapping among ACPICA and drivers.=C2=A0=C2=A0If ACPICA, drivers mu=
-st agree that
-> > these fields are always treated as multi-bytes numeric values despi=
-te
-> > of
-> > the spec.=C2=A0=C2=A0If drivers, we need to make sure that only a s=
-ingle driver
-> > performs this byte-swapping one time as ACPI tables are global
-> > structures.
-> >=20
-> > I think it is much clearer to define the structure according to the
-> > ACPI
-> > spec.
->=20
-> I think the "ACPI tables are little-endian" assumption is pervasive
-> throughout the implementation.
->=20
-> Toshi, it seems all we need is conversions like:
->=20
-> - sprintf(buf, "%#x\n", dcr->vendor_id);
-> + sprintf(buf, "%#x\n", le16_to_cpu(dcr->vendor_id));
->=20
-> ...for the values exported to userspace through sysfs, but otherwise
-> leave the base table definitions as is.=C2=A0=C2=A0Will this suffice?
+> There's so much code there, that I think all the code obscures the
+> fact that there's almost nothing really happening.  In broad outline,
+> I think we care about:
+> 
+>   - the legacy ISA IRQs, i.e., the contents of acpi_irq_isa_penalty[]
+>   - acpi_irq_isa= from command line
+>   - acpi_irq_pci= from command line
+>   - which IRQ is used for SCI
+>   - number of PCI Interrupt Link devices sharing an IRQ
+> 
+> I doubt we need any dynamic allocation at all to manage this.  We
+> already have the acpi_irq_isa_penalty[] table statically allocated.
+> The SCI IRQ is one word.  
 
-Yes, I am OK to go with this option to get it done.
+Just to be clear, we have resized acpi_irq_penalty table to 16 and named it
+acpi_irq_isa_penalty. We are dynamically allocating memory for the rest of 
+the interrupts that is bigger than 16. 
 
-We still need to add new fields into the structure. =C2=A0Is it OK to m=
-ake this
-change? =C2=A0If not, we will need to have a local structure to define =
-the new
-fields...
+The SCI interrupt that caused the failure is interrupt 22 in this case. The code
+was trying to allocate a new entry with kzalloc. 22 won't fit into the 
+acpi_irq_isa_penalty array. How do we handle such case? Is there a cap on the SCI
+interrupt number? 
 
-Thanks,
--Toshi
+That's why, I was trying to reallocate some memory in this code.
+
+
+> I bet the command-line stuff is only
+> useful for the 16 ISA IRQs and could be merged into
+> acpi_irq_isa_penalty[].  
+> Same for acpi_penalize_isa_irq() and
+> acpi_isa_irq_available().  
+
+Agreed. No issues with ISA IRQs.
+
+> We could easily compute the
+> number of links sharing an IRQ by traversing acpi_link_list.
+
+Sorry, I couldn't quite get this. Where would you do this?
+
+> 
+> I think only x86 cares about the first three items (legacy ISA IRQs
+> and command-line args).  This should be reflected in the code.  Only
+> x86 calls acpi_irq_penalty_init(), but that's pretty non-obvious.
+
+Very true. It looks like somebody sneaked in some code there.
+
+> 
+> I think it would be better to completely rewrite this penalty stuff
+> than to keep making it more complicated by fixing things in the
+> existing design.
+> 
+OK. Let's find out what it needs to look like. I need guidance on what IRQs on
+Intel systems look like. 
+
+>>>> Reported-by: Nalla, Ravikanth <ravikanth.nalla@hpe.com>
+>>>> Signed-off-by: Sinan Kaya <okaya@codeaurora.org>
+>>>> ---
+>>>>  drivers/acpi/pci_link.c | 19 +++++++++++++++----
+>>>>  1 file changed, 15 insertions(+), 4 deletions(-)
+>>>>
+>>>> diff --git a/drivers/acpi/pci_link.c b/drivers/acpi/pci_link.c
+>>>> index fa28635..14fe3ca 100644
+>>>> --- a/drivers/acpi/pci_link.c
+>>>> +++ b/drivers/acpi/pci_link.c
+>>>> @@ -47,6 +47,7 @@ ACPI_MODULE_NAME("pci_link");
+>>>>  #define ACPI_PCI_LINK_FILE_INFO		"info"
+>>>>  #define ACPI_PCI_LINK_FILE_STATUS	"state"
+>>>>  #define ACPI_PCI_LINK_MAX_POSSIBLE	16
+>>>> +#define ACPI_PCI_LINK_MAX_EARLY_IRQINFO 1024
+>>>>  
+>>>>  static int acpi_pci_link_add(struct acpi_device *device,
+>>>>  			     const struct acpi_device_id *not_used);
+>>>> @@ -473,6 +474,8 @@ struct irq_penalty_info {
+>>>>  };
+>>>>  
+>>>>  static LIST_HEAD(acpi_irq_penalty_list);
+>>>> +static struct irq_penalty_info early_irq_infos[ACPI_PCI_LINK_MAX_EARLY_IRQINFO];
+>>>> +static int early_irq_info_counter;
+>>>>  
+>>>>  static int acpi_irq_get_penalty(int irq)
+>>>>  {
+>>>> @@ -507,10 +510,17 @@ static int acpi_irq_set_penalty(int irq, int new_penalty)
+>>>>  		}
+>>>>  	}
+>>>>  
+>>>> -	/* nope, let's allocate a slot for this IRQ */
+>>>> -	irq_info = kzalloc(sizeof(*irq_info), GFP_KERNEL);
+>>>> -	if (!irq_info)
+>>>> -		return -ENOMEM;
+>>>> +	if (!acpi_gbl_permanent_mmap) {
+>>>> +		if (early_irq_info_counter < ARRAY_SIZE(early_irq_infos))
+>>>> +			irq_info = &early_irq_infos[early_irq_info_counter++];
+>>>> +		else
+>>>> +			return -ENOMEM;
+>>>> +	} else {
+>>>> +		/* nope, let's allocate a slot for this IRQ */
+>>>> +		irq_info = kzalloc(sizeof(*irq_info), GFP_KERNEL);
+>>>> +		if (!irq_info)
+>>>> +			return -ENOMEM;
+>>>> +	}
+>>>>  
+>>>>  	irq_info->irq = irq;
+>>>>  	irq_info->penalty = new_penalty;
+>>>> @@ -968,3 +978,4 @@ void __init acpi_pci_link_init(void)
+>>>>  	register_syscore_ops(&irqrouter_syscore_ops);
+>>>>  	acpi_scan_add_handler(&pci_link_handler);
+>>>>  }
+>>>> +
+>>>> -- 
+>>>> 1.8.2.1
+>>>>
+>>>> --
+>>>> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
+>>>> the body of a message to majordomo@vger.kernel.org
+>>>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>>> --
+>>> To unsubscribe from this list: send the line "unsubscribe linux-pci" in
+>>> the body of a message to majordomo@vger.kernel.org
+>>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>>>
+>>
+>>
+>> -- 
+>> Sinan Kaya
+>> Qualcomm Technologies, Inc. on behalf of Qualcomm Innovation Center, Inc.
+>> Qualcomm Innovation Center, Inc. is a member of Code Aurora Forum, a Linux Foundation Collaborative Project
+>> --
+>> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
+>> the body of a message to majordomo@vger.kernel.org
+>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-pci" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
+
+
+-- 
+Sinan Kaya
+Qualcomm Technologies, Inc. on behalf of Qualcomm Innovation Center, Inc.
+Qualcomm Innovation Center, Inc. is a member of Code Aurora Forum, a Linux Foundation Collaborative Project
