@@ -1,143 +1,59 @@
-From: Aleksey Makarov <amakarov.linux@gmail.com>
-Subject: Re: [PATCH v3 1/7] of/serial: move earlycon early_param handling to
- serial
-Date: Tue, 1 Mar 2016 20:52:45 +0300
-Message-ID: <56D5D6ED.7050806@gmail.com>
-References: <1456749726-30261-1-git-send-email-aleksey.makarov@linaro.org>
- <1456749726-30261-2-git-send-email-aleksey.makarov@linaro.org>
- <56D5AC3B.3090806@hurleysoftware.com> <56D5C3F8.5050102@linaro.org>
- <56D5D035.2060704@hurleysoftware.com>
+From: Dan Williams <dan.j.williams@intel.com>
+Subject: Re: [PATCH v2 1/3] ACPI/NFIT: Update Control Region Structure to
+ comply ACPI 6.1
+Date: Tue, 1 Mar 2016 10:14:32 -0800
+Message-ID: <CAPcyv4hS44abMCs1sxdLW0YgMjP33Td0LbEWhXi9jqJ_ARU7CA@mail.gmail.com>
+References: <1456178130-26468-1-git-send-email-toshi.kani@hpe.com>
+	<1456178130-26468-2-git-send-email-toshi.kani@hpe.com>
+	<94F2FBAB4432B54E8AACC7DFDE6C92E37E44D64B@ORSMSX110.amr.corp.intel.com>
+	<1456850284.15454.23.camel@hpe.com>
+	<94F2FBAB4432B54E8AACC7DFDE6C92E37E44D6E1@ORSMSX110.amr.corp.intel.com>
+	<1456853819.15454.45.camel@hpe.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-lf0-f67.google.com ([209.85.215.67]:35747 "EHLO
-	mail-lf0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750997AbcCARxh (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 1 Mar 2016 12:53:37 -0500
-In-Reply-To: <56D5D035.2060704@hurleysoftware.com>
+Received: from mail-ob0-f179.google.com ([209.85.214.179]:36653 "EHLO
+	mail-ob0-f179.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751531AbcCASOd (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 1 Mar 2016 13:14:33 -0500
+Received: by mail-ob0-f179.google.com with SMTP id rt7so2422372obb.3
+        for <linux-acpi@vger.kernel.org>; Tue, 01 Mar 2016 10:14:33 -0800 (PST)
+In-Reply-To: <1456853819.15454.45.camel@hpe.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Peter Hurley <peter@hurleysoftware.com>, Aleksey Makarov <aleksey.makarov@linaro.org>, linux-acpi@vger.kernel.org
-Cc: linux-serial@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Russell King <linux@arm.linux.org.uk>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, Leif Lindholm <leif.lindholm@linaro.org>, Graeme Gregory <graeme.gregory@linaro.org>, Al Stone <ahs3@redhat.com>, Christopher Covington <cov@codeaurora.org>, Matthias Brugger <mbrugger@suse.com>, Rob Herring <robh+dt@kernel.org>, Frank Rowand <frowand.list@gmail.com>, Grant Likely <grant.likely@linaro.org>, Jiri Slaby <jslaby@suse.com>, devicetree@vger.kernel.org
+To: Toshi Kani <toshi.kani@hpe.com>
+Cc: "Moore, Robert" <robert.moore@intel.com>, "rjw@rjwysocki.net" <rjw@rjwysocki.net>, "Zheng, Lv" <lv.zheng@intel.com>, "elliott@hpe.com" <elliott@hpe.com>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "devel@acpica.org" <devel@acpica.org>
 
-
-
-On 03/01/2016 08:24 PM, Peter Hurley wrote:
-> On 03/01/2016 08:31 AM, Aleksey Makarov wrote:
+On Tue, Mar 1, 2016 at 9:36 AM, Toshi Kani <toshi.kani@hpe.com> wrote:
+> On Tue, 2016-03-01 at 16:03 +0000, Moore, Robert wrote:
+>> We have a bunch of macros in include/acmacros.h -- like this:
 >>
->>
->> On 03/01/2016 05:50 PM, Peter Hurley wrote:
->>> On 02/29/2016 04:41 AM, Aleksey Makarov wrote:
->>>> From: Leif Lindholm <leif.lindholm@linaro.org>
->>>>
->>>> We have multiple "earlycon" early_param handlers - merge the DT one into
->>>> the main earlycon one. This means the earlycon early_param handler does
->>>> not just return success if no options are specified.
->>>
->>> Why is this patch necessary?
->>>
->>> Is this cleanup or required for some reason in other parts of this
->>> series?
->>
->> It's a cleanup.
->>
->> Also, without this, the series has to introduce a new (third) handler for "earlycon=".
-> 
-> Not if it were opt-in like OF is via the same blank
-> "earlycon" parameter.
+>> ACPI_MOVE_16_TO_16(d, s)
+>
+> There is a problem in using the ACPICA byte-swap macros.  ACPI is little-
+> endian arch, so the macros are set to perform byte-swappings when the CPU
+> arch is big-endian.  This case, however, is the other way around.  The
+> fields in question are defined & stored as arrays of bytes.  If you treat
+> them as multi-bytes numeric values, then you need to byte-swap them when
+> the CPU arch is little-endian because arrays of bytes have the same
+> addressing as big-endian.
+>
+> Another issue is that it is not clear who needs to perform the byte-
+> swapping among ACPICA and drivers.  If ACPICA, drivers must agree that
+> these fields are always treated as multi-bytes numeric values despite of
+> the spec.  If drivers, we need to make sure that only a single driver
+> performs this byte-swapping one time as ACPI tables are global structures.
+>
+> I think it is much clearer to define the structure according to the ACPI
+> spec.
 
-So you are suggesting to enable ACPI earlycon with just "earlyon" without 
-any arguments to this paramener, right?  That's good idea as OF and ACPI
-can not be used simultaneously to specify earlycon.  Actually that is
-how it worked in the original submussion. I will change this in the next version.
+I think the "ACPI tables are little-endian" assumption is pervasive
+throughout the implementation.
 
-Still I think that having this parameter parsed in one place is a good idea.
-Or would you prefer to drop this patch?
+Toshi, it seems all we need is conversions like:
 
->>>> Signed-off-by: Leif Lindholm <leif.lindholm@linaro.org>
->>>> Signed-off-by: Aleksey Makarov <aleksey.makarov@linaro.org>
->>>> ---
->>>>  drivers/of/fdt.c              | 11 +----------
->>>>  drivers/tty/serial/earlycon.c |  3 ++-
->>>>  include/linux/of_fdt.h        |  2 ++
->>>>  3 files changed, 5 insertions(+), 11 deletions(-)
->>>>
->>>> diff --git a/drivers/of/fdt.c b/drivers/of/fdt.c
->>>> index 3349d2a..0547256 100644
->>>> --- a/drivers/of/fdt.c
->>>> +++ b/drivers/of/fdt.c
->>>> @@ -805,7 +805,7 @@ static inline void early_init_dt_check_for_initrd(unsigned long node)
->>>>  
->>>>  #ifdef CONFIG_SERIAL_EARLYCON
->>>>  
->>>> -static int __init early_init_dt_scan_chosen_serial(void)
->>>> +int __init early_init_dt_scan_chosen_serial(void)
->>>>  {
->>>>  	int offset;
->>>>  	const char *p, *q, *options = NULL;
->>>> @@ -849,15 +849,6 @@ static int __init early_init_dt_scan_chosen_serial(void)
->>>>  	}
->>>>  	return -ENODEV;
->>>>  }
->>>> -
->>>> -static int __init setup_of_earlycon(char *buf)
->>>> -{
->>>> -	if (buf)
->>>> -		return 0;
->>>> -
->>>> -	return early_init_dt_scan_chosen_serial();
->>>> -}
->>>> -early_param("earlycon", setup_of_earlycon);
->>>>  #endif
->>>>  
->>>>  /**
->>>> diff --git a/drivers/tty/serial/earlycon.c b/drivers/tty/serial/earlycon.c
->>>> index 067783f..d217366 100644
->>>> --- a/drivers/tty/serial/earlycon.c
->>>> +++ b/drivers/tty/serial/earlycon.c
->>>> @@ -17,6 +17,7 @@
->>>>  #include <linux/kernel.h>
->>>>  #include <linux/init.h>
->>>>  #include <linux/io.h>
->>>> +#include <linux/of_fdt.h>
->>>>  #include <linux/serial_core.h>
->>>>  #include <linux/sizes.h>
->>>>  #include <linux/of.h>
->>>> @@ -209,7 +210,7 @@ static int __init param_setup_earlycon(char *buf)
->>>>  	 * don't generate a warning from parse_early_params() in that case
->>>>  	 */
->>>>  	if (!buf || !buf[0])
->>>> -		return 0;
->>>> +		return early_init_dt_scan_chosen_serial();
->>>>  
->>>>  	err = setup_earlycon(buf);
->>>>  	if (err == -ENOENT || err == -EALREADY)
->>>> diff --git a/include/linux/of_fdt.h b/include/linux/of_fdt.h
->>>> index 2fbe868..56b2a43 100644
->>>> --- a/include/linux/of_fdt.h
->>>> +++ b/include/linux/of_fdt.h
->>>> @@ -63,6 +63,7 @@ extern int early_init_dt_scan_chosen(unsigned long node, const char *uname,
->>>>  				     int depth, void *data);
->>>>  extern int early_init_dt_scan_memory(unsigned long node, const char *uname,
->>>>  				     int depth, void *data);
->>>> +extern int early_init_dt_scan_chosen_serial(void);
->>>>  extern void early_init_fdt_scan_reserved_mem(void);
->>>>  extern void early_init_fdt_reserve_self(void);
->>>>  extern void early_init_dt_add_memory_arch(u64 base, u64 size);
->>>> @@ -91,6 +92,7 @@ extern void early_get_first_memblock_info(void *, phys_addr_t *);
->>>>  extern u64 of_flat_dt_translate_address(unsigned long node);
->>>>  extern void of_fdt_limit_memory(int limit);
->>>>  #else /* CONFIG_OF_FLATTREE */
->>>> +static inline int early_init_dt_scan_chosen_serial(void) { return -ENODEV; }
->>>>  static inline void early_init_fdt_scan_reserved_mem(void) {}
->>>>  static inline void early_init_fdt_reserve_self(void) {}
->>>>  static inline const char *of_flat_dt_get_machine_name(void) { return NULL; }
->>>>
->>>
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
+- sprintf(buf, "%#x\n", dcr->vendor_id);
++ sprintf(buf, "%#x\n", le16_to_cpu(dcr->vendor_id));
+
+...for the values exported to userspace through sysfs, but otherwise
+leave the base table definitions as is.  Will this suffice?
