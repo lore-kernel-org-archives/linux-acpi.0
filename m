@@ -1,54 +1,108 @@
-From: Aleksey Makarov <aleksey.makarov@linaro.org>
-Subject: Re: [PATCH v4 2/4] ACPI: enable ACPI_SPCR_TABLE on ARM64
-Date: Tue, 1 Mar 2016 20:35:25 +0300
-Message-ID: <56D5D2DD.30105@linaro.org>
-References: <1456747355-15692-1-git-send-email-aleksey.makarov@linaro.org>
- <1456747355-15692-3-git-send-email-aleksey.makarov@linaro.org>
- <56D5B4E8.1050309@hurleysoftware.com>
+From: "Moore, Robert" <robert.moore@intel.com>
+Subject: RE: [PATCH v2 1/3] ACPI/NFIT: Update Control Region Structure to
+ comply ACPI 6.1
+Date: Tue, 1 Mar 2016 17:37:01 +0000
+Message-ID: <94F2FBAB4432B54E8AACC7DFDE6C92E37E44D782@ORSMSX110.amr.corp.intel.com>
+References: <1456178130-26468-1-git-send-email-toshi.kani@hpe.com>
+	 <1456178130-26468-2-git-send-email-toshi.kani@hpe.com>
+	 <94F2FBAB4432B54E8AACC7DFDE6C92E37E44D64B@ORSMSX110.amr.corp.intel.com>
+	 <1456850284.15454.23.camel@hpe.com>
+	 <94F2FBAB4432B54E8AACC7DFDE6C92E37E44D6E1@ORSMSX110.amr.corp.intel.com>
+ <1456853819.15454.45.camel@hpe.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-lf0-f51.google.com ([209.85.215.51]:33000 "EHLO
-	mail-lf0-f51.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751102AbcCARgR (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 1 Mar 2016 12:36:17 -0500
-Received: by mail-lf0-f51.google.com with SMTP id v124so25245283lff.0
-        for <linux-acpi@vger.kernel.org>; Tue, 01 Mar 2016 09:36:16 -0800 (PST)
-In-Reply-To: <56D5B4E8.1050309@hurleysoftware.com>
+Received: from mga11.intel.com ([192.55.52.93]:29921 "EHLO mga11.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751932AbcCARhE (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 1 Mar 2016 12:37:04 -0500
+In-Reply-To: <1456853819.15454.45.camel@hpe.com>
+Content-Language: en-US
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Peter Hurley <peter@hurleysoftware.com>, linux-acpi@vger.kernel.org
-Cc: linux-serial@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Russell King <linux@arm.linux.org.uk>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, Leif Lindholm <leif.lindholm@linaro.org>, Graeme Gregory <graeme.gregory@linaro.org>, Al Stone <ahs3@redhat.com>, Christopher Covington <cov@codeaurora.org>, Yury Norov <ynorov@caviumnetworks.com>, "Zheng, Lv" <lv.zheng@intel.com>, Catalin Marinas <catalin.marinas@arm.com>, Will Deacon <will.deacon@arm.com>
+To: Toshi Kani <toshi.kani@hpe.com>, "rjw@rjwysocki.net" <rjw@rjwysocki.net>, "Williams, Dan J" <dan.j.williams@intel.com>
+Cc: "Zheng, Lv" <lv.zheng@intel.com>, "elliott@hpe.com" <elliott@hpe.com>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "devel@acpica.org" <devel@acpica.org>
 
-
-
-On 03/01/2016 06:27 PM, Peter Hurley wrote:
-> On 02/29/2016 04:02 AM, Aleksey Makarov wrote:
->> SBBR mentions SPCR as a mandatory ACPI table.
->> So enable it for ARM64
-> 
-> Why is this opt-in per-arch?
-
-It could depend only on CONFIG_ACPI.
-I will do that in the next version, thank you
-
->> Signed-off-by: Aleksey Makarov <aleksey.makarov@linaro.org>
->> ---
->>  arch/arm64/Kconfig | 1 +
->>  1 file changed, 1 insertion(+)
->>
->> diff --git a/arch/arm64/Kconfig b/arch/arm64/Kconfig
->> index 9dc5209..544af2e 100644
->> --- a/arch/arm64/Kconfig
->> +++ b/arch/arm64/Kconfig
->> @@ -3,6 +3,7 @@ config ARM64
->>  	select ACPI_CCA_REQUIRED if ACPI
->>  	select ACPI_GENERIC_GSI if ACPI
->>  	select ACPI_REDUCED_HARDWARE_ONLY if ACPI
->> +	select ACPI_SPCR_TABLE if ACPI
->>  	select ARCH_HAS_DEVMEM_IS_ALLOWED
->>  	select ARCH_HAS_ATOMIC64_DEC_IF_POSITIVE
->>  	select ARCH_HAS_ELF_RANDOMIZE
->>
-> 
+DQoNCj4gLS0tLS1PcmlnaW5hbCBNZXNzYWdlLS0tLS0NCj4gRnJvbTogVG9zaGkgS2FuaSBbbWFp
+bHRvOnRvc2hpLmthbmlAaHBlLmNvbV0NCj4gU2VudDogVHVlc2RheSwgTWFyY2ggMDEsIDIwMTYg
+OTozNyBBTQ0KPiBUbzogTW9vcmUsIFJvYmVydDsgcmp3QHJqd3lzb2NraS5uZXQ7IFdpbGxpYW1z
+LCBEYW4gSg0KPiBDYzogWmhlbmcsIEx2OyBlbGxpb3R0QGhwZS5jb207IGxpbnV4LW52ZGltbUBs
+aXN0cy4wMS5vcmc7IGxpbnV4LQ0KPiBhY3BpQHZnZXIua2VybmVsLm9yZzsgbGludXgta2VybmVs
+QHZnZXIua2VybmVsLm9yZzsgZGV2ZWxAYWNwaWNhLm9yZw0KPiBTdWJqZWN0OiBSZTogW1BBVENI
+IHYyIDEvM10gQUNQSS9ORklUOiBVcGRhdGUgQ29udHJvbCBSZWdpb24gU3RydWN0dXJlIHRvDQo+
+IGNvbXBseSBBQ1BJIDYuMQ0KPiANCj4gT24gVHVlLCAyMDE2LTAzLTAxIGF0IDE2OjAzICswMDAw
+LCBNb29yZSwgUm9iZXJ0IHdyb3RlOg0KPiA+IFdlIGhhdmUgYSBidW5jaCBvZiBtYWNyb3MgaW4g
+aW5jbHVkZS9hY21hY3Jvcy5oIC0tIGxpa2UgdGhpczoNCj4gPg0KPiA+IEFDUElfTU9WRV8xNl9U
+T18xNihkLCBzKQ0KPiANCj4gVGhlcmUgaXMgYSBwcm9ibGVtIGluIHVzaW5nIHRoZSBBQ1BJQ0Eg
+Ynl0ZS1zd2FwIG1hY3Jvcy4gwqBBQ1BJIGlzIGxpdHRsZS0NCj4gZW5kaWFuIGFyY2gsIHNvIHRo
+ZSBtYWNyb3MgYXJlIHNldCB0byBwZXJmb3JtIGJ5dGUtc3dhcHBpbmdzIHdoZW4gdGhlIENQVQ0K
+PiBhcmNoIGlzIGJpZy1lbmRpYW4uIMKgVGhpcyBjYXNlLCBob3dldmVyLCBpcyB0aGUgb3RoZXIg
+d2F5IGFyb3VuZC4gwqBUaGUNCj4gZmllbGRzIGluIHF1ZXN0aW9uIGFyZSBkZWZpbmVkICYgc3Rv
+cmVkIGFzIGFycmF5cyBvZiBieXRlcy4NCg0KVGhhdCdzIG5vdCB3aGF0IEkgc2VlIGluIHRoZSBB
+Q1BJIHNwZWMuIFRoZSBmaWVsZHMgYXJlIGRlZmluZWQgbGlrZSBhbnkgb3RoZXIgQUNQSSB0YWJs
+ZS4NCg0KVmVuZG9yIElEIDIgNiANCklkZW50aWZpZXIgaW5kaWNhdGluZyB0aGUgdmVuZG9yIG9m
+IHRoZSBOVkRJTU0uDQpUaGlzIGZpZWxkIHNoYWxsIGJlIHNldCB0byB0aGUgdmFsdWUgb2YgdGhl
+IE5WRElNTSBTUEQgTW9kdWxlDQpNYW51ZmFjdHVyZXIgSUQgQ29kZSBmaWVsZCBhIHdpdGggYnl0
+ZSAwIHNldCB0byBERFI0IFNQRCBieXRlDQozMjAgYW5kIGJ5dGUgMSBzZXQgdG8gRERSNCBTUEQg
+Ynl0ZSAzMjEuDQoNCkRldmljZSBJRCAyIDgNCklkZW50aWZpZXIgZm9yIHRoZSBOVkRJTU0sIGFz
+c2lnbmVkIGJ5IHRoZSBtb2R1bGUgdmVuZG9yLg0KVGhpcyBmaWVsZCBzaGFsbCBiZSBzZXQgdG8g
+dGhlIHZhbHVlIG9mIHRoZSBOVkRJTU0gU1BEIE1vZHVsZQ0KUHJvZHVjdCBJZGVudGlmaWVyIGZp
+ZWxkIGIgd2l0aCBieXRlIDAgc2V0IHRvIFNQRCBieXRlIDE5MiBhbmQNCmJ5dGUgMSBzZXQgdG8g
+U1BEIGJ5dGUgMTkzLg0KDQpSZXZpc2lvbiBJRCAyIDEwIA0KUmV2aXNpb24gb2YgdGhlIE5WRElN
+TSwgYXNzaWduZWQgYnkgdGhlIG1vZHVsZSB2ZW5kb3IuDQpCeXRlIDEgb2YgdGhpcyBmaWVsZCBp
+cyByZXNlcnZlZC4NCkJ5dGUgMCBvZiB0aGlzIGZpZWxkIHNoYWxsIGJlIHNldCB0byB0aGUgdmFs
+dWUgb2YgdGhlIE5WRElNTSBTUEQNCk1vZHVsZSBSZXZpc2lvbiBDb2RlIGZpZWxkIGEgKGkuZS4s
+IFNQRCBieXRlIDM0OSkuDQoNCg0KRXRjLg0KDQoNCklmIHlvdSB0cmVhdA0KPiB0aGVtIGFzIG11
+bHRpLWJ5dGVzIG51bWVyaWMgdmFsdWVzLCB0aGVuIHlvdSBuZWVkIHRvIGJ5dGUtc3dhcCB0aGVt
+IHdoZW4NCj4gdGhlIENQVSBhcmNoIGlzIGxpdHRsZS1lbmRpYW4gYmVjYXVzZSBhcnJheXMgb2Yg
+Ynl0ZXMgaGF2ZSB0aGUgc2FtZQ0KPiBhZGRyZXNzaW5nIGFzIGJpZy1lbmRpYW4uDQo+IA0KPiBB
+bm90aGVyIGlzc3VlIGlzIHRoYXQgaXQgaXMgbm90IGNsZWFyIHdobyBuZWVkcyB0byBwZXJmb3Jt
+IHRoZSBieXRlLQ0KPiBzd2FwcGluZyBhbW9uZyBBQ1BJQ0EgYW5kIGRyaXZlcnMuIMKgSWYgQUNQ
+SUNBLCBkcml2ZXJzIG11c3QgYWdyZWUgdGhhdA0KPiB0aGVzZSBmaWVsZHMgYXJlIGFsd2F5cyB0
+cmVhdGVkIGFzIG11bHRpLWJ5dGVzIG51bWVyaWMgdmFsdWVzIGRlc3BpdGUgb2YNCj4gdGhlIHNw
+ZWMuIMKgSWYgZHJpdmVycywgd2UgbmVlZCB0byBtYWtlIHN1cmUgdGhhdCBvbmx5IGEgc2luZ2xl
+IGRyaXZlcg0KPiBwZXJmb3JtcyB0aGlzIGJ5dGUtc3dhcHBpbmcgb25lIHRpbWUgYXMgQUNQSSB0
+YWJsZXMgYXJlIGdsb2JhbCBzdHJ1Y3R1cmVzLg0KPiANCj4gSSB0aGluayBpdCBpcyBtdWNoIGNs
+ZWFyZXIgdG8gZGVmaW5lIHRoZSBzdHJ1Y3R1cmUgYWNjb3JkaW5nIHRvIHRoZSBBQ1BJDQo+IHNw
+ZWMuDQo+IA0KPiBUaGFua3MsDQo+IC1Ub3NoaQ0KPiANCj4gPiA+IC0tLS0tT3JpZ2luYWwgTWVz
+c2FnZS0tLS0tDQo+ID4gPiBGcm9tOiBUb3NoaSBLYW5pIFttYWlsdG86dG9zaGkua2FuaUBocGUu
+Y29tXQ0KPiA+ID4gU2VudDogVHVlc2RheSwgTWFyY2ggMDEsIDIwMTYgODozOCBBTQ0KPiA+ID4g
+VG86IE1vb3JlLCBSb2JlcnQ7IHJqd0Byand5c29ja2kubmV0OyBXaWxsaWFtcywgRGFuIEoNCj4g
+PiA+IENjOiBaaGVuZywgTHY7IGVsbGlvdHRAaHBlLmNvbTsgbGludXgtbnZkaW1tQGxpc3RzLjAx
+Lm9yZzsgbGludXgtDQo+ID4gPiBhY3BpQHZnZXIua2VybmVsLm9yZzsgbGludXgta2VybmVsQHZn
+ZXIua2VybmVsLm9yZzsgZGV2ZWxAYWNwaWNhLm9yZw0KPiA+ID4gU3ViamVjdDogUmU6IFtQQVRD
+SCB2MiAxLzNdIEFDUEkvTkZJVDogVXBkYXRlIENvbnRyb2wgUmVnaW9uDQo+ID4gPiBTdHJ1Y3R1
+cmUgdG8gY29tcGx5IEFDUEkgNi4xDQo+ID4gPg0KPiA+ID4gT24gVHVlLCAyMDE2LTAzLTAxIGF0
+IDE1OjEzICswMDAwLCBNb29yZSwgUm9iZXJ0IHdyb3RlOg0KPiA+ID4gPg0KPiA+ID4gPiA+IC0t
+LS0tT3JpZ2luYWwgTWVzc2FnZS0tLS0tDQo+ID4gPiA+ID4gRnJvbTogVG9zaGkgS2FuaSBbbWFp
+bHRvOnRvc2hpLmthbmlAaHBlLmNvbV0NCj4gPiA+ID4gPiBTZW50OiBNb25kYXksIEZlYnJ1YXJ5
+IDIyLCAyMDE2IDE6NTUgUE0NCj4gPiA+ID4gPiBUbzogcmp3QHJqd3lzb2NraS5uZXQ7IFdpbGxp
+YW1zLCBEYW4gSg0KPiA+ID4gPiA+IENjOiBNb29yZSwgUm9iZXJ0OyBaaGVuZywgTHY7IGVsbGlv
+dHRAaHBlLmNvbTsNCj4gPiA+ID4gPiBsaW51eC1udmRpbW1AbGlzdHMuMDEub3IgZzsgbGludXgt
+YWNwaUB2Z2VyLmtlcm5lbC5vcmc7DQo+ID4gPiA+ID4gbGludXgta2VybmVsQHZnZXIua2VybmVs
+Lm9yZzsgZGV2ZWxAYWNwaWNhLm9yZzsgVG9zaGkgS2FuaQ0KPiA+ID4gPiA+IFN1YmplY3Q6IFtQ
+QVRDSCB2MiAxLzNdIEFDUEkvTkZJVDogVXBkYXRlIENvbnRyb2wgUmVnaW9uDQo+ID4gPiA+ID4g
+U3RydWN0dXJlIHRvIGNvbXBseSBBQ1BJIDYuMQ0KPiA+ID4gPiA+DQo+ID4gPiA+ID4gQUNQSSA2
+LjEsIFRhYmxlIDUtMTMzLCB1cGRhdGVzIE5WRElNTSBDb250cm9sIFJlZ2lvbiBTdHJ1Y3R1cmUN
+Cj4gPiA+ID4gPiBhcyBmb2xsb3dzLg0KPiA+ID4gPiA+IMKgLSBWYWxpZCBGaWVsZHMsIE1hbnVm
+YWN0dXJpbmcgTG9jYXRpb24sIGFuZCBNYW51ZmFjdHVyaW5nIERhdGUNCj4gPiA+ID4gPiDCoMKg
+wqBhcmUgYWRkZWQgZnJvbSByZXNlcnZlZCByYW5nZS7CoMKgTm8gY2hhbmdlIGluIHRoZSBzdHJ1
+Y3R1cmUNCj4gc2l6ZS4NCj4gPiA+ID4gPiDCoC0gSURzIGRlZmluZWQgYXMgU1BEIHZhbHVlcyBh
+cmUgYXJyYXlzIG9mIGJ5dGVzLsKgwqBUaGUgc3BlYw0KPiA+ID4gPiA+IMKgwqDCoGNsYXJpZmll
+ZCB0aGF0IHRoZXkgbmVlZCB0byBiZSByZXByZXNlbnRlZCBhcyBhcnJheXMgb2YgYnl0ZXMNCj4g
+PiA+ID4gPiDCoMKgwqBhcyB3ZWxsLg0KPiA+ID4gPiA+DQo+ID4gPiA+ID4gVGhpcyBwYXRjaCBt
+YWtlcyB0aGUgZm9sbG93aW5nIGNoYW5nZXMgdG8gc3VwcG9ydCB0aGlzIHVwZGF0ZS4NCj4gPiA+
+ID4gPiDCoC0gQ2hhbmdlICdzdHJ1Y3QgYWNwaV9uZml0X2NvbnRyb2xfcmVnaW9uJyB0byByZWZs
+ZWN0IHRoZSB1cGRhdGUuDQo+ID4gPiA+ID4gwqDCoMKgU1BEIElEcyBhcmUgZGVmaW5lZCBhcyBh
+cnJheXMgb2YgYnl0ZXMsIHNvIHRoYXQgdGhleSBjYW4gYmUNCj4gPiA+ID4gPiDCoMKgwqB0cmVh
+dGVkIGluIHRoZSBzYW1lIHdheSByZWdhcmRsZXNzIG9mIENQVSBlbmRpYW5uZXNzIGFuZCBhcmUN
+Cj4gPiA+ID4gPiDCoMKgwqBub3QgbWlzcy10cmVhdGVkIGFzIGxpdHRsZS1lbmRpYW4gbnVtZXJp
+YyB2YWx1ZXMuDQo+ID4gPiA+DQo+ID4gPiA+DQo+ID4gPiA+IEkgZG9uJ3QgdGhpbmsgd2UgYXJl
+IGdvaW5nIHRvIHN0YXJ0IGNoYW5naW5nIHRoZSBBQ1BJIHRhYmxlcw0KPiA+ID4gPiBkZWZpbmVk
+IGluIHRoZSBBQ1BJQ0EgaGVhZGVycyBiZWNhdXNlIG9mIHRoaXMuIFdlIGRvIGluIGZhY3QgaGF2
+ZQ0KPiA+ID4gPiBtYWNyb3MgZm9yIHRoaXMgcHVycG9zZS4NCj4gPiA+DQo+ID4gPiBDYW4geW91
+IGVsYWJvcmF0ZSB3aGF0IG1hY3JvcyB5b3Ugc3VnZ2VzdCB0byB1c2UgZm9yIHRoaXMgcHVycG9z
+ZT8NCj4gPiA+DQo+ID4gPiBUaGFua3MsDQo+ID4gPiAtVG9zaGkNCj4gPiBOICAgICByICB5ICAg
+YiBYICDHp3YgXiAp3rp7Lm4gKyAgICB7IGkgYiB7YXkgHcqH2pkgLGogICBmICAgaCAgIHogHiB3
+DQo+ID4NCj4gDQo+ICAgIGo6K3YgICB3IGogbSAgICAgICAgIHpaKyAgICAg3aJqIiAgISBpDQo=
