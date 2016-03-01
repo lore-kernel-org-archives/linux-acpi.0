@@ -1,59 +1,57 @@
-From: Dan Williams <dan.j.williams@intel.com>
-Subject: Re: [PATCH v2 1/3] ACPI/NFIT: Update Control Region Structure to
- comply ACPI 6.1
-Date: Tue, 1 Mar 2016 10:14:32 -0800
-Message-ID: <CAPcyv4hS44abMCs1sxdLW0YgMjP33Td0LbEWhXi9jqJ_ARU7CA@mail.gmail.com>
-References: <1456178130-26468-1-git-send-email-toshi.kani@hpe.com>
-	<1456178130-26468-2-git-send-email-toshi.kani@hpe.com>
-	<94F2FBAB4432B54E8AACC7DFDE6C92E37E44D64B@ORSMSX110.amr.corp.intel.com>
-	<1456850284.15454.23.camel@hpe.com>
-	<94F2FBAB4432B54E8AACC7DFDE6C92E37E44D6E1@ORSMSX110.amr.corp.intel.com>
-	<1456853819.15454.45.camel@hpe.com>
+From: Peter Zijlstra <peterz@infradead.org>
+Subject: Re: [RFC][PATCH] tags: Fix DEFINE_PER_CPU expansions
+Date: Tue, 1 Mar 2016 19:18:42 +0100
+Message-ID: <20160301181842.GX6357@twins.programming.kicks-ass.net>
+References: <20160301102625.GQ6357@twins.programming.kicks-ass.net>
+ <20160301163707.GF3965@htj.duckdns.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-ob0-f179.google.com ([209.85.214.179]:36653 "EHLO
-	mail-ob0-f179.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751531AbcCASOd (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 1 Mar 2016 13:14:33 -0500
-Received: by mail-ob0-f179.google.com with SMTP id rt7so2422372obb.3
-        for <linux-acpi@vger.kernel.org>; Tue, 01 Mar 2016 10:14:33 -0800 (PST)
-In-Reply-To: <1456853819.15454.45.camel@hpe.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <netdev-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20160301163707.GF3965@htj.duckdns.org>
+Sender: netdev-owner@vger.kernel.org
+To: Tejun Heo <tj@kernel.org>
+Cc: linux-kernel@vger.kernel.org, Andrew Morton <akpm@linux-foundation.org>, rjw@rjwysocki.net, konrad.wilk@oracle.com, Ingo Molnar <mingo@kernel.org>, paulmck@linux.vnet.ibm.com, davem@davemloft.net, linux-acpi@vger.kernel.org, netdev@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Toshi Kani <toshi.kani@hpe.com>
-Cc: "Moore, Robert" <robert.moore@intel.com>, "rjw@rjwysocki.net" <rjw@rjwysocki.net>, "Zheng, Lv" <lv.zheng@intel.com>, "elliott@hpe.com" <elliott@hpe.com>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "devel@acpica.org" <devel@acpica.org>
 
-On Tue, Mar 1, 2016 at 9:36 AM, Toshi Kani <toshi.kani@hpe.com> wrote:
-> On Tue, 2016-03-01 at 16:03 +0000, Moore, Robert wrote:
->> We have a bunch of macros in include/acmacros.h -- like this:
->>
->> ACPI_MOVE_16_TO_16(d, s)
->
-> There is a problem in using the ACPICA byte-swap macros.  ACPI is little-
-> endian arch, so the macros are set to perform byte-swappings when the CPU
-> arch is big-endian.  This case, however, is the other way around.  The
-> fields in question are defined & stored as arrays of bytes.  If you treat
-> them as multi-bytes numeric values, then you need to byte-swap them when
-> the CPU arch is little-endian because arrays of bytes have the same
-> addressing as big-endian.
->
-> Another issue is that it is not clear who needs to perform the byte-
-> swapping among ACPICA and drivers.  If ACPICA, drivers must agree that
-> these fields are always treated as multi-bytes numeric values despite of
-> the spec.  If drivers, we need to make sure that only a single driver
-> performs this byte-swapping one time as ACPI tables are global structures.
->
-> I think it is much clearer to define the structure according to the ACPI
-> spec.
+On Tue, Mar 01, 2016 at 11:37:07AM -0500, Tejun Heo wrote:
+> Hello, Peter.
+> 
+> On Tue, Mar 01, 2016 at 11:26:25AM +0100, Peter Zijlstra wrote:
+> > 
+> > $ make tags
+> >   GEN     tags
+> > ctags: Warning: drivers/acpi/processor_idle.c:64: null expansion of name pattern "\1"
+> > ctags: Warning: drivers/xen/events/events_2l.c:41: null expansion of name pattern "\1"
+> > ctags: Warning: kernel/locking/lockdep.c:151: null expansion of name pattern "\1"
+> > ctags: Warning: kernel/rcu/rcutorture.c:133: null expansion of name pattern "\1"
+> > ctags: Warning: kernel/rcu/rcutorture.c:135: null expansion of name pattern "\1"
+> > ctags: Warning: kernel/workqueue.c:323: null expansion of name pattern "\1"
+> > ctags: Warning: net/ipv4/syncookies.c:53: null expansion of name pattern "\1"
+> > ctags: Warning: net/ipv6/syncookies.c:44: null expansion of name pattern "\1"
+> > ctags: Warning: net/rds/page.c:45: null expansion of name pattern "\1"
+> > 
+> > Which are all the result of the DEFINE_PER_CPU pattern:
+> > 
+> > scripts/tags.sh:200:	'/\<DEFINE_PER_CPU([^,]*, *\([[:alnum:]_]*\)/\1/v/'
+> > scripts/tags.sh:201:	'/\<DEFINE_PER_CPU_SHARED_ALIGNED([^,]*, *\([[:alnum:]_]*\)/\1/v/'
+> > 
+> > The below cures them. All except the workqueue one are within reasonable
+> > distance of the 80 char limit. TJ do you have any preference on how to
+> > fix the wq one, or shall we just not care its too long?
+> 
+> Urgh... I really hate the fact that we're putting on arbitrary
+> formatting constraints to compensate for shortcomings in an
+> out-of-line utility.
 
-I think the "ACPI tables are little-endian" assumption is pervasive
-throughout the implementation.
+Yes it does.
 
-Toshi, it seems all we need is conversions like:
+I'm not too bothered if you don't want to fix this, I just figured I'd
+have a stab at fixing all this, since I regularly run 'make tags' and
+got tired of seeing the warns.
 
-- sprintf(buf, "%#x\n", dcr->vendor_id);
-+ sprintf(buf, "%#x\n", le16_to_cpu(dcr->vendor_id));
+> Can't it do multiline regex?
 
-...for the values exported to userspace through sysfs, but otherwise
-leave the base table definitions as is.  Will this suffice?
+Apparently not:
+
+  https://sourceforge.net/p/ctags/feature-requests/38/
