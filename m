@@ -1,123 +1,177 @@
-From: Peter Hurley <peter@hurleysoftware.com>
-Subject: Re: [PATCH v4 0/4] ACPI: parse the SPCR table
-Date: Tue, 1 Mar 2016 07:31:23 -0800
-Message-ID: <56D5B5CB.7010702@hurleysoftware.com>
-References: <1456747355-15692-1-git-send-email-aleksey.makarov@linaro.org>
+From: Leif Liddy <leif.linux@gmail.com>
+Subject: Re: ACPI SPI slave device
+Date: Tue, 1 Mar 2016 16:42:18 +0100
+Message-ID: <CAAbRKOscDyYaUqBTFVFZ2Fe81a_Kkx9oeNXHrttm3Qs_27fAzQ@mail.gmail.com>
+References: <CAAbRKOuTsBe0SBvcD-q+bBOSdkv_OWBu0-YWeMfKnM1o4MhT4A@mail.gmail.com>
+	<20160223073819.GK1770@lahna.fi.intel.com>
+	<CAAbRKOvktig4w9RPngCV4PBYZmO+3emCPwjMT1XMSxNesY+M6A@mail.gmail.com>
+	<20160223150222.GL1770@lahna.fi.intel.com>
+	<20160223153240.GM1770@lahna.fi.intel.com>
+	<CAAbRKOu+s=OZw8vw2kfWs=JCQB1YcVg+51N5Yh_dCJOuytR2zA@mail.gmail.com>
+	<20160229082114.GC1770@lahna.fi.intel.com>
+	<CAAbRKOt=CDOqD1FESZkxv4fdYSDm6qoi4J0wYn=e5mvN-NLpCA@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-pf0-f178.google.com ([209.85.192.178]:33999 "EHLO
-	mail-pf0-f178.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754532AbcCAPb2 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 1 Mar 2016 10:31:28 -0500
-Received: by mail-pf0-f178.google.com with SMTP id 4so36238576pfd.1
-        for <linux-acpi@vger.kernel.org>; Tue, 01 Mar 2016 07:31:28 -0800 (PST)
-In-Reply-To: <1456747355-15692-1-git-send-email-aleksey.makarov@linaro.org>
+Received: from mail-ig0-f169.google.com ([209.85.213.169]:35816 "EHLO
+	mail-ig0-f169.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753994AbcCAPmT (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 1 Mar 2016 10:42:19 -0500
+Received: by mail-ig0-f169.google.com with SMTP id hb3so20608488igb.0
+        for <linux-acpi@vger.kernel.org>; Tue, 01 Mar 2016 07:42:19 -0800 (PST)
+In-Reply-To: <CAAbRKOt=CDOqD1FESZkxv4fdYSDm6qoi4J0wYn=e5mvN-NLpCA@mail.gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Aleksey Makarov <aleksey.makarov@linaro.org>, linux-acpi@vger.kernel.org
-Cc: linux-serial@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Russell King <linux@arm.linux.org.uk>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, Leif Lindholm <leif.lindholm@linaro.org>, Graeme Gregory <graeme.gregory@linaro.org>, Al Stone <ahs3@redhat.com>, Christopher Covington <cov@codeaurora.org>, Yury Norov <ynorov@caviumnetworks.com>, "Zheng, Lv" <lv.zheng@intel.com>
+To: Mika Westerberg <mika.westerberg@linux.intel.com>
+Cc: linux-acpi@vger.kernel.org, jarkko.nikula@linux.intel.com
 
-On 02/29/2016 04:02 AM, Aleksey Makarov wrote:
-> 'ARM Server Base Boot Requirements' [1] mentions SPCR (Serial Port
-> Console Redirection Table) [2] as a mandatory ACPI table that
-> specifies the configuration of serial console.
-> 
-> Introduce a new function acpi_console_check().  At the uart port
-> registration, this function checks if the ACPI SPCR table specifies
-> its argument of type struct uart_port to be a console
-> and if so calls add_preferred_console().
+With Ismo's patch applied, I added a few printk statements to spi.c
+and resource.c (the lines beginning with xxx).
 
-How will a user enable an earlycon on the same console as the SPCR
-console if there is no DBG2 table?
+modprobe pxa2xx-spi-pci
 
 
-> Use SPCR to tell if SBSA serial driver should use 32-bit access to registers.
-> 
-> Based on the work by Leif Lindholm [3]
-> 
-> Should be applied to next-20160229.
-> 
-> Tested on QEMU.  SPCR support is included in QEMU's ARM mach-virt
-> since 2.4 release.
-> 
-> v4:
-> - drop patch "ACPI: change __init to __ref for early_acpi_os_unmap_memory()"
->   ACPI developers work on a new API and asked not to do that.
->   Instead, use acpi_get_table_with_size()/early_acpi_os_unmap_memory() once
->   and cache the result. (Lv Zheng)
-> - fix some style issues (Yury Norov)
-> 
-> v3:
-> https://lkml.kernel.org/g/1455559532-8305-1-git-send-email-aleksey.makarov@linaro.org
-> 
-> Greg Kroah-Hartman did not like v2 so I have rewritten this patchset:
-> 
-> - drop acpi_match() member of struct console
-> - drop implementations of this member for pl011 and 8250
-> - drop the patch that renames some vars in printk.c as it is not needed anymore
-> - drop patch that introduces system wide acpi_table_parse2().
->   Instead introduce a custom acpi_table_parse_spcr() in spcr.c
-> 
-> Instead of introducing a new match_acpi() member of struct console,
-> this patchset introduces a new function acpi_console_check().
-> This function is called when a new uart is registered at serial_core.c
-> the same way OF code checks for console.  If the registered uart is the
-> console specified by SPCR table, this function calls add_preferred_console()
-> 
-> The restrictions of this approach are:
-> 
-> - only serial consoles can be set up
-> - only consoles specified by the memory/io address can be set up
->   (SPCR can specify devices by PCI id/PCI address)
-> 
-> v2:
-> https://lkml.kernel.org/g/1455299022-11641-1-git-send-email-aleksey.makarov@linaro.org
-> - don't use SPCR if user specified console in command line
-> - fix initialization order of newcon->index = 0
-> - rename some variables at printk.c (Joe Perches, Peter Hurley)
-> - enable ACPI_SPCR_TABLE in a separate patch (Andy Shevchenko)
-> - remove the retry loop for console registering (Peter Hurley).
->   Instead, obtain SPCR with acpi_get_table().  That works after
->   call to acpi_early_init() i. e. in any *_initcall()
-> - describe design decision behind introducing acpi_match() (Peter Hurley)
-> - fix compilation for x86 + ACPI (Graeme Gregory)
-> - introduce DBG2 constants in a separate patch (Andy Shevchenko)
-> - fix a typo in DBG2 constants (Andy Shevchenko)
-> - add ACPI_DBG2_ARM_SBSA_32BIT constant (Christopher Covington)
-> - add support for ACPI_DBG2_ARM_SBSA_* consoles (Christopher Covington)
-> - add documentation for functions
-> - add a patch that uses SPCR to find if SBSA serial driver should use 32-bit
->   accessor functions (Christopher Covington)
-> - change __init to __ref for early_acpi_os_unmap_memory() in a separate patch
-> - introduce acpi_table_parse2() in a separate patch
-> - fix fetching the SPCR table early (Mark Salter)
-> - add a patch from Mark Salter that introduces support for matching 8250-based
->   consoles
-> 
-> v1:
-> https://lkml.kernel.org/g/1453722324-22407-1-git-send-email-aleksey.makarov@linaro.org
-> 
-> [1] http://infocenter.arm.com/help/index.jsp?topic=/com.arm.doc.den0044a/index.html
-> [2] https://msdn.microsoft.com/en-us/library/windows/hardware/dn639132(v=vs.85).aspx
-> [3] https://lkml.kernel.org/g/1441716217-23786-1-git-send-email-leif.lindholm@linaro.org
-> 
-> Aleksey Makarov (4):
->   ACPI: parse SPCR and enable matching console
->   ACPI: enable ACPI_SPCR_TABLE on ARM64
->   ACPI: add definitions of DBG2 subtypes
->   serial: pl011: use ACPI SPCR to setup 32-bit access
-> 
->  arch/arm64/Kconfig               |   1 +
->  drivers/acpi/Kconfig             |   3 +
->  drivers/acpi/Makefile            |   1 +
->  drivers/acpi/spcr.c              | 138 +++++++++++++++++++++++++++++++++++++++
->  drivers/tty/serial/amba-pl011.c  |   2 +
->  drivers/tty/serial/serial_core.c |  14 +++-
->  include/acpi/actbl2.h            |   5 ++
->  include/linux/acpi.h             |  15 +++++
->  8 files changed, 177 insertions(+), 2 deletions(-)
->  create mode 100644 drivers/acpi/spcr.c
-> 
+pxa2xx-spi pxa2xx-spi.0: found DMA channel "tx" at index 0
+xxx resource.c acpi_dev_get_resources acpi_handle is ffff8802650bdcd0
+returns c.count 0...
+dma dma0chan0: dwc_alloc_chan_resources: allocated 64 descriptors
+dmaengine: __dma_request_channel: success (dma0chan0)
+pxa2xx-spi pxa2xx-spi.0: found DMA channel "rx" at index 1
+xxx resource.c acpi_dev_get_resources acpi_handle is ffff8802650bdcd0
+returns c.count 0...
+dmaengine: private_candidate: dma0chan0 busy
+dma dma0chan1: dwc_alloc_chan_resources: allocated 64 descriptors
+dmaengine: __dma_request_channel: success (dma0chan1)
+pxa2xx-spi pxa2xx-spi.0: registered master spi0
+xxx spi.c acpi_register_spi_devices acpi_handle is ffff8802650bdcd0
+xxx resource.c acpi_dev_get_resources acpi_handle is ffff8802650bf000
+returns c.count 0...
 
+
+I believe these acpi handle values correspond to:
+ffff8802650bdcd0 = INT33C1/SPI controller
+ffff8802650bf000 = APP000D/SPI slave
+
+spi.c did find the slave device, as this statement was not evaluated:
+
+     if (ACPI_FAILURE(status))
+             dev_warn(&master->dev, "failed to enumerate SPI slaves\n");
+
+However, the slave device is never enumerated.
+
+Do you know how I could print out the the name or id of the ACPI
+device from the acpi_device pointer?
+**I'm struggling a bit with some of these data types
+
+I'll continue to debug this issue a bit more...
+
+On Mon, Feb 29, 2016 at 6:21 PM, Leif Liddy <leif.linux@gmail.com> wrote:
+> I debugged acpi_lpss.c as it attempted to created a platform device for INT33C1.
+>
+> I got as far as this function in resouce.c
+> status = acpi_walk_resources(adev->handle, METHOD_NAME__CRS,
+> acpi_dev_process_resource, &c);
+>
+> the value of c never gets incremented --and returns 0.
+>
+> I'm not sure how closely apcia follows the logic of these tables and
+> whether the OSI value is actually checked or not.
+> If WBUF is being returned,  then that would be the source of the issue.
+>
+>
+> Device (SDMA)
+>      {
+>         Name (_ADR, 0x00150000)  // _ADR: Address
+>         Name (_UID, 0x01)  // _UID: Unique ID
+>         Name (RBUF, ResourceTemplate ()
+>         ...
+>         Method (_CRS, 0, NotSerialized)  // _CRS: Current Resource Settings
+>         {
+>              Return (RBUF) /* \_SB_.PCI0.SDMA.RBUF */
+>         }
+>         ...
+> Device (SPI1)
+>     {
+>        Name (_ADR, 0x00150004)  // _ADR: Address
+>        Name (_CID, "INT33C1" /* Intel Serial I/O SPI Host Controller */)
+>         ..
+>        Name (WBUF, ResourceTemplate ()
+>        {
+>        })
+>        Name (DBUF, ResourceTemplate ()
+>        {
+>             FixedDMA (0x0010, 0x0006, Width32bit, )
+>             FixedDMA (0x0011, 0x0007, Width32bit, )
+>        })
+>       Method (_CRS, 0, NotSerialized)  // _CRS: Current Resource Settings
+>       {
+>           If (!OSDW ())
+>           {
+>               Return (WBUF) /* \_SB_.PCI0.SPI1.WBUF */
+>           }
+>
+>               Return (ConcatenateResTemplate (RBUF, DBUF))
+>           }
+>      }
+>         ......
+>
+>
+> In any case, it sounds like the best approach is just to go with the
+> spi-pxa2xx-pci driver.
+>
+>>>I believe passing the ACPI handle to the platform device is the real
+>>fix.
+>
+> Ok, I understand what this means now --and I know what the acpi handle
+> is for INT33C1.
+> I'm going to try and modify spi.c to use this acpi handle --and
+> hopefully it will find the SPI slave device.
+>
+> handle = ACPI_HANDLE(master->dev.parent);
+>
+> status = acpi_walk_namespace(ACPI_TYPE_DEVICE, handle, 1,
+>                                      acpi_spi_add_device, NULL,
+>                                      master, NULL);
+>
+> On Mon, Feb 29, 2016 at 9:21 AM, Mika Westerberg
+> <mika.westerberg@linux.intel.com> wrote:
+>> On Tue, Feb 23, 2016 at 09:30:40PM +0100, Leif Liddy wrote:
+>>> I'm beginning to understand how this is meant to work.
+>>>
+>>> spi_pxa2xx_platform should by itself be able to setup the SPI controller.
+>>> **it has the ACPI ID for it
+>>> { "INT33C1", LPSS_LPT_SSP }
+>>>
+>>> When I modprobe spi_pxa2xx_platform
+>>> pxa2xx_spi_probe never gets called, there must be an issue with:
+>>> acpi_match_table = ACPI_PTR(pxa2xx_spi_acpi_match)
+>>
+>> That's fine - the device is a PCI device and does not require ACPI ID.
+>> However, the PCI part of the driver creates this platform device for
+>> spi_pxa2xx_platform.
+>>
+>>> Ok, so I've installed Ismo's one line patch
+>>>
+>>> dmesg log of "modprobe spi_pxa2xx_pci"
+>>>
+>>> pxa2xx-spi pxa2xx-spi.0: found DMA channel "tx" at index 0
+>>> dma dma0chan0: dwc_alloc_chan_resources: allocated 64 descriptors
+>>> dmaengine: __dma_request_channel: success (dma0chan0)
+>>> pxa2xx-spi pxa2xx-spi.0: found DMA channel "rx" at index 1
+>>> dmaengine: private_candidate: dma0chan0 busy
+>>> dma dma0chan1: dwc_alloc_chan_resources: allocated 64 descriptors
+>>> dmaengine: __dma_request_channel: success (dma0chan1)
+>>
+>> Difference is that with Ismo's patch you actually have ACPI handle for
+>> the device so it tries to use ACPI to look for the DMA channels.
+>>
+>>> without the patch:
+>>>
+>>> dma dma0chan0: dwc_alloc_chan_resources: allocated 64 descriptors
+>>> dmaengine: __dma_request_channel: success (dma0chan0)
+>>> dmaengine: private_candidate: dma0chan0 busy
+>>> dma dma0chan1: dwc_alloc_chan_resources: allocated 64 descriptors
+>>> dmaengine: __dma_request_channel: success (dma0chan1)
+>>
+>> Here it uses hardcoded indices instead. In both cases result is the
+>> same.
