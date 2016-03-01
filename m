@@ -1,61 +1,41 @@
-From: "Moore, Robert" <robert.moore@intel.com>
-Subject: RE: [PATCH v2 1/3] ACPI/NFIT: Update Control Region Structure to
- comply ACPI 6.1
-Date: Tue, 1 Mar 2016 16:03:07 +0000
-Message-ID: <94F2FBAB4432B54E8AACC7DFDE6C92E37E44D6E1@ORSMSX110.amr.corp.intel.com>
-References: <1456178130-26468-1-git-send-email-toshi.kani@hpe.com>
-	 <1456178130-26468-2-git-send-email-toshi.kani@hpe.com>
-	 <94F2FBAB4432B54E8AACC7DFDE6C92E37E44D64B@ORSMSX110.amr.corp.intel.com>
- <1456850284.15454.23.camel@hpe.com>
+From: Lukas Wunner <lukas@wunner.de>
+Subject: Re: ACPI SPI slave device
+Date: Tue, 1 Mar 2016 17:07:26 +0100
+Message-ID: <20160301160726.GA23371@wunner.de>
+References: <CAAbRKOuTsBe0SBvcD-q+bBOSdkv_OWBu0-YWeMfKnM1o4MhT4A@mail.gmail.com>
+ <20160223073819.GK1770@lahna.fi.intel.com>
+ <CAAbRKOvktig4w9RPngCV4PBYZmO+3emCPwjMT1XMSxNesY+M6A@mail.gmail.com>
+ <20160223150222.GL1770@lahna.fi.intel.com>
+ <20160223153240.GM1770@lahna.fi.intel.com>
+ <CAAbRKOu+s=OZw8vw2kfWs=JCQB1YcVg+51N5Yh_dCJOuytR2zA@mail.gmail.com>
+ <20160229082114.GC1770@lahna.fi.intel.com>
+ <CAAbRKOt=CDOqD1FESZkxv4fdYSDm6qoi4J0wYn=e5mvN-NLpCA@mail.gmail.com>
+ <CAAbRKOscDyYaUqBTFVFZ2Fe81a_Kkx9oeNXHrttm3Qs_27fAzQ@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga14.intel.com ([192.55.52.115]:28863 "EHLO mga14.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753747AbcCAQFk (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 1 Mar 2016 11:05:40 -0500
-In-Reply-To: <1456850284.15454.23.camel@hpe.com>
-Content-Language: en-US
+Received: from mailout3.hostsharing.net ([176.9.242.54]:49667 "EHLO
+	mailout3.hostsharing.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753734AbcCAQG3 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 1 Mar 2016 11:06:29 -0500
+Content-Disposition: inline
+In-Reply-To: <CAAbRKOscDyYaUqBTFVFZ2Fe81a_Kkx9oeNXHrttm3Qs_27fAzQ@mail.gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Toshi Kani <toshi.kani@hpe.com>, "rjw@rjwysocki.net" <rjw@rjwysocki.net>, "Williams, Dan J" <dan.j.williams@intel.com>
-Cc: "Zheng, Lv" <lv.zheng@intel.com>, "elliott@hpe.com" <elliott@hpe.com>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "devel@acpica.org" <devel@acpica.org>
+To: Leif Liddy <leif.linux@gmail.com>
+Cc: Mika Westerberg <mika.westerberg@linux.intel.com>, linux-acpi@vger.kernel.org, jarkko.nikula@linux.intel.com
 
-V2UgaGF2ZSBhIGJ1bmNoIG9mIG1hY3JvcyBpbiBpbmNsdWRlL2FjbWFjcm9zLmggLS0gbGlrZSB0
-aGlzOg0KDQpBQ1BJX01PVkVfMTZfVE9fMTYoZCwgcykNCg0KDQo+IC0tLS0tT3JpZ2luYWwgTWVz
-c2FnZS0tLS0tDQo+IEZyb206IFRvc2hpIEthbmkgW21haWx0bzp0b3NoaS5rYW5pQGhwZS5jb21d
-DQo+IFNlbnQ6IFR1ZXNkYXksIE1hcmNoIDAxLCAyMDE2IDg6MzggQU0NCj4gVG86IE1vb3JlLCBS
-b2JlcnQ7IHJqd0Byand5c29ja2kubmV0OyBXaWxsaWFtcywgRGFuIEoNCj4gQ2M6IFpoZW5nLCBM
-djsgZWxsaW90dEBocGUuY29tOyBsaW51eC1udmRpbW1AbGlzdHMuMDEub3JnOyBsaW51eC0NCj4g
-YWNwaUB2Z2VyLmtlcm5lbC5vcmc7IGxpbnV4LWtlcm5lbEB2Z2VyLmtlcm5lbC5vcmc7IGRldmVs
-QGFjcGljYS5vcmcNCj4gU3ViamVjdDogUmU6IFtQQVRDSCB2MiAxLzNdIEFDUEkvTkZJVDogVXBk
-YXRlIENvbnRyb2wgUmVnaW9uIFN0cnVjdHVyZSB0bw0KPiBjb21wbHkgQUNQSSA2LjENCj4gDQo+
-IE9uIFR1ZSwgMjAxNi0wMy0wMSBhdCAxNToxMyArMDAwMCwgTW9vcmUsIFJvYmVydCB3cm90ZToN
-Cj4gPg0KPiA+ID4gLS0tLS1PcmlnaW5hbCBNZXNzYWdlLS0tLS0NCj4gPiA+IEZyb206IFRvc2hp
-IEthbmkgW21haWx0bzp0b3NoaS5rYW5pQGhwZS5jb21dDQo+ID4gPiBTZW50OiBNb25kYXksIEZl
-YnJ1YXJ5IDIyLCAyMDE2IDE6NTUgUE0NCj4gPiA+IFRvOiByandAcmp3eXNvY2tpLm5ldDsgV2ls
-bGlhbXMsIERhbiBKDQo+ID4gPiBDYzogTW9vcmUsIFJvYmVydDsgWmhlbmcsIEx2OyBlbGxpb3R0
-QGhwZS5jb207DQo+ID4gPiBsaW51eC1udmRpbW1AbGlzdHMuMDEub3IgZzsgbGludXgtYWNwaUB2
-Z2VyLmtlcm5lbC5vcmc7DQo+ID4gPiBsaW51eC1rZXJuZWxAdmdlci5rZXJuZWwub3JnOyBkZXZl
-bEBhY3BpY2Eub3JnOyBUb3NoaSBLYW5pDQo+ID4gPiBTdWJqZWN0OiBbUEFUQ0ggdjIgMS8zXSBB
-Q1BJL05GSVQ6IFVwZGF0ZSBDb250cm9sIFJlZ2lvbiBTdHJ1Y3R1cmUNCj4gPiA+IHRvIGNvbXBs
-eSBBQ1BJIDYuMQ0KPiA+ID4NCj4gPiA+IEFDUEkgNi4xLCBUYWJsZSA1LTEzMywgdXBkYXRlcyBO
-VkRJTU0gQ29udHJvbCBSZWdpb24gU3RydWN0dXJlIGFzDQo+ID4gPiBmb2xsb3dzLg0KPiA+ID4g
-wqAtIFZhbGlkIEZpZWxkcywgTWFudWZhY3R1cmluZyBMb2NhdGlvbiwgYW5kIE1hbnVmYWN0dXJp
-bmcgRGF0ZQ0KPiA+ID4gwqDCoMKgYXJlIGFkZGVkIGZyb20gcmVzZXJ2ZWQgcmFuZ2UuwqDCoE5v
-IGNoYW5nZSBpbiB0aGUgc3RydWN0dXJlIHNpemUuDQo+ID4gPiDCoC0gSURzIGRlZmluZWQgYXMg
-U1BEIHZhbHVlcyBhcmUgYXJyYXlzIG9mIGJ5dGVzLsKgwqBUaGUgc3BlYw0KPiA+ID4gwqDCoMKg
-Y2xhcmlmaWVkIHRoYXQgdGhleSBuZWVkIHRvIGJlIHJlcHJlc2VudGVkIGFzIGFycmF5cyBvZiBi
-eXRlcw0KPiA+ID4gwqDCoMKgYXMgd2VsbC4NCj4gPiA+DQo+ID4gPiBUaGlzIHBhdGNoIG1ha2Vz
-IHRoZSBmb2xsb3dpbmcgY2hhbmdlcyB0byBzdXBwb3J0IHRoaXMgdXBkYXRlLg0KPiA+ID4gwqAt
-IENoYW5nZSAnc3RydWN0IGFjcGlfbmZpdF9jb250cm9sX3JlZ2lvbicgdG8gcmVmbGVjdCB0aGUg
-dXBkYXRlLg0KPiA+ID4gwqDCoMKgU1BEIElEcyBhcmUgZGVmaW5lZCBhcyBhcnJheXMgb2YgYnl0
-ZXMsIHNvIHRoYXQgdGhleSBjYW4gYmUNCj4gPiA+IMKgwqDCoHRyZWF0ZWQgaW4gdGhlIHNhbWUg
-d2F5IHJlZ2FyZGxlc3Mgb2YgQ1BVIGVuZGlhbm5lc3MgYW5kIGFyZQ0KPiA+ID4gwqDCoMKgbm90
-IG1pc3MtdHJlYXRlZCBhcyBsaXR0bGUtZW5kaWFuIG51bWVyaWMgdmFsdWVzLg0KPiA+DQo+ID4N
-Cj4gPiBJIGRvbid0IHRoaW5rIHdlIGFyZSBnb2luZyB0byBzdGFydCBjaGFuZ2luZyB0aGUgQUNQ
-SSB0YWJsZXMgZGVmaW5lZA0KPiA+IGluIHRoZSBBQ1BJQ0EgaGVhZGVycyBiZWNhdXNlIG9mIHRo
-aXMuIFdlIGRvIGluIGZhY3QgaGF2ZSBtYWNyb3MgZm9yDQo+ID4gdGhpcyBwdXJwb3NlLg0KPiAN
-Cj4gQ2FuIHlvdSBlbGFib3JhdGUgd2hhdCBtYWNyb3MgeW91IHN1Z2dlc3QgdG8gdXNlIGZvciB0
-aGlzIHB1cnBvc2U/DQo+IA0KPiBUaGFua3MsDQo+IC1Ub3NoaQ0K
+Hi Leif,
+
+On Tue, Mar 01, 2016 at 04:42:18PM +0100, Leif Liddy wrote:
+> Do you know how I could print out the the name or id of the ACPI
+> device from the acpi_device pointer?
+
+printk("acpi_dev_name=%s\n", acpi_dev_name(adev));
+
+https://git.kernel.org/cgit/linux/kernel/git/torvalds/linux.git/tree/include/linux/acpi.h#n83
+https://git.kernel.org/cgit/linux/kernel/git/torvalds/linux.git/tree/include/acpi/acpi_bus.h#n354
+
+Best regards,
+
+Lukas
