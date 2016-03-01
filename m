@@ -1,188 +1,74 @@
-From: Peter Hurley <peter@hurleysoftware.com>
-Subject: Re: [PATCH v3 5/7] ACPI: serial: implement earlycon on ACPI DBG2 port
-Date: Tue, 1 Mar 2016 07:53:35 -0800
-Message-ID: <56D5BAFF.6080008@hurleysoftware.com>
-References: <1456749726-30261-1-git-send-email-aleksey.makarov@linaro.org>
- <1456749726-30261-6-git-send-email-aleksey.makarov@linaro.org>
+From: Toshi Kani <toshi.kani@hpe.com>
+Subject: Re: [PATCH v2 1/3] ACPI/NFIT: Update Control Region Structure to
+ comply ACPI 6.1
+Date: Tue, 01 Mar 2016 09:38:04 -0700
+Message-ID: <1456850284.15454.23.camel@hpe.com>
+References: <1456178130-26468-1-git-send-email-toshi.kani@hpe.com>
+	 <1456178130-26468-2-git-send-email-toshi.kani@hpe.com>
+	 <94F2FBAB4432B54E8AACC7DFDE6C92E37E44D64B@ORSMSX110.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-pa0-f47.google.com ([209.85.220.47]:35574 "EHLO
-	mail-pa0-f47.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754019AbcCAPxk (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 1 Mar 2016 10:53:40 -0500
-Received: by mail-pa0-f47.google.com with SMTP id bj10so45181616pad.2
-        for <linux-acpi@vger.kernel.org>; Tue, 01 Mar 2016 07:53:40 -0800 (PST)
-In-Reply-To: <1456749726-30261-6-git-send-email-aleksey.makarov@linaro.org>
+Received: from g4t3426.houston.hp.com ([15.201.208.54]:21223 "EHLO
+	g4t3426.houston.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753734AbcCAP6a (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 1 Mar 2016 10:58:30 -0500
+In-Reply-To: <94F2FBAB4432B54E8AACC7DFDE6C92E37E44D64B@ORSMSX110.amr.corp.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Aleksey Makarov <aleksey.makarov@linaro.org>, linux-acpi@vger.kernel.org
-Cc: linux-serial@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Russell King <linux@arm.linux.org.uk>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, Leif Lindholm <leif.lindholm@linaro.org>, Graeme Gregory <graeme.gregory@linaro.org>, Al Stone <ahs3@redhat.com>, Christopher Covington <cov@codeaurora.org>, Matthias Brugger <mbrugger@suse.com>, Jonathan Corbet <corbet@lwn.net>, Jiri Slaby <jslaby@suse.com>, linux-doc@vger.kernel.org
+To: "Moore, Robert" <robert.moore@intel.com>, "rjw@rjwysocki.net" <rjw@rjwysocki.net>, "Williams, Dan J" <dan.j.williams@intel.com>
+Cc: "Zheng, Lv" <lv.zheng@intel.com>, "elliott@hpe.com" <elliott@hpe.com>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "devel@acpica.org" <devel@acpica.org>
 
-On 02/29/2016 04:42 AM, Aleksey Makarov wrote:
-> Add ACPI_DBG2_EARLYCON_DECLARE() macros that declares
-> an earlycon on the serial port specified in the DBG2 ACPI table.
-> 
-> Pass the string "earlycon=acpi_dbg2" to the kernel to activate it.
-> 
-> Callbacks for EARLYCON_DECLARE() and OF_EARLYCON_DECLARE()
-> can also be used for this macros.
-> 
-> Signed-off-by: Aleksey Makarov <aleksey.makarov@linaro.org>
-> ---
->  Documentation/kernel-parameters.txt |  3 ++
->  drivers/tty/serial/earlycon.c       | 60 +++++++++++++++++++++++++++++++++++++
->  include/linux/acpi_dbg2.h           | 20 +++++++++++++
->  3 files changed, 83 insertions(+)
-> 
-> diff --git a/Documentation/kernel-parameters.txt b/Documentation/kernel-parameters.txt
-> index e0a21e4..19b947b 100644
-> --- a/Documentation/kernel-parameters.txt
-> +++ b/Documentation/kernel-parameters.txt
-> @@ -1072,6 +1072,9 @@ bytes respectively. Such letter suffixes can also be entirely omitted.
->  			A valid base address must be provided, and the serial
->  			port must already be setup and configured.
->  
-> +		acpi_dbg2
-> +			Use serial port specified by the DBG2 ACPI table.
-> +
->  	earlyprintk=	[X86,SH,BLACKFIN,ARM,M68k]
->  			earlyprintk=vga
->  			earlyprintk=efi
-> diff --git a/drivers/tty/serial/earlycon.c b/drivers/tty/serial/earlycon.c
-> index d217366..9ba3a04 100644
-> --- a/drivers/tty/serial/earlycon.c
-> +++ b/drivers/tty/serial/earlycon.c
-> @@ -22,6 +22,7 @@
->  #include <linux/sizes.h>
->  #include <linux/of.h>
->  #include <linux/of_fdt.h>
-> +#include <linux/acpi.h>
->  
->  #ifdef CONFIG_FIX_EARLYCON_MEM
->  #include <asm/fixmap.h>
-> @@ -200,6 +201,8 @@ int __init setup_earlycon(char *buf)
->  	return -ENOENT;
->  }
->  
-> +static bool setup_dbg2_earlycon;
-> +
->  /* early_param wrapper for setup_earlycon() */
->  static int __init param_setup_earlycon(char *buf)
->  {
-> @@ -212,6 +215,11 @@ static int __init param_setup_earlycon(char *buf)
->  	if (!buf || !buf[0])
->  		return early_init_dt_scan_chosen_serial();
->  
-> +	if (!strcmp(buf, "acpi_dbg2")) {
-> +		setup_dbg2_earlycon = true;
-> +		return 0;
-> +	}
+On Tue, 2016-03-01 at 15:13 +0000, Moore, Robert wrote:
+>=20
+> > -----Original Message-----
+> > From: Toshi Kani [mailto:toshi.kani@hpe.com]
+> > Sent: Monday, February 22, 2016 1:55 PM
+> > To: rjw@rjwysocki.net; Williams, Dan J
+> > Cc: Moore, Robert; Zheng, Lv; elliott@hpe.com; linux-nvdimm@lists.0=
+1.or
+> > g;
+> > linux-acpi@vger.kernel.org; linux-kernel@vger.kernel.org;
+> > devel@acpica.org; Toshi Kani
+> > Subject: [PATCH v2 1/3] ACPI/NFIT: Update Control Region Structure =
+to
+> > comply ACPI 6.1
+> >=20
+> > ACPI 6.1, Table 5-133, updates NVDIMM Control Region Structure as
+> > follows.
+> > =C2=A0- Valid Fields, Manufacturing Location, and Manufacturing Dat=
+e
+> > =C2=A0=C2=A0=C2=A0are added from reserved range.=C2=A0=C2=A0No chan=
+ge in the structure size.
+> > =C2=A0- IDs defined as SPD values are arrays of bytes.=C2=A0=C2=A0T=
+he spec
+> > =C2=A0=C2=A0=C2=A0clarified that they need to be represented as arr=
+ays of bytes
+> > =C2=A0=C2=A0=C2=A0as well.
+> >=20
+> > This patch makes the following changes to support this update.
+> > =C2=A0- Change 'struct acpi_nfit_control_region' to reflect the upd=
+ate.
+> > =C2=A0=C2=A0=C2=A0SPD IDs are defined as arrays of bytes, so that t=
+hey can be
+> > =C2=A0=C2=A0=C2=A0treated in the same way regardless of CPU endiann=
+ess and are
+> > =C2=A0=C2=A0=C2=A0not miss-treated as little-endian numeric values.
+>=20
+>=20
+> I don't think we are going to start changing the ACPI tables defined =
+in
+> the ACPICA headers because of this. We do in fact have macros for thi=
+s
+> purpose.
 
-So this series doesn't start an ACPI earlycon at early_param time?
-That doesn't seem very useful.
+Can you elaborate what macros you suggest to use for this purpose?
 
-When does the ACPI earlycon actually start?
-And don't say "when the DBG2 table is probed"; that much is obvious.
-
-
-> +
->  	err = setup_earlycon(buf);
->  	if (err == -ENOENT || err == -EALREADY)
->  		return 0;
-> @@ -286,3 +294,55 @@ int __init of_setup_earlycon(const struct earlycon_id *match,
->  }
->  
->  #endif /* CONFIG_OF_EARLY_FLATTREE */
-> +
-> +#ifdef CONFIG_ACPI_DBG2_TABLE
-> +
-> +int __init acpi_setup_earlycon(struct acpi_dbg2_device *device, void *d)
-> +{
-> +	int err;
-> +	struct uart_port *port = &early_console_dev.port;
-> +	int (*setup)(struct earlycon_device *, const char *) = d;
-> +	struct acpi_generic_address *reg;
-> +
-> +	if (!setup_dbg2_earlycon)
-> +		return -ENODEV;
-> +
-> +	if (device->register_count < 1)
-> +		return -ENODEV;
-> +
-> +	if (device->base_address_offset >= device->length)
-> +		return -EINVAL;
-> +
-> +	reg = (void *)device + device->base_address_offset;
-> +
-> +	if (reg->space_id != ACPI_ADR_SPACE_SYSTEM_MEMORY &&
-> +	    reg->space_id != ACPI_ADR_SPACE_SYSTEM_IO)
-> +		return -EINVAL;
-> +
-> +	spin_lock_init(&port->lock);
-> +	port->uartclk = BASE_BAUD * 16;
-> +
-> +	if (reg->space_id == ACPI_ADR_SPACE_SYSTEM_MEMORY) {
-> +		if (device->port_type == ACPI_DBG2_ARM_SBSA_32BIT)
-> +			port->iotype = UPIO_MEM32;
-> +		else
-> +			port->iotype = UPIO_MEM;
-> +		port->mapbase = reg->address;
-> +		port->membase = earlycon_map(reg->address, SZ_4K);
-> +	} else {
-> +		port->iotype = UPIO_PORT;
-> +		port->iobase = reg->address;
-> +	}
-> +
-> +	early_console_dev.con->data = &early_console_dev;
-> +	err = setup(&early_console_dev, NULL);
-> +	if (err < 0)
-> +		return err;
-> +	if (!early_console_dev.con->write)
-> +		return -ENODEV;
-> +
-> +	register_console(early_console_dev.con);
-> +	return 0;
-> +}
-> +
-> +#endif /* CONFIG_ACPI_DBG2_TABLE */
-> diff --git a/include/linux/acpi_dbg2.h b/include/linux/acpi_dbg2.h
-> index 125ae7e..b653752 100644
-> --- a/include/linux/acpi_dbg2.h
-> +++ b/include/linux/acpi_dbg2.h
-> @@ -37,12 +37,32 @@ int acpi_dbg2_setup(struct acpi_table_header *header, const void *data);
->  	ACPI_DECLARE_PROBE_ENTRY(dbg2, name, ACPI_SIG_DBG2,		\
->  				 acpi_dbg2_setup, &__acpi_dbg2_data_##name)
->  
-> +int acpi_setup_earlycon(struct acpi_dbg2_device *device, void *d);
-> +
-> +/**
-> + * ACPI_DBG2_EARLYCON_DECLARE() - Define handler for ACPI GDB2 serial port
-> + * @name:		Identifier to compose name of table data
-> + * @subtype:		Subtype of the port
-> + * @console_setup:	Function to be called to setup the port
-> + *
-> + * Type of the console_setup() callback is
-> + * int (*setup)(struct earlycon_device *, const char *)
-> + * It's the type of callback of of_setup_earlycon().
-> + */
-> +#define ACPI_DBG2_EARLYCON_DECLARE(name, subtype, console_setup)	\
-> +	ACPI_DBG2_DECLARE(name, ACPI_DBG2_SERIAL_PORT, subtype,		\
-> +			  acpi_setup_earlycon, console_setup)
-> +
->  #else
->  
->  #define ACPI_DBG2_DECLARE(name, type, subtype, setup_fn, data_ptr)	\
->  	static const void *__acpi_dbg_data_##name[]			\
->  		__used __initdata = { (void *)setup_fn,	(void *)data_ptr }
->  
-> +#define ACPI_DBG2_EARLYCON_DECLARE(name, subtype, console_setup)	\
-> +	static const void *__acpi_dbg_data_serial_##name[]		\
-> +		__used __initdata = { (void *)console_setup }
-> +
->  #endif
->  
->  #endif
-> 
-
+Thanks,
+-Toshi
+--
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
