@@ -1,177 +1,188 @@
-From: Leif Liddy <leif.linux@gmail.com>
-Subject: Re: ACPI SPI slave device
-Date: Tue, 1 Mar 2016 16:42:18 +0100
-Message-ID: <CAAbRKOscDyYaUqBTFVFZ2Fe81a_Kkx9oeNXHrttm3Qs_27fAzQ@mail.gmail.com>
-References: <CAAbRKOuTsBe0SBvcD-q+bBOSdkv_OWBu0-YWeMfKnM1o4MhT4A@mail.gmail.com>
-	<20160223073819.GK1770@lahna.fi.intel.com>
-	<CAAbRKOvktig4w9RPngCV4PBYZmO+3emCPwjMT1XMSxNesY+M6A@mail.gmail.com>
-	<20160223150222.GL1770@lahna.fi.intel.com>
-	<20160223153240.GM1770@lahna.fi.intel.com>
-	<CAAbRKOu+s=OZw8vw2kfWs=JCQB1YcVg+51N5Yh_dCJOuytR2zA@mail.gmail.com>
-	<20160229082114.GC1770@lahna.fi.intel.com>
-	<CAAbRKOt=CDOqD1FESZkxv4fdYSDm6qoi4J0wYn=e5mvN-NLpCA@mail.gmail.com>
+From: Peter Hurley <peter@hurleysoftware.com>
+Subject: Re: [PATCH v3 5/7] ACPI: serial: implement earlycon on ACPI DBG2 port
+Date: Tue, 1 Mar 2016 07:53:35 -0800
+Message-ID: <56D5BAFF.6080008@hurleysoftware.com>
+References: <1456749726-30261-1-git-send-email-aleksey.makarov@linaro.org>
+ <1456749726-30261-6-git-send-email-aleksey.makarov@linaro.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-ig0-f169.google.com ([209.85.213.169]:35816 "EHLO
-	mail-ig0-f169.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753994AbcCAPmT (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 1 Mar 2016 10:42:19 -0500
-Received: by mail-ig0-f169.google.com with SMTP id hb3so20608488igb.0
-        for <linux-acpi@vger.kernel.org>; Tue, 01 Mar 2016 07:42:19 -0800 (PST)
-In-Reply-To: <CAAbRKOt=CDOqD1FESZkxv4fdYSDm6qoi4J0wYn=e5mvN-NLpCA@mail.gmail.com>
+Received: from mail-pa0-f47.google.com ([209.85.220.47]:35574 "EHLO
+	mail-pa0-f47.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754019AbcCAPxk (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 1 Mar 2016 10:53:40 -0500
+Received: by mail-pa0-f47.google.com with SMTP id bj10so45181616pad.2
+        for <linux-acpi@vger.kernel.org>; Tue, 01 Mar 2016 07:53:40 -0800 (PST)
+In-Reply-To: <1456749726-30261-6-git-send-email-aleksey.makarov@linaro.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Mika Westerberg <mika.westerberg@linux.intel.com>
-Cc: linux-acpi@vger.kernel.org, jarkko.nikula@linux.intel.com
+To: Aleksey Makarov <aleksey.makarov@linaro.org>, linux-acpi@vger.kernel.org
+Cc: linux-serial@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Russell King <linux@arm.linux.org.uk>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, Leif Lindholm <leif.lindholm@linaro.org>, Graeme Gregory <graeme.gregory@linaro.org>, Al Stone <ahs3@redhat.com>, Christopher Covington <cov@codeaurora.org>, Matthias Brugger <mbrugger@suse.com>, Jonathan Corbet <corbet@lwn.net>, Jiri Slaby <jslaby@suse.com>, linux-doc@vger.kernel.org
 
-With Ismo's patch applied, I added a few printk statements to spi.c
-and resource.c (the lines beginning with xxx).
+On 02/29/2016 04:42 AM, Aleksey Makarov wrote:
+> Add ACPI_DBG2_EARLYCON_DECLARE() macros that declares
+> an earlycon on the serial port specified in the DBG2 ACPI table.
+> 
+> Pass the string "earlycon=acpi_dbg2" to the kernel to activate it.
+> 
+> Callbacks for EARLYCON_DECLARE() and OF_EARLYCON_DECLARE()
+> can also be used for this macros.
+> 
+> Signed-off-by: Aleksey Makarov <aleksey.makarov@linaro.org>
+> ---
+>  Documentation/kernel-parameters.txt |  3 ++
+>  drivers/tty/serial/earlycon.c       | 60 +++++++++++++++++++++++++++++++++++++
+>  include/linux/acpi_dbg2.h           | 20 +++++++++++++
+>  3 files changed, 83 insertions(+)
+> 
+> diff --git a/Documentation/kernel-parameters.txt b/Documentation/kernel-parameters.txt
+> index e0a21e4..19b947b 100644
+> --- a/Documentation/kernel-parameters.txt
+> +++ b/Documentation/kernel-parameters.txt
+> @@ -1072,6 +1072,9 @@ bytes respectively. Such letter suffixes can also be entirely omitted.
+>  			A valid base address must be provided, and the serial
+>  			port must already be setup and configured.
+>  
+> +		acpi_dbg2
+> +			Use serial port specified by the DBG2 ACPI table.
+> +
+>  	earlyprintk=	[X86,SH,BLACKFIN,ARM,M68k]
+>  			earlyprintk=vga
+>  			earlyprintk=efi
+> diff --git a/drivers/tty/serial/earlycon.c b/drivers/tty/serial/earlycon.c
+> index d217366..9ba3a04 100644
+> --- a/drivers/tty/serial/earlycon.c
+> +++ b/drivers/tty/serial/earlycon.c
+> @@ -22,6 +22,7 @@
+>  #include <linux/sizes.h>
+>  #include <linux/of.h>
+>  #include <linux/of_fdt.h>
+> +#include <linux/acpi.h>
+>  
+>  #ifdef CONFIG_FIX_EARLYCON_MEM
+>  #include <asm/fixmap.h>
+> @@ -200,6 +201,8 @@ int __init setup_earlycon(char *buf)
+>  	return -ENOENT;
+>  }
+>  
+> +static bool setup_dbg2_earlycon;
+> +
+>  /* early_param wrapper for setup_earlycon() */
+>  static int __init param_setup_earlycon(char *buf)
+>  {
+> @@ -212,6 +215,11 @@ static int __init param_setup_earlycon(char *buf)
+>  	if (!buf || !buf[0])
+>  		return early_init_dt_scan_chosen_serial();
+>  
+> +	if (!strcmp(buf, "acpi_dbg2")) {
+> +		setup_dbg2_earlycon = true;
+> +		return 0;
+> +	}
 
-modprobe pxa2xx-spi-pci
+So this series doesn't start an ACPI earlycon at early_param time?
+That doesn't seem very useful.
+
+When does the ACPI earlycon actually start?
+And don't say "when the DBG2 table is probed"; that much is obvious.
 
 
-pxa2xx-spi pxa2xx-spi.0: found DMA channel "tx" at index 0
-xxx resource.c acpi_dev_get_resources acpi_handle is ffff8802650bdcd0
-returns c.count 0...
-dma dma0chan0: dwc_alloc_chan_resources: allocated 64 descriptors
-dmaengine: __dma_request_channel: success (dma0chan0)
-pxa2xx-spi pxa2xx-spi.0: found DMA channel "rx" at index 1
-xxx resource.c acpi_dev_get_resources acpi_handle is ffff8802650bdcd0
-returns c.count 0...
-dmaengine: private_candidate: dma0chan0 busy
-dma dma0chan1: dwc_alloc_chan_resources: allocated 64 descriptors
-dmaengine: __dma_request_channel: success (dma0chan1)
-pxa2xx-spi pxa2xx-spi.0: registered master spi0
-xxx spi.c acpi_register_spi_devices acpi_handle is ffff8802650bdcd0
-xxx resource.c acpi_dev_get_resources acpi_handle is ffff8802650bf000
-returns c.count 0...
+> +
+>  	err = setup_earlycon(buf);
+>  	if (err == -ENOENT || err == -EALREADY)
+>  		return 0;
+> @@ -286,3 +294,55 @@ int __init of_setup_earlycon(const struct earlycon_id *match,
+>  }
+>  
+>  #endif /* CONFIG_OF_EARLY_FLATTREE */
+> +
+> +#ifdef CONFIG_ACPI_DBG2_TABLE
+> +
+> +int __init acpi_setup_earlycon(struct acpi_dbg2_device *device, void *d)
+> +{
+> +	int err;
+> +	struct uart_port *port = &early_console_dev.port;
+> +	int (*setup)(struct earlycon_device *, const char *) = d;
+> +	struct acpi_generic_address *reg;
+> +
+> +	if (!setup_dbg2_earlycon)
+> +		return -ENODEV;
+> +
+> +	if (device->register_count < 1)
+> +		return -ENODEV;
+> +
+> +	if (device->base_address_offset >= device->length)
+> +		return -EINVAL;
+> +
+> +	reg = (void *)device + device->base_address_offset;
+> +
+> +	if (reg->space_id != ACPI_ADR_SPACE_SYSTEM_MEMORY &&
+> +	    reg->space_id != ACPI_ADR_SPACE_SYSTEM_IO)
+> +		return -EINVAL;
+> +
+> +	spin_lock_init(&port->lock);
+> +	port->uartclk = BASE_BAUD * 16;
+> +
+> +	if (reg->space_id == ACPI_ADR_SPACE_SYSTEM_MEMORY) {
+> +		if (device->port_type == ACPI_DBG2_ARM_SBSA_32BIT)
+> +			port->iotype = UPIO_MEM32;
+> +		else
+> +			port->iotype = UPIO_MEM;
+> +		port->mapbase = reg->address;
+> +		port->membase = earlycon_map(reg->address, SZ_4K);
+> +	} else {
+> +		port->iotype = UPIO_PORT;
+> +		port->iobase = reg->address;
+> +	}
+> +
+> +	early_console_dev.con->data = &early_console_dev;
+> +	err = setup(&early_console_dev, NULL);
+> +	if (err < 0)
+> +		return err;
+> +	if (!early_console_dev.con->write)
+> +		return -ENODEV;
+> +
+> +	register_console(early_console_dev.con);
+> +	return 0;
+> +}
+> +
+> +#endif /* CONFIG_ACPI_DBG2_TABLE */
+> diff --git a/include/linux/acpi_dbg2.h b/include/linux/acpi_dbg2.h
+> index 125ae7e..b653752 100644
+> --- a/include/linux/acpi_dbg2.h
+> +++ b/include/linux/acpi_dbg2.h
+> @@ -37,12 +37,32 @@ int acpi_dbg2_setup(struct acpi_table_header *header, const void *data);
+>  	ACPI_DECLARE_PROBE_ENTRY(dbg2, name, ACPI_SIG_DBG2,		\
+>  				 acpi_dbg2_setup, &__acpi_dbg2_data_##name)
+>  
+> +int acpi_setup_earlycon(struct acpi_dbg2_device *device, void *d);
+> +
+> +/**
+> + * ACPI_DBG2_EARLYCON_DECLARE() - Define handler for ACPI GDB2 serial port
+> + * @name:		Identifier to compose name of table data
+> + * @subtype:		Subtype of the port
+> + * @console_setup:	Function to be called to setup the port
+> + *
+> + * Type of the console_setup() callback is
+> + * int (*setup)(struct earlycon_device *, const char *)
+> + * It's the type of callback of of_setup_earlycon().
+> + */
+> +#define ACPI_DBG2_EARLYCON_DECLARE(name, subtype, console_setup)	\
+> +	ACPI_DBG2_DECLARE(name, ACPI_DBG2_SERIAL_PORT, subtype,		\
+> +			  acpi_setup_earlycon, console_setup)
+> +
+>  #else
+>  
+>  #define ACPI_DBG2_DECLARE(name, type, subtype, setup_fn, data_ptr)	\
+>  	static const void *__acpi_dbg_data_##name[]			\
+>  		__used __initdata = { (void *)setup_fn,	(void *)data_ptr }
+>  
+> +#define ACPI_DBG2_EARLYCON_DECLARE(name, subtype, console_setup)	\
+> +	static const void *__acpi_dbg_data_serial_##name[]		\
+> +		__used __initdata = { (void *)console_setup }
+> +
+>  #endif
+>  
+>  #endif
+> 
 
-
-I believe these acpi handle values correspond to:
-ffff8802650bdcd0 = INT33C1/SPI controller
-ffff8802650bf000 = APP000D/SPI slave
-
-spi.c did find the slave device, as this statement was not evaluated:
-
-     if (ACPI_FAILURE(status))
-             dev_warn(&master->dev, "failed to enumerate SPI slaves\n");
-
-However, the slave device is never enumerated.
-
-Do you know how I could print out the the name or id of the ACPI
-device from the acpi_device pointer?
-**I'm struggling a bit with some of these data types
-
-I'll continue to debug this issue a bit more...
-
-On Mon, Feb 29, 2016 at 6:21 PM, Leif Liddy <leif.linux@gmail.com> wrote:
-> I debugged acpi_lpss.c as it attempted to created a platform device for INT33C1.
->
-> I got as far as this function in resouce.c
-> status = acpi_walk_resources(adev->handle, METHOD_NAME__CRS,
-> acpi_dev_process_resource, &c);
->
-> the value of c never gets incremented --and returns 0.
->
-> I'm not sure how closely apcia follows the logic of these tables and
-> whether the OSI value is actually checked or not.
-> If WBUF is being returned,  then that would be the source of the issue.
->
->
-> Device (SDMA)
->      {
->         Name (_ADR, 0x00150000)  // _ADR: Address
->         Name (_UID, 0x01)  // _UID: Unique ID
->         Name (RBUF, ResourceTemplate ()
->         ...
->         Method (_CRS, 0, NotSerialized)  // _CRS: Current Resource Settings
->         {
->              Return (RBUF) /* \_SB_.PCI0.SDMA.RBUF */
->         }
->         ...
-> Device (SPI1)
->     {
->        Name (_ADR, 0x00150004)  // _ADR: Address
->        Name (_CID, "INT33C1" /* Intel Serial I/O SPI Host Controller */)
->         ..
->        Name (WBUF, ResourceTemplate ()
->        {
->        })
->        Name (DBUF, ResourceTemplate ()
->        {
->             FixedDMA (0x0010, 0x0006, Width32bit, )
->             FixedDMA (0x0011, 0x0007, Width32bit, )
->        })
->       Method (_CRS, 0, NotSerialized)  // _CRS: Current Resource Settings
->       {
->           If (!OSDW ())
->           {
->               Return (WBUF) /* \_SB_.PCI0.SPI1.WBUF */
->           }
->
->               Return (ConcatenateResTemplate (RBUF, DBUF))
->           }
->      }
->         ......
->
->
-> In any case, it sounds like the best approach is just to go with the
-> spi-pxa2xx-pci driver.
->
->>>I believe passing the ACPI handle to the platform device is the real
->>fix.
->
-> Ok, I understand what this means now --and I know what the acpi handle
-> is for INT33C1.
-> I'm going to try and modify spi.c to use this acpi handle --and
-> hopefully it will find the SPI slave device.
->
-> handle = ACPI_HANDLE(master->dev.parent);
->
-> status = acpi_walk_namespace(ACPI_TYPE_DEVICE, handle, 1,
->                                      acpi_spi_add_device, NULL,
->                                      master, NULL);
->
-> On Mon, Feb 29, 2016 at 9:21 AM, Mika Westerberg
-> <mika.westerberg@linux.intel.com> wrote:
->> On Tue, Feb 23, 2016 at 09:30:40PM +0100, Leif Liddy wrote:
->>> I'm beginning to understand how this is meant to work.
->>>
->>> spi_pxa2xx_platform should by itself be able to setup the SPI controller.
->>> **it has the ACPI ID for it
->>> { "INT33C1", LPSS_LPT_SSP }
->>>
->>> When I modprobe spi_pxa2xx_platform
->>> pxa2xx_spi_probe never gets called, there must be an issue with:
->>> acpi_match_table = ACPI_PTR(pxa2xx_spi_acpi_match)
->>
->> That's fine - the device is a PCI device and does not require ACPI ID.
->> However, the PCI part of the driver creates this platform device for
->> spi_pxa2xx_platform.
->>
->>> Ok, so I've installed Ismo's one line patch
->>>
->>> dmesg log of "modprobe spi_pxa2xx_pci"
->>>
->>> pxa2xx-spi pxa2xx-spi.0: found DMA channel "tx" at index 0
->>> dma dma0chan0: dwc_alloc_chan_resources: allocated 64 descriptors
->>> dmaengine: __dma_request_channel: success (dma0chan0)
->>> pxa2xx-spi pxa2xx-spi.0: found DMA channel "rx" at index 1
->>> dmaengine: private_candidate: dma0chan0 busy
->>> dma dma0chan1: dwc_alloc_chan_resources: allocated 64 descriptors
->>> dmaengine: __dma_request_channel: success (dma0chan1)
->>
->> Difference is that with Ismo's patch you actually have ACPI handle for
->> the device so it tries to use ACPI to look for the DMA channels.
->>
->>> without the patch:
->>>
->>> dma dma0chan0: dwc_alloc_chan_resources: allocated 64 descriptors
->>> dmaengine: __dma_request_channel: success (dma0chan0)
->>> dmaengine: private_candidate: dma0chan0 busy
->>> dma dma0chan1: dwc_alloc_chan_resources: allocated 64 descriptors
->>> dmaengine: __dma_request_channel: success (dma0chan1)
->>
->> Here it uses hardcoded indices instead. In both cases result is the
->> same.
