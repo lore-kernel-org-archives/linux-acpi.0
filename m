@@ -1,170 +1,245 @@
-From: Peter Zijlstra <peterz@infradead.org>
-Subject: [RFC][PATCH] tags: Fix DEFINE_PER_CPU expansions
-Date: Tue, 1 Mar 2016 11:26:25 +0100
-Message-ID: <20160301102625.GQ6357@twins.programming.kicks-ass.net>
+From: Peter Hurley <peter@hurleysoftware.com>
+Subject: Re: [PATCH v3 4/7] ACPI: parse DBG2 table
+Date: Tue, 1 Mar 2016 06:49:05 -0800
+Message-ID: <56D5ABE1.7010905@hurleysoftware.com>
+References: <1456749726-30261-1-git-send-email-aleksey.makarov@linaro.org>
+ <1456749726-30261-5-git-send-email-aleksey.makarov@linaro.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:36846 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752051AbcCAK0f (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 1 Mar 2016 05:26:35 -0500
-Content-Disposition: inline
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arch-owner@vger.kernel.org>
+In-Reply-To: <1456749726-30261-5-git-send-email-aleksey.makarov@linaro.org>
+Sender: linux-arch-owner@vger.kernel.org
+To: Aleksey Makarov <aleksey.makarov@linaro.org>, linux-acpi@vger.kernel.org
+Cc: linux-serial@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Russell King <linux@arm.linux.org.uk>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, Leif Lindholm <leif.lindholm@linaro.org>, Graeme Gregory <graeme.gregory@linaro.org>, Al Stone <ahs3@redhat.com>, Christopher Covington <cov@codeaurora.org>, Matthias Brugger <mbrugger@suse.com>, Len Brown <lenb@kernel.org>, Arnd Bergmann <arnd@arndb.de>, linux-arch@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-kernel@vger.kernel.org, Andrew Morton <akpm@linux-foundation.org>
-Cc: rjw@rjwysocki.net, konrad.wilk@oracle.com, Ingo Molnar <mingo@kernel.org>, paulmck@linux.vnet.ibm.com, tj@kernel.org, davem@davemloft.net, linux-acpi@vger.kernel.org, netdev@vger.kernel.org
+
+On 02/29/2016 04:42 AM, Aleksey Makarov wrote:
+> 'ARM Server Base Boot Requirements' [1] mentions DBG2 (Microsoft Debug
+> Port Table 2) [2] as a mandatory ACPI table that specifies debug ports.
+> 
+> - Implement macros
+> 
+> 	ACPI_DBG2_DECLARE(name, type, subtype, setup_fn, data_ptr)
+> 
+>   that defines a handler for the port of given type and subtype.
+> 
+> - For each declared port that is also described in the ACPI DBG2 table
+>   call the provided callback.
+
+On 02/22/2016 06:43 AM, Aleksey Makarov wrote:
+> On 02/19/2016 08:20 PM, Christopher Covington wrote:
+>> Can the device specified in DBG2 be used for both earlycon and KGDB? If it can only be used for one, let's make sure the choice of earlycon vs KGDB is intentional rather than accidental.
+> 
+> I just sent the DBG2 series.  It enables an earlycon on DBG2 port with
+> an "earlycon=acpi_dbg2" option (we can discuss particular name).
+> If you need KGDB on that port just support it for that port in the kernel
+> (i. e. add a new instance of ACPI_DBG2_DECLARE() macros for that port, see the patches)
+> and change the command line options.
+> I hope that is OK.  We could continue this discussion in the DBG2 thread.
+
+This method will not work for kgdb, since kgdb doesn't actually
+implement the i/o but rather runs on top of a console.
 
 
-$ make tags
-  GEN     tags
-ctags: Warning: drivers/acpi/processor_idle.c:64: null expansion of name pattern "\1"
-ctags: Warning: drivers/xen/events/events_2l.c:41: null expansion of name pattern "\1"
-ctags: Warning: kernel/locking/lockdep.c:151: null expansion of name pattern "\1"
-ctags: Warning: kernel/rcu/rcutorture.c:133: null expansion of name pattern "\1"
-ctags: Warning: kernel/rcu/rcutorture.c:135: null expansion of name pattern "\1"
-ctags: Warning: kernel/workqueue.c:323: null expansion of name pattern "\1"
-ctags: Warning: net/ipv4/syncookies.c:53: null expansion of name pattern "\1"
-ctags: Warning: net/ipv6/syncookies.c:44: null expansion of name pattern "\1"
-ctags: Warning: net/rds/page.c:45: null expansion of name pattern "\1"
-
-Which are all the result of the DEFINE_PER_CPU pattern:
-
-scripts/tags.sh:200:	'/\<DEFINE_PER_CPU([^,]*, *\([[:alnum:]_]*\)/\1/v/'
-scripts/tags.sh:201:	'/\<DEFINE_PER_CPU_SHARED_ALIGNED([^,]*, *\([[:alnum:]_]*\)/\1/v/'
-
-The below cures them. All except the workqueue one are within reasonable
-distance of the 80 char limit. TJ do you have any preference on how to
-fix the wq one, or shall we just not care its too long?
-
-Signed-off-by: Peter Zijlstra (Intel) <peterz@infradead.org>
----
- drivers/acpi/processor_idle.c  | 4 ++--
- drivers/xen/events/events_2l.c | 5 +++--
- kernel/locking/lockdep.c       | 3 +--
- kernel/rcu/rcutorture.c        | 6 ++----
- kernel/workqueue.c             | 3 +--
- net/ipv4/syncookies.c          | 3 +--
- net/ipv6/syncookies.c          | 3 +--
- net/rds/page.c                 | 4 ++--
- 8 files changed, 13 insertions(+), 18 deletions(-)
-
-diff --git a/drivers/acpi/processor_idle.c b/drivers/acpi/processor_idle.c
-index 175c86bee3a9..9ca2b2fefd76 100644
---- a/drivers/acpi/processor_idle.c
-+++ b/drivers/acpi/processor_idle.c
-@@ -61,8 +61,8 @@ module_param(latency_factor, uint, 0644);
- 
- static DEFINE_PER_CPU(struct cpuidle_device *, acpi_cpuidle_device);
- 
--static DEFINE_PER_CPU(struct acpi_processor_cx * [CPUIDLE_STATE_MAX],
--								acpi_cstate);
-+static
-+DEFINE_PER_CPU(struct acpi_processor_cx * [CPUIDLE_STATE_MAX], acpi_cstate);
- 
- static int disabled_by_idle_boot_param(void)
- {
-diff --git a/drivers/xen/events/events_2l.c b/drivers/xen/events/events_2l.c
-index 7dd46312c180..403fe3955393 100644
---- a/drivers/xen/events/events_2l.c
-+++ b/drivers/xen/events/events_2l.c
-@@ -38,8 +38,9 @@
- /* Find the first set bit in a evtchn mask */
- #define EVTCHN_FIRST_BIT(w) find_first_bit(BM(&(w)), BITS_PER_EVTCHN_WORD)
- 
--static DEFINE_PER_CPU(xen_ulong_t [EVTCHN_2L_NR_CHANNELS/BITS_PER_EVTCHN_WORD],
--		      cpu_evtchn_mask);
-+#define EVTCHN_MASK_SIZE (EVTCHN_2L_NR_CHANNELS/BITS_PER_EVTCHN_WORD)
-+
-+static DEFINE_PER_CPU(xen_ulong_t [EVTCHN_MASK_SIZE], cpu_evtchn_mask);
- 
- static unsigned evtchn_2l_max_channels(void)
- {
-diff --git a/kernel/locking/lockdep.c b/kernel/locking/lockdep.c
-index 3261214323fa..9599bc7742a9 100644
---- a/kernel/locking/lockdep.c
-+++ b/kernel/locking/lockdep.c
-@@ -148,8 +148,7 @@ static inline struct lock_class *hlock_class(struct held_lock *hlock)
- }
- 
- #ifdef CONFIG_LOCK_STAT
--static DEFINE_PER_CPU(struct lock_class_stats[MAX_LOCKDEP_KEYS],
--		      cpu_lock_stats);
-+static DEFINE_PER_CPU(struct lock_class_stats[MAX_LOCKDEP_KEYS], cpu_lock_stats);
- 
- static inline u64 lockstat_clock(void)
- {
-diff --git a/kernel/rcu/rcutorture.c b/kernel/rcu/rcutorture.c
-index d2988d047d66..4d5cc6aa7e1e 100644
---- a/kernel/rcu/rcutorture.c
-+++ b/kernel/rcu/rcutorture.c
-@@ -130,10 +130,8 @@ static struct rcu_torture __rcu *rcu_torture_current;
- static unsigned long rcu_torture_current_version;
- static struct rcu_torture rcu_tortures[10 * RCU_TORTURE_PIPE_LEN];
- static DEFINE_SPINLOCK(rcu_torture_lock);
--static DEFINE_PER_CPU(long [RCU_TORTURE_PIPE_LEN + 1],
--		      rcu_torture_count) = { 0 };
--static DEFINE_PER_CPU(long [RCU_TORTURE_PIPE_LEN + 1],
--		      rcu_torture_batch) = { 0 };
-+static DEFINE_PER_CPU(long [RCU_TORTURE_PIPE_LEN + 1], rcu_torture_count) = { 0 };
-+static DEFINE_PER_CPU(long [RCU_TORTURE_PIPE_LEN + 1], rcu_torture_batch) = { 0 };
- static atomic_t rcu_torture_wcount[RCU_TORTURE_PIPE_LEN + 1];
- static atomic_t n_rcu_torture_alloc;
- static atomic_t n_rcu_torture_alloc_fail;
-diff --git a/kernel/workqueue.c b/kernel/workqueue.c
-index 7ff5dc7d2ac5..16e13d8628a3 100644
---- a/kernel/workqueue.c
-+++ b/kernel/workqueue.c
-@@ -320,8 +320,7 @@ static bool wq_debug_force_rr_cpu = false;
- module_param_named(debug_force_rr_cpu, wq_debug_force_rr_cpu, bool, 0644);
- 
- /* the per-cpu worker pools */
--static DEFINE_PER_CPU_SHARED_ALIGNED(struct worker_pool [NR_STD_WORKER_POOLS],
--				     cpu_worker_pools);
-+static DEFINE_PER_CPU_SHARED_ALIGNED(struct worker_pool [NR_STD_WORKER_POOLS], cpu_worker_pools);
- 
- static DEFINE_IDR(worker_pool_idr);	/* PR: idr of all pools */
- 
-diff --git a/net/ipv4/syncookies.c b/net/ipv4/syncookies.c
-index 643a86c49020..2d5589b61e9f 100644
---- a/net/ipv4/syncookies.c
-+++ b/net/ipv4/syncookies.c
-@@ -50,8 +50,7 @@ static u32 syncookie_secret[2][16-4+SHA_DIGEST_WORDS] __read_mostly;
- #define TSBITS	6
- #define TSMASK	(((__u32)1 << TSBITS) - 1)
- 
--static DEFINE_PER_CPU(__u32 [16 + 5 + SHA_WORKSPACE_WORDS],
--		      ipv4_cookie_scratch);
-+static DEFINE_PER_CPU(__u32 [16 + 5 + SHA_WORKSPACE_WORDS], ipv4_cookie_scratch);
- 
- static u32 cookie_hash(__be32 saddr, __be32 daddr, __be16 sport, __be16 dport,
- 		       u32 count, int c)
-diff --git a/net/ipv6/syncookies.c b/net/ipv6/syncookies.c
-index 2906ef20795e..aae3e5ca63ea 100644
---- a/net/ipv6/syncookies.c
-+++ b/net/ipv6/syncookies.c
-@@ -41,8 +41,7 @@ static __u16 const msstab[] = {
- 	9000 - 60,
- };
- 
--static DEFINE_PER_CPU(__u32 [16 + 5 + SHA_WORKSPACE_WORDS],
--		      ipv6_cookie_scratch);
-+static DEFINE_PER_CPU(__u32 [16 + 5 + SHA_WORKSPACE_WORDS], ipv6_cookie_scratch);
- 
- static u32 cookie_hash(const struct in6_addr *saddr, const struct in6_addr *daddr,
- 		       __be16 sport, __be16 dport, u32 count, int c)
-diff --git a/net/rds/page.c b/net/rds/page.c
-index 5a14e6d6a926..616f21f4e7d7 100644
---- a/net/rds/page.c
-+++ b/net/rds/page.c
-@@ -42,8 +42,8 @@ struct rds_page_remainder {
- 	unsigned long	r_offset;
- };
- 
--static DEFINE_PER_CPU_SHARED_ALIGNED(struct rds_page_remainder,
--				     rds_page_remainders);
-+static
-+DEFINE_PER_CPU_SHARED_ALIGNED(struct rds_page_remainder, rds_page_remainders);
- 
- /*
-  * returns 0 on success or -errno on failure.
+> [1] http://infocenter.arm.com/help/index.jsp?topic=/com.arm.doc.den0044a/index.html
+> [2] http://go.microsoft.com/fwlink/p/?LinkId=234837
+> 
+> Signed-off-by: Aleksey Makarov <aleksey.makarov@linaro.org>
+> ---
+>  drivers/acpi/Kconfig              |  3 ++
+>  drivers/acpi/Makefile             |  1 +
+>  drivers/acpi/dbg2.c               | 88 +++++++++++++++++++++++++++++++++++++++
+>  include/asm-generic/vmlinux.lds.h |  1 +
+>  include/linux/acpi_dbg2.h         | 48 +++++++++++++++++++++
+>  5 files changed, 141 insertions(+)
+>  create mode 100644 drivers/acpi/dbg2.c
+>  create mode 100644 include/linux/acpi_dbg2.h
+> 
+> diff --git a/drivers/acpi/Kconfig b/drivers/acpi/Kconfig
+> index 65fb483..660666e 100644
+> --- a/drivers/acpi/Kconfig
+> +++ b/drivers/acpi/Kconfig
+> @@ -57,6 +57,9 @@ config ACPI_SYSTEM_POWER_STATES_SUPPORT
+>  config ACPI_CCA_REQUIRED
+>  	bool
+>  
+> +config ACPI_DBG2_TABLE
+> +	bool
+> +
+>  config ACPI_DEBUGGER
+>  	bool "AML debugger interface"
+>  	select ACPI_DEBUG
+> diff --git a/drivers/acpi/Makefile b/drivers/acpi/Makefile
+> index 7395928..3b5f1ea 100644
+> --- a/drivers/acpi/Makefile
+> +++ b/drivers/acpi/Makefile
+> @@ -83,6 +83,7 @@ obj-$(CONFIG_ACPI_CUSTOM_METHOD)+= custom_method.o
+>  obj-$(CONFIG_ACPI_BGRT)		+= bgrt.o
+>  obj-$(CONFIG_ACPI_CPPC_LIB)	+= cppc_acpi.o
+>  obj-$(CONFIG_ACPI_DEBUGGER_USER) += acpi_dbg.o
+> +obj-$(CONFIG_ACPI_DBG2_TABLE)	+= dbg2.o
+>  
+>  # processor has its own "processor." module_param namespace
+>  processor-y			:= processor_driver.o
+> diff --git a/drivers/acpi/dbg2.c b/drivers/acpi/dbg2.c
+> new file mode 100644
+> index 0000000..0f0f6ca
+> --- /dev/null
+> +++ b/drivers/acpi/dbg2.c
+> @@ -0,0 +1,88 @@
+> +/*
+> + * Copyright (c) 2012, Intel Corporation
+> + * Copyright (c) 2015, 2016 Linaro Ltd.
+> + *
+> + * This program is free software; you can redistribute it and/or modify
+> + * it under the terms of the GNU General Public License version 2 as
+> + * published by the Free Software Foundation.
+> + *
+> + */
+> +
+> +#define pr_fmt(fmt) "ACPI: DBG2: " fmt
+> +
+> +#include <linux/acpi_dbg2.h>
+> +#include <linux/acpi.h>
+> +#include <linux/kernel.h>
+> +
+> +static const char * __init type2string(u16 type)
+> +{
+> +	switch (type) {
+> +	case ACPI_DBG2_SERIAL_PORT:
+> +		return "SERIAL";
+> +	case ACPI_DBG2_1394_PORT:
+> +		return "1394";
+> +	case ACPI_DBG2_USB_PORT:
+> +		return "USB";
+> +	case ACPI_DBG2_NET_PORT:
+> +		return "NET";
+> +	default:
+> +		return "?";
+> +	}
+> +}
+> +
+> +static const char * __init subtype2string(u16 subtype)
+> +{
+> +	switch (subtype) {
+> +	case ACPI_DBG2_16550_COMPATIBLE:
+> +		return "16550_COMPATIBLE";
+> +	case ACPI_DBG2_16550_SUBSET:
+> +		return "16550_SUBSET";
+> +	case ACPI_DBG2_ARM_PL011:
+> +		return "ARM_PL011";
+> +	case ACPI_DBG2_ARM_SBSA_32BIT:
+> +		return "ARM_SBSA_32BIT";
+> +	case ACPI_DBG2_ARM_SBSA_GENERIC:
+> +		return "ARM_SBSA_GENERIC";
+> +	case ACPI_DBG2_ARM_DCC:
+> +		return "ARM_DCC";
+> +	case ACPI_DBG2_BCM2835:
+> +		return "BCM2835";
+> +	default:
+> +		return "?";
+> +	}
+> +}
+> +
+> +int __init acpi_dbg2_setup(struct acpi_table_header *table, const void *data)
+> +{
+> +	struct acpi_table_dbg2 *dbg2 = (struct acpi_table_dbg2 *)table;
+> +	struct acpi_dbg2_data *dbg2_data = (struct acpi_dbg2_data *)data;
+> +	struct acpi_dbg2_device *dbg2_device, *dbg2_end;
+> +	int i;
+> +
+> +	dbg2_device = ACPI_ADD_PTR(struct acpi_dbg2_device, dbg2,
+> +				   dbg2->info_offset);
+> +	dbg2_end = ACPI_ADD_PTR(struct acpi_dbg2_device, dbg2, table->length);
+> +
+> +	for (i = 0; i < dbg2->info_count; i++) {
+> +		if (dbg2_device + 1 > dbg2_end) {
+> +			pr_err("device pointer overflows, bad table\n");
+> +			return 0;
+> +		}
+> +
+> +		if (dbg2_device->port_type == dbg2_data->port_type &&
+> +		    dbg2_device->port_subtype == dbg2_data->port_subtype) {
+> +			if (dbg2_device->port_type == ACPI_DBG2_SERIAL_PORT)
+> +				pr_info("debug port: SERIAL; subtype: %s\n",
+> +				     subtype2string(dbg2_device->port_subtype));
+> +			else
+> +				pr_info("debug port: %s\n",
+> +					type2string(dbg2_device->port_type));
+> +			dbg2_data->setup(dbg2_device, dbg2_data->data);
+> +		}
+> +
+> +		dbg2_device = ACPI_ADD_PTR(struct acpi_dbg2_device, dbg2_device,
+> +					   dbg2_device->length);
+> +	}
+> +
+> +	return 0;
+> +}
+> diff --git a/include/asm-generic/vmlinux.lds.h b/include/asm-generic/vmlinux.lds.h
+> index 8f5a12a..8cc49ba 100644
+> --- a/include/asm-generic/vmlinux.lds.h
+> +++ b/include/asm-generic/vmlinux.lds.h
+> @@ -526,6 +526,7 @@
+>  	IRQCHIP_OF_MATCH_TABLE()					\
+>  	ACPI_PROBE_TABLE(irqchip)					\
+>  	ACPI_PROBE_TABLE(clksrc)					\
+> +	ACPI_PROBE_TABLE(dbg2)						\
+>  	EARLYCON_TABLE()
+>  
+>  #define INIT_TEXT							\
+> diff --git a/include/linux/acpi_dbg2.h b/include/linux/acpi_dbg2.h
+> new file mode 100644
+> index 0000000..125ae7e
+> --- /dev/null
+> +++ b/include/linux/acpi_dbg2.h
+> @@ -0,0 +1,48 @@
+> +#ifndef _ACPI_DBG2_H_
+> +#define _ACPI_DBG2_H_
+> +
+> +#ifdef CONFIG_ACPI_DBG2_TABLE
+> +
+> +#include <linux/kernel.h>
+> +
+> +struct acpi_dbg2_device;
+> +struct acpi_table_header;
+> +
+> +struct acpi_dbg2_data {
+> +	u16 port_type;
+> +	u16 port_subtype;
+> +	int (*setup)(struct acpi_dbg2_device *, void *);
+> +	void *data;
+> +};
+> +
+> +int acpi_dbg2_setup(struct acpi_table_header *header, const void *data);
+> +
+> +/**
+> + * ACPI_DBG2_DECLARE() - Define handler for ACPI DBG2 port
+> + * @name:	Identifier to compose name of table data
+> + * @type:	Type of the port
+> + * @subtype:	Subtype of the port
+> + * @setup_fn:	Function to be called to setup the port
+> + *		(of type int (*)(struct acpi_dbg2_device *, void *);)
+> + * @data_ptr:	Sideband data provided back to the driver
+> + */
+> +#define ACPI_DBG2_DECLARE(name, type, subtype, setup_fn, data_ptr)	\
+> +	static const struct acpi_dbg2_data				\
+> +		__acpi_dbg2_data_##name __used = {			\
+> +			.port_type = type,				\
+> +			.port_subtype = subtype,			\
+> +			.setup = setup_fn,				\
+> +			.data = data_ptr,				\
+> +		   };							\
+> +	ACPI_DECLARE_PROBE_ENTRY(dbg2, name, ACPI_SIG_DBG2,		\
+> +				 acpi_dbg2_setup, &__acpi_dbg2_data_##name)
+> +
+> +#else
+> +
+> +#define ACPI_DBG2_DECLARE(name, type, subtype, setup_fn, data_ptr)	\
+> +	static const void *__acpi_dbg_data_##name[]			\
+> +		__used __initdata = { (void *)setup_fn,	(void *)data_ptr }
+> +
+> +#endif
+> +
+> +#endif
+> 
