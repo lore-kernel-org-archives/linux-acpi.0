@@ -1,89 +1,46 @@
-From: "Paul E. McKenney" <paulmck@linux.vnet.ibm.com>
-Subject: Re: [RFC][PATCH] tags: Fix DEFINE_PER_CPU expansions
-Date: Tue, 1 Mar 2016 08:56:50 -0800
-Message-ID: <20160301165650.GN3577@linux.vnet.ibm.com>
-References: <20160301102625.GQ6357@twins.programming.kicks-ass.net>
-Reply-To: paulmck@linux.vnet.ibm.com
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+From: Timur Tabi <timur@codeaurora.org>
+Subject: [PATCH] acpi: pnp: add ACPI_RESOURCE_TYPE_SERIAL_BUS as a valid type
+Date: Tue,  1 Mar 2016 13:31:45 -0600
+Message-ID: <1456860705-24935-1-git-send-email-timur@codeaurora.org>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from e37.co.us.ibm.com ([32.97.110.158]:43009 "EHLO
-	e37.co.us.ibm.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752263AbcCATVD (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 1 Mar 2016 14:21:03 -0500
-Received: from localhost
-	by e37.co.us.ibm.com with IBM ESMTP SMTP Gateway: Authorized Use Only! Violators will be prosecuted
-	for <linux-acpi@vger.kernel.org> from <paulmck@linux.vnet.ibm.com>;
-	Tue, 1 Mar 2016 12:21:02 -0700
-Content-Disposition: inline
-In-Reply-To: <20160301102625.GQ6357@twins.programming.kicks-ass.net>
+Received: from smtp.codeaurora.org ([198.145.29.96]:52079 "EHLO
+	smtp.codeaurora.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751203AbcCATbx (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 1 Mar 2016 14:31:53 -0500
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Peter Zijlstra <peterz@infradead.org>
-Cc: linux-kernel@vger.kernel.org, Andrew Morton <akpm@linux-foundation.org>, rjw@rjwysocki.net, konrad.wilk@oracle.com, Ingo Molnar <mingo@kernel.org>, tj@kernel.org, davem@davemloft.net, linux-acpi@vger.kernel.org, netdev@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>, harba@codeaurora.org, linux-acpi@vger.kernel.org, Len Brown <lenb@kernel.org>, linux-kernel@vger.kernel.org
 
-On Tue, Mar 01, 2016 at 11:26:25AM +0100, Peter Zijlstra wrote:
-> 
-> $ make tags
->   GEN     tags
-> ctags: Warning: drivers/acpi/processor_idle.c:64: null expansion of name pattern "\1"
-> ctags: Warning: drivers/xen/events/events_2l.c:41: null expansion of name pattern "\1"
-> ctags: Warning: kernel/locking/lockdep.c:151: null expansion of name pattern "\1"
-> ctags: Warning: kernel/rcu/rcutorture.c:133: null expansion of name pattern "\1"
-> ctags: Warning: kernel/rcu/rcutorture.c:135: null expansion of name pattern "\1"
-> ctags: Warning: kernel/workqueue.c:323: null expansion of name pattern "\1"
-> ctags: Warning: net/ipv4/syncookies.c:53: null expansion of name pattern "\1"
-> ctags: Warning: net/ipv6/syncookies.c:44: null expansion of name pattern "\1"
-> ctags: Warning: net/rds/page.c:45: null expansion of name pattern "\1"
-> 
-> Which are all the result of the DEFINE_PER_CPU pattern:
-> 
-> scripts/tags.sh:200:	'/\<DEFINE_PER_CPU([^,]*, *\([[:alnum:]_]*\)/\1/v/'
-> scripts/tags.sh:201:	'/\<DEFINE_PER_CPU_SHARED_ALIGNED([^,]*, *\([[:alnum:]_]*\)/\1/v/'
-> 
-> The below cures them. All except the workqueue one are within reasonable
-> distance of the 80 char limit. TJ do you have any preference on how to
-> fix the wq one, or shall we just not care its too long?
-> 
-> Signed-off-by: Peter Zijlstra (Intel) <peterz@infradead.org>
+From: Harb Abdulhamid <harba@codeaurora.org>
 
-For rcutorture, the initializers are zero.  Would it make more sense to
-remove the initializers completely in favor of C's default initialization
-as shown below?
+An error message is printed for resources of type 19, which is a valid
+supported resource type.  The Firmware Test Suite tool (fwts) reports
+this as a test failure.  This change fixes the false test failures
+for ASL that use type 19 (ACPI_RESOURCE_TYPE_SERIAL_BUS) resources.
 
-							Thanx, Paul
+Signed-off-by: Harb Abdulhamid <harba@codeaurora.org>
+Signed-off-by: Timur Tabi <timur@codeaurora.org>
+---
+ drivers/pnp/pnpacpi/rsparser.c | 4 ++++
+ 1 file changed, 4 insertions(+)
 
-------------------------------------------------------------------------
-
-commit 9bd8e9f0c56cfc19ca5b68a73edd80b16bec4af8
-Author: Paul E. McKenney <paulmck@linux.vnet.ibm.com>
-Date:   Tue Mar 1 08:52:19 2016 -0800
-
-    rcutorture: Remove redundant initialization to zero
-    
-    The current code initializes the global per-CPU variables
-    rcu_torture_count and rcu_torture_batch to zero.  However, C does this
-    initialization by default, and explicit initialization of per-CPU
-    variables now needs a different syntax if "make tags" is to work.
-    This commit therefore removes the initialization.
-    
-    Reported-by: Peter Zijlstra <peterz@infradead.org>
-    Signed-off-by: Paul E. McKenney <paulmck@linux.vnet.ibm.com>
-
-diff --git a/kernel/rcu/rcutorture.c b/kernel/rcu/rcutorture.c
-index 1c2dc23ae07d..f5fd9acc0f9b 100644
---- a/kernel/rcu/rcutorture.c
-+++ b/kernel/rcu/rcutorture.c
-@@ -131,9 +131,9 @@ static unsigned long rcu_torture_current_version;
- static struct rcu_torture rcu_tortures[10 * RCU_TORTURE_PIPE_LEN];
- static DEFINE_SPINLOCK(rcu_torture_lock);
- static DEFINE_PER_CPU(long [RCU_TORTURE_PIPE_LEN + 1],
--		      rcu_torture_count) = { 0 };
-+		      rcu_torture_count);
- static DEFINE_PER_CPU(long [RCU_TORTURE_PIPE_LEN + 1],
--		      rcu_torture_batch) = { 0 };
-+		      rcu_torture_batch);
- static atomic_t rcu_torture_wcount[RCU_TORTURE_PIPE_LEN + 1];
- static atomic_t n_rcu_torture_alloc;
- static atomic_t n_rcu_torture_alloc_fail;
+diff --git a/drivers/pnp/pnpacpi/rsparser.c b/drivers/pnp/pnpacpi/rsparser.c
+index 0579649..4b717c6 100644
+--- a/drivers/pnp/pnpacpi/rsparser.c
++++ b/drivers/pnp/pnpacpi/rsparser.c
+@@ -252,6 +252,10 @@ static acpi_status pnpacpi_allocated_resource(struct acpi_resource *res,
+ 	case ACPI_RESOURCE_TYPE_GENERIC_REGISTER:
+ 		break;
+ 
++	case ACPI_RESOURCE_TYPE_SERIAL_BUS:
++		/* serial bus connections (I2C/SPI/UART) are not pnp */
++		break;
++
+ 	default:
+ 		dev_warn(&dev->dev, "unknown resource type %d in _CRS\n",
+ 			 res->type);
+-- 
+Qualcomm Innovation Center, Inc.
+The Qualcomm Innovation Center, Inc. is a member of the Code Aurora Forum,
+a Linux Foundation Collaborative Project.
 
