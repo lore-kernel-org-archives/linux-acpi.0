@@ -1,51 +1,171 @@
-From: Toshi Kani <toshi.kani@hpe.com>
-Subject: Re: [PATCH v2 1/3] ACPI/NFIT: Update Control Region Structure to
- comply ACPI 6.1
-Date: Tue, 01 Mar 2016 12:53:12 -0700
-Message-ID: <1456861992.15454.90.camel@hpe.com>
-References: <1456178130-26468-1-git-send-email-toshi.kani@hpe.com>
-	 <1456178130-26468-2-git-send-email-toshi.kani@hpe.com>
-	 <94F2FBAB4432B54E8AACC7DFDE6C92E37E44D64B@ORSMSX110.amr.corp.intel.com>
-	 <1456850284.15454.23.camel@hpe.com>
-	 <94F2FBAB4432B54E8AACC7DFDE6C92E37E44D6E1@ORSMSX110.amr.corp.intel.com>
-	 <1456853819.15454.45.camel@hpe.com>
-	 <CAPcyv4hS44abMCs1sxdLW0YgMjP33Td0LbEWhXi9jqJ_ARU7CA@mail.gmail.com>
+From: Bjorn Helgaas <helgaas@kernel.org>
+Subject: Re: [PATCH V2] acpi, pci, irq: account for early penalty assignment
+Date: Tue, 1 Mar 2016 13:43:40 -0600
+Message-ID: <20160301194340.GA19783@localhost>
+References: <1455801582-21595-1-git-send-email-okaya@codeaurora.org>
+ <20160229192420.GC3653@localhost>
+ <56D4A53A.1070708@codeaurora.org>
+ <20160229223453.GA12162@localhost>
+ <56D5E43E.7050406@codeaurora.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from g4t3428.houston.hp.com ([15.201.208.56]:7842 "EHLO
-	g4t3428.houston.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751845AbcCATio (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 1 Mar 2016 14:38:44 -0500
-In-Reply-To: <CAPcyv4hS44abMCs1sxdLW0YgMjP33Td0LbEWhXi9jqJ_ARU7CA@mail.gmail.com>
+Received: from mail.kernel.org ([198.145.29.136]:32825 "EHLO mail.kernel.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751845AbcCATnp (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 1 Mar 2016 14:43:45 -0500
+Content-Disposition: inline
+In-Reply-To: <56D5E43E.7050406@codeaurora.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Dan Williams <dan.j.williams@intel.com>
-Cc: "Moore, Robert" <robert.moore@intel.com>, "rjw@rjwysocki.net" <rjw@rjwysocki.net>, "Zheng, Lv" <lv.zheng@intel.com>, "elliott@hpe.com" <elliott@hpe.com>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "devel@acpica.org" <devel@acpica.org>
+To: Sinan Kaya <okaya@codeaurora.org>
+Cc: linux-acpi@vger.kernel.org, timur@codeaurora.org, cov@codeaurora.org, linux-pci@vger.kernel.org, ravikanth.nalla@hpe.com, lenb@kernel.org, harish.k@hpe.com, ashwin.reghunandanan@hpe.com, bhelgaas@google.com, rjw@rjwysocki.net, linux-kernel@vger.kernel.org
 
-On Tue, 2016-03-01 at 10:14 -0800, Dan Williams wrote:
-> On Tue, Mar 1, 2016 at 9:36 AM, Toshi Kani <toshi.kani@hpe.com> wrote=
-:
-> > On Tue, 2016-03-01 at 16:03 +0000, Moore, Robert wrote:
-=C2=A0:
-> I think the "ACPI tables are little-endian" assumption is pervasive
-> throughout the implementation.
->=20
-> Toshi, it seems all we need is conversions like:
->=20
-> - sprintf(buf, "%#x\n", dcr->vendor_id);
-> + sprintf(buf, "%#x\n", le16_to_cpu(dcr->vendor_id));
+On Tue, Mar 01, 2016 at 01:49:34PM -0500, Sinan Kaya wrote:
+> > There's so much code there, that I think all the code obscures the
+> > fact that there's almost nothing really happening.  In broad outline,
+> > I think we care about:
+> > 
+> >   - the legacy ISA IRQs, i.e., the contents of acpi_irq_isa_penalty[]
+> >   - acpi_irq_isa= from command line
+> >   - acpi_irq_pci= from command line
+> >   - which IRQ is used for SCI
+> >   - number of PCI Interrupt Link devices sharing an IRQ
+> > 
+> > I doubt we need any dynamic allocation at all to manage this.  We
+> > already have the acpi_irq_isa_penalty[] table statically allocated.
+> > The SCI IRQ is one word.  
+> 
+> Just to be clear, we have resized acpi_irq_penalty table to 16 and named it
+> acpi_irq_isa_penalty. We are dynamically allocating memory for the rest of 
+> the interrupts that is bigger than 16. 
+> 
+> The SCI interrupt that caused the failure is interrupt 22 in this case. The code
+> was trying to allocate a new entry with kzalloc. 22 won't fit into the 
+> acpi_irq_isa_penalty array. How do we handle such case? Is there a cap on the SCI
+> interrupt number? 
+> 
+> That's why, I was trying to reallocate some memory in this code.
 
-nit - I think it needs to be be16_to_cpu() if I understand this macro
-correctly.
--Toshi
+I don't think there's a restriction on what the SCI IRQ can be.  But
+there is only one SCI IRQ, so all we have to do is keep track of what
+it is, which only requires one word.
 
->=20
-> ...for the values exported to userspace through sysfs, but otherwise
-> leave the base table definitions as is.=C2=A0=C2=A0Will this suffice?
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> > I bet the command-line stuff is only
+> > useful for the 16 ISA IRQs and could be merged into
+> > acpi_irq_isa_penalty[].  
+> > Same for acpi_penalize_isa_irq() and
+> > acpi_isa_irq_available().  
+> 
+> Agreed. No issues with ISA IRQs.
+> 
+> > We could easily compute the
+> > number of links sharing an IRQ by traversing acpi_link_list.
+> 
+> Sorry, I couldn't quite get this. Where would you do this?
+
+I've never been exactly clear on how these links work.  So pardon me
+while I think out loud and bore you with what you already know
+(correct me if I get this wrong):
+
+  - A link device has a PCI wired interrupt (INTA, INTB, etc.) on its
+    "downstream" end.
+
+  - The link device has a set of possible interrupt controller inputs
+    to which it can connect the PCI interrupt.  _PRS contains this
+    set.
+
+  - When we enable a PCI device's interrupt, Interrupt Pin from config
+    space tells us which INTx it uses.  The _PRT tells us whether that
+    INTx is connected to (a) a fixed GSI or (b) an Interrupt Link that
+    can be configured to one of several interrupt controller inputs.
+
+  - If the latter, we must select one of the interrupt controller
+    inputs to use, i.e., one of the IRQs from _PRS, and enable the
+    Link.
+
+  - If the Link is already active, we probably shouldn't change its
+    configuration because other devices might already be using it.
+
+  - If the Link is inactive, we must choose an IRQ and activate it.
+    We should be able to choose anything from _PRS (as long as the
+    level & trigger attributes match), but we can try to reduce IRQ
+    sharing by avoiding an IRQ that's already in use.
+
+This IRQ selection process is where we use the penalty information.
+In acpi_pci_link_allocate(), we iterate through the possible choices
+(link->irq.possible[i]) and choose the one with the smallest penalty.
+
+Here's a sketch of what I'm thinking the code could look like.  In x86
+code:
+
+  int pcibios_irq_penalty(int irq)
+  {
+    if (irq >= ACPI_MAX_ISA_IRQ)
+      return 0;
+
+    return acpi_irq_isa_penalty[irq] + acpi_irq_cmd_line_penalty[irq];
+  }
+
+In pci_link.c:
+
+  static int sci_irq, sci_irq_penalty;
+
+  void acpi_penalize_sci_irq(int irq, int trigger, int polarity)
+  {
+    if (irq < 0)
+      return;
+
+    sci_irq = irq;
+    if (trigger != ACPI_MADT_TRIGGER_LEVEL ||
+        polarity != ACPI_MADT_POLARITY_ACTIVE_LOW)
+          sci_irq_penalty = infinite;  /* can't use for PCI at all */
+    else
+      sci_irq_penalty = PIRQ_PENALTY_PCI_USING;
+  }
+
+  static pci_irq_sharing_penalty(int irq)
+  {
+    struct acpi_pci_link *link;
+    int penalty = 0;
+
+    list_for_each_entry(link, &acpi_link_list, list) {
+
+      /*
+       * If a link is active, penalize its IRQ heavily so we try to choose
+       * a different IRQ.
+       */
+      if (link->irq.active && link->irq.active == irq)
+        penalty += PIRQ_PENALTY_PCI_USING;
+      else {
+
+        /*
+         * If a link is inactive, penalize the IRQs it might use, but
+         * not as severely.
+         */ 
+        for (i = 0; i < link->irq.possible_count; i++)
+          if (link->irq.possible[i] == irq)
+            penalty += PIRQ_PENALTY_PCI_POSSIBLE;
+      }
+    }
+
+    return penalty;
+  }
+
+  int __weak pcibios_irq_penalty(int irq)
+  {
+    return 0;
+  }
+
+  static int acpi_irq_get_penalty(int irq)
+  {
+    int penalty;
+
+    penalty = pcibios_irq_penalty(irq);
+
+    if (irq == sci_irq)
+      penalty += sci_irq_penalty;
+
+    penalty += pci_irq_sharing_penalty(irq);
+    return penalty;
+  }
