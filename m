@@ -1,71 +1,198 @@
-From: "Verma, Vishal L" <vishal.l.verma@intel.com>
-Subject: Re: [PATCH 0/8] nfit, libnvdimm: async address range scrub
-Date: Wed, 2 Mar 2016 01:45:03 +0000
-Message-ID: <1456883098.4525.9.camel@intel.com>
-References: <20160224021655.22776.87952.stgit@dwillia2-desk3.amr.corp.intel.com>
+From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Subject: [PATCH 5/6] cpufreq: Support for fast frequency switching
+Date: Wed, 02 Mar 2016 03:12:33 +0100
+Message-ID: <26020775.9hJG2SHiH2@vostro.rjw.lan>
+References: <2495375.dFbdlAZmA6@vostro.rjw.lan>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20160224021655.22776.87952.stgit@dwillia2-desk3.amr.corp.intel.com>
-Content-Language: en-US
-Content-ID: <464B2A60F1359C4CA00C70D3709709D7@intel.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: "Williams, Dan J" <dan.j.williams@intel.com>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>
-Cc: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
+Content-Transfer-Encoding: 7Bit
+Return-path: <linux-pm-owner@vger.kernel.org>
+In-Reply-To: <2495375.dFbdlAZmA6@vostro.rjw.lan>
+Sender: linux-pm-owner@vger.kernel.org
+To: Linux PM list <linux-pm@vger.kernel.org>
+Cc: Juri Lelli <juri.lelli@arm.com>, Steve Muckle <steve.muckle@linaro.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Peter Zijlstra <peterz@infradead.org>, Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>, Viresh Kumar <viresh.kumar@linaro.org>, Vincent Guittot <vincent.guittot@linaro.org>, Michael Turquette <mturquette@baylibre.com>
 List-Id: linux-acpi@vger.kernel.org
 
-T24gVHVlLCAyMDE2LTAyLTIzIGF0IDE4OjE2IC0wODAwLCBEYW4gV2lsbGlhbXMgd3JvdGU6DQo+
-IEdpdmVuIHRoZSBjYXBhY2l0aWVzIG9mIG5leHQgZ2VuZXJhdGlvbiBwZXJzaXN0ZW50IG1lbW9y
-eSBkZXZpY2VzIGENCj4gc2NydWIgb3BlcmF0aW9uIHRvIGZpbmQgYWxsIHBvaXNvbiBtYXkgdGFr
-ZSAxMHMgb2Ygc2Vjb25kcy7CoMKgV2Ugd2FudA0KPiB0aGlzIHNjcnViIHdvcmsgdG8gYmUgZG9u
-ZSBhc3luY2hyb25vdXNseSB3aXRoIHRoZSByZXN0IG9mIHN5c3RlbQ0KPiBpbml0aWFsaXphdGlv
-biwgc28gd2UgbW92ZSBpdCBvdXQgb2YgbGluZSBmcm9tIHRoZSBORklUIHByb2JpbmcsIGkuZS4N
-Cj4gYWNwaV9uZml0X2FkZCgpLg0KPiANCj4gSG93ZXZlciwgd2UgbWF5IHdhbnQgdG8gc3luY2hy
-b25vdXNseSB3YWl0IGZvciB0aGF0IHNjcnViYmluZyB0bw0KPiBjb21wbGV0ZSBiZWZvcmUgd2Ug
-cHJvYmUgYW55IHBtZW0gZGV2aWNlcy7CoMKgQ29uc2lkZXIgdGhlIGNhc2Ugd2hlcmUNCj4gY29u
-c3VtaW5nIHBvaXNvbiB0cmlnZ2VycyBhIG1hY2hpbmUgY2hlY2sgYW5kIGEgcmVib290LsKgwqBU
-aGF0IGV2ZW50DQo+IHdpbGwNCj4gdHJpZ2dlciBwbGF0Zm9ybSBmaXJtd2FyZSB0byBpbml0aWF0
-ZSBhIHNjcnViLsKgwqBUaGUga2VybmVsIHNob3VsZA0KPiBjb21wbGV0ZSBhbnkgZmlybXdhcmUg
-aW5pdGlhdGVkIHNjcnVicyBhcyB0aG9zZSBsaWtlbHkgaW5kaWNhdGUgdGhlDQo+IHByZXNlbmNl
-IG9mIGtub3duIHBvaXNvbi4NCj4gDQo+IFdoZW4gZXJyb3JzIGFyZSBub3QgcHJlc2VudCwgcGxh
-dGZvcm0gZmlybXdhcmUgZGlkIG5vdCBpbml0aWF0ZQ0KPiBzY3J1YmJpbmcsIHdlIHN0aWxsIHNj
-cnViLCBidXQgYXN5bmNocm9ub3VzbHkuwqDCoFRoaXMgdHJhZGVzIG9mZiBhIHJpc2sNCj4gb2Yg
-aGl0dGluZyBuZXcgdW5rbm93biBwb2lzb24gcmFuZ2VzIHdpdGggbWFraW5nIHRoZSBkYXRhIGF2
-YWlsYWJsZQ0KPiBmYXN0ZXIgYWZ0ZXIgbG9hZGluZyB0aGUgZHJpdmVyLg0KPiANCj4gVGhpcyBh
-c3luYyBzY3J1YiBjYXBhYmlsaXR5IGlzIGFsc28gdXNlZnVsIGluIHRoZSBmdXR1cmUgd2hlbiB3
-ZQ0KPiBpbnRlZ3JhdGUgVG9ueSBMdWNrJ3MgbWNzYWZlX2NvcHkoKSAob3Igd2hhdGV2ZXIgaXQg
-aXMNCj4gZXZlbnR1YWxseSBjYWxsZWQpLsKgwqBBZnRlciBhIG1hY2hpbmUgY2hlY2sgcmVjb3Zl
-cnkgZXZlbnQgd2UgY2FuIHNjcnViDQo+IHRoZSBwbWVtIG5hbWVzcGFjZSB0byBzZWUgaWYgdGhl
-cmUgYXJlIGFueSBvdGhlciBsYXRlbnQgZXJyb3JzIGFuZA0KPiBvdGhlcndpc2UgdXBkYXRlIHRo
-ZSAnYmFkYmxvY2tzJyBsaXN0IHdpdGggdGhlIG5ldyBlbnRyaWVzLg0KPiANCj4gVGhpcyBwYXNz
-ZXMgdGhlIGxpYm5kY3RsIHVuaXQgdGVzdCBzdWl0ZSwgd2l0aCBzb21lIG1pbm9yIHVwZGF0ZXMg
-dG8NCj4gYWNjb3VudCBmb3IgdGhlIGZhY3QgdGhhdCB3aGVuICJtb2Rwcm9iZSBuZml0X3Rlc3Qi
-IHJldHVybnMgbm90IGFsbA0KPiByZWdpb25zIGFyZSByZWdpc3RlcmVkLg0KPiANCj4gLS0tDQo+
-IA0KPiBEYW4gV2lsbGlhbXMgKDgpOg0KPiDCoMKgwqDCoMKgwqBsaWJudmRpbW0sIG5maXQ6IGNl
-bnRyYWxpemUgY29tbWFuZCBzdGF0dXMgdHJhbnNsYXRpb24NCj4gwqDCoMKgwqDCoMKgbGlibnZk
-aW1tOiBwcm90ZWN0IG52ZGltbV97YnVzfG5hbWVzcGFjZX1fYWRkX3BvaXNvbigpIHdpdGgNCj4g
-bnZkaW1tX2J1c19sb2NrKCkNCj4gwqDCoMKgwqDCoMKgbGlibnZkaW1tOiBhc3luYyBub3RpZmlj
-YXRpb24gc3VwcG9ydA0KPiDCoMKgwqDCoMKgwqBuZml0LCB0b29scy90ZXN0aW5nL252ZGltbTog
-dW5pZnkgY29tbW9uIGluaXQgZm9yIGFjcGlfbmZpdF9kZXNjDQo+IMKgwqDCoMKgwqDCoG5maXQs
-IGxpYm52ZGltbTogYXN5bmMgcmVnaW9uIHNjcnViIHdvcmtxdWV1ZQ0KPiDCoMKgwqDCoMKgwqBu
-Zml0OiBzY3J1YiBhbmQgcmVnaXN0ZXIgcmVnaW9ucyBpbiBhIHdvcmtxdWV1ZQ0KPiDCoMKgwqDC
-oMKgwqBuZml0OiBkaXNhYmxlIHVzZXJzcGFjZSBpbml0aWF0ZWQgYXJzIGR1cmluZyBzY3J1Yg0K
-PiDCoMKgwqDCoMKgwqB0b29scy90ZXN0aW5nL252ZGltbTogZXhwYW5kIGFycyB1bml0IHRlc3Rp
-bmcNCj4gDQo+IA0KPiDCoGRyaXZlcnMvYWNwaS9uZml0LmPCoMKgwqDCoMKgwqDCoMKgwqDCoMKg
-wqDCoMKgfMKgwqA3NjEgKysrKysrKysrKysrKysrKysrKysrKysrKysrDQo+IC0tLS0tLS0tLS0t
-DQo+IMKgZHJpdmVycy9hY3BpL25maXQuaMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqB8wqDC
-oMKgMjQgKw0KPiDCoGRyaXZlcnMvbnZkaW1tL2J1cy5jwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKg
-wqB8wqDCoMKgNDYgKysNCj4gwqBkcml2ZXJzL252ZGltbS9jb3JlLmPCoMKgwqDCoMKgwqDCoMKg
-wqDCoMKgwqB8wqDCoDExMCArKysrLQ0KPiDCoGRyaXZlcnMvbnZkaW1tL2RpbW1fZGV2cy5jwqDC
-oMKgwqDCoMKgwqB8wqDCoMKgwqA2wqANCj4gwqBkcml2ZXJzL252ZGltbS9uZC5owqDCoMKgwqDC
-oMKgwqDCoMKgwqDCoMKgwqDCoHzCoMKgwqDCoDLCoA0KPiDCoGRyaXZlcnMvbnZkaW1tL3BtZW0u
-Y8KgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoHzCoMKgwqAxNSArDQo+IMKgZHJpdmVycy9udmRpbW0v
-cmVnaW9uLmPCoMKgwqDCoMKgwqDCoMKgwqDCoHzCoMKgwqAxMiArDQo+IMKgaW5jbHVkZS9saW51
-eC9saWJudmRpbW0uaMKgwqDCoMKgwqDCoMKgwqB8wqDCoMKgwqA1wqANCj4gwqBpbmNsdWRlL2xp
-bnV4L25kLmjCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqB8wqDCoMKgwqA3wqANCj4gwqB0
-b29scy90ZXN0aW5nL252ZGltbS90ZXN0L25maXQuYyB8wqDCoDEzMyArKysrKy0tDQo+IMKgMTEg
-ZmlsZXMgY2hhbmdlZCwgODA5IGluc2VydGlvbnMoKyksIDMxMiBkZWxldGlvbnMoLSkNCg0KDQpI
-aSBEYW4sDQoNCkxvb2tzIGdvb2QgdG8gbWUsIHRoYW5rcyBmb3Iga25vY2tpbmcgdGhpcyBvdXQh
-DQoNCkZvciB0aGUgc2VyaWVzLA0KUmV2aWV3ZWQtYnk6IFZpc2hhbCBWZXJtYSA8dmlzaGFsLmwu
-dmVybWFAaW50ZWwuY29tPg==
+From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+
+Modify the ACPI cpufreq driver to provide a method for switching
+CPU frequencies from interrupt context and update the cpufreq core
+to support that method if available.
+
+Introduce a new cpufreq driver callback, ->fast_switch, to be
+invoked for frequency switching from interrupt context via a
+new helper function, cpufreq_driver_fast_switch().  Add a new
+policy flag, fast_switch_possible, to be set if fast frequency
+switching can be used for the given policy.
+
+Implement the ->fast_switch callback in the ACPI cpufreq driver
+and make it set fast_switch_possible during policy initialization
+as appropriate.
+
+Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+---
+
+The most important change from the previous version is that the
+->fast_switch() callback takes an additional "relation" argument
+and now the governor can use it to choose a selection method.
+
+---
+ drivers/cpufreq/acpi-cpufreq.c |   53 +++++++++++++++++++++++++++++++++++++++++
+ drivers/cpufreq/cpufreq.c      |   33 +++++++++++++++++++++++++
+ include/linux/cpufreq.h        |    6 ++++
+ 3 files changed, 92 insertions(+)
+
+Index: linux-pm/drivers/cpufreq/acpi-cpufreq.c
+===================================================================
+--- linux-pm.orig/drivers/cpufreq/acpi-cpufreq.c
++++ linux-pm/drivers/cpufreq/acpi-cpufreq.c
+@@ -458,6 +458,55 @@ static int acpi_cpufreq_target(struct cp
+ 	return result;
+ }
+ 
++unsigned int acpi_cpufreq_fast_switch(struct cpufreq_policy *policy,
++				      unsigned int target_freq,
++				      unsigned int relation)
++{
++	struct acpi_cpufreq_data *data = policy->driver_data;
++	struct acpi_processor_performance *perf;
++	struct cpufreq_frequency_table *entry, *found;
++	unsigned int next_perf_state, next_freq, freq;
++
++	/*
++	 * Find the closest frequency above target_freq or equal to it.
++	 *
++	 * The table is sorted in the reverse order with respect to the
++	 * frequency and all of the entries are valid (see the initialization).
++	 */
++	entry = data->freq_table;
++	do {
++		entry++;
++		freq = entry->frequency;
++	} while (freq >= target_freq && freq != CPUFREQ_TABLE_END);
++	found = entry - 1;
++	/*
++	 * Use the one found or the previous one, depending on the relation.
++	 * CPUFREQ_RELATION_H is not taken into account here, but it is not
++	 * expected to be passed to this function anyway.
++	 */
++	next_freq = found->frequency;
++	if (freq == CPUFREQ_TABLE_END || relation != CPUFREQ_RELATION_C ||
++	    target_freq - freq >= next_freq - target_freq) {
++		next_perf_state = found->driver_data;
++	} else {
++		next_freq = freq;
++		next_perf_state = entry->driver_data;
++	}
++
++	perf = to_perf_data(data);
++	if (perf->state == next_perf_state) {
++		if (unlikely(data->resume))
++			data->resume = 0;
++		else
++			return next_freq;
++	}
++
++	data->cpu_freq_write(&perf->control_register,
++			     perf->states[next_perf_state].control);
++	perf->state = next_perf_state;
++	return next_freq;
++}
++
+ static unsigned long
+ acpi_cpufreq_guess_freq(struct acpi_cpufreq_data *data, unsigned int cpu)
+ {
+@@ -740,6 +789,9 @@ static int acpi_cpufreq_cpu_init(struct
+ 		goto err_unreg;
+ 	}
+ 
++	policy->fast_switch_possible = !acpi_pstate_strict &&
++		!(policy_is_shared(policy) && policy->shared_type != CPUFREQ_SHARED_TYPE_ANY);
++
+ 	data->freq_table = kzalloc(sizeof(*data->freq_table) *
+ 		    (perf->state_count+1), GFP_KERNEL);
+ 	if (!data->freq_table) {
+@@ -874,6 +926,7 @@ static struct freq_attr *acpi_cpufreq_at
+ static struct cpufreq_driver acpi_cpufreq_driver = {
+ 	.verify		= cpufreq_generic_frequency_table_verify,
+ 	.target_index	= acpi_cpufreq_target,
++	.fast_switch	= acpi_cpufreq_fast_switch,
+ 	.bios_limit	= acpi_processor_get_bios_limit,
+ 	.init		= acpi_cpufreq_cpu_init,
+ 	.exit		= acpi_cpufreq_cpu_exit,
+Index: linux-pm/drivers/cpufreq/cpufreq.c
+===================================================================
+--- linux-pm.orig/drivers/cpufreq/cpufreq.c
++++ linux-pm/drivers/cpufreq/cpufreq.c
+@@ -1772,6 +1772,39 @@ EXPORT_SYMBOL(cpufreq_unregister_notifie
+  *                              GOVERNORS                            *
+  *********************************************************************/
+ 
++/**
++ * cpufreq_driver_fast_switch - Carry out a fast CPU frequency switch.
++ * @policy: cpufreq policy to switch the frequency for.
++ * @target_freq: New frequency to set (may be approximate).
++ * @relation: Relation to use for frequency selection.
++ *
++ * Carry out a fast frequency switch from interrupt context.
++ *
++ * This function must not be called if policy->fast_switch_possible is unset.
++ *
++ * Governors calling this function must guarantee that it will never be invoked
++ * twice in parallel for the same policy and that it will never be called in
++ * parallel with either ->target() or ->target_index() for the same policy.
++ *
++ * If CPUFREQ_ENTRY_INVALID is returned by the driver's ->fast_switch()
++ * callback, the hardware configuration must be preserved.
++ */
++void cpufreq_driver_fast_switch(struct cpufreq_policy *policy,
++				unsigned int target_freq, unsigned int relation)
++{
++	unsigned int freq;
++
++	if (target_freq == policy->cur)
++		return;
++
++	freq = cpufreq_driver->fast_switch(policy, target_freq, relation);
++	if (freq != CPUFREQ_ENTRY_INVALID) {
++		policy->cur = freq;
++		trace_cpu_frequency(freq, smp_processor_id());
++	}
++}
++EXPORT_SYMBOL_GPL(cpufreq_driver_fast_switch);
++
+ /* Must set freqs->new to intermediate frequency */
+ static int __target_intermediate(struct cpufreq_policy *policy,
+ 				 struct cpufreq_freqs *freqs, int index)
+Index: linux-pm/include/linux/cpufreq.h
+===================================================================
+--- linux-pm.orig/include/linux/cpufreq.h
++++ linux-pm/include/linux/cpufreq.h
+@@ -81,6 +81,7 @@ struct cpufreq_policy {
+ 	struct cpufreq_governor	*governor; /* see below */
+ 	void			*governor_data;
+ 	char			last_governor[CPUFREQ_NAME_LEN]; /* last governor used */
++	bool			fast_switch_possible;
+ 
+ 	struct work_struct	update; /* if update_policy() needs to be
+ 					 * called, but you're in IRQ context */
+@@ -270,6 +271,9 @@ struct cpufreq_driver {
+ 				  unsigned int relation);	/* Deprecated */
+ 	int		(*target_index)(struct cpufreq_policy *policy,
+ 					unsigned int index);
++	unsigned int	(*fast_switch)(struct cpufreq_policy *policy,
++				       unsigned int target_freq,
++				       unsigned int relation);
+ 	/*
+ 	 * Only for drivers with target_index() and CPUFREQ_ASYNC_NOTIFICATION
+ 	 * unset.
+@@ -484,6 +488,8 @@ struct cpufreq_governor {
+ };
+ 
+ /* Pass a target to the cpufreq driver */
++void cpufreq_driver_fast_switch(struct cpufreq_policy *policy,
++				unsigned int target_freq, unsigned int relation);
+ int cpufreq_driver_target(struct cpufreq_policy *policy,
+ 				 unsigned int target_freq,
+ 				 unsigned int relation);
+
