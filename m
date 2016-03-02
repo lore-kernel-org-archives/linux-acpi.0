@@ -1,147 +1,189 @@
-From: "Rafael J. Wysocki" <rafael@kernel.org>
-Subject: Re: [PATCH 6/6] cpufreq: schedutil: New governor based on scheduler
- utilization data
-Date: Wed, 2 Mar 2016 18:58:25 +0100
-Message-ID: <CAJZ5v0jvStPbhKSJUHTwySkEXa0rKp3zE7YLWeCmGHeQt8xcrw@mail.gmail.com>
-References: <2495375.dFbdlAZmA6@vostro.rjw.lan>
-	<1842158.0Xhak3Uaac@vostro.rjw.lan>
-	<CAKfTPtANvYp5ar8UkKyN9R25Ntrfp+bEEFw5M0=MA8q7zscSMw@mail.gmail.com>
+From: Sinan Kaya <okaya@codeaurora.org>
+Subject: Re: [PATCH V2] acpi, pci, irq: account for early penalty assignment
+Date: Wed, 2 Mar 2016 13:31:27 -0500
+Message-ID: <56D7317F.7090500@codeaurora.org>
+References: <1455801582-21595-1-git-send-email-okaya@codeaurora.org>
+ <20160229192420.GC3653@localhost> <56D4A53A.1070708@codeaurora.org>
+ <20160229223453.GA12162@localhost> <56D5E43E.7050406@codeaurora.org>
+ <20160301194340.GA19783@localhost>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-pm-owner@vger.kernel.org>
-In-Reply-To: <CAKfTPtANvYp5ar8UkKyN9R25Ntrfp+bEEFw5M0=MA8q7zscSMw@mail.gmail.com>
-Sender: linux-pm-owner@vger.kernel.org
-To: Vincent Guittot <vincent.guittot@linaro.org>
-Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Linux PM list <linux-pm@vger.kernel.org>, Juri Lelli <juri.lelli@arm.com>, Steve Muckle <steve.muckle@linaro.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Peter Zijlstra <peterz@infradead.org>, Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>, Viresh Kumar <viresh.kumar@linaro.org>, Michael Turquette <mturquette@baylibre.com>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from smtp.codeaurora.org ([198.145.29.96]:36796 "EHLO
+	smtp.codeaurora.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751891AbcCBSbb (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 2 Mar 2016 13:31:31 -0500
+In-Reply-To: <20160301194340.GA19783@localhost>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Bjorn Helgaas <helgaas@kernel.org>
+Cc: linux-acpi@vger.kernel.org, timur@codeaurora.org, cov@codeaurora.org, linux-pci@vger.kernel.org, ravikanth.nalla@hpe.com, lenb@kernel.org, harish.k@hpe.com, ashwin.reghunandanan@hpe.com, bhelgaas@google.com, rjw@rjwysocki.net, linux-kernel@vger.kernel.org
 
-On Wed, Mar 2, 2016 at 6:10 PM, Vincent Guittot
-<vincent.guittot@linaro.org> wrote:
-> Hi Rafael,
->
->
-> On 2 March 2016 at 03:27, Rafael J. Wysocki <rjw@rjwysocki.net> wrote:
->> From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+On 3/1/2016 2:43 PM, Bjorn Helgaas wrote:
+> On Tue, Mar 01, 2016 at 01:49:34PM -0500, Sinan Kaya wrote:
+>>> There's so much code there, that I think all the code obscures the
+>>> fact that there's almost nothing really happening.  In broad outline,
+>>> I think we care about:
+>>>
+>>>   - the legacy ISA IRQs, i.e., the contents of acpi_irq_isa_penalty[]
+>>>   - acpi_irq_isa= from command line
+>>>   - acpi_irq_pci= from command line
+>>>   - which IRQ is used for SCI
+>>>   - number of PCI Interrupt Link devices sharing an IRQ
+>>>
+>>> I doubt we need any dynamic allocation at all to manage this.  We
+>>> already have the acpi_irq_isa_penalty[] table statically allocated.
+>>> The SCI IRQ is one word.  
 >>
->> Add a new cpufreq scaling governor, called "schedutil", that uses
->> scheduler-provided CPU utilization information as input for making
->> its decisions.
+>> Just to be clear, we have resized acpi_irq_penalty table to 16 and named it
+>> acpi_irq_isa_penalty. We are dynamically allocating memory for the rest of 
+>> the interrupts that is bigger than 16. 
 >>
->> Doing that is possible after commit fe7034338ba0 (cpufreq: Add
->> mechanism for registering utilization update callbacks) that
->> introduced cpufreq_update_util() called by the scheduler on
->> utilization changes (from CFS) and RT/DL task status updates.
->> In particular, CPU frequency scaling decisions may be based on
->> the the utilization data passed to cpufreq_update_util() by CFS.
+>> The SCI interrupt that caused the failure is interrupt 22 in this case. The code
+>> was trying to allocate a new entry with kzalloc. 22 won't fit into the 
+>> acpi_irq_isa_penalty array. How do we handle such case? Is there a cap on the SCI
+>> interrupt number? 
 >>
->> The new governor is relatively simple.
+>> That's why, I was trying to reallocate some memory in this code.
+> 
+> I don't think there's a restriction on what the SCI IRQ can be.  But
+> there is only one SCI IRQ, so all we have to do is keep track of what
+> it is, which only requires one word.
+> 
+>>> I bet the command-line stuff is only
+>>> useful for the 16 ISA IRQs and could be merged into
+>>> acpi_irq_isa_penalty[].  
+>>> Same for acpi_penalize_isa_irq() and
+>>> acpi_isa_irq_available().  
 >>
->> The frequency selection formula used by it is essentially the same
->> as the one used by the "ondemand" governor, although it doesn't use
->> the additional up_threshold parameter, but instead of computing the
->> load as the "non-idle CPU time" to "total CPU time" ratio, it takes
->> the utilization data provided by CFS as input.  More specifically,
->> it represents "load" as the util/max ratio, where util and max
->> are the utilization and CPU capacity coming from CFS.
+>> Agreed. No issues with ISA IRQs.
 >>
->
-> [snip]
->
->> +
->> +static void sugov_update_commit(struct sugov_policy *sg_policy, u64 time,
->> +                               unsigned long util, unsigned long max,
->> +                               unsigned int next_freq)
->> +{
->> +       struct cpufreq_policy *policy = sg_policy->policy;
->> +       unsigned int rel;
->> +
->> +       if (next_freq > policy->max)
->> +               next_freq = policy->max;
->> +       else if (next_freq < policy->min)
->> +               next_freq = policy->min;
->> +
->> +       sg_policy->last_freq_update_time = time;
->> +       if (sg_policy->next_freq == next_freq)
->> +               return;
->> +
->> +       sg_policy->next_freq = next_freq;
->> +       /*
->> +        * If utilization is less than max / 4, use RELATION_C to allow the
->> +        * minimum frequency to be selected more often in case the distance from
->> +        * it to the next available frequency in the table is significant.
->> +        */
->> +       rel = util < (max >> 2) ? CPUFREQ_RELATION_C : CPUFREQ_RELATION_L;
->> +       if (policy->fast_switch_possible) {
->> +               cpufreq_driver_fast_switch(policy, next_freq, rel);
->> +       } else {
->> +               sg_policy->relation = rel;
->> +               sg_policy->work_in_progress = true;
->> +               irq_work_queue(&sg_policy->irq_work);
->> +       }
->> +}
->> +
->> +static void sugov_update_single(struct update_util_data *data, u64 time,
->> +                               unsigned long util, unsigned long max)
->> +{
->> +       struct sugov_cpu *sg_cpu = container_of(data, struct sugov_cpu, update_util);
->> +       struct sugov_policy *sg_policy = sg_cpu->sg_policy;
->> +       unsigned int min_f, max_f, next_f;
->> +
->> +       if (!sugov_should_update_freq(sg_policy, time))
->> +               return;
->> +
->> +       min_f = sg_policy->policy->cpuinfo.min_freq;
->> +       max_f = sg_policy->policy->cpuinfo.max_freq;
->> +       next_f = util > max ? max_f : min_f + util * (max_f - min_f) / max;
->
-> I think it has been pointed out in another email's thread but you
-> should change the way the next_f is computed. util reflects the
-> utilization of a CPU from 0 to its max compute capacity whereas
-> ondemand was using the load at the current frequency during the last
-> time window. I have understood that you want to keep same formula than
-> ondemand as a starting point but you use a different input to
-> calculate the next frequency so i don't see the rational of keeping
-> this formula.
+>>> We could easily compute the
+>>> number of links sharing an IRQ by traversing acpi_link_list.
+>>
+>> Sorry, I couldn't quite get this. Where would you do this?
+> 
+> I've never been exactly clear on how these links work.  So pardon me
+> while I think out loud and bore you with what you already know
+> (correct me if I get this wrong):
+> 
+>   - A link device has a PCI wired interrupt (INTA, INTB, etc.) on its
+>     "downstream" end.
+> 
+>   - The link device has a set of possible interrupt controller inputs
+>     to which it can connect the PCI interrupt.  _PRS contains this
+>     set.
+> 
+>   - When we enable a PCI device's interrupt, Interrupt Pin from config
+>     space tells us which INTx it uses.  The _PRT tells us whether that
+>     INTx is connected to (a) a fixed GSI or (b) an Interrupt Link that
+>     can be configured to one of several interrupt controller inputs.
+> 
+>   - If the latter, we must select one of the interrupt controller
+>     inputs to use, i.e., one of the IRQs from _PRS, and enable the
+>     Link.
+> 
+>   - If the Link is already active, we probably shouldn't change its
+>     configuration because other devices might already be using it.
+> 
+>   - If the Link is inactive, we must choose an IRQ and activate it.
+>     We should be able to choose anything from _PRS (as long as the
+>     level & trigger attributes match), but we can try to reduce IRQ
+>     sharing by avoiding an IRQ that's already in use.
+> 
 
-It is a formula that causes the entire available frequency range to be
-utilized proportionally to the utilization as reported by the
-scheduler (modulo the policy->min/max limits).  Its (significant IMO)
-advantage is that it doesn't require any additional factors that would
-need to be determined somehow.
+Really nice write up. We need to fold this into the code. It was never 
+obvious.
 
-> Saying that, even the simple formula next_f = util > max
-> ? max_f : util * (max_f) / max will not work properly if the frequency
-> invariance is enable because the utilization becomes capped by the
-> current compute capacity so next_f will never be higher than current
-> freq (unless a task move on the rq).  That was one reason of using a
-> threshold in sched-freq proposal (and there are on going dev to try to
-> solve this limitation).
+I'll send something soon.
 
-Well, a different formula will have to be used along with frequency
-invariance, then.
+> This IRQ selection process is where we use the penalty information.
+> In acpi_pci_link_allocate(), we iterate through the possible choices
+> (link->irq.possible[i]) and choose the one with the smallest penalty.
+> 
+> Here's a sketch of what I'm thinking the code could look like.  In x86
+> code:
+> 
+>   int pcibios_irq_penalty(int irq)
+>   {
+>     if (irq >= ACPI_MAX_ISA_IRQ)
+>       return 0;
+> 
+>     return acpi_irq_isa_penalty[irq] + acpi_irq_cmd_line_penalty[irq];
+>   }
+> 
 
-> IIIUC, frequency invariance is not enable on your platform so you have
-> not seen the problem but you have probably see that selection of your
-> next_f was not really stable. Without frequency invariance, the
-> utilization will be overestimated when running at lower frequency so
-> the governor will probably select a frequency that is higher than
-> necessary but then the utilization will decrease at this higher
-> frequency so the governor will probably decrease the frequency and so
-> on until you found the right frequency that will generate the right
-> utilisation value
+> In pci_link.c:
+> 
+>   static int sci_irq, sci_irq_penalty;
+> 
+>   void acpi_penalize_sci_irq(int irq, int trigger, int polarity)
+>   {
+>     if (irq < 0)
+>       return;
+> 
+>     sci_irq = irq;
+>     if (trigger != ACPI_MADT_TRIGGER_LEVEL ||
+>         polarity != ACPI_MADT_POLARITY_ACTIVE_LOW)
+>           sci_irq_penalty = infinite;  /* can't use for PCI at all */
+>     else
+>       sci_irq_penalty = PIRQ_PENALTY_PCI_USING;
+>   }
+> 
+>   static pci_irq_sharing_penalty(int irq)
+>   {
+>     struct acpi_pci_link *link;
+>     int penalty = 0;
+> 
+>     list_for_each_entry(link, &acpi_link_list, list) {
+> 
+>       /*
+>        * If a link is active, penalize its IRQ heavily so we try to choose
+>        * a different IRQ.
+>        */
+>       if (link->irq.active && link->irq.active == irq)
+>         penalty += PIRQ_PENALTY_PCI_USING;
+>       else {
+> 
+>         /*
+>          * If a link is inactive, penalize the IRQs it might use, but
+>          * not as severely.
+>          */ 
+>         for (i = 0; i < link->irq.possible_count; i++)
+>           if (link->irq.possible[i] == irq)
+>             penalty += PIRQ_PENALTY_PCI_POSSIBLE;
+>       }
+>     }
+> 
+>     return penalty;
+>   }
+> 
+>   int __weak pcibios_irq_penalty(int irq)
+>   {
+>     return 0;
+>   }
+> 
+>   static int acpi_irq_get_penalty(int irq)
+>   {
+>     int penalty;
+> 
+>     penalty = pcibios_irq_penalty(irq);
+> 
+>     if (irq == sci_irq)
+>       penalty += sci_irq_penalty;
+> 
+>     penalty += pci_irq_sharing_penalty(irq);
+>     return penalty;
+>   }
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-pci" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
 
-I don't have any problems with that to be honest and if you aim at
-selecting the perfect frequency at the first attempt, then good luck
-with that anyway.
 
-Now, I'm not saying that the formula used in this patch cannot be
-improved or similar.  It very well may be possible to improve it.  I'm
-only saying that it is good enough to start with, because of the
-reasons mentioned above.
-
-Still, if you can suggest to me what other formula specifically should
-be used here, I'll consider using it.  Which will probably mean
-comparing the two and seeing which one leads to better results.
-
-Thanks,
-Rafael
+-- 
+Sinan Kaya
+Qualcomm Technologies, Inc. on behalf of Qualcomm Innovation Center, Inc.
+Qualcomm Innovation Center, Inc. is a member of Code Aurora Forum, a Linux Foundation Collaborative Project
