@@ -1,158 +1,177 @@
-From: Bjorn Helgaas <helgaas@kernel.org>
-Subject: Re: [RFC PATCH v3 3/3] PCI/ACPI: hisi: Add ACPI support for
- HiSilicon SoCs Host Controllers
-Date: Wed, 2 Mar 2016 09:51:17 -0600
-Message-ID: <20160302155117.GB24024@localhost>
-References: <20160210111234.GC2632@leverpostej>
- <EE11001F9E5DDD47B7634E2F8A612F2E1ECB1D30@lhreml503-mbs>
- <EE11001F9E5DDD47B7634E2F8A612F2E1ECC5F00@lhreml503-mbs>
- <20160224011418.GB13026@localhost>
- <EE11001F9E5DDD47B7634E2F8A612F2E1ECCAD6A@lhreml503-mbs>
- <20160224152538.GA19700@localhost>
- <EE11001F9E5DDD47B7634E2F8A612F2E1ECCD209@lhreml503-mbs>
- <20160225120750.GA32016@red-moon>
- <20160225195912.GA4818@localhost>
- <20160301192247.GA21324@red-moon>
+From: Vincent Guittot <vincent.guittot@linaro.org>
+Subject: Re: [PATCH 6/6] cpufreq: schedutil: New governor based on scheduler
+ utilization data
+Date: Wed, 2 Mar 2016 18:10:36 +0100
+Message-ID: <CAKfTPtANvYp5ar8UkKyN9R25Ntrfp+bEEFw5M0=MA8q7zscSMw@mail.gmail.com>
+References: <2495375.dFbdlAZmA6@vostro.rjw.lan> <1842158.0Xhak3Uaac@vostro.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20160301192247.GA21324@red-moon>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
-Cc: Gabriele Paoloni <gabriele.paoloni@huawei.com>, 'Mark Rutland' <mark.rutland@arm.com>, "Guohanjun (Hanjun Guo)" <guohanjun@huawei.com>, "Wangzhou (B)" <wangzhou1@hisilicon.com>, "liudongdong (C)" <liudongdong3@huawei.com>, Linuxarm <linuxarm@huawei.com>, qiujiang <qiujiang@huawei.com>, "'bhelgaas@google.com'" <bhelgaas@google.com>, "'arnd@arndb.de'" <arnd@arndb.de>, "'tn@semihalf.com'" <tn@semihalf.com>, "'linux-pci@vger.kernel.org'" <linux-pci@vger.kernel.org>, "'linux-kernel@vger.kernel.org'" <linux-kernel@vger.kernel.org>, "xuwei (O)" <xuwei5@hisilicon.com>, "'linux-acpi@vger.kernel.org'" <linux-acpi@vger.kernel.org>, "'jcm@redhat.com'" <jcm@redhat.com>, zhangjukuo <zhangjukuo@huawei.com>, "Liguozhu (Kenneth)" <liguozhu@hisilicon.com>, "'linux-arm-kernel@lists.infradead.org'" <linux-arm-kernel@lists.infradead.org>
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-lf0-f48.google.com ([209.85.215.48]:36727 "EHLO
+	mail-lf0-f48.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752730AbcCBRK6 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 2 Mar 2016 12:10:58 -0500
+Received: by mail-lf0-f48.google.com with SMTP id l83so92062448lfd.3
+        for <linux-acpi@vger.kernel.org>; Wed, 02 Mar 2016 09:10:57 -0800 (PST)
+In-Reply-To: <1842158.0Xhak3Uaac@vostro.rjw.lan>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: Linux PM list <linux-pm@vger.kernel.org>, Juri Lelli <juri.lelli@arm.com>, Steve Muckle <steve.muckle@linaro.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Peter Zijlstra <peterz@infradead.org>, Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>, Viresh Kumar <viresh.kumar@linaro.org>, Michael Turquette <mturquette@baylibre.com>
 
-On Tue, Mar 01, 2016 at 07:22:47PM +0000, Lorenzo Pieralisi wrote:
-> Hi Bjorn,
-> 
-> On Thu, Feb 25, 2016 at 01:59:12PM -0600, Bjorn Helgaas wrote:
-> > On Thu, Feb 25, 2016 at 12:07:50PM +0000, Lorenzo Pieralisi wrote:
-> > > On Thu, Feb 25, 2016 at 03:01:19AM +0000, Gabriele Paoloni wrote:
-> 
-> [...]
-> 
-> > > I do not understand how PNP0c02 works, currently, by the way.
-> > > 
-> > > If I read x86 code correctly, the unassigned PCI bus resources are
-> > > assigned in arch/x86/pci/i386.c (?) fs_initcall(pcibios_assign_resources),
-> > > with a comment:
-> > > 
-> > > /**
-> > >  * called in fs_initcall (one below subsys_initcall),
-> > >  * give a chance for motherboard reserve resources
-> > >  */
-> > > 
-> > > Problem is, motherboard resources are requested through (?):
-> > > 
-> > > drivers/pnp/system.c
-> > > 
-> > > which is also initialized at fs_initcall, so it might be called after
-> > > core x86 code reassign resources, defeating the purpose PNP0c02 was
-> > > designed for, namely, request motherboard regions before resources
-> > > are assigned, am I wrong ?
-> > 
-> > I think you're right.  This is a long-standing screwup in Linux.
-> > IMHO, ACPI resources should be parsed and reserved by the ACPI core,
-> > before any PCI resource management (since PCI host bridges are
-> > represented in ACPI).  But historically PCI devices have enumerated
-> > before ACPI got involved.  And the ACPI core doesn't really pay
-> > attention to _CRS for most devices (with the exception of PNP0C02).
-> > 
-> > IMO the PNP0C02 code in drivers/pnp/system.c should really be done in
-> > the ACPI core for all ACPI devices, similar to the way the PCI core
-> > reserves BAR space for all PCI devices, even if we don't have drivers
-> > for them.  I've tried to fix this in the past, but it is really a
-> > nightmare to unravel everything.
-> > 
-> > Because the ACPI core doesn't reserve resources for the _CRS of all
-> > ACPI devices, we're already vulnerable to the problem of placing a
-> > device on top of another ACPI device.  We don't see problems because
-> > on x86, at least, most ACPI devices are already configured by the BIOS
-> > to be enabled and non-overlapping.  But x86 has the advantage of
-> > having extensive test coverage courtesy of Windows, and as long as
-> > _CRS has the right stuff in it, we at least have the potential of
-> > fixing problems in Linux.
-> 
-> ...
-> By "fixing problems in Linux" above, you mean that, given that we
-> do have a validated _CRS space, we can request/reserve the region the _CRS
-> reports to prevent assigning those resources to other devices, correct ?
+Hi Rafael,
 
-Yes.
 
-I think part of what makes this difficult in Linux is that the
-resource tree is too strict about overlapping resources.  We get
-address space information from E820 (on x86), static ACPI tables like
-MCFG, and dynamic things like ACPI _CRS.  There's no real requirement
-that the BIOS should make all these consistent, but yet we try to jam
-it all into the same resource tree.
+On 2 March 2016 at 03:27, Rafael J. Wysocki <rjw@rjwysocki.net> wrote:
+> From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+>
+> Add a new cpufreq scaling governor, called "schedutil", that uses
+> scheduler-provided CPU utilization information as input for making
+> its decisions.
+>
+> Doing that is possible after commit fe7034338ba0 (cpufreq: Add
+> mechanism for registering utilization update callbacks) that
+> introduced cpufreq_update_util() called by the scheduler on
+> utilization changes (from CFS) and RT/DL task status updates.
+> In particular, CPU frequency scaling decisions may be based on
+> the the utilization data passed to cpufreq_update_util() by CFS.
+>
+> The new governor is relatively simple.
+>
+> The frequency selection formula used by it is essentially the same
+> as the one used by the "ondemand" governor, although it doesn't use
+> the additional up_threshold parameter, but instead of computing the
+> load as the "non-idle CPU time" to "total CPU time" ratio, it takes
+> the utilization data provided by CFS as input.  More specifically,
+> it represents "load" as the util/max ratio, where util and max
+> are the utilization and CPU capacity coming from CFS.
+>
 
-For example, E820 might tell us that range A is reserved and
-unavailable to Linux.  We stick it in the resource tree.  Then we
-might have a _CRS that tells us about range B.  We *want* to put range
-B in the resource tree, but if B overlaps part of A, the insert will
-fail.
+[snip]
 
-All we really need from E820 is the information that "you can't put
-devices in A".  We don't need to enforce any relationship between A
-and B, but the current resource tree imposes unnecessary hierarchical
-requirements.
+> +
+> +static void sugov_update_commit(struct sugov_policy *sg_policy, u64 time,
+> +                               unsigned long util, unsigned long max,
+> +                               unsigned int next_freq)
+> +{
+> +       struct cpufreq_policy *policy = sg_policy->policy;
+> +       unsigned int rel;
+> +
+> +       if (next_freq > policy->max)
+> +               next_freq = policy->max;
+> +       else if (next_freq < policy->min)
+> +               next_freq = policy->min;
+> +
+> +       sg_policy->last_freq_update_time = time;
+> +       if (sg_policy->next_freq == next_freq)
+> +               return;
+> +
+> +       sg_policy->next_freq = next_freq;
+> +       /*
+> +        * If utilization is less than max / 4, use RELATION_C to allow the
+> +        * minimum frequency to be selected more often in case the distance from
+> +        * it to the next available frequency in the table is significant.
+> +        */
+> +       rel = util < (max >> 2) ? CPUFREQ_RELATION_C : CPUFREQ_RELATION_L;
+> +       if (policy->fast_switch_possible) {
+> +               cpufreq_driver_fast_switch(policy, next_freq, rel);
+> +       } else {
+> +               sg_policy->relation = rel;
+> +               sg_policy->work_in_progress = true;
+> +               irq_work_queue(&sg_policy->irq_work);
+> +       }
+> +}
+> +
+> +static void sugov_update_single(struct update_util_data *data, u64 time,
+> +                               unsigned long util, unsigned long max)
+> +{
+> +       struct sugov_cpu *sg_cpu = container_of(data, struct sugov_cpu, update_util);
+> +       struct sugov_policy *sg_policy = sg_cpu->sg_policy;
+> +       unsigned int min_f, max_f, next_f;
+> +
+> +       if (!sugov_should_update_freq(sg_policy, time))
+> +               return;
+> +
+> +       min_f = sg_policy->policy->cpuinfo.min_freq;
+> +       max_f = sg_policy->policy->cpuinfo.max_freq;
+> +       next_f = util > max ? max_f : min_f + util * (max_f - min_f) / max;
 
-I think issues like this are the biggest reason why the ACPI core
-doesn't reserve all _CRS space early on (Rafael may correct me here).
+I think it has been pointed out in another email's thread but you
+should change the way the next_f is computed. util reflects the
+utilization of a CPU from 0 to its max compute capacity whereas
+ondemand was using the load at the current frequency during the last
+time window. I have understood that you want to keep same formula than
+ondemand as a starting point but you use a different input to
+calculate the next frequency so i don't see the rational of keeping
+this formula. Saying that, even the simple formula next_f = util > max
+? max_f : util * (max_f) / max will not work properly if the frequency
+invariance is enable because the utilization becomes capped by the
+current compute capacity so next_f will never be higher than current
+freq (unless a task move on the rq).  That was one reason of using a
+threshold in sched-freq proposal (and there are on going dev to try to
+solve this limitation).
+IIIUC, frequency invariance is not enable on your platform so you have
+not seen the problem but you have probably see that selection of your
+next_f was not really stable. Without frequency invariance, the
+utilization will be overestimated when running at lower frequency so
+the governor will probably select a frequency that is higher than
+necessary but then the utilization will decrease at this higher
+frequency so the governor will probably decrease the frequency and so
+on until you found the right frequency that will generate the right
+utilisation value
 
-> > If the platform doesn't report resource usage correctly on ARM, we may
-> > not find problems (because we don't have the Windows test suite) and
-> > if we have resource assignment problems because _CRS is lacking, we'll
-> > have no way to fix them.
-> 
-> And I think here you mean we can't prevent assigning resource space to
-> devices that do not necessarily own it because since some devices _CRS
-> are borked/missing we have no way to detect the address space allocated
-> to them and we may end up with resources conflicts.
+Regards,
+Vincent
 
-The ACPI core currently doesn't reserve the space consumed by ACPI
-devices.  Some drivers, e.g., for PNP0C02 (motherboard) and PNP0A03
-(PCI host bridge), do reserve their space, but the core itself does
-not.  
+> +
+> +       sugov_update_commit(sg_policy, time, util, max, next_f);
+> +}
+> +
+> +static unsigned int sugov_next_freq(struct sugov_policy *sg_policy,
+> +                                   unsigned long util, unsigned long max)
+> +{
+> +       struct cpufreq_policy *policy = sg_policy->policy;
+> +       unsigned int min_f = policy->cpuinfo.min_freq;
+> +       unsigned int max_f = policy->cpuinfo.max_freq;
+> +       u64 last_freq_update_time = sg_policy->last_freq_update_time;
+> +       unsigned int j;
+> +
+> +       if (util > max)
+> +               return max_f;
+> +
+> +       for_each_cpu(j, policy->cpus) {
+> +               struct sugov_cpu *j_sg_cpu;
+> +               unsigned long j_util, j_max;
+> +               u64 delta_ns;
+> +
+> +               if (j == smp_processor_id())
+> +                       continue;
+> +
+> +               j_sg_cpu = &per_cpu(sugov_cpu, j);
+> +               /*
+> +                * If the CPU utilization was last updated before the previous
+> +                * frequency update and the time elapsed between the last update
+> +                * of the CPU utilization and the last frequency update is long
+> +                * enough, don't take the CPU into account as it probably is
+> +                * idle now.
+> +                */
+> +               delta_ns = last_freq_update_time - j_sg_cpu->last_update;
+> +               if ((s64)delta_ns > NSEC_PER_SEC / HZ)
+> +                       continue;
+> +
+> +               j_util = j_sg_cpu->util;
+> +               j_max = j_sg_cpu->max;
+> +               if (j_util > j_max)
+> +                       return max_f;
+> +
+> +               if (j_util * max > j_max * util) {
+> +                       util = j_util;
+> +                       max = j_max;
+> +               }
+> +       }
+> +
+> +       return min_f + util * (max_f - min_f) / max;
+> +}
+> +
 
-If we have drivers for all the ACPI devices, those drivers will
-probably use _CRS and reserve the space, and we'll probably notice any
-_CRS errors.  But if we don't have drivers, e.g., for performance
-monitors or other non-essential things, nothing will use _CRS, and
-nothing will reserve the space used by the device, and it's hard to
-find errors.
-
-If we ever assign top-level resources, there's nothing to prevent us
-from creating a conflict.  The only reason we don't trip over this is
-that we usually don't assign top-level resources because firmware does
-it for us.
-
-> > > As per last Tomasz's patchset, we claim and assign unassigned PCI
-> > > resources upon ACPI PCI host bridge probing (which happens at
-> > > subsys_initcall time, courtesy of ACPI current code); at that time the
-> > > kernel did not even register the PNP0c02 driver (drivers/pnp/system.c)
-> > > (it does that at fs_initcall). On the other hand, we insert MCFG
-> > > regions into the resource tree upon MCFG parsing, so I do not
-> > > see why we need to rely on PNP0c02 to do that for us (granted, the
-> > > mechanism is part of the PCI fw specs, which are x86 centric anyway
-> > > ie we can't certainly rely on Int15 e820 to detect reserved memory
-> > > on ARM :D)
-> > > 
-> > > There is lots of legacy x86 here and Bjorn definitely has more
-> > > visibility into that than I have, the ARM world must understand
-> > > how this works to make sure we have an agreement.
-> > 
-> > As you say, there is lots of unpleasant x86 legacy here.  Possibly ARM
-> > has a chance to clean this up and do it more sanely; I'm not sure
-> > whether it's feasible to reverse the ACPI/PCI init order there or not.
-> > 
-> > Rafael, any thoughts on this whole thing?
-> > 
-> > Bjorn
-> > 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+[snip]
