@@ -1,147 +1,93 @@
-From: "Rafael J. Wysocki" <rafael@kernel.org>
-Subject: Re: [PATCH 6/6] cpufreq: schedutil: New governor based on scheduler
- utilization data
-Date: Wed, 2 Mar 2016 23:49:48 +0100
-Message-ID: <CAJZ5v0gC_S+a43FvgpB25WnpAANkDQk7agwSx4gRJvdmnPFkeQ@mail.gmail.com>
-References: <2495375.dFbdlAZmA6@vostro.rjw.lan>
-	<1842158.0Xhak3Uaac@vostro.rjw.lan>
-	<CAKfTPtANvYp5ar8UkKyN9R25Ntrfp+bEEFw5M0=MA8q7zscSMw@mail.gmail.com>
-	<CAJZ5v0jvStPbhKSJUHTwySkEXa0rKp3zE7YLWeCmGHeQt8xcrw@mail.gmail.com>
+From: "Rafael J. Wysocki" <rafael-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Subject: Re: [PATCH][RFC] ACPI / PM: Fix poweroff issue on HW-full platforms
+ without _S5
+Date: Thu, 3 Mar 2016 00:45:08 +0100
+Message-ID: <CAJZ5v0h75Ly4-R7jOCt=o+QtcLOZycC7kzKxkdP6Xy-teCiJ7w@mail.gmail.com>
+References: <1456925357-2899-1-git-send-email-yu.c.chen@intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-lb0-f172.google.com ([209.85.217.172]:33846 "EHLO
-	mail-lb0-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750797AbcCBWtv (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 2 Mar 2016 17:49:51 -0500
-In-Reply-To: <CAJZ5v0jvStPbhKSJUHTwySkEXa0rKp3zE7YLWeCmGHeQt8xcrw@mail.gmail.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Return-path: <linux-efi-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1456925357-2899-1-git-send-email-yu.c.chen-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Sender: linux-efi-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Chen Yu <yu.c.chen-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: ACPI Devel Maling List <linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-efi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, "linux-pm-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-pm-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "Rafael J. Wysocki" <rjw-KKrjLPT3xs0@public.gmane.org>, Len Brown <lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, matt.fleming-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, Thomas Gleixner <tglx-hfZtesqFncYOwBW4kG4KsQ@public.gmane.org>, x86-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, "Zhang, Rui" <rui.zhang-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Lv <lv.zheng-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
-To: Vincent Guittot <vincent.guittot@linaro.org>
-Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Linux PM list <linux-pm@vger.kernel.org>, Juri Lelli <juri.lelli@arm.com>, Steve Muckle <steve.muckle@linaro.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Peter Zijlstra <peterz@infradead.org>, Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>, Viresh Kumar <viresh.kumar@linaro.org>, Michael Turquette <mturquette@baylibre.com>
 
-On Wed, Mar 2, 2016 at 6:58 PM, Rafael J. Wysocki <rafael@kernel.org> wrote:
-> On Wed, Mar 2, 2016 at 6:10 PM, Vincent Guittot
-> <vincent.guittot@linaro.org> wrote:
->> Hi Rafael,
->>
->>
->> On 2 March 2016 at 03:27, Rafael J. Wysocki <rjw@rjwysocki.net> wrote:
->>> From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
->>>
->>> Add a new cpufreq scaling governor, called "schedutil", that uses
->>> scheduler-provided CPU utilization information as input for making
->>> its decisions.
->>>
->>> Doing that is possible after commit fe7034338ba0 (cpufreq: Add
->>> mechanism for registering utilization update callbacks) that
->>> introduced cpufreq_update_util() called by the scheduler on
->>> utilization changes (from CFS) and RT/DL task status updates.
->>> In particular, CPU frequency scaling decisions may be based on
->>> the the utilization data passed to cpufreq_update_util() by CFS.
->>>
->>> The new governor is relatively simple.
->>>
->>> The frequency selection formula used by it is essentially the same
->>> as the one used by the "ondemand" governor, although it doesn't use
->>> the additional up_threshold parameter, but instead of computing the
->>> load as the "non-idle CPU time" to "total CPU time" ratio, it takes
->>> the utilization data provided by CFS as input.  More specifically,
->>> it represents "load" as the util/max ratio, where util and max
->>> are the utilization and CPU capacity coming from CFS.
->>>
->>
->> [snip]
->>
->>> +
->>> +static void sugov_update_commit(struct sugov_policy *sg_policy, u64 time,
->>> +                               unsigned long util, unsigned long max,
->>> +                               unsigned int next_freq)
->>> +{
->>> +       struct cpufreq_policy *policy = sg_policy->policy;
->>> +       unsigned int rel;
->>> +
->>> +       if (next_freq > policy->max)
->>> +               next_freq = policy->max;
->>> +       else if (next_freq < policy->min)
->>> +               next_freq = policy->min;
->>> +
->>> +       sg_policy->last_freq_update_time = time;
->>> +       if (sg_policy->next_freq == next_freq)
->>> +               return;
->>> +
->>> +       sg_policy->next_freq = next_freq;
->>> +       /*
->>> +        * If utilization is less than max / 4, use RELATION_C to allow the
->>> +        * minimum frequency to be selected more often in case the distance from
->>> +        * it to the next available frequency in the table is significant.
->>> +        */
->>> +       rel = util < (max >> 2) ? CPUFREQ_RELATION_C : CPUFREQ_RELATION_L;
->>> +       if (policy->fast_switch_possible) {
->>> +               cpufreq_driver_fast_switch(policy, next_freq, rel);
->>> +       } else {
->>> +               sg_policy->relation = rel;
->>> +               sg_policy->work_in_progress = true;
->>> +               irq_work_queue(&sg_policy->irq_work);
->>> +       }
->>> +}
->>> +
->>> +static void sugov_update_single(struct update_util_data *data, u64 time,
->>> +                               unsigned long util, unsigned long max)
->>> +{
->>> +       struct sugov_cpu *sg_cpu = container_of(data, struct sugov_cpu, update_util);
->>> +       struct sugov_policy *sg_policy = sg_cpu->sg_policy;
->>> +       unsigned int min_f, max_f, next_f;
->>> +
->>> +       if (!sugov_should_update_freq(sg_policy, time))
->>> +               return;
->>> +
->>> +       min_f = sg_policy->policy->cpuinfo.min_freq;
->>> +       max_f = sg_policy->policy->cpuinfo.max_freq;
->>> +       next_f = util > max ? max_f : min_f + util * (max_f - min_f) / max;
->>
->> I think it has been pointed out in another email's thread but you
->> should change the way the next_f is computed. util reflects the
->> utilization of a CPU from 0 to its max compute capacity whereas
->> ondemand was using the load at the current frequency during the last
->> time window. I have understood that you want to keep same formula than
->> ondemand as a starting point but you use a different input to
->> calculate the next frequency so i don't see the rational of keeping
->> this formula.
+On Wed, Mar 2, 2016 at 2:29 PM, Chen Yu <yu.c.chen-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org> wrote:
+> The problem is Linux registers pm_power_off = efi_power_off
+> only if we are in hardware reduced mode. Actually, what we also
+> want is to do this when ACPI S5 is simply not supported.
+> That should handle both the HW reduced mode, and the HW-full
+> mode where the DSDT fails to supply an _S5 object.
 >
-> It is a formula that causes the entire available frequency range to be
-> utilized proportionally to the utilization as reported by the
-> scheduler (modulo the policy->min/max limits).  Its (significant IMO)
-> advantage is that it doesn't require any additional factors that would
-> need to be determined somehow.
+> This patch fixes this issue by introducing a new flag acpi_no_s5 which
+> indicates the non-existence of _S5. The initial state of acpi_no_s5 is
+> false and probed in acpi_sleep_init, then we'll later see the updated
+> value in efi_poweroff_required, according to which we can set pm_power_off
+> to efi_power_off in efi_shutdown_init.
+>
+> Suggested-by: Len Brown <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+> Signed-off-by: Chen Yu <yu.c.chen-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+> ---
+>  arch/x86/platform/efi/quirks.c | 3 ++-
+>  drivers/acpi/sleep.c           | 2 ++
+>  include/acpi/acpixf.h          | 6 ++++++
+>  3 files changed, 10 insertions(+), 1 deletion(-)
+>
+> diff --git a/arch/x86/platform/efi/quirks.c b/arch/x86/platform/efi/quirks.c
+> index 2d66db8..8ec43bc 100644
+> --- a/arch/x86/platform/efi/quirks.c
+> +++ b/arch/x86/platform/efi/quirks.c
+> @@ -295,5 +295,6 @@ bool efi_reboot_required(void)
+>
+>  bool efi_poweroff_required(void)
+>  {
+> -       return !!acpi_gbl_reduced_hardware;
+> +       return (!!acpi_gbl_reduced_hardware)
+> +               || (!!acpi_no_s5);
 
-In case a more formal derivation of this formula is needed, it is
-based on the following 3 assumptions:
+This can be written as:
 
-(1) Performance is a linear function of frequency.
-(2) Required performance is a linear function of the utilization ratio
-x = util/max as provided by the scheduler (0 <= x <= 1).
-(3) The minimum possible frequency (min_freq) corresponds to x = 0 and
-the maximum possible frequency (max_freq) corresponds to x = 1.
+    return acpi_gbl_reduced_hardware || acpi_no_s5;
 
-(1) and (2) combined imply that
+>  }
+> diff --git a/drivers/acpi/sleep.c b/drivers/acpi/sleep.c
+> index 9cb9752..6f75e54 100644
+> --- a/drivers/acpi/sleep.c
+> +++ b/drivers/acpi/sleep.c
+> @@ -846,6 +846,8 @@ int __init acpi_sleep_init(void)
+>                 sleep_states[ACPI_STATE_S5] = 1;
+>                 pm_power_off_prepare = acpi_power_off_prepare;
+>                 pm_power_off = acpi_power_off;
+> +       } else {
+> +               acpi_no_s5 = TRUE;
+>         }
+>
+>         supported[0] = 0;
+> diff --git a/include/acpi/acpixf.h b/include/acpi/acpixf.h
+> index c96621e..2b4d7f7 100644
+> --- a/include/acpi/acpixf.h
+> +++ b/include/acpi/acpixf.h
+> @@ -252,6 +252,12 @@ ACPI_INIT_GLOBAL(u8, acpi_gbl_osi_data, 0);
+>  ACPI_INIT_GLOBAL(u8, acpi_gbl_reduced_hardware, FALSE);
+>
+>  /*
+> + * Some HW-full platforms do not have S5, so they may need
+> + * to leverage efi power off for a shutdown.
+> + */
+> +ACPI_INIT_GLOBAL(u8, acpi_no_s5, FALSE);
 
-f = a * x + b
+Do you have to add it here?
 
-(f - frequency, a, b - constants to be determined) and then (3) quite
-trivially leads to b = min_freq and a = max_freq - min_freq.
+Can't you simply define it as a global bool variable in sleep.c and
+add a declaration to include/linux/acpi.h?
 
-Now, of course, the linearity assumptions may be questioned, but then
-it's just the first approximation.  If you go any further, though, you
-end up with an expansion series like this:
-
-f(x) = c_0 + c_1 * x + c_2 * x^2 + c_3 * x^3 + ...
-
-where all of the c_j need to be determined in principle.  With luck,
-if you can guess what kind of a function f(x) may be, it may be
-possible to reduce the number of coefficients to determine, but
-question is whether or not that is going to work universally for all
-systems.
+> +
+> +/*
+>   * This mechanism is used to trace a specified AML method. The method is
+>   * traced each time it is executed.
+>   */
+> --
 
 Thanks,
 Rafael
