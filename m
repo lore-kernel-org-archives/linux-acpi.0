@@ -1,8 +1,8 @@
-From: Matthias Brugger <matthias.bgg@gmail.com>
+From: Matthias Brugger <mbrugger@suse.com>
 Subject: Re: [PATCH v3 05/12] arm64, acpi, numa: NUMA support based on SRAT
  and SLIT
-Date: Wed, 2 Mar 2016 15:10:28 +0100
-Message-ID: <56D6F454.3050306@gmail.com>
+Date: Wed, 2 Mar 2016 15:10:40 +0100
+Message-ID: <56D6F460.40704@suse.com>
 References: <1453541967-3744-1-git-send-email-guohanjun@huawei.com>
  <1453541967-3744-6-git-send-email-guohanjun@huawei.com>
  <20160201180944.GV24726@rric.localdomain>
@@ -10,10 +10,11 @@ Mime-Version: 1.0
 Content-Type: text/plain; charset=windows-1252; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-wm0-f44.google.com ([74.125.82.44]:36269 "EHLO
-	mail-wm0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750907AbcCBOKc (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 2 Mar 2016 09:10:32 -0500
+Received: from smtp.nue.novell.com ([195.135.221.5]:59867 "EHLO
+	smtp.nue.novell.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753087AbcCBOLH (ORCPT
+	<rfc822;groupwise-linux-acpi@vger.kernel.org:0:0>);
+	Wed, 2 Mar 2016 09:11:07 -0500
 In-Reply-To: <20160201180944.GV24726@rric.localdomain>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
