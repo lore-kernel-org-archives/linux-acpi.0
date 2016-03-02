@@ -1,67 +1,71 @@
-From: Laison Computech Inc <7sales@laiisoncomputech.com>
-Subject: CISCO AND AVAYA IP Phones
-Date: Wed, 02 Mar 2016 03:34:16 +0700
-Message-ID: <20160301213323.6C6C358F64C@srv-mta.gcmillenium.com.br>
-Reply-To: sales@laiisoncomputech.com
+From: "Verma, Vishal L" <vishal.l.verma@intel.com>
+Subject: Re: [PATCH 0/8] nfit, libnvdimm: async address range scrub
+Date: Wed, 2 Mar 2016 01:45:03 +0000
+Message-ID: <1456883098.4525.9.camel@intel.com>
+References: <20160224021655.22776.87952.stgit@dwillia2-desk3.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from srv-mta.gcmillenium.com.br ([177.125.218.132]:51569 "EHLO
-	srv-mta.gcmillenium.com.br" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751501AbcCBBYz convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 1 Mar 2016 20:24:55 -0500
-Content-Description: Mail message body
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20160224021655.22776.87952.stgit@dwillia2-desk3.amr.corp.intel.com>
+Content-Language: en-US
+Content-ID: <464B2A60F1359C4CA00C70D3709709D7@intel.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: "Williams, Dan J" <dan.j.williams@intel.com>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>
+Cc: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
-To: Recipients <7sales@laiisoncomputech.com>
 
-Hi,
-
-Clean tested working pulls CPUs and QTYs in stock.
-
-115 X X5650
-65 X E5410
-75 X X5660
-145 X E5530
-100 X E5645
-40 X X5680
-75 X X5690
-
-Brand new sealed IP phones and QTYs in stock.
-
-55 x CP-7937G
-77 x CP-7942G
-54 x CP-7945G
-75 x CP-7962G
-=2E.....
-45 x Avaya 9630
-65 x Avaya 9641
-55 x Avaya 9640=20
-
-USED IT HARDWARE FROM:
-
-=46UJITSU       IBM         SUN        HP
-QUANTUM   DELL       HDS        STK
-NETAPP      SGI         Oracle      EMC=B2
-
-3Com, ADVA, Alcatel, Brocade, Cisco,
-Cabletron, Enterasys, Extreme Networks,
-Huawei, Marconi, Nortel, Qlogic, Avaya
-
-Let me know if you're interested. We are very open to offers and willin=
-g to work with you to make sure that we have a deal.
-
-Sincerely
-Barbara Johnson
-Laison Computech Inc
-Tel: +1-657-205-7860
-=46ax: +1-347-214-0478
-Email: sales@laiisoncomputech.com
-Web: www.laisoncomputech.com
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+T24gVHVlLCAyMDE2LTAyLTIzIGF0IDE4OjE2IC0wODAwLCBEYW4gV2lsbGlhbXMgd3JvdGU6DQo+
+IEdpdmVuIHRoZSBjYXBhY2l0aWVzIG9mIG5leHQgZ2VuZXJhdGlvbiBwZXJzaXN0ZW50IG1lbW9y
+eSBkZXZpY2VzIGENCj4gc2NydWIgb3BlcmF0aW9uIHRvIGZpbmQgYWxsIHBvaXNvbiBtYXkgdGFr
+ZSAxMHMgb2Ygc2Vjb25kcy7CoMKgV2Ugd2FudA0KPiB0aGlzIHNjcnViIHdvcmsgdG8gYmUgZG9u
+ZSBhc3luY2hyb25vdXNseSB3aXRoIHRoZSByZXN0IG9mIHN5c3RlbQ0KPiBpbml0aWFsaXphdGlv
+biwgc28gd2UgbW92ZSBpdCBvdXQgb2YgbGluZSBmcm9tIHRoZSBORklUIHByb2JpbmcsIGkuZS4N
+Cj4gYWNwaV9uZml0X2FkZCgpLg0KPiANCj4gSG93ZXZlciwgd2UgbWF5IHdhbnQgdG8gc3luY2hy
+b25vdXNseSB3YWl0IGZvciB0aGF0IHNjcnViYmluZyB0bw0KPiBjb21wbGV0ZSBiZWZvcmUgd2Ug
+cHJvYmUgYW55IHBtZW0gZGV2aWNlcy7CoMKgQ29uc2lkZXIgdGhlIGNhc2Ugd2hlcmUNCj4gY29u
+c3VtaW5nIHBvaXNvbiB0cmlnZ2VycyBhIG1hY2hpbmUgY2hlY2sgYW5kIGEgcmVib290LsKgwqBU
+aGF0IGV2ZW50DQo+IHdpbGwNCj4gdHJpZ2dlciBwbGF0Zm9ybSBmaXJtd2FyZSB0byBpbml0aWF0
+ZSBhIHNjcnViLsKgwqBUaGUga2VybmVsIHNob3VsZA0KPiBjb21wbGV0ZSBhbnkgZmlybXdhcmUg
+aW5pdGlhdGVkIHNjcnVicyBhcyB0aG9zZSBsaWtlbHkgaW5kaWNhdGUgdGhlDQo+IHByZXNlbmNl
+IG9mIGtub3duIHBvaXNvbi4NCj4gDQo+IFdoZW4gZXJyb3JzIGFyZSBub3QgcHJlc2VudCwgcGxh
+dGZvcm0gZmlybXdhcmUgZGlkIG5vdCBpbml0aWF0ZQ0KPiBzY3J1YmJpbmcsIHdlIHN0aWxsIHNj
+cnViLCBidXQgYXN5bmNocm9ub3VzbHkuwqDCoFRoaXMgdHJhZGVzIG9mZiBhIHJpc2sNCj4gb2Yg
+aGl0dGluZyBuZXcgdW5rbm93biBwb2lzb24gcmFuZ2VzIHdpdGggbWFraW5nIHRoZSBkYXRhIGF2
+YWlsYWJsZQ0KPiBmYXN0ZXIgYWZ0ZXIgbG9hZGluZyB0aGUgZHJpdmVyLg0KPiANCj4gVGhpcyBh
+c3luYyBzY3J1YiBjYXBhYmlsaXR5IGlzIGFsc28gdXNlZnVsIGluIHRoZSBmdXR1cmUgd2hlbiB3
+ZQ0KPiBpbnRlZ3JhdGUgVG9ueSBMdWNrJ3MgbWNzYWZlX2NvcHkoKSAob3Igd2hhdGV2ZXIgaXQg
+aXMNCj4gZXZlbnR1YWxseSBjYWxsZWQpLsKgwqBBZnRlciBhIG1hY2hpbmUgY2hlY2sgcmVjb3Zl
+cnkgZXZlbnQgd2UgY2FuIHNjcnViDQo+IHRoZSBwbWVtIG5hbWVzcGFjZSB0byBzZWUgaWYgdGhl
+cmUgYXJlIGFueSBvdGhlciBsYXRlbnQgZXJyb3JzIGFuZA0KPiBvdGhlcndpc2UgdXBkYXRlIHRo
+ZSAnYmFkYmxvY2tzJyBsaXN0IHdpdGggdGhlIG5ldyBlbnRyaWVzLg0KPiANCj4gVGhpcyBwYXNz
+ZXMgdGhlIGxpYm5kY3RsIHVuaXQgdGVzdCBzdWl0ZSwgd2l0aCBzb21lIG1pbm9yIHVwZGF0ZXMg
+dG8NCj4gYWNjb3VudCBmb3IgdGhlIGZhY3QgdGhhdCB3aGVuICJtb2Rwcm9iZSBuZml0X3Rlc3Qi
+IHJldHVybnMgbm90IGFsbA0KPiByZWdpb25zIGFyZSByZWdpc3RlcmVkLg0KPiANCj4gLS0tDQo+
+IA0KPiBEYW4gV2lsbGlhbXMgKDgpOg0KPiDCoMKgwqDCoMKgwqBsaWJudmRpbW0sIG5maXQ6IGNl
+bnRyYWxpemUgY29tbWFuZCBzdGF0dXMgdHJhbnNsYXRpb24NCj4gwqDCoMKgwqDCoMKgbGlibnZk
+aW1tOiBwcm90ZWN0IG52ZGltbV97YnVzfG5hbWVzcGFjZX1fYWRkX3BvaXNvbigpIHdpdGgNCj4g
+bnZkaW1tX2J1c19sb2NrKCkNCj4gwqDCoMKgwqDCoMKgbGlibnZkaW1tOiBhc3luYyBub3RpZmlj
+YXRpb24gc3VwcG9ydA0KPiDCoMKgwqDCoMKgwqBuZml0LCB0b29scy90ZXN0aW5nL252ZGltbTog
+dW5pZnkgY29tbW9uIGluaXQgZm9yIGFjcGlfbmZpdF9kZXNjDQo+IMKgwqDCoMKgwqDCoG5maXQs
+IGxpYm52ZGltbTogYXN5bmMgcmVnaW9uIHNjcnViIHdvcmtxdWV1ZQ0KPiDCoMKgwqDCoMKgwqBu
+Zml0OiBzY3J1YiBhbmQgcmVnaXN0ZXIgcmVnaW9ucyBpbiBhIHdvcmtxdWV1ZQ0KPiDCoMKgwqDC
+oMKgwqBuZml0OiBkaXNhYmxlIHVzZXJzcGFjZSBpbml0aWF0ZWQgYXJzIGR1cmluZyBzY3J1Yg0K
+PiDCoMKgwqDCoMKgwqB0b29scy90ZXN0aW5nL252ZGltbTogZXhwYW5kIGFycyB1bml0IHRlc3Rp
+bmcNCj4gDQo+IA0KPiDCoGRyaXZlcnMvYWNwaS9uZml0LmPCoMKgwqDCoMKgwqDCoMKgwqDCoMKg
+wqDCoMKgfMKgwqA3NjEgKysrKysrKysrKysrKysrKysrKysrKysrKysrDQo+IC0tLS0tLS0tLS0t
+DQo+IMKgZHJpdmVycy9hY3BpL25maXQuaMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqB8wqDC
+oMKgMjQgKw0KPiDCoGRyaXZlcnMvbnZkaW1tL2J1cy5jwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKg
+wqB8wqDCoMKgNDYgKysNCj4gwqBkcml2ZXJzL252ZGltbS9jb3JlLmPCoMKgwqDCoMKgwqDCoMKg
+wqDCoMKgwqB8wqDCoDExMCArKysrLQ0KPiDCoGRyaXZlcnMvbnZkaW1tL2RpbW1fZGV2cy5jwqDC
+oMKgwqDCoMKgwqB8wqDCoMKgwqA2wqANCj4gwqBkcml2ZXJzL252ZGltbS9uZC5owqDCoMKgwqDC
+oMKgwqDCoMKgwqDCoMKgwqDCoHzCoMKgwqDCoDLCoA0KPiDCoGRyaXZlcnMvbnZkaW1tL3BtZW0u
+Y8KgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoHzCoMKgwqAxNSArDQo+IMKgZHJpdmVycy9udmRpbW0v
+cmVnaW9uLmPCoMKgwqDCoMKgwqDCoMKgwqDCoHzCoMKgwqAxMiArDQo+IMKgaW5jbHVkZS9saW51
+eC9saWJudmRpbW0uaMKgwqDCoMKgwqDCoMKgwqB8wqDCoMKgwqA1wqANCj4gwqBpbmNsdWRlL2xp
+bnV4L25kLmjCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqB8wqDCoMKgwqA3wqANCj4gwqB0
+b29scy90ZXN0aW5nL252ZGltbS90ZXN0L25maXQuYyB8wqDCoDEzMyArKysrKy0tDQo+IMKgMTEg
+ZmlsZXMgY2hhbmdlZCwgODA5IGluc2VydGlvbnMoKyksIDMxMiBkZWxldGlvbnMoLSkNCg0KDQpI
+aSBEYW4sDQoNCkxvb2tzIGdvb2QgdG8gbWUsIHRoYW5rcyBmb3Iga25vY2tpbmcgdGhpcyBvdXQh
+DQoNCkZvciB0aGUgc2VyaWVzLA0KUmV2aWV3ZWQtYnk6IFZpc2hhbCBWZXJtYSA8dmlzaGFsLmwu
+dmVybWFAaW50ZWwuY29tPg==
