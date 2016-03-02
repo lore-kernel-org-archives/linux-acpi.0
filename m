@@ -1,23 +1,63 @@
-From: =?utf-8?B?5oiR5Zyo6L+Z6YeM562J5L2g?= <neteasy_honeypot@gootion.net>
-Subject: =?utf-8?B?5oiR5Zyo6L+Z6YeM562J5L2g?=
-Date: Thu, 3 Mar 2016 03:36:42 +0800
-Message-ID: <20160303033647001218@gootion.net>
-Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from [220.181.190.46] ([220.181.190.46]:35580 "EHLO mail.gootion.net"
-	rhost-flags-FAIL-FAIL-OK-OK) by vger.kernel.org with ESMTP
-	id S1753862AbcCBTux (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 2 Mar 2016 14:50:53 -0500
-Received: from iNp.ejarnmwi (unknown [180.106.197.5])
-	by mail.gootion.net (Postfix - by gootion.net) with ESMTPA id 61FBC180434
-	for <linux-acpi@vger.kernel.org>; Thu,  3 Mar 2016 03:45:32 +0800 (CST)
-Sender: linux-acpi-owner@vger.kernel.org
+From: Toshi Kani <toshi.kani@hpe.com>
+Subject: [PATCH v2 0/4] Support persistent memory as reserved type in e820/EFI
+Date: Wed,  2 Mar 2016 15:50:52 -0700
+Message-ID: <1456959056-12316-1-git-send-email-toshi.kani@hpe.com>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: mingo@kernel.org, bp@suse.de, dan.j.williams@intel.com, rjw@rjwysocki.net, akpm@linux-foundation.org
+Cc: linux-nvdimm@lists.01.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
 
-5L2g55qE6ICB5pyL5Y+L6YKA5L2g5p2lUee+pDozNDMyNTc3NTkNCg==
+ACPI 6.0 defines persistent memory (PMEM) ranges in multiple
+firmware interfaces, e820, EFI, and ACPI NFIT table.  This EFI
+change, however, leads to hit a bug in the grub bootloader, which
+treats EFI_PERSISTENT_MEMORY type as regular memory and corrupts
+stored user data [1].
 
+Therefore, BIOS may set generic reserved type in e820 and EFI
+to cover PMEM ranges.  The kernel can initialize PMEM ranges
+from ACPI NFIT table alone.
 
+This scheme cause a problem in the iomem table, though.  On x86,
+for instance, e820_reserve_resources() initializes top-level entries
+(iomem_resource.child) from the e820 table at early boot-time.
+This creates "reserved" entry for a PMEM range, which does not allow
+region_intersects() to check with PMEM type.
+
+This patch-set introduces devm_insert/remove_resource(), and changes
+the NFIT driver to insert a PMEM entry to the iomem table.
+
+[1] https://lists.gnu.org/archive/html/grub-devel/2015-11/msg00209.html
+
+Patch 1 fixes __request_region() to handle inheritance of attribute
+properly.  This patch is independent from this series.
+
+Patch 2 adds remove_resource() interface.
+
+Patch 3 adds devm_insert_resource() and devm_remove_resouce().  
+
+Patch 4 changes the ACPI nfit driver to call devm_insert_resource() to
+insert a PMEM range from NFIT.
+
+---
+v2:
+ - Change the NFIT driver to call insert_resource() to insert a PMEM entry
+   when necessary. (Dan Williams)
+ - The NFIT driver still needs to allow unloading. (Dan Williams)
+
+---
+This patch-set is based on the tip tree, which has the following patchset.
+https://lkml.org/lkml/2016/1/26/886
+
+---
+Toshi Kani (4):
+ 1/4 resource: Change __request_region to inherit from immediate parent
+ 2/4 resource: Add remove_resource interface
+ 3/4 resource: Add device-managed insert/remove_resource()
+ 4/4 ACPI: Change NFIT driver to insert new resource
+
+---
+ drivers/acpi/nfit.c    |  30 ++++++++++++
+ include/linux/ioport.h |   6 +++
+ kernel/resource.c      | 127 +++++++++++++++++++++++++++++++++++++++++++++----
+ 3 files changed, 155 insertions(+), 8 deletions(-)
