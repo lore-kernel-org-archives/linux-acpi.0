@@ -1,63 +1,129 @@
 From: Toshi Kani <toshi.kani@hpe.com>
-Subject: [PATCH v2 0/4] Support persistent memory as reserved type in e820/EFI
-Date: Wed,  2 Mar 2016 15:50:52 -0700
-Message-ID: <1456959056-12316-1-git-send-email-toshi.kani@hpe.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: mingo@kernel.org, bp@suse.de, dan.j.williams@intel.com, rjw@rjwysocki.net, akpm@linux-foundation.org
-Cc: linux-nvdimm@lists.01.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: [PATCH v2 3/4] resource: Add device-managed insert/remove_resource()
+Date: Wed,  2 Mar 2016 15:50:55 -0700
+Message-ID: <1456959056-12316-4-git-send-email-toshi.kani@hpe.com>
+References: <1456959056-12316-1-git-send-email-toshi.kani@hpe.com>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from g4t3426.houston.hp.com ([15.201.208.54]:42587 "EHLO
+	g4t3426.houston.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932517AbcCBV6V (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 2 Mar 2016 16:58:21 -0500
+In-Reply-To: <1456959056-12316-1-git-send-email-toshi.kani@hpe.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: mingo@kernel.org, bp@suse.de, dan.j.williams@intel.com, rjw@rjwysocki.net, akpm@linux-foundation.org
+Cc: linux-nvdimm@lists.01.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Toshi Kani <toshi.kani@hpe.com>
 
-ACPI 6.0 defines persistent memory (PMEM) ranges in multiple
-firmware interfaces, e820, EFI, and ACPI NFIT table.  This EFI
-change, however, leads to hit a bug in the grub bootloader, which
-treats EFI_PERSISTENT_MEMORY type as regular memory and corrupts
-stored user data [1].
+insert_resource() and remove_resouce() are called by producers
+of resources, such as FW modules and bus drivers.  These modules
+may be implemented as loadable modules.
 
-Therefore, BIOS may set generic reserved type in e820 and EFI
-to cover PMEM ranges.  The kernel can initialize PMEM ranges
-from ACPI NFIT table alone.
+Add device-managed implementaions of insert_resource() and
+remove_resouce() functions.
 
-This scheme cause a problem in the iomem table, though.  On x86,
-for instance, e820_reserve_resources() initializes top-level entries
-(iomem_resource.child) from the e820 table at early boot-time.
-This creates "reserved" entry for a PMEM range, which does not allow
-region_intersects() to check with PMEM type.
-
-This patch-set introduces devm_insert/remove_resource(), and changes
-the NFIT driver to insert a PMEM entry to the iomem table.
-
-[1] https://lists.gnu.org/archive/html/grub-devel/2015-11/msg00209.html
-
-Patch 1 fixes __request_region() to handle inheritance of attribute
-properly.  This patch is independent from this series.
-
-Patch 2 adds remove_resource() interface.
-
-Patch 3 adds devm_insert_resource() and devm_remove_resouce().  
-
-Patch 4 changes the ACPI nfit driver to call devm_insert_resource() to
-insert a PMEM range from NFIT.
-
+Signed-off-by: Toshi Kani <toshi.kani@hpe.com>
+Cc: Ingo Molnar <mingo@kernel.org>
+Cc: Borislav Petkov <bp@suse.de>
+Cc: Andrew Morton <akpm@linux-foundation.org>
+Cc: Dan Williams <dan.j.williams@intel.com>
 ---
-v2:
- - Change the NFIT driver to call insert_resource() to insert a PMEM entry
-   when necessary. (Dan Williams)
- - The NFIT driver still needs to allow unloading. (Dan Williams)
+ include/linux/ioport.h |    5 +++
+ kernel/resource.c      |   69 ++++++++++++++++++++++++++++++++++++++++++++++++
+ 2 files changed, 74 insertions(+)
 
----
-This patch-set is based on the tip tree, which has the following patchset.
-https://lkml.org/lkml/2016/1/26/886
-
----
-Toshi Kani (4):
- 1/4 resource: Change __request_region to inherit from immediate parent
- 2/4 resource: Add remove_resource interface
- 3/4 resource: Add device-managed insert/remove_resource()
- 4/4 ACPI: Change NFIT driver to insert new resource
-
----
- drivers/acpi/nfit.c    |  30 ++++++++++++
- include/linux/ioport.h |   6 +++
- kernel/resource.c      | 127 +++++++++++++++++++++++++++++++++++++++++++++----
- 3 files changed, 155 insertions(+), 8 deletions(-)
+diff --git a/include/linux/ioport.h b/include/linux/ioport.h
+index 8017b8b..3580038 100644
+--- a/include/linux/ioport.h
++++ b/include/linux/ioport.h
+@@ -259,6 +259,11 @@ extern struct resource * __devm_request_region(struct device *dev,
+ 
+ extern void __devm_release_region(struct device *dev, struct resource *parent,
+ 				  resource_size_t start, resource_size_t n);
++
++extern int devm_insert_resource(struct device *dev, struct resource *root,
++				 struct resource *new);
++extern void devm_remove_resource(struct device *dev, struct resource *old);
++
+ extern int iomem_map_sanity_check(resource_size_t addr, unsigned long size);
+ extern int iomem_is_exclusive(u64 addr);
+ 
+diff --git a/kernel/resource.c b/kernel/resource.c
+index effb6ee..b1a3394 100644
+--- a/kernel/resource.c
++++ b/kernel/resource.c
+@@ -1449,6 +1449,75 @@ void __devm_release_region(struct device *dev, struct resource *parent,
+ EXPORT_SYMBOL(__devm_release_region);
+ 
+ /*
++ * Remove function for devm_insert_resource() and devm_remove_resource().
++ */
++static void devm_resource_remove(struct device *dev, void *ptr)
++{
++	struct resource **r = ptr;
++
++	remove_resource(*r);
++}
++
++/**
++ * devm_insert_resource() - insert an I/O or memory resource
++ * @dev: device for which to produce the resource
++ * @root: root of the resource tree
++ * @new: descriptor of the new resource
++ *
++ * This is a device-managed version of insert_resource(). There is usually
++ * no need to release resources requested by this function explicitly since
++ * that will be taken care of when the device is unbound from its bus driver.
++ * If for some reason the resource needs to be released explicitly, because
++ * of ordering issues for example, bus drivers must call devm_remove_resource()
++ * rather than the regular remove_resource().
++ *
++ * devm_insert_resource() is intended for producers of resources, such as
++ * FW modules and bus drivers.
++ *
++ * Returns 0 on success or a negative error code on failure.
++ */
++int devm_insert_resource(struct device *dev, struct resource *root,
++			  struct resource *new)
++{
++	struct resource **ptr;
++	int ret;
++
++	ptr = devres_alloc(devm_resource_remove, sizeof(*ptr), GFP_KERNEL);
++	if (!ptr)
++		return -ENOMEM;
++
++	*ptr = new;
++
++	ret = insert_resource(root, new);
++	if (ret) {
++		dev_err(dev, "unable to insert resource: %pR (%d)\n", new, ret);
++		devres_free(ptr);
++		return -EBUSY;
++	}
++
++	devres_add(dev, ptr);
++	return 0;
++}
++EXPORT_SYMBOL_GPL(devm_insert_resource);
++
++/**
++ * devm_remove_resource() - remove a previously inserted resource
++ * @dev: device for which to remove the resource
++ * @old: descriptor of the resource
++ *
++ * Remove a resource previously inserted using devm_insert_resource().
++ *
++ * devm_remove_resource() is intended for producers of resources, such as
++ * FW modules and bus drivers.
++ */
++void devm_remove_resource(struct device *dev, struct resource *old)
++{
++	WARN_ON(devres_release(dev, devm_resource_remove, devm_resource_match,
++			       old));
++}
++EXPORT_SYMBOL_GPL(devm_remove_resource);
++
++/*
+  * Called from init/main.c to reserve IO ports.
+  */
+ #define MAXRESERVE 4
