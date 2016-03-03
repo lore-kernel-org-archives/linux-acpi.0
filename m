@@ -1,84 +1,79 @@
-From: Aleksey Makarov <amakarov.linux@gmail.com>
-Subject: Re: [PATCH v3 6/7] ACPI: enable ACPI_DBG2_TABLE on ARM64
-Date: Thu, 3 Mar 2016 14:41:17 +0300
-Message-ID: <56D822DD.2030400@gmail.com>
-References: <1456749726-30261-1-git-send-email-aleksey.makarov@linaro.org>
- <1456749726-30261-7-git-send-email-aleksey.makarov@linaro.org>
- <56D5ACBB.50408@hurleysoftware.com> <56D5CB42.3030806@linaro.org>
- <56D5D08E.3030902@hurleysoftware.com>
+From: Juri Lelli <juri.lelli@arm.com>
+Subject: Re: [PATCH 1/6] cpufreq: Reduce cpufreq_update_util() overhead a bit
+Date: Thu, 3 Mar 2016 11:47:01 +0000
+Message-ID: <20160303114701.GT18792@e106622-lin>
+References: <2495375.dFbdlAZmA6@vostro.rjw.lan>
+ <3575770.L1lplNLqVv@vostro.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <56D5D08E.3030902@hurleysoftware.com>
+Content-Disposition: inline
+In-Reply-To: <3575770.L1lplNLqVv@vostro.rjw.lan>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Peter Hurley <peter@hurleysoftware.com>, Aleksey Makarov <aleksey.makarov@linaro.org>, linux-acpi@vger.kernel.org
-Cc: Matthias Brugger <mbrugger@suse.com>, Russell King <linux@arm.linux.org.uk>, Graeme Gregory <graeme.gregory@linaro.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, linux-kernel@vger.kernel.org, Leif Lindholm <leif.lindholm@linaro.org>, Christopher Covington <cov@codeaurora.org>, linux-serial@vger.kernel.org, Catalin Marinas <catalin.marinas@arm.com>, Will Deacon <will.deacon@arm.com>, Al Stone <ahs3@redhat.com>, linux-arm-kernel@lists.infradead.org
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: Linux PM list <linux-pm@vger.kernel.org>, Peter Zijlstra <peterz@infradead.org>, Steve Muckle <steve.muckle@linaro.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>, Viresh Kumar <viresh.kumar@linaro.org>, Vincent Guittot <vincent.guittot@linaro.org>, Michael Turquette <mturquette@baylibre.com>
 List-Id: linux-acpi@vger.kernel.org
 
+Hi,
 
-
-On 03/01/2016 08:25 PM, Peter Hurley wrote:
-> On 03/01/2016 09:02 AM, Aleksey Makarov wrote:
->>
->>
->> On 03/01/2016 05:52 PM, Peter Hurley wrote:
->>> On 02/29/2016 04:42 AM, Aleksey Makarov wrote:
->>>> SBBR mentions DBG2 as a mandatory ACPI table.
->>>> So enable it for ARM64
->>>
->>> Why does this have to be opted-in per-arch?
->>
->> DBG2 can specify earlycons.  They should start as soon as possible.
->> On ARM64 it is just after boot tables become available (in arch_init()).
->> So it has to be per-arch unless we decide not to start earlycons on 
->> DBG2 ports.
+On 02/03/16 03:04, Rafael J. Wysocki wrote:
+> From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 > 
-> OF does all that already but the earlycon opt-in is not per-arch.
 
-In the last next-XXXX kernel support for OF earlycon depends on
-CONFIG_OF_EARLY_FLATTREE which *is* per-arch.
+[...]
 
-Probably we need the same kind of configuration option here,
-something like CONFIG_ACPI_BOOT_TABLES instead of ACPI_DBG2_TABLE.
+> @@ -95,18 +98,24 @@ EXPORT_SYMBOL_GPL(cpufreq_set_update_uti
+>   *
+>   * This function is called by the scheduler on every invocation of
+>   * update_load_avg() on the CPU whose utilization is being updated.
+> + *
+> + * It can only be called from RCU-sched read-side critical sections.
+>   */
+>  void cpufreq_update_util(u64 time, unsigned long util, unsigned long max)
+>  {
+>  	struct update_util_data *data;
+>  
+> -	rcu_read_lock();
+> +#ifdef CONFIG_LOCKDEP
+> +	WARN_ON(debug_locks && !rcu_read_lock_sched_held());
+> +#endif
+>  
+>  	data = rcu_dereference(*this_cpu_ptr(&cpufreq_update_util_data));
 
->>>> Signed-off-by: Aleksey Makarov <aleksey.makarov@linaro.org>
->>>> ---
->>>>  arch/arm64/Kconfig       | 1 +
->>>>  arch/arm64/kernel/acpi.c | 2 ++
->>>>  2 files changed, 3 insertions(+)
->>>>
->>>> diff --git a/arch/arm64/Kconfig b/arch/arm64/Kconfig
->>>> index 9dc5209..0b614d4 100644
->>>> --- a/arch/arm64/Kconfig
->>>> +++ b/arch/arm64/Kconfig
->>>> @@ -3,6 +3,7 @@ config ARM64
->>>>  	select ACPI_CCA_REQUIRED if ACPI
->>>>  	select ACPI_GENERIC_GSI if ACPI
->>>>  	select ACPI_REDUCED_HARDWARE_ONLY if ACPI
->>>> +	select ACPI_DBG2_TABLE if ACPI
->>>>  	select ARCH_HAS_DEVMEM_IS_ALLOWED
->>>>  	select ARCH_HAS_ATOMIC64_DEC_IF_POSITIVE
->>>>  	select ARCH_HAS_ELF_RANDOMIZE
->>>> diff --git a/arch/arm64/kernel/acpi.c b/arch/arm64/kernel/acpi.c
->>>> index d1ce8e2..3370046 100644
->>>> --- a/arch/arm64/kernel/acpi.c
->>>> +++ b/arch/arm64/kernel/acpi.c
->>>> @@ -208,6 +208,8 @@ void __init acpi_boot_table_init(void)
->>>>  		pr_err("Failed to init ACPI tables\n");
->>>>  		if (!param_acpi_force)
->>>>  			disable_acpi();
->>>> +	} else {
->>>> +		acpi_probe_device_table(dbg2);
->>>>  	}
->>>>  }
->>>>  
->>>>
->>>
-> 
-> 
-> _______________________________________________
-> linux-arm-kernel mailing list
-> linux-arm-kernel@lists.infradead.org
-> http://lists.infradead.org/mailman/listinfo/linux-arm-kernel
-> 
+I think you need to s/rcu_dereference/rcu_dereference_sched/ here or
+RCU will complain:
+
+[    0.106313] ===============================
+[    0.106322] [ INFO: suspicious RCU usage. ]
+[    0.106334] 4.5.0-rc6+ #93 Not tainted
+[    0.106342] -------------------------------
+[    0.106353] /media/hdd1tb/work/integration/kernel/drivers/cpufreq/cpufreq.c:113 suspicious rcu_dereference_check() usage!
+[    0.106361]
+[    0.106361] other info that might help us debug this:
+[    0.106361]
+[    0.106375]
+[    0.106375] rcu_scheduler_active = 1, debug_locks = 1
+[    0.106387] 1 lock held by swapper/0/0:
+[    0.106395]  #0:  (&rq->lock){-.....}, at: [<ffffffc000743204>] __schedule+0xec/0xadc
+[    0.106436]
+[    0.106436] stack backtrace:
+[    0.106450] CPU: 0 PID: 0 Comm: swapper/0 Not tainted 4.5.0-rc6+ #93
+[    0.106459] Hardware name: ARM Juno development board (r2) (DT)
+[    0.106468] Call trace:
+[    0.106483] [<ffffffc00008a8a8>] dump_backtrace+0x0/0x210
+[    0.106496] [<ffffffc00008aad8>] show_stack+0x20/0x28
+[    0.106511] [<ffffffc0004261a4>] dump_stack+0xa8/0xe0
+[    0.106526] [<ffffffc000120e9c>] lockdep_rcu_suspicious+0xd4/0x114
+[    0.106540] [<ffffffc0005d8180>] cpufreq_update_util+0xd4/0xd8
+[    0.106554] [<ffffffc000105b9c>] set_next_entity+0x540/0xf7c
+[    0.106569] [<ffffffc00010f78c>] pick_next_task_fair+0x9c/0x754
+[    0.106580] [<ffffffc00074351c>] __schedule+0x404/0xadc
+[    0.106592] [<ffffffc000743de0>] schedule+0x40/0xa0
+[    0.106603] [<ffffffc000744094>] schedule_preempt_disabled+0x1c/0x2c
+[    0.106617] [<ffffffc000741190>] rest_init+0x14c/0x164
+[    0.106631] [<ffffffc0009f9990>] start_kernel+0x3c0/0x3d4
+[    0.106642] [<ffffffc0000811b4>] 0xffffffc0000811b4
+
+Best,
+
+- Juri
