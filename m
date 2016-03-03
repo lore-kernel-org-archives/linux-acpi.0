@@ -1,33 +1,63 @@
-From: Sinan Kaya <okaya@codeaurora.org>
-Subject: Re: [PATCH V2] acpi, pci, irq: account for early penalty assignment
-Date: Thu, 3 Mar 2016 10:12:43 -0500
-Message-ID: <56D8546B.5040908@codeaurora.org>
-References: <1455801582-21595-1-git-send-email-okaya@codeaurora.org>
- <20160229192420.GC3653@localhost> <56D4A53A.1070708@codeaurora.org>
- <20160229223453.GA12162@localhost> <56D5E43E.7050406@codeaurora.org>
- <20160301194340.GA19783@localhost> <56D7317F.7090500@codeaurora.org>
- <56D7ABFB.3070302@codeaurora.org> <56D84EA9.3080900@codeaurora.org>
- <20160303151048.GA3290@localhost>
+From: Peter Hurley <peter@hurleysoftware.com>
+Subject: Re: [PATCH v4 0/4] ACPI: parse the SPCR table
+Date: Thu, 3 Mar 2016 07:35:40 -0800
+Message-ID: <56D859CC.7010901@hurleysoftware.com>
+References: <1456747355-15692-1-git-send-email-aleksey.makarov@linaro.org>
+ <56D5B5CB.7010702@hurleysoftware.com> <56D8272E.20705@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252
+Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20160303151048.GA3290@localhost>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Bjorn Helgaas <helgaas@kernel.org>
-Cc: linux-acpi@vger.kernel.org, timur@codeaurora.org, cov@codeaurora.org, linux-pci@vger.kernel.org, ravikanth.nalla@hpe.com, lenb@kernel.org, harish.k@hpe.com, ashwin.reghunandanan@hpe.com, bhelgaas@google.com, rjw@rjwysocki.net, linux-kernel@vger.kernel.org
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-pf0-f171.google.com ([209.85.192.171]:35879 "EHLO
+	mail-pf0-f171.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755746AbcCCPfp (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 3 Mar 2016 10:35:45 -0500
+Received: by mail-pf0-f171.google.com with SMTP id 63so16670380pfe.3
+        for <linux-acpi@vger.kernel.org>; Thu, 03 Mar 2016 07:35:45 -0800 (PST)
+In-Reply-To: <56D8272E.20705@gmail.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Aleksey Makarov <amakarov.linux@gmail.com>, Aleksey Makarov <aleksey.makarov@linaro.org>, linux-acpi@vger.kernel.org
+Cc: linux-serial@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Russell King <linux@arm.linux.org.uk>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, Leif Lindholm <leif.lindholm@linaro.org>, Graeme Gregory <graeme.gregory@linaro.org>, Al Stone <ahs3@redhat.com>, Christopher Covington <cov@codeaurora.org>, Yury Norov <ynorov@caviumnetworks.com>, "Zheng, Lv" <lv.zheng@intel.com>
 
-On 3/3/2016 10:10 AM, Bjorn Helgaas wrote:
-> That was my idea, but your minimal patch from last night looks awfully
-> attractive, and maybe it's not worth moving it to arch/x86.  I do think we
-> could simplify the code significantly by getting rid of the kzalloc and
-> acpi_irq_penalty_list from acpi_irq_set_penalty().  How about pushing on
-> that a little bit first, and see what it looks like then?
+On 03/03/2016 03:59 AM, Aleksey Makarov wrote:
+> 
+> 
+> On 03/01/2016 06:31 PM, Peter Hurley wrote:
+>> On 02/29/2016 04:02 AM, Aleksey Makarov wrote:
+>>> 'ARM Server Base Boot Requirements' [1] mentions SPCR (Serial Port
+>>> Console Redirection Table) [2] as a mandatory ACPI table that
+>>> specifies the configuration of serial console.
+>>>
+>>> Introduce a new function acpi_console_check().  At the uart port
+>>> registration, this function checks if the ACPI SPCR table specifies
+>>> its argument of type struct uart_port to be a console
+>>> and if so calls add_preferred_console().
+>>
+>> How will a user enable an earlycon on the same console as the SPCR
+>> console if there is no DBG2 table?
+> 
+> ...
+> [    0.000000] earlycon: pl11 at MMIO 0x0000000009000000 (options '')
+> [    0.000000] bootconsole [pl11] enabled
+> ...
+> [    0.000000] Kernel command line:  root=/dev/vda1 rw systemd.show_status=no acpi=force earlycon=pl011,0x9000000
+> ...
+> [    0.318248] ACPI: SPCR: adding preferred console [ttyAMA0]
+> [    0.318736] ARMH0011:00: ttyAMA0 at MMIO 0x9000000 (irq = 5, base_baud = 0) is a SBSA
+> [    0.319502] console [ttyAMA0] enabled
+> [    0.319502] console [ttyAMA0] enabled
+> [    0.319933] bootconsole [pl11] disabled
+> [    0.319933] bootconsole [pl11] disabled
+> ...
+> 
+> Why?
 
-OK. Let me go that direction.
+That's pretty disingenuous; via command line?
 
--- 
-Sinan Kaya
-Qualcomm Technologies, Inc. on behalf of Qualcomm Innovation Center, Inc.
-Qualcomm Innovation Center, Inc. is a member of Code Aurora Forum, a Linux Foundation Collaborative Project
+By that measure, none of your patches are required because a user
+can already start both console and earlycon without them.
+
+With the console location specified in the SPCR, earlycon should
+be opt-in on the command-line simply with "earlycon" command-line
+parameter.
