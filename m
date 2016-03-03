@@ -1,76 +1,80 @@
 From: Dan Williams <dan.j.williams@intel.com>
-Subject: Re: [PATCH v2 3/4] resource: Add device-managed insert/remove_resource()
-Date: Thu, 3 Mar 2016 14:45:10 -0800
-Message-ID: <CAPcyv4iBg0fsaAM-fnHaDir6mosLM-gwr+VU_doTsYU6st-yyQ@mail.gmail.com>
+Subject: Re: [PATCH v2 4/4] ACPI: Change NFIT driver to insert new resource
+Date: Thu, 3 Mar 2016 14:49:26 -0800
+Message-ID: <CAPcyv4ibLoKSe06P4WTHiQ6x=hoTfEmCvVKGv9hJ4Z7++2PN-w@mail.gmail.com>
 References: <1456959056-12316-1-git-send-email-toshi.kani@hpe.com>
-	<1456959056-12316-4-git-send-email-toshi.kani@hpe.com>
+	<1456959056-12316-5-git-send-email-toshi.kani@hpe.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-ob0-f173.google.com ([209.85.214.173]:33480 "EHLO
-	mail-ob0-f173.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753954AbcCCWpM (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 3 Mar 2016 17:45:12 -0500
-Received: by mail-ob0-f173.google.com with SMTP id fz5so34744311obc.0
-        for <linux-acpi@vger.kernel.org>; Thu, 03 Mar 2016 14:45:12 -0800 (PST)
-In-Reply-To: <1456959056-12316-4-git-send-email-toshi.kani@hpe.com>
-Sender: linux-acpi-owner@vger.kernel.org
-List-Id: linux-acpi@vger.kernel.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1456959056-12316-5-git-send-email-toshi.kani@hpe.com>
+Sender: linux-kernel-owner@vger.kernel.org
 To: Toshi Kani <toshi.kani@hpe.com>
 Cc: Ingo Molnar <mingo@kernel.org>, Borislav Petkov <bp@suse.de>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Andrew Morton <akpm@linux-foundation.org>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, Linux ACPI <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
+List-Id: linux-acpi@vger.kernel.org
 
 On Wed, Mar 2, 2016 at 2:50 PM, Toshi Kani <toshi.kani@hpe.com> wrote:
-> insert_resource() and remove_resouce() are called by producers
-> of resources, such as FW modules and bus drivers.  These modules
-> may be implemented as loadable modules.
+> ACPI 6.0 defines persistent memory (PMEM) ranges in multiple
+> firmware interfaces, e820, EFI, and ACPI NFIT table.  This EFI
+> change, however, leads to hit a bug in the grub bootloader, which
+> treats EFI_PERSISTENT_MEMORY type as regular memory and corrupts
+> stored user data [1].
 >
-> Add device-managed implementaions of insert_resource() and
-> remove_resouce() functions.
+> Therefore, BIOS may set generic reserved type in e820 and EFI
+> to cover PMEM ranges.  The kernel can initialize PMEM ranges
+> from ACPI NFIT table alone.
 >
+> This scheme causes a problem in the iomem table, though.  On x86,
+> for instance, e820_reserve_resources() initializes top-level entries
+> (iomem_resource.child) from the e820 table at early boot-time.
+> This creates "reserved" entry for a PMEM range, which does not allow
+> region_intersects() to check with PMEM type.
+>
+> Change acpi_nfit_register_region() to call acpi_nfit_insert_resource(),
+> which calls devm_insert_resource() to insert a PMEM entry from NFIT
+> when the iomem table does not have a PMEM entry already.  That is,
+> when a PMEM range is marked as reserved type in e820, it inserts
+> "Persistent Memory" entry, which results as follows.
+>
+>  + "Persistent Memory"
+>     + "reserved"
+>
+> This allows the EINJ driver, which calls region_intersects() to
+> check PMEM ranges, to work continuously even if BIOS sets reserved
+> type (or sets nothing) to PMEM ranges in e820 and EFI.
+>
+> [1]: https://lists.gnu.org/archive/html/grub-devel/2015-11/msg00209.html
 > Signed-off-by: Toshi Kani <toshi.kani@hpe.com>
+> Cc: Rafael J. Wysocki <rjw@rjwysocki.net>
+> Cc: Dan Williams <dan.j.williams@intel.com>
 > Cc: Ingo Molnar <mingo@kernel.org>
 > Cc: Borislav Petkov <bp@suse.de>
 > Cc: Andrew Morton <akpm@linux-foundation.org>
-> Cc: Dan Williams <dan.j.williams@intel.com>
 > ---
->  include/linux/ioport.h |    5 +++
->  kernel/resource.c      |   69 ++++++++++++++++++++++++++++++++++++++++++++++++
->  2 files changed, 74 insertions(+)
+>  drivers/acpi/nfit.c |   30 ++++++++++++++++++++++++++++++
+>  1 file changed, 30 insertions(+)
 >
-> diff --git a/include/linux/ioport.h b/include/linux/ioport.h
-> index 8017b8b..3580038 100644
-> --- a/include/linux/ioport.h
-> +++ b/include/linux/ioport.h
-> @@ -259,6 +259,11 @@ extern struct resource * __devm_request_region(struct device *dev,
+> diff --git a/drivers/acpi/nfit.c b/drivers/acpi/nfit.c
+> index fb53db1..d97b53f 100644
+> --- a/drivers/acpi/nfit.c
+> +++ b/drivers/acpi/nfit.c
+> @@ -1571,6 +1571,30 @@ static int ars_status_process_records(struct nvdimm_bus *nvdimm_bus,
+>         return 0;
+>  }
 >
->  extern void __devm_release_region(struct device *dev, struct resource *parent,
->                                   resource_size_t start, resource_size_t n);
-> +
-> +extern int devm_insert_resource(struct device *dev, struct resource *root,
-> +                                struct resource *new);
-> +extern void devm_remove_resource(struct device *dev, struct resource *old);
-> +
->  extern int iomem_map_sanity_check(resource_size_t addr, unsigned long size);
->  extern int iomem_is_exclusive(u64 addr);
->
-> diff --git a/kernel/resource.c b/kernel/resource.c
-> index effb6ee..b1a3394 100644
-> --- a/kernel/resource.c
-> +++ b/kernel/resource.c
-> @@ -1449,6 +1449,75 @@ void __devm_release_region(struct device *dev, struct resource *parent,
->  EXPORT_SYMBOL(__devm_release_region);
->
->  /*
-> + * Remove function for devm_insert_resource() and devm_remove_resource().
-> + */
-> +static void devm_resource_remove(struct device *dev, void *ptr)
+> +static int acpi_nfit_insert_resource(struct acpi_nfit_desc *acpi_desc,
+> +               struct nd_region_desc *ndr_desc)
 > +{
-> +       struct resource **r = ptr;
+> +       struct resource *res, *nd_res = ndr_desc->res;
+> +       size_t size = nd_res->end - nd_res->start + 1;
 > +
-> +       remove_resource(*r);
-> +}
+> +       /* No operation if the region is already registered as PMEM */
+> +       if (region_intersects(nd_res->start, size, IORESOURCE_MEM,
+> +                       IORES_DESC_PERSISTENT_MEMORY) == REGION_INTERSECTS)
+> +               return 0;
 > +
+> +       res = devm_kzalloc(acpi_desc->dev, sizeof(*res), GFP_KERNEL);
 
-Maybe call this __devm_remove_resource?  I think this makes it clearer
-that it is a private helper function.  I was initially confused about
-the difference between devm_resource_remove and devm_remove_resource.
+How about allocating this resource on the stack and then have
+devm_insert_resource handle the dynamic allocation (memdup) so we have
+one less failure point to handle in the driver.
