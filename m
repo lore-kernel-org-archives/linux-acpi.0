@@ -1,86 +1,107 @@
-From: Peter Hurley <peter@hurleysoftware.com>
-Subject: Re: [PATCH 0/3] ACPI: parse the SPCR table
-Date: Thu, 3 Mar 2016 12:08:36 -0800
-Message-ID: <56D899C4.5050802@hurleysoftware.com>
-References: <1453722324-22407-1-git-send-email-aleksey.makarov@linaro.org>
- <56A6494E.3090303@hurleysoftware.com> <56A8B570.2060501@linaro.org>
- <56BBCA2F.3020604@redhat.com>
+From: "Rafael J. Wysocki" <rafael@kernel.org>
+Subject: Re: [PATCH 6/6] cpufreq: schedutil: New governor based on scheduler
+ utilization data
+Date: Thu, 3 Mar 2016 21:20:13 +0100
+Message-ID: <CAJZ5v0h47h-xW6a4jzwRuOOOSG+qsD9hegM7QCzbD8Wb-yPVKQ@mail.gmail.com>
+References: <2495375.dFbdlAZmA6@vostro.rjw.lan>
+	<1842158.0Xhak3Uaac@vostro.rjw.lan>
+	<CAKfTPtANvYp5ar8UkKyN9R25Ntrfp+bEEFw5M0=MA8q7zscSMw@mail.gmail.com>
+	<CAJZ5v0jvStPbhKSJUHTwySkEXa0rKp3zE7YLWeCmGHeQt8xcrw@mail.gmail.com>
+	<CAKfTPtAtF4Yax9RrwjqfPqpfhtUxYRb-PDj+B_sZehEfQgsSsQ@mail.gmail.com>
+	<56D89952.1010606@linaro.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-pf0-f170.google.com ([209.85.192.170]:33286 "EHLO
-	mail-pf0-f170.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750751AbcCCUIl (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 3 Mar 2016 15:08:41 -0500
-Received: by mail-pf0-f170.google.com with SMTP id 124so20803521pfg.0
-        for <linux-acpi@vger.kernel.org>; Thu, 03 Mar 2016 12:08:40 -0800 (PST)
-In-Reply-To: <56BBCA2F.3020604@redhat.com>
+Received: from mail-lb0-f193.google.com ([209.85.217.193]:34346 "EHLO
+	mail-lb0-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750799AbcCCUUQ (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 3 Mar 2016 15:20:16 -0500
+In-Reply-To: <56D89952.1010606@linaro.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Al Stone <ahs3@redhat.com>, Aleksey Makarov <aleksey.makarov@linaro.org>, linux-acpi@vger.kernel.org
-Cc: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-serial@vger.kernel.org, Graeme Gregory <graeme.gregory@linaro.org>, Russell King <linux@arm.linux.org.uk>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, Leif Lindholm <leif.lindholm@linaro.org>
+To: Steve Muckle <steve.muckle@linaro.org>
+Cc: Vincent Guittot <vincent.guittot@linaro.org>, "Rafael J. Wysocki" <rafael@kernel.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Linux PM list <linux-pm@vger.kernel.org>, Juri Lelli <juri.lelli@arm.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Peter Zijlstra <peterz@infradead.org>, Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>, Viresh Kumar <viresh.kumar@linaro.org>, Michael Turquette <mturquette@baylibre.com>, Ingo Molnar <mingo@redhat.com>
 
-Hi Al,
-
-Somehow your email was filtered. Apologies for that.
-
-On 02/10/2016 03:39 PM, Al Stone wrote:
-> On 01/27/2016 05:17 AM, Aleksey Makarov wrote:
+On Thu, Mar 3, 2016 at 9:06 PM, Steve Muckle <steve.muckle@linaro.org> wrote:
+> On 03/03/2016 05:07 AM, Vincent Guittot wrote:
+>> I mainly want to prevent any useless and periodic frequency switch
+>> because of an utilization that changes with the current frequency (if
+>> frequency invariance is not used) and that can make the formula
+>> selects another frequency than the current one. That what i can see
+>> when testing it .
 >>
->>
->> On 01/25/2016 07:11 PM, Peter Hurley wrote:
->>> On 01/25/2016 03:45 AM, Aleksey Makarov wrote:
->>>> This patchset is based on the patchset by Leif Lindholm [1]
->>>>
->>>> 'ARM Server Base Boot Requirements' [2] mention SPCR=20
->>>> (Serial Port Console Redirection Table) [3] as a mandatory
->>>> ACPI table that specifies the configuration of serial console.
->>>>
->>>> Licensing concerns have prevented implementing it in the past, but=
- as of
->>>> 10 August 2015, these tables have both been released also under=20
->>>> OWF 1.0 [4].
->>>
->>> This license has a patent retaliation provision, which makes it
->>> incompatible with GPLv2.
->>>
->>> *If the license applies to this code*, then this patch set does not
->>> meet the criteria for submission.
->>
->> The license applies not to this code but to the document describing =
-the tables.
->=20
-> Just for the record, the SPCR table struct definition has been part
-> of the Linux kernel since at least commit b24aad44 on 2009-07-24
-> (line 1112 of include/acpi/actbl2.h) -- or so git blame tells me.
+>> Sorry for the late reply, i was trying to do some test on my board but
+>> was facing some crash issue (not link with your patchset). So i have
+>> done some tests and i can see such instable behavior. I have generated
+>> a load of 33% at max frequency (3ms runs every 9ms) and i can see the
+>> frequency that toggles without any good reason. Saying that, i can see
+>> similar thing with ondemand.
+>
+> FWIW I ran some performance numbers on my chromebook 2. Initially I
+> forgot to bring in the frequency invariance support but that yielded an
+> opportunity to see the impact of it.
+>
+> The tests below consist of a periodic workload. The OH (overhead)
+> numbers show how close the workload got to running as slow as fmin (100%
+> = as slow as powersave gov, 0% = as fast as perf gov). The OR (overrun)
+> number is the count of instances where the busy work exceeded the period.
+>
+> First a comparison of schedutil with and without frequency invariance.
+> Run and period are in milliseconds.
+>
+>                         scu (no inv)    scu (w/inv)
+> run     period  busy %  OR      OH      OR      OH
+> 1       100     1.00%   0       79.72%  0       95.86%
+> 10      1000    1.00%   0       24.52%  0       71.61%
+> 1       10      10.00%  0       21.25%  0       41.78%
+> 10      100     10.00%  0       26.06%  0       47.96%
+> 100     1000    10.00%  0       6.36%   0       26.03%
+> 6       33      18.18%  0       15.67%  0       31.61%
+> 66      333     19.82%  0       8.94%   0       29.46%
+> 4       10      40.00%  0       6.26%   0       12.93%
+> 40      100     40.00%  0       6.93%   2       14.08%
+> 400     1000    40.00%  0       1.65%   0       11.58%
+> 5       9       55.56%  0       3.70%   0       7.70%
+> 50      90      55.56%  1       4.19%   6       8.06%
+> 500     900     55.56%  0       1.35%   5       6.94%
+> 9       12      75.00%  0       1.60%   56      3.59%
+> 90      120     75.00%  0       1.88%   21      3.94%
+> 900     1200    75.00%  0       0.73%   4       4.41%
+>
+> Frequency invariance causes schedutil overhead to increase noticeably. I
+> haven't dug into traces or anything. Perhaps this is due to the
+> algorithm overshooting then overcorrecting etc., I do not yet know.
 
-Just to be clear here:
+So as I said, the formula I used didn't take invariance into account,
+so that's quite as expected.
 
-The Microsoft specification, which defines the SPCR table struct and wh=
-ich
-this patch series relies on, notes that patents apply. Specifically, it
-says:
+> Here is a comparison, with frequency invariance, of ondemand and
+> interactive with schedfreq and schedutil. The first two columns (run and
+> period) are omitted so the table will fit.
+>
+>         ondemand        interactive     schedfreq       schedutil
+> busy %  OR      OH      OR      OH      OR      OH      OR      OH
+> 1.00%   0       68.96%  0       100.04% 0       78.49%  0       95.86%
+> 1.00%   0       25.04%  0       22.59%  0       72.56%  0       71.61%
+> 10.00%  0       21.75%  0       63.08%  0       52.40%  0       41.78%
+> 10.00%  0       12.17%  0       14.41%  0       17.33%  0       47.96%
+> 10.00%  0       2.57%   0       2.17%   0       0.29%   0       26.03%
+> 18.18%  0       12.39%  0       9.39%   0       17.34%  0       31.61%
+> 19.82%  0       3.74%   0       3.42%   0       12.26%  0       29.46%
+> 40.00%  2       6.26%   1       12.23%  0       6.15%   0       12.93%
+> 40.00%  0       0.47%   0       0.05%   0       2.68%   2       14.08%
+> 40.00%  0       0.60%   0       0.50%   0       1.22%   0       11.58%
+> 55.56%  2       4.25%   5       5.97%   0       2.51%   0       7.70%
+> 55.56%  0       1.89%   0       0.04%   0       1.71%   6       8.06%
+> 55.56%  0       0.50%   0       0.47%   0       1.82%   5       6.94%
+> 75.00%  2       1.65%   1       0.46%   0       0.26%   56      3.59%
+> 75.00%  0       1.68%   0       0.05%   0       0.49%   21      3.94%
+> 75.00%  0       0.28%   0       0.23%   0       0.62%   4       4.41%
+>
+> Aside from the 2nd and 3rd tests schedutil is showing decreased
+> performance across the board. The fifth test is particularly bad.
 
-Patent Notice:
-Microsoft is making certain patent rights available for implementations=
- of this specification under two options:
-1)  Microsoft=E2=80=99s Community Promise, available at http://www.micr=
-osoft.com/openspecifications/en/us/programs/community-promise/default.a=
-spx; or
-2)  The Open Web Foundation Final Specification Agreement Version 1.0 (=
-"OWF 1.0") as of October 1, 2012, available at http://www.openwebfounda=
-tion.org/legal/the-owf-1-0-agreements/owfa-1-0.=20
-Version 1.03 =E2=80=94 August 10, 2015
+I guess you mean performance in terms of the overhead?
 
-I don't believe either of those patent licenses are GPL compatible.
-
-Unless you're saying Red Hat is signing off on this?
-
-Regards,
-Peter Hurley
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Thanks,
+Rafael
