@@ -1,29 +1,169 @@
-From: Peter Zijlstra <peterz@infradead.org>
-Subject: Re: [PATCH 1/6] cpufreq: Reduce cpufreq_update_util() overhead a bit
-Date: Thu, 3 Mar 2016 14:04:24 +0100
-Message-ID: <20160303130424.GP6356@twins.programming.kicks-ass.net>
-References: <2495375.dFbdlAZmA6@vostro.rjw.lan>
- <3575770.L1lplNLqVv@vostro.rjw.lan>
- <20160303114701.GT18792@e106622-lin>
+From: Vincent Guittot <vincent.guittot@linaro.org>
+Subject: Re: [PATCH 6/6] cpufreq: schedutil: New governor based on scheduler
+ utilization data
+Date: Thu, 3 Mar 2016 14:07:43 +0100
+Message-ID: <CAKfTPtAtF4Yax9RrwjqfPqpfhtUxYRb-PDj+B_sZehEfQgsSsQ@mail.gmail.com>
+References: <2495375.dFbdlAZmA6@vostro.rjw.lan> <1842158.0Xhak3Uaac@vostro.rjw.lan>
+ <CAKfTPtANvYp5ar8UkKyN9R25Ntrfp+bEEFw5M0=MA8q7zscSMw@mail.gmail.com> <CAJZ5v0jvStPbhKSJUHTwySkEXa0rKp3zE7YLWeCmGHeQt8xcrw@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-pm-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20160303114701.GT18792@e106622-lin>
-Sender: linux-pm-owner@vger.kernel.org
-To: Juri Lelli <juri.lelli@arm.com>
-Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Linux PM list <linux-pm@vger.kernel.org>, Steve Muckle <steve.muckle@linaro.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>, Viresh Kumar <viresh.kumar@linaro.org>, Vincent Guittot <vincent.guittot@linaro.org>, Michael Turquette <mturquette@baylibre.com>
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-lb0-f170.google.com ([209.85.217.170]:35695 "EHLO
+	mail-lb0-f170.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757416AbcCCNIG (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 3 Mar 2016 08:08:06 -0500
+Received: by mail-lb0-f170.google.com with SMTP id bc4so22544569lbc.2
+        for <linux-acpi@vger.kernel.org>; Thu, 03 Mar 2016 05:08:04 -0800 (PST)
+In-Reply-To: <CAJZ5v0jvStPbhKSJUHTwySkEXa0rKp3zE7YLWeCmGHeQt8xcrw@mail.gmail.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: "Rafael J. Wysocki" <rafael@kernel.org>
+Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Linux PM list <linux-pm@vger.kernel.org>, Juri Lelli <juri.lelli@arm.com>, Steve Muckle <steve.muckle@linaro.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Peter Zijlstra <peterz@infradead.org>, Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>, Viresh Kumar <viresh.kumar@linaro.org>, Michael Turquette <mturquette@baylibre.com>
 
-On Thu, Mar 03, 2016 at 11:47:01AM +0000, Juri Lelli wrote:
+On 2 March 2016 at 18:58, Rafael J. Wysocki <rafael@kernel.org> wrote:
+> On Wed, Mar 2, 2016 at 6:10 PM, Vincent Guittot
+> <vincent.guittot@linaro.org> wrote:
+>> Hi Rafael,
+>>
+>>
+>> On 2 March 2016 at 03:27, Rafael J. Wysocki <rjw@rjwysocki.net> wrote:
+>>> From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+>>>
+>>> Add a new cpufreq scaling governor, called "schedutil", that uses
+>>> scheduler-provided CPU utilization information as input for making
+>>> its decisions.
+>>>
+>>> Doing that is possible after commit fe7034338ba0 (cpufreq: Add
+>>> mechanism for registering utilization update callbacks) that
+>>> introduced cpufreq_update_util() called by the scheduler on
+>>> utilization changes (from CFS) and RT/DL task status updates.
+>>> In particular, CPU frequency scaling decisions may be based on
+>>> the the utilization data passed to cpufreq_update_util() by CFS.
+>>>
+>>> The new governor is relatively simple.
+>>>
+>>> The frequency selection formula used by it is essentially the same
+>>> as the one used by the "ondemand" governor, although it doesn't use
+>>> the additional up_threshold parameter, but instead of computing the
+>>> load as the "non-idle CPU time" to "total CPU time" ratio, it takes
+>>> the utilization data provided by CFS as input.  More specifically,
+>>> it represents "load" as the util/max ratio, where util and max
+>>> are the utilization and CPU capacity coming from CFS.
+>>>
+>>
+>> [snip]
+>>
+>>> +
+>>> +static void sugov_update_commit(struct sugov_policy *sg_policy, u64 time,
+>>> +                               unsigned long util, unsigned long max,
+>>> +                               unsigned int next_freq)
+>>> +{
+>>> +       struct cpufreq_policy *policy = sg_policy->policy;
+>>> +       unsigned int rel;
+>>> +
+>>> +       if (next_freq > policy->max)
+>>> +               next_freq = policy->max;
+>>> +       else if (next_freq < policy->min)
+>>> +               next_freq = policy->min;
+>>> +
+>>> +       sg_policy->last_freq_update_time = time;
+>>> +       if (sg_policy->next_freq == next_freq)
+>>> +               return;
+>>> +
+>>> +       sg_policy->next_freq = next_freq;
+>>> +       /*
+>>> +        * If utilization is less than max / 4, use RELATION_C to allow the
+>>> +        * minimum frequency to be selected more often in case the distance from
+>>> +        * it to the next available frequency in the table is significant.
+>>> +        */
+>>> +       rel = util < (max >> 2) ? CPUFREQ_RELATION_C : CPUFREQ_RELATION_L;
+>>> +       if (policy->fast_switch_possible) {
+>>> +               cpufreq_driver_fast_switch(policy, next_freq, rel);
+>>> +       } else {
+>>> +               sg_policy->relation = rel;
+>>> +               sg_policy->work_in_progress = true;
+>>> +               irq_work_queue(&sg_policy->irq_work);
+>>> +       }
+>>> +}
+>>> +
+>>> +static void sugov_update_single(struct update_util_data *data, u64 time,
+>>> +                               unsigned long util, unsigned long max)
+>>> +{
+>>> +       struct sugov_cpu *sg_cpu = container_of(data, struct sugov_cpu, update_util);
+>>> +       struct sugov_policy *sg_policy = sg_cpu->sg_policy;
+>>> +       unsigned int min_f, max_f, next_f;
+>>> +
+>>> +       if (!sugov_should_update_freq(sg_policy, time))
+>>> +               return;
+>>> +
+>>> +       min_f = sg_policy->policy->cpuinfo.min_freq;
+>>> +       max_f = sg_policy->policy->cpuinfo.max_freq;
+>>> +       next_f = util > max ? max_f : min_f + util * (max_f - min_f) / max;
+>>
+>> I think it has been pointed out in another email's thread but you
+>> should change the way the next_f is computed. util reflects the
+>> utilization of a CPU from 0 to its max compute capacity whereas
+>> ondemand was using the load at the current frequency during the last
+>> time window. I have understood that you want to keep same formula than
+>> ondemand as a starting point but you use a different input to
+>> calculate the next frequency so i don't see the rational of keeping
+>> this formula.
+>
+> It is a formula that causes the entire available frequency range to be
+> utilized proportionally to the utilization as reported by the
+> scheduler (modulo the policy->min/max limits).  Its (significant IMO)
+> advantage is that it doesn't require any additional factors that would
+> need to be determined somehow.
+>
+>> Saying that, even the simple formula next_f = util > max
+>> ? max_f : util * (max_f) / max will not work properly if the frequency
+>> invariance is enable because the utilization becomes capped by the
+>> current compute capacity so next_f will never be higher than current
+>> freq (unless a task move on the rq).  That was one reason of using a
+>> threshold in sched-freq proposal (and there are on going dev to try to
+>> solve this limitation).
+>
+> Well, a different formula will have to be used along with frequency
+> invariance, then.
+>
+>> IIIUC, frequency invariance is not enable on your platform so you have
+>> not seen the problem but you have probably see that selection of your
+>> next_f was not really stable. Without frequency invariance, the
+>> utilization will be overestimated when running at lower frequency so
+>> the governor will probably select a frequency that is higher than
+>> necessary but then the utilization will decrease at this higher
+>> frequency so the governor will probably decrease the frequency and so
+>> on until you found the right frequency that will generate the right
+>> utilisation value
+>
+> I don't have any problems with that to be honest and if you aim at
+> selecting the perfect frequency at the first attempt, then good luck
+> with that anyway.
 
-> > +#ifdef CONFIG_LOCKDEP
-> > +	WARN_ON(debug_locks && !rcu_read_lock_sched_held());
-> > +#endif
-> >  
-> >  	data = rcu_dereference(*this_cpu_ptr(&cpufreq_update_util_data));
-> 
-> I think you need to s/rcu_dereference/rcu_dereference_sched/ here or
-> RCU will complain:
+I mainly want to prevent any useless and periodic frequency switch
+because of an utilization that changes with the current frequency (if
+frequency invariance is not used) and that can make the formula
+selects another frequency than the current one. That what i can see
+when testing it .
 
-Ah, indeed ;-)
+Sorry for the late reply, i was trying to do some test on my board but
+was facing some crash issue (not link with your patchset). So i have
+done some tests and i can see such instable behavior. I have generated
+a load of 33% at max frequency (3ms runs every 9ms) and i can see the
+frequency that toggles without any good reason. Saying that, i can see
+similar thing with ondemand.
+
+Vincent
+
+>
+> Now, I'm not saying that the formula used in this patch cannot be
+> improved or similar.  It very well may be possible to improve it.  I'm
+> only saying that it is good enough to start with, because of the
+> reasons mentioned above.
+>
+> Still, if you can suggest to me what other formula specifically should
+> be used here, I'll consider using it.  Which will probably mean
+> comparing the two and seeing which one leads to better results.
+>
+> Thanks,
+> Rafael
