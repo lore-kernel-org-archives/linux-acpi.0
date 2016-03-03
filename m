@@ -1,37 +1,59 @@
-From: Peter Zijlstra <peterz@infradead.org>
-Subject: Re: [PATCH 5/6] cpufreq: Support for fast frequency switching
-Date: Thu, 3 Mar 2016 22:12:16 +0100
-Message-ID: <20160303211216.GV6356@twins.programming.kicks-ass.net>
-References: <2495375.dFbdlAZmA6@vostro.rjw.lan>
- <26020775.9hJG2SHiH2@vostro.rjw.lan>
- <20160303111655.GL6356@twins.programming.kicks-ass.net>
- <CAJZ5v0gftV8fR9XQuFKPf-v6FzyFV5onRvyE64mc5kPXUVQqmA@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-pm-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <CAJZ5v0gftV8fR9XQuFKPf-v6FzyFV5onRvyE64mc5kPXUVQqmA@mail.gmail.com>
-Sender: linux-pm-owner@vger.kernel.org
-To: "Rafael J. Wysocki" <rafael@kernel.org>
-Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Linux PM list <linux-pm@vger.kernel.org>, Juri Lelli <juri.lelli@arm.com>, Steve Muckle <steve.muckle@linaro.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>, Viresh Kumar <viresh.kumar@linaro.org>, Vincent Guittot <vincent.guittot@linaro.org>, Michael Turquette <mturquette@baylibre.com>
+From: Vishal Verma <vishal.l.verma@intel.com>
+Subject: [PATCH] nfit: Continue init even if ARS_CAP is unimplemented
+Date: Thu,  3 Mar 2016 14:21:37 -0700
+Message-ID: <1457040097-10038-1-git-send-email-vishal.l.verma@intel.com>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga03.intel.com ([134.134.136.65]:10289 "EHLO mga03.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1757773AbcCCVWH (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 3 Mar 2016 16:22:07 -0500
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: linux-nvdimm@lists.01.org
+Cc: Vishal Verma <vishal.l.verma@intel.com>, linux-acpi@vger.kernel.org, Dan Williams <dan.j.williams@intel.com>, Xiao Guangrong <guangrong.xiao@linux.intel.com>
 
-On Thu, Mar 03, 2016 at 09:56:40PM +0100, Rafael J. Wysocki wrote:
-> On Thu, Mar 3, 2016 at 12:16 PM, Peter Zijlstra <peterz@infradead.org> wrote:
-> > On Wed, Mar 02, 2016 at 03:12:33AM +0100, Rafael J. Wysocki wrote:
-> >> The most important change from the previous version is that the
-> >> ->fast_switch() callback takes an additional "relation" argument
-> >> and now the governor can use it to choose a selection method.
-> >
-> >> +unsigned int acpi_cpufreq_fast_switch(struct cpufreq_policy *policy,
-> >> +                                   unsigned int target_freq,
-> >> +                                   unsigned int relation)
-> >
-> > Would it make sense to replace the {target_freq, relation} pair with
-> > something like the CPPC {min_freq, max_freq} pair?
-> 
-> Yes, it would in general, but since I use __cpufreq_driver_target() in
-> the "slow driver" case, that would need to be reworked too for
-> consistency.  So I'd prefer to do that later.
+If firmware doesn't implement any of the ARS commands, take that to
+mean that ARS is unsupported, and continue to initialize regions without
+bad block lists. We cannot make the assumption that ARS commands will be
+unconditionally supported on all NVDIMMs.
 
-OK, fair enough.
+Cc: Dan Williams <dan.j.williams@intel.com>
+Reported-by: Xiao Guangrong <guangrong.xiao@linux.intel.com>
+Signed-off-by: Vishal Verma <vishal.l.verma@intel.com>
+---
+ drivers/acpi/nfit.c | 15 +++++++++++----
+ 1 file changed, 11 insertions(+), 4 deletions(-)
+
+diff --git a/drivers/acpi/nfit.c b/drivers/acpi/nfit.c
+index fb53db1..df99e33 100644
+--- a/drivers/acpi/nfit.c
++++ b/drivers/acpi/nfit.c
+@@ -1590,14 +1590,21 @@ static int acpi_nfit_find_poison(struct acpi_nfit_desc *acpi_desc,
+ 	start = ndr_desc->res->start;
+ 	len = ndr_desc->res->end - ndr_desc->res->start + 1;
+ 
++	/*
++	 * If ARS is unimplemented, unsupported, or if the 'Persistent Memory
++	 * Scrub' flag in extended status is not set, skip this but continue
++	 * initialization
++	 */
+ 	rc = ars_get_cap(nd_desc, ars_cap, start, len);
++	if (rc == -ENOTTY) {
++		dev_warn(acpi_desc->dev,
++			"ARS_CAP is not implemented, won't create an error list\n");
++		rc = 0;
++		goto out;
++	}
+ 	if (rc)
+ 		goto out;
+ 
+-	/*
+-	 * If ARS is unsupported, or if the 'Persistent Memory Scrub' flag in
+-	 * extended status is not set, skip this but continue initialization
+-	 */
+ 	if ((ars_cap->status & 0xffff) ||
+ 		!(ars_cap->status >> 16 & ND_ARS_PERSISTENT)) {
+ 		dev_warn(acpi_desc->dev,
+-- 
+2.5.0
+
