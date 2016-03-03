@@ -1,96 +1,84 @@
-From: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
-Subject: Re: [PATCH V5 00/15] MMCONFIG refactoring and support for ARM64 PCI
- hostbridge init based on ACPI
-Date: Thu, 3 Mar 2016 11:23:32 +0000
-Message-ID: <20160303112332.GC28359@red-moon>
-References: <1455630825-27253-1-git-send-email-tn@semihalf.com>
- <56D49611.2050202@codeaurora.org>
+From: Aleksey Makarov <amakarov.linux@gmail.com>
+Subject: Re: [PATCH v3 6/7] ACPI: enable ACPI_DBG2_TABLE on ARM64
+Date: Thu, 3 Mar 2016 14:41:17 +0300
+Message-ID: <56D822DD.2030400@gmail.com>
+References: <1456749726-30261-1-git-send-email-aleksey.makarov@linaro.org>
+ <1456749726-30261-7-git-send-email-aleksey.makarov@linaro.org>
+ <56D5ACBB.50408@hurleysoftware.com> <56D5CB42.3030806@linaro.org>
+ <56D5D08E.3030902@hurleysoftware.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from foss.arm.com ([217.140.101.70]:36062 "EHLO foss.arm.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751658AbcCCLVT (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 3 Mar 2016 06:21:19 -0500
-Content-Disposition: inline
-In-Reply-To: <56D49611.2050202@codeaurora.org>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <56D5D08E.3030902@hurleysoftware.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Peter Hurley <peter@hurleysoftware.com>, Aleksey Makarov <aleksey.makarov@linaro.org>, linux-acpi@vger.kernel.org
+Cc: Matthias Brugger <mbrugger@suse.com>, Russell King <linux@arm.linux.org.uk>, Graeme Gregory <graeme.gregory@linaro.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, linux-kernel@vger.kernel.org, Leif Lindholm <leif.lindholm@linaro.org>, Christopher Covington <cov@codeaurora.org>, linux-serial@vger.kernel.org, Catalin Marinas <catalin.marinas@arm.com>, Will Deacon <will.deacon@arm.com>, Al Stone <ahs3@redhat.com>, linux-arm-kernel@lists.infradead.org
 List-Id: linux-acpi@vger.kernel.org
-To: Sinan Kaya <okaya@codeaurora.org>
-Cc: Tomasz Nowicki <tn@semihalf.com>, helgaas@kernel.org, arnd@arndb.de, will.deacon@arm.com, catalin.marinas@arm.com, rafael@kernel.org, hanjun.guo@linaro.org, jiang.liu@linux.intel.com, jchandra@broadcom.com, Stefano.Stabellini@eu.citrix.com, robert.richter@caviumnetworks.com, mw@semihalf.com, Liviu.Dudau@arm.com, ddaney@caviumnetworks.com, wangyijing@huawei.com, Suravee.Suthikulpanit@amd.com, msalter@redhat.com, linux-pci@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linaro-acpi@lists.linaro.org, jcm@redhat.com, yinghai@kernel.org
 
-[+ Yinghai]
 
-On Mon, Feb 29, 2016 at 02:03:45PM -0500, Sinan Kaya wrote:
-> On 2/16/2016 8:53 AM, Tomasz Nowicki wrote:
-> > From the functionality point of view this series might be split into the
-> > following logic parts:
-> > 1. Make MMCONFIG code arch-agnostic which allows all architectures to collect
-> >    PCI config regions and used when necessary.
-> > 2. Move non-arch specific bits to the core code.
-> > 3. Use MMCONFIG code and implement generic ACPI based PCI host controller driver.
-> > 4. Enable above driver on ARM64
-> > 
-> > Patches has been built on top of 4.5-rc3 and can be found here:
-> > git@github.com:semihalf-nowicki-tomasz/linux.git (pci-acpi-v5)
-> > 
-> > NOTE, this patch set depends on Lorenzo's fixes:
-> > https://patchwork.ozlabs.org/patch/576450/
-> > which can be found in pci-acpi-v5 branch.
-> > 
-> > This has been tested on Cavium ThunderX server, JunoR2, HP RX2660 IA64, x86,
-> > Hip05, X-Gene and QEMU-aarch64. Any help in reviewing and testing is very appreciated.
-> > 
-> > v4 -> v5
-> > - dropped MCFG refactoring group patches 1-6 from series v4 and integrated Jayachandran's patch
-> >   https://patchwork.ozlabs.org/patch/575525/
-> > - rewrite PCI legacy IRQs allocation
-> > - squashed two patches 11 and 12 from series v4, fixed bisection issue
-> > - changelog improvements
-> > - rebased to 4.5-rc3
-> > 
-> > v3 -> v4
-> > - dropped Jiang's fix http://lkml.iu.edu/hypermail/linux/kernel/1601.1/04318.html
-> > - added Lorenzo's fix patch 19/24
-> > - ACPI PCI bus domain number assigning cleanup
-> > - changed resource management, we now claim and reassign resources
-> > - improvements for applying quirks
-> > - dropped Matthew's http://www.spinics.net/lists/linux-pci/msg45950.html dependency
-> > - rebased to 4.5-rc1
-> > 
+
+On 03/01/2016 08:25 PM, Peter Hurley wrote:
+> On 03/01/2016 09:02 AM, Aleksey Makarov wrote:
+>>
+>>
+>> On 03/01/2016 05:52 PM, Peter Hurley wrote:
+>>> On 02/29/2016 04:42 AM, Aleksey Makarov wrote:
+>>>> SBBR mentions DBG2 as a mandatory ACPI table.
+>>>> So enable it for ARM64
+>>>
+>>> Why does this have to be opted-in per-arch?
+>>
+>> DBG2 can specify earlycons.  They should start as soon as possible.
+>> On ARM64 it is just after boot tables become available (in arch_init()).
+>> So it has to be per-arch unless we decide not to start earlycons on 
+>> DBG2 ports.
 > 
-> Having tested v4 and v5, I'm seeing some resource assignment problems
-> and address conflicts.  And problems booting QEMU.
+> OF does all that already but the earlycon opt-in is not per-arch.
 
-I asked Tomasz to add resource claiming code in v4 to make sure that,
-if FW has left resources in a reasonable set-up, we reuse it as-is.
+In the last next-XXXX kernel support for OF earlycon depends on
+CONFIG_OF_EARLY_FLATTREE which *is* per-arch.
 
-Now, I was and I am aware this could trigger resource allocation
-issues (in particular in relation to bridges apertures sizing),
-that can be nonetheless solved by forcing the kernel to reallocate
-resources (pci=realloc, that's exactly what's there for, release
-the bridge apertures, resize the busses downstream and reassign
-the respective hierarchy).
+Probably we need the same kind of configuration option here,
+something like CONFIG_ACPI_BOOT_TABLES instead of ACPI_DBG2_TABLE.
 
-I am not entirely aware of how consistently pci=realloc was used on
-x86, what I am aware of is the panoply of pci=* command line parameters
-defined for x86 and I would certainly avoid that.
-
-The decision on whether we claim resources before reassigning them
-is either dictacted by the boot method (ie ACPI->claim resources by
-default) or we should control it via a FW option or a command
-line option, PCI standard (PCI FW revision 3.1, 3.5 "Device State
-at Firmware/Operating System Handoff) IIUC does not stricly mandate
-FW configuring the whole PCI hierarchy (and to be 100% compliant
-we should check the device IO/MEM enable bits before claiming, as x86 does
-- see pcibios_allocate_dev_resources() in arch/x86/pci/i386.c).
-
-x86 and IA64 claim PCI resources on boot and live with that (well, minus
-the gazillions x86 pci= parameters that change the PCI resources assignment
-one way or another), comments very welcome in particular on the pci=realloc
-option and its usage.
-
-What's certain is, if we do not claim resources by default we will *never*
-be able to do it, it will certainly trigger regressions.
-
-Lorenzo
+>>>> Signed-off-by: Aleksey Makarov <aleksey.makarov@linaro.org>
+>>>> ---
+>>>>  arch/arm64/Kconfig       | 1 +
+>>>>  arch/arm64/kernel/acpi.c | 2 ++
+>>>>  2 files changed, 3 insertions(+)
+>>>>
+>>>> diff --git a/arch/arm64/Kconfig b/arch/arm64/Kconfig
+>>>> index 9dc5209..0b614d4 100644
+>>>> --- a/arch/arm64/Kconfig
+>>>> +++ b/arch/arm64/Kconfig
+>>>> @@ -3,6 +3,7 @@ config ARM64
+>>>>  	select ACPI_CCA_REQUIRED if ACPI
+>>>>  	select ACPI_GENERIC_GSI if ACPI
+>>>>  	select ACPI_REDUCED_HARDWARE_ONLY if ACPI
+>>>> +	select ACPI_DBG2_TABLE if ACPI
+>>>>  	select ARCH_HAS_DEVMEM_IS_ALLOWED
+>>>>  	select ARCH_HAS_ATOMIC64_DEC_IF_POSITIVE
+>>>>  	select ARCH_HAS_ELF_RANDOMIZE
+>>>> diff --git a/arch/arm64/kernel/acpi.c b/arch/arm64/kernel/acpi.c
+>>>> index d1ce8e2..3370046 100644
+>>>> --- a/arch/arm64/kernel/acpi.c
+>>>> +++ b/arch/arm64/kernel/acpi.c
+>>>> @@ -208,6 +208,8 @@ void __init acpi_boot_table_init(void)
+>>>>  		pr_err("Failed to init ACPI tables\n");
+>>>>  		if (!param_acpi_force)
+>>>>  			disable_acpi();
+>>>> +	} else {
+>>>> +		acpi_probe_device_table(dbg2);
+>>>>  	}
+>>>>  }
+>>>>  
+>>>>
+>>>
+> 
+> 
+> _______________________________________________
+> linux-arm-kernel mailing list
+> linux-arm-kernel@lists.infradead.org
+> http://lists.infradead.org/mailman/listinfo/linux-arm-kernel
+> 
