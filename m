@@ -1,101 +1,80 @@
-From: Peter Hurley <peter@hurleysoftware.com>
-Subject: Re: [PATCH v3 6/7] ACPI: enable ACPI_DBG2_TABLE on ARM64
-Date: Thu, 3 Mar 2016 07:51:49 -0800
-Message-ID: <56D85D95.5050506@hurleysoftware.com>
-References: <1456749726-30261-1-git-send-email-aleksey.makarov@linaro.org>
- <1456749726-30261-7-git-send-email-aleksey.makarov@linaro.org>
- <56D5ACBB.50408@hurleysoftware.com> <56D5CB42.3030806@linaro.org>
- <56D5D08E.3030902@hurleysoftware.com> <56D822DD.2030400@gmail.com>
+From: "Rafael J. Wysocki" <rafael@kernel.org>
+Subject: Re: [PATCH 6/6] cpufreq: schedutil: New governor based on scheduler
+ utilization data
+Date: Thu, 3 Mar 2016 17:24:32 +0100
+Message-ID: <CAJZ5v0ifY7V48Vh8PdErobxiB0_NAweQ3XiSaMgby54varMLkQ@mail.gmail.com>
+References: <2495375.dFbdlAZmA6@vostro.rjw.lan>
+	<1842158.0Xhak3Uaac@vostro.rjw.lan>
+	<CAKfTPtANvYp5ar8UkKyN9R25Ntrfp+bEEFw5M0=MA8q7zscSMw@mail.gmail.com>
+	<CAJZ5v0jvStPbhKSJUHTwySkEXa0rKp3zE7YLWeCmGHeQt8xcrw@mail.gmail.com>
+	<CAJZ5v0gC_S+a43FvgpB25WnpAANkDQk7agwSx4gRJvdmnPFkeQ@mail.gmail.com>
+	<20160303122030.GN6356@twins.programming.kicks-ass.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-pf0-f173.google.com ([209.85.192.173]:35255 "EHLO
-	mail-pf0-f173.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754801AbcCCPvz (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 3 Mar 2016 10:51:55 -0500
-Received: by mail-pf0-f173.google.com with SMTP id w128so17186520pfb.2
-        for <linux-acpi@vger.kernel.org>; Thu, 03 Mar 2016 07:51:54 -0800 (PST)
-In-Reply-To: <56D822DD.2030400@gmail.com>
+Received: from mail-lb0-f196.google.com ([209.85.217.196]:33200 "EHLO
+	mail-lb0-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751002AbcCCQYe (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 3 Mar 2016 11:24:34 -0500
+In-Reply-To: <20160303122030.GN6356@twins.programming.kicks-ass.net>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Aleksey Makarov <amakarov.linux@gmail.com>, Aleksey Makarov <aleksey.makarov@linaro.org>, linux-acpi@vger.kernel.org
-Cc: Matthias Brugger <mbrugger@suse.com>, Russell King <linux@arm.linux.org.uk>, Graeme Gregory <graeme.gregory@linaro.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, linux-kernel@vger.kernel.org, Leif Lindholm <leif.lindholm@linaro.org>, Christopher Covington <cov@codeaurora.org>, linux-serial@vger.kernel.org, Catalin Marinas <catalin.marinas@arm.com>, Will Deacon <will.deacon@arm.com>, Al Stone <ahs3@redhat.com>, linux-arm-kernel@lists.infradead.org
+To: Peter Zijlstra <peterz@infradead.org>
+Cc: "Rafael J. Wysocki" <rafael@kernel.org>, Vincent Guittot <vincent.guittot@linaro.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Linux PM list <linux-pm@vger.kernel.org>, Juri Lelli <juri.lelli@arm.com>, Steve Muckle <steve.muckle@linaro.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>, Viresh Kumar <viresh.kumar@linaro.org>, Michael Turquette <mturquette@baylibre.com>
 
-On 03/03/2016 03:41 AM, Aleksey Makarov wrote:
-> 
-> 
-> On 03/01/2016 08:25 PM, Peter Hurley wrote:
->> On 03/01/2016 09:02 AM, Aleksey Makarov wrote:
->>>
->>>
->>> On 03/01/2016 05:52 PM, Peter Hurley wrote:
->>>> On 02/29/2016 04:42 AM, Aleksey Makarov wrote:
->>>>> SBBR mentions DBG2 as a mandatory ACPI table.
->>>>> So enable it for ARM64
->>>>
->>>> Why does this have to be opted-in per-arch?
->>>
->>> DBG2 can specify earlycons.  They should start as soon as possible.
->>> On ARM64 it is just after boot tables become available (in arch_init()).
->>> So it has to be per-arch unless we decide not to start earlycons on 
->>> DBG2 ports.
+On Thu, Mar 3, 2016 at 1:20 PM, Peter Zijlstra <peterz@infradead.org> wrote:
+> On Wed, Mar 02, 2016 at 11:49:48PM +0100, Rafael J. Wysocki wrote:
+>> >>> +       min_f = sg_policy->policy->cpuinfo.min_freq;
+>> >>> +       max_f = sg_policy->policy->cpuinfo.max_freq;
+>> >>> +       next_f = util > max ? max_f : min_f + util * (max_f - min_f) / max;
+>
+>> In case a more formal derivation of this formula is needed, it is
+>> based on the following 3 assumptions:
 >>
->> OF does all that already but the earlycon opt-in is not per-arch.
-> 
-> In the last next-XXXX kernel support for OF earlycon depends on
-> CONFIG_OF_EARLY_FLATTREE which *is* per-arch.
-
-That's true.
-
-(of_setup_earlycon() was really always CONFIG_OF_EARLY_FLATTREE because
-its lone caller was CONFIG_OF_EARLY_FLATTREE).
-
-
-> Probably we need the same kind of configuration option here,
-> something like CONFIG_ACPI_BOOT_TABLES instead of ACPI_DBG2_TABLE.
-
-I'll let acpi maintainers sort that.
-
-
->>>>> Signed-off-by: Aleksey Makarov <aleksey.makarov@linaro.org>
->>>>> ---
->>>>>  arch/arm64/Kconfig       | 1 +
->>>>>  arch/arm64/kernel/acpi.c | 2 ++
->>>>>  2 files changed, 3 insertions(+)
->>>>>
->>>>> diff --git a/arch/arm64/Kconfig b/arch/arm64/Kconfig
->>>>> index 9dc5209..0b614d4 100644
->>>>> --- a/arch/arm64/Kconfig
->>>>> +++ b/arch/arm64/Kconfig
->>>>> @@ -3,6 +3,7 @@ config ARM64
->>>>>  	select ACPI_CCA_REQUIRED if ACPI
->>>>>  	select ACPI_GENERIC_GSI if ACPI
->>>>>  	select ACPI_REDUCED_HARDWARE_ONLY if ACPI
->>>>> +	select ACPI_DBG2_TABLE if ACPI
->>>>>  	select ARCH_HAS_DEVMEM_IS_ALLOWED
->>>>>  	select ARCH_HAS_ATOMIC64_DEC_IF_POSITIVE
->>>>>  	select ARCH_HAS_ELF_RANDOMIZE
->>>>> diff --git a/arch/arm64/kernel/acpi.c b/arch/arm64/kernel/acpi.c
->>>>> index d1ce8e2..3370046 100644
->>>>> --- a/arch/arm64/kernel/acpi.c
->>>>> +++ b/arch/arm64/kernel/acpi.c
->>>>> @@ -208,6 +208,8 @@ void __init acpi_boot_table_init(void)
->>>>>  		pr_err("Failed to init ACPI tables\n");
->>>>>  		if (!param_acpi_force)
->>>>>  			disable_acpi();
->>>>> +	} else {
->>>>> +		acpi_probe_device_table(dbg2);
->>>>>  	}
->>>>>  }
->>>>>  
->>>>>
->>>>
+>> (1) Performance is a linear function of frequency.
+>> (2) Required performance is a linear function of the utilization ratio
+>> x = util/max as provided by the scheduler (0 <= x <= 1).
+>
+>> (3) The minimum possible frequency (min_freq) corresponds to x = 0 and
+>> the maximum possible frequency (max_freq) corresponds to x = 1.
 >>
+>> (1) and (2) combined imply that
 >>
->> _______________________________________________
->> linux-arm-kernel mailing list
->> linux-arm-kernel@lists.infradead.org
->> http://lists.infradead.org/mailman/listinfo/linux-arm-kernel
+>> f = a * x + b
 >>
+>> (f - frequency, a, b - constants to be determined) and then (3) quite
+>> trivially leads to b = min_freq and a = max_freq - min_freq.
+>
+> 3 is the problem, that just doesn't make sense and is probably the
+> reason why you see very little selection of the min freq.
 
+It is about mapping the entire [0,1] interval to the available frequency range.
+
+I till overprovision things (the smaller x the more), but then it may
+help the race-to-idle a bit in theory.
+
+> Suppose a machine with the following frequencies:
+>
+>         500, 750, 1000
+>
+> And a utilization of 0.4, how does asking for 500 + 0.4 * (1000-500) =
+> 700 make any sense? Per your point 1, it should should be asking for
+> 0.4 * 1000 = 400.
+>
+> Because, per 1, at 500 it runs exactly half as fast as at 1000, and we
+> only need 0.4 times as much. Therefore 500 is more than sufficient.
+
+OK, but then I don't see why this reasoning only applies to the lower
+bound of the frequency range.  Is there any reason why x = 1 should be
+the only point mapping to max_freq?
+
+If not, then I think it's reasonable to map the middle of the
+available frequency range to x = 0.5 and then we have b = 0 and a =
+(max_freq + min_freq) / 2.
+
+I'll try that and see how it goes.
+
+> Note. we all know that 1 is a 'broken' assumption, but lacking anything
+> better I think its a reasonable one to make.
+
+Right.
