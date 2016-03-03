@@ -1,68 +1,37 @@
-From: Steven Rostedt <rostedt@goodmis.org>
-Subject: Re: [PATCH] PM: Fix crash on graph trace through x86 suspend
-Date: Wed, 2 Mar 2016 21:07:50 -0500
-Message-ID: <20160302210750.147efd34@grimm.local.home>
-References: <1456963529-4962-1-git-send-email-todd.e.brandt@linux.intel.com>
-	<CAJZ5v0gX+FEHryK=dJvQ1kXO19Addk5nr4jid012CpZzVdE_tA@mail.gmail.com>
-	<1456965812.5488.4.camel@linux.intel.com>
-	<CAJZ5v0g2nwVO6=K=_=kJ83dCdA=A1V1fODfygFsrW3UxwjoMxw@mail.gmail.com>
-	<CAJZ5v0g9uy=Ne5-+dKEphyhF6tZP-sVeKaPeE7utCOK27Xnxag@mail.gmail.com>
+From: "Rafael J. Wysocki" <rafael@kernel.org>
+Subject: Re: [RESEND PATCH v5 0/5] Make cpuid <-> nodeid mapping persistent
+Date: Thu, 3 Mar 2016 03:08:46 +0100
+Message-ID: <CAJZ5v0j1WMi5qMYoUeto8EbV2XnhZQ1j7eQ3jJtoC7h5dOxxkw@mail.gmail.com>
+References: <1456969327-20011-1-git-send-email-zhugh.fnst@cn.fujitsu.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <CAJZ5v0g9uy=Ne5-+dKEphyhF6tZP-sVeKaPeE7utCOK27Xnxag@mail.gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: "Rafael J. Wysocki" <rafael@kernel.org>
-Cc: Todd Brandt <todd.e.brandt@linux.intel.com>, "linux-pm@vger.kernel.org" <linux-pm@vger.kernel.org>, Rafael Wysocki <rafael.j.wysocki@intel.com>, todd.e.brandt@intel.com, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, x86@kernel.org, ACPI Devel Maling List <linux-acpi@vger.kernel.org>
+Content-Type: text/plain; charset=UTF-8
+Return-path: <owner-linux-mm@kvack.org>
+In-Reply-To: <1456969327-20011-1-git-send-email-zhugh.fnst@cn.fujitsu.com>
+Sender: owner-linux-mm@kvack.org
+To: Zhu Guihua <zhugh.fnst@cn.fujitsu.com>
+Cc: cl@linux.com, Tejun Heo <tj@kernel.org>, mika.j.penttila@gmail.com, Ingo Molnar <mingo@redhat.com>, Andrew Morton <akpm@linux-foundation.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, "H. Peter Anvin" <hpa@zytor.com>, yasu.isimatu@gmail.com, isimatu.yasuaki@jp.fujitsu.com, kamezawa.hiroyu@jp.fujitsu.com, izumi.taku@jp.fujitsu.com, gongzhaogang@inspur.com, Len Brown <len.brown@intel.com>, Len Brown <lenb@kernel.org>, Thomas Gleixner <tglx@linutronix.de>, chen.tang@easystack.cn, x86@kernel.org, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Linux Memory Management List <linux-mm@kvack.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On Thu, 3 Mar 2016 02:36:26 +0100
-"Rafael J. Wysocki" <rafael@kernel.org> wrote:
+Hi,
 
-> > OK, applied, but let Steven and the x86 folks see it.
+On Thu, Mar 3, 2016 at 2:42 AM, Zhu Guihua <zhugh.fnst@cn.fujitsu.com> wrote:
+> [Problem]
+>
+> cpuid <-> nodeid mapping is firstly established at boot time. And workqueue caches
+> the mapping in wq_numa_possible_cpumask in wq_numa_init() at boot time.
+>
+> When doing node online/offline, cpuid <-> nodeid mapping is established/destroyed,
+> which means, cpuid <-> nodeid mapping will change if node hotplug happens. But
+> workqueue does not update wq_numa_possible_cpumask.
+>
 
-The below patch looks fine to me. Anything else I should look at?
+Are there any changes in this version relative to the previous one?
 
--- Steve
+Thanks,
+Rafael
 
-> >  
-> >>>  
-> >>> > ---
-> >>> >  arch/x86/kernel/acpi/sleep.c | 7 +++++++
-> >>> >  1 file changed, 7 insertions(+)
-> >>> >
-> >>> > diff --git a/arch/x86/kernel/acpi/sleep.c b/arch/x86/kernel/acpi/sleep.c
-> >>> > index d1daead..311360e 100644
-> >>> > --- a/arch/x86/kernel/acpi/sleep.c
-> >>> > +++ b/arch/x86/kernel/acpi/sleep.c
-> >>> > @@ -16,6 +16,7 @@
-> >>> >  #include <asm/cacheflush.h>
-> >>> >  #include <asm/realmode.h>
-> >>> >
-> >>> > +#include <linux/ftrace.h>
-> >>> >  #include "../../realmode/rm/wakeup.h"
-> >>> >  #include "sleep.h"
-> >>> >
-> >>> > @@ -107,7 +108,13 @@ int x86_acpi_suspend_lowlevel(void)
-> >>> >         saved_magic = 0x123456789abcdef0L;
-> >>> >  #endif /* CONFIG_64BIT */
-> >>> >
-> >>> > +       /*
-> >>> > +        * Pause/unpause graph tracing around do_suspend_lowlevel as it has
-> >>> > +        * inconsistent call/return info after it jumps to the wakeup vector
-> >>> > +        */
-> >>> > +       pause_graph_tracing();
-> >>> >         do_suspend_lowlevel();
-> >>> > +       unpause_graph_tracing();
-> >>> >         return 0;
-> >>> >  }
-> >>> >
-> >>> > --
-> >>> > 2.1.4
-> >>> >
-> >>> > --  
-> >
-> >
-> > Thanks,
-> > Rafael  
+--
+To unsubscribe, send a message with 'unsubscribe linux-mm' in
+the body to majordomo@kvack.org.  For more info on Linux MM,
+see: http://www.linux-mm.org/ .
+Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
