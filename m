@@ -1,73 +1,147 @@
-From: Lukas Wunner <lukas@wunner.de>
-Subject: Re: ACPI SPI slave device
-Date: Thu, 3 Mar 2016 19:55:53 +0100
-Message-ID: <20160303185553.GA24603@wunner.de>
-References: <20160303174806.GB11728@srcf.ucam.org>
+From: "Rafael J. Wysocki" <rafael@kernel.org>
+Subject: Re: [PATCH 6/6] cpufreq: schedutil: New governor based on scheduler
+ utilization data
+Date: Thu, 3 Mar 2016 19:58:23 +0100
+Message-ID: <CAJZ5v0hZs-SqoL0h-PZ6L9EULMFH7SB=uaiSjfd-X0Umd7Yu6A@mail.gmail.com>
+References: <2495375.dFbdlAZmA6@vostro.rjw.lan>
+	<1842158.0Xhak3Uaac@vostro.rjw.lan>
+	<CAKfTPtANvYp5ar8UkKyN9R25Ntrfp+bEEFw5M0=MA8q7zscSMw@mail.gmail.com>
+	<CAJZ5v0jvStPbhKSJUHTwySkEXa0rKp3zE7YLWeCmGHeQt8xcrw@mail.gmail.com>
+	<CAJZ5v0gC_S+a43FvgpB25WnpAANkDQk7agwSx4gRJvdmnPFkeQ@mail.gmail.com>
+	<CAKfTPtDRvM9PAwQQ2KjUjPjnMmKkdi6sCoX4YisKaunDBqLf-A@mail.gmail.com>
+	<20160303153817.GO6344@twins.programming.kicks-ass.net>
+	<20160303162829.GB6375@twins.programming.kicks-ass.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mailout2.hostsharing.net ([83.223.90.233]:38026 "EHLO
-	mailout2.hostsharing.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751002AbcCCSyy (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 3 Mar 2016 13:54:54 -0500
-Content-Disposition: inline
-In-Reply-To: <20160303174806.GB11728@srcf.ucam.org>
- <20160303174535.GA11728@srcf.ucam.org>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20160303162829.GB6375@twins.programming.kicks-ass.net>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Peter Zijlstra <peterz@infradead.org>
+Cc: Vincent Guittot <vincent.guittot@linaro.org>, "Rafael J. Wysocki" <rafael@kernel.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Linux PM list <linux-pm@vger.kernel.org>, Juri Lelli <juri.lelli@arm.com>, Steve Muckle <steve.muckle@linaro.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>, Viresh Kumar <viresh.kumar@linaro.org>, Michael Turquette <mturquette@baylibre.com>, Ingo Molnar <mingo@kernel.org>
 List-Id: linux-acpi@vger.kernel.org
-To: Matthew Garrett <mjg59@srcf.ucam.org>
-Cc: Leif Liddy <leif.linux@gmail.com>, Mika Westerberg <mika.westerberg@linux.intel.com>, linux-acpi@vger.kernel.org, jarkko.nikula@linux.intel.com, linux-spi@vger.kernel.org
 
-Hi Matthew,
+On Thu, Mar 3, 2016 at 5:28 PM, Peter Zijlstra <peterz@infradead.org> wrote:
+> On Thu, Mar 03, 2016 at 04:38:17PM +0100, Peter Zijlstra wrote:
+>> On Thu, Mar 03, 2016 at 03:01:15PM +0100, Vincent Guittot wrote:
+>> > > In case a more formal derivation of this formula is needed, it is
+>> > > based on the following 3 assumptions:
+>> > >
+>> > > (1) Performance is a linear function of frequency.
+>> > > (2) Required performance is a linear function of the utilization ratio
+>> > > x = util/max as provided by the scheduler (0 <= x <= 1).
+>> >
+>> > Just to mention that the utilization that you are using, varies with
+>> > the frequency which add another variable in your equation
+>>
+>> Right, x86 hasn't implemented arch_scale_freq_capacity(), so the
+>> utilization values we use are all over the map. If we lower freq, the
+>> util will go up, which would result in us bumping the freq again, etc..
+>
+> Something like the completely untested below should maybe work.
+>
+> Rafael?
 
-On Thu, Mar 03, 2016 at 05:45:35PM +0000, Matthew Garrett wrote:
-> On Thu, Mar 03, 2016 at 12:47:40PM +0100, Lukas Wunner wrote:
-> 
-> > I think you want to add a quirk to spi.c:acpi_spi_add_device()
-> > which checks if acpi_dev_get_resources() returned nothing and
-> > the HID of the acpi_device is APP000D: Search the namespace below
-> > the acpi_device's handle for _CRS.UBUF (using acpi_get_handle()).
-> > If this exists, call acpi_walk_resource_buffer() on it (with the
-> > acpi_spi_add_resource callback). You need to somehow convert the
-> > acpi_handle to an acpi_buffer, maybe that just involves filling in
-> > acpi_buffer->pointer = acpi_handle and somehow determining the
-> > length of the resource settings from the handle. Someone more
-> > intimately familiar with the layout of the namespace in memory
-> > should be able to answer this. Hopefully this will already get
-> > you started, if not just ask questions.
-> 
-> If Apple are consistently using this mechanism to define resources, do 
-> we want to extend acpi_dev_get_resources to attempt to call the _DSM 
-> method as well?
+It looks reasonable (modulo the MPERF reading typo you've noticed),
+but can we get back to that later?
 
-What Apple is doing with their _DSM is functionally equivalent to the
-_DSD (Device Specific Data) method in the ACPI spec. (Apple isn't using
-_DSD at all.)
+I'll first try to address the Ingo's feedback (which I hope I
+understood correctly) and some other comments people had and resend
+the series.
 
-We could extend drivers/acpi/property.c:acpi_init_properties() to
-check if dmi_match(DMI_BOARD_VENDOR, "Apple Inc."), and instead of
-calling _DSD, call _DSM with Apple's UUID and populate adev->data
-with that. Or add the properties to the existing data, if any.
-
-Then whenever we feel the need we could just retrieve Apple's
-properties with acpi_dev_get_property().
-
-E.g. in the case of this SPI slave we need to fill in five values
-of struct spi_device and we would add a quirk for APP000D which
-retrieves each value via acpi_dev_get_property() instead of
-acpi_dev_get_resources().
-
-Alternatively we could evaluate the _DSM individually from the
-quirk and obtain the values we need from the returned package.
-But being able to get them with acpi_dev_get_property() might
-be more generic, it's not unlikely that we need to retrieve
-Apple's properties from other quirks as well.
-
-The suggestion I made in my previous e-mail (to fetch UBUF) was
-probably not so great in terms of maintainability since Apple
-might change the name of the variable in a future version of the
-DSDT, or on other machines.
-
-Best regards,
-
-Lukas
+> ---
+>  arch/x86/include/asm/topology.h | 19 +++++++++++++++++++
+>  arch/x86/kernel/smpboot.c       | 24 ++++++++++++++++++++++++
+>  kernel/sched/core.c             |  1 +
+>  kernel/sched/sched.h            |  7 +++++++
+>  4 files changed, 51 insertions(+)
+>
+> diff --git a/arch/x86/include/asm/topology.h b/arch/x86/include/asm/topology.h
+> index 7f991bd5031b..af7b7259db94 100644
+> --- a/arch/x86/include/asm/topology.h
+> +++ b/arch/x86/include/asm/topology.h
+> @@ -146,4 +146,23 @@ struct pci_bus;
+>  int x86_pci_root_bus_node(int bus);
+>  void x86_pci_root_bus_resources(int bus, struct list_head *resources);
+>
+> +#ifdef CONFIG_SMP
+> +
+> +#define arch_scale_freq_tick arch_scale_freq_tick
+> +#define arch_scale_freq_capacity arch_scale_freq_capacity
+> +
+> +DECLARE_PER_CPU(unsigned long, arch_cpu_freq);
+> +
+> +static inline arch_scale_freq_capacity(struct sched_domain *sd, int cpu)
+> +{
+> +       if (static_cpu_has(X86_FEATURE_APERFMPERF))
+> +               return per_cpu(arch_cpu_freq, cpu);
+> +       else
+> +               return SCHED_CAPACITY_SCALE;
+> +}
+> +
+> +extern void arch_scale_freq_tick(void);
+> +
+> +#endif
+> +
+>  #endif /* _ASM_X86_TOPOLOGY_H */
+> diff --git a/arch/x86/kernel/smpboot.c b/arch/x86/kernel/smpboot.c
+> index 3bf1e0b5f827..7d459577ee44 100644
+> --- a/arch/x86/kernel/smpboot.c
+> +++ b/arch/x86/kernel/smpboot.c
+> @@ -1647,3 +1647,27 @@ void native_play_dead(void)
+>  }
+>
+>  #endif
+> +
+> +static DEFINE_PER_CPU(u64, arch_prev_aperf);
+> +static DEFINE_PER_CPU(u64, arch_prev_mperf);
+> +DEFINE_PER_CPU(unsigned long, arch_cpu_freq);
+> +
+> +void arch_scale_freq_tick(void)
+> +{
+> +       u64 aperf, mperf;
+> +       u64 acnt, mcnt;
+> +
+> +       if (!static_cpu_has(X86_FEATURE_APERFMPERF))
+> +               return;
+> +
+> +       aperf = rdmsrl(MSR_IA32_APERF);
+> +       mperf = rdmsrl(MSR_IA32_APERF);
+> +
+> +       acnt = aperf - this_cpu_read(arch_prev_aperf);
+> +       mcnt = mperf - this_cpu_read(arch_prev_mperf);
+> +
+> +       this_cpu_write(arch_prev_aperf, aperf);
+> +       this_cpu_write(arch_prev_mperf, mperf);
+> +
+> +       this_cpu_write(arch_cpu_freq, div64_u64(acnt * SCHED_CAPACITY_SCALE, mcnt));
+> +}
+> diff --git a/kernel/sched/core.c b/kernel/sched/core.c
+> index 96e323b26ea9..35dbf909afb2 100644
+> --- a/kernel/sched/core.c
+> +++ b/kernel/sched/core.c
+> @@ -2901,6 +2901,7 @@ void scheduler_tick(void)
+>         struct rq *rq = cpu_rq(cpu);
+>         struct task_struct *curr = rq->curr;
+>
+> +       arch_scale_freq_tick();
+>         sched_clock_tick();
+>
+>         raw_spin_lock(&rq->lock);
+> diff --git a/kernel/sched/sched.h b/kernel/sched/sched.h
+> index baa32075f98e..c3825c920e3f 100644
+> --- a/kernel/sched/sched.h
+> +++ b/kernel/sched/sched.h
+> @@ -1408,6 +1408,13 @@ unsigned long arch_scale_freq_capacity(struct sched_domain *sd, int cpu)
+>  }
+>  #endif
+>
+> +#ifndef arch_scale_freq_tick
+> +static __always_inline
+> +void arch_scale_freq_tick(void)
+> +{
+> +}
+> +#endif
+> +
+>  #ifndef arch_scale_cpu_capacity
+>  static __always_inline
+>  unsigned long arch_scale_cpu_capacity(struct sched_domain *sd, int cpu)
