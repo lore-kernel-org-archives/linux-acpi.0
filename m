@@ -1,45 +1,38 @@
-From: Viresh Kumar <viresh.kumar@linaro.org>
-Subject: Re: [PATCH 4/6] cpufreq: governor: Move abstract gov_tunables code
- to a seperate file
-Date: Thu, 3 Mar 2016 11:33:21 +0530
-Message-ID: <20160303060321.GK2891@vireshk-i7>
+From: Peter Zijlstra <peterz@infradead.org>
+Subject: Re: [PATCH 5/6] cpufreq: Support for fast frequency switching
+Date: Thu, 3 Mar 2016 12:16:55 +0100
+Message-ID: <20160303111655.GL6356@twins.programming.kicks-ass.net>
 References: <2495375.dFbdlAZmA6@vostro.rjw.lan>
- <5134851.EfvU9zA4LR@vostro.rjw.lan>
+ <26020775.9hJG2SHiH2@vostro.rjw.lan>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-pa0-f50.google.com ([209.85.220.50]:34264 "EHLO
-	mail-pa0-f50.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751002AbcCCGDc (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 3 Mar 2016 01:03:32 -0500
-Received: by mail-pa0-f50.google.com with SMTP id fy10so8574254pac.1
-        for <linux-acpi@vger.kernel.org>; Wed, 02 Mar 2016 22:03:31 -0800 (PST)
+Received: from casper.infradead.org ([85.118.1.10]:34598 "EHLO
+	casper.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751572AbcCCLRC (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 3 Mar 2016 06:17:02 -0500
 Content-Disposition: inline
-In-Reply-To: <5134851.EfvU9zA4LR@vostro.rjw.lan>
+In-Reply-To: <26020775.9hJG2SHiH2@vostro.rjw.lan>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: Linux PM list <linux-pm@vger.kernel.org>, Juri Lelli <juri.lelli@arm.com>, Steve Muckle <steve.muckle@linaro.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Peter Zijlstra <peterz@infradead.org>, Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>, Vincent Guittot <vincent.guittot@linaro.org>, Michael Turquette <mturquette@baylibre.com>
+Cc: Linux PM list <linux-pm@vger.kernel.org>, Juri Lelli <juri.lelli@arm.com>, Steve Muckle <steve.muckle@linaro.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>, Viresh Kumar <viresh.kumar@linaro.org>, Vincent Guittot <vincent.guittot@linaro.org>, Michael Turquette <mturquette@baylibre.com>
 
-On 02-03-16, 03:10, Rafael J. Wysocki wrote:
-> From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-> 
-> Move abstract code related to struct gov_tunables to a separate (new)
-> file so it can be shared with (future) goverernors that won't share
-> more code with "ondemand" and "conservative".
-> 
-> No intentional functional changes.
-> 
-> Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-> ---
->  drivers/cpufreq/Kconfig                     |    4 +
->  drivers/cpufreq/Makefile                    |    1 
->  drivers/cpufreq/cpufreq_governor.c          |   82 ---------------------------
->  drivers/cpufreq/cpufreq_governor.h          |    6 ++
->  drivers/cpufreq/cpufreq_governor_tunables.c |   84 ++++++++++++++++++++++++++++
+On Wed, Mar 02, 2016 at 03:12:33AM +0100, Rafael J. Wysocki wrote:
+> The most important change from the previous version is that the
+> ->fast_switch() callback takes an additional "relation" argument
+> and now the governor can use it to choose a selection method.
 
-These aren't governor tunables, isn't it? Tunables were the fields
-that could be tuned, but this is something else.
+> +unsigned int acpi_cpufreq_fast_switch(struct cpufreq_policy *policy,
+> +				      unsigned int target_freq,
+> +				      unsigned int relation)
 
--- 
-viresh
+Would it make sense to replace the {target_freq, relation} pair with
+something like the CPPC {min_freq, max_freq} pair?
+
+Then you could use the closest frequency to max provided it is larger
+than min.
+
+This communicates more actual information in the same number of
+parameters and would thereby allow for a more flexible (better)
+frequency selection.
