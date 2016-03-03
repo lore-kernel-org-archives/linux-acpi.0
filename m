@@ -1,56 +1,36 @@
-From: Peter Zijlstra <peterz@infradead.org>
-Subject: Re: [PATCH 6/6] cpufreq: schedutil: New governor based on scheduler
- utilization data
-Date: Thu, 3 Mar 2016 19:26:24 +0100
-Message-ID: <20160303182624.GU6356@twins.programming.kicks-ass.net>
-References: <2495375.dFbdlAZmA6@vostro.rjw.lan>
- <1842158.0Xhak3Uaac@vostro.rjw.lan>
- <CAKfTPtANvYp5ar8UkKyN9R25Ntrfp+bEEFw5M0=MA8q7zscSMw@mail.gmail.com>
- <CAJZ5v0jvStPbhKSJUHTwySkEXa0rKp3zE7YLWeCmGHeQt8xcrw@mail.gmail.com>
- <CAJZ5v0gC_S+a43FvgpB25WnpAANkDQk7agwSx4gRJvdmnPFkeQ@mail.gmail.com>
- <CAKfTPtDRvM9PAwQQ2KjUjPjnMmKkdi6sCoX4YisKaunDBqLf-A@mail.gmail.com>
- <20160303153817.GO6344@twins.programming.kicks-ass.net>
- <20160303162829.GB6375@twins.programming.kicks-ass.net>
- <56D87457.1050600@arm.com>
+From: Matthew Garrett <mjg59-1xO5oi07KQx4cg9Nei1l7Q@public.gmane.org>
+Subject: Re: ACPI SPI slave device
+Date: Thu, 3 Mar 2016 17:48:06 +0000
+Message-ID: <20160303174806.GB11728@srcf.ucam.org>
+References: <20160229082114.GC1770@lahna.fi.intel.com>
+ <CAAbRKOt=CDOqD1FESZkxv4fdYSDm6qoi4J0wYn=e5mvN-NLpCA@mail.gmail.com>
+ <CAAbRKOscDyYaUqBTFVFZ2Fe81a_Kkx9oeNXHrttm3Qs_27fAzQ@mail.gmail.com>
+ <20160301160726.GA23371@wunner.de>
+ <CAAbRKOuESP+_65cmeCPNtO5HzN1+ct7bDv1stbE+a8u=KEwDKw@mail.gmail.com>
+ <CAAbRKOsNxsu4CYq=EByck997RWRO3fQ-+LAAS5AbSL3XNRSh7A@mail.gmail.com>
+ <20160302114250.GA23487@wunner.de>
+ <CAAbRKOvP9yudKbzu_GquPUzhz2VQBtuKYmJbqLpt1jFcB6U1kQ@mail.gmail.com>
+ <CAAbRKOs=ySAtqn71Mf5tyHvjqOGGRs5xsO6oU5YPYWgOSXqehA@mail.gmail.com>
+ <20160303114740.GA24132@wunner.de>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:56463 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754174AbcCCS0c (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 3 Mar 2016 13:26:32 -0500
+Return-path: <linux-spi-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <56D87457.1050600@arm.com>
-Sender: linux-acpi-owner@vger.kernel.org
+In-Reply-To: <20160303114740.GA24132-JFq808J9C/izQB+pC5nmwQ@public.gmane.org>
+Sender: linux-spi-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Lukas Wunner <lukas-JFq808J9C/izQB+pC5nmwQ@public.gmane.org>
+Cc: Leif Liddy <leif.linux-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Mika Westerberg <mika.westerberg-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, jarkko.nikula-VuQAYsv1563Yd54FQh9/CA@public.gmane.org, linux-spi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
-To: Dietmar Eggemann <dietmar.eggemann@arm.com>
-Cc: Vincent Guittot <vincent.guittot@linaro.org>, "Rafael J. Wysocki" <rafael@kernel.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Linux PM list <linux-pm@vger.kernel.org>, Juri Lelli <juri.lelli@arm.com>, Steve Muckle <steve.muckle@linaro.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>, Viresh Kumar <viresh.kumar@linaro.org>, Michael Turquette <mturquette@baylibre.com>
 
-On Thu, Mar 03, 2016 at 05:28:55PM +0000, Dietmar Eggemann wrote:
-> > +void arch_scale_freq_tick(void)
-> > +{
-> > +	u64 aperf, mperf;
-> > +	u64 acnt, mcnt;
-> > +
-> > +	if (!static_cpu_has(X86_FEATURE_APERFMPERF))
-> > +		return;
-> > +
-> > +	aperf = rdmsrl(MSR_IA32_APERF);
-> > +	mperf = rdmsrl(MSR_IA32_APERF);
-> > +
-> > +	acnt = aperf - this_cpu_read(arch_prev_aperf);
-> > +	mcnt = mperf - this_cpu_read(arch_prev_mperf);
-> > +
-> > +	this_cpu_write(arch_prev_aperf, aperf);
-> > +	this_cpu_write(arch_prev_mperf, mperf);
-> > +
-> > +	this_cpu_write(arch_cpu_freq, div64_u64(acnt * SCHED_CAPACITY_SCALE, mcnt));
-> 
-> Wasn't there the problem that this ratio goes to zero if the cpu is idle
-> in the old power estimation approach on x86?
+Oh, sorry, I see - it's a little more complicated than that. Bleah. I 
+still think we probably want to do this at the core level rather than 
+having the driver special-case things based on the HID, but it's clearly 
+going to need some knowledge of the device type to parse Apple's data 
+into something consistent with the spec.
 
-Yeah, there was something funky.
-
-SDM says they only count in C0 (ie. !idle), so it _should_ work.
-
-
+-- 
+Matthew Garrett | mjg59-1xO5oi07KQx4cg9Nei1l7Q@public.gmane.org
+--
+To unsubscribe from this list: send the line "unsubscribe linux-spi" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
