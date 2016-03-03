@@ -1,160 +1,73 @@
-From: Bjorn Helgaas <helgaas@kernel.org>
-Subject: Re: [PATCH V5 01/15] ACPI: MCFG: Move mmcfg_list management to
- drivers/acpi
-Date: Thu, 3 Mar 2016 16:51:52 -0600
-Message-ID: <20160303225152.GA10472@localhost>
-References: <1455630825-27253-1-git-send-email-tn@semihalf.com>
- <1455630825-27253-2-git-send-email-tn@semihalf.com>
+From: Dan Williams <dan.j.williams@intel.com>
+Subject: Re: [PATCH v2] nfit: Continue init even if ARS commands are unimplemented
+Date: Thu, 3 Mar 2016 14:53:29 -0800
+Message-ID: <CAPcyv4jzitH+gCL_z+ZHnqTV0TP-cvR_KKQ1JjmXatuKg4QwaA@mail.gmail.com>
+References: <1457044781-15443-1-git-send-email-vishal.l.verma@intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.136]:42746 "EHLO mail.kernel.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932306AbcCCWv5 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 3 Mar 2016 17:51:57 -0500
-Content-Disposition: inline
-In-Reply-To: <1455630825-27253-2-git-send-email-tn@semihalf.com>
+Received: from mail-ob0-f182.google.com ([209.85.214.182]:33535 "EHLO
+	mail-ob0-f182.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751420AbcCCWxa (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 3 Mar 2016 17:53:30 -0500
+Received: by mail-ob0-f182.google.com with SMTP id fz5so34912690obc.0
+        for <linux-acpi@vger.kernel.org>; Thu, 03 Mar 2016 14:53:30 -0800 (PST)
+In-Reply-To: <1457044781-15443-1-git-send-email-vishal.l.verma@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Tomasz Nowicki <tn@semihalf.com>
-Cc: arnd@arndb.de, will.deacon@arm.com, catalin.marinas@arm.com, rafael@kernel.org, hanjun.guo@linaro.org, Lorenzo.Pieralisi@arm.com, okaya@codeaurora.org, jiang.liu@linux.intel.com, jchandra@broadcom.com, Stefano.Stabellini@eu.citrix.com, robert.richter@caviumnetworks.com, mw@semihalf.com, Liviu.Dudau@arm.com, ddaney@caviumnetworks.com, wangyijing@huawei.com, Suravee.Suthikulpanit@amd.com, msalter@redhat.com, linux-pci@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linaro-acpi@lists.linaro.org, jcm@redhat.com
+To: Vishal Verma <vishal.l.verma@intel.com>
+Cc: "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, Linux ACPI <linux-acpi@vger.kernel.org>, Xiao Guangrong <guangrong.xiao@linux.intel.com>
 
-Hi Tomasz, Jayachandran, et al,
+On Thu, Mar 3, 2016 at 2:39 PM, Vishal Verma <vishal.l.verma@intel.com> wrote:
+> If firmware doesn't implement any of the ARS commands, take that to
+> mean that ARS is unsupported, and continue to initialize regions without
+> bad block lists. We cannot make the assumption that ARS commands will be
+> unconditionally supported on all NVDIMMs.
+>
+> Cc: Dan Williams <dan.j.williams@intel.com>
+> Reported-by: Xiao Guangrong <guangrong.xiao@linux.intel.com>
+> Signed-off-by: Vishal Verma <vishal.l.verma@intel.com>
+> ---
+>
+> v2:
+> - improve the debug message when we his this unimplemented case (Dan).
+>
+>  drivers/acpi/nfit.c | 15 +++++++++++----
+>  1 file changed, 11 insertions(+), 4 deletions(-)
+>
+> diff --git a/drivers/acpi/nfit.c b/drivers/acpi/nfit.c
+> index fb53db1..35947ac 100644
+> --- a/drivers/acpi/nfit.c
+> +++ b/drivers/acpi/nfit.c
+> @@ -1590,14 +1590,21 @@ static int acpi_nfit_find_poison(struct acpi_nfit_desc *acpi_desc,
+>         start = ndr_desc->res->start;
+>         len = ndr_desc->res->end - ndr_desc->res->start + 1;
+>
+> +       /*
+> +        * If ARS is unimplemented, unsupported, or if the 'Persistent Memory
+> +        * Scrub' flag in extended status is not set, skip this but continue
+> +        * initialization
+> +        */
+>         rc = ars_get_cap(nd_desc, ars_cap, start, len);
+> +       if (rc == -ENOTTY) {
+> +               dev_dbg(acpi_desc->dev,
+> +                       "Address Range Scrub is not implemented, won't create an error list\n");
+> +               rc = 0;
+> +               goto out;
+> +       }
+>         if (rc)
+>                 goto out;
+>
+> -       /*
+> -        * If ARS is unsupported, or if the 'Persistent Memory Scrub' flag in
+> -        * extended status is not set, skip this but continue initialization
+> -        */
+>         if ((ars_cap->status & 0xffff) ||
+>                 !(ars_cap->status >> 16 & ND_ARS_PERSISTENT)) {
+>                 dev_warn(acpi_desc->dev,
+> --
+> 2.5.0
+>
 
-On Tue, Feb 16, 2016 at 02:53:31PM +0100, Tomasz Nowicki wrote:
-> From: Jayachandran C <jchandra@broadcom.com>
-> 
-> Move pci_mmcfg_list handling to a drivers/acpi/pci_mcfg.c. This is
-> to share the API and code with ARM64 later. The corresponding
-> declarations are moved from asm/pci_x86.h to linux/pci-acpi.h
-> 
-> As a part of this we introduce three functions that can be
-> implemented by the arch code: pci_mmconfig_map_resource() to map a
-> mcfg entry, pci_mmconfig_unmap_resource to do the corresponding
-> unmap and pci_mmconfig_enabled to see if the arch setup of
-> mcfg entries was successful. We also provide weak implementations
-> of these, which will be used from ARM64. On x86, we retain the
-> old logic by providing platform specific implementation.
-> 
-> This patch is purely rearranging code, it should not have any
-> impact on the logic of MCFG parsing or list handling.
 
-I definitely want to figure out how to make this work well on ARM64.
-I need to ponder this some more, so these are just some initial
-thoughts.
-
-My first impression is that (a) the x86 MCFG code is an unmitigated
-disaster, and (b) we're trying a little too hard to make that mess
-generic.  I think we might be better served if we came up with some
-cleaner, more generic code that we can use for ARM64 today, and
-migrate x86 toward that over time.
-
-My concern is that if we elevate the current x86 code to be
-"arch-independent", we will be perpetuating some interfaces and
-designs that shouldn't be allowed to escape arch/x86.
-
-Some of the code that moved to drivers/acpi/pci_mcfg.c is not really
-ACPI-specific, and could potentially be used for non-ACPI bridges that
-support ECAM.  I'd like to see that sort of code moved to a new file
-like drivers/pci/ecam.c.
-
-There's a little bit of overlap here with the ECAM code in
-pci-host-generic.c.  I'm not sure whether or how to include that, but
-it's a very good example of how simple this *should* be: probe the
-host bridge, discover the ECAM region, request the region, ioremap it,
-done.
-
-> diff --git a/drivers/acpi/pci_mcfg.c b/drivers/acpi/pci_mcfg.c
-> new file mode 100644
-> index 0000000..ea84365
-> --- /dev/null
-> +++ b/drivers/acpi/pci_mcfg.c
-> ...
-> +int __weak pci_mmconfig_map_resource(struct device *dev,
-> +	struct pci_mmcfg_region *mcfg)
-> +{
-> +	struct resource *tmp;
-> +	void __iomem *vaddr;
-> +
-> +	tmp = insert_resource_conflict(&iomem_resource, &mcfg->res);
-> +	if (tmp) {
-> +		dev_warn(dev, "MMCONFIG %pR conflicts with %s %pR\n",
-> +			&mcfg->res, tmp->name, tmp);
-> +		return -EBUSY;
-> +	}
-
-I think this is a mistake in the x86 MCFG support that we should not
-carry over to a generic implementation.  We should not use the MCFG
-table for resource reservation because MCFG is not defined by the ACPI
-spec and an OS need not include support for it.  The platform must
-indicate in some other, more generic way, that ECAM space is reserved.
-This probably means ECAM space should be declared in a PNP0C02 _CRS
-method (see the PCI Firmware Spec r3.0, sec 4.1.2, note 2).
-
-We might need some kind of x86-specific quirk that does this, or a
-pcibios hook or something here; I just don't think it should be
-generic.
-
-> +int __init pci_mmconfig_parse_table(void)
-> +{
-> +	return acpi_sfi_table_parse(ACPI_SIG_MCFG, pci_parse_mcfg);
-> +}
-
-I don't like the fact that we parse the entire MCFG table at once
-here.  I think we should look for the information we need when we are
-claiming a PCI host bridge, e.g., in acpi_pci_root_add().  This might
-not be a great fit for the way ACPI table management works, but I
-think it's better to do things on-demand rather than just-in-case.
-
-> diff --git a/include/linux/pci-acpi.h b/include/linux/pci-acpi.h
-> index 89ab057..e9450ef 100644
-> --- a/include/linux/pci-acpi.h
-> +++ b/include/linux/pci-acpi.h
-> @@ -106,6 +106,39 @@ extern const u8 pci_acpi_dsm_uuid[];
->  #define RESET_DELAY_DSM		0x08
->  #define FUNCTION_DELAY_DSM	0x09
->  
-> +/* common API to maintain list of MCFG regions */
-> +/* "PCI MMCONFIG %04x [bus %02x-%02x]" */
-> +#define PCI_MMCFG_RESOURCE_NAME_LEN (22 + 4 + 2 + 2)
-> +
-> +struct pci_mmcfg_region {
-> +	struct list_head list;
-> +	struct resource res;
-> +	u64 address;
-> +	char __iomem *virt;
-> +	u16 segment;
-> +	u8 start_bus;
-> +	u8 end_bus;
-> +	char name[PCI_MMCFG_RESOURCE_NAME_LEN];
-> +};
-> +
-> +extern int pci_mmconfig_insert(struct device *dev, u16 seg, u8 start, u8 end,
-> +			       phys_addr_t addr);
-> +extern int pci_mmconfig_delete(u16 seg, u8 start, u8 end);
-> +
-> +extern struct pci_mmcfg_region *pci_mmconfig_lookup(int segment, int bus);
-> +extern struct pci_mmcfg_region *pci_mmconfig_add(int segment, int start,
-> +							int end, u64 addr);
-> +extern int pci_mmconfig_map_resource(struct device *dev,
-> +	struct pci_mmcfg_region *mcfg);
-> +extern void pci_mmconfig_unmap_resource(struct pci_mmcfg_region *mcfg);
-> +extern int pci_mmconfig_enabled(void);
-> +extern int __init pci_mmconfig_parse_table(void);
-> +
-> +extern struct list_head pci_mmcfg_list;
-> +
-> +#define PCI_MMCFG_BUS_OFFSET(bus)      ((bus) << 20)
-> +#define PCI_MMCFG_OFFSET(bus, devfn)   ((bus) << 20 | (devfn) << 12)
-> +
-
-With the exception of pci_mmconfig_parse_table(), nothing here is
-ACPI-specific.  I'd like to see the PCI ECAM-related interfaces
-(hopefully not these exact ones, but a more rational set) put in
-something like include/linux/pci-ecam.h.
-
->  #else	/* CONFIG_ACPI */
->  static inline void acpi_pci_add_bus(struct pci_bus *bus) { }
->  static inline void acpi_pci_remove_bus(struct pci_bus *bus) { }
-
-Bjorn
+Looks good to me.  Thanks Vishal!
