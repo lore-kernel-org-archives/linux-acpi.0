@@ -1,63 +1,36 @@
-From: Peter Hurley <peter@hurleysoftware.com>
-Subject: Re: [PATCH v4 0/4] ACPI: parse the SPCR table
-Date: Thu, 3 Mar 2016 07:35:40 -0800
-Message-ID: <56D859CC.7010901@hurleysoftware.com>
-References: <1456747355-15692-1-git-send-email-aleksey.makarov@linaro.org>
- <56D5B5CB.7010702@hurleysoftware.com> <56D8272E.20705@gmail.com>
+From: Peter Zijlstra <peterz@infradead.org>
+Subject: Re: [PATCH 6/6] cpufreq: schedutil: New governor based on scheduler
+ utilization data
+Date: Thu, 3 Mar 2016 16:38:17 +0100
+Message-ID: <20160303153817.GO6344@twins.programming.kicks-ass.net>
+References: <2495375.dFbdlAZmA6@vostro.rjw.lan>
+ <1842158.0Xhak3Uaac@vostro.rjw.lan>
+ <CAKfTPtANvYp5ar8UkKyN9R25Ntrfp+bEEFw5M0=MA8q7zscSMw@mail.gmail.com>
+ <CAJZ5v0jvStPbhKSJUHTwySkEXa0rKp3zE7YLWeCmGHeQt8xcrw@mail.gmail.com>
+ <CAJZ5v0gC_S+a43FvgpB25WnpAANkDQk7agwSx4gRJvdmnPFkeQ@mail.gmail.com>
+ <CAKfTPtDRvM9PAwQQ2KjUjPjnMmKkdi6sCoX4YisKaunDBqLf-A@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-pf0-f171.google.com ([209.85.192.171]:35879 "EHLO
-	mail-pf0-f171.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755746AbcCCPfp (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 3 Mar 2016 10:35:45 -0500
-Received: by mail-pf0-f171.google.com with SMTP id 63so16670380pfe.3
-        for <linux-acpi@vger.kernel.org>; Thu, 03 Mar 2016 07:35:45 -0800 (PST)
-In-Reply-To: <56D8272E.20705@gmail.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-pm-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <CAKfTPtDRvM9PAwQQ2KjUjPjnMmKkdi6sCoX4YisKaunDBqLf-A@mail.gmail.com>
+Sender: linux-pm-owner@vger.kernel.org
+To: Vincent Guittot <vincent.guittot@linaro.org>
+Cc: "Rafael J. Wysocki" <rafael@kernel.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Linux PM list <linux-pm@vger.kernel.org>, Juri Lelli <juri.lelli@arm.com>, Steve Muckle <steve.muckle@linaro.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>, Viresh Kumar <viresh.kumar@linaro.org>, Michael Turquette <mturquette@baylibre.com>
 List-Id: linux-acpi@vger.kernel.org
-To: Aleksey Makarov <amakarov.linux@gmail.com>, Aleksey Makarov <aleksey.makarov@linaro.org>, linux-acpi@vger.kernel.org
-Cc: linux-serial@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Russell King <linux@arm.linux.org.uk>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, Leif Lindholm <leif.lindholm@linaro.org>, Graeme Gregory <graeme.gregory@linaro.org>, Al Stone <ahs3@redhat.com>, Christopher Covington <cov@codeaurora.org>, Yury Norov <ynorov@caviumnetworks.com>, "Zheng, Lv" <lv.zheng@intel.com>
 
-On 03/03/2016 03:59 AM, Aleksey Makarov wrote:
+On Thu, Mar 03, 2016 at 03:01:15PM +0100, Vincent Guittot wrote:
+> > In case a more formal derivation of this formula is needed, it is
+> > based on the following 3 assumptions:
+> >
+> > (1) Performance is a linear function of frequency.
+> > (2) Required performance is a linear function of the utilization ratio
+> > x = util/max as provided by the scheduler (0 <= x <= 1).
 > 
-> 
-> On 03/01/2016 06:31 PM, Peter Hurley wrote:
->> On 02/29/2016 04:02 AM, Aleksey Makarov wrote:
->>> 'ARM Server Base Boot Requirements' [1] mentions SPCR (Serial Port
->>> Console Redirection Table) [2] as a mandatory ACPI table that
->>> specifies the configuration of serial console.
->>>
->>> Introduce a new function acpi_console_check().  At the uart port
->>> registration, this function checks if the ACPI SPCR table specifies
->>> its argument of type struct uart_port to be a console
->>> and if so calls add_preferred_console().
->>
->> How will a user enable an earlycon on the same console as the SPCR
->> console if there is no DBG2 table?
-> 
-> ...
-> [    0.000000] earlycon: pl11 at MMIO 0x0000000009000000 (options '')
-> [    0.000000] bootconsole [pl11] enabled
-> ...
-> [    0.000000] Kernel command line:  root=/dev/vda1 rw systemd.show_status=no acpi=force earlycon=pl011,0x9000000
-> ...
-> [    0.318248] ACPI: SPCR: adding preferred console [ttyAMA0]
-> [    0.318736] ARMH0011:00: ttyAMA0 at MMIO 0x9000000 (irq = 5, base_baud = 0) is a SBSA
-> [    0.319502] console [ttyAMA0] enabled
-> [    0.319502] console [ttyAMA0] enabled
-> [    0.319933] bootconsole [pl11] disabled
-> [    0.319933] bootconsole [pl11] disabled
-> ...
-> 
-> Why?
+> Just to mention that the utilization that you are using, varies with
+> the frequency which add another variable in your equation
 
-That's pretty disingenuous; via command line?
+Right, x86 hasn't implemented arch_scale_freq_capacity(), so the
+utilization values we use are all over the map. If we lower freq, the
+util will go up, which would result in us bumping the freq again, etc..
 
-By that measure, none of your patches are required because a user
-can already start both console and earlycon without them.
-
-With the console location specified in the SPCR, earlycon should
-be opt-in on the command-line simply with "earlycon" command-line
-parameter.
