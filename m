@@ -1,70 +1,83 @@
-From: Zhu Guihua <zhugh.fnst@cn.fujitsu.com>
-Subject: Re: [RESEND PATCH v5 5/5] x86, acpi, cpu-hotplug: Set persistent
- cpuid <-> nodeid mapping when booting.
-Date: Thu, 3 Mar 2016 10:18:11 +0800
-Message-ID: <56D79EE3.1010705@cn.fujitsu.com>
-References: <201603031001.uyaOgVnh%fengguang.wu@intel.com>
+From: Sinan Kaya <okaya@codeaurora.org>
+Subject: Re: [PATCH V2] acpi, pci, irq: account for early penalty assignment
+Date: Wed, 2 Mar 2016 22:14:03 -0500
+Message-ID: <56D7ABFB.3070302@codeaurora.org>
+References: <1455801582-21595-1-git-send-email-okaya@codeaurora.org>
+ <20160229192420.GC3653@localhost> <56D4A53A.1070708@codeaurora.org>
+ <20160229223453.GA12162@localhost> <56D5E43E.7050406@codeaurora.org>
+ <20160301194340.GA19783@localhost> <56D7317F.7090500@codeaurora.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"; format=flowed
+Content-Type: text/plain; charset=windows-1252
 Content-Transfer-Encoding: 7bit
-Return-path: <owner-linux-mm@kvack.org>
-In-Reply-To: <201603031001.uyaOgVnh%fengguang.wu@intel.com>
-Sender: owner-linux-mm@kvack.org
-To: kbuild test robot <lkp@intel.com>
-Cc: kbuild-all@01.org, cl@linux.com, tj@kernel.org, mika.j.penttila@gmail.com, mingo@redhat.com, akpm@linux-foundation.org, rjw@rjwysocki.net, hpa@zytor.com, yasu.isimatu@gmail.com, isimatu.yasuaki@jp.fujitsu.com, kamezawa.hiroyu@jp.fujitsu.com, izumi.taku@jp.fujitsu.com, gongzhaogang@inspur.com, len.brown@intel.com, lenb@kernel.org, tglx@linutronix.de, chen.tang@easystack.cn, x86@kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linux-mm@kvack.org
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from smtp.codeaurora.org ([198.145.29.96]:33084 "EHLO
+	smtp.codeaurora.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751076AbcCCDOJ (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 2 Mar 2016 22:14:09 -0500
+In-Reply-To: <56D7317F.7090500@codeaurora.org>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Bjorn Helgaas <helgaas@kernel.org>
+Cc: linux-acpi@vger.kernel.org, timur@codeaurora.org, cov@codeaurora.org, linux-pci@vger.kernel.org, ravikanth.nalla@hpe.com, lenb@kernel.org, harish.k@hpe.com, ashwin.reghunandanan@hpe.com, bhelgaas@google.com, rjw@rjwysocki.net, linux-kernel@vger.kernel.org
+
+On 3/2/2016 1:31 PM, Sinan Kaya wrote:
+> I don't think there's a restriction on what the SCI IRQ can be.  But
+>> there is only one SCI IRQ, so all we have to do is keep track of what
+>> it is, which only requires one word.
+
+Taking a step back here and also some inspiration from your code, why don't we
+fix the actual problem instead of redesigning the whole thing?
+
+The code failed because we didn't account for the non-ISA SCI IRQs. Below code
+does this.
 
 
-On 03/03/2016 10:11 AM, kbuild test robot wrote:
-> Hi Gu,
->
-> [auto build test ERROR on tip/x86/core]
-> [also build test ERROR on v4.5-rc6 next-20160302]
-> [if your patch is applied to the wrong git tree, please drop us a note to help improving the system]
->
-> url:    https://github.com/0day-ci/linux/commits/Zhu-Guihua/Make-cpuid-nodeid-mapping-persistent/20160303-094713
-> config: ia64-allyesconfig (attached as .config)
-> reproduce:
->          wget https://git.kernel.org/cgit/linux/kernel/git/wfg/lkp-tests.git/plain/sbin/make.cross -O ~/bin/make.cross
->          chmod +x ~/bin/make.cross
->          # save the attached .config to linux build tree
->          make.cross ARCH=ia64
->
-> All errors (new ones prefixed by >>):
->
->>> arch/ia64/kernel/acpi.c:799:5: error: conflicting types for 'acpi_map_cpu2node'
->      int acpi_map_cpu2node(acpi_handle handle, int cpu, int physid)
->          ^
->     In file included from arch/ia64/kernel/acpi.c:43:0:
->     include/linux/acpi.h:268:6: note: previous declaration of 'acpi_map_cpu2node' was here
->      void acpi_map_cpu2node(acpi_handle handle, int cpu, int physid);
->           ^
->
-> vim +/acpi_map_cpu2node +799 arch/ia64/kernel/acpi.c
->
->     793	}
->     794	
->     795	/*
->     796	 *  ACPI based hotplug CPU support
->     797	 */
->     798	#ifdef CONFIG_ACPI_HOTPLUG_CPU
->   > 799	int acpi_map_cpu2node(acpi_handle handle, int cpu, int physid)
->     800	{
->     801	#ifdef CONFIG_ACPI_NUMA
->     802		/*
->
-> ---
-> 0-DAY kernel test infrastructure                Open Source Technology Center
-> https://lists.01.org/pipermail/kbuild-all                   Intel Corporation
-
-Thanks for your test. I will investigate this.
-
-Thanks,
-Zhu
+diff --git a/drivers/acpi/pci_link.c b/drivers/acpi/pci_link.c
+index fa28635..99d0716 100644
+--- a/drivers/acpi/pci_link.c
++++ b/drivers/acpi/pci_link.c
+@@ -87,6 +87,7 @@ struct acpi_pci_link {
+ 
+ static LIST_HEAD(acpi_link_list);
+ static DEFINE_MUTEX(acpi_link_lock);
++static int sci_irq, sci_irq_penalty;
+ 
+ /* --------------------------------------------------------------------------
+                             PCI Link Device Management
+@@ -481,6 +482,9 @@ static int acpi_irq_get_penalty(int irq)
+ 	if (irq < ACPI_MAX_ISA_IRQ)
+ 		return acpi_irq_isa_penalty[irq];
+ 
++	if (irq == sci_irq)
++		return sci_penalty;
++
+ 	list_for_each_entry(irq_info, &acpi_irq_penalty_list, node) {
+ 		if (irq_info->irq == irq)
+ 			return irq_info->penalty;
+@@ -507,6 +511,11 @@ static int acpi_irq_set_penalty(int irq, int new_penalty)
+ 		}
+ 	}
+ 
++	if (irq == sci_irq) {
++		sci_penalty = penalty;
++		return 0;
++	}
++
+ 	/* nope, let's allocate a slot for this IRQ */
+ 	irq_info = kzalloc(sizeof(*irq_info), GFP_KERNEL);
+ 	if (!irq_info)
+@@ -900,6 +909,7 @@ void acpi_penalize_sci_irq(int irq, int trigger, int polarity)
+ 	if (irq < 0)
+ 		return;
+ 
++	sci_irq = irq;
+ 	if (trigger != ACPI_MADT_TRIGGER_LEVEL ||
+ 	    polarity != ACPI_MADT_POLARITY_ACTIVE_LOW)
+ 		penalty = PIRQ_PENALTY_ISA_ALWAYS; 
 
 
---
-To unsubscribe, send a message with 'unsubscribe linux-mm' in
-the body to majordomo@kvack.org.  For more info on Linux MM,
-see: http://www.linux-mm.org/ .
-Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
+
+-- 
+Sinan Kaya
+Qualcomm Technologies, Inc. on behalf of Qualcomm Innovation Center, Inc.
+Qualcomm Innovation Center, Inc. is a member of Code Aurora Forum, a Linux Foundation Collaborative Project
