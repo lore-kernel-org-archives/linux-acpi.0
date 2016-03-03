@@ -1,83 +1,81 @@
-From: Sinan Kaya <okaya@codeaurora.org>
-Subject: Re: [PATCH V2] acpi, pci, irq: account for early penalty assignment
-Date: Wed, 2 Mar 2016 22:14:03 -0500
-Message-ID: <56D7ABFB.3070302@codeaurora.org>
-References: <1455801582-21595-1-git-send-email-okaya@codeaurora.org>
- <20160229192420.GC3653@localhost> <56D4A53A.1070708@codeaurora.org>
- <20160229223453.GA12162@localhost> <56D5E43E.7050406@codeaurora.org>
- <20160301194340.GA19783@localhost> <56D7317F.7090500@codeaurora.org>
+From: "Chen, Yu C" <yu.c.chen@intel.com>
+Subject: RE: [PATCH][RFC] ACPI / PM: Fix poweroff issue on HW-full platforms
+ without _S5
+Date: Thu, 3 Mar 2016 04:07:36 +0000
+Message-ID: <36DF59CE26D8EE47B0655C516E9CE640286D1EB2@shsmsx102.ccr.corp.intel.com>
+References: <1456925357-2899-1-git-send-email-yu.c.chen@intel.com>
+ <CAJZ5v0h75Ly4-R7jOCt=o+QtcLOZycC7kzKxkdP6Xy-teCiJ7w@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp.codeaurora.org ([198.145.29.96]:33084 "EHLO
-	smtp.codeaurora.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751076AbcCCDOJ (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 2 Mar 2016 22:14:09 -0500
-In-Reply-To: <56D7317F.7090500@codeaurora.org>
+Received: from mga04.intel.com ([192.55.52.120]:37059 "EHLO mga04.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753008AbcCCEHr (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 2 Mar 2016 23:07:47 -0500
+In-Reply-To: <CAJZ5v0h75Ly4-R7jOCt=o+QtcLOZycC7kzKxkdP6Xy-teCiJ7w@mail.gmail.com>
+Content-Language: en-US
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Bjorn Helgaas <helgaas@kernel.org>
-Cc: linux-acpi@vger.kernel.org, timur@codeaurora.org, cov@codeaurora.org, linux-pci@vger.kernel.org, ravikanth.nalla@hpe.com, lenb@kernel.org, harish.k@hpe.com, ashwin.reghunandanan@hpe.com, bhelgaas@google.com, rjw@rjwysocki.net, linux-kernel@vger.kernel.org
+To: "Rafael J. Wysocki" <rafael@kernel.org>
+Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, "linux-efi@vger.kernel.org" <linux-efi@vger.kernel.org>, "linux-pm@vger.kernel.org" <linux-pm@vger.kernel.org>, "Rafael J. Wysocki" <rjw@sisk.pl>, Len Brown <lenb@kernel.org>, Thomas Gleixner <tglx@linutronix.de>, "x86@kernel.org" <x86@kernel.org>, "Zhang, Rui" <rui.zhang@intel.com>, "Zheng, Lv" <lv.zheng@intel.com>
 
-On 3/2/2016 1:31 PM, Sinan Kaya wrote:
-> I don't think there's a restriction on what the SCI IRQ can be.  But
->> there is only one SCI IRQ, so all we have to do is keep track of what
->> it is, which only requires one word.
-
-Taking a step back here and also some inspiration from your code, why don't we
-fix the actual problem instead of redesigning the whole thing?
-
-The code failed because we didn't account for the non-ISA SCI IRQs. Below code
-does this.
-
-
-diff --git a/drivers/acpi/pci_link.c b/drivers/acpi/pci_link.c
-index fa28635..99d0716 100644
---- a/drivers/acpi/pci_link.c
-+++ b/drivers/acpi/pci_link.c
-@@ -87,6 +87,7 @@ struct acpi_pci_link {
- 
- static LIST_HEAD(acpi_link_list);
- static DEFINE_MUTEX(acpi_link_lock);
-+static int sci_irq, sci_irq_penalty;
- 
- /* --------------------------------------------------------------------------
-                             PCI Link Device Management
-@@ -481,6 +482,9 @@ static int acpi_irq_get_penalty(int irq)
- 	if (irq < ACPI_MAX_ISA_IRQ)
- 		return acpi_irq_isa_penalty[irq];
- 
-+	if (irq == sci_irq)
-+		return sci_penalty;
-+
- 	list_for_each_entry(irq_info, &acpi_irq_penalty_list, node) {
- 		if (irq_info->irq == irq)
- 			return irq_info->penalty;
-@@ -507,6 +511,11 @@ static int acpi_irq_set_penalty(int irq, int new_penalty)
- 		}
- 	}
- 
-+	if (irq == sci_irq) {
-+		sci_penalty = penalty;
-+		return 0;
-+	}
-+
- 	/* nope, let's allocate a slot for this IRQ */
- 	irq_info = kzalloc(sizeof(*irq_info), GFP_KERNEL);
- 	if (!irq_info)
-@@ -900,6 +909,7 @@ void acpi_penalize_sci_irq(int irq, int trigger, int polarity)
- 	if (irq < 0)
- 		return;
- 
-+	sci_irq = irq;
- 	if (trigger != ACPI_MADT_TRIGGER_LEVEL ||
- 	    polarity != ACPI_MADT_POLARITY_ACTIVE_LOW)
- 		penalty = PIRQ_PENALTY_ISA_ALWAYS; 
-
-
-
--- 
-Sinan Kaya
-Qualcomm Technologies, Inc. on behalf of Qualcomm Innovation Center, Inc.
-Qualcomm Innovation Center, Inc. is a member of Code Aurora Forum, a Linux Foundation Collaborative Project
+SGkgUmFmYWVsLA0KDQo+IC0tLS0tT3JpZ2luYWwgTWVzc2FnZS0tLS0tDQo+IEZyb206IHJqd3lz
+b2NraUBnbWFpbC5jb20gW21haWx0bzpyand5c29ja2lAZ21haWwuY29tXSBPbiBCZWhhbGYgT2YN
+Cj4gUmFmYWVsIEouIFd5c29ja2kNCj4gU2VudDogVGh1cnNkYXksIE1hcmNoIDAzLCAyMDE2IDc6
+NDUgQU0NCj4gVG86IENoZW4sIFl1IEMNCj4gQ2M6IEFDUEkgRGV2ZWwgTWFsaW5nIExpc3Q7IGxp
+bnV4LWVmaUB2Z2VyLmtlcm5lbC5vcmc7IGxpbnV4LQ0KPiBwbUB2Z2VyLmtlcm5lbC5vcmc7IFJh
+ZmFlbCBKLiBXeXNvY2tpOyBMZW4gQnJvd247IG1hdHQuZmxlbWluZ0BpbnRlbC5jb207DQo+IFRo
+b21hcyBHbGVpeG5lcjsgeDg2QGtlcm5lbC5vcmc7IFpoYW5nLCBSdWk7IFpoZW5nLCBMdg0KPiBT
+dWJqZWN0OiBSZTogW1BBVENIXVtSRkNdIEFDUEkgLyBQTTogRml4IHBvd2Vyb2ZmIGlzc3VlIG9u
+IEhXLWZ1bGwNCj4gcGxhdGZvcm1zIHdpdGhvdXQgX1M1DQo+IA0KPiBPbiBXZWQsIE1hciAyLCAy
+MDE2IGF0IDI6MjkgUE0sIENoZW4gWXUgPHl1LmMuY2hlbkBpbnRlbC5jb20+IHdyb3RlOg0KPiA+
+IFRoZSBwcm9ibGVtIGlzIExpbnV4IHJlZ2lzdGVycyBwbV9wb3dlcl9vZmYgPSBlZmlfcG93ZXJf
+b2ZmIG9ubHkgaWYgd2UNCj4gPiBhcmUgaW4gaGFyZHdhcmUgcmVkdWNlZCBtb2RlLiBBY3R1YWxs
+eSwgd2hhdCB3ZSBhbHNvIHdhbnQgaXMgdG8gZG8NCj4gPiB0aGlzIHdoZW4gQUNQSSBTNSBpcyBz
+aW1wbHkgbm90IHN1cHBvcnRlZC4NCj4gPiBUaGF0IHNob3VsZCBoYW5kbGUgYm90aCB0aGUgSFcg
+cmVkdWNlZCBtb2RlLCBhbmQgdGhlIEhXLWZ1bGwgbW9kZQ0KPiA+IHdoZXJlIHRoZSBEU0RUIGZh
+aWxzIHRvIHN1cHBseSBhbiBfUzUgb2JqZWN0Lg0KPiA+DQo+ID4gVGhpcyBwYXRjaCBmaXhlcyB0
+aGlzIGlzc3VlIGJ5IGludHJvZHVjaW5nIGEgbmV3IGZsYWcgYWNwaV9ub19zNSB3aGljaA0KPiA+
+IGluZGljYXRlcyB0aGUgbm9uLWV4aXN0ZW5jZSBvZiBfUzUuIFRoZSBpbml0aWFsIHN0YXRlIG9m
+IGFjcGlfbm9fczUgaXMNCj4gPiBmYWxzZSBhbmQgcHJvYmVkIGluIGFjcGlfc2xlZXBfaW5pdCwg
+dGhlbiB3ZSdsbCBsYXRlciBzZWUgdGhlIHVwZGF0ZWQNCj4gPiB2YWx1ZSBpbiBlZmlfcG93ZXJv
+ZmZfcmVxdWlyZWQsIGFjY29yZGluZyB0byB3aGljaCB3ZSBjYW4gc2V0DQo+ID4gcG1fcG93ZXJf
+b2ZmIHRvIGVmaV9wb3dlcl9vZmYgaW4gZWZpX3NodXRkb3duX2luaXQuDQo+ID4NCj4gPiBTdWdn
+ZXN0ZWQtYnk6IExlbiBCcm93biA8bGVuLmJyb3duQGludGVsLmNvbT4NCj4gPiBTaWduZWQtb2Zm
+LWJ5OiBDaGVuIFl1IDx5dS5jLmNoZW5AaW50ZWwuY29tPg0KPiA+IC0tLQ0KPiA+ICBhcmNoL3g4
+Ni9wbGF0Zm9ybS9lZmkvcXVpcmtzLmMgfCAzICsrLQ0KPiA+ICBkcml2ZXJzL2FjcGkvc2xlZXAu
+YyAgICAgICAgICAgfCAyICsrDQo+ID4gIGluY2x1ZGUvYWNwaS9hY3BpeGYuaCAgICAgICAgICB8
+IDYgKysrKysrDQo+ID4gIDMgZmlsZXMgY2hhbmdlZCwgMTAgaW5zZXJ0aW9ucygrKSwgMSBkZWxl
+dGlvbigtKQ0KPiA+DQo+ID4gZGlmZiAtLWdpdCBhL2FyY2gveDg2L3BsYXRmb3JtL2VmaS9xdWly
+a3MuYw0KPiA+IGIvYXJjaC94ODYvcGxhdGZvcm0vZWZpL3F1aXJrcy5jIGluZGV4IDJkNjZkYjgu
+LjhlYzQzYmMgMTAwNjQ0DQo+ID4gLS0tIGEvYXJjaC94ODYvcGxhdGZvcm0vZWZpL3F1aXJrcy5j
+DQo+ID4gKysrIGIvYXJjaC94ODYvcGxhdGZvcm0vZWZpL3F1aXJrcy5jDQo+ID4gQEAgLTI5NSw1
+ICsyOTUsNiBAQCBib29sIGVmaV9yZWJvb3RfcmVxdWlyZWQodm9pZCkNCj4gPg0KPiA+ICBib29s
+IGVmaV9wb3dlcm9mZl9yZXF1aXJlZCh2b2lkKQ0KPiA+ICB7DQo+ID4gLSAgICAgICByZXR1cm4g
+ISFhY3BpX2dibF9yZWR1Y2VkX2hhcmR3YXJlOw0KPiA+ICsgICAgICAgcmV0dXJuICghIWFjcGlf
+Z2JsX3JlZHVjZWRfaGFyZHdhcmUpDQo+ID4gKyAgICAgICAgICAgICAgIHx8ICghIWFjcGlfbm9f
+czUpOw0KPiANCj4gVGhpcyBjYW4gYmUgd3JpdHRlbiBhczoNCj4gDQo+ICAgICByZXR1cm4gYWNw
+aV9nYmxfcmVkdWNlZF9oYXJkd2FyZSB8fCBhY3BpX25vX3M1Ow0KPiANCk9LLg0KPiA+ICB9DQo+
+ID4gZGlmZiAtLWdpdCBhL2RyaXZlcnMvYWNwaS9zbGVlcC5jIGIvZHJpdmVycy9hY3BpL3NsZWVw
+LmMgaW5kZXgNCj4gPiA5Y2I5NzUyLi42Zjc1ZTU0IDEwMDY0NA0KPiA+IC0tLSBhL2RyaXZlcnMv
+YWNwaS9zbGVlcC5jDQo+ID4gKysrIGIvZHJpdmVycy9hY3BpL3NsZWVwLmMNCj4gPiBAQCAtODQ2
+LDYgKzg0Niw4IEBAIGludCBfX2luaXQgYWNwaV9zbGVlcF9pbml0KHZvaWQpDQo+ID4gICAgICAg
+ICAgICAgICAgIHNsZWVwX3N0YXRlc1tBQ1BJX1NUQVRFX1M1XSA9IDE7DQo+ID4gICAgICAgICAg
+ICAgICAgIHBtX3Bvd2VyX29mZl9wcmVwYXJlID0gYWNwaV9wb3dlcl9vZmZfcHJlcGFyZTsNCj4g
+PiAgICAgICAgICAgICAgICAgcG1fcG93ZXJfb2ZmID0gYWNwaV9wb3dlcl9vZmY7DQo+ID4gKyAg
+ICAgICB9IGVsc2Ugew0KPiA+ICsgICAgICAgICAgICAgICBhY3BpX25vX3M1ID0gVFJVRTsNCj4g
+PiAgICAgICAgIH0NCj4gPg0KPiA+ICAgICAgICAgc3VwcG9ydGVkWzBdID0gMDsNCj4gPiBkaWZm
+IC0tZ2l0IGEvaW5jbHVkZS9hY3BpL2FjcGl4Zi5oIGIvaW5jbHVkZS9hY3BpL2FjcGl4Zi5oIGlu
+ZGV4DQo+ID4gYzk2NjIxZS4uMmI0ZDdmNyAxMDA2NDQNCj4gPiAtLS0gYS9pbmNsdWRlL2FjcGkv
+YWNwaXhmLmgNCj4gPiArKysgYi9pbmNsdWRlL2FjcGkvYWNwaXhmLmgNCj4gPiBAQCAtMjUyLDYg
+KzI1MiwxMiBAQCBBQ1BJX0lOSVRfR0xPQkFMKHU4LCBhY3BpX2dibF9vc2lfZGF0YSwgMCk7DQo+
+ID4gQUNQSV9JTklUX0dMT0JBTCh1OCwgYWNwaV9nYmxfcmVkdWNlZF9oYXJkd2FyZSwgRkFMU0Up
+Ow0KPiA+DQo+ID4gIC8qDQo+ID4gKyAqIFNvbWUgSFctZnVsbCBwbGF0Zm9ybXMgZG8gbm90IGhh
+dmUgUzUsIHNvIHRoZXkgbWF5IG5lZWQNCj4gPiArICogdG8gbGV2ZXJhZ2UgZWZpIHBvd2VyIG9m
+ZiBmb3IgYSBzaHV0ZG93bi4NCj4gPiArICovDQo+ID4gK0FDUElfSU5JVF9HTE9CQUwodTgsIGFj
+cGlfbm9fczUsIEZBTFNFKTsNCj4gDQo+IERvIHlvdSBoYXZlIHRvIGFkZCBpdCBoZXJlPw0KPiAN
+Cj4gQ2FuJ3QgeW91IHNpbXBseSBkZWZpbmUgaXQgYXMgYSBnbG9iYWwgYm9vbCB2YXJpYWJsZSBp
+biBzbGVlcC5jIGFuZCBhZGQgYQ0KPiBkZWNsYXJhdGlvbiB0byBpbmNsdWRlL2xpbnV4L2FjcGku
+aD8NCj4gDQpPSywgbGV0IG1lIG1vdmUgaXQgdGhlcmUuIEknbGwgc2VuZCBhIFYyIHBhdGNoLCB0
+aGFua3MhDQoNCg==
