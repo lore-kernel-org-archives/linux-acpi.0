@@ -1,86 +1,196 @@
-From: "Rafael J. Wysocki" <rafael@kernel.org>
-Subject: Re: [PATCH] PM: Fix crash on graph trace through x86 suspend
-Date: Thu, 3 Mar 2016 02:36:26 +0100
-Message-ID: <CAJZ5v0g9uy=Ne5-+dKEphyhF6tZP-sVeKaPeE7utCOK27Xnxag@mail.gmail.com>
-References: <1456963529-4962-1-git-send-email-todd.e.brandt@linux.intel.com>
-	<CAJZ5v0gX+FEHryK=dJvQ1kXO19Addk5nr4jid012CpZzVdE_tA@mail.gmail.com>
-	<1456965812.5488.4.camel@linux.intel.com>
-	<CAJZ5v0g2nwVO6=K=_=kJ83dCdA=A1V1fODfygFsrW3UxwjoMxw@mail.gmail.com>
+From: Zhu Guihua <zhugh.fnst@cn.fujitsu.com>
+Subject: [RESEND PATCH v5 0/5] Make cpuid <-> nodeid mapping persistent
+Date: Thu, 3 Mar 2016 09:42:02 +0800
+Message-ID: <1456969327-20011-1-git-send-email-zhugh.fnst@cn.fujitsu.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-pm-owner@vger.kernel.org>
-In-Reply-To: <CAJZ5v0g2nwVO6=K=_=kJ83dCdA=A1V1fODfygFsrW3UxwjoMxw@mail.gmail.com>
-Sender: linux-pm-owner@vger.kernel.org
-To: "Rafael J. Wysocki" <rafael@kernel.org>
-Cc: Todd Brandt <todd.e.brandt@linux.intel.com>, "linux-pm@vger.kernel.org" <linux-pm@vger.kernel.org>, Rafael Wysocki <rafael.j.wysocki@intel.com>, todd.e.brandt@intel.com, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, x86@kernel.org, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Steven Rostedt <rostedt@goodmis.org>
+Content-Type: text/plain
+Return-path: <owner-linux-mm@kvack.org>
+Sender: owner-linux-mm@kvack.org
+To: cl@linux.com, tj@kernel.org, mika.j.penttila@gmail.com, mingo@redhat.com, akpm@linux-foundation.org, rjw@rjwysocki.net, hpa@zytor.com, yasu.isimatu@gmail.com, isimatu.yasuaki@jp.fujitsu.com, kamezawa.hiroyu@jp.fujitsu.com, izumi.taku@jp.fujitsu.com, gongzhaogang@inspur.com, len.brown@intel.com, lenb@kernel.org, tglx@linutronix.de, chen.tang@easystack.cn
+Cc: x86@kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linux-mm@kvack.org, Zhu Guihua <zhugh.fnst@cn.fujitsu.com>
 List-Id: linux-acpi@vger.kernel.org
 
-Well, fix up the Steven's address.
+[Problem]
 
-On Thu, Mar 3, 2016 at 2:34 AM, Rafael J. Wysocki <rafael@kernel.org> wrote:
-> On Thu, Mar 3, 2016 at 1:43 AM, Todd Brandt
-> <todd.e.brandt@linux.intel.com> wrote:
->> On Thu, 2016-03-03 at 01:19 +0100, Rafael J. Wysocki wrote:
->>> On Thu, Mar 3, 2016 at 1:05 AM, Todd Brandt
->>> <todd.e.brandt@linux.intel.com> wrote:
->>> > Pause/unpause graph tracing around do_suspend_lowlevel as it has
->>> > inconsistent call/return info after it jumps to the wakeup vector.
->>> > The graph trace buffer will otherwise become misaligned and
->>> > may eventually crash and hang on suspend.
->>> >
->>> > To reproduce the issue and test the fix:
->>> > Run a function_graph trace over suspend/resume and set the graph
->>> > function to suspend_devices_and_enter. This consistently hangs the
->>> > system without this fix.
->>> >
->>> > Signed-off-by: Todd Brandt <todd.e.brandt@linux.intel.com>
->>>
->>> OK
->>>
->>> I guess we'll need that in -stable, right?
->>
->> Sure, it's pretty important. The new analyze_suspend features are going
->> to rely pretty heavily on full graph trace of suspend (all we can do is
->> standby and freeze now because of the bug). Thanks!
->
-> OK, applied, but let Steven and the x86 folks see it.
->
->>>
->>> > ---
->>> >  arch/x86/kernel/acpi/sleep.c | 7 +++++++
->>> >  1 file changed, 7 insertions(+)
->>> >
->>> > diff --git a/arch/x86/kernel/acpi/sleep.c b/arch/x86/kernel/acpi/sleep.c
->>> > index d1daead..311360e 100644
->>> > --- a/arch/x86/kernel/acpi/sleep.c
->>> > +++ b/arch/x86/kernel/acpi/sleep.c
->>> > @@ -16,6 +16,7 @@
->>> >  #include <asm/cacheflush.h>
->>> >  #include <asm/realmode.h>
->>> >
->>> > +#include <linux/ftrace.h>
->>> >  #include "../../realmode/rm/wakeup.h"
->>> >  #include "sleep.h"
->>> >
->>> > @@ -107,7 +108,13 @@ int x86_acpi_suspend_lowlevel(void)
->>> >         saved_magic = 0x123456789abcdef0L;
->>> >  #endif /* CONFIG_64BIT */
->>> >
->>> > +       /*
->>> > +        * Pause/unpause graph tracing around do_suspend_lowlevel as it has
->>> > +        * inconsistent call/return info after it jumps to the wakeup vector
->>> > +        */
->>> > +       pause_graph_tracing();
->>> >         do_suspend_lowlevel();
->>> > +       unpause_graph_tracing();
->>> >         return 0;
->>> >  }
->>> >
->>> > --
->>> > 2.1.4
->>> >
->>> > --
->
->
-> Thanks,
-> Rafael
+cpuid <-> nodeid mapping is firstly established at boot time. And workqueue caches
+the mapping in wq_numa_possible_cpumask in wq_numa_init() at boot time.
+
+When doing node online/offline, cpuid <-> nodeid mapping is established/destroyed,
+which means, cpuid <-> nodeid mapping will change if node hotplug happens. But
+workqueue does not update wq_numa_possible_cpumask.
+
+So here is the problem:
+
+Assume we have the following cpuid <-> nodeid in the beginning:
+
+  Node | CPU
+------------------------
+node 0 |  0-14, 60-74
+node 1 | 15-29, 75-89
+node 2 | 30-44, 90-104
+node 3 | 45-59, 105-119
+
+and we hot-remove node2 and node3, it becomes:
+
+  Node | CPU
+------------------------
+node 0 |  0-14, 60-74
+node 1 | 15-29, 75-89
+
+and we hot-add node4 and node5, it becomes:
+
+  Node | CPU
+------------------------
+node 0 |  0-14, 60-74
+node 1 | 15-29, 75-89
+node 4 | 30-59
+node 5 | 90-119
+
+But in wq_numa_possible_cpumask, cpu30 is still mapped to node2, and the like.
+
+When a pool workqueue is initialized, if its cpumask belongs to a node, its
+pool->node will be mapped to that node. And memory used by this workqueue will
+also be allocated on that node.
+
+static struct worker_pool *get_unbound_pool(const struct workqueue_attrs *attrs){
+...
+        /* if cpumask is contained inside a NUMA node, we belong to that node */
+        if (wq_numa_enabled) {
+                for_each_node(node) {
+                        if (cpumask_subset(pool->attrs->cpumask,
+                                           wq_numa_possible_cpumask[node])) {
+                                pool->node = node;
+                                break;
+                        }
+                }
+        }
+
+Since wq_numa_possible_cpumask is not updated, it could be mapped to an offline node,
+which will lead to memory allocation failure:
+
+ SLUB: Unable to allocate memory on node 2 (gfp=0x80d0)
+  cache: kmalloc-192, object size: 192, buffer size: 192, default order: 1, min order: 0
+  node 0: slabs: 6172, objs: 259224, free: 245741
+  node 1: slabs: 3261, objs: 136962, free: 127656
+
+It happens here:
+
+create_worker(struct worker_pool *pool)
+ |--> worker = alloc_worker(pool->node);
+
+static struct worker *alloc_worker(int node)
+{
+        struct worker *worker;
+
+        worker = kzalloc_node(sizeof(*worker), GFP_KERNEL, node); --> Here, useing the wrong node.
+
+        ......
+
+        return worker;
+}
+
+
+[Solution]
+
+There are four mappings in the kernel:
+1. nodeid (logical node id)   <->   pxm
+2. apicid (physical cpu id)   <->   nodeid
+3. cpuid (logical cpu id)     <->   apicid
+4. cpuid (logical cpu id)     <->   nodeid
+
+1. pxm (proximity domain) is provided by ACPI firmware in SRAT, and nodeid <-> pxm
+   mapping is setup at boot time. This mapping is persistent, won't change.
+
+2. apicid <-> nodeid mapping is setup using info in 1. The mapping is setup at boot
+   time and CPU hotadd time, and cleared at CPU hotremove time. This mapping is also
+   persistent.
+
+3. cpuid <-> apicid mapping is setup at boot time and CPU hotadd time. cpuid is
+   allocated, lower ids first, and released at CPU hotremove time, reused for other
+   hotadded CPUs. So this mapping is not persistent.
+
+4. cpuid <-> nodeid mapping is also setup at boot time and CPU hotadd time, and
+   cleared at CPU hotremove time. As a result of 3, this mapping is not persistent.
+
+To fix this problem, we establish cpuid <-> nodeid mapping for all the possible
+cpus at boot time, and make it persistent. And according to init_cpu_to_node(),
+cpuid <-> nodeid mapping is based on apicid <-> nodeid mapping and cpuid <-> apicid
+mapping. So the key point is obtaining all cpus' apicid.
+
+apicid can be obtained by _MAT (Multiple APIC Table Entry) method or found in
+MADT (Multiple APIC Description Table). So we finish the job in the following steps:
+
+1. Enable apic registeration flow to handle both enabled and disabled cpus.
+   This is done by introducing an extra parameter to generic_processor_info to let the
+   caller control if disabled cpus are ignored.
+
+2. Introduce a new array storing all possible cpuid <-> apicid mapping. And also modify
+   the way cpuid is calculated. Establish all possible cpuid <-> apicid mapping when
+   registering local apic. Store the mapping in this array.
+
+3. Enable _MAT and MADT relative apis to return non-presnet or disabled cpus' apicid.
+   This is also done by introducing an extra parameter to these apis to let the caller
+   control if disabled cpus are ignored.
+
+4. Establish all possible cpuid <-> nodeid mapping.
+   This is done via an additional acpi namespace walk for processors.
+
+
+For previous discussion, please refer to:
+https://lkml.org/lkml/2015/2/27/145
+https://lkml.org/lkml/2015/3/25/989
+https://lkml.org/lkml/2015/5/14/244
+https://lkml.org/lkml/2015/7/7/200
+https://lkml.org/lkml/2015/9/27/209
+
+Change log v4 -> v5:
+1. Remove useless code in patch 1.
+2. Small improvement of commit message.
+
+Change log v3 -> v4:
+1. Fix the kernel panic at boot time. The cause is that I tried to build zonelists
+   before per cpu areas were initialized.
+
+Change log v2 -> v3:
+1. Online memory-less nodes at boot time to map cpus of memory-less nodes.
+2. Build zonelists for memory-less nodes so that memory allocator will fall 
+   back to proper nodes automatically.
+
+Change log v1 -> v2:
+1. Split code movement and actual changes. Add patch 1.
+2. Synchronize best near online node record when node hotplug happens. In patch 2.
+3. Fix some comment.
+
+Gu Zheng (4):
+  x86, acpi, cpu-hotplug: Enable acpi to register all possible cpus at
+    boot time.
+  x86, acpi, cpu-hotplug: Introduce cpuid_to_apicid[] array to store
+    persistent cpuid <-> apicid mapping.
+  x86, acpi, cpu-hotplug: Enable MADT APIs to return disabled apicid.
+  x86, acpi, cpu-hotplug: Set persistent cpuid <-> nodeid mapping when
+    booting.
+
+Tang Chen (1):
+  x86, memhp, numa: Online memory-less nodes at boot time.
+
+ arch/ia64/kernel/acpi.c       |   2 +-
+ arch/x86/include/asm/mpspec.h |   1 +
+ arch/x86/kernel/acpi/boot.c   |   8 ++-
+ arch/x86/kernel/apic/apic.c   |  85 +++++++++++++++++++++++++----
+ arch/x86/mm/numa.c            |  27 +++++-----
+ drivers/acpi/acpi_processor.c |   5 +-
+ drivers/acpi/bus.c            |   3 ++
+ drivers/acpi/processor_core.c | 122 ++++++++++++++++++++++++++++++++++--------
+ include/linux/acpi.h          |   2 +
+ 9 files changed, 204 insertions(+), 51 deletions(-)
+
+-- 
+1.9.3
+
+
+
+--
+To unsubscribe, send a message with 'unsubscribe linux-mm' in
+the body to majordomo@kvack.org.  For more info on Linux MM,
+see: http://www.linux-mm.org/ .
+Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
