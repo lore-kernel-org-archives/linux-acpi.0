@@ -1,147 +1,60 @@
-From: Aleksey Makarov <amakarov.linux@gmail.com>
-Subject: Re: [PATCH v4 0/4] ACPI: parse the SPCR table
-Date: Thu, 3 Mar 2016 14:59:42 +0300
-Message-ID: <56D8272E.20705@gmail.com>
-References: <1456747355-15692-1-git-send-email-aleksey.makarov@linaro.org>
- <56D5B5CB.7010702@hurleysoftware.com>
+From: Peter Zijlstra <peterz@infradead.org>
+Subject: Re: [PATCH 6/6] cpufreq: schedutil: New governor based on scheduler
+ utilization data
+Date: Thu, 3 Mar 2016 13:20:30 +0100
+Message-ID: <20160303122030.GN6356@twins.programming.kicks-ass.net>
+References: <2495375.dFbdlAZmA6@vostro.rjw.lan>
+ <1842158.0Xhak3Uaac@vostro.rjw.lan>
+ <CAKfTPtANvYp5ar8UkKyN9R25Ntrfp+bEEFw5M0=MA8q7zscSMw@mail.gmail.com>
+ <CAJZ5v0jvStPbhKSJUHTwySkEXa0rKp3zE7YLWeCmGHeQt8xcrw@mail.gmail.com>
+ <CAJZ5v0gC_S+a43FvgpB25WnpAANkDQk7agwSx4gRJvdmnPFkeQ@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-lb0-f196.google.com ([209.85.217.196]:36398 "EHLO
-	mail-lb0-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754863AbcCCMAj (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 3 Mar 2016 07:00:39 -0500
-In-Reply-To: <56D5B5CB.7010702@hurleysoftware.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-pm-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <CAJZ5v0gC_S+a43FvgpB25WnpAANkDQk7agwSx4gRJvdmnPFkeQ@mail.gmail.com>
+Sender: linux-pm-owner@vger.kernel.org
+To: "Rafael J. Wysocki" <rafael@kernel.org>
+Cc: Vincent Guittot <vincent.guittot@linaro.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Linux PM list <linux-pm@vger.kernel.org>, Juri Lelli <juri.lelli@arm.com>, Steve Muckle <steve.muckle@linaro.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>, Viresh Kumar <viresh.kumar@linaro.org>, Michael Turquette <mturquette@baylibre.com>
 List-Id: linux-acpi@vger.kernel.org
-To: Peter Hurley <peter@hurleysoftware.com>, Aleksey Makarov <aleksey.makarov@linaro.org>, linux-acpi@vger.kernel.org
-Cc: linux-serial@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Russell King <linux@arm.linux.org.uk>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, Leif Lindholm <leif.lindholm@linaro.org>, Graeme Gregory <graeme.gregory@linaro.org>, Al Stone <ahs3@redhat.com>, Christopher Covington <cov@codeaurora.org>, Yury Norov <ynorov@caviumnetworks.com>, "Zheng, Lv" <lv.zheng@intel.com>
 
+On Wed, Mar 02, 2016 at 11:49:48PM +0100, Rafael J. Wysocki wrote:
+> >>> +       min_f = sg_policy->policy->cpuinfo.min_freq;
+> >>> +       max_f = sg_policy->policy->cpuinfo.max_freq;
+> >>> +       next_f = util > max ? max_f : min_f + util * (max_f - min_f) / max;
 
-
-On 03/01/2016 06:31 PM, Peter Hurley wrote:
-> On 02/29/2016 04:02 AM, Aleksey Makarov wrote:
->> 'ARM Server Base Boot Requirements' [1] mentions SPCR (Serial Port
->> Console Redirection Table) [2] as a mandatory ACPI table that
->> specifies the configuration of serial console.
->>
->> Introduce a new function acpi_console_check().  At the uart port
->> registration, this function checks if the ACPI SPCR table specifies
->> its argument of type struct uart_port to be a console
->> and if so calls add_preferred_console().
+> In case a more formal derivation of this formula is needed, it is
+> based on the following 3 assumptions:
 > 
-> How will a user enable an earlycon on the same console as the SPCR
-> console if there is no DBG2 table?
+> (1) Performance is a linear function of frequency.
+> (2) Required performance is a linear function of the utilization ratio
+> x = util/max as provided by the scheduler (0 <= x <= 1).
 
-...
-[    0.000000] earlycon: pl11 at MMIO 0x0000000009000000 (options '')
-[    0.000000] bootconsole [pl11] enabled
-...
-[    0.000000] Kernel command line:  root=/dev/vda1 rw systemd.show_status=no acpi=force earlycon=pl011,0x9000000
-...
-[    0.318248] ACPI: SPCR: adding preferred console [ttyAMA0]
-[    0.318736] ARMH0011:00: ttyAMA0 at MMIO 0x9000000 (irq = 5, base_baud = 0) is a SBSA
-[    0.319502] console [ttyAMA0] enabled
-[    0.319502] console [ttyAMA0] enabled
-[    0.319933] bootconsole [pl11] disabled
-[    0.319933] bootconsole [pl11] disabled
-...
+> (3) The minimum possible frequency (min_freq) corresponds to x = 0 and
+> the maximum possible frequency (max_freq) corresponds to x = 1.
+> 
+> (1) and (2) combined imply that
+> 
+> f = a * x + b
+> 
+> (f - frequency, a, b - constants to be determined) and then (3) quite
+> trivially leads to b = min_freq and a = max_freq - min_freq.
 
-Why?
+3 is the problem, that just doesn't make sense and is probably the
+reason why you see very little selection of the min freq.
 
-> 
-> 
->> Use SPCR to tell if SBSA serial driver should use 32-bit access to registers.
->>
->> Based on the work by Leif Lindholm [3]
->>
->> Should be applied to next-20160229.
->>
->> Tested on QEMU.  SPCR support is included in QEMU's ARM mach-virt
->> since 2.4 release.
->>
->> v4:
->> - drop patch "ACPI: change __init to __ref for early_acpi_os_unmap_memory()"
->>   ACPI developers work on a new API and asked not to do that.
->>   Instead, use acpi_get_table_with_size()/early_acpi_os_unmap_memory() once
->>   and cache the result. (Lv Zheng)
->> - fix some style issues (Yury Norov)
->>
->> v3:
->> https://lkml.kernel.org/g/1455559532-8305-1-git-send-email-aleksey.makarov@linaro.org
->>
->> Greg Kroah-Hartman did not like v2 so I have rewritten this patchset:
->>
->> - drop acpi_match() member of struct console
->> - drop implementations of this member for pl011 and 8250
->> - drop the patch that renames some vars in printk.c as it is not needed anymore
->> - drop patch that introduces system wide acpi_table_parse2().
->>   Instead introduce a custom acpi_table_parse_spcr() in spcr.c
->>
->> Instead of introducing a new match_acpi() member of struct console,
->> this patchset introduces a new function acpi_console_check().
->> This function is called when a new uart is registered at serial_core.c
->> the same way OF code checks for console.  If the registered uart is the
->> console specified by SPCR table, this function calls add_preferred_console()
->>
->> The restrictions of this approach are:
->>
->> - only serial consoles can be set up
->> - only consoles specified by the memory/io address can be set up
->>   (SPCR can specify devices by PCI id/PCI address)
->>
->> v2:
->> https://lkml.kernel.org/g/1455299022-11641-1-git-send-email-aleksey.makarov@linaro.org
->> - don't use SPCR if user specified console in command line
->> - fix initialization order of newcon->index = 0
->> - rename some variables at printk.c (Joe Perches, Peter Hurley)
->> - enable ACPI_SPCR_TABLE in a separate patch (Andy Shevchenko)
->> - remove the retry loop for console registering (Peter Hurley).
->>   Instead, obtain SPCR with acpi_get_table().  That works after
->>   call to acpi_early_init() i. e. in any *_initcall()
->> - describe design decision behind introducing acpi_match() (Peter Hurley)
->> - fix compilation for x86 + ACPI (Graeme Gregory)
->> - introduce DBG2 constants in a separate patch (Andy Shevchenko)
->> - fix a typo in DBG2 constants (Andy Shevchenko)
->> - add ACPI_DBG2_ARM_SBSA_32BIT constant (Christopher Covington)
->> - add support for ACPI_DBG2_ARM_SBSA_* consoles (Christopher Covington)
->> - add documentation for functions
->> - add a patch that uses SPCR to find if SBSA serial driver should use 32-bit
->>   accessor functions (Christopher Covington)
->> - change __init to __ref for early_acpi_os_unmap_memory() in a separate patch
->> - introduce acpi_table_parse2() in a separate patch
->> - fix fetching the SPCR table early (Mark Salter)
->> - add a patch from Mark Salter that introduces support for matching 8250-based
->>   consoles
->>
->> v1:
->> https://lkml.kernel.org/g/1453722324-22407-1-git-send-email-aleksey.makarov@linaro.org
->>
->> [1] http://infocenter.arm.com/help/index.jsp?topic=/com.arm.doc.den0044a/index.html
->> [2] https://msdn.microsoft.com/en-us/library/windows/hardware/dn639132(v=vs.85).aspx
->> [3] https://lkml.kernel.org/g/1441716217-23786-1-git-send-email-leif.lindholm@linaro.org
->>
->> Aleksey Makarov (4):
->>   ACPI: parse SPCR and enable matching console
->>   ACPI: enable ACPI_SPCR_TABLE on ARM64
->>   ACPI: add definitions of DBG2 subtypes
->>   serial: pl011: use ACPI SPCR to setup 32-bit access
->>
->>  arch/arm64/Kconfig               |   1 +
->>  drivers/acpi/Kconfig             |   3 +
->>  drivers/acpi/Makefile            |   1 +
->>  drivers/acpi/spcr.c              | 138 +++++++++++++++++++++++++++++++++++++++
->>  drivers/tty/serial/amba-pl011.c  |   2 +
->>  drivers/tty/serial/serial_core.c |  14 +++-
->>  include/acpi/actbl2.h            |   5 ++
->>  include/linux/acpi.h             |  15 +++++
->>  8 files changed, 177 insertions(+), 2 deletions(-)
->>  create mode 100644 drivers/acpi/spcr.c
->>
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
+Suppose a machine with the following frequencies:
+
+	500, 750, 1000
+
+And a utilization of 0.4, how does asking for 500 + 0.4 * (1000-500) =
+700 make any sense? Per your point 1, it should should be asking for
+0.4 * 1000 = 400.
+
+Because, per 1, at 500 it runs exactly half as fast as at 1000, and we
+only need 0.4 times as much. Therefore 500 is more than sufficient.
+
+
+
+Note. we all know that 1 is a 'broken' assumption, but lacking anything
+better I think its a reasonable one to make.
