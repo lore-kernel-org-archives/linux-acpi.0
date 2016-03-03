@@ -1,243 +1,147 @@
-From: Lukas Wunner <lukas@wunner.de>
-Subject: Re: ACPI SPI slave device
-Date: Thu, 3 Mar 2016 12:47:40 +0100
-Message-ID: <20160303114740.GA24132@wunner.de>
-References: <CAAbRKOu+s=OZw8vw2kfWs=JCQB1YcVg+51N5Yh_dCJOuytR2zA@mail.gmail.com>
- <20160229082114.GC1770@lahna.fi.intel.com>
- <CAAbRKOt=CDOqD1FESZkxv4fdYSDm6qoi4J0wYn=e5mvN-NLpCA@mail.gmail.com>
- <CAAbRKOscDyYaUqBTFVFZ2Fe81a_Kkx9oeNXHrttm3Qs_27fAzQ@mail.gmail.com>
- <20160301160726.GA23371@wunner.de>
- <CAAbRKOuESP+_65cmeCPNtO5HzN1+ct7bDv1stbE+a8u=KEwDKw@mail.gmail.com>
- <CAAbRKOsNxsu4CYq=EByck997RWRO3fQ-+LAAS5AbSL3XNRSh7A@mail.gmail.com>
- <20160302114250.GA23487@wunner.de>
- <CAAbRKOvP9yudKbzu_GquPUzhz2VQBtuKYmJbqLpt1jFcB6U1kQ@mail.gmail.com>
- <CAAbRKOs=ySAtqn71Mf5tyHvjqOGGRs5xsO6oU5YPYWgOSXqehA@mail.gmail.com>
+From: Aleksey Makarov <amakarov.linux@gmail.com>
+Subject: Re: [PATCH v4 0/4] ACPI: parse the SPCR table
+Date: Thu, 3 Mar 2016 14:59:42 +0300
+Message-ID: <56D8272E.20705@gmail.com>
+References: <1456747355-15692-1-git-send-email-aleksey.makarov@linaro.org>
+ <56D5B5CB.7010702@hurleysoftware.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mailout2.hostsharing.net ([83.223.90.233]:33838 "EHLO
-	mailout2.hostsharing.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932357AbcCCLqr (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 3 Mar 2016 06:46:47 -0500
-Content-Disposition: inline
-In-Reply-To: <CAAbRKOs=ySAtqn71Mf5tyHvjqOGGRs5xsO6oU5YPYWgOSXqehA@mail.gmail.com>
+Received: from mail-lb0-f196.google.com ([209.85.217.196]:36398 "EHLO
+	mail-lb0-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754863AbcCCMAj (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 3 Mar 2016 07:00:39 -0500
+In-Reply-To: <56D5B5CB.7010702@hurleysoftware.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Leif Liddy <leif.linux@gmail.com>
-Cc: Mika Westerberg <mika.westerberg@linux.intel.com>, linux-acpi@vger.kernel.org, jarkko.nikula@linux.intel.com, Matthew Garrett <mjg59@srcf.ucam.org>, linux-spi@vger.kernel.org
-
-[Cc: += Matthew Garrett, linux-spi]
-
-Hi Leif,
-
-On Wed, Mar 02, 2016 at 03:37:27PM +0100, Leif Liddy wrote:
-> On Wed, Mar 2, 2016 at 2:07 PM, Leif Liddy <leif.linux@gmail.com> wrote:
-> > On Wed, Mar 2, 2016 at 12:42 PM, Lukas Wunner <lukas@wunner.de> wrote:
-> >> On Wed, Mar 02, 2016 at 04:13:16AM +0100, Leif Liddy wrote:
-> >>> I'll post more tomorrow, need to evaluate the changes I made --but I
-> >>> think the change that did it was changing this:
-> >>>
-> >>> Method (_CRS, 0, NotSerialized)  // _CRS: Current Resource Settings
-> >>> {
-> >>>     If (!OSDW ())
-> >>>     {
-> >>>         Return (WBUF) /* \_SB_.PCI0.SPI1.WBUF */
-> >>>     }
-> >>>
-> >>>     Return (ConcatenateResTemplate (RBUF, DBUF))
-> >>> }
-> >>>
-> >>> to:
-> >>>
-> >>> Method (_CRS, 0, NotSerialized)  // _CRS: Current Resource Settings
-> >>> {
-> >>>       Return (ConcatenateResTemplate (RBUF, DBUF))
-> >>> }
-> >>
-> >> If that is true then the fix is to change the OS we're reporting to ACPI:
-> >> https://git.kernel.org/cgit/linux/kernel/git/torvalds/linux.git/tree/drivers/acpi/osl.c#n141
-> >>
-> >> We had trouble with this before:
-> >> https://mjg59.dreamwidth.org/29954.html
-> >>
-> >> I've just grabbed the acpidump you've posted here:
-> >> https://bugzilla.kernel.org/attachment.cgi?id=200961&action=edit
-> >>
-> >> I'll take a look at it hopefully this afternoon to see what they've
-> >> changed in the OSDW method.
-> >>
-> > You're right, it's not evaluating the OSDW method properly. I tracked
-> > it down to this single change:
-> >
-> > change this:
-> >
-> >       If (!OSDW ())
-> >       {
-> >           Return (UBUF) /* \_SB_.PCI0.SPI1.SPIT._CRS.UBUF */
-> >       }
-> >      Return (ABUF) /* \_SB_.PCI0.SPI1.SPIT._CRS.ABUF */
-> > }
-> >
-> > to:
-> >
-> >      Return (UBUF) /* \_SB_.PCI0.SPI1.SPIT._CRS.UBUF */
-> >
-> This issue is more easily resolved by just changing !OSDW to OSDW for
-> that method. The default behavior it seems is for Linux to identify
-> itself as OSX, but there are a few methods where we don't want to
-> identify as being OSX. I'll try and come up with a list of methods of
-> where we don't want to identify as being OSX.
-
-I'm not aware that it's possible to choose the OS per method.
-
-I've compared the \_SB.PCI0._INI method (which sets \OSYS) and the
-OSDW method (which returns true iff \OSYS == 0x2710 (Darwin))
-between your MB8,1 and my MBP9,1 and nothing relevant has changed.
+To: Peter Hurley <peter@hurleysoftware.com>, Aleksey Makarov <aleksey.makarov@linaro.org>, linux-acpi@vger.kernel.org
+Cc: linux-serial@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Russell King <linux@arm.linux.org.uk>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, Leif Lindholm <leif.lindholm@linaro.org>, Graeme Gregory <graeme.gregory@linaro.org>, Al Stone <ahs3@redhat.com>, Christopher Covington <cov@codeaurora.org>, Yury Norov <ynorov@caviumnetworks.com>, "Zheng, Lv" <lv.zheng@intel.com>
 
 
-However after looking at the DSDT I can explain what's going on:
 
-The standard way of describing resource settings is to let _CRS
-return them.
+On 03/01/2016 06:31 PM, Peter Hurley wrote:
+> On 02/29/2016 04:02 AM, Aleksey Makarov wrote:
+>> 'ARM Server Base Boot Requirements' [1] mentions SPCR (Serial Port
+>> Console Redirection Table) [2] as a mandatory ACPI table that
+>> specifies the configuration of serial console.
+>>
+>> Introduce a new function acpi_console_check().  At the uart port
+>> registration, this function checks if the ACPI SPCR table specifies
+>> its argument of type struct uart_port to be a console
+>> and if so calls add_preferred_console().
+> 
+> How will a user enable an earlycon on the same console as the SPCR
+> console if there is no DBG2 table?
 
-The OS X way of describing resource settings is to let a _DSM
-return them. If you disassemble AppleACPIPlatform.kext and search
-for the label gDSM_GET_PROP_UUID, you'll find a UUID that looks
-like this: a0b5b7c6-1318-441c-b0c9-fe695eaf949b. The kernel
-extension invokes the _DSM with this UUID for every ACPI device
-and merges the package it returns into the device's entry in the
-I/O registry. The SPI driver on OS X then retrieves the settings
-from the I/O registry.
-
-If you boot OS X and invoke "ioreg -l | grep spiSclkPeriod"
-you should see the value stored in this device's _DSM (0x0000007d).
-
-Now the problem is, in the DSDT of your machine, the _CRS method
-for the SPIT (spi-topcase) device returns a proper ResourceTemplate
-for non-Darwin OSes (UBUF) and an *empty* ResourceTemplate for Darwin
-(named ABUF). Conversely the device's _DSM returns zero for non-Darwin
-OSes and the I/O registry package for Darwin. (Excerpt of the DSDT
-included below for others following this thread.)
-
-Further down in the DSDT, the exact same snafu is present for the
-Bluetooth resource settings (BCM2E7C, apple-uart-blth). Perhaps
-on this particular laptop it's better to not masquerade as Darwin
-at all? On the other hand e.g. in SSDT5 it's apparent that without
-masquerading as Darwin, the USB controller's _PS0 and _PS3 methods
-are no-ops, so it looks like it cannot enter low power modes.
-Quirking SPI and Bluetooth is probably the lesser evil.
-
-I think you want to add a quirk to spi.c:acpi_spi_add_device()
-which checks if acpi_dev_get_resources() returned nothing and
-the HID of the acpi_device is APP000D: Search the namespace below
-the acpi_device's handle for _CRS.UBUF (using acpi_get_handle()).
-If this exists, call acpi_walk_resource_buffer() on it (with the
-acpi_spi_add_resource callback). You need to somehow convert the
-acpi_handle to an acpi_buffer, maybe that just involves filling in
-acpi_buffer->pointer = acpi_handle and somehow determining the
-length of the resource settings from the handle. Someone more
-intimately familiar with the layout of the namespace in memory
-should be able to answer this. Hopefully this will already get
-you started, if not just ask questions.
-
-HTH,
-
-Lukas
-
--- cut here --
-
-            Scope (\_SB.PCI0.SPI1)
-            {
-                Device (SPIT)
-                {
-                    Name (_HID, EisaId ("APP000D"))  // _HID: Hardware ID
-                    Name (_CID, "apple-spi-topcase")  // _CID: Compatible ID
 ...
-                    Method (_CRS, 0, Serialized)  // _CRS: Current Resource Settings
-                    {
-                        Name (UBUF, ResourceTemplate ()
-                        {
-                            SpiSerialBus (0x0000, PolarityLow, FourWireMode, 0x08,
-                                ControllerInitiated, 0x007A1200, ClockPolarityLow,
-                                ClockPhaseFirst, "\\_SB.PCI0.SPI1",
-                                0x00, ResourceConsumer, ,
-                                )
-                            Interrupt (ResourceConsumer, Level, ActiveLow, Exclusive, ,, )
-                            {
-                                0x0000001E,
-                            }
-                        })
-                        Name (ABUF, ResourceTemplate ()
-                        {
-                        })
-                        If (LNot (OSDW ()))
-                        {
-                            Return (UBUF) /* \_SB_.PCI0.SPI1.SPIT._CRS.UBUF */
-                        }
-
-                        Return (ABUF) /* \_SB_.PCI0.SPI1.SPIT._CRS.ABUF */
-                    }
+[    0.000000] earlycon: pl11 at MMIO 0x0000000009000000 (options '')
+[    0.000000] bootconsole [pl11] enabled
 ...
-                    Method (_DSM, 4, NotSerialized)  // _DSM: Device-Specific Method
-                    {
-                        If (OSDW ())
-                        {
-                            If (LEqual (Arg0, ToUUID ("a0b5b7c6-1318-441c-b0c9-fe695eaf949b")))
-                            {
-                                Store (Package (0x10)
-                                    {
-                                        "spiSclkPeriod", 
-                                        Buffer (0x08)
-                                        {
-                                             0x7D, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00   /* }....... */
-                                        }, 
+[    0.000000] Kernel command line:  root=/dev/vda1 rw systemd.show_status=no acpi=force earlycon=pl011,0x9000000
+...
+[    0.318248] ACPI: SPCR: adding preferred console [ttyAMA0]
+[    0.318736] ARMH0011:00: ttyAMA0 at MMIO 0x9000000 (irq = 5, base_baud = 0) is a SBSA
+[    0.319502] console [ttyAMA0] enabled
+[    0.319502] console [ttyAMA0] enabled
+[    0.319933] bootconsole [pl11] disabled
+[    0.319933] bootconsole [pl11] disabled
+...
 
-                                        "spiWordSize", 
-                                        Buffer (0x08)
-                                        {
-                                             0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00   /* ........ */
-                                        }, 
+Why?
 
-                                        "spiBitOrder", 
-                                        Buffer (0x08)
-                                        {
-                                             0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00   /* ........ */
-                                        }, 
-
-                                        "spiSPO", 
-                                        Buffer (0x08)
-                                        {
-                                             0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00   /* ........ */
-                                        }, 
-
-                                        "spiSPH", 
-                                        Buffer (0x08)
-                                        {
-                                             0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00   /* ........ */
-                                        }, 
-
-                                        "spiCSDelay", 
-                                        Buffer (0x08)
-                                        {
-                                             0x0A, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00   /* ........ */
-                                        }, 
-
-                                        "resetA2RUsec", 
-                                        Buffer (0x08)
-                                        {
-                                             0x0A, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00   /* ........ */
-                                        }, 
-
-                                        "resetRecUsec", 
-                                        Buffer (0x08)
-                                        {
-                                             0x0A, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00   /* ........ */
-                                        }
-                                    }, Local0)
-                                DTGP (Arg0, Arg1, Arg2, Arg3, RefOf (Local0))
-                                Return (Local0)
-                            }
-                        }
-
-                        Return (0x00)
-                    }
+> 
+> 
+>> Use SPCR to tell if SBSA serial driver should use 32-bit access to registers.
+>>
+>> Based on the work by Leif Lindholm [3]
+>>
+>> Should be applied to next-20160229.
+>>
+>> Tested on QEMU.  SPCR support is included in QEMU's ARM mach-virt
+>> since 2.4 release.
+>>
+>> v4:
+>> - drop patch "ACPI: change __init to __ref for early_acpi_os_unmap_memory()"
+>>   ACPI developers work on a new API and asked not to do that.
+>>   Instead, use acpi_get_table_with_size()/early_acpi_os_unmap_memory() once
+>>   and cache the result. (Lv Zheng)
+>> - fix some style issues (Yury Norov)
+>>
+>> v3:
+>> https://lkml.kernel.org/g/1455559532-8305-1-git-send-email-aleksey.makarov@linaro.org
+>>
+>> Greg Kroah-Hartman did not like v2 so I have rewritten this patchset:
+>>
+>> - drop acpi_match() member of struct console
+>> - drop implementations of this member for pl011 and 8250
+>> - drop the patch that renames some vars in printk.c as it is not needed anymore
+>> - drop patch that introduces system wide acpi_table_parse2().
+>>   Instead introduce a custom acpi_table_parse_spcr() in spcr.c
+>>
+>> Instead of introducing a new match_acpi() member of struct console,
+>> this patchset introduces a new function acpi_console_check().
+>> This function is called when a new uart is registered at serial_core.c
+>> the same way OF code checks for console.  If the registered uart is the
+>> console specified by SPCR table, this function calls add_preferred_console()
+>>
+>> The restrictions of this approach are:
+>>
+>> - only serial consoles can be set up
+>> - only consoles specified by the memory/io address can be set up
+>>   (SPCR can specify devices by PCI id/PCI address)
+>>
+>> v2:
+>> https://lkml.kernel.org/g/1455299022-11641-1-git-send-email-aleksey.makarov@linaro.org
+>> - don't use SPCR if user specified console in command line
+>> - fix initialization order of newcon->index = 0
+>> - rename some variables at printk.c (Joe Perches, Peter Hurley)
+>> - enable ACPI_SPCR_TABLE in a separate patch (Andy Shevchenko)
+>> - remove the retry loop for console registering (Peter Hurley).
+>>   Instead, obtain SPCR with acpi_get_table().  That works after
+>>   call to acpi_early_init() i. e. in any *_initcall()
+>> - describe design decision behind introducing acpi_match() (Peter Hurley)
+>> - fix compilation for x86 + ACPI (Graeme Gregory)
+>> - introduce DBG2 constants in a separate patch (Andy Shevchenko)
+>> - fix a typo in DBG2 constants (Andy Shevchenko)
+>> - add ACPI_DBG2_ARM_SBSA_32BIT constant (Christopher Covington)
+>> - add support for ACPI_DBG2_ARM_SBSA_* consoles (Christopher Covington)
+>> - add documentation for functions
+>> - add a patch that uses SPCR to find if SBSA serial driver should use 32-bit
+>>   accessor functions (Christopher Covington)
+>> - change __init to __ref for early_acpi_os_unmap_memory() in a separate patch
+>> - introduce acpi_table_parse2() in a separate patch
+>> - fix fetching the SPCR table early (Mark Salter)
+>> - add a patch from Mark Salter that introduces support for matching 8250-based
+>>   consoles
+>>
+>> v1:
+>> https://lkml.kernel.org/g/1453722324-22407-1-git-send-email-aleksey.makarov@linaro.org
+>>
+>> [1] http://infocenter.arm.com/help/index.jsp?topic=/com.arm.doc.den0044a/index.html
+>> [2] https://msdn.microsoft.com/en-us/library/windows/hardware/dn639132(v=vs.85).aspx
+>> [3] https://lkml.kernel.org/g/1441716217-23786-1-git-send-email-leif.lindholm@linaro.org
+>>
+>> Aleksey Makarov (4):
+>>   ACPI: parse SPCR and enable matching console
+>>   ACPI: enable ACPI_SPCR_TABLE on ARM64
+>>   ACPI: add definitions of DBG2 subtypes
+>>   serial: pl011: use ACPI SPCR to setup 32-bit access
+>>
+>>  arch/arm64/Kconfig               |   1 +
+>>  drivers/acpi/Kconfig             |   3 +
+>>  drivers/acpi/Makefile            |   1 +
+>>  drivers/acpi/spcr.c              | 138 +++++++++++++++++++++++++++++++++++++++
+>>  drivers/tty/serial/amba-pl011.c  |   2 +
+>>  drivers/tty/serial/serial_core.c |  14 +++-
+>>  include/acpi/actbl2.h            |   5 ++
+>>  include/linux/acpi.h             |  15 +++++
+>>  8 files changed, 177 insertions(+), 2 deletions(-)
+>>  create mode 100644 drivers/acpi/spcr.c
+>>
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
