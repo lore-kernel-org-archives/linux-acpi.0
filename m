@@ -1,41 +1,55 @@
-From: Matthew Garrett <mjg59@srcf.ucam.org>
-Subject: Re: ACPI SPI slave device
-Date: Thu, 3 Mar 2016 19:12:46 +0000
-Message-ID: <20160303191246.GA14040@srcf.ucam.org>
-References: <20160303174806.GB11728@srcf.ucam.org>
- <20160303174535.GA11728@srcf.ucam.org>
- <20160303185553.GA24603@wunner.de>
+From: Dietmar Eggemann <dietmar.eggemann@arm.com>
+Subject: Re: [PATCH 6/6] cpufreq: schedutil: New governor based on scheduler
+ utilization data
+Date: Thu, 3 Mar 2016 19:14:35 +0000
+Message-ID: <56D88D1B.7060309@arm.com>
+References: <2495375.dFbdlAZmA6@vostro.rjw.lan>
+ <1842158.0Xhak3Uaac@vostro.rjw.lan>
+ <CAKfTPtANvYp5ar8UkKyN9R25Ntrfp+bEEFw5M0=MA8q7zscSMw@mail.gmail.com>
+ <CAJZ5v0jvStPbhKSJUHTwySkEXa0rKp3zE7YLWeCmGHeQt8xcrw@mail.gmail.com>
+ <CAJZ5v0gC_S+a43FvgpB25WnpAANkDQk7agwSx4gRJvdmnPFkeQ@mail.gmail.com>
+ <CAKfTPtDRvM9PAwQQ2KjUjPjnMmKkdi6sCoX4YisKaunDBqLf-A@mail.gmail.com>
+ <20160303153817.GO6344@twins.programming.kicks-ass.net>
+ <20160303162829.GB6375@twins.programming.kicks-ass.net>
+ <56D87457.1050600@arm.com>
+ <20160303182624.GU6356@twins.programming.kicks-ass.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cavan.codon.org.uk ([93.93.128.6]:60623 "EHLO
-	cavan.codon.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751677AbcCCTMw (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 3 Mar 2016 14:12:52 -0500
-Content-Disposition: inline
-In-Reply-To: <20160303185553.GA24603@wunner.de>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-pm-owner@vger.kernel.org>
+In-Reply-To: <20160303182624.GU6356@twins.programming.kicks-ass.net>
+Sender: linux-pm-owner@vger.kernel.org
+To: Peter Zijlstra <peterz@infradead.org>
+Cc: Vincent Guittot <vincent.guittot@linaro.org>, "Rafael J. Wysocki" <rafael@kernel.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Linux PM list <linux-pm@vger.kernel.org>, Juri Lelli <juri.lelli@arm.com>, Steve Muckle <steve.muckle@linaro.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>, Viresh Kumar <viresh.kumar@linaro.org>, Michael Turquette <mturquette@baylibre.com>
 List-Id: linux-acpi@vger.kernel.org
-To: Lukas Wunner <lukas@wunner.de>
-Cc: Leif Liddy <leif.linux@gmail.com>, Mika Westerberg <mika.westerberg@linux.intel.com>, linux-acpi@vger.kernel.org, jarkko.nikula@linux.intel.com, linux-spi@vger.kernel.org
 
-On Thu, Mar 03, 2016 at 07:55:53PM +0100, Lukas Wunner wrote:
+On 03/03/16 18:26, Peter Zijlstra wrote:
+> On Thu, Mar 03, 2016 at 05:28:55PM +0000, Dietmar Eggemann wrote:
+>>> +void arch_scale_freq_tick(void)
+>>> +{
+>>> +	u64 aperf, mperf;
+>>> +	u64 acnt, mcnt;
+>>> +
+>>> +	if (!static_cpu_has(X86_FEATURE_APERFMPERF))
+>>> +		return;
+>>> +
+>>> +	aperf = rdmsrl(MSR_IA32_APERF);
+>>> +	mperf = rdmsrl(MSR_IA32_APERF);
+>>> +
+>>> +	acnt = aperf - this_cpu_read(arch_prev_aperf);
+>>> +	mcnt = mperf - this_cpu_read(arch_prev_mperf);
+>>> +
+>>> +	this_cpu_write(arch_prev_aperf, aperf);
+>>> +	this_cpu_write(arch_prev_mperf, mperf);
+>>> +
+>>> +	this_cpu_write(arch_cpu_freq, div64_u64(acnt * SCHED_CAPACITY_SCALE, mcnt));
+>>
+>> Wasn't there the problem that this ratio goes to zero if the cpu is idle
+>> in the old power estimation approach on x86?
+> 
+> Yeah, there was something funky.
+> 
+> SDM says they only count in C0 (ie. !idle), so it _should_ work.
 
-> We could extend drivers/acpi/property.c:acpi_init_properties() to
-> check if dmi_match(DMI_BOARD_VENDOR, "Apple Inc."), and instead of
-> calling _DSD, call _DSM with Apple's UUID and populate adev->data
-> with that. Or add the properties to the existing data, if any.
-
-Just do it unconditionally, it's cheap.
-
-> E.g. in the case of this SPI slave we need to fill in five values
-> of struct spi_device and we would add a quirk for APP000D which
-> retrieves each value via acpi_dev_get_property() instead of
-> acpi_dev_get_resources().
-
-Mm. It'd be nice to avoid having to keep a list of Apple devices - some 
-sort of mapping function might be easier, returning the values from _CRS 
-if they're present or from _DSM/_DSD otherwise?
-
--- 
-Matthew Garrett | mjg59@srcf.ucam.org
+I see, back than the problem was 0 capacity in idle but this is about
+frequency.
