@@ -1,36 +1,101 @@
-From: Peter Zijlstra <peterz@infradead.org>
-Subject: Re: [PATCH 6/6] cpufreq: schedutil: New governor based on scheduler
- utilization data
-Date: Thu, 3 Mar 2016 16:38:17 +0100
-Message-ID: <20160303153817.GO6344@twins.programming.kicks-ass.net>
-References: <2495375.dFbdlAZmA6@vostro.rjw.lan>
- <1842158.0Xhak3Uaac@vostro.rjw.lan>
- <CAKfTPtANvYp5ar8UkKyN9R25Ntrfp+bEEFw5M0=MA8q7zscSMw@mail.gmail.com>
- <CAJZ5v0jvStPbhKSJUHTwySkEXa0rKp3zE7YLWeCmGHeQt8xcrw@mail.gmail.com>
- <CAJZ5v0gC_S+a43FvgpB25WnpAANkDQk7agwSx4gRJvdmnPFkeQ@mail.gmail.com>
- <CAKfTPtDRvM9PAwQQ2KjUjPjnMmKkdi6sCoX4YisKaunDBqLf-A@mail.gmail.com>
+From: Peter Hurley <peter@hurleysoftware.com>
+Subject: Re: [PATCH v3 6/7] ACPI: enable ACPI_DBG2_TABLE on ARM64
+Date: Thu, 3 Mar 2016 07:51:49 -0800
+Message-ID: <56D85D95.5050506@hurleysoftware.com>
+References: <1456749726-30261-1-git-send-email-aleksey.makarov@linaro.org>
+ <1456749726-30261-7-git-send-email-aleksey.makarov@linaro.org>
+ <56D5ACBB.50408@hurleysoftware.com> <56D5CB42.3030806@linaro.org>
+ <56D5D08E.3030902@hurleysoftware.com> <56D822DD.2030400@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-pm-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <CAKfTPtDRvM9PAwQQ2KjUjPjnMmKkdi6sCoX4YisKaunDBqLf-A@mail.gmail.com>
-Sender: linux-pm-owner@vger.kernel.org
-To: Vincent Guittot <vincent.guittot@linaro.org>
-Cc: "Rafael J. Wysocki" <rafael@kernel.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Linux PM list <linux-pm@vger.kernel.org>, Juri Lelli <juri.lelli@arm.com>, Steve Muckle <steve.muckle@linaro.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>, Viresh Kumar <viresh.kumar@linaro.org>, Michael Turquette <mturquette@baylibre.com>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-pf0-f173.google.com ([209.85.192.173]:35255 "EHLO
+	mail-pf0-f173.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754801AbcCCPvz (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 3 Mar 2016 10:51:55 -0500
+Received: by mail-pf0-f173.google.com with SMTP id w128so17186520pfb.2
+        for <linux-acpi@vger.kernel.org>; Thu, 03 Mar 2016 07:51:54 -0800 (PST)
+In-Reply-To: <56D822DD.2030400@gmail.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Aleksey Makarov <amakarov.linux@gmail.com>, Aleksey Makarov <aleksey.makarov@linaro.org>, linux-acpi@vger.kernel.org
+Cc: Matthias Brugger <mbrugger@suse.com>, Russell King <linux@arm.linux.org.uk>, Graeme Gregory <graeme.gregory@linaro.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, linux-kernel@vger.kernel.org, Leif Lindholm <leif.lindholm@linaro.org>, Christopher Covington <cov@codeaurora.org>, linux-serial@vger.kernel.org, Catalin Marinas <catalin.marinas@arm.com>, Will Deacon <will.deacon@arm.com>, Al Stone <ahs3@redhat.com>, linux-arm-kernel@lists.infradead.org
 
-On Thu, Mar 03, 2016 at 03:01:15PM +0100, Vincent Guittot wrote:
-> > In case a more formal derivation of this formula is needed, it is
-> > based on the following 3 assumptions:
-> >
-> > (1) Performance is a linear function of frequency.
-> > (2) Required performance is a linear function of the utilization ratio
-> > x = util/max as provided by the scheduler (0 <= x <= 1).
+On 03/03/2016 03:41 AM, Aleksey Makarov wrote:
 > 
-> Just to mention that the utilization that you are using, varies with
-> the frequency which add another variable in your equation
+> 
+> On 03/01/2016 08:25 PM, Peter Hurley wrote:
+>> On 03/01/2016 09:02 AM, Aleksey Makarov wrote:
+>>>
+>>>
+>>> On 03/01/2016 05:52 PM, Peter Hurley wrote:
+>>>> On 02/29/2016 04:42 AM, Aleksey Makarov wrote:
+>>>>> SBBR mentions DBG2 as a mandatory ACPI table.
+>>>>> So enable it for ARM64
+>>>>
+>>>> Why does this have to be opted-in per-arch?
+>>>
+>>> DBG2 can specify earlycons.  They should start as soon as possible.
+>>> On ARM64 it is just after boot tables become available (in arch_init()).
+>>> So it has to be per-arch unless we decide not to start earlycons on 
+>>> DBG2 ports.
+>>
+>> OF does all that already but the earlycon opt-in is not per-arch.
+> 
+> In the last next-XXXX kernel support for OF earlycon depends on
+> CONFIG_OF_EARLY_FLATTREE which *is* per-arch.
 
-Right, x86 hasn't implemented arch_scale_freq_capacity(), so the
-utilization values we use are all over the map. If we lower freq, the
-util will go up, which would result in us bumping the freq again, etc..
+That's true.
+
+(of_setup_earlycon() was really always CONFIG_OF_EARLY_FLATTREE because
+its lone caller was CONFIG_OF_EARLY_FLATTREE).
+
+
+> Probably we need the same kind of configuration option here,
+> something like CONFIG_ACPI_BOOT_TABLES instead of ACPI_DBG2_TABLE.
+
+I'll let acpi maintainers sort that.
+
+
+>>>>> Signed-off-by: Aleksey Makarov <aleksey.makarov@linaro.org>
+>>>>> ---
+>>>>>  arch/arm64/Kconfig       | 1 +
+>>>>>  arch/arm64/kernel/acpi.c | 2 ++
+>>>>>  2 files changed, 3 insertions(+)
+>>>>>
+>>>>> diff --git a/arch/arm64/Kconfig b/arch/arm64/Kconfig
+>>>>> index 9dc5209..0b614d4 100644
+>>>>> --- a/arch/arm64/Kconfig
+>>>>> +++ b/arch/arm64/Kconfig
+>>>>> @@ -3,6 +3,7 @@ config ARM64
+>>>>>  	select ACPI_CCA_REQUIRED if ACPI
+>>>>>  	select ACPI_GENERIC_GSI if ACPI
+>>>>>  	select ACPI_REDUCED_HARDWARE_ONLY if ACPI
+>>>>> +	select ACPI_DBG2_TABLE if ACPI
+>>>>>  	select ARCH_HAS_DEVMEM_IS_ALLOWED
+>>>>>  	select ARCH_HAS_ATOMIC64_DEC_IF_POSITIVE
+>>>>>  	select ARCH_HAS_ELF_RANDOMIZE
+>>>>> diff --git a/arch/arm64/kernel/acpi.c b/arch/arm64/kernel/acpi.c
+>>>>> index d1ce8e2..3370046 100644
+>>>>> --- a/arch/arm64/kernel/acpi.c
+>>>>> +++ b/arch/arm64/kernel/acpi.c
+>>>>> @@ -208,6 +208,8 @@ void __init acpi_boot_table_init(void)
+>>>>>  		pr_err("Failed to init ACPI tables\n");
+>>>>>  		if (!param_acpi_force)
+>>>>>  			disable_acpi();
+>>>>> +	} else {
+>>>>> +		acpi_probe_device_table(dbg2);
+>>>>>  	}
+>>>>>  }
+>>>>>  
+>>>>>
+>>>>
+>>
+>>
+>> _______________________________________________
+>> linux-arm-kernel mailing list
+>> linux-arm-kernel@lists.infradead.org
+>> http://lists.infradead.org/mailman/listinfo/linux-arm-kernel
+>>
 
