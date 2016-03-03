@@ -1,73 +1,66 @@
-From: Dan Williams <dan.j.williams@intel.com>
-Subject: Re: [PATCH v2] nfit: Continue init even if ARS commands are unimplemented
-Date: Thu, 3 Mar 2016 14:53:29 -0800
-Message-ID: <CAPcyv4jzitH+gCL_z+ZHnqTV0TP-cvR_KKQ1JjmXatuKg4QwaA@mail.gmail.com>
-References: <1457044781-15443-1-git-send-email-vishal.l.verma@intel.com>
+From: Toshi Kani <toshi.kani@hpe.com>
+Subject: Re: [PATCH v2 3/4] resource: Add device-managed
+ insert/remove_resource()
+Date: Thu, 03 Mar 2016 16:48:48 -0700
+Message-ID: <1457048928.15454.117.camel@hpe.com>
+References: <1456959056-12316-1-git-send-email-toshi.kani@hpe.com>
+	 <1456959056-12316-4-git-send-email-toshi.kani@hpe.com>
+	 <CAPcyv4iBg0fsaAM-fnHaDir6mosLM-gwr+VU_doTsYU6st-yyQ@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-ob0-f182.google.com ([209.85.214.182]:33535 "EHLO
-	mail-ob0-f182.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751420AbcCCWxa (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 3 Mar 2016 17:53:30 -0500
-Received: by mail-ob0-f182.google.com with SMTP id fz5so34912690obc.0
-        for <linux-acpi@vger.kernel.org>; Thu, 03 Mar 2016 14:53:30 -0800 (PST)
-In-Reply-To: <1457044781-15443-1-git-send-email-vishal.l.verma@intel.com>
+Received: from g9t5008.houston.hp.com ([15.240.92.66]:53885 "EHLO
+	g9t5008.houston.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758374AbcCCW4H (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 3 Mar 2016 17:56:07 -0500
+In-Reply-To: <CAPcyv4iBg0fsaAM-fnHaDir6mosLM-gwr+VU_doTsYU6st-yyQ@mail.gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Vishal Verma <vishal.l.verma@intel.com>
-Cc: "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, Linux ACPI <linux-acpi@vger.kernel.org>, Xiao Guangrong <guangrong.xiao@linux.intel.com>
+To: Dan Williams <dan.j.williams@intel.com>
+Cc: Ingo Molnar <mingo@kernel.org>, Borislav Petkov <bp@suse.de>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Andrew Morton <akpm@linux-foundation.org>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, Linux ACPI <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
 
-On Thu, Mar 3, 2016 at 2:39 PM, Vishal Verma <vishal.l.verma@intel.com> wrote:
-> If firmware doesn't implement any of the ARS commands, take that to
-> mean that ARS is unsupported, and continue to initialize regions without
-> bad block lists. We cannot make the assumption that ARS commands will be
-> unconditionally supported on all NVDIMMs.
->
-> Cc: Dan Williams <dan.j.williams@intel.com>
-> Reported-by: Xiao Guangrong <guangrong.xiao@linux.intel.com>
-> Signed-off-by: Vishal Verma <vishal.l.verma@intel.com>
-> ---
->
-> v2:
-> - improve the debug message when we his this unimplemented case (Dan).
->
->  drivers/acpi/nfit.c | 15 +++++++++++----
->  1 file changed, 11 insertions(+), 4 deletions(-)
->
-> diff --git a/drivers/acpi/nfit.c b/drivers/acpi/nfit.c
-> index fb53db1..35947ac 100644
-> --- a/drivers/acpi/nfit.c
-> +++ b/drivers/acpi/nfit.c
-> @@ -1590,14 +1590,21 @@ static int acpi_nfit_find_poison(struct acpi_nfit_desc *acpi_desc,
->         start = ndr_desc->res->start;
->         len = ndr_desc->res->end - ndr_desc->res->start + 1;
->
-> +       /*
-> +        * If ARS is unimplemented, unsupported, or if the 'Persistent Memory
-> +        * Scrub' flag in extended status is not set, skip this but continue
-> +        * initialization
-> +        */
->         rc = ars_get_cap(nd_desc, ars_cap, start, len);
-> +       if (rc == -ENOTTY) {
-> +               dev_dbg(acpi_desc->dev,
-> +                       "Address Range Scrub is not implemented, won't create an error list\n");
-> +               rc = 0;
-> +               goto out;
-> +       }
->         if (rc)
->                 goto out;
->
-> -       /*
-> -        * If ARS is unsupported, or if the 'Persistent Memory Scrub' flag in
-> -        * extended status is not set, skip this but continue initialization
-> -        */
->         if ((ars_cap->status & 0xffff) ||
->                 !(ars_cap->status >> 16 & ND_ARS_PERSISTENT)) {
->                 dev_warn(acpi_desc->dev,
-> --
-> 2.5.0
->
+On Thu, 2016-03-03 at 14:45 -0800, Dan Williams wrote:
+> On Wed, Mar 2, 2016 at 2:50 PM, Toshi Kani <toshi.kani@hpe.com> wrote=
+:
+=C2=A0:
+> >=20
+> > diff --git a/kernel/resource.c b/kernel/resource.c
+> > index effb6ee..b1a3394 100644
+> > --- a/kernel/resource.c
+> > +++ b/kernel/resource.c
+> > @@ -1449,6 +1449,75 @@ void __devm_release_region(struct device *de=
+v,
+> > struct resource *parent,
+> > =C2=A0EXPORT_SYMBOL(__devm_release_region);
+> >=20
+> > =C2=A0/*
+> > + * Remove function for devm_insert_resource() and
+> > devm_remove_resource().
+> > + */
+> > +static void devm_resource_remove(struct device *dev, void *ptr)
+> > +{
+> > +=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0struct resource **r =3D =
+ptr;
+> > +
+> > +=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0remove_resource(*r);
+> > +}
+> > +
+>=20
+> Maybe call this __devm_remove_resource?=C2=A0=C2=A0I think this makes=
+ it clearer
+> that it is a private helper function.=C2=A0=C2=A0I was initially conf=
+used about
+> the difference between devm_resource_remove and devm_remove_resource.
 
+Will do. =C2=A0I followed the naming convention of devm_resource_releas=
+e() in
+the same file, but I agree that this is confusing.
 
-Looks good to me.  Thanks Vishal!
+Thanks,
+-Toshi
+--
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
