@@ -1,62 +1,78 @@
-From: Juri Lelli <juri.lelli@arm.com>
-Subject: Re: [PATCH v2 10/10] cpufreq: schedutil: New governor based on
- scheduler utilization data
-Date: Fri, 4 Mar 2016 11:26:39 +0000
-Message-ID: <20160304112639.GD4061@e106622-lin>
-References: <2495375.dFbdlAZmA6@vostro.rjw.lan>
- <2409306.qzzMXcm4dm@vostro.rjw.lan>
- <4627718.FT18d2LR5p@vostro.rjw.lan>
+From: Aleksey Makarov <aleksey.makarov@linaro.org>
+Subject: Re: [PATCH v4 0/4] ACPI: parse the SPCR table
+Date: Fri, 4 Mar 2016 14:53:15 +0300
+Message-ID: <56D9772B.5000402@linaro.org>
+References: <1456747355-15692-1-git-send-email-aleksey.makarov@linaro.org>
+ <56D5B5CB.7010702@hurleysoftware.com> <56D8272E.20705@gmail.com>
+ <56D859CC.7010901@hurleysoftware.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <4627718.FT18d2LR5p@vostro.rjw.lan>
-Sender: linux-kernel-owner@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: Linux PM list <linux-pm@vger.kernel.org>, Steve Muckle <steve.muckle@linaro.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Peter Zijlstra <peterz@infradead.org>, Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>, Viresh Kumar <viresh.kumar@linaro.org>, Vincent Guittot <vincent.guittot@linaro.org>, Michael Turquette <mturquette@baylibre.com>, Ingo Molnar <mingo@kernel.org>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-lb0-f179.google.com ([209.85.217.179]:33905 "EHLO
+	mail-lb0-f179.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750919AbcCDLyN (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 4 Mar 2016 06:54:13 -0500
+Received: by mail-lb0-f179.google.com with SMTP id cf7so41903870lbb.1
+        for <linux-acpi@vger.kernel.org>; Fri, 04 Mar 2016 03:54:12 -0800 (PST)
+In-Reply-To: <56D859CC.7010901@hurleysoftware.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Peter Hurley <peter@hurleysoftware.com>, Aleksey Makarov <amakarov.linux@gmail.com>, linux-acpi@vger.kernel.org
+Cc: linux-serial@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Russell King <linux@arm.linux.org.uk>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, Leif Lindholm <leif.lindholm@linaro.org>, Graeme Gregory <graeme.gregory@linaro.org>, Al Stone <ahs3@redhat.com>, Christopher Covington <cov@codeaurora.org>, Yury Norov <ynorov@caviumnetworks.com>, "Zheng, Lv" <lv.zheng@intel.com>
 
-Hi Rafael,
 
-On 04/03/16 04:35, Rafael J. Wysocki wrote:
-> From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-> 
-> Add a new cpufreq scaling governor, called "schedutil", that uses
-> scheduler-provided CPU utilization information as input for making
-> its decisions.
-> 
-> Doing that is possible after commit fe7034338ba0 (cpufreq: Add
-> mechanism for registering utilization update callbacks) that
-> introduced cpufreq_update_util() called by the scheduler on
-> utilization changes (from CFS) and RT/DL task status updates.
-> In particular, CPU frequency scaling decisions may be based on
-> the the utilization data passed to cpufreq_update_util() by CFS.
-> 
-> The new governor is relatively simple.
-> 
-> The frequency selection formula used by it is
-> 
-> 	next_freq = util * max_freq / max
-> 
-> where util and max are the utilization and CPU capacity coming from CFS.
-> 
 
-The formula looks better to me now. However, problem is that, if you
-have freq. invariance, util will slowly saturate to the current
-capacity. So, we won't trigger OPP changes for a task that for example
-starts light and then becomes big.
+On 03/03/2016 06:35 PM, Peter Hurley wrote:
+> On 03/03/2016 03:59 AM, Aleksey Makarov wrote:
+>>
+>>
+>> On 03/01/2016 06:31 PM, Peter Hurley wrote:
+>>> On 02/29/2016 04:02 AM, Aleksey Makarov wrote:
+>>>> 'ARM Server Base Boot Requirements' [1] mentions SPCR (Serial Port
+>>>> Console Redirection Table) [2] as a mandatory ACPI table that
+>>>> specifies the configuration of serial console.
+>>>>
+>>>> Introduce a new function acpi_console_check().  At the uart port
+>>>> registration, this function checks if the ACPI SPCR table specifies
+>>>> its argument of type struct uart_port to be a console
+>>>> and if so calls add_preferred_console().
+>>>
+>>> How will a user enable an earlycon on the same console as the SPCR
+>>> console if there is no DBG2 table?
+>>
+>> ...
+>> [    0.000000] earlycon: pl11 at MMIO 0x0000000009000000 (options '')
+>> [    0.000000] bootconsole [pl11] enabled
+>> ...
+>> [    0.000000] Kernel command line:  root=/dev/vda1 rw systemd.show_status=no acpi=force earlycon=pl011,0x9000000
+>> ...
+>> [    0.318248] ACPI: SPCR: adding preferred console [ttyAMA0]
+>> [    0.318736] ARMH0011:00: ttyAMA0 at MMIO 0x9000000 (irq = 5, base_baud = 0) is a SBSA
+>> [    0.319502] console [ttyAMA0] enabled
+>> [    0.319502] console [ttyAMA0] enabled
+>> [    0.319933] bootconsole [pl11] disabled
+>> [    0.319933] bootconsole [pl11] disabled
+>> ...
+>>
+>> Why?
+> 
+> That's pretty disingenuous; via command line?
+> 
+> By that measure, none of your patches are required because a user
+> can already start both console and earlycon without them.
+> 
+> With the console location specified in the SPCR, earlycon should
+> be opt-in on the command-line simply with "earlycon" command-line
+> parameter.
 
-This is the same problem we faced with schedfreq. The current solution
-there is to use a margin for calculating a threshold (80% of current
-capacity ATM). Once util goes above that threshold we trigger an OPP
-change.  Current policy is pretty aggressive, we go to max_f and then
-adapt to the "real" util during successive enqueues. This was also
-tought to cope with the fact that PELT seems slow to react to abrupt
-changes in tasks behaviour.
+Yes.  That's why we have SPCR *and* DBG2. 
+DBG2 specifies where we should run earlycon.
 
-I'm not saying this is the definitive solution, but I fear something
-along this line is needed when you add freq invariance in the mix.
+>>> How will a user enable an earlycon on the same console as the SPCR
+>>> console if there is no DBG2 table?
 
-Best,
+In no way.  You need DBG2 to run earlycon.
 
-- Juri
+(If you don't want to specify it's address etc explicitly)
+
