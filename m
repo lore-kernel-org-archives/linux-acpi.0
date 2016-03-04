@@ -1,78 +1,92 @@
-From: Aleksey Makarov <aleksey.makarov@linaro.org>
-Subject: Re: [PATCH v4 0/4] ACPI: parse the SPCR table
-Date: Fri, 4 Mar 2016 14:53:15 +0300
-Message-ID: <56D9772B.5000402@linaro.org>
-References: <1456747355-15692-1-git-send-email-aleksey.makarov@linaro.org>
- <56D5B5CB.7010702@hurleysoftware.com> <56D8272E.20705@gmail.com>
- <56D859CC.7010901@hurleysoftware.com>
+From: Tomasz Nowicki <tn@semihalf.com>
+Subject: Re: [PATCH V5 00/15] MMCONFIG refactoring and support for ARM64 PCI
+ hostbridge init based on ACPI
+Date: Fri, 4 Mar 2016 13:01:05 +0100
+Message-ID: <56D97901.7080001@semihalf.com>
+References: <1455630825-27253-1-git-send-email-tn@semihalf.com>
+ <56D49611.2050202@codeaurora.org> <20160303112332.GC28359@red-moon>
+ <56D84938.6020102@codeaurora.org> <20160304105517.GA30693@red-moon>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
+Content-Type: text/plain; charset=windows-1252; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-lb0-f179.google.com ([209.85.217.179]:33905 "EHLO
+Received: from mail-lb0-f179.google.com ([209.85.217.179]:36272 "EHLO
 	mail-lb0-f179.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750919AbcCDLyN (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 4 Mar 2016 06:54:13 -0500
-Received: by mail-lb0-f179.google.com with SMTP id cf7so41903870lbb.1
-        for <linux-acpi@vger.kernel.org>; Fri, 04 Mar 2016 03:54:12 -0800 (PST)
-In-Reply-To: <56D859CC.7010901@hurleysoftware.com>
+	with ESMTP id S1750777AbcCDMBP (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 4 Mar 2016 07:01:15 -0500
+Received: by mail-lb0-f179.google.com with SMTP id x1so58336447lbj.3
+        for <linux-acpi@vger.kernel.org>; Fri, 04 Mar 2016 04:01:14 -0800 (PST)
+In-Reply-To: <20160304105517.GA30693@red-moon>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Peter Hurley <peter@hurleysoftware.com>, Aleksey Makarov <amakarov.linux@gmail.com>, linux-acpi@vger.kernel.org
-Cc: linux-serial@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Russell King <linux@arm.linux.org.uk>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, Leif Lindholm <leif.lindholm@linaro.org>, Graeme Gregory <graeme.gregory@linaro.org>, Al Stone <ahs3@redhat.com>, Christopher Covington <cov@codeaurora.org>, Yury Norov <ynorov@caviumnetworks.com>, "Zheng, Lv" <lv.zheng@intel.com>
+To: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Sinan Kaya <okaya@codeaurora.org>
+Cc: helgaas@kernel.org, arnd@arndb.de, will.deacon@arm.com, catalin.marinas@arm.com, rafael@kernel.org, hanjun.guo@linaro.org, jiang.liu@linux.intel.com, jchandra@broadcom.com, Stefano.Stabellini@eu.citrix.com, robert.richter@caviumnetworks.com, mw@semihalf.com, Liviu.Dudau@arm.com, ddaney@caviumnetworks.com, wangyijing@huawei.com, Suravee.Suthikulpanit@amd.com, msalter@redhat.com, linux-pci@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linaro-acpi@lists.linaro.org, jcm@redhat.com, yinghai@kernel.org
 
+On 04.03.2016 11:55, Lorenzo Pieralisi wrote:
+> On Thu, Mar 03, 2016 at 09:24:56AM -0500, Sinan Kaya wrote:
+>> >On 3/3/2016 6:23 AM, Lorenzo Pieralisi wrote:
+>>> > >x86 and IA64 claim PCI resources on boot and live with that (well, minus
+>>> > >the gazillions x86 pci= parameters that change the PCI resources assignment
+>>> > >one way or another), comments very welcome in particular on the pci=realloc
+>>> > >option and its usage.
+>> >
+>> >I have been working with Linux PCIe over 3 years. I never used
+>> >pci=realloc argument.
+>> >
+>> >The v5 series minus [PATCH V5 11/15] drivers: pci: add generic code to
+>> >claim bus resources is working just fine and is ready to go upstream
+>> >in my opinion. It passed my internal testing with different types of
+>> >endpoints.
+>> >
+>> >The inclusion of this patch is now requiring everybody to add
+>> >pci=realloc argument otherwise the resources assigned by the UEFI BIOS
+>> >are not working.
+>> >
+>> >I think there is still some work to be done in this patch and is too
+>> >early to be included into the series. It is blocking progress of the
+>> >series which is sitting on review over 1 year already.
+> First off, I think that's specious, patch 11 is not blocking anything,
+> if you and Tomasz want to drop it go ahead and take responsibility
+> of the consequences.
+>
+> I am not saying patch 11 is perfect, it is there to review, if you
+> spot bugs point them out.
+>
+> If you are interested and willing to make an effort to understand why I
+> asked Tomasz to integrate it, a bit of background here:
+>
+> http://permalink.gmane.org/gmane.linux.kernel.pci/44830
+>
+> If we want to drop patch 11, we are going to discard whatever FW
+> set-up at FW/OS hand-off and reassign everything. Want to do it ?
+> Go ahead.
+>
+> I wrote it in my previous email, probably it was not clear, so, here we
+> go again.
+>
+> If we want to at least consider the FW PCI configuration at FW/OS
+> handoff, we should read the PCI bridge apertures and claim them, when
+> that fails reassign the corresponding PCI bus hierarchy (which means
+> releasing the bridge resources and downstream devices and reassign
+> them), that's what pci=realloc does.
+>
+> I think that it is a command line option since it has to be a choice,
+> ie overriding FW set-up should be an option, not a default.
+>
+> Patch 11 does what x86 does in arch code arch/x86/pci/i386.c,
+>
+> pcibios_resource_survey()
+>
+> and that works for them (of course, minus quirks that do exist).
+>
+> I could integrate the code implementing pci=realloc in patch 11 so
+> that we realloc by default all resources claimed that failed (which
+> means that bridges are resized accordingly and you won't be forced
+> to use pci=realloc on command line).
+>
 
+I agree with Lorenzo. Just because v3 works it does not mean we want to 
+go this way. Also, I think we should realloc all resources claimed that 
+failed, w/o need to use pci=realloc on command line.
 
-On 03/03/2016 06:35 PM, Peter Hurley wrote:
-> On 03/03/2016 03:59 AM, Aleksey Makarov wrote:
->>
->>
->> On 03/01/2016 06:31 PM, Peter Hurley wrote:
->>> On 02/29/2016 04:02 AM, Aleksey Makarov wrote:
->>>> 'ARM Server Base Boot Requirements' [1] mentions SPCR (Serial Port
->>>> Console Redirection Table) [2] as a mandatory ACPI table that
->>>> specifies the configuration of serial console.
->>>>
->>>> Introduce a new function acpi_console_check().  At the uart port
->>>> registration, this function checks if the ACPI SPCR table specifies
->>>> its argument of type struct uart_port to be a console
->>>> and if so calls add_preferred_console().
->>>
->>> How will a user enable an earlycon on the same console as the SPCR
->>> console if there is no DBG2 table?
->>
->> ...
->> [    0.000000] earlycon: pl11 at MMIO 0x0000000009000000 (options '')
->> [    0.000000] bootconsole [pl11] enabled
->> ...
->> [    0.000000] Kernel command line:  root=/dev/vda1 rw systemd.show_status=no acpi=force earlycon=pl011,0x9000000
->> ...
->> [    0.318248] ACPI: SPCR: adding preferred console [ttyAMA0]
->> [    0.318736] ARMH0011:00: ttyAMA0 at MMIO 0x9000000 (irq = 5, base_baud = 0) is a SBSA
->> [    0.319502] console [ttyAMA0] enabled
->> [    0.319502] console [ttyAMA0] enabled
->> [    0.319933] bootconsole [pl11] disabled
->> [    0.319933] bootconsole [pl11] disabled
->> ...
->>
->> Why?
-> 
-> That's pretty disingenuous; via command line?
-> 
-> By that measure, none of your patches are required because a user
-> can already start both console and earlycon without them.
-> 
-> With the console location specified in the SPCR, earlycon should
-> be opt-in on the command-line simply with "earlycon" command-line
-> parameter.
-
-Yes.  That's why we have SPCR *and* DBG2. 
-DBG2 specifies where we should run earlycon.
-
->>> How will a user enable an earlycon on the same console as the SPCR
->>> console if there is no DBG2 table?
-
-In no way.  You need DBG2 to run earlycon.
-
-(If you don't want to specify it's address etc explicitly)
-
+Tomasz
