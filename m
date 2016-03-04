@@ -1,7 +1,7 @@
 From: "Rafael J. Wysocki" <rafael@kernel.org>
 Subject: Re: [PATCH v2 6/10] cpufreq: Support for fast frequency switching
-Date: Fri, 4 Mar 2016 23:40:34 +0100
-Message-ID: <CAJZ5v0jd6sXQnvZ87=_L1MQgu2QsBJtYb8jwn=0=m7eRdKVvhA@mail.gmail.com>
+Date: Fri, 4 Mar 2016 23:58:33 +0100
+Message-ID: <CAJZ5v0hnnANO6-CCgaika+FZtoXGf5V1Z8Wmmv+niZx=h7obWQ@mail.gmail.com>
 References: <2495375.dFbdlAZmA6@vostro.rjw.lan>
 	<2409306.qzzMXcm4dm@vostro.rjw.lan>
 	<15684081.T4iOMUSHCY@vostro.rjw.lan>
@@ -10,10 +10,10 @@ References: <2495375.dFbdlAZmA6@vostro.rjw.lan>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-lb0-f196.google.com ([209.85.217.196]:34190 "EHLO
+Received: from mail-lb0-f196.google.com ([209.85.217.196]:34337 "EHLO
 	mail-lb0-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758796AbcCDWkg (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 4 Mar 2016 17:40:36 -0500
+	with ESMTP id S1759633AbcCDW6f (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 4 Mar 2016 17:58:35 -0500
 In-Reply-To: <CAJZ5v0jENyu8j0fq1-BhU64QwRHAjvcjQktYc2sa9QmhktoEnQ@mail.gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
@@ -62,18 +62,9 @@ On Fri, Mar 4, 2016 at 11:32 PM, Rafael J. Wysocki <rafael@kernel.org> wrote:
 >> transition notifier is made?
 >
 > That sounds like a good idea.
->
-> There also is the CPUFREQ_ASYNC_NOTIFICATION driver flag that in
-> principle might be used as a workaround, but I'm not sure how much
-> work that would require ATM.
 
-What I mean is that drivers using it are supposed to handle the
-notifications by calling cpufreq_freq_transition_begin(/end() by
-themselves, so theoretically there is a mechanism already in place for
-that.
-
-I guess what might be done would be to spawn a work item to carry out
-a notify when the frequency changes.
+Transition notifiers may be registered before the driver is
+registered, so that won't help in all cases.
 
 Thanks,
 Rafael
