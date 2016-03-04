@@ -1,246 +1,160 @@
-From: Bjorn Helgaas <helgaas@kernel.org>
-Subject: Re: [PATCH V2] acpi, pci, irq: account for early penalty assignment
-Date: Fri, 4 Mar 2016 12:09:59 -0600
-Message-ID: <20160304180959.GA4794@localhost>
-References: <56D4A53A.1070708@codeaurora.org>
- <20160229223453.GA12162@localhost>
- <56D5E43E.7050406@codeaurora.org>
- <20160301194340.GA19783@localhost>
- <56D7317F.7090500@codeaurora.org>
- <56D7ABFB.3070302@codeaurora.org>
- <56D84EA9.3080900@codeaurora.org>
- <20160303151048.GA3290@localhost>
- <56D8546B.5040908@codeaurora.org>
- <56D8745D.70509@codeaurora.org>
+From: Peter Hurley <peter@hurleysoftware.com>
+Subject: Re: [PATCH 0/3] ACPI: parse the SPCR table
+Date: Fri, 4 Mar 2016 11:34:10 -0800
+Message-ID: <56D9E332.2000005@hurleysoftware.com>
+References: <1453722324-22407-1-git-send-email-aleksey.makarov@linaro.org>
+ <56A6494E.3090303@hurleysoftware.com> <56A8B570.2060501@linaro.org>
+ <56BBCA2F.3020604@redhat.com> <56D899C4.5050802@hurleysoftware.com>
+ <67709E22-E82E-40BA-A271-2107608F4EF3@redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.136]:52659 "EHLO mail.kernel.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757235AbcCDSKD (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 4 Mar 2016 13:10:03 -0500
-Content-Disposition: inline
-In-Reply-To: <56D8745D.70509@codeaurora.org>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <67709E22-E82E-40BA-A271-2107608F4EF3@redhat.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Jon Masters <jcm@redhat.com>
+Cc: linux-acpi <linux-acpi@vger.kernel.org>, Linux kernel <linux-kernel@vger.kernel.org>, Linux ARM Kernel <linux-arm-kernel@lists.infradead.org>, "linux-serial@vger.kernel.org" <linux-serial@vger.kernel.org>, Al Stone <ahs3@redhat.com>, Aleksey Makarov <aleksey.makarov@linaro.org>, Graeme Gregory <graeme.gregory@linaro.org>, Russell King <linux@arm.linux.org.uk>, Greg KH <gregkh@linuxfoundation.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, "leif.lindholm@linaro.org" <leif.lindholm@linaro.org>
 List-Id: linux-acpi@vger.kernel.org
-To: Sinan Kaya <okaya@codeaurora.org>
-Cc: linux-acpi@vger.kernel.org, timur@codeaurora.org, cov@codeaurora.org, linux-pci@vger.kernel.org, ravikanth.nalla@hpe.com, lenb@kernel.org, harish.k@hpe.com, ashwin.reghunandanan@hpe.com, bhelgaas@google.com, rjw@rjwysocki.net, linux-kernel@vger.kernel.org
 
-On Thu, Mar 03, 2016 at 12:29:01PM -0500, Sinan Kaya wrote:
-> On 3/3/2016 10:12 AM, Sinan Kaya wrote:
-> > On 3/3/2016 10:10 AM, Bjorn Helgaas wrote:
-> >> That was my idea, but your minimal patch from last night looks awfully
-> >> attractive, and maybe it's not worth moving it to arch/x86.  I do think we
-> >> could simplify the code significantly by getting rid of the kzalloc and
-> >> acpi_irq_penalty_list from acpi_irq_set_penalty().  How about pushing on
-> >> that a little bit first, and see what it looks like then?
-> > 
-> > OK. Let me go that direction.
-> > 
-> 
-> How about this?
-> 
-> -- 
-> Sinan Kaya
-> Qualcomm Technologies, Inc. on behalf of Qualcomm Innovation Center, Inc.
-> Qualcomm Innovation Center, Inc. is a member of Code Aurora Forum, a Linux Foundation Collaborative Project
+Hi Jon,
 
-> From 6cc33747feb469fe4da2088f34e2c875a36f58f4 Mon Sep 17 00:00:00 2001
-> From: Sinan Kaya <okaya@codeaurora.org>
-> Date: Thu, 3 Mar 2016 10:14:22 -0500
-> Subject: [PATCH] acpi,pci,irq: account for early penalty assignment
-> 
-> ---
->  drivers/acpi/pci_link.c | 77 ++++++++++++++++++++++++++++++-------------------
->  1 file changed, 47 insertions(+), 30 deletions(-)
-> 
-> diff --git a/drivers/acpi/pci_link.c b/drivers/acpi/pci_link.c
-> index fa28635..09eea42 100644
-> --- a/drivers/acpi/pci_link.c
-> +++ b/drivers/acpi/pci_link.c
-> @@ -87,6 +87,7 @@ struct acpi_pci_link {
-> 
->  static LIST_HEAD(acpi_link_list);
->  static DEFINE_MUTEX(acpi_link_lock);
-> +static int sci_irq, sci_irq_penalty;
-> 
->  /* --------------------------------------------------------------------------
->                              PCI Link Device Management
-> @@ -466,56 +467,71 @@ static int acpi_irq_isa_penalty[ACPI_MAX_ISA_IRQ] = {
->  	PIRQ_PENALTY_ISA_USED,		/* IRQ15 ide1 */
->  };
-> 
-> -struct irq_penalty_info {
-> -	int irq;
-> -	int penalty;
-> -	struct list_head node;
-> -};
-> +static int acpi_irq_pci_sharing_penalty(int irq)
-> +{
-> +	struct acpi_pci_link *link;
-> +	int penalty = 0;
-> +	bool found = false;
-> +
-> +	list_for_each_entry(link, &acpi_link_list, list) {
-> +		/*
-> +		 * If a link is active, penalize its IRQ heavily
-> +		 * so we try to choose a different IRQ.
-> +		 */
-> +		if (link->irq.active && link->irq.active == irq) {
-> +			penalty += PIRQ_PENALTY_PCI_USING;
-> +			found = true;
-> +		} else {
-> +			int i;
-> +
-> +			/*
-> +			 * If a link is inactive, penalize the IRQs it
-> +			 * might, but not as severely.
+[ cc'd everyone back in on the assumption private mail was accidental ]
 
-s/might/might use/
 
-> +			 */
-> +			for (i = 0; i < link->irq.possible_count; i++) {
-> +				if (link->irq.possible[i] == irq) {
-> +					penalty += PIRQ_PENALTY_PCI_POSSIBLE /
-> +						link->irq.possible_count;
-> +					found = true;
-> +				}
-> +			}
-> +		}
-> +	}
-> 
-> -static LIST_HEAD(acpi_irq_penalty_list);
-> +	if (found)
-> +		return penalty;
-> +
-> +	return PIRQ_PENALTY_PCI_AVAILABLE;
+On 03/04/2016 12:21 AM, Jon Masters wrote:
+> Top posting - in transit currently
+>=20
+> Peter,
+>=20
+> I would like to understand what concrete action you feel is needed in
+> order to be comfortable with adding SPCR support to the Linux
+> kernel?
+>
+> To clarify for others - this thread pertains to perceived issues with
+> the license of a document describing the format of the SPCR, a
+> document whose license was explicitly changed in response to previous
+> concerns raised by yourself, not the code that actually implements
+> SPCR support.
 
-It's a nit, but I don't think "#define PIRQ_PENALTY_PCI_AVAILABLE 0"
-adds any readability.  If we dropped that, you could get rid of
-"found" as well, and simply "return penalty" here.
+Not exactly, because there is no such thing as patenting a document.
 
-> +}
-> 
->  static int acpi_irq_get_penalty(int irq)
->  {
-> -	struct irq_penalty_info *irq_info;
-> -
->  	if (irq < ACPI_MAX_ISA_IRQ)
->  		return acpi_irq_isa_penalty[irq];
-> 
-> -	list_for_each_entry(irq_info, &acpi_irq_penalty_list, node) {
-> -		if (irq_info->irq == irq)
-> -			return irq_info->penalty;
-> -	}
-> +	if (irq == sci_irq)
-> +		return sci_irq_penalty;
-> 
-> -	return 0;
-> +	return acpi_irq_pci_sharing_penalty(irq);
+The specification purports that patents apply to implementations of
+SPCR, and grants rights to those patents under two optional licenses.
 
-I think there are two issues here that should be teased apart a bit
-more:
+What I want is what is expected of any submitter to the Linux Kernel:
+that the submitter has the legal right to do so as spelled out
+in the Developer's Certificate of Origin (the text of which is in
+Documentation/SubmittingPatches).
 
-  1) Trigger settings: If the IRQ is configured as anything other than
-  level-triggered, active-low, we can't use it at all for a PCI
-  interrupt, and we should return an "infinite" penalty.  We currently
-  increase the penalty for the SCI IRQ if it's not level/low, but
-  doesn't it apply to *all* IRQs, not just the SCI IRQ?
-  
-  It looks like we do something similar in the pcibios_lookup_irq()
-  loop that uses can_request_irq().  If we used can_request_irq() in
-  pci_link.c, would that mean we could get rid of the SCI
-  trigger/polarity stuff and just keep track of the SCI IRQ?  I don't
-  know whether the SCI IRQ is hooked into whatever can_request_irq()
-  uses, but it seems like it *should* be.
+To have the legal right to submit material to which patents apply
+requires a license.
 
-  2) Sharing with other devices: It seems useful to me to accumulate
-  the penalties because even an IRQ in the 0-15 range might be used by
-  PCI devices.  Wouldn't we want to count those users in addition to
-  whatever ISA users there might be?  E.g., something like this:
+So either
+A) the submission does not infringe, and no patent license is required,=
+ or
+B) the submission requires a patent license because otherwise it would
+infringe.
 
-    penalty = 0;
+If A, what I would like to see is the due diligence as to why the
+submission does not infringe.
 
-    if (irq < ACPI_MAX_ISA_IRQ)
-      penalty += acpi_irq_isa_penalty[irq];
+If B, FSF maintains an online list of GPL compatible licenses.
+Neither of the two licenses offered are on the FSF online list.
 
-    if (irq == sci_irq)
-      penalty += PIRQ_PENALTY_PCI_USING;
+The FSF also maintains a compliance lab and will render opinions on
+the GPL compatibility of a license. They can be reached at
+licensing@fsf.org
 
-    penalty += acpi_irq_pci_sharing_penalty(irq);
-    return penalty;
+Alternatively, a statement from Linux Foundation that this
+has been discussed and agreed upon privately is also fine.
 
->  }
-> 
->  static int acpi_irq_set_penalty(int irq, int new_penalty)
->  {
-> -	struct irq_penalty_info *irq_info;
-> -
->  	/* see if this is a ISA IRQ */
->  	if (irq < ACPI_MAX_ISA_IRQ) {
->  		acpi_irq_isa_penalty[irq] = new_penalty;
->  		return 0;
->  	}
-> 
-> -	/* next, try to locate from the dynamic list */
-> -	list_for_each_entry(irq_info, &acpi_irq_penalty_list, node) {
-> -		if (irq_info->irq == irq) {
-> -			irq_info->penalty  = new_penalty;
-> -			return 0;
-> -		}
-> +	if (irq == sci_irq) {
-> +		sci_irq_penalty = new_penalty;
-> +		return 0;
->  	}
-> 
-> -	/* nope, let's allocate a slot for this IRQ */
-> -	irq_info = kzalloc(sizeof(*irq_info), GFP_KERNEL);
-> -	if (!irq_info)
-> -		return -ENOMEM;
-> -
-> -	irq_info->irq = irq;
-> -	irq_info->penalty = new_penalty;
-> -	list_add_tail(&irq_info->node, &acpi_irq_penalty_list);
-> -
-> +	/*
-> +	 * This is the remaining PCI IRQs. They are calculated on the
-> +	 * flight in acpi_irq_get_penalty function.
-> +	 */
->  	return 0;
->  }
+Alternatively, any sign-off from ARM, Linaro or Red Hat legal that eith=
+er
+a) one of those licenses is GPL compatible, or
+b) the submission does not infringe on the purported patents (and why)
 
-If we adopt the idea that we compute the penalties on the fly in
-acpi_irq_get_penalty(), I don't think we need acpi_irq_penalty_init()
-any more.  It does basically the same thing acpi_irq_get_penalty()
-would do, and it's confusing to do it twice.
 
-The acpi_irq_add_penalty() call in acpi_pci_link_allocate() should go
-away for the same reason.
+> However you retain the opinion that the license under which the table
+> is published "is not GPL compatible". So under what license would you
+> like to see this table specification released?
 
-The acpi_irq_add_penalty() call in acpi_penalize_sci_irq() should go
-away (assuming we can use can_request_irq() or something similar to
-validate trigger settings).
+Assuming none of the options above is acceptable, any license in the
+"GPL-Compatible Free Software Licenses" listed here:
 
-I think acpi_irq_add_penalty() itself could go away, since the only
-remaining user would be the command-line processing, which could just
-set the penalty directly.
+http://www.gnu.org/licenses/license-list.en.html#GPLCompatibleLicenses
 
-> 
-> @@ -900,6 +916,7 @@ void acpi_penalize_sci_irq(int irq, int trigger, int polarity)
->  	if (irq < 0)
->  		return;
-> 
-> +	sci_irq = irq;
 
-Possibly acpi_penalize_sci_irq() itself could go away, since all we
-really need is the SCI IRQ, and we might be able to just use
-acpi_gbl_FADT.sci_interrupt (I'm not 100% sure sci_interrupt is
-identical to a Linux IRQ number; we'd have to check that).
 
->  	if (trigger != ACPI_MADT_TRIGGER_LEVEL ||
->  	    polarity != ACPI_MADT_POLARITY_ACTIVE_LOW)
->  		penalty = PIRQ_PENALTY_ISA_ALWAYS;
-> --
-> 1.8.2.1
-> 
-
+> Jon.
+>=20
+> -- Computer Architect | Sent from my 64-bit #ARM Powered phone
+>> > On Mar 4, 2016, at 05:08, Peter Hurley <peter@hurleysoftware.com> =
+wrote:
+>> >=20
+>> > Hi Al,
+>> >=20
+>> > Somehow your email was filtered. Apologies for that.
+>> >=20
+>>> >> On 02/10/2016 03:39 PM, Al Stone wrote:
+>>>> >>> On 01/27/2016 05:17 AM, Aleksey Makarov wrote:
+>>>> >>>=20
+>>>> >>>=20
+>>>>> >>>> On 01/25/2016 07:11 PM, Peter Hurley wrote:
+>>>>>> >>>>> On 01/25/2016 03:45 AM, Aleksey Makarov wrote:
+>>>>>> >>>>> This patchset is based on the patchset by Leif Lindholm [1=
+]
+>>>>>> >>>>>=20
+>>>>>> >>>>> 'ARM Server Base Boot Requirements' [2] mention SPCR=20
+>>>>>> >>>>> (Serial Port Console Redirection Table) [3] as a mandatory
+>>>>>> >>>>> ACPI table that specifies the configuration of serial cons=
+ole.
+>>>>>> >>>>>=20
+>>>>>> >>>>> Licensing concerns have prevented implementing it in the p=
+ast, but as of
+>>>>>> >>>>> 10 August 2015, these tables have both been released also =
+under=20
+>>>>>> >>>>> OWF 1.0 [4].
+>>>>> >>>>=20
+>>>>> >>>> This license has a patent retaliation provision, which makes=
+ it
+>>>>> >>>> incompatible with GPLv2.
+>>>>> >>>>=20
+>>>>> >>>> *If the license applies to this code*, then this patch set d=
+oes not
+>>>>> >>>> meet the criteria for submission.
+>>>> >>>=20
+>>>> >>> The license applies not to this code but to the document descr=
+ibing the tables.
+>>> >>=20
+>>> >> Just for the record, the SPCR table struct definition has been p=
+art
+>>> >> of the Linux kernel since at least commit b24aad44 on 2009-07-24
+>>> >> (line 1112 of include/acpi/actbl2.h) -- or so git blame tells me=
+=2E
+>> >=20
+>> > Just to be clear here:
+>> >=20
+>> > The Microsoft specification, which defines the SPCR table struct a=
+nd which
+>> > this patch series relies on, notes that patents apply. Specificall=
+y, it
+>> > says:
+>> >=20
+>> > Patent Notice:
+>> > Microsoft is making certain patent rights available for implementa=
+tions of this specification under two options:
+>> > 1)  Microsoft=E2=80=99s Community Promise, available at http://www=
+=2Emicrosoft.com/openspecifications/en/us/programs/community-promise/de=
+fault.aspx; or
+>> > 2)  The Open Web Foundation Final Specification Agreement Version =
+1.0 ("OWF 1.0") as of October 1, 2012, available at http://www.openwebf=
+oundation.org/legal/the-owf-1-0-agreements/owfa-1-0.=20
+>> > Version 1.03 =E2=80=94 August 10, 2015
+>> >=20
+>> > I don't believe either of those patent licenses are GPL compatible=
+=2E
+>> >=20
+>> > Unless you're saying Red Hat is signing off on this?
+>> >=20
+>> > Regards,
+>> > Peter Hurley
