@@ -1,130 +1,273 @@
-From: "Zheng, Lv" <lv.zheng@intel.com>
-Subject: RE: [PATCH] ACPI / button: Avoid using broken _LID on Surface tablet
-Date: Fri, 4 Mar 2016 03:37:04 +0000
-Message-ID: <1AE640813FDE7649BE1B193DEA596E883BB60425@SHSMSX101.ccr.corp.intel.com>
-References: <1454497460-16803-1-git-send-email-yu.c.chen@intel.com>
-	 <1AE640813FDE7649BE1B193DEA596E883BB4B97D@SHSMSX101.ccr.corp.intel.com>
-	 <36DF59CE26D8EE47B0655C516E9CE640286C4774@shsmsx102.ccr.corp.intel.com>
-	 <1AE640813FDE7649BE1B193DEA596E883BB4DA8A@SHSMSX101.ccr.corp.intel.com>
- <1456150475.23430.16.camel@hadess.net>
+From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Subject: [PATCH v2 4/10] cpufreq: governor: Move abstract gov_attr_set code to seperate file
+Date: Fri, 04 Mar 2016 04:03:12 +0100
+Message-ID: <8439076.su0yJP41kh@vostro.rjw.lan>
+References: <2495375.dFbdlAZmA6@vostro.rjw.lan> <2409306.qzzMXcm4dm@vostro.rjw.lan>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1456150475.23430.16.camel@hadess.net>
-Content-Language: en-US
-Sender: linux-kernel-owner@vger.kernel.org
-To: Bastien Nocera <hadess@hadess.net>, "Chen, Yu C" <yu.c.chen@intel.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
-Cc: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "rjw@rjwysocki.net" <rjw@rjwysocki.net>, "lenb@kernel.org" <lenb@kernel.org>, "Zhang, Rui" <rui.zhang@intel.com>, "cwhuang@android-x86.org" <cwhuang@android-x86.org>
+Content-Transfer-Encoding: 7Bit
+Return-path: <linux-pm-owner@vger.kernel.org>
+In-Reply-To: <2409306.qzzMXcm4dm@vostro.rjw.lan>
+Sender: linux-pm-owner@vger.kernel.org
+To: Linux PM list <linux-pm@vger.kernel.org>
+Cc: Juri Lelli <juri.lelli@arm.com>, Steve Muckle <steve.muckle@linaro.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Peter Zijlstra <peterz@infradead.org>, Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>, Viresh Kumar <viresh.kumar@linaro.org>, Vincent Guittot <vincent.guittot@linaro.org>, Michael Turquette <mturquette@baylibre.com>, Ingo Molnar <mingo@kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-SGksDQoNCj4gRnJvbTogQmFzdGllbiBOb2NlcmEgW21haWx0bzpoYWRlc3NAaGFkZXNzLm5ldF0N
-Cj4gU3ViamVjdDogUmU6IFtQQVRDSF0gQUNQSSAvIGJ1dHRvbjogQXZvaWQgdXNpbmcgYnJva2Vu
-IF9MSUQgb24gU3VyZmFjZSB0YWJsZXQNCj4gDQo+IE9uIE1vbiwgMjAxNi0wMi0yMiBhdCAwNzoy
-NCArMDAwMCwgWmhlbmcsIEx2IHdyb3RlOg0KPiA+IFtMdiBaaGVuZ10NCj4gPiBBY2NvcmRpbmcg
-dG8gdGhlIGtub3dsZWRnZSBvZiB2YXJpb3VzIEJJT1MgX0xJRCBpbXBsZW1lbnRhdGlvbiwgTGlu
-dXgNCj4gPiBidXR0b24gZHJpdmVyIGRvZXNuJ3Qgc2VlbSB0byBiZSB3b3JraW5nIHdyb25nLg0K
-PiA+IEl0IGluIGZhY3Qgd29ya3MgY29ycmVjdGx5IGFuZCBpcyBhYmxlIHRvIGhhbmRsZSBhbGwg
-QklPUyBfTElEDQo+ID4gaW1wbGVtZW50YXRpb25zLg0KPiA+DQo+ID4gU28gdGhpcyBsb29rcyB0
-byBtZSBsaWtlIGEgdXNlciBzcGFjZSBidWcuDQo+IA0KPiBJIGRvbid0IHRoaW5rIGl0IGlzIG9u
-ZSwgZ2l2ZW4gdGhlIGtlcm5lbCBBUEkgZm9yIHRoYXQgZnVuY3Rpb25hbGl0eS4NCj4gSWYsIGlu
-c3RlYWQgb2YgZXhwb3NpbmcgdGhlIGxpZCBhcyBhbiBpbnB1dCBzd2l0Y2gsIHRoZSBrZXJuZWwg
-b25seQ0KPiBldmVyIHNlbnQgYW4gZXZlbnQgc2F5aW5nICJ0aGUgbGlkIGlzIG5vdyBjbG9zZWQi
-IHRoZW4gd2Ugd291bGRuJ3QgaGF2ZQ0KPiB0aGF0IHByb2JsZW0sIGFzIHdlJ2QgbGlrZWx5IGV4
-cGVjdCB0aGUgbGlkIHRvIGJlIG9wZW5lZCB3aGVuIHN0YXJ0aW5nDQo+IHRoZSBtYWNoaW5lIChp
-ZiBwcmVzZW50KS4NCltMdiBaaGVuZ10gDQpMZXQgbWUgc2hvdyB5b3Ugc2V2ZXJhbCBwcm9vZnMg
-b2YgV2luZG93cyBiZWhhdmlvcnMuDQoNCjEuIEhhdmUgeW91IGV2ZXIgc2VlbiBhIHNjcmVlbiBv
-biBXaW5kb3dzIHRoYXQgY2FuIHRlbGwgeW91IHRoZSBzdGF0dXMgb2YgTElELg0KSWYgeW91IGhh
-dmUgc2VlbiBzdWNoIHNjcmVlbiwgd2hhdCB0aGUgc3RhdHVzIGlzIHdoZW4gdGhlIHN5c3RlbSBp
-cyBib290ZWQuDQpJIGhhdmUgbmV2ZXIgc2VlbiBzdWNoIGEgVUksIHNvIFdpbmRvd3MgaW4gZmFj
-dCBjYXJlcyBubyBjdXJyZW50IExJRCBzdGF0dXMuDQoNCjIuIEhhdmUgeW91IGV2ZXIgc2VlbiBh
-IHNjcmVlbiBvbiBXaW5kb3dzIHRoYXQgYWxsb3cgdXNlcnMgdG8gc3BlY2lmeSBvcGVuIExJRCBh
-Y3Rpb25zPw0KVGhlIGFuc3dlciBpcyBuby4NCk9uIHRyYWRpdGlvbmFsIHg4NiBwbGF0Zm9ybXMs
-IHN5c3RlbSBpcyB3b2tlbiB1cCB2aWEgd2FrZSBHUEVzLg0KU28gdGhlIG9wZW4gZXZlbnQgaW4g
-ZmFjdCBpcyBoYW5kbGVkIGJ5IEJJT1MgYW5kIFdpbmRvd3MgY2FyZXMgbm90aGluZyBhYm91dCBp
-dC4NCg0KMy4gSGF2ZSB5b3UgZXZlciBzZWVuIGEgc2NyZWVuIG9uIFdpbmRvd3MgdGhhdCBhbGxv
-dyB1c2VycyB0byBzcGVjaWZ5IGNsb3NlIExJRCBhY3Rpb25zPw0KWWVzLCBJIGhhdmUsIGl0IGlz
-IGluIHBvd2VyIG9wdGlvbnMuDQpTbyBXaW5kb3dzIGluIGZhY3Qgb25seSBjYXJlcyBhYm91dCB0
-aGUgTElEIGNsb3NlIG5vdGlmaWNhdGlvbiBhbmQgd2lsbCBvbmx5IGNoZWNrIExJRCBzdGF0dXMg
-d2hlbiBpdCByZWNlaXZlcyB0aGlzIG5vdGlmaWNhdGlvbi4NCg0KVGhlIGFib3ZlIGZhY3RzIGNh
-biBtYWtlIGNsZWFyIGFib3V0IHdoYXQgQklPUyB3aWxsIGltcGxlbWVudCBmb3IgdGhlIEFDUEkg
-TElELg0KDQpBbmQgZnJvbSB0aGlzIHBvaW50IG9mIHZpZXcsIGluIGtlcm5lbCBBQ1BJIExJRCBk
-cml2ZXIsIG9ubHkgdGhpcyBjb21taXQgaXMgd3Jvbmc6DQpjb21taXQgMjNkZTVkOWVmMmE0YmJj
-NGY3MzNmNTgzMTFiY2I3Y2Y2MjM5YzgxMw0KQXV0aG9yOiBBbGV4ZXkgU3Rhcmlrb3Zza2l5IDxh
-c3Rhcmlrb3Zza2l5QHN1c2UuZGU+DQpTdWJqZWN0OiBBQ1BJOiBidXR0b246IHNlbmQgaW5pdGlh
-bCBsaWQgc3RhdGUgYWZ0ZXIgYWRkIGFuZCByZXN1bWUNClRoaXMgc2VlbXMgdG8gYmUgYSBmYWxz
-ZSByb290IGNhdXNlZCBidWcgZml4Og0KaHR0cHM6Ly9idWd6aWxsYS5ub3ZlbGwuY29tL3Nob3df
-YnVnLmNnaT9pZD0zMjY4MTQNCkkgZ3Vlc3MgdGhlIG9yaWdpbmFsIGJ1ZyB3YXMgaW4gdGhlIEVD
-IGRyaXZlciBvciBzb21ld2hlcmUgZWxzZS4NCg0KQnV0IHRvIG91ciBzdXJwcmlzZXMsIGFmdGVy
-IHJldmVydGluZyB0aGlzIGNvbW1pdC4NCldlIGNhbiBzZWU6DQoxLiBLZXJuZWwgZG9lc24ndCB0
-cmlnZ2VyIGFueSBldmVudCB0byB0aGUgdXNlcnNwYWNlLg0KMi4gQnV0IHdlIHN0aWxsIGNhbiBz
-ZWUgdGhhdCBTdXJmYWNlIGlzIGF1dG9tYXRpY2FsbHkgc3VzcGVuZGVkIGV2ZXJ5IHNldmVyYWwg
-c2Vjb25kcy4NCg0KQWNjb3JkaW5nIHRvIHRoZSBCdWd6aWxsYSBpbnZlc3RpZ2F0aW9uLCB0aGUg
-c3VzcGVuZCB3YXMgdHJpZ2dlcmVkIGJ5IHN5c3RlbWQuDQpJIHRodXMganVzdCBjb25jbHVkZWQg
-dGhhdCB0aGlzIGNvdWxkIGJlIGEgdXNlcnNwYWNlIGJ1Zy4NCkJ1dCBtYXliZSB0aGlzIGlzIGEg
-c3lzdGVtZCBiZWhhdmlvciB0cmlnZ2VyZWQgYnkgc29tZSBrZXJuZWwgZXZlbnRzIHRoYXQgYXJl
-IG5vdCBjYXB0dXJlZCBieSBvdXIgZGVidWdnaW5nIHBhdGNoZXMuDQpMZXQgdGhlIHJlcG9ydGVy
-IGFuZCB0aGUgZGV2ZWxvcGVyIGRvIG1vcmUgaW52ZXN0aWdhdGlvbiB0aGVyZS4NCg0KSSBqdXN0
-IHJhaXNlZCBteSBjb25jZXJuIGFib3V0IHRoaXMgZml4Lg0KVGhlIGZpeCBicm91Z2h0IGJ5IHRo
-aXMgcGF0Y2ggaXMgYXBwYXJlbnRseSB3cm9uZyBhY2NvcmRpbmcgdG8gdGhlIGFib3ZlIGNvbmNs
-dXNpb25zLg0KDQo+IA0KPiA+IFRoYXQgdGhlIHVzZXIgc3BhY2UgZG9lc24ndCBjb250YWluIGEg
-cHJvcGVyIG1vZGUgdG8gaGFuZGxlIEFDUEkgQklPUw0KPiA+IF9MSUQgaW1wbGVtZW50YXRpb25z
-Lg0KPiA+DQo+ID4gV2h5IHNob3VsZCBrZXJuZWwgd29yayB0aGlzIGdhcCBhcm91bmQ/DQo+ID4g
-VGhlIGdhcCBpczoNCj4gPiBUaGUgdXNlciBzcGFjZSByZXF1aXJlcyBsaWQgZGV2aWNlIHRvIGFj
-dCBpbiB0aGUgd2F5IGl0IHdhbnRzLg0KPiANCj4gSW4gdGhlIHdheSB0aGF0IGl0J3MgYWx3YXlz
-IHdvcmtlZCB1cCB1bnRpbCBub3csIHJhdGhlci4NCltMdiBaaGVuZ10gDQpUaGlzIGlzIG5vdCBw
-ZXJzdWFzaXZlLg0KVGhpbmdzIGNhbiBhcHBlYXIgdG8gYmUgd29ya2luZyB3aXRoIHdvcmthcm91
-bmRzIGFwcGxpZWQuDQpEdXJpbmcgbXkgY2FyZWVyLCBJIGhhdmUgc2VlbiBwbGVudHkgb2Ygc3Vj
-aCBjYXNlcy4NCkFuZCBJ4oCYdmUgcHJvdmVuIHRoYXQgdGhlcmUgYXJlIG1hbnkgc3VjaCBraW5k
-IG9mIHdyb25nbHkgcm9vdCBjYXVzZWQgZml4ZXMgaW4gQUNQSSBzdWJzeXN0ZW0gaW4gdGhpcyBj
-b21tdW5pdHkgZHVyaW5nIHRoZSBwYXN0IHllYXJzLg0KDQo+IA0KPiA+IFdoaWxlIHRoZSBBQ1BJ
-IEJJT1Mgb25seSBwcm92aWRlcyBsaWQgYmVoYXZpb3IgdGhhdCBpcyB3b3JraW5nIGZvcg0KPiA+
-IFdpbmRvd3MgcG93ZXItc2F2aW5nIHNldHRpbmdzLg0KPiA+IElNTywNCj4gPiAxLiBXaW5kb3dz
-IE9ubHkgcmVxdWlyZXMgTElEIGNsb3NlIG5vdGlmaWNhdGlvbnMgdG8gdHJpZ2dlciBwb3dlci0N
-Cj4gPiBzYXZlIGFjdGlvbiBhbmQgb25seSBldmFsdWF0ZXMgX0xJRCBhZnRlciByZWNlaXZpbmcg
-YSBMSUQNCj4gPiBub3RpZmljYXRpb24sDQo+ID4gwqDCoMKgIEJJT1NlbiBvbmx5IGVuc3VyZSBf
-TElEIHJldHVybmluZyB2YWx1ZSBpcyBjb3JyZWN0IGFmdGVyIGENCj4gPiBub3RpZmljYXRpb24u
-DQo+IA0KPiBJbiB3aGljaCBjYXNlLCBleHBlY3RpbmcgdGhlIGxpZCB0byBhbHdheXMgYmUgb3Bl
-bmVkIG9uIHN0YXJ0dXAgd291bGQNCj4gcHJvYmFibHkgYmUgYSBmYWlyIGFzc3VtcHRpb24sIG5v
-Pw0KPiANCltMdiBaaGVuZ10gDQpUaGUgYW5zd2VyIHNob3VsZCBiZSBubyBoZXJlLg0KDQpJZiB3
-ZSBtYWtlIHN5c3RlbSBkZWZhdWx0IExJRCBzdGF0dXMgYXMgb3BlbiBvbiBib290L3Jlc3VtZSwg
-dGhlbiB3aGF0IGFib3V0IHRoaXMgY2FzZT8NCg0KQWNjb3JkaW5nIHRvIG91ciB0ZXN0cywgd2Ug
-Y2FuIHJlYm9vdC9yZXN1bWUgc3VyZmFjZSB3aXRoIExJRCBjbG9zZWQgaW50byBhIHJ1bm5pbmcg
-V2luZG93cy4NClNvIGlmIHdlIGZvcmNlIHRoZSBMSUQgc3RhdHVzIHRvIGJlIG9wZW5lZCBhZnRl
-ciB0aGUgcmVib290L3Jlc3VtZSwgdGhlbiB0aGlzIGFsc28gc2VlbXMgdG8gYmUgYSBjb25mbGlj
-dCBhZ2FpbnN0IHRoZSByZWFsIHN0YXR1cy4NCldoYXQgdGhlIGJlbmVmaXQgdG8gZm9yY2Ugc3Vj
-aCBhIHdyb25nIHN0YXR1cywgZ2l2ZW4gdGhhdCB3ZSBhcmUgYWxsIG5vdCBvYnNlc3NpdmVzLi4u
-DQoNCj4gPiAyLiBCdXQgTGludXggdXNlciBzcGFjZSByZXF1aXJlcyBhbGwgTElEIG5vdGlmaWNh
-dGlvbnMgdG8gYmUNCj4gPiBpbnN0YW50bHkvY29ycmVjdGx5IHJlcG9ydGVkIGFuZCB3YW50cyB0
-byBrbm93IHRoZSBleGFjdCBMSUQgc3RhdGVzDQo+ID4gd2hlbmV2ZXIgaXQgcmVhZHMgdGhlIHN0
-YXRlcyBmcm9tIHRoZSBzeXNmcy4NCj4gPiBJdCBkb2Vzbid0IHNlZW0gdG8gYmUgcG9zc2libGUg
-Zm9yIHRoZSBrZXJuZWwgdG8gd29yayBiZXR3ZWVuIEJJT1Nlbg0KPiA+IGFuZCB0aGUgdXNlciBz
-cGFjZSB0byBmaWxsIHN1Y2ggYSBnYXAuDQo+IA0KPiBJZiB5b3UgcXVpcmsgdGhlIGtlcm5lbCBs
-aWQgaGFuZGxpbmcgdG8gYWx3YXlzIGJlIG9wZW5lZCBvbiBzdGFydHVwLA0KPiBhbmQgd2Ugd2Fp
-dGVkIHVudGlsIHRoZSBmaXJzdCBldmVudCB0byBjb3JyZWN0IGl0IGlmIG5lY2Vzc2FyeSwgc2Vl
-bXMNCj4gbGlrZSB0aGUgZWFzaWVzdCB3YXkgdG8gZ28uDQo+IA0KPiBCdXQgdGhhdCBicmluZ3Mg
-bWUgdGhlIHF1ZXN0aW9uIG9mIGhvdyBXaW5kb3dzIChhbmQgdGhlbiBMaW51eCkgYmVoYXZlDQo+
-IHdoZW4geW91J3ZlIGJvb3RlZCB5b3VyIGxhcHRvcCBhbmQgY2xvc2VkIHRoZSBsaWQgc3RyYWln
-aHQgYXdheSwgYmVmb3JlDQo+IGFueSBkcml2ZXIgaW4gdGhlIE9TIGhhZCB0aGUgY2hhbmNlIHRv
-IGJlIGFyb3VuZCB0byBzZWUgdGhlDQo+IG5vdGlmaWNhdGlvbj8NCj4gDQpbTHYgWmhlbmddIA0K
-SWYgd2UgYm9vdGVkIHRoZSBsYXB0b3Agd2l0aCBMSUQgb3BlbmVkLCBhbmQgY2xvc2UgaXQgcmln
-aHQgYmVmb3JlIHRoZSBXaW5kb3dzIGlzIGZ1bGx5IGJvb3RlZC4NCldlIGNhbiBzZWUgdGhlIGxh
-cHRvcCBib290ZWQgaW50byBhIHJ1bm5pbmcgV2luZG93cy4NCg0KPiBJdCBhbHNvIGJyaW5ncyB0
-aGUgcXVlc3Rpb24gb2YgaG93IFdpbmRvd3Mgd2lsbCBrbm93IHRoYXQgdGhlIGxpZCBpcw0KPiBz
-dGlsbCBjbG9zZWQgd2hlbiBjb21pbmcgb3V0IG9mIHN1c3BlbmQgYnkgcHJlc3NpbmcgdGhlIHBv
-d2VyIGJ1dHRvbiwNCj4gd2hpY2ggY2FuIGhhcHBlbiBkZXBlbmRpbmcgb24gdGhlIGhhcmR3YXJl
-IGRlc2lnbiAoaXQncyBjZXJ0YWlubHkNCj4gcG9zc2libGUgdG8gcHJlc3MgdGhlIHBvd2VyIGJ1
-dHRvbiB3aXRoIHRoZSBsaWQgY2xvc2VkIG9uIHRoZSBTdXJmYWNlDQo+IDMsIGFuZCBsaWtlbHkg
-b3RoZXIgU3VyZmFjZXMpLg0KPiANCltMdiBaaGVuZ10gDQpJZiB3ZSBib290ZWQvcmVzdW1lZCB0
-aGUgbGFwdG9wIHdpdGggTElEIGNsb3NlZCBieSBwcmVzc2luZyB0aGUgcG93ZXIgYnV0dG9uLg0K
-V2UgY2FuIHNlZSB0aGUgbGFwdG9wIGJvb3RlZC9yZXN1bWVkIGludG8gYSBydW5uaW5nIFdpbmRv
-d3MuDQoNCj4gSSdtIG5vdCBoYXBweSBhYm91dCB0aGUgImZpeCIgZm9yIHRoaXMgcHJvYmxlbSBl
-aXRoZXIsIGJ1dCBibGFtaW5nDQo+IHVzZXItc3BhY2UgZm9yIHRoaXMgaXMgaGFyc2gsIGdpdmVu
-IHRoZSBBUEkgZXhwb3J0ZWQgYnkgdGhlIGtlcm5lbCBhbmQNCj4gaG93IHByZXR0eSBtdWNoIGV2
-ZXJ5IGxhcHRvcCB3b3JrZWQuDQo+IA0KW0x2IFpoZW5nXSANCkl0IHdvcmtlZCBmb3Igc28gbWFu
-eSB5ZWFycyBvbiB0b3Agb2YgdHJhZGl0aW9uYWwgeDg2IGxhcHRvcHMgd2hlcmUgdGhlIExJRCBv
-cGVuIGV2ZW50IGlzIGhhbmRsZWQgYnkgdGhlIEJJT1MgdG8gdHJpZ2dlciBhIHdha2UgR1BFLg0K
-Tm93IHdlIGFyZSB0YWxraW5nIGFib3V0IHJ1bnRpbWUgaWRsZSBzeXN0ZW1zIHdoZXJlIHJlc3Vt
-aW5nIGZyb20gdGhlIHMyaWRsZSBpbnZva2VzIG5vIEJJT1MgY29kZS4NClRoZSBuZXcgY2FzZSBp
-cyBzdGlsbCB3b3JraW5nIG9uIFdpbmRvd3MuDQpXaGljaCBmb3JjZXMgdXMgdG8gcmUtY29uc2lk
-ZXIgdGhlIGtlcm5lbCBBUEkgb2YgdGhlIEFDUEkgTElELg0KDQpDaGVlcnMNCi1Mdg0K
+From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+
+Move abstract code related to struct gov_attr_set to a separate (new)
+file so it can be shared with (future) goverernors that won't share
+more code with "ondemand" and "conservative".
+
+No intentional functional changes.
+
+Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+---
+
+Changes from the previous version:
+- Different name of the new file.
+- Different name of the new Kconfig symbol.
+
+---
+ drivers/cpufreq/Kconfig                     |    4 +
+ drivers/cpufreq/Makefile                    |    1 
+ drivers/cpufreq/cpufreq_governor.c          |   82 ---------------------------
+ drivers/cpufreq/cpufreq_governor.h          |    6 ++
+ drivers/cpufreq/cpufreq_governor_attr_set.c |   84 ++++++++++++++++++++++++++++
+ 5 files changed, 95 insertions(+), 82 deletions(-)
+
+Index: linux-pm/drivers/cpufreq/Kconfig
+===================================================================
+--- linux-pm.orig/drivers/cpufreq/Kconfig
++++ linux-pm/drivers/cpufreq/Kconfig
+@@ -18,7 +18,11 @@ config CPU_FREQ
+ 
+ if CPU_FREQ
+ 
++config CPU_FREQ_GOV_ATTR_SET
++	bool
++
+ config CPU_FREQ_GOV_COMMON
++	select CPU_FREQ_GOV_ATTR_SET
+ 	select IRQ_WORK
+ 	bool
+ 
+Index: linux-pm/drivers/cpufreq/Makefile
+===================================================================
+--- linux-pm.orig/drivers/cpufreq/Makefile
++++ linux-pm/drivers/cpufreq/Makefile
+@@ -11,6 +11,7 @@ obj-$(CONFIG_CPU_FREQ_GOV_USERSPACE)	+=
+ obj-$(CONFIG_CPU_FREQ_GOV_ONDEMAND)	+= cpufreq_ondemand.o
+ obj-$(CONFIG_CPU_FREQ_GOV_CONSERVATIVE)	+= cpufreq_conservative.o
+ obj-$(CONFIG_CPU_FREQ_GOV_COMMON)		+= cpufreq_governor.o
++obj-$(CONFIG_CPU_FREQ_GOV_ATTR_SET)	+= cpufreq_governor_attr_set.o
+ 
+ obj-$(CONFIG_CPUFREQ_DT)		+= cpufreq-dt.o
+ 
+Index: linux-pm/drivers/cpufreq/cpufreq_governor.c
+===================================================================
+--- linux-pm.orig/drivers/cpufreq/cpufreq_governor.c
++++ linux-pm/drivers/cpufreq/cpufreq_governor.c
+@@ -112,53 +112,6 @@ void gov_update_cpu_data(struct dbs_data
+ }
+ EXPORT_SYMBOL_GPL(gov_update_cpu_data);
+ 
+-static inline struct gov_attr_set *to_gov_attr_set(struct kobject *kobj)
+-{
+-	return container_of(kobj, struct gov_attr_set, kobj);
+-}
+-
+-static inline struct governor_attr *to_gov_attr(struct attribute *attr)
+-{
+-	return container_of(attr, struct governor_attr, attr);
+-}
+-
+-static ssize_t governor_show(struct kobject *kobj, struct attribute *attr,
+-			     char *buf)
+-{
+-	struct governor_attr *gattr = to_gov_attr(attr);
+-
+-	return gattr->show(to_gov_attr_set(kobj), buf);
+-}
+-
+-static ssize_t governor_store(struct kobject *kobj, struct attribute *attr,
+-			      const char *buf, size_t count)
+-{
+-	struct gov_attr_set *attr_set = to_gov_attr_set(kobj);
+-	struct governor_attr *gattr = to_gov_attr(attr);
+-	int ret = -EBUSY;
+-
+-	mutex_lock(&attr_set->update_lock);
+-
+-	if (attr_set->usage_count)
+-		ret = gattr->store(attr_set, buf, count);
+-
+-	mutex_unlock(&attr_set->update_lock);
+-
+-	return ret;
+-}
+-
+-/*
+- * Sysfs Ops for accessing governor attributes.
+- *
+- * All show/store invocations for governor specific sysfs attributes, will first
+- * call the below show/store callbacks and the attribute specific callback will
+- * be called from within it.
+- */
+-static const struct sysfs_ops governor_sysfs_ops = {
+-	.show	= governor_show,
+-	.store	= governor_store,
+-};
+-
+ unsigned int dbs_update(struct cpufreq_policy *policy)
+ {
+ 	struct policy_dbs_info *policy_dbs = policy->governor_data;
+@@ -424,41 +377,6 @@ static void free_policy_dbs_info(struct
+ 	gov->free(policy_dbs);
+ }
+ 
+-static void gov_attr_set_init(struct gov_attr_set *attr_set,
+-			      struct list_head *list_node)
+-{
+-	INIT_LIST_HEAD(&attr_set->policy_list);
+-	mutex_init(&attr_set->update_lock);
+-	attr_set->usage_count = 1;
+-	list_add(list_node, &attr_set->policy_list);
+-}
+-
+-static void gov_attr_set_get(struct gov_attr_set *attr_set,
+-			     struct list_head *list_node)
+-{
+-	mutex_lock(&attr_set->update_lock);
+-	attr_set->usage_count++;
+-	list_add(list_node, &attr_set->policy_list);
+-	mutex_unlock(&attr_set->update_lock);
+-}
+-
+-static unsigned int gov_attr_set_put(struct gov_attr_set *attr_set,
+-				     struct list_head *list_node)
+-{
+-	unsigned int count;
+-
+-	mutex_lock(&attr_set->update_lock);
+-	list_del(list_node);
+-	count = --attr_set->usage_count;
+-	mutex_unlock(&attr_set->update_lock);
+-	if (count)
+-		return count;
+-
+-	kobject_put(&attr_set->kobj);
+-	mutex_destroy(&attr_set->update_lock);
+-	return 0;
+-}
+-
+ static int cpufreq_governor_init(struct cpufreq_policy *policy)
+ {
+ 	struct dbs_governor *gov = dbs_governor_of(policy);
+Index: linux-pm/drivers/cpufreq/cpufreq_governor.h
+===================================================================
+--- linux-pm.orig/drivers/cpufreq/cpufreq_governor.h
++++ linux-pm/drivers/cpufreq/cpufreq_governor.h
+@@ -48,6 +48,12 @@ struct gov_attr_set {
+ 	int usage_count;
+ };
+ 
++extern const struct sysfs_ops governor_sysfs_ops;
++
++void gov_attr_set_init(struct gov_attr_set *attr_set, struct list_head *list_node);
++void gov_attr_set_get(struct gov_attr_set *attr_set, struct list_head *list_node);
++unsigned int gov_attr_set_put(struct gov_attr_set *attr_set, struct list_head *list_node);
++
+ /*
+  * Abbreviations:
+  * dbs: used as a shortform for demand based switching It helps to keep variable
+Index: linux-pm/drivers/cpufreq/cpufreq_governor_attr_set.c
+===================================================================
+--- /dev/null
++++ linux-pm/drivers/cpufreq/cpufreq_governor_attr_set.c
+@@ -0,0 +1,84 @@
++/*
++ * Abstract code for CPUFreq governor tunable sysfs attributes.
++ *
++ * Copyright (C) 2016, Intel Corporation
++ * Author: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
++ */
++
++#include "cpufreq_governor.h"
++
++static inline struct gov_attr_set *to_gov_attr_set(struct kobject *kobj)
++{
++	return container_of(kobj, struct gov_attr_set, kobj);
++}
++
++static inline struct governor_attr *to_gov_attr(struct attribute *attr)
++{
++	return container_of(attr, struct governor_attr, attr);
++}
++
++static ssize_t governor_show(struct kobject *kobj, struct attribute *attr,
++			     char *buf)
++{
++	struct governor_attr *gattr = to_gov_attr(attr);
++
++	return gattr->show(to_gov_attr_set(kobj), buf);
++}
++
++static ssize_t governor_store(struct kobject *kobj, struct attribute *attr,
++			      const char *buf, size_t count)
++{
++	struct gov_attr_set *attr_set = to_gov_attr_set(kobj);
++	struct governor_attr *gattr = to_gov_attr(attr);
++	int ret;
++
++	mutex_lock(&attr_set->update_lock);
++	ret = attr_set->usage_count ? gattr->store(attr_set, buf, count) : -EBUSY;
++	mutex_unlock(&attr_set->update_lock);
++	return ret;
++}
++
++const struct sysfs_ops governor_sysfs_ops = {
++	.show	= governor_show,
++	.store	= governor_store,
++};
++EXPORT_SYMBOL_GPL(governor_sysfs_ops);
++
++void gov_attr_set_init(struct gov_attr_set *attr_set, struct list_head *list_node)
++{
++	INIT_LIST_HEAD(&attr_set->policy_list);
++	mutex_init(&attr_set->update_lock);
++	attr_set->usage_count = 1;
++	list_add(list_node, &attr_set->policy_list);
++}
++EXPORT_SYMBOL_GPL(gov_attr_set_init);
++
++void gov_attr_set_get(struct gov_attr_set *attr_set, struct list_head *list_node)
++{
++	mutex_lock(&attr_set->update_lock);
++	attr_set->usage_count++;
++	list_add(list_node, &attr_set->policy_list);
++	mutex_unlock(&attr_set->update_lock);
++}
++EXPORT_SYMBOL_GPL(gov_attr_set_get);
++
++unsigned int gov_attr_set_put(struct gov_attr_set *attr_set, struct list_head *list_node)
++{
++	unsigned int count;
++
++	mutex_lock(&attr_set->update_lock);
++	list_del(list_node);
++	count = --attr_set->usage_count;
++	mutex_unlock(&attr_set->update_lock);
++	if (count)
++		return count;
++
++	kobject_put(&attr_set->kobj);
++	mutex_destroy(&attr_set->update_lock);
++	return 0;
++}
++EXPORT_SYMBOL_GPL(gov_attr_set_put);
+
