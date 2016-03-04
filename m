@@ -1,68 +1,37 @@
-From: "Rafael J. Wysocki" <rafael@kernel.org>
-Subject: Re: [PATCH 5/6] cpufreq: Support for fast frequency switching
-Date: Fri, 4 Mar 2016 03:15:59 +0100
-Message-ID: <CAJZ5v0inN24WujzEps+oe0gDcdAP8RjyB1Y2+DbBP044RKpOhA@mail.gmail.com>
-References: <2495375.dFbdlAZmA6@vostro.rjw.lan>
-	<26020775.9hJG2SHiH2@vostro.rjw.lan>
-	<20160303060003.GJ2891@vireshk-i7>
+From: Xiao Guangrong <guangrong.xiao@linux.intel.com>
+Subject: Re: [PATCH v2] nfit: Continue init even if ARS commands are
+ unimplemented
+Date: Fri, 4 Mar 2016 11:28:42 +0800
+Message-ID: <56D900EA.2060802@linux.intel.com>
+References: <1457044781-15443-1-git-send-email-vishal.l.verma@intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-pm-owner@vger.kernel.org>
-In-Reply-To: <20160303060003.GJ2891@vireshk-i7>
-Sender: linux-pm-owner@vger.kernel.org
-To: Viresh Kumar <viresh.kumar@linaro.org>
-Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Linux PM list <linux-pm@vger.kernel.org>, Juri Lelli <juri.lelli@arm.com>, Steve Muckle <steve.muckle@linaro.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Peter Zijlstra <peterz@infradead.org>, Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>, Vincent Guittot <vincent.guittot@linaro.org>, Michael Turquette <mturquette@baylibre.com>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga09.intel.com ([134.134.136.24]:4983 "EHLO mga09.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755790AbcCDD27 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 3 Mar 2016 22:28:59 -0500
+In-Reply-To: <1457044781-15443-1-git-send-email-vishal.l.verma@intel.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Vishal Verma <vishal.l.verma@intel.com>, linux-nvdimm@lists.01.org
+Cc: linux-acpi@vger.kernel.org, Dan Williams <dan.j.williams@intel.com>, "Zhang, Haozhong" <haozhong.zhang@intel.com>
 
-On Thu, Mar 3, 2016 at 7:00 AM, Viresh Kumar <viresh.kumar@linaro.org> wrote:
-> On 02-03-16, 03:12, Rafael J. Wysocki wrote:
->> Index: linux-pm/drivers/cpufreq/cpufreq.c
->> ===================================================================
->> --- linux-pm.orig/drivers/cpufreq/cpufreq.c
->> +++ linux-pm/drivers/cpufreq/cpufreq.c
->> @@ -1772,6 +1772,39 @@ EXPORT_SYMBOL(cpufreq_unregister_notifie
->>   *                              GOVERNORS                            *
->>   *********************************************************************/
->>
->> +/**
->> + * cpufreq_driver_fast_switch - Carry out a fast CPU frequency switch.
->> + * @policy: cpufreq policy to switch the frequency for.
->> + * @target_freq: New frequency to set (may be approximate).
->> + * @relation: Relation to use for frequency selection.
->> + *
->> + * Carry out a fast frequency switch from interrupt context.
->> + *
->> + * This function must not be called if policy->fast_switch_possible is unset.
->> + *
->> + * Governors calling this function must guarantee that it will never be invoked
->> + * twice in parallel for the same policy and that it will never be called in
->> + * parallel with either ->target() or ->target_index() for the same policy.
->> + *
->> + * If CPUFREQ_ENTRY_INVALID is returned by the driver's ->fast_switch()
->> + * callback, the hardware configuration must be preserved.
->> + */
->> +void cpufreq_driver_fast_switch(struct cpufreq_policy *policy,
->> +                             unsigned int target_freq, unsigned int relation)
->> +{
->> +     unsigned int freq;
->> +
->> +     if (target_freq == policy->cur)
+
+CCed: Haozhong.
+
+On 03/04/2016 06:39 AM, Vishal Verma wrote:
+> If firmware doesn't implement any of the ARS commands, take that to
+> mean that ARS is unsupported, and continue to initialize regions without
+> bad block lists. We cannot make the assumption that ARS commands will be
+> unconditionally supported on all NVDIMMs.
 >
-> Maybe an unlikely() here ?
->
->> +             return;
->> +
->> +     freq = cpufreq_driver->fast_switch(policy, target_freq, relation);
->> +     if (freq != CPUFREQ_ENTRY_INVALID) {
->> +             policy->cur = freq;
->
-> Hmm.. What will happen to the code relying on the cpufreq-notifiers
-> now ?
+> Cc: Dan Williams <dan.j.williams@intel.com>
+> Reported-by: Xiao Guangrong <guangrong.xiao@linux.intel.com>
 
-It will have a problem.
+Thank you for the fix, Vishal! it looks good to me.
 
-For that code it's like the CPU changing the frequency and not telling
-it (which is not unusual for that matter).
+However, It is haozhong's credit as he is the one reported the bug not
+me. :)
 
-Thanks,
-Rafael
