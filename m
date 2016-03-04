@@ -1,138 +1,101 @@
-From: Shannon Zhao <zhaoshenglong@huawei.com>
-Subject: [PATCH v5 01/17] Xen: ACPI: Hide UART used by Xen
-Date: Fri, 4 Mar 2016 14:37:19 +0800
-Message-ID: <1457073455-11516-2-git-send-email-zhaoshenglong@huawei.com>
-References: <1457073455-11516-1-git-send-email-zhaoshenglong@huawei.com>
+From: qiujiang <qiujiang@huawei.com>
+Subject: [PATCH v5 2/3] gpio: designware: add acpi binding
+Date: Fri, 4 Mar 2016 15:44:33 +0800
+Message-ID: <1457077474-124064-3-git-send-email-qiujiang@huawei.com>
+References: <1457077474-124064-1-git-send-email-qiujiang@huawei.com>
 Mime-Version: 1.0
 Content-Type: text/plain
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1457073455-11516-1-git-send-email-zhaoshenglong@huawei.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: linux-arm-kernel@lists.infradead.org, ard.biesheuvel@linaro.org, stefano.stabellini@citrix.com, david.vrabel@citrix.com
-Cc: catalin.marinas@arm.com, will.deacon@arm.com, mark.rutland@arm.com, xen-devel@lists.xen.org, devicetree@vger.kernel.org, linux-efi@vger.kernel.org, linux-kernel@vger.kernel.org, shannon.zhao@linaro.org, hangaohuai@huawei.com, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, "open list:ACPI" <linux-acpi@vger.kernel.org>
+Return-path: <linux-gpio-owner@vger.kernel.org>
+In-Reply-To: <1457077474-124064-1-git-send-email-qiujiang@huawei.com>
+Sender: linux-gpio-owner@vger.kernel.org
+To: linus.walleij@linaro.org, gnurou@gmail.com
+Cc: mika.westerberg@linux.intel.com, andy.shevchenko@gmail.com, linux-kernel@vger.kernel.org, linux-gpio@vger.kernel.org, linux-acpi@vger.kernel.org, linuxarm@huawei.com, haifeng.wei@huawei.com, charles.chenxin@huawei.com, qiujiang <qiujiang@huawei.com>
 List-Id: linux-acpi@vger.kernel.org
 
-From: Shannon Zhao <shannon.zhao@linaro.org>
+This patch adds acpi binding for designware gpio driver,
+because it is used to support power button on hisilicon
+d02 board.
 
-ACPI 6.0 introduces a new table STAO to list the devices which are used
-by Xen and can't be used by Dom0. On Xen virtual platforms, the physical
-UART is used by Xen. So here it hides UART from Dom0.
+These two bindings, DT and acpi, are compatible in this
+driver.
 
-Signed-off-by: Shannon Zhao <shannon.zhao@linaro.org>
+Reviewed-by: Andy Shevchenko <andy.shevchenko@gmail.com>
+Acked-by: Mika Westerberg <mika.westerberg@linux.intel.com>
+Signed-off-by: qiujiang <qiujiang@huawei.com>
 ---
-CC: "Rafael J. Wysocki" <rjw@rjwysocki.net> (supporter:ACPI)
-CC: Len Brown <lenb@kernel.org> (supporter:ACPI)
-CC: linux-acpi@vger.kernel.org (open list:ACPI)
----
- drivers/acpi/scan.c | 68 +++++++++++++++++++++++++++++++++++++++++++++++++++++
- 1 file changed, 68 insertions(+)
+ drivers/gpio/gpio-dwapb.c | 22 +++++++++++++++++++---
+ 1 file changed, 19 insertions(+), 3 deletions(-)
 
-diff --git a/drivers/acpi/scan.c b/drivers/acpi/scan.c
-index 407a376..31d794c 100644
---- a/drivers/acpi/scan.c
-+++ b/drivers/acpi/scan.c
-@@ -45,6 +45,7 @@ static LIST_HEAD(acpi_scan_handlers_list);
- DEFINE_MUTEX(acpi_device_lock);
- LIST_HEAD(acpi_wakeup_device_list);
- static DEFINE_MUTEX(acpi_hp_context_lock);
-+static u64 spcr_uart_addr;
- 
- struct acpi_dep_data {
- 	struct list_head node;
-@@ -1453,6 +1454,47 @@ static int acpi_add_single_object(struct acpi_device **child,
- 	return 0;
+diff --git a/drivers/gpio/gpio-dwapb.c b/drivers/gpio/gpio-dwapb.c
+index 49f6e5d..2ae506f 100644
+--- a/drivers/gpio/gpio-dwapb.c
++++ b/drivers/gpio/gpio-dwapb.c
+@@ -7,6 +7,7 @@
+  *
+  * All enquiries to support@picochip.com
+  */
++#include <linux/acpi.h>
+ #include <linux/gpio/driver.h>
+ /* FIXME: for gpio_get_value(), replace this with direct register read */
+ #include <linux/gpio.h>
+@@ -449,7 +450,7 @@ static void dwapb_gpio_unregister(struct dwapb_gpio *gpio)
  }
  
-+static acpi_status acpi_get_resource_fixed_memory32(struct acpi_resource *res,
-+						    void *context)
-+{
-+	struct acpi_resource_fixed_memory32 *fixed_memory32;
-+
-+	if (res->type != ACPI_RESOURCE_TYPE_FIXED_MEMORY32)
-+		return AE_OK;
-+
-+	fixed_memory32 = &res->data.fixed_memory32;
-+	if (!fixed_memory32)
-+		return AE_OK;
-+
-+	*((u32 *)context) = fixed_memory32->address;
-+	return AE_CTRL_TERMINATE;
-+}
-+
-+static bool acpi_device_should_be_hidden(acpi_handle handle)
-+{
-+	acpi_status status;
-+	u32 addr = 0;
-+
-+	/* Check if it should ignore the UART device */
-+	if (spcr_uart_addr != 0) {
-+		if (!acpi_has_method(handle, METHOD_NAME__CRS))
-+			return false;
-+
-+		status = acpi_walk_resources(handle, METHOD_NAME__CRS,
-+					     acpi_get_resource_fixed_memory32,
-+					     &addr);
-+		if (ACPI_FAILURE(status))
-+			return false;
-+
-+		if (addr == spcr_uart_addr) {
-+			printk(KERN_INFO PREFIX "The UART device in SPCR table will be hidden\n");
-+			return true;
-+		}
-+	}
-+
-+	return false;
-+}
-+
- static int acpi_bus_type_and_status(acpi_handle handle, int *type,
- 				    unsigned long long *sta)
+ static struct dwapb_platform_data *
+-dwapb_gpio_get_pdata_of(struct device *dev)
++dwapb_gpio_get_pdata(struct device *dev)
  {
-@@ -1466,6 +1508,9 @@ static int acpi_bus_type_and_status(acpi_handle handle, int *type,
- 	switch (acpi_type) {
- 	case ACPI_TYPE_ANY:		/* for ACPI_ROOT_OBJECT */
- 	case ACPI_TYPE_DEVICE:
-+		if (acpi_device_should_be_hidden(handle))
-+			return -ENODEV;
+ 	struct fwnode_handle *fwnode;
+ 	struct dwapb_platform_data *pdata;
+@@ -502,9 +503,17 @@ dwapb_gpio_get_pdata_of(struct device *dev)
+ 			}
+ 		}
+ 
++		if (has_acpi_companion(dev) && pp->idx == 0)
++			pp->irq = platform_get_irq(to_platform_device(dev), 0);
 +
- 		*type = ACPI_BUS_TYPE_DEVICE;
- 		status = acpi_bus_get_status_handle(handle, sta);
- 		if (ACPI_FAILURE(status))
-@@ -1919,6 +1964,8 @@ static int acpi_bus_scan_fixed(void)
- int __init acpi_scan_init(void)
+ 		pp->irq_shared	= false;
+ 		pp->gpio_base	= -1;
+-		pp->name	= to_of_node(fwnode)->full_name;
++
++		if (dev->of_node)
++			pp->name = to_of_node(fwnode)->full_name;
++
++		if (has_acpi_companion(dev))
++			pp->name = acpi_dev_name(to_acpi_device_node(fwnode));
+ 	}
+ 
+ 	return pdata;
+@@ -520,7 +529,7 @@ static int dwapb_gpio_probe(struct platform_device *pdev)
+ 	struct dwapb_platform_data *pdata = dev_get_platdata(dev);
+ 
+ 	if (!pdata) {
+-		pdata = dwapb_gpio_get_pdata_of(dev);
++		pdata = dwapb_gpio_get_pdata(dev);
+ 		if (IS_ERR(pdata))
+ 			return PTR_ERR(pdata);
+ 	}
+@@ -577,6 +586,12 @@ static const struct of_device_id dwapb_of_match[] = {
+ };
+ MODULE_DEVICE_TABLE(of, dwapb_of_match);
+ 
++static const struct acpi_device_id dwapb_acpi_match[] = {
++	{"HISI0181", 0},
++	{ }
++};
++MODULE_DEVICE_TABLE(acpi, dwapb_acpi_match);
++
+ #ifdef CONFIG_PM_SLEEP
+ static int dwapb_gpio_suspend(struct device *dev)
  {
- 	int result;
-+	acpi_status status;
-+	struct acpi_table_stao *stao_ptr;
- 
- 	acpi_pci_root_init();
- 	acpi_pci_link_init();
-@@ -1933,6 +1980,27 @@ int __init acpi_scan_init(void)
- 
- 	acpi_scan_add_handler(&generic_device_handler);
- 
-+	/* If there is STAO table, check whether it needs to ignore the UART
-+	 * device in SPCR table.
-+	 */
-+	status = acpi_get_table(ACPI_SIG_STAO, 0,
-+				(struct acpi_table_header **)&stao_ptr);
-+	if (ACPI_SUCCESS(status)) {
-+		if (stao_ptr->header.length > sizeof(struct acpi_table_stao))
-+			printk(KERN_INFO PREFIX "STAO Name List not yet supported.");
-+
-+		if (stao_ptr->ignore_uart) {
-+			struct acpi_table_spcr *spcr_ptr;
-+
-+			status = acpi_get_table(ACPI_SIG_SPCR, 0,
-+					(struct acpi_table_header **)&spcr_ptr);
-+			if (ACPI_SUCCESS(status))
-+				spcr_uart_addr = spcr_ptr->serial_port.address;
-+			else
-+				printk(KERN_WARNING PREFIX "STAO table present, but SPCR is missing\n");
-+		}
-+	}
-+
- 	mutex_lock(&acpi_scan_lock);
- 	/*
- 	 * Enumerate devices in the ACPI namespace.
+@@ -671,6 +686,7 @@ static struct platform_driver dwapb_gpio_driver = {
+ 		.name	= "gpio-dwapb",
+ 		.pm	= &dwapb_gpio_pm_ops,
+ 		.of_match_table = of_match_ptr(dwapb_of_match),
++		.acpi_match_table = ACPI_PTR(dwapb_acpi_match),
+ 	},
+ 	.probe		= dwapb_gpio_probe,
+ 	.remove		= dwapb_gpio_remove,
 -- 
-2.0.4
+1.9.1
+
