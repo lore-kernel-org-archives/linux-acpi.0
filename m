@@ -1,74 +1,51 @@
-From: "Chen, Yu C" <yu.c.chen@intel.com>
-Subject: RE: [PATCH][RFC] ACPI / PM: Fix poweroff issue on HW-full platforms
- without _S5
-Date: Fri, 4 Mar 2016 17:02:30 +0000
-Message-ID: <36DF59CE26D8EE47B0655C516E9CE640286D2880@shsmsx102.ccr.corp.intel.com>
-References: <1456925357-2899-1-git-send-email-yu.c.chen@intel.com>
- <20160304133306.GB2715@codeblueprint.co.uk>
+From: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+Subject: Re: [PATCH V5 00/15] MMCONFIG refactoring and support for ARM64 PCI
+ hostbridge init based on ACPI
+Date: Fri, 4 Mar 2016 17:37:50 +0000
+Message-ID: <20160304173750.GA15070@red-moon>
+References: <1455630825-27253-1-git-send-email-tn@semihalf.com>
+ <56D49611.2050202@codeaurora.org>
+ <20160303112332.GC28359@red-moon>
+ <56D84938.6020102@codeaurora.org>
+ <20160304105517.GA30693@red-moon>
+ <56D97901.7080001@semihalf.com>
+ <56D9A121.9080508@codeaurora.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga03.intel.com ([134.134.136.65]:39560 "EHLO mga03.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756881AbcCDRCf convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 4 Mar 2016 12:02:35 -0500
-In-Reply-To: <20160304133306.GB2715@codeblueprint.co.uk>
-Content-Language: en-US
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-pci-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <56D9A121.9080508@codeaurora.org>
+Sender: linux-pci-owner@vger.kernel.org
+To: Sinan Kaya <okaya@codeaurora.org>
+Cc: Tomasz Nowicki <tn@semihalf.com>, helgaas@kernel.org, arnd@arndb.de, will.deacon@arm.com, catalin.marinas@arm.com, rafael@kernel.org, hanjun.guo@linaro.org, jiang.liu@linux.intel.com, jchandra@broadcom.com, Stefano.Stabellini@eu.citrix.com, robert.richter@caviumnetworks.com, mw@semihalf.com, Liviu.Dudau@arm.com, ddaney@caviumnetworks.com, wangyijing@huawei.com, Suravee.Suthikulpanit@amd.com, msalter@redhat.com, linux-pci@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linaro-acpi@lists.linaro.org, jcm@redhat.com, yinghai@kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Matt Fleming <matt@codeblueprint.co.uk>
-Cc: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-efi@vger.kernel.org" <linux-efi@vger.kernel.org>, "linux-pm@vger.kernel.org" <linux-pm@vger.kernel.org>, "x86@kernel.org" <x86@kernel.org>, "Zhang, Rui" <rui.zhang@intel.com>, "Zheng, Lv" <lv.zheng@intel.com>, Rafael Wysocki <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Thomas Gleixner <tglx@linutronix.de>
 
-Hi  Matt,
+On Fri, Mar 04, 2016 at 09:52:17AM -0500, Sinan Kaya wrote:
 
-> -----Original Message-----
-> From: linux-pm-owner@vger.kernel.org [mailto:linux-pm-
-> owner@vger.kernel.org] On Behalf Of Matt Fleming
-> Sent: Friday, March 04, 2016 9:33 PM
-> To: Chen, Yu C
-> Cc: linux-acpi@vger.kernel.org; linux-efi@vger.kernel.org; linux-
-> pm@vger.kernel.org; rjw@sisk.pl; lenb@kernel.org; tglx@linutronix.de;
-> x86@kernel.org; Zhang, Rui; Zheng, Lv
-> Subject: Re: [PATCH][RFC] ACPI / PM: Fix poweroff issue on HW-full
-> platforms without _S5
-> 
-> On Wed, 02 Mar, at 09:29:17PM, Chen Yu wrote:
-> > The problem is Linux registers pm_power_off = efi_power_off only if we
-> > are in hardware reduced mode. Actually, what we also want is to do
-> > this when ACPI S5 is simply not supported.
-> > That should handle both the HW reduced mode, and the HW-full mode
-> > where the DSDT fails to supply an _S5 object.
-> >
-> > This patch fixes this issue by introducing a new flag acpi_no_s5 which
-> > indicates the non-existence of _S5. The initial state of acpi_no_s5 is
-> > false and probed in acpi_sleep_init, then we'll later see the updated
-> > value in efi_poweroff_required, according to which we can set
-> > pm_power_off to efi_power_off in efi_shutdown_init.
-> >
-> > Suggested-by: Len Brown <len.brown@intel.com>
-> > Signed-off-by: Chen Yu <yu.c.chen@intel.com>
-> > ---
-> >  arch/x86/platform/efi/quirks.c | 3 ++-
-> >  drivers/acpi/sleep.c           | 2 ++
-> >  include/acpi/acpixf.h          | 6 ++++++
-> >  3 files changed, 10 insertions(+), 1 deletion(-)
-> 
-> Are there legacy platforms without _S5 where we currently handle reboot
-> via some other means that are going to break if we attempt an EFI reboot?
-> 
-> I ask because historically performing an EFI reboot has been all kinds of buggy
-> on x86.
-I made a double check and  yes there are other components would like to
-register their customized pm_power_off if _S5 is not available.
-So if EFI reboot is not stable, current code may  not be robust enough .
-Hum, how about this one?
-(assigned to efi reboot only when there is no other components registered pm_power_off)
- return  acpi_gbl_reduced_hardware ||
-	(acpi_no_s5 && ! pm_power_off);
-> 
-> Also, is this what Windows does if _S5 is absent?
-I'm not sure, Windows might also leverage other drivers to achieve a poweroff. 
+[...]
 
-yu
+> >> I could integrate the code implementing pci=realloc in patch 11 so
+> >> that we realloc by default all resources claimed that failed (which
+> >> means that bridges are resized accordingly and you won't be forced
+> >> to use pci=realloc on command line).
+> >>
+> > 
+> > I agree with Lorenzo. Just because v3 works it does not mean we want to go this way. Also, I think we should realloc all resources claimed that failed, w/o need to use pci=realloc on command line.
+> > 
+> 
+> Let's give this a try. I have seen the kernel messages with and
+> without realloc option too. I don't want to see any kind of error
+> messages if it is actually working.
 
+I agree, claiming resources failures are too noisy, it is a pet-peeve
+of mine too. The code to realloc resources is in the kernel already,
+it is just a matter of defining how to use it (ie trigger it by default
+without command line option - actually the kernel can be already
+compiled to enable realloc by default, see CONFIG_PCI_REALLOC_ENABLE_AUTO),
+that's why I added Yinghai to the thread, Bjorn and him have more
+insights on how this has been used on current systems and I am really keen
+on getting their opinion, they have more visibility into this than I do,
+writing the patch itself should be simple enough.
+
+Thanks !
+Lorenzo
