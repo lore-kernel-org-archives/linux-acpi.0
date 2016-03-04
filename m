@@ -1,106 +1,66 @@
-From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: [PATCH v2 5/10] cpufreq: Move governor attribute set headers to cpufreq.h
-Date: Fri, 04 Mar 2016 04:05:03 +0100
-Message-ID: <5093627.PgPWOgVgsM@vostro.rjw.lan>
-References: <2495375.dFbdlAZmA6@vostro.rjw.lan> <2409306.qzzMXcm4dm@vostro.rjw.lan>
+From: Vishal Verma <vishal@stellar.sh>
+Subject: Re: [PATCH v2] nfit: Continue init even if ARS commands are
+ unimplemented
+Date: Thu, 03 Mar 2016 21:27:49 -0700
+Message-ID: <1457065669.17916.1.camel@stellar.sh>
+References: <1457044781-15443-1-git-send-email-vishal.l.verma@intel.com>
+	 <56D900EA.2060802@linux.intel.com>
+	 <20160304033451.GA6267@hz-desktop.sh.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7Bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <2409306.qzzMXcm4dm@vostro.rjw.lan>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Linux PM list <linux-pm@vger.kernel.org>
-Cc: Juri Lelli <juri.lelli@arm.com>, Steve Muckle <steve.muckle@linaro.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Peter Zijlstra <peterz@infradead.org>, Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>, Viresh Kumar <viresh.kumar@linaro.org>, Vincent Guittot <vincent.guittot@linaro.org>, Michael Turquette <mturquette@baylibre.com>, Ingo Molnar <mingo@kernel.org>
+Content-Type: TEXT/PLAIN; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mx01.mykolab.com ([95.128.36.1]:51055 "EHLO
+	mx-out03.mykolab.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1754648AbcCDE14 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 3 Mar 2016 23:27:56 -0500
+In-Reply-To: <20160304033451.GA6267@hz-desktop.sh.intel.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: "Zhang, Haozhong" <haozhong.zhang@intel.com>, Vishal Verma <vishal.l.verma@intel.com>, Xiao Guangrong <guangrong.xiao@linux.intel.com>
+Cc: linux-acpi@vger.kernel.org, linux-nvdimm@lists.01.org, "Williams, Dan J" <dan.j.williams@intel.com>
 
-From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+On Fri, 2016-03-04 at 11:34 +0800, Zhang, Haozhong wrote:
+> On 03/04/16 11:28, Xiao Guangrong wrote:
+> >=20
+> >=20
+> > CCed: Haozhong.
+> >=20
+> > On 03/04/2016 06:39 AM, Vishal Verma wrote:
+> > >=20
+> > > If firmware doesn't implement any of the ARS commands, take that
+> > > to
+> > > mean that ARS is unsupported, and continue to initialize regions
+> > > without
+> > > bad block lists. We cannot make the assumption that ARS commands
+> > > will be
+> > > unconditionally supported on all NVDIMMs.
+> > >=20
+> > > Cc: Dan Williams <dan.j.williams@intel.com>
+> > > Reported-by: Xiao Guangrong <guangrong.xiao@linux.intel.com>
+> > Thank you for the fix, Vishal! it looks good to me.
+> >=20
+> > However, It is haozhong's credit as he is the one reported the bug
+> > not
+> > me. :)
+> >=20
+> Thanks! I have tested on QEMU which has not implemented ARS yet and
+> this patch does work.
+>=20
+> Tested-by: Haozhong Zhang <haozhong.zhang@intel.com>
 
-Move definitions and function headers related to struct gov_attr_set
-to include/linux/cpufreq.h so they can be used by (future) goverernors
-located outside of drivers/cpufreq/.
+Thanks, both Haozhong and=C2=A0Guangrong. Dan, can you please fixup the
+Reported-by tag when you apply.
 
-No functional changes.
+	-Vishal
 
-Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
----
+> _______________________________________________
+> Linux-nvdimm mailing list
+> Linux-nvdimm@lists.01.org
+> https://lists.01.org/mailman/listinfo/linux-nvdimm
 
-New patch.  Needed to move cpufreq_schedutil.c to kernel/sched/.
-
----
- drivers/cpufreq/cpufreq_governor.h |   21 ---------------------
- include/linux/cpufreq.h            |   23 +++++++++++++++++++++++
- 2 files changed, 23 insertions(+), 21 deletions(-)
-
-Index: linux-pm/drivers/cpufreq/cpufreq_governor.h
-===================================================================
---- linux-pm.orig/drivers/cpufreq/cpufreq_governor.h
-+++ linux-pm/drivers/cpufreq/cpufreq_governor.h
-@@ -41,19 +41,6 @@
- /* Ondemand Sampling types */
- enum {OD_NORMAL_SAMPLE, OD_SUB_SAMPLE};
- 
--struct gov_attr_set {
--	struct kobject kobj;
--	struct list_head policy_list;
--	struct mutex update_lock;
--	int usage_count;
--};
--
--extern const struct sysfs_ops governor_sysfs_ops;
--
--void gov_attr_set_init(struct gov_attr_set *attr_set, struct list_head *list_node);
--void gov_attr_set_get(struct gov_attr_set *attr_set, struct list_head *list_node);
--unsigned int gov_attr_set_put(struct gov_attr_set *attr_set, struct list_head *list_node);
--
- /*
-  * Abbreviations:
-  * dbs: used as a shortform for demand based switching It helps to keep variable
-@@ -80,14 +67,6 @@ static inline struct dbs_data *to_dbs_da
- 	return container_of(attr_set, struct dbs_data, attr_set);
- }
- 
--/* Governor's specific attributes */
--struct governor_attr {
--	struct attribute attr;
--	ssize_t (*show)(struct gov_attr_set *attr_set, char *buf);
--	ssize_t (*store)(struct gov_attr_set *attr_set, const char *buf,
--			 size_t count);
--};
--
- #define gov_show_one(_gov, file_name)					\
- static ssize_t show_##file_name						\
- (struct gov_attr_set *attr_set, char *buf)				\
-Index: linux-pm/include/linux/cpufreq.h
-===================================================================
---- linux-pm.orig/include/linux/cpufreq.h
-+++ linux-pm/include/linux/cpufreq.h
-@@ -462,6 +462,29 @@ void cpufreq_unregister_governor(struct
- struct cpufreq_governor *cpufreq_default_governor(void);
- struct cpufreq_governor *cpufreq_fallback_governor(void);
- 
-+/* Governor attribute set */
-+struct gov_attr_set {
-+	struct kobject kobj;
-+	struct list_head policy_list;
-+	struct mutex update_lock;
-+	int usage_count;
-+};
-+
-+/* sysfs ops for cpufreq governors */
-+extern const struct sysfs_ops governor_sysfs_ops;
-+
-+void gov_attr_set_init(struct gov_attr_set *attr_set, struct list_head *list_node);
-+void gov_attr_set_get(struct gov_attr_set *attr_set, struct list_head *list_node);
-+unsigned int gov_attr_set_put(struct gov_attr_set *attr_set, struct list_head *list_node);
-+
-+/* Governor sysfs attribute */
-+struct governor_attr {
-+	struct attribute attr;
-+	ssize_t (*show)(struct gov_attr_set *attr_set, char *buf);
-+	ssize_t (*store)(struct gov_attr_set *attr_set, const char *buf,
-+			 size_t count);
-+};
-+
- /*********************************************************************
-  *                     FREQUENCY TABLE HELPERS                       *
-  *********************************************************************/
+--
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
