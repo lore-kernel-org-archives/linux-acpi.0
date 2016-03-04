@@ -1,336 +1,130 @@
-From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: [PATCH v2 2/10][Resend] cpufreq: acpi-cpufreq: Make read and write operations more efficient
-Date: Fri, 04 Mar 2016 03:59:19 +0100
-Message-ID: <8390671.DmEMiPVeOm@vostro.rjw.lan>
-References: <2495375.dFbdlAZmA6@vostro.rjw.lan> <2409306.qzzMXcm4dm@vostro.rjw.lan>
+From: "Zheng, Lv" <lv.zheng@intel.com>
+Subject: RE: [PATCH] ACPI / button: Avoid using broken _LID on Surface tablet
+Date: Fri, 4 Mar 2016 03:37:04 +0000
+Message-ID: <1AE640813FDE7649BE1B193DEA596E883BB60425@SHSMSX101.ccr.corp.intel.com>
+References: <1454497460-16803-1-git-send-email-yu.c.chen@intel.com>
+	 <1AE640813FDE7649BE1B193DEA596E883BB4B97D@SHSMSX101.ccr.corp.intel.com>
+	 <36DF59CE26D8EE47B0655C516E9CE640286C4774@shsmsx102.ccr.corp.intel.com>
+	 <1AE640813FDE7649BE1B193DEA596E883BB4DA8A@SHSMSX101.ccr.corp.intel.com>
+ <1456150475.23430.16.camel@hadess.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7Bit
+Content-Transfer-Encoding: base64
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <2409306.qzzMXcm4dm@vostro.rjw.lan>
+In-Reply-To: <1456150475.23430.16.camel@hadess.net>
+Content-Language: en-US
 Sender: linux-kernel-owner@vger.kernel.org
-To: Linux PM list <linux-pm@vger.kernel.org>
-Cc: Juri Lelli <juri.lelli@arm.com>, Steve Muckle <steve.muckle@linaro.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Peter Zijlstra <peterz@infradead.org>, Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>, Viresh Kumar <viresh.kumar@linaro.org>, Vincent Guittot <vincent.guittot@linaro.org>, Michael Turquette <mturquette@baylibre.com>, Ingo Molnar <mingo@kernel.org>
+To: Bastien Nocera <hadess@hadess.net>, "Chen, Yu C" <yu.c.chen@intel.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
+Cc: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "rjw@rjwysocki.net" <rjw@rjwysocki.net>, "lenb@kernel.org" <lenb@kernel.org>, "Zhang, Rui" <rui.zhang@intel.com>, "cwhuang@android-x86.org" <cwhuang@android-x86.org>
 List-Id: linux-acpi@vger.kernel.org
 
-From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-
-Setting a new CPU frequency and reading the current request value
-in the ACPI cpufreq driver involves each at least two switch
-instructions (there's more if the policy is shared).  One of
-them is present in drv_read/write() that prepares a command
-structure and the other happens in subsequent do_drv_read/write()
-when that structure is interpreted.  However, all of those switches
-may be avoided by using function pointers.
-
-To that end, add two function pointers to struct acpi_cpufreq_data
-to represent read and write operations on the frequency register
-and set them up during policy intitialization to point to the pair
-of routines suitable for the given processor (Intel/AMD MSR access
-or I/O port access).  Then, use those pointers in do_drv_read/write()
-and modify drv_read/write() to prepare the command structure for
-them without any checks.
-
-Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
----
-
-No changes.
-
----
- drivers/cpufreq/acpi-cpufreq.c |  208 ++++++++++++++++++-----------------------
- 1 file changed, 95 insertions(+), 113 deletions(-)
-
-Index: linux-pm/drivers/cpufreq/acpi-cpufreq.c
-===================================================================
---- linux-pm.orig/drivers/cpufreq/acpi-cpufreq.c
-+++ linux-pm/drivers/cpufreq/acpi-cpufreq.c
-@@ -70,6 +70,8 @@ struct acpi_cpufreq_data {
- 	unsigned int cpu_feature;
- 	unsigned int acpi_perf_cpu;
- 	cpumask_var_t freqdomain_cpus;
-+	void (*cpu_freq_write)(struct acpi_pct_register *reg, u32 val);
-+	u32 (*cpu_freq_read)(struct acpi_pct_register *reg);
- };
- 
- /* acpi_perf_data is a pointer to percpu data. */
-@@ -243,125 +245,119 @@ static unsigned extract_freq(u32 val, st
- 	}
- }
- 
--struct msr_addr {
--	u32 reg;
--};
-+u32 cpu_freq_read_intel(struct acpi_pct_register *not_used)
-+{
-+	u32 val, dummy;
- 
--struct io_addr {
--	u16 port;
--	u8 bit_width;
--};
-+	rdmsr(MSR_IA32_PERF_CTL, val, dummy);
-+	return val;
-+}
-+
-+void cpu_freq_write_intel(struct acpi_pct_register *not_used, u32 val)
-+{
-+	u32 lo, hi;
-+
-+	rdmsr(MSR_IA32_PERF_CTL, lo, hi);
-+	lo = (lo & ~INTEL_MSR_RANGE) | (val & INTEL_MSR_RANGE);
-+	wrmsr(MSR_IA32_PERF_CTL, lo, hi);
-+}
-+
-+u32 cpu_freq_read_amd(struct acpi_pct_register *not_used)
-+{
-+	u32 val, dummy;
-+
-+	rdmsr(MSR_AMD_PERF_CTL, val, dummy);
-+	return val;
-+}
-+
-+void cpu_freq_write_amd(struct acpi_pct_register *not_used, u32 val)
-+{
-+	wrmsr(MSR_AMD_PERF_CTL, val, 0);
-+}
-+
-+u32 cpu_freq_read_io(struct acpi_pct_register *reg)
-+{
-+	u32 val;
-+
-+	acpi_os_read_port(reg->address, &val, reg->bit_width);
-+	return val;
-+}
-+
-+void cpu_freq_write_io(struct acpi_pct_register *reg, u32 val)
-+{
-+	acpi_os_write_port(reg->address, val, reg->bit_width);
-+}
- 
- struct drv_cmd {
--	unsigned int type;
--	const struct cpumask *mask;
--	union {
--		struct msr_addr msr;
--		struct io_addr io;
--	} addr;
-+	struct acpi_pct_register *reg;
- 	u32 val;
-+	union {
-+		void (*write)(struct acpi_pct_register *reg, u32 val);
-+		u32 (*read)(struct acpi_pct_register *reg);
-+	} func;
- };
- 
- /* Called via smp_call_function_single(), on the target CPU */
- static void do_drv_read(void *_cmd)
- {
- 	struct drv_cmd *cmd = _cmd;
--	u32 h;
- 
--	switch (cmd->type) {
--	case SYSTEM_INTEL_MSR_CAPABLE:
--	case SYSTEM_AMD_MSR_CAPABLE:
--		rdmsr(cmd->addr.msr.reg, cmd->val, h);
--		break;
--	case SYSTEM_IO_CAPABLE:
--		acpi_os_read_port((acpi_io_address)cmd->addr.io.port,
--				&cmd->val,
--				(u32)cmd->addr.io.bit_width);
--		break;
--	default:
--		break;
--	}
-+	cmd->val = cmd->func.read(cmd->reg);
- }
- 
--/* Called via smp_call_function_many(), on the target CPUs */
--static void do_drv_write(void *_cmd)
-+static u32 drv_read(struct acpi_cpufreq_data *data, const struct cpumask *mask)
- {
--	struct drv_cmd *cmd = _cmd;
--	u32 lo, hi;
-+	struct acpi_processor_performance *perf = to_perf_data(data);
-+	struct drv_cmd cmd = {
-+		.reg = &perf->control_register,
-+		.func.read = data->cpu_freq_read,
-+	};
-+	int err;
- 
--	switch (cmd->type) {
--	case SYSTEM_INTEL_MSR_CAPABLE:
--		rdmsr(cmd->addr.msr.reg, lo, hi);
--		lo = (lo & ~INTEL_MSR_RANGE) | (cmd->val & INTEL_MSR_RANGE);
--		wrmsr(cmd->addr.msr.reg, lo, hi);
--		break;
--	case SYSTEM_AMD_MSR_CAPABLE:
--		wrmsr(cmd->addr.msr.reg, cmd->val, 0);
--		break;
--	case SYSTEM_IO_CAPABLE:
--		acpi_os_write_port((acpi_io_address)cmd->addr.io.port,
--				cmd->val,
--				(u32)cmd->addr.io.bit_width);
--		break;
--	default:
--		break;
--	}
-+	err = smp_call_function_any(mask, do_drv_read, &cmd, 1);
-+	WARN_ON_ONCE(err);	/* smp_call_function_any() was buggy? */
-+	return cmd.val;
- }
- 
--static void drv_read(struct drv_cmd *cmd)
-+/* Called via smp_call_function_many(), on the target CPUs */
-+static void do_drv_write(void *_cmd)
- {
--	int err;
--	cmd->val = 0;
-+	struct drv_cmd *cmd = _cmd;
- 
--	err = smp_call_function_any(cmd->mask, do_drv_read, cmd, 1);
--	WARN_ON_ONCE(err);	/* smp_call_function_any() was buggy? */
-+	cmd->func.write(cmd->reg, cmd->val);
- }
- 
--static void drv_write(struct drv_cmd *cmd)
-+static void drv_write(struct acpi_cpufreq_data *data,
-+		      const struct cpumask *mask, u32 val)
- {
-+	struct acpi_processor_performance *perf = to_perf_data(data);
-+	struct drv_cmd cmd = {
-+		.reg = &perf->control_register,
-+		.val = val,
-+		.func.write = data->cpu_freq_write,
-+	};
- 	int this_cpu;
- 
- 	this_cpu = get_cpu();
--	if (cpumask_test_cpu(this_cpu, cmd->mask))
--		do_drv_write(cmd);
--	smp_call_function_many(cmd->mask, do_drv_write, cmd, 1);
-+	if (cpumask_test_cpu(this_cpu, mask))
-+		do_drv_write(&cmd);
-+
-+	smp_call_function_many(mask, do_drv_write, &cmd, 1);
- 	put_cpu();
- }
- 
--static u32
--get_cur_val(const struct cpumask *mask, struct acpi_cpufreq_data *data)
-+static u32 get_cur_val(const struct cpumask *mask, struct acpi_cpufreq_data *data)
- {
--	struct acpi_processor_performance *perf;
--	struct drv_cmd cmd;
-+	u32 val;
- 
- 	if (unlikely(cpumask_empty(mask)))
- 		return 0;
- 
--	switch (data->cpu_feature) {
--	case SYSTEM_INTEL_MSR_CAPABLE:
--		cmd.type = SYSTEM_INTEL_MSR_CAPABLE;
--		cmd.addr.msr.reg = MSR_IA32_PERF_CTL;
--		break;
--	case SYSTEM_AMD_MSR_CAPABLE:
--		cmd.type = SYSTEM_AMD_MSR_CAPABLE;
--		cmd.addr.msr.reg = MSR_AMD_PERF_CTL;
--		break;
--	case SYSTEM_IO_CAPABLE:
--		cmd.type = SYSTEM_IO_CAPABLE;
--		perf = to_perf_data(data);
--		cmd.addr.io.port = perf->control_register.address;
--		cmd.addr.io.bit_width = perf->control_register.bit_width;
--		break;
--	default:
--		return 0;
--	}
--
--	cmd.mask = mask;
--	drv_read(&cmd);
-+	val = drv_read(data, mask);
- 
--	pr_debug("get_cur_val = %u\n", cmd.val);
-+	pr_debug("get_cur_val = %u\n", val);
- 
--	return cmd.val;
-+	return val;
- }
- 
- static unsigned int get_cur_freq_on_cpu(unsigned int cpu)
-@@ -416,7 +412,7 @@ static int acpi_cpufreq_target(struct cp
- {
- 	struct acpi_cpufreq_data *data = policy->driver_data;
- 	struct acpi_processor_performance *perf;
--	struct drv_cmd cmd;
-+	const struct cpumask *mask;
- 	unsigned int next_perf_state = 0; /* Index into perf table */
- 	int result = 0;
- 
-@@ -438,37 +434,17 @@ static int acpi_cpufreq_target(struct cp
- 		}
- 	}
- 
--	switch (data->cpu_feature) {
--	case SYSTEM_INTEL_MSR_CAPABLE:
--		cmd.type = SYSTEM_INTEL_MSR_CAPABLE;
--		cmd.addr.msr.reg = MSR_IA32_PERF_CTL;
--		cmd.val = (u32) perf->states[next_perf_state].control;
--		break;
--	case SYSTEM_AMD_MSR_CAPABLE:
--		cmd.type = SYSTEM_AMD_MSR_CAPABLE;
--		cmd.addr.msr.reg = MSR_AMD_PERF_CTL;
--		cmd.val = (u32) perf->states[next_perf_state].control;
--		break;
--	case SYSTEM_IO_CAPABLE:
--		cmd.type = SYSTEM_IO_CAPABLE;
--		cmd.addr.io.port = perf->control_register.address;
--		cmd.addr.io.bit_width = perf->control_register.bit_width;
--		cmd.val = (u32) perf->states[next_perf_state].control;
--		break;
--	default:
--		return -ENODEV;
--	}
--
--	/* cpufreq holds the hotplug lock, so we are safe from here on */
--	if (policy->shared_type != CPUFREQ_SHARED_TYPE_ANY)
--		cmd.mask = policy->cpus;
--	else
--		cmd.mask = cpumask_of(policy->cpu);
-+	/*
-+	 * The core won't allow CPUs to go away until the governor has been
-+	 * stopped, so we can rely on the stability of policy->cpus.
-+	 */
-+	mask = policy->shared_type == CPUFREQ_SHARED_TYPE_ANY ?
-+		cpumask_of(policy->cpu) : policy->cpus;
- 
--	drv_write(&cmd);
-+	drv_write(data, mask, perf->states[next_perf_state].control);
- 
- 	if (acpi_pstate_strict) {
--		if (!check_freqs(cmd.mask, data->freq_table[index].frequency,
-+		if (!check_freqs(mask, data->freq_table[index].frequency,
- 					data)) {
- 			pr_debug("acpi_cpufreq_target failed (%d)\n",
- 				policy->cpu);
-@@ -738,15 +714,21 @@ static int acpi_cpufreq_cpu_init(struct
- 		}
- 		pr_debug("SYSTEM IO addr space\n");
- 		data->cpu_feature = SYSTEM_IO_CAPABLE;
-+		data->cpu_freq_read = cpu_freq_read_io;
-+		data->cpu_freq_write = cpu_freq_write_io;
- 		break;
- 	case ACPI_ADR_SPACE_FIXED_HARDWARE:
- 		pr_debug("HARDWARE addr space\n");
- 		if (check_est_cpu(cpu)) {
- 			data->cpu_feature = SYSTEM_INTEL_MSR_CAPABLE;
-+			data->cpu_freq_read = cpu_freq_read_intel;
-+			data->cpu_freq_write = cpu_freq_write_intel;
- 			break;
- 		}
- 		if (check_amd_hwpstate_cpu(cpu)) {
- 			data->cpu_feature = SYSTEM_AMD_MSR_CAPABLE;
-+			data->cpu_freq_read = cpu_freq_read_amd;
-+			data->cpu_freq_write = cpu_freq_write_amd;
- 			break;
- 		}
- 		result = -ENODEV;
+SGksDQoNCj4gRnJvbTogQmFzdGllbiBOb2NlcmEgW21haWx0bzpoYWRlc3NAaGFkZXNzLm5ldF0N
+Cj4gU3ViamVjdDogUmU6IFtQQVRDSF0gQUNQSSAvIGJ1dHRvbjogQXZvaWQgdXNpbmcgYnJva2Vu
+IF9MSUQgb24gU3VyZmFjZSB0YWJsZXQNCj4gDQo+IE9uIE1vbiwgMjAxNi0wMi0yMiBhdCAwNzoy
+NCArMDAwMCwgWmhlbmcsIEx2IHdyb3RlOg0KPiA+IFtMdiBaaGVuZ10NCj4gPiBBY2NvcmRpbmcg
+dG8gdGhlIGtub3dsZWRnZSBvZiB2YXJpb3VzIEJJT1MgX0xJRCBpbXBsZW1lbnRhdGlvbiwgTGlu
+dXgNCj4gPiBidXR0b24gZHJpdmVyIGRvZXNuJ3Qgc2VlbSB0byBiZSB3b3JraW5nIHdyb25nLg0K
+PiA+IEl0IGluIGZhY3Qgd29ya3MgY29ycmVjdGx5IGFuZCBpcyBhYmxlIHRvIGhhbmRsZSBhbGwg
+QklPUyBfTElEDQo+ID4gaW1wbGVtZW50YXRpb25zLg0KPiA+DQo+ID4gU28gdGhpcyBsb29rcyB0
+byBtZSBsaWtlIGEgdXNlciBzcGFjZSBidWcuDQo+IA0KPiBJIGRvbid0IHRoaW5rIGl0IGlzIG9u
+ZSwgZ2l2ZW4gdGhlIGtlcm5lbCBBUEkgZm9yIHRoYXQgZnVuY3Rpb25hbGl0eS4NCj4gSWYsIGlu
+c3RlYWQgb2YgZXhwb3NpbmcgdGhlIGxpZCBhcyBhbiBpbnB1dCBzd2l0Y2gsIHRoZSBrZXJuZWwg
+b25seQ0KPiBldmVyIHNlbnQgYW4gZXZlbnQgc2F5aW5nICJ0aGUgbGlkIGlzIG5vdyBjbG9zZWQi
+IHRoZW4gd2Ugd291bGRuJ3QgaGF2ZQ0KPiB0aGF0IHByb2JsZW0sIGFzIHdlJ2QgbGlrZWx5IGV4
+cGVjdCB0aGUgbGlkIHRvIGJlIG9wZW5lZCB3aGVuIHN0YXJ0aW5nDQo+IHRoZSBtYWNoaW5lIChp
+ZiBwcmVzZW50KS4NCltMdiBaaGVuZ10gDQpMZXQgbWUgc2hvdyB5b3Ugc2V2ZXJhbCBwcm9vZnMg
+b2YgV2luZG93cyBiZWhhdmlvcnMuDQoNCjEuIEhhdmUgeW91IGV2ZXIgc2VlbiBhIHNjcmVlbiBv
+biBXaW5kb3dzIHRoYXQgY2FuIHRlbGwgeW91IHRoZSBzdGF0dXMgb2YgTElELg0KSWYgeW91IGhh
+dmUgc2VlbiBzdWNoIHNjcmVlbiwgd2hhdCB0aGUgc3RhdHVzIGlzIHdoZW4gdGhlIHN5c3RlbSBp
+cyBib290ZWQuDQpJIGhhdmUgbmV2ZXIgc2VlbiBzdWNoIGEgVUksIHNvIFdpbmRvd3MgaW4gZmFj
+dCBjYXJlcyBubyBjdXJyZW50IExJRCBzdGF0dXMuDQoNCjIuIEhhdmUgeW91IGV2ZXIgc2VlbiBh
+IHNjcmVlbiBvbiBXaW5kb3dzIHRoYXQgYWxsb3cgdXNlcnMgdG8gc3BlY2lmeSBvcGVuIExJRCBh
+Y3Rpb25zPw0KVGhlIGFuc3dlciBpcyBuby4NCk9uIHRyYWRpdGlvbmFsIHg4NiBwbGF0Zm9ybXMs
+IHN5c3RlbSBpcyB3b2tlbiB1cCB2aWEgd2FrZSBHUEVzLg0KU28gdGhlIG9wZW4gZXZlbnQgaW4g
+ZmFjdCBpcyBoYW5kbGVkIGJ5IEJJT1MgYW5kIFdpbmRvd3MgY2FyZXMgbm90aGluZyBhYm91dCBp
+dC4NCg0KMy4gSGF2ZSB5b3UgZXZlciBzZWVuIGEgc2NyZWVuIG9uIFdpbmRvd3MgdGhhdCBhbGxv
+dyB1c2VycyB0byBzcGVjaWZ5IGNsb3NlIExJRCBhY3Rpb25zPw0KWWVzLCBJIGhhdmUsIGl0IGlz
+IGluIHBvd2VyIG9wdGlvbnMuDQpTbyBXaW5kb3dzIGluIGZhY3Qgb25seSBjYXJlcyBhYm91dCB0
+aGUgTElEIGNsb3NlIG5vdGlmaWNhdGlvbiBhbmQgd2lsbCBvbmx5IGNoZWNrIExJRCBzdGF0dXMg
+d2hlbiBpdCByZWNlaXZlcyB0aGlzIG5vdGlmaWNhdGlvbi4NCg0KVGhlIGFib3ZlIGZhY3RzIGNh
+biBtYWtlIGNsZWFyIGFib3V0IHdoYXQgQklPUyB3aWxsIGltcGxlbWVudCBmb3IgdGhlIEFDUEkg
+TElELg0KDQpBbmQgZnJvbSB0aGlzIHBvaW50IG9mIHZpZXcsIGluIGtlcm5lbCBBQ1BJIExJRCBk
+cml2ZXIsIG9ubHkgdGhpcyBjb21taXQgaXMgd3Jvbmc6DQpjb21taXQgMjNkZTVkOWVmMmE0YmJj
+NGY3MzNmNTgzMTFiY2I3Y2Y2MjM5YzgxMw0KQXV0aG9yOiBBbGV4ZXkgU3Rhcmlrb3Zza2l5IDxh
+c3Rhcmlrb3Zza2l5QHN1c2UuZGU+DQpTdWJqZWN0OiBBQ1BJOiBidXR0b246IHNlbmQgaW5pdGlh
+bCBsaWQgc3RhdGUgYWZ0ZXIgYWRkIGFuZCByZXN1bWUNClRoaXMgc2VlbXMgdG8gYmUgYSBmYWxz
+ZSByb290IGNhdXNlZCBidWcgZml4Og0KaHR0cHM6Ly9idWd6aWxsYS5ub3ZlbGwuY29tL3Nob3df
+YnVnLmNnaT9pZD0zMjY4MTQNCkkgZ3Vlc3MgdGhlIG9yaWdpbmFsIGJ1ZyB3YXMgaW4gdGhlIEVD
+IGRyaXZlciBvciBzb21ld2hlcmUgZWxzZS4NCg0KQnV0IHRvIG91ciBzdXJwcmlzZXMsIGFmdGVy
+IHJldmVydGluZyB0aGlzIGNvbW1pdC4NCldlIGNhbiBzZWU6DQoxLiBLZXJuZWwgZG9lc24ndCB0
+cmlnZ2VyIGFueSBldmVudCB0byB0aGUgdXNlcnNwYWNlLg0KMi4gQnV0IHdlIHN0aWxsIGNhbiBz
+ZWUgdGhhdCBTdXJmYWNlIGlzIGF1dG9tYXRpY2FsbHkgc3VzcGVuZGVkIGV2ZXJ5IHNldmVyYWwg
+c2Vjb25kcy4NCg0KQWNjb3JkaW5nIHRvIHRoZSBCdWd6aWxsYSBpbnZlc3RpZ2F0aW9uLCB0aGUg
+c3VzcGVuZCB3YXMgdHJpZ2dlcmVkIGJ5IHN5c3RlbWQuDQpJIHRodXMganVzdCBjb25jbHVkZWQg
+dGhhdCB0aGlzIGNvdWxkIGJlIGEgdXNlcnNwYWNlIGJ1Zy4NCkJ1dCBtYXliZSB0aGlzIGlzIGEg
+c3lzdGVtZCBiZWhhdmlvciB0cmlnZ2VyZWQgYnkgc29tZSBrZXJuZWwgZXZlbnRzIHRoYXQgYXJl
+IG5vdCBjYXB0dXJlZCBieSBvdXIgZGVidWdnaW5nIHBhdGNoZXMuDQpMZXQgdGhlIHJlcG9ydGVy
+IGFuZCB0aGUgZGV2ZWxvcGVyIGRvIG1vcmUgaW52ZXN0aWdhdGlvbiB0aGVyZS4NCg0KSSBqdXN0
+IHJhaXNlZCBteSBjb25jZXJuIGFib3V0IHRoaXMgZml4Lg0KVGhlIGZpeCBicm91Z2h0IGJ5IHRo
+aXMgcGF0Y2ggaXMgYXBwYXJlbnRseSB3cm9uZyBhY2NvcmRpbmcgdG8gdGhlIGFib3ZlIGNvbmNs
+dXNpb25zLg0KDQo+IA0KPiA+IFRoYXQgdGhlIHVzZXIgc3BhY2UgZG9lc24ndCBjb250YWluIGEg
+cHJvcGVyIG1vZGUgdG8gaGFuZGxlIEFDUEkgQklPUw0KPiA+IF9MSUQgaW1wbGVtZW50YXRpb25z
+Lg0KPiA+DQo+ID4gV2h5IHNob3VsZCBrZXJuZWwgd29yayB0aGlzIGdhcCBhcm91bmQ/DQo+ID4g
+VGhlIGdhcCBpczoNCj4gPiBUaGUgdXNlciBzcGFjZSByZXF1aXJlcyBsaWQgZGV2aWNlIHRvIGFj
+dCBpbiB0aGUgd2F5IGl0IHdhbnRzLg0KPiANCj4gSW4gdGhlIHdheSB0aGF0IGl0J3MgYWx3YXlz
+IHdvcmtlZCB1cCB1bnRpbCBub3csIHJhdGhlci4NCltMdiBaaGVuZ10gDQpUaGlzIGlzIG5vdCBw
+ZXJzdWFzaXZlLg0KVGhpbmdzIGNhbiBhcHBlYXIgdG8gYmUgd29ya2luZyB3aXRoIHdvcmthcm91
+bmRzIGFwcGxpZWQuDQpEdXJpbmcgbXkgY2FyZWVyLCBJIGhhdmUgc2VlbiBwbGVudHkgb2Ygc3Vj
+aCBjYXNlcy4NCkFuZCBJ4oCYdmUgcHJvdmVuIHRoYXQgdGhlcmUgYXJlIG1hbnkgc3VjaCBraW5k
+IG9mIHdyb25nbHkgcm9vdCBjYXVzZWQgZml4ZXMgaW4gQUNQSSBzdWJzeXN0ZW0gaW4gdGhpcyBj
+b21tdW5pdHkgZHVyaW5nIHRoZSBwYXN0IHllYXJzLg0KDQo+IA0KPiA+IFdoaWxlIHRoZSBBQ1BJ
+IEJJT1Mgb25seSBwcm92aWRlcyBsaWQgYmVoYXZpb3IgdGhhdCBpcyB3b3JraW5nIGZvcg0KPiA+
+IFdpbmRvd3MgcG93ZXItc2F2aW5nIHNldHRpbmdzLg0KPiA+IElNTywNCj4gPiAxLiBXaW5kb3dz
+IE9ubHkgcmVxdWlyZXMgTElEIGNsb3NlIG5vdGlmaWNhdGlvbnMgdG8gdHJpZ2dlciBwb3dlci0N
+Cj4gPiBzYXZlIGFjdGlvbiBhbmQgb25seSBldmFsdWF0ZXMgX0xJRCBhZnRlciByZWNlaXZpbmcg
+YSBMSUQNCj4gPiBub3RpZmljYXRpb24sDQo+ID4gwqDCoMKgIEJJT1NlbiBvbmx5IGVuc3VyZSBf
+TElEIHJldHVybmluZyB2YWx1ZSBpcyBjb3JyZWN0IGFmdGVyIGENCj4gPiBub3RpZmljYXRpb24u
+DQo+IA0KPiBJbiB3aGljaCBjYXNlLCBleHBlY3RpbmcgdGhlIGxpZCB0byBhbHdheXMgYmUgb3Bl
+bmVkIG9uIHN0YXJ0dXAgd291bGQNCj4gcHJvYmFibHkgYmUgYSBmYWlyIGFzc3VtcHRpb24sIG5v
+Pw0KPiANCltMdiBaaGVuZ10gDQpUaGUgYW5zd2VyIHNob3VsZCBiZSBubyBoZXJlLg0KDQpJZiB3
+ZSBtYWtlIHN5c3RlbSBkZWZhdWx0IExJRCBzdGF0dXMgYXMgb3BlbiBvbiBib290L3Jlc3VtZSwg
+dGhlbiB3aGF0IGFib3V0IHRoaXMgY2FzZT8NCg0KQWNjb3JkaW5nIHRvIG91ciB0ZXN0cywgd2Ug
+Y2FuIHJlYm9vdC9yZXN1bWUgc3VyZmFjZSB3aXRoIExJRCBjbG9zZWQgaW50byBhIHJ1bm5pbmcg
+V2luZG93cy4NClNvIGlmIHdlIGZvcmNlIHRoZSBMSUQgc3RhdHVzIHRvIGJlIG9wZW5lZCBhZnRl
+ciB0aGUgcmVib290L3Jlc3VtZSwgdGhlbiB0aGlzIGFsc28gc2VlbXMgdG8gYmUgYSBjb25mbGlj
+dCBhZ2FpbnN0IHRoZSByZWFsIHN0YXR1cy4NCldoYXQgdGhlIGJlbmVmaXQgdG8gZm9yY2Ugc3Vj
+aCBhIHdyb25nIHN0YXR1cywgZ2l2ZW4gdGhhdCB3ZSBhcmUgYWxsIG5vdCBvYnNlc3NpdmVzLi4u
+DQoNCj4gPiAyLiBCdXQgTGludXggdXNlciBzcGFjZSByZXF1aXJlcyBhbGwgTElEIG5vdGlmaWNh
+dGlvbnMgdG8gYmUNCj4gPiBpbnN0YW50bHkvY29ycmVjdGx5IHJlcG9ydGVkIGFuZCB3YW50cyB0
+byBrbm93IHRoZSBleGFjdCBMSUQgc3RhdGVzDQo+ID4gd2hlbmV2ZXIgaXQgcmVhZHMgdGhlIHN0
+YXRlcyBmcm9tIHRoZSBzeXNmcy4NCj4gPiBJdCBkb2Vzbid0IHNlZW0gdG8gYmUgcG9zc2libGUg
+Zm9yIHRoZSBrZXJuZWwgdG8gd29yayBiZXR3ZWVuIEJJT1Nlbg0KPiA+IGFuZCB0aGUgdXNlciBz
+cGFjZSB0byBmaWxsIHN1Y2ggYSBnYXAuDQo+IA0KPiBJZiB5b3UgcXVpcmsgdGhlIGtlcm5lbCBs
+aWQgaGFuZGxpbmcgdG8gYWx3YXlzIGJlIG9wZW5lZCBvbiBzdGFydHVwLA0KPiBhbmQgd2Ugd2Fp
+dGVkIHVudGlsIHRoZSBmaXJzdCBldmVudCB0byBjb3JyZWN0IGl0IGlmIG5lY2Vzc2FyeSwgc2Vl
+bXMNCj4gbGlrZSB0aGUgZWFzaWVzdCB3YXkgdG8gZ28uDQo+IA0KPiBCdXQgdGhhdCBicmluZ3Mg
+bWUgdGhlIHF1ZXN0aW9uIG9mIGhvdyBXaW5kb3dzIChhbmQgdGhlbiBMaW51eCkgYmVoYXZlDQo+
+IHdoZW4geW91J3ZlIGJvb3RlZCB5b3VyIGxhcHRvcCBhbmQgY2xvc2VkIHRoZSBsaWQgc3RyYWln
+aHQgYXdheSwgYmVmb3JlDQo+IGFueSBkcml2ZXIgaW4gdGhlIE9TIGhhZCB0aGUgY2hhbmNlIHRv
+IGJlIGFyb3VuZCB0byBzZWUgdGhlDQo+IG5vdGlmaWNhdGlvbj8NCj4gDQpbTHYgWmhlbmddIA0K
+SWYgd2UgYm9vdGVkIHRoZSBsYXB0b3Agd2l0aCBMSUQgb3BlbmVkLCBhbmQgY2xvc2UgaXQgcmln
+aHQgYmVmb3JlIHRoZSBXaW5kb3dzIGlzIGZ1bGx5IGJvb3RlZC4NCldlIGNhbiBzZWUgdGhlIGxh
+cHRvcCBib290ZWQgaW50byBhIHJ1bm5pbmcgV2luZG93cy4NCg0KPiBJdCBhbHNvIGJyaW5ncyB0
+aGUgcXVlc3Rpb24gb2YgaG93IFdpbmRvd3Mgd2lsbCBrbm93IHRoYXQgdGhlIGxpZCBpcw0KPiBz
+dGlsbCBjbG9zZWQgd2hlbiBjb21pbmcgb3V0IG9mIHN1c3BlbmQgYnkgcHJlc3NpbmcgdGhlIHBv
+d2VyIGJ1dHRvbiwNCj4gd2hpY2ggY2FuIGhhcHBlbiBkZXBlbmRpbmcgb24gdGhlIGhhcmR3YXJl
+IGRlc2lnbiAoaXQncyBjZXJ0YWlubHkNCj4gcG9zc2libGUgdG8gcHJlc3MgdGhlIHBvd2VyIGJ1
+dHRvbiB3aXRoIHRoZSBsaWQgY2xvc2VkIG9uIHRoZSBTdXJmYWNlDQo+IDMsIGFuZCBsaWtlbHkg
+b3RoZXIgU3VyZmFjZXMpLg0KPiANCltMdiBaaGVuZ10gDQpJZiB3ZSBib290ZWQvcmVzdW1lZCB0
+aGUgbGFwdG9wIHdpdGggTElEIGNsb3NlZCBieSBwcmVzc2luZyB0aGUgcG93ZXIgYnV0dG9uLg0K
+V2UgY2FuIHNlZSB0aGUgbGFwdG9wIGJvb3RlZC9yZXN1bWVkIGludG8gYSBydW5uaW5nIFdpbmRv
+d3MuDQoNCj4gSSdtIG5vdCBoYXBweSBhYm91dCB0aGUgImZpeCIgZm9yIHRoaXMgcHJvYmxlbSBl
+aXRoZXIsIGJ1dCBibGFtaW5nDQo+IHVzZXItc3BhY2UgZm9yIHRoaXMgaXMgaGFyc2gsIGdpdmVu
+IHRoZSBBUEkgZXhwb3J0ZWQgYnkgdGhlIGtlcm5lbCBhbmQNCj4gaG93IHByZXR0eSBtdWNoIGV2
+ZXJ5IGxhcHRvcCB3b3JrZWQuDQo+IA0KW0x2IFpoZW5nXSANCkl0IHdvcmtlZCBmb3Igc28gbWFu
+eSB5ZWFycyBvbiB0b3Agb2YgdHJhZGl0aW9uYWwgeDg2IGxhcHRvcHMgd2hlcmUgdGhlIExJRCBv
+cGVuIGV2ZW50IGlzIGhhbmRsZWQgYnkgdGhlIEJJT1MgdG8gdHJpZ2dlciBhIHdha2UgR1BFLg0K
+Tm93IHdlIGFyZSB0YWxraW5nIGFib3V0IHJ1bnRpbWUgaWRsZSBzeXN0ZW1zIHdoZXJlIHJlc3Vt
+aW5nIGZyb20gdGhlIHMyaWRsZSBpbnZva2VzIG5vIEJJT1MgY29kZS4NClRoZSBuZXcgY2FzZSBp
+cyBzdGlsbCB3b3JraW5nIG9uIFdpbmRvd3MuDQpXaGljaCBmb3JjZXMgdXMgdG8gcmUtY29uc2lk
+ZXIgdGhlIGtlcm5lbCBBUEkgb2YgdGhlIEFDUEkgTElELg0KDQpDaGVlcnMNCi1Mdg0K
