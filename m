@@ -1,286 +1,84 @@
-From: Aleksey Makarov <aleksey.makarov@linaro.org>
-Subject: Re: [PATCH v3 5/7] ACPI: serial: implement earlycon on ACPI DBG2 port
-Date: Fri, 4 Mar 2016 16:03:56 +0300
-Message-ID: <56D987BC.7070209@linaro.org>
-References: <1456749726-30261-1-git-send-email-aleksey.makarov@linaro.org>
- <1456749726-30261-6-git-send-email-aleksey.makarov@linaro.org>
- <56D5BAFF.6080008@hurleysoftware.com> <56D5C9F5.5060301@linaro.org>
- <56D878D4.4000902@hurleysoftware.com>
+From: "Rafael J. Wysocki" <rafael@kernel.org>
+Subject: Re: [PATCH v2 10/10] cpufreq: schedutil: New governor based on
+ scheduler utilization data
+Date: Fri, 4 Mar 2016 14:19:06 +0100
+Message-ID: <CAJZ5v0hca7myrxs0Y7jHGykhafMHPo-UJJyDKBZaopmACLT_cg@mail.gmail.com>
+References: <2495375.dFbdlAZmA6@vostro.rjw.lan>
+	<2409306.qzzMXcm4dm@vostro.rjw.lan>
+	<4627718.FT18d2LR5p@vostro.rjw.lan>
+	<20160304112639.GD4061@e106622-lin>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-lb0-f172.google.com ([209.85.217.172]:34695 "EHLO
-	mail-lb0-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750832AbcCDNEx (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 4 Mar 2016 08:04:53 -0500
-Received: by mail-lb0-f172.google.com with SMTP id cf7so43913028lbb.1
-        for <linux-acpi@vger.kernel.org>; Fri, 04 Mar 2016 05:04:52 -0800 (PST)
-In-Reply-To: <56D878D4.4000902@hurleysoftware.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-pm-owner@vger.kernel.org>
+In-Reply-To: <20160304112639.GD4061@e106622-lin>
+Sender: linux-pm-owner@vger.kernel.org
+To: Juri Lelli <juri.lelli@arm.com>
+Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Linux PM list <linux-pm@vger.kernel.org>, Steve Muckle <steve.muckle@linaro.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Peter Zijlstra <peterz@infradead.org>, Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>, Viresh Kumar <viresh.kumar@linaro.org>, Vincent Guittot <vincent.guittot@linaro.org>, Michael Turquette <mturquette@baylibre.com>, Ingo Molnar <mingo@kernel.org>
 List-Id: linux-acpi@vger.kernel.org
-To: Peter Hurley <peter@hurleysoftware.com>, linux-acpi@vger.kernel.org
-Cc: linux-serial@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Russell King <linux@arm.linux.org.uk>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, Leif Lindholm <leif.lindholm@linaro.org>, Graeme Gregory <graeme.gregory@linaro.org>, Al Stone <ahs3@redhat.com>, Christopher Covington <cov@codeaurora.org>, Matthias Brugger <mbrugger@suse.com>, Jonathan Corbet <corbet@lwn.net>, Jiri Slaby <jslaby@suse.com>, linux-doc@vger.kernel.org
 
+On Fri, Mar 4, 2016 at 12:26 PM, Juri Lelli <juri.lelli@arm.com> wrote:
+> Hi Rafael,
 
+Hi,
 
-On 03/03/2016 08:48 PM, Peter Hurley wrote:
-> On 03/01/2016 08:57 AM, Aleksey Makarov wrote:
+> On 04/03/16 04:35, Rafael J. Wysocki wrote:
+>> From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 >>
+>> Add a new cpufreq scaling governor, called "schedutil", that uses
+>> scheduler-provided CPU utilization information as input for making
+>> its decisions.
 >>
->> On 03/01/2016 06:53 PM, Peter Hurley wrote:
->>> On 02/29/2016 04:42 AM, Aleksey Makarov wrote:
->>>> Add ACPI_DBG2_EARLYCON_DECLARE() macros that declares
->>>> an earlycon on the serial port specified in the DBG2 ACPI table.
->>>>
->>>> Pass the string "earlycon=acpi_dbg2" to the kernel to activate it.
->>>>
->>>> Callbacks for EARLYCON_DECLARE() and OF_EARLYCON_DECLARE()
->>>> can also be used for this macros.
->>>>
->>>> Signed-off-by: Aleksey Makarov <aleksey.makarov@linaro.org>
->>>> ---
->>>>  Documentation/kernel-parameters.txt |  3 ++
->>>>  drivers/tty/serial/earlycon.c       | 60 +++++++++++++++++++++++++++++++++++++
->>>>  include/linux/acpi_dbg2.h           | 20 +++++++++++++
->>>>  3 files changed, 83 insertions(+)
->>>>
->>>> diff --git a/Documentation/kernel-parameters.txt b/Documentation/kernel-parameters.txt
->>>> index e0a21e4..19b947b 100644
->>>> --- a/Documentation/kernel-parameters.txt
->>>> +++ b/Documentation/kernel-parameters.txt
->>>> @@ -1072,6 +1072,9 @@ bytes respectively. Such letter suffixes can also be entirely omitted.
->>>>  			A valid base address must be provided, and the serial
->>>>  			port must already be setup and configured.
->>>>  
->>>> +		acpi_dbg2
->>>> +			Use serial port specified by the DBG2 ACPI table.
->>>> +
->>>>  	earlyprintk=	[X86,SH,BLACKFIN,ARM,M68k]
->>>>  			earlyprintk=vga
->>>>  			earlyprintk=efi
->>>> diff --git a/drivers/tty/serial/earlycon.c b/drivers/tty/serial/earlycon.c
->>>> index d217366..9ba3a04 100644
->>>> --- a/drivers/tty/serial/earlycon.c
->>>> +++ b/drivers/tty/serial/earlycon.c
->>>> @@ -22,6 +22,7 @@
->>>>  #include <linux/sizes.h>
->>>>  #include <linux/of.h>
->>>>  #include <linux/of_fdt.h>
->>>> +#include <linux/acpi.h>
->>>>  
->>>>  #ifdef CONFIG_FIX_EARLYCON_MEM
->>>>  #include <asm/fixmap.h>
->>>> @@ -200,6 +201,8 @@ int __init setup_earlycon(char *buf)
->>>>  	return -ENOENT;
->>>>  }
->>>>  
->>>> +static bool setup_dbg2_earlycon;
->>>> +
->>>>  /* early_param wrapper for setup_earlycon() */
->>>>  static int __init param_setup_earlycon(char *buf)
->>>>  {
->>>> @@ -212,6 +215,11 @@ static int __init param_setup_earlycon(char *buf)
->>>>  	if (!buf || !buf[0])
->>>>  		return early_init_dt_scan_chosen_serial();
->>>>  
->>>> +	if (!strcmp(buf, "acpi_dbg2")) {
->>>> +		setup_dbg2_earlycon = true;
->>>> +		return 0;
->>>> +	}
->>>
->>> So this series doesn't start an ACPI earlycon at early_param time?
->>> That doesn't seem very useful.
->>>
->>> When does the ACPI earlycon actually start?
->>> And don't say "when the DBG2 table is probed"; that much is obvious.
+>> Doing that is possible after commit fe7034338ba0 (cpufreq: Add
+>> mechanism for registering utilization update callbacks) that
+>> introduced cpufreq_update_util() called by the scheduler on
+>> utilization changes (from CFS) and RT/DL task status updates.
+>> In particular, CPU frequency scaling decisions may be based on
+>> the the utilization data passed to cpufreq_update_util() by CFS.
 >>
->> ACPI earlycon starts as soon as ACPI tables become accessible (setup_arch()).
->> I think that is still quite early.
-> 
-> I see now; the probe is in patch 6/7.
-> 
-> setup_arch()
->   acpi_boot_table_init()
->     acpi_probe_device_table()
->       ...
->         acpi_dbg2_setup()
->           ->setup()
->             acpi_setup_earlycon()
-> 
-> 
->>>> +
->>>>  	err = setup_earlycon(buf);
->>>>  	if (err == -ENOENT || err == -EALREADY)
->>>>  		return 0;
->>>> @@ -286,3 +294,55 @@ int __init of_setup_earlycon(const struct earlycon_id *match,
->>>>  }
->>>>  
->>>>  #endif /* CONFIG_OF_EARLY_FLATTREE */
->>>> +
->>>> +#ifdef CONFIG_ACPI_DBG2_TABLE
->>>> +
->>>> +int __init acpi_setup_earlycon(struct acpi_dbg2_device *device, void *d)
->>>> +{
->>>> +	int err;
->>>> +	struct uart_port *port = &early_console_dev.port;
->>>> +	int (*setup)(struct earlycon_device *, const char *) = d;
->>>> +	struct acpi_generic_address *reg;
->>>> +
->>>> +	if (!setup_dbg2_earlycon)
->>>> +		return -ENODEV;
->>>> +
->>>> +	if (device->register_count < 1)
->>>> +		return -ENODEV;
->>>> +
->>>> +	if (device->base_address_offset >= device->length)
->>>> +		return -EINVAL;
->>>> +
->>>> +	reg = (void *)device + device->base_address_offset;
->>>> +
->>>> +	if (reg->space_id != ACPI_ADR_SPACE_SYSTEM_MEMORY &&
->>>> +	    reg->space_id != ACPI_ADR_SPACE_SYSTEM_IO)
->>>> +		return -EINVAL;
->>>> +
->>>> +	spin_lock_init(&port->lock);
->>>> +	port->uartclk = BASE_BAUD * 16;
->>>> +
->>>> +	if (reg->space_id == ACPI_ADR_SPACE_SYSTEM_MEMORY) {
->>>> +		if (device->port_type == ACPI_DBG2_ARM_SBSA_32BIT)
->>>> +			port->iotype = UPIO_MEM32;
->>>> +		else
->>>> +			port->iotype = UPIO_MEM;
->>>> +		port->mapbase = reg->address;
->>>> +		port->membase = earlycon_map(reg->address, SZ_4K);
->>>> +	} else {
->>>> +		port->iotype = UPIO_PORT;
->>>> +		port->iobase = reg->address;
->>>> +	}
->>>> +
->>>> +	early_console_dev.con->data = &early_console_dev;
->>>> +	err = setup(&early_console_dev, NULL);
->>>> +	if (err < 0)
->>>> +		return err;
->>>> +	if (!early_console_dev.con->write)
->>>> +		return -ENODEV;
->>>> +
->>>> +	register_console(early_console_dev.con);
->>>> +	return 0;
->>>> +}
->>>> +
->>>> +#endif /* CONFIG_ACPI_DBG2_TABLE */
->>>> diff --git a/include/linux/acpi_dbg2.h b/include/linux/acpi_dbg2.h
->>>> index 125ae7e..b653752 100644
->>>> --- a/include/linux/acpi_dbg2.h
->>>> +++ b/include/linux/acpi_dbg2.h
->>>> @@ -37,12 +37,32 @@ int acpi_dbg2_setup(struct acpi_table_header *header, const void *data);
->>>>  	ACPI_DECLARE_PROBE_ENTRY(dbg2, name, ACPI_SIG_DBG2,		\
->>>>  				 acpi_dbg2_setup, &__acpi_dbg2_data_##name)
->>>>  
->>>> +int acpi_setup_earlycon(struct acpi_dbg2_device *device, void *d);
->>>> +
->>>> +/**
->>>> + * ACPI_DBG2_EARLYCON_DECLARE() - Define handler for ACPI GDB2 serial port
->>>> + * @name:		Identifier to compose name of table data
->>>> + * @subtype:		Subtype of the port
->>>> + * @console_setup:	Function to be called to setup the port
->>>> + *
->>>> + * Type of the console_setup() callback is
->>>> + * int (*setup)(struct earlycon_device *, const char *)
->>>> + * It's the type of callback of of_setup_earlycon().
->>>> + */
->>>> +#define ACPI_DBG2_EARLYCON_DECLARE(name, subtype, console_setup)	\
->>>> +	ACPI_DBG2_DECLARE(name, ACPI_DBG2_SERIAL_PORT, subtype,		\
->>>> +			  acpi_setup_earlycon, console_setup)
->>>> +
->>>>  #else
->>>>  
->>>>  #define ACPI_DBG2_DECLARE(name, type, subtype, setup_fn, data_ptr)	\
->>>>  	static const void *__acpi_dbg_data_##name[]			\
->>>>  		__used __initdata = { (void *)setup_fn,	(void *)data_ptr }
->>>>  
->>>> +#define ACPI_DBG2_EARLYCON_DECLARE(name, subtype, console_setup)	\
->>>> +	static const void *__acpi_dbg_data_serial_##name[]		\
->>>> +		__used __initdata = { (void *)console_setup }
-> 
-> console_setup is a terrible macro argument name; console_setup() is an
-> actual kernel function (although file-scope).
-> Please change it to something short and generic.
+>> The new governor is relatively simple.
+>>
+>> The frequency selection formula used by it is
+>>
+>>       next_freq = util * max_freq / max
+>>
+>> where util and max are the utilization and CPU capacity coming from CFS.
+>>
+>
+> The formula looks better to me now. However, problem is that, if you
+> have freq. invariance, util will slowly saturate to the current
+> capacity. So, we won't trigger OPP changes for a task that for example
+> starts light and then becomes big.
+>
+> This is the same problem we faced with schedfreq. The current solution
+> there is to use a margin for calculating a threshold (80% of current
+> capacity ATM). Once util goes above that threshold we trigger an OPP
+> change.  Current policy is pretty aggressive, we go to max_f and then
+> adapt to the "real" util during successive enqueues. This was also
+> tought to cope with the fact that PELT seems slow to react to abrupt
+> changes in tasks behaviour.
+>
+> I'm not saying this is the definitive solution, but I fear something
+> along this line is needed when you add freq invariance in the mix.
 
-Is 'setup_fn' ok?
+I really would like to avoid adding factors that need to be determined
+experimentally, because the result of that tends to depend on the
+system where the experiment is carried out and tunables simply don't
+work (99% or maybe even more users don't change the defaults anyway).
 
-> Honestly, I'd just prefer you skip all this apparatus that makes
-> ACPI earlycon appear to be like OF earlycon code-wise, but without any of
-> the real underpinning or flexibility.
+So I would really like to use a formula that's based on some science
+and doesn't depend on additional input.
 
-Actually it was Mark Salter who asked to introduce such macros.
+Now, since the equation generally is f = a * x + b (f - frequency, x =
+util/max) and there are good arguments for b = 0, it all boils down to
+what number to take as a.  a = max_freq is a good candidate (that's
+what I'm using right now), but it may turn out to be too small.
+Another reasonable candidate is a = min_freq + max_freq, because then
+x = 0.5 selects the frequency in the middle of the available range,
+but that may turn out to be way too big if min_freq is high (like
+higher that 50% of max_freq).
 
-https://lkml.kernel.org/g/1441730339.5459.8.camel@redhat.com
+I need to think more about that and admittedly my understanding of the
+frequency invariance consequences is limited ATM.
 
-I think reusing the OF functions is a good decision.
-
-Your "but without any of the real underpinning or flexibility" is unfounded.
-
-> This would be trivial to parse the ACPI table and invoke
-> setup_earlycon() with a string specifier instead.
-> 
-> For example,
-> 
-> int __init acpi_earlycon_setup(struct acpi_dbg2_device *dbg2)
-> {
->         char opts[64];
->         struct acpi_generic_addr *addr = (void*)dbg2 + dbg2->base_address_offset;
-> 	int mmio = addr->space_id == ACPI_ADR_SPACE_SYSTEM_MEMORY;
-> 
->         if (dbg2->port_type != ACPI_DBG2_SERIAL_PORT)
->                 return 0;
-> 
->         switch (dbg2->port_subtype) {
->         case ACPI_DBG2_ARM_PL011:
-> 	case ACPI_DBG2_ARM_SBSA_GENERIC:
-> 	case ACPI_DBG2_BCM2835:
->                 sprintf(opts, "pl011,%s,0x%llx", mmio, addr->address);
->                 break;
->         case ACPI_DBG2_ARM_SBSA_32BIT:
->                 sprintf(opts, "pl011,mmio32,0x%llx", addr->address);
->                 break;
->         case ACPI_DBG2_16550_COMPATIBLE:
->         case ACPI_DBG2_16550_SUBSET:
->                 sprintf(opts, "uart,%s,0x%llx", mmio, addr->address);
->                 break;
->         default:
->                 return 0;
->         }
-> 
-> 	return setup_earlycon(opts);
-> }
-
-- Note that this decision forces setting earlycon on GDB2 debug port.
-  DBG2 does not specify that it should be exactly earlycon.
-
-- You missed ACPI_DBG2_ARM_DCC.  And actually I think the list of 
-  debug ports is open. You will have to make up names like "uart" "pl011"
-  each time a new port is introduced into the specs.
-
-- Most important thing, this way you disclose the internals of serial ports
-  to the generic earlycon.c  Such info as access mode should stay 
-  in the respective drivers.
-
-- I would not like printing address and then parsing it back.
-
-> This supports every earlycon ACPI DBG2 declares, not just the ARM_PL011
-> subtype of your series.
-
-To support earlycon on other types of debug port just add literally one
-string of code (as in pl011).
-
-> 
-> 
-> 
->>>> +
->>>>  #endif
->>>>  
->>>>  #endif
->>>>
->>>
-> 
+Thanks,
+Rafael
