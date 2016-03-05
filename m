@@ -1,82 +1,102 @@
-From: "Rafael J. Wysocki" <rafael@kernel.org>
-Subject: Re: [PATCH v2 6/10] cpufreq: Support for fast frequency switching
-Date: Sat, 5 Mar 2016 01:18:41 +0100
-Message-ID: <CAJZ5v0gqnDR8BJ6JUKBB7-T8MAhNge9TPngZ9Crc45TRzm04vQ@mail.gmail.com>
-References: <2495375.dFbdlAZmA6@vostro.rjw.lan>
-	<2409306.qzzMXcm4dm@vostro.rjw.lan>
-	<15684081.T4iOMUSHCY@vostro.rjw.lan>
-	<56DA09B1.4010005@linaro.org>
-	<CAJZ5v0jENyu8j0fq1-BhU64QwRHAjvcjQktYc2sa9QmhktoEnQ@mail.gmail.com>
-	<CAJZ5v0jd6sXQnvZ87=_L1MQgu2QsBJtYb8jwn=0=m7eRdKVvhA@mail.gmail.com>
-	<CAJZ5v0jh7qcmYjDXCdO3Pid4XyuuxQfsKAmWDLXYcrkx0t-phw@mail.gmail.com>
-	<56DA20C0.1070803@linaro.org>
+From: "Williams, Dan J" <dan.j.williams@intel.com>
+Subject: [GIT PULL] libnvdimm, nfit: fix for 4.5-rc7
+Date: Sat, 5 Mar 2016 01:07:51 +0000
+Message-ID: <1457140067.17242.11.camel@intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset="utf-7"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-lb0-f193.google.com ([209.85.217.193]:33748 "EHLO
-	mail-lb0-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1760128AbcCEASo (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 4 Mar 2016 19:18:44 -0500
-In-Reply-To: <56DA20C0.1070803@linaro.org>
+Received: from mga09.intel.com ([134.134.136.24]:52566 "EHLO mga09.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755567AbcCEBHy convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 4 Mar 2016 20:07:54 -0500
+Content-Language: en-US
+Content-ID: <6F184B1EDD20654388FB444C71D8DB15@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Steve Muckle <steve.muckle@linaro.org>
-Cc: "Rafael J. Wysocki" <rafael@kernel.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Linux PM list <linux-pm@vger.kernel.org>, Juri Lelli <juri.lelli@arm.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Peter Zijlstra <peterz@infradead.org>, Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>, Viresh Kumar <viresh.kumar@linaro.org>, Vincent Guittot <vincent.guittot@linaro.org>, Michael Turquette <mturquette@baylibre.com>, Ingo Molnar <mingo@kernel.org>
+To: "torvalds@linux-foundation.org" <torvalds@linux-foundation.org>, "akpm@linux-foundation.org" <akpm@linux-foundation.org>
+Cc: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
 
-On Sat, Mar 5, 2016 at 12:56 AM, Steve Muckle <steve.muckle@linaro.org> wrote:
-> On 03/04/2016 03:18 PM, Rafael J. Wysocki wrote:
->> In fact, the mechanism may be relatively simple if I'm not mistaken.
->>
->> In the "fast switch" case, the governor may spawn a work item that
->> will just execute cpufreq_get() on policy->cpu.  That will notice that
->> policy->cur is different from the real current frequency and will
->> re-adjust.
->>
->> Of course, cpufreq_driver_fast_switch() will need to be modified so it
->> doesn't update policy->cur then perhaps with a comment that the
->> governor using it will be responsible for that.
->>
->> And the governor will need to avoid spawning that work item too often
->> (basically, if one has been spawned already and hasn't completed, no
->> need to spawn a new one, and maybe rate-limit it?), but all that looks
->> reasonably straightforward.
->
-> It is another option though definitely a compromise. The semantics seem
-> different since you'd potentially have multiple freq changes before a
-> single notifier went through, so stuff might still break.
+Hi Linus, please pull from:
 
-Here I'm not worried.  That's basically equivalent to someone doing a
-"get" and seeing an unexpected frequency in the driver output which is
-covered already and things need to cope with it or they are just
-really broken.
++AKA- git://git.kernel.org/pub/scm/linux/kernel/git/nvdimm/nvdimm libnvdimm-fixes
 
-> The fast path would also be more expensive given the workqueue activity that could
-> translate into additional task wakeups.
+...to receive one straggling fix for NVDIMM support.
 
-That's a valid concern, so maybe there can be a driver flag to
-indicate that this has to be done if ->fast_switch is in use?  Or
-something like fast_switch_notify_rate that will tell the governor how
-often to notify things about transitions if ->fast_switch is in use
-with either 0 or all ones meaning "never"?  That might be a policy
-property even, so the driver may set this depending on what platform
-it is used on.
+The KVM/QEMU enabling for NVDIMMs has recently reached the point where
+it is able to accept some ACPI +AF8-DSM requests from a guest VM. +AKA-However
+they immediately found that the 4.5-rc kernel is unusable because the
+kernel's 'nfit' driver fails to load upon seeing a valid +ACI-not
+supported+ACI- response from the virtual BIOS for an address range scrub
+command.
 
-> Honestly I wonder if it's better to just try the "no notifiers with fast
-> drivers" approach to start. The notifiers could always be added if
-> platform owners complain that they absolutely require them.
+It is not mandatory that a platform implement address range scrubbing,
+so this fix from Vishal properly treats the +ACI-not supported+ACI- response as
++ACI-skip scrubbing and continue loading the driver+ACI-.
 
-Well, I'm not sure what happens if we start to fail notifier
-registrations.  It may not be a well tested error code path. :-)
+The following changes since commit fc77dbd34c5c99bce46d40a2491937c3bcbd10af:
 
-Besides, there is the problem with registering notifiers before the
-driver and I don't think we can fail driver registration if notifiers
-have already been registered.  We may not be able to register a "fast"
-driver at all in that case.
++AKA- Linux 4.5-rc6 (2016-02-28 08:41:20 -0800)
 
-But that whole thing is your worry, not mine. :-)
+are available in the git repository at:
 
-Had I been worrying about that, I would have added some bandaid for
-that to the patches.
++AKA- git://git.kernel.org/pub/scm/linux/kernel/git/nvdimm/nvdimm libnvdimm-fixes
 
-Thanks,
-Rafael
+for you to fetch changes up to 6e2452dff4441e3dc24d415c8b2cda8a3ba52116:
+
++AKA- nfit: Continue init even if ARS commands are unimplemented (2016-03-04 16:46:13 -0800)
+
+----------------------------------------------------------------
+Vishal Verma (1):
++AKAAoACgAKAAoACg-nfit: Continue init even if ARS commands are unimplemented
+
++AKA-drivers/acpi/nfit.c +AHw- 15 +-+-+-+-+-+-+-+-+-+-+-----
++AKA-1 file changed, 11 insertions(+-), 4 deletions(-)
+
+commit 6e2452dff4441e3dc24d415c8b2cda8a3ba52116
+Author: Vishal Verma +ADw-vishal.l.verma+AEA-intel.com+AD4-
+Date:+AKAAoACg-Thu Mar 3 15:39:41 2016 -0700
+
++AKAAoACgAKA-nfit: Continue init even if ARS commands are unimplemented
++AKAAoACgAKA-
++AKAAoACgAKA-If firmware doesn't implement any of the ARS commands, take that to
++AKAAoACgAKA-mean that ARS is unsupported, and continue to initialize regions without
++AKAAoACgAKA-bad block lists. We cannot make the assumption that ARS commands will be
++AKAAoACgAKA-unconditionally supported on all NVDIMMs.
++AKAAoACgAKA-
++AKAAoACgAKA-Reported-by: Haozhong Zhang +ADw-haozhong.zhang+AEA-intel.com+AD4-
++AKAAoACgAKA-Signed-off-by: Vishal Verma +ADw-vishal.l.verma+AEA-intel.com+AD4-
++AKAAoACgAKA-Acked-by: Xiao Guangrong +ADw-guangrong.xiao+AEA-linux.intel.com+AD4-
++AKAAoACgAKA-Tested-by: Haozhong Zhang +ADw-haozhong.zhang+AEA-intel.com+AD4-
++AKAAoACgAKA-Signed-off-by: Dan Williams +ADw-dan.j.williams+AEA-intel.com+AD4-
+
+diff --git a/drivers/acpi/nfit.c b/drivers/acpi/nfit.c
+index fb53db187854..35947ac87644 100644
+--- a/drivers/acpi/nfit.c
++-+-+- b/drivers/acpi/nfit.c
++AEAAQA- -1590,14 +-1590,21 +AEAAQA- static int acpi+AF8-nfit+AF8-find+AF8-poison(struct acpi+AF8-nfit+AF8-desc +ACo-acpi+AF8-desc,
++AKA-	start +AD0- ndr+AF8-desc-+AD4-res-+AD4-start+ADs-
++AKA-	len +AD0- ndr+AF8-desc-+AD4-res-+AD4-end - ndr+AF8-desc-+AD4-res-+AD4-start +- 1+ADs-
++AKA-
++-	/+ACo-
++-	+AKAAKg- If ARS is unimplemented, unsupported, or if the 'Persistent Memory
++-	+AKAAKg- Scrub' flag in extended status is not set, skip this but continue
++-	+AKAAKg- initialization
++-	+AKAAKg-/
++AKA-	rc +AD0- ars+AF8-get+AF8-cap(nd+AF8-desc, ars+AF8-cap, start, len)+ADs-
++-	if (rc +AD0APQ- -ENOTTY) +AHs-
++-		dev+AF8-dbg(acpi+AF8-desc-+AD4-dev,
++-			+ACI-Address Range Scrub is not implemented, won't create an error list+AFw-n+ACI-)+ADs-
++-		rc +AD0- 0+ADs-
++-		goto out+ADs-
++-	+AH0-
++AKA-	if (rc)
++AKA-		goto out+ADs-
++AKA-
+-	/+ACo-
+-	+AKAAKg- If ARS is unsupported, or if the 'Persistent Memory Scrub' flag in
+-	+AKAAKg- extended status is not set, skip this but continue initialization
+-	+AKAAKg-/
++AKA-	if ((ars+AF8-cap-+AD4-status +ACY- 0xffff) +AHwAfA-
++AKA-		+ACE-(ars+AF8-cap-+AD4-status +AD4APg- 16 +ACY- ND+AF8-ARS+AF8-PERSISTENT)) +AHs-
++AKA-		dev+AF8-warn(acpi+AF8-desc-+AD4-dev,
