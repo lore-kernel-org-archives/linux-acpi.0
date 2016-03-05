@@ -1,102 +1,265 @@
-From: "Williams, Dan J" <dan.j.williams@intel.com>
-Subject: [GIT PULL] libnvdimm, nfit: fix for 4.5-rc7
-Date: Sat, 5 Mar 2016 01:07:51 +0000
-Message-ID: <1457140067.17242.11.camel@intel.com>
+From: Bjorn Helgaas <helgaas@kernel.org>
+Subject: Re: [PATCH V5 01/15] ACPI: MCFG: Move mmcfg_list management to
+ drivers/acpi
+Date: Fri, 4 Mar 2016 22:14:43 -0600
+Message-ID: <20160305041443.GA15110@localhost>
+References: <1455630825-27253-1-git-send-email-tn@semihalf.com>
+ <1455630825-27253-2-git-send-email-tn@semihalf.com>
+ <20160303225152.GA10472@localhost>
+ <CAKc_7PUyf8ND8Nd32yDBtBnFbkd1mJ-VsCih6YsEA5ZuBUz5zA@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-7"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga09.intel.com ([134.134.136.24]:52566 "EHLO mga09.intel.com"
+Received: from mail.kernel.org ([198.145.29.136]:47400 "EHLO mail.kernel.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755567AbcCEBHy convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 4 Mar 2016 20:07:54 -0500
-Content-Language: en-US
-Content-ID: <6F184B1EDD20654388FB444C71D8DB15@intel.com>
+	id S1759908AbcCEEOx (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 4 Mar 2016 23:14:53 -0500
+Content-Disposition: inline
+In-Reply-To: <CAKc_7PUyf8ND8Nd32yDBtBnFbkd1mJ-VsCih6YsEA5ZuBUz5zA@mail.gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "torvalds@linux-foundation.org" <torvalds@linux-foundation.org>, "akpm@linux-foundation.org" <akpm@linux-foundation.org>
-Cc: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
+To: Jayachandran Chandrashekaran Nair <jayachandran.chandrashekaran@broadcom.com>
+Cc: Tomasz Nowicki <tn@semihalf.com>, Arnd Bergmann <arnd@arndb.de>, Will Deacon <will.deacon@arm.com>, Catalin Marinas <catalin.marinas@arm.com>, rafael@kernel.org, Hanjun Guo <hanjun.guo@linaro.org>, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, okaya@codeaurora.org, jiang.liu@linux.intel.com, Jayachandran Chandrashekaran Nair <jchandra@broadcom.com>, Stefano Stabellini <Stefano.Stabellini@eu.citrix.com>, robert.richter@caviumnetworks.com, Marcin Wojtas <mw@semihalf.com>, Liviu.Dudau@arm.com, David Daney <ddaney@caviumnetworks.com>, wangyijing@huawei.com, Suravee.Suthikulpanit@amd.com, msalter@redhat.com, linux-pci@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linaro-acpi@lists.linaro.org, Jon Masters <jcm@redhat.com>
 
-Hi Linus, please pull from:
+On Fri, Mar 04, 2016 at 02:05:56PM +0530, Jayachandran Chandrashekaran Nair wrote:
+> On Fri, Mar 4, 2016 at 4:21 AM, Bjorn Helgaas <helgaas@kernel.org> wrote:
+> > Hi Tomasz, Jayachandran, et al,
+> >
+> > On Tue, Feb 16, 2016 at 02:53:31PM +0100, Tomasz Nowicki wrote:
+> >> From: Jayachandran C <jchandra@broadcom.com>
+> >>
+> >> Move pci_mmcfg_list handling to a drivers/acpi/pci_mcfg.c. This is
+> >> to share the API and code with ARM64 later. The corresponding
+> >> declarations are moved from asm/pci_x86.h to linux/pci-acpi.h
+> >>
+> >> As a part of this we introduce three functions that can be
+> >> implemented by the arch code: pci_mmconfig_map_resource() to map a
+> >> mcfg entry, pci_mmconfig_unmap_resource to do the corresponding
+> >> unmap and pci_mmconfig_enabled to see if the arch setup of
+> >> mcfg entries was successful. We also provide weak implementations
+> >> of these, which will be used from ARM64. On x86, we retain the
+> >> old logic by providing platform specific implementation.
+> >>
+> >> This patch is purely rearranging code, it should not have any
+> >> impact on the logic of MCFG parsing or list handling.
+> >
+> > I definitely want to figure out how to make this work well on ARM64.
+> > I need to ponder this some more, so these are just some initial
+> > thoughts.
+> >
+> > My first impression is that (a) the x86 MCFG code is an unmitigated
+> > disaster, and (b) we're trying a little too hard to make that mess
+> > generic.  I think we might be better served if we came up with some
+> > cleaner, more generic code that we can use for ARM64 today, and
+> > migrate x86 toward that over time.
+> >
+> > My concern is that if we elevate the current x86 code to be
+> > "arch-independent", we will be perpetuating some interfaces and
+> > designs that shouldn't be allowed to escape arch/x86.
+> 
+> I think the major decision is whether to maintain the pci_mmcfg_list
+> for all architectures or not. My initial plan was not to do this because
+> of the mess (basically the ECAM region info should be attached to
+> the pci root and not maintained in a separate list that needs locking),
+> The patch I posted initially https://patchwork.ozlabs.org/patch/553464/
+> had a much simpler way of handling the MCFG table without using
+> the list.
 
-+AKA- git://git.kernel.org/pub/scm/linux/kernel/git/nvdimm/nvdimm libnvdimm-fixes
+I agree that ECAM info should be attached to the PCI host controller.
+That should simplify locking and hot-add and hot-removal of host
+controllers.
 
-...to receive one straggling fix for NVDIMM support.
+I think pci_mmcfg_list is an implementation detail that may not need
+to be generic.  I certainly don't think it needs to be part of the
+interface.
 
-The KVM/QEMU enabling for NVDIMMs has recently reached the point where
-it is able to accept some ACPI +AF8-DSM requests from a guest VM. +AKA-However
-they immediately found that the 4.5-rc kernel is unusable because the
-kernel's 'nfit' driver fails to load upon seeing a valid +ACI-not
-supported+ACI- response from the virtual BIOS for an address range scrub
-command.
+> In x86 case it is not feasible to remove using the pci_mmcfg_list.
+> The only use of it outside is in xen that can be fixed up.
+> 
+> > Some of the code that moved to drivers/acpi/pci_mcfg.c is not really
+> > ACPI-specific, and could potentially be used for non-ACPI bridges that
+> > support ECAM.  I'd like to see that sort of code moved to a new file
+> > like drivers/pci/ecam.c.
+> >
+> > There's a little bit of overlap here with the ECAM code in
+> > pci-host-generic.c.  I'm not sure whether or how to include that, but
+> > it's a very good example of how simple this *should* be: probe the
+> > host bridge, discover the ECAM region, request the region, ioremap it,
+> > done.
+> 
+> I had a similar approach in my initial patchset, please see the patch
+> above. The resource for ECAM is mapped similar to the the way
+> pci-host-generic.c handled it. An additional step I could do was to
+> move the common code (ioremap and mapbus) into a common
+> file and share the code with pci-host-generic.c
+> 
+> >> diff --git a/drivers/acpi/pci_mcfg.c b/drivers/acpi/pci_mcfg.c
+> >> new file mode 100644
+> >> index 0000000..ea84365
+> >> --- /dev/null
+> >> +++ b/drivers/acpi/pci_mcfg.c
+> >> ...
+> >> +int __weak pci_mmconfig_map_resource(struct device *dev,
+> >> +     struct pci_mmcfg_region *mcfg)
+> >> +{
+> >> +     struct resource *tmp;
+> >> +     void __iomem *vaddr;
+> >> +
+> >> +     tmp = insert_resource_conflict(&iomem_resource, &mcfg->res);
+> >> +     if (tmp) {
+> >> +             dev_warn(dev, "MMCONFIG %pR conflicts with %s %pR\n",
+> >> +                     &mcfg->res, tmp->name, tmp);
+> >> +             return -EBUSY;
+> >> +     }
+> >
+> > I think this is a mistake in the x86 MCFG support that we should not
+> > carry over to a generic implementation.  We should not use the MCFG
+> > table for resource reservation because MCFG is not defined by the ACPI
+> > spec and an OS need not include support for it.  The platform must
+> > indicate in some other, more generic way, that ECAM space is reserved.
+> > This probably means ECAM space should be declared in a PNP0C02 _CRS
+> > method (see the PCI Firmware Spec r3.0, sec 4.1.2, note 2).
+> >
+> > We might need some kind of x86-specific quirk that does this, or a
+> > pcibios hook or something here; I just don't think it should be
+> > generic.
+> >
+> >> +int __init pci_mmconfig_parse_table(void)
+> >> +{
+> >> +     return acpi_sfi_table_parse(ACPI_SIG_MCFG, pci_parse_mcfg);
+> >> +}
+> >
+> > I don't like the fact that we parse the entire MCFG table at once
+> > here.  I think we should look for the information we need when we are
+> > claiming a PCI host bridge, e.g., in acpi_pci_root_add().  This might
+> > not be a great fit for the way ACPI table management works, but I
+> > think it's better to do things on-demand rather than just-in-case.
+> 
+> There is an overhead of looking up this table, and the information
+> available there is very limited (i.e, segment, start_bus, end_bus
+> and address). My approach in the above patch is to save this info
+> into an array at boot time and avoid multiple lookups.
 
-It is not mandatory that a platform implement address range scrubbing,
-so this fix from Vishal properly treats the +ACI-not supported+ACI- response as
-+ACI-skip scrubbing and continue loading the driver+ACI-.
+We need to look up MCFG info once per host bridge, so I don't think
+there's any performance issue here.  But we do use acpi_table_parse(),
+which is __init, and *that* is a reason why we might need to parse the
+entire MCFG at boot-time.  But this is the least of our worries in any
+case.
 
-The following changes since commit fc77dbd34c5c99bce46d40a2491937c3bcbd10af:
+> >> diff --git a/include/linux/pci-acpi.h b/include/linux/pci-acpi.h
+> >> index 89ab057..e9450ef 100644
+> >> --- a/include/linux/pci-acpi.h
+> >> +++ b/include/linux/pci-acpi.h
+> >> @@ -106,6 +106,39 @@ extern const u8 pci_acpi_dsm_uuid[];
+> >>  #define RESET_DELAY_DSM              0x08
+> >>  #define FUNCTION_DELAY_DSM   0x09
+> >>
+> >> +/* common API to maintain list of MCFG regions */
+> >> +/* "PCI MMCONFIG %04x [bus %02x-%02x]" */
+> >> +#define PCI_MMCFG_RESOURCE_NAME_LEN (22 + 4 + 2 + 2)
+> >> +
+> >> +struct pci_mmcfg_region {
+> >> +     struct list_head list;
+> >> +     struct resource res;
+> >> +     u64 address;
+> >> +     char __iomem *virt;
+> >> +     u16 segment;
+> >> +     u8 start_bus;
+> >> +     u8 end_bus;
+> >> +     char name[PCI_MMCFG_RESOURCE_NAME_LEN];
+> >> +};
+> >> +
+> >> +extern int pci_mmconfig_insert(struct device *dev, u16 seg, u8 start, u8 end,
+> >> +                            phys_addr_t addr);
+> >> +extern int pci_mmconfig_delete(u16 seg, u8 start, u8 end);
+> >> +
+> >> +extern struct pci_mmcfg_region *pci_mmconfig_lookup(int segment, int bus);
+> >> +extern struct pci_mmcfg_region *pci_mmconfig_add(int segment, int start,
+> >> +                                                     int end, u64 addr);
+> >> +extern int pci_mmconfig_map_resource(struct device *dev,
+> >> +     struct pci_mmcfg_region *mcfg);
+> >> +extern void pci_mmconfig_unmap_resource(struct pci_mmcfg_region *mcfg);
+> >> +extern int pci_mmconfig_enabled(void);
+> >> +extern int __init pci_mmconfig_parse_table(void);
+> >> +
+> >> +extern struct list_head pci_mmcfg_list;
+> >> +
+> >> +#define PCI_MMCFG_BUS_OFFSET(bus)      ((bus) << 20)
+> >> +#define PCI_MMCFG_OFFSET(bus, devfn)   ((bus) << 20 | (devfn) << 12)
+> >> +
+> >
+> > With the exception of pci_mmconfig_parse_table(), nothing here is
+> > ACPI-specific.  I'd like to see the PCI ECAM-related interfaces
+> > (hopefully not these exact ones, but a more rational set) put in
+> > something like include/linux/pci-ecam.h.
+> >
+> >>  #else        /* CONFIG_ACPI */
+> >>  static inline void acpi_pci_add_bus(struct pci_bus *bus) { }
+> >>  static inline void acpi_pci_remove_bus(struct pci_bus *bus) { }
+> 
+> I can update this patch to
+>  -  drop the pci_mmcfg_list handling from generic case
+>  -  move common ECAM code so that it can be shared with
+>     pci-host-generic.c
+> if that is what you are looking for. The code will end up looking much
+> simpler.
 
-+AKA- Linux 4.5-rc6 (2016-02-28 08:41:20 -0800)
+I think we should ignore x86 mmconfig for now.  It is absurdly
+complicated and I'm not sure it's fixable.  I *do* want to keep
+drivers/acpi/pci_root.c for all ACPI host bridges, including x86,
+ia64, and arm64.
 
-are available in the git repository at:
+So I think we should write generic MCFG and ECAM support from scratch
+for arm64.  Something like this:
 
-+AKA- git://git.kernel.org/pub/scm/linux/kernel/git/nvdimm/nvdimm libnvdimm-fixes
+  - Add an acpi_mcfg_init(), maybe in drivers/acpi/pci_mcfg.c, to be
+    called from acpi_init() to copy MCFG info to something we can
+    access after __init.  This would not reserve resources, but
+    probably does have to ioremap() the regions to support
+    raw_pci_read().
 
-for you to fetch changes up to 6e2452dff4441e3dc24d415c8b2cda8a3ba52116:
+  - Implement raw_pci_read(), which is "special" because ACPI needs it
+    for PCI config access from AML.  It's supposed to be "always
+    accessible" and we don't have a struct pci_bus *, so this probably
+    has to use the MCFG copy and the ioremap done above.  Maybe it
+    should go in the same file.  This is completely independent of
+    the PCI core and PCI data structures.
 
-+AKA- nfit: Continue init even if ARS commands are unimplemented (2016-03-04 16:46:13 -0800)
+  - Implement arm64 pci_acpi_scan_root() that calls
+    acpi_pci_root_create() with an .init_info() function that calls
+    acpi_pci_root_get_mcfg_addr() to read _CBA, and if that fails,
+    looks up the bus range in the MCFG copy from above.  It should
+    call request_mem_region().  For a region from _CBA, it should call
+    ioremap().  For regions from MCFG it can probably use the ioremap
+    done by acpi_mcfg_init().
+    
+    I know acpi_pci_root_add() calls acpi_pci_root_get_mcfg_addr()
+    before calling pci_acpi_scan_root(), but I think that's wrong
+    because (a) some arches, e.g., ia64, don't use ECAM and (b) _CBA
+    and MCFG should be handled in the same place.
+    
+    I know calling request_mem_region() here will probably be an
+    ordering problem because the PNP0C02 driver hasn't reserved
+    resources yet.  But the host bridge driver is using the region and
+    it should reserve it.
 
-----------------------------------------------------------------
-Vishal Verma (1):
-+AKAAoACgAKAAoACg-nfit: Continue init even if ARS commands are unimplemented
+  - If we store the ECAM mapped base address in the sysdata or struct
+    pci_host_bridge, the normal config accessors can use
+    pci_generic_config_read() with a new generic .map_bus() function.
 
-+AKA-drivers/acpi/nfit.c +AHw- 15 +-+-+-+-+-+-+-+-+-+-+-----
-+AKA-1 file changed, 11 insertions(+-), 4 deletions(-)
+    On x86, the normal config access path is:
 
-commit 6e2452dff4441e3dc24d415c8b2cda8a3ba52116
-Author: Vishal Verma +ADw-vishal.l.verma+AEA-intel.com+AD4-
-Date:+AKAAoACg-Thu Mar 3 15:39:41 2016 -0700
+      pci_read(struct pci_bus *, ...)
+        raw_pci_read(seg, bus#, ...)
+	  raw_pci_ext_ops->read(seg, bus#, ...)
+	    pci_mmcfg_read(seg, bus#, ...)
+	      pci_dev_base
+	        pci_mmconfig_lookup(seg, bus#)
 
-+AKAAoACgAKA-nfit: Continue init even if ARS commands are unimplemented
-+AKAAoACgAKA-
-+AKAAoACgAKA-If firmware doesn't implement any of the ARS commands, take that to
-+AKAAoACgAKA-mean that ARS is unsupported, and continue to initialize regions without
-+AKAAoACgAKA-bad block lists. We cannot make the assumption that ARS commands will be
-+AKAAoACgAKA-unconditionally supported on all NVDIMMs.
-+AKAAoACgAKA-
-+AKAAoACgAKA-Reported-by: Haozhong Zhang +ADw-haozhong.zhang+AEA-intel.com+AD4-
-+AKAAoACgAKA-Signed-off-by: Vishal Verma +ADw-vishal.l.verma+AEA-intel.com+AD4-
-+AKAAoACgAKA-Acked-by: Xiao Guangrong +ADw-guangrong.xiao+AEA-linux.intel.com+AD4-
-+AKAAoACgAKA-Tested-by: Haozhong Zhang +ADw-haozhong.zhang+AEA-intel.com+AD4-
-+AKAAoACgAKA-Signed-off-by: Dan Williams +ADw-dan.j.williams+AEA-intel.com+AD4-
+    I think this is somewhat backwards because we start with a pci_bus
+    pointer, so we *could* have a nice simple bus-specific accessor,
+    but we throw that pointer away, so pci_mmcfg_read() has to start
+    over and look up the ECAM offset from scratch, which makes it all
+    unnecessarily complicated.
 
-diff --git a/drivers/acpi/nfit.c b/drivers/acpi/nfit.c
-index fb53db187854..35947ac87644 100644
---- a/drivers/acpi/nfit.c
-+-+-+- b/drivers/acpi/nfit.c
-+AEAAQA- -1590,14 +-1590,21 +AEAAQA- static int acpi+AF8-nfit+AF8-find+AF8-poison(struct acpi+AF8-nfit+AF8-desc +ACo-acpi+AF8-desc,
-+AKA-	start +AD0- ndr+AF8-desc-+AD4-res-+AD4-start+ADs-
-+AKA-	len +AD0- ndr+AF8-desc-+AD4-res-+AD4-end - ndr+AF8-desc-+AD4-res-+AD4-start +- 1+ADs-
-+AKA-
-+-	/+ACo-
-+-	+AKAAKg- If ARS is unimplemented, unsupported, or if the 'Persistent Memory
-+-	+AKAAKg- Scrub' flag in extended status is not set, skip this but continue
-+-	+AKAAKg- initialization
-+-	+AKAAKg-/
-+AKA-	rc +AD0- ars+AF8-get+AF8-cap(nd+AF8-desc, ars+AF8-cap, start, len)+ADs-
-+-	if (rc +AD0APQ- -ENOTTY) +AHs-
-+-		dev+AF8-dbg(acpi+AF8-desc-+AD4-dev,
-+-			+ACI-Address Range Scrub is not implemented, won't create an error list+AFw-n+ACI-)+ADs-
-+-		rc +AD0- 0+ADs-
-+-		goto out+ADs-
-+-	+AH0-
-+AKA-	if (rc)
-+AKA-		goto out+ADs-
-+AKA-
--	/+ACo-
--	+AKAAKg- If ARS is unsupported, or if the 'Persistent Memory Scrub' flag in
--	+AKAAKg- extended status is not set, skip this but continue initialization
--	+AKAAKg-/
-+AKA-	if ((ars+AF8-cap-+AD4-status +ACY- 0xffff) +AHwAfA-
-+AKA-		+ACE-(ars+AF8-cap-+AD4-status +AD4APg- 16 +ACY- ND+AF8-ARS+AF8-PERSISTENT)) +AHs-
-+AKA-		dev+AF8-warn(acpi+AF8-desc-+AD4-dev,
+Bjorn
