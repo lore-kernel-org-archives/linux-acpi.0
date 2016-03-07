@@ -1,104 +1,93 @@
-From: "Rafael J. Wysocki" <rafael@kernel.org>
-Subject: Re: [PATCH v2 6/10] cpufreq: Support for fast frequency switching
-Date: Sun, 6 Mar 2016 03:17:09 +0100
-Message-ID: <CAJZ5v0je8158B9jjbMU1MMPyduZXaao7sKhAniq4TPVfTb3JQA@mail.gmail.com>
-References: <2495375.dFbdlAZmA6@vostro.rjw.lan>
-	<2409306.qzzMXcm4dm@vostro.rjw.lan>
-	<15684081.T4iOMUSHCY@vostro.rjw.lan>
-	<56DA09B1.4010005@linaro.org>
-	<CAJZ5v0jENyu8j0fq1-BhU64QwRHAjvcjQktYc2sa9QmhktoEnQ@mail.gmail.com>
-	<CAJZ5v0jd6sXQnvZ87=_L1MQgu2QsBJtYb8jwn=0=m7eRdKVvhA@mail.gmail.com>
-	<CAJZ5v0jh7qcmYjDXCdO3Pid4XyuuxQfsKAmWDLXYcrkx0t-phw@mail.gmail.com>
-	<20160305164900.GX6356@twins.programming.kicks-ass.net>
+From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Subject: Re: [PATCH 6/6] cpufreq: schedutil: New governor based on scheduler utilization data
+Date: Mon, 07 Mar 2016 03:41:15 +0100
+Message-ID: <36459679.vzZnOsAVeg@vostro.rjw.lan>
+References: <2495375.dFbdlAZmA6@vostro.rjw.lan> <CAJZ5v0h47h-xW6a4jzwRuOOOSG+qsD9hegM7QCzbD8Wb-yPVKQ@mail.gmail.com> <56D8AEB7.2050100@linaro.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7Bit
 Return-path: <linux-pm-owner@vger.kernel.org>
-In-Reply-To: <20160305164900.GX6356@twins.programming.kicks-ass.net>
+In-Reply-To: <56D8AEB7.2050100@linaro.org>
 Sender: linux-pm-owner@vger.kernel.org
-To: Peter Zijlstra <peterz@infradead.org>
-Cc: "Rafael J. Wysocki" <rafael@kernel.org>, Steve Muckle <steve.muckle@linaro.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Linux PM list <linux-pm@vger.kernel.org>, Juri Lelli <juri.lelli@arm.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>, Viresh Kumar <viresh.kumar@linaro.org>, Vincent Guittot <vincent.guittot@linaro.org>, Michael Turquette <mturquette@baylibre.com>, Ingo Molnar <mingo@kernel.org>
+To: Steve Muckle <steve.muckle@linaro.org>
+Cc: "Rafael J. Wysocki" <rafael@kernel.org>, Vincent Guittot <vincent.guittot@linaro.org>, Linux PM list <linux-pm@vger.kernel.org>, Juri Lelli <juri.lelli@arm.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Peter Zijlstra <peterz@infradead.org>, Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>, Viresh Kumar <viresh.kumar@linaro.org>, Michael Turquette <mturquette@baylibre.com>, Ingo Molnar <mingo@redhat.com>
 List-Id: linux-acpi@vger.kernel.org
 
-On Sat, Mar 5, 2016 at 5:49 PM, Peter Zijlstra <peterz@infradead.org> wrote:
-> On Sat, Mar 05, 2016 at 12:18:54AM +0100, Rafael J. Wysocki wrote:
->
->> >>> Even if there are platforms which may change the CPU frequency behind
->> >>> cpufreq's back, breaking the transition notifiers, I'm worried about the
->> >>> addition of an interface which itself breaks them. The platforms which
->> >>> do change CPU frequency on their own have probably evolved to live with
->> >>> or work around this behavior. As other platforms migrate to fast
->> >>> frequency switching they might be surprised when things don't work as
->> >>> advertised.
->
-> There's only 43 sites of cpufreq_register_notifier in 37 files, that
-> should be fairly simple to audit.
->
->> >>> I'm not sure what the easiest way to deal with this is. I see the
->> >>> transition notifiers are the srcu type, which I understand to be
->> >>> blocking. Going through the tree and reworking everyone's callbacks and
->> >>> changing the type to atomic is obviously not realistic.
->> >>
->> >> Right.
->
-> Even if it was (and per the above it looks entirely feasible), that's
-> just not going to happen. We're not ever going to call random notifier
-> crap from this deep within the scheduler.
->
->> >>> How about modifying cpufreq_register_notifier to return an error if the
->> >>> driver has a fast_switch callback installed and an attempt to register a
->> >>> transition notifier is made?
->> >>
->> >> That sounds like a good idea.
->
-> Agreed, fail the stuff hard.
->
-> Simply make cpufreq_register_notifier a __must_check function and add
-> error handling to all call sites.
+On Thursday, March 03, 2016 01:37:59 PM Steve Muckle wrote:
+> On 03/03/2016 12:20 PM, Rafael J. Wysocki wrote:
+> >> Here is a comparison, with frequency invariance, of ondemand and
+> >> interactive with schedfreq and schedutil. The first two columns (run and
+> >> period) are omitted so the table will fit.
+> >>
+> >>         ondemand        interactive     schedfreq       schedutil
+> >> busy %  OR      OH      OR      OH      OR      OH      OR      OH
+> >> 1.00%   0       68.96%  0       100.04% 0       78.49%  0       95.86%
+> >> 1.00%   0       25.04%  0       22.59%  0       72.56%  0       71.61%
+> >> 10.00%  0       21.75%  0       63.08%  0       52.40%  0       41.78%
+> >> 10.00%  0       12.17%  0       14.41%  0       17.33%  0       47.96%
+> >> 10.00%  0       2.57%   0       2.17%   0       0.29%   0       26.03%
+> >> 18.18%  0       12.39%  0       9.39%   0       17.34%  0       31.61%
+> >> 19.82%  0       3.74%   0       3.42%   0       12.26%  0       29.46%
+> >> 40.00%  2       6.26%   1       12.23%  0       6.15%   0       12.93%
+> >> 40.00%  0       0.47%   0       0.05%   0       2.68%   2       14.08%
+> >> 40.00%  0       0.60%   0       0.50%   0       1.22%   0       11.58%
+> >> 55.56%  2       4.25%   5       5.97%   0       2.51%   0       7.70%
+> >> 55.56%  0       1.89%   0       0.04%   0       1.71%   6       8.06%
+> >> 55.56%  0       0.50%   0       0.47%   0       1.82%   5       6.94%
+> >> 75.00%  2       1.65%   1       0.46%   0       0.26%   56      3.59%
+> >> 75.00%  0       1.68%   0       0.05%   0       0.49%   21      3.94%
+> >> 75.00%  0       0.28%   0       0.23%   0       0.62%   4       4.41%
+> >>
+> >> Aside from the 2nd and 3rd tests schedutil is showing decreased
+> >> performance across the board. The fifth test is particularly bad.
+> > 
+> > I guess you mean performance in terms of the overhead?
+> 
+> Correct. This overhead metric describes how fast the workload completes,
+> with 0% equaling the perf governor and 100% equaling the powersave
+> governor. So it's a reflection of general performance using the
+> governor. It's called "overhead" I imagine (the metric predates my
+> involvement) as it is something introduced/caused by the policy of the
+> governor.
 
-Quite frankly, I don't see a compelling reason to do anything about
-the notifications at this point.
+If my understanding of the requency invariant utilization idea is correct,
+it is about re-scaling utilization so it is always relative to the capacity
+at the max frequency.  If that's the case, then instead of using x = util_raw / max
+we will use something like y = (util_raw / max) * (f / max_freq) (f - current
+frequency).  This means that
 
-The ACPI driver is the only one that will support fast switching for
-the time being and on practically all platforms that can use the ACPI
-driver the transition notifications cannot be relied on anyway for a
-few reasons.  First, if intel_pstate or HWP is in use, they won't be
-coming at all.  Second, anything turbo will just change frequency at
-will without notifying (like HWP).  Finally, if they are coming,
-whoever receives them is notified about the frequency that is
-requested and not the real one, which is misleading, because (a) the
-request may just make the CPU go into the turbo range and then see
-above or (b) if the CPU is in a platform-coordinated package, its
-request will only be granted if it's the winning one.
+(1) x = y * max_freq / f
 
->> > I guess what might be done would be to spawn a work item to carry out
->> > a notify when the frequency changes.
->>
->> In fact, the mechanism may be relatively simple if I'm not mistaken.
->>
->> In the "fast switch" case, the governor may spawn a work item that
->> will just execute cpufreq_get() on policy->cpu.  That will notice that
->> policy->cur is different from the real current frequency and will
->> re-adjust.
->>
->> Of course, cpufreq_driver_fast_switch() will need to be modified so it
->> doesn't update policy->cur then perhaps with a comment that the
->> governor using it will be responsible for that.
->
-> No no no, that's just horrible. Why would you want to keep this
-> notification stuff alive? If your platform can change frequency 'fast'
-> you don't want notifiers.
+Now, say we have an agreed-on (linear) formula for f depending on x:
 
-I'm not totally sure about that.
+f = a * x + b
 
->
-> What's the point of a notification that says: "At some point in the
-> random past my frequency has changed, and it likely has changed again
-> since then, do 'something'."
->
-> That's pointless. If you have dependent clock domains or whatever, you
-> simply _cannot_ be fast.
->
+and if you say "Look, if I substitute y for x in this formula, it doesn't
+produce correct results", then I can only say "It doesn't, because it can't".
 
-What about thermal?  They don't need to get very accurate information,
-but they need to be updated on a regular basis.  It would do if they
-get averages instead of momentary values (and may be better even).
+It *obviously* won't work, because instead of substituting y for x, you
+need to substitute the right-hand side of (1) for it.  They you'll get
+
+f = a * y * max_freq / f + b
+
+which is obviously nonlinear, so there's no hope that the same formula
+will ever work for both "raw" and "frequency invariant" utilization.
+
+To me this means that looking for a formula that will work for both is
+just pointless and there are 3 possibilities:
+
+(a) Look for a good enough formula to apply to "raw" utilization and then
+    switch over when all architectures start to use "frequency invariant"
+    utilization.
+(b) Make all architecuters use "frequency invariant" and then look for a
+    working formula (seems rather less than realistic to me to be honest).
+(c) Code for using either "raw" or "frequency invariant" depending on
+    a callback flag or something like that.
+
+I, personally, would go for (a) at this point, because that's the easiest
+one, but (c) would be doable too IMO, so I don't care that much as long
+as it is not (b).
+
+Thanks,
+Rafael
+
