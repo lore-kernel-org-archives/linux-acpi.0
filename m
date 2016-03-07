@@ -1,62 +1,90 @@
-From: "Rafael J. Wysocki" <rafael-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: [PATCH][RFC v3] ACPI / PM: Fix poweroff issue on HW-full
- platforms without _S5
-Date: Mon, 7 Mar 2016 14:19:13 +0100
-Message-ID: <CAJZ5v0iWjW_XJEsVBM1yyimxUQMDaWapQ_OrN45TeFXFySd0rw@mail.gmail.com>
-References: <1457319045-25434-1-git-send-email-yu.c.chen@intel.com>
+From: Peter Zijlstra <peterz@infradead.org>
+Subject: Re: [PATCH v2 6/10] cpufreq: Support for fast frequency switching
+Date: Mon, 7 Mar 2016 14:32:03 +0100
+Message-ID: <20160307133203.GD6356@twins.programming.kicks-ass.net>
+References: <2409306.qzzMXcm4dm@vostro.rjw.lan>
+ <15684081.T4iOMUSHCY@vostro.rjw.lan>
+ <56DA09B1.4010005@linaro.org>
+ <CAJZ5v0jENyu8j0fq1-BhU64QwRHAjvcjQktYc2sa9QmhktoEnQ@mail.gmail.com>
+ <CAJZ5v0jd6sXQnvZ87=_L1MQgu2QsBJtYb8jwn=0=m7eRdKVvhA@mail.gmail.com>
+ <CAJZ5v0jh7qcmYjDXCdO3Pid4XyuuxQfsKAmWDLXYcrkx0t-phw@mail.gmail.com>
+ <20160305164900.GX6356@twins.programming.kicks-ass.net>
+ <CAJZ5v0je8158B9jjbMU1MMPyduZXaao7sKhAniq4TPVfTb3JQA@mail.gmail.com>
+ <20160307080059.GZ6356@twins.programming.kicks-ass.net>
+ <CAJZ5v0jKXQrrpVmEd=CCek4KVWknJaoYSAmwc8rosKK=oDzkFw@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-efi-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1457319045-25434-1-git-send-email-yu.c.chen-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Sender: linux-efi-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Chen Yu <yu.c.chen-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: ACPI Devel Maling List <linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, x86-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, linux-efi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Linux Kernel Mailing List <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-pm-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-pm-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "Rafael J. Wysocki" <rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org>, Len Brown <lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Matt Fleming <matt-mF/unelCI9GS6iBeEJttW/XRex20P6io@public.gmane.org>, Thomas Gleixner <tglx-hfZtesqFncYOwBW4kG4KsQ@public.gmane.org>, Ingo Molnar <mingo-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "H. Peter Anvin" <hpa-YMNOUZJC4hwAvxtiuMwx3w@public.gmane.org>, Zhang Rui <rui.zhang-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-pm-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <CAJZ5v0jKXQrrpVmEd=CCek4KVWknJaoYSAmwc8rosKK=oDzkFw@mail.gmail.com>
+Sender: linux-pm-owner@vger.kernel.org
+To: "Rafael J. Wysocki" <rafael@kernel.org>
+Cc: Steve Muckle <steve.muckle@linaro.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Linux PM list <linux-pm@vger.kernel.org>, Juri Lelli <juri.lelli@arm.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>, Viresh Kumar <viresh.kumar@linaro.org>, Vincent Guittot <vincent.guittot@linaro.org>, Michael Turquette <mturquette@baylibre.com>, Ingo Molnar <mingo@kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On Mon, Mar 7, 2016 at 3:50 AM, Chen Yu <yu.c.chen-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org> wrote:
-> The problem is Linux registers pm_power_off = efi_power_off
-> only if we are in hardware reduced mode. Actually, what we also
-> want is to do this when ACPI S5 is simply not supported on
-> non-legacy platforms. That should handle both the HW reduced mode,
-> and the HW-full mode where the DSDT fails to supply an _S5 object.
->
-> This patch fixes this issue by introducing a new flag acpi_no_s5 which
-> indicates the non-existence of _S5. The initial state of acpi_no_s5 is
-> false and probed in acpi_sleep_init, then we'll later see the updated
-> value in efi_poweroff_required, according to which we can set pm_power_off
-> to efi_power_off in efi_shutdown_init, if no other pm_power_off available.
->
-> Suggested-by: Len Brown <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-> Signed-off-by: Chen Yu <yu.c.chen-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-> ---
-> v3:
->  - Only assign pm_power_off to efi_power_off when there are no
->    other pm_power_off registered at that time, in case other
->    commponents would like to customize their own implementation.
-> ---
-> v2:
->  - Convert the acpi_no_s5 to a global bool variable in sleep.c and
->    add a declaration to include/linux/acpi.h.
-> ---
->  arch/x86/platform/efi/quirks.c | 2 +-
->  drivers/acpi/sleep.c           | 8 ++++++++
->  include/linux/acpi.h           | 1 +
->  3 files changed, 10 insertions(+), 1 deletion(-)
->
-> diff --git a/arch/x86/platform/efi/quirks.c b/arch/x86/platform/efi/quirks.c
-> index 2d66db8..0d4186b 100644
-> --- a/arch/x86/platform/efi/quirks.c
-> +++ b/arch/x86/platform/efi/quirks.c
-> @@ -295,5 +295,5 @@ bool efi_reboot_required(void)
->
->  bool efi_poweroff_required(void)
->  {
-> -       return !!acpi_gbl_reduced_hardware;
-> +       return acpi_gbl_reduced_hardware || (acpi_no_s5 && !pm_power_off);
+On Mon, Mar 07, 2016 at 02:15:47PM +0100, Rafael J. Wysocki wrote:
+> On Mon, Mar 7, 2016 at 9:00 AM, Peter Zijlstra <peterz@infradead.org> wrote:
 
-What if CONFIG_ACPI is not set here?
+> > Sure I know all that. But that, to me, seems like an argument for why
+> > you should have done this a long time ago.
+> 
+> While I generally agree with this, I don't quite see why cleaning that
+> up necessarily has to be connected to the current patch series which
+> is my point.
 
->  }
+Ah OK, fair enough I suppose. But someone should stick this on their
+TODO list, we should not 'forget' about this (again).
 
-Thanks,
-Rafael
+> > But I do think something wants to be done here.
+> 
+> So here's what I can do for the "fast switch" thing.
+> 
+> There is the fast_switch_possible policy flag that's necessary anyway.
+> I can make notifier registration fail when that is set for at least
+> one policy and I can make the setting of it fail if at least one
+> notifier has already been registered.
+> 
+> However, without spending too much time on chasing code dependencies i
+> sort of suspect that it will uncover things that register cpufreq
+> notifiers early and it won't be possible to use fast switch without
+> sorting that out. 
+
+The two x86 users don't register notifiers when CONSTANT_TSC, which
+seems to be the right thing.
+
+Much of the other users seem unlikely to be used on x86, so I suspect
+the initial fallout will be very limited.
+
+*groan* modules, cpufreq allows drivers to be modules, so init sequences
+are poorly defined at best :/ Yes that blows.
+
+> And that won't even change anything apart from
+> removing some code that has not worked for quite a while already and
+> nobody noticed.
+
+Which is always a good thing, but yes, we can do this later.
+
+> It is doable for the "fast switch" thing, but it won't help in all of
+> the other cases when notifications are not reliable.
+
+Right, you can maybe add a 'NOTIFIERS_BROKEN' flag to the intel_p_state
+and HWP drivers or so, and trigger off of that.
+
+> If it changes frequently enough, it's not practical and not even
+> necessary to cause things like thermal to react on every change, but I
+> think there needs to be a way to make them reevaluate things
+> regularly.  Arguably, they might set a timer for that, but why would
+> they need a timer if they could get triggered by the code that
+> actually makes changes?
+
+So that very much depends on what thermal actually needs; but I suspect
+that using a timer is cheaper than using irq_work to kick off something
+else.
+
+The irq_work is a LAPIC write (self IPI), just as the timer. However
+timers can be coalesced, resulting in, on average, less timer
+reprogramming than there are handlers ran.
+
+Now, if thermal can do without work and can run in-line just like the
+fast freq switch, then yes, that might make sense.
+
