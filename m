@@ -1,90 +1,80 @@
-From: Peter Zijlstra <peterz@infradead.org>
+From: "Rafael J. Wysocki" <rafael@kernel.org>
 Subject: Re: [PATCH v2 6/10] cpufreq: Support for fast frequency switching
-Date: Mon, 7 Mar 2016 14:32:03 +0100
-Message-ID: <20160307133203.GD6356@twins.programming.kicks-ass.net>
+Date: Mon, 7 Mar 2016 14:42:10 +0100
+Message-ID: <CAJZ5v0hjvQzy-LvnRf2ca6--ZyrKoxZy1Zp08iTx=D0iFHEW9A@mail.gmail.com>
 References: <2409306.qzzMXcm4dm@vostro.rjw.lan>
- <15684081.T4iOMUSHCY@vostro.rjw.lan>
- <56DA09B1.4010005@linaro.org>
- <CAJZ5v0jENyu8j0fq1-BhU64QwRHAjvcjQktYc2sa9QmhktoEnQ@mail.gmail.com>
- <CAJZ5v0jd6sXQnvZ87=_L1MQgu2QsBJtYb8jwn=0=m7eRdKVvhA@mail.gmail.com>
- <CAJZ5v0jh7qcmYjDXCdO3Pid4XyuuxQfsKAmWDLXYcrkx0t-phw@mail.gmail.com>
- <20160305164900.GX6356@twins.programming.kicks-ass.net>
- <CAJZ5v0je8158B9jjbMU1MMPyduZXaao7sKhAniq4TPVfTb3JQA@mail.gmail.com>
- <20160307080059.GZ6356@twins.programming.kicks-ass.net>
- <CAJZ5v0jKXQrrpVmEd=CCek4KVWknJaoYSAmwc8rosKK=oDzkFw@mail.gmail.com>
+	<15684081.T4iOMUSHCY@vostro.rjw.lan>
+	<56DA09B1.4010005@linaro.org>
+	<CAJZ5v0jENyu8j0fq1-BhU64QwRHAjvcjQktYc2sa9QmhktoEnQ@mail.gmail.com>
+	<CAJZ5v0jd6sXQnvZ87=_L1MQgu2QsBJtYb8jwn=0=m7eRdKVvhA@mail.gmail.com>
+	<CAJZ5v0jh7qcmYjDXCdO3Pid4XyuuxQfsKAmWDLXYcrkx0t-phw@mail.gmail.com>
+	<20160305164900.GX6356@twins.programming.kicks-ass.net>
+	<CAJZ5v0je8158B9jjbMU1MMPyduZXaao7sKhAniq4TPVfTb3JQA@mail.gmail.com>
+	<20160307080059.GZ6356@twins.programming.kicks-ass.net>
+	<CAJZ5v0jKXQrrpVmEd=CCek4KVWknJaoYSAmwc8rosKK=oDzkFw@mail.gmail.com>
+	<20160307133203.GD6356@twins.programming.kicks-ass.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-pm-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <CAJZ5v0jKXQrrpVmEd=CCek4KVWknJaoYSAmwc8rosKK=oDzkFw@mail.gmail.com>
+In-Reply-To: <20160307133203.GD6356@twins.programming.kicks-ass.net>
 Sender: linux-pm-owner@vger.kernel.org
-To: "Rafael J. Wysocki" <rafael@kernel.org>
-Cc: Steve Muckle <steve.muckle@linaro.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Linux PM list <linux-pm@vger.kernel.org>, Juri Lelli <juri.lelli@arm.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>, Viresh Kumar <viresh.kumar@linaro.org>, Vincent Guittot <vincent.guittot@linaro.org>, Michael Turquette <mturquette@baylibre.com>, Ingo Molnar <mingo@kernel.org>
+To: Peter Zijlstra <peterz@infradead.org>
+Cc: "Rafael J. Wysocki" <rafael@kernel.org>, Steve Muckle <steve.muckle@linaro.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Linux PM list <linux-pm@vger.kernel.org>, Juri Lelli <juri.lelli@arm.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>, Viresh Kumar <viresh.kumar@linaro.org>, Vincent Guittot <vincent.guittot@linaro.org>, Michael Turquette <mturquette@baylibre.com>, Ingo Molnar <mingo@kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On Mon, Mar 07, 2016 at 02:15:47PM +0100, Rafael J. Wysocki wrote:
-> On Mon, Mar 7, 2016 at 9:00 AM, Peter Zijlstra <peterz@infradead.org> wrote:
+On Mon, Mar 7, 2016 at 2:32 PM, Peter Zijlstra <peterz@infradead.org> wrote:
+> On Mon, Mar 07, 2016 at 02:15:47PM +0100, Rafael J. Wysocki wrote:
+>> On Mon, Mar 7, 2016 at 9:00 AM, Peter Zijlstra <peterz@infradead.org> wrote:
+>
+>> > Sure I know all that. But that, to me, seems like an argument for why
+>> > you should have done this a long time ago.
+>>
+>> While I generally agree with this, I don't quite see why cleaning that
+>> up necessarily has to be connected to the current patch series which
+>> is my point.
+>
+> Ah OK, fair enough I suppose. But someone should stick this on their
+> TODO list, we should not 'forget' about this (again).
 
-> > Sure I know all that. But that, to me, seems like an argument for why
-> > you should have done this a long time ago.
-> 
-> While I generally agree with this, I don't quite see why cleaning that
-> up necessarily has to be connected to the current patch series which
-> is my point.
+Sure.
 
-Ah OK, fair enough I suppose. But someone should stick this on their
-TODO list, we should not 'forget' about this (again).
+>> > But I do think something wants to be done here.
+>>
+>> So here's what I can do for the "fast switch" thing.
+>>
+>> There is the fast_switch_possible policy flag that's necessary anyway.
+>> I can make notifier registration fail when that is set for at least
+>> one policy and I can make the setting of it fail if at least one
+>> notifier has already been registered.
+>>
+>> However, without spending too much time on chasing code dependencies i
+>> sort of suspect that it will uncover things that register cpufreq
+>> notifiers early and it won't be possible to use fast switch without
+>> sorting that out.
+>
+> The two x86 users don't register notifiers when CONSTANT_TSC, which
+> seems to be the right thing.
+>
+> Much of the other users seem unlikely to be used on x86, so I suspect
+> the initial fallout will be very limited.
 
-> > But I do think something wants to be done here.
-> 
-> So here's what I can do for the "fast switch" thing.
-> 
-> There is the fast_switch_possible policy flag that's necessary anyway.
-> I can make notifier registration fail when that is set for at least
-> one policy and I can make the setting of it fail if at least one
-> notifier has already been registered.
-> 
-> However, without spending too much time on chasing code dependencies i
-> sort of suspect that it will uncover things that register cpufreq
-> notifiers early and it won't be possible to use fast switch without
-> sorting that out. 
+OK, let me try this then.
 
-The two x86 users don't register notifiers when CONSTANT_TSC, which
-seems to be the right thing.
+> *groan* modules, cpufreq allows drivers to be modules, so init sequences
+> are poorly defined at best :/ Yes that blows.
 
-Much of the other users seem unlikely to be used on x86, so I suspect
-the initial fallout will be very limited.
+Yup.
 
-*groan* modules, cpufreq allows drivers to be modules, so init sequences
-are poorly defined at best :/ Yes that blows.
+>> And that won't even change anything apart from
+>> removing some code that has not worked for quite a while already and
+>> nobody noticed.
+>
+> Which is always a good thing, but yes, we can do this later.
+>
+>> It is doable for the "fast switch" thing, but it won't help in all of
+>> the other cases when notifications are not reliable.
+>
+> Right, you can maybe add a 'NOTIFIERS_BROKEN' flag to the intel_p_state
+> and HWP drivers or so, and trigger off of that.
 
-> And that won't even change anything apart from
-> removing some code that has not worked for quite a while already and
-> nobody noticed.
-
-Which is always a good thing, but yes, we can do this later.
-
-> It is doable for the "fast switch" thing, but it won't help in all of
-> the other cases when notifications are not reliable.
-
-Right, you can maybe add a 'NOTIFIERS_BROKEN' flag to the intel_p_state
-and HWP drivers or so, and trigger off of that.
-
-> If it changes frequently enough, it's not practical and not even
-> necessary to cause things like thermal to react on every change, but I
-> think there needs to be a way to make them reevaluate things
-> regularly.  Arguably, they might set a timer for that, but why would
-> they need a timer if they could get triggered by the code that
-> actually makes changes?
-
-So that very much depends on what thermal actually needs; but I suspect
-that using a timer is cheaper than using irq_work to kick off something
-else.
-
-The irq_work is a LAPIC write (self IPI), just as the timer. However
-timers can be coalesced, resulting in, on average, less timer
-reprogramming than there are handlers ran.
-
-Now, if thermal can do without work and can run in-line just like the
-fast freq switch, then yes, that might make sense.
-
+Something like that, yes.
