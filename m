@@ -1,84 +1,92 @@
-From: Peter Zijlstra <peterz@infradead.org>
-Subject: Re: [PATCH v2 6/10] cpufreq: Support for fast frequency switching
-Date: Mon, 7 Mar 2016 09:00:59 +0100
-Message-ID: <20160307080059.GZ6356@twins.programming.kicks-ass.net>
-References: <2495375.dFbdlAZmA6@vostro.rjw.lan>
- <2409306.qzzMXcm4dm@vostro.rjw.lan>
- <15684081.T4iOMUSHCY@vostro.rjw.lan>
- <56DA09B1.4010005@linaro.org>
- <CAJZ5v0jENyu8j0fq1-BhU64QwRHAjvcjQktYc2sa9QmhktoEnQ@mail.gmail.com>
- <CAJZ5v0jd6sXQnvZ87=_L1MQgu2QsBJtYb8jwn=0=m7eRdKVvhA@mail.gmail.com>
- <CAJZ5v0jh7qcmYjDXCdO3Pid4XyuuxQfsKAmWDLXYcrkx0t-phw@mail.gmail.com>
- <20160305164900.GX6356@twins.programming.kicks-ass.net>
- <CAJZ5v0je8158B9jjbMU1MMPyduZXaao7sKhAniq4TPVfTb3JQA@mail.gmail.com>
+From: Chris Bainbridge <chris.bainbridge@gmail.com>
+Subject: Re: [PATCH] ACPICA: Events: Execute some _REG methods in early boot
+Date: Mon, 7 Mar 2016 10:19:04 +0000
+Message-ID: <20160307101904.GA4417@localhost>
+References: <20160227190828.GA4751@localhost>
+ <1457190715-5851-1-git-send-email-chris.bainbridge@gmail.com>
+ <1AE640813FDE7649BE1B193DEA596E883BB608C0@SHSMSX101.ccr.corp.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-pm-owner@vger.kernel.org>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-wm0-f49.google.com ([74.125.82.49]:34819 "EHLO
+	mail-wm0-f49.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752025AbcCGKTJ (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 7 Mar 2016 05:19:09 -0500
 Content-Disposition: inline
-In-Reply-To: <CAJZ5v0je8158B9jjbMU1MMPyduZXaao7sKhAniq4TPVfTb3JQA@mail.gmail.com>
-Sender: linux-pm-owner@vger.kernel.org
-To: "Rafael J. Wysocki" <rafael@kernel.org>
-Cc: Steve Muckle <steve.muckle@linaro.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Linux PM list <linux-pm@vger.kernel.org>, Juri Lelli <juri.lelli@arm.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>, Viresh Kumar <viresh.kumar@linaro.org>, Vincent Guittot <vincent.guittot@linaro.org>, Michael Turquette <mturquette@baylibre.com>, Ingo Molnar <mingo@kernel.org>
+In-Reply-To: <1AE640813FDE7649BE1B193DEA596E883BB608C0@SHSMSX101.ccr.corp.intel.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: "Zheng, Lv" <lv.zheng@intel.com>
+Cc: "Moore, Robert" <robert.moore@intel.com>, "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
 
-On Sun, Mar 06, 2016 at 03:17:09AM +0100, Rafael J. Wysocki wrote:
-> > Agreed, fail the stuff hard.
-> >
-> > Simply make cpufreq_register_notifier a __must_check function and add
-> > error handling to all call sites.
+On Mon, Mar 07, 2016 at 06:36:05AM +0000, Zheng, Lv wrote:
+> Hi,
 > 
-> Quite frankly, I don't see a compelling reason to do anything about
-> the notifications at this point.
+> First of all, why don't you respond on the kernel bugzilla?
+> Posting a fix here directly without communication doesn't look like a constructive help but more like a destructive attack to me.
+
+Sorry if it appears to be an attack. It wasn't meant that way. I was
+under the impression that email is the preferred means of communication
+for kernel development. I'm not sure whether other developers actively
+monitor bugzilla reports (some do, but bug trackers are often graveyards
+for bug reports and it's easy for communications to be missed).
+
+> As I said in the previous reply, this is the known issue and can be fixed by applying the whole series.
+> Especially this commit:
+> https://patchwork.kernel.org/patch/8241421/
+> That's why I asked you to test again by applying the whole series.
+> And that's why after having not seen your response for so long time, we prepared a test branch and was waiting for your response.
+
+I already replied 9 days ago: https://lkml.org/lkml/2016/2/27/164
+The suggested patch did not fix the issue and the patch series did not
+apply cleanly.
+
+(btw I'm not paid for this work so I tend to handle it in batches when I
+have spare time, which is why you may see replies delayed to weekends etc.)
+
+> You need to post acpidump there to have the issue root caused so that more accurate fix can be generated.
+
+I already sent an acpidump for this system to you and Robert (email 3rd Feb).
+
+> The above fix looks hackish to me.
+> IMO, if you want to stop regressions that are triggered by this commit.
+> A simpler and proper way would be to move acpi_gbl_reg_method_enabled = TRUE to the end of acpi_load_tables().
+> So that when the order of table loading and ECDT probing is corrected, the correct logic can still apply.
 > 
-> The ACPI driver is the only one that will support fast switching for
-> the time being and on practically all platforms that can use the ACPI
-> driver the transition notifications cannot be relied on anyway for a
-> few reasons.  First, if intel_pstate or HWP is in use, they won't be
-> coming at all.  Second, anything turbo will just change frequency at
-> will without notifying (like HWP).  Finally, if they are coming,
-> whoever receives them is notified about the frequency that is
-> requested and not the real one, which is misleading, because (a) the
-> request may just make the CPU go into the turbo range and then see
-> above or (b) if the CPU is in a platform-coordinated package, its
-> request will only be granted if it's the winning one.
+> I don't have ECDT platforms in hand to confirm.
+> Can you help to just give it a try?
 
-Sure I know all that. But that, to me, seems like an argument for why
-you should have done this a long time ago.
+Yes the fix may be hackish, but it served the purpose of correctly
+identifying the bug. Your suggestion works fine, for reference the
+tested patch was:
 
-Someone registering a notifier you _know_ won't be called reliably is a
-sure sign of borkage. And you want to be notified (pun intended) of
-borkage.
 
-So the alternative option to making the registration fail, is making the
-registration WARN (and possibly disable fast support in the driver).
+diff --git a/drivers/acpi/acpica/tbxfload.c b/drivers/acpi/acpica/tbxfload.c
+index 278666e39563..9136d7250022 100644
+--- a/drivers/acpi/acpica/tbxfload.c
++++ b/drivers/acpi/acpica/tbxfload.c
+@@ -83,6 +83,7 @@ acpi_status __init acpi_load_tables(void)
+ 				"While loading namespace from ACPI tables"));
+ 	}
+ 
++	acpi_gbl_reg_methods_enabled = TRUE;
+ 	return_ACPI_STATUS(status);
+ }
+ 
+diff --git a/drivers/acpi/acpica/utxfinit.c b/drivers/acpi/acpica/utxfinit.c
+index 721b87cce908..2c0491038068 100644
+--- a/drivers/acpi/acpica/utxfinit.c
++++ b/drivers/acpi/acpica/utxfinit.c
+@@ -267,7 +267,6 @@ acpi_status __init acpi_initialize_objects(u32 flags)
+ 	 * initialized, even if they contain executable AML (see the call to
+ 	 * acpi_ns_initialize_objects below).
+ 	 */
+-	acpi_gbl_reg_methods_enabled = TRUE;
+ 	if (!(flags & ACPI_NO_ADDRESS_SPACE_INIT)) {
+ 		ACPI_DEBUG_PRINT((ACPI_DB_EXEC,
+ 				  "[Init] Executing _REG OpRegion methods\n"));
 
-But I do think something wants to be done here.
 
-> > No no no, that's just horrible. Why would you want to keep this
-> > notification stuff alive? If your platform can change frequency 'fast'
-> > you don't want notifiers.
-> 
-> I'm not totally sure about that.
+With this patch applied the ODEBUG errors do not occur.
 
-I am, per definition, if you need to call notifiers, you're not fast.
-
-I would really suggest making that a hard rule and enforcing it.
-
-> > What's the point of a notification that says: "At some point in the
-> > random past my frequency has changed, and it likely has changed again
-> > since then, do 'something'."
-> >
-> > That's pointless. If you have dependent clock domains or whatever, you
-> > simply _cannot_ be fast.
-> >
-> 
-> What about thermal?  They don't need to get very accurate information,
-> but they need to be updated on a regular basis.  It would do if they
-> get averages instead of momentary values (and may be better even).
-
-Thermal, should be an integral part of cpufreq, but if they need a
-callback from the switching hook (and here I would like to remind
-everyone that this is inside scheduler hot paths and the more code you
-stuff in the harder the performance regressions will hit you in the
-face) it can get a direct function call. No need for no stinking
-notifiers.
+Thanks.
