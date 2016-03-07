@@ -1,123 +1,120 @@
-From: Dan Williams <dan.j.williams@intel.com>
-Subject: Re: [PATCH v2-UPDATE 3/4] resource: Add device-managed insert/remove_resource()
-Date: Mon, 7 Mar 2016 10:14:48 -0800
-Message-ID: <CAPcyv4g8+6LBW08JZ3Ym0mAuo1bcwjGTeHrzS0p=QoJb4Mqeag@mail.gmail.com>
-References: <1457108082-4610-1-git-send-email-toshi.kani@hpe.com>
+From: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Subject: Re: [PATCH 2/5] Subject: goldfish: Enable ACPI-based enumeration for
+ goldfish framebuffer
+Date: Mon, 7 Mar 2016 20:35:19 +0200
+Message-ID: <56DDC9E7.8040609@ti.com>
+References: <20160226183940.2731.42083.stgit@localhost.localdomain>
+ <20160226184157.2731.30846.stgit@localhost.localdomain>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: multipart/signed; micalg=pgp-sha256;
+	protocol="application/pgp-signature";
+	boundary="vSMT206xPPkaL4fX8cL0jkuFWTt00A8ww"
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-ob0-f178.google.com ([209.85.214.178]:36301 "EHLO
-	mail-ob0-f178.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752855AbcCGSOt (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 7 Mar 2016 13:14:49 -0500
-Received: by mail-ob0-f178.google.com with SMTP id rt7so112604584obb.3
-        for <linux-acpi@vger.kernel.org>; Mon, 07 Mar 2016 10:14:48 -0800 (PST)
-In-Reply-To: <1457108082-4610-1-git-send-email-toshi.kani@hpe.com>
+Received: from bear.ext.ti.com ([192.94.94.41]:54413 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752427AbcCGSf0 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 7 Mar 2016 13:35:26 -0500
+In-Reply-To: <20160226184157.2731.30846.stgit@localhost.localdomain>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Toshi Kani <toshi.kani@hpe.com>
-Cc: Ingo Molnar <mingo@kernel.org>, Borislav Petkov <bp@suse.de>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Andrew Morton <akpm@linux-foundation.org>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, Linux ACPI <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "torvalds@linux-foundation.org" <torvalds@linux-foundation.org>
+To: Alan <alan@linux.intel.com>, linux-fbdev@vger.kernel.org, plagnioj@jcrosoft.com, linux-acpi@vger.kernel.org
 
-[ adding Linus for the implications of exporting insert_resource() ]
+--vSMT206xPPkaL4fX8cL0jkuFWTt00A8ww
+Content-Type: multipart/mixed; boundary="MbIi88Mmom9KJvFWw6jHglhkpPxRipBD5"
+From: Tomi Valkeinen <tomi.valkeinen@ti.com>
+To: Alan <alan@linux.intel.com>, linux-fbdev@vger.kernel.org,
+ plagnioj@jcrosoft.com, linux-acpi@vger.kernel.org
+Message-ID: <56DDC9E7.8040609@ti.com>
+Subject: Re: [PATCH 2/5] Subject: goldfish: Enable ACPI-based enumeration for
+ goldfish framebuffer
+References: <20160226183940.2731.42083.stgit@localhost.localdomain>
+ <20160226184157.2731.30846.stgit@localhost.localdomain>
+In-Reply-To: <20160226184157.2731.30846.stgit@localhost.localdomain>
 
-On Fri, Mar 4, 2016 at 8:14 AM, Toshi Kani <toshi.kani@hpe.com> wrote:
-> insert_resource() and remove_resouce() are called by producers
-> of resources, such as FW modules and bus drivers.  These modules
-> may be implemented as loadable modules.
->
-> Add device-managed implementaions of insert_resource() and
-> remove_resouce() functions.
->
-> Signed-off-by: Toshi Kani <toshi.kani@hpe.com>
-> Cc: Ingo Molnar <mingo@kernel.org>
-> Cc: Borislav Petkov <bp@suse.de>
-> Cc: Andrew Morton <akpm@linux-foundation.org>
-> Cc: Dan Williams <dan.j.williams@intel.com>
+--MbIi88Mmom9KJvFWw6jHglhkpPxRipBD5
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: quoted-printable
+
+On 26/02/16 20:41, Alan wrote:
+> From: Yu Ning <yu.ning@intel.com>
+>=20
+> Enable ACPI bindings for the Goldfish framebuffer device.
+>=20
+> Signed-off-by: Yu Ning <yu.ning@intel.com>
+> Signed-off-by: Jin Qian <jinqian@android.com>
+> Signed-off-by: Alan <alan@linux.intel.com>
 > ---
-> v2-UPDATE:
->  - Rename a helper remove func to __devm_remove_resource(). (Dan Williams)
-> ---
->  include/linux/ioport.h |    5 +++
->  kernel/resource.c      |   69 ++++++++++++++++++++++++++++++++++++++++++++++++
->  2 files changed, 74 insertions(+)
->
-> diff --git a/include/linux/ioport.h b/include/linux/ioport.h
-> index 8017b8b..3580038 100644
-> --- a/include/linux/ioport.h
-> +++ b/include/linux/ioport.h
-> @@ -259,6 +259,11 @@ extern struct resource * __devm_request_region(struct device *dev,
->
->  extern void __devm_release_region(struct device *dev, struct resource *parent,
->                                   resource_size_t start, resource_size_t n);
-> +
-> +extern int devm_insert_resource(struct device *dev, struct resource *root,
-> +                                struct resource *new);
-> +extern void devm_remove_resource(struct device *dev, struct resource *old);
-> +
->  extern int iomem_map_sanity_check(resource_size_t addr, unsigned long size);
->  extern int iomem_is_exclusive(u64 addr);
->
-> diff --git a/kernel/resource.c b/kernel/resource.c
-> index effb6ee..12a9d57 100644
-> --- a/kernel/resource.c
-> +++ b/kernel/resource.c
-> @@ -1449,6 +1449,75 @@ void __devm_release_region(struct device *dev, struct resource *parent,
->  EXPORT_SYMBOL(__devm_release_region);
->
->  /*
-> + * Helper remove function for devm_insert_resource() and devm_remove_resource()
-> + */
-> +static void __devm_remove_resource(struct device *dev, void *ptr)
-> +{
-> +       struct resource **r = ptr;
-> +
-> +       remove_resource(*r);
-> +}
-> +
-> +/**
-> + * devm_insert_resource() - insert an I/O or memory resource
-> + * @dev: device for which to produce the resource
-> + * @root: root of the resource tree
-> + * @new: descriptor of the new resource
-> + *
-> + * This is a device-managed version of insert_resource(). There is usually
-> + * no need to release resources requested by this function explicitly since
-> + * that will be taken care of when the device is unbound from its bus driver.
-> + * If for some reason the resource needs to be released explicitly, because
-> + * of ordering issues for example, bus drivers must call devm_remove_resource()
-> + * rather than the regular remove_resource().
-> + *
-> + * devm_insert_resource() is intended for producers of resources, such as
-> + * FW modules and bus drivers.
-> + *
-> + * Returns 0 on success or a negative error code on failure.
-> + */
-> +int devm_insert_resource(struct device *dev, struct resource *root,
-> +                         struct resource *new)
-> +{
-> +       struct resource **ptr;
-> +       int ret;
-> +
-> +       ptr = devres_alloc(__devm_remove_resource, sizeof(*ptr), GFP_KERNEL);
-> +       if (!ptr)
-> +               return -ENOMEM;
-> +
-> +       *ptr = new;
-> +
-> +       ret = insert_resource(root, new);
-> +       if (ret) {
-> +               dev_err(dev, "unable to insert resource: %pR (%d)\n", new, ret);
-> +               devres_free(ptr);
-> +               return -EBUSY;
-> +       }
-> +
-> +       devres_add(dev, ptr);
-> +       return 0;
-> +}
-> +EXPORT_SYMBOL_GPL(devm_insert_resource);
+>  drivers/video/fbdev/goldfishfb.c |    8 ++++++++
+>  1 file changed, 8 insertions(+)
+>=20
+> diff --git a/drivers/video/fbdev/goldfishfb.c b/drivers/video/fbdev/gol=
+dfishfb.c
+> index f0e651b..58b33e4 100644
+> --- a/drivers/video/fbdev/goldfishfb.c
+> +++ b/drivers/video/fbdev/goldfishfb.c
+> @@ -26,6 +26,7 @@
+>  #include <linux/interrupt.h>
+>  #include <linux/ioport.h>
+>  #include <linux/platform_device.h>
+> +#include <linux/acpi.h>
+> =20
+>  enum {
+>  	FB_GET_WIDTH        =3D 0x00,
+> @@ -310,6 +311,12 @@ static const struct of_device_id goldfish_fb_of_ma=
+tch[] =3D {
+>  };
+>  MODULE_DEVICE_TABLE(of, goldfish_fb_of_match);
+> =20
+> +static const struct acpi_device_id goldfish_fb_acpi_match[] =3D {
+> +	{ "GFSH0004", 0 },
 
-The only hesitation I have with this is that the kernel has gotten by
-a long time without allowing external modules to insert resources.  If
-keeping it private all this time was purposeful then maybe we should
-make this new NVDIMM-need to call insert_resource() private to the
-nfit driver and built-in-only.
+I'm not familiar with ACPI, so I need to ask... Where does the ID come
+from? Is it safe to use that one, and there's no chance for a clash with
+some other device in the future?
+
+> +	{ },
+> +};
+> +MODULE_DEVICE_TABLE(acpi, goldfish_fb_acpi_match);
+> +
+>  static struct platform_driver goldfish_fb_driver =3D {
+>  	.probe		=3D goldfish_fb_probe,
+>  	.remove		=3D goldfish_fb_remove,
+> @@ -317,6 +324,7 @@ static struct platform_driver goldfish_fb_driver =3D=
+ {
+>  		.name =3D "goldfish_fb",
+>  		.owner =3D THIS_MODULE,
+>  		.of_match_table =3D goldfish_fb_of_match,
+> +		.acpi_match_table =3D ACPI_PTR(goldfish_fb_acpi_match),
+
+So does the emulator sometimes use devicetree and sometimes ACPI to
+match the device?
+
+ Tomi
+
+
+--MbIi88Mmom9KJvFWw6jHglhkpPxRipBD5--
+
+--vSMT206xPPkaL4fX8cL0jkuFWTt00A8ww
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: OpenPGP digital signature
+Content-Disposition: attachment; filename="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2
+
+iQIcBAEBCAAGBQJW3cnnAAoJEPo9qoy8lh71eX8P/2OWpugb8kzOwu67MoyNfTvX
+1sgqMi4bd1Eh3oYOOiupBa/9IKGJ6kzy5pPJ5Bz3hDn1EKCW330focGjxGRYo1Tm
+Q1+pqfGGovaWiE9OyKRhoSXVY/GxWhZlzK94YnIk9Nn55GcUG6LgO7dgwjEplXuE
+nFH/jzJ3Oi/fyNd42VXlQnPTBXPXb1Id494fvcr7zPf3XDz6BhdurIjMX+EEm/Gp
+ajCU8u/dr+6JECc2N1MmFJUpxNkvfIWOwr7sAe0xIx/wafut7g1lCaL8fQGmyUhP
+NlB06TswLrM0cLBW74E3P+E3E/Gu6zX4ozHHYAw1VvU/qQ/VEfogDlpUuVaLbxnF
+RgGkXCeWe09ZEuRa/Ip0AeCg2ODzVMkNqmfZvJ7htLTkK1JPz5QYjLX7p9HPwU1p
+W7rK4c+omeJ/b+xixI7L8sitoVw2XpJpopaAwHjYIGAkjEG7PlFKMCnEC7Jbwlk6
++cvuG/J6bcoaHh9hxfNwM11A/IfmQvFgM3e8PIbtaaOV+DBQsbYHOKOeLU4Dor7x
+iqUlfVsd6xk9URW8bzniyHpRROmOFf6OWcFZXCyK5ImPKu++ckoHlmCDl6UkzANN
+40XqIP3CiBiFBeQDSh98ADv+9sqX8CrDf6sscBFrLLvxydwtssl5DNAiEsV8/o+o
+aDYqeV2ZbsfazVzHuj+a
+=jBpQ
+-----END PGP SIGNATURE-----
+
+--vSMT206xPPkaL4fX8cL0jkuFWTt00A8ww--
