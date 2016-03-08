@@ -1,41 +1,111 @@
-From: Ingo Molnar <mingo@kernel.org>
-Subject: Re: [PATCH v2-UPDATE2 3/4] resource: Add device-managed
- insert/remove_resource()
-Date: Tue, 8 Mar 2016 18:33:07 +0100
-Message-ID: <20160308173307.GB3017@gmail.com>
-References: <1457460530-17959-1-git-send-email-toshi.kani@hpe.com>
+From: Bjorn Helgaas <helgaas@kernel.org>
+Subject: Re: [PATCH V2] acpi, pci, irq: account for early penalty assignment
+Date: Tue, 8 Mar 2016 11:35:54 -0600
+Message-ID: <20160308173554.GA19869@localhost>
+References: <56D7317F.7090500@codeaurora.org>
+ <56D7ABFB.3070302@codeaurora.org>
+ <56D84EA9.3080900@codeaurora.org>
+ <20160303151048.GA3290@localhost>
+ <56D8546B.5040908@codeaurora.org>
+ <56D8745D.70509@codeaurora.org>
+ <20160304180959.GA4794@localhost>
+ <56DDB28F.1040300@codeaurora.org>
+ <20160308002558.GC26149@localhost>
+ <alpine.DEB.2.11.1603080915240.3859@nanos>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-wm0-f68.google.com ([74.125.82.68]:34156 "EHLO
-	mail-wm0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753008AbcCHRdM (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 8 Mar 2016 12:33:12 -0500
+Received: from mail.kernel.org ([198.145.29.136]:48215 "EHLO mail.kernel.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752039AbcCHRf7 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 8 Mar 2016 12:35:59 -0500
 Content-Disposition: inline
-In-Reply-To: <1457460530-17959-1-git-send-email-toshi.kani@hpe.com>
+In-Reply-To: <alpine.DEB.2.11.1603080915240.3859@nanos>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Toshi Kani <toshi.kani@hpe.com>
-Cc: bp@suse.de, dan.j.williams@intel.com, rjw@rjwysocki.net, akpm@linux-foundation.org, linux-nvdimm@lists.01.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+To: Thomas Gleixner <tglx@linutronix.de>
+Cc: Sinan Kaya <okaya@codeaurora.org>, linux-acpi@vger.kernel.org, timur@codeaurora.org, cov@codeaurora.org, linux-pci@vger.kernel.org, ravikanth.nalla@hpe.com, lenb@kernel.org, harish.k@hpe.com, ashwin.reghunandanan@hpe.com, bhelgaas@google.com, rjw@rjwysocki.net, linux-kernel@vger.kernel.org
 
-
-* Toshi Kani <toshi.kani@hpe.com> wrote:
-
-> insert_resource() and remove_resouce() are called by producers
-> of resources, such as FW modules and bus drivers.  These modules
-> may be implemented as loadable modules.
+On Tue, Mar 08, 2016 at 09:22:13AM +0100, Thomas Gleixner wrote:
+> On Mon, 7 Mar 2016, Bjorn Helgaas wrote:
+> > On Mon, Mar 07, 2016 at 11:55:43AM -0500, Sinan Kaya wrote:
+> > > It makes sense for SCI as it is Intel specific.
+> > > 
+> > > Unfortunately, this cannot be done in an arch independent way. Of course,
+> > > ARM had to implement its own thing. While level-triggered, active-low is
+> > > good for intel world, it is not for the ARM world. ARM uses active-high
+> > > level triggered.
+> > 
+> > I'm confused.  I don't think SCI is Intel-specific.  Per PCI Spec
+> > r3.0, sec 2.2.6, PCI interrupts are level-sensitive, asserted low.
+> > Per ACPI Spec v3.0, sec 2.1, the SCI is an "active, low, shareable,
+> > level interrupt".
+> > 
+> > Are you saying SCI is active-high on ARM?  If so, I don't think that's
+> > necessarily a huge problem, although we'd have to audit the ACPI code
+> > to make sure we handle it correctly.
+> > 
+> > The point here is that a PCI Interrupt Link can only use an IRQ that
+> > is level-triggered, active low.  If an IRQ is already set to any other
+> > state, whether for an ISA device or for an active-high SCI, we can't
+> > use it for a PCI Interrupt Link.
+> > 
+> > It'd be nice if there were a generic way we could figure out what the
+> > trigger mode of an IRQ is.  I was hoping can_request_irq() was that
+> > way, but I don't think it is, because it only looks at IRQF_SHARED,
+> > not at IRQF_TRIGGER_LOW.
+> > 
+> > Maybe irq_get_trigger_type() is what we want?
 > 
-> Add device-managed implementaions of insert_resource() and
-> remove_resouce() functions.
+> Yes, that gives you the trigger typ, if the interrupt is already set up.
+>  
+> >   static int pci_compatible_trigger(int irq)
+> >   {
+> >     int type = irq_get_trigger_type(irq);
+> > 
+> >     return (type == IRQ_TYPE_LEVEL_LOW || type == IRQ_TYPE_NONE);
+> >   }
+> > 
+> >   static unsigned int acpi_irq_get_penalty(int irq)
+> >   {
+> >     unsigned int penalty = 0;
+> > 
+> >     if (irq == acpi_gbl_FADT.sci_interrupt)
+> >       penalty += PIRQ_PENALTY_PCI_USING;
+> > 
+> >     penalty += acpi_irq_pci_sharing_penalty(irq);
+> >     return penalty;
+> >   }
+> > 
+> >   static int acpi_pci_link_allocate(struct acpi_pci_link *link)
+> >   {
+> >     unsigned int best = ~0;
+> >     ...
+> > 
+> >     for (i = (link->irq.possible_count - 1); i >= 0; i--) {
+> >       candidate = link->irq.possible[i];
+> >       if (!pci_compatible_trigger(candidate))
+> >         continue;
+> > 
+> >       penalty = acpi_irq_get_penalty(candidate);
+> >       if (penalty < best) {
+> >         irq = candidate;
+> >         best = penalty;
+> >       }
+> >     }
+> >     ...
+> >   }
+> > 
+> > This looks racy, because we test irq_get_trigger_type() without any
+> > kind of locking, and later acpi_register_gsi() calls
+> > irq_create_fwspec_mapping(), which looks like it sets the new trigger
+> > type.  But I don't know how to fix that.
 > 
-> Signed-off-by: Toshi Kani <toshi.kani@hpe.com>
-> Cc: Ingo Molnar <mingo@kernel.org>
-> Cc: Borislav Petkov <bp@suse.de>
-> Cc: Andrew Morton <akpm@linux-foundation.org>
-> Cc: Dan Williams <dan.j.williams@intel.com>
+> Right, if that pci link allocation code can be executed concurrent, then you
+> might end up with problem, but isn't that a problem even without
+> irq_get_trigger_type()?
 
-Acked-by: Ingo Molnar <mingo@kernel.org>
+Yes.  It's not a new problem, I just noticed it since we're thinking
+more about the details of what's happening here.
 
-Thanks,
-
-	Ingo
+Bjorn
