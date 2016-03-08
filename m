@@ -1,73 +1,139 @@
-From: "Chen, Yu C" <yu.c.chen@intel.com>
-Subject: RE: [PATCH][RFC v3] ACPI / PM: Fix poweroff issue on HW-full
- platforms without _S5
-Date: Tue, 8 Mar 2016 16:25:30 +0000
-Message-ID: <36DF59CE26D8EE47B0655C516E9CE640286D370A@shsmsx102.ccr.corp.intel.com>
-References: <1457319045-25434-1-git-send-email-yu.c.chen@intel.com>
- <CAJZ5v0iWjW_XJEsVBM1yyimxUQMDaWapQ_OrN45TeFXFySd0rw@mail.gmail.com>
- <36DF59CE26D8EE47B0655C516E9CE640286D329F@shsmsx102.ccr.corp.intel.com>
- <2414254.VhAiD01BTS@vostro.rjw.lan>
+From: Toshi Kani <toshi.kani@hpe.com>
+Subject: Re: [PATCH v2-UPDATE 3/4] resource: Add device-managed
+ insert/remove_resource()
+Date: Tue, 08 Mar 2016 10:41:47 -0700
+Message-ID: <1457458907.15454.464.camel@hpe.com>
+References: <1457108082-4610-1-git-send-email-toshi.kani@hpe.com>
+	 <20160308120253.GA3599@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <linux-pm-owner@vger.kernel.org>
-In-Reply-To: <2414254.VhAiD01BTS@vostro.rjw.lan>
-Content-Language: en-US
-Sender: linux-pm-owner@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: "Rafael J. Wysocki" <rafael@kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, "x86@kernel.org" <x86@kernel.org>, "linux-efi@vger.kernel.org" <linux-efi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, "linux-pm@vger.kernel.org" <linux-pm@vger.kernel.org>, Len Brown <lenb@kernel.org>, Matt Fleming <matt@codeblueprint.co.uk>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, "Zhang, Rui" <rui.zhang@intel.com>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from g9t5009.houston.hp.com ([15.240.92.67]:44894 "EHLO
+	g9t5009.houston.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932380AbcCHQtM (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 8 Mar 2016 11:49:12 -0500
+In-Reply-To: <20160308120253.GA3599@gmail.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Ingo Molnar <mingo@kernel.org>
+Cc: bp@suse.de, dan.j.williams@intel.com, rjw@rjwysocki.net, akpm@linux-foundation.org, linux-nvdimm@lists.01.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Linus Torvalds <torvalds@linux-foundation.org>, Thomas Gleixner <tglx@linutronix.de>
 
-PiAtLS0tLU9yaWdpbmFsIE1lc3NhZ2UtLS0tLQ0KPiBGcm9tOiBsaW51eC1wbS1vd25lckB2Z2Vy
-Lmtlcm5lbC5vcmcgW21haWx0bzpsaW51eC1wbS0NCj4gb3duZXJAdmdlci5rZXJuZWwub3JnXSBP
-biBCZWhhbGYgT2YgUmFmYWVsIEouIFd5c29ja2kNCj4gU2VudDogVHVlc2RheSwgTWFyY2ggMDgs
-IDIwMTYgOTo1NCBBTQ0KPiBUbzogQ2hlbiwgWXUgQw0KPiBDYzogUmFmYWVsIEouIFd5c29ja2k7
-IEFDUEkgRGV2ZWwgTWFsaW5nIExpc3Q7IHg4NkBrZXJuZWwub3JnOyBsaW51eC0NCj4gZWZpQHZn
-ZXIua2VybmVsLm9yZzsgTGludXggS2VybmVsIE1haWxpbmcgTGlzdDsgbGludXgtcG1Admdlci5r
-ZXJuZWwub3JnOw0KPiBMZW4gQnJvd247IE1hdHQgRmxlbWluZzsgVGhvbWFzIEdsZWl4bmVyOyBJ
-bmdvIE1vbG5hcjsgSC4gUGV0ZXIgQW52aW47DQo+IFpoYW5nLCBSdWkNCj4gU3ViamVjdDogUmU6
-IFtQQVRDSF1bUkZDIHYzXSBBQ1BJIC8gUE06IEZpeCBwb3dlcm9mZiBpc3N1ZSBvbiBIVy1mdWxs
-DQo+IHBsYXRmb3JtcyB3aXRob3V0IF9TNQ0KPiANCj4gT24gTW9uZGF5LCBNYXJjaCAwNywgMjAx
-NiAwMzo1MzoxMyBQTSBDaGVuLCBZdSBDIHdyb3RlOg0KPiA+IEhpIFJhZmFlbCwNCj4gPiAocmVz
-ZW5kIGZvciBicm9rZW4gY29udGVudCkNCj4gPg0KPiA+ID4gLS0tLS1PcmlnaW5hbCBNZXNzYWdl
-LS0tLS0NCj4gPiA+IEZyb206IHJqd3lzb2NraUBnbWFpbC5jb20gW21haWx0bzpyand5c29ja2lA
-Z21haWwuY29tXSBPbiBCZWhhbGYgT2YNCj4gPiA+IFJhZmFlbCBKLiBXeXNvY2tpDQo+ID4gPiBT
-ZW50OiBNb25kYXksIE1hcmNoIDA3LCAyMDE2IDk6MTkgUE0NCj4gPiA+IFRvOiBDaGVuLCBZdSBD
-DQo+ID4gPiBDYzogQUNQSSBEZXZlbCBNYWxpbmcgTGlzdDsgeDg2QGtlcm5lbC5vcmc7DQo+ID4g
-PiBsaW51eC1lZmlAdmdlci5rZXJuZWwub3JnOyBMaW51eCBLZXJuZWwgTWFpbGluZyBMaXN0Ow0K
-PiA+ID4gbGludXgtcG1Admdlci5rZXJuZWwub3JnOyBSYWZhZWwgSi4gV3lzb2NraTsgTGVuIEJy
-b3duOyBNYXR0DQo+ID4gPiBGbGVtaW5nOyBUaG9tYXMgR2xlaXhuZXI7IEluZ28gTW9sbmFyOyBI
-LiBQZXRlciBBbnZpbjsgWmhhbmcsIFJ1aQ0KPiA+ID4gU3ViamVjdDogUmU6IFtQQVRDSF1bUkZD
-IHYzXSBBQ1BJIC8gUE06IEZpeCBwb3dlcm9mZiBpc3N1ZSBvbg0KPiA+ID4gSFctZnVsbCBwbGF0
-Zm9ybXMgd2l0aG91dCBfUzUNCj4gPiA+DQo+ID4gW2N1dF0NCj4gPiA+ID4gIGJvb2wgZWZpX3Bv
-d2Vyb2ZmX3JlcXVpcmVkKHZvaWQpDQo+ID4gPiA+ICB7DQo+ID4gPiA+IC0gICAgICAgcmV0dXJu
-ICEhYWNwaV9nYmxfcmVkdWNlZF9oYXJkd2FyZTsNCj4gPiA+ID4gKyAgICAgICByZXR1cm4gYWNw
-aV9nYmxfcmVkdWNlZF9oYXJkd2FyZSB8fCAoYWNwaV9ub19zNSAmJg0KPiA+ID4gPiArICFwbV9w
-b3dlcl9vZmYpOw0KPiA+ID4NCj4gPiA+IFdoYXQgaWYgQ09ORklHX0FDUEkgaXMgbm90IHNldCBo
-ZXJlPw0KPiA+IElmIENPTkZJR19BQ1BJIGlzIG5vdCBzZXQsIHRoaXMgZmlsZSB3b3VsZCBub3Qg
-YmUgY29tcGlsZWQsIGJlY2F1c2UNCj4gPiBDT05GSUdfRUZJIGRlcGVuZHMgb24gQ09ORklHX0FD
-UEkuDQo+IA0KPiBPSw0KPiANCj4gU28gdGhlIG5leHQgcXVlc3Rpb24gd2lsbCBiZSBpZiBlZmlf
-cG93ZXJvZmZfcmVxdWlyZWQoKSBpcyBndWFyYW50ZWVkIHRvIHJ1bg0KPiBhZnRlciBhbGwgb2Yg
-dGhlIG90aGVyIGNvZGUgdGhhdCBtYXkgcmVnaXN0ZXIgYWx0ZXJuYXRpdmUgcG93ZXIgb2ZmIGhh
-bmRsaW5nLg0KSHVtLiB1bmZvcnR1bmF0ZWx5IGl0IGlzIG5vdCBndWFyYW50ZWVkIHRvIHJ1biBh
-ZnRlciBhbGwgb2YgdGhlIG90aGVyIGNvZGUsDQpiZWNhdXNlIG90aGVyIGNvbXBvbmVudHMgd2hv
-IHJlZ2lzdGVyIHBtX3Bvd2VyX29mZiBtYXkgYmUgYnVpbHQgYXMgbW9kdWxlcywgYW5kDQp3ZSBj
-YW4gbm90IHByZWRpY3QvY29udHJvbCB0aGUgc2VxdWVuY2UgcmVnaXN0cmF0aW9uLiAgIFNvIHRo
-aXMgcGF0Y2ggbWF5DQpicmVhayB0aGUgRUZJIHBsYXRmb3JtcyB3aG8gdXNlIG5vbi1lZmkgcG93
-ZXJvZmYgZHVlIHRvIHVuc3RhYmxlIEVGSSBzZXJ2aWNlDQosICBub3Qgc3VyZSBpZiB0aGVyZSBh
-cmUgYW55IHJlbGVhc2VkLXByb2R1Y3RzIG9mIHRoaXMga2luZC4NCg0KQ3VycmVudGx5IEknbSB0
-aGlua2luZyBvZiAzIHBvc3NpYmxlIHNvbHV0aW9ucywgIGNvdWxkIHlvdSBwbGVhc2UgZ2l2ZSBz
-b21lIGFkdmljZXMgb24gdGhlbToNCg0KMS4gSW50cm9kdWNlIGJvb3RvcHQgb2YgJ3Bvd2Vyb2Zm
-PWVmaScNCiAgICAgU2V0IHRoZSBwbV9wb3dlcl9vZmYgdG8gZWZpX3Bvd2VyX29mZiBubyBtYXR0
-ZXIgd2hldGhlciB0aGVyZSBpcyBfUzUgb3Igbm90DQoNCjIuIEludHJvZHVjZSAvc3lzL3Bvd2Vy
-L3Bvd2Vyb2ZmDQogICAgQWxsb3cgdGhlIHVzZXIgdG8gY2hvb3NlIHdoaWNoICBwbV9wb3dlcl9v
-ZmYsIGZvciBleGFtcGxlOg0KIA0KIyBjYXQgL3N5cy9wb3dlci9wb3dlcm9mZg0KKmFjcGkJCWFj
-cGlfcG93ZXJfb2ZmDQplZmkJCWVmaV9wb3dlcl9vZmYJDQpncGlvCQlncGlvX3Bvd2Vyb2ZmX2Rv
-X3Bvd2Vyb2ZmDQp1c2VyIGNhbiBlY2hvIHN0cmluZyB0byBlbmFibGUgd2hpY2ggb25lLg0KDQpB
-bmQgdHdvIEFQSXM6DQpyZWdpc3Rlcl9wb3dlcl9vZmYoY2hhciAqbmFtZSwgcG93ZXJfb2ZmIGZ1
-bmMpDQp1bnJlZ2lzdGVyX3Bvd2VyX29mZihjaGFyICpuYW1lKSAgDQoNCg0KMy4gcmVwbGFjZSBh
-bGwgdGhlIGNvZGVzIG9mICBwbV9wb3dlcl9vZmYoKSB3aXRoIHJlbGlhYmxlX3BtX3Bvd2VyX29m
-ZigpDQoNCnZvaWQgcmVsaWFibGVfcG1fcG93ZXJfb2ZmKHZvaWQpDQp7DQoJaWYgKCFwbV9wb3dl
-cl9vZmYpIHsNCgkJaWYgKGFjcGlfbm9fczUpDQoJCQlwbV9wb3dlcl9vZmYgPSBlZmlfcG93ZXJf
-b2ZmOw0KCS8qIE90aGVyIGNvbmRpdGlvbnMgYWRkZWQgaW4gdGhlIGZ1dHVyZS4gKi8NCgl9DQoJ
-cG1fcG93ZXJfb2ZmKCk7DQp9DQoNCg0KdGhhbmtzLA0KeXUNCg==
+On Tue, 2016-03-08 at 13:02 +0100, Ingo Molnar wrote:
+> * Toshi Kani <toshi.kani@hpe.com> wrote:
+>=20
+> > +/**
+> > + * devm_insert_resource() - insert an I/O or memory resource
+> > + * @dev: device for which to produce the resource
+> > + * @root: root of the resource tree
+> > + * @new: descriptor of the new resource
+> > + *
+> > + * This is a device-managed version of insert_resource(). There is
+> > usually
+> > + * no need to release resources requested by this function explici=
+tly
+> > since
+>=20
+> s/explicitly since
+> =C2=A0/explicitly, since
+
+Will do.
+
+> > + * that will be taken care of when the device is unbound from its =
+bus
+> > driver.
+> > + * If for some reason the resource needs to be released explicitly=
+,
+> > because
+> > + * of ordering issues for example, bus drivers must call
+> > devm_remove_resource()
+> > + * rather than the regular remove_resource().
+> > + *
+> > + * devm_insert_resource() is intended for producers of resources, =
+such
+> > as
+> > + * FW modules and bus drivers.
+> > + *
+> > + * Returns 0 on success or a negative error code on failure.
+> > + */
+> > +int devm_insert_resource(struct device *dev, struct resource *root=
+,
+> > +			=C2=A0=C2=A0struct resource *new)
+> > +{
+> > +	struct resource **ptr;
+> > +	int ret;
+> > +
+> > +	ptr =3D devres_alloc(__devm_remove_resource, sizeof(*ptr),
+> > GFP_KERNEL);
+> > +	if (!ptr)
+> > +		return -ENOMEM;
+> > +
+> > +	*ptr =3D new;
+> > +
+> > +	ret =3D insert_resource(root, new);
+> > +	if (ret) {
+> > +		dev_err(dev, "unable to insert resource: %pR (%d)\n",
+> > new, ret);
+> > +		devres_free(ptr);
+> > +		return -EBUSY;
+>=20
+> Why not return 'ret' here, instead of -EBUSY?
+
+Right, I will change it to 'return ret'.
+
+> > +	}
+> > +
+> > +	devres_add(dev, ptr);
+> > +	return 0;
+> > +}
+> > +EXPORT_SYMBOL_GPL(devm_insert_resource);
+> > +
+> > +/**
+> > + * devm_remove_resource() - remove a previously inserted resource
+> > + * @dev: device for which to remove the resource
+> > + * @old: descriptor of the resource
+> > + *
+> > + * Remove a resource previously inserted using devm_insert_resourc=
+e().
+> > + *
+> > + * devm_remove_resource() is intended for producers of resources, =
+such
+> > as
+> > + * FW modules and bus drivers.
+> > + */
+> > +void devm_remove_resource(struct device *dev, struct resource *old=
+)
+> > +{
+> > +	WARN_ON(devres_release(dev, __devm_remove_resource,
+> > devm_resource_match,
+> > +			=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0old));
+>=20
+> So generally we don't put functions with side effects into WARN_ON()s=
+=2E
+> Just like BUG_ON(), in the future it might be disabled on certain
+> Kconfigs, etc. - and it's also bad for readability.
+>=20
+> Also, please use WARN_ON_ONCE().
+
+I see. =C2=A0Will change to test with WARN_ON_ONCE(ret).
+
+> > +}
+> > +EXPORT_SYMBOL_GPL(devm_remove_resource);
+> > +
+> > +/*
+> > =C2=A0 * Called from init/main.c to reserve IO ports.
+> > =C2=A0 */
+> > =C2=A0#define MAXRESERVE 4
+>=20
+> Looks good to me otherwise.
+
+Great! =C2=A0I will send an updated patch as "[PATCH v2-UPDATE2 3/4]".
+
+Thanks,
+-Toshi
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
