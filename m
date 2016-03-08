@@ -1,241 +1,220 @@
 From: Dan Williams <dan.j.williams@intel.com>
-Subject: [PATCH 1/3] nfit, libnvdimm: clear poison command support
-Date: Tue, 08 Mar 2016 14:47:18 -0800
-Message-ID: <20160308224718.16298.47066.stgit@dwillia2-desk3.jf.intel.com>
+Subject: [PATCH 3/3] libnvdimm, pmem: clear poison on write
+Date: Tue, 08 Mar 2016 14:47:29 -0800
+Message-ID: <20160308224729.16298.49406.stgit@dwillia2-desk3.jf.intel.com>
 References: <20160308224713.16298.33547.stgit@dwillia2-desk3.jf.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga01.intel.com ([192.55.52.88]:9876 "EHLO mga01.intel.com"
+Received: from mga02.intel.com ([134.134.136.20]:44277 "EHLO mga02.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751040AbcCHWrv (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 8 Mar 2016 17:47:51 -0500
+	id S1751621AbcCHWr4 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 8 Mar 2016 17:47:56 -0500
 In-Reply-To: <20160308224713.16298.33547.stgit@dwillia2-desk3.jf.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: linux-nvdimm@lists.01.org
-Cc: Vishal Verma <vishal.l.verma@intel.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
+Cc: Vishal Verma <vishal.l.verma@intel.com>, Ross Zwisler <ross.zwisler@linux.intel.com>, x86@kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
 
-Add the boiler-plate for a 'clear error' command based on section
-9.20.7.6 "Function Index 4 - Clear Uncorrectable Error" from the ACPI
-6.1 specification, and add a reference implementation in nfit_test.
+If a write is directed at a known bad block perform the following:
 
+1/ write the data
+
+2/ send a clear poison command
+
+3/ invalidate the poison out of the cache hierarchy
+
+Cc: <x86@kernel.org>
 Cc: Vishal Verma <vishal.l.verma@intel.com>
+Cc: Ross Zwisler <ross.zwisler@linux.intel.com>
 Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 ---
- drivers/acpi/nfit.c              |   12 +++++++++++-
- drivers/nvdimm/bus.c             |   19 +++++++++++++++++++
- include/uapi/linux/ndctl.h       |   13 +++++++++++++
- tools/testing/nvdimm/test/nfit.c |   29 +++++++++++++++++++++++++++++
- 4 files changed, 72 insertions(+), 1 deletion(-)
+ arch/x86/include/asm/pmem.h |    5 +++++
+ drivers/nvdimm/bus.c        |   46 +++++++++++++++++++++++++++++++++++++++++++
+ drivers/nvdimm/nd.h         |    2 ++
+ drivers/nvdimm/pmem.c       |   29 ++++++++++++++++++++++++++-
+ include/linux/pmem.h        |   19 ++++++++++++++++++
+ 5 files changed, 100 insertions(+), 1 deletion(-)
 
-diff --git a/drivers/acpi/nfit.c b/drivers/acpi/nfit.c
-index 0def4ebf5d43..c067d7414007 100644
---- a/drivers/acpi/nfit.c
-+++ b/drivers/acpi/nfit.c
-@@ -87,6 +87,7 @@ static struct acpi_device *to_acpi_dev(struct acpi_nfit_desc *acpi_desc)
- 
- static int xlat_status(void *buf, unsigned int cmd)
- {
-+	struct nd_cmd_clear_error *clear_err;
- 	struct nd_cmd_ars_status *ars_status;
- 	struct nd_cmd_ars_start *ars_start;
- 	struct nd_cmd_ars_cap *ars_cap;
-@@ -149,6 +150,15 @@ static int xlat_status(void *buf, unsigned int cmd)
- 		if (ars_status->status >> 16)
- 			return -EIO;
- 		break;
-+	case ND_CMD_CLEAR_ERROR:
-+		clear_err = buf;
-+		if (clear_err->status & 0xffff)
-+			return -EIO;
-+		if (!clear_err->cleared)
-+			return -EIO;
-+		if (clear_err->length > clear_err->cleared)
-+			return clear_err->cleared;
-+		break;
- 	default:
- 		break;
- 	}
-@@ -1002,7 +1012,7 @@ static void acpi_nfit_init_dsms(struct acpi_nfit_desc *acpi_desc)
- 	if (!adev)
- 		return;
- 
--	for (i = ND_CMD_ARS_CAP; i <= ND_CMD_ARS_STATUS; i++)
-+	for (i = ND_CMD_ARS_CAP; i <= ND_CMD_CLEAR_ERROR; i++)
- 		if (acpi_check_dsm(adev->handle, uuid, 1, 1ULL << i))
- 			set_bit(i, &nd_desc->dsm_mask);
+diff --git a/arch/x86/include/asm/pmem.h b/arch/x86/include/asm/pmem.h
+index c57fd1ea9689..bf8b35d2035a 100644
+--- a/arch/x86/include/asm/pmem.h
++++ b/arch/x86/include/asm/pmem.h
+@@ -137,6 +137,11 @@ static inline void arch_clear_pmem(void __pmem *addr, size_t size)
+ 	arch_wb_cache_pmem(addr, size);
  }
+ 
++static inline void arch_invalidate_pmem(void __pmem *addr, size_t size)
++{
++	clflush_cache_range((void __force *) addr, size);
++}
++
+ static inline bool __arch_has_wmb_pmem(void)
+ {
+ 	/*
 diff --git a/drivers/nvdimm/bus.c b/drivers/nvdimm/bus.c
-index 2e9ac22595ec..cb6fd64b13e3 100644
+index cb6fd64b13e3..33557481d452 100644
 --- a/drivers/nvdimm/bus.c
 +++ b/drivers/nvdimm/bus.c
-@@ -421,6 +421,12 @@ static const struct nd_cmd_desc __nd_cmd_bus_descs[] = {
- 		.out_num = 3,
- 		.out_sizes = { 4, 4, UINT_MAX, },
- 	},
-+	[ND_CMD_CLEAR_ERROR] = {
-+		.in_num = 2,
-+		.in_sizes = { 8, 8, },
-+		.out_num = 3,
-+		.out_sizes = { 4, 4, 8, },
-+	},
- };
+@@ -159,6 +159,52 @@ void nvdimm_region_notify(struct nd_region *nd_region, enum nvdimm_event event)
+ }
+ EXPORT_SYMBOL_GPL(nvdimm_region_notify);
  
- const struct nd_cmd_desc *nd_cmd_bus_desc(int cmd)
-@@ -489,6 +495,13 @@ void wait_nvdimm_bus_probe_idle(struct device *dev)
- 	} while (true);
++long nvdimm_clear_poison(struct device *dev, phys_addr_t phys,
++		unsigned int len)
++{
++	struct nvdimm_bus *nvdimm_bus = walk_to_nvdimm_bus(dev);
++	struct nvdimm_bus_descriptor *nd_desc;
++	struct nd_cmd_clear_error clear_err;
++	struct nd_cmd_ars_cap ars_cap;
++	u32 clear_err_unit, mask;
++	int cmd_rc, rc;
++
++	if (!nvdimm_bus)
++		return -ENXIO;
++
++	nd_desc = nvdimm_bus->nd_desc;
++	if (!nd_desc->ndctl)
++		return -ENXIO;
++
++	memset(&ars_cap, 0, sizeof(ars_cap));
++	ars_cap.address = phys;
++	ars_cap.length = len;
++	rc = nd_desc->ndctl(nd_desc, NULL, ND_CMD_ARS_CAP, &ars_cap,
++			sizeof(ars_cap), &cmd_rc);
++	if (rc < 0)
++		return rc;
++	if (cmd_rc < 0)
++		return cmd_rc;
++	clear_err_unit = ars_cap.clear_err_unit;
++	if (!clear_err_unit || !is_power_of_2(clear_err_unit))
++		return -ENXIO;
++
++	mask = clear_err_unit - 1;
++	if ((phys | len) & mask)
++		return -ENXIO;
++	memset(&clear_err, 0, sizeof(clear_err));
++	clear_err.address = phys;
++	clear_err.length = len;
++	rc = nd_desc->ndctl(nd_desc, NULL, ND_CMD_CLEAR_ERROR, &clear_err,
++			sizeof(clear_err), &cmd_rc);
++	if (rc < 0)
++		return rc;
++	if (cmd_rc < 0)
++		return cmd_rc;
++	return clear_err.cleared;
++}
++EXPORT_SYMBOL_GPL(nvdimm_clear_poison);
++
+ static struct bus_type nvdimm_bus_type = {
+ 	.name = "nd",
+ 	.uevent = nvdimm_bus_uevent,
+diff --git a/drivers/nvdimm/nd.h b/drivers/nvdimm/nd.h
+index 78b82f6dd191..1799bd97a9ce 100644
+--- a/drivers/nvdimm/nd.h
++++ b/drivers/nvdimm/nd.h
+@@ -186,6 +186,8 @@ int nvdimm_init_nsarea(struct nvdimm_drvdata *ndd);
+ int nvdimm_init_config_data(struct nvdimm_drvdata *ndd);
+ int nvdimm_set_config_data(struct nvdimm_drvdata *ndd, size_t offset,
+ 		void *buf, size_t len);
++long nvdimm_clear_poison(struct device *dev, phys_addr_t phys,
++		unsigned int len);
+ struct nd_btt *to_nd_btt(struct device *dev);
+ 
+ struct nd_gen_sb {
+diff --git a/drivers/nvdimm/pmem.c b/drivers/nvdimm/pmem.c
+index e7b86a7fca0a..adc387236fe7 100644
+--- a/drivers/nvdimm/pmem.c
++++ b/drivers/nvdimm/pmem.c
+@@ -62,17 +62,40 @@ static bool is_bad_pmem(struct badblocks *bb, sector_t sector, unsigned int len)
+ 	return false;
  }
  
-+static int pmem_active(struct device *dev, void *data)
++static void pmem_clear_poison(struct pmem_device *pmem, phys_addr_t offset,
++		unsigned int len)
 +{
-+	if (is_nd_pmem(dev) && dev->driver)
-+		return -EBUSY;
-+	return 0;
++	struct device *dev = disk_to_dev(pmem->pmem_disk);
++	sector_t sector;
++	long cleared;
++
++	sector = (offset - pmem->data_offset) / 512;
++	cleared = nvdimm_clear_poison(dev, pmem->phys_addr + offset, len);
++
++	if (cleared > 0 && cleared / 512) {
++		dev_dbg(dev, "%s: %llx clear %ld sector%s\n",
++				__func__, (unsigned long long) sector,
++				cleared / 512, cleared / 512 > 1 ? "s" : "");
++		badblocks_clear(&pmem->bb, sector, cleared / 512);
++	}
++	invalidate_pmem(pmem->virt_addr + offset, len);
 +}
 +
- /* set_config requires an idle interleave set */
- static int nd_cmd_clear_to_send(struct nvdimm_bus *nvdimm_bus,
- 		struct nvdimm *nvdimm, unsigned int cmd)
-@@ -503,6 +516,11 @@ static int nd_cmd_clear_to_send(struct nvdimm_bus *nvdimm_bus,
- 			return rc;
+ static int pmem_do_bvec(struct pmem_device *pmem, struct page *page,
+ 			unsigned int len, unsigned int off, int rw,
+ 			sector_t sector)
+ {
+ 	int rc = 0;
++	bool bad_pmem = false;
+ 	void *mem = kmap_atomic(page);
+ 	phys_addr_t pmem_off = sector * 512 + pmem->data_offset;
+ 	void __pmem *pmem_addr = pmem->virt_addr + pmem_off;
+ 
++	if (unlikely(is_bad_pmem(&pmem->bb, sector, len)))
++		bad_pmem = true;
++
+ 	if (rw == READ) {
+-		if (unlikely(is_bad_pmem(&pmem->bb, sector, len)))
++		if (unlikely(bad_pmem))
+ 			rc = -EIO;
+ 		else {
+ 			memcpy_from_pmem(mem + off, pmem_addr, len);
+@@ -81,6 +104,10 @@ static int pmem_do_bvec(struct pmem_device *pmem, struct page *page,
+ 	} else {
+ 		flush_dcache_page(page);
+ 		memcpy_to_pmem(pmem_addr, mem + off, len);
++		if (unlikely(bad_pmem)) {
++			pmem_clear_poison(pmem, pmem_off, len);
++			memcpy_to_pmem(pmem_addr, mem + off, len);
++		}
  	}
  
-+	/* require clear error to go through the pmem driver */
-+	if (!nvdimm && cmd == ND_CMD_CLEAR_ERROR)
-+		return device_for_each_child(&nvdimm_bus->dev, NULL,
-+				pmem_active);
-+
- 	if (!nvdimm || cmd != ND_CMD_SET_CONFIG_DATA)
- 		return 0;
- 
-@@ -551,6 +569,7 @@ static int __nd_ioctl(struct nvdimm_bus *nvdimm_bus, struct nvdimm *nvdimm,
- 		case ND_CMD_VENDOR:
- 		case ND_CMD_SET_CONFIG_DATA:
- 		case ND_CMD_ARS_START:
-+		case ND_CMD_CLEAR_ERROR:
- 			dev_dbg(&nvdimm_bus->dev, "'%s' command while read-only.\n",
- 					nvdimm ? nvdimm_cmd_name(cmd)
- 					: nvdimm_bus_cmd_name(cmd));
-diff --git a/include/uapi/linux/ndctl.h b/include/uapi/linux/ndctl.h
-index cc68b92124d4..0f001c571cdd 100644
---- a/include/uapi/linux/ndctl.h
-+++ b/include/uapi/linux/ndctl.h
-@@ -98,6 +98,14 @@ struct nd_cmd_ars_status {
- 	} __packed records[0];
- } __packed;
- 
-+struct nd_cmd_clear_error {
-+	__u64 address;
-+	__u64 length;
-+	__u32 status;
-+	__u8 reserved[4];
-+	__u64 cleared;
-+} __packed;
-+
- enum {
- 	ND_CMD_IMPLEMENTED = 0,
- 
-@@ -105,6 +113,7 @@ enum {
- 	ND_CMD_ARS_CAP = 1,
- 	ND_CMD_ARS_START = 2,
- 	ND_CMD_ARS_STATUS = 3,
-+	ND_CMD_CLEAR_ERROR = 4,
- 
- 	/* per-dimm commands */
- 	ND_CMD_SMART = 1,
-@@ -129,6 +138,7 @@ static inline const char *nvdimm_bus_cmd_name(unsigned cmd)
- 		[ND_CMD_ARS_CAP] = "ars_cap",
- 		[ND_CMD_ARS_START] = "ars_start",
- 		[ND_CMD_ARS_STATUS] = "ars_status",
-+		[ND_CMD_CLEAR_ERROR] = "clear_error",
- 	};
- 
- 	if (cmd < ARRAY_SIZE(names) && names[cmd])
-@@ -187,6 +197,9 @@ static inline const char *nvdimm_cmd_name(unsigned cmd)
- #define ND_IOCTL_ARS_STATUS		_IOWR(ND_IOCTL, ND_CMD_ARS_STATUS,\
- 					struct nd_cmd_ars_status)
- 
-+#define ND_IOCTL_CLEAR_ERROR		_IOWR(ND_IOCTL, ND_CMD_CLEAR_ERROR,\
-+					struct nd_cmd_ars_status)
-+
- #define ND_DEVICE_DIMM 1            /* nd_dimm: container for "config data" */
- #define ND_DEVICE_REGION_PMEM 2     /* nd_region: (parent of PMEM namespaces) */
- #define ND_DEVICE_REGION_BLK 3      /* nd_region: (parent of BLK namespaces) */
-diff --git a/tools/testing/nvdimm/test/nfit.c b/tools/testing/nvdimm/test/nfit.c
-index 1555c09efba1..3187322eeed7 100644
---- a/tools/testing/nvdimm/test/nfit.c
-+++ b/tools/testing/nvdimm/test/nfit.c
-@@ -223,6 +223,7 @@ static int nfit_test_cmd_set_config_data(struct nd_cmd_set_config_hdr *nd_cmd,
+ 	kunmap_atomic(mem);
+diff --git a/include/linux/pmem.h b/include/linux/pmem.h
+index 7c3d11a6b4ad..3ec5309e29f3 100644
+--- a/include/linux/pmem.h
++++ b/include/linux/pmem.h
+@@ -58,6 +58,11 @@ static inline void arch_wb_cache_pmem(void __pmem *addr, size_t size)
+ {
+ 	BUG();
  }
- 
- #define NFIT_TEST_ARS_RECORDS 4
-+#define NFIT_TEST_CLEAR_ERR_UNIT 256
- 
- static int nfit_test_cmd_ars_cap(struct nd_cmd_ars_cap *nd_cmd,
- 		unsigned int buf_len)
-@@ -233,6 +234,7 @@ static int nfit_test_cmd_ars_cap(struct nd_cmd_ars_cap *nd_cmd,
- 	nd_cmd->max_ars_out = sizeof(struct nd_cmd_ars_status)
- 		+ NFIT_TEST_ARS_RECORDS * sizeof(struct nd_ars_record);
- 	nd_cmd->status = (ND_ARS_PERSISTENT | ND_ARS_VOLATILE) << 16;
-+	nd_cmd->clear_err_unit = NFIT_TEST_CLEAR_ERR_UNIT;
- 
- 	return 0;
- }
-@@ -306,6 +308,28 @@ static int nfit_test_cmd_ars_status(struct ars_state *ars_state,
- 	return 0;
- }
- 
-+static int nfit_test_cmd_clear_error(struct nd_cmd_clear_error *clear_err,
-+		unsigned int buf_len, int *cmd_rc)
++
++static inline void arch_invalidate_pmem(void __pmem *addr, size_t size)
 +{
-+	const u64 mask = NFIT_TEST_CLEAR_ERR_UNIT - 1;
-+	if (buf_len < sizeof(*clear_err))
-+		return -EINVAL;
-+
-+	if ((clear_err->address & mask) || (clear_err->length & mask))
-+		return -EINVAL;
-+
-+	/*
-+	 * Report 'all clear' success for all commands even though a new
-+	 * scrub will find errors again.  This is enough to have the
-+	 * error removed from the 'badblocks' tracking in the pmem
-+	 * driver.
-+	 */
-+	clear_err->status = 0;
-+	clear_err->cleared = clear_err->length;
-+	*cmd_rc = 0;
-+	return 0;
++	BUG();
++}
+ #endif
+ 
+ /*
+@@ -186,6 +191,20 @@ static inline void clear_pmem(void __pmem *addr, size_t size)
+ }
+ 
+ /**
++ * invalidate_pmem - flush a pmem range from the cache hierarchy
++ * @addr:	virtual start address
++ * @size:	bytes to invalidate (internally aligned to cache line size)
++ *
++ * For platforms that support clearing poison this flushes any poisoned
++ * ranges out of the cache
++ */
++static inline void invalidate_pmem(void __pmem *addr, size_t size)
++{
++	if (arch_has_pmem_api())
++		arch_invalidate_pmem(addr, size);
 +}
 +
- static int nfit_test_ctl(struct nvdimm_bus_descriptor *nd_desc,
- 		struct nvdimm *nvdimm, unsigned int cmd, void *buf,
- 		unsigned int buf_len, int *cmd_rc)
-@@ -365,6 +389,9 @@ static int nfit_test_ctl(struct nvdimm_bus_descriptor *nd_desc,
- 			rc = nfit_test_cmd_ars_status(ars_state, buf, buf_len,
- 					cmd_rc);
- 			break;
-+		case ND_CMD_CLEAR_ERROR:
-+			rc = nfit_test_cmd_clear_error(buf, buf_len, cmd_rc);
-+			break;
- 		default:
- 			return -ENOTTY;
- 		}
-@@ -1230,6 +1257,7 @@ static void nfit_test0_setup(struct nfit_test *t)
- 	set_bit(ND_CMD_ARS_CAP, &acpi_desc->bus_dsm_force_en);
- 	set_bit(ND_CMD_ARS_START, &acpi_desc->bus_dsm_force_en);
- 	set_bit(ND_CMD_ARS_STATUS, &acpi_desc->bus_dsm_force_en);
-+	set_bit(ND_CMD_CLEAR_ERROR, &acpi_desc->bus_dsm_force_en);
- }
- 
- static void nfit_test1_setup(struct nfit_test *t)
-@@ -1290,6 +1318,7 @@ static void nfit_test1_setup(struct nfit_test *t)
- 	set_bit(ND_CMD_ARS_CAP, &acpi_desc->bus_dsm_force_en);
- 	set_bit(ND_CMD_ARS_START, &acpi_desc->bus_dsm_force_en);
- 	set_bit(ND_CMD_ARS_STATUS, &acpi_desc->bus_dsm_force_en);
-+	set_bit(ND_CMD_CLEAR_ERROR, &acpi_desc->bus_dsm_force_en);
- }
- 
- static int nfit_test_blk_do_io(struct nd_blk_region *ndbr, resource_size_t dpa,
++/**
+  * wb_cache_pmem - write back processor cache for PMEM memory range
+  * @addr:	virtual start address
+  * @size:	number of bytes to write back
 
