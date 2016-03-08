@@ -1,82 +1,82 @@
-From: Sinan Kaya <okaya@codeaurora.org>
-Subject: Re: [PATCH V2] acpi, pci, irq: account for early penalty assignment
-Date: Tue, 8 Mar 2016 14:04:56 -0500
-Message-ID: <56DF2258.8020004@codeaurora.org>
-References: <20160301194340.GA19783@localhost>
- <56D7317F.7090500@codeaurora.org> <56D7ABFB.3070302@codeaurora.org>
- <56D84EA9.3080900@codeaurora.org> <20160303151048.GA3290@localhost>
- <56D8546B.5040908@codeaurora.org> <56D8745D.70509@codeaurora.org>
- <20160304180959.GA4794@localhost> <56DDB28F.1040300@codeaurora.org>
- <20160308002558.GC26149@localhost> <20160308002909.GA13250@localhost>
+From: Peter Zijlstra <peterz@infradead.org>
+Subject: Re: [PATCH 6/6] cpufreq: schedutil: New governor based on scheduler
+ utilization data
+Date: Tue, 8 Mar 2016 20:26:40 +0100
+Message-ID: <20160308192640.GD6344@twins.programming.kicks-ass.net>
+References: <2495375.dFbdlAZmA6@vostro.rjw.lan>
+ <CAJZ5v0h47h-xW6a4jzwRuOOOSG+qsD9hegM7QCzbD8Wb-yPVKQ@mail.gmail.com>
+ <56D8AEB7.2050100@linaro.org>
+ <36459679.vzZnOsAVeg@vostro.rjw.lan>
+ <20160308112759.GF6356@twins.programming.kicks-ass.net>
+ <CAJZ5v0i+KFmpggrGKqtL_SB1=Fv=b_AbVeL-9jPfo4rYt6-q5A@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp.codeaurora.org ([198.145.29.96]:41683 "EHLO
-	smtp.codeaurora.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750747AbcCHTFA (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 8 Mar 2016 14:05:00 -0500
-In-Reply-To: <20160308002909.GA13250@localhost>
+Received: from bombadil.infradead.org ([198.137.202.9]:47971 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750701AbcCHT0s (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 8 Mar 2016 14:26:48 -0500
+Content-Disposition: inline
+In-Reply-To: <CAJZ5v0i+KFmpggrGKqtL_SB1=Fv=b_AbVeL-9jPfo4rYt6-q5A@mail.gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Bjorn Helgaas <helgaas@kernel.org>
-Cc: linux-acpi@vger.kernel.org, timur@codeaurora.org, cov@codeaurora.org, linux-pci@vger.kernel.org, ravikanth.nalla@hpe.com, lenb@kernel.org, harish.k@hpe.com, ashwin.reghunandanan@hpe.com, bhelgaas@google.com, rjw@rjwysocki.net, linux-kernel@vger.kernel.org, Thomas Gleixner <tglx@linutronix.de>
+To: "Rafael J. Wysocki" <rafael@kernel.org>
+Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Steve Muckle <steve.muckle@linaro.org>, Vincent Guittot <vincent.guittot@linaro.org>, Linux PM list <linux-pm@vger.kernel.org>, Juri Lelli <juri.lelli@arm.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>, Viresh Kumar <viresh.kumar@linaro.org>, Michael Turquette <mturquette@baylibre.com>, Ingo Molnar <mingo@redhat.com>
 
+On Tue, Mar 08, 2016 at 07:00:57PM +0100, Rafael J. Wysocki wrote:
+> On Tue, Mar 8, 2016 at 12:27 PM, Peter Zijlstra <peterz@infradead.org> wrote:
 
->>>> I think there are two issues here that should be teased apart a bit
->>>> more:
->>>>
->>>>   1) Trigger settings: If the IRQ is configured as anything other than
->>>>   level-triggered, active-low, we can't use it at all for a PCI
->>>>   interrupt, and we should return an "infinite" penalty.  We currently
->>>>   increase the penalty for the SCI IRQ if it's not level/low, but
->>>>   doesn't it apply to *all* IRQs, not just the SCI IRQ?
->>>
->>> It makes sense for SCI as it is Intel specific.
->>>
->>> Unfortunately, this cannot be done in an arch independent way. Of course,
->>> ARM had to implement its own thing. While level-triggered, active-low is
->>> good for intel world, it is not for the ARM world. ARM uses active-high
->>> level triggered.
->>
->> I'm confused.  I don't think SCI is Intel-specific.  Per PCI Spec
->> r3.0, sec 2.2.6, PCI interrupts are level-sensitive, asserted low.
->> Per ACPI Spec v3.0, sec 2.1, the SCI is an "active, low, shareable,
->> level interrupt".
->>
->> Are you saying SCI is active-high on ARM?  If so, I don't think that's
->> necessarily a huge problem, although we'd have to audit the ACPI code
->> to make sure we handle it correctly.
+> > Seeing how frequency invariance is an arch feature, and cpufreq drivers
+> > are also typically arch specific, do we really need a flag at this
+> > level?
+> 
+> The next frequency is selected by the governor and that's why.  The
+> driver gets a frequency to set only.
+> 
+> Now, the governor needs to work with different platforms, so it needs
+> to know how to deal with the given one.
 
-We don't have an SCI interrupt on ARM. That's why, I assumed it is an Intel specific
-interrupt. However, all legacy interrupts are active-high level sensitive. This is a
-limitation of the ARM GIC Interrupt Controller.
+Ah, indeed. In any case, the availability of arch_sched_scale_freq() is
+a compile time thingy, so we can, at compile time, know what to use.
 
-Here is what a PCI Link object looks like.
+> > In any case, I think the only difference between the two formula should
+> > be the addition of (1) for the platforms that do not already implement
+> > frequency invariance.
+> 
+> OK
+> 
+> So I'm reading this as a statement that linear is a better
+> approximation for frequency invariant utilization.
 
-Device(LN0D){
-	Name(_HID, EISAID("PNP0C0F")) // PCI interrupt link
-	Name(_UID, 4)
-	Name(_PRS, ResourceTemplate(){
-		Interrupt(ResourceProducer, Level, ActiveHigh, Exclusive, , ,) {123}
-	})
-	Method(_DIS) {}
-	Method(_CRS) { Return (_PRS) }
-	Method(_SRS, 1) {}
-} 
+Well, (1) is what the scheduler does with frequency invariance, except
+that allows a more flexible definition of 'current frequency' by asking
+for it every time we update the util stats.
 
->>
->> The point here is that a PCI Interrupt Link can only use an IRQ that
->> is level-triggered, active low.  If an IRQ is already set to any other
->> state, whether for an ISA device or for an active-high SCI, we can't
->> use it for a PCI Interrupt Link.
+But if a platform doesn't need this, ie. it has a fixed frequency, or
+simply doesn't provide anything like this, assuming we run at the
+frequency we asked for is a reasonable assumption no?
 
-Unfortunately, this still doesn't hold. 
+> This means that on platforms where the utilization is frequency
+> invariant we should use
+> 
+>   next_freq = a * x
+> 
+> (where x is given by (2) above) and for platforms where the
+> utilization is not frequency invariant
+> 
+>   next_freq = a * x * current_freq / max_freq
+> 
+> and all boils down to finding a.
 
-A patch is long overdue for this series. I'll post v3. We can go from there.
+Right.
 
+> Now, it seems reasonable for a to be something like (1 + 1/n) *
+> max_freq, so for non-frequency invariant we get
+> 
+>   nex_freq = (1 + 1/n) * current_freq * x
 
--- 
-Sinan Kaya
-Qualcomm Technologies, Inc. on behalf of Qualcomm Innovation Center, Inc.
-Qualcomm Innovation Center, Inc. is a member of Code Aurora Forum, a Linux Foundation Collaborative Project
+This seems like a big leap; where does:
+
+  (1 + 1/n) * max_freq
+
+come from? And what is 'n'?
