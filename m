@@ -1,72 +1,106 @@
-From: Peter Zijlstra <peterz@infradead.org>
-Subject: Re: [PATCH 6/6] cpufreq: schedutil: New governor based on scheduler
- utilization data
-Date: Tue, 8 Mar 2016 12:27:59 +0100
-Message-ID: <20160308112759.GF6356@twins.programming.kicks-ass.net>
-References: <2495375.dFbdlAZmA6@vostro.rjw.lan>
- <CAJZ5v0h47h-xW6a4jzwRuOOOSG+qsD9hegM7QCzbD8Wb-yPVKQ@mail.gmail.com>
- <56D8AEB7.2050100@linaro.org>
- <36459679.vzZnOsAVeg@vostro.rjw.lan>
+From: Ingo Molnar <mingo@kernel.org>
+Subject: Re: [PATCH v2-UPDATE 3/4] resource: Add device-managed
+ insert/remove_resource()
+Date: Tue, 8 Mar 2016 13:02:53 +0100
+Message-ID: <20160308120253.GA3599@gmail.com>
+References: <1457108082-4610-1-git-send-email-toshi.kani@hpe.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-pm-owner@vger.kernel.org>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-wm0-f67.google.com ([74.125.82.67]:34113 "EHLO
+	mail-wm0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752384AbcCHMC6 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 8 Mar 2016 07:02:58 -0500
 Content-Disposition: inline
-In-Reply-To: <36459679.vzZnOsAVeg@vostro.rjw.lan>
-Sender: linux-pm-owner@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: Steve Muckle <steve.muckle@linaro.org>, "Rafael J. Wysocki" <rafael@kernel.org>, Vincent Guittot <vincent.guittot@linaro.org>, Linux PM list <linux-pm@vger.kernel.org>, Juri Lelli <juri.lelli@arm.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>, Viresh Kumar <viresh.kumar@linaro.org>, Michael Turquette <mturquette@baylibre.com>, Ingo Molnar <mingo@redhat.com>
+In-Reply-To: <1457108082-4610-1-git-send-email-toshi.kani@hpe.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Toshi Kani <toshi.kani@hpe.com>
+Cc: bp@suse.de, dan.j.williams@intel.com, rjw@rjwysocki.net, akpm@linux-foundation.org, linux-nvdimm@lists.01.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Linus Torvalds <torvalds@linux-foundation.org>, Thomas Gleixner <tglx@linutronix.de>
 
-On Mon, Mar 07, 2016 at 03:41:15AM +0100, Rafael J. Wysocki wrote:
 
-> If my understanding of the requency invariant utilization idea is correct,
-> it is about re-scaling utilization so it is always relative to the capacity
-> at the max frequency.
+* Toshi Kani <toshi.kani@hpe.com> wrote:
 
-Right. So if a workload runs for 5ms at @1GHz and 10ms @500MHz, it would
-still result in the exact same utilization.
+> +/**
+> + * devm_insert_resource() - insert an I/O or memory resource
+> + * @dev: device for which to produce the resource
+> + * @root: root of the resource tree
+> + * @new: descriptor of the new resource
+> + *
+> + * This is a device-managed version of insert_resource(). There is usually
+> + * no need to release resources requested by this function explicitly since
 
-> If that's the case, then instead of using
->   x = util_raw / max
-> we will use something like
->   y = (util_raw / max) * (f / max_freq) (f - current frequency).
+s/explicitly since
+ /explicitly, since
 
-I don't get the last term. Assuming fixed frequency hardware (we can't
-really assume anything else) I get to:
+> + * that will be taken care of when the device is unbound from its bus driver.
+> + * If for some reason the resource needs to be released explicitly, because
+> + * of ordering issues for example, bus drivers must call devm_remove_resource()
+> + * rather than the regular remove_resource().
+> + *
+> + * devm_insert_resource() is intended for producers of resources, such as
+> + * FW modules and bus drivers.
+> + *
+> + * Returns 0 on success or a negative error code on failure.
+> + */
+> +int devm_insert_resource(struct device *dev, struct resource *root,
+> +			  struct resource *new)
+> +{
+> +	struct resource **ptr;
+> +	int ret;
+> +
+> +	ptr = devres_alloc(__devm_remove_resource, sizeof(*ptr), GFP_KERNEL);
+> +	if (!ptr)
+> +		return -ENOMEM;
+> +
+> +	*ptr = new;
+> +
+> +	ret = insert_resource(root, new);
+> +	if (ret) {
+> +		dev_err(dev, "unable to insert resource: %pR (%d)\n", new, ret);
+> +		devres_free(ptr);
+> +		return -EBUSY;
 
-  util = util_raw * (current_freq / max_freq)		(1)
-  x = util / max					(2)
+Why not return 'ret' here, instead of -EBUSY?
 
-> so there's no hope that the same formula will ever work for both "raw"
-> and "frequency invariant" utilization.
+> +	}
+> +
+> +	devres_add(dev, ptr);
+> +	return 0;
+> +}
+> +EXPORT_SYMBOL_GPL(devm_insert_resource);
+> +
+> +/**
+> + * devm_remove_resource() - remove a previously inserted resource
+> + * @dev: device for which to remove the resource
+> + * @old: descriptor of the resource
+> + *
+> + * Remove a resource previously inserted using devm_insert_resource().
+> + *
+> + * devm_remove_resource() is intended for producers of resources, such as
+> + * FW modules and bus drivers.
+> + */
+> +void devm_remove_resource(struct device *dev, struct resource *old)
+> +{
+> +	WARN_ON(devres_release(dev, __devm_remove_resource, devm_resource_match,
+> +			       old));
 
-Here I agree, however the above (current_freq / max_freq) term is easily
-computable, and really the only thing we can assume if the arch doesn't
-implement freq invariant accounting.
+So generally we don't put functions with side effects into WARN_ON()s. Just like 
+BUG_ON(), in the future it might be disabled on certain Kconfigs, etc. - and it's 
+also bad for readability.
 
-> (c) Code for using either "raw" or "frequency invariant" depending on
->     a callback flag or something like that.
+Also, please use WARN_ON_ONCE().
 
-Seeing how frequency invariance is an arch feature, and cpufreq drivers
-are also typically arch specific, do we really need a flag at this
-level?
+> +}
+> +EXPORT_SYMBOL_GPL(devm_remove_resource);
+> +
+> +/*
+>   * Called from init/main.c to reserve IO ports.
+>   */
+>  #define MAXRESERVE 4
 
-In any case, I think the only difference between the two formula should
-be the addition of (1) for the platforms that do not already implement
-frequency invariance.
+Looks good to me otherwise.
 
-That is actually correct for platforms which do as told with their DVFS
-bits. And there's really not much else we can do short of implementing
-the scheduler arch hook to do better.
+Thanks,
 
-> (b) Make all architecuters use "frequency invariant" and then look for a
->     working formula (seems rather less than realistic to me to be honest).
-
-There was a proposal to implement arch_scale_freq_capacity() as a weak
-function and have it serve the cpufreq selected frequency for (1) so
-that everything would default to that.
-
-We didn't do that because that makes the function call and
-multiplications unconditional. It's cheaper to add (1) to the cpufreq
-side when selecting a freq rather than at every single time we update
-the util statistics.
+	Ingo
