@@ -1,160 +1,74 @@
-From: Bjorn Helgaas <helgaas@kernel.org>
-Subject: Re: [PATCH v2] PCI: ACPI: IA64: fix IO port generic range check
-Date: Tue, 8 Mar 2016 17:11:24 -0600
-Message-ID: <20160308231124.GB11153@localhost>
-References: <1455212827-9382-1-git-send-email-lorenzo.pieralisi@arm.com>
- <20160308222125.GG27132@localhost>
- <CAJZ5v0gnDnF_4z_mtZp+Tq8-V3FgG6p7kMykqtVA+s44ukkuaA@mail.gmail.com>
+From: Linus Torvalds <torvalds@linux-foundation.org>
+Subject: Re: [PATCH v2-UPDATE2 3/4] resource: Add device-managed insert/remove_resource()
+Date: Tue, 8 Mar 2016 15:31:09 -0800
+Message-ID: <CA+55aFxJqjvsSz7eeobViGShoJV=FSx9gDbxK_L0WvSnh3xa3w@mail.gmail.com>
+References: <1457460530-17959-1-git-send-email-toshi.kani@hpe.com>
+	<CA+55aFy=V-esUXZa2AogS685k+r9PyyNStkZrrUUkWSKvLFUGQ@mail.gmail.com>
+	<CAPcyv4gT1RvnEquYXVo7sZscdUrkiWpG-Yvr_EX4=L25397X0g@mail.gmail.com>
+	<CA+55aFxPn3J68MsqQd7OVv7jetZjPduP53MFmw2f_-z7=ebpXQ@mail.gmail.com>
+	<CAPcyv4i2GwujqK=MDJpSKhvufJprmCV4vmQRpS_UP-n1kau+mg@mail.gmail.com>
+	<1457481844.15454.510.camel@hpe.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-pci-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <CAJZ5v0gnDnF_4z_mtZp+Tq8-V3FgG6p7kMykqtVA+s44ukkuaA@mail.gmail.com>
-Sender: linux-pci-owner@vger.kernel.org
-To: "Rafael J. Wysocki" <rafael@kernel.org>
-Cc: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Linux PCI <linux-pci@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, "linux-ia64@vger.kernel.org" <linux-ia64@vger.kernel.org>, Bjorn Helgaas <bhelgaas@google.com>, Hanjun Guo <hanjun.guo@linaro.org>, Jiang Liu <jiang.liu@linux.intel.com>, Tony Luck <tony.luck@intel.com>, Tomasz Nowicki <tn@semihalf.com>, Mark Salter <msalter@redhat.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-ig0-f194.google.com ([209.85.213.194]:36852 "EHLO
+	mail-ig0-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750985AbcCHXbK (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 8 Mar 2016 18:31:10 -0500
+In-Reply-To: <1457481844.15454.510.camel@hpe.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Toshi Kani <toshi.kani@hpe.com>
+Cc: Dan Williams <dan.j.williams@intel.com>, Ingo Molnar <mingo@kernel.org>, Borislav Petkov <bp@suse.de>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Andrew Morton <akpm@linux-foundation.org>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, Linux ACPI <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
 
-On Tue, Mar 08, 2016 at 11:27:01PM +0100, Rafael J. Wysocki wrote:
-> On Tue, Mar 8, 2016 at 11:21 PM, Bjorn Helgaas <helgaas@kernel.org> wrote:
-> > On Thu, Feb 11, 2016 at 05:47:07PM +0000, Lorenzo Pieralisi wrote:
-> >> The [0 - 64k] ACPI PCI IO port resource boundary check in:
-> >>
-> >> acpi_dev_ioresource_flags()
-> >>
-> >> is currently applied blindly in the ACPI resource parsing to all
-> >> architectures, but only x86 suffers from that IO space limitation.
-> >>
-> >> On arches (ie IA64 and ARM64) where IO space is memory mapped,
-> >> the PCI root bridges IO resource windows are firstly initialized from
-> >> the _CRS (in acpi_decode_space()) and contain the CPU physical address
-> >> at which a root bridge decodes IO space in the CPU physical address
-> >> space with the offset value representing the offset required to translate
-> >> the PCI bus address into the CPU physical address.
-> >>
-> >> The IO resource windows are then parsed and updated in arch code
-> >> before creating and enumerating PCI buses (eg IA64 add_io_space())
-> >> to map in an arch specific way the obtained CPU physical address range
-> >> to a slice of virtual address space reserved to map PCI IO space,
-> >> ending up with PCI bridges resource windows containing IO
-> >> resources like the following on a working IA64 configuration:
-> >>
-> >> PCI host bridge to bus 0000:00
-> >> pci_bus 0000:00: root bus resource [io  0x1000000-0x100ffff window] (bus
-> >> address [0x0000-0xffff])
-> >> pci_bus 0000:00: root bus resource [mem 0x000a0000-0x000fffff window]
-> >> pci_bus 0000:00: root bus resource [mem 0x80000000-0x8fffffff window]
-> >> pci_bus 0000:00: root bus resource [mem 0x80004000000-0x800ffffffff window]
-> >> pci_bus 0000:00: root bus resource [bus 00]
-> >>
-> >> This implies that the [0 - 64K] check in acpi_dev_ioresource_flags()
-> >> leaves platforms with memory mapped IO space (ie IA64) broken (ie kernel
-> >> can't claim IO resources since the host bridge IO resource is disabled
-> >> and discarded by ACPI core code, see log on IA64 with missing root bridge
-> >> IO resource, silently filtered by current [0 - 64k] check in
-> >> acpi_dev_ioresource_flags()):
-> >>
-> >> PCI host bridge to bus 0000:00
-> >> pci_bus 0000:00: root bus resource [mem 0x000a0000-0x000fffff window]
-> >> pci_bus 0000:00: root bus resource [mem 0x80000000-0x8fffffff window]
-> >> pci_bus 0000:00: root bus resource [mem 0x80004000000-0x800ffffffff window]
-> >> pci_bus 0000:00: root bus resource [bus 00]
-> >>
-> >> [...]
-> >>
-> >> pci 0000:00:03.0: [1002:515e] type 00 class 0x030000
-> >> pci 0000:00:03.0: reg 0x10: [mem 0x80000000-0x87ffffff pref]
-> >> pci 0000:00:03.0: reg 0x14: [io  0x1000-0x10ff]
-> >> pci 0000:00:03.0: reg 0x18: [mem 0x88020000-0x8802ffff]
-> >> pci 0000:00:03.0: reg 0x30: [mem 0x88000000-0x8801ffff pref]
-> >> pci 0000:00:03.0: supports D1 D2
-> >> pci 0000:00:03.0: can't claim BAR 1 [io  0x1000-0x10ff]: no compatible
-> >> bridge window
-> >>
-> >> For this reason, the IO port resources boundaries check in generic ACPI
-> >> parsing code should be moved to x86 arch code so that more arches (ie
-> >> ARM64) can benefit from the generic ACPI resources parsing interface
-> >> without incurring in unexpected resource filtering, fixing at the same
-> >> time current breakage on IA64.
-> >>
-> >> This patch moves the IO ports boundary [0 - 64k] check to x86 arch code
-> >> code that validates the PCI host bridge resources.
-> >
-> > I definitely agree with moving this check out of the generic ACPI
-> > code, so while I have a minor question below,
-> >
-> > Acked-by: Bjorn Helgaas <bhelgaas@google.com>
-> >
-> >> Fixes: 3772aea7d6f3 ("ia64/PCI/ACPI: Use common ACPI resource parsing
-> >> interface for host bridge")
-> >
-> > 3772aea7d6f3 was merged via the ACPI tree.  Does it make sense to
-> > have this fix for it merged the same way?  I'll assume so unless
-> > Rafael thinks otherwise.
-> 
-> I'll apply it, thanks!
-> 
-> >> Signed-off-by: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
-> >> Tested-by: Hanjun Guo <hanjun.guo@linaro.org>
-> >> Cc: Bjorn Helgaas <bhelgaas@google.com>
-> >> Cc: Hanjun Guo <hanjun.guo@linaro.org>
-> >> Cc: Jiang Liu <jiang.liu@linux.intel.com>
-> >> Cc: Tony Luck <tony.luck@intel.com>
-> >> Cc: Tomasz Nowicki <tn@semihalf.com>
-> >> Cc: Mark Salter <msalter@redhat.com>
-> >> Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-> >> ---
-> >> v1 -> v2
-> >>
-> >> - Updated commit log to report missing IO resources
-> >> - Fixed function ioport_valid() comment 16k/64k typo
-> >>
-> >> v1: https://lkml.org/lkml/2016/2/1/157
-> >>
-> >>  arch/x86/pci/acpi.c     | 18 +++++++++++++-----
-> >>  drivers/acpi/resource.c |  3 ---
-> >>  2 files changed, 13 insertions(+), 8 deletions(-)
-> >>
-> >> diff --git a/arch/x86/pci/acpi.c b/arch/x86/pci/acpi.c
-> >> index 3cd6983..cec68e7 100644
-> >> --- a/arch/x86/pci/acpi.c
-> >> +++ b/arch/x86/pci/acpi.c
-> >> @@ -275,11 +275,14 @@ static void pci_acpi_root_release_info(struct acpi_pci_root_info *ci)
-> >>   *     to access PCI configuration space.
-> >>   *
-> >>   * So explicitly filter out PCI CFG IO ports[0xCF8-0xCFF].
-> >> + *
-> >> + * Furthermore, IO ports address space is limited to 64k on x86,
-> >> + * any IO resource exceeding the boundary must therefore be discarded.
-> >>   */
-> >> -static bool resource_is_pcicfg_ioport(struct resource *res)
-> >> +static bool ioport_valid(struct resource *res)
-> >>  {
-> >> -     return (res->flags & IORESOURCE_IO) &&
-> >> -             res->start == 0xCF8 && res->end == 0xCFF;
-> >> +     return !(res->start == 0xCF8 && res->end == 0xCFF) &&
-> >> +            !(res->end >= 0x10003);
-> >
-> > Is the "res->end >= 0x10003" test actually fixing a problem?
-> >
-> > I think 4d6b4e69a245 ("x86/PCI/ACPI: Use common interface to support
-> > PCI host bridge") is the x86 change corresponding to 3772aea7d6f3.  I
-> > took a quick look through it, and I didn't see a res->end test before
-> > 4d6b4e69a245, but maybe I missed it.
-> >
-> > The reason I'm asking is because there's no reason in principle that
-> > x86 couldn't support multiple host bridges, one with a 0-64K I/O space
-> > accessible via the x86 inb/outb instructions, and others with more I/O
-> > space accessible only via the in-kernel inb()/outb() functions, which
-> > would use an MMIO region that the host bridge converts to I/O accesses
-> > on the PCI side.  This is what ia64 does, and x86 could do something
-> > similar.  If it did, it would be fine for res->end to be above
-> > 0x10003 for those memory-mapped I/O spaces.
-> 
-> Interesting, but I guess quite theoretical. :-)
-> 
-> In any case I think that may be fixed up on top of the $subject patch.
+On Tue, Mar 8, 2016 at 4:04 PM, Toshi Kani <toshi.kani@hpe.com> wrote:
+>
+> Yes, I prefer the devm semantics.  insert_resource() and remove_resource()
+> are not exported interfaces.  So, with devm_add_action(), we still need to
+> introduce built-in exported wrappers for insert/remove_resource(), unless
+> we change to export them directly.  Since we need to export "something", I
+> think it is better to export their devm interfaces.
 
-Agreed on both counts.  Thanks for taking this.
+So I'm coming from the background that
 
-Bjorn
+ (a) less code is better
+
+ (b) the "devm_" interface may be convenient, but it has also
+traditionally also been a cause of problems and limitations.
+
+Now, the main problems with the devm interface has been either
+ordering (which just isn't an issue with resource allocation - it's
+been an issue with irqs) or the fact that it can't always be used if
+you're not in the right context. So it's "convenient but potentially
+inflexible".
+
+And the thing is, I think convenience functions mainly make sense for
+places where there are multiple users. If there really is just one or
+two (number completely pulled out of my ass), I don't see the point of
+a "convenience" function, when we've had the main actual _code_
+functionality for over a decade.
+
+So unless there are more users, I'd suggest just exporting the
+insert_resource function.
+
+We already export allocate_resource and adjust_resource.
+
+Now, the _one_ argument for devm_insert_resource() is that we do have
+"devm_request_resource()".
+
+But quite frankly, just counting the number of devm_request_resource()
+calls weakens that argument. There's 7 callers in the whole kernel.
+The regular "request_resource()" has 200+ callers.
+
+That may be due to historical reasons, but it may also be at least
+partially due to (b) above - there are a number of cases where the
+"devm_xyz()" model doesn't work well.
+
+So I think we should see the "devm_xyz()" forms as being a "let's make
+things easy for driver writers". I do _not_ think it makes sense for
+one-off users.
+
+Now, if it turns out that there are lots of other potential users of
+devm_insert_resource(), that would maks all of my arguments go away.
+
+             Linus
