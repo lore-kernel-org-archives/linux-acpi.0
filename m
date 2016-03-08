@@ -1,142 +1,89 @@
-From: Dan Williams <dan.j.williams@intel.com>
-Subject: Re: [PATCH v2-UPDATE2 3/4] resource: Add device-managed insert/remove_resource()
-Date: Tue, 8 Mar 2016 12:59:44 -0800
-Message-ID: <CAPcyv4gT1RvnEquYXVo7sZscdUrkiWpG-Yvr_EX4=L25397X0g@mail.gmail.com>
-References: <1457460530-17959-1-git-send-email-toshi.kani@hpe.com>
-	<CA+55aFy=V-esUXZa2AogS685k+r9PyyNStkZrrUUkWSKvLFUGQ@mail.gmail.com>
+From: "Rafael J. Wysocki" <rafael@kernel.org>
+Subject: Re: [PATCH V2] acpi, pci, irq: account for early penalty assignment
+Date: Tue, 8 Mar 2016 21:59:47 +0100
+Message-ID: <CAJZ5v0iWk_rBBDtApSdQwZry73VpZcG4-rXWJgNigjp83+5FZA@mail.gmail.com>
+References: <20160301194340.GA19783@localhost>
+	<56D7317F.7090500@codeaurora.org>
+	<56D7ABFB.3070302@codeaurora.org>
+	<56D84EA9.3080900@codeaurora.org>
+	<20160303151048.GA3290@localhost>
+	<56D8546B.5040908@codeaurora.org>
+	<56D8745D.70509@codeaurora.org>
+	<20160304180959.GA4794@localhost>
+	<56DDB28F.1040300@codeaurora.org>
+	<20160308002558.GC26149@localhost>
+	<20160308002909.GA13250@localhost>
+	<56DF2258.8020004@codeaurora.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-oi0-f45.google.com ([209.85.218.45]:33378 "EHLO
-	mail-oi0-f45.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751726AbcCHU7q (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 8 Mar 2016 15:59:46 -0500
-Received: by mail-oi0-f45.google.com with SMTP id d205so20350213oia.0
-        for <linux-acpi@vger.kernel.org>; Tue, 08 Mar 2016 12:59:45 -0800 (PST)
-In-Reply-To: <CA+55aFy=V-esUXZa2AogS685k+r9PyyNStkZrrUUkWSKvLFUGQ@mail.gmail.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <56DF2258.8020004@codeaurora.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Sinan Kaya <okaya@codeaurora.org>
+Cc: Bjorn Helgaas <helgaas@kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Timur Tabi <timur@codeaurora.org>, Christopher Covington <cov@codeaurora.org>, Linux PCI <linux-pci@vger.kernel.org>, ravikanth.nalla@hpe.com, Len Brown <lenb@kernel.org>, harish.k@hpe.com, ashwin.reghunandanan@hpe.com, Bjorn Helgaas <bhelgaas@google.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Thomas Gleixner <tglx@linutronix.de>
 List-Id: linux-acpi@vger.kernel.org
-To: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: Toshi Kani <toshi.kani@hpe.com>, Ingo Molnar <mingo@kernel.org>, Borislav Petkov <bp@suse.de>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Andrew Morton <akpm@linux-foundation.org>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, Linux ACPI <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
 
-On Tue, Mar 8, 2016 at 12:05 PM, Linus Torvalds
-<torvalds@linux-foundation.org> wrote:
-> On Tue, Mar 8, 2016 at 10:08 AM, Toshi Kani <toshi.kani@hpe.com> wrote:
->>
->> Add device-managed implementaions of insert_resource() and
->> remove_resouce() functions.
+On Tue, Mar 8, 2016 at 8:04 PM, Sinan Kaya <okaya@codeaurora.org> wrote:
 >
-> Can we get an example of the users and show how much this would actually help?
+>>>>> I think there are two issues here that should be teased apart a bit
+>>>>> more:
+>>>>>
+>>>>>   1) Trigger settings: If the IRQ is configured as anything other than
+>>>>>   level-triggered, active-low, we can't use it at all for a PCI
+>>>>>   interrupt, and we should return an "infinite" penalty.  We currently
+>>>>>   increase the penalty for the SCI IRQ if it's not level/low, but
+>>>>>   doesn't it apply to *all* IRQs, not just the SCI IRQ?
+>>>>
+>>>> It makes sense for SCI as it is Intel specific.
+>>>>
+>>>> Unfortunately, this cannot be done in an arch independent way. Of course,
+>>>> ARM had to implement its own thing. While level-triggered, active-low is
+>>>> good for intel world, it is not for the ARM world. ARM uses active-high
+>>>> level triggered.
+>>>
+>>> I'm confused.  I don't think SCI is Intel-specific.  Per PCI Spec
+>>> r3.0, sec 2.2.6, PCI interrupts are level-sensitive, asserted low.
+>>> Per ACPI Spec v3.0, sec 2.1, the SCI is an "active, low, shareable,
+>>> level interrupt".
+
+That's correct.
+
+The SCI isn't Intel-specific or even x86-specific for that matter.
+However, it is not available on hardware-reduced ACPI platforms which
+are all ARM using ACPI.
+
+>>> Are you saying SCI is active-high on ARM?  If so, I don't think that's
+>>> necessarily a huge problem, although we'd have to audit the ACPI code
+>>> to make sure we handle it correctly.
 >
-> insert_resource() is fairly unusual to begin with, and it should
-> basically *never* be used by a driver at all (it's more of a bus
-> thing).
+> We don't have an SCI interrupt on ARM. That's why, I assumed it is an Intel specific
+> interrupt. However, all legacy interrupts are active-high level sensitive. This is a
+> limitation of the ARM GIC Interrupt Controller.
 >
-> The patch doesn't look _wrong_, but it does look potentially largely
-> pointless. Adding new interfaces to do things that aren't common
-> enough to worry about is counter-productive, imho.
+> Here is what a PCI Link object looks like.
+>
+> Device(LN0D){
+>         Name(_HID, EISAID("PNP0C0F")) // PCI interrupt link
+>         Name(_UID, 4)
+>         Name(_PRS, ResourceTemplate(){
+>                 Interrupt(ResourceProducer, Level, ActiveHigh, Exclusive, , ,) {123}
+>         })
+>         Method(_DIS) {}
+>         Method(_CRS) { Return (_PRS) }
+>         Method(_SRS, 1) {}
+> }
+>
+>>>
+>>> The point here is that a PCI Interrupt Link can only use an IRQ that
+>>> is level-triggered, active low.  If an IRQ is already set to any other
+>>> state, whether for an ISA device or for an active-high SCI, we can't
+>>> use it for a PCI Interrupt Link.
+>
+> Unfortunately, this still doesn't hold.
 
-Here's the usage patch from Toshi [1] (copied below).  It is indeed a
-resource injected by nfit / nvdimm bus implementation.  We just happen
-to support nfit and libnvdimm as modules.
+I think that the original active-low requirement is related to the
+fact that those IRQ can be shared.  If they aren't shared, I guess the
+point is slightly moot.
 
-The goal of these patches is to use the ACPI NFIT data to create a
-"Persistent Memory" rather than "reserved" resource.  This is for
-platform-firmware implementations that use E820-Type2 rather than
-E820-Type7 to describe pmem.
-
-[1]: https://patchwork.kernel.org/patch/8485691/
-
-8<--
-From: Toshi Kani <toshi.kani@hpe.com>
-
-ACPI 6.0 defines persistent memory (PMEM) ranges in multiple
-firmware interfaces, e820, EFI, and ACPI NFIT table.  This EFI
-change, however, leads to hit a bug in the grub bootloader, which
-treats EFI_PERSISTENT_MEMORY type as regular memory and corrupts
-stored user data [1].
-
-Therefore, BIOS may set generic reserved type in e820 and EFI
-to cover PMEM ranges.  The kernel can initialize PMEM ranges
-from ACPI NFIT table alone.
-
-This scheme causes a problem in the iomem table, though.  On x86,
-for instance, e820_reserve_resources() initializes top-level entries
-(iomem_resource.child) from the e820 table at early boot-time.
-This creates "reserved" entry for a PMEM range, which does not allow
-region_intersects() to check with PMEM type.
-
-Change acpi_nfit_register_region() to call acpi_nfit_insert_resource(),
-which calls devm_insert_resource() to insert a PMEM entry from NFIT
-when the iomem table does not have a PMEM entry already.  That is,
-when a PMEM range is marked as reserved type in e820, it inserts
-"Persistent Memory" entry, which results as follows.
-
- + "Persistent Memory"
-    + "reserved"
-
-This allows the EINJ driver, which calls region_intersects() to
-check PMEM ranges, to work continuously even if BIOS sets reserved
-type (or sets nothing) to PMEM ranges in e820 and EFI.
-
-[1]: https://lists.gnu.org/archive/html/grub-devel/2015-11/msg00209.html
-Signed-off-by: Toshi Kani <toshi.kani@hpe.com>
-Cc: Rafael J. Wysocki <rjw@rjwysocki.net>
-Cc: Dan Williams <dan.j.williams@intel.com>
-Cc: Ingo Molnar <mingo@kernel.org>
-Cc: Borislav Petkov <bp@suse.de>
-Cc: Andrew Morton <akpm@linux-foundation.org>
----
- drivers/acpi/nfit.c |   30 ++++++++++++++++++++++++++++++
- 1 file changed, 30 insertions(+)
-
-diff --git a/drivers/acpi/nfit.c b/drivers/acpi/nfit.c
-index fb53db1..d97b53f 100644
---- a/drivers/acpi/nfit.c
-+++ b/drivers/acpi/nfit.c
-@@ -1571,6 +1571,30 @@ static int ars_status_process_records(struct
-nvdimm_bus *nvdimm_bus,
-        return 0;
- }
-
-+static int acpi_nfit_insert_resource(struct acpi_nfit_desc *acpi_desc,
-+               struct nd_region_desc *ndr_desc)
-+{
-+       struct resource *res, *nd_res = ndr_desc->res;
-+       size_t size = nd_res->end - nd_res->start + 1;
-+
-+       /* No operation if the region is already registered as PMEM */
-+       if (region_intersects(nd_res->start, size, IORESOURCE_MEM,
-+                       IORES_DESC_PERSISTENT_MEMORY) == REGION_INTERSECTS)
-+               return 0;
-+
-+       res = devm_kzalloc(acpi_desc->dev, sizeof(*res), GFP_KERNEL);
-+       if (!res)
-+               return -ENOMEM;
-+
-+       res->name = "Persistent Memory";
-+       res->start = nd_res->start;
-+       res->end = nd_res->end;
-+       res->flags = IORESOURCE_MEM;
-+       res->desc = IORES_DESC_PERSISTENT_MEMORY;
-+
-+       return devm_insert_resource(acpi_desc->dev, &iomem_resource, res);
-+}
-+
- static int acpi_nfit_find_poison(struct acpi_nfit_desc *acpi_desc,
-                struct nd_region_desc *ndr_desc)
- {
-@@ -1781,6 +1805,12 @@ static int acpi_nfit_register_region(struct
-acpi_nfit_desc *acpi_desc,
-
-        nvdimm_bus = acpi_desc->nvdimm_bus;
-        if (nfit_spa_type(spa) == NFIT_SPA_PM) {
-+               rc = acpi_nfit_insert_resource(acpi_desc, ndr_desc);
-+               if (rc)
-+                       dev_warn(acpi_desc->dev,
-+                               "failed to insert pmem resource to iomem: %d\n",
-+                               rc);
-+
-                rc = acpi_nfit_find_poison(acpi_desc, ndr_desc);
-                if (rc) {
-                        dev_err(acpi_desc->dev,
+Thanks,
+Rafael
