@@ -1,45 +1,81 @@
-From: Sinan Kaya <okaya@codeaurora.org>
-Subject: Re: [PATCH V2] acpi, pci, irq: account for early penalty assignment
-Date: Tue, 8 Mar 2016 19:45:04 -0500
-Message-ID: <56DF7210.7020103@codeaurora.org>
-References: <20160301194340.GA19783@localhost>
- <56D7317F.7090500@codeaurora.org> <56D7ABFB.3070302@codeaurora.org>
- <56D84EA9.3080900@codeaurora.org> <20160303151048.GA3290@localhost>
- <56D8546B.5040908@codeaurora.org> <56D8745D.70509@codeaurora.org>
- <20160304180959.GA4794@localhost> <56DDB28F.1040300@codeaurora.org>
- <20160308002558.GC26149@localhost> <20160308002909.GA13250@localhost>
- <56DF2258.8020004@codeaurora.org>
+From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Subject: Re: [RESEND PATCH 2/2] device property: fix for a case of use-after-free
+Date: Wed, 09 Mar 2016 01:52:32 +0100
+Message-ID: <38356299.uTpVNISVVC@vostro.rjw.lan>
+References: <1457444677-25645-1-git-send-email-heikki.krogerus@linux.intel.com> <1457444677-25645-3-git-send-email-heikki.krogerus@linux.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7Bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp.codeaurora.org ([198.145.29.96]:56964 "EHLO
-	smtp.codeaurora.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753242AbcCIApI (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 8 Mar 2016 19:45:08 -0500
-In-Reply-To: <56DF2258.8020004@codeaurora.org>
+Received: from v094114.home.net.pl ([79.96.170.134]:48363 "HELO
+	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1753440AbcCIAuk (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 8 Mar 2016 19:50:40 -0500
+In-Reply-To: <1457444677-25645-3-git-send-email-heikki.krogerus@linux.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Bjorn Helgaas <helgaas@kernel.org>
-Cc: linux-acpi@vger.kernel.org, timur@codeaurora.org, cov@codeaurora.org, linux-pci@vger.kernel.org, ravikanth.nalla@hpe.com, lenb@kernel.org, harish.k@hpe.com, ashwin.reghunandanan@hpe.com, bhelgaas@google.com, rjw@rjwysocki.net, linux-kernel@vger.kernel.org, Thomas Gleixner <tglx@linutronix.de>
+To: Heikki Krogerus <heikki.krogerus@linux.intel.com>
+Cc: Mika Westerberg <mika.westerberg@linux.intel.com>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, John Youn <John.Youn@synopsys.com>, linux-acpi@vger.kernel.org
 
-Hi Bjorn,
-
-On 3/8/2016 2:04 PM, Sinan Kaya wrote:
->>> The point here is that a PCI Interrupt Link can only use an IRQ that
->>> >> is level-triggered, active low.  If an IRQ is already set to any other
->>> >> state, whether for an ISA device or for an active-high SCI, we can't
->>> >> use it for a PCI Interrupt Link.
-> Unfortunately, this still doesn't hold. 
+On Tuesday, March 08, 2016 03:44:37 PM Heikki Krogerus wrote:
+> In device_remove_property_set(), the secondary fwnode needs
+> to be cleared before the pset is freed. This fixes a
+> use-after-free when a property set is providing the primary
+> fwnode.
 > 
-> A patch is long overdue for this series. I'll post v3. We can go from there.
+> Reported-by: John Youn <John.Youn@synopsys.com>
+> Signed-off-by: Heikki Krogerus <heikki.krogerus@linux.intel.com>
+> ---
+>  drivers/base/property.c | 8 +++++---
+>  1 file changed, 5 insertions(+), 3 deletions(-)
+> 
+> diff --git a/drivers/base/property.c b/drivers/base/property.c
+> index a163f2c..a9df21a9 100644
+> --- a/drivers/base/property.c
+> +++ b/drivers/base/property.c
+> @@ -820,11 +820,13 @@ void device_remove_property_set(struct device *dev)
+>  	 * the pset. If there is no real firmware node (ACPI/DT) primary
+>  	 * will hold the pset.
+>  	 */
+> -	if (!is_pset_node(fwnode))
+> +	if (is_pset_node(fwnode))
+> +		dev->fwnode = NULL;
 
-I just posted a new series and changed the title. Let's continue the discussion there.
+I don't really like the way you clear dev->fwnode directly here.  set_primary_fwnode(dev, NULL) would be more appropriate IMO.
 
-[PATCH 1/4] acpi,pci,irq: reduce resource requirements
-...
+Also set_secondary_fwnode(dev, NULL) need not be done in that case, because it
+doesn't change anything.
 
--- 
-Sinan Kaya
-Qualcomm Technologies, Inc. on behalf of Qualcomm Innovation Center, Inc.
-Qualcomm Innovation Center, Inc. is a member of Code Aurora Forum, a Linux Foundation Collaborative Project
+Moreover, if the primary node is not pset, the secondary one should only be
+cleared if it is pset.
+
+So that would mean
+
+	if (is_pset_node(fwnode)) {
+		set_primary_fwnode(dev, NULL);
+		pset_free_set(to_pset_node(fwnode));
+	} else {
+		fwnode = fwnode->secondary;
+		if (!IS_ERR(fwnode) && is_pset_node(fwnode)) {
+			set_secondary_fwnode(dev, NULL);
+			pset_free_set(to_pset_node(fwnode));
+		}
+	}
+
+Or am I mistaken?
+
+
+> +	else
+>  		fwnode = fwnode->secondary;
+>  	if (!IS_ERR(fwnode) && is_pset_node(fwnode))
+> -		pset_free_set(to_pset_node(fwnode));
+> -	set_secondary_fwnode(dev, NULL);
+> +		set_secondary_fwnode(dev, NULL);
+> +	pset_free_set(to_pset_node(fwnode));
+>  }
+>  EXPORT_SYMBOL_GPL(device_remove_property_set);
+>  
+
+Thanks,
+Rafael
+
