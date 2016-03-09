@@ -1,292 +1,307 @@
-From: Gabriele Paoloni <gabriele.paoloni@huawei.com>
-Subject: RE: [RFC PATCH v3 3/3] PCI/ACPI: hisi: Add ACPI support for
- HiSilicon SoCs Host Controllers
-Date: Wed, 9 Mar 2016 07:41:01 +0000
-Message-ID: <EE11001F9E5DDD47B7634E2F8A612F2E1ED09A7B@lhreml503-mbs>
-References: <20160210111234.GC2632@leverpostej>
- <EE11001F9E5DDD47B7634E2F8A612F2E1ECB1D30@lhreml503-mbs>
- <EE11001F9E5DDD47B7634E2F8A612F2E1ECC5F00@lhreml503-mbs>
- <20160224011418.GB13026@localhost>
- <EE11001F9E5DDD47B7634E2F8A612F2E1ECCAD6A@lhreml503-mbs>
- <20160224152538.GA19700@localhost>
- <EE11001F9E5DDD47B7634E2F8A612F2E1ECCD209@lhreml503-mbs>
- <20160225120750.GA32016@red-moon> <20160225195912.GA4818@localhost>
- <20160301192247.GA21324@red-moon> <20160302155117.GB24024@localhost>
+From: Tomasz Nowicki <tn@semihalf.com>
+Subject: Re: [PATCH V5 01/15] ACPI: MCFG: Move mmcfg_list management to
+ drivers/acpi
+Date: Wed, 9 Mar 2016 10:13:02 +0100
+Message-ID: <56DFE91E.10105@semihalf.com>
+References: <1455630825-27253-1-git-send-email-tn@semihalf.com>
+ <1455630825-27253-2-git-send-email-tn@semihalf.com>
+ <20160303225152.GA10472@localhost>
+ <CAKc_7PUyf8ND8Nd32yDBtBnFbkd1mJ-VsCih6YsEA5ZuBUz5zA@mail.gmail.com>
+ <20160305041443.GA15110@localhost>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from lhrrgout.huawei.com ([194.213.3.17]:62428 "EHLO
-	lhrrgout.huawei.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750902AbcCIHl3 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 9 Mar 2016 02:41:29 -0500
-In-Reply-To: <20160302155117.GB24024@localhost>
-Content-Language: en-US
+Received: from mail-lb0-f171.google.com ([209.85.217.171]:33140 "EHLO
+	mail-lb0-f171.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752579AbcCIJNN (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 9 Mar 2016 04:13:13 -0500
+Received: by mail-lb0-f171.google.com with SMTP id k15so56324404lbg.0
+        for <linux-acpi@vger.kernel.org>; Wed, 09 Mar 2016 01:13:12 -0800 (PST)
+In-Reply-To: <20160305041443.GA15110@localhost>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Bjorn Helgaas <helgaas@kernel.org>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
-Cc: 'Mark Rutland' <mark.rutland@arm.com>, "Guohanjun (Hanjun Guo)" <guohanjun@huawei.com>, "Wangzhou (B)" <wangzhou1@hisilicon.com>, "liudongdong (C)" <liudongdong3@huawei.com>, Linuxarm <linuxarm@huawei.com>, qiujiang <qiujiang@huawei.com>, "'bhelgaas@google.com'" <bhelgaas@google.com>, "'arnd@arndb.de'" <arnd@arndb.de>, "'tn@semihalf.com'" <tn@semihalf.com>, "'linux-pci@vger.kernel.org'" <linux-pci@vger.kernel.org>, "'linux-kernel@vger.kernel.org'" <linux-kernel@vger.kernel.org>, "xuwei (O)" <xuwei5@hisilicon.com>, "'linux-acpi@vger.kernel.org'" <linux-acpi@vger.kernel.org>, "'jcm@redhat.com'" <jcm@redhat.com>, zhangjukuo <zhangjukuo@huawei.com>, "Liguozhu (Kenneth)" <liguozhu@hisilicon.com>, "'linux-arm-kernel@lists.infradead.org'" <linux-arm-kernel@lists.infradead.org>
+To: Bjorn Helgaas <helgaas@kernel.org>
+Cc: Jayachandran Chandrashekaran Nair <jayachandran.chandrashekaran@broadcom.com>, Arnd Bergmann <arnd@arndb.de>, Will Deacon <will.deacon@arm.com>, Catalin Marinas <catalin.marinas@arm.com>, rafael@kernel.org, Hanjun Guo <hanjun.guo@linaro.org>, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, okaya@codeaurora.org, jiang.liu@linux.intel.com, Jayachandran Chandrashekaran Nair <jchandra@broadcom.com>, Stefano Stabellini <Stefano.Stabellini@eu.citrix.com>, robert.richter@caviumnetworks.com, Marcin Wojtas <mw@semihalf.com>, Liviu.Dudau@arm.com, David Daney <ddaney@caviumnetworks.com>, wangyijing@huawei.com, Suravee.Suthikulpanit@amd.com, msalter@redhat.com, linux-pci@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linaro-acpi@lists.linaro.org, Jon Masters <jcm@redhat.com>
 
-Hi Bjorn, Lorenzo
+Hi Bjorn,
 
-> -----Original Message-----
-> From: Bjorn Helgaas [mailto:helgaas@kernel.org]
-> Sent: 02 March 2016 15:51
-> To: Lorenzo Pieralisi
-> Cc: Gabriele Paoloni; 'Mark Rutland'; Guohanjun (Hanjun Guo); Wangzhou
-> (B); liudongdong (C); Linuxarm; qiujiang; 'bhelgaas@google.com';
-> 'arnd@arndb.de'; 'tn@semihalf.com'; 'linux-pci@vger.kernel.org';
-> 'linux-kernel@vger.kernel.org'; xuwei (O); 'linux-
-> acpi@vger.kernel.org'; 'jcm@redhat.com'; zhangjukuo; Liguozhu
-> (Kenneth); 'linux-arm-kernel@lists.infradead.org'
-> Subject: Re: [RFC PATCH v3 3/3] PCI/ACPI: hisi: Add ACPI support for
-> HiSilicon SoCs Host Controllers
-> 
-> On Tue, Mar 01, 2016 at 07:22:47PM +0000, Lorenzo Pieralisi wrote:
-> > Hi Bjorn,
-> >
-> > On Thu, Feb 25, 2016 at 01:59:12PM -0600, Bjorn Helgaas wrote:
-> > > On Thu, Feb 25, 2016 at 12:07:50PM +0000, Lorenzo Pieralisi wrote:
-> > > > On Thu, Feb 25, 2016 at 03:01:19AM +0000, Gabriele Paoloni wrote:
-> >
-> > [...]
-> >
-> > > > I do not understand how PNP0c02 works, currently, by the way.
-> > > >
-> > > > If I read x86 code correctly, the unassigned PCI bus resources
-> are
-> > > > assigned in arch/x86/pci/i386.c (?)
-> fs_initcall(pcibios_assign_resources),
-> > > > with a comment:
-> > > >
-> > > > /**
-> > > >  * called in fs_initcall (one below subsys_initcall),
-> > > >  * give a chance for motherboard reserve resources
-> > > >  */
-> > > >
-> > > > Problem is, motherboard resources are requested through (?):
-> > > >
-> > > > drivers/pnp/system.c
-> > > >
-> > > > which is also initialized at fs_initcall, so it might be called
-> after
-> > > > core x86 code reassign resources, defeating the purpose PNP0c02
-> was
-> > > > designed for, namely, request motherboard regions before
-> resources
-> > > > are assigned, am I wrong ?
-> > >
-> > > I think you're right.  This is a long-standing screwup in Linux.
-> > > IMHO, ACPI resources should be parsed and reserved by the ACPI
-> core,
-> > > before any PCI resource management (since PCI host bridges are
-> > > represented in ACPI).  But historically PCI devices have enumerated
-> > > before ACPI got involved.  And the ACPI core doesn't really pay
-> > > attention to _CRS for most devices (with the exception of PNP0C02).
-> > >
-> > > IMO the PNP0C02 code in drivers/pnp/system.c should really be done
-> in
-> > > the ACPI core for all ACPI devices, similar to the way the PCI core
-> > > reserves BAR space for all PCI devices, even if we don't have
-> drivers
-> > > for them.  I've tried to fix this in the past, but it is really a
-> > > nightmare to unravel everything.
-> > >
-> > > Because the ACPI core doesn't reserve resources for the _CRS of all
-> > > ACPI devices, we're already vulnerable to the problem of placing a
-> > > device on top of another ACPI device.  We don't see problems
-> because
-> > > on x86, at least, most ACPI devices are already configured by the
-> BIOS
-> > > to be enabled and non-overlapping.  But x86 has the advantage of
-> > > having extensive test coverage courtesy of Windows, and as long as
-> > > _CRS has the right stuff in it, we at least have the potential of
-> > > fixing problems in Linux.
-> >
-> > ...
-> > By "fixing problems in Linux" above, you mean that, given that we
-> > do have a validated _CRS space, we can request/reserve the region the
-> _CRS
-> > reports to prevent assigning those resources to other devices,
-> correct ?
-> 
-> Yes.
-> 
-> I think part of what makes this difficult in Linux is that the
-> resource tree is too strict about overlapping resources.  We get
-> address space information from E820 (on x86), static ACPI tables like
-> MCFG, and dynamic things like ACPI _CRS.  There's no real requirement
-> that the BIOS should make all these consistent, but yet we try to jam
-> it all into the same resource tree.
-> 
-> For example, E820 might tell us that range A is reserved and
-> unavailable to Linux.  We stick it in the resource tree.  Then we
-> might have a _CRS that tells us about range B.  We *want* to put range
-> B in the resource tree, but if B overlaps part of A, the insert will
-> fail.
-> 
-> All we really need from E820 is the information that "you can't put
-> devices in A".  We don't need to enforce any relationship between A
-> and B, but the current resource tree imposes unnecessary hierarchical
-> requirements.
-> 
-> I think issues like this are the biggest reason why the ACPI core
-> doesn't reserve all _CRS space early on (Rafael may correct me here).
-> 
-> > > If the platform doesn't report resource usage correctly on ARM, we
-> may
-> > > not find problems (because we don't have the Windows test suite)
-> and
-> > > if we have resource assignment problems because _CRS is lacking,
-> we'll
-> > > have no way to fix them.
-> >
-> > And I think here you mean we can't prevent assigning resource space
-> to
-> > devices that do not necessarily own it because since some devices
-> _CRS
-> > are borked/missing we have no way to detect the address space
-> allocated
-> > to them and we may end up with resources conflicts.
-> 
-> The ACPI core currently doesn't reserve the space consumed by ACPI
-> devices.  Some drivers, e.g., for PNP0C02 (motherboard) and PNP0A03
-> (PCI host bridge), do reserve their space, but the core itself does
-> not.
-> 
-> If we have drivers for all the ACPI devices, those drivers will
-> probably use _CRS and reserve the space, and we'll probably notice any
-> _CRS errors.  But if we don't have drivers, e.g., for performance
-> monitors or other non-essential things, nothing will use _CRS, and
-> nothing will reserve the space used by the device, and it's hard to
-> find errors.
-> 
-> If we ever assign top-level resources, there's nothing to prevent us
-> from creating a conflict.  The only reason we don't trip over this is
-> that we usually don't assign top-level resources because firmware does
-> it for us.
+Thanks for your pointers! See my comments inline. Aslo, can you please 
+have a look at my previous patch set v4 and check how many of your 
+comments are already addressed there. We may want to back to it then.
 
-It seems that in this thread we have touched quite few issues.
+https://lkml.org/lkml/2016/2/4/646
+Especially patches [0-6] which handle MMCONFIG refactoring.
 
-First is how to describe a PCI host controller config space resource:
-as you highlighted before mentioning the specs, these resources should
-be marked as "PNP0C02"; therefore I guess the current Nowicki patchset
-must be reworked to check the resources to be motherboard reserved when
-parsing the MCFG table.
 
-Also with respect to the ACPI table for my specific PCIe controller I
-would use the following approach:
+On 05.03.2016 05:14, Bjorn Helgaas wrote:
+> On Fri, Mar 04, 2016 at 02:05:56PM +0530, Jayachandran Chandrashekaran Nair wrote:
+>> On Fri, Mar 4, 2016 at 4:21 AM, Bjorn Helgaas <helgaas@kernel.org> wrote:
+>>> Hi Tomasz, Jayachandran, et al,
+>>>
+>>> On Tue, Feb 16, 2016 at 02:53:31PM +0100, Tomasz Nowicki wrote:
+>>>> From: Jayachandran C <jchandra@broadcom.com>
+>>>>
+>>>> Move pci_mmcfg_list handling to a drivers/acpi/pci_mcfg.c. This is
+>>>> to share the API and code with ARM64 later. The corresponding
+>>>> declarations are moved from asm/pci_x86.h to linux/pci-acpi.h
+>>>>
+>>>> As a part of this we introduce three functions that can be
+>>>> implemented by the arch code: pci_mmconfig_map_resource() to map a
+>>>> mcfg entry, pci_mmconfig_unmap_resource to do the corresponding
+>>>> unmap and pci_mmconfig_enabled to see if the arch setup of
+>>>> mcfg entries was successful. We also provide weak implementations
+>>>> of these, which will be used from ARM64. On x86, we retain the
+>>>> old logic by providing platform specific implementation.
+>>>>
+>>>> This patch is purely rearranging code, it should not have any
+>>>> impact on the logic of MCFG parsing or list handling.
+>>>
+>>> I definitely want to figure out how to make this work well on ARM64.
+>>> I need to ponder this some more, so these are just some initial
+>>> thoughts.
+>>>
+>>> My first impression is that (a) the x86 MCFG code is an unmitigated
+>>> disaster, and (b) we're trying a little too hard to make that mess
+>>> generic.  I think we might be better served if we came up with some
+>>> cleaner, more generic code that we can use for ARM64 today, and
+>>> migrate x86 toward that over time.
+>>>
+>>> My concern is that if we elevate the current x86 code to be
+>>> "arch-independent", we will be perpetuating some interfaces and
+>>> designs that shouldn't be allowed to escape arch/x86.
+>>
+>> I think the major decision is whether to maintain the pci_mmcfg_list
+>> for all architectures or not. My initial plan was not to do this because
+>> of the mess (basically the ECAM region info should be attached to
+>> the pci root and not maintained in a separate list that needs locking),
+>> The patch I posted initially https://patchwork.ozlabs.org/patch/553464/
+>> had a much simpler way of handling the MCFG table without using
+>> the list.
+>
+> I agree that ECAM info should be attached to the PCI host controller.
+> That should simplify locking and hot-add and hot-removal of host
+> controllers.
+>
+> I think pci_mmcfg_list is an implementation detail that may not need
+> to be generic.  I certainly don't think it needs to be part of the
+> interface.
+>
+>> In x86 case it is not feasible to remove using the pci_mmcfg_list.
+>> The only use of it outside is in xen that can be fixed up.
+>>
+>>> Some of the code that moved to drivers/acpi/pci_mcfg.c is not really
+>>> ACPI-specific, and could potentially be used for non-ACPI bridges that
+>>> support ECAM.  I'd like to see that sort of code moved to a new file
+>>> like drivers/pci/ecam.c.
+>>>
+>>> There's a little bit of overlap here with the ECAM code in
+>>> pci-host-generic.c.  I'm not sure whether or how to include that, but
+>>> it's a very good example of how simple this *should* be: probe the
+>>> host bridge, discover the ECAM region, request the region, ioremap it,
+>>> done.
+>>
+>> I had a similar approach in my initial patchset, please see the patch
+>> above. The resource for ECAM is mapped similar to the the way
+>> pci-host-generic.c handled it. An additional step I could do was to
+>> move the common code (ioremap and mapbus) into a common
+>> file and share the code with pci-host-generic.c
+>>
+>>>> diff --git a/drivers/acpi/pci_mcfg.c b/drivers/acpi/pci_mcfg.c
+>>>> new file mode 100644
+>>>> index 0000000..ea84365
+>>>> --- /dev/null
+>>>> +++ b/drivers/acpi/pci_mcfg.c
+>>>> ...
+>>>> +int __weak pci_mmconfig_map_resource(struct device *dev,
+>>>> +     struct pci_mmcfg_region *mcfg)
+>>>> +{
+>>>> +     struct resource *tmp;
+>>>> +     void __iomem *vaddr;
+>>>> +
+>>>> +     tmp = insert_resource_conflict(&iomem_resource, &mcfg->res);
+>>>> +     if (tmp) {
+>>>> +             dev_warn(dev, "MMCONFIG %pR conflicts with %s %pR\n",
+>>>> +                     &mcfg->res, tmp->name, tmp);
+>>>> +             return -EBUSY;
+>>>> +     }
+>>>
+>>> I think this is a mistake in the x86 MCFG support that we should not
+>>> carry over to a generic implementation.  We should not use the MCFG
+>>> table for resource reservation because MCFG is not defined by the ACPI
+>>> spec and an OS need not include support for it.  The platform must
+>>> indicate in some other, more generic way, that ECAM space is reserved.
+>>> This probably means ECAM space should be declared in a PNP0C02 _CRS
+>>> method (see the PCI Firmware Spec r3.0, sec 4.1.2, note 2).
+>>>
+>>> We might need some kind of x86-specific quirk that does this, or a
+>>> pcibios hook or something here; I just don't think it should be
+>>> generic.
+>>>
+>>>> +int __init pci_mmconfig_parse_table(void)
+>>>> +{
+>>>> +     return acpi_sfi_table_parse(ACPI_SIG_MCFG, pci_parse_mcfg);
+>>>> +}
+>>>
+>>> I don't like the fact that we parse the entire MCFG table at once
+>>> here.  I think we should look for the information we need when we are
+>>> claiming a PCI host bridge, e.g., in acpi_pci_root_add().  This might
+>>> not be a great fit for the way ACPI table management works, but I
+>>> think it's better to do things on-demand rather than just-in-case.
+>>
+>> There is an overhead of looking up this table, and the information
+>> available there is very limited (i.e, segment, start_bus, end_bus
+>> and address). My approach in the above patch is to save this info
+>> into an array at boot time and avoid multiple lookups.
+>
+> We need to look up MCFG info once per host bridge, so I don't think
+> there's any performance issue here.  But we do use acpi_table_parse(),
+> which is __init, and *that* is a reason why we might need to parse the
+> entire MCFG at boot-time.  But this is the least of our worries in any
+> case.
+>
+>>>> diff --git a/include/linux/pci-acpi.h b/include/linux/pci-acpi.h
+>>>> index 89ab057..e9450ef 100644
+>>>> --- a/include/linux/pci-acpi.h
+>>>> +++ b/include/linux/pci-acpi.h
+>>>> @@ -106,6 +106,39 @@ extern const u8 pci_acpi_dsm_uuid[];
+>>>>   #define RESET_DELAY_DSM              0x08
+>>>>   #define FUNCTION_DELAY_DSM   0x09
+>>>>
+>>>> +/* common API to maintain list of MCFG regions */
+>>>> +/* "PCI MMCONFIG %04x [bus %02x-%02x]" */
+>>>> +#define PCI_MMCFG_RESOURCE_NAME_LEN (22 + 4 + 2 + 2)
+>>>> +
+>>>> +struct pci_mmcfg_region {
+>>>> +     struct list_head list;
+>>>> +     struct resource res;
+>>>> +     u64 address;
+>>>> +     char __iomem *virt;
+>>>> +     u16 segment;
+>>>> +     u8 start_bus;
+>>>> +     u8 end_bus;
+>>>> +     char name[PCI_MMCFG_RESOURCE_NAME_LEN];
+>>>> +};
+>>>> +
+>>>> +extern int pci_mmconfig_insert(struct device *dev, u16 seg, u8 start, u8 end,
+>>>> +                            phys_addr_t addr);
+>>>> +extern int pci_mmconfig_delete(u16 seg, u8 start, u8 end);
+>>>> +
+>>>> +extern struct pci_mmcfg_region *pci_mmconfig_lookup(int segment, int bus);
+>>>> +extern struct pci_mmcfg_region *pci_mmconfig_add(int segment, int start,
+>>>> +                                                     int end, u64 addr);
+>>>> +extern int pci_mmconfig_map_resource(struct device *dev,
+>>>> +     struct pci_mmcfg_region *mcfg);
+>>>> +extern void pci_mmconfig_unmap_resource(struct pci_mmcfg_region *mcfg);
+>>>> +extern int pci_mmconfig_enabled(void);
+>>>> +extern int __init pci_mmconfig_parse_table(void);
+>>>> +
+>>>> +extern struct list_head pci_mmcfg_list;
+>>>> +
+>>>> +#define PCI_MMCFG_BUS_OFFSET(bus)      ((bus) << 20)
+>>>> +#define PCI_MMCFG_OFFSET(bus, devfn)   ((bus) << 20 | (devfn) << 12)
+>>>> +
+>>>
+>>> With the exception of pci_mmconfig_parse_table(), nothing here is
+>>> ACPI-specific.  I'd like to see the PCI ECAM-related interfaces
+>>> (hopefully not these exact ones, but a more rational set) put in
+>>> something like include/linux/pci-ecam.h.
+>>>
+>>>>   #else        /* CONFIG_ACPI */
+>>>>   static inline void acpi_pci_add_bus(struct pci_bus *bus) { }
+>>>>   static inline void acpi_pci_remove_bus(struct pci_bus *bus) { }
+>>
+>> I can update this patch to
+>>   -  drop the pci_mmcfg_list handling from generic case
+>>   -  move common ECAM code so that it can be shared with
+>>      pci-host-generic.c
+>> if that is what you are looking for. The code will end up looking much
+>> simpler.
+>
+> I think we should ignore x86 mmconfig for now.  It is absurdly
+> complicated and I'm not sure it's fixable.  I *do* want to keep
+> drivers/acpi/pci_root.c for all ACPI host bridges, including x86,
+> ia64, and arm64.
+>
+> So I think we should write generic MCFG and ECAM support from scratch
+> for arm64.  Something like this:
+>
+>    - Add an acpi_mcfg_init(), maybe in drivers/acpi/pci_mcfg.c, to be
+>      called from acpi_init() to copy MCFG info to something we can
+>      access after __init.  This would not reserve resources, but
+>      probably does have to ioremap() the regions to support
+>      raw_pci_read().
 
-	// PCIe Root bus
-	Device (PCI1)
-	{
-		Name (_HID, "HISI0080") // PCI Express Root Bridge
-		Name (_CID, "PNP0A03") // Compatible PCI Root Bridge
-		Name(_SEG, 1) // Segment of this Root complex
-		Name(_BBN, 0) // Base Bus Number
-		Name(_CCA, 1)
-		Method (_CRS, 0, Serialized) { // Root complex resources
-			Name (RBUF, ResourceTemplate () {
-				WordBusNumber ( // Bus numbers assigned to this root
-					ResourceProducer, MinFixed, MaxFixed, PosDecode,
-					0, // AddressGranularity
-					0, // AddressMinimum - Minimum Bus Number
-					63, // AddressMaximum - Maximum Bus Number
-					0, // AddressTranslation - Set to 0
-					64 // RangeLength - Number of Busses
-				)
-				QWordMemory ( // 64-bit BAR Windows
-					ResourceProducer,
-					PosDecode,
-					MinFixed,
-					MaxFixed,
-					Cacheable,
-					ReadWrite,
-					0x0000000000000000, // Granularity
-					0x00000000b0000000, // Min Base Address pci address
-					0x00000000bbfeffff, // Max Base Address
-					0x0000021f54000000, // Translate
-					0x000000000bff0000 // Length
-				)
-				QWordIO (
-					ResourceProducer,
-					MinFixed,
-					MaxFixed,
-					PosDecode,
-					EntireRange,
-					0x0000000000000000, // Granularity
-					0x0000000000000000, // Min Base Address
-					0x000000000000ffff, // Max Base Address
-					0x000002200fff0000, // Translate
-					0x0000000000010000 // Length
-				)
-			}) // Name(RBUF)
-			Return (RBUF)
-		} // Method(_CRS)
-		Device (RES0)
-		{
-			Name (_HID, "HISI0081") // HiSi PCIe RC config base address
-			Name (_CID, "PNP0C02")  // Motherboard reserved resource
-			Name (_CRS, ResourceTemplate (){
-                         Memory32Fixed (ReadWrite, 0xb0080000 , 0x10000)
-			})
-			
-		}
-   
-So in the table above I have a sub-device under the RC to pass the address
-for the RC config space (the rest of the config space addresses for bus 1
-to 63 are passed in the MCFG). As you can see the device _CID is PNP0C02
-As per ACPI specs.
-Do you see anything wrong with this approach?
- 
-The second issue is when and how to reserve HW resources. As per
-conversation above this seems quite a tricky issue and probably needs to
-consider different aspects...
+As said, ECAM and ACPI specific code was isolated in previous patch. 
+There, I tried to leave x86 complication in arch/x86/ and extract 
+generic functionalities to driver/pci/ecam.c as the library.
 
-I was wondering if we can take a gradual approach; maybe for the time being
-we can just rework Nowicki patchset to check the MCFG resources to be
-motherboard reserved and later on we can make an effort to fix the resource
-insertion mechanism making sure that it works right on both x86 and ARM.
+>
+>    - Implement raw_pci_read(), which is "special" because ACPI needs it
+>      for PCI config access from AML.  It's supposed to be "always
+>      accessible" and we don't have a struct pci_bus *, so this probably
+>      has to use the MCFG copy and the ioremap done above.  Maybe it
+>      should go in the same file.  This is completely independent of
+>      the PCI core and PCI data structures.
+We were looking for the answer which would justify RAW PCI config 
+accessors being for ARM64 world. Unfortunately, nobody was able to show 
+real use case for ARM64. Do you see the reason we need this? Our 
+conclusion was to leave it empty for ARM64 which in turn makes code 
+simpler. I am not ASWG member while that was under discussion so I will 
+ask Lorenzo to elaborate more on this.
 
-What do you think about?
+>
+>    - Implement arm64 pci_acpi_scan_root() that calls
+>      acpi_pci_root_create() with an .init_info() function that calls
+>      acpi_pci_root_get_mcfg_addr() to read _CBA, and if that fails,
+>      looks up the bus range in the MCFG copy from above.  It should
+>      call request_mem_region().  For a region from _CBA, it should call
+>      ioremap().  For regions from MCFG it can probably use the ioremap
+>      done by acpi_mcfg_init().
+Yes, Expanding .init_info() to check for _CBA is good point.
 
-Many Thanks
+>
+>      I know acpi_pci_root_add() calls acpi_pci_root_get_mcfg_addr()
+>      before calling pci_acpi_scan_root(), but I think that's wrong
+>      because (a) some arches, e.g., ia64, don't use ECAM and (b) _CBA
+>      and MCFG should be handled in the same place.
+>
+>      I know calling request_mem_region() here will probably be an
+>      ordering problem because the PNP0C02 driver hasn't reserved
+>      resources yet.  But the host bridge driver is using the region and
+>      it should reserve it.
+>
+>    - If we store the ECAM mapped base address in the sysdata or struct
+>      pci_host_bridge, the normal config accessors can use
+>      pci_generic_config_read() with a new generic .map_bus() function.
 
-Gab
+pci_generic_config_{read|write}() is what we want to use, actually we do 
+now, but ECAM region and sysdata association will remove ECAM region 
+lookup step (see patch 09/15 of this series).
 
-> 
-> > > > As per last Tomasz's patchset, we claim and assign unassigned PCI
-> > > > resources upon ACPI PCI host bridge probing (which happens at
-> > > > subsys_initcall time, courtesy of ACPI current code); at that
-> time the
-> > > > kernel did not even register the PNP0c02 driver
-> (drivers/pnp/system.c)
-> > > > (it does that at fs_initcall). On the other hand, we insert MCFG
-> > > > regions into the resource tree upon MCFG parsing, so I do not
-> > > > see why we need to rely on PNP0c02 to do that for us (granted,
-> the
-> > > > mechanism is part of the PCI fw specs, which are x86 centric
-> anyway
-> > > > ie we can't certainly rely on Int15 e820 to detect reserved
-> memory
-> > > > on ARM :D)
-> > > >
-> > > > There is lots of legacy x86 here and Bjorn definitely has more
-> > > > visibility into that than I have, the ARM world must understand
-> > > > how this works to make sure we have an agreement.
-> > >
-> > > As you say, there is lots of unpleasant x86 legacy here.  Possibly
-> ARM
-> > > has a chance to clean this up and do it more sanely; I'm not sure
-> > > whether it's feasible to reverse the ACPI/PCI init order there or
-> not.
-> > >
-> > > Rafael, any thoughts on this whole thing?
-> > >
-> > > Bjorn
-> > >
-> > --
-> > To unsubscribe from this list: send the line "unsubscribe linux-acpi"
-> in
-> > the body of a message to majordomo@vger.kernel.org
-> > More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>
+>      On x86, the normal config access path is:
+>
+>        pci_read(struct pci_bus *, ...)
+>          raw_pci_read(seg, bus#, ...)
+> 	  raw_pci_ext_ops->read(seg, bus#, ...)
+> 	    pci_mmcfg_read(seg, bus#, ...)
+> 	      pci_dev_base
+> 	        pci_mmconfig_lookup(seg, bus#)
+>
+>      I think this is somewhat backwards because we start with a pci_bus
+>      pointer, so we *could* have a nice simple bus-specific accessor,
+>      but we throw that pointer away, so pci_mmcfg_read() has to start
+>      over and look up the ECAM offset from scratch, which makes it all
+>      unnecessarily complicated.
+>
+
+As you pointed out raw_pci_{read|write} make things complicated, so IMO 
+we should either say they are absolutely necessary (and then think how 
+to simplify it) or just use simple bus-specific accessor (patch 02/15) 
+e.g. for ARM64.
+
+Any comments appreciated.
+
+Thanks,
+Tomasz
