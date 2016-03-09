@@ -1,66 +1,42 @@
-From: Heikki Krogerus <heikki.krogerus@linux.intel.com>
-Subject: Re: [RESEND PATCH 2/2] device property: fix for a case of
- use-after-free
-Date: Wed, 9 Mar 2016 16:41:12 +0200
-Message-ID: <20160309144112.GA31334@kuha.fi.intel.com>
-References: <1457444677-25645-1-git-send-email-heikki.krogerus@linux.intel.com>
- <1457444677-25645-3-git-send-email-heikki.krogerus@linux.intel.com>
- <38356299.uTpVNISVVC@vostro.rjw.lan>
+From: Peter Zijlstra <peterz@infradead.org>
+Subject: Re: [PATCH v2 1/10] cpufreq: Reduce cpufreq_update_util() overhead a
+ bit
+Date: Wed, 9 Mar 2016 16:29:34 +0100
+Message-ID: <20160309152934.GO6356@twins.programming.kicks-ass.net>
+References: <2495375.dFbdlAZmA6@vostro.rjw.lan>
+ <2409306.qzzMXcm4dm@vostro.rjw.lan>
+ <1988425.XTpZIAJINa@vostro.rjw.lan>
+ <20160309123956.GM6356@twins.programming.kicks-ass.net>
+ <CAJZ5v0gt3tmJ1ZunvkLKfeUSgZv7yiO9vBDtDmXSuC=tUUpPLg@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga01.intel.com ([192.55.52.88]:16288 "EHLO mga01.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932766AbcCIOlS (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 9 Mar 2016 09:41:18 -0500
+Received: from bombadil.infradead.org ([198.137.202.9]:34142 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932983AbcCIP3l (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 9 Mar 2016 10:29:41 -0500
 Content-Disposition: inline
-In-Reply-To: <38356299.uTpVNISVVC@vostro.rjw.lan>
+In-Reply-To: <CAJZ5v0gt3tmJ1ZunvkLKfeUSgZv7yiO9vBDtDmXSuC=tUUpPLg@mail.gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: Mika Westerberg <mika.westerberg@linux.intel.com>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, John Youn <John.Youn@synopsys.com>, linux-acpi@vger.kernel.org
+To: "Rafael J. Wysocki" <rafael@kernel.org>
+Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Linux PM list <linux-pm@vger.kernel.org>, Juri Lelli <juri.lelli@arm.com>, Steve Muckle <steve.muckle@linaro.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>, Viresh Kumar <viresh.kumar@linaro.org>, Vincent Guittot <vincent.guittot@linaro.org>, Michael Turquette <mturquette@baylibre.com>, Ingo Molnar <mingo@kernel.org>
 
-Hi Rafael,
-
-> > diff --git a/drivers/base/property.c b/drivers/base/property.c
-> > index a163f2c..a9df21a9 100644
-> > --- a/drivers/base/property.c
-> > +++ b/drivers/base/property.c
-> > @@ -820,11 +820,13 @@ void device_remove_property_set(struct device *dev)
-> >  	 * the pset. If there is no real firmware node (ACPI/DT) primary
-> >  	 * will hold the pset.
-> >  	 */
-> > -	if (!is_pset_node(fwnode))
-> > +	if (is_pset_node(fwnode))
-> > +		dev->fwnode = NULL;
+On Wed, Mar 09, 2016 at 03:17:48PM +0100, Rafael J. Wysocki wrote:
+> > That said, how about the below? It avoids a function call.
 > 
-> I don't really like the way you clear dev->fwnode directly here.
-> set_primary_fwnode(dev, NULL) would be more appropriate IMO.
+> That is fine by me.
 > 
-> Also set_secondary_fwnode(dev, NULL) need not be done in that case, because it
-> doesn't change anything.
+> What about taking it a bit further, though, and moving the definition
+> of cpufreq_update_util_data to somewhere under kernel/sched/ (like
+> kernel/sched/cpufreq.c maybe)?
 > 
-> Moreover, if the primary node is not pset, the secondary one should only be
-> cleared if it is pset.
+> Then, the whole static inline void cpufreq_update_util() definition
+> can go into kernel/sched/sched.h (it doesn't have to be visible
+> anywhere beyond kernel/sched/) and the only thing that needs to be
+> exported to cpufreq will be a helper (or two), to set/clear the
+> cpufreq_update_util_data pointers.
 > 
-> So that would mean
-> 
-> 	if (is_pset_node(fwnode)) {
-> 		set_primary_fwnode(dev, NULL);
-> 		pset_free_set(to_pset_node(fwnode));
-> 	} else {
-> 		fwnode = fwnode->secondary;
-> 		if (!IS_ERR(fwnode) && is_pset_node(fwnode)) {
-> 			set_secondary_fwnode(dev, NULL);
-> 			pset_free_set(to_pset_node(fwnode));
-> 		}
-> 	}
+> I'll try to cut a patch doing that later today for illustration.
 
-I have been testing that today, but I'll continue tomorrow. No
-problems so far.
-
-
-Thanks,
-
--- 
-heikki
+Right, that's a blend with your second patch. Sure.
