@@ -1,73 +1,103 @@
 From: "Rafael J. Wysocki" <rafael@kernel.org>
-Subject: Re: [PATCH v2 1/10] cpufreq: Reduce cpufreq_update_util() overhead a bit
-Date: Wed, 9 Mar 2016 15:17:48 +0100
-Message-ID: <CAJZ5v0gt3tmJ1ZunvkLKfeUSgZv7yiO9vBDtDmXSuC=tUUpPLg@mail.gmail.com>
-References: <2495375.dFbdlAZmA6@vostro.rjw.lan>
-	<2409306.qzzMXcm4dm@vostro.rjw.lan>
-	<1988425.XTpZIAJINa@vostro.rjw.lan>
-	<20160309123956.GM6356@twins.programming.kicks-ass.net>
+Subject: Re: [PATCH v2] PCI: ACPI: IA64: fix IO port generic range check
+Date: Wed, 9 Mar 2016 15:20:32 +0100
+Message-ID: <CAJZ5v0gt9uyLWpr0cedKt-dahCfUdN8Ha4mSeL_bNV2YkMWdZg@mail.gmail.com>
+References: <1455212827-9382-1-git-send-email-lorenzo.pieralisi@arm.com>
+	<20160308222125.GG27132@localhost>
+	<CAJZ5v0gnDnF_4z_mtZp+Tq8-V3FgG6p7kMykqtVA+s44ukkuaA@mail.gmail.com>
+	<20160309053332.GA22228@localhost>
+	<20160309071406.GA19555@red-moon>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20160309123956.GM6356@twins.programming.kicks-ass.net>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Peter Zijlstra <peterz@infradead.org>
-Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Linux PM list <linux-pm@vger.kernel.org>, Juri Lelli <juri.lelli@arm.com>, Steve Muckle <steve.muckle@linaro.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>, Viresh Kumar <viresh.kumar@linaro.org>, Vincent Guittot <vincent.guittot@linaro.org>, Michael Turquette <mturquette@baylibre.com>, Ingo Molnar <mingo@kernel.org>
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-lb0-f195.google.com ([209.85.217.195]:33469 "EHLO
+	mail-lb0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932519AbcCIOUe convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 9 Mar 2016 09:20:34 -0500
+In-Reply-To: <20160309071406.GA19555@red-moon>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+Cc: Bjorn Helgaas <helgaas@kernel.org>, "Rafael J. Wysocki" <rafael@kernel.org>, Linux PCI <linux-pci@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, "linux-ia64@vger.kernel.org" <linux-ia64@vger.kernel.org>, Bjorn Helgaas <bhelgaas@google.com>, Hanjun Guo <hanjun.guo@linaro.org>, Jiang Liu <jiang.liu@linux.intel.com>, Tony Luck <tony.luck@intel.com>, Tomasz Nowicki <tn@semihalf.com>, Mark Salter <msalter@redhat.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>
 
-On Wed, Mar 9, 2016 at 1:39 PM, Peter Zijlstra <peterz@infradead.org> wrote:
-> On Fri, Mar 04, 2016 at 03:58:22AM +0100, Rafael J. Wysocki wrote:
->> From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+On Wed, Mar 9, 2016 at 8:14 AM, Lorenzo Pieralisi
+<lorenzo.pieralisi@arm.com> wrote:
+> On Tue, Mar 08, 2016 at 11:33:32PM -0600, Bjorn Helgaas wrote:
+>> On Tue, Mar 08, 2016 at 11:27:01PM +0100, Rafael J. Wysocki wrote:
+>> > On Tue, Mar 8, 2016 at 11:21 PM, Bjorn Helgaas <helgaas@kernel.org> wrote:
+>> > > On Thu, Feb 11, 2016 at 05:47:07PM +0000, Lorenzo Pieralisi wrote:
+>> > >> The [0 - 64k] ACPI PCI IO port resource boundary check in:
+>> > >>
+
+[cut]
+
+>> Wait a minute, this doesn't seem right to me.
 >>
->> Use the observation that cpufreq_update_util() is only called
->> by the scheduler with rq->lock held, so the callers of
->> cpufreq_set_update_util_data() can use synchronize_sched()
->> instead of synchronize_rcu() to wait for cpufreq_update_util()
->> to complete.  Moreover, if they are updated to do that,
->> rcu_read_(un)lock() calls in cpufreq_update_util() might be
->> replaced with rcu_read_(un)lock_sched(), respectively, but
->> those aren't really necessary, because the scheduler calls
->> that function from RCU-sched read-side critical sections
->> already.
+>> The problem we're trying to fix is that on ia64, we incorrectly
+>> discard the PCI host bridge window [io  0x1000000-0x100ffff window].
 >>
->> In addition to that, if cpufreq_set_update_util_data() checks
->> the func field in the struct update_util_data before setting
->> the per-CPU pointer to it, the data->func check may be dropped
->> from cpufreq_update_util() as well.
+>> That window is currently discarded by the generic
+>> acpi_dev_ioresource_flags() function, where we're removing this code:
 >>
->> Make the above changes to reduce the overhead from
->> cpufreq_update_util() in the scheduler paths invoking it
->> and to make the cleanup after removing its callbacks less
->> heavy-weight somewhat.
+>> -       if (res->end >= 0x10003)
+>> -               res->flags |= IORESOURCE_DISABLED | IORESOURCE_UNSET;
 >>
->> Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
->> Acked-by: Viresh Kumar <viresh.kumar@linaro.org>
->> ---
+>> and we're adding the "res->end >= 0x10003" check to
+>> arch/x86/pci/acpi.c.
 >>
->> Changes from the previous version:
->> - Use rcu_dereference_sched() in cpufreq_update_util().
+>> But the removal also affects other users of acpi_dev_ioresource_flags(),
+>> and that's broader than the scope of this patch.  We might want to
+>> remove the check, but if we do, it should be in a separate patch by
+>> itself so it isn't a hidden side-effect of fixing this ia64 problem.
+>>
+>> The other users of acpi_dev_ioresource_flags() include:
+>>
+>>     {acpi_lpss_create_device,acpi_create_platform_device,acpi_pci_probe_root_resources,acpi_default_enumeration,bcm_acpi_probe,tpm_tis_acpi_init,acpi_dma_parse_resource_group,acpi_dma_request_slave_chan_by_index,acpi_gpio_resource_lookup,acpi_gpio_count,acpi_i2c_add_device,inv_mpu_process_acpi_config,acpi_spi_add_device}
+>>       acpi_dev_get_resources
+>>         acpi_dev_process_resource
+>>           acpi_dev_resource_io
+>>             acpi_dev_get_ioresource
+>>               acpi_dev_ioresource_flags
+>>
+>>     {pnpacpi_add_device,resources_store}
+>>       pnpacpi_parse_allocated_resource
+>>         pnpacpi_allocated_resource
+>>           acpi_dev_resource_io
+>>             acpi_dev_get_ioresource
+>>               acpi_dev_ioresource_flags
+>>
+>> I think the original test in acpi_dev_ioresource_flags() isn't quite
+>> correct because it's generic code, but it enforces an arch-specific
+>> 64K limit.
 >
-> Which I think also shows the WARN_ON I insisted upon is redundant.
+> Yes, I was about to write to you I noticed the same issue.
 >
-> In any case, I cannot object to reducing overhead, esp. as this whole
-> patch was suggested by me in the first place, so:
+> That (>=0x10003) check in generic code is an x86ism, it is wrong but
+> it is there and given that there are other potential
+> users of acpi_dev_ioresource_flags() this patch should
+> be dropped I do not want to trigger x86 regressions because
+> some IO resources are not filtered.
 >
-> Acked-by: Peter Zijlstra (Intel) <peterz@infradead.org>
+> I am travelling, so can't have a proper look till next week,
+> Rafael, please drop this patch.
+>
+>> Maybe acpi_dev_ioresource_flags() should instead check res->end
+>> against ioport_resource.end, as we already do in
+>> acpi_pci_root_validate_resources()?  Each arch already sets its own
+>> ioport_resource.end using IO_SPACE_LIMIT:
+>>
+>>   arch/x86/include/asm/io.h   #define IO_SPACE_LIMIT 0xffff
+>>   arch/ia64/include/asm/io.h  #define IO_SPACE_LIMIT 0xffffffffffffffffUL
+>
+> We can't do that, it may work on IA64 but the ioport_resource is a
+> chunk of address space on IA64/ARM64 that has nothing to do with
+> the physical address at which the root bridges decode IO space (which
+> is what's contained in the resource).
+>
+> I will have a look next week, please drop this patch.
 
-Thanks!
+OK, dropping.
 
-> That said, how about the below? It avoids a function call.
-
-That is fine by me.
-
-What about taking it a bit further, though, and moving the definition
-of cpufreq_update_util_data to somewhere under kernel/sched/ (like
-kernel/sched/cpufreq.c maybe)?
-
-Then, the whole static inline void cpufreq_update_util() definition
-can go into kernel/sched/sched.h (it doesn't have to be visible
-anywhere beyond kernel/sched/) and the only thing that needs to be
-exported to cpufreq will be a helper (or two), to set/clear the
-cpufreq_update_util_data pointers.
-
-I'll try to cut a patch doing that later today for illustration.
+Thanks,
+Rafael
