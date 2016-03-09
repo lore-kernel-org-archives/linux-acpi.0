@@ -1,77 +1,131 @@
-From: Bjorn Helgaas <helgaas@kernel.org>
-Subject: Re: [PATCH v2] PCI: ACPI: IA64: fix IO port generic range check
-Date: Wed, 9 Mar 2016 09:35:56 -0600
-Message-ID: <20160309153556.GA14873@localhost>
-References: <1455212827-9382-1-git-send-email-lorenzo.pieralisi@arm.com>
- <20160308222125.GG27132@localhost>
- <CAJZ5v0gnDnF_4z_mtZp+Tq8-V3FgG6p7kMykqtVA+s44ukkuaA@mail.gmail.com>
- <20160309053332.GA22228@localhost>
- <20160309071406.GA19555@red-moon>
+From: Peter Zijlstra <peterz@infradead.org>
+Subject: Re: [PATCH 6/6] cpufreq: schedutil: New governor based on scheduler
+ utilization data
+Date: Wed, 9 Mar 2016 17:39:30 +0100
+Message-ID: <20160309163930.GP6356@twins.programming.kicks-ass.net>
+References: <2495375.dFbdlAZmA6@vostro.rjw.lan>
+ <CAJZ5v0h47h-xW6a4jzwRuOOOSG+qsD9hegM7QCzbD8Wb-yPVKQ@mail.gmail.com>
+ <56D8AEB7.2050100@linaro.org>
+ <36459679.vzZnOsAVeg@vostro.rjw.lan>
+ <20160308112759.GF6356@twins.programming.kicks-ass.net>
+ <CAJZ5v0i+KFmpggrGKqtL_SB1=Fv=b_AbVeL-9jPfo4rYt6-q5A@mail.gmail.com>
+ <20160308192640.GD6344@twins.programming.kicks-ass.net>
+ <CAJZ5v0g=dXmoPr0jR6AVuynVYbSwJvnS2dFhb7QnUKq9LRRnrQ@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-pci-owner@vger.kernel.org>
+Return-path: <linux-pm-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20160309071406.GA19555@red-moon>
-Sender: linux-pci-owner@vger.kernel.org
-To: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
-Cc: "Rafael J. Wysocki" <rafael@kernel.org>, Linux PCI <linux-pci@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, "linux-ia64@vger.kernel.org" <linux-ia64@vger.kernel.org>, Bjorn Helgaas <bhelgaas@google.com>, Hanjun Guo <hanjun.guo@linaro.org>, Jiang Liu <jiang.liu@linux.intel.com>, Tony Luck <tony.luck@intel.com>, Tomasz Nowicki <tn@semihalf.com>, Mark Salter <msalter@redhat.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>
+In-Reply-To: <CAJZ5v0g=dXmoPr0jR6AVuynVYbSwJvnS2dFhb7QnUKq9LRRnrQ@mail.gmail.com>
+Sender: linux-pm-owner@vger.kernel.org
+To: "Rafael J. Wysocki" <rafael@kernel.org>
+Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Steve Muckle <steve.muckle@linaro.org>, Vincent Guittot <vincent.guittot@linaro.org>, Linux PM list <linux-pm@vger.kernel.org>, Juri Lelli <juri.lelli@arm.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>, Viresh Kumar <viresh.kumar@linaro.org>, Michael Turquette <mturquette@baylibre.com>, Ingo Molnar <mingo@redhat.com>
 List-Id: linux-acpi@vger.kernel.org
 
-On Wed, Mar 09, 2016 at 07:14:06AM +0000, Lorenzo Pieralisi wrote:
-> On Tue, Mar 08, 2016 at 11:33:32PM -0600, Bjorn Helgaas wrote:
+On Tue, Mar 08, 2016 at 09:05:50PM +0100, Rafael J. Wysocki wrote:
+> >> This means that on platforms where the utilization is frequency
+> >> invariant we should use
+> >>
+> >>   next_freq = a * x
+> >>
+> >> (where x is given by (2) above) and for platforms where the
+> >> utilization is not frequency invariant
+> >>
+> >>   next_freq = a * x * current_freq / max_freq
+> >>
+> >> and all boils down to finding a.
+> >
+> > Right.
+> 
+> However, that doesn't seem to be in agreement with the Steve's results
+> posted earlier in this thread.
 
-> > Maybe acpi_dev_ioresource_flags() should instead check res->end
-> > against ioport_resource.end, as we already do in
-> > acpi_pci_root_validate_resources()?  Each arch already sets its own
-> > ioport_resource.end using IO_SPACE_LIMIT:
-> > 
-> >   arch/x86/include/asm/io.h   #define IO_SPACE_LIMIT 0xffff
-> >   arch/ia64/include/asm/io.h  #define IO_SPACE_LIMIT 0xffffffffffffffffUL
+I could not make anything of those numbers.
 
-I suspect we're saying the same thing with slightly different words,
-so I apologize if I'm beating a dead horse.
+> Also theoretically, with frequency invariant, the only way you can get
+> to 100% utilization is by running at the max frequency, so the closer
+> to 100% you get, the faster you need to run to get any further.  That
+> indicates nonlinear to me.
 
-ioport_resource defines the universe of Linux ioport space.  Every
-IORESOURCE_IO struct resource must be contained in ioport_resource.
-Such a resource contains Linux ioport numbers, i.e., things that could
-appear in /proc/ioports and could be passed as an argument to
-request_region() and the inb()/outb() functions.
+I'm not seeing that, you get that by using a > 1. No need for
+non-linear.
 
-> We can't do that, it may work on IA64 but the ioport_resource is a
-> chunk of address space on IA64/ARM64 that has nothing to do with
-> the physical address at which the root bridges decode IO space (which
-> is what's contained in the resource).
+> >> Now, it seems reasonable for a to be something like (1 + 1/n) *
+> >> max_freq, so for non-frequency invariant we get
+> >>
+> >>   nex_freq = (1 + 1/n) * current_freq * x
+> >
+> > This seems like a big leap; where does:
+> >
+> >   (1 + 1/n) * max_freq
+> >
+> > come from? And what is 'n'?
 
-I'm stumbling over "the physical address at which the root bridges
-decode IO space (which is what's contained in the resource)".
+> a = max_freq gives next_freq = max_freq for x = 1,
 
-x86 host bridges typically just forward CPU-generated I/O port
-transactions to PCI with no address translation, so it sounds like
-you're talking about ia64/ARM64 bridges that decode CPU MMIO space and
-turn accesses into PCI I/O transactions.  
+next_freq = a        * x * current_freq / max_freq
 
-If we start from a driver calling inb(), the driver supplies a Linux
-ioport number "X".  On ia64 (and I assume ARM64 as well), inb()
-performs an MMIO access to memory address "Y".  A host bridge consumes
-that MMIO access and generates a corresponding PCI I/O transaction to
-PCI ioport "Z".
+  [ a := max_freq, x := 1 ] ->
 
-It is indeed true that ioport_resource has nothing to do with memory
-addresses like "Y".  But the driver (and this part of the ACPI
-infrastructure) are dealing with ioport address "X", and that is
-definitely in an IORESOURCE_IO struct resource.  The IORESOURCE_MEM
-struct resource that contains "Y" is internal to the host bridge
-driver and invisible to the device driver that's using inb().
+          = max_freq * 1 * current_freq / max_freq
+	  = current_freq
 
-For example, you could have something like this (with made-up
-addresses):
+	  != max_freq
 
-  [io  0x0000-0xffff]              # Linux ioport space
-  [mem 0x100000000-0x10000ffff]    # MMIO space consumed by host bridge
-  [bus 0x0000-0xffff]              # PCI bus I/O transaction space
+But I think I see what you're saying; because at x = 1,
+current_frequency must be max_frequency. Per your earlier point.
 
-  [io  0x10000-0x1ffff]            # Linux ioport space ("X")
-  [mem 0x200000000-0x20000ffff]    # MMIO space consumed by host bridge ("Y")
-  [bus 0x0000-0xffff]              # PCI bus I/O transaction space ("Z")
+> but with that choice of a you may never get to x = 1 with frequency
+> invariant because of the feedback effect mentioned above, so the 1/n
+> produces the extra boost needed for that (n is a positive integer).
 
-Bjorn
+OK, so that gets us:
+
+	a = (1 + 1/n) ; n > 0
+
+[ I would not have chosen (1 + 1/n), but lets stick to that ]
+
+So for n = 4 that gets you: a = 1.25, which effectively gets you an 80%
+utilization tipping point. That is, 1.25 * .8 = 1, iow. you'll pick the
+next frequency (assuming RELATION_L like selection).
+
+Together this gets you:
+
+	next_freq = (1 + 1/n) * max_freq * x * current_freq / max_freq
+	          = (1 + 1/n) * x * current_freq
+
+Again, with n = 4, x > .8 will result in a next_freq > current_freq, and
+hence (RELATION_L) pick a higher one.
+
+> Quite frankly, to me it looks like linear really is a better
+> approximation for "raw" utilization.  That is, for frequency invariant
+> x we should take:
+> 
+>   next_freq = a * x * max_freq / current_freq
+
+(its very confusing how you use 'x' for both invariant and
+non-invariant).
+
+That doesn't make sense, remember:
+
+	util = \Sum_i u_i * freq_i / max_freq		(1)
+
+Which for systems where freq_i is constant reduces to:
+
+	util = util_raw * current_freq / max_freq	(2)
+
+But you cannot reverse this. IOW you cannot try and divide out
+current_freq on a frequency invariant metric.
+
+So going by:
+
+	next_freq = (1 + 1/n) * max_freq * util		(3)
+
+if we substitute (2) into (3) we get:
+
+	          = (1 + 1/n) * max_freq * util_raw * current_freq / max_freq
+		  = (1 + 1/n) * current_freq * util_raw	(4)
+
+Which gets you two formula with the same general behaviour. As (2) is
+the only approximation of (1) we can make.
+
+
