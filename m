@@ -1,81 +1,60 @@
-From: "Rafael J. Wysocki" <rafael@kernel.org>
-Subject: Re: [PATCH 0/2] Use acpi_dev_present()
-Date: Wed, 9 Mar 2016 23:21:18 +0100
-Message-ID: <CAJZ5v0gRYiWDSd-hgMPiBEAOEif8sdc-W=Ot5fibPUMv_EE+Jg@mail.gmail.com>
-References: <cover.1453060661.git.lukas@wunner.de>
-	<20160119211229.GB3253@malice.jf.intel.com>
-	<5367662.pAQ7mO39ru@vostro.rjw.lan>
-	<20160211183157.GA15803@wunner.de>
+From: "Verma, Vishal L" <vishal.l.verma@intel.com>
+Subject: Re: [PATCH 1/3] nfit, libnvdimm: clear poison command support
+Date: Wed, 9 Mar 2016 23:03:59 +0000
+Message-ID: <1457564634.4525.32.camel@intel.com>
+References: <20160308224713.16298.33547.stgit@dwillia2-desk3.jf.intel.com>
+	 <20160308224718.16298.47066.stgit@dwillia2-desk3.jf.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <platform-driver-x86-owner@vger.kernel.org>
-In-Reply-To: <20160211183157.GA15803@wunner.de>
-Sender: platform-driver-x86-owner@vger.kernel.org
-To: Lukas Wunner <lukas@wunner.de>
-Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Darren Hart <dvhart@infradead.org>, Lv Zheng <lv.zheng@intel.com>, Robert Moore <robert.moore@intel.com>, platform-driver-x86@vger.kernel.org, "Lee, Chun-Yi" <jlee@suse.com>, Corentin Chary <corentin.chary@gmail.com>, acpi4asus-user@lists.sourceforge.net, ACPI Devel Maling List <linux-acpi@vger.kernel.org>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga02.intel.com ([134.134.136.20]:43209 "EHLO mga02.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752167AbcCIXEP (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 9 Mar 2016 18:04:15 -0500
+In-Reply-To: <20160308224718.16298.47066.stgit@dwillia2-desk3.jf.intel.com>
+Content-Language: en-US
+Content-ID: <C5CC6FE5C00D3A49959498D6018C1334@intel.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: "Williams, Dan J" <dan.j.williams@intel.com>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>
+Cc: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
 
-On Thu, Feb 11, 2016 at 7:31 PM, Lukas Wunner <lukas@wunner.de> wrote:
-> Hi Rafael,
->
-> thanks a lot for your patience.
->
-> On Tue, Jan 19, 2016 at 10:59:04PM +0100, Rafael J. Wysocki wrote:
->> On Tuesday, January 19, 2016 01:12:29 PM Darren Hart wrote:
->> > On Sun, Jan 17, 2016 at 09:49:41PM +0100, Lukas Wunner wrote:
->> > > Hi Darren,
->> > >
->> > > the acpi_dev_present() API has now landed in Linus' tree.
->> > > Thus, after Linus' tree gets merged back into yours,
->> > > it would be possible to use the API in the pdx86 drivers
->> > > as per the following patches.
->> > >
->> > > I've also pushed these to GitHub in case anyone prefers
->> > > perusing them in a browser:
->> > > https://github.com/l1k/linux/commits/acpi_dev_present_pdx86
->> > >
->> > > This is a repost of patches submitted in November, the only
->> > > change is one line added to the commit messages to reference
->> > > the commit which introduces the API:
->> > > http://thread.gmane.org/gmane.linux.alsa.devel/147414/focus=8004
->> > > http://thread.gmane.org/gmane.linux.alsa.devel/147414/focus=8005
->> >
->> > Who's tree did the API make it in through? That would likely be the best tree to
->> > pull these 2 patches in from.
->> >
->> > Robert, Lv, Rafael? Would one of you prefer to take these 2 patches using the
->> > new API?
->>
->> It was my tree and I can take these patches, but in that case I'd like the
->> function's name to be changed as discussed elsewhere.
->>
->> Executive summary is that we have acpi_dev_present() and acpi_device_is_present()
->> now and they serve different purposes which is kind of confusing.  Moreover,
->> acpi_dev_present() doesn't check if the device is actually present, so
->> I would like it to be renamed to acpi_device_found() or similar.
->
-> There are 4 users of acpi_dev_present in linux-next (3 in sound/soc/intel/,
-> 1 in include/linux/apple-gmux.h). I expect 1 other user to appear in i915.
->
-> I've created a patch (based on linux-next and included below as an RFC)
-> to rename acpi_dev_present to acpi_dev_found in the function declaration
-> as well as at all call sites. I've also rebased the 2 pdx86 patches onto
-> this and pushed the branch to GitHub:
-> https://github.com/l1k/linux/commits/acpi_dev_found
->
-> My plan is currently to wait until all users are merged into 4.6,
-> then rebase my branch onto Linus' tree and post the resulting patches.
-> This will be either late during the 4.6 merge window or immediately
-> after it has closed. You could then either pick up the patches for
-> 4.6 or 4.7, whichever you prefer.
->
-> If you'd prefer a different way of moving forward or would like
-> something changed in the patch below, please let me know and
-> I will be happy to adjust accordingly.
-
-Thanks for doing this!
-
-Your plan seems workable to me, so please go ahead with it.
-
-Thanks,
-Rafael
+T24gVHVlLCAyMDE2LTAzLTA4IGF0IDE0OjQ3IC0wODAwLCBEYW4gV2lsbGlhbXMgd3JvdGU6DQo+
+IEFkZCB0aGUgYm9pbGVyLXBsYXRlIGZvciBhICdjbGVhciBlcnJvcicgY29tbWFuZCBiYXNlZCBv
+biBzZWN0aW9uDQo+IDkuMjAuNy42ICJGdW5jdGlvbiBJbmRleCA0IC0gQ2xlYXIgVW5jb3JyZWN0
+YWJsZSBFcnJvciIgZnJvbSB0aGUgQUNQSQ0KPiA2LjEgc3BlY2lmaWNhdGlvbiwgYW5kIGFkZCBh
+IHJlZmVyZW5jZSBpbXBsZW1lbnRhdGlvbiBpbiBuZml0X3Rlc3QuDQo+IA0KPiBDYzogVmlzaGFs
+IFZlcm1hIDx2aXNoYWwubC52ZXJtYUBpbnRlbC5jb20+DQo+IFNpZ25lZC1vZmYtYnk6IERhbiBX
+aWxsaWFtcyA8ZGFuLmoud2lsbGlhbXNAaW50ZWwuY29tPg0KPiAtLS0NCj4gwqBkcml2ZXJzL2Fj
+cGkvbmZpdC5jwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoHzCoMKgwqAxMiArKysrKysrKysr
+Ky0NCj4gwqBkcml2ZXJzL252ZGltbS9idXMuY8KgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgfMKg
+wqDCoDE5ICsrKysrKysrKysrKysrKysrKysNCj4gwqBpbmNsdWRlL3VhcGkvbGludXgvbmRjdGwu
+aMKgwqDCoMKgwqDCoMKgfMKgwqDCoDEzICsrKysrKysrKysrKysNCj4gwqB0b29scy90ZXN0aW5n
+L252ZGltbS90ZXN0L25maXQuYyB8wqDCoMKgMjkgKysrKysrKysrKysrKysrKysrKysrKysrKysr
+KysNCj4gwqA0IGZpbGVzIGNoYW5nZWQsIDcyIGluc2VydGlvbnMoKyksIDEgZGVsZXRpb24oLSkN
+Cj4gDQoNCjxzbmlwPg0KDQo+IGRpZmYgLS1naXQgYS9pbmNsdWRlL3VhcGkvbGludXgvbmRjdGwu
+aCBiL2luY2x1ZGUvdWFwaS9saW51eC9uZGN0bC5oDQo+IGluZGV4IGNjNjhiOTIxMjRkNC4uMGYw
+MDFjNTcxY2RkIDEwMDY0NA0KPiAtLS0gYS9pbmNsdWRlL3VhcGkvbGludXgvbmRjdGwuaA0KPiAr
+KysgYi9pbmNsdWRlL3VhcGkvbGludXgvbmRjdGwuaA0KPiBAQCAtOTgsNiArOTgsMTQgQEAgc3Ry
+dWN0IG5kX2NtZF9hcnNfc3RhdHVzIHsNCj4gwqAJfSBfX3BhY2tlZCByZWNvcmRzWzBdOw0KPiDC
+oH0gX19wYWNrZWQ7DQo+IMKgDQo+ICtzdHJ1Y3QgbmRfY21kX2NsZWFyX2Vycm9yIHsNCj4gKwlf
+X3U2NCBhZGRyZXNzOw0KPiArCV9fdTY0IGxlbmd0aDsNCj4gKwlfX3UzMiBzdGF0dXM7DQo+ICsJ
+X191OCByZXNlcnZlZFs0XTsNCj4gKwlfX3U2NCBjbGVhcmVkOw0KPiArfSBfX3BhY2tlZDsNCj4g
+Kw0KPiDCoGVudW0gew0KPiDCoAlORF9DTURfSU1QTEVNRU5URUQgPSAwLA0KPiDCoA0KPiBAQCAt
+MTA1LDYgKzExMyw3IEBAIGVudW0gew0KPiDCoAlORF9DTURfQVJTX0NBUCA9IDEsDQo+IMKgCU5E
+X0NNRF9BUlNfU1RBUlQgPSAyLA0KPiDCoAlORF9DTURfQVJTX1NUQVRVUyA9IDMsDQo+ICsJTkRf
+Q01EX0NMRUFSX0VSUk9SID0gNCwNCj4gwqANCj4gwqAJLyogcGVyLWRpbW0gY29tbWFuZHMgKi8N
+Cj4gwqAJTkRfQ01EX1NNQVJUID0gMSwNCj4gQEAgLTEyOSw2ICsxMzgsNyBAQCBzdGF0aWMgaW5s
+aW5lIGNvbnN0IGNoYXINCj4gKm52ZGltbV9idXNfY21kX25hbWUodW5zaWduZWQgY21kKQ0KPiDC
+oAkJW05EX0NNRF9BUlNfQ0FQXSA9ICJhcnNfY2FwIiwNCj4gwqAJCVtORF9DTURfQVJTX1NUQVJU
+XSA9ICJhcnNfc3RhcnQiLA0KPiDCoAkJW05EX0NNRF9BUlNfU1RBVFVTXSA9ICJhcnNfc3RhdHVz
+IiwNCj4gKwkJW05EX0NNRF9DTEVBUl9FUlJPUl0gPSAiY2xlYXJfZXJyb3IiLA0KPiDCoAl9Ow0K
+PiDCoA0KPiDCoAlpZiAoY21kIDwgQVJSQVlfU0laRShuYW1lcykgJiYgbmFtZXNbY21kXSkNCj4g
+QEAgLTE4Nyw2ICsxOTcsOSBAQCBzdGF0aWMgaW5saW5lIGNvbnN0IGNoYXIgKm52ZGltbV9jbWRf
+bmFtZSh1bnNpZ25lZA0KPiBjbWQpDQo+IMKgI2RlZmluZSBORF9JT0NUTF9BUlNfU1RBVFVTCQlf
+SU9XUihORF9JT0NUTCwNCj4gTkRfQ01EX0FSU19TVEFUVVMsXA0KPiDCoAkJCQkJc3RydWN0IG5k
+X2NtZF9hcnNfc3RhdHVzKQ0KPiDCoA0KPiArI2RlZmluZSBORF9JT0NUTF9DTEVBUl9FUlJPUgkJ
+X0lPV1IoTkRfSU9DVEwsDQo+IE5EX0NNRF9DTEVBUl9FUlJPUixcDQo+ICsJCQkJCXN0cnVjdCBu
+ZF9jbWRfYXJzX3N0YXR1cykNCj4gKw0KDQpUeXBvIGhlcmU/IFNob3VsZCBiZSBzdHJ1Y3TCoG5k
+X2NtZF9jbGVhcl9lcnJvci4NCg0KDQo=
