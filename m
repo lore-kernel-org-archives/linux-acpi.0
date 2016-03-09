@@ -1,68 +1,160 @@
 From: Toshi Kani <toshi.kani@hpe.com>
-Subject: [PATCH v3 0/4] Support persistent memory as reserved type in e820/EFI
-Date: Wed,  9 Mar 2016 12:46:57 -0700
-Message-ID: <1457552817-13938-1-git-send-email-toshi.kani@hpe.com>
+Subject: [PATCH v3 2/4] resource: Add remove_resource interface
+Date: Wed,  9 Mar 2016 12:47:04 -0700
+Message-ID: <1457552826-13987-2-git-send-email-toshi.kani@hpe.com>
+References: <1457552826-13987-1-git-send-email-toshi.kani@hpe.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from g4t3427.houston.hp.com ([15.201.208.55]:40986 "EHLO
+Received: from g4t3427.houston.hp.com ([15.201.208.55]:41096 "EHLO
 	g4t3427.houston.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933868AbcCISy1 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 9 Mar 2016 13:54:27 -0500
+	with ESMTP id S933914AbcCISyg (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 9 Mar 2016 13:54:36 -0500
+In-Reply-To: <1457552826-13987-1-git-send-email-toshi.kani@hpe.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: mingo@kernel.org, bp@suse.de, dan.j.williams@intel.com, rjw@rjwysocki.net, akpm@linux-foundation.org
-Cc: torvalds@linux-foundation.org, linux-nvdimm@lists.01.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+Cc: linux-nvdimm@lists.01.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Toshi Kani <toshi.kani@hpe.com>
 
-ACPI 6 defines persistent memory (PMEM) ranges in multiple
-firmware interfaces, e820, EFI, and ACPI NFIT table.  This EFI
-change, however, leads to hit a bug in the grub bootloader, which
-treats EFI_PERSISTENT_MEMORY type as regular memory and corrupts
-stored user data [1].
+insert_resource() and insert_resource_conflict() are called
+by resource producers to insert a new resource.  When there
+is any conflict, they move conflicting resources down to the
+children of the new resource.  There is no destructor of these
+interfaces, however.
 
-Therefore, BIOS may set generic reserved type in e820 and EFI
-to cover PMEM ranges.  The kernel can initialize PMEM ranges
-from ACPI NFIT table alone.
+Add remove_resource(), which removes a resource previously
+inserted by insert_resource() or insert_resource_conflict(),
+and moves the children up to where they were before.
 
-This scheme cause a problem in the iomem table, though.  On x86,
-for instance, e820_reserve_resources() initializes top-level entries
-(iomem_resource.child) from the e820 table at early boot-time.
-This creates "reserved" entry for a PMEM range, which does not allow
-region_intersects() to check with PMEM type.
+__release_resource() is changed to have @release_child, so
+that this function can be used for remove_resource() as well.
 
-This patch-set adds remove_resource(), exports insert/remove_resource(),
-and changes the NFIT driver to insert a PMEM entry to the iomem table.
+Also add comments to clarify that these functions are intended
+for producers of resources to avoid any confusion with
+request/release_resource() for consumers.
 
-[1] https://lists.gnu.org/archive/html/grub-devel/2015-11/msg00209.html
-
-- Patch 1 fixes __request_region() to handle inheritance of attribute
-  properly.  This patch is independent from this series.
-- Patch 2 adds remove_resource() interface.
-- Patch 3 exports insert_resource() and remove_resource().
-- Patch 4 changes the ACPI nfit driver to call insert_resource() to
-  insert a PMEM range from NFIT.
-
+Signed-off-by: Toshi Kani <toshi.kani@hpe.com>
+Cc: Ingo Molnar <mingo@kernel.org>
+Cc: Borislav Petkov <bp@suse.de>
+Cc: Andrew Morton <akpm@linux-foundation.org>
+Cc: Dan Williams <dan.j.williams@intel.com>
 ---
-v3:
- - Drop devm_insert/remove_resource(), and export insert/remove_resource().
-   (Linus Torvalds)
+ include/linux/ioport.h |    1 +
+ kernel/resource.c      |   51 +++++++++++++++++++++++++++++++++++++++++++-----
+ 2 files changed, 47 insertions(+), 5 deletions(-)
 
-v2:
- - Change the NFIT driver to call insert_resource() to insert a PMEM entry
-   when necessary. (Dan Williams)
- - The NFIT driver still needs to allow unloading. (Dan Williams)
-
----
-This patch-set is based on the tip tree, which has the following patchset.
-https://lkml.org/lkml/2016/1/26/886
-
----
-Toshi Kani (4):
- 1/4 resource: Change __request_region to inherit from immediate parent
- 2/4 resource: Add remove_resource interface
- 3/4 resource: Export insert_resource and remove_resource
- 4/4 ACPI: Change NFIT driver to insert new resource
-
----
- drivers/acpi/nfit.c    | 48 ++++++++++++++++++++++++++++++++++++++++
- include/linux/ioport.h |  1 +
- kernel/resource.c      | 60 +++++++++++++++++++++++++++++++++++++++++++-------
- 3 files changed, 101 insertions(+), 8 deletions(-)
+diff --git a/include/linux/ioport.h b/include/linux/ioport.h
+index afb4559..8017b8b 100644
+--- a/include/linux/ioport.h
++++ b/include/linux/ioport.h
+@@ -174,6 +174,7 @@ extern void reserve_region_with_split(struct resource *root,
+ extern struct resource *insert_resource_conflict(struct resource *parent, struct resource *new);
+ extern int insert_resource(struct resource *parent, struct resource *new);
+ extern void insert_resource_expand_to_fit(struct resource *root, struct resource *new);
++extern int remove_resource(struct resource *old);
+ extern void arch_remove_reservations(struct resource *avail);
+ extern int allocate_resource(struct resource *root, struct resource *new,
+ 			     resource_size_t size, resource_size_t min,
+diff --git a/kernel/resource.c b/kernel/resource.c
+index 5a56e8f..effb6ee 100644
+--- a/kernel/resource.c
++++ b/kernel/resource.c
+@@ -233,9 +233,9 @@ static struct resource * __request_resource(struct resource *root, struct resour
+ 	}
+ }
+ 
+-static int __release_resource(struct resource *old)
++static int __release_resource(struct resource *old, bool release_child)
+ {
+-	struct resource *tmp, **p;
++	struct resource *tmp, **p, *chd;
+ 
+ 	p = &old->parent->child;
+ 	for (;;) {
+@@ -243,7 +243,17 @@ static int __release_resource(struct resource *old)
+ 		if (!tmp)
+ 			break;
+ 		if (tmp == old) {
+-			*p = tmp->sibling;
++			if (release_child || !(tmp->child)) {
++				*p = tmp->sibling;
++			} else {
++				for (chd = tmp->child;; chd = chd->sibling) {
++					chd->parent = tmp->parent;
++					if (!(chd->sibling))
++						break;
++				}
++				*p = tmp->child;
++				chd->sibling = tmp->sibling;
++			}
+ 			old->parent = NULL;
+ 			return 0;
+ 		}
+@@ -325,7 +335,7 @@ int release_resource(struct resource *old)
+ 	int retval;
+ 
+ 	write_lock(&resource_lock);
+-	retval = __release_resource(old);
++	retval = __release_resource(old, true);
+ 	write_unlock(&resource_lock);
+ 	return retval;
+ }
+@@ -679,7 +689,7 @@ static int reallocate_resource(struct resource *root, struct resource *old,
+ 		old->start = new.start;
+ 		old->end = new.end;
+ 	} else {
+-		__release_resource(old);
++		__release_resource(old, true);
+ 		*old = new;
+ 		conflict = __request_resource(root, old);
+ 		BUG_ON(conflict);
+@@ -825,6 +835,9 @@ static struct resource * __insert_resource(struct resource *parent, struct resou
+  * entirely fit within the range of the new resource, then the new
+  * resource is inserted and the conflicting resources become children of
+  * the new resource.
++ *
++ * This function is intended for producers of resources, such as FW modules
++ * and bus drivers.
+  */
+ struct resource *insert_resource_conflict(struct resource *parent, struct resource *new)
+ {
+@@ -842,6 +855,9 @@ struct resource *insert_resource_conflict(struct resource *parent, struct resour
+  * @new: new resource to insert
+  *
+  * Returns 0 on success, -EBUSY if the resource can't be inserted.
++ *
++ * This function is intended for producers of resources, such as FW modules
++ * and bus drivers.
+  */
+ int insert_resource(struct resource *parent, struct resource *new)
+ {
+@@ -885,6 +901,31 @@ void insert_resource_expand_to_fit(struct resource *root, struct resource *new)
+ 	write_unlock(&resource_lock);
+ }
+ 
++/**
++ * remove_resource - Remove a resource in the resource tree
++ * @old: resource to remove
++ *
++ * Returns 0 on success, -EINVAL if the resource is not valid.
++ *
++ * This function removes a resource previously inserted by insert_resource()
++ * or insert_resource_conflict(), and moves the children (if any) up to
++ * where they were before.  insert_resource() and insert_resource_conflict()
++ * insert a new resource, and move any conflicting resources down to the
++ * children of the new resource.
++ *
++ * insert_resource(), insert_resource_conflict() and remove_resource() are
++ * intended for producers of resources, such as FW modules and bus drivers.
++ */
++int remove_resource(struct resource *old)
++{
++	int retval;
++
++	write_lock(&resource_lock);
++	retval = __release_resource(old, false);
++	write_unlock(&resource_lock);
++	return retval;
++}
++
+ static int __adjust_resource(struct resource *res, resource_size_t start,
+ 				resource_size_t size)
+ {
