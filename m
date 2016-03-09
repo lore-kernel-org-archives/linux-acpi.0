@@ -1,50 +1,80 @@
-From: Toshi Kani <toshi.kani@hpe.com>
-Subject: [PATCH v3 3/4] resource: Export insert_resource and remove_resource
-Date: Wed,  9 Mar 2016 12:47:05 -0700
-Message-ID: <1457552826-13987-3-git-send-email-toshi.kani@hpe.com>
-References: <1457552826-13987-1-git-send-email-toshi.kani@hpe.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1457552826-13987-1-git-send-email-toshi.kani@hpe.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: mingo@kernel.org, bp@suse.de, dan.j.williams@intel.com, rjw@rjwysocki.net, akpm@linux-foundation.org
-Cc: linux-nvdimm@lists.01.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Toshi Kani <toshi.kani@hpe.com>, Linus Torvalds <torvalds@linux-foundation.org>
+From: Dan Williams <dan.j.williams@intel.com>
+Subject: Re: [PATCH v3 0/4] Support persistent memory as reserved type in e820/EFI
+Date: Wed, 9 Mar 2016 11:30:04 -0800
+Message-ID: <CAPcyv4jxyDSQNC6wQDCOH3OLa-gUdeiOpKo1Pq88Av1joZqUtw@mail.gmail.com>
+References: <1457552817-13938-1-git-send-email-toshi.kani@hpe.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-ob0-f174.google.com ([209.85.214.174]:34736 "EHLO
+	mail-ob0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933634AbcCITaF (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 9 Mar 2016 14:30:05 -0500
+Received: by mail-ob0-f174.google.com with SMTP id ts10so57659010obc.1
+        for <linux-acpi@vger.kernel.org>; Wed, 09 Mar 2016 11:30:05 -0800 (PST)
+In-Reply-To: <1457552817-13938-1-git-send-email-toshi.kani@hpe.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Toshi Kani <toshi.kani@hpe.com>
+Cc: Ingo Molnar <mingo@kernel.org>, Borislav Petkov <bp@suse.de>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Andrew Morton <akpm@linux-foundation.org>, "torvalds@linux-foundation.org" <torvalds@linux-foundation.org>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, Linux ACPI <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
 
-insert_resource() and remove_resouce() are called by producers
-of resources, such as FW modules and bus drivers.  These modules
-may be implemented as loadable modules.
+On Wed, Mar 9, 2016 at 11:46 AM, Toshi Kani <toshi.kani@hpe.com> wrote:
+> ACPI 6 defines persistent memory (PMEM) ranges in multiple
+> firmware interfaces, e820, EFI, and ACPI NFIT table.  This EFI
+> change, however, leads to hit a bug in the grub bootloader, which
+> treats EFI_PERSISTENT_MEMORY type as regular memory and corrupts
+> stored user data [1].
+>
+> Therefore, BIOS may set generic reserved type in e820 and EFI
+> to cover PMEM ranges.  The kernel can initialize PMEM ranges
+> from ACPI NFIT table alone.
+>
+> This scheme cause a problem in the iomem table, though.  On x86,
+> for instance, e820_reserve_resources() initializes top-level entries
+> (iomem_resource.child) from the e820 table at early boot-time.
+> This creates "reserved" entry for a PMEM range, which does not allow
+> region_intersects() to check with PMEM type.
+>
+> This patch-set adds remove_resource(), exports insert/remove_resource(),
+> and changes the NFIT driver to insert a PMEM entry to the iomem table.
+>
+> [1] https://lists.gnu.org/archive/html/grub-devel/2015-11/msg00209.html
+>
+> - Patch 1 fixes __request_region() to handle inheritance of attribute
+>   properly.  This patch is independent from this series.
+> - Patch 2 adds remove_resource() interface.
+> - Patch 3 exports insert_resource() and remove_resource().
+> - Patch 4 changes the ACPI nfit driver to call insert_resource() to
+>   insert a PMEM range from NFIT.
+>
+> ---
+> v3:
+>  - Drop devm_insert/remove_resource(), and export insert/remove_resource().
+>    (Linus Torvalds)
+>
+> v2:
+>  - Change the NFIT driver to call insert_resource() to insert a PMEM entry
+>    when necessary. (Dan Williams)
+>  - The NFIT driver still needs to allow unloading. (Dan Williams)
+>
+> ---
+> This patch-set is based on the tip tree, which has the following patchset.
+> https://lkml.org/lkml/2016/1/26/886
+>
+> ---
+> Toshi Kani (4):
+>  1/4 resource: Change __request_region to inherit from immediate parent
+>  2/4 resource: Add remove_resource interface
+>  3/4 resource: Export insert_resource and remove_resource
+>  4/4 ACPI: Change NFIT driver to insert new resource
+>
+> ---
+>  drivers/acpi/nfit.c    | 48 ++++++++++++++++++++++++++++++++++++++++
+>  include/linux/ioport.h |  1 +
+>  kernel/resource.c      | 60 +++++++++++++++++++++++++++++++++++++++++++-------
+>  3 files changed, 101 insertions(+), 8 deletions(-)
 
-Export insert_resource() and remove_resouce() so that they can
-be called from such modules.
+Hi Toshi, this looks good to me and passes my testing.
 
-link: https://lkml.org/lkml/2016/3/8/872
-Signed-off-by: Toshi Kani <toshi.kani@hpe.com>
-Cc: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: Ingo Molnar <mingo@kernel.org>
-Cc: Borislav Petkov <bp@suse.de>
-Cc: Andrew Morton <akpm@linux-foundation.org>
-Cc: Dan Williams <dan.j.williams@intel.com>
----
- kernel/resource.c |    2 ++
- 1 file changed, 2 insertions(+)
-
-diff --git a/kernel/resource.c b/kernel/resource.c
-index effb6ee..2e78ead 100644
---- a/kernel/resource.c
-+++ b/kernel/resource.c
-@@ -866,6 +866,7 @@ int insert_resource(struct resource *parent, struct resource *new)
- 	conflict = insert_resource_conflict(parent, new);
- 	return conflict ? -EBUSY : 0;
- }
-+EXPORT_SYMBOL_GPL(insert_resource);
- 
- /**
-  * insert_resource_expand_to_fit - Insert a resource into the resource tree
-@@ -925,6 +926,7 @@ int remove_resource(struct resource *old)
- 	write_unlock(&resource_lock);
- 	return retval;
- }
-+EXPORT_SYMBOL_GPL(remove_resource);
- 
- static int __adjust_resource(struct resource *res, resource_size_t start,
- 				resource_size_t size)
+I'll give it until the end of the day if there is any more feedback
+and otherwise merge it into the pending libnvdimm updates for 4.6.
