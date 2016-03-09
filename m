@@ -1,8 +1,8 @@
 From: "Rafael J. Wysocki" <rafael@kernel.org>
 Subject: Re: [PATCH 6/6] cpufreq: schedutil: New governor based on scheduler
  utilization data
-Date: Thu, 10 Mar 2016 00:28:52 +0100
-Message-ID: <CAJZ5v0iKn4dT4ta6WaEcPbdYmA7P08=bmKU+dwcMx+Msk7WRFg@mail.gmail.com>
+Date: Thu, 10 Mar 2016 00:41:34 +0100
+Message-ID: <CAJZ5v0hxq=S+huSy-D7=VGoV+30VQfCyA5C5dTBX-rn0XRUS0g@mail.gmail.com>
 References: <2495375.dFbdlAZmA6@vostro.rjw.lan>
 	<CAJZ5v0h47h-xW6a4jzwRuOOOSG+qsD9hegM7QCzbD8Wb-yPVKQ@mail.gmail.com>
 	<56D8AEB7.2050100@linaro.org>
@@ -11,157 +11,113 @@ References: <2495375.dFbdlAZmA6@vostro.rjw.lan>
 	<CAJZ5v0i+KFmpggrGKqtL_SB1=Fv=b_AbVeL-9jPfo4rYt6-q5A@mail.gmail.com>
 	<20160308192640.GD6344@twins.programming.kicks-ass.net>
 	<CAJZ5v0g=dXmoPr0jR6AVuynVYbSwJvnS2dFhb7QnUKq9LRRnrQ@mail.gmail.com>
-	<20160309163930.GP6356@twins.programming.kicks-ass.net>
+	<20160309101519.GA26402@pablo>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-lb0-f195.google.com ([209.85.217.195]:35539 "EHLO
+Received: from mail-lb0-f195.google.com ([209.85.217.195]:36074 "EHLO
 	mail-lb0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S965004AbcCIX2z (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 9 Mar 2016 18:28:55 -0500
-In-Reply-To: <20160309163930.GP6356@twins.programming.kicks-ass.net>
+	with ESMTP id S934385AbcCIXlh (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 9 Mar 2016 18:41:37 -0500
+In-Reply-To: <20160309101519.GA26402@pablo>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Peter Zijlstra <peterz@infradead.org>
-Cc: "Rafael J. Wysocki" <rafael@kernel.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Steve Muckle <steve.muckle@linaro.org>, Vincent Guittot <vincent.guittot@linaro.org>, Linux PM list <linux-pm@vger.kernel.org>, Juri Lelli <juri.lelli@arm.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>, Viresh Kumar <viresh.kumar@linaro.org>, Michael Turquette <mturquette@baylibre.com>, Ingo Molnar <mingo@redhat.com>
+To: Juri Lelli <juri.lelli@arm.com>
+Cc: "Rafael J. Wysocki" <rafael@kernel.org>, Peter Zijlstra <peterz@infradead.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Steve Muckle <steve.muckle@linaro.org>, Vincent Guittot <vincent.guittot@linaro.org>, Linux PM list <linux-pm@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>, Viresh Kumar <viresh.kumar@linaro.org>, Michael Turquette <mturquette@baylibre.com>, Ingo Molnar <mingo@redhat.com>
 
-On Wed, Mar 9, 2016 at 5:39 PM, Peter Zijlstra <peterz@infradead.org> wrote:
-> On Tue, Mar 08, 2016 at 09:05:50PM +0100, Rafael J. Wysocki wrote:
->> >> This means that on platforms where the utilization is frequency
->> >> invariant we should use
->> >>
->> >>   next_freq = a * x
->> >>
->> >> (where x is given by (2) above) and for platforms where the
->> >> utilization is not frequency invariant
->> >>
->> >>   next_freq = a * x * current_freq / max_freq
->> >>
->> >> and all boils down to finding a.
->> >
->> > Right.
+On Wed, Mar 9, 2016 at 11:15 AM, Juri Lelli <juri.lelli@arm.com> wrote:
+> Hi,
+>
+> sorry if I didn't reply yet. Trying to cope with jetlag and
+> talks/meetings these days :-). Let me see if I'm getting what you are
+> discussing, though.
+>
+> On 08/03/16 21:05, Rafael J. Wysocki wrote:
+>> On Tue, Mar 8, 2016 at 8:26 PM, Peter Zijlstra <peterz@infradead.org> wrote:
+>> > On Tue, Mar 08, 2016 at 07:00:57PM +0100, Rafael J. Wysocki wrote:
+>> >> On Tue, Mar 8, 2016 at 12:27 PM, Peter Zijlstra <peterz@infradead.org> wrote:
+>
+> [...]
+>
+>> a = max_freq gives next_freq = max_freq for x = 1, but with that
+>> choice of a you may never get to x = 1 with frequency invariant
+>> because of the feedback effect mentioned above, so the 1/n produces
+>> the extra boost needed for that (n is a positive integer).
 >>
->> However, that doesn't seem to be in agreement with the Steve's results
->> posted earlier in this thread.
->
-> I could not make anything of those numbers.
->
->> Also theoretically, with frequency invariant, the only way you can get
->> to 100% utilization is by running at the max frequency, so the closer
->> to 100% you get, the faster you need to run to get any further.  That
->> indicates nonlinear to me.
->
-> I'm not seeing that, you get that by using a > 1. No need for
-> non-linear.
-
-OK
-
->> >> Now, it seems reasonable for a to be something like (1 + 1/n) *
->> >> max_freq, so for non-frequency invariant we get
->> >>
->> >>   nex_freq = (1 + 1/n) * current_freq * x
-
-(*) (see below)
-
->> > This seems like a big leap; where does:
->> >
->> >   (1 + 1/n) * max_freq
->> >
->> > come from? And what is 'n'?
->
->> a = max_freq gives next_freq = max_freq for x = 1,
->
-> next_freq = a        * x * current_freq / max_freq
->
->   [ a := max_freq, x := 1 ] ->
->
->           = max_freq * 1 * current_freq / max_freq
->           = current_freq
->
->           != max_freq
->
-> But I think I see what you're saying; because at x = 1,
-> current_frequency must be max_frequency. Per your earlier point.
-
-Correct.
-
->> but with that choice of a you may never get to x = 1 with frequency
->> invariant because of the feedback effect mentioned above, so the 1/n
->> produces the extra boost needed for that (n is a positive integer).
->
-> OK, so that gets us:
->
->         a = (1 + 1/n) ; n > 0
->
-> [ I would not have chosen (1 + 1/n), but lets stick to that ]
-
-Well, what would you choose then? :-)
-
-> So for n = 4 that gets you: a = 1.25, which effectively gets you an 80%
-> utilization tipping point. That is, 1.25 * .8 = 1, iow. you'll pick the
-> next frequency (assuming RELATION_L like selection).
->
-> Together this gets you:
->
->         next_freq = (1 + 1/n) * max_freq * x * current_freq / max_freq
->                   = (1 + 1/n) * x * current_freq
-
-That seems to be what I said above (*), isn't it?
-
-> Again, with n = 4, x > .8 will result in a next_freq > current_freq, and
-> hence (RELATION_L) pick a higher one.
-
-OK
-
 >> Quite frankly, to me it looks like linear really is a better
 >> approximation for "raw" utilization.  That is, for frequency invariant
 >> x we should take:
 >>
 >>   next_freq = a * x * max_freq / current_freq
+>>
+>> (and if x is not frequency invariant, the right-hand side becomes a *
+>> x).  Then, the extra boost needed to get to x = 1 for frequency
+>> invariant is produced by the (max_freq / current_freq) factor that is
+>> greater than 1 as long as we are not running at max_freq and a can be
+>> chosen as max_freq.
+>>
 >
-> (its very confusing how you use 'x' for both invariant and
-> non-invariant).
+> Expanding terms again, your original formula (without the 1.1 factor of
+> the last version) was:
 >
-> That doesn't make sense, remember:
+>  next_freq = util / max_cap * max_freq
 >
->         util = \Sum_i u_i * freq_i / max_freq           (1)
+> and this doesn't work when we have freq invariance since util won't go
+> over curr_cap.
+
+Can you please remind me what curr_cap is?
+
+> What you propose above is to add another factor, so that we have:
 >
-> Which for systems where freq_i is constant reduces to:
+>  next_freq = util / max_cap * max_freq / curr_freq * max_freq
 >
->         util = util_raw * current_freq / max_freq       (2)
+> which should give us the opportunity to reach max_freq also with freq
+> invariance.
 >
-> But you cannot reverse this. IOW you cannot try and divide out
-> current_freq on a frequency invariant metric.
-
-I see.
-
-> So going by:
+> This should actually be the same of doing:
 >
->         next_freq = (1 + 1/n) * max_freq * util         (3)
-
-I think that should be
-
-  next_freq = (1 + 1/n) * max_freq * util / max
-
-(where max is the second argument of cpufreq_update_util) or the
-dimensions on both sides don't match.
-
-> if we substitute (2) into (3) we get:
+>  next_freq = util / max_cap * max_cap / curr_cap * max_freq
 >
->                   = (1 + 1/n) * max_freq * util_raw * current_freq / max_freq
->                   = (1 + 1/n) * current_freq * util_raw (4)
+> We are basically scaling how much the cpu is busy at curr_cap back to
+> the 0..1024 scale. And we use this to select next_freq. Also, we can
+> simplify this to:
 >
-> Which gets you two formula with the same general behaviour. As (2) is
-> the only approximation of (1) we can make.
+>  next_freq = util / curr_cap * max_freq
+>
+> and we save some ops.
+>
+> However, if that is correct, I think we might have a problem, as we are
+> skewing OPP selection towards higher frequencies. Let's suppose we have
+> a platform with 3 OPPs:
+>
+>   freq     cap
+>   1200     1024
+>   900      768
+>   600      512
+>
+> As soon a task reaches an utilization of 257 we will be selecting the
+> second OPP as
+>
+>  next_freq = 257 / 512 * 1200 ~ 602
+>
+> While the cpu is only 50% busy in this case. And we will go at max OPP
+> when reaching ~492 (~64% of 768).
+>
+> That said, I guess this might work as a first solution, but we will
+> probably need something better in the future. I understand Rafael's
+> concerns regardin margins, but it seems to me that some kind of
+> additional parameter will be probably needed anyway to fix this.
+> Just to say again how we handle this in schedfreq, with a -20% margin
+> applied to the lowest OPP we will get to the next one when utilization
+> reaches ~410 (80% busy at curr OPP), and so on for the subsequent ones,
+> which is less aggressive and might be better IMHO.
 
-OK
+Well, Peter says that my idea is incorrect, so I'll go for
 
-So since utilization is not frequency invariant in the current
-mainline (or linux-next for that matter) AFAIC, I'm going to use the
-following in the next version of the schedutil patch series:
+  next_freq = C * current_freq * util_raw / max
 
-  next_freq = 1.25 * current_freq * util_raw / max
+where C > 1 (and likely C < 1.5) instead.
 
-where util_raw and max are what I get from cpufreq_update_util().
-
-1.25 is for the 80% tipping point which I think is reasonable.
+That means C has to be determined somehow or guessed.  The 80% tipping
+point condition seems reasonable to me, though, which leads to C =
+1.25.
