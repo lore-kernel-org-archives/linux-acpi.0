@@ -1,95 +1,123 @@
 From: Sinan Kaya <okaya@codeaurora.org>
-Subject: [PATCH 2/4] acpi,pci,irq: remove redundant code in acpi_irq_penalty_init
-Date: Tue,  8 Mar 2016 19:41:17 -0500
-Message-ID: <1457484079-18202-2-git-send-email-okaya@codeaurora.org>
+Subject: [PATCH 4/4] Revert "Revert "ACPI, PCI, irq: remove interrupt count restriction""
+Date: Tue,  8 Mar 2016 19:41:19 -0500
+Message-ID: <1457484079-18202-4-git-send-email-okaya@codeaurora.org>
 References: <1457484079-18202-1-git-send-email-okaya@codeaurora.org>
-Return-path: <linux-pci-owner@vger.kernel.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1457484079-18202-1-git-send-email-okaya@codeaurora.org>
-Sender: linux-pci-owner@vger.kernel.org
+Sender: linux-kernel-owner@vger.kernel.org
 To: linux-acpi@vger.kernel.org, timur@codeaurora.org, cov@codeaurora.org
-Cc: linux-pci@vger.kernel.org, ravikanth.nalla@hpe.com, lenb@kernel.org, harish.k@hpe.com, ashwin.reghunandanan@hpe.com, bhelgaas@google.com, rjw@rjwysocki.net, Sinan Kaya <okaya@codeaurora.org>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, x86@kernel.org, Robert Moore <robert.moore@intel.com>, Lv Zheng <lv.zheng@intel.com>, linux-kernel@vger.kernel.org, devel@acpica.org
+Cc: linux-pci@vger.kernel.org, ravikanth.nalla@hpe.com, lenb@kernel.org, harish.k@hpe.com, ashwin.reghunandanan@hpe.com, bhelgaas@google.com, rjw@rjwysocki.net, Sinan Kaya <okaya@codeaurora.org>, linux-kernel@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-acpi_irq_get_penalty is now calculating the penalty on the fly now.
-No need to maintain global list of penalties or calculate them
-at the init time. Removing duplicate code in acpi_irq_penalty_init.
+Revert commit e249714571db (Revert "ACPI, PCI, irq: remove interrupt
+count restriction") boot regression issue is resolved now.
+Removed the conflicts as code is much simpler now.
 
 Signed-off-by: Sinan Kaya <okaya@codeaurora.org>
 ---
- arch/x86/pci/acpi.c         |  1 -
- drivers/acpi/pci_link.c     | 35 -----------------------------------
- include/acpi/acpi_drivers.h |  1 -
- 3 files changed, 37 deletions(-)
+ drivers/acpi/pci_link.c | 25 ++++++++++++-------------
+ 1 file changed, 12 insertions(+), 13 deletions(-)
 
-diff --git a/arch/x86/pci/acpi.c b/arch/x86/pci/acpi.c
-index 3cd6983..b2a4e2a 100644
---- a/arch/x86/pci/acpi.c
-+++ b/arch/x86/pci/acpi.c
-@@ -396,7 +396,6 @@ int __init pci_acpi_init(void)
- 		return -ENODEV;
- 
- 	printk(KERN_INFO "PCI: Using ACPI for IRQ routing\n");
--	acpi_irq_penalty_init();
- 	pcibios_enable_irq = acpi_pci_irq_enable;
- 	pcibios_disable_irq = acpi_pci_irq_disable;
- 	x86_init.pci.init_irq = x86_init_noop;
 diff --git a/drivers/acpi/pci_link.c b/drivers/acpi/pci_link.c
-index a5a66ca..eb8e770 100644
+index 6bd77f1..d1c0532 100644
 --- a/drivers/acpi/pci_link.c
 +++ b/drivers/acpi/pci_link.c
-@@ -511,41 +511,6 @@ static int acpi_irq_get_penalty(int irq)
- 	return penalty;
+@@ -4,6 +4,7 @@
+  *  Copyright (C) 2001, 2002 Andy Grover <andrew.grover@intel.com>
+  *  Copyright (C) 2001, 2002 Paul Diefenbaugh <paul.s.diefenbaugh@intel.com>
+  *  Copyright (C) 2002       Dominik Brodowski <devel@brodo.de>
++ *  Copyright (c) 2015, The Linux Foundation. All rights reserved.
+  *
+  * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  *
+@@ -439,7 +440,6 @@ static int acpi_pci_link_set(struct acpi_pci_link *link, int irq)
+  * enabled system.
+  */
+ 
+-#define ACPI_MAX_IRQS		256
+ #define ACPI_MAX_ISA_IRQ	16
+ 
+ #define PIRQ_PENALTY_PCI_POSSIBLE	(16*16)
+@@ -448,7 +448,7 @@ static int acpi_pci_link_set(struct acpi_pci_link *link, int irq)
+ #define PIRQ_PENALTY_ISA_USED		(16*16*16*16*16)
+ #define PIRQ_PENALTY_ISA_ALWAYS		(16*16*16*16*16*16)
+ 
+-static int acpi_irq_penalty[ACPI_MAX_IRQS] = {
++static int acpi_irq_isa_penalty[ACPI_MAX_ISA_IRQ] = {
+ 	PIRQ_PENALTY_ISA_ALWAYS,	/* IRQ0 timer */
+ 	PIRQ_PENALTY_ISA_ALWAYS,	/* IRQ1 keyboard */
+ 	PIRQ_PENALTY_ISA_ALWAYS,	/* IRQ2 cascade */
+@@ -465,7 +465,6 @@ static int acpi_irq_penalty[ACPI_MAX_IRQS] = {
+ 	PIRQ_PENALTY_ISA_USED,		/* IRQ13 fpe, sometimes */
+ 	PIRQ_PENALTY_ISA_USED,		/* IRQ14 ide0 */
+ 	PIRQ_PENALTY_ISA_USED,		/* IRQ15 ide1 */
+-	/* >IRQ15 */
+ };
+ 
+ static int acpi_irq_pci_sharing_penalty(int irq)
+@@ -502,7 +501,7 @@ static int acpi_irq_get_penalty(int irq)
+ 	int penalty = 0;
+ 
+ 	if (irq < ACPI_MAX_ISA_IRQ)
+-		penalty += acpi_irq_penalty[irq];
++		penalty += acpi_irq_isa_penalty[irq];
+ 
+ 	if (irq == acpi_gbl_FADT.sci_interrupt)
+ 		penalty += PIRQ_PENALTY_PCI_USING;
+@@ -556,12 +555,12 @@ static int acpi_pci_link_allocate(struct acpi_pci_link *link)
+ 		 * the use of IRQs 9, 10, 11, and >15.
+ 		 */
+ 		for (i = (link->irq.possible_count - 1); i >= 0; i--) {
+-			if (acpi_irq_penalty[irq] >
+-			    acpi_irq_penalty[link->irq.possible[i]])
++			if (acpi_irq_get_penalty(irq) >
++			    acpi_irq_get_penalty(link->irq.possible[i]))
+ 				irq = link->irq.possible[i];
+ 		}
+ 	}
+-	if (acpi_irq_penalty[irq] >= PIRQ_PENALTY_ISA_ALWAYS) {
++	if (acpi_irq_get_penalty(irq) >= PIRQ_PENALTY_ISA_ALWAYS) {
+ 		printk(KERN_ERR PREFIX "No IRQ available for %s [%s]. "
+ 			    "Try pci=noacpi or acpi=off\n",
+ 			    acpi_device_name(link->device),
+@@ -786,7 +785,7 @@ static void acpi_pci_link_remove(struct acpi_device *device)
  }
  
--int __init acpi_irq_penalty_init(void)
--{
--	struct acpi_pci_link *link;
--	int i;
--
--	/*
--	 * Update penalties to facilitate IRQ balancing.
--	 */
--	list_for_each_entry(link, &acpi_link_list, list) {
--
--		/*
--		 * reflect the possible and active irqs in the penalty table --
--		 * useful for breaking ties.
--		 */
--		if (link->irq.possible_count) {
--			int penalty =
--			    PIRQ_PENALTY_PCI_POSSIBLE /
--			    link->irq.possible_count;
--
--			for (i = 0; i < link->irq.possible_count; i++) {
--				if (link->irq.possible[i] < ACPI_MAX_ISA_IRQ)
--					acpi_irq_penalty[link->irq.
--							 possible[i]] +=
--					    penalty;
--			}
--
--		} else if (link->irq.active) {
--			acpi_irq_penalty[link->irq.active] +=
--			    PIRQ_PENALTY_PCI_POSSIBLE;
--		}
--	}
--
--	return 0;
--}
--
- static int acpi_irq_balance = -1;	/* 0: static, 1: balance */
+ /*
+- * modify acpi_irq_penalty[] from cmdline
++ * modify acpi_irq_isa_penalty[] from cmdline
+  */
+ static int __init acpi_irq_penalty_update(char *str, int used)
+ {
+@@ -812,7 +811,7 @@ static int __init acpi_irq_penalty_update(char *str, int used)
+ 		else
+ 			new_penalty = 0;
  
- static int acpi_pci_link_allocate(struct acpi_pci_link *link)
-diff --git a/include/acpi/acpi_drivers.h b/include/acpi/acpi_drivers.h
-index 29c6912..797ae2e 100644
---- a/include/acpi/acpi_drivers.h
-+++ b/include/acpi/acpi_drivers.h
-@@ -78,7 +78,6 @@
+-		acpi_irq_penalty[irq] = new_penalty;
++		acpi_irq_isa_penalty[irq] = new_penalty;
+ 		if (retval != 2)	/* no next number */
+ 			break;
+ 	}
+@@ -828,15 +827,15 @@ static int __init acpi_irq_penalty_update(char *str, int used)
+  */
+ void acpi_penalize_isa_irq(int irq, int active)
+ {
+-	if ((irq >= 0) && (irq < ARRAY_SIZE(acpi_irq_penalty)))
+-		acpi_irq_penalty[irq] = active ?
++	if ((irq >= 0) && (irq < ARRAY_SIZE(acpi_irq_isa_penalty)))
++		acpi_irq_isa_penalty[irq] = active ?
+ 			PIRQ_PENALTY_ISA_USED : PIRQ_PENALTY_PCI_USING;
+ }
  
- /* ACPI PCI Interrupt Link (pci_link.c) */
+ bool acpi_isa_irq_available(int irq)
+ {
+-	return irq >= 0 && (irq >= ARRAY_SIZE(acpi_irq_penalty) ||
+-			    acpi_irq_penalty[irq] < PIRQ_PENALTY_ISA_ALWAYS);
++	return irq >= 0 &&
++		(acpi_irq_get_penalty(irq) < PIRQ_PENALTY_ISA_ALWAYS);
+ }
  
--int acpi_irq_penalty_init(void);
- int acpi_pci_link_allocate_irq(acpi_handle handle, int index, int *triggering,
- 			       int *polarity, char **name);
- int acpi_pci_link_free_irq(acpi_handle handle);
+ /*
 -- 
 1.8.2.1
