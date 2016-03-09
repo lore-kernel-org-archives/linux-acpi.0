@@ -1,64 +1,57 @@
-From: "Rafael J. Wysocki" <rafael@kernel.org>
-Subject: Re: [PATCH 2/2] nouveau: use new vga_switcheroo power domain.
-Date: Wed, 9 Mar 2016 14:20:36 +0100
-Message-ID: <CAJZ5v0g6J0Lew=JxoTA35-JL4-wexWmNh=d_nTg_Ld=iA+RifA@mail.gmail.com>
-References: <1457504045-12738-1-git-send-email-airlied@gmail.com>
-	<1457504045-12738-2-git-send-email-airlied@gmail.com>
+From: Peter Zijlstra <peterz@infradead.org>
+Subject: Re: [PATCH v3 1/7][Resend] cpufreq: Rework the scheduler hooks for
+ triggering updates
+Date: Wed, 9 Mar 2016 14:41:29 +0100
+Message-ID: <20160309134129.GM6344@twins.programming.kicks-ass.net>
+References: <2495375.dFbdlAZmA6@vostro.rjw.lan>
+ <2409306.qzzMXcm4dm@vostro.rjw.lan>
+ <4088601.C2vItRYpQn@vostro.rjw.lan>
+ <7541372.ciUW4go8Ux@vostro.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-lb0-f195.google.com ([209.85.217.195]:34006 "EHLO
-	mail-lb0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932547AbcCINUj (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 9 Mar 2016 08:20:39 -0500
-In-Reply-To: <1457504045-12738-2-git-send-email-airlied@gmail.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-pm-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <7541372.ciUW4go8Ux@vostro.rjw.lan>
+Sender: linux-pm-owner@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: Linux PM list <linux-pm@vger.kernel.org>, Juri Lelli <juri.lelli@arm.com>, Steve Muckle <steve.muckle@linaro.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>, Viresh Kumar <viresh.kumar@linaro.org>, Vincent Guittot <vincent.guittot@linaro.org>, Michael Turquette <mturquette@baylibre.com>, Ingo Molnar <mingo@kernel.org>
 List-Id: linux-acpi@vger.kernel.org
-To: Dave Airlie <airlied@gmail.com>
-Cc: dri-devel@lists.freedesktop.org, "linux-pm@vger.kernel.org" <linux-pm@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux PCI <linux-pci@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
 
-On Wed, Mar 9, 2016 at 7:14 AM, Dave Airlie <airlied@gmail.com> wrote:
-> From: Dave Airlie <airlied@redhat.com>
->
-> This fixes GPU auto powerdown on the Lenovo W541,
-> since we advertise Windows 2013 to the ACPI layer.
->
-> Signed-off-by: Dave Airlie <airlied@redhat.com>
-> ---
->  drivers/gpu/drm/nouveau/nouveau_vga.c | 10 +++++++---
->  1 file changed, 7 insertions(+), 3 deletions(-)
->
-> diff --git a/drivers/gpu/drm/nouveau/nouveau_vga.c b/drivers/gpu/drm/nouveau/nouveau_vga.c
-> index af89c36..b987427f 100644
-> --- a/drivers/gpu/drm/nouveau/nouveau_vga.c
-> +++ b/drivers/gpu/drm/nouveau/nouveau_vga.c
-> @@ -101,8 +101,12 @@ nouveau_vga_init(struct nouveau_drm *drm)
->                 runtime = true;
->         vga_switcheroo_register_client(dev->pdev, &nouveau_switcheroo_ops, runtime);
->
-> -       if (runtime && nouveau_is_v1_dsm() && !nouveau_is_optimus())
-> -               vga_switcheroo_init_domain_pm_ops(drm->dev->dev, &drm->vga_pm_domain);
-> +       if (runtime) {
-> +               if (nouveau_is_v1_dsm() && !nouveau_is_optimus())
-> +                       vga_switcheroo_init_domain_pm_ops(drm->dev->dev, &drm->vga_pm_domain);
-> +               else if (nouveau_is_optimus())
-> +                       vga_switcheroo_init_parent_pr3_ops(drm->dev->dev, &drm->vga_pm_domain);
-> +       }
->  }
->
->  void
-> @@ -117,7 +121,7 @@ nouveau_vga_fini(struct nouveau_drm *drm)
->                 runtime = true;
->
->         vga_switcheroo_unregister_client(dev->pdev);
-> -       if (runtime && nouveau_is_v1_dsm() && !nouveau_is_optimus())
-> +       if (runtime && (nouveau_is_v1_dsm() || nouveau_is_optimus()))
->                 vga_switcheroo_fini_domain_pm_ops(drm->dev->dev);
->         vga_client_register(dev->pdev, NULL, NULL, NULL);
->  }
-> --
+On Tue, Mar 08, 2016 at 03:25:16AM +0100, Rafael J. Wysocki wrote:
+> From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+> 
+> Commit fe7034338ba0 (cpufreq: Add mechanism for registering
+> utilization update callbacks) added cpufreq_update_util() to be
+> called by the scheduler (from the CFS part) on utilization updates.
+> The goal was to allow CFS to pass utilization information to cpufreq
+> and to trigger it to evaluate the frequency/voltage configuration
+> (P-state) of every CPU on a regular basis.
+> 
+> However, the last two arguments of that function are never used by
+> the current code, so CFS might simply call cpufreq_trigger_update()
+> instead of it (like the RT and DL sched classes).
+> 
+> For this reason, drop the last two arguments of cpufreq_update_util(),
+> rename it to cpufreq_trigger_update() and modify CFS to call it.
+> 
+> Moreover, since the utilization is not involved in that now, rename
+> data types, functions and variables related to cpufreq_trigger_update()
+> to reflect that (eg. struct update_util_data becomes struct
+> freq_update_hook and so on).
 
-Looks reasonable to me.
+> -void cpufreq_update_util(u64 time, unsigned long util, unsigned long max)
+> +void cpufreq_trigger_update(u64 time)
 
-Thanks,
-Rafael
+So I'm not convinced about this. Yes the utility of this function is
+twofold. One to allow in-situ frequency adjustments where possible, but
+two, also very much to allow using the statistics already gathered.
+
+Sure, 4.5 will not have any such users, but who cares.
+
+And I'm really not too worried about 'random' people suddenly using it
+to base work on. Either people are already participating in these
+discussions and will thus be aware of whatever concerns there might be,
+or we'll tell them when they post their code.
+
+And when they don't participate and don't post their code, I really
+don't care about them anyway :-)
