@@ -1,59 +1,81 @@
-From: Dave Airlie <airlied@gmail.com>
-Subject: Re: [PATCH 2/2] nouveau: use new vga_switcheroo power domain.
-Date: Thu, 10 Mar 2016 08:04:26 +1000
-Message-ID: <CAPM=9txfEOoXLr35qEMQrpfMdDf_rCyUx0pQoC4HbQ=t0HNKdw@mail.gmail.com>
-References: <1457504045-12738-1-git-send-email-airlied@gmail.com>
-	<1457504045-12738-2-git-send-email-airlied@gmail.com>
-	<20160309144047.GB26158@wunner.de>
+From: "Rafael J. Wysocki" <rafael@kernel.org>
+Subject: Re: [PATCH 0/2] Use acpi_dev_present()
+Date: Wed, 9 Mar 2016 23:21:18 +0100
+Message-ID: <CAJZ5v0gRYiWDSd-hgMPiBEAOEif8sdc-W=Ot5fibPUMv_EE+Jg@mail.gmail.com>
+References: <cover.1453060661.git.lukas@wunner.de>
+	<20160119211229.GB3253@malice.jf.intel.com>
+	<5367662.pAQ7mO39ru@vostro.rjw.lan>
+	<20160211183157.GA15803@wunner.de>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-pci-owner@vger.kernel.org>
-In-Reply-To: <20160309144047.GB26158@wunner.de>
-Sender: linux-pci-owner@vger.kernel.org
+Return-path: <platform-driver-x86-owner@vger.kernel.org>
+In-Reply-To: <20160211183157.GA15803@wunner.de>
+Sender: platform-driver-x86-owner@vger.kernel.org
 To: Lukas Wunner <lukas@wunner.de>
-Cc: dri-devel <dri-devel@lists.freedesktop.org>, Linux PM list <linux-pm@vger.kernel.org>, Linux ACPI <linux-acpi@vger.kernel.org>, Linux PCI <linux-pci@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>
+Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Darren Hart <dvhart@infradead.org>, Lv Zheng <lv.zheng@intel.com>, Robert Moore <robert.moore@intel.com>, platform-driver-x86@vger.kernel.org, "Lee, Chun-Yi" <jlee@suse.com>, Corentin Chary <corentin.chary@gmail.com>, acpi4asus-user@lists.sourceforge.net, ACPI Devel Maling List <linux-acpi@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On 10 March 2016 at 00:40, Lukas Wunner <lukas@wunner.de> wrote:
-> Hi Dave,
+On Thu, Feb 11, 2016 at 7:31 PM, Lukas Wunner <lukas@wunner.de> wrote:
+> Hi Rafael,
 >
-> On Wed, Mar 09, 2016 at 04:14:05PM +1000, Dave Airlie wrote:
->> From: Dave Airlie <airlied@redhat.com>
->>
->> This fixes GPU auto powerdown on the Lenovo W541,
->> since we advertise Windows 2013 to the ACPI layer.
->>
->> Signed-off-by: Dave Airlie <airlied@redhat.com>
->> ---
->>  drivers/gpu/drm/nouveau/nouveau_vga.c | 10 +++++++---
->>  1 file changed, 7 insertions(+), 3 deletions(-)
->>
->> diff --git a/drivers/gpu/drm/nouveau/nouveau_vga.c b/drivers/gpu/drm/nouveau/nouveau_vga.c
->> index af89c36..b987427f 100644
->> --- a/drivers/gpu/drm/nouveau/nouveau_vga.c
->> +++ b/drivers/gpu/drm/nouveau/nouveau_vga.c
->> @@ -101,8 +101,12 @@ nouveau_vga_init(struct nouveau_drm *drm)
->>               runtime = true;
->>       vga_switcheroo_register_client(dev->pdev, &nouveau_switcheroo_ops, runtime);
->>
->> -     if (runtime && nouveau_is_v1_dsm() && !nouveau_is_optimus())
->> -             vga_switcheroo_init_domain_pm_ops(drm->dev->dev, &drm->vga_pm_domain);
->> +     if (runtime) {
->> +             if (nouveau_is_v1_dsm() && !nouveau_is_optimus())
+> thanks a lot for your patience.
 >
-> The " && !nouveau_is_optimus()" can be dropped because a machine cannot
-> have both. Note the "else" in nouveau_dsm_detect():
-
-I'm pretty sure I've seen a machine with both in my past, back in the
-Vista/Win7 crossover days.
-
-> You're calling this unconditionally for all Optimus machines yet
-> I assume pre Windows 10 machines lack the PR3 hooks.
+> On Tue, Jan 19, 2016 at 10:59:04PM +0100, Rafael J. Wysocki wrote:
+>> On Tuesday, January 19, 2016 01:12:29 PM Darren Hart wrote:
+>> > On Sun, Jan 17, 2016 at 09:49:41PM +0100, Lukas Wunner wrote:
+>> > > Hi Darren,
+>> > >
+>> > > the acpi_dev_present() API has now landed in Linus' tree.
+>> > > Thus, after Linus' tree gets merged back into yours,
+>> > > it would be possible to use the API in the pdx86 drivers
+>> > > as per the following patches.
+>> > >
+>> > > I've also pushed these to GitHub in case anyone prefers
+>> > > perusing them in a browser:
+>> > > https://github.com/l1k/linux/commits/acpi_dev_present_pdx86
+>> > >
+>> > > This is a repost of patches submitted in November, the only
+>> > > change is one line added to the commit messages to reference
+>> > > the commit which introduces the API:
+>> > > http://thread.gmane.org/gmane.linux.alsa.devel/147414/focus=8004
+>> > > http://thread.gmane.org/gmane.linux.alsa.devel/147414/focus=8005
+>> >
+>> > Who's tree did the API make it in through? That would likely be the best tree to
+>> > pull these 2 patches in from.
+>> >
+>> > Robert, Lv, Rafael? Would one of you prefer to take these 2 patches using the
+>> > new API?
+>>
+>> It was my tree and I can take these patches, but in that case I'd like the
+>> function's name to be changed as discussed elsewhere.
+>>
+>> Executive summary is that we have acpi_dev_present() and acpi_device_is_present()
+>> now and they serve different purposes which is kind of confusing.  Moreover,
+>> acpi_dev_present() doesn't check if the device is actually present, so
+>> I would like it to be renamed to acpi_device_found() or similar.
 >
+> There are 4 users of acpi_dev_present in linux-next (3 in sound/soc/intel/,
+> 1 in include/linux/apple-gmux.h). I expect 1 other user to appear in i915.
+>
+> I've created a patch (based on linux-next and included below as an RFC)
+> to rename acpi_dev_present to acpi_dev_found in the function declaration
+> as well as at all call sites. I've also rebased the 2 pdx86 patches onto
+> this and pushed the branch to GitHub:
+> https://github.com/l1k/linux/commits/acpi_dev_found
+>
+> My plan is currently to wait until all users are merged into 4.6,
+> then rebase my branch onto Linus' tree and post the resulting patches.
+> This will be either late during the 4.6 merge window or immediately
+> after it has closed. You could then either pick up the patches for
+> 4.6 or 4.7, whichever you prefer.
+>
+> If you'd prefer a different way of moving forward or would like
+> something changed in the patch below, please let me know and
+> I will be happy to adjust accordingly.
 
-Yes and I've confirmed on my older machine that nothing bad happens
-doing it unconditionally,
-and I couldn't find any bits in the _DSM flags to tell me if I should
-do something different.
+Thanks for doing this!
 
-Dave.
+Your plan seems workable to me, so please go ahead with it.
+
+Thanks,
+Rafael
