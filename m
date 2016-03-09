@@ -1,205 +1,119 @@
-From: Bjorn Helgaas <helgaas@kernel.org>
-Subject: Re: [PATCH v2] PCI: ACPI: IA64: fix IO port generic range check
-Date: Tue, 8 Mar 2016 23:33:32 -0600
-Message-ID: <20160309053332.GA22228@localhost>
-References: <1455212827-9382-1-git-send-email-lorenzo.pieralisi@arm.com>
- <20160308222125.GG27132@localhost>
- <CAJZ5v0gnDnF_4z_mtZp+Tq8-V3FgG6p7kMykqtVA+s44ukkuaA@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+From: Dave Airlie <airlied@gmail.com>
+Subject: [PATCH 1/2] vga_switcheroo: add power support for windows 10 machines.
+Date: Wed,  9 Mar 2016 16:14:04 +1000
+Message-ID: <1457504045-12738-1-git-send-email-airlied@gmail.com>
 Return-path: <linux-pci-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <CAJZ5v0gnDnF_4z_mtZp+Tq8-V3FgG6p7kMykqtVA+s44ukkuaA@mail.gmail.com>
 Sender: linux-pci-owner@vger.kernel.org
-To: "Rafael J. Wysocki" <rafael@kernel.org>
-Cc: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Linux PCI <linux-pci@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, "linux-ia64@vger.kernel.org" <linux-ia64@vger.kernel.org>, Bjorn Helgaas <bhelgaas@google.com>, Hanjun Guo <hanjun.guo@linaro.org>, Jiang Liu <jiang.liu@linux.intel.com>, Tony Luck <tony.luck@intel.com>, Tomasz Nowicki <tn@semihalf.com>, Mark Salter <msalter@redhat.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>
+To: dri-devel@lists.freedesktop.org, linux-pm@vger.kernel.org, linux-acpi@vger.kernel.org, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Tue, Mar 08, 2016 at 11:27:01PM +0100, Rafael J. Wysocki wrote:
-> On Tue, Mar 8, 2016 at 11:21 PM, Bjorn Helgaas <helgaas@kernel.org> wrote:
-> > On Thu, Feb 11, 2016 at 05:47:07PM +0000, Lorenzo Pieralisi wrote:
-> >> The [0 - 64k] ACPI PCI IO port resource boundary check in:
-> >>
-> >> acpi_dev_ioresource_flags()
-> >>
-> >> is currently applied blindly in the ACPI resource parsing to all
-> >> architectures, but only x86 suffers from that IO space limitation.
-> >>
-> >> On arches (ie IA64 and ARM64) where IO space is memory mapped,
-> >> the PCI root bridges IO resource windows are firstly initialized from
-> >> the _CRS (in acpi_decode_space()) and contain the CPU physical address
-> >> at which a root bridge decodes IO space in the CPU physical address
-> >> space with the offset value representing the offset required to translate
-> >> the PCI bus address into the CPU physical address.
-> >>
-> >> The IO resource windows are then parsed and updated in arch code
-> >> before creating and enumerating PCI buses (eg IA64 add_io_space())
-> >> to map in an arch specific way the obtained CPU physical address range
-> >> to a slice of virtual address space reserved to map PCI IO space,
-> >> ending up with PCI bridges resource windows containing IO
-> >> resources like the following on a working IA64 configuration:
-> >>
-> >> PCI host bridge to bus 0000:00
-> >> pci_bus 0000:00: root bus resource [io  0x1000000-0x100ffff window] (bus
-> >> address [0x0000-0xffff])
-> >> pci_bus 0000:00: root bus resource [mem 0x000a0000-0x000fffff window]
-> >> pci_bus 0000:00: root bus resource [mem 0x80000000-0x8fffffff window]
-> >> pci_bus 0000:00: root bus resource [mem 0x80004000000-0x800ffffffff window]
-> >> pci_bus 0000:00: root bus resource [bus 00]
-> >>
-> >> This implies that the [0 - 64K] check in acpi_dev_ioresource_flags()
-> >> leaves platforms with memory mapped IO space (ie IA64) broken (ie kernel
-> >> can't claim IO resources since the host bridge IO resource is disabled
-> >> and discarded by ACPI core code, see log on IA64 with missing root bridge
-> >> IO resource, silently filtered by current [0 - 64k] check in
-> >> acpi_dev_ioresource_flags()):
-> >>
-> >> PCI host bridge to bus 0000:00
-> >> pci_bus 0000:00: root bus resource [mem 0x000a0000-0x000fffff window]
-> >> pci_bus 0000:00: root bus resource [mem 0x80000000-0x8fffffff window]
-> >> pci_bus 0000:00: root bus resource [mem 0x80004000000-0x800ffffffff window]
-> >> pci_bus 0000:00: root bus resource [bus 00]
-> >>
-> >> [...]
-> >>
-> >> pci 0000:00:03.0: [1002:515e] type 00 class 0x030000
-> >> pci 0000:00:03.0: reg 0x10: [mem 0x80000000-0x87ffffff pref]
-> >> pci 0000:00:03.0: reg 0x14: [io  0x1000-0x10ff]
-> >> pci 0000:00:03.0: reg 0x18: [mem 0x88020000-0x8802ffff]
-> >> pci 0000:00:03.0: reg 0x30: [mem 0x88000000-0x8801ffff pref]
-> >> pci 0000:00:03.0: supports D1 D2
-> >> pci 0000:00:03.0: can't claim BAR 1 [io  0x1000-0x10ff]: no compatible
-> >> bridge window
-> >>
-> >> For this reason, the IO port resources boundaries check in generic ACPI
-> >> parsing code should be moved to x86 arch code so that more arches (ie
-> >> ARM64) can benefit from the generic ACPI resources parsing interface
-> >> without incurring in unexpected resource filtering, fixing at the same
-> >> time current breakage on IA64.
-> >>
-> >> This patch moves the IO ports boundary [0 - 64k] check to x86 arch code
-> >> code that validates the PCI host bridge resources.
-> >
-> > I definitely agree with moving this check out of the generic ACPI
-> > code, so while I have a minor question below,
-> >
-> > Acked-by: Bjorn Helgaas <bhelgaas@google.com>
-> >
-> >> Fixes: 3772aea7d6f3 ("ia64/PCI/ACPI: Use common ACPI resource parsing
-> >> interface for host bridge")
-> >
-> > 3772aea7d6f3 was merged via the ACPI tree.  Does it make sense to
-> > have this fix for it merged the same way?  I'll assume so unless
-> > Rafael thinks otherwise.
-> 
-> I'll apply it, thanks!
-> 
-> >> Signed-off-by: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
-> >> Tested-by: Hanjun Guo <hanjun.guo@linaro.org>
-> >> Cc: Bjorn Helgaas <bhelgaas@google.com>
-> >> Cc: Hanjun Guo <hanjun.guo@linaro.org>
-> >> Cc: Jiang Liu <jiang.liu@linux.intel.com>
-> >> Cc: Tony Luck <tony.luck@intel.com>
-> >> Cc: Tomasz Nowicki <tn@semihalf.com>
-> >> Cc: Mark Salter <msalter@redhat.com>
-> >> Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-> >> ---
-> >> v1 -> v2
-> >>
-> >> - Updated commit log to report missing IO resources
-> >> - Fixed function ioport_valid() comment 16k/64k typo
-> >>
-> >> v1: https://lkml.org/lkml/2016/2/1/157
-> >>
-> >>  arch/x86/pci/acpi.c     | 18 +++++++++++++-----
-> >>  drivers/acpi/resource.c |  3 ---
-> >>  2 files changed, 13 insertions(+), 8 deletions(-)
-> >>
-> >> diff --git a/arch/x86/pci/acpi.c b/arch/x86/pci/acpi.c
-> >> index 3cd6983..cec68e7 100644
-> >> --- a/arch/x86/pci/acpi.c
-> >> +++ b/arch/x86/pci/acpi.c
-> >> @@ -275,11 +275,14 @@ static void pci_acpi_root_release_info(struct acpi_pci_root_info *ci)
-> >>   *     to access PCI configuration space.
-> >>   *
-> >>   * So explicitly filter out PCI CFG IO ports[0xCF8-0xCFF].
-> >> + *
-> >> + * Furthermore, IO ports address space is limited to 64k on x86,
-> >> + * any IO resource exceeding the boundary must therefore be discarded.
-> >>   */
-> >> -static bool resource_is_pcicfg_ioport(struct resource *res)
-> >> +static bool ioport_valid(struct resource *res)
-> >>  {
-> >> -     return (res->flags & IORESOURCE_IO) &&
-> >> -             res->start == 0xCF8 && res->end == 0xCFF;
-> >> +     return !(res->start == 0xCF8 && res->end == 0xCFF) &&
-> >> +            !(res->end >= 0x10003);
-> >
-> > Is the "res->end >= 0x10003" test actually fixing a problem?
-> >
-> > I think 4d6b4e69a245 ("x86/PCI/ACPI: Use common interface to support
-> > PCI host bridge") is the x86 change corresponding to 3772aea7d6f3.  I
-> > took a quick look through it, and I didn't see a res->end test before
-> > 4d6b4e69a245, but maybe I missed it.
-> >
-> > The reason I'm asking is because there's no reason in principle that
-> > x86 couldn't support multiple host bridges, one with a 0-64K I/O space
-> > accessible via the x86 inb/outb instructions, and others with more I/O
-> > space accessible only via the in-kernel inb()/outb() functions, which
-> > would use an MMIO region that the host bridge converts to I/O accesses
-> > on the PCI side.  This is what ia64 does, and x86 could do something
-> > similar.  If it did, it would be fine for res->end to be above
-> > 0x10003 for those memory-mapped I/O spaces.
-> 
-> Interesting, but I guess quite theoretical. :-)
-> 
-> In any case I think that may be fixed up on top of the $subject patch.
+From: Dave Airlie <airlied@redhat.com>
 
-Wait a minute, this doesn't seem right to me.
+Windows 10 seems to have standardised power control for the
+optimus/powerxpress laptops using PR3 power resource hooks.
 
-The problem we're trying to fix is that on ia64, we incorrectly
-discard the PCI host bridge window [io  0x1000000-0x100ffff window].
+I'm not sure this is definitely the correct place to be
+doing this, but it works for me here.
 
-That window is currently discarded by the generic
-acpi_dev_ioresource_flags() function, where we're removing this code:
+The ACPI device for the GPU I have is \_SB_.PCI0.PEG_.VID_
+but the power resource hooks are on \_SB_.PCI0.PEG_, so
+this patch creates a new power domain to turn the GPU
+device parent off using standard ACPI calls.
 
--       if (res->end >= 0x10003)
--               res->flags |= IORESOURCE_DISABLED | IORESOURCE_UNSET;
+Signed-off-by: Dave Airlie <airlied@redhat.com>
+---
+ drivers/gpu/vga/vga_switcheroo.c | 54 +++++++++++++++++++++++++++++++++++++++-
+ include/linux/vga_switcheroo.h   |  3 ++-
+ 2 files changed, 55 insertions(+), 2 deletions(-)
 
-and we're adding the "res->end >= 0x10003" check to
-arch/x86/pci/acpi.c.
-
-But the removal also affects other users of acpi_dev_ioresource_flags(),
-and that's broader than the scope of this patch.  We might want to
-remove the check, but if we do, it should be in a separate patch by
-itself so it isn't a hidden side-effect of fixing this ia64 problem.
-
-The other users of acpi_dev_ioresource_flags() include:
-
-    {acpi_lpss_create_device,acpi_create_platform_device,acpi_pci_probe_root_resources,acpi_default_enumeration,bcm_acpi_probe,tpm_tis_acpi_init,acpi_dma_parse_resource_group,acpi_dma_request_slave_chan_by_index,acpi_gpio_resource_lookup,acpi_gpio_count,acpi_i2c_add_device,inv_mpu_process_acpi_config,acpi_spi_add_device}
-      acpi_dev_get_resources
-        acpi_dev_process_resource
-          acpi_dev_resource_io
-            acpi_dev_get_ioresource
-              acpi_dev_ioresource_flags
-
-    {pnpacpi_add_device,resources_store}
-      pnpacpi_parse_allocated_resource
-        pnpacpi_allocated_resource
-          acpi_dev_resource_io
-            acpi_dev_get_ioresource
-              acpi_dev_ioresource_flags
-
-I think the original test in acpi_dev_ioresource_flags() isn't quite
-correct because it's generic code, but it enforces an arch-specific
-64K limit.
-
-Maybe acpi_dev_ioresource_flags() should instead check res->end
-against ioport_resource.end, as we already do in
-acpi_pci_root_validate_resources()?  Each arch already sets its own
-ioport_resource.end using IO_SPACE_LIMIT:
-
-  arch/x86/include/asm/io.h   #define IO_SPACE_LIMIT 0xffff
-  arch/ia64/include/asm/io.h  #define IO_SPACE_LIMIT 0xffffffffffffffffUL
-
-Bjorn
+diff --git a/drivers/gpu/vga/vga_switcheroo.c b/drivers/gpu/vga/vga_switcheroo.c
+index 665ab9f..be32cb2 100644
+--- a/drivers/gpu/vga/vga_switcheroo.c
++++ b/drivers/gpu/vga/vga_switcheroo.c
+@@ -42,7 +42,7 @@
+ #include <linux/uaccess.h>
+ #include <linux/vgaarb.h>
+ #include <linux/vga_switcheroo.h>
+-
++#include <linux/acpi.h>
+ /**
+  * DOC: Overview
+  *
+@@ -997,3 +997,55 @@ vga_switcheroo_init_domain_pm_optimus_hdmi_audio(struct device *dev,
+ 	return -EINVAL;
+ }
+ EXPORT_SYMBOL(vga_switcheroo_init_domain_pm_optimus_hdmi_audio);
++
++/* With Windows 10 the runtime suspend/resume can use power
++   resources on the parent device */
++static int vga_acpi_switcheroo_runtime_suspend(struct device *dev)
++{
++	struct pci_dev *pdev = to_pci_dev(dev);
++	int ret;
++	struct acpi_device *adev;
++
++	ret = dev->bus->pm->runtime_suspend(dev);
++	if (ret)
++		return ret;
++
++	ret = acpi_bus_get_device(ACPI_HANDLE(&pdev->dev), &adev);
++	if (!ret)
++		acpi_device_set_power(adev->parent, ACPI_STATE_D3_COLD);
++	return 0;
++}
++
++static int vga_acpi_switcheroo_runtime_resume(struct device *dev)
++{
++	struct pci_dev *pdev = to_pci_dev(dev);
++	struct acpi_device *adev;
++	int ret;
++
++	ret = acpi_bus_get_device(ACPI_HANDLE(&pdev->dev), &adev);
++	if (!ret)
++		acpi_device_set_power(adev->parent, ACPI_STATE_D0);
++	ret = dev->bus->pm->runtime_resume(dev);
++	if (ret)
++		return ret;
++
++	return 0;
++}
++
++int vga_switcheroo_init_parent_pr3_ops(struct device *dev,
++				       struct dev_pm_domain *domain)
++
++{
++	/* copy over all the bus versions */
++	if (dev->bus && dev->bus->pm) {
++		domain->ops = *dev->bus->pm;
++		domain->ops.runtime_suspend = vga_acpi_switcheroo_runtime_suspend;
++		domain->ops.runtime_resume = vga_acpi_switcheroo_runtime_resume;
++
++		dev_pm_domain_set(dev, domain);
++		return 0;
++	}
++	dev_pm_domain_set(dev, NULL);
++	return -EINVAL;
++}
++EXPORT_SYMBOL(vga_switcheroo_init_parent_pr3_ops);
+diff --git a/include/linux/vga_switcheroo.h b/include/linux/vga_switcheroo.h
+index 69e1d4a1..5ce0cbe 100644
+--- a/include/linux/vga_switcheroo.h
++++ b/include/linux/vga_switcheroo.h
+@@ -144,6 +144,7 @@ void vga_switcheroo_set_dynamic_switch(struct pci_dev *pdev, enum vga_switcheroo
+ int vga_switcheroo_init_domain_pm_ops(struct device *dev, struct dev_pm_domain *domain);
+ void vga_switcheroo_fini_domain_pm_ops(struct device *dev);
+ int vga_switcheroo_init_domain_pm_optimus_hdmi_audio(struct device *dev, struct dev_pm_domain *domain);
++int vga_switcheroo_init_parent_pr3_ops(struct device *dev, struct dev_pm_domain *domain);
+ #else
+ 
+ static inline void vga_switcheroo_unregister_client(struct pci_dev *dev) {}
+@@ -163,6 +164,6 @@ static inline void vga_switcheroo_set_dynamic_switch(struct pci_dev *pdev, enum
+ static inline int vga_switcheroo_init_domain_pm_ops(struct device *dev, struct dev_pm_domain *domain) { return -EINVAL; }
+ static inline void vga_switcheroo_fini_domain_pm_ops(struct device *dev) {}
+ static inline int vga_switcheroo_init_domain_pm_optimus_hdmi_audio(struct device *dev, struct dev_pm_domain *domain) { return -EINVAL; }
+-
++static inline int vga_switcheroo_init_parent_pr3_ops(struct device *dev, struct dev_pm_domain *domain) { return -EINVAL; }
+ #endif
+ #endif /* _LINUX_VGA_SWITCHEROO_H_ */
+-- 
+2.5.0
