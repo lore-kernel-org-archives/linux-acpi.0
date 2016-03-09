@@ -1,122 +1,50 @@
 From: Toshi Kani <toshi.kani@hpe.com>
-Subject: [PATCH v3 4/4] ACPI: Change NFIT driver to insert new resource
-Date: Wed,  9 Mar 2016 12:47:06 -0700
-Message-ID: <1457552826-13987-4-git-send-email-toshi.kani@hpe.com>
+Subject: [PATCH v3 3/4] resource: Export insert_resource and remove_resource
+Date: Wed,  9 Mar 2016 12:47:05 -0700
+Message-ID: <1457552826-13987-3-git-send-email-toshi.kani@hpe.com>
 References: <1457552826-13987-1-git-send-email-toshi.kani@hpe.com>
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from g4t3428.houston.hp.com ([15.201.208.56]:29611 "EHLO
-	g4t3428.houston.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933939AbcCISyq (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 9 Mar 2016 13:54:46 -0500
+Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1457552826-13987-1-git-send-email-toshi.kani@hpe.com>
-Sender: linux-acpi-owner@vger.kernel.org
-List-Id: linux-acpi@vger.kernel.org
+Sender: linux-kernel-owner@vger.kernel.org
 To: mingo@kernel.org, bp@suse.de, dan.j.williams@intel.com, rjw@rjwysocki.net, akpm@linux-foundation.org
-Cc: linux-nvdimm@lists.01.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Toshi Kani <toshi.kani@hpe.com>
+Cc: linux-nvdimm@lists.01.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Toshi Kani <toshi.kani@hpe.com>, Linus Torvalds <torvalds@linux-foundation.org>
+List-Id: linux-acpi@vger.kernel.org
 
-ACPI 6 defines persistent memory (PMEM) ranges in multiple
-firmware interfaces, e820, EFI, and ACPI NFIT table.  This EFI
-change, however, leads to hit a bug in the grub bootloader, which
-treats EFI_PERSISTENT_MEMORY type as regular memory and corrupts
-stored user data [1].
+insert_resource() and remove_resouce() are called by producers
+of resources, such as FW modules and bus drivers.  These modules
+may be implemented as loadable modules.
 
-Therefore, BIOS may set generic reserved type in e820 and EFI to
-cover PMEM ranges.  The kernel can initialize PMEM ranges from
-ACPI NFIT table alone.
+Export insert_resource() and remove_resouce() so that they can
+be called from such modules.
 
-This scheme causes a problem in the iomem table, though.  On x86,
-for instance, e820_reserve_resources() initializes top-level entries
-(iomem_resource.child) from the e820 table at early boot-time.
-This creates "reserved" entry for a PMEM range, which does not allow
-region_intersects() to check with PMEM type.
-
-Change acpi_nfit_register_region() to call acpi_nfit_insert_resource(),
-which calls insert_resource() to insert a PMEM entry from NFIT when
-the iomem table does not have a PMEM entry already.  That is, when
-a PMEM range is marked as reserved type in e820, it inserts
-"Persistent Memory" entry, which results as follows.
-
- + "Persistent Memory"
-    + "reserved"
-
-This allows the EINJ driver, which calls region_intersects() to check
-PMEM ranges, to work continuously even if BIOS sets reserved type
-(or sets nothing) to PMEM ranges in e820 and EFI.
-
-[1]: https://lists.gnu.org/archive/html/grub-devel/2015-11/msg00209.html
+link: https://lkml.org/lkml/2016/3/8/872
 Signed-off-by: Toshi Kani <toshi.kani@hpe.com>
-Cc: Rafael J. Wysocki <rjw@rjwysocki.net>
-Cc: Dan Williams <dan.j.williams@intel.com>
+Cc: Linus Torvalds <torvalds@linux-foundation.org>
 Cc: Ingo Molnar <mingo@kernel.org>
 Cc: Borislav Petkov <bp@suse.de>
 Cc: Andrew Morton <akpm@linux-foundation.org>
+Cc: Dan Williams <dan.j.williams@intel.com>
 ---
- drivers/acpi/nfit.c |   48 ++++++++++++++++++++++++++++++++++++++++++++++++
- 1 file changed, 48 insertions(+)
+ kernel/resource.c |    2 ++
+ 1 file changed, 2 insertions(+)
 
-diff --git a/drivers/acpi/nfit.c b/drivers/acpi/nfit.c
-index 35947ac..d5c78f2 100644
---- a/drivers/acpi/nfit.c
-+++ b/drivers/acpi/nfit.c
-@@ -1571,6 +1571,48 @@ static int ars_status_process_records(struct nvdimm_bus *nvdimm_bus,
- 	return 0;
+diff --git a/kernel/resource.c b/kernel/resource.c
+index effb6ee..2e78ead 100644
+--- a/kernel/resource.c
++++ b/kernel/resource.c
+@@ -866,6 +866,7 @@ int insert_resource(struct resource *parent, struct resource *new)
+ 	conflict = insert_resource_conflict(parent, new);
+ 	return conflict ? -EBUSY : 0;
  }
++EXPORT_SYMBOL_GPL(insert_resource);
  
-+static void acpi_nfit_remove_resource(void *data)
-+{
-+	struct resource *res = data;
-+
-+	remove_resource(res);
-+}
-+
-+static int acpi_nfit_insert_resource(struct acpi_nfit_desc *acpi_desc,
-+		struct nd_region_desc *ndr_desc)
-+{
-+	struct resource *res, *nd_res = ndr_desc->res;
-+	int is_pmem, ret;
-+
-+	/* No operation if the region is already registered as PMEM */
-+	is_pmem = region_intersects(nd_res->start, resource_size(nd_res),
-+				IORESOURCE_MEM, IORES_DESC_PERSISTENT_MEMORY);
-+	if (is_pmem == REGION_INTERSECTS)
-+		return 0;
-+
-+	res = devm_kzalloc(acpi_desc->dev, sizeof(*res), GFP_KERNEL);
-+	if (!res)
-+		return -ENOMEM;
-+
-+	res->name = "Persistent Memory";
-+	res->start = nd_res->start;
-+	res->end = nd_res->end;
-+	res->flags = IORESOURCE_MEM;
-+	res->desc = IORES_DESC_PERSISTENT_MEMORY;
-+
-+	ret = insert_resource(&iomem_resource, res);
-+	if (ret)
-+		return ret;
-+
-+	ret = devm_add_action(acpi_desc->dev, acpi_nfit_remove_resource, res);
-+	if (ret) {
-+		remove_resource(res);
-+		return ret;
-+	}
-+
-+	return 0;
-+}
-+
- static int acpi_nfit_find_poison(struct acpi_nfit_desc *acpi_desc,
- 		struct nd_region_desc *ndr_desc)
- {
-@@ -1788,6 +1830,12 @@ static int acpi_nfit_register_region(struct acpi_nfit_desc *acpi_desc,
+ /**
+  * insert_resource_expand_to_fit - Insert a resource into the resource tree
+@@ -925,6 +926,7 @@ int remove_resource(struct resource *old)
+ 	write_unlock(&resource_lock);
+ 	return retval;
+ }
++EXPORT_SYMBOL_GPL(remove_resource);
  
- 	nvdimm_bus = acpi_desc->nvdimm_bus;
- 	if (nfit_spa_type(spa) == NFIT_SPA_PM) {
-+		rc = acpi_nfit_insert_resource(acpi_desc, ndr_desc);
-+		if (rc)
-+			dev_warn(acpi_desc->dev,
-+				"failed to insert pmem resource to iomem: %d\n",
-+				rc);
-+
- 		rc = acpi_nfit_find_poison(acpi_desc, ndr_desc);
- 		if (rc) {
- 			dev_err(acpi_desc->dev,
+ static int __adjust_resource(struct resource *res, resource_size_t start,
+ 				resource_size_t size)
