@@ -1,81 +1,66 @@
-From: Lukas Wunner <lukas@wunner.de>
-Subject: Re: [PATCH 2/2] nouveau: use new vga_switcheroo power domain.
-Date: Wed, 9 Mar 2016 15:40:47 +0100
-Message-ID: <20160309144047.GB26158@wunner.de>
-References: <1457504045-12738-1-git-send-email-airlied@gmail.com>
- <1457504045-12738-2-git-send-email-airlied@gmail.com>
+From: Heikki Krogerus <heikki.krogerus@linux.intel.com>
+Subject: Re: [RESEND PATCH 2/2] device property: fix for a case of
+ use-after-free
+Date: Wed, 9 Mar 2016 16:41:12 +0200
+Message-ID: <20160309144112.GA31334@kuha.fi.intel.com>
+References: <1457444677-25645-1-git-send-email-heikki.krogerus@linux.intel.com>
+ <1457444677-25645-3-git-send-email-heikki.krogerus@linux.intel.com>
+ <38356299.uTpVNISVVC@vostro.rjw.lan>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mailout3.hostsharing.net ([176.9.242.54]:47962 "EHLO
-	mailout3.hostsharing.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932949AbcCIOjh (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 9 Mar 2016 09:39:37 -0500
+Received: from mga01.intel.com ([192.55.52.88]:16288 "EHLO mga01.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S932766AbcCIOlS (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 9 Mar 2016 09:41:18 -0500
 Content-Disposition: inline
-In-Reply-To: <1457504045-12738-2-git-send-email-airlied@gmail.com>
+In-Reply-To: <38356299.uTpVNISVVC@vostro.rjw.lan>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Dave Airlie <airlied@gmail.com>
-Cc: dri-devel@lists.freedesktop.org, linux-pm@vger.kernel.org, linux-acpi@vger.kernel.org, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: Mika Westerberg <mika.westerberg@linux.intel.com>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, John Youn <John.Youn@synopsys.com>, linux-acpi@vger.kernel.org
 
-Hi Dave,
+Hi Rafael,
 
-On Wed, Mar 09, 2016 at 04:14:05PM +1000, Dave Airlie wrote:
-> From: Dave Airlie <airlied@redhat.com>
+> > diff --git a/drivers/base/property.c b/drivers/base/property.c
+> > index a163f2c..a9df21a9 100644
+> > --- a/drivers/base/property.c
+> > +++ b/drivers/base/property.c
+> > @@ -820,11 +820,13 @@ void device_remove_property_set(struct device *dev)
+> >  	 * the pset. If there is no real firmware node (ACPI/DT) primary
+> >  	 * will hold the pset.
+> >  	 */
+> > -	if (!is_pset_node(fwnode))
+> > +	if (is_pset_node(fwnode))
+> > +		dev->fwnode = NULL;
 > 
-> This fixes GPU auto powerdown on the Lenovo W541,
-> since we advertise Windows 2013 to the ACPI layer.
+> I don't really like the way you clear dev->fwnode directly here.
+> set_primary_fwnode(dev, NULL) would be more appropriate IMO.
 > 
-> Signed-off-by: Dave Airlie <airlied@redhat.com>
-> ---
->  drivers/gpu/drm/nouveau/nouveau_vga.c | 10 +++++++---
->  1 file changed, 7 insertions(+), 3 deletions(-)
+> Also set_secondary_fwnode(dev, NULL) need not be done in that case, because it
+> doesn't change anything.
 > 
-> diff --git a/drivers/gpu/drm/nouveau/nouveau_vga.c b/drivers/gpu/drm/nouveau/nouveau_vga.c
-> index af89c36..b987427f 100644
-> --- a/drivers/gpu/drm/nouveau/nouveau_vga.c
-> +++ b/drivers/gpu/drm/nouveau/nouveau_vga.c
-> @@ -101,8 +101,12 @@ nouveau_vga_init(struct nouveau_drm *drm)
->  		runtime = true;
->  	vga_switcheroo_register_client(dev->pdev, &nouveau_switcheroo_ops, runtime);
->  
-> -	if (runtime && nouveau_is_v1_dsm() && !nouveau_is_optimus())
-> -		vga_switcheroo_init_domain_pm_ops(drm->dev->dev, &drm->vga_pm_domain);
-> +	if (runtime) {
-> +		if (nouveau_is_v1_dsm() && !nouveau_is_optimus())
+> Moreover, if the primary node is not pset, the secondary one should only be
+> cleared if it is pset.
+> 
+> So that would mean
+> 
+> 	if (is_pset_node(fwnode)) {
+> 		set_primary_fwnode(dev, NULL);
+> 		pset_free_set(to_pset_node(fwnode));
+> 	} else {
+> 		fwnode = fwnode->secondary;
+> 		if (!IS_ERR(fwnode) && is_pset_node(fwnode)) {
+> 			set_secondary_fwnode(dev, NULL);
+> 			pset_free_set(to_pset_node(fwnode));
+> 		}
+> 	}
 
-The " && !nouveau_is_optimus()" can be dropped because a machine cannot
-have both. Note the "else" in nouveau_dsm_detect():
+I have been testing that today, but I'll continue tomorrow. No
+problems so far.
 
-        if (has_optimus == 1) { ...
-                nouveau_dsm_priv.optimus_detected = true;
-        } else if (vga_count == 2 && has_dsm && guid_valid) { ...
-                nouveau_dsm_priv.dsm_detected = true;
-        }
 
-> +			vga_switcheroo_init_domain_pm_ops(drm->dev->dev, &drm->vga_pm_domain);
-> +		else if (nouveau_is_optimus())
-> +			vga_switcheroo_init_parent_pr3_ops(drm->dev->dev, &drm->vga_pm_domain);
+Thanks,
 
-You're calling this unconditionally for all Optimus machines yet
-I assume pre Windows 10 machines lack the PR3 hooks.
-
-Best regards,
-
-Lukas
-
-> +	}
->  }
->  
->  void
-> @@ -117,7 +121,7 @@ nouveau_vga_fini(struct nouveau_drm *drm)
->  		runtime = true;
->  
->  	vga_switcheroo_unregister_client(dev->pdev);
-> -	if (runtime && nouveau_is_v1_dsm() && !nouveau_is_optimus())
-> +	if (runtime && (nouveau_is_v1_dsm() || nouveau_is_optimus()))
->  		vga_switcheroo_fini_domain_pm_ops(drm->dev->dev);
->  	vga_client_register(dev->pdev, NULL, NULL, NULL);
->  }
-> -- 
-> 2.5.0
+-- 
+heikki
