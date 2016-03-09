@@ -1,44 +1,94 @@
-From: "Verma, Vishal L" <vishal.l.verma@intel.com>
-Subject: Re: [PATCH 0/3] nfit, libnvdimm, pmem: clear poison support
-Date: Wed, 9 Mar 2016 23:05:03 +0000
-Message-ID: <1457564698.4525.33.camel@intel.com>
+From: Dan Williams <dan.j.williams@intel.com>
+Subject: Re: [PATCH 1/3] nfit, libnvdimm: clear poison command support
+Date: Wed, 9 Mar 2016 15:07:36 -0800
+Message-ID: <CAPcyv4gjGV3jXJuKh8i6sQ2X+BAxayiXVQtNUsgo5VLi7rQjAA@mail.gmail.com>
 References: <20160308224713.16298.33547.stgit@dwillia2-desk3.jf.intel.com>
+	<20160308224718.16298.47066.stgit@dwillia2-desk3.jf.intel.com>
+	<1457564634.4525.32.camel@intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga04.intel.com ([192.55.52.120]:6475 "EHLO mga04.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752693AbcCIXFF (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 9 Mar 2016 18:05:05 -0500
-In-Reply-To: <20160308224713.16298.33547.stgit@dwillia2-desk3.jf.intel.com>
-Content-Language: en-US
-Content-ID: <61A8C159E16CCA4189856919446AA353@intel.com>
+Received: from mail-ob0-f169.google.com ([209.85.214.169]:34684 "EHLO
+	mail-ob0-f169.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752693AbcCIXHh (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 9 Mar 2016 18:07:37 -0500
+Received: by mail-ob0-f169.google.com with SMTP id ts10so63220122obc.1
+        for <linux-acpi@vger.kernel.org>; Wed, 09 Mar 2016 15:07:36 -0800 (PST)
+In-Reply-To: <1457564634.4525.32.camel@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Williams, Dan J" <dan.j.williams@intel.com>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>
-Cc: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "ross.zwisler@linux.intel.com" <ross.zwisler@linux.intel.com>, "stable@vger.kernel.org" <stable@vger.kernel.org>, "x86@kernel.org" <x86@kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
+To: "Verma, Vishal L" <vishal.l.verma@intel.com>
+Cc: "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
 
-T24gVHVlLCAyMDE2LTAzLTA4IGF0IDE0OjQ3IC0wODAwLCBEYW4gV2lsbGlhbXMgd3JvdGU6DQo+
-IEFDUEkgNi4xIGludHJvZHVjZXMgdGhlIGFiaWxpdHkgdG8gc2VuZCAiY2xlYXIgZXJyb3IiIGNv
-bW1hbmRzIHRvIHRoZQ0KPiBBQ1BJMDAxMjowMCBkZXZpY2UgcmVwcmVzZW50aW5nIHRoZSByb290
-IG9mIGFuICJudmRpbW0gYnVzIi4NCj4gDQo+IFNpbWlsYXIgdG8gcmVsb2NhdGluZyBhIGJhZCBi
-bG9jayBvbiBhIGRpc2ssIHRoaXMgc3VwcG9ydCBjbGVhcnMNCj4gbWVkaWEgZXJyb3JzIGluIHJl
-c3BvbnNlIHRvIGEgd3JpdGUuDQo+IA0KPiAtLS0NCj4gDQo+IERhbiBXaWxsaWFtcyAoMyk6DQo+
-IMKgwqDCoMKgwqDCoG5maXQsIGxpYm52ZGltbTogY2xlYXIgcG9pc29uIGNvbW1hbmQgc3VwcG9y
-dA0KPiDCoMKgwqDCoMKgwqBsaWJudmRpbW0sIHBtZW06IGZpeCBrbWFwX2F0b21pYygpIGxlYWsg
-aW4gZXJyb3IgcGF0aA0KPiDCoMKgwqDCoMKgwqBsaWJudmRpbW0sIHBtZW06IGNsZWFyIHBvaXNv
-biBvbiB3cml0ZQ0KPiANCj4gDQo+IMKgYXJjaC94ODYvaW5jbHVkZS9hc20vcG1lbS5owqDCoMKg
-wqDCoMKgfMKgwqDCoMKgNSArKysNCj4gwqBkcml2ZXJzL2FjcGkvbmZpdC5jwqDCoMKgwqDCoMKg
-wqDCoMKgwqDCoMKgwqDCoHzCoMKgwqAxMiArKysrKystDQo+IMKgZHJpdmVycy9udmRpbW0vYnVz
-LmPCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoHzCoMKgwqA2NQ0KPiArKysrKysrKysrKysrKysr
-KysrKysrKysrKysrKysrKysrKysrKw0KPiDCoGRyaXZlcnMvbnZkaW1tL25kLmjCoMKgwqDCoMKg
-wqDCoMKgwqDCoMKgwqDCoMKgfMKgwqDCoMKgMiArDQo+IMKgZHJpdmVycy9udmRpbW0vcG1lbS5j
-wqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgfMKgwqDCoDQwICsrKysrKysrKysrKysrKysrKysrLS0t
-DQo+IMKgaW5jbHVkZS9saW51eC9wbWVtLmjCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoHzCoMKg
-wqAxOSArKysrKysrKysrKw0KPiDCoGluY2x1ZGUvdWFwaS9saW51eC9uZGN0bC5owqDCoMKgwqDC
-oMKgwqB8wqDCoMKgMTMgKysrKysrKysNCj4gwqB0b29scy90ZXN0aW5nL252ZGltbS90ZXN0L25m
-aXQuYyB8wqDCoMKgMjkgKysrKysrKysrKysrKysrKysNCj4gwqA4IGZpbGVzIGNoYW5nZWQsIDE3
-OSBpbnNlcnRpb25zKCspLCA2IGRlbGV0aW9ucygtKQ0KDQpFeGNlcHQgZm9yIHRoZSBvbmUgY29t
-bWVudCBpbiBwYXRjaCAxLCB0aGlzIGxvb2tzIGdvb2QgdG8gbWUhDQoNCkZvciB0aGUgc2VyaWVz
-LA0KUmV2aWV3ZWQtYnk6IFZpc2hhbCBWZXJtYSA8dmlzaGFsLmwudmVybWFAaW50ZWwuY29tPg==
+On Wed, Mar 9, 2016 at 3:03 PM, Verma, Vishal L
+<vishal.l.verma@intel.com> wrote:
+> On Tue, 2016-03-08 at 14:47 -0800, Dan Williams wrote:
+>> Add the boiler-plate for a 'clear error' command based on section
+>> 9.20.7.6 "Function Index 4 - Clear Uncorrectable Error" from the ACPI
+>> 6.1 specification, and add a reference implementation in nfit_test.
+>>
+>> Cc: Vishal Verma <vishal.l.verma@intel.com>
+>> Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+>> ---
+>>  drivers/acpi/nfit.c              |   12 +++++++++++-
+>>  drivers/nvdimm/bus.c             |   19 +++++++++++++++++++
+>>  include/uapi/linux/ndctl.h       |   13 +++++++++++++
+>>  tools/testing/nvdimm/test/nfit.c |   29 +++++++++++++++++++++++++++++
+>>  4 files changed, 72 insertions(+), 1 deletion(-)
+>>
+>
+> <snip>
+>
+>> diff --git a/include/uapi/linux/ndctl.h b/include/uapi/linux/ndctl.h
+>> index cc68b92124d4..0f001c571cdd 100644
+>> --- a/include/uapi/linux/ndctl.h
+>> +++ b/include/uapi/linux/ndctl.h
+>> @@ -98,6 +98,14 @@ struct nd_cmd_ars_status {
+>>       } __packed records[0];
+>>  } __packed;
+>>
+>> +struct nd_cmd_clear_error {
+>> +     __u64 address;
+>> +     __u64 length;
+>> +     __u32 status;
+>> +     __u8 reserved[4];
+>> +     __u64 cleared;
+>> +} __packed;
+>> +
+>>  enum {
+>>       ND_CMD_IMPLEMENTED = 0,
+>>
+>> @@ -105,6 +113,7 @@ enum {
+>>       ND_CMD_ARS_CAP = 1,
+>>       ND_CMD_ARS_START = 2,
+>>       ND_CMD_ARS_STATUS = 3,
+>> +     ND_CMD_CLEAR_ERROR = 4,
+>>
+>>       /* per-dimm commands */
+>>       ND_CMD_SMART = 1,
+>> @@ -129,6 +138,7 @@ static inline const char
+>> *nvdimm_bus_cmd_name(unsigned cmd)
+>>               [ND_CMD_ARS_CAP] = "ars_cap",
+>>               [ND_CMD_ARS_START] = "ars_start",
+>>               [ND_CMD_ARS_STATUS] = "ars_status",
+>> +             [ND_CMD_CLEAR_ERROR] = "clear_error",
+>>       };
+>>
+>>       if (cmd < ARRAY_SIZE(names) && names[cmd])
+>> @@ -187,6 +197,9 @@ static inline const char *nvdimm_cmd_name(unsigned
+>> cmd)
+>>  #define ND_IOCTL_ARS_STATUS          _IOWR(ND_IOCTL,
+>> ND_CMD_ARS_STATUS,\
+>>                                       struct nd_cmd_ars_status)
+>>
+>> +#define ND_IOCTL_CLEAR_ERROR         _IOWR(ND_IOCTL,
+>> ND_CMD_CLEAR_ERROR,\
+>> +                                     struct nd_cmd_ars_status)
+>> +
+>
+> Typo here? Should be struct nd_cmd_clear_error.
+
+Good catch!
+
+/me goes to write the libndctl enabling for this command which also
+would have caught this.
