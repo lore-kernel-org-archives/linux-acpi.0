@@ -1,70 +1,68 @@
 From: Toshi Kani <toshi.kani@hpe.com>
-Subject: [PATCH v3 1/4] resource: Change __request_region to inherit from immediate parent
-Date: Wed,  9 Mar 2016 12:47:03 -0700
-Message-ID: <1457552826-13987-1-git-send-email-toshi.kani@hpe.com>
+Subject: [PATCH v3 0/4] Support persistent memory as reserved type in e820/EFI
+Date: Wed,  9 Mar 2016 12:46:57 -0700
+Message-ID: <1457552817-13938-1-git-send-email-toshi.kani@hpe.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from g9t5008.houston.hp.com ([15.240.92.66]:34074 "EHLO
-	g9t5008.houston.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933900AbcCISye (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 9 Mar 2016 13:54:34 -0500
+Received: from g4t3427.houston.hp.com ([15.201.208.55]:40986 "EHLO
+	g4t3427.houston.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933868AbcCISy1 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 9 Mar 2016 13:54:27 -0500
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: mingo@kernel.org, bp@suse.de, dan.j.williams@intel.com, rjw@rjwysocki.net, akpm@linux-foundation.org
-Cc: linux-nvdimm@lists.01.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Toshi Kani <toshi.kani@hpe.com>
+Cc: torvalds@linux-foundation.org, linux-nvdimm@lists.01.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
-__request_region() sets 'flags' of a new resource from @parent
-as it inherits the parent's attribute.  When a target resource
-has a conflict, this function inserts the new resource entry
-under the conflicted entry by updating @parent.  In this case,
-the new resource entry needs to inherit attribute from the updated
-parent.  This conflict is a typical case since __request_region()
-is used to allocate a new resource from a specific resource range.
+ACPI 6 defines persistent memory (PMEM) ranges in multiple
+firmware interfaces, e820, EFI, and ACPI NFIT table.  This EFI
+change, however, leads to hit a bug in the grub bootloader, which
+treats EFI_PERSISTENT_MEMORY type as regular memory and corrupts
+stored user data [1].
 
-For instance, request_mem_region() calls __request_region() with
-@parent set to &iomem_resource, which is the root entry of the
-whole iomem range.  When this request results in inserting a new
-entry "DEV-A" under "BUS-1", "DEV-A" needs to inherit from the
-immediate parent "BUS-1" as it holds specific attribute for the
-range.
+Therefore, BIOS may set generic reserved type in e820 and EFI
+to cover PMEM ranges.  The kernel can initialize PMEM ranges
+from ACPI NFIT table alone.
 
-root (&iomem_resource)
- :
- + "BUS-1"
-    + "DEV-A"
+This scheme cause a problem in the iomem table, though.  On x86,
+for instance, e820_reserve_resources() initializes top-level entries
+(iomem_resource.child) from the e820 table at early boot-time.
+This creates "reserved" entry for a PMEM range, which does not allow
+region_intersects() to check with PMEM type.
 
-Change __request_region() to set 'flags' and 'desc' of a new entry
-from the immediate parent.
+This patch-set adds remove_resource(), exports insert/remove_resource(),
+and changes the NFIT driver to insert a PMEM entry to the iomem table.
 
-Signed-off-by: Toshi Kani <toshi.kani@hpe.com>
-Cc: Ingo Molnar <mingo@kernel.org>
-Cc: Borislav Petkov <bp@suse.de>
-Cc: Andrew Morton <akpm@linux-foundation.org>
-Cc: Dan Williams <dan.j.williams@intel.com>
+[1] https://lists.gnu.org/archive/html/grub-devel/2015-11/msg00209.html
+
+- Patch 1 fixes __request_region() to handle inheritance of attribute
+  properly.  This patch is independent from this series.
+- Patch 2 adds remove_resource() interface.
+- Patch 3 exports insert_resource() and remove_resource().
+- Patch 4 changes the ACPI nfit driver to call insert_resource() to
+  insert a PMEM range from NFIT.
+
 ---
- kernel/resource.c |    7 ++++---
- 1 file changed, 4 insertions(+), 3 deletions(-)
+v3:
+ - Drop devm_insert/remove_resource(), and export insert/remove_resource().
+   (Linus Torvalds)
 
-diff --git a/kernel/resource.c b/kernel/resource.c
-index 4d46605..5a56e8f 100644
---- a/kernel/resource.c
-+++ b/kernel/resource.c
-@@ -1085,15 +1085,16 @@ struct resource * __request_region(struct resource *parent,
- 	res->name = name;
- 	res->start = start;
- 	res->end = start + n - 1;
--	res->flags = resource_type(parent) | resource_ext_type(parent);
--	res->flags |= IORESOURCE_BUSY | flags;
--	res->desc = IORES_DESC_NONE;
- 
- 	write_lock(&resource_lock);
- 
- 	for (;;) {
- 		struct resource *conflict;
- 
-+		res->flags = resource_type(parent) | resource_ext_type(parent);
-+		res->flags |= IORESOURCE_BUSY | flags;
-+		res->desc = parent->desc;
-+
- 		conflict = __request_resource(parent, res);
- 		if (!conflict)
- 			break;
+v2:
+ - Change the NFIT driver to call insert_resource() to insert a PMEM entry
+   when necessary. (Dan Williams)
+ - The NFIT driver still needs to allow unloading. (Dan Williams)
+
+---
+This patch-set is based on the tip tree, which has the following patchset.
+https://lkml.org/lkml/2016/1/26/886
+
+---
+Toshi Kani (4):
+ 1/4 resource: Change __request_region to inherit from immediate parent
+ 2/4 resource: Add remove_resource interface
+ 3/4 resource: Export insert_resource and remove_resource
+ 4/4 ACPI: Change NFIT driver to insert new resource
+
+---
+ drivers/acpi/nfit.c    | 48 ++++++++++++++++++++++++++++++++++++++++
+ include/linux/ioport.h |  1 +
+ kernel/resource.c      | 60 +++++++++++++++++++++++++++++++++++++++++++-------
+ 3 files changed, 101 insertions(+), 8 deletions(-)
