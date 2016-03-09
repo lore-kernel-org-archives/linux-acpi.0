@@ -1,73 +1,77 @@
-From: Matt Fleming <matt@codeblueprint.co.uk>
-Subject: Re: [PATCH][RFC v3] ACPI / PM: Fix poweroff issue on HW-full
- platforms without _S5
-Date: Wed, 9 Mar 2016 15:34:36 +0000
-Message-ID: <20160309153436.GB15775@codeblueprint.co.uk>
-References: <1457319045-25434-1-git-send-email-yu.c.chen@intel.com>
- <CAJZ5v0iWjW_XJEsVBM1yyimxUQMDaWapQ_OrN45TeFXFySd0rw@mail.gmail.com>
- <36DF59CE26D8EE47B0655C516E9CE640286D329F@shsmsx102.ccr.corp.intel.com>
- <2414254.VhAiD01BTS@vostro.rjw.lan>
- <36DF59CE26D8EE47B0655C516E9CE640286D370A@shsmsx102.ccr.corp.intel.com>
+From: Bjorn Helgaas <helgaas@kernel.org>
+Subject: Re: [PATCH v2] PCI: ACPI: IA64: fix IO port generic range check
+Date: Wed, 9 Mar 2016 09:35:56 -0600
+Message-ID: <20160309153556.GA14873@localhost>
+References: <1455212827-9382-1-git-send-email-lorenzo.pieralisi@arm.com>
+ <20160308222125.GG27132@localhost>
+ <CAJZ5v0gnDnF_4z_mtZp+Tq8-V3FgG6p7kMykqtVA+s44ukkuaA@mail.gmail.com>
+ <20160309053332.GA22228@localhost>
+ <20160309071406.GA19555@red-moon>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-pm-owner@vger.kernel.org>
+Return-path: <linux-pci-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <36DF59CE26D8EE47B0655C516E9CE640286D370A@shsmsx102.ccr.corp.intel.com>
-Sender: linux-pm-owner@vger.kernel.org
-To: "Chen, Yu C" <yu.c.chen@intel.com>
-Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, "Rafael J. Wysocki" <rafael@kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, "x86@kernel.org" <x86@kernel.org>, "linux-efi@vger.kernel.org" <linux-efi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, "linux-pm@vger.kernel.org" <linux-pm@vger.kernel.org>, Len Brown <lenb@kernel.org>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, "Zhang, Rui" <rui.zhang@intel.com>
+In-Reply-To: <20160309071406.GA19555@red-moon>
+Sender: linux-pci-owner@vger.kernel.org
+To: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+Cc: "Rafael J. Wysocki" <rafael@kernel.org>, Linux PCI <linux-pci@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, "linux-ia64@vger.kernel.org" <linux-ia64@vger.kernel.org>, Bjorn Helgaas <bhelgaas@google.com>, Hanjun Guo <hanjun.guo@linaro.org>, Jiang Liu <jiang.liu@linux.intel.com>, Tony Luck <tony.luck@intel.com>, Tomasz Nowicki <tn@semihalf.com>, Mark Salter <msalter@redhat.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>
 List-Id: linux-acpi@vger.kernel.org
 
-On Tue, 08 Mar, at 04:25:30PM, Chen, Yu C wrote:
-> Hum. unfortunately it is not guaranteed to run after all of the other code,
-> because other components who register pm_power_off may be built as modules, and
-> we can not predict/control the sequence registration.   So this patch may
-> break the EFI platforms who use non-efi poweroff due to unstable EFI service
-> ,  not sure if there are any released-products of this kind.
- 
-Certainly the majority of x86 client machines do not use EFI power
-off, because it hardly ever functions correctly.
+On Wed, Mar 09, 2016 at 07:14:06AM +0000, Lorenzo Pieralisi wrote:
+> On Tue, Mar 08, 2016 at 11:33:32PM -0600, Bjorn Helgaas wrote:
 
-> Currently I'm thinking of 3 possible solutions,  could you please give some advices on them:
-> 
-> 1. Introduce bootopt of 'poweroff=efi'
->      Set the pm_power_off to efi_power_off no matter whether there is _S5 or not
-> 
-> 2. Introduce /sys/power/poweroff
->     Allow the user to choose which  pm_power_off, for example:
->  
-> # cat /sys/power/poweroff
-> *acpi		acpi_power_off
-> efi		efi_power_off	
-> gpio		gpio_poweroff_do_poweroff
-> user can echo string to enable which one.
-> 
-> And two APIs:
-> register_power_off(char *name, power_off func)
-> unregister_power_off(char *name)  
-> 
-> 
-> 3. replace all the codes of  pm_power_off() with reliable_pm_power_off()
-> 
-> void reliable_pm_power_off(void)
-> {
-> 	if (!pm_power_off) {
-> 		if (acpi_no_s5)
-> 			pm_power_off = efi_power_off;
-> 	/* Other conditions added in the future. */
-> 	}
-> 	pm_power_off();
-> }
+> > Maybe acpi_dev_ioresource_flags() should instead check res->end
+> > against ioport_resource.end, as we already do in
+> > acpi_pci_root_validate_resources()?  Each arch already sets its own
+> > ioport_resource.end using IO_SPACE_LIMIT:
+> > 
+> >   arch/x86/include/asm/io.h   #define IO_SPACE_LIMIT 0xffff
+> >   arch/ia64/include/asm/io.h  #define IO_SPACE_LIMIT 0xffffffffffffffffUL
 
-Be wary of adding all these control knobs. People just want their
-machines to reboot properly without having to mess with boot
-parameters.
+I suspect we're saying the same thing with slightly different words,
+so I apologize if I'm beating a dead horse.
 
-Let's go back to the start. What prompted this patch? Do Intel have
-(or are planning) machines that do not have _S5 and are expected to
-use EFI to reset the system? Or is this some new configuration
-discussed in the ACPI spec that Linux needs to be support? 
+ioport_resource defines the universe of Linux ioport space.  Every
+IORESOURCE_IO struct resource must be contained in ioport_resource.
+Such a resource contains Linux ioport numbers, i.e., things that could
+appear in /proc/ioports and could be passed as an argument to
+request_region() and the inb()/outb() functions.
 
-Can we remove the ambiguity and options to force EFI reset if _S5 is
-missing? Afterall, that's why the function is called
-efi_poweroff_*required*.
+> We can't do that, it may work on IA64 but the ioport_resource is a
+> chunk of address space on IA64/ARM64 that has nothing to do with
+> the physical address at which the root bridges decode IO space (which
+> is what's contained in the resource).
+
+I'm stumbling over "the physical address at which the root bridges
+decode IO space (which is what's contained in the resource)".
+
+x86 host bridges typically just forward CPU-generated I/O port
+transactions to PCI with no address translation, so it sounds like
+you're talking about ia64/ARM64 bridges that decode CPU MMIO space and
+turn accesses into PCI I/O transactions.  
+
+If we start from a driver calling inb(), the driver supplies a Linux
+ioport number "X".  On ia64 (and I assume ARM64 as well), inb()
+performs an MMIO access to memory address "Y".  A host bridge consumes
+that MMIO access and generates a corresponding PCI I/O transaction to
+PCI ioport "Z".
+
+It is indeed true that ioport_resource has nothing to do with memory
+addresses like "Y".  But the driver (and this part of the ACPI
+infrastructure) are dealing with ioport address "X", and that is
+definitely in an IORESOURCE_IO struct resource.  The IORESOURCE_MEM
+struct resource that contains "Y" is internal to the host bridge
+driver and invisible to the device driver that's using inb().
+
+For example, you could have something like this (with made-up
+addresses):
+
+  [io  0x0000-0xffff]              # Linux ioport space
+  [mem 0x100000000-0x10000ffff]    # MMIO space consumed by host bridge
+  [bus 0x0000-0xffff]              # PCI bus I/O transaction space
+
+  [io  0x10000-0x1ffff]            # Linux ioport space ("X")
+  [mem 0x200000000-0x20000ffff]    # MMIO space consumed by host bridge ("Y")
+  [bus 0x0000-0xffff]              # PCI bus I/O transaction space ("Z")
+
+Bjorn
