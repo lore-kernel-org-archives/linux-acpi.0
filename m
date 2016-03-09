@@ -1,81 +1,68 @@
-From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [RESEND PATCH 2/2] device property: fix for a case of use-after-free
-Date: Wed, 09 Mar 2016 01:52:32 +0100
-Message-ID: <38356299.uTpVNISVVC@vostro.rjw.lan>
-References: <1457444677-25645-1-git-send-email-heikki.krogerus@linux.intel.com> <1457444677-25645-3-git-send-email-heikki.krogerus@linux.intel.com>
+From: "Chen, Gong" <gong.chen@linux.intel.com>
+Subject: Re: [PATCH v2 1/2] ACPI, APEI: Fix leaked resources
+Date: Wed, 9 Mar 2016 09:11:29 +0800
+Message-ID: <20160309011129.GA19756@gchen-ros.bj.intel.com>
+References: <1457452332-2673-1-git-send-email-johunt@akamai.com>
+ <1457452332-2673-2-git-send-email-johunt@akamai.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7Bit
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="/04w6evG8XlLl3ft"
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from v094114.home.net.pl ([79.96.170.134]:48363 "HELO
-	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1753440AbcCIAuk (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 8 Mar 2016 19:50:40 -0500
-In-Reply-To: <1457444677-25645-3-git-send-email-heikki.krogerus@linux.intel.com>
+Received: from mga02.intel.com ([134.134.136.20]:31804 "EHLO mga02.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750981AbcCIBQC (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 8 Mar 2016 20:16:02 -0500
+Content-Disposition: inline
+In-Reply-To: <1457452332-2673-2-git-send-email-johunt@akamai.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Heikki Krogerus <heikki.krogerus@linux.intel.com>
-Cc: Mika Westerberg <mika.westerberg@linux.intel.com>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, John Youn <John.Youn@synopsys.com>, linux-acpi@vger.kernel.org
-
-On Tuesday, March 08, 2016 03:44:37 PM Heikki Krogerus wrote:
-> In device_remove_property_set(), the secondary fwnode needs
-> to be cleared before the pset is freed. This fixes a
-> use-after-free when a property set is providing the primary
-> fwnode.
-> 
-> Reported-by: John Youn <John.Youn@synopsys.com>
-> Signed-off-by: Heikki Krogerus <heikki.krogerus@linux.intel.com>
-> ---
->  drivers/base/property.c | 8 +++++---
->  1 file changed, 5 insertions(+), 3 deletions(-)
-> 
-> diff --git a/drivers/base/property.c b/drivers/base/property.c
-> index a163f2c..a9df21a9 100644
-> --- a/drivers/base/property.c
-> +++ b/drivers/base/property.c
-> @@ -820,11 +820,13 @@ void device_remove_property_set(struct device *dev)
->  	 * the pset. If there is no real firmware node (ACPI/DT) primary
->  	 * will hold the pset.
->  	 */
-> -	if (!is_pset_node(fwnode))
-> +	if (is_pset_node(fwnode))
-> +		dev->fwnode = NULL;
-
-I don't really like the way you clear dev->fwnode directly here.  set_primary_fwnode(dev, NULL) would be more appropriate IMO.
-
-Also set_secondary_fwnode(dev, NULL) need not be done in that case, because it
-doesn't change anything.
-
-Moreover, if the primary node is not pset, the secondary one should only be
-cleared if it is pset.
-
-So that would mean
-
-	if (is_pset_node(fwnode)) {
-		set_primary_fwnode(dev, NULL);
-		pset_free_set(to_pset_node(fwnode));
-	} else {
-		fwnode = fwnode->secondary;
-		if (!IS_ERR(fwnode) && is_pset_node(fwnode)) {
-			set_secondary_fwnode(dev, NULL);
-			pset_free_set(to_pset_node(fwnode));
-		}
-	}
-
-Or am I mistaken?
+To: Joshua Hunt <johunt@akamai.com>
+Cc: gong.chen@intel.com, linux-acpi@vger.kernel.org, rjw@rjwysocki.net, lenb@kernel.org, ying.huang@intel.com, tony.luck@intel.com, linux-kernel@vger.kernel.org
 
 
-> +	else
->  		fwnode = fwnode->secondary;
->  	if (!IS_ERR(fwnode) && is_pset_node(fwnode))
-> -		pset_free_set(to_pset_node(fwnode));
-> -	set_secondary_fwnode(dev, NULL);
-> +		set_secondary_fwnode(dev, NULL);
-> +	pset_free_set(to_pset_node(fwnode));
->  }
->  EXPORT_SYMBOL_GPL(device_remove_property_set);
->  
+--/04w6evG8XlLl3ft
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-Thanks,
-Rafael
+On Tue, Mar 08, 2016 at 10:52:11AM -0500, Joshua Hunt wrote:
+> Date:	Tue,  8 Mar 2016 10:52:11 -0500
+> From: Joshua Hunt <johunt@akamai.com>
+> To: gong.chen@intel.com, linux-acpi@vger.kernel.org, rjw@rjwysocki.net,
+>  lenb@kernel.org, ying.huang@intel.com
+> Cc: tony.luck@intel.com, linux-kernel@vger.kernel.org, Joshua Hunt
+>  <johunt@akamai.com>
+> Subject: [PATCH v2 1/2] ACPI, APEI: Fix leaked resources
+> X-Mailer: git-send-email 1.7.9.5
+>=20
+> We leak the NVS and arch resources (if used), in apei_resources_request.
+> They are allocated to make sure we exclude them from the APEI resources,
+> but they are never freed at the end of the function. Free them now.
+>=20
+> Signed-off-by: Josh Hunt <johunt@akamai.com>
+>
+Reviewed-by: Chen, Gong <gong.chen@linux.intel.com>
 
+--/04w6evG8XlLl3ft
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iQIcBAEBAgAGBQJW33hBAAoJEI01n1+kOSLHUkEP/3b6DEDDItLI7O4gE4go2QRH
+UwuZklkMNq/WXOjbxCP/TZ8vBNFmvWq1HxU78qU84WJh8h6v+ybL5n4lY6q4OKrx
+CWxjtWjABdqxLexrWKDbA3s9fEWiTQ8aYMWgrYCMGh0GWJdyzHWsc0T0mCdT2G4k
+xahnSyo7LYIpy+7/sP68CFKNK6AMGaMab4tDOVqA4xlaRP2MNBQLtIVM+p7HPB3y
+HfHU7knP7JQZuWguKNRWXH15GwGscbyeDDiHjxiykj3psz27XB/dskN8yDYd0W6X
+d93LhJtXi936UabcgGr81aIkqsR28Hd+yhFZeOOosgkYnfn9ZoyjRKO1mlB1qdFZ
+pGzg2/wLkNX2Z9PW50KLnMO0r8PlRFisU6EVKZvTTBHMjg1ylRfu70Z88gCA9tO8
+xdXtwQhuaiS8nT6TELoRF8zvKVLzXa9eiTb+xN4TkIe+gnnK27Holn/uLU3qPffm
+/f5KttUd/Q9abWDOZqC7OaAX/48jt8iABDCHmv7wIqaTQWzVU76lB55tHlHccoI9
+6H3C3VZ85h6Kcb6yHyFwuZYfPRl3VxUqQPCA4kYol6jzgX7sh38lVBXTfdvs68hq
+HoZn8YNblf4S36rMYGsrYBYrMgcYrjY1S371YvBiDwzHgl3ypVjGyoBiibJwQiqf
+D2ARYm+7v6k70DMkQ8R7
+=oyj3
+-----END PGP SIGNATURE-----
+
+--/04w6evG8XlLl3ft--
