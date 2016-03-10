@@ -1,57 +1,72 @@
-From: Jarkko Nikula <jarkko.nikula@linux.intel.com>
-Subject: Re: [PATCH] i2c: designware: Add device HID for future AMD I2C
- controller
-Date: Thu, 10 Mar 2016 10:32:04 +0200
-Message-ID: <56E13104.8050307@linux.intel.com>
-References: <1457609692-25903-1-git-send-email-Xiangliang.Yu@amd.com>
+From: Peter Zijlstra <peterz@infradead.org>
+Subject: Re: [PATCH 6/6] cpufreq: schedutil: New governor based on scheduler
+ utilization data
+Date: Thu, 10 Mar 2016 09:43:31 +0100
+Message-ID: <20160310084331.GO6344@twins.programming.kicks-ass.net>
+References: <2495375.dFbdlAZmA6@vostro.rjw.lan>
+ <CAJZ5v0h47h-xW6a4jzwRuOOOSG+qsD9hegM7QCzbD8Wb-yPVKQ@mail.gmail.com>
+ <56D8AEB7.2050100@linaro.org>
+ <36459679.vzZnOsAVeg@vostro.rjw.lan>
+ <20160308112759.GF6356@twins.programming.kicks-ass.net>
+ <CAJZ5v0i+KFmpggrGKqtL_SB1=Fv=b_AbVeL-9jPfo4rYt6-q5A@mail.gmail.com>
+ <20160308192640.GD6344@twins.programming.kicks-ass.net>
+ <CAJZ5v0g=dXmoPr0jR6AVuynVYbSwJvnS2dFhb7QnUKq9LRRnrQ@mail.gmail.com>
+ <20160309163930.GP6356@twins.programming.kicks-ass.net>
+ <CAJZ5v0iKn4dT4ta6WaEcPbdYmA7P08=bmKU+dwcMx+Msk7WRFg@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-i2c-owner@vger.kernel.org>
-In-Reply-To: <1457609692-25903-1-git-send-email-Xiangliang.Yu@amd.com>
-Sender: linux-i2c-owner@vger.kernel.org
-To: Xiangliang Yu <Xiangliang.Yu@amd.com>, rjw@rjwysocki.net, lenb@kernel.org, andriy.shevchenko@linux.intel.com, mika.westerberg@linux.intel.com, wsa@the-dreams.de
-Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linux-i2c@vger.kernel.org, SPG_Linux_Kernel@amd.com
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from bombadil.infradead.org ([198.137.202.9]:46818 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753176AbcCJInk (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 10 Mar 2016 03:43:40 -0500
+Content-Disposition: inline
+In-Reply-To: <CAJZ5v0iKn4dT4ta6WaEcPbdYmA7P08=bmKU+dwcMx+Msk7WRFg@mail.gmail.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: "Rafael J. Wysocki" <rafael@kernel.org>
+Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Steve Muckle <steve.muckle@linaro.org>, Vincent Guittot <vincent.guittot@linaro.org>, Linux PM list <linux-pm@vger.kernel.org>, Juri Lelli <juri.lelli@arm.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>, Viresh Kumar <viresh.kumar@linaro.org>, Michael Turquette <mturquette@baylibre.com>, Ingo Molnar <mingo@redhat.com>
 
-On 03/10/2016 01:34 PM, Xiangliang Yu wrote:
-> Add device HID AMDI0010 to match the AMD ACPI Vendor ID (AMDI) that
-> was registered in http://www.uefi.org/acpi_id_list, and the I2C
-> controller on future AMD paltform will use the HID instead of AMD0010.
->
-> Signed-off-by: Xiangliang Yu <Xiangliang.Yu@amd.com>
-> ---
->   drivers/acpi/acpi_apd.c                     | 1 +
->   drivers/i2c/busses/i2c-designware-platdrv.c | 1 +
->   2 files changed, 2 insertions(+)
->
-> diff --git a/drivers/acpi/acpi_apd.c b/drivers/acpi/acpi_apd.c
-> index d507cf6..d0aad06 100644
-> --- a/drivers/acpi/acpi_apd.c
-> +++ b/drivers/acpi/acpi_apd.c
-> @@ -143,6 +143,7 @@ static const struct acpi_device_id acpi_apd_device_ids[] = {
->   	/* Generic apd devices */
->   #ifdef CONFIG_X86_AMD_PLATFORM_DEVICE
->   	{ "AMD0010", APD_ADDR(cz_i2c_desc) },
-> +	{ "AMDI0010", APD_ADDR(cz_i2c_desc) },
->   	{ "AMD0020", APD_ADDR(cz_uart_desc) },
->   	{ "AMD0030", },
->   #endif
-> diff --git a/drivers/i2c/busses/i2c-designware-platdrv.c b/drivers/i2c/busses/i2c-designware-platdrv.c
-> index 438f1b4..d656657 100644
-> --- a/drivers/i2c/busses/i2c-designware-platdrv.c
-> +++ b/drivers/i2c/busses/i2c-designware-platdrv.c
-> @@ -123,6 +123,7 @@ static const struct acpi_device_id dw_i2c_acpi_match[] = {
->   	{ "80860F41", 0 },
->   	{ "808622C1", 0 },
->   	{ "AMD0010", ACCESS_INTR_MASK },
-> +	{ "AMDI0010", ACCESS_INTR_MASK },
->   	{ "AMDI0510", 0 },
->   	{ "APMC0D0F", 0 },
->   	{ }
-> --
-I guess these changes don't necessarily need to go together? Although I 
-think chances to get a conflict is pretty low.
+On Thu, Mar 10, 2016 at 12:28:52AM +0100, Rafael J. Wysocki wrote:
+> > [ I would not have chosen (1 + 1/n), but lets stick to that ]
+> 
+> Well, what would you choose then? :-)
 
-For i2c-designware:
-Acked-by: Jarkko Nikula <jarkko.nikula@linux.intel.com>
+1/p ; 0 < p < 1
+
+or so. Where p then represents the percentile threshold where you want
+to bump to the next freq.
+
+> I think that should be
+> 
+>   next_freq = (1 + 1/n) * max_freq * util / max
+> 
+> (where max is the second argument of cpufreq_update_util) or the
+> dimensions on both sides don't match.
+
+Well yes, but so far we were treating util (and util_raw) as 0 < u < 1,
+values, so already normalized against max.
+
+But yes..
+
+> > if we substitute (2) into (3) we get:
+> >
+> >                   = (1 + 1/n) * max_freq * util_raw * current_freq / max_freq
+> >                   = (1 + 1/n) * current_freq * util_raw (4)
+> >
+> > Which gets you two formula with the same general behaviour. As (2) is
+> > the only approximation of (1) we can make.
+> 
+> OK
+> 
+> So since utilization is not frequency invariant in the current
+> mainline (or linux-next for that matter) AFAIC, I'm going to use the
+> following in the next version of the schedutil patch series:
+> 
+>   next_freq = 1.25 * current_freq * util_raw / max
+> 
+> where util_raw and max are what I get from cpufreq_update_util().
+> 
+> 1.25 is for the 80% tipping point which I think is reasonable.
+
+OK.
