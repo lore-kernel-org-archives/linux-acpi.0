@@ -1,77 +1,46 @@
-From: Heikki Krogerus <heikki.krogerus@linux.intel.com>
-Subject: Re: [RESEND PATCH 2/2] device property: fix for a case of
- use-after-free
-Date: Thu, 10 Mar 2016 11:17:23 +0200
-Message-ID: <20160310091723.GB29882@kuha.fi.intel.com>
-References: <1457444677-25645-1-git-send-email-heikki.krogerus@linux.intel.com>
- <1457444677-25645-3-git-send-email-heikki.krogerus@linux.intel.com>
- <38356299.uTpVNISVVC@vostro.rjw.lan>
- <20160309144112.GA31334@kuha.fi.intel.com>
- <20160310084445.GA29882@kuha.fi.intel.com>
+From: Peter Zijlstra <peterz@infradead.org>
+Subject: Re: [PATCH v2 1/10] cpufreq: Reduce cpufreq_update_util() overhead a
+ bit
+Date: Thu, 10 Mar 2016 10:19:01 +0100
+Message-ID: <20160310091901.GS6344@twins.programming.kicks-ass.net>
+References: <2495375.dFbdlAZmA6@vostro.rjw.lan>
+ <CAJZ5v0gt3tmJ1ZunvkLKfeUSgZv7yiO9vBDtDmXSuC=tUUpPLg@mail.gmail.com>
+ <20160309152934.GO6356@twins.programming.kicks-ass.net>
+ <5173878.LnSyxxsz2i@vostro.rjw.lan>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga04.intel.com ([192.55.52.120]:43848 "EHLO mga04.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S965507AbcCJJRl (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 10 Mar 2016 04:17:41 -0500
+Return-path: <linux-pm-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20160310084445.GA29882@kuha.fi.intel.com>
-Sender: linux-acpi-owner@vger.kernel.org
-List-Id: linux-acpi@vger.kernel.org
+In-Reply-To: <5173878.LnSyxxsz2i@vostro.rjw.lan>
+Sender: linux-pm-owner@vger.kernel.org
 To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: Mika Westerberg <mika.westerberg@linux.intel.com>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, John Youn <John.Youn@synopsys.com>, linux-acpi@vger.kernel.org
+Cc: "Rafael J. Wysocki" <rafael@kernel.org>, Linux PM list <linux-pm@vger.kernel.org>, Juri Lelli <juri.lelli@arm.com>, Steve Muckle <steve.muckle@linaro.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>, Viresh Kumar <viresh.kumar@linaro.org>, Vincent Guittot <vincent.guittot@linaro.org>, Michael Turquette <mturquette@baylibre.com>, Ingo Molnar <mingo@kernel.org>
+List-Id: linux-acpi@vger.kernel.org
 
-On Thu, Mar 10, 2016 at 10:44:45AM +0200, Heikki Krogerus wrote:
-> On Wed, Mar 09, 2016 at 04:41:12PM +0200, Heikki Krogerus wrote:
-> > Hi Rafael,
-> > 
-> > > > diff --git a/drivers/base/property.c b/drivers/base/property.c
-> > > > index a163f2c..a9df21a9 100644
-> > > > --- a/drivers/base/property.c
-> > > > +++ b/drivers/base/property.c
-> > > > @@ -820,11 +820,13 @@ void device_remove_property_set(struct device *dev)
-> > > >  	 * the pset. If there is no real firmware node (ACPI/DT) primary
-> > > >  	 * will hold the pset.
-> > > >  	 */
-> > > > -	if (!is_pset_node(fwnode))
-> > > > +	if (is_pset_node(fwnode))
-> > > > +		dev->fwnode = NULL;
-> > > 
-> > > I don't really like the way you clear dev->fwnode directly here.
-> > > set_primary_fwnode(dev, NULL) would be more appropriate IMO.
-> > > 
-> > > Also set_secondary_fwnode(dev, NULL) need not be done in that case, because it
-> > > doesn't change anything.
-> > > 
-> > > Moreover, if the primary node is not pset, the secondary one should only be
-> > > cleared if it is pset.
-> > > 
-> > > So that would mean
-> > > 
-> > > 	if (is_pset_node(fwnode)) {
-> > > 		set_primary_fwnode(dev, NULL);
+On Wed, Mar 09, 2016 at 10:35:02PM +0100, Rafael J. Wysocki wrote:
+> From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+> Subject: [PATCH] cpufreq: Move scheduler-related code to the sched directory
 > 
-> So this does create an other problem. We may now end up having ERR_PTR
-> in the primary fwnode which of course is not considered in the
-> property handling code, and would need to be fixed similarly as I
-> fixed the secondary fwnode checking in 1/2 of this series.
+> Create cpufreq.c under kernel/sched/ and move the cpufreq code
+> related to the scheduler to that file and to sched.h.
 > 
-> But instead of doing that, the whole logic of handing the
-> primary/secondary fwnodes is probable a little bit broken and should
-> really be replaced with something better. We can fix these issues one
-> by one with the code we have now, but it really looks like one fix
-> will always result into two new problems. Andy promised to look at it.
+> Redefine cpufreq_update_util() as a static inline function to avoid
+> function calls at its call sites in the scheduler code (as suggested
+> by Peter Zijlstra).
 > 
-> In the meantime, would it make sense to go ahead with my proposal to
-> fix the original problem? As a temporary hack?
+> Also move the definition of struct update_util_data and declaration
+> of cpufreq_set_update_util_data() from include/linux/cpufreq.h to
+> include/linux/sched.h.
+> 
+> Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+> ---
+>  drivers/cpufreq/cpufreq.c          |   53 -------------------------------------
+>  drivers/cpufreq/cpufreq_governor.c |    1 
+>  include/linux/cpufreq.h            |   34 -----------------------
+>  include/linux/sched.h              |    9 ++++++
+>  kernel/sched/Makefile              |    1 
+>  kernel/sched/cpufreq.c             |   37 +++++++++++++++++++++++++
+>  kernel/sched/sched.h               |   49 +++++++++++++++++++++++++++++++++-
+>  7 files changed, 96 insertions(+), 88 deletions(-)
 
-Scratch that last question. I'll just prepare a patch with your
-proposal and in the same patch change the checking of the primary
-fwnode into !IS_ERR_OR_NULL(fwnode). I think it should work for now.
-
-
-Thanks,
-
--- 
-heikki
+Acked-by: Peter Zijlstra (Intel) <peterz@infradead.org>
