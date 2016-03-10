@@ -1,176 +1,201 @@
-From: Lv Zheng <lv.zheng@intel.com>
-Subject: [PATCH] ACPICA / Interpreter: Fix a regression triggered because of wrong Linux ECDT support
-Date: Thu, 10 Mar 2016 10:54:29 +0800
-Message-ID: <1457578469-1859-1-git-send-email-lv.zheng@intel.com>
+From: Vincent Guittot <vincent.guittot@linaro.org>
+Subject: Re: [PATCH 6/6] cpufreq: schedutil: New governor based on scheduler
+ utilization data
+Date: Thu, 10 Mar 2016 10:44:21 +0700
+Message-ID: <CAKfTPtB1g6VgA8NBep553C4MZ19B-rD4Xdp6EpZNAu+mYmx+2w@mail.gmail.com>
+References: <2495375.dFbdlAZmA6@vostro.rjw.lan> <CAJZ5v0h47h-xW6a4jzwRuOOOSG+qsD9hegM7QCzbD8Wb-yPVKQ@mail.gmail.com>
+ <56D8AEB7.2050100@linaro.org> <36459679.vzZnOsAVeg@vostro.rjw.lan>
+ <20160308112759.GF6356@twins.programming.kicks-ass.net> <CAJZ5v0i+KFmpggrGKqtL_SB1=Fv=b_AbVeL-9jPfo4rYt6-q5A@mail.gmail.com>
+ <20160308192640.GD6344@twins.programming.kicks-ass.net> <CAJZ5v0g=dXmoPr0jR6AVuynVYbSwJvnS2dFhb7QnUKq9LRRnrQ@mail.gmail.com>
+ <20160309163930.GP6356@twins.programming.kicks-ass.net> <CAJZ5v0iKn4dT4ta6WaEcPbdYmA7P08=bmKU+dwcMx+Msk7WRFg@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga09.intel.com ([134.134.136.24]:47470 "EHLO mga09.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751774AbcCJCyp (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 9 Mar 2016 21:54:45 -0500
+Received: from mail-lb0-f174.google.com ([209.85.217.174]:33194 "EHLO
+	mail-lb0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932091AbcCJDom (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 9 Mar 2016 22:44:42 -0500
+Received: by mail-lb0-f174.google.com with SMTP id k15so95232316lbg.0
+        for <linux-acpi@vger.kernel.org>; Wed, 09 Mar 2016 19:44:41 -0800 (PST)
+In-Reply-To: <CAJZ5v0iKn4dT4ta6WaEcPbdYmA7P08=bmKU+dwcMx+Msk7WRFg@mail.gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <len.brown@intel.com>
-Cc: Lv Zheng <lv.zheng@intel.com>, Lv Zheng <zetalog@gmail.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
+To: "Rafael J. Wysocki" <rafael@kernel.org>
+Cc: Peter Zijlstra <peterz@infradead.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Steve Muckle <steve.muckle@linaro.org>, Linux PM list <linux-pm@vger.kernel.org>, Juri Lelli <juri.lelli@arm.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>, Viresh Kumar <viresh.kumar@linaro.org>, Michael Turquette <mturquette@baylibre.com>, Ingo Molnar <mingo@redhat.com>
 
-It is reported that the following commit triggers regressions:
- Linux commit: efaed9be998b5ae0afb7458e057e5f4402b43fa0
- ACPICA commit: 31178590dde82368fdb0f6b0e466b6c0add96c57
- Subject: ACPICA: Events: Enhance acpi_ev_execute_reg_method() to
-          ensure no _REG evaluations can happen during OS early boot
-          stages
+On 10 March 2016 at 06:28, Rafael J. Wysocki <rafael@kernel.org> wrote:
+> On Wed, Mar 9, 2016 at 5:39 PM, Peter Zijlstra <peterz@infradead.org> wrote:
+>> On Tue, Mar 08, 2016 at 09:05:50PM +0100, Rafael J. Wysocki wrote:
+>>> >> This means that on platforms where the utilization is frequency
+>>> >> invariant we should use
+>>> >>
+>>> >>   next_freq = a * x
+>>> >>
+>>> >> (where x is given by (2) above) and for platforms where the
+>>> >> utilization is not frequency invariant
+>>> >>
+>>> >>   next_freq = a * x * current_freq / max_freq
+>>> >>
+>>> >> and all boils down to finding a.
+>>> >
+>>> > Right.
+>>>
+>>> However, that doesn't seem to be in agreement with the Steve's results
+>>> posted earlier in this thread.
+>>
+>> I could not make anything of those numbers.
+>>
+>>> Also theoretically, with frequency invariant, the only way you can get
+>>> to 100% utilization is by running at the max frequency, so the closer
+>>> to 100% you get, the faster you need to run to get any further.  That
+>>> indicates nonlinear to me.
+>>
+>> I'm not seeing that, you get that by using a > 1. No need for
+>> non-linear.
+>
+> OK
+>
+>>> >> Now, it seems reasonable for a to be something like (1 + 1/n) *
+>>> >> max_freq, so for non-frequency invariant we get
+>>> >>
+>>> >>   nex_freq = (1 + 1/n) * current_freq * x
+>
+> (*) (see below)
+>
+>>> > This seems like a big leap; where does:
+>>> >
+>>> >   (1 + 1/n) * max_freq
+>>> >
+>>> > come from? And what is 'n'?
+>>
+>>> a = max_freq gives next_freq = max_freq for x = 1,
+>>
+>> next_freq = a        * x * current_freq / max_freq
+>>
+>>   [ a := max_freq, x := 1 ] ->
+>>
+>>           = max_freq * 1 * current_freq / max_freq
+>>           = current_freq
+>>
+>>           != max_freq
+>>
+>> But I think I see what you're saying; because at x = 1,
+>> current_frequency must be max_frequency. Per your earlier point.
+>
+> Correct.
+>
+>>> but with that choice of a you may never get to x = 1 with frequency
+>>> invariant because of the feedback effect mentioned above, so the 1/n
+>>> produces the extra boost needed for that (n is a positive integer).
+>>
+>> OK, so that gets us:
+>>
+>>         a = (1 + 1/n) ; n > 0
+>>
+>> [ I would not have chosen (1 + 1/n), but lets stick to that ]
+>
+> Well, what would you choose then? :-)
+>
+>> So for n = 4 that gets you: a = 1.25, which effectively gets you an 80%
+>> utilization tipping point. That is, 1.25 * .8 = 1, iow. you'll pick the
+>> next frequency (assuming RELATION_L like selection).
+>>
+>> Together this gets you:
+>>
+>>         next_freq = (1 + 1/n) * max_freq * x * current_freq / max_freq
+>>                   = (1 + 1/n) * x * current_freq
+>
+> That seems to be what I said above (*), isn't it?
+>
+>> Again, with n = 4, x > .8 will result in a next_freq > current_freq, and
+>> hence (RELATION_L) pick a higher one.
+>
+> OK
+>
+>>> Quite frankly, to me it looks like linear really is a better
+>>> approximation for "raw" utilization.  That is, for frequency invariant
+>>> x we should take:
+>>>
+>>>   next_freq = a * x * max_freq / current_freq
+>>
+>> (its very confusing how you use 'x' for both invariant and
+>> non-invariant).
+>>
+>> That doesn't make sense, remember:
+>>
+>>         util = \Sum_i u_i * freq_i / max_freq           (1)
+>>
+>> Which for systems where freq_i is constant reduces to:
+>>
+>>         util = util_raw * current_freq / max_freq       (2)
+>>
+>> But you cannot reverse this. IOW you cannot try and divide out
+>> current_freq on a frequency invariant metric.
+>
+> I see.
+>
+>> So going by:
+>>
+>>         next_freq = (1 + 1/n) * max_freq * util         (3)
+>
+> I think that should be
+>
+>   next_freq = (1 + 1/n) * max_freq * util / max
+>
+> (where max is the second argument of cpufreq_update_util) or the
+> dimensions on both sides don't match.
+>
+>> if we substitute (2) into (3) we get:
+>>
+>>                   = (1 + 1/n) * max_freq * util_raw * current_freq / max_freq
+>>                   = (1 + 1/n) * current_freq * util_raw (4)
+>>
+>> Which gets you two formula with the same general behaviour. As (2) is
+>> the only approximation of (1) we can make.
+>
+> OK
+>
+> So since utilization is not frequency invariant in the current
+> mainline (or linux-next for that matter) AFAIC, I'm going to use the
+> following in the next version of the schedutil patch series:
+>
+>   next_freq = 1.25 * current_freq * util_raw / max
+>
+> where util_raw and max are what I get from cpufreq_update_util().
+>
+> 1.25 is for the 80% tipping point which I think is reasonable.
 
-This is because that the ECDT support is not corrected in Linux, and Linux
-requires to execute _REG for ECDT (though this sounds so wrong), we need to
-ensure acpi_gbl_namespace_initialized is set before ECDT probing in order
-for _REG to be executed. Since we have to move
-"acpi_gbl_namespace_initialized = TRUE" to the initialization step
-happening before ECDT probing, acpi_load_tables() is the best candidate for
-now. Thus this patch fixes the regression by doing so.
 
-But if the ECDT support is fixed, Linux will not execute _REG for ECDT, and
-ECDT probing will happen before acpi_load_tables(). At that time, we still
-want to ensure acpi_gbl_namespace_initialized is set after executing
-acpi_ns_initialize_objects() (under the condition of
-acpi_gbl_group_module_level_code = FALSE), this patch also moves
-acpi_ns_initialize_objects() to acpi_load_tables() accordingly.
+We have the arch_scale_freq_capacity function that is arch dependent
+and can be used to merge the 2 formula that were described by peter
+above.
+By default, arch_scale_freq_capacity return SCHED_CAPACITY_SCALE which
+is max capacity
+but when arch_scale_freq_capacity is defined by an architecture,
+arch_scale_freq_capacity returns current_freq * max_capacity/max_freq
 
-Since acpi_ns_initialize_objects() doesn't seem to be skippable, this
-patch also removes ACPI_NO_OBJECT_INIT for the one invoked in
-acpi_load_tables(). And since the default region handlers should always be
-installed before loading the tables, this patch also removes useless
-acpi_gbl_group_module_level_code check accordingly. Reported by Chris
-Bainbridge, Fixed by Lv Zheng.
+so can't we use arch_scale_freq in your formula ? Taking your formula
+above it becomes:
+next_freq = 1.25 * current_freq * util / arch_scale_freq_capacity()
 
-Reported-and-tested-by: Chris Bainbridge <chris.bainbridge@gmail.com>
-Signed-off-by: Lv Zheng <lv.zheng@intel.com>
----
- drivers/acpi/acpica/nsinit.c   |    2 ++
- drivers/acpi/acpica/tbxfload.c |   26 +++++++++++++++++-------
- drivers/acpi/acpica/utxfinit.c |   43 ++++++++++------------------------------
- 3 files changed, 32 insertions(+), 39 deletions(-)
+Without invariance feature, we have the same formula than above :
+next_freq = 1.25 * current_freq * util_raw / max because
+SCHED_CAPACITY_SCALE is max capacity
 
-diff --git a/drivers/acpi/acpica/nsinit.c b/drivers/acpi/acpica/nsinit.c
-index f029a3d..d4aa8b6 100644
---- a/drivers/acpi/acpica/nsinit.c
-+++ b/drivers/acpi/acpica/nsinit.c
-@@ -84,6 +84,8 @@ acpi_status acpi_ns_initialize_objects(void)
- 
- 	ACPI_FUNCTION_TRACE(ns_initialize_objects);
- 
-+	ACPI_DEBUG_PRINT((ACPI_DB_EXEC,
-+			  "[Init] Completing Initialization of ACPI Objects\n"));
- 	ACPI_DEBUG_PRINT((ACPI_DB_DISPATCH,
- 			  "**** Starting initialization of namespace objects ****\n"));
- 	ACPI_DEBUG_PRINT_RAW((ACPI_DB_INIT,
-diff --git a/drivers/acpi/acpica/tbxfload.c b/drivers/acpi/acpica/tbxfload.c
-index 9496b84..3151968 100644
---- a/drivers/acpi/acpica/tbxfload.c
-+++ b/drivers/acpi/acpica/tbxfload.c
-@@ -81,13 +81,11 @@ acpi_status __init acpi_load_tables(void)
- 	 * between acpi_initialize_subsystem() and acpi_load_tables() to use
- 	 * their customized default region handlers.
- 	 */
--	if (acpi_gbl_group_module_level_code) {
--		status = acpi_ev_install_region_handlers();
--		if (ACPI_FAILURE(status) && status != AE_ALREADY_EXISTS) {
--			ACPI_EXCEPTION((AE_INFO, status,
--					"During Region initialization"));
--			return_ACPI_STATUS(status);
--		}
-+	status = acpi_ev_install_region_handlers();
-+	if (ACPI_FAILURE(status) && status != AE_ALREADY_EXISTS) {
-+		ACPI_EXCEPTION((AE_INFO, status,
-+				"During Region initialization"));
-+		return_ACPI_STATUS(status);
- 	}
- 
- 	/* Load the namespace from the tables */
-@@ -105,6 +103,20 @@ acpi_status __init acpi_load_tables(void)
- 				"While loading namespace from ACPI tables"));
- 	}
- 
-+	if (!acpi_gbl_group_module_level_code) {
-+		/*
-+		 * Initialize the objects that remain uninitialized. This
-+		 * runs the executable AML that may be part of the
-+		 * declaration of these objects:
-+		 * operation_regions, buffer_fields, Buffers, and Packages.
-+		 */
-+		status = acpi_ns_initialize_objects();
-+		if (ACPI_FAILURE(status)) {
-+			return_ACPI_STATUS(status);
-+		}
-+	}
-+
-+	acpi_gbl_namespace_initialized = TRUE;
- 	return_ACPI_STATUS(status);
- }
- 
-diff --git a/drivers/acpi/acpica/utxfinit.c b/drivers/acpi/acpica/utxfinit.c
-index d70649d..75b5f27 100644
---- a/drivers/acpi/acpica/utxfinit.c
-+++ b/drivers/acpi/acpica/utxfinit.c
-@@ -154,23 +154,6 @@ acpi_status __init acpi_enable_subsystem(u32 flags)
- 	 */
- 	acpi_gbl_early_initialization = FALSE;
- 
--	/*
--	 * Install the default operation region handlers. These are the
--	 * handlers that are defined by the ACPI specification to be
--	 * "always accessible" -- namely, system_memory, system_IO, and
--	 * PCI_Config. This also means that no _REG methods need to be
--	 * run for these address spaces. We need to have these handlers
--	 * installed before any AML code can be executed, especially any
--	 * module-level code (11/2015).
--	 */
--	if (!acpi_gbl_group_module_level_code) {
--		status = acpi_ev_install_region_handlers();
--		if (ACPI_FAILURE(status)) {
--			ACPI_EXCEPTION((AE_INFO, status,
--					"During Region initialization"));
--			return_ACPI_STATUS(status);
--		}
--	}
- #if (!ACPI_REDUCED_HARDWARE)
- 
- 	/* Enable ACPI mode */
-@@ -284,25 +267,21 @@ acpi_status __init acpi_initialize_objects(u32 flags)
- 	 */
- 	if (acpi_gbl_group_module_level_code) {
- 		acpi_ns_exec_module_code_list();
--	}
- 
--	/*
--	 * Initialize the objects that remain uninitialized. This runs the
--	 * executable AML that may be part of the declaration of these objects:
--	 * operation_regions, buffer_fields, Buffers, and Packages.
--	 */
--	if (!(flags & ACPI_NO_OBJECT_INIT)) {
--		ACPI_DEBUG_PRINT((ACPI_DB_EXEC,
--				  "[Init] Completing Initialization of ACPI Objects\n"));
--
--		status = acpi_ns_initialize_objects();
--		if (ACPI_FAILURE(status)) {
--			return_ACPI_STATUS(status);
-+		/*
-+		 * Initialize the objects that remain uninitialized. This
-+		 * runs the executable AML that may be part of the
-+		 * declaration of these objects:
-+		 * operation_regions, buffer_fields, Buffers, and Packages.
-+		 */
-+		if (!(flags & ACPI_NO_OBJECT_INIT)) {
-+			status = acpi_ns_initialize_objects();
-+			if (ACPI_FAILURE(status)) {
-+				return_ACPI_STATUS(status);
-+			}
- 		}
- 	}
- 
--	acpi_gbl_namespace_initialized = TRUE;
--
- 	/*
- 	 * Initialize all device/region objects in the namespace. This runs
- 	 * the device _STA and _INI methods and region _REG methods.
--- 
-1.7.10
+With invariance feature, we have next_freq = 1.25 * current_freq *
+util / (current_freq*max_capacity/max_freq) = 1.25 * util * max_freq /
+max which is the formula that has to be used with frequency invariant
+utilization.
 
+so we have one formula that works for both configuration (this is not
+really optimized for invariant system because we multiply then divide
+by current_freq in 2 different places but it's better than a wrong
+formula)
+
+Now, arch_scale_freq_capacity is available in kernel/sched/sched.h
+header file which can only be accessed by scheduler code...
+
+May be we can pass arch_scale_freq_capacity value instead of max one
+as a parameter of update_util function prototype
+
+Vincent
