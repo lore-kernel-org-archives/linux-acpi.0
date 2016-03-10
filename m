@@ -1,70 +1,77 @@
-From: Alan Tull <delicious.quinoa@gmail.com>
-Subject: Re: [PATCH v5 0/3] "gpio: designware: add gpio-signaled acpi event
- support for power button"
-Date: Thu, 10 Mar 2016 14:10:28 -0600
-Message-ID: <CANk1AXT-2BLUzkwWw_UXGf3U2zt=NaoF2p7r5dZtGBZ99-O+BA@mail.gmail.com>
+From: Andy Shevchenko <andy.shevchenko@gmail.com>
+Subject: Re: [PATCH v5 1/3] gpio: designware: convert device node to fwnode
+Date: Thu, 10 Mar 2016 22:27:19 +0200
+Message-ID: <CAHp75VfGJZnOWUdZkjCbraupg=KUw2-jhtiRHLxrT2uUwJdvow@mail.gmail.com>
 References: <1457077474-124064-1-git-send-email-qiujiang@huawei.com>
-	<CACRpkdZ6Uodt-WTrXjCmaGNQLMChRVXOzKLeGf4JoNtuTvNCGw@mail.gmail.com>
+	<1457077474-124064-2-git-send-email-qiujiang@huawei.com>
+	<CANk1AXRTvSRZkWMQf03Ty+ouxcJDpD-hJ9tjXSqh5Z0OzOhk+w@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-wm0-f65.google.com ([74.125.82.65]:34754 "EHLO
-	mail-wm0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754256AbcCJUKa (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 10 Mar 2016 15:10:30 -0500
-In-Reply-To: <CACRpkdZ6Uodt-WTrXjCmaGNQLMChRVXOzKLeGf4JoNtuTvNCGw@mail.gmail.com>
+Received: from mail-yk0-f181.google.com ([209.85.160.181]:32783 "EHLO
+	mail-yk0-f181.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753590AbcCJU1U (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 10 Mar 2016 15:27:20 -0500
+In-Reply-To: <CANk1AXRTvSRZkWMQf03Ty+ouxcJDpD-hJ9tjXSqh5Z0OzOhk+w@mail.gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Linus Walleij <linus.walleij@linaro.org>
-Cc: qiujiang <qiujiang@huawei.com>, Jamie Iles <jamie@jamieiles.com>, Alexandre Courbot <gnurou@gmail.com>, Mika Westerberg <mika.westerberg@linux.intel.com>, Andy Shevchenko <andy.shevchenko@gmail.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-gpio@vger.kernel.org" <linux-gpio@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, linuxarm@huawei.com, haifeng.wei@huawei.com, charles.chenxin@huawei.com, atull <atull@opensource.altera.com>, Alan Tull <delicious.quinoa@gmail.com>
+To: Alan Tull <delicious.quinoa@gmail.com>
+Cc: qiujiang <qiujiang@huawei.com>, Linus Walleij <linus.walleij@linaro.org>, Alexandre Courbot <gnurou@gmail.com>, Mika Westerberg <mika.westerberg@linux.intel.com>, linux-kernel <linux-kernel@vger.kernel.org>, "linux-gpio@vger.kernel.org" <linux-gpio@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, linuxarm@huawei.com, haifeng.wei@huawei.com, charles.chenxin@huawei.com
 
-On Tue, Mar 8, 2016 at 8:26 PM, Linus Walleij <linus.walleij@linaro.org> wrote:
-> On Fri, Mar 4, 2016 at 2:44 PM, qiujiang <qiujiang@huawei.com> wrote:
+On Thu, Mar 10, 2016 at 9:09 PM, Alan Tull <delicious.quinoa@gmail.com> wrote:
+> On Fri, Mar 4, 2016 at 1:44 AM, qiujiang <qiujiang@huawei.com> wrote:
+>> This patch converts device node to fwnode in
+>> dwapb_port_property for designware gpio driver,
+>> so as to provide a unified data structure for DT
+>> and ACPI bindings.
+>>
+>> Acked-by: Andy Shevchenko <andy.shevchenko@gmail.com>
+>> Signed-off-by: qiujiang <qiujiang@huawei.com>
+
+>> @@ -496,18 +492,19 @@ dwapb_gpio_get_pdata_of(struct device *dev)
+>>                  * Only port A can provide interrupts in all configurations of
+>>                  * the IP.
+>>                  */
+>> -               if (pp->idx == 0 &&
+>> -                   of_property_read_bool(port_np, "interrupt-controller")) {
+>> -                       pp->irq = irq_of_parse_and_map(port_np, 0);
+>> +               if (dev->of_node && pp->idx == 0 &&
+>> +                       of_property_read_bool(to_of_node(fwnode),
+>> +                               "interrupt-controller")) {
 >
->> This patchset adds gpio-signaled acpi events support for power button on hisilicon
->> D02 board.
->>
->> The three patches respectively:
->>         - convert device node to fwnode
->>                 - add acpi binding
->>         - add gpio-signaled acpi event support
->>
->>    This patchset is based on
->>    https://git.kernel.org/pub/scm/linux/kernel/git/linusw/linux-gpio.git
->>    branch "devel"
->>
->> Changes v4 -> v5:
->>    - split into three patchs
->>    - add Andy's ACKs
->>
->> Changes v3 -> v4:
->>    - re-organize this two patchs by Andy's suggestion
->>
->> Changes v2 -> v3:
->>    - fixed the build error reported by Kbuild test robot
->>
->> Changes v1 -> v2:
->>    - rebase to branch "devel" of Linus Walleij's repository
->>    - split in two patch as suggested by Andy S
->>    - add Mika's ACKs
->>
->> qiujiang (3):
->>   gpio: designware: convert device node to fwnode
->>   gpio: designware: add acpi binding
->>   gpio: designware: add gpio-signaled acpi event support
+> Hi Qiujiang,
 >
-> I noticed that the original driver authors Jamie and Alan have not been
-> properly CC:ed on this patch. Jamie, Alan: can you look at this and
-> ACK it if you like what you see?
+> Is there a reason to use "of_property_read_bool" here instead of
+> "device_property_read_bool" or similar?
+
+Yeah, this patch looks unfinished.
+
+This should be
+     if (pp->idx == 0 &&  fwnode_property_read_bool(fwnode,
+"interrupt-controller")) {
+
 >
-> Yours,
-> Linus Walleij
+> Alan
+>
+>> +                       pp->irq = irq_of_parse_and_map(to_of_node(fwnode), 0);
 
-Hi Linus,
+But here should be common method called which takes fwnode on input.
 
-I briefly tested the patches on a ARM CycloneV board and didn't see
-any issues.  I looked over the patches (not super familiar with ACPI)
-and just had one question (on another thread).
+>>                         if (!pp->irq) {
+>>                                 dev_warn(dev, "no irq for bank %s\n",
+>> -                                        port_np->full_name);
+>> +                                        to_of_node(fwnode)->full_name);
+>>                         }
+>>                 }
+>>
+>>                 pp->irq_shared  = false;
+>>                 pp->gpio_base   = -1;
+>> -               pp->name        = port_np->full_name;
+>> +               pp->name        = to_of_node(fwnode)->full_name;
 
-Thanks,
-Alan
+Also those two should be device property source agnostic. That's what
+I tried to tell earlier.
+
+-- 
+With Best Regards,
+Andy Shevchenko
