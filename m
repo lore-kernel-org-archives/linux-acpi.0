@@ -1,46 +1,73 @@
-From: Peter Zijlstra <peterz@infradead.org>
-Subject: Re: [PATCH v2 1/10] cpufreq: Reduce cpufreq_update_util() overhead a
- bit
-Date: Thu, 10 Mar 2016 10:19:01 +0100
-Message-ID: <20160310091901.GS6344@twins.programming.kicks-ass.net>
-References: <2495375.dFbdlAZmA6@vostro.rjw.lan>
- <CAJZ5v0gt3tmJ1ZunvkLKfeUSgZv7yiO9vBDtDmXSuC=tUUpPLg@mail.gmail.com>
- <20160309152934.GO6356@twins.programming.kicks-ass.net>
- <5173878.LnSyxxsz2i@vostro.rjw.lan>
+From: Hanjun Guo <hanjun.guo@linaro.org>
+Subject: Re: [PATCH v3 05/12] arm64, acpi, numa: NUMA support based on SRAT
+ and SLIT
+Date: Thu, 10 Mar 2016 17:50:58 +0800
+Message-ID: <56E14382.1070003@linaro.org>
+References: <1453541967-3744-1-git-send-email-guohanjun@huawei.com> <1453541967-3744-6-git-send-email-guohanjun@huawei.com> <56D6F3EA.4050904@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-pm-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <5173878.LnSyxxsz2i@vostro.rjw.lan>
-Sender: linux-pm-owner@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: "Rafael J. Wysocki" <rafael@kernel.org>, Linux PM list <linux-pm@vger.kernel.org>, Juri Lelli <juri.lelli@arm.com>, Steve Muckle <steve.muckle@linaro.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>, Viresh Kumar <viresh.kumar@linaro.org>, Vincent Guittot <vincent.guittot@linaro.org>, Michael Turquette <mturquette@baylibre.com>, Ingo Molnar <mingo@kernel.org>
+Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <56D6F3EA.4050904@gmail.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Matthias Brugger <matthias.bgg@gmail.com>, Hanjun Guo <guohanjun@huawei.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Will Deacon <will.deacon@arm.com>, Catalin Marinas <catalin.marinas@arm.com>
+Cc: Mark Rutland <mark.rutland@arm.com>, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, Steve Capper <steve.capper@linaro.org>, linux-kernel@vger.kernel.org, Robert Richter <rrichter@cavium.com>, linux-acpi@vger.kernel.org, Shannon Zhao <shannon.zhao@linaro.org>, Ganapatrao Kulkarni <gkulkarni@caviumnetworks.com>, linux-arm-kernel@lists.infradead.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Wed, Mar 09, 2016 at 10:35:02PM +0100, Rafael J. Wysocki wrote:
-> From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-> Subject: [PATCH] cpufreq: Move scheduler-related code to the sched directory
-> 
-> Create cpufreq.c under kernel/sched/ and move the cpufreq code
-> related to the scheduler to that file and to sched.h.
-> 
-> Redefine cpufreq_update_util() as a static inline function to avoid
-> function calls at its call sites in the scheduler code (as suggested
-> by Peter Zijlstra).
-> 
-> Also move the definition of struct update_util_data and declaration
-> of cpufreq_set_update_util_data() from include/linux/cpufreq.h to
-> include/linux/sched.h.
-> 
-> Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-> ---
->  drivers/cpufreq/cpufreq.c          |   53 -------------------------------------
->  drivers/cpufreq/cpufreq_governor.c |    1 
->  include/linux/cpufreq.h            |   34 -----------------------
->  include/linux/sched.h              |    9 ++++++
->  kernel/sched/Makefile              |    1 
->  kernel/sched/cpufreq.c             |   37 +++++++++++++++++++++++++
->  kernel/sched/sched.h               |   49 +++++++++++++++++++++++++++++++++-
->  7 files changed, 96 insertions(+), 88 deletions(-)
+Hi Matthias,
 
-Acked-by: Peter Zijlstra (Intel) <peterz@infradead.org>
+Sorry for the late reply, on a travelling now.
+
+On 03/02/2016 10:08 PM, Matthias Brugger wrote:
+>
+>
+> On 23/01/16 10:39, Hanjun Guo wrote:
+>> From: Hanjun Guo <hanjun.guo@linaro.org>
+>>
+>> Introduce a new file to hold ACPI based NUMA information
+>> parsing from SRAT and SLIT.
+>>
+>> SRAT includes the CPU ACPI ID to Proximity Domain mappings
+>> and memory ranges to Proximity Domain mapping.
+>> SLIT has the information of inter node
+>> distances(relative number for access latency).
+>>
+>> Signed-off-by: Hanjun Guo <hanjun.guo@linaro.org>
+>> Signed-off-by: Ganapatrao Kulkarni <gkulkarni@caviumnetworks.com>
+[..]
+>>
+>> diff --git a/arch/arm64/mm/numa.c b/arch/arm64/mm/numa.c
+>> index 9e8704b..e974995 100644
+>> --- a/arch/arm64/mm/numa.c
+>> +++ b/arch/arm64/mm/numa.c
+>> @@ -17,6 +17,7 @@
+>>    * along with this program.  If not, see
+>> <http://www.gnu.org/licenses/>.
+>>    */
+>>
+>> +#include <linux/acpi.h>
+>>   #include <linux/bootmem.h>
+>>   #include <linux/ctype.h>
+>>   #include <linux/init.h>
+>> @@ -385,10 +386,8 @@ void __init arm64_numa_init(void)
+>>   {
+>>       int ret = -ENODEV;
+>>
+>> -#ifdef CONFIG_OF_NUMA
+>>       if (!numa_off)
+>> -        ret = numa_init(arm64_of_numa_init);
+>> -#endif
+>> +        ret = numa_init(acpi_disabled ? arm64_of_numa_init :
+>> arm64_acpi_numa_init);
+>
+> Header asm/acpi.h is included in linux/acpi.h but only if CONFIG_ACPI=y
+> arm64_acpi_numa_init is declared in asm/acpi.h, so if we don't use the
+> ifdef CONFIG_* approach from Robert, we will need to include as/acpi.h
+> implicitly here. Otherwise we get a compilation error if CONFIG_ACPI is
+> not set.
+
+Yes, I noticed the same issue as you spotted out, and I agree with
+you and Robert that I should use the ifdef CONFIG_* approach.
+
+Thanks
+Hanjun
