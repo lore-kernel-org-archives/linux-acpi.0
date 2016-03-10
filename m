@@ -1,142 +1,48 @@
-From: Juri Lelli <juri.lelli@arm.com>
-Subject: Re: [PATCH 6/6] cpufreq: schedutil: New governor based on scheduler
- utilization data
-Date: Thu, 10 Mar 2016 11:30:34 +0700
-Message-ID: <20160310043034.GB26402@pablo>
-References: <2495375.dFbdlAZmA6@vostro.rjw.lan>
- <CAJZ5v0h47h-xW6a4jzwRuOOOSG+qsD9hegM7QCzbD8Wb-yPVKQ@mail.gmail.com>
- <56D8AEB7.2050100@linaro.org>
- <36459679.vzZnOsAVeg@vostro.rjw.lan>
- <20160308112759.GF6356@twins.programming.kicks-ass.net>
- <CAJZ5v0i+KFmpggrGKqtL_SB1=Fv=b_AbVeL-9jPfo4rYt6-q5A@mail.gmail.com>
- <20160308192640.GD6344@twins.programming.kicks-ass.net>
- <CAJZ5v0g=dXmoPr0jR6AVuynVYbSwJvnS2dFhb7QnUKq9LRRnrQ@mail.gmail.com>
- <20160309101519.GA26402@pablo>
- <CAJZ5v0hxq=S+huSy-D7=VGoV+30VQfCyA5C5dTBX-rn0XRUS0g@mail.gmail.com>
+From: Xiangliang Yu <Xiangliang.Yu@amd.com>
+Subject: [PATCH] i2c: designware: Add device HID for future AMD I2C controller
+Date: Thu, 10 Mar 2016 19:34:52 +0800
+Message-ID: <1457609692-25903-1-git-send-email-Xiangliang.Yu@amd.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <CAJZ5v0hxq=S+huSy-D7=VGoV+30VQfCyA5C5dTBX-rn0XRUS0g@mail.gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: "Rafael J. Wysocki" <rafael@kernel.org>
-Cc: Peter Zijlstra <peterz@infradead.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Steve Muckle <steve.muckle@linaro.org>, Vincent Guittot <vincent.guittot@linaro.org>, Linux PM list <linux-pm@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>, Viresh Kumar <viresh.kumar@linaro.org>, Michael Turquette <mturquette@baylibre.com>, Ingo Molnar <mingo@redhat.com>
+Content-Type: text/plain
+Return-path: <linux-i2c-owner@vger.kernel.org>
+Sender: linux-i2c-owner@vger.kernel.org
+To: rjw@rjwysocki.net, lenb@kernel.org, andriy.shevchenko@linux.intel.com, jarkko.nikula@linux.intel.com, mika.westerberg@linux.intel.com, wsa@the-dreams.de
+Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linux-i2c@vger.kernel.org, SPG_Linux_Kernel@amd.com, Xiangliang Yu <Xiangliang.Yu@amd.com>
 List-Id: linux-acpi@vger.kernel.org
 
-On 10/03/16 00:41, Rafael J. Wysocki wrote:
-> On Wed, Mar 9, 2016 at 11:15 AM, Juri Lelli <juri.lelli@arm.com> wrote:
-> > Hi,
-> >
-> > sorry if I didn't reply yet. Trying to cope with jetlag and
-> > talks/meetings these days :-). Let me see if I'm getting what you are
-> > discussing, though.
-> >
-> > On 08/03/16 21:05, Rafael J. Wysocki wrote:
-> >> On Tue, Mar 8, 2016 at 8:26 PM, Peter Zijlstra <peterz@infradead.org> wrote:
-> >> > On Tue, Mar 08, 2016 at 07:00:57PM +0100, Rafael J. Wysocki wrote:
-> >> >> On Tue, Mar 8, 2016 at 12:27 PM, Peter Zijlstra <peterz@infradead.org> wrote:
-> >
-> > [...]
-> >
-> >> a = max_freq gives next_freq = max_freq for x = 1, but with that
-> >> choice of a you may never get to x = 1 with frequency invariant
-> >> because of the feedback effect mentioned above, so the 1/n produces
-> >> the extra boost needed for that (n is a positive integer).
-> >>
-> >> Quite frankly, to me it looks like linear really is a better
-> >> approximation for "raw" utilization.  That is, for frequency invariant
-> >> x we should take:
-> >>
-> >>   next_freq = a * x * max_freq / current_freq
-> >>
-> >> (and if x is not frequency invariant, the right-hand side becomes a *
-> >> x).  Then, the extra boost needed to get to x = 1 for frequency
-> >> invariant is produced by the (max_freq / current_freq) factor that is
-> >> greater than 1 as long as we are not running at max_freq and a can be
-> >> chosen as max_freq.
-> >>
-> >
-> > Expanding terms again, your original formula (without the 1.1 factor of
-> > the last version) was:
-> >
-> >  next_freq = util / max_cap * max_freq
-> >
-> > and this doesn't work when we have freq invariance since util won't go
-> > over curr_cap.
-> 
-> Can you please remind me what curr_cap is?
-> 
+Add device HID AMDI0010 to match the AMD ACPI Vendor ID (AMDI) that
+was registered in http://www.uefi.org/acpi_id_list, and the I2C
+controller on future AMD paltform will use the HID instead of AMD0010.
 
-The capacity at current frequency.
+Signed-off-by: Xiangliang Yu <Xiangliang.Yu@amd.com>
+---
+ drivers/acpi/acpi_apd.c                     | 1 +
+ drivers/i2c/busses/i2c-designware-platdrv.c | 1 +
+ 2 files changed, 2 insertions(+)
 
-> > What you propose above is to add another factor, so that we have:
-> >
-> >  next_freq = util / max_cap * max_freq / curr_freq * max_freq
-> >
-> > which should give us the opportunity to reach max_freq also with freq
-> > invariance.
-> >
-> > This should actually be the same of doing:
-> >
-> >  next_freq = util / max_cap * max_cap / curr_cap * max_freq
-> >
-> > We are basically scaling how much the cpu is busy at curr_cap back to
-> > the 0..1024 scale. And we use this to select next_freq. Also, we can
-> > simplify this to:
-> >
-> >  next_freq = util / curr_cap * max_freq
-> >
-> > and we save some ops.
-> >
-> > However, if that is correct, I think we might have a problem, as we are
-> > skewing OPP selection towards higher frequencies. Let's suppose we have
-> > a platform with 3 OPPs:
-> >
-> >   freq     cap
-> >   1200     1024
-> >   900      768
-> >   600      512
-> >
-> > As soon a task reaches an utilization of 257 we will be selecting the
-> > second OPP as
-> >
-> >  next_freq = 257 / 512 * 1200 ~ 602
-> >
-> > While the cpu is only 50% busy in this case. And we will go at max OPP
-> > when reaching ~492 (~64% of 768).
-> >
-> > That said, I guess this might work as a first solution, but we will
-> > probably need something better in the future. I understand Rafael's
-> > concerns regardin margins, but it seems to me that some kind of
-> > additional parameter will be probably needed anyway to fix this.
-> > Just to say again how we handle this in schedfreq, with a -20% margin
-> > applied to the lowest OPP we will get to the next one when utilization
-> > reaches ~410 (80% busy at curr OPP), and so on for the subsequent ones,
-> > which is less aggressive and might be better IMHO.
-> 
-> Well, Peter says that my idea is incorrect, so I'll go for
-> 
->   next_freq = C * current_freq * util_raw / max
-> 
-> where C > 1 (and likely C < 1.5) instead.
-> 
-> That means C has to be determined somehow or guessed.  The 80% tipping
-> point condition seems reasonable to me, though, which leads to C =
-> 1.25.
-> 
-
-Right. So, when using freq. invariant util we have:
-
- next_freq = C * curr_freq * util / curr_cap
-
-as
-
- util_raw = util * max / curr_cap
-
-What Vincent is saying makes sense, though. If we use
-arch_scale_freq_capacity() as denominator instead of max, we can use a
-single formula for both cases.
-
-Best,
-
-- Juri
+diff --git a/drivers/acpi/acpi_apd.c b/drivers/acpi/acpi_apd.c
+index d507cf6..d0aad06 100644
+--- a/drivers/acpi/acpi_apd.c
++++ b/drivers/acpi/acpi_apd.c
+@@ -143,6 +143,7 @@ static const struct acpi_device_id acpi_apd_device_ids[] = {
+ 	/* Generic apd devices */
+ #ifdef CONFIG_X86_AMD_PLATFORM_DEVICE
+ 	{ "AMD0010", APD_ADDR(cz_i2c_desc) },
++	{ "AMDI0010", APD_ADDR(cz_i2c_desc) },
+ 	{ "AMD0020", APD_ADDR(cz_uart_desc) },
+ 	{ "AMD0030", },
+ #endif
+diff --git a/drivers/i2c/busses/i2c-designware-platdrv.c b/drivers/i2c/busses/i2c-designware-platdrv.c
+index 438f1b4..d656657 100644
+--- a/drivers/i2c/busses/i2c-designware-platdrv.c
++++ b/drivers/i2c/busses/i2c-designware-platdrv.c
+@@ -123,6 +123,7 @@ static const struct acpi_device_id dw_i2c_acpi_match[] = {
+ 	{ "80860F41", 0 },
+ 	{ "808622C1", 0 },
+ 	{ "AMD0010", ACCESS_INTR_MASK },
++	{ "AMDI0010", ACCESS_INTR_MASK },
+ 	{ "AMDI0510", 0 },
+ 	{ "APMC0D0F", 0 },
+ 	{ }
+-- 
+1.9.1
