@@ -1,30 +1,71 @@
 From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [PATCH] ACPI / fan: Make struct dev_pm_ops const
-Date: Fri, 11 Mar 2016 00:33:04 +0100
-Message-ID: <21762559.pLpMzpU6lg@vostro.rjw.lan>
-References: <1455146607-66183-1-git-send-email-briannorris@chromium.org>
+Subject: Re: [RESEND PATCH v5] x86/PCI: Recognize that Interrupt Line 255 means "not connected"
+Date: Fri, 11 Mar 2016 00:33:40 +0100
+Message-ID: <10569249.Pu1lmHZCKM@vostro.rjw.lan>
+References: <1455511921-18063-1-git-send-email-chen.fan.fnst@cn.fujitsu.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7Bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from v094114.home.net.pl ([79.96.170.134]:44431 "HELO
+Received: from v094114.home.net.pl ([79.96.170.134]:60179 "HELO
 	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S932355AbcCJXbK (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 10 Mar 2016 18:31:10 -0500
-In-Reply-To: <1455146607-66183-1-git-send-email-briannorris@chromium.org>
+	with SMTP id S932313AbcCJXbr (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 10 Mar 2016 18:31:47 -0500
+In-Reply-To: <1455511921-18063-1-git-send-email-chen.fan.fnst@cn.fujitsu.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Brian Norris <briannorris@chromium.org>
-Cc: Zhang Rui <rui.zhang@intel.com>, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Brian Norris <computersforpeace@gmail.com>, Kaiyen Chang <kaiyen.chang@intel.com>
+To: Chen Fan <chen.fan.fnst@cn.fujitsu.com>
+Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, lenb@kernel.org, bhelgaas@google.com, rafael@kernel.org
 
-On Wednesday, February 10, 2016 03:23:27 PM Brian Norris wrote:
-> From: Kaiyen Chang <kaiyen.chang@intel.com>
+On Monday, February 15, 2016 12:52:01 PM Chen Fan wrote:
+> Per the x86-specific footnote to PCI spec r3.0, sec 6.2.4, the value 255 in
+> the Interrupt Line register means "unknown" or "no connection."
+> Previously, when we couldn't derive an IRQ from the _PRT, we fell back to
+> using the value from Interrupt Line as an IRQ.  It's questionable whether
+> we should do that at all, but the spec clearly suggests we shouldn't do it
+> for the value 255 on x86.
 > 
-> Silence the following checkpatch warning:
-> WARNING: struct dev_pm_ops should normally be const.
+> Calling request_irq() with IRQ 255 may succeed, but the driver won't
+> receive any interrupts.  Or, if IRQ 255 is shared with another device, it
+> may succeed, and the driver's ISR will be called at random times when the
+> *other* device interrupts.  Or it may fail if another device is using IRQ
+> 255 with incompatible flags.  What we *want* is for request_irq() to fail
+> predictably so the driver can fall back to polling.
 > 
-> Signed-off-by: Kaiyen Chang <kaiyen.chang@intel.com>
-> Signed-off-by: Brian Norris <briannorris@chromium.org>
+> On x86, assume 255 in the Interrupt Line means the INTx line is not
+> connected.  In that case, set dev->irq to IRQ_NOTCONNECTED so request_irq()
+> will fail gracefully with -ENOTCONN.
+> 
+> We found this problem on a system where Secure Boot firmware assigned
+> Interrupt Line 255 to an i801_smbus device and another device was already
+> using MSI-X IRQ 255.  This was in v3.10, where i801_probe() fails if
+> request_irq() fails:
+> 
+>   i801_smbus 0000:00:1f.3: enabling device (0140 -> 0143)
+>   i801_smbus 0000:00:1f.3: can't derive routing for PCI INT C
+>   i801_smbus 0000:00:1f.3: PCI INT C: no GSI
+>   genirq: Flags mismatch irq 255. 00000080 (i801_smbus) vs. 00000000 (megasa)
+>   CPU: 0 PID: 2487 Comm: kworker/0:1 Not tainted 3.10.0-229.el7.x86_64 #1
+>   Hardware name: FUJITSU PRIMEQUEST 2800E2/D3736, BIOS PRIMEQUEST 2000 Serie5
+>   Call Trace:
+>     dump_stack+0x19/0x1b
+>     __setup_irq+0x54a/0x570
+>     request_threaded_irq+0xcc/0x170
+>     i801_probe+0x32f/0x508 [i2c_i801]
+>     local_pci_probe+0x45/0xa0
+>   i801_smbus 0000:00:1f.3: Failed to allocate irq 255: -16
+>   i801_smbus: probe of 0000:00:1f.3 failed with error -16
+> 
+> After aeb8a3d16ae0 ("i2c: i801: Check if interrupts are disabled"),
+> i801_probe() will fall back to polling if request_irq() fails.  But we
+> still need this patch because request_irq() may succeed or fail depending
+> on other devices in the system.  If request_irq() fails, i801_smbus will
+> work by falling back to polling, but if it succeeds, i801_smbus won't work
+> because it expects interrupts that it may not receive.
+> 
+> Signed-off-by: Chen Fan <chen.fan.fnst@cn.fujitsu.com>
+> Acked-by: Thomas Gleixner <tglx@linutronix.de>
+> Acked-by: Bjorn Helgaas <bhelgaas@google.com>
 
 Applied, thanks!
 
