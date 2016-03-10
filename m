@@ -1,61 +1,108 @@
 From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [PATCH] ACPICA / Interpreter: Fix a regression triggered because of wrong Linux ECDT support
-Date: Thu, 10 Mar 2016 23:10:57 +0100
-Message-ID: <1882542.eo7s0UttuH@vostro.rjw.lan>
-References: <1457578469-1859-1-git-send-email-lv.zheng@intel.com>
+Subject: Re: [PATCHv2 1/1] device property: fix for a case of use-after-free
+Date: Thu, 10 Mar 2016 23:21:15 +0100
+Message-ID: <13629430.eLIMdjdec8@vostro.rjw.lan>
+References: <1457607798-62438-1-git-send-email-heikki.krogerus@linux.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7Bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from v094114.home.net.pl ([79.96.170.134]:41488 "HELO
+Received: from v094114.home.net.pl ([79.96.170.134]:60801 "HELO
 	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S932453AbcCJWJE (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 10 Mar 2016 17:09:04 -0500
-In-Reply-To: <1457578469-1859-1-git-send-email-lv.zheng@intel.com>
+	with SMTP id S932436AbcCJWTV (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 10 Mar 2016 17:19:21 -0500
+In-Reply-To: <1457607798-62438-1-git-send-email-heikki.krogerus@linux.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Lv Zheng <lv.zheng@intel.com>
-Cc: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Len Brown <len.brown@intel.com>, Lv Zheng <zetalog@gmail.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
+To: Heikki Krogerus <heikki.krogerus@linux.intel.com>
+Cc: Mika Westerberg <mika.westerberg@linux.intel.com>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, John Youn <John.Youn@synopsys.com>, linux-acpi@vger.kernel.org
 
-On Thursday, March 10, 2016 10:54:29 AM Lv Zheng wrote:
-> It is reported that the following commit triggers regressions:
->  Linux commit: efaed9be998b5ae0afb7458e057e5f4402b43fa0
->  ACPICA commit: 31178590dde82368fdb0f6b0e466b6c0add96c57
->  Subject: ACPICA: Events: Enhance acpi_ev_execute_reg_method() to
->           ensure no _REG evaluations can happen during OS early boot
->           stages
+On Thursday, March 10, 2016 01:03:18 PM Heikki Krogerus wrote:
+> In device_remove_property_set(), the secondary fwnode needs
+> to be cleared before the pset is freed. This fixes a
+> use-after-free when a property set is providing the primary
+> fwnode.
 > 
-> This is because that the ECDT support is not corrected in Linux, and Linux
-> requires to execute _REG for ECDT (though this sounds so wrong), we need to
-> ensure acpi_gbl_namespace_initialized is set before ECDT probing in order
-> for _REG to be executed. Since we have to move
-> "acpi_gbl_namespace_initialized = TRUE" to the initialization step
-> happening before ECDT probing, acpi_load_tables() is the best candidate for
-> now. Thus this patch fixes the regression by doing so.
+> As a result of the fix, the primary fwnode may end up
+> containing ERR_PTR(-ENODEV), so also adding checks for it to
+> the property handling code.
 > 
-> But if the ECDT support is fixed, Linux will not execute _REG for ECDT, and
-> ECDT probing will happen before acpi_load_tables(). At that time, we still
-> want to ensure acpi_gbl_namespace_initialized is set after executing
-> acpi_ns_initialize_objects() (under the condition of
-> acpi_gbl_group_module_level_code = FALSE), this patch also moves
-> acpi_ns_initialize_objects() to acpi_load_tables() accordingly.
+> Reported-by: John Youn <John.Youn@synopsys.com>
+> Signed-off-by: Heikki Krogerus <heikki.krogerus@linux.intel.com>
+
+OK, queued up for 4.6, thanks!
+
+> ---
+>  drivers/base/property.c | 25 +++++++++++++++++--------
+>  1 file changed, 17 insertions(+), 8 deletions(-)
 > 
-> Since acpi_ns_initialize_objects() doesn't seem to be skippable, this
-> patch also removes ACPI_NO_OBJECT_INIT for the one invoked in
-> acpi_load_tables(). And since the default region handlers should always be
-> installed before loading the tables, this patch also removes useless
-> acpi_gbl_group_module_level_code check accordingly. Reported by Chris
-> Bainbridge, Fixed by Lv Zheng.
+> diff --git a/drivers/base/property.c b/drivers/base/property.c
+> index d6c8caa..9b1a65d 100644
+> --- a/drivers/base/property.c
+> +++ b/drivers/base/property.c
+> @@ -218,7 +218,8 @@ bool fwnode_property_present(struct fwnode_handle *fwnode, const char *propname)
+>  	bool ret;
+>  
+>  	ret = __fwnode_property_present(fwnode, propname);
+> -	if (ret == false && fwnode && !IS_ERR_OR_NULL(fwnode->secondary))
+> +	if (ret == false && !IS_ERR_OR_NULL(fwnode) &&
+> +	    !IS_ERR_OR_NULL(fwnode->secondary))
+>  		ret = __fwnode_property_present(fwnode->secondary, propname);
+>  	return ret;
+>  }
+> @@ -423,7 +424,8 @@ EXPORT_SYMBOL_GPL(device_property_match_string);
+>  	int _ret_;									\
+>  	_ret_ = FWNODE_PROP_READ(_fwnode_, _propname_, _type_, _proptype_,		\
+>  				 _val_, _nval_);					\
+> -	if (_ret_ == -EINVAL && _fwnode_ && !IS_ERR_OR_NULL(_fwnode_->secondary))	\
+> +	if (_ret_ == -EINVAL && !IS_ERR_OR_NULL(_fwnode_) &&				\
+> +	    !IS_ERR_OR_NULL(_fwnode_->secondary))					\
+>  		_ret_ = FWNODE_PROP_READ(_fwnode_->secondary, _propname_, _type_,	\
+>  				_proptype_, _val_, _nval_);				\
+>  	_ret_;										\
+> @@ -593,7 +595,8 @@ int fwnode_property_read_string_array(struct fwnode_handle *fwnode,
+>  	int ret;
+>  
+>  	ret = __fwnode_property_read_string_array(fwnode, propname, val, nval);
+> -	if (ret == -EINVAL && fwnode && !IS_ERR_OR_NULL(fwnode->secondary))
+> +	if (ret == -EINVAL && !IS_ERR_OR_NULL(fwnode) &&
+> +	    !IS_ERR_OR_NULL(fwnode->secondary))
+>  		ret = __fwnode_property_read_string_array(fwnode->secondary,
+>  							  propname, val, nval);
+>  	return ret;
+> @@ -621,7 +624,8 @@ int fwnode_property_read_string(struct fwnode_handle *fwnode,
+>  	int ret;
+>  
+>  	ret = __fwnode_property_read_string(fwnode, propname, val);
+> -	if (ret == -EINVAL && fwnode && !IS_ERR_OR_NULL(fwnode->secondary))
+> +	if (ret == -EINVAL && !IS_ERR_OR_NULL(fwnode) &&
+> +	    !IS_ERR_OR_NULL(fwnode->secondary))
+>  		ret = __fwnode_property_read_string(fwnode->secondary,
+>  						    propname, val);
+>  	return ret;
+> @@ -816,11 +820,16 @@ void device_remove_property_set(struct device *dev)
+>  	 * the pset. If there is no real firmware node (ACPI/DT) primary
+>  	 * will hold the pset.
+>  	 */
+> -	if (!is_pset_node(fwnode))
+> -		fwnode = fwnode->secondary;
+> -	if (!IS_ERR(fwnode) && is_pset_node(fwnode))
+> +	if (is_pset_node(fwnode)) {
+> +		set_primary_fwnode(dev, NULL);
+>  		pset_free_set(to_pset_node(fwnode));
+> -	set_secondary_fwnode(dev, NULL);
+> +	} else {
+> +		fwnode = fwnode->secondary;
+> +		if (!IS_ERR(fwnode) && is_pset_node(fwnode)) {
+> +			set_secondary_fwnode(dev, NULL);
+> +			pset_free_set(to_pset_node(fwnode));
+> +		}
+> +	}
+>  }
+>  EXPORT_SYMBOL_GPL(device_remove_property_set);
+>  
 > 
-> Reported-and-tested-by: Chris Bainbridge <chris.bainbridge@gmail.com>
-> Signed-off-by: Lv Zheng <lv.zheng@intel.com>
 
-This is a bit too late for v4.5, so I'm queuing it up for 4.6 on top of
-the other ACPICA changes already in my tree.
-
-It actually may go to 4.5-stable I think, but first I'd like it to spend
-some time in the mainline in case there are side-effects.
-
-Thanks,
-Rafael
-
+-- 
+I speak only for myself.
+Rafael J. Wysocki, Intel Open Source Technology Center.
