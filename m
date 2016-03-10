@@ -1,63 +1,61 @@
 From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [PATCH 6/6] cpufreq: schedutil: New governor based on scheduler utilization data
-Date: Thu, 10 Mar 2016 23:28:29 +0100
-Message-ID: <3632540.gmDun1cqEL@vostro.rjw.lan>
-References: <20160308112759.GF6356@twins.programming.kicks-ass.net> <20160310103008.GU6344@twins.programming.kicks-ass.net> <20160310105614.GK6375@twins.programming.kicks-ass.net>
+Subject: Re: [PATCH] i2c: designware: Add device HID for future AMD I2C controller
+Date: Thu, 10 Mar 2016 23:48:38 +0100
+Message-ID: <2731127.s35Tc35DYy@vostro.rjw.lan>
+References: <1457609692-25903-1-git-send-email-Xiangliang.Yu@amd.com> <56E13104.8050307@linux.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7Bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from v094114.home.net.pl ([79.96.170.134]:61162 "HELO
-	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S932204AbcCJW0g (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 10 Mar 2016 17:26:36 -0500
-In-Reply-To: <20160310105614.GK6375@twins.programming.kicks-ass.net>
-Sender: linux-acpi-owner@vger.kernel.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <56E13104.8050307@linux.intel.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Jarkko Nikula <jarkko.nikula@linux.intel.com>
+Cc: Xiangliang Yu <Xiangliang.Yu@amd.com>, lenb@kernel.org, andriy.shevchenko@linux.intel.com, mika.westerberg@linux.intel.com, wsa@the-dreams.de, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linux-i2c@vger.kernel.org, SPG_Linux_Kernel@amd.com
 List-Id: linux-acpi@vger.kernel.org
-To: Peter Zijlstra <peterz@infradead.org>
-Cc: Vincent Guittot <vincent.guittot@linaro.org>, Juri Lelli <juri.lelli@arm.com>, mturquette <mturquette@baylibre.com>, Linux PM list <linux-pm@vger.kernel.org>, Ingo Molnar <mingo@redhat.com>, Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>, "Rafael J. Wysocki" <rafael@kernel.org>, Viresh Kumar <viresh.kumar@linaro.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Steve Muckle <steve.muckle@linaro.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>
 
-On Thursday, March 10, 2016 11:56:14 AM Peter Zijlstra wrote:
-> On Thu, Mar 10, 2016 at 11:30:08AM +0100, Peter Zijlstra wrote:
-> > On Thu, Mar 10, 2016 at 05:23:54PM +0700, Vincent Guittot wrote:
-> > 
-> > > > No, since its a compile time thing, we can simply do:
-> > > >
-> > > > #ifdef arch_scale_freq_capacity
-> > > >         next_freq = (1 + 1/n) * max_freq * (util / max)
-> > > > #else
-> > > >         next_freq = (1 + 1/n) * current_freq * (util_raw / max)
-> > > > #endif
-> > > 
-> > > selecting formula at compilation is clearly better. I wrongly thought that
-> > > it can't be accepted as a solution.
-> > 
-> > Well, its bound to get more 'interesting' since I forse implementations
-> > not always actually doing the invariant thing.
-> > 
-> > Take for example the thing I send:
-> > 
-> >   lkml.kernel.org/r/20160303162829.GB6375@twins.programming.kicks-ass.net
-> > 
-> > it both shows why you cannot talk about current_freq but also that the
-> > above needs a little more help (for the !X86_FEATURE_APERFMPERF case).
-> > 
-> > But the !arch_scale_freq_capacity case should indeed be that simple.
+On Thursday, March 10, 2016 10:32:04 AM Jarkko Nikula wrote:
+> On 03/10/2016 01:34 PM, Xiangliang Yu wrote:
+> > Add device HID AMDI0010 to match the AMD ACPI Vendor ID (AMDI) that
+> > was registered in http://www.uefi.org/acpi_id_list, and the I2C
+> > controller on future AMD paltform will use the HID instead of AMD0010.
+> >
+> > Signed-off-by: Xiangliang Yu <Xiangliang.Yu@amd.com>
+> > ---
+> >   drivers/acpi/acpi_apd.c                     | 1 +
+> >   drivers/i2c/busses/i2c-designware-platdrv.c | 1 +
+> >   2 files changed, 2 insertions(+)
+> >
+> > diff --git a/drivers/acpi/acpi_apd.c b/drivers/acpi/acpi_apd.c
+> > index d507cf6..d0aad06 100644
+> > --- a/drivers/acpi/acpi_apd.c
+> > +++ b/drivers/acpi/acpi_apd.c
+> > @@ -143,6 +143,7 @@ static const struct acpi_device_id acpi_apd_device_ids[] = {
+> >   	/* Generic apd devices */
+> >   #ifdef CONFIG_X86_AMD_PLATFORM_DEVICE
+> >   	{ "AMD0010", APD_ADDR(cz_i2c_desc) },
+> > +	{ "AMDI0010", APD_ADDR(cz_i2c_desc) },
+> >   	{ "AMD0020", APD_ADDR(cz_uart_desc) },
+> >   	{ "AMD0030", },
+> >   #endif
+> > diff --git a/drivers/i2c/busses/i2c-designware-platdrv.c b/drivers/i2c/busses/i2c-designware-platdrv.c
+> > index 438f1b4..d656657 100644
+> > --- a/drivers/i2c/busses/i2c-designware-platdrv.c
+> > +++ b/drivers/i2c/busses/i2c-designware-platdrv.c
+> > @@ -123,6 +123,7 @@ static const struct acpi_device_id dw_i2c_acpi_match[] = {
+> >   	{ "80860F41", 0 },
+> >   	{ "808622C1", 0 },
+> >   	{ "AMD0010", ACCESS_INTR_MASK },
+> > +	{ "AMDI0010", ACCESS_INTR_MASK },
+> >   	{ "AMDI0510", 0 },
+> >   	{ "APMC0D0F", 0 },
+> >   	{ }
+> > --
+> I guess these changes don't necessarily need to go together? Although I 
+> think chances to get a conflict is pretty low.
 > 
-> Maybe something like:
-> 
-> #ifdef arch_scale_freq_capacity
-> #ifndef arch_scale_freq_invariant
-> #define arch_scale_freq_invariant()	(true)
-> #endif
-> #else /* arch_scale_freq_capacity */
-> #define arch_scale_freq_invariant()	(false)
-> #endif
-> 
-> 	if (arch_scale_freq_invariant())
-> 
-> And have archs that have conditional arch_scale_freq_capacity()
-> implementation provide a arch_scale_freq_invariant implementation.
+> For i2c-designware:
+> Acked-by: Jarkko Nikula <jarkko.nikula@linux.intel.com>
 
-Yeah, looks workable to me.
+OK, queued up for 4.6, thanks!
 
+Rafael
