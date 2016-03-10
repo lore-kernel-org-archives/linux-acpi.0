@@ -1,34 +1,35 @@
 From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [PATCH] acpi: pnp: add ACPI_RESOURCE_TYPE_SERIAL_BUS as a valid type
-Date: Fri, 11 Mar 2016 00:36:59 +0100
-Message-ID: <29159608.Ea8iiP4plo@vostro.rjw.lan>
-References: <1456860705-24935-1-git-send-email-timur@codeaurora.org>
+Subject: Re: [PATCH 0/2] ACPI / OSL: Improve initrd override mechanism
+Date: Fri, 11 Mar 2016 00:44:29 +0100
+Message-ID: <1608364.NStxNAounA@vostro.rjw.lan>
+References: <cover.1456899242.git.lv.zheng@intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7Bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from v094114.home.net.pl ([79.96.170.134]:54324 "HELO
+Received: from v094114.home.net.pl ([79.96.170.134]:52420 "HELO
 	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1753873AbcCJXfF (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 10 Mar 2016 18:35:05 -0500
-In-Reply-To: <1456860705-24935-1-git-send-email-timur@codeaurora.org>
+	with SMTP id S932437AbcCJXmf (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 10 Mar 2016 18:42:35 -0500
+In-Reply-To: <cover.1456899242.git.lv.zheng@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Timur Tabi <timur@codeaurora.org>
-Cc: harba@codeaurora.org, linux-acpi@vger.kernel.org, Len Brown <lenb@kernel.org>, linux-kernel@vger.kernel.org
+To: Lv Zheng <lv.zheng@intel.com>
+Cc: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Len Brown <len.brown@intel.com>, Lv Zheng <zetalog@gmail.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
 
-On Tuesday, March 01, 2016 01:31:45 PM Timur Tabi wrote:
-> From: Harb Abdulhamid <harba@codeaurora.org>
+On Wednesday, March 02, 2016 02:16:02 PM Lv Zheng wrote:
+> This patchset improves initrd override mechanism.
 > 
-> An error message is printed for resources of type 19, which is a valid
-> supported resource type.  The Firmware Test Suite tool (fwts) reports
-> this as a test failure.  This change fixes the false test failures
-> for ASL that use type 19 (ACPI_RESOURCE_TYPE_SERIAL_BUS) resources.
+> Lv Zheng (2):
+>   ACPI / OSL: Cleanup initrd table override code
+>   ACPI / OSL: Add support to install tables via initrd
 > 
-> Signed-off-by: Harb Abdulhamid <harba@codeaurora.org>
-> Signed-off-by: Timur Tabi <timur@codeaurora.org>
+>  drivers/acpi/internal.h |    1 +
+>  drivers/acpi/osl.c      |  158 +++++++++++++++++++++++++++++------------------
+>  drivers/acpi/tables.c   |    2 +
+>  3 files changed, 101 insertions(+), 60 deletions(-)
 
-Applied, thanks!
+Both applied, thanks!
 
 Rafael
 
