@@ -1,73 +1,67 @@
-From: Hanjun Guo <hanjun.guo@linaro.org>
-Subject: Re: [PATCH v3 05/12] arm64, acpi, numa: NUMA support based on SRAT
- and SLIT
-Date: Thu, 10 Mar 2016 17:50:58 +0800
-Message-ID: <56E14382.1070003@linaro.org>
-References: <1453541967-3744-1-git-send-email-guohanjun@huawei.com> <1453541967-3744-6-git-send-email-guohanjun@huawei.com> <56D6F3EA.4050904@gmail.com>
+From: Peter Zijlstra <peterz@infradead.org>
+Subject: Re: [PATCH 6/6] cpufreq: schedutil: New governor based on scheduler
+ utilization data
+Date: Thu, 10 Mar 2016 11:07:28 +0100
+Message-ID: <20160310100728.GT6344@twins.programming.kicks-ass.net>
+References: <CAJZ5v0h47h-xW6a4jzwRuOOOSG+qsD9hegM7QCzbD8Wb-yPVKQ@mail.gmail.com>
+ <56D8AEB7.2050100@linaro.org>
+ <36459679.vzZnOsAVeg@vostro.rjw.lan>
+ <20160308112759.GF6356@twins.programming.kicks-ass.net>
+ <CAJZ5v0i+KFmpggrGKqtL_SB1=Fv=b_AbVeL-9jPfo4rYt6-q5A@mail.gmail.com>
+ <20160308192640.GD6344@twins.programming.kicks-ass.net>
+ <CAJZ5v0g=dXmoPr0jR6AVuynVYbSwJvnS2dFhb7QnUKq9LRRnrQ@mail.gmail.com>
+ <20160309163930.GP6356@twins.programming.kicks-ass.net>
+ <CAJZ5v0iKn4dT4ta6WaEcPbdYmA7P08=bmKU+dwcMx+Msk7WRFg@mail.gmail.com>
+ <CAKfTPtB1g6VgA8NBep553C4MZ19B-rD4Xdp6EpZNAu+mYmx+2w@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <56D6F3EA.4050904@gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Matthias Brugger <matthias.bgg@gmail.com>, Hanjun Guo <guohanjun@huawei.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Will Deacon <will.deacon@arm.com>, Catalin Marinas <catalin.marinas@arm.com>
-Cc: Mark Rutland <mark.rutland@arm.com>, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, Steve Capper <steve.capper@linaro.org>, linux-kernel@vger.kernel.org, Robert Richter <rrichter@cavium.com>, linux-acpi@vger.kernel.org, Shannon Zhao <shannon.zhao@linaro.org>, Ganapatrao Kulkarni <gkulkarni@caviumnetworks.com>, linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-pm-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <CAKfTPtB1g6VgA8NBep553C4MZ19B-rD4Xdp6EpZNAu+mYmx+2w@mail.gmail.com>
+Sender: linux-pm-owner@vger.kernel.org
+To: Vincent Guittot <vincent.guittot@linaro.org>
+Cc: "Rafael J. Wysocki" <rafael@kernel.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Steve Muckle <steve.muckle@linaro.org>, Linux PM list <linux-pm@vger.kernel.org>, Juri Lelli <juri.lelli@arm.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>, Viresh Kumar <viresh.kumar@linaro.org>, Michael Turquette <mturquette@baylibre.com>, Ingo Molnar <mingo@redhat.com>
 List-Id: linux-acpi@vger.kernel.org
 
-Hi Matthias,
+On Thu, Mar 10, 2016 at 10:44:21AM +0700, Vincent Guittot wrote:
+> We have the arch_scale_freq_capacity function that is arch dependent
+> and can be used to merge the 2 formula that were described by peter
+> above.
+> By default, arch_scale_freq_capacity return SCHED_CAPACITY_SCALE which
+> is max capacity
+> but when arch_scale_freq_capacity is defined by an architecture,
 
-Sorry for the late reply, on a travelling now.
+> arch_scale_freq_capacity returns current_freq * max_capacity/max_freq
 
-On 03/02/2016 10:08 PM, Matthias Brugger wrote:
+However, current_freq is a very fluid thing, it might (and will) change
+very rapidly on some platforms.
+
+This is the same point I made earlier, you cannot try and divide out
+current_freq from the invariant measure.
+
+> so can't we use arch_scale_freq in your formula ? Taking your formula
+> above it becomes:
+> next_freq = 1.25 * current_freq * util / arch_scale_freq_capacity()
+
+No, that cannot work, nor makes any sense, per the above.
+
+> With invariance feature, we have:
 >
+>   next_freq = 1.25 * current_freq * util / (current_freq*max_capacity/max_freq)
+>             = 1.25 * util * max_freq / max
 >
-> On 23/01/16 10:39, Hanjun Guo wrote:
->> From: Hanjun Guo <hanjun.guo@linaro.org>
->>
->> Introduce a new file to hold ACPI based NUMA information
->> parsing from SRAT and SLIT.
->>
->> SRAT includes the CPU ACPI ID to Proximity Domain mappings
->> and memory ranges to Proximity Domain mapping.
->> SLIT has the information of inter node
->> distances(relative number for access latency).
->>
->> Signed-off-by: Hanjun Guo <hanjun.guo@linaro.org>
->> Signed-off-by: Ganapatrao Kulkarni <gkulkarni@caviumnetworks.com>
-[..]
->>
->> diff --git a/arch/arm64/mm/numa.c b/arch/arm64/mm/numa.c
->> index 9e8704b..e974995 100644
->> --- a/arch/arm64/mm/numa.c
->> +++ b/arch/arm64/mm/numa.c
->> @@ -17,6 +17,7 @@
->>    * along with this program.  If not, see
->> <http://www.gnu.org/licenses/>.
->>    */
->>
->> +#include <linux/acpi.h>
->>   #include <linux/bootmem.h>
->>   #include <linux/ctype.h>
->>   #include <linux/init.h>
->> @@ -385,10 +386,8 @@ void __init arm64_numa_init(void)
->>   {
->>       int ret = -ENODEV;
->>
->> -#ifdef CONFIG_OF_NUMA
->>       if (!numa_off)
->> -        ret = numa_init(arm64_of_numa_init);
->> -#endif
->> +        ret = numa_init(acpi_disabled ? arm64_of_numa_init :
->> arm64_acpi_numa_init);
->
-> Header asm/acpi.h is included in linux/acpi.h but only if CONFIG_ACPI=y
-> arm64_acpi_numa_init is declared in asm/acpi.h, so if we don't use the
-> ifdef CONFIG_* approach from Robert, we will need to include as/acpi.h
-> implicitly here. Otherwise we get a compilation error if CONFIG_ACPI is
-> not set.
+> which is the formula that has to be used with frequency invariant
+> utilization.
 
-Yes, I noticed the same issue as you spotted out, and I agree with
-you and Robert that I should use the ifdef CONFIG_* approach.
+Wrong, you cannot talk about current_freq in the invariant case.
 
-Thanks
-Hanjun
+> May be we can pass arch_scale_freq_capacity value instead of max one
+> as a parameter of update_util function prototype
+
+No, since its a compile time thing, we can simply do:
+
+#ifdef arch_scale_freq_capacity
+	next_freq = (1 + 1/n) * max_freq * (util / max)
+#else
+	next_freq = (1 + 1/n) * current_freq * (util_raw / max)
+#endif
