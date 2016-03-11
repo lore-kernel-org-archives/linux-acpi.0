@@ -1,35 +1,62 @@
-From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [PATCH 0/2] ACPI / OSL: Improve initrd override mechanism
-Date: Fri, 11 Mar 2016 00:44:29 +0100
-Message-ID: <1608364.NStxNAounA@vostro.rjw.lan>
-References: <cover.1456899242.git.lv.zheng@intel.com>
+From: "Verma, Vishal L" <vishal.l.verma@intel.com>
+Subject: Re: [PATCH 3/3] libnvdimm, pmem: clear poison on write
+Date: Fri, 11 Mar 2016 00:39:45 +0000
+Message-ID: <1457656781.4525.36.camel@intel.com>
+References: <20160308224713.16298.33547.stgit@dwillia2-desk3.jf.intel.com>
+	 <20160308224729.16298.49406.stgit@dwillia2-desk3.jf.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7Bit
+Content-Transfer-Encoding: base64
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from v094114.home.net.pl ([79.96.170.134]:52420 "HELO
-	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S932437AbcCJXmf (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 10 Mar 2016 18:42:35 -0500
-In-Reply-To: <cover.1456899242.git.lv.zheng@intel.com>
+Received: from mga11.intel.com ([192.55.52.93]:62953 "EHLO mga11.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S932893AbcCKAkC (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 10 Mar 2016 19:40:02 -0500
+In-Reply-To: <20160308224729.16298.49406.stgit@dwillia2-desk3.jf.intel.com>
+Content-Language: en-US
+Content-ID: <351DA761BDF12A459E1C5C6CC10AAAA3@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Lv Zheng <lv.zheng@intel.com>
-Cc: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Len Brown <len.brown@intel.com>, Lv Zheng <zetalog@gmail.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
+To: "Williams, Dan J" <dan.j.williams@intel.com>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>
+Cc: "ross.zwisler@linux.intel.com" <ross.zwisler@linux.intel.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "x86@kernel.org" <x86@kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
 
-On Wednesday, March 02, 2016 02:16:02 PM Lv Zheng wrote:
-> This patchset improves initrd override mechanism.
-> 
-> Lv Zheng (2):
->   ACPI / OSL: Cleanup initrd table override code
->   ACPI / OSL: Add support to install tables via initrd
-> 
->  drivers/acpi/internal.h |    1 +
->  drivers/acpi/osl.c      |  158 +++++++++++++++++++++++++++++------------------
->  drivers/acpi/tables.c   |    2 +
->  3 files changed, 101 insertions(+), 60 deletions(-)
-
-Both applied, thanks!
-
-Rafael
-
+T24gVHVlLCAyMDE2LTAzLTA4IGF0IDE0OjQ3IC0wODAwLCBEYW4gV2lsbGlhbXMgd3JvdGU6DQo+
+IElmIGEgd3JpdGUgaXMgZGlyZWN0ZWQgYXQgYSBrbm93biBiYWQgYmxvY2sgcGVyZm9ybSB0aGUg
+Zm9sbG93aW5nOg0KPiANCj4gMS8gd3JpdGUgdGhlIGRhdGENCj4gDQo+IDIvIHNlbmQgYSBjbGVh
+ciBwb2lzb24gY29tbWFuZA0KPiANCj4gMy8gaW52YWxpZGF0ZSB0aGUgcG9pc29uIG91dCBvZiB0
+aGUgY2FjaGUgaGllcmFyY2h5DQo+IA0KPiBDYzogPHg4NkBrZXJuZWwub3JnPg0KPiBDYzogVmlz
+aGFsIFZlcm1hIDx2aXNoYWwubC52ZXJtYUBpbnRlbC5jb20+DQo+IENjOiBSb3NzIFp3aXNsZXIg
+PHJvc3Muendpc2xlckBsaW51eC5pbnRlbC5jb20+DQo+IFNpZ25lZC1vZmYtYnk6IERhbiBXaWxs
+aWFtcyA8ZGFuLmoud2lsbGlhbXNAaW50ZWwuY29tPg0KPiAtLS0NCj4gwqBhcmNoL3g4Ni9pbmNs
+dWRlL2FzbS9wbWVtLmggfMKgwqDCoMKgNSArKysrKw0KPiDCoGRyaXZlcnMvbnZkaW1tL2J1cy5j
+wqDCoMKgwqDCoMKgwqDCoHzCoMKgwqA0Ng0KPiArKysrKysrKysrKysrKysrKysrKysrKysrKysr
+KysrKysrKysrKysrKysrDQo+IMKgZHJpdmVycy9udmRpbW0vbmQuaMKgwqDCoMKgwqDCoMKgwqDC
+oHzCoMKgwqDCoDIgKysNCj4gwqBkcml2ZXJzL252ZGltbS9wbWVtLmPCoMKgwqDCoMKgwqDCoHzC
+oMKgwqAyOSArKysrKysrKysrKysrKysrKysrKysrKysrKy0NCj4gwqBpbmNsdWRlL2xpbnV4L3Bt
+ZW0uaMKgwqDCoMKgwqDCoMKgwqB8wqDCoMKgMTkgKysrKysrKysrKysrKysrKysrDQo+IMKgNSBm
+aWxlcyBjaGFuZ2VkLCAxMDAgaW5zZXJ0aW9ucygrKSwgMSBkZWxldGlvbigtKQ0KPiANCj4gZGlm
+ZiAtLWdpdCBhL2FyY2gveDg2L2luY2x1ZGUvYXNtL3BtZW0uaCBiL2FyY2gveDg2L2luY2x1ZGUv
+YXNtL3BtZW0uaA0KPiBpbmRleCBjNTdmZDFlYTk2ODkuLmJmOGIzNWQyMDM1YSAxMDA2NDQNCj4g
+LS0tIGEvYXJjaC94ODYvaW5jbHVkZS9hc20vcG1lbS5oDQo+ICsrKyBiL2FyY2gveDg2L2luY2x1
+ZGUvYXNtL3BtZW0uaA0KDQo8Pg0KDQo+IMKgc3RhdGljIGludCBwbWVtX2RvX2J2ZWMoc3RydWN0
+IHBtZW1fZGV2aWNlICpwbWVtLCBzdHJ1Y3QgcGFnZSAqcGFnZSwNCj4gwqAJCQl1bnNpZ25lZCBp
+bnQgbGVuLCB1bnNpZ25lZCBpbnQgb2ZmLCBpbnQgcncsDQo+IMKgCQkJc2VjdG9yX3Qgc2VjdG9y
+KQ0KPiDCoHsNCj4gwqAJaW50IHJjID0gMDsNCj4gKwlib29sIGJhZF9wbWVtID0gZmFsc2U7DQo+
+IMKgCXZvaWQgKm1lbSA9IGttYXBfYXRvbWljKHBhZ2UpOw0KPiDCoAlwaHlzX2FkZHJfdCBwbWVt
+X29mZiA9IHNlY3RvciAqIDUxMiArIHBtZW0tPmRhdGFfb2Zmc2V0Ow0KPiDCoAl2b2lkIF9fcG1l
+bSAqcG1lbV9hZGRyID0gcG1lbS0+dmlydF9hZGRyICsgcG1lbV9vZmY7DQo+IMKgDQo+ICsJaWYg
+KHVubGlrZWx5KGlzX2JhZF9wbWVtKCZwbWVtLT5iYiwgc2VjdG9yLCBsZW4pKSkNCj4gKwkJYmFk
+X3BtZW0gPSB0cnVlOw0KPiArDQo+IMKgCWlmIChydyA9PSBSRUFEKSB7DQo+IC0JCWlmICh1bmxp
+a2VseShpc19iYWRfcG1lbSgmcG1lbS0+YmIsIHNlY3RvciwgbGVuKSkpDQo+ICsJCWlmICh1bmxp
+a2VseShiYWRfcG1lbSkpDQo+IMKgCQkJcmMgPSAtRUlPOw0KPiDCoAkJZWxzZSB7DQo+IMKgCQkJ
+bWVtY3B5X2Zyb21fcG1lbShtZW0gKyBvZmYsIHBtZW1fYWRkciwgbGVuKTsNCj4gQEAgLTgxLDYg
+KzEwNCwxMCBAQCBzdGF0aWMgaW50IHBtZW1fZG9fYnZlYyhzdHJ1Y3QgcG1lbV9kZXZpY2UgKnBt
+ZW0sDQo+IHN0cnVjdCBwYWdlICpwYWdlLA0KPiDCoAl9IGVsc2Ugew0KPiDCoAkJZmx1c2hfZGNh
+Y2hlX3BhZ2UocGFnZSk7DQo+IMKgCQltZW1jcHlfdG9fcG1lbShwbWVtX2FkZHIsIG1lbSArIG9m
+ZiwgbGVuKTsNCj4gKwkJaWYgKHVubGlrZWx5KGJhZF9wbWVtKSkgew0KPiArCQkJcG1lbV9jbGVh
+cl9wb2lzb24ocG1lbSwgcG1lbV9vZmYsIGxlbik7DQo+ICsJCQltZW1jcHlfdG9fcG1lbShwbWVt
+X2FkZHIsIG1lbSArIG9mZiwgbGVuKTsNCj4gKwkJfQ0KPiDCoAl9DQoNCkp1c3Qgbm90aWNlZCB0
+aGlzIC0tIHdoeSBkbyB3ZSBtZW1jcHlfdG9fcG1lbSB0d2ljZSBpbiB0aGUgZXJyb3IgY2FzZT8N
+ClNoDQpvdWxkbid0IGl0IGJlOg0KDQoJaWYgKHVubGlrZWx5KGJhZF9wbWVtKSkNCgkJcG1lbV9j
+bGVhcl9wb2lzb24ocG1lbSwgcG1lbV9vZmYsIGxlbik7DQoJbWVtY3B5X3RvX3BtZW0ocG1lbV9h
+ZGRyLCBtZW0gKyBvZmYsIGxlbik7DQoNCg0K
