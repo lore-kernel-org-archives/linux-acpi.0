@@ -1,52 +1,62 @@
-From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [PATCH 1/2] vga_switcheroo: add power support for windows 10 machines.
-Date: Fri, 11 Mar 2016 14:45:23 +0100
-Message-ID: <2759763.dR5D0KopkA@vostro.rjw.lan>
-References: <1457504045-12738-1-git-send-email-airlied@gmail.com> <2736217.utxPzJExd5@vostro.rjw.lan> <20160311105815.GS1796@lahna.fi.intel.com>
+From: "Rafael J. Wysocki" <rafael@kernel.org>
+Subject: [GIT PULL] Power management and ACPI fixes for final v4.5
+Date: Fri, 11 Mar 2016 15:23:01 +0100
+Message-ID: <CAJZ5v0gwWNqo74ZwPZnjqRxivX7xanno4bSmMKoVOaEJ5m+zSg@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7Bit
-Return-path: <linux-pci-owner@vger.kernel.org>
-In-Reply-To: <20160311105815.GS1796@lahna.fi.intel.com>
-Sender: linux-pci-owner@vger.kernel.org
-To: Mika Westerberg <mika.westerberg@linux.intel.com>, Dave Airlie <airlied@gmail.com>
-Cc: "Rafael J. Wysocki" <rafael@kernel.org>, dri-devel <dri-devel@lists.freedesktop.org>, "linux-pm@vger.kernel.org" <linux-pm@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux PCI <linux-pci@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-lb0-f180.google.com ([209.85.217.180]:33830 "EHLO
+	mail-lb0-f180.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752878AbcCKOXF (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 11 Mar 2016 09:23:05 -0500
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: "linux-pm@vger.kernel.org" <linux-pm@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
 
-On Friday, March 11, 2016 12:58:15 PM Mika Westerberg wrote:
-> On Thu, Mar 10, 2016 at 09:57:09PM +0100, Rafael J. Wysocki wrote:
-> > > It doesn't seem to do any runtime PM,
-> > > I do wonder if pcieport should be doing it's own runtime PM handling,
-> > > but that is a
-> > > larger task than I'm thinking to tackle here.
-> > 
-> > PCIe ports don't do PM - yet.  Mika has posted a series of patches to implement
-> > that, however, that are waiting for comments now:
-> > 
-> > https://patchwork.kernel.org/patch/8453311/
-> > https://patchwork.kernel.org/patch/8453381/
-> > https://patchwork.kernel.org/patch/8453391/
-> > https://patchwork.kernel.org/patch/8453411/
-> > https://patchwork.kernel.org/patch/8453371/
-> > https://patchwork.kernel.org/patch/8453351/
-> > 
-> > > Maybe I should be doing
-> > > 
-> > > pci_set_power_state(pdev->bus->self, PCI_D3cold) ? I'm not really sure.
-> > 
-> > Using pci_set_power_state() would be more appropriate IMO, but you can get
-> > to the bridge via dev->parent too, can't you?
-> > 
-> > In any case, it looks like you and Mika need to talk. :-)
-> 
-> When the vga_switcheroo device gets runtime suspended (with the above
-> runtime PM patchs for PCIe root ports) the root port should also be
-> runtime suspended by the PM core.
+Hi Linus,
 
-Right, after your patches have been applied, the additional handling
-won't be needed.
+Please pull from
 
-So Dave, maybe you can check if the Mika's patches help?
+ git://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm.git \
+ pm+acpi-4.5-final
 
-Thanks,
-Rafael
+to receive power management and ACPI fixes for final v4.5 with
+top-most commit 5b3e7e0536bd6326798ab57d14a49b15ad7e3e3f
+
+ Merge branches 'device-properties-fixes' and 'acpica-fixes'
+
+on top of commit f6cede5b49e822ebc41a099fe41ab4989f64e2cb
+
+ Linux 4.5-rc7
+
+Two more fixes for issues introduced recently, one in the
+generic device properties framework and one in ACPICA.
+
+Specifics:
+
+ - Revert a recent ACPICA commit that has been reverted
+   upstream, because it caused problems to happen on user
+   systems and the problem it attempted to address will not be
+   relevant any more after upcoming ACPI specification changes
+   (Bob Moore).
+
+ - Fix crash in the generic device properties framework introduced
+   by a recent change that forgot to check pointers against error
+   values in addition to checking them against NULL (Heikki Krogerus).
+
+Thanks!
+
+---------------
+
+Bob Moore (1):
+      ACPICA: Revert "Parser: Fix for SuperName method invocation"
+
+Heikki Krogerus (1):
+      device property: fwnode->secondary may contain ERR_PTR(-ENODEV)
+
+---------------
+
+ drivers/acpi/acpica/psargs.c | 9 ++++-----
+ drivers/base/property.c      | 8 ++++----
+ 2 files changed, 8 insertions(+), 9 deletions(-)
