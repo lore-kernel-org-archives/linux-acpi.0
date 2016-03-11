@@ -1,59 +1,42 @@
-From: Ashwin Chaugule <ashwin.chaugule@linaro.org>
-Subject: Re: [PATCH V4 0/5] acpi: cppc optimization patches
-Date: Thu, 10 Mar 2016 20:29:07 -0500
-Message-ID: <CAJ5Y-eZgu9WvUxQn-cKFWL74aHWgDM__A08TdPkCecBbWw7b+g@mail.gmail.com>
-References: <1455740463-19192-1-git-send-email-pprakash@codeaurora.org> <3161640.R8xYpdOEaQ@vostro.rjw.lan>
+From: Wang Hongcheng <annie.wang@amd.com>
+Subject: [PATCH] ACPI:  Add device HID for future AMD UART controller
+Date: Fri, 11 Mar 2016 10:34:52 +0800
+Message-ID: <1457663692-16265-1-git-send-email-annie.wang@amd.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-lb0-f169.google.com ([209.85.217.169]:36301 "EHLO
-	mail-lb0-f169.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933051AbcCKB33 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 10 Mar 2016 20:29:29 -0500
-Received: by mail-lb0-f169.google.com with SMTP id x1so136322363lbj.3
-        for <linux-acpi@vger.kernel.org>; Thu, 10 Mar 2016 17:29:28 -0800 (PST)
-In-Reply-To: <3161640.R8xYpdOEaQ@vostro.rjw.lan>
+Received: from mail-bl2on0099.outbound.protection.outlook.com ([65.55.169.99]:53466
+	"EHLO na01-bl2-obe.outbound.protection.outlook.com"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1755050AbcCKDH4 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 10 Mar 2016 22:07:56 -0500
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: Prashanth Prakash <pprakash@codeaurora.org>, linux acpi <linux-acpi@vger.kernel.org>, Linaro ACPI Mailman List <linaro-acpi@lists.linaro.org>, Alexey Klimov <alexey.klimov@arm.com>
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, SPG_Linux_Kernel <SPG_Linux_Kernel@amd.com>
+Cc: Wang Hongcheng <annie.wang@amd.com>
 
-On 10 March 2016 at 18:36, Rafael J. Wysocki <rjw@rjwysocki.net> wrote:
-> On Wednesday, February 17, 2016 01:20:58 PM Prashanth Prakash wrote:
->> Changes in V4:
->> [1] Added another patch which decides if or when to send a request to the
->> platform based on the Minimum Request Turnaround Time(MRTT) and Maximum
->> Periodic Access Rate(MPAR) to make sure the implementation is compliant
->> to ACPI spec
->> [2] Fixed the condition for pr_debug message in cppc_chan_tx_done()
->>
->> Changes in V3: Addressed the review comments from Alexey, Ashwin and Timur
->>
->> Changes in V2: Fixed compilation error on i386
->>
->> This series introduces changes to reduce the time required to send a frequency
->> transition requests to the platform while using the cppc-cpufreq driver.
->>
->> With these changes we see significant improvement in the average time to send
->> freq. transition request to the platform. Profiling on an ARM platform showed
->> that the average transaction time per request reduced from 200us to under 20us.
->>
->> Ashwin Chaugule (1):
->>   ACPI / CPPC: Optimize PCC Read Write operations
->>
->> Prashanth Prakash (4):
->>   acpi: cppc: optimized cpc_read and cpc_write
->>   mailbox: pcc: optimized pcc_send_data
->>   acpi: cppc: replace writeX/readX to PCC with relaxed version
->>   acpi/cppc: use MRTT/MPAR to decide if/when a req can be sent
->>
->>  drivers/acpi/cppc_acpi.c | 237 ++++++++++++++++++++++++++++++++++++++---------
->>  drivers/mailbox/pcc.c    | 111 ++++++++++++++++++++--
->>  2 files changed, 295 insertions(+), 53 deletions(-)
->
-> All applied (with minor modifications of subjects and similar).
+Add device HID AMDI0020 to match the AMD ACPI Vendor ID (AMDI) as
+registered in http://www.uefi.org/acpi_id_list, and the UART
+controller on future AMD paltform will use the HID instead of AMD0020.
 
-Thanks Rafael!
+Signed-off-by: Wang Hongcheng <annie.wang@amd.com>
+---
+ drivers/acpi/acpi_apd.c           | 1 +
+ drivers/tty/serial/8250/8250_dw.c | 1 +
+ 2 files changed, 2 insertions(+)
 
-Cheers,
-Ashwin.
+diff --git a/drivers/acpi/acpi_apd.c b/drivers/acpi/acpi_apd.c
+index a450e7a..dc2d8a5 100644
+--- a/drivers/acpi/acpi_apd.c
++++ b/drivers/acpi/acpi_apd.c
+@@ -134,6 +134,7 @@ static const struct acpi_device_id acpi_apd_device_ids[] = {
+ 	/* Generic apd devices */
+ 	{ "AMD0010", APD_ADDR(cz_i2c_desc) },
+ 	{ "AMD0020", APD_ADDR(cz_uart_desc) },
++	{ "AMDI0020", APD_ADDR(cz_uart_desc) },
+ 	{ "AMD0030", },
+ 	{ }
+ };
+-- 
+1.9.1
+
