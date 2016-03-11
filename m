@@ -1,99 +1,95 @@
-From: Aleksey Makarov <aleksey.makarov@linaro.org>
-Subject: Re: [PATCH v4 0/4] ACPI: parse the SPCR table
-Date: Fri, 11 Mar 2016 23:25:13 +0700
-Message-ID: <56E2F169.8030708@linaro.org>
-References: <1456747355-15692-1-git-send-email-aleksey.makarov@linaro.org>
- <56D5B5CB.7010702@hurleysoftware.com> <56D8272E.20705@gmail.com>
- <56D859CC.7010901@hurleysoftware.com> <56D9772B.5000402@linaro.org>
- <56D9AE15.106@hurleysoftware.com>
+From: "Chen, Yu C" <yu.c.chen@intel.com>
+Subject: RE: [PATCH][RFC,v4] ACPI / PM: Introduce efi poweroff for HW-full
+ platforms without _S5
+Date: Fri, 11 Mar 2016 16:33:46 +0000
+Message-ID: <36DF59CE26D8EE47B0655C516E9CE640286D442A@shsmsx102.ccr.corp.intel.com>
+References: <1457687133-3730-1-git-send-email-yu.c.chen@intel.com>
+ <20160311155546.GJ15775@codeblueprint.co.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-pa0-f45.google.com ([209.85.220.45]:34191 "EHLO
-	mail-pa0-f45.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932569AbcCKQZY (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 11 Mar 2016 11:25:24 -0500
-Received: by mail-pa0-f45.google.com with SMTP id fe3so86342475pab.1
-        for <linux-acpi@vger.kernel.org>; Fri, 11 Mar 2016 08:25:23 -0800 (PST)
-In-Reply-To: <56D9AE15.106@hurleysoftware.com>
+Received: from mga04.intel.com ([192.55.52.120]:7420 "EHLO mga04.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S932567AbcCKQdu convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 11 Mar 2016 11:33:50 -0500
+In-Reply-To: <20160311155546.GJ15775@codeblueprint.co.uk>
+Content-Language: en-US
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Peter Hurley <peter@hurleysoftware.com>, Aleksey Makarov <amakarov.linux@gmail.com>, linux-acpi@vger.kernel.org
-Cc: linux-serial@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Russell King <linux@arm.linux.org.uk>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, Leif Lindholm <leif.lindholm@linaro.org>, Graeme Gregory <graeme.gregory@linaro.org>, Al Stone <ahs3@redhat.com>, Christopher Covington <cov@codeaurora.org>, Yury Norov <ynorov@caviumnetworks.com>, "Zheng, Lv" <lv.zheng@intel.com>
+To: Matt Fleming <matt@codeblueprint.co.uk>
+Cc: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-pm@vger.kernel.org" <linux-pm@vger.kernel.org>, "Rafael J. Wysocki" <rafael@kernel.org>, Len Brown <lenb@kernel.org>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, "Zhang, Rui" <rui.zhang@intel.com>, "linux-efi@vger.kernel.org" <linux-efi@vger.kernel.org>, "x86@kernel.org" <x86@kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Ard Biesheuvel <ard.biesheuvel@linaro.org>, Mark Salter <msalter@redhat.com>
 
-Hi Peter,
 
-You are right, SPCR console should support earlycon.
-I will send next version that will try to follow your recommendations in 
-a week, after I return from vacations.
+Hi Matt,
 
-As we discussed with Christopher, "serial: pl011: use SPCR to setup 
-32-bit access" will be dropped.
+> -----Original Message-----
+> From: Matt Fleming [mailto:matt@codeblueprint.co.uk]
+> Sent: Friday, March 11, 2016 11:56 PM
+> To: Chen, Yu C
+> Cc: linux-acpi@vger.kernel.org; linux-pm@vger.kernel.org; Rafael J. Wysocki;
+> Len Brown; Thomas Gleixner; Ingo Molnar; H. Peter Anvin; Zhang, Rui; linux-
+> efi@vger.kernel.org; x86@kernel.org; linux-kernel@vger.kernel.org; Ard
+> Biesheuvel; Mark Salter
+> Subject: Re: [PATCH][RFC,v4] ACPI / PM: Introduce efi poweroff for HW-full
+> platforms without _S5
+> 
+> On Fri, 11 Mar, at 05:05:33PM, Chen Yu wrote:
+> > The problem is Linux registers pm_power_off = efi_power_off only if we
+> > are in hardware reduced mode. Actually, what we also want is to do
+> > this when ACPI S5 is simply not supported on non-legacy platforms.
+> > That should handle both the HW reduced mode, and the HW-full mode
+> > where the DSDT fails to supply an _S5 object.
+> >
+> > This patch introduces pm_power_off_default which would be used by
+> > pm_power_off if nothing else is available. And in this case we
+> > leverage efi power off to be this role. However since efi power off
+> > may not be stable enough thus in order not to interfere with other
+> > poweroff path, we only make a minimum enhancement for x86 in
+> > native_machine_power_off.
+> >
+> > Suggested-by: Len Brown <len.brown@intel.com>
+> > Signed-off-by: Chen Yu <yu.c.chen@intel.com>
+> > ---
+> > v4:
+> >  - Since in v3 efi_poweroff_required() is not guaranteed to run
+> >    after all of the other code that may register alternative
+> >    power off handling, add the pm_power_off_default that would
+> >    be used by pm_power_off if nothing else is available.
+> > v3:
+> >  - Only assign pm_power_off to efi_power_off when there are no
+> >    other pm_power_off registered at that time, in case other
+> >    commponents would like to customize their own implementation.
+> > ---
+> > v2:
+> >  - Convert the acpi_no_s5 to a global bool variable in sleep.c and
+> >    add a declaration to include/linux/acpi.h.
+> > ---
+> >  arch/x86/kernel/reboot.c       | 3 +++
+> >  arch/x86/platform/efi/quirks.c | 5 +++++
+> >  drivers/acpi/sleep.c           | 7 +++++++
+> >  drivers/firmware/efi/reboot.c  | 8 ++++++++
+> >  include/linux/acpi.h           | 1 +
+> >  include/linux/efi.h            | 1 +
+> >  include/linux/pm.h             | 1 +
+> >  kernel/reboot.c                | 1 +
+> >  8 files changed, 27 insertions(+)
+> 
+> Couple of things,
+> 
+>   1) I'm still waiting for an answer to my question on whether
+>      platforms without _S5 that need EFI reset actually exist. You
+>      said they "might" exist, which makes this all sound very
+>      speculative. It is not obvious to me that this approach makes
+>      sense.
+There is  a future Base-IA platform, we are planning to skip
+implementing the SLP_TYP register and the S5 object.  (already there
+will be no S3 and no S4)
 
-Thank you
-Aleksey Makarov
+> 
+>   2) In v4 you're modifying the generic EFI reboot code and should Cc
+>      other developers who might care, e.g. the arm64 folks. I've Cc'd
+>      them now.
+OK, thanks.
 
-On 04.03.2016 22:47, Peter Hurley wrote:
-> On 03/04/2016 03:53 AM, Aleksey Makarov wrote:
->>
->>
->> On 03/03/2016 06:35 PM, Peter Hurley wrote:
->>> On 03/03/2016 03:59 AM, Aleksey Makarov wrote:
->>>>
->>>>
->>>> On 03/01/2016 06:31 PM, Peter Hurley wrote:
->>>>> On 02/29/2016 04:02 AM, Aleksey Makarov wrote:
->>>>>> 'ARM Server Base Boot Requirements' [1] mentions SPCR (Serial Port
->>>>>> Console Redirection Table) [2] as a mandatory ACPI table that
->>>>>> specifies the configuration of serial console.
->>>>>>
->>>>>> Introduce a new function acpi_console_check().  At the uart port
->>>>>> registration, this function checks if the ACPI SPCR table specifies
->>>>>> its argument of type struct uart_port to be a console
->>>>>> and if so calls add_preferred_console().
->>>>>
->>>>> How will a user enable an earlycon on the same console as the SPCR
->>>>> console if there is no DBG2 table?
->>>>
->>>> ...
->>>> [    0.000000] earlycon: pl11 at MMIO 0x0000000009000000 (options '')
->>>> [    0.000000] bootconsole [pl11] enabled
->>>> ...
->>>> [    0.000000] Kernel command line:  root=/dev/vda1 rw systemd.show_status=no acpi=force earlycon=pl011,0x9000000
->>>> ...
->>>> [    0.318248] ACPI: SPCR: adding preferred console [ttyAMA0]
->>>> [    0.318736] ARMH0011:00: ttyAMA0 at MMIO 0x9000000 (irq = 5, base_baud = 0) is a SBSA
->>>> [    0.319502] console [ttyAMA0] enabled
->>>> [    0.319502] console [ttyAMA0] enabled
->>>> [    0.319933] bootconsole [pl11] disabled
->>>> [    0.319933] bootconsole [pl11] disabled
->>>> ...
->>>>
->>>> Why?
->>>
->>> That's pretty disingenuous; via command line?
->>>
->>> By that measure, none of your patches are required because a user
->>> can already start both console and earlycon without them.
->>>
->>> With the console location specified in the SPCR, earlycon should
->>> be opt-in on the command-line simply with "earlycon" command-line
->>> parameter.
->>
->> Yes.  That's why we have SPCR *and* DBG2.
->> DBG2 specifies where we should run earlycon.
->>
->>>>> How will a user enable an earlycon on the same console as the SPCR
->>>>> console if there is no DBG2 table?
->>
->> In no way.  You need DBG2 to run earlycon.
->
-> And that's an entirely arbitrary decision being made by you.
-> Which I think is unnecessarily limited.
->
->
->> (If you don't want to specify it's address etc explicitly)
->
->
-
+yu
