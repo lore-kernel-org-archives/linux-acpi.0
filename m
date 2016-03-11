@@ -1,41 +1,49 @@
-From: Wang Hongcheng <annie.wang@amd.com>
-Subject: [PATCH V2] ACPI: APD: Add device HID for future AMD UART controller
-Date: Fri, 11 Mar 2016 17:28:23 +0800
-Message-ID: <1457688503-2377-1-git-send-email-annie.wang@amd.com>
+From: Mika Westerberg <mika.westerberg@linux.intel.com>
+Subject: Re: [PATCH 1/2] vga_switcheroo: add power support for windows 10
+ machines.
+Date: Fri, 11 Mar 2016 12:58:15 +0200
+Message-ID: <20160311105815.GS1796@lahna.fi.intel.com>
+References: <1457504045-12738-1-git-send-email-airlied@gmail.com>
+ <CAJZ5v0hurNUOVDXpJJEJ5dCwWO_Fo+EdzBhXJA7QWmPeY653fQ@mail.gmail.com>
+ <CAPM=9tzAf=464v3uSjert7NVh35EXUG8iy_xEuR36NUMhdJSWw@mail.gmail.com>
+ <2736217.utxPzJExd5@vostro.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-bl2on0071.outbound.protection.outlook.com ([65.55.169.71]:12512
-	"EHLO na01-bl2-obe.outbound.protection.outlook.com"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1750742AbcCKJ3b (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 11 Mar 2016 04:29:31 -0500
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <2736217.utxPzJExd5@vostro.rjw.lan>
+Sender: linux-kernel-owner@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: Dave Airlie <airlied@gmail.com>, "Rafael J. Wysocki" <rafael@kernel.org>, dri-devel <dri-devel@lists.freedesktop.org>, "linux-pm@vger.kernel.org" <linux-pm@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux PCI <linux-pci@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, SPG_Linux_Kernel <SPG_Linux_Kernel@amd.com>
-Cc: Wang Hongcheng <annie.wang@amd.com>
 
-Add device HID AMDI0020 to match the AMD ACPI Vendor ID (AMDI) as
-registered in http://www.uefi.org/acpi_id_list, and the UART
-controller on future AMD paltform will use the HID instead of AMD0020.
+On Thu, Mar 10, 2016 at 09:57:09PM +0100, Rafael J. Wysocki wrote:
+> > It doesn't seem to do any runtime PM,
+> > I do wonder if pcieport should be doing it's own runtime PM handling,
+> > but that is a
+> > larger task than I'm thinking to tackle here.
+> 
+> PCIe ports don't do PM - yet.  Mika has posted a series of patches to implement
+> that, however, that are waiting for comments now:
+> 
+> https://patchwork.kernel.org/patch/8453311/
+> https://patchwork.kernel.org/patch/8453381/
+> https://patchwork.kernel.org/patch/8453391/
+> https://patchwork.kernel.org/patch/8453411/
+> https://patchwork.kernel.org/patch/8453371/
+> https://patchwork.kernel.org/patch/8453351/
+> 
+> > Maybe I should be doing
+> > 
+> > pci_set_power_state(pdev->bus->self, PCI_D3cold) ? I'm not really sure.
+> 
+> Using pci_set_power_state() would be more appropriate IMO, but you can get
+> to the bridge via dev->parent too, can't you?
+> 
+> In any case, it looks like you and Mika need to talk. :-)
 
-Signed-off-by: Wang Hongcheng <annie.wang@amd.com>
----
- drivers/acpi/acpi_apd.c | 1 +
- 1 file changed, 1 insertion(+)
-
-diff --git a/drivers/acpi/acpi_apd.c b/drivers/acpi/acpi_apd.c
-index a450e7a..dc2d8a5 100644
---- a/drivers/acpi/acpi_apd.c
-+++ b/drivers/acpi/acpi_apd.c
-@@ -134,6 +134,7 @@ static const struct acpi_device_id acpi_apd_device_ids[] = {
- 	/* Generic apd devices */
- 	{ "AMD0010", APD_ADDR(cz_i2c_desc) },
- 	{ "AMD0020", APD_ADDR(cz_uart_desc) },
-+	{ "AMDI0020", APD_ADDR(cz_uart_desc) },
- 	{ "AMD0030", },
- 	{ }
- };
--- 
-1.9.1
-
+When the vga_switcheroo device gets runtime suspended (with the above
+runtime PM patchs for PCIe root ports) the root port should also be
+runtime suspended by the PM core. I don't think there is a need to call
+any pci_set_power_state() in this driver but maybe I'm missing
+something.
