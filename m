@@ -1,62 +1,223 @@
-From: "Verma, Vishal L" <vishal.l.verma@intel.com>
-Subject: Re: [PATCH 3/3] libnvdimm, pmem: clear poison on write
-Date: Fri, 11 Mar 2016 00:39:45 +0000
-Message-ID: <1457656781.4525.36.camel@intel.com>
-References: <20160308224713.16298.33547.stgit@dwillia2-desk3.jf.intel.com>
-	 <20160308224729.16298.49406.stgit@dwillia2-desk3.jf.intel.com>
+From: Jiang Qiu <qiujiang@huawei.com>
+Subject: Re: [PATCH v5 1/3] gpio: designware: convert device node to fwnode
+Date: Fri, 11 Mar 2016 08:44:38 +0800
+Message-ID: <56E214F6.3070607@huawei.com>
+References: <1457077474-124064-1-git-send-email-qiujiang@huawei.com>
+ <1457077474-124064-2-git-send-email-qiujiang@huawei.com>
+ <CANk1AXRTvSRZkWMQf03Ty+ouxcJDpD-hJ9tjXSqh5Z0OzOhk+w@mail.gmail.com>
+Reply-To: <qiujiang@huawei.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga11.intel.com ([192.55.52.93]:62953 "EHLO mga11.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932893AbcCKAkC (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 10 Mar 2016 19:40:02 -0500
-In-Reply-To: <20160308224729.16298.49406.stgit@dwillia2-desk3.jf.intel.com>
-Content-Language: en-US
-Content-ID: <351DA761BDF12A459E1C5C6CC10AAAA3@intel.com>
+Received: from szxga02-in.huawei.com ([119.145.14.65]:3805 "EHLO
+	szxga02-in.huawei.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932910AbcCKApn (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 10 Mar 2016 19:45:43 -0500
+In-Reply-To: <CANk1AXRTvSRZkWMQf03Ty+ouxcJDpD-hJ9tjXSqh5Z0OzOhk+w@mail.gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Williams, Dan J" <dan.j.williams@intel.com>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>
-Cc: "ross.zwisler@linux.intel.com" <ross.zwisler@linux.intel.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "x86@kernel.org" <x86@kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
+To: Alan Tull <delicious.quinoa@gmail.com>
+Cc: Linus Walleij <linus.walleij@linaro.org>, Alexandre Courbot <gnurou@gmail.com>, mika.westerberg@linux.intel.com, andy.shevchenko@gmail.com, linux-kernel <linux-kernel@vger.kernel.org>, "linux-gpio@vger.kernel.org" <linux-gpio@vger.kernel.org>, linux-acpi@vger.kernel.org, linuxarm@huawei.com, haifeng.wei@huawei.com, charles.chenxin@huawei.com
 
-T24gVHVlLCAyMDE2LTAzLTA4IGF0IDE0OjQ3IC0wODAwLCBEYW4gV2lsbGlhbXMgd3JvdGU6DQo+
-IElmIGEgd3JpdGUgaXMgZGlyZWN0ZWQgYXQgYSBrbm93biBiYWQgYmxvY2sgcGVyZm9ybSB0aGUg
-Zm9sbG93aW5nOg0KPiANCj4gMS8gd3JpdGUgdGhlIGRhdGENCj4gDQo+IDIvIHNlbmQgYSBjbGVh
-ciBwb2lzb24gY29tbWFuZA0KPiANCj4gMy8gaW52YWxpZGF0ZSB0aGUgcG9pc29uIG91dCBvZiB0
-aGUgY2FjaGUgaGllcmFyY2h5DQo+IA0KPiBDYzogPHg4NkBrZXJuZWwub3JnPg0KPiBDYzogVmlz
-aGFsIFZlcm1hIDx2aXNoYWwubC52ZXJtYUBpbnRlbC5jb20+DQo+IENjOiBSb3NzIFp3aXNsZXIg
-PHJvc3Muendpc2xlckBsaW51eC5pbnRlbC5jb20+DQo+IFNpZ25lZC1vZmYtYnk6IERhbiBXaWxs
-aWFtcyA8ZGFuLmoud2lsbGlhbXNAaW50ZWwuY29tPg0KPiAtLS0NCj4gwqBhcmNoL3g4Ni9pbmNs
-dWRlL2FzbS9wbWVtLmggfMKgwqDCoMKgNSArKysrKw0KPiDCoGRyaXZlcnMvbnZkaW1tL2J1cy5j
-wqDCoMKgwqDCoMKgwqDCoHzCoMKgwqA0Ng0KPiArKysrKysrKysrKysrKysrKysrKysrKysrKysr
-KysrKysrKysrKysrKysrDQo+IMKgZHJpdmVycy9udmRpbW0vbmQuaMKgwqDCoMKgwqDCoMKgwqDC
-oHzCoMKgwqDCoDIgKysNCj4gwqBkcml2ZXJzL252ZGltbS9wbWVtLmPCoMKgwqDCoMKgwqDCoHzC
-oMKgwqAyOSArKysrKysrKysrKysrKysrKysrKysrKysrKy0NCj4gwqBpbmNsdWRlL2xpbnV4L3Bt
-ZW0uaMKgwqDCoMKgwqDCoMKgwqB8wqDCoMKgMTkgKysrKysrKysrKysrKysrKysrDQo+IMKgNSBm
-aWxlcyBjaGFuZ2VkLCAxMDAgaW5zZXJ0aW9ucygrKSwgMSBkZWxldGlvbigtKQ0KPiANCj4gZGlm
-ZiAtLWdpdCBhL2FyY2gveDg2L2luY2x1ZGUvYXNtL3BtZW0uaCBiL2FyY2gveDg2L2luY2x1ZGUv
-YXNtL3BtZW0uaA0KPiBpbmRleCBjNTdmZDFlYTk2ODkuLmJmOGIzNWQyMDM1YSAxMDA2NDQNCj4g
-LS0tIGEvYXJjaC94ODYvaW5jbHVkZS9hc20vcG1lbS5oDQo+ICsrKyBiL2FyY2gveDg2L2luY2x1
-ZGUvYXNtL3BtZW0uaA0KDQo8Pg0KDQo+IMKgc3RhdGljIGludCBwbWVtX2RvX2J2ZWMoc3RydWN0
-IHBtZW1fZGV2aWNlICpwbWVtLCBzdHJ1Y3QgcGFnZSAqcGFnZSwNCj4gwqAJCQl1bnNpZ25lZCBp
-bnQgbGVuLCB1bnNpZ25lZCBpbnQgb2ZmLCBpbnQgcncsDQo+IMKgCQkJc2VjdG9yX3Qgc2VjdG9y
-KQ0KPiDCoHsNCj4gwqAJaW50IHJjID0gMDsNCj4gKwlib29sIGJhZF9wbWVtID0gZmFsc2U7DQo+
-IMKgCXZvaWQgKm1lbSA9IGttYXBfYXRvbWljKHBhZ2UpOw0KPiDCoAlwaHlzX2FkZHJfdCBwbWVt
-X29mZiA9IHNlY3RvciAqIDUxMiArIHBtZW0tPmRhdGFfb2Zmc2V0Ow0KPiDCoAl2b2lkIF9fcG1l
-bSAqcG1lbV9hZGRyID0gcG1lbS0+dmlydF9hZGRyICsgcG1lbV9vZmY7DQo+IMKgDQo+ICsJaWYg
-KHVubGlrZWx5KGlzX2JhZF9wbWVtKCZwbWVtLT5iYiwgc2VjdG9yLCBsZW4pKSkNCj4gKwkJYmFk
-X3BtZW0gPSB0cnVlOw0KPiArDQo+IMKgCWlmIChydyA9PSBSRUFEKSB7DQo+IC0JCWlmICh1bmxp
-a2VseShpc19iYWRfcG1lbSgmcG1lbS0+YmIsIHNlY3RvciwgbGVuKSkpDQo+ICsJCWlmICh1bmxp
-a2VseShiYWRfcG1lbSkpDQo+IMKgCQkJcmMgPSAtRUlPOw0KPiDCoAkJZWxzZSB7DQo+IMKgCQkJ
-bWVtY3B5X2Zyb21fcG1lbShtZW0gKyBvZmYsIHBtZW1fYWRkciwgbGVuKTsNCj4gQEAgLTgxLDYg
-KzEwNCwxMCBAQCBzdGF0aWMgaW50IHBtZW1fZG9fYnZlYyhzdHJ1Y3QgcG1lbV9kZXZpY2UgKnBt
-ZW0sDQo+IHN0cnVjdCBwYWdlICpwYWdlLA0KPiDCoAl9IGVsc2Ugew0KPiDCoAkJZmx1c2hfZGNh
-Y2hlX3BhZ2UocGFnZSk7DQo+IMKgCQltZW1jcHlfdG9fcG1lbShwbWVtX2FkZHIsIG1lbSArIG9m
-ZiwgbGVuKTsNCj4gKwkJaWYgKHVubGlrZWx5KGJhZF9wbWVtKSkgew0KPiArCQkJcG1lbV9jbGVh
-cl9wb2lzb24ocG1lbSwgcG1lbV9vZmYsIGxlbik7DQo+ICsJCQltZW1jcHlfdG9fcG1lbShwbWVt
-X2FkZHIsIG1lbSArIG9mZiwgbGVuKTsNCj4gKwkJfQ0KPiDCoAl9DQoNCkp1c3Qgbm90aWNlZCB0
-aGlzIC0tIHdoeSBkbyB3ZSBtZW1jcHlfdG9fcG1lbSB0d2ljZSBpbiB0aGUgZXJyb3IgY2FzZT8N
-ClNoDQpvdWxkbid0IGl0IGJlOg0KDQoJaWYgKHVubGlrZWx5KGJhZF9wbWVtKSkNCgkJcG1lbV9j
-bGVhcl9wb2lzb24ocG1lbSwgcG1lbV9vZmYsIGxlbik7DQoJbWVtY3B5X3RvX3BtZW0ocG1lbV9h
-ZGRyLCBtZW0gKyBvZmYsIGxlbik7DQoNCg0K
+=E5=9C=A8 2016/3/11 3:09, Alan Tull =E5=86=99=E9=81=93:
+> On Fri, Mar 4, 2016 at 1:44 AM, qiujiang <qiujiang@huawei.com> wrote:
+>> This patch converts device node to fwnode in
+>> dwapb_port_property for designware gpio driver,
+>> so as to provide a unified data structure for DT
+>> and ACPI bindings.
+>>
+>> Acked-by: Andy Shevchenko <andy.shevchenko@gmail.com>
+>> Signed-off-by: qiujiang <qiujiang@huawei.com>
+>> ---
+>>  drivers/gpio/gpio-dwapb.c                | 43 +++++++++++++++------=
+-----------
+>>  drivers/mfd/intel_quark_i2c_gpio.c       |  2 +-
+>>  include/linux/platform_data/gpio-dwapb.h |  2 +-
+>>  3 files changed, 22 insertions(+), 25 deletions(-)
+>>
+>> diff --git a/drivers/gpio/gpio-dwapb.c b/drivers/gpio/gpio-dwapb.c
+>> index 597de1e..49f6e5d 100644
+>> --- a/drivers/gpio/gpio-dwapb.c
+>> +++ b/drivers/gpio/gpio-dwapb.c
+>> @@ -22,6 +22,7 @@
+>>  #include <linux/of_address.h>
+>>  #include <linux/of_irq.h>
+>>  #include <linux/platform_device.h>
+>> +#include <linux/property.h>
+>>  #include <linux/spinlock.h>
+>>  #include <linux/platform_data/gpio-dwapb.h>
+>>  #include <linux/slab.h>
+>> @@ -290,14 +291,14 @@ static void dwapb_configure_irqs(struct dwapb_=
+gpio *gpio,
+>>                                  struct dwapb_port_property *pp)
+>>  {
+>>         struct gpio_chip *gc =3D &port->gc;
+>> -       struct device_node *node =3D pp->node;
+>> +       struct fwnode_handle  *fwnode =3D pp->fwnode;
+>>         struct irq_chip_generic *irq_gc =3D NULL;
+>>         unsigned int hwirq, ngpio =3D gc->ngpio;
+>>         struct irq_chip_type *ct;
+>>         int err, i;
+>>
+>> -       gpio->domain =3D irq_domain_add_linear(node, ngpio,
+>> -                                            &irq_generic_chip_ops, =
+gpio);
+>> +       gpio->domain =3D irq_domain_create_linear(fwnode, ngpio,
+>> +                                                &irq_generic_chip_o=
+ps, gpio);
+>>         if (!gpio->domain)
+>>                 return;
+>>
+>> @@ -415,7 +416,8 @@ static int dwapb_gpio_add_port(struct dwapb_gpio=
+ *gpio,
+>>         }
+>>
+>>  #ifdef CONFIG_OF_GPIO
+>> -       port->gc.of_node =3D pp->node;
+>> +       port->gc.of_node =3D is_of_node(pp->fwnode) ?
+>> +               to_of_node(pp->fwnode) : NULL;
+>>  #endif
+>>         port->gc.ngpio =3D pp->ngpio;
+>>         port->gc.base =3D pp->gpio_base;
+>> @@ -449,17 +451,13 @@ static void dwapb_gpio_unregister(struct dwapb=
+_gpio *gpio)
+>>  static struct dwapb_platform_data *
+>>  dwapb_gpio_get_pdata_of(struct device *dev)
+>>  {
+>> -       struct device_node *node, *port_np;
+>> +       struct fwnode_handle *fwnode;
+>>         struct dwapb_platform_data *pdata;
+>>         struct dwapb_port_property *pp;
+>>         int nports;
+>>         int i;
+>>
+>> -       node =3D dev->of_node;
+>> -       if (!IS_ENABLED(CONFIG_OF_GPIO) || !node)
+>> -               return ERR_PTR(-ENODEV);
+>> -
+>> -       nports =3D of_get_child_count(node);
+>> +       nports =3D device_get_child_node_count(dev);
+>>         if (nports =3D=3D 0)
+>>                 return ERR_PTR(-ENODEV);
+>>
+>> @@ -474,21 +472,19 @@ dwapb_gpio_get_pdata_of(struct device *dev)
+>>         pdata->nports =3D nports;
+>>
+>>         i =3D 0;
+>> -       for_each_child_of_node(node, port_np) {
+>> +       device_for_each_child_node(dev, fwnode)  {
+>>                 pp =3D &pdata->properties[i++];
+>> -               pp->node =3D port_np;
+>> +               pp->fwnode =3D fwnode;
+>>
+>> -               if (of_property_read_u32(port_np, "reg", &pp->idx) |=
+|
+>> +               if (fwnode_property_read_u32(fwnode, "reg", &pp->idx=
+) ||
+>>                     pp->idx >=3D DWAPB_MAX_PORTS) {
+>> -                       dev_err(dev, "missing/invalid port index for=
+ %s\n",
+>> -                               port_np->full_name);
+>> +                       dev_err(dev, "missing/invalid port index\n")=
+;
+>>                         return ERR_PTR(-EINVAL);
+>>                 }
+>>
+>> -               if (of_property_read_u32(port_np, "snps,nr-gpios",
+>> +               if (fwnode_property_read_u32(fwnode, "snps,nr-gpios"=
+,
+>>                                          &pp->ngpio)) {
+>> -                       dev_info(dev, "failed to get number of gpios=
+ for %s\n",
+>> -                                port_np->full_name);
+>> +                       dev_info(dev, "failed to get number of gpios=
+\n");
+>>                         pp->ngpio =3D 32;
+>>                 }
+>>
+>> @@ -496,18 +492,19 @@ dwapb_gpio_get_pdata_of(struct device *dev)
+>>                  * Only port A can provide interrupts in all configu=
+rations of
+>>                  * the IP.
+>>                  */
+>> -               if (pp->idx =3D=3D 0 &&
+>> -                   of_property_read_bool(port_np, "interrupt-contro=
+ller")) {
+>> -                       pp->irq =3D irq_of_parse_and_map(port_np, 0)=
+;
+>> +               if (dev->of_node && pp->idx =3D=3D 0 &&
+>> +                       of_property_read_bool(to_of_node(fwnode),
+>> +                               "interrupt-controller")) {
+> Hi Qiujiang,
+>
+> Is there a reason to use "of_property_read_bool" here instead of
+> "device_property_read_bool" or similar?
+>
+> Alan
+Agree, "to_of_node" should be never used since it coverted to fwnode.
+
+I will give a more reasonable solution in the next version.
+
+Thanks, Jiang
+>
+>> +                       pp->irq =3D irq_of_parse_and_map(to_of_node(=
+fwnode), 0);
+>>                         if (!pp->irq) {
+>>                                 dev_warn(dev, "no irq for bank %s\n"=
+,
+>> -                                        port_np->full_name);
+>> +                                        to_of_node(fwnode)->full_na=
+me);
+>>                         }
+>>                 }
+>>
+>>                 pp->irq_shared  =3D false;
+>>                 pp->gpio_base   =3D -1;
+>> -               pp->name        =3D port_np->full_name;
+>> +               pp->name        =3D to_of_node(fwnode)->full_name;
+>>         }
+>>
+>>         return pdata;
+>> diff --git a/drivers/mfd/intel_quark_i2c_gpio.c b/drivers/mfd/intel_=
+quark_i2c_gpio.c
+>> index 0421374..265bd3c 100644
+>> --- a/drivers/mfd/intel_quark_i2c_gpio.c
+>> +++ b/drivers/mfd/intel_quark_i2c_gpio.c
+>> @@ -227,7 +227,7 @@ static int intel_quark_gpio_setup(struct pci_dev=
+ *pdev, struct mfd_cell *cell)
+>>                 return -ENOMEM;
+>>
+>>         /* Set the properties for portA */
+>> -       pdata->properties->node         =3D NULL;
+>> +       pdata->properties->fwnode       =3D NULL;
+>>         pdata->properties->name         =3D "intel-quark-x1000-gpio-=
+portA";
+>>         pdata->properties->idx          =3D 0;
+>>         pdata->properties->ngpio        =3D INTEL_QUARK_MFD_NGPIO;
+>> diff --git a/include/linux/platform_data/gpio-dwapb.h b/include/linu=
+x/platform_data/gpio-dwapb.h
+>> index 28702c8..c5bd1f2 100644
+>> --- a/include/linux/platform_data/gpio-dwapb.h
+>> +++ b/include/linux/platform_data/gpio-dwapb.h
+>> @@ -15,7 +15,7 @@
+>>  #define GPIO_DW_APB_H
+>>
+>>  struct dwapb_port_property {
+>> -       struct device_node *node;
+>> +       struct fwnode_handle *fwnode;
+>>         const char      *name;
+>>         unsigned int    idx;
+>>         unsigned int    ngpio;
+>> --
+>> 1.9.1
+>>
+> .
+>
+
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
