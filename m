@@ -1,96 +1,59 @@
-From: Dan Williams <dan.j.williams@intel.com>
-Subject: Re: [PATCH 3/3] libnvdimm, pmem: clear poison on write
-Date: Thu, 10 Mar 2016 16:50:36 -0800
-Message-ID: <CAPcyv4gK1Tdpy9_tO=NwPF=4pYcp5Nx8fxaPE5hGNXr2Hr7cBg@mail.gmail.com>
-References: <20160308224713.16298.33547.stgit@dwillia2-desk3.jf.intel.com>
-	<20160308224729.16298.49406.stgit@dwillia2-desk3.jf.intel.com>
-	<1457656781.4525.36.camel@intel.com>
+From: Ashwin Chaugule <ashwin.chaugule@linaro.org>
+Subject: Re: [PATCH V4 0/5] acpi: cppc optimization patches
+Date: Thu, 10 Mar 2016 20:29:07 -0500
+Message-ID: <CAJ5Y-eZgu9WvUxQn-cKFWL74aHWgDM__A08TdPkCecBbWw7b+g@mail.gmail.com>
+References: <1455740463-19192-1-git-send-email-pprakash@codeaurora.org> <3161640.R8xYpdOEaQ@vostro.rjw.lan>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-ob0-f171.google.com ([209.85.214.171]:35861 "EHLO
-	mail-ob0-f171.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932893AbcCKAuh (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 10 Mar 2016 19:50:37 -0500
-Received: by mail-ob0-f171.google.com with SMTP id m7so98286244obh.3
-        for <linux-acpi@vger.kernel.org>; Thu, 10 Mar 2016 16:50:37 -0800 (PST)
-In-Reply-To: <1457656781.4525.36.camel@intel.com>
+Received: from mail-lb0-f169.google.com ([209.85.217.169]:36301 "EHLO
+	mail-lb0-f169.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933051AbcCKB33 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 10 Mar 2016 20:29:29 -0500
+Received: by mail-lb0-f169.google.com with SMTP id x1so136322363lbj.3
+        for <linux-acpi@vger.kernel.org>; Thu, 10 Mar 2016 17:29:28 -0800 (PST)
+In-Reply-To: <3161640.R8xYpdOEaQ@vostro.rjw.lan>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Verma, Vishal L" <vishal.l.verma@intel.com>
-Cc: "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, "ross.zwisler@linux.intel.com" <ross.zwisler@linux.intel.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "x86@kernel.org" <x86@kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: Prashanth Prakash <pprakash@codeaurora.org>, linux acpi <linux-acpi@vger.kernel.org>, Linaro ACPI Mailman List <linaro-acpi@lists.linaro.org>, Alexey Klimov <alexey.klimov@arm.com>
 
-On Thu, Mar 10, 2016 at 4:39 PM, Verma, Vishal L
-<vishal.l.verma@intel.com> wrote:
-> On Tue, 2016-03-08 at 14:47 -0800, Dan Williams wrote:
->> If a write is directed at a known bad block perform the following:
+On 10 March 2016 at 18:36, Rafael J. Wysocki <rjw@rjwysocki.net> wrote:
+> On Wednesday, February 17, 2016 01:20:58 PM Prashanth Prakash wrote:
+>> Changes in V4:
+>> [1] Added another patch which decides if or when to send a request to the
+>> platform based on the Minimum Request Turnaround Time(MRTT) and Maximum
+>> Periodic Access Rate(MPAR) to make sure the implementation is compliant
+>> to ACPI spec
+>> [2] Fixed the condition for pr_debug message in cppc_chan_tx_done()
 >>
->> 1/ write the data
+>> Changes in V3: Addressed the review comments from Alexey, Ashwin and Timur
 >>
->> 2/ send a clear poison command
+>> Changes in V2: Fixed compilation error on i386
 >>
->> 3/ invalidate the poison out of the cache hierarchy
+>> This series introduces changes to reduce the time required to send a frequency
+>> transition requests to the platform while using the cppc-cpufreq driver.
 >>
->> Cc: <x86@kernel.org>
->> Cc: Vishal Verma <vishal.l.verma@intel.com>
->> Cc: Ross Zwisler <ross.zwisler@linux.intel.com>
->> Signed-off-by: Dan Williams <dan.j.williams@intel.com>
->> ---
->>  arch/x86/include/asm/pmem.h |    5 +++++
->>  drivers/nvdimm/bus.c        |   46
->> +++++++++++++++++++++++++++++++++++++++++++
->>  drivers/nvdimm/nd.h         |    2 ++
->>  drivers/nvdimm/pmem.c       |   29 ++++++++++++++++++++++++++-
->>  include/linux/pmem.h        |   19 ++++++++++++++++++
->>  5 files changed, 100 insertions(+), 1 deletion(-)
+>> With these changes we see significant improvement in the average time to send
+>> freq. transition request to the platform. Profiling on an ARM platform showed
+>> that the average transaction time per request reduced from 200us to under 20us.
 >>
->> diff --git a/arch/x86/include/asm/pmem.h b/arch/x86/include/asm/pmem.h
->> index c57fd1ea9689..bf8b35d2035a 100644
->> --- a/arch/x86/include/asm/pmem.h
->> +++ b/arch/x86/include/asm/pmem.h
+>> Ashwin Chaugule (1):
+>>   ACPI / CPPC: Optimize PCC Read Write operations
+>>
+>> Prashanth Prakash (4):
+>>   acpi: cppc: optimized cpc_read and cpc_write
+>>   mailbox: pcc: optimized pcc_send_data
+>>   acpi: cppc: replace writeX/readX to PCC with relaxed version
+>>   acpi/cppc: use MRTT/MPAR to decide if/when a req can be sent
+>>
+>>  drivers/acpi/cppc_acpi.c | 237 ++++++++++++++++++++++++++++++++++++++---------
+>>  drivers/mailbox/pcc.c    | 111 ++++++++++++++++++++--
+>>  2 files changed, 295 insertions(+), 53 deletions(-)
 >
-> <>
->
->>  static int pmem_do_bvec(struct pmem_device *pmem, struct page *page,
->>                       unsigned int len, unsigned int off, int rw,
->>                       sector_t sector)
->>  {
->>       int rc = 0;
->> +     bool bad_pmem = false;
->>       void *mem = kmap_atomic(page);
->>       phys_addr_t pmem_off = sector * 512 + pmem->data_offset;
->>       void __pmem *pmem_addr = pmem->virt_addr + pmem_off;
->>
->> +     if (unlikely(is_bad_pmem(&pmem->bb, sector, len)))
->> +             bad_pmem = true;
->> +
->>       if (rw == READ) {
->> -             if (unlikely(is_bad_pmem(&pmem->bb, sector, len)))
->> +             if (unlikely(bad_pmem))
->>                       rc = -EIO;
->>               else {
->>                       memcpy_from_pmem(mem + off, pmem_addr, len);
->> @@ -81,6 +104,10 @@ static int pmem_do_bvec(struct pmem_device *pmem,
->> struct page *page,
->>       } else {
->>               flush_dcache_page(page);
->>               memcpy_to_pmem(pmem_addr, mem + off, len);
->> +             if (unlikely(bad_pmem)) {
->> +                     pmem_clear_poison(pmem, pmem_off, len);
->> +                     memcpy_to_pmem(pmem_addr, mem + off, len);
->> +             }
->>       }
->
-> Just noticed this -- why do we memcpy_to_pmem twice in the error case?
-> Sh
-> ouldn't it be:
->
->         if (unlikely(bad_pmem))
->                 pmem_clear_poison(pmem, pmem_off, len);
->         memcpy_to_pmem(pmem_addr, mem + off, len);
->
+> All applied (with minor modifications of subjects and similar).
 
-There is an open question of whether clear_poison implementations
-guarantee determinant data after clear, or otherwise guarantee that
-the data written before the clear_poison stays in place.  So I write
-twice to cover all those bases.  Probably deserves a comment.
+Thanks Rafael!
+
+Cheers,
+Ashwin.
