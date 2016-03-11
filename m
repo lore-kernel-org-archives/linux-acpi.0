@@ -1,88 +1,96 @@
-From: Jiang Qiu <qiujiang@huawei.com>
-Subject: Re: [PATCH v5 1/3] gpio: designware: convert device node to fwnode
-Date: Fri, 11 Mar 2016 08:48:09 +0800
-Message-ID: <56E215C9.8030208@huawei.com>
-References: <1457077474-124064-1-git-send-email-qiujiang@huawei.com>
- <1457077474-124064-2-git-send-email-qiujiang@huawei.com>
- <CANk1AXRTvSRZkWMQf03Ty+ouxcJDpD-hJ9tjXSqh5Z0OzOhk+w@mail.gmail.com>
- <CAHp75VfGJZnOWUdZkjCbraupg=KUw2-jhtiRHLxrT2uUwJdvow@mail.gmail.com>
-Reply-To: <qiujiang@huawei.com>
+From: Dan Williams <dan.j.williams@intel.com>
+Subject: Re: [PATCH 3/3] libnvdimm, pmem: clear poison on write
+Date: Thu, 10 Mar 2016 16:50:36 -0800
+Message-ID: <CAPcyv4gK1Tdpy9_tO=NwPF=4pYcp5Nx8fxaPE5hGNXr2Hr7cBg@mail.gmail.com>
+References: <20160308224713.16298.33547.stgit@dwillia2-desk3.jf.intel.com>
+	<20160308224729.16298.49406.stgit@dwillia2-desk3.jf.intel.com>
+	<1457656781.4525.36.camel@intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from szxga01-in.huawei.com ([58.251.152.64]:12453 "EHLO
-	szxga01-in.huawei.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932893AbcCKAuY (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 10 Mar 2016 19:50:24 -0500
-In-Reply-To: <CAHp75VfGJZnOWUdZkjCbraupg=KUw2-jhtiRHLxrT2uUwJdvow@mail.gmail.com>
+Received: from mail-ob0-f171.google.com ([209.85.214.171]:35861 "EHLO
+	mail-ob0-f171.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932893AbcCKAuh (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 10 Mar 2016 19:50:37 -0500
+Received: by mail-ob0-f171.google.com with SMTP id m7so98286244obh.3
+        for <linux-acpi@vger.kernel.org>; Thu, 10 Mar 2016 16:50:37 -0800 (PST)
+In-Reply-To: <1457656781.4525.36.camel@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Andy Shevchenko <andy.shevchenko@gmail.com>, Alan Tull <delicious.quinoa@gmail.com>
-Cc: Linus Walleij <linus.walleij@linaro.org>, Alexandre Courbot <gnurou@gmail.com>, Mika Westerberg <mika.westerberg@linux.intel.com>, linux-kernel <linux-kernel@vger.kernel.org>, "linux-gpio@vger.kernel.org" <linux-gpio@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, linuxarm@huawei.com, haifeng.wei@huawei.com, charles.chenxin@huawei.com
+To: "Verma, Vishal L" <vishal.l.verma@intel.com>
+Cc: "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, "ross.zwisler@linux.intel.com" <ross.zwisler@linux.intel.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "x86@kernel.org" <x86@kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
 
-=E5=9C=A8 2016/3/11 4:27, Andy Shevchenko =E5=86=99=E9=81=93:
-> On Thu, Mar 10, 2016 at 9:09 PM, Alan Tull <delicious.quinoa@gmail.co=
-m> wrote:
->> On Fri, Mar 4, 2016 at 1:44 AM, qiujiang <qiujiang@huawei.com> wrote=
-:
->>> This patch converts device node to fwnode in
->>> dwapb_port_property for designware gpio driver,
->>> so as to provide a unified data structure for DT
->>> and ACPI bindings.
->>>
->>> Acked-by: Andy Shevchenko <andy.shevchenko@gmail.com>
->>> Signed-off-by: qiujiang <qiujiang@huawei.com>
->>> @@ -496,18 +492,19 @@ dwapb_gpio_get_pdata_of(struct device *dev)
->>>                  * Only port A can provide interrupts in all config=
-urations of
->>>                  * the IP.
->>>                  */
->>> -               if (pp->idx =3D=3D 0 &&
->>> -                   of_property_read_bool(port_np, "interrupt-contr=
-oller")) {
->>> -                       pp->irq =3D irq_of_parse_and_map(port_np, 0=
-);
->>> +               if (dev->of_node && pp->idx =3D=3D 0 &&
->>> +                       of_property_read_bool(to_of_node(fwnode),
->>> +                               "interrupt-controller")) {
->> Hi Qiujiang,
+On Thu, Mar 10, 2016 at 4:39 PM, Verma, Vishal L
+<vishal.l.verma@intel.com> wrote:
+> On Tue, 2016-03-08 at 14:47 -0800, Dan Williams wrote:
+>> If a write is directed at a known bad block perform the following:
 >>
->> Is there a reason to use "of_property_read_bool" here instead of
->> "device_property_read_bool" or similar?
-> Yeah, this patch looks unfinished.
->
-> This should be
->      if (pp->idx =3D=3D 0 &&  fwnode_property_read_bool(fwnode,
-> "interrupt-controller")) {
-Yes, agreed, "to_of_node" will never appear in this patch : )
->> Alan
+>> 1/ write the data
 >>
->>> +                       pp->irq =3D irq_of_parse_and_map(to_of_node=
-(fwnode), 0);
-> But here should be common method called which takes fwnode on input.
-Agreed.
+>> 2/ send a clear poison command
+>>
+>> 3/ invalidate the poison out of the cache hierarchy
+>>
+>> Cc: <x86@kernel.org>
+>> Cc: Vishal Verma <vishal.l.verma@intel.com>
+>> Cc: Ross Zwisler <ross.zwisler@linux.intel.com>
+>> Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+>> ---
+>>  arch/x86/include/asm/pmem.h |    5 +++++
+>>  drivers/nvdimm/bus.c        |   46
+>> +++++++++++++++++++++++++++++++++++++++++++
+>>  drivers/nvdimm/nd.h         |    2 ++
+>>  drivers/nvdimm/pmem.c       |   29 ++++++++++++++++++++++++++-
+>>  include/linux/pmem.h        |   19 ++++++++++++++++++
+>>  5 files changed, 100 insertions(+), 1 deletion(-)
+>>
+>> diff --git a/arch/x86/include/asm/pmem.h b/arch/x86/include/asm/pmem.h
+>> index c57fd1ea9689..bf8b35d2035a 100644
+>> --- a/arch/x86/include/asm/pmem.h
+>> +++ b/arch/x86/include/asm/pmem.h
 >
->>>                         if (!pp->irq) {
->>>                                 dev_warn(dev, "no irq for bank %s\n=
-",
->>> -                                        port_np->full_name);
->>> +                                        to_of_node(fwnode)->full_n=
-ame);
->>>                         }
->>>                 }
->>>
->>>                 pp->irq_shared  =3D false;
->>>                 pp->gpio_base   =3D -1;
->>> -               pp->name        =3D port_np->full_name;
->>> +               pp->name        =3D to_of_node(fwnode)->full_name;
-> Also those two should be device property source agnostic. That's what
-> I tried to tell earlier.
-Agreed.
-Thanks, Jiang
+> <>
+>
+>>  static int pmem_do_bvec(struct pmem_device *pmem, struct page *page,
+>>                       unsigned int len, unsigned int off, int rw,
+>>                       sector_t sector)
+>>  {
+>>       int rc = 0;
+>> +     bool bad_pmem = false;
+>>       void *mem = kmap_atomic(page);
+>>       phys_addr_t pmem_off = sector * 512 + pmem->data_offset;
+>>       void __pmem *pmem_addr = pmem->virt_addr + pmem_off;
+>>
+>> +     if (unlikely(is_bad_pmem(&pmem->bb, sector, len)))
+>> +             bad_pmem = true;
+>> +
+>>       if (rw == READ) {
+>> -             if (unlikely(is_bad_pmem(&pmem->bb, sector, len)))
+>> +             if (unlikely(bad_pmem))
+>>                       rc = -EIO;
+>>               else {
+>>                       memcpy_from_pmem(mem + off, pmem_addr, len);
+>> @@ -81,6 +104,10 @@ static int pmem_do_bvec(struct pmem_device *pmem,
+>> struct page *page,
+>>       } else {
+>>               flush_dcache_page(page);
+>>               memcpy_to_pmem(pmem_addr, mem + off, len);
+>> +             if (unlikely(bad_pmem)) {
+>> +                     pmem_clear_poison(pmem, pmem_off, len);
+>> +                     memcpy_to_pmem(pmem_addr, mem + off, len);
+>> +             }
+>>       }
+>
+> Just noticed this -- why do we memcpy_to_pmem twice in the error case?
+> Sh
+> ouldn't it be:
+>
+>         if (unlikely(bad_pmem))
+>                 pmem_clear_poison(pmem, pmem_off, len);
+>         memcpy_to_pmem(pmem_addr, mem + off, len);
+>
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+There is an open question of whether clear_poison implementations
+guarantee determinant data after clear, or otherwise guarantee that
+the data written before the clear_poison stays in place.  So I write
+twice to cover all those bases.  Probably deserves a comment.
