@@ -1,62 +1,74 @@
-From: "Rafael J. Wysocki" <rafael@kernel.org>
-Subject: [GIT PULL] Power management and ACPI fixes for final v4.5
-Date: Fri, 11 Mar 2016 15:23:01 +0100
-Message-ID: <CAJZ5v0gwWNqo74ZwPZnjqRxivX7xanno4bSmMKoVOaEJ5m+zSg@mail.gmail.com>
+From: Matt Fleming <matt@codeblueprint.co.uk>
+Subject: Re: [PATCH][RFC,v4] ACPI / PM: Introduce efi poweroff for HW-full
+ platforms without _S5
+Date: Fri, 11 Mar 2016 15:55:46 +0000
+Message-ID: <20160311155546.GJ15775@codeblueprint.co.uk>
+References: <1457687133-3730-1-git-send-email-yu.c.chen@intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-lb0-f180.google.com ([209.85.217.180]:33830 "EHLO
-	mail-lb0-f180.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752878AbcCKOXF (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 11 Mar 2016 09:23:05 -0500
+Received: from mail-wm0-f46.google.com ([74.125.82.46]:37005 "EHLO
+	mail-wm0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932490AbcCKPzt (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 11 Mar 2016 10:55:49 -0500
+Received: by mail-wm0-f46.google.com with SMTP id p65so23126267wmp.0
+        for <linux-acpi@vger.kernel.org>; Fri, 11 Mar 2016 07:55:49 -0800 (PST)
+Content-Disposition: inline
+In-Reply-To: <1457687133-3730-1-git-send-email-yu.c.chen@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: "linux-pm@vger.kernel.org" <linux-pm@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+To: Chen Yu <yu.c.chen@intel.com>
+Cc: linux-acpi@vger.kernel.org, linux-pm@vger.kernel.org, "Rafael J. Wysocki" <rafael@kernel.org>, Len Brown <lenb@kernel.org>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, rui.zhang@intel.com, linux-efi@vger.kernel.org, x86@kernel.org, linux-kernel@vger.kernel.org, Ard Biesheuvel <ard.biesheuvel@linaro.org>, Mark Salter <msalter@redhat.com>
 
-Hi Linus,
+On Fri, 11 Mar, at 05:05:33PM, Chen Yu wrote:
+> The problem is Linux registers pm_power_off = efi_power_off
+> only if we are in hardware reduced mode. Actually, what we also
+> want is to do this when ACPI S5 is simply not supported on
+> non-legacy platforms. That should handle both the HW reduced mode,
+> and the HW-full mode where the DSDT fails to supply an _S5 object.
+> 
+> This patch introduces pm_power_off_default which would be used by
+> pm_power_off if nothing else is available. And in this case we
+> leverage efi power off to be this role. However since efi power off
+> may not be stable enough thus in order not to interfere with other
+> poweroff path, we only make a minimum enhancement for x86 in
+> native_machine_power_off.
+> 
+> Suggested-by: Len Brown <len.brown@intel.com>
+> Signed-off-by: Chen Yu <yu.c.chen@intel.com>
+> ---
+> v4:
+>  - Since in v3 efi_poweroff_required() is not guaranteed to run
+>    after all of the other code that may register alternative
+>    power off handling, add the pm_power_off_default that would
+>    be used by pm_power_off if nothing else is available.
+> v3:
+>  - Only assign pm_power_off to efi_power_off when there are no
+>    other pm_power_off registered at that time, in case other
+>    commponents would like to customize their own implementation.
+> ---
+> v2:
+>  - Convert the acpi_no_s5 to a global bool variable in sleep.c and
+>    add a declaration to include/linux/acpi.h.
+> ---
+>  arch/x86/kernel/reboot.c       | 3 +++
+>  arch/x86/platform/efi/quirks.c | 5 +++++
+>  drivers/acpi/sleep.c           | 7 +++++++
+>  drivers/firmware/efi/reboot.c  | 8 ++++++++
+>  include/linux/acpi.h           | 1 +
+>  include/linux/efi.h            | 1 +
+>  include/linux/pm.h             | 1 +
+>  kernel/reboot.c                | 1 +
+>  8 files changed, 27 insertions(+)
 
-Please pull from
+Couple of things,
 
- git://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm.git \
- pm+acpi-4.5-final
+  1) I'm still waiting for an answer to my question on whether
+     platforms without _S5 that need EFI reset actually exist. You
+     said they "might" exist, which makes this all sound very
+     speculative. It is not obvious to me that this approach makes
+     sense. 
 
-to receive power management and ACPI fixes for final v4.5 with
-top-most commit 5b3e7e0536bd6326798ab57d14a49b15ad7e3e3f
-
- Merge branches 'device-properties-fixes' and 'acpica-fixes'
-
-on top of commit f6cede5b49e822ebc41a099fe41ab4989f64e2cb
-
- Linux 4.5-rc7
-
-Two more fixes for issues introduced recently, one in the
-generic device properties framework and one in ACPICA.
-
-Specifics:
-
- - Revert a recent ACPICA commit that has been reverted
-   upstream, because it caused problems to happen on user
-   systems and the problem it attempted to address will not be
-   relevant any more after upcoming ACPI specification changes
-   (Bob Moore).
-
- - Fix crash in the generic device properties framework introduced
-   by a recent change that forgot to check pointers against error
-   values in addition to checking them against NULL (Heikki Krogerus).
-
-Thanks!
-
----------------
-
-Bob Moore (1):
-      ACPICA: Revert "Parser: Fix for SuperName method invocation"
-
-Heikki Krogerus (1):
-      device property: fwnode->secondary may contain ERR_PTR(-ENODEV)
-
----------------
-
- drivers/acpi/acpica/psargs.c | 9 ++++-----
- drivers/base/property.c      | 8 ++++----
- 2 files changed, 8 insertions(+), 9 deletions(-)
+  2) In v4 you're modifying the generic EFI reboot code and should Cc
+     other developers who might care, e.g. the arm64 folks. I've Cc'd
+     them now.
