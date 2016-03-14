@@ -1,182 +1,193 @@
-From: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
-Subject: Re: [PATCH v2] PCI: ACPI: IA64: fix IO port generic range check
-Date: Mon, 14 Mar 2016 14:53:22 +0000
-Message-ID: <20160314145322.GE6629@red-moon>
-References: <1455212827-9382-1-git-send-email-lorenzo.pieralisi@arm.com>
- <20160308222125.GG27132@localhost>
- <CAJZ5v0gnDnF_4z_mtZp+Tq8-V3FgG6p7kMykqtVA+s44ukkuaA@mail.gmail.com>
- <20160309053332.GA22228@localhost>
- <20160309071406.GA19555@red-moon>
- <20160309153556.GA14873@localhost>
- <20160310074236.GA20478@red-moon>
+From: Bjorn Helgaas <helgaas@kernel.org>
+Subject: Re: [PATCH 1/4] acpi,pci,irq: reduce resource requirements
+Date: Mon, 14 Mar 2016 13:52:51 -0500
+Message-ID: <20160314185251.GA19703@localhost>
+References: <1457484079-18202-1-git-send-email-okaya@codeaurora.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from foss.arm.com ([217.140.101.70]:59763 "EHLO foss.arm.com"
+Received: from mail.kernel.org ([198.145.29.136]:54672 "EHLO mail.kernel.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S965212AbcCNOu7 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 14 Mar 2016 10:50:59 -0400
+	id S1752473AbcCNSz6 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 14 Mar 2016 14:55:58 -0400
 Content-Disposition: inline
-In-Reply-To: <20160310074236.GA20478@red-moon>
+In-Reply-To: <1457484079-18202-1-git-send-email-okaya@codeaurora.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Bjorn Helgaas <helgaas@kernel.org>
-Cc: "Rafael J. Wysocki" <rafael@kernel.org>, Linux PCI <linux-pci@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, "linux-ia64@vger.kernel.org" <linux-ia64@vger.kernel.org>, Bjorn Helgaas <bhelgaas@google.com>, Hanjun Guo <hanjun.guo@linaro.org>, Jiang Liu <jiang.liu@linux.intel.com>, Tony Luck <tony.luck@intel.com>, Tomasz Nowicki <tn@semihalf.com>, Mark Salter <msalter@redhat.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>
+To: Sinan Kaya <okaya@codeaurora.org>
+Cc: linux-acpi@vger.kernel.org, timur@codeaurora.org, cov@codeaurora.org, linux-pci@vger.kernel.org, ravikanth.nalla@hpe.com, lenb@kernel.org, harish.k@hpe.com, ashwin.reghunandanan@hpe.com, bhelgaas@google.com, rjw@rjwysocki.net, linux-kernel@vger.kernel.org
 
-On Thu, Mar 10, 2016 at 07:42:36AM +0000, Lorenzo Pieralisi wrote:
-
-[...]
-
-> > > We can't do that, it may work on IA64 but the ioport_resource is a
-> > > chunk of address space on IA64/ARM64 that has nothing to do with
-> > > the physical address at which the root bridges decode IO space (which
-> > > is what's contained in the resource).
-> > 
-> > I'm stumbling over "the physical address at which the root bridges
-> > decode IO space (which is what's contained in the resource)".
-> > 
-> > x86 host bridges typically just forward CPU-generated I/O port
-> > transactions to PCI with no address translation, so it sounds like
-> > you're talking about ia64/ARM64 bridges that decode CPU MMIO space and
-> > turn accesses into PCI I/O transactions.
-> > 
-> > If we start from a driver calling inb(), the driver supplies a Linux
-> > ioport number "X".  On ia64 (and I assume ARM64 as well), inb()
-> > performs an MMIO access to memory address "Y".  A host bridge consumes
-> > that MMIO access and generates a corresponding PCI I/O transaction to
-> > PCI ioport "Z".
-> > 
-> > It is indeed true that ioport_resource has nothing to do with memory
-> > addresses like "Y".  But the driver (and this part of the ACPI
-> > infrastructure) are dealing with ioport address "X", and that is
-> > definitely in an IORESOURCE_IO struct resource.  The IORESOURCE_MEM_
-> > struct resource that contains "Y" is internal to the host bridge
-> > driver and invisible to the device driver that's using inb().
+On Tue, Mar 08, 2016 at 07:41:16PM -0500, Sinan Kaya wrote:
+> Code has been redesigned to calculate penalty requirements on the fly. This
+> significantly simplifies the implementation and removes some of the init
+> calls from x86 architecture.
 > 
-> The problem is, that's the address like "Y" that are checked in
-> acpi_dev_ioresource_flags() with current PCI initialization flow.
+> Signed-off-by: Sinan Kaya <okaya@codeaurora.org>
+> ---
+>  drivers/acpi/pci_link.c | 82 ++++++++++++++++++++++++++++++++++---------------
+>  1 file changed, 58 insertions(+), 24 deletions(-)
 > 
-> IO ports number "X" are created in (IA64) add_io_space() that is
-> executed after acpi_pci_probe_root_resources() is called (see
-> arch/ia64/pci/pci.c), that's the code that, IIUC, translates an
-> IO resource containing a CPU physical address (which is the address
-> that is ioremapped) to an IO resource containing a port number *and*
-> a corresponding MEM resource.
+> diff --git a/drivers/acpi/pci_link.c b/drivers/acpi/pci_link.c
+> index ededa90..a5a66ca 100644
+> --- a/drivers/acpi/pci_link.c
+> +++ b/drivers/acpi/pci_link.c
+> @@ -36,6 +36,8 @@
+>  #include <linux/mutex.h>
+>  #include <linux/slab.h>
+>  #include <linux/acpi.h>
+> +#include <linux/irq.h>
+> +#include <linux/interrupt.h>
+>  
+>  #include "internal.h"
+>  
+> @@ -440,7 +442,6 @@ static int acpi_pci_link_set(struct acpi_pci_link *link, int irq)
+>  #define ACPI_MAX_IRQS		256
+>  #define ACPI_MAX_ISA_IRQ	16
+>  
+> -#define PIRQ_PENALTY_PCI_AVAILABLE	(0)
+>  #define PIRQ_PENALTY_PCI_POSSIBLE	(16*16)
+>  #define PIRQ_PENALTY_PCI_USING		(16*16*16)
+>  #define PIRQ_PENALTY_ISA_TYPICAL	(16*16*16*16)
+> @@ -457,9 +458,9 @@ static int acpi_irq_penalty[ACPI_MAX_IRQS] = {
+>  	PIRQ_PENALTY_ISA_TYPICAL,	/* IRQ6 */
+>  	PIRQ_PENALTY_ISA_TYPICAL,	/* IRQ7 parallel, spurious */
+>  	PIRQ_PENALTY_ISA_TYPICAL,	/* IRQ8 rtc, sometimes */
+> -	PIRQ_PENALTY_PCI_AVAILABLE,	/* IRQ9  PCI, often acpi */
+> -	PIRQ_PENALTY_PCI_AVAILABLE,	/* IRQ10 PCI */
+> -	PIRQ_PENALTY_PCI_AVAILABLE,	/* IRQ11 PCI */
+> +	0,				/* IRQ9  PCI, often acpi */
+> +	0,				/* IRQ10 PCI */
+> +	0,				/* IRQ11 PCI */
+>  	PIRQ_PENALTY_ISA_USED,		/* IRQ12 mouse */
+>  	PIRQ_PENALTY_ISA_USED,		/* IRQ13 fpe, sometimes */
+>  	PIRQ_PENALTY_ISA_USED,		/* IRQ14 ide0 */
+> @@ -467,6 +468,49 @@ static int acpi_irq_penalty[ACPI_MAX_IRQS] = {
+>  	/* >IRQ15 */
+>  };
+>  
+> +static int acpi_irq_pci_sharing_penalty(int irq)
+> +{
+> +	struct acpi_pci_link *link;
+> +	int penalty = 0;
+> +
+> +	list_for_each_entry(link, &acpi_link_list, list) {
+> +		/*
+> +		 * If a link is active, penalize its IRQ heavily
+> +		 * so we try to choose a different IRQ.
+> +		 */
+> +		if (link->irq.active && link->irq.active == irq)
+> +			penalty += PIRQ_PENALTY_PCI_USING;
+> +		else {
+> +			int i;
+> +
+> +			/*
+> +			 * If a link is inactive, penalize the IRQs it
+> +			 * might use, but not as severely.
+> +			 */
+> +			for (i = 0; i < link->irq.possible_count; i++)
+> +				if (link->irq.possible[i] == irq)
+> +					penalty += PIRQ_PENALTY_PCI_POSSIBLE /
+> +						link->irq.possible_count;
+> +		}
+> +	}
+> +
+> +	return penalty;
+> +}
+> +
+> +static int acpi_irq_get_penalty(int irq)
+> +{
+> +	int penalty = 0;
+> +
+> +	if (irq < ACPI_MAX_ISA_IRQ)
+> +		penalty += acpi_irq_penalty[irq];
+> +
+> +	if (irq == acpi_gbl_FADT.sci_interrupt)
+> +		penalty += PIRQ_PENALTY_PCI_USING;
+> +
+> +	penalty += acpi_irq_pci_sharing_penalty(irq);
+> +	return penalty;
+> +}
+> +
+>  int __init acpi_irq_penalty_init(void)
+>  {
+>  	struct acpi_pci_link *link;
+> @@ -568,7 +612,6 @@ static int acpi_pci_link_allocate(struct acpi_pci_link *link)
+>  			    acpi_device_bid(link->device));
+>  		return -ENODEV;
+>  	} else {
+> -		acpi_irq_penalty[link->irq.active] += PIRQ_PENALTY_PCI_USING;
+>  		printk(KERN_WARNING PREFIX "%s [%s] enabled at IRQ %d\n",
+>  		       acpi_device_name(link->device),
+>  		       acpi_device_bid(link->device), link->irq.active);
+> @@ -787,23 +830,24 @@ static int __init acpi_irq_penalty_update(char *str, int used)
+>  	for (i = 0; i < 16; i++) {
+>  		int retval;
+>  		int irq;
+> +		int new_penalty;
+>  
+>  		retval = get_option(&str, &irq);
+>  
+>  		if (!retval)
+>  			break;	/* no number found */
+>  
+> -		if (irq < 0)
+> -			continue;
+> -
+> -		if (irq >= ARRAY_SIZE(acpi_irq_penalty))
+> +		/* see if this is a ISA IRQ */
+> +		if ((irq < 0) || (irq >= ACPI_MAX_ISA_IRQ))
+>  			continue;
+>  
+>  		if (used)
+> -			acpi_irq_penalty[irq] += PIRQ_PENALTY_ISA_USED;
+> +			new_penalty = acpi_irq_get_penalty(irq) +
+> +					PIRQ_PENALTY_ISA_USED;
+>  		else
+> -			acpi_irq_penalty[irq] = PIRQ_PENALTY_PCI_AVAILABLE;
+> +			new_penalty = 0;
+>  
+> +		acpi_irq_penalty[irq] = new_penalty;
+>  		if (retval != 2)	/* no next number */
+>  			break;
+>  	}
+> @@ -819,12 +863,9 @@ static int __init acpi_irq_penalty_update(char *str, int used)
+>   */
+>  void acpi_penalize_isa_irq(int irq, int active)
+>  {
+> -	if (irq >= 0 && irq < ARRAY_SIZE(acpi_irq_penalty)) {
+> -		if (active)
+> -			acpi_irq_penalty[irq] += PIRQ_PENALTY_ISA_USED;
+> -		else
+> -			acpi_irq_penalty[irq] += PIRQ_PENALTY_PCI_USING;
+> -	}
+> +	if ((irq >= 0) && (irq < ARRAY_SIZE(acpi_irq_penalty)))
+> +		acpi_irq_penalty[irq] = active ?
+> +			PIRQ_PENALTY_ISA_USED : PIRQ_PENALTY_PCI_USING;
+>  }
+>  
+>  bool acpi_isa_irq_available(int irq)
+> @@ -840,13 +881,6 @@ bool acpi_isa_irq_available(int irq)
+>   */
+>  void acpi_penalize_sci_irq(int irq, int trigger, int polarity)
+>  {
+> -	if (irq >= 0 && irq < ARRAY_SIZE(acpi_irq_penalty)) {
+> -		if (trigger != ACPI_MADT_TRIGGER_LEVEL ||
+> -		    polarity != ACPI_MADT_POLARITY_ACTIVE_LOW)
+> -			acpi_irq_penalty[irq] += PIRQ_PENALTY_ISA_ALWAYS;
+> -		else
+> -			acpi_irq_penalty[irq] += PIRQ_PENALTY_PCI_USING;
+> -	}
+
+I think we lost the validation of trigger mode and polarity, didn't
+we?
+
+>  }
+>  
+>  /*
+> -- 
+> 1.8.2.1
 > 
-> The check that causes failures (>=0x10003) is carried out
-> on the "raw" IO resource parsed from ACPI, not the one crafted
-> in add_io_space().
-> 
-> The resource checked in acpi_dev_ioresource_flags() is created from
-> ACPI IO descriptor and does contain CPU physical MMIO addresses,
-> comparing it to a port number is bound to fail, they do NOT represent
-> the same thing, happy be corrected.
-> 
-> That's the reason why currently IA64 IO space is not working, and
-> this patch fixes it, please correct me if I am wrong.
-> 
-> I will write back next week with the commits sequence and logic that
-> led to the current failure, sorry for not being able to respond
-> more promptly and in a comprehensive way I need sometime to write up
-> my understanding of the problem and commit logs, I will do that
-> next week.
-
-I had a further look and went through commit history and I think
-my explanation above is correct, current code for IA64 PCI IO space
-is wrong IMO and the failures started with:
-
-commit 3772aea7d6f3 ("ia64/PCI/ACPI: Use common ACPI resource parsing
-interface for host bridge")
-
-because that's the commit that added IA64 PCI code to use
-acpi_dev_get_resources(), let me add to that.
-
-For the records, and for the same reason, let's imagine we can fix the
-(>=0x10003) check in:
-
-acpi_dev_ioresource_flags()
-
-the code in acpi_pci_probe_root_resources() that checks the PCI IO
-resources (ie acpi_pci_root_validate_resources()) is wrong, in that it
-validates the PCI IO resources obtained from ACPI IO descriptors against
-ioport_resource, and that's not correct, they do not represent the
-same thing.
-
-Code in acpi_dev_get_resources() walks the device (PCI host bridge in
-this case) resources (ie _CRS) with acpi_dev_process_resource().
-
-On IA64 IO space is memory mapped, therefore the CPU physical address
-at which the PCI host bridge maps the IO space has to come from ACPI
-IO descriptors.
-
-IIUC, those descriptors are parsed through:
-
-acpi_dev_resource_address_space()
-acpi_dev_resource_ext_address_space()
-
-which in turn call:
-
-acpi_decode_space()
-
-where the resource window is actually created, in particular the
-acpi_address64_attribute value contains (on IA64, I verified with
-ACPI spec working group through actual ACPI tables):
-
-attr->minimum = PCI IO port min value
-attr->translation_offset = offset to add to attr->minimum to obtain the
-                           CPU physical address at which the PCI IO
-			   bridge decodes IO space. Translation offset,
-			   according to the ACPI specification has to
-			   be used when resources on primary and
-			   secondary sides of the PCI bridge are
-			   different (IIUC secondary bus represents PCI
-			   IO ports, primary bus CPU physical addresses
-			   mapping IO ports in CPU physical address
-			   space). This is the physical address that is
-			   remapped in IA64 new_space(), to map the
-			   bridge CPU physical address into the virtual
-			   address space, and it has always been so, even
-			   before 3772aea7d6f3.
-
-Now, the resource window, in acpi_decode_space() is created as:
-
-res->start = attr->minimum + attr->translation_offset;
-res->end = attr->maximum + attr->translation_offset;
-
-and that's the resource we have in acpi_dev_ioresource_flags(), if we
-are comparing it against ioport_resource that's not correct since as I
-already mentioned, they represent *different* things.
-
-There is something we can do, which is, checking translation_type
-in acpi_dev_ioresource_flags(), if it is == TypeTranslation (which
-basically means that the IO space is MMIO) the >=10003 can be skipped,
-but that's hackish (also because I am not sure IA64 platforms set
-translation_type consistently in ACPI tables).
-
-Even if we do that, call to acpi_pci_root_validate_resources() for
-IO space is wrong on IA64, we are comparing an IO resource against
-ioport_resource there, but the Linux IO port space for the host
-bridge is created in IA64 pci_acpi_root_prepare_resources() with
-the call to add_io_space() which happens *after* the sequence above
-is executed.
-
-On IA64:
-
-pci_acpi_root_prepare_resources()
- -> acpi_pci_probe_root_resources()
-    -> acpi_dev_get_resources()
-    -> acpi_pci_root_validate_resources()
- -> add_io_space() # this is where the Linux IO port space for the bridge is
-                     created and that's when we can validate the IO
-		     resource against ioport_resource
-
-I have no experience/knowledge of IA64 systems so I may be totally wrong,
-I just want to understand.
-
-Comments welcome, Hanjun proved my understanding by testing on IA64 and
-current mainline just does not work (see commit log for failure messages),
-feedback from IA64 people is really needed here, we have to get this fixed
-please (and through that fix, getting it to work on ARM64 too).
-
-Thanks,
-Lorenzo
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
