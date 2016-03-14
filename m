@@ -1,89 +1,72 @@
-From: "Chen, Yu C" <yu.c.chen@intel.com>
-Subject: RE: [PATCH][v3] ACPI: Do not report _OSI("Darwin") when
- acpi_osi=!Darwin provided
-Date: Mon, 14 Mar 2016 14:17:08 +0000
-Message-ID: <36DF59CE26D8EE47B0655C516E9CE640286D4D37@shsmsx102.ccr.corp.intel.com>
-References: <1454377278-3398-1-git-send-email-yu.c.chen@intel.com>
- <1AE640813FDE7649BE1B193DEA596E883BB4DAB4@SHSMSX101.ccr.corp.intel.com>
- <36DF59CE26D8EE47B0655C516E9CE640286C6882@shsmsx102.ccr.corp.intel.com>
- <1AE640813FDE7649BE1B193DEA596E883BB4DB10@SHSMSX101.ccr.corp.intel.com>
+From: Alex Deucher <alexdeucher@gmail.com>
+Subject: Re: [PATCH 1/2] vga_switcheroo: add power support for windows 10
+ machines.
+Date: Mon, 14 Mar 2016 10:30:50 -0400
+Message-ID: <CADnq5_PMS+TV_csWMXGNN=aQ=GE6ATXij2beNZb-dFisBUsfUw@mail.gmail.com>
+References: <1457504045-12738-1-git-send-email-airlied@gmail.com>
+ <2736217.utxPzJExd5@vostro.rjw.lan>
+ <20160311105815.GS1796@lahna.fi.intel.com>
+ <2759763.dR5D0KopkA@vostro.rjw.lan>
+ <CAPM=9txo4aOOa-CS-mnyQe+vYDtAOCm1bzAgfMzwJJS8ZuYmwQ@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga11.intel.com ([192.55.52.93]:19807 "EHLO mga11.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755317AbcCNORQ convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 14 Mar 2016 10:17:16 -0400
-In-Reply-To: <1AE640813FDE7649BE1B193DEA596E883BB4DB10@SHSMSX101.ccr.corp.intel.com>
-Content-Language: en-US
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <dri-devel-bounces@lists.freedesktop.org>
+In-Reply-To: <CAPM=9txo4aOOa-CS-mnyQe+vYDtAOCm1bzAgfMzwJJS8ZuYmwQ@mail.gmail.com>
+List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/dri-devel>,
+ <mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
+List-Archive: <https://lists.freedesktop.org/archives/dri-devel>
+List-Post: <mailto:dri-devel@lists.freedesktop.org>
+List-Help: <mailto:dri-devel-request@lists.freedesktop.org?subject=help>
+List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/dri-devel>,
+ <mailto:dri-devel-request@lists.freedesktop.org?subject=subscribe>
+Errors-To: dri-devel-bounces@lists.freedesktop.org
+Sender: "dri-devel" <dri-devel-bounces@lists.freedesktop.org>
+To: Dave Airlie <airlied@gmail.com>
+Cc: "Rafael J. Wysocki" <rafael@kernel.org>, Linux PCI <linux-pci@vger.kernel.org>, "linux-pm@vger.kernel.org" <linux-pm@vger.kernel.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, dri-devel <dri-devel@lists.freedesktop.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Mika Westerberg <mika.westerberg@linux.intel.com>
 List-Id: linux-acpi@vger.kernel.org
-To: "Zheng, Lv" <lv.zheng@intel.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
-Cc: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "rjw@rjwysocki.net" <rjw@rjwysocki.net>, "lenb@kernel.org" <lenb@kernel.org>, "matthew.garrett@nebula.com" <matthew.garrett@nebula.com>, "andy.shevchenko@gmail.com" <andy.shevchenko@gmail.com>
 
-Hi Lv,
-> -----Original Message-----
-> From: Zheng, Lv
-> Sent: Monday, February 22, 2016 4:56 PM
-> To: Chen, Yu C; linux-acpi@vger.kernel.org
-> Cc: linux-kernel@vger.kernel.org; rjw@rjwysocki.net; lenb@kernel.org;
-> matthew.garrett@nebula.com; andy.shevchenko@gmail.com
-> Subject: RE: [PATCH][v3] ACPI: Do not report _OSI("Darwin") when
-> acpi_osi=!Darwin provided
-> 
-> Hi,
-> 
-> > From: Chen, Yu C
-> > Subject: RE: [PATCH][v3] ACPI: Do not report _OSI("Darwin") when
-> > acpi_osi=!Darwin provided
-> >
-> >
-> > > From: Zheng, Lv
-> > > Subject: RE: [PATCH][v3] ACPI: Do not report _OSI("Darwin") when
-> > > acpi_osi=!Darwin provided
-> > >
-> > > Hi, Yu
-> > >
-> > > > From: linux-acpi-owner@vger.kernel.org [mailto:linux-acpi-
-> > > > owner@vger.kernel.org] On Behalf Of Chen Yu
-> > > > Subject: [PATCH][v3] ACPI: Do not report _OSI("Darwin") when
-> > > > acpi_osi=!Darwin provided
-> > > >
-> > > > Commit 7bc5a2bad0b8 ("ACPI: Support _OSI("Darwin") correctly")
-> > > > always reports positive value when Apple hardware queries
-> _OSI("Darwin").
-> > > > But sometimes the users might want to tell the hardware they don't
-> > > > need the Darwin feature, for example, users may leverage the
-> > > > hardware to power off the Thunderbolt, by appending
-> > > > acpi_osi=!Darwin in command line, thus Apple hardware regards it
-> > > > as an incompatible OS X system, hence turns off the Thunderbolt.
-> > > [Lv Zheng]
-> > > Both this patch and the original commit that is from Matthew look
-> > > wrong to me.
-> > > IMO, the feature should be done with an entirely different approach.
-> > > Without test, I'm not sure if my comment is helpful for you.
-> > > So could you let me take over to fix this issue?
-> > >
-> > Yes, sure, thanks.
-> [Lv Zheng]
-> It looks to me, the original Matthew's commit was trying to make the world
-> easier with "acpi_osi=! acpi_osi=Darwin".
-> While it finally adds limitation to the acpi_osi= quirk mechanism and is proven
-> to be a bad idea.
-> So why don't we just revert that commit?
-> 
-> According to my understanding, there is no better choice other than letting
-> users to choose a non-recent-Windows OS that the kernel should pretend to
-> be.
-> So that kernel can stay simple to just pretend to be "recent-Windows".
-> 
-> And the only improvement that is acceptable in this case is:
-> We can allow acpi_osi=Darwin to be equivalent to "acpi_osi=!
-> acpi_osi=Darwin".
-[Yu] Do you mean the new version be:
-1. revert orginal 'OSI Darwin support' patch
-2. improve acpi_osi=Linux/Darwin, automatically do acpi_osi=! for them
-   (though we need to add entry in acpi_default_supported_interfaces)
-
-yu
+T24gU3VuLCBNYXIgMTMsIDIwMTYgYXQgMTA6MTkgUE0sIERhdmUgQWlybGllIDxhaXJsaWVkQGdt
+YWlsLmNvbT4gd3JvdGU6Cj4gT24gMTEgTWFyY2ggMjAxNiBhdCAyMzo0NSwgUmFmYWVsIEouIFd5
+c29ja2kgPHJqd0Byand5c29ja2kubmV0PiB3cm90ZToKPj4gT24gRnJpZGF5LCBNYXJjaCAxMSwg
+MjAxNiAxMjo1ODoxNSBQTSBNaWthIFdlc3RlcmJlcmcgd3JvdGU6Cj4+PiBPbiBUaHUsIE1hciAx
+MCwgMjAxNiBhdCAwOTo1NzowOVBNICswMTAwLCBSYWZhZWwgSi4gV3lzb2NraSB3cm90ZToKPj4+
+ID4gPiBJdCBkb2Vzbid0IHNlZW0gdG8gZG8gYW55IHJ1bnRpbWUgUE0sCj4+PiA+ID4gSSBkbyB3
+b25kZXIgaWYgcGNpZXBvcnQgc2hvdWxkIGJlIGRvaW5nIGl0J3Mgb3duIHJ1bnRpbWUgUE0gaGFu
+ZGxpbmcsCj4+PiA+ID4gYnV0IHRoYXQgaXMgYQo+Pj4gPiA+IGxhcmdlciB0YXNrIHRoYW4gSSdt
+IHRoaW5raW5nIHRvIHRhY2tsZSBoZXJlLgo+Pj4gPgo+Pj4gPiBQQ0llIHBvcnRzIGRvbid0IGRv
+IFBNIC0geWV0LiAgTWlrYSBoYXMgcG9zdGVkIGEgc2VyaWVzIG9mIHBhdGNoZXMgdG8gaW1wbGVt
+ZW50Cj4+PiA+IHRoYXQsIGhvd2V2ZXIsIHRoYXQgYXJlIHdhaXRpbmcgZm9yIGNvbW1lbnRzIG5v
+dzoKPj4+ID4KPj4+ID4gaHR0cHM6Ly9wYXRjaHdvcmsua2VybmVsLm9yZy9wYXRjaC84NDUzMzEx
+Lwo+Pj4gPiBodHRwczovL3BhdGNod29yay5rZXJuZWwub3JnL3BhdGNoLzg0NTMzODEvCj4+PiA+
+IGh0dHBzOi8vcGF0Y2h3b3JrLmtlcm5lbC5vcmcvcGF0Y2gvODQ1MzM5MS8KPj4+ID4gaHR0cHM6
+Ly9wYXRjaHdvcmsua2VybmVsLm9yZy9wYXRjaC84NDUzNDExLwo+Pj4gPiBodHRwczovL3BhdGNo
+d29yay5rZXJuZWwub3JnL3BhdGNoLzg0NTMzNzEvCj4+PiA+IGh0dHBzOi8vcGF0Y2h3b3JrLmtl
+cm5lbC5vcmcvcGF0Y2gvODQ1MzM1MS8KPj4+ID4KPj4+ID4gPiBNYXliZSBJIHNob3VsZCBiZSBk
+b2luZwo+Pj4gPiA+Cj4+PiA+ID4gcGNpX3NldF9wb3dlcl9zdGF0ZShwZGV2LT5idXMtPnNlbGYs
+IFBDSV9EM2NvbGQpID8gSSdtIG5vdCByZWFsbHkgc3VyZS4KPj4+ID4KPj4+ID4gVXNpbmcgcGNp
+X3NldF9wb3dlcl9zdGF0ZSgpIHdvdWxkIGJlIG1vcmUgYXBwcm9wcmlhdGUgSU1PLCBidXQgeW91
+IGNhbiBnZXQKPj4+ID4gdG8gdGhlIGJyaWRnZSB2aWEgZGV2LT5wYXJlbnQgdG9vLCBjYW4ndCB5
+b3U/Cj4+PiA+Cj4+PiA+IEluIGFueSBjYXNlLCBpdCBsb29rcyBsaWtlIHlvdSBhbmQgTWlrYSBu
+ZWVkIHRvIHRhbGsuIDotKQo+Pj4KPj4+IFdoZW4gdGhlIHZnYV9zd2l0Y2hlcm9vIGRldmljZSBn
+ZXRzIHJ1bnRpbWUgc3VzcGVuZGVkICh3aXRoIHRoZSBhYm92ZQo+Pj4gcnVudGltZSBQTSBwYXRj
+aHMgZm9yIFBDSWUgcm9vdCBwb3J0cykgdGhlIHJvb3QgcG9ydCBzaG91bGQgYWxzbyBiZQo+Pj4g
+cnVudGltZSBzdXNwZW5kZWQgYnkgdGhlIFBNIGNvcmUuCj4+Cj4+IFJpZ2h0LCBhZnRlciB5b3Vy
+IHBhdGNoZXMgaGF2ZSBiZWVuIGFwcGxpZWQsIHRoZSBhZGRpdGlvbmFsIGhhbmRsaW5nCj4+IHdv
+bid0IGJlIG5lZWRlZC4KPj4KPj4gU28gRGF2ZSwgbWF5YmUgeW91IGNhbiBjaGVjayBpZiB0aGUg
+TWlrYSdzIHBhdGNoZXMgaGVscD8KPgo+IEhpIE1pa2EsCj4KPiBJIHRlc3RlZCB5b3VyIHBhdGNo
+ZXMgd2l0aCBhIGNvdXBsZSBvZiBjaGFuZ2VzIG9uIHRoZSBMZW5vdm8gVzU0MS4KPgo+IFRoZSBh
+dHRhY2hlZCBwYXRjaCBjb250YWlucyB0aGUgdHdvIHRoaW5ncyBJIG5lZWRlZCB0byBnZXQgdGhl
+IHNhbWUKPiBmdW5jdGlvbmFsaXR5Cj4gYXMgbXkgcGF0Y2hlcy4KPgo+IEknbSByZWFsbHkgbm90
+IGluIGxvdmUgd2l0aCB0aGUgcGVyLWNoaXBzZXQgZW5hYmxlbWVudCBmb3IgdGhpcywKPiByZWFs
+bHkgYW55IGNoaXBzZXRzCj4gYWZ0ZXIgYSBjZXJ0YWluIHllYXIgc2hvdWxkIHByb2JhYmx5IGJl
+IGJldHRlciwgYXMgd2UnbGwgY29uc3RhbnRseSBiZQo+IGFkZGluZyBQQ0kgSWRzCj4gZm9yIGV2
+ZXJ5IGNoaXBzZXQgZXZlciBtYWRlLCBhbmQgSSBleHBlY3Qgd2UnbGwgZm9yZ2V0IHNvbWUuCgoK
+WWVhaCwgSSBkb24ndCBjYXJlIG9mIHRoYXQgZWl0aGVyLiAgVGhlcmUgYXJlIGFsd2F5cyBnb2lu
+ZyB0byBiZQpjaGlwc2V0cyBmYWxsaW5nIHRocm91Z2ggdGhlIGNyYWNrcy4KCkFsZXgKCj4KPiBE
+YXZlLgo+Cj4gX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX18K
+PiBkcmktZGV2ZWwgbWFpbGluZyBsaXN0Cj4gZHJpLWRldmVsQGxpc3RzLmZyZWVkZXNrdG9wLm9y
+Zwo+IGh0dHBzOi8vbGlzdHMuZnJlZWRlc2t0b3Aub3JnL21haWxtYW4vbGlzdGluZm8vZHJpLWRl
+dmVsCj4KX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX18KZHJp
+LWRldmVsIG1haWxpbmcgbGlzdApkcmktZGV2ZWxAbGlzdHMuZnJlZWRlc2t0b3Aub3JnCmh0dHBz
+Oi8vbGlzdHMuZnJlZWRlc2t0b3Aub3JnL21haWxtYW4vbGlzdGluZm8vZHJpLWRldmVsCg==
