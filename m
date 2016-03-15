@@ -1,214 +1,186 @@
-From: Andreas Noever <andreas.noever@gmail.com>
-Subject: Re: Thunderbolt 3 (Skylake / Alpine Ridge) hotplug
-Date: Tue, 15 Mar 2016 19:03:05 +0100
-Message-ID: <CAMxnaaU0B_47xZuD+vi0=b1_U7kPr7YVF5-Y0q3GP3ez_eo3CQ@mail.gmail.com>
-References: <56D0085B.60402@jscinoz.so>
+From: "Williams, Dan J" <dan.j.williams@intel.com>
+Subject: [GIT PULL] libnvdimm for 4.6
+Date: Tue, 15 Mar 2016 18:48:40 +0000
+Message-ID: <1458067720.11591.17.camel@intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset="utf-7"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-ob0-f172.google.com ([209.85.214.172]:35602 "EHLO
-	mail-ob0-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932212AbcCOSD0 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 15 Mar 2016 14:03:26 -0400
-In-Reply-To: <56D0085B.60402@jscinoz.so>
+Received: from mga11.intel.com ([192.55.52.93]:35690 "EHLO mga11.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751133AbcCOSsl convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 15 Mar 2016 14:48:41 -0400
+Content-Language: en-US
+Content-ID: <CA3EC3C74616C44084C847AF12C1C5C0@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Jack Coulter <jscinoz@jscinoz.so>
-Cc: "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, linux-acpi@vger.kernel.org, "Rafael J. Wysocki" <rafael@kernel.org>
+To: "torvalds@linux-foundation.org" <torvalds@linux-foundation.org>, "mingo@kernel.org" <mingo@kernel.org>, "akpm@linux-foundation.org" <akpm@linux-foundation.org>
+Cc: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, "toshi.kani@hpe.com" <toshi.kani@hpe.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
 
-Hi Jack,
+Hi Linus, please pull from...
 
-On Fri, Feb 26, 2016 at 9:10 AM, Jack Coulter <jscinoz@jscinoz.so> wrot=
-e:
->
-> -----BEGIN PGP SIGNED MESSAGE-----
-> Hash: SHA256
->
-> Hi Andreas,
->
-> I was asking around on #linux-pci on OFTC and it was mentioned that y=
-ou
-> were the maintainer for Linux Thunderbolt support, and that I should
-> direct my query to you and the linux-pci & linux-kernel lists.
->
-> I'm attempting to use the Thunderbolt 3 (which has a USB Type-C
-> connector) port on my laptop, a Dell XPS 15 (9550). The external devi=
-ce
-> I'm attempting to use is a gigabit ethernet + USB 3.0 hub, of an unkn=
-own
-> / generic brand, but bears model number KY-688 if that's of any use.
->
-> When the device is present at system startup, everything works
-> correctly, and shows up in lspci as a USB controller, which lsusb sho=
-ws
-> having a hub and ethernet NIC attached, which the r8152 driver binds =
-and
-> uses without issue:
->
-> lspci -v:
->> 0a:00.0 USB controller: Intel Corporation Device 15b5 (prog-if 30 [X=
-HCI])
->>     Subsystem: Device 2222:1111
->>     Flags: bus master, fast devsel, latency 0, IRQ 131
->>     Memory at c4200000 (32-bit, non-prefetchable) [size=3D64K]
->>     Capabilities: [80] Power Management version 3
->>     Capabilities: [88] MSI: Enable+ Count=3D1/8 Maskable- 64bit+
->>     Capabilities: [c0] Express Endpoint, MSI 00
->>     Capabilities: [100] Device Serial Number a3-21-b5-60-a7-23-04-00
->>     Capabilities: [200] Advanced Error Reporting
->>     Capabilities: [300] Virtual Channel
->>     Capabilities: [400] Power Budgeting <?>
->>     Capabilities: [500] Vendor Specific Information: ID=3D1234 Rev=3D=
-1
-> Len=3D0d8 <?>
->>     Capabilities: [600] Latency Tolerance Reporting
->>     Capabilities: [700] #19
->>     Kernel driver in use: xhci_hcd
->
->
-> lspci -tv (Thunderbolt device is 15b5)
->> -[0000:00]-+-00.0  Intel Corporation Sky Lake Host Bridge/DRAM Regis=
-ters
->>            +-01.0-[01]----00.0  NVIDIA Corporation GM107M [GeForce G=
-TX
-> 960M]
->>            +-02.0  Intel Corporation Device 191b
->>            +-04.0  Intel Corporation Device 1903
->>            +-14.0  Intel Corporation Sunrise Point-H USB 3.0 xHCI
-> Controller
->>            +-14.2  Intel Corporation Sunrise Point-H Thermal subsyst=
-em
->>            +-15.0  Intel Corporation Sunrise Point-H LPSS I2C
-> Controller #0
->>            +-15.1  Intel Corporation Sunrise Point-H LPSS I2C
-> Controller #1
->>            +-16.0  Intel Corporation Sunrise Point-H CSME HECI #1
->>            +-1c.0-[02]----00.0  Broadcom Corporation BCM43602 802.11=
-ac
-> Wireless LAN SoC
->>            +-1c.1-[03]----00.0  Realtek Semiconductor Co., Ltd. Devi=
-ce
-> 525a
->>            +-1d.0-[04]----00.0  Samsung Electronics Co Ltd Device a8=
-02
->>            +-1d.4-[05]--
->>            +-1d.6-[06-3e]----00.0-[07-0a]--+-00.0-[08]--
->>            |                               +-01.0-[09]--
->>            |                               \-02.0-[0a]----00.0  Inte=
-l
-> Corporation Device 15b5
->>            +-1f.0  Intel Corporation Sunrise Point-H LPC Controller
->>            +-1f.2  Intel Corporation Sunrise Point-H PMC
->>            +-1f.3  Intel Corporation Sunrise Point-H HD Audio
->>            \-1f.4  Intel Corporation Sunrise Point-H SMBus
->
-> lsusb -tv:
->> /:  Bus 04.Port 1: Dev 1, Class=3Droot_hub, Driver=3Dxhci_hcd/2p, 50=
-00M
->>     |__ Port 1: Dev 2, If 0, Class=3DHub, Driver=3Dhub/4p, 5000M
->>         |__ Port 1: Dev 3, If 0, Class=3DVendor Specific Class,
-> Driver=3Dr8152, 5000M
->> /:  Bus 03.Port 1: Dev 1, Class=3Droot_hub, Driver=3Dxhci_hcd/2p, 48=
-0M
->>     |__ Port 1: Dev 2, If 0, Class=3DHub, Driver=3Dhub/4p, 480M
->>         |__ Port 3: Dev 3, If 0, Class=3DHuman Interface Device,
-> Driver=3Dusbhid, 12M
->>         |__ Port 3: Dev 3, If 1, Class=3DHuman Interface Device,
-> Driver=3Dusbhid, 12M
->>         |__ Port 3: Dev 3, If 2, Class=3DHuman Interface Device,
-> Driver=3Dusbhid, 12M
->>         |__ Port 3: Dev 3, If 3, Class=3DHuman Interface Device,
-> Driver=3Dusbhid, 12M
->> /:  Bus 02.Port 1: Dev 1, Class=3Droot_hub, Driver=3Dxhci_hcd/8p, 50=
-00M
->> /:  Bus 01.Port 1: Dev 1, Class=3Droot_hub, Driver=3Dxhci_hcd/16p, 4=
-80M
->>     |__ Port 4: Dev 2, If 0, Class=3DVendor Specific Class,
-> Driver=3Dbtusb, 12M
->>     |__ Port 4: Dev 2, If 1, Class=3DVendor Specific Class,
-> Driver=3Dbtusb, 12M
->>     |__ Port 4: Dev 2, If 2, Class=3DVendor Specific Class,
-> Driver=3Dbtusb, 12M
->>     |__ Port 4: Dev 2, If 3, Class=3DApplication Specific Interface,
-> Driver=3D, 12M
->>     |__ Port 12: Dev 3, If 0, Class=3DVideo, Driver=3Duvcvideo, 480M
->>     |__ Port 12: Dev 3, If 1, Class=3DVideo, Driver=3Duvcvideo, 480M
->
->
-> However, if the device is connected after the system boots (or
-> disconnected and reconnected), it is not detected at all. No messages
-> show up in dmesg upon connection and no additional devices show up in
-> the output of lspci & lsusb. Strangely enough, USB devices connected =
-to
-> the external hub do still receive power.
->
-> I also have the following options relating to PCI hotplug set in my
-> kernel config:
->
->> CONFIG_HOTPLUG_PCI_PCIE=3Dy
->> CONFIG_HOTPLUG_PCI=3Dy
->> CONFIG_HOTPLUG_PCI_ACPI=3Dy
->> CONFIG_HOTPLUG_PCI_ACPI_IBM=3Dy
->
-> I'm running the 4.4.2 kernel, booted via EFI. From what I've read,
-> Thunderbolt hotplug has been working since 3.17, controlled by the
-> CONFIG_THUNDERBOLT option. However regardless of whether this option =
-is
-> enabled or disabled, hotplug does not appeare to work on my hardware.
-> From reading the in-kernel help text for this option, I suspect that
-> it's only relevant for the older Cactus Ridge Thunderbolt controller
-> present in 2012-era MacBooks.
++AKA- git://git.kernel.org/pub/scm/linux/kernel/git/nvdimm/nvdimm tags/libnvdimm-for-4.6
 
-That is correct. On your device TB should be handled by the firmware.
+...to receive the libnvdimm update for 4.6.
 
-Bj=C3=B6rn suggested that we might not be reacting to acpi notification=
-s
-(or pci hotplug interrupts) properly. To confirm this you could try to
-issue a manual pci rescan via
+This has appeared in -next with no reported issues, and a test merge
+with latest master passes the regression tests. +AKA-Note that this
+includes development that was based on the tip/core/resources branch
+which you merged yesterday. +AKA-The post merge diffstat is cleaner than
+the 6e2452dff444..libnvdimm-for-4.6 diffstat that +ACI-git request-pull+ACI-
+picked.
 
-echo "1" > /sys/bus/pci/rescan
++AKA-arch/x86/include/asm/pmem.h+AKAAoACgAKAAoACgAHwAoACgAKA-5 +-
++AKA-drivers/acpi/nfit.c+AKAAoACgAKAAoACgAKAAoACgAKAAoACgAKAAoAB8- 798 +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+---------------
++AKA-drivers/acpi/nfit.h+AKAAoACgAKAAoACgAKAAoACgAKAAoACgAKAAoAB8AKAAoA-30 +--
++AKA-drivers/nvdimm/blk.c+AKAAoACgAKAAoACgAKAAoACgAKAAoACgAKAAfACgAKA-18 +--
++AKA-drivers/nvdimm/btt.c+AKAAoACgAKAAoACgAKAAoACgAKAAoACgAKAAfACgAKA-19 +--
++AKA-drivers/nvdimm/bus.c+AKAAoACgAKAAoACgAKAAoACgAKAAoACgAKAAfA- 131 +-+-+-+-+-+-+---
++AKA-drivers/nvdimm/core.c+AKAAoACgAKAAoACgAKAAoACgAKAAoACgAHw- 110 +-+-+-+-+----
++AKA-drivers/nvdimm/dimm+AF8-devs.c+AKAAoACgAKAAoACgAKAAfACgAKAAoA-6 +--
++AKA-drivers/nvdimm/namespace+AF8-devs.c+AKAAoAB8AKAAoACg-7 +-
++AKA-drivers/nvdimm/nd.h+AKAAoACgAKAAoACgAKAAoACgAKAAoACgAKAAoAB8AKAAoACg-4 +-
++AKA-drivers/nvdimm/pfn.h+AKAAoACgAKAAoACgAKAAoACgAKAAoACgAKAAfACgAKA-23 +--
++AKA-drivers/nvdimm/pfn+AF8-devs.c+AKAAoACgAKAAoACgAKAAoAB8AKAAoA-61 +-+-+-+-
++AKA-drivers/nvdimm/pmem.c+AKAAoACgAKAAoACgAKAAoACgAKAAoACgAHw- 219 +-+-+-+-+-+-+-+-+-+-+-----
++AKA-drivers/nvdimm/region.c+AKAAoACgAKAAoACgAKAAoACgAKAAfACgAKA-12 +-
++AKA-include/linux/ioport.h+AKAAoACgAKAAoACgAKAAoACgAKAAoAB8AKAAoACg-1 +-
++AKA-include/linux/libnvdimm.h+AKAAoACgAKAAoACgAKAAoAB8AKAAoACg-5 +--
++AKA-include/linux/nd.h+AKAAoACgAKAAoACgAKAAoACgAKAAoACgAKAAoACgAHwAoACgAKA-7 +-
++AKA-include/linux/pmem.h+AKAAoACgAKAAoACgAKAAoACgAKAAoACgAKAAfACgAKA-19 +-+-
++AKA-include/uapi/linux/ndctl.h+AKAAoACgAKAAoACgAKAAfACgAKA-13 +-
++AKA-kernel/resource.c+AKAAoACgAKAAoACgAKAAoACgAKAAoACgAKAAoACgAKAAfACgAKA-60 +-+-+--
++AKA-tools/testing/nvdimm/test/nfit.c +AHw- 285 +-+-+-+-+-+-+-+-+-+-+-+-+-+------
++AKA-21 files changed, 1394 insertions(+-), 439 deletions(-)
 
-This should make the device appear (if the issue lies with our
-handling of hotplug events).
+The following changes since commit 6e2452dff4441e3dc24d415c8b2cda8a3ba52116:
 
-Otherwise you might want to take a look at the ACPI tables and search
-for code which turn off thunderbolt or something like that. Does
-hotplug work under Windows (without additional drivers)?
++AKA- nfit: Continue init even if ARS commands are unimplemented (2016-03-04 16:46:13 -0800)
 
-Regards,
-Andreas
+are available in the git repository at:
 
++AKA- git://git.kernel.org/pub/scm/linux/kernel/git/nvdimm/nvdimm tags/libnvdimm-for-4.6
 
+for you to fetch changes up to 489011652a2d5555901def04c24d68874e8ba9a1:
 
-> How can I go about finding additional information about just what's
-> going on, hopefully to assist with improving support for this newer
-> hardware?
->
->
-> Kind regards,
-> Jack
-> -----BEGIN PGP SIGNATURE-----
-> Version: GnuPG v2
->
-> iQIcBAEBCAAGBQJW0AhWAAoJEP0XuxcIDSnP9lwP/i/wNuNTQOKM40FZdcslJ4u1
-> uztebCxlMTt9MIQteZDSK5Srfof/EN9sT9TKQB8eBa7szzBC6ve37W+n5sKh189+
-> fMMOHBxVg10okCZk6WhyIrY1Q0kdIsOqCY80SoVRHZ0/1anP0+wBr1GAELhYVkrz
-> ZoFTjvVG/fvuqXxs4es0S9wD7q9xgnMpSEHWjsc2h+XR1JvRyaifh6YrYQ0Y/sb7
-> XJ5TuaNb+LKT5RACuMLSPb+LeYoRd+KOD9O/5hZOunJdglFjr1SsPTMLE7OgSPgC
-> JhQGc6jaRbI9xYfe95V+YiVG/R1rVmWyPO5K22XWvB96F2ecS+L9lTtSdvEMG3z8
-> AxxBoG+nu5b396Fk6+7Mt5tqyI6/pqxHf+sr2+znK7tzBxugz89IaGjN7AzQFFqc
-> Y0529G+YcBegXhYkUJ4KWvjAnmXK0ovhMZg4+SMAxPK9KHlHfJtpHWdteyQwGYmJ
-> LiwvbxskDXESUs+5W2CMPaJymcxp4MiRCrZvTKGojtCQh8TgPBYmFMwocDQ14kgI
-> s8fW0GLchh9pcCpPZDifpnHOZUAS2V7ebP3eJnmC7N6XpCpvqOmR1+BXr9KMK4fb
-> D2sQW1H2s5biBnsWZKsKj0ZIn5vMojMH1zbrUG7lqtdO4xNt6AN1H/Wp1Rqsgu5u
-> D0x1areDAEKuToqgb0wJ
-> =3DAU/v
-> -----END PGP SIGNATURE-----
->
->
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
++AKA- Merge branch 'for-4.6/pfn' into libnvdimm-for-next (2016-03-09 17:15:43 -0800)
+
+----------------------------------------------------------------
+libnvdimm for 4.6
+
+1/ Asynchronous address range scrub:
+Given the capacities of next generation persistent memory devices a
+scrub operation to find all poison may take 10s of seconds.+AKAAoA-We want
+this scrub work to be done asynchronously with the rest of system
+initialization, so we move it out of line from the NFIT probing, i.e.
+acpi+AF8-nfit+AF8-add().
+
+2/ Clear poison:
+ACPI 6.1 introduces the ability to send +ACI-clear error+ACI- commands to the
+ACPI0012:00 device representing the root of an +ACI-nvdimm bus+ACI-.+AKAAoA-Similar to
+relocating a bad block on a disk, this support clears media errors in
+response to a write.
+
+3/ Persistent memory resource tracking:
+A persistent memory range may be designated as simply +ACI-reserved+ACI- by
+platform firmware in the efi/e820 memory map.+AKAAoA-Later when the NFIT
+driver loads it discovers that the range is +ACI-Persistent Memory+ACI-.+AKAAoA-The
+NFIT bus driver inserts a resource to advertise that +ACI-persistent+ACI-
+attribute in the system resource tree for /proc/iomem and
+kernel-internal usages.
+
+4/ Miscellaneous cleanups and fixes:
+Workaround section misaligned pmem ranges when allocating a struct page
+memmap, fix handling of the read-only case in the ioctl path, and clean
+up block device major number allocation.
+
+----------------------------------------------------------------
+Dan Williams (18):
++AKAAoACgAKAAoACg-nfit, tools/testing/nvdimm: add format interface code definitions
++AKAAoACgAKAAoACg-nfit, tools/testing/nvdimm: test multiple control regions per-dimm
++AKAAoACgAKAAoACg-libnvdimm, nfit: centralize command status translation
++AKAAoACgAKAAoACg-libnvdimm: protect nvdimm+AF8Aew-bus+AHw-namespace+AH0AXw-add+AF8-poison() with nvdimm+AF8-bus+AF8-lock()
++AKAAoACgAKAAoACg-libnvdimm: async notification support
++AKAAoACgAKAAoACg-nfit, tools/testing/nvdimm: unify common init for acpi+AF8-nfit+AF8-desc
++AKAAoACgAKAAoACg-nfit, libnvdimm: async region scrub workqueue
++AKAAoACgAKAAoACg-nfit: scrub and register regions in a workqueue
++AKAAoACgAKAAoACg-nfit: disable userspace initiated ars during scrub
++AKAAoACgAKAAoACg-tools/testing/nvdimm: expand ars unit testing
++AKAAoACgAKAAoACg-libnvdimm, pmem: fix 'pfn' support for section-misaligned namespaces
++AKAAoACgAKAAoACg-libnvdimm, pmem: adjust for section collisions with 'System RAM'
++AKAAoACgAKAAoACg-libnvdimm, pfn: 'resource'-address and 'size' attributes for pfn devices
++AKAAoACgAKAAoACg-nfit, libnvdimm: clear poison command support
++AKAAoACgAKAAoACg-libnvdimm, pmem: fix ia64 build, use PHYS+AF8-PFN
++AKAAoACgAKAAoACg-libnvdimm, pmem: fix kmap+AF8-atomic() leak in error path
++AKAAoACgAKAAoACg-libnvdimm, pmem: clear poison on write
++AKAAoACgAKAAoACg-Merge branch 'for-4.6/pfn' into libnvdimm-for-next
+
+Jerry Hoemann (2):
++AKAAoACgAKAAoACg-libnvdimm: Clean-up access mode check.
++AKAAoACgAKAAoACg-libnvdimm: Fix security issue with DSM IOCTL.
+
+NeilBrown (3):
++AKAAoACgAKAAoACg-pmem: don't allocate unused major device number
++AKAAoACgAKAAoACg-nvdimm/blk: don't allocate unused major device number
++AKAAoACgAKAAoACg-nvdimm/btt: don't allocate unused major device number
+
+Toshi Kani (4):
++AKAAoACgAKAAoACg-resource: Change +AF8AXw-request+AF8-region to inherit from immediate parent
++AKAAoACgAKAAoACg-resource: Add remove+AF8-resource interface
++AKAAoACgAKAAoACg-resource: Export insert+AF8-resource and remove+AF8-resource
++AKAAoACgAKAAoACg-ACPI: Change NFIT driver to insert new resource
+
++AKA-arch/arm/kernel/setup.c+AKAAoACgAKAAoACgAKAAoACgAKAAoACgAHwAoACgAKA-6 +--
++AKA-arch/arm/plat-samsung/pm-check.c+AKAAoACgAHwAoACgAKA-4 +--
++AKA-arch/arm64/kernel/setup.c+AKAAoACgAKAAoACgAKAAoACgAKAAfACgAKAAoA-6 +--
++AKA-arch/avr32/kernel/setup.c+AKAAoACgAKAAoACgAKAAoACgAKAAfACgAKAAoA-6 +--
++AKA-arch/ia64/kernel/efi.c+AKAAoACgAKAAoACgAKAAoACgAKAAoACgAKAAfACgAKA-13 +--
++AKA-arch/ia64/kernel/setup.c+AKAAoACgAKAAoACgAKAAoACgAKAAoAB8AKAAoACg-6 +--
++AKA-arch/m32r/kernel/setup.c+AKAAoACgAKAAoACgAKAAoACgAKAAoAB8AKAAoACg-4 +--
++AKA-arch/mips/kernel/setup.c+AKAAoACgAKAAoACgAKAAoACgAKAAoAB8AKAAoA-10 +--
++AKA-arch/parisc/mm/init.c+AKAAoACgAKAAoACgAKAAoACgAKAAoACgAKAAoAB8AKAAoACg-6 +--
++AKA-arch/powerpc/mm/mem.c+AKAAoACgAKAAoACgAKAAoACgAKAAoACgAKAAoAB8AKAAoACg-2 +--
++AKA-arch/s390/kernel/setup.c+AKAAoACgAKAAoACgAKAAoACgAKAAoAB8AKAAoACg-8 +--
++AKA-arch/score/kernel/setup.c+AKAAoACgAKAAoACgAKAAoACgAKAAfACgAKAAoA-2 +--
++AKA-arch/sh/kernel/setup.c+AKAAoACgAKAAoACgAKAAoACgAKAAoACgAKAAfACgAKAAoA-8 +--
++AKA-arch/sparc/mm/init+AF8-64.c+AKAAoACgAKAAoACgAKAAoACgAKAAoACgAHwAoACgAKA-8 +--
++AKA-arch/tile/kernel/setup.c+AKAAoACgAKAAoACgAKAAoACgAKAAoAB8AKAAoA-11 +--
++AKA-arch/unicore32/kernel/setup.c+AKAAoACgAKAAoACgAHwAoACgAKA-6 +--
++AKA-arch/x86/include/asm/pmem.h+AKAAoACgAKAAoACgAKAAoAB8AKAAoACg-5 +-
++AKA-arch/x86/kernel/crash.c+AKAAoACgAKAAoACgAKAAoACgAKAAoACgAHwAoACg-41 +--
++AKA-arch/x86/kernel/e820.c+AKAAoACgAKAAoACgAKAAoACgAKAAoACgAKAAfACgAKA-38 +--
++AKA-arch/x86/kernel/pmem.c+AKAAoACgAKAAoACgAKAAoACgAKAAoACgAKAAfACgAKAAoA-4 +--
++AKA-arch/x86/kernel/setup.c+AKAAoACgAKAAoACgAKAAoACgAKAAoACgAHwAoACgAKA-6 +--
++AKA-drivers/acpi/acpi+AF8-platform.c+AKAAoACgAKAAoACgAKAAfACgAKAAoA-2 +--
++AKA-drivers/acpi/apei/einj.c+AKAAoACgAKAAoACgAKAAoACgAKAAoAB8AKAAoA-15 +--
++AKA-drivers/acpi/nfit.c+AKAAoACgAKAAoACgAKAAoACgAKAAoACgAKAAoACgAKAAfA- 798 +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-----------
++AKA-drivers/acpi/nfit.h+AKAAoACgAKAAoACgAKAAoACgAKAAoACgAKAAoACgAKAAfACgAKA-30 +--
++AKA-drivers/nvdimm/blk.c+AKAAoACgAKAAoACgAKAAoACgAKAAoACgAKAAoACgAHwAoACg-18 +--
++AKA-drivers/nvdimm/btt.c+AKAAoACgAKAAoACgAKAAoACgAKAAoACgAKAAoACgAHwAoACg-19 +--
++AKA-drivers/nvdimm/bus.c+AKAAoACgAKAAoACgAKAAoACgAKAAoACgAKAAoACgAHw- 131 +-+-+-+-+--
++AKA-drivers/nvdimm/core.c+AKAAoACgAKAAoACgAKAAoACgAKAAoACgAKAAoAB8- 110 +-+-+---
++AKA-drivers/nvdimm/dimm+AF8-devs.c+AKAAoACgAKAAoACgAKAAoACgAHwAoACgAKA-6 +--
++AKA-drivers/nvdimm/e820.c+AKAAoACgAKAAoACgAKAAoACgAKAAoACgAKAAoAB8AKAAoACg-2 +--
++AKA-drivers/nvdimm/namespace+AF8-devs.c+AKAAoACgAKAAfACgAKAAoA-7 +-
++AKA-drivers/nvdimm/nd.h+AKAAoACgAKAAoACgAKAAoACgAKAAoACgAKAAoACgAKAAfACgAKAAoA-4 +-
++AKA-drivers/nvdimm/pfn.h+AKAAoACgAKAAoACgAKAAoACgAKAAoACgAKAAoACgAHwAoACg-23 +--
++AKA-drivers/nvdimm/pfn+AF8-devs.c+AKAAoACgAKAAoACgAKAAoACgAKAAfACgAKA-61 +-+-+-
++AKA-drivers/nvdimm/pmem.c+AKAAoACgAKAAoACgAKAAoACgAKAAoACgAKAAoAB8- 219 +-+-+-+-+-+-+----
++AKA-drivers/nvdimm/region.c+AKAAoACgAKAAoACgAKAAoACgAKAAoACgAHwAoACg-12 +-
++AKA-drivers/parisc/eisa+AF8-enumerator.c+AKAAoACgAHwAoACgAKA-4 +--
++AKA-drivers/rapidio/rio.c+AKAAoACgAKAAoACgAKAAoACgAKAAoACgAKAAoAB8AKAAoACg-8 +--
++AKA-drivers/sh/superhyway/superhyway.c +AHwAoACgAKA-2 +--
++AKA-drivers/xen/balloon.c+AKAAoACgAKAAoACgAKAAoACgAKAAoACgAKAAoAB8AKAAoACg-2 +--
++AKA-include/linux/ioport.h+AKAAoACgAKAAoACgAKAAoACgAKAAoACgAKAAfACgAKA-34 +--
++AKA-include/linux/libnvdimm.h+AKAAoACgAKAAoACgAKAAoACgAKAAfACgAKAAoA-5 +--
++AKA-include/linux/mm.h+AKAAoACgAKAAoACgAKAAoACgAKAAoACgAKAAoACgAKAAoAB8AKAAoACg-3 +--
++AKA-include/linux/nd.h+AKAAoACgAKAAoACgAKAAoACgAKAAoACgAKAAoACgAKAAoAB8AKAAoACg-7 +-
++AKA-include/linux/pmem.h+AKAAoACgAKAAoACgAKAAoACgAKAAoACgAKAAoACgAHwAoACg-19 +-
++AKA-include/uapi/linux/ndctl.h+AKAAoACgAKAAoACgAKAAoACgAHwAoACg-13 +-
++AKA-kernel/kexec+AF8-core.c+AKAAoACgAKAAoACgAKAAoACgAKAAoACgAKAAoACgAKAAfACgAKAAoA-8 +--
++AKA-kernel/kexec+AF8-file.c+AKAAoACgAKAAoACgAKAAoACgAKAAoACgAKAAoACgAKAAfACgAKAAoA-8 +--
++AKA-kernel/memremap.c+AKAAoACgAKAAoACgAKAAoACgAKAAoACgAKAAoACgAKAAoACgAHwAoACg-13 +--
++AKA-kernel/resource.c+AKAAoACgAKAAoACgAKAAoACgAKAAoACgAKAAoACgAKAAoACgAHw- 149 +-+-+-+-+---
++AKA-mm/memory+AF8-hotplug.c+AKAAoACgAKAAoACgAKAAoACgAKAAoACgAKAAoACgAKAAfACgAKAAoA-2 +--
++AKA-tools/testing/nvdimm/test/nfit.c+AKAAoACgAHw- 285 +-+-+-+-+-+-+-+-+-+----
++AKA-53 files changed, 1623 insertions(+-), 596 deletions(-)
