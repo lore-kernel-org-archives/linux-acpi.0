@@ -1,97 +1,56 @@
-From: Bjorn Helgaas <helgaas@kernel.org>
-Subject: Re: [PATCH 1/4] acpi,pci,irq: reduce resource requirements
-Date: Mon, 14 Mar 2016 21:36:32 -0500
-Message-ID: <20160315023632.GA23940@localhost>
-References: <1457484079-18202-1-git-send-email-okaya@codeaurora.org>
- <20160314185251.GA19703@localhost>
- <56E7211F.3070203@codeaurora.org>
- <20160314210147.GA11459@localhost>
- <56E73232.9030704@codeaurora.org>
- <20160315014843.GA16967@localhost>
- <56E7733B.4050308@codeaurora.org>
+From: Heikki Krogerus <heikki.krogerus@linux.intel.com>
+Subject: Re: [PATCH] device property: don't bother the drivers with struct
+ property_set
+Date: Tue, 15 Mar 2016 11:04:19 +0200
+Message-ID: <20160315090419.GA21114@kuha.fi.intel.com>
+References: <1456485600-129229-1-git-send-email-heikki.krogerus@linux.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-pci-owner@vger.kernel.org>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga03.intel.com ([134.134.136.65]:64932 "EHLO mga03.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S964881AbcCOJEe (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 15 Mar 2016 05:04:34 -0400
 Content-Disposition: inline
-In-Reply-To: <56E7733B.4050308@codeaurora.org>
-Sender: linux-pci-owner@vger.kernel.org
-To: Sinan Kaya <okaya@codeaurora.org>
-Cc: linux-acpi@vger.kernel.org, timur@codeaurora.org, cov@codeaurora.org, linux-pci@vger.kernel.org, ravikanth.nalla@hpe.com, lenb@kernel.org, harish.k@hpe.com, ashwin.reghunandanan@hpe.com, bhelgaas@google.com, rjw@rjwysocki.net, linux-kernel@vger.kernel.org
+In-Reply-To: <1456485600-129229-1-git-send-email-heikki.krogerus@linux.intel.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: Lee Jones <lee.jones@linaro.org>, Mika Westerberg <mika.westerberg@linux.intel.com>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Thierry Reding <treding@nvidia.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
 
-On Mon, Mar 14, 2016 at 10:28:11PM -0400, Sinan Kaya wrote:
-> On 3/14/2016 9:48 PM, Bjorn Helgaas wrote:
+On Fri, Feb 26, 2016 at 01:20:00PM +0200, Heikki Krogerus wrote:
+> Since device_add_property_set() now always takes a copy of
+> the property_set, and also since the fwnode type is always
+> hard coded to be FWNODE_PDATA, there is no need for the
+> drivers to deliver the entire struct property_set. The
+> function can just create the instance of it on its own and
+> bind the properties from the drivers to it on the spot.
 > 
-> Yes. I was talking about PCIe on ARM64. 
+> This renames device_add_property_set() to
+> device_add_properties(). The function now takes struct
+> property_entry as its parameter instead of struct
+> property_set.
 > 
-> > If you go to Fry's and buy a conventional PCI card, it is going to
-> > pull INTA# low to assert an interrupt.  It doesn't matter whether you
-> > put it in an x86 system or an arm64 system.
-> 
-> I don't see INTA# of the PCIe card at the system level. The PCIe wire 
-> interrupt gets converted to the system level interrupt by the PCIe controller.
+> Signed-off-by: Heikki Krogerus <heikki.krogerus@linux.intel.com>
+> ---
+>  arch/arm/mach-tegra/board-paz00.c |  6 +-----
+>  drivers/base/platform.c           | 19 ++++++++++---------
+>  drivers/base/property.c           | 35 ++++++++++++++++++++++-------------
+>  drivers/mfd/intel-lpss-acpi.c     |  6 +-----
+>  drivers/mfd/intel-lpss-pci.c      | 14 +++-----------
+>  drivers/mfd/intel-lpss.c          |  2 +-
+>  drivers/mfd/intel-lpss.h          |  2 +-
+>  drivers/mfd/mfd-core.c            |  4 ++--
+>  include/linux/mfd/core.h          |  2 +-
+>  include/linux/platform_device.h   |  4 ++--
+>  include/linux/property.h          | 15 +++------------
+>  11 files changed, 47 insertions(+), 62 deletions(-)
 
-That's why I said *conventional PCI*.  If you have a conventional PCI
-device below either a conventional PCI host controller or a PCIe-to-PCI
-bridge, there are real INTx wires, not virtual wires, and they are
-level/low.  But I think you pointed out the key below (that the
-Interrupt resource in a PNP0C0F device encodes the trigger type).
+There are now more users for the build-in properties so I'm going to
+have to resend this.
 
-> >> > I pasted the code here again. It looks like you want to validate that
-> >> > PCI interrupts are always level low. 
-> > I don't really care whether PCI interrupts are always level low.  What
-> > matters is that the PCI interrupt line matches the configuration of
-> > the interrupt controller input.
-> > 
-> 
-> Agreed. But the interrupt controller configuration is system specific. How would
-> you check interrupt line against what the interrupt controller requires
-> on each architecture as this is common code?
-> 
-> 
-> > If the PCI interrupt can be a different type, e.g., level high, and
-> > there's a way to discover that, we can check that against the
-> > interrupt controller configuration.
-> > 
-> > This is all in the context of conventional PCI, and we're probably
-> > talking about arm64 PCIe systems, not conventional PCI. 
-> 
-> INTx interrupts are TLP messages on PCIe as you already know. There is no INTA 
-> interrupt wire.
 
-Yes, that's why I mentioned PCIe sec 2.2.8.1 below.
+Cheers,
 
-> "6.1.2. PCI Compatible INTx Emulation" section of the PCIe spec describes
-> INTx emulation on PCIe.
->  ...
-> 
-> > I'm not sure what an Interrupt Link device means in PCIe.  I suppose it would have
-> > to connect an INTx virtual wire to a system interrupt?  The PCIe spec
-> > says this sort of mapping is system implementation specific (r3.0, sec
-> > 2.2.8.1).
-> 
-> The INTx messages are converted to the system interrupt by the PCIe controller.
-> The interrupt type between the PCIe controller and the ARM GIC interrupt 
-> controller is dictated by the ARM GIC Interrupt Controller Specification for
-> ARM64.
-> 
-> Here is what ACPI table looks like for reference
-> 
-> 	Name(_PRT, Package(){
-> 		Package(){0x0FFFF, 0, \_SB.LN0A, 0},  // Slot 0, INTA
-> 		Package(){0x0FFFF, 1, \_SB.LN0B, 0},  // Slot 0, INTB
-> 		Package(){0x0FFFF, 2, \_SB.LN0C, 0},  // Slot 0, INTC
-> 		Package(){0x0FFFF, 3, \_SB.LN0D, 0}   // Slot 0, INTD
-> 	}) 
-> 
-> Device(LN0A){
-> 	Name(_HID, EISAID("PNP0C0F")) // PCI interrupt link
-> 	Name(_UID, 1)
-> 	Name(_PRS, ResourceTemplate(){
-> 	Interrupt(ResourceProducer, Level, ActiveHigh, Exclusive, , ,) {0x123}
-> 	})
-
-I forgot that the link already include the trigger mode in it.  Maybe we
-can check for that instead of assuming level/low.
-
-Bjorn
+-- 
+heikki
