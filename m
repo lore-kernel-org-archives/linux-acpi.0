@@ -1,105 +1,130 @@
-From: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
-Subject: Re: [PATCH v2] PCI: ACPI: IA64: fix IO port generic range check
-Date: Tue, 15 Mar 2016 11:31:13 +0000
-Message-ID: <20160315113113.GA10786@red-moon>
-References: <1455212827-9382-1-git-send-email-lorenzo.pieralisi@arm.com>
- <20160308222125.GG27132@localhost>
- <CAJZ5v0gnDnF_4z_mtZp+Tq8-V3FgG6p7kMykqtVA+s44ukkuaA@mail.gmail.com>
- <20160309053332.GA22228@localhost>
- <20160309071406.GA19555@red-moon>
- <20160309153556.GA14873@localhost>
- <20160310074236.GA20478@red-moon>
- <20160314145322.GE6629@red-moon>
- <20160314192708.GB16621@localhost>
+From: Jiang Qiu <qiujiang@huawei.com>
+Subject: Re: [PATCH v5 1/3] gpio: designware: convert device node to fwnode
+Date: Tue, 15 Mar 2016 20:56:40 +0800
+Message-ID: <56E80688.3030407@huawei.com>
+References: <1457077474-124064-1-git-send-email-qiujiang@huawei.com>
+ <1457077474-124064-2-git-send-email-qiujiang@huawei.com>
+ <CANk1AXRTvSRZkWMQf03Ty+ouxcJDpD-hJ9tjXSqh5Z0OzOhk+w@mail.gmail.com>
+ <CAHp75VfGJZnOWUdZkjCbraupg=KUw2-jhtiRHLxrT2uUwJdvow@mail.gmail.com>
+Reply-To: <qiujiang@huawei.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from foss.arm.com ([217.140.101.70]:35853 "EHLO foss.arm.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756093AbcCOL2x (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 15 Mar 2016 07:28:53 -0400
-Content-Disposition: inline
-In-Reply-To: <20160314192708.GB16621@localhost>
+Received: from [58.251.152.64] ([58.251.152.64]:59734 "EHLO
+	szxga01-in.huawei.com" rhost-flags-FAIL-FAIL-OK-OK) by vger.kernel.org
+	with ESMTP id S1750874AbcCOM5k (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 15 Mar 2016 08:57:40 -0400
+In-Reply-To: <CAHp75VfGJZnOWUdZkjCbraupg=KUw2-jhtiRHLxrT2uUwJdvow@mail.gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Bjorn Helgaas <helgaas@kernel.org>
-Cc: "Rafael J. Wysocki" <rafael@kernel.org>, Linux PCI <linux-pci@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, "linux-ia64@vger.kernel.org" <linux-ia64@vger.kernel.org>, Bjorn Helgaas <bhelgaas@google.com>, Hanjun Guo <hanjun.guo@linaro.org>, Jiang Liu <jiang.liu@linux.intel.com>, Tony Luck <tony.luck@intel.com>, Tomasz Nowicki <tn@semihalf.com>, Mark Salter <msalter@redhat.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>
+To: Andy Shevchenko <andy.shevchenko@gmail.com>, Alan Tull <delicious.quinoa@gmail.com>
+Cc: Linus Walleij <linus.walleij@linaro.org>, Alexandre Courbot <gnurou@gmail.com>, Mika Westerberg <mika.westerberg@linux.intel.com>, linux-kernel <linux-kernel@vger.kernel.org>, "linux-gpio@vger.kernel.org" <linux-gpio@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, linuxarm@huawei.com, haifeng.wei@huawei.com, charles.chenxin@huawei.com
 
-On Mon, Mar 14, 2016 at 02:27:08PM -0500, Bjorn Helgaas wrote:
-> On Mon, Mar 14, 2016 at 02:53:22PM +0000, Lorenzo Pieralisi wrote:
+=E5=9C=A8 2016/3/11 4:27, Andy Shevchenko =E5=86=99=E9=81=93:
+> On Thu, Mar 10, 2016 at 9:09 PM, Alan Tull <delicious.quinoa@gmail.co=
+m> wrote:
+>> On Fri, Mar 4, 2016 at 1:44 AM, qiujiang <qiujiang@huawei.com> wrote=
+:
+>>> This patch converts device node to fwnode in
+>>> dwapb_port_property for designware gpio driver,
+>>> so as to provide a unified data structure for DT
+>>> and ACPI bindings.
+>>>
+>>> Acked-by: Andy Shevchenko <andy.shevchenko@gmail.com>
+>>> Signed-off-by: qiujiang <qiujiang@huawei.com>
+>>> @@ -496,18 +492,19 @@ dwapb_gpio_get_pdata_of(struct device *dev)
+>>>                  * Only port A can provide interrupts in all config=
+urations of
+>>>                  * the IP.
+>>>                  */
+>>> -               if (pp->idx =3D=3D 0 &&
+>>> -                   of_property_read_bool(port_np, "interrupt-contr=
+oller")) {
+>>> -                       pp->irq =3D irq_of_parse_and_map(port_np, 0=
+);
+>>> +               if (dev->of_node && pp->idx =3D=3D 0 &&
+>>> +                       of_property_read_bool(to_of_node(fwnode),
+>>> +                               "interrupt-controller")) {
+>> Hi Qiujiang,
+>>
+>> Is there a reason to use "of_property_read_bool" here instead of
+>> "device_property_read_bool" or similar?
+> Yeah, this patch looks unfinished.
+>
+> This should be
+>      if (pp->idx =3D=3D 0 &&  fwnode_property_read_bool(fwnode,
+> "interrupt-controller")) {=20
+>> Alan
+>>
+>>> +                       pp->irq =3D irq_of_parse_and_map(to_of_node=
+(fwnode), 0);
+> But here should be common method called which takes fwnode on input.
+Hi Alan, Andy,
 
-[...]
+There is some trouble to replace the interface irq_of_parse_and_map and=
+ take
+fwnode on input.
 
-> > Even if we do that, call to acpi_pci_root_validate_resources() for
-> > IO space is wrong on IA64, we are comparing an IO resource against
-> > ioport_resource there, but the Linux IO port space for the host
-> > bridge is created in IA64 pci_acpi_root_prepare_resources() with
-> > the call to add_io_space() which happens *after* the sequence above
-> > is executed.
-> > 
-> > On IA64:
-> > 
-> > pci_acpi_root_prepare_resources()
-> >  -> acpi_pci_probe_root_resources()
-> >     -> acpi_dev_get_resources()
-> >     -> acpi_pci_root_validate_resources()
-> >  -> add_io_space() # this is where the Linux IO port space for the bridge is
-> >                      created and that's when we can validate the IO
-> > 		     resource against ioport_resource
-> > 
-> > I have no experience/knowledge of IA64 systems so I may be totally wrong,
-> > I just want to understand.
-> > 
-> > Comments welcome, Hanjun proved my understanding by testing on IA64 and
-> > current mainline just does not work (see commit log for failure messages),
-> > feedback from IA64 people is really needed here, we have to get this fixed
-> > please (and through that fix, getting it to work on ARM64 too).
-> 
-> I/O port translations makes my head hurt, but I think you're right.
-> 
-> The raw I/O resources from ACPI _CRS are definitely different from the
-> Linux ioport spaces constructed by add_io_space(), so we shouldn't
-> compare the two.
-> 
-> If we need to validate the raw I/O ports from _CRS, I suppose in
-> theory we should be able to check that they're contained in the raw
-> I/O port range of an upstream window.
-> 
-> I think the problem is that 3772aea7d6f3 started applying the
-> x86-specific "[0-0xffff]" restriction to all arches, so if you want to 
-> back that out so it applies only on x86 (but to all devices, not just
-> PNP0A03), I think that would make sense.
+As far as I know, there are two common APIs to parse interrupt resource=
+:
+1) irq_of_parse_and_map() - It is a DT specific API, and have to use of=
+_node as
+input.
 
-I noticed there is already an X86 specific check in:
+2) platform_get_irq() - It could be used to DT as well as ACPI, It need=
+s platform_
+device as input. In this driver, the DTs is defined as this:
 
-drivers/acpi/resource.c (ie valid_IRQ)
+pc_gpio0: gpio@802e0000 {
+                        #address-cells =3D <1>;
+                        #size-cells =3D <0>;
+                        compatible =3D "snps,dw-apb-gpio";
+                        reg =3D <0x0 0x802e0000 0x0 0x10000>;
 
-I can add something like code below there and be done with it:
+                        porta: gpio-controller@0 {
+                                compatible =3D "snps,dw-apb-gpio-port";
+                                gpio-controller;
+                                #gpio-cells =3D <2>;
+                                snps,nr-gpios =3D <32>;
+                                reg =3D <0>;
+                                interrupt-controller;
+                                #interrupt-cells =3D <2>;
+                                interrupts =3D <0 312 4>;
+                       };
+ };
 
-#ifdef CONFIG_X86
-static inline bool io_space_valid(struct resource *res)
-{
-	return res->end < 0x10003;
-}
-#else
-static inline bool io_space_valid(struct resource *res) { return true; }
-#endif
+The compatible string, which is "snps,dw-apb-gpio", is only for the par=
+ent node.
+That is mean, there is no platform device for the child node, but the i=
+nterrupt
+resource is defined in child node.
 
-if Rafael is ok with that. Whatever I do requires an arch specific hook
-(empty/always-true on !CONFIG_X86) to be called from
-acpi_dev_ioresource_flags(), otherwise removing that check really becomes
-a minefield.
+Is there any other APIs can be used to parse interrupts resource using =
+fwnode
+as input?
 
-Other solution is reverting back to not using acpi_dev_get_resources()
-on IA64 and ARM64 which defeats the whole purpose of Jiang's consolidation,
-so I won't go there.
-
-Next step is removing (or refactoring) acpi_pci_root_validate_resources()
-for IORESOURCE_IO from acpi_pci_probe_root_resources(), it is a bogus check
-as our discussion above highlighted and does not work on ARM64 (it
-probably does on IA64 since IO_SPACE_LIMIT == 0xffffffffffffffffUL, but
-that's conceptually wrong regardless).
+Thanks, Jiang
+>>>                         if (!pp->irq) {
+>>>                                 dev_warn(dev, "no irq for bank %s\n=
+",
+>>> -                                        port_np->full_name);
+>>> +                                        to_of_node(fwnode)->full_n=
+ame);
+>>>                         }
+>>>                 }
+>>>
+>>>                 pp->irq_shared  =3D false;
+>>>                 pp->gpio_base   =3D -1;
+>>> -               pp->name        =3D port_np->full_name;
+>>> +               pp->name        =3D to_of_node(fwnode)->full_name;
+> Also those two should be device property source agnostic. That's what
+> I tried to tell earlier.
+>
 
 
-Thanks,
-Lorenzo
+--
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
