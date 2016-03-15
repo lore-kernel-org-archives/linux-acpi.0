@@ -1,181 +1,125 @@
-From: Bjorn Helgaas <helgaas@kernel.org>
+From: Sinan Kaya <okaya@codeaurora.org>
 Subject: Re: [PATCH 1/4] acpi,pci,irq: reduce resource requirements
-Date: Mon, 14 Mar 2016 20:48:43 -0500
-Message-ID: <20160315014843.GA16967@localhost>
+Date: Mon, 14 Mar 2016 22:28:11 -0400
+Message-ID: <56E7733B.4050308@codeaurora.org>
 References: <1457484079-18202-1-git-send-email-okaya@codeaurora.org>
- <20160314185251.GA19703@localhost>
- <56E7211F.3070203@codeaurora.org>
- <20160314210147.GA11459@localhost>
- <56E73232.9030704@codeaurora.org>
+ <20160314185251.GA19703@localhost> <56E7211F.3070203@codeaurora.org>
+ <20160314210147.GA11459@localhost> <56E73232.9030704@codeaurora.org>
+ <20160315014843.GA16967@localhost>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.136]:43151 "EHLO mail.kernel.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750912AbcCOBss (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 14 Mar 2016 21:48:48 -0400
-Content-Disposition: inline
-In-Reply-To: <56E73232.9030704@codeaurora.org>
-Sender: linux-acpi-owner@vger.kernel.org
-List-Id: linux-acpi@vger.kernel.org
-To: Sinan Kaya <okaya@codeaurora.org>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-pci-owner@vger.kernel.org>
+In-Reply-To: <20160315014843.GA16967@localhost>
+Sender: linux-pci-owner@vger.kernel.org
+To: Bjorn Helgaas <helgaas@kernel.org>
 Cc: linux-acpi@vger.kernel.org, timur@codeaurora.org, cov@codeaurora.org, linux-pci@vger.kernel.org, ravikanth.nalla@hpe.com, lenb@kernel.org, harish.k@hpe.com, ashwin.reghunandanan@hpe.com, bhelgaas@google.com, rjw@rjwysocki.net, linux-kernel@vger.kernel.org
+List-Id: linux-acpi@vger.kernel.org
 
-On Mon, Mar 14, 2016 at 05:50:42PM -0400, Sinan Kaya wrote:
-> On 3/14/2016 5:01 PM, Bjorn Helgaas wrote:
-> > On Mon, Mar 14, 2016 at 04:37:51PM -0400, Sinan Kaya wrote:
-> >> Hi Bjorn,
-> >>
-> >> On 3/14/2016 2:52 PM, Bjorn Helgaas wrote:
-> >>>> bool acpi_isa_irq_available(int irq)
-> >>>>> @@ -840,13 +881,6 @@ bool acpi_isa_irq_available(int irq)
-> >>>>>   */
-> >>>>>  void acpi_penalize_sci_irq(int irq, int trigger, int polarity)
-> >>>>>  {
-> >>>>> -	if (irq >= 0 && irq < ARRAY_SIZE(acpi_irq_penalty)) {
-> >>>>> -		if (trigger != ACPI_MADT_TRIGGER_LEVEL ||
-> >>>>> -		    polarity != ACPI_MADT_POLARITY_ACTIVE_LOW)
-> >>>>> -			acpi_irq_penalty[irq] += PIRQ_PENALTY_ISA_ALWAYS;
-> >>>>> -		else
-> >>>>> -			acpi_irq_penalty[irq] += PIRQ_PENALTY_PCI_USING;
-> >>>>> -	}
-> >>> I think we lost the validation of trigger mode and polarity, didn't
-> >>> we?
-> >>>
-> >>
-> >> This function gets called to inform ACPI that this is the SCI interrupt
-> >> and, trigger and polarity are their attributes.
-> >>
-> >> The return value is void and the caller is not interested in what ACPI thinks
-> >> about. 
-> >>
-> >> This function adjusts the SCI penalty based on correct attributes passed
-> >> (ISA_ALWAYS vs. PCI_USING).
-> >>
-> >> I agree that we lost this validation. 
-> >>
-> >> I can keep sci_trigger/sci_polarity somewhere and keep that into the calculation
-> >> in get function.
-> >>
-> >> Like this for instance,
-> >>
-> >> 	if (irq == acpi_gbl_FADT.sci_interrupt) {
-> >> +		if (sci_trigger != ACPI_MADT_TRIGGER_LEVEL ||
-> >> +		    sci_polarity != ACPI_MADT_POLARITY_ACTIVE_LOW)
-> >> +			penalty += PIRQ_PENALTY_ISA_ALWAYS;
-> >> +		else
-> >> 			penalty += PIRQ_PENALTY_PCI_USING; 
-> >> 	}
-> >>
-> >> Then, we can't get rid of the function just we can reduce the contents.
-> > 
-> > I think it's important to keep that check.
-> > 
-> > I raised the possibility of using irq_get_trigger_type() for all IRQs
-> > (not just the SCI).  Did you have a chance to look into that at all?
-> > 
-> > Bjorn
-> > 
-> 
-> Let's take care of SCI first. Is this OK? Would you include IRQ_TYPE_NONE below?
-> 
-> get_penalty
-> {
-> ...
-> 	if (irq == acpi_gbl_FADT.sci_interrupt) {
-> 		if (irq_get_trigger_type(irq) == IRQ_TYPE_LEVEL_LOW)
-> 			penalty += PIRQ_PENALTY_PCI_USING;
-> 		else
-> 			penalty += PIRQ_PENALTY_ISA_ALWAYS;
-> 	}
-> }
-> 
-> 
-> Yes, I read your email and asked how you would deal with ARM64. There was
-> silence after that :) 
+On 3/14/2016 9:48 PM, Bjorn Helgaas wrote:
 
-Sorry, I missed that.  Trying to juggle too many conversations at
-once, I guess.
+Yes. I was talking about PCIe on ARM64.=20
 
-> ARM64 doesn't have SCI
+> If you go to Fry's and buy a conventional PCI card, it is going to
+> pull INTA# low to assert an interrupt.  It doesn't matter whether you
+> put it in an x86 system or an arm64 system.
+>=20
 
-That's not a problem; we just never have to penalize an IRQ because
-SCI is also using it.
+I don't see INTA# of the PCIe card at the system level. The PCIe wire=20
+interrupt gets converted to the system level interrupt by the PCIe cont=
+roller.
 
-> and the PCI interrupts are
-> active high and level.
+>> > I pasted the code here again. It looks like you want to validate t=
+hat
+>> > PCI interrupts are always level low.=20
+> I don't really care whether PCI interrupts are always level low.  Wha=
+t
+> matters is that the PCI interrupt line matches the configuration of
+> the interrupt controller input.
+>=20
 
-This I don't understand.  I already cited PCI Spec r3.0, sec 2.2.6,
-which says PCI interrupts are level-sensitive, asserted low.
+Agreed. But the interrupt controller configuration is system specific. =
+How would
+you check interrupt line against what the interrupt controller requires
+on each architecture as this is common code?
 
-If you go to Fry's and buy a conventional PCI card, it is going to
-pull INTA# low to assert an interrupt.  It doesn't matter whether you
-put it in an x86 system or an arm64 system.
 
-> I pasted the code here again. It looks like you want to validate that
-> PCI interrupts are always level low. 
+> If the PCI interrupt can be a different type, e.g., level high, and
+> there's a way to discover that, we can check that against the
+> interrupt controller configuration.
+>=20
+> This is all in the context of conventional PCI, and we're probably
+> talking about arm64 PCIe systems, not conventional PCI.=20
 
-I don't really care whether PCI interrupts are always level low.  What
-matters is that the PCI interrupt line matches the configuration of
-the interrupt controller input.
+INTx interrupts are TLP messages on PCIe as you already know. There is =
+no INTA=20
+interrupt wire.
 
-If the PCI interrupt can be a different type, e.g., level high, and
-there's a way to discover that, we can check that against the
-interrupt controller configuration.
+"6.1.2. PCI Compatible INTx Emulation" section of the PCIe spec describ=
+es
+INTx emulation on PCIe.
 
-This is all in the context of conventional PCI, and we're probably
-talking about arm64 PCIe systems, not conventional PCI.  I'm not sure
-what an Interrupt Link device means in PCIe.  I suppose it would have
-to connect an INTx virtual wire to a system interrupt?  The PCIe spec
-says this sort of mapping is system implementation specific (r3.0, sec
-2.2.8.1).
+I pasted that section here for your reference.
 
-> There could be also some other existing Intel platform or architecture 
-> that quite doesn't encode the interrupt properly.
-> 
->  
->    static int pci_compatible_trigger(int irq)
->    {
->      int type = irq_get_trigger_type(irq);
-> 
->      return (type == IRQ_TYPE_LEVEL_LOW || type == IRQ_TYPE_NONE);
->    }
-> 
-> 
->    static unsigned int acpi_irq_get_penalty(int irq)
->    {
->      unsigned int penalty = 0;
-> 
->      if (irq == acpi_gbl_FADT.sci_interrupt)
->        	penalty += PIRQ_PENALTY_PCI_USING;
-> 
->      penalty += acpi_irq_pci_sharing_penalty(irq);
->      return penalty;
->    }
-> 
->    static int acpi_pci_link_allocate(struct acpi_pci_link *link)
->    {
->      unsigned int best = ~0;
->      ...
-> 
->      for (i = (link->irq.possible_count - 1); i >= 0; i--) {
->        candidate = link->irq.possible[i];
->        if (!pci_compatible_trigger(candidate))
->          continue;
-> 
->        penalty = acpi_irq_get_penalty(candidate);
->        if (penalty < best) {
->        	    irq = candidate;
->             best = penalty;
->        }
->      }
->    }
-> 
-> 
-> Sinan Kaya
-> Qualcomm Technologies, Inc. on behalf of Qualcomm Innovation Center, Inc.
-> Qualcomm Innovation Center, Inc. is a member of Code Aurora Forum, a Linux Foundation Collaborative Project
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-pci" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+"Two types of Messages are defined, Assert_INTx and Deassert_INTx, for =
+emulation of PCI INTx
+signaling, where x is A, B, C, and D for respective PCI interrupt signa=
+ls. These Messages are used to
+provide =93virtual wires=94 for signaling interrupts across a Link. Swi=
+tches collect these virtual wires and
+present a combined set at the Switch=92s Upstream Port. Ultimately, the=
+ virtual wires are routed to the
+Root Complex which maps the virtual wires to system interrupt resources=
+=2E Devices must use
+10 assert/de-assert Messages in pairs to emulate PCI interrupt level-tr=
+iggered signaling. Actual
+mapping of PCI Express INTx emulation to system interrupts is implement=
+ation specific as is
+mapping of physical interrupt signals in conventional PCI."
+
+
+> I'm not sure what an Interrupt Link device means in PCIe.  I suppose =
+it would have
+> to connect an INTx virtual wire to a system interrupt?  The PCIe spec
+> says this sort of mapping is system implementation specific (r3.0, se=
+c
+> 2.2.8.1).
+>=20
+
+The INTx messages are converted to the system interrupt by the PCIe con=
+troller.
+The interrupt type between the PCIe controller and the ARM GIC interrup=
+t=20
+controller is dictated by the ARM GIC Interrupt Controller Specificatio=
+n for
+ARM64.
+
+Here is what ACPI table looks like for reference
+
+	Name(_PRT, Package(){
+		Package(){0x0FFFF, 0, \_SB.LN0A, 0},  // Slot 0, INTA
+		Package(){0x0FFFF, 1, \_SB.LN0B, 0},  // Slot 0, INTB
+		Package(){0x0FFFF, 2, \_SB.LN0C, 0},  // Slot 0, INTC
+		Package(){0x0FFFF, 3, \_SB.LN0D, 0}   // Slot 0, INTD
+	})=20
+
+Device(LN0A){
+	Name(_HID, EISAID("PNP0C0F")) // PCI interrupt link
+	Name(_UID, 1)
+	Name(_PRS, ResourceTemplate(){
+	Interrupt(ResourceProducer, Level, ActiveHigh, Exclusive, , ,) {0x123}
+	})
+	Method(_DIS) {}
+	Method(_CRS) { Return (_PRS) }
+	Method(_SRS, 1) {}
+}=20
+
+
+
+
+--=20
+Sinan Kaya
+Qualcomm Technologies, Inc. on behalf of Qualcomm Innovation Center, In=
+c.
+Qualcomm Innovation Center, Inc. is a member of Code Aurora Forum, a Li=
+nux Foundation Collaborative Project
