@@ -1,53 +1,162 @@
-From: Mika Westerberg <mika.westerberg@linux.intel.com>
-Subject: Re: [PATCH 1/2] vga_switcheroo: add power support for windows 10
- machines.
-Date: Tue, 15 Mar 2016 15:57:43 +0200
-Message-ID: <20160315135743.GT1793@lahna.fi.intel.com>
-References: <1457504045-12738-1-git-send-email-airlied@gmail.com>
- <2736217.utxPzJExd5@vostro.rjw.lan>
- <20160311105815.GS1796@lahna.fi.intel.com>
- <2759763.dR5D0KopkA@vostro.rjw.lan>
- <CAPM=9txo4aOOa-CS-mnyQe+vYDtAOCm1bzAgfMzwJJS8ZuYmwQ@mail.gmail.com>
- <20160314094335.GE1796@lahna.fi.intel.com>
- <20160315133958.GA27793@wunner.de>
+From: Bjorn Helgaas <helgaas@kernel.org>
+Subject: Re: Thunderbolt 3 (Skylake / Alpine Ridge) hotplug
+Date: Tue, 15 Mar 2016 12:29:09 -0500
+Message-ID: <20160315172909.GF19974@localhost>
+References: <56D0085B.60402@jscinoz.so>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-pci-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20160315133958.GA27793@wunner.de>
+In-Reply-To: <56D0085B.60402@jscinoz.so>
 Sender: linux-pci-owner@vger.kernel.org
-To: Lukas Wunner <lukas@wunner.de>
-Cc: Dave Airlie <airlied@gmail.com>, "linux-pm@vger.kernel.org" <linux-pm@vger.kernel.org>, Linux PCI <linux-pci@vger.kernel.org>, "Rafael J. Wysocki" <rafael@kernel.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, dri-devel <dri-devel@lists.freedesktop.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>
+To: Jack Coulter <jscinoz@jscinoz.so>
+Cc: Andreas Noever <andreas.noever@gmail.com>, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, "Rafael J. Wysocki" <rafael@kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On Tue, Mar 15, 2016 at 02:39:58PM +0100, Lukas Wunner wrote:
-> Hi Mika,
-> 
-> On Mon, Mar 14, 2016 at 11:43:35AM +0200, Mika Westerberg wrote:
-> > On Mon, Mar 14, 2016 at 12:19:14PM +1000, Dave Airlie wrote:
-> > > On 11 March 2016 at 23:45, Rafael J. Wysocki <rjw@rjwysocki.net> wrote:
-> > > > On Friday, March 11, 2016 12:58:15 PM Mika Westerberg wrote:
-> > > >> On Thu, Mar 10, 2016 at 09:57:09PM +0100, Rafael J. Wysocki wrote:
-> > > >> > > It doesn't seem to do any runtime PM,
-> > > >> > > I do wonder if pcieport should be doing it's own runtime PM handling,
-> > > >> > > but that is a
-> > > >> > > larger task than I'm thinking to tackle here.
-> > > >> >
-> > > >> > PCIe ports don't do PM - yet.  Mika has posted a series of patches to implement
-> > > >> > that, however, that are waiting for comments now:
-> > > >> >
-> > > >> > https://patchwork.kernel.org/patch/8453311/
-> > > >> > https://patchwork.kernel.org/patch/8453381/
-> > > >> > https://patchwork.kernel.org/patch/8453391/
-> > > >> > https://patchwork.kernel.org/patch/8453411/
-> > > >> > https://patchwork.kernel.org/patch/8453371/
-> > > >> > https://patchwork.kernel.org/patch/8453351/
-> 
-> If a pciehp port is runtime suspended and pciehp_poll_mode is enabled,
-> the poll timer needs to be disabled and later reenabled on runtime resume.
+[+cc Rafael, linux-acpi]
 
-If we disable the timer then we can't detect when a new device is
-connected to the port.
+Hi Jack,
 
-I think in this case it might be better not to enable runtime PM for the
-port at all.
+On Fri, Feb 26, 2016 at 07:10:03PM +1100, Jack Coulter wrote:
+> 
+> -----BEGIN PGP SIGNED MESSAGE-----
+> Hash: SHA256
+> 
+> Hi Andreas,
+> 
+> I was asking around on #linux-pci on OFTC and it was mentioned that you
+> were the maintainer for Linux Thunderbolt support, and that I should
+> direct my query to you and the linux-pci & linux-kernel lists.
+> 
+> I'm attempting to use the Thunderbolt 3 (which has a USB Type-C
+> connector) port on my laptop, a Dell XPS 15 (9550). The external device
+> I'm attempting to use is a gigabit ethernet + USB 3.0 hub, of an unknown
+> / generic brand, but bears model number KY-688 if that's of any use.
+> 
+> When the device is present at system startup, everything works
+> correctly, and shows up in lspci as a USB controller, which lsusb shows
+> having a hub and ethernet NIC attached, which the r8152 driver binds and
+> uses without issue:
+> 
+> lspci -v:
+> > 0a:00.0 USB controller: Intel Corporation Device 15b5 (prog-if 30 [XHCI])
+> >     Subsystem: Device 2222:1111
+> >     Flags: bus master, fast devsel, latency 0, IRQ 131
+> >     Memory at c4200000 (32-bit, non-prefetchable) [size=64K]
+> >     Capabilities: [80] Power Management version 3
+> >     Capabilities: [88] MSI: Enable+ Count=1/8 Maskable- 64bit+
+> >     Capabilities: [c0] Express Endpoint, MSI 00
+> >     Capabilities: [100] Device Serial Number a3-21-b5-60-a7-23-04-00
+> >     Capabilities: [200] Advanced Error Reporting
+> >     Capabilities: [300] Virtual Channel
+> >     Capabilities: [400] Power Budgeting <?>
+> >     Capabilities: [500] Vendor Specific Information: ID=1234 Rev=1
+> Len=0d8 <?>
+> >     Capabilities: [600] Latency Tolerance Reporting
+> >     Capabilities: [700] #19
+> >     Kernel driver in use: xhci_hcd
+> 
+> 
+> lspci -tv (Thunderbolt device is 15b5)
+> > -[0000:00]-+-00.0  Intel Corporation Sky Lake Host Bridge/DRAM Registers
+> >            +-01.0-[01]----00.0  NVIDIA Corporation GM107M [GeForce GTX
+> 960M]
+> >            +-02.0  Intel Corporation Device 191b
+> >            +-04.0  Intel Corporation Device 1903
+> >            +-14.0  Intel Corporation Sunrise Point-H USB 3.0 xHCI
+> Controller
+> >            +-14.2  Intel Corporation Sunrise Point-H Thermal subsystem
+> >            +-15.0  Intel Corporation Sunrise Point-H LPSS I2C
+> Controller #0
+> >            +-15.1  Intel Corporation Sunrise Point-H LPSS I2C
+> Controller #1
+> >            +-16.0  Intel Corporation Sunrise Point-H CSME HECI #1
+> >            +-1c.0-[02]----00.0  Broadcom Corporation BCM43602 802.11ac
+> Wireless LAN SoC
+> >            +-1c.1-[03]----00.0  Realtek Semiconductor Co., Ltd. Device
+> 525a
+> >            +-1d.0-[04]----00.0  Samsung Electronics Co Ltd Device a802
+> >            +-1d.4-[05]--
+> >            +-1d.6-[06-3e]----00.0-[07-0a]--+-00.0-[08]--
+> >            |                               +-01.0-[09]--
+> >            |                               \-02.0-[0a]----00.0  Intel
+> Corporation Device 15b5
+> >            +-1f.0  Intel Corporation Sunrise Point-H LPC Controller
+> >            +-1f.2  Intel Corporation Sunrise Point-H PMC
+> >            +-1f.3  Intel Corporation Sunrise Point-H HD Audio
+> >            \-1f.4  Intel Corporation Sunrise Point-H SMBus
+> 
+> lsusb -tv:
+> > /:  Bus 04.Port 1: Dev 1, Class=root_hub, Driver=xhci_hcd/2p, 5000M
+> >     |__ Port 1: Dev 2, If 0, Class=Hub, Driver=hub/4p, 5000M
+> >         |__ Port 1: Dev 3, If 0, Class=Vendor Specific Class,
+> Driver=r8152, 5000M
+> > /:  Bus 03.Port 1: Dev 1, Class=root_hub, Driver=xhci_hcd/2p, 480M
+> >     |__ Port 1: Dev 2, If 0, Class=Hub, Driver=hub/4p, 480M
+> >         |__ Port 3: Dev 3, If 0, Class=Human Interface Device,
+> Driver=usbhid, 12M
+> >         |__ Port 3: Dev 3, If 1, Class=Human Interface Device,
+> Driver=usbhid, 12M
+> >         |__ Port 3: Dev 3, If 2, Class=Human Interface Device,
+> Driver=usbhid, 12M
+> >         |__ Port 3: Dev 3, If 3, Class=Human Interface Device,
+> Driver=usbhid, 12M
+> > /:  Bus 02.Port 1: Dev 1, Class=root_hub, Driver=xhci_hcd/8p, 5000M
+> > /:  Bus 01.Port 1: Dev 1, Class=root_hub, Driver=xhci_hcd/16p, 480M
+> >     |__ Port 4: Dev 2, If 0, Class=Vendor Specific Class,
+> Driver=btusb, 12M
+> >     |__ Port 4: Dev 2, If 1, Class=Vendor Specific Class,
+> Driver=btusb, 12M
+> >     |__ Port 4: Dev 2, If 2, Class=Vendor Specific Class,
+> Driver=btusb, 12M
+> >     |__ Port 4: Dev 2, If 3, Class=Application Specific Interface,
+> Driver=, 12M
+> >     |__ Port 12: Dev 3, If 0, Class=Video, Driver=uvcvideo, 480M
+> >     |__ Port 12: Dev 3, If 1, Class=Video, Driver=uvcvideo, 480M
+> 
+> 
+> However, if the device is connected after the system boots (or
+> disconnected and reconnected), it is not detected at all. No messages
+> show up in dmesg upon connection and no additional devices show up in
+> the output of lspci & lsusb. Strangely enough, USB devices connected to
+> the external hub do still receive power.
+> 
+> I also have the following options relating to PCI hotplug set in my
+> kernel config:
+> 
+> > CONFIG_HOTPLUG_PCI_PCIE=y
+> > CONFIG_HOTPLUG_PCI=y
+> > CONFIG_HOTPLUG_PCI_ACPI=y
+> > CONFIG_HOTPLUG_PCI_ACPI_IBM=y
+> 
+> I'm running the 4.4.2 kernel, booted via EFI. From what I've read,
+> Thunderbolt hotplug has been working since 3.17, controlled by the
+> CONFIG_THUNDERBOLT option. However regardless of whether this option is
+> enabled or disabled, hotplug does not appeare to work on my hardware.
+> From reading the in-kernel help text for this option, I suspect that
+> it's only relevant for the older Cactus Ridge Thunderbolt controller
+> present in 2012-era MacBooks.
+
+Can you open a report at http://bugzilla.kernel.org, category
+drivers/PCI, and attach complete "lspci -vv" output (run as root) and
+complete dmesg logs, both when hub is attached at boot, and when
+booting without hub and attaching hub later?
+
+I don't know much about Thunderbolt.  But since it appears as a PCI
+device, I would expect some sort of hotplug notification when you
+attach the hub.  If pciehp handles hotplug, it looks like we should
+see something from pcie_isr() in the dmesg log.
+
+Since you don't see that, I suspect we're getting ACPI notifications
+via the acpiphp driver.  I'm not as familiar with that, so I don't
+know what if anything it logs.  If you're inclined, you could add some
+printks in
+
+  acpiphp_add_context()
+  acpi_device_hotplug()
+  acpiphp_hotplug_notify()
+  hotplug_event()
+
+Then we'd at least see if we get any ACPI notifications.
+
+Bjorn
