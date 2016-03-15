@@ -1,130 +1,110 @@
-From: Jiang Qiu <qiujiang@huawei.com>
-Subject: Re: [PATCH v5 1/3] gpio: designware: convert device node to fwnode
-Date: Tue, 15 Mar 2016 20:56:40 +0800
-Message-ID: <56E80688.3030407@huawei.com>
-References: <1457077474-124064-1-git-send-email-qiujiang@huawei.com>
- <1457077474-124064-2-git-send-email-qiujiang@huawei.com>
- <CANk1AXRTvSRZkWMQf03Ty+ouxcJDpD-hJ9tjXSqh5Z0OzOhk+w@mail.gmail.com>
- <CAHp75VfGJZnOWUdZkjCbraupg=KUw2-jhtiRHLxrT2uUwJdvow@mail.gmail.com>
-Reply-To: <qiujiang@huawei.com>
+From: Sinan Kaya <okaya@codeaurora.org>
+Subject: Re: [PATCH 1/4] acpi,pci,irq: reduce resource requirements
+Date: Tue, 15 Mar 2016 09:33:13 -0400
+Message-ID: <56E80F19.7010503@codeaurora.org>
+References: <1457484079-18202-1-git-send-email-okaya@codeaurora.org>
+ <20160314185251.GA19703@localhost> <56E7211F.3070203@codeaurora.org>
+ <20160314210147.GA11459@localhost> <56E73232.9030704@codeaurora.org>
+ <20160315014843.GA16967@localhost> <56E7733B.4050308@codeaurora.org>
+ <20160315023632.GA23940@localhost>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from [58.251.152.64] ([58.251.152.64]:59734 "EHLO
-	szxga01-in.huawei.com" rhost-flags-FAIL-FAIL-OK-OK) by vger.kernel.org
-	with ESMTP id S1750874AbcCOM5k (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 15 Mar 2016 08:57:40 -0400
-In-Reply-To: <CAHp75VfGJZnOWUdZkjCbraupg=KUw2-jhtiRHLxrT2uUwJdvow@mail.gmail.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-pci-owner@vger.kernel.org>
+In-Reply-To: <20160315023632.GA23940@localhost>
+Sender: linux-pci-owner@vger.kernel.org
+To: Bjorn Helgaas <helgaas@kernel.org>
+Cc: linux-acpi@vger.kernel.org, timur@codeaurora.org, cov@codeaurora.org, linux-pci@vger.kernel.org, ravikanth.nalla@hpe.com, lenb@kernel.org, harish.k@hpe.com, ashwin.reghunandanan@hpe.com, bhelgaas@google.com, rjw@rjwysocki.net, linux-kernel@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Andy Shevchenko <andy.shevchenko@gmail.com>, Alan Tull <delicious.quinoa@gmail.com>
-Cc: Linus Walleij <linus.walleij@linaro.org>, Alexandre Courbot <gnurou@gmail.com>, Mika Westerberg <mika.westerberg@linux.intel.com>, linux-kernel <linux-kernel@vger.kernel.org>, "linux-gpio@vger.kernel.org" <linux-gpio@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, linuxarm@huawei.com, haifeng.wei@huawei.com, charles.chenxin@huawei.com
 
-=E5=9C=A8 2016/3/11 4:27, Andy Shevchenko =E5=86=99=E9=81=93:
-> On Thu, Mar 10, 2016 at 9:09 PM, Alan Tull <delicious.quinoa@gmail.co=
-m> wrote:
->> On Fri, Mar 4, 2016 at 1:44 AM, qiujiang <qiujiang@huawei.com> wrote=
-:
->>> This patch converts device node to fwnode in
->>> dwapb_port_property for designware gpio driver,
->>> so as to provide a unified data structure for DT
->>> and ACPI bindings.
->>>
->>> Acked-by: Andy Shevchenko <andy.shevchenko@gmail.com>
->>> Signed-off-by: qiujiang <qiujiang@huawei.com>
->>> @@ -496,18 +492,19 @@ dwapb_gpio_get_pdata_of(struct device *dev)
->>>                  * Only port A can provide interrupts in all config=
-urations of
->>>                  * the IP.
->>>                  */
->>> -               if (pp->idx =3D=3D 0 &&
->>> -                   of_property_read_bool(port_np, "interrupt-contr=
-oller")) {
->>> -                       pp->irq =3D irq_of_parse_and_map(port_np, 0=
-);
->>> +               if (dev->of_node && pp->idx =3D=3D 0 &&
->>> +                       of_property_read_bool(to_of_node(fwnode),
->>> +                               "interrupt-controller")) {
->> Hi Qiujiang,
+On 3/14/2016 10:36 PM, Bjorn Helgaas wrote:
+> On Mon, Mar 14, 2016 at 10:28:11PM -0400, Sinan Kaya wrote:
+>> On 3/14/2016 9:48 PM, Bjorn Helgaas wrote:
 >>
->> Is there a reason to use "of_property_read_bool" here instead of
->> "device_property_read_bool" or similar?
-> Yeah, this patch looks unfinished.
->
-> This should be
->      if (pp->idx =3D=3D 0 &&  fwnode_property_read_bool(fwnode,
-> "interrupt-controller")) {=20
->> Alan
+>> Yes. I was talking about PCIe on ARM64. 
 >>
->>> +                       pp->irq =3D irq_of_parse_and_map(to_of_node=
-(fwnode), 0);
-> But here should be common method called which takes fwnode on input.
-Hi Alan, Andy,
-
-There is some trouble to replace the interface irq_of_parse_and_map and=
- take
-fwnode on input.
-
-As far as I know, there are two common APIs to parse interrupt resource=
-:
-1) irq_of_parse_and_map() - It is a DT specific API, and have to use of=
-_node as
-input.
-
-2) platform_get_irq() - It could be used to DT as well as ACPI, It need=
-s platform_
-device as input. In this driver, the DTs is defined as this:
-
-pc_gpio0: gpio@802e0000 {
-                        #address-cells =3D <1>;
-                        #size-cells =3D <0>;
-                        compatible =3D "snps,dw-apb-gpio";
-                        reg =3D <0x0 0x802e0000 0x0 0x10000>;
-
-                        porta: gpio-controller@0 {
-                                compatible =3D "snps,dw-apb-gpio-port";
-                                gpio-controller;
-                                #gpio-cells =3D <2>;
-                                snps,nr-gpios =3D <32>;
-                                reg =3D <0>;
-                                interrupt-controller;
-                                #interrupt-cells =3D <2>;
-                                interrupts =3D <0 312 4>;
-                       };
- };
-
-The compatible string, which is "snps,dw-apb-gpio", is only for the par=
-ent node.
-That is mean, there is no platform device for the child node, but the i=
-nterrupt
-resource is defined in child node.
-
-Is there any other APIs can be used to parse interrupts resource using =
-fwnode
-as input?
-
-Thanks, Jiang
->>>                         if (!pp->irq) {
->>>                                 dev_warn(dev, "no irq for bank %s\n=
-",
->>> -                                        port_np->full_name);
->>> +                                        to_of_node(fwnode)->full_n=
-ame);
->>>                         }
->>>                 }
+>>> If you go to Fry's and buy a conventional PCI card, it is going to
+>>> pull INTA# low to assert an interrupt.  It doesn't matter whether you
+>>> put it in an x86 system or an arm64 system.
+>>
+>> I don't see INTA# of the PCIe card at the system level. The PCIe wire 
+>> interrupt gets converted to the system level interrupt by the PCIe controller.
+> 
+> That's why I said *conventional PCI*.  If you have a conventional PCI
+> device below either a conventional PCI host controller or a PCIe-to-PCI
+> bridge, there are real INTx wires, not virtual wires, and they are
+> level/low.  But I think you pointed out the key below (that the
+> Interrupt resource in a PNP0C0F device encodes the trigger type).
+> 
+>>>>> I pasted the code here again. It looks like you want to validate that
+>>>>> PCI interrupts are always level low. 
+>>> I don't really care whether PCI interrupts are always level low.  What
+>>> matters is that the PCI interrupt line matches the configuration of
+>>> the interrupt controller input.
 >>>
->>>                 pp->irq_shared  =3D false;
->>>                 pp->gpio_base   =3D -1;
->>> -               pp->name        =3D port_np->full_name;
->>> +               pp->name        =3D to_of_node(fwnode)->full_name;
-> Also those two should be device property source agnostic. That's what
-> I tried to tell earlier.
->
+>>
+>> Agreed. But the interrupt controller configuration is system specific. How would
+>> you check interrupt line against what the interrupt controller requires
+>> on each architecture as this is common code?
+>>
+>>
+>>> If the PCI interrupt can be a different type, e.g., level high, and
+>>> there's a way to discover that, we can check that against the
+>>> interrupt controller configuration.
+>>>
+>>> This is all in the context of conventional PCI, and we're probably
+>>> talking about arm64 PCIe systems, not conventional PCI. 
+>>
+>> INTx interrupts are TLP messages on PCIe as you already know. There is no INTA 
+>> interrupt wire.
+> 
+> Yes, that's why I mentioned PCIe sec 2.2.8.1 below.
+> 
+>> "6.1.2. PCI Compatible INTx Emulation" section of the PCIe spec describes
+>> INTx emulation on PCIe.
+>>  ...
+>>
+>>> I'm not sure what an Interrupt Link device means in PCIe.  I suppose it would have
+>>> to connect an INTx virtual wire to a system interrupt?  The PCIe spec
+>>> says this sort of mapping is system implementation specific (r3.0, sec
+>>> 2.2.8.1).
+>>
+>> The INTx messages are converted to the system interrupt by the PCIe controller.
+>> The interrupt type between the PCIe controller and the ARM GIC interrupt 
+>> controller is dictated by the ARM GIC Interrupt Controller Specification for
+>> ARM64.
+>>
+>> Here is what ACPI table looks like for reference
+>>
+>> 	Name(_PRT, Package(){
+>> 		Package(){0x0FFFF, 0, \_SB.LN0A, 0},  // Slot 0, INTA
+>> 		Package(){0x0FFFF, 1, \_SB.LN0B, 0},  // Slot 0, INTB
+>> 		Package(){0x0FFFF, 2, \_SB.LN0C, 0},  // Slot 0, INTC
+>> 		Package(){0x0FFFF, 3, \_SB.LN0D, 0}   // Slot 0, INTD
+>> 	}) 
+>>
+>> Device(LN0A){
+>> 	Name(_HID, EISAID("PNP0C0F")) // PCI interrupt link
+>> 	Name(_UID, 1)
+>> 	Name(_PRS, ResourceTemplate(){
+>> 	Interrupt(ResourceProducer, Level, ActiveHigh, Exclusive, , ,) {0x123}
+>> 	})
+> 
+> I forgot that the link already include the trigger mode in it.  Maybe we
+> can check for that instead of assuming level/low.
+> 
+
+Let me explore this area.
+
+> Bjorn
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-pci" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
 
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+-- 
+Sinan Kaya
+Qualcomm Technologies, Inc. on behalf of Qualcomm Innovation Center, Inc.
+Qualcomm Innovation Center, Inc. is a member of Code Aurora Forum, a Linux Foundation Collaborative Project
