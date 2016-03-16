@@ -1,57 +1,57 @@
-From: "Xue, Ken" <Ken.Xue@amd.com>
-Subject: RE: [PATCH V2] ACPI: APD: Add device HID for future AMD UART
- controller
-Date: Wed, 16 Mar 2016 05:07:04 +0000
-Message-ID: <DM2PR12MB0201D0E0056D908D90A2ED53FB8A0@DM2PR12MB0201.namprd12.prod.outlook.com>
-References: <1457688503-2377-1-git-send-email-annie.wang@amd.com>
+From: "Chen, Yu C" <yu.c.chen@intel.com>
+Subject: RE: [PATCH][RFC,v4] ACPI / PM: Introduce efi poweroff for HW-full
+ platforms without _S5
+Date: Wed, 16 Mar 2016 05:59:29 +0000
+Message-ID: <36DF59CE26D8EE47B0655C516E9CE640286D5713@shsmsx102.ccr.corp.intel.com>
+References: <1457687133-3730-1-git-send-email-yu.c.chen@intel.com>
+ <20160311155546.GJ15775@codeblueprint.co.uk>
+ <36DF59CE26D8EE47B0655C516E9CE640286D442A@shsmsx102.ccr.corp.intel.com>
+ <20160314200033.GG2619@codeblueprint.co.uk>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 8BIT
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1457688503-2377-1-git-send-email-annie.wang@amd.com>
+Return-path: <linux-pm-owner@vger.kernel.org>
+In-Reply-To: <20160314200033.GG2619@codeblueprint.co.uk>
 Content-Language: en-US
-Sender: linux-kernel-owner@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: Len Brown <lenb@kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, SPG_Linux_Kernel <SPG_Linux_Kernel@amd.com>, "Wang, Annie" <Annie.Wang@amd.com>
+Sender: linux-pm-owner@vger.kernel.org
+To: Matt Fleming <matt@codeblueprint.co.uk>
+Cc: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-pm@vger.kernel.org" <linux-pm@vger.kernel.org>, "Rafael J. Wysocki" <rafael@kernel.org>, Len Brown <lenb@kernel.org>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, "Zhang, Rui" <rui.zhang@intel.com>, "linux-efi@vger.kernel.org" <linux-efi@vger.kernel.org>, "x86@kernel.org" <x86@kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Ard Biesheuvel <ard.biesheuvel@linaro.org>, Mark Salter <msalter@redhat.com>
 List-Id: linux-acpi@vger.kernel.org
 
-> From: Wang Hongcheng [mailto:annie.wang@amd.com]
-> Sent: Friday, March 11, 2016 5:28 PM
-> To: Rafael J. Wysocki; Len Brown; linux-acpi@vger.kernel.org; linux-
-> kernel@vger.kernel.org; SPG_Linux_Kernel
-> Cc: Wang, Annie
-> Subject: [PATCH V2] ACPI: APD: Add device HID for future AMD UART
-> controller
+Hi Matt,
+
+> -----Original Message-----
+> From: Matt Fleming [mailto:matt@codeblueprint.co.uk]
+> Sent: Tuesday, March 15, 2016 4:01 AM
+> To: Chen, Yu C
+> Cc: linux-acpi@vger.kernel.org; linux-pm@vger.kernel.org; Rafael J. Wysocki;
+> Len Brown; Thomas Gleixner; Ingo Molnar; H. Peter Anvin; Zhang, Rui; linux-
+> efi@vger.kernel.org; x86@kernel.org; linux-kernel@vger.kernel.org; Ard
+> Biesheuvel; Mark Salter
+> Subject: Re: [PATCH][RFC,v4] ACPI / PM: Introduce efi poweroff for HW-full
+> platforms without _S5
 > 
-> Add device HID AMDI0020 to match the AMD ACPI Vendor ID (AMDI) as
-> registered in http://www.uefi.org/acpi_id_list, and the UART controller on
-> future AMD paltform will use the HID instead of AMD0020.
+> On Fri, 11 Mar, at 04:33:46PM, Chen, Yu C wrote:
+> >
+> > There is  a future Base-IA platform, we are planning to skip
+> > implementing the SLP_TYP register and the S5 object.  (already there
+> > will be no S3 and no S4)
 > 
-> Signed-off-by: Wang Hongcheng <annie.wang@amd.com>
-
-
-Acked-by: Ken Xue <Ken.Xue@amd.com>
-
-Hi Rafael,
-Can you help apply and queue this patch into V4.6 like patch  "i2c: designware: Add device HID for future AMD I2C controller"?
-Thanks.
-
-> ---
->  drivers/acpi/acpi_apd.c | 1 +
->  1 file changed, 1 insertion(+)
+> Cool. This is really valuable information that should go into the commit
+> message.
 > 
-> diff --git a/drivers/acpi/acpi_apd.c b/drivers/acpi/acpi_apd.c index
-> a450e7a..dc2d8a5 100644
-> --- a/drivers/acpi/acpi_apd.c
-> +++ b/drivers/acpi/acpi_apd.c
-> @@ -134,6 +134,7 @@ static const struct acpi_device_id
-> acpi_apd_device_ids[] = {
->  	/* Generic apd devices */
->  	{ "AMD0010", APD_ADDR(cz_i2c_desc) },
->  	{ "AMD0020", APD_ADDR(cz_uart_desc) },
-> +	{ "AMDI0020", APD_ADDR(cz_uart_desc) },
->  	{ "AMD0030", },
->  	{ }
->  };
-> --
-> 1.9.1
+> Because if this is the rationale for the change, I don't see why we'd need to
+> provide the default stuff. Instead we should just enforce EFI reboot, and
+> only add the pm_poweroff_default hook if there is an explicit user in the
+> future, IMO.
+
+Do you mean the patch v3 make sense
+https://patchwork.kernel.org/patch/8514751/
+and we should use efi power off as our first choice, if there is no _S5  available(no acpi_power_off),
+even there is a customized  poweroff(driver provided, eg)? 
+
+Meanwhile, the legacy platforms will not be affected because
+there is no path to overwrite pm_power_off to efi power off.
+
+thanks,
+yu
