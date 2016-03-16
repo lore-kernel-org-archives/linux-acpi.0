@@ -1,72 +1,57 @@
-From: Lukas Wunner <lukas@wunner.de>
-Subject: Re: [PATCH 2/2] nouveau: use new vga_switcheroo power domain.
-Date: Tue, 15 Mar 2016 21:47:41 +0100
-Message-ID: <20160315204741.GC27934@wunner.de>
-References: <1457504045-12738-1-git-send-email-airlied@gmail.com>
- <1457504045-12738-2-git-send-email-airlied@gmail.com>
- <20160309144047.GB26158@wunner.de>
- <CAPM=9txfEOoXLr35qEMQrpfMdDf_rCyUx0pQoC4HbQ=t0HNKdw@mail.gmail.com>
+From: "Xue, Ken" <Ken.Xue@amd.com>
+Subject: RE: [PATCH V2] ACPI: APD: Add device HID for future AMD UART
+ controller
+Date: Wed, 16 Mar 2016 05:07:04 +0000
+Message-ID: <DM2PR12MB0201D0E0056D908D90A2ED53FB8A0@DM2PR12MB0201.namprd12.prod.outlook.com>
+References: <1457688503-2377-1-git-send-email-annie.wang@amd.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-pm-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <CAPM=9txfEOoXLr35qEMQrpfMdDf_rCyUx0pQoC4HbQ=t0HNKdw@mail.gmail.com>
-Sender: linux-pm-owner@vger.kernel.org
-To: Dave Airlie <airlied@gmail.com>
-Cc: dri-devel <dri-devel@lists.freedesktop.org>, Linux PM list <linux-pm@vger.kernel.org>, Linux ACPI <linux-acpi@vger.kernel.org>, Linux PCI <linux-pci@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1457688503-2377-1-git-send-email-annie.wang@amd.com>
+Content-Language: en-US
+Sender: linux-kernel-owner@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: Len Brown <lenb@kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, SPG_Linux_Kernel <SPG_Linux_Kernel@amd.com>, "Wang, Annie" <Annie.Wang@amd.com>
 List-Id: linux-acpi@vger.kernel.org
 
-Hi Dave,
-
-On Thu, Mar 10, 2016 at 08:04:26AM +1000, Dave Airlie wrote:
-> On 10 March 2016 at 00:40, Lukas Wunner <lukas@wunner.de> wrote:
-> > On Wed, Mar 09, 2016 at 04:14:05PM +1000, Dave Airlie wrote:
-> >> From: Dave Airlie <airlied@redhat.com>
-> >>
-> >> This fixes GPU auto powerdown on the Lenovo W541,
-> >> since we advertise Windows 2013 to the ACPI layer.
-> >>
-> >> Signed-off-by: Dave Airlie <airlied@redhat.com>
-> >> ---
-> >>  drivers/gpu/drm/nouveau/nouveau_vga.c | 10 +++++++---
-> >>  1 file changed, 7 insertions(+), 3 deletions(-)
-> >>
-> >> diff --git a/drivers/gpu/drm/nouveau/nouveau_vga.c b/drivers/gpu/drm/nouveau/nouveau_vga.c
-> >> index af89c36..b987427f 100644
-> >> --- a/drivers/gpu/drm/nouveau/nouveau_vga.c
-> >> +++ b/drivers/gpu/drm/nouveau/nouveau_vga.c
-> >> @@ -101,8 +101,12 @@ nouveau_vga_init(struct nouveau_drm *drm)
-> >>               runtime = true;
-> >>       vga_switcheroo_register_client(dev->pdev, &nouveau_switcheroo_ops, runtime);
-> >>
-> >> -     if (runtime && nouveau_is_v1_dsm() && !nouveau_is_optimus())
-> >> -             vga_switcheroo_init_domain_pm_ops(drm->dev->dev, &drm->vga_pm_domain);
-> >> +     if (runtime) {
-> >> +             if (nouveau_is_v1_dsm() && !nouveau_is_optimus())
-> >
-> > The " && !nouveau_is_optimus()" can be dropped because a machine cannot
-> > have both. Note the "else" in nouveau_dsm_detect():
+> From: Wang Hongcheng [mailto:annie.wang@amd.com]
+> Sent: Friday, March 11, 2016 5:28 PM
+> To: Rafael J. Wysocki; Len Brown; linux-acpi@vger.kernel.org; linux-
+> kernel@vger.kernel.org; SPG_Linux_Kernel
+> Cc: Wang, Annie
+> Subject: [PATCH V2] ACPI: APD: Add device HID for future AMD UART
+> controller
 > 
-> I'm pretty sure I've seen a machine with both in my past, back in the
-> Vista/Win7 crossover days.
-
-Yes, but the code in nouveau_dsm_detect() is such that you'll never have
-both nouveau_is_v1_dsm() and nouveau_is_optimus() return true.
-
-So you can drop the " && !nouveau_is_optimus()".
-
-Best regards,
-
-Lukas
-
+> Add device HID AMDI0020 to match the AMD ACPI Vendor ID (AMDI) as
+> registered in http://www.uefi.org/acpi_id_list, and the UART controller on
+> future AMD paltform will use the HID instead of AMD0020.
 > 
-> > You're calling this unconditionally for all Optimus machines yet
-> > I assume pre Windows 10 machines lack the PR3 hooks.
-> >
+> Signed-off-by: Wang Hongcheng <annie.wang@amd.com>
+
+
+Acked-by: Ken Xue <Ken.Xue@amd.com>
+
+Hi Rafael,
+Can you help apply and queue this patch into V4.6 like patch  "i2c: designware: Add device HID for future AMD I2C controller"?
+Thanks.
+
+> ---
+>  drivers/acpi/acpi_apd.c | 1 +
+>  1 file changed, 1 insertion(+)
 > 
-> Yes and I've confirmed on my older machine that nothing bad happens
-> doing it unconditionally,
-> and I couldn't find any bits in the _DSM flags to tell me if I should
-> do something different.
-> 
-> Dave.
+> diff --git a/drivers/acpi/acpi_apd.c b/drivers/acpi/acpi_apd.c index
+> a450e7a..dc2d8a5 100644
+> --- a/drivers/acpi/acpi_apd.c
+> +++ b/drivers/acpi/acpi_apd.c
+> @@ -134,6 +134,7 @@ static const struct acpi_device_id
+> acpi_apd_device_ids[] = {
+>  	/* Generic apd devices */
+>  	{ "AMD0010", APD_ADDR(cz_i2c_desc) },
+>  	{ "AMD0020", APD_ADDR(cz_uart_desc) },
+> +	{ "AMDI0020", APD_ADDR(cz_uart_desc) },
+>  	{ "AMD0030", },
+>  	{ }
+>  };
+> --
+> 1.9.1
