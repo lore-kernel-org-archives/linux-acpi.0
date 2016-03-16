@@ -1,66 +1,40 @@
 From: Prashanth Prakash <pprakash@codeaurora.org>
-Subject: [PATCH 1/3] ACPI: move ACPI_SYSTEM_HID to acpi_drivers.h
-Date: Wed, 16 Mar 2016 13:37:00 -0600
-Message-ID: <1458157022-18633-2-git-send-email-pprakash@codeaurora.org>
+Subject: [PATCH 3/3] ACPI: update the definition of common notification values
+Date: Wed, 16 Mar 2016 13:37:02 -0600
+Message-ID: <1458157022-18633-4-git-send-email-pprakash@codeaurora.org>
 References: <1458157022-18633-1-git-send-email-pprakash@codeaurora.org>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp.codeaurora.org ([198.145.29.96]:60428 "EHLO
+Received: from smtp.codeaurora.org ([198.145.29.96]:60447 "EHLO
 	smtp.codeaurora.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932586AbcCPThT (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 16 Mar 2016 15:37:19 -0400
+	with ESMTP id S935092AbcCPThU (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 16 Mar 2016 15:37:20 -0400
 In-Reply-To: <1458157022-18633-1-git-send-email-pprakash@codeaurora.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: linux-acpi@vger.kernel.org
-Cc: harba@codeaurora.org, rjw@rjwysocki.net, "Jonathan (Zhixiong) Zhang" <zjzhang@codeaurora.org>
+Cc: harba@codeaurora.org, rjw@rjwysocki.net, Prashanth Prakash <pprakash@codeaurora.org>
 
-From: "Jonathan (Zhixiong) Zhang" <zjzhang@codeaurora.org>
+Per ACPI spec 6.1, the device object notification value of 0x0C is
+now reserved, so updating the definition to reflect the same.
 
-ACPI_SYSTEM_HID is defined in drivers/acpi/bus.c out-of-band.
-
-Move the definition to include/acpi/acpi_drivers.h, together
-with other Linux specific HIDs, so that it can be used by other
-code.
-
-Signed-off-by: Jonathan (Zhixiong) Zhang <zjzhang@codeaurora.org>
+Signed-off-by: Prashanth Prakash <pprakash@codeaurora.org>
 ---
- drivers/acpi/scan.c         | 3 ++-
- include/acpi/acpi_drivers.h | 1 +
- 2 files changed, 3 insertions(+), 1 deletion(-)
+ include/acpi/actypes.h | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/drivers/acpi/scan.c b/drivers/acpi/scan.c
-index 407a376..358e3c8 100644
---- a/drivers/acpi/scan.c
-+++ b/drivers/acpi/scan.c
-@@ -13,6 +13,8 @@
- #include <linux/nls.h>
- #include <linux/dma-mapping.h>
+diff --git a/include/acpi/actypes.h b/include/acpi/actypes.h
+index db46546..4553300 100644
+--- a/include/acpi/actypes.h
++++ b/include/acpi/actypes.h
+@@ -627,7 +627,7 @@ typedef u64 acpi_integer;
+ #define ACPI_NOTIFY_DEVICE_PLD_CHECK    (u8) 0x09
+ #define ACPI_NOTIFY_RESERVED            (u8) 0x0A
+ #define ACPI_NOTIFY_LOCALITY_UPDATE     (u8) 0x0B
+-#define ACPI_NOTIFY_SHUTDOWN_REQUEST    (u8) 0x0C
++#define ACPI_NOTIFY_RESERVED_2          (u8) 0x0C
+ #define ACPI_NOTIFY_AFFINITY_UPDATE     (u8) 0x0D
  
-+#include <acpi/acpi_drivers.h>
-+
- #include <asm/pgtable.h>
- 
- #include "internal.h"
-@@ -22,7 +24,6 @@ ACPI_MODULE_NAME("scan");
- extern struct acpi_device *acpi_root;
- 
- #define ACPI_BUS_CLASS			"system_bus"
--#define ACPI_BUS_HID			"LNXSYBUS"
- #define ACPI_BUS_DEVICE_NAME		"System Bus"
- 
- #define ACPI_IS_ROOT_DEVICE(device)    (!(device)->parent)
-diff --git a/include/acpi/acpi_drivers.h b/include/acpi/acpi_drivers.h
-index 29c6912..3638f6f 100644
---- a/include/acpi/acpi_drivers.h
-+++ b/include/acpi/acpi_drivers.h
-@@ -52,6 +52,7 @@
- #define ACPI_POWER_HID			"LNXPOWER"
- #define ACPI_PROCESSOR_OBJECT_HID	"LNXCPU"
- #define ACPI_SYSTEM_HID			"LNXSYSTM"
-+#define ACPI_BUS_HID			"LNXSYBUS"
- #define ACPI_THERMAL_HID		"LNXTHERM"
- #define ACPI_BUTTON_HID_POWERF		"LNXPWRBN"
- #define ACPI_BUTTON_HID_SLEEPF		"LNXSLPBN"
+ #define ACPI_NOTIFY_MAX                 0x0D
 -- 
 Qualcomm Technologies, Inc. on behalf
 of the Qualcomm Innovation Center, Inc.  The Qualcomm Innovation Center, Inc. 
