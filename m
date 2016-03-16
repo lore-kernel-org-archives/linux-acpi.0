@@ -1,8 +1,8 @@
 From: Peter Zijlstra <peterz@infradead.org>
 Subject: Re: [PATCH v4 7/7] cpufreq: schedutil: New governor based on
  scheduler utilization data
-Date: Wed, 16 Mar 2016 18:53:41 +0100
-Message-ID: <20160316175341.GG6344@twins.programming.kicks-ass.net>
+Date: Wed, 16 Mar 2016 19:14:20 +0100
+Message-ID: <20160316181420.GH6344@twins.programming.kicks-ass.net>
 References: <1711281.bPmSjlBT7c@vostro.rjw.lan>
  <11678919.CQLTrQTYxG@vostro.rjw.lan>
 Mime-Version: 1.0
@@ -25,6 +25,46 @@ On Wed, Mar 16, 2016 at 03:59:18PM +0100, Rafael J. Wysocki wrote:
 > +		next_freq = policy->max;
 > +	else if (next_freq < policy->min)
 > +		next_freq = policy->min;
+> +
+> +	sg_policy->last_freq_update_time = time;
+> +	if (sg_policy->next_freq == next_freq) {
+> +		if (policy->fast_switch_enabled)
+> +			trace_cpu_frequency(policy->cur, smp_processor_id());
+> +
+> +		return;
+> +	}
+> +
+> +	sg_policy->next_freq = next_freq;
+> +	if (policy->fast_switch_enabled) {
+> +		unsigned int freq;
+> +
+> +		freq = cpufreq_driver_fast_switch(policy, next_freq);
 
-I'm still very much undecided on these policy min/max thresholds. I
-don't particularly like them.
+So you're assuming a RELATION_L for ->fast_switch() ?
+
+> +		if (freq == CPUFREQ_ENTRY_INVALID)
+> +			return;
+> +
+> +		policy->cur = freq;
+> +		trace_cpu_frequency(freq, smp_processor_id());
+> +	} else {
+> +		sg_policy->work_in_progress = true;
+> +		irq_work_queue(&sg_policy->irq_work);
+> +	}
+> +}
+
+
+> +static void sugov_work(struct work_struct *work)
+> +{
+> +	struct sugov_policy *sg_policy = container_of(work, struct sugov_policy, work);
+> +
+> +	mutex_lock(&sg_policy->work_lock);
+> +	__cpufreq_driver_target(sg_policy->policy, sg_policy->next_freq,
+> +				CPUFREQ_RELATION_L);
+
+As per here, which I assume matches semantics on that point.
+
+> +	mutex_unlock(&sg_policy->work_lock);
+> +
+> +	sg_policy->work_in_progress = false;
+> +}
