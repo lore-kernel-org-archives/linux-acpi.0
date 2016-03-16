@@ -1,59 +1,97 @@
-From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [PATCH v4 7/7] cpufreq: schedutil: New governor based on scheduler utilization data
-Date: Wed, 16 Mar 2016 23:53:47 +0100
-Message-ID: <3401840.ChzILGGFZI@vostro.rjw.lan>
-References: <1711281.bPmSjlBT7c@vostro.rjw.lan> <3456066.ocPAtCXNWC@vostro.rjw.lan> <20160316224054.GL6344@twins.programming.kicks-ass.net>
+From: Sinan Kaya <okaya@codeaurora.org>
+Subject: Re: [PATCH 1/2] pci: add pci_unmap_iospace function for PCI_IOBASE
+Date: Wed, 16 Mar 2016 19:14:51 -0400
+Message-ID: <56E9E8EB.6040707@codeaurora.org>
+References: <1457389310-3538-1-git-send-email-okaya@codeaurora.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from v094114.home.net.pl ([79.96.170.134]:53766 "HELO
-	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S933308AbcCPWvp (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 16 Mar 2016 18:51:45 -0400
-In-Reply-To: <20160316224054.GL6344@twins.programming.kicks-ass.net>
+Received: from smtp.codeaurora.org ([198.145.29.96]:42938 "EHLO
+	smtp.codeaurora.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S966261AbcCPXOz (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 16 Mar 2016 19:14:55 -0400
+In-Reply-To: <1457389310-3538-1-git-send-email-okaya@codeaurora.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Peter Zijlstra <peterz@infradead.org>
-Cc: Linux PM list <linux-pm@vger.kernel.org>, Juri Lelli <juri.lelli@arm.com>, Steve Muckle <steve.muckle@linaro.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>, Viresh Kumar <viresh.kumar@linaro.org>, Vincent Guittot <vincent.guittot@linaro.org>, Michael Turquette <mturquette@baylibre.com>, Ingo Molnar <mingo@kernel.org>
+To: linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, timur@codeaurora.org, cov@codeaurora.org, jcm@redhat.com
+Cc: agross@codeaurora.org, linux-arm-msm@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
 
-On Wednesday, March 16, 2016 11:40:54 PM Peter Zijlstra wrote:
-> On Wed, Mar 16, 2016 at 10:38:55PM +0100, Rafael J. Wysocki wrote:
-> > On Wednesday, March 16, 2016 07:14:20 PM Peter Zijlstra wrote:
-> > > On Wed, Mar 16, 2016 at 03:59:18PM +0100, Rafael J. Wysocki wrote:
-> > > > +static void sugov_update_commit(struct sugov_policy *sg_policy, u64 time,
-> > > > +				unsigned int next_freq)
-> > > > +{
-> > > > +	struct cpufreq_policy *policy = sg_policy->policy;
-> > > > +
-> > > > +	if (next_freq > policy->max)
-> > > > +		next_freq = policy->max;
-> > > > +	else if (next_freq < policy->min)
-> > > > +		next_freq = policy->min;
-> > > > +
-> > > > +	sg_policy->last_freq_update_time = time;
-> > > > +	if (sg_policy->next_freq == next_freq) {
-> > > > +		if (policy->fast_switch_enabled)
-> > > > +			trace_cpu_frequency(policy->cur, smp_processor_id());
-> > > > +
-> > > > +		return;
-> > > > +	}
-> > > > +
-> > > > +	sg_policy->next_freq = next_freq;
-> > > > +	if (policy->fast_switch_enabled) {
-> > > > +		unsigned int freq;
-> > > > +
-> > > > +		freq = cpufreq_driver_fast_switch(policy, next_freq);
-> > > 
-> > > So you're assuming a RELATION_L for ->fast_switch() ?
-> > 
-> > Yes, I am.
+Bjorn,
+Any feedback here?
+
+On 3/7/2016 5:21 PM, Sinan Kaya wrote:
+> The PCI_IOBASE needs to be released after hotplug removal so that it can be
+> re-added back by the pci_remap_iospace function during insertion.
 > 
-> Should we document that fact somewhere? Or alternatively, if you already
-> did, I simply missed it.
+> Adding unmap function to follow IO remap function.
+> 
+> Signed-off-by: Sinan Kaya <okaya@codeaurora.org>
+> ---
+>  drivers/pci/pci.c   | 25 +++++++++++++++++++++++++
+>  include/linux/pci.h |  1 +
+>  2 files changed, 26 insertions(+)
+> 
+> diff --git a/drivers/pci/pci.c b/drivers/pci/pci.c
+> index 3a516c0..f5faed2 100644
+> --- a/drivers/pci/pci.c
+> +++ b/drivers/pci/pci.c
+> @@ -26,6 +26,7 @@
+>  #include <linux/device.h>
+>  #include <linux/pm_runtime.h>
+>  #include <linux/pci_hotplug.h>
+> +#include <linux/vmalloc.h>
+>  #include <asm-generic/pci-bridge.h>
+>  #include <asm/setup.h>
+>  #include <linux/aer.h>
+> @@ -3169,6 +3170,30 @@ int __weak pci_remap_iospace(const struct resource *res, phys_addr_t phys_addr)
+>  #endif
+>  }
+>  
+> +/**
+> + *	pci_unmap_iospace - Unmap the memory mapped I/O space
+> + *	@virt_addr: virtual address to be unmapped
+> + *	@size: size of the physical address to be unmapped
+> + *
+> + *	Unmap the CPU virtual address @virt_addr from virtual address space.
+> + *	Only architectures that have memory mapped IO functions defined
+> + *	(and the PCI_IOBASE value defined) should call this function.
+> + */
+> +void  __weak pci_unmap_iospace(struct resource *res)
+> +{
+> +#if defined(PCI_IOBASE) && defined(CONFIG_MMU)
+> +	unsigned long vaddr = (unsigned long)PCI_IOBASE + res->start;
+> +
+> +	unmap_kernel_range(vaddr, resource_size(res));
+> +#else
+> +	/*
+> +	 * This architecture does not have memory mapped I/O space,
+> +	 * so this function should never be called.
+> +	 */
+> +	WARN_ONCE(1, "This architecture does not support memory mapped I/O\n");
+> +#endif
+> +}
+> +
+>  static void __pci_set_master(struct pci_dev *dev, bool enable)
+>  {
+>  	u16 old_cmd, cmd;
+> diff --git a/include/linux/pci.h b/include/linux/pci.h
+> index 398ae7e..c6e3f0e 100644
+> --- a/include/linux/pci.h
+> +++ b/include/linux/pci.h
+> @@ -1172,6 +1172,7 @@ int pci_register_io_range(phys_addr_t addr, resource_size_t size);
+>  unsigned long pci_address_to_pio(phys_addr_t addr);
+>  phys_addr_t pci_pio_to_address(unsigned long pio);
+>  int pci_remap_iospace(const struct resource *res, phys_addr_t phys_addr);
+> +void pci_unmap_iospace(struct resource *res);
+>  
+>  static inline pci_bus_addr_t pci_bus_address(struct pci_dev *pdev, int bar)
+>  {
+> 
 
-I thought I did, but clearly that's not the case (I think I wrote about that
-in a changelog comments somewhere).
+Sinan
 
-I'll document it in the kerneldoc for cpufreq_driver_fast_switch() (patch [6/7]).
-
+-- 
+Sinan Kaya
+Qualcomm Technologies, Inc. on behalf of Qualcomm Innovation Center, Inc.
+Qualcomm Innovation Center, Inc. is a member of Code Aurora Forum, a Linux Foundation Collaborative Project
