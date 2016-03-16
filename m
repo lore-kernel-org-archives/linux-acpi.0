@@ -1,52 +1,59 @@
-From: Peter Zijlstra <peterz@infradead.org>
-Subject: Re: [PATCH v4 7/7] cpufreq: schedutil: New governor based on
- scheduler utilization data
-Date: Wed, 16 Mar 2016 23:40:54 +0100
-Message-ID: <20160316224054.GL6344@twins.programming.kicks-ass.net>
-References: <1711281.bPmSjlBT7c@vostro.rjw.lan>
- <11678919.CQLTrQTYxG@vostro.rjw.lan>
- <20160316181420.GH6344@twins.programming.kicks-ass.net>
- <3456066.ocPAtCXNWC@vostro.rjw.lan>
+From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Subject: Re: [PATCH v4 7/7] cpufreq: schedutil: New governor based on scheduler utilization data
+Date: Wed, 16 Mar 2016 23:53:47 +0100
+Message-ID: <3401840.ChzILGGFZI@vostro.rjw.lan>
+References: <1711281.bPmSjlBT7c@vostro.rjw.lan> <3456066.ocPAtCXNWC@vostro.rjw.lan> <20160316224054.GL6344@twins.programming.kicks-ass.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-pm-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <3456066.ocPAtCXNWC@vostro.rjw.lan>
-Sender: linux-pm-owner@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: Linux PM list <linux-pm@vger.kernel.org>, Juri Lelli <juri.lelli@arm.com>, Steve Muckle <steve.muckle@linaro.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>, Viresh Kumar <viresh.kumar@linaro.org>, Vincent Guittot <vincent.guittot@linaro.org>, Michael Turquette <mturquette@baylibre.com>, Ingo Molnar <mingo@kernel.org>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7Bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from v094114.home.net.pl ([79.96.170.134]:53766 "HELO
+	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S933308AbcCPWvp (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 16 Mar 2016 18:51:45 -0400
+In-Reply-To: <20160316224054.GL6344@twins.programming.kicks-ass.net>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Peter Zijlstra <peterz@infradead.org>
+Cc: Linux PM list <linux-pm@vger.kernel.org>, Juri Lelli <juri.lelli@arm.com>, Steve Muckle <steve.muckle@linaro.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>, Viresh Kumar <viresh.kumar@linaro.org>, Vincent Guittot <vincent.guittot@linaro.org>, Michael Turquette <mturquette@baylibre.com>, Ingo Molnar <mingo@kernel.org>
 
-On Wed, Mar 16, 2016 at 10:38:55PM +0100, Rafael J. Wysocki wrote:
-> On Wednesday, March 16, 2016 07:14:20 PM Peter Zijlstra wrote:
-> > On Wed, Mar 16, 2016 at 03:59:18PM +0100, Rafael J. Wysocki wrote:
-> > > +static void sugov_update_commit(struct sugov_policy *sg_policy, u64 time,
-> > > +				unsigned int next_freq)
-> > > +{
-> > > +	struct cpufreq_policy *policy = sg_policy->policy;
-> > > +
-> > > +	if (next_freq > policy->max)
-> > > +		next_freq = policy->max;
-> > > +	else if (next_freq < policy->min)
-> > > +		next_freq = policy->min;
-> > > +
-> > > +	sg_policy->last_freq_update_time = time;
-> > > +	if (sg_policy->next_freq == next_freq) {
-> > > +		if (policy->fast_switch_enabled)
-> > > +			trace_cpu_frequency(policy->cur, smp_processor_id());
-> > > +
-> > > +		return;
-> > > +	}
-> > > +
-> > > +	sg_policy->next_freq = next_freq;
-> > > +	if (policy->fast_switch_enabled) {
-> > > +		unsigned int freq;
-> > > +
-> > > +		freq = cpufreq_driver_fast_switch(policy, next_freq);
+On Wednesday, March 16, 2016 11:40:54 PM Peter Zijlstra wrote:
+> On Wed, Mar 16, 2016 at 10:38:55PM +0100, Rafael J. Wysocki wrote:
+> > On Wednesday, March 16, 2016 07:14:20 PM Peter Zijlstra wrote:
+> > > On Wed, Mar 16, 2016 at 03:59:18PM +0100, Rafael J. Wysocki wrote:
+> > > > +static void sugov_update_commit(struct sugov_policy *sg_policy, u64 time,
+> > > > +				unsigned int next_freq)
+> > > > +{
+> > > > +	struct cpufreq_policy *policy = sg_policy->policy;
+> > > > +
+> > > > +	if (next_freq > policy->max)
+> > > > +		next_freq = policy->max;
+> > > > +	else if (next_freq < policy->min)
+> > > > +		next_freq = policy->min;
+> > > > +
+> > > > +	sg_policy->last_freq_update_time = time;
+> > > > +	if (sg_policy->next_freq == next_freq) {
+> > > > +		if (policy->fast_switch_enabled)
+> > > > +			trace_cpu_frequency(policy->cur, smp_processor_id());
+> > > > +
+> > > > +		return;
+> > > > +	}
+> > > > +
+> > > > +	sg_policy->next_freq = next_freq;
+> > > > +	if (policy->fast_switch_enabled) {
+> > > > +		unsigned int freq;
+> > > > +
+> > > > +		freq = cpufreq_driver_fast_switch(policy, next_freq);
+> > > 
+> > > So you're assuming a RELATION_L for ->fast_switch() ?
 > > 
-> > So you're assuming a RELATION_L for ->fast_switch() ?
+> > Yes, I am.
 > 
-> Yes, I am.
+> Should we document that fact somewhere? Or alternatively, if you already
+> did, I simply missed it.
 
-Should we document that fact somewhere? Or alternatively, if you already
-did, I simply missed it.
+I thought I did, but clearly that's not the case (I think I wrote about that
+in a changelog comments somewhere).
+
+I'll document it in the kerneldoc for cpufreq_driver_fast_switch() (patch [6/7]).
+
