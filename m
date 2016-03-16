@@ -1,57 +1,68 @@
-From: "Chen, Yu C" <yu.c.chen@intel.com>
-Subject: RE: [PATCH][RFC,v4] ACPI / PM: Introduce efi poweroff for HW-full
- platforms without _S5
-Date: Wed, 16 Mar 2016 05:59:29 +0000
-Message-ID: <36DF59CE26D8EE47B0655C516E9CE640286D5713@shsmsx102.ccr.corp.intel.com>
-References: <1457687133-3730-1-git-send-email-yu.c.chen@intel.com>
- <20160311155546.GJ15775@codeblueprint.co.uk>
- <36DF59CE26D8EE47B0655C516E9CE640286D442A@shsmsx102.ccr.corp.intel.com>
- <20160314200033.GG2619@codeblueprint.co.uk>
+From: Lloyd's TSB Bank Plc <info@gmail.com>
+Subject: lening bieden 1,5%
+Date: Wed, 16 Mar 2016 04:54:05 -0700
+Message-ID: <cb818d8bb2a45596f84ec0cf9123dbb8@multivision.com.ve>
+Reply-To: <lloyds26tsb@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-pm-owner@vger.kernel.org>
-In-Reply-To: <20160314200033.GG2619@codeblueprint.co.uk>
-Content-Language: en-US
-Sender: linux-pm-owner@vger.kernel.org
-To: Matt Fleming <matt@codeblueprint.co.uk>
-Cc: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-pm@vger.kernel.org" <linux-pm@vger.kernel.org>, "Rafael J. Wysocki" <rafael@kernel.org>, Len Brown <lenb@kernel.org>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, "Zhang, Rui" <rui.zhang@intel.com>, "linux-efi@vger.kernel.org" <linux-efi@vger.kernel.org>, "x86@kernel.org" <x86@kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Ard Biesheuvel <ard.biesheuvel@linaro.org>, Mark Salter <msalter@redhat.com>
+Content-Type: text/plain; charset=UTF-8;
+	format=flowed
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mvx1.ifxnw.com.ve ([200.62.27.83]:31650 "EHLO mvx1.ifxnw.com.ve"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S933443AbcCPLyV (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 16 Mar 2016 07:54:21 -0400
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hi Matt,
 
-> -----Original Message-----
-> From: Matt Fleming [mailto:matt@codeblueprint.co.uk]
-> Sent: Tuesday, March 15, 2016 4:01 AM
-> To: Chen, Yu C
-> Cc: linux-acpi@vger.kernel.org; linux-pm@vger.kernel.org; Rafael J. Wysocki;
-> Len Brown; Thomas Gleixner; Ingo Molnar; H. Peter Anvin; Zhang, Rui; linux-
-> efi@vger.kernel.org; x86@kernel.org; linux-kernel@vger.kernel.org; Ard
-> Biesheuvel; Mark Salter
-> Subject: Re: [PATCH][RFC,v4] ACPI / PM: Introduce efi poweroff for HW-full
-> platforms without _S5
-> 
-> On Fri, 11 Mar, at 04:33:46PM, Chen, Yu C wrote:
-> >
-> > There is  a future Base-IA platform, we are planning to skip
-> > implementing the SLP_TYP register and the S5 object.  (already there
-> > will be no S3 and no S4)
-> 
-> Cool. This is really valuable information that should go into the commit
-> message.
-> 
-> Because if this is the rationale for the change, I don't see why we'd need to
-> provide the default stuff. Instead we should just enforce EFI reboot, and
-> only add the pm_poweroff_default hook if there is an explicit user in the
-> future, IMO.
 
-Do you mean the patch v3 make sense
-https://patchwork.kernel.org/patch/8514751/
-and we should use efi power off as our first choice, if there is no _S5  available(no acpi_power_off),
-even there is a customized  poweroff(driver provided, eg)? 
+--=20
+Goede dag,
 
-Meanwhile, the legacy platforms will not be affected because
-there is no path to overwrite pm_power_off to efi power off.
+  Dit is Lloyd's TSB Bank plc leningen aan te bieden.
 
-thanks,
-yu
+    Lloyds TSB biedt flexibele en betaalbare leningen voor welk doel u=20
+te helpen uw doelen te bereiken. we lening tegen lage rente van 1,5%.=20
+Hier zijn een aantal belangrijke kenmerken van de persoonlijke lening=20
+aangeboden door Lloyd's TSB. Hier zijn de Loan Factoren we werken met d=
+e=20
+toonaangevende Britse makelaars die toegang hebben tot de top=20
+kredietverstrekkers hebben en in staat zijn om de beste financi=C3=ABle=
+=20
+oplossing tegen een betaalbare price.Please vinden als u ge=C3=AFnteres=
+seerd=20
+bent vriendelijk contact met ons op via deze e-mail:=20
+lloyds25tsb@europe.com
+
+
+Na de reactie, zal u een aanvraag voor een lening te vullen ontvangen.=20
+Geen sociale zekerheid en geen credit check, 100% gegarandeerd.
+
+Het zal ons een eer zijn als u ons toelaten om u van dienst zijn.
+
+
+GEGEVENS NODIG
+
+Jullie namen:
+Adres: ...........
+Telefoon: ...........
+Benodigd ........
+Duur: ...............
+Bezetting: ...........
+Maandelijks Inkomen Level: ........
+Geslacht: ...............
+Geboortedatum: ........
+Staat: ..................
+Land: ..........
+Doel: .........
+
+Ontmoeting uw financi=C3=ABle behoeften is onze trots.
+
+
+Dr.John Mahama.
+--
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
