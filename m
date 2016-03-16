@@ -1,36 +1,38 @@
-From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [PATCH v4 7/7] cpufreq: schedutil: New governor based on scheduler utilization data
-Date: Wed, 16 Mar 2016 22:48:51 +0100
-Message-ID: <1619379.bIbaK6P2Xv@vostro.rjw.lan>
-References: <1711281.bPmSjlBT7c@vostro.rjw.lan> <11678919.CQLTrQTYxG@vostro.rjw.lan> <20160316175341.GG6344@twins.programming.kicks-ass.net>
+From: Peter Zijlstra <peterz@infradead.org>
+Subject: Re: [PATCH v4 7/7] cpufreq: schedutil: New governor based on
+ scheduler utilization data
+Date: Wed, 16 Mar 2016 23:39:16 +0100
+Message-ID: <20160316223916.GK6344@twins.programming.kicks-ass.net>
+References: <1711281.bPmSjlBT7c@vostro.rjw.lan>
+ <11678919.CQLTrQTYxG@vostro.rjw.lan>
+ <20160316175211.GF6344@twins.programming.kicks-ass.net>
+ <1520262.pnveEYDEnp@vostro.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7Bit
-Return-path: <linux-pm-owner@vger.kernel.org>
-In-Reply-To: <20160316175341.GG6344@twins.programming.kicks-ass.net>
-Sender: linux-pm-owner@vger.kernel.org
-To: Peter Zijlstra <peterz@infradead.org>
-Cc: Linux PM list <linux-pm@vger.kernel.org>, Juri Lelli <juri.lelli@arm.com>, Steve Muckle <steve.muckle@linaro.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>, Viresh Kumar <viresh.kumar@linaro.org>, Vincent Guittot <vincent.guittot@linaro.org>, Michael Turquette <mturquette@baylibre.com>, Ingo Molnar <mingo@kernel.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from bombadil.infradead.org ([198.137.202.9]:52317 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932524AbcCPWjY (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 16 Mar 2016 18:39:24 -0400
+Content-Disposition: inline
+In-Reply-To: <1520262.pnveEYDEnp@vostro.rjw.lan>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: Linux PM list <linux-pm@vger.kernel.org>, Juri Lelli <juri.lelli@arm.com>, Steve Muckle <steve.muckle@linaro.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>, Viresh Kumar <viresh.kumar@linaro.org>, Vincent Guittot <vincent.guittot@linaro.org>, Michael Turquette <mturquette@baylibre.com>, Ingo Molnar <mingo@kernel.org>
 
-On Wednesday, March 16, 2016 06:53:41 PM Peter Zijlstra wrote:
-> On Wed, Mar 16, 2016 at 03:59:18PM +0100, Rafael J. Wysocki wrote:
-> > +static void sugov_update_commit(struct sugov_policy *sg_policy, u64 time,
-> > +				unsigned int next_freq)
-> > +{
-> > +	struct cpufreq_policy *policy = sg_policy->policy;
-> > +
-> > +	if (next_freq > policy->max)
-> > +		next_freq = policy->max;
-> > +	else if (next_freq < policy->min)
-> > +		next_freq = policy->min;
+On Wed, Mar 16, 2016 at 10:38:14PM +0100, Rafael J. Wysocki wrote:
+> > If you care what cpu the work runs on, you should schedule_work_on(),
+> > regular schedule_work() can end up on any random cpu (although typically
+> > it does not).
 > 
-> I'm still very much undecided on these policy min/max thresholds. I
-> don't particularly like them.
+> I know, but I don't care too much.
+> 
+> "ondemand" and "conservative" use schedule_work() for the same thing, so
+> drivers need to cope with that if they need things to run on a particular
+> CPU.
 
-These are for consistency mostly.
-
-It actually occurs to me that __cpufreq_driver_target() does that already
-anyway, so they can be moved into the "fast switch" branch.  Which means
-that the code needs to be rearranged a bit here.
+Or are just plain buggy -- like a lot of code that uses schedule_work()
+for per-cpu thingies; that is, its a fairly common bug and only recently
+did we add that RR thing.
 
