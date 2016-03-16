@@ -1,68 +1,53 @@
-From: Lloyd's TSB Bank Plc <info@gmail.com>
-Subject: lening bieden 1,5%
-Date: Wed, 16 Mar 2016 04:54:05 -0700
-Message-ID: <cb818d8bb2a45596f84ec0cf9123dbb8@multivision.com.ve>
-Reply-To: <lloyds26tsb@gmail.com>
+From: Lukas Wunner <lukas@wunner.de>
+Subject: Re: Thunderbolt 3 (Skylake / Alpine Ridge) hotplug
+Date: Wed, 16 Mar 2016 14:22:28 +0100
+Message-ID: <20160316132228.GB28222@wunner.de>
+References: <56D0085B.60402@jscinoz.so>
+ <20160315172909.GF19974@localhost>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8;
-	format=flowed
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mvx1.ifxnw.com.ve ([200.62.27.83]:31650 "EHLO mvx1.ifxnw.com.ve"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S933443AbcCPLyV (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 16 Mar 2016 07:54:21 -0400
+Received: from mailout3.hostsharing.net ([176.9.242.54]:35445 "EHLO
+	mailout3.hostsharing.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S965993AbcCPNVF (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 16 Mar 2016 09:21:05 -0400
+Content-Disposition: inline
+In-Reply-To: <20160315172909.GF19974@localhost>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Jack Coulter <jscinoz@jscinoz.so>
+Cc: Bjorn Helgaas <helgaas@kernel.org>, Andreas Noever <andreas.noever@gmail.com>, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, "Rafael J. Wysocki" <rafael@kernel.org>, Martin Andersson <martin.andersson@purplescout.se>
 
+Hi Jack,
 
+On Tue, Mar 15, 2016 at 12:29:09PM -0500, Bjorn Helgaas wrote:
+> On Fri, Feb 26, 2016 at 07:10:03PM +1100, Jack Coulter wrote:
+> > I'm attempting to use the Thunderbolt 3 (which has a USB Type-C
+> > connector) port on my laptop, a Dell XPS 15 (9550). The external device
+> > I'm attempting to use is a gigabit ethernet + USB 3.0 hub, of an unknown
+> > / generic brand, but bears model number KY-688 if that's of any use.
+> > 
+> > When the device is present at system startup, everything works
+> > correctly, and shows up in lspci as a USB controller, which lsusb shows
+> > having a hub and ethernet NIC attached, which the r8152 driver binds and
+> > uses without issue: [...]
+> > 
+> > However, if the device is connected after the system boots (or
+> > disconnected and reconnected), it is not detected at all. No messages
+> > show up in dmesg upon connection and no additional devices show up in
+> > the output of lspci & lsusb. Strangely enough, USB devices connected to
+> > the external hub do still receive power.
+>
+> I don't know much about Thunderbolt.  But since it appears as a PCI
+> device, I would expect some sort of hotplug notification when you
+> attach the hub.  If pciehp handles hotplug, it looks like we should
+> see something from pcie_isr() in the dmesg log.
 
---=20
-Goede dag,
+Try booting with: pcie_hp=nomsi
 
-  Dit is Lloyd's TSB Bank plc leningen aan te bieden.
+This is needed with the Light Ridge controller built into 2011/2012 Macs
+to receive hotplug notifications.
 
-    Lloyds TSB biedt flexibele en betaalbare leningen voor welk doel u=20
-te helpen uw doelen te bereiken. we lening tegen lage rente van 1,5%.=20
-Hier zijn een aantal belangrijke kenmerken van de persoonlijke lening=20
-aangeboden door Lloyd's TSB. Hier zijn de Loan Factoren we werken met d=
-e=20
-toonaangevende Britse makelaars die toegang hebben tot de top=20
-kredietverstrekkers hebben en in staat zijn om de beste financi=C3=ABle=
-=20
-oplossing tegen een betaalbare price.Please vinden als u ge=C3=AFnteres=
-seerd=20
-bent vriendelijk contact met ons op via deze e-mail:=20
-lloyds25tsb@europe.com
+Best regards,
 
-
-Na de reactie, zal u een aanvraag voor een lening te vullen ontvangen.=20
-Geen sociale zekerheid en geen credit check, 100% gegarandeerd.
-
-Het zal ons een eer zijn als u ons toelaten om u van dienst zijn.
-
-
-GEGEVENS NODIG
-
-Jullie namen:
-Adres: ...........
-Telefoon: ...........
-Benodigd ........
-Duur: ...............
-Bezetting: ...........
-Maandelijks Inkomen Level: ........
-Geslacht: ...............
-Geboortedatum: ........
-Staat: ..................
-Land: ..........
-Doel: .........
-
-Ontmoeting uw financi=C3=ABle behoeften is onze trots.
-
-
-Dr.John Mahama.
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Lukas
