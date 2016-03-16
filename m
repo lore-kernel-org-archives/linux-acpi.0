@@ -1,53 +1,111 @@
 From: Lukas Wunner <lukas@wunner.de>
-Subject: Re: Thunderbolt 3 (Skylake / Alpine Ridge) hotplug
-Date: Wed, 16 Mar 2016 14:22:28 +0100
-Message-ID: <20160316132228.GB28222@wunner.de>
-References: <56D0085B.60402@jscinoz.so>
- <20160315172909.GF19974@localhost>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mailout3.hostsharing.net ([176.9.242.54]:35445 "EHLO
-	mailout3.hostsharing.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S965993AbcCPNVF (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 16 Mar 2016 09:21:05 -0400
-Content-Disposition: inline
-In-Reply-To: <20160315172909.GF19974@localhost>
-Sender: linux-acpi-owner@vger.kernel.org
+Subject: [RFC 0/4] Runtime pm for thunderbolt.ko
+Date: Wed, 16 Mar 2016 15:50:35 +0100
+Message-ID: <cover.1458126755.git.lukas@wunner.de>
+Return-path: <linux-pm-owner@vger.kernel.org>
+Sender: linux-pm-owner@vger.kernel.org
+To: linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, linux-pm@vger.kernel.org
+Cc: Andreas Noever <andreas.noever@gmail.com>, Matthew Garrett <mjg59@srcf.ucam.org>
 List-Id: linux-acpi@vger.kernel.org
-To: Jack Coulter <jscinoz@jscinoz.so>
-Cc: Bjorn Helgaas <helgaas@kernel.org>, Andreas Noever <andreas.noever@gmail.com>, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, "Rafael J. Wysocki" <rafael@kernel.org>, Martin Andersson <martin.andersson@purplescout.se>
 
-Hi Jack,
+This series adds runtime pm to the Thunderbolt driver for Macs.
+Patches 1 to 3 are just preparatory material, the real action
+is in patch 4.
 
-On Tue, Mar 15, 2016 at 12:29:09PM -0500, Bjorn Helgaas wrote:
-> On Fri, Feb 26, 2016 at 07:10:03PM +1100, Jack Coulter wrote:
-> > I'm attempting to use the Thunderbolt 3 (which has a USB Type-C
-> > connector) port on my laptop, a Dell XPS 15 (9550). The external device
-> > I'm attempting to use is a gigabit ethernet + USB 3.0 hub, of an unknown
-> > / generic brand, but bears model number KY-688 if that's of any use.
-> > 
-> > When the device is present at system startup, everything works
-> > correctly, and shows up in lspci as a USB controller, which lsusb shows
-> > having a hub and ethernet NIC attached, which the r8152 driver binds and
-> > uses without issue: [...]
-> > 
-> > However, if the device is connected after the system boots (or
-> > disconnected and reconnected), it is not detected at all. No messages
-> > show up in dmesg upon connection and no additional devices show up in
-> > the output of lspci & lsusb. Strangely enough, USB devices connected to
-> > the external hub do still receive power.
->
-> I don't know much about Thunderbolt.  But since it appears as a PCI
-> device, I would expect some sort of hotplug notification when you
-> attach the hub.  If pciehp handles hotplug, it looks like we should
-> see something from pcie_isr() in the dmesg log.
+The series fixes (at least partially) a power regression introduced in
+Linux 3.17 by 7bc5a2bad0b8 ("ACPI: Support _OSI("Darwin") correctly"):
+https://bugzilla.kernel.org/show_bug.cgi?id=92111
 
-Try booting with: pcie_hp=nomsi
+It would be good if someone could test it with Cactus Ridge or
+Falcon Ridge. So far I've only tested it with the Light Ridge
+controller built into older Macs.
 
-This is needed with the Light Ridge controller built into 2011/2012 Macs
-to receive hotplug notifications.
+I've also pushed the patches to GitHub to ease reviewing:
+https://github.com/l1k/linux/commits/thunderbolt_runpm_v1
 
-Best regards,
+
+I'm posting this as an RFC to get feedback in particular on 2 issues:
+
+(1) There are 3 drivers interacting with the Thunderbolt controller:
+    thunderbolt.ko (controls the NHI, Native Host Interface),
+    pcieport (controls the upstream bridge) and pciehp (controls
+    the downstream bridges). The Linux pm model assumes that a child
+    cannot resume before its parent, yet my implementation lets the
+    NHI govern runtime pm and the NHI is a child. So this is a total
+    violation of the Linux pm model. There's an ascii drawing in
+    patch 4 which should make this clearer.
+
+    To let the parent (upstream bridge) govern runtime pm, I could
+    maybe write a pcieport service driver specifically for Thunderbolt
+    which governs the runtime pm (but does nothing else). However
+    pcieport currently has no runtime pm (yes I know Mika is on it)
+    and a service driver lacks the necessary runtime pm callbacks.
+    So with pcieport the way it is now, that solution isn't attainable.
+
+
+(2) When the system goes to sleep, it shouldn't wake the controller
+    from runtime suspend. Waking the controller takes 2 seconds and
+    costs energy. The ->prepare callback must return 1 to achieve that.
+    However pci_pm_prepare() doesn't do so as it can't deal properly
+    with devices that can be runtime suspended to D3cold even though
+    they're not power manageable by the platform. This could be fixed
+    with something like this:
+
+--- a/drivers/pci/pci.c
++++ b/drivers/pci/pci.c
+@@ -1918,7 +1918,8 @@ EXPORT_SYMBOL(pci_wake_from_d3);
+  */
+ static pci_power_t pci_target_state(struct pci_dev *dev)
+ {
+-	pci_power_t target_state = PCI_D3hot;
++	pci_power_t target_state =
++		(dev->current_state == PCI_D3cold) ? PCI_D3cold : PCI_D3hot;
+ 
+ 	if (platform_pci_power_manageable(dev)) {
+ 		/*
+
+    But there's another problem: pci_pm_complete() wakes up the device
+    after resuming from system sleep and there's no need to do that.
+    The controller may stay asleep and will be woken on hotplug by a GPE.
+    We could fix that with an additional flag in struct dev_pm_info.
+
+    Meanwhile the only solution I could find was a PCI enable fixup
+    which overrides pci_pm_prepare() and pci_pm_complete() using a
+    power domain. That's fairly kludgy, I can never remove and free
+    the allocated struct dev_pm_domain since there is no PCI remove
+    fixup section. It's also not possible to bail out of the ->probe
+    callback if allocation fails since the PCI enable fixup does not
+    allow return values to be passed back.
+
+Thanks,
 
 Lukas
+
+
+Lukas Wunner (4):
+  PCI: Add Thunderbolt device IDs
+  thunderbolt: Fix typos and magic number
+  thunderbolt: Move pm code to separate file
+  thunderbolt: Support runtime pm
+
+ drivers/pci/quirks.c          |  51 +++++++-
+ drivers/thunderbolt/Kconfig   |   2 +-
+ drivers/thunderbolt/Makefile  |   3 +-
+ drivers/thunderbolt/ctl.c     |   2 +-
+ drivers/thunderbolt/eeprom.c  |   2 +-
+ drivers/thunderbolt/nhi.c     |  45 ++-----
+ drivers/thunderbolt/nhi.h     |   3 +
+ drivers/thunderbolt/power.c   | 288 ++++++++++++++++++++++++++++++++++++++++++
+ drivers/thunderbolt/power.h   |  17 +++
+ drivers/thunderbolt/switch.c  |  28 ++--
+ drivers/thunderbolt/tb.c      |   8 +-
+ drivers/thunderbolt/tb.h      |   2 +-
+ drivers/thunderbolt/tb_regs.h |   2 +-
+ include/linux/pci_ids.h       |  18 +++
+ 14 files changed, 413 insertions(+), 58 deletions(-)
+ create mode 100644 drivers/thunderbolt/power.c
+ create mode 100644 drivers/thunderbolt/power.h
+
+-- 
+2.7.0
+
