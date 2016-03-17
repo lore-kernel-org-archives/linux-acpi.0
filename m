@@ -1,63 +1,229 @@
-From: David Daney <ddaney.cavm@gmail.com>
-Subject: Re: [PATCH] ACPI / property: Export a couple of symbols.
-Date: Thu, 17 Mar 2016 13:21:54 -0700
-Message-ID: <56EB11E2.6050608@gmail.com>
-References: <1458174199-23615-1-git-send-email-ddaney.cavm@gmail.com> <20160317080926.GO1793@lahna.fi.intel.com> <CAJZ5v0gP4uWs8ka8SUGzxJ9GcRKdMiRMpc+OktBTHtug9MAdBw@mail.gmail.com>
+From: Jayachandran C <jchandra@broadcom.com>
+Subject: [RFC PATCH 1/4] PCI: Provide generic ECAM mapping functions
+Date: Fri, 18 Mar 2016 01:48:30 +0530
+Message-ID: <1458245913-17211-2-git-send-email-jchandra@broadcom.com>
+References: <1458245913-17211-1-git-send-email-jchandra@broadcom.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-pf0-f173.google.com ([209.85.192.173]:35464 "EHLO
-	mail-pf0-f173.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932595AbcCQUV6 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 17 Mar 2016 16:21:58 -0400
-In-Reply-To: <CAJZ5v0gP4uWs8ka8SUGzxJ9GcRKdMiRMpc+OktBTHtug9MAdBw@mail.gmail.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <1458245913-17211-1-git-send-email-jchandra@broadcom.com>
+In-Reply-To: <CAKc_7PVK3VtaR-LDHNXPr5cSjbCcH--hsepFx=jVATNi=+a9Hw@mail.gmail.com>
+References: <CAKc_7PVK3VtaR-LDHNXPr5cSjbCcH--hsepFx=jVATNi=+a9Hw@mail.gmail.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Bjorn Helgaas <helgaas@kernel.org>, Tomasz Nowicki <tn@semihalf.com>, rafael@kernel.org
+Cc: linaro-acpi@lists.linaro.org, linux-pci@vger.kernel.org, Will Deacon <will.deacon@arm.com>, okaya@codeaurora.org, wangyijing@huawei.com, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, David Daney <ddaney@caviumnetworks.com>, linux-acpi@vger.kernel.org, robert.richter@caviumnetworks.com, Catalin Marinas <catalin.marinas@arm.com>, Liviu.Dudau@arm.com, Arnd Bergmann <arnd@arndb.de>, Stefano Stabellini <Stefano.Stabellini@eu.citrix.com>, Jon Masters <jcm@redhat.com>, msalter@redhat.com, Marcin Wojtas <mw@semihalf.com>, linux-arm-kernel@lists.infradead.org, Jayachandran C <jchandra@broadcom.com>, linux-kernel@vger.kernel.org, Hanjun Guo <hanjun.guo@linaro.org>, Suravee.Suthikulpanit@amd.com, jiang.liu@linux.intel.com
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rafael@kernel.org>
-Cc: Mika Westerberg <mika.westerberg@linux.intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Robert Richter <rrichter@cavium.com>, Tomasz Nowicki <tn@semihalf.com>, David Daney <david.daney@cavium.com>
 
-On 03/17/2016 06:00 AM, Rafael J. Wysocki wrote:
-> On Thu, Mar 17, 2016 at 9:09 AM, Mika Westerberg
-> <mika.westerberg@linux.intel.com> wrote:
->> On Wed, Mar 16, 2016 at 05:23:19PM -0700, David Daney wrote:
->>> From: David Daney <david.daney@cavium.com>
->>>
->>> The acpi_dev_prop_read() and acpi_dev_prop_read_single() can be called
->>> by drivers.  Add EXPORT_SYMBOL_GPL to them to allow use by modular
->>> drivers.  This makes them consistent with acpi_dev_get_property() and
->>> acpi_node_get_property_reference() which are already exported.
->>>
->>> Signed-off-by: David Daney <david.daney@cavium.com>
->>> ---
->>> FWIW: We hope to submit soon Cavium Thunder networking patches that
->>> fail under modular builds without these exports.
->>
->> You should not be using these functions directly in drivers.
->
-> That's exactly my point.
->
+Add config option PCI_GENERIC_ECAM and file drivers/pci/ecam.c to
+provide generic functions to access memory mapped PCI config space.
 
-OK, for the sake of argument I will concede that my particular use of 
-acpi_dev_prop_read_single() is incorrect.
+The API defines 'struct pci_config_window' to hold the mappings.
+The function pci_generic_map_config() is provided to allocate the
+struct, request the memory region, and do the ioremap() calls
+needed to setup the mapping. pci_generic_unmap_config() is provided
+to delete a mapping.
 
-Let me ask you this:
+A helper function pci_generic_map_bus() is also provided to be used
+to implement pci_ops map_bus method.
 
-What is the point of the code in drivers/acpi/property.c?
+Signed-off-by: Jayachandran C <jchandra@broadcom.com>
+---
+ drivers/pci/Kconfig  |   3 ++
+ drivers/pci/Makefile |   2 +
+ drivers/pci/ecam.c   | 127 +++++++++++++++++++++++++++++++++++++++++++++++++++
+ include/linux/pci.h  |  10 ++++
+ 4 files changed, 142 insertions(+)
+ create mode 100644 drivers/pci/ecam.c
 
-acpi_dev_prop_read() and acpi_dev_prop_read_single() are not used 
-anywhere that I can see in the kernel, would you accept a patch to 
-remove them?
-
-But from a philosophical point of view, what is the underlying problem 
-of having drivers extract property information from the ACPI tables 
-corresponding to the devices they control.
-
-Specifically, I am trying to understand how to port drivers that 
-currently successfully use OF device tree so that they are usable in 
-systems with ACPI based firmware.
-
-Thanks in advance,
-David Daney
-
-
+diff --git a/drivers/pci/Kconfig b/drivers/pci/Kconfig
+index 209292e..e930d62 100644
+--- a/drivers/pci/Kconfig
++++ b/drivers/pci/Kconfig
+@@ -83,6 +83,9 @@ config HT_IRQ
+ config PCI_ATS
+ 	bool
+ 
++config PCI_GENERIC_ECAM
++	bool
++
+ config PCI_IOV
+ 	bool "PCI IOV support"
+ 	depends on PCI
+diff --git a/drivers/pci/Makefile b/drivers/pci/Makefile
+index 2154092..810aec8 100644
+--- a/drivers/pci/Makefile
++++ b/drivers/pci/Makefile
+@@ -55,6 +55,8 @@ obj-$(CONFIG_PCI_SYSCALL) += syscall.o
+ 
+ obj-$(CONFIG_PCI_STUB) += pci-stub.o
+ 
++obj-$(CONFIG_PCI_GENERIC_ECAM) += ecam.o
++
+ obj-$(CONFIG_XEN_PCIDEV_FRONTEND) += xen-pcifront.o
+ 
+ obj-$(CONFIG_OF) += of.o
+diff --git a/drivers/pci/ecam.c b/drivers/pci/ecam.c
+new file mode 100644
+index 0000000..6a63901
+--- /dev/null
++++ b/drivers/pci/ecam.c
+@@ -0,0 +1,127 @@
++/*
++ * Copyright 2016 Broadcom
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License, version 2, as
++ * published by the Free Software Foundation (the "GPL").
++ *
++ * This program is distributed in the hope that it will be useful, but
++ * WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
++ * General Public License version 2 (GPLv2) for more details.
++ *
++ * You should have received a copy of the GNU General Public License
++ * version 2 (GPLv2) along with this source code.
++ */
++
++#include <linux/device.h>
++#include <linux/io.h>
++#include <linux/kernel.h>
++#include <linux/module.h>
++#include <linux/pci.h>
++#include <linux/slab.h>
++
++/*
++ * On 64 bit systems, we do a single ioremap for the whole config space
++ * since we have enough virtual address range available. On 32 bit, do an
++ * ioremap per bus.
++ */
++static const bool per_bus_mapping = !config_enabled(CONFIG_64BIT);
++
++/*
++ * struct to hold the mappings of a config space window. This
++ * will be allocated with enough entries in win[] to hold all
++ * the mappings for the bus range.
++ */
++struct pci_config_window {
++	phys_addr_t		cfgaddr;
++	u8			bus_start;
++	u8			bus_end;
++	u8			bus_shift;
++	u8			devfn_shift;
++	void __iomem		*win[0];
++};
++
++/*
++ * helper function provided to implement the pci_ops ->map_bus method
++ */
++void __iomem *pci_generic_map_bus(struct pci_config_window *cfg,
++		 unsigned int busn, unsigned int devfn, int where)
++{
++	void __iomem *base;
++
++	if (busn < cfg->bus_start || busn > cfg->bus_end)
++		return NULL;
++
++	busn -= cfg->bus_start;
++	if (per_bus_mapping)
++		base = cfg->win[busn];
++	else
++		base = cfg->win[0] + (busn << cfg->bus_shift);
++	return base + (devfn << cfg->devfn_shift) + where;
++}
++
++/*
++ * Create a PCI config space window
++ *  - reserve mem region
++ *  - alloc struct pci_config_window with space for all mappings
++ *  - ioremap the config space
++ */
++struct pci_config_window *pci_generic_map_config(phys_addr_t addr,
++	u8 bus_start, u8 bus_end, u8 bus_shift, u8 devfn_shift)
++{
++	struct pci_config_window *cfg;
++	unsigned int bus_range, bsz, mapsz;
++	int i, nidx;
++
++	if (bus_end < bus_start)
++		return ERR_PTR(-EINVAL);
++
++	bus_range = bus_end - bus_start + 1;
++	bsz = 1 << bus_shift;
++	nidx = per_bus_mapping ? bus_range : 1;
++	mapsz = per_bus_mapping ? bsz : bus_range * bsz;
++	cfg = kzalloc(sizeof(*cfg) + nidx * sizeof(cfg->win[0]), GFP_KERNEL);
++	if (!cfg)
++		return ERR_PTR(-ENOMEM);
++
++	cfg->bus_start = bus_start;
++	cfg->bus_end = bus_end;
++	cfg->bus_shift = bus_shift;
++	cfg->devfn_shift = devfn_shift;
++
++	if (!request_mem_region(addr, bus_range * bsz, "Configuration Space"))
++		goto err_exit;
++
++	/* cfgaddr has to be set after request_mem_region */
++	cfg->cfgaddr = addr;
++
++	for (i = 0; i < nidx; i++) {
++		cfg->win[i] = ioremap(addr + i * mapsz, mapsz);
++		if (!cfg->win[i])
++			goto err_exit;
++	}
++	return cfg;
++
++err_exit:
++	pci_generic_unmap_config(cfg);
++	return ERR_PTR(-ENOMEM);
++}
++
++/*
++ * Free a config space mapping
++ */
++void pci_generic_unmap_config(struct pci_config_window *cfg)
++{
++	unsigned int bus_range;
++	int i, nidx;
++
++	bus_range = cfg->bus_end - cfg->bus_start + 1;
++	nidx = per_bus_mapping ? bus_range : 1;
++	for (i = 0; i < nidx; i++)
++		if (cfg->win[i])
++			iounmap(cfg->win[i]);
++	if (cfg->cfgaddr)
++		release_mem_region(cfg->cfgaddr, bus_range << cfg->bus_shift);
++	kfree(cfg);
++}
+diff --git a/include/linux/pci.h b/include/linux/pci.h
+index 3df9e37..33c46bc 100644
+--- a/include/linux/pci.h
++++ b/include/linux/pci.h
+@@ -2013,6 +2013,16 @@ static inline bool pci_ari_enabled(struct pci_bus *bus)
+ 	return bus->self && bus->self->ari_enabled;
+ }
+ 
++/* Generic ECAM mapping API */
++#ifdef CONFIG_PCI_GENERIC_ECAM
++struct pci_config_window;
++void __iomem *pci_generic_map_bus(struct pci_config_window *cfg,
++	 unsigned int busn, unsigned int devfn, int where);
++struct pci_config_window *pci_generic_map_config(phys_addr_t addr,
++	u8 bus_start, u8 bus_end, u8 bus_shift, u8 devfn_shift);
++void pci_generic_unmap_config(struct pci_config_window *cfg);
++#endif
++
+ /* provide the legacy pci_dma_* API */
+ #include <linux/pci-dma-compat.h>
+ 
+-- 
+1.9.1
