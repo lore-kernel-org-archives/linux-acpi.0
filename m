@@ -1,207 +1,62 @@
 From: "Rafael J. Wysocki" <rafael@kernel.org>
-Subject: Re: [PATCH v6 0/5] Make cpuid <-> nodeid mapping persistent
-Date: Thu, 17 Mar 2016 02:47:43 +0100
-Message-ID: <CAJZ5v0jFpQ75sKv6LS2z6h0h0YotgmtTbhjByuBgJL_JPtX=NQ@mail.gmail.com>
-References: <cover.1458177577.git.zhugh.fnst@cn.fujitsu.com>
+Subject: Re: [PATCH 1/3] ACPI: move ACPI_SYSTEM_HID to acpi_drivers.h
+Date: Thu, 17 Mar 2016 02:50:19 +0100
+Message-ID: <CAJZ5v0jewRqgvi7Ei939ddafnNJEQw+cv2cjGWrFNK2pZ0-2rQ@mail.gmail.com>
+References: <1458157022-18633-1-git-send-email-pprakash@codeaurora.org>
+	<1458157022-18633-2-git-send-email-pprakash@codeaurora.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
-Return-path: <owner-linux-mm@kvack.org>
-In-Reply-To: <cover.1458177577.git.zhugh.fnst@cn.fujitsu.com>
-Sender: owner-linux-mm@kvack.org
-To: Zhu Guihua <zhugh.fnst@cn.fujitsu.com>
-Cc: cl@linux.com, Tejun Heo <tj@kernel.org>, mika.j.penttila@gmail.com, Ingo Molnar <mingo@redhat.com>, Andrew Morton <akpm@linux-foundation.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, "H. Peter Anvin" <hpa@zytor.com>, yasu.isimatu@gmail.com, isimatu.yasuaki@jp.fujitsu.com, kamezawa.hiroyu@jp.fujitsu.com, izumi.taku@jp.fujitsu.com, gongzhaogang@inspur.com, Len Brown <len.brown@intel.com>, Len Brown <lenb@kernel.org>, Thomas Gleixner <tglx@linutronix.de>, chen.tang@easystack.cn, x86@kernel.org, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Linux Memory Management List <linux-mm@kvack.org>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-lb0-f194.google.com ([209.85.217.194]:35137 "EHLO
+	mail-lb0-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751802AbcCQBuV (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 16 Mar 2016 21:50:21 -0400
+Received: by mail-lb0-f194.google.com with SMTP id wn5so4176939lbb.2
+        for <linux-acpi@vger.kernel.org>; Wed, 16 Mar 2016 18:50:20 -0700 (PDT)
+In-Reply-To: <1458157022-18633-2-git-send-email-pprakash@codeaurora.org>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Prashanth Prakash <pprakash@codeaurora.org>
+Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, harba@codeaurora.org, "Rafael J. Wysocki" <rjw@rjwysocki.net>, "Jonathan (Zhixiong) Zhang" <zjzhang@codeaurora.org>
 
-On Thu, Mar 17, 2016 at 2:31 AM, Zhu Guihua <zhugh.fnst@cn.fujitsu.com> wrote:
-> [Problem]
+On Wed, Mar 16, 2016 at 8:37 PM, Prashanth Prakash
+<pprakash@codeaurora.org> wrote:
+> From: "Jonathan (Zhixiong) Zhang" <zjzhang@codeaurora.org>
 >
-> cpuid <-> nodeid mapping is firstly established at boot time. And workqueue caches
-> the mapping in wq_numa_possible_cpumask in wq_numa_init() at boot time.
+> ACPI_SYSTEM_HID is defined in drivers/acpi/bus.c out-of-band.
 >
-> When doing node online/offline, cpuid <-> nodeid mapping is established/destroyed,
-> which means, cpuid <-> nodeid mapping will change if node hotplug happens. But
-> workqueue does not update wq_numa_possible_cpumask.
+> Move the definition to include/acpi/acpi_drivers.h, together
+> with other Linux specific HIDs, so that it can be used by other
+> code.
 >
-> So here is the problem:
+> Signed-off-by: Jonathan (Zhixiong) Zhang <zjzhang@codeaurora.org>
+> ---
+>  drivers/acpi/scan.c         | 3 ++-
+>  include/acpi/acpi_drivers.h | 1 +
+>  2 files changed, 3 insertions(+), 1 deletion(-)
 >
-> Assume we have the following cpuid <-> nodeid in the beginning:
+> diff --git a/drivers/acpi/scan.c b/drivers/acpi/scan.c
+> index 407a376..358e3c8 100644
+> --- a/drivers/acpi/scan.c
+> +++ b/drivers/acpi/scan.c
+> @@ -13,6 +13,8 @@
+>  #include <linux/nls.h>
+>  #include <linux/dma-mapping.h>
 >
->   Node | CPU
-> ------------------------
-> node 0 |  0-14, 60-74
-> node 1 | 15-29, 75-89
-> node 2 | 30-44, 90-104
-> node 3 | 45-59, 105-119
+> +#include <acpi/acpi_drivers.h>
+> +
+>  #include <asm/pgtable.h>
 >
-> and we hot-remove node2 and node3, it becomes:
+>  #include "internal.h"
+> @@ -22,7 +24,6 @@ ACPI_MODULE_NAME("scan");
+>  extern struct acpi_device *acpi_root;
 >
->   Node | CPU
-> ------------------------
-> node 0 |  0-14, 60-74
-> node 1 | 15-29, 75-89
->
-> and we hot-add node4 and node5, it becomes:
->
->   Node | CPU
-> ------------------------
-> node 0 |  0-14, 60-74
-> node 1 | 15-29, 75-89
-> node 4 | 30-59
-> node 5 | 90-119
->
-> But in wq_numa_possible_cpumask, cpu30 is still mapped to node2, and the like.
->
-> When a pool workqueue is initialized, if its cpumask belongs to a node, its
-> pool->node will be mapped to that node. And memory used by this workqueue will
-> also be allocated on that node.
->
-> static struct worker_pool *get_unbound_pool(const struct workqueue_attrs *attrs){
-> ...
->         /* if cpumask is contained inside a NUMA node, we belong to that node */
->         if (wq_numa_enabled) {
->                 for_each_node(node) {
->                         if (cpumask_subset(pool->attrs->cpumask,
->                                            wq_numa_possible_cpumask[node])) {
->                                 pool->node = node;
->                                 break;
->                         }
->                 }
->         }
->
-> Since wq_numa_possible_cpumask is not updated, it could be mapped to an offline node,
-> which will lead to memory allocation failure:
->
->  SLUB: Unable to allocate memory on node 2 (gfp=0x80d0)
->   cache: kmalloc-192, object size: 192, buffer size: 192, default order: 1, min order: 0
->   node 0: slabs: 6172, objs: 259224, free: 245741
->   node 1: slabs: 3261, objs: 136962, free: 127656
->
-> It happens here:
->
-> create_worker(struct worker_pool *pool)
->  |--> worker = alloc_worker(pool->node);
->
-> static struct worker *alloc_worker(int node)
-> {
->         struct worker *worker;
->
->         worker = kzalloc_node(sizeof(*worker), GFP_KERNEL, node); --> Here, useing the wrong node.
->
->         ......
->
->         return worker;
-> }
->
->
-> [Solution]
->
-> There are four mappings in the kernel:
-> 1. nodeid (logical node id)   <->   pxm
-> 2. apicid (physical cpu id)   <->   nodeid
-> 3. cpuid (logical cpu id)     <->   apicid
-> 4. cpuid (logical cpu id)     <->   nodeid
->
-> 1. pxm (proximity domain) is provided by ACPI firmware in SRAT, and nodeid <-> pxm
->    mapping is setup at boot time. This mapping is persistent, won't change.
->
-> 2. apicid <-> nodeid mapping is setup using info in 1. The mapping is setup at boot
->    time and CPU hotadd time, and cleared at CPU hotremove time. This mapping is also
->    persistent.
->
-> 3. cpuid <-> apicid mapping is setup at boot time and CPU hotadd time. cpuid is
->    allocated, lower ids first, and released at CPU hotremove time, reused for other
->    hotadded CPUs. So this mapping is not persistent.
->
-> 4. cpuid <-> nodeid mapping is also setup at boot time and CPU hotadd time, and
->    cleared at CPU hotremove time. As a result of 3, this mapping is not persistent.
->
-> To fix this problem, we establish cpuid <-> nodeid mapping for all the possible
-> cpus at boot time, and make it persistent. And according to init_cpu_to_node(),
-> cpuid <-> nodeid mapping is based on apicid <-> nodeid mapping and cpuid <-> apicid
-> mapping. So the key point is obtaining all cpus' apicid.
->
-> apicid can be obtained by _MAT (Multiple APIC Table Entry) method or found in
-> MADT (Multiple APIC Description Table). So we finish the job in the following steps:
->
-> 1. Enable apic registeration flow to handle both enabled and disabled cpus.
->    This is done by introducing an extra parameter to generic_processor_info to let the
->    caller control if disabled cpus are ignored.
->
-> 2. Introduce a new array storing all possible cpuid <-> apicid mapping. And also modify
->    the way cpuid is calculated. Establish all possible cpuid <-> apicid mapping when
->    registering local apic. Store the mapping in this array.
->
-> 3. Enable _MAT and MADT relative apis to return non-presnet or disabled cpus' apicid.
->    This is also done by introducing an extra parameter to these apis to let the caller
->    control if disabled cpus are ignored.
->
-> 4. Establish all possible cpuid <-> nodeid mapping.
->    This is done via an additional acpi namespace walk for processors.
->
->
-> For previous discussion, please refer to:
-> https://lkml.org/lkml/2015/2/27/145
-> https://lkml.org/lkml/2015/3/25/989
-> https://lkml.org/lkml/2015/5/14/244
-> https://lkml.org/lkml/2015/7/7/200
-> https://lkml.org/lkml/2015/9/27/209
->
-> Change log v5 -> v6:
-> 1. Define func acpi_map_cpu2node() for x86 and ia64 respectively.
->
-> Change log v4 -> v5:
-> 1. Remove useless code in patch 1.
-> 2. Small improvement of commit message.
->
-> Change log v3 -> v4:
-> 1. Fix the kernel panic at boot time. The cause is that I tried to build zonelists
->    before per cpu areas were initialized.
->
-> Change log v2 -> v3:
-> 1. Online memory-less nodes at boot time to map cpus of memory-less nodes.
-> 2. Build zonelists for memory-less nodes so that memory allocator will fall
->    back to proper nodes automatically.
->
-> Change log v1 -> v2:
-> 1. Split code movement and actual changes. Add patch 1.
-> 2. Synchronize best near online node record when node hotplug happens. In patch 2.
-> 3. Fix some comment.
->
-> Gu Zheng (4):
->   x86, acpi, cpu-hotplug: Enable acpi to register all possible cpus at
->     boot time.
->   x86, acpi, cpu-hotplug: Introduce cpuid_to_apicid[] array to store
->     persistent cpuid <-> apicid mapping.
->   x86, acpi, cpu-hotplug: Enable MADT APIs to return disabled apicid.
->   x86, acpi, cpu-hotplug: Set persistent cpuid <-> nodeid mapping when
->     booting.
->
-> Tang Chen (1):
->   x86, memhp, numa: Online memory-less nodes at boot time.
->
->  arch/ia64/kernel/acpi.c       |   2 +-
->  arch/x86/include/asm/mpspec.h |   1 +
->  arch/x86/kernel/acpi/boot.c   |   8 ++-
->  arch/x86/kernel/apic/apic.c   |  85 +++++++++++++++++++++++++----
->  arch/x86/mm/numa.c            |  27 +++++-----
->  drivers/acpi/acpi_processor.c |   5 +-
->  drivers/acpi/bus.c            |   3 ++
->  drivers/acpi/processor_core.c | 122 ++++++++++++++++++++++++++++++++++--------
->  include/linux/acpi.h          |   6 +++
->  9 files changed, 208 insertions(+), 51 deletions(-)
->
+>  #define ACPI_BUS_CLASS                 "system_bus"
+> -#define ACPI_BUS_HID                   "LNXSYBUS"
 
-OK
+No.
 
-Since I know that there is demand for these changes, I'll queue them
-up early for 4.7 if there are no comments from the x86 maintainers
-till then.
+This is not a valid device ID and should never be used as such.
 
 Thanks,
 Rafael
-
---
-To unsubscribe, send a message with 'unsubscribe linux-mm' in
-the body to majordomo@kvack.org.  For more info on Linux MM,
-see: http://www.linux-mm.org/ .
-Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
