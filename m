@@ -1,37 +1,74 @@
-From: "Rafael J. Wysocki" <rafael@kernel.org>
-Subject: Re: [PATCH] ACPI / property: Export a couple of symbols.
-Date: Thu, 17 Mar 2016 14:00:46 +0100
-Message-ID: <CAJZ5v0gP4uWs8ka8SUGzxJ9GcRKdMiRMpc+OktBTHtug9MAdBw@mail.gmail.com>
-References: <1458174199-23615-1-git-send-email-ddaney.cavm@gmail.com>
-	<20160317080926.GO1793@lahna.fi.intel.com>
+From: Matt Fleming <matt@codeblueprint.co.uk>
+Subject: Re: [PATCH][RFC,v4] ACPI / PM: Introduce efi poweroff for HW-full
+ platforms without _S5
+Date: Thu, 17 Mar 2016 14:39:26 +0000
+Message-ID: <20160317143926.GL2619@codeblueprint.co.uk>
+References: <1457687133-3730-1-git-send-email-yu.c.chen@intel.com>
+ <20160311155546.GJ15775@codeblueprint.co.uk>
+ <36DF59CE26D8EE47B0655C516E9CE640286D442A@shsmsx102.ccr.corp.intel.com>
+ <20160314200033.GG2619@codeblueprint.co.uk>
+ <36DF59CE26D8EE47B0655C516E9CE640286D5713@shsmsx102.ccr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-lb0-f176.google.com ([209.85.217.176]:33759 "EHLO
-	mail-lb0-f176.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933267AbcCQNAr (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 17 Mar 2016 09:00:47 -0400
-In-Reply-To: <20160317080926.GO1793@lahna.fi.intel.com>
+Received: from mail-wm0-f49.google.com ([74.125.82.49]:36462 "EHLO
+	mail-wm0-f49.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1030781AbcCQOjd (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 17 Mar 2016 10:39:33 -0400
+Received: by mail-wm0-f49.google.com with SMTP id l124so87686374wmf.1
+        for <linux-acpi@vger.kernel.org>; Thu, 17 Mar 2016 07:39:29 -0700 (PDT)
+Content-Disposition: inline
+In-Reply-To: <36DF59CE26D8EE47B0655C516E9CE640286D5713@shsmsx102.ccr.corp.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Mika Westerberg <mika.westerberg@linux.intel.com>, David Daney <ddaney.cavm@gmail.com>
-Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Robert Richter <rrichter@cavium.com>, Tomasz Nowicki <tn@semihalf.com>, David Daney <david.daney@cavium.com>
+To: "Chen, Yu C" <yu.c.chen@intel.com>
+Cc: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-pm@vger.kernel.org" <linux-pm@vger.kernel.org>, "Rafael J. Wysocki" <rafael@kernel.org>, Len Brown <lenb@kernel.org>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, "Zhang, Rui" <rui.zhang@intel.com>, "linux-efi@vger.kernel.org" <linux-efi@vger.kernel.org>, "x86@kernel.org" <x86@kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Ard Biesheuvel <ard.biesheuvel@linaro.org>, Mark Salter <msalter@redhat.com>
 
-On Thu, Mar 17, 2016 at 9:09 AM, Mika Westerberg
-<mika.westerberg@linux.intel.com> wrote:
-> On Wed, Mar 16, 2016 at 05:23:19PM -0700, David Daney wrote:
->> From: David Daney <david.daney@cavium.com>
->>
->> The acpi_dev_prop_read() and acpi_dev_prop_read_single() can be called
->> by drivers.  Add EXPORT_SYMBOL_GPL to them to allow use by modular
->> drivers.  This makes them consistent with acpi_dev_get_property() and
->> acpi_node_get_property_reference() which are already exported.
->>
->> Signed-off-by: David Daney <david.daney@cavium.com>
->> ---
->> FWIW: We hope to submit soon Cavium Thunder networking patches that
->> fail under modular builds without these exports.
->
-> You should not be using these functions directly in drivers.
+On Wed, 16 Mar, at 05:59:29AM, Chen, Yu C wrote:
+> Hi Matt,
+> 
+> > -----Original Message-----
+> > From: Matt Fleming [mailto:matt@codeblueprint.co.uk]
+> > Sent: Tuesday, March 15, 2016 4:01 AM
+> > To: Chen, Yu C
+> > Cc: linux-acpi@vger.kernel.org; linux-pm@vger.kernel.org; Rafael J. Wysocki;
+> > Len Brown; Thomas Gleixner; Ingo Molnar; H. Peter Anvin; Zhang, Rui; linux-
+> > efi@vger.kernel.org; x86@kernel.org; linux-kernel@vger.kernel.org; Ard
+> > Biesheuvel; Mark Salter
+> > Subject: Re: [PATCH][RFC,v4] ACPI / PM: Introduce efi poweroff for HW-full
+> > platforms without _S5
+> > 
+> > On Fri, 11 Mar, at 04:33:46PM, Chen, Yu C wrote:
+> > >
+> > > There is  a future Base-IA platform, we are planning to skip
+> > > implementing the SLP_TYP register and the S5 object.  (already there
+> > > will be no S3 and no S4)
+> > 
+> > Cool. This is really valuable information that should go into the commit
+> > message.
+> > 
+> > Because if this is the rationale for the change, I don't see why we'd need to
+> > provide the default stuff. Instead we should just enforce EFI reboot, and
+> > only add the pm_poweroff_default hook if there is an explicit user in the
+> > future, IMO.
+> 
+> Do you mean the patch v3 make sense
+> https://patchwork.kernel.org/patch/8514751/
+> and we should use efi power off as our first choice, if there is no _S5  available(no acpi_power_off),
+> even there is a customized  poweroff(driver provided, eg)? 
 
-That's exactly my point.
+Unless someone can point to a platform driver that is in the upstream
+kernel where this is actually a problem, the answer is: yes.
+ 
+For that matter, unless someone can do the same for pm_power_off
+overriding efi_reboot() (which on x86 would only happen for ACPI
+HW-reduced platforms), I would be much prefer the original patch,
+where you had,
+
+bool efi_poweroff_reqired(voi)
+{
+	return acpi_gbl_reduced_hardware || acpi_no_s5;
+}
+
+since you've already explained that this change won't break legacy
+platforms that are missing _S5 (if any even exist in the wild).
