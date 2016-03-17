@@ -1,30 +1,63 @@
-From: Timur Tabi <timur@codeaurora.org>
-Subject: Re: [PATCH v4 2/4] ACPI: enable ACPI_SPCR_TABLE on ARM64
-Date: Thu, 17 Mar 2016 12:20:37 -0500
-Message-ID: <CAOZdJXV1KWyguPw33C+EF12TBDsg5Ds4AX-40gVefkhHwddW2g@mail.gmail.com>
-References: <1456747355-15692-1-git-send-email-aleksey.makarov@linaro.org>
-	<1456747355-15692-3-git-send-email-aleksey.makarov@linaro.org>
+From: David Daney <ddaney.cavm@gmail.com>
+Subject: Re: [PATCH] ACPI / property: Export a couple of symbols.
+Date: Thu, 17 Mar 2016 13:21:54 -0700
+Message-ID: <56EB11E2.6050608@gmail.com>
+References: <1458174199-23615-1-git-send-email-ddaney.cavm@gmail.com> <20160317080926.GO1793@lahna.fi.intel.com> <CAJZ5v0gP4uWs8ka8SUGzxJ9GcRKdMiRMpc+OktBTHtug9MAdBw@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp.codeaurora.org ([198.145.29.96]:53500 "EHLO
-	smtp.codeaurora.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S965483AbcCQRUj (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 17 Mar 2016 13:20:39 -0400
-In-Reply-To: <1456747355-15692-3-git-send-email-aleksey.makarov@linaro.org>
+Received: from mail-pf0-f173.google.com ([209.85.192.173]:35464 "EHLO
+	mail-pf0-f173.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932595AbcCQUV6 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 17 Mar 2016 16:21:58 -0400
+In-Reply-To: <CAJZ5v0gP4uWs8ka8SUGzxJ9GcRKdMiRMpc+OktBTHtug9MAdBw@mail.gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Aleksey Makarov <aleksey.makarov@linaro.org>
-Cc: linux-acpi@vger.kernel.org, linux-serial@vger.kernel.org, lkml <linux-kernel@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Russell King <linux@arm.linux.org.uk>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, Leif Lindholm <leif.lindholm@linaro.org>, Graeme Gregory <graeme.gregory@linaro.org>, Al Stone <ahs3@redhat.com>, Christopher Covington <cov@codeaurora.org>, Yury Norov <ynorov@caviumnetworks.com>, Peter Hurley <peter@hurleysoftware.com>, "Zheng, Lv" <lv.zheng@intel.com>, Catalin Marinas <catalin.marinas@arm.com>, Will Deacon <will.deacon@arm.com>
+To: "Rafael J. Wysocki" <rafael@kernel.org>
+Cc: Mika Westerberg <mika.westerberg@linux.intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Robert Richter <rrichter@cavium.com>, Tomasz Nowicki <tn@semihalf.com>, David Daney <david.daney@cavium.com>
 
-On Mon, Feb 29, 2016 at 6:02 AM, Aleksey Makarov
-<aleksey.makarov@linaro.org> wrote:
-> SBBR mentions SPCR as a mandatory ACPI table.
-> So enable it for ARM64
+On 03/17/2016 06:00 AM, Rafael J. Wysocki wrote:
+> On Thu, Mar 17, 2016 at 9:09 AM, Mika Westerberg
+> <mika.westerberg@linux.intel.com> wrote:
+>> On Wed, Mar 16, 2016 at 05:23:19PM -0700, David Daney wrote:
+>>> From: David Daney <david.daney@cavium.com>
+>>>
+>>> The acpi_dev_prop_read() and acpi_dev_prop_read_single() can be called
+>>> by drivers.  Add EXPORT_SYMBOL_GPL to them to allow use by modular
+>>> drivers.  This makes them consistent with acpi_dev_get_property() and
+>>> acpi_node_get_property_reference() which are already exported.
+>>>
+>>> Signed-off-by: David Daney <david.daney@cavium.com>
+>>> ---
+>>> FWIW: We hope to submit soon Cavium Thunder networking patches that
+>>> fail under modular builds without these exports.
+>>
+>> You should not be using these functions directly in drivers.
 >
-> Signed-off-by: Aleksey Makarov <aleksey.makarov@linaro.org>
+> That's exactly my point.
+>
 
-Tested-by: Timur Tabi <timur@codeaurora.org>
+OK, for the sake of argument I will concede that my particular use of 
+acpi_dev_prop_read_single() is incorrect.
 
-I know another version of patch is coming, but I tested this version
-and it works.
+Let me ask you this:
+
+What is the point of the code in drivers/acpi/property.c?
+
+acpi_dev_prop_read() and acpi_dev_prop_read_single() are not used 
+anywhere that I can see in the kernel, would you accept a patch to 
+remove them?
+
+But from a philosophical point of view, what is the underlying problem 
+of having drivers extract property information from the ACPI tables 
+corresponding to the devices they control.
+
+Specifically, I am trying to understand how to port drivers that 
+currently successfully use OF device tree so that they are usable in 
+systems with ACPI based firmware.
+
+Thanks in advance,
+David Daney
+
+
