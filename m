@@ -1,75 +1,60 @@
 From: "Rafael J. Wysocki" <rafael@kernel.org>
-Subject: Re: [PATCH] ACPI / property: Export a couple of symbols.
-Date: Thu, 17 Mar 2016 22:50:08 +0100
-Message-ID: <CAJZ5v0hgregiGmnL=N5uYhPuBLyZd4J91vtBf=wPmzgLqLWxuA@mail.gmail.com>
-References: <1458174199-23615-1-git-send-email-ddaney.cavm@gmail.com>
-	<20160317080926.GO1793@lahna.fi.intel.com>
-	<CAJZ5v0gP4uWs8ka8SUGzxJ9GcRKdMiRMpc+OktBTHtug9MAdBw@mail.gmail.com>
-	<56EB11E2.6050608@gmail.com>
+Subject: Re: [PATCH 1/3] ACPI: move ACPI_SYSTEM_HID to acpi_drivers.h
+Date: Thu, 17 Mar 2016 22:54:23 +0100
+Message-ID: <CAJZ5v0hiBjU_GBZE+XeRy=xLdAXQPJQBiOhK2PaeBurjvhr+1g@mail.gmail.com>
+References: <1458157022-18633-1-git-send-email-pprakash@codeaurora.org>
+	<1458157022-18633-2-git-send-email-pprakash@codeaurora.org>
+	<CAJZ5v0jewRqgvi7Ei939ddafnNJEQw+cv2cjGWrFNK2pZ0-2rQ@mail.gmail.com>
+	<56EAE10B.8070404@codeaurora.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-lb0-f182.google.com ([209.85.217.182]:33136 "EHLO
-	mail-lb0-f182.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S935671AbcCQVuL (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 17 Mar 2016 17:50:11 -0400
-In-Reply-To: <56EB11E2.6050608@gmail.com>
+Received: from mail-lb0-f195.google.com ([209.85.217.195]:36458 "EHLO
+	mail-lb0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S936894AbcCQVyZ (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 17 Mar 2016 17:54:25 -0400
+Received: by mail-lb0-f195.google.com with SMTP id sx8so1037753lbb.3
+        for <linux-acpi@vger.kernel.org>; Thu, 17 Mar 2016 14:54:24 -0700 (PDT)
+In-Reply-To: <56EAE10B.8070404@codeaurora.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: David Daney <ddaney.cavm@gmail.com>
-Cc: "Rafael J. Wysocki" <rafael@kernel.org>, Mika Westerberg <mika.westerberg@linux.intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Robert Richter <rrichter@cavium.com>, Tomasz Nowicki <tn@semihalf.com>, David Daney <david.daney@cavium.com>
+To: "Prakash, Prashanth" <pprakash@codeaurora.org>
+Cc: "Rafael J. Wysocki" <rafael@kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, harba@codeaurora.org, "Rafael J. Wysocki" <rjw@rjwysocki.net>, "Jonathan (Zhixiong) Zhang" <zjzhang@codeaurora.org>
 
-On Thu, Mar 17, 2016 at 9:21 PM, David Daney <ddaney.cavm@gmail.com> wrote:
-> On 03/17/2016 06:00 AM, Rafael J. Wysocki wrote:
->>
->> On Thu, Mar 17, 2016 at 9:09 AM, Mika Westerberg
->> <mika.westerberg@linux.intel.com> wrote:
->>>
->>> On Wed, Mar 16, 2016 at 05:23:19PM -0700, David Daney wrote:
->>>>
->>>> From: David Daney <david.daney@cavium.com>
->>>>
->>>> The acpi_dev_prop_read() and acpi_dev_prop_read_single() can be called
->>>> by drivers.  Add EXPORT_SYMBOL_GPL to them to allow use by modular
->>>> drivers.  This makes them consistent with acpi_dev_get_property() and
->>>> acpi_node_get_property_reference() which are already exported.
->>>>
->>>> Signed-off-by: David Daney <david.daney@cavium.com>
->>>> ---
->>>> FWIW: We hope to submit soon Cavium Thunder networking patches that
->>>> fail under modular builds without these exports.
->>>
->>>
->>> You should not be using these functions directly in drivers.
->>
->>
->> That's exactly my point.
->>
+On Thu, Mar 17, 2016 at 5:53 PM, Prakash, Prashanth
+<pprakash@codeaurora.org> wrote:
+> Hi Rafael,
 >
-> OK, for the sake of argument I will concede that my particular use of
-> acpi_dev_prop_read_single() is incorrect.
+> On 3/16/2016 7:50 PM, Rafael J. Wysocki wrote:
+>>  #include "internal.h"
+>> @@ -22,7 +24,6 @@ ACPI_MODULE_NAME("scan");
+>>  extern struct acpi_device *acpi_root;
+>>
+>>  #define ACPI_BUS_CLASS                 "system_bus"
+>> -#define ACPI_BUS_HID                   "LNXSYBUS"
+>> No.
+>>
+>> This is not a valid device ID and should never be used as such.
+> Section 5.6.6 in ACPI 6.1 is defining the notification value for the graceful
+> shutdown request as a ACPI device specific value(0x81) and it is targeting
+> the system bus(\_SB), so we took the current approach of creating a sybus
+> driver to handle the notifications targeting the system bus.
 >
-> Let me ask you this:
->
-> What is the point of the code in drivers/acpi/property.c?
+> Let me go through the code again and see if we can avoid using the
+> ACPI_BUS_HID.
 
-It is used by the code in drivers/base/property.c.
+You can.
 
-> acpi_dev_prop_read() and acpi_dev_prop_read_single() are not used anywhere
-> that I can see in the kernel, would you accept a patch to remove them?
+> In the meantime, if you have any specific thoughts on
+> how this should be handled, please let us know.
 
-Yes, I would.  They are leftovers.
+Your goal is relatively simple.  You want to register a notify handler
+for the \_SB object.  You don't need a driver for that, because the
+\_SB object is always present, so you don't need to enumerate it or
+wait for it to show up etc.
 
-> But from a philosophical point of view, what is the underlying problem of
-> having drivers extract property information from the ACPI tables
-> corresponding to the devices they control.
->
-> Specifically, I am trying to understand how to port drivers that currently
-> successfully use OF device tree so that they are usable in systems with ACPI
-> based firmware.
-
-The code in drivers/base/property.c is for that in theory.  If it
-doesn't work for you, please let me know what the problem is.
+I'd just scan the namespace 1 level below the root and install the
+handler for the object with the matching name (not a fake device ID).
 
 Thanks,
 Rafael
