@@ -1,47 +1,28 @@
-From: David Daney <ddaney.cavm@gmail.com>
-Subject: [PATCH] ACPI / property: Export a couple of symbols.
-Date: Wed, 16 Mar 2016 17:23:19 -0700
-Message-ID: <1458174199-23615-1-git-send-email-ddaney.cavm@gmail.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org
-Cc: linux-kernel@vger.kernel.org, Robert Richter <rrichter@cavium.com>, Tomasz Nowicki <tn@semihalf.com>, David Daney <david.daney@cavium.com>
+From: "Rafael J. Wysocki" <rafael@kernel.org>
+Subject: Re: [PATCH] ACPI / property: Export a couple of symbols.
+Date: Thu, 17 Mar 2016 02:25:21 +0100
+Message-ID: <CAJZ5v0gonFNuZhm+77C3o0qJ6kGouEjs1Xg8WoP566qpXr19Xw@mail.gmail.com>
+References: <1458174199-23615-1-git-send-email-ddaney.cavm@gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-lf0-f47.google.com ([209.85.215.47]:33946 "EHLO
+	mail-lf0-f47.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752577AbcCQBZX (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 16 Mar 2016 21:25:23 -0400
+In-Reply-To: <1458174199-23615-1-git-send-email-ddaney.cavm@gmail.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: David Daney <ddaney.cavm@gmail.com>
+Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Robert Richter <rrichter@cavium.com>, Tomasz Nowicki <tn@semihalf.com>, David Daney <david.daney@cavium.com>
 
-From: David Daney <david.daney@cavium.com>
+On Thu, Mar 17, 2016 at 1:23 AM, David Daney <ddaney.cavm@gmail.com> wrote:
+> From: David Daney <david.daney@cavium.com>
+>
+> The acpi_dev_prop_read() and acpi_dev_prop_read_single() can be called
+> by drivers.
 
-The acpi_dev_prop_read() and acpi_dev_prop_read_single() can be called
-by drivers.  Add EXPORT_SYMBOL_GPL to them to allow use by modular
-drivers.  This makes them consistent with acpi_dev_get_property() and
-acpi_node_get_property_reference() which are already exported.
+May I see the driver code that uses them?
 
-Signed-off-by: David Daney <david.daney@cavium.com>
----
-FWIW: We hope to submit soon Cavium Thunder networking patches that
-fail under modular builds without these exports.
-
- drivers/acpi/property.c | 2 ++
- 1 file changed, 2 insertions(+)
-
-diff --git a/drivers/acpi/property.c b/drivers/acpi/property.c
-index 2aee416..de225dc 100644
---- a/drivers/acpi/property.c
-+++ b/drivers/acpi/property.c
-@@ -638,6 +638,7 @@ int acpi_dev_prop_read_single(struct acpi_device *adev, const char *propname,
- {
- 	return adev ? acpi_data_prop_read_single(&adev->data, propname, proptype, val) : -EINVAL;
- }
-+EXPORT_SYMBOL_GPL(acpi_dev_prop_read_single);
- 
- static int acpi_copy_property_array_u8(const union acpi_object *items, u8 *val,
- 				       size_t nval)
-@@ -772,6 +773,7 @@ int acpi_dev_prop_read(struct acpi_device *adev, const char *propname,
- {
- 	return adev ? acpi_data_prop_read(&adev->data, propname, proptype, val, nval) : -EINVAL;
- }
-+EXPORT_SYMBOL_GPL(acpi_dev_prop_read);
- 
- /**
-  * acpi_node_prop_read - retrieve the value of an ACPI property with given name.
--- 
-1.7.11.7
+Thanks,
+Rafael
