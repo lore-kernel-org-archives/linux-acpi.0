@@ -1,49 +1,198 @@
-From: Chris Lawrence <chris@lordsutch.com>
-Subject: Re: Thunderbolt 3 (Skylake / Alpine Ridge) hotplug
-Date: Thu, 17 Mar 2016 00:59:21 +0000 (UTC)
-Message-ID: <loom.20160317T015227-926@post.gmane.org>
-References: <56D0085B.60402@jscinoz.so> <CAMxnaaU0B_47xZuD+vi0=b1_U7kPr7YVF5-Y0q3GP3ez_eo3CQ@mail.gmail.com>
+From: Zhu Guihua <zhugh.fnst@cn.fujitsu.com>
+Subject: [PATCH v6 0/5] Make cpuid <-> nodeid mapping persistent
+Date: Thu, 17 Mar 2016 09:31:53 +0800
+Message-ID: <cover.1458177577.git.zhugh.fnst@cn.fujitsu.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: base64
+Content-Type: text/plain
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from plane.gmane.org ([80.91.229.3]:51869 "EHLO plane.gmane.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755960AbcCQBaI (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 16 Mar 2016 21:30:08 -0400
-Received: from list by plane.gmane.org with local (Exim 4.69)
-	(envelope-from <glad-acpi-devel@m.gmane.org>)
-	id 1agMlJ-0007yZ-RG
-	for linux-acpi@vger.kernel.org; Thu, 17 Mar 2016 02:30:06 +0100
-Received: from ip70-177-17-118.mc.at.cox.net ([70.177.17.118])
-        by main.gmane.org with esmtp (Gmexim 0.1 (Debian))
-        id 1AlnuQ-0007hv-00
-        for <linux-acpi@vger.kernel.org>; Thu, 17 Mar 2016 02:30:05 +0100
-Received: from chris by ip70-177-17-118.mc.at.cox.net with local (Gmexim 0.1 (Debian))
-        id 1AlnuQ-0007hv-00
-        for <linux-acpi@vger.kernel.org>; Thu, 17 Mar 2016 02:30:05 +0100
+Received: from cn.fujitsu.com ([59.151.112.132]:27965 "EHLO
+	heian.cn.fujitsu.com" rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1755406AbcCQBe3 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 16 Mar 2016 21:34:29 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
+To: cl@linux.com, tj@kernel.org, mika.j.penttila@gmail.com, mingo@redhat.com, akpm@linux-foundation.org, rjw@rjwysocki.net, hpa@zytor.com, yasu.isimatu@gmail.com, isimatu.yasuaki@jp.fujitsu.com, kamezawa.hiroyu@jp.fujitsu.com, izumi.taku@jp.fujitsu.com, gongzhaogang@inspur.com, len.brown@intel.com, lenb@kernel.org, tglx@linutronix.de, chen.tang@easystack.cn
+Cc: x86@kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linux-mm@kvack.org, zhugh.fnst@cn.fujitsu.com
 
-QW5kcmVhcyBOb2V2ZXIgPGFuZHJlYXMubm9ldmVyIDxhdD4gZ21haWwuY29tPiB3cml0ZXM6Cgo+IAo+IEhpIEphY2ssCj4gCj4gT24gRnJpLCBGZWIgMjYsIDIwMTYgYXQgOToxMCBBTSwgSmFjayBDb3VsdGVyIDxqc2Npbm96IDxhdD4ganNjaW5vei5zbz4gCndyb3RlOgo+ID4KPiA+IC0tLS0tQkVHSU4gUEdQIFNJR05FRCBNRVNTQUdFLS0tLS0KPiA+IEhhc2g6IFNIQTI1Ngo+ID4KPiA+IEhpIEFuZHJlYXMsCj4gPgo+ID4gSSB3YXMgYXNraW5nIGFyb3VuZCBvbiAjbGludXgtcGNpIG9uIE9GVEMgYW5kIGl0IHdhcyBtZW50aW9uZWQgdGhhdCB5b3UKPiA+IHdlcmUgdGhlIG1haW50YWluZXIgZm9yIExpbnV4IFRodW5kZXJib2x0IHN1cHBvcnQsIGFuZCB0aGF0IEkgc2hvdWxkCj4gPiBkaXJlY3QgbXkgcXVlcnkgdG8geW91IGFuZCB0aGUgbGludXgtcGNpICYgbGludXgta2VybmVsIGxpc3RzLgo+ID4KPiA+IEknbSBhdHRlbXB0aW5nIHRvIHVzZSB0aGUgVGh1bmRlcmJvbHQgMyAod2hpY2ggaGFzIGEgVVNCIFR5cGUtQwo+ID4gY29ubmVjdG9yKSBwb3J0IG9uIG15IGxhcHRvcCwgYSBEZWxsIFhQUyAxNSAoOTU1MCkuIFRoZSBleHRlcm5hbCBkZXZp
- Y2UKPiA+IEknbSBhdHRlbXB0aW5nIHRvIHVzZSBpcyBhIGdpZ2FiaXQgZXRoZXJuZXQgKyBVU0IgMy4wIGh1Yiwgb2YgYW4gdW5rbm93bgo+ID4gLyBnZW5lcmljIGJyYW5kLCBidXQgYmVhcnMgbW9kZWwgbnVtYmVyIEtZLTY4OCBpZiB0aGF0J3Mgb2YgYW55IHVzZS4KPiA+Cj4gPiBXaGVuIHRoZSBkZXZpY2UgaXMgcHJlc2VudCBhdCBzeXN0ZW0gc3RhcnR1cCwgZXZlcnl0aGluZyB3b3Jrcwo+ID4gY29ycmVjdGx5LCBhbmQgc2hvd3MgdXAgaW4gbHNwY2kgYXMgYSBVU0IgY29udHJvbGxlciwgd2hpY2ggbHN1c2Igc2hvd3MKPiA+IGhhdmluZyBhIGh1YiBhbmQgZXRoZXJuZXQgTklDIGF0dGFjaGVkLCB3aGljaCB0aGUgcjgxNTIgZHJpdmVyIGJpbmRzIGFuZAo+ID4gdXNlcyB3aXRob3V0IGlzc3VlOgo+ID4KPiA+IGxzcGNpIC12Ogo+ID4+IDBhOjAwLjAgVVNCIGNvbnRyb2xsZXI6IEludGVsIENvcnBvcmF0aW9uIERldmljZSAxNWI1IChwcm9nLWlmIDMwIApbWEhDSV0pCj4gPj4gICAgIFN1YnN5c3RlbTogRGV2aWNlIDIyMjI6MTExMQo+ID4+ICAgICBGbGFnczogYnVzIG1hc3RlciwgZmFzdCBkZXZzZWwsIGxhdGVuY3kgMCwgSVJRIDEzMQo+ID
- 4+ICAgICBNZW1vcnkgYXQgYzQyMDAwMDAgKDMyLWJpdCwgbm9uLXByZWZldGNoYWJsZSkgW3NpemU9NjRLXQo+ID4+ICAgICBDYXBhYmlsaXRpZXM6IFs4MF0gUG93ZXIgTWFuYWdlbWVudCB2ZXJzaW9uIDMKPiA+PiAgICAgQ2FwYWJpbGl0aWVzOiBbODhdIE1TSTogRW5hYmxlKyBDb3VudD0xLzggTWFza2FibGUtIDY0Yml0Kwo+ID4+ICAgICBDYXBhYmlsaXRpZXM6IFtjMF0gRXhwcmVzcyBFbmRwb2ludCwgTVNJIDAwCj4gPj4gICAgIENhcGFiaWxpdGllczogWzEwMF0gRGV2aWNlIFNlcmlhbCBOdW1iZXIgYTMtMjEtYjUtNjAtYTctMjMtMDQtMDAKPiA+PiAgICAgQ2FwYWJpbGl0aWVzOiBbMjAwXSBBZHZhbmNlZCBFcnJvciBSZXBvcnRpbmcKPiA+PiAgICAgQ2FwYWJpbGl0aWVzOiBbMzAwXSBWaXJ0dWFsIENoYW5uZWwKPiA+PiAgICAgQ2FwYWJpbGl0aWVzOiBbNDAwXSBQb3dlciBCdWRnZXRpbmcgPD8+Cj4gPj4gICAgIENhcGFiaWxpdGllczogWzUwMF0gVmVuZG9yIFNwZWNpZmljIEluZm9ybWF0aW9uOiBJRD0xMjM0IFJldj0xCj4gPiBMZW49MGQ4IDw/Pgo+ID4+ICAgICBDYXBhYmlsaXRpZXM6IFs2MDBdIExhdGVuY3kgVG9sZXJhbmNlIFJl
- cG9ydGluZwo+ID4+ICAgICBDYXBhYmlsaXRpZXM6IFs3MDBdICMxOQo+ID4+ICAgICBLZXJuZWwgZHJpdmVyIGluIHVzZTogeGhjaV9oY2QKPiA+Cj4gPgo+ID4gbHNwY2kgLXR2IChUaHVuZGVyYm9sdCBkZXZpY2UgaXMgMTViNSkKPiA+PiAtWzAwMDA6MDBdLSstMDAuMCAgSW50ZWwgQ29ycG9yYXRpb24gU2t5IExha2UgSG9zdCBCcmlkZ2UvRFJBTSBSZWdpc3RlcnMKPiA+PiAgICAgICAgICAgICstMDEuMC1bMDFdLS0tLTAwLjAgIE5WSURJQSBDb3Jwb3JhdGlvbiBHTTEwN00gW0dlRm9yY2UgR1RYCj4gPiA5NjBNXQo+ID4+ICAgICAgICAgICAgKy0wMi4wICBJbnRlbCBDb3Jwb3JhdGlvbiBEZXZpY2UgMTkxYgo+ID4+ICAgICAgICAgICAgKy0wNC4wICBJbnRlbCBDb3Jwb3JhdGlvbiBEZXZpY2UgMTkwMwo+ID4+ICAgICAgICAgICAgKy0xNC4wICBJbnRlbCBDb3Jwb3JhdGlvbiBTdW5yaXNlIFBvaW50LUggVVNCIDMuMCB4SENJCj4gPiBDb250cm9sbGVyCj4gPj4gICAgICAgICAgICArLTE0LjIgIEludGVsIENvcnBvcmF0aW9uIFN1bnJpc2UgUG9pbnQtSCBUaGVybWFsIHN1YnN5c3RlbQo+ID4+ICAgICAgICAgICAgKy0xNS4wICBJbnRlbCBDb3
- Jwb3JhdGlvbiBTdW5yaXNlIFBvaW50LUggTFBTUyBJMkMKPiA+IENvbnRyb2xsZXIgIzAKPiA+PiAgICAgICAgICAgICstMTUuMSAgSW50ZWwgQ29ycG9yYXRpb24gU3VucmlzZSBQb2ludC1IIExQU1MgSTJDCj4gPiBDb250cm9sbGVyICMxCj4gPj4gICAgICAgICAgICArLTE2LjAgIEludGVsIENvcnBvcmF0aW9uIFN1bnJpc2UgUG9pbnQtSCBDU01FIEhFQ0kgIzEKPiA+PiAgICAgICAgICAgICstMWMuMC1bMDJdLS0tLTAwLjAgIEJyb2FkY29tIENvcnBvcmF0aW9uIEJDTTQzNjAyIDgwMi4xMWFjCj4gPiBXaXJlbGVzcyBMQU4gU29DCj4gPj4gICAgICAgICAgICArLTFjLjEtWzAzXS0tLS0wMC4wICBSZWFsdGVrIFNlbWljb25kdWN0b3IgQ28uLCBMdGQuIERldmljZQo+ID4gNTI1YQo+ID4+ICAgICAgICAgICAgKy0xZC4wLVswNF0tLS0tMDAuMCAgU2Ftc3VuZyBFbGVjdHJvbmljcyBDbyBMdGQgRGV2aWNlIGE4MDIKPiA+PiAgICAgICAgICAgICstMWQuNC1bMDVdLS0KPiA+PiAgICAgICAgICAgICstMWQuNi1bMDYtM2VdLS0tLTAwLjAtWzA3LTBhXS0tKy0wMC4wLVswOF0tLQo+ID4+ICAgICAgICAgICAgfCAgICAgICAgICAgICAgICAgICAgICAg
- ICAgICAgICArLTAxLjAtWzA5XS0tCj4gPj4gICAgICAgICAgICB8ICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIFwtMDIuMC1bMGFdLS0tLTAwLjAgIEludGVsCj4gPiBDb3Jwb3JhdGlvbiBEZXZpY2UgMTViNQo+ID4+ICAgICAgICAgICAgKy0xZi4wICBJbnRlbCBDb3Jwb3JhdGlvbiBTdW5yaXNlIFBvaW50LUggTFBDIENvbnRyb2xsZXIKPiA+PiAgICAgICAgICAgICstMWYuMiAgSW50ZWwgQ29ycG9yYXRpb24gU3VucmlzZSBQb2ludC1IIFBNQwo+ID4+ICAgICAgICAgICAgKy0xZi4zICBJbnRlbCBDb3Jwb3JhdGlvbiBTdW5yaXNlIFBvaW50LUggSEQgQXVkaW8KPiA+PiAgICAgICAgICAgIFwtMWYuNCAgSW50ZWwgQ29ycG9yYXRpb24gU3VucmlzZSBQb2ludC1IIFNNQnVzCj4gPgo+ID4gbHN1c2IgLXR2Ogo+ID4+IC86ICBCdXMgMDQuUG9ydCAxOiBEZXYgMSwgQ2xhc3M9cm9vdF9odWIsIERyaXZlcj14aGNpX2hjZC8ycCwgNTAwME0KPiA+PiAgICAgfF9fIFBvcnQgMTogRGV2IDIsIElmIDAsIENsYXNzPUh1YiwgRHJpdmVyPWh1Yi80cCwgNTAwME0KPiA+PiAgICAgICAgIHxfXyBQb3J0IDE6IERldiAzLCBJZiAwLCBDbGFzcz1WZW5kb3
- IgU3BlY2lmaWMgQ2xhc3MsCj4gPiBEcml2ZXI9cjgxNTIsIDUwMDBNCj4gPj4gLzogIEJ1cyAwMy5Qb3J0IDE6IERldiAxLCBDbGFzcz1yb290X2h1YiwgRHJpdmVyPXhoY2lfaGNkLzJwLCA0ODBNCj4gPj4gICAgIHxfXyBQb3J0IDE6IERldiAyLCBJZiAwLCBDbGFzcz1IdWIsIERyaXZlcj1odWIvNHAsIDQ4ME0KPiA+PiAgICAgICAgIHxfXyBQb3J0IDM6IERldiAzLCBJZiAwLCBDbGFzcz1IdW1hbiBJbnRlcmZhY2UgRGV2aWNlLAo+ID4gRHJpdmVyPXVzYmhpZCwgMTJNCj4gPj4gICAgICAgICB8X18gUG9ydCAzOiBEZXYgMywgSWYgMSwgQ2xhc3M9SHVtYW4gSW50ZXJmYWNlIERldmljZSwKPiA+IERyaXZlcj11c2JoaWQsIDEyTQo+ID4+ICAgICAgICAgfF9fIFBvcnQgMzogRGV2IDMsIElmIDIsIENsYXNzPUh1bWFuIEludGVyZmFjZSBEZXZpY2UsCj4gPiBEcml2ZXI9dXNiaGlkLCAxMk0KPiA+PiAgICAgICAgIHxfXyBQb3J0IDM6IERldiAzLCBJZiAzLCBDbGFzcz1IdW1hbiBJbnRlcmZhY2UgRGV2aWNlLAo+ID4gRHJpdmVyPXVzYmhpZCwgMTJNCj4gPj4gLzogIEJ1cyAwMi5Qb3J0IDE6IERldiAxLCBDbGFzcz1yb290X2h1YiwgRHJpdmVyPXho
- Y2lfaGNkLzhwLCA1MDAwTQo+ID4+IC86ICBCdXMgMDEuUG9ydCAxOiBEZXYgMSwgQ2xhc3M9cm9vdF9odWIsIERyaXZlcj14aGNpX2hjZC8xNnAsIDQ4ME0KPiA+PiAgICAgfF9fIFBvcnQgNDogRGV2IDIsIElmIDAsIENsYXNzPVZlbmRvciBTcGVjaWZpYyBDbGFzcywKPiA+IERyaXZlcj1idHVzYiwgMTJNCj4gPj4gICAgIHxfXyBQb3J0IDQ6IERldiAyLCBJZiAxLCBDbGFzcz1WZW5kb3IgU3BlY2lmaWMgQ2xhc3MsCj4gPiBEcml2ZXI9YnR1c2IsIDEyTQo+ID4+ICAgICB8X18gUG9ydCA0OiBEZXYgMiwgSWYgMiwgQ2xhc3M9VmVuZG9yIFNwZWNpZmljIENsYXNzLAo+ID4gRHJpdmVyPWJ0dXNiLCAxMk0KPiA+PiAgICAgfF9fIFBvcnQgNDogRGV2IDIsIElmIDMsIENsYXNzPUFwcGxpY2F0aW9uIFNwZWNpZmljIEludGVyZmFjZSwKPiA+IERyaXZlcj0sIDEyTQo+ID4+ICAgICB8X18gUG9ydCAxMjogRGV2IDMsIElmIDAsIENsYXNzPVZpZGVvLCBEcml2ZXI9dXZjdmlkZW8sIDQ4ME0KPiA+PiAgICAgfF9fIFBvcnQgMTI6IERldiAzLCBJZiAxLCBDbGFzcz1WaWRlbywgRHJpdmVyPXV2Y3ZpZGVvLCA0ODBNCj4gPgo+ID4KPiA+IEhvd2V2ZXIsIGlmIH
- RoZSBkZXZpY2UgaXMgY29ubmVjdGVkIGFmdGVyIHRoZSBzeXN0ZW0gYm9vdHMgKG9yCj4gPiBkaXNjb25uZWN0ZWQgYW5kIHJlY29ubmVjdGVkKSwgaXQgaXMgbm90IGRldGVjdGVkIGF0IGFsbC4gTm8gbWVzc2FnZXMKPiA+IHNob3cgdXAgaW4gZG1lc2cgdXBvbiBjb25uZWN0aW9uIGFuZCBubyBhZGRpdGlvbmFsIGRldmljZXMgc2hvdyB1cCBpbgo+ID4gdGhlIG91dHB1dCBvZiBsc3BjaSAmIGxzdXNiLiBTdHJhbmdlbHkgZW5vdWdoLCBVU0IgZGV2aWNlcyBjb25uZWN0ZWQgdG8KPiA+IHRoZSBleHRlcm5hbCBodWIgZG8gc3RpbGwgcmVjZWl2ZSBwb3dlci4KPiA+Cj4gPiBJIGFsc28gaGF2ZSB0aGUgZm9sbG93aW5nIG9wdGlvbnMgcmVsYXRpbmcgdG8gUENJIGhvdHBsdWcgc2V0IGluIG15Cj4gPiBrZXJuZWwgY29uZmlnOgo+ID4KPiA+PiBDT05GSUdfSE9UUExVR19QQ0lfUENJRT15Cj4gPj4gQ09ORklHX0hPVFBMVUdfUENJPXkKPiA+PiBDT05GSUdfSE9UUExVR19QQ0lfQUNQST15Cj4gPj4gQ09ORklHX0hPVFBMVUdfUENJX0FDUElfSUJNPXkKPiA+Cj4gPiBJJ20gcnVubmluZyB0aGUgNC40LjIga2VybmVsLCBib290ZWQgdmlhIEVGSS4gRnJv
- bSB3aGF0IEkndmUgcmVhZCwKPiA+IFRodW5kZXJib2x0IGhvdHBsdWcgaGFzIGJlZW4gd29ya2luZyBzaW5jZSAzLjE3LCBjb250cm9sbGVkIGJ5IHRoZQo+ID4gQ09ORklHX1RIVU5ERVJCT0xUIG9wdGlvbi4gSG93ZXZlciByZWdhcmRsZXNzIG9mIHdoZXRoZXIgdGhpcyBvcHRpb24gaXMKPiA+IGVuYWJsZWQgb3IgZGlzYWJsZWQsIGhvdHBsdWcgZG9lcyBub3QgYXBwZWFyZSB0byB3b3JrIG9uIG15IGhhcmR3YXJlLgo+ID4gRnJvbSByZWFkaW5nIHRoZSBpbi1rZXJuZWwgaGVscCB0ZXh0IGZvciB0aGlzIG9wdGlvbiwgSSBzdXNwZWN0IHRoYXQKPiA+IGl0J3Mgb25seSByZWxldmFudCBmb3IgdGhlIG9sZGVyIENhY3R1cyBSaWRnZSBUaHVuZGVyYm9sdCBjb250cm9sbGVyCj4gPiBwcmVzZW50IGluIDIwMTItZXJhIE1hY0Jvb2tzLgo+IAo+IFRoYXQgaXMgY29ycmVjdC4gT24geW91ciBkZXZpY2UgVEIgc2hvdWxkIGJlIGhhbmRsZWQgYnkgdGhlIGZpcm13YXJlLgo+IAo+IEJqw7ZybiBzdWdnZXN0ZWQgdGhhdCB3ZSBtaWdodCBub3QgYmUgcmVhY3RpbmcgdG8gYWNwaSBub3RpZmljYXRpb25zCj4gKG9yIHBjaSBob3RwbHVnIGludGVycnVwdHMpIH
- Byb3Blcmx5LiBUbyBjb25maXJtIHRoaXMgeW91IGNvdWxkIHRyeSB0bwo+IGlzc3VlIGEgbWFudWFsIHBjaSByZXNjYW4gdmlhCj4gCj4gZWNobyAiMSIgPiAvc3lzL2J1cy9wY2kvcmVzY2FuCj4gCj4gVGhpcyBzaG91bGQgbWFrZSB0aGUgZGV2aWNlIGFwcGVhciAoaWYgdGhlIGlzc3VlIGxpZXMgd2l0aCBvdXIKPiBoYW5kbGluZyBvZiBob3RwbHVnIGV2ZW50cykuCj4gCj4gT3RoZXJ3aXNlIHlvdSBtaWdodCB3YW50IHRvIHRha2UgYSBsb29rIGF0IHRoZSBBQ1BJIHRhYmxlcyBhbmQgc2VhcmNoCj4gZm9yIGNvZGUgd2hpY2ggdHVybiBvZmYgdGh1bmRlcmJvbHQgb3Igc29tZXRoaW5nIGxpa2UgdGhhdC4gRG9lcwo+IGhvdHBsdWcgd29yayB1bmRlciBXaW5kb3dzICh3aXRob3V0IGFkZGl0aW9uYWwgZHJpdmVycyk/Cj4gCj4gUmVnYXJkcywKPiBBbmRyZWFzCj4gCj4gPiBIb3cgY2FuIEkgZ28gYWJvdXQgZmluZGluZyBhZGRpdGlvbmFsIGluZm9ybWF0aW9uIGFib3V0IGp1c3Qgd2hhdCdzCj4gPiBnb2luZyBvbiwgaG9wZWZ1bGx5IHRvIGFzc2lzdCB3aXRoIGltcHJvdmluZyBzdXBwb3J0IGZvciB0aGlzIG5ld2VyCj4gPiBoYXJkd2FyZT8KPiA+
- Cj4gPgo+ID4gS2luZCByZWdhcmRzLAo+ID4gSmFjawo+ID4gLS0tLS1CRUdJTiBQR1AgU0lHTkFUVVJFLS0tLS0KPiA+IFZlcnNpb246IEdudVBHIHYyCj4gPgo+ID4gaVFJY0JBRUJDQUFHQlFKVzBBaFdBQW9KRVAwWHV4Y0lEU25QOWx3UC9pL3dOdU5UUU9LTTQwRlpkY3NsSjR1MQo+ID4gdXp0ZWJDeGxNVHQ5TUlRdGVaRFNLNVNyZm9mL0VOOXNUOVRLUUI4ZUJhN3N6ekJDNnZlMzdXK241c0toMTg5Kwo+ID4gZk1NT0hCeFZnMTBva0NaazZXaHlJclkxUTBrZElzT3FDWTgwU29WUkhaMC8xYW5QMCt3QnIxR0FFTGhZVmtyego+ID4gWm9GVGp2VkcvZnZ1cVh4czRlczBTOXdEN3E5eGduTXBTRUhXanNjMmgrWFIxSnZSeWFpZmg2WXJZUTBZL3NiNwo+ID4gWEo1VHVhTmIrTEtUNVJBQ3VNTFNQYitMZVlvUmQrS09EOU8vNWhaT3VuSmRnbEZqcjFTc1BUTUxFN09nU1BnQwo+ID4gSmhRR2M2amFSYkk5eFlmZTk1VitZaVZHL1IxclZtV3lQTzVLMjJYV3ZCOTZGMmVjUytMOWxUdFNkdkVNRzN6OAo+ID4gQXh4Qm9HK251NWIzOTZGazYrN010NXRxeUk2L3BxeEhmK3NyMit6bks3dHpCeHVnejg5SWFHak43QXpRRkZxYwo+ID4gWTA1MjlHK1ljQmVnWGhZa1VKNE
- tXdmpBbm1YSzBvdmhNWmc0K1NNQXhQSzlLSGxIZkp0cEhXZHRleVF3R1ltSgo+ID4gTGl3dmJ4c2tEWEVTVXMrNVcyQ01QYUp5bWN4cDRNaVJDclp2VEtHb2p0Q1FoOFRnUEJZbUZNd29jRFExNGtnSQo+ID4gczhmVzBHTGNoaDlwY0NwUFpEaWZwbkhPWlVBUzJWN2ViUDNlSm5tQzdONlhwQ3B2cU9tUjErQlhyOUtNSzRmYgo+ID4gRDJzUVcxSDJzNWJpQm5zV1pLc0tqMFpJbjV2TW9qTUgxemJyVUc3bHF0ZE80eE50NkFOMUgvV3AxUnFzZ3U1dQo+ID4gRDB4MWFyZURBRUt1VG9xZ2Iwd0oKPiA+ID1BVS92Cj4gPiAtLS0tLUVORCBQR1AgU0lHTkFUVVJFLS0tLS0KCldoZW4gSSBpbnNlcnQgYSBVU0IgZGV2aWNlIGludG8gdGhlIFRodW5kZXJib2x0IDMgcG9ydCBvbiBteSBYUFMgMTUgOTU1MCwgCmFmdGVyIGEgY291cGxlIG9mIG1pbnV0ZXMgdGhlIGtlcm5lbCB0aHJvd3MgYSBodW5nIHRhc2sgdGltZW91dCBpbnRvIHRoZSAKc3lzbG9nIGFzIGZvbGxvd3M6CgpNYXIgMTYgMjA6NDI6MTAgeHBzMTUga2VybmVsOiBbIDE0NDAuMTYzNjcyXSBJTkZPOiB0YXNrIGt3b3JrZXIvMDoxOjUwIApibG9ja2VkIGZvciBtb3JlIHRoYW4gMTIwIHNlY29uZHMuCk1h
- ciAxNiAyMDo0MjoxMCB4cHMxNSBrZXJuZWw6IFsgMTQ0MC4xNjM2ODBdICAgICAgIFRhaW50ZWQ6IEcgICAgICAgIFcgICAgICAgCjQuNS4wICMxCk1hciAxNiAyMDo0MjoxMCB4cHMxNSBrZXJuZWw6IFsgMTQ0MC4xNjM2ODNdICJlY2hvIDAgPiAKL3Byb2Mvc3lzL2tlcm5lbC9odW5nX3Rhc2tfdGltZW91dF9zZWNzIiBkaXNhYmxlcyB0aGlzIG1lc3NhZ2UuCk1hciAxNiAyMDo0MjoxMCB4cHMxNSBrZXJuZWw6IFsgMTQ0MC4xNjM2ODZdIGt3b3JrZXIvMDoxICAgICBEIApmZmZmODgwNGJmYzE1YTQwICAgICAwICAgIDUwICAgICAgMiAweDAwMDAwMDAwCk1hciAxNiAyMDo0MjoxMCB4cHMxNSBrZXJuZWw6IFsgMTQ0MC4xNjM3MDJdIFdvcmtxdWV1ZToga2FjcGlkIAphY3BpX29zX2V4ZWN1dGVfZGVmZXJyZWQKTWFyIDE2IDIwOjQyOjEwIHhwczE1IGtlcm5lbDogWyAxNDQwLjE2MzcwNl0gIGZmZmY4ODA0YWQzZTIwNDAgCmZmZmZmZmZmODFhMTI1MDAgZmZmZjg4MDRhY2VhODAwMCBmZmZmODgwNGFjZWE3YzgwCk1hciAxNiAyMDo0MjoxMCB4cHMxNSBrZXJuZWw6IFsgMTQ0MC4xNjM3MTJdICBmZmZmODgwMDMyZTNlZTIwIApmZmZmODgwNGFkM2UyMD
- QwIDAwMDAwMDAwMDAwMDAwMDAgMDAwMDAwMDAwMDAwMDAwMApNYXIgMTYgMjA6NDI6MTAgeHBzMTUga2VybmVsOiBbIDE0NDAuMTYzNzE3XSAgZmZmZmZmZmY4MTViZGU0MSAKN2ZmZmZmZmZmZmZmZmZmZiBmZmZmZmZmZjgxNWMwY2IyIDdmZmZmZmZmZmZmZmZmZmYKTWFyIDE2IDIwOjQyOjEwIHhwczE1IGtlcm5lbDogWyAxNDQwLjE2MzcyM10gQ2FsbCBUcmFjZToKTWFyIDE2IDIwOjQyOjEwIHhwczE1IGtlcm5lbDogWyAxNDQwLjE2MzczNV0gIFs8ZmZmZmZmZmY4MTViZGU0MT5dID8gCnNjaGVkdWxlKzB4MzEvMHg4MApNYXIgMTYgMjA6NDI6MTAgeHBzMTUga2VybmVsOiBbIDE0NDAuMTYzNzQxXSAgWzxmZmZmZmZmZjgxNWMwY2IyPl0gPyAKc2NoZWR1bGVfdGltZW91dCsweDFiMi8weDI3MApNYXIgMTYgMjA6NDI6MTAgeHBzMTUga2VybmVsOiBbIDE0NDAuMTYzNzQ5XSAgWzxmZmZmZmZmZjgxM2E2Zjk0Pl0gPyAKYWNwaV91dF9yZXBhaXJfbmFtZSsweDJkLzB4N2EKTWFyIDE2IDIwOjQyOjEwIHhwczE1IGtlcm5lbDogWyAxNDQwLjE2Mzc1NV0gIFs8ZmZmZmZmZmY4MTM5YzIyOD5dID8gCmFjcGlfbnNfc2VhcmNoX29uZV9zY29wZSsweDIwLzB4
- M2UKTWFyIDE2IDIwOjQyOjEwIHhwczE1IGtlcm5lbDogWyAxNDQwLjE2Mzc2MV0gIFs8ZmZmZmZmZmY4MTM5YzM5Zj5dID8gCmFjcGlfbnNfc2VhcmNoX2FuZF9lbnRlcisweDE1OS8weDFhZQpNYXIgMTYgMjA6NDI6MTAgeHBzMTUga2VybmVsOiBbIDE0NDAuMTYzNzY1XSAgWzxmZmZmZmZmZjgxNWJmZTA1Pl0gPyAKX19kb3duX3RpbWVvdXQrMHg3NS8weGMwCk1hciAxNiAyMDo0MjoxMCB4cHMxNSBrZXJuZWw6IFsgMTQ0MC4xNjM3NzNdICBbPGZmZmZmZmZmODEwYjlhMjM+XSA/IApkb3duX3RpbWVvdXQrMHg0My8weDUwCk1hciAxNiAyMDo0MjoxMCB4cHMxNSBrZXJuZWw6IFsgMTQ0MC4xNjM3NzhdICBbPGZmZmZmZmZmODEzNzhhNzY+XSA/IAphY3BpX29zX3dhaXRfc2VtYXBob3JlKzB4NDgvMHg2MgpNYXIgMTYgMjA6NDI6MTAgeHBzMTUga2VybmVsOiBbIDE0NDAuMTYzNzgzXSAgWzxmZmZmZmZmZjgxMzk3MzY2Pl0gPyAKYWNwaV9leF9zeXN0ZW1fd2FpdF9tdXRleCsweDM3LzB4NDgKTWFyIDE2IDIwOjQyOjEwIHhwczE1IGtlcm5lbDogWyAxNDQwLjE2Mzc4OF0gIFs8ZmZmZmZmZmY4MTM4YTI5NT5dID8gCmFjcGlfZHNfYmVnaW5fbWV0aG9kX2
- V4ZWN1dGlvbisweDEzOC8weDFkMApNYXIgMTYgMjA6NDI6MTAgeHBzMTUga2VybmVsOiBbIDE0NDAuMTYzNzkyXSAgWzxmZmZmZmZmZjgxMzhhNTA5Pl0gPyAKYWNwaV9kc19jYWxsX2NvbnRyb2xfbWV0aG9kKzB4NGYvMHgxNjUKTWFyIDE2IDIwOjQyOjEwIHhwczE1IGtlcm5lbDogWyAxNDQwLjE2Mzc5OV0gIFs8ZmZmZmZmZmY4MTM5ZjM2Yz5dID8gCmFjcGlfcHNfcGFyc2VfYW1sKzB4YTgvMHgyNzMKTWFyIDE2IDIwOjQyOjEwIHhwczE1IGtlcm5lbDogWyAxNDQwLjE2MzgwNV0gIFs8ZmZmZmZmZmY4MTM5ZmIyYz5dID8gCmFjcGlfcHNfZXhlY3V0ZV9tZXRob2QrMHgxNDAvMHgxNzUKTWFyIDE2IDIwOjQyOjEwIHhwczE1IGtlcm5lbDogWyAxNDQwLjE2MzgxMF0gIFs8ZmZmZmZmZmY4MTM5YTNhOT5dID8gCmFjcGlfbnNfZXZhbHVhdGUrMHgxYjkvMHgyMzcKTWFyIDE2IDIwOjQyOjEwIHhwczE1IGtlcm5lbDogWyAxNDQwLjE2MzgxNl0gIFs8ZmZmZmZmZmY4MTM4ZGM4NT5dID8gCmFjcGlfZXZfYXN5bmNoX2V4ZWN1dGVfZ3BlX21ldGhvZCsweDk4LzB4ZmYKTWFyIDE2IDIwOjQyOjEwIHhwczE1IGtlcm5lbDogWyAxNDQwLjE2MzgyMF0gIFs8ZmZm
- ZmZmZmY4MTM3N2RmYj5dID8gCmFjcGlfb3NfZXhlY3V0ZV9kZWZlcnJlZCsweDEwLzB4MWEKTWFyIDE2IDIwOjQyOjEwIHhwczE1IGtlcm5lbDogWyAxNDQwLjE2MzgyNl0gIFs8ZmZmZmZmZmY4MTA4ZGFkYT5dID8gCnByb2Nlc3Nfb25lX3dvcmsrMHgxNWEvMHg0MTAKTWFyIDE2IDIwOjQyOjEwIHhwczE1IGtlcm5lbDogWyAxNDQwLjE2MzgzMl0gIFs8ZmZmZmZmZmY4MTA4ZGRkZD5dID8gCndvcmtlcl90aHJlYWQrMHg0ZC8weDQ4MApNYXIgMTYgMjA6NDI6MTAgeHBzMTUga2VybmVsOiBbIDE0NDAuMTYzODM2XSAgWzxmZmZmZmZmZjgxMDhkZDkwPl0gPyAKcHJvY2Vzc19vbmVfd29yaysweDQxMC8weDQxMApNYXIgMTYgMjA6NDI6MTAgeHBzMTUga2VybmVsOiBbIDE0NDAuMTYzODQzXSAgWzxmZmZmZmZmZjgxMDkzZDNkPl0gPyAKa3RocmVhZCsweGNkLzB4ZjAKTWFyIDE2IDIwOjQyOjEwIHhwczE1IGtlcm5lbDogWyAxNDQwLjE2Mzg1MF0gIFs8ZmZmZmZmZmY4MTA5M2M3MD5dID8gCmt0aHJlYWRfY3JlYXRlX29uX25vZGUrMHgxOTAvMHgxOTAKTWFyIDE2IDIwOjQyOjEwIHhwczE1IGtlcm5lbDogWyAxNDQwLjE2Mzg1N10gIFs8ZmZmZmZmZmY4MT
- VjMWY4Zj5dID8gCnJldF9mcm9tX2ZvcmsrMHgzZi8weDcwCk1hciAxNiAyMDo0MjoxMCB4cHMxNSBrZXJuZWw6IFsgMTQ0MC4xNjM4NjNdICBbPGZmZmZmZmZmODEwOTNjNzA+XSA/IAprdGhyZWFkX2NyZWF0ZV9vbl9ub2RlKzB4MTkwLzB4MTkwCgpEdXJpbmcgdGhpcyBwZXJpb2Qgc29tZSBvdGhlciBkZXZpY2VzIGF0dGFjaGVkIGJ5IFVTQiwgZXh0ZXJuYWxseSBvciAKaW50ZXJuYWxseSAobm90YWJseSB0aGUgdG91Y2hwYWQpLCBiZWNvbWUgdW51c2FibGUsIGJ1dCB0aGV5IHNlZW0gdG8gcmVjb3ZlciAKYWZ0ZXJ3YXJkLgoKSW4gYWRkaXRpb24sIGRldmljZXMgYXR0YWNoZWQgdG8gdGhlIFVTQiBwb3J0cyAoZXZlbiB0aGUgdHJhZGl0aW9uYWwgVVNCIDMueCAKVHlwZSBBIHBvcnRzKSBhZnRlciB0aGUgaHVuZyB0YXNrIHRpbWVvdXQgZG8gbm90IHNlZW0gdG8gYmUgcmVjb2duaXplZCBieSB0aGUgCnN5c3RlbS4KClRoZSBzYW1lIGRldmljZSBhcHBlYXJzIHRvIHdvcmsgcHJvcGVybHkgd2l0aCBhbiBBLXRvLUMgYWRhcHRlciBvbiB0aGUgVHlwZSBBIApwb3J0cy4KCkkgd2lsbCB0cnkgdGhlIGtlcm5lbCBib290IG9wdGlvbnMgc3VnZ2VzdGVk
- IGluIHRoaXMgdGhyZWFkIHRvIHNlZSBpZiB0aGV5IApoZWxwIG1hdHRlcnMuCgoKQ2hyaXMK
+[Problem]
+
+cpuid <-> nodeid mapping is firstly established at boot time. And workqueue caches
+the mapping in wq_numa_possible_cpumask in wq_numa_init() at boot time.
+
+When doing node online/offline, cpuid <-> nodeid mapping is established/destroyed,
+which means, cpuid <-> nodeid mapping will change if node hotplug happens. But
+workqueue does not update wq_numa_possible_cpumask.
+
+So here is the problem:
+
+Assume we have the following cpuid <-> nodeid in the beginning:
+
+  Node | CPU
+------------------------
+node 0 |  0-14, 60-74
+node 1 | 15-29, 75-89
+node 2 | 30-44, 90-104
+node 3 | 45-59, 105-119
+
+and we hot-remove node2 and node3, it becomes:
+
+  Node | CPU
+------------------------
+node 0 |  0-14, 60-74
+node 1 | 15-29, 75-89
+
+and we hot-add node4 and node5, it becomes:
+
+  Node | CPU
+------------------------
+node 0 |  0-14, 60-74
+node 1 | 15-29, 75-89
+node 4 | 30-59
+node 5 | 90-119
+
+But in wq_numa_possible_cpumask, cpu30 is still mapped to node2, and the like.
+
+When a pool workqueue is initialized, if its cpumask belongs to a node, its
+pool->node will be mapped to that node. And memory used by this workqueue will
+also be allocated on that node.
+
+static struct worker_pool *get_unbound_pool(const struct workqueue_attrs *attrs){
+...
+        /* if cpumask is contained inside a NUMA node, we belong to that node */
+        if (wq_numa_enabled) {
+                for_each_node(node) {
+                        if (cpumask_subset(pool->attrs->cpumask,
+                                           wq_numa_possible_cpumask[node])) {
+                                pool->node = node;
+                                break;
+                        }
+                }
+        }
+
+Since wq_numa_possible_cpumask is not updated, it could be mapped to an offline node,
+which will lead to memory allocation failure:
+
+ SLUB: Unable to allocate memory on node 2 (gfp=0x80d0)
+  cache: kmalloc-192, object size: 192, buffer size: 192, default order: 1, min order: 0
+  node 0: slabs: 6172, objs: 259224, free: 245741
+  node 1: slabs: 3261, objs: 136962, free: 127656
+
+It happens here:
+
+create_worker(struct worker_pool *pool)
+ |--> worker = alloc_worker(pool->node);
+
+static struct worker *alloc_worker(int node)
+{
+        struct worker *worker;
+
+        worker = kzalloc_node(sizeof(*worker), GFP_KERNEL, node); --> Here, useing the wrong node.
+
+        ......
+
+        return worker;
+}
+
+
+[Solution]
+
+There are four mappings in the kernel:
+1. nodeid (logical node id)   <->   pxm
+2. apicid (physical cpu id)   <->   nodeid
+3. cpuid (logical cpu id)     <->   apicid
+4. cpuid (logical cpu id)     <->   nodeid
+
+1. pxm (proximity domain) is provided by ACPI firmware in SRAT, and nodeid <-> pxm
+   mapping is setup at boot time. This mapping is persistent, won't change.
+
+2. apicid <-> nodeid mapping is setup using info in 1. The mapping is setup at boot
+   time and CPU hotadd time, and cleared at CPU hotremove time. This mapping is also
+   persistent.
+
+3. cpuid <-> apicid mapping is setup at boot time and CPU hotadd time. cpuid is
+   allocated, lower ids first, and released at CPU hotremove time, reused for other
+   hotadded CPUs. So this mapping is not persistent.
+
+4. cpuid <-> nodeid mapping is also setup at boot time and CPU hotadd time, and
+   cleared at CPU hotremove time. As a result of 3, this mapping is not persistent.
+
+To fix this problem, we establish cpuid <-> nodeid mapping for all the possible
+cpus at boot time, and make it persistent. And according to init_cpu_to_node(),
+cpuid <-> nodeid mapping is based on apicid <-> nodeid mapping and cpuid <-> apicid
+mapping. So the key point is obtaining all cpus' apicid.
+
+apicid can be obtained by _MAT (Multiple APIC Table Entry) method or found in
+MADT (Multiple APIC Description Table). So we finish the job in the following steps:
+
+1. Enable apic registeration flow to handle both enabled and disabled cpus.
+   This is done by introducing an extra parameter to generic_processor_info to let the
+   caller control if disabled cpus are ignored.
+
+2. Introduce a new array storing all possible cpuid <-> apicid mapping. And also modify
+   the way cpuid is calculated. Establish all possible cpuid <-> apicid mapping when
+   registering local apic. Store the mapping in this array.
+
+3. Enable _MAT and MADT relative apis to return non-presnet or disabled cpus' apicid.
+   This is also done by introducing an extra parameter to these apis to let the caller
+   control if disabled cpus are ignored.
+
+4. Establish all possible cpuid <-> nodeid mapping.
+   This is done via an additional acpi namespace walk for processors.
+
+
+For previous discussion, please refer to:
+https://lkml.org/lkml/2015/2/27/145
+https://lkml.org/lkml/2015/3/25/989
+https://lkml.org/lkml/2015/5/14/244
+https://lkml.org/lkml/2015/7/7/200
+https://lkml.org/lkml/2015/9/27/209
+
+Change log v5 -> v6:
+1. Define func acpi_map_cpu2node() for x86 and ia64 respectively.
+
+Change log v4 -> v5:
+1. Remove useless code in patch 1.
+2. Small improvement of commit message.
+
+Change log v3 -> v4:
+1. Fix the kernel panic at boot time. The cause is that I tried to build zonelists
+   before per cpu areas were initialized.
+
+Change log v2 -> v3:
+1. Online memory-less nodes at boot time to map cpus of memory-less nodes.
+2. Build zonelists for memory-less nodes so that memory allocator will fall 
+   back to proper nodes automatically.
+
+Change log v1 -> v2:
+1. Split code movement and actual changes. Add patch 1.
+2. Synchronize best near online node record when node hotplug happens. In patch 2.
+3. Fix some comment.
+
+Gu Zheng (4):
+  x86, acpi, cpu-hotplug: Enable acpi to register all possible cpus at
+    boot time.
+  x86, acpi, cpu-hotplug: Introduce cpuid_to_apicid[] array to store
+    persistent cpuid <-> apicid mapping.
+  x86, acpi, cpu-hotplug: Enable MADT APIs to return disabled apicid.
+  x86, acpi, cpu-hotplug: Set persistent cpuid <-> nodeid mapping when
+    booting.
+
+Tang Chen (1):
+  x86, memhp, numa: Online memory-less nodes at boot time.
+
+ arch/ia64/kernel/acpi.c       |   2 +-
+ arch/x86/include/asm/mpspec.h |   1 +
+ arch/x86/kernel/acpi/boot.c   |   8 ++-
+ arch/x86/kernel/apic/apic.c   |  85 +++++++++++++++++++++++++----
+ arch/x86/mm/numa.c            |  27 +++++-----
+ drivers/acpi/acpi_processor.c |   5 +-
+ drivers/acpi/bus.c            |   3 ++
+ drivers/acpi/processor_core.c | 122 ++++++++++++++++++++++++++++++++++--------
+ include/linux/acpi.h          |   6 +++
+ 9 files changed, 208 insertions(+), 51 deletions(-)
+
+-- 
+1.9.3
+
+
 
