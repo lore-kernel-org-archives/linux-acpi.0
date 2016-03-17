@@ -1,133 +1,165 @@
-From: Shannon Zhao <zhaoshenglong-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
-Subject: [PATCH v6 01/17] Xen: ACPI: Hide UART used by Xen
-Date: Thu, 17 Mar 2016 17:57:00 +0800
-Message-ID: <1458208636-12960-2-git-send-email-zhaoshenglong@huawei.com>
-References: <1458208636-12960-1-git-send-email-zhaoshenglong@huawei.com>
-Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-efi-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1458208636-12960-1-git-send-email-zhaoshenglong-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
-Sender: linux-efi-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, ard.biesheuvel-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org, stefano.stabellini-Sxgqhf6Nn4DQT0dZR+AlfA@public.gmane.org, david.vrabel-Sxgqhf6Nn4DQT0dZR+AlfA@public.gmane.org
-Cc: catalin.marinas-5wv7dgnIgG8@public.gmane.org, will.deacon-5wv7dgnIgG8@public.gmane.org, mark.rutland-5wv7dgnIgG8@public.gmane.org, julien.grall-5wv7dgnIgG8@public.gmane.org, xen-devel-GuqFBffKawuEi8DpZVb4nw@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-efi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, ian.campbell-Sxgqhf6Nn4DQT0dZR+AlfA@public.gmane.org, shannon.zhao-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org, peter.huangpeng-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, "Rafael J. Wysocki" <rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org>, Len Brown <lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, "open list:ACPI" <linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+From: fu.wei@linaro.org
+Subject: [PATCH v7] acpi, apei, arm64: APEI initial support for aarch64.
+Date: Thu, 17 Mar 2016 19:25:03 +0800
+Message-ID: <1458213903-9299-1-git-send-email-fu.wei@linaro.org>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mx1.redhat.com ([209.132.183.28]:40418 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S935788AbcCQLZ2 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 17 Mar 2016 07:25:28 -0400
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: tomasz.nowicki@linaro.org, tn@semihalf.com, rjw@rjwysocki.net, lenb@kernel.org, pavel@ucw.cz, catalin.marinas@arm.com, will.deacon@arm.com, tglx@linutronix.de, mingo@redhat.com, hpa@zytor.com
+Cc: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, x86@kernel.org, linaro-acpi@lists.linaro.org, linux-arm-kernel@lists.infradead.org, linux-pm@vger.kernel.org, graeme.gregory@linaro.org, al.stone@linaro.org, hanjun.guo@linaro.org, mark.rutland@arm.com, Marc.Zyngier@arm.com, lorenzo.pieralisi@arm.com, rruigrok@codeaurora.org, harba@qti.qualcomm.com, tbaicar@codeaurora.org, jcm@redhat.com, msalter@redhat.com, grant.likely@linaro.org, rrichter@cavium.com, jarkko.nikula@linux.intel.com, jon.zhixiong.zhang@gmail.com, Fu Wei <fu.wei@linaro.org>
 
-From: Shannon Zhao <shannon.zhao-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
+From: Tomasz Nowicki <tomasz.nowicki@linaro.org>
 
-ACPI 6.0 introduces a new table STAO to list the devices which are used
-by Xen and can't be used by Dom0. On Xen virtual platforms, the physical
-UART is used by Xen. So here it hides UART from Dom0.
+This commit provides APEI arch-specific bits for aarch64
 
-Signed-off-by: Shannon Zhao <shannon.zhao-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
+Meanwhile,
+(1)add a new subfunction "hest_ia32_init" for
+"acpi_disable_cmcff" which is used by IA-32 Architecture
+Corrected Machine Check (CMC).
+(2)move HEST type (ACPI_HEST_TYPE_IA32_CORRECTED_CHECK) checking to
+a generic place.
+
+Signed-off-by: Tomasz Nowicki <tomasz.nowicki@linaro.org>
+Tested-by: Jonathan (Zhixiong) Zhang <zjzhang@codeaurora.org>
+Signed-off-by: Fu Wei <fu.wei@linaro.org>
+Acked-by: Hanjun Guo <hanjun.guo@linaro.org>
+Tested-by: Tyler Baicar <tbaicar@codeaurora.org>
 ---
-CC: "Rafael J. Wysocki" <rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org> (supporter:ACPI)
-CC: Len Brown <lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org> (supporter:ACPI)
-CC: linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org (open list:ACPI)
----
- drivers/acpi/scan.c | 63 +++++++++++++++++++++++++++++++++++++++++++++++++++++
- 1 file changed, 63 insertions(+)
+Changelog:
+v7: Add comment for arch_apei_flush_tlb_one in arch/arm64/include/asm/acpi.h
 
-diff --git a/drivers/acpi/scan.c b/drivers/acpi/scan.c
-index 5f28cf7..55ceb69 100644
---- a/drivers/acpi/scan.c
-+++ b/drivers/acpi/scan.c
-@@ -45,6 +45,7 @@ static LIST_HEAD(acpi_scan_handlers_list);
- DEFINE_MUTEX(acpi_device_lock);
- LIST_HEAD(acpi_wakeup_device_list);
- static DEFINE_MUTEX(acpi_hp_context_lock);
-+static u64 spcr_uart_addr;
+v6: https://lists.linaro.org/pipermail/linaro-acpi/2016-March/006644.html
+    Move HEST type (ACPI_HEST_TYPE_IA32_CORRECTED_CHECK) checking to
+    a generic place.
+    Delete HAVE_ACPI_APEI_HEST_IA32.
+
+v5: https://lkml.org/lkml/2015/12/10/131
+    Add "HAVE_ACPI_APEI_HEST_IA32" instead of
+    "#if defined(__i386__) || defined(__x86_64__)".
+
+v4: https://lkml.org/lkml/2015/12/8/188
+    Rebase to latest kernel version(4.4-rc4).
+    Move arch_apei_flush_tlb_one into header file as a inline function
+    Add a new subfunction "hest_ia_init" for "acpi_disable_cmcff".
+
+v3: https://lkml.org/lkml/2015/12/3/521
+    Remove "acpi_disable_cmcff" from arm64 code,
+    and wrap it in hest.c by "#if defined(__i386__) || defined(__x86_64__)"
+
+v2: https://lkml.org/lkml/2015/12/2/432
+    Rebase to latest kernel version(4.4-rc3).
+    Move arch_apei_flush_tlb_one() to arch/arm64/kernel/acpi.c
+
+v1: https://lkml.org/lkml/2015/8/14/199
+    Move arch_apei_flush_tlb_one() to arch/arm64/include/asm/apci.h.
+    Delete arch/arm64/kernel/apei.c.
+    Add "#ifdef CONFIG_ACPI_APEI" for "acpi_disable_cmcff".
+
+ arch/arm64/Kconfig            |  1 +
+ arch/arm64/include/asm/acpi.h | 15 ++++++++++++++-
+ arch/x86/kernel/acpi/apei.c   |  3 ---
+ drivers/acpi/apei/hest.c      | 18 +++++++++++++++---
+ 4 files changed, 30 insertions(+), 7 deletions(-)
+
+diff --git a/arch/arm64/Kconfig b/arch/arm64/Kconfig
+index b3f2522..0260b4c 100644
+--- a/arch/arm64/Kconfig
++++ b/arch/arm64/Kconfig
+@@ -3,6 +3,7 @@ config ARM64
+ 	select ACPI_CCA_REQUIRED if ACPI
+ 	select ACPI_GENERIC_GSI if ACPI
+ 	select ACPI_REDUCED_HARDWARE_ONLY if ACPI
++	select HAVE_ACPI_APEI if ACPI
+ 	select ARCH_HAS_DEVMEM_IS_ALLOWED
+ 	select ARCH_HAS_ATOMIC64_DEC_IF_POSITIVE
+ 	select ARCH_HAS_ELF_RANDOMIZE
+diff --git a/arch/arm64/include/asm/acpi.h b/arch/arm64/include/asm/acpi.h
+index caafd63..077a87d 100644
+--- a/arch/arm64/include/asm/acpi.h
++++ b/arch/arm64/include/asm/acpi.h
+@@ -17,6 +17,7 @@
  
- struct acpi_dep_data {
- 	struct list_head node;
-@@ -1453,6 +1454,41 @@ static int acpi_add_single_object(struct acpi_device **child,
- 	return 0;
+ #include <asm/cputype.h>
+ #include <asm/smp_plat.h>
++#include <asm/tlbflush.h>
+ 
+ /* Macros for consistency checks of the GICC subtable of MADT */
+ #define ACPI_MADT_GICC_LENGTH	\
+@@ -93,7 +94,19 @@ static inline const char *acpi_get_enable_method(int cpu)
  }
  
-+static acpi_status acpi_get_resource_memory(struct acpi_resource *ares,
-+					    void *context)
+ #ifdef	CONFIG_ACPI_APEI
++#define acpi_disable_cmcff 1
+ pgprot_t arch_apei_get_mem_attribute(phys_addr_t addr);
+-#endif
+ 
++/*
++ * This inline function is used in IRQ context (by GHES driver now),
++ * see ghes_iounmap_irq and ghes_iounmap_nmi in drivers/acpi/apei/ghes.c.
++ * The page mapped is reserved for firmware in kernel. This invalidate TLB
++ * maintenance should be broadcasted safely to make sure that all the cores
++ * will do TLB invalidation, then get the right pages.
++ */
++static inline void arch_apei_flush_tlb_one(unsigned long addr)
 +{
-+	struct resource *res = context;
++	flush_tlb_kernel_range(addr, addr + PAGE_SIZE);
++}
++#endif /* CONFIG_ACPI_APEI */
+ #endif /*_ASM_ACPI_H*/
+diff --git a/arch/x86/kernel/acpi/apei.c b/arch/x86/kernel/acpi/apei.c
+index c280df6..ea3046e 100644
+--- a/arch/x86/kernel/acpi/apei.c
++++ b/arch/x86/kernel/acpi/apei.c
+@@ -24,9 +24,6 @@ int arch_apei_enable_cmcff(struct acpi_hest_header *hest_hdr, void *data)
+ 	struct acpi_hest_ia_corrected *cmc;
+ 	struct acpi_hest_ia_error_bank *mc_bank;
+ 
+-	if (hest_hdr->type != ACPI_HEST_TYPE_IA32_CORRECTED_CHECK)
+-		return 0;
+-
+ 	cmc = (struct acpi_hest_ia_corrected *)hest_hdr;
+ 	if (!cmc->enabled)
+ 		return 0;
+diff --git a/drivers/acpi/apei/hest.c b/drivers/acpi/apei/hest.c
+index 20b3fcf..792a0d9 100644
+--- a/drivers/acpi/apei/hest.c
++++ b/drivers/acpi/apei/hest.c
+@@ -123,7 +123,18 @@ EXPORT_SYMBOL_GPL(apei_hest_parse);
+  */
+ static int __init hest_parse_cmc(struct acpi_hest_header *hest_hdr, void *data)
+ {
+-	return arch_apei_enable_cmcff(hest_hdr, data);
++	if (hest_hdr->type != ACPI_HEST_TYPE_IA32_CORRECTED_CHECK)
++		return 0;
 +
-+	if (acpi_dev_resource_memory(ares, res))
-+		return AE_CTRL_TERMINATE;
++	if (!acpi_disable_cmcff)
++		return !arch_apei_enable_cmcff(hest_hdr, data);
 +
-+	return AE_OK;
++	return 0;
 +}
 +
-+static bool acpi_device_should_be_hidden(acpi_handle handle)
++static inline int __init hest_ia32_init(void)
 +{
-+	acpi_status status;
-+	struct resource res;
-+
-+	/* Check if it should ignore the UART device */
-+	if (spcr_uart_addr != 0) {
-+		if (!acpi_has_method(handle, METHOD_NAME__CRS))
-+			return false;
-+
-+		status = acpi_walk_resources(handle, METHOD_NAME__CRS,
-+					     acpi_get_resource_memory, &res);
-+		if (ACPI_FAILURE(status))
-+			return false;
-+
-+		if (res.start == spcr_uart_addr) {
-+			printk(KERN_INFO PREFIX "The UART device in SPCR table will be hidden\n");
-+			return true;
-+		}
-+	}
-+
-+	return false;
-+}
-+
- static int acpi_bus_type_and_status(acpi_handle handle, int *type,
- 				    unsigned long long *sta)
- {
-@@ -1466,6 +1502,9 @@ static int acpi_bus_type_and_status(acpi_handle handle, int *type,
- 	switch (acpi_type) {
- 	case ACPI_TYPE_ANY:		/* for ACPI_ROOT_OBJECT */
- 	case ACPI_TYPE_DEVICE:
-+		if (acpi_device_should_be_hidden(handle))
-+			return -ENODEV;
-+
- 		*type = ACPI_BUS_TYPE_DEVICE;
- 		status = acpi_bus_get_status_handle(handle, sta);
- 		if (ACPI_FAILURE(status))
-@@ -1919,6 +1958,8 @@ static int acpi_bus_scan_fixed(void)
- int __init acpi_scan_init(void)
- {
- 	int result;
-+	acpi_status status;
-+	struct acpi_table_stao *stao_ptr;
++	return apei_hest_parse(hest_parse_cmc, NULL);
+ }
  
- 	acpi_pci_root_init();
- 	acpi_pci_link_init();
-@@ -1934,6 +1975,28 @@ int __init acpi_scan_init(void)
+ struct ghes_arr {
+@@ -232,8 +243,9 @@ void __init acpi_hest_init(void)
+ 		goto err;
+ 	}
  
- 	acpi_scan_add_handler(&generic_device_handler);
+-	if (!acpi_disable_cmcff)
+-		apei_hest_parse(hest_parse_cmc, NULL);
++	rc = hest_ia32_init();
++	if (rc)
++		goto err;
  
-+	/*
-+	 * If there is STAO table, check whether it needs to ignore the UART
-+	 * device in SPCR table.
-+	 */
-+	status = acpi_get_table(ACPI_SIG_STAO, 0,
-+				(struct acpi_table_header **)&stao_ptr);
-+	if (ACPI_SUCCESS(status)) {
-+		if (stao_ptr->header.length > sizeof(struct acpi_table_stao))
-+			printk(KERN_INFO PREFIX "STAO Name List not yet supported.");
-+
-+		if (stao_ptr->ignore_uart) {
-+			struct acpi_table_spcr *spcr_ptr;
-+
-+			status = acpi_get_table(ACPI_SIG_SPCR, 0,
-+					(struct acpi_table_header **)&spcr_ptr);
-+			if (ACPI_SUCCESS(status))
-+				spcr_uart_addr = spcr_ptr->serial_port.address;
-+			else
-+				printk(KERN_WARNING PREFIX "STAO table present, but SPCR is missing\n");
-+		}
-+	}
-+
- 	mutex_lock(&acpi_scan_lock);
- 	/*
- 	 * Enumerate devices in the ACPI namespace.
+ 	if (!ghes_disable) {
+ 		rc = apei_hest_parse(hest_parse_ghes_count, &ghes_count);
 -- 
-2.0.4
+2.5.0
+
