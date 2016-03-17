@@ -1,13 +1,15 @@
 From: Jayachandran C <jchandra@broadcom.com>
-Subject: [RFC PATCH 0/4] ACPI based PCI host driver with generic ECAM
-Date: Fri, 18 Mar 2016 01:48:29 +0530
-Message-ID: <1458245913-17211-1-git-send-email-jchandra@broadcom.com>
-References: <CAKc_7PVK3VtaR-LDHNXPr5cSjbCcH--hsepFx=jVATNi=+a9Hw@mail.gmail.com>
+Subject: [RFC PATCH 4/4] ACPI: PCI: Add raw_pci_read/write operations
+Date: Fri, 18 Mar 2016 01:48:33 +0530
+Message-ID: <1458245913-17211-5-git-send-email-jchandra@broadcom.com>
+References: <1458245913-17211-1-git-send-email-jchandra@broadcom.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <1458245913-17211-1-git-send-email-jchandra@broadcom.com>
 In-Reply-To: <CAKc_7PVK3VtaR-LDHNXPr5cSjbCcH--hsepFx=jVATNi=+a9Hw@mail.gmail.com>
+References: <CAKc_7PVK3VtaR-LDHNXPr5cSjbCcH--hsepFx=jVATNi=+a9Hw@mail.gmail.com>
 List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
 List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
@@ -21,60 +23,117 @@ To: Bjorn Helgaas <helgaas@kernel.org>, Tomasz Nowicki <tn@semihalf.com>, rafael
 Cc: linaro-acpi@lists.linaro.org, linux-pci@vger.kernel.org, Will Deacon <will.deacon@arm.com>, okaya@codeaurora.org, wangyijing@huawei.com, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, David Daney <ddaney@caviumnetworks.com>, linux-acpi@vger.kernel.org, robert.richter@caviumnetworks.com, Catalin Marinas <catalin.marinas@arm.com>, Liviu.Dudau@arm.com, Arnd Bergmann <arnd@arndb.de>, Stefano Stabellini <Stefano.Stabellini@eu.citrix.com>, Jon Masters <jcm@redhat.com>, msalter@redhat.com, Marcin Wojtas <mw@semihalf.com>, linux-arm-kernel@lists.infradead.org, Jayachandran C <jchandra@broadcom.com>, linux-kernel@vger.kernel.org, Hanjun Guo <hanjun.guo@linaro.org>, Suravee.Suthikulpanit@amd.com, jiang.liu@linux.intel.com
 List-Id: linux-acpi@vger.kernel.org
 
-Hi Bjorn,
+Provide implementations of raw_pci_read and raw_pci_write needed
+by ACPI.
 
-Here is a new patchset for the ACPI PCI controller driver based on the
-earlier discussion[1].
+We already maintain a gen_acpi_pci_roots list with all the ACPI
+PCI controllers, so we walk thru this list to see if there is
+an existing mapping. If there is one, we can use the generic
+config space access.
 
-The first two patches in the patchset implements pci/ecam.c for generic
-config space access and uses it in pci-host-generic.c and related files.
+If there is no existing mapping, create a temporary mapping with
+information available in the saved MCFG table and use it to do raw
+config space access.
 
-The third patch implements the ACPI PCI host driver using the same ecam
-access functions. The fourth patch adds the implementation of raw
-operations.
+Signed-off-by: Jayachandran C <jchandra@broadcom.com>
+---
+ drivers/acpi/pci_gen_host.c | 87 +++++++++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 87 insertions(+)
 
-I have not used the pci_mmcfg_list or the region definitions from x86,
-but have used a much simpler approach here.
-
-This should apply cleanly on top of the current pci next tree, and
-can be reviewed as a patchset.  To use it on ARM64, we need to pull
-in about 7 patches more from Tomasz patchset that fixes various
-issues (like stub code in arm64 pci.c, ACPI companion setup,
-domain number assignment, IO resources fixup etc.).
-
-If you are okay with this approach, I will work with Tomasz and
-post the full patchset.
-
-This has been tested on qemu with OVMF for the ACPI part and with
-device tree for pci-host-generic code.
-
-Thanks,
-JC.
-
-[1] https://lkml.org/lkml/2016/3/3/921
-
-Jayachandran C (4):
-  PCI: Provide generic ECAM mapping functions
-  PCI: generic,thunder: Use generic config functions
-  ACPI: PCI: Add generic PCI host controller
-  ACPI: PCI: Add raw_pci_read/write operations
-
- drivers/acpi/Kconfig                |   9 +
- drivers/acpi/Makefile               |   1 +
- drivers/acpi/pci_gen_host.c         | 334 ++++++++++++++++++++++++++++++++++++
- drivers/pci/Kconfig                 |   3 +
- drivers/pci/Makefile                |   2 +
- drivers/pci/ecam.c                  | 127 ++++++++++++++
- drivers/pci/host/Kconfig            |   1 +
- drivers/pci/host/pci-host-common.c  |  68 ++++----
- drivers/pci/host/pci-host-common.h  |  25 +--
- drivers/pci/host/pci-host-generic.c |  51 +-----
- drivers/pci/host/pci-thunder-ecam.c |  33 +---
- drivers/pci/host/pci-thunder-pem.c  |  41 ++---
- include/linux/pci.h                 |  10 ++
- 13 files changed, 560 insertions(+), 145 deletions(-)
- create mode 100644 drivers/acpi/pci_gen_host.c
- create mode 100644 drivers/pci/ecam.c
-
+diff --git a/drivers/acpi/pci_gen_host.c b/drivers/acpi/pci_gen_host.c
+index a43f2cee..b5472f0 100644
+--- a/drivers/acpi/pci_gen_host.c
++++ b/drivers/acpi/pci_gen_host.c
+@@ -245,3 +245,90 @@ void __init pci_mmcfg_late_init(void)
+ 			mcfgsav.cfg, mcfgsav.size);
+ 	}
+ }
++
++/*
++ * First walk thru the root infos of all the known ACPI PCI
++ * controllers to see if there is an existing mapping and
++ * use it if we find one.
++ * Otherwise check the MCFG table and setup a temporary mapping
++ */
++static int raw_pci_op(int domain, unsigned int busn, unsigned int devfn,
++		      int reg, int len, u32 *val, bool write)
++{
++	void __iomem *m;
++	struct acpi_pci_generic_root_info *ri;
++	struct acpi_pci_root *root;
++	bool tmpmap = false;
++	int i, ret = PCIBIOS_DEVICE_NOT_FOUND;
++
++	mutex_lock(&gen_acpi_pci_lock);
++	list_for_each_entry(ri, &gen_acpi_pci_roots, node) {
++		root = ri->common.root;
++		if (domain == root->segment &&
++		    busn >= (u8)root->secondary.start &&
++		    busn <= (u8)root->secondary.end) {
++			m = pci_generic_map_bus(ri->cfg, busn, devfn, reg);
++			if (m)
++				goto found;
++			else
++				goto err_out;
++		}
++	}
++
++	/* not found in existing root buses, check in mcfg */
++	i = mcfg_lookup(domain, busn, busn);
++	if (i < 0)
++		goto err_out;
++
++	/* get a temporary mapping */
++	busn -= mcfgsav.cfg[i].bus_start;
++	m = ioremap(mcfgsav.cfg[i].addr + (busn << 20 | devfn << 12), 1 << 12);
++	if (!m)
++		goto err_out;
++	tmpmap = true;
++	m += reg;
++found:
++	if (write) {
++		switch (len) {
++		case 1:
++			writeb(*val, m);
++			break;
++		case 2:
++			writew(*val, m);
++			break;
++		case 4:
++			writel(*val, m);
++			break;
++		}
++	} else {
++		switch (len) {
++		case 1:
++			*val = readb(m);
++			break;
++		case 2:
++			*val = readw(m);
++			break;
++		case 4:
++			*val = readl(m);
++			break;
++		}
++	}
++	if (tmpmap)
++		iounmap(m);
++	ret = 0;
++err_out:
++	mutex_unlock(&gen_acpi_pci_lock);
++	return ret;
++}
++
++int raw_pci_read(unsigned int domain, unsigned int busn, unsigned int devfn,
++		 int reg, int len, u32 *val)
++{
++	return raw_pci_op(domain, busn, devfn, reg, len, val, false);
++}
++
++int raw_pci_write(unsigned int domain, unsigned int busn, unsigned int devfn,
++		  int reg, int len, u32 val)
++{
++	return raw_pci_op(domain, busn, devfn, reg, len, &val, true);
++}
 -- 
 1.9.1
