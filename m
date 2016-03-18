@@ -1,97 +1,45 @@
 From: Fu Wei <fu.wei@linaro.org>
 Subject: Re: [PATCH v4 0/5] acpi, clocksource, kvm: add GTDT and ARM
  memory-mapped timer support
-Date: Fri, 18 Mar 2016 12:22:28 +0800
-Message-ID: <CADyBb7snA3oGBiXfAuzsWemhGRQbw78SSUkhAe_6ufa+ajsiHA@mail.gmail.com>
+Date: Fri, 18 Mar 2016 12:24:40 +0800
+Message-ID: <CADyBb7tk7CKMZ+HF8qdmDJhe-HJDqYWOw3dOxsZn8VvYO7NU9g@mail.gmail.com>
 References: <1458199917-30699-1-git-send-email-fu.wei@linaro.org>
 	<56EAC832.6070203@codeaurora.org>
 	<2196518.cd4jtVChuo@vostro.rjw.lan>
+	<56EB5206.4060705@codeaurora.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-ob0-f170.google.com ([209.85.214.170]:36564 "EHLO
-	mail-ob0-f170.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751813AbcCREW3 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 18 Mar 2016 00:22:29 -0400
-Received: by mail-ob0-f170.google.com with SMTP id m7so104371201obh.3
-        for <linux-acpi@vger.kernel.org>; Thu, 17 Mar 2016 21:22:28 -0700 (PDT)
-In-Reply-To: <2196518.cd4jtVChuo@vostro.rjw.lan>
+Received: from mail-oi0-f42.google.com ([209.85.218.42]:32783 "EHLO
+	mail-oi0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751819AbcCREYl (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 18 Mar 2016 00:24:41 -0400
+Received: by mail-oi0-f42.google.com with SMTP id d205so79239246oia.0
+        for <linux-acpi@vger.kernel.org>; Thu, 17 Mar 2016 21:24:40 -0700 (PDT)
+In-Reply-To: <56EB5206.4060705@codeaurora.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: Timur Tabi <timur@codeaurora.org>, Len Brown <lenb@kernel.org>, Daniel Lezcano <daniel.lezcano@linaro.org>, Thomas Gleixner <tglx@linutronix.de>, Marc Zyngier <marc.zyngier@arm.com>, Hanjun Guo <hanjun.guo@linaro.org>, linux-arm-kernel@lists.infradead.org, Linaro ACPI Mailman List <linaro-acpi@lists.linaro.org>, LKML <linux-kernel@vger.kernel.org>, linux-acpi@vger.kernel.org, Richard Ruigrok <rruigrok@codeaurora.org>, "Abdulhamid, Harb" <harba@codeaurora.org>, Christopher Covington <cov@codeaurora.org>, G Gregory <graeme.gregory@linaro.org>, Al Stone <al.stone@linaro.org>, Jon Masters <jcm@redhat.com>, "wei@redhat.com--cc=arnd"@arndb.de, Wim Van Sebroeck <wim@iguana.be>, Catalin Marinas <catalin.marinas@arm.com>, Will Deacon <will.deacon@arm.com>, Suravee Suthikulpanit <Suravee.Suthikulpanit@amd.com>, Leo Duran <leo.duran@amd.com>
+To: Timur Tabi <timur@codeaurora.org>
+Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Daniel Lezcano <daniel.lezcano@linaro.org>, Thomas Gleixner <tglx@linutronix.de>, Marc Zyngier <marc.zyngier@arm.com>, Hanjun Guo <hanjun.guo@linaro.org>, linux-arm-kernel@lists.infradead.org, Linaro ACPI Mailman List <linaro-acpi@lists.linaro.org>, LKML <linux-kernel@vger.kernel.org>, linux-acpi@vger.kernel.org, Richard Ruigrok <rruigrok@codeaurora.org>, "Abdulhamid, Harb" <harba@codeaurora.org>, Christopher Covington <cov@codeaurora.org>, G Gregory <graeme.gregory@linaro.org>, Al Stone <al.stone@linaro.org>, Jon Masters <jcm@redhat.com>, wei@redhat.com, Wim Van Sebroeck <wim@iguana.be>, Catalin Marinas <catalin.marinas@arm.com>, Will Deacon <will.deacon@arm.com>, Suravee Suthikulpanit <Suravee.Suthikulpanit@amd.com>, Leo Duran <leo.duran@amd.com>, Arnd Bergmann <arnd@arndb.de>
 
-Hi Rafael,
-
-Great thanks for your feedback!
-
-On 18 March 2016 at 08:41, Rafael J. Wysocki <rjw@rjwysocki.net> wrote:
-> On Thursday, March 17, 2016 10:07:30 AM Timur Tabi wrote:
->> fu.wei@linaro.org wrote:
->> > From: Fu Wei <fu.wei@linaro.org>
->> >
->> > This patchset:
->> >      (1)Move some enums and marcos to header file for arm_arch_timer,
->> >      improve the pr_* code by defining "pr_fmt(fmt)" in arm_arch_timer.c
->> >
->> >      (2)Introduce ACPI GTDT parser: drivers/acpi/gtdt.c
->> >      Parse all kinds of timer in GTDT table of ACPI:arch timer,
->> >      memory-mapped timer and SBSA Generic Watchdog timer.
->> >      This driver can help to simplify all the relevant timer drivers,
->> >      and separate all the ACPI GTDT knowledge from them.
->> >
->> >      (3)Simplify ACPI code for arch timer in arm_arch_timer.c
->> >
->> >      (4)Add memory-mapped timer support in arm_arch_timer.c
+On 18 March 2016 at 08:55, Timur Tabi <timur@codeaurora.org> wrote:
+> Rafael J. Wysocki wrote:
 >>
->> The SBSA watchdog driver is already in watchdog-next and will be merged
->> into 4.6.  These five patches are necessary for the watchdog driver to
->> probe on an ACPI system.
->>
->> I'm guessing since that v4 was posted in the middle of the 4.6 merge
->> window, that these patches won't make it and we'll have to wait until
->> 4.7 (at the earliest)?
+>> I will have a couple of comments for patch [1/6] (in the v3), but it's
+>> not been a priority due to the apparent overall lack of interest in this
+>> series.
 >
-> First off, the last version I've seen is the v3.  I must have overlooked
-> the v4 then, but I don't think it was CCed to linux-acpi (which should
-> have happened).
+>
+> Well, I am very interested in this series, if that counts. :-)
 
-Sorry for this, That is my fault. I updated the script of git-send-email for
-sending the v4 patchset, but lost a space between two "--cc". :-(
+Thank you for your feedback, do you have any suggestion for v4?
 
 >
-> Second, these patches require review from multiple maintainers and (or including)
-> people who actually know how the GTDT is supposed to be used.  I haven't
-> seen any responses from any of them yet, so the answer to your question is
-> "yes".
 >
-> I will have a couple of comments for patch [1/6] (in the v3), but it's
-> not been a priority due to the apparent overall lack of interest in this
-> series.
-
-Since this device is a generic  watchdog for ARM server, it is(will be) used
-in a lot of chips. So I think many people are interested in it. They
-haven't  provided
-any feedback, maybe due to my "--cc" mistake, or busy on something
-else now.  :-(
-
-I would like to learn your comments for patch [1/6] , then improve my
-v4, post v5
-ASAP.
-
-This patchset includes GTDT and memory-mapped timer patches, because my
-memory-mapped timer patches depends on GTDT.
-But maybe we can upstream GTDT separately?
-
-any suggestion?
-
-Thanks for your help!
-
-
->
-> Thanks,
-> Rafael
->
+> --
+> Sent by an employee of the Qualcomm Innovation Center, Inc.
+> The Qualcomm Innovation Center, Inc. is a member of the
+> Code Aurora Forum, hosted by The Linux Foundation.
 
 
 
