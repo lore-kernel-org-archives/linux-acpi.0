@@ -1,32 +1,108 @@
-From: Timur Tabi <timur@codeaurora.org>
+From: Fu Wei <fu.wei@linaro.org>
 Subject: Re: [PATCH v4 0/5] acpi, clocksource, kvm: add GTDT and ARM
  memory-mapped timer support
-Date: Thu, 17 Mar 2016 19:55:34 -0500
-Message-ID: <56EB5206.4060705@codeaurora.org>
+Date: Fri, 18 Mar 2016 12:22:28 +0800
+Message-ID: <CADyBb7snA3oGBiXfAuzsWemhGRQbw78SSUkhAe_6ufa+ajsiHA@mail.gmail.com>
 References: <1458199917-30699-1-git-send-email-fu.wei@linaro.org>
- <56EAC832.6070203@codeaurora.org> <2196518.cd4jtVChuo@vostro.rjw.lan>
+	<56EAC832.6070203@codeaurora.org>
+	<2196518.cd4jtVChuo@vostro.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp.codeaurora.org ([198.145.29.96]:54087 "EHLO
-	smtp.codeaurora.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S934942AbcCRA4d (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 17 Mar 2016 20:56:33 -0400
+Received: from mail-ob0-f170.google.com ([209.85.214.170]:36564 "EHLO
+	mail-ob0-f170.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751813AbcCREW3 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 18 Mar 2016 00:22:29 -0400
+Received: by mail-ob0-f170.google.com with SMTP id m7so104371201obh.3
+        for <linux-acpi@vger.kernel.org>; Thu, 17 Mar 2016 21:22:28 -0700 (PDT)
 In-Reply-To: <2196518.cd4jtVChuo@vostro.rjw.lan>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: fu.wei@linaro.org, lenb@kernel.org, daniel.lezcano@linaro.org, tglx@linutronix.de, marc.zyngier@arm.com, hanjun.guo@linaro.org, linux-arm-kernel@lists.infradead.org, linaro-acpi@lists.linaro.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, rruigrok@codeaurora.org, harba@codeaurora.org, cov@codeaurora.org, graeme.gregory@linaro.org, al.stone@linaro.org, jcm@redhat.com, "wei@redhat.com--cc=arnd"@arndb.de, wim@iguana.be, catalin.marinas@arm.com, will.deacon@arm.com, Suravee.Suthikulpanit@amd.com, leo.duran@amd.com
+Cc: Timur Tabi <timur@codeaurora.org>, Len Brown <lenb@kernel.org>, Daniel Lezcano <daniel.lezcano@linaro.org>, Thomas Gleixner <tglx@linutronix.de>, Marc Zyngier <marc.zyngier@arm.com>, Hanjun Guo <hanjun.guo@linaro.org>, linux-arm-kernel@lists.infradead.org, Linaro ACPI Mailman List <linaro-acpi@lists.linaro.org>, LKML <linux-kernel@vger.kernel.org>, linux-acpi@vger.kernel.org, Richard Ruigrok <rruigrok@codeaurora.org>, "Abdulhamid, Harb" <harba@codeaurora.org>, Christopher Covington <cov@codeaurora.org>, G Gregory <graeme.gregory@linaro.org>, Al Stone <al.stone@linaro.org>, Jon Masters <jcm@redhat.com>, "wei@redhat.com--cc=arnd"@arndb.de, Wim Van Sebroeck <wim@iguana.be>, Catalin Marinas <catalin.marinas@arm.com>, Will Deacon <will.deacon@arm.com>, Suravee Suthikulpanit <Suravee.Suthikulpanit@amd.com>, Leo Duran <leo.duran@amd.com>
 
-Rafael J. Wysocki wrote:
+Hi Rafael,
+
+Great thanks for your feedback!
+
+On 18 March 2016 at 08:41, Rafael J. Wysocki <rjw@rjwysocki.net> wrote:
+> On Thursday, March 17, 2016 10:07:30 AM Timur Tabi wrote:
+>> fu.wei@linaro.org wrote:
+>> > From: Fu Wei <fu.wei@linaro.org>
+>> >
+>> > This patchset:
+>> >      (1)Move some enums and marcos to header file for arm_arch_timer,
+>> >      improve the pr_* code by defining "pr_fmt(fmt)" in arm_arch_timer.c
+>> >
+>> >      (2)Introduce ACPI GTDT parser: drivers/acpi/gtdt.c
+>> >      Parse all kinds of timer in GTDT table of ACPI:arch timer,
+>> >      memory-mapped timer and SBSA Generic Watchdog timer.
+>> >      This driver can help to simplify all the relevant timer drivers,
+>> >      and separate all the ACPI GTDT knowledge from them.
+>> >
+>> >      (3)Simplify ACPI code for arch timer in arm_arch_timer.c
+>> >
+>> >      (4)Add memory-mapped timer support in arm_arch_timer.c
+>>
+>> The SBSA watchdog driver is already in watchdog-next and will be merged
+>> into 4.6.  These five patches are necessary for the watchdog driver to
+>> probe on an ACPI system.
+>>
+>> I'm guessing since that v4 was posted in the middle of the 4.6 merge
+>> window, that these patches won't make it and we'll have to wait until
+>> 4.7 (at the earliest)?
+>
+> First off, the last version I've seen is the v3.  I must have overlooked
+> the v4 then, but I don't think it was CCed to linux-acpi (which should
+> have happened).
+
+Sorry for this, That is my fault. I updated the script of git-send-email for
+sending the v4 patchset, but lost a space between two "--cc". :-(
+
+>
+> Second, these patches require review from multiple maintainers and (or including)
+> people who actually know how the GTDT is supposed to be used.  I haven't
+> seen any responses from any of them yet, so the answer to your question is
+> "yes".
+>
 > I will have a couple of comments for patch [1/6] (in the v3), but it's
 > not been a priority due to the apparent overall lack of interest in this
 > series.
 
-Well, I am very interested in this series, if that counts. :-)
+Since this device is a generic  watchdog for ARM server, it is(will be) used
+in a lot of chips. So I think many people are interested in it. They
+haven't  provided
+any feedback, maybe due to my "--cc" mistake, or busy on something
+else now.  :-(
+
+I would like to learn your comments for patch [1/6] , then improve my
+v4, post v5
+ASAP.
+
+This patchset includes GTDT and memory-mapped timer patches, because my
+memory-mapped timer patches depends on GTDT.
+But maybe we can upstream GTDT separately?
+
+any suggestion?
+
+Thanks for your help!
+
+
+>
+> Thanks,
+> Rafael
+>
+
+
 
 -- 
-Sent by an employee of the Qualcomm Innovation Center, Inc.
-The Qualcomm Innovation Center, Inc. is a member of the
-Code Aurora Forum, hosted by The Linux Foundation.
+Best regards,
+
+Fu Wei
+Software Engineer
+Red Hat Software (Beijing) Co.,Ltd.Shanghai Branch
+Ph: +86 21 61221326(direct)
+Ph: +86 186 2020 4684 (mobile)
+Room 1512, Regus One Corporate Avenue,Level 15,
+One Corporate Avenue,222 Hubin Road,Huangpu District,
+Shanghai,China 200021
