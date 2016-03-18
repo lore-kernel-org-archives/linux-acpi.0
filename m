@@ -1,188 +1,125 @@
-From: fu.wei@linaro.org
-Subject: [RESEND PATCH v4 5/5] clocksource: add memory-mapped timer support in arm_arch_timer.c
-Date: Fri, 18 Mar 2016 16:00:53 +0800
-Message-ID: <1458288053-29031-6-git-send-email-fu.wei@linaro.org>
-References: <1458288053-29031-1-git-send-email-fu.wei@linaro.org>
+From: Fu Wei <fu.wei@linaro.org>
+Subject: Re: [PATCH v4 0/5] acpi, clocksource, kvm: add GTDT and ARM
+ memory-mapped timer support
+Date: Fri, 18 Mar 2016 17:28:24 +0800
+Message-ID: <CADyBb7tx=BvvuP1jLMMKug7jtUJV3gVkbvhUU3ZYvCeLfwUD6A@mail.gmail.com>
+References: <1458199917-30699-1-git-send-email-fu.wei@linaro.org>
+	<56EAC832.6070203@codeaurora.org>
+	<2196518.cd4jtVChuo@vostro.rjw.lan>
+	<CADyBb7snA3oGBiXfAuzsWemhGRQbw78SSUkhAe_6ufa+ajsiHA@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1458288053-29031-1-git-send-email-fu.wei@linaro.org>
+In-Reply-To: <CADyBb7snA3oGBiXfAuzsWemhGRQbw78SSUkhAe_6ufa+ajsiHA@mail.gmail.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: rjw@rjwysocki.net, lenb@kernel.org, daniel.lezcano@linaro.org, tglx@linutronix.de, marc.zyngier@arm.com, hanjun.guo@linaro.org
-Cc: linux-arm-kernel@lists.infradead.org, linaro-acpi@lists.linaro.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, rruigrok@codeaurora.org, harba@codeaurora.org, cov@codeaurora.org, timur@codeaurora.org, graeme.gregory@linaro.org, al.stone@linaro.org, jcm@redhat.com, wei@redhat.com, arnd@arndb.de, wim@iguana.be, catalin.marinas@arm.com, will.deacon@arm.com, Suravee.Suthikulpanit@amd.com, leo.duran@amd.com, Fu Wei <fu.wei@linaro.org>
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: Timur Tabi <timur@codeaurora.org>, Len Brown <lenb@kernel.org>, Daniel Lezcano <daniel.lezcano@linaro.org>, Thomas Gleixner <tglx@linutronix.de>, Marc Zyngier <marc.zyngier@arm.com>, Hanjun Guo <hanjun.guo@linaro.org>, linux-arm-kernel@lists.infradead.org, Linaro ACPI Mailman List <linaro-acpi@lists.linaro.org>, LKML <linux-kernel@vger.kernel.org>, linux-acpi@vger.kernel.org, Richard Ruigrok <rruigrok@codeaurora.org>, "Abdulhamid, Harb" <harba@codeaurora.org>, Christopher Covington <cov@codeaurora.org>, G Gregory <graeme.gregory@linaro.org>, Al Stone <al.stone@linaro.org>, Jon Masters <jcm@redhat.com>, "wei@redhat.com--cc=arnd"@arndb.de, Wim Van Sebroeck <wim@iguana.be>, Catalin Marinas <catalin.marinas@arm.com>, Will Deacon <will.deacon@arm.com>, Suravee Suthikulpanit <Suravee.Suthikulpanit@amd.com>, Leo Duran <leo.duran@amd.com>
 List-Id: linux-acpi@vger.kernel.org
 
-=46rom: Fu Wei <fu.wei@linaro.org>
+Hi Rafael,
 
-The patch add memory-mapped timer register support for arm_arch_timer d=
-river
-by using the information provided by the new GTDT driver of ACPI.
+On 18 March 2016 at 12:22, Fu Wei <fu.wei@linaro.org> wrote:
+> Hi Rafael,
+>
+> Great thanks for your feedback!
+>
+> On 18 March 2016 at 08:41, Rafael J. Wysocki <rjw@rjwysocki.net> wrote:
+>> On Thursday, March 17, 2016 10:07:30 AM Timur Tabi wrote:
+>>> fu.wei@linaro.org wrote:
+>>> > From: Fu Wei <fu.wei@linaro.org>
+>>> >
+>>> > This patchset:
+>>> >      (1)Move some enums and marcos to header file for arm_arch_timer,
+>>> >      improve the pr_* code by defining "pr_fmt(fmt)" in arm_arch_timer.c
+>>> >
+>>> >      (2)Introduce ACPI GTDT parser: drivers/acpi/gtdt.c
+>>> >      Parse all kinds of timer in GTDT table of ACPI:arch timer,
+>>> >      memory-mapped timer and SBSA Generic Watchdog timer.
+>>> >      This driver can help to simplify all the relevant timer drivers,
+>>> >      and separate all the ACPI GTDT knowledge from them.
+>>> >
+>>> >      (3)Simplify ACPI code for arch timer in arm_arch_timer.c
+>>> >
+>>> >      (4)Add memory-mapped timer support in arm_arch_timer.c
+>>>
+>>> The SBSA watchdog driver is already in watchdog-next and will be merged
+>>> into 4.6.  These five patches are necessary for the watchdog driver to
+>>> probe on an ACPI system.
+>>>
+>>> I'm guessing since that v4 was posted in the middle of the 4.6 merge
+>>> window, that these patches won't make it and we'll have to wait until
+>>> 4.7 (at the earliest)?
+>>
+>> First off, the last version I've seen is the v3.  I must have overlooked
+>> the v4 then, but I don't think it was CCed to linux-acpi (which should
+>> have happened).
+>
+> Sorry for this, That is my fault. I updated the script of git-send-email for
+> sending the v4 patchset, but lost a space between two "--cc". :-(
 
-Signed-off-by: Fu Wei <fu.wei@linaro.org>
----
- drivers/clocksource/arm_arch_timer.c | 136 +++++++++++++++++++++++++++=
-++++++++
- 1 file changed, 136 insertions(+)
+I have re-posted the v4 patchset:
 
-diff --git a/drivers/clocksource/arm_arch_timer.c b/drivers/clocksource=
-/arm_arch_timer.c
-index db466d5..7e7604b 100644
---- a/drivers/clocksource/arm_arch_timer.c
-+++ b/drivers/clocksource/arm_arch_timer.c
-@@ -680,6 +680,15 @@ arch_timer_needs_probing(int type, const struct of=
-_device_id *matches)
- 		needs_probing =3D true;
- 	of_node_put(dn);
-=20
-+#ifdef CONFIG_ACPI_GTDT
-+	/*
-+	 * Check if we have timer in GTDT table
-+	 */
-+	if (!acpi_disabled && gtdt_timer_is_available(type) &&
-+	    !(arch_timers_present & type))
-+		needs_probing =3D true;
-+#endif
-+
- 	return needs_probing;
- }
-=20
-@@ -874,4 +883,131 @@ static int __init arch_timer_acpi_init(struct acp=
-i_table_header *table)
- 	return 0;
- }
- CLOCKSOURCE_ACPI_DECLARE(arch_timer, ACPI_SIG_GTDT, arch_timer_acpi_in=
-it);
-+
-+static u32 __init arch_timer_mem_cnttidr(struct acpi_gtdt_timer_block =
-*gt_block)
-+{
-+	phys_addr_t cntctlbase_phy;
-+	void __iomem *cntctlbase;
-+	u32 cnttidr;
-+
-+	cntctlbase_phy =3D (phys_addr_t)gtdt_gt_cntctlbase(gt_block);
-+	if (!cntctlbase_phy) {
-+		pr_err("Can't find CNTCTLBase.\n");
-+		return 0;
-+	}
-+
-+	/*
-+	 * According to ARMv8 Architecture Reference Manual(ARM),
-+	 * the size of CNTCTLBase frame of memory-mapped timer
-+	 * is SZ_4K(Offset 0x000 =E2=80=93 0xFFF).
-+	 */
-+	cntctlbase =3D ioremap(cntctlbase_phy, SZ_4K);
-+	if (!cntctlbase) {
-+		pr_err("Can't map CNTCTLBase\n");
-+		return 0;
-+	}
-+	cnttidr =3D readl_relaxed(cntctlbase + CNTTIDR);
-+	iounmap(cntctlbase);
-+
-+	return cnttidr;
-+}
-+
-+static int __init arch_timer_mem_best_frame(struct acpi_table_header *=
-table,
-+					    struct arch_timer_mem_data *data)
-+{
-+	struct acpi_gtdt_timer_block *gt_block;
-+	u32 frame_number, timer_count, cnttidr;
-+	int i;
-+
-+	gt_block =3D gtdt_gt_block(table, 0);
-+	if (!gt_block) {
-+		pr_err("Can't find GT Block.\n");
-+		return -EINVAL;
-+	}
-+
-+	timer_count =3D gtdt_gt_timer_count(gt_block);
-+	if (!timer_count) {
-+		pr_err("Can't find GT frame number.\n");
-+		return -EINVAL;
-+	}
-+
-+	if (gtdt_gt_timer_data(gt_block, 0, false, data)) {
-+		pr_err("Can't get first phy timer.\n");
-+		return -EINVAL;
-+	}
-+
-+	/*
-+	 * Get Generic Timer Counter-timer Timer ID Register
-+	 * for Virtual Timer Capability info
-+	 */
-+	cnttidr =3D arch_timer_mem_cnttidr(gt_block);
-+
-+	/*
-+	 * Try to find a virtual capable frame.
-+	 * Otherwise fall back to the first physical capable frame.
-+	 */
-+	for (i =3D 0; i < timer_count; i++) {
-+		frame_number =3D gtdt_gt_frame_number(gt_block, i);
-+		if (frame_number < ARCH_TIMER_MEM_MAX_FRAME &&
-+		    cnttidr & CNTTIDR_VIRT(frame_number)) {
-+			if (!gtdt_gt_timer_data(gt_block, i, true, data)) {
-+				arch_timer_mem_use_virtual =3D true;
-+				return 0;
-+			}
-+			pr_warn("Can't get virt timer.\n");
-+		}
-+	}
-+
-+	return 0;
-+}
-+
-+/* Initialize memory-mapped timer(wake-up timer) */
-+static int __init arch_timer_mem_acpi_init(struct acpi_table_header *t=
-able)
-+{
-+	struct arch_timer_mem_data data;
-+	void __iomem *cntbase;
-+
-+	if (arch_timers_present & ARCH_MEM_TIMER) {
-+		pr_warn("memory-mapped timer already initialized, skipping\n");
-+		return -EINVAL;
-+	}
-+	arch_timers_present |=3D ARCH_MEM_TIMER;
-+
-+	if (arch_timer_mem_best_frame(table, &data))
-+		return -EINVAL;
-+
-+	/*
-+	 * According to ARMv8 Architecture Reference Manual(ARM),
-+	 * the size of CNTBaseN frames of memory-mapped timer
-+	 * is SZ_4K(Offset 0x000 =E2=80=93 0xFFF).
-+	 */
-+	cntbase =3D ioremap(data.cntbase_phy, SZ_4K);
-+	if (!cntbase) {
-+		pr_err("Can't map CntBase.\n");
-+		return -EINVAL;
-+	}
-+	arch_counter_base =3D cntbase;
-+
-+	if (!data.irq) {
-+		pr_err("Frame missing %s irq",
-+		       arch_timer_mem_use_virtual ? "virt" : "phys");
-+		return -EINVAL;
-+	}
-+
-+	/*
-+	 * Because in a system that implements both Secure and
-+	 * Non-secure states, CNTFRQ is only accessible in Secure state.
-+	 * So we try to get the system counter frequency from cntfrq_el0
-+	 * (system coprocessor register) here just like arch_timer.
-+	 */
-+	arch_timer_detect_rate(NULL, NULL);
-+
-+	arch_timer_mem_register(cntbase, data.irq);
-+	arch_timer_common_init();
-+
-+	return 0;
-+}
-+
-+CLOCKSOURCE_ACPI_DECLARE(arch_timer_mem, ACPI_SIG_GTDT,
-+			 arch_timer_mem_acpi_init);
- #endif
---=20
-2.5.0
+https://lkml.org/lkml/2016/3/18/80
+
+>
+>>
+>> Second, these patches require review from multiple maintainers and (or including)
+>> people who actually know how the GTDT is supposed to be used.  I haven't
+>> seen any responses from any of them yet, so the answer to your question is
+>> "yes".
+>>
+>> I will have a couple of comments for patch [1/6] (in the v3), but it's
+>> not been a priority due to the apparent overall lack of interest in this
+>> series.
+>
+> Since this device is a generic  watchdog for ARM server, it is(will be) used
+> in a lot of chips. So I think many people are interested in it. They
+> haven't  provided
+> any feedback, maybe due to my "--cc" mistake, or busy on something
+> else now.  :-(
+>
+> I would like to learn your comments for patch [1/6] , then improve my
+> v4, post v5
+> ASAP.
+>
+> This patchset includes GTDT and memory-mapped timer patches, because my
+> memory-mapped timer patches depends on GTDT.
+> But maybe we can upstream GTDT separately?
+>
+> any suggestion?
+>
+> Thanks for your help!
+>
+>
+>>
+>> Thanks,
+>> Rafael
+>>
+>
+>
+>
+> --
+> Best regards,
+>
+> Fu Wei
+> Software Engineer
+> Red Hat Software (Beijing) Co.,Ltd.Shanghai Branch
+> Ph: +86 21 61221326(direct)
+> Ph: +86 186 2020 4684 (mobile)
+> Room 1512, Regus One Corporate Avenue,Level 15,
+> One Corporate Avenue,222 Hubin Road,Huangpu District,
+> Shanghai,China 200021
+
+
+
+-- 
+Best regards,
+
+Fu Wei
+Software Engineer
+Red Hat Software (Beijing) Co.,Ltd.Shanghai Branch
+Ph: +86 21 61221326(direct)
+Ph: +86 186 2020 4684 (mobile)
+Room 1512, Regus One Corporate Avenue,Level 15,
+One Corporate Avenue,222 Hubin Road,Huangpu District,
+Shanghai,China 200021
