@@ -1,56 +1,76 @@
-From: Fu Wei <fu.wei@linaro.org>
-Subject: Re: [PATCH v4 0/5] acpi, clocksource, kvm: add GTDT and ARM
- memory-mapped timer support
-Date: Fri, 18 Mar 2016 12:24:40 +0800
-Message-ID: <CADyBb7tk7CKMZ+HF8qdmDJhe-HJDqYWOw3dOxsZn8VvYO7NU9g@mail.gmail.com>
-References: <1458199917-30699-1-git-send-email-fu.wei@linaro.org>
-	<56EAC832.6070203@codeaurora.org>
-	<2196518.cd4jtVChuo@vostro.rjw.lan>
-	<56EB5206.4060705@codeaurora.org>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+From: fu.wei@linaro.org
+Subject: [RESEND PATCH v4 0/5] acpi, clocksource: add GTDT and ARM memory-mapped timer support
+Date: Fri, 18 Mar 2016 16:00:48 +0800
+Message-ID: <1458288053-29031-1-git-send-email-fu.wei@linaro.org>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-oi0-f42.google.com ([209.85.218.42]:32783 "EHLO
-	mail-oi0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751819AbcCREYl (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 18 Mar 2016 00:24:41 -0400
-Received: by mail-oi0-f42.google.com with SMTP id d205so79239246oia.0
-        for <linux-acpi@vger.kernel.org>; Thu, 17 Mar 2016 21:24:40 -0700 (PDT)
-In-Reply-To: <56EB5206.4060705@codeaurora.org>
+Received: from mx1.redhat.com ([209.132.183.28]:48235 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750914AbcCRIBo (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 18 Mar 2016 04:01:44 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Timur Tabi <timur@codeaurora.org>
-Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Daniel Lezcano <daniel.lezcano@linaro.org>, Thomas Gleixner <tglx@linutronix.de>, Marc Zyngier <marc.zyngier@arm.com>, Hanjun Guo <hanjun.guo@linaro.org>, linux-arm-kernel@lists.infradead.org, Linaro ACPI Mailman List <linaro-acpi@lists.linaro.org>, LKML <linux-kernel@vger.kernel.org>, linux-acpi@vger.kernel.org, Richard Ruigrok <rruigrok@codeaurora.org>, "Abdulhamid, Harb" <harba@codeaurora.org>, Christopher Covington <cov@codeaurora.org>, G Gregory <graeme.gregory@linaro.org>, Al Stone <al.stone@linaro.org>, Jon Masters <jcm@redhat.com>, wei@redhat.com, Wim Van Sebroeck <wim@iguana.be>, Catalin Marinas <catalin.marinas@arm.com>, Will Deacon <will.deacon@arm.com>, Suravee Suthikulpanit <Suravee.Suthikulpanit@amd.com>, Leo Duran <leo.duran@amd.com>, Arnd Bergmann <arnd@arndb.de>
+To: rjw@rjwysocki.net, lenb@kernel.org, daniel.lezcano@linaro.org, tglx@linutronix.de, marc.zyngier@arm.com, hanjun.guo@linaro.org
+Cc: linux-arm-kernel@lists.infradead.org, linaro-acpi@lists.linaro.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, rruigrok@codeaurora.org, harba@codeaurora.org, cov@codeaurora.org, timur@codeaurora.org, graeme.gregory@linaro.org, al.stone@linaro.org, jcm@redhat.com, wei@redhat.com, arnd@arndb.de, wim@iguana.be, catalin.marinas@arm.com, will.deacon@arm.com, Suravee.Suthikulpanit@amd.com, leo.duran@amd.com, Fu Wei <fu.wei@linaro.org>
 
-On 18 March 2016 at 08:55, Timur Tabi <timur@codeaurora.org> wrote:
-> Rafael J. Wysocki wrote:
->>
->> I will have a couple of comments for patch [1/6] (in the v3), but it's
->> not been a priority due to the apparent overall lack of interest in this
->> series.
->
->
-> Well, I am very interested in this series, if that counts. :-)
+From: Fu Wei <fu.wei@linaro.org>
 
-Thank you for your feedback, do you have any suggestion for v4?
+This patchset:
+    (1)Move some enums and marcos to header file for arm_arch_timer,
+    improve the pr_* code by defining "pr_fmt(fmt)" in arm_arch_timer.c
 
->
->
-> --
-> Sent by an employee of the Qualcomm Innovation Center, Inc.
-> The Qualcomm Innovation Center, Inc. is a member of the
-> Code Aurora Forum, hosted by The Linux Foundation.
+    (2)Introduce ACPI GTDT parser: drivers/acpi/gtdt.c
+    Parse all kinds of timer in GTDT table of ACPI:arch timer,
+    memory-mapped timer and SBSA Generic Watchdog timer.
+    This driver can help to simplify all the relevant timer drivers,
+    and separate all the ACPI GTDT knowledge from them.
 
+    (3)Simplify ACPI code for arch timer in arm_arch_timer.c
 
+    (4)Add memory-mapped timer support in arm_arch_timer.c
+
+RESEND:
+   -- Corrected Cc list: added missing mailing lists
+
+Changelog:
+v4: https://lists.linaro.org/pipermail/linaro-acpi/2016-March/006667.html
+    Delete the kvm relevant patches
+    Separate two patches for sorting out the code for arm_arch_timer.
+    Improve irq info export code to allow missing irq info in GTDT table.
+
+v3: https://lkml.org/lkml/2016/2/1/658
+    Improve GTDT driver code:
+      (1)improve pr_* by defining pr_fmt(fmt)
+      (2)simplify gtdt_sbsa_gwdt_init
+      (3)improve gtdt_arch_timer_data_init, if table is NULL, it will try
+      to get GTDT table.
+    Move enum ppi_nr to arm_arch_timer.h, and add enum spi_nr.
+    Add arm_arch_timer get ppi from DT and GTDT support for kvm.
+
+v2: https://lkml.org/lkml/2015/12/2/10
+    Rebase to latest kernel version(4.4-rc3).
+    Fix the bug about the config problem,
+    use CONFIG_ACPI_GTDT instead of CONFIG_ACPI in arm_arch_timer.c
+
+v1: The first upstreaming version: https://lkml.org/lkml/2015/10/28/553
+
+Fu Wei (5):
+  clocksource: move some enums and marcos to header file for
+    arm_arch_timer
+  ACPI: add GTDT table parse driver into ACPI driver
+  clocksource: simplify ACPI code in arm_arch_timer.c
+  clocksource: a little improvment for printk in arm_arch_timer.c
+  clocksource: add memory-mapped timer support in arm_arch_timer.c
+
+ drivers/acpi/Kconfig                 |   9 +
+ drivers/acpi/Makefile                |   1 +
+ drivers/acpi/gtdt.c                  | 376 +++++++++++++++++++++++++++++++++++
+ drivers/clocksource/Kconfig          |   1 +
+ drivers/clocksource/arm_arch_timer.c | 217 ++++++++++++++------
+ include/clocksource/arm_arch_timer.h |  33 +++
+ include/linux/acpi.h                 |  17 ++
+ 7 files changed, 595 insertions(+), 59 deletions(-)
+ create mode 100644 drivers/acpi/gtdt.c
 
 -- 
-Best regards,
+2.5.0
 
-Fu Wei
-Software Engineer
-Red Hat Software (Beijing) Co.,Ltd.Shanghai Branch
-Ph: +86 21 61221326(direct)
-Ph: +86 186 2020 4684 (mobile)
-Room 1512, Regus One Corporate Avenue,Level 15,
-One Corporate Avenue,222 Hubin Road,Huangpu District,
-Shanghai,China 200021
