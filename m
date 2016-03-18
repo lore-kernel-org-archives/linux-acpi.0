@@ -1,13 +1,13 @@
 From: fu.wei@linaro.org
-Subject: [RESEND PATCH v4 1/5] clocksource: move some enums and marcos to header file for arm_arch_timer
-Date: Fri, 18 Mar 2016 16:00:49 +0800
-Message-ID: <1458288053-29031-2-git-send-email-fu.wei@linaro.org>
+Subject: [RESEND PATCH v4 3/5] clocksource: simplify ACPI code in arm_arch_timer.c
+Date: Fri, 18 Mar 2016 16:00:51 +0800
+Message-ID: <1458288053-29031-4-git-send-email-fu.wei@linaro.org>
 References: <1458288053-29031-1-git-send-email-fu.wei@linaro.org>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:48259 "EHLO mx1.redhat.com"
+Received: from mx1.redhat.com ([209.132.183.28]:34926 "EHLO mx1.redhat.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751820AbcCRIBx (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 18 Mar 2016 04:01:53 -0400
+	id S1752100AbcCRICJ (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 18 Mar 2016 04:02:09 -0400
 In-Reply-To: <1458288053-29031-1-git-send-email-fu.wei@linaro.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
@@ -16,102 +16,105 @@ Cc: linux-arm-kernel@lists.infradead.org, linaro-acpi@lists.linaro.org, linux-ke
 
 From: Fu Wei <fu.wei@linaro.org>
 
-The patch sorts out the code for arm_arch_timer:
-    (1)move enum ppi_nr to the header file
-    (2)move "ARCH_*_TIMER" marcos to the header file
-    (3)add enum spi_nr in the header file, and use it in the driver
-    (4)add ARCH_WD_TIMER and ARCH_TIMER_MEM_MAX_FRAME marcos
+The patch update arm_arch_timer driver to use the function
+provided by the new GTDT driver of ACPI.
+By this way, arm_arch_timer.c can be simplified, and separate
+all the ACPI GTDT knowledge from this timer driver.
 
 Signed-off-by: Fu Wei <fu.wei@linaro.org>
+Signed-off-by: Hanjun Guo <hanjun.guo@linaro.org>
 ---
- drivers/clocksource/arm_arch_timer.c | 15 ++-------------
- include/clocksource/arm_arch_timer.h | 20 ++++++++++++++++++++
- 2 files changed, 22 insertions(+), 13 deletions(-)
+ drivers/clocksource/Kconfig          |  1 +
+ drivers/clocksource/arm_arch_timer.c | 48 ++++++++----------------------------
+ 2 files changed, 11 insertions(+), 38 deletions(-)
 
+diff --git a/drivers/clocksource/Kconfig b/drivers/clocksource/Kconfig
+index c346be6..68d2f40 100644
+--- a/drivers/clocksource/Kconfig
++++ b/drivers/clocksource/Kconfig
+@@ -8,6 +8,7 @@ config CLKSRC_OF
+ config CLKSRC_ACPI
+ 	bool
+ 	select CLKSRC_PROBE
++	select ACPI_GTDT
+ 
+ config CLKSRC_PROBE
+ 	bool
 diff --git a/drivers/clocksource/arm_arch_timer.c b/drivers/clocksource/arm_arch_timer.c
-index 5152b38..11744c0 100644
+index 11744c0..d0b01fb5 100644
 --- a/drivers/clocksource/arm_arch_timer.c
 +++ b/drivers/clocksource/arm_arch_timer.c
-@@ -48,8 +48,6 @@
- #define CNTV_TVAL	0x38
- #define CNTV_CTL	0x3c
+@@ -843,60 +843,32 @@ out:
+ CLOCKSOURCE_OF_DECLARE(armv7_arch_timer_mem, "arm,armv7-timer-mem",
+ 		       arch_timer_mem_init);
  
--#define ARCH_CP15_TIMER	BIT(0)
--#define ARCH_MEM_TIMER	BIT(1)
- static unsigned arch_timers_present __initdata;
- 
- static void __iomem *arch_counter_base;
-@@ -62,15 +60,6 @@ struct arch_timer {
- #define to_arch_timer(e) container_of(e, struct arch_timer, evt)
- 
- static u32 arch_timer_rate;
+-#ifdef CONFIG_ACPI
+-static int __init map_generic_timer_interrupt(u32 interrupt, u32 flags)
+-{
+-	int trigger, polarity;
 -
--enum ppi_nr {
--	PHYS_SECURE_PPI,
--	PHYS_NONSECURE_PPI,
--	VIRT_PPI,
--	HYP_PPI,
--	MAX_TIMER_PPI
--};
+-	if (!interrupt)
+-		return 0;
 -
- static int arch_timer_ppi[MAX_TIMER_PPI];
+-	trigger = (flags & ACPI_GTDT_INTERRUPT_MODE) ? ACPI_EDGE_SENSITIVE
+-			: ACPI_LEVEL_SENSITIVE;
+-
+-	polarity = (flags & ACPI_GTDT_INTERRUPT_POLARITY) ? ACPI_ACTIVE_LOW
+-			: ACPI_ACTIVE_HIGH;
+-
+-	return acpi_register_gsi(NULL, interrupt, trigger, polarity);
+-}
+-
++#ifdef CONFIG_ACPI_GTDT
+ /* Initialize per-processor generic timer */
+ static int __init arch_timer_acpi_init(struct acpi_table_header *table)
+ {
+-	struct acpi_table_gtdt *gtdt;
++	struct arch_timer_data data;
  
- static struct clock_event_device __percpu *arch_timer_evt;
-@@ -834,9 +823,9 @@ static void __init arch_timer_mem_init(struct device_node *np)
+ 	if (arch_timers_present & ARCH_CP15_TIMER) {
+ 		pr_warn("arch_timer: already initialized, skipping\n");
+ 		return -EINVAL;
  	}
  
- 	if (arch_timer_mem_use_virtual)
--		irq = irq_of_parse_and_map(best_frame, 1);
-+		irq = irq_of_parse_and_map(best_frame, VIRT_SPI);
- 	else
--		irq = irq_of_parse_and_map(best_frame, 0);
-+		irq = irq_of_parse_and_map(best_frame, PHYS_SPI);
+-	gtdt = container_of(table, struct acpi_table_gtdt, header);
+-
+ 	arch_timers_present |= ARCH_CP15_TIMER;
  
- 	if (!irq) {
- 		pr_err("arch_timer: Frame missing %s irq",
-diff --git a/include/clocksource/arm_arch_timer.h b/include/clocksource/arm_arch_timer.h
-index 25d0914..3e060fc 100644
---- a/include/clocksource/arm_arch_timer.h
-+++ b/include/clocksource/arm_arch_timer.h
-@@ -19,6 +19,10 @@
- #include <linux/timecounter.h>
- #include <linux/types.h>
+-	arch_timer_ppi[PHYS_SECURE_PPI] =
+-		map_generic_timer_interrupt(gtdt->secure_el1_interrupt,
+-		gtdt->secure_el1_flags);
+-
+-	arch_timer_ppi[PHYS_NONSECURE_PPI] =
+-		map_generic_timer_interrupt(gtdt->non_secure_el1_interrupt,
+-		gtdt->non_secure_el1_flags);
+-
+-	arch_timer_ppi[VIRT_PPI] =
+-		map_generic_timer_interrupt(gtdt->virtual_timer_interrupt,
+-		gtdt->virtual_timer_flags);
++	if (gtdt_arch_timer_data_init(table, &data))
++		return -EINVAL;
  
-+#define ARCH_CP15_TIMER			BIT(0)
-+#define ARCH_MEM_TIMER			BIT(1)
-+#define ARCH_WD_TIMER			BIT(2)
-+
- #define ARCH_TIMER_CTRL_ENABLE		(1 << 0)
- #define ARCH_TIMER_CTRL_IT_MASK		(1 << 1)
- #define ARCH_TIMER_CTRL_IT_STAT		(1 << 2)
-@@ -34,11 +38,27 @@ enum arch_timer_reg {
- 	ARCH_TIMER_REG_TVAL,
- };
+-	arch_timer_ppi[HYP_PPI] =
+-		map_generic_timer_interrupt(gtdt->non_secure_el2_interrupt,
+-		gtdt->non_secure_el2_flags);
++	arch_timer_ppi[PHYS_SECURE_PPI] = data.phys_secure_ppi;
++	arch_timer_ppi[PHYS_NONSECURE_PPI] = data.phys_nonsecure_ppi;
++	arch_timer_ppi[VIRT_PPI] = data.virt_ppi;
++	arch_timer_ppi[HYP_PPI] = data.hyp_ppi;
++	arch_timer_c3stop = data.c3stop; /* Always-on capability */
  
-+enum ppi_nr {
-+	PHYS_SECURE_PPI,
-+	PHYS_NONSECURE_PPI,
-+	VIRT_PPI,
-+	HYP_PPI,
-+	MAX_TIMER_PPI
-+};
+ 	/* Get the frequency from CNTFRQ */
+ 	arch_timer_detect_rate(NULL, NULL);
+-
+-	/* Always-on capability */
+-	arch_timer_c3stop = !(gtdt->non_secure_el1_flags & ACPI_GTDT_ALWAYS_ON);
+-
+ 	arch_timer_init();
 +
-+enum spi_nr {
-+	PHYS_SPI,
-+	VIRT_SPI,
-+	MAX_TIMER_SPI
-+};
-+
- #define ARCH_TIMER_PHYS_ACCESS		0
- #define ARCH_TIMER_VIRT_ACCESS		1
- #define ARCH_TIMER_MEM_PHYS_ACCESS	2
- #define ARCH_TIMER_MEM_VIRT_ACCESS	3
- 
-+#define ARCH_TIMER_MEM_MAX_FRAME	8
-+
- #define ARCH_TIMER_USR_PCT_ACCESS_EN	(1 << 0) /* physical counter */
- #define ARCH_TIMER_USR_VCT_ACCESS_EN	(1 << 1) /* virtual counter */
- #define ARCH_TIMER_VIRT_EVT_EN		(1 << 2)
+ 	return 0;
+ }
+ CLOCKSOURCE_ACPI_DECLARE(arch_timer, ACPI_SIG_GTDT, arch_timer_acpi_init);
 -- 
 2.5.0
 
