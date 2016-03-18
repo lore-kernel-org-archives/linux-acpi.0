@@ -1,60 +1,61 @@
-From: "Rafael J. Wysocki" <rafael@kernel.org>
-Subject: Re: [PATCH 1/3] ACPI: move ACPI_SYSTEM_HID to acpi_drivers.h
-Date: Thu, 17 Mar 2016 22:54:23 +0100
-Message-ID: <CAJZ5v0hiBjU_GBZE+XeRy=xLdAXQPJQBiOhK2PaeBurjvhr+1g@mail.gmail.com>
-References: <1458157022-18633-1-git-send-email-pprakash@codeaurora.org>
-	<1458157022-18633-2-git-send-email-pprakash@codeaurora.org>
-	<CAJZ5v0jewRqgvi7Ei939ddafnNJEQw+cv2cjGWrFNK2pZ0-2rQ@mail.gmail.com>
-	<56EAE10B.8070404@codeaurora.org>
+From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Subject: Re: [PATCH v4 0/5] acpi, clocksource, kvm: add GTDT and ARM memory-mapped timer support
+Date: Fri, 18 Mar 2016 01:41:06 +0100
+Message-ID: <2196518.cd4jtVChuo@vostro.rjw.lan>
+References: <1458199917-30699-1-git-send-email-fu.wei@linaro.org> <56EAC832.6070203@codeaurora.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7Bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-lb0-f195.google.com ([209.85.217.195]:36458 "EHLO
-	mail-lb0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S936894AbcCQVyZ (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 17 Mar 2016 17:54:25 -0400
-Received: by mail-lb0-f195.google.com with SMTP id sx8so1037753lbb.3
-        for <linux-acpi@vger.kernel.org>; Thu, 17 Mar 2016 14:54:24 -0700 (PDT)
-In-Reply-To: <56EAE10B.8070404@codeaurora.org>
+Received: from v094114.home.net.pl ([79.96.170.134]:52475 "HELO
+	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1753077AbcCRAjD (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 17 Mar 2016 20:39:03 -0400
+In-Reply-To: <56EAC832.6070203@codeaurora.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Prakash, Prashanth" <pprakash@codeaurora.org>
-Cc: "Rafael J. Wysocki" <rafael@kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, harba@codeaurora.org, "Rafael J. Wysocki" <rjw@rjwysocki.net>, "Jonathan (Zhixiong) Zhang" <zjzhang@codeaurora.org>
+To: Timur Tabi <timur@codeaurora.org>
+Cc: fu.wei@linaro.org, lenb@kernel.org, daniel.lezcano@linaro.org, tglx@linutronix.de, marc.zyngier@arm.com, hanjun.guo@linaro.org, linux-arm-kernel@lists.infradead.org, linaro-acpi@lists.linaro.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, rruigrok@codeaurora.org, harba@codeaurora.org, cov@codeaurora.org, graeme.gregory@linaro.org, al.stone@linaro.org, jcm@redhat.com, "wei@redhat.com--cc=arnd"@arndb.de, wim@iguana.be, catalin.marinas@arm.com, will.deacon@arm.com, Suravee.Suthikulpanit@amd.com, leo.duran@amd.com
 
-On Thu, Mar 17, 2016 at 5:53 PM, Prakash, Prashanth
-<pprakash@codeaurora.org> wrote:
-> Hi Rafael,
->
-> On 3/16/2016 7:50 PM, Rafael J. Wysocki wrote:
->>  #include "internal.h"
->> @@ -22,7 +24,6 @@ ACPI_MODULE_NAME("scan");
->>  extern struct acpi_device *acpi_root;
->>
->>  #define ACPI_BUS_CLASS                 "system_bus"
->> -#define ACPI_BUS_HID                   "LNXSYBUS"
->> No.
->>
->> This is not a valid device ID and should never be used as such.
-> Section 5.6.6 in ACPI 6.1 is defining the notification value for the graceful
-> shutdown request as a ACPI device specific value(0x81) and it is targeting
-> the system bus(\_SB), so we took the current approach of creating a sybus
-> driver to handle the notifications targeting the system bus.
->
-> Let me go through the code again and see if we can avoid using the
-> ACPI_BUS_HID.
+On Thursday, March 17, 2016 10:07:30 AM Timur Tabi wrote:
+> fu.wei@linaro.org wrote:
+> > From: Fu Wei <fu.wei@linaro.org>
+> >
+> > This patchset:
+> >      (1)Move some enums and marcos to header file for arm_arch_timer,
+> >      improve the pr_* code by defining "pr_fmt(fmt)" in arm_arch_timer.c
+> >
+> >      (2)Introduce ACPI GTDT parser: drivers/acpi/gtdt.c
+> >      Parse all kinds of timer in GTDT table of ACPI:arch timer,
+> >      memory-mapped timer and SBSA Generic Watchdog timer.
+> >      This driver can help to simplify all the relevant timer drivers,
+> >      and separate all the ACPI GTDT knowledge from them.
+> >
+> >      (3)Simplify ACPI code for arch timer in arm_arch_timer.c
+> >
+> >      (4)Add memory-mapped timer support in arm_arch_timer.c
+> 
+> The SBSA watchdog driver is already in watchdog-next and will be merged 
+> into 4.6.  These five patches are necessary for the watchdog driver to 
+> probe on an ACPI system.
+> 
+> I'm guessing since that v4 was posted in the middle of the 4.6 merge 
+> window, that these patches won't make it and we'll have to wait until 
+> 4.7 (at the earliest)?
 
-You can.
+First off, the last version I've seen is the v3.  I must have overlooked
+the v4 then, but I don't think it was CCed to linux-acpi (which should
+have happened).
 
-> In the meantime, if you have any specific thoughts on
-> how this should be handled, please let us know.
+Second, these patches require review from multiple maintainers and (or including)
+people who actually know how the GTDT is supposed to be used.  I haven't
+seen any responses from any of them yet, so the answer to your question is
+"yes".
 
-Your goal is relatively simple.  You want to register a notify handler
-for the \_SB object.  You don't need a driver for that, because the
-\_SB object is always present, so you don't need to enumerate it or
-wait for it to show up etc.
-
-I'd just scan the namespace 1 level below the root and install the
-handler for the object with the matching name (not a fake device ID).
+I will have a couple of comments for patch [1/6] (in the v3), but it's
+not been a priority due to the apparent overall lack of interest in this
+series.
 
 Thanks,
 Rafael
+
