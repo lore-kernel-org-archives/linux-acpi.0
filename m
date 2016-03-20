@@ -1,98 +1,55 @@
-From: Chen Yu <yu.c.chen-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH][v5] ACPI / PM: Introduce efi poweroff for HW-full platforms without _S5
-Date: Sun, 20 Mar 2016 22:31:08 +0800
-Message-ID: <1458484268-18311-1-git-send-email-yu.c.chen@intel.com>
-Return-path: <linux-efi-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Sender: linux-efi-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, "Rafael J. Wysocki" <rafael-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Matt Fleming <matt-mF/unelCI9GS6iBeEJttW/XRex20P6io@public.gmane.org>
-Cc: linux-pm-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-efi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, x86-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, Thomas Gleixner <tglx-hfZtesqFncYOwBW4kG4KsQ@public.gmane.org>, Ingo Molnar <mingo-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "H. Peter Anvin" <hpa-YMNOUZJC4hwAvxtiuMwx3w@public.gmane.org>, Len Brown <lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Chen Yu <yu.c.chen-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+From: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Subject: Re: [RFC 1/4] PCI: Add Thunderbolt device IDs
+Date: Sun, 20 Mar 2016 10:12:46 -0700
+Message-ID: <20160320171246.GB16658@kroah.com>
+References: <cover.1458126755.git.lukas@wunner.de>
+ <d30491f2c4c1c6d28c78c5883820f9dc28c010d9.1458126755.git.lukas@wunner.de>
+ <20160317150320.GA22769@localhost>
+ <20160320131135.GA29174@wunner.de>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-pci-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20160320131135.GA29174@wunner.de>
+Sender: linux-pci-owner@vger.kernel.org
+To: Lukas Wunner <lukas@wunner.de>
+Cc: Bjorn Helgaas <helgaas@kernel.org>, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, linux-pm@vger.kernel.org, Andreas Noever <andreas.noever@gmail.com>, Matthew Garrett <mjg59@srcf.ucam.org>
 List-Id: linux-acpi@vger.kernel.org
 
-The problem is Linux registers pm_power_off = efi_power_off
-only if we are in hardware reduced mode. Actually, what we also
-want is to do this when ACPI S5 is simply not supported on
-non-legacy platforms. Since there will be HW-full mode where
-the DSDT fails to supply an _S5 object(without SLP_TYP), we
-should let such kind of platform to leverage efi runtime service
-to poweroff.
+On Sun, Mar 20, 2016 at 02:11:35PM +0100, Lukas Wunner wrote:
+> Hi Bjorn,
+> 
+> On Thu, Mar 17, 2016 at 10:03:20AM -0500, Bjorn Helgaas wrote:
+> > On Wed, Mar 16, 2016 at 03:50:35PM +0100, Lukas Wunner wrote:
+> > > Gen 1 and 2 chips use the same ID for NHI, bridges and switch.
+> > > Gen 3 chips and onward use a distinct ID for the NHI.
+> > 
+> > I assume this is strictly using #defines instead of bare numbers and
+> > hence "no functional change intended."
+> > 
+> > > Cc: Andreas Noever <andreas.noever@gmail.com>
+> > > Signed-off-by: Lukas Wunner <lukas@wunner.de>
+> > 
+> > Acked-by: Bjorn Helgaas <bhelgaas@google.com>
+> 
+> Thanks, I've just posted a 3 patch series to support the Light Ridge
+> Thunderbolt controller and included your ack for this patch.
+> 
+> 
+> > I assume somebody else will merge this with the rest of the series.
+> 
+> The maintainer of the thunderbolt driver is Andreas Noever, however
+> I don't think Andreas sends pull requests to Linus. Everything in
+> drivers/thunderbolt/ has so far been picked up by Greg KH.
+> 
+> I have more thunderbolt stuff in the pipeline, some of which needs
+> changes to drivers/pci/. Therefore it would be ideal from my perspective
+> if my thunderbolt patches could go in via your tree, if that is possible.
 
-This patch uses efi power off as first choice when S5 is
-unavailable, even if there is a customized poweroff(driver provided, eg).
-Meanwhile, the legacy platforms will not be affected because there is no
-path for them to overwrite the pm_power_off to efi power off.
+I have no objection if they go through the PCI tree, especially as
+Thunderbolt really just is PCI express, it makes sense to take them that
+way.
 
-Suggested-by: Len Brown <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Signed-off-by: Chen Yu <yu.c.chen-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
----
-v5:
- - Revert to version 2, enforce EFI poweroff for such kind
-   of platforms.
-v4:
- - Since in v3 efi_poweroff_required() is not guaranteed to run
-   after all of the other code that may register alternative
-   power off handling, add the pm_power_off_default that would
-   be used by pm_power_off if nothing else is available.
-v3:
- - Only assign pm_power_off to efi_power_off when there are no
-   other pm_power_off registered at that time, in case other
-   commponents would like to customize their own implementation.
----
-v2:
- - Convert the acpi_no_s5 to a global bool variable in sleep.c and
-   add a declaration to include/linux/acpi.h.
----
- arch/x86/platform/efi/quirks.c | 2 +-
- drivers/acpi/sleep.c           | 7 +++++++
- include/linux/acpi.h           | 1 +
- 3 files changed, 9 insertions(+), 1 deletion(-)
+thanks,
 
-diff --git a/arch/x86/platform/efi/quirks.c b/arch/x86/platform/efi/quirks.c
-index ed30e79..7e5ec62 100644
---- a/arch/x86/platform/efi/quirks.c
-+++ b/arch/x86/platform/efi/quirks.c
-@@ -340,5 +340,5 @@ bool efi_reboot_required(void)
- 
- bool efi_poweroff_required(void)
- {
--	return !!acpi_gbl_reduced_hardware;
-+	return acpi_gbl_reduced_hardware || acpi_no_s5;
- }
-diff --git a/drivers/acpi/sleep.c b/drivers/acpi/sleep.c
-index 9cb9752..a33859c 100644
---- a/drivers/acpi/sleep.c
-+++ b/drivers/acpi/sleep.c
-@@ -25,6 +25,11 @@
- #include "internal.h"
- #include "sleep.h"
- 
-+/*
-+ * Some HW-full platforms do not have _S5, so they may need
-+ * to leverage efi power off for a shutdown.
-+ */
-+bool acpi_no_s5;
- static u8 sleep_states[ACPI_S_STATE_COUNT];
- 
- static void acpi_sleep_tts_switch(u32 acpi_state)
-@@ -846,6 +851,8 @@ int __init acpi_sleep_init(void)
- 		sleep_states[ACPI_STATE_S5] = 1;
- 		pm_power_off_prepare = acpi_power_off_prepare;
- 		pm_power_off = acpi_power_off;
-+	} else {
-+		acpi_no_s5 = true;
- 	}
- 
- 	supported[0] = 0;
-diff --git a/include/linux/acpi.h b/include/linux/acpi.h
-index 06ed7e5..4d2e67f 100644
---- a/include/linux/acpi.h
-+++ b/include/linux/acpi.h
-@@ -278,6 +278,7 @@ void acpi_irq_stats_init(void);
- extern u32 acpi_irq_handled;
- extern u32 acpi_irq_not_handled;
- extern unsigned int acpi_sci_irq;
-+extern bool acpi_no_s5;
- #define INVALID_ACPI_IRQ	((unsigned)-1)
- static inline bool acpi_sci_irq_valid(void)
- {
--- 
-1.8.4.2
+greg k-h
