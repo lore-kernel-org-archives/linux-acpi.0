@@ -1,147 +1,107 @@
-From: "Rafael J. Wysocki" <rafael@kernel.org>
-Subject: Re: [PATCH v3] PCI: ACPI: IA64: fix IO port generic range check
-Date: Mon, 21 Mar 2016 13:42:01 +0100
-Message-ID: <CAJZ5v0gvB8fHzmgrnz2wOPdLakJyuRg0eQ65oo13LP0_PHRAbg@mail.gmail.com>
-References: <1458558775-6242-1-git-send-email-lorenzo.pieralisi@arm.com>
+From: "Rafael J. Wysocki" <rafael-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Subject: Re: [PATCH][v5] ACPI / PM: Introduce efi poweroff for HW-full
+ platforms without _S5
+Date: Mon, 21 Mar 2016 13:43:18 +0100
+Message-ID: <CAJZ5v0j1TpjQ8nD3gr7NYA_dpcghDidsvSoAOuobLMw6-3waCg@mail.gmail.com>
+References: <1458484268-18311-1-git-send-email-yu.c.chen@intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-ia64-owner@vger.kernel.org>
-In-Reply-To: <1458558775-6242-1-git-send-email-lorenzo.pieralisi@arm.com>
-Sender: linux-ia64-owner@vger.kernel.org
-To: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Bjorn Helgaas <bhelgaas@google.com>
-Cc: Linux PCI <linux-pci@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, "linux-ia64@vger.kernel.org" <linux-ia64@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Hanjun Guo <hanjun.guo@linaro.org>, Jiang Liu <jiang.liu@linux.intel.com>, Tony Luck <tony.luck@intel.com>, Tomasz Nowicki <tn@semihalf.com>, Mark Salter <msalter@redhat.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Return-path: <linux-efi-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1458484268-18311-1-git-send-email-yu.c.chen-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Sender: linux-efi-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Chen Yu <yu.c.chen-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Matt Fleming <matt-mF/unelCI9GS6iBeEJttW/XRex20P6io@public.gmane.org>
+Cc: ACPI Devel Maling List <linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "Rafael J. Wysocki" <rafael-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, "linux-pm-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-pm-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-efi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Linux Kernel Mailing List <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, x86-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, Thomas Gleixner <tglx-hfZtesqFncYOwBW4kG4KsQ@public.gmane.org>, Ingo Molnar <mingo-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "H. Peter Anvin" <hpa-YMNOUZJC4hwAvxtiuMwx3w@public.gmane.org>, Len Brown <lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On Mon, Mar 21, 2016 at 12:12 PM, Lorenzo Pieralisi
-<lorenzo.pieralisi@arm.com> wrote:
-> The [0 - 64k] ACPI PCI IO port resource boundary check in:
+On Sun, Mar 20, 2016 at 3:31 PM, Chen Yu <yu.c.chen-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org> wrote:
+> The problem is Linux registers pm_power_off = efi_power_off
+> only if we are in hardware reduced mode. Actually, what we also
+> want is to do this when ACPI S5 is simply not supported on
+> non-legacy platforms. Since there will be HW-full mode where
+> the DSDT fails to supply an _S5 object(without SLP_TYP), we
+> should let such kind of platform to leverage efi runtime service
+> to poweroff.
 >
-> acpi_dev_ioresource_flags()
+> This patch uses efi power off as first choice when S5 is
+> unavailable, even if there is a customized poweroff(driver provided, eg).
+> Meanwhile, the legacy platforms will not be affected because there is no
+> path for them to overwrite the pm_power_off to efi power off.
 >
-> is currently applied blindly in the ACPI resource parsing to all
-> architectures, but only x86 suffers from that IO space limitation.
->
-> On arches (ie IA64 and ARM64) where IO space is memory mapped,
-> the PCI root bridges IO resource windows are firstly initialized from
-> the _CRS (in acpi_decode_space()) and contain the CPU physical address
-> at which a root bridge decodes IO space in the CPU physical address
-> space with the offset value representing the offset required to translate
-> the PCI bus address into the CPU physical address.
->
-> The IO resource windows are then parsed and updated in arch code
-> before creating and enumerating PCI buses (eg IA64 add_io_space())
-> to map in an arch specific way the obtained CPU physical address range
-> to a slice of virtual address space reserved to map PCI IO space,
-> ending up with PCI bridges resource windows containing IO
-> resources like the following on a working IA64 configuration:
->
-> PCI host bridge to bus 0000:00
-> pci_bus 0000:00: root bus resource [io  0x1000000-0x100ffff window] (bus
-> address [0x0000-0xffff])
-> pci_bus 0000:00: root bus resource [mem 0x000a0000-0x000fffff window]
-> pci_bus 0000:00: root bus resource [mem 0x80000000-0x8fffffff window]
-> pci_bus 0000:00: root bus resource [mem 0x80004000000-0x800ffffffff window]
-> pci_bus 0000:00: root bus resource [bus 00]
->
-> This implies that the [0 - 64K] check in acpi_dev_ioresource_flags()
-> leaves platforms with memory mapped IO space (ie IA64) broken (ie kernel
-> can't claim IO resources since the host bridge IO resource is disabled
-> and discarded by ACPI core code, see log on IA64 with missing root bridge
-> IO resource, silently filtered by current [0 - 64k] check in
-> acpi_dev_ioresource_flags()):
->
-> PCI host bridge to bus 0000:00
-> pci_bus 0000:00: root bus resource [mem 0x000a0000-0x000fffff window]
-> pci_bus 0000:00: root bus resource [mem 0x80000000-0x8fffffff window]
-> pci_bus 0000:00: root bus resource [mem 0x80004000000-0x800ffffffff window]
-> pci_bus 0000:00: root bus resource [bus 00]
->
-> [...]
->
-> pci 0000:00:03.0: [1002:515e] type 00 class 0x030000
-> pci 0000:00:03.0: reg 0x10: [mem 0x80000000-0x87ffffff pref]
-> pci 0000:00:03.0: reg 0x14: [io  0x1000-0x10ff]
-> pci 0000:00:03.0: reg 0x18: [mem 0x88020000-0x8802ffff]
-> pci 0000:00:03.0: reg 0x30: [mem 0x88000000-0x8801ffff pref]
-> pci 0000:00:03.0: supports D1 D2
-> pci 0000:00:03.0: can't claim BAR 1 [io  0x1000-0x10ff]: no compatible
-> bridge window
->
-> For this reason, the IO port resources boundaries check in generic ACPI
-> parsing code should be guarded with a CONFIG_X86 guard so that more arches
-> (ie ARM64) can benefit from the generic ACPI resources parsing interface
-> without incurring in unexpected resource filtering, fixing at the same
-> time current breakage on IA64.
->
-> This patch factors out IO ports boundary [0 - 64k] check in generic ACPI
-> code and makes the IO space check X86 specific to make sure that IO
-> space resources are usable on other arches too.
->
-> Fixes: 3772aea7d6f3 ("ia64/PCI/ACPI: Use common ACPI resource parsing
-> interface for host bridge")
-> Signed-off-by: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
-> Cc: Bjorn Helgaas <bhelgaas@google.com>
-> Cc: Hanjun Guo <hanjun.guo@linaro.org>
-> Cc: Jiang Liu <jiang.liu@linux.intel.com>
-> Cc: Tony Luck <tony.luck@intel.com>
-> Cc: Tomasz Nowicki <tn@semihalf.com>
-> Cc: Mark Salter <msalter@redhat.com>
-> Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+> Suggested-by: Len Brown <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+> Signed-off-by: Chen Yu <yu.c.chen-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 > ---
-> v2 -> v3
+> v5:
+>  - Revert to version 2, enforce EFI poweroff for such kind
+>    of platforms.
+> v4:
+>  - Since in v3 efi_poweroff_required() is not guaranteed to run
+>    after all of the other code that may register alternative
+>    power off handling, add the pm_power_off_default that would
+>    be used by pm_power_off if nothing else is available.
+> v3:
+>  - Only assign pm_power_off to efi_power_off when there are no
+>    other pm_power_off registered at that time, in case other
+>    commponents would like to customize their own implementation.
+> ---
+> v2:
+>  - Convert the acpi_no_s5 to a global bool variable in sleep.c and
+>    add a declaration to include/linux/acpi.h.
+> ---
+>  arch/x86/platform/efi/quirks.c | 2 +-
+>  drivers/acpi/sleep.c           | 7 +++++++
+>  include/linux/acpi.h           | 1 +
+>  3 files changed, 9 insertions(+), 1 deletion(-)
 >
-> - Moved IO resource check to generic ACPI resource code
-> - Dropped Tested-by tags
-> - Rebased against v4.5
+> diff --git a/arch/x86/platform/efi/quirks.c b/arch/x86/platform/efi/quirks.c
+> index ed30e79..7e5ec62 100644
+> --- a/arch/x86/platform/efi/quirks.c
+> +++ b/arch/x86/platform/efi/quirks.c
+> @@ -340,5 +340,5 @@ bool efi_reboot_required(void)
 >
-> v2: https://marc.info/?l=linux-acpi&m=145521271330332&w=2
+>  bool efi_poweroff_required(void)
+>  {
+> -       return !!acpi_gbl_reduced_hardware;
+> +       return acpi_gbl_reduced_hardware || acpi_no_s5;
+>  }
+> diff --git a/drivers/acpi/sleep.c b/drivers/acpi/sleep.c
+> index 9cb9752..a33859c 100644
+> --- a/drivers/acpi/sleep.c
+> +++ b/drivers/acpi/sleep.c
+> @@ -25,6 +25,11 @@
+>  #include "internal.h"
+>  #include "sleep.h"
 >
-> v1 -> v2
->
-> - Updated commit log to report missing IO resources
-> - Fixed function ioport_valid() comment 16k/64k typo
->
-> v1: https://marc.info/?l=linux-acpi&m=145432228025354&w=2
->
->  drivers/acpi/resource.c | 14 +++++++++++++-
->  1 file changed, 13 insertions(+), 1 deletion(-)
->
-> diff --git a/drivers/acpi/resource.c b/drivers/acpi/resource.c
-> index d02fd53..56241eb 100644
-> --- a/drivers/acpi/resource.c
-> +++ b/drivers/acpi/resource.c
-> @@ -27,8 +27,20 @@
->
->  #ifdef CONFIG_X86
->  #define valid_IRQ(i) (((i) != 0) && ((i) != 2))
-> +static inline bool acpi_iospace_resource_valid(struct resource *res)
-> +{
-> +       /* On X86 IO space is limited to the [0 - 64K] IO port range */
-> +       return res->end < 0x10003;
-> +}
->  #else
->  #define valid_IRQ(i) (true)
 > +/*
-> + * ACPI IO descriptors on arches other than X86 contain MMIO CPU physical
-> + * addresses mapping IO space in CPU physical address space, IO space
-> + * resources can be placed anywhere in the 64-bit physical address space.
+> + * Some HW-full platforms do not have _S5, so they may need
+> + * to leverage efi power off for a shutdown.
 > + */
-> +static inline bool
-> +acpi_iospace_resource_valid(struct resource *res) { return true; }
->  #endif
+> +bool acpi_no_s5;
+>  static u8 sleep_states[ACPI_S_STATE_COUNT];
 >
->  static bool acpi_dev_resource_len_valid(u64 start, u64 end, u64 len, bool io)
-> @@ -127,7 +139,7 @@ static void acpi_dev_ioresource_flags(struct resource *res, u64 len,
->         if (!acpi_dev_resource_len_valid(res->start, res->end, len, true))
->                 res->flags |= IORESOURCE_DISABLED | IORESOURCE_UNSET;
+>  static void acpi_sleep_tts_switch(u32 acpi_state)
+> @@ -846,6 +851,8 @@ int __init acpi_sleep_init(void)
+>                 sleep_states[ACPI_STATE_S5] = 1;
+>                 pm_power_off_prepare = acpi_power_off_prepare;
+>                 pm_power_off = acpi_power_off;
+> +       } else {
+> +               acpi_no_s5 = true;
+>         }
 >
-> -       if (res->end >= 0x10003)
-> +       if (!acpi_iospace_resource_valid(res))
->                 res->flags |= IORESOURCE_DISABLED | IORESOURCE_UNSET;
->
->         if (io_decode == ACPI_DECODE_16)
+>         supported[0] = 0;
+> diff --git a/include/linux/acpi.h b/include/linux/acpi.h
+> index 06ed7e5..4d2e67f 100644
+> --- a/include/linux/acpi.h
+> +++ b/include/linux/acpi.h
+> @@ -278,6 +278,7 @@ void acpi_irq_stats_init(void);
+>  extern u32 acpi_irq_handled;
+>  extern u32 acpi_irq_not_handled;
+>  extern unsigned int acpi_sci_irq;
+> +extern bool acpi_no_s5;
+>  #define INVALID_ACPI_IRQ       ((unsigned)-1)
+>  static inline bool acpi_sci_irq_valid(void)
+>  {
 > --
 
-This is fine by me.
+OK, this is fine by me.
 
-Bjorn?
+Matt, what do you think?
