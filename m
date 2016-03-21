@@ -1,134 +1,139 @@
-From: Sinan Kaya <okaya@codeaurora.org>
-Subject: Re: [PATCH 1/4] acpi,pci,irq: reduce resource requirements
-Date: Sun, 20 Mar 2016 14:17:09 -0400
-Message-ID: <56EEE925.7070202@codeaurora.org>
-References: <1457484079-18202-1-git-send-email-okaya@codeaurora.org>
- <20160314185251.GA19703@localhost> <56E7211F.3070203@codeaurora.org>
- <20160314210147.GA11459@localhost> <56E73232.9030704@codeaurora.org>
- <20160315014843.GA16967@localhost> <56E7733B.4050308@codeaurora.org>
- <20160315023632.GA23940@localhost> <56E80F19.7010503@codeaurora.org>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-pci-owner@vger.kernel.org>
-In-Reply-To: <56E80F19.7010503@codeaurora.org>
-Sender: linux-pci-owner@vger.kernel.org
-To: Bjorn Helgaas <helgaas@kernel.org>
-Cc: linux-acpi@vger.kernel.org, timur@codeaurora.org, cov@codeaurora.org, linux-pci@vger.kernel.org, ravikanth.nalla@hpe.com, lenb@kernel.org, harish.k@hpe.com, ashwin.reghunandanan@hpe.com, bhelgaas@google.com, rjw@rjwysocki.net, linux-kernel@vger.kernel.org
+From: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+Subject: [PATCH v3] PCI: ACPI: IA64: fix IO port generic range check
+Date: Mon, 21 Mar 2016 11:12:55 +0000
+Message-ID: <1458558775-6242-1-git-send-email-lorenzo.pieralisi@arm.com>
+Return-path: <linux-ia64-owner@vger.kernel.org>
+Sender: linux-ia64-owner@vger.kernel.org
+To: linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org
+Cc: linux-ia64@vger.kernel.org, linux-kernel@vger.kernel.org, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Bjorn Helgaas <bhelgaas@google.com>, Hanjun Guo <hanjun.guo@linaro.org>, Jiang Liu <jiang.liu@linux.intel.com>, Tony Luck <tony.luck@intel.com>, Tomasz Nowicki <tn@semihalf.com>, Mark Salter <msalter@redhat.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>
 List-Id: linux-acpi@vger.kernel.org
 
-Hi Bjorn,
+The [0 - 64k] ACPI PCI IO port resource boundary check in:
 
->>>
->>> Device(LN0A){
->>> 	Name(_HID, EISAID("PNP0C0F")) // PCI interrupt link
->>> 	Name(_UID, 1)
->>> 	Name(_PRS, ResourceTemplate(){
->>> 	Interrupt(ResourceProducer, Level, ActiveHigh, Exclusive, , ,) {0x123}
->>> 	})
->>
->> I forgot that the link already include the trigger mode in it.  Maybe we
->> can check for that instead of assuming level/low.
->>
-> 
-> Let me explore this area.
-> 
->> Bjorn
+acpi_dev_ioresource_flags()
 
-I have been implementing this. 
+is currently applied blindly in the ACPI resource parsing to all
+architectures, but only x86 suffers from that IO space limitation.
 
-I see that placing the check in allocate function is not right. The interrupts get
-registered with ACPI subsystem after locating the interrupt in register_gsi function.
-Trying to find the IRQ type with get_trigger_type() for an unregistered interrupt
-didn't look right to me.
+On arches (ie IA64 and ARM64) where IO space is memory mapped,
+the PCI root bridges IO resource windows are firstly initialized from
+the _CRS (in acpi_decode_space()) and contain the CPU physical address
+at which a root bridge decodes IO space in the CPU physical address
+space with the offset value representing the offset required to translate
+the PCI bus address into the CPU physical address.
 
-I think it is best if we move these checks into get_penalty function.
+The IO resource windows are then parsed and updated in arch code
+before creating and enumerating PCI buses (eg IA64 add_io_space())
+to map in an arch specific way the obtained CPU physical address range
+to a slice of virtual address space reserved to map PCI IO space,
+ending up with PCI bridges resource windows containing IO
+resources like the following on a working IA64 configuration:
 
-I also see that the code is currently allowing EDGE type PCI interrupts assuming they are
-exclusive only. Let me if this looks alright. I'm also curious about the PCI checks.
+PCI host bridge to bus 0000:00
+pci_bus 0000:00: root bus resource [io  0x1000000-0x100ffff window] (bus
+address [0x0000-0xffff])
+pci_bus 0000:00: root bus resource [mem 0x000a0000-0x000fffff window]
+pci_bus 0000:00: root bus resource [mem 0x80000000-0x8fffffff window]
+pci_bus 0000:00: root bus resource [mem 0x80004000000-0x800ffffffff window]
+pci_bus 0000:00: root bus resource [bus 00]
 
-static int acpi_pci_link_set(struct acpi_pci_link *link, int irq)
+This implies that the [0 - 64K] check in acpi_dev_ioresource_flags()
+leaves platforms with memory mapped IO space (ie IA64) broken (ie kernel
+can't claim IO resources since the host bridge IO resource is disabled
+and discarded by ACPI core code, see log on IA64 with missing root bridge
+IO resource, silently filtered by current [0 - 64k] check in
+acpi_dev_ioresource_flags()):
 
-I know you want to validate that all PCI interrupts are level, it looks like the code
-is allowing other combinations.
+PCI host bridge to bus 0000:00
+pci_bus 0000:00: root bus resource [mem 0x000a0000-0x000fffff window]
+pci_bus 0000:00: root bus resource [mem 0x80000000-0x8fffffff window]
+pci_bus 0000:00: root bus resource [mem 0x80004000000-0x800ffffffff window]
+pci_bus 0000:00: root bus resource [bus 00]
 
-diff --git a/drivers/acpi/pci_link.c b/drivers/acpi/pci_link.c
-index 85be579e..5056a9c 100644
---- a/drivers/acpi/pci_link.c
-+++ b/drivers/acpi/pci_link.c
-@@ -495,6 +495,45 @@ static int acpi_irq_pci_sharing_penalty(int irq)
- 	return penalty;
- }
+[...]
+
+pci 0000:00:03.0: [1002:515e] type 00 class 0x030000
+pci 0000:00:03.0: reg 0x10: [mem 0x80000000-0x87ffffff pref]
+pci 0000:00:03.0: reg 0x14: [io  0x1000-0x10ff]
+pci 0000:00:03.0: reg 0x18: [mem 0x88020000-0x8802ffff]
+pci 0000:00:03.0: reg 0x30: [mem 0x88000000-0x8801ffff pref]
+pci 0000:00:03.0: supports D1 D2
+pci 0000:00:03.0: can't claim BAR 1 [io  0x1000-0x10ff]: no compatible
+bridge window
+
+For this reason, the IO port resources boundaries check in generic ACPI
+parsing code should be guarded with a CONFIG_X86 guard so that more arches
+(ie ARM64) can benefit from the generic ACPI resources parsing interface
+without incurring in unexpected resource filtering, fixing at the same
+time current breakage on IA64.
+
+This patch factors out IO ports boundary [0 - 64k] check in generic ACPI
+code and makes the IO space check X86 specific to make sure that IO
+space resources are usable on other arches too.
+
+Fixes: 3772aea7d6f3 ("ia64/PCI/ACPI: Use common ACPI resource parsing
+interface for host bridge")
+Signed-off-by: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+Cc: Bjorn Helgaas <bhelgaas@google.com>
+Cc: Hanjun Guo <hanjun.guo@linaro.org>
+Cc: Jiang Liu <jiang.liu@linux.intel.com>
+Cc: Tony Luck <tony.luck@intel.com>
+Cc: Tomasz Nowicki <tn@semihalf.com>
+Cc: Mark Salter <msalter@redhat.com>
+Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+---
+v2 -> v3
+
+- Moved IO resource check to generic ACPI resource code
+- Dropped Tested-by tags
+- Rebased against v4.5
+
+v2: https://marc.info/?l=linux-acpi&m=145521271330332&w=2
+
+v1 -> v2
+
+- Updated commit log to report missing IO resources
+- Fixed function ioport_valid() comment 16k/64k typo
+
+v1: https://marc.info/?l=linux-acpi&m=145432228025354&w=2
+
+ drivers/acpi/resource.c | 14 +++++++++++++-
+ 1 file changed, 13 insertions(+), 1 deletion(-)
+
+diff --git a/drivers/acpi/resource.c b/drivers/acpi/resource.c
+index d02fd53..56241eb 100644
+--- a/drivers/acpi/resource.c
++++ b/drivers/acpi/resource.c
+@@ -27,8 +27,20 @@
  
-+static int acpi_link_trigger(int irq, u8 *polarity, u8 *triggering)
+ #ifdef CONFIG_X86
+ #define valid_IRQ(i) (((i) != 0) && ((i) != 2))
++static inline bool acpi_iospace_resource_valid(struct resource *res)
 +{
-+	struct acpi_pci_link *link;
-+	int link_trigger = 0;
-+
-+	list_for_each_entry(link, &acpi_link_list, list) {
-+		int i;
-+
-+		if (link->irq.active && link->irq.active == irq) {
-+			*polarity = link->polarity;
-+			*triggering = link->triggering;
-+			return 0;
-+		}
-+
-+		for (i = 0; i < link->irq.possible_count; i++)
-+			if (link->irq.possible[i] == irq) {
-+				*polarity = link->polarity;
-+				*triggering = link->triggering;
-+				return 0;
-+			}
-+	}
-+
-+	return -EINVAL;
++	/* On X86 IO space is limited to the [0 - 64K] IO port range */
++	return res->end < 0x10003;
 +}
-+
-+static bool acpi_pci_compatible_trigger(int irq)
-+{
-+	u8 polarity;
-+	u8 triggering;
-+	int type = irq_get_trigger_type(irq);
-+	int rc;
-+
-+	rc = acpi_link_trigger(irq, &polarity, &triggering, &sharing)
-+	if (rc)
-+		return false;
-+
-+	return (type == IRQ_TYPE_LEVEL_LOW || type == IRQ_TYPE_NONE);
-+}
-+
- static int acpi_irq_get_penalty(int irq)
- {
- 	int penalty = 0;
-@@ -502,8 +541,21 @@ static int acpi_irq_get_penalty(int irq)
- 	if (irq < ACPI_MAX_ISA_IRQ)
- 		penalty += acpi_irq_isa_penalty[irq];
+ #else
+ #define valid_IRQ(i) (true)
++/*
++ * ACPI IO descriptors on arches other than X86 contain MMIO CPU physical
++ * addresses mapping IO space in CPU physical address space, IO space
++ * resources can be placed anywhere in the 64-bit physical address space.
++ */
++static inline bool
++acpi_iospace_resource_valid(struct resource *res) { return true; }
+ #endif
  
--	if (irq == acpi_gbl_FADT.sci_interrupt)
--		penalty += PIRQ_PENALTY_PCI_USING;
-+	if (irq == acpi_gbl_FADT.sci_interrupt) {
-+		u8 sci_polarity;
-+		u8 sci_trigger;
-+
-+		rc = acpi_link_trigger(irq, &polarity, &sci_trigger);
-+		if (!rc) {
-+			if (sci_trigger != ACPI_LEVEL_SENSITIVE ||
-+			    sci_polarity != ACPI_ACTIVE_LOW)
-+				penalty += PIRQ_PENALTY_ISA_ALWAYS;
-+			else
-+				penalty += PIRQ_PENALTY_PCI_USING;
-+		} else {
-+			return ~0;
-+		}
-+	}
+ static bool acpi_dev_resource_len_valid(u64 start, u64 end, u64 len, bool io)
+@@ -127,7 +139,7 @@ static void acpi_dev_ioresource_flags(struct resource *res, u64 len,
+ 	if (!acpi_dev_resource_len_valid(res->start, res->end, len, true))
+ 		res->flags |= IORESOURCE_DISABLED | IORESOURCE_UNSET;
  
- 	penalty += acpi_irq_pci_sharing_penalty(irq);
- 	return penalty; 
-
-
+-	if (res->end >= 0x10003)
++	if (!acpi_iospace_resource_valid(res))
+ 		res->flags |= IORESOURCE_DISABLED | IORESOURCE_UNSET;
+ 
+ 	if (io_decode == ACPI_DECODE_16)
 -- 
-Sinan Kaya
-Qualcomm Technologies, Inc. on behalf of Qualcomm Innovation Center, Inc.
-Qualcomm Innovation Center, Inc. is a member of Code Aurora Forum, a Linux Foundation Collaborative Project
+2.5.1
+
