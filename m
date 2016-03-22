@@ -1,49 +1,83 @@
 From: Aleksey Makarov <aleksey.makarov@linaro.org>
-Subject: Re: [PATCH v5 1/6] of/serial: move earlycon early_param handling to
- serial
-Date: Tue, 22 Mar 2016 19:55:32 +0300
-Message-ID: <56F17904.3070202@linaro.org>
+Subject: Re: [PATCH v5 3/6] ACPI: parse SPCR and enable matching console
+Date: Tue, 22 Mar 2016 20:04:11 +0300
+Message-ID: <56F17B0B.306@linaro.org>
 References: <1458643595-14719-1-git-send-email-aleksey.makarov@linaro.org>
- <1458643595-14719-2-git-send-email-aleksey.makarov@linaro.org>
- <CAL_JsqL+YU7qSze40c+M5AaOvpZDFgvg=SsRGmpT3k_=L6P8JQ@mail.gmail.com>
+ <1458643595-14719-4-git-send-email-aleksey.makarov@linaro.org>
+ <CAHp75VfsayWWSgkvpgrxcER6c2rZyykbvOtm7wBQROR6SFFfWw@mail.gmail.com>
+ <56F16DC2.7030901@hurleysoftware.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-lf0-f45.google.com ([209.85.215.45]:33801 "EHLO
-	mail-lf0-f45.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756156AbcCVQ5k (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 22 Mar 2016 12:57:40 -0400
-Received: by mail-lf0-f45.google.com with SMTP id e196so40079544lfg.1
-        for <linux-acpi@vger.kernel.org>; Tue, 22 Mar 2016 09:57:38 -0700 (PDT)
-In-Reply-To: <CAL_JsqL+YU7qSze40c+M5AaOvpZDFgvg=SsRGmpT3k_=L6P8JQ@mail.gmail.com>
+Received: from mail-lf0-f54.google.com ([209.85.215.54]:33143 "EHLO
+	mail-lf0-f54.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751109AbcCVRGR (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 22 Mar 2016 13:06:17 -0400
+Received: by mail-lf0-f54.google.com with SMTP id o73so1259844lfe.0
+        for <linux-acpi@vger.kernel.org>; Tue, 22 Mar 2016 10:06:17 -0700 (PDT)
+In-Reply-To: <56F16DC2.7030901@hurleysoftware.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Rob Herring <robh+dt@kernel.org>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, "linux-serial@vger.kernel.org" <linux-serial@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Russell King <linux@arm.linux.org.uk>, Leif Lindholm <leif.lindholm@linaro.org>, Graeme Gregory <graeme.gregory@linaro.org>, Al Stone <ahs3@redhat.com>, Christopher Covington <cov@codeaurora.org>, Yury Norov <ynorov@caviumnetworks.com>, Peter Hurley <peter@hurleysoftware.com>, "Zheng, Lv" <lv.zheng@intel.com>, Frank Rowand <frowand.list@gmail.com>, Grant Likely <grant.likely@linaro.org>, Jiri Slaby <jslaby@suse.com>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>
+To: Peter Hurley <peter@hurleysoftware.com>, Andy Shevchenko <andy.shevchenko@gmail.com>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, "linux-serial@vger.kernel.org" <linux-serial@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, linux-arm Mailing List <linux-arm-kernel@lists.infradead.org>, Russell King <linux@arm.linux.org.uk>, Leif Lindholm <leif.lindholm@linaro.org>, Graeme Gregory <graeme.gregory@linaro.org>, Al Stone <ahs3@redhat.com>, Christopher Covington <cov@codeaurora.org>, Yury Norov <ynorov@caviumnetworks.com>, "Zheng, Lv" <lv.zheng@intel.com>, Jiri Slaby <jslaby@suse.com>
 
 
 
-On 03/22/2016 02:15 PM, Rob Herring wrote:
-> On Tue, Mar 22, 2016 at 5:46 AM, Aleksey Makarov
-> <aleksey.makarov@linaro.org> wrote:
->> From: Leif Lindholm <leif.lindholm@linaro.org>
+On 03/22/2016 07:07 PM, Peter Hurley wrote:
+> On 03/22/2016 04:09 AM, Andy Shevchenko wrote:
+>> On Tue, Mar 22, 2016 at 12:46 PM, Aleksey Makarov
+>> <aleksey.makarov@linaro.org> wrote:
+
+>>> +       sprintf(opts, "%s,%s,0x%llx,%d", uart, iotype,
+>>> +               table->serial_port.address, baud_rate);
 >>
->> We have multiple "earlycon" early_param handlers - merge the DT one into
->> the main earlycon one.  It's a cleanup that also will be useful
->> to decide if ACPI SPCR earlycon should be set up.
+>> You may use snprintf(), though my question here what would happen on
+>> 32-bit kernel when you supply 64-bit address as an option?
 > 
-> How so? Isn't that determined by whether we have ACPI tables or a DT?
-
-Oops, I missed this.  This patch was not only to do parsing in one place, 
-but also to allow addition of code that decide which of ACPI/DT should be used
-for earlycon initialization based on acpi_disabled.
-
-I will fix this, thank you.
-
-> This goes against trying to limit places of FDT parsing and keeping
-> the early scanning all within fdt.c. At least it is not in the arch
-> code. That said, I'm okay with this change if it helps.
+> Yeah this should probably use %pa for the printf specifier.
 > 
-> Rob
+> But note this exposes underlying bug in the earlycon support, because
+> that was originally written without 32/64-mixed bitness in mind; ie.,
+> the address is parsed and handled as unsigned long in most places.
+
+I don't quite follow this.  table->serial_port.address is explicitly u64,
+not pointer, so, according to printk-formats.txt %llx is ok here, %pa is wrong.
+Am I missing something?
+
+>>>         /*
+>>> -        * Just 'earlycon' is a valid param for devicetree earlycons;
+>>> -        * don't generate a warning from parse_early_params() in that case
+>>> +        * Just 'earlycon' is a valid param for devicetree and ACPI SPCR
+>>> +        * earlycons; don't generate a warning from parse_early_params()
+>>> +        * in that case
+>>>          */
+>>> -       if (!buf || !buf[0])
+>>> -               return early_init_dt_scan_chosen_serial();
+>>> +       if (!buf || !buf[0]) {
+>>> +               init_spcr_earlycon();
+>>
+>>> +               early_init_dt_scan_chosen_serial();
+>>> +               return 0;
+>>
+>> And you hide an error?
 > 
+> Well, this is a little bit tricky because "earlycon" early parameter with
+> missing /chosen/stdout-path node is no longer an error, since ACPI may be
+> specifying the earlycon instead.
+
+Agree, but note the email by Rob Herring.  The code should be like this:
+
+if (!buf || !buf[0]) {
+	if (acpi_disabled) {
+		return early_init_dt_scan_chosen_serial();
+	} else {
+		init_spcr_earlycon();
+		return 0;
+	}
+}
+
+But that requires to have made ACPI/DT decision at this point.
+
+Thank you
+Aleksey
