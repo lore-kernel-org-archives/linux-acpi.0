@@ -1,100 +1,122 @@
-From: Jack Coulter <jscinoz@jscinoz.so>
-Subject: Re: Thunderbolt 3 (Skylake / Alpine Ridge) hotplug
-Date: Tue, 22 Mar 2016 19:26:42 +1100
-Message-ID: <56F101C2.7010904@jscinoz.so>
-References: <56D0085B.60402@jscinoz.so> <20160315172909.GF19974@localhost>
+From: Tomasz Nowicki <tn@semihalf.com>
+Subject: Re: [PATCH V5 13/15] pci, acpi: Match PCI config space accessors
+ against platfrom specific quirks.
+Date: Tue, 22 Mar 2016 11:26:49 +0100
+Message-ID: <56F11DE9.2030302@semihalf.com>
+References: <1455630825-27253-1-git-send-email-tn@semihalf.com>
+ <1455630825-27253-14-git-send-email-tn@semihalf.com>
+ <1458316194.23434.104.camel@redhat.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
- protocol="application/pgp-signature";
- boundary="dS6p978QL5GtkaJO3eLAG1o5kNmQN8Ikn"
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from jscinoz.so ([43.229.62.214]:54692 "EHLO mail.jscinoz.so"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1758175AbcCVI0v (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 22 Mar 2016 04:26:51 -0400
-In-Reply-To: <20160315172909.GF19974@localhost>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-pci-owner@vger.kernel.org>
+In-Reply-To: <1458316194.23434.104.camel@redhat.com>
+Sender: linux-pci-owner@vger.kernel.org
+To: Mark Salter <msalter@redhat.com>, helgaas@kernel.org, arnd@arndb.de, will.deacon@arm.com, catalin.marinas@arm.com, rafael@kernel.org, hanjun.guo@linaro.org, Lorenzo.Pieralisi@arm.com, okaya@codeaurora.org, jiang.liu@linux.intel.com, jchandra@broadcom.com, Stefano.Stabellini@eu.citrix.com
+Cc: robert.richter@caviumnetworks.com, mw@semihalf.com, Liviu.Dudau@arm.com, ddaney@caviumnetworks.com, wangyijing@huawei.com, Suravee.Suthikulpanit@amd.com, linux-pci@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linaro-acpi@lists.linaro.org, jcm@redhat.com
 List-Id: linux-acpi@vger.kernel.org
-To: Bjorn Helgaas <helgaas@kernel.org>
-Cc: Andreas Noever <andreas.noever@gmail.com>, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, "Rafael J. Wysocki" <rafael@kernel.org>
 
-This is an OpenPGP/MIME signed message (RFC 4880 and 3156)
---dS6p978QL5GtkaJO3eLAG1o5kNmQN8Ikn
-Content-Type: multipart/mixed; boundary="k2WcETCtVujjDCtvn9m6SdflWLVkmS6SF"
-From: Jack Coulter <jscinoz@jscinoz.so>
-To: Bjorn Helgaas <helgaas@kernel.org>
-Cc: Andreas Noever <andreas.noever@gmail.com>, linux-pci@vger.kernel.org,
- linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org,
- "Rafael J. Wysocki" <rafael@kernel.org>
-Message-ID: <56F101C2.7010904@jscinoz.so>
-Subject: Re: Thunderbolt 3 (Skylake / Alpine Ridge) hotplug
-References: <56D0085B.60402@jscinoz.so> <20160315172909.GF19974@localhost>
-In-Reply-To: <20160315172909.GF19974@localhost>
-
---k2WcETCtVujjDCtvn9m6SdflWLVkmS6SF
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: quoted-printable
-
-Hi Bjorn,
-
-> Can you open a report at http://bugzilla.kernel.org, category
-> drivers/PCI, and attach complete "lspci -vv" output (run as root) and
-> complete dmesg logs, both when hub is attached at boot, and when
-> booting without hub and attaching hub later?
+On 18.03.2016 16:49, Mark Salter wrote:
+> On Tue, 2016-02-16 at 14:53 +0100, Tomasz Nowicki wrote:
+>> Some platforms may not be fully compliant with generic set of PCI config
+>> accessors. For these cases we implement the way to overwrite accessors
+>> set prior to PCI buses enumeration. Algorithm traverses available quirk
+>> list, matches against <platform ID (DMI), domain, bus number> tuple and
+>> returns corresponding accessors. All quirks can be defined using:
+>> DECLARE_ACPI_MCFG_FIXUP() and kept self contained. Example,
+>>
+>> static const struct dmi_system_id foo_dmi[] = {
+>>          {
+>>                  .ident = "<Platform ident string>",
+>>                  .callback = <handler>,
+>>                  .matches = {
+>>                          DMI_MATCH(DMI_SYS_VENDOR, "<system vendor>"),
+>>                          DMI_MATCH(DMI_PRODUCT_NAME, "<product name>"),
+>>                          DMI_MATCH(DMI_PRODUCT_VERSION, "product version"),
+>>                  },
+>>          },
+>>          { }
+>> };
+>>
+>> static struct pci_ops foo_ecam_pci_ops = {
+>>          .map_bus = pci_mcfg_dev_base,
+>>          .read = foo_ecam_config_read,
+>>          .write = foo_ecam_config_write,
+>> };
+>> DECLARE_ACPI_MCFG_FIXUP(foo_dmi, NULL, &foo_ecam_pci_ops, <domain_nr>, <bus_nr>);
+>>
+>> More custom (non-DMI) matching can be done via an extra call.
+>> Note that there is possibility to assign quirk related private data to
+>> root->sysdata which will be available along read/wriate accessor, example:
+>>
+>> static int boo_match(struct pci_mcfg_fixup *fixup, struct acpi_pci_root *root)
+>> {
+>>          return [condition] ? 1 : 0;
+>> }
+>>
+>> int boo_ecam_config_read(struct pci_bus *bus, unsigned int devfn,
+>>                            int where, int size, u32 *val)
+>> {
+>>          struct acpi_pci_root *root = bus->sysdata;
+>>          struct boo_priv_data *boo_data = root->sysdata;
+>>
+>>          [..]
+>> }
+>>
+>> static struct pci_ops boo_ecam_pci_ops = {
+>> 	.map_bus = pci_mcfg_dev_base,
+>> 	.read = boo_ecam_config_read,
+>> 	.write = boo_ecam_config_write,
+>> };
+>> DECLARE_ACPI_MCFG_FIXUP(NULL, boo_match, &boo_ecam_pci_ops, <domain_nr>, <bus_nr>);
+>>
+>> Signed-off-by: Tomasz Nowicki <tn@semihalf.com>
+>> Tested-by: Duc Dang <dhdang@apm.com>
+>> Tested-by: Dongdong Liu <liudongdong3@huawei.com>
+>> Tested-by: Hanjun Guo <hanjun.guo@linaro.org>
+>> Tested-by: Graeme Gregory <graeme.gregory@linaro.org>
+>> Tested-by: Sinan Kaya <okaya@codeaurora.org>
+>> ---
+>>   drivers/acpi/pci_mcfg.c           | 32 ++++++++++++++++++++++++++++++--
+>>   include/acpi/acpi_bus.h           |  1 +
+>>   include/asm-generic/vmlinux.lds.h |  7 +++++++
+>>   include/linux/pci-acpi.h          | 18 ++++++++++++++++++
+>>   4 files changed, 56 insertions(+), 2 deletions(-)
+>>
+>> diff --git a/drivers/acpi/pci_mcfg.c b/drivers/acpi/pci_mcfg.c
+>> index 0062257..b343547 100644
+>> --- a/drivers/acpi/pci_mcfg.c
+>> +++ b/drivers/acpi/pci_mcfg.c
+>> @@ -41,6 +41,29 @@ int __weak raw_pci_write(unsigned int domain, unsigned int bus,
+>>   	return PCIBIOS_DEVICE_NOT_FOUND;
+>>   }
+>>
+>> +extern struct pci_mcfg_fixup __start_acpi_mcfg_fixups[];
+>> +extern struct pci_mcfg_fixup __end_acpi_mcfg_fixups[];
+>> +
+>> +static struct pci_ops *pci_mcfg_check_quirks(struct acpi_pci_root *root)
+>> +{
+>> +	struct pci_mcfg_fixup *f;
+>> +	int bus_num = root->secondary.start;
+>> +	int domain = root->segment;
+>> +
+>> +	/*
+>> +	 * First match against PCI topology <domain:bus> then use DMI or
+>> +	 * custom match handler.
+>> +	 */
+>> +	for (f = __start_acpi_mcfg_fixups; f < __end_acpi_mcfg_fixups; f++) {
+>> +		if ((f->domain == domain || f->domain == PCI_MCFG_DOMAIN_ANY) &&
+>> +		    (f->bus_num == bus_num || f->bus_num == PCI_MCFG_BUS_ANY) &&
+>> +		    (f->system ? dmi_check_system(f->system) : 1 &&
+>> +		     f->match ? f->match(f, root) : 1))
 >
-> I don't know much about Thunderbolt.  But since it appears as a PCI
-> device, I would expect some sort of hotplug notification when you
-> attach the hub.  If pciehp handles hotplug, it looks like we should
-> see something from pcie_isr() in the dmesg log.
+> The parens are not quite right here ^^^^
+> If dmi_check_system() returns true, f->match won't get called.
 >
-> Since you don't see that, I suspect we're getting ACPI notifications
-> via the acpiphp driver.  I'm not as familiar with that, so I don't
-> know what if anything it logs.  If you're inclined, you could add some
-> printks in
->
->   acpiphp_add_context()
->   acpi_device_hotplug()
->   acpiphp_hotplug_notify()
->   hotplug_event()
->
-> Then we'd at least see if we get any ACPI notifications.
->
-> Bjorn
+> This should be:
+> 		    (f->system ? dmi_check_system(f->system) : 1) &&
+> 		     f->match ? f->match(f, root) : 1)
 
-I've logged a report with the requested details; it can be found here:
+Well spotted. Thanks!
 
-https://bugzilla.kernel.org/show_bug.cgi?id=3D115121
-
-
-
-Kind regards,
-Jack
-
-
-
---k2WcETCtVujjDCtvn9m6SdflWLVkmS6SF--
-
---dS6p978QL5GtkaJO3eLAG1o5kNmQN8Ikn
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: OpenPGP digital signature
-Content-Disposition: attachment; filename="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2
-
-iQIcBAEBCAAGBQJW8QHGAAoJEP0XuxcIDSnPh0QQAJoT6WyAO02yXww9EPBqxlCD
-qLd8RoRimnQgHKCqbgF0iWWNX1VAt19rA9KdW8OIJ8X40Q7NyjzVvm1p+AVbtqrS
-Sq2O4VB02hJewQr/O7IVQ8bafR0VAlYyaSRJ5Sw2pUEygpVXgbVz23WQA3pK/cR8
-ERPr821v32xI+ICrnR4jbg1Tn+xCAT1+eyIFh14CHq+r0J2KET8n2qym/0oF0pXn
-0dp8vhk/XQ2XeFqUejllHPWuXv6rcuDGb50DJOcafTtagwh41JZ53FLhCndxISMP
-/Eh5jVHvKvVxBvWEw3Pf0weBpNTjVm/KQ8CLYcBn+KNfQ+T4TJOh4FX4vFj1CVQl
-Nu+8StFZc49fLiKYAtr7TZXfsndOgHJ/C7ax/mSn/RW0ZRyPOUsAcADZulak8ZGq
-ZPToJvOok8ac5j+9eL2pjypwi+WNL+wPOW5UvV0okAmu9zzDptMfytkdreF2ufOa
-Swyw8QuJvco1/VeDh0k1jTDyO3CKo6ojB/gKt65vxqEkqnbwPZ3SKzxbxZCyRS/p
-NzvS6vvTw+X6nKlCNmo7G77sSKQtSAUgn7lV13gTCgaTllL8JM+28EyPsWlBs2gv
-pIqfhvmGWqBjK2LFb+pKoIUBEDJDQlJBRo/J+upVXvB8XvWFkJKyc6Q+32HjgLgR
-ka0ulclz5cqFlFh/i2WF
-=+Mgr
------END PGP SIGNATURE-----
-
---dS6p978QL5GtkaJO3eLAG1o5kNmQN8Ikn--
+Tomasz
