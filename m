@@ -1,61 +1,77 @@
-From: "Zheng, Lv" <lv.zheng@intel.com>
-Subject: RE: [PATCH] ACPI / button: Avoid using broken _LID on Surface tablet
-Date: Tue, 22 Mar 2016 07:04:04 +0000
-Message-ID: <1AE640813FDE7649BE1B193DEA596E883BB6398E@SHSMSX101.ccr.corp.intel.com>
-References: <1454497460-16803-1-git-send-email-yu.c.chen@intel.com>
-	 <1AE640813FDE7649BE1B193DEA596E883BB4B97D@SHSMSX101.ccr.corp.intel.com>
-	 <36DF59CE26D8EE47B0655C516E9CE640286C4774@shsmsx102.ccr.corp.intel.com>
-	 <1AE640813FDE7649BE1B193DEA596E883BB4DA8A@SHSMSX101.ccr.corp.intel.com>
-	 <1456150475.23430.16.camel@hadess.net>
-	 <1AE640813FDE7649BE1B193DEA596E883BB60425@SHSMSX101.ccr.corp.intel.com>
- <1457367568.2648.72.camel@hadess.net>
+From: Jack Coulter <jscinoz@jscinoz.so>
+Subject: Re: Thunderbolt 3 (Skylake / Alpine Ridge) hotplug
+Date: Tue, 22 Mar 2016 19:06:25 +1100
+Message-ID: <56F0FD01.2030400@jscinoz.so>
+References: <56D0085B.60402@jscinoz.so> <20160315172909.GF19974@localhost>
+ <20160316132228.GB28222@wunner.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga09.intel.com ([134.134.136.24]:60034 "EHLO mga09.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751160AbcCVHES (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 22 Mar 2016 03:04:18 -0400
-In-Reply-To: <1457367568.2648.72.camel@hadess.net>
-Content-Language: en-US
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: multipart/signed; micalg=pgp-sha256;
+ protocol="application/pgp-signature";
+ boundary="XToG3dNb3VFJhCjrpR380WXLboVvoQhOk"
+Return-path: <linux-pci-owner@vger.kernel.org>
+In-Reply-To: <20160316132228.GB28222@wunner.de>
+Sender: linux-pci-owner@vger.kernel.org
+To: Lukas Wunner <lukas@wunner.de>
+Cc: Bjorn Helgaas <helgaas@kernel.org>, Andreas Noever <andreas.noever@gmail.com>, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, "Rafael J. Wysocki" <rafael@kernel.org>, Martin Andersson <martin.andersson@purplescout.se>
 List-Id: linux-acpi@vger.kernel.org
-To: Bastien Nocera <hadess@hadess.net>, "Chen, Yu C" <yu.c.chen@intel.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
-Cc: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "rjw@rjwysocki.net" <rjw@rjwysocki.net>, "lenb@kernel.org" <lenb@kernel.org>, "Zhang, Rui" <rui.zhang@intel.com>, "cwhuang@android-x86.org" <cwhuang@android-x86.org>
 
-SGksDQoNCj4gRnJvbTogQmFzdGllbiBOb2NlcmEgW21haWx0bzpoYWRlc3NAaGFkZXNzLm5ldF0N
-Cj4gU3ViamVjdDogUmU6IFtQQVRDSF0gQUNQSSAvIGJ1dHRvbjogQXZvaWQgdXNpbmcgYnJva2Vu
-IF9MSUQgb24gU3VyZmFjZSB0YWJsZXQNCj4gDQo+IE9uIEZyaSwgMjAxNi0wMy0wNCBhdCAwMzoz
-NyArMDAwMCwgWmhlbmcsIEx2IHdyb3RlOg0KPiA8c25pcD4NCj4gPg0KPiA+ID4gSSdtIG5vdCBo
-YXBweSBhYm91dCB0aGUgImZpeCIgZm9yIHRoaXMgcHJvYmxlbSBlaXRoZXIsIGJ1dCBibGFtaW5n
-DQo+ID4gPiB1c2VyLXNwYWNlIGZvciB0aGlzIGlzIGhhcnNoLCBnaXZlbiB0aGUgQVBJIGV4cG9y
-dGVkIGJ5IHRoZSBrZXJuZWwNCj4gPiA+IGFuZA0KPiA+ID4gaG93IHByZXR0eSBtdWNoIGV2ZXJ5
-IGxhcHRvcCB3b3JrZWQuDQo+ID4gPg0KPiA+IFtMdiBaaGVuZ10NCj4gPiBJdCB3b3JrZWQgZm9y
-IHNvIG1hbnkgeWVhcnMgb24gdG9wIG9mIHRyYWRpdGlvbmFsIHg4NiBsYXB0b3BzIHdoZXJlDQo+
-ID4gdGhlIExJRCBvcGVuIGV2ZW50IGlzIGhhbmRsZWQgYnkgdGhlIEJJT1MgdG8gdHJpZ2dlciBh
-IHdha2UgR1BFLg0KPiA+IE5vdyB3ZSBhcmUgdGFsa2luZyBhYm91dCBydW50aW1lIGlkbGUgc3lz
-dGVtcyB3aGVyZSByZXN1bWluZyBmcm9tIHRoZQ0KPiA+IHMyaWRsZSBpbnZva2VzIG5vIEJJT1Mg
-Y29kZS4NCj4gPiBUaGUgbmV3IGNhc2UgaXMgc3RpbGwgd29ya2luZyBvbiBXaW5kb3dzLg0KPiA+
-IFdoaWNoIGZvcmNlcyB1cyB0byByZS1jb25zaWRlciB0aGUga2VybmVsIEFQSSBvZiB0aGUgQUNQ
-SSBMSUQuDQo+IA0KPiBUaGUgY3VycmVudCBrZXJuZWwgQVBJIHdvcmtzIG9uIDk5JSBvZiBtYWNo
-aW5lcyB1cCB1bnRpbCBub3csIHVzZXItDQo+IHNwYWNlIGNvdWxkIG5vdCBoYXZlIGJlZW4gZXhw
-ZWN0ZWQgdG8ga25vdyB0aGF0IHRoZSBMaWQgc3RhdHVzIG1pZ2h0IGJlDQo+IGluY29ycmVjdCBv
-biBzb21lIG1hY2hpbmVzLCBpdCBoYWQgbm8gd2F5IHRvIGtub3cgdGhhdCwgdGhlcmUgd2FzIG5v
-DQo+IGRvY3VtZW50YXRpb24gc2F5aW5nICJkb24ndCB1c2UgdGhlIExpZCBzdGF0dXMgb3V0c2lk
-ZSBvZiBMaWQgc3RhdHVzDQo+IGNoYW5nZSBldmVudHMiLg0KPiANCj4gV2UgZWl0aGVyIG5lZWQg
-dG8gZXh0ZW5kIHRoZSBjdXJyZW50IEFQSSB0byBleHBvcnQgdGhlIGZhY3QgdGhhdCB3ZQ0KPiBz
-aG91bGQgaWdub3JlIHRoZSBMSUQgc3RhdHVzIG91dHNpZGUgb2YgZXZlbnRzLCBvciB3ZSBuZWVk
-IGEgbmV3IEFQSS4NCj4gDQo+IChXZSBjb3VsZCBmaXggdGhpcyB3aXRob3V0IGFueSBrZXJuZWwg
-Y2hhbmdlcywgYnV0IHdlIHJlYWxseSBuZWVkIHRoZQ0KPiBrZXJuZWwgdG8gZG9jdW1lbnQgdGhh
-dCBmYWN0LCBhbmQgZXhwb3J0IGl0IHRvIHVzZXItc3BhY2UpDQo+IA0KPiBUaGlzIGlzIHNvbWV0
-aGluZyB5b3Ugc2hvdWxkIGhhdmUgc2FpZCBhdCB0aGUgc3RhcnQgb2YgdGhlIG1haWwsDQo+IGlu
-c3RlYWQgb2YgcmVwZWF0ZWRseSBzYXlpbmcgdGhhdCB1c2VyLXNwYWNlIHdhcyBicm9rZW4uIFVz
-ZXItc3BhY2UNCj4gYmVoYXZpb3VyIGhhc24ndCBjaGFuZ2VkIHRoZXJlIGZvciBtb3JlIHRoYW4g
-MTAgeWVhcnMsIGFuZCBJJ20gZmFpcmx5DQo+IGNlcnRhaW4gaXQncyB3b3JrZWQgdGhlIHNhbWUg
-d2F5IGFzIEFQTSAob24geDg2KSBhbmQgUE1VIChvbiBNYWMgUFBDDQo+IG1hY2hpbmVzKSBkaWQu
-DQpbTHYgWmhlbmddIA0KSWYgeW91IHdhbnQgYSBkb2N1bWVudGF0aW9uIGZpeC4NCkl0IHNlZW1z
-IHdlIG5lZWQgdG8gZml4IEFDUEkgc3BlYyBmaXJzdCBieSBjbGFyaWZ5aW5nIHRoaXMgYmVoYXZp
-b3IuDQpCeSBzdWJtaXR0aW5nIEFDUEkgc3BlYyBjaGFuZ2UsIHdlIGNhbiBhbHNvIGdhaW4gTVMg
-Y29uZmlybWF0aW9uLg0KU28gcGxlYXNlIHdhaXQgYSBiaXQgbG9uZ2VyIHRvIGhhdmUgdGhpcyBj
-bGFyaWZpZWQuDQoNClRoYW5rcw0KLUx2DQoNCg0KPiANCj4gQ2hlZXJzDQo=
+This is an OpenPGP/MIME signed message (RFC 4880 and 3156)
+--XToG3dNb3VFJhCjrpR380WXLboVvoQhOk
+Content-Type: multipart/mixed; boundary="sxt8PfR2KamC5CJb6a7P28rI0FSgFDVGu"
+From: Jack Coulter <jscinoz@jscinoz.so>
+To: Lukas Wunner <lukas@wunner.de>
+Cc: Bjorn Helgaas <helgaas@kernel.org>,
+ Andreas Noever <andreas.noever@gmail.com>, linux-pci@vger.kernel.org,
+ linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org,
+ "Rafael J. Wysocki" <rafael@kernel.org>,
+ Martin Andersson <martin.andersson@purplescout.se>
+Message-ID: <56F0FD01.2030400@jscinoz.so>
+Subject: Re: Thunderbolt 3 (Skylake / Alpine Ridge) hotplug
+References: <56D0085B.60402@jscinoz.so> <20160315172909.GF19974@localhost>
+ <20160316132228.GB28222@wunner.de>
+In-Reply-To: <20160316132228.GB28222@wunner.de>
+
+--sxt8PfR2KamC5CJb6a7P28rI0FSgFDVGu
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: quoted-printable
+
+Hi Lukas,
+
+> Try booting with: pcie_hp=3Dnomsi
+
+I gave this a shot but unfortunately resulted in no change in behaviour
+- the device is still not detected if it is connected after boot, and
+nothing shows in dmesg upon connection.
+
+
+Kind regards,
+Jack
+
+
+
+--sxt8PfR2KamC5CJb6a7P28rI0FSgFDVGu--
+
+--XToG3dNb3VFJhCjrpR380WXLboVvoQhOk
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: OpenPGP digital signature
+Content-Disposition: attachment; filename="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2
+
+iQIcBAEBCAAGBQJW8P0FAAoJEP0XuxcIDSnP7N0P/12+grEygPKciEYCOd1eJKWn
+ioyY8ygRqa1GVzMpJJITijKHvJoDCMapKpQN/BYOveI5onyOJy+ZPR34Yh1yyWJ/
+6H6eDsd6BbCApmzOXs1Odhdup14M4584DYhsyIM4iDHVRmq1XVqmfE20TBtPr4iV
+isbi3DV4gtvBQ/2SjE1BYm3VkJoNNfDIROTXL85RNBiq6hSIczSBYhgPQSB9HAtR
+4BP0Zb+xapLRybSn1riQVAFdkiV0DrJf10kOJt5KAJBM+p+7E6BGvZTSTNVjXc7y
+dnElo7U5LTXhepTmpj2MKMwTRxs1p/07vn9ZRNDB6htmhmXS7toGZQMsCS66bLIa
+TljA9x8aM0JuNkH9nQsZmS2cLYmW5Ck1oWyyueSab1x/uK78UJwGP7RYqR5ymzL4
+Jbqjew6q3TTDI6ejyL3JQppgT6Y/QeHAST4RMVmPee/AmVkUCFonO4RLsjz7F1Sw
+SxQ9oJ06nx7AgBS1Xp9VLv/65vWbE83xlAXq0d36pIjHi/ks7/9NX8SEl9KFREle
++lWxBiP3s80fTkoIGQJs2OVgSgPh3HQqJNt4O8qRV6NOvqYyuk8YZ6o3O7wyS8Po
+T9aJlz2bA1j+LP+9uxpwX9iMi0vEdVfjs4C3S7QxS/4LLwQ6egq/h1uEMH7zMPCE
+RNu12lzzA0A6CyHAei4S
+=uaO3
+-----END PGP SIGNATURE-----
+
+--XToG3dNb3VFJhCjrpR380WXLboVvoQhOk--
