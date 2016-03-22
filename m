@@ -1,69 +1,80 @@
 From: Jack Coulter <jscinoz@jscinoz.so>
 Subject: Re: Thunderbolt 3 (Skylake / Alpine Ridge) hotplug
-Date: Tue, 22 Mar 2016 19:11:14 +1100
-Message-ID: <56F0FE22.6050206@jscinoz.so>
-References: <56D0085B.60402@jscinoz.so>
- <CAMxnaaU0B_47xZuD+vi0=b1_U7kPr7YVF5-Y0q3GP3ez_eo3CQ@mail.gmail.com>
+Date: Tue, 22 Mar 2016 19:26:42 +1100
+Message-ID: <56F101C2.7010904@jscinoz.so>
+References: <56D0085B.60402@jscinoz.so> <20160315172909.GF19974@localhost>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha256;
  protocol="application/pgp-signature";
- boundary="bXuq4tQlAVSBdPuwDRTlUkQn2uE7BO2eC"
-Return-path: <linux-pci-owner@vger.kernel.org>
-In-Reply-To: <CAMxnaaU0B_47xZuD+vi0=b1_U7kPr7YVF5-Y0q3GP3ez_eo3CQ@mail.gmail.com>
-Sender: linux-pci-owner@vger.kernel.org
-To: Andreas Noever <andreas.noever@gmail.com>
-Cc: "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, linux-acpi@vger.kernel.org, "Rafael J. Wysocki" <rafael@kernel.org>
+ boundary="dS6p978QL5GtkaJO3eLAG1o5kNmQN8Ikn"
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from jscinoz.so ([43.229.62.214]:54692 "EHLO mail.jscinoz.so"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1758175AbcCVI0v (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 22 Mar 2016 04:26:51 -0400
+In-Reply-To: <20160315172909.GF19974@localhost>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Bjorn Helgaas <helgaas@kernel.org>
+Cc: Andreas Noever <andreas.noever@gmail.com>, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, "Rafael J. Wysocki" <rafael@kernel.org>
 
 This is an OpenPGP/MIME signed message (RFC 4880 and 3156)
---bXuq4tQlAVSBdPuwDRTlUkQn2uE7BO2eC
-Content-Type: multipart/mixed; boundary="QHO6trbLfwQtLmXM1I1R5wX92TNT2sXXb"
+--dS6p978QL5GtkaJO3eLAG1o5kNmQN8Ikn
+Content-Type: multipart/mixed; boundary="k2WcETCtVujjDCtvn9m6SdflWLVkmS6SF"
 From: Jack Coulter <jscinoz@jscinoz.so>
-To: Andreas Noever <andreas.noever@gmail.com>
-Cc: "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>,
- "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
- linux-acpi@vger.kernel.org, "Rafael J. Wysocki" <rafael@kernel.org>
-Message-ID: <56F0FE22.6050206@jscinoz.so>
+To: Bjorn Helgaas <helgaas@kernel.org>
+Cc: Andreas Noever <andreas.noever@gmail.com>, linux-pci@vger.kernel.org,
+ linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org,
+ "Rafael J. Wysocki" <rafael@kernel.org>
+Message-ID: <56F101C2.7010904@jscinoz.so>
 Subject: Re: Thunderbolt 3 (Skylake / Alpine Ridge) hotplug
-References: <56D0085B.60402@jscinoz.so>
- <CAMxnaaU0B_47xZuD+vi0=b1_U7kPr7YVF5-Y0q3GP3ez_eo3CQ@mail.gmail.com>
-In-Reply-To: <CAMxnaaU0B_47xZuD+vi0=b1_U7kPr7YVF5-Y0q3GP3ez_eo3CQ@mail.gmail.com>
+References: <56D0085B.60402@jscinoz.so> <20160315172909.GF19974@localhost>
+In-Reply-To: <20160315172909.GF19974@localhost>
 
---QHO6trbLfwQtLmXM1I1R5wX92TNT2sXXb
-Content-Type: text/plain; charset=utf-8
+--k2WcETCtVujjDCtvn9m6SdflWLVkmS6SF
+Content-Type: text/plain; charset=windows-1252
 Content-Transfer-Encoding: quoted-printable
 
-Hi Andreas,
+Hi Bjorn,
 
-> That is correct. On your device TB should be handled by the firmware.
+> Can you open a report at http://bugzilla.kernel.org, category
+> drivers/PCI, and attach complete "lspci -vv" output (run as root) and
+> complete dmesg logs, both when hub is attached at boot, and when
+> booting without hub and attaching hub later?
 >
-> Bj=C3=B6rn suggested that we might not be reacting to acpi notification=
-s
-> (or pci hotplug interrupts) properly. To confirm this you could try to
-> issue a manual pci rescan via
+> I don't know much about Thunderbolt.  But since it appears as a PCI
+> device, I would expect some sort of hotplug notification when you
+> attach the hub.  If pciehp handles hotplug, it looks like we should
+> see something from pcie_isr() in the dmesg log.
 >
-> echo "1" > /sys/bus/pci/rescan
+> Since you don't see that, I suspect we're getting ACPI notifications
+> via the acpiphp driver.  I'm not as familiar with that, so I don't
+> know what if anything it logs.  If you're inclined, you could add some
+> printks in
 >
-> This should make the device appear (if the issue lies with our
-> handling of hotplug events).
-I tried this but unfortunately no additional devices showed up, nor was
-any additional dmesg output generated.
+>   acpiphp_add_context()
+>   acpi_device_hotplug()
+>   acpiphp_hotplug_notify()
+>   hotplug_event()
+>
+> Then we'd at least see if we get any ACPI notifications.
+>
+> Bjorn
 
-> Otherwise you might want to take a look at the ACPI tables and search
-> for code which turn off thunderbolt or something like that. Does
-> hotplug work under Windows (without additional drivers)?
-I'm unable to comment as to whether it works under Windows - I do not
-have Windows installed on this machine nor do I have sufficient
-unallocated disk space to install it.
+I've logged a report with the requested details; it can be found here:
+
+https://bugzilla.kernel.org/show_bug.cgi?id=3D115121
+
 
 
 Kind regards,
 Jack
 
 
---QHO6trbLfwQtLmXM1I1R5wX92TNT2sXXb--
 
---bXuq4tQlAVSBdPuwDRTlUkQn2uE7BO2eC
+--k2WcETCtVujjDCtvn9m6SdflWLVkmS6SF--
+
+--dS6p978QL5GtkaJO3eLAG1o5kNmQN8Ikn
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: OpenPGP digital signature
 Content-Disposition: attachment; filename="signature.asc"
@@ -71,19 +82,19 @@ Content-Disposition: attachment; filename="signature.asc"
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v2
 
-iQIcBAEBCAAGBQJW8P4iAAoJEP0XuxcIDSnPPkUP/0DMRRDfpDSQef/AGvfPb4Ea
-iCwbN4FSc0A1bz3O1p7OfPv/1+mWhk016uhqBYzXdg2ONCOq1j00h9LLZ6L06nvM
-VqbG+OnEg81Pm4a78+FwiIWmcCkSq1/7IjGKDQbiXFCcTvXD6TvsVbrsS13/1Vcs
-7YsrO03eyqJGIMhgVbvuFz1IJfw8vI6jeofRcropKQQ8y5qOcnc6GTERUlLfBj0o
-eoqcysN59Off3pofFMBMs6Uc/gntKFl0dUPKrCZSZBxqogzXT5gxGd+Y0WyZmpY6
-y1T3WR40B/YEmHvFxiUZVjEBp3mfWmPFBrl0TWeGHiXumE0tSHTPx5tcu9amsdEF
-FielKIb1dRDOvUrHD/whh32MFEfdCZI1m/lXo0wkDMPjBqYsGjDJRPNjA8qKViFc
-qtWVlunRvMK6vKoBetqBxj/dQR8jQgPzPzKJxiw81/xWXZElFMbeHQp3uuixm39f
-/Y7kgHjB35X7fp2sB6XA1nvt2H23mZx67GUJ9uNH4uHt9pwiWyPUMOlTPFaS7XCU
-8j+CawyU0DNFiFTiDtHb1OvhFVB7JtmWukK6UI3bpTMLxj9CxTfhqz2bY6NEi+y9
-NUdLKzHZ1sU1+vTHu9LZzMN3hysjWsd/3FWgmR1FvPK2uHH7Yk+OWjKctQMm2GRQ
-VFLs9OgaNbgTlKwqri62
-=TjLC
+iQIcBAEBCAAGBQJW8QHGAAoJEP0XuxcIDSnPh0QQAJoT6WyAO02yXww9EPBqxlCD
+qLd8RoRimnQgHKCqbgF0iWWNX1VAt19rA9KdW8OIJ8X40Q7NyjzVvm1p+AVbtqrS
+Sq2O4VB02hJewQr/O7IVQ8bafR0VAlYyaSRJ5Sw2pUEygpVXgbVz23WQA3pK/cR8
+ERPr821v32xI+ICrnR4jbg1Tn+xCAT1+eyIFh14CHq+r0J2KET8n2qym/0oF0pXn
+0dp8vhk/XQ2XeFqUejllHPWuXv6rcuDGb50DJOcafTtagwh41JZ53FLhCndxISMP
+/Eh5jVHvKvVxBvWEw3Pf0weBpNTjVm/KQ8CLYcBn+KNfQ+T4TJOh4FX4vFj1CVQl
+Nu+8StFZc49fLiKYAtr7TZXfsndOgHJ/C7ax/mSn/RW0ZRyPOUsAcADZulak8ZGq
+ZPToJvOok8ac5j+9eL2pjypwi+WNL+wPOW5UvV0okAmu9zzDptMfytkdreF2ufOa
+Swyw8QuJvco1/VeDh0k1jTDyO3CKo6ojB/gKt65vxqEkqnbwPZ3SKzxbxZCyRS/p
+NzvS6vvTw+X6nKlCNmo7G77sSKQtSAUgn7lV13gTCgaTllL8JM+28EyPsWlBs2gv
+pIqfhvmGWqBjK2LFb+pKoIUBEDJDQlJBRo/J+upVXvB8XvWFkJKyc6Q+32HjgLgR
+ka0ulclz5cqFlFh/i2WF
+=+Mgr
 -----END PGP SIGNATURE-----
 
---bXuq4tQlAVSBdPuwDRTlUkQn2uE7BO2eC--
+--dS6p978QL5GtkaJO3eLAG1o5kNmQN8Ikn--
