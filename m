@@ -1,265 +1,33 @@
-From: Peter Hurley <peter@hurleysoftware.com>
-Subject: Re: [PATCH v5 3/6] ACPI: parse SPCR and enable matching console
-Date: Tue, 22 Mar 2016 07:57:04 -0700
-Message-ID: <56F15D40.9020401@hurleysoftware.com>
-References: <1458643595-14719-1-git-send-email-aleksey.makarov@linaro.org>
- <1458643595-14719-4-git-send-email-aleksey.makarov@linaro.org>
- <20160322122650.GA10616@yury-N73SV>
+From: Mika Westerberg <mika.westerberg@linux.intel.com>
+Subject: Re: [PATCH v5 1/3] gpio: designware: convert device node to fwnode
+Date: Tue, 22 Mar 2016 17:55:15 +0200
+Message-ID: <20160322155515.GD2099@lahna.fi.intel.com>
+References: <1457077474-124064-1-git-send-email-qiujiang@huawei.com>
+ <1457077474-124064-2-git-send-email-qiujiang@huawei.com>
+ <CACRpkdYb8HYXta3yHB4-n-KtSAhyrREUGJJMOUbt3ZXvSUbn6Q@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-pf0-f176.google.com ([209.85.192.176]:36846 "EHLO
-	mail-pf0-f176.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751077AbcCVO5I (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 22 Mar 2016 10:57:08 -0400
-Received: by mail-pf0-f176.google.com with SMTP id u190so316057973pfb.3
-        for <linux-acpi@vger.kernel.org>; Tue, 22 Mar 2016 07:57:08 -0700 (PDT)
-In-Reply-To: <20160322122650.GA10616@yury-N73SV>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-gpio-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <CACRpkdYb8HYXta3yHB4-n-KtSAhyrREUGJJMOUbt3ZXvSUbn6Q@mail.gmail.com>
+Sender: linux-gpio-owner@vger.kernel.org
+To: Linus Walleij <linus.walleij@linaro.org>
+Cc: qiujiang <qiujiang@huawei.com>, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Lee Jones <lee.jones@linaro.org>, Alexandre Courbot <gnurou@gmail.com>, Andy Shevchenko <andy.shevchenko@gmail.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-gpio@vger.kernel.org" <linux-gpio@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linuxarm <linuxarm@huawei.com>, haifeng.wei@huawei.com, charles.chenxin@huawei.com
 List-Id: linux-acpi@vger.kernel.org
-To: Yury Norov <ynorov@caviumnetworks.com>, Aleksey Makarov <aleksey.makarov@linaro.org>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, linux-serial@vger.kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Russell King <linux@arm.linux.org.uk>, Leif Lindholm <leif.lindholm@linaro.org>, Graeme Gregory <graeme.gregory@linaro.org>, Al Stone <ahs3@redhat.com>, Christopher Covington <cov@codeaurora.org>, "Zheng, Lv" <lv.zheng@intel.com>, Jiri Slaby <jslaby@suse.com>
 
-On 03/22/2016 05:26 AM, Yury Norov wrote:
-> On Tue, Mar 22, 2016 at 01:46:30PM +0300, Aleksey Makarov wrote:
->> 'ARM Server Base Boot Requiremets' [1] mentions SPCR (Serial Port
->> Console Redirection Table) [2] as a mandatory ACPI table that
->> specifies the configuration of serial console.
->>
->> Parse this table, setup earlycon and enable the specified console.
->>
->> Thanks to Peter Hurley for explaining how this should work.
->>
->> [1] http://infocenter.arm.com/help/index.jsp?topic=/com.arm.doc.den0044a/index.html
->> [2] https://msdn.microsoft.com/en-us/library/windows/hardware/dn639132(v=vs.85).aspx
->>
->> Signed-off-by: Aleksey Makarov <aleksey.makarov@linaro.org>
->> ---
->>  drivers/acpi/Kconfig          |   3 ++
->>  drivers/acpi/Makefile         |   1 +
->>  drivers/acpi/spcr.c           | 102 ++++++++++++++++++++++++++++++++++++++++++
->>  drivers/tty/serial/earlycon.c |  13 ++++--
->>  include/linux/acpi.h          |   8 ++++
->>  5 files changed, 123 insertions(+), 4 deletions(-)
->>  create mode 100644 drivers/acpi/spcr.c
->>
->> diff --git a/drivers/acpi/Kconfig b/drivers/acpi/Kconfig
->> index 65fb483..5611eb6 100644
->> --- a/drivers/acpi/Kconfig
->> +++ b/drivers/acpi/Kconfig
->> @@ -77,6 +77,9 @@ config ACPI_DEBUGGER_USER
->>  
->>  endif
->>  
->> +config ACPI_SPCR_TABLE
->> +	bool
->> +
->>  config ACPI_SLEEP
->>  	bool
->>  	depends on SUSPEND || HIBERNATION
->> diff --git a/drivers/acpi/Makefile b/drivers/acpi/Makefile
->> index 7395928..f70ae14 100644
->> --- a/drivers/acpi/Makefile
->> +++ b/drivers/acpi/Makefile
->> @@ -82,6 +82,7 @@ obj-$(CONFIG_ACPI_EC_DEBUGFS)	+= ec_sys.o
->>  obj-$(CONFIG_ACPI_CUSTOM_METHOD)+= custom_method.o
->>  obj-$(CONFIG_ACPI_BGRT)		+= bgrt.o
->>  obj-$(CONFIG_ACPI_CPPC_LIB)	+= cppc_acpi.o
->> +obj-$(CONFIG_ACPI_SPCR_TABLE)	+= spcr.o
->>  obj-$(CONFIG_ACPI_DEBUGGER_USER) += acpi_dbg.o
->>  
->>  # processor has its own "processor." module_param namespace
->> diff --git a/drivers/acpi/spcr.c b/drivers/acpi/spcr.c
->> new file mode 100644
->> index 0000000..1ec82f9
->> --- /dev/null
->> +++ b/drivers/acpi/spcr.c
->> @@ -0,0 +1,102 @@
->> +/*
->> + * Copyright (c) 2012, Intel Corporation
->> + * Copyright (c) 2015, Red Hat, Inc.
->> + * Copyright (c) 2015, 2016 Linaro Ltd.
->> + *
->> + * This program is free software; you can redistribute it and/or modify
->> + * it under the terms of the GNU General Public License version 2 as
->> + * published by the Free Software Foundation.
->> + *
->> + */
->> +
->> +#define pr_fmt(fmt) "ACPI: SPCR: " fmt
->> +
->> +#include <linux/acpi.h>
->> +#include <linux/console.h>
->> +#include <linux/kernel.h>
->> +#include <linux/serial_core.h>
->> +
->> +static bool init_earlycon;
->> +
->> +void __init init_spcr_earlycon(void)
->> +{
->> +	init_earlycon = true;
->> +}
->> +
+On Tue, Mar 22, 2016 at 11:38:26AM +0100, Linus Walleij wrote:
+> On Fri, Mar 4, 2016 at 8:44 AM, qiujiang <qiujiang@huawei.com> wrote:
 > 
-> 1. I see you keep in mind multiple access.
-
-Concurrent access is not a concern here: only the boot cpu is running
-and intrs are off.
-
-The "init_earlycon" flag is used because parsing the "earlycon" early param
-is earlier than parsing ACPI tables.
-
-
- Then you'd worry about race
-> conditions as well. In this case, I'd consider atomic access to
-> variable.
-> 2. It seems you need is_init() helper too.
+> > This patch converts device node to fwnode in
+> > dwapb_port_property for designware gpio driver,
+> > so as to provide a unified data structure for DT
+> > and ACPI bindings.
+> >
+> > Acked-by: Andy Shevchenko <andy.shevchenko@gmail.com>
+> > Signed-off-by: qiujiang <qiujiang@huawei.com>
 > 
->> +int __init parse_spcr(void)
->> +{
->> +	static char opts[64];
->> +	struct acpi_table_spcr *table;
->> +	acpi_size table_size;
->> +	acpi_status status;
->> +	char *uart;
->> +	char *iotype;
->> +	int baud_rate;
->> +	int err = 0;
-> 
-> You can do not initialize 'err'.
+> I need Mika's and maybe also Rafael's ACKs on this before
+> I merge any of the series.
 
-Why?
-
-
-> 
->> +
->> +	status = acpi_get_table_with_size(ACPI_SIG_SPCR, 0,
->> +					  (struct acpi_table_header **)&table,
->> +					  &table_size);
->> +
->> +	if (ACPI_FAILURE(status))
->> +		return -ENOENT;
->> +
->> +	if (table->header.revision < 2) {
->> +		err = -EINVAL;
->> +		pr_err("wrong table version\n");
->> +		goto done;
->> +	}
->> +
->> +	iotype = (table->serial_port.space_id == ACPI_ADR_SPACE_SYSTEM_MEMORY) ?
->> +			"mmio" : "io";
->> +
->> +	switch (table->interface_type) {
->> +	case ACPI_DBG2_ARM_SBSA_32BIT:
->> +		iotype = "mmio32";
->> +		/* fall through */
->> +	case ACPI_DBG2_ARM_PL011:
->> +	case ACPI_DBG2_ARM_SBSA_GENERIC:
->> +	case ACPI_DBG2_BCM2835:
->> +		uart = "pl011";
->> +		break;
->> +	case ACPI_DBG2_16550_COMPATIBLE:
->> +	case ACPI_DBG2_16550_SUBSET:
->> +		uart = "uart";
->> +		break;
->> +	default:
->> +		err = -ENOENT;
->> +		goto done;
->> +	}
->> +
->> +	switch (table->baud_rate) {
->> +	case 3:
->> +		baud_rate = 9600;
->> +		break;
->> +	case 4:
->> +		baud_rate = 19200;
->> +		break;
->> +	case 6:
->> +		baud_rate = 57600;
->> +		break;
->> +	case 7:
->> +		baud_rate = 115200;
->> +		break;
->> +	default:
->> +		err = -ENOENT;
->> +		goto done;
->> +	}
->> +
->> +	sprintf(opts, "%s,%s,0x%llx,%d", uart, iotype,
->> +		table->serial_port.address, baud_rate);
-> 
-> As 'opts' is static, don't you need to take some measures to prevent
-> concurrent access. The simpler measure for me is to declare it on
-> stack.
-
-Again, concurrent access is not a concern at this early time.
-
-Regards,
-Peter Hurley
-
-
->> +
->> +	pr_info("console: %s", opts);
->> +
->> +	if (init_earlycon)
->> +		setup_earlycon(opts);
->> +
->> +	err = add_preferred_console(uart, 0, opts + strlen(uart) + 1);
->> +
->> +done:
->> +	early_acpi_os_unmap_memory((void __iomem *)table, table_size);
->> +	return err;
->> +}
->> diff --git a/drivers/tty/serial/earlycon.c b/drivers/tty/serial/earlycon.c
->> index d217366..ec030c9 100644
->> --- a/drivers/tty/serial/earlycon.c
->> +++ b/drivers/tty/serial/earlycon.c
->> @@ -22,6 +22,7 @@
->>  #include <linux/sizes.h>
->>  #include <linux/of.h>
->>  #include <linux/of_fdt.h>
->> +#include <linux/acpi.h>
->>  
->>  #ifdef CONFIG_FIX_EARLYCON_MEM
->>  #include <asm/fixmap.h>
->> @@ -206,11 +207,15 @@ static int __init param_setup_earlycon(char *buf)
->>  	int err;
->>  
->>  	/*
->> -	 * Just 'earlycon' is a valid param for devicetree earlycons;
->> -	 * don't generate a warning from parse_early_params() in that case
->> +	 * Just 'earlycon' is a valid param for devicetree and ACPI SPCR
->> +	 * earlycons; don't generate a warning from parse_early_params()
->> +	 * in that case
->>  	 */
->> -	if (!buf || !buf[0])
->> -		return early_init_dt_scan_chosen_serial();
->> +	if (!buf || !buf[0]) {
->> +		init_spcr_earlycon();
->> +		early_init_dt_scan_chosen_serial();
->> +		return 0;
->> +	}
->>  
->>  	err = setup_earlycon(buf);
->>  	if (err == -ENOENT || err == -EALREADY)
->> diff --git a/include/linux/acpi.h b/include/linux/acpi.h
->> index 06ed7e5..ebbb212 100644
->> --- a/include/linux/acpi.h
->> +++ b/include/linux/acpi.h
->> @@ -1004,4 +1004,12 @@ static inline struct fwnode_handle *acpi_get_next_subnode(struct device *dev,
->>  #define acpi_probe_device_table(t)	({ int __r = 0; __r;})
->>  #endif
->>  
->> +#ifdef CONFIG_ACPI_SPCR_TABLE
->> +int parse_spcr(void);
->> +void init_spcr_earlycon(void);
->> +#else
->> +static inline  int parse_spcr(void) { return 0; }
->> +static inline void init_spcr_earlycon(void) {}
->> +#endif
->> +
->>  #endif	/*_LINUX_ACPI_H*/
->> -- 
->> 2.7.4
-
+Hmm, I thought I already acked the ACPI GPIO signaled event patch? It
+still looks fine to me.
