@@ -1,42 +1,86 @@
-From: Lv Zheng <lv.zheng@intel.com>
-Subject: [PATCH 4/4] ACPI 2.0 / AML: Improve module level execution by moving the If/Else/While execution to per-table basis
-Date: Thu, 24 Mar 2016 10:43:08 +0800
-Message-ID: <046ae35c93c690ff86ae174d1facd905e106124f.1458786874.git.lv.zheng@intel.com>
-References: <c87e72bebfbfbb35c4f14100c0a0a5e19a6ec5ed> <cover.1458786874.git.lv.zheng@intel.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <cover.1458786874.git.lv.zheng@intel.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <len.brown@intel.com>
-Cc: Lv Zheng <lv.zheng@intel.com>, Lv Zheng <zetalog@gmail.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
+From: Laison@seymour.toledo.br, Computech@seymour.toledo.br,
+	"Inc <support"@ensuretech.com
+Subject: CISCO IP PHONES AND CPU's
+Date: Thu, 24 Mar 2016 05:43:22 +0700
+Message-ID: <20160324000722.5EEEBC2851@seymour.toledo.br>
+Reply-To: sales@laisoncomputech.com
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from seymour.toledo.br ([200.148.142.55]:49043 "EHLO
+	seymour.toledo.br" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753842AbcCXC5d convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 23 Mar 2016 22:57:33 -0400
+Content-Description: Mail message body
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Recipients <support@ensuretech.com>
 
-This experiment moves module level If/Else/While executions to per-table
-basis.
+Hi,
 
-If regressions are found against the enabling of this experimental
-improvement, this patch is the only one that should get bisected out.
-Please report the regressions to the kernel bugzilla for further root
-causing.
+Our Stock list.
 
-Link: https://bugzilla.kernel.org/show_bug.cgi?id=112911
-Signed-off-by: Lv Zheng <lv.zheng@intel.com>
-Tested-by: Chris Bainbridge <chris.bainbridge@gmail.com>
----
- include/acpi/acpixf.h |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+Brand NEW
+96 x Cisco 7900 IP Phone
+87 x Unified IP Phone 6900
+12 x Unified IP Phone 8900
+76 x Unified IP Phone 9900
+55 x Unified IP Phone 8800
+67 x Cisco 1921
+67 x Cisco 1941
+56 x Cisco CP-7961G 7961G
+34 x Cisco CP-7971G-GE 7971G
+19 x Cisco Unified IP Conference Station 7937G Model: 7937 CP-7937G
+20 x Cisco CP-7975G 7975G
 
-diff --git a/include/acpi/acpixf.h b/include/acpi/acpixf.h
-index 83583a2..cef1223 100644
---- a/include/acpi/acpixf.h
-+++ b/include/acpi/acpixf.h
-@@ -192,7 +192,7 @@ ACPI_INIT_GLOBAL(u8, acpi_gbl_do_not_use_xsdt, FALSE);
- /*
-  * Optionally support group module level code.
-  */
--ACPI_INIT_GLOBAL(u8, acpi_gbl_group_module_level_code, TRUE);
-+ACPI_INIT_GLOBAL(u8, acpi_gbl_group_module_level_code, FALSE);
- 
- /*
-  * Optionally use 32-bit FADT addresses if and when there is a conflict
--- 
-1.7.10
+Brand New Sealed :
+
+23 x  CISCO1921-SEC/K9
+Conditions: Brand New Sealed
+Description: CISCO 1921 Security Bundle w/SEC license PAK
+
+45 x CISCO1921/K9
+Conditions: Brand New Sealed
+Description: CISCO 1921 Modular Router, 2 GE, 2 EHWIC slots, 512DRAM, IP Base
+
+(1)  WS-C4500X-16SFP+
+Serial number:  JAE183501L3
+US&#36;2600
+
+(1)  WS-C3850-48PW-S
+Serial number:  FCW1823C0EW
+US&#36;2650
+
+(1)  WS-X6908-10G-2T
+Serial number:  SAL1620CKUB
+US&#36;3650
+
+(1)  ASR1000-ESP10
+Serial number:  JAE181306C3
+US&#36;3800
+
+(1)  AIR-CT5508-250-K9   (this is new but box is open!)
+Serial number:  FCW1521L038
+US&#36;4000
+
+CPUs part number below
+
+89 x  X5650
+
+975 x  X5660
+
+150 x  X5680
+
+265 x  X5690
+
+Kindly make your price offers.
+
+Sincerely
+Barbara Johnson
+Laison Computech
+210 N Scoring Ave,
+Rialto California, 92376
+Tel: +1-657-232-7047
+Fax: +1-347-214-0478
+Email: sales@laisoncomputech.com
