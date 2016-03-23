@@ -1,180 +1,104 @@
-From: Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>
-Subject: [PATCH v6] acpi: Issue _OSC call for native thermal interrupt handling
-Date: Tue, 22 Mar 2016 21:07:44 -0700
-Message-ID: <1458706064-4147-1-git-send-email-srinivas.pandruvada@linux.intel.com>
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga02.intel.com ([134.134.136.20]:2019 "EHLO mga02.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750704AbcCWEKp (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 23 Mar 2016 00:10:45 -0400
-Sender: linux-acpi-owner@vger.kernel.org
+From: Hanjun Guo <hanjun.guo@linaro.org>
+Subject: Re: [PATCH v3] PCI: ACPI: IA64: fix IO port generic range check
+Date: Wed, 23 Mar 2016 16:35:30 +0800
+Message-ID: <56F25552.3080609@linaro.org>
+References: <1458558775-6242-1-git-send-email-lorenzo.pieralisi@arm.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-ia64-owner@vger.kernel.org>
+In-Reply-To: <1458558775-6242-1-git-send-email-lorenzo.pieralisi@arm.com>
+Sender: linux-ia64-owner@vger.kernel.org
+To: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org
+Cc: linux-ia64@vger.kernel.org, linux-kernel@vger.kernel.org, Bjorn Helgaas <bhelgaas@google.com>, Jiang Liu <jiang.liu@linux.intel.com>, Tony Luck <tony.luck@intel.com>, Tomasz Nowicki <tn@semihalf.com>, Mark Salter <msalter@redhat.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>
 List-Id: linux-acpi@vger.kernel.org
-To: rjw@rjwysocki.net
-Cc: tony.luck@intel.com, bp@alien8.de, tglx@linutronix.de, mingo@redhat.com, hpa@zytor.com, lenb@kernel.org, linux-edac@vger.kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>
 
-There are several reports of freeze on enabling HWP (Hardware PStates)
-feature on Skylake based systems by Intel P states driver. The root
-cause is identified as the HWP interrupts causing BIOS code to freeze.
-HWP interrupts uses thermal LVT.
-Linux natively handles thermal interrupts, but in Skylake based systems
-SMM will take control of thermal interrupts. This is a problem for several
-reasons:
-- It is freezing in BIOS when tries to handle thermal interrupt, which
-will require BIOS upgrade
-- With SMM handling thermal we loose all the reporting features of
-Linux arch/x86/kernel/cpu/mcheck/therm_throt driver
-- Some thermal drivers like x86-package-temp driver depends on the thermal
-threshold interrupts
-- The HWP interrupts are useful for debugging and tuning performance
+On 2016/3/21 19:12, Lorenzo Pieralisi wrote:
+> The [0 - 64k] ACPI PCI IO port resource boundary check in:
+>
+> acpi_dev_ioresource_flags()
+>
+> is currently applied blindly in the ACPI resource parsing to all
+> architectures, but only x86 suffers from that IO space limitation.
+>
+> On arches (ie IA64 and ARM64) where IO space is memory mapped,
+> the PCI root bridges IO resource windows are firstly initialized from
+> the _CRS (in acpi_decode_space()) and contain the CPU physical address
+> at which a root bridge decodes IO space in the CPU physical address
+> space with the offset value representing the offset required to translate
+> the PCI bus address into the CPU physical address.
+>
+> The IO resource windows are then parsed and updated in arch code
+> before creating and enumerating PCI buses (eg IA64 add_io_space())
+> to map in an arch specific way the obtained CPU physical address range
+> to a slice of virtual address space reserved to map PCI IO space,
+> ending up with PCI bridges resource windows containing IO
+> resources like the following on a working IA64 configuration:
+>
+> PCI host bridge to bus 0000:00
+> pci_bus 0000:00: root bus resource [io  0x1000000-0x100ffff window] (bus
+> address [0x0000-0xffff])
+> pci_bus 0000:00: root bus resource [mem 0x000a0000-0x000fffff window]
+> pci_bus 0000:00: root bus resource [mem 0x80000000-0x8fffffff window]
+> pci_bus 0000:00: root bus resource [mem 0x80004000000-0x800ffffffff window]
+> pci_bus 0000:00: root bus resource [bus 00]
+>
+> This implies that the [0 - 64K] check in acpi_dev_ioresource_flags()
+> leaves platforms with memory mapped IO space (ie IA64) broken (ie kernel
+> can't claim IO resources since the host bridge IO resource is disabled
+> and discarded by ACPI core code, see log on IA64 with missing root bridge
+> IO resource, silently filtered by current [0 - 64k] check in
+> acpi_dev_ioresource_flags()):
+>
+> PCI host bridge to bus 0000:00
+> pci_bus 0000:00: root bus resource [mem 0x000a0000-0x000fffff window]
+> pci_bus 0000:00: root bus resource [mem 0x80000000-0x8fffffff window]
+> pci_bus 0000:00: root bus resource [mem 0x80004000000-0x800ffffffff window]
+> pci_bus 0000:00: root bus resource [bus 00]
+>
+> [...]
+>
+> pci 0000:00:03.0: [1002:515e] type 00 class 0x030000
+> pci 0000:00:03.0: reg 0x10: [mem 0x80000000-0x87ffffff pref]
+> pci 0000:00:03.0: reg 0x14: [io  0x1000-0x10ff]
+> pci 0000:00:03.0: reg 0x18: [mem 0x88020000-0x8802ffff]
+> pci 0000:00:03.0: reg 0x30: [mem 0x88000000-0x8801ffff pref]
+> pci 0000:00:03.0: supports D1 D2
+> pci 0000:00:03.0: can't claim BAR 1 [io  0x1000-0x10ff]: no compatible
+> bridge window
+>
+> For this reason, the IO port resources boundaries check in generic ACPI
+> parsing code should be guarded with a CONFIG_X86 guard so that more arches
+> (ie ARM64) can benefit from the generic ACPI resources parsing interface
+> without incurring in unexpected resource filtering, fixing at the same
+> time current breakage on IA64.
+>
+> This patch factors out IO ports boundary [0 - 64k] check in generic ACPI
+> code and makes the IO space check X86 specific to make sure that IO
+> space resources are usable on other arches too.
+>
+> Fixes: 3772aea7d6f3 ("ia64/PCI/ACPI: Use common ACPI resource parsing
+> interface for host bridge")
+> Signed-off-by: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+> Cc: Bjorn Helgaas <bhelgaas@google.com>
+> Cc: Hanjun Guo <hanjun.guo@linaro.org>
+> Cc: Jiang Liu <jiang.liu@linux.intel.com>
+> Cc: Tony Luck <tony.luck@intel.com>
+> Cc: Tomasz Nowicki <tn@semihalf.com>
+> Cc: Mark Salter <msalter@redhat.com>
+> Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+> ---
+> v2 -> v3
+>
+> - Moved IO resource check to generic ACPI resource code
+> - Dropped Tested-by tags
+> - Rebased against v4.5
 
-So we need native handling of thermal interrupts. This requires some
-way to inform SMM that OS can handle thermal interrupts. This can be
-done by using _OSC/_PDC under processor scope very early in ACPI
-initialization flow.
-The bit 12 of _OSC/_PDC in processor scope defines whether OS supports
-handling of native interrupts for Collaborative Processor Performance
-Control (CPPC) notifications. Since HWP is a implementation of CPPC,
-setting this bit is equivalent to inform SMM that OS is capable of
-handling thermal interrupts.
-Refer to this document for details on _OSC/_PDC
-http://www.intel.com/content/www/us/en/standards/processor-vendor-
-specific-acpi-specification.html
+Add this patch on top of Linus's latest tree, and test it
+on a HP rx2660 IA64 machine, the machine boot with NIC
+working properly, and no regressions in boot log.
 
-This change introduces a new function acpi_early_processor_set_osc(),
-which walks acpi name space and finds acpi processor object and
-set capability via _OSC method.
+Tested-by: Hanjun Guo <hanjun.guo@linaro.org>
 
-Also this change writes HWP status bits to 0 to clear any HWP status
-bits in intel_thermal_interrupt().
-
-Signed-off-by: Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>
----
-v6:
-Added __init for two functions and moved dummy function to internal.h
-Shortened the name of the function.
-
-v5:
-No code change. Changed commit message to explain HWP is a implementation
-of CPPC.
-
-v4:
-Suggestion by Boris for removing use of intermediate variable for
-clearing HWP status and using boot_cpu_has instead of static_cpu_has
-
-v3:
-- Added CONFIG_X86 around static_cpu_has() to fix compile error on
-ARCH=ia64, reported by kbuild test robot
-- return AE_CTRL_TERMINATE to terminate acpi name walk space, when _OSC
-is set already once.
-v2:
-Unnecessary newline was introduced, removed that in acpi_processor.c
-
- arch/x86/kernel/cpu/mcheck/therm_throt.c |  3 +++
- drivers/acpi/acpi_processor.c            | 44 ++++++++++++++++++++++++++++++++
- drivers/acpi/bus.c                       |  3 +++
- drivers/acpi/internal.h                  |  6 +++++
- 4 files changed, 56 insertions(+)
-
-diff --git a/arch/x86/kernel/cpu/mcheck/therm_throt.c b/arch/x86/kernel/cpu/mcheck/therm_throt.c
-index 2c5aaf8..0553858 100644
---- a/arch/x86/kernel/cpu/mcheck/therm_throt.c
-+++ b/arch/x86/kernel/cpu/mcheck/therm_throt.c
-@@ -385,6 +385,9 @@ static void intel_thermal_interrupt(void)
- {
- 	__u64 msr_val;
- 
-+	if (static_cpu_has(X86_FEATURE_HWP))
-+		wrmsrl_safe(MSR_HWP_STATUS, 0);
-+
- 	rdmsrl(MSR_IA32_THERM_STATUS, msr_val);
- 
- 	/* Check for violation of core thermal thresholds*/
-diff --git a/drivers/acpi/acpi_processor.c b/drivers/acpi/acpi_processor.c
-index 6979186..ba50f46 100644
---- a/drivers/acpi/acpi_processor.c
-+++ b/drivers/acpi/acpi_processor.c
-@@ -491,6 +491,50 @@ static void acpi_processor_remove(struct acpi_device *device)
- }
- #endif /* CONFIG_ACPI_HOTPLUG_CPU */
- 
-+#ifdef CONFIG_X86
-+static bool acpi_hwp_native_thermal_lvt_set;
-+static acpi_status __init acpi_hwp_native_thermal_lvt_osc(acpi_handle handle,
-+							  u32 lvl,
-+							  void *context,
-+							  void **rv)
-+{
-+	u8 sb_uuid_str[] = "4077A616-290C-47BE-9EBD-D87058713953";
-+	u32 capbuf[2];
-+	struct acpi_osc_context osc_context = {
-+		.uuid_str = sb_uuid_str,
-+		.rev = 1,
-+		.cap.length = 8,
-+		.cap.pointer = capbuf,
-+	};
-+
-+	if (acpi_hwp_native_thermal_lvt_set)
-+		return AE_CTRL_TERMINATE;
-+
-+	capbuf[0] = 0x0000;
-+	capbuf[1] = 0x1000; /* set bit 12 */
-+
-+	if (ACPI_SUCCESS(acpi_run_osc(handle, &osc_context))) {
-+		acpi_hwp_native_thermal_lvt_set = true;
-+		kfree(osc_context.ret.pointer);
-+	}
-+
-+	return AE_OK;
-+}
-+
-+void __init acpi_early_processor_set_osc(void)
-+{
-+	if (boot_cpu_has(X86_FEATURE_HWP)) {
-+		acpi_walk_namespace(ACPI_TYPE_PROCESSOR, ACPI_ROOT_OBJECT,
-+				    ACPI_UINT32_MAX,
-+				    acpi_hwp_native_thermal_lvt_osc,
-+				    NULL, NULL, NULL);
-+		acpi_get_devices(ACPI_PROCESSOR_DEVICE_HID,
-+				 acpi_hwp_native_thermal_lvt_osc,
-+				 NULL, NULL);
-+	}
-+}
-+#endif
-+
- /*
-  * The following ACPI IDs are known to be suitable for representing as
-  * processor devices.
-diff --git a/drivers/acpi/bus.c b/drivers/acpi/bus.c
-index 891c42d..7e73aea 100644
---- a/drivers/acpi/bus.c
-+++ b/drivers/acpi/bus.c
-@@ -1005,6 +1005,9 @@ static int __init acpi_bus_init(void)
- 		goto error1;
- 	}
- 
-+	/* Set capability bits for _OSC under processor scope */
-+	acpi_early_processor_set_osc();
-+
- 	/*
- 	 * _OSC method may exist in module level code,
- 	 * so it must be run after ACPI_FULL_INITIALIZATION
-diff --git a/drivers/acpi/internal.h b/drivers/acpi/internal.h
-index 1e6833a..9f34051b 100644
---- a/drivers/acpi/internal.h
-+++ b/drivers/acpi/internal.h
-@@ -138,6 +138,12 @@ void acpi_early_processor_set_pdc(void);
- static inline void acpi_early_processor_set_pdc(void) {}
- #endif
- 
-+#ifdef CONFIG_X86
-+void acpi_early_processor_set_osc(void);
-+#else
-+static inline void acpi_early_processor_set_osc(void) {}
-+#endif
-+
- /* --------------------------------------------------------------------------
-                                   Embedded Controller
-    -------------------------------------------------------------------------- */
--- 
-2.5.0
-
+Thanks
+Hanjun
