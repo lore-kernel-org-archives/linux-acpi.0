@@ -1,69 +1,155 @@
-From: Gabriele Paoloni <gabriele.paoloni@huawei.com>
-Subject: RE: [RFC PATCH 0/4] ACPI based PCI host driver with generic ECAM
-Date: Wed, 23 Mar 2016 10:22:45 +0000
-Message-ID: <EE11001F9E5DDD47B7634E2F8A612F2E1ED2A787@lhreml503-mbs>
-References: <CAKc_7PVK3VtaR-LDHNXPr5cSjbCcH--hsepFx=jVATNi=+a9Hw@mail.gmail.com>
- <1458245913-17211-1-git-send-email-jchandra@broadcom.com>
- <CAKc_7PWfP0eQJ8dRN=CLu37=GKxin32Uf5rjiZGZgQCbiab2iA@mail.gmail.com>
+From: Jiang Qiu <qiujiang@huawei.com>
+Subject: Re: [PATCH v5 1/3] gpio: designware: convert device node to fwnode
+Date: Wed, 23 Mar 2016 19:41:59 +0800
+Message-ID: <56F28107.6090305@huawei.com>
+References: <1457077474-124064-1-git-send-email-qiujiang@huawei.com>
+ <1457077474-124064-2-git-send-email-qiujiang@huawei.com>
+ <CANk1AXRTvSRZkWMQf03Ty+ouxcJDpD-hJ9tjXSqh5Z0OzOhk+w@mail.gmail.com>
+ <CAHp75VfGJZnOWUdZkjCbraupg=KUw2-jhtiRHLxrT2uUwJdvow@mail.gmail.com>
+Reply-To: <qiujiang@huawei.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from lhrrgout.huawei.com ([194.213.3.17]:39094 "EHLO
-	lhrrgout.huawei.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751039AbcCWKXr (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 23 Mar 2016 06:23:47 -0400
-In-Reply-To: <CAKc_7PWfP0eQJ8dRN=CLu37=GKxin32Uf5rjiZGZgQCbiab2iA@mail.gmail.com>
-Content-Language: en-US
+Received: from szxga01-in.huawei.com ([58.251.152.64]:47694 "EHLO
+	szxga01-in.huawei.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751925AbcCWLmZ (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 23 Mar 2016 07:42:25 -0400
+In-Reply-To: <CAHp75VfGJZnOWUdZkjCbraupg=KUw2-jhtiRHLxrT2uUwJdvow@mail.gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Jayachandran C <jchandra@broadcom.com>, Bjorn Helgaas <helgaas@kernel.org>, Tomasz Nowicki <tn@semihalf.com>, "rafael@kernel.org" <rafael@kernel.org>
-Cc: Arnd Bergmann <arnd@arndb.de>, Will Deacon <will.deacon@arm.com>, Catalin Marinas <catalin.marinas@arm.com>, Hanjun Guo <hanjun.guo@linaro.org>, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, "okaya@codeaurora.org" <okaya@codeaurora.org>, "jiang.liu@linux.intel.com" <jiang.liu@linux.intel.com>, Stefano Stabellini <Stefano.Stabellini@eu.citrix.com>, "robert.richter@caviumnetworks.com" <robert.richter@caviumnetworks.com>, Marcin Wojtas <mw@semihalf.com>, "Liviu.Dudau@arm.com" <Liviu.Dudau@arm.com>, David Daney <ddaney@caviumnetworks.com>, Wangyijing <wangyijing@huawei.com>, "Suravee.Suthikulpanit@amd.com" <Suravee.Suthikulpanit@amd.com>, "msalter@redhat.com" <msalter@redhat.com>, "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kerne>
+To: Andy Shevchenko <andy.shevchenko@gmail.com>, Alan Tull <delicious.quinoa@gmail.com>, Mika Westerberg <mika.westerberg@linux.intel.com>
+Cc: Linus Walleij <linus.walleij@linaro.org>, Alexandre Courbot <gnurou@gmail.com>, linux-kernel <linux-kernel@vger.kernel.org>, "linux-gpio@vger.kernel.org" <linux-gpio@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, linuxarm@huawei.com, haifeng.wei@huawei.com, charles.chenxin@huawei.com
 
-SGkgSmF5YWNoYW5kcmFuDQoNCj4gLS0tLS1PcmlnaW5hbCBNZXNzYWdlLS0tLS0NCj4gRnJvbTog
-bGludXgta2VybmVsLW93bmVyQHZnZXIua2VybmVsLm9yZyBbbWFpbHRvOmxpbnV4LWtlcm5lbC0N
-Cj4gb3duZXJAdmdlci5rZXJuZWwub3JnXSBPbiBCZWhhbGYgT2YgSmF5YWNoYW5kcmFuIEMNCj4g
-U2VudDogMTggTWFyY2ggMjAxNiAxNzo0OA0KPiBUbzogQmpvcm4gSGVsZ2FhczsgVG9tYXN6IE5v
-d2lja2k7IHJhZmFlbEBrZXJuZWwub3JnDQo+IENjOiBKYXlhY2hhbmRyYW4gQzsgQXJuZCBCZXJn
-bWFubjsgV2lsbCBEZWFjb247IENhdGFsaW4gTWFyaW5hczsgSGFuanVuDQo+IEd1bzsgTG9yZW56
-byBQaWVyYWxpc2k7IG9rYXlhQGNvZGVhdXJvcmEub3JnOw0KPiBqaWFuZy5saXVAbGludXguaW50
-ZWwuY29tOyBTdGVmYW5vIFN0YWJlbGxpbmk7DQo+IHJvYmVydC5yaWNodGVyQGNhdml1bW5ldHdv
-cmtzLmNvbTsgTWFyY2luIFdvanRhczsgTGl2aXUuRHVkYXVAYXJtLmNvbTsNCj4gRGF2aWQgRGFu
-ZXk7IFdhbmd5aWppbmc7IFN1cmF2ZWUuU3V0aGlrdWxwYW5pdEBhbWQuY29tOw0KPiBtc2FsdGVy
-QHJlZGhhdC5jb207IGxpbnV4LXBjaUB2Z2VyLmtlcm5lbC5vcmc7IGxpbnV4LWFybS0NCj4ga2Vy
-bmVsQGxpc3RzLmluZnJhZGVhZC5vcmc7IGxpbnV4LWFjcGlAdmdlci5rZXJuZWwub3JnOyBsaW51
-eC0NCj4ga2VybmVsQHZnZXIua2VybmVsLm9yZzsgbGluYXJvLWFjcGlAbGlzdHMubGluYXJvLm9y
-ZzsgSm9uIE1hc3RlcnMNCj4gU3ViamVjdDogUmU6IFtSRkMgUEFUQ0ggMC80XSBBQ1BJIGJhc2Vk
-IFBDSSBob3N0IGRyaXZlciB3aXRoIGdlbmVyaWMNCj4gRUNBTQ0KPiANCj4gT24gRnJpLCBNYXIg
-MTgsIDIwMTYgYXQgMTo0OCBBTSwgSmF5YWNoYW5kcmFuIEMgPGpjaGFuZHJhQGJyb2FkY29tLmNv
-bT4NCj4gd3JvdGU6DQo+ID4gSGkgQmpvcm4sDQo+ID4NCj4gPiBIZXJlIGlzIGEgbmV3IHBhdGNo
-c2V0IGZvciB0aGUgQUNQSSBQQ0kgY29udHJvbGxlciBkcml2ZXIgYmFzZWQgb24NCj4gdGhlDQo+
-ID4gZWFybGllciBkaXNjdXNzaW9uWzFdLg0KPiA+DQo+ID4gVGhlIGZpcnN0IHR3byBwYXRjaGVz
-IGluIHRoZSBwYXRjaHNldCBpbXBsZW1lbnRzIHBjaS9lY2FtLmMgZm9yDQo+IGdlbmVyaWMNCj4g
-PiBjb25maWcgc3BhY2UgYWNjZXNzIGFuZCB1c2VzIGl0IGluIHBjaS1ob3N0LWdlbmVyaWMuYyBh
-bmQgcmVsYXRlZA0KPiBmaWxlcy4NCj4gPg0KPiA+IFRoZSB0aGlyZCBwYXRjaCBpbXBsZW1lbnRz
-IHRoZSBBQ1BJIFBDSSBob3N0IGRyaXZlciB1c2luZyB0aGUgc2FtZQ0KPiBlY2FtDQo+ID4gYWNj
-ZXNzIGZ1bmN0aW9ucy4gVGhlIGZvdXJ0aCBwYXRjaCBhZGRzIHRoZSBpbXBsZW1lbnRhdGlvbiBv
-ZiByYXcNCj4gPiBvcGVyYXRpb25zLg0KPiA+DQo+ID4gSSBoYXZlIG5vdCB1c2VkIHRoZSBwY2lf
-bW1jZmdfbGlzdCBvciB0aGUgcmVnaW9uIGRlZmluaXRpb25zIGZyb20NCj4geDg2LA0KPiA+IGJ1
-dCBoYXZlIHVzZWQgYSBtdWNoIHNpbXBsZXIgYXBwcm9hY2ggaGVyZS4NCj4gPg0KPiA+IFRoaXMg
-c2hvdWxkIGFwcGx5IGNsZWFubHkgb24gdG9wIG9mIHRoZSBjdXJyZW50IHBjaSBuZXh0IHRyZWUs
-IGFuZA0KPiA+IGNhbiBiZSByZXZpZXdlZCBhcyBhIHBhdGNoc2V0LiAgVG8gdXNlIGl0IG9uIEFS
-TTY0LCB3ZSBuZWVkIHRvIHB1bGwNCj4gPiBpbiBhYm91dCA3IHBhdGNoZXMgbW9yZSBmcm9tIFRv
-bWFzeiBwYXRjaHNldCB0aGF0IGZpeGVzIHZhcmlvdXMNCj4gPiBpc3N1ZXMgKGxpa2Ugc3R1YiBj
-b2RlIGluIGFybTY0IHBjaS5jLCBBQ1BJIGNvbXBhbmlvbiBzZXR1cCwNCj4gPiBkb21haW4gbnVt
-YmVyIGFzc2lnbm1lbnQsIElPIHJlc291cmNlcyBmaXh1cCBldGMuKS4NCj4gPg0KPiA+IElmIHlv
-dSBhcmUgb2theSB3aXRoIHRoaXMgYXBwcm9hY2gsIEkgd2lsbCB3b3JrIHdpdGggVG9tYXN6IGFu
-ZA0KPiA+IHBvc3QgdGhlIGZ1bGwgcGF0Y2hzZXQuDQo+ID4NCj4gPiBUaGlzIGhhcyBiZWVuIHRl
-c3RlZCBvbiBxZW11IHdpdGggT1ZNRiBmb3IgdGhlIEFDUEkgcGFydCBhbmQgd2l0aA0KPiA+IGRl
-dmljZSB0cmVlIGZvciBwY2ktaG9zdC1nZW5lcmljIGNvZGUuDQo+IA0KPiBUaGUgZnVsbCBwYXRj
-aHNldCBpcyBhdmFpbGFibGUgYXQgaHR0cHM6Ly9naXRodWIuY29tL2pjaGFuZHJhLQ0KPiBicmNt
-L2xpbnV4LmdpdCBvbg0KPiBicmFuY2ggYXJtNjQtYWNwaS1wY2ksIGlmIGFueW9uZSB3YW50cyB0
-byB0cnkgaXQuDQoNCkkgaGFkIGEgbG9vayBhdCB5b3VyIHBhdGNoc2V0IGFuZCBhbHNvIGluIHlv
-dXIgZ2l0IHJlcG8gYXQgdGhlIG90aGVyDQpwYXRjaGVzIHRoYXQgeW91IHBvcnRlZCBvdmVyIGZy
-b20gVG9tYXN6OyBpdCBzZWVtcyB0aGF0IG5vdyB3ZSBtaXNzDQphIHF1aXJrIG1lY2hhbmlzbSB0
-byBlbmFibGUgY29udHJvbGxlciB0aGF0IGFyZSBub3QgZnVsbHkgRUNBTS4NCg0KVGhpcyB3YXMg
-cHJvdmlkZWQgYmVmb3JlIGJ5IFRvbWFzeiBpbjoNCmh0dHBzOi8vbGttbC5vcmcvbGttbC8yMDE2
-LzIvMTYvNDEwDQoNCkkgdGhpbmsgd2Ugc2hvdWxkIHB1dCBzb21ldGhpbmcgbGlrZSB0aGF0IGJh
-Y2sgaW4uLi4NCg0KVGhhbmtzDQoNCkdhYg0KDQo+IA0KPiBDb21tZW50cywgc3VnZ2VzdGlvbnMg
-YW5kIHRlc3Rpbmcgd291bGQgYmUgd2VsY29tZS4NCj4gDQo+IFRoYW5rcywNCj4gSkMuDQo=
+=E5=9C=A8 2016/3/11 4:27, Andy Shevchenko =E5=86=99=E9=81=93:
+> On Thu, Mar 10, 2016 at 9:09 PM, Alan Tull <delicious.quinoa@gmail.co=
+m> wrote:
+>> On Fri, Mar 4, 2016 at 1:44 AM, qiujiang <qiujiang@huawei.com> wrote=
+:
+>>> This patch converts device node to fwnode in
+>>> dwapb_port_property for designware gpio driver,
+>>> so as to provide a unified data structure for DT
+>>> and ACPI bindings.
+>>>
+>>> Acked-by: Andy Shevchenko <andy.shevchenko@gmail.com>
+>>> Signed-off-by: qiujiang <qiujiang@huawei.com>
+>>> @@ -496,18 +492,19 @@ dwapb_gpio_get_pdata_of(struct device *dev)
+>>>                  * Only port A can provide interrupts in all config=
+urations of
+>>>                  * the IP.
+>>>                  */
+>>> -               if (pp->idx =3D=3D 0 &&
+>>> -                   of_property_read_bool(port_np, "interrupt-contr=
+oller")) {
+>>> -                       pp->irq =3D irq_of_parse_and_map(port_np, 0=
+);
+>>> +               if (dev->of_node && pp->idx =3D=3D 0 &&
+>>> +                       of_property_read_bool(to_of_node(fwnode),
+>>> +                               "interrupt-controller")) {
+>> Hi Qiujiang,
+>>
+>> Is there a reason to use "of_property_read_bool" here instead of
+>> "device_property_read_bool" or similar?
+> Yeah, this patch looks unfinished.
+>
+> This should be
+>      if (pp->idx =3D=3D 0 &&  fwnode_property_read_bool(fwnode,
+> "interrupt-controller")) {
+Hi, Alan, Andy, Mika,
+
+Many thanks for help me review this patchset.
+
+I tried to use a unified interface to parse the interrupts resource in =
+DT and ACPI,
+but it looks difficult because of the hierarchy device node structure a=
+s follow:
+
+pc_gpio1: gpio@802f0000 {
+            #address-cells =3D <1>;
+            #size-cells =3D <0>;
+            compatible =3D "snps,dw-apb-gpio";
+            reg =3D <0x0 0x802f0000 0x0 0x10000>;
+
+            porta: gpio-controller@0 {
+                compatible =3D "snps,dw-apb-gpio-port";
+                gpio-controller;
+                #gpio-cells =3D <2>;
+                snps,nr-gpios =3D <32>;
+                reg =3D <0>;
+                interrupt-controller;
+                #interrupt-cells =3D <2>;
+                interrupts =3D <0 313 4>;
+            };
+};
+
+According to the designware gpio databook, each GPIO controller include=
+s 4 ports
+(porta,b,c,d), only porta can be a interrupt controller. So, I moved th=
+e interrupts
+resource to the parent node from porta in ACPI.
+
+Device(GPI0) {
+        Name(_HID, "HISI0181")
+        Name(_ADR, 0) // _ADR: Address
+        Name(_UID, 0)
+      =20
+        Name (_CRS, ResourceTemplate ()  {
+            Memory32Fixed (ReadWrite, 0x802e0000, 0x10000)
+            Interrupt (ResourceConsumer, Level, ActiveHigh, Exclusive,,=
+,)  {344} //moved here
+        })
+      =20
+        Device(PRTa) {
+            Name (_DSD, Package () {
+                ToUUID("daffd814-6eba-4d8c-8a91-bc9bbf4aa301"),
+                Package () {
+                    Package () {"reg",0},
+                    Package () {"snps,nr-gpios",32},
+                }
+            })
+        }
+}
+
+That is to say, if GPI0 should be a interrupt controller, the child nod=
+e PRTa must be
+present first, then add the interrupt resource to the parent node GPI0 =
+scope.
+
+Dose this proposal sounds ok? if yes, we can do that for DT. If not, th=
+ere can only
+keep two branches to parse the IRQ resource, and the code looks strange=
+=2E
+
+That would be great if I can get some help from you.
+
+Best Regards
+Jiang
+>> Alan
+>>
+>>> +                       pp->irq =3D irq_of_parse_and_map(to_of_node=
+(fwnode), 0);
+> But here should be common method called which takes fwnode on input.
+>
+>>>                         if (!pp->irq) {
+>>>                                 dev_warn(dev, "no irq for bank %s\n=
+",
+>>> -                                        port_np->full_name);
+>>> +                                        to_of_node(fwnode)->full_n=
+ame);
+>>>                         }
+>>>                 }
+>>>
+>>>                 pp->irq_shared  =3D false;
+>>>                 pp->gpio_base   =3D -1;
+>>> -               pp->name        =3D port_np->full_name;
+>>> +               pp->name        =3D to_of_node(fwnode)->full_name;
+> Also those two should be device property source agnostic. That's what
+> I tried to tell earlier.
+>
+
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
