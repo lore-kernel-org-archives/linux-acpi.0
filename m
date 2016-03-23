@@ -1,167 +1,196 @@
-From: Alan Tull <delicious.quinoa@gmail.com>
-Subject: Re: [PATCH v5 1/3] gpio: designware: convert device node to fwnode
-Date: Wed, 23 Mar 2016 11:20:08 -0500
-Message-ID: <CANk1AXSJQh4VovcBVqvt=s4f7yBVLLyhG3js4o1HDNW80u-=JQ@mail.gmail.com>
-References: <1457077474-124064-1-git-send-email-qiujiang@huawei.com>
-	<1457077474-124064-2-git-send-email-qiujiang@huawei.com>
-	<CANk1AXRTvSRZkWMQf03Ty+ouxcJDpD-hJ9tjXSqh5Z0OzOhk+w@mail.gmail.com>
-	<CAHp75VfGJZnOWUdZkjCbraupg=KUw2-jhtiRHLxrT2uUwJdvow@mail.gmail.com>
-	<56F28107.6090305@huawei.com>
+From: Linda Knippers <linda.knippers@hpe.com>
+Subject: Re: [PATCH v6] acpi: Issue _OSC call for native thermal interrupt
+ handling
+Date: Wed, 23 Mar 2016 12:43:33 -0400
+Message-ID: <56F2C7B5.4000208@hpe.com>
+References: <1458706064-4147-1-git-send-email-srinivas.pandruvada@linux.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-wm0-f66.google.com ([74.125.82.66]:32862 "EHLO
-	mail-wm0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755786AbcCWQUK convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 23 Mar 2016 12:20:10 -0400
-In-Reply-To: <56F28107.6090305@huawei.com>
+Received: from g2t4623.austin.hp.com ([15.73.212.78]:48031 "EHLO
+	g2t4623.austin.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755457AbcCWQnj (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 23 Mar 2016 12:43:39 -0400
+In-Reply-To: <1458706064-4147-1-git-send-email-srinivas.pandruvada@linux.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: qiujiang <qiujiang@huawei.com>
-Cc: Andy Shevchenko <andy.shevchenko@gmail.com>, Mika Westerberg <mika.westerberg@linux.intel.com>, Linus Walleij <linus.walleij@linaro.org>, Alexandre Courbot <gnurou@gmail.com>, linux-kernel <linux-kernel@vger.kernel.org>, "linux-gpio@vger.kernel.org" <linux-gpio@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, linuxarm@huawei.com, haifeng.wei@huawei.com, charles.chenxin@huawei.com, atull <atull@opensource.altera.com>
+To: Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>, rjw@rjwysocki.net
+Cc: tony.luck@intel.com, bp@alien8.de, tglx@linutronix.de, mingo@redhat.com, hpa@zytor.com, lenb@kernel.org, linux-edac@vger.kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
 
-On Wed, Mar 23, 2016 at 6:41 AM, Jiang Qiu <qiujiang@huawei.com> wrote:
-> =E5=9C=A8 2016/3/11 4:27, Andy Shevchenko =E5=86=99=E9=81=93:
->> On Thu, Mar 10, 2016 at 9:09 PM, Alan Tull <delicious.quinoa@gmail.c=
-om> wrote:
->>> On Fri, Mar 4, 2016 at 1:44 AM, qiujiang <qiujiang@huawei.com> wrot=
-e:
->>>> This patch converts device node to fwnode in
->>>> dwapb_port_property for designware gpio driver,
->>>> so as to provide a unified data structure for DT
->>>> and ACPI bindings.
->>>>
->>>> Acked-by: Andy Shevchenko <andy.shevchenko@gmail.com>
->>>> Signed-off-by: qiujiang <qiujiang@huawei.com>
->>>> @@ -496,18 +492,19 @@ dwapb_gpio_get_pdata_of(struct device *dev)
->>>>                  * Only port A can provide interrupts in all confi=
-gurations of
->>>>                  * the IP.
->>>>                  */
->>>> -               if (pp->idx =3D=3D 0 &&
->>>> -                   of_property_read_bool(port_np, "interrupt-cont=
-roller")) {
->>>> -                       pp->irq =3D irq_of_parse_and_map(port_np, =
-0);
->>>> +               if (dev->of_node && pp->idx =3D=3D 0 &&
->>>> +                       of_property_read_bool(to_of_node(fwnode),
->>>> +                               "interrupt-controller")) {
->>> Hi Qiujiang,
->>>
->>> Is there a reason to use "of_property_read_bool" here instead of
->>> "device_property_read_bool" or similar?
->> Yeah, this patch looks unfinished.
->>
->> This should be
->>      if (pp->idx =3D=3D 0 &&  fwnode_property_read_bool(fwnode,
->> "interrupt-controller")) {
-> Hi, Alan, Andy, Mika,
->
-> Many thanks for help me review this patchset.
->
-> I tried to use a unified interface to parse the interrupts resource i=
-n DT and ACPI,
-> but it looks difficult because of the hierarchy device node structure=
- as follow:
->
-> pc_gpio1: gpio@802f0000 {
->             #address-cells =3D <1>;
->             #size-cells =3D <0>;
->             compatible =3D "snps,dw-apb-gpio";
->             reg =3D <0x0 0x802f0000 0x0 0x10000>;
->
->             porta: gpio-controller@0 {
->                 compatible =3D "snps,dw-apb-gpio-port";
->                 gpio-controller;
->                 #gpio-cells =3D <2>;
->                 snps,nr-gpios =3D <32>;
->                 reg =3D <0>;
->                 interrupt-controller;
->                 #interrupt-cells =3D <2>;
->                 interrupts =3D <0 313 4>;
->             };
-> };
->
-> According to the designware gpio databook, each GPIO controller inclu=
-des 4 ports
-> (porta,b,c,d), only porta can be a interrupt controller. So, I moved =
-the interrupts
-> resource to the parent node from porta in ACPI.
->
-> Device(GPI0) {
->         Name(_HID, "HISI0181")
->         Name(_ADR, 0) // _ADR: Address
->         Name(_UID, 0)
->
->         Name (_CRS, ResourceTemplate ()  {
->             Memory32Fixed (ReadWrite, 0x802e0000, 0x10000)
->             Interrupt (ResourceConsumer, Level, ActiveHigh, Exclusive=
-,,,)  {344} //moved here
->         })
->
->         Device(PRTa) {
->             Name (_DSD, Package () {
->                 ToUUID("daffd814-6eba-4d8c-8a91-bc9bbf4aa301"),
->                 Package () {
->                     Package () {"reg",0},
->                     Package () {"snps,nr-gpios",32},
->                 }
->             })
->         }
-> }
->
-> That is to say, if GPI0 should be a interrupt controller, the child n=
-ode PRTa must be
-> present first, then add the interrupt resource to the parent node GPI=
-0 scope.
->
-> Dose this proposal sounds ok? if yes, we can do that for DT. If not, =
-there can only
-> keep two branches to parse the IRQ resource, and the code looks stran=
-ge.
+I raised a general concern on a previous patch so I found a 1P server
+with Skylake and HWP to try.  This doesn't qualify as a tested-by
+since all I did was apply the patch and boot the server but hey, it booted.
 
-Hi Jiang,
+I do have a question below...
 
-Are you suggesting a change for the DT to make it similar to the ACPI
-case?  DT changes create unexpected breakages when people upgrade
-their kernel even if the change is minor.  How bad will the code look
-if you implement it as the two separate code paths as you suggest?
+On 3/23/2016 12:07 AM, Srinivas Pandruvada wrote:
+> There are several reports of freeze on enabling HWP (Hardware PStates)
+> feature on Skylake based systems by Intel P states driver. The root
+> cause is identified as the HWP interrupts causing BIOS code to freeze.
+> HWP interrupts uses thermal LVT.
+> Linux natively handles thermal interrupts, but in Skylake based systems
+> SMM will take control of thermal interrupts. This is a problem for several
+> reasons:
+> - It is freezing in BIOS when tries to handle thermal interrupt, which
+> will require BIOS upgrade
+> - With SMM handling thermal we loose all the reporting features of
+> Linux arch/x86/kernel/cpu/mcheck/therm_throt driver
+> - Some thermal drivers like x86-package-temp driver depends on the thermal
+> threshold interrupts
+> - The HWP interrupts are useful for debugging and tuning performance
+> 
+> So we need native handling of thermal interrupts. This requires some
+> way to inform SMM that OS can handle thermal interrupts. This can be
+> done by using _OSC/_PDC under processor scope very early in ACPI
+> initialization flow.
+> The bit 12 of _OSC/_PDC in processor scope defines whether OS supports
+> handling of native interrupts for Collaborative Processor Performance
+> Control (CPPC) notifications. Since HWP is a implementation of CPPC,
+> setting this bit is equivalent to inform SMM that OS is capable of
+> handling thermal interrupts.
+> Refer to this document for details on _OSC/_PDC
+> http://www.intel.com/content/www/us/en/standards/processor-vendor-
+> specific-acpi-specification.html
+> 
+> This change introduces a new function acpi_early_processor_set_osc(),
+> which walks acpi name space and finds acpi processor object and
+> set capability via _OSC method.
+> 
+> Also this change writes HWP status bits to 0 to clear any HWP status
+> bits in intel_thermal_interrupt().
+> 
+> Signed-off-by: Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>
+> ---
+> v6:
+> Added __init for two functions and moved dummy function to internal.h
+> Shortened the name of the function.
+> 
+> v5:
+> No code change. Changed commit message to explain HWP is a implementation
+> of CPPC.
+> 
+> v4:
+> Suggestion by Boris for removing use of intermediate variable for
+> clearing HWP status and using boot_cpu_has instead of static_cpu_has
+> 
+> v3:
+> - Added CONFIG_X86 around static_cpu_has() to fix compile error on
+> ARCH=ia64, reported by kbuild test robot
+> - return AE_CTRL_TERMINATE to terminate acpi name walk space, when _OSC
+> is set already once.
+> v2:
+> Unnecessary newline was introduced, removed that in acpi_processor.c
+> 
+>  arch/x86/kernel/cpu/mcheck/therm_throt.c |  3 +++
+>  drivers/acpi/acpi_processor.c            | 44 ++++++++++++++++++++++++++++++++
+>  drivers/acpi/bus.c                       |  3 +++
+>  drivers/acpi/internal.h                  |  6 +++++
+>  4 files changed, 56 insertions(+)
+> 
+> diff --git a/arch/x86/kernel/cpu/mcheck/therm_throt.c b/arch/x86/kernel/cpu/mcheck/therm_throt.c
+> index 2c5aaf8..0553858 100644
+> --- a/arch/x86/kernel/cpu/mcheck/therm_throt.c
+> +++ b/arch/x86/kernel/cpu/mcheck/therm_throt.c
+> @@ -385,6 +385,9 @@ static void intel_thermal_interrupt(void)
+>  {
+>  	__u64 msr_val;
+>  
+> +	if (static_cpu_has(X86_FEATURE_HWP))
+> +		wrmsrl_safe(MSR_HWP_STATUS, 0);
+> +
+>  	rdmsrl(MSR_IA32_THERM_STATUS, msr_val);
+>  
+>  	/* Check for violation of core thermal thresholds*/
+> diff --git a/drivers/acpi/acpi_processor.c b/drivers/acpi/acpi_processor.c
+> index 6979186..ba50f46 100644
+> --- a/drivers/acpi/acpi_processor.c
+> +++ b/drivers/acpi/acpi_processor.c
+> @@ -491,6 +491,50 @@ static void acpi_processor_remove(struct acpi_device *device)
+>  }
+>  #endif /* CONFIG_ACPI_HOTPLUG_CPU */
+>  
+> +#ifdef CONFIG_X86
+> +static bool acpi_hwp_native_thermal_lvt_set;
+> +static acpi_status __init acpi_hwp_native_thermal_lvt_osc(acpi_handle handle,
+> +							  u32 lvl,
+> +							  void *context,
+> +							  void **rv)
+> +{
+> +	u8 sb_uuid_str[] = "4077A616-290C-47BE-9EBD-D87058713953";
+> +	u32 capbuf[2];
+> +	struct acpi_osc_context osc_context = {
+> +		.uuid_str = sb_uuid_str,
+> +		.rev = 1,
+> +		.cap.length = 8,
+> +		.cap.pointer = capbuf,
+> +	};
+> +
+> +	if (acpi_hwp_native_thermal_lvt_set)
+> +		return AE_CTRL_TERMINATE;
+> +
+> +	capbuf[0] = 0x0000;
+> +	capbuf[1] = 0x1000; /* set bit 12 */
+> +
+> +	if (ACPI_SUCCESS(acpi_run_osc(handle, &osc_context))) {
+> +		acpi_hwp_native_thermal_lvt_set = true;
+> +		kfree(osc_context.ret.pointer);
 
-Alan
+There are other boot messages that indicate when something is happening
+with _OSC.  Should there be one for this?  Or is there some other obvious
+way one can know that this was set?
 
->
-> That would be great if I can get some help from you.
->
-> Best Regards
-> Jiang
->>> Alan
->>>
->>>> +                       pp->irq =3D irq_of_parse_and_map(to_of_nod=
-e(fwnode), 0);
->> But here should be common method called which takes fwnode on input.
->>
->>>>                         if (!pp->irq) {
->>>>                                 dev_warn(dev, "no irq for bank %s\=
-n",
->>>> -                                        port_np->full_name);
->>>> +                                        to_of_node(fwnode)->full_=
-name);
->>>>                         }
->>>>                 }
->>>>
->>>>                 pp->irq_shared  =3D false;
->>>>                 pp->gpio_base   =3D -1;
->>>> -               pp->name        =3D port_np->full_name;
->>>> +               pp->name        =3D to_of_node(fwnode)->full_name;
->> Also those two should be device property source agnostic. That's wha=
-t
->> I tried to tell earlier.
->>
->
->
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> +	}
+> +
+> +	return AE_OK;
+> +}
+> +
+> +void __init acpi_early_processor_set_osc(void)
+> +{
+> +	if (boot_cpu_has(X86_FEATURE_HWP)) {
+> +		acpi_walk_namespace(ACPI_TYPE_PROCESSOR, ACPI_ROOT_OBJECT,
+> +				    ACPI_UINT32_MAX,
+> +				    acpi_hwp_native_thermal_lvt_osc,
+> +				    NULL, NULL, NULL);
+> +		acpi_get_devices(ACPI_PROCESSOR_DEVICE_HID,
+> +				 acpi_hwp_native_thermal_lvt_osc,
+> +				 NULL, NULL);
+> +	}
+> +}
+> +#endif
+> +
+>  /*
+>   * The following ACPI IDs are known to be suitable for representing as
+>   * processor devices.
+> diff --git a/drivers/acpi/bus.c b/drivers/acpi/bus.c
+> index 891c42d..7e73aea 100644
+> --- a/drivers/acpi/bus.c
+> +++ b/drivers/acpi/bus.c
+> @@ -1005,6 +1005,9 @@ static int __init acpi_bus_init(void)
+>  		goto error1;
+>  	}
+>  
+> +	/* Set capability bits for _OSC under processor scope */
+> +	acpi_early_processor_set_osc();
+> +
+>  	/*
+>  	 * _OSC method may exist in module level code,
+>  	 * so it must be run after ACPI_FULL_INITIALIZATION
+> diff --git a/drivers/acpi/internal.h b/drivers/acpi/internal.h
+> index 1e6833a..9f34051b 100644
+> --- a/drivers/acpi/internal.h
+> +++ b/drivers/acpi/internal.h
+> @@ -138,6 +138,12 @@ void acpi_early_processor_set_pdc(void);
+>  static inline void acpi_early_processor_set_pdc(void) {}
+>  #endif
+>  
+> +#ifdef CONFIG_X86
+> +void acpi_early_processor_set_osc(void);
+> +#else
+> +static inline void acpi_early_processor_set_osc(void) {}
+> +#endif
+> +
+>  /* --------------------------------------------------------------------------
+>                                    Embedded Controller
+>     -------------------------------------------------------------------------- */
+> 
