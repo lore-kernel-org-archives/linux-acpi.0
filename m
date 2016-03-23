@@ -1,104 +1,69 @@
-From: Hanjun Guo <hanjun.guo@linaro.org>
-Subject: Re: [PATCH v3] PCI: ACPI: IA64: fix IO port generic range check
-Date: Wed, 23 Mar 2016 16:35:30 +0800
-Message-ID: <56F25552.3080609@linaro.org>
-References: <1458558775-6242-1-git-send-email-lorenzo.pieralisi@arm.com>
+From: Gabriele Paoloni <gabriele.paoloni@huawei.com>
+Subject: RE: [RFC PATCH 0/4] ACPI based PCI host driver with generic ECAM
+Date: Wed, 23 Mar 2016 10:22:45 +0000
+Message-ID: <EE11001F9E5DDD47B7634E2F8A612F2E1ED2A787@lhreml503-mbs>
+References: <CAKc_7PVK3VtaR-LDHNXPr5cSjbCcH--hsepFx=jVATNi=+a9Hw@mail.gmail.com>
+ <1458245913-17211-1-git-send-email-jchandra@broadcom.com>
+ <CAKc_7PWfP0eQJ8dRN=CLu37=GKxin32Uf5rjiZGZgQCbiab2iA@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-ia64-owner@vger.kernel.org>
-In-Reply-To: <1458558775-6242-1-git-send-email-lorenzo.pieralisi@arm.com>
-Sender: linux-ia64-owner@vger.kernel.org
-To: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org
-Cc: linux-ia64@vger.kernel.org, linux-kernel@vger.kernel.org, Bjorn Helgaas <bhelgaas@google.com>, Jiang Liu <jiang.liu@linux.intel.com>, Tony Luck <tony.luck@intel.com>, Tomasz Nowicki <tn@semihalf.com>, Mark Salter <msalter@redhat.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from lhrrgout.huawei.com ([194.213.3.17]:39094 "EHLO
+	lhrrgout.huawei.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751039AbcCWKXr (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 23 Mar 2016 06:23:47 -0400
+In-Reply-To: <CAKc_7PWfP0eQJ8dRN=CLu37=GKxin32Uf5rjiZGZgQCbiab2iA@mail.gmail.com>
+Content-Language: en-US
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Jayachandran C <jchandra@broadcom.com>, Bjorn Helgaas <helgaas@kernel.org>, Tomasz Nowicki <tn@semihalf.com>, "rafael@kernel.org" <rafael@kernel.org>
+Cc: Arnd Bergmann <arnd@arndb.de>, Will Deacon <will.deacon@arm.com>, Catalin Marinas <catalin.marinas@arm.com>, Hanjun Guo <hanjun.guo@linaro.org>, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, "okaya@codeaurora.org" <okaya@codeaurora.org>, "jiang.liu@linux.intel.com" <jiang.liu@linux.intel.com>, Stefano Stabellini <Stefano.Stabellini@eu.citrix.com>, "robert.richter@caviumnetworks.com" <robert.richter@caviumnetworks.com>, Marcin Wojtas <mw@semihalf.com>, "Liviu.Dudau@arm.com" <Liviu.Dudau@arm.com>, David Daney <ddaney@caviumnetworks.com>, Wangyijing <wangyijing@huawei.com>, "Suravee.Suthikulpanit@amd.com" <Suravee.Suthikulpanit@amd.com>, "msalter@redhat.com" <msalter@redhat.com>, "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kerne>
 
-On 2016/3/21 19:12, Lorenzo Pieralisi wrote:
-> The [0 - 64k] ACPI PCI IO port resource boundary check in:
->
-> acpi_dev_ioresource_flags()
->
-> is currently applied blindly in the ACPI resource parsing to all
-> architectures, but only x86 suffers from that IO space limitation.
->
-> On arches (ie IA64 and ARM64) where IO space is memory mapped,
-> the PCI root bridges IO resource windows are firstly initialized from
-> the _CRS (in acpi_decode_space()) and contain the CPU physical address
-> at which a root bridge decodes IO space in the CPU physical address
-> space with the offset value representing the offset required to translate
-> the PCI bus address into the CPU physical address.
->
-> The IO resource windows are then parsed and updated in arch code
-> before creating and enumerating PCI buses (eg IA64 add_io_space())
-> to map in an arch specific way the obtained CPU physical address range
-> to a slice of virtual address space reserved to map PCI IO space,
-> ending up with PCI bridges resource windows containing IO
-> resources like the following on a working IA64 configuration:
->
-> PCI host bridge to bus 0000:00
-> pci_bus 0000:00: root bus resource [io  0x1000000-0x100ffff window] (bus
-> address [0x0000-0xffff])
-> pci_bus 0000:00: root bus resource [mem 0x000a0000-0x000fffff window]
-> pci_bus 0000:00: root bus resource [mem 0x80000000-0x8fffffff window]
-> pci_bus 0000:00: root bus resource [mem 0x80004000000-0x800ffffffff window]
-> pci_bus 0000:00: root bus resource [bus 00]
->
-> This implies that the [0 - 64K] check in acpi_dev_ioresource_flags()
-> leaves platforms with memory mapped IO space (ie IA64) broken (ie kernel
-> can't claim IO resources since the host bridge IO resource is disabled
-> and discarded by ACPI core code, see log on IA64 with missing root bridge
-> IO resource, silently filtered by current [0 - 64k] check in
-> acpi_dev_ioresource_flags()):
->
-> PCI host bridge to bus 0000:00
-> pci_bus 0000:00: root bus resource [mem 0x000a0000-0x000fffff window]
-> pci_bus 0000:00: root bus resource [mem 0x80000000-0x8fffffff window]
-> pci_bus 0000:00: root bus resource [mem 0x80004000000-0x800ffffffff window]
-> pci_bus 0000:00: root bus resource [bus 00]
->
-> [...]
->
-> pci 0000:00:03.0: [1002:515e] type 00 class 0x030000
-> pci 0000:00:03.0: reg 0x10: [mem 0x80000000-0x87ffffff pref]
-> pci 0000:00:03.0: reg 0x14: [io  0x1000-0x10ff]
-> pci 0000:00:03.0: reg 0x18: [mem 0x88020000-0x8802ffff]
-> pci 0000:00:03.0: reg 0x30: [mem 0x88000000-0x8801ffff pref]
-> pci 0000:00:03.0: supports D1 D2
-> pci 0000:00:03.0: can't claim BAR 1 [io  0x1000-0x10ff]: no compatible
-> bridge window
->
-> For this reason, the IO port resources boundaries check in generic ACPI
-> parsing code should be guarded with a CONFIG_X86 guard so that more arches
-> (ie ARM64) can benefit from the generic ACPI resources parsing interface
-> without incurring in unexpected resource filtering, fixing at the same
-> time current breakage on IA64.
->
-> This patch factors out IO ports boundary [0 - 64k] check in generic ACPI
-> code and makes the IO space check X86 specific to make sure that IO
-> space resources are usable on other arches too.
->
-> Fixes: 3772aea7d6f3 ("ia64/PCI/ACPI: Use common ACPI resource parsing
-> interface for host bridge")
-> Signed-off-by: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
-> Cc: Bjorn Helgaas <bhelgaas@google.com>
-> Cc: Hanjun Guo <hanjun.guo@linaro.org>
-> Cc: Jiang Liu <jiang.liu@linux.intel.com>
-> Cc: Tony Luck <tony.luck@intel.com>
-> Cc: Tomasz Nowicki <tn@semihalf.com>
-> Cc: Mark Salter <msalter@redhat.com>
-> Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-> ---
-> v2 -> v3
->
-> - Moved IO resource check to generic ACPI resource code
-> - Dropped Tested-by tags
-> - Rebased against v4.5
-
-Add this patch on top of Linus's latest tree, and test it
-on a HP rx2660 IA64 machine, the machine boot with NIC
-working properly, and no regressions in boot log.
-
-Tested-by: Hanjun Guo <hanjun.guo@linaro.org>
-
-Thanks
-Hanjun
+SGkgSmF5YWNoYW5kcmFuDQoNCj4gLS0tLS1PcmlnaW5hbCBNZXNzYWdlLS0tLS0NCj4gRnJvbTog
+bGludXgta2VybmVsLW93bmVyQHZnZXIua2VybmVsLm9yZyBbbWFpbHRvOmxpbnV4LWtlcm5lbC0N
+Cj4gb3duZXJAdmdlci5rZXJuZWwub3JnXSBPbiBCZWhhbGYgT2YgSmF5YWNoYW5kcmFuIEMNCj4g
+U2VudDogMTggTWFyY2ggMjAxNiAxNzo0OA0KPiBUbzogQmpvcm4gSGVsZ2FhczsgVG9tYXN6IE5v
+d2lja2k7IHJhZmFlbEBrZXJuZWwub3JnDQo+IENjOiBKYXlhY2hhbmRyYW4gQzsgQXJuZCBCZXJn
+bWFubjsgV2lsbCBEZWFjb247IENhdGFsaW4gTWFyaW5hczsgSGFuanVuDQo+IEd1bzsgTG9yZW56
+byBQaWVyYWxpc2k7IG9rYXlhQGNvZGVhdXJvcmEub3JnOw0KPiBqaWFuZy5saXVAbGludXguaW50
+ZWwuY29tOyBTdGVmYW5vIFN0YWJlbGxpbmk7DQo+IHJvYmVydC5yaWNodGVyQGNhdml1bW5ldHdv
+cmtzLmNvbTsgTWFyY2luIFdvanRhczsgTGl2aXUuRHVkYXVAYXJtLmNvbTsNCj4gRGF2aWQgRGFu
+ZXk7IFdhbmd5aWppbmc7IFN1cmF2ZWUuU3V0aGlrdWxwYW5pdEBhbWQuY29tOw0KPiBtc2FsdGVy
+QHJlZGhhdC5jb207IGxpbnV4LXBjaUB2Z2VyLmtlcm5lbC5vcmc7IGxpbnV4LWFybS0NCj4ga2Vy
+bmVsQGxpc3RzLmluZnJhZGVhZC5vcmc7IGxpbnV4LWFjcGlAdmdlci5rZXJuZWwub3JnOyBsaW51
+eC0NCj4ga2VybmVsQHZnZXIua2VybmVsLm9yZzsgbGluYXJvLWFjcGlAbGlzdHMubGluYXJvLm9y
+ZzsgSm9uIE1hc3RlcnMNCj4gU3ViamVjdDogUmU6IFtSRkMgUEFUQ0ggMC80XSBBQ1BJIGJhc2Vk
+IFBDSSBob3N0IGRyaXZlciB3aXRoIGdlbmVyaWMNCj4gRUNBTQ0KPiANCj4gT24gRnJpLCBNYXIg
+MTgsIDIwMTYgYXQgMTo0OCBBTSwgSmF5YWNoYW5kcmFuIEMgPGpjaGFuZHJhQGJyb2FkY29tLmNv
+bT4NCj4gd3JvdGU6DQo+ID4gSGkgQmpvcm4sDQo+ID4NCj4gPiBIZXJlIGlzIGEgbmV3IHBhdGNo
+c2V0IGZvciB0aGUgQUNQSSBQQ0kgY29udHJvbGxlciBkcml2ZXIgYmFzZWQgb24NCj4gdGhlDQo+
+ID4gZWFybGllciBkaXNjdXNzaW9uWzFdLg0KPiA+DQo+ID4gVGhlIGZpcnN0IHR3byBwYXRjaGVz
+IGluIHRoZSBwYXRjaHNldCBpbXBsZW1lbnRzIHBjaS9lY2FtLmMgZm9yDQo+IGdlbmVyaWMNCj4g
+PiBjb25maWcgc3BhY2UgYWNjZXNzIGFuZCB1c2VzIGl0IGluIHBjaS1ob3N0LWdlbmVyaWMuYyBh
+bmQgcmVsYXRlZA0KPiBmaWxlcy4NCj4gPg0KPiA+IFRoZSB0aGlyZCBwYXRjaCBpbXBsZW1lbnRz
+IHRoZSBBQ1BJIFBDSSBob3N0IGRyaXZlciB1c2luZyB0aGUgc2FtZQ0KPiBlY2FtDQo+ID4gYWNj
+ZXNzIGZ1bmN0aW9ucy4gVGhlIGZvdXJ0aCBwYXRjaCBhZGRzIHRoZSBpbXBsZW1lbnRhdGlvbiBv
+ZiByYXcNCj4gPiBvcGVyYXRpb25zLg0KPiA+DQo+ID4gSSBoYXZlIG5vdCB1c2VkIHRoZSBwY2lf
+bW1jZmdfbGlzdCBvciB0aGUgcmVnaW9uIGRlZmluaXRpb25zIGZyb20NCj4geDg2LA0KPiA+IGJ1
+dCBoYXZlIHVzZWQgYSBtdWNoIHNpbXBsZXIgYXBwcm9hY2ggaGVyZS4NCj4gPg0KPiA+IFRoaXMg
+c2hvdWxkIGFwcGx5IGNsZWFubHkgb24gdG9wIG9mIHRoZSBjdXJyZW50IHBjaSBuZXh0IHRyZWUs
+IGFuZA0KPiA+IGNhbiBiZSByZXZpZXdlZCBhcyBhIHBhdGNoc2V0LiAgVG8gdXNlIGl0IG9uIEFS
+TTY0LCB3ZSBuZWVkIHRvIHB1bGwNCj4gPiBpbiBhYm91dCA3IHBhdGNoZXMgbW9yZSBmcm9tIFRv
+bWFzeiBwYXRjaHNldCB0aGF0IGZpeGVzIHZhcmlvdXMNCj4gPiBpc3N1ZXMgKGxpa2Ugc3R1YiBj
+b2RlIGluIGFybTY0IHBjaS5jLCBBQ1BJIGNvbXBhbmlvbiBzZXR1cCwNCj4gPiBkb21haW4gbnVt
+YmVyIGFzc2lnbm1lbnQsIElPIHJlc291cmNlcyBmaXh1cCBldGMuKS4NCj4gPg0KPiA+IElmIHlv
+dSBhcmUgb2theSB3aXRoIHRoaXMgYXBwcm9hY2gsIEkgd2lsbCB3b3JrIHdpdGggVG9tYXN6IGFu
+ZA0KPiA+IHBvc3QgdGhlIGZ1bGwgcGF0Y2hzZXQuDQo+ID4NCj4gPiBUaGlzIGhhcyBiZWVuIHRl
+c3RlZCBvbiBxZW11IHdpdGggT1ZNRiBmb3IgdGhlIEFDUEkgcGFydCBhbmQgd2l0aA0KPiA+IGRl
+dmljZSB0cmVlIGZvciBwY2ktaG9zdC1nZW5lcmljIGNvZGUuDQo+IA0KPiBUaGUgZnVsbCBwYXRj
+aHNldCBpcyBhdmFpbGFibGUgYXQgaHR0cHM6Ly9naXRodWIuY29tL2pjaGFuZHJhLQ0KPiBicmNt
+L2xpbnV4LmdpdCBvbg0KPiBicmFuY2ggYXJtNjQtYWNwaS1wY2ksIGlmIGFueW9uZSB3YW50cyB0
+byB0cnkgaXQuDQoNCkkgaGFkIGEgbG9vayBhdCB5b3VyIHBhdGNoc2V0IGFuZCBhbHNvIGluIHlv
+dXIgZ2l0IHJlcG8gYXQgdGhlIG90aGVyDQpwYXRjaGVzIHRoYXQgeW91IHBvcnRlZCBvdmVyIGZy
+b20gVG9tYXN6OyBpdCBzZWVtcyB0aGF0IG5vdyB3ZSBtaXNzDQphIHF1aXJrIG1lY2hhbmlzbSB0
+byBlbmFibGUgY29udHJvbGxlciB0aGF0IGFyZSBub3QgZnVsbHkgRUNBTS4NCg0KVGhpcyB3YXMg
+cHJvdmlkZWQgYmVmb3JlIGJ5IFRvbWFzeiBpbjoNCmh0dHBzOi8vbGttbC5vcmcvbGttbC8yMDE2
+LzIvMTYvNDEwDQoNCkkgdGhpbmsgd2Ugc2hvdWxkIHB1dCBzb21ldGhpbmcgbGlrZSB0aGF0IGJh
+Y2sgaW4uLi4NCg0KVGhhbmtzDQoNCkdhYg0KDQo+IA0KPiBDb21tZW50cywgc3VnZ2VzdGlvbnMg
+YW5kIHRlc3Rpbmcgd291bGQgYmUgd2VsY29tZS4NCj4gDQo+IFRoYW5rcywNCj4gSkMuDQo=
