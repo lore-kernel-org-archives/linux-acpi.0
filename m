@@ -1,48 +1,175 @@
-From: Lukas Wunner <lukas@wunner.de>
-Subject: [PATCH 1/2] PM / sleep: Clear pm_suspend_global_flags upon hibernate
-Date: Wed, 23 Mar 2016 00:11:20 +0100
-Message-ID: <cf0a2955536f342ee58ddbee16c18cde5f59fc66.1458641423.git.lukas@wunner.de>
-References: <cover.1458641423.git.lukas@wunner.de>
+From: Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>
+Subject: [PATCH v5] acpi: Issue _OSC call for native thermal interrupt handling
+Date: Tue, 22 Mar 2016 18:05:22 -0700
+Message-ID: <1458695122-24301-1-git-send-email-srinivas.pandruvada@linux.intel.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mailout2.hostsharing.net ([83.223.90.233]:43608 "EHLO
-	mailout2.hostsharing.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932111AbcCVXJ4 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 22 Mar 2016 19:09:56 -0400
-In-Reply-To: <cover.1458641423.git.lukas@wunner.de>
+Received: from mga04.intel.com ([192.55.52.120]:50868 "EHLO mga04.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753006AbcCWBIW (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 22 Mar 2016 21:08:22 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-pm@vger.kernel.org, linux-acpi@vger.kernel.org
+To: rjw@rjwysocki.net
+Cc: tony.luck@intel.com, bp@alien8.de, tglx@linutronix.de, mingo@redhat.com, hpa@zytor.com, lenb@kernel.org, linux-edac@vger.kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>
 
-When suspending to RAM, waking up and later suspending to disk,
-we gratuitously runtime resume devices after the thaw phase.
-This does not occur if we always suspend to RAM or always to disk.
+There are several reports of freeze on enabling HWP (Hardware PStates)
+feature on Skylake based systems by Intel P states driver. The root
+cause is identified as the HWP interrupts causing BIOS code to freeze.
+HWP interrupts uses thermal LVT.
+Linux natively handles thermal interrupts, but in Skylake based systems
+SMM will take control of thermal interrupts. This is a problem for several
+reasons:
+- It is freezing in BIOS when tries to handle thermal interrupt, which
+will require BIOS upgrade
+- With SMM handling thermal we loose all the reporting features of
+Linux arch/x86/kernel/cpu/mcheck/therm_throt driver
+- Some thermal drivers like x86-package-temp driver depends on the thermal
+threshold interrupts
+- The HWP interrupts are useful for debugging and tuning performance
 
-pm_complete_with_resume_check(), which gets called from
-pci_pm_complete() among others, schedules a runtime resume
-if PM_SUSPEND_FLAG_FW_RESUME is set. The flag is set during
-a suspend-to-RAM cycle. It is cleared at the beginning of
-the suspend-to-RAM cycle but not afterwards and it is not
-cleared during a suspend-to-disk cycle at all. Fix it.
+So we need native handling of thermal interrupts. This requires some
+way to inform SMM that OS can handle thermal interrupts. This can be
+done by using _OSC/_PDC under processor scope very early in ACPI
+initialization flow.
+The bit 12 of _OSC/_PDC in processor scope defines whether OS supports
+handling of native interrupts for Collaborative Processor Performance
+Control (CPPC) notifications. Since HWP is a implementation of CPPC,
+setting this bit is equivalent to inform SMM that OS is capable of
+handling thermal interrupts.
+Refer to this document for details on _OSC/_PDC
+http://www.intel.com/content/www/us/en/standards/processor-vendor-
+specific-acpi-specification.html
 
-Fixes: ef25ba047601 ("PM / sleep: Add flags to indicate platform
-    firmware involvement")
-Signed-off-by: Lukas Wunner <lukas@wunner.de>
+This change introduces a new function acpi_early_processor_set_osc(),
+which walks acpi name space and finds acpi processor object and
+set capability via _OSC method.
+
+Also this change writes HWP status bits to 0 to clear any HWP status
+bits in intel_thermal_interrupt().
+
+Signed-off-by: Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>
 ---
- kernel/power/hibernate.c | 1 +
- 1 file changed, 1 insertion(+)
+v5:
+No code change. Changed commit message to explain HWP is a implementation
+of CPPC.
 
-diff --git a/kernel/power/hibernate.c b/kernel/power/hibernate.c
-index aa0f26b..fca9254 100644
---- a/kernel/power/hibernate.c
-+++ b/kernel/power/hibernate.c
-@@ -339,6 +339,7 @@ int hibernation_snapshot(int platform_mode)
- 	pm_message_t msg;
- 	int error;
+v4:
+Suggestion by Boris for removing use of intermediate variable for
+clearing HWP status and using boot_cpu_has instead of static_cpu_has
+
+v3:
+- Added CONFIG_X86 around static_cpu_has() to fix compile error on
+ARCH=ia64, reported by kbuild test robot
+- return AE_CTRL_TERMINATE to terminate acpi name walk space, when _OSC
+is set already once.
+v2:
+Unnecessary newline was introduced, removed that in acpi_processor.c
+
+ arch/x86/kernel/cpu/mcheck/therm_throt.c |  3 ++
+ drivers/acpi/acpi_processor.c            | 47 ++++++++++++++++++++++++++++++++
+ drivers/acpi/bus.c                       |  3 ++
+ drivers/acpi/internal.h                  |  2 ++
+ 4 files changed, 55 insertions(+)
+
+diff --git a/arch/x86/kernel/cpu/mcheck/therm_throt.c b/arch/x86/kernel/cpu/mcheck/therm_throt.c
+index 0b445c2..ac780ca 100644
+--- a/arch/x86/kernel/cpu/mcheck/therm_throt.c
++++ b/arch/x86/kernel/cpu/mcheck/therm_throt.c
+@@ -384,6 +384,9 @@ static void intel_thermal_interrupt(void)
+ {
+ 	__u64 msr_val;
  
-+	pm_suspend_clear_flags();
- 	error = platform_begin(platform_mode);
- 	if (error)
- 		goto Close;
++	if (static_cpu_has(X86_FEATURE_HWP))
++		wrmsrl_safe(MSR_HWP_STATUS, 0);
++
+ 	rdmsrl(MSR_IA32_THERM_STATUS, msr_val);
+ 
+ 	/* Check for violation of core thermal thresholds*/
+diff --git a/drivers/acpi/acpi_processor.c b/drivers/acpi/acpi_processor.c
+index b5e54f2..52934d9 100644
+--- a/drivers/acpi/acpi_processor.c
++++ b/drivers/acpi/acpi_processor.c
+@@ -491,6 +491,53 @@ static void acpi_processor_remove(struct acpi_device *device)
+ }
+ #endif /* CONFIG_ACPI_HOTPLUG_CPU */
+ 
++#ifdef CONFIG_X86
++static bool acpi_hwp_native_thermal_lvt_set;
++static acpi_status acpi_set_hwp_native_thermal_lvt_osc(acpi_handle handle,
++						       u32 lvl, void *context,
++						       void **rv)
++{
++	u8 sb_uuid_str[] = "4077A616-290C-47BE-9EBD-D87058713953";
++	u32 capbuf[2];
++	struct acpi_osc_context osc_context = {
++		.uuid_str = sb_uuid_str,
++		.rev = 1,
++		.cap.length = 8,
++		.cap.pointer = capbuf,
++	};
++
++	if (acpi_hwp_native_thermal_lvt_set)
++		return AE_CTRL_TERMINATE;
++
++	capbuf[0] = 0x0000;
++	capbuf[1] = 0x1000; /* set bit 12 */
++
++	if (ACPI_SUCCESS(acpi_run_osc(handle, &osc_context))) {
++		acpi_hwp_native_thermal_lvt_set = true;
++		kfree(osc_context.ret.pointer);
++	}
++
++	return AE_OK;
++}
++
++void acpi_early_processor_set_osc(void)
++{
++	if (boot_cpu_has(X86_FEATURE_HWP)) {
++		acpi_walk_namespace(ACPI_TYPE_PROCESSOR, ACPI_ROOT_OBJECT,
++				    ACPI_UINT32_MAX,
++				    acpi_set_hwp_native_thermal_lvt_osc,
++				    NULL, NULL, NULL);
++		acpi_get_devices(ACPI_PROCESSOR_DEVICE_HID,
++				 acpi_set_hwp_native_thermal_lvt_osc,
++				 NULL, NULL);
++	}
++}
++#else
++
++void acpi_early_processor_set_osc(void) {}
++
++#endif
++
+ /*
+  * The following ACPI IDs are known to be suitable for representing as
+  * processor devices.
+diff --git a/drivers/acpi/bus.c b/drivers/acpi/bus.c
+index 0e85678..1f65eb5 100644
+--- a/drivers/acpi/bus.c
++++ b/drivers/acpi/bus.c
+@@ -1019,6 +1019,9 @@ static int __init acpi_bus_init(void)
+ 		goto error1;
+ 	}
+ 
++	/* Set capability bits for _OSC under processor scope */
++	acpi_early_processor_set_osc();
++
+ 	/*
+ 	 * _OSC method may exist in module level code,
+ 	 * so it must be run after ACPI_FULL_INITIALIZATION
+diff --git a/drivers/acpi/internal.h b/drivers/acpi/internal.h
+index a37508e..0aaeef1 100644
+--- a/drivers/acpi/internal.h
++++ b/drivers/acpi/internal.h
+@@ -145,6 +145,8 @@ void acpi_early_processor_set_pdc(void);
+ static inline void acpi_early_processor_set_pdc(void) {}
+ #endif
+ 
++void acpi_early_processor_set_osc(void);
++
+ /* --------------------------------------------------------------------------
+                                   Embedded Controller
+    -------------------------------------------------------------------------- */
 -- 
-1.8.5.2 (Apple Git-48)
+1.9.1
 
