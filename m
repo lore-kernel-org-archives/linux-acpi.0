@@ -1,80 +1,74 @@
-From: Lv Zheng <lv.zheng@intel.com>
-Subject: [PATCH 06/30] ACPICA: IORT: Add in support for the SMMUv3 subtable
-Date: Thu, 24 Mar 2016 09:39:07 +0800
-Message-ID: <d4b1769e1cf64057817db6329c9dce009292a640.1458714003.git.lv.zheng@intel.com>
+From: Joe Perches <joe@perches.com>
+Subject: Re: [PATCH 01/30] ACPICA: Linuxize: reduce divergences for 20160212
+ release
+Date: Wed, 23 Mar 2016 18:46:06 -0700
+Message-ID: <1458783966.1762.6.camel@perches.com>
 References: <cover.1458714002.git.lv.zheng@intel.com>
+	 <cc3b66b74c73a66f82cb715092b6f35105a0cbf8.1458714003.git.lv.zheng@intel.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <cover.1458714002.git.lv.zheng@intel.com>
+In-Reply-To: <cc3b66b74c73a66f82cb715092b6f35105a0cbf8.1458714003.git.lv.zheng@intel.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <len.brown@intel.com>
-Cc: Lv Zheng <lv.zheng@intel.com>, Lv Zheng <zetalog@gmail.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Al Stone <ahs3@redhat.com>, Bob Moore <robert.moore@intel.com>
+To: Lv Zheng <lv.zheng@intel.com>, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <len.brown@intel.com>
+Cc: Lv Zheng <zetalog@gmail.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-From: Al Stone <ahs3@redhat.com>
+On Thu, 2016-03-24 at 09:38 +0800, Lv Zheng wrote:
+> The patch reduces source code differences between the Linux kernel an=
+d the
+> ACPICA upstream so that the linuxized ACPICA 20160212 release can be
+> applied with reduced human intervention.
 
-ACPICA commit 9f7c3e148f440049615e2791d73b292f65692d7e
+In the very first patch fragment:
 
-The most recent version of the IORT specification adds in a definition
-for a subtable to describe SMMUv3 devices; there is already a subtable
-for SMMUv1/v2 devices.
+> diff --git a/drivers/acpi/acpica/hwregs.c b/drivers/acpi/acpica/hwreg=
+s.c
+[]
+> @@ -152,7 +152,7 @@ acpi_hw_validate_register(struct acpi_generic_add=
+ress *reg,
+> =C2=A0 *
+> =C2=A0 **************************************************************=
+****************/
+> =C2=A0
+> -acpi_status acpi_hw_read(u32 *value, struct acpi_generic_address *re=
+g)
+> +acpi_status acpi_hw_read(u32 *value, struct acpi_generic_address * r=
+eg)
 
-Add in the definition of the subtable, add in the code to compile it,
-and add in a template for it.
+The second argument * style appears the opposite of normal style
+and a different style than the first argument * style.
 
-Link: https://github.com/acpica/acpica/commit/9f7c3e14
-Signed-off-by: Al Stone <ahs3@redhat.com>
-Signed-off-by: Bob Moore <robert.moore@intel.com>
-Signed-off-by: Lv Zheng <lv.zheng@intel.com>
----
- include/acpi/actbl2.h |   22 ++++++++++++++++++++--
- 1 file changed, 20 insertions(+), 2 deletions(-)
+> diff --git a/drivers/acpi/osl.c b/drivers/acpi/osl.c
+[]
+> @@ -582,7 +582,7 @@ static char acpi_os_name[ACPI_MAX_OVERRIDE_LEN];
+> =C2=A0
+> =C2=A0acpi_status
+> =C2=A0acpi_os_predefined_override(const struct acpi_predefined_names =
+*init_val,
+> -			=C2=A0=C2=A0=C2=A0=C2=A0char **new_val)
+> +			=C2=A0=C2=A0=C2=A0=C2=A0acpi_string *new_val)
 
-diff --git a/include/acpi/actbl2.h b/include/acpi/actbl2.h
-index e9d3cc1..d6bd377 100644
---- a/include/acpi/actbl2.h
-+++ b/include/acpi/actbl2.h
-@@ -660,7 +660,7 @@ struct acpi_ibft_target {
-  * IORT - IO Remapping Table
-  *
-  * Conforms to "IO Remapping Table System Software on ARM Platforms",
-- * Document number: ARM DEN 0049A, 2015
-+ * Document number: ARM DEN 0049B, October 2015
-  *
-  ******************************************************************************/
- 
-@@ -690,7 +690,8 @@ enum acpi_iort_node_type {
- 	ACPI_IORT_NODE_ITS_GROUP = 0x00,
- 	ACPI_IORT_NODE_NAMED_COMPONENT = 0x01,
- 	ACPI_IORT_NODE_PCI_ROOT_COMPLEX = 0x02,
--	ACPI_IORT_NODE_SMMU = 0x03
-+	ACPI_IORT_NODE_SMMU = 0x03,
-+	ACPI_IORT_NODE_SMMU_V3 = 0x04
- };
- 
- struct acpi_iort_id_mapping {
-@@ -780,6 +781,23 @@ struct acpi_iort_smmu {
- #define ACPI_IORT_SMMU_DVM_SUPPORTED    (1)
- #define ACPI_IORT_SMMU_COHERENT_WALK    (1<<1)
- 
-+struct acpi_iort_smmu_v3 {
-+	u64 base_address;	/* SMMUv3 base address */
-+	u32 flags;
-+	u32 reserved;
-+	u64 vatos_address;
-+	u32 model;		/* O: generic SMMUv3 */
-+	u32 event_gsiv;
-+	u32 pri_gsiv;
-+	u32 gerr_gsiv;
-+	u32 sync_gsiv;
-+};
-+
-+/* Masks for Flags field above */
-+
-+#define ACPI_IORT_SMMU_V3_COHACC_OVERRIDE   (1)
-+#define ACPI_IORT_SMMU_V3_HTTU_OVERRIDE     (1<<1)
-+
- /*******************************************************************************
-  *
-  * IVRS - I/O Virtualization Reporting Structure
--- 
-1.7.10
+And here:
+
+acpi_string pointer style 1:
+
+> diff --git a/include/acpi/acpiosxf.h b/include/acpi/acpiosxf.h
+[]
+> @@ -96,7 +96,7 @@ acpi_physical_address acpi_os_get_root_pointer(void=
+);
+> =C2=A0#ifndef ACPI_USE_ALTERNATE_PROTOTYPE_acpi_os_predefined_overrid=
+e
+> =C2=A0acpi_status
+> =C2=A0acpi_os_predefined_override(const struct acpi_predefined_names =
+*init_val,
+> -			=C2=A0=C2=A0=C2=A0=C2=A0char **new_val);
+> +			=C2=A0=C2=A0=C2=A0=C2=A0acpi_string * new_val);
+
+acpi_string pointer style 2:
+
+There are varying styles for acpi_string *
+
+So far, this just looks sloppy.
+Should the rest be reviewed?
