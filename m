@@ -1,192 +1,49 @@
-From: Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>
-Subject: [PATCH v7] acpi: Issue _OSC call for native thermal interrupt handling
-Date: Wed, 23 Mar 2016 21:07:39 -0700
-Message-ID: <1458792459-538-1-git-send-email-srinivas.pandruvada@linux.intel.com>
+From: Lv Zheng <lv.zheng@intel.com>
+Subject: [PATCH] tools/power/acpi: close file only if it is open
+Date: Thu, 24 Mar 2016 13:01:28 +0800
+Message-ID: <1458795688-2147-1-git-send-email-lv.zheng@intel.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga04.intel.com ([192.55.52.120]:45389 "EHLO mga04.intel.com"
+Received: from mga14.intel.com ([192.55.52.115]:17718 "EHLO mga14.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750755AbcCXEKn (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 24 Mar 2016 00:10:43 -0400
+	id S1751104AbcCXFCA (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 24 Mar 2016 01:02:00 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: rjw@rjwysocki.net
-Cc: tony.luck@intel.com, bp@alien8.de, tglx@linutronix.de, mingo@redhat.com, hpa@zytor.com, lenb@kernel.org, linux-edac@vger.kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>
+To: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <len.brown@intel.com>
+Cc: Lv Zheng <lv.zheng@intel.com>, Lv Zheng <zetalog@gmail.com>, linux-acpi@vger.kernel.org
 
-There are several reports of freeze on enabling HWP (Hardware PStates)
-feature on Skylake based systems by Intel P states driver. The root
-cause is identified as the HWP interrupts causing BIOS code to freeze.
-HWP interrupts uses thermal LVT.
-Linux natively handles thermal interrupts, but in Skylake based systems
-SMM will take control of thermal interrupts. This is a problem for several
-reasons:
-- It is freezing in BIOS when tries to handle thermal interrupt, which
-will require BIOS upgrade
-- With SMM handling thermal we loose all the reporting features of
-Linux arch/x86/kernel/cpu/mcheck/therm_throt driver
-- Some thermal drivers like x86-package-temp driver depends on the thermal
-threshold interrupts
-- The HWP interrupts are useful for debugging and tuning performance
+The logic on the test for a valid fd to close is incorrect.
+This was just a mistake and was pointed out by Colin Ian King.
 
-So we need native handling of thermal interrupts. This requires some
-way to inform SMM that OS can handle thermal interrupts. This can be
-done by using _OSC/_PDC under processor scope very early in ACPI
-initialization flow.
-The bit 12 of _OSC/_PDC in processor scope defines whether OS supports
-handling of native interrupts for Collaborative Processor Performance
-Control (CPPC) notifications. Since HWP is a implementation of CPPC,
-setting this bit is equivalent to inform SMM that OS is capable of
-handling thermal interrupts.
-Refer to this document for details on _OSC/_PDC
-http://www.intel.com/content/www/us/en/standards/processor-vendor-
-specific-acpi-specification.html
-
-This change introduces a new function acpi_early_processor_set_osc(),
-which walks acpi name space and finds acpi processor object and
-set capability via _OSC method.
-
-Also this change writes HWP status bits to 0 to clear any HWP status
-bits in intel_thermal_interrupt().
-
-Signed-off-by: Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>
+Link: https://patchwork.kernel.org/patch/8620201/
+Original-by: Colin Ian King <colin.king@canonical.com>
+Signed-off-by: Lv Zheng <lv.zheng@intel.com>
 ---
-v7:
-Checking platform ack and setting status for successful ack and printing
-information message.
+ tools/power/acpi/tools/acpidbg/acpidbg.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-v6:
-Added __init for two functions and moved dummy function to internal.h
-Shortened the name of the function.
-
-v5:
-No code change. Changed commit message to explain HWP is a implementation
-of CPPC.
-
-v4:
-Suggestion by Boris for removing use of intermediate variable for
-clearing HWP status and using boot_cpu_has instead of static_cpu_has
-
-v3:
-- Added CONFIG_X86 around static_cpu_has() to fix compile error on
-ARCH=ia64, reported by kbuild test robot
-- return AE_CTRL_TERMINATE to terminate acpi name walk space, when _OSC
-is set already once.
-v2:
-Unnecessary newline was introduced, removed that in acpi_processor.c
-
- arch/x86/kernel/cpu/mcheck/therm_throt.c |  3 ++
- drivers/acpi/acpi_processor.c            | 52 ++++++++++++++++++++++++++++++++
- drivers/acpi/bus.c                       |  3 ++
- drivers/acpi/internal.h                  |  6 ++++
- 4 files changed, 64 insertions(+)
-
-diff --git a/arch/x86/kernel/cpu/mcheck/therm_throt.c b/arch/x86/kernel/cpu/mcheck/therm_throt.c
-index 0b445c2..ac780ca 100644
---- a/arch/x86/kernel/cpu/mcheck/therm_throt.c
-+++ b/arch/x86/kernel/cpu/mcheck/therm_throt.c
-@@ -384,6 +384,9 @@ static void intel_thermal_interrupt(void)
+diff --git a/tools/power/acpi/tools/acpidbg/acpidbg.c b/tools/power/acpi/tools/acpidbg/acpidbg.c
+index d070fcc..a88ac45 100644
+--- a/tools/power/acpi/tools/acpidbg/acpidbg.c
++++ b/tools/power/acpi/tools/acpidbg/acpidbg.c
+@@ -375,7 +375,7 @@ void usage(FILE *file, char *progname)
+ 
+ int main(int argc, char **argv)
  {
- 	__u64 msr_val;
+-	int fd = 0;
++	int fd = -1;
+ 	int ch;
+ 	int len;
+ 	int ret = EXIT_SUCCESS;
+@@ -430,7 +430,7 @@ int main(int argc, char **argv)
+ 	acpi_aml_loop(fd);
  
-+	if (static_cpu_has(X86_FEATURE_HWP))
-+		wrmsrl_safe(MSR_HWP_STATUS, 0);
-+
- 	rdmsrl(MSR_IA32_THERM_STATUS, msr_val);
- 
- 	/* Check for violation of core thermal thresholds*/
-diff --git a/drivers/acpi/acpi_processor.c b/drivers/acpi/acpi_processor.c
-index b5e54f2..4239b80 100644
---- a/drivers/acpi/acpi_processor.c
-+++ b/drivers/acpi/acpi_processor.c
-@@ -491,6 +491,58 @@ static void acpi_processor_remove(struct acpi_device *device)
- }
- #endif /* CONFIG_ACPI_HOTPLUG_CPU */
- 
-+#ifdef CONFIG_X86
-+static bool acpi_hwp_native_thermal_lvt_set;
-+static acpi_status __init acpi_hwp_native_thermal_lvt_osc(acpi_handle handle,
-+							  u32 lvl,
-+							  void *context,
-+							  void **rv)
-+{
-+	u8 sb_uuid_str[] = "4077A616-290C-47BE-9EBD-D87058713953";
-+	u32 capbuf[2];
-+	struct acpi_osc_context osc_context = {
-+		.uuid_str = sb_uuid_str,
-+		.rev = 1,
-+		.cap.length = 8,
-+		.cap.pointer = capbuf,
-+	};
-+
-+	if (acpi_hwp_native_thermal_lvt_set)
-+		return AE_CTRL_TERMINATE;
-+
-+	capbuf[0] = 0x0000;
-+	capbuf[1] = 0x1000; /* set bit 12 */
-+
-+	if (ACPI_SUCCESS(acpi_run_osc(handle, &osc_context))) {
-+		if (osc_context.ret.pointer && osc_context.ret.length > 1) {
-+			u32 *capbuf_ret = osc_context.ret.pointer;
-+
-+			if (capbuf_ret[1] & 0x1000) {
-+				acpi_handle_info(handle,
-+					"_OSC native thermal LVT Acked\n");
-+				acpi_hwp_native_thermal_lvt_set = true;
-+			}
-+		}
-+		kfree(osc_context.ret.pointer);
-+	}
-+
-+	return AE_OK;
-+}
-+
-+void __init acpi_early_processor_set_osc(void)
-+{
-+	if (boot_cpu_has(X86_FEATURE_HWP)) {
-+		acpi_walk_namespace(ACPI_TYPE_PROCESSOR, ACPI_ROOT_OBJECT,
-+				    ACPI_UINT32_MAX,
-+				    acpi_hwp_native_thermal_lvt_osc,
-+				    NULL, NULL, NULL);
-+		acpi_get_devices(ACPI_PROCESSOR_DEVICE_HID,
-+				 acpi_hwp_native_thermal_lvt_osc,
-+				 NULL, NULL);
-+	}
-+}
-+#endif
-+
- /*
-  * The following ACPI IDs are known to be suitable for representing as
-  * processor devices.
-diff --git a/drivers/acpi/bus.c b/drivers/acpi/bus.c
-index 0e85678..1f65eb5 100644
---- a/drivers/acpi/bus.c
-+++ b/drivers/acpi/bus.c
-@@ -1019,6 +1019,9 @@ static int __init acpi_bus_init(void)
- 		goto error1;
- 	}
- 
-+	/* Set capability bits for _OSC under processor scope */
-+	acpi_early_processor_set_osc();
-+
- 	/*
- 	 * _OSC method may exist in module level code,
- 	 * so it must be run after ACPI_FULL_INITIALIZATION
-diff --git a/drivers/acpi/internal.h b/drivers/acpi/internal.h
-index a37508e..9ed878d 100644
---- a/drivers/acpi/internal.h
-+++ b/drivers/acpi/internal.h
-@@ -145,6 +145,12 @@ void acpi_early_processor_set_pdc(void);
- static inline void acpi_early_processor_set_pdc(void) {}
- #endif
- 
-+#ifdef CONFIG_X86
-+void acpi_early_processor_set_osc(void);
-+#else
-+static inline void acpi_early_processor_set_osc(void) {}
-+#endif
-+
- /* --------------------------------------------------------------------------
-                                   Embedded Controller
-    -------------------------------------------------------------------------- */
+ exit:
+-	if (fd < 0)
++	if (fd >= 0)
+ 		close(fd);
+ 	if (acpi_aml_batch_cmd)
+ 		free(acpi_aml_batch_cmd);
 -- 
-1.9.1
+1.7.10
 
