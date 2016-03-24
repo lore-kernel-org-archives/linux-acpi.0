@@ -1,52 +1,61 @@
 From: Lv Zheng <lv.zheng@intel.com>
-Subject: [RFC PATCH 0/8] ACPICA: Tables: Table cleanup and new APIs
-Date: Thu, 24 Mar 2016 16:30:19 +0800
-Message-ID: <cover.1458808078.git.lv.zheng@intel.com>
+Subject: [RFC PATCH 1/8] ACPICA: Tables: Add an error message complaining driver bugs
+Date: Thu, 24 Mar 2016 16:30:31 +0800
+Message-ID: <dedafad7c2c73678ce83cbdb93ec7889c640fdf0.1458808078.git.lv.zheng@intel.com>
+References: <cover.1458808078.git.lv.zheng@intel.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
 Received: from mga11.intel.com ([192.55.52.93]:16788 "EHLO mga11.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752144AbcCXIa3 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 24 Mar 2016 04:30:29 -0400
+	id S1752144AbcCXIac (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 24 Mar 2016 04:30:32 -0400
+In-Reply-To: <cover.1458808078.git.lv.zheng@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <len.brown@intel.com>
 Cc: Lv Zheng <lv.zheng@intel.com>, Lv Zheng <zetalog@gmail.com>, linux-acpi@vger.kernel.org
 
-This patch is a linuxized result of ACPICA upstream pull request 121.
-https://github.com/acpica/acpica/pull/121/
-This is for review only. Please do not merge it.
+This patch adds an error message to complain a driver bug that the
+early mappings are not unmapped by the drivers. Lv Zheng.
 
-Lv Zheng (8):
-  ACPICA: Tables: Add an error message complaining driver bugs
-  ACPICA: Tables: Invoke acpi_tb_validate_tableby_index() instead of
-    acpi_get_table_by_index()
-  ACPICA: Tables: Fix an issue the dynamic table loading contains code
-    with MTX_TABLES released
-  ACPICA: Tables: Cleanup acpi_tb_copy_dsdt()
-  ACPICA: Tables: Remove acpi_tb_install_fixed_table()
-  ACPICA: Tables: Correct function namings
-  ACPICA: Tables: Add acpi_uninstall_table() to remove ACPI tables
-  ACPICA: Tables: Add acpi_unload_table() to unload definition block
-    tables
+Signed-off-by: Lv Zheng <lv.zheng@intel.com>
+---
+ drivers/acpi/acpica/tbxface.c |   16 ++++++++++++++++
+ 1 file changed, 16 insertions(+)
 
- drivers/acpi/acpica/actables.h    |   22 +++---
- drivers/acpi/acpica/dbfileio.c    |    2 +-
- drivers/acpi/acpica/dsinit.c      |    2 +-
- drivers/acpi/acpica/dsopcode.c    |    2 +-
- drivers/acpi/acpica/exconfig.c    |   18 +++--
- drivers/acpi/acpica/nsparse.c     |    2 +-
- drivers/acpi/acpica/tbdata.c      |   54 +++++++++++---
- drivers/acpi/acpica/tbfadt.c      |   24 +++---
- drivers/acpi/acpica/tbinstal.c    |  119 +++--------------------------
- drivers/acpi/acpica/tbutils.c     |   94 ++++++++++++++++++-----
- drivers/acpi/acpica/tbxface.c     |   18 ++++-
- drivers/acpi/acpica/tbxfload.c    |  149 ++++++++++++++++++++++++++++---------
- drivers/acpi/osl.c                |    3 +-
- drivers/pci/hotplug/sgi_hotplug.c |    2 +-
- include/acpi/acpixf.h             |    8 +-
- include/acpi/actbl.h              |    1 +
- 16 files changed, 307 insertions(+), 213 deletions(-)
-
+diff --git a/drivers/acpi/acpica/tbxface.c b/drivers/acpi/acpica/tbxface.c
+index 326df65..5700e72 100644
+--- a/drivers/acpi/acpica/tbxface.c
++++ b/drivers/acpi/acpica/tbxface.c
+@@ -167,6 +167,7 @@ ACPI_EXPORT_SYMBOL_INIT(acpi_initialize_tables)
+ acpi_status __init acpi_reallocate_root_table(void)
+ {
+ 	acpi_status status;
++	u32 i;
+ 
+ 	ACPI_FUNCTION_TRACE(acpi_reallocate_root_table);
+ 
+@@ -178,6 +179,21 @@ acpi_status __init acpi_reallocate_root_table(void)
+ 		return_ACPI_STATUS(AE_SUPPORT);
+ 	}
+ 
++	/*
++	 * Ensure OS early boot logic, which is required by some hosts. If the
++	 * table state is reported to be wrong, developers should fix the
++	 * issue by invoking acpi_put_table() for the reported table during the
++	 * early stage.
++	 */
++	for (i = 0; i < acpi_gbl_root_table_list.current_table_count; ++i) {
++		if (acpi_gbl_root_table_list.tables[i].pointer) {
++			ACPI_ERROR((AE_INFO,
++				    "BUG: Table [%4.4s] isn't invalidated after booting",
++				    acpi_gbl_root_table_list.tables[i].
++				    signature.ascii));
++		}
++	}
++
+ 	acpi_gbl_root_table_list.flags |= ACPI_ROOT_ALLOW_RESIZE;
+ 
+ 	status = acpi_tb_resize_root_table_list();
 -- 
 1.7.10
 
