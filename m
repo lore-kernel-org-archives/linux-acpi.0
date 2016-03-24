@@ -1,71 +1,55 @@
 From: "Zheng, Lv" <lv.zheng@intel.com>
-Subject: RE: [PATCH 01/30] ACPICA: Linuxize: reduce divergences for 20160212
- release
-Date: Thu, 24 Mar 2016 06:53:30 +0000
-Message-ID: <1AE640813FDE7649BE1B193DEA596E883BB64008@SHSMSX101.ccr.corp.intel.com>
-References: <cover.1458714002.git.lv.zheng@intel.com>
-	 <cc3b66b74c73a66f82cb715092b6f35105a0cbf8.1458714003.git.lv.zheng@intel.com>
- <1458783966.1762.6.camel@perches.com>
- <1AE640813FDE7649BE1B193DEA596E883BB63FB7@SHSMSX101.ccr.corp.intel.com>
- <1A7043D5F58CCB44A599DFD55ED4C94846A17FF0@fmsmsx115.amr.corp.intel.com>
+Subject: RE: [acpi:release 3/3] intel_idle.c:undefined reference to
+ `__udivdi3'
+Date: Thu, 24 Mar 2016 06:55:52 +0000
+Message-ID: <1AE640813FDE7649BE1B193DEA596E883BB64024@SHSMSX101.ccr.corp.intel.com>
+References: <201603241443.6LBLekqw%fengguang.wu@intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga09.intel.com ([134.134.136.24]:56003 "EHLO mga09.intel.com"
+Received: from mga03.intel.com ([134.134.136.65]:54241 "EHLO mga03.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751132AbcCXGxl (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 24 Mar 2016 02:53:41 -0400
-In-Reply-To: <1A7043D5F58CCB44A599DFD55ED4C94846A17FF0@fmsmsx115.amr.corp.intel.com>
+	id S1751208AbcCXG4B convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 24 Mar 2016 02:56:01 -0400
+In-Reply-To: <201603241443.6LBLekqw%fengguang.wu@intel.com>
 Content-Language: en-US
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Brown, Len" <len.brown@intel.com>, Joe Perches <joe@perches.com>, "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: Lv Zheng <zetalog@gmail.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
+To: "Wu, Fengguang" <fengguang.wu@intel.com>, "Brown, Len" <len.brown@intel.com>
+Cc: "kbuild-all@01.org" <kbuild-all@01.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-pm@vger.kernel.org" <linux-pm@vger.kernel.org>
 
-SGksDQoNCj4gRnJvbTogQnJvd24sIExlbg0KPiBTdWJqZWN0OiBSRTogW1BBVENIIDAxLzMwXSBB
-Q1BJQ0E6IExpbnV4aXplOiByZWR1Y2UgZGl2ZXJnZW5jZXMgZm9yIDIwMTYwMjEyDQo+IHJlbGVh
-c2UNCj4gDQo+ID4gPiA+DQo+ID4gPiA+IC1hY3BpX3N0YXR1cyBhY3BpX2h3X3JlYWQodTMyICp2
-YWx1ZSwgc3RydWN0IGFjcGlfZ2VuZXJpY19hZGRyZXNzDQo+ID4gKnJlZykNCj4gPiA+ID4gK2Fj
-cGlfc3RhdHVzIGFjcGlfaHdfcmVhZCh1MzIgKnZhbHVlLCBzdHJ1Y3QgYWNwaV9nZW5lcmljX2Fk
-ZHJlc3MgKg0KPiA+IHJlZykNCj4gPiA+DQo+ID4gPiBUaGUgc2Vjb25kIGFyZ3VtZW50ICogc3R5
-bGUgYXBwZWFycyB0aGUgb3Bwb3NpdGUgb2Ygbm9ybWFsIHN0eWxlDQo+ID4gPiBhbmQgYSBkaWZm
-ZXJlbnQgc3R5bGUgdGhhbiB0aGUgZmlyc3QgYXJndW1lbnQgKiBzdHlsZS4NCj4gPiBbTHYgWmhl
-bmddDQo+ID4gVGhlIGZpbGUgaXMgZHJpdmVycy9hY3BpL2FjcGljYS9od3JlZ3MuYywgd2hpY2gg
-aXMgY29taW5nIGZyb20gQUNQSUNBDQo+ID4gdXBzdHJlYW0uDQo+ID4gU28gdGhpcyBpcyBhIHJl
-c3VsdCBvZiAiQUNQSUNBIHJlbGVhc2UiLg0KPiA+IEluIG90aGVyIHdvcmRzLCB0aGlzIGlzIGEg
-cmVzdWx0IG9mIGEgInByb2Nlc3MiLg0KPiA+IEluIG9yZGVyIHRvIGZpeCB0aGlzLCB0aGluZ3Mg
-bmVlZCB0byBiZSBkb25lIGluICJBQ1BJQ0EgcmVsZWFzZSBzY3JpcHRzIi4NCj4gPiBXaGljaCBz
-aG91bGQgYmUgZG9uZSBpbg0KPiA+IGh0dHBzOi8vZ2l0aHViLmNvbS9hY3BpY2EvYWNwaWNhL2Js
-b2IvbWFzdGVyL2dlbmVyYXRlL2xpbnV4L2xpYmFjcGljYS5zaC4NCj4gPiBPdGhlcndpc2UsICJB
-Q1BJQ0EgcmVsZWFzZSIgcHJvY2VzcyB3aWxsIHJlcXVpcmUgaHVtYW4gaW50ZXJ2ZW50aW9uLg0K
-PiA+DQo+ID4gU28gcGxlYXNlIGxlYXZlIHRoaXMgcGF0Y2ggZnJhZ21lbnQgYXMgaXMuDQo+ID4g
-SXQgd2lsbCBiZSBhdXRvbWF0aWNhbGx5IGZpeGVkIGlmIHRoZSAiQUNQSUNBIHJlbGVhc2UiIHBy
-b2Nlc3MgaXMgZml4ZWQuDQo+ID4gQW5kIGlmIHlvdSBkb24ndCBsZWF2ZSB0aGlzIGZyYWdtZW50
-IGFzIGlzLCB0aGUgIkFDUElDQSByZWxlYXNlIiBwcm9jZXNzDQo+ID4gd2lsbCBnZXQgaHVydC4N
-Cj4gDQo+IEkgZGlzYWdyZWUuDQo+IA0KPiBUaGUgcGF0Y2ggc2hvdWxkIGJlIGNvcnJlY3Qgd2hl
-biBpdCBoaXRzIHRoZSBMaW51eCBrZXJuZWwgdHJlZS4NCltMdiBaaGVuZ10gDQpUaGlzIGhhcyBh
-bHJlYWR5IGJlZW4gYW4gYWdyZWVtZW50IGJldHdlZW4gTGludXggYW5kIEFDUElDQS4NCldlIGhh
-dmUgMSBzdWNoIGtpbmQgb2YgcGF0Y2ggaW4gZWFjaCByZWxlYXNlIGN5Y2xlIG1lcmdlZC4NCg0K
-PiANCj4gSWYgdGhlIHByb2Nlc3MgaXMgYnJva2VuLCB0aGVuIGZpeCB0aGUgcHJvY2VzcyBhbmQg
-cmUtc2VuZA0KPiBhIGZpeGVkIHBhdGNoLiAgTGludXggZG9lc24ndCBjYXJlIGlmIHRoZSBwcm9j
-ZXNzIGlzIGEgcHJvZ3JhbQ0KPiB0aGF0IHJ1bnMgd2l0aCB0aGUgY2xpY2sgb2YgYSBidXR0b24s
-IG9yIHRoZSByZXN1bHQgb2YgMTAwMA0KPiBlbmdpbmVlcmluZyBsYWJvcmluZyBkYXkgYW5kIG5p
-Z2h0LiBPbmx5IHRoZSByZXN1bHQgbWF0dGVycywNCj4gdGhlIHJlc3VsdCBzaG91bGQgYmUgY29y
-cmVjdCwgYW5kIHRoaXMgcGF0Y2ggaXMgbm90IGNvcnJlY3QuDQpbTHYgWmhlbmddIA0KSWYgd2Ug
-Zm9yY2VkIHRoZSBydWxlIHlvdSBtZW50aW9uZWQsIHRoZW4gZXZlcnkgcmVsZWFzZSBjeWNsZSB3
-b3VsZCBiZSBibG9ja2VkIGJ5IHN0cmFuZ2UgcmVhc29ucy4NCkl0J3Mgd29yc2UgdGhhbiBsZXR0
-aW5nIHRoaXMgcGFzcy4NCk5vcm1hbGx5LCBBQ1BJQ0EgcmVsZWFzZSBoYXBwZW5zIGJlZm9yZSB0
-aGUgaW5kZW50IGlzc3VlIGlzIGlkZW50aWZpZWQuDQpTbyB0aGUgcGF0Y2ggdG8gZml4IHRoZSBp
-bmRlbnQgaXNzdWUgd2lsbCBiZSBtZXJnZWQgaW4gQUNQSUNBIHVwc3RyZWFtIGFmdGVyIHRoZSBy
-ZWxlYXNlIGN5Y2xlLg0KVGhlbiBpZiB3ZSBsZXQgdGhlIG1hY2hpbmUgZG8gdGhpcyBhdXRvbWF0
-aWNhbGx5LCB0aGUgZml4IHdpbGwgYXBwZWFyIGFmdGVyIHRoZSByZWxlYXNlIGN5Y2xlLg0KDQpN
-b3Jlb3Zlciwgc29tZXRpbWVzLCBzdWNoIGluZGVudCBpc3N1ZSBpcyBub3QgaW4gdGhlIHByb2Nl
-c3MgaXRzZWxmLg0KVGhvdWdoIHdlIHVzZSBpbmRlbnQgLWxpbnV4LCBidXQgaW5kZW50IGRvZXNu
-J3Qgd29yayBhcyBvdXIgZXhwZWN0YXRpb24gdG8gZ2VuZXJhdGUgYSBwYXRjaCB0aGF0IGNhbiBw
-YXNzIGNoZWNrcGF0Y2gucGwuDQpXaGF0IHNob3VsZCB3ZSBkbyB0aGVuPw0KV2UgYXJlIGRldmVs
-b3BpbmcgTGludXgga2VybmVsLCBub3QgZGV2ZWxvcGluZyBpbmRlbnQuDQpTbyBzb21ldGltZXMs
-IHN1Y2gga2luZCBvZiBpc3N1ZSBpcyBpbmV2aXRhYmxlIGFzIGxvbmcgYXMgd2UgdXNlICJpbmRl
-bnQiLg0KSXQncyB1c2VsZXNzIHRvIHdhc3RlIHRpbWUgd29ya2luZyBvbiBjb3JyZWN0aW5nIHRo
-aXMuDQpXaGljaCBtZWFucyBodW1hbnMgYXJlIGhpcmVkIHRvIGRvIG1hY2hpbmUncyBqb2IuLi4N
-Cg0KVGhhbmtzIGFuZCBiZXN0IHJlZ2FyZHMNCi1Mdg0K
+Hi, Len
+
+This looks like a job that human should do because machines cannot do that for us.
+We need to use div64() in the kernel because kernel doesn't link CRT.
+While for the indentation issue, it won't hurt anybody.
+
+Thanks
+-Lv
+
+> From: linux-acpi-owner@vger.kernel.org [mailto:linux-acpi-
+> Subject: [acpi:release 3/3] intel_idle.c:undefined reference to `__udivdi3'
+> 
+> tree:   https://git.kernel.org/pub/scm/linux/kernel/git/lenb/linux.git release
+> head:   1664c8b16a75e9f73f4f40186c0c843bbf7dbde8
+> commit: 1664c8b16a75e9f73f4f40186c0c843bbf7dbde8 [3/3] intel_idle: add
+> BXT support
+> config: i386-randconfig-n0-03241107 (attached as .config)
+> reproduce:
+>         git checkout 1664c8b16a75e9f73f4f40186c0c843bbf7dbde8
+>         # save the attached .config to linux build tree
+>         make ARCH=i386
+> 
+> All errors (new ones prefixed by >>):
+> 
+>    drivers/built-in.o: In function `intel_idle_init':
+> >> intel_idle.c:(.init.text+0x16a3): undefined reference to `__udivdi3'
+>    intel_idle.c:(.init.text+0x16e4): undefined reference to `__udivdi3'
+>    intel_idle.c:(.init.text+0x1725): undefined reference to `__udivdi3'
+>    intel_idle.c:(.init.text+0x1766): undefined reference to `__udivdi3'
+>    intel_idle.c:(.init.text+0x17ab): undefined reference to `__udivdi3'
+> 
+> ---
+> 0-DAY kernel test infrastructure                Open Source Technology Center
+> https://lists.01.org/pipermail/kbuild-all                   Intel Corporation
