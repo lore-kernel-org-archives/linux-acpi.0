@@ -1,7 +1,7 @@
 From: Lv Zheng <lv.zheng@intel.com>
-Subject: [PATCH 23/30] ACPICA: Hardware: Enhance acpi_hw_validate_register() with access_width/bit_offset awareness
-Date: Thu, 24 Mar 2016 09:41:09 +0800
-Message-ID: <2fb98494a7434b63703b68cc44283a6d4e87a332.1458714003.git.lv.zheng@intel.com>
+Subject: [PATCH 24/30] ACPICA: Hardware: Add access_width/bit_offset support in acpi_hw_read()
+Date: Thu, 24 Mar 2016 09:41:17 +0800
+Message-ID: <c460156c8c91ae805f020562ac4901e90940d87f.1458714003.git.lv.zheng@intel.com>
 References: <cover.1458714002.git.lv.zheng@intel.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <cover.1458714002.git.lv.zheng@intel.com>
@@ -10,68 +10,125 @@ To: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, "Rafael J. Wysocki" <rjw@r
 Cc: Lv Zheng <lv.zheng@intel.com>, Lv Zheng <zetalog@gmail.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Bob Moore <robert.moore@intel.com>
 List-Id: linux-acpi@vger.kernel.org
 
-ACPICA commit 997a90f810a4cb78604ef2e187611a181b498286
+ACPICA commit 96ece052d4d073aae4f935f0ff0746646aea1174
+ACPICA commit 3d8583a054e410f2ea4d73b48986facad9cfc0d4
 
-This patch enhances acpi_hw_validate_register() to sanitize register
-accesses with awareness of access_width and bit_offset. Lv Zheng.
+This patch adds access_width/bit_offset support in acpi_hw_read().
+This also enables GAS definition where bit_width is not a power of
+two. Lv Zheng.
 
-Link: https://github.com/acpica/acpica/commit/997a90f8
+Link: https://github.com/acpica/acpica/commit/96ece052
+Link: https://github.com/acpica/acpica/commit/3d8583a0
 Link: https://bugs.acpica.org/show_bug.cgi?id=1240
 Signed-off-by: Lv Zheng <lv.zheng@intel.com>
 Signed-off-by: Bob Moore <robert.moore@intel.com>
 ---
- drivers/acpi/acpica/hwregs.c |   25 +++++++++++++++----------
- 1 file changed, 15 insertions(+), 10 deletions(-)
+ drivers/acpi/acpica/hwregs.c |   66 +++++++++++++++++++++++++++++++++---------
+ 1 file changed, 53 insertions(+), 13 deletions(-)
 
 diff --git a/drivers/acpi/acpica/hwregs.c b/drivers/acpi/acpica/hwregs.c
-index 93f8831..bc3f60a 100644
+index bc3f60a..12fed0c 100644
 --- a/drivers/acpi/acpica/hwregs.c
 +++ b/drivers/acpi/acpica/hwregs.c
-@@ -83,6 +83,8 @@ acpi_status
- acpi_hw_validate_register(struct acpi_generic_address *reg,
- 			  u8 max_bit_width, u64 *address)
+@@ -150,17 +150,19 @@ acpi_hw_validate_register(struct acpi_generic_address *reg,
+  *              64-bit values is not needed.
+  *
+  * LIMITATIONS: <These limitations also apply to acpi_hw_write>
+- *      bit_width must be exactly 8, 16, or 32.
+  *      space_ID must be system_memory or system_IO.
+- *      bit_offset and access_width are currently ignored, as there has
+- *          not been a need to implement these.
+  *
+  ******************************************************************************/
+ 
+ acpi_status acpi_hw_read(u32 *value, struct acpi_generic_address * reg)
  {
-+	u8 bit_width;
+ 	u64 address;
 +	u8 access_width;
++	u32 bit_width;
++	u8 bit_offset;
+ 	u64 value64;
++	u32 value32;
++	u8 index;
+ 	acpi_status status;
  
- 	/* Must have a valid pointer to a GAS structure */
- 
-@@ -109,23 +111,26 @@ acpi_hw_validate_register(struct acpi_generic_address *reg,
- 		return (AE_SUPPORT);
+ 	ACPI_FUNCTION_NAME(hw_read);
+@@ -172,28 +174,66 @@ acpi_status acpi_hw_read(u32 *value, struct acpi_generic_address * reg)
+ 		return (status);
  	}
  
--	/* Validate the bit_width */
-+	/* Validate the access_width */
- 
--	if ((reg->bit_width != 8) &&
--	    (reg->bit_width != 16) &&
--	    (reg->bit_width != 32) && (reg->bit_width != max_bit_width)) {
-+	if (reg->access_width > 4) {
- 		ACPI_ERROR((AE_INFO,
--			    "Unsupported register bit width: 0x%X",
--			    reg->bit_width));
-+			    "Unsupported register access width: 0x%X",
-+			    reg->access_width));
- 		return (AE_SUPPORT);
- 	}
- 
--	/* Validate the bit_offset. Just a warning for now. */
-+	/* Validate the bit_width, convert access_width into number of bits */
- 
--	if (reg->bit_offset != 0) {
+-	/* Initialize entire 32-bit return value to zero */
+-
++	/*
++	 * Initialize entire 32-bit return value to zero, convert access_width
++	 * into number of bits based
++	 */
+ 	*value = 0;
 +	access_width = reg->access_width ? reg->access_width : 1;
 +	access_width = 1 << (access_width + 2);
-+	bit_width =
-+	    ACPI_ROUND_UP(reg->bit_offset + reg->bit_width, access_width);
-+	if (max_bit_width < bit_width) {
- 		ACPI_WARNING((AE_INFO,
--			      "Unsupported register bit offset: 0x%X",
--			      reg->bit_offset));
-+			      "Requested bit width 0x%X is smaller than register bit width 0x%X",
-+			      max_bit_width, bit_width));
-+		return (AE_SUPPORT);
++	bit_width = reg->bit_offset + reg->bit_width;
++	bit_offset = reg->bit_offset;
+ 
+ 	/*
+ 	 * Two address spaces supported: Memory or IO. PCI_Config is
+ 	 * not supported here because the GAS structure is insufficient
+ 	 */
+-	if (reg->space_id == ACPI_ADR_SPACE_SYSTEM_MEMORY) {
+-		status = acpi_os_read_memory((acpi_physical_address)
+-					     address, &value64, reg->bit_width);
++	index = 0;
++	while (bit_width) {
++		if (bit_offset > access_width) {
++			value32 = 0;
++			bit_offset -= access_width;
++		} else {
++			if (reg->space_id == ACPI_ADR_SPACE_SYSTEM_MEMORY) {
++				status =
++				    acpi_os_read_memory((acpi_physical_address)
++							address +
++							index *
++							ACPI_DIV_8
++							(access_width),
++							&value64, access_width);
++				value32 = (u32)value64;
++			} else {	/* ACPI_ADR_SPACE_SYSTEM_IO, validated earlier */
++
++				status = acpi_hw_read_port((acpi_io_address)
++							   address +
++							   index *
++							   ACPI_DIV_8
++							   (access_width),
++							   &value32,
++							   access_width);
++			}
++
++			if (bit_offset) {
++				value32 &= ACPI_MASK_BITS_BELOW(bit_offset);
++				bit_offset = 0;
++			}
++			if (bit_width < access_width) {
++				value32 &= ACPI_MASK_BITS_ABOVE(bit_width);
++			}
++		}
+ 
+-		*value = (u32)value64;
+-	} else {		/* ACPI_ADR_SPACE_SYSTEM_IO, validated earlier */
++		ACPI_SET_BITS(value, index * access_width,
++			      (1 << access_width) - 1, value32);
+ 
+-		status = acpi_hw_read_port((acpi_io_address)
+-					   address, value, reg->bit_width);
++		bit_width -=
++		    bit_width > access_width ? access_width : bit_width;
++		index++;
  	}
  
- 	return (AE_OK);
+ 	ACPI_DEBUG_PRINT((ACPI_DB_IO,
+ 			  "Read:  %8.8X width %2d from %8.8X%8.8X (%s)\n",
+-			  *value, reg->bit_width, ACPI_FORMAT_UINT64(address),
++			  *value, access_width, ACPI_FORMAT_UINT64(address),
+ 			  acpi_ut_get_region_name(reg->space_id)));
+ 
+ 	return (status);
 -- 
 1.7.10
