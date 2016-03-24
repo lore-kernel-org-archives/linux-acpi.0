@@ -1,7 +1,7 @@
 From: Lv Zheng <lv.zheng@intel.com>
-Subject: [PATCH 09/30] ACPICA: Tables: Update FADT handling
-Date: Thu, 24 Mar 2016 09:39:28 +0800
-Message-ID: <c8bf7944504c44a03948c5beda52832c90c32291.1458714003.git.lv.zheng@intel.com>
+Subject: [PATCH 11/30] ACPICA: iASL/Headers: Fix incorrect definition of FPDT table
+Date: Thu, 24 Mar 2016 09:39:44 +0800
+Message-ID: <84d9ab851afb9bdb89b847f3f2b43d54524c12c2.1458714003.git.lv.zheng@intel.com>
 References: <cover.1458714002.git.lv.zheng@intel.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <cover.1458714002.git.lv.zheng@intel.com>
@@ -12,78 +12,117 @@ List-Id: linux-acpi@vger.kernel.org
 
 From: Bob Moore <robert.moore@intel.com>
 
-ACPICA commit bca0c4cb063ee488c543e6f160fe89679a2338d6
+ACPICA commit f30ba83711bcb860f9b17dd36d0bcc5242a4ef91
 
-Update a warning message
-simplify versioning for "table too big" case.
+ACPICA BZ 1249.
 
-Link: https://github.com/acpica/acpica/commit/bca0c4cb
+Link: https://github.com/acpica/acpica/commit/f30ba837
+Link: https://bugs.acpica.org/show_bug.cgi?id=1249
+Reported-by: Greg Elkin <greg.elkin@ericsson.com>
 Signed-off-by: Bob Moore <robert.moore@intel.com>
 Signed-off-by: Lv Zheng <lv.zheng@intel.com>
 ---
- drivers/acpi/acpica/tbfadt.c |   18 +++++++++++-------
- include/acpi/actbl.h         |    4 +++-
- 2 files changed, 14 insertions(+), 8 deletions(-)
+ include/acpi/actbl3.h |   43 ++++++++++++++++++++++++-------------------
+ 1 file changed, 24 insertions(+), 19 deletions(-)
 
-diff --git a/drivers/acpi/acpica/tbfadt.c b/drivers/acpi/acpica/tbfadt.c
-index a79e4f3..f63f3fd 100644
---- a/drivers/acpi/acpica/tbfadt.c
-+++ b/drivers/acpi/acpica/tbfadt.c
-@@ -385,14 +385,15 @@ void acpi_tb_create_local_fadt(struct acpi_table_header *table, u32 length)
- {
- 	/*
- 	 * Check if the FADT is larger than the largest table that we expect
--	 * (the ACPI 5.0 version). If so, truncate the table, and issue
--	 * a warning.
-+	 * (typically the current ACPI specification version). If so, truncate
-+	 * the table, and issue a warning.
- 	 */
- 	if (length > sizeof(struct acpi_table_fadt)) {
- 		ACPI_BIOS_WARNING((AE_INFO,
--				   "FADT (revision %u) is longer than ACPI 5.0 version, "
-+				   "FADT (revision %u) is longer than %s length, "
- 				   "truncating length %u to %u",
--				   table->revision, length,
-+				   table->revision, ACPI_FADT_CONFORMANCE,
-+				   length,
- 				   (u32)sizeof(struct acpi_table_fadt)));
- 	}
+diff --git a/include/acpi/actbl3.h b/include/acpi/actbl3.h
+index ddf5e66..f12f4bb 100644
+--- a/include/acpi/actbl3.h
++++ b/include/acpi/actbl3.h
+@@ -184,7 +184,7 @@ struct acpi_table_fpdt {
+ 	struct acpi_table_header header;	/* Common ACPI table header */
+ };
  
-@@ -646,9 +647,12 @@ static void acpi_tb_convert_fadt(void)
- 			if ((address64->address && !length) ||
- 			    (!address64->address && length)) {
- 				ACPI_BIOS_WARNING((AE_INFO,
--						   "Optional FADT field %s has zero address or length: "
--						   "0x%8.8X%8.8X/0x%X",
--						   name,
-+						   "Optional FADT field %s has valid %s but zero %s: "
-+						   "0x%8.8X%8.8X/0x%X", name,
-+						   (length ? "Length" :
-+						    "Address"),
-+						   (length ? "Address" :
-+						    "Length"),
- 						   ACPI_FORMAT_UINT64
- 						   (address64->address),
- 						   length));
-diff --git a/include/acpi/actbl.h b/include/acpi/actbl.h
-index 0cb1a00..c19700e 100644
---- a/include/acpi/actbl.h
-+++ b/include/acpi/actbl.h
-@@ -223,7 +223,7 @@ struct acpi_table_facs {
+-/* FPDT subtable header */
++/* FPDT subtable header (Performance Record Structure) */
+ 
+ struct acpi_fpdt_header {
+ 	u16 type;
+@@ -205,19 +205,15 @@ enum acpi_fpdt_type {
+ 
+ /* 0: Firmware Basic Boot Performance Record */
+ 
+-struct acpi_fpdt_boot {
++struct acpi_fpdt_boot_pointer {
+ 	struct acpi_fpdt_header header;
+ 	u8 reserved[4];
+-	u64 reset_end;
+-	u64 load_start;
+-	u64 startup_start;
+-	u64 exit_services_entry;
+-	u64 exit_services_exit;
++	u64 address;
+ };
+ 
+ /* 1: S3 Performance Table Pointer Record */
+ 
+-struct acpi_fpdt_s3pt_ptr {
++struct acpi_fpdt_s3pt_pointer {
+ 	struct acpi_fpdt_header header;
+ 	u8 reserved[4];
+ 	u64 address;
+@@ -225,7 +221,7 @@ struct acpi_fpdt_s3pt_ptr {
+ 
+ /*
+  * S3PT - S3 Performance Table. This table is pointed to by the
+- * FPDT S3 Pointer Record above.
++ * S3 Pointer Record above.
+  */
+ struct acpi_table_s3pt {
+ 	u8 signature[4];	/* "S3PT" */
+@@ -233,34 +229,43 @@ struct acpi_table_s3pt {
+ };
+ 
+ /*
+- * S3PT Subtables
++ * S3PT Subtables (Not part of the actual FPDT)
+  */
+-struct acpi_s3pt_header {
+-	u16 type;
+-	u8 length;
+-	u8 revision;
+-};
+ 
+-/* Values for Type field above */
++/* Values for Type field in S3PT header */
+ 
+ enum acpi_s3pt_type {
+ 	ACPI_S3PT_TYPE_RESUME = 0,
+-	ACPI_S3PT_TYPE_SUSPEND = 1
++	ACPI_S3PT_TYPE_SUSPEND = 1,
++	ACPI_FPDT_BOOT_PERFORMANCE = 2
+ };
+ 
+ struct acpi_s3pt_resume {
+-	struct acpi_s3pt_header header;
++	struct acpi_fpdt_header header;
+ 	u32 resume_count;
+ 	u64 full_resume;
+ 	u64 average_resume;
+ };
+ 
+ struct acpi_s3pt_suspend {
+-	struct acpi_s3pt_header header;
++	struct acpi_fpdt_header header;
+ 	u64 suspend_start;
+ 	u64 suspend_end;
+ };
+ 
++/*
++ * FPDT Boot Performance Record (Not part of the actual FPDT)
++ */
++struct acpi_fpdt_boot {
++	struct acpi_fpdt_header header;
++	u8 reserved[4];
++	u64 reset_end;
++	u64 load_start;
++	u64 startup_start;
++	u64 exit_services_entry;
++	u64 exit_services_exit;
++};
++
  /*******************************************************************************
   *
-  * FADT - Fixed ACPI Description Table (Signature "FACP")
-- *        Version 4
-+ *        Version 6
-  *
-  ******************************************************************************/
- 
-@@ -413,4 +413,6 @@ struct acpi_table_desc {
- #define ACPI_FADT_V5_SIZE       (u32) (ACPI_FADT_OFFSET (hypervisor_id))
- #define ACPI_FADT_V6_SIZE       (u32) (sizeof (struct acpi_table_fadt))
- 
-+#define ACPI_FADT_CONFORMANCE   "ACPI 6.1 (FADT version 6)"
-+
- #endif				/* __ACTBL_H__ */
+  * GTDT - Generic Timer Description Table (ACPI 5.1)
 -- 
 1.7.10
