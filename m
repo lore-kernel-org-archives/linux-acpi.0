@@ -1,7 +1,7 @@
 From: Lv Zheng <lv.zheng@intel.com>
-Subject: [PATCH 07/30] ACPICA: ACPI 6.1: Update NFIT table for additional new fields
-Date: Thu, 24 Mar 2016 09:39:14 +0800
-Message-ID: <dec449f8cec24f7c206915f35b169be558b422d8.1458714003.git.lv.zheng@intel.com>
+Subject: [PATCH 05/30] ACPICA: ACPI 6.1: Updates for the HEST ACPI table
+Date: Thu, 24 Mar 2016 09:38:57 +0800
+Message-ID: <e47d3bf1251795c1da6485288fa85a05627c0a65.1458714003.git.lv.zheng@intel.com>
 References: <cover.1458714002.git.lv.zheng@intel.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <cover.1458714002.git.lv.zheng@intel.com>
@@ -12,62 +12,105 @@ List-Id: linux-acpi@vger.kernel.org
 
 From: Bob Moore <robert.moore@intel.com>
 
-ACPICA commit bc81a4494d7648a496e0a82f0d27562103ee1ec1
+ACPICA commit 7e81afb625f5184000713de2b1f280e73251bc03
 
-Changes the NFIT Control Region.
+Additional structure for the generic error entry.
+Some additional constants/flags.
+With assistance from Abdulhamid, Harb <harba@codeaurora.org>
 
-Link: https://github.com/acpica/acpica/commit/bc81a449
+Link: https://github.com/acpica/acpica/commit/7e81afb6
+Reviewed-by: Harb Abdulhamid <harba@codeaurora.org>
 Signed-off-by: Bob Moore <robert.moore@intel.com>
 Signed-off-by: Lv Zheng <lv.zheng@intel.com>
 ---
- include/acpi/actbl1.h |   14 +++++++++++---
- 1 file changed, 11 insertions(+), 3 deletions(-)
+ include/acpi/actbl1.h |   54 +++++++++++++++++++++++++++++++++++++++++++++++--
+ 1 file changed, 52 insertions(+), 2 deletions(-)
 
 diff --git a/include/acpi/actbl1.h b/include/acpi/actbl1.h
-index b7c96b7..912dff9 100644
+index 16e0136..b7c96b7 100644
 --- a/include/acpi/actbl1.h
 +++ b/include/acpi/actbl1.h
-@@ -984,7 +984,7 @@ struct acpi_msct_proximity {
+@@ -427,7 +427,8 @@ enum acpi_hest_types {
+ 	ACPI_HEST_TYPE_AER_ENDPOINT = 7,
+ 	ACPI_HEST_TYPE_AER_BRIDGE = 8,
+ 	ACPI_HEST_TYPE_GENERIC_ERROR = 9,
+-	ACPI_HEST_TYPE_RESERVED = 10	/* 10 and greater are reserved */
++	ACPI_HEST_TYPE_GENERIC_ERROR_V2 = 10,
++	ACPI_HEST_TYPE_RESERVED = 11	/* 11 and greater are reserved */
+ };
  
+ /*
+@@ -506,7 +507,11 @@ enum acpi_hest_notify_types {
+ 	ACPI_HEST_NOTIFY_NMI = 4,
+ 	ACPI_HEST_NOTIFY_CMCI = 5,	/* ACPI 5.0 */
+ 	ACPI_HEST_NOTIFY_MCE = 6,	/* ACPI 5.0 */
+-	ACPI_HEST_NOTIFY_RESERVED = 7	/* 7 and greater are reserved */
++	ACPI_HEST_NOTIFY_GPIO = 7,	/* ACPI 6.0 */
++	ACPI_HEST_NOTIFY_SEA = 8,	/* ACPI 6.1 */
++	ACPI_HEST_NOTIFY_SEI = 9,	/* ACPI 6.1 */
++	ACPI_HEST_NOTIFY_GSIV = 10,	/* ACPI 6.1 */
++	ACPI_HEST_NOTIFY_RESERVED = 11	/* 11 and greater are reserved */
+ };
+ 
+ /* Values for config_write_enable bitfield above */
+@@ -603,6 +608,24 @@ struct acpi_hest_generic {
+ 	u32 error_block_length;
+ };
+ 
++/* 10: Generic Hardware Error Source, version 2 */
++
++struct acpi_hest_generic_v2 {
++	struct acpi_hest_header header;
++	u16 related_source_id;
++	u8 reserved;
++	u8 enabled;
++	u32 records_to_preallocate;
++	u32 max_sections_per_record;
++	u32 max_raw_data_length;
++	struct acpi_generic_address error_status_address;
++	struct acpi_hest_notify notify;
++	u32 error_block_length;
++	struct acpi_generic_address read_ack_register;
++	u64 read_ack_preserve;
++	u64 read_ack_write;
++};
++
+ /* Generic Error Status block */
+ 
+ struct acpi_hest_generic_status {
+@@ -634,6 +657,33 @@ struct acpi_hest_generic_data {
+ 	u8 fru_text[20];
+ };
+ 
++/* Extension for revision 0x0300 */
++
++struct acpi_hest_generic_data_v300 {
++	u8 section_type[16];
++	u32 error_severity;
++	u16 revision;
++	u8 validation_bits;
++	u8 flags;
++	u32 error_data_length;
++	u8 fru_id[16];
++	u8 fru_text[20];
++	u64 time_stamp;
++};
++
++/* Values for error_severity above */
++
++#define ACPI_HEST_GEN_ERROR_RECOVERABLE     0
++#define ACPI_HEST_GEN_ERROR_FATAL           1
++#define ACPI_HEST_GEN_ERROR_CORRECTED       2
++#define ACPI_HEST_GEN_ERROR_NONE            3
++
++/* Flags for validation_bits above */
++
++#define ACPI_HEST_GEN_VALID_FRU_ID          (1)
++#define ACPI_HEST_GEN_VALID_FRU_STRING      (1<<1)
++#define ACPI_HEST_GEN_VALID_TIMESTAMP       (1<<2)
++
  /*******************************************************************************
   *
-- * NFIT - NVDIMM Interface Table (ACPI 6.0)
-+ * NFIT - NVDIMM Interface Table (ACPI 6.0+)
-  *        Version 1
-  *
-  ******************************************************************************/
-@@ -1065,6 +1065,7 @@ struct acpi_nfit_memory_map {
- #define ACPI_NFIT_MEM_NOT_ARMED         (1<<3)	/* 03: Memory Device is not armed */
- #define ACPI_NFIT_MEM_HEALTH_OBSERVED   (1<<4)	/* 04: Memory Device observed SMART/health events */
- #define ACPI_NFIT_MEM_HEALTH_ENABLED    (1<<5)	/* 05: SMART/health events enabled */
-+#define ACPI_NFIT_MEM_MAP_FAILED        (1<<6)	/* 06: Mapping to SPA failed */
- 
- /* 2: Interleave Structure */
- 
-@@ -1096,7 +1097,10 @@ struct acpi_nfit_control_region {
- 	u16 subsystem_vendor_id;
- 	u16 subsystem_device_id;
- 	u16 subsystem_revision_id;
--	u8 reserved[6];		/* Reserved, must be zero */
-+	u8 valid_fields;
-+	u8 manufacturing_location;
-+	u16 manufacturing_date;
-+	u8 reserved[2];		/* Reserved, must be zero */
- 	u32 serial_number;
- 	u16 code;
- 	u16 windows;
-@@ -1111,7 +1115,11 @@ struct acpi_nfit_control_region {
- 
- /* Flags */
- 
--#define ACPI_NFIT_CONTROL_BUFFERED      (1)	/* Block Data Windows implementation is buffered */
-+#define ACPI_NFIT_CONTROL_BUFFERED          (1)	/* Block Data Windows implementation is buffered */
-+
-+/* valid_fields bits */
-+
-+#define ACPI_NFIT_CONTROL_MFG_INFO_VALID    (1)	/* Manufacturing fields are valid */
- 
- /* 5: NVDIMM Block Data Window Region Structure */
- 
+  * MADT - Multiple APIC Description Table
 -- 
 1.7.10
