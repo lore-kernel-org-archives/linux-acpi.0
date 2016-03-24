@@ -1,56 +1,59 @@
 From: Lv Zheng <lv.zheng@intel.com>
-Subject: [PATCH 03/30] ACPICA: Headers: Add new constants for the DBG2 ACPI table
-Date: Thu, 24 Mar 2016 09:38:42 +0800
-Message-ID: <6816d604b4d3edf6bf07308273dfe5d3a95f7424.1458714003.git.lv.zheng@intel.com>
+Subject: [PATCH 04/30] ACPICA: Headers: Minor update for SPCR ACPI table
+Date: Thu, 24 Mar 2016 09:38:49 +0800
+Message-ID: <45de14411558933523113ef48b7f43b59cab44ee.1458714003.git.lv.zheng@intel.com>
 References: <cover.1458714002.git.lv.zheng@intel.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga11.intel.com ([192.55.52.93]:24852 "EHLO mga11.intel.com"
+Received: from mga14.intel.com ([192.55.52.115]:4778 "EHLO mga14.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753338AbcCXBip (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 23 Mar 2016 21:38:45 -0400
+	id S1756495AbcCXBiw (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 23 Mar 2016 21:38:52 -0400
 In-Reply-To: <cover.1458714002.git.lv.zheng@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <len.brown@intel.com>
-Cc: Lv Zheng <lv.zheng@intel.com>, Lv Zheng <zetalog@gmail.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Aleksey Makarov <aleksey.makarov@linaro.org>, Bob Moore <robert.moore@intel.com>
+Cc: Lv Zheng <lv.zheng@intel.com>, Lv Zheng <zetalog@gmail.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Bob Moore <robert.moore@intel.com>
 
-From: Aleksey Makarov <aleksey.makarov@linaro.org>
+From: Bob Moore <robert.moore@intel.com>
 
-ACPICA commit 1607b69238df9c1b2940262a17aa94ec49033278
+ACPICA commit f3caa7f2e63be31f7fb8dbccabffbb70c29c3021
 
-Link: https://github.com/acpica/acpica/commit/1607b692
-Signed-off-by: Aleksey Makarov <aleksey.makarov@linaro.org>.
+Update version number and date of specification document.
+Point to DBG2 table for some constants.
+
+Link: https://github.com/acpica/acpica/commit/f3caa7f2
 Signed-off-by: Bob Moore <robert.moore@intel.com>
 Signed-off-by: Lv Zheng <lv.zheng@intel.com>
 ---
- include/acpi/actbl2.h |    7 ++++++-
- 1 file changed, 6 insertions(+), 1 deletion(-)
+ include/acpi/actbl2.h |    6 ++++--
+ 1 file changed, 4 insertions(+), 2 deletions(-)
 
 diff --git a/include/acpi/actbl2.h b/include/acpi/actbl2.h
-index a4ef625..7702b27 100644
+index 7702b27..e9d3cc1 100644
 --- a/include/acpi/actbl2.h
 +++ b/include/acpi/actbl2.h
-@@ -321,7 +321,7 @@ struct acpi_csrt_descriptor {
-  * DBG2 - Debug Port Table 2
-  *        Version 0 (Both main table and subtables)
+@@ -1107,10 +1107,10 @@ struct acpi_table_slic {
+ /*******************************************************************************
   *
-- * Conforms to "Microsoft Debug Port Table 2 (DBG2)", May 22 2012.
-+ * Conforms to "Microsoft Debug Port Table 2 (DBG2)", December 10, 2015
+  * SPCR - Serial Port Console Redirection table
+- *        Version 1
++ *        Version 2
+  *
+  * Conforms to "Serial Port Console Redirection Table",
+- * Version 1.00, January 11, 2002
++ * Version 1.03, August 10, 2015
   *
   ******************************************************************************/
  
-@@ -371,6 +371,11 @@ struct acpi_dbg2_device {
+@@ -1142,6 +1142,8 @@ struct acpi_table_spcr {
  
- #define ACPI_DBG2_16550_COMPATIBLE  0x0000
- #define ACPI_DBG2_16550_SUBSET      0x0001
-+#define ACPI_DBG2_ARM_PL011         0x0003
-+#define ACPI_DBG2_ARM_SBSA_32BIT    0x000D
-+#define ACPI_DBG2_ARM_SBSA_GENERIC  0x000E
-+#define ACPI_DBG2_ARM_DCC           0x000F
-+#define ACPI_DBG2_BCM2835           0x0010
+ #define ACPI_SPCR_DO_NOT_DISABLE    (1)
  
- #define ACPI_DBG2_1394_STANDARD     0x0000
- 
++/* Values for Interface Type: See the definition of the DBG2 table */
++
+ /*******************************************************************************
+  *
+  * SPMI - Server Platform Management Interface table
 -- 
 1.7.10
 
