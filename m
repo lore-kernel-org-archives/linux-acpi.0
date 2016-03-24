@@ -1,104 +1,111 @@
-From: Aleksey Makarov <aleksey.makarov@linaro.org>
-Subject: [PATCH v6 5/5] serial: pl011: add console matching function
-Date: Thu, 24 Mar 2016 15:52:03 +0300
-Message-ID: <1458823925-19560-6-git-send-email-aleksey.makarov@linaro.org>
-References: <1458823925-19560-1-git-send-email-aleksey.makarov@linaro.org>
+From: "Rafael J. Wysocki" <rafael@kernel.org>
+Subject: Re: [PATCH 00/30] ACPICA: 20160318 Release
+Date: Thu, 24 Mar 2016 14:08:57 +0100
+Message-ID: <CAJZ5v0gVLVCv-QCuvbUW1zWhrQ5sodHVoS8gSrv9h7uJCp=G1w@mail.gmail.com>
+References: <cover.1458714002.git.lv.zheng@intel.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-lb0-f178.google.com ([209.85.217.178]:36468 "EHLO
-	mail-lb0-f178.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757474AbcCXMyh (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 24 Mar 2016 08:54:37 -0400
-Received: by mail-lb0-f178.google.com with SMTP id qe11so29292701lbc.3
-        for <linux-acpi@vger.kernel.org>; Thu, 24 Mar 2016 05:54:36 -0700 (PDT)
-In-Reply-To: <1458823925-19560-1-git-send-email-aleksey.makarov@linaro.org>
+Received: from mail-lb0-f195.google.com ([209.85.217.195]:35828 "EHLO
+	mail-lb0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750775AbcCXNI7 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 24 Mar 2016 09:08:59 -0400
+In-Reply-To: <cover.1458714002.git.lv.zheng@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Greg Kroah-Hartman <gregkh@linuxfoundation.org>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>
-Cc: linux-serial@vger.kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Aleksey Makarov <aleksey.makarov@linaro.org>, Russell King <linux@arm.linux.org.uk>, Leif Lindholm <leif.lindholm@linaro.org>, Graeme Gregory <graeme.gregory@linaro.org>, Al Stone <ahs3@redhat.com>, Christopher Covington <cov@codeaurora.org>, Yury Norov <ynorov@caviumnetworks.com>, Peter Hurley <peter@hurleysoftware.com>, "Zheng, Lv" <lv.zheng@intel.com>, Jiri Slaby <jslaby@suse.com>
+To: Lv Zheng <lv.zheng@intel.com>
+Cc: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <len.brown@intel.com>, Lv Zheng <zetalog@gmail.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>
 
-This patch adds function pl011_console_match() that implements
-method match of struct console.  It allows to match consoles against
-data specified in a string, for example taken from command line or
-compiled by ACPI SPCR table handler.
+On Thu, Mar 24, 2016 at 2:38 AM, Lv Zheng <lv.zheng@intel.com> wrote:
+> The 20160318 ACPICA kernel-resident subsystem updates are linuxized based
+> on the linux-pm/linux-next branch.
+>
+> The patchset has passed the following build/boot tests.
+> Build tests are performed as follows:
+> 1. i386 + allyes
+> 2. i386 + allno
+> 3. i386 + default + ACPI_DEBUGGER=y
+> 4. i386 + default + ACPI_DEBUGGER=n + ACPI_DEBUG=y
+> 5. i386 + default + ACPI_DEBUG=n + ACPI=y
+> 6. i386 + default + ACPI=n
+> 7. x86_64 + allyes
+> 8. x86_64 + allno
+> 9. x86_64 + default + ACPI_DEBUGGER=y
+> 10.x86_64 + default + ACPI_DEBUGGER=n + ACPI_DEBUG=y
+> 11.x86_64 + default + ACPI_DEBUG=n + ACPI=y
+> 12.x86_64 + default + ACPI=n
+> Boot tests are performed as follows:
+> 1. i386 + default + ACPI_DEBUGGER=y
+> 2. x86_64 + default + ACPI_DEBUGGER=y
+> Where:
+> 1. i386: machine named as "Dell Inspiron Mini 1010"
+> 2. x86_64: machine named as "HP Compaq 8200 Elite SFF PC"
+> 3. default: kernel configuration with following items enabled:
+>    All hardware drivers related to the machines of i386/x86_64
+>    All "drivers/acpi" configurations
+>    All "drivers/platform" drivers
+>    All other drivers that link the APIs provided by ACPICA subsystem
+>
+> The divergences checking result:
+> Before applying (20160212 Release):
+>   506 lines
+> After applying (20160318 Release):
+>   494 lines
+>
+> Al Stone (1):
+>   ACPICA: IORT: Add in support for the SMMUv3 subtable
+>
+> Aleksey Makarov (1):
+>   ACPICA: Headers: Add new constants for the DBG2 ACPI table
+>
+> Bob Moore (16):
+>   ACPICA: Headers: Minor update for SPCR ACPI table
+>   ACPICA: ACPI 6.1: Updates for the HEST ACPI table
+>   ACPICA: ACPI 6.1: Update NFIT table for additional new fields
+>   ACPICA: Headers: Update DMAR table for October 2014 I/O spec
+>   ACPICA: Tables: Update FADT handling
+>   ACPICA: ACPI 6.1: Add full support for this version of ACPI spec
+>   ACPICA: iASL/Headers: Fix incorrect definition of FPDT table
+>   ACPICA: Intepreter: Add object extensions to Concatenate operand
+>   ACPICA: Interpreter: Update some function headers, no functional
+>     change
+>   ACPICA: iASL: Cleanup/optimization for ToPLD macro support
+>   ACPICA: Cleanup some invocation indentations, no functional change
+>   ACPICA: Headers: Update generation of the ACPICA library
+>   ACPICA: Utilities: Update for strtoul64 merger
+>   ACPICA: All: const keyword changes across the ACPICA source
+>   ACPICA: iASL/Disassembler: Improve handling of unresolved methods
+>   ACPICA: Update version to 20160318
+>
+> Lv Zheng (11):
+>   ACPICA: Linuxize: reduce divergences for 20160212 release
+>   ACPICA: Linuxize: Remove useless platform headers
+>   ACPICA: Utilities: Add ACPI_IS_POWER_OF_TWO()
+>   Utilities: Fix missing parentheses in ACPI_GET_BITS()/ACPI_SET_BITS()
+>   ACPICA: Hardware: Enhance acpi_hw_validate_register() with
+>     access_width/bit_offset awareness
+>   ACPICA: Hardware: Add access_width/bit_offset support in
+>     acpi_hw_read()
+>   ACPICA: Hardware: Add access_width/bit_offset support for
+>     acpi_hw_write()
+>   ACPICA: Interpreter: Fix wrong conditions for
+>     acpi_ev_install_region_handlers() invocation
+>   ACPICA: Tables: Fix wrong MLC condition for dynamic table loading
+>   ACPICA: Events: Fix an issue that _REG association can happen before
+>     namespace is initialized
+>   ACPICA: Namespace: Reorder \_SB._INI to make sure it is evaluated
+>     before _REG evaluations
+>
+> Will Miles (1):
+>   ACPICA: Add support for QNX 6.6 platform
 
-Signed-off-by: Aleksey Makarov <aleksey.makarov@linaro.org>
----
- drivers/tty/serial/amba-pl011.c | 56 +++++++++++++++++++++++++++++++++++++++++
- 1 file changed, 56 insertions(+)
+This is too late to go in during the current merge window, but I'll
+queue it up and send a separate pull request for 4.6 with it next
+week.
 
-diff --git a/drivers/tty/serial/amba-pl011.c b/drivers/tty/serial/amba-pl011.c
-index 7c198e0..4139b64 100644
---- a/drivers/tty/serial/amba-pl011.c
-+++ b/drivers/tty/serial/amba-pl011.c
-@@ -2287,12 +2287,68 @@ static int __init pl011_console_setup(struct console *co, char *options)
- 	return uart_set_options(&uap->port, co, baud, parity, bits, flow);
- }
- 
-+/**
-+ *	pl011_console_match - non-standard console matching
-+ *	@co:	  registering console
-+ *	@name:	  name from console command line
-+ *	@idx:	  index from console command line
-+ *	@options: ptr to option string from console command line
-+ *
-+ *	Only attempts to match console command lines of the form:
-+ *	    console=pl011,mmio|mmio32,<addr>[,<options>]
-+ *	    console=pl011,0x<addr>[,<options>]
-+ *	This form is used to register an initial earlycon boot console and
-+ *	replace it with the amba_console at pl011 driver init.
-+ *
-+ *	Performs console setup for a match (as required by interface)
-+ *	If no <options> are specified, then assume the h/w is already setup.
-+ *
-+ *	Returns 0 if console matches; otherwise non-zero to use default matching
-+ */
-+static int __init pl011_console_match(struct console *co, char *name, int idx,
-+				      char *options)
-+{
-+	char match[] = "pl011";	/* pl011-specific earlycon name */
-+	unsigned char iotype;
-+	unsigned long addr;
-+	int i;
-+
-+	if (strncmp(name, match, 5) != 0)
-+		return -ENODEV;
-+
-+	if (uart_parse_earlycon(options, &iotype, &addr, &options))
-+		return -ENODEV;
-+
-+	/* try to match the port specified on the command line */
-+	for (i = 0; i < ARRAY_SIZE(amba_ports); i++) {
-+		struct uart_port *port;
-+
-+		if (!amba_ports[i])
-+			continue;
-+
-+		port = &amba_ports[i]->port;
-+
-+		if (port->iotype != iotype)
-+			continue;
-+		if ((iotype == UPIO_MEM || iotype == UPIO_MEM32) &&
-+		    (port->mapbase != addr))
-+			continue;
-+
-+		co->index = i;
-+		port->cons = co;
-+		return pl011_console_setup(co, options);
-+	}
-+
-+	return -ENODEV;
-+}
-+
- static struct uart_driver amba_reg;
- static struct console amba_console = {
- 	.name		= "ttyAMA",
- 	.write		= pl011_console_write,
- 	.device		= uart_console_device,
- 	.setup		= pl011_console_setup,
-+	.match		= pl011_console_match,
- 	.flags		= CON_PRINTBUFFER,
- 	.index		= -1,
- 	.data		= &amba_reg,
--- 
-2.7.4
+I'll fix up the whitespace breakage in the first patch (it is easy
+enough to fix up manually), but as Len said, please fix the process to
+avoid such things in the future.
 
+Thanks,
+Rafael
