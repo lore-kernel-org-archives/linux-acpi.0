@@ -1,7 +1,7 @@
 From: Lv Zheng <lv.zheng@intel.com>
-Subject: [PATCH 11/30] ACPICA: iASL/Headers: Fix incorrect definition of FPDT table
-Date: Thu, 24 Mar 2016 09:39:44 +0800
-Message-ID: <84d9ab851afb9bdb89b847f3f2b43d54524c12c2.1458714003.git.lv.zheng@intel.com>
+Subject: [PATCH 10/30] ACPICA: ACPI 6.1: Add full support for this version of ACPI spec
+Date: Thu, 24 Mar 2016 09:39:36 +0800
+Message-ID: <ed8ee8a75763cfc2631f2ffe82476ef6335b947c.1458714003.git.lv.zheng@intel.com>
 References: <cover.1458714002.git.lv.zheng@intel.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <cover.1458714002.git.lv.zheng@intel.com>
@@ -12,117 +12,166 @@ List-Id: linux-acpi@vger.kernel.org
 
 From: Bob Moore <robert.moore@intel.com>
 
-ACPICA commit f30ba83711bcb860f9b17dd36d0bcc5242a4ef91
+ACPICA commit 5f21bddaa2cec035ca80608803ce2f0858d4f387
 
-ACPICA BZ 1249.
+Small changes:
+1) A couple new predefined names
+2) New _HID values
+3) New subtable for HEST
 
-Link: https://github.com/acpica/acpica/commit/f30ba837
-Link: https://bugs.acpica.org/show_bug.cgi?id=1249
-Reported-by: Greg Elkin <greg.elkin@ericsson.com>
+Link: https://github.com/acpica/acpica/commit/5f21bdda
 Signed-off-by: Bob Moore <robert.moore@intel.com>
 Signed-off-by: Lv Zheng <lv.zheng@intel.com>
 ---
- include/acpi/actbl3.h |   43 ++++++++++++++++++++++++-------------------
- 1 file changed, 24 insertions(+), 19 deletions(-)
+ drivers/acpi/acpica/acpredef.h |    9 +++++++++
+ drivers/acpi/acpica/utdecode.c |   30 +++++++++++++++++-------------
+ include/acpi/actbl1.h          |    6 ++++--
+ include/acpi/actypes.h         |    3 ++-
+ 4 files changed, 32 insertions(+), 16 deletions(-)
 
-diff --git a/include/acpi/actbl3.h b/include/acpi/actbl3.h
-index ddf5e66..f12f4bb 100644
---- a/include/acpi/actbl3.h
-+++ b/include/acpi/actbl3.h
-@@ -184,7 +184,7 @@ struct acpi_table_fpdt {
- 	struct acpi_table_header header;	/* Common ACPI table header */
- };
+diff --git a/drivers/acpi/acpica/acpredef.h b/drivers/acpi/acpica/acpredef.h
+index 5faeab4..4ca426b 100644
+--- a/drivers/acpi/acpica/acpredef.h
++++ b/drivers/acpi/acpica/acpredef.h
+@@ -523,6 +523,9 @@ const union acpi_predefined_info acpi_gbl_predefined_methods[] = {
+ 	  METHOD_RETURNS(ACPI_RTYPE_PACKAGE)}},	/* Fixed-length (4 Int) */
+ 	PACKAGE_INFO(ACPI_PTYPE1_FIXED, ACPI_RTYPE_INTEGER, 4, 0, 0, 0),
  
--/* FPDT subtable header */
-+/* FPDT subtable header (Performance Record Structure) */
- 
- struct acpi_fpdt_header {
- 	u16 type;
-@@ -205,19 +205,15 @@ enum acpi_fpdt_type {
- 
- /* 0: Firmware Basic Boot Performance Record */
- 
--struct acpi_fpdt_boot {
-+struct acpi_fpdt_boot_pointer {
- 	struct acpi_fpdt_header header;
- 	u8 reserved[4];
--	u64 reset_end;
--	u64 load_start;
--	u64 startup_start;
--	u64 exit_services_entry;
--	u64 exit_services_exit;
-+	u64 address;
- };
- 
- /* 1: S3 Performance Table Pointer Record */
- 
--struct acpi_fpdt_s3pt_ptr {
-+struct acpi_fpdt_s3pt_pointer {
- 	struct acpi_fpdt_header header;
- 	u8 reserved[4];
- 	u64 address;
-@@ -225,7 +221,7 @@ struct acpi_fpdt_s3pt_ptr {
- 
- /*
-  * S3PT - S3 Performance Table. This table is pointed to by the
-- * FPDT S3 Pointer Record above.
-+ * S3 Pointer Record above.
-  */
- struct acpi_table_s3pt {
- 	u8 signature[4];	/* "S3PT" */
-@@ -233,34 +229,43 @@ struct acpi_table_s3pt {
- };
- 
- /*
-- * S3PT Subtables
-+ * S3PT Subtables (Not part of the actual FPDT)
-  */
--struct acpi_s3pt_header {
--	u16 type;
--	u8 length;
--	u8 revision;
--};
- 
--/* Values for Type field above */
-+/* Values for Type field in S3PT header */
- 
- enum acpi_s3pt_type {
- 	ACPI_S3PT_TYPE_RESUME = 0,
--	ACPI_S3PT_TYPE_SUSPEND = 1
-+	ACPI_S3PT_TYPE_SUSPEND = 1,
-+	ACPI_FPDT_BOOT_PERFORMANCE = 2
- };
- 
- struct acpi_s3pt_resume {
--	struct acpi_s3pt_header header;
-+	struct acpi_fpdt_header header;
- 	u32 resume_count;
- 	u64 full_resume;
- 	u64 average_resume;
- };
- 
- struct acpi_s3pt_suspend {
--	struct acpi_s3pt_header header;
-+	struct acpi_fpdt_header header;
- 	u64 suspend_start;
- 	u64 suspend_end;
- };
- 
-+/*
-+ * FPDT Boot Performance Record (Not part of the actual FPDT)
-+ */
-+struct acpi_fpdt_boot {
-+	struct acpi_fpdt_header header;
-+	u8 reserved[4];
-+	u64 reset_end;
-+	u64 load_start;
-+	u64 startup_start;
-+	u64 exit_services_entry;
-+	u64 exit_services_exit;
-+};
++	{{"_FIT", METHOD_0ARGS,
++	  METHOD_RETURNS(ACPI_RTYPE_BUFFER)}},	/* ACPI 6.0 */
 +
- /*******************************************************************************
-  *
-  * GTDT - Generic Timer Description Table (ACPI 5.1)
+ 	{{"_FIX", METHOD_0ARGS,
+ 	  METHOD_RETURNS(ACPI_RTYPE_PACKAGE)}},	/* Variable-length (Ints) */
+ 	PACKAGE_INFO(ACPI_PTYPE1_VAR, ACPI_RTYPE_INTEGER, 0, 0, 0, 0),
+@@ -1053,6 +1056,12 @@ const union acpi_predefined_info acpi_gbl_predefined_methods[] = {
+ 	  METHOD_RETURNS(ACPI_RTYPE_INTEGER | ACPI_RTYPE_STRING |
+ 			 ACPI_RTYPE_BUFFER)}},
+ 
++	{{"_WPC", METHOD_0ARGS,
++	  METHOD_RETURNS(ACPI_RTYPE_INTEGER)}},	/* ACPI 6.1 */
++
++	{{"_WPP", METHOD_0ARGS,
++	  METHOD_RETURNS(ACPI_RTYPE_INTEGER)}},	/* ACPI 6.1 */
++
+ 	PACKAGE_INFO(0, 0, 0, 0, 0, 0)	/* Table terminator */
+ };
+ #else
+diff --git a/drivers/acpi/acpica/utdecode.c b/drivers/acpi/acpica/utdecode.c
+index 6ba65b0..efd7988 100644
+--- a/drivers/acpi/acpica/utdecode.c
++++ b/drivers/acpi/acpica/utdecode.c
+@@ -446,7 +446,7 @@ const char *acpi_ut_get_mutex_name(u32 mutex_id)
+ 
+ /* Names for Notify() values, used for debug output */
+ 
+-static const char *acpi_gbl_generic_notify[ACPI_NOTIFY_MAX + 1] = {
++static const char *acpi_gbl_generic_notify[ACPI_GENERIC_NOTIFY_MAX + 1] = {
+ 	/* 00 */ "Bus Check",
+ 	/* 01 */ "Device Check",
+ 	/* 02 */ "Device Wake",
+@@ -459,49 +459,53 @@ static const char *acpi_gbl_generic_notify[ACPI_NOTIFY_MAX + 1] = {
+ 	/* 09 */ "Device PLD Check",
+ 	/* 0A */ "Reserved",
+ 	/* 0B */ "System Locality Update",
+-	/* 0C */ "Shutdown Request",
++					/* 0C */ "Shutdown Request",
++					/* Reserved in ACPI 6.0 */
+ 	/* 0D */ "System Resource Affinity Update"
+ };
+ 
+-static const char *acpi_gbl_device_notify[4] = {
++static const char *acpi_gbl_device_notify[5] = {
+ 	/* 80 */ "Status Change",
+ 	/* 81 */ "Information Change",
+ 	/* 82 */ "Device-Specific Change",
+-	/* 83 */ "Device-Specific Change"
++	/* 83 */ "Device-Specific Change",
++	/* 84 */ "Reserved"
+ };
+ 
+-static const char *acpi_gbl_processor_notify[4] = {
++static const char *acpi_gbl_processor_notify[5] = {
+ 	/* 80 */ "Performance Capability Change",
+ 	/* 81 */ "C-State Change",
+ 	/* 82 */ "Throttling Capability Change",
+-	/* 83 */ "Device-Specific Change"
++	/* 83 */ "Guaranteed Change",
++	/* 84 */ "Minimum Excursion"
+ };
+ 
+-static const char *acpi_gbl_thermal_notify[4] = {
++static const char *acpi_gbl_thermal_notify[5] = {
+ 	/* 80 */ "Thermal Status Change",
+ 	/* 81 */ "Thermal Trip Point Change",
+ 	/* 82 */ "Thermal Device List Change",
+-	/* 83 */ "Thermal Relationship Change"
++	/* 83 */ "Thermal Relationship Change",
++	/* 84 */ "Reserved"
+ };
+ 
+ const char *acpi_ut_get_notify_name(u32 notify_value, acpi_object_type type)
+ {
+ 
+-	/* 00 - 0D are common to all object types */
++	/* 00 - 0D are "common to all object types" (from ACPI Spec) */
+ 
+-	if (notify_value <= ACPI_NOTIFY_MAX) {
++	if (notify_value <= ACPI_GENERIC_NOTIFY_MAX) {
+ 		return (acpi_gbl_generic_notify[notify_value]);
+ 	}
+ 
+-	/* 0D - 7F are reserved */
++	/* 0E - 7F are reserved */
+ 
+ 	if (notify_value <= ACPI_MAX_SYS_NOTIFY) {
+ 		return ("Reserved");
+ 	}
+ 
+-	/* 80 - 83 are per-object-type */
++	/* 80 - 84 are per-object-type */
+ 
+-	if (notify_value <= 0x83) {
++	if (notify_value <= ACPI_SPECIFIC_NOTIFY_MAX) {
+ 		switch (type) {
+ 		case ACPI_TYPE_ANY:
+ 		case ACPI_TYPE_DEVICE:
+diff --git a/include/acpi/actbl1.h b/include/acpi/actbl1.h
+index 912dff9..796d6ba 100644
+--- a/include/acpi/actbl1.h
++++ b/include/acpi/actbl1.h
+@@ -236,7 +236,8 @@ enum acpi_einj_actions {
+ 	ACPI_EINJ_CHECK_BUSY_STATUS = 6,
+ 	ACPI_EINJ_GET_COMMAND_STATUS = 7,
+ 	ACPI_EINJ_SET_ERROR_TYPE_WITH_ADDRESS = 8,
+-	ACPI_EINJ_ACTION_RESERVED = 9,	/* 9 and greater are reserved */
++	ACPI_EINJ_GET_EXECUTE_TIMINGS = 9,
++	ACPI_EINJ_ACTION_RESERVED = 10,	/* 10 and greater are reserved */
+ 	ACPI_EINJ_TRIGGER_ERROR = 0xFF	/* Except for this value */
+ };
+ 
+@@ -348,7 +349,8 @@ enum acpi_erst_actions {
+ 	ACPI_ERST_GET_ERROR_RANGE = 13,
+ 	ACPI_ERST_GET_ERROR_LENGTH = 14,
+ 	ACPI_ERST_GET_ERROR_ATTRIBUTES = 15,
+-	ACPI_ERST_ACTION_RESERVED = 16	/* 16 and greater are reserved */
++	ACPI_ERST_EXECUTE_TIMINGS = 16,
++	ACPI_ERST_ACTION_RESERVED = 17	/* 17 and greater are reserved */
+ };
+ 
+ /* Values for Instruction field above */
+diff --git a/include/acpi/actypes.h b/include/acpi/actypes.h
+index db46546..140886e 100644
+--- a/include/acpi/actypes.h
++++ b/include/acpi/actypes.h
+@@ -630,7 +630,8 @@ typedef u64 acpi_integer;
+ #define ACPI_NOTIFY_SHUTDOWN_REQUEST    (u8) 0x0C
+ #define ACPI_NOTIFY_AFFINITY_UPDATE     (u8) 0x0D
+ 
+-#define ACPI_NOTIFY_MAX                 0x0D
++#define ACPI_GENERIC_NOTIFY_MAX         0x0D
++#define ACPI_SPECIFIC_NOTIFY_MAX        0x84
+ 
+ /*
+  * Types associated with ACPI names and objects. The first group of
 -- 
 1.7.10
