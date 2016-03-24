@@ -1,170 +1,157 @@
 From: Lv Zheng <lv.zheng@intel.com>
-Subject: [PATCH 28/30] ACPICA: Events: Fix an issue that _REG association can happen before namespace is initialized
-Date: Thu, 24 Mar 2016 09:41:47 +0800
-Message-ID: <26aa978c077039e9e74c1a16ab7d7ee9a9e57b4f.1458714003.git.lv.zheng@intel.com>
+Subject: [PATCH 29/30] ACPICA: Namespace: Reorder \_SB._INI to make sure it is evaluated before _REG evaluations
+Date: Thu, 24 Mar 2016 09:41:54 +0800
+Message-ID: <a7bb6b0c5d9df30e297ce37dbc2ff88de98f69cc.1458714003.git.lv.zheng@intel.com>
 References: <cover.1458714002.git.lv.zheng@intel.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga01.intel.com ([192.55.52.88]:14495 "EHLO mga01.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S932418AbcCXBmB (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 23 Mar 2016 21:42:01 -0400
 In-Reply-To: <cover.1458714002.git.lv.zheng@intel.com>
-Sender: linux-kernel-owner@vger.kernel.org
+Sender: linux-acpi-owner@vger.kernel.org
+List-Id: linux-acpi@vger.kernel.org
 To: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <len.brown@intel.com>
 Cc: Lv Zheng <lv.zheng@intel.com>, Lv Zheng <zetalog@gmail.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Bob Moore <robert.moore@intel.com>
-List-Id: linux-acpi@vger.kernel.org
 
-ACPICA commit c508f8592efaa0d8197f26d7fee6382c5ac8e383
+ACPICA commit f005ee6b90d152c1f499efcca6b771a93903cb55
 
-Current code flow cannot ensure _REG association can happen after the
-namespace is initialized, so we move _REG association to where _REG was
-about to run to fix this issue.
+This patch splits \_SB._INI evaluation from device initialization code, so
+that it can be performed before PCI_Config _REG evaluations. This is
+required for the device enumeration process. Some named objects are
+initialized in \_SB._INI and PCI_Config _REG evaluations may use
+uninitialized named objects because of the order issue.
 
-This issue is detected when acpi_ev_initialize_region() is invoked during
-the table loading. And this is one of the most important the root cause why
-ACPICA table loading is split into 2 load passes. Lv Zheng.
+This must be fixed before fixing ECDT order issue. There are existing
+tables allowing ECDT EC to be used for the entire device enumeration
+process, but the enabling of ECDT EC is done in \_SB._INI. Thus \_SB._INI
+must be the first control method evaluated in the device enumeration
+process. Normally, the order should be automatically ensured by the device
+enumeration process itself (for example, PCI_Config _REGs are evaluated by
+the PCI bus driver when the driver is probed by the enumeration process),
+but since the process is split on Linux (partially done in Linux, partially
+done in ACPICA), we need to ensure this with special logics in order to be
+regression safe. Lv Zheng.
 
-Link: https://github.com/acpica/acpica/commit/c508f859
-Link: https://bugs.acpica.org/show_bug.cgi?id=1252
+Link: https://github.com/acpica/acpica/commit/f005ee6b
 Signed-off-by: Lv Zheng <lv.zheng@intel.com>
 Signed-off-by: Bob Moore <robert.moore@intel.com>
 ---
- drivers/acpi/acpica/acevents.h |    2 --
- drivers/acpi/acpica/evregion.c |   71 ++++++++++++++--------------------------
- drivers/acpi/acpica/evrgnini.c |    1 -
- 3 files changed, 24 insertions(+), 50 deletions(-)
+ drivers/acpi/acpica/nsinit.c |   75 ++++++++++++++++++++++++++++++------------
+ 1 file changed, 54 insertions(+), 21 deletions(-)
 
-diff --git a/drivers/acpi/acpica/acevents.h b/drivers/acpi/acpica/acevents.h
-index 010cf81..17f2217 100644
---- a/drivers/acpi/acpica/acevents.h
-+++ b/drivers/acpi/acpica/acevents.h
-@@ -198,8 +198,6 @@ void
- acpi_ev_detach_region(union acpi_operand_object *region_obj,
- 		      u8 acpi_ns_is_locked);
- 
--void acpi_ev_associate_reg_method(union acpi_operand_object *region_obj);
--
- void
- acpi_ev_execute_reg_methods(struct acpi_namespace_node *node,
- 			    acpi_adr_space_type space_id, u32 function);
-diff --git a/drivers/acpi/acpica/evregion.c b/drivers/acpi/acpica/evregion.c
-index 17d61c6..4c6f795 100644
---- a/drivers/acpi/acpica/evregion.c
-+++ b/drivers/acpi/acpica/evregion.c
-@@ -526,82 +526,59 @@ acpi_ev_attach_region(union acpi_operand_object *handler_obj,
- 
- /*******************************************************************************
-  *
-- * FUNCTION:    acpi_ev_associate_reg_method
-+ * FUNCTION:    acpi_ev_execute_reg_method
-  *
-  * PARAMETERS:  region_obj          - Region object
-+ *              function            - Passed to _REG: On (1) or Off (0)
-  *
-  * RETURN:      Status
-  *
-- * DESCRIPTION: Find and associate _REG method to a region
-+ * DESCRIPTION: Execute _REG method for a region
-  *
-  ******************************************************************************/
- 
--void acpi_ev_associate_reg_method(union acpi_operand_object *region_obj)
-+acpi_status
-+acpi_ev_execute_reg_method(union acpi_operand_object *region_obj, u32 function)
+diff --git a/drivers/acpi/acpica/nsinit.c b/drivers/acpi/acpica/nsinit.c
+index 2de8adb..36643a8 100644
+--- a/drivers/acpi/acpica/nsinit.c
++++ b/drivers/acpi/acpica/nsinit.c
+@@ -140,6 +140,7 @@ acpi_status acpi_ns_initialize_devices(u32 flags)
  {
-+	struct acpi_evaluate_info *info;
-+	union acpi_operand_object *args[3];
-+	union acpi_operand_object *region_obj2;
- 	const acpi_name *reg_name_ptr =
- 	    ACPI_CAST_PTR(acpi_name, METHOD_NAME__REG);
- 	struct acpi_namespace_node *method_node;
- 	struct acpi_namespace_node *node;
--	union acpi_operand_object *region_obj2;
- 	acpi_status status;
+ 	acpi_status status = AE_OK;
+ 	struct acpi_device_walk_info info;
++	acpi_handle handle;
  
--	ACPI_FUNCTION_TRACE(ev_associate_reg_method);
-+	ACPI_FUNCTION_TRACE(ev_execute_reg_method);
+ 	ACPI_FUNCTION_TRACE(ns_initialize_devices);
+ 
+@@ -190,6 +191,27 @@ acpi_status acpi_ns_initialize_devices(u32 flags)
+ 		if (ACPI_SUCCESS(status)) {
+ 			info.num_INI++;
+ 		}
 +
-+	if (!acpi_gbl_namespace_initialized ||
-+	    region_obj->region.handler == NULL) {
-+		return_ACPI_STATUS(AE_OK);
++		/*
++		 * Execute \_SB._INI.
++		 * There appears to be a strict order requirement for \_SB._INI,
++		 * which should be evaluated before any _REG evaluations.
++		 */
++		status = acpi_get_handle(NULL, "\\_SB", &handle);
++		if (ACPI_SUCCESS(status)) {
++			memset(info.evaluate_info, 0,
++			       sizeof(struct acpi_evaluate_info));
++			info.evaluate_info->prefix_node = handle;
++			info.evaluate_info->relative_pathname =
++			    METHOD_NAME__INI;
++			info.evaluate_info->parameters = NULL;
++			info.evaluate_info->flags = ACPI_IGNORE_RETURN_VALUE;
++
++			status = acpi_ns_evaluate(info.evaluate_info);
++			if (ACPI_SUCCESS(status)) {
++				info.num_INI++;
++			}
++		}
+ 	}
+ 
+ 	/*
+@@ -198,6 +220,12 @@ acpi_status acpi_ns_initialize_devices(u32 flags)
+ 	 * Note: Any objects accessed by the _REG methods will be automatically
+ 	 * initialized, even if they contain executable AML (see the call to
+ 	 * acpi_ns_initialize_objects below).
++	 *
++	 * Note: According to the ACPI specification, we actually needn't execute
++	 * _REG for system_memory/system_io operation regions, but for PCI_Config
++	 * operation regions, it is required to evaluate _REG for those on a PCI
++	 * root bus that doesn't contain _BBN object. So this code is kept here
++	 * in order not to break things.
+ 	 */
+ 	if (!(flags & ACPI_NO_ADDRESS_SPACE_INIT)) {
+ 		ACPI_DEBUG_PRINT((ACPI_DB_EXEC,
+@@ -592,32 +620,37 @@ acpi_ns_init_one_device(acpi_handle obj_handle,
+ 	 * Note: We know there is an _INI within this subtree, but it may not be
+ 	 * under this particular device, it may be lower in the branch.
+ 	 */
+-	ACPI_DEBUG_EXEC(acpi_ut_display_init_pathname
+-			(ACPI_TYPE_METHOD, device_node, METHOD_NAME__INI));
+-
+-	memset(info, 0, sizeof(struct acpi_evaluate_info));
+-	info->prefix_node = device_node;
+-	info->relative_pathname = METHOD_NAME__INI;
+-	info->parameters = NULL;
+-	info->flags = ACPI_IGNORE_RETURN_VALUE;
+-
+-	status = acpi_ns_evaluate(info);
+-	if (ACPI_SUCCESS(status)) {
+-		walk_info->num_INI++;
+-	}
++	if (!ACPI_COMPARE_NAME(device_node->name.ascii, "_SB_") ||
++	    device_node->parent != acpi_gbl_root_node) {
++		ACPI_DEBUG_EXEC(acpi_ut_display_init_pathname
++				(ACPI_TYPE_METHOD, device_node,
++				 METHOD_NAME__INI));
++
++		memset(info, 0, sizeof(struct acpi_evaluate_info));
++		info->prefix_node = device_node;
++		info->relative_pathname = METHOD_NAME__INI;
++		info->parameters = NULL;
++		info->flags = ACPI_IGNORE_RETURN_VALUE;
++
++		status = acpi_ns_evaluate(info);
++		if (ACPI_SUCCESS(status)) {
++			walk_info->num_INI++;
++		}
+ #ifdef ACPI_DEBUG_OUTPUT
+-	else if (status != AE_NOT_FOUND) {
++		else if (status != AE_NOT_FOUND) {
+ 
+-		/* Ignore error and move on to next device */
++			/* Ignore error and move on to next device */
+ 
+-		char *scope_name =
+-		    acpi_ns_get_normalized_pathname(device_node, TRUE);
++			char *scope_name =
++			    acpi_ns_get_normalized_pathname(device_node, TRUE);
+ 
+-		ACPI_EXCEPTION((AE_INFO, status, "during %s._INI execution",
+-				scope_name));
+-		ACPI_FREE(scope_name);
+-	}
++			ACPI_EXCEPTION((AE_INFO, status,
++					"during %s._INI execution",
++					scope_name));
++			ACPI_FREE(scope_name);
++		}
+ #endif
 +	}
  
- 	region_obj2 = acpi_ns_get_secondary_object(region_obj);
- 	if (!region_obj2) {
--		return_VOID;
-+		return_ACPI_STATUS(AE_NOT_EXIST);
- 	}
+ 	/* Ignore errors from above */
  
-+	/*
-+	 * Find any "_REG" method associated with this region definition.
-+	 * The method should always be updated as this function may be
-+	 * invoked after a namespace change.
-+	 */
- 	node = region_obj->region.node->parent;
--
--	/* Find any "_REG" method associated with this region definition */
--
- 	status =
- 	    acpi_ns_search_one_scope(*reg_name_ptr, node, ACPI_TYPE_METHOD,
- 				     &method_node);
- 	if (ACPI_SUCCESS(status)) {
- 		/*
--		 * The _REG method is optional and there can be only one per region
--		 * definition. This will be executed when the handler is attached
--		 * or removed
-+		 * The _REG method is optional and there can be only one per
-+		 * region definition. This will be executed when the handler is
-+		 * attached or removed.
- 		 */
- 		region_obj2->extra.method_REG = method_node;
- 	}
--
--	return_VOID;
--}
--
--/*******************************************************************************
-- *
-- * FUNCTION:    acpi_ev_execute_reg_method
-- *
-- * PARAMETERS:  region_obj          - Region object
-- *              function            - Passed to _REG: On (1) or Off (0)
-- *
-- * RETURN:      Status
-- *
-- * DESCRIPTION: Execute _REG method for a region
-- *
-- ******************************************************************************/
--
--acpi_status
--acpi_ev_execute_reg_method(union acpi_operand_object *region_obj, u32 function)
--{
--	struct acpi_evaluate_info *info;
--	union acpi_operand_object *args[3];
--	union acpi_operand_object *region_obj2;
--	acpi_status status;
--
--	ACPI_FUNCTION_TRACE(ev_execute_reg_method);
--
--	region_obj2 = acpi_ns_get_secondary_object(region_obj);
--	if (!region_obj2) {
--		return_ACPI_STATUS(AE_NOT_EXIST);
--	}
--
--	if (region_obj2->extra.method_REG == NULL ||
--	    region_obj->region.handler == NULL ||
--	    !acpi_gbl_namespace_initialized) {
-+	if (region_obj2->extra.method_REG == NULL) {
- 		return_ACPI_STATUS(AE_OK);
- 	}
- 
-diff --git a/drivers/acpi/acpica/evrgnini.c b/drivers/acpi/acpica/evrgnini.c
-index fda869c..6972ab4 100644
---- a/drivers/acpi/acpica/evrgnini.c
-+++ b/drivers/acpi/acpica/evrgnini.c
-@@ -518,7 +518,6 @@ acpi_ev_initialize_region(union acpi_operand_object *region_obj,
- 		return_ACPI_STATUS(AE_OK);
- 	}
- 
--	acpi_ev_associate_reg_method(region_obj);
- 	region_obj->common.flags |= AOPOBJ_OBJECT_INITIALIZED;
- 
- 	node = region_obj->region.node->parent;
 -- 
 1.7.10
+
