@@ -1,111 +1,59 @@
 From: "Rafael J. Wysocki" <rafael@kernel.org>
-Subject: Re: [PATCH 00/30] ACPICA: 20160318 Release
-Date: Thu, 24 Mar 2016 14:08:57 +0100
-Message-ID: <CAJZ5v0gVLVCv-QCuvbUW1zWhrQ5sodHVoS8gSrv9h7uJCp=G1w@mail.gmail.com>
-References: <cover.1458714002.git.lv.zheng@intel.com>
+Subject: Re: [PATCH v6 0/5] ACPI: parse the SPCR table
+Date: Thu, 24 Mar 2016 14:16:16 +0100
+Message-ID: <CAJZ5v0gzjtFzig7nEumr83+J2dGb+OA8GNR2i45ZqznfV_hA-A@mail.gmail.com>
+References: <1458823925-19560-1-git-send-email-aleksey.makarov@linaro.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-lb0-f195.google.com ([209.85.217.195]:35828 "EHLO
-	mail-lb0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750775AbcCXNI7 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 24 Mar 2016 09:08:59 -0400
-In-Reply-To: <cover.1458714002.git.lv.zheng@intel.com>
+Received: from mail-lb0-f194.google.com ([209.85.217.194]:32946 "EHLO
+	mail-lb0-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750972AbcCXNQS (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 24 Mar 2016 09:16:18 -0400
+In-Reply-To: <1458823925-19560-1-git-send-email-aleksey.makarov@linaro.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Lv Zheng <lv.zheng@intel.com>
-Cc: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <len.brown@intel.com>, Lv Zheng <zetalog@gmail.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>
+To: Aleksey Makarov <aleksey.makarov@linaro.org>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, "linux-serial@vger.kernel.org" <linux-serial@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Russell King <linux@arm.linux.org.uk>, Leif Lindholm <leif.lindholm@linaro.org>, Graeme Gregory <graeme.gregory@linaro.org>, Al Stone <ahs3@redhat.com>, Christopher Covington <cov@codeaurora.org>, Yury Norov <ynorov@caviumnetworks.com>, Peter Hurley <peter@hurleysoftware.com>, "Zheng, Lv" <lv.zheng@intel.com>
 
-On Thu, Mar 24, 2016 at 2:38 AM, Lv Zheng <lv.zheng@intel.com> wrote:
-> The 20160318 ACPICA kernel-resident subsystem updates are linuxized based
-> on the linux-pm/linux-next branch.
+On Thu, Mar 24, 2016 at 1:51 PM, Aleksey Makarov
+<aleksey.makarov@linaro.org> wrote:
+> 'ARM Server Base Boot Requirements' [1] mentions SPCR (Serial Port
+> Console Redirection Table) [2] as a mandatory ACPI table that
+> specifies the configuration of serial console.
 >
-> The patchset has passed the following build/boot tests.
-> Build tests are performed as follows:
-> 1. i386 + allyes
-> 2. i386 + allno
-> 3. i386 + default + ACPI_DEBUGGER=y
-> 4. i386 + default + ACPI_DEBUGGER=n + ACPI_DEBUG=y
-> 5. i386 + default + ACPI_DEBUG=n + ACPI=y
-> 6. i386 + default + ACPI=n
-> 7. x86_64 + allyes
-> 8. x86_64 + allno
-> 9. x86_64 + default + ACPI_DEBUGGER=y
-> 10.x86_64 + default + ACPI_DEBUGGER=n + ACPI_DEBUG=y
-> 11.x86_64 + default + ACPI_DEBUG=n + ACPI=y
-> 12.x86_64 + default + ACPI=n
-> Boot tests are performed as follows:
-> 1. i386 + default + ACPI_DEBUGGER=y
-> 2. x86_64 + default + ACPI_DEBUGGER=y
-> Where:
-> 1. i386: machine named as "Dell Inspiron Mini 1010"
-> 2. x86_64: machine named as "HP Compaq 8200 Elite SFF PC"
-> 3. default: kernel configuration with following items enabled:
->    All hardware drivers related to the machines of i386/x86_64
->    All "drivers/acpi" configurations
->    All "drivers/platform" drivers
->    All other drivers that link the APIs provided by ACPICA subsystem
+> Move "earlycon" early_param handling to earlycon.c to parse this option once
 >
-> The divergences checking result:
-> Before applying (20160212 Release):
->   506 lines
-> After applying (20160318 Release):
->   494 lines
->
-> Al Stone (1):
->   ACPICA: IORT: Add in support for the SMMUv3 subtable
->
-> Aleksey Makarov (1):
->   ACPICA: Headers: Add new constants for the DBG2 ACPI table
->
-> Bob Moore (16):
->   ACPICA: Headers: Minor update for SPCR ACPI table
->   ACPICA: ACPI 6.1: Updates for the HEST ACPI table
->   ACPICA: ACPI 6.1: Update NFIT table for additional new fields
->   ACPICA: Headers: Update DMAR table for October 2014 I/O spec
->   ACPICA: Tables: Update FADT handling
->   ACPICA: ACPI 6.1: Add full support for this version of ACPI spec
->   ACPICA: iASL/Headers: Fix incorrect definition of FPDT table
->   ACPICA: Intepreter: Add object extensions to Concatenate operand
->   ACPICA: Interpreter: Update some function headers, no functional
->     change
->   ACPICA: iASL: Cleanup/optimization for ToPLD macro support
->   ACPICA: Cleanup some invocation indentations, no functional change
->   ACPICA: Headers: Update generation of the ACPICA library
->   ACPICA: Utilities: Update for strtoul64 merger
->   ACPICA: All: const keyword changes across the ACPICA source
->   ACPICA: iASL/Disassembler: Improve handling of unresolved methods
->   ACPICA: Update version to 20160318
->
-> Lv Zheng (11):
->   ACPICA: Linuxize: reduce divergences for 20160212 release
->   ACPICA: Linuxize: Remove useless platform headers
->   ACPICA: Utilities: Add ACPI_IS_POWER_OF_TWO()
->   Utilities: Fix missing parentheses in ACPI_GET_BITS()/ACPI_SET_BITS()
->   ACPICA: Hardware: Enhance acpi_hw_validate_register() with
->     access_width/bit_offset awareness
->   ACPICA: Hardware: Add access_width/bit_offset support in
->     acpi_hw_read()
->   ACPICA: Hardware: Add access_width/bit_offset support for
->     acpi_hw_write()
->   ACPICA: Interpreter: Fix wrong conditions for
->     acpi_ev_install_region_handlers() invocation
->   ACPICA: Tables: Fix wrong MLC condition for dynamic table loading
->   ACPICA: Events: Fix an issue that _REG association can happen before
->     namespace is initialized
->   ACPICA: Namespace: Reorder \_SB._INI to make sure it is evaluated
->     before _REG evaluations
->
-> Will Miles (1):
->   ACPICA: Add support for QNX 6.6 platform
+> Patch "ACPI: add definitions of DBG2 subtypes" is required for the next patch.
+> ACPI maintainers said that they had got it for the next release of ACPICA,
+> but it has not appeared in linux-next yet.
 
-This is too late to go in during the current merge window, but I'll
-queue it up and send a separate pull request for 4.6 with it next
-week.
+It will.  Patches containing it have just been posted.
 
-I'll fix up the whitespace breakage in the first patch (it is easy
-enough to fix up manually), but as Len said, please fix the process to
-avoid such things in the future.
+> Parse SPCR table, setup earlycon and add register specified console.
+>
+> Enable parsing this table on ARM64.  Earlycon should be set up
+> as early as possible.  ACPI boot tables are mapped in
+> arch/arm64/kernel/acpi.c:acpi_boot_table_init() called from setup_arch()
+> and that's where we parse spcr.  So it has to be opted-in per-arch.
+>
+> Implement console_match() for pl011.
+>
+> Based on the work by Leif Lindholm [3]
+> Thanks to Peter Hurley for explaining how this should work.
+>
+> Should be applied to next-20160324.
+>
+> Tested on QEMU.  SPCR support is included in QEMU's ARM mach-virt
+> since 2.4 release.
+
+Honestly, I'm not sure why I'm regarded as the right maintainer to send this to.
+
+The only patch here touching generic ACPI code is [3/5] (the [2/5] is
+going in through ACPICA) and the rest is all about ARM64 AFAICS.  Why
+don't you send it to the ARM64 maintainers instead?
+
+I'll have some comments on [3/5], I'll send them later today or tomorrow.
 
 Thanks,
 Rafael
