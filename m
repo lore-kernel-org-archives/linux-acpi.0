@@ -1,86 +1,192 @@
-From: Laison@seymour.toledo.br, Computech@seymour.toledo.br,
-	"Inc <support"@ensuretech.com
-Subject: CISCO IP PHONES AND CPU's
-Date: Thu, 24 Mar 2016 05:43:22 +0700
-Message-ID: <20160324000722.5EEEBC2851@seymour.toledo.br>
-Reply-To: sales@laisoncomputech.com
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
+From: Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>
+Subject: [PATCH v7] acpi: Issue _OSC call for native thermal interrupt handling
+Date: Wed, 23 Mar 2016 21:07:39 -0700
+Message-ID: <1458792459-538-1-git-send-email-srinivas.pandruvada@linux.intel.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from seymour.toledo.br ([200.148.142.55]:49043 "EHLO
-	seymour.toledo.br" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753842AbcCXC5d convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 23 Mar 2016 22:57:33 -0400
-Content-Description: Mail message body
+Received: from mga04.intel.com ([192.55.52.120]:45389 "EHLO mga04.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750755AbcCXEKn (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 24 Mar 2016 00:10:43 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Recipients <support@ensuretech.com>
+To: rjw@rjwysocki.net
+Cc: tony.luck@intel.com, bp@alien8.de, tglx@linutronix.de, mingo@redhat.com, hpa@zytor.com, lenb@kernel.org, linux-edac@vger.kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>
 
-Hi,
+There are several reports of freeze on enabling HWP (Hardware PStates)
+feature on Skylake based systems by Intel P states driver. The root
+cause is identified as the HWP interrupts causing BIOS code to freeze.
+HWP interrupts uses thermal LVT.
+Linux natively handles thermal interrupts, but in Skylake based systems
+SMM will take control of thermal interrupts. This is a problem for several
+reasons:
+- It is freezing in BIOS when tries to handle thermal interrupt, which
+will require BIOS upgrade
+- With SMM handling thermal we loose all the reporting features of
+Linux arch/x86/kernel/cpu/mcheck/therm_throt driver
+- Some thermal drivers like x86-package-temp driver depends on the thermal
+threshold interrupts
+- The HWP interrupts are useful for debugging and tuning performance
 
-Our Stock list.
+So we need native handling of thermal interrupts. This requires some
+way to inform SMM that OS can handle thermal interrupts. This can be
+done by using _OSC/_PDC under processor scope very early in ACPI
+initialization flow.
+The bit 12 of _OSC/_PDC in processor scope defines whether OS supports
+handling of native interrupts for Collaborative Processor Performance
+Control (CPPC) notifications. Since HWP is a implementation of CPPC,
+setting this bit is equivalent to inform SMM that OS is capable of
+handling thermal interrupts.
+Refer to this document for details on _OSC/_PDC
+http://www.intel.com/content/www/us/en/standards/processor-vendor-
+specific-acpi-specification.html
 
-Brand NEW
-96 x Cisco 7900 IP Phone
-87 x Unified IP Phone 6900
-12 x Unified IP Phone 8900
-76 x Unified IP Phone 9900
-55 x Unified IP Phone 8800
-67 x Cisco 1921
-67 x Cisco 1941
-56 x Cisco CP-7961G 7961G
-34 x Cisco CP-7971G-GE 7971G
-19 x Cisco Unified IP Conference Station 7937G Model: 7937 CP-7937G
-20 x Cisco CP-7975G 7975G
+This change introduces a new function acpi_early_processor_set_osc(),
+which walks acpi name space and finds acpi processor object and
+set capability via _OSC method.
 
-Brand New Sealed :
+Also this change writes HWP status bits to 0 to clear any HWP status
+bits in intel_thermal_interrupt().
 
-23 x  CISCO1921-SEC/K9
-Conditions: Brand New Sealed
-Description: CISCO 1921 Security Bundle w/SEC license PAK
+Signed-off-by: Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>
+---
+v7:
+Checking platform ack and setting status for successful ack and printing
+information message.
 
-45 x CISCO1921/K9
-Conditions: Brand New Sealed
-Description: CISCO 1921 Modular Router, 2 GE, 2 EHWIC slots, 512DRAM, IP Base
+v6:
+Added __init for two functions and moved dummy function to internal.h
+Shortened the name of the function.
 
-(1)  WS-C4500X-16SFP+
-Serial number:  JAE183501L3
-US&#36;2600
+v5:
+No code change. Changed commit message to explain HWP is a implementation
+of CPPC.
 
-(1)  WS-C3850-48PW-S
-Serial number:  FCW1823C0EW
-US&#36;2650
+v4:
+Suggestion by Boris for removing use of intermediate variable for
+clearing HWP status and using boot_cpu_has instead of static_cpu_has
 
-(1)  WS-X6908-10G-2T
-Serial number:  SAL1620CKUB
-US&#36;3650
+v3:
+- Added CONFIG_X86 around static_cpu_has() to fix compile error on
+ARCH=ia64, reported by kbuild test robot
+- return AE_CTRL_TERMINATE to terminate acpi name walk space, when _OSC
+is set already once.
+v2:
+Unnecessary newline was introduced, removed that in acpi_processor.c
 
-(1)  ASR1000-ESP10
-Serial number:  JAE181306C3
-US&#36;3800
+ arch/x86/kernel/cpu/mcheck/therm_throt.c |  3 ++
+ drivers/acpi/acpi_processor.c            | 52 ++++++++++++++++++++++++++++++++
+ drivers/acpi/bus.c                       |  3 ++
+ drivers/acpi/internal.h                  |  6 ++++
+ 4 files changed, 64 insertions(+)
 
-(1)  AIR-CT5508-250-K9   (this is new but box is open!)
-Serial number:  FCW1521L038
-US&#36;4000
+diff --git a/arch/x86/kernel/cpu/mcheck/therm_throt.c b/arch/x86/kernel/cpu/mcheck/therm_throt.c
+index 0b445c2..ac780ca 100644
+--- a/arch/x86/kernel/cpu/mcheck/therm_throt.c
++++ b/arch/x86/kernel/cpu/mcheck/therm_throt.c
+@@ -384,6 +384,9 @@ static void intel_thermal_interrupt(void)
+ {
+ 	__u64 msr_val;
+ 
++	if (static_cpu_has(X86_FEATURE_HWP))
++		wrmsrl_safe(MSR_HWP_STATUS, 0);
++
+ 	rdmsrl(MSR_IA32_THERM_STATUS, msr_val);
+ 
+ 	/* Check for violation of core thermal thresholds*/
+diff --git a/drivers/acpi/acpi_processor.c b/drivers/acpi/acpi_processor.c
+index b5e54f2..4239b80 100644
+--- a/drivers/acpi/acpi_processor.c
++++ b/drivers/acpi/acpi_processor.c
+@@ -491,6 +491,58 @@ static void acpi_processor_remove(struct acpi_device *device)
+ }
+ #endif /* CONFIG_ACPI_HOTPLUG_CPU */
+ 
++#ifdef CONFIG_X86
++static bool acpi_hwp_native_thermal_lvt_set;
++static acpi_status __init acpi_hwp_native_thermal_lvt_osc(acpi_handle handle,
++							  u32 lvl,
++							  void *context,
++							  void **rv)
++{
++	u8 sb_uuid_str[] = "4077A616-290C-47BE-9EBD-D87058713953";
++	u32 capbuf[2];
++	struct acpi_osc_context osc_context = {
++		.uuid_str = sb_uuid_str,
++		.rev = 1,
++		.cap.length = 8,
++		.cap.pointer = capbuf,
++	};
++
++	if (acpi_hwp_native_thermal_lvt_set)
++		return AE_CTRL_TERMINATE;
++
++	capbuf[0] = 0x0000;
++	capbuf[1] = 0x1000; /* set bit 12 */
++
++	if (ACPI_SUCCESS(acpi_run_osc(handle, &osc_context))) {
++		if (osc_context.ret.pointer && osc_context.ret.length > 1) {
++			u32 *capbuf_ret = osc_context.ret.pointer;
++
++			if (capbuf_ret[1] & 0x1000) {
++				acpi_handle_info(handle,
++					"_OSC native thermal LVT Acked\n");
++				acpi_hwp_native_thermal_lvt_set = true;
++			}
++		}
++		kfree(osc_context.ret.pointer);
++	}
++
++	return AE_OK;
++}
++
++void __init acpi_early_processor_set_osc(void)
++{
++	if (boot_cpu_has(X86_FEATURE_HWP)) {
++		acpi_walk_namespace(ACPI_TYPE_PROCESSOR, ACPI_ROOT_OBJECT,
++				    ACPI_UINT32_MAX,
++				    acpi_hwp_native_thermal_lvt_osc,
++				    NULL, NULL, NULL);
++		acpi_get_devices(ACPI_PROCESSOR_DEVICE_HID,
++				 acpi_hwp_native_thermal_lvt_osc,
++				 NULL, NULL);
++	}
++}
++#endif
++
+ /*
+  * The following ACPI IDs are known to be suitable for representing as
+  * processor devices.
+diff --git a/drivers/acpi/bus.c b/drivers/acpi/bus.c
+index 0e85678..1f65eb5 100644
+--- a/drivers/acpi/bus.c
++++ b/drivers/acpi/bus.c
+@@ -1019,6 +1019,9 @@ static int __init acpi_bus_init(void)
+ 		goto error1;
+ 	}
+ 
++	/* Set capability bits for _OSC under processor scope */
++	acpi_early_processor_set_osc();
++
+ 	/*
+ 	 * _OSC method may exist in module level code,
+ 	 * so it must be run after ACPI_FULL_INITIALIZATION
+diff --git a/drivers/acpi/internal.h b/drivers/acpi/internal.h
+index a37508e..9ed878d 100644
+--- a/drivers/acpi/internal.h
++++ b/drivers/acpi/internal.h
+@@ -145,6 +145,12 @@ void acpi_early_processor_set_pdc(void);
+ static inline void acpi_early_processor_set_pdc(void) {}
+ #endif
+ 
++#ifdef CONFIG_X86
++void acpi_early_processor_set_osc(void);
++#else
++static inline void acpi_early_processor_set_osc(void) {}
++#endif
++
+ /* --------------------------------------------------------------------------
+                                   Embedded Controller
+    -------------------------------------------------------------------------- */
+-- 
+1.9.1
 
-CPUs part number below
-
-89 x  X5650
-
-975 x  X5660
-
-150 x  X5680
-
-265 x  X5690
-
-Kindly make your price offers.
-
-Sincerely
-Barbara Johnson
-Laison Computech
-210 N Scoring Ave,
-Rialto California, 92376
-Tel: +1-657-232-7047
-Fax: +1-347-214-0478
-Email: sales@laisoncomputech.com
