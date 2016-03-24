@@ -1,92 +1,42 @@
-From: Joe Perches <joe@perches.com>
-Subject: Re: [PATCH 01/30] ACPICA: Linuxize: reduce divergences for 20160212
- release
-Date: Thu, 24 Mar 2016 04:00:25 -0700
-Message-ID: <1458817225.1762.13.camel@perches.com>
-References: <cover.1458714002.git.lv.zheng@intel.com>
-	 <cc3b66b74c73a66f82cb715092b6f35105a0cbf8.1458714003.git.lv.zheng@intel.com>
-	 <1458783966.1762.6.camel@perches.com>
-	 <1AE640813FDE7649BE1B193DEA596E883BB63FB7@SHSMSX101.ccr.corp.intel.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtprelay0053.hostedemail.com ([216.40.44.53]:43881 "EHLO
-	smtprelay.hostedemail.com" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1755309AbcCXLAa (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 24 Mar 2016 07:00:30 -0400
-In-Reply-To: <1AE640813FDE7649BE1B193DEA596E883BB63FB7@SHSMSX101.ccr.corp.intel.com>
-Sender: linux-acpi-owner@vger.kernel.org
+From: Lukas Wunner <lukas@wunner.de>
+Subject: [PATCH 0/3] Rename acpi_dev_present()
+Date: Thu, 24 Mar 2016 13:15:20 +0100
+Message-ID: <cover.1458813034.git.lukas@wunner.de>
+Return-path: <platform-driver-x86-owner@vger.kernel.org>
+Sender: platform-driver-x86-owner@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: linux-acpi@vger.kernel.org, platform-driver-x86@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Zheng, Lv" <lv.zheng@intel.com>, "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, "Brown, Len" <len.brown@intel.com>
-Cc: Lv Zheng <zetalog@gmail.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
 
-On Thu, 2016-03-24 at 06:19 +0000, Zheng, Lv wrote:
-> From: Joe Perches [mailto:joe@perches.com]
-> > Subject: Re: [PATCH 01/30] ACPICA: Linuxize: reduce divergences for=
- 20160212
-> > release
-> >=20
-> > On Thu, 2016-03-24 at 09:38 +0800, Lv Zheng wrote:
-> > >=20
-> > > The patch reduces source code differences between the Linux kerne=
-l and the
-> > > ACPICA upstream so that the linuxized ACPICA 20160212 release can=
- be
-> > > applied with reduced human intervention.
-> > In the very first patch fragment:
-> > > diff --git a/drivers/acpi/acpica/hwregs.c b/drivers/acpi/acpica/h=
-wregs.c
-> > []
-> > > @@ -152,7 +152,7 @@ acpi_hw_validate_register(struct
-> > acpi_generic_address *reg,
-[]
-> > > -acpi_status acpi_hw_read(u32 *value, struct acpi_generic_address=
- *reg)
-> > > +acpi_status acpi_hw_read(u32 *value, struct acpi_generic_address=
- * reg)
-> > The second argument * style appears the opposite of normal style
-> > and a different style than the first argument * style.
-> [Lv Zheng]=C2=A0
-> The file is drivers/acpi/acpica/hwregs.c, which is coming from ACPICA=
- upstream.
-> So this is a result of "ACPICA release".
-> In other words, this is a result of a "process".
-> In order to fix this, things need to be done in "ACPICA release scrip=
-ts".
-> Which should be done in https://github.com/acpica/acpica/blob/master/=
-generate/linux/libacpica.sh.
-> Otherwise, "ACPICA release" process will require human intervention.
->=20
-> So please leave this patch fragment as is.
-> It will be automatically fixed if the "ACPICA release" process is fix=
-ed.
-> And if you don't leave this fragment as is, the "ACPICA release" proc=
-ess will get hurt.
-[]
-> please ignore "process" issues.
-> I need them to be wrong in order not to modify every "process" genera=
-ted patches manually.
+Hi Rafael,
 
-So why not fix the process script first?
+all users of acpi_dev_present() that I'm aware of have landed in
+Linus' tree, so as discussed I'm sending you herewith a patch which
+renames acpi_dev_present() to acpi_dev_found(), plus two patches for
+drivers/platform/x86 which replace legacy code with acpi_dev_found().
+Both were previously acked by Darren:
+http://www.spinics.net/lists/linux-acpi/msg61872.html
+http://www.spinics.net/lists/linux-acpi/msg61873.html
 
-Maybe add something like:
+Best regards,
 
-$ grep -E "^typedef\s+\w+\s*\*?\s*acpi_\w+" include/acpi/actypes.h | \
-  grep -Eoh "\bacpi_\w+"
+Lukas
 
-to the acpi_types variable in the lindent_single function
 
-> You can find many such kind of indent issues in drivers/acpi/acpica, =
-include/acpi, tools/power/acpi.
-> They are there for good reasons.
-> I'll cleanup such issues from "ACPICA release" process.
+Lukas Wunner (3):
+  ACPI / utils: Rename acpi_dev_present()
+  eeepc-wmi: Use acpi_dev_found()
+  acer-wmi: Use acpi_dev_found()
 
-Any idea when?
+ drivers/acpi/utils.c                         |  6 +++---
+ drivers/platform/x86/acer-wmi.c              | 16 ++++------------
+ drivers/platform/x86/eeepc-wmi.c             | 24 ++----------------------
+ include/acpi/acpi_bus.h                      |  2 +-
+ include/linux/apple-gmux.h                   |  2 +-
+ sound/pci/hda/thinkpad_helper.c              |  2 +-
+ sound/soc/intel/boards/cht_bsw_max98090_ti.c |  2 +-
+ sound/soc/intel/boards/cht_bsw_rt5645.c      |  2 +-
+ 8 files changed, 14 insertions(+), 42 deletions(-)
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+-- 
+2.8.0.rc3
