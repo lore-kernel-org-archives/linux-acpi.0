@@ -1,108 +1,80 @@
 From: Lv Zheng <lv.zheng@intel.com>
-Subject: [PATCH 14/30] ACPICA: iASL: Cleanup/optimization for ToPLD macro support
-Date: Thu, 24 Mar 2016 09:40:05 +0800
-Message-ID: <4da101fe100b86735bb812d4160c6735347b34f2.1458714003.git.lv.zheng@intel.com>
+Subject: [PATCH 06/30] ACPICA: IORT: Add in support for the SMMUv3 subtable
+Date: Thu, 24 Mar 2016 09:39:07 +0800
+Message-ID: <d4b1769e1cf64057817db6329c9dce009292a640.1458714003.git.lv.zheng@intel.com>
 References: <cover.1458714002.git.lv.zheng@intel.com>
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga03.intel.com ([134.134.136.65]:62216 "EHLO mga03.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757037AbcCXBkH (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 23 Mar 2016 21:40:07 -0400
+Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <cover.1458714002.git.lv.zheng@intel.com>
-Sender: linux-acpi-owner@vger.kernel.org
-List-Id: linux-acpi@vger.kernel.org
+Sender: linux-kernel-owner@vger.kernel.org
 To: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <len.brown@intel.com>
-Cc: Lv Zheng <lv.zheng@intel.com>, Lv Zheng <zetalog@gmail.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Bob Moore <robert.moore@intel.com>
+Cc: Lv Zheng <lv.zheng@intel.com>, Lv Zheng <zetalog@gmail.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Al Stone <ahs3@redhat.com>, Bob Moore <robert.moore@intel.com>
+List-Id: linux-acpi@vger.kernel.org
 
-From: Bob Moore <robert.moore@intel.com>
+From: Al Stone <ahs3@redhat.com>
 
-ACPICA commit 0e6125401cf38427d5376f4bafbfb3d5a40f8467
+ACPICA commit 9f7c3e148f440049615e2791d73b292f65692d7e
 
-Use local variables for access to string/value Op fields.
-Move duplicate PLD string tables to a single common table.
+The most recent version of the IORT specification adds in a definition
+for a subtable to describe SMMUv3 devices; there is already a subtable
+for SMMUv1/v2 devices.
 
-Link: https://github.com/acpica/acpica/commit/0e612540
+Add in the definition of the subtable, add in the code to compile it,
+and add in a template for it.
+
+Link: https://github.com/acpica/acpica/commit/9f7c3e14
+Signed-off-by: Al Stone <ahs3@redhat.com>
 Signed-off-by: Bob Moore <robert.moore@intel.com>
 Signed-off-by: Lv Zheng <lv.zheng@intel.com>
 ---
- drivers/acpi/acpica/acglobal.h |    9 +++++++++
- drivers/acpi/acpica/utglobal.c |   43 ++++++++++++++++++++++++++++++++++++++++
- 2 files changed, 52 insertions(+)
+ include/acpi/actbl2.h |   22 ++++++++++++++++++++--
+ 1 file changed, 20 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/acpi/acpica/acglobal.h b/drivers/acpi/acpica/acglobal.h
-index 51b073b..54b42a5 100644
---- a/drivers/acpi/acpica/acglobal.h
-+++ b/drivers/acpi/acpica/acglobal.h
-@@ -361,6 +361,15 @@ ACPI_GLOBAL(u32, acpi_gbl_num_objects);
- 
- #endif				/* ACPI_DEBUGGER */
- 
-+#if defined (ACPI_DISASSEMBLER) || defined (ACPI_ASL_COMPILER)
-+
-+ACPI_GLOBAL(const char, *acpi_gbl_pld_panel_list[]);
-+ACPI_GLOBAL(const char, *acpi_gbl_pld_vertical_position_list[]);
-+ACPI_GLOBAL(const char, *acpi_gbl_pld_horizontal_position_list[]);
-+ACPI_GLOBAL(const char, *acpi_gbl_pld_shape_list[]);
-+
-+#endif
-+
- /*****************************************************************************
+diff --git a/include/acpi/actbl2.h b/include/acpi/actbl2.h
+index e9d3cc1..d6bd377 100644
+--- a/include/acpi/actbl2.h
++++ b/include/acpi/actbl2.h
+@@ -660,7 +660,7 @@ struct acpi_ibft_target {
+  * IORT - IO Remapping Table
   *
-  * Application globals
-diff --git a/drivers/acpi/acpica/utglobal.c b/drivers/acpi/acpica/utglobal.c
-index 48fffcf..d45899c 100644
---- a/drivers/acpi/acpica/utglobal.c
-+++ b/drivers/acpi/acpica/utglobal.c
-@@ -221,6 +221,49 @@ struct acpi_fixed_event_info acpi_gbl_fixed_event_info[ACPI_NUM_FIXED_EVENTS] =
+  * Conforms to "IO Remapping Table System Software on ARM Platforms",
+- * Document number: ARM DEN 0049A, 2015
++ * Document number: ARM DEN 0049B, October 2015
+  *
+  ******************************************************************************/
+ 
+@@ -690,7 +690,8 @@ enum acpi_iort_node_type {
+ 	ACPI_IORT_NODE_ITS_GROUP = 0x00,
+ 	ACPI_IORT_NODE_NAMED_COMPONENT = 0x01,
+ 	ACPI_IORT_NODE_PCI_ROOT_COMPLEX = 0x02,
+-	ACPI_IORT_NODE_SMMU = 0x03
++	ACPI_IORT_NODE_SMMU = 0x03,
++	ACPI_IORT_NODE_SMMU_V3 = 0x04
  };
- #endif				/* !ACPI_REDUCED_HARDWARE */
  
-+#if defined (ACPI_DISASSEMBLER) || defined (ACPI_ASL_COMPILER)
-+
-+/* to_pld macro: compile/disassemble strings */
-+
-+const char *acpi_gbl_pld_panel_list[] = {
-+	"TOP",
-+	"BOTTOM",
-+	"LEFT",
-+	"RIGHT",
-+	"FRONT",
-+	"BACK",
-+	"UNKNOWN",
-+	NULL
-+};
-+
-+const char *acpi_gbl_pld_vertical_position_list[] = {
-+	"UPPER",
-+	"CENTER",
-+	"LOWER",
-+	NULL
-+};
-+
-+const char *acpi_gbl_pld_horizontal_position_list[] = {
-+	"LEFT",
-+	"CENTER",
-+	"RIGHT",
-+	NULL
-+};
-+
-+const char *acpi_gbl_pld_shape_list[] = {
-+	"ROUND",
-+	"OVAL",
-+	"SQUARE",
-+	"VERTICALRECTANGLE",
-+	"HORIZONTALRECTANGLE",
-+	"VERTICALTRAPEZOID",
-+	"HORIZONTALTRAPEZOID",
-+	"UNKNOWN",
-+	"CHAMFERED",
-+	NULL
-+};
-+#endif
-+
- /* Public globals */
+ struct acpi_iort_id_mapping {
+@@ -780,6 +781,23 @@ struct acpi_iort_smmu {
+ #define ACPI_IORT_SMMU_DVM_SUPPORTED    (1)
+ #define ACPI_IORT_SMMU_COHERENT_WALK    (1<<1)
  
- ACPI_EXPORT_SYMBOL(acpi_gbl_FADT)
++struct acpi_iort_smmu_v3 {
++	u64 base_address;	/* SMMUv3 base address */
++	u32 flags;
++	u32 reserved;
++	u64 vatos_address;
++	u32 model;		/* O: generic SMMUv3 */
++	u32 event_gsiv;
++	u32 pri_gsiv;
++	u32 gerr_gsiv;
++	u32 sync_gsiv;
++};
++
++/* Masks for Flags field above */
++
++#define ACPI_IORT_SMMU_V3_COHACC_OVERRIDE   (1)
++#define ACPI_IORT_SMMU_V3_HTTU_OVERRIDE     (1<<1)
++
+ /*******************************************************************************
+  *
+  * IVRS - I/O Virtualization Reporting Structure
 -- 
 1.7.10
-
