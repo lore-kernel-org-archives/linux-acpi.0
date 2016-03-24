@@ -1,70 +1,33 @@
-From: "Moore, Robert" <robert.moore@intel.com>
-Subject: RE: [PATCH v6 2/5] ACPI: add definitions of DBG2 subtypes
-Date: Thu, 24 Mar 2016 16:45:17 +0000
-Message-ID: <94F2FBAB4432B54E8AACC7DFDE6C92E37E453CD6@ORSMSX110.amr.corp.intel.com>
-References: <1458823925-19560-1-git-send-email-aleksey.makarov@linaro.org>
- <1458823925-19560-3-git-send-email-aleksey.makarov@linaro.org>
+From: Rob Herring <robh+dt@kernel.org>
+Subject: Re: [PATCH v6 1/5] of/serial: move earlycon early_param handling to serial
+Date: Thu, 24 Mar 2016 16:07:20 -0500
+Message-ID: <CAL_JsqJje4=U4+i3jfFDkRv2Px3cw5QzGHfq41OjRDNL6c_Q8Q@mail.gmail.com>
+References: <1458823925-19560-1-git-send-email-aleksey.makarov@linaro.org> <1458823925-19560-2-git-send-email-aleksey.makarov@linaro.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga11.intel.com ([192.55.52.93]:30530 "EHLO mga11.intel.com"
+Received: from mail.kernel.org ([198.145.29.136]:42480 "EHLO mail.kernel.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753016AbcCXQpU convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 24 Mar 2016 12:45:20 -0400
-In-Reply-To: <1458823925-19560-3-git-send-email-aleksey.makarov@linaro.org>
-Content-Language: en-US
+	id S1751209AbcCXVHp (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 24 Mar 2016 17:07:45 -0400
+In-Reply-To: <1458823925-19560-2-git-send-email-aleksey.makarov@linaro.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Aleksey Makarov <aleksey.makarov@linaro.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>
-Cc: "linux-serial@vger.kernel.org" <linux-serial@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Russell King <linux@arm.linux.org.uk>, Leif Lindholm <leif.lindholm@linaro.org>, Graeme Gregory <graeme.gregory@linaro.org>, Al Stone <ahs3@redhat.com>, Christopher Covington <cov@codeaurora.org>, Yury Norov <ynorov@caviumnetworks.com>, Peter Hurley <peter@hurleysoftware.com>, "Zheng, Lv" <lv.zheng@intel.com>, "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>, "devel@acpica.org" <devel@acpica.org>
+To: Aleksey Makarov <aleksey.makarov@linaro.org>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, "linux-serial@vger.kernel.org" <linux-serial@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Russell King <linux@arm.linux.org.uk>, Leif Lindholm <leif.lindholm@linaro.org>, Graeme Gregory <graeme.gregory@linaro.org>, Al Stone <ahs3@redhat.com>, Christopher Covington <cov@codeaurora.org>, Yury Norov <ynorov@caviumnetworks.com>, Peter Hurley <peter@hurleysoftware.com>, "Zheng, Lv" <lv.zheng@intel.com>, Frank Rowand <frowand.list@gmail.com>, Grant Likely <grant.likely@linaro.org>, Jiri Slaby <jslaby@suse.com>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>
 
-We implemented all of these in ACPICA version 20160318.
-
-
-> -----Original Message-----
-> From: Aleksey Makarov [mailto:aleksey.makarov@linaro.org]
-> Sent: Thursday, March 24, 2016 5:52 AM
-> To: Greg Kroah-Hartman; Rafael J . Wysocki; Len Brown
-> Cc: linux-serial@vger.kernel.org; linux-acpi@vger.kernel.org; linux-
-> kernel@vger.kernel.org; linux-arm-kernel@lists.infradead.org; Aleksey
-> Makarov; Russell King; Leif Lindholm; Graeme Gregory; Al Stone;
-> Christopher Covington; Yury Norov; Peter Hurley; Zheng, Lv; Moore, Robert;
-> Wysocki, Rafael J; devel@acpica.org
-> Subject: [PATCH v6 2/5] ACPI: add definitions of DBG2 subtypes
-> 
-> The recent version of Microsoft Debug Port Table 2 (DBG2) [1] specifies
-> additional serial debug port subtypes.  These constants are also referred
-> by Serial Port Console Redirection Table (SPCR) [2]
-> 
-> Add these constants.
-> 
-> [1] https://msdn.microsoft.com/en-
-> us/library/windows/hardware/dn639131(v=vs.85).aspx
-> [2] https://msdn.microsoft.com/en-
-> us/library/windows/hardware/dn639132(v=vs.85).aspx
-> 
+On Thu, Mar 24, 2016 at 7:51 AM, Aleksey Makarov
+<aleksey.makarov@linaro.org> wrote:
+> From: Leif Lindholm <leif.lindholm@linaro.org>
+>
+> We have multiple "earlycon" early_param handlers - merge the DT one into
+> the main earlycon one.  It's a cleanup that also will be useful
+> to defer setting up DT console until ACPI/DT decision is made.
+>
+> Rename the exported function to avoid clashing with the function from
+> arch/microblaze/kernel/prom.c
+>
+> Signed-off-by: Leif Lindholm <leif.lindholm@linaro.org>
 > Signed-off-by: Aleksey Makarov <aleksey.makarov@linaro.org>
-> ---
->  include/acpi/actbl2.h | 5 +++++
->  1 file changed, 5 insertions(+)
-> 
-> diff --git a/include/acpi/actbl2.h b/include/acpi/actbl2.h index
-> a4ef625..652f747 100644
-> --- a/include/acpi/actbl2.h
-> +++ b/include/acpi/actbl2.h
-> @@ -371,6 +371,11 @@ struct acpi_dbg2_device {
-> 
->  #define ACPI_DBG2_16550_COMPATIBLE  0x0000
->  #define ACPI_DBG2_16550_SUBSET      0x0001
-> +#define ACPI_DBG2_ARM_PL011         0x0003
-> +#define ACPI_DBG2_ARM_SBSA_32BIT    0x000D
-> +#define ACPI_DBG2_ARM_SBSA_GENERIC  0x000E
-> +#define ACPI_DBG2_ARM_DCC           0x000F
-> +#define ACPI_DBG2_BCM2835           0x0010
-> 
->  #define ACPI_DBG2_1394_STANDARD     0x0000
-> 
-> --
-> 2.7.4
 
+Acked-by: Rob Herring <robh@kernel.org>
