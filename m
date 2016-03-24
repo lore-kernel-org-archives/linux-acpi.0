@@ -1,240 +1,170 @@
 From: Lv Zheng <lv.zheng@intel.com>
-Subject: [RFC PATCH 2/8] ACPICA: Tables: Invoke acpi_tb_validate_tableby_index() instead of acpi_get_table_by_index()
-Date: Thu, 24 Mar 2016 16:30:36 +0800
-Message-ID: <aad2ce9fdbe6bc5aa07fbe30d2f59eaf434725f3.1458808078.git.lv.zheng@intel.com>
+Subject: [RFC PATCH 5/8] ACPICA: Tables: Remove acpi_tb_install_fixed_table()
+Date: Thu, 24 Mar 2016 16:30:57 +0800
+Message-ID: <e5c23ca853b4f64cf6f2591a52944ad4028995b8.1458808078.git.lv.zheng@intel.com>
 References: <cover.1458808078.git.lv.zheng@intel.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga01.intel.com ([192.55.52.88]:1900 "EHLO mga01.intel.com"
+Received: from mga11.intel.com ([192.55.52.93]:56267 "EHLO mga11.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752144AbcCXIal (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 24 Mar 2016 04:30:41 -0400
+	id S1752144AbcCXIa7 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 24 Mar 2016 04:30:59 -0400
 In-Reply-To: <cover.1458808078.git.lv.zheng@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <len.brown@intel.com>
 Cc: Lv Zheng <lv.zheng@intel.com>, Lv Zheng <zetalog@gmail.com>, linux-acpi@vger.kernel.org
 
-Serving for the external users, acpi_get_table_by_index() should be restricted
-not to map the tables into struct acpi_table_desc.Pointer or it is likely to be
-changed into reference couting based style so that the mappings can be
-freed when there is no reference to make OS early/late APIs combined.
+acpi_tb_install_fixed_table() is now redundant as we've removed the fixed
+table indexing mechanism. This patch cleans up the code accordingly.
+No functional change. Lv Zheng.
 
-While all internal acpi_get_table_by_index() usages should be changed to be an
-internal validatation based API so that the tables are always mapped to
-.Pointer as long as they are referenced inside of ACPICA. From the
-reference counting's point of view, the internal reference should be
-increased/decreased only once.
-
-Except the flag to ensure the new API is not invoked inside of ACPICA
-twice, there is no functional change in this patch. This patch just copies
-acpi_get_tableby_index() to form a new API for internal usage so that further
-patches can safely modify acpi_get_table_by_index() to make it an external only
-API.
-
-Link: https://bugs.acpica.org/show_bug.cgi?id=1253
 Signed-off-by: Lv Zheng <lv.zheng@intel.com>
 ---
- drivers/acpi/acpica/actables.h |    4 +++
- drivers/acpi/acpica/dsinit.c   |    2 +-
- drivers/acpi/acpica/dsopcode.c |    2 +-
- drivers/acpi/acpica/exconfig.c |    4 +--
- drivers/acpi/acpica/nsparse.c  |    2 +-
- drivers/acpi/acpica/tbutils.c  |   73 +++++++++++++++++++++++++++++++++++-----
- drivers/acpi/acpica/tbxface.c  |    2 +-
- include/acpi/actbl.h           |    1 +
- 8 files changed, 76 insertions(+), 14 deletions(-)
+ drivers/acpi/acpica/actables.h |    4 ---
+ drivers/acpi/acpica/tbfadt.c   |   24 ++++++++-------
+ drivers/acpi/acpica/tbinstal.c |   65 +---------------------------------------
+ 3 files changed, 15 insertions(+), 78 deletions(-)
 
 diff --git a/drivers/acpi/acpica/actables.h b/drivers/acpi/acpica/actables.h
-index 848ad3a..9310cb4 100644
+index 6f08c9c..06d4d3d 100644
 --- a/drivers/acpi/acpica/actables.h
 +++ b/drivers/acpi/acpica/actables.h
-@@ -163,6 +163,10 @@ acpi_status acpi_tb_parse_root_table(acpi_physical_address rsdp_address);
+@@ -155,10 +155,6 @@ void
+ acpi_tb_install_table_with_override(struct acpi_table_desc *new_table_desc,
+ 				    u8 override, u32 *table_index);
+ 
+-acpi_status
+-acpi_tb_install_fixed_table(acpi_physical_address address,
+-			    char *signature, u32 *table_index);
+-
+ acpi_status acpi_tb_parse_root_table(acpi_physical_address rsdp_address);
  
  u8 acpi_is_valid_signature(char *signature);
+diff --git a/drivers/acpi/acpica/tbfadt.c b/drivers/acpi/acpica/tbfadt.c
+index 635d951..2d24c4b 100644
+--- a/drivers/acpi/acpica/tbfadt.c
++++ b/drivers/acpi/acpica/tbfadt.c
+@@ -344,23 +344,27 @@ void acpi_tb_parse_fadt(void)
  
-+acpi_status
-+acpi_tb_validate_table_by_index(u32 table_index,
-+				struct acpi_table_header **out_table);
-+
- /*
-  * tbxfload
-  */
-diff --git a/drivers/acpi/acpica/dsinit.c b/drivers/acpi/acpica/dsinit.c
-index 5aa1c5f..71d700a 100644
---- a/drivers/acpi/acpica/dsinit.c
-+++ b/drivers/acpi/acpica/dsinit.c
-@@ -232,7 +232,7 @@ acpi_ds_initialize_objects(u32 table_index,
- 	}
- 	(void)acpi_ut_release_mutex(ACPI_MTX_NAMESPACE);
+ 	/* Obtain the DSDT and FACS tables via their addresses within the FADT */
  
--	status = acpi_get_table_by_index(table_index, &table);
-+	status = acpi_tb_validate_table_by_index(table_index, &table);
- 	if (ACPI_FAILURE(status)) {
- 		return_ACPI_STATUS(status);
- 	}
-diff --git a/drivers/acpi/acpica/dsopcode.c b/drivers/acpi/acpica/dsopcode.c
-index 4cc9d98..22eea92 100644
---- a/drivers/acpi/acpica/dsopcode.c
-+++ b/drivers/acpi/acpica/dsopcode.c
-@@ -535,7 +535,7 @@ acpi_ds_eval_table_region_operands(struct acpi_walk_state *walk_state,
- 		goto cleanup;
- 	}
+-	acpi_tb_install_fixed_table((acpi_physical_address) acpi_gbl_FADT.Xdsdt,
+-				    ACPI_SIG_DSDT, &acpi_gbl_dsdt_index);
++	acpi_tb_install_standard_table((acpi_physical_address) acpi_gbl_FADT.
++				       Xdsdt,
++				       ACPI_TABLE_ORIGIN_INTERNAL_PHYSICAL,
++				       FALSE, TRUE, &acpi_gbl_dsdt_index);
  
--	status = acpi_get_table_by_index(table_index, &table);
-+	status = acpi_tb_validate_table_by_index(table_index, &table);
- 	if (ACPI_FAILURE(status)) {
- 		goto cleanup;
- 	}
-diff --git a/drivers/acpi/acpica/exconfig.c b/drivers/acpi/acpica/exconfig.c
-index a1d177d..98102af 100644
---- a/drivers/acpi/acpica/exconfig.c
-+++ b/drivers/acpi/acpica/exconfig.c
-@@ -252,7 +252,7 @@ acpi_ex_load_table_op(struct acpi_walk_state *walk_state,
+ 	/* If Hardware Reduced flag is set, there is no FACS */
+ 
+ 	if (!acpi_gbl_reduced_hardware) {
+ 		if (acpi_gbl_FADT.facs) {
+-			acpi_tb_install_fixed_table((acpi_physical_address)
+-						    acpi_gbl_FADT.facs,
+-						    ACPI_SIG_FACS,
+-						    &acpi_gbl_facs_index);
++			acpi_tb_install_standard_table((acpi_physical_address)
++						       acpi_gbl_FADT.facs,
++						       ACPI_TABLE_ORIGIN_INTERNAL_PHYSICAL,
++						       FALSE, TRUE,
++						       &acpi_gbl_facs_index);
+ 		}
+ 		if (acpi_gbl_FADT.Xfacs) {
+-			acpi_tb_install_fixed_table((acpi_physical_address)
+-						    acpi_gbl_FADT.Xfacs,
+-						    ACPI_SIG_FACS,
+-						    &acpi_gbl_xfacs_index);
++			acpi_tb_install_standard_table((acpi_physical_address)
++						       acpi_gbl_FADT.Xfacs,
++						       ACPI_TABLE_ORIGIN_INTERNAL_PHYSICAL,
++						       FALSE, TRUE,
++						       &acpi_gbl_xfacs_index);
  		}
  	}
- 
--	status = acpi_get_table_by_index(table_index, &table);
-+	status = acpi_tb_validate_table_by_index(table_index, &table);
- 	if (ACPI_SUCCESS(status)) {
- 		ACPI_INFO(("Dynamic OEM Table Load:"));
- 		acpi_tb_print_table_header(0, table);
-@@ -601,7 +601,7 @@ acpi_status acpi_ex_unload_table(union acpi_operand_object *ddb_handle)
- 	/* Invoke table handler if present */
- 
- 	if (acpi_gbl_table_handler) {
--		status = acpi_get_table_by_index(table_index, &table);
-+		status = acpi_tb_validate_table_by_index(table_index, &table);
- 		if (ACPI_SUCCESS(status)) {
- 			(void)acpi_gbl_table_handler(ACPI_TABLE_EVENT_UNLOAD,
- 						     table,
-diff --git a/drivers/acpi/acpica/nsparse.c b/drivers/acpi/acpica/nsparse.c
-index f631a47..de76a1d 100644
---- a/drivers/acpi/acpica/nsparse.c
-+++ b/drivers/acpi/acpica/nsparse.c
-@@ -78,7 +78,7 @@ acpi_ns_one_complete_parse(u32 pass_number,
- 
- 	ACPI_FUNCTION_TRACE(ns_one_complete_parse);
- 
--	status = acpi_get_table_by_index(table_index, &table);
-+	status = acpi_tb_validate_table_by_index(table_index, &table);
- 	if (ACPI_FAILURE(status)) {
- 		return_ACPI_STATUS(status);
- 	}
-diff --git a/drivers/acpi/acpica/tbutils.c b/drivers/acpi/acpica/tbutils.c
-index 9240c76..b64fbe3 100644
---- a/drivers/acpi/acpica/tbutils.c
-+++ b/drivers/acpi/acpica/tbutils.c
-@@ -78,16 +78,16 @@ acpi_status acpi_tb_initialize_facs(void)
- 	} else if (acpi_gbl_FADT.Xfacs &&
- 		   (!acpi_gbl_FADT.facs
- 		    || !acpi_gbl_use32_bit_facs_addresses)) {
--		(void)acpi_get_table_by_index(acpi_gbl_xfacs_index,
--					      ACPI_CAST_INDIRECT_PTR(struct
--								     acpi_table_header,
--								     &facs));
-+		(void)acpi_tb_validate_table_by_index(acpi_gbl_xfacs_index,
-+						      ACPI_CAST_INDIRECT_PTR
-+						      (struct acpi_table_header,
-+						       &facs));
- 		acpi_gbl_FACS = facs;
- 	} else if (acpi_gbl_FADT.facs) {
--		(void)acpi_get_table_by_index(acpi_gbl_facs_index,
--					      ACPI_CAST_INDIRECT_PTR(struct
--								     acpi_table_header,
--								     &facs));
-+		(void)acpi_tb_validate_table_by_index(acpi_gbl_facs_index,
-+						      ACPI_CAST_INDIRECT_PTR
-+						      (struct acpi_table_header,
-+						       &facs));
- 		acpi_gbl_FACS = facs;
- 	}
- 
-@@ -407,3 +407,60 @@ u8 acpi_is_valid_signature(char *signature)
- 
- 	return (TRUE);
  }
-+
-+/*******************************************************************************
-+ *
-+ * FUNCTION:    acpi_tb_validate_table_by_index
-+ *
-+ * PARAMETERS:  table_index         - Table index
-+ *              out_table           - Where the pointer to the table is returned
-+ *
-+ * RETURN:      Status and pointer to the requested table
-+ *
-+ * DESCRIPTION: Obtain a table by an index into the global table list. Used
-+ *              internally only as the table will be put into the state of
-+ *              "VALIDATED" by internal references.
-+ *
-+ ******************************************************************************/
-+
-+acpi_status
-+acpi_tb_validate_table_by_index(u32 table_index,
-+				struct acpi_table_header ** out_table)
-+{
-+	acpi_status status = AE_OK;
-+	struct acpi_table_desc *table_desc;
-+
-+	ACPI_FUNCTION_TRACE(acpi_tb_validate_table_by_index);
-+
-+	/* Parameter validation */
-+
-+	if (!out_table) {
-+		return_ACPI_STATUS(AE_BAD_PARAMETER);
-+	}
-+
-+	(void)acpi_ut_acquire_mutex(ACPI_MTX_TABLES);
-+
-+	/* Validate index */
-+
-+	if (table_index >= acpi_gbl_root_table_list.current_table_count) {
-+		status = AE_BAD_PARAMETER;
-+		goto unlock_and_exit;
-+	}
-+	table_desc = &acpi_gbl_root_table_list.tables[table_index];
-+
-+	if (!(table_desc->flags & ACPI_TABLE_IS_VALIDATED)) {
-+
-+		/* Table is not validated, validate it */
-+
-+		status = acpi_tb_validate_table(table_desc);
-+		if (ACPI_FAILURE(status)) {
-+			goto unlock_and_exit;
-+		}
-+		table_desc->flags |= ACPI_TABLE_IS_VALIDATED;
-+	}
-+	*out_table = table_desc->pointer;
-+
-+unlock_and_exit:
-+	(void)acpi_ut_release_mutex(ACPI_MTX_TABLES);
-+	return_ACPI_STATUS(status);
-+}
-diff --git a/drivers/acpi/acpica/tbxface.c b/drivers/acpi/acpica/tbxface.c
-index 5700e72..ef2c5f9 100644
---- a/drivers/acpi/acpica/tbxface.c
-+++ b/drivers/acpi/acpica/tbxface.c
-@@ -364,7 +364,7 @@ ACPI_EXPORT_SYMBOL(acpi_get_table)
-  * RETURN:      Status and pointer to the requested table
-  *
-  * DESCRIPTION: Obtain a table by an index into the global table list. Used
-- *              internally also.
-+ *              externally only.
-  *
-  ******************************************************************************/
- acpi_status
-diff --git a/include/acpi/actbl.h b/include/acpi/actbl.h
-index c19700e..9513849 100644
---- a/include/acpi/actbl.h
-+++ b/include/acpi/actbl.h
-@@ -379,6 +379,7 @@ struct acpi_table_desc {
- #define ACPI_TABLE_ORIGIN_INTERNAL_PHYSICAL (1)	/* Physical address, internally mapped */
- #define ACPI_TABLE_ORIGIN_INTERNAL_VIRTUAL  (2)	/* Virtual address, internallly allocated */
- #define ACPI_TABLE_ORIGIN_MASK              (3)
-+#define ACPI_TABLE_IS_VALIDATED             (4)	/* Internal validated */
- #define ACPI_TABLE_IS_LOADED                (8)
+diff --git a/drivers/acpi/acpica/tbinstal.c b/drivers/acpi/acpica/tbinstal.c
+index 4dc6108..f9f9b41 100644
+--- a/drivers/acpi/acpica/tbinstal.c
++++ b/drivers/acpi/acpica/tbinstal.c
+@@ -157,68 +157,6 @@ acpi_tb_install_table_with_override(struct acpi_table_desc *new_table_desc,
  
- /*
+ /*******************************************************************************
+  *
+- * FUNCTION:    acpi_tb_install_fixed_table
+- *
+- * PARAMETERS:  address                 - Physical address of DSDT or FACS
+- *              signature               - Table signature, NULL if no need to
+- *                                        match
+- *              table_index             - Where the table index is returned
+- *
+- * RETURN:      Status
+- *
+- * DESCRIPTION: Install a fixed ACPI table (DSDT/FACS) into the global data
+- *              structure.
+- *
+- ******************************************************************************/
+-
+-acpi_status
+-acpi_tb_install_fixed_table(acpi_physical_address address,
+-			    char *signature, u32 *table_index)
+-{
+-	struct acpi_table_desc new_table_desc;
+-	acpi_status status;
+-
+-	ACPI_FUNCTION_TRACE(tb_install_fixed_table);
+-
+-	if (!address) {
+-		ACPI_ERROR((AE_INFO,
+-			    "Null physical address for ACPI table [%s]",
+-			    signature));
+-		return (AE_NO_MEMORY);
+-	}
+-
+-	/* Fill a table descriptor for validation */
+-
+-	status = acpi_tb_acquire_temp_table(&new_table_desc, address,
+-					    ACPI_TABLE_ORIGIN_INTERNAL_PHYSICAL);
+-	if (ACPI_FAILURE(status)) {
+-		ACPI_ERROR((AE_INFO,
+-			    "Could not acquire table length at %8.8X%8.8X",
+-			    ACPI_FORMAT_UINT64(address)));
+-		return_ACPI_STATUS(status);
+-	}
+-
+-	/* Validate and verify a table before installation */
+-
+-	status = acpi_tb_verify_temp_table(&new_table_desc, signature);
+-	if (ACPI_FAILURE(status)) {
+-		goto release_and_exit;
+-	}
+-
+-	/* Add the table to the global root table list */
+-
+-	acpi_tb_install_table_with_override(&new_table_desc, TRUE, table_index);
+-
+-release_and_exit:
+-
+-	/* Release the temporary table descriptor */
+-
+-	acpi_tb_release_temp_table(&new_table_desc);
+-	return_ACPI_STATUS(status);
+-}
+-
+-/*******************************************************************************
+- *
+  * FUNCTION:    acpi_tb_install_standard_table
+  *
+  * PARAMETERS:  address             - Address of the table (might be a virtual
+@@ -230,8 +168,7 @@ release_and_exit:
+  *
+  * RETURN:      Status
+  *
+- * DESCRIPTION: This function is called to install an ACPI table that is
+- *              neither DSDT nor FACS (a "standard" table.)
++ * DESCRIPTION: This function is called to verify and install an ACPI table.
+  *              When this function is called by "Load" or "LoadTable" opcodes,
+  *              or by acpi_load_table() API, the "Reload" parameter is set.
+  *              After sucessfully returning from this function, table is
 -- 
 1.7.10
 
