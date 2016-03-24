@@ -1,170 +1,93 @@
 From: Lv Zheng <lv.zheng@intel.com>
-Subject: [RFC PATCH 5/8] ACPICA: Tables: Remove acpi_tb_install_fixed_table()
-Date: Thu, 24 Mar 2016 16:30:57 +0800
-Message-ID: <e5c23ca853b4f64cf6f2591a52944ad4028995b8.1458808078.git.lv.zheng@intel.com>
+Subject: [RFC PATCH 4/8] ACPICA: Tables: Cleanup acpi_tb_copy_dsdt()
+Date: Thu, 24 Mar 2016 16:30:50 +0800
+Message-ID: <02604efe12bccfdebcc159ce0110b1ad39795694.1458808078.git.lv.zheng@intel.com>
 References: <cover.1458808078.git.lv.zheng@intel.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga11.intel.com ([192.55.52.93]:56267 "EHLO mga11.intel.com"
+Received: from mga02.intel.com ([134.134.136.20]:24994 "EHLO mga02.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752144AbcCXIa7 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 24 Mar 2016 04:30:59 -0400
+	id S1752144AbcCXIax (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 24 Mar 2016 04:30:53 -0400
 In-Reply-To: <cover.1458808078.git.lv.zheng@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <len.brown@intel.com>
 Cc: Lv Zheng <lv.zheng@intel.com>, Lv Zheng <zetalog@gmail.com>, linux-acpi@vger.kernel.org
 
-acpi_tb_install_fixed_table() is now redundant as we've removed the fixed
-table indexing mechanism. This patch cleans up the code accordingly.
+This patch cleans up acpi_tb_copy_dsdt(), removing a useless parameter.
 No functional change. Lv Zheng.
 
 Signed-off-by: Lv Zheng <lv.zheng@intel.com>
 ---
- drivers/acpi/acpica/actables.h |    4 ---
- drivers/acpi/acpica/tbfadt.c   |   24 ++++++++-------
- drivers/acpi/acpica/tbinstal.c |   65 +---------------------------------------
- 3 files changed, 15 insertions(+), 78 deletions(-)
+ drivers/acpi/acpica/actables.h |    2 +-
+ drivers/acpi/acpica/tbutils.c  |    9 ++++-----
+ drivers/acpi/acpica/tbxfload.c |    2 +-
+ 3 files changed, 6 insertions(+), 7 deletions(-)
 
 diff --git a/drivers/acpi/acpica/actables.h b/drivers/acpi/acpica/actables.h
-index 6f08c9c..06d4d3d 100644
+index 9310cb4..6f08c9c 100644
 --- a/drivers/acpi/acpica/actables.h
 +++ b/drivers/acpi/acpica/actables.h
-@@ -155,10 +155,6 @@ void
+@@ -149,7 +149,7 @@ acpi_tb_verify_checksum(struct acpi_table_header *table, u32 length);
+ 
+ void acpi_tb_check_dsdt_header(void);
+ 
+-struct acpi_table_header *acpi_tb_copy_dsdt(u32 table_index);
++struct acpi_table_header *acpi_tb_copy_dsdt(void);
+ 
+ void
  acpi_tb_install_table_with_override(struct acpi_table_desc *new_table_desc,
- 				    u8 override, u32 *table_index);
+diff --git a/drivers/acpi/acpica/tbutils.c b/drivers/acpi/acpica/tbutils.c
+index b64fbe3..ec6ce69 100644
+--- a/drivers/acpi/acpica/tbutils.c
++++ b/drivers/acpi/acpica/tbutils.c
+@@ -141,7 +141,7 @@ void acpi_tb_check_dsdt_header(void)
+  *
+  * FUNCTION:    acpi_tb_copy_dsdt
+  *
+- * PARAMETERS:  table_desc          - Installed table to copy
++ * PARAMETERS:  None
+  *
+  * RETURN:      None
+  *
+@@ -151,12 +151,12 @@ void acpi_tb_check_dsdt_header(void)
+  *
+  ******************************************************************************/
  
--acpi_status
--acpi_tb_install_fixed_table(acpi_physical_address address,
--			    char *signature, u32 *table_index);
--
- acpi_status acpi_tb_parse_root_table(acpi_physical_address rsdp_address);
+-struct acpi_table_header *acpi_tb_copy_dsdt(u32 table_index)
++struct acpi_table_header *acpi_tb_copy_dsdt(void)
+ {
+ 	struct acpi_table_header *new_table;
+ 	struct acpi_table_desc *table_desc;
  
- u8 acpi_is_valid_signature(char *signature);
-diff --git a/drivers/acpi/acpica/tbfadt.c b/drivers/acpi/acpica/tbfadt.c
-index 635d951..2d24c4b 100644
---- a/drivers/acpi/acpica/tbfadt.c
-+++ b/drivers/acpi/acpica/tbfadt.c
-@@ -344,23 +344,27 @@ void acpi_tb_parse_fadt(void)
+-	table_desc = &acpi_gbl_root_table_list.tables[table_index];
++	table_desc = &acpi_gbl_root_table_list.tables[acpi_gbl_dsdt_index];
  
- 	/* Obtain the DSDT and FACS tables via their addresses within the FADT */
+ 	new_table = ACPI_ALLOCATE(table_desc->length);
+ 	if (!new_table) {
+@@ -168,8 +168,7 @@ struct acpi_table_header *acpi_tb_copy_dsdt(u32 table_index)
+ 	memcpy(new_table, table_desc->pointer, table_desc->length);
+ 	acpi_tb_uninstall_table(table_desc);
  
--	acpi_tb_install_fixed_table((acpi_physical_address) acpi_gbl_FADT.Xdsdt,
--				    ACPI_SIG_DSDT, &acpi_gbl_dsdt_index);
-+	acpi_tb_install_standard_table((acpi_physical_address) acpi_gbl_FADT.
-+				       Xdsdt,
-+				       ACPI_TABLE_ORIGIN_INTERNAL_PHYSICAL,
-+				       FALSE, TRUE, &acpi_gbl_dsdt_index);
- 
- 	/* If Hardware Reduced flag is set, there is no FACS */
- 
- 	if (!acpi_gbl_reduced_hardware) {
- 		if (acpi_gbl_FADT.facs) {
--			acpi_tb_install_fixed_table((acpi_physical_address)
--						    acpi_gbl_FADT.facs,
--						    ACPI_SIG_FACS,
--						    &acpi_gbl_facs_index);
-+			acpi_tb_install_standard_table((acpi_physical_address)
-+						       acpi_gbl_FADT.facs,
-+						       ACPI_TABLE_ORIGIN_INTERNAL_PHYSICAL,
-+						       FALSE, TRUE,
-+						       &acpi_gbl_facs_index);
+-	acpi_tb_init_table_descriptor(&acpi_gbl_root_table_list.
+-				      tables[acpi_gbl_dsdt_index],
++	acpi_tb_init_table_descriptor(table_desc,
+ 				      ACPI_PTR_TO_PHYSADDR(new_table),
+ 				      ACPI_TABLE_ORIGIN_INTERNAL_VIRTUAL,
+ 				      new_table);
+diff --git a/drivers/acpi/acpica/tbxfload.c b/drivers/acpi/acpica/tbxfload.c
+index ac71abc..9d3cf30 100644
+--- a/drivers/acpi/acpica/tbxfload.c
++++ b/drivers/acpi/acpica/tbxfload.c
+@@ -175,7 +175,7 @@ acpi_status acpi_tb_load_namespace(void)
+ 	 * the DSDT.
+ 	 */
+ 	if (acpi_gbl_copy_dsdt_locally) {
+-		new_dsdt = acpi_tb_copy_dsdt(acpi_gbl_dsdt_index);
++		new_dsdt = acpi_tb_copy_dsdt();
+ 		if (new_dsdt) {
+ 			acpi_gbl_DSDT = new_dsdt;
  		}
- 		if (acpi_gbl_FADT.Xfacs) {
--			acpi_tb_install_fixed_table((acpi_physical_address)
--						    acpi_gbl_FADT.Xfacs,
--						    ACPI_SIG_FACS,
--						    &acpi_gbl_xfacs_index);
-+			acpi_tb_install_standard_table((acpi_physical_address)
-+						       acpi_gbl_FADT.Xfacs,
-+						       ACPI_TABLE_ORIGIN_INTERNAL_PHYSICAL,
-+						       FALSE, TRUE,
-+						       &acpi_gbl_xfacs_index);
- 		}
- 	}
- }
-diff --git a/drivers/acpi/acpica/tbinstal.c b/drivers/acpi/acpica/tbinstal.c
-index 4dc6108..f9f9b41 100644
---- a/drivers/acpi/acpica/tbinstal.c
-+++ b/drivers/acpi/acpica/tbinstal.c
-@@ -157,68 +157,6 @@ acpi_tb_install_table_with_override(struct acpi_table_desc *new_table_desc,
- 
- /*******************************************************************************
-  *
-- * FUNCTION:    acpi_tb_install_fixed_table
-- *
-- * PARAMETERS:  address                 - Physical address of DSDT or FACS
-- *              signature               - Table signature, NULL if no need to
-- *                                        match
-- *              table_index             - Where the table index is returned
-- *
-- * RETURN:      Status
-- *
-- * DESCRIPTION: Install a fixed ACPI table (DSDT/FACS) into the global data
-- *              structure.
-- *
-- ******************************************************************************/
--
--acpi_status
--acpi_tb_install_fixed_table(acpi_physical_address address,
--			    char *signature, u32 *table_index)
--{
--	struct acpi_table_desc new_table_desc;
--	acpi_status status;
--
--	ACPI_FUNCTION_TRACE(tb_install_fixed_table);
--
--	if (!address) {
--		ACPI_ERROR((AE_INFO,
--			    "Null physical address for ACPI table [%s]",
--			    signature));
--		return (AE_NO_MEMORY);
--	}
--
--	/* Fill a table descriptor for validation */
--
--	status = acpi_tb_acquire_temp_table(&new_table_desc, address,
--					    ACPI_TABLE_ORIGIN_INTERNAL_PHYSICAL);
--	if (ACPI_FAILURE(status)) {
--		ACPI_ERROR((AE_INFO,
--			    "Could not acquire table length at %8.8X%8.8X",
--			    ACPI_FORMAT_UINT64(address)));
--		return_ACPI_STATUS(status);
--	}
--
--	/* Validate and verify a table before installation */
--
--	status = acpi_tb_verify_temp_table(&new_table_desc, signature);
--	if (ACPI_FAILURE(status)) {
--		goto release_and_exit;
--	}
--
--	/* Add the table to the global root table list */
--
--	acpi_tb_install_table_with_override(&new_table_desc, TRUE, table_index);
--
--release_and_exit:
--
--	/* Release the temporary table descriptor */
--
--	acpi_tb_release_temp_table(&new_table_desc);
--	return_ACPI_STATUS(status);
--}
--
--/*******************************************************************************
-- *
-  * FUNCTION:    acpi_tb_install_standard_table
-  *
-  * PARAMETERS:  address             - Address of the table (might be a virtual
-@@ -230,8 +168,7 @@ release_and_exit:
-  *
-  * RETURN:      Status
-  *
-- * DESCRIPTION: This function is called to install an ACPI table that is
-- *              neither DSDT nor FACS (a "standard" table.)
-+ * DESCRIPTION: This function is called to verify and install an ACPI table.
-  *              When this function is called by "Load" or "LoadTable" opcodes,
-  *              or by acpi_load_table() API, the "Reload" parameter is set.
-  *              After sucessfully returning from this function, table is
 -- 
 1.7.10
 
