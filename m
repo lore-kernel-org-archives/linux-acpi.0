@@ -1,59 +1,73 @@
 From: Lv Zheng <lv.zheng@intel.com>
-Subject: [PATCH 04/30] ACPICA: Headers: Minor update for SPCR ACPI table
-Date: Thu, 24 Mar 2016 09:38:49 +0800
-Message-ID: <45de14411558933523113ef48b7f43b59cab44ee.1458714003.git.lv.zheng@intel.com>
+Subject: [PATCH 07/30] ACPICA: ACPI 6.1: Update NFIT table for additional new fields
+Date: Thu, 24 Mar 2016 09:39:14 +0800
+Message-ID: <dec449f8cec24f7c206915f35b169be558b422d8.1458714003.git.lv.zheng@intel.com>
 References: <cover.1458714002.git.lv.zheng@intel.com>
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga14.intel.com ([192.55.52.115]:4778 "EHLO mga14.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756495AbcCXBiw (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 23 Mar 2016 21:38:52 -0400
+Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <cover.1458714002.git.lv.zheng@intel.com>
-Sender: linux-acpi-owner@vger.kernel.org
-List-Id: linux-acpi@vger.kernel.org
+Sender: linux-kernel-owner@vger.kernel.org
 To: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <len.brown@intel.com>
 Cc: Lv Zheng <lv.zheng@intel.com>, Lv Zheng <zetalog@gmail.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Bob Moore <robert.moore@intel.com>
+List-Id: linux-acpi@vger.kernel.org
 
 From: Bob Moore <robert.moore@intel.com>
 
-ACPICA commit f3caa7f2e63be31f7fb8dbccabffbb70c29c3021
+ACPICA commit bc81a4494d7648a496e0a82f0d27562103ee1ec1
 
-Update version number and date of specification document.
-Point to DBG2 table for some constants.
+Changes the NFIT Control Region.
 
-Link: https://github.com/acpica/acpica/commit/f3caa7f2
+Link: https://github.com/acpica/acpica/commit/bc81a449
 Signed-off-by: Bob Moore <robert.moore@intel.com>
 Signed-off-by: Lv Zheng <lv.zheng@intel.com>
 ---
- include/acpi/actbl2.h |    6 ++++--
- 1 file changed, 4 insertions(+), 2 deletions(-)
+ include/acpi/actbl1.h |   14 +++++++++++---
+ 1 file changed, 11 insertions(+), 3 deletions(-)
 
-diff --git a/include/acpi/actbl2.h b/include/acpi/actbl2.h
-index 7702b27..e9d3cc1 100644
---- a/include/acpi/actbl2.h
-+++ b/include/acpi/actbl2.h
-@@ -1107,10 +1107,10 @@ struct acpi_table_slic {
+diff --git a/include/acpi/actbl1.h b/include/acpi/actbl1.h
+index b7c96b7..912dff9 100644
+--- a/include/acpi/actbl1.h
++++ b/include/acpi/actbl1.h
+@@ -984,7 +984,7 @@ struct acpi_msct_proximity {
+ 
  /*******************************************************************************
   *
-  * SPCR - Serial Port Console Redirection table
-- *        Version 1
-+ *        Version 2
-  *
-  * Conforms to "Serial Port Console Redirection Table",
-- * Version 1.00, January 11, 2002
-+ * Version 1.03, August 10, 2015
+- * NFIT - NVDIMM Interface Table (ACPI 6.0)
++ * NFIT - NVDIMM Interface Table (ACPI 6.0+)
+  *        Version 1
   *
   ******************************************************************************/
+@@ -1065,6 +1065,7 @@ struct acpi_nfit_memory_map {
+ #define ACPI_NFIT_MEM_NOT_ARMED         (1<<3)	/* 03: Memory Device is not armed */
+ #define ACPI_NFIT_MEM_HEALTH_OBSERVED   (1<<4)	/* 04: Memory Device observed SMART/health events */
+ #define ACPI_NFIT_MEM_HEALTH_ENABLED    (1<<5)	/* 05: SMART/health events enabled */
++#define ACPI_NFIT_MEM_MAP_FAILED        (1<<6)	/* 06: Mapping to SPA failed */
  
-@@ -1142,6 +1142,8 @@ struct acpi_table_spcr {
+ /* 2: Interleave Structure */
  
- #define ACPI_SPCR_DO_NOT_DISABLE    (1)
+@@ -1096,7 +1097,10 @@ struct acpi_nfit_control_region {
+ 	u16 subsystem_vendor_id;
+ 	u16 subsystem_device_id;
+ 	u16 subsystem_revision_id;
+-	u8 reserved[6];		/* Reserved, must be zero */
++	u8 valid_fields;
++	u8 manufacturing_location;
++	u16 manufacturing_date;
++	u8 reserved[2];		/* Reserved, must be zero */
+ 	u32 serial_number;
+ 	u16 code;
+ 	u16 windows;
+@@ -1111,7 +1115,11 @@ struct acpi_nfit_control_region {
  
-+/* Values for Interface Type: See the definition of the DBG2 table */
+ /* Flags */
+ 
+-#define ACPI_NFIT_CONTROL_BUFFERED      (1)	/* Block Data Windows implementation is buffered */
++#define ACPI_NFIT_CONTROL_BUFFERED          (1)	/* Block Data Windows implementation is buffered */
 +
- /*******************************************************************************
-  *
-  * SPMI - Server Platform Management Interface table
++/* valid_fields bits */
++
++#define ACPI_NFIT_CONTROL_MFG_INFO_VALID    (1)	/* Manufacturing fields are valid */
+ 
+ /* 5: NVDIMM Block Data Window Region Structure */
+ 
 -- 
 1.7.10
-
