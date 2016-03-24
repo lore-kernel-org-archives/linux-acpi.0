@@ -1,157 +1,108 @@
 From: Lv Zheng <lv.zheng@intel.com>
-Subject: [PATCH 29/30] ACPICA: Namespace: Reorder \_SB._INI to make sure it is evaluated before _REG evaluations
-Date: Thu, 24 Mar 2016 09:41:54 +0800
-Message-ID: <a7bb6b0c5d9df30e297ce37dbc2ff88de98f69cc.1458714003.git.lv.zheng@intel.com>
+Subject: [PATCH 14/30] ACPICA: iASL: Cleanup/optimization for ToPLD macro support
+Date: Thu, 24 Mar 2016 09:40:05 +0800
+Message-ID: <4da101fe100b86735bb812d4160c6735347b34f2.1458714003.git.lv.zheng@intel.com>
 References: <cover.1458714002.git.lv.zheng@intel.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga01.intel.com ([192.55.52.88]:14495 "EHLO mga01.intel.com"
+Received: from mga03.intel.com ([134.134.136.65]:62216 "EHLO mga03.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932418AbcCXBmB (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 23 Mar 2016 21:42:01 -0400
+	id S1757037AbcCXBkH (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 23 Mar 2016 21:40:07 -0400
 In-Reply-To: <cover.1458714002.git.lv.zheng@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <len.brown@intel.com>
 Cc: Lv Zheng <lv.zheng@intel.com>, Lv Zheng <zetalog@gmail.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Bob Moore <robert.moore@intel.com>
 
-ACPICA commit f005ee6b90d152c1f499efcca6b771a93903cb55
+From: Bob Moore <robert.moore@intel.com>
 
-This patch splits \_SB._INI evaluation from device initialization code, so
-that it can be performed before PCI_Config _REG evaluations. This is
-required for the device enumeration process. Some named objects are
-initialized in \_SB._INI and PCI_Config _REG evaluations may use
-uninitialized named objects because of the order issue.
+ACPICA commit 0e6125401cf38427d5376f4bafbfb3d5a40f8467
 
-This must be fixed before fixing ECDT order issue. There are existing
-tables allowing ECDT EC to be used for the entire device enumeration
-process, but the enabling of ECDT EC is done in \_SB._INI. Thus \_SB._INI
-must be the first control method evaluated in the device enumeration
-process. Normally, the order should be automatically ensured by the device
-enumeration process itself (for example, PCI_Config _REGs are evaluated by
-the PCI bus driver when the driver is probed by the enumeration process),
-but since the process is split on Linux (partially done in Linux, partially
-done in ACPICA), we need to ensure this with special logics in order to be
-regression safe. Lv Zheng.
+Use local variables for access to string/value Op fields.
+Move duplicate PLD string tables to a single common table.
 
-Link: https://github.com/acpica/acpica/commit/f005ee6b
-Signed-off-by: Lv Zheng <lv.zheng@intel.com>
+Link: https://github.com/acpica/acpica/commit/0e612540
 Signed-off-by: Bob Moore <robert.moore@intel.com>
+Signed-off-by: Lv Zheng <lv.zheng@intel.com>
 ---
- drivers/acpi/acpica/nsinit.c |   75 ++++++++++++++++++++++++++++++------------
- 1 file changed, 54 insertions(+), 21 deletions(-)
+ drivers/acpi/acpica/acglobal.h |    9 +++++++++
+ drivers/acpi/acpica/utglobal.c |   43 ++++++++++++++++++++++++++++++++++++++++
+ 2 files changed, 52 insertions(+)
 
-diff --git a/drivers/acpi/acpica/nsinit.c b/drivers/acpi/acpica/nsinit.c
-index 2de8adb..36643a8 100644
---- a/drivers/acpi/acpica/nsinit.c
-+++ b/drivers/acpi/acpica/nsinit.c
-@@ -140,6 +140,7 @@ acpi_status acpi_ns_initialize_devices(u32 flags)
- {
- 	acpi_status status = AE_OK;
- 	struct acpi_device_walk_info info;
-+	acpi_handle handle;
+diff --git a/drivers/acpi/acpica/acglobal.h b/drivers/acpi/acpica/acglobal.h
+index 51b073b..54b42a5 100644
+--- a/drivers/acpi/acpica/acglobal.h
++++ b/drivers/acpi/acpica/acglobal.h
+@@ -361,6 +361,15 @@ ACPI_GLOBAL(u32, acpi_gbl_num_objects);
  
- 	ACPI_FUNCTION_TRACE(ns_initialize_devices);
+ #endif				/* ACPI_DEBUGGER */
  
-@@ -190,6 +191,27 @@ acpi_status acpi_ns_initialize_devices(u32 flags)
- 		if (ACPI_SUCCESS(status)) {
- 			info.num_INI++;
- 		}
++#if defined (ACPI_DISASSEMBLER) || defined (ACPI_ASL_COMPILER)
 +
-+		/*
-+		 * Execute \_SB._INI.
-+		 * There appears to be a strict order requirement for \_SB._INI,
-+		 * which should be evaluated before any _REG evaluations.
-+		 */
-+		status = acpi_get_handle(NULL, "\\_SB", &handle);
-+		if (ACPI_SUCCESS(status)) {
-+			memset(info.evaluate_info, 0,
-+			       sizeof(struct acpi_evaluate_info));
-+			info.evaluate_info->prefix_node = handle;
-+			info.evaluate_info->relative_pathname =
-+			    METHOD_NAME__INI;
-+			info.evaluate_info->parameters = NULL;
-+			info.evaluate_info->flags = ACPI_IGNORE_RETURN_VALUE;
++ACPI_GLOBAL(const char, *acpi_gbl_pld_panel_list[]);
++ACPI_GLOBAL(const char, *acpi_gbl_pld_vertical_position_list[]);
++ACPI_GLOBAL(const char, *acpi_gbl_pld_horizontal_position_list[]);
++ACPI_GLOBAL(const char, *acpi_gbl_pld_shape_list[]);
 +
-+			status = acpi_ns_evaluate(info.evaluate_info);
-+			if (ACPI_SUCCESS(status)) {
-+				info.num_INI++;
-+			}
-+		}
- 	}
- 
- 	/*
-@@ -198,6 +220,12 @@ acpi_status acpi_ns_initialize_devices(u32 flags)
- 	 * Note: Any objects accessed by the _REG methods will be automatically
- 	 * initialized, even if they contain executable AML (see the call to
- 	 * acpi_ns_initialize_objects below).
-+	 *
-+	 * Note: According to the ACPI specification, we actually needn't execute
-+	 * _REG for system_memory/system_io operation regions, but for PCI_Config
-+	 * operation regions, it is required to evaluate _REG for those on a PCI
-+	 * root bus that doesn't contain _BBN object. So this code is kept here
-+	 * in order not to break things.
- 	 */
- 	if (!(flags & ACPI_NO_ADDRESS_SPACE_INIT)) {
- 		ACPI_DEBUG_PRINT((ACPI_DB_EXEC,
-@@ -592,32 +620,37 @@ acpi_ns_init_one_device(acpi_handle obj_handle,
- 	 * Note: We know there is an _INI within this subtree, but it may not be
- 	 * under this particular device, it may be lower in the branch.
- 	 */
--	ACPI_DEBUG_EXEC(acpi_ut_display_init_pathname
--			(ACPI_TYPE_METHOD, device_node, METHOD_NAME__INI));
--
--	memset(info, 0, sizeof(struct acpi_evaluate_info));
--	info->prefix_node = device_node;
--	info->relative_pathname = METHOD_NAME__INI;
--	info->parameters = NULL;
--	info->flags = ACPI_IGNORE_RETURN_VALUE;
--
--	status = acpi_ns_evaluate(info);
--	if (ACPI_SUCCESS(status)) {
--		walk_info->num_INI++;
--	}
-+	if (!ACPI_COMPARE_NAME(device_node->name.ascii, "_SB_") ||
-+	    device_node->parent != acpi_gbl_root_node) {
-+		ACPI_DEBUG_EXEC(acpi_ut_display_init_pathname
-+				(ACPI_TYPE_METHOD, device_node,
-+				 METHOD_NAME__INI));
++#endif
 +
-+		memset(info, 0, sizeof(struct acpi_evaluate_info));
-+		info->prefix_node = device_node;
-+		info->relative_pathname = METHOD_NAME__INI;
-+		info->parameters = NULL;
-+		info->flags = ACPI_IGNORE_RETURN_VALUE;
+ /*****************************************************************************
+  *
+  * Application globals
+diff --git a/drivers/acpi/acpica/utglobal.c b/drivers/acpi/acpica/utglobal.c
+index 48fffcf..d45899c 100644
+--- a/drivers/acpi/acpica/utglobal.c
++++ b/drivers/acpi/acpica/utglobal.c
+@@ -221,6 +221,49 @@ struct acpi_fixed_event_info acpi_gbl_fixed_event_info[ACPI_NUM_FIXED_EVENTS] =
+ };
+ #endif				/* !ACPI_REDUCED_HARDWARE */
+ 
++#if defined (ACPI_DISASSEMBLER) || defined (ACPI_ASL_COMPILER)
 +
-+		status = acpi_ns_evaluate(info);
-+		if (ACPI_SUCCESS(status)) {
-+			walk_info->num_INI++;
-+		}
- #ifdef ACPI_DEBUG_OUTPUT
--	else if (status != AE_NOT_FOUND) {
-+		else if (status != AE_NOT_FOUND) {
++/* to_pld macro: compile/disassemble strings */
++
++const char *acpi_gbl_pld_panel_list[] = {
++	"TOP",
++	"BOTTOM",
++	"LEFT",
++	"RIGHT",
++	"FRONT",
++	"BACK",
++	"UNKNOWN",
++	NULL
++};
++
++const char *acpi_gbl_pld_vertical_position_list[] = {
++	"UPPER",
++	"CENTER",
++	"LOWER",
++	NULL
++};
++
++const char *acpi_gbl_pld_horizontal_position_list[] = {
++	"LEFT",
++	"CENTER",
++	"RIGHT",
++	NULL
++};
++
++const char *acpi_gbl_pld_shape_list[] = {
++	"ROUND",
++	"OVAL",
++	"SQUARE",
++	"VERTICALRECTANGLE",
++	"HORIZONTALRECTANGLE",
++	"VERTICALTRAPEZOID",
++	"HORIZONTALTRAPEZOID",
++	"UNKNOWN",
++	"CHAMFERED",
++	NULL
++};
++#endif
++
+ /* Public globals */
  
--		/* Ignore error and move on to next device */
-+			/* Ignore error and move on to next device */
- 
--		char *scope_name =
--		    acpi_ns_get_normalized_pathname(device_node, TRUE);
-+			char *scope_name =
-+			    acpi_ns_get_normalized_pathname(device_node, TRUE);
- 
--		ACPI_EXCEPTION((AE_INFO, status, "during %s._INI execution",
--				scope_name));
--		ACPI_FREE(scope_name);
--	}
-+			ACPI_EXCEPTION((AE_INFO, status,
-+					"during %s._INI execution",
-+					scope_name));
-+			ACPI_FREE(scope_name);
-+		}
- #endif
-+	}
- 
- 	/* Ignore errors from above */
- 
+ ACPI_EXPORT_SYMBOL(acpi_gbl_FADT)
 -- 
 1.7.10
 
