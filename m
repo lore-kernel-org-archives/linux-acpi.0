@@ -1,49 +1,81 @@
-From: Lv Zheng <lv.zheng@intel.com>
-Subject: [PATCH] tools/power/acpi: close file only if it is open
-Date: Thu, 24 Mar 2016 13:01:28 +0800
-Message-ID: <1458795688-2147-1-git-send-email-lv.zheng@intel.com>
+From: "Zheng, Lv" <lv.zheng@intel.com>
+Subject: RE: [PATCH 01/30] ACPICA: Linuxize: reduce divergences for 20160212
+ release
+Date: Thu, 24 Mar 2016 06:19:33 +0000
+Message-ID: <1AE640813FDE7649BE1B193DEA596E883BB63FB7@SHSMSX101.ccr.corp.intel.com>
+References: <cover.1458714002.git.lv.zheng@intel.com>
+	 <cc3b66b74c73a66f82cb715092b6f35105a0cbf8.1458714003.git.lv.zheng@intel.com>
+ <1458783966.1762.6.camel@perches.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga14.intel.com ([192.55.52.115]:17718 "EHLO mga14.intel.com"
+Received: from mga14.intel.com ([192.55.52.115]:19340 "EHLO mga14.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751104AbcCXFCA (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 24 Mar 2016 01:02:00 -0400
+	id S1751051AbcCXGTk (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 24 Mar 2016 02:19:40 -0400
+In-Reply-To: <1458783966.1762.6.camel@perches.com>
+Content-Language: en-US
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <len.brown@intel.com>
-Cc: Lv Zheng <lv.zheng@intel.com>, Lv Zheng <zetalog@gmail.com>, linux-acpi@vger.kernel.org
+To: Joe Perches <joe@perches.com>, "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, "Brown, Len" <len.brown@intel.com>
+Cc: Lv Zheng <zetalog@gmail.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
 
-The logic on the test for a valid fd to close is incorrect.
-This was just a mistake and was pointed out by Colin Ian King.
-
-Link: https://patchwork.kernel.org/patch/8620201/
-Original-by: Colin Ian King <colin.king@canonical.com>
-Signed-off-by: Lv Zheng <lv.zheng@intel.com>
----
- tools/power/acpi/tools/acpidbg/acpidbg.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
-
-diff --git a/tools/power/acpi/tools/acpidbg/acpidbg.c b/tools/power/acpi/tools/acpidbg/acpidbg.c
-index d070fcc..a88ac45 100644
---- a/tools/power/acpi/tools/acpidbg/acpidbg.c
-+++ b/tools/power/acpi/tools/acpidbg/acpidbg.c
-@@ -375,7 +375,7 @@ void usage(FILE *file, char *progname)
- 
- int main(int argc, char **argv)
- {
--	int fd = 0;
-+	int fd = -1;
- 	int ch;
- 	int len;
- 	int ret = EXIT_SUCCESS;
-@@ -430,7 +430,7 @@ int main(int argc, char **argv)
- 	acpi_aml_loop(fd);
- 
- exit:
--	if (fd < 0)
-+	if (fd >= 0)
- 		close(fd);
- 	if (acpi_aml_batch_cmd)
- 		free(acpi_aml_batch_cmd);
--- 
-1.7.10
-
+SGksDQoNCkZpcnN0LCB0aGFua3MgZm9yIHRoZSByZXZldy4NCg0KPiBGcm9tOiBKb2UgUGVyY2hl
+cyBbbWFpbHRvOmpvZUBwZXJjaGVzLmNvbV0NCj4gU3ViamVjdDogUmU6IFtQQVRDSCAwMS8zMF0g
+QUNQSUNBOiBMaW51eGl6ZTogcmVkdWNlIGRpdmVyZ2VuY2VzIGZvciAyMDE2MDIxMg0KPiByZWxl
+YXNlDQo+IA0KPiBPbiBUaHUsIDIwMTYtMDMtMjQgYXQgMDk6MzggKzA4MDAsIEx2IFpoZW5nIHdy
+b3RlOg0KPiA+IFRoZSBwYXRjaCByZWR1Y2VzIHNvdXJjZSBjb2RlIGRpZmZlcmVuY2VzIGJldHdl
+ZW4gdGhlIExpbnV4IGtlcm5lbCBhbmQgdGhlDQo+ID4gQUNQSUNBIHVwc3RyZWFtIHNvIHRoYXQg
+dGhlIGxpbnV4aXplZCBBQ1BJQ0EgMjAxNjAyMTIgcmVsZWFzZSBjYW4gYmUNCj4gPiBhcHBsaWVk
+IHdpdGggcmVkdWNlZCBodW1hbiBpbnRlcnZlbnRpb24uDQo+IA0KPiBJbiB0aGUgdmVyeSBmaXJz
+dCBwYXRjaCBmcmFnbWVudDoNCj4gDQo+ID4gZGlmZiAtLWdpdCBhL2RyaXZlcnMvYWNwaS9hY3Bp
+Y2EvaHdyZWdzLmMgYi9kcml2ZXJzL2FjcGkvYWNwaWNhL2h3cmVncy5jDQo+IFtdDQo+ID4gQEAg
+LTE1Miw3ICsxNTIsNyBAQCBhY3BpX2h3X3ZhbGlkYXRlX3JlZ2lzdGVyKHN0cnVjdA0KPiBhY3Bp
+X2dlbmVyaWNfYWRkcmVzcyAqcmVnLA0KPiA+IMKgICoNCj4gPiDCoCAqKioqKioqKioqKioqKioq
+KioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKg0KPiAqKioqKioq
+KioqKioqKioqLw0KPiA+DQo+ID4gLWFjcGlfc3RhdHVzIGFjcGlfaHdfcmVhZCh1MzIgKnZhbHVl
+LCBzdHJ1Y3QgYWNwaV9nZW5lcmljX2FkZHJlc3MgKnJlZykNCj4gPiArYWNwaV9zdGF0dXMgYWNw
+aV9od19yZWFkKHUzMiAqdmFsdWUsIHN0cnVjdCBhY3BpX2dlbmVyaWNfYWRkcmVzcyAqIHJlZykN
+Cj4gDQo+IFRoZSBzZWNvbmQgYXJndW1lbnQgKiBzdHlsZSBhcHBlYXJzIHRoZSBvcHBvc2l0ZSBv
+ZiBub3JtYWwgc3R5bGUNCj4gYW5kIGEgZGlmZmVyZW50IHN0eWxlIHRoYW4gdGhlIGZpcnN0IGFy
+Z3VtZW50ICogc3R5bGUuDQpbTHYgWmhlbmddIA0KVGhlIGZpbGUgaXMgZHJpdmVycy9hY3BpL2Fj
+cGljYS9od3JlZ3MuYywgd2hpY2ggaXMgY29taW5nIGZyb20gQUNQSUNBIHVwc3RyZWFtLg0KU28g
+dGhpcyBpcyBhIHJlc3VsdCBvZiAiQUNQSUNBIHJlbGVhc2UiLg0KSW4gb3RoZXIgd29yZHMsIHRo
+aXMgaXMgYSByZXN1bHQgb2YgYSAicHJvY2VzcyIuDQpJbiBvcmRlciB0byBmaXggdGhpcywgdGhp
+bmdzIG5lZWQgdG8gYmUgZG9uZSBpbiAiQUNQSUNBIHJlbGVhc2Ugc2NyaXB0cyIuDQpXaGljaCBz
+aG91bGQgYmUgZG9uZSBpbiBodHRwczovL2dpdGh1Yi5jb20vYWNwaWNhL2FjcGljYS9ibG9iL21h
+c3Rlci9nZW5lcmF0ZS9saW51eC9saWJhY3BpY2Euc2guDQpPdGhlcndpc2UsICJBQ1BJQ0EgcmVs
+ZWFzZSIgcHJvY2VzcyB3aWxsIHJlcXVpcmUgaHVtYW4gaW50ZXJ2ZW50aW9uLg0KDQpTbyBwbGVh
+c2UgbGVhdmUgdGhpcyBwYXRjaCBmcmFnbWVudCBhcyBpcy4NCkl0IHdpbGwgYmUgYXV0b21hdGlj
+YWxseSBmaXhlZCBpZiB0aGUgIkFDUElDQSByZWxlYXNlIiBwcm9jZXNzIGlzIGZpeGVkLg0KQW5k
+IGlmIHlvdSBkb24ndCBsZWF2ZSB0aGlzIGZyYWdtZW50IGFzIGlzLCB0aGUgIkFDUElDQSByZWxl
+YXNlIiBwcm9jZXNzIHdpbGwgZ2V0IGh1cnQuDQoNCj4gDQo+ID4gZGlmZiAtLWdpdCBhL2RyaXZl
+cnMvYWNwaS9vc2wuYyBiL2RyaXZlcnMvYWNwaS9vc2wuYw0KPiBbXQ0KPiA+IEBAIC01ODIsNyAr
+NTgyLDcgQEAgc3RhdGljIGNoYXINCj4gYWNwaV9vc19uYW1lW0FDUElfTUFYX09WRVJSSURFX0xF
+Tl07DQo+ID4NCj4gPiDCoGFjcGlfc3RhdHVzDQo+ID4gwqBhY3BpX29zX3ByZWRlZmluZWRfb3Zl
+cnJpZGUoY29uc3Qgc3RydWN0IGFjcGlfcHJlZGVmaW5lZF9uYW1lcyAqaW5pdF92YWwsDQo+ID4g
+LQkJCcKgwqDCoMKgY2hhciAqKm5ld192YWwpDQo+ID4gKwkJCcKgwqDCoMKgYWNwaV9zdHJpbmcg
+Km5ld192YWwpDQo+IA0KPiBBbmQgaGVyZToNCj4gDQo+IGFjcGlfc3RyaW5nIHBvaW50ZXIgc3R5
+bGUgMToNCltMdiBaaGVuZ10gDQpUaGlzIGZpbGUgZHJpdmVycy9hY3BpL29zbC5jIGlzIG5vdCBp
+biB0aGUgQUNQSUNBIHVwc3RyZWFtLg0KSXQgaXMgTGludXggc3BlY2lmaWMsIHNvIHdlIHVzZSBM
+aW51eCBjb2Rpbmcgc3R5bGUuDQpUaHVzIHRoaXMgaXMgYSByZXN1bHQgb2YgYSAiaHVtYW4iLg0K
+DQo+IA0KPiA+IGRpZmYgLS1naXQgYS9pbmNsdWRlL2FjcGkvYWNwaW9zeGYuaCBiL2luY2x1ZGUv
+YWNwaS9hY3Bpb3N4Zi5oDQo+IFtdDQo+ID4gQEAgLTk2LDcgKzk2LDcgQEAgYWNwaV9waHlzaWNh
+bF9hZGRyZXNzIGFjcGlfb3NfZ2V0X3Jvb3RfcG9pbnRlcih2b2lkKTsNCj4gPiDCoCNpZm5kZWYg
+QUNQSV9VU0VfQUxURVJOQVRFX1BST1RPVFlQRV9hY3BpX29zX3ByZWRlZmluZWRfb3ZlcnJpZGUN
+Cj4gPiDCoGFjcGlfc3RhdHVzDQo+ID4gwqBhY3BpX29zX3ByZWRlZmluZWRfb3ZlcnJpZGUoY29u
+c3Qgc3RydWN0IGFjcGlfcHJlZGVmaW5lZF9uYW1lcyAqaW5pdF92YWwsDQo+ID4gLQkJCcKgwqDC
+oMKgY2hhciAqKm5ld192YWwpOw0KPiA+ICsJCQnCoMKgwqDCoGFjcGlfc3RyaW5nICogbmV3X3Zh
+bCk7DQo+IA0KPiBhY3BpX3N0cmluZyBwb2ludGVyIHN0eWxlIDI6DQo+IA0KPiBUaGVyZSBhcmUg
+dmFyeWluZyBzdHlsZXMgZm9yIGFjcGlfc3RyaW5nICoNCltMdiBaaGVuZ10gDQpUaGlzIGlzIEFD
+UElDQSB1cHN0cmVhbSBmaWxlIG1vZGlmaWNhdGlvbi4NCkFsc28gYSByZXN1bHQgb2YgYSAicHJv
+Y2VzcyIuDQoNCj4gDQo+IFNvIGZhciwgdGhpcyBqdXN0IGxvb2tzIHNsb3BweS4NCltMdiBaaGVu
+Z10gDQpBcyBJIHNhaWQsIHBsZWFzZSBpZ25vcmUgInByb2Nlc3MiIGlzc3Vlcy4NCkkgbmVlZCB0
+aGVtIHRvIGJlIHdyb25nIGluIG9yZGVyIG5vdCB0byBtb2RpZnkgZXZlcnkgInByb2Nlc3MiIGdl
+bmVyYXRlZCBwYXRjaGVzIG1hbnVhbGx5Lg0KWW91IGNhbiBmaW5kIG1hbnkgc3VjaCBraW5kIG9m
+IGluZGVudCBpc3N1ZXMgaW4gZHJpdmVycy9hY3BpL2FjcGljYSwgaW5jbHVkZS9hY3BpLCB0b29s
+cy9wb3dlci9hY3BpLg0KVGhleSBhcmUgdGhlcmUgZm9yIGdvb2QgcmVhc29ucy4NCkknbGwgY2xl
+YW51cCBzdWNoIGlzc3VlcyBmcm9tICJBQ1BJQ0EgcmVsZWFzZSIgcHJvY2Vzcy4NCg0KPiBTaG91
+bGQgdGhlIHJlc3QgYmUgcmV2aWV3ZWQ/DQoNCltMdiBaaGVuZ10gDQpZZXMsIHBsZWFzZS4NCg0K
+VGhhbmtzIGFuZCBiZXN0IHJlZ2FyZHMNCi1Mdg0K
