@@ -1,7 +1,7 @@
 From: Lv Zheng <lv.zheng@intel.com>
-Subject: [PATCH 13/30] ACPICA: Interpreter: Update some function headers, no functional change
-Date: Thu, 24 Mar 2016 09:39:58 +0800
-Message-ID: <7c48db35c36e28e80d1746652748cfb31052e1f8.1458714003.git.lv.zheng@intel.com>
+Subject: [PATCH 16/30] ACPICA: Headers: Update generation of the ACPICA library
+Date: Thu, 24 Mar 2016 09:40:19 +0800
+Message-ID: <5c8ba15e76c83fcb1de235e9f38e9bbb4e17ca27.1458714003.git.lv.zheng@intel.com>
 References: <cover.1458714002.git.lv.zheng@intel.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <cover.1458714002.git.lv.zheng@intel.com>
@@ -12,61 +12,94 @@ List-Id: linux-acpi@vger.kernel.org
 
 From: Bob Moore <robert.moore@intel.com>
 
-ACPICA commit e068948f49eb61a78c211028976a174604c5644a
+ACPICA commit 0af0f9092dcc3db6c05875eae68965fda333ad7f
 
-Fix some issues in the exutils.c file.
+For windows only, ensure that debug output is disabled for
+the "release" (non-debug) case.
 
-Link: https://github.com/acpica/acpica/commit/e068948f
+Link: https://github.com/acpica/acpica/commit/0af0f909
 Signed-off-by: Bob Moore <robert.moore@intel.com>
 Signed-off-by: Lv Zheng <lv.zheng@intel.com>
 ---
- drivers/acpi/acpica/exutils.c |   12 ++++++------
- 1 file changed, 6 insertions(+), 6 deletions(-)
+ include/acpi/platform/acenv.h |   41 +++++++++++++++++++++--------------------
+ 1 file changed, 21 insertions(+), 20 deletions(-)
 
-diff --git a/drivers/acpi/acpica/exutils.c b/drivers/acpi/acpica/exutils.c
-index 4d44bc1..425f133 100644
---- a/drivers/acpi/acpica/exutils.c
-+++ b/drivers/acpi/acpica/exutils.c
-@@ -301,8 +301,8 @@ static u32 acpi_ex_digits_needed(u64 value, u32 base)
+diff --git a/include/acpi/platform/acenv.h b/include/acpi/platform/acenv.h
+index 7c0595b..72f85b4 100644
+--- a/include/acpi/platform/acenv.h
++++ b/include/acpi/platform/acenv.h
+@@ -66,17 +66,28 @@
   *
-  * FUNCTION:    acpi_ex_eisa_id_to_string
-  *
-- * PARAMETERS:  compressed_id   - EISAID to be converted
-- *              out_string      - Where to put the converted string (8 bytes)
-+ * PARAMETERS:  out_string      - Where to put the converted string (8 bytes)
-+ *              compressed_id   - EISAID to be converted
-  *
-  * RETURN:      None
-  *
-@@ -354,7 +354,7 @@ void acpi_ex_eisa_id_to_string(char *out_string, u64 compressed_id)
-  *                                possible 64-bit integer.
-  *              value           - Value to be converted
-  *
-- * RETURN:      None, string
-+ * RETURN:      Converted string in out_string
-  *
-  * DESCRIPTION: Convert a 64-bit integer to decimal string representation.
-  *              Assumes string buffer is large enough to hold the string. The
-@@ -384,9 +384,9 @@ void acpi_ex_integer_to_string(char *out_string, u64 value)
-  * FUNCTION:    acpi_ex_pci_cls_to_string
-  *
-  * PARAMETERS:  out_string      - Where to put the converted string (7 bytes)
-- * PARAMETERS:  class_code      - PCI class code to be converted (3 bytes)
-+ *              class_code      - PCI class code to be converted (3 bytes)
-  *
-- * RETURN:      None
-+ * RETURN:      Converted string in out_string
-  *
-  * DESCRIPTION: Convert 3-bytes PCI class code to string representation.
-  *              Return buffer must be large enough to hold the string. The
-@@ -417,7 +417,7 @@ void acpi_ex_pci_cls_to_string(char *out_string, u8 class_code[3])
-  *
-  * PARAMETERS:  space_id            - ID to be validated
-  *
-- * RETURN:      TRUE if valid/supported ID.
-+ * RETURN:      TRUE if space_id is a valid/supported ID.
-  *
-  * DESCRIPTION: Validate an operation region space_ID.
-  *
+  *****************************************************************************/
+ 
++/* Common application configuration. All single threaded except for acpi_exec. */
++
++#if (defined ACPI_ASL_COMPILER) || \
++	(defined ACPI_BIN_APP)      || \
++	(defined ACPI_DUMP_APP)     || \
++	(defined ACPI_HELP_APP)     || \
++	(defined ACPI_NAMES_APP)    || \
++	(defined ACPI_SRC_APP)      || \
++	(defined ACPI_XTRACT_APP)   || \
++	(defined ACPI_EXAMPLE_APP)
++#define ACPI_APPLICATION
++#define ACPI_SINGLE_THREADED
++#endif
++
+ /* iASL configuration */
+ 
+ #ifdef ACPI_ASL_COMPILER
+-#define ACPI_APPLICATION
+ #define ACPI_DEBUG_OUTPUT
+ #define ACPI_CONSTANT_EVAL_ONLY
+ #define ACPI_LARGE_NAMESPACE_NODE
+ #define ACPI_DATA_TABLE_DISASSEMBLY
+-#define ACPI_SINGLE_THREADED
+ #define ACPI_32BIT_PHYSICAL_ADDRESS
+-
+ #define ACPI_DISASSEMBLER 1
+ #endif
+ 
+@@ -89,21 +100,6 @@
+ #define ACPI_DBG_TRACK_ALLOCATIONS
+ #endif
+ 
+-/*
+- * acpi_bin/acpi_dump/acpi_help/acpi_names/acpi_src/acpi_xtract/Example
+- * configuration. All single threaded.
+- */
+-#if (defined ACPI_BIN_APP)      || \
+-	(defined ACPI_DUMP_APP)     || \
+-	(defined ACPI_HELP_APP)     || \
+-	(defined ACPI_NAMES_APP)    || \
+-	(defined ACPI_SRC_APP)      || \
+-	(defined ACPI_XTRACT_APP)   || \
+-	(defined ACPI_EXAMPLE_APP)
+-#define ACPI_APPLICATION
+-#define ACPI_SINGLE_THREADED
+-#endif
+-
+ /* acpi_help configuration. Error messages disabled. */
+ 
+ #ifdef ACPI_HELP_APP
+@@ -138,11 +134,16 @@
+ #define ACPI_REDUCED_HARDWARE 1
+ #endif
+ 
+-/* Linkable ACPICA library */
++/* Linkable ACPICA library. Two versions, one with full debug. */
+ 
+ #ifdef ACPI_LIBRARY
+ #define ACPI_USE_LOCAL_CACHE
+-#define ACPI_FULL_DEBUG
++#define ACPI_DEBUGGER 1
++#define ACPI_DISASSEMBLER 1
++
++#ifdef _DEBUG
++#define ACPI_DEBUG_OUTPUT
++#endif
+ #endif
+ 
+ /* Common for all ACPICA applications */
 -- 
 1.7.10
