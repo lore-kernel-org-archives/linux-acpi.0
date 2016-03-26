@@ -1,66 +1,59 @@
-From: "Rafael J. Wysocki" <rafael@kernel.org>
-Subject: Re: [PATCH v7] acpi: Issue _OSC call for native thermal interrupt handling
-Date: Sat, 26 Mar 2016 01:56:07 +0100
-Message-ID: <CAJZ5v0hP7F_6Wdd0dS7DRWysQApRUrgo5-XvhWiHHo0VYQwKOQ@mail.gmail.com>
-References: <1458792459-538-1-git-send-email-srinivas.pandruvada@linux.intel.com>
+From: Steve Muckle <steve.muckle@linaro.org>
+Subject: Re: [PATCH v6 6/7][Resend] cpufreq: Support for fast frequency
+ switching
+Date: Fri, 25 Mar 2016 18:12:11 -0700
+Message-ID: <56F5E1EB.1050702@linaro.org>
+References: <7262976.zPkLj56ATU@vostro.rjw.lan>
+ <25154681.B5BGJ94JlQ@vostro.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-lf0-f66.google.com ([209.85.215.66]:32904 "EHLO
-	mail-lf0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752256AbcCZA4K (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 25 Mar 2016 20:56:10 -0400
-In-Reply-To: <1458792459-538-1-git-send-email-srinivas.pandruvada@linux.intel.com>
+Received: from mail-pf0-f174.google.com ([209.85.192.174]:34563 "EHLO
+	mail-pf0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752256AbcCZBMO (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 25 Mar 2016 21:12:14 -0400
+Received: by mail-pf0-f174.google.com with SMTP id x3so93024809pfb.1
+        for <linux-acpi@vger.kernel.org>; Fri, 25 Mar 2016 18:12:14 -0700 (PDT)
+In-Reply-To: <25154681.B5BGJ94JlQ@vostro.rjw.lan>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>
-Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Tony Luck <tony.luck@intel.com>, Borislav Petkov <bp@alien8.de>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, Len Brown <lenb@kernel.org>, "open list:EDAC-CORE" <linux-edac@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Linux PM list <linux-pm@vger.kernel.org>
+Cc: Juri Lelli <juri.lelli@arm.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Peter Zijlstra <peterz@infradead.org>, Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>, Viresh Kumar <viresh.kumar@linaro.org>, Vincent Guittot <vincent.guittot@linaro.org>, Michael Turquette <mturquette@baylibre.com>, Ingo Molnar <mingo@kernel.org>
 
-On Thu, Mar 24, 2016 at 5:07 AM, Srinivas Pandruvada
-<srinivas.pandruvada@linux.intel.com> wrote:
-> There are several reports of freeze on enabling HWP (Hardware PStates)
-> feature on Skylake based systems by Intel P states driver. The root
-> cause is identified as the HWP interrupts causing BIOS code to freeze.
-> HWP interrupts uses thermal LVT.
-> Linux natively handles thermal interrupts, but in Skylake based systems
-> SMM will take control of thermal interrupts. This is a problem for several
-> reasons:
-> - It is freezing in BIOS when tries to handle thermal interrupt, which
-> will require BIOS upgrade
-> - With SMM handling thermal we loose all the reporting features of
-> Linux arch/x86/kernel/cpu/mcheck/therm_throt driver
-> - Some thermal drivers like x86-package-temp driver depends on the thermal
-> threshold interrupts
-> - The HWP interrupts are useful for debugging and tuning performance
->
-> So we need native handling of thermal interrupts. This requires some
-> way to inform SMM that OS can handle thermal interrupts. This can be
-> done by using _OSC/_PDC under processor scope very early in ACPI
-> initialization flow.
-> The bit 12 of _OSC/_PDC in processor scope defines whether OS supports
-> handling of native interrupts for Collaborative Processor Performance
-> Control (CPPC) notifications. Since HWP is a implementation of CPPC,
-> setting this bit is equivalent to inform SMM that OS is capable of
-> handling thermal interrupts.
-> Refer to this document for details on _OSC/_PDC
-> http://www.intel.com/content/www/us/en/standards/processor-vendor-
-> specific-acpi-specification.html
->
-> This change introduces a new function acpi_early_processor_set_osc(),
-> which walks acpi name space and finds acpi processor object and
-> set capability via _OSC method.
->
-> Also this change writes HWP status bits to 0 to clear any HWP status
-> bits in intel_thermal_interrupt().
->
-> Signed-off-by: Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>
+Hi Rafael,
 
-I've queued it up, but I have modified the subject and the changelog
-and renamed the new function.
+On 03/21/2016 06:53 PM, Rafael J. Wysocki wrote:
+> Add two new policy flags, fast_switch_possible, to be set by the
+> cpufreq driver if fast frequency switching can be used for the
+> given policy and fast_switch_enabled, to be set by the governor
+> if it is going to use fast frequency switching for the given
+> policy.  Also add a helper for setting the latter.
+...
+> @@ -740,6 +777,9 @@ static int acpi_cpufreq_cpu_init(struct
+>  		goto err_unreg;
+>  	}
+>  
+> +	policy->fast_switch_possible = !acpi_pstate_strict &&
+> +		!(policy_is_shared(policy) && policy->shared_type != CPUFREQ_SHARED_TYPE_ANY);
 
-Please have a look at
-http://git.kernel.org/cgit/linux/kernel/git/rafael/linux-pm.git/commit/?h=bleeding-edge&id=42341f87ba1bee4c5be95038c24abb69cbcf361a
-and let me know if it makes sense to you.
+Could the policy->fast_switch_possible flag be avoided by just checking
+whether a driver has registered the .fast_switch callback?
 
-Thanks,
-Rafael
+...
+> @@ -1726,6 +1810,34 @@ EXPORT_SYMBOL(cpufreq_unregister_notifie
+>   *                              GOVERNORS                            *
+>   *********************************************************************/
+>  
+> +/**
+> + * cpufreq_driver_fast_switch - Carry out a fast CPU frequency switch.
+> + * @policy: cpufreq policy to switch the frequency for.
+> + * @target_freq: New frequency to set (may be approximate).
+> + *
+> + * Carry out a fast frequency switch from interrupt context.
+
+I think that should say atomic rather than interrupt as this might not
+be called from interrupt context.
+
+thanks,
+Steve
