@@ -1,43 +1,66 @@
 From: "Rafael J. Wysocki" <rafael@kernel.org>
-Subject: Re: [GIT PULL] Power management fix for v4.6-rc1
-Date: Sat, 26 Mar 2016 01:09:51 +0100
-Message-ID: <CAJZ5v0g88qpdo3M3NfMDp3d1kLLzJE6iMG47fg_-mB=0524WVQ@mail.gmail.com>
-References: <CAJZ5v0jMF=76ZvF3Er_iCt4hnOxf-b96Uy-PzsO=kQ7Dyy1FYQ@mail.gmail.com>
-	<CA+55aFxG4efV1U69zHt9SOUJnWmhWPSzv14hPxGBZ_b-tD6Bhg@mail.gmail.com>
+Subject: Re: [PATCH v7] acpi: Issue _OSC call for native thermal interrupt handling
+Date: Sat, 26 Mar 2016 01:56:07 +0100
+Message-ID: <CAJZ5v0hP7F_6Wdd0dS7DRWysQApRUrgo5-XvhWiHHo0VYQwKOQ@mail.gmail.com>
+References: <1458792459-538-1-git-send-email-srinivas.pandruvada@linux.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-lf0-f45.google.com ([209.85.215.45]:32787 "EHLO
-	mail-lf0-f45.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752696AbcCZAJx (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 25 Mar 2016 20:09:53 -0400
-In-Reply-To: <CA+55aFxG4efV1U69zHt9SOUJnWmhWPSzv14hPxGBZ_b-tD6Bhg@mail.gmail.com>
+Received: from mail-lf0-f66.google.com ([209.85.215.66]:32904 "EHLO
+	mail-lf0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752256AbcCZA4K (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 25 Mar 2016 20:56:10 -0400
+In-Reply-To: <1458792459-538-1-git-send-email-srinivas.pandruvada@linux.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: "Rafael J. Wysocki" <rafael@kernel.org>, "linux-pm@vger.kernel.org" <linux-pm@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>
+To: Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>
+Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Tony Luck <tony.luck@intel.com>, Borislav Petkov <bp@alien8.de>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, Len Brown <lenb@kernel.org>, "open list:EDAC-CORE" <linux-edac@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>
 
-On Sat, Mar 26, 2016 at 12:55 AM, Linus Torvalds
-<torvalds@linux-foundation.org> wrote:
-> On Fri, Mar 25, 2016 at 3:08 PM, Rafael J. Wysocki <rafael@kernel.org> wrote:
->>
->> One of commits in my previous pull request changed the permissions
->> of drivers/power/avs/rockchip-io-domain.c to executable by mistake.
+On Thu, Mar 24, 2016 at 5:07 AM, Srinivas Pandruvada
+<srinivas.pandruvada@linux.intel.com> wrote:
+> There are several reports of freeze on enabling HWP (Hardware PStates)
+> feature on Skylake based systems by Intel P states driver. The root
+> cause is identified as the HWP interrupts causing BIOS code to freeze.
+> HWP interrupts uses thermal LVT.
+> Linux natively handles thermal interrupts, but in Skylake based systems
+> SMM will take control of thermal interrupts. This is a problem for several
+> reasons:
+> - It is freezing in BIOS when tries to handle thermal interrupt, which
+> will require BIOS upgrade
+> - With SMM handling thermal we loose all the reporting features of
+> Linux arch/x86/kernel/cpu/mcheck/therm_throt driver
+> - Some thermal drivers like x86-package-temp driver depends on the thermal
+> threshold interrupts
+> - The HWP interrupts are useful for debugging and tuning performance
 >
-> Hmm. The signed tag contents was garbage - it was your previous
-> message. The commit it pointed to was fine.
-
-Yes, sorry about the broken tag.
-
-> Was it intentional?
-
-No, it wasn't.  I forgot to update the message file when creating the tag.
-
-> I had already pulled your previous tag, so it made
-> very little sense from my viewpoint..
+> So we need native handling of thermal interrupts. This requires some
+> way to inform SMM that OS can handle thermal interrupts. This can be
+> done by using _OSC/_PDC under processor scope very early in ACPI
+> initialization flow.
+> The bit 12 of _OSC/_PDC in processor scope defines whether OS supports
+> handling of native interrupts for Collaborative Processor Performance
+> Control (CPPC) notifications. Since HWP is a implementation of CPPC,
+> setting this bit is equivalent to inform SMM that OS is capable of
+> handling thermal interrupts.
+> Refer to this document for details on _OSC/_PDC
+> http://www.intel.com/content/www/us/en/standards/processor-vendor-
+> specific-acpi-specification.html
 >
-> I ended up just ignoring the signed tag part.
+> This change introduces a new function acpi_early_processor_set_osc(),
+> which walks acpi name space and finds acpi processor object and
+> set capability via _OSC method.
+>
+> Also this change writes HWP status bits to 0 to clear any HWP status
+> bits in intel_thermal_interrupt().
+>
+> Signed-off-by: Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>
 
-Thanks a lot for pulling and sorry for the breakage.
+I've queued it up, but I have modified the subject and the changelog
+and renamed the new function.
 
+Please have a look at
+http://git.kernel.org/cgit/linux/kernel/git/rafael/linux-pm.git/commit/?h=bleeding-edge&id=42341f87ba1bee4c5be95038c24abb69cbcf361a
+and let me know if it makes sense to you.
+
+Thanks,
 Rafael
