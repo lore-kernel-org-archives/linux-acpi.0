@@ -1,21 +1,21 @@
 From: Stefano Stabellini <stefano.stabellini-mvvWK6WmYclDPfheJLI6IQ@public.gmane.org>
 Subject: Re: [PATCH v8 01/17] Xen: ACPI: Hide UART used by Xen
-Date: Sat, 26 Mar 2016 12:44:31 +0000
-Message-ID: <alpine.DEB.2.02.1603261238130.18380@kaball.uk.xensource.com>
+Date: Sat, 26 Mar 2016 13:14:20 +0000
+Message-ID: <alpine.DEB.2.02.1603261311450.18380@kaball.uk.xensource.com>
 References: <1458830676-27075-2-git-send-email-shannon.zhao@linaro.org>
  <1458893149-17388-1-git-send-email-zhaoshenglong@huawei.com>
- <20160325171547.GB29822@localhost>
+ <7418231.W9aSFKr1zs@vostro.rjw.lan>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="US-ASCII"
 Return-path: <linux-efi-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20160325171547.GB29822@localhost>
+In-Reply-To: <7418231.W9aSFKr1zs-sKB8Sp2ER+y1GS7QM15AGw@public.gmane.org>
 Sender: linux-efi-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Bjorn Helgaas <helgaas-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: Shannon Zhao <zhaoshenglong-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, stefano.stabellini-Sxgqhf6Nn4DQT0dZR+AlfA@public.gmane.org, david.vrabel-Sxgqhf6Nn4DQT0dZR+AlfA@public.gmane.org, catalin.marinas-5wv7dgnIgG8@public.gmane.org, will.deacon-5wv7dgnIgG8@public.gmane.org, xen-devel-GuqFBffKawuEi8DpZVb4nw@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-efi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, shannon.zhao-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org, peter.huangpeng-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, "Rafael J. Wysocki" <rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org>, Len Brown <lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, "open list:ACPI" <linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: "Rafael J. Wysocki" <rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org>
+Cc: Shannon Zhao <zhaoshenglong-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, stefano.stabellini-Sxgqhf6Nn4DQT0dZR+AlfA@public.gmane.org, david.vrabel-Sxgqhf6Nn4DQT0dZR+AlfA@public.gmane.org, catalin.marinas-5wv7dgnIgG8@public.gmane.org, will.deacon-5wv7dgnIgG8@public.gmane.org, xen-devel-GuqFBffKawuEi8DpZVb4nw@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-efi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, shannon.zhao-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org, peter.huangpeng-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, Len Brown <lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, "open list:ACPI" <linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On Fri, 25 Mar 2016, Bjorn Helgaas wrote:
-> On Fri, Mar 25, 2016 at 04:05:49PM +0800, Shannon Zhao wrote:
+On Fri, 25 Mar 2016, Rafael J. Wysocki wrote:
+> On Friday, March 25, 2016 04:05:49 PM Shannon Zhao wrote:
 > > From: Shannon Zhao <shannon.zhao-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
 > > 
 > > ACPI 6.0 introduces a new table STAO to list the devices which are used
@@ -26,6 +26,9 @@ On Fri, 25 Mar 2016, Bjorn Helgaas wrote:
 > > CC: Len Brown <lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org> (supporter:ACPI)
 > > CC: linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org (open list:ACPI)
 > > Signed-off-by: Shannon Zhao <shannon.zhao-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
+> 
+> So I said it looked good, but now that I think about it, I have a question. ->
+> 
 > > ---
 > >  drivers/acpi/scan.c | 68 +++++++++++++++++++++++++++++++++++++++++++++++++++++
 > >  1 file changed, 68 insertions(+)
@@ -53,6 +56,21 @@ On Fri, 25 Mar 2016, Bjorn Helgaas wrote:
 > > +
 > > +	if (acpi_dev_resource_memory(ares, res))
 > > +		return AE_CTRL_TERMINATE;
+> 
+> -> It looks like this will terminate on the first memory resource found,
+> but what if there are more of them?
+> 
+> Or is it guaranteed that there will be only one for the device objects in
+> question?
+
+Given that spcr_uart_addr is actually the only Base Address specified by
+the SPCR table, I think it is assumed that this kind of devices only
+have one memory region.
+
+
+> If not, then it would better to check res.start == spcr_uart_addr here too
+> and only terminate if there's a match.
+>
 > > +
 > > +	return AE_OK;
 > > +}
@@ -74,12 +92,6 @@ On Fri, 25 Mar 2016, Bjorn Helgaas wrote:
 > > +
 > > +		if (res.start == spcr_uart_addr) {
 > > +			printk(KERN_INFO PREFIX "The UART device in SPCR table will be hidden\n");
-> 
-> Can we at least print out the ACPI device path and address here for
-> debugging purposes?  IMHO, kernel messages that contain only static
-> text are always dubious.  There's almost always a useful address, IRQ,
-> return value, etc., that could be included.
->
 > > +			return true;
 > > +		}
 > > +	}
@@ -142,12 +154,9 @@ On Fri, 25 Mar 2016, Bjorn Helgaas wrote:
 > > +		if (stao_ptr->ignore_uart)
 > > +			acpi_get_spcr_uart_addr();
 > > +	}
+> > +
+> >  	mutex_lock(&acpi_scan_lock);
+> >  	/*
+> >  	 * Enumerate devices in the ACPI namespace.
+> > 
 > 
-> This all seems sort of ad hoc.  Are UARTs the only things that can be
-> listed in STAO?  If STAO can contain things other than UARTs, are we
-> going to see more patches adding special-case code like this?
-
-The UART (specifically the UART described by the SPCR table) is the only
-object which needs special-casing. Everything else is covered by ACPI
-namespace paths (which is what the message above is about, given that it
-is not supported by this patch).
