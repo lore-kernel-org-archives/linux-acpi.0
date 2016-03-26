@@ -1,129 +1,92 @@
-From: qiujiang <qiujiang@huawei.com>
-Subject: [PATCH v6 2/2] gpio: dwapb: add gpio-signaled acpi event support
-Date: Sat, 26 Mar 2016 10:31:36 +0800
-Message-ID: <1458959496-57455-3-git-send-email-qiujiang@huawei.com>
-References: <1458959496-57455-1-git-send-email-qiujiang@huawei.com>
+From: Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>
+Subject: Re: [PATCH v7] acpi: Issue _OSC call for native thermal interrupt
+ handling
+Date: Sat, 26 Mar 2016 05:13:46 -0700
+Message-ID: <1458994426.19816.0.camel@linux.intel.com>
+References: <1458792459-538-1-git-send-email-srinivas.pandruvada@linux.intel.com>
+	 <CAJZ5v0hP7F_6Wdd0dS7DRWysQApRUrgo5-XvhWiHHo0VYQwKOQ@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-gpio-owner@vger.kernel.org>
-In-Reply-To: <1458959496-57455-1-git-send-email-qiujiang@huawei.com>
-Sender: linux-gpio-owner@vger.kernel.org
-To: linus.walleij@linaro.org, gnurou@gmail.com
-Cc: mika.westerberg@linux.intel.com, andy.shevchenko@gmail.com, delicious.quinoa@gmail.com, jamie@jamieiles.com, linux-kernel@vger.kernel.org, linux-gpio@vger.kernel.org, linux-acpi@vger.kernel.org, linuxarm@huawei.com, haifeng.wei@huawei.com, charles.chenxin@huawei.com, qiujiang <qiujiang@huawei.com>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga09.intel.com ([134.134.136.24]:28884 "EHLO mga09.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751749AbcCZMQq (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sat, 26 Mar 2016 08:16:46 -0400
+In-Reply-To: <CAJZ5v0hP7F_6Wdd0dS7DRWysQApRUrgo5-XvhWiHHo0VYQwKOQ@mail.gmail.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: "Rafael J. Wysocki" <rafael@kernel.org>
+Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Tony Luck <tony.luck@intel.com>, Borislav Petkov <bp@alien8.de>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, Len Brown <lenb@kernel.org>, "open list:EDAC-CORE" <linux-edac@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>
 
-This patch adds gpio-signaled acpi event support. It is used for
-power button on hisilicon D02 board, an arm64 platform.
+On Sat, 2016-03-26 at 01:56 +0100, Rafael J. Wysocki wrote:
+> On Thu, Mar 24, 2016 at 5:07 AM, Srinivas Pandruvada
+> <srinivas.pandruvada@linux.intel.com> wrote:
+> > There are several reports of freeze on enabling HWP (Hardware
+> > PStates)
+> > feature on Skylake based systems by Intel P states driver. The root
+> > cause is identified as the HWP interrupts causing BIOS code to
+> > freeze.
+> > HWP interrupts uses thermal LVT.
+> > Linux natively handles thermal interrupts, but in Skylake based
+> > systems
+> > SMM will take control of thermal interrupts. This is a problem for
+> > several
+> > reasons:
+> > - It is freezing in BIOS when tries to handle thermal interrupt,
+> > which
+> > will require BIOS upgrade
+> > - With SMM handling thermal we loose all the reporting features of
+> > Linux arch/x86/kernel/cpu/mcheck/therm_throt driver
+> > - Some thermal drivers like x86-package-temp driver depends on the
+> > thermal
+> > threshold interrupts
+> > - The HWP interrupts are useful for debugging and tuning
+> > performance
+> > 
+> > So we need native handling of thermal interrupts. This requires
+> > some
+> > way to inform SMM that OS can handle thermal interrupts. This can
+> > be
+> > done by using _OSC/_PDC under processor scope very early in ACPI
+> > initialization flow.
+> > The bit 12 of _OSC/_PDC in processor scope defines whether OS
+> > supports
+> > handling of native interrupts for Collaborative Processor
+> > Performance
+> > Control (CPPC) notifications. Since HWP is a implementation of
+> > CPPC,
+> > setting this bit is equivalent to inform SMM that OS is capable of
+> > handling thermal interrupts.
+> > Refer to this document for details on _OSC/_PDC
+> > http://www.intel.com/content/www/us/en/standards/processor-vendor-
+> > specific-acpi-specification.html
+> > 
+> > This change introduces a new function
+> > acpi_early_processor_set_osc(),
+> > which walks acpi name space and finds acpi processor object and
+> > set capability via _OSC method.
+> > 
+> > Also this change writes HWP status bits to 0 to clear any HWP
+> > status
+> > bits in intel_thermal_interrupt().
+> > 
+> > Signed-off-by: Srinivas Pandruvada <srinivas.pandruvada@linux.intel
+> > .com>
+> 
+> I've queued it up, but I have modified the subject and the changelog
+> and renamed the new function.
+> 
+> Please have a look at
+> http://git.kernel.org/cgit/linux/kernel/git/rafael/linux-pm.git/commi
+> t/?h=bleeding-edge&id=42341f87ba1bee4c5be95038c24abb69cbcf361a
+> and let me know if it makes sense to you.
 
-Corresponding DSDT file is defined as follows:
- Device(GPI0) {
-        Name(_HID, "HISI0181")
-	Name(_ADR, 0)
-        Name(_UID, 0)
+Looks fine to me.
 
-	Name (_CRS, ResourceTemplate ()  {
-		Memory32Fixed (ReadWrite, 0x802e0000, 0x10000)
-		Interrupt (ResourceConsumer, Level, ActiveHigh,
-		Exclusive,,,)  {344}
-	})
+Thanks,
+Srinivas
 
-	Device(PRTa) {
-		Name (_DSD, Package () {
-		Package () {
-			Package () {"reg",0},
-			Package () {"snps,nr-gpios",32},
-			}
-		})
-	}
-
-	Name (_AEI, ResourceTemplate () {
-		GpioInt(Edge, ActiveLow, ExclusiveAndWake,
-		PullUp, , " \\_SB.GPI0") {8}
-	})
-
-	Method (_E08, 0x0, NotSerialized) {
-		Notify (\_SB.PWRB, 0x80)
-	}
-}
-
-Acked-by: Mika Westerberg <mika.westerberg@linux.intel.com>
-Reviewed-by: Andy Shevchenko <andy.shevchenko@gmail.com>
-Signed-off-by: qiujiang <qiujiang@huawei.com>
----
- drivers/gpio/gpio-dwapb.c | 21 +++++++++++++++++++++
- 1 file changed, 21 insertions(+)
-
-diff --git a/drivers/gpio/gpio-dwapb.c b/drivers/gpio/gpio-dwapb.c
-index 3498393..f52adc9 100644
---- a/drivers/gpio/gpio-dwapb.c
-+++ b/drivers/gpio/gpio-dwapb.c
-@@ -7,6 +7,7 @@
-  *
-  * All enquiries to support@picochip.com
-  */
-+#include <linux/acpi.h>
- #include <linux/gpio/driver.h>
- /* FIXME: for gpio_get_value(), replace this with direct register read */
- #include <linux/gpio.h>
-@@ -27,6 +28,8 @@
- #include <linux/platform_data/gpio-dwapb.h>
- #include <linux/slab.h>
- 
-+#include "gpiolib.h"
-+
- #define GPIO_SWPORTA_DR		0x00
- #define GPIO_SWPORTA_DDR	0x04
- #define GPIO_SWPORTB_DR		0x0c
-@@ -436,6 +439,10 @@ static int dwapb_gpio_add_port(struct dwapb_gpio *gpio,
- 	else
- 		port->is_registered = true;
- 
-+	/* Add GPIO-signaled ACPI event support */
-+	if (pp->irq)
-+		acpi_gpiochip_request_interrupts(&port->gc);
-+
- 	return err;
- }
- 
-@@ -502,10 +509,17 @@ dwapb_gpio_get_pdata(struct device *dev)
- 			}
- 		}
- 
-+		if (has_acpi_companion(dev) && pp->idx == 0)
-+			pp->irq = platform_get_irq(to_platform_device(dev), 0);
-+
- 		pp->irq_shared	= false;
- 		pp->gpio_base	= -1;
-+
- 		if (dev->of_node)
- 			pp->name = to_of_node(fwnode)->full_name;
-+
-+		if (has_acpi_companion(dev))
-+			pp->name = acpi_dev_name(to_acpi_device_node(fwnode));
- 	}
- 
- 	return pdata;
-@@ -578,6 +592,12 @@ static const struct of_device_id dwapb_of_match[] = {
- };
- MODULE_DEVICE_TABLE(of, dwapb_of_match);
- 
-+static const struct acpi_device_id dwapb_acpi_match[] = {
-+	{"HISI0181", 0},
-+	{ }
-+};
-+MODULE_DEVICE_TABLE(acpi, dwapb_acpi_match);
-+
- #ifdef CONFIG_PM_SLEEP
- static int dwapb_gpio_suspend(struct device *dev)
- {
-@@ -672,6 +692,7 @@ static struct platform_driver dwapb_gpio_driver = {
- 		.name	= "gpio-dwapb",
- 		.pm	= &dwapb_gpio_pm_ops,
- 		.of_match_table = of_match_ptr(dwapb_of_match),
-+		.acpi_match_table = ACPI_PTR(dwapb_acpi_match),
- 	},
- 	.probe		= dwapb_gpio_probe,
- 	.remove		= dwapb_gpio_remove,
--- 
-1.9.1
-
+> 
+> Thanks,
+> Rafael
