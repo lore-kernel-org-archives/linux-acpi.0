@@ -1,172 +1,43 @@
-From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [PATCH v6 3/5] ACPI: parse SPCR and enable matching console
-Date: Sat, 26 Mar 2016 01:01:14 +0100
-Message-ID: <2160795.F46RpZK5Xk@vostro.rjw.lan>
-References: <1458823925-19560-1-git-send-email-aleksey.makarov@linaro.org> <1458823925-19560-4-git-send-email-aleksey.makarov@linaro.org>
+From: "Rafael J. Wysocki" <rafael@kernel.org>
+Subject: Re: [GIT PULL] Power management fix for v4.6-rc1
+Date: Sat, 26 Mar 2016 01:09:51 +0100
+Message-ID: <CAJZ5v0g88qpdo3M3NfMDp3d1kLLzJE6iMG47fg_-mB=0524WVQ@mail.gmail.com>
+References: <CAJZ5v0jMF=76ZvF3Er_iCt4hnOxf-b96Uy-PzsO=kQ7Dyy1FYQ@mail.gmail.com>
+	<CA+55aFxG4efV1U69zHt9SOUJnWmhWPSzv14hPxGBZ_b-tD6Bhg@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cloudserver094114.home.net.pl ([79.96.170.134]:61050 "HELO
-	cloudserver094114.home.net.pl" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with SMTP id S1752029AbcCYX7B (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 25 Mar 2016 19:59:01 -0400
-In-Reply-To: <1458823925-19560-4-git-send-email-aleksey.makarov@linaro.org>
+Received: from mail-lf0-f45.google.com ([209.85.215.45]:32787 "EHLO
+	mail-lf0-f45.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752696AbcCZAJx (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 25 Mar 2016 20:09:53 -0400
+In-Reply-To: <CA+55aFxG4efV1U69zHt9SOUJnWmhWPSzv14hPxGBZ_b-tD6Bhg@mail.gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Aleksey Makarov <aleksey.makarov@linaro.org>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Len Brown <lenb@kernel.org>, linux-serial@vger.kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Russell King <linux@arm.linux.org.uk>, Leif Lindholm <leif.lindholm@linaro.org>, Graeme Gregory <graeme.gregory@linaro.org>, Al Stone <ahs3@redhat.com>, Christopher Covington <cov@codeaurora.org>, Yury Norov <ynorov@caviumnetworks.com>, Peter Hurley <peter@hurleysoftware.com>, "Zheng, Lv" <lv.zheng@intel.com>, Jiri Slaby <jslaby@suse.com>
+To: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: "Rafael J. Wysocki" <rafael@kernel.org>, "linux-pm@vger.kernel.org" <linux-pm@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>
 
-On Thursday, March 24, 2016 03:52:01 PM Aleksey Makarov wrote:
-> 'ARM Server Base Boot Requiremets' [1] mentions SPCR (Serial Port
-> Console Redirection Table) [2] as a mandatory ACPI table that
-> specifies the configuration of serial console.
-> 
-> Defer initialization of DT earlycon until ACPI/DT decision is made.
-> 
-> If ACPI is enabled, parse the table, setup earlycon
-> and enable the specified console.
-> 
-> If it is disabled, try to set up earlycon from DT.
-> 
-> Thanks to Peter Hurley for explaining how this should work.
-> 
-> [1] http://infocenter.arm.com/help/index.jsp?topic=/com.arm.doc.den0044a/index.html
-> [2] https://msdn.microsoft.com/en-us/library/windows/hardware/dn639132(v=vs.85).aspx
-> 
-> Signed-off-by: Aleksey Makarov <aleksey.makarov@linaro.org>
-> ---
->  drivers/acpi/Kconfig          |   3 +
->  drivers/acpi/Makefile         |   1 +
->  drivers/acpi/spcr.c           | 125 ++++++++++++++++++++++++++++++++++++++++++
->  drivers/tty/serial/earlycon.c |  11 +++-
->  include/linux/acpi.h          |   8 +++
->  5 files changed, 146 insertions(+), 2 deletions(-)
->  create mode 100644 drivers/acpi/spcr.c
-> 
-> diff --git a/drivers/acpi/Kconfig b/drivers/acpi/Kconfig
-> index 65fb483..5611eb6 100644
-> --- a/drivers/acpi/Kconfig
-> +++ b/drivers/acpi/Kconfig
-> @@ -77,6 +77,9 @@ config ACPI_DEBUGGER_USER
->  
->  endif
->  
-> +config ACPI_SPCR_TABLE
-> +	bool
-> +
->  config ACPI_SLEEP
->  	bool
->  	depends on SUSPEND || HIBERNATION
-> diff --git a/drivers/acpi/Makefile b/drivers/acpi/Makefile
-> index 7395928..f70ae14 100644
-> --- a/drivers/acpi/Makefile
-> +++ b/drivers/acpi/Makefile
-> @@ -82,6 +82,7 @@ obj-$(CONFIG_ACPI_EC_DEBUGFS)	+= ec_sys.o
->  obj-$(CONFIG_ACPI_CUSTOM_METHOD)+= custom_method.o
->  obj-$(CONFIG_ACPI_BGRT)		+= bgrt.o
->  obj-$(CONFIG_ACPI_CPPC_LIB)	+= cppc_acpi.o
-> +obj-$(CONFIG_ACPI_SPCR_TABLE)	+= spcr.o
->  obj-$(CONFIG_ACPI_DEBUGGER_USER) += acpi_dbg.o
->  
->  # processor has its own "processor." module_param namespace
-> diff --git a/drivers/acpi/spcr.c b/drivers/acpi/spcr.c
-> new file mode 100644
-> index 0000000..31e667e
-> --- /dev/null
-> +++ b/drivers/acpi/spcr.c
-> @@ -0,0 +1,125 @@
-> +/*
-> + * Copyright (c) 2012, Intel Corporation
-> + * Copyright (c) 2015, Red Hat, Inc.
-> + * Copyright (c) 2015, 2016 Linaro Ltd.
-> + *
-> + * This program is free software; you can redistribute it and/or modify
-> + * it under the terms of the GNU General Public License version 2 as
-> + * published by the Free Software Foundation.
-> + *
-> + */
-> +
-> +#define pr_fmt(fmt) "ACPI: SPCR: " fmt
-> +
-> +#include <linux/acpi.h>
-> +#include <linux/console.h>
-> +#include <linux/kernel.h>
-> +#include <linux/serial_core.h>
-> +#include <linux/of_fdt.h>
-> +
-> +static bool earlycon_init_is_deferred __initdata;
-> +
-> +void __init defer_earlycon_init(void)
-> +{
-> +	earlycon_init_is_deferred = true;
-> +}
-> +
-> +/**
-> + * parse_spcr() - parse ACPI SPCR table and add preferred console
-> + *
-> + * For the architectures with support for ACPI, CONFIG_ACPI_SPCR_TABLE may be
-> + * defined to parse ACPI SPCR table.  As a result of the parsing preferred
-> + * console is registered.
-> + *
-> + * When CONFIG_ACPI_SPCR_TABLE is defined, this function should should be called
-> + * from arch inintialization code as soon as the DT/ACPI decision is made.
-> + *
-> + * When CONFIG_ACPI_SPCR_TABLE is defined, "earlycon" without parameters in
-> + * command line does not start DT earlycon immediately, instead it defers
-> + * starting it until DT/ACPI decision is made.  If ACPI is enabled at that time,
-> + * parse_spcr() parses the table, adds preferred console and sets up it as an
-> + * earlycon.  If ACPI is disabled at that time, it tries to set up earlycon
-> + * from DT.
-> + */
-> +int __init parse_spcr(void)
-> +{
-> +#define OPTS_LEN 64
+On Sat, Mar 26, 2016 at 12:55 AM, Linus Torvalds
+<torvalds@linux-foundation.org> wrote:
+> On Fri, Mar 25, 2016 at 3:08 PM, Rafael J. Wysocki <rafael@kernel.org> wrote:
+>>
+>> One of commits in my previous pull request changed the permissions
+>> of drivers/power/avs/rockchip-io-domain.c to executable by mistake.
+>
+> Hmm. The signed tag contents was garbage - it was your previous
+> message. The commit it pointed to was fine.
 
-I'm not sure if you need that symbol.
+Yes, sorry about the broken tag.
 
-ISTR that sizeof(opts) will give you the size of the array (but maybe I'm
-confusing this with something else).
+> Was it intentional?
 
-> +	static char opts[OPTS_LEN];
-> +	struct acpi_table_spcr *table;
-> +	acpi_size table_size;
-> +	acpi_status status;
-> +	char *uart;
-> +	char *iotype;
-> +	int baud_rate;
-> +	int err;
-> +
-> +	if (acpi_disabled)
-> +		return earlycon_init_is_deferred ?
-> +			early_init_dt_scan_chosen_stdout() : 0;
+No, it wasn't.  I forgot to update the message file when creating the tag.
 
-I would prefer this to be arranged differently, so a specific error value is
-returned when ACPI is disabled and the the fallback to DT happens in the
-caller (if it cares about DT, that is).
+> I had already pulled your previous tag, so it made
+> very little sense from my viewpoint..
+>
+> I ended up just ignoring the signed tag part.
 
-> +
-> +	status = acpi_get_table_with_size(ACPI_SIG_SPCR, 0,
-> +					  (struct acpi_table_header **)&table,
-> +					  &table_size);
-> +
-> +	if (ACPI_FAILURE(status))
-> +		return -ENOENT;
-> +
-> +	if (table->header.revision < 2) {
-> +		err = -EINVAL;
+Thanks a lot for pulling and sorry for the breakage.
 
-Why -EINVAL?
-
-> +		pr_err("wrong table version\n");
-> +		goto done;
-> +	}
-> +
-> +	iotype = (table->serial_port.space_id == ACPI_ADR_SPACE_SYSTEM_MEMORY) ?
-
-The parens are not necessary.
-
-Thanks,
 Rafael
-
