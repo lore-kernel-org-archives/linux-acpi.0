@@ -1,25 +1,91 @@
-From: info@loan.com
-Subject: Darlehen Angebot
-Date: Sun, 27 Mar 2016 18:12:51 +0530
-Message-ID: <201603271243.u2RCFKDm011515__43445.2054593295$1459089399$gmane$org@lifc-proxy.univ-fcomte.fr>
-Reply-To: legacyassetgrougp@hotmail.com
+From: "Zheng, Lv" <lv.zheng@intel.com>
+Subject: RE: [PATCH 01/30] ACPICA: Linuxize: reduce divergences for 20160212
+ release
+Date: Mon, 28 Mar 2016 03:02:30 +0000
+Message-ID: <1AE640813FDE7649BE1B193DEA596E883BB655F7@SHSMSX101.ccr.corp.intel.com>
+References: <cover.1458714002.git.lv.zheng@intel.com>
+	 <cc3b66b74c73a66f82cb715092b6f35105a0cbf8.1458714003.git.lv.zheng@intel.com>
+	 <1458783966.1762.6.camel@perches.com>
+	 <1AE640813FDE7649BE1B193DEA596E883BB63FB7@SHSMSX101.ccr.corp.intel.com>
+ <1458817225.1762.13.camel@perches.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from lifc.univ-fcomte.fr ([194.57.88.66]:34027 "EHLO
-	lifc-proxy.univ-fcomte.fr" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751804AbcC0Og1 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sun, 27 Mar 2016 10:36:27 -0400
-Content-Description: Mail message body
+Received: from mga03.intel.com ([134.134.136.65]:25405 "EHLO mga03.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753388AbcC1DDP (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sun, 27 Mar 2016 23:03:15 -0400
+In-Reply-To: <1458817225.1762.13.camel@perches.com>
+Content-Language: en-US
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Recipients <info@loan.com>
+To: Joe Perches <joe@perches.com>, "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, "Brown, Len" <len.brown@intel.com>
+Cc: Lv Zheng <zetalog@gmail.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
 
-Sie ben=F6tigen ein Darlehen niedrige Rate? Altanlage gibt aus Darlehen=
- in g=FCnstigen Preis gilt jetzt: legacyassetgrougp@hotmail.com
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+SGksDQoNCj4gRnJvbTogbGludXgtYWNwaS1vd25lckB2Z2VyLmtlcm5lbC5vcmcgW21haWx0bzps
+aW51eC1hY3BpLQ0KPiBTdWJqZWN0OiBSZTogW1BBVENIIDAxLzMwXSBBQ1BJQ0E6IExpbnV4aXpl
+OiByZWR1Y2UgZGl2ZXJnZW5jZXMgZm9yIDIwMTYwMjEyDQo+IHJlbGVhc2UNCj4gDQo+IE9uIFRo
+dSwgMjAxNi0wMy0yNCBhdCAwNjoxOSArMDAwMCwgWmhlbmcsIEx2IHdyb3RlOg0KPiA+IEZyb206
+IEpvZSBQZXJjaGVzIFttYWlsdG86am9lQHBlcmNoZXMuY29tXQ0KPiA+ID4gU3ViamVjdDogUmU6
+IFtQQVRDSCAwMS8zMF0gQUNQSUNBOiBMaW51eGl6ZTogcmVkdWNlIGRpdmVyZ2VuY2VzIGZvcg0K
+PiAyMDE2MDIxMg0KPiA+ID4gcmVsZWFzZQ0KPiA+ID4NCj4gPiA+IE9uIFRodSwgMjAxNi0wMy0y
+NCBhdCAwOTozOCArMDgwMCwgTHYgWmhlbmcgd3JvdGU6DQo+ID4gPiA+DQo+ID4gPiA+IFRoZSBw
+YXRjaCByZWR1Y2VzIHNvdXJjZSBjb2RlIGRpZmZlcmVuY2VzIGJldHdlZW4gdGhlIExpbnV4IGtl
+cm5lbCBhbmQNCj4gdGhlDQo+ID4gPiA+IEFDUElDQSB1cHN0cmVhbSBzbyB0aGF0IHRoZSBsaW51
+eGl6ZWQgQUNQSUNBIDIwMTYwMjEyIHJlbGVhc2UgY2FuIGJlDQo+ID4gPiA+IGFwcGxpZWQgd2l0
+aCByZWR1Y2VkIGh1bWFuIGludGVydmVudGlvbi4NCj4gPiA+IEluIHRoZSB2ZXJ5IGZpcnN0IHBh
+dGNoIGZyYWdtZW50Og0KPiA+ID4gPiBkaWZmIC0tZ2l0IGEvZHJpdmVycy9hY3BpL2FjcGljYS9o
+d3JlZ3MuYyBiL2RyaXZlcnMvYWNwaS9hY3BpY2EvaHdyZWdzLmMNCj4gPiA+IFtdDQo+ID4gPiA+
+IEBAIC0xNTIsNyArMTUyLDcgQEAgYWNwaV9od192YWxpZGF0ZV9yZWdpc3RlcihzdHJ1Y3QNCj4g
+PiA+IGFjcGlfZ2VuZXJpY19hZGRyZXNzICpyZWcsDQo+IFtdDQo+ID4gPiA+IC1hY3BpX3N0YXR1
+cyBhY3BpX2h3X3JlYWQodTMyICp2YWx1ZSwgc3RydWN0IGFjcGlfZ2VuZXJpY19hZGRyZXNzICpy
+ZWcpDQo+ID4gPiA+ICthY3BpX3N0YXR1cyBhY3BpX2h3X3JlYWQodTMyICp2YWx1ZSwgc3RydWN0
+IGFjcGlfZ2VuZXJpY19hZGRyZXNzICogcmVnKQ0KPiA+ID4gVGhlIHNlY29uZCBhcmd1bWVudCAq
+IHN0eWxlIGFwcGVhcnMgdGhlIG9wcG9zaXRlIG9mIG5vcm1hbCBzdHlsZQ0KPiA+ID4gYW5kIGEg
+ZGlmZmVyZW50IHN0eWxlIHRoYW4gdGhlIGZpcnN0IGFyZ3VtZW50ICogc3R5bGUuDQo+ID4gW0x2
+IFpoZW5nXQ0KPiA+IFRoZSBmaWxlIGlzIGRyaXZlcnMvYWNwaS9hY3BpY2EvaHdyZWdzLmMsIHdo
+aWNoIGlzIGNvbWluZyBmcm9tIEFDUElDQQ0KPiB1cHN0cmVhbS4NCj4gPiBTbyB0aGlzIGlzIGEg
+cmVzdWx0IG9mICJBQ1BJQ0EgcmVsZWFzZSIuDQo+ID4gSW4gb3RoZXIgd29yZHMsIHRoaXMgaXMg
+YSByZXN1bHQgb2YgYSAicHJvY2VzcyIuDQo+ID4gSW4gb3JkZXIgdG8gZml4IHRoaXMsIHRoaW5n
+cyBuZWVkIHRvIGJlIGRvbmUgaW4gIkFDUElDQSByZWxlYXNlIHNjcmlwdHMiLg0KPiA+IFdoaWNo
+IHNob3VsZCBiZSBkb25lIGluDQo+IGh0dHBzOi8vZ2l0aHViLmNvbS9hY3BpY2EvYWNwaWNhL2Js
+b2IvbWFzdGVyL2dlbmVyYXRlL2xpbnV4L2xpYmFjcGljYS5zaC4NCj4gPiBPdGhlcndpc2UsICJB
+Q1BJQ0EgcmVsZWFzZSIgcHJvY2VzcyB3aWxsIHJlcXVpcmUgaHVtYW4gaW50ZXJ2ZW50aW9uLg0K
+PiA+DQo+ID4gU28gcGxlYXNlIGxlYXZlIHRoaXMgcGF0Y2ggZnJhZ21lbnQgYXMgaXMuDQo+ID4g
+SXQgd2lsbCBiZSBhdXRvbWF0aWNhbGx5IGZpeGVkIGlmIHRoZSAiQUNQSUNBIHJlbGVhc2UiIHBy
+b2Nlc3MgaXMgZml4ZWQuDQo+ID4gQW5kIGlmIHlvdSBkb24ndCBsZWF2ZSB0aGlzIGZyYWdtZW50
+IGFzIGlzLCB0aGUgIkFDUElDQSByZWxlYXNlIiBwcm9jZXNzIHdpbGwNCj4gZ2V0IGh1cnQuDQo+
+IFtdDQo+ID4gcGxlYXNlIGlnbm9yZSAicHJvY2VzcyIgaXNzdWVzLg0KPiA+IEkgbmVlZCB0aGVt
+IHRvIGJlIHdyb25nIGluIG9yZGVyIG5vdCB0byBtb2RpZnkgZXZlcnkgInByb2Nlc3MiIGdlbmVy
+YXRlZA0KPiBwYXRjaGVzIG1hbnVhbGx5Lg0KPiANCj4gU28gd2h5IG5vdCBmaXggdGhlIHByb2Nl
+c3Mgc2NyaXB0IGZpcnN0Pw0KPiANCj4gTWF5YmUgYWRkIHNvbWV0aGluZyBsaWtlOg0KPiANCj4g
+JCBncmVwIC1FICJedHlwZWRlZlxzK1x3K1xzKlwqP1xzKmFjcGlfXHcrIiBpbmNsdWRlL2FjcGkv
+YWN0eXBlcy5oIHwgXA0KPiAgIGdyZXAgLUVvaCAiXGJhY3BpX1x3KyINCj4gDQo+IHRvIHRoZSBh
+Y3BpX3R5cGVzIHZhcmlhYmxlIGluIHRoZSBsaW5kZW50X3NpbmdsZSBmdW5jdGlvbg0KW0x2IFpo
+ZW5nXSANCkkgZG9uJ3QgdGhpbmsgdGhpcyBjYW4gd29yayBnaXZlbjoNCjEuIHdlIGFyZSBub3Qg
+b25seSBkZWFsaW5nIHdpdGggdHlwZWRlZnMsIGJ1dCBzdHJ1Y3RzLCBzdHJ1Y3QgeHh4IHdpbGwg
+YmUgY29udmVydGVkIGludG8gdHlwZXMgZHVyaW5nIHRoZSByZWxlYXNlIHByb2Nlc3MuDQoyLiB3
+ZSBoYXZlIG9ubHkgdXBwZXIgY2FzZWQgdHlwZSBuYW1lcyBpbiBBQ1BJQ0EgdXBzdHJlYW0sIGJ1
+dCBoYXZlIHRoZSBsb3dlciBjYXNlZCB0eXBlIG5hbWVzIGluIExpbnV4LCBhbmQgdGhpcyBkb2Vz
+bid0IHNvbHZlIHRoYXQuDQpTbyBJIGd1ZXNzIHlvdSBkaWRuJ3QgdGVzdCB5b3VyIGlkZWEuDQoN
+CllvdSBuZWVkIHRvIHB1bGwgQUNQSUNBIHJlcG8gYW5kIGRvIHRoZSBmb2xsb3dpbmdzIHRvIGNv
+bmZpcm0gaWYgdGhpcyBpcyB3b3JraW5nOg0KQS4gZ2VuZXJhdGUgdGhlIGRpZmYNCiMgZ2l0IGNs
+b25lIDxhY3BpY2EgcmVwbz4NCiMgZ2l0IGNvbW1pdCB5b3VyIGNoYW5nZQ0KIyAuL2dlbmVyYXRl
+L2xpbnV4L2dlbi1wYXRjaC5wbCBIRUFEDQpZb3UgY2FuIGNvbmZpcm0gaG93IGJpZyBhIGNoYW5n
+ZSB3aWxsIGJlIHJlc3VsdGVkIGJ5IHlvdXIgaWRlYS4NCkFuZCB5b3UgY2FuIGNvbmZpcm0gaWYg
+dGhlIGNoYW5nZSBjYW4gcmVhbGx5IHNvbHZlIHRoaXMgaXNzdWUuDQoNCkIuIGFwcGx5IHRoZSBk
+aWZmDQpUaGVuIHlvdSBjYW4gdHJ5IHRvIGFwcGx5IHRoZSBsaW51eGl6ZWQgcGF0Y2ggdG8gdGhl
+IGxpbnV4IHJlcG8gdG8gc2VlIGhvdyBtYW55IGpvYnMgYXJlIHN0aWxsIG5lZWRlZC4NClRoZW4g
+eW91IHNob3VsZCBiZSBhYmxlIHRvIGRldGVybWluZSBpZiB0aGlzIGlzIHdvcnRoeSB0byBoYXBw
+ZW4gZHVyaW5nIGEgcmVsZWFzZSBjeWNsZS4uLg0KDQpUaGF0J3Mgd2h5IEkgYWdyZWUgd2UgbmVl
+ZCB0byBzb2x2ZSB0aGlzLCBidXQgZG9uJ3QgYWdyZWUgdG8gc29sdmUgdGhpcyBkdXJpbmcgYSBy
+ZWxlYXNlIGN5Y2xlLg0KDQpUaGFua3MNCi1Mdg0KDQo+IA0KPiA+IFlvdSBjYW4gZmluZCBtYW55
+IHN1Y2gga2luZCBvZiBpbmRlbnQgaXNzdWVzIGluIGRyaXZlcnMvYWNwaS9hY3BpY2EsDQo+IGlu
+Y2x1ZGUvYWNwaSwgdG9vbHMvcG93ZXIvYWNwaS4NCj4gPiBUaGV5IGFyZSB0aGVyZSBmb3IgZ29v
+ZCByZWFzb25zLg0KPiA+IEknbGwgY2xlYW51cCBzdWNoIGlzc3VlcyBmcm9tICJBQ1BJQ0EgcmVs
+ZWFzZSIgcHJvY2Vzcy4NCj4gDQo+IEFueSBpZGVhIHdoZW4/DQo+IA0KPiAtLQ0KPiBUbyB1bnN1
+YnNjcmliZSBmcm9tIHRoaXMgbGlzdDogc2VuZCB0aGUgbGluZSAidW5zdWJzY3JpYmUgbGludXgt
+YWNwaSIgaW4NCj4gdGhlIGJvZHkgb2YgYSBtZXNzYWdlIHRvIG1ham9yZG9tb0B2Z2VyLmtlcm5l
+bC5vcmcNCj4gTW9yZSBtYWpvcmRvbW8gaW5mbyBhdCAgaHR0cDovL3ZnZXIua2VybmVsLm9yZy9t
+YWpvcmRvbW8taW5mby5odG1sDQo=
