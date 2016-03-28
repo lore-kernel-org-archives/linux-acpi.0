@@ -1,94 +1,64 @@
-From: "Zheng, Lv" <lv.zheng@intel.com>
-Subject: RE: [PATCH 00/30] ACPICA: 20160318 Release
-Date: Mon, 28 Mar 2016 03:03:26 +0000
-Message-ID: <1AE640813FDE7649BE1B193DEA596E883BB65606@SHSMSX101.ccr.corp.intel.com>
+From: Joe Perches <joe@perches.com>
+Subject: Re: [PATCH 01/30] ACPICA: Linuxize: reduce divergences for 20160212
+ release
+Date: Sun, 27 Mar 2016 20:15:54 -0700
+Message-ID: <1459134954.25110.26.camel@perches.com>
 References: <cover.1458714002.git.lv.zheng@intel.com>
- <CAJZ5v0gVLVCv-QCuvbUW1zWhrQ5sodHVoS8gSrv9h7uJCp=G1w@mail.gmail.com>
+	 <cc3b66b74c73a66f82cb715092b6f35105a0cbf8.1458714003.git.lv.zheng@intel.com>
+	 <1458783966.1762.6.camel@perches.com>
+	 <1AE640813FDE7649BE1B193DEA596E883BB63FB7@SHSMSX101.ccr.corp.intel.com>
+	 <1458817225.1762.13.camel@perches.com>
+	 <1AE640813FDE7649BE1B193DEA596E883BB655F7@SHSMSX101.ccr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <CAJZ5v0gVLVCv-QCuvbUW1zWhrQ5sodHVoS8gSrv9h7uJCp=G1w@mail.gmail.com>
-Content-Language: en-US
-Sender: linux-kernel-owner@vger.kernel.org
-To: "Rafael J. Wysocki" <rafael@kernel.org>
-Cc: "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, "Brown, Len" <len.brown@intel.com>, Lv Zheng <zetalog@gmail.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from smtprelay0126.hostedemail.com ([216.40.44.126]:37611 "EHLO
+	smtprelay.hostedemail.com" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1753511AbcC1DP6 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>);
+	Sun, 27 Mar 2016 23:15:58 -0400
+In-Reply-To: <1AE640813FDE7649BE1B193DEA596E883BB655F7@SHSMSX101.ccr.corp.intel.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: "Zheng, Lv" <lv.zheng@intel.com>, "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, "Brown, Len" <len.brown@intel.com>
+Cc: Lv Zheng <zetalog@gmail.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
 
-SGksDQoNCj4gRnJvbTogcmp3eXNvY2tpQGdtYWlsLmNvbSBbbWFpbHRvOnJqd3lzb2NraUBnbWFp
-bC5jb21dIE9uIEJlaGFsZiBPZg0KPiBSYWZhZWwgSi4gV3lzb2NraQ0KPiBTdWJqZWN0OiBSZTog
-W1BBVENIIDAwLzMwXSBBQ1BJQ0E6IDIwMTYwMzE4IFJlbGVhc2UNCj4gDQo+IE9uIFRodSwgTWFy
-IDI0LCAyMDE2IGF0IDI6MzggQU0sIEx2IFpoZW5nIDxsdi56aGVuZ0BpbnRlbC5jb20+IHdyb3Rl
-Og0KPiA+IFRoZSAyMDE2MDMxOCBBQ1BJQ0Ega2VybmVsLXJlc2lkZW50IHN1YnN5c3RlbSB1cGRh
-dGVzIGFyZSBsaW51eGl6ZWQgYmFzZWQNCj4gPiBvbiB0aGUgbGludXgtcG0vbGludXgtbmV4dCBi
-cmFuY2guDQo+ID4NCj4gPiBUaGUgcGF0Y2hzZXQgaGFzIHBhc3NlZCB0aGUgZm9sbG93aW5nIGJ1
-aWxkL2Jvb3QgdGVzdHMuDQo+ID4gQnVpbGQgdGVzdHMgYXJlIHBlcmZvcm1lZCBhcyBmb2xsb3dz
-Og0KPiA+IDEuIGkzODYgKyBhbGx5ZXMNCj4gPiAyLiBpMzg2ICsgYWxsbm8NCj4gPiAzLiBpMzg2
-ICsgZGVmYXVsdCArIEFDUElfREVCVUdHRVI9eQ0KPiA+IDQuIGkzODYgKyBkZWZhdWx0ICsgQUNQ
-SV9ERUJVR0dFUj1uICsgQUNQSV9ERUJVRz15DQo+ID4gNS4gaTM4NiArIGRlZmF1bHQgKyBBQ1BJ
-X0RFQlVHPW4gKyBBQ1BJPXkNCj4gPiA2LiBpMzg2ICsgZGVmYXVsdCArIEFDUEk9bg0KPiA+IDcu
-IHg4Nl82NCArIGFsbHllcw0KPiA+IDguIHg4Nl82NCArIGFsbG5vDQo+ID4gOS4geDg2XzY0ICsg
-ZGVmYXVsdCArIEFDUElfREVCVUdHRVI9eQ0KPiA+IDEwLng4Nl82NCArIGRlZmF1bHQgKyBBQ1BJ
-X0RFQlVHR0VSPW4gKyBBQ1BJX0RFQlVHPXkNCj4gPiAxMS54ODZfNjQgKyBkZWZhdWx0ICsgQUNQ
-SV9ERUJVRz1uICsgQUNQST15DQo+ID4gMTIueDg2XzY0ICsgZGVmYXVsdCArIEFDUEk9bg0KPiA+
-IEJvb3QgdGVzdHMgYXJlIHBlcmZvcm1lZCBhcyBmb2xsb3dzOg0KPiA+IDEuIGkzODYgKyBkZWZh
-dWx0ICsgQUNQSV9ERUJVR0dFUj15DQo+ID4gMi4geDg2XzY0ICsgZGVmYXVsdCArIEFDUElfREVC
-VUdHRVI9eQ0KPiA+IFdoZXJlOg0KPiA+IDEuIGkzODY6IG1hY2hpbmUgbmFtZWQgYXMgIkRlbGwg
-SW5zcGlyb24gTWluaSAxMDEwIg0KPiA+IDIuIHg4Nl82NDogbWFjaGluZSBuYW1lZCBhcyAiSFAg
-Q29tcGFxIDgyMDAgRWxpdGUgU0ZGIFBDIg0KPiA+IDMuIGRlZmF1bHQ6IGtlcm5lbCBjb25maWd1
-cmF0aW9uIHdpdGggZm9sbG93aW5nIGl0ZW1zIGVuYWJsZWQ6DQo+ID4gICAgQWxsIGhhcmR3YXJl
-IGRyaXZlcnMgcmVsYXRlZCB0byB0aGUgbWFjaGluZXMgb2YgaTM4Ni94ODZfNjQNCj4gPiAgICBB
-bGwgImRyaXZlcnMvYWNwaSIgY29uZmlndXJhdGlvbnMNCj4gPiAgICBBbGwgImRyaXZlcnMvcGxh
-dGZvcm0iIGRyaXZlcnMNCj4gPiAgICBBbGwgb3RoZXIgZHJpdmVycyB0aGF0IGxpbmsgdGhlIEFQ
-SXMgcHJvdmlkZWQgYnkgQUNQSUNBIHN1YnN5c3RlbQ0KPiA+DQo+ID4gVGhlIGRpdmVyZ2VuY2Vz
-IGNoZWNraW5nIHJlc3VsdDoNCj4gPiBCZWZvcmUgYXBwbHlpbmcgKDIwMTYwMjEyIFJlbGVhc2Up
-Og0KPiA+ICAgNTA2IGxpbmVzDQo+ID4gQWZ0ZXIgYXBwbHlpbmcgKDIwMTYwMzE4IFJlbGVhc2Up
-Og0KPiA+ICAgNDk0IGxpbmVzDQo+ID4NCj4gPiBBbCBTdG9uZSAoMSk6DQo+ID4gICBBQ1BJQ0E6
-IElPUlQ6IEFkZCBpbiBzdXBwb3J0IGZvciB0aGUgU01NVXYzIHN1YnRhYmxlDQo+ID4NCj4gPiBB
-bGVrc2V5IE1ha2Fyb3YgKDEpOg0KPiA+ICAgQUNQSUNBOiBIZWFkZXJzOiBBZGQgbmV3IGNvbnN0
-YW50cyBmb3IgdGhlIERCRzIgQUNQSSB0YWJsZQ0KPiA+DQo+ID4gQm9iIE1vb3JlICgxNik6DQo+
-ID4gICBBQ1BJQ0E6IEhlYWRlcnM6IE1pbm9yIHVwZGF0ZSBmb3IgU1BDUiBBQ1BJIHRhYmxlDQo+
-ID4gICBBQ1BJQ0E6IEFDUEkgNi4xOiBVcGRhdGVzIGZvciB0aGUgSEVTVCBBQ1BJIHRhYmxlDQo+
-ID4gICBBQ1BJQ0E6IEFDUEkgNi4xOiBVcGRhdGUgTkZJVCB0YWJsZSBmb3IgYWRkaXRpb25hbCBu
-ZXcgZmllbGRzDQo+ID4gICBBQ1BJQ0E6IEhlYWRlcnM6IFVwZGF0ZSBETUFSIHRhYmxlIGZvciBP
-Y3RvYmVyIDIwMTQgSS9PIHNwZWMNCj4gPiAgIEFDUElDQTogVGFibGVzOiBVcGRhdGUgRkFEVCBo
-YW5kbGluZw0KPiA+ICAgQUNQSUNBOiBBQ1BJIDYuMTogQWRkIGZ1bGwgc3VwcG9ydCBmb3IgdGhp
-cyB2ZXJzaW9uIG9mIEFDUEkgc3BlYw0KPiA+ICAgQUNQSUNBOiBpQVNML0hlYWRlcnM6IEZpeCBp
-bmNvcnJlY3QgZGVmaW5pdGlvbiBvZiBGUERUIHRhYmxlDQo+ID4gICBBQ1BJQ0E6IEludGVwcmV0
-ZXI6IEFkZCBvYmplY3QgZXh0ZW5zaW9ucyB0byBDb25jYXRlbmF0ZSBvcGVyYW5kDQo+ID4gICBB
-Q1BJQ0E6IEludGVycHJldGVyOiBVcGRhdGUgc29tZSBmdW5jdGlvbiBoZWFkZXJzLCBubyBmdW5j
-dGlvbmFsDQo+ID4gICAgIGNoYW5nZQ0KPiA+ICAgQUNQSUNBOiBpQVNMOiBDbGVhbnVwL29wdGlt
-aXphdGlvbiBmb3IgVG9QTEQgbWFjcm8gc3VwcG9ydA0KPiA+ICAgQUNQSUNBOiBDbGVhbnVwIHNv
-bWUgaW52b2NhdGlvbiBpbmRlbnRhdGlvbnMsIG5vIGZ1bmN0aW9uYWwgY2hhbmdlDQo+ID4gICBB
-Q1BJQ0E6IEhlYWRlcnM6IFVwZGF0ZSBnZW5lcmF0aW9uIG9mIHRoZSBBQ1BJQ0EgbGlicmFyeQ0K
-PiA+ICAgQUNQSUNBOiBVdGlsaXRpZXM6IFVwZGF0ZSBmb3Igc3RydG91bDY0IG1lcmdlcg0KPiA+
-ICAgQUNQSUNBOiBBbGw6IGNvbnN0IGtleXdvcmQgY2hhbmdlcyBhY3Jvc3MgdGhlIEFDUElDQSBz
-b3VyY2UNCj4gPiAgIEFDUElDQTogaUFTTC9EaXNhc3NlbWJsZXI6IEltcHJvdmUgaGFuZGxpbmcg
-b2YgdW5yZXNvbHZlZCBtZXRob2RzDQo+ID4gICBBQ1BJQ0E6IFVwZGF0ZSB2ZXJzaW9uIHRvIDIw
-MTYwMzE4DQo+ID4NCj4gPiBMdiBaaGVuZyAoMTEpOg0KPiA+ICAgQUNQSUNBOiBMaW51eGl6ZTog
-cmVkdWNlIGRpdmVyZ2VuY2VzIGZvciAyMDE2MDIxMiByZWxlYXNlDQo+ID4gICBBQ1BJQ0E6IExp
-bnV4aXplOiBSZW1vdmUgdXNlbGVzcyBwbGF0Zm9ybSBoZWFkZXJzDQo+ID4gICBBQ1BJQ0E6IFV0
-aWxpdGllczogQWRkIEFDUElfSVNfUE9XRVJfT0ZfVFdPKCkNCj4gPiAgIFV0aWxpdGllczogRml4
-IG1pc3NpbmcgcGFyZW50aGVzZXMgaW4gQUNQSV9HRVRfQklUUygpL0FDUElfU0VUX0JJVFMoKQ0K
-PiA+ICAgQUNQSUNBOiBIYXJkd2FyZTogRW5oYW5jZSBhY3BpX2h3X3ZhbGlkYXRlX3JlZ2lzdGVy
-KCkgd2l0aA0KPiA+ICAgICBhY2Nlc3Nfd2lkdGgvYml0X29mZnNldCBhd2FyZW5lc3MNCj4gPiAg
-IEFDUElDQTogSGFyZHdhcmU6IEFkZCBhY2Nlc3Nfd2lkdGgvYml0X29mZnNldCBzdXBwb3J0IGlu
-DQo+ID4gICAgIGFjcGlfaHdfcmVhZCgpDQo+ID4gICBBQ1BJQ0E6IEhhcmR3YXJlOiBBZGQgYWNj
-ZXNzX3dpZHRoL2JpdF9vZmZzZXQgc3VwcG9ydCBmb3INCj4gPiAgICAgYWNwaV9od193cml0ZSgp
-DQo+ID4gICBBQ1BJQ0E6IEludGVycHJldGVyOiBGaXggd3JvbmcgY29uZGl0aW9ucyBmb3INCj4g
-PiAgICAgYWNwaV9ldl9pbnN0YWxsX3JlZ2lvbl9oYW5kbGVycygpIGludm9jYXRpb24NCj4gPiAg
-IEFDUElDQTogVGFibGVzOiBGaXggd3JvbmcgTUxDIGNvbmRpdGlvbiBmb3IgZHluYW1pYyB0YWJs
-ZSBsb2FkaW5nDQo+ID4gICBBQ1BJQ0E6IEV2ZW50czogRml4IGFuIGlzc3VlIHRoYXQgX1JFRyBh
-c3NvY2lhdGlvbiBjYW4gaGFwcGVuIGJlZm9yZQ0KPiA+ICAgICBuYW1lc3BhY2UgaXMgaW5pdGlh
-bGl6ZWQNCj4gPiAgIEFDUElDQTogTmFtZXNwYWNlOiBSZW9yZGVyIFxfU0IuX0lOSSB0byBtYWtl
-IHN1cmUgaXQgaXMgZXZhbHVhdGVkDQo+ID4gICAgIGJlZm9yZSBfUkVHIGV2YWx1YXRpb25zDQo+
-ID4NCj4gPiBXaWxsIE1pbGVzICgxKToNCj4gPiAgIEFDUElDQTogQWRkIHN1cHBvcnQgZm9yIFFO
-WCA2LjYgcGxhdGZvcm0NCj4gDQo+IFRoaXMgaXMgdG9vIGxhdGUgdG8gZ28gaW4gZHVyaW5nIHRo
-ZSBjdXJyZW50IG1lcmdlIHdpbmRvdywgYnV0IEknbGwNCj4gcXVldWUgaXQgdXAgYW5kIHNlbmQg
-YSBzZXBhcmF0ZSBwdWxsIHJlcXVlc3QgZm9yIDQuNiB3aXRoIGl0IG5leHQNCj4gd2Vlay4NCj4g
-DQo+IEknbGwgZml4IHVwIHRoZSB3aGl0ZXNwYWNlIGJyZWFrYWdlIGluIHRoZSBmaXJzdCBwYXRj
-aCAoaXQgaXMgZWFzeQ0KPiBlbm91Z2ggdG8gZml4IHVwIG1hbnVhbGx5KSwgYnV0IGFzIExlbiBz
-YWlkLCBwbGVhc2UgZml4IHRoZSBwcm9jZXNzIHRvDQo+IGF2b2lkIHN1Y2ggdGhpbmdzIGluIHRo
-ZSBmdXR1cmUuDQpbTHYgWmhlbmddIA0KT0ssIEknbGwgdHJ5IHRvIHNvbHZlIHRoaXMgYXMgZWFy
-bHkgYXMgcG9zc2libGUgZnJvbSBBQ1BJQ0EgdXBzdHJlYW0uDQoNClRoYW5rcyBhbmQgYmVzdCBy
-ZWdhcmRzDQotTHYNCg==
+On Mon, 2016-03-28 at 03:02 +0000, Zheng, Lv wrote:
+> Hi,
+
+Hello.
+
+> > So why not fix the process script first?
+> > Maybe add something like:
+> > $ grep -E "^typedef\s+\w+\s*\*?\s*acpi_\w+" include/acpi/actypes.h =
+| \
+> > =A0 grep -Eoh "\bacpi_\w+"
+> >=20
+> > to the acpi_types variable in the lindent_single function
+> [Lv Zheng]=A0
+> I don't think this can work given:
+> 1. we are not only dealing with typedefs, but structs, struct xxx wil=
+l be converted into types during the release process.
+> 2. we have only upper cased type names in ACPICA upstream, but have t=
+he lower cased type names in Linux, and this doesn't solve that.
+> So I guess you didn't test your idea.
+
+Good guess.
+
+The "maybe add something like" should give you a clue.
+
+> You need to pull ACPICA repo and do the followings to confirm if this=
+ is working:
+
+No, I disagree. =A0_I_ don't need to. =A0You need to.
+
+You shouldn't have a process that generates defective patches
+and then sends them to the list.
+
+cheers, Joe
+--
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
