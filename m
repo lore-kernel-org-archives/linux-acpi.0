@@ -1,34 +1,45 @@
-From: Joe Perches <joe@perches.com>
-Subject: Re: [RFC PATCH] acpi: Use a more normal logging style for
- ACPI_<LEVEL> calls
-Date: Tue, 29 Mar 2016 09:56:31 -0700
-Message-ID: <1459270591.25110.83.camel@perches.com>
-References: <1459222225.25110.58.camel@perches.com>
-	 <94F2FBAB4432B54E8AACC7DFDE6C92E37E4553D5@ORSMSX110.amr.corp.intel.com>
-	 <94F2FBAB4432B54E8AACC7DFDE6C92E37E4553F8@ORSMSX110.amr.corp.intel.com>
+From: =?UTF-8?Q?J=C3=B6rg_Otte?= <jrg.otte@gmail.com>
+Subject: [intel-pstate driver regression] processor frequency very high even
+ if in idle
+Date: Tue, 29 Mar 2016 19:24:53 +0200
+Message-ID: <CADDKRnD81Hmf+JnG6NEpQWKiKE6_mqet5yRpLJ5K_0U1GtfahQ@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtprelay0215.hostedemail.com ([216.40.44.215]:33681 "EHLO
-	smtprelay.hostedemail.com" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1752976AbcC2Q4f (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 29 Mar 2016 12:56:35 -0400
-In-Reply-To: <94F2FBAB4432B54E8AACC7DFDE6C92E37E4553F8@ORSMSX110.amr.corp.intel.com>
+Received: from mail-vk0-f44.google.com ([209.85.213.44]:35135 "EHLO
+	mail-vk0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757892AbcC2RYy convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 29 Mar 2016 13:24:54 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Moore, Robert" <robert.moore@intel.com>, "Zheng, Lv" <lv.zheng@intel.com>, "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>, Len Brown <lenb@kernel.org>
-Cc: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, linux-kernel <linux-kernel@vger.kernel.org>, "devel@acpica.org" <devel@acpica.org>
+To: "inux-kernel@vger.kernel.org" <inux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: Linus Torvalds <torvalds@linux-foundation.org>
 
-On Tue, 2016-03-29 at 15:34 +0000, Moore, Robert wrote:
-> On the other hand, we removed AE_INFO from ACPI_INFO a while back, an=
-d
-> this may remove the necessity for the double parens.
+in v4.5 and earlier intel-pstate downscaled idle processors (load
+0.1-0.2%) to minumum frequency, in my case 800MHz.
 
-Hmm, maybe not. =A0It may be that MSVC's support for __VA_ARGS__ is
-a bit unusual. =A0What's the minimum ACPICA msvc version required?
+Now in v4.6-rc1 the characteristic has dramatically changed. If in
+idle the processor frequency is more or less a few MHz around 2500Mhz.
+This is the maximum non turbo frequency.
 
+No difference between powersafe or performance governor.
+
+I currently use acpi_cpufreq which works as usual.
+
+Processor:
+Intel(R) Core(TM) i5-4200M CPU @ 2.50GHz (family: 0x6, model: 0x3c,
+stepping: 0x3)
+
+Last known good kernel is: 4.5.0-01127-g9256d5a
+=46irst known bad kernel is: 4.5.0-02535-g09fd671
+
+There is
+commit 277edba Merge tag 'pm+acpi-4.6-rc1-1' of
+git://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm
+in between, which brought a few changes in intel_pstate.
+
+thanks, J=C3=B6rg
 --
 To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
 n
