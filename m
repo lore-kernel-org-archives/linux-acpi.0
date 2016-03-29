@@ -1,139 +1,95 @@
-From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: Changes in sleep mode, on x86 PC
-Date: Wed, 30 Mar 2016 00:04:48 +0200
-Message-ID: <2324877.Sek1ZF4eXV@vostro.rjw.lan>
-References: <20160328212010.GA22713@amd> <1757366.1UQHDJLEeh@vostro.rjw.lan> <20160329215645.GA11979@amd>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7Bit
-Return-path: <linux-pm-owner@vger.kernel.org>
-In-Reply-To: <20160329215645.GA11979@amd>
-Sender: linux-pm-owner@vger.kernel.org
-To: Pavel Machek <pavel@ucw.cz>
-Cc: oneukum@suse.com, kernel list <linux-kernel@vger.kernel.org>, lenb@kernel.org, linux-acpi@vger.kernel.org, Linux PM list <linux-pm@vger.kernel.org>, Jiri Kosina <jikos@kernel.org>
+From: Prarit Bhargava <prarit@redhat.com>
+Subject: [PATCH] acpi/acpica: fix Thunderbolt hotplug
+Date: Tue, 29 Mar 2016 18:45:40 -0400
+Message-ID: <1459291540-8746-1-git-send-email-prarit@redhat.com>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: linux-kernel@vger.kernel.org
+Cc: Prarit Bhargava <prarit@redhat.com>, Robert Moore <robert.moore@intel.com>, Lv Zheng <lv.zheng@intel.com>, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, devel@acpica.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Tuesday, March 29, 2016 11:56:45 PM Pavel Machek wrote:
-> 
-> On Tue 2016-03-29 23:46:23, Rafael J. Wysocki wrote:
-> > On Tuesday, March 29, 2016 04:24:05 PM Pavel Machek wrote:
-> > > 
-> > > On Tue 2016-03-29 15:06:36, Rafael J. Wysocki wrote:
-> > > > On Monday, March 28, 2016 11:20:12 PM Pavel Machek wrote:
-> > > > > Hi!
-> > > > > 
-> > > > > Few releases ago, I could wake up PC from S3 sleep by hitting any
-> > > > > key. That ceased to work some time before, keyboard would just light a
-> > > > > NUM lock LED when I hit a key (4.5). Now PC seems to be sleeping (in
-> > > > > S3) with NUM lock LED on (4.6-rc0).
-> > > > > 
-> > > > > Any idea what is going on there? Does it happen for you, too? What is
-> > > > > the expected behaviour?
-> > > > >
-> > > > > Debian 8.3, with MATE desktop, I just hit the "moon" key to make it
-> > > > > sleep. Keyboard is on USB.
-> > > > 
-> > > > That's rather important.
-> > > > 
-> > > > Clearly, something in the USB HID land has changed lately.
-> > > > 
-> > > > The expected behavior depends on whether or not the keyboard itself and the
-> > > > USB controller are both enabled to wake up.  If they are, I'd expect any
-> > > > key press to generate a wakeup event.
-> > > 
-> > > Is there anything in /sys I should check?
-> > 
-> > Generally, power/wakeup files under the involved devices (ie. if they are
-> > present and what's in them if so).
-> 
-> /sys/class/input43 and 44 (corresponding to USB keyboard) has no such
-> files.
-> 
-> pavel@amd:/sys/devices/pci0000:00$ lsusb
-> Bus 001 Device 008: ID 046d:c05a Logitech, Inc. M90/M100 Optical Mouse
-> Bus 001 Device 064: ID 04f2:0111 Chicony Electronics Co., Ltd KU-9908
-> Keyboard
-> Bus 001 Device 005: ID 1a40:0101 Terminus Technology Inc. 4-Port HUB
-> Bus 001 Device 006: ID 0557:2008 ATEN International Co., Ltd UC-232A
-> Serial Port [pl2303]
-> Bus 001 Device 004: ID 058f:6254 Alcor Micro Corp. USB Hub
-> Bus 001 Device 071: ID 1004:618e LG Electronics, Inc. Ally/Optimus
-> One/Vortex (debug mode)
-> Bus 001 Device 002: ID 058f:6362 Alcor Micro Corp. Flash Card
-> Reader/Writer
-> Bus 001 Device 001: ID 1d6b:0002 Linux Foundation 2.0 root hub
-> Bus 005 Device 001: ID 1d6b:0001 Linux Foundation 1.1 root hub
-> Bus 004 Device 001: ID 1d6b:0001 Linux Foundation 1.1 root hub
-> Bus 003 Device 001: ID 1d6b:0001 Linux Foundation 1.1 root hub
-> Bus 002 Device 001: ID 1d6b:0001 Linux Foundation 1.1 root hub
-> 
-> There are rather a lot of wakeup files here:
-> 
-> pavel@amd:/sys/devices/pci0000:00$ find . -name "wakeup"
-> ./0000:00:01.0/power/wakeup
-> ./0000:00:1b.0/power/wakeup
-> ./0000:00:1c.0/power/wakeup
-> ./0000:00:1c.1/power/wakeup
-> ./0000:00:1c.1/0000:03:00.0/power/wakeup
-> ./0000:00:1d.0/usb2/power/wakeup
-> ./0000:00:1d.0/power/wakeup
-> ./0000:00:1d.1/usb3/power/wakeup
-> ./0000:00:1d.1/power/wakeup
-> ./0000:00:1d.2/usb4/power/wakeup
-> ./0000:00:1d.2/power/wakeup
-> ./0000:00:1d.3/usb5/power/wakeup
-> ./0000:00:1d.3/power/wakeup
-> ./0000:00:1d.7/usb1/1-5/power/wakeup
-> ./0000:00:1d.7/usb1/1-6/1-6.2/power/wakeup
-> ./0000:00:1d.7/usb1/1-6/power/wakeup
-> ./0000:00:1d.7/usb1/1-7/1-7.1/power/wakeup
-> ./0000:00:1d.7/usb1/1-7/1-7.2/power/wakeup
-> ./0000:00:1d.7/usb1/1-7/power/wakeup
-> ./0000:00:1d.7/usb1/power/wakeup
-> ./0000:00:1d.7/power/wakeup
-> ./0000:00:1e.0/power/wakeup
-> ./0000:00:1f.2/power/wakeup
-> pavel@amd:/sys/devices/pci0000:00$
-> 
-> root@amd:/sys/devices/pci0000:00# for a in `find . -name "wakeup"`; do
-> echo $a `cat $a`; done
-> ./0000:00:01.0/power/wakeup disabled
-> ./0000:00:1b.0/power/wakeup disabled
-> ./0000:00:1c.0/power/wakeup disabled
-> ./0000:00:1c.1/power/wakeup disabled
-> ./0000:00:1c.1/0000:03:00.0/power/wakeup enabled
-> ./0000:00:1d.0/usb2/power/wakeup disabled
-> ./0000:00:1d.0/power/wakeup enabled
-> ./0000:00:1d.1/usb3/power/wakeup disabled
-> ./0000:00:1d.1/power/wakeup enabled
-> ./0000:00:1d.2/usb4/power/wakeup disabled
-> ./0000:00:1d.2/power/wakeup enabled
-> ./0000:00:1d.3/usb5/power/wakeup disabled
-> ./0000:00:1d.3/power/wakeup enabled
-> ./0000:00:1d.7/usb1/1-5/power/wakeup disabled
-> ./0000:00:1d.7/usb1/1-6/1-6.2/power/wakeup disabled
-> ./0000:00:1d.7/usb1/1-6/power/wakeup disabled
-> ./0000:00:1d.7/usb1/1-7/1-7.1/power/wakeup enabled
-> ./0000:00:1d.7/usb1/1-7/1-7.2/power/wakeup disabled
-> ./0000:00:1d.7/usb1/1-7/power/wakeup disabled
-> ./0000:00:1d.7/usb1/power/wakeup disabled
-> ./0000:00:1d.7/power/wakeup enabled
-> ./0000:00:1e.0/power/wakeup disabled
-> ./0000:00:1f.2/power/wakeup disabled
-> root@amd:/sys/devices/pci0000:00#
-> 
-> And the defaults are interesting, to say. But with:
-> 
-> for a in `find . -name "wakeup"`; do echo enabled > $a; done
-> 
-> It seems to wake up when I hit a key. So next question is... what
-> should be the default behaviour?
+The following hung task trace is seen when hotplugging
+an ethernet dongle in a Thunderbolt port on Linux.
 
-That's rather hard to answer.
+INFO: task kworker/0:4:1468 blocked for more than 120 seconds.
+      Tainted: G        W       4.6.0-rc1+ #1
+ "echo 0 > /proc/sys/kernel/hung_task_timeout_secs" disables this message.
+ kworker/0:4     D ffff8802a265ba38 13344  1468      2 0x00000000
+ Workqueue: kacpid acpi_os_execute_deferred
+ ffff8802a265ba38 ffff8802a265ba00 ffffffff81130200 ffffffff81e0d580
+ ffff88029e5eb340 ffff8802a265c000 ffff88029d69d000 ffff88029e5eb340
+ ffffffff818c1b8d ffff8802b64e8758 ffff8802a265ba50 ffffffff818bdfcc
+ Call Trace:
+ [<ffffffff81130200>] ? test_callback+0x10/0x30
+ [<ffffffff818c1b8d>] ? __down_timeout+0x5d/0xd0
+ [<ffffffff818bdfcc>] schedule+0x3c/0x90
+ [<ffffffff818c2d60>] schedule_timeout+0x210/0x360
+ [<ffffffff8103fc89>] ? sched_clock+0x9/0x10
+ [<ffffffff810ee51c>] ? local_clock+0x1c/0x20
+ [<ffffffff81110c16>] ? mark_held_locks+0x76/0xa0
+ [<ffffffff818c3cfc>] ? _raw_spin_unlock_irq+0x2c/0x40
+ [<ffffffff818c1b8d>] ? __down_timeout+0x5d/0xd0
+ [<ffffffff81110d35>] ? trace_hardirqs_on_caller+0xf5/0x1b0
+ [<ffffffff818c1b8d>] ? __down_timeout+0x5d/0xd0
+ [<ffffffff818c1bac>] __down_timeout+0x7c/0xd0
+ [<ffffffff818c44b2>] ? _raw_spin_lock_irqsave+0x82/0x90
+ [<ffffffff8110b87c>] down_timeout+0x4c/0x60
+ [<ffffffff814e3a9c>] acpi_os_wait_semaphore+0xaa/0x16a
+ [<ffffffff81510f37>] acpi_ex_system_wait_mutex+0x81/0xfa
+ [<ffffffff814f8796>] acpi_ds_begin_method_execution+0x25a/0x373
+ [<ffffffff814f8cea>] acpi_ds_call_control_method+0x107/0x2e0
+ [<ffffffff8151ed60>] acpi_ps_parse_aml+0x177/0x495
+ [<ffffffff8151fa46>] acpi_ps_execute_method+0x1f7/0x2b9
+ [<ffffffff81516c9a>] acpi_ns_evaluate+0x2ee/0x435
+ [<ffffffff814ff84a>] acpi_ev_asynch_execute_gpe_method+0xbd/0x159
+ [<ffffffff814e2a69>] acpi_os_execute_deferred+0x17/0x23
+ [<ffffffff810d1fc2>] process_one_work+0x242/0x700
+ [<ffffffff810d1f3a>] ? process_one_work+0x1ba/0x700
+ [<ffffffff810d24ce>] worker_thread+0x4e/0x490
+ [<ffffffff810d2480>] ? process_one_work+0x700/0x700
+ [<ffffffff810d2480>] ? process_one_work+0x700/0x700
+ [<ffffffff810d98b1>] kthread+0x101/0x120
+ [<ffffffff81110d35>] ? trace_hardirqs_on_caller+0xf5/0x1b0
+ [<ffffffff818c4832>] ret_from_fork+0x22/0x50
+ [<ffffffff810d97b0>] ? kthread_create_on_node+0x250/0x250
+ 2 locks held by kworker/0:4/1468:
+ #0:  ("kacpid"){.+.+.+}, at: [<ffffffff810d1f3a>] process_one_work+0x1ba/0x700
+ #1:  ((&dpc->work)){+.+.+.}, at: [<ffffffff810d1f3a>] process_one_work+0x1ba/0x700
 
-Ideally, "enabled", but then some of those things generate spurious wakeup
-events and the owners of these prefer "disabled".
+The issue appears to be that the kworker thread attempts to acquire the
+_E42 method's mutex twice when executing  acpi_ps_execute_method() and
+recursing through the entry method.
 
-Thanks,
-Rafael
+The current code does take the possiblity of this recursion into account,
+however, it is only for the case where the walk_state has been populated.
 
+This can be fixed by setting the thread id in the !walk_state case to
+allow for recursion.
+
+Cc: Robert Moore <robert.moore@intel.com>
+Cc: Lv Zheng <lv.zheng@intel.com>
+Cc: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>
+Cc: Len Brown <lenb@kernel.org>
+Cc: linux-acpi@vger.kernel.org
+Cc: devel@acpica.org
+Signed-off-by: Prarit Bhargava <prarit@redhat.com>
+---
+ drivers/acpi/acpica/dsmethod.c |    3 +++
+ 1 file changed, 3 insertions(+)
+
+diff --git a/drivers/acpi/acpica/dsmethod.c b/drivers/acpi/acpica/dsmethod.c
+index 1982310..93799db 100644
+--- a/drivers/acpi/acpica/dsmethod.c
++++ b/drivers/acpi/acpica/dsmethod.c
+@@ -428,6 +428,9 @@ acpi_ds_begin_method_execution(struct acpi_namespace_node *method_node,
+ 				obj_desc->method.mutex->mutex.
+ 				    original_sync_level =
+ 				    obj_desc->method.mutex->mutex.sync_level;
++
++				obj_desc->method.mutex->mutex.thread_id =
++					acpi_os_get_thread_id();
+ 			}
+ 		}
+ 
+-- 
+1.7.9.3
