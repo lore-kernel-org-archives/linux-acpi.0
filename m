@@ -1,57 +1,137 @@
-From: Alan Tull <delicious.quinoa@gmail.com>
-Subject: Re: [PATCH v6 1/2] gpio: dwapb: convert device node to fwnode
-Date: Tue, 29 Mar 2016 11:30:50 -0500
-Message-ID: <CANk1AXT5yHMwPJ7=0kSZKr+eHHdC1QXQVgstQ6QhFbUPSKuD+A@mail.gmail.com>
-References: <1458959496-57455-1-git-send-email-qiujiang@huawei.com>
-	<1458959496-57455-2-git-send-email-qiujiang@huawei.com>
+From: Will Deacon <will.deacon@arm.com>
+Subject: Re: [PATCH v8] acpi, apei, arm64: APEI initial support for aarch64.
+Date: Tue, 29 Mar 2016 17:35:00 +0100
+Message-ID: <20160329163500.GI6745@arm.com>
+References: <1459237458-12352-1-git-send-email-fu.wei@linaro.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-wm0-f65.google.com ([74.125.82.65]:34945 "EHLO
-	mail-wm0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752689AbcC2Qaw (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 29 Mar 2016 12:30:52 -0400
-In-Reply-To: <1458959496-57455-2-git-send-email-qiujiang@huawei.com>
+Received: from foss.arm.com ([217.140.101.70]:41569 "EHLO foss.arm.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752780AbcC2Qem (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 29 Mar 2016 12:34:42 -0400
+Content-Disposition: inline
+In-Reply-To: <1459237458-12352-1-git-send-email-fu.wei@linaro.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: qiujiang <qiujiang@huawei.com>
-Cc: Linus Walleij <linus.walleij@linaro.org>, Alexandre Courbot <gnurou@gmail.com>, Mika Westerberg <mika.westerberg@linux.intel.com>, Andy Shevchenko <andy.shevchenko@gmail.com>, Jamie Iles <jamie@jamieiles.com>, linux-kernel <linux-kernel@vger.kernel.org>, "linux-gpio@vger.kernel.org" <linux-gpio@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, linuxarm@huawei.com, haifeng.wei@huawei.com, charles.chenxin@huawei.com, atull <atull@opensource.altera.com>
+To: fu.wei@linaro.org
+Cc: tn@semihalf.com, rjw@rjwysocki.net, len.brown@intel.com, pavel@ucw.cz, catalin.marinas@arm.com, tglx@linutronix.de, mingo@redhat.com, hpa@zytor.com, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, x86@kernel.org, linaro-acpi@lists.linaro.org, linux-arm-kernel@lists.infradead.org, linux-pm@vger.kernel.org, graeme.gregory@linaro.org, al.stone@linaro.org, hanjun.guo@linaro.org, mark.rutland@arm.com, Marc.Zyngier@arm.com, lorenzo.pieralisi@arm.com, rruigrok@codeaurora.org, harba@qti.qualcomm.com, tbaicar@codeaurora.org, jcm@redhat.com, msalter@redhat.com, grant.likely@linaro.org, rrichter@cavium.com, jarkko.nikula@linux.intel.com, jon.zhixiong.zhang@gmail.com, Tomasz Nowicki <tomasz.nowicki@linaro.org>
 
-On Fri, Mar 25, 2016 at 9:31 PM, qiujiang <qiujiang@huawei.com> wrote:
+On Tue, Mar 29, 2016 at 03:44:18PM +0800, fu.wei@linaro.org wrote:
+> From: Tomasz Nowicki <tomasz.nowicki@linaro.org>
+> 
+> This commit provides APEI arch-specific bits for aarch64
+> 
+> Meanwhile,
+> (1)add a new subfunction "hest_ia32_init" for
+> "acpi_disable_cmcff" which is used by IA-32 Architecture
+> Corrected Machine Check (CMC).
+> (2)move HEST type (ACPI_HEST_TYPE_IA32_CORRECTED_CHECK) checking to
+> a generic place.
+> (3)select EFI when ACPI_APEI is set on ARM64,
+> because arch_apei_get_mem_attribute is using efi_mem_attributes on ARM64.
+> 
+> [Fu Wei: improve && upstream]
+> 
+> Signed-off-by: Tomasz Nowicki <tomasz.nowicki@linaro.org>
+> Tested-by: Jonathan (Zhixiong) Zhang <zjzhang@codeaurora.org>
+> Signed-off-by: Fu Wei <fu.wei@linaro.org>
+> Acked-by: Hanjun Guo <hanjun.guo@linaro.org>
+> Tested-by: Tyler Baicar <tbaicar@codeaurora.org>
+> ---
+> Changelog:
+> v8: Fix a "undefined reference" bug by selecting EFI when ACPI_APEI is set
+>     on ARM64.
+> 
+> v7: https://lkml.org/lkml/2016/3/17/183
+>     Add comment for arch_apei_flush_tlb_one in arch/arm64/include/asm/acpi.h
+> 
+> v6: https://lists.linaro.org/pipermail/linaro-acpi/2016-March/006644.html
+>     Move HEST type (ACPI_HEST_TYPE_IA32_CORRECTED_CHECK) checking to
+>     a generic place.
+>     Delete HAVE_ACPI_APEI_HEST_IA32.
+> 
+> v5: https://lkml.org/lkml/2015/12/10/131
+>     Add "HAVE_ACPI_APEI_HEST_IA32" instead of
+>     "#if defined(__i386__) || defined(__x86_64__)".
+> 
+> v4: https://lkml.org/lkml/2015/12/8/188
+>     Rebase to latest kernel version(4.4-rc4).
+>     Move arch_apei_flush_tlb_one into header file as a inline function
+>     Add a new subfunction "hest_ia_init" for "acpi_disable_cmcff".
+> 
+> v3: https://lkml.org/lkml/2015/12/3/521
+>     Remove "acpi_disable_cmcff" from arm64 code,
+>     and wrap it in hest.c by "#if defined(__i386__) || defined(__x86_64__)"
+> 
+> v2: https://lkml.org/lkml/2015/12/2/432
+>     Rebase to latest kernel version(4.4-rc3).
+>     Move arch_apei_flush_tlb_one() to arch/arm64/kernel/acpi.c
+> 
+> v1: https://lkml.org/lkml/2015/8/14/199
+>     Move arch_apei_flush_tlb_one() to arch/arm64/include/asm/apci.h.
+>     Delete arch/arm64/kernel/apei.c.
+>     Add "#ifdef CONFIG_ACPI_APEI" for "acpi_disable_cmcff".
+> 
+>  arch/arm64/Kconfig            |  1 +
+>  arch/arm64/include/asm/acpi.h | 15 ++++++++++++++-
+>  arch/x86/kernel/acpi/apei.c   |  3 ---
+>  drivers/acpi/apei/Kconfig     |  1 +
+>  drivers/acpi/apei/hest.c      | 18 +++++++++++++++---
+>  5 files changed, 31 insertions(+), 7 deletions(-)
+> 
+> diff --git a/arch/arm64/Kconfig b/arch/arm64/Kconfig
+> index 4f43622..08952ec 100644
+> --- a/arch/arm64/Kconfig
+> +++ b/arch/arm64/Kconfig
+> @@ -3,6 +3,7 @@ config ARM64
+>  	select ACPI_CCA_REQUIRED if ACPI
+>  	select ACPI_GENERIC_GSI if ACPI
+>  	select ACPI_REDUCED_HARDWARE_ONLY if ACPI
+> +	select HAVE_ACPI_APEI if ACPI
+>  	select ARCH_HAS_DEVMEM_IS_ALLOWED
+>  	select ARCH_HAS_ATOMIC64_DEC_IF_POSITIVE
+>  	select ARCH_HAS_ELF_RANDOMIZE
+> diff --git a/arch/arm64/include/asm/acpi.h b/arch/arm64/include/asm/acpi.h
+> index aee323b..4a6c959 100644
+> --- a/arch/arm64/include/asm/acpi.h
+> +++ b/arch/arm64/include/asm/acpi.h
+> @@ -17,6 +17,7 @@
+>  
+>  #include <asm/cputype.h>
+>  #include <asm/smp_plat.h>
+> +#include <asm/tlbflush.h>
+>  
+>  /* Macros for consistency checks of the GICC subtable of MADT */
+>  #define ACPI_MADT_GICC_LENGTH	\
+> @@ -110,7 +111,19 @@ static inline const char *acpi_get_enable_method(int cpu)
+>  }
+>  
+>  #ifdef	CONFIG_ACPI_APEI
+> +#define acpi_disable_cmcff 1
+>  pgprot_t arch_apei_get_mem_attribute(phys_addr_t addr);
+> -#endif
+>  
+> +/*
+> + * This inline function is used in IRQ context (by GHES driver now),
+> + * see ghes_iounmap_irq and ghes_iounmap_nmi in drivers/acpi/apei/ghes.c.
+> + * The page mapped is reserved for firmware in kernel. This invalidate TLB
+> + * maintenance should be broadcasted safely to make sure that all the cores
+> + * will do TLB invalidation, then get the right pages.
+> + */
 
-> -               if (pp->idx == 0 &&
-> -                   of_property_read_bool(port_np, "interrupt-controller")) {
-> -                       pp->irq = irq_of_parse_and_map(port_np, 0);
-> +               if (dev->of_node && pp->idx == 0 &&
-> +                       fwnode_property_read_bool(fwnode,
-> +                                                 "interrupt-controller")) {
-> +                       pp->irq = irq_of_parse_and_map(to_of_node(fwnode), 0);
->                         if (!pp->irq) {
->                                 dev_warn(dev, "no irq for bank %s\n",
-> -                                        port_np->full_name);
-> +                                        to_of_node(fwnode)->full_name);
->                         }
->                 }
->
->                 pp->irq_shared  = false;
->                 pp->gpio_base   = -1;
-> -               pp->name        = port_np->full_name;
-> +               if (dev->of_node)
-> +                       pp->name = to_of_node(fwnode)->full_name;
+How about:
 
-Hi Jiang,
+ /*
+  * Despite its name, this function must still broadcast the TLB
+  * invalidation in order to ensure other CPUs don't up with with junk
+  * entries as a result of speculation. Unusually, its also called in
+  * IRQ context (ghes_iounmap_irq) so if we ever need to use IPIs for
+  * TLB broadcasting, then we're in trouble here.
+  */
 
-I tested lightly on a CycloneV and it worked fine (with device tree).
+With that,
 
-One suggestion for both patches: you could remove name from struct
-dwapb_port_property and get rid of pp->name and nobody would miss it.
-All it is used for is some dev_err's so the device info gets printed
-anyway.  For example (if I leave the irq out of the DT)
+Acked-by: Will Deacon <will.deacon@arm.com>
 
-gpio-dwapb ff708000.gpio: no irq for bank /soc/gpio@ff708000/gpio-controller@0
-
-is redundant.  The only additional info here from the name is the port
-index.  That could be added to the messages without having to get the
-name through the two property/of methods.
-
-Alan
+Will
