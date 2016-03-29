@@ -1,73 +1,53 @@
-From: "Moore, Robert" <robert.moore@intel.com>
-Subject: RE: [PATCH] ACPICA: Remove unnecessary "\n" from an ACPI_INFO boot
- message
-Date: Tue, 29 Mar 2016 19:09:57 +0000
-Message-ID: <94F2FBAB4432B54E8AACC7DFDE6C92E37E455538@ORSMSX110.amr.corp.intel.com>
-References: <74bc15316c48bb33c0954d94c0595720ee0955bd.1459187689.git.bristot@redhat.com>
+From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Subject: Re: Changes in sleep mode, on x86 PC
+Date: Tue, 29 Mar 2016 23:46:23 +0200
+Message-ID: <1757366.1UQHDJLEeh@vostro.rjw.lan>
+References: <20160328212010.GA22713@amd> <4224351.Xlkh4fNNHG@vostro.rjw.lan> <20160329142405.GA24781@amd>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7Bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga09.intel.com ([134.134.136.24]:63439 "EHLO mga09.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753403AbcC2TKI convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 29 Mar 2016 15:10:08 -0400
-In-Reply-To: <74bc15316c48bb33c0954d94c0595720ee0955bd.1459187689.git.bristot@redhat.com>
-Content-Language: en-US
+Received: from cloudserver094114.home.net.pl ([79.96.170.134]:59312 "HELO
+	cloudserver094114.home.net.pl" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with SMTP id S1753251AbcC2VoD (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 29 Mar 2016 17:44:03 -0400
+In-Reply-To: <20160329142405.GA24781@amd>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Daniel Bristot de Oliveira <bristot@redhat.com>, "Zheng, Lv" <lv.zheng@intel.com>, "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>, Len Brown <lenb@kernel.org>
-Cc: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "devel@acpica.org" <devel@acpica.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
+To: Pavel Machek <pavel@ucw.cz>
+Cc: kernel list <linux-kernel@vger.kernel.org>, lenb@kernel.org, linux-acpi@vger.kernel.org, Linux PM list <linux-pm@vger.kernel.org>, Jiri Kosina <jikos@kernel.org>
 
-Actually, I did in fact put that there to break up the output after the tables are loaded. Is this a problem?
+On Tuesday, March 29, 2016 04:24:05 PM Pavel Machek wrote:
+> 
+> On Tue 2016-03-29 15:06:36, Rafael J. Wysocki wrote:
+> > On Monday, March 28, 2016 11:20:12 PM Pavel Machek wrote:
+> > > Hi!
+> > > 
+> > > Few releases ago, I could wake up PC from S3 sleep by hitting any
+> > > key. That ceased to work some time before, keyboard would just light a
+> > > NUM lock LED when I hit a key (4.5). Now PC seems to be sleeping (in
+> > > S3) with NUM lock LED on (4.6-rc0).
+> > > 
+> > > Any idea what is going on there? Does it happen for you, too? What is
+> > > the expected behaviour?
+> > >
+> > > Debian 8.3, with MATE desktop, I just hit the "moon" key to make it
+> > > sleep. Keyboard is on USB.
+> > 
+> > That's rather important.
+> > 
+> > Clearly, something in the USB HID land has changed lately.
+> > 
+> > The expected behavior depends on whether or not the keyboard itself and the
+> > USB controller are both enabled to wake up.  If they are, I'd expect any
+> > key press to generate a wakeup event.
+> 
+> Is there anything in /sys I should check?
 
+Generally, power/wakeup files under the involved devices (ie. if they are
+present and what's in them if so).
 
-> -----Original Message-----
-> From: Daniel Bristot de Oliveira [mailto:bristot@redhat.com]
-> Sent: Monday, March 28, 2016 10:59 AM
-> To: Moore, Robert; Zheng, Lv; Wysocki, Rafael J; Len Brown
-> Cc: linux-acpi@vger.kernel.org; devel@acpica.org; linux-
-> kernel@vger.kernel.org
-> Subject: [PATCH] ACPICA: Remove unnecessary "\n" from an ACPI_INFO boot
-> message
-> 
-> A "\n" at the end of bellow ACPI_INFO message is causing a blank line in
-> the kernel log:
-> 
->   ACPI_INFO(("%u ACPI AML tables successfully acquired and loaded\n",
-> tables_loaded));
-> 
-> This patch removes the "\n".
-> 
-> Kernel log before this patch:
-> 	ACPI: Core revision 20160108
-> 	ACPI: 2 ACPI AML tables successfully acquired and loaded
-> 
-> 	Security Framework initialized
-> 
-> Kernel log after this patch:
-> 	ACPI: Core revision 20160108
-> 	ACPI: 2 ACPI AML tables successfully acquired and loaded
-> 	Security Framework initialized
-> 
-> Signed-off-by: Daniel Bristot de Oliveira <bristot@redhat.com>
-> 
-> diff --git a/drivers/acpi/acpica/tbxfload.c
-> b/drivers/acpi/acpica/tbxfload.c index 3151968..e435b84 100644
-> --- a/drivers/acpi/acpica/tbxfload.c
-> +++ b/drivers/acpi/acpica/tbxfload.c
-> @@ -240,7 +240,8 @@ acpi_status acpi_tb_load_namespace(void)
->  	}
-> 
->  	if (!tables_failed) {
-> -		ACPI_INFO(("%u ACPI AML tables successfully acquired and
-> loaded\n", tables_loaded));
-> +		ACPI_INFO(("%u ACPI AML tables successfully acquired and
-> loaded",
-> +			   tables_loaded));
->  	} else {
->  		ACPI_ERROR((AE_INFO,
->  			    "%u table load failures, %u successful",
-> --
-> 2.5.0
+Thanks,
+Rafael
 
