@@ -1,456 +1,141 @@
-From: Heikki Krogerus <heikki.krogerus@linux.intel.com>
-Subject: [PATCH v2] device property: don't bother the drivers with struct property_set
-Date: Tue, 29 Mar 2016 11:07:20 +0300
-Message-ID: <1459238840-14776-1-git-send-email-heikki.krogerus@linux.intel.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: Mika Westerberg <mika.westerberg@linux.intel.com>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Thierry Reding <treding@nvidia.com>, Lee Jones <lee.jones@linaro.org>, Daniel Mack <daniel@zonque.org>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+From: Shannon Zhao <zhaoshenglong-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
+Subject: [PATCH v9 01/17] Xen: ACPI: Hide UART used by Xen
+Date: Tue, 29 Mar 2016 16:05:29 +0800
+Message-ID: <1459238729-11520-1-git-send-email-zhaoshenglong@huawei.com>
+Mime-Version: 1.0
+Content-Type: text/plain
+Return-path: <linux-efi-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: linux-efi-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, stefano.stabellini-Sxgqhf6Nn4DQT0dZR+AlfA@public.gmane.org
+Cc: catalin.marinas-5wv7dgnIgG8@public.gmane.org, will.deacon-5wv7dgnIgG8@public.gmane.org, xen-devel-GuqFBffKawuEi8DpZVb4nw@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-efi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, shannon.zhao-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org, peter.huangpeng-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, "Rafael J. Wysocki" <rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org>, Len Brown <lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, "open list:ACPI" <linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-Since device_add_property_set() now always takes a copy of
-the property_set, and also since the fwnode type is always
-hard coded to be FWNODE_PDATA, there is no need for the
-drivers to deliver the entire struct property_set. The
-function can just create the instance of it on its own and
-bind the properties from the drivers to it on the spot.
+From: Shannon Zhao <shannon.zhao-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
 
-This renames device_add_property_set() to
-device_add_properties(). The function now takes struct
-property_entry as its parameter instead of struct
-property_set.
+ACPI 6.0 introduces a new table STAO to list the devices which are used
+by Xen and can't be used by Dom0. On Xen virtual platforms, the physical
+UART is used by Xen. So here it hides UART from Dom0.
 
-Reviewed-by: Mika Westerberg <mika.westerberg@linux.intel.com>
-Reviewed-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Acked-by: Thierry Reding <treding@nvidia.com>
-Acked-by: Lee Jones <lee.jones@linaro.org>
-Signed-off-by: Heikki Krogerus <heikki.krogerus@linux.intel.com>
+CC: "Rafael J. Wysocki" <rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org> (supporter:ACPI)
+CC: Len Brown <lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org> (supporter:ACPI)
+CC: linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org (open list:ACPI)
+Signed-off-by: Shannon Zhao <shannon.zhao-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
 ---
- arch/arm/mach-pxa/raumfeld.c      |  8 ++------
- arch/arm/mach-tegra/board-paz00.c |  6 +-----
- drivers/base/platform.c           | 19 ++++++++++---------
- drivers/base/property.c           | 34 +++++++++++++++++++++-------------
- drivers/mfd/intel-lpss-acpi.c     | 12 ++----------
- drivers/mfd/intel-lpss-pci.c      | 20 ++++----------------
- drivers/mfd/intel-lpss.c          |  2 +-
- drivers/mfd/intel-lpss.h          |  4 ++--
- drivers/mfd/mfd-core.c            |  4 ++--
- include/linux/mfd/core.h          |  4 ++--
- include/linux/platform_device.h   |  6 +++---
- include/linux/property.h          | 15 +++------------
- 12 files changed, 53 insertions(+), 81 deletions(-)
+v9: add the UART device address in printed message
+---
+ drivers/acpi/scan.c | 69 +++++++++++++++++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 69 insertions(+)
 
-Hi,
-
-Changes since v1:
-- Added the new users of the property framework
-
-
-diff --git a/arch/arm/mach-pxa/raumfeld.c b/arch/arm/mach-pxa/raumfeld.c
-index 5a941bd..5f628fc 100644
---- a/arch/arm/mach-pxa/raumfeld.c
-+++ b/arch/arm/mach-pxa/raumfeld.c
-@@ -385,10 +385,6 @@ static struct property_entry raumfeld_rotary_properties[] = {
- 	{ },
- };
+diff --git a/drivers/acpi/scan.c b/drivers/acpi/scan.c
+index 5f28cf7..29f26fc 100644
+--- a/drivers/acpi/scan.c
++++ b/drivers/acpi/scan.c
+@@ -45,6 +45,7 @@ static LIST_HEAD(acpi_scan_handlers_list);
+ DEFINE_MUTEX(acpi_device_lock);
+ LIST_HEAD(acpi_wakeup_device_list);
+ static DEFINE_MUTEX(acpi_hp_context_lock);
++static u64 spcr_uart_addr;
  
--static struct property_set raumfeld_rotary_property_set = {
--	.properties = raumfeld_rotary_properties,
--};
--
- static struct platform_device rotary_encoder_device = {
- 	.name		= "rotary-encoder",
- 	.id		= 0,
-@@ -1064,7 +1060,7 @@ static void __init __maybe_unused raumfeld_controller_init(void)
- 
- 	gpiod_add_lookup_table(&raumfeld_rotary_gpios_table);
- 	device_add_property_set(&rotary_encoder_device.dev,
--				&raumfeld_rotary_property_set);
-+				raumfeld_rotary_properties);
- 	platform_device_register(&rotary_encoder_device);
- 
- 	spi_register_board_info(ARRAY_AND_SIZE(controller_spi_devices));
-@@ -1104,7 +1100,7 @@ static void __init __maybe_unused raumfeld_speaker_init(void)
- 
- 	gpiod_add_lookup_table(&raumfeld_rotary_gpios_table);
- 	device_add_property_set(&rotary_encoder_device.dev,
--				&raumfeld_rotary_property_set);
-+				raumfeld_rotary_properties);
- 	platform_device_register(&rotary_encoder_device);
- 
- 	raumfeld_audio_init();
-diff --git a/arch/arm/mach-tegra/board-paz00.c b/arch/arm/mach-tegra/board-paz00.c
-index 52db8bf..7478f6f 100644
---- a/arch/arm/mach-tegra/board-paz00.c
-+++ b/arch/arm/mach-tegra/board-paz00.c
-@@ -29,10 +29,6 @@ static struct property_entry __initdata wifi_rfkill_prop[] = {
- 	{ },
- };
- 
--static struct property_set __initdata wifi_rfkill_pset = {
--	.properties = wifi_rfkill_prop,
--};
--
- static struct platform_device wifi_rfkill_device = {
- 	.name	= "rfkill_gpio",
- 	.id	= -1,
-@@ -49,7 +45,7 @@ static struct gpiod_lookup_table wifi_gpio_lookup = {
- 
- void __init tegra_paz00_wifikill_init(void)
- {
--	platform_device_add_properties(&wifi_rfkill_device, &wifi_rfkill_pset);
-+	platform_device_add_properties(&wifi_rfkill_device, wifi_rfkill_prop);
- 	gpiod_add_lookup_table(&wifi_gpio_lookup);
- 	platform_device_register(&wifi_rfkill_device);
- }
-diff --git a/drivers/base/platform.c b/drivers/base/platform.c
-index f437afa..6482d47 100644
---- a/drivers/base/platform.c
-+++ b/drivers/base/platform.c
-@@ -322,16 +322,16 @@ EXPORT_SYMBOL_GPL(platform_device_add_data);
- /**
-  * platform_device_add_properties - add built-in properties to a platform device
-  * @pdev: platform device to add properties to
-- * @pset: properties to add
-+ * @properties: null terminated array of properties to add
-  *
-- * The function will take deep copy of the properties in @pset and attach
-- * the copy to the platform device. The memory associated with properties
-- * will be freed when the platform device is released.
-+ * The function will take deep copy of @properties and attach the copy to the
-+ * platform device. The memory associated with properties will be freed when the
-+ * platform device is released.
-  */
- int platform_device_add_properties(struct platform_device *pdev,
--				   const struct property_set *pset)
-+				   struct property_entry *properties)
- {
--	return device_add_property_set(&pdev->dev, pset);
-+	return device_add_properties(&pdev->dev, properties);
- }
- EXPORT_SYMBOL_GPL(platform_device_add_properties);
- 
-@@ -447,7 +447,7 @@ void platform_device_del(struct platform_device *pdev)
- 				release_resource(r);
- 		}
- 
--		device_remove_property_set(&pdev->dev);
-+		device_remove_properties(&pdev->dev);
- 	}
- }
- EXPORT_SYMBOL_GPL(platform_device_del);
-@@ -526,8 +526,9 @@ struct platform_device *platform_device_register_full(
- 	if (ret)
- 		goto err;
- 
--	if (pdevinfo->pset) {
--		ret = platform_device_add_properties(pdev, pdevinfo->pset);
-+	if (pdevinfo->properties) {
-+		ret = platform_device_add_properties(pdev,
-+						     pdevinfo->properties);
- 		if (ret)
- 			goto err;
- 	}
-diff --git a/drivers/base/property.c b/drivers/base/property.c
-index 9b1a65d..210423d 100644
---- a/drivers/base/property.c
-+++ b/drivers/base/property.c
-@@ -19,6 +19,11 @@
- #include <linux/etherdevice.h>
- #include <linux/phy.h>
- 
-+struct property_set {
-+	struct fwnode_handle fwnode;
-+	struct property_entry *properties;
-+};
-+
- static inline bool is_pset_node(struct fwnode_handle *fwnode)
- {
- 	return fwnode && fwnode->type == FWNODE_PDATA;
-@@ -801,14 +806,14 @@ static struct property_set *pset_copy_set(const struct property_set *pset)
- }
- 
- /**
-- * device_remove_property_set - Remove properties from a device object.
-+ * device_remove_properties - Remove properties from a device object.
-  * @dev: Device whose properties to remove.
-  *
-  * The function removes properties previously associated to the device
-- * secondary firmware node with device_add_property_set(). Memory allocated
-+ * secondary firmware node with device_add_properties(). Memory allocated
-  * to the properties will also be released.
-  */
--void device_remove_property_set(struct device *dev)
-+void device_remove_properties(struct device *dev)
- {
- 	struct fwnode_handle *fwnode;
- 
-@@ -831,24 +836,27 @@ void device_remove_property_set(struct device *dev)
- 		}
- 	}
- }
--EXPORT_SYMBOL_GPL(device_remove_property_set);
-+EXPORT_SYMBOL_GPL(device_remove_properties);
- 
- /**
-- * device_add_property_set - Add a collection of properties to a device object.
-+ * device_add_properties - Add a collection of properties to a device object.
-  * @dev: Device to add properties to.
-- * @pset: Collection of properties to add.
-+ * @properties: Collection of properties to add.
-  *
-- * Associate a collection of device properties represented by @pset with @dev
-- * as its secondary firmware node. The function takes a copy of @pset.
-+ * Associate a collection of device properties represented by @properties with
-+ * @dev as its secondary firmware node. The function takes a copy of
-+ * @properties.
-  */
--int device_add_property_set(struct device *dev, const struct property_set *pset)
-+int device_add_properties(struct device *dev, struct property_entry *properties)
- {
--	struct property_set *p;
-+	struct property_set *p, pset;
- 
--	if (!pset)
-+	if (!properties)
- 		return -EINVAL;
- 
--	p = pset_copy_set(pset);
-+	pset.properties = properties;
-+
-+	p = pset_copy_set(&pset);
- 	if (IS_ERR(p))
- 		return PTR_ERR(p);
- 
-@@ -856,7 +864,7 @@ int device_add_property_set(struct device *dev, const struct property_set *pset)
- 	set_secondary_fwnode(dev, &p->fwnode);
+ struct acpi_dep_data {
+ 	struct list_head node;
+@@ -1453,6 +1454,42 @@ static int acpi_add_single_object(struct acpi_device **child,
  	return 0;
  }
--EXPORT_SYMBOL_GPL(device_add_property_set);
-+EXPORT_SYMBOL_GPL(device_add_properties);
  
- /**
-  * device_get_next_child_node - Return the next child node handle for a device
-diff --git a/drivers/mfd/intel-lpss-acpi.c b/drivers/mfd/intel-lpss-acpi.c
-index 5a8d9c7..7ddc4a9 100644
---- a/drivers/mfd/intel-lpss-acpi.c
-+++ b/drivers/mfd/intel-lpss-acpi.c
-@@ -31,13 +31,9 @@ static struct property_entry spt_i2c_properties[] = {
- 	{ },
- };
- 
--static struct property_set spt_i2c_pset = {
--	.properties = spt_i2c_properties,
--};
--
- static const struct intel_lpss_platform_info spt_i2c_info = {
- 	.clk_rate = 120000000,
--	.pset = &spt_i2c_pset,
-+	.properties = spt_i2c_properties,
- };
- 
- static const struct intel_lpss_platform_info bxt_info = {
-@@ -51,13 +47,9 @@ static struct property_entry bxt_i2c_properties[] = {
- 	{ },
- };
- 
--static struct property_set bxt_i2c_pset = {
--	.properties = bxt_i2c_properties,
--};
--
- static const struct intel_lpss_platform_info bxt_i2c_info = {
- 	.clk_rate = 133000000,
--	.pset = &bxt_i2c_pset,
-+	.properties = bxt_i2c_properties,
- };
- 
- static const struct acpi_device_id intel_lpss_acpi_ids[] = {
-diff --git a/drivers/mfd/intel-lpss-pci.c b/drivers/mfd/intel-lpss-pci.c
-index a19e571..1d79a3c 100644
---- a/drivers/mfd/intel-lpss-pci.c
-+++ b/drivers/mfd/intel-lpss-pci.c
-@@ -71,13 +71,9 @@ static struct property_entry spt_i2c_properties[] = {
- 	{ },
- };
- 
--static struct property_set spt_i2c_pset = {
--	.properties = spt_i2c_properties,
--};
--
- static const struct intel_lpss_platform_info spt_i2c_info = {
- 	.clk_rate = 120000000,
--	.pset = &spt_i2c_pset,
-+	.properties = spt_i2c_properties,
- };
- 
- static struct property_entry uart_properties[] = {
-@@ -87,14 +83,10 @@ static struct property_entry uart_properties[] = {
- 	{ },
- };
- 
--static struct property_set uart_pset = {
--	.properties = uart_properties,
--};
--
- static const struct intel_lpss_platform_info spt_uart_info = {
- 	.clk_rate = 120000000,
- 	.clk_con_id = "baudclk",
--	.pset = &uart_pset,
-+	.properties = uart_properties,
- };
- 
- static const struct intel_lpss_platform_info bxt_info = {
-@@ -104,7 +96,7 @@ static const struct intel_lpss_platform_info bxt_info = {
- static const struct intel_lpss_platform_info bxt_uart_info = {
- 	.clk_rate = 100000000,
- 	.clk_con_id = "baudclk",
--	.pset = &uart_pset,
-+	.properties = uart_properties,
- };
- 
- static struct property_entry bxt_i2c_properties[] = {
-@@ -114,13 +106,9 @@ static struct property_entry bxt_i2c_properties[] = {
- 	{ },
- };
- 
--static struct property_set bxt_i2c_pset = {
--	.properties = bxt_i2c_properties,
--};
--
- static const struct intel_lpss_platform_info bxt_i2c_info = {
- 	.clk_rate = 133000000,
--	.pset = &bxt_i2c_pset,
-+	.properties = bxt_i2c_properties,
- };
- 
- static const struct pci_device_id intel_lpss_pci_ids[] = {
-diff --git a/drivers/mfd/intel-lpss.c b/drivers/mfd/intel-lpss.c
-index 85ad9ec..d9353c7 100644
---- a/drivers/mfd/intel-lpss.c
-+++ b/drivers/mfd/intel-lpss.c
-@@ -409,7 +409,7 @@ int intel_lpss_probe(struct device *dev,
- 	if (ret)
- 		return ret;
- 
--	lpss->cell->pset = info->pset;
-+	lpss->cell->properties = info->properties;
- 
- 	intel_lpss_init_dev(lpss);
- 
-diff --git a/drivers/mfd/intel-lpss.h b/drivers/mfd/intel-lpss.h
-index 0dcea9e..6941166 100644
---- a/drivers/mfd/intel-lpss.h
-+++ b/drivers/mfd/intel-lpss.h
-@@ -16,14 +16,14 @@
- 
- struct device;
- struct resource;
--struct property_set;
-+struct property_entry;
- 
- struct intel_lpss_platform_info {
- 	struct resource *mem;
- 	int irq;
- 	unsigned long clk_rate;
- 	const char *clk_con_id;
--	struct property_set *pset;
-+	struct property_entry *properties;
- };
- 
- int intel_lpss_probe(struct device *dev,
-diff --git a/drivers/mfd/mfd-core.c b/drivers/mfd/mfd-core.c
-index 409da01..86bc01d 100644
---- a/drivers/mfd/mfd-core.c
-+++ b/drivers/mfd/mfd-core.c
-@@ -193,8 +193,8 @@ static int mfd_add_device(struct device *parent, int id,
- 			goto fail_alias;
- 	}
- 
--	if (cell->pset) {
--		ret = platform_device_add_properties(pdev, cell->pset);
-+	if (cell->properties) {
-+		ret = platform_device_add_properties(pdev, cell->properties);
- 		if (ret)
- 			goto fail_alias;
- 	}
-diff --git a/include/linux/mfd/core.h b/include/linux/mfd/core.h
-index bc6f7e0..9837f1e 100644
---- a/include/linux/mfd/core.h
-+++ b/include/linux/mfd/core.h
-@@ -17,7 +17,7 @@
- #include <linux/platform_device.h>
- 
- struct irq_domain;
--struct property_set;
-+struct property_entry;
- 
- /* Matches ACPI PNP id, either _HID or _CID, or ACPI _ADR */
- struct mfd_cell_acpi_match {
-@@ -47,7 +47,7 @@ struct mfd_cell {
- 	size_t			pdata_size;
- 
- 	/* device properties passed to the sub devices drivers */
--	const struct property_set *pset;
-+	struct property_entry *properties;
- 
- 	/*
- 	 * Device Tree compatible string
-diff --git a/include/linux/platform_device.h b/include/linux/platform_device.h
-index 03b7555..98c2a7c 100644
---- a/include/linux/platform_device.h
-+++ b/include/linux/platform_device.h
-@@ -18,7 +18,7 @@
- #define PLATFORM_DEVID_AUTO	(-2)
- 
- struct mfd_cell;
--struct property_set;
-+struct property_entry;
- 
- struct platform_device {
- 	const char	*name;
-@@ -73,7 +73,7 @@ struct platform_device_info {
- 		size_t size_data;
- 		u64 dma_mask;
- 
--		const struct property_set *pset;
-+		struct property_entry *properties;
- };
- extern struct platform_device *platform_device_register_full(
- 		const struct platform_device_info *pdevinfo);
-@@ -172,7 +172,7 @@ extern int platform_device_add_resources(struct platform_device *pdev,
- extern int platform_device_add_data(struct platform_device *pdev,
- 				    const void *data, size_t size);
- extern int platform_device_add_properties(struct platform_device *pdev,
--					  const struct property_set *pset);
-+					  struct property_entry *properties);
- extern int platform_device_add(struct platform_device *pdev);
- extern void platform_device_del(struct platform_device *pdev);
- extern void platform_device_put(struct platform_device *pdev);
-diff --git a/include/linux/property.h b/include/linux/property.h
-index b51fcd3..ecab11e 100644
---- a/include/linux/property.h
-+++ b/include/linux/property.h
-@@ -238,18 +238,9 @@ struct property_entry {
- 	.name = _name_,				\
++static acpi_status acpi_get_resource_memory(struct acpi_resource *ares,
++					    void *context)
++{
++	struct resource *res = context;
++
++	if (acpi_dev_resource_memory(ares, res))
++		return AE_CTRL_TERMINATE;
++
++	return AE_OK;
++}
++
++static bool acpi_device_should_be_hidden(acpi_handle handle)
++{
++	acpi_status status;
++	struct resource res;
++
++	/* Check if it should ignore the UART device */
++	if (spcr_uart_addr != 0) {
++		if (!acpi_has_method(handle, METHOD_NAME__CRS))
++			return false;
++
++		status = acpi_walk_resources(handle, METHOD_NAME__CRS,
++					     acpi_get_resource_memory, &res);
++		if (ACPI_FAILURE(status))
++			return false;
++
++		if (res.start == spcr_uart_addr) {
++			printk(KERN_INFO PREFIX "The UART device @%pa in SPCR table will be hidden\n",
++			       &res.start);
++			return true;
++		}
++	}
++
++	return false;
++}
++
+ static int acpi_bus_type_and_status(acpi_handle handle, int *type,
+ 				    unsigned long long *sta)
+ {
+@@ -1466,6 +1503,9 @@ static int acpi_bus_type_and_status(acpi_handle handle, int *type,
+ 	switch (acpi_type) {
+ 	case ACPI_TYPE_ANY:		/* for ACPI_ROOT_OBJECT */
+ 	case ACPI_TYPE_DEVICE:
++		if (acpi_device_should_be_hidden(handle))
++			return -ENODEV;
++
+ 		*type = ACPI_BUS_TYPE_DEVICE;
+ 		status = acpi_bus_get_status_handle(handle, sta);
+ 		if (ACPI_FAILURE(status))
+@@ -1916,9 +1956,24 @@ static int acpi_bus_scan_fixed(void)
+ 	return result < 0 ? result : 0;
  }
  
--/**
-- * struct property_set - Collection of "built-in" device properties.
-- * @fwnode: Handle to be pointed to by the fwnode field of struct device.
-- * @properties: Array of properties terminated with a null entry.
-- */
--struct property_set {
--	struct fwnode_handle fwnode;
--	struct property_entry *properties;
--};
--
--int device_add_property_set(struct device *dev, const struct property_set *pset);
--void device_remove_property_set(struct device *dev);
-+int device_add_properties(struct device *dev,
-+			  struct property_entry *properties);
-+void device_remove_properties(struct device *dev);
++static void __init acpi_get_spcr_uart_addr(void)
++{
++	acpi_status status;
++	struct acpi_table_spcr *spcr_ptr;
++
++	status = acpi_get_table(ACPI_SIG_SPCR, 0,
++				(struct acpi_table_header **)&spcr_ptr);
++	if (ACPI_SUCCESS(status))
++		spcr_uart_addr = spcr_ptr->serial_port.address;
++	else
++		printk(KERN_WARNING PREFIX "STAO table present, but SPCR is missing\n");
++}
++
+ int __init acpi_scan_init(void)
+ {
+ 	int result;
++	acpi_status status;
++	struct acpi_table_stao *stao_ptr;
  
- bool device_dma_supported(struct device *dev);
+ 	acpi_pci_root_init();
+ 	acpi_pci_link_init();
+@@ -1934,6 +1989,20 @@ int __init acpi_scan_init(void)
  
+ 	acpi_scan_add_handler(&generic_device_handler);
+ 
++	/*
++	 * If there is STAO table, check whether it needs to ignore the UART
++	 * device in SPCR table.
++	 */
++	status = acpi_get_table(ACPI_SIG_STAO, 0,
++				(struct acpi_table_header **)&stao_ptr);
++	if (ACPI_SUCCESS(status)) {
++		if (stao_ptr->header.length > sizeof(struct acpi_table_stao))
++			printk(KERN_INFO PREFIX "STAO Name List not yet supported.");
++
++		if (stao_ptr->ignore_uart)
++			acpi_get_spcr_uart_addr();
++	}
++
+ 	mutex_lock(&acpi_scan_lock);
+ 	/*
+ 	 * Enumerate devices in the ACPI namespace.
 -- 
-2.8.0.rc3
+2.0.4
