@@ -1,24 +1,24 @@
-From: G Gregory <graeme.gregory@linaro.org>
+From: Ard Biesheuvel <ard.biesheuvel@linaro.org>
 Subject: Re: [PATCH] ACPI / ARM64: Remove EXPERT dependency for ACPI on ARM64
-Date: Wed, 30 Mar 2016 19:02:37 +0100
-Message-ID: <CAGCh1+mRC0i3aqujzhPQY3gW5McECEJCGxas8+d+uVVPiTo23A@mail.gmail.com>
+Date: Wed, 30 Mar 2016 21:25:32 +0200
+Message-ID: <CAKv+Gu_u-VUCwYP94GtiUmW7EPgev54n2QZ=4AiWrgeGqsy=ng@mail.gmail.com>
 References: <1459360718-24125-1-git-send-email-broonie@kernel.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-io0-f173.google.com ([209.85.223.173]:33146 "EHLO
-	mail-io0-f173.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754574AbcC3SCy (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 30 Mar 2016 14:02:54 -0400
-Received: by mail-io0-f173.google.com with SMTP id a129so76743239ioe.0
-        for <linux-acpi@vger.kernel.org>; Wed, 30 Mar 2016 11:02:54 -0700 (PDT)
+Received: from mail-io0-f180.google.com ([209.85.223.180]:35203 "EHLO
+	mail-io0-f180.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753087AbcC3TZd (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 30 Mar 2016 15:25:33 -0400
+Received: by mail-io0-f180.google.com with SMTP id g185so88762864ioa.2
+        for <linux-acpi@vger.kernel.org>; Wed, 30 Mar 2016 12:25:33 -0700 (PDT)
 In-Reply-To: <1459360718-24125-1-git-send-email-broonie@kernel.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: Mark Brown <broonie@kernel.org>
-Cc: Catalin Marinas <catalin.marinas@arm.com>, Will Deacon <will.deacon@arm.com>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Mark Rutland <mark.rutland@arm.com>, Steve Capper <steve.capper@linaro.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+Cc: Catalin Marinas <catalin.marinas@arm.com>, Will Deacon <will.deacon@arm.com>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Mark Rutland <mark.rutland@arm.com>, Steve Capper <steve.capper@linaro.org>, Graeme Gregory <graeme.gregory@linaro.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
-On 30 March 2016 at 18:58, Mark Brown <broonie@kernel.org> wrote:
+On 30 March 2016 at 19:58, Mark Brown <broonie@kernel.org> wrote:
 > When ACPI was originally merged for arm64 it had only been tested on
 > emulators and not on real physical platforms and no platforms were
 > relying on it.  This meant that there were concerns that there might be
@@ -50,16 +50,10 @@ On 30 March 2016 at 18:58, Mark Brown <broonie@kernel.org> wrote:
 > that when ACPI code is merged any problems it causes for other users are
 > more easily discovered.
 >
-
-I agree,
-
-Acked-by: Graeme Gregory <graeme.gregory@linaro.org>
-
-Thanks
-
-G
-
 > Signed-off-by: Mark Brown <broonie@kernel.org>
+
+Acked-by: Ard Biesheuvel <ard.biesheuvel@linaro.org>
+
 > ---
 >  drivers/acpi/Kconfig | 2 +-
 >  1 file changed, 1 insertion(+), 1 deletion(-)
@@ -80,3 +74,8 @@ G
 > --
 > 2.8.0.rc3
 >
+>
+> _______________________________________________
+> linux-arm-kernel mailing list
+> linux-arm-kernel@lists.infradead.org
+> http://lists.infradead.org/mailman/listinfo/linux-arm-kernel
