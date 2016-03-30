@@ -1,66 +1,66 @@
-From: Fu Wei <fu.wei@linaro.org>
-Subject: Re: [PATCH v8] acpi, apei, arm64: APEI initial support for aarch64.
-Date: Thu, 31 Mar 2016 01:55:00 +0800
-Message-ID: <CADyBb7spZBi-w5wFnVjioMVo4EEjWGcVdWgtbsF+wkCA0qi=gQ@mail.gmail.com>
-References: <1459237458-12352-1-git-send-email-fu.wei@linaro.org>
-	<201603301450.pihQHWST%fengguang.wu@intel.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+From: Mark Brown <broonie@kernel.org>
+Subject: [PATCH] ACPI / ARM64: Remove EXPERT dependency for ACPI on ARM64
+Date: Wed, 30 Mar 2016 10:58:38 -0700
+Message-ID: <1459360718-24125-1-git-send-email-broonie@kernel.org>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-ob0-f171.google.com ([209.85.214.171]:33652 "EHLO
-	mail-ob0-f171.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752794AbcC3Rz1 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 30 Mar 2016 13:55:27 -0400
-Received: by mail-ob0-f171.google.com with SMTP id x3so76646635obt.0
-        for <linux-acpi@vger.kernel.org>; Wed, 30 Mar 2016 10:55:27 -0700 (PDT)
-In-Reply-To: <201603301450.pihQHWST%fengguang.wu@intel.com>
+Received: from mezzanine.sirena.org.uk ([106.187.55.193]:57358 "EHLO
+	mezzanine.sirena.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753044AbcC3R6y (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 30 Mar 2016 13:58:54 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: kbuild test robot <lkp@intel.com>
-Cc: kbuild-all@01.org, Tomasz Nowicki <tn@semihalf.com>, Rafael Wysocki <rjw@rjwysocki.net>, len.brown@intel.com, pavel@ucw.cz, Catalin Marinas <catalin.marinas@arm.com>, Will Deacon <will.deacon@arm.com>, Thomas Gleixner <tglx@linutronix.de>, mingo@redhat.com, hpa@zytor.com, LKML <linux-kernel@vger.kernel.org>, linux-acpi@vger.kernel.org, x86@kernel.org, Linaro ACPI Mailman List <linaro-acpi@lists.linaro.org>, linux-arm-kernel@lists.infradead.org, linux-pm@vger.kernel.org, G Gregory <graeme.gregory@linaro.org>, Al Stone <al.stone@linaro.org>, Hanjun Guo <hanjun.guo@linaro.org>, Mark Rutland <mark.rutland@arm.com>, Marc Zyngier <Marc.Zyngier@arm.com>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Richard Ruigrok <rruigrok@codeaurora.org>, "Abdulhamid, Harb" <harba@qti.qualcomm.com>, "Baicar, Tyler" <tbaicar@codeaurora.org>, Jon Masters <jcm@redhat.com>, Mark Salter <ms>
+To: Catalin Marinas <catalin.marinas@arm.com>, Will Deacon <will.deacon@arm.com>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>
+Cc: Graeme Gregory <graeme.gregory@linaro.org>, Mark Rutland <mark.rutland@arm.com>, Steve Capper <steve.capper@linaro.org>, linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Mark Brown <broonie@kernel.org>
 
-Hi Tomasz
+When ACPI was originally merged for arm64 it had only been tested on
+emulators and not on real physical platforms and no platforms were
+relying on it.  This meant that there were concerns that there might be
+serious issues attempting to use it on practical systems so it had a
+dependency on EXPERT added to warn people that it was in an early stage
+of development with very little practical testing.  Since then things
+have moved on a bit.  We have seen people testing on real hardware and
+now have people starting to produce some platforms (the most prominent
+being the 96boards Cello) which only have ACPI support and which build
+and run to some useful extent with mainline.
 
-On 30 March 2016 at 14:50, kbuild test robot <lkp@intel.com> wrote:
-> Hi Tomasz,
->
-> [auto build test WARNING on arm64/for-next/core]
-> [also build test WARNING on v4.6-rc1 next-20160330]
-> [if your patch is applied to the wrong git tree, please drop us a note to help improving the system]
->
-> url:    https://github.com/0day-ci/linux/commits/fu-wei-linaro-org/acpi-apei-arm64-APEI-initial-support-for-aarch64/20160329-154730
-> base:   https://git.kernel.org/pub/scm/linux/kernel/git/arm64/linux for-next/core
-> config: arm64-allyesconfig (attached as .config)
-> reproduce:
->         wget https://git.kernel.org/cgit/linux/kernel/git/wfg/lkp-tests.git/plain/sbin/make.cross -O ~/bin/make.cross
->         chmod +x ~/bin/make.cross
->         # save the attached .config to linux build tree
->         make.cross ARCH=arm64
->
-> All warnings (new ones prefixed by >>):
->
-> warning: (ACPI_APEI) selects EFI which has unmet direct dependencies (OF && !CPU_BIG_ENDIAN)
+This is not to say that ACPI support or support for these systems is
+completely done, there are still areas being worked on such as PCI, but
+at this point it seems that we can be reasonably sure that ACPI will be
+viable for use on ARM64 and that the already merged support works for
+the cases it handles.  For the AMD Seattle based platforms support
+outside of PCI has been fairly complete in mainline a few releases now.
 
-I think it's caused by  CPU_BIG_ENDIAN, because  ARM64 selects OF.
+This is also not to say that we don't have vendors working with ACPI who
+are trying do things that we would not consider optimal but it does not
+appear that the EXPERT dependency is having a substantial impact on
+these vendors.
 
-Any suggestion ?
+Given all this it seems that at this point the EXPERT dependency mainly
+creates inconvenience for users with systems that are doing the right
+thing and gets in the way of including the ACPI code in the testing that
+people are doing on mainline.  Removing it should help our ongoing
+testing cover those platforms with only ACPI support and help ensure
+that when ACPI code is merged any problems it causes for other users are
+more easily discovered.
 
+Signed-off-by: Mark Brown <broonie@kernel.org>
+---
+ drivers/acpi/Kconfig | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
->
-> ---
-> 0-DAY kernel test infrastructure                Open Source Technology Center
-> https://lists.01.org/pipermail/kbuild-all                   Intel Corporation
-
-
-
+diff --git a/drivers/acpi/Kconfig b/drivers/acpi/Kconfig
+index 82b96ee8624c..bf5dc1ac3446 100644
+--- a/drivers/acpi/Kconfig
++++ b/drivers/acpi/Kconfig
+@@ -5,7 +5,7 @@
+ menuconfig ACPI
+ 	bool "ACPI (Advanced Configuration and Power Interface) Support"
+ 	depends on !IA64_HP_SIM
+-	depends on IA64 || X86 || (ARM64 && EXPERT)
++	depends on IA64 || X86 || ARM64
+ 	depends on PCI
+ 	select PNP
+ 	default y
 -- 
-Best regards,
+2.8.0.rc3
 
-Fu Wei
-Software Engineer
-Red Hat Software (Beijing) Co.,Ltd.Shanghai Branch
-Ph: +86 21 61221326(direct)
-Ph: +86 186 2020 4684 (mobile)
-Room 1512, Regus One Corporate Avenue,Level 15,
-One Corporate Avenue,222 Hubin Road,Huangpu District,
-Shanghai,China 200021
