@@ -1,95 +1,56 @@
-From: Prarit Bhargava <prarit@redhat.com>
-Subject: [PATCH] acpi/acpica: fix Thunderbolt hotplug
-Date: Tue, 29 Mar 2016 18:45:40 -0400
-Message-ID: <1459291540-8746-1-git-send-email-prarit@redhat.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: linux-kernel@vger.kernel.org
-Cc: Prarit Bhargava <prarit@redhat.com>, Robert Moore <robert.moore@intel.com>, Lv Zheng <lv.zheng@intel.com>, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, devel@acpica.org
+From: "Rafael J. Wysocki" <rafael@kernel.org>
+Subject: Re: [PATCH v6 7/7][Resend] cpufreq: schedutil: New governor based on
+ scheduler utilization data
+Date: Wed, 30 Mar 2016 03:12:40 +0200
+Message-ID: <CAJZ5v0jEueokR+bZJVRjQtmUe6BeKqUgnjWy9BZm4nGnKjT9mg@mail.gmail.com>
+References: <7262976.zPkLj56ATU@vostro.rjw.lan>
+	<6666532.7ULg06hQ7e@vostro.rjw.lan>
+	<20160328090333.GK32495@vireshk-i7>
+	<2253696.9jRPsKRmxz@vostro.rjw.lan>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-pm-owner@vger.kernel.org>
+In-Reply-To: <2253696.9jRPsKRmxz@vostro.rjw.lan>
+Sender: linux-pm-owner@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: Viresh Kumar <viresh.kumar@linaro.org>, Linux PM list <linux-pm@vger.kernel.org>, Juri Lelli <juri.lelli@arm.com>, Steve Muckle <steve.muckle@linaro.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Peter Zijlstra <peterz@infradead.org>, Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>, Vincent Guittot <vincent.guittot@linaro.org>, Michael Turquette <mturquette@baylibre.com>, Ingo Molnar <mingo@kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-The following hung task trace is seen when hotplugging
-an ethernet dongle in a Thunderbolt port on Linux.
+On Tue, Mar 29, 2016 at 2:58 PM, Rafael J. Wysocki <rjw@rjwysocki.net> wrote:
+> On Monday, March 28, 2016 02:33:33 PM Viresh Kumar wrote:
+>> On 22-03-16, 02:54, Rafael J. Wysocki wrote:
 
-INFO: task kworker/0:4:1468 blocked for more than 120 seconds.
-      Tainted: G        W       4.6.0-rc1+ #1
- "echo 0 > /proc/sys/kernel/hung_task_timeout_secs" disables this message.
- kworker/0:4     D ffff8802a265ba38 13344  1468      2 0x00000000
- Workqueue: kacpid acpi_os_execute_deferred
- ffff8802a265ba38 ffff8802a265ba00 ffffffff81130200 ffffffff81e0d580
- ffff88029e5eb340 ffff8802a265c000 ffff88029d69d000 ffff88029e5eb340
- ffffffff818c1b8d ffff8802b64e8758 ffff8802a265ba50 ffffffff818bdfcc
- Call Trace:
- [<ffffffff81130200>] ? test_callback+0x10/0x30
- [<ffffffff818c1b8d>] ? __down_timeout+0x5d/0xd0
- [<ffffffff818bdfcc>] schedule+0x3c/0x90
- [<ffffffff818c2d60>] schedule_timeout+0x210/0x360
- [<ffffffff8103fc89>] ? sched_clock+0x9/0x10
- [<ffffffff810ee51c>] ? local_clock+0x1c/0x20
- [<ffffffff81110c16>] ? mark_held_locks+0x76/0xa0
- [<ffffffff818c3cfc>] ? _raw_spin_unlock_irq+0x2c/0x40
- [<ffffffff818c1b8d>] ? __down_timeout+0x5d/0xd0
- [<ffffffff81110d35>] ? trace_hardirqs_on_caller+0xf5/0x1b0
- [<ffffffff818c1b8d>] ? __down_timeout+0x5d/0xd0
- [<ffffffff818c1bac>] __down_timeout+0x7c/0xd0
- [<ffffffff818c44b2>] ? _raw_spin_lock_irqsave+0x82/0x90
- [<ffffffff8110b87c>] down_timeout+0x4c/0x60
- [<ffffffff814e3a9c>] acpi_os_wait_semaphore+0xaa/0x16a
- [<ffffffff81510f37>] acpi_ex_system_wait_mutex+0x81/0xfa
- [<ffffffff814f8796>] acpi_ds_begin_method_execution+0x25a/0x373
- [<ffffffff814f8cea>] acpi_ds_call_control_method+0x107/0x2e0
- [<ffffffff8151ed60>] acpi_ps_parse_aml+0x177/0x495
- [<ffffffff8151fa46>] acpi_ps_execute_method+0x1f7/0x2b9
- [<ffffffff81516c9a>] acpi_ns_evaluate+0x2ee/0x435
- [<ffffffff814ff84a>] acpi_ev_asynch_execute_gpe_method+0xbd/0x159
- [<ffffffff814e2a69>] acpi_os_execute_deferred+0x17/0x23
- [<ffffffff810d1fc2>] process_one_work+0x242/0x700
- [<ffffffff810d1f3a>] ? process_one_work+0x1ba/0x700
- [<ffffffff810d24ce>] worker_thread+0x4e/0x490
- [<ffffffff810d2480>] ? process_one_work+0x700/0x700
- [<ffffffff810d2480>] ? process_one_work+0x700/0x700
- [<ffffffff810d98b1>] kthread+0x101/0x120
- [<ffffffff81110d35>] ? trace_hardirqs_on_caller+0xf5/0x1b0
- [<ffffffff818c4832>] ret_from_fork+0x22/0x50
- [<ffffffff810d97b0>] ? kthread_create_on_node+0x250/0x250
- 2 locks held by kworker/0:4/1468:
- #0:  ("kacpid"){.+.+.+}, at: [<ffffffff810d1f3a>] process_one_work+0x1ba/0x700
- #1:  ((&dpc->work)){+.+.+.}, at: [<ffffffff810d1f3a>] process_one_work+0x1ba/0x700
+[cut]
 
-The issue appears to be that the kworker thread attempts to acquire the
-_E42 method's mutex twice when executing  acpi_ps_execute_method() and
-recursing through the entry method.
+>> > +static unsigned int sugov_next_freq_shared(struct sugov_policy *sg_policy,
+>> > +                                      unsigned long util, unsigned long max)
+>> > +{
+>> > +   struct cpufreq_policy *policy = sg_policy->policy;
+>> > +   unsigned int max_f = policy->cpuinfo.max_freq;
+>> > +   u64 last_freq_update_time = sg_policy->last_freq_update_time;
+>> > +   unsigned int j;
+>> > +
+>> > +   if (util == ULONG_MAX)
+>> > +           return max_f;
+>> > +
+>> > +   for_each_cpu(j, policy->cpus) {
+>> > +           struct sugov_cpu *j_sg_cpu;
+>> > +           unsigned long j_util, j_max;
+>> > +           u64 delta_ns;
+>> > +
+>> > +           if (j == smp_processor_id())
+>> > +                   continue;
+>>
+>> Why skip local CPU completely ?
+>
+> Because the original util and max come from it.
+>
+>> And if we really want to do that, what about something like for_each_cpu_and_not
+>> to kill the unnecessary if {} statement ?
+>
+> That will work.
 
-The current code does take the possiblity of this recursion into account,
-however, it is only for the case where the walk_state has been populated.
+Except that for_each_cpu_and_not is not defined as of today.
 
-This can be fixed by setting the thread id in the !walk_state case to
-allow for recursion.
-
-Cc: Robert Moore <robert.moore@intel.com>
-Cc: Lv Zheng <lv.zheng@intel.com>
-Cc: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>
-Cc: Len Brown <lenb@kernel.org>
-Cc: linux-acpi@vger.kernel.org
-Cc: devel@acpica.org
-Signed-off-by: Prarit Bhargava <prarit@redhat.com>
----
- drivers/acpi/acpica/dsmethod.c |    3 +++
- 1 file changed, 3 insertions(+)
-
-diff --git a/drivers/acpi/acpica/dsmethod.c b/drivers/acpi/acpica/dsmethod.c
-index 1982310..93799db 100644
---- a/drivers/acpi/acpica/dsmethod.c
-+++ b/drivers/acpi/acpica/dsmethod.c
-@@ -428,6 +428,9 @@ acpi_ds_begin_method_execution(struct acpi_namespace_node *method_node,
- 				obj_desc->method.mutex->mutex.
- 				    original_sync_level =
- 				    obj_desc->method.mutex->mutex.sync_level;
-+
-+				obj_desc->method.mutex->mutex.thread_id =
-+					acpi_os_get_thread_id();
- 			}
- 		}
- 
--- 
-1.7.9.3
+I guess I can play with cpumasks, but then I'm not sure that will end
+up actually more efficient.
