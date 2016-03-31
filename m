@@ -1,62 +1,89 @@
-From: Ard Biesheuvel <ard.biesheuvel@linaro.org>
-Subject: Re: [PATCH v8] acpi, apei, arm64: APEI initial support for aarch64.
-Date: Thu, 31 Mar 2016 09:52:54 +0200
-Message-ID: <CAKv+Gu-_YhFva9RHUtzC68Ck2wTN2BvcXTEfCJbvVh98DFgn_A@mail.gmail.com>
-References: <1459237458-12352-1-git-send-email-fu.wei@linaro.org>
-	<201603301450.pihQHWST%fengguang.wu@intel.com>
-	<CADyBb7spZBi-w5wFnVjioMVo4EEjWGcVdWgtbsF+wkCA0qi=gQ@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-pm-owner@vger.kernel.org>
-In-Reply-To: <CADyBb7spZBi-w5wFnVjioMVo4EEjWGcVdWgtbsF+wkCA0qi=gQ@mail.gmail.com>
-Sender: linux-pm-owner@vger.kernel.org
-To: Fu Wei <fu.wei@linaro.org>
-Cc: kbuild test robot <lkp@intel.com>, Mark Rutland <mark.rutland@arm.com>, Linaro ACPI Mailman List <linaro-acpi@lists.linaro.org>, Catalin Marinas <catalin.marinas@arm.com>, "Baicar, Tyler" <tbaicar@codeaurora.org>, Will Deacon <will.deacon@arm.com>, Richard Ruigrok <rruigrok@codeaurora.org>, pavel@ucw.cz, "hpa@zytor.com" <hpa@zytor.com>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Al Stone <al.stone@linaro.org>, Tomasz Nowicki <tn@semihalf.com>, "x86@kernel.org" <x86@kernel.org>, "Abdulhamid, Harb" <harba@qti.qualcomm.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "mingo@redhat.com" <mingo@redhat.com>, Mark Salter <msalter@redhat.com>, Grant Likely <grant.likely@linaro.org>, Hanjun Guo <hanjun.guo@linaro.org>, len.brown@intel.com, linux-pm@vger.kernel.org, Marc Zyngier <Marc.Zyngier@arm.com>, Jon Masters <jcm@redhat.com>, Tomasz Nowicki <tomasz>
+From: Octavian Purdila <octavian.purdila@intel.com>
+Subject: [RFC PATCH 00/10] ACPI overlays
+Date: Thu, 31 Mar 2016 12:36:56 +0300
+Message-ID: <1459417026-6697-1-git-send-email-octavian.purdila@intel.com>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Matt Fleming <matt@codeblueprint.co.uk>, Mark Brown <broonie@kernel.org>, Wolfram Sang <wsa@the-dreams.de>
+Cc: Joel Becker <jlbec@evilplan.org>, Christoph Hellwig <hch@lst.de>, linux-acpi@vger.kernel.org, linux-efi@vger.kernel.org, linux-i2c@vger.kernel.org, linux-spi@vger.kernel.org, linux-kernel@vger.kernel.org, irina.tirdea@intel.com, Octavian Purdila <octavian.purdila@intel.com>
 List-Id: linux-acpi@vger.kernel.org
 
-On 30 March 2016 at 19:55, Fu Wei <fu.wei@linaro.org> wrote:
-> Hi Tomasz
->
-> On 30 March 2016 at 14:50, kbuild test robot <lkp@intel.com> wrote:
->> Hi Tomasz,
->>
->> [auto build test WARNING on arm64/for-next/core]
->> [also build test WARNING on v4.6-rc1 next-20160330]
->> [if your patch is applied to the wrong git tree, please drop us a note to help improving the system]
->>
->> url:    https://github.com/0day-ci/linux/commits/fu-wei-linaro-org/acpi-apei-arm64-APEI-initial-support-for-aarch64/20160329-154730
->> base:   https://git.kernel.org/pub/scm/linux/kernel/git/arm64/linux for-next/core
->> config: arm64-allyesconfig (attached as .config)
->> reproduce:
->>         wget https://git.kernel.org/cgit/linux/kernel/git/wfg/lkp-tests.git/plain/sbin/make.cross -O ~/bin/make.cross
->>         chmod +x ~/bin/make.cross
->>         # save the attached .config to linux build tree
->>         make.cross ARCH=arm64
->>
->> All warnings (new ones prefixed by >>):
->>
->> warning: (ACPI_APEI) selects EFI which has unmet direct dependencies (OF && !CPU_BIG_ENDIAN)
->
-> I think it's caused by  CPU_BIG_ENDIAN, because  ARM64 selects OF.
->
+This patch set enables custom ACPI board configuration by adding
+mechanisms in the Linux kernel for loading user defined SSDTs.
 
-No, as I pointed out, it is caused by the fact that you 'select' EFI
-rather than 'depend on' it.
+In order to support ACPI open-ended hardware configurations we need a
+way to augment the ACPI configuration provided by the firmware
+image. A common example is connecting sensors on I2C / SPI buses on
+development boards.
 
-> Any suggestion ?
->
+Although this can be accomplished by creating a kernel platform driver
+or recompiling the firmware image with updated ACPI tables, neither is
+practical: the former proliferates board specific kernel code while
+the latter requires access to firmware tools which are often not
+publicly available.
 
-replace
+Because ACPI supports external references in AML code a more practical
+way to augment firmware ACPI configuration is by dynamically loading
+user defined SSDT tables that contain the board specific information.
 
-select EFI if ARM64
+This patch sets provides three methods for loading custom SSDTs:
 
-with
+* From an EFI variable
 
-depends on EFI || !ARM64
+  This is the preferred method, when EFI is supported on the platform,
+  because it allows a persistent, OS independent way of storing and
+  updating the user defined SSDTs. There is also work underway to
+  implement EFI support for loading user defined SSDTs and using this
+  method will make it easier to convert to the EFI loading mechanism
+  when that will arrive.
 
-but it would be even better to make ACPI_APEI depend on ACPI, since
-the above dependency will be implied then, although I am not sure how
-that affects other architectures.
+* From the first uncompressed initrd (similar with the override
+  functionality)
+
+  This is useful when EFI is not supported on the platform and when it
+  is not possible to defer the loading to userspace.
+
+* From userspace via configfs 
+
+  This is useful when we want to defer the operation to userspace for
+  platform detection, loading the SSDTs from a custom partition, etc.
+
+Octavian Purdila (10):
+  kernel: add TAINT_OVERLAY_ACPI_TABLE
+  acpi: install SSDT tables from initrd
+  acpi: add support for ACPI reconfiguration notifiers
+  acpi: fix enumeration (visited) flags for bus rescans
+  i2c: add support for ACPI reconfigure notifications
+  spi: add support for ACPI reconfigure notifications
+  efi: load SSTDs from EFI variables
+  configfs: fix CONFIGFS_BIN_ATTR_[RW]O definitions
+  acpi: add support for configfs
+  acpi: add support for loading SSDTs via configfs
+
+ Documentation/ABI/testing/configfs-acpi |  23 +++++
+ Documentation/acpi/ssdt-overlays.txt    | 174 ++++++++++++++++++++++++++++++++
+ Documentation/kernel-parameters.txt     |   7 ++
+ Documentation/oops-tracing.txt          |   2 +
+ Documentation/sysctl/kernel.txt         |   1 +
+ MAINTAINERS                             |   1 +
+ drivers/acpi/Kconfig                    |   9 ++
+ drivers/acpi/Makefile                   |   1 +
+ drivers/acpi/bus.c                      |  72 +++++++++++++
+ drivers/acpi/configfs.c                 | 143 ++++++++++++++++++++++++++
+ drivers/acpi/internal.h                 |   3 +
+ drivers/acpi/scan.c                     |  73 +++++++++++++-
+ drivers/acpi/sysfs.c                    |   6 +-
+ drivers/firmware/efi/efi.c              | 107 ++++++++++++++++++++
+ drivers/i2c/i2c-core.c                  |  38 ++++++-
+ drivers/spi/spi.c                       |  36 ++++++-
+ include/acpi/acpi_bus.h                 |   8 ++
+ include/linux/configfs.h                |   4 +-
+ include/linux/kernel.h                  |   1 +
+ kernel/panic.c                          |   2 +
+ 20 files changed, 699 insertions(+), 12 deletions(-)
+ create mode 100644 Documentation/ABI/testing/configfs-acpi
+ create mode 100644 Documentation/acpi/ssdt-overlays.txt
+ create mode 100644 drivers/acpi/configfs.c
 
 -- 
-Ard.
+1.9.1
