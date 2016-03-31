@@ -1,126 +1,162 @@
-From: Will Deacon <will.deacon@arm.com>
-Subject: Re: [PATCH] ACPI / ARM64: Remove EXPERT dependency for ACPI on ARM64
-Date: Thu, 31 Mar 2016 14:38:49 +0100
-Message-ID: <20160331133848.GH18910@arm.com>
-References: <1459360718-24125-1-git-send-email-broonie@kernel.org>
- <56FC9D1D.6090808@huawei.com>
- <CAJZ5v0gv-MJ+Ss8gtc80z2_sOq-3qfBYbspRU8MWRNvn+UVbUg@mail.gmail.com>
- <20160331123649.GE18910@arm.com>
- <CAKv+Gu_i8q_xKQgJ1mJ5hE_gcdJgHkh_QZhUNwQchsyH9r-pJQ@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from foss.arm.com ([217.140.101.70]:54667 "EHLO foss.arm.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751607AbcCaNi1 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 31 Mar 2016 09:38:27 -0400
-Content-Disposition: inline
-In-Reply-To: <CAKv+Gu_i8q_xKQgJ1mJ5hE_gcdJgHkh_QZhUNwQchsyH9r-pJQ@mail.gmail.com>
-Sender: linux-acpi-owner@vger.kernel.org
+From: Aleksey Makarov <aleksey.makarov@linaro.org>
+Subject: [PATCH v7 0/5] ACPI: parse the SPCR table
+Date: Thu, 31 Mar 2016 16:40:22 +0300
+Message-ID: <1459431629-27934-1-git-send-email-aleksey.makarov@linaro.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Russell King <linux@arm.linux.org.uk>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: linux-serial@vger.kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Aleksey Makarov <aleksey.makarov@linaro.org>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Leif Lindholm <leif.lindholm@linaro.org>, Graeme Gregory <graeme.gregory@linaro.org>, Al Stone <ahs3@redhat.com>, Christopher Covington <cov@codeaurora.org>, Yury Norov <ynorov@caviumnetworks.com>, Peter Hurley <peter@hurleysoftware.com>, Andy Shevchenko <andy.shevchenko@gmail.com>, "Zheng, Lv" <lv.zheng@intel.com>
 List-Id: linux-acpi@vger.kernel.org
-To: Ard Biesheuvel <ard.biesheuvel@linaro.org>
-Cc: "Rafael J. Wysocki" <rafael@kernel.org>, Mark Rutland <mark.rutland@arm.com>, Steve Capper <steve.capper@linaro.org>, Graeme Gregory <graeme.gregory@linaro.org>, Catalin Marinas <catalin.marinas@arm.com>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Mark Brown <broonie@kernel.org>, Hanjun Guo <guohanjun@huawei.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Len Brown <lenb@kernel.org>
 
-On Thu, Mar 31, 2016 at 03:20:03PM +0200, Ard Biesheuvel wrote:
-> On 31 March 2016 at 14:36, Will Deacon <will.deacon@arm.com> wrote:
-> > On Thu, Mar 31, 2016 at 02:04:05PM +0200, Rafael J. Wysocki wrote:
-> >> On Thu, Mar 31, 2016 at 5:44 AM, Hanjun Guo <guohanjun@huawei.com> wrote:
-> >> > On 2016/3/31 1:58, Mark Brown wrote:
-> >> >> When ACPI was originally merged for arm64 it had only been tested on
-> >> >> emulators and not on real physical platforms and no platforms were
-> >> >> relying on it.  This meant that there were concerns that there might be
-> >> >> serious issues attempting to use it on practical systems so it had a
-> >> >> dependency on EXPERT added to warn people that it was in an early stage
-> >> >> of development with very little practical testing.  Since then things
-> >> >> have moved on a bit.  We have seen people testing on real hardware and
-> >> >> now have people starting to produce some platforms (the most prominent
-> >> >> being the 96boards Cello) which only have ACPI support and which build
-> >> >> and run to some useful extent with mainline.
-> >> >>
-> >> >> This is not to say that ACPI support or support for these systems is
-> >> >> completely done, there are still areas being worked on such as PCI, but
-> >> >> at this point it seems that we can be reasonably sure that ACPI will be
-> >> >> viable for use on ARM64 and that the already merged support works for
-> >> >> the cases it handles.  For the AMD Seattle based platforms support
-> >> >> outside of PCI has been fairly complete in mainline a few releases now.
-> >> >>
-> >> >> This is also not to say that we don't have vendors working with ACPI who
-> >> >> are trying do things that we would not consider optimal but it does not
-> >> >> appear that the EXPERT dependency is having a substantial impact on
-> >> >> these vendors.
-> >> >>
-> >> >> Given all this it seems that at this point the EXPERT dependency mainly
-> >> >> creates inconvenience for users with systems that are doing the right
-> >> >> thing and gets in the way of including the ACPI code in the testing that
-> >> >> people are doing on mainline.  Removing it should help our ongoing
-> >> >> testing cover those platforms with only ACPI support and help ensure
-> >> >> that when ACPI code is merged any problems it causes for other users are
-> >> >> more easily discovered.
-> >> >>
-> >> >> Signed-off-by: Mark Brown <broonie@kernel.org>
-> >> >
-> >> > Acked-by: Hanjun Guo <hanjun.guo@linaro.org>
-> >> >
-> >> >> ---
-> >> >>  drivers/acpi/Kconfig | 2 +-
-> >> >>  1 file changed, 1 insertion(+), 1 deletion(-)
-> >> >>
-> >> >> diff --git a/drivers/acpi/Kconfig b/drivers/acpi/Kconfig
-> >> >> index 82b96ee8624c..bf5dc1ac3446 100644
-> >> >> --- a/drivers/acpi/Kconfig
-> >> >> +++ b/drivers/acpi/Kconfig
-> >> >> @@ -5,7 +5,7 @@
-> >> >>  menuconfig ACPI
-> >> >>       bool "ACPI (Advanced Configuration and Power Interface) Support"
-> >> >>       depends on !IA64_HP_SIM
-> >> >> -     depends on IA64 || X86 || (ARM64 && EXPERT)
-> >> >> +     depends on IA64 || X86 || ARM64
-> >> >>       depends on PCI
-> >> >>       select PNP
-> >> >>       default y
-> >>
-> >> OK
-> >>
-> >> What do the ARM64 maintainers think?
-> >
-> > I'm unsure about whether or not we want 'default y' here, but I'd like
-> > to wait for Catalin to come back from his 2-week holiday before going
-> > anywhere with this patch.
-> 
-> Ack to that, but ...
-> 
-> > It's only fair that his opinion should be
-> > taken into account, and there's not a huge rush for this. I do consider
-> > "ACPI-only platforms" as simply "platforms without a .dtb" (modulo
-> > any significant AML code) and therefore don't view this as a blocking
-> > issue.
-> >
-> 
-> ... this patch will only affect those systems. DT-based systems, even
-> if they provide an ACPI description as well, will not invoke the ACPI
-> code unless you go out of your way to either boot without a DT or pass
-> 'acpi=force' on the command line. On the other hand, it will make
-> generic kernels (defconfig, etc) bootable on ACPI only systems, which
-> currently require special kernel builds. Another important reason for
-> this change is to get more build testing coverage for the arm64 ACPI
-> code that we had so much fuss about, e.g, by the kbuild test robot.
+'ARM Server Base Boot Requirements' [1] mentions SPCR (Serial Port
+Console Redirection Table) [2] as a mandatory ACPI table that
+specifies the configuration of serial console.
 
-I'd really like to get away from the concept of ACPI-only systems. Would
-we reject a .dtb contribution for such a machine?
+Move "earlycon" early_param handling to earlycon.c to parse this option once
 
-> > We should also take into account the large amount of ongoing ACPI work
-> > (e.g. the DSD and PRP0001 saga, PCI and IORT support, virtualisation work,
-> > etc), and decide whether or not that's currently in a state where we want
-> > to encourage people to start using this in their arm64 kernels.
-> >
-> 
-> The question is not about using it, the question is about
-> incorporating it into the default build. The runtime opt-in is not
-> going away with this patch.
+*** PATCH  "ACPICA: Headers: Add new constants for the DBG2 ACPI table"
+*** IS JUST TO ENABLE BUILDING THE PATCHSET ON linux-next
 
-I understand that, but I still think that removing the dependency on
-EXPERT is indicative of saying "this stuff is good to be used by the
-masses", irrespective of a cmdline option. Maybe that's true, but it's
-not immediately obvious to me, with all the patches in flight.
+Patch "ACPICA: Headers: Add new constants for the DBG2 ACPI table" is required
+for the next patch.  It is taken from ACPICA series [3], but it has not appeared
+in linux-next yet.
 
-Will
+Parse SPCR table, setup earlycon and add register specified console.
+
+Enable parsing this table on ARM64.  Earlycon should be set up
+as early as possible.  ACPI boot tables are mapped in
+arch/arm64/kernel/acpi.c:acpi_boot_table_init() called from setup_arch()
+and that's where we parse spcr.  So it has to be opted-in per-arch.
+
+Implement console_match() for pl011.
+
+Based on the work by Leif Lindholm [4]
+Thanks to Peter Hurley for explaining how this should work.
+
+Should be applied to next-20160331.
+
+Tested on QEMU.  SPCR support is included in QEMU's ARM mach-virt
+since 2.4 release.
+
+v7:
+- add Acked-by: Rob Herring for "of/serial: move earlycon early_param handling
+  to serial"
+- call DT earlycon initialization from the arch ACPI code, not from parse_spcr()
+  (Rafael J. Wysocki)
+- fix a few minor issues (Rafael J. Wysocki)
+
+v6:
+https://lkml.kernel.org/g/1458823925-19560-1-git-send-email-aleksey.makarov@linaro.org
+- add documentation for parse_spcr() functioin (Yury Norov)
+- don't initialize err variable (Yury Norov)
+- add __initdata for the earlycon_init_is_deferred flag variable
+- rename the function exported in "of/serial: move earlycon early_param handling
+  to serial" to avoid clash with the function from arch/microblaze/kernel/prom.c
+- defer initialization of DT earlycon until DT/ACPI decision is made
+  (Rob Herring, Peter Hurley)
+- use snprintf instead of sprintf (Andy Shevchenko)
+- drop patch that adds EARLYCON_DECLARE for pl011 as EARLYCON_DECLARE is
+  equivalent to OF_EARLYCON_DECLARE for 4.6+ (Peter Hurley).  This means that
+  SPCR earlycon will not work on the kernels before 4.6
+
+v5:
+https://lkml.kernel.org/g/1458643595-14719-1-git-send-email-aleksey.makarov@linaro.org
+- drop patch "serial: pl011: use ACPI SPCR to setup 32-bit access" because
+  it is ugly. Also because Christopher Covington came with a better solution [5]
+- remove error message when the table is not provided by ACPI (Andy Shevchenko)
+- rewrite spcr.c following the suggestions by Peter Hurley
+- add console_match() for pl011 in a separate patch
+- add EARLYCON_DECLARE for pl011 in a separate patch
+- add patch "of/serial: move earlycon early_param handling to serial" from
+  the GDB2 series
+
+v4:
+https://lkml.kernel.org/g/1456747355-15692-1-git-send-email-aleksey.makarov@linaro.org
+- drop patch "ACPI: change __init to __ref for early_acpi_os_unmap_memory()"
+  ACPI developers work on a new API and asked not to do that.
+  Instead, use acpi_get_table_with_size()/early_acpi_os_unmap_memory() once
+  and cache the result. (Lv Zheng)
+- fix some style issues (Yury Norov)
+
+v3:
+https://lkml.kernel.org/g/1455559532-8305-1-git-send-email-aleksey.makarov@linaro.org
+
+Greg Kroah-Hartman did not like v2 so I have rewritten this patchset:
+
+- drop acpi_match() member of struct console
+- drop implementations of this member for pl011 and 8250
+- drop the patch that renames some vars in printk.c as it is not needed anymore
+- drop patch that introduces system wide acpi_table_parse2().
+  Instead introduce a custom acpi_table_parse_spcr() in spcr.c
+
+Instead of introducing a new match_acpi() member of struct console,
+this patchset introduces a new function acpi_console_check().
+This function is called when a new uart is registered at serial_core.c
+the same way OF code checks for console.  If the registered uart is the
+console specified by SPCR table, this function calls add_preferred_console()
+
+The restrictions of this approach are:
+
+- only serial consoles can be set up
+- only consoles specified by the memory/io address can be set up
+  (SPCR can specify devices by PCI id/PCI address)
+
+v2:
+https://lkml.kernel.org/g/1455299022-11641-1-git-send-email-aleksey.makarov@linaro.org
+- don't use SPCR if user specified console in command line
+- fix initialization order of newcon->index = 0
+- rename some variables at printk.c (Joe Perches, Peter Hurley)
+- enable ACPI_SPCR_TABLE in a separate patch (Andy Shevchenko)
+- remove the retry loop for console registering (Peter Hurley).
+  Instead, obtain SPCR with acpi_get_table().  That works after
+  call to acpi_early_init() i. e. in any *_initcall()
+- describe design decision behind introducing acpi_match() (Peter Hurley)
+- fix compilation for x86 + ACPI (Graeme Gregory)
+- introduce DBG2 constants in a separate patch (Andy Shevchenko)
+- fix a typo in DBG2 constants (Andy Shevchenko)
+- add ACPI_DBG2_ARM_SBSA_32BIT constant (Christopher Covington)
+- add support for ACPI_DBG2_ARM_SBSA_* consoles (Christopher Covington)
+- add documentation for functions
+- add a patch that uses SPCR to find if SBSA serial driver should use 32-bit
+  accessor functions (Christopher Covington)
+- change __init to __ref for early_acpi_os_unmap_memory() in a separate patch
+- introduce acpi_table_parse2() in a separate patch
+- fix fetching the SPCR table early (Mark Salter)
+- add a patch from Mark Salter that introduces support for matching 8250-based
+  consoles
+
+v1:
+https://lkml.kernel.org/g/1453722324-22407-1-git-send-email-aleksey.makarov@linaro.org
+
+[1] http://infocenter.arm.com/help/index.jsp?topic=/com.arm.doc.den0044a/index.html
+[2] https://msdn.microsoft.com/en-us/library/windows/hardware/dn639132(v=vs.85).aspx
+[3] https://lkml.kernel.org/g/cover.1458714002.git.lv.zheng@intel.com
+[4] https://lkml.kernel.org/g/1441716217-23786-1-git-send-email-leif.lindholm@linaro.org
+[5] https://lkml.kernel.org/g/1457415800-8799-1-git-send-email-cov@codeaurora.org
+
+Aleksey Makarov (4):
+  ACPICA: Headers: Add new constants for the DBG2 ACPI table
+  ACPI: parse SPCR and enable matching console
+  ARM64: ACPI: enable ACPI_SPCR_TABLE
+  serial: pl011: add console matching function
+
+Leif Lindholm (1):
+  of/serial: move earlycon early_param handling to serial
+
+ arch/arm64/Kconfig              |   1 +
+ arch/arm64/kernel/acpi.c        |  11 +++-
+ drivers/acpi/Kconfig            |   3 ++
+ drivers/acpi/Makefile           |   1 +
+ drivers/acpi/spcr.c             | 111 ++++++++++++++++++++++++++++++++++++++++
+ drivers/of/fdt.c                |  11 +---
+ drivers/tty/serial/amba-pl011.c |  56 ++++++++++++++++++++
+ drivers/tty/serial/earlycon.c   |  19 ++++++-
+ include/acpi/actbl2.h           |   7 ++-
+ include/linux/acpi.h            |   6 +++
+ include/linux/of_fdt.h          |   2 +
+ include/linux/serial_core.h     |   6 +++
+ 12 files changed, 220 insertions(+), 14 deletions(-)
+ create mode 100644 drivers/acpi/spcr.c
+
+-- 
+2.7.4
