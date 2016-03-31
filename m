@@ -1,88 +1,107 @@
-From: Mark Brown <broonie@kernel.org>
-Subject: Re: [PATCH] ACPI / ARM64: Remove EXPERT dependency for ACPI on ARM64
-Date: Thu, 31 Mar 2016 08:28:54 -0700
-Message-ID: <20160331152854.GA2350@sirena.org.uk>
-References: <1459360718-24125-1-git-send-email-broonie@kernel.org>
- <56FC9D1D.6090808@huawei.com>
- <CAJZ5v0gv-MJ+Ss8gtc80z2_sOq-3qfBYbspRU8MWRNvn+UVbUg@mail.gmail.com>
- <20160331123649.GE18910@arm.com>
+From: Greg Kroah-Hartman <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>
+Subject: Re: [PATCH v7 1/5] of/serial: move earlycon early_param handling to
+ serial
+Date: Thu, 31 Mar 2016 09:32:03 -0700
+Message-ID: <20160331163203.GC10256@kroah.com>
+References: <1459431629-27934-1-git-send-email-aleksey.makarov@linaro.org>
+ <1459431629-27934-2-git-send-email-aleksey.makarov@linaro.org>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
-	protocol="application/pgp-signature"; boundary="kD5A6s5fH5u0LDZc"
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mezzanine.sirena.org.uk ([106.187.55.193]:60370 "EHLO
-	mezzanine.sirena.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752260AbcCaP3U (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 31 Mar 2016 11:29:20 -0400
-Content-Disposition: inline
-In-Reply-To: <20160331123649.GE18910@arm.com>
-Sender: linux-acpi-owner@vger.kernel.org
-List-Id: linux-acpi@vger.kernel.org
-To: Will Deacon <will.deacon@arm.com>
-Cc: "Rafael J. Wysocki" <rafael@kernel.org>, Hanjun Guo <guohanjun@huawei.com>, Catalin Marinas <catalin.marinas@arm.com>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Graeme Gregory <graeme.gregory@linaro.org>, Mark Rutland <mark.rutland@arm.com>, Steve Capper <steve.capper@linaro.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
-
-
---kD5A6s5fH5u0LDZc
 Content-Type: text/plain; charset=us-ascii
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
+In-Reply-To: <1459431629-27934-2-git-send-email-aleksey.makarov-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Aleksey Makarov <aleksey.makarov-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
+Cc: Russell King <linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org>, linux-serial-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, "Rafael J . Wysocki" <rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org>, Len Brown <lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Leif Lindholm <leif.lindholm-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Graeme Gregory <graeme.gregory-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Al Stone <ahs3-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Christopher Covington <cov-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, Yury Norov <ynorov-M3mlKVOIwJVv6pq1l3V1OdBPR1lH4CV8@public.gmane.org>, Peter Hurley <peter-WaGBZJeGNqdsbIuE7sb01tBPR1lH4CV8@public.gmane.org>, Andy Shevchenko <andy.shevchenko-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, "Zheng, Lv" <lv.zheng-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Frank Rowand <frowand.list-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Grant Likely <grant.likely-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Jiri Slaby <jslaby-IBi9RG/b67k@public.gmane.org>, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+List-Id: linux-acpi@vger.kernel.org
 
-On Thu, Mar 31, 2016 at 01:36:50PM +0100, Will Deacon wrote:
+On Thu, Mar 31, 2016 at 04:40:23PM +0300, Aleksey Makarov wrote:
+> From: Leif Lindholm <leif.lindholm-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
+> 
+> We have multiple "earlycon" early_param handlers - merge the DT one into
+> the main earlycon one.  It's a cleanup that also will be useful
+> to defer setting up DT console until ACPI/DT decision is made.
+> 
+> Rename the exported function to avoid clashing with the function from
+> arch/microblaze/kernel/prom.c
+> 
+> Signed-off-by: Leif Lindholm <leif.lindholm-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
+> Signed-off-by: Aleksey Makarov <aleksey.makarov-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
+> Acked-by: Rob Herring <robh-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+> ---
+>  drivers/of/fdt.c              | 11 +----------
+>  drivers/tty/serial/earlycon.c |  2 +-
+>  include/linux/of_fdt.h        |  2 ++
+>  3 files changed, 4 insertions(+), 11 deletions(-)
+> 
+> diff --git a/drivers/of/fdt.c b/drivers/of/fdt.c
+> index 3349d2a..b50f775 100644
+> --- a/drivers/of/fdt.c
+> +++ b/drivers/of/fdt.c
+> @@ -805,7 +805,7 @@ static inline void early_init_dt_check_for_initrd(unsigned long node)
+>  
+>  #ifdef CONFIG_SERIAL_EARLYCON
+>  
+> -static int __init early_init_dt_scan_chosen_serial(void)
+> +int __init early_init_dt_scan_chosen_stdout(void)
+>  {
+>  	int offset;
+>  	const char *p, *q, *options = NULL;
+> @@ -849,15 +849,6 @@ static int __init early_init_dt_scan_chosen_serial(void)
+>  	}
+>  	return -ENODEV;
+>  }
+> -
+> -static int __init setup_of_earlycon(char *buf)
+> -{
+> -	if (buf)
+> -		return 0;
+> -
+> -	return early_init_dt_scan_chosen_serial();
+> -}
+> -early_param("earlycon", setup_of_earlycon);
+>  #endif
+>  
+>  /**
+> diff --git a/drivers/tty/serial/earlycon.c b/drivers/tty/serial/earlycon.c
+> index 067783f..7aae655 100644
+> --- a/drivers/tty/serial/earlycon.c
+> +++ b/drivers/tty/serial/earlycon.c
+> @@ -209,7 +209,7 @@ static int __init param_setup_earlycon(char *buf)
+>  	 * don't generate a warning from parse_early_params() in that case
+>  	 */
+>  	if (!buf || !buf[0])
+> -		return 0;
+> +		return early_init_dt_scan_chosen_stdout();
+>  
+>  	err = setup_earlycon(buf);
+>  	if (err == -ENOENT || err == -EALREADY)
+> diff --git a/include/linux/of_fdt.h b/include/linux/of_fdt.h
+> index 2fbe868..5cfe322 100644
+> --- a/include/linux/of_fdt.h
+> +++ b/include/linux/of_fdt.h
+> @@ -63,6 +63,7 @@ extern int early_init_dt_scan_chosen(unsigned long node, const char *uname,
+>  				     int depth, void *data);
+>  extern int early_init_dt_scan_memory(unsigned long node, const char *uname,
+>  				     int depth, void *data);
+> +extern int early_init_dt_scan_chosen_stdout(void);
+>  extern void early_init_fdt_scan_reserved_mem(void);
+>  extern void early_init_fdt_reserve_self(void);
+>  extern void early_init_dt_add_memory_arch(u64 base, u64 size);
+> @@ -91,6 +92,7 @@ extern void early_get_first_memblock_info(void *, phys_addr_t *);
+>  extern u64 of_flat_dt_translate_address(unsigned long node);
+>  extern void of_fdt_limit_memory(int limit);
+>  #else /* CONFIG_OF_FLATTREE */
+> +static inline int early_init_dt_scan_chosen_stdout(void) { return -ENODEV; }
 
-> I'm unsure about whether or not we want 'default y' here, but I'd like
+Doesn't this change the default logic?  Today you are returning 0 if you
+don't have this config option set, and now you return -ENODEV, did you
+test this out?
 
-I can easily do followup patches which change that to be "default y if
-!ARM64" (or default y if $OTHER_ARCHES) and adding CONFIG_ACPI to
-defconfig (for the test coverage) if that helps?  I think that's
-perfectly reasonable.  As Ard says if both DT and ACPI are built in then
-the kernel will continue to prefer DT if it finds one.
+thanks,
 
-> to wait for Catalin to come back from his 2-week holiday before going
-> anywhere with this patch. It's only fair that his opinion should be
-> taken into account, and there's not a huge rush for this. I do consider
-
-It definitely makes sense to get Catalin's input.  I do think that this
-is something we don't want to defer indefinitely though, I think we're
-hurting ourselves more than we're helping.
-
-> "ACPI-only platforms" as simply "platforms without a .dtb" (modulo
-> any significant AML code) and therefore don't view this as a blocking
-> issue.
-
-I think people with a system with no DT provided might disagree on that
-one, and that this isn't really about end users or even distros but
-rather about the people working upstream and especially doing test and
-QA work upstream.
-
-> We should also take into account the large amount of ongoing ACPI work
-> (e.g. the DSD and PRP0001 saga, PCI and IORT support, virtualisation work,
-> etc), and decide whether or not that's currently in a state where we want
-> to encourage people to start using this in their arm64 kernels.
-
-My perception is that the EXPERT dependency is not having a meaningful
-impact on people who want to use ACPI, they're just going ahead and
-doing it anyway and expecting that distros will ship kernels which
-enable ACPI (which realistically the ones that don't currently are going
-to do as they start encountering these platforms).  There doesn't seem
-to be much sign that decisions about shipping systems are being guided
-by this and the work that's happening on ACPI is going on regardless,
-some of it x86 focused.
-
-The kernel will still continue to prefer DT on arm64 systems so it's
-still the default upstream.
-
---kD5A6s5fH5u0LDZc
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2
-
-iQEcBAEBCAAGBQJW/UIzAAoJECTWi3JdVIfQp5QH/3dJH6IkjIVh6nemPuQvhC+T
-yKUcH5JHxUmGVSfXFAv3n4mQUKeT3o7uBsoC3ckr5YrClCGHS3FBhlzd8yw06WsL
-+TDLlGZWIZWkK9t3BPrjtcBEDEELn9gErxDgSS4CFmFnkVfdKCK6+GeRuCLhR1v1
-b1IfW+KyfkcYQ6f6gg0fAelCLHd8LIrJ/a/GsLIVGV1o8lv29MZ4TETWouoRONPL
-6vXJSewZlE84IbTCes+38q562fXnZUqrzoYavNKmm33xlV0iJTm1PIGs1ehQ2ULU
-IckUcL3jVKDmwTH4flB1azoei8p4k9iOsiIuGiY3OL1OG/8v/WPfRDwhtrAtftc=
-=07Pc
------END PGP SIGNATURE-----
-
---kD5A6s5fH5u0LDZc--
+greg k-h
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
