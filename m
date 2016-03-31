@@ -1,59 +1,35 @@
-From: Andy Shevchenko <andy.shevchenko@gmail.com>
-Subject: Re: [PATCH v6 1/2] gpio: dwapb: convert device node to fwnode
-Date: Thu, 31 Mar 2016 16:25:22 +0300
-Message-ID: <CAHp75VcJ92vB-b7daMpd2i9hP4MPU2CAQf7JoiBx5rKFvB1RVw@mail.gmail.com>
-References: <1458959496-57455-1-git-send-email-qiujiang@huawei.com>
-	<1458959496-57455-2-git-send-email-qiujiang@huawei.com>
-	<CANk1AXT5yHMwPJ7=0kSZKr+eHHdC1QXQVgstQ6QhFbUPSKuD+A@mail.gmail.com>
-	<CAHp75VcDAg_aXt7ej-_zXxHMXJohRM9ErQkJQS_ryekD-7V=zw@mail.gmail.com>
-	<56FC7491.5050000@huawei.com>
+From: Elder I Frank <eesdeityrs@jjhghg.website.tk>
+Subject: To Your Attention
+Date: Thu, 31 Mar 2016 06:30:21 -0700
+Message-ID: <AM2PR05MB0691160AD12E308B60F3258089990@AM2PR05MB0691.eurprd05.prod.outlook.com>
+Reply-To: <elder_frank1@yahoo.co.jp>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-gpio-owner@vger.kernel.org>
-In-Reply-To: <56FC7491.5050000@huawei.com>
-Sender: linux-gpio-owner@vger.kernel.org
-To: qiujiang <qiujiang@huawei.com>
-Cc: Alan Tull <delicious.quinoa@gmail.com>, Linus Walleij <linus.walleij@linaro.org>, Alexandre Courbot <gnurou@gmail.com>, Mika Westerberg <mika.westerberg@linux.intel.com>, Jamie Iles <jamie@jamieiles.com>, linux-kernel <linux-kernel@vger.kernel.org>, "linux-gpio@vger.kernel.org" <linux-gpio@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, linuxarm@huawei.com, haifeng.wei@huawei.com, charles.chenxin@huawei.com, atull <atull@opensource.altera.com>
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-db3hn0252.outbound.protection.outlook.com ([157.55.234.252]:47731
+	"EHLO emea01-db3-obe.outbound.protection.outlook.com"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1750762AbcCaNaZ convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 31 Mar 2016 09:30:25 -0400
+Content-Description: Mail message body
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Recipients <eesdeityrs@jjhghg.website.tk>
 
-On Thu, Mar 31, 2016 at 3:51 AM, Jiang Qiu <qiujiang@huawei.com> wrote:
-> =E5=9C=A8 2016/3/30 19:38, Andy Shevchenko =E5=86=99=E9=81=93:
+To Your Attention,
 
->>> One suggestion for both patches: you could remove name from struct
->>> dwapb_port_property and get rid of pp->name and nobody would miss i=
-t.
->>> All it is used for is some dev_err's so the device info gets printe=
-d
->>> anyway.  For example (if I leave the irq out of the DT)
->>>
->>> gpio-dwapb ff708000.gpio: no irq for bank /soc/gpio@ff708000/gpio-c=
-ontroller@0
->>>
->>> is redundant.  The only additional info here from the name is the p=
-ort
->>> index.  That could be added to the messages without having to get t=
-he
->>> name through the two property/of methods.
->>>
->>
->> Good suggestion! That'll make patches and code cleaner.
->>
->> Perhaps separate prepended  patch?
->>
-> Hi Alan/Andy,
->
-> It sounds good, I will follow this suggestion and do a test. But, wha=
-t's the
-> "separate prepended patch" mean?
+On behalf of the board and management of International Monetary Committees it was resolved by the federal executive council and agreed that your Inheritance/Contract Fund valued at $10.5M would be released to you via DIPLOMATIC CHANNEL immediately your attention is received so you are advice to confirm the following information.send your reply to: elderifrank@gmail.com
 
-Preparatory patch which goes first in the series.
+Your Name,===============
+Address,===================
+Next of kin.==============
+Your Occupation=============
+A scanned copy of your ID or passport.=============
+Direct TelePhone Number===================
 
---=20
-With Best Regards,
-Andy Shevchenko
---
-To unsubscribe from this list: send the line "unsubscribe linux-gpio" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Regards
+
+Elder Idris Frank
+Federal Ministry of Finance
+Email:elderifrank@gmail.com
