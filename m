@@ -1,115 +1,59 @@
-From: Ard Biesheuvel <ard.biesheuvel@linaro.org>
-Subject: Re: [PATCH] ACPI / ARM64: Remove EXPERT dependency for ACPI on ARM64
-Date: Thu, 31 Mar 2016 15:20:03 +0200
-Message-ID: <CAKv+Gu_i8q_xKQgJ1mJ5hE_gcdJgHkh_QZhUNwQchsyH9r-pJQ@mail.gmail.com>
-References: <1459360718-24125-1-git-send-email-broonie@kernel.org>
-	<56FC9D1D.6090808@huawei.com>
-	<CAJZ5v0gv-MJ+Ss8gtc80z2_sOq-3qfBYbspRU8MWRNvn+UVbUg@mail.gmail.com>
-	<20160331123649.GE18910@arm.com>
+From: Andy Shevchenko <andy.shevchenko@gmail.com>
+Subject: Re: [PATCH v6 1/2] gpio: dwapb: convert device node to fwnode
+Date: Thu, 31 Mar 2016 16:25:22 +0300
+Message-ID: <CAHp75VcJ92vB-b7daMpd2i9hP4MPU2CAQf7JoiBx5rKFvB1RVw@mail.gmail.com>
+References: <1458959496-57455-1-git-send-email-qiujiang@huawei.com>
+	<1458959496-57455-2-git-send-email-qiujiang@huawei.com>
+	<CANk1AXT5yHMwPJ7=0kSZKr+eHHdC1QXQVgstQ6QhFbUPSKuD+A@mail.gmail.com>
+	<CAHp75VcDAg_aXt7ej-_zXxHMXJohRM9ErQkJQS_ryekD-7V=zw@mail.gmail.com>
+	<56FC7491.5050000@huawei.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-io0-f180.google.com ([209.85.223.180]:36378 "EHLO
-	mail-io0-f180.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752047AbcCaNUF (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 31 Mar 2016 09:20:05 -0400
-Received: by mail-io0-f180.google.com with SMTP id q128so111444459iof.3
-        for <linux-acpi@vger.kernel.org>; Thu, 31 Mar 2016 06:20:03 -0700 (PDT)
-In-Reply-To: <20160331123649.GE18910@arm.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-gpio-owner@vger.kernel.org>
+In-Reply-To: <56FC7491.5050000@huawei.com>
+Sender: linux-gpio-owner@vger.kernel.org
+To: qiujiang <qiujiang@huawei.com>
+Cc: Alan Tull <delicious.quinoa@gmail.com>, Linus Walleij <linus.walleij@linaro.org>, Alexandre Courbot <gnurou@gmail.com>, Mika Westerberg <mika.westerberg@linux.intel.com>, Jamie Iles <jamie@jamieiles.com>, linux-kernel <linux-kernel@vger.kernel.org>, "linux-gpio@vger.kernel.org" <linux-gpio@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, linuxarm@huawei.com, haifeng.wei@huawei.com, charles.chenxin@huawei.com, atull <atull@opensource.altera.com>
 List-Id: linux-acpi@vger.kernel.org
-To: Will Deacon <will.deacon@arm.com>
-Cc: "Rafael J. Wysocki" <rafael@kernel.org>, Mark Rutland <mark.rutland@arm.com>, Steve Capper <steve.capper@linaro.org>, Graeme Gregory <graeme.gregory@linaro.org>, Catalin Marinas <catalin.marinas@arm.com>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Mark Brown <broonie@kernel.org>, Hanjun Guo <guohanjun@huawei.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Len Brown <lenb@kernel.org>
 
-On 31 March 2016 at 14:36, Will Deacon <will.deacon@arm.com> wrote:
-> On Thu, Mar 31, 2016 at 02:04:05PM +0200, Rafael J. Wysocki wrote:
->> On Thu, Mar 31, 2016 at 5:44 AM, Hanjun Guo <guohanjun@huawei.com> wrote:
->> > On 2016/3/31 1:58, Mark Brown wrote:
->> >> When ACPI was originally merged for arm64 it had only been tested on
->> >> emulators and not on real physical platforms and no platforms were
->> >> relying on it.  This meant that there were concerns that there might be
->> >> serious issues attempting to use it on practical systems so it had a
->> >> dependency on EXPERT added to warn people that it was in an early stage
->> >> of development with very little practical testing.  Since then things
->> >> have moved on a bit.  We have seen people testing on real hardware and
->> >> now have people starting to produce some platforms (the most prominent
->> >> being the 96boards Cello) which only have ACPI support and which build
->> >> and run to some useful extent with mainline.
->> >>
->> >> This is not to say that ACPI support or support for these systems is
->> >> completely done, there are still areas being worked on such as PCI, but
->> >> at this point it seems that we can be reasonably sure that ACPI will be
->> >> viable for use on ARM64 and that the already merged support works for
->> >> the cases it handles.  For the AMD Seattle based platforms support
->> >> outside of PCI has been fairly complete in mainline a few releases now.
->> >>
->> >> This is also not to say that we don't have vendors working with ACPI who
->> >> are trying do things that we would not consider optimal but it does not
->> >> appear that the EXPERT dependency is having a substantial impact on
->> >> these vendors.
->> >>
->> >> Given all this it seems that at this point the EXPERT dependency mainly
->> >> creates inconvenience for users with systems that are doing the right
->> >> thing and gets in the way of including the ACPI code in the testing that
->> >> people are doing on mainline.  Removing it should help our ongoing
->> >> testing cover those platforms with only ACPI support and help ensure
->> >> that when ACPI code is merged any problems it causes for other users are
->> >> more easily discovered.
->> >>
->> >> Signed-off-by: Mark Brown <broonie@kernel.org>
->> >
->> > Acked-by: Hanjun Guo <hanjun.guo@linaro.org>
->> >
->> >> ---
->> >>  drivers/acpi/Kconfig | 2 +-
->> >>  1 file changed, 1 insertion(+), 1 deletion(-)
->> >>
->> >> diff --git a/drivers/acpi/Kconfig b/drivers/acpi/Kconfig
->> >> index 82b96ee8624c..bf5dc1ac3446 100644
->> >> --- a/drivers/acpi/Kconfig
->> >> +++ b/drivers/acpi/Kconfig
->> >> @@ -5,7 +5,7 @@
->> >>  menuconfig ACPI
->> >>       bool "ACPI (Advanced Configuration and Power Interface) Support"
->> >>       depends on !IA64_HP_SIM
->> >> -     depends on IA64 || X86 || (ARM64 && EXPERT)
->> >> +     depends on IA64 || X86 || ARM64
->> >>       depends on PCI
->> >>       select PNP
->> >>       default y
+On Thu, Mar 31, 2016 at 3:51 AM, Jiang Qiu <qiujiang@huawei.com> wrote:
+> =E5=9C=A8 2016/3/30 19:38, Andy Shevchenko =E5=86=99=E9=81=93:
+
+>>> One suggestion for both patches: you could remove name from struct
+>>> dwapb_port_property and get rid of pp->name and nobody would miss i=
+t.
+>>> All it is used for is some dev_err's so the device info gets printe=
+d
+>>> anyway.  For example (if I leave the irq out of the DT)
+>>>
+>>> gpio-dwapb ff708000.gpio: no irq for bank /soc/gpio@ff708000/gpio-c=
+ontroller@0
+>>>
+>>> is redundant.  The only additional info here from the name is the p=
+ort
+>>> index.  That could be added to the messages without having to get t=
+he
+>>> name through the two property/of methods.
+>>>
 >>
->> OK
+>> Good suggestion! That'll make patches and code cleaner.
 >>
->> What do the ARM64 maintainers think?
+>> Perhaps separate prepended  patch?
+>>
+> Hi Alan/Andy,
 >
-> I'm unsure about whether or not we want 'default y' here, but I'd like
-> to wait for Catalin to come back from his 2-week holiday before going
-> anywhere with this patch.
+> It sounds good, I will follow this suggestion and do a test. But, wha=
+t's the
+> "separate prepended patch" mean?
 
-Ack to that, but ...
+Preparatory patch which goes first in the series.
 
-> It's only fair that his opinion should be
-> taken into account, and there's not a huge rush for this. I do consider
-> "ACPI-only platforms" as simply "platforms without a .dtb" (modulo
-> any significant AML code) and therefore don't view this as a blocking
-> issue.
->
-
-... this patch will only affect those systems. DT-based systems, even
-if they provide an ACPI description as well, will not invoke the ACPI
-code unless you go out of your way to either boot without a DT or pass
-'acpi=force' on the command line. On the other hand, it will make
-generic kernels (defconfig, etc) bootable on ACPI only systems, which
-currently require special kernel builds. Another important reason for
-this change is to get more build testing coverage for the arm64 ACPI
-code that we had so much fuss about, e.g, by the kbuild test robot.
-
-> We should also take into account the large amount of ongoing ACPI work
-> (e.g. the DSD and PRP0001 saga, PCI and IORT support, virtualisation work,
-> etc), and decide whether or not that's currently in a state where we want
-> to encourage people to start using this in their arm64 kernels.
->
-
-The question is not about using it, the question is about
-incorporating it into the default build. The runtime opt-in is not
-going away with this patch.
+--=20
+With Best Regards,
+Andy Shevchenko
+--
+To unsubscribe from this list: send the line "unsubscribe linux-gpio" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
