@@ -1,88 +1,115 @@
-From: Peter Zijlstra <peterz@infradead.org>
-Subject: Re: [Update][PATCH v7 7/7] cpufreq: schedutil: New governor based on
- scheduler utilization data
-Date: Thu, 31 Mar 2016 14:48:43 +0200
-Message-ID: <20160331124843.GM3408@twins.programming.kicks-ass.net>
-References: <7262976.zPkLj56ATU@vostro.rjw.lan>
- <6666532.7ULg06hQ7e@vostro.rjw.lan>
- <145931680.Kk1xSBT0Ro@vostro.rjw.lan>
+From: Ard Biesheuvel <ard.biesheuvel@linaro.org>
+Subject: Re: [PATCH] ACPI / ARM64: Remove EXPERT dependency for ACPI on ARM64
+Date: Thu, 31 Mar 2016 15:20:03 +0200
+Message-ID: <CAKv+Gu_i8q_xKQgJ1mJ5hE_gcdJgHkh_QZhUNwQchsyH9r-pJQ@mail.gmail.com>
+References: <1459360718-24125-1-git-send-email-broonie@kernel.org>
+	<56FC9D1D.6090808@huawei.com>
+	<CAJZ5v0gv-MJ+Ss8gtc80z2_sOq-3qfBYbspRU8MWRNvn+UVbUg@mail.gmail.com>
+	<20160331123649.GE18910@arm.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-pm-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <145931680.Kk1xSBT0Ro@vostro.rjw.lan>
-Sender: linux-pm-owner@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: Linux PM list <linux-pm@vger.kernel.org>, Juri Lelli <juri.lelli@arm.com>, Steve Muckle <steve.muckle@linaro.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>, Viresh Kumar <viresh.kumar@linaro.org>, Vincent Guittot <vincent.guittot@linaro.org>, Michael Turquette <mturquette@baylibre.com>, Ingo Molnar <mingo@kernel.org>
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-io0-f180.google.com ([209.85.223.180]:36378 "EHLO
+	mail-io0-f180.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752047AbcCaNUF (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 31 Mar 2016 09:20:05 -0400
+Received: by mail-io0-f180.google.com with SMTP id q128so111444459iof.3
+        for <linux-acpi@vger.kernel.org>; Thu, 31 Mar 2016 06:20:03 -0700 (PDT)
+In-Reply-To: <20160331123649.GE18910@arm.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Will Deacon <will.deacon@arm.com>
+Cc: "Rafael J. Wysocki" <rafael@kernel.org>, Mark Rutland <mark.rutland@arm.com>, Steve Capper <steve.capper@linaro.org>, Graeme Gregory <graeme.gregory@linaro.org>, Catalin Marinas <catalin.marinas@arm.com>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Mark Brown <broonie@kernel.org>, Hanjun Guo <guohanjun@huawei.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Len Brown <lenb@kernel.org>
 
-On Wed, Mar 30, 2016 at 04:00:24AM +0200, Rafael J. Wysocki wrote:
-> From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-> 
-> Add a new cpufreq scaling governor, called "schedutil", that uses
-> scheduler-provided CPU utilization information as input for making
-> its decisions.
-> 
-> Doing that is possible after commit 34e2c555f3e1 (cpufreq: Add
-> mechanism for registering utilization update callbacks) that
-> introduced cpufreq_update_util() called by the scheduler on
-> utilization changes (from CFS) and RT/DL task status updates.
-> In particular, CPU frequency scaling decisions may be based on
-> the the utilization data passed to cpufreq_update_util() by CFS.
-> 
-> The new governor is relatively simple.
-> 
-> The frequency selection formula used by it depends on whether or not
-> the utilization is frequency-invariant.  In the frequency-invariant
-> case the new CPU frequency is given by
-> 
-> 	next_freq = 1.25 * max_freq * util / max
-> 
-> where util and max are the last two arguments of cpufreq_update_util().
-> In turn, if util is not frequency-invariant, the maximum frequency in
-> the above formula is replaced with the current frequency of the CPU:
-> 
-> 	next_freq = 1.25 * curr_freq * util / max
-> 
-> The coefficient 1.25 corresponds to the frequency tipping point at
-> (util / max) = 0.8.
-> 
-> All of the computations are carried out in the utilization update
-> handlers provided by the new governor.  One of those handlers is
-> used for cpufreq policies shared between multiple CPUs and the other
-> one is for policies with one CPU only (and therefore it doesn't need
-> to use any extra synchronization means).
-> 
-> The governor supports fast frequency switching if that is supported
-> by the cpufreq driver in use and possible for the given policy.
-> In the fast switching case, all operations of the governor take
-> place in its utilization update handlers.  If fast switching cannot
-> be used, the frequency switch operations are carried out with the
-> help of a work item which only calls __cpufreq_driver_target()
-> (under a mutex) to trigger a frequency update (to a value already
-> computed beforehand in one of the utilization update handlers).
-> 
-> Currently, the governor treats all of the RT and DL tasks as
-> "unknown utilization" and sets the frequency to the allowed
-> maximum when updated from the RT or DL sched classes.  That
-> heavy-handed approach should be replaced with something more
-> subtle and specifically targeted at RT and DL tasks.
-> 
-> The governor shares some tunables management code with the
-> "ondemand" and "conservative" governors and uses some common
-> definitions from cpufreq_governor.h, but apart from that it
-> is stand-alone.
-> 
-> Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-> ---
->  drivers/cpufreq/Kconfig          |   29 ++
->  kernel/sched/Makefile            |    1 
->  kernel/sched/cpufreq_schedutil.c |  528 +++++++++++++++++++++++++++++++++++++++
->  kernel/sched/sched.h             |    8 
->  4 files changed, 566 insertions(+)
+On 31 March 2016 at 14:36, Will Deacon <will.deacon@arm.com> wrote:
+> On Thu, Mar 31, 2016 at 02:04:05PM +0200, Rafael J. Wysocki wrote:
+>> On Thu, Mar 31, 2016 at 5:44 AM, Hanjun Guo <guohanjun@huawei.com> wrote:
+>> > On 2016/3/31 1:58, Mark Brown wrote:
+>> >> When ACPI was originally merged for arm64 it had only been tested on
+>> >> emulators and not on real physical platforms and no platforms were
+>> >> relying on it.  This meant that there were concerns that there might be
+>> >> serious issues attempting to use it on practical systems so it had a
+>> >> dependency on EXPERT added to warn people that it was in an early stage
+>> >> of development with very little practical testing.  Since then things
+>> >> have moved on a bit.  We have seen people testing on real hardware and
+>> >> now have people starting to produce some platforms (the most prominent
+>> >> being the 96boards Cello) which only have ACPI support and which build
+>> >> and run to some useful extent with mainline.
+>> >>
+>> >> This is not to say that ACPI support or support for these systems is
+>> >> completely done, there are still areas being worked on such as PCI, but
+>> >> at this point it seems that we can be reasonably sure that ACPI will be
+>> >> viable for use on ARM64 and that the already merged support works for
+>> >> the cases it handles.  For the AMD Seattle based platforms support
+>> >> outside of PCI has been fairly complete in mainline a few releases now.
+>> >>
+>> >> This is also not to say that we don't have vendors working with ACPI who
+>> >> are trying do things that we would not consider optimal but it does not
+>> >> appear that the EXPERT dependency is having a substantial impact on
+>> >> these vendors.
+>> >>
+>> >> Given all this it seems that at this point the EXPERT dependency mainly
+>> >> creates inconvenience for users with systems that are doing the right
+>> >> thing and gets in the way of including the ACPI code in the testing that
+>> >> people are doing on mainline.  Removing it should help our ongoing
+>> >> testing cover those platforms with only ACPI support and help ensure
+>> >> that when ACPI code is merged any problems it causes for other users are
+>> >> more easily discovered.
+>> >>
+>> >> Signed-off-by: Mark Brown <broonie@kernel.org>
+>> >
+>> > Acked-by: Hanjun Guo <hanjun.guo@linaro.org>
+>> >
+>> >> ---
+>> >>  drivers/acpi/Kconfig | 2 +-
+>> >>  1 file changed, 1 insertion(+), 1 deletion(-)
+>> >>
+>> >> diff --git a/drivers/acpi/Kconfig b/drivers/acpi/Kconfig
+>> >> index 82b96ee8624c..bf5dc1ac3446 100644
+>> >> --- a/drivers/acpi/Kconfig
+>> >> +++ b/drivers/acpi/Kconfig
+>> >> @@ -5,7 +5,7 @@
+>> >>  menuconfig ACPI
+>> >>       bool "ACPI (Advanced Configuration and Power Interface) Support"
+>> >>       depends on !IA64_HP_SIM
+>> >> -     depends on IA64 || X86 || (ARM64 && EXPERT)
+>> >> +     depends on IA64 || X86 || ARM64
+>> >>       depends on PCI
+>> >>       select PNP
+>> >>       default y
+>>
+>> OK
+>>
+>> What do the ARM64 maintainers think?
+>
+> I'm unsure about whether or not we want 'default y' here, but I'd like
+> to wait for Catalin to come back from his 2-week holiday before going
+> anywhere with this patch.
 
-I think this is a good first step and we can definitely work from here;
-afaict there are no (big) disagreements on the general approach, so
+Ack to that, but ...
 
-Acked-by: Peter Zijlstra (Intel) <peterz@infradead.org>
+> It's only fair that his opinion should be
+> taken into account, and there's not a huge rush for this. I do consider
+> "ACPI-only platforms" as simply "platforms without a .dtb" (modulo
+> any significant AML code) and therefore don't view this as a blocking
+> issue.
+>
 
+... this patch will only affect those systems. DT-based systems, even
+if they provide an ACPI description as well, will not invoke the ACPI
+code unless you go out of your way to either boot without a DT or pass
+'acpi=force' on the command line. On the other hand, it will make
+generic kernels (defconfig, etc) bootable on ACPI only systems, which
+currently require special kernel builds. Another important reason for
+this change is to get more build testing coverage for the arm64 ACPI
+code that we had so much fuss about, e.g, by the kbuild test robot.
+
+> We should also take into account the large amount of ongoing ACPI work
+> (e.g. the DSD and PRP0001 saga, PCI and IORT support, virtualisation work,
+> etc), and decide whether or not that's currently in a state where we want
+> to encourage people to start using this in their arm64 kernels.
+>
+
+The question is not about using it, the question is about
+incorporating it into the default build. The runtime opt-in is not
+going away with this patch.
