@@ -1,36 +1,77 @@
-From: Daniel Bristot de Oliveira <bristot@redhat.com>
-Subject: Re: [PATCH] ACPICA: Remove unnecessary "\n" from an ACPI_INFO boot
- message
-Date: Wed, 30 Mar 2016 22:11:29 -0300
-Message-ID: <56FC7941.2080202@redhat.com>
-References: <74bc15316c48bb33c0954d94c0595720ee0955bd.1459187689.git.bristot@redhat.com>
- <94F2FBAB4432B54E8AACC7DFDE6C92E37E455538@ORSMSX110.amr.corp.intel.com>
+From: Steve Muckle <steve.muckle@linaro.org>
+Subject: Re: [Update][PATCH v7 7/7] cpufreq: schedutil: New governor based on
+ scheduler utilization data
+Date: Wed, 30 Mar 2016 18:44:00 -0700
+Message-ID: <56FC80E0.9020206@linaro.org>
+References: <7262976.zPkLj56ATU@vostro.rjw.lan>
+ <6666532.7ULg06hQ7e@vostro.rjw.lan> <145931680.Kk1xSBT0Ro@vostro.rjw.lan>
+ <20160330053011.GF8773@vireshk-i7>
+ <CAJZ5v0iB_7zZSu5-H-px7NYiaZ_P6DW3dqx-bKs7eohWudwxvQ@mail.gmail.com>
+ <56FC0773.6060605@linaro.org>
+ <CAJZ5v0gztvG4u=euSA0W+3Pt4dPZ58JCSJPTCbXvfVt_Zid38Q@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252
+Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:43376 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750803AbcCaBLd (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 30 Mar 2016 21:11:33 -0400
-In-Reply-To: <94F2FBAB4432B54E8AACC7DFDE6C92E37E455538@ORSMSX110.amr.corp.intel.com>
+Received: from mail-pa0-f54.google.com ([209.85.220.54]:35341 "EHLO
+	mail-pa0-f54.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751045AbcCaBoE (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 30 Mar 2016 21:44:04 -0400
+Received: by mail-pa0-f54.google.com with SMTP id td3so53739824pab.2
+        for <linux-acpi@vger.kernel.org>; Wed, 30 Mar 2016 18:44:03 -0700 (PDT)
+In-Reply-To: <CAJZ5v0gztvG4u=euSA0W+3Pt4dPZ58JCSJPTCbXvfVt_Zid38Q@mail.gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Moore, Robert" <robert.moore@intel.com>, "Zheng, Lv" <lv.zheng@intel.com>, "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>, Len Brown <lenb@kernel.org>
-Cc: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "devel@acpica.org" <devel@acpica.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
+To: "Rafael J. Wysocki" <rafael@kernel.org>
+Cc: Viresh Kumar <viresh.kumar@linaro.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Linux PM list <linux-pm@vger.kernel.org>, Juri Lelli <juri.lelli@arm.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Peter Zijlstra <peterz@infradead.org>, Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>, Vincent Guittot <vincent.guittot@linaro.org>, Michael Turquette <mturquette@baylibre.com>, Ingo Molnar <mingo@kernel.org>
 
+On 03/30/2016 10:24 AM, Rafael J. Wysocki wrote:
+> On Wed, Mar 30, 2016 at 7:05 PM, Steve Muckle <steve.muckle@linaro.org> wrote:
+>> On 03/30/2016 04:31 AM, Rafael J. Wysocki wrote:
+>>>>>>> +static int sugov_limits(struct cpufreq_policy *policy)
+>>>>>>> +{
+>>>>>>> +     struct sugov_policy *sg_policy = policy->governor_data;
+>>>>>>> +
+>>>>>>> +     if (!policy->fast_switch_enabled) {
+>>>>>>> +             mutex_lock(&sg_policy->work_lock);
+>>>>>>> +
+>>>>>>> +             if (policy->max < policy->cur)
+>>>>>>> +                     __cpufreq_driver_target(policy, policy->max,
+>>>>>>> +                                             CPUFREQ_RELATION_H);
+>>>>>>> +             else if (policy->min > policy->cur)
+>>>>>>> +                     __cpufreq_driver_target(policy, policy->min,
+>>>>>>> +                                             CPUFREQ_RELATION_L);
+>>>>>>> +
+>>>>>>> +             mutex_unlock(&sg_policy->work_lock);
+>>>>>>> +     }
+>>>>>>> +
+>>>>>>> +     sg_policy->need_freq_update = true;
+>>>>>
+>>>>> I am wondering why we need to do this for !fast_switch_enabled case?
+>>>
+>>> That will cause the rate limit to be ignored in the utilization update
+>>> handler which may be necessary if it is set to a relatively large
+>>> value (like 1 s).
+>>
+>> But why is that necessary for !fast_switch_enabled? In that case the
+>> frequency has been adjusted to satisfy the new limits here, so ignoring
+>> the rate limit shouldn't be necessary. In other words why not
+>>
+>> } else {
+>>         sg_policy->need_freq_update = true;
+>> }
+> 
+> My thinking here was that the governor might decide to use something
+> different from the limit enforced here, so it would be good to make it
+> do so as soon as possible.  In particular in the
+> non-frequency-invariant utilization case in which new frequency
+> depends on the current one.
+> 
+> That said i'm not particularly opposed to making that change if that's
+> preferred.
 
+Ah ok fair enough. No strong opinion from me...
 
-On 03/29/2016 04:09 PM, Moore, Robert wrote:
-> Actually, I did in fact put that there to break up the output after the tables are loaded. Is this a problem?
+thanks,
+Steve
 
-Well, I do not believe that there is a real problem on it.
-
-On the other hand, it does not seem to be common to have blank lines in
-the kernel log, and as there is no info about from where the black line
-comes from, it does not even seems to be connected to the previous
-message. So although my patch is about "cosmetics", IMHO it is worth as
-pattern or best practices. Feel free to reject if it is not the case, np
-:-).
-
--- Daniel
