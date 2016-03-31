@@ -1,141 +1,81 @@
-From: Shannon Zhao <zhaoshenglong@huawei.com>
-Subject: [PATCH v9 01/17] Xen: ACPI: Hide UART used by Xen
-Date: Thu, 31 Mar 2016 19:23:29 +0800
-Message-ID: <1459423425-1220-2-git-send-email-zhaoshenglong@huawei.com>
-References: <1459423425-1220-1-git-send-email-zhaoshenglong@huawei.com>
-Mime-Version: 1.0
-Content-Type: text/plain
+From: Irina Tirdea <irina.tirdea@intel.com>
+Subject: [RFC PATCH 0/4] Add ACPI support for pinctrl configuration
+Date: Thu, 31 Mar 2016 14:44:41 +0300
+Message-ID: <1459424685-26965-1-git-send-email-irina.tirdea@intel.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1459423425-1220-1-git-send-email-zhaoshenglong@huawei.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: linux-arm-kernel@lists.infradead.org, stefano.stabellini@citrix.com, david.vrabel@citrix.com
-Cc: catalin.marinas@arm.com, will.deacon@arm.com, sstabellini@kernel.org, julien.grall@arm.com, xen-devel@lists.xen.org, devicetree@vger.kernel.org, linux-efi@vger.kernel.org, linux-kernel@vger.kernel.org, shannon.zhao@linaro.org, peter.huangpeng@huawei.com, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, "open list:ACPI" <linux-acpi@vger.kernel.org>
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Mika Westerberg <mika.westerberg@linux.intel.com>, Linus Walleij <linus.walleij@linaro.org>, linux-gpio@vger.kernel.org, linux-acpi@vger.kernel.org
+Cc: Rob Herring <robh+dt@kernel.org>, Heikki Krogerus <heikki.krogerus@linux.intel.com>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Octavian Purdila <octavian.purdila@intel.com>, Cristina Ciocan <cristina.ciocan@intel.com>, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, Irina Tirdea <irina.tirdea@intel.com>
 List-Id: linux-acpi@vger.kernel.org
 
-From: Shannon Zhao <shannon.zhao@linaro.org>
+This is a proposal for adding ACPI support for pin controller
+configuration.
 
-ACPI 6.0 introduces a new table STAO to list the devices which are used
-by Xen and can't be used by Dom0. On Xen virtual platforms, the physical
-UART is used by Xen. So here it hides UART from Dom0.
+It has been developed to enable the MinnowBoard and IoT community
+by providing an easy way to specify pin multiplexing and
+pin configuration.
 
-CC: "Rafael J. Wysocki" <rjw@rjwysocki.net> (supporter:ACPI)
-CC: Len Brown <lenb@kernel.org> (supporter:ACPI)
-CC: linux-acpi@vger.kernel.org (open list:ACPI)
-Signed-off-by: Shannon Zhao <shannon.zhao@linaro.org>
----
- drivers/acpi/scan.c | 69 +++++++++++++++++++++++++++++++++++++++++++++++++++++
- 1 file changed, 69 insertions(+)
+This proposal is based on using _DSD properties to specify device
+states and configuration nodes and it follows closely the device
+tree model. Device states are defined using the Device Properties
+format and the configuration nodes are defined using the
+Hierarchical Properties Extension format. The generic properties
+for the configuration nodes are the same as the ones for device
+tree, while pincontroller drivers can also define custom ones.
 
-diff --git a/drivers/acpi/scan.c b/drivers/acpi/scan.c
-index 5f28cf7..29f26fc 100644
---- a/drivers/acpi/scan.c
-+++ b/drivers/acpi/scan.c
-@@ -45,6 +45,7 @@ static LIST_HEAD(acpi_scan_handlers_list);
- DEFINE_MUTEX(acpi_device_lock);
- LIST_HEAD(acpi_wakeup_device_list);
- static DEFINE_MUTEX(acpi_hp_context_lock);
-+static u64 spcr_uart_addr;
- 
- struct acpi_dep_data {
- 	struct list_head node;
-@@ -1453,6 +1454,42 @@ static int acpi_add_single_object(struct acpi_device **child,
- 	return 0;
- }
- 
-+static acpi_status acpi_get_resource_memory(struct acpi_resource *ares,
-+					    void *context)
-+{
-+	struct resource *res = context;
-+
-+	if (acpi_dev_resource_memory(ares, res))
-+		return AE_CTRL_TERMINATE;
-+
-+	return AE_OK;
-+}
-+
-+static bool acpi_device_should_be_hidden(acpi_handle handle)
-+{
-+	acpi_status status;
-+	struct resource res;
-+
-+	/* Check if it should ignore the UART device */
-+	if (spcr_uart_addr != 0) {
-+		if (!acpi_has_method(handle, METHOD_NAME__CRS))
-+			return false;
-+
-+		status = acpi_walk_resources(handle, METHOD_NAME__CRS,
-+					     acpi_get_resource_memory, &res);
-+		if (ACPI_FAILURE(status))
-+			return false;
-+
-+		if (res.start == spcr_uart_addr) {
-+			printk(KERN_INFO PREFIX "The UART device @%pa in SPCR table will be hidden\n",
-+			       &res.start);
-+			return true;
-+		}
-+	}
-+
-+	return false;
-+}
-+
- static int acpi_bus_type_and_status(acpi_handle handle, int *type,
- 				    unsigned long long *sta)
- {
-@@ -1466,6 +1503,9 @@ static int acpi_bus_type_and_status(acpi_handle handle, int *type,
- 	switch (acpi_type) {
- 	case ACPI_TYPE_ANY:		/* for ACPI_ROOT_OBJECT */
- 	case ACPI_TYPE_DEVICE:
-+		if (acpi_device_should_be_hidden(handle))
-+			return -ENODEV;
-+
- 		*type = ACPI_BUS_TYPE_DEVICE;
- 		status = acpi_bus_get_status_handle(handle, sta);
- 		if (ACPI_FAILURE(status))
-@@ -1916,9 +1956,24 @@ static int acpi_bus_scan_fixed(void)
- 	return result < 0 ? result : 0;
- }
- 
-+static void __init acpi_get_spcr_uart_addr(void)
-+{
-+	acpi_status status;
-+	struct acpi_table_spcr *spcr_ptr;
-+
-+	status = acpi_get_table(ACPI_SIG_SPCR, 0,
-+				(struct acpi_table_header **)&spcr_ptr);
-+	if (ACPI_SUCCESS(status))
-+		spcr_uart_addr = spcr_ptr->serial_port.address;
-+	else
-+		printk(KERN_WARNING PREFIX "STAO table present, but SPCR is missing\n");
-+}
-+
- int __init acpi_scan_init(void)
- {
- 	int result;
-+	acpi_status status;
-+	struct acpi_table_stao *stao_ptr;
- 
- 	acpi_pci_root_init();
- 	acpi_pci_link_init();
-@@ -1934,6 +1989,20 @@ int __init acpi_scan_init(void)
- 
- 	acpi_scan_add_handler(&generic_device_handler);
- 
-+	/*
-+	 * If there is STAO table, check whether it needs to ignore the UART
-+	 * device in SPCR table.
-+	 */
-+	status = acpi_get_table(ACPI_SIG_STAO, 0,
-+				(struct acpi_table_header **)&stao_ptr);
-+	if (ACPI_SUCCESS(status)) {
-+		if (stao_ptr->header.length > sizeof(struct acpi_table_stao))
-+			printk(KERN_INFO PREFIX "STAO Name List not yet supported.");
-+
-+		if (stao_ptr->ignore_uart)
-+			acpi_get_spcr_uart_addr();
-+	}
-+
- 	mutex_lock(&acpi_scan_lock);
- 	/*
- 	 * Enumerate devices in the ACPI namespace.
+Irina Tirdea (4):
+  pinctrl: Rename pinctrl_utils_dt_free_map to pinctrl_utils_free_map
+  pinctrl: pinconf-generic: Add ACPI support
+  pinctrl: Add ACPI support
+  pinctrl: Parse GpioInt/GpioIo resources
+
+ Documentation/acpi/pinctrl-properties.txt        | 282 ++++++++++++
+ drivers/acpi/property.c                          |   8 +-
+ drivers/base/property.c                          |  36 +-
+ drivers/pinctrl/Makefile                         |   1 +
+ drivers/pinctrl/acpi.c                           | 551 +++++++++++++++++++++++
+ drivers/pinctrl/acpi.h                           |  32 ++
+ drivers/pinctrl/bcm/pinctrl-bcm281xx.c           |   2 +-
+ drivers/pinctrl/bcm/pinctrl-cygnus-mux.c         |   2 +-
+ drivers/pinctrl/bcm/pinctrl-iproc-gpio.c         |   2 +-
+ drivers/pinctrl/bcm/pinctrl-nsp-gpio.c           |   2 +-
+ drivers/pinctrl/berlin/berlin.c                  |   2 +-
+ drivers/pinctrl/core.c                           |  26 ++
+ drivers/pinctrl/core.h                           |   2 +
+ drivers/pinctrl/mediatek/pinctrl-mtk-common.c    |   4 +-
+ drivers/pinctrl/meson/pinctrl-meson.c            |   2 +-
+ drivers/pinctrl/nomadik/pinctrl-abx500.c         |   4 +-
+ drivers/pinctrl/nomadik/pinctrl-nomadik.c        |   4 +-
+ drivers/pinctrl/pinconf-generic.c                | 123 +++--
+ drivers/pinctrl/pinctrl-amd.c                    |   2 +-
+ drivers/pinctrl/pinctrl-as3722.c                 |   2 +-
+ drivers/pinctrl/pinctrl-at91-pio4.c              |   4 +-
+ drivers/pinctrl/pinctrl-digicolor.c              |   2 +-
+ drivers/pinctrl/pinctrl-lpc18xx.c                |   2 +-
+ drivers/pinctrl/pinctrl-palmas.c                 |   2 +-
+ drivers/pinctrl/pinctrl-pic32.c                  |   2 +-
+ drivers/pinctrl/pinctrl-pistachio.c              |   2 +-
+ drivers/pinctrl/pinctrl-tb10x.c                  |   2 +-
+ drivers/pinctrl/pinctrl-utils.c                  |   4 +-
+ drivers/pinctrl/pinctrl-utils.h                  |   2 +-
+ drivers/pinctrl/pinctrl-zynq.c                   |   2 +-
+ drivers/pinctrl/pxa/pinctrl-pxa2xx.c             |   2 +-
+ drivers/pinctrl/qcom/pinctrl-msm.c               |   2 +-
+ drivers/pinctrl/qcom/pinctrl-spmi-gpio.c         |   2 +-
+ drivers/pinctrl/qcom/pinctrl-spmi-mpp.c          |   2 +-
+ drivers/pinctrl/qcom/pinctrl-ssbi-gpio.c         |   2 +-
+ drivers/pinctrl/qcom/pinctrl-ssbi-mpp.c          |   2 +-
+ drivers/pinctrl/stm32/pinctrl-stm32.c            |   4 +-
+ drivers/pinctrl/tegra/pinctrl-tegra-xusb.c       |   2 +-
+ drivers/pinctrl/tegra/pinctrl-tegra.c            |   4 +-
+ drivers/pinctrl/uniphier/pinctrl-uniphier-core.c |   2 +-
+ include/linux/acpi.h                             |   4 +-
+ include/linux/pinctrl/pinconf-generic.h          |  27 +-
+ include/linux/property.h                         |   9 +
+ 43 files changed, 1063 insertions(+), 114 deletions(-)
+ create mode 100644 Documentation/acpi/pinctrl-properties.txt
+ create mode 100644 drivers/pinctrl/acpi.c
+ create mode 100644 drivers/pinctrl/acpi.h
+
 -- 
-2.0.4
+1.9.1
