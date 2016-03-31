@@ -1,77 +1,74 @@
-From: Steve Muckle <steve.muckle@linaro.org>
-Subject: Re: [Update][PATCH v7 7/7] cpufreq: schedutil: New governor based on
- scheduler utilization data
-Date: Wed, 30 Mar 2016 18:44:00 -0700
-Message-ID: <56FC80E0.9020206@linaro.org>
-References: <7262976.zPkLj56ATU@vostro.rjw.lan>
- <6666532.7ULg06hQ7e@vostro.rjw.lan> <145931680.Kk1xSBT0Ro@vostro.rjw.lan>
- <20160330053011.GF8773@vireshk-i7>
- <CAJZ5v0iB_7zZSu5-H-px7NYiaZ_P6DW3dqx-bKs7eohWudwxvQ@mail.gmail.com>
- <56FC0773.6060605@linaro.org>
- <CAJZ5v0gztvG4u=euSA0W+3Pt4dPZ58JCSJPTCbXvfVt_Zid38Q@mail.gmail.com>
+From: Hanjun Guo <guohanjun@huawei.com>
+Subject: Re: [PATCH] ACPI / ARM64: Remove EXPERT dependency for ACPI on ARM64
+Date: Thu, 31 Mar 2016 11:44:29 +0800
+Message-ID: <56FC9D1D.6090808@huawei.com>
+References: <1459360718-24125-1-git-send-email-broonie@kernel.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
+Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-pa0-f54.google.com ([209.85.220.54]:35341 "EHLO
-	mail-pa0-f54.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751045AbcCaBoE (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 30 Mar 2016 21:44:04 -0400
-Received: by mail-pa0-f54.google.com with SMTP id td3so53739824pab.2
-        for <linux-acpi@vger.kernel.org>; Wed, 30 Mar 2016 18:44:03 -0700 (PDT)
-In-Reply-To: <CAJZ5v0gztvG4u=euSA0W+3Pt4dPZ58JCSJPTCbXvfVt_Zid38Q@mail.gmail.com>
+Received: from szxga02-in.huawei.com ([119.145.14.65]:8975 "EHLO
+	szxga02-in.huawei.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755718AbcCaDpE (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 30 Mar 2016 23:45:04 -0400
+In-Reply-To: <1459360718-24125-1-git-send-email-broonie@kernel.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rafael@kernel.org>
-Cc: Viresh Kumar <viresh.kumar@linaro.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Linux PM list <linux-pm@vger.kernel.org>, Juri Lelli <juri.lelli@arm.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Peter Zijlstra <peterz@infradead.org>, Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>, Vincent Guittot <vincent.guittot@linaro.org>, Michael Turquette <mturquette@baylibre.com>, Ingo Molnar <mingo@kernel.org>
+To: Mark Brown <broonie@kernel.org>, Catalin Marinas <catalin.marinas@arm.com>, Will Deacon <will.deacon@arm.com>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>
+Cc: Graeme Gregory <graeme.gregory@linaro.org>, Mark Rutland <mark.rutland@arm.com>, Steve Capper <steve.capper@linaro.org>, linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-On 03/30/2016 10:24 AM, Rafael J. Wysocki wrote:
-> On Wed, Mar 30, 2016 at 7:05 PM, Steve Muckle <steve.muckle@linaro.org> wrote:
->> On 03/30/2016 04:31 AM, Rafael J. Wysocki wrote:
->>>>>>> +static int sugov_limits(struct cpufreq_policy *policy)
->>>>>>> +{
->>>>>>> +     struct sugov_policy *sg_policy = policy->governor_data;
->>>>>>> +
->>>>>>> +     if (!policy->fast_switch_enabled) {
->>>>>>> +             mutex_lock(&sg_policy->work_lock);
->>>>>>> +
->>>>>>> +             if (policy->max < policy->cur)
->>>>>>> +                     __cpufreq_driver_target(policy, policy->max,
->>>>>>> +                                             CPUFREQ_RELATION_H);
->>>>>>> +             else if (policy->min > policy->cur)
->>>>>>> +                     __cpufreq_driver_target(policy, policy->min,
->>>>>>> +                                             CPUFREQ_RELATION_L);
->>>>>>> +
->>>>>>> +             mutex_unlock(&sg_policy->work_lock);
->>>>>>> +     }
->>>>>>> +
->>>>>>> +     sg_policy->need_freq_update = true;
->>>>>
->>>>> I am wondering why we need to do this for !fast_switch_enabled case?
->>>
->>> That will cause the rate limit to be ignored in the utilization update
->>> handler which may be necessary if it is set to a relatively large
->>> value (like 1 s).
->>
->> But why is that necessary for !fast_switch_enabled? In that case the
->> frequency has been adjusted to satisfy the new limits here, so ignoring
->> the rate limit shouldn't be necessary. In other words why not
->>
->> } else {
->>         sg_policy->need_freq_update = true;
->> }
-> 
-> My thinking here was that the governor might decide to use something
-> different from the limit enforced here, so it would be good to make it
-> do so as soon as possible.  In particular in the
-> non-frequency-invariant utilization case in which new frequency
-> depends on the current one.
-> 
-> That said i'm not particularly opposed to making that change if that's
-> preferred.
+On 2016/3/31 1:58, Mark Brown wrote:
+> When ACPI was originally merged for arm64 it had only been tested on
+> emulators and not on real physical platforms and no platforms were
+> relying on it.  This meant that there were concerns that there might be
+> serious issues attempting to use it on practical systems so it had a
+> dependency on EXPERT added to warn people that it was in an early stage
+> of development with very little practical testing.  Since then things
+> have moved on a bit.  We have seen people testing on real hardware and
+> now have people starting to produce some platforms (the most prominent
+> being the 96boards Cello) which only have ACPI support and which build
+> and run to some useful extent with mainline.
+>
+> This is not to say that ACPI support or support for these systems is
+> completely done, there are still areas being worked on such as PCI, but
+> at this point it seems that we can be reasonably sure that ACPI will be
+> viable for use on ARM64 and that the already merged support works for
+> the cases it handles.  For the AMD Seattle based platforms support
+> outside of PCI has been fairly complete in mainline a few releases now.
+>
+> This is also not to say that we don't have vendors working with ACPI who
+> are trying do things that we would not consider optimal but it does not
+> appear that the EXPERT dependency is having a substantial impact on
+> these vendors.
+>
+> Given all this it seems that at this point the EXPERT dependency mainly
+> creates inconvenience for users with systems that are doing the right
+> thing and gets in the way of including the ACPI code in the testing that
+> people are doing on mainline.  Removing it should help our ongoing
+> testing cover those platforms with only ACPI support and help ensure
+> that when ACPI code is merged any problems it causes for other users are
+> more easily discovered.
+>
+> Signed-off-by: Mark Brown <broonie@kernel.org>
 
-Ah ok fair enough. No strong opinion from me...
+Acked-by: Hanjun Guo <hanjun.guo@linaro.org>
 
-thanks,
-Steve
+> ---
+>  drivers/acpi/Kconfig | 2 +-
+>  1 file changed, 1 insertion(+), 1 deletion(-)
+>
+> diff --git a/drivers/acpi/Kconfig b/drivers/acpi/Kconfig
+> index 82b96ee8624c..bf5dc1ac3446 100644
+> --- a/drivers/acpi/Kconfig
+> +++ b/drivers/acpi/Kconfig
+> @@ -5,7 +5,7 @@
+>  menuconfig ACPI
+>  	bool "ACPI (Advanced Configuration and Power Interface) Support"
+>  	depends on !IA64_HP_SIM
+> -	depends on IA64 || X86 || (ARM64 && EXPERT)
+> +	depends on IA64 || X86 || ARM64
+>  	depends on PCI
+>  	select PNP
+>  	default y
+
 
