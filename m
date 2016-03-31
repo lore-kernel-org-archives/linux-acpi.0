@@ -1,148 +1,88 @@
-From: Ard Biesheuvel <ard.biesheuvel@linaro.org>
+From: Mark Brown <broonie@kernel.org>
 Subject: Re: [PATCH] ACPI / ARM64: Remove EXPERT dependency for ACPI on ARM64
-Date: Thu, 31 Mar 2016 16:48:44 +0200
-Message-ID: <CAKv+Gu_TfX8aOXig63gWH535he-dPiMr14ig7bUL+LJC_n3=9Q@mail.gmail.com>
+Date: Thu, 31 Mar 2016 08:28:54 -0700
+Message-ID: <20160331152854.GA2350@sirena.org.uk>
 References: <1459360718-24125-1-git-send-email-broonie@kernel.org>
-	<56FC9D1D.6090808@huawei.com>
-	<CAJZ5v0gv-MJ+Ss8gtc80z2_sOq-3qfBYbspRU8MWRNvn+UVbUg@mail.gmail.com>
-	<20160331123649.GE18910@arm.com>
-	<CAKv+Gu_i8q_xKQgJ1mJ5hE_gcdJgHkh_QZhUNwQchsyH9r-pJQ@mail.gmail.com>
-	<20160331133848.GH18910@arm.com>
+ <56FC9D1D.6090808@huawei.com>
+ <CAJZ5v0gv-MJ+Ss8gtc80z2_sOq-3qfBYbspRU8MWRNvn+UVbUg@mail.gmail.com>
+ <20160331123649.GE18910@arm.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: multipart/signed; micalg=pgp-sha256;
+	protocol="application/pgp-signature"; boundary="kD5A6s5fH5u0LDZc"
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-io0-f181.google.com ([209.85.223.181]:33082 "EHLO
-	mail-io0-f181.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755652AbcCaOsp (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 31 Mar 2016 10:48:45 -0400
-Received: by mail-io0-f181.google.com with SMTP id a129so108937347ioe.0
-        for <linux-acpi@vger.kernel.org>; Thu, 31 Mar 2016 07:48:45 -0700 (PDT)
-In-Reply-To: <20160331133848.GH18910@arm.com>
+Received: from mezzanine.sirena.org.uk ([106.187.55.193]:60370 "EHLO
+	mezzanine.sirena.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752260AbcCaP3U (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 31 Mar 2016 11:29:20 -0400
+Content-Disposition: inline
+In-Reply-To: <20160331123649.GE18910@arm.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: Will Deacon <will.deacon@arm.com>
-Cc: "Rafael J. Wysocki" <rafael@kernel.org>, Mark Rutland <mark.rutland@arm.com>, Steve Capper <steve.capper@linaro.org>, Graeme Gregory <graeme.gregory@linaro.org>, Catalin Marinas <catalin.marinas@arm.com>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Mark Brown <broonie@kernel.org>, Hanjun Guo <guohanjun@huawei.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Len Brown <lenb@kernel.org>
+Cc: "Rafael J. Wysocki" <rafael@kernel.org>, Hanjun Guo <guohanjun@huawei.com>, Catalin Marinas <catalin.marinas@arm.com>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Graeme Gregory <graeme.gregory@linaro.org>, Mark Rutland <mark.rutland@arm.com>, Steve Capper <steve.capper@linaro.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
-On 31 March 2016 at 15:38, Will Deacon <will.deacon@arm.com> wrote:
-> On Thu, Mar 31, 2016 at 03:20:03PM +0200, Ard Biesheuvel wrote:
->> On 31 March 2016 at 14:36, Will Deacon <will.deacon@arm.com> wrote:
->> > On Thu, Mar 31, 2016 at 02:04:05PM +0200, Rafael J. Wysocki wrote:
->> >> On Thu, Mar 31, 2016 at 5:44 AM, Hanjun Guo <guohanjun@huawei.com> wrote:
->> >> > On 2016/3/31 1:58, Mark Brown wrote:
->> >> >> When ACPI was originally merged for arm64 it had only been tested on
->> >> >> emulators and not on real physical platforms and no platforms were
->> >> >> relying on it.  This meant that there were concerns that there might be
->> >> >> serious issues attempting to use it on practical systems so it had a
->> >> >> dependency on EXPERT added to warn people that it was in an early stage
->> >> >> of development with very little practical testing.  Since then things
->> >> >> have moved on a bit.  We have seen people testing on real hardware and
->> >> >> now have people starting to produce some platforms (the most prominent
->> >> >> being the 96boards Cello) which only have ACPI support and which build
->> >> >> and run to some useful extent with mainline.
->> >> >>
->> >> >> This is not to say that ACPI support or support for these systems is
->> >> >> completely done, there are still areas being worked on such as PCI, but
->> >> >> at this point it seems that we can be reasonably sure that ACPI will be
->> >> >> viable for use on ARM64 and that the already merged support works for
->> >> >> the cases it handles.  For the AMD Seattle based platforms support
->> >> >> outside of PCI has been fairly complete in mainline a few releases now.
->> >> >>
->> >> >> This is also not to say that we don't have vendors working with ACPI who
->> >> >> are trying do things that we would not consider optimal but it does not
->> >> >> appear that the EXPERT dependency is having a substantial impact on
->> >> >> these vendors.
->> >> >>
->> >> >> Given all this it seems that at this point the EXPERT dependency mainly
->> >> >> creates inconvenience for users with systems that are doing the right
->> >> >> thing and gets in the way of including the ACPI code in the testing that
->> >> >> people are doing on mainline.  Removing it should help our ongoing
->> >> >> testing cover those platforms with only ACPI support and help ensure
->> >> >> that when ACPI code is merged any problems it causes for other users are
->> >> >> more easily discovered.
->> >> >>
->> >> >> Signed-off-by: Mark Brown <broonie@kernel.org>
->> >> >
->> >> > Acked-by: Hanjun Guo <hanjun.guo@linaro.org>
->> >> >
->> >> >> ---
->> >> >>  drivers/acpi/Kconfig | 2 +-
->> >> >>  1 file changed, 1 insertion(+), 1 deletion(-)
->> >> >>
->> >> >> diff --git a/drivers/acpi/Kconfig b/drivers/acpi/Kconfig
->> >> >> index 82b96ee8624c..bf5dc1ac3446 100644
->> >> >> --- a/drivers/acpi/Kconfig
->> >> >> +++ b/drivers/acpi/Kconfig
->> >> >> @@ -5,7 +5,7 @@
->> >> >>  menuconfig ACPI
->> >> >>       bool "ACPI (Advanced Configuration and Power Interface) Support"
->> >> >>       depends on !IA64_HP_SIM
->> >> >> -     depends on IA64 || X86 || (ARM64 && EXPERT)
->> >> >> +     depends on IA64 || X86 || ARM64
->> >> >>       depends on PCI
->> >> >>       select PNP
->> >> >>       default y
->> >>
->> >> OK
->> >>
->> >> What do the ARM64 maintainers think?
->> >
->> > I'm unsure about whether or not we want 'default y' here, but I'd like
->> > to wait for Catalin to come back from his 2-week holiday before going
->> > anywhere with this patch.
->>
->> Ack to that, but ...
->>
->> > It's only fair that his opinion should be
->> > taken into account, and there's not a huge rush for this. I do consider
->> > "ACPI-only platforms" as simply "platforms without a .dtb" (modulo
->> > any significant AML code) and therefore don't view this as a blocking
->> > issue.
->> >
->>
->> ... this patch will only affect those systems. DT-based systems, even
->> if they provide an ACPI description as well, will not invoke the ACPI
->> code unless you go out of your way to either boot without a DT or pass
->> 'acpi=force' on the command line. On the other hand, it will make
->> generic kernels (defconfig, etc) bootable on ACPI only systems, which
->> currently require special kernel builds. Another important reason for
->> this change is to get more build testing coverage for the arm64 ACPI
->> code that we had so much fuss about, e.g, by the kbuild test robot.
->
-> I'd really like to get away from the concept of ACPI-only systems. Would
-> we reject a .dtb contribution for such a machine?
->
 
-Absolutely not, and I expect such contributions will appear sooner
-rather than later.
+--kD5A6s5fH5u0LDZc
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-But the point of ACPI is the abstraction, and the ridiculous churn in
-DTB's carried in mainline clearly shows the need for that*. So there
-will be ACPI-only systems because the drivers are coded against the
-abstracted interface, and DT is simply not a drop-in replacement in
-that case.
+On Thu, Mar 31, 2016 at 01:36:50PM +0100, Will Deacon wrote:
 
-* of course, with the whole DSD debacle and the heterogeneity of the
-ARM ecosystem compared to the standardized PC, it remains to be seen
-if these systems require firmware upgrades less often than there are
-DT changes in the upstream tree, but at least the patches are applied
-on the correct [hardware] side in this case.
+> I'm unsure about whether or not we want 'default y' here, but I'd like
 
->> > We should also take into account the large amount of ongoing ACPI work
->> > (e.g. the DSD and PRP0001 saga, PCI and IORT support, virtualisation work,
->> > etc), and decide whether or not that's currently in a state where we want
->> > to encourage people to start using this in their arm64 kernels.
->> >
->>
->> The question is not about using it, the question is about
->> incorporating it into the default build. The runtime opt-in is not
->> going away with this patch.
->
-> I understand that, but I still think that removing the dependency on
-> EXPERT is indicative of saying "this stuff is good to be used by the
-> masses", irrespective of a cmdline option. Maybe that's true, but it's
-> not immediately obvious to me, with all the patches in flight.
->
+I can easily do followup patches which change that to be "default y if
+!ARM64" (or default y if $OTHER_ARCHES) and adding CONFIG_ACPI to
+defconfig (for the test coverage) if that helps?  I think that's
+perfectly reasonable.  As Ard says if both DT and ACPI are built in then
+the kernel will continue to prefer DT if it finds one.
 
-Well, we are not cc'ing to stable, are we? Or do you think the current
-stuff is so broken that we should even protect users of the upstream
-HEAD branch against it?
+> to wait for Catalin to come back from his 2-week holiday before going
+> anywhere with this patch. It's only fair that his opinion should be
+> taken into account, and there's not a huge rush for this. I do consider
+
+It definitely makes sense to get Catalin's input.  I do think that this
+is something we don't want to defer indefinitely though, I think we're
+hurting ourselves more than we're helping.
+
+> "ACPI-only platforms" as simply "platforms without a .dtb" (modulo
+> any significant AML code) and therefore don't view this as a blocking
+> issue.
+
+I think people with a system with no DT provided might disagree on that
+one, and that this isn't really about end users or even distros but
+rather about the people working upstream and especially doing test and
+QA work upstream.
+
+> We should also take into account the large amount of ongoing ACPI work
+> (e.g. the DSD and PRP0001 saga, PCI and IORT support, virtualisation work,
+> etc), and decide whether or not that's currently in a state where we want
+> to encourage people to start using this in their arm64 kernels.
+
+My perception is that the EXPERT dependency is not having a meaningful
+impact on people who want to use ACPI, they're just going ahead and
+doing it anyway and expecting that distros will ship kernels which
+enable ACPI (which realistically the ones that don't currently are going
+to do as they start encountering these platforms).  There doesn't seem
+to be much sign that decisions about shipping systems are being guided
+by this and the work that's happening on ACPI is going on regardless,
+some of it x86 focused.
+
+The kernel will still continue to prefer DT on arm64 systems so it's
+still the default upstream.
+
+--kD5A6s5fH5u0LDZc
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2
+
+iQEcBAEBCAAGBQJW/UIzAAoJECTWi3JdVIfQp5QH/3dJH6IkjIVh6nemPuQvhC+T
+yKUcH5JHxUmGVSfXFAv3n4mQUKeT3o7uBsoC3ckr5YrClCGHS3FBhlzd8yw06WsL
++TDLlGZWIZWkK9t3BPrjtcBEDEELn9gErxDgSS4CFmFnkVfdKCK6+GeRuCLhR1v1
+b1IfW+KyfkcYQ6f6gg0fAelCLHd8LIrJ/a/GsLIVGV1o8lv29MZ4TETWouoRONPL
+6vXJSewZlE84IbTCes+38q562fXnZUqrzoYavNKmm33xlV0iJTm1PIGs1ehQ2ULU
+IckUcL3jVKDmwTH4flB1azoei8p4k9iOsiIuGiY3OL1OG/8v/WPfRDwhtrAtftc=
+=07Pc
+-----END PGP SIGNATURE-----
+
+--kD5A6s5fH5u0LDZc--
