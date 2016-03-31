@@ -1,47 +1,95 @@
-From: "Rafael J. Wysocki" <rafael@kernel.org>
-Subject: Re: [PATCH v6 7/7][Resend] cpufreq: schedutil: New governor based on
- scheduler utilization data
-Date: Thu, 31 Mar 2016 14:32:44 +0200
-Message-ID: <CAJZ5v0j6eDmvVSBphvygA2Xnk9nQXqracFR+dBYz3UOeyrb7qA@mail.gmail.com>
-References: <7262976.zPkLj56ATU@vostro.rjw.lan>
-	<6666532.7ULg06hQ7e@vostro.rjw.lan>
-	<56F5E1F2.5090100@linaro.org>
-	<CAJZ5v0j=LwOT=sjSOwwzY=sYLqiV1tuvVazzgU+yMwMWXmpR8A@mail.gmail.com>
-	<CAJZ5v0i1=P45wWHYHVp9mW=h7w_MywFz7x2qmEs2iiEhJSq-5g@mail.gmail.com>
-	<56F97548.1030903@linaro.org>
-	<20160331122445.GJ3408@twins.programming.kicks-ass.net>
+From: Will Deacon <will.deacon@arm.com>
+Subject: Re: [PATCH] ACPI / ARM64: Remove EXPERT dependency for ACPI on ARM64
+Date: Thu, 31 Mar 2016 13:36:50 +0100
+Message-ID: <20160331123649.GE18910@arm.com>
+References: <1459360718-24125-1-git-send-email-broonie@kernel.org>
+ <56FC9D1D.6090808@huawei.com>
+ <CAJZ5v0gv-MJ+Ss8gtc80z2_sOq-3qfBYbspRU8MWRNvn+UVbUg@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-pm-owner@vger.kernel.org>
-In-Reply-To: <20160331122445.GJ3408@twins.programming.kicks-ass.net>
-Sender: linux-pm-owner@vger.kernel.org
-To: Peter Zijlstra <peterz@infradead.org>
-Cc: Steve Muckle <steve.muckle@linaro.org>, "Rafael J. Wysocki" <rafael@kernel.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Linux PM list <linux-pm@vger.kernel.org>, Juri Lelli <juri.lelli@arm.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>, Viresh Kumar <viresh.kumar@linaro.org>, Vincent Guittot <vincent.guittot@linaro.org>, Michael Turquette <mturquette@baylibre.com>, Ingo Molnar <mingo@kernel.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from foss.arm.com ([217.140.101.70]:54301 "EHLO foss.arm.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755652AbcCaMg1 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 31 Mar 2016 08:36:27 -0400
+Content-Disposition: inline
+In-Reply-To: <CAJZ5v0gv-MJ+Ss8gtc80z2_sOq-3qfBYbspRU8MWRNvn+UVbUg@mail.gmail.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: "Rafael J. Wysocki" <rafael@kernel.org>
+Cc: Hanjun Guo <guohanjun@huawei.com>, Mark Brown <broonie@kernel.org>, Catalin Marinas <catalin.marinas@arm.com>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Graeme Gregory <graeme.gregory@linaro.org>, Mark Rutland <mark.rutland@arm.com>, Steve Capper <steve.capper@linaro.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
-On Thu, Mar 31, 2016 at 2:24 PM, Peter Zijlstra <peterz@infradead.org> wrote:
-> On Mon, Mar 28, 2016 at 11:17:44AM -0700, Steve Muckle wrote:
->> The scenario I'm contemplating is that while a CPU-intensive task is
->> running a thermal interrupt goes off. The driver for this thermal
->> interrupt responds by capping fmax. If this happens just after the tick,
->> it seems possible that we could wait a full tick before changing the
->> frequency. Given a 10ms tick it could be rather annoying for thermal
->> management algorithms on some platforms (I'm familiar with a few).
->
-> So I'm blissfully unaware of all the thermal stuffs we have; but it
-> looks like its somehow bolten onto cpufreq without feedback.
->
-> The thing I worry about is thermal scaling the CPU back past where RT/DL
-> tasks can still complete in time. It should not be able to do that, or
-> rather, missing deadlines because thermal is about as useful as
-> rebooting the device.
+On Thu, Mar 31, 2016 at 02:04:05PM +0200, Rafael J. Wysocki wrote:
+> On Thu, Mar 31, 2016 at 5:44 AM, Hanjun Guo <guohanjun@huawei.com> wrote:
+> > On 2016/3/31 1:58, Mark Brown wrote:
+> >> When ACPI was originally merged for arm64 it had only been tested on
+> >> emulators and not on real physical platforms and no platforms were
+> >> relying on it.  This meant that there were concerns that there might be
+> >> serious issues attempting to use it on practical systems so it had a
+> >> dependency on EXPERT added to warn people that it was in an early stage
+> >> of development with very little practical testing.  Since then things
+> >> have moved on a bit.  We have seen people testing on real hardware and
+> >> now have people starting to produce some platforms (the most prominent
+> >> being the 96boards Cello) which only have ACPI support and which build
+> >> and run to some useful extent with mainline.
+> >>
+> >> This is not to say that ACPI support or support for these systems is
+> >> completely done, there are still areas being worked on such as PCI, but
+> >> at this point it seems that we can be reasonably sure that ACPI will be
+> >> viable for use on ARM64 and that the already merged support works for
+> >> the cases it handles.  For the AMD Seattle based platforms support
+> >> outside of PCI has been fairly complete in mainline a few releases now.
+> >>
+> >> This is also not to say that we don't have vendors working with ACPI who
+> >> are trying do things that we would not consider optimal but it does not
+> >> appear that the EXPERT dependency is having a substantial impact on
+> >> these vendors.
+> >>
+> >> Given all this it seems that at this point the EXPERT dependency mainly
+> >> creates inconvenience for users with systems that are doing the right
+> >> thing and gets in the way of including the ACPI code in the testing that
+> >> people are doing on mainline.  Removing it should help our ongoing
+> >> testing cover those platforms with only ACPI support and help ensure
+> >> that when ACPI code is merged any problems it causes for other users are
+> >> more easily discovered.
+> >>
+> >> Signed-off-by: Mark Brown <broonie@kernel.org>
+> >
+> > Acked-by: Hanjun Guo <hanjun.guo@linaro.org>
+> >
+> >> ---
+> >>  drivers/acpi/Kconfig | 2 +-
+> >>  1 file changed, 1 insertion(+), 1 deletion(-)
+> >>
+> >> diff --git a/drivers/acpi/Kconfig b/drivers/acpi/Kconfig
+> >> index 82b96ee8624c..bf5dc1ac3446 100644
+> >> --- a/drivers/acpi/Kconfig
+> >> +++ b/drivers/acpi/Kconfig
+> >> @@ -5,7 +5,7 @@
+> >>  menuconfig ACPI
+> >>       bool "ACPI (Advanced Configuration and Power Interface) Support"
+> >>       depends on !IA64_HP_SIM
+> >> -     depends on IA64 || X86 || (ARM64 && EXPERT)
+> >> +     depends on IA64 || X86 || ARM64
+> >>       depends on PCI
+> >>       select PNP
+> >>       default y
+> 
+> OK
+> 
+> What do the ARM64 maintainers think?
 
-Right.  If thermal throttling kicks in, the game is pretty much over.
+I'm unsure about whether or not we want 'default y' here, but I'd like
+to wait for Catalin to come back from his 2-week holiday before going
+anywhere with this patch. It's only fair that his opinion should be
+taken into account, and there's not a huge rush for this. I do consider
+"ACPI-only platforms" as simply "platforms without a .dtb" (modulo
+any significant AML code) and therefore don't view this as a blocking
+issue.
 
-That's why ideas float about taking the thermal constraints into
-account upfront, but that's a different discussion entirely.
+We should also take into account the large amount of ongoing ACPI work
+(e.g. the DSD and PRP0001 saga, PCI and IORT support, virtualisation work,
+etc), and decide whether or not that's currently in a state where we want
+to encourage people to start using this in their arm64 kernels.
 
-> I guess I'm saying is, the whole cpufreq/thermal 'interface' needs work
-> anyhow.
-
-Yes, it does.
+Will
