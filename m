@@ -1,59 +1,45 @@
-From: Steve Muckle <steve.muckle@linaro.org>
-Subject: Re: [Update][PATCH v7 7/7] cpufreq: schedutil: New governor based on
- scheduler utilization data
-Date: Fri, 1 Apr 2016 12:23:07 -0700
-Message-ID: <56FECA9B.20902@linaro.org>
-References: <7262976.zPkLj56ATU@vostro.rjw.lan>
- <6666532.7ULg06hQ7e@vostro.rjw.lan> <145931680.Kk1xSBT0Ro@vostro.rjw.lan>
- <56FEB4BA.4080403@linaro.org>
- <CAJZ5v0gHbTUGvShyxT3FwWYS58PCdw1pMPrDR8C5mhbSdERi8g@mail.gmail.com>
+From: "Rafael J. Wysocki" <rafael@kernel.org>
+Subject: Re: [RFC PATCH 06/10] spi: add support for ACPI reconfigure notifications
+Date: Fri, 1 Apr 2016 21:26:38 +0200
+Message-ID: <CAJZ5v0itmFDdPi6vJmsheEHADEwmeTNgCQ5iVroJfV=o6Wof3A@mail.gmail.com>
+References: <1459417026-6697-1-git-send-email-octavian.purdila@intel.com>
+	<1459417026-6697-7-git-send-email-octavian.purdila@intel.com>
+	<20160331172935.GL2350@sirena.org.uk>
+	<CAE1zotJbUGBOUF-4-XAx0DUkj55egOMXVn9FzjV3Fdj4MYxD0Q@mail.gmail.com>
+	<20160401140856.GW2350@sirena.org.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-pf0-f172.google.com ([209.85.192.172]:34233 "EHLO
-	mail-pf0-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752116AbcDATXK (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 1 Apr 2016 15:23:10 -0400
-Received: by mail-pf0-f172.google.com with SMTP id x3so97473997pfb.1
-        for <linux-acpi@vger.kernel.org>; Fri, 01 Apr 2016 12:23:09 -0700 (PDT)
-In-Reply-To: <CAJZ5v0gHbTUGvShyxT3FwWYS58PCdw1pMPrDR8C5mhbSdERi8g@mail.gmail.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-i2c-owner@vger.kernel.org>
+In-Reply-To: <20160401140856.GW2350@sirena.org.uk>
+Sender: linux-i2c-owner@vger.kernel.org
+To: Mark Brown <broonie@kernel.org>
+Cc: Octavian Purdila <octavian.purdila@intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Matt Fleming <matt@codeblueprint.co.uk>, Wolfram Sang <wsa@the-dreams.de>, Joel Becker <jlbec@evilplan.org>, Christoph Hellwig <hch@lst.de>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, linux-efi@vger.kernel.org, linux-i2c <linux-i2c@vger.kernel.org>, linux-spi@vger.kernel.org, lkml <linux-kernel@vger.kernel.org>, Irina Tirdea <irina.tirdea@intel.com>
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rafael@kernel.org>
-Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Linux PM list <linux-pm@vger.kernel.org>, Juri Lelli <juri.lelli@arm.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Peter Zijlstra <peterz@infradead.org>, Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>, Viresh Kumar <viresh.kumar@linaro.org>, Vincent Guittot <vincent.guittot@linaro.org>, Michael Turquette <mturquette@baylibre.com>, Ingo Molnar <mingo@kernel.org>
 
-On 04/01/2016 12:14 PM, Rafael J. Wysocki wrote:
-> On Fri, Apr 1, 2016 at 7:49 PM, Steve Muckle <steve.muckle@linaro.org> wrote:
->> On 03/29/2016 07:00 PM, Rafael J. Wysocki wrote:
->> ...
->>> +config CPU_FREQ_GOV_SCHEDUTIL
->>> +     tristate "'schedutil' cpufreq policy governor"
->>> +     depends on CPU_FREQ
->>> +     select CPU_FREQ_GOV_ATTR_SET
->>> +     select IRQ_WORK
->>> +     help
->>> +       This governor makes decisions based on the utilization data provided
->>> +       by the scheduler.  It sets the CPU frequency to be proportional to
->>> +       the utilization/capacity ratio coming from the scheduler.  If the
->>> +       utilization is frequency-invariant, the new frequency is also
->>> +       proportional to the maximum available frequency.  If that is not the
->>> +       case, it is proportional to the current frequency of the CPU with the
->>> +       tipping point at utilization/capacity equal to 80%.
->>
->> This help text implies that the tipping point of 80% applies only to
->> non-frequency invariant configurations, rather than both. Possible to
->> rephrase?
-> 
-> Sure.
-> 
-> What about:
-> 
-> "If that is not the case, it is proportional to the current frequency
-> of the CPU.  The frequency tipping point is at utilization/capacity
-> equal to 80% in both cases."
+On Fri, Apr 1, 2016 at 4:08 PM, Mark Brown <broonie@kernel.org> wrote:
+> On Fri, Apr 01, 2016 at 01:54:28PM +0300, Octavian Purdila wrote:
+>
+>> I probably don't fully understand your question, but I don't see a way
+>> of how we can create a new SPI device from generic ACPI code. For
+>> example, in acpi_spi_add_device() we need the spi_master node so that
+>> we can allocate the spi device.
+>
+> Right, but the same applies to initial enumeration so we also have to
+> manually instantiate ACPI devices on startup.  Why do we need to do
+> that?
+>
+>> The handling is identical because we don't have yet have a way to
+>> identify what where the new nodes added when a new ACPI table /
+>> overlay has been loaded, so we have to rescan the ACPI namespace under
+>> each controller.
+>
+> That's not the point.  The point is that since the handling is identical
+> why are we handling it through exactly the same code?
 
-LGTM
+I think that during the initial enumeration the controller driver's
+probe walks the children and creates device objects for them.  When a
+table is loaded later, the controller driver has been probed already
+and there needs to be a way to trigger a walk over the (new) children
+from it.
 
-thanks,
-Steve
+Or a hook somewhere around acpi_platform_notify() is needed.
