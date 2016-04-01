@@ -1,96 +1,59 @@
-From: "Rafael J. Wysocki" <rafael@kernel.org>
-Subject: Re: [PATCH v10 01/17] Xen: ACPI: Hide UART used by Xen
-Date: Fri, 1 Apr 2016 21:21:52 +0200
-Message-ID: <CAJZ5v0i_h2Y+upRE1LgMiuj2srJ8Z0BJMBk4mrTppMd7V1LXbQ@mail.gmail.com>
-References: <1459525755-36968-1-git-send-email-shannon.zhao@linaro.org>
-	<1459525755-36968-2-git-send-email-shannon.zhao@linaro.org>
+From: Steve Muckle <steve.muckle@linaro.org>
+Subject: Re: [Update][PATCH v7 7/7] cpufreq: schedutil: New governor based on
+ scheduler utilization data
+Date: Fri, 1 Apr 2016 12:23:07 -0700
+Message-ID: <56FECA9B.20902@linaro.org>
+References: <7262976.zPkLj56ATU@vostro.rjw.lan>
+ <6666532.7ULg06hQ7e@vostro.rjw.lan> <145931680.Kk1xSBT0Ro@vostro.rjw.lan>
+ <56FEB4BA.4080403@linaro.org>
+ <CAJZ5v0gHbTUGvShyxT3FwWYS58PCdw1pMPrDR8C5mhbSdERi8g@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-lb0-f196.google.com ([209.85.217.196]:32830 "EHLO
-	mail-lb0-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751210AbcDATVy (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 1 Apr 2016 15:21:54 -0400
-In-Reply-To: <1459525755-36968-2-git-send-email-shannon.zhao@linaro.org>
+Received: from mail-pf0-f172.google.com ([209.85.192.172]:34233 "EHLO
+	mail-pf0-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752116AbcDATXK (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 1 Apr 2016 15:23:10 -0400
+Received: by mail-pf0-f172.google.com with SMTP id x3so97473997pfb.1
+        for <linux-acpi@vger.kernel.org>; Fri, 01 Apr 2016 12:23:09 -0700 (PDT)
+In-Reply-To: <CAJZ5v0gHbTUGvShyxT3FwWYS58PCdw1pMPrDR8C5mhbSdERi8g@mail.gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Shannon Zhao <shannon.zhao@linaro.org>
-Cc: "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, stefano.stabellini@citrix.com, david.vrabel@citrix.com, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, linux-efi@vger.kernel.org, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Catalin Marinas <catalin.marinas@arm.com>, Will Deacon <will.deacon@arm.com>, julien.grall@arm.com, peter.huangpeng@huawei.com, xen-devel@lists.xen.org, Shannon Zhao <zhaoshenglong@huawei.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, "open list:ACPI" <linux-acpi@vger.kernel.org>
+To: "Rafael J. Wysocki" <rafael@kernel.org>
+Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Linux PM list <linux-pm@vger.kernel.org>, Juri Lelli <juri.lelli@arm.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Peter Zijlstra <peterz@infradead.org>, Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>, Viresh Kumar <viresh.kumar@linaro.org>, Vincent Guittot <vincent.guittot@linaro.org>, Michael Turquette <mturquette@baylibre.com>, Ingo Molnar <mingo@kernel.org>
 
-On Fri, Apr 1, 2016 at 5:48 PM, Shannon Zhao <shannon.zhao@linaro.org> wrote:
-> ACPI 6.0 introduces a new table STAO to list the devices which are used
-> by Xen and can't be used by Dom0. On Xen virtual platforms, the physical
-> UART is used by Xen. So here it hides UART from Dom0.
->
-> CC: "Rafael J. Wysocki" <rjw@rjwysocki.net> (supporter:ACPI)
-> CC: Len Brown <lenb@kernel.org> (supporter:ACPI)
-> CC: linux-acpi@vger.kernel.org (open list:ACPI)
-> Signed-off-by: Shannon Zhao <shannon.zhao@linaro.org>
-> ---
->  drivers/acpi/scan.c | 71 +++++++++++++++++++++++++++++++++++++++++++++++++++++
->  1 file changed, 71 insertions(+)
->
-> diff --git a/drivers/acpi/scan.c b/drivers/acpi/scan.c
-> index 5f28cf7..4d2d9eb 100644
-> --- a/drivers/acpi/scan.c
-> +++ b/drivers/acpi/scan.c
-> @@ -45,6 +45,7 @@ static LIST_HEAD(acpi_scan_handlers_list);
->  DEFINE_MUTEX(acpi_device_lock);
->  LIST_HEAD(acpi_wakeup_device_list);
->  static DEFINE_MUTEX(acpi_hp_context_lock);
+On 04/01/2016 12:14 PM, Rafael J. Wysocki wrote:
+> On Fri, Apr 1, 2016 at 7:49 PM, Steve Muckle <steve.muckle@linaro.org> wrote:
+>> On 03/29/2016 07:00 PM, Rafael J. Wysocki wrote:
+>> ...
+>>> +config CPU_FREQ_GOV_SCHEDUTIL
+>>> +     tristate "'schedutil' cpufreq policy governor"
+>>> +     depends on CPU_FREQ
+>>> +     select CPU_FREQ_GOV_ATTR_SET
+>>> +     select IRQ_WORK
+>>> +     help
+>>> +       This governor makes decisions based on the utilization data provided
+>>> +       by the scheduler.  It sets the CPU frequency to be proportional to
+>>> +       the utilization/capacity ratio coming from the scheduler.  If the
+>>> +       utilization is frequency-invariant, the new frequency is also
+>>> +       proportional to the maximum available frequency.  If that is not the
+>>> +       case, it is proportional to the current frequency of the CPU with the
+>>> +       tipping point at utilization/capacity equal to 80%.
+>>
+>> This help text implies that the tipping point of 80% applies only to
+>> non-frequency invariant configurations, rather than both. Possible to
+>> rephrase?
+> 
+> Sure.
+> 
+> What about:
+> 
+> "If that is not the case, it is proportional to the current frequency
+> of the CPU.  The frequency tipping point is at utilization/capacity
+> equal to 80% in both cases."
 
-A comment here would be useful explaining that the below is an
-exceptional thing an nothing like it is expected to be needed if
-foreseeable future.
+LGTM
 
-> +static u64 spcr_uart_addr;
->
->  struct acpi_dep_data {
->         struct list_head node;
-> @@ -1453,6 +1454,44 @@ static int acpi_add_single_object(struct acpi_device **child,
->         return 0;
->  }
->
-> +static acpi_status acpi_get_resource_memory(struct acpi_resource *ares,
-> +                                           void *context)
-> +{
-> +       struct resource *res = context;
-> +
-> +       if (acpi_dev_resource_memory(ares, res))
-> +               return AE_CTRL_TERMINATE;
-> +
-> +       return AE_OK;
-> +}
-> +
-> +static bool acpi_device_should_be_hidden(acpi_handle handle)
-> +{
-> +       acpi_status status;
-> +       struct resource res;
-> +
-> +       /* Check if it should ignore the UART device */
-> +       if (!(spcr_uart_addr && acpi_has_method(handle, METHOD_NAME__CRS)))
-> +               return false;
-> +
-> +       /*
-> +        * The UART device described in SPCR table is assumed to have only one
-> +        * memory resource present. So we only look for the first one here.
-> +        */
-> +       status = acpi_walk_resources(handle, METHOD_NAME__CRS,
-> +                                    acpi_get_resource_memory, &res);
-> +       if (ACPI_FAILURE(status))
-> +               return false;
-> +
-> +       if (res.start == spcr_uart_addr) {
-
-What about restructuring that a bit.
-
-      if (ACPI_FAILURE(status) || res.start != spcr_uart_addr)
-            return false;
-
-> +               printk(KERN_INFO PREFIX "The UART device @%pa in SPCR table will be hidden\n",
-> +                      &res.start);
-
-And maybe use acpi_handle_info() for this message?
-
-Thanks,
-Rafael
+thanks,
+Steve
