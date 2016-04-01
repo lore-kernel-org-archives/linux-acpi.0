@@ -1,60 +1,116 @@
-From: Mark Brown <broonie@kernel.org>
-Subject: Re: [RFC PATCH 06/10] spi: add support for ACPI reconfigure
- notifications
-Date: Fri, 1 Apr 2016 07:08:56 -0700
-Message-ID: <20160401140856.GW2350@sirena.org.uk>
-References: <1459417026-6697-1-git-send-email-octavian.purdila@intel.com>
- <1459417026-6697-7-git-send-email-octavian.purdila@intel.com>
- <20160331172935.GL2350@sirena.org.uk>
- <CAE1zotJbUGBOUF-4-XAx0DUkj55egOMXVn9FzjV3Fdj4MYxD0Q@mail.gmail.com>
+From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Subject: Re: [RFC PATCH 3/4] pinctrl: Add ACPI support
+Date: Fri, 01 Apr 2016 17:14:34 +0300
+Message-ID: <1459520074.5907.205.camel@linux.intel.com>
+References: <1459424685-26965-1-git-send-email-irina.tirdea@intel.com>
+	 <1459424685-26965-4-git-send-email-irina.tirdea@intel.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
-	protocol="application/pgp-signature"; boundary="hjRTvux2945W8dyK"
-Return-path: <linux-i2c-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <CAE1zotJbUGBOUF-4-XAx0DUkj55egOMXVn9FzjV3Fdj4MYxD0Q@mail.gmail.com>
-Sender: linux-i2c-owner@vger.kernel.org
-To: Octavian Purdila <octavian.purdila@intel.com>
-Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Matt Fleming <matt@codeblueprint.co.uk>, Wolfram Sang <wsa@the-dreams.de>, Joel Becker <jlbec@evilplan.org>, Christoph Hellwig <hch@lst.de>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, linux-efi@vger.kernel.org, linux-i2c <linux-i2c@vger.kernel.org>, linux-spi@vger.kernel.org, lkml <linux-kernel@vger.kernel.org>, Irina Tirdea <irina.tirdea@intel.com>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga02.intel.com ([134.134.136.20]:58429 "EHLO mga02.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751227AbcDAONl (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 1 Apr 2016 10:13:41 -0400
+In-Reply-To: <1459424685-26965-4-git-send-email-irina.tirdea@intel.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Irina Tirdea <irina.tirdea@intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Mika Westerberg <mika.westerberg@linux.intel.com>, Linus Walleij <linus.walleij@linaro.org>, linux-gpio@vger.kernel.org, linux-acpi@vger.kernel.org
+Cc: Rob Herring <robh+dt@kernel.org>, Heikki Krogerus <heikki.krogerus@linux.intel.com>, Octavian Purdila <octavian.purdila@intel.com>, Cristina Ciocan <cristina.ciocan@intel.com>, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org
+
+On Thu, 2016-03-31 at 14:44 +0300, Irina Tirdea wrote:
+> Add ACPI support for pin controller properties. These are
+> based on ACPI _DSD properties and follow the device tree
+> model based on states and node configurations. The states
+> are defined as _DSD properties and configuration nodes
+> are defined using the _DSD Hierarchical Properties Extension.
+>=20
+> A configuration node supports the generic device tree properties.
+>=20
+> The implementation is based on device tree code from devicetree.c.
+>=20
+
+Patch is good to me, though few minor comments below.
+
+> +/**
+> + * struct pinctrl_acpi_map - mapping table chunk parsed from ACPI
+> + * @node: list node for struct pinctrl's @fw_maps field
+> + * @pctldev: the pin controller that allocated this struct, and will
+> free it
+
+> + * @maps: the mapping table entries
+
+We have @map and @num_maps.
+
+> + */
+> +struct pinctrl_acpi_map {
+> +	struct list_head node;
+> +	struct pinctrl_dev *pctldev;
+> +	struct pinctrl_map *map;
+> +	unsigned num_maps;
+> +};
+> +
+>=20
+
+> +static int acpi_remember_or_free_map(struct pinctrl *p, const char
+> *statename,
+> +				=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0struct pinctrl_dev *pctldev,
+> +				=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0struct pinctrl_map *map,
+> unsigned num_maps)
+> +{
+> +	struct pinctrl_acpi_map *acpi_map;
+> +	struct list_head *acpi_maps;
 
 
---hjRTvux2945W8dyK
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+> +	unsigned int i;
 
-On Fri, Apr 01, 2016 at 01:54:28PM +0300, Octavian Purdila wrote:
+Just unsigned i to be in align with unsigned num_maps.
 
-> I probably don't fully understand your question, but I don't see a way
-> of how we can create a new SPI device from generic ACPI code. For
-> example, in acpi_spi_add_device() we need the spi_master node so that
-> we can allocate the spi device.
+> +
+> +	/* Initialize common mapping table entry fields */
+> +	for (i =3D 0; i < num_maps; i++) {
+> +		map[i].dev_name =3D dev_name(p->dev);
+> +		map[i].name =3D statename;
+> +		if (pctldev)
+> +			map[i].ctrl_dev_name =3D dev_name(pctldev-
+> >dev);
+> +	}
 
-Right, but the same applies to initial enumeration so we also have to
-manually instantiate ACPI devices on startup.  Why do we need to do
-that?
 
-> The handling is identical because we don't have yet have a way to
-> identify what where the new nodes added when a new ACPI table /
-> overlay has been loaded, so we have to rescan the ACPI namespace under
-> each controller.
+> +int pinctrl_acpi_to_map(struct pinctrl *p)
+> +{
+> +	const union acpi_object *prop, *statenames, *configs;
+> +	unsigned int state, nstates, nconfigs, config;
+> +	char *statename, *propname, *configname;
+> +	struct fwnode_handle *fw_prop;
+> +	struct acpi_device *adev;
+> +	int ret;
+> +
+> +	/* We may store pointers to property names within the node
+> */
+> +	adev =3D acpi_bus_get_acpi_device(ACPI_HANDLE(p->dev));
+> +	if (!adev)
+> +		return -ENODEV;
+> +
 
-That's not the point.  The point is that since the handling is identical
-why are we handling it through exactly the same code?
+> +	/* Only allow named states (device must have prop 'pinctrl-
+> names') */
 
---hjRTvux2945W8dyK
-Content-Type: application/pgp-signature; name="signature.asc"
+Does it fit one line?
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2
+> +err_free_map:
 
-iQEcBAEBCAAGBQJW/oD0AAoJECTWi3JdVIfQaRAH/jeQz8zKvAX6aepL5CfzNu3V
-o6yItlKEvj0noTBht+Qpw2MRWvpjZHMEWGV5XEmLZC3S7ft8apurWTGDppJkRsf+
-I1fSxifDFMoEhMA3tN39ruRBcSajBrF7zroElYR6WgTbtcbSPYtxCAJHbjHdJyEB
-/XG6bSk4due7Vezl/jKE0ap/hOWXa3qBzfA7rXIWWw+TbvtyYXlHSJHdZZttRH07
-gVNcsLhfRBwp8EqbSnUM3WxvVx6xMTsNtKLnu1q4e9YNL69ZbS0MpEIoNBOJJnl9
-97WntPF+mgoufsRLvnUFkggxHZu1Q1a0oO4kWezuYmgqvXzoNc+XDvamSJ3LsX0=
-=PJGW
------END PGP SIGNATURE-----
+Perhaps err_free_maps?
 
---hjRTvux2945W8dyK--
+> +	pinctrl_acpi_free_maps(p);
+> +	return ret;
+
+--=C2=A0
+Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Intel Finland Oy
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
