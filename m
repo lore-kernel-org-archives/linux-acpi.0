@@ -1,146 +1,78 @@
-From: Shannon Zhao <shannon.zhao@linaro.org>
-Subject: [PATCH v10 01/17] Xen: ACPI: Hide UART used by Xen
-Date: Fri,  1 Apr 2016 23:48:59 +0800
-Message-ID: <1459525755-36968-2-git-send-email-shannon.zhao@linaro.org>
-References: <1459525755-36968-1-git-send-email-shannon.zhao@linaro.org>
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-pa0-f52.google.com ([209.85.220.52]:33283 "EHLO
-	mail-pa0-f52.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753618AbcDAPtv (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 1 Apr 2016 11:49:51 -0400
-Received: by mail-pa0-f52.google.com with SMTP id zm5so93963448pac.0
-        for <linux-acpi@vger.kernel.org>; Fri, 01 Apr 2016 08:49:51 -0700 (PDT)
-In-Reply-To: <1459525755-36968-1-git-send-email-shannon.zhao@linaro.org>
-Sender: linux-acpi-owner@vger.kernel.org
+From: Steve Muckle <steve.muckle@linaro.org>
+Subject: Re: [Update][PATCH v7 7/7] cpufreq: schedutil: New governor based on
+ scheduler utilization data
+Date: Fri, 1 Apr 2016 10:49:46 -0700
+Message-ID: <56FEB4BA.4080403@linaro.org>
+References: <7262976.zPkLj56ATU@vostro.rjw.lan>
+ <6666532.7ULg06hQ7e@vostro.rjw.lan> <145931680.Kk1xSBT0Ro@vostro.rjw.lan>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-pm-owner@vger.kernel.org>
+In-Reply-To: <145931680.Kk1xSBT0Ro@vostro.rjw.lan>
+Sender: linux-pm-owner@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Linux PM list <linux-pm@vger.kernel.org>
+Cc: Juri Lelli <juri.lelli@arm.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Peter Zijlstra <peterz@infradead.org>, Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>, Viresh Kumar <viresh.kumar@linaro.org>, Vincent Guittot <vincent.guittot@linaro.org>, Michael Turquette <mturquette@baylibre.com>, Ingo Molnar <mingo@kernel.org>
 List-Id: linux-acpi@vger.kernel.org
-To: linux-arm-kernel@lists.infradead.org, stefano.stabellini@citrix.com
-Cc: david.vrabel@citrix.com, devicetree@vger.kernel.org, linux-efi@vger.kernel.org, linux-kernel@vger.kernel.org, catalin.marinas@arm.com, will.deacon@arm.com, julien.grall@arm.com, peter.huangpeng@huawei.com, xen-devel@lists.xen.org, zhaoshenglong@huawei.com, shannon.zhao@linaro.org, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, "open list:ACPI" <linux-acpi@vger.kernel.org>
 
-ACPI 6.0 introduces a new table STAO to list the devices which are used
-by Xen and can't be used by Dom0. On Xen virtual platforms, the physical
-UART is used by Xen. So here it hides UART from Dom0.
+On 03/29/2016 07:00 PM, Rafael J. Wysocki wrote:
+...
+> +config CPU_FREQ_GOV_SCHEDUTIL
+> +	tristate "'schedutil' cpufreq policy governor"
+> +	depends on CPU_FREQ
+> +	select CPU_FREQ_GOV_ATTR_SET
+> +	select IRQ_WORK
+> +	help
+> +	  This governor makes decisions based on the utilization data provided
+> +	  by the scheduler.  It sets the CPU frequency to be proportional to
+> +	  the utilization/capacity ratio coming from the scheduler.  If the
+> +	  utilization is frequency-invariant, the new frequency is also
+> +	  proportional to the maximum available frequency.  If that is not the
+> +	  case, it is proportional to the current frequency of the CPU with the
+> +	  tipping point at utilization/capacity equal to 80%.
 
-CC: "Rafael J. Wysocki" <rjw@rjwysocki.net> (supporter:ACPI)
-CC: Len Brown <lenb@kernel.org> (supporter:ACPI)
-CC: linux-acpi@vger.kernel.org (open list:ACPI)
-Signed-off-by: Shannon Zhao <shannon.zhao@linaro.org>
----
- drivers/acpi/scan.c | 71 +++++++++++++++++++++++++++++++++++++++++++++++++++++
- 1 file changed, 71 insertions(+)
+This help text implies that the tipping point of 80% applies only to
+non-frequency invariant configurations, rather than both. Possible to
+rephrase?
 
-diff --git a/drivers/acpi/scan.c b/drivers/acpi/scan.c
-index 5f28cf7..4d2d9eb 100644
---- a/drivers/acpi/scan.c
-+++ b/drivers/acpi/scan.c
-@@ -45,6 +45,7 @@ static LIST_HEAD(acpi_scan_handlers_list);
- DEFINE_MUTEX(acpi_device_lock);
- LIST_HEAD(acpi_wakeup_device_list);
- static DEFINE_MUTEX(acpi_hp_context_lock);
-+static u64 spcr_uart_addr;
- 
- struct acpi_dep_data {
- 	struct list_head node;
-@@ -1453,6 +1454,44 @@ static int acpi_add_single_object(struct acpi_device **child,
- 	return 0;
- }
- 
-+static acpi_status acpi_get_resource_memory(struct acpi_resource *ares,
-+					    void *context)
-+{
-+	struct resource *res = context;
-+
-+	if (acpi_dev_resource_memory(ares, res))
-+		return AE_CTRL_TERMINATE;
-+
-+	return AE_OK;
-+}
-+
-+static bool acpi_device_should_be_hidden(acpi_handle handle)
-+{
-+	acpi_status status;
-+	struct resource res;
-+
-+	/* Check if it should ignore the UART device */
-+	if (!(spcr_uart_addr && acpi_has_method(handle, METHOD_NAME__CRS)))
-+		return false;
-+
-+	/*
-+	 * The UART device described in SPCR table is assumed to have only one
-+	 * memory resource present. So we only look for the first one here.
-+	 */
-+	status = acpi_walk_resources(handle, METHOD_NAME__CRS,
-+				     acpi_get_resource_memory, &res);
-+	if (ACPI_FAILURE(status))
-+		return false;
-+
-+	if (res.start == spcr_uart_addr) {
-+		printk(KERN_INFO PREFIX "The UART device @%pa in SPCR table will be hidden\n",
-+		       &res.start);
-+		return true;
-+	}
-+
-+	return false;
-+}
-+
- static int acpi_bus_type_and_status(acpi_handle handle, int *type,
- 				    unsigned long long *sta)
- {
-@@ -1466,6 +1505,9 @@ static int acpi_bus_type_and_status(acpi_handle handle, int *type,
- 	switch (acpi_type) {
- 	case ACPI_TYPE_ANY:		/* for ACPI_ROOT_OBJECT */
- 	case ACPI_TYPE_DEVICE:
-+		if (acpi_device_should_be_hidden(handle))
-+			return -ENODEV;
-+
- 		*type = ACPI_BUS_TYPE_DEVICE;
- 		status = acpi_bus_get_status_handle(handle, sta);
- 		if (ACPI_FAILURE(status))
-@@ -1916,9 +1958,24 @@ static int acpi_bus_scan_fixed(void)
- 	return result < 0 ? result : 0;
- }
- 
-+static void __init acpi_get_spcr_uart_addr(void)
-+{
-+	acpi_status status;
-+	struct acpi_table_spcr *spcr_ptr;
-+
-+	status = acpi_get_table(ACPI_SIG_SPCR, 0,
-+				(struct acpi_table_header **)&spcr_ptr);
-+	if (ACPI_SUCCESS(status))
-+		spcr_uart_addr = spcr_ptr->serial_port.address;
-+	else
-+		printk(KERN_WARNING PREFIX "STAO table present, but SPCR is missing\n");
-+}
-+
- int __init acpi_scan_init(void)
- {
- 	int result;
-+	acpi_status status;
-+	struct acpi_table_stao *stao_ptr;
- 
- 	acpi_pci_root_init();
- 	acpi_pci_link_init();
-@@ -1934,6 +1991,20 @@ int __init acpi_scan_init(void)
- 
- 	acpi_scan_add_handler(&generic_device_handler);
- 
-+	/*
-+	 * If there is STAO table, check whether it needs to ignore the UART
-+	 * device in SPCR table.
-+	 */
-+	status = acpi_get_table(ACPI_SIG_STAO, 0,
-+				(struct acpi_table_header **)&stao_ptr);
-+	if (ACPI_SUCCESS(status)) {
-+		if (stao_ptr->header.length > sizeof(struct acpi_table_stao))
-+			printk(KERN_INFO PREFIX "STAO Name List not yet supported.");
-+
-+		if (stao_ptr->ignore_uart)
-+			acpi_get_spcr_uart_addr();
-+	}
-+
- 	mutex_lock(&acpi_scan_lock);
- 	/*
- 	 * Enumerate devices in the ACPI namespace.
--- 
-2.1.4
+...
+> +static unsigned int sugov_next_freq_shared(struct sugov_policy *sg_policy,
+> +					   unsigned long util, unsigned long max)
+> +{
+> +	struct cpufreq_policy *policy = sg_policy->policy;
+> +	unsigned int max_f = policy->cpuinfo.max_freq;
+> +	u64 last_freq_update_time = sg_policy->last_freq_update_time;
+> +	unsigned int j;
+> +
+> +	if (util == ULONG_MAX)
+> +		return max_f;
+> +
+> +	for_each_cpu(j, policy->cpus) {
+> +		struct sugov_cpu *j_sg_cpu;
+> +		unsigned long j_util, j_max;
+> +		u64 delta_ns;
+> +
+> +		if (j == smp_processor_id())
+> +			continue;
+> +
+> +		j_sg_cpu = &per_cpu(sugov_cpu, j);
+> +		/*
+> +		 * If the CPU utilization was last updated before the previous
+> +		 * frequency update and the time elapsed between the last update
+> +		 * of the CPU utilization and the last frequency update is long
+> +		 * enough, don't take the CPU into account as it probably is
+> +		 * idle now.
+> +		 */
+> +		delta_ns = last_freq_update_time - j_sg_cpu->last_update;
+> +		if ((s64)delta_ns > TICK_NSEC)
+
+>> Why not declare delta_ns as an s64 (also in suguv_should_update_freq)
+>> and avoid the cast?
+>
+> I took this from __update_load_avg(), but it shouldn't matter here.
+
+Did you mean to keep these casts?
+
+thanks,
+Steve
 
