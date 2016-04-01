@@ -1,50 +1,32 @@
-From: Octavian Purdila <octavian.purdila@intel.com>
-Subject: Re: [RFC PATCH 06/10] spi: add support for ACPI reconfigure notifications
-Date: Fri, 1 Apr 2016 13:54:28 +0300
-Message-ID: <CAE1zotJbUGBOUF-4-XAx0DUkj55egOMXVn9FzjV3Fdj4MYxD0Q@mail.gmail.com>
-References: <1459417026-6697-1-git-send-email-octavian.purdila@intel.com>
-	<1459417026-6697-7-git-send-email-octavian.purdila@intel.com>
-	<20160331172935.GL2350@sirena.org.uk>
+From: Linus Walleij <linus.walleij@linaro.org>
+Subject: Re: [RFC PATCH 1/4] pinctrl: Rename pinctrl_utils_dt_free_map to pinctrl_utils_free_map
+Date: Fri, 1 Apr 2016 15:08:32 +0200
+Message-ID: <CACRpkdb4bKoWMxAo4H1ycy5gk1Rh9jC=TPXJ4ycnfPh6LWEOyQ@mail.gmail.com>
+References: <1459424685-26965-1-git-send-email-irina.tirdea@intel.com>
+	<1459424685-26965-2-git-send-email-irina.tirdea@intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-wm0-f52.google.com ([74.125.82.52]:38509 "EHLO
-	mail-wm0-f52.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932416AbcDAKya (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 1 Apr 2016 06:54:30 -0400
-Received: by mail-wm0-f52.google.com with SMTP id 20so18117582wmh.1
-        for <linux-acpi@vger.kernel.org>; Fri, 01 Apr 2016 03:54:29 -0700 (PDT)
-In-Reply-To: <20160331172935.GL2350@sirena.org.uk>
-Sender: linux-acpi-owner@vger.kernel.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1459424685-26965-2-git-send-email-irina.tirdea@intel.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Irina Tirdea <irina.tirdea@intel.com>
+Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Mika Westerberg <mika.westerberg@linux.intel.com>, "linux-gpio@vger.kernel.org" <linux-gpio@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Rob Herring <robh+dt@kernel.org>, Heikki Krogerus <heikki.krogerus@linux.intel.com>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Octavian Purdila <octavian.purdila@intel.com>, Cristina Ciocan <cristina.ciocan@intel.com>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
-To: Mark Brown <broonie@kernel.org>
-Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Matt Fleming <matt@codeblueprint.co.uk>, Wolfram Sang <wsa@the-dreams.de>, Joel Becker <jlbec@evilplan.org>, Christoph Hellwig <hch@lst.de>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, linux-efi@vger.kernel.org, linux-i2c <linux-i2c@vger.kernel.org>, linux-spi@vger.kernel.org, lkml <linux-kernel@vger.kernel.org>, Irina Tirdea <irina.tirdea@intel.com>
 
-On Thu, Mar 31, 2016 at 8:29 PM, Mark Brown <broonie@kernel.org> wrote:
-> On Thu, Mar 31, 2016 at 12:37:02PM +0300, Octavian Purdila wrote:
+On Thu, Mar 31, 2016 at 1:44 PM, Irina Tirdea <irina.tirdea@intel.com> wrote:
+
+> Rename pinctrl_utils_dt_free_map to pinctrl_utils_free_map, since
+> it does not depend on device tree despite the current name. This
+> will enforce a consistent naming in pinctr-utils.c and will make
+> it clear it can be called from outside device tree (e.g. from
+> ACPI handling code).
 >
->> +#if IS_ENABLED(CONFIG_ACPI)
->> +static int acpi_spi_table_load(struct device *dev, const void *data)
->> +{
->> +     struct spi_master *master = container_of(dev, struct spi_master, dev);
->> +
->> +     acpi_register_spi_devices(master);
->> +     return 0;
->> +}
->
-> Why do we have a separate code path for this coompared to the initial
-> startup?  The handling appears to be identical so it seems we should
-> drive this from the ACPI code so we don't have to add this to every
-> single bus with ACPI bindings.
+> Signed-off-by: Irina Tirdea <irina.tirdea@intel.com>
 
-Hi Mark,
+OK that's a good change making nice ground work for the rest.
+Patch applied.
 
-I probably don't fully understand your question, but I don't see a way
-of how we can create a new SPI device from generic ACPI code. For
-example, in acpi_spi_add_device() we need the spi_master node so that
-we can allocate the spi device.
+For the rest I want to hear from Rafael and/or Mika first.
 
-The handling is identical because we don't have yet have a way to
-identify what where the new nodes added when a new ACPI table /
-overlay has been loaded, so we have to rescan the ACPI namespace under
-each controller.
+Yours,
+Linus Walleij
