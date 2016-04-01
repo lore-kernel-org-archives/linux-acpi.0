@@ -1,116 +1,146 @@
-From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Subject: Re: [RFC PATCH 3/4] pinctrl: Add ACPI support
-Date: Fri, 01 Apr 2016 17:14:34 +0300
-Message-ID: <1459520074.5907.205.camel@linux.intel.com>
-References: <1459424685-26965-1-git-send-email-irina.tirdea@intel.com>
-	 <1459424685-26965-4-git-send-email-irina.tirdea@intel.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+From: Shannon Zhao <shannon.zhao@linaro.org>
+Subject: [PATCH v10 01/17] Xen: ACPI: Hide UART used by Xen
+Date: Fri,  1 Apr 2016 23:48:59 +0800
+Message-ID: <1459525755-36968-2-git-send-email-shannon.zhao@linaro.org>
+References: <1459525755-36968-1-git-send-email-shannon.zhao@linaro.org>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga02.intel.com ([134.134.136.20]:58429 "EHLO mga02.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751227AbcDAONl (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 1 Apr 2016 10:13:41 -0400
-In-Reply-To: <1459424685-26965-4-git-send-email-irina.tirdea@intel.com>
+Received: from mail-pa0-f52.google.com ([209.85.220.52]:33283 "EHLO
+	mail-pa0-f52.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753618AbcDAPtv (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 1 Apr 2016 11:49:51 -0400
+Received: by mail-pa0-f52.google.com with SMTP id zm5so93963448pac.0
+        for <linux-acpi@vger.kernel.org>; Fri, 01 Apr 2016 08:49:51 -0700 (PDT)
+In-Reply-To: <1459525755-36968-1-git-send-email-shannon.zhao@linaro.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Irina Tirdea <irina.tirdea@intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Mika Westerberg <mika.westerberg@linux.intel.com>, Linus Walleij <linus.walleij@linaro.org>, linux-gpio@vger.kernel.org, linux-acpi@vger.kernel.org
-Cc: Rob Herring <robh+dt@kernel.org>, Heikki Krogerus <heikki.krogerus@linux.intel.com>, Octavian Purdila <octavian.purdila@intel.com>, Cristina Ciocan <cristina.ciocan@intel.com>, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org
+To: linux-arm-kernel@lists.infradead.org, stefano.stabellini@citrix.com
+Cc: david.vrabel@citrix.com, devicetree@vger.kernel.org, linux-efi@vger.kernel.org, linux-kernel@vger.kernel.org, catalin.marinas@arm.com, will.deacon@arm.com, julien.grall@arm.com, peter.huangpeng@huawei.com, xen-devel@lists.xen.org, zhaoshenglong@huawei.com, shannon.zhao@linaro.org, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, "open list:ACPI" <linux-acpi@vger.kernel.org>
 
-On Thu, 2016-03-31 at 14:44 +0300, Irina Tirdea wrote:
-> Add ACPI support for pin controller properties. These are
-> based on ACPI _DSD properties and follow the device tree
-> model based on states and node configurations. The states
-> are defined as _DSD properties and configuration nodes
-> are defined using the _DSD Hierarchical Properties Extension.
->=20
-> A configuration node supports the generic device tree properties.
->=20
-> The implementation is based on device tree code from devicetree.c.
->=20
+ACPI 6.0 introduces a new table STAO to list the devices which are used
+by Xen and can't be used by Dom0. On Xen virtual platforms, the physical
+UART is used by Xen. So here it hides UART from Dom0.
 
-Patch is good to me, though few minor comments below.
+CC: "Rafael J. Wysocki" <rjw@rjwysocki.net> (supporter:ACPI)
+CC: Len Brown <lenb@kernel.org> (supporter:ACPI)
+CC: linux-acpi@vger.kernel.org (open list:ACPI)
+Signed-off-by: Shannon Zhao <shannon.zhao@linaro.org>
+---
+ drivers/acpi/scan.c | 71 +++++++++++++++++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 71 insertions(+)
 
-> +/**
-> + * struct pinctrl_acpi_map - mapping table chunk parsed from ACPI
-> + * @node: list node for struct pinctrl's @fw_maps field
-> + * @pctldev: the pin controller that allocated this struct, and will
-> free it
+diff --git a/drivers/acpi/scan.c b/drivers/acpi/scan.c
+index 5f28cf7..4d2d9eb 100644
+--- a/drivers/acpi/scan.c
++++ b/drivers/acpi/scan.c
+@@ -45,6 +45,7 @@ static LIST_HEAD(acpi_scan_handlers_list);
+ DEFINE_MUTEX(acpi_device_lock);
+ LIST_HEAD(acpi_wakeup_device_list);
+ static DEFINE_MUTEX(acpi_hp_context_lock);
++static u64 spcr_uart_addr;
+ 
+ struct acpi_dep_data {
+ 	struct list_head node;
+@@ -1453,6 +1454,44 @@ static int acpi_add_single_object(struct acpi_device **child,
+ 	return 0;
+ }
+ 
++static acpi_status acpi_get_resource_memory(struct acpi_resource *ares,
++					    void *context)
++{
++	struct resource *res = context;
++
++	if (acpi_dev_resource_memory(ares, res))
++		return AE_CTRL_TERMINATE;
++
++	return AE_OK;
++}
++
++static bool acpi_device_should_be_hidden(acpi_handle handle)
++{
++	acpi_status status;
++	struct resource res;
++
++	/* Check if it should ignore the UART device */
++	if (!(spcr_uart_addr && acpi_has_method(handle, METHOD_NAME__CRS)))
++		return false;
++
++	/*
++	 * The UART device described in SPCR table is assumed to have only one
++	 * memory resource present. So we only look for the first one here.
++	 */
++	status = acpi_walk_resources(handle, METHOD_NAME__CRS,
++				     acpi_get_resource_memory, &res);
++	if (ACPI_FAILURE(status))
++		return false;
++
++	if (res.start == spcr_uart_addr) {
++		printk(KERN_INFO PREFIX "The UART device @%pa in SPCR table will be hidden\n",
++		       &res.start);
++		return true;
++	}
++
++	return false;
++}
++
+ static int acpi_bus_type_and_status(acpi_handle handle, int *type,
+ 				    unsigned long long *sta)
+ {
+@@ -1466,6 +1505,9 @@ static int acpi_bus_type_and_status(acpi_handle handle, int *type,
+ 	switch (acpi_type) {
+ 	case ACPI_TYPE_ANY:		/* for ACPI_ROOT_OBJECT */
+ 	case ACPI_TYPE_DEVICE:
++		if (acpi_device_should_be_hidden(handle))
++			return -ENODEV;
++
+ 		*type = ACPI_BUS_TYPE_DEVICE;
+ 		status = acpi_bus_get_status_handle(handle, sta);
+ 		if (ACPI_FAILURE(status))
+@@ -1916,9 +1958,24 @@ static int acpi_bus_scan_fixed(void)
+ 	return result < 0 ? result : 0;
+ }
+ 
++static void __init acpi_get_spcr_uart_addr(void)
++{
++	acpi_status status;
++	struct acpi_table_spcr *spcr_ptr;
++
++	status = acpi_get_table(ACPI_SIG_SPCR, 0,
++				(struct acpi_table_header **)&spcr_ptr);
++	if (ACPI_SUCCESS(status))
++		spcr_uart_addr = spcr_ptr->serial_port.address;
++	else
++		printk(KERN_WARNING PREFIX "STAO table present, but SPCR is missing\n");
++}
++
+ int __init acpi_scan_init(void)
+ {
+ 	int result;
++	acpi_status status;
++	struct acpi_table_stao *stao_ptr;
+ 
+ 	acpi_pci_root_init();
+ 	acpi_pci_link_init();
+@@ -1934,6 +1991,20 @@ int __init acpi_scan_init(void)
+ 
+ 	acpi_scan_add_handler(&generic_device_handler);
+ 
++	/*
++	 * If there is STAO table, check whether it needs to ignore the UART
++	 * device in SPCR table.
++	 */
++	status = acpi_get_table(ACPI_SIG_STAO, 0,
++				(struct acpi_table_header **)&stao_ptr);
++	if (ACPI_SUCCESS(status)) {
++		if (stao_ptr->header.length > sizeof(struct acpi_table_stao))
++			printk(KERN_INFO PREFIX "STAO Name List not yet supported.");
++
++		if (stao_ptr->ignore_uart)
++			acpi_get_spcr_uart_addr();
++	}
++
+ 	mutex_lock(&acpi_scan_lock);
+ 	/*
+ 	 * Enumerate devices in the ACPI namespace.
+-- 
+2.1.4
 
-> + * @maps: the mapping table entries
-
-We have @map and @num_maps.
-
-> + */
-> +struct pinctrl_acpi_map {
-> +	struct list_head node;
-> +	struct pinctrl_dev *pctldev;
-> +	struct pinctrl_map *map;
-> +	unsigned num_maps;
-> +};
-> +
->=20
-
-> +static int acpi_remember_or_free_map(struct pinctrl *p, const char
-> *statename,
-> +				=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0struct pinctrl_dev *pctldev,
-> +				=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0struct pinctrl_map *map,
-> unsigned num_maps)
-> +{
-> +	struct pinctrl_acpi_map *acpi_map;
-> +	struct list_head *acpi_maps;
-
-
-> +	unsigned int i;
-
-Just unsigned i to be in align with unsigned num_maps.
-
-> +
-> +	/* Initialize common mapping table entry fields */
-> +	for (i =3D 0; i < num_maps; i++) {
-> +		map[i].dev_name =3D dev_name(p->dev);
-> +		map[i].name =3D statename;
-> +		if (pctldev)
-> +			map[i].ctrl_dev_name =3D dev_name(pctldev-
-> >dev);
-> +	}
-
-
-> +int pinctrl_acpi_to_map(struct pinctrl *p)
-> +{
-> +	const union acpi_object *prop, *statenames, *configs;
-> +	unsigned int state, nstates, nconfigs, config;
-> +	char *statename, *propname, *configname;
-> +	struct fwnode_handle *fw_prop;
-> +	struct acpi_device *adev;
-> +	int ret;
-> +
-> +	/* We may store pointers to property names within the node
-> */
-> +	adev =3D acpi_bus_get_acpi_device(ACPI_HANDLE(p->dev));
-> +	if (!adev)
-> +		return -ENODEV;
-> +
-
-> +	/* Only allow named states (device must have prop 'pinctrl-
-> names') */
-
-Does it fit one line?
-
-> +err_free_map:
-
-Perhaps err_free_maps?
-
-> +	pinctrl_acpi_free_maps(p);
-> +	return ret;
-
---=C2=A0
-Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Intel Finland Oy
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
