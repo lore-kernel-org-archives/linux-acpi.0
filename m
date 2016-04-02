@@ -1,52 +1,19 @@
-From: "Rafael J. Wysocki" <rafael@kernel.org>
-Subject: [GIT PULL] Power management and ACPI material for v4.6-rc2
-Date: Sat, 2 Apr 2016 01:34:49 +0200
-Message-ID: <CAJZ5v0h4umU5xBz_fAonmyq=zug9ROYvfg+2RFobyeJnKG7zLg@mail.gmail.com>
+From: Steve Muckle <steve.muckle@linaro.org>
+Subject: Re: [Update][PATCH v8 7/7] cpufreq: schedutil: New governor based on
+ scheduler utilization data
+Date: Fri, 1 Apr 2016 18:09:08 -0700
+Message-ID: <56FF1BB4.2070604@linaro.org>
+References: <7262976.zPkLj56ATU@vostro.rjw.lan>
+ <6666532.7ULg06hQ7e@vostro.rjw.lan> <145931680.Kk1xSBT0Ro@vostro.rjw.lan>
+ <9554623.KpzoB0bi0t@vostro.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-lf0-f46.google.com ([209.85.215.46]:34894 "EHLO
-	mail-lf0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751327AbcDAXe4 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 1 Apr 2016 19:34:56 -0400
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <9554623.KpzoB0bi0t@vostro.rjw.lan>
+Sender: linux-kernel-owner@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Linux PM list <linux-pm@vger.kernel.org>
+Cc: Juri Lelli <juri.lelli@arm.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Peter Zijlstra <peterz@infradead.org>, Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>, Viresh Kumar <viresh.kumar@linaro.org>, Vincent Guittot <vincent.guittot@linaro.org>, Michael Turquette <mturquette@baylibre.com>, Ingo Molnar <mingo@kernel.org>
 List-Id: linux-acpi@vger.kernel.org
-To: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, "linux-pm@vger.kernel.org" <linux-pm@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
 
-Hi Linus,
-
-Please pull from
-
- git://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm.git \
- pm+acpi-4.6-rc2
-
-to receive power management and ACPI material for v4.6-rc2 with top-most
-commit 8fbd4ade93dc67f035914cd4030f1c58797d9e59
-
- Merge branch 'acpi-processor'
-
-on top of commit f55532a0c0b8bb6148f4e07853b876ef73bc69ca
-
- Linux 4.6-rc1
-
-Just one fix for a nasty boot failure on some systems based on
-Intel Skylake that shipped with broken firmware where enabling
-hardware-coordinated P-states management (HWP) causes a faulty
-interrupt handler in SMM to be invoked and crash the system
-(Srinivas Pandruvada).
-
-Thanks!
-
----------------
-
-Srinivas Pandruvada (1):
-      ACPI / processor: Request native thermal interrupt handling via _OSC
-
----------------
-
- arch/x86/kernel/cpu/mcheck/therm_throt.c |  3 ++
- drivers/acpi/acpi_processor.c            | 52 ++++++++++++++++++++++++++++++++
- drivers/acpi/bus.c                       |  3 ++
- drivers/acpi/internal.h                  |  6 ++++
- 4 files changed, 64 insertions(+)
+Looks good to me. Thanks!
