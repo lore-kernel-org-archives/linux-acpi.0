@@ -1,71 +1,40 @@
-From: "Tirdea, Irina" <irina.tirdea@intel.com>
-Subject: RE: [RFC PATCH 2/4] pinctrl: pinconf-generic: Add ACPI support
-Date: Mon, 4 Apr 2016 13:03:58 +0000
-Message-ID: <1F3AC3675D538145B1661F571FE1805F2F22C79E@irsmsx105.ger.corp.intel.com>
-References: <1459424685-26965-1-git-send-email-irina.tirdea@intel.com>
-	 <1459424685-26965-3-git-send-email-irina.tirdea@intel.com>
- <1459519529.5907.198.camel@linux.intel.com>
+From: Octavian Purdila <octavian.purdila-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: Re: [RFC PATCH 02/10] acpi: install SSDT tables from initrd
+Date: Mon, 4 Apr 2016 16:07:31 +0300
+Message-ID: <CAE1zotLX8L=jpJRYtUddtpYmgc0NxqmtdDjcQPWWg8KTO8PH5A@mail.gmail.com>
+References: <1459417026-6697-1-git-send-email-octavian.purdila@intel.com>
+	<1459417026-6697-3-git-send-email-octavian.purdila@intel.com>
+	<1AE640813FDE7649BE1B193DEA596E883BB66258@SHSMSX101.ccr.corp.intel.com>
+	<CAE1zotJ1fa4m-_FO3PUQK8_p0vHcfWD5TmuMdxOSHDjku421pA@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <linux-gpio-owner@vger.kernel.org>
-In-Reply-To: <1459519529.5907.198.camel@linux.intel.com>
-Content-Language: en-US
-Sender: linux-gpio-owner@vger.kernel.org
-To: Andy Shevchenko <andriy.shevchenko@linux.intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Mika Westerberg <mika.westerberg@linux.intel.com>, Linus Walleij <linus.walleij@linaro.org>, "linux-gpio@vger.kernel.org" <linux-gpio@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
-Cc: Rob Herring <robh+dt@kernel.org>, Heikki Krogerus <heikki.krogerus@linux.intel.com>, "Purdila, Octavian" <octavian.purdila@intel.com>, "Ciocan, Cristina" <cristina.ciocan@intel.com>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-efi-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <CAE1zotJ1fa4m-_FO3PUQK8_p0vHcfWD5TmuMdxOSHDjku421pA-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+Sender: linux-efi-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: "Zheng, Lv" <lv.zheng-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: "Rafael J. Wysocki" <rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org>, Len Brown <lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Matt Fleming <matt-mF/unelCI9GS6iBeEJttW/XRex20P6io@public.gmane.org>, Mark Brown <broonie-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Wolfram Sang <wsa-z923LK4zBo2bacvFa/9K2g@public.gmane.org>, Joel Becker <jlbec-aKy9MeLSZ9dg9hUCZPvPmw@public.gmane.org>, Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>, "linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-efi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-efi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-spi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-spi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "Tirdea, Irina" <irina.tirdea-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-DQoNCj4gLS0tLS1PcmlnaW5hbCBNZXNzYWdlLS0tLS0NCj4gRnJvbTogQW5keSBTaGV2Y2hlbmtv
-IFttYWlsdG86YW5kcml5LnNoZXZjaGVua29AbGludXguaW50ZWwuY29tXQ0KPiBTZW50OiAwMSBB
-cHJpbCwgMjAxNiAxNzowNQ0KPiBUbzogVGlyZGVhLCBJcmluYTsgUmFmYWVsIEouIFd5c29ja2k7
-IExlbiBCcm93bjsgTWlrYSBXZXN0ZXJiZXJnOyBMaW51cyBXYWxsZWlqOyBsaW51eC1ncGlvQHZn
-ZXIua2VybmVsLm9yZzsgbGludXgtDQo+IGFjcGlAdmdlci5rZXJuZWwub3JnDQo+IENjOiBSb2Ig
-SGVycmluZzsgSGVpa2tpIEtyb2dlcnVzOyBQdXJkaWxhLCBPY3RhdmlhbjsgQ2lvY2FuLCBDcmlz
-dGluYTsgZGV2aWNldHJlZUB2Z2VyLmtlcm5lbC5vcmc7IGxpbnV4LWtlcm5lbEB2Z2VyLmtlcm5l
-bC5vcmcNCj4gU3ViamVjdDogUmU6IFtSRkMgUEFUQ0ggMi80XSBwaW5jdHJsOiBwaW5jb25mLWdl
-bmVyaWM6IEFkZCBBQ1BJIHN1cHBvcnQNCj4gDQo+IE9uIFRodSwgMjAxNi0wMy0zMSBhdCAxNDo0
-NCArMDMwMCwgSXJpbmEgVGlyZGVhIHdyb3RlOg0KPiA+IEFkZCBBQ1BJIHN1cHBvcnQgZm9yIHRo
-ZSBnZW5lcmljIGRldmljZSB0cmVlIHByb3BlcnRpZXMuDQo+ID4gQ29udmVydCB0aGUgcGluY29u
-ZiBnZW5lcmljIGNvZGUgdG8gaGFuZGxlIGJvdGggQUNQSSBhbmQNCj4gPiBkZXZpY2UgdHJlZSBi
-eSB1c2luZyB0aGUgZndub2RlX3Byb3BlcnR5IEFQSS4gQWxzbyBpbmNsdWRlDQo+ID4gcmVuYW1p
-bmcgZGV2aWNlIHRyZWUgcmVmZXJlbmNlcyBpbiBuYW1lcyBvZiBmdW5jdGlvbnMgYW5kDQo+ID4g
-c3RydWN0dXJlcyBmcm9tICdkdCcgdG8gJ2Z3bm9kZScuDQo+IA0KPiBUaGlzIGlzIGxvb2tzIGdv
-b2QgdG8gbWUsIHRob3VnaCBmZXcgc3R5bGUgLyBtaW5vciBjb21tZW50cyBiZWxvdy4NCg0KVGhh
-bmtzIGZvciB0aGUgcmV2aWV3LCBBbmR5ISANCj4gDQo+ID4gLS0tIGEvZHJpdmVycy9waW5jdHJs
-L3BpbmNvbmYtZ2VuZXJpYy5jDQo+ID4gKysrIGIvZHJpdmVycy9waW5jdHJsL3BpbmNvbmYtZ2Vu
-ZXJpYy5jDQo+ID4NCj4gDQo+ID4gQEAgLTE3NSwyMiArMTc2LDIyIEBAIHN0YXRpYyBjb25zdCBz
-dHJ1Y3QgcGluY29uZl9nZW5lcmljX3BhcmFtcw0KPiA+IGR0X3BhcmFtc1tdID0gew0KPiA+IMKg
-fTsNCj4gPg0KPiA+IMKgLyoqDQo+ID4gLSAqIHBhcnNlX2R0X2NmZygpIC0gUGFyc2UgRFQgcGlu
-Y29uZiBwYXJhbWV0ZXJzDQo+ID4gLSAqIEBucDoJRFQgbm9kZQ0KPiA+ICsgKiBwYXJzZV9md25v
-ZGVfY2ZnKCkgLSBQYXJzZSBGVyBwaW5jb25mIHBhcmFtZXRlcnMNCj4gPiArICogQGZ3OglGVyBu
-b2RlDQo+IA0KPiBIZXJlIGFuZCBiZWxvdyBpdCBzaG91bGQgYmUgQGZ3bm9kZS4NCk9LLg0KPiAN
-Cj4gPiAtaW50IHBpbmNvbmZfZ2VuZXJpY19kdF9zdWJub2RlX3RvX21hcChzdHJ1Y3QgcGluY3Ry
-bF9kZXYgKnBjdGxkZXYsDQo+ID4gLQkJc3RydWN0IGRldmljZV9ub2RlICpucCwgc3RydWN0IHBp
-bmN0cmxfbWFwICoqbWFwLA0KPiA+ICtzdGF0aWMgaW50IHBpbmNvbmZfZ2VuZXJpY19md25vZGVf
-c3Vibm9kZV90b19tYXAoc3RydWN0IHBpbmN0cmxfZGV2DQo+ID4gKnBjdGxkZXYsDQo+ID4gKwkJ
-c3RydWN0IGZ3bm9kZV9oYW5kbGUgKmZ3bm9kZSwgc3RydWN0IHBpbmN0cmxfbWFwDQo+ID4gKipt
-YXAsDQo+ID4gwqAJCXVuc2lnbmVkICpyZXNlcnZlZF9tYXBzLCB1bnNpZ25lZCAqbnVtX21hcHMs
-DQo+ID4gwqAJCWVudW0gcGluY3RybF9tYXBfdHlwZSB0eXBlKQ0KPiA+IMKgew0KPiA+IC0JaW50
-IHJldDsNCj4gPiArCWludCByZXQsIGk7DQo+IA0KPiBTaW5jZSB5b3UgY2hhbmdlIHRoaXMgbGlu
-ZSBhbnl3YXksIHBlcmhhcHMgbW92ZSBpdCB0byBiZSBsYXN0IGluIHRoZQ0KPiBkZWZpbml0aW9u
-IGJsb2NrPw0KPiANCj4gPiDCoAljb25zdCBjaGFyICpmdW5jdGlvbjsNCj4gPiDCoAlzdHJ1Y3Qg
-ZGV2aWNlICpkZXYgPSBwY3RsZGV2LT5kZXY7DQo+ID4gwqAJdW5zaWduZWQgbG9uZyAqY29uZmln
-cyA9IE5VTEw7DQo+ID4gwqAJdW5zaWduZWQgbnVtX2NvbmZpZ3MgPSAwOw0KPiA+IMKgCXVuc2ln
-bmVkIHJlc2VydmUsIHN0cmluZ3NfY291bnQ7DQo+ID4gLQlzdHJ1Y3QgcHJvcGVydHkgKnByb3A7
-DQo+ID4gLQljb25zdCBjaGFyICpncm91cDsNCj4gPiArCWNvbnN0IGNoYXIgKipncm91cHM7DQo+
-ID4gwqAJY29uc3QgY2hhciAqc3Vibm9kZV90YXJnZXRfdHlwZSA9ICJwaW5zIjsNCj4gDQo+IC4u
-LnRvIGhlcmUuDQo+IA0KU3VyZS4NCj4gPiArI2lmZGVmIENPTkZJR19PRg0KPiA+ICtpbmxpbmUg
-aW50IHBpbmNvbmZfZ2VuZXJpY19wYXJzZV9kdF9jb25maWcoc3RydWN0IGRldmljZV9ub2RlICpu
-cCwNCj4gPiArCQkJCQnCoMKgwqBzdHJ1Y3QgcGluY3RybF9kZXYNCj4gPiAqcGN0bGRldiwNCj4g
-PiArCQkJCQnCoMKgwqB1bnNpZ25lZCBsb25nICoqY29uZmlncywNCj4gPiArCQkJCQnCoMKgwqB1
-bnNpZ25lZCBpbnQgKm5jb25maWdzKQ0KPiA+ICt7DQo+ID4gKwlyZXR1cm4gcGluY29uZl9nZW5l
-cmljX3BhcnNlX2Z3bm9kZV9jb25maWcoJm5wLT5md25vZGUsDQo+ID4gcGN0bGRldiwNCj4gPiAr
-CQkJCQkJwqDCoMKgY29uZmlncywNCj4gPiBuY29uZmlncyk7DQo+ID4gK30NCj4gDQo+IEkgZGlk
-bid0IHNlZSBhbnkgdXNlciBvZiB0aGlzLg0KDQpwaW5jb25mX2dlbmVyaWNfcGFyc2VfZHRfY29u
-ZmlnICBpcyBkZWZpbmVkIGluIGRyaXZlcnMvcGluY3RybC9waW5jb25mLmgNCmFuZCBpcyB1c2Vk
-IGJ5IHZhcmlvdXMgcGluY3RybCBkcml2ZXJzKGUuZy46IGRyaXZlcnMvcGluY3RybC9ub21hZGlr
-L3BpbmN0cmwtYWJ4NTAwLmMsDQpkcml2ZXJzL3BpbmN0cmwvcGluY3RybC10ejEwOTAtcGRjLmMs
-IGRyaXZlcnMvcGluY3RybC9waW5jdHJsLXR6MTA5MC5jKS4gVGFraW5nIGEgY2xvc2VyDQpsb29r
-IGF0IGl0cyBwcm90b3R5cGUsIEkgc2hvdWxkIG1hdGNoIGl0IGhlcmUgZXhhY3RseSAoYnkgcmVt
-b3ZpbmcgaW5saW5lKS4NCg0K
+On Fri, Apr 1, 2016 at 1:11 PM, Octavian Purdila
+<octavian.purdila-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org> wrote:
+> On Fri, Apr 1, 2016 at 8:05 AM, Zheng, Lv <lv.zheng-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org> wrote:
+>> Hi,
+>>
+>> IMO, there is already a similar function upstreamed:
+>> https://git.kernel.org/cgit/linux/kernel/git/torvalds/linux.git/commit/?id=c85cc81
+>> Could it work for your use case?
+>
+> Yes, it is basically the same.
+>
+> The only difference is on how we handle taint. I think we should use a
+> new taint for overlays and that we don't need to disable lockdep.
+>
+> BTW, why is lockdep disabled when we override?
+
+The other thing I forgot to mention is that I think we should allow
+installing new tables even if CONFIG_ACPI_INITRD_TABLE_OVERRIDE is not
+selected. IMO the override and overlay functionality is different,
+with the latter being more then a debug option.
+
+I will prepare a patch for the next version of the series to decouple
+installing new tables from CONFIG_ACPI_INITRD_TABLE_OVERRIDE.
