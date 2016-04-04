@@ -1,82 +1,71 @@
-From: "Tirdea, Irina" <irina.tirdea-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: [RFC PATCH 4/4] pinctrl: Parse GpioInt/GpioIo resources
-Date: Mon, 4 Apr 2016 14:05:33 +0000
-Message-ID: <1F3AC3675D538145B1661F571FE1805F2F22D82F@irsmsx105.ger.corp.intel.com>
-References: <1459424685-26965-1-git-send-email-irina.tirdea@intel.com>
- <1459424685-26965-5-git-send-email-irina.tirdea@intel.com>
- <20160404134740.GB1727@lahna.fi.intel.com>
+From: Mark Brown <broonie@kernel.org>
+Subject: Re: [RFC PATCH 06/10] spi: add support for ACPI reconfigure
+ notifications
+Date: Mon, 4 Apr 2016 09:03:27 -0700
+Message-ID: <20160404160327.GH2350@sirena.org.uk>
+References: <1459417026-6697-1-git-send-email-octavian.purdila@intel.com>
+ <1459417026-6697-7-git-send-email-octavian.purdila@intel.com>
+ <20160331172935.GL2350@sirena.org.uk>
+ <CAE1zotJbUGBOUF-4-XAx0DUkj55egOMXVn9FzjV3Fdj4MYxD0Q@mail.gmail.com>
+ <20160401140856.GW2350@sirena.org.uk>
+ <CAJZ5v0itmFDdPi6vJmsheEHADEwmeTNgCQ5iVroJfV=o6Wof3A@mail.gmail.com>
+ <20160402162449.GB2350@sirena.org.uk>
+ <CAE1zotKDZd2mYmzoQvCPgVrZ5vfOrPDtBRzTscdsqrZbT8Z+cg@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20160404134740.GB1727-3PARRvDOhMZrdx17CPfAsdBPR1lH4CV8@public.gmane.org>
-Content-Language: en-US
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Mika Westerberg <mika.westerberg-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
-Cc: "Rafael J. Wysocki" <rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org>, Len Brown <lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Linus Walleij <linus.walleij-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, "linux-gpio-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-gpio-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Heikki Krogerus <heikki.krogerus-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, Andy Shevchenko <andriy.shevchenko-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, "Purdila, Octavian" <octavian.purdila-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "Ciocan, Cristina" <cristina.ciocan-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Type: multipart/signed; micalg=pgp-sha256;
+	protocol="application/pgp-signature"; boundary="GH2w3bbsGmSMo31z"
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mezzanine.sirena.org.uk ([106.187.55.193]:42858 "EHLO
+	mezzanine.sirena.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755616AbcDDQDy (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 4 Apr 2016 12:03:54 -0400
+Content-Disposition: inline
+In-Reply-To: <CAE1zotKDZd2mYmzoQvCPgVrZ5vfOrPDtBRzTscdsqrZbT8Z+cg@mail.gmail.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Octavian Purdila <octavian.purdila@intel.com>
+Cc: "Rafael J. Wysocki" <rafael@kernel.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Matt Fleming <matt@codeblueprint.co.uk>, Wolfram Sang <wsa@the-dreams.de>, Joel Becker <jlbec@evilplan.org>, Christoph Hellwig <hch@lst.de>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, linux-efi@vger.kernel.org, linux-i2c <linux-i2c@vger.kernel.org>, linux-spi@vger.kernel.org, lkml <linux-kernel@vger.kernel.org>, Irina Tirdea <irina.tirdea@intel.com>
 
 
+--GH2w3bbsGmSMo31z
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-> -----Original Message-----
-> From: Mika Westerberg [mailto:mika.westerberg-VuQAYsv1563Yd54FQh9/CA@public.gmane.org]
-> Sent: 04 April, 2016 16:48
-> To: Tirdea, Irina
-> Cc: Rafael J. Wysocki; Len Brown; Linus Walleij; linux-gpio-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; Rob Herring; Heikki Krogerus;
-> Andy Shevchenko; Purdila, Octavian; Ciocan, Cristina; devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> Subject: Re: [RFC PATCH 4/4] pinctrl: Parse GpioInt/GpioIo resources
-> 
-> On Thu, Mar 31, 2016 at 02:44:45PM +0300, Irina Tirdea wrote:
-> > +static int acpi_parse_gpio_res(struct pinctrl *p,
-> > +			       struct pinctrl_map **map,
-> > +			       unsigned *num_maps,
-> > +			       struct pinctrl_dev ***pctldevs)
-> > +{
-> > +	struct acpi_gpio_lookup lookup;
-> > +	struct list_head res_list;
-> > +	struct acpi_device *adev;
-> > +	unsigned int index;
-> > +	int ret;
-> > +
-> > +	adev = ACPI_COMPANION(p->dev);
-> > +
-> > +	*map = NULL;
-> > +	*num_maps = 0;
-> > +	memset(&lookup, 0, sizeof(lookup));
-> > +
-> > +	/* Parse all GpioInt/GpioIo resources in _CRS and extract pin conf */
-> > +	for (index = 0; ; index++) {
-> > +		lookup.index = index;
-> > +		lookup.n = 0;
-> > +		lookup.found = false;
-> > +
-> > +		INIT_LIST_HEAD(&res_list);
-> > +		ret = acpi_dev_get_resources(adev, &res_list, acpi_gpio_to_map,
-> > +					     &lookup);
-> > +		if (ret < 0)
-> > +			goto exit_free;
-> > +		acpi_dev_free_resource_list(&res_list);
-> > +		if (!lookup.found)
-> > +			break;
-> > +	}
-> > +
-> > +	*map = lookup.map;
-> > +	*num_maps = lookup.num_maps;
-> > +	*pctldevs = lookup.pctldevs;
-> 
-> This function has quite many stars in arguments and in the function
-> body. In particular pctldevs has three stars!
-> 
-> I wonder if this could be written in such way that avoids that. Like
-> create a structure holding the map information and pass that to the
-> function instead.
-> 
+On Mon, Apr 04, 2016 at 01:25:56PM +0300, Octavian Purdila wrote:
+> On Sat, Apr 2, 2016 at 7:24 PM, Mark Brown <broonie@kernel.org> wrote:
 
+> > What I don't understand is why the flow on inital probe isn't simply to
+> > register the controller which then triggers the walk of the children.
+> > That way any bus that supports initial probe also supports hotplug
+> > without needing to go and manually add a second code path.
 
-Yes, that would make the code more clear. I will rewrite it using a structure.
+> Do you mean register the notifier per controller instead of per
+> subsystem? Either way we need changes at the subsystem level and I
+> choose to follow the device tree implementation for consistency.
 
-> Other parts of the patch look good to me.
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+No!  I mean use the exact same callback you've got now for everything.
+
+> The other reason is that (pending other ACPICA changes) we can add
+> other notification events in the future such as node added or removed
+> (just like device tree), and in that case the probe and hotplug
+> handling would be different (and a bit more efficient).
+
+Why is probe different to hotplug?  We don't need to do that in the
+normal driver model.
+
+--GH2w3bbsGmSMo31z
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2
+
+iQEcBAEBCAAGBQJXApBKAAoJECTWi3JdVIfQi4UH/0n5ctuTiNy19NukG3EILHSB
+mD92PAk3ysfpgYqCY3v+x0V3UiEhbhDIflrSpi0IiKIaMu8M+7K3gJKjeVo1Jd6b
+JSKVE0lsLzXkM9cQs7nE/eg0zXcpSx/uHE5ilfxZsZpPcaWG0demluZmHDtAczKb
+saOInORaXf5JtzjVlwHWa001SFRSRuDciSCRZS9lm5XHjgFgzlXLrMbA3tbsHh1W
+pKVnoddslbAL8DDxZU59NtizJhc9HTA74JIG50ZqNRgsb1aa8cD+ez3drA5pnLMD
+AVLhHy5IwWjCKVf3CphJAEYXKdWiLYekFZpnFVDVelzQ7qt4IyKYG+x80S/rIJU=
+=fMiN
+-----END PGP SIGNATURE-----
+
+--GH2w3bbsGmSMo31z--
