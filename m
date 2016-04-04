@@ -1,68 +1,283 @@
-From: "Rafael J. Wysocki" <rafael-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: [RFC PATCH 06/10] spi: add support for ACPI reconfigure notifications
-Date: Mon, 4 Apr 2016 23:18:56 +0200
-Message-ID: <CAJZ5v0gV8N6zgVrwtRFaY98Wv1HsoKs+4=U-s_V29FSpCdFW3g@mail.gmail.com>
-References: <1459417026-6697-1-git-send-email-octavian.purdila@intel.com>
-	<1459417026-6697-7-git-send-email-octavian.purdila@intel.com>
-	<20160331172935.GL2350@sirena.org.uk>
-	<CAE1zotJbUGBOUF-4-XAx0DUkj55egOMXVn9FzjV3Fdj4MYxD0Q@mail.gmail.com>
-	<20160401140856.GW2350@sirena.org.uk>
-	<CAJZ5v0itmFDdPi6vJmsheEHADEwmeTNgCQ5iVroJfV=o6Wof3A@mail.gmail.com>
-	<20160402162449.GB2350@sirena.org.uk>
-	<CAE1zotKDZd2mYmzoQvCPgVrZ5vfOrPDtBRzTscdsqrZbT8Z+cg@mail.gmail.com>
-	<20160404160327.GH2350@sirena.org.uk>
-	<CAE1zot+ESGBEYeUbLTreKfkc-6B45uQq3PWhhRfBo1AWd-7Vxw@mail.gmail.com>
+From: Peter Hurley <peter@hurleysoftware.com>
+Subject: Re: [PATCH v7 3/5] ACPI: parse SPCR and enable matching console
+Date: Mon, 4 Apr 2016 14:23:45 -0700
+Message-ID: <5702DB61.4010805@hurleysoftware.com>
+References: <1459431629-27934-1-git-send-email-aleksey.makarov@linaro.org>
+ <1459431629-27934-4-git-send-email-aleksey.makarov@linaro.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-efi-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <CAE1zot+ESGBEYeUbLTreKfkc-6B45uQq3PWhhRfBo1AWd-7Vxw-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
-Sender: linux-efi-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Octavian Purdila <octavian.purdila-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: Mark Brown <broonie-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, "Rafael J. Wysocki" <rafael-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, "Rafael J. Wysocki" <rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org>, Len Brown <lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Matt Fleming <matt-mF/unelCI9GS6iBeEJttW/XRex20P6io@public.gmane.org>, Wolfram Sang <wsa-z923LK4zBo2bacvFa/9K2g@public.gmane.org>, Joel Becker <jlbec-aKy9MeLSZ9dg9hUCZPvPmw@public.gmane.org>, Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>, "linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-efi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-i2c <linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-spi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, lkml <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Irina Tirdea <irina.tirdea-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-pa0-f41.google.com ([209.85.220.41]:36236 "EHLO
+	mail-pa0-f41.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751587AbcDDVXs (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 4 Apr 2016 17:23:48 -0400
+Received: by mail-pa0-f41.google.com with SMTP id tt10so151772184pab.3
+        for <linux-acpi@vger.kernel.org>; Mon, 04 Apr 2016 14:23:47 -0700 (PDT)
+In-Reply-To: <1459431629-27934-4-git-send-email-aleksey.makarov@linaro.org>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Aleksey Makarov <aleksey.makarov@linaro.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: Russell King <linux@arm.linux.org.uk>, linux-serial@vger.kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, "Rafael J . Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Leif Lindholm <leif.lindholm@linaro.org>, Graeme Gregory <graeme.gregory@linaro.org>, Al Stone <ahs3@redhat.com>, Christopher Covington <cov@codeaurora.org>, Yury Norov <ynorov@caviumnetworks.com>, Andy Shevchenko <andy.shevchenko@gmail.com>, "Zheng, Lv" <lv.zheng@intel.com>, Jiri Slaby <jslaby@suse.com>
 
-On Mon, Apr 4, 2016 at 9:34 PM, Octavian Purdila
-<octavian.purdila-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org> wrote:
-> On Mon, Apr 4, 2016 at 7:03 PM, Mark Brown <broonie-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org> wrote:
->> On Mon, Apr 04, 2016 at 01:25:56PM +0300, Octavian Purdila wrote:
->>> On Sat, Apr 2, 2016 at 7:24 PM, Mark Brown <broonie-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org> wrote:
->>
->>> > What I don't understand is why the flow on inital probe isn't simply to
->>> > register the controller which then triggers the walk of the children.
->>> > That way any bus that supports initial probe also supports hotplug
->>> > without needing to go and manually add a second code path.
->>
->>> Do you mean register the notifier per controller instead of per
->>> subsystem? Either way we need changes at the subsystem level and I
->>> choose to follow the device tree implementation for consistency.
->>
->> No!  I mean use the exact same callback you've got now for everything.
->>
->>> The other reason is that (pending other ACPICA changes) we can add
->>> other notification events in the future such as node added or removed
->>> (just like device tree), and in that case the probe and hotplug
->>> handling would be different (and a bit more efficient).
->>
->> Why is probe different to hotplug?  We don't need to do that in the
->> normal driver model.
->
-> There might be some confusion with the term, I am referring to slave
-> hotplug, not controller hotplug.
->
-> The way I see it, there are two logical operations: probe of a
-> controller and the associated enumeration of the SPI slaves for that
-> bus and "hotplug" of new SPI slaves and the enumeration of those
-> particular slaves.
->
-> When we probe the controller we search DT/ACPI and enumerate all the
-> slaves for *that* controller.
->
-> When a slave hotplug happens for device tree we get a device node
-> notification and we can instantiate the SPI slave based on that info.
-> In case of ACPI, (at this point) we get a global callback and in that
-> callback we need to iterate through *all* controllers.
+On 03/31/2016 06:40 AM, Aleksey Makarov wrote:
+> 'ARM Server Base Boot Requiremets' [1] mentions SPCR (Serial Port
+> Console Redirection Table) [2] as a mandatory ACPI table that
+> specifies the configuration of serial console.
+> 
+> Defer initialization of DT earlycon until ACPI/DT decision is made.
+> 
+> Parse the ACPI SPCR table, setup earlycon if required,
+> enable specified console.
+> 
+> Thanks to Peter Hurley for explaining how this should work.
+> 
+> [1] http://infocenter.arm.com/help/index.jsp?topic=/com.arm.doc.den0044a/index.html
+> [2] https://msdn.microsoft.com/en-us/library/windows/hardware/dn639132(v=vs.85).aspx
 
-Is that really necessary?
+So for the code:
 
-The namespace rescan could notify the parent of a new node in
-acpi_default_enumeration(), couldn't it?
+Reviewed-by: Peter Hurley <peter@hurleysoftware.com>
+
+
+
+However, I still have concerns regarding the license of this code
+as GPL, when the Microsoft patent notice in [2] above only provides
+two license options, neither of which are referred to in the
+drivers/acpi/spcr.c file header and neither of which (I believe) are
+GPL compatible.
+
+
+
+> Signed-off-by: Aleksey Makarov <aleksey.makarov@linaro.org>
+> ---
+>  drivers/acpi/Kconfig          |   3 ++
+>  drivers/acpi/Makefile         |   1 +
+>  drivers/acpi/spcr.c           | 111 ++++++++++++++++++++++++++++++++++++++++++
+>  drivers/tty/serial/earlycon.c |  19 +++++++-
+>  include/linux/acpi.h          |   6 +++
+>  include/linux/serial_core.h   |   6 +++
+>  6 files changed, 144 insertions(+), 2 deletions(-)
+>  create mode 100644 drivers/acpi/spcr.c
+> 
+> diff --git a/drivers/acpi/Kconfig b/drivers/acpi/Kconfig
+> index 65fb483..5611eb6 100644
+> --- a/drivers/acpi/Kconfig
+> +++ b/drivers/acpi/Kconfig
+> @@ -77,6 +77,9 @@ config ACPI_DEBUGGER_USER
+>  
+>  endif
+>  
+> +config ACPI_SPCR_TABLE
+> +	bool
+> +
+>  config ACPI_SLEEP
+>  	bool
+>  	depends on SUSPEND || HIBERNATION
+> diff --git a/drivers/acpi/Makefile b/drivers/acpi/Makefile
+> index 7395928..f70ae14 100644
+> --- a/drivers/acpi/Makefile
+> +++ b/drivers/acpi/Makefile
+> @@ -82,6 +82,7 @@ obj-$(CONFIG_ACPI_EC_DEBUGFS)	+= ec_sys.o
+>  obj-$(CONFIG_ACPI_CUSTOM_METHOD)+= custom_method.o
+>  obj-$(CONFIG_ACPI_BGRT)		+= bgrt.o
+>  obj-$(CONFIG_ACPI_CPPC_LIB)	+= cppc_acpi.o
+> +obj-$(CONFIG_ACPI_SPCR_TABLE)	+= spcr.o
+>  obj-$(CONFIG_ACPI_DEBUGGER_USER) += acpi_dbg.o
+>  
+>  # processor has its own "processor." module_param namespace
+> diff --git a/drivers/acpi/spcr.c b/drivers/acpi/spcr.c
+> new file mode 100644
+> index 0000000..68ffc33
+> --- /dev/null
+> +++ b/drivers/acpi/spcr.c
+> @@ -0,0 +1,111 @@
+> +/*
+> + * Copyright (c) 2012, Intel Corporation
+> + * Copyright (c) 2015, Red Hat, Inc.
+> + * Copyright (c) 2015, 2016 Linaro Ltd.
+> + *
+> + * This program is free software; you can redistribute it and/or modify
+> + * it under the terms of the GNU General Public License version 2 as
+> + * published by the Free Software Foundation.
+> + *
+> + */
+> +
+> +#define pr_fmt(fmt) "ACPI: SPCR: " fmt
+> +
+> +#include <linux/acpi.h>
+> +#include <linux/console.h>
+> +#include <linux/kernel.h>
+> +#include <linux/serial_core.h>
+> +
+> +/**
+> + * parse_spcr() - parse ACPI SPCR table and add preferred console
+> + *
+> + * @earlycon: set up earlycon for the console specified by the table
+> + *
+> + * For the architectures with support for ACPI, CONFIG_ACPI_SPCR_TABLE may be
+> + * defined to parse ACPI SPCR table.  As a result of the parsing preferred
+> + * console is registered and if @earlycon is true, earlycon is set up.
+> + *
+> + * When CONFIG_ACPI_SPCR_TABLE is defined, this function should should be called
+> + * from arch inintialization code as soon as the DT/ACPI decision is made.
+> + *
+> + */
+> +int __init parse_spcr(bool earlycon)
+> +{
+> +	static char opts[64];
+> +	struct acpi_table_spcr *table;
+> +	acpi_size table_size;
+> +	acpi_status status;
+> +	char *uart;
+> +	char *iotype;
+> +	int baud_rate;
+> +	int err;
+> +
+> +	if (acpi_disabled)
+> +		return -ENODEV;
+> +
+> +	status = acpi_get_table_with_size(ACPI_SIG_SPCR, 0,
+> +					  (struct acpi_table_header **)&table,
+> +					  &table_size);
+> +
+> +	if (ACPI_FAILURE(status))
+> +		return -ENOENT;
+> +
+> +	if (table->header.revision < 2) {
+> +		err = -ENOENT;
+> +		pr_err("wrong table version\n");
+> +		goto done;
+> +	}
+> +
+> +	iotype = table->serial_port.space_id == ACPI_ADR_SPACE_SYSTEM_MEMORY ?
+> +			"mmio" : "io";
+> +
+> +	switch (table->interface_type) {
+> +	case ACPI_DBG2_ARM_SBSA_32BIT:
+> +		iotype = "mmio32";
+> +		/* fall through */
+> +	case ACPI_DBG2_ARM_PL011:
+> +	case ACPI_DBG2_ARM_SBSA_GENERIC:
+> +	case ACPI_DBG2_BCM2835:
+> +		uart = "pl011";
+> +		break;
+> +	case ACPI_DBG2_16550_COMPATIBLE:
+> +	case ACPI_DBG2_16550_SUBSET:
+> +		uart = "uart";
+> +		break;
+> +	default:
+> +		err = -ENOENT;
+> +		goto done;
+> +	}
+> +
+> +	switch (table->baud_rate) {
+> +	case 3:
+> +		baud_rate = 9600;
+> +		break;
+> +	case 4:
+> +		baud_rate = 19200;
+> +		break;
+> +	case 6:
+> +		baud_rate = 57600;
+> +		break;
+> +	case 7:
+> +		baud_rate = 115200;
+> +		break;
+> +	default:
+> +		err = -ENOENT;
+> +		goto done;
+> +	}
+> +
+> +	snprintf(opts, sizeof(opts), "%s,%s,0x%llx,%d", uart, iotype,
+> +		 table->serial_port.address, baud_rate);
+> +
+> +	pr_info("console: %s", opts);
+> +
+> +	if (earlycon)
+> +		setup_earlycon(opts);
+> +
+> +	err = add_preferred_console(uart, 0, opts + strlen(uart) + 1);
+> +
+> +done:
+> +	early_acpi_os_unmap_memory((void __iomem *)table, table_size);
+> +	return err;
+> +}
+> diff --git a/drivers/tty/serial/earlycon.c b/drivers/tty/serial/earlycon.c
+> index 7aae655..ea00b9f 100644
+> --- a/drivers/tty/serial/earlycon.c
+> +++ b/drivers/tty/serial/earlycon.c
+> @@ -21,6 +21,7 @@
+>  #include <linux/sizes.h>
+>  #include <linux/of.h>
+>  #include <linux/of_fdt.h>
+> +#include <linux/acpi.h>
+>  
+>  #ifdef CONFIG_FIX_EARLYCON_MEM
+>  #include <asm/fixmap.h>
+> @@ -199,6 +200,14 @@ int __init setup_earlycon(char *buf)
+>  	return -ENOENT;
+>  }
+>  
+> +/*
+> + * When CONFIG_ACPI_SPCR_TABLE is defined, "earlycon" without parameters in
+> + * command line does not start DT earlycon immediately, instead it defers
+> + * starting it until DT/ACPI decision is made.  At that time if ACPI is enabled
+> + * call parse_spcr(), else call early_init_dt_scan_chosen_stdout()
+> + */
+> +bool earlycon_init_is_deferred __initdata;
+> +
+>  /* early_param wrapper for setup_earlycon() */
+>  static int __init param_setup_earlycon(char *buf)
+>  {
+> @@ -208,8 +217,14 @@ static int __init param_setup_earlycon(char *buf)
+>  	 * Just 'earlycon' is a valid param for devicetree earlycons;
+>  	 * don't generate a warning from parse_early_params() in that case
+>  	 */
+> -	if (!buf || !buf[0])
+> -		return early_init_dt_scan_chosen_stdout();
+> +	if (!buf || !buf[0]) {
+> +		if (IS_ENABLED(CONFIG_ACPI_SPCR_TABLE)) {
+> +			earlycon_init_is_deferred = true;
+> +			return 0;
+> +		} else {
+> +			return early_init_dt_scan_chosen_stdout();
+> +		}
+> +	}
+>  
+>  	err = setup_earlycon(buf);
+>  	if (err == -ENOENT || err == -EALREADY)
+> diff --git a/include/linux/acpi.h b/include/linux/acpi.h
+> index 06ed7e5..1095ed6 100644
+> --- a/include/linux/acpi.h
+> +++ b/include/linux/acpi.h
+> @@ -1004,4 +1004,10 @@ static inline struct fwnode_handle *acpi_get_next_subnode(struct device *dev,
+>  #define acpi_probe_device_table(t)	({ int __r = 0; __r;})
+>  #endif
+>  
+> +#ifdef CONFIG_ACPI_SPCR_TABLE
+> +int parse_spcr(bool earlycon);
+> +#else
+> +static inline int parse_spcr(bool earlycon) { return 0; }
+> +#endif
+> +
+>  #endif	/*_LINUX_ACPI_H*/
+> diff --git a/include/linux/serial_core.h b/include/linux/serial_core.h
+> index cbfcf38..de6750f 100644
+> --- a/include/linux/serial_core.h
+> +++ b/include/linux/serial_core.h
+> @@ -363,6 +363,12 @@ extern int of_setup_earlycon(const struct earlycon_id *match,
+>  			     unsigned long node,
+>  			     const char *options);
+>  
+> +#ifdef CONFIG_SERIAL_EARLYCON
+> +extern bool earlycon_init_is_deferred __initdata;
+> +#else
+> +static const bool earlycon_init_is_deferred;
+> +#endif
+> +
+>  struct uart_port *uart_get_console(struct uart_port *ports, int nr,
+>  				   struct console *c);
+>  int uart_parse_earlycon(char *p, unsigned char *iotype, unsigned long *addr,
+> 
+
