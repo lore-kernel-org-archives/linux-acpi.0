@@ -1,66 +1,34 @@
-From: Octavian Purdila <octavian.purdila@intel.com>
-Subject: Re: [RFC PATCH 06/10] spi: add support for ACPI reconfigure notifications
-Date: Mon, 4 Apr 2016 22:34:56 +0300
-Message-ID: <CAE1zot+ESGBEYeUbLTreKfkc-6B45uQq3PWhhRfBo1AWd-7Vxw@mail.gmail.com>
-References: <1459417026-6697-1-git-send-email-octavian.purdila@intel.com>
-	<1459417026-6697-7-git-send-email-octavian.purdila@intel.com>
-	<20160331172935.GL2350@sirena.org.uk>
-	<CAE1zotJbUGBOUF-4-XAx0DUkj55egOMXVn9FzjV3Fdj4MYxD0Q@mail.gmail.com>
-	<20160401140856.GW2350@sirena.org.uk>
-	<CAJZ5v0itmFDdPi6vJmsheEHADEwmeTNgCQ5iVroJfV=o6Wof3A@mail.gmail.com>
-	<20160402162449.GB2350@sirena.org.uk>
-	<CAE1zotKDZd2mYmzoQvCPgVrZ5vfOrPDtBRzTscdsqrZbT8Z+cg@mail.gmail.com>
-	<20160404160327.GH2350@sirena.org.uk>
+From: Peter Hurley <peter@hurleysoftware.com>
+Subject: Re: [PATCH v7 1/5] of/serial: move earlycon early_param handling to
+ serial
+Date: Mon, 4 Apr 2016 14:07:37 -0700
+Message-ID: <5702D799.5050101@hurleysoftware.com>
+References: <1459431629-27934-1-git-send-email-aleksey.makarov@linaro.org>
+ <1459431629-27934-2-git-send-email-aleksey.makarov@linaro.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-lb0-f172.google.com ([209.85.217.172]:35035 "EHLO
-	mail-lb0-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754941AbcDDTe6 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 4 Apr 2016 15:34:58 -0400
-Received: by mail-lb0-f172.google.com with SMTP id bc4so174990256lbc.2
-        for <linux-acpi@vger.kernel.org>; Mon, 04 Apr 2016 12:34:57 -0700 (PDT)
-In-Reply-To: <20160404160327.GH2350@sirena.org.uk>
+Received: from mail-pa0-f49.google.com ([209.85.220.49]:35262 "EHLO
+	mail-pa0-f49.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751587AbcDDVHk (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 4 Apr 2016 17:07:40 -0400
+Received: by mail-pa0-f49.google.com with SMTP id td3so151023915pab.2
+        for <linux-acpi@vger.kernel.org>; Mon, 04 Apr 2016 14:07:39 -0700 (PDT)
+In-Reply-To: <1459431629-27934-2-git-send-email-aleksey.makarov@linaro.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Mark Brown <broonie@kernel.org>
-Cc: "Rafael J. Wysocki" <rafael@kernel.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Matt Fleming <matt@codeblueprint.co.uk>, Wolfram Sang <wsa@the-dreams.de>, Joel Becker <jlbec@evilplan.org>, Christoph Hellwig <hch@lst.de>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, linux-efi@vger.kernel.org, linux-i2c <linux-i2c@vger.kernel.org>, linux-spi@vger.kernel.org, lkml <linux-kernel@vger.kernel.org>, Irina Tirdea <irina.tirdea@intel.com>
+To: Aleksey Makarov <aleksey.makarov@linaro.org>
+Cc: Russell King <linux@arm.linux.org.uk>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-serial@vger.kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, "Rafael J . Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Leif Lindholm <leif.lindholm@linaro.org>, Graeme Gregory <graeme.gregory@linaro.org>, Al Stone <ahs3@redhat.com>, Christopher Covington <cov@codeaurora.org>, Yury Norov <ynorov@caviumnetworks.com>, Andy Shevchenko <andy.shevchenko@gmail.com>, "Zheng, Lv" <lv.zheng@intel.com>, Rob Herring <robh+dt@kernel.org>, Frank Rowand <frowand.list@gmail.com>, Grant Likely <grant.likely@linaro.org>, Jiri Slaby <jslaby@suse.com>, devicetree@vger.kernel.org
 
-On Mon, Apr 4, 2016 at 7:03 PM, Mark Brown <broonie@kernel.org> wrote:
-> On Mon, Apr 04, 2016 at 01:25:56PM +0300, Octavian Purdila wrote:
->> On Sat, Apr 2, 2016 at 7:24 PM, Mark Brown <broonie@kernel.org> wrote:
->
->> > What I don't understand is why the flow on inital probe isn't simply to
->> > register the controller which then triggers the walk of the children.
->> > That way any bus that supports initial probe also supports hotplug
->> > without needing to go and manually add a second code path.
->
->> Do you mean register the notifier per controller instead of per
->> subsystem? Either way we need changes at the subsystem level and I
->> choose to follow the device tree implementation for consistency.
->
-> No!  I mean use the exact same callback you've got now for everything.
->
->> The other reason is that (pending other ACPICA changes) we can add
->> other notification events in the future such as node added or removed
->> (just like device tree), and in that case the probe and hotplug
->> handling would be different (and a bit more efficient).
->
-> Why is probe different to hotplug?  We don't need to do that in the
-> normal driver model.
+On 03/31/2016 06:40 AM, Aleksey Makarov wrote:
+> From: Leif Lindholm <leif.lindholm@linaro.org>
+> 
+> We have multiple "earlycon" early_param handlers - merge the DT one into
+> the main earlycon one.  It's a cleanup that also will be useful
+> to defer setting up DT console until ACPI/DT decision is made.
+> 
+> Rename the exported function to avoid clashing with the function from
+> arch/microblaze/kernel/prom.c
 
-There might be some confusion with the term, I am referring to slave
-hotplug, not controller hotplug.
-
-The way I see it, there are two logical operations: probe of a
-controller and the associated enumeration of the SPI slaves for that
-bus and "hotplug" of new SPI slaves and the enumeration of those
-particular slaves.
-
-When we probe the controller we search DT/ACPI and enumerate all the
-slaves for *that* controller.
-
-When a slave hotplug happens for device tree we get a device node
-notification and we can instantiate the SPI slave based on that info.
-In case of ACPI, (at this point) we get a global callback and in that
-callback we need to iterate through *all* controllers.
+Reviewed-by: Peter Hurley <peter@hurleysoftware.com>
