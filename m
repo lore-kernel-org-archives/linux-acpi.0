@@ -1,113 +1,60 @@
 From: Tomasz Nowicki <tn@semihalf.com>
-Subject: [PATCH V4 2/7] irqchip, GICv3, ITS: Cleanup for ITS domain initialization.
-Date: Mon,  4 Apr 2016 10:52:50 +0200
-Message-ID: <1459759975-24097-3-git-send-email-tn@semihalf.com>
-References: <1459759975-24097-1-git-send-email-tn@semihalf.com>
+Subject: [PATCH V4 0/7] Introduce ACPI world to ITS irqchip
+Date: Mon,  4 Apr 2016 10:52:48 +0200
+Message-ID: <1459759975-24097-1-git-send-email-tn@semihalf.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1459759975-24097-1-git-send-email-tn@semihalf.com>
 Sender: linux-kernel-owner@vger.kernel.org
 To: marc.zyngier@arm.com, tglx@linutronix.de, jason@lakedaemon.net, rjw@rjwysocki.net, lorenzo.pieralisi@arm.com, robert.richter@caviumnetworks.com, shijie.huang@arm.com, Suravee.Suthikulpanit@amd.com, hanjun.guo@linaro.org
 Cc: al.stone@linaro.org, mw@semihalf.com, graeme.gregory@linaro.org, Catalin.Marinas@arm.com, will.deacon@arm.com, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org, ddaney.cavm@gmail.com, okaya@codeaurora.org, Tomasz Nowicki <tn@semihalf.com>
 List-Id: linux-acpi@vger.kernel.org
 
-There is no point to initialize ITS without having msi-controller
-property in corresponding DT node. However, its_probe is checking
-msi-controller presence at the end, so we can save our time and do that
-check prior to its_probe call. Also, for the code clarity purpose,
-we put domain initialization to separate function.
+The following git branch contains submitted patches along with
+the useful patches from the test point of view (mainly ACPI ARM64 PCI support).
+https://github.com/semihalf-nowicki-tomasz/linux.git (its-acpi-v4)
 
-Signed-off-by: Tomasz Nowicki <tn@semihalf.com>
----
- drivers/irqchip/irq-gic-v3-its.c | 57 ++++++++++++++++++++++++----------------
- 1 file changed, 34 insertions(+), 23 deletions(-)
+Series has been tested on Cavium ThunderX and Qualcomm QDF2xxx server.
 
-diff --git a/drivers/irqchip/irq-gic-v3-its.c b/drivers/irqchip/irq-gic-v3-its.c
-index 3926179..065eac5 100644
---- a/drivers/irqchip/irq-gic-v3-its.c
-+++ b/drivers/irqchip/irq-gic-v3-its.c
-@@ -1429,13 +1429,37 @@ static void its_enable_quirks(struct its_node *its)
- 	gic_enable_quirks(iidr, its_quirks, its);
- }
- 
-+static int its_init_domain(struct device_node *node, struct its_node *its,
-+			   struct irq_domain *parent)
-+{
-+	struct irq_domain *inner_domain;
-+	struct msi_domain_info *info;
-+
-+	info = kzalloc(sizeof(*info), GFP_KERNEL);
-+	if (!info)
-+		return -ENOMEM;
-+
-+	inner_domain = irq_domain_add_tree(node, &its_domain_ops, its);
-+	if (!inner_domain) {
-+		kfree(info);
-+		return -ENOMEM;
-+	}
-+
-+	inner_domain->parent = parent;
-+	inner_domain->bus_token = DOMAIN_BUS_NEXUS;
-+	info->ops = &its_msi_domain_ops;
-+	info->data = its;
-+	inner_domain->host_data = info;
-+
-+	return 0;
-+}
-+
- static int __init its_probe(struct device_node *node,
- 			    struct irq_domain *parent)
- {
- 	struct resource res;
- 	struct its_node *its;
- 	void __iomem *its_base;
--	struct irq_domain *inner_domain;
- 	u32 val;
- 	u64 baser, tmp;
- 	int err;
-@@ -1526,28 +1550,9 @@ static int __init its_probe(struct device_node *node,
- 	writeq_relaxed(0, its->base + GITS_CWRITER);
- 	writel_relaxed(GITS_CTLR_ENABLE, its->base + GITS_CTLR);
- 
--	if (of_property_read_bool(node, "msi-controller")) {
--		struct msi_domain_info *info;
--
--		info = kzalloc(sizeof(*info), GFP_KERNEL);
--		if (!info) {
--			err = -ENOMEM;
--			goto out_free_tables;
--		}
--
--		inner_domain = irq_domain_add_tree(node, &its_domain_ops, its);
--		if (!inner_domain) {
--			err = -ENOMEM;
--			kfree(info);
--			goto out_free_tables;
--		}
--
--		inner_domain->parent = parent;
--		inner_domain->bus_token = DOMAIN_BUS_NEXUS;
--		info->ops = &its_msi_domain_ops;
--		info->data = its;
--		inner_domain->host_data = info;
--	}
-+	err = its_init_domain(node, its, parent);
-+	if (err)
-+		goto out_free_tables;
- 
- 	spin_lock(&its_lock);
- 	list_add(&its->entry, &its_nodes);
-@@ -1598,6 +1603,12 @@ int __init its_init(struct device_node *node, struct rdists *rdists,
- 
- 	for (np = of_find_matching_node(node, its_device_id); np;
- 	     np = of_find_matching_node(np, its_device_id)) {
-+		if (!of_property_read_bool(np, "msi-controller")) {
-+			pr_warn("%s: no msi-controller property, ITS ignored\n",
-+				np->full_name);
-+			continue;
-+		}
-+
- 		its_probe(np, parent_domain);
- 	}
- 
+v3 -> v4
+- rebased against v4.5
+- add ACPI support for IRQ domain handling on a per-device basis
+- reorder domain setup step
+- improve error handling
+- code style improvements
+
+v2 -> v3
+- rebased on top of 4.4
+- fixes and improvements for redistributor init via GICC structures
+- fixes as per kbuild reports
+
+v1 -> v2
+- rebased on top of 4.4-rc4
+- use pci_msi_domain_get_msi_rid for requester ID to device ID translation
+
+Tomasz Nowicki (7):
+  acpi, pci: Setup MSI domain on a per-devices basis.
+  irqchip, GICv3, ITS: Cleanup for ITS domain initialization.
+  irqchip, GICv3, ITS: Refator ITS DT init code to prepare for ACPI.
+  ARM64, ACPI, PCI: I/O Remapping Table (IORT) initial support.
+  irqchip, gicv3, its: Probe ITS in the ACPI way.
+  its, pci, msi: Factor out code that might be reused for ACPI.
+  acpi, gicv3, its: Use MADT ITS subtable to do PCI/MSI domain
+    initialization.
+
+ drivers/acpi/Kconfig                     |   3 +
+ drivers/acpi/Makefile                    |   1 +
+ drivers/acpi/iort.c                      | 335 +++++++++++++++++++++++++++++++
+ drivers/irqchip/Kconfig                  |   1 +
+ drivers/irqchip/irq-gic-v3-its-pci-msi.c |  87 ++++++--
+ drivers/irqchip/irq-gic-v3-its.c         | 188 ++++++++++++-----
+ drivers/irqchip/irq-gic-v3.c             |   7 +-
+ drivers/pci/msi.c                        |  10 +-
+ drivers/pci/pci-acpi.c                   |  77 +++++++
+ include/linux/iort.h                     |  31 +++
+ include/linux/irqchip/arm-gic-v3.h       |   2 +-
+ include/linux/pci.h                      |  11 +
+ 12 files changed, 678 insertions(+), 75 deletions(-)
+ create mode 100644 drivers/acpi/iort.c
+ create mode 100644 include/linux/iort.h
+
 -- 
 1.9.1
