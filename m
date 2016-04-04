@@ -1,60 +1,107 @@
 From: Tomasz Nowicki <tn@semihalf.com>
-Subject: [PATCH V4 0/7] Introduce ACPI world to ITS irqchip
-Date: Mon,  4 Apr 2016 10:52:48 +0200
-Message-ID: <1459759975-24097-1-git-send-email-tn@semihalf.com>
+Subject: [PATCH V4 7/7] acpi, gicv3, its: Use MADT ITS subtable to do PCI/MSI domain initialization.
+Date: Mon,  4 Apr 2016 10:52:55 +0200
+Message-ID: <1459759975-24097-8-git-send-email-tn@semihalf.com>
+References: <1459759975-24097-1-git-send-email-tn@semihalf.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1459759975-24097-1-git-send-email-tn@semihalf.com>
 Sender: linux-kernel-owner@vger.kernel.org
 To: marc.zyngier@arm.com, tglx@linutronix.de, jason@lakedaemon.net, rjw@rjwysocki.net, lorenzo.pieralisi@arm.com, robert.richter@caviumnetworks.com, shijie.huang@arm.com, Suravee.Suthikulpanit@amd.com, hanjun.guo@linaro.org
 Cc: al.stone@linaro.org, mw@semihalf.com, graeme.gregory@linaro.org, Catalin.Marinas@arm.com, will.deacon@arm.com, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org, ddaney.cavm@gmail.com, okaya@codeaurora.org, Tomasz Nowicki <tn@semihalf.com>
 List-Id: linux-acpi@vger.kernel.org
 
-The following git branch contains submitted patches along with
-the useful patches from the test point of view (mainly ACPI ARM64 PCI support).
-https://github.com/semihalf-nowicki-tomasz/linux.git (its-acpi-v4)
+Let ACPI to build ITS PCI MSI domain. If it succeed, we register IORT
+domain provider and RID mapper.
 
-Series has been tested on Cavium ThunderX and Qualcomm QDF2xxx server.
+We have now full PCI MSI domain stack, thus we can enable ITS initialization
+from GICv3 core driver for ACPI scenario.
 
-v3 -> v4
-- rebased against v4.5
-- add ACPI support for IRQ domain handling on a per-device basis
-- reorder domain setup step
-- improve error handling
-- code style improvements
+Signed-off-by: Tomasz Nowicki <tn@semihalf.com>
+---
+ drivers/irqchip/irq-gic-v3-its-pci-msi.c | 46 +++++++++++++++++++++++++++++++-
+ drivers/irqchip/irq-gic-v3.c             |  3 +--
+ 2 files changed, 46 insertions(+), 3 deletions(-)
 
-v2 -> v3
-- rebased on top of 4.4
-- fixes and improvements for redistributor init via GICC structures
-- fixes as per kbuild reports
-
-v1 -> v2
-- rebased on top of 4.4-rc4
-- use pci_msi_domain_get_msi_rid for requester ID to device ID translation
-
-Tomasz Nowicki (7):
-  acpi, pci: Setup MSI domain on a per-devices basis.
-  irqchip, GICv3, ITS: Cleanup for ITS domain initialization.
-  irqchip, GICv3, ITS: Refator ITS DT init code to prepare for ACPI.
-  ARM64, ACPI, PCI: I/O Remapping Table (IORT) initial support.
-  irqchip, gicv3, its: Probe ITS in the ACPI way.
-  its, pci, msi: Factor out code that might be reused for ACPI.
-  acpi, gicv3, its: Use MADT ITS subtable to do PCI/MSI domain
-    initialization.
-
- drivers/acpi/Kconfig                     |   3 +
- drivers/acpi/Makefile                    |   1 +
- drivers/acpi/iort.c                      | 335 +++++++++++++++++++++++++++++++
- drivers/irqchip/Kconfig                  |   1 +
- drivers/irqchip/irq-gic-v3-its-pci-msi.c |  87 ++++++--
- drivers/irqchip/irq-gic-v3-its.c         | 188 ++++++++++++-----
- drivers/irqchip/irq-gic-v3.c             |   7 +-
- drivers/pci/msi.c                        |  10 +-
- drivers/pci/pci-acpi.c                   |  77 +++++++
- include/linux/iort.h                     |  31 +++
- include/linux/irqchip/arm-gic-v3.h       |   2 +-
- include/linux/pci.h                      |  11 +
- 12 files changed, 678 insertions(+), 75 deletions(-)
- create mode 100644 drivers/acpi/iort.c
- create mode 100644 include/linux/iort.h
-
+diff --git a/drivers/irqchip/irq-gic-v3-its-pci-msi.c b/drivers/irqchip/irq-gic-v3-its-pci-msi.c
+index 06165cb..df269a4 100644
+--- a/drivers/irqchip/irq-gic-v3-its-pci-msi.c
++++ b/drivers/irqchip/irq-gic-v3-its-pci-msi.c
+@@ -15,6 +15,8 @@
+  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+  */
+ 
++#include <linux/acpi.h>
++#include <linux/iort.h>
+ #include <linux/msi.h>
+ #include <linux/of.h>
+ #include <linux/of_irq.h>
+@@ -143,10 +145,52 @@ static int __init its_pci_of_msi_init(void)
+ 	return 0;
+ }
+ 
++#ifdef CONFIG_ACPI
++
++static int __init
++its_pci_msi_parse_madt(struct acpi_subtable_header *header,
++		    const unsigned long end)
++{
++	struct acpi_madt_generic_translator *its_entry;
++	struct fwnode_handle *domain_handle;
++
++	its_entry = (struct acpi_madt_generic_translator *)header;
++	domain_handle = iort_its_find_domain_token(its_entry->translation_id);
++	if (!domain_handle) {
++		pr_err("ITS@0x%lx: Unable to locate ITS domain handle\n",
++		       (long)its_entry->base_address);
++		return 0;
++	}
++
++	if (its_pci_msi_init_one(domain_handle))
++		return 0;
++
++	pr_info("PCI/MSI: ITS@0x%lx domain created\n",
++		(long)its_entry->base_address);
++	return 0;
++}
++
++static int __init its_pci_acpi_msi_init(void)
++{
++	if (acpi_table_parse_madt(ACPI_MADT_TYPE_GENERIC_TRANSLATOR,
++				  its_pci_msi_parse_madt, 0) > 0) {
++		pci_acpi_register_msi_rid_mapper(iort_pci_get_msi_rid);
++		pci_acpi_register_dev_msi_fwnode_provider(iort_pci_get_domain);
++	}
++	return 0;
++}
++#else
++inline static int __init its_pci_acpi_msi_init(void)
++{
++	return 0;
++}
++#endif
++
+ static int __init its_pci_msi_init(void)
+ {
+ 	its_pci_of_msi_init();
++	its_pci_acpi_msi_init();
++
+ 	return 0;
+ }
+-
+ early_initcall(its_pci_msi_init);
+diff --git a/drivers/irqchip/irq-gic-v3.c b/drivers/irqchip/irq-gic-v3.c
+index 995b7251..fee635e 100644
+--- a/drivers/irqchip/irq-gic-v3.c
++++ b/drivers/irqchip/irq-gic-v3.c
+@@ -871,8 +871,7 @@ static int __init gic_init_bases(void __iomem *dist_base,
+ 
+ 	set_handle_irq(gic_handle_irq);
+ 
+-	if (IS_ENABLED(CONFIG_ARM_GIC_V3_ITS) && gic_dist_supports_lpis() &&
+-	    to_of_node(handle)) /* Temp hack to prevent ITS init for ACPI */
++	if (IS_ENABLED(CONFIG_ARM_GIC_V3_ITS) && gic_dist_supports_lpis())
+ 		its_init(handle, &gic_data.rdists, gic_data.domain);
+ 
+ 	gic_smp_init();
 -- 
 1.9.1
