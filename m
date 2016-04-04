@@ -1,40 +1,78 @@
-From: Octavian Purdila <octavian.purdila-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: Re: [RFC PATCH 02/10] acpi: install SSDT tables from initrd
-Date: Mon, 4 Apr 2016 16:07:31 +0300
-Message-ID: <CAE1zotLX8L=jpJRYtUddtpYmgc0NxqmtdDjcQPWWg8KTO8PH5A@mail.gmail.com>
-References: <1459417026-6697-1-git-send-email-octavian.purdila@intel.com>
-	<1459417026-6697-3-git-send-email-octavian.purdila@intel.com>
-	<1AE640813FDE7649BE1B193DEA596E883BB66258@SHSMSX101.ccr.corp.intel.com>
-	<CAE1zotJ1fa4m-_FO3PUQK8_p0vHcfWD5TmuMdxOSHDjku421pA@mail.gmail.com>
+From: "Tirdea, Irina" <irina.tirdea@intel.com>
+Subject: RE: [RFC PATCH 3/4] pinctrl: Add ACPI support
+Date: Mon, 4 Apr 2016 13:13:43 +0000
+Message-ID: <1F3AC3675D538145B1661F571FE1805F2F22D7C2@irsmsx105.ger.corp.intel.com>
+References: <1459424685-26965-1-git-send-email-irina.tirdea@intel.com>
+	 <1459424685-26965-4-git-send-email-irina.tirdea@intel.com>
+ <1459520074.5907.205.camel@linux.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-efi-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <CAE1zotJ1fa4m-_FO3PUQK8_p0vHcfWD5TmuMdxOSHDjku421pA-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
-Sender: linux-efi-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Zheng, Lv" <lv.zheng-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: "Rafael J. Wysocki" <rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org>, Len Brown <lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Matt Fleming <matt-mF/unelCI9GS6iBeEJttW/XRex20P6io@public.gmane.org>, Mark Brown <broonie-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Wolfram Sang <wsa-z923LK4zBo2bacvFa/9K2g@public.gmane.org>, Joel Becker <jlbec-aKy9MeLSZ9dg9hUCZPvPmw@public.gmane.org>, Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>, "linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-efi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-efi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-spi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-spi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "Tirdea, Irina" <irina.tirdea-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga14.intel.com ([192.55.52.115]:48085 "EHLO mga14.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751747AbcDDNNu (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 4 Apr 2016 09:13:50 -0400
+In-Reply-To: <1459520074.5907.205.camel@linux.intel.com>
+Content-Language: en-US
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Andy Shevchenko <andriy.shevchenko@linux.intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Mika Westerberg <mika.westerberg@linux.intel.com>, Linus Walleij <linus.walleij@linaro.org>, "linux-gpio@vger.kernel.org" <linux-gpio@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
+Cc: Rob Herring <robh+dt@kernel.org>, Heikki Krogerus <heikki.krogerus@linux.intel.com>, "Purdila, Octavian" <octavian.purdila@intel.com>, "Ciocan, Cristina" <cristina.ciocan@intel.com>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
 
-On Fri, Apr 1, 2016 at 1:11 PM, Octavian Purdila
-<octavian.purdila-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org> wrote:
-> On Fri, Apr 1, 2016 at 8:05 AM, Zheng, Lv <lv.zheng-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org> wrote:
->> Hi,
->>
->> IMO, there is already a similar function upstreamed:
->> https://git.kernel.org/cgit/linux/kernel/git/torvalds/linux.git/commit/?id=c85cc81
->> Could it work for your use case?
->
-> Yes, it is basically the same.
->
-> The only difference is on how we handle taint. I think we should use a
-> new taint for overlays and that we don't need to disable lockdep.
->
-> BTW, why is lockdep disabled when we override?
-
-The other thing I forgot to mention is that I think we should allow
-installing new tables even if CONFIG_ACPI_INITRD_TABLE_OVERRIDE is not
-selected. IMO the override and overlay functionality is different,
-with the latter being more then a debug option.
-
-I will prepare a patch for the next version of the series to decouple
-installing new tables from CONFIG_ACPI_INITRD_TABLE_OVERRIDE.
+DQoNCj4gLS0tLS1PcmlnaW5hbCBNZXNzYWdlLS0tLS0NCj4gRnJvbTogQW5keSBTaGV2Y2hlbmtv
+IFttYWlsdG86YW5kcml5LnNoZXZjaGVua29AbGludXguaW50ZWwuY29tXQ0KPiBTZW50OiAwMSBB
+cHJpbCwgMjAxNiAxNzoxNQ0KPiBUbzogVGlyZGVhLCBJcmluYTsgUmFmYWVsIEouIFd5c29ja2k7
+IExlbiBCcm93bjsgTWlrYSBXZXN0ZXJiZXJnOyBMaW51cyBXYWxsZWlqOyBsaW51eC1ncGlvQHZn
+ZXIua2VybmVsLm9yZzsgbGludXgtDQo+IGFjcGlAdmdlci5rZXJuZWwub3JnDQo+IENjOiBSb2Ig
+SGVycmluZzsgSGVpa2tpIEtyb2dlcnVzOyBQdXJkaWxhLCBPY3RhdmlhbjsgQ2lvY2FuLCBDcmlz
+dGluYTsgZGV2aWNldHJlZUB2Z2VyLmtlcm5lbC5vcmc7IGxpbnV4LWtlcm5lbEB2Z2VyLmtlcm5l
+bC5vcmcNCj4gU3ViamVjdDogUmU6IFtSRkMgUEFUQ0ggMy80XSBwaW5jdHJsOiBBZGQgQUNQSSBz
+dXBwb3J0DQo+IA0KPiBPbiBUaHUsIDIwMTYtMDMtMzEgYXQgMTQ6NDQgKzAzMDAsIElyaW5hIFRp
+cmRlYSB3cm90ZToNCj4gPiBBZGQgQUNQSSBzdXBwb3J0IGZvciBwaW4gY29udHJvbGxlciBwcm9w
+ZXJ0aWVzLiBUaGVzZSBhcmUNCj4gPiBiYXNlZCBvbiBBQ1BJIF9EU0QgcHJvcGVydGllcyBhbmQg
+Zm9sbG93IHRoZSBkZXZpY2UgdHJlZQ0KPiA+IG1vZGVsIGJhc2VkIG9uIHN0YXRlcyBhbmQgbm9k
+ZSBjb25maWd1cmF0aW9ucy4gVGhlIHN0YXRlcw0KPiA+IGFyZSBkZWZpbmVkIGFzIF9EU0QgcHJv
+cGVydGllcyBhbmQgY29uZmlndXJhdGlvbiBub2Rlcw0KPiA+IGFyZSBkZWZpbmVkIHVzaW5nIHRo
+ZSBfRFNEIEhpZXJhcmNoaWNhbCBQcm9wZXJ0aWVzIEV4dGVuc2lvbi4NCj4gPg0KPiA+IEEgY29u
+ZmlndXJhdGlvbiBub2RlIHN1cHBvcnRzIHRoZSBnZW5lcmljIGRldmljZSB0cmVlIHByb3BlcnRp
+ZXMuDQo+ID4NCj4gPiBUaGUgaW1wbGVtZW50YXRpb24gaXMgYmFzZWQgb24gZGV2aWNlIHRyZWUg
+Y29kZSBmcm9tIGRldmljZXRyZWUuYy4NCj4gPg0KPiANCj4gUGF0Y2ggaXMgZ29vZCB0byBtZSwg
+dGhvdWdoIGZldyBtaW5vciBjb21tZW50cyBiZWxvdy4NCj4gDQo+ID4gKy8qKg0KPiA+ICsgKiBz
+dHJ1Y3QgcGluY3RybF9hY3BpX21hcCAtIG1hcHBpbmcgdGFibGUgY2h1bmsgcGFyc2VkIGZyb20g
+QUNQSQ0KPiA+ICsgKiBAbm9kZTogbGlzdCBub2RlIGZvciBzdHJ1Y3QgcGluY3RybCdzIEBmd19t
+YXBzIGZpZWxkDQo+ID4gKyAqIEBwY3RsZGV2OiB0aGUgcGluIGNvbnRyb2xsZXIgdGhhdCBhbGxv
+Y2F0ZWQgdGhpcyBzdHJ1Y3QsIGFuZCB3aWxsDQo+ID4gZnJlZSBpdA0KPiANCj4gPiArICogQG1h
+cHM6IHRoZSBtYXBwaW5nIHRhYmxlIGVudHJpZXMNCj4gDQo+IFdlIGhhdmUgQG1hcCBhbmQgQG51
+bV9tYXBzLg0KUmlnaHQsIEknbGwgYWRkIG51bV9tYXBzIGRlc2NyaXB0aW9uLg0KPiANCj4gPiAr
+ICovDQo+ID4gK3N0cnVjdCBwaW5jdHJsX2FjcGlfbWFwIHsNCj4gPiArCXN0cnVjdCBsaXN0X2hl
+YWQgbm9kZTsNCj4gPiArCXN0cnVjdCBwaW5jdHJsX2RldiAqcGN0bGRldjsNCj4gPiArCXN0cnVj
+dCBwaW5jdHJsX21hcCAqbWFwOw0KPiA+ICsJdW5zaWduZWQgbnVtX21hcHM7DQo+ID4gK307DQo+
+ID4gKw0KPiA+DQo+IA0KPiA+ICtzdGF0aWMgaW50IGFjcGlfcmVtZW1iZXJfb3JfZnJlZV9tYXAo
+c3RydWN0IHBpbmN0cmwgKnAsIGNvbnN0IGNoYXINCj4gPiAqc3RhdGVuYW1lLA0KPiA+ICsJCQkJ
+wqDCoMKgwqDCoHN0cnVjdCBwaW5jdHJsX2RldiAqcGN0bGRldiwNCj4gPiArCQkJCcKgwqDCoMKg
+wqBzdHJ1Y3QgcGluY3RybF9tYXAgKm1hcCwNCj4gPiB1bnNpZ25lZCBudW1fbWFwcykNCj4gPiAr
+ew0KPiA+ICsJc3RydWN0IHBpbmN0cmxfYWNwaV9tYXAgKmFjcGlfbWFwOw0KPiA+ICsJc3RydWN0
+IGxpc3RfaGVhZCAqYWNwaV9tYXBzOw0KPiANCj4gDQo+ID4gKwl1bnNpZ25lZCBpbnQgaTsNCj4g
+DQo+IEp1c3QgdW5zaWduZWQgaSB0byBiZSBpbiBhbGlnbiB3aXRoIHVuc2lnbmVkIG51bV9tYXBz
+Lg0KPg0KT0suDQo+ID4gKw0KPiA+ICsJLyogSW5pdGlhbGl6ZSBjb21tb24gbWFwcGluZyB0YWJs
+ZSBlbnRyeSBmaWVsZHMgKi8NCj4gPiArCWZvciAoaSA9IDA7IGkgPCBudW1fbWFwczsgaSsrKSB7
+DQo+ID4gKwkJbWFwW2ldLmRldl9uYW1lID0gZGV2X25hbWUocC0+ZGV2KTsNCj4gPiArCQltYXBb
+aV0ubmFtZSA9IHN0YXRlbmFtZTsNCj4gPiArCQlpZiAocGN0bGRldikNCj4gPiArCQkJbWFwW2ld
+LmN0cmxfZGV2X25hbWUgPSBkZXZfbmFtZShwY3RsZGV2LQ0KPiA+ID5kZXYpOw0KPiA+ICsJfQ0K
+PiANCj4gDQo+ID4gK2ludCBwaW5jdHJsX2FjcGlfdG9fbWFwKHN0cnVjdCBwaW5jdHJsICpwKQ0K
+PiA+ICt7DQo+ID4gKwljb25zdCB1bmlvbiBhY3BpX29iamVjdCAqcHJvcCwgKnN0YXRlbmFtZXMs
+ICpjb25maWdzOw0KPiA+ICsJdW5zaWduZWQgaW50IHN0YXRlLCBuc3RhdGVzLCBuY29uZmlncywg
+Y29uZmlnOw0KPiA+ICsJY2hhciAqc3RhdGVuYW1lLCAqcHJvcG5hbWUsICpjb25maWduYW1lOw0K
+PiA+ICsJc3RydWN0IGZ3bm9kZV9oYW5kbGUgKmZ3X3Byb3A7DQo+ID4gKwlzdHJ1Y3QgYWNwaV9k
+ZXZpY2UgKmFkZXY7DQo+ID4gKwlpbnQgcmV0Ow0KPiA+ICsNCj4gPiArCS8qIFdlIG1heSBzdG9y
+ZSBwb2ludGVycyB0byBwcm9wZXJ0eSBuYW1lcyB3aXRoaW4gdGhlIG5vZGUNCj4gPiAqLw0KPiA+
+ICsJYWRldiA9IGFjcGlfYnVzX2dldF9hY3BpX2RldmljZShBQ1BJX0hBTkRMRShwLT5kZXYpKTsN
+Cj4gPiArCWlmICghYWRldikNCj4gPiArCQlyZXR1cm4gLUVOT0RFVjsNCj4gPiArDQo+IA0KPiA+
+ICsJLyogT25seSBhbGxvdyBuYW1lZCBzdGF0ZXMgKGRldmljZSBtdXN0IGhhdmUgcHJvcCAncGlu
+Y3RybC0NCj4gPiBuYW1lcycpICovDQo+IA0KPiBEb2VzIGl0IGZpdCBvbmUgbGluZT8NCj4gDQpJ
+dCBoYXMgNzcgY2hhcmFjdGVycywgc28gaXQgc2hvdWxkIGZpdCBvbmUgbGluZS4NCj4gPiArZXJy
+X2ZyZWVfbWFwOg0KPiANCj4gUGVyaGFwcyBlcnJfZnJlZV9tYXBzPw0KPiANCk9LLg0KPiA+ICsJ
+cGluY3RybF9hY3BpX2ZyZWVfbWFwcyhwKTsNCj4gPiArCXJldHVybiByZXQ7DQo+IA0KPiAtLQ0K
+PiBBbmR5IFNoZXZjaGVua28gPGFuZHJpeS5zaGV2Y2hlbmtvQGxpbnV4LmludGVsLmNvbT4NCj4g
+SW50ZWwgRmlubGFuZCBPeQ0KDQo=
