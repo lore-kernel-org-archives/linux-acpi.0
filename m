@@ -1,274 +1,48 @@
-From: Tomasz Nowicki <tn@semihalf.com>
-Subject: [PATCH V4 3/7] irqchip, GICv3,
- ITS: Refator ITS DT init code to prepare for ACPI.
-Date: Mon,  4 Apr 2016 10:52:51 +0200
-Message-ID: <1459759975-24097-4-git-send-email-tn@semihalf.com>
-References: <1459759975-24097-1-git-send-email-tn@semihalf.com>
+From: Octavian Purdila <octavian.purdila@intel.com>
+Subject: Re: [RFC PATCH 06/10] spi: add support for ACPI reconfigure notifications
+Date: Mon, 4 Apr 2016 13:25:56 +0300
+Message-ID: <CAE1zotKDZd2mYmzoQvCPgVrZ5vfOrPDtBRzTscdsqrZbT8Z+cg@mail.gmail.com>
+References: <1459417026-6697-1-git-send-email-octavian.purdila@intel.com>
+	<1459417026-6697-7-git-send-email-octavian.purdila@intel.com>
+	<20160331172935.GL2350@sirena.org.uk>
+	<CAE1zotJbUGBOUF-4-XAx0DUkj55egOMXVn9FzjV3Fdj4MYxD0Q@mail.gmail.com>
+	<20160401140856.GW2350@sirena.org.uk>
+	<CAJZ5v0itmFDdPi6vJmsheEHADEwmeTNgCQ5iVroJfV=o6Wof3A@mail.gmail.com>
+	<20160402162449.GB2350@sirena.org.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <1459759975-24097-1-git-send-email-tn@semihalf.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: marc.zyngier@arm.com, tglx@linutronix.de, jason@lakedaemon.net, rjw@rjwysocki.net, lorenzo.pieralisi@arm.com, robert.richter@caviumnetworks.com, shijie.huang@arm.com, Suravee.Suthikulpanit@amd.com, hanjun.guo@linaro.org
-Cc: al.stone@linaro.org, graeme.gregory@linaro.org, Catalin.Marinas@arm.com, will.deacon@arm.com, linux-kernel@vger.kernel.org, okaya@codeaurora.org, linux-acpi@vger.kernel.org, ddaney.cavm@gmail.com, Tomasz Nowicki <tn@semihalf.com>, mw@semihalf.com, linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-i2c-owner@vger.kernel.org>
+In-Reply-To: <20160402162449.GB2350@sirena.org.uk>
+Sender: linux-i2c-owner@vger.kernel.org
+To: Mark Brown <broonie@kernel.org>
+Cc: "Rafael J. Wysocki" <rafael@kernel.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Matt Fleming <matt@codeblueprint.co.uk>, Wolfram Sang <wsa@the-dreams.de>, Joel Becker <jlbec@evilplan.org>, Christoph Hellwig <hch@lst.de>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, linux-efi@vger.kernel.org, linux-i2c <linux-i2c@vger.kernel.org>, linux-spi@vger.kernel.org, lkml <linux-kernel@vger.kernel.org>, Irina Tirdea <irina.tirdea@intel.com>
 List-Id: linux-acpi@vger.kernel.org
 
-No functional changes.
+On Sat, Apr 2, 2016 at 7:24 PM, Mark Brown <broonie@kernel.org> wrote:
+> On Fri, Apr 01, 2016 at 09:26:38PM +0200, Rafael J. Wysocki wrote:
+>> On Fri, Apr 1, 2016 at 4:08 PM, Mark Brown <broonie@kernel.org> wrote:
+>
+>> > That's not the point.  The point is that since the handling is identical
+>> > why are we handling it through exactly the same code?
+>
+>> I think that during the initial enumeration the controller driver's
+>> probe walks the children and creates device objects for them.  When a
+>> table is loaded later, the controller driver has been probed already
+>> and there needs to be a way to trigger a walk over the (new) children
+>> from it.
+>
+>> Or a hook somewhere around acpi_platform_notify() is needed.
+>
+> What I don't understand is why the flow on inital probe isn't simply to
+> register the controller which then triggers the walk of the children.
+> That way any bus that supports initial probe also supports hotplug
+> without needing to go and manually add a second code path.
 
-In order to add ACPI support we need to isolate ACPI&DT common code and
-move DT logic to corresponding functions. To achieve this we are using
-firmware agnostic handle which can be unpacked to either DT or ACPI node.
+Do you mean register the notifier per controller instead of per
+subsystem? Either way we need changes at the subsystem level and I
+choose to follow the device tree implementation for consistency.
 
-Signed-off-by: Hanjun Guo <hanjun.guo@linaro.org>
-Signed-off-by: Tomasz Nowicki <tn@semihalf.com>
----
- drivers/irqchip/irq-gic-v3-its.c   | 76 ++++++++++++++++++++++----------------
- drivers/irqchip/irq-gic-v3.c       |  6 +--
- include/linux/irqchip/arm-gic-v3.h |  2 +-
- 3 files changed, 48 insertions(+), 36 deletions(-)
-
-diff --git a/drivers/irqchip/irq-gic-v3-its.c b/drivers/irqchip/irq-gic-v3-its.c
-index 065eac5..2dcc7b4 100644
---- a/drivers/irqchip/irq-gic-v3-its.c
-+++ b/drivers/irqchip/irq-gic-v3-its.c
-@@ -815,7 +815,7 @@ static void its_free_tables(struct its_node *its)
- 	}
- }
- 
--static int its_alloc_tables(const char *node_name, struct its_node *its)
-+static int its_alloc_tables(struct its_node *its)
- {
- 	int err;
- 	int i;
-@@ -869,8 +869,8 @@ static int its_alloc_tables(const char *node_name, struct its_node *its)
- 				    order);
- 			if (order >= MAX_ORDER) {
- 				order = MAX_ORDER - 1;
--				pr_warn("%s: Device Table too large, reduce its page order to %u\n",
--					node_name, order);
-+				pr_warn("ITS@0x%lx: Device Table too large, reduce its page order to %u\n",
-+					its->phys_base, order);
- 			}
- 		}
- 
-@@ -879,8 +879,8 @@ retry_alloc_baser:
- 		if (alloc_pages > GITS_BASER_PAGES_MAX) {
- 			alloc_pages = GITS_BASER_PAGES_MAX;
- 			order = get_order(GITS_BASER_PAGES_MAX * psz);
--			pr_warn("%s: Device Table too large, reduce its page order to %u (%u pages)\n",
--				node_name, order, alloc_pages);
-+			pr_warn("ITS@0x%lx: Device Table too large, reduce its page order to %u (%u pages)\n",
-+				its->phys_base, order, alloc_pages);
- 		}
- 
- 		base = (void *)__get_free_pages(GFP_KERNEL | __GFP_ZERO, order);
-@@ -953,8 +953,8 @@ retry_baser:
- 		}
- 
- 		if (val != tmp) {
--			pr_err("ITS: %s: GITS_BASER%d doesn't stick: %lx %lx\n",
--			       node_name, i,
-+			pr_err("ITS@0x%lx: GITS_BASER%d doesn't stick: %lx %lx\n",
-+			       its->phys_base, i,
- 			       (unsigned long) val, (unsigned long) tmp);
- 			err = -ENXIO;
- 			goto out_free;
-@@ -1429,7 +1429,7 @@ static void its_enable_quirks(struct its_node *its)
- 	gic_enable_quirks(iidr, its_quirks, its);
- }
- 
--static int its_init_domain(struct device_node *node, struct its_node *its,
-+static int its_init_domain(struct fwnode_handle *handler, struct its_node *its,
- 			   struct irq_domain *parent)
- {
- 	struct irq_domain *inner_domain;
-@@ -1439,7 +1439,7 @@ static int its_init_domain(struct device_node *node, struct its_node *its,
- 	if (!info)
- 		return -ENOMEM;
- 
--	inner_domain = irq_domain_add_tree(node, &its_domain_ops, its);
-+	inner_domain = irq_domain_create_tree(handler, &its_domain_ops, its);
- 	if (!inner_domain) {
- 		kfree(info);
- 		return -ENOMEM;
-@@ -1454,43 +1454,39 @@ static int its_init_domain(struct device_node *node, struct its_node *its,
- 	return 0;
- }
- 
--static int __init its_probe(struct device_node *node,
--			    struct irq_domain *parent)
-+static int __init its_probe_one(phys_addr_t phys_base, unsigned long size,
-+				struct irq_domain *parent,
-+				struct fwnode_handle *handler)
- {
--	struct resource res;
- 	struct its_node *its;
- 	void __iomem *its_base;
- 	u32 val;
- 	u64 baser, tmp;
- 	int err;
- 
--	err = of_address_to_resource(node, 0, &res);
--	if (err) {
--		pr_warn("%s: no regs?\n", node->full_name);
--		return -ENXIO;
--	}
--
--	its_base = ioremap(res.start, resource_size(&res));
-+	its_base = ioremap(phys_base, size);
- 	if (!its_base) {
--		pr_warn("%s: unable to map registers\n", node->full_name);
-+		pr_warn("ITS@0x%lx: Unable to map ITS registers\n",
-+			(long)phys_base);
- 		return -ENOMEM;
- 	}
- 
- 	val = readl_relaxed(its_base + GITS_PIDR2) & GIC_PIDR2_ARCH_MASK;
- 	if (val != 0x30 && val != 0x40) {
--		pr_warn("%s: no ITS detected, giving up\n", node->full_name);
-+		pr_warn("ITS@0x%lx: No ITS detected, giving up\n",
-+			(long)phys_base);
- 		err = -ENODEV;
- 		goto out_unmap;
- 	}
- 
- 	err = its_force_quiescent(its_base);
- 	if (err) {
--		pr_warn("%s: failed to quiesce, giving up\n",
--			node->full_name);
-+		pr_warn("ITS@0x%lx: Failed to quiesce, giving up\n",
-+			(long)phys_base);
- 		goto out_unmap;
- 	}
- 
--	pr_info("ITS: %s\n", node->full_name);
-+	pr_info("ITS@0x%lx\n", (long)phys_base);
- 
- 	its = kzalloc(sizeof(*its), GFP_KERNEL);
- 	if (!its) {
-@@ -1502,7 +1498,7 @@ static int __init its_probe(struct device_node *node,
- 	INIT_LIST_HEAD(&its->entry);
- 	INIT_LIST_HEAD(&its->its_device_list);
- 	its->base = its_base;
--	its->phys_base = res.start;
-+	its->phys_base = phys_base;
- 	its->ite_size = ((readl_relaxed(its_base + GITS_TYPER) >> 4) & 0xf) + 1;
- 
- 	its->cmd_base = kzalloc(ITS_CMD_QUEUE_SZ, GFP_KERNEL);
-@@ -1514,7 +1510,7 @@ static int __init its_probe(struct device_node *node,
- 
- 	its_enable_quirks(its);
- 
--	err = its_alloc_tables(node->full_name, its);
-+	err = its_alloc_tables(its);
- 	if (err)
- 		goto out_free_cmd;
- 
-@@ -1550,7 +1546,7 @@ static int __init its_probe(struct device_node *node,
- 	writeq_relaxed(0, its->base + GITS_CWRITER);
- 	writel_relaxed(GITS_CTLR_ENABLE, its->base + GITS_CTLR);
- 
--	err = its_init_domain(node, its, parent);
-+	err = its_init_domain(handler, its, parent);
- 	if (err)
- 		goto out_free_tables;
- 
-@@ -1568,7 +1564,7 @@ out_free_its:
- 	kfree(its);
- out_unmap:
- 	iounmap(its_base);
--	pr_err("ITS: failed probing %s (%d)\n", node->full_name, err);
-+	pr_err("ITS@0x%lx: failed probing (%d)\n", (long)phys_base, err);
- 	return err;
- }
- 
-@@ -1596,10 +1592,11 @@ static struct of_device_id its_device_id[] = {
- 	{},
- };
- 
--int __init its_init(struct device_node *node, struct rdists *rdists,
--	     struct irq_domain *parent_domain)
-+static int __init
-+its_of_probe(struct device_node *node, struct irq_domain *parent)
- {
- 	struct device_node *np;
-+	struct resource res;
- 
- 	for (np = of_find_matching_node(node, its_device_id); np;
- 	     np = of_find_matching_node(np, its_device_id)) {
-@@ -1609,8 +1606,25 @@ int __init its_init(struct device_node *node, struct rdists *rdists,
- 			continue;
- 		}
- 
--		its_probe(np, parent_domain);
-+		if (of_address_to_resource(np, 0, &res)) {
-+			pr_warn("%s: no regs?\n", np->full_name);
-+			continue;
-+		}
-+
-+		its_probe_one(res.start, resource_size(&res), parent,
-+			      &np->fwnode);
- 	}
-+	return 0;
-+}
-+
-+int __init its_init(struct fwnode_handle *handle, struct rdists *rdists,
-+		    struct irq_domain *parent_domain)
-+{
-+	struct device_node *of_node;
-+
-+	of_node = to_of_node(handle);
-+	if (of_node)
-+		its_of_probe(of_node, parent_domain);
- 
- 	if (list_empty(&its_nodes)) {
- 		pr_warn("ITS: No ITS available, not enabling LPIs\n");
-diff --git a/drivers/irqchip/irq-gic-v3.c b/drivers/irqchip/irq-gic-v3.c
-index dd16a60..995b7251 100644
---- a/drivers/irqchip/irq-gic-v3.c
-+++ b/drivers/irqchip/irq-gic-v3.c
-@@ -832,7 +832,6 @@ static int __init gic_init_bases(void __iomem *dist_base,
- 				 u64 redist_stride,
- 				 struct fwnode_handle *handle)
- {
--	struct device_node *node;
- 	u32 typer;
- 	int gic_irqs;
- 	int err;
-@@ -872,10 +871,9 @@ static int __init gic_init_bases(void __iomem *dist_base,
- 
- 	set_handle_irq(gic_handle_irq);
- 
--	node = to_of_node(handle);
- 	if (IS_ENABLED(CONFIG_ARM_GIC_V3_ITS) && gic_dist_supports_lpis() &&
--	    node) /* Temp hack to prevent ITS init for ACPI */
--		its_init(node, &gic_data.rdists, gic_data.domain);
-+	    to_of_node(handle)) /* Temp hack to prevent ITS init for ACPI */
-+		its_init(handle, &gic_data.rdists, gic_data.domain);
- 
- 	gic_smp_init();
- 	gic_dist_init();
-diff --git a/include/linux/irqchip/arm-gic-v3.h b/include/linux/irqchip/arm-gic-v3.h
-index d5d798b..a40ed7d 100644
---- a/include/linux/irqchip/arm-gic-v3.h
-+++ b/include/linux/irqchip/arm-gic-v3.h
-@@ -332,7 +332,7 @@ struct rdists {
- struct irq_domain;
- struct device_node;
- int its_cpu_init(void);
--int its_init(struct device_node *node, struct rdists *rdists,
-+int its_init(struct fwnode_handle *handle, struct rdists *rdists,
- 	     struct irq_domain *domain);
- 
- static inline bool gic_enable_sre(void)
--- 
-1.9.1
+The other reason is that (pending other ACPICA changes) we can add
+other notification events in the future such as node added or removed
+(just like device tree), and in that case the probe and hotplug
+handling would be different (and a bit more efficient).
