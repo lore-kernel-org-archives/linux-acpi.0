@@ -1,46 +1,97 @@
-From: Octavian Purdila <octavian.purdila-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: Re: [RFC PATCH 06/10] spi: add support for ACPI reconfigure notifications
-Date: Tue, 5 Apr 2016 22:16:16 +0300
-Message-ID: <CAE1zotL7X+di4rHecRW_G-45wUPbbNb9jvn3C_zjD4XttZ4v3w@mail.gmail.com>
-References: <20160331172935.GL2350@sirena.org.uk>
-	<CAE1zotJbUGBOUF-4-XAx0DUkj55egOMXVn9FzjV3Fdj4MYxD0Q@mail.gmail.com>
-	<20160401140856.GW2350@sirena.org.uk>
-	<CAJZ5v0itmFDdPi6vJmsheEHADEwmeTNgCQ5iVroJfV=o6Wof3A@mail.gmail.com>
-	<20160402162449.GB2350@sirena.org.uk>
-	<CAE1zotKDZd2mYmzoQvCPgVrZ5vfOrPDtBRzTscdsqrZbT8Z+cg@mail.gmail.com>
-	<20160404160327.GH2350@sirena.org.uk>
-	<CAE1zot+ESGBEYeUbLTreKfkc-6B45uQq3PWhhRfBo1AWd-7Vxw@mail.gmail.com>
-	<CAJZ5v0gV8N6zgVrwtRFaY98Wv1HsoKs+4=U-s_V29FSpCdFW3g@mail.gmail.com>
-	<CAE1zot+wvU_he-6cFQi1np9X1=FcXWoF-mbxYDRYUkyOT+7nyQ@mail.gmail.com>
-	<20160405183255.GH1924@sirena.org.uk>
+From: Octavian Purdila <octavian.purdila@intel.com>
+Subject: Re: [RFC PATCH 0/4] Add ACPI support for pinctrl configuration
+Date: Tue, 5 Apr 2016 22:37:14 +0300
+Message-ID: <CAE1zot+-=JQkMqRPpNtCk1MksRf9kOQ1G216kSXszDjn2z4d=g@mail.gmail.com>
+References: <1459424685-26965-1-git-send-email-irina.tirdea@intel.com>
+	<20160404225200.GA1615@svinekod>
+	<CACRpkdb=Ef1-g-r9NW-4_xeKdke0FFhnN+JYPjVKog3L4At8Lg@mail.gmail.com>
+	<20160405165935.GA5456@sirena.org.uk>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-efi-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20160405183255.GH1924-GFdadSzt00ze9xe1eoZjHA@public.gmane.org>
-Sender: linux-efi-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Mark Brown <broonie-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: "Rafael J. Wysocki" <rafael-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, "Rafael J. Wysocki" <rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org>, Len Brown <lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Matt Fleming <matt-mF/unelCI9GS6iBeEJttW/XRex20P6io@public.gmane.org>, Wolfram Sang <wsa-z923LK4zBo2bacvFa/9K2g@public.gmane.org>, Joel Becker <jlbec-aKy9MeLSZ9dg9hUCZPvPmw@public.gmane.org>, Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>, "linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-efi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-i2c <linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-spi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, lkml <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Irina Tirdea <irina.tirdea-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-wm0-f53.google.com ([74.125.82.53]:36188 "EHLO
+	mail-wm0-f53.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933468AbcDEThQ (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 5 Apr 2016 15:37:16 -0400
+Received: by mail-wm0-f53.google.com with SMTP id v188so137657wme.1
+        for <linux-acpi@vger.kernel.org>; Tue, 05 Apr 2016 12:37:15 -0700 (PDT)
+In-Reply-To: <20160405165935.GA5456@sirena.org.uk>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Mark Brown <broonie@kernel.org>
+Cc: Linus Walleij <linus.walleij@linaro.org>, Mark Rutland <mark.rutland@arm.com>, Irina Tirdea <irina.tirdea@intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Mika Westerberg <mika.westerberg@linux.intel.com>, "linux-gpio@vger.kernel.org" <linux-gpio@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Rob Herring <robh+dt@kernel.org>, Heikki Krogerus <heikki.krogerus@linux.intel.com>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Cristina Ciocan <cristina.ciocan@intel.com>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Charles Garcia-Tobin <charles.garcia-tobin@arm.com>
 
-On Tue, Apr 5, 2016 at 9:32 PM, Mark Brown <broonie-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org> wrote:
-> On Tue, Apr 05, 2016 at 02:49:13PM +0300, Octavian Purdila wrote:
+On Tue, Apr 5, 2016 at 7:59 PM, Mark Brown <broonie@kernel.org> wrote:
+> On Tue, Apr 05, 2016 at 10:43:11AM +0200, Linus Walleij wrote:
 >
->> If we really want to have a single path for ACPI enumeration we could
->> do that by using an ACPI SPI bridge driver or scan handlers after
->> extending the matching mechanisms. But we would still need to modify
->> the SPI subsystem and I don't think its worth it just to save a call
->> to acpi_register_spi_devices() from spi_register_master().
+>> And these products are only update-able
+>> with hairy BIOS patches that need to be applied
+>> using $SPECIAL_TOOL  that "normal users" do not want to
+>> concern themselves with, as this is not an "apt-get upgrade"
+>> kind of thing.
 >
-> It's not specifically for SPI, it's the fact that you're asking every
-> single bus type which might be described in ACPI to handle both hotplug
-> and coldplug paths separately.  Given that the code that's being added
-> just seems like trivial boilerplate it seems like we're doing this
-> wrong, we should be factoring this out so there's nothing bus types can
-> get wrong.
->
+> This bit has been addressed in UEFI - there's now a mechanism for the OS
+> to supply firmware updates to the BIOS via runtime sevices calls without
+> needing to go to the hairy tools.
 
-AFAICS this is exactly the same case for DT: one code path for
-coldplug and one for hotplug.
+AFAIK there is still no standard way of updating just the ACPI tables.
+You need various tools to "stitch" a full firmware image that can be
+consumed by the update mechanism.
 
-Which makes me think that it is not possible to have a single path for
-both, or maybe its not worth it. Do I miss something obvious?
+> There's also been facilities for some
+> time which allow ACPI fragments to be loaded at runtime without patching
+> the firmware (though they're not used so often at present).
+
+And I just sent a separate patch series for "ACPI overlays", similar
+with the dynamic DT, with the primary goal of supporting open-ended
+hardware configurations.
+
+But to be able to effectively use this we need a way to change pinmux settings.
+
+>> And I think that is what is happening, it's just that so much
+>> prestige is involved that no-one wants to officially admit it.
+>
+>> I was once poking fun at this development model accusing
+>> firmware engineers of having a God complex when they claim
+>> to be able to engineer in these complex use cases during
+>
+> That's not really a fair characterization of the situation.  The goal
+> that ACPI has been trying to meet is allowing new hardware to work
+> without needing software updates so people's installation experience
+> isn't miserable.  The Windows monoculture that firmware developers have
+> been targetting has hurt the achievement of that but it's the idea.
+> It's a good model for some classes of device but not for all.
+>
+>> product firmware development. Now I just feel sad about this
+>> situation and want things to "just work" for them. I think these
+>> patches are good.
+>
+> See Mark Rutland's reply - there's a whole model behind how ACPI
+> abstracts the system that needs to be taken into account, just stuffing
+> the existing DT in through a mechanism intended for simple vendor
+> specific key/value properties isn't guaranteed to give something that's
+> coherent and sensible.  DT design decisions will obviously not have
+> considered ACPI and exposing the full combination of the two system
+> models to system integrators seems likely to lead to unfortunate
+> corners, especially with things that happen to work right now but cause
+> problems later on.
+>
+> Given the rush to shoehorn existing DT into ACPI at some point it's
+> looking like it would be much more sensible for x86 to just do what
+> arm64 has done and support both DT and ACPI in parallel and let people
+> (either system integrators or end users) choose the most appropriate
+> interface for their application.
+
+Lets look at this from a different perspective. The proposal is not
+about importing the DT model into ACPI but importing the Linux pinctrl
+model into ACPI. That will allow us to use the Linux pinctrl drivers
+to their full potential.
+
+That doesn't stop the development of other, more OS independent, ACPI
+models for pinmuxing. Which we can also support.
+
+I know that there are some discussions for pinmux configuration in the
+ASWG, but it does not match the Linux pinctrl model. So we will end up
+with a pinctrl driver that offers groups, functions and pin names and
+a totally different ACPI description that we can't map to the pinctrl
+driver.
