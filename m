@@ -1,57 +1,64 @@
-From: Mark Rutland <mark.rutland@arm.com>
-Subject: Re: [RFC PATCH 0/4] Add ACPI support for pinctrl configuration
-Date: Mon, 4 Apr 2016 23:52:01 +0100
-Message-ID: <20160404225200.GA1615@svinekod>
-References: <1459424685-26965-1-git-send-email-irina.tirdea@intel.com>
+From: "Zheng, Lv" <lv.zheng@intel.com>
+Subject: RE: [RFC PATCH 02/10] acpi: install SSDT tables from initrd
+Date: Tue, 5 Apr 2016 00:49:30 +0000
+Message-ID: <1AE640813FDE7649BE1B193DEA596E883BB66700@SHSMSX101.ccr.corp.intel.com>
+References: <1459417026-6697-1-git-send-email-octavian.purdila@intel.com>
+	<1459417026-6697-3-git-send-email-octavian.purdila@intel.com>
+	<1AE640813FDE7649BE1B193DEA596E883BB66258@SHSMSX101.ccr.corp.intel.com>
+	<CAE1zotJ1fa4m-_FO3PUQK8_p0vHcfWD5TmuMdxOSHDjku421pA@mail.gmail.com>
+ <CAE1zotLX8L=jpJRYtUddtpYmgc0NxqmtdDjcQPWWg8KTO8PH5A@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-gpio-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <1459424685-26965-1-git-send-email-irina.tirdea@intel.com>
-Sender: linux-gpio-owner@vger.kernel.org
-To: Irina Tirdea <irina.tirdea@intel.com>
-Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Mika Westerberg <mika.westerberg@linux.intel.com>, Linus Walleij <linus.walleij@linaro.org>, linux-gpio@vger.kernel.org, linux-acpi@vger.kernel.org, Rob Herring <robh+dt@kernel.org>, Heikki Krogerus <heikki.krogerus@linux.intel.com>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Octavian Purdila <octavian.purdila@intel.com>, Cristina Ciocan <cristina.ciocan@intel.com>, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, charles.garcia-tobin@arm.com
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <linux-i2c-owner@vger.kernel.org>
+In-Reply-To: <CAE1zotLX8L=jpJRYtUddtpYmgc0NxqmtdDjcQPWWg8KTO8PH5A@mail.gmail.com>
+Content-Language: en-US
+Sender: linux-i2c-owner@vger.kernel.org
+To: "Purdila, Octavian" <octavian.purdila@intel.com>
+Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Matt Fleming <matt@codeblueprint.co.uk>, Mark Brown <broonie@kernel.org>, Wolfram Sang <wsa@the-dreams.de>, Joel Becker <jlbec@evilplan.org>, Christoph Hellwig <hch@lst.de>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-efi@vger.kernel.org" <linux-efi@vger.kernel.org>, "linux-i2c@vger.kernel.org" <linux-i2c@vger.kernel.org>, "linux-spi@vger.kernel.org" <linux-spi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "Tirdea, Irina" <irina.tirdea@intel.com>
 List-Id: linux-acpi@vger.kernel.org
 
-Hi,
-
-On Thu, Mar 31, 2016 at 02:44:41PM +0300, Irina Tirdea wrote:
-> This is a proposal for adding ACPI support for pin controller
-> configuration.
-> 
-> It has been developed to enable the MinnowBoard and IoT community
-> by providing an easy way to specify pin multiplexing and
-> pin configuration.
-> 
-> This proposal is based on using _DSD properties to specify device
-> states and configuration nodes and it follows closely the device
-> tree model. Device states are defined using the Device Properties
-> format and the configuration nodes are defined using the
-> Hierarchical Properties Extension format. The generic properties
-> for the configuration nodes are the same as the ones for device
-> tree, while pincontroller drivers can also define custom ones.
-
->From a look of the Documentation addition, and of the current uses of
-pinctrl-names in device tree bindings, one reason for requiring multiple
-pinctrl states is power management. Given that, I'm somewhat concerned by this,
-as it goes against the usual ACPI model of abstracting this sort of thing
-behind power control methods.
-
-To the best of my knowledge, that goes against the ASWG's expectations on how
-_DSD will be used (per [1]). Charles, please correct me if that document is no
-longer representative.
-
-Additionally, pinctrl has some cross-cutting concerns (e.g. mutually exclusive
-device usage due to a shared pin), and I can imagine that may interact poorly
-with any AML or firmware assumptions about the state of the world, as there's
-no mechanism present to notify those of changes to pins.
-
-I think that this is a class of problem which needs to be raised with the ASWG,
-and solved in an ACPI-native fashion, rather than simply copying properties
-from DT using _DSD. If nothing else, the restrictions on FW and AML would need
-to be specified.
-
-Thanks,
-Mark.
-
-[1] https://lists.acpica.org/pipermail/dsd/2015-September/000019.html
+SGksDQoNCj4gRnJvbTogT2N0YXZpYW4gUHVyZGlsYSBbbWFpbHRvOm9jdGF2aWFuLnB1cmRpbGFA
+aW50ZWwuY29tXQ0KPiBTdWJqZWN0OiBSZTogW1JGQyBQQVRDSCAwMi8xMF0gYWNwaTogaW5zdGFs
+bCBTU0RUIHRhYmxlcyBmcm9tIGluaXRyZA0KPiANCj4gT24gRnJpLCBBcHIgMSwgMjAxNiBhdCAx
+OjExIFBNLCBPY3RhdmlhbiBQdXJkaWxhDQo+IDxvY3Rhdmlhbi5wdXJkaWxhQGludGVsLmNvbT4g
+d3JvdGU6DQo+ID4gT24gRnJpLCBBcHIgMSwgMjAxNiBhdCA4OjA1IEFNLCBaaGVuZywgTHYgPGx2
+LnpoZW5nQGludGVsLmNvbT4gd3JvdGU6DQo+ID4+IEhpLA0KPiA+Pg0KPiA+PiBJTU8sIHRoZXJl
+IGlzIGFscmVhZHkgYSBzaW1pbGFyIGZ1bmN0aW9uIHVwc3RyZWFtZWQ6DQo+ID4+DQo+IGh0dHBz
+Oi8vZ2l0Lmtlcm5lbC5vcmcvY2dpdC9saW51eC9rZXJuZWwvZ2l0L3RvcnZhbGRzL2xpbnV4Lmdp
+dC9jb21taXQvP2lkPWM4NWMNCj4gYzgxDQo+ID4+IENvdWxkIGl0IHdvcmsgZm9yIHlvdXIgdXNl
+IGNhc2U/DQo+ID4NCj4gPiBZZXMsIGl0IGlzIGJhc2ljYWxseSB0aGUgc2FtZS4NCj4gPg0KPiA+
+IFRoZSBvbmx5IGRpZmZlcmVuY2UgaXMgb24gaG93IHdlIGhhbmRsZSB0YWludC4gSSB0aGluayB3
+ZSBzaG91bGQgdXNlIGENCj4gPiBuZXcgdGFpbnQgZm9yIG92ZXJsYXlzIGFuZCB0aGF0IHdlIGRv
+bid0IG5lZWQgdG8gZGlzYWJsZSBsb2NrZGVwLg0KPiA+DQo+ID4gQlRXLCB3aHkgaXMgbG9ja2Rl
+cCBkaXNhYmxlZCB3aGVuIHdlIG92ZXJyaWRlPw0KPiANCj4gVGhlIG90aGVyIHRoaW5nIEkgZm9y
+Z290IHRvIG1lbnRpb24gaXMgdGhhdCBJIHRoaW5rIHdlIHNob3VsZCBhbGxvdw0KPiBpbnN0YWxs
+aW5nIG5ldyB0YWJsZXMgZXZlbiBpZiBDT05GSUdfQUNQSV9JTklUUkRfVEFCTEVfT1ZFUlJJREUg
+aXMgbm90DQo+IHNlbGVjdGVkLiBJTU8gdGhlIG92ZXJyaWRlIGFuZCBvdmVybGF5IGZ1bmN0aW9u
+YWxpdHkgaXMgZGlmZmVyZW50LA0KPiB3aXRoIHRoZSBsYXR0ZXIgYmVpbmcgbW9yZSB0aGVuIGEg
+ZGVidWcgb3B0aW9uLg0KW0x2IFpoZW5nXSANCkkgZG9uJ3QgdGhpbmsgc28uIFRoZSBpbml0cmQg
+b3ZlcnJpZGUgbWVjaGFuaXNtIGlzIG5vdCBkZXBlbmRlbnQgb24gQ09ORklHX0FDUElfREVCVUcu
+DQpBY2NvcmRpbmcgdG8gdGhlIHNwZWMsIHdlIGNhbiBhbGxvdyBhIGhpZ2hlciB2ZXJzaW9uaW5n
+IHNhbWUgdGFibGUgKHNhbWUgdGFibGUgc2lnLCB0YWJsZSBpZCwgdGFibGUgb2VtIGlkKSB0byBv
+dmVycmlkZSB0aGUgb2xkIHRhYmxlcyBhcyBhIHBhdGNoaW5nIGZ1bmN0aW9uYWxpdHkuDQpTbyBi
+b3RoIHRoZSBmdW5jdGlvbmFsaXRpZXMgYXJlIG5vdCBkZWJ1ZyBvcHRpb25zIGFuZCBzZXJ2ZSBm
+b3IgdGhlIHNhbWUgcHVycG9zZSBmcm9tIHRoaXMgcG9pbnQgb2Ygdmlldy4NCkFuZCBJTU8gdGhh
+dCdzIHdoeSB0aGUgaW5pdHJkIG92ZXJyaWRlIG1lY2hhbmlzbSBuZWVkbid0IGJlIGRlcGVuZGVu
+dCBvbiBDT05GSUdfQUNQSV9ERUJVRy4NCg0KSSdtIHJlYWxseSBPSyB3aXRoIHJlbW92aW5nIHRo
+ZSBhY3BpX3RhYmxlX3RhaW50KCkgZm9yIENPTkZJR19BQ1BJX0lOSVRSRF9UQUJMRV9PVkVSUklE
+RSBidXQgbGVhdmluZyBzb21lIGluZm8gbWVzc2FnZXMgaW5kaWNhdGluZyB0aGUgdGFibGUgdXBn
+cmFkZXMuDQpJIGRvbid0IHRoaW5rIHRoaXMgbWVjaGFuaXNtIGlzIHVuc2FmZS4NCkl0IGhhcHBl
+bnMgZHVyaW5nIGEgaW5pdGlhbGl6YXRpb24gc3RlcCBvY2N1cnJpbmcgYmVmb3JlIHRoZSB0YWJs
+ZSBpcyBsb2FkZWQgYW5kIGhlbmNlIHNob3VsZCBiZSBzYWZlIGV2ZW4gdGhlIHN5bmNocm9uaXph
+dGlvbiBpcyBub3Qgc28gcm9idXN0IGluIEFDUElDQS4NCkFuZCB3aXRoIHRoZSByZXZpc2lvbiBz
+dXBwb3J0IGFkZGVkLCB3ZSBzaG91bGQgYmUgYWJsZSB0byBhbGxvdyB2ZW5kb3JzIHRvIHVwZGF0
+ZSB0aGUgYnVnZ3kgdGFibGVzLg0KVGhhdCBtZWFucyB0aGUgdGFibGVzIG1heSBiZSBvcmlnaW5h
+dGVkIGZyb20gdGhlIHNhZmUgc291cmNlcyAtIHRoZSB2ZW5kb3JzLg0KDQo+IA0KPiBJIHdpbGwg
+cHJlcGFyZSBhIHBhdGNoIGZvciB0aGUgbmV4dCB2ZXJzaW9uIG9mIHRoZSBzZXJpZXMgdG8gZGVj
+b3VwbGUNCj4gaW5zdGFsbGluZyBuZXcgdGFibGVzIGZyb20gQ09ORklHX0FDUElfSU5JVFJEX1RB
+QkxFX09WRVJSSURFLg0KW0x2IFpoZW5nXSANCkkgZG9uJ3QgdGhpbmsgdGhleSBuZWVkIHRvIGJl
+IGRlY291cGxlZC4NClRoZSB1c2UgY2FzZSBpczoNCklmIHRoZXJlIGlzIGFuIEFDUEkgdGFibGUg
+aW4gaW5pdHJkIGltYWdlIGFuZDoNCjEuIGlmIHRoZSB0YWJsZSdzIHJldmlzaW9uIGlzIGhpZ2hl
+ciB0aGFuIHRoZSBleGlzdGluZyBvbmUsIG92ZXJyaWRlIHRoZSBleGlzdGluZyBvbmU7DQoyLiBp
+ZiB0aGUgdGFibGUgaXMgYSBicmFuZCBuZXcgb25lLCBpbnN0YWxsIGl0Lg0KDQpUaGFua3MgYW5k
+IGJlc3QgcmVnYXJkcw0KLUx2DQo=
