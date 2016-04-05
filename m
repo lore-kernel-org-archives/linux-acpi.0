@@ -1,60 +1,99 @@
-From: Irina Tirdea <irina.tirdea@intel.com>
-Subject: [RFC PATCH v2 0/3] Add ACPI support for pinctrl configuration
-Date: Tue,  5 Apr 2016 18:33:23 +0300
-Message-ID: <1459870406-15219-1-git-send-email-irina.tirdea@intel.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Mika Westerberg <mika.westerberg@linux.intel.com>, Linus Walleij <linus.walleij@linaro.org>, linux-gpio@vger.kernel.org, linux-acpi@vger.kernel.org
-Cc: Rob Herring <robh+dt@kernel.org>, Heikki Krogerus <heikki.krogerus@linux.intel.com>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Octavian Purdila <octavian.purdila@intel.com>, Cristina Ciocan <cristina.ciocan@intel.com>, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, Irina Tirdea <irina.tirdea@intel.com>
+From: Mark Brown <broonie@kernel.org>
+Subject: Re: [RFC PATCH 0/4] Add ACPI support for pinctrl configuration
+Date: Tue, 5 Apr 2016 09:12:46 -0700
+Message-ID: <20160405161246.GA1924@sirena.org.uk>
+References: <1459424685-26965-1-git-send-email-irina.tirdea@intel.com>
+ <20160404214034.GL2350@sirena.org.uk>
+ <CACRpkdZW83kOADo1WcYT=mc++ro3Xb7PS15zh+RkLnSxmbTZAQ@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: multipart/signed; micalg=pgp-sha256;
+	protocol="application/pgp-signature"; boundary="VS++wcV0S1rZb1Fb"
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mezzanine.sirena.org.uk ([106.187.55.193]:45290 "EHLO
+	mezzanine.sirena.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752194AbcDEQNI (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 5 Apr 2016 12:13:08 -0400
+Content-Disposition: inline
+In-Reply-To: <CACRpkdZW83kOADo1WcYT=mc++ro3Xb7PS15zh+RkLnSxmbTZAQ@mail.gmail.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Linus Walleij <linus.walleij@linaro.org>
+Cc: Irina Tirdea <irina.tirdea@intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Mika Westerberg <mika.westerberg@linux.intel.com>, "linux-gpio@vger.kernel.org" <linux-gpio@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Rob Herring <robh+dt@kernel.org>, Heikki Krogerus <heikki.krogerus@linux.intel.com>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Octavian Purdila <octavian.purdila@intel.com>, Cristina Ciocan <cristina.ciocan@intel.com>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
 
-This is a proposal for adding ACPI support for pin controller
-configuration.
 
-It has been developed to enable the MinnowBoard and IoT community
-by providing an easy way to specify pin multiplexing and
-pin configuration.
+--VS++wcV0S1rZb1Fb
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-This proposal is based on using _DSD properties to specify device
-states and configuration nodes and it follows closely the device
-tree model. Device states are defined using the Device Properties
-format and the configuration nodes are defined using the
-Hierarchical Properties Extension format. The generic properties
-for the configuration nodes are the same as the ones for device
-tree, while pincontroller drivers can also define custom ones.
+On Tue, Apr 05, 2016 at 11:00:50AM +0200, Linus Walleij wrote:
+> On Mon, Apr 4, 2016 at 11:40 PM, Mark Brown <broonie@kernel.org> wrote:
 
-Changes from v1:
- - address code review comments regarding coding style, documentation
-and fixes
- - rewrote patch 3 ("pinctrl: Parse GpioInt/GpioIo resources") to
-avoid using triple pointers
- - define pinconf_generic_dt_node_to_map since it is used by pinctrl
-sirf driver
- - add dependency on PINCONF_GENERIC to the entire ACPI parsing code
- - dropped first patch from the series since it got merged
-("pinctrl: Rename pinctrl_utils_dt_free_map to pinctrl_utils_free_map")
+> > So this is mainly targeted at modules being added to base boards?
+> > Without getting into the binding at all here it seems like this is not
+> > solving the problem at the right abstraction level.  It's exposing the
 
-Irina Tirdea (3):
-  pinctrl: pinconf-generic: Add ACPI support
-  pinctrl: Add ACPI support
-  pinctrl: Parse GpioInt/GpioIo resources
+> I have seen the same need beyond strictly embedded (MinnowBoard)
+> from the Intel camp.
 
- Documentation/acpi/pinctrl-properties.txt | 292 +++++++++++++++++
- drivers/acpi/property.c                   |   8 +-
- drivers/base/property.c                   |  36 ++-
- drivers/pinctrl/Makefile                  |   1 +
- drivers/pinctrl/acpi.c                    | 519 ++++++++++++++++++++++++++++++
- drivers/pinctrl/acpi.h                    |  32 ++
- drivers/pinctrl/core.c                    |  26 ++
- drivers/pinctrl/core.h                    |   2 +
- drivers/pinctrl/pinconf-generic.c         | 121 ++++---
- include/linux/acpi.h                      |   4 +-
- include/linux/pinctrl/pinconf-generic.h   |  35 +-
- include/linux/property.h                  |   9 +
- 12 files changed, 1010 insertions(+), 75 deletions(-)
- create mode 100644 Documentation/acpi/pinctrl-properties.txt
- create mode 100644 drivers/pinctrl/acpi.c
- create mode 100644 drivers/pinctrl/acpi.h
+> These chips with funny Atom-specific codenames (baytrail, cherryview,
+> broxton, sunrisepoint etc) are not just used for these IoT use cases
+> but also for e.g. laptops of the ChromeBook form factor, and the same
+> pin control needs arise there, just at a different cadence related to
+> product cycle.
 
--- 
-1.9.1
+Right, the chips are used in a broader space but in cases where they're
+being used in fixed systems where we don't have to deal with repaceable
+modules then the idiomatic thing for ACPI is to hide all the pinmuxing
+=66rom the operating system.
+
+> I bet they also have funny product-specific kernel trees :(
+
+Yup, they do.
+
+> Agree: work is needed here. It is a big confusion, the whole model is
+> based around the configuration being pretty static as I recently
+> realized when just wanting to add a runtime-detected LCD panel
+> to a certain driver. No runtime patching of the DT or overlays or any
+> of the sort deliver what is really needed.
+
+Yes, funnily enough the CHIP people were just talking about that
+specific case at ELC yesterday (they patched u-boot to parse overlays
+so the kernel never sees the hotplug).
+
+> The only thing I heard which was actually doing something sensible
+> was when Matthew Garret once told that apple mice provide a
+> device tree fragment to the OS on how to handle it during bus
+> discovery.
+
+That's what people are doing with the BeagleBone/RPi/CHIP/96boards case
+- it's one of the primary usecases for DT overlays but currently
+everyone's final integration layer is out of tree.
+
+> > Obviously for the more general ACPI use case the idiomatic way of
+> > handling this is that the OS should never see anything about the
+> > pin muxing.  With DT we need to really know what's going on with the
+> > pinbox because the model is that even for things built into a single
+> > board the OS is responsible for managing the pins but that's really not
+> > how ACPI is expected to work.
+
+> See my previous mail for some kind of answer to this.
+
+Yup, will reply there.
+
+--VS++wcV0S1rZb1Fb
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2
+
+iQEcBAEBCAAGBQJXA+P7AAoJECTWi3JdVIfQvLMH/0rYNHwSm1H69UpjjIWie//B
+oICYLbI/XlJSIXDvBXLx6No5VKm9QpsxEgAWmXJ/rGyiIKNbhh8+fB01QN8STgKA
+70iz2Su6c3c8quyuzV10h2Go+Uc2qWoc5Dy/dvaKOoN28dVocLuxvqnsjNFr0MXM
+wwRQAUmk8Voxy9fU+F2eNR73CdgW5NjgqJ0lar15ljJa9AHoeyzNyUPAIV7T+JQZ
+BV9FTWLp4j1BOROvcctryCYn/0hic6DuErhVeFt1Tc/Zpfh3qIxQHjud6hi2DvBX
+/kpI2M72hIZh0e54gh1hCq+f/e2ewO0e40w+GMl/y5RplhdJZ58SrBA8rbnT/Xo=
+=Iu9o
+-----END PGP SIGNATURE-----
+
+--VS++wcV0S1rZb1Fb--
