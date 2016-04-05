@@ -1,58 +1,75 @@
-From: Tomasz Nowicki <tn@semihalf.com>
-Subject: Re: [PATCH V5 01/15] ACPI: MCFG: Move mmcfg_list management to
- drivers/acpi
-Date: Tue, 5 Apr 2016 20:07:59 +0200
-Message-ID: <5703FEFF.202@semihalf.com>
-References: <1455630825-27253-1-git-send-email-tn@semihalf.com>
- <1455630825-27253-2-git-send-email-tn@semihalf.com>
- <20160303225152.GA10472@localhost>
- <CAKc_7PUyf8ND8Nd32yDBtBnFbkd1mJ-VsCih6YsEA5ZuBUz5zA@mail.gmail.com>
- <20160305041443.GA15110@localhost> <56DFE91E.10105@semihalf.com>
- <5703C7AB.2000306@semihalf.com> <20160405164122.GA9419@localhost>
+From: Mark Brown <broonie-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Subject: Re: [RFC PATCH 06/10] spi: add support for ACPI reconfigure
+ notifications
+Date: Tue, 5 Apr 2016 11:24:54 -0700
+Message-ID: <20160405182454.GG1924@sirena.org.uk>
+References: <1459417026-6697-1-git-send-email-octavian.purdila@intel.com>
+ <1459417026-6697-7-git-send-email-octavian.purdila@intel.com>
+ <20160331172935.GL2350@sirena.org.uk>
+ <CAE1zotJbUGBOUF-4-XAx0DUkj55egOMXVn9FzjV3Fdj4MYxD0Q@mail.gmail.com>
+ <20160401140856.GW2350@sirena.org.uk>
+ <CAJZ5v0itmFDdPi6vJmsheEHADEwmeTNgCQ5iVroJfV=o6Wof3A@mail.gmail.com>
+ <20160402162449.GB2350@sirena.org.uk>
+ <CAE1zotKDZd2mYmzoQvCPgVrZ5vfOrPDtBRzTscdsqrZbT8Z+cg@mail.gmail.com>
+ <20160404160327.GH2350@sirena.org.uk>
+ <CAE1zot+ESGBEYeUbLTreKfkc-6B45uQq3PWhhRfBo1AWd-7Vxw@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-lf0-f49.google.com ([209.85.215.49]:35077 "EHLO
-	mail-lf0-f49.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1759202AbcDESIG (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 5 Apr 2016 14:08:06 -0400
-Received: by mail-lf0-f49.google.com with SMTP id c126so16560383lfb.2
-        for <linux-acpi@vger.kernel.org>; Tue, 05 Apr 2016 11:08:06 -0700 (PDT)
-In-Reply-To: <20160405164122.GA9419@localhost>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: multipart/signed; micalg=pgp-sha256;
+	protocol="application/pgp-signature"; boundary="1giRMj6yz/+FOIRq"
+Return-path: <linux-efi-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <CAE1zot+ESGBEYeUbLTreKfkc-6B45uQq3PWhhRfBo1AWd-7Vxw-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+Sender: linux-efi-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Octavian Purdila <octavian.purdila-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: "Rafael J. Wysocki" <rafael-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, "Rafael J. Wysocki" <rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org>, Len Brown <lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Matt Fleming <matt-mF/unelCI9GS6iBeEJttW/XRex20P6io@public.gmane.org>, Wolfram Sang <wsa-z923LK4zBo2bacvFa/9K2g@public.gmane.org>, Joel Becker <jlbec-aKy9MeLSZ9dg9hUCZPvPmw@public.gmane.org>, Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>, "linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-efi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-i2c <linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-spi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, lkml <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Irina Tirdea <irina.tirdea-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
-To: Bjorn Helgaas <helgaas@kernel.org>
-Cc: Jayachandran Chandrashekaran Nair <jayachandran.chandrashekaran@broadcom.com>, Arnd Bergmann <arnd@arndb.de>, Will Deacon <will.deacon@arm.com>, Catalin Marinas <catalin.marinas@arm.com>, rafael@kernel.org, Hanjun Guo <hanjun.guo@linaro.org>, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, okaya@codeaurora.org, jiang.liu@linux.intel.com, Jayachandran Chandrashekaran Nair <jchandra@broadcom.com>, Stefano Stabellini <Stefano.Stabellini@eu.citrix.com>, robert.richter@caviumnetworks.com, Marcin Wojtas <mw@semihalf.com>, Liviu.Dudau@arm.com, David Daney <ddaney@caviumnetworks.com>, wangyijing@huawei.com, Suravee.Suthikulpanit@amd.com, msalter@redhat.com, linux-pci@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linaro-acpi@lists.linaro.org, Jon Masters <jcm@redhat.com>
 
-Hi Bjorn,
 
-On 05.04.2016 18:41, Bjorn Helgaas wrote:
-> Hi Tomasz,
->
+--1giRMj6yz/+FOIRq
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-[...]
+On Mon, Apr 04, 2016 at 10:34:56PM +0300, Octavian Purdila wrote:
+> On Mon, Apr 4, 2016 at 7:03 PM, Mark Brown <broonie-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org> wrote:
 
->>>>
->>>
->>> As you pointed out raw_pci_{read|write} make things complicated, so IMO
->>> we should either say they are absolutely necessary (and then think how
->>> to simplify it) or just use simple bus-specific accessor (patch 02/15)
->>> e.g. for ARM64.
->>>
->>> Any comments appreciated.
->>
->> Kindly reminder. I would like to move on with this patch set. Can
->> you please comments on it so that we could decide which way to go.
->
-> Can you repost your current proposal with a version number higher than
-> any previous ones?  It's OK if the content is the same as v4; I just
-> think it's confusing if we resurrect v4 and have to follow discussion
-> from v3 to v4 to v5 and back to v4.  The archives would be a bit of a
-> muddle.
->
+> > Why is probe different to hotplug?  We don't need to do that in the
+> > normal driver model.
 
-Sure I will repost ASAP.
+> There might be some confusion with the term, I am referring to slave
+> hotplug, not controller hotplug.
 
-Thanks!
-Tomasz
+That's what I was talking about too.
+
+> The way I see it, there are two logical operations: probe of a
+> controller and the associated enumeration of the SPI slaves for that
+> bus and "hotplug" of new SPI slaves and the enumeration of those
+> particular slaves.
+
+I don't see a distinction here.  The firmware finds some new slaves to
+tell the framework about.  Quite why it decided to go looking shouldn't
+matter.
+
+> When a slave hotplug happens for device tree we get a device node
+> notification and we can instantiate the SPI slave based on that info.
+> In case of ACPI, (at this point) we get a global callback and in that
+> callback we need to iterate through *all* controllers.
+
+That's not really helping me understand why you need every bus to open
+code enumeration twice?
+
+--1giRMj6yz/+FOIRq
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2
+
+iQEcBAEBCAAGBQJXBAL0AAoJECTWi3JdVIfQirEIAIYk7r6B53dH3hythb8IZc0I
+anQDvflPcYiwiQj139n4m+5oA8L8264jlFcf26CjqSpSfCR4ctgK28mImwGHnuNs
+sfTR7Jy91JnkhWchPYJfhYud9KiehXthilONbYcUWYCkDFBgqG7yU9NE78CQfpnN
+E6Dt3xapZigPEK1vhjghOYUr9Y5iG13rEGOWKVfnG/heOdMLhJRBpYrUoYRjM/CS
+6NDDzCwt1zdqHm8eXUYjKFJS0jDusvYglveGKA8zup6FZgxbW/1Zr/0/A/f7Micg
+lMaEAoeVv4vMlUSvgqz8uHWk2gxh66mulC4fEwCwL+8T6052Ic3bl4YW6UUrE6A=
+=2nCu
+-----END PGP SIGNATURE-----
+
+--1giRMj6yz/+FOIRq--
