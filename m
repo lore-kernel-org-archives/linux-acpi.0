@@ -1,85 +1,96 @@
-From: Linus Walleij <linus.walleij@linaro.org>
+From: Charles Garcia-Tobin <charles.garcia-tobin@arm.com>
 Subject: Re: [RFC PATCH 0/4] Add ACPI support for pinctrl configuration
-Date: Tue, 5 Apr 2016 11:00:50 +0200
-Message-ID: <CACRpkdZW83kOADo1WcYT=mc++ro3Xb7PS15zh+RkLnSxmbTZAQ@mail.gmail.com>
+Date: Tue, 5 Apr 2016 08:56:12 +0000
+Message-ID: <D3292CBB.662A8%charles.garcia-tobin@arm.com>
 References: <1459424685-26965-1-git-send-email-irina.tirdea@intel.com>
-	<20160404214034.GL2350@sirena.org.uk>
+ <20160404225200.GA1615@svinekod>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-oi0-f51.google.com ([209.85.218.51]:35428 "EHLO
-	mail-oi0-f51.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757594AbcDEJAv (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 5 Apr 2016 05:00:51 -0400
-Received: by mail-oi0-f51.google.com with SMTP id p188so9459986oih.2
-        for <linux-acpi@vger.kernel.org>; Tue, 05 Apr 2016 02:00:51 -0700 (PDT)
-In-Reply-To: <20160404214034.GL2350@sirena.org.uk>
+Received: from mail-db5eur01on0069.outbound.protection.outlook.com ([104.47.2.69]:27134
+	"EHLO EUR01-DB5-obe.outbound.protection.outlook.com"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1757641AbcDELae (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 5 Apr 2016 07:30:34 -0400
+In-Reply-To: <20160404225200.GA1615@svinekod>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Mark Brown <broonie@kernel.org>
-Cc: Irina Tirdea <irina.tirdea@intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Mika Westerberg <mika.westerberg@linux.intel.com>, "linux-gpio@vger.kernel.org" <linux-gpio@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Rob Herring <robh+dt@kernel.org>, Heikki Krogerus <heikki.krogerus@linux.intel.com>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Octavian Purdila <octavian.purdila@intel.com>, Cristina Ciocan <cristina.ciocan@intel.com>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
+To: Mark Rutland <mark.rutland@arm.com>, Irina Tirdea <irina.tirdea@intel.com>
+Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Mika Westerberg <mika.westerberg@linux.intel.com>, Linus Walleij <linus.walleij@linaro.org>, "linux-gpio@vger.kernel.org" <linux-gpio@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Rob Herring <robh+dt@kernel.org>, Heikki Krogerus <heikki.krogerus@linux.intel.com>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Octavian Purdila <octavian.purdila@intel.com>, Cristina Ciocan <cristina.ciocan@intel.com>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
 
-On Mon, Apr 4, 2016 at 11:40 PM, Mark Brown <broonie@kernel.org> wrote:
-> On Thu, Mar 31, 2016 at 02:44:41PM +0300, Irina Tirdea wrote:
+
+
+On 04/04/2016 23:52, "Mark Rutland" <mark.rutland@arm.com> wrote:
+
+>Hi,
 >
+>On Thu, Mar 31, 2016 at 02:44:41PM +0300, Irina Tirdea wrote:
 >> This is a proposal for adding ACPI support for pin controller
 >> configuration.
->
+>> 
 >> It has been developed to enable the MinnowBoard and IoT community
 >> by providing an easy way to specify pin multiplexing and
 >> pin configuration.
+>> 
+>> This proposal is based on using _DSD properties to specify device
+>> states and configuration nodes and it follows closely the device
+>> tree model. Device states are defined using the Device Properties
+>> format and the configuration nodes are defined using the
+>> Hierarchical Properties Extension format. The generic properties
+>> for the configuration nodes are the same as the ones for device
+>> tree, while pincontroller drivers can also define custom ones.
 >
-> So this is mainly targeted at modules being added to base boards?
-> Without getting into the binding at all here it seems like this is not
-> solving the problem at the right abstraction level.  It's exposing the
-> pins on the SoC directly without any tie in with the functionality that
-> goes over those pins.  This means that any binding of a board to an ACPI
-> using system that just uses this is going to be entirely specific to the
-> particular combination of base and expansion board even if the
-> electrical connections are standard.
+>From a look of the Documentation addition, and of the current uses of
+>pinctrl-names in device tree bindings, one reason for requiring multiple
+>pinctrl states is power management. Given that, I'm somewhat concerned by
+>this,
+>as it goes against the usual ACPI model of abstracting this sort of thing
+>behind power control methods.
+>
+>To the best of my knowledge, that goes against the ASWG's expectations on
+>how
+>_DSD will be used (per [1]). Charles, please correct me if that document
+>is no
+>longer representative.
 
-I have seen the same need beyond strictly embedded (MinnowBoard)
-from the Intel camp.
+It is though latest version was posted by Rafael a bit later:
+https://lists.acpica.org/pipermail/dsd/2015-December/000027.html
 
-These chips with funny Atom-specific codenames (baytrail, cherryview,
-broxton, sunrisepoint etc) are not just used for these IoT use cases
-but also for e.g. laptops of the ChromeBook form factor, and the same
-pin control needs arise there, just at a different cadence related to
-product cycle.
 
-I bet they also have funny product-specific kernel trees :(
+In addition the core rules requiring that existing ACPI paradigms are not
+subverted through DSD (basically the concern you express) are also
+documented in the main DSD documentation itself:
+http://www.uefi.org/sites/default/files/resources/_DSD-device-properties-UU
+ID.pdf (section 2.3)
 
-> This is something that people are currently looking at for DT, there the
-> discussion has been about defining the connectors as entities and hiding
-> the details of the muxing on the SoC behind that along with higher level
-> concepts like instantiation of buses like I2C and SPI.  It seems like if
-> we do want to try to share between DT and ACPI we should be doing it at
-> that level rather than dealing with pinmuxing at the extremely low level
-> that pinctrl does.
 
-Agree: work is needed here. It is a big confusion, the whole model is
-based around the configuration being pretty static as I recently
-realized when just wanting to add a runtime-detected LCD panel
-to a certain driver. No runtime patching of the DT or overlays or any
-of the sort deliver what is really needed.
+Cheers
 
-The only thing I heard which was actually doing something sensible
-was when Matthew Garret once told that apple mice provide a
-device tree fragment to the OS on how to handle it during bus
-discovery.
+Charles
 
-I think that for random complex hotpluggable devices like what
-greybus is trying to achieve this is needed too, despite the standard
-USB-like device classes in all their glory.
 
-> Obviously for the more general ACPI use case the idiomatic way of
-> handling this is that the OS should never see anything about the
-> pin muxing.  With DT we need to really know what's going on with the
-> pinbox because the model is that even for things built into a single
-> board the OS is responsible for managing the pins but that's really not
-> how ACPI is expected to work.
+>
+>Additionally, pinctrl has some cross-cutting concerns (e.g. mutually
+>exclusive
+>device usage due to a shared pin), and I can imagine that may interact
+>poorly
+>with any AML or firmware assumptions about the state of the world, as
+>there's
+>no mechanism present to notify those of changes to pins.
+>
+>I think that this is a class of problem which needs to be raised with the
+>ASWG,
+>and solved in an ACPI-native fashion, rather than simply copying
+>properties
+>from DT using _DSD. If nothing else, the restrictions on FW and AML would
+>need
+>to be specified.
+>
+>Thanks,
+>Mark.
+>
+>[1] https://lists.acpica.org/pipermail/dsd/2015-September/000019.html
+>
 
-See my previous mail for some kind of answer to this.
 
-Yours,
-Linus Walleij
