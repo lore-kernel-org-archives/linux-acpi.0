@@ -1,124 +1,147 @@
-From: Mark Brown <broonie@kernel.org>
-Subject: Re: [RFC PATCH 0/4] Add ACPI support for pinctrl configuration
-Date: Tue, 5 Apr 2016 15:44:52 -0700
-Message-ID: <20160405224452.GM1924@sirena.org.uk>
-References: <1459424685-26965-1-git-send-email-irina.tirdea@intel.com>
- <20160404225200.GA1615@svinekod>
- <CACRpkdb=Ef1-g-r9NW-4_xeKdke0FFhnN+JYPjVKog3L4At8Lg@mail.gmail.com>
- <20160405165935.GA5456@sirena.org.uk>
- <CAE1zot+-=JQkMqRPpNtCk1MksRf9kOQ1G216kSXszDjn2z4d=g@mail.gmail.com>
+From: Bjorn Helgaas <helgaas@kernel.org>
+Subject: Re: [PATCH 1/4] acpi,pci,irq: reduce resource requirements
+Date: Tue, 5 Apr 2016 18:21:24 -0500
+Message-ID: <20160405232124.GH15353@localhost>
+References: <1457484079-18202-1-git-send-email-okaya@codeaurora.org>
+ <20160314185251.GA19703@localhost>
+ <56E7211F.3070203@codeaurora.org>
+ <20160314210147.GA11459@localhost>
+ <56E73232.9030704@codeaurora.org>
+ <20160315014843.GA16967@localhost>
+ <56E7733B.4050308@codeaurora.org>
+ <20160315023632.GA23940@localhost>
+ <56E80F19.7010503@codeaurora.org>
+ <56EEE925.7070202@codeaurora.org>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
-	protocol="application/pgp-signature"; boundary="HVCoas+krw6dou6l"
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mezzanine.sirena.org.uk ([106.187.55.193]:46170 "EHLO
-	mezzanine.sirena.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1759995AbcDEWpN (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 5 Apr 2016 18:45:13 -0400
-Content-Disposition: inline
-In-Reply-To: <CAE1zot+-=JQkMqRPpNtCk1MksRf9kOQ1G216kSXszDjn2z4d=g@mail.gmail.com>
-Sender: linux-acpi-owner@vger.kernel.org
-List-Id: linux-acpi@vger.kernel.org
-To: Octavian Purdila <octavian.purdila@intel.com>
-Cc: Linus Walleij <linus.walleij@linaro.org>, Mark Rutland <mark.rutland@arm.com>, Irina Tirdea <irina.tirdea@intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Mika Westerberg <mika.westerberg@linux.intel.com>, "linux-gpio@vger.kernel.org" <linux-gpio@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Rob Herring <robh+dt@kernel.org>, Heikki Krogerus <heikki.krogerus@linux.intel.com>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Cristina Ciocan <cristina.ciocan@intel.com>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Charles Garcia-Tobin <charles.garcia-tobin@arm.com>
-
-
---HVCoas+krw6dou6l
 Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-pci-owner@vger.kernel.org>
 Content-Disposition: inline
+In-Reply-To: <56EEE925.7070202@codeaurora.org>
+Sender: linux-pci-owner@vger.kernel.org
+To: Sinan Kaya <okaya@codeaurora.org>
+Cc: linux-acpi@vger.kernel.org, timur@codeaurora.org, cov@codeaurora.org, linux-pci@vger.kernel.org, ravikanth.nalla@hpe.com, lenb@kernel.org, harish.k@hpe.com, ashwin.reghunandanan@hpe.com, bhelgaas@google.com, rjw@rjwysocki.net, linux-kernel@vger.kernel.org
+List-Id: linux-acpi@vger.kernel.org
 
-On Tue, Apr 05, 2016 at 10:37:14PM +0300, Octavian Purdila wrote:
-> On Tue, Apr 5, 2016 at 7:59 PM, Mark Brown <broonie@kernel.org> wrote:
-> > On Tue, Apr 05, 2016 at 10:43:11AM +0200, Linus Walleij wrote:
+On Sun, Mar 20, 2016 at 02:17:09PM -0400, Sinan Kaya wrote:
+> Hi Bjorn,
+> 
+> >>>
+> >>> Device(LN0A){
+> >>> 	Name(_HID, EISAID("PNP0C0F")) // PCI interrupt link
+> >>> 	Name(_UID, 1)
+> >>> 	Name(_PRS, ResourceTemplate(){
+> >>> 	Interrupt(ResourceProducer, Level, ActiveHigh, Exclusive, , ,) {0x123}
+> >>> 	})
+> >>
+> >> I forgot that the link already include the trigger mode in it.  Maybe we
+> >> can check for that instead of assuming level/low.
+> >>
+> > 
+> > Let me explore this area.
+> > 
+> >> Bjorn
+> 
+> I have been implementing this. 
+> 
+> I see that placing the check in allocate function is not right. The interrupts get
+> registered with ACPI subsystem after locating the interrupt in register_gsi function.
+> Trying to find the IRQ type with get_trigger_type() for an unregistered interrupt
+> didn't look right to me.
+> 
+> I think it is best if we move these checks into get_penalty function.
+> 
+> I also see that the code is currently allowing EDGE type PCI interrupts assuming they are
+> exclusive only. Let me if this looks alright. I'm also curious about the PCI checks.
+> 
+> static int acpi_pci_link_set(struct acpi_pci_link *link, int irq)
+> 
+> I know you want to validate that all PCI interrupts are level, it looks like the code
+> is allowing other combinations.
 
-> >> And these products are only update-able
-> >> with hairy BIOS patches that need to be applied
-> >> using $SPECIAL_TOOL  that "normal users" do not want to
-> >> concern themselves with, as this is not an "apt-get upgrade"
-> >> kind of thing.
+It's not that we need to validate that all PCI interrupts are level.  What
+we need is to make sure all users sharing an IRQ agree on the mode.
 
-> > This bit has been addressed in UEFI - there's now a mechanism for the OS
-> > to supply firmware updates to the BIOS via runtime sevices calls without
-> > needing to go to the hairy tools.
-
-> AFAIK there is still no standard way of updating just the ACPI tables.
-> You need various tools to "stitch" a full firmware image that can be
-> consumed by the update mechanism.
-
-Right, but in terms of end users that doesn't matter - the users that
-Linus is concerned with here aren't going to know what ACPI is.
-
-> > There's also been facilities for some
-> > time which allow ACPI fragments to be loaded at runtime without patching
-> > the firmware (though they're not used so often at present).
-
-> And I just sent a separate patch series for "ACPI overlays", similar
-> with the dynamic DT, with the primary goal of supporting open-ended
-> hardware configurations.
-
-> But to be able to effectively use this we need a way to change pinmux settings.
-
-I'll need to find that series I guess...
-
-Note that we currently don't have any actual mechanism to load a DT
-overlay in mainline.  One of the issues there is making sure that the
-external interfaces we're offering are actually stable, another is
-making sure (for safety) that the overlays are only updating bits of the
-device tree that corrspond to the bit of the hardware that the overlay
-is for.
-
-> > Given the rush to shoehorn existing DT into ACPI at some point it's
-> > looking like it would be much more sensible for x86 to just do what
-> > arm64 has done and support both DT and ACPI in parallel and let people
-> > (either system integrators or end users) choose the most appropriate
-> > interface for their application.
-
-> Lets look at this from a different perspective. The proposal is not
-> about importing the DT model into ACPI but importing the Linux pinctrl
-
-It's not like this is the only change that has been sent to reuse some
-DT element rather directly in ACPI recently...
-
-> model into ACPI. That will allow us to use the Linux pinctrl drivers
-> to their full potential.
-
-> That doesn't stop the development of other, more OS independent, ACPI
-> models for pinmuxing. Which we can also support.
-
-That's not really a great answer.  Regardless of how good a solution
-this is for handling pinmuxing ACPI it needs to be joined up with the
-rest of ACPI, we need some clear instructions for both firmware and OS
-authors about how this works in a wider ACPI context and interacts with
-other features, preferably in the ACPI specs where people can find them.
-
-It could be something really simple like just saying that if we've got
-these pinctrl definitions then the firmware is not allowed to do any pin
-management, or it could be something more involved like saying that the
-OS has to notify the OS before using them.
-
-> I know that there are some discussions for pinmux configuration in the
-> ASWG, but it does not match the Linux pinctrl model. So we will end up
-> with a pinctrl driver that offers groups, functions and pin names and
-> a totally different ACPI description that we can't map to the pinctrl
-> driver.
-
-If there's an ASWG spec in progress that explicitly overlaps it seems
-even more important that this is joined up - I'm not aware of what's
-going on there.
-
---HVCoas+krw6dou6l
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2
-
-iQEcBAEBCAAGBQJXBD/hAAoJECTWi3JdVIfQEWIH/2CGEKbuqUhslfAtMtzaiNag
-VyOrKCf/rh/vb78pBx9TbL//StHLlDvdXuwzw2NguN6OXPq9lkRcaz7pPC9i+g0J
-SCjlAGdF6ZaTWxXqRKSOezO2miACvPvkmWIfNKuedi6LzNnuTxON0RqEKNTuPQ7/
-B3QnXklsi8cVUvxJ55mHedXViv7HBiz6J68aO5hFziyp6QVoAyc2K9w6ocPpXlcP
-X2fR+JdUx9VHoYUvdzlKv3nxKDTI8uCDijAh9VP6T7G76memsfjbZwyp3vJlLJIe
-oewRemPCdOjZW4N0/QpmPgQGGOVjTYFgjDtPUAVFKvBpV78z9hehQPlGnzc2I84=
-=0EB1
------END PGP SIGNATURE-----
-
---HVCoas+krw6dou6l--
+> diff --git a/drivers/acpi/pci_link.c b/drivers/acpi/pci_link.c
+> index 85be579e..5056a9c 100644
+> --- a/drivers/acpi/pci_link.c
+> +++ b/drivers/acpi/pci_link.c
+> @@ -495,6 +495,45 @@ static int acpi_irq_pci_sharing_penalty(int irq)
+>  	return penalty;
+>  }
+>  
+> +static int acpi_link_trigger(int irq, u8 *polarity, u8 *triggering)
+> +{
+> +	struct acpi_pci_link *link;
+> +	int link_trigger = 0;
+> +
+> +	list_for_each_entry(link, &acpi_link_list, list) {
+> +		int i;
+> +
+> +		if (link->irq.active && link->irq.active == irq) {
+> +			*polarity = link->polarity;
+> +			*triggering = link->triggering;
+> +			return 0;
+> +		}
+> +
+> +		for (i = 0; i < link->irq.possible_count; i++)
+> +			if (link->irq.possible[i] == irq) {
+> +				*polarity = link->polarity;
+> +				*triggering = link->triggering;
+> +				return 0;
+> +			}
+> +	}
+> +
+> +	return -EINVAL;
+> +}
+> +
+> +static bool acpi_pci_compatible_trigger(int irq)
+> +{
+> +	u8 polarity;
+> +	u8 triggering;
+> +	int type = irq_get_trigger_type(irq);
+> +	int rc;
+> +
+> +	rc = acpi_link_trigger(irq, &polarity, &triggering, &sharing)
+> +	if (rc)
+> +		return false;
+> +
+> +	return (type == IRQ_TYPE_LEVEL_LOW || type == IRQ_TYPE_NONE);
+> +}
+> +
+>  static int acpi_irq_get_penalty(int irq)
+>  {
+>  	int penalty = 0;
+> @@ -502,8 +541,21 @@ static int acpi_irq_get_penalty(int irq)
+>  	if (irq < ACPI_MAX_ISA_IRQ)
+>  		penalty += acpi_irq_isa_penalty[irq];
+>  
+> -	if (irq == acpi_gbl_FADT.sci_interrupt)
+> -		penalty += PIRQ_PENALTY_PCI_USING;
+> +	if (irq == acpi_gbl_FADT.sci_interrupt) {
+> +		u8 sci_polarity;
+> +		u8 sci_trigger;
+> +
+> +		rc = acpi_link_trigger(irq, &polarity, &sci_trigger);
+> +		if (!rc) {
+> +			if (sci_trigger != ACPI_LEVEL_SENSITIVE ||
+> +			    sci_polarity != ACPI_ACTIVE_LOW)
+> +				penalty += PIRQ_PENALTY_ISA_ALWAYS;
+> +			else
+> +				penalty += PIRQ_PENALTY_PCI_USING;
+> +		} else {
+> +			return ~0;
+> +		}
+> +	}
+>  
+>  	penalty += acpi_irq_pci_sharing_penalty(irq);
+>  	return penalty; 
+> 
+> 
+> -- 
+> Sinan Kaya
+> Qualcomm Technologies, Inc. on behalf of Qualcomm Innovation Center, Inc.
+> Qualcomm Innovation Center, Inc. is a member of Code Aurora Forum, a Linux Foundation Collaborative Project
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-pci" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
