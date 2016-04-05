@@ -1,513 +1,801 @@
-From: Irina Tirdea <irina.tirdea@intel.com>
-Subject: [RFC PATCH v2 1/3] pinctrl: pinconf-generic: Add ACPI support
-Date: Tue,  5 Apr 2016 18:33:24 +0300
-Message-ID: <1459870406-15219-2-git-send-email-irina.tirdea@intel.com>
+From: Irina Tirdea <irina.tirdea-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: [RFC PATCH v2 2/3] pinctrl: Add ACPI support
+Date: Tue,  5 Apr 2016 18:33:25 +0300
+Message-ID: <1459870406-15219-3-git-send-email-irina.tirdea@intel.com>
 References: <1459870406-15219-1-git-send-email-irina.tirdea@intel.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1459870406-15219-1-git-send-email-irina.tirdea@intel.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Mika Westerberg <mika.westerberg@linux.intel.com>, Linus Walleij <linus.walleij@linaro.org>, linux-gpio@vger.kernel.org, linux-acpi@vger.kernel.org
-Cc: Rob Herring <robh+dt@kernel.org>, Heikki Krogerus <heikki.krogerus@linux.intel.com>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Octavian Purdila <octavian.purdila@intel.com>, Cristina Ciocan <cristina.ciocan@intel.com>, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, Irina Tirdea <irina.tirdea@intel.com>
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1459870406-15219-1-git-send-email-irina.tirdea-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: "Rafael J. Wysocki" <rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org>, Len Brown <lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Mika Westerberg <mika.westerberg-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, Linus Walleij <linus.walleij-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, linux-gpio-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Heikki Krogerus <heikki.krogerus-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, Andy Shevchenko <andriy.shevchenko-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, Octavian Purdila <octavian.purdila-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Cristina Ciocan <cristina.ciocan-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Irina Tirdea <irina.tirdea-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-Add ACPI support for the generic device tree properties.
-Convert the pinconf generic code to handle both ACPI and
-device tree by using the fwnode_property API. Also include
-renaming device tree references in names of functions and
-structures from 'dt' to 'fwnode'.
+Add ACPI support for pin controller properties. These are
+based on ACPI _DSD properties and follow the device tree
+model based on states and node configurations. The states
+are defined as _DSD properties and configuration nodes
+are defined using the _DSD Hierarchical Properties Extension.
 
-Signed-off-by: Irina Tirdea <irina.tirdea@intel.com>
+A configuration node supports the generic device tree properties.
+
+The implementation is based on device tree code from devicetree.c.
+
+Signed-off-by: Irina Tirdea <irina.tirdea-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 ---
- drivers/acpi/property.c                 |   8 +--
- drivers/base/property.c                 |  36 ++++++++--
- drivers/pinctrl/pinconf-generic.c       | 121 +++++++++++++++++++-------------
- include/linux/acpi.h                    |   4 +-
- include/linux/pinctrl/pinconf-generic.h |  35 +++++----
- include/linux/property.h                |   9 +++
- 6 files changed, 138 insertions(+), 75 deletions(-)
+ Documentation/acpi/pinctrl-properties.txt | 284 +++++++++++++++++++++++++
+ drivers/pinctrl/Makefile                  |   1 +
+ drivers/pinctrl/acpi.c                    | 335 ++++++++++++++++++++++++++++++
+ drivers/pinctrl/acpi.h                    |  32 +++
+ drivers/pinctrl/core.c                    |  26 +++
+ drivers/pinctrl/core.h                    |   2 +
+ 6 files changed, 680 insertions(+)
+ create mode 100644 Documentation/acpi/pinctrl-properties.txt
+ create mode 100644 drivers/pinctrl/acpi.c
+ create mode 100644 drivers/pinctrl/acpi.h
 
-diff --git a/drivers/acpi/property.c b/drivers/acpi/property.c
-index f2fd3fe..b10f935 100644
---- a/drivers/acpi/property.c
-+++ b/drivers/acpi/property.c
-@@ -794,13 +794,13 @@ int acpi_node_prop_read(struct fwnode_handle *fwnode,  const char *propname,
- 
- /**
-  * acpi_get_next_subnode - Return the next child node handle for a device.
-- * @dev: Device to find the next child node for.
-+ * @fwnode: Handle to the device to find the next child node for.
-  * @child: Handle to one of the device's child nodes or a null handle.
-  */
--struct fwnode_handle *acpi_get_next_subnode(struct device *dev,
-+struct fwnode_handle *acpi_get_next_subnode(struct fwnode_handle *fwnode,
- 					    struct fwnode_handle *child)
- {
--	struct acpi_device *adev = ACPI_COMPANION(dev);
-+	struct acpi_device *adev = to_acpi_device_node(fwnode);
- 	struct list_head *head, *next;
- 
- 	if (!adev)
-@@ -816,7 +816,7 @@ struct fwnode_handle *acpi_get_next_subnode(struct device *dev,
- 			next = adev->node.next;
- 			if (next == head) {
- 				child = NULL;
--				adev = ACPI_COMPANION(dev);
-+				adev = to_acpi_device_node(fwnode);
- 				goto nondev;
- 			}
- 			adev = list_entry(next, struct acpi_device, node);
-diff --git a/drivers/base/property.c b/drivers/base/property.c
-index 9b1a65d..153a316 100644
---- a/drivers/base/property.c
-+++ b/drivers/base/property.c
-@@ -859,24 +859,37 @@ int device_add_property_set(struct device *dev, const struct property_set *pset)
- EXPORT_SYMBOL_GPL(device_add_property_set);
- 
- /**
-- * device_get_next_child_node - Return the next child node handle for a device
-- * @dev: Device to find the next child node for.
-+ * fwnode_get_next_child_node - Return the next child node handle for a device
-+ * @fwnode: Handle to the device to find the next child node for.
-  * @child: Handle to one of the device's child nodes or a null handle.
-  */
--struct fwnode_handle *device_get_next_child_node(struct device *dev,
-+struct fwnode_handle *fwnode_get_next_child_node(struct fwnode_handle *fwnode,
- 						 struct fwnode_handle *child)
- {
--	if (IS_ENABLED(CONFIG_OF) && dev->of_node) {
-+	if (IS_ENABLED(CONFIG_OF) && to_of_node(fwnode)) {
- 		struct device_node *node;
- 
--		node = of_get_next_available_child(dev->of_node, to_of_node(child));
-+		node = of_get_next_available_child(to_of_node(fwnode),
-+						   to_of_node(child));
- 		if (node)
- 			return &node->fwnode;
- 	} else if (IS_ENABLED(CONFIG_ACPI)) {
--		return acpi_get_next_subnode(dev, child);
-+		return acpi_get_next_subnode(fwnode, child);
- 	}
- 	return NULL;
- }
-+EXPORT_SYMBOL_GPL(fwnode_get_next_child_node);
+diff --git a/Documentation/acpi/pinctrl-properties.txt b/Documentation/acpi/pinctrl-properties.txt
+new file mode 100644
+index 0000000..9cdf6fa
+--- /dev/null
++++ b/Documentation/acpi/pinctrl-properties.txt
+@@ -0,0 +1,284 @@
++= _DSD Device Properties related to pin controllers =
++
++== Introduction ==
++
++This document is an extension of the pin control subsystem in Linux [1]
++and provides a way to describe pin controller properties in ACPI. It is
++based on the Device Specific Data (_DSD) configuration object [2] that
++was introduced in ACPI 5.1.
++
++Pin controllers are hardware modules that control pins by allowing pin
++multiplexing and configuration. Pin multiplexing allows using the same
++physical pins for multiple functions; for example, one pin or group of pins
++may be used for the I2C bus, SPI bus or as general-purpose GPIO pin. Pin
++configuration allows setting various properties such as pull-up/down,
++tri-state, drive-strength, etc.
++
++Hardware modules whose signals are affected by pin configuration are
++designated client devices. For a client device to operate correctly,
++certain pin controllers must set up certain specific pin configurations.
++Some client devices need a single static pin configuration, e.g. set up
++during initialization. Others need to reconfigure pins at run-time,
++for example to tri-state pins when the device is inactive. Hence, each
++client device can define a set of named states. Each named state is
++mapped to a pin controller configuration that describes the pin multiplexing
++or configuration for that state.
++
++In ACPI, each pin controller and each client device is represented as an
++ACPI device, just like any other hardware module. The pin controller
++properties are defined using _DSD properties [2] under these devices.
++The named states are defined using Device Properties UUID [3] under the
++ACPI client device. The configuration nodes are defined using Hierarchical
++Properties Extension UUID [4] and are split between the ACPI client device
++and the pin controller device. The configuration nodes contain properties
++that describe pin multiplexing or configuration that very similar to the
++ones used for device tree [5].
++
++== Example ==
++
++For example, let's consider an accelerometer connected to the I2C bus on
++a platform with a Baytrail pin controller. The accelerometer uses 2 GPIO
++pins for I2C (SDA, SCL) and one GPIO pin for interrupt.
++
++The name for the pins, groups and functions used are the ones defined in the
++pin controller driver, in the same way as it is done for device tree [5].
++
++For the I2C pins, the pin controller driver defines one group called
++"i2c5_grp" that can be multiplexed with functions "i2c" or "gpio".
++In our case, we need to select function "i2c" for group "i2c5_grp" in
++the ACPI description.
++
++For the GPIO pin, the pin controller driver defines the name "GPIO_S50"
++for the pin with index 0 that we use. We need to configure this pin to
++pull-down with pull strength of 10000 Ohms. We might also want to disable
++the bias for the GPIO interrupt pin when entering sleep.
++
++Here is an ASL example for this device:
++
++  // Pin controller device
++  Scope (_SB.GPO0)
++  {
++      Name (MUX0, Package()
++      {
++          ToUUID("daffd814-6eba-4d8c-8a91-bc9bbf4aa301"),
++          Package()
++          {
++              Package (2) {"function", "i2c"},
++              Package (2) {"groups", Package () {"i2c5_grp"}},
++          }
++      })
++
++      Name (CFG0, Package()
++      {
++          ToUUID("daffd814-6eba-4d8c-8a91-bc9bbf4aa301"),
++          Package()
++          {
++              Package (2) {"pins", Package () {"GPIO_S50"}},
++              Package (2) {"bias-pull-down", 10000},
++          }
++      })
++
++      Name (CFG1, Package()
++      {
++          ToUUID("daffd814-6eba-4d8c-8a91-bc9bbf4aa301"),
++          Package()
++          {
++              Package (2) {"pins", Package () {"GPIO_S50"}},
++              Package (2) {"bias-disable", 0},
++          }
++      })
++  }
++
++  // Accelerometer device with default pinmux and pinconfig for i2c and
++  // GPIO pins
++  Scope (_SB.I2C0)
++  {
++      Device (ACL0)
++      {
++          Name (_HID, ...)
++
++          Method (_CRS, 0, Serialized)
++          {
++              Name (RBUF, ResourceTemplate ()
++              {
++                  I2cSerialBus (...)
++                  GpioInt (Edge, ActiveHigh, Exclusive, PullDown, 0x0000,
++                           "\\_SB.GPO0", 0x00, ResourceConsumer, , ) { 0 }
++              })
++              Return (RBUF)
++          }
++
++          Name (_DSD, Package ()
++          {
++              ToUUID("daffd814-6eba-4d8c-8a91-bc9bbf4aa301"),
++              Package ()
++              {
++                  Package () {"pinctrl-names", Package() {"default", "sleep"}},
++                  Package ()
++                  {
++                      "pinctrl-0",
++                      Package()
++                      {
++                          "accel-default-mux-i2c",
++                          "accel-default-cfg-int",
++                      }
++                  },
++                  Package ()
++                  {
++                      "pinctrl-1",
++                      Package()
++                      {
++                          "accel-sleep-cfg-int",
++                      }
++                  },
++
++              },
++              ToUUID("dbb8e3e6-5886-4ba6-8795-1319f52a966b"),
++              Package ()
++              {
++                  Package (2) {"accel-default-mux-i2c", "\\_SB.GPO0.MUX0"},
++                  Package (2) {"accel-default-cfg-int", "\\_SB.GPO0.CFG0"},
++                  Package (2) {"accel-sleep-cfg-int", "\\_SB.GPO0.CFG1"},
++              },
++          })
++      }
++  }
++
++In the ASL excerpt, the accelerometer device has 2 states:
++  - a default state with 2 pin configurations:
++    - a pin multiplexing node for the i2c pins that sets function "i2c"
++      for the "i2c5_grp" pin group
++    - a pin configuration node for the GPIO interrupt pin that pull down
++      the "GPIO_S50" pin and sets a pull strength of 10000 Ohms
++  - a sleep state with 1 pin configuration:
++    - a pin configuration node for pin "GPIO_S50" that disables pin
++    bias
++
++== _DSD pinctrl properties format ==
++
++=== Pin controller client device states  ===
++
++The pinctrl states are defined under the device node they apply to.
++The format of the pinctrl states is:
++
++  Name (_DSD, Package ()
++  {
++      ToUUID("daffd814-6eba-4d8c-8a91-bc9bbf4aa301"),
++      Package ()
++      {
++          Package () {"pinctrl-names", Package() {"statename0", "statename1", ...}},
++          Package () {"pinctrl-0", Package() {"cfgname0", "cfgname1", ...}},
++          Package () {"pinctrl-1", Package() {"cfgname2", "cfgname3", ...}},
++      }
++  }
++
++  statename - name of the pinctrl device state (e.g.: default, sleep, etc.).
++              These names are associated with the lists of configurations
++	      defined below: statename0 defines the name for configuration
++	      property "pinctrl-0", statename1 defines the name for
++	      configuration property "pinctrl-1", etc.
++  cfgname - name for the configuration data-only subnode.
++
++=== Pin controller configuration nodes  ===
++
++The configuration data-only subnodes are defined using the Hierarchical
++Properties Extension UUID [4]. Their definition is split between the device
++node and the pin controller node. The format for these subnodes is:
++
++  Scope (DEV0)
++  {
++      Name (_DSD, Package ()
++      {
++          ToUUID("dbb8e3e6-5886-4ba6-8795-1319f52a966b"),
++          Package ()
++          {
++              Package (2) {"cfgname0", "\\GPO0.MUX0"},
++              Package (2) {"cfgname1", "\\GPO0.CFG0"},
++          },
++      })
++  }
++
++  Scope (GPO0)
++  {
++      Name (MUX0, Package()
++      {
++          ToUUID("daffd814-6eba-4d8c-8a91-bc9bbf4aa301"),
++          Package() {...}
++      })
++      Name (CFG0, Package()
++      {
++          ToUUID("daffd814-6eba-4d8c-8a91-bc9bbf4aa301"),
++          Package() {...}
++      })
++  }
++
++Each data subnode (MUX0, CFG0) is a regular _DSD node that uses Device
++Properties UUID [3]. There are 2 types of subnodes, depending on the properties
++it contains: pin multiplexing nodes and pin configuration nodes.
++
++==== Pin multiplexing nodes  ====
++
++The pin multiplexing nodes must contain a property named "function" and
++define a mux function to be applied to a list of pin groups. The properties
++supported by this node are the same as for device tree [5]. The name for the
++pins, groups and functions used are the ones defined in the pin controller
++driver, in the same way as it is done for device tree [5]. The format for
++this data subnode is:
++
++  Name (MUX0, Package()
++  {
++      ToUUID("daffd814-6eba-4d8c-8a91-bc9bbf4aa301"),
++          Package()
++          {
++              Package (2) {"function", "functioname"},
++              Package (2) {"groups", Package () {"groupname1", "groupname2", ...}},
++          }
++  })
++
++  functioname - the pinmux function to select.
++  groups - the list of groups to select with this function
++
++==== Pin configuration nodes  ====
++
++The pin configuration nodes do not contain a property named "function".
++They must contain a property named "group" or "pins". They will also
++contain one or more configuration properties like bias-pull-up,
++drive-open-drain, etc. The properties supported by this node are the
++same as for device tree. Standard pinctrl properties are defined in the
++device tree documentation [5] and in <include/linux/pinctrl/pinconf-generic.h>.
++Pinctrl drivers may also define their own custom properties. The name for the
++pins/groups  used are the ones defined in the pin controller driver, in the
++same way as it is done for device tree [5]. The format for the data subnode is:
++
++  Name (CFG0, Package()
++  {
++      ToUUID("daffd814-6eba-4d8c-8a91-bc9bbf4aa301"),
++          Package()
++          {
++              Package (2) {"pins", Package () {"pinname1", "pinname2", ...}},
++              Package (2) {"configname1", configval1},
++              Package (2) {"configname2", configval2},
++          }
++  })
++
++  pinname - list of pins that properties in the node apply to
++  configname - name of the pin configuration property
++  configval - value of the pin configuration property
++
++== Restrictions and recommendations ==
++
++Pin multiplexing allows using the same pins for multiple functions. When setting
++the pin multiplexing configuration, care must be taken not to disable functionality
++needed in the rest of the ACPI configuration.
++
++Pinctrl "sleep" state provides power management capabilities to the device that may
++conflict with ACPI power management methods. Special care must be taken when using
++the "sleep" state not to create conflicts with the existing ACPI configuration.
++
++== References ==
++
++[1] Documentation/pinctrl.txt
++[2] http://www.uefi.org/sites/default/files/resources/_DSD-implementation-guide-toplevel-1_1.htm
++[3] http://www.uefi.org/sites/default/files/resources/_DSD-device-properties-UUID.pdf
++[4] http://www.uefi.org/sites/default/files/resources/_DSD-hierarchical-data-extension-UUID-v1.pdf
++[5] Documentation/devicetree/bindings/pinctrl/pinctrl-bindings.txt
+diff --git a/drivers/pinctrl/Makefile b/drivers/pinctrl/Makefile
+index e4bc115..12d3af6 100644
+--- a/drivers/pinctrl/Makefile
++++ b/drivers/pinctrl/Makefile
+@@ -6,6 +6,7 @@ obj-y				+= core.o pinctrl-utils.o
+ obj-$(CONFIG_PINMUX)		+= pinmux.o
+ obj-$(CONFIG_PINCONF)		+= pinconf.o
+ obj-$(CONFIG_OF)		+= devicetree.o
++obj-$(CONFIG_ACPI)		+= acpi.o
+ obj-$(CONFIG_GENERIC_PINCONF)	+= pinconf-generic.o
+ obj-$(CONFIG_PINCTRL_ADI2)	+= pinctrl-adi2.o
+ obj-$(CONFIG_PINCTRL_AS3722)	+= pinctrl-as3722.o
+diff --git a/drivers/pinctrl/acpi.c b/drivers/pinctrl/acpi.c
+new file mode 100644
+index 0000000..0ddacaf
+--- /dev/null
++++ b/drivers/pinctrl/acpi.c
+@@ -0,0 +1,335 @@
++/*
++ * ACPI integration for the pin control subsystem
++ *
++ * Copyright (c) 2016, Intel Corporation.
++ *
++ * Derived from:
++ *  devicetree.c - Copyright (C) 2012 NVIDIA CORPORATION
++ *
++ * This program is free software; you can redistribute it and/or modify it
++ * under the terms and conditions of the GNU General Public License,
++ * version 2, as published by the Free Software Foundation.
++ *
++ * This program is distributed in the hope it will be useful, but WITHOUT
++ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
++ * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
++ * more details.
++ */
++
++#ifdef CONFIG_GENERIC_PINCONF
++
++#include <linux/acpi.h>
++#include <linux/device.h>
++#include <linux/pinctrl/pinctrl.h>
++#include <linux/pinctrl/pinconf-generic.h>
++
++#include "acpi.h"
++#include "core.h"
++#include "pinconf.h"
++#include "pinctrl-utils.h"
 +
 +/**
-+ * device_get_next_child_node - Return the next child node handle for a device
-+ * @dev: Device to find the next child node for.
-+ * @child: Handle to one of the device's child nodes or a null handle.
++ * struct pinctrl_acpi_map - mapping table chunk parsed from ACPI
++ * @node: list node for struct pinctrl's ACPI data field
++ * @pctldev: the pin controller that allocated this struct, and will free it
++ * @maps: the mapping table entries
++ * @num_maps: number of mapping table entries
 + */
-+struct fwnode_handle *device_get_next_child_node(struct device *dev,
-+						 struct fwnode_handle *child)
-+{
-+	return fwnode_get_next_child_node(dev_fwnode(dev), child);
-+}
- EXPORT_SYMBOL_GPL(device_get_next_child_node);
- 
- /**
-@@ -1016,3 +1029,14 @@ void *device_get_mac_address(struct device *dev, char *addr, int alen)
- 	return device_get_mac_addr(dev, "address", addr, alen);
- }
- EXPORT_SYMBOL(device_get_mac_address);
++struct pinctrl_acpi_map {
++	struct list_head node;
++	struct pinctrl_dev *pctldev;
++	struct pinctrl_map *map;
++	unsigned num_maps;
++};
 +
-+const char *fwnode_get_name(struct fwnode_handle *fwnode)
++static void acpi_maps_list_dh(acpi_handle handle, void *data)
 +{
-+	if (is_of_node(fwnode))
-+		return of_node_full_name(to_of_node(fwnode));
-+	else if (is_acpi_node(fwnode))
-+		return acpi_dev_name(to_acpi_device_node(fwnode));
++	/* The address of this function is used as a key. */
++}
++
++static struct list_head *acpi_get_maps(struct device *dev)
++{
++	acpi_handle handle = ACPI_HANDLE(dev);
++	struct list_head *maps;
++	acpi_status status;
++
++	status = acpi_get_data(handle, acpi_maps_list_dh, (void **)&maps);
++	if (ACPI_FAILURE(status))
++		return NULL;
++
++	return maps;
++}
++
++static void acpi_free_maps(struct device *dev, struct list_head *maps)
++{
++	acpi_handle handle = ACPI_HANDLE(dev);
++
++	acpi_detach_data(handle, acpi_maps_list_dh);
++	kfree(maps);
++}
++
++static int acpi_init_maps(struct device *dev)
++{
++	acpi_handle handle = ACPI_HANDLE(dev);
++	struct list_head *maps;
++	acpi_status status;
++	int ret;
++
++	maps = kzalloc(sizeof(*maps), GFP_KERNEL);
++	if (!maps)
++		return -ENOMEM;
++
++	INIT_LIST_HEAD(maps);
++
++	status = acpi_attach_data(handle, acpi_maps_list_dh, maps);
++	if (ACPI_FAILURE(status)) {
++		ret = -EINVAL;
++		goto err_free_maps;
++	}
++
++	return 0;
++
++err_free_maps:
++	kfree(maps);
++	return ret;
++}
++
++void pinctrl_acpi_free_maps(struct pinctrl *p)
++{
++	struct pinctrl_acpi_map *map, *_map;
++	struct list_head *maps;
++
++	maps = acpi_get_maps(p->dev);
++	if (!maps)
++		goto out;
++
++	list_for_each_entry_safe(map, _map, maps, node) {
++		pinctrl_unregister_map(map->map);
++		list_del(&map->node);
++		pinctrl_utils_free_map(map->pctldev, map->map, map->num_maps);
++		kfree(map);
++	}
++
++	acpi_free_maps(p->dev, maps);
++out:
++	acpi_bus_put_acpi_device(ACPI_COMPANION(p->dev));
++}
++
++static int acpi_remember_or_free_map(struct pinctrl *p, const char *statename,
++				     struct pinctrl_dev *pctldev,
++				     struct pinctrl_map *map, unsigned num_maps)
++{
++	struct pinctrl_acpi_map *acpi_map;
++	struct list_head *acpi_maps;
++	unsigned i;
++
++	acpi_maps = acpi_get_maps(p->dev);
++	if (!acpi_maps) {
++		pinctrl_utils_free_map(pctldev, map, num_maps);
++		return -EINVAL;
++	}
++
++	/* Initialize common mapping table entry fields */
++	for (i = 0; i < num_maps; i++) {
++		map[i].dev_name = dev_name(p->dev);
++		map[i].name = statename;
++		if (pctldev)
++			map[i].ctrl_dev_name = dev_name(pctldev->dev);
++	}
++
++	/* Remember the converted mapping table entries */
++	acpi_map = kzalloc(sizeof(*acpi_map), GFP_KERNEL);
++	if (!acpi_map) {
++		pinctrl_utils_free_map(pctldev, map, num_maps);
++		return -ENOMEM;
++	}
++
++	acpi_map->pctldev = pctldev;
++	acpi_map->map = map;
++	acpi_map->num_maps = num_maps;
++	list_add_tail(&acpi_map->node, acpi_maps);
++
++	return pinctrl_register_map(map, num_maps, false);
++}
++
++static int acpi_remember_dummy_state(struct pinctrl *p, const char *statename)
++{
++	struct pinctrl_map *map;
++
++	map = kzalloc(sizeof(*map), GFP_KERNEL);
++	if (!map)
++		return -ENOMEM;
++
++	/* There is no pctldev for PIN_MAP_TYPE_DUMMY_STATE */
++	map->type = PIN_MAP_TYPE_DUMMY_STATE;
++
++	return acpi_remember_or_free_map(p, statename, NULL, map, 1);
++}
++
++static struct pinctrl_dev *acpi_find_pctldev(struct fwnode_handle *fw_config)
++{
++	struct acpi_buffer path = {ACPI_ALLOCATE_BUFFER, NULL};
++	acpi_handle pctrl_handle, cfg_handle;
++	struct acpi_data_node *dn;
++	acpi_status status;
++	int ret;
++
++	/*
++	 * In ACPI, the pinctrl device is the parent of the configuration
++	 * node. In the kernel internal representation, the device node is
++	 * the parent of the configuration node. We need to extract the
++	 * original path for the configuration node and search for its parent
++	 * in the ACPI hierarchy.
++	 */
++	dn = to_acpi_data_node(fw_config);
++	if (!dn)
++		return ERR_PTR(-EINVAL);
++
++	ret = acpi_get_name(dn->handle, ACPI_FULL_PATHNAME, &path);
++	if (ret)
++		return ERR_PTR(ret);
++
++	status = acpi_get_handle(NULL, (char *)path.pointer, &cfg_handle);
++	kfree(path.pointer);
++	if (ACPI_FAILURE(status))
++		return ERR_PTR(-EINVAL);
++
++	status = acpi_get_parent(cfg_handle, &pctrl_handle);
++	if (ACPI_FAILURE(status))
++		return ERR_PTR(-EINVAL);
++
++	return get_pinctrl_dev_from_acpi(pctrl_handle);
++}
++
++static int acpi_to_map_one_config(struct pinctrl *p, const char *statename,
++				  struct fwnode_handle *fw_config)
++{
++	struct pinctrl_map *map;
++	struct pinctrl_dev *pctldev;
++	unsigned num_maps;
++	int ret;
++
++	/* Find the pin controller containing fw_config */
++	pctldev = acpi_find_pctldev(fw_config);
++	if (!pctldev)
++		return -ENODEV;
++	if (IS_ERR(pctldev))
++		return PTR_ERR(pctldev);
++
++	/* Parse ACPI node and generate mapping table entries */
++	ret = pinconf_generic_fwnode_to_map(pctldev, fw_config, &map, &num_maps,
++					    PIN_MAP_TYPE_INVALID);
++	if (ret < 0)
++		return ret;
++
++	/* Stash the mapping table chunk away for later use */
++	return acpi_remember_or_free_map(p, statename, pctldev, map, num_maps);
++}
++
++static struct fwnode_handle *acpi_find_config_prop(struct device *dev,
++						   char *propname)
++{
++	struct fwnode_handle *child;
++	struct acpi_data_node *dn;
++
++	/*
++	 * Pinctrl configuration properties are described with ACPI data
++	 * nodes using _DSD Hierarchical Properties Extension.
++	 */
++	device_for_each_child_node(dev, child) {
++		dn = to_acpi_data_node(child);
++		if (!dn)
++			continue;
++		if (!strcmp(dn->name, propname))
++			break;
++	}
++
++	return child;
++}
++
++int pinctrl_acpi_to_map(struct pinctrl *p)
++{
++	const union acpi_object *prop, *statenames, *configs;
++	unsigned int state, nstates, nconfigs, config;
++	char *statename, *propname, *configname;
++	struct fwnode_handle *fw_prop;
++	struct acpi_device *adev;
++	int ret;
++
++	/* We may store pointers to property names within the node */
++	adev = acpi_bus_get_acpi_device(ACPI_HANDLE(p->dev));
++	if (!adev)
++		return -ENODEV;
++
++	/* Only allow named states (device must have prop 'pinctrl-names') */
++	ret = acpi_dev_get_property(adev, "pinctrl-names", ACPI_TYPE_PACKAGE,
++				    &prop);
++	if (ret) {
++		acpi_bus_put_acpi_device(adev);
++		/* No pinctrl properties */
++		return 0;
++	}
++	statenames = prop->package.elements;
++	nstates = prop->package.count;
++
++	ret = acpi_init_maps(p->dev);
++	if (ret)
++		return ret;
++
++	/* For each defined state ID */
++	for (state = 0; state < nstates; state++) {
++		/* Get state name */
++		if (statenames[state].type != ACPI_TYPE_STRING) {
++			ret = -EINVAL;
++			goto err_free_maps;
++		}
++		statename = statenames[state].string.pointer;
++
++		/* Retrieve the pinctrl-* property */
++		propname = kasprintf(GFP_KERNEL, "pinctrl-%d", state);
++		ret = acpi_dev_get_property(adev, propname, ACPI_TYPE_PACKAGE,
++					    &prop);
++		kfree(propname);
++		if (ret)
++			break;
++		configs = prop->package.elements;
++		nconfigs = prop->package.count;
++
++		/* For every referenced pin configuration node in it */
++		for (config = 0; config < nconfigs; config++) {
++			if (configs[config].type != ACPI_TYPE_STRING) {
++				ret = -EINVAL;
++				goto err_free_maps;
++			}
++			configname = configs[config].string.pointer;
++
++			/*
++			 * Look up the pin configuration node as
++			 * an ACPI data node in the device node.
++			 */
++			fw_prop = acpi_find_config_prop(p->dev, configname);
++			if (!fw_prop) {
++				ret = -EINVAL;
++				goto err_free_maps;
++			}
++
++			/* Parse the configuration node */
++			ret = acpi_to_map_one_config(p, statename, fw_prop);
++			if (ret < 0)
++				goto err_free_maps;
++		}
++		/* No entries in ACPI? Generate a dummy state table entry */
++		if (!nconfigs) {
++			ret = acpi_remember_dummy_state(p, statename);
++			if (ret < 0)
++				goto err_free_maps;
++		}
++	}
++
++	return 0;
++
++err_free_maps:
++	pinctrl_acpi_free_maps(p);
++	return ret;
++}
++#endif
+diff --git a/drivers/pinctrl/acpi.h b/drivers/pinctrl/acpi.h
+new file mode 100644
+index 0000000..e89dda5
+--- /dev/null
++++ b/drivers/pinctrl/acpi.h
+@@ -0,0 +1,32 @@
++/*
++ * Internal interface to pinctrl ACPI integration
++ *
++ * Copyright (c) 2016, Intel Corporation.
++ *
++ * This program is free software; you can redistribute it and/or modify it
++ * under the terms and conditions of the GNU General Public License,
++ * version 2, as published by the Free Software Foundation.
++ *
++ * This program is distributed in the hope it will be useful, but WITHOUT
++ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
++ * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
++ * more details.
++ */
++
++#if defined(CONFIG_ACPI) && defined(CONFIG_GENERIC_PINCONF)
++
++void pinctrl_acpi_free_maps(struct pinctrl *p);
++int pinctrl_acpi_to_map(struct pinctrl *p);
++
++#else
++
++static inline int pinctrl_acpi_to_map(struct pinctrl *p)
++{
++	return 0;
++}
++
++static inline void pinctrl_acpi_free_maps(struct pinctrl *p)
++{
++}
++
++#endif
+diff --git a/drivers/pinctrl/core.c b/drivers/pinctrl/core.c
+index f67a8b7..1bf3774 100644
+--- a/drivers/pinctrl/core.c
++++ b/drivers/pinctrl/core.c
+@@ -36,6 +36,7 @@
+ #include "devicetree.h"
+ #include "pinmux.h"
+ #include "pinconf.h"
++#include "acpi.h"
+ 
+ 
+ static bool pinctrl_dummy_state;
+@@ -137,6 +138,23 @@ struct pinctrl_dev *get_pinctrl_dev_from_of_node(struct device_node *np)
+ 	return NULL;
+ }
+ 
++struct pinctrl_dev *get_pinctrl_dev_from_acpi(acpi_handle handle)
++{
++	struct pinctrl_dev *pctldev;
++
++	mutex_lock(&pinctrldev_list_mutex);
++
++	list_for_each_entry(pctldev, &pinctrldev_list, node)
++		if (ACPI_HANDLE(pctldev->dev) == handle) {
++			mutex_unlock(&pinctrldev_list_mutex);
++			return pctldev;
++		}
++
++	mutex_unlock(&pinctrldev_list_mutex);
 +
 +	return NULL;
 +}
-+EXPORT_SYMBOL(fwnode_get_name);
-diff --git a/drivers/pinctrl/pinconf-generic.c b/drivers/pinctrl/pinconf-generic.c
-index d5bf9fa..52ef250 100644
---- a/drivers/pinctrl/pinconf-generic.c
-+++ b/drivers/pinctrl/pinconf-generic.c
-@@ -21,6 +21,7 @@
- #include <linux/pinctrl/pinctrl.h>
- #include <linux/pinctrl/pinconf.h>
- #include <linux/pinctrl/pinconf-generic.h>
-+#include <linux/acpi.h>
- #include <linux/of.h>
- #include "core.h"
- #include "pinconf.h"
-@@ -148,8 +149,8 @@ void pinconf_generic_dump_config(struct pinctrl_dev *pctldev,
- EXPORT_SYMBOL_GPL(pinconf_generic_dump_config);
- #endif
- 
--#ifdef CONFIG_OF
--static const struct pinconf_generic_params dt_params[] = {
-+#if defined(CONFIG_OF) || defined(CONFIG_ACPI)
-+static const struct pinconf_generic_params fw_params[] = {
- 	{ "bias-bus-hold", PIN_CONFIG_BIAS_BUS_HOLD, 0 },
- 	{ "bias-disable", PIN_CONFIG_BIAS_DISABLE, 0 },
- 	{ "bias-high-impedance", PIN_CONFIG_BIAS_HIGH_IMPEDANCE, 0 },
-@@ -175,22 +176,22 @@ static const struct pinconf_generic_params dt_params[] = {
- };
- 
- /**
-- * parse_dt_cfg() - Parse DT pinconf parameters
-- * @np:	DT node
-+ * parse_fwnode_cfg() - Parse FW pinconf parameters
-+ * @fwnode:	FW node
-  * @params:	Array of describing generic parameters
-  * @count:	Number of entries in @params
-  * @cfg:	Array of parsed config options
-  * @ncfg:	Number of entries in @cfg
-  *
-- * Parse the config options described in @params from @np and puts the result
-+ * Parse the config options described in @params from @fwnode and puts the result
-  * in @cfg. @cfg does not need to be empty, entries are added beggining at
-  * @ncfg. @ncfg is updated to reflect the number of entries after parsing. @cfg
-  * needs to have enough memory allocated to hold all possible entries.
-  */
--static void parse_dt_cfg(struct device_node *np,
--			 const struct pinconf_generic_params *params,
--			 unsigned int count, unsigned long *cfg,
--			 unsigned int *ncfg)
-+static void parse_fwnode_cfg(struct fwnode_handle *fwnode,
-+			     const struct pinconf_generic_params *params,
-+			     unsigned int count, unsigned long *cfg,
-+			     unsigned int *ncfg)
- {
- 	int i;
- 
-@@ -199,7 +200,7 @@ static void parse_dt_cfg(struct device_node *np,
- 		int ret;
- 		const struct pinconf_generic_params *par = &params[i];
- 
--		ret = of_property_read_u32(np, par->property, &val);
-+		ret = fwnode_property_read_u32(fwnode, par->property, &val);
- 
- 		/* property not found */
- 		if (ret == -EINVAL)
-@@ -216,38 +217,38 @@ static void parse_dt_cfg(struct device_node *np,
- }
- 
- /**
-- * pinconf_generic_parse_dt_config()
-+ * pinconf_generic_parse_fwnode_config()
-  * parse the config properties into generic pinconfig values.
-- * @np: node containing the pinconfig properties
-+ * @fwnode: node containing the pinconfig properties
-  * @configs: array with nconfigs entries containing the generic pinconf values
-  *           must be freed when no longer necessary.
-  * @nconfigs: umber of configurations
-  */
--int pinconf_generic_parse_dt_config(struct device_node *np,
--				    struct pinctrl_dev *pctldev,
--				    unsigned long **configs,
--				    unsigned int *nconfigs)
-+static int pinconf_generic_parse_fwnode_config(struct fwnode_handle *fwnode,
-+					       struct pinctrl_dev *pctldev,
-+					       unsigned long **configs,
-+					       unsigned int *nconfigs)
- {
- 	unsigned long *cfg;
- 	unsigned int max_cfg, ncfg = 0;
- 	int ret;
- 
--	if (!np)
-+	if (!fwnode)
- 		return -EINVAL;
- 
- 	/* allocate a temporary array big enough to hold one of each option */
--	max_cfg = ARRAY_SIZE(dt_params);
-+	max_cfg = ARRAY_SIZE(fw_params);
- 	if (pctldev)
- 		max_cfg += pctldev->desc->num_custom_params;
- 	cfg = kcalloc(max_cfg, sizeof(*cfg), GFP_KERNEL);
- 	if (!cfg)
- 		return -ENOMEM;
- 
--	parse_dt_cfg(np, dt_params, ARRAY_SIZE(dt_params), cfg, &ncfg);
-+	parse_fwnode_cfg(fwnode, fw_params, ARRAY_SIZE(fw_params), cfg, &ncfg);
- 	if (pctldev && pctldev->desc->num_custom_params &&
- 		pctldev->desc->custom_params)
--		parse_dt_cfg(np, pctldev->desc->custom_params,
--			     pctldev->desc->num_custom_params, cfg, &ncfg);
-+		parse_fwnode_cfg(fwnode, pctldev->desc->custom_params,
-+				 pctldev->desc->num_custom_params, cfg, &ncfg);
- 
- 	ret = 0;
- 
-@@ -275,24 +276,23 @@ out:
- 	return ret;
- }
- 
--int pinconf_generic_dt_subnode_to_map(struct pinctrl_dev *pctldev,
--		struct device_node *np, struct pinctrl_map **map,
-+static int pinconf_generic_fwnode_subnode_to_map(struct pinctrl_dev *pctldev,
-+		struct fwnode_handle *fwnode, struct pinctrl_map **map,
- 		unsigned *reserved_maps, unsigned *num_maps,
- 		enum pinctrl_map_type type)
- {
--	int ret;
- 	const char *function;
- 	struct device *dev = pctldev->dev;
- 	unsigned long *configs = NULL;
- 	unsigned num_configs = 0;
- 	unsigned reserve, strings_count;
--	struct property *prop;
--	const char *group;
-+	const char **groups;
- 	const char *subnode_target_type = "pins";
-+	int ret, i;
- 
--	ret = of_property_count_strings(np, "pins");
-+	ret = fwnode_property_read_string_array(fwnode, "pins", NULL, 0);
- 	if (ret < 0) {
--		ret = of_property_count_strings(np, "groups");
-+		ret = fwnode_property_read_string_array(fwnode, "groups", NULL, 0);
- 		if (ret < 0)
- 			/* skip this node; may contain config child nodes */
- 			return 0;
-@@ -305,20 +305,20 @@ int pinconf_generic_dt_subnode_to_map(struct pinctrl_dev *pctldev,
- 	}
- 	strings_count = ret;
- 
--	ret = of_property_read_string(np, "function", &function);
-+	ret = fwnode_property_read_string(fwnode, "function", &function);
- 	if (ret < 0) {
- 		/* EINVAL=missing, which is fine since it's optional */
- 		if (ret != -EINVAL)
- 			dev_err(dev, "%s: could not parse property function\n",
--				of_node_full_name(np));
-+				fwnode_get_name(fwnode));
- 		function = NULL;
- 	}
- 
--	ret = pinconf_generic_parse_dt_config(np, pctldev, &configs,
--					      &num_configs);
-+	ret = pinconf_generic_parse_fwnode_config(fwnode, pctldev, &configs,
-+						  &num_configs);
- 	if (ret < 0) {
- 		dev_err(dev, "%s: could not parse node property\n",
--			of_node_full_name(np));
-+			fwnode_get_name(fwnode));
- 		return ret;
- 	}
- 
-@@ -333,52 +333,64 @@ int pinconf_generic_dt_subnode_to_map(struct pinctrl_dev *pctldev,
- 	ret = pinctrl_utils_reserve_map(pctldev, map, reserved_maps,
- 			num_maps, reserve);
- 	if (ret < 0)
--		goto exit;
-+		goto exit_free_configs;
 +
-+	groups = kcalloc(strings_count, sizeof(*groups), GFP_KERNEL);
-+	if (!groups) {
-+		ret = -ENOMEM;
-+		goto exit_free_configs;
+ /**
+  * pin_get_from_name() - look up a pin number from a name
+  * @pctldev: the pin control device to lookup the pin on
+@@ -827,6 +845,12 @@ static struct pinctrl *create_pinctrl(struct device *dev)
+ 		return ERR_PTR(ret);
+ 	}
+ 
++	ret = pinctrl_acpi_to_map(p);
++	if (ret < 0) {
++		kfree(p);
++		return ERR_PTR(ret);
 +	}
 +
-+	ret = fwnode_property_read_string_array(fwnode, subnode_target_type,
-+						groups, strings_count);
-+	if (ret < 0)
-+		goto exit_free_groups;
+ 	devname = dev_name(dev);
  
--	of_property_for_each_string(np, subnode_target_type, prop, group) {
-+	for (i = 0; i < strings_count; i++) {
- 		if (function) {
- 			ret = pinctrl_utils_add_map_mux(pctldev, map,
--					reserved_maps, num_maps, group,
-+					reserved_maps, num_maps, groups[i],
- 					function);
- 			if (ret < 0)
--				goto exit;
-+				goto exit_free_groups;
- 		}
+ 	mutex_lock(&pinctrl_maps_mutex);
+@@ -937,6 +961,8 @@ static void pinctrl_free(struct pinctrl *p, bool inlist)
  
- 		if (num_configs) {
- 			ret = pinctrl_utils_add_map_configs(pctldev, map,
--					reserved_maps, num_maps, group, configs,
--					num_configs, type);
-+					reserved_maps, num_maps, groups[i],
-+					configs, num_configs, type);
- 			if (ret < 0)
--				goto exit;
-+				goto exit_free_groups;
- 		}
- 	}
- 	ret = 0;
+ 	pinctrl_dt_free_maps(p);
  
--exit:
-+exit_free_groups:
-+	kfree(groups);
-+exit_free_configs:
- 	kfree(configs);
- 	return ret;
- }
--EXPORT_SYMBOL_GPL(pinconf_generic_dt_subnode_to_map);
- 
--int pinconf_generic_dt_node_to_map(struct pinctrl_dev *pctldev,
--		struct device_node *np_config, struct pinctrl_map **map,
-+int pinconf_generic_fwnode_to_map(struct pinctrl_dev *pctldev,
-+		struct fwnode_handle *fwnode, struct pinctrl_map **map,
- 		unsigned *num_maps, enum pinctrl_map_type type)
- {
- 	unsigned reserved_maps;
--	struct device_node *np;
-+	struct fwnode_handle *fw;
- 	int ret;
- 
- 	reserved_maps = 0;
- 	*map = NULL;
- 	*num_maps = 0;
- 
--	ret = pinconf_generic_dt_subnode_to_map(pctldev, np_config, map,
-+	ret = pinconf_generic_fwnode_subnode_to_map(pctldev, fwnode, map,
- 						&reserved_maps, num_maps, type);
- 	if (ret < 0)
- 		goto exit;
- 
--	for_each_child_of_node(np_config, np) {
--		ret = pinconf_generic_dt_subnode_to_map(pctldev, np, map,
-+	fwnode_for_each_child_node(fwnode, fw) {
-+		ret = pinconf_generic_fwnode_subnode_to_map(pctldev, fw, map,
- 					&reserved_maps, num_maps, type);
- 		if (ret < 0)
- 			goto exit;
-@@ -389,6 +401,17 @@ exit:
- 	pinctrl_utils_free_map(pctldev, *map, *num_maps);
- 	return ret;
- }
--EXPORT_SYMBOL_GPL(pinconf_generic_dt_node_to_map);
-+EXPORT_SYMBOL_GPL(pinconf_generic_fwnode_to_map);
++	pinctrl_acpi_free_maps(p);
 +
-+#endif
- 
-+#ifdef CONFIG_OF
-+int pinconf_generic_parse_dt_config(struct device_node *np,
-+				    struct pinctrl_dev *pctldev,
-+				    unsigned long **configs,
-+				    unsigned int *nconfigs)
-+{
-+	return pinconf_generic_parse_fwnode_config(&np->fwnode, pctldev,
-+						   configs, nconfigs);
-+}
- #endif
-diff --git a/include/linux/acpi.h b/include/linux/acpi.h
-index 06ed7e5..78a1050 100644
---- a/include/linux/acpi.h
-+++ b/include/linux/acpi.h
-@@ -876,7 +876,7 @@ int acpi_node_prop_read(struct fwnode_handle *fwnode, const char *propname,
- int acpi_dev_prop_read(struct acpi_device *adev, const char *propname,
- 		       enum dev_prop_type proptype, void *val, size_t nval);
- 
--struct fwnode_handle *acpi_get_next_subnode(struct device *dev,
-+struct fwnode_handle *acpi_get_next_subnode(struct fwnode_handle *fwnode,
- 					    struct fwnode_handle *subnode);
- 
- struct acpi_probe_entry;
-@@ -986,7 +986,7 @@ static inline int acpi_dev_prop_read(struct acpi_device *adev,
- 	return -ENXIO;
- }
- 
--static inline struct fwnode_handle *acpi_get_next_subnode(struct device *dev,
-+static inline struct fwnode_handle *acpi_get_next_subnode(struct fwnode_handle *fwnode,
- 						struct fwnode_handle *subnode)
- {
- 	return NULL;
-diff --git a/include/linux/pinctrl/pinconf-generic.h b/include/linux/pinctrl/pinconf-generic.h
-index d921afd..6a8ea74 100644
---- a/include/linux/pinctrl/pinconf-generic.h
-+++ b/include/linux/pinctrl/pinconf-generic.h
-@@ -155,8 +155,7 @@ static inline unsigned long pinconf_to_config_packed(enum pin_config_param param
- 	return PIN_CONF_PACKED(param, argument);
- }
- 
--#ifdef CONFIG_OF
--
-+#if defined(CONFIG_OF) || defined(CONFIG_ACPI)
- #include <linux/device.h>
+ 	if (inlist)
+ 		list_del(&p->node);
+ 	kfree(p);
+diff --git a/drivers/pinctrl/core.h b/drivers/pinctrl/core.h
+index ca08723..797ab8b 100644
+--- a/drivers/pinctrl/core.h
++++ b/drivers/pinctrl/core.h
+@@ -14,6 +14,7 @@
+ #include <linux/radix-tree.h>
+ #include <linux/pinctrl/pinconf.h>
  #include <linux/pinctrl/machine.h>
- struct pinctrl_dev;
-@@ -168,28 +167,36 @@ struct pinconf_generic_params {
- 	u32 default_value;
- };
++#include <linux/acpi.h>
  
--int pinconf_generic_dt_subnode_to_map(struct pinctrl_dev *pctldev,
--		struct device_node *np, struct pinctrl_map **map,
--		unsigned *reserved_maps, unsigned *num_maps,
--		enum pinctrl_map_type type);
--int pinconf_generic_dt_node_to_map(struct pinctrl_dev *pctldev,
--		struct device_node *np_config, struct pinctrl_map **map,
-+int pinconf_generic_fwnode_to_map(struct pinctrl_dev *pctldev,
-+		struct fwnode_handle *fwnode, struct pinctrl_map **map,
- 		unsigned *num_maps, enum pinctrl_map_type type);
-+#endif
-+
-+#ifdef CONFIG_OF
-+#include <linux/of.h>
-+
-+static inline int pinconf_generic_dt_node_to_map(struct pinctrl_dev *pctldev,
-+		struct device_node *np_config, struct pinctrl_map **map,
-+		unsigned *num_maps, enum pinctrl_map_type type)
-+{
-+	return pinconf_generic_fwnode_to_map(pctldev, &np_config->fwnode, map,
-+					     num_maps, type);
-+}
+ struct pinctrl_gpio_range;
  
- static inline int pinconf_generic_dt_node_to_map_group(
- 		struct pinctrl_dev *pctldev, struct device_node *np_config,
- 		struct pinctrl_map **map, unsigned *num_maps)
- {
--	return pinconf_generic_dt_node_to_map(pctldev, np_config, map, num_maps,
--			PIN_MAP_TYPE_CONFIGS_GROUP);
-+	return pinconf_generic_fwnode_to_map(pctldev, &np_config->fwnode, map,
-+					num_maps, PIN_MAP_TYPE_CONFIGS_GROUP);
- }
+@@ -171,6 +172,7 @@ struct pinctrl_maps {
  
- static inline int pinconf_generic_dt_node_to_map_pin(
- 		struct pinctrl_dev *pctldev, struct device_node *np_config,
- 		struct pinctrl_map **map, unsigned *num_maps)
- {
--	return pinconf_generic_dt_node_to_map(pctldev, np_config, map, num_maps,
--			PIN_MAP_TYPE_CONFIGS_PIN);
-+	return pinconf_generic_fwnode_to_map(pctldev, &np_config->fwnode, map,
-+					num_maps, PIN_MAP_TYPE_CONFIGS_PIN);
- }
- 
- static inline int pinconf_generic_dt_node_to_map_all(
-@@ -200,8 +207,8 @@ static inline int pinconf_generic_dt_node_to_map_all(
- 	 * passing the type as PIN_MAP_TYPE_INVALID causes the underlying parser
- 	 * to infer the map type from the DT properties used.
- 	 */
--	return pinconf_generic_dt_node_to_map(pctldev, np_config, map, num_maps,
--			PIN_MAP_TYPE_INVALID);
-+	return pinconf_generic_fwnode_to_map(pctldev, &np_config->fwnode, map,
-+					     num_maps, PIN_MAP_TYPE_INVALID);
- }
- #endif
- 
-diff --git a/include/linux/property.h b/include/linux/property.h
-index b51fcd3..b0868d0 100644
---- a/include/linux/property.h
-+++ b/include/linux/property.h
-@@ -70,9 +70,16 @@ int fwnode_property_read_string(struct fwnode_handle *fwnode,
- int fwnode_property_match_string(struct fwnode_handle *fwnode,
- 				 const char *propname, const char *string);
- 
-+struct fwnode_handle *fwnode_get_next_child_node(struct fwnode_handle *fwnode,
-+						 struct fwnode_handle *child);
-+
- struct fwnode_handle *device_get_next_child_node(struct device *dev,
- 						 struct fwnode_handle *child);
- 
-+#define fwnode_for_each_child_node(fwnode, child)			\
-+	for (child = fwnode_get_next_child_node(fwnode, NULL); child;	\
-+	     child = fwnode_get_next_child_node(fwnode, child))
-+
- #define device_for_each_child_node(dev, child)				\
- 	for (child = device_get_next_child_node(dev, NULL); child;	\
- 	     child = device_get_next_child_node(dev, child))
-@@ -259,4 +266,6 @@ int device_get_phy_mode(struct device *dev);
- 
- void *device_get_mac_address(struct device *dev, char *addr, int alen);
- 
-+const char *fwnode_get_name(struct fwnode_handle *fwnode);
-+
- #endif /* _LINUX_PROPERTY_H_ */
+ struct pinctrl_dev *get_pinctrl_dev_from_devname(const char *dev_name);
+ struct pinctrl_dev *get_pinctrl_dev_from_of_node(struct device_node *np);
++struct pinctrl_dev *get_pinctrl_dev_from_acpi(acpi_handle handle);
+ int pin_get_from_name(struct pinctrl_dev *pctldev, const char *name);
+ const char *pin_get_name(struct pinctrl_dev *pctldev, const unsigned pin);
+ int pinctrl_get_group_selector(struct pinctrl_dev *pctldev,
 -- 
 1.9.1
+
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
