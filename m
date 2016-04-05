@@ -1,147 +1,62 @@
 From: Bjorn Helgaas <helgaas@kernel.org>
-Subject: Re: [PATCH 1/4] acpi,pci,irq: reduce resource requirements
-Date: Tue, 5 Apr 2016 18:21:24 -0500
-Message-ID: <20160405232124.GH15353@localhost>
-References: <1457484079-18202-1-git-send-email-okaya@codeaurora.org>
- <20160314185251.GA19703@localhost>
- <56E7211F.3070203@codeaurora.org>
- <20160314210147.GA11459@localhost>
- <56E73232.9030704@codeaurora.org>
- <20160315014843.GA16967@localhost>
- <56E7733B.4050308@codeaurora.org>
- <20160315023632.GA23940@localhost>
- <56E80F19.7010503@codeaurora.org>
- <56EEE925.7070202@codeaurora.org>
+Subject: Re: [RFC 1/4] PCI: Add Thunderbolt device IDs
+Date: Tue, 5 Apr 2016 18:27:12 -0500
+Message-ID: <20160405232712.GI15353@localhost>
+References: <cover.1458126755.git.lukas@wunner.de>
+ <d30491f2c4c1c6d28c78c5883820f9dc28c010d9.1458126755.git.lukas@wunner.de>
+ <20160317150320.GA22769@localhost>
+ <20160320131135.GA29174@wunner.de>
+ <20160320171246.GB16658@kroah.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-pci-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <56EEE925.7070202@codeaurora.org>
+In-Reply-To: <20160320171246.GB16658@kroah.com>
 Sender: linux-pci-owner@vger.kernel.org
-To: Sinan Kaya <okaya@codeaurora.org>
-Cc: linux-acpi@vger.kernel.org, timur@codeaurora.org, cov@codeaurora.org, linux-pci@vger.kernel.org, ravikanth.nalla@hpe.com, lenb@kernel.org, harish.k@hpe.com, ashwin.reghunandanan@hpe.com, bhelgaas@google.com, rjw@rjwysocki.net, linux-kernel@vger.kernel.org
+To: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: Lukas Wunner <lukas@wunner.de>, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, linux-pm@vger.kernel.org, Andreas Noever <andreas.noever@gmail.com>, Matthew Garrett <mjg59@srcf.ucam.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On Sun, Mar 20, 2016 at 02:17:09PM -0400, Sinan Kaya wrote:
-> Hi Bjorn,
-> 
-> >>>
-> >>> Device(LN0A){
-> >>> 	Name(_HID, EISAID("PNP0C0F")) // PCI interrupt link
-> >>> 	Name(_UID, 1)
-> >>> 	Name(_PRS, ResourceTemplate(){
-> >>> 	Interrupt(ResourceProducer, Level, ActiveHigh, Exclusive, , ,) {0x123}
-> >>> 	})
-> >>
-> >> I forgot that the link already include the trigger mode in it.  Maybe we
-> >> can check for that instead of assuming level/low.
-> >>
+On Sun, Mar 20, 2016 at 10:12:46AM -0700, Greg Kroah-Hartman wrote:
+> On Sun, Mar 20, 2016 at 02:11:35PM +0100, Lukas Wunner wrote:
+> > Hi Bjorn,
 > > 
-> > Let me explore this area.
+> > On Thu, Mar 17, 2016 at 10:03:20AM -0500, Bjorn Helgaas wrote:
+> > > On Wed, Mar 16, 2016 at 03:50:35PM +0100, Lukas Wunner wrote:
+> > > > Gen 1 and 2 chips use the same ID for NHI, bridges and switch.
+> > > > Gen 3 chips and onward use a distinct ID for the NHI.
+> > > 
+> > > I assume this is strictly using #defines instead of bare numbers and
+> > > hence "no functional change intended."
+> > > 
+> > > > Cc: Andreas Noever <andreas.noever@gmail.com>
+> > > > Signed-off-by: Lukas Wunner <lukas@wunner.de>
+> > > 
+> > > Acked-by: Bjorn Helgaas <bhelgaas@google.com>
 > > 
-> >> Bjorn
+> > Thanks, I've just posted a 3 patch series to support the Light Ridge
+> > Thunderbolt controller and included your ack for this patch.
+> > 
+> > 
+> > > I assume somebody else will merge this with the rest of the series.
+> > 
+> > The maintainer of the thunderbolt driver is Andreas Noever, however
+> > I don't think Andreas sends pull requests to Linus. Everything in
+> > drivers/thunderbolt/ has so far been picked up by Greg KH.
+> > 
+> > I have more thunderbolt stuff in the pipeline, some of which needs
+> > changes to drivers/pci/. Therefore it would be ideal from my perspective
+> > if my thunderbolt patches could go in via your tree, if that is possible.
 > 
-> I have been implementing this. 
-> 
-> I see that placing the check in allocate function is not right. The interrupts get
-> registered with ACPI subsystem after locating the interrupt in register_gsi function.
-> Trying to find the IRQ type with get_trigger_type() for an unregistered interrupt
-> didn't look right to me.
-> 
-> I think it is best if we move these checks into get_penalty function.
-> 
-> I also see that the code is currently allowing EDGE type PCI interrupts assuming they are
-> exclusive only. Let me if this looks alright. I'm also curious about the PCI checks.
-> 
-> static int acpi_pci_link_set(struct acpi_pci_link *link, int irq)
-> 
-> I know you want to validate that all PCI interrupts are level, it looks like the code
-> is allowing other combinations.
+> I have no objection if they go through the PCI tree, especially as
+> Thunderbolt really just is PCI express, it makes sense to take them that
+> way.
 
-It's not that we need to validate that all PCI interrupts are level.  What
-we need is to make sure all users sharing an IRQ agree on the mode.
+Andreas, what's your preference?  If you want me to merge Thunderbolt
+stuff via my PCI tree, I can do that.  But I don't know anything about
+Thunderbolt and don't have specs or ability to test it, so I would
+rely on you to ack any changes.  If you'd like to merge Thunderbolt
+stuff yourself, that would be less work for me, so even better :)  But
+either way is fine.
 
-> diff --git a/drivers/acpi/pci_link.c b/drivers/acpi/pci_link.c
-> index 85be579e..5056a9c 100644
-> --- a/drivers/acpi/pci_link.c
-> +++ b/drivers/acpi/pci_link.c
-> @@ -495,6 +495,45 @@ static int acpi_irq_pci_sharing_penalty(int irq)
->  	return penalty;
->  }
->  
-> +static int acpi_link_trigger(int irq, u8 *polarity, u8 *triggering)
-> +{
-> +	struct acpi_pci_link *link;
-> +	int link_trigger = 0;
-> +
-> +	list_for_each_entry(link, &acpi_link_list, list) {
-> +		int i;
-> +
-> +		if (link->irq.active && link->irq.active == irq) {
-> +			*polarity = link->polarity;
-> +			*triggering = link->triggering;
-> +			return 0;
-> +		}
-> +
-> +		for (i = 0; i < link->irq.possible_count; i++)
-> +			if (link->irq.possible[i] == irq) {
-> +				*polarity = link->polarity;
-> +				*triggering = link->triggering;
-> +				return 0;
-> +			}
-> +	}
-> +
-> +	return -EINVAL;
-> +}
-> +
-> +static bool acpi_pci_compatible_trigger(int irq)
-> +{
-> +	u8 polarity;
-> +	u8 triggering;
-> +	int type = irq_get_trigger_type(irq);
-> +	int rc;
-> +
-> +	rc = acpi_link_trigger(irq, &polarity, &triggering, &sharing)
-> +	if (rc)
-> +		return false;
-> +
-> +	return (type == IRQ_TYPE_LEVEL_LOW || type == IRQ_TYPE_NONE);
-> +}
-> +
->  static int acpi_irq_get_penalty(int irq)
->  {
->  	int penalty = 0;
-> @@ -502,8 +541,21 @@ static int acpi_irq_get_penalty(int irq)
->  	if (irq < ACPI_MAX_ISA_IRQ)
->  		penalty += acpi_irq_isa_penalty[irq];
->  
-> -	if (irq == acpi_gbl_FADT.sci_interrupt)
-> -		penalty += PIRQ_PENALTY_PCI_USING;
-> +	if (irq == acpi_gbl_FADT.sci_interrupt) {
-> +		u8 sci_polarity;
-> +		u8 sci_trigger;
-> +
-> +		rc = acpi_link_trigger(irq, &polarity, &sci_trigger);
-> +		if (!rc) {
-> +			if (sci_trigger != ACPI_LEVEL_SENSITIVE ||
-> +			    sci_polarity != ACPI_ACTIVE_LOW)
-> +				penalty += PIRQ_PENALTY_ISA_ALWAYS;
-> +			else
-> +				penalty += PIRQ_PENALTY_PCI_USING;
-> +		} else {
-> +			return ~0;
-> +		}
-> +	}
->  
->  	penalty += acpi_irq_pci_sharing_penalty(irq);
->  	return penalty; 
-> 
-> 
-> -- 
-> Sinan Kaya
-> Qualcomm Technologies, Inc. on behalf of Qualcomm Innovation Center, Inc.
-> Qualcomm Innovation Center, Inc. is a member of Code Aurora Forum, a Linux Foundation Collaborative Project
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-pci" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Bjorn
