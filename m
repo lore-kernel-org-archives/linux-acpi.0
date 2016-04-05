@@ -1,118 +1,84 @@
-From: Octavian Purdila <octavian.purdila-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: Re: [RFC PATCH 10/10] acpi: add support for loading SSDTs via configfs
-Date: Tue, 5 Apr 2016 11:21:48 +0300
-Message-ID: <CAE1zotKDFLNP5JTnMiWOstE4DYBHVeyP902J9ixD+fJbFqSZ6Q@mail.gmail.com>
-References: <1459417026-6697-1-git-send-email-octavian.purdila@intel.com>
-	<1459417026-6697-11-git-send-email-octavian.purdila@intel.com>
-	<1AE640813FDE7649BE1B193DEA596E883BB66233@SHSMSX101.ccr.corp.intel.com>
-	<CAE1zotLgjfKvFr0W9CjFbbkxqM6erLGwv-aHzTt=qwdCPzGOhw@mail.gmail.com>
-	<1AE640813FDE7649BE1B193DEA596E883BB6677B@SHSMSX101.ccr.corp.intel.com>
+From: Linus Walleij <linus.walleij@linaro.org>
+Subject: Re: [RFC PATCH 0/4] Add ACPI support for pinctrl configuration
+Date: Tue, 5 Apr 2016 10:43:11 +0200
+Message-ID: <CACRpkdb=Ef1-g-r9NW-4_xeKdke0FFhnN+JYPjVKog3L4At8Lg@mail.gmail.com>
+References: <1459424685-26965-1-git-send-email-irina.tirdea@intel.com>
+	<20160404225200.GA1615@svinekod>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-spi-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1AE640813FDE7649BE1B193DEA596E883BB6677B-0J0gbvR4kThpB2pF5aRoyrfspsVTdybXVpNB7YpNyf8@public.gmane.org>
-Sender: linux-spi-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Zheng, Lv" <lv.zheng-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: "Rafael J. Wysocki" <rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org>, Len Brown <lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Matt Fleming <matt-mF/unelCI9GS6iBeEJttW/XRex20P6io@public.gmane.org>, Mark Brown <broonie-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Wolfram Sang <wsa-z923LK4zBo2bacvFa/9K2g@public.gmane.org>, Joel Becker <jlbec-aKy9MeLSZ9dg9hUCZPvPmw@public.gmane.org>, Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>, "linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-efi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-efi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-spi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-spi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "Tirdea, Irina" <irina.tirdea-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-ob0-f175.google.com ([209.85.214.175]:34285 "EHLO
+	mail-ob0-f175.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753550AbcDEInM (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 5 Apr 2016 04:43:12 -0400
+Received: by mail-ob0-f175.google.com with SMTP id bg3so4854238obb.1
+        for <linux-acpi@vger.kernel.org>; Tue, 05 Apr 2016 01:43:11 -0700 (PDT)
+In-Reply-To: <20160404225200.GA1615@svinekod>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Mark Rutland <mark.rutland@arm.com>
+Cc: Irina Tirdea <irina.tirdea@intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Mika Westerberg <mika.westerberg@linux.intel.com>, "linux-gpio@vger.kernel.org" <linux-gpio@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Rob Herring <robh+dt@kernel.org>, Heikki Krogerus <heikki.krogerus@linux.intel.com>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Octavian Purdila <octavian.purdila@intel.com>, Cristina Ciocan <cristina.ciocan@intel.com>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Charles Garcia-Tobin <charles.garcia-tobin@arm.com>
 
-On Tue, Apr 5, 2016 at 6:11 AM, Zheng, Lv <lv.zheng-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org> wrote:
-> Hi,
+On Tue, Apr 5, 2016 at 12:52 AM, Mark Rutland <mark.rutland@arm.com> wrote:
+> On Thu, Mar 31, 2016 at 02:44:41PM +0300, Irina Tirdea wrote:
+
+>> This proposal is based on using _DSD properties to specify device
+>> states and configuration nodes and it follows closely the device
+>> tree model. Device states are defined using the Device Properties
+>> format and the configuration nodes are defined using the
+>> Hierarchical Properties Extension format. The generic properties
+>> for the configuration nodes are the same as the ones for device
+>> tree, while pincontroller drivers can also define custom ones.
 >
->> From: Octavian Purdila [mailto:octavian.purdila-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org]
->> Subject: Re: [RFC PATCH 10/10] acpi: add support for loading SSDTs via configfs
->>
->> On Fri, Apr 1, 2016 at 7:55 AM, Zheng, Lv <lv.zheng-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org> wrote:
->> > Hi,
->>
->> Hi Lv,
->>
->> >> Add support for acpi_user_table configfs items that allows the user to
->> >> load new tables. The data attributes contains the table data and once it
->> >> is filled from userspace the table is loaded and ACPI devices are
->> >> enumerated.
->> > [Lv Zheng]
->> > We've been considering to implement this facility before.
->> > The 2 alternative solutions are:
->> > 1. implement LOAD/UNLOAD ioctl for /sys/kernel/debug/acpi/acpidbg - this
->> will be useful for extracting AML byte stream from kernel to be used by a
->> userspace disassembler.
->>
->> AFAIK adding new ioctls is discouraged.
-> [Lv Zheng]
-> Tools/power/acpi/tools/acpidbg is a file descriptor based utility.
-> And it needs a method to obtain an AML byte stream from kernel.
-> Using ioctl is a best fit design for acpidbg so that it needn't to access any other files.
->
->>
->> > 2. transition /sys/firmware/acpi/tables/xxx into directory and implement
->> /sys/firmware/acpi/tables/load, /sys/firmware/acpi/tables/unload - this should
->> be able to meet your requirement.
->>
->> We can't do that as it would break the ABI.
-> [Lv Zheng]
-> The only user of this directory hierarchy is acpidump.
+> From a look of the Documentation addition, and of the current uses of
+> pinctrl-names in device tree bindings, one reason for requiring multiple
+> pinctrl states is power management. Given that, I'm somewhat concerned by this,
+> as it goes against the usual ACPI model of abstracting this sort of thing
+> behind power control methods.
 
-Some systems (e.g. Android, Brillo) do not ship acpidump and in this
-case the only way to dump tables is by accessing sysfs directly.
+There are other use cases but in essence there are two common use
+cases:
 
-> And the user of this tool are all developers/reporters on the kernel bugzilla.
-> We've been asking the Bugzilla users to use the up-to-date acpidump instead of the distribution vendor provided one for so many years.
-> So IMO, this is not a serious problem you should consider.
-> You only need to think about an acceptable way for the distribution vendors to synchronize the kernel change and the acpidump change.
->
+- Initial set-up of muxing and electrical properties
 
-I guess the perf model where you have a perf package build together
-with the kernel will work. But right now distributions are not using
-this model and a kernel change will break the userspace tool.
+- Runtime reconfiguration for power saving (especially
+  biasing and pull options)
 
-> IMO:
-> You may expose a version file from /sys/firmware/acpi.
-> acpidump can be changed accordingly by referencing the version file.
-> And old directory hierarchy support could be kept in acpidump.
->
+I did see that the ACPI people's ambition has been for all things
+power save to be embedded into AML and the like.
 
-That will still break if you upgrade the kernel and use the old tool.
+However AFAICT
+the development model for deployment of ACPI seems to imply that
+products are shipped with ACPI tables resident in ROM-like storage,
+and at product release several devices are disabled from muxing
+while others at the same time are totally lacking power save
+enablement.
 
-> Note that acpidump is also a part of the kernel, so your change could be consistent.
-> For example,
-> If you changed acpidump prior than making the kernel change, the distribution vendors might have already released the new acpidump for all old kernels before you transitioned the directory hierarchy.
+And these products are only update-able
+with hairy BIOS patches that need to be applied
+using $SPECIAL_TOOL  that "normal users" do not want to
+concern themselves with, as this is not an "apt-get upgrade"
+kind of thing.
 
-To me this still looks like breaking userspace, patches have been
-reverted for less :) But I can see how this could be considered a gray
-area.
+And as this is server silicon the systems have a bunch of these
+"normal users" that are not embedded development experts
+and they are very hesitant about doing such things.
 
-ABI aside, see below for why configfs is better then sysfs.
+Under that scenario it is of course tempting to simply set up the
+pins in a known good state and then remove
+the responsibility of pin controlling from ACPI firmware altogether
+and into the kernel, where "apt-get upgrade" will take care of
+post-product launch upgrading of the functionality.
 
->
->>
->> > So my first question is:
->> > Why do you use configfs rather than the existing mechanisms?
->>
->> sysfs is not a good choice for dealing with objects created from
->> userspace, configfs was created to address this specific need. Since
->> we want to be able to create and load new tables from userspace this
->> use-case fits very well with configfs.
-> [Lv Zheng]
-> Was the table binary stream still maintained by the userspace?
-> If not, I couldn't see the difference/advantages from using /sys/firmware/acpi/tables to using configfs.
->
+And I think that is what is happening, it's just that so much
+prestige is involved that no-one wants to officially admit it.
 
-It is hard to create new kernel objects from sysfs. You need to resort
-to hacks like using new_table sysfs entries which does not map to a
-kernel object. Writes larger then PAGE_SIZE are impossible to handle
-with multiple open files because you have no open callback to create a
-file context. It is also not possible to do any clean-up because there
-is no close callback and if something goes wrong for example when
-trying to install the table you will leak the allocated memory.
+I was once poking fun at this development model accusing
+firmware engineers of having a God complex when they claim
+to be able to engineer in these complex use cases during
+product firmware development. Now I just feel sad about this
+situation and want things to "just work" for them. I think these
+patches are good.
 
-configfs was designed for the specific purpose of creating kernel
-objects from userspace and addresses all of the limitations above (and
-some more).
-
-Initially I started to implement this functionality via sysfs but I
-run into the issues mentioned above and decided to use configfs.
---
-To unsubscribe from this list: send the line "unsubscribe linux-spi" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Yours,
+Linus Walleij
