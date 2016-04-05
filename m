@@ -1,175 +1,253 @@
-From: fu.wei@linaro.org
-Subject: [PATCH v9] acpi, apei, arm64: APEI initial support for aarch64.
-Date: Tue,  5 Apr 2016 22:49:48 +0800
-Message-ID: <1459867788-14678-1-git-send-email-fu.wei@linaro.org>
-Return-path: <linux-pm-owner@vger.kernel.org>
-Sender: linux-pm-owner@vger.kernel.org
-To: tn@semihalf.com, rjw@rjwysocki.net, len.brown@intel.com, pavel@ucw.cz, catalin.marinas@arm.com, will.deacon@arm.com, tglx@linutronix.de, mingo@redhat.com, hpa@zytor.com
-Cc: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, x86@kernel.org, linaro-acpi@lists.linaro.org, linux-arm-kernel@lists.infradead.org, linux-pm@vger.kernel.org, graeme.gregory@linaro.org, al.stone@linaro.org, hanjun.guo@linaro.org, mark.rutland@arm.com, Marc.Zyngier@arm.com, lorenzo.pieralisi@arm.com, rruigrok@codeaurora.org, harba@qti.qualcomm.com, tbaicar@codeaurora.org, jcm@redhat.com, msalter@redhat.com, grant.likely@linaro.org, rrichter@cavium.com, jarkko.nikula@linux.intel.com, jon.zhixiong.zhang@gmail.com, Tomasz Nowicki <tomasz.nowicki@linaro.org>, Fu Wei <fu.wei@linaro.org>
+From: Irina Tirdea <irina.tirdea@intel.com>
+Subject: [RFC PATCH v2 3/3] pinctrl: Parse GpioInt/GpioIo resources
+Date: Tue,  5 Apr 2016 18:33:26 +0300
+Message-ID: <1459870406-15219-4-git-send-email-irina.tirdea@intel.com>
+References: <1459870406-15219-1-git-send-email-irina.tirdea@intel.com>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1459870406-15219-1-git-send-email-irina.tirdea@intel.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Mika Westerberg <mika.westerberg@linux.intel.com>, Linus Walleij <linus.walleij@linaro.org>, linux-gpio@vger.kernel.org, linux-acpi@vger.kernel.org
+Cc: Rob Herring <robh+dt@kernel.org>, Heikki Krogerus <heikki.krogerus@linux.intel.com>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Octavian Purdila <octavian.purdila@intel.com>, Cristina Ciocan <cristina.ciocan@intel.com>, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, Irina Tirdea <irina.tirdea@intel.com>
 List-Id: linux-acpi@vger.kernel.org
 
-From: Tomasz Nowicki <tomasz.nowicki@linaro.org>
+Parse GpioInt/GpioIo ACPI resources and use the pin configuration
+information to generate pin controller maps. These maps are associated
+with the "default" state, only if this state is defined in the _DSD
+of the acpi device.
 
-This commit provides APEI arch-specific bits for aarch64
-
-Meanwhile,
-(1)add a new subfunction "hest_ia32_init" for
-"acpi_disable_cmcff" which is used by IA-32 Architecture
-Corrected Machine Check (CMC).
-(2)move HEST type (ACPI_HEST_TYPE_IA32_CORRECTED_CHECK) checking to
-a generic place.
-(3)select HAVE_ACPI_APEI when EFI and ACPI is set on ARM64,
-because arch_apei_get_mem_attribute is using efi_mem_attributes on ARM64.
-
-[Fu Wei: improve && upstream]
-
-Signed-off-by: Tomasz Nowicki <tomasz.nowicki@linaro.org>
-Tested-by: Jonathan (Zhixiong) Zhang <zjzhang@codeaurora.org>
-Signed-off-by: Fu Wei <fu.wei@linaro.org>
-Acked-by: Hanjun Guo <hanjun.guo@linaro.org>
-Tested-by: Tyler Baicar <tbaicar@codeaurora.org>
-Acked-by: Will Deacon <will.deacon@arm.com>
+Signed-off-by: Irina Tirdea <irina.tirdea@intel.com>
 ---
-Changelog:
-v9: Improve the comment for arch_apei_flush_tlb_one.
-    Using select "HAVE_ACPI_APEI if (ACPI && EFI)" to fix the EFI dependence
-    problem.
+ Documentation/acpi/pinctrl-properties.txt |   8 ++
+ drivers/pinctrl/acpi.c                    | 184 ++++++++++++++++++++++++++++++
+ 2 files changed, 192 insertions(+)
 
-v8: https://lkml.org/lkml/2016/3/29/132
-    Fix a "undefined reference" bug by selecting EFI when ACPI_APEI is set
-    on ARM64.
-
-v7: https://lkml.org/lkml/2016/3/17/183
-    Add comment for arch_apei_flush_tlb_one in arch/arm64/include/asm/acpi.h
-
-v6: https://lists.linaro.org/pipermail/linaro-acpi/2016-March/006644.html
-    Move HEST type (ACPI_HEST_TYPE_IA32_CORRECTED_CHECK) checking to
-    a generic place.
-    Delete HAVE_ACPI_APEI_HEST_IA32.
-
-v5: https://lkml.org/lkml/2015/12/10/131
-    Add "HAVE_ACPI_APEI_HEST_IA32" instead of
-    "#if defined(__i386__) || defined(__x86_64__)".
-
-v4: https://lkml.org/lkml/2015/12/8/188
-    Rebase to latest kernel version(4.4-rc4).
-    Move arch_apei_flush_tlb_one into header file as a inline function
-    Add a new subfunction "hest_ia_init" for "acpi_disable_cmcff".
-
-v3: https://lkml.org/lkml/2015/12/3/521
-    Remove "acpi_disable_cmcff" from arm64 code,
-    and wrap it in hest.c by "#if defined(__i386__) || defined(__x86_64__)"
-
-v2: https://lkml.org/lkml/2015/12/2/432
-    Rebase to latest kernel version(4.4-rc3).
-    Move arch_apei_flush_tlb_one() to arch/arm64/kernel/acpi.c
-
-v1: https://lkml.org/lkml/2015/8/14/199
-    Move arch_apei_flush_tlb_one() to arch/arm64/include/asm/apci.h.
-    Delete arch/arm64/kernel/apei.c.
-    Add "#ifdef CONFIG_ACPI_APEI" for "acpi_disable_cmcff".
-
- arch/arm64/Kconfig            |  1 +
- arch/arm64/include/asm/acpi.h | 15 ++++++++++++++-
- arch/x86/kernel/acpi/apei.c   |  3 ---
- drivers/acpi/apei/hest.c      | 18 +++++++++++++++---
- 4 files changed, 30 insertions(+), 7 deletions(-)
-
-diff --git a/arch/arm64/Kconfig b/arch/arm64/Kconfig
-index 4f43622..308fdb1 100644
---- a/arch/arm64/Kconfig
-+++ b/arch/arm64/Kconfig
-@@ -3,6 +3,7 @@ config ARM64
- 	select ACPI_CCA_REQUIRED if ACPI
- 	select ACPI_GENERIC_GSI if ACPI
- 	select ACPI_REDUCED_HARDWARE_ONLY if ACPI
-+	select HAVE_ACPI_APEI if (ACPI && EFI)
- 	select ARCH_HAS_DEVMEM_IS_ALLOWED
- 	select ARCH_HAS_ATOMIC64_DEC_IF_POSITIVE
- 	select ARCH_HAS_ELF_RANDOMIZE
-diff --git a/arch/arm64/include/asm/acpi.h b/arch/arm64/include/asm/acpi.h
-index aee323b..8db8379 100644
---- a/arch/arm64/include/asm/acpi.h
-+++ b/arch/arm64/include/asm/acpi.h
-@@ -17,6 +17,7 @@
+diff --git a/Documentation/acpi/pinctrl-properties.txt b/Documentation/acpi/pinctrl-properties.txt
+index 9cdf6fa..3f949d4 100644
+--- a/Documentation/acpi/pinctrl-properties.txt
++++ b/Documentation/acpi/pinctrl-properties.txt
+@@ -275,6 +275,14 @@ Pinctrl "sleep" state provides power management capabilities to the device that
+ conflict with ACPI power management methods. Special care must be taken when using
+ the "sleep" state not to create conflicts with the existing ACPI configuration.
  
- #include <asm/cputype.h>
- #include <asm/smp_plat.h>
-+#include <asm/tlbflush.h>
++== GpioInt()/GpioIo() _CRS resources ==
++
++If the device has any GpioInt/GpioIo _CRS ACPI resources, they are parsed so
++that the pin configuration information is used (e.g. PullUp/PullDown/PullNone).
++The pin configuration from GpioInt/GpioIo will be associated with the "default"
++state, only if such a state is defined in the _DSD of the device. If no
++"default" state is defined, the GPIO configuration from _CRS will be ignored.
++
+ == References ==
  
- /* Macros for consistency checks of the GICC subtable of MADT */
- #define ACPI_MADT_GICC_LENGTH	\
-@@ -110,7 +111,19 @@ static inline const char *acpi_get_enable_method(int cpu)
+ [1] Documentation/pinctrl.txt
+diff --git a/drivers/pinctrl/acpi.c b/drivers/pinctrl/acpi.c
+index 0ddacaf..3b8f824 100644
+--- a/drivers/pinctrl/acpi.c
++++ b/drivers/pinctrl/acpi.c
+@@ -42,6 +42,17 @@ struct pinctrl_acpi_map {
+ 	unsigned num_maps;
+ };
+ 
++struct acpi_gpio_lookup {
++	unsigned int index;
++	bool found;
++	unsigned int n;
++	struct pinctrl *p;
++	char *statename;
++};
++
++/* For now we only handle acpi pin config values */
++#define ACPI_MAX_CFGS 1
++
+ static void acpi_maps_list_dh(acpi_handle handle, void *data)
+ {
+ 	/* The address of this function is used as a key. */
+@@ -152,6 +163,166 @@ static int acpi_remember_or_free_map(struct pinctrl *p, const char *statename,
+ 	return pinctrl_register_map(map, num_maps, false);
  }
  
- #ifdef	CONFIG_ACPI_APEI
-+#define acpi_disable_cmcff 1
- pgprot_t arch_apei_get_mem_attribute(phys_addr_t addr);
--#endif
- 
-+/*
-+ * Despite its name, this function must still broadcast the TLB
-+ * invalidation in order to ensure other CPUs don't up with with junk
-+ * entries as a result of speculation. Unusually, its also called in
-+ * IRQ context (ghes_iounmap_irq) so if we ever need to use IPIs for
-+ * TLB broadcasting, then we're in trouble here.
-+ */
-+static inline void arch_apei_flush_tlb_one(unsigned long addr)
++static int acpi_parse_gpio_config(const struct acpi_resource_gpio *agpio,
++				  unsigned long **configs,
++				  unsigned int *nconfigs)
 +{
-+	flush_tlb_kernel_range(addr, addr + PAGE_SIZE);
-+}
-+#endif /* CONFIG_ACPI_APEI */
- #endif /*_ASM_ACPI_H*/
-diff --git a/arch/x86/kernel/acpi/apei.c b/arch/x86/kernel/acpi/apei.c
-index c280df6..ea3046e 100644
---- a/arch/x86/kernel/acpi/apei.c
-+++ b/arch/x86/kernel/acpi/apei.c
-@@ -24,9 +24,6 @@ int arch_apei_enable_cmcff(struct acpi_hest_header *hest_hdr, void *data)
- 	struct acpi_hest_ia_corrected *cmc;
- 	struct acpi_hest_ia_error_bank *mc_bank;
- 
--	if (hest_hdr->type != ACPI_HEST_TYPE_IA32_CORRECTED_CHECK)
--		return 0;
--
- 	cmc = (struct acpi_hest_ia_corrected *)hest_hdr;
- 	if (!cmc->enabled)
- 		return 0;
-diff --git a/drivers/acpi/apei/hest.c b/drivers/acpi/apei/hest.c
-index 20b3fcf..792a0d9 100644
---- a/drivers/acpi/apei/hest.c
-+++ b/drivers/acpi/apei/hest.c
-@@ -123,7 +123,18 @@ EXPORT_SYMBOL_GPL(apei_hest_parse);
-  */
- static int __init hest_parse_cmc(struct acpi_hest_header *hest_hdr, void *data)
- {
--	return arch_apei_enable_cmcff(hest_hdr, data);
-+	if (hest_hdr->type != ACPI_HEST_TYPE_IA32_CORRECTED_CHECK)
-+		return 0;
++	enum pin_config_param param;
++	int ret;
 +
-+	if (!acpi_disable_cmcff)
-+		return !arch_apei_enable_cmcff(hest_hdr, data);
++	/* Parse configs from GpioInt/GpioIo ACPI resource */
++	*nconfigs = 0;
++	*configs = kcalloc(ACPI_MAX_CFGS, sizeof(*configs), GFP_KERNEL);
++	if (!*configs)
++		return -ENOMEM;
++
++	/* For now, only parse pin_config */
++	switch (agpio->pin_config) {
++	case ACPI_PIN_CONFIG_DEFAULT:
++		param = PIN_CONFIG_BIAS_PULL_PIN_DEFAULT;
++		break;
++	case ACPI_PIN_CONFIG_PULLUP:
++		param = PIN_CONFIG_BIAS_PULL_UP;
++		break;
++	case ACPI_PIN_CONFIG_PULLDOWN:
++		param = PIN_CONFIG_BIAS_PULL_DOWN;
++		break;
++	case ACPI_PIN_CONFIG_NOPULL:
++		param = PIN_CONFIG_BIAS_DISABLE;
++		break;
++	default:
++		ret = -EINVAL;
++		goto exit_free;
++	}
++	*configs[*nconfigs] = pinconf_to_config_packed(param,
++				      param == PIN_CONFIG_BIAS_DISABLE ? 0 : 1);
++	(*nconfigs)++;
 +
 +	return 0;
++
++exit_free:
++	kfree(*configs);
++	return ret;
 +}
 +
-+static inline int __init hest_ia32_init(void)
++static int acpi_gpio_to_map(struct acpi_resource *ares, void *data)
 +{
-+	return apei_hest_parse(hest_parse_cmc, NULL);
- }
++	unsigned num_maps = 0, reserved_maps = 0;
++	struct acpi_gpio_lookup *lookup = data;
++	const struct acpi_resource_gpio *agpio;
++	acpi_handle pctrl_handle = NULL;
++	struct pinctrl_map *map = NULL;
++	struct pinctrl_dev *pctldev;
++	unsigned int nconfigs, i;
++	unsigned long *configs;
++	acpi_status status;
++	const char *pin;
++	int ret;
++
++	if (ares->type != ACPI_RESOURCE_TYPE_GPIO)
++		return 1;
++	if (lookup->n++ != lookup->index || lookup->found)
++		return 1;
++
++	agpio = &ares->data.gpio;
++
++	/* Get configs from ACPI GPIO resource */
++	ret = acpi_parse_gpio_config(agpio, &configs, &nconfigs);
++	if (ret)
++		return ret;
++
++	/* Get pinctrl reference from GPIO resource */
++	status = acpi_get_handle(NULL, agpio->resource_source.string_ptr,
++				 &pctrl_handle);
++	if (ACPI_FAILURE(status) || !pctrl_handle) {
++		ret = -EINVAL;
++		goto exit_free_configs;
++	}
++
++	/* Find the pin controller */
++	pctldev = get_pinctrl_dev_from_acpi(pctrl_handle);
++	if (!pctldev) {
++		ret = -EINVAL;
++		goto exit_free_configs;
++	}
++
++	/* Allocate space for maps and pinctrl_dev references */
++	ret = pinctrl_utils_reserve_map(pctldev, &map, &reserved_maps,
++					&num_maps, agpio->pin_table_length);
++	if (ret < 0)
++		goto exit_free_configs;
++
++	/* For each GPIO pin */
++	for (i = 0; i < agpio->pin_table_length; i++) {
++		pin = pin_get_name(pctldev, agpio->pin_table[i]);
++		if (!pin) {
++			ret = -EINVAL;
++			goto exit_free_map;
++		}
++		ret = pinctrl_utils_add_map_configs(pctldev, &map,
++						    &reserved_maps,
++						    &num_maps, pin,
++						    configs, nconfigs,
++						    PIN_MAP_TYPE_CONFIGS_PIN);
++		if (ret < 0)
++			goto exit_free_map;
++	}
++
++	ret = acpi_remember_or_free_map(lookup->p, lookup->statename, pctldev,
++					map, num_maps);
++	if (ret < 0)
++		goto exit_free_maps;
++
++	lookup->found = true;
++	kfree(configs);
++	return 1;
++
++exit_free_maps:
++	pinctrl_acpi_free_maps(lookup->p);
++exit_free_map:
++	pinctrl_utils_free_map(NULL, map, num_maps);
++exit_free_configs:
++	kfree(configs);
++	return ret;
++}
++
++static int acpi_parse_gpio_resources(struct pinctrl *p, char *statename)
++{
++	struct acpi_gpio_lookup lookup;
++	struct list_head res_list;
++	struct acpi_device *adev;
++	unsigned int index;
++	int ret;
++
++	adev = ACPI_COMPANION(p->dev);
++
++	memset(&lookup, 0, sizeof(lookup));
++	lookup.p = p;
++	lookup.statename = statename;
++
++	/* Parse all GpioInt/GpioIo resources in _CRS and extract pin conf */
++	for (index = 0; ; index++) {
++		lookup.index = index;
++		lookup.n = 0;
++		lookup.found = false;
++
++		INIT_LIST_HEAD(&res_list);
++		ret = acpi_dev_get_resources(adev, &res_list, acpi_gpio_to_map,
++					     &lookup);
++		if (ret < 0)
++			goto exit_free_maps;
++		acpi_dev_free_resource_list(&res_list);
++		if (!lookup.found)
++			break;
++	}
++
++	return 0;
++
++exit_free_maps:
++	pinctrl_acpi_free_maps(p);
++	return ret;
++}
++
+ static int acpi_remember_dummy_state(struct pinctrl *p, const char *statename)
+ {
+ 	struct pinctrl_map *map;
+@@ -285,6 +456,19 @@ int pinctrl_acpi_to_map(struct pinctrl *p)
+ 		}
+ 		statename = statenames[state].string.pointer;
  
- struct ghes_arr {
-@@ -232,8 +243,9 @@ void __init acpi_hest_init(void)
- 		goto err;
- 	}
- 
--	if (!acpi_disable_cmcff)
--		apei_hest_parse(hest_parse_cmc, NULL);
-+	rc = hest_ia32_init();
-+	if (rc)
-+		goto err;
- 
- 	if (!ghes_disable) {
- 		rc = apei_hest_parse(hest_parse_ghes_count, &ghes_count);
++		/*
++		 * Parse any GpioInt/GpioIo resources and
++		 * associate them with the 'default' state.
++		 */
++		if (!strcmp(statename, PINCTRL_STATE_DEFAULT)) {
++			ret = acpi_parse_gpio_resources(p, statename);
++			if (ret) {
++				dev_err(p->dev,
++					"Could not parse GPIO resources\n");
++				goto err_free_maps;
++			}
++		}
++
+ 		/* Retrieve the pinctrl-* property */
+ 		propname = kasprintf(GFP_KERNEL, "pinctrl-%d", state);
+ 		ret = acpi_dev_get_property(adev, propname, ACPI_TYPE_PACKAGE,
 -- 
-2.5.5
-
+1.9.1
