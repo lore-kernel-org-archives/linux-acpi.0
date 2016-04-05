@@ -1,70 +1,75 @@
-From: Mark Brown <broonie@kernel.org>
-Subject: Re: [RFC PATCH 0/4] Add ACPI support for pinctrl configuration
-Date: Mon, 4 Apr 2016 14:40:34 -0700
-Message-ID: <20160404214034.GL2350@sirena.org.uk>
-References: <1459424685-26965-1-git-send-email-irina.tirdea@intel.com>
+From: "Zheng, Lv" <lv.zheng@intel.com>
+Subject: RE: [RFC PATCH 10/10] acpi: add support for loading SSDTs via
+ configfs
+Date: Tue, 5 Apr 2016 03:11:21 +0000
+Message-ID: <1AE640813FDE7649BE1B193DEA596E883BB6677B@SHSMSX101.ccr.corp.intel.com>
+References: <1459417026-6697-1-git-send-email-octavian.purdila@intel.com>
+	<1459417026-6697-11-git-send-email-octavian.purdila@intel.com>
+	<1AE640813FDE7649BE1B193DEA596E883BB66233@SHSMSX101.ccr.corp.intel.com>
+ <CAE1zotLgjfKvFr0W9CjFbbkxqM6erLGwv-aHzTt=qwdCPzGOhw@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
-	protocol="application/pgp-signature"; boundary="jZUYryPdXB7p5neD"
-Return-path: <linux-gpio-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <1459424685-26965-1-git-send-email-irina.tirdea@intel.com>
-Sender: linux-gpio-owner@vger.kernel.org
-To: Irina Tirdea <irina.tirdea@intel.com>
-Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Mika Westerberg <mika.westerberg@linux.intel.com>, Linus Walleij <linus.walleij@linaro.org>, linux-gpio@vger.kernel.org, linux-acpi@vger.kernel.org, Rob Herring <robh+dt@kernel.org>, Heikki Krogerus <heikki.krogerus@linux.intel.com>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Octavian Purdila <octavian.purdila@intel.com>, Cristina Ciocan <cristina.ciocan@intel.com>, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga01.intel.com ([192.55.52.88]:2837 "EHLO mga01.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753935AbcDEDL1 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 4 Apr 2016 23:11:27 -0400
+In-Reply-To: <CAE1zotLgjfKvFr0W9CjFbbkxqM6erLGwv-aHzTt=qwdCPzGOhw@mail.gmail.com>
+Content-Language: en-US
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: "Purdila, Octavian" <octavian.purdila@intel.com>
+Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Matt Fleming <matt@codeblueprint.co.uk>, Mark Brown <broonie@kernel.org>, Wolfram Sang <wsa@the-dreams.de>, Joel Becker <jlbec@evilplan.org>, Christoph Hellwig <hch@lst.de>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-efi@vger.kernel.org" <linux-efi@vger.kernel.org>, "linux-i2c@vger.kernel.org" <linux-i2c@vger.kernel.org>, "linux-spi@vger.kernel.org" <linux-spi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "Tirdea, Irina" <irina.tirdea@intel.com>
 
-
---jZUYryPdXB7p5neD
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-
-On Thu, Mar 31, 2016 at 02:44:41PM +0300, Irina Tirdea wrote:
-
-> This is a proposal for adding ACPI support for pin controller
-> configuration.
-
-> It has been developed to enable the MinnowBoard and IoT community
-> by providing an easy way to specify pin multiplexing and
-> pin configuration.
-
-So this is mainly targeted at modules being added to base boards?
-Without getting into the binding at all here it seems like this is not
-solving the problem at the right abstraction level.  It's exposing the
-pins on the SoC directly without any tie in with the functionality that
-goes over those pins.  This means that any binding of a board to an ACPI
-using system that just uses this is going to be entirely specific to the
-particular combination of base and expansion board even if the
-electrical connections are standard.
-
-This is something that people are currently looking at for DT, there the
-discussion has been about defining the connectors as entities and hiding
-the details of the muxing on the SoC behind that along with higher level
-concepts like instantiation of buses like I2C and SPI.  It seems like if
-we do want to try to share between DT and ACPI we should be doing it at
-that level rather than dealing with pinmuxing at the extremely low level
-that pinctrl does.
-
-Obviously for the more general ACPI use case the idiomatic way of
-handling this is that the OS should never see anything about the
-pin muxing.  With DT we need to really know what's going on with the
-pinbox because the model is that even for things built into a single
-board the OS is responsible for managing the pins but that's really not
-how ACPI is expected to work.
-
---jZUYryPdXB7p5neD
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2
-
-iQEcBAEBCAAGBQJXAt9KAAoJECTWi3JdVIfQd/UH/jKV4Z1HXGfpjEPvWmgn8xe3
-PSAjr9/SDWG+dmpYWAdDfflPCH1CyfsczQADMRw1413mq8J8EVQSrlz6tRbwN7w3
-yZPgrnbVV/d0kxiFtehr9L7sBVQjHsQkG9TotGc58hPqop5klncAMgy936dp8wx/
-q+sIyzTTuSEltWUJn9fSiIV8jbt8905MbQc/dpoxVwOv7Im0LrsC+DYNpVIipeoP
-QrGGHSSFNJyjP4PTAXQVH24K9V5hWEfaNBPZ8oCVZNDBZIKHToZzcBIg3TgxfYWx
-6aerGv8W2cyI8Ku/aRepdJ/cf68zPOpOxOJeMEPQ7EtGDw2enA8r1b5rBPFRwU8=
-=qsye
------END PGP SIGNATURE-----
-
---jZUYryPdXB7p5neD--
+SGksDQoNCj4gRnJvbTogT2N0YXZpYW4gUHVyZGlsYSBbbWFpbHRvOm9jdGF2aWFuLnB1cmRpbGFA
+aW50ZWwuY29tXQ0KPiBTdWJqZWN0OiBSZTogW1JGQyBQQVRDSCAxMC8xMF0gYWNwaTogYWRkIHN1
+cHBvcnQgZm9yIGxvYWRpbmcgU1NEVHMgdmlhIGNvbmZpZ2ZzDQo+IA0KPiBPbiBGcmksIEFwciAx
+LCAyMDE2IGF0IDc6NTUgQU0sIFpoZW5nLCBMdiA8bHYuemhlbmdAaW50ZWwuY29tPiB3cm90ZToN
+Cj4gPiBIaSwNCj4gDQo+IEhpIEx2LA0KPiANCj4gPj4gQWRkIHN1cHBvcnQgZm9yIGFjcGlfdXNl
+cl90YWJsZSBjb25maWdmcyBpdGVtcyB0aGF0IGFsbG93cyB0aGUgdXNlciB0bw0KPiA+PiBsb2Fk
+IG5ldyB0YWJsZXMuIFRoZSBkYXRhIGF0dHJpYnV0ZXMgY29udGFpbnMgdGhlIHRhYmxlIGRhdGEg
+YW5kIG9uY2UgaXQNCj4gPj4gaXMgZmlsbGVkIGZyb20gdXNlcnNwYWNlIHRoZSB0YWJsZSBpcyBs
+b2FkZWQgYW5kIEFDUEkgZGV2aWNlcyBhcmUNCj4gPj4gZW51bWVyYXRlZC4NCj4gPiBbTHYgWmhl
+bmddDQo+ID4gV2UndmUgYmVlbiBjb25zaWRlcmluZyB0byBpbXBsZW1lbnQgdGhpcyBmYWNpbGl0
+eSBiZWZvcmUuDQo+ID4gVGhlIDIgYWx0ZXJuYXRpdmUgc29sdXRpb25zIGFyZToNCj4gPiAxLiBp
+bXBsZW1lbnQgTE9BRC9VTkxPQUQgaW9jdGwgZm9yIC9zeXMva2VybmVsL2RlYnVnL2FjcGkvYWNw
+aWRiZyAtIHRoaXMNCj4gd2lsbCBiZSB1c2VmdWwgZm9yIGV4dHJhY3RpbmcgQU1MIGJ5dGUgc3Ry
+ZWFtIGZyb20ga2VybmVsIHRvIGJlIHVzZWQgYnkgYQ0KPiB1c2Vyc3BhY2UgZGlzYXNzZW1ibGVy
+Lg0KPiANCj4gQUZBSUsgYWRkaW5nIG5ldyBpb2N0bHMgaXMgZGlzY291cmFnZWQuDQpbTHYgWmhl
+bmddIA0KVG9vbHMvcG93ZXIvYWNwaS90b29scy9hY3BpZGJnIGlzIGEgZmlsZSBkZXNjcmlwdG9y
+IGJhc2VkIHV0aWxpdHkuDQpBbmQgaXQgbmVlZHMgYSBtZXRob2QgdG8gb2J0YWluIGFuIEFNTCBi
+eXRlIHN0cmVhbSBmcm9tIGtlcm5lbC4NClVzaW5nIGlvY3RsIGlzIGEgYmVzdCBmaXQgZGVzaWdu
+IGZvciBhY3BpZGJnIHNvIHRoYXQgaXQgbmVlZG4ndCB0byBhY2Nlc3MgYW55IG90aGVyIGZpbGVz
+Lg0KDQo+IA0KPiA+IDIuIHRyYW5zaXRpb24gL3N5cy9maXJtd2FyZS9hY3BpL3RhYmxlcy94eHgg
+aW50byBkaXJlY3RvcnkgYW5kIGltcGxlbWVudA0KPiAvc3lzL2Zpcm13YXJlL2FjcGkvdGFibGVz
+L2xvYWQsIC9zeXMvZmlybXdhcmUvYWNwaS90YWJsZXMvdW5sb2FkIC0gdGhpcyBzaG91bGQNCj4g
+YmUgYWJsZSB0byBtZWV0IHlvdXIgcmVxdWlyZW1lbnQuDQo+IA0KPiBXZSBjYW4ndCBkbyB0aGF0
+IGFzIGl0IHdvdWxkIGJyZWFrIHRoZSBBQkkuDQpbTHYgWmhlbmddIA0KVGhlIG9ubHkgdXNlciBv
+ZiB0aGlzIGRpcmVjdG9yeSBoaWVyYXJjaHkgaXMgYWNwaWR1bXAuDQpBbmQgdGhlIHVzZXIgb2Yg
+dGhpcyB0b29sIGFyZSBhbGwgZGV2ZWxvcGVycy9yZXBvcnRlcnMgb24gdGhlIGtlcm5lbCBidWd6
+aWxsYS4NCldlJ3ZlIGJlZW4gYXNraW5nIHRoZSBCdWd6aWxsYSB1c2VycyB0byB1c2UgdGhlIHVw
+LXRvLWRhdGUgYWNwaWR1bXAgaW5zdGVhZCBvZiB0aGUgZGlzdHJpYnV0aW9uIHZlbmRvciBwcm92
+aWRlZCBvbmUgZm9yIHNvIG1hbnkgeWVhcnMuDQpTbyBJTU8sIHRoaXMgaXMgbm90IGEgc2VyaW91
+cyBwcm9ibGVtIHlvdSBzaG91bGQgY29uc2lkZXIuDQpZb3Ugb25seSBuZWVkIHRvIHRoaW5rIGFi
+b3V0IGFuIGFjY2VwdGFibGUgd2F5IGZvciB0aGUgZGlzdHJpYnV0aW9uIHZlbmRvcnMgdG8gc3lu
+Y2hyb25pemUgdGhlIGtlcm5lbCBjaGFuZ2UgYW5kIHRoZSBhY3BpZHVtcCBjaGFuZ2UuDQoNCklN
+TzoNCllvdSBtYXkgZXhwb3NlIGEgdmVyc2lvbiBmaWxlIGZyb20gL3N5cy9maXJtd2FyZS9hY3Bp
+Lg0KYWNwaWR1bXAgY2FuIGJlIGNoYW5nZWQgYWNjb3JkaW5nbHkgYnkgcmVmZXJlbmNpbmcgdGhl
+IHZlcnNpb24gZmlsZS4NCkFuZCBvbGQgZGlyZWN0b3J5IGhpZXJhcmNoeSBzdXBwb3J0IGNvdWxk
+IGJlIGtlcHQgaW4gYWNwaWR1bXAuDQoNCk5vdGUgdGhhdCBhY3BpZHVtcCBpcyBhbHNvIGEgcGFy
+dCBvZiB0aGUga2VybmVsLCBzbyB5b3VyIGNoYW5nZSBjb3VsZCBiZSBjb25zaXN0ZW50Lg0KRm9y
+IGV4YW1wbGUsDQpJZiB5b3UgY2hhbmdlZCBhY3BpZHVtcCBwcmlvciB0aGFuIG1ha2luZyB0aGUg
+a2VybmVsIGNoYW5nZSwgdGhlIGRpc3RyaWJ1dGlvbiB2ZW5kb3JzIG1pZ2h0IGhhdmUgYWxyZWFk
+eSByZWxlYXNlZCB0aGUgbmV3IGFjcGlkdW1wIGZvciBhbGwgb2xkIGtlcm5lbHMgYmVmb3JlIHlv
+dSB0cmFuc2l0aW9uZWQgdGhlIGRpcmVjdG9yeSBoaWVyYXJjaHkuDQoNCj4gDQo+ID4gU28gbXkg
+Zmlyc3QgcXVlc3Rpb24gaXM6DQo+ID4gV2h5IGRvIHlvdSB1c2UgY29uZmlnZnMgcmF0aGVyIHRo
+YW4gdGhlIGV4aXN0aW5nIG1lY2hhbmlzbXM/DQo+IA0KPiBzeXNmcyBpcyBub3QgYSBnb29kIGNo
+b2ljZSBmb3IgZGVhbGluZyB3aXRoIG9iamVjdHMgY3JlYXRlZCBmcm9tDQo+IHVzZXJzcGFjZSwg
+Y29uZmlnZnMgd2FzIGNyZWF0ZWQgdG8gYWRkcmVzcyB0aGlzIHNwZWNpZmljIG5lZWQuIFNpbmNl
+DQo+IHdlIHdhbnQgdG8gYmUgYWJsZSB0byBjcmVhdGUgYW5kIGxvYWQgbmV3IHRhYmxlcyBmcm9t
+IHVzZXJzcGFjZSB0aGlzDQo+IHVzZS1jYXNlIGZpdHMgdmVyeSB3ZWxsIHdpdGggY29uZmlnZnMu
+DQpbTHYgWmhlbmddIA0KV2FzIHRoZSB0YWJsZSBiaW5hcnkgc3RyZWFtIHN0aWxsIG1haW50YWlu
+ZWQgYnkgdGhlIHVzZXJzcGFjZT8NCklmIG5vdCwgSSBjb3VsZG4ndCBzZWUgdGhlIGRpZmZlcmVu
+Y2UvYWR2YW50YWdlcyBmcm9tIHVzaW5nIC9zeXMvZmlybXdhcmUvYWNwaS90YWJsZXMgdG8gdXNp
+bmcgY29uZmlnZnMuDQoNClRoYW5rcyBhbmQgYmVzdCByZWdhcmRzDQotTHYNCg==
