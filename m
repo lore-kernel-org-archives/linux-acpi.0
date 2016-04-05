@@ -1,75 +1,135 @@
-From: Mark Brown <broonie-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: [RFC PATCH 06/10] spi: add support for ACPI reconfigure
- notifications
-Date: Tue, 5 Apr 2016 11:24:54 -0700
-Message-ID: <20160405182454.GG1924@sirena.org.uk>
-References: <1459417026-6697-1-git-send-email-octavian.purdila@intel.com>
- <1459417026-6697-7-git-send-email-octavian.purdila@intel.com>
- <20160331172935.GL2350@sirena.org.uk>
- <CAE1zotJbUGBOUF-4-XAx0DUkj55egOMXVn9FzjV3Fdj4MYxD0Q@mail.gmail.com>
- <20160401140856.GW2350@sirena.org.uk>
- <CAJZ5v0itmFDdPi6vJmsheEHADEwmeTNgCQ5iVroJfV=o6Wof3A@mail.gmail.com>
- <20160402162449.GB2350@sirena.org.uk>
- <CAE1zotKDZd2mYmzoQvCPgVrZ5vfOrPDtBRzTscdsqrZbT8Z+cg@mail.gmail.com>
- <20160404160327.GH2350@sirena.org.uk>
- <CAE1zot+ESGBEYeUbLTreKfkc-6B45uQq3PWhhRfBo1AWd-7Vxw@mail.gmail.com>
+From: Mark Rutland <mark.rutland@arm.com>
+Subject: Re: [RFC PATCH 0/4] Add ACPI support for pinctrl configuration
+Date: Tue, 5 Apr 2016 19:16:26 +0100
+Message-ID: <20160405181625.GA3064@svinekod>
+References: <1459424685-26965-1-git-send-email-irina.tirdea@intel.com>
+ <20160404225200.GA1615@svinekod>
+ <1F3AC3675D538145B1661F571FE1805F2F2342A6@irsmsx105.ger.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
-	protocol="application/pgp-signature"; boundary="1giRMj6yz/+FOIRq"
-Return-path: <linux-efi-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <CAE1zot+ESGBEYeUbLTreKfkc-6B45uQq3PWhhRfBo1AWd-7Vxw-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
-Sender: linux-efi-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Octavian Purdila <octavian.purdila-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: "Rafael J. Wysocki" <rafael-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, "Rafael J. Wysocki" <rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org>, Len Brown <lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Matt Fleming <matt-mF/unelCI9GS6iBeEJttW/XRex20P6io@public.gmane.org>, Wolfram Sang <wsa-z923LK4zBo2bacvFa/9K2g@public.gmane.org>, Joel Becker <jlbec-aKy9MeLSZ9dg9hUCZPvPmw@public.gmane.org>, Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>, "linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-efi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-i2c <linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-spi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, lkml <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Irina Tirdea <irina.tirdea-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-List-Id: linux-acpi@vger.kernel.org
-
-
---1giRMj6yz/+FOIRq
 Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from foss.arm.com ([217.140.101.70]:52952 "EHLO foss.arm.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751053AbcDES0g (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 5 Apr 2016 14:26:36 -0400
 Content-Disposition: inline
+In-Reply-To: <1F3AC3675D538145B1661F571FE1805F2F2342A6@irsmsx105.ger.corp.intel.com>
+Sender: linux-acpi-owner@vger.kernel.org
+List-Id: linux-acpi@vger.kernel.org
+To: "Tirdea, Irina" <irina.tirdea@intel.com>
+Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Mika Westerberg <mika.westerberg@linux.intel.com>, Linus Walleij <linus.walleij@linaro.org>, "linux-gpio@vger.kernel.org" <linux-gpio@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Rob Herring <robh+dt@kernel.org>, Heikki Krogerus <heikki.krogerus@linux.intel.com>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, "Purdila, Octavian" <octavian.purdila@intel.com>, "Ciocan, Cristina" <cristina.ciocan@intel.com>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "charles.garcia-tobin@arm.com" <charles.garcia-tobin@arm.com>
 
-On Mon, Apr 04, 2016 at 10:34:56PM +0300, Octavian Purdila wrote:
-> On Mon, Apr 4, 2016 at 7:03 PM, Mark Brown <broonie-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org> wrote:
+On Tue, Apr 05, 2016 at 03:33:43PM +0000, Tirdea, Irina wrote:
+> > -----Original Message-----
+> > From: Mark Rutland [mailto:mark.rutland@arm.com]
+> > On Thu, Mar 31, 2016 at 02:44:41PM +0300, Irina Tirdea wrote:
+> > > This is a proposal for adding ACPI support for pin controller
+> > > configuration.
+> > >
+> > > It has been developed to enable the MinnowBoard and IoT community
+> > > by providing an easy way to specify pin multiplexing and
+> > > pin configuration.
+> > >
+> > > This proposal is based on using _DSD properties to specify device
+> > > states and configuration nodes and it follows closely the device
+> > > tree model. Device states are defined using the Device Properties
+> > > format and the configuration nodes are defined using the
+> > > Hierarchical Properties Extension format. The generic properties
+> > > for the configuration nodes are the same as the ones for device
+> > > tree, while pincontroller drivers can also define custom ones.
+> > 
+> > From a look of the Documentation addition, and of the current uses of
+> > pinctrl-names in device tree bindings, one reason for requiring multiple
+> > pinctrl states is power management. Given that, I'm somewhat concerned by this,
+> > as it goes against the usual ACPI model of abstracting this sort of thing
+> > behind power control methods.
+> > 
+> 
+> Right, there is an overlap of the pinctrl "sleep" state with the ACPI power
+> management model. 
+> 
+> However, the main reason for implementing this is setting initial pin multiplexing
+> and configuration. This is normally done by BIOS, but there is currently no way of
+> changing the default configuration (except for a BIOS update). This is a problem
+> when using boards like MinnowBoard, where it is expected to get the board and
+> to be able to add various devices to its exported GPIO pins.
 
-> > Why is probe different to hotplug?  We don't need to do that in the
-> > normal driver model.
+In the absence of a BIOS update, how is it expected that the relevant pinctrl
+settings for a given device will be known? Does the device provide ACPI
+fragments like an SSDT? Does it simply identify itself in some manner, and
+leave the rest to the kernel? Is this entirely user-driven?
 
-> There might be some confusion with the term, I am referring to slave
-> hotplug, not controller hotplug.
+> We need a way to change default pin multiplexing to enable the functionality
+> required by a specific device. In some cases we also need to set the bias to
+> get things like interrupts working.
+> 
+> Another use case for pinctrl states is using custom reset pin configurations that need
+> to be controlled from the driver.
 
-That's what I was talking about too.
+To be clear, I'm not stating that having pinctrl under the OS is necessarily
+wrong, and I can see why the firmware may not have all the relevant knowledge
+in advance. I can certainly see why having the OS in control can be preferable.
 
-> The way I see it, there are two logical operations: probe of a
-> controller and the associated enumeration of the SPI slaves for that
-> bus and "hotplug" of new SPI slaves and the enumeration of those
-> particular slaves.
+My concern is that there is a conflict with the ACPI model, and potential
+fragility, given that:
 
-I don't see a distinction here.  The firmware finds some new slaves to
-tell the framework about.  Quite why it decided to go looking shouldn't
-matter.
+* The firmware does not have the relevant information in advance for a given
+  device that may be connected (i.e. how devices may change the pinctrl setup
+  is unknown).
 
-> When a slave hotplug happens for device tree we get a device node
-> notification and we can instantiate the SPI slave based on that info.
-> In case of ACPI, (at this point) we get a global callback and in that
-> callback we need to iterate through *all* controllers.
+* The firmware is to some extent expected to manage pinctrl today (for power
+  management of devices it does know about), and hence a pinctrl device is
+  potentially under shared management of ACPI and the OS.
 
-That's not really helping me understand why you need every bus to open
-code enumeration twice?
+* The ACPI specification says nothing about this style of pinctrl management,
+  so it is unclear what the expectations are:
 
---1giRMj6yz/+FOIRq
-Content-Type: application/pgp-signature; name="signature.asc"
+  - Is a given pinctrl device under shared ownership by the firmware and
+    kernel, or is a given device entirely under the control of just one?
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2
+  - How shared access to the pinctrl device is mediated, e.g. is any locking or
+    signalling mechanism required to ensure that firmware and kernel do not
+    access the device simultaneously in a manner that causes problems.
 
-iQEcBAEBCAAGBQJXBAL0AAoJECTWi3JdVIfQirEIAIYk7r6B53dH3hythb8IZc0I
-anQDvflPcYiwiQj139n4m+5oA8L8264jlFcf26CjqSpSfCR4ctgK28mImwGHnuNs
-sfTR7Jy91JnkhWchPYJfhYud9KiehXthilONbYcUWYCkDFBgqG7yU9NE78CQfpnN
-E6Dt3xapZigPEK1vhjghOYUr9Y5iG13rEGOWKVfnG/heOdMLhJRBpYrUoYRjM/CS
-6NDDzCwt1zdqHm8eXUYjKFJS0jDusvYglveGKA8zup6FZgxbW/1Zr/0/A/f7Micg
-lMaEAoeVv4vMlUSvgqz8uHWk2gxh66mulC4fEwCwL+8T6052Ic3bl4YW6UUrE6A=
-=2nCu
------END PGP SIGNATURE-----
+  - Is the firmware permitted to perform power management of devices for which
+    the kernel handles pinctrl? What states can either expect, and when is such
+    management permitted? e.g. must the OS ensure that a device is in its
+    default state? Can it only call power management calls from particular
+    states? What is the restored state?
 
---1giRMj6yz/+FOIRq--
+  - What the expectations are w.r.t. ownership of pins, e.g. must the firmware
+    never change the state of certain pins? Must it save/restore their state in
+    system-wide power-management scenarios like suspend or hibernate?
+
+I think this needs to be raised with the ASWG, and some level of model needs to
+be defined for this, to cater for the issues raised above.
+
+That might be very simple, e.g. pins are never shared, the pinctrl management
+device must permit concurrent accesses by FW and kernel, the kernel is
+responsible for all management of those pins after system reset.
+
+In the absence of that, this is liable to become fragmented and fragile, and is
+practically impossible to rectify post-hoc.
+
+> Since we have the pinctrl infrastructure and the all Intel ACPI pinctrl drivers already
+> support it, this seems the most straightforward way to implement it.
+
+I do not disagree that this is expedient. I am concerned that it permits a very
+large set of avoidable problems, and I believe that we need to be somewhat
+stricter from the outset.
+
+> > Additionally, pinctrl has some cross-cutting concerns (e.g. mutually exclusive
+> > device usage due to a shared pin), and I can imagine that may interact poorly
+> > with any AML or firmware assumptions about the state of the world, as there's
+> > no mechanism present to notify those of changes to pins.
+> 
+> This is a problem with any modification we would make to the ACPI tables. 
+> It is true that pinctrl configuration could create conflicts when changing
+> pin multiplexing, but that could be avoided by using only the pinctrl states that
+> make sense for the entire ACPI configuration.
+
+I think that "makes sense for the entire ACPI configuration" needs to be
+defined, and then mandated, which implies an ACPI spec addition.
+
+Thanks,
+Mark.
