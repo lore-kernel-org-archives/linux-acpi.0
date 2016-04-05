@@ -1,97 +1,101 @@
 From: Octavian Purdila <octavian.purdila@intel.com>
 Subject: Re: [RFC PATCH 0/4] Add ACPI support for pinctrl configuration
-Date: Tue, 5 Apr 2016 22:37:14 +0300
-Message-ID: <CAE1zot+-=JQkMqRPpNtCk1MksRf9kOQ1G216kSXszDjn2z4d=g@mail.gmail.com>
+Date: Tue, 5 Apr 2016 23:09:34 +0300
+Message-ID: <CAE1zot+kyANCTPHGmj2W26f4LbS9Nkgt_9DNon-=0nsqRpT3Rw@mail.gmail.com>
 References: <1459424685-26965-1-git-send-email-irina.tirdea@intel.com>
 	<20160404225200.GA1615@svinekod>
-	<CACRpkdb=Ef1-g-r9NW-4_xeKdke0FFhnN+JYPjVKog3L4At8Lg@mail.gmail.com>
-	<20160405165935.GA5456@sirena.org.uk>
+	<1F3AC3675D538145B1661F571FE1805F2F2342A6@irsmsx105.ger.corp.intel.com>
+	<20160405181625.GA3064@svinekod>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-wm0-f53.google.com ([74.125.82.53]:36188 "EHLO
-	mail-wm0-f53.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933468AbcDEThQ (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 5 Apr 2016 15:37:16 -0400
-Received: by mail-wm0-f53.google.com with SMTP id v188so137657wme.1
-        for <linux-acpi@vger.kernel.org>; Tue, 05 Apr 2016 12:37:15 -0700 (PDT)
-In-Reply-To: <20160405165935.GA5456@sirena.org.uk>
-Sender: linux-acpi-owner@vger.kernel.org
+Return-path: <linux-gpio-owner@vger.kernel.org>
+In-Reply-To: <20160405181625.GA3064@svinekod>
+Sender: linux-gpio-owner@vger.kernel.org
+To: Mark Rutland <mark.rutland@arm.com>
+Cc: "Tirdea, Irina" <irina.tirdea@intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Mika Westerberg <mika.westerberg@linux.intel.com>, Linus Walleij <linus.walleij@linaro.org>, "linux-gpio@vger.kernel.org" <linux-gpio@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Rob Herring <robh+dt@kernel.org>, Heikki Krogerus <heikki.krogerus@linux.intel.com>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, "Ciocan, Cristina" <cristina.ciocan@intel.com>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "charles.garcia-tobin@arm.com" <charles.garcia-tobin@arm.com>
 List-Id: linux-acpi@vger.kernel.org
-To: Mark Brown <broonie@kernel.org>
-Cc: Linus Walleij <linus.walleij@linaro.org>, Mark Rutland <mark.rutland@arm.com>, Irina Tirdea <irina.tirdea@intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Mika Westerberg <mika.westerberg@linux.intel.com>, "linux-gpio@vger.kernel.org" <linux-gpio@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Rob Herring <robh+dt@kernel.org>, Heikki Krogerus <heikki.krogerus@linux.intel.com>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Cristina Ciocan <cristina.ciocan@intel.com>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Charles Garcia-Tobin <charles.garcia-tobin@arm.com>
 
-On Tue, Apr 5, 2016 at 7:59 PM, Mark Brown <broonie@kernel.org> wrote:
-> On Tue, Apr 05, 2016 at 10:43:11AM +0200, Linus Walleij wrote:
+On Tue, Apr 5, 2016 at 9:16 PM, Mark Rutland <mark.rutland@arm.com> wrote:
+
+>>
+>> Right, there is an overlap of the pinctrl "sleep" state with the ACPI power
+>> management model.
+>>
+>> However, the main reason for implementing this is setting initial pin multiplexing
+>> and configuration. This is normally done by BIOS, but there is currently no way of
+>> changing the default configuration (except for a BIOS update). This is a problem
+>> when using boards like MinnowBoard, where it is expected to get the board and
+>> to be able to add various devices to its exported GPIO pins.
 >
->> And these products are only update-able
->> with hairy BIOS patches that need to be applied
->> using $SPECIAL_TOOL  that "normal users" do not want to
->> concern themselves with, as this is not an "apt-get upgrade"
->> kind of thing.
+> In the absence of a BIOS update, how is it expected that the relevant pinctrl
+> settings for a given device will be known? Does the device provide ACPI
+> fragments like an SSDT? Does it simply identify itself in some manner, and
+> leave the rest to the kernel? Is this entirely user-driven?
 >
-> This bit has been addressed in UEFI - there's now a mechanism for the OS
-> to supply firmware updates to the BIOS via runtime sevices calls without
-> needing to go to the hairy tools.
 
-AFAIK there is still no standard way of updating just the ACPI tables.
-You need various tools to "stitch" a full firmware image that can be
-consumed by the update mechanism.
+See this patch set I just proposed: https://lkml.org/lkml/2016/3/31/334
 
-> There's also been facilities for some
-> time which allow ACPI fragments to be loaded at runtime without patching
-> the firmware (though they're not used so often at present).
-
-And I just sent a separate patch series for "ACPI overlays", similar
-with the dynamic DT, with the primary goal of supporting open-ended
-hardware configurations.
-
-But to be able to effectively use this we need a way to change pinmux settings.
-
->> And I think that is what is happening, it's just that so much
->> prestige is involved that no-one wants to officially admit it.
+>> We need a way to change default pin multiplexing to enable the functionality
+>> required by a specific device. In some cases we also need to set the bias to
+>> get things like interrupts working.
+>>
+>> Another use case for pinctrl states is using custom reset pin configurations that need
+>> to be controlled from the driver.
 >
->> I was once poking fun at this development model accusing
->> firmware engineers of having a God complex when they claim
->> to be able to engineer in these complex use cases during
+> To be clear, I'm not stating that having pinctrl under the OS is necessarily
+> wrong, and I can see why the firmware may not have all the relevant knowledge
+> in advance. I can certainly see why having the OS in control can be preferable.
 >
-> That's not really a fair characterization of the situation.  The goal
-> that ACPI has been trying to meet is allowing new hardware to work
-> without needing software updates so people's installation experience
-> isn't miserable.  The Windows monoculture that firmware developers have
-> been targetting has hurt the achievement of that but it's the idea.
-> It's a good model for some classes of device but not for all.
+> My concern is that there is a conflict with the ACPI model, and potential
+> fragility, given that:
 >
->> product firmware development. Now I just feel sad about this
->> situation and want things to "just work" for them. I think these
->> patches are good.
+> * The firmware does not have the relevant information in advance for a given
+>   device that may be connected (i.e. how devices may change the pinctrl setup
+>   is unknown).
 >
-> See Mark Rutland's reply - there's a whole model behind how ACPI
-> abstracts the system that needs to be taken into account, just stuffing
-> the existing DT in through a mechanism intended for simple vendor
-> specific key/value properties isn't guaranteed to give something that's
-> coherent and sensible.  DT design decisions will obviously not have
-> considered ACPI and exposing the full combination of the two system
-> models to system integrators seems likely to lead to unfortunate
-> corners, especially with things that happen to work right now but cause
-> problems later on.
+> * The firmware is to some extent expected to manage pinctrl today (for power
+>   management of devices it does know about), and hence a pinctrl device is
+>   potentially under shared management of ACPI and the OS.
 >
-> Given the rush to shoehorn existing DT into ACPI at some point it's
-> looking like it would be much more sensible for x86 to just do what
-> arm64 has done and support both DT and ACPI in parallel and let people
-> (either system integrators or end users) choose the most appropriate
-> interface for their application.
+> * The ACPI specification says nothing about this style of pinctrl management,
+>   so it is unclear what the expectations are:
+>
 
-Lets look at this from a different perspective. The proposal is not
-about importing the DT model into ACPI but importing the Linux pinctrl
-model into ACPI. That will allow us to use the Linux pinctrl drivers
-to their full potential.
+Does it say anything at all about pinctrl management?
 
-That doesn't stop the development of other, more OS independent, ACPI
-models for pinmuxing. Which we can also support.
+>   - Is a given pinctrl device under shared ownership by the firmware and
+>     kernel, or is a given device entirely under the control of just one?
+>
+>   - How shared access to the pinctrl device is mediated, e.g. is any locking or
+>     signalling mechanism required to ensure that firmware and kernel do not
+>     access the device simultaneously in a manner that causes problems.
+>
+>   - Is the firmware permitted to perform power management of devices for which
+>     the kernel handles pinctrl? What states can either expect, and when is such
+>     management permitted? e.g. must the OS ensure that a device is in its
+>     default state? Can it only call power management calls from particular
+>     states? What is the restored state?
+>
+>   - What the expectations are w.r.t. ownership of pins, e.g. must the firmware
+>     never change the state of certain pins? Must it save/restore their state in
+>     system-wide power-management scenarios like suspend or hibernate?
+>
+> I think this needs to be raised with the ASWG, and some level of model needs to
+> be defined for this, to cater for the issues raised above.
+>
+> That might be very simple, e.g. pins are never shared, the pinctrl management
+> device must permit concurrent accesses by FW and kernel, the kernel is
+> responsible for all management of those pins after system reset.
+>
+> In the absence of that, this is liable to become fragmented and fragile, and is
+> practically impossible to rectify post-hoc.
+>
 
-I know that there are some discussions for pinmux configuration in the
-ASWG, but it does not match the Linux pinctrl model. So we will end up
-with a pinctrl driver that offers groups, functions and pin names and
-a totally different ACPI description that we can't map to the pinctrl
-driver.
+All very good points.
+
+Since our focus is for open-ended configurations and for hardware that
+it is not know to firmware we only considered the case where the pins
+are not touched after the system boots.
+
+Now I wonder what are the cases were the firmware changes the pin
+configuration after boot.
