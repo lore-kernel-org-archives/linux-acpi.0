@@ -1,155 +1,96 @@
-From: Tyler Baicar <tbaicar@codeaurora.org>
-Subject: [PATCH V2 4/9] arm64: exception: handle Synchronous External Abort
-Date: Wed,  6 Apr 2016 09:12:53 -0600
-Message-ID: <1459955578-24602-5-git-send-email-tbaicar@codeaurora.org>
-References: <1459955578-24602-1-git-send-email-tbaicar@codeaurora.org>
+From: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>
+Subject: Re: [lkp] [x86, ACPI, cpu] f962c29c2f: BUG: unable to handle kernel
+ paging request at 0000000000001b00
+Date: Wed, 6 Apr 2016 17:21:06 +0200
+Message-ID: <57052962.4030507@intel.com>
+References: <87pou38t30.fsf@yhuang-dev.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset=windows-1252; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <1459955578-24602-1-git-send-email-tbaicar@codeaurora.org>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: fu.wei@linaro.org, timur@codeaurora.org, harba@codeaurora.org, rruigrok@codeaurora.org, ahs3@redhat.com, catalin.marinas@arm.com, will.deacon@arm.com, rjw@rjwysocki.net, lenb@kernel.org, matt@codeblueprint.co.uk, robert.moore@intel.com, lv.zheng@intel.com, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, linux-efi@vger.kernel.org, devel@acpica.org
-Cc: Naveen Kaje <nkaje@codeaurora.org>, Tyler Baicar <tbaicar@codeaurora.org>, "Jonathan (Zhixiong) Zhang" <zjzhang@codeaurora.org>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga04.intel.com ([192.55.52.120]:58433 "EHLO mga04.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751105AbcDFPVS (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 6 Apr 2016 11:21:18 -0400
+In-Reply-To: <87pou38t30.fsf@yhuang-dev.intel.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: kernel test robot <ying.huang@linux.intel.com>, Gu Zheng <guz.fnst@cn.fujitsu.com>
+Cc: lkp@01.org, devel@acpica.org, linux-acpi@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>, Thomas Gleixner <tglx@linutronix.de>, Zhu Guihua <zhugh.fnst@cn.fujitsu.com>, Tang Chen <tangchen@cn.fujitsu.com>
 
-SEA exceptions are often caused by an uncorrected hardware
-error, and are handled when data abort and instruction abort
-exception classes have specific values for their Fault Status
-Code.
-When SEA occurs, before killing the process, go through
-the handlers registered in the notification list.
-Update fault_info[] with specific SEA faults so that the
-new SEA handler is used.
+On 4/6/2016 2:43 AM, kernel test robot wrote:
+> FYI, we noticed the below changes on
+>
+> https://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm.git linux-next
+> commit f962c29c2f5d80be28bd76e2c3fadf1ce97ccd76 ("x86, ACPI, cpu-hotplug: Set persistent cpuid <-> nodeid mapping when booting")
+>
 
-Signed-off-by: Jonathan (Zhixiong) Zhang <zjzhang@codeaurora.org>
-Signed-off-by: Tyler Baicar <tbaicar@codeaurora.org>
-Signed-off-by: Naveen Kaje <nkaje@codeaurora.org>
----
- arch/arm64/include/asm/system_misc.h | 13 ++++++++
- arch/arm64/mm/fault.c                | 58 +++++++++++++++++++++++++++++-------
- 2 files changed, 61 insertions(+), 10 deletions(-)
+Thanks for the report.
 
-diff --git a/arch/arm64/include/asm/system_misc.h b/arch/arm64/include/asm/system_misc.h
-index 57f110b..90daf4a 100644
---- a/arch/arm64/include/asm/system_misc.h
-+++ b/arch/arm64/include/asm/system_misc.h
-@@ -64,4 +64,17 @@ extern void (*arm_pm_restart)(enum reboot_mode reboot_mode, const char *cmd);
- 
- #endif	/* __ASSEMBLY__ */
- 
-+/*
-+ * The functions below are used to register and unregister callbacks
-+ * that are to be invoked when a Synchronous External Abort (SEA)
-+ * occurs. An SEA is raised by certain fault status codes that have
-+ * either data or instruction abort as the exception class, and
-+ * callbacks may be registered to parse or handle such hardware errors.
-+ *
-+ * Registered callbacks are run in an interrupt/atomic context. They
-+ * are not allowed to block or sleep.
-+ */
-+int sea_register_handler_chain(struct notifier_block *nb);
-+void sea_unregister_handler_chain(struct notifier_block *nb);
-+
- #endif	/* __ASM_SYSTEM_MISC_H */
-diff --git a/arch/arm64/mm/fault.c b/arch/arm64/mm/fault.c
-index 95df28b..04a25e8 100644
---- a/arch/arm64/mm/fault.c
-+++ b/arch/arm64/mm/fault.c
-@@ -39,6 +39,22 @@
- #include <asm/pgtable.h>
- #include <asm/tlbflush.h>
- 
-+/*
-+ * GHES SEA handler code may register a notifier call here to
-+ * handle HW error record passed from platform.
-+ */
-+static ATOMIC_NOTIFIER_HEAD(sea_handler_chain);
-+
-+int sea_register_handler_chain(struct notifier_block *nb)
-+{
-+	return atomic_notifier_chain_register(&sea_handler_chain, nb);
-+}
-+
-+void sea_unregister_handler_chain(struct notifier_block *nb)
-+{
-+	atomic_notifier_chain_unregister(&sea_handler_chain, nb);
-+}
-+
- static const char *fault_name(unsigned int esr);
- 
- /*
-@@ -395,6 +411,28 @@ static int do_bad(unsigned long addr, unsigned int esr, struct pt_regs *regs)
- 	return 1;
- }
- 
-+/*
-+ * This abort handler deals with Synchronous External Abort.
-+ * It calls notifiers, and then returns "fault".
-+ */
-+static int do_sea(unsigned long addr, unsigned int esr, struct pt_regs *regs)
-+{
-+	struct siginfo info;
-+
-+	atomic_notifier_call_chain(&sea_handler_chain, 0, NULL);
-+
-+	pr_err("Synchronous External Abort: %s (0x%08x) at 0x%016lx\n",
-+		 fault_name(esr), esr, addr);
-+
-+	info.si_signo = SIGBUS;
-+	info.si_errno = 0;
-+	info.si_code  = 0;
-+	info.si_addr  = (void __user *)addr;
-+	arm64_notify_die("", regs, &info, esr);
-+
-+	return 0;
-+}
-+
- static struct fault_info {
- 	int	(*fn)(unsigned long addr, unsigned int esr, struct pt_regs *regs);
- 	int	sig;
-@@ -417,22 +455,22 @@ static struct fault_info {
- 	{ do_page_fault,	SIGSEGV, SEGV_ACCERR,	"level 1 permission fault"	},
- 	{ do_page_fault,	SIGSEGV, SEGV_ACCERR,	"level 2 permission fault"	},
- 	{ do_page_fault,	SIGSEGV, SEGV_ACCERR,	"level 3 permission fault"	},
--	{ do_bad,		SIGBUS,  0,		"synchronous external abort"	},
-+	{ do_sea,		SIGBUS,  0,		"synchronous external abort"	},
- 	{ do_bad,		SIGBUS,  0,		"unknown 17"			},
- 	{ do_bad,		SIGBUS,  0,		"unknown 18"			},
- 	{ do_bad,		SIGBUS,  0,		"unknown 19"			},
--	{ do_bad,		SIGBUS,  0,		"synchronous abort (translation table walk)" },
--	{ do_bad,		SIGBUS,  0,		"synchronous abort (translation table walk)" },
--	{ do_bad,		SIGBUS,  0,		"synchronous abort (translation table walk)" },
--	{ do_bad,		SIGBUS,  0,		"synchronous abort (translation table walk)" },
--	{ do_bad,		SIGBUS,  0,		"synchronous parity error"	},
-+	{ do_sea,		SIGBUS,  0,		"level 0 SEA (trans tbl walk)"	},
-+	{ do_sea,		SIGBUS,  0,		"level 1 SEA (trans tbl walk)"	},
-+	{ do_sea,		SIGBUS,  0,		"level 2 SEA (trans tbl walk)"	},
-+	{ do_sea,		SIGBUS,  0,		"level 3 SEA (trans tbl walk)"	},
-+	{ do_sea,		SIGBUS,  0,		"synchronous parity or ECC err" },
- 	{ do_bad,		SIGBUS,  0,		"unknown 25"			},
- 	{ do_bad,		SIGBUS,  0,		"unknown 26"			},
- 	{ do_bad,		SIGBUS,  0,		"unknown 27"			},
--	{ do_bad,		SIGBUS,  0,		"synchronous parity error (translation table walk)" },
--	{ do_bad,		SIGBUS,  0,		"synchronous parity error (translation table walk)" },
--	{ do_bad,		SIGBUS,  0,		"synchronous parity error (translation table walk)" },
--	{ do_bad,		SIGBUS,  0,		"synchronous parity error (translation table walk)" },
-+	{ do_sea,		SIGBUS,  0,		"level 0 synch parity error"	},
-+	{ do_sea,		SIGBUS,  0,		"level 1 synch parity error"	},
-+	{ do_sea,		SIGBUS,  0,		"level 2 synch parity error"	},
-+	{ do_sea,		SIGBUS,  0,		"level 3 synch parity error"	},
- 	{ do_bad,		SIGBUS,  0,		"unknown 32"			},
- 	{ do_alignment_fault,	SIGBUS,  BUS_ADRALN,	"alignment fault"		},
- 	{ do_bad,		SIGBUS,  0,		"unknown 34"			},
--- 
-Qualcomm Innovation Center, Inc.
-The Qualcomm Innovation Center, Inc. is a member of the Code Aurora Forum,
-a Linux Foundation Collaborative Project.
+I've dropped the patch series that commit is part of from the linux-next 
+branch of linux-pm.git because of this problem.
+
+
+> +------------------------------------------+------------+------------+
+> |                                          | 40d4d2e6c5 | f962c29c2f |
+> +------------------------------------------+------------+------------+
+> | boot_successes                           | 12         | 4          |
+> | boot_failures                            | 0          | 8          |
+> | BUG:unable_to_handle_kernel              | 0          | 8          |
+> | Oops                                     | 0          | 8          |
+> | RIP:__alloc_pages_nodemask               | 0          | 8          |
+> | Kernel_panic-not_syncing:Fatal_exception | 0          | 8          |
+> | backtrace:pcpu_balance_workfn            | 0          | 8          |
+> +------------------------------------------+------------+------------+
+>
+>
+>
+> [   10.413471] RAPL PMU: hw unit of domain pp0-core 2^-16 Joules
+> [   10.419886] RAPL PMU: hw unit of domain package 2^-16 Joules
+> [   10.426206] RAPL PMU: hw unit of domain dram 2^-16 Joules
+> [   10.433905] BUG: unable to handle kernel paging request at 0000000000001b00
+> [   10.441699] IP: [<ffffffff8117e350>] __alloc_pages_nodemask+0x210/0xc10
+> [   10.449097] PGD 0
+> [   10.451350] Oops: 0000 [#1] SMP
+> [   10.454972] Modules linked in:
+> [   10.458390] CPU: 12 PID: 407 Comm: kworker/12:1 Not tainted 4.6.0-rc1-00007-gf962c29 #1
+> [   10.467326] Hardware name: Intel Corporation S2600WP/S2600WP, BIOS SE5C600.86B.02.02.0002.122320131210 12/23/2013
+> [   10.478776] Workqueue: events pcpu_balance_workfn
+> [   10.484035] task: ffff88100d858000 ti: ffff88100d860000 task.ti: ffff88100d860000
+> [   10.492381] RIP: 0010:[<ffffffff8117e350>]  [<ffffffff8117e350>] __alloc_pages_nodemask+0x210/0xc10
+> [   10.502491] RSP: 0000:ffff88100d863c28  EFLAGS: 00010286
+> [   10.508419] RAX: 0000000000000000 RBX: 0000000000000000 RCX: 0000000000000004
+> [   10.516383] RDX: 0000000080000000 RSI: 0000000000000d06 RDI: ffffffff81c9d430
+> [   10.524348] RBP: ffff88100d863d40 R08: 0000000000000000 R09: 0000000000000000
+> [   10.532312] R10: ffffffff81ca1e87 R11: ffffc90000076000 R12: 0000000000000003
+> [   10.540278] R13: 0000000000001b00 R14: 0000000000000000 R15: ffff88100d43e480
+> [   10.548243] FS:  0000000000000000(0000) GS:ffff881013400000(0000) knlGS:0000000000000000
+> [   10.557275] CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+> [   10.563687] CR2: 0000000000001b00 CR3: 000000103ee06000 CR4: 00000000001406e0
+> [   10.571652] Stack:
+> [   10.573894]  ffffc90000090fff ffffc90000091000 ffff881013002008 0000000000000001
+> [   10.582196]  8000000000000163 00000000ffffffff 00000000024082c2 0000000000400000
+> [   10.590492]  000000000000001e ffff880ffe57c0c0 ffff88100d863c88 ffffffff811b7766
+> [   10.598794] Call Trace:
+> [   10.601527]  [<ffffffff811b7766>] ? map_vm_area+0x36/0x50
+> [   10.607553]  [<ffffffff81198ade>] pcpu_populate_chunk+0xae/0x340
+> [   10.614257]  [<ffffffff8119a118>] pcpu_balance_workfn+0x578/0x5b0
+> [   10.621060]  [<ffffffff81094be5>] process_one_work+0x155/0x440
+> [   10.627562]  [<ffffffff8109582e>] worker_thread+0x4e/0x4c0
+> [   10.633687]  [<ffffffff818f1b9b>] ? __schedule+0x34b/0x8b0
+> [   10.639809]  [<ffffffff810957e0>] ? rescuer_thread+0x350/0x350
+> [   10.646319]  [<ffffffff810957e0>] ? rescuer_thread+0x350/0x350
+> [   10.652831]  [<ffffffff8109ade4>] kthread+0xd4/0xf0
+> [   10.658276]  [<ffffffff818f6742>] ret_from_fork+0x22/0x40
+> [   10.664302]  [<ffffffff8109ad10>] ? kthread_park+0x60/0x60
+> [   10.670423] Code: d0 49 8b 04 24 48 85 c0 75 e0 65 ff 0d 22 f0 e8 7e eb 8b 31 d2 be 06 0d 00 00 48 c7 c7 30 d4 c9 81 e8 35 2c f2 ff e8 50 40 77 00 <49> 83 7d 00 00 0f 85 7c fe ff ff 31 c0 e9 6d ff ff ff 0f 1f 44
+> [   10.692137] RIP  [<ffffffff8117e350>] __alloc_pages_nodemask+0x210/0xc10
+> [   10.699627]  RSP <ffff88100d863c28>
+> [   10.703518] CR2: 0000000000001b00
+> [   10.707220] ---[ end trace bc83ef9ded88f808 ]---
+> [   10.712373] Kernel panic - not syncing: Fatal exception
+>
+>
+> Thanks,
+> Kernel Test Robot
+
