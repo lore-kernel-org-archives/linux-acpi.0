@@ -1,269 +1,96 @@
-From: Aleksey Makarov <aleksey.makarov@linaro.org>
-Subject: Re: [PATCH v7 3/5] ACPI: parse SPCR and enable matching console
-Date: Wed, 6 Apr 2016 13:31:07 +0300
-Message-ID: <5704E56B.3070808@linaro.org>
-References: <1459431629-27934-1-git-send-email-aleksey.makarov@linaro.org>
- <1459431629-27934-4-git-send-email-aleksey.makarov@linaro.org>
+From: Graeme Gregory <gg@slimlogic.co.uk>
+Subject: Re: [RFC PATCH 0/4] Add ACPI support for pinctrl configuration
+Date: Wed, 6 Apr 2016 11:49:00 +0100
+Message-ID: <20160406104900.GA2820@xora-haswell.xora.org.uk>
+References: <1459424685-26965-1-git-send-email-irina.tirdea@intel.com>
+ <20160404225200.GA1615@svinekod>
+ <D3292CBB.662A8%charles.garcia-tobin@arm.com>
+ <5704519F.5030906@redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1459431629-27934-4-git-send-email-aleksey.makarov@linaro.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: "Rafael J . Wysocki" <rjw@rjwysocki.net>
-Cc: Russell King <linux@arm.linux.org.uk>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-serial@vger.kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Len Brown <lenb@kernel.org>, Leif Lindholm <leif.lindholm@linaro.org>, Graeme Gregory <graeme.gregory@linaro.org>, Al Stone <ahs3@redhat.com>, Christopher Covington <cov@codeaurora.org>, Yury Norov <ynorov@caviumnetworks.com>, Peter Hurley <peter@hurleysoftware.com>, Andy Shevchenko <andy.shevchenko@gmail.com>, "Zheng, Lv" <lv.zheng@intel.com>, Jiri Slaby <jslaby@suse.com>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-gpio-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <5704519F.5030906@redhat.com>
+Sender: linux-gpio-owner@vger.kernel.org
+To: ahs3@redhat.com
+Cc: Charles Garcia-Tobin <charles.garcia-tobin@arm.com>, Mark Rutland <mark.rutland@arm.com>, Irina Tirdea <irina.tirdea@intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Mika Westerberg <mika.westerberg@linux.intel.com>, Linus Walleij <linus.walleij@linaro.org>, "linux-gpio@vger.kernel.org" <linux-gpio@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Rob Herring <robh+dt@kernel.org>, Heikki Krogerus <heikki.krogerus@linux.intel.com>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Octavian Purdila <octavian.purdila@intel.com>, Cristina Ciocan <cristina.ciocan@intel.com>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-Hi Rafael,
+On Tue, Apr 05, 2016 at 06:00:31PM -0600, Al Stone wrote:
+> On 04/05/2016 02:56 AM, Charles Garcia-Tobin wrote:
+> > 
+> > 
+> > On 04/04/2016 23:52, "Mark Rutland" <mark.rutland@arm.com> wrote:
+> > 
+> >> Hi,
+> >>
+> >> On Thu, Mar 31, 2016 at 02:44:41PM +0300, Irina Tirdea wrote:
+> >>> This is a proposal for adding ACPI support for pin controller
+> >>> configuration.
+> >>>
+> >>> It has been developed to enable the MinnowBoard and IoT community
+> >>> by providing an easy way to specify pin multiplexing and
+> >>> pin configuration.
+> >>>
+> >>> This proposal is based on using _DSD properties to specify device
+> >>> states and configuration nodes and it follows closely the device
+> >>> tree model. Device states are defined using the Device Properties
+> >>> format and the configuration nodes are defined using the
+> >>> Hierarchical Properties Extension format. The generic properties
+> >>> for the configuration nodes are the same as the ones for device
+> >>> tree, while pincontroller drivers can also define custom ones.
+> >>
+> >>From a look of the Documentation addition, and of the current uses of
+> >> pinctrl-names in device tree bindings, one reason for requiring multiple
+> >> pinctrl states is power management. Given that, I'm somewhat concerned by
+> >> this,
+> >> as it goes against the usual ACPI model of abstracting this sort of thing
+> >> behind power control methods.
+> >>
+> >> To the best of my knowledge, that goes against the ASWG's expectations on
+> >> how
+> >> _DSD will be used (per [1]). Charles, please correct me if that document
+> >> is no
+> >> longer representative.
+> > 
+> > It is though latest version was posted by Rafael a bit later:
+> > https://lists.acpica.org/pipermail/dsd/2015-December/000027.html
+> > 
+> > 
+> > In addition the core rules requiring that existing ACPI paradigms are not
+> > subverted through DSD (basically the concern you express) are also
+> > documented in the main DSD documentation itself:
+> > http://www.uefi.org/sites/default/files/resources/_DSD-device-properties-UU
+> > ID.pdf (section 2.3)
+> 
+> I have to echo Mark's concern: wholesale importation of portions of current
+> DT bindings simply because it's expedient is one of the things I've been hoping
+> to avoid.  These patches seem to be just that.
+> 
+> And while the latest version mentioned above describes a bit of a review
+> process to handle this case, I don't recall the kernel community at large
+> agreeing to it, nor to it having been implemented.  If I missed that part,
+> my apologies; please let me know where it was decided.  If I haven't, then
+> perhaps this needs to be the first test case of that process.
+> 
 
-May I ask for review/ACK for this new version please?
+My concern over this is similar to Mark/Als this looks like a quick hack
+to "solve" an issue that has been worked on in Linux for at least 10
+years now. And thats how to describe a non descoverable card that is
+plugged into random busses on a SoC.
 
-Thank you
-Aleksey Makarov
+The issue I see with a quick hack of DT pinctrl into _DSD is that this
+does not take into account the power model of ACPI. As far as I can see
+the core code has no manner to tell a pin/function allocated through
+_DSD actually has effects on the power of other devices. So the core
+could end up powering down devices when it should not. This is very
+relevent to your intended use of IoT devices where power control is key.
 
-On 03/31/2016 04:40 PM, Aleksey Makarov wrote:
-> 'ARM Server Base Boot Requiremets' [1] mentions SPCR (Serial Port
-> Console Redirection Table) [2] as a mandatory ACPI table that
-> specifies the configuration of serial console.
-> 
-> Defer initialization of DT earlycon until ACPI/DT decision is made.
-> 
-> Parse the ACPI SPCR table, setup earlycon if required,
-> enable specified console.
-> 
-> Thanks to Peter Hurley for explaining how this should work.
-> 
-> [1] http://infocenter.arm.com/help/index.jsp?topic=/com.arm.doc.den0044a/index.html
-> [2] https://msdn.microsoft.com/en-us/library/windows/hardware/dn639132(v=vs.85).aspx
-> 
-> Signed-off-by: Aleksey Makarov <aleksey.makarov@linaro.org>
-> ---
->  drivers/acpi/Kconfig          |   3 ++
->  drivers/acpi/Makefile         |   1 +
->  drivers/acpi/spcr.c           | 111 ++++++++++++++++++++++++++++++++++++++++++
->  drivers/tty/serial/earlycon.c |  19 +++++++-
->  include/linux/acpi.h          |   6 +++
->  include/linux/serial_core.h   |   6 +++
->  6 files changed, 144 insertions(+), 2 deletions(-)
->  create mode 100644 drivers/acpi/spcr.c
-> 
-> diff --git a/drivers/acpi/Kconfig b/drivers/acpi/Kconfig
-> index 65fb483..5611eb6 100644
-> --- a/drivers/acpi/Kconfig
-> +++ b/drivers/acpi/Kconfig
-> @@ -77,6 +77,9 @@ config ACPI_DEBUGGER_USER
->  
->  endif
->  
-> +config ACPI_SPCR_TABLE
-> +	bool
-> +
->  config ACPI_SLEEP
->  	bool
->  	depends on SUSPEND || HIBERNATION
-> diff --git a/drivers/acpi/Makefile b/drivers/acpi/Makefile
-> index 7395928..f70ae14 100644
-> --- a/drivers/acpi/Makefile
-> +++ b/drivers/acpi/Makefile
-> @@ -82,6 +82,7 @@ obj-$(CONFIG_ACPI_EC_DEBUGFS)	+= ec_sys.o
->  obj-$(CONFIG_ACPI_CUSTOM_METHOD)+= custom_method.o
->  obj-$(CONFIG_ACPI_BGRT)		+= bgrt.o
->  obj-$(CONFIG_ACPI_CPPC_LIB)	+= cppc_acpi.o
-> +obj-$(CONFIG_ACPI_SPCR_TABLE)	+= spcr.o
->  obj-$(CONFIG_ACPI_DEBUGGER_USER) += acpi_dbg.o
->  
->  # processor has its own "processor." module_param namespace
-> diff --git a/drivers/acpi/spcr.c b/drivers/acpi/spcr.c
-> new file mode 100644
-> index 0000000..68ffc33
-> --- /dev/null
-> +++ b/drivers/acpi/spcr.c
-> @@ -0,0 +1,111 @@
-> +/*
-> + * Copyright (c) 2012, Intel Corporation
-> + * Copyright (c) 2015, Red Hat, Inc.
-> + * Copyright (c) 2015, 2016 Linaro Ltd.
-> + *
-> + * This program is free software; you can redistribute it and/or modify
-> + * it under the terms of the GNU General Public License version 2 as
-> + * published by the Free Software Foundation.
-> + *
-> + */
-> +
-> +#define pr_fmt(fmt) "ACPI: SPCR: " fmt
-> +
-> +#include <linux/acpi.h>
-> +#include <linux/console.h>
-> +#include <linux/kernel.h>
-> +#include <linux/serial_core.h>
-> +
-> +/**
-> + * parse_spcr() - parse ACPI SPCR table and add preferred console
-> + *
-> + * @earlycon: set up earlycon for the console specified by the table
-> + *
-> + * For the architectures with support for ACPI, CONFIG_ACPI_SPCR_TABLE may be
-> + * defined to parse ACPI SPCR table.  As a result of the parsing preferred
-> + * console is registered and if @earlycon is true, earlycon is set up.
-> + *
-> + * When CONFIG_ACPI_SPCR_TABLE is defined, this function should should be called
-> + * from arch inintialization code as soon as the DT/ACPI decision is made.
-> + *
-> + */
-> +int __init parse_spcr(bool earlycon)
-> +{
-> +	static char opts[64];
-> +	struct acpi_table_spcr *table;
-> +	acpi_size table_size;
-> +	acpi_status status;
-> +	char *uart;
-> +	char *iotype;
-> +	int baud_rate;
-> +	int err;
-> +
-> +	if (acpi_disabled)
-> +		return -ENODEV;
-> +
-> +	status = acpi_get_table_with_size(ACPI_SIG_SPCR, 0,
-> +					  (struct acpi_table_header **)&table,
-> +					  &table_size);
-> +
-> +	if (ACPI_FAILURE(status))
-> +		return -ENOENT;
-> +
-> +	if (table->header.revision < 2) {
-> +		err = -ENOENT;
-> +		pr_err("wrong table version\n");
-> +		goto done;
-> +	}
-> +
-> +	iotype = table->serial_port.space_id == ACPI_ADR_SPACE_SYSTEM_MEMORY ?
-> +			"mmio" : "io";
-> +
-> +	switch (table->interface_type) {
-> +	case ACPI_DBG2_ARM_SBSA_32BIT:
-> +		iotype = "mmio32";
-> +		/* fall through */
-> +	case ACPI_DBG2_ARM_PL011:
-> +	case ACPI_DBG2_ARM_SBSA_GENERIC:
-> +	case ACPI_DBG2_BCM2835:
-> +		uart = "pl011";
-> +		break;
-> +	case ACPI_DBG2_16550_COMPATIBLE:
-> +	case ACPI_DBG2_16550_SUBSET:
-> +		uart = "uart";
-> +		break;
-> +	default:
-> +		err = -ENOENT;
-> +		goto done;
-> +	}
-> +
-> +	switch (table->baud_rate) {
-> +	case 3:
-> +		baud_rate = 9600;
-> +		break;
-> +	case 4:
-> +		baud_rate = 19200;
-> +		break;
-> +	case 6:
-> +		baud_rate = 57600;
-> +		break;
-> +	case 7:
-> +		baud_rate = 115200;
-> +		break;
-> +	default:
-> +		err = -ENOENT;
-> +		goto done;
-> +	}
-> +
-> +	snprintf(opts, sizeof(opts), "%s,%s,0x%llx,%d", uart, iotype,
-> +		 table->serial_port.address, baud_rate);
-> +
-> +	pr_info("console: %s", opts);
-> +
-> +	if (earlycon)
-> +		setup_earlycon(opts);
-> +
-> +	err = add_preferred_console(uart, 0, opts + strlen(uart) + 1);
-> +
-> +done:
-> +	early_acpi_os_unmap_memory((void __iomem *)table, table_size);
-> +	return err;
-> +}
-> diff --git a/drivers/tty/serial/earlycon.c b/drivers/tty/serial/earlycon.c
-> index 7aae655..ea00b9f 100644
-> --- a/drivers/tty/serial/earlycon.c
-> +++ b/drivers/tty/serial/earlycon.c
-> @@ -21,6 +21,7 @@
->  #include <linux/sizes.h>
->  #include <linux/of.h>
->  #include <linux/of_fdt.h>
-> +#include <linux/acpi.h>
->  
->  #ifdef CONFIG_FIX_EARLYCON_MEM
->  #include <asm/fixmap.h>
-> @@ -199,6 +200,14 @@ int __init setup_earlycon(char *buf)
->  	return -ENOENT;
->  }
->  
-> +/*
-> + * When CONFIG_ACPI_SPCR_TABLE is defined, "earlycon" without parameters in
-> + * command line does not start DT earlycon immediately, instead it defers
-> + * starting it until DT/ACPI decision is made.  At that time if ACPI is enabled
-> + * call parse_spcr(), else call early_init_dt_scan_chosen_stdout()
-> + */
-> +bool earlycon_init_is_deferred __initdata;
-> +
->  /* early_param wrapper for setup_earlycon() */
->  static int __init param_setup_earlycon(char *buf)
->  {
-> @@ -208,8 +217,14 @@ static int __init param_setup_earlycon(char *buf)
->  	 * Just 'earlycon' is a valid param for devicetree earlycons;
->  	 * don't generate a warning from parse_early_params() in that case
->  	 */
-> -	if (!buf || !buf[0])
-> -		return early_init_dt_scan_chosen_stdout();
-> +	if (!buf || !buf[0]) {
-> +		if (IS_ENABLED(CONFIG_ACPI_SPCR_TABLE)) {
-> +			earlycon_init_is_deferred = true;
-> +			return 0;
-> +		} else {
-> +			return early_init_dt_scan_chosen_stdout();
-> +		}
-> +	}
->  
->  	err = setup_earlycon(buf);
->  	if (err == -ENOENT || err == -EALREADY)
-> diff --git a/include/linux/acpi.h b/include/linux/acpi.h
-> index 06ed7e5..1095ed6 100644
-> --- a/include/linux/acpi.h
-> +++ b/include/linux/acpi.h
-> @@ -1004,4 +1004,10 @@ static inline struct fwnode_handle *acpi_get_next_subnode(struct device *dev,
->  #define acpi_probe_device_table(t)	({ int __r = 0; __r;})
->  #endif
->  
-> +#ifdef CONFIG_ACPI_SPCR_TABLE
-> +int parse_spcr(bool earlycon);
-> +#else
-> +static inline int parse_spcr(bool earlycon) { return 0; }
-> +#endif
-> +
->  #endif	/*_LINUX_ACPI_H*/
-> diff --git a/include/linux/serial_core.h b/include/linux/serial_core.h
-> index cbfcf38..de6750f 100644
-> --- a/include/linux/serial_core.h
-> +++ b/include/linux/serial_core.h
-> @@ -363,6 +363,12 @@ extern int of_setup_earlycon(const struct earlycon_id *match,
->  			     unsigned long node,
->  			     const char *options);
->  
-> +#ifdef CONFIG_SERIAL_EARLYCON
-> +extern bool earlycon_init_is_deferred __initdata;
-> +#else
-> +static const bool earlycon_init_is_deferred;
-> +#endif
-> +
->  struct uart_port *uart_get_console(struct uart_port *ports, int nr,
->  				   struct console *c);
->  int uart_parse_earlycon(char *p, unsigned char *iotype, unsigned long *addr,
-> 
+Why has there been no attempt in ASWG to make these sort of features a
+1st class citizen of ACPI so they can interact correctly with the other
+features?
+
+Thanks
+
+Graeme
+
