@@ -1,62 +1,168 @@
-From: Mark Rutland <mark.rutland@arm.com>
-Subject: Re: [RFC PATCH 0/4] Add ACPI support for pinctrl configuration
-Date: Wed, 6 Apr 2016 01:01:33 +0100
-Message-ID: <20160406000130.GB8903@svinekod>
-References: <1459424685-26965-1-git-send-email-irina.tirdea@intel.com>
- <20160404225200.GA1615@svinekod>
- <1F3AC3675D538145B1661F571FE1805F2F2342A6@irsmsx105.ger.corp.intel.com>
- <20160405181625.GA3064@svinekod>
- <CAE1zot+kyANCTPHGmj2W26f4LbS9Nkgt_9DNon-=0nsqRpT3Rw@mail.gmail.com>
+From: Dan Williams <dan.j.williams@intel.com>
+Subject: [PATCH] libnvdimm, nfit: report multiple interface codes per-dimm
+Date: Tue, 05 Apr 2016 17:35:15 -0700
+Message-ID: <20160406003515.6719.15443.stgit@dwillia2-desk3.jf.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from foss.arm.com ([217.140.101.70]:54246 "EHLO foss.arm.com"
+Received: from mga04.intel.com ([192.55.52.120]:28073 "EHLO mga04.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754007AbcDFABk (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 5 Apr 2016 20:01:40 -0400
-Content-Disposition: inline
-In-Reply-To: <CAE1zot+kyANCTPHGmj2W26f4LbS9Nkgt_9DNon-=0nsqRpT3Rw@mail.gmail.com>
+	id S1753670AbcDFAgH (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 5 Apr 2016 20:36:07 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Octavian Purdila <octavian.purdila@intel.com>
-Cc: "Tirdea, Irina" <irina.tirdea@intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Mika Westerberg <mika.westerberg@linux.intel.com>, Linus Walleij <linus.walleij@linaro.org>, "linux-gpio@vger.kernel.org" <linux-gpio@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Rob Herring <robh+dt@kernel.org>, Heikki Krogerus <heikki.krogerus@linux.intel.com>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, "Ciocan, Cristina" <cristina.ciocan@intel.com>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "charles.garcia-tobin@arm.com" <charles.garcia-tobin@arm.com>
+To: linux-nvdimm@lists.01.org
+Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
-On Tue, Apr 05, 2016 at 11:09:34PM +0300, Octavian Purdila wrote:
-> On Tue, Apr 5, 2016 at 9:16 PM, Mark Rutland <mark.rutland@arm.com> wrote:
-> > * The firmware is to some extent expected to manage pinctrl today (for power
-> >   management of devices it does know about), and hence a pinctrl device is
-> >   potentially under shared management of ACPI and the OS.
-> >
-> > * The ACPI specification says nothing about this style of pinctrl management,
-> >   so it is unclear what the expectations are:
-> 
-> Does it say anything at all about pinctrl management?
+Starting with ACPI 6.1 an NFIT table will report multiple 'NVDIMM
+Control Region Structure' instances per-dimm, one for each supported
+format interface.  Report that code in the following format in sysfs:
 
-To the best of my knowledge the ACPI spec does not explicitly mention pinctrl.
-In another reply it was mentioned that there is work in progress for pinmuxing,
-so evidently it is on the ASWG radar and within the scope of ACPI.
+    nmemX/nfit/formats
+    nmemX/nfit/format
+    nmemX/nfit/format1
+    nmemX/nfit/format2
+    ...
+    nmemX/nfit/formatN
 
-I was trying to point out that it is _implicitly_ firmware's responsibility to
-do any pinctrl today, due to the ACPI model for power management, and the lack
-of an existing ACPI mechanisms to provide pinctrl data.
+Where format2 - formatN are theoretical as there are no known DIMMs with
+support for more than two interface formats.
 
-In practice, firmware configures pinctrl at boot, and may modify pinctrl as
-part of the runtime power management firmware is put in charge of.
+This layout is compatible with existing libndctl binaries that only
+expect one code per-dimm as they will ignore nmemX/nfit/formats and
+nmemX/nfit/formatN.
 
-The lack of any statement about pinctrl would mean that there is effectively no
-reasonable limitation on what firmware might do with pinctrl, and we cannot
-assume specific behaviour from the firmware.
+Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+---
+ drivers/acpi/nfit.c |   73 +++++++++++++++++++++++++++++++++++++++++++++++++--
+ drivers/acpi/nfit.h |    1 +
+ 2 files changed, 71 insertions(+), 3 deletions(-)
 
-[...]
+diff --git a/drivers/acpi/nfit.c b/drivers/acpi/nfit.c
+index d0f35e63640b..239556126051 100644
+--- a/drivers/acpi/nfit.c
++++ b/drivers/acpi/nfit.c
+@@ -655,6 +655,7 @@ static int nfit_mem_dcr_init(struct acpi_nfit_desc *acpi_desc,
+ 			if (!nfit_mem)
+ 				return -ENOMEM;
+ 			INIT_LIST_HEAD(&nfit_mem->list);
++			nfit_mem->acpi_desc = acpi_desc;
+ 			list_add(&nfit_mem->list, &acpi_desc->dimms);
+ 		}
+ 
+@@ -838,6 +839,18 @@ static ssize_t device_show(struct device *dev,
+ }
+ static DEVICE_ATTR_RO(device);
+ 
++static int num_nvdimm_formats(struct nvdimm *nvdimm)
++{
++	struct nfit_mem *nfit_mem = nvdimm_provider_data(nvdimm);
++	int formats = 0;
++
++	if (nfit_mem->memdev_pmem)
++		formats++;
++	if (nfit_mem->memdev_bdw)
++		formats++;
++	return formats;
++}
++
+ static ssize_t format_show(struct device *dev,
+ 		struct device_attribute *attr, char *buf)
+ {
+@@ -847,6 +860,56 @@ static ssize_t format_show(struct device *dev,
+ }
+ static DEVICE_ATTR_RO(format);
+ 
++static ssize_t format1_show(struct device *dev,
++		struct device_attribute *attr, char *buf)
++{
++	u32 handle;
++	ssize_t rc = -ENXIO;
++	struct nfit_mem *nfit_mem;
++	struct nfit_memdev *nfit_memdev;
++	struct acpi_nfit_desc *acpi_desc;
++	struct nvdimm *nvdimm = to_nvdimm(dev);
++	struct acpi_nfit_control_region *dcr = to_nfit_dcr(dev);
++
++	nfit_mem = nvdimm_provider_data(nvdimm);
++	acpi_desc = nfit_mem->acpi_desc;
++	handle = to_nfit_memdev(dev)->device_handle;
++
++	/* assumes DIMMs have at most 2 published interface codes */
++	mutex_lock(&acpi_desc->init_mutex);
++	list_for_each_entry(nfit_memdev, &acpi_desc->memdevs, list) {
++		struct acpi_nfit_memory_map *memdev = nfit_memdev->memdev;
++		struct nfit_dcr *nfit_dcr;
++
++		if (memdev->device_handle != handle)
++			continue;
++
++		dev_dbg(dev, "memdev: %d\n", memdev->region_index);
++		list_for_each_entry(nfit_dcr, &acpi_desc->dcrs, list) {
++			if (nfit_dcr->dcr->region_index != memdev->region_index)
++				continue;
++			if (nfit_dcr->dcr->code == dcr->code)
++				continue;
++			rc = sprintf(buf, "%#x\n", nfit_dcr->dcr->code);
++			break;
++		}
++		if (rc != ENXIO)
++			break;
++	}
++	mutex_unlock(&acpi_desc->init_mutex);
++	return rc;
++}
++static DEVICE_ATTR_RO(format1);
++
++static ssize_t formats_show(struct device *dev,
++		struct device_attribute *attr, char *buf)
++{
++	struct nvdimm *nvdimm = to_nvdimm(dev);
++
++	return sprintf(buf, "%d\n", num_nvdimm_formats(nvdimm));
++}
++static DEVICE_ATTR_RO(formats);
++
+ static ssize_t serial_show(struct device *dev,
+ 		struct device_attribute *attr, char *buf)
+ {
+@@ -876,6 +939,8 @@ static struct attribute *acpi_nfit_dimm_attributes[] = {
+ 	&dev_attr_vendor.attr,
+ 	&dev_attr_device.attr,
+ 	&dev_attr_format.attr,
++	&dev_attr_formats.attr,
++	&dev_attr_format1.attr,
+ 	&dev_attr_serial.attr,
+ 	&dev_attr_rev_id.attr,
+ 	&dev_attr_flags.attr,
+@@ -886,11 +951,13 @@ static umode_t acpi_nfit_dimm_attr_visible(struct kobject *kobj,
+ 		struct attribute *a, int n)
+ {
+ 	struct device *dev = container_of(kobj, struct device, kobj);
++	struct nvdimm *nvdimm = to_nvdimm(dev);
+ 
+-	if (to_nfit_dcr(dev))
+-		return a->mode;
+-	else
++	if (!to_nfit_dcr(dev))
++		return 0;
++	if (a == &dev_attr_format1.attr && num_nvdimm_formats(nvdimm) <= 1)
+ 		return 0;
++	return a->mode;
+ }
+ 
+ static struct attribute_group acpi_nfit_dimm_attribute_group = {
+diff --git a/drivers/acpi/nfit.h b/drivers/acpi/nfit.h
+index c75576b2d50e..5201840c1147 100644
+--- a/drivers/acpi/nfit.h
++++ b/drivers/acpi/nfit.h
+@@ -109,6 +109,7 @@ struct nfit_mem {
+ 	struct nfit_flush *nfit_flush;
+ 	struct list_head list;
+ 	struct acpi_device *adev;
++	struct acpi_nfit_desc *acpi_desc;
+ 	unsigned long dsm_mask;
+ };
+ 
 
-> Since our focus is for open-ended configurations and for hardware that
-> it is not know to firmware we only considered the case where the pins
-> are not touched after the system boots.
-> 
-> Now I wonder what are the cases were the firmware changes the pin
-> configuration after boot.
-
-Device power management and suspend/resume seem like the obvious cases.
-
-Thanks,
-Mark
