@@ -1,83 +1,62 @@
-From: Al Stone <astone@redhat.com>
+From: Mark Rutland <mark.rutland@arm.com>
 Subject: Re: [RFC PATCH 0/4] Add ACPI support for pinctrl configuration
-Date: Tue, 5 Apr 2016 18:00:31 -0600
-Message-ID: <5704519F.5030906@redhat.com>
+Date: Wed, 6 Apr 2016 01:01:33 +0100
+Message-ID: <20160406000130.GB8903@svinekod>
 References: <1459424685-26965-1-git-send-email-irina.tirdea@intel.com>
  <20160404225200.GA1615@svinekod>
- <D3292CBB.662A8%charles.garcia-tobin@arm.com>
-Reply-To: ahs3@redhat.com
+ <1F3AC3675D538145B1661F571FE1805F2F2342A6@irsmsx105.ger.corp.intel.com>
+ <20160405181625.GA3064@svinekod>
+ <CAE1zot+kyANCTPHGmj2W26f4LbS9Nkgt_9DNon-=0nsqRpT3Rw@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-gpio-owner@vger.kernel.org>
-In-Reply-To: <D3292CBB.662A8%charles.garcia-tobin@arm.com>
-Sender: linux-gpio-owner@vger.kernel.org
-To: Charles Garcia-Tobin <charles.garcia-tobin@arm.com>, Mark Rutland <mark.rutland@arm.com>, Irina Tirdea <irina.tirdea@intel.com>
-Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Mika Westerberg <mika.westerberg@linux.intel.com>, Linus Walleij <linus.walleij@linaro.org>, "linux-gpio@vger.kernel.org" <linux-gpio@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Rob Herring <robh+dt@kernel.org>, Heikki Krogerus <heikki.krogerus@linux.intel.com>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Octavian Purdila <octavian.purdila@intel.com>, Cristina Ciocan <cristina.ciocan@intel.com>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from foss.arm.com ([217.140.101.70]:54246 "EHLO foss.arm.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754007AbcDFABk (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 5 Apr 2016 20:01:40 -0400
+Content-Disposition: inline
+In-Reply-To: <CAE1zot+kyANCTPHGmj2W26f4LbS9Nkgt_9DNon-=0nsqRpT3Rw@mail.gmail.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Octavian Purdila <octavian.purdila@intel.com>
+Cc: "Tirdea, Irina" <irina.tirdea@intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Mika Westerberg <mika.westerberg@linux.intel.com>, Linus Walleij <linus.walleij@linaro.org>, "linux-gpio@vger.kernel.org" <linux-gpio@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Rob Herring <robh+dt@kernel.org>, Heikki Krogerus <heikki.krogerus@linux.intel.com>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, "Ciocan, Cristina" <cristina.ciocan@intel.com>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "charles.garcia-tobin@arm.com" <charles.garcia-tobin@arm.com>
 
-On 04/05/2016 02:56 AM, Charles Garcia-Tobin wrote:
+On Tue, Apr 05, 2016 at 11:09:34PM +0300, Octavian Purdila wrote:
+> On Tue, Apr 5, 2016 at 9:16 PM, Mark Rutland <mark.rutland@arm.com> wrote:
+> > * The firmware is to some extent expected to manage pinctrl today (for power
+> >   management of devices it does know about), and hence a pinctrl device is
+> >   potentially under shared management of ACPI and the OS.
+> >
+> > * The ACPI specification says nothing about this style of pinctrl management,
+> >   so it is unclear what the expectations are:
 > 
-> 
-> On 04/04/2016 23:52, "Mark Rutland" <mark.rutland@arm.com> wrote:
-> 
->> Hi,
->>
->> On Thu, Mar 31, 2016 at 02:44:41PM +0300, Irina Tirdea wrote:
->>> This is a proposal for adding ACPI support for pin controller
->>> configuration.
->>>
->>> It has been developed to enable the MinnowBoard and IoT community
->>> by providing an easy way to specify pin multiplexing and
->>> pin configuration.
->>>
->>> This proposal is based on using _DSD properties to specify device
->>> states and configuration nodes and it follows closely the device
->>> tree model. Device states are defined using the Device Properties
->>> format and the configuration nodes are defined using the
->>> Hierarchical Properties Extension format. The generic properties
->>> for the configuration nodes are the same as the ones for device
->>> tree, while pincontroller drivers can also define custom ones.
->>
->>From a look of the Documentation addition, and of the current uses of
->> pinctrl-names in device tree bindings, one reason for requiring multiple
->> pinctrl states is power management. Given that, I'm somewhat concerned by
->> this,
->> as it goes against the usual ACPI model of abstracting this sort of thing
->> behind power control methods.
->>
->> To the best of my knowledge, that goes against the ASWG's expectations on
->> how
->> _DSD will be used (per [1]). Charles, please correct me if that document
->> is no
->> longer representative.
-> 
-> It is though latest version was posted by Rafael a bit later:
-> https://lists.acpica.org/pipermail/dsd/2015-December/000027.html
-> 
-> 
-> In addition the core rules requiring that existing ACPI paradigms are not
-> subverted through DSD (basically the concern you express) are also
-> documented in the main DSD documentation itself:
-> http://www.uefi.org/sites/default/files/resources/_DSD-device-properties-UU
-> ID.pdf (section 2.3)
+> Does it say anything at all about pinctrl management?
 
-I have to echo Mark's concern: wholesale importation of portions of current
-DT bindings simply because it's expedient is one of the things I've been hoping
-to avoid.  These patches seem to be just that.
+To the best of my knowledge the ACPI spec does not explicitly mention pinctrl.
+In another reply it was mentioned that there is work in progress for pinmuxing,
+so evidently it is on the ASWG radar and within the scope of ACPI.
 
-And while the latest version mentioned above describes a bit of a review
-process to handle this case, I don't recall the kernel community at large
-agreeing to it, nor to it having been implemented.  If I missed that part,
-my apologies; please let me know where it was decided.  If I haven't, then
-perhaps this needs to be the first test case of that process.
+I was trying to point out that it is _implicitly_ firmware's responsibility to
+do any pinctrl today, due to the ACPI model for power management, and the lack
+of an existing ACPI mechanisms to provide pinctrl data.
 
--- 
-ciao,
-al
------------------------------------
-Al Stone
-Software Engineer
-Red Hat, Inc.
-ahs3@redhat.com
------------------------------------
+In practice, firmware configures pinctrl at boot, and may modify pinctrl as
+part of the runtime power management firmware is put in charge of.
+
+The lack of any statement about pinctrl would mean that there is effectively no
+reasonable limitation on what firmware might do with pinctrl, and we cannot
+assume specific behaviour from the firmware.
+
+[...]
+
+> Since our focus is for open-ended configurations and for hardware that
+> it is not know to firmware we only considered the case where the pins
+> are not touched after the system boots.
+> 
+> Now I wonder what are the cases were the firmware changes the pin
+> configuration after boot.
+
+Device power management and suspend/resume seem like the obvious cases.
+
+Thanks,
+Mark
