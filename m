@@ -1,85 +1,110 @@
-From: Saravana Kannan <skannan@codeaurora.org>
-Subject: Re: [PATCH 1/7] cpufreq: remove redundant CPUFREQ_INCOMPATIBLE notifier
- event
-Date: Wed, 06 Apr 2016 14:29:21 -0700
-Message-ID: <57057FB1.2050904@codeaurora.org>
-References: <cover.1438571116.git.viresh.kumar@linaro.org> <406f55ac8030043f0349b084878c9b8d04f7ad86.1438571116.git.viresh.kumar@linaro.org> <4897937.47p7WB7CoU@vostro.rjw.lan> <20150910003918.GL5266@linux> <CAJZ5v0jRDFJF6_mNvE7JknuUG-Tz1mDFMXw5rOEJP4GqXZtprA@mail.gmail.com> <57057201.9030109@codeaurora.org> <CAJZ5v0iUdkYrEzKrGDEiDnexsxfY7o9xOHPoWELk88gau=gAhA@mail.gmail.com>
+From: "Baicar, Tyler" <tbaicar@codeaurora.org>
+Subject: Re: [PATCH V2 5/9] arm64: exception: handle instruction abort at
+ current EL
+Date: Wed, 6 Apr 2016 15:36:00 -0600
+Message-ID: <57058140.5040507@codeaurora.org>
+References: <1459955578-24602-1-git-send-email-tbaicar@codeaurora.org>
+ <1459955578-24602-6-git-send-email-tbaicar@codeaurora.org>
+ <57052D0E.5070903@arm.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Type: text/plain; charset=windows-1252; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-pm-owner@vger.kernel.org>
-In-Reply-To: <CAJZ5v0iUdkYrEzKrGDEiDnexsxfY7o9xOHPoWELk88gau=gAhA@mail.gmail.com>
-Sender: linux-pm-owner@vger.kernel.org
-To: "Rafael J. Wysocki" <rafael@kernel.org>
-Cc: Viresh Kumar <viresh.kumar@linaro.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Lists linaro-kernel <linaro-kernel@lists.linaro.org>, "linux-pm@vger.kernel.org" <linux-pm@vger.kernel.org>, Dmitry Eremin-Solenikov <dbaryshkov@gmail.com>, Fabian Frederick <fabf@skynet.be>, Jean-Christophe Plagniol-Villard <plagnioj@jcrosoft.com>, Jonathan Corbet <corbet@lwn.net>, Len Brown <lenb@kernel.org>, open@codeaurora.org, "list@codeaurora.org:ACPI" <linux-acpi@vger.kernel.org>open@codeaurora.org, "list@codeaurora.org:DOCUMENTATION" <linux-doc@vger.kernel.org>open@codeaurora.org, "list@codeaurora.org:FRAMEBUFFER LAYER" <linux-fbdev@vger.kernel.org>, open list <linux-kernel@vger.kernel.org>, Nicholas Mc Guire <hofrat@osadl.org>, Russell King <rmk+kernel@arm.linux.org.uk>, Tomi Valkeinen <tomi.valkeinen@ti.com>, Wolfram Sang <wsa@the-dreams.de>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from smtp.codeaurora.org ([198.145.29.96]:48770 "EHLO
+	smtp.codeaurora.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752127AbcDFVgF (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 6 Apr 2016 17:36:05 -0400
+In-Reply-To: <57052D0E.5070903@arm.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Marc Zyngier <marc.zyngier@arm.com>, fu.wei@linaro.org, timur@codeaurora.org, harba@codeaurora.org, rruigrok@codeaurora.org, ahs3@redhat.com, catalin.marinas@arm.com, will.deacon@arm.com, rjw@rjwysocki.net, lenb@kernel.org, matt@codeblueprint.co.uk, robert.moore@intel.com, lv.zheng@intel.com, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, linux-efi@vger.kernel.org, devel@acpica.org
+Cc: Naveen Kaje <nkaje@codeaurora.org>
 
-On 04/06/2016 02:21 PM, Rafael J. Wysocki wrote:
-> On Wed, Apr 6, 2016 at 10:30 PM, Saravana Kannan <skannan@codeaurora.org> wrote:
->> On 09/09/2015 05:53 PM, Rafael J. Wysocki wrote:
->>>
->>> Hi,
->>>
->>> On Thu, Sep 10, 2015 at 2:39 AM, Viresh Kumar <viresh.kumar@linaro.org>
->>> wrote:
->>>>
->>>> On 10-09-15, 01:26, Rafael J. Wysocki wrote:
->>>>>
->>>>> On Monday, August 03, 2015 08:36:14 AM Viresh Kumar wrote:
->>>>>>
->>>>>> What's being done from CPUFREQ_INCOMPATIBLE, can also be done with
->>>>>> CPUFREQ_ADJUST. There is nothing special with CPUFREQ_INCOMPATIBLE
->>>>>> notifier.
->>>>>
->>>>>
->>>>> The above part of the changelog is a disaster to me. :-(
->>>>>
->>>>> It not only doesn't explain what really goes on, but it's actively
->>>>> confusing.
->>>>>
->>>>> What really happens is that the core sends CPUFREQ_INCOMPATIBLE
->>>>> notifications
->>>>> unconditionally right after sending the CPUFREQ_ADJUST ones, so the
->>>>> former is
->>>>> just redundant and it's more efficient to merge the two into one.
->>>>
->>>>
->>>> Undoubtedly this looks far better :)
->>>>
->>>> But, isn't this series already applied some time back ?
->>>
->>>
->>> Right, never mind.  For some reason that patch was left in the "New"
->>> state.
->>>
->>> The code is OK.
+Hello Marc,
+
+On 4/6/2016 9:36 AM, Marc Zyngier wrote:
+> On 06/04/16 16:12, Tyler Baicar wrote:
+>> Add a handler for instruction aborts at the current EL
+>> (ESR_ELx_EC_IABT_CUR) so they are no longer handled in el1_inv.
+>> This allows firmware first handling for possible SEA
+>> (Synchronous External Abort) caused instruction abort at
+>> current EL.
 >>
+>> Signed-off-by: Tyler Baicar <tbaicar@codeaurora.org>
+>> Signed-off-by: Naveen Kaje <nkaje@codeaurora.org>
+>> ---
+>>   arch/arm64/kernel/entry.S | 19 +++++++++++++++++++
+>>   1 file changed, 19 insertions(+)
 >>
+>> diff --git a/arch/arm64/kernel/entry.S b/arch/arm64/kernel/entry.S
+>> index 12e8d2b..f257856 100644
+>> --- a/arch/arm64/kernel/entry.S
+>> +++ b/arch/arm64/kernel/entry.S
+>> @@ -336,6 +336,8 @@ el1_sync:
+>>   	lsr	x24, x1, #ESR_ELx_EC_SHIFT	// exception class
+>>   	cmp	x24, #ESR_ELx_EC_DABT_CUR	// data abort in EL1
+>>   	b.eq	el1_da
+>> +	cmp	x24, #ESR_ELx_EC_IABT_CUR	// instruction abort in EL1
+>> +	b.eq	el1_ia
+>>   	cmp	x24, #ESR_ELx_EC_SYS64		// configurable trap
+>>   	b.eq	el1_undef
+>>   	cmp	x24, #ESR_ELx_EC_SP_ALIGN	// stack alignment exception
+>> @@ -363,6 +365,23 @@ el1_da:
+>>   	// disable interrupts before pulling preserved data off the stack
+>>   	disable_irq
+>>   	kernel_exit 1
+>> +el1_ia:
+>> +	/*
+>> +	 * Instruction abort handling
+>> +	 */
+>> +	mrs	x0, far_el1
+>> +	enable_dbg
+>> +	// re-enable interrupts if they were enabled in the aborted context
+>> +	tbnz	x23, #7, 1f			// PSR_I_BIT
+>> +	enable_irq
+>> +1:
+>> +	orr	x1, x1, #1 << 24		// use reserved ISS bit for instruction aborts
+>> +	mov	x2, sp				// struct pt_regs
+>> +	bl	do_mem_abort
+>> +
+>> +	// disable interrupts before pulling preserved data off the stack
+>> +	disable_irq
+>> +	kernel_exit 1
+>>   el1_sp_pc:
+>>   	/*
+>>   	 * Stack or PC alignment exception handling
 >>
->> I guess I didn't notice this change when it was sent out.
->>
->> The comment that was deleted in this patch clearly states why the
->> INCOMPATIBLE notifier is needed. Some client might want to boost the CPU min
->> freq for performance or other reasons, but thermal might want to limit it.
->> So, by having thermal register for INCOMPATIBLE notifiers to enforce the
->> limits, we provide a way to guarantee it gets the final say.
->>
->> The real fix should have been to change drivers/thermal/cpu_cooling.c to use
->> CPUFREQ_INCOMPATIBLE instead of CPUFREQ_ADJUST.
->>
->> Is there something I'm missing? If not, can we please revert this patch?
+> What happens if you were running at EL2 when this faults gets injected?
+> It looks like KVM needs something similar, doesn't it?
 >
-> Well, nobody was using that event.
+> Thanks,
 >
+> 	M.
+Thank you for your comment. I don't think this case is possible, or at 
+least the current KVM code suggests that this case should never happen.  
+In the EL1 code, we get to this case via the vector:
 
-True, but that's more of a bug in drivers/thermal/cpu-cooling.c and 
-drivers/acpi/processor_thermal.c. We should revert this patch and fix 
-those drivers. Does that seem acceptable to you?
+ventry  el1_sync                        // Synchronous EL1h
 
--Saravana
+The EL2 KVM equivalent appears to be in arch/arm64/kvm/hyp-entry.S and is:
 
+ventry  el2h_sync_invalid               // Synchronous EL2h
+
+This vector is defined as an invalid_vector and has a comment suggesting 
+that it should never happen:
+
+/* None of these should ever happen */
+...
+         invalid_vector  el2h_sync_invalid
+
+Please correct me if I am wrong, but it looks like this case should not 
+be possible.
+
+Thanks,
+Tyler
 
 -- 
 Qualcomm Innovation Center, Inc.
-The Qualcomm Innovation Center, Inc. is a member of Code Aurora Forum,
+Qualcomm Innovation Center, Inc. is a member of Code Aurora Forum,
 a Linux Foundation Collaborative Project
+
