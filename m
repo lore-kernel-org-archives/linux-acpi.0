@@ -1,67 +1,85 @@
-From: "Baicar, Tyler" <tbaicar-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>
-Subject: Re: [PATCH V2 1/9] acpi: apei: read ack upon ghes record consumption
-Date: Wed, 6 Apr 2016 14:43:04 -0600
-Message-ID: <570574D8.8060402@codeaurora.org>
-References: <1459955578-24602-1-git-send-email-tbaicar@codeaurora.org>
- <1459955578-24602-2-git-send-email-tbaicar@codeaurora.org>
- <57053100.7050305@arm.com>
+From: Saravana Kannan <skannan@codeaurora.org>
+Subject: Re: [PATCH 1/7] cpufreq: remove redundant CPUFREQ_INCOMPATIBLE notifier
+ event
+Date: Wed, 06 Apr 2016 14:29:21 -0700
+Message-ID: <57057FB1.2050904@codeaurora.org>
+References: <cover.1438571116.git.viresh.kumar@linaro.org> <406f55ac8030043f0349b084878c9b8d04f7ad86.1438571116.git.viresh.kumar@linaro.org> <4897937.47p7WB7CoU@vostro.rjw.lan> <20150910003918.GL5266@linux> <CAJZ5v0jRDFJF6_mNvE7JknuUG-Tz1mDFMXw5rOEJP4GqXZtprA@mail.gmail.com> <57057201.9030109@codeaurora.org> <CAJZ5v0iUdkYrEzKrGDEiDnexsxfY7o9xOHPoWELk88gau=gAhA@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Type: text/plain; charset=UTF-8; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-efi-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <57053100.7050305-5wv7dgnIgG8@public.gmane.org>
-Sender: linux-efi-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Suzuki K Poulose <Suzuki.Poulose-5wv7dgnIgG8@public.gmane.org>, fu.wei-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org, timur-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org, harba-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org, rruigrok-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org, ahs3-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, catalin.marinas-5wv7dgnIgG8@public.gmane.org, will.deacon-5wv7dgnIgG8@public.gmane.org, rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org, lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, matt-mF/unelCI9GS6iBeEJttW/XRex20P6io@public.gmane.org, robert.moore-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, lv.zheng-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-efi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devel-E0kO6a4B6psdnm+yROfE0A@public.gmane.org
-Cc: "Jonathan (Zhixiong) Zhang" <zjzhang-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, Naveen Kaje <nkaje-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>
+Return-path: <linux-pm-owner@vger.kernel.org>
+In-Reply-To: <CAJZ5v0iUdkYrEzKrGDEiDnexsxfY7o9xOHPoWELk88gau=gAhA@mail.gmail.com>
+Sender: linux-pm-owner@vger.kernel.org
+To: "Rafael J. Wysocki" <rafael@kernel.org>
+Cc: Viresh Kumar <viresh.kumar@linaro.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Lists linaro-kernel <linaro-kernel@lists.linaro.org>, "linux-pm@vger.kernel.org" <linux-pm@vger.kernel.org>, Dmitry Eremin-Solenikov <dbaryshkov@gmail.com>, Fabian Frederick <fabf@skynet.be>, Jean-Christophe Plagniol-Villard <plagnioj@jcrosoft.com>, Jonathan Corbet <corbet@lwn.net>, Len Brown <lenb@kernel.org>, open@codeaurora.org, "list@codeaurora.org:ACPI" <linux-acpi@vger.kernel.org>open@codeaurora.org, "list@codeaurora.org:DOCUMENTATION" <linux-doc@vger.kernel.org>open@codeaurora.org, "list@codeaurora.org:FRAMEBUFFER LAYER" <linux-fbdev@vger.kernel.org>, open list <linux-kernel@vger.kernel.org>, Nicholas Mc Guire <hofrat@osadl.org>, Russell King <rmk+kernel@arm.linux.org.uk>, Tomi Valkeinen <tomi.valkeinen@ti.com>, Wolfram Sang <wsa@the-dreams.de>
 List-Id: linux-acpi@vger.kernel.org
 
-Hello Suzuki,
-
-On 4/6/2016 9:53 AM, Suzuki K Poulose wrote:
-> On 06/04/16 16:12, Tyler Baicar wrote:
->> +    hest_hdr = (struct acpi_hest_header *)generic;
->> +    if (hest_hdr->type == ACPI_HEST_TYPE_GENERIC_ERROR_V2) {
->> +        ghes->generic_v2 = (struct acpi_hest_generic_v2 *)generic;
->> +        rc = apei_map_generic_address(
->> +            &ghes->generic_v2->read_ack_register);
->> +        if (rc)
->> +            goto err_unmap;
->> +    } else
->> +        ghes->generic_v2 = NULL;
-> ...
->>   err_unmap:
->> apei_unmap_generic_address(&generic->error_status_address);
->> +    if (ghes->generic_v2)
->> +        apei_unmap_generic_address(
->> +            &ghes->generic_v2->read_ack_register);
->>   err_free:
->>       kfree(ghes);
->>       return ERR_PTR(rc);
->> @@ -279,6 +295,9 @@ static void ghes_fini(struct ghes *ghes)
->>   {
->>       kfree(ghes->estatus);
->> apei_unmap_generic_address(&ghes->generic->error_status_address);
->> +    if (ghes->generic_v2)
->> +        apei_unmap_generic_address(
->> +            &ghes->generic_v2->error_status_address);
+On 04/06/2016 02:21 PM, Rafael J. Wysocki wrote:
+> On Wed, Apr 6, 2016 at 10:30 PM, Saravana Kannan <skannan@codeaurora.org> wrote:
+>> On 09/09/2015 05:53 PM, Rafael J. Wysocki wrote:
+>>>
+>>> Hi,
+>>>
+>>> On Thu, Sep 10, 2015 at 2:39 AM, Viresh Kumar <viresh.kumar@linaro.org>
+>>> wrote:
+>>>>
+>>>> On 10-09-15, 01:26, Rafael J. Wysocki wrote:
+>>>>>
+>>>>> On Monday, August 03, 2015 08:36:14 AM Viresh Kumar wrote:
+>>>>>>
+>>>>>> What's being done from CPUFREQ_INCOMPATIBLE, can also be done with
+>>>>>> CPUFREQ_ADJUST. There is nothing special with CPUFREQ_INCOMPATIBLE
+>>>>>> notifier.
+>>>>>
+>>>>>
+>>>>> The above part of the changelog is a disaster to me. :-(
+>>>>>
+>>>>> It not only doesn't explain what really goes on, but it's actively
+>>>>> confusing.
+>>>>>
+>>>>> What really happens is that the core sends CPUFREQ_INCOMPATIBLE
+>>>>> notifications
+>>>>> unconditionally right after sending the CPUFREQ_ADJUST ones, so the
+>>>>> former is
+>>>>> just redundant and it's more efficient to merge the two into one.
+>>>>
+>>>>
+>>>> Undoubtedly this looks far better :)
+>>>>
+>>>> But, isn't this series already applied some time back ?
+>>>
+>>>
+>>> Right, never mind.  For some reason that patch was left in the "New"
+>>> state.
+>>>
+>>> The code is OK.
+>>
+>>
+>>
+>> I guess I didn't notice this change when it was sent out.
+>>
+>> The comment that was deleted in this patch clearly states why the
+>> INCOMPATIBLE notifier is needed. Some client might want to boost the CPU min
+>> freq for performance or other reasons, but thermal might want to limit it.
+>> So, by having thermal register for INCOMPATIBLE notifiers to enforce the
+>> limits, we provide a way to guarantee it gets the final say.
+>>
+>> The real fix should have been to change drivers/thermal/cpu_cooling.c to use
+>> CPUFREQ_INCOMPATIBLE instead of CPUFREQ_ADJUST.
+>>
+>> Is there something I'm missing? If not, can we please revert this patch?
 >
-> I am not familiar with the APEI code, but is this error_status_address or
-> read_ack_register ? We don't seem to be mapping error_status_address 
-> in generic_v2 header
-> which is introduced in this patch ? Am I missing something ?
+> Well, nobody was using that event.
 >
-> Suzuki
 
-Thank you for your feedback. This does look like an error; it should be 
-&ghes->generic_v2->read_ack_register. The variable 
-&ghes->generic_v2->error_status_address is the same as 
-&ghes->generic->error_status_address which is unmapped on the line above 
-the if statement here.
+True, but that's more of a bug in drivers/thermal/cpu-cooling.c and 
+drivers/acpi/processor_thermal.c. We should revert this patch and fix 
+those drivers. Does that seem acceptable to you?
 
-Thanks,
-Tyler
+-Saravana
+
 
 -- 
 Qualcomm Innovation Center, Inc.
-Qualcomm Innovation Center, Inc. is a member of Code Aurora Forum,
+The Qualcomm Innovation Center, Inc. is a member of Code Aurora Forum,
 a Linux Foundation Collaborative Project
