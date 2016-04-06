@@ -1,168 +1,147 @@
-From: Dan Williams <dan.j.williams@intel.com>
-Subject: [PATCH] libnvdimm, nfit: report multiple interface codes per-dimm
-Date: Tue, 05 Apr 2016 17:35:15 -0700
-Message-ID: <20160406003515.6719.15443.stgit@dwillia2-desk3.jf.intel.com>
+From: "Zheng, Lv" <lv.zheng@intel.com>
+Subject: RE: [RFC PATCH 10/10] acpi: add support for loading SSDTs via
+ configfs
+Date: Wed, 6 Apr 2016 06:05:32 +0000
+Message-ID: <1AE640813FDE7649BE1B193DEA596E883BB66B8C@SHSMSX101.ccr.corp.intel.com>
+References: <1459417026-6697-1-git-send-email-octavian.purdila@intel.com>
+	<1459417026-6697-11-git-send-email-octavian.purdila@intel.com>
+	<1AE640813FDE7649BE1B193DEA596E883BB66233@SHSMSX101.ccr.corp.intel.com>
+	<CAE1zotLgjfKvFr0W9CjFbbkxqM6erLGwv-aHzTt=qwdCPzGOhw@mail.gmail.com>
+	<1AE640813FDE7649BE1B193DEA596E883BB6677B@SHSMSX101.ccr.corp.intel.com>
+ <CAE1zotKDFLNP5JTnMiWOstE4DYBHVeyP902J9ixD+fJbFqSZ6Q@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga04.intel.com ([192.55.52.120]:28073 "EHLO mga04.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753670AbcDFAgH (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 5 Apr 2016 20:36:07 -0400
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Transfer-Encoding: base64
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <CAE1zotKDFLNP5JTnMiWOstE4DYBHVeyP902J9ixD+fJbFqSZ6Q@mail.gmail.com>
+Content-Language: en-US
+Sender: linux-kernel-owner@vger.kernel.org
+To: "Purdila, Octavian" <octavian.purdila@intel.com>
+Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Matt Fleming <matt@codeblueprint.co.uk>, Mark Brown <broonie@kernel.org>, Wolfram Sang <wsa@the-dreams.de>, Joel Becker <jlbec@evilplan.org>, Christoph Hellwig <hch@lst.de>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-efi@vger.kernel.org" <linux-efi@vger.kernel.org>, "linux-i2c@vger.kernel.org" <linux-i2c@vger.kernel.org>, "linux-spi@vger.kernel.org" <linux-spi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "Tirdea, Irina" <irina.tirdea@intel.com>
 List-Id: linux-acpi@vger.kernel.org
-To: linux-nvdimm@lists.01.org
-Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
-Starting with ACPI 6.1 an NFIT table will report multiple 'NVDIMM
-Control Region Structure' instances per-dimm, one for each supported
-format interface.  Report that code in the following format in sysfs:
-
-    nmemX/nfit/formats
-    nmemX/nfit/format
-    nmemX/nfit/format1
-    nmemX/nfit/format2
-    ...
-    nmemX/nfit/formatN
-
-Where format2 - formatN are theoretical as there are no known DIMMs with
-support for more than two interface formats.
-
-This layout is compatible with existing libndctl binaries that only
-expect one code per-dimm as they will ignore nmemX/nfit/formats and
-nmemX/nfit/formatN.
-
-Signed-off-by: Dan Williams <dan.j.williams@intel.com>
----
- drivers/acpi/nfit.c |   73 +++++++++++++++++++++++++++++++++++++++++++++++++--
- drivers/acpi/nfit.h |    1 +
- 2 files changed, 71 insertions(+), 3 deletions(-)
-
-diff --git a/drivers/acpi/nfit.c b/drivers/acpi/nfit.c
-index d0f35e63640b..239556126051 100644
---- a/drivers/acpi/nfit.c
-+++ b/drivers/acpi/nfit.c
-@@ -655,6 +655,7 @@ static int nfit_mem_dcr_init(struct acpi_nfit_desc *acpi_desc,
- 			if (!nfit_mem)
- 				return -ENOMEM;
- 			INIT_LIST_HEAD(&nfit_mem->list);
-+			nfit_mem->acpi_desc = acpi_desc;
- 			list_add(&nfit_mem->list, &acpi_desc->dimms);
- 		}
- 
-@@ -838,6 +839,18 @@ static ssize_t device_show(struct device *dev,
- }
- static DEVICE_ATTR_RO(device);
- 
-+static int num_nvdimm_formats(struct nvdimm *nvdimm)
-+{
-+	struct nfit_mem *nfit_mem = nvdimm_provider_data(nvdimm);
-+	int formats = 0;
-+
-+	if (nfit_mem->memdev_pmem)
-+		formats++;
-+	if (nfit_mem->memdev_bdw)
-+		formats++;
-+	return formats;
-+}
-+
- static ssize_t format_show(struct device *dev,
- 		struct device_attribute *attr, char *buf)
- {
-@@ -847,6 +860,56 @@ static ssize_t format_show(struct device *dev,
- }
- static DEVICE_ATTR_RO(format);
- 
-+static ssize_t format1_show(struct device *dev,
-+		struct device_attribute *attr, char *buf)
-+{
-+	u32 handle;
-+	ssize_t rc = -ENXIO;
-+	struct nfit_mem *nfit_mem;
-+	struct nfit_memdev *nfit_memdev;
-+	struct acpi_nfit_desc *acpi_desc;
-+	struct nvdimm *nvdimm = to_nvdimm(dev);
-+	struct acpi_nfit_control_region *dcr = to_nfit_dcr(dev);
-+
-+	nfit_mem = nvdimm_provider_data(nvdimm);
-+	acpi_desc = nfit_mem->acpi_desc;
-+	handle = to_nfit_memdev(dev)->device_handle;
-+
-+	/* assumes DIMMs have at most 2 published interface codes */
-+	mutex_lock(&acpi_desc->init_mutex);
-+	list_for_each_entry(nfit_memdev, &acpi_desc->memdevs, list) {
-+		struct acpi_nfit_memory_map *memdev = nfit_memdev->memdev;
-+		struct nfit_dcr *nfit_dcr;
-+
-+		if (memdev->device_handle != handle)
-+			continue;
-+
-+		dev_dbg(dev, "memdev: %d\n", memdev->region_index);
-+		list_for_each_entry(nfit_dcr, &acpi_desc->dcrs, list) {
-+			if (nfit_dcr->dcr->region_index != memdev->region_index)
-+				continue;
-+			if (nfit_dcr->dcr->code == dcr->code)
-+				continue;
-+			rc = sprintf(buf, "%#x\n", nfit_dcr->dcr->code);
-+			break;
-+		}
-+		if (rc != ENXIO)
-+			break;
-+	}
-+	mutex_unlock(&acpi_desc->init_mutex);
-+	return rc;
-+}
-+static DEVICE_ATTR_RO(format1);
-+
-+static ssize_t formats_show(struct device *dev,
-+		struct device_attribute *attr, char *buf)
-+{
-+	struct nvdimm *nvdimm = to_nvdimm(dev);
-+
-+	return sprintf(buf, "%d\n", num_nvdimm_formats(nvdimm));
-+}
-+static DEVICE_ATTR_RO(formats);
-+
- static ssize_t serial_show(struct device *dev,
- 		struct device_attribute *attr, char *buf)
- {
-@@ -876,6 +939,8 @@ static struct attribute *acpi_nfit_dimm_attributes[] = {
- 	&dev_attr_vendor.attr,
- 	&dev_attr_device.attr,
- 	&dev_attr_format.attr,
-+	&dev_attr_formats.attr,
-+	&dev_attr_format1.attr,
- 	&dev_attr_serial.attr,
- 	&dev_attr_rev_id.attr,
- 	&dev_attr_flags.attr,
-@@ -886,11 +951,13 @@ static umode_t acpi_nfit_dimm_attr_visible(struct kobject *kobj,
- 		struct attribute *a, int n)
- {
- 	struct device *dev = container_of(kobj, struct device, kobj);
-+	struct nvdimm *nvdimm = to_nvdimm(dev);
- 
--	if (to_nfit_dcr(dev))
--		return a->mode;
--	else
-+	if (!to_nfit_dcr(dev))
-+		return 0;
-+	if (a == &dev_attr_format1.attr && num_nvdimm_formats(nvdimm) <= 1)
- 		return 0;
-+	return a->mode;
- }
- 
- static struct attribute_group acpi_nfit_dimm_attribute_group = {
-diff --git a/drivers/acpi/nfit.h b/drivers/acpi/nfit.h
-index c75576b2d50e..5201840c1147 100644
---- a/drivers/acpi/nfit.h
-+++ b/drivers/acpi/nfit.h
-@@ -109,6 +109,7 @@ struct nfit_mem {
- 	struct nfit_flush *nfit_flush;
- 	struct list_head list;
- 	struct acpi_device *adev;
-+	struct acpi_nfit_desc *acpi_desc;
- 	unsigned long dsm_mask;
- };
- 
-
+SGksDQoNCj4gRnJvbTogT2N0YXZpYW4gUHVyZGlsYSBbbWFpbHRvOm9jdGF2aWFuLnB1cmRpbGFA
+aW50ZWwuY29tXQ0KPiBTdWJqZWN0OiBSZTogW1JGQyBQQVRDSCAxMC8xMF0gYWNwaTogYWRkIHN1
+cHBvcnQgZm9yIGxvYWRpbmcgU1NEVHMgdmlhIGNvbmZpZ2ZzDQo+IA0KPiBPbiBUdWUsIEFwciA1
+LCAyMDE2IGF0IDY6MTEgQU0sIFpoZW5nLCBMdiA8bHYuemhlbmdAaW50ZWwuY29tPiB3cm90ZToN
+Cj4gPiBIaSwNCj4gPg0KPiA+PiBGcm9tOiBPY3RhdmlhbiBQdXJkaWxhIFttYWlsdG86b2N0YXZp
+YW4ucHVyZGlsYUBpbnRlbC5jb21dDQo+ID4+IFN1YmplY3Q6IFJlOiBbUkZDIFBBVENIIDEwLzEw
+XSBhY3BpOiBhZGQgc3VwcG9ydCBmb3IgbG9hZGluZyBTU0RUcyB2aWENCj4gY29uZmlnZnMNCj4g
+Pj4NCj4gPj4gT24gRnJpLCBBcHIgMSwgMjAxNiBhdCA3OjU1IEFNLCBaaGVuZywgTHYgPGx2Lnpo
+ZW5nQGludGVsLmNvbT4gd3JvdGU6DQo+ID4+ID4gSGksDQo+ID4+DQo+ID4+IEhpIEx2LA0KPiA+
+Pg0KPiA+PiA+PiBBZGQgc3VwcG9ydCBmb3IgYWNwaV91c2VyX3RhYmxlIGNvbmZpZ2ZzIGl0ZW1z
+IHRoYXQgYWxsb3dzIHRoZSB1c2VyIHRvDQo+ID4+ID4+IGxvYWQgbmV3IHRhYmxlcy4gVGhlIGRh
+dGEgYXR0cmlidXRlcyBjb250YWlucyB0aGUgdGFibGUgZGF0YSBhbmQgb25jZSBpdA0KPiA+PiA+
+PiBpcyBmaWxsZWQgZnJvbSB1c2Vyc3BhY2UgdGhlIHRhYmxlIGlzIGxvYWRlZCBhbmQgQUNQSSBk
+ZXZpY2VzIGFyZQ0KPiA+PiA+PiBlbnVtZXJhdGVkLg0KPiA+PiA+IFtMdiBaaGVuZ10NCj4gPj4g
+PiBXZSd2ZSBiZWVuIGNvbnNpZGVyaW5nIHRvIGltcGxlbWVudCB0aGlzIGZhY2lsaXR5IGJlZm9y
+ZS4NCj4gPj4gPiBUaGUgMiBhbHRlcm5hdGl2ZSBzb2x1dGlvbnMgYXJlOg0KPiA+PiA+IDEuIGlt
+cGxlbWVudCBMT0FEL1VOTE9BRCBpb2N0bCBmb3IgL3N5cy9rZXJuZWwvZGVidWcvYWNwaS9hY3Bp
+ZGJnIC0NCj4gdGhpcw0KPiA+PiB3aWxsIGJlIHVzZWZ1bCBmb3IgZXh0cmFjdGluZyBBTUwgYnl0
+ZSBzdHJlYW0gZnJvbSBrZXJuZWwgdG8gYmUgdXNlZCBieSBhDQo+ID4+IHVzZXJzcGFjZSBkaXNh
+c3NlbWJsZXIuDQo+ID4+DQo+ID4+IEFGQUlLIGFkZGluZyBuZXcgaW9jdGxzIGlzIGRpc2NvdXJh
+Z2VkLg0KPiA+IFtMdiBaaGVuZ10NCj4gPiBUb29scy9wb3dlci9hY3BpL3Rvb2xzL2FjcGlkYmcg
+aXMgYSBmaWxlIGRlc2NyaXB0b3IgYmFzZWQgdXRpbGl0eS4NCj4gPiBBbmQgaXQgbmVlZHMgYSBt
+ZXRob2QgdG8gb2J0YWluIGFuIEFNTCBieXRlIHN0cmVhbSBmcm9tIGtlcm5lbC4NCj4gPiBVc2lu
+ZyBpb2N0bCBpcyBhIGJlc3QgZml0IGRlc2lnbiBmb3IgYWNwaWRiZyBzbyB0aGF0IGl0IG5lZWRu
+J3QgdG8gYWNjZXNzIGFueQ0KPiBvdGhlciBmaWxlcy4NCj4gPg0KPiA+Pg0KPiA+PiA+IDIuIHRy
+YW5zaXRpb24gL3N5cy9maXJtd2FyZS9hY3BpL3RhYmxlcy94eHggaW50byBkaXJlY3RvcnkgYW5k
+IGltcGxlbWVudA0KPiA+PiAvc3lzL2Zpcm13YXJlL2FjcGkvdGFibGVzL2xvYWQsIC9zeXMvZmly
+bXdhcmUvYWNwaS90YWJsZXMvdW5sb2FkIC0gdGhpcw0KPiBzaG91bGQNCj4gPj4gYmUgYWJsZSB0
+byBtZWV0IHlvdXIgcmVxdWlyZW1lbnQuDQo+ID4+DQo+ID4+IFdlIGNhbid0IGRvIHRoYXQgYXMg
+aXQgd291bGQgYnJlYWsgdGhlIEFCSS4NCj4gPiBbTHYgWmhlbmddDQo+ID4gVGhlIG9ubHkgdXNl
+ciBvZiB0aGlzIGRpcmVjdG9yeSBoaWVyYXJjaHkgaXMgYWNwaWR1bXAuDQo+IA0KPiBTb21lIHN5
+c3RlbXMgKGUuZy4gQW5kcm9pZCwgQnJpbGxvKSBkbyBub3Qgc2hpcCBhY3BpZHVtcCBhbmQgaW4g
+dGhpcw0KPiBjYXNlIHRoZSBvbmx5IHdheSB0byBkdW1wIHRhYmxlcyBpcyBieSBhY2Nlc3Npbmcg
+c3lzZnMgZGlyZWN0bHkuDQo+IA0KPiA+IEFuZCB0aGUgdXNlciBvZiB0aGlzIHRvb2wgYXJlIGFs
+bCBkZXZlbG9wZXJzL3JlcG9ydGVycyBvbiB0aGUga2VybmVsIGJ1Z3ppbGxhLg0KPiA+IFdlJ3Zl
+IGJlZW4gYXNraW5nIHRoZSBCdWd6aWxsYSB1c2VycyB0byB1c2UgdGhlIHVwLXRvLWRhdGUgYWNw
+aWR1bXAgaW5zdGVhZA0KPiBvZiB0aGUgZGlzdHJpYnV0aW9uIHZlbmRvciBwcm92aWRlZCBvbmUg
+Zm9yIHNvIG1hbnkgeWVhcnMuDQo+ID4gU28gSU1PLCB0aGlzIGlzIG5vdCBhIHNlcmlvdXMgcHJv
+YmxlbSB5b3Ugc2hvdWxkIGNvbnNpZGVyLg0KPiA+IFlvdSBvbmx5IG5lZWQgdG8gdGhpbmsgYWJv
+dXQgYW4gYWNjZXB0YWJsZSB3YXkgZm9yIHRoZSBkaXN0cmlidXRpb24gdmVuZG9ycw0KPiB0byBz
+eW5jaHJvbml6ZSB0aGUga2VybmVsIGNoYW5nZSBhbmQgdGhlIGFjcGlkdW1wIGNoYW5nZS4NCj4g
+Pg0KPiANCj4gSSBndWVzcyB0aGUgcGVyZiBtb2RlbCB3aGVyZSB5b3UgaGF2ZSBhIHBlcmYgcGFj
+a2FnZSBidWlsZCB0b2dldGhlcg0KPiB3aXRoIHRoZSBrZXJuZWwgd2lsbCB3b3JrLiBCdXQgcmln
+aHQgbm93IGRpc3RyaWJ1dGlvbnMgYXJlIG5vdCB1c2luZw0KPiB0aGlzIG1vZGVsIGFuZCBhIGtl
+cm5lbCBjaGFuZ2Ugd2lsbCBicmVhayB0aGUgdXNlcnNwYWNlIHRvb2wuDQo+IA0KPiA+IElNTzoN
+Cj4gPiBZb3UgbWF5IGV4cG9zZSBhIHZlcnNpb24gZmlsZSBmcm9tIC9zeXMvZmlybXdhcmUvYWNw
+aS4NCj4gPiBhY3BpZHVtcCBjYW4gYmUgY2hhbmdlZCBhY2NvcmRpbmdseSBieSByZWZlcmVuY2lu
+ZyB0aGUgdmVyc2lvbiBmaWxlLg0KPiA+IEFuZCBvbGQgZGlyZWN0b3J5IGhpZXJhcmNoeSBzdXBw
+b3J0IGNvdWxkIGJlIGtlcHQgaW4gYWNwaWR1bXAuDQo+ID4NCj4gDQo+IFRoYXQgd2lsbCBzdGls
+bCBicmVhayBpZiB5b3UgdXBncmFkZSB0aGUga2VybmVsIGFuZCB1c2UgdGhlIG9sZCB0b29sLg0K
+PiANCj4gPiBOb3RlIHRoYXQgYWNwaWR1bXAgaXMgYWxzbyBhIHBhcnQgb2YgdGhlIGtlcm5lbCwg
+c28geW91ciBjaGFuZ2UgY291bGQgYmUNCj4gY29uc2lzdGVudC4NCj4gPiBGb3IgZXhhbXBsZSwN
+Cj4gPiBJZiB5b3UgY2hhbmdlZCBhY3BpZHVtcCBwcmlvciB0aGFuIG1ha2luZyB0aGUga2VybmVs
+IGNoYW5nZSwgdGhlDQo+IGRpc3RyaWJ1dGlvbiB2ZW5kb3JzIG1pZ2h0IGhhdmUgYWxyZWFkeSBy
+ZWxlYXNlZCB0aGUgbmV3IGFjcGlkdW1wIGZvciBhbGwgb2xkDQo+IGtlcm5lbHMgYmVmb3JlIHlv
+dSB0cmFuc2l0aW9uZWQgdGhlIGRpcmVjdG9yeSBoaWVyYXJjaHkuDQo+IA0KPiBUbyBtZSB0aGlz
+IHN0aWxsIGxvb2tzIGxpa2UgYnJlYWtpbmcgdXNlcnNwYWNlLCBwYXRjaGVzIGhhdmUgYmVlbg0K
+PiByZXZlcnRlZCBmb3IgbGVzcyA6KSBCdXQgSSBjYW4gc2VlIGhvdyB0aGlzIGNvdWxkIGJlIGNv
+bnNpZGVyZWQgYSBncmF5DQo+IGFyZWEuDQpbTHYgWmhlbmddIA0KRm9yIHRoZSAidXNlcnNwYWNl
+IGJyZWFraW5nIiBjb25jZXJuLg0KSU1PLCB3ZSBuZWVkbid0IHdvcnJ5IGFib3V0IHRoYXQgdG9v
+IG11Y2guDQoNCj4gDQo+IEFCSSBhc2lkZSwgc2VlIGJlbG93IGZvciB3aHkgY29uZmlnZnMgaXMg
+YmV0dGVyIHRoZW4gc3lzZnMuDQo+IA0KPiA+DQo+ID4+DQo+ID4+ID4gU28gbXkgZmlyc3QgcXVl
+c3Rpb24gaXM6DQo+ID4+ID4gV2h5IGRvIHlvdSB1c2UgY29uZmlnZnMgcmF0aGVyIHRoYW4gdGhl
+IGV4aXN0aW5nIG1lY2hhbmlzbXM/DQo+ID4+DQo+ID4+IHN5c2ZzIGlzIG5vdCBhIGdvb2QgY2hv
+aWNlIGZvciBkZWFsaW5nIHdpdGggb2JqZWN0cyBjcmVhdGVkIGZyb20NCj4gPj4gdXNlcnNwYWNl
+LCBjb25maWdmcyB3YXMgY3JlYXRlZCB0byBhZGRyZXNzIHRoaXMgc3BlY2lmaWMgbmVlZC4gU2lu
+Y2UNCj4gPj4gd2Ugd2FudCB0byBiZSBhYmxlIHRvIGNyZWF0ZSBhbmQgbG9hZCBuZXcgdGFibGVz
+IGZyb20gdXNlcnNwYWNlIHRoaXMNCj4gPj4gdXNlLWNhc2UgZml0cyB2ZXJ5IHdlbGwgd2l0aCBj
+b25maWdmcy4NCj4gPiBbTHYgWmhlbmddDQo+ID4gV2FzIHRoZSB0YWJsZSBiaW5hcnkgc3RyZWFt
+IHN0aWxsIG1haW50YWluZWQgYnkgdGhlIHVzZXJzcGFjZT8NCj4gPiBJZiBub3QsIEkgY291bGRu
+J3Qgc2VlIHRoZSBkaWZmZXJlbmNlL2FkdmFudGFnZXMgZnJvbSB1c2luZw0KPiAvc3lzL2Zpcm13
+YXJlL2FjcGkvdGFibGVzIHRvIHVzaW5nIGNvbmZpZ2ZzLg0KPiA+DQo+IA0KPiBJdCBpcyBoYXJk
+IHRvIGNyZWF0ZSBuZXcga2VybmVsIG9iamVjdHMgZnJvbSBzeXNmcy4gWW91IG5lZWQgdG8gcmVz
+b3J0DQo+IHRvIGhhY2tzIGxpa2UgdXNpbmcgbmV3X3RhYmxlIHN5c2ZzIGVudHJpZXMgd2hpY2gg
+ZG9lcyBub3QgbWFwIHRvIGENCj4ga2VybmVsIG9iamVjdC4gV3JpdGVzIGxhcmdlciB0aGVuIFBB
+R0VfU0laRSBhcmUgaW1wb3NzaWJsZSB0byBoYW5kbGUNCj4gd2l0aCBtdWx0aXBsZSBvcGVuIGZp
+bGVzIGJlY2F1c2UgeW91IGhhdmUgbm8gb3BlbiBjYWxsYmFjayB0byBjcmVhdGUgYQ0KPiBmaWxl
+IGNvbnRleHQuIEl0IGlzIGFsc28gbm90IHBvc3NpYmxlIHRvIGRvIGFueSBjbGVhbi11cCBiZWNh
+dXNlIHRoZXJlDQo+IGlzIG5vIGNsb3NlIGNhbGxiYWNrIGFuZCBpZiBzb21ldGhpbmcgZ29lcyB3
+cm9uZyBmb3IgZXhhbXBsZSB3aGVuDQo+IHRyeWluZyB0byBpbnN0YWxsIHRoZSB0YWJsZSB5b3Ug
+d2lsbCBsZWFrIHRoZSBhbGxvY2F0ZWQgbWVtb3J5Lg0KPiANCj4gY29uZmlnZnMgd2FzIGRlc2ln
+bmVkIGZvciB0aGUgc3BlY2lmaWMgcHVycG9zZSBvZiBjcmVhdGluZyBrZXJuZWwNCj4gb2JqZWN0
+cyBmcm9tIHVzZXJzcGFjZSBhbmQgYWRkcmVzc2VzIGFsbCBvZiB0aGUgbGltaXRhdGlvbnMgYWJv
+dmUgKGFuZA0KPiBzb21lIG1vcmUpLg0KPiANCj4gSW5pdGlhbGx5IEkgc3RhcnRlZCB0byBpbXBs
+ZW1lbnQgdGhpcyBmdW5jdGlvbmFsaXR5IHZpYSBzeXNmcyBidXQgSQ0KPiBydW4gaW50byB0aGUg
+aXNzdWVzIG1lbnRpb25lZCBhYm92ZSBhbmQgZGVjaWRlZCB0byB1c2UgY29uZmlnZnMuDQpbTHYg
+WmhlbmddIA0KSSBjYW4gc2Vuc2UgZGlmZmVyZW50IGRpZmZpY3VsdGllcyBmcm9tIHlvdXIgZGVz
+Y3JpcHRpb25zLg0KTGV0IG1lIGJyZWFrIGl0IGRvd24gaW50byBkZXRhaWxzLg0KDQpXZSBhbHJl
+YWR5IGhhdmUgYWNwaV90YWJsZV9oYW5kbGVyIHdvcmtpbmcgdGhlcmUgZm9yIGNyZWF0aW5nIG5l
+dyBBQ1BJIHRhYmxlIGVudHJpZXMgZm9yIHVzLg0KQmFzZWQgb24gdGhpcyBmYWNpbGl0eSwgbGV0
+J3MgdGhpbmsgYWJvdXQgdGhlIGZvbGxvd2luZyBzb2x1dGlvbjoNCjEuIHN5c2ZzIHByZXNlbnRp
+bmcgY2hhbmdlDQpXZSBjYW4gY2hhbmdlIHRoZSB0YWJsZSBmaWxlIHRvIGEgdGFibGUgZGlyZWN0
+b3J5IHdob3NlIG5hbWUgaXMgaW4gdGhlIGZvbGxvd2luZyBmb3JtYXQ6DQpUYWJsZVNpZ25hdHVy
+ZS1PZW1JZC1PZW1UYWJsZUlkDQpUaGVuIHdlIGNhbiBnZXQgcmlkIG9mIHRoZSBhbm5veWluZyBu
+dW1iZXJlZCB0YWJsZSBuYW1lIHN1ZmZpeCBmaXJzdC4NClRoZSBudW1iZXJlZCB0YWJsZSBuYW1l
+IHN1ZmZpeCBjYW5ub3QgYmUga2VwdCBjb25zaXN0ZW50IHRvIHJlZmxlY3QgdGhlIHJlYWwgaW5k
+ZXggaWYgd2UgYWxsb3cgdGFibGVzIHRvIGJlIGR5bmFtaWNhbGx5IGxvYWRlZC91bmxvYWRlZC4N
+Cg0KVGhpcyBpcyB0aGUgZmlyc3QgZGVzaWduIGRpZmZpY3VsdHkgd2UgbmVlZCB0byBzb2x2ZS4N
+Cg0KMi4gYWNwaV90YWJsZV9oYW5kbGVyIGNoYW5nZQ0KTm93IHdlIGNhbiBhcHBlbmQgMiBuZXcg
+ZXZlbnRzIHRvIGFjcGlfdGFibGVfaGFuZGxlciAtIEFDUElfVEFCTEVfSU5TVEFMTC9BQ1BJX1RB
+QkxFX1VOSU5TVEFMTC4NCldpdGggd2hpY2gsIHRoZSBzeXNmcyBlbnRyaWVzIGNhbiBiZSBjcmVh
+dGVkL2RlbGV0ZWQgd2hlbiB0aGUgdGFibGUgaXMgYWRkZWQgdG8vcmVtb3ZlZCBmcm9tIHRoZSBn
+bG9iYWwgdGFibGUgbGlzdC4NCkFuZCB0aGlzIHNob3VsZCBiZSB0aGUgd29ya2luZyBtZWNoYW5p
+c20gZm9yIHVzDQpTbyB3ZSBhY3R1YWxseSBkb24ndCBoYXZlIHRoZSB0cm91YmxlIHRvIGRlYWwg
+d2l0aCB0aGUgbmV3IGtlcm5lbCBvYmplY3QgY3JlYXRpb24vZGVsZXRpb24gZnJvbSBzeXNmcy4N
+Cg0KSSBhZ3JlZSB0aGUgZHluYW1pYyBrZXJuZWwgb2JqZWN0IGNyZWF0aW9uL2RlbGV0aW9uIG5l
+ZWQgc3BlY2lhbCBjYXJlLg0KQnV0IHRoaXMgYWN0dWFsbHkgaXMgd2hhdCBhIGtlcm5lbCBlbmdp
+bmVlciBzaG91bGQgZG8gYmVjYXVzZSB0aGlzIGtpbmQgb2YgdGhpbmdzIGhhcHBlbiBoZXJlIGFu
+ZCB0aGVyZSB0aHJvdWdob3V0IHRoZSBrZXJuZWwuDQpXZSBzaG91bGQgaGF2ZSBhbHJlYWR5IGJl
+ZW4gdXNlZCB0byB0aGF0Lg0KDQpUaGlzIGlzIHRoZSBzZWNvbmQgZW5naW5lZXJpbmcgZGlmZmlj
+dWx0eSB3ZSBuZWVkIHRvIGZhY2UuDQoNCjMuIGxvYWQvdW5sb2FkIGNvbW1hbmRpbmcNCk5vdyB3
+ZSBuZWVkIGEgY2hhcmFjdGVyIGRldmljZSBpbiBzeXNmcyB0byBoYW5kbGUgbG9hZC91bmxvYWQg
+Y29tbWFuZC4NCldlbGwsIHRoZXJlIGFyZSBtYW55IHN1Y2gga2luZCBvZiBmaWxlcyBpbiBzeXNm
+cywgZm9yIGV4YW1wbGUsIGRldmljZSBub2Rlcy4NClNvIHRoaXMgaXMgbm90IGEgbm9uLWFjaGll
+dmFibGUgdGFzaywgYnV0IGp1c3QgYSBkaWZmaWN1bHQgZW5naW5lZXJpbmcgdGFzay4NClRoZSBz
+eXN0ZW0gZW5naW5lZXJzIG5lZWQgdG8gYmUgc2tpbGxmdWwgZW5vdWdoIHRvIGltcGxlbWVudCB0
+aGlzLg0KTGlrZSB0aGUgZHluYW1pYyBrZXJuZWwgb2JqZWN0IGhhbmRsaW5nLCB3ZSBzaG91bGQg
+aGF2ZSBhbHJlYWR5IGJlZW4gdXNlZCB0byB0aGlzLg0KDQpJZiB5b3Ugc3RpbGwgdGhpbmsgdGhp
+cyBpcyBkaWZmaWN1bHQsIHRoZSBhbHRlcm5hdGl2ZSBjaG9pY2UgaXMgdG8gdXNlIGFjcGlkYmcg
+Y2hhciBkZXZpY2UncyBpb2N0bCBpbnRlcmZhY2UuDQpUaGF0IGNvdWxkIHNpbXBsaWZpZXMgdGhp
+cyB0YXNrLg0KQW5kIHNpbmNlIHRoZSBpb2N0bCBpbnRlcmZhY2UgaXMgcmVxdWlyZWQgYnkgQUNQ
+SUNBIGRpc2Fzc2VtYmxlciwgdGhlIHdvcmsgb24gdGhhdCB3aWxsIGJlIGluaGVyaXRlZCBieSB0
+aGUgZGlzYXNzZW1ibGVyIHBvcnRpbmcuDQoNClRoaXMgaXMgdGhlIGxhc3QgZW5naW5lZXJpbmcg
+ZGlmZmljdWx0eSB3ZSBuZWVkIHRvIGZhY2UuDQoNClNvIHdoeSBjYW4ndCB0aGVzZSBzb2x1dGlv
+bnMgd29yayBmb3IgdXM/DQoNClRoYW5rcyBhbmQgYmVzdCByZWdhcmRzDQotTHYNCg==
