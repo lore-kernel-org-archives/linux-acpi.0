@@ -1,61 +1,63 @@
-From: Bjorn Helgaas <helgaas@kernel.org>
-Subject: Re: [PATCH 2/2] pci, acpi: free IO resource during shutdown
-Date: Thu, 7 Apr 2016 16:41:08 -0500
-Message-ID: <20160407214108.GB24492@localhost>
-References: <1457389310-3538-1-git-send-email-okaya@codeaurora.org>
- <1457389310-3538-2-git-send-email-okaya@codeaurora.org>
- <20160407160624.GB8780@localhost>
- <57069CAF.8090803@codeaurora.org>
+From: "Luis R. Rodriguez" <mcgrof@kernel.org>
+Subject: Re: [Xen-devel] [PATCH v4 11/14] pnpbios: replace paravirt_enabled()
+ check with legacy device check
+Date: Thu, 7 Apr 2016 23:42:16 +0200
+Message-ID: <20160407214216.GH1990@wotan.suse.de>
+References: <1459987594-5434-1-git-send-email-mcgrof@kernel.org>
+ <1459987594-5434-12-git-send-email-mcgrof@kernel.org>
+ <57062C63.2010609@citrix.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-pci-owner@vger.kernel.org>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mx2.suse.de ([195.135.220.15]:34766 "EHLO mx2.suse.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1757532AbcDGVmT (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 7 Apr 2016 17:42:19 -0400
 Content-Disposition: inline
-In-Reply-To: <57069CAF.8090803@codeaurora.org>
-Sender: linux-pci-owner@vger.kernel.org
-To: Sinan Kaya <okaya@codeaurora.org>
-Cc: linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, timur@codeaurora.org, cov@codeaurora.org, jcm@redhat.com, agross@codeaurora.org, linux-arm-msm@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
+In-Reply-To: <57062C63.2010609@citrix.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: David Vrabel <david.vrabel@citrix.com>
+Cc: "Luis R. Rodriguez" <mcgrof@kernel.org>, bp@alien8.de, hpa@zytor.com, tglx@linutronix.de, mingo@redhat.com, rusty@rustcorp.com.au, xen-devel@lists.xensource.com, matt@codeblueprint.co.uk, andrew.cooper3@citrix.com, x86@kernel.org, linux-kernel@vger.kernel.org, luto@amacapital.net, jlee@suse.com, lguest@lists.ozlabs.org, glin@suse.com, boris.ostrovsky@oracle.com, andriy.shevchenko@linux.intel.com, Josh Triplett <josh@joshtriplett.org>, robert.moore@intel.com, lv.zheng@intel.com, rafael.j.wysocki@intel.com, toshi.kani@hp.com, linux-acpi@vger.kernel.org, tiwai@suse.de
 
-On Thu, Apr 07, 2016 at 01:45:19PM -0400, Sinan Kaya wrote:
-> On 4/7/2016 12:06 PM, Bjorn Helgaas wrote:
-> >> __release_pci_root_info function if the region type is IO.
-> > I don't know what "removing a slot" means.  You're changing
-> > pci_root.c, so I assume this is really an ACPI host bridge removal?
+On Thu, Apr 07, 2016 at 10:46:11AM +0100, David Vrabel wrote:
+> On 07/04/16 01:06, Luis R. Rodriguez wrote:
+> > Since we are removing paravirt_enabled() replace it with a
+> > logical equivalent. Even though PNPBIOS is x86 specific we
+> > add an arch-specific type call, which can be implemented by
+> > any architecture to show how other legacy attribute devices
+> > can later be also checked for with other ACPI legacy attribute
+> > flags.
 > > 
+> > This implicates the first ACPI 5.2.9.3 IA-PC Boot Architecture
+> > ACPI_FADT_LEGACY_DEVICES flag device, and shows how to add more.
+> [...]
+> > +struct x86_legacy_devices {
+> > +	int pnpbios;
+> > +};
 > 
-> Correct, I'm removing the host bridge.
-> 
-> > The release should correspond to a mapping, and the changelog should
-> > point out where that mapping happens so we can see the symmetry.
-> > 
-> 
-> I apologize. This is based on Tomasz's v5 patch here.
-> 
-> https://github.com/semihalf-nowicki-tomasz/linux/blob/pci-acpi-v5/drivers/acpi/pci_root.c
-> 
-> 
-> > You say this is undoing the effect of pci_remap_iospace(), but that's
-> > only called by native drivers and the generic (OF) driver, not by
-> > pci_root.c.
-> 
-> See the ACPI root bridge driver above.
+> It's not clear why pnpbios needs a new structure
 
-If this is a fix to patches that haven't been merged yet, we need to
-squash the fix into the patches.
+I'm glad you asked. Dealing with placing pnpbios quirk in a more useful generic
+fashion was perhaps the most difficult challenge in this series.  As I reviewed
+possibilities to remove paravirt_enabled() the best prospect I found was to see
+if Xen could instead use ACPI 5.2.9.3 IA-PC Boot Architecture flags to annotate
+some quirks. It turns out that it is possible, but there are only so many flags,
+and also, we didn't want to have a solution that incurred respective upstream
+Xen hypervisor change, that would be silly.
 
-> > Please combine this with the previous patch so we have the new
-> > function and its use in the same patch.
-> 
-> I can do that. I was trying to keep the reviews as small as possible.
+To make this quirk more useful then this folds the pnpbios quirk as a sub
+quirk under the more borad ACPI_FADT_LEGACY_DEVICES ACPI flag. What this
+does, as can be seen by also looking at the next patch, "x86, ACPI: parse
+ACPI_FADT_LEGACY_DEVICES" is it explicitly folds pnpbios as one of the
+ACPI_FADT_LEGACY_DEVICES devices, but also paves the way for further known
+main legacy components to added to the list.
 
-The object is not to make patches as small as possible.  The object is
-to make them easy to review, merge, bisect, revert, and backport.  If
-we're adding something new and it's called by many arches or many
-drivers, we might have to split it up for merging through several
-trees or so we can revert pieces independently.  But here there's only
-one caller and I don't think we get any benefit from splitting it.
+> and why this structure of devices does not have the bit for the rtc device.
 
-But I guess this is all moot since it should be squashed into whatever
-added the pci_remap_iospace() in the first place.
+That's because ACPI has its own dedicated flag for it, so there already
+is a one-to-one mapping available. All we needed to do to replace the
+RTC hack was to provide a mechanism to unify both the paravirt RTC hack
+with the ACPI RTC flag.
 
-Bjorn
+  Luis
