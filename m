@@ -1,59 +1,61 @@
 From: Bjorn Helgaas <helgaas@kernel.org>
-Subject: Re: [PATCH] pci: Added flag to pci_host_bridge to hint not to use
- acpi
-Date: Thu, 7 Apr 2016 16:34:29 -0500
-Message-ID: <20160407213429.GA24492@localhost>
-References: <1458770518-10203-1-git-send-email-jonathan.derrick@intel.com>
- <20160324164159.GB25518@localhost.localdomain>
- <20160407174224.GE8780@localhost>
- <20160407201216.GA9986@localhost.localdomain>
+Subject: Re: [PATCH 2/2] pci, acpi: free IO resource during shutdown
+Date: Thu, 7 Apr 2016 16:41:08 -0500
+Message-ID: <20160407214108.GB24492@localhost>
+References: <1457389310-3538-1-git-send-email-okaya@codeaurora.org>
+ <1457389310-3538-2-git-send-email-okaya@codeaurora.org>
+ <20160407160624.GB8780@localhost>
+ <57069CAF.8090803@codeaurora.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.136]:44756 "EHLO mail.kernel.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753807AbcDGVec (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 7 Apr 2016 17:34:32 -0400
+Return-path: <linux-pci-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20160407201216.GA9986@localhost.localdomain>
-Sender: linux-acpi-owner@vger.kernel.org
+In-Reply-To: <57069CAF.8090803@codeaurora.org>
+Sender: linux-pci-owner@vger.kernel.org
+To: Sinan Kaya <okaya@codeaurora.org>
+Cc: linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, timur@codeaurora.org, cov@codeaurora.org, jcm@redhat.com, agross@codeaurora.org, linux-arm-msm@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Jon Derrick <jonathan.derrick@intel.com>
-Cc: Keith Busch <keith.busch@intel.com>, linux-pci@vger.kernel.org, "Rafael J. Wysocki" <rjw@rjwysocki.net>, linux-acpi@vger.kernel.org
 
-On Thu, Apr 07, 2016 at 02:12:16PM -0600, Jon Derrick wrote:
-> Hi Bjorn,
-> 
-> First, thanks for the review
-> 
-> > The spec (PCI Firmware spec 3.0, sec 4.5) says _OSC is a child of an
-> > ACPI device and applies to that device.  In your case, I think there
-> > is no ACPI PNP0A0x device for the VMD host bridge, and hence there is
-> > no _OSC method for it.  There's no ACPI handle for the VMD bridge, so
-> > I think pcie_port_acpi_setup() returns -EINVAL, which causes
-> > get_port_device_capability() to give up and decide that the port
-> > can't support *any* PCIe services.
-> > 
-> > I think that's the real problem: the fact that there's no ACPI device
-> > corresponding to the bridge should not be an error.  It should just
-> > mean the platform doesn't have an opportunity to limit what services
-> > the kernel can manage.  I think pcie_port_acpi_setup() should return 0
-> > in all cases.  Can you try that and see if it fixes the problem?
+On Thu, Apr 07, 2016 at 01:45:19PM -0400, Sinan Kaya wrote:
+> On 4/7/2016 12:06 PM, Bjorn Helgaas wrote:
+> >> __release_pci_root_info function if the region type is IO.
+> > I don't know what "removing a slot" means.  You're changing
+> > pci_root.c, so I assume this is really an ACPI host bridge removal?
 > > 
 > 
-> I believe what you are suggesting is:
+> Correct, I'm removing the host bridge.
+> 
+> > The release should correspond to a mapping, and the changelog should
+> > point out where that mapping happens so we can see the symmetry.
+> > 
+> 
+> I apologize. This is based on Tomasz's v5 patch here.
+> 
+> https://github.com/semihalf-nowicki-tomasz/linux/blob/pci-acpi-v5/drivers/acpi/pci_root.c
 > 
 > 
->         handle = acpi_find_root_bridge_handle(port);
->         if (!handle)
-> -               return -EINVAL;
-> +               return 0;
+> > You say this is undoing the effect of pci_remap_iospace(), but that's
+> > only called by native drivers and the generic (OF) driver, not by
+> > pci_root.c.
 > 
->         root = acpi_pci_find_root(handle);
->         if (!root)
-> -               return -ENODEV;
-> +               return 0;
+> See the ACPI root bridge driver above.
 
-Yes, that's what I think we should do.
+If this is a fix to patches that haven't been merged yet, we need to
+squash the fix into the patches.
+
+> > Please combine this with the previous patch so we have the new
+> > function and its use in the same patch.
+> 
+> I can do that. I was trying to keep the reviews as small as possible.
+
+The object is not to make patches as small as possible.  The object is
+to make them easy to review, merge, bisect, revert, and backport.  If
+we're adding something new and it's called by many arches or many
+drivers, we might have to split it up for merging through several
+trees or so we can revert pieces independently.  But here there's only
+one caller and I don't think we get any benefit from splitting it.
+
+But I guess this is all moot since it should be squashed into whatever
+added the pci_remap_iospace() in the first place.
 
 Bjorn
