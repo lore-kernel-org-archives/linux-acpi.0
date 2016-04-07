@@ -1,87 +1,98 @@
-From: Bjorn Helgaas <helgaas@kernel.org>
-Subject: Re: [PATCH 2/2] pci, acpi: free IO resource during shutdown
-Date: Thu, 7 Apr 2016 11:06:24 -0500
-Message-ID: <20160407160624.GB8780@localhost>
-References: <1457389310-3538-1-git-send-email-okaya@codeaurora.org>
- <1457389310-3538-2-git-send-email-okaya@codeaurora.org>
+From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Subject: Re: [PATCH v1 06/10] device property: switch to use UUID API
+Date: Thu, 07 Apr 2016 19:41:26 +0300
+Message-ID: <1460047286.6620.26.camel@linux.intel.com>
+References: <1455711448-124103-1-git-send-email-andriy.shevchenko@linux.intel.com>
+	 <1455711448-124103-7-git-send-email-andriy.shevchenko@linux.intel.com>
+	 <7544228.v4QPX4F7J7@vostro.rjw.lan>
+	 <1456495897.13244.144.camel@linux.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <1457389310-3538-2-git-send-email-okaya@codeaurora.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Sinan Kaya <okaya@codeaurora.org>
-Cc: linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, timur@codeaurora.org, cov@codeaurora.org, jcm@redhat.com, agross@codeaurora.org, linux-arm-msm@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga02.intel.com ([134.134.136.20]:63010 "EHLO mga02.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756453AbcDGQkf (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 7 Apr 2016 12:40:35 -0400
+In-Reply-To: <1456495897.13244.144.camel@linux.intel.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Huang Ying <ying.huang@intel.com>
+Cc: Theodore Ts'o <tytso@mit.edu>, Arnd Bergmann <arnd@arndb.de>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Jarkko Sakkinen <jarkko.sakkinen@linux.intel.com>, Jani Nikula <jani.nikula@linux.intel.com>, David Airlie <airlied@linux.ie>, Benjamin Tissoires <benjamin.tissoires@redhat.com>, Bjorn Helgaas <bhelgaas@google.com>, Mathias Nyman <mathias.nyman@intel.com>, Matt Fleming <matt@codeblueprint.co.uk>, Lv Zheng <lv.zheng@intel.com>, Mark Brown <broonie@kernel.org>, Zhang Rui <rui.zhang@intel.com>, Mika Westerberg <mika.westerberg@linux.intel.com>, Andrew Morton <akpm@linux-foundation.org>, Rasmus Villemoes <linux@rasmusvillemoes.dk>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, dri-devel@lists.freedesktop.org, linux-efi@vger.kernel.org, linux-api@vger.kernel.org, linux-nvdimm@lists.01.org
 
-Hi Sinan,
+On Fri, 2016-02-26 at 16:11 +0200, Andy Shevchenko wrote:
+> On Thu, 2016-02-18 at 01:03 +0100, Rafael J. Wysocki wrote:
+> >=20
+> > On Wednesday, February 17, 2016 02:17:24 PM Andy Shevchenko wrote:
+> > >=20
+> > > Switch to use a generic UUID API instead of custom approach. It
+> > > allows to
+> > > define UUIDs, compare them, and validate.
+> []
+>=20
 
-On Mon, Mar 07, 2016 at 05:21:50PM -0500, Sinan Kaya wrote:
-> The ACPI PCI driver is leaking out memory mappings
-> when a slot is removed. Upon insertion following a
-> removal, we are hitting a BUG statement. Second call
-> to the remap API hits a bug statement because the area is
-> already mapped. This patch releases additional virtual
-> memory mapped by pci_remap_iospace function as part of
-> __release_pci_root_info function if the region type is IO.
+Summon initial author of the UUID library.
 
-I don't know what "removing a slot" means.  You're changing
-pci_root.c, so I assume this is really an ACPI host bridge removal?
+Summary: the API of comparison functions is rather strange. What the
+point to not take pointers directly? (Moreover I hope compiler too
+clever not to make a copy of constant arguments there)
 
-The release should correspond to a mapping, and the changelog should
-point out where that mapping happens so we can see the symmetry.
+I could only imagine the case you are trying to avoid temporary
+variables for constants like NULL_UUID.
 
-You say this is undoing the effect of pci_remap_iospace(), but that's
-only called by native drivers and the generic (OF) driver, not by
-pci_root.c.
+Issue with this is the ugliness in the users of that, in particularly
+present in ACPI (drivers/acpi/apei/ghes.c).
 
-Please combine this with the previous patch so we have the new
-function and its use in the same patch.
+I would like to have more clear interface for that. Perhaps we may add
+something like
 
->  BUG: failure at kernel/lib/ioremap.c:31/ioremap_pte_range()!
->  Kernel panic - not syncing: BUG!
->  CPU: 1 PID: 630 Comm: kworker/u48:3 Not tainted
->  Workqueue: kacpi_hotplug acpi_hotplug_work_fn Call trace:
->  dump_backtrace+0x0/0x10c [<ffff800000086e58>]
->  show_stack+0x10/0x1c [<ffff8000004d1f50>]
->  dump_stack+0x74/0xc4
->  panic+0xe4/0x21c [<ffff8000002577cc>]
->  ioremap_page_range+0x290/0x30c [<ffff8000002861dc>]
->  pci_remap_iospace+0x88/0xa0 [<ffff8000000908f8>]
->  setup_resource+0x114/0x16c [<ffff8000002c0fc0>]
->  acpi_walk_resource_buffer+0x54/0xb0
->  acpi_walk_resources+0x90/0xbc
->  pci_acpi_scan_root+0x184/0x2d0
->  acpi_pci_root_add+0x368/0x434
->  acpi_bus_attach+0x124/0x22c [<ffff8000002a5628>]
->  acpi_bus_scan+0x58/0x74 [<ffff8000002a57c0>]
->  acpi_device_hotplug+0xc4/0x3f0 [<ffff8000002a0468>]
->  acpi_hotplug_work_fn+0x1c/0x34 [<ffff8000000b9310>]
->  process_one_work+0x1e8/0x308 [<ffff8000000b9b04>]
->  worker_thread+0x294/0x3cc  [<ffff8000000bd9
-> 
-> Signed-off-by: Sinan Kaya <okaya@codeaurora.org>
-> ---
->  drivers/acpi/pci_root.c | 2 ++
->  1 file changed, 2 insertions(+)
-> 
-> diff --git a/drivers/acpi/pci_root.c b/drivers/acpi/pci_root.c
-> index 71bbfae..6d4bc2d 100644
-> --- a/drivers/acpi/pci_root.c
-> +++ b/drivers/acpi/pci_root.c
-> @@ -946,6 +946,8 @@ static void acpi_pci_root_release_info(struct pci_host_bridge *bridge)
->  
->  	resource_list_for_each_entry(entry, &bridge->windows) {
->  		res = entry->res;
-> +		if (res->flags & IORESOURCE_IO)
-> +			pci_unmap_iospace(res);
->  		if (res->parent &&
->  		    (res->flags & (IORESOURCE_MEM | IORESOURCE_IO)))
->  			release_resource(res);
-> -- 
-> 1.8.2.1
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+cmp_p(pointer, non-pointer);
+cmp_pp(pointer, pointer);
+
+to not break existing API for now.
+
+It would be useful for many cases in the kernel.
+
+> >=20
+> > >=20
+> > > +static const uuid_le ads_uuid =3D
+> > > +	UUID_LE(0xdbb8e3e6, 0x5886, 0x4ba6,
+> > > +		0x87, 0x95, 0x13, 0x19, 0xf5, 0x2a, 0x96, 0x6b);
+> > > =C2=A0
+> > > =C2=A0static bool acpi_enumerate_nondev_subnodes(acpi_handle scop=
+e,
+> > > =C2=A0					=C2=A0=C2=A0=C2=A0const union
+> > > acpi_object
+> > > *desc,
+> > > @@ -138,7 +136,7 @@ static bool
+> > > acpi_enumerate_nondev_subnodes(acpi_handle scope,
+> > > =C2=A0		=C2=A0=C2=A0=C2=A0=C2=A0|| links->type !=3D ACPI_TYPE_PAC=
+KAGE)
+> > > =C2=A0			break;
+> > > =C2=A0
+> > > -		if (memcmp(uuid->buffer.pointer, ads_uuid,
+> > > sizeof(ads_uuid)))
+> > > +		if (uuid_le_cmp(*(uuid_le *)uuid->buffer.pointer,
+> > > ads_uuid))
+> > Maybe it's too late, but I don't quite understand the pointer
+> > manipulations here.
+> >=20
+> > I can see why you need a type conversion (although it looks ugly),
+> > but why do you
+> > need to dereference it too?
+> The function takes that kind of type on input. The other variants are
+> not compiled.
+> Perhaps we better change uuid_{lb}e_cmp() first to take normal
+> pointers, though I think the initial idea was to get type checking at
+> compile time.
+>=20
+
+--=20
+Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Intel Finland Oy
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
