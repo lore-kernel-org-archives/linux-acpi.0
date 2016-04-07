@@ -1,53 +1,70 @@
-From: Lukasz Anaczkowski <lukasz.anaczkowski@intel.com>
-Subject: [PATCH] ACPI/SRAT: fix SRAT order parsing when both LAPIC and X2APIC present
-Date: Thu,  7 Apr 2016 10:21:28 +0200
-Message-ID: <1460017288-2176-1-git-send-email-lukasz.anaczkowski@intel.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: rjw@rjwysocki.net, len.brown@intel.com, mingo@redhat.com, x86@kernel.org
-Cc: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, lukasz.anaczkowski@intel.com
+From: Johannes Thumshirn <jthumshirn@suse.de>
+Subject: Re: [PATCH] libnvdimm, test: add mock SMART data payload
+Date: Thu, 07 Apr 2016 10:27:54 +0200
+Message-ID: <32455510.OFm6LAzW1p@c203>
+References: <20160407005349.30117.44157.stgit@dwillia2-desk3.jf.intel.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mx2.suse.de ([195.135.220.15]:52961 "EHLO mx2.suse.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751387AbcDGI14 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 7 Apr 2016 04:27:56 -0400
+In-Reply-To: <20160407005349.30117.44157.stgit@dwillia2-desk3.jf.intel.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: linux-nvdimm@lists.01.org
+Cc: Dan Williams <dan.j.williams@intel.com>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
-SRAT maps APIC ID to proximity domains ids. Mapping from proximity
-domain ids to NUMA node ids is based on order of entries in SRAT table.
-SRAT table has just LAPIC entires or mix of LAPIC and X2APIC entries.
-As long as there are only LAPIC entires, mapping from proximity domain
-id to NUMA node id is as assumed by BIOS. However, once APIC entries are
-mixed, X2APIC entries would be first mapped which causes unexpected NUMA
-node mapping.
+On Mittwoch, 6. April 2016 17:53:49 CEST Dan Williams wrote:
+> Provide simulated SMART data to enable the ndctl implementation of SM=
+ART
+> data retrieval and parsing.
+>=20
+> The payload is defined here, "Section 4.1 SMART and Health Info
+> (Function Index 1)":
+>=20
+>     http://pmem.io/documents/NVDIMM_DSM_Interface_Example.pdf
+>=20
+> Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+> ---
 
-Fixes: d81056b5278 (Handle apic/x2apic entries in MADT in correct order)
-Signed-off-by: Lukasz Anaczkowski <lukasz.anaczkowski@intel.com>
----
- drivers/acpi/numa.c | 16 ++++++++++++----
- 1 file changed, 12 insertions(+), 4 deletions(-)
+[...]
 
-diff --git a/drivers/acpi/numa.c b/drivers/acpi/numa.c
-index 72b6e9e..d176e0e 100644
---- a/drivers/acpi/numa.c
-+++ b/drivers/acpi/numa.c
-@@ -327,10 +327,18 @@ int __init acpi_numa_init(void)
- 
- 	/* SRAT: Static Resource Affinity Table */
- 	if (!acpi_table_parse(ACPI_SIG_SRAT, acpi_parse_srat)) {
--		acpi_table_parse_srat(ACPI_SRAT_TYPE_X2APIC_CPU_AFFINITY,
--				     acpi_parse_x2apic_affinity, 0);
--		acpi_table_parse_srat(ACPI_SRAT_TYPE_CPU_AFFINITY,
--				     acpi_parse_processor_affinity, 0);
-+		struct acpi_subtable_proc srat_proc[2];
-+
-+		memset(srat_proc, 0, sizeof(srat_proc));
-+		srat_proc[0].id = ACPI_SRAT_TYPE_CPU_AFFINITY;
-+		srat_proc[0].handler = acpi_parse_processor_affinity;
-+		srat_proc[1].id = ACPI_SRAT_TYPE_X2APIC_CPU_AFFINITY;
-+		srat_proc[1].handler = acpi_parse_x2apic_affinity;
-+
-+		acpi_table_parse_entries_array(ACPI_SIG_SRAT,
-+					sizeof(struct acpi_table_srat),
-+					srat_proc, ARRAY_SIZE(srat_proc), 0);
-+
- 		cnt = acpi_table_parse_srat(ACPI_SRAT_TYPE_MEMORY_AFFINITY,
- 					    acpi_parse_memory_affinity,
- 					    NR_NODE_MEMBLKS);
--- 
-1.8.3.1
+> @@ -20,6 +20,35 @@ struct nd_cmd_smart {
+>  	__u8 data[128];
+>  } __packed;
+>=20
+> +enum {
+> +	ND_SMART_HEALTH_VALID	=3D 1 << 0,
+> +	ND_SMART_TEMP_VALID 	=3D 1 << 1,
+> +	ND_SMART_SPARES_VALID	=3D 1 << 2,
+> +	ND_SMART_ALARM_VALID	=3D 1 << 3,
+> +	ND_SMART_USED_VALID	=3D 1 << 4,
+> +	ND_SMART_SHUTDOWN_VALID	=3D 1 << 5,
+> +	ND_SMART_VENDOR_VALID	=3D 1 << 6,
+> +	ND_SMART_TEMP_TRIP	=3D 1 << 0,
+> +	ND_SMART_SPARE_TRIP	=3D 1 << 1,
+> +	ND_SMART_NON_CRITICAL_HEALTH	=3D 1 << 0,
+> +	ND_SMART_CRITICAL_HEALTH	=3D 1 << 1,
+> +	ND_SMART_FATAL_HEALTH		=3D 1 << 2,
+> +};
+
+Why not use BIT() instead of that 1 << x stuff and #define instead of t=
+he=20
+abstract enum?
+
+--=20
+Johannes Thumshirn                                          Storage
+jthumshirn@suse.de                                +49 911 74053 689
+SUSE LINUX GmbH, Maxfeldstr. 5, 90409 N=FCrnberg
+GF: Felix Imend=F6rffer, Jane Smithard, Graham Norton
+HRB 21284 (AG N=FCrnberg)
+Key fingerprint =3D EC38 9CAB C2C4 F25D 8600 D0D0 0393 969D 2D76 0850
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
