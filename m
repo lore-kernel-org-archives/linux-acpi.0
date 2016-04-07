@@ -1,98 +1,56 @@
-From: "Zheng, Lv" <lv.zheng-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: [RFC PATCH 10/10] acpi: add support for loading SSDTs via
- configfs
-Date: Thu, 7 Apr 2016 02:42:50 +0000
-Message-ID: <1AE640813FDE7649BE1B193DEA596E883BB66E60@SHSMSX101.ccr.corp.intel.com>
-References: <1459417026-6697-1-git-send-email-octavian.purdila@intel.com>
-	<1459417026-6697-11-git-send-email-octavian.purdila@intel.com>
-	<1AE640813FDE7649BE1B193DEA596E883BB66233@SHSMSX101.ccr.corp.intel.com>
-	<CAE1zotLgjfKvFr0W9CjFbbkxqM6erLGwv-aHzTt=qwdCPzGOhw@mail.gmail.com>
-	<1AE640813FDE7649BE1B193DEA596E883BB6677B@SHSMSX101.ccr.corp.intel.com>
-	<CAE1zotKDFLNP5JTnMiWOstE4DYBHVeyP902J9ixD+fJbFqSZ6Q@mail.gmail.com>
-	<1AE640813FDE7649BE1B193DEA596E883BB66B8C@SHSMSX101.ccr.corp.intel.com>
- <CAE1zotKa+t5cxznWfPyQ599k9ZB=akOuEDZusWcJgzux8wqp5A@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <linux-efi-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <CAE1zotKa+t5cxznWfPyQ599k9ZB=akOuEDZusWcJgzux8wqp5A-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
-Content-Language: en-US
-Sender: linux-efi-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Purdila, Octavian" <octavian.purdila-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: "Rafael J. Wysocki" <rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org>, Len Brown <lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Matt Fleming <matt-mF/unelCI9GS6iBeEJttW/XRex20P6io@public.gmane.org>, Mark Brown <broonie-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Wolfram Sang <wsa-z923LK4zBo2bacvFa/9K2g@public.gmane.org>, Joel Becker <jlbec-aKy9MeLSZ9dg9hUCZPvPmw@public.gmane.org>, Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>, "linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-efi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-efi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-spi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-spi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "Tirdea, Irina" <irina.tirdea-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+From: Shanker Donthineni <shankerd@codeaurora.org>
+Subject: [PATCH v2] mailbox: pcc: Don't access an unmapped memory address space
+Date: Wed,  6 Apr 2016 21:59:49 -0500
+Message-ID: <1459997989-19640-1-git-send-email-shankerd@codeaurora.org>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from smtp.codeaurora.org ([198.145.29.96]:47707 "EHLO
+	smtp.codeaurora.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751260AbcDGC74 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 6 Apr 2016 22:59:56 -0400
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Ashwin Chaugule <ashwin.chaugule@linaro.org>, Prashanth Prakash <pprakash@codeaurora.org>
+Cc: linux-acpi <linux-acpi@vger.kernel.org>, linaro-acpi <linaro-acpi@lists.linaro.org>, Shanker Donthineni <shankerd@codeaurora.org>
 
-SGksDQoNCj4gRnJvbTogbGludXgtYWNwaS1vd25lckB2Z2VyLmtlcm5lbC5vcmcgW21haWx0bzps
-aW51eC1hY3BpLQ0KPiBvd25lckB2Z2VyLmtlcm5lbC5vcmddIE9uIEJlaGFsZiBPZiBPY3Rhdmlh
-biBQdXJkaWxhDQo+IFN1YmplY3Q6IFJlOiBbUkZDIFBBVENIIDEwLzEwXSBhY3BpOiBhZGQgc3Vw
-cG9ydCBmb3IgbG9hZGluZyBTU0RUcyB2aWEgY29uZmlnZnMNCj4gDQo+IE9uIFdlZCwgQXByIDYs
-IDIwMTYgYXQgOTowNSBBTSwgWmhlbmcsIEx2IDxsdi56aGVuZ0BpbnRlbC5jb20+IHdyb3RlOg0K
-PiANCj4gPj4gSXQgaXMgaGFyZCB0byBjcmVhdGUgbmV3IGtlcm5lbCBvYmplY3RzIGZyb20gc3lz
-ZnMuIFlvdSBuZWVkIHRvIHJlc29ydA0KPiA+PiB0byBoYWNrcyBsaWtlIHVzaW5nIG5ld190YWJs
-ZSBzeXNmcyBlbnRyaWVzIHdoaWNoIGRvZXMgbm90IG1hcCB0byBhDQo+ID4+IGtlcm5lbCBvYmpl
-Y3QuIFdyaXRlcyBsYXJnZXIgdGhlbiBQQUdFX1NJWkUgYXJlIGltcG9zc2libGUgdG8gaGFuZGxl
-DQo+ID4+IHdpdGggbXVsdGlwbGUgb3BlbiBmaWxlcyBiZWNhdXNlIHlvdSBoYXZlIG5vIG9wZW4g
-Y2FsbGJhY2sgdG8gY3JlYXRlIGENCj4gPj4gZmlsZSBjb250ZXh0LiBJdCBpcyBhbHNvIG5vdCBw
-b3NzaWJsZSB0byBkbyBhbnkgY2xlYW4tdXAgYmVjYXVzZSB0aGVyZQ0KPiA+PiBpcyBubyBjbG9z
-ZSBjYWxsYmFjayBhbmQgaWYgc29tZXRoaW5nIGdvZXMgd3JvbmcgZm9yIGV4YW1wbGUgd2hlbg0K
-PiA+PiB0cnlpbmcgdG8gaW5zdGFsbCB0aGUgdGFibGUgeW91IHdpbGwgbGVhayB0aGUgYWxsb2Nh
-dGVkIG1lbW9yeS4NCj4gPj4NCj4gPj4gY29uZmlnZnMgd2FzIGRlc2lnbmVkIGZvciB0aGUgc3Bl
-Y2lmaWMgcHVycG9zZSBvZiBjcmVhdGluZyBrZXJuZWwNCj4gPj4gb2JqZWN0cyBmcm9tIHVzZXJz
-cGFjZSBhbmQgYWRkcmVzc2VzIGFsbCBvZiB0aGUgbGltaXRhdGlvbnMgYWJvdmUgKGFuZA0KPiA+
-PiBzb21lIG1vcmUpLg0KPiA+Pg0KPiA+PiBJbml0aWFsbHkgSSBzdGFydGVkIHRvIGltcGxlbWVu
-dCB0aGlzIGZ1bmN0aW9uYWxpdHkgdmlhIHN5c2ZzIGJ1dCBJDQo+ID4+IHJ1biBpbnRvIHRoZSBp
-c3N1ZXMgbWVudGlvbmVkIGFib3ZlIGFuZCBkZWNpZGVkIHRvIHVzZSBjb25maWdmcy4NCj4gPiBb
-THYgWmhlbmddDQo+ID4gSSBjYW4gc2Vuc2UgZGlmZmVyZW50IGRpZmZpY3VsdGllcyBmcm9tIHlv
-dXIgZGVzY3JpcHRpb25zLg0KPiA+IExldCBtZSBicmVhayBpdCBkb3duIGludG8gZGV0YWlscy4N
-Cj4gPg0KPiA+IFdlIGFscmVhZHkgaGF2ZSBhY3BpX3RhYmxlX2hhbmRsZXIgd29ya2luZyB0aGVy
-ZSBmb3IgY3JlYXRpbmcgbmV3IEFDUEkNCj4gdGFibGUgZW50cmllcyBmb3IgdXMuDQo+ID4gQmFz
-ZWQgb24gdGhpcyBmYWNpbGl0eSwgbGV0J3MgdGhpbmsgYWJvdXQgdGhlIGZvbGxvd2luZyBzb2x1
-dGlvbjoNCj4gPiAxLiBzeXNmcyBwcmVzZW50aW5nIGNoYW5nZQ0KPiA+IFdlIGNhbiBjaGFuZ2Ug
-dGhlIHRhYmxlIGZpbGUgdG8gYSB0YWJsZSBkaXJlY3Rvcnkgd2hvc2UgbmFtZSBpcyBpbiB0aGUN
-Cj4gZm9sbG93aW5nIGZvcm1hdDoNCj4gPiBUYWJsZVNpZ25hdHVyZS1PZW1JZC1PZW1UYWJsZUlk
-DQo+ID4gVGhlbiB3ZSBjYW4gZ2V0IHJpZCBvZiB0aGUgYW5ub3lpbmcgbnVtYmVyZWQgdGFibGUg
-bmFtZSBzdWZmaXggZmlyc3QuDQo+ID4gVGhlIG51bWJlcmVkIHRhYmxlIG5hbWUgc3VmZml4IGNh
-bm5vdCBiZSBrZXB0IGNvbnNpc3RlbnQgdG8gcmVmbGVjdCB0aGUgcmVhbA0KPiBpbmRleCBpZiB3
-ZSBhbGxvdyB0YWJsZXMgdG8gYmUgZHluYW1pY2FsbHkgbG9hZGVkL3VubG9hZGVkLg0KPiA+DQo+
-ID4gVGhpcyBpcyB0aGUgZmlyc3QgZGVzaWduIGRpZmZpY3VsdHkgd2UgbmVlZCB0byBzb2x2ZS4N
-Cj4gPg0KPiA+IDIuIGFjcGlfdGFibGVfaGFuZGxlciBjaGFuZ2UNCj4gPiBOb3cgd2UgY2FuIGFw
-cGVuZCAyIG5ldyBldmVudHMgdG8gYWNwaV90YWJsZV9oYW5kbGVyIC0NCj4gQUNQSV9UQUJMRV9J
-TlNUQUxML0FDUElfVEFCTEVfVU5JTlNUQUxMLg0KPiA+IFdpdGggd2hpY2gsIHRoZSBzeXNmcyBl
-bnRyaWVzIGNhbiBiZSBjcmVhdGVkL2RlbGV0ZWQgd2hlbiB0aGUgdGFibGUgaXMgYWRkZWQNCj4g
-dG8vcmVtb3ZlZCBmcm9tIHRoZSBnbG9iYWwgdGFibGUgbGlzdC4NCj4gPiBBbmQgdGhpcyBzaG91
-bGQgYmUgdGhlIHdvcmtpbmcgbWVjaGFuaXNtIGZvciB1cw0KPiA+IFNvIHdlIGFjdHVhbGx5IGRv
-bid0IGhhdmUgdGhlIHRyb3VibGUgdG8gZGVhbCB3aXRoIHRoZSBuZXcga2VybmVsIG9iamVjdA0K
-PiBjcmVhdGlvbi9kZWxldGlvbiBmcm9tIHN5c2ZzLg0KPiA+DQo+ID4gSSBhZ3JlZSB0aGUgZHlu
-YW1pYyBrZXJuZWwgb2JqZWN0IGNyZWF0aW9uL2RlbGV0aW9uIG5lZWQgc3BlY2lhbCBjYXJlLg0K
-PiA+IEJ1dCB0aGlzIGFjdHVhbGx5IGlzIHdoYXQgYSBrZXJuZWwgZW5naW5lZXIgc2hvdWxkIGRv
-IGJlY2F1c2UgdGhpcyBraW5kIG9mDQo+IHRoaW5ncyBoYXBwZW4gaGVyZSBhbmQgdGhlcmUgdGhy
-b3VnaG91dCB0aGUga2VybmVsLg0KPiA+IFdlIHNob3VsZCBoYXZlIGFscmVhZHkgYmVlbiB1c2Vk
-IHRvIHRoYXQuDQo+ID4NCj4gPiBUaGlzIGlzIHRoZSBzZWNvbmQgZW5naW5lZXJpbmcgZGlmZmlj
-dWx0eSB3ZSBuZWVkIHRvIGZhY2UuDQo+ID4NCj4gPiAzLiBsb2FkL3VubG9hZCBjb21tYW5kaW5n
-DQo+ID4gTm93IHdlIG5lZWQgYSBjaGFyYWN0ZXIgZGV2aWNlIGluIHN5c2ZzIHRvIGhhbmRsZSBs
-b2FkL3VubG9hZCBjb21tYW5kLg0KPiA+IFdlbGwsIHRoZXJlIGFyZSBtYW55IHN1Y2gga2luZCBv
-ZiBmaWxlcyBpbiBzeXNmcywgZm9yIGV4YW1wbGUsIGRldmljZSBub2Rlcy4NCj4gPiBTbyB0aGlz
-IGlzIG5vdCBhIG5vbi1hY2hpZXZhYmxlIHRhc2ssIGJ1dCBqdXN0IGEgZGlmZmljdWx0IGVuZ2lu
-ZWVyaW5nIHRhc2suDQo+ID4gVGhlIHN5c3RlbSBlbmdpbmVlcnMgbmVlZCB0byBiZSBza2lsbGZ1
-bCBlbm91Z2ggdG8gaW1wbGVtZW50IHRoaXMuDQo+ID4gTGlrZSB0aGUgZHluYW1pYyBrZXJuZWwg
-b2JqZWN0IGhhbmRsaW5nLCB3ZSBzaG91bGQgaGF2ZSBhbHJlYWR5IGJlZW4gdXNlZCB0bw0KPiB0
-aGlzLg0KPiA+DQo+ID4NCj4gPiBJZiB5b3Ugc3RpbGwgdGhpbmsgdGhpcyBpcyBkaWZmaWN1bHQs
-IHRoZSBhbHRlcm5hdGl2ZSBjaG9pY2UgaXMgdG8gdXNlIGFjcGlkYmcgY2hhcg0KPiBkZXZpY2Un
-cyBpb2N0bCBpbnRlcmZhY2UuDQo+ID4gVGhhdCBjb3VsZCBzaW1wbGlmaWVzIHRoaXMgdGFzay4N
-Cj4gPiBBbmQgc2luY2UgdGhlIGlvY3RsIGludGVyZmFjZSBpcyByZXF1aXJlZCBieSBBQ1BJQ0Eg
-ZGlzYXNzZW1ibGVyLCB0aGUgd29yayBvbg0KPiB0aGF0IHdpbGwgYmUgaW5oZXJpdGVkIGJ5IHRo
-ZSBkaXNhc3NlbWJsZXIgcG9ydGluZy4NCj4gPg0KPiANCj4gV2h5IGNhbid0IHRoZSBkaXNzZW1i
-bGVyIGFjY2VzcyB0aGUgdGFibGVzIHRocm91Z2ggdGhlIGV4aXN0aW5nIHN5c2ZzIGludGVyZmFj
-ZT8NCltMdiBaaGVuZ10gDQpUaGUgYWNwaWRiZyB1dGlsaXR5IHNob3VsZCBiZSBzZWxmLWNvbnRh
-aW5lZC4NCkl0IHdpbGwgYmUgYmFjayBwb3J0ZWQgdG8gQUNQSUNBLg0KU28gaXQgbWlnaHQgYmUg
-cG9ydGVkIHRvIG90aGVyIE9TUE1zLg0KRnJvbSB0aGlzIHBvaW50IG9mIHZpZXcsIGFjcGlkYmcg
-bmVlZCBzdWNoIGtpbmQgb2YgZGVzaWduIC0gZG9pbmcgZXZlcnl0aGluZyBpdCBuZWVkIGZyb20g
-YW4gT1NQTSBrZXJuZWwgdXNpbmcgYSBzaW5nbGUgY2hhciBkZXZpY2UuDQoNClRoYW5rcyBhbmQg
-YmVzdCByZWdhcmRzDQotTHYNCg0KPiANCj4gPiBUaGlzIGlzIHRoZSBsYXN0IGVuZ2luZWVyaW5n
-IGRpZmZpY3VsdHkgd2UgbmVlZCB0byBmYWNlLg0KPiA+DQo+ID4gU28gd2h5IGNhbid0IHRoZXNl
-IHNvbHV0aW9ucyB3b3JrIGZvciB1cz8NCj4gPg0KPiANCj4gSXQgY2FuIGJlIGRvbmUsIGJ1dCBp
-dCBpcyBub3QgdGhlIHJpZ2h0IHdheSB0byBkbyBpdCwgSU1PLg0KPiAtLQ0KPiBUbyB1bnN1YnNj
-cmliZSBmcm9tIHRoaXMgbGlzdDogc2VuZCB0aGUgbGluZSAidW5zdWJzY3JpYmUgbGludXgtYWNw
-aSIgaW4NCj4gdGhlIGJvZHkgb2YgYSBtZXNzYWdlIHRvIG1ham9yZG9tb0B2Z2VyLmtlcm5lbC5v
-cmcNCj4gTW9yZSBtYWpvcmRvbW8gaW5mbyBhdCAgaHR0cDovL3ZnZXIua2VybmVsLm9yZy9tYWpv
-cmRvbW8taW5mby5odG1sDQo=
+The acpi_pcc_probe() could end up accessing memory outside of the
+PCCT table space which might cause the kernel panic(). Increment the
+pcct_entry pointer after parsing 'HW-reduced Communications Subspace'
+to fix the problem. This change also enables the parsing of subtable
+at index 0.
+
+Signed-off-by: Shanker Donthineni <shankerd@codeaurora.org>
+Acked-by: Ashwin Chaugule <ashwin.chaugule@linaro.org>
+---
+Changes since v1:
+    Edit commit message.
+
+ drivers/mailbox/pcc.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/drivers/mailbox/pcc.c b/drivers/mailbox/pcc.c
+index 0ddf638..043828d 100644
+--- a/drivers/mailbox/pcc.c
++++ b/drivers/mailbox/pcc.c
+@@ -361,8 +361,6 @@ static int __init acpi_pcc_probe(void)
+ 		struct acpi_generic_address *db_reg;
+ 		struct acpi_pcct_hw_reduced *pcct_ss;
+ 		pcc_mbox_channels[i].con_priv = pcct_entry;
+-		pcct_entry = (struct acpi_subtable_header *)
+-			((unsigned long) pcct_entry + pcct_entry->length);
+ 
+ 		/* If doorbell is in system memory cache the virt address */
+ 		pcct_ss = (struct acpi_pcct_hw_reduced *)pcct_entry;
+@@ -370,6 +368,8 @@ static int __init acpi_pcc_probe(void)
+ 		if (db_reg->space_id == ACPI_ADR_SPACE_SYSTEM_MEMORY)
+ 			pcc_doorbell_vaddr[i] = acpi_os_ioremap(db_reg->address,
+ 							db_reg->bit_width/8);
++		pcct_entry = (struct acpi_subtable_header *)
++			((unsigned long) pcct_entry + pcct_entry->length);
+ 	}
+ 
+ 	pcc_mbox_ctrl.num_chans = count;
+-- 
+Qualcomm Technologies, Inc. on behalf of Qualcomm Innovation Center, Inc. 
+Qualcomm Innovation Center, Inc. is a member of Code Aurora Forum, 
+a Linux Foundation Collaborative Project
+
