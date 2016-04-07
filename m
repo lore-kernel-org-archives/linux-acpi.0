@@ -1,59 +1,59 @@
-From: "Luis R. Rodriguez" <mcgrof@kernel.org>
-Subject: [PATCH v4 13/14] x86/init: rename ebda code file
-Date: Thu,  7 Apr 2016 14:31:54 -0700
-Message-ID: <1460064714-8767-1-git-send-email-mcgrof@kernel.org>
-References: <1459987594-5434-1-git-send-email-mcgrof@kernel.org>
+From: Bjorn Helgaas <helgaas@kernel.org>
+Subject: Re: [PATCH] pci: Added flag to pci_host_bridge to hint not to use
+ acpi
+Date: Thu, 7 Apr 2016 16:34:29 -0500
+Message-ID: <20160407213429.GA24492@localhost>
+References: <1458770518-10203-1-git-send-email-jonathan.derrick@intel.com>
+ <20160324164159.GB25518@localhost.localdomain>
+ <20160407174224.GE8780@localhost>
+ <20160407201216.GA9986@localhost.localdomain>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.136]:44467 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.136]:44756 "EHLO mail.kernel.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757461AbcDGVb7 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 7 Apr 2016 17:31:59 -0400
-In-Reply-To: <1459987594-5434-1-git-send-email-mcgrof@kernel.org>
+	id S1753807AbcDGVec (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 7 Apr 2016 17:34:32 -0400
+Content-Disposition: inline
+In-Reply-To: <20160407201216.GA9986@localhost.localdomain>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: bp@alien8.de, hpa@zytor.com, tglx@linutronix.de, mingo@redhat.com, rusty@rustcorp.com.au
-Cc: x86@kernel.org, linux-kernel@vger.kernel.org, luto@amacapital.net, boris.ostrovsky@oracle.com, david.vrabel@citrix.com, konrad.wilk@oracle.com, xen-devel@lists.xensource.com, lguest@lists.ozlabs.org, andriy.shevchenko@linux.intel.com, jlee@suse.com, glin@suse.com, matt@codeblueprint.co.uk, andrew.cooper3@citrix.com, rjw@rjwysocki.net, lenb@kernel.org, robert.moore@intel.com, lv.zheng@intel.com, toshi.kani@hp.com, linux-acpi@vger.kernel.org, "Luis R. Rodriguez" <mcgrof@kernel.org>
+To: Jon Derrick <jonathan.derrick@intel.com>
+Cc: Keith Busch <keith.busch@intel.com>, linux-pci@vger.kernel.org, "Rafael J. Wysocki" <rjw@rjwysocki.net>, linux-acpi@vger.kernel.org
 
-This makes it clearer what this is.
+On Thu, Apr 07, 2016 at 02:12:16PM -0600, Jon Derrick wrote:
+> Hi Bjorn,
+> 
+> First, thanks for the review
+> 
+> > The spec (PCI Firmware spec 3.0, sec 4.5) says _OSC is a child of an
+> > ACPI device and applies to that device.  In your case, I think there
+> > is no ACPI PNP0A0x device for the VMD host bridge, and hence there is
+> > no _OSC method for it.  There's no ACPI handle for the VMD bridge, so
+> > I think pcie_port_acpi_setup() returns -EINVAL, which causes
+> > get_port_device_capability() to give up and decide that the port
+> > can't support *any* PCIe services.
+> > 
+> > I think that's the real problem: the fact that there's no ACPI device
+> > corresponding to the bridge should not be an error.  It should just
+> > mean the platform doesn't have an opportunity to limit what services
+> > the kernel can manage.  I think pcie_port_acpi_setup() should return 0
+> > in all cases.  Can you try that and see if it fixes the problem?
+> > 
+> 
+> I believe what you are suggesting is:
+> 
+> 
+>         handle = acpi_find_root_bridge_handle(port);
+>         if (!handle)
+> -               return -EINVAL;
+> +               return 0;
+> 
+>         root = acpi_pci_find_root(handle);
+>         if (!root)
+> -               return -ENODEV;
+> +               return 0;
 
-Signed-off-by: Luis R. Rodriguez <mcgrof@kernel.org>
----
- arch/x86/Makefile                  | 2 +-
- arch/x86/kernel/Makefile           | 2 +-
- arch/x86/kernel/{head.c => ebda.c} | 0
- 3 files changed, 2 insertions(+), 2 deletions(-)
- rename arch/x86/kernel/{head.c => ebda.c} (100%)
+Yes, that's what I think we should do.
 
-diff --git a/arch/x86/Makefile b/arch/x86/Makefile
-index f9ed8a7ce2b6..6fce7f096b88 100644
---- a/arch/x86/Makefile
-+++ b/arch/x86/Makefile
-@@ -208,7 +208,7 @@ endif
- 
- head-y := arch/x86/kernel/head_$(BITS).o
- head-y += arch/x86/kernel/head$(BITS).o
--head-y += arch/x86/kernel/head.o
-+head-y += arch/x86/kernel/ebda.o
- head-y += arch/x86/kernel/platform-quirks.o
- 
- libs-y  += arch/x86/lib/
-diff --git a/arch/x86/kernel/Makefile b/arch/x86/kernel/Makefile
-index 7a9e44d935de..0503f5bfb18d 100644
---- a/arch/x86/kernel/Makefile
-+++ b/arch/x86/kernel/Makefile
-@@ -4,7 +4,7 @@
- 
- extra-y	:= head_$(BITS).o
- extra-y	+= head$(BITS).o
--extra-y	+= head.o
-+extra-y	+= ebda.o
- extra-y	+= platform-quirks.o
- extra-y	+= vmlinux.lds
- 
-diff --git a/arch/x86/kernel/head.c b/arch/x86/kernel/ebda.c
-similarity index 100%
-rename from arch/x86/kernel/head.c
-rename to arch/x86/kernel/ebda.c
--- 
-2.7.2
-
+Bjorn
