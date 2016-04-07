@@ -1,117 +1,146 @@
-From: Jiang Qiu <qiujiang@huawei.com>
-Subject: Re: [PATCH v7 1/3] gpio: dwapb: remove name from dwapb_port_property
-Date: Thu, 7 Apr 2016 19:45:30 +0800
-Message-ID: <5706485A.1000802@huawei.com>
-References: <1459926480-32966-1-git-send-email-qiujiang@huawei.com>
- <1459926480-32966-2-git-send-email-qiujiang@huawei.com>
- <CAHp75Vc4OxOtA1jseX+BOP9zRzsV98z4VKiY=rdpLdi7K2umNg@mail.gmail.com>
-Reply-To: <qiujiang@huawei.com>
+From: Shannon Zhao <zhaoshenglong@huawei.com>
+Subject: [PATCH v11 01/17] Xen: ACPI: Hide UART used by Xen
+Date: Thu, 7 Apr 2016 20:03:18 +0800
+Message-ID: <1460030614-16112-2-git-send-email-zhaoshenglong@huawei.com>
+References: <1460030614-16112-1-git-send-email-zhaoshenglong@huawei.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-gpio-owner@vger.kernel.org>
-In-Reply-To: <CAHp75Vc4OxOtA1jseX+BOP9zRzsV98z4VKiY=rdpLdi7K2umNg@mail.gmail.com>
-Sender: linux-gpio-owner@vger.kernel.org
-To: Andy Shevchenko <andy.shevchenko@gmail.com>
-Cc: Linus Walleij <linus.walleij@linaro.org>, Alexandre Courbot <gnurou@gmail.com>, Mika Westerberg <mika.westerberg@linux.intel.com>, Alan Tull <delicious.quinoa@gmail.com>, Jamie Iles <jamie@jamieiles.com>, charles.chenxin@huawei.com, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-gpio@vger.kernel.org" <linux-gpio@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, linuxarm@huawei.com
+Content-Type: text/plain
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1460030614-16112-1-git-send-email-zhaoshenglong@huawei.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: linux-arm-kernel@lists.infradead.org, sstabellini@kernel.org
+Cc: catalin.marinas@arm.com, will.deacon@arm.com, julien.grall@arm.com, david.vrabel@citrix.com, xen-devel@lists.xen.org, devicetree@vger.kernel.org, linux-efi@vger.kernel.org, linux-kernel@vger.kernel.org, shannon.zhao@linaro.org, peter.huangpeng@huawei.com, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, "open list:ACPI" <linux-acpi@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-Hi Andy,
+From: Shannon Zhao <shannon.zhao@linaro.org>
 
-Thanks for your reply. See my comments inline.
+ACPI 6.0 introduces a new table STAO to list the devices which are used
+by Xen and can't be used by Dom0. On Xen virtual platforms, the physical
+UART is used by Xen. So here it hides UART from Dom0.
 
-Thanks
-Jiang
+CC: "Rafael J. Wysocki" <rjw@rjwysocki.net> (supporter:ACPI)
+CC: Len Brown <lenb@kernel.org> (supporter:ACPI)
+CC: linux-acpi@vger.kernel.org (open list:ACPI)
+Signed-off-by: Shannon Zhao <shannon.zhao@linaro.org>
+---
+ drivers/acpi/scan.c | 74 +++++++++++++++++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 74 insertions(+)
 
-=E5=9C=A8 2016/4/6 20:57, Andy Shevchenko =E5=86=99=E9=81=93:
-> On Wed, Apr 6, 2016 at 10:07 AM, qiujiang <qiujiang@huawei.com> wrote=
-:
->> This patch removed the name property from dwapb_port_property.
->> The name property is redundant because we can get those info
->> from dwapb_gpio dev and pp->idx property.
->=20
-> Where idx is used in such replacements?
-Actually, it is not used so far. As Alan mentioned, the only additional
-info from the pp->name against dev is the port index. I present here to
-prevent anyone from missing it.
-
-If it is inappropriate, I will remove it.
-
->=20
->> --- a/drivers/gpio/gpio-dwapb.c
->> +++ b/drivers/gpio/gpio-dwapb.c
->> @@ -409,8 +409,7 @@ static int dwapb_gpio_add_port(struct dwapb_gpio=
- *gpio,
->>         err =3D bgpio_init(&port->gc, gpio->dev, 4, dat, set, NULL, =
-dirout,
->>                          NULL, false);
->>         if (err) {
->> -               dev_err(gpio->dev, "failed to init gpio chip for %s\=
-n",
->> -                       pp->name);
->> +               dev_err(gpio->dev, "failed to init gpio chip\n");
->=20
-> Do we have any port index here available (expected value I suppose)?
-
-The 3rd parameter 'offs' can be used, I will add it.
->=20
->> @@ -429,8 +428,7 @@ static int dwapb_gpio_add_port(struct dwapb_gpio=
- *gpio,
->>
->>         err =3D gpiochip_add_data(&port->gc, port);
->>         if (err)
->> -               dev_err(gpio->dev, "failed to register gpiochip for =
-%s\n",
->> -                       pp->name);
->> +               dev_err(gpio->dev, "failed to register gpiochip\n");
->=20
-> Ditto.
->=20
->=20
->> @@ -499,15 +498,12 @@ dwapb_gpio_get_pdata_of(struct device *dev)
->>                 if (pp->idx =3D=3D 0 &&
->>                     of_property_read_bool(port_np, "interrupt-contro=
-ller")) {
->>                         pp->irq =3D irq_of_parse_and_map(port_np, 0)=
-;
->> -                       if (!pp->irq) {
->> -                               dev_warn(dev, "no irq for bank %s\n"=
-,
->> -                                        port_np->full_name);
->> -                       }
->> +                       if (!pp->irq)
->> +                               dev_warn(dev, "no irq for this bank\=
-n");
->=20
-> pp->idx here?
->=20
-> dev_warn(dev, "no irq for port%d\n", pp->idx);
-
-Here, pp->idx should always be zero, means portA, because only portA ca=
-n be a
-interrupt controller as dwapb gpio IP defined. So, I omited it.
-
->=20
->> --- a/drivers/mfd/intel_quark_i2c_gpio.c
->> +++ b/drivers/mfd/intel_quark_i2c_gpio.c
->> @@ -220,7 +220,6 @@ static int intel_quark_gpio_setup(struct pci_dev=
- *pdev, struct mfd_cell *cell)
->>
->>         /* Set the properties for portA */
->>         pdata->properties->node         =3D NULL;
->> -       pdata->properties->name         =3D "intel-quark-x1000-gpio-=
-portA";
->>         pdata->properties->idx          =3D 0;
->>         pdata->properties->ngpio        =3D INTEL_QUARK_MFD_NGPIO;
->>         pdata->properties->gpio_base    =3D INTEL_QUARK_MFD_GPIO_BAS=
-E;
->=20
-> For Quark part:
-> Acked-by: Andy Shevchenko <andy.shevchenko@gmail.com>
->=20
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-gpio" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+diff --git a/drivers/acpi/scan.c b/drivers/acpi/scan.c
+index 5f28cf7..cfc73fe 100644
+--- a/drivers/acpi/scan.c
++++ b/drivers/acpi/scan.c
+@@ -46,6 +46,13 @@ DEFINE_MUTEX(acpi_device_lock);
+ LIST_HEAD(acpi_wakeup_device_list);
+ static DEFINE_MUTEX(acpi_hp_context_lock);
+ 
++/*
++ * The UART device described by the SPCR table is the only object which needs
++ * special-casing. Everything else is covered by ACPI namespace paths in STAO
++ * table.
++ */
++static u64 spcr_uart_addr;
++
+ struct acpi_dep_data {
+ 	struct list_head node;
+ 	acpi_handle master;
+@@ -1453,6 +1460,41 @@ static int acpi_add_single_object(struct acpi_device **child,
+ 	return 0;
+ }
+ 
++static acpi_status acpi_get_resource_memory(struct acpi_resource *ares,
++					    void *context)
++{
++	struct resource *res = context;
++
++	if (acpi_dev_resource_memory(ares, res))
++		return AE_CTRL_TERMINATE;
++
++	return AE_OK;
++}
++
++static bool acpi_device_should_be_hidden(acpi_handle handle)
++{
++	acpi_status status;
++	struct resource res;
++
++	/* Check if it should ignore the UART device */
++	if (!(spcr_uart_addr && acpi_has_method(handle, METHOD_NAME__CRS)))
++		return false;
++
++	/*
++	 * The UART device described in SPCR table is assumed to have only one
++	 * memory resource present. So we only look for the first one here.
++	 */
++	status = acpi_walk_resources(handle, METHOD_NAME__CRS,
++				     acpi_get_resource_memory, &res);
++	if (ACPI_FAILURE(status) || res.start != spcr_uart_addr)
++		return false;
++
++	acpi_handle_info(handle, "The UART device @%pa in SPCR table will be hidden\n",
++			 &res.start);
++
++	return true;
++}
++
+ static int acpi_bus_type_and_status(acpi_handle handle, int *type,
+ 				    unsigned long long *sta)
+ {
+@@ -1466,6 +1508,9 @@ static int acpi_bus_type_and_status(acpi_handle handle, int *type,
+ 	switch (acpi_type) {
+ 	case ACPI_TYPE_ANY:		/* for ACPI_ROOT_OBJECT */
+ 	case ACPI_TYPE_DEVICE:
++		if (acpi_device_should_be_hidden(handle))
++			return -ENODEV;
++
+ 		*type = ACPI_BUS_TYPE_DEVICE;
+ 		status = acpi_bus_get_status_handle(handle, sta);
+ 		if (ACPI_FAILURE(status))
+@@ -1916,9 +1961,24 @@ static int acpi_bus_scan_fixed(void)
+ 	return result < 0 ? result : 0;
+ }
+ 
++static void __init acpi_get_spcr_uart_addr(void)
++{
++	acpi_status status;
++	struct acpi_table_spcr *spcr_ptr;
++
++	status = acpi_get_table(ACPI_SIG_SPCR, 0,
++				(struct acpi_table_header **)&spcr_ptr);
++	if (ACPI_SUCCESS(status))
++		spcr_uart_addr = spcr_ptr->serial_port.address;
++	else
++		printk(KERN_WARNING PREFIX "STAO table present, but SPCR is missing\n");
++}
++
+ int __init acpi_scan_init(void)
+ {
+ 	int result;
++	acpi_status status;
++	struct acpi_table_stao *stao_ptr;
+ 
+ 	acpi_pci_root_init();
+ 	acpi_pci_link_init();
+@@ -1934,6 +1994,20 @@ int __init acpi_scan_init(void)
+ 
+ 	acpi_scan_add_handler(&generic_device_handler);
+ 
++	/*
++	 * If there is STAO table, check whether it needs to ignore the UART
++	 * device in SPCR table.
++	 */
++	status = acpi_get_table(ACPI_SIG_STAO, 0,
++				(struct acpi_table_header **)&stao_ptr);
++	if (ACPI_SUCCESS(status)) {
++		if (stao_ptr->header.length > sizeof(struct acpi_table_stao))
++			printk(KERN_INFO PREFIX "STAO Name List not yet supported.");
++
++		if (stao_ptr->ignore_uart)
++			acpi_get_spcr_uart_addr();
++	}
++
+ 	mutex_lock(&acpi_scan_lock);
+ 	/*
+ 	 * Enumerate devices in the ACPI namespace.
+-- 
+2.0.4
