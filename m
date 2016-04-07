@@ -1,48 +1,129 @@
-From: Linus Walleij <linus.walleij@linaro.org>
-Subject: Re: [RFC PATCH v2 0/3] Add ACPI support for pinctrl configuration
-Date: Thu, 7 Apr 2016 19:48:57 +0200
-Message-ID: <CACRpkdZu1MFZ+0m7VUq8hArpjiESzjqaLvFDZHOK-JUidFtwvg@mail.gmail.com>
-References: <1459870406-15219-1-git-send-email-irina.tirdea@intel.com>
-	<20160407125634.GO1727@lahna.fi.intel.com>
+From: Sinan Kaya <okaya@codeaurora.org>
+Subject: Re: [PATCH 1/2] pci: add pci_unmap_iospace function for PCI_IOBASE
+Date: Thu, 7 Apr 2016 13:49:41 -0400
+Message-ID: <57069DB5.9060404@codeaurora.org>
+References: <1457389310-3538-1-git-send-email-okaya@codeaurora.org>
+ <20160407160004.GA8780@localhost>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-gpio-owner@vger.kernel.org>
-In-Reply-To: <20160407125634.GO1727@lahna.fi.intel.com>
-Sender: linux-gpio-owner@vger.kernel.org
-To: Mika Westerberg <mika.westerberg@linux.intel.com>
-Cc: Irina Tirdea <irina.tirdea@intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, "linux-gpio@vger.kernel.org" <linux-gpio@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Rob Herring <robh+dt@kernel.org>, Heikki Krogerus <heikki.krogerus@linux.intel.com>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Octavian Purdila <octavian.purdila@intel.com>, Cristina Ciocan <cristina.ciocan@intel.com>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from smtp.codeaurora.org ([198.145.29.96]:33448 "EHLO
+	smtp.codeaurora.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756645AbcDGRtr (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 7 Apr 2016 13:49:47 -0400
+In-Reply-To: <20160407160004.GA8780@localhost>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Bjorn Helgaas <helgaas@kernel.org>
+Cc: linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, timur@codeaurora.org, cov@codeaurora.org, jcm@redhat.com, agross@codeaurora.org, linux-arm-msm@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
 
-On Thu, Apr 7, 2016 at 2:56 PM, Mika Westerberg
-<mika.westerberg@linux.intel.com> wrote:
-> On Tue, Apr 05, 2016 at 06:33:23PM +0300, Irina Tirdea wrote:
-
->> Changes from v1:
->>  - address code review comments regarding coding style, documentation
->> and fixes
->>  - rewrote patch 3 ("pinctrl: Parse GpioInt/GpioIo resources") to
->> avoid using triple pointers
->>  - define pinconf_generic_dt_node_to_map since it is used by pinctrl
->> sirf driver
->>  - add dependency on PINCONF_GENERIC to the entire ACPI parsing code
->>  - dropped first patch from the series since it got merged
->> ("pinctrl: Rename pinctrl_utils_dt_free_map to pinctrl_utils_free_map")
+On 4/7/2016 12:00 PM, Bjorn Helgaas wrote:
+> Hi Sinan,
+> 
+> On Mon, Mar 07, 2016 at 05:21:49PM -0500, Sinan Kaya wrote:
+>> The PCI_IOBASE needs to be released after hotplug removal so that it can be
+>> re-added back by the pci_remap_iospace function during insertion.
 >>
->> Irina Tirdea (3):
->>   pinctrl: pinconf-generic: Add ACPI support
->>   pinctrl: Add ACPI support
->>   pinctrl: Parse GpioInt/GpioIo resources
->
-> The series looks good to me now,
->
-> Reviewed-by: Mika Westerberg <mika.westerberg@linux.intel.com>
->
-> Of course this all depends on the decision whether this is the preferred
-> way of controlling and muxing pins in ACPI.
+>> Adding unmap function to follow IO remap function.
+>>
+>> Signed-off-by: Sinan Kaya <okaya@codeaurora.org>
+>> ---
+>>  drivers/pci/pci.c   | 25 +++++++++++++++++++++++++
+>>  include/linux/pci.h |  1 +
+>>  2 files changed, 26 insertions(+)
+>>
+>> diff --git a/drivers/pci/pci.c b/drivers/pci/pci.c
+>> index 3a516c0..f5faed2 100644
+>> --- a/drivers/pci/pci.c
+>> +++ b/drivers/pci/pci.c
+>> @@ -26,6 +26,7 @@
+>>  #include <linux/device.h>
+>>  #include <linux/pm_runtime.h>
+>>  #include <linux/pci_hotplug.h>
+>> +#include <linux/vmalloc.h>
+>>  #include <asm-generic/pci-bridge.h>
+>>  #include <asm/setup.h>
+>>  #include <linux/aer.h>
+>> @@ -3169,6 +3170,30 @@ int __weak pci_remap_iospace(const struct resource *res, phys_addr_t phys_addr)
+>>  #endif
+>>  }
+>>  
+>> +/**
+>> + *	pci_unmap_iospace - Unmap the memory mapped I/O space
+>> + *	@virt_addr: virtual address to be unmapped
+>> + *	@size: size of the physical address to be unmapped
+>> + *
+>> + *	Unmap the CPU virtual address @virt_addr from virtual address space.
+>> + *	Only architectures that have memory mapped IO functions defined
+>> + *	(and the PCI_IOBASE value defined) should call this function.
+>> + */
+>> +void  __weak pci_unmap_iospace(struct resource *res)
+> 
+> Why is this weak?  I assume probably because pci_remap_iospace() is
+> weak, but I don't see any reason why *that* needs to be weak.  There's
+> only one implementation.  I think neither one should be weak unless we
+> have an actual need for that.
+> 
 
-I think the discussion is very interesting and intense right now so
-let us see. We need to form some rough consensus before we
-know how to proceed.
+Right, copy paste mistake. Even the function parameter description above
+is not right. 
 
-Yours,
-Linus Walleij
+I can get rid of the __weak from both on the next iteration.
+
+>> +{
+>> +#if defined(PCI_IOBASE) && defined(CONFIG_MMU)
+>> +	unsigned long vaddr = (unsigned long)PCI_IOBASE + res->start;
+>> +
+>> +	unmap_kernel_range(vaddr, resource_size(res));
+> 
+> There really aren't any other generic uses of unmap_kernel_range().
+> This isn't an unusual scenario, so I would expect this code to use a
+> pattern that's used elsewhere.
+
+OK, What's the best way to remove a mapping? I'm open for suggestions.
+I copied this pattern from GHES driver.
+
+> 
+>> +#else
+>> +	/*
+>> +	 * This architecture does not have memory mapped I/O space,
+>> +	 * so this function should never be called.
+>> +	 */
+>> +	WARN_ONCE(1, "This architecture does not support memory mapped I/O\n");
+>> +#endif
+>> +}
+>> +
+>>  static void __pci_set_master(struct pci_dev *dev, bool enable)
+>>  {
+>>  	u16 old_cmd, cmd;
+>> diff --git a/include/linux/pci.h b/include/linux/pci.h
+>> index 398ae7e..c6e3f0e 100644
+>> --- a/include/linux/pci.h
+>> +++ b/include/linux/pci.h
+>> @@ -1172,6 +1172,7 @@ int pci_register_io_range(phys_addr_t addr, resource_size_t size);
+>>  unsigned long pci_address_to_pio(phys_addr_t addr);
+>>  phys_addr_t pci_pio_to_address(unsigned long pio);
+>>  int pci_remap_iospace(const struct resource *res, phys_addr_t phys_addr);
+>> +void pci_unmap_iospace(struct resource *res);
+>>  
+>>  static inline pci_bus_addr_t pci_bus_address(struct pci_dev *pdev, int bar)
+>>  {
+>> -- 
+>> 1.8.2.1
+>>
+>> --
+>> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
+>> the body of a message to majordomo@vger.kernel.org
+>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-pci" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
+
+
+-- 
+Sinan Kaya
+Qualcomm Technologies, Inc. on behalf of Qualcomm Innovation Center, Inc.
+Qualcomm Innovation Center, Inc. is a member of Code Aurora Forum, a Linux Foundation Collaborative Project
