@@ -1,67 +1,69 @@
-From: Johannes Thumshirn <jthumshirn@suse.de>
-Subject: Re: [PATCH] libnvdimm, test: add mock SMART data payload
-Date: Thu, 07 Apr 2016 10:27:54 +0200
-Message-ID: <32455510.OFm6LAzW1p@c203>
-References: <20160407005349.30117.44157.stgit@dwillia2-desk3.jf.intel.com>
+From: Jiang Qiu <qiujiang@huawei.com>
+Subject: Re: [PATCH v7 2/3] gpio: dwapb: convert device node to fwnode
+Date: Thu, 7 Apr 2016 19:14:27 +0800
+Message-ID: <57064113.2040603@huawei.com>
+References: <1459926480-32966-1-git-send-email-qiujiang@huawei.com>
+ <1459926480-32966-3-git-send-email-qiujiang@huawei.com>
+ <CAHp75Vc-Pd4swDq5gVKtwmOGD9fALkmDpyt1qah0JGQo2+422w@mail.gmail.com>
+Reply-To: <qiujiang@huawei.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
+Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mx2.suse.de ([195.135.220.15]:52961 "EHLO mx2.suse.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751387AbcDGI14 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 7 Apr 2016 04:27:56 -0400
-In-Reply-To: <20160407005349.30117.44157.stgit@dwillia2-desk3.jf.intel.com>
+Received: from szxga03-in.huawei.com ([119.145.14.66]:5263 "EHLO
+	szxga03-in.huawei.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755385AbcDGLPC (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 7 Apr 2016 07:15:02 -0400
+In-Reply-To: <CAHp75Vc-Pd4swDq5gVKtwmOGD9fALkmDpyt1qah0JGQo2+422w@mail.gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-nvdimm@lists.01.org
-Cc: Dan Williams <dan.j.williams@intel.com>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+To: Andy Shevchenko <andy.shevchenko@gmail.com>
+Cc: Linus Walleij <linus.walleij@linaro.org>, Alexandre Courbot <gnurou@gmail.com>, Mika Westerberg <mika.westerberg@linux.intel.com>, Alan Tull <delicious.quinoa@gmail.com>, Jamie Iles <jamie@jamieiles.com>, charles.chenxin@huawei.com, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-gpio@vger.kernel.org" <linux-gpio@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, linuxarm@huawei.com
 
-On Mittwoch, 6. April 2016 17:53:49 CEST Dan Williams wrote:
-> Provide simulated SMART data to enable the ndctl implementation of SM=
-ART
-> data retrieval and parsing.
+
+
+=E5=9C=A8 2016/4/6 21:01, Andy Shevchenko =E5=86=99=E9=81=93:
+> On Wed, Apr 6, 2016 at 10:07 AM, qiujiang <qiujiang@huawei.com> wrote=
+:
+>> This patch converts device node to fwnode for dwapb driver, so
+>> as to provide a unified fwnode for DT and ACPI bindings.
+>>
+>> Acked-by: Andy Shevchenko <andy.shevchenko@gmail.com>
+>> Signed-off-by: qiujiang <qiujiang@huawei.com>
 >=20
-> The payload is defined here, "Section 4.1 SMART and Health Info
-> (Function Index 1)":
+>>  static struct dwapb_platform_data *
+>> -dwapb_gpio_get_pdata_of(struct device *dev)
+>> +dwapb_gpio_get_pdata(struct device *dev)
 >=20
->     http://pmem.io/documents/NVDIMM_DSM_Interface_Example.pdf
+> I don't remember if I had asked already
+> does it fit now one row?
+Hi Andy,
+
+It dose not fit one row yet, checkpatch.pl will report a warning.
 >=20
-> Signed-off-by: Dan Williams <dan.j.williams@intel.com>
-> ---
-
-[...]
-
-> @@ -20,6 +20,35 @@ struct nd_cmd_smart {
->  	__u8 data[128];
->  } __packed;
+>> @@ -495,9 +493,10 @@ dwapb_gpio_get_pdata_of(struct device *dev)
+>>                  * Only port A can provide interrupts in all configu=
+rations of
+>>                  * the IP.
+>>                  */
+>> -               if (pp->idx =3D=3D 0 &&
+>> -                   of_property_read_bool(port_np, "interrupt-contro=
+ller")) {
+>> -                       pp->irq =3D irq_of_parse_and_map(port_np, 0)=
+;
+>> +               if (dev->of_node && pp->idx =3D=3D 0 &&
 >=20
-> +enum {
-> +	ND_SMART_HEALTH_VALID	=3D 1 << 0,
-> +	ND_SMART_TEMP_VALID 	=3D 1 << 1,
-> +	ND_SMART_SPARES_VALID	=3D 1 << 2,
-> +	ND_SMART_ALARM_VALID	=3D 1 << 3,
-> +	ND_SMART_USED_VALID	=3D 1 << 4,
-> +	ND_SMART_SHUTDOWN_VALID	=3D 1 << 5,
-> +	ND_SMART_VENDOR_VALID	=3D 1 << 6,
-> +	ND_SMART_TEMP_TRIP	=3D 1 << 0,
-> +	ND_SMART_SPARE_TRIP	=3D 1 << 1,
-> +	ND_SMART_NON_CRITICAL_HEALTH	=3D 1 << 0,
-> +	ND_SMART_CRITICAL_HEALTH	=3D 1 << 1,
-> +	ND_SMART_FATAL_HEALTH		=3D 1 << 2,
-> +};
-
-Why not use BIT() instead of that 1 << x stuff and #define instead of t=
-he=20
-abstract enum?
-
---=20
-Johannes Thumshirn                                          Storage
-jthumshirn@suse.de                                +49 911 74053 689
-SUSE LINUX GmbH, Maxfeldstr. 5, 90409 N=FCrnberg
-GF: Felix Imend=F6rffer, Jane Smithard, Graham Norton
-HRB 21284 (AG N=FCrnberg)
-Key fingerprint =3D EC38 9CAB C2C4 F25D 8600 D0D0 0393 969D 2D76 0850
+> is_of_fwnode() && ?
+>=20
+>> +                       fwnode_property_read_bool(fwnode,
+>> +                                                 "interrupt-control=
+ler")) {
+>> +                       pp->irq =3D irq_of_parse_and_map(to_of_node(=
+fwnode), 0);
+>>                         if (!pp->irq)
+>>                                 dev_warn(dev, "no irq for this bank\=
+n");
+>=20
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
