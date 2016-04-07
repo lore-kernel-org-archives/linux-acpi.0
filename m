@@ -1,67 +1,41 @@
-From: Ashwin Chaugule <ashwin.chaugule@linaro.org>
-Subject: Re: [PATCH] mailbox: pcc: Don't access an unmapped memory address space
-Date: Wed, 6 Apr 2016 18:14:17 -0400
-Message-ID: <CAJ5Y-eb6DJLf=RKTYUhK62c=MEt8hqaChdqCczuxpee3CXu_gw@mail.gmail.com>
-References: <1459964964-16934-1-git-send-email-shankerd@codeaurora.org>
+From: Dan Williams <dan.j.williams@intel.com>
+Subject: [PATCH] libnvdimm: fix smart data retrieval
+Date: Wed, 06 Apr 2016 17:53:44 -0700
+Message-ID: <20160407005344.30117.84197.stgit@dwillia2-desk3.jf.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-lf0-f43.google.com ([209.85.215.43]:34940 "EHLO
-	mail-lf0-f43.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753494AbcDFWOk (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 6 Apr 2016 18:14:40 -0400
-Received: by mail-lf0-f43.google.com with SMTP id c126so44020002lfb.2
-        for <linux-acpi@vger.kernel.org>; Wed, 06 Apr 2016 15:14:39 -0700 (PDT)
-In-Reply-To: <1459964964-16934-1-git-send-email-shankerd@codeaurora.org>
+Received: from mga01.intel.com ([192.55.52.88]:18982 "EHLO mga01.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751649AbcDGAyl (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 6 Apr 2016 20:54:41 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Shanker Donthineni <shankerd@codeaurora.org>
-Cc: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, linux-acpi <linux-acpi@vger.kernel.org>, linaro-acpi <linaro-acpi@lists.linaro.org>, Prashanth Prakash <pprakash@codeaurora.org>
+To: linux-nvdimm@lists.01.org
+Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, stable@vger.kernel.org
 
-On 6 April 2016 at 13:49, Shanker Donthineni <shankerd@codeaurora.org> wrote:
-> The acpi_pcc_probe() is accessing memory outside of the PCCT table
+It appears that smart data retrieval has been broken the since the
+initial implementation.  Fix the payload size to be 128-bytes per the
+specification.
 
-NIT: s/is/could end up
+Cc: <stable@vger.kernel.org>
+Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+---
+ drivers/nvdimm/bus.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-> space causing the kernel panic(). Increment the pcct_entry pointer
-> after parsing 'HW-reduced Communications Subspace' to fix the
-> problem. This change also enables the parsing of subtable at index 0.
->
-> Signed-off-by: Shanker Donthineni <shankerd@codeaurora.org>
+diff --git a/drivers/nvdimm/bus.c b/drivers/nvdimm/bus.c
+index fc82743aefb6..19f822d7f652 100644
+--- a/drivers/nvdimm/bus.c
++++ b/drivers/nvdimm/bus.c
+@@ -407,7 +407,7 @@ static const struct nd_cmd_desc __nd_cmd_dimm_descs[] = {
+ 	[ND_CMD_IMPLEMENTED] = { },
+ 	[ND_CMD_SMART] = {
+ 		.out_num = 2,
+-		.out_sizes = { 4, 8, },
++		.out_sizes = { 4, 128, },
+ 	},
+ 	[ND_CMD_SMART_THRESHOLD] = {
+ 		.out_num = 2,
 
-Thanks for catching this. Looks like this slipped through in the PCC
-doorbell optimization patch.
-
-Acked-by: Ashwin Chaugule <ashwin.chaugule@linaro.org>
-
-> ---
->  drivers/mailbox/pcc.c | 4 ++--
->  1 file changed, 2 insertions(+), 2 deletions(-)
->
-> diff --git a/drivers/mailbox/pcc.c b/drivers/mailbox/pcc.c
-> index 0ddf638..043828d 100644
-> --- a/drivers/mailbox/pcc.c
-> +++ b/drivers/mailbox/pcc.c
-> @@ -361,8 +361,6 @@ static int __init acpi_pcc_probe(void)
->                 struct acpi_generic_address *db_reg;
->                 struct acpi_pcct_hw_reduced *pcct_ss;
->                 pcc_mbox_channels[i].con_priv = pcct_entry;
-> -               pcct_entry = (struct acpi_subtable_header *)
-> -                       ((unsigned long) pcct_entry + pcct_entry->length);
->
->                 /* If doorbell is in system memory cache the virt address */
->                 pcct_ss = (struct acpi_pcct_hw_reduced *)pcct_entry;
-> @@ -370,6 +368,8 @@ static int __init acpi_pcc_probe(void)
->                 if (db_reg->space_id == ACPI_ADR_SPACE_SYSTEM_MEMORY)
->                         pcc_doorbell_vaddr[i] = acpi_os_ioremap(db_reg->address,
->                                                         db_reg->bit_width/8);
-> +               pcct_entry = (struct acpi_subtable_header *)
-> +                       ((unsigned long) pcct_entry + pcct_entry->length);
->         }
->
->         pcc_mbox_ctrl.num_chans = count;
-> --
-> Qualcomm Technologies, Inc. on behalf of Qualcomm Innovation Center, Inc.
-> Qualcomm Innovation Center, Inc. is a member of Code Aurora Forum,
-> a Linux Foundation Collaborative Project
->
