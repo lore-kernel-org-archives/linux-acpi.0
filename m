@@ -1,67 +1,68 @@
-From: "Luis R. Rodriguez" <mcgrof@kernel.org>
-Subject: Re: [PATCH v4 01/14] x86/boot: enumerate documentation for the x86
- hardware_subarch
-Date: Fri, 8 Apr 2016 00:36:35 +0200
-Message-ID: <20160407223635.GJ1990@wotan.suse.de>
-References: <1459987594-5434-1-git-send-email-mcgrof@kernel.org>
- <1459987594-5434-2-git-send-email-mcgrof@kernel.org>
- <1460028338.6620.19.camel@linux.intel.com>
+From: Andreas Noever <andreas.noever@gmail.com>
+Subject: Re: [RFC 1/4] PCI: Add Thunderbolt device IDs
+Date: Fri, 8 Apr 2016 00:42:21 +0200
+Message-ID: <CAMxnaaW5hFw_wb-tAYofyj-+tP--Ehz1Rw6MNVzXrYKwAxCeEA@mail.gmail.com>
+References: <cover.1458126755.git.lukas@wunner.de> <d30491f2c4c1c6d28c78c5883820f9dc28c010d9.1458126755.git.lukas@wunner.de>
+ <20160317150320.GA22769@localhost> <20160320131135.GA29174@wunner.de>
+ <20160320171246.GB16658@kroah.com> <20160405232712.GI15353@localhost>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mx2.suse.de ([195.135.220.15]:39955 "EHLO mx2.suse.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756165AbcDGWgh (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 7 Apr 2016 18:36:37 -0400
-Content-Disposition: inline
-In-Reply-To: <1460028338.6620.19.camel@linux.intel.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-pm-owner@vger.kernel.org>
+In-Reply-To: <20160405232712.GI15353@localhost>
+Sender: linux-pm-owner@vger.kernel.org
+To: Bjorn Helgaas <helgaas@kernel.org>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Lukas Wunner <lukas@wunner.de>, "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>, linux-acpi@vger.kernel.org, Linux PM list <linux-pm@vger.kernel.org>, Matthew Garrett <mjg59@srcf.ucam.org>
 List-Id: linux-acpi@vger.kernel.org
-To: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Cc: "Luis R. Rodriguez" <mcgrof@kernel.org>, bp@alien8.de, hpa@zytor.com, tglx@linutronix.de, mingo@redhat.com, rusty@rustcorp.com.au, x86@kernel.org, linux-kernel@vger.kernel.org, luto@amacapital.net, boris.ostrovsky@oracle.com, david.vrabel@citrix.com, konrad.wilk@oracle.com, xen-devel@lists.xensource.com, lguest@lists.ozlabs.org, jlee@suse.com, glin@suse.com, matt@codeblueprint.co.uk, andrew.cooper3@citrix.com, rjw@rjwysocki.net, lenb@kernel.org, robert.moore@intel.com, lv.zheng@intel.com, toshi.kani@hp.com, linux-acpi@vger.kernel.org, Josh Triplett <josh@joshtriplett.org>, kozerkov@parallels.com
 
-On Thu, Apr 07, 2016 at 02:25:38PM +0300, Andy Shevchenko wrote:
-> On Wed, 2016-04-06 at 17:06 -0700, Luis R. Rodriguez wrote:
-> > Although hardware_subarch has been in place since the x86 boot
-> > protocol 2.07 it hasn't been used much. Enumerate current possible
-> > values to avoid misuses and help with semantics later at boot
-> > time should this be used further.
-> >=20
-> > These enums should only ever be used by architecture x86 code,
-> > and all that code should be well contained and compartamentalized,
-> > clarify that as well.
->=20
-> Nitpick:
->=20
-> > + * @X86_SUBARCH_PC: Should be used if the hardware is enumerable
-> > using standard
-> > + *	PC mechanisms (PCI, ACPI) and doesn't need a special boot
-> > flow.
-> > + * @X86_SUBARCH_LGUEST: Used for x86 hypervisor demo, lguest
-> > + * @X86_SUBARCH_XEN: Used for Xen guest types which follow the PV
-> > boot path,
-> > + *=A0	which start at asm startup_xen() entry point and later
-> > jump to the C
-> > + *=A0	xen_start_kernel() entry point.
-> > + * @X86_SUBARCH_INTEL_MID: Used for Intel MID (Mobile Internet
-> > Device) platform
-> > + *	systems which do not have the PCI legacy interfaces.
-> > + * @X86_SUBARCH_CE4100: Used for Intel CE media processor (CE4100)
-> > SOC for
->=20
-> I think 'SoC' (without quotes) will be better.
+Hi Bjorn,
 
-Amended, since I think I'll need a re-spin and since we may need to tak=
-e
-care of the dom0 Vs domU semantics I'll also make some changes to inclu=
-de
-X86_SUBARCH_XEN documentation to annotate that PV guests can be of domU
-or dom0 type...
+I think merging thunderbolt through your tree makes sense, so that is
+fine with me!
 
-  Luis
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Best,
+Andreas
+
+On Wed, Apr 6, 2016 at 1:27 AM, Bjorn Helgaas <helgaas@kernel.org> wrote:
+> On Sun, Mar 20, 2016 at 10:12:46AM -0700, Greg Kroah-Hartman wrote:
+>> On Sun, Mar 20, 2016 at 02:11:35PM +0100, Lukas Wunner wrote:
+>> > Hi Bjorn,
+>> >
+>> > On Thu, Mar 17, 2016 at 10:03:20AM -0500, Bjorn Helgaas wrote:
+>> > > On Wed, Mar 16, 2016 at 03:50:35PM +0100, Lukas Wunner wrote:
+>> > > > Gen 1 and 2 chips use the same ID for NHI, bridges and switch.
+>> > > > Gen 3 chips and onward use a distinct ID for the NHI.
+>> > >
+>> > > I assume this is strictly using #defines instead of bare numbers and
+>> > > hence "no functional change intended."
+>> > >
+>> > > > Cc: Andreas Noever <andreas.noever@gmail.com>
+>> > > > Signed-off-by: Lukas Wunner <lukas@wunner.de>
+>> > >
+>> > > Acked-by: Bjorn Helgaas <bhelgaas@google.com>
+>> >
+>> > Thanks, I've just posted a 3 patch series to support the Light Ridge
+>> > Thunderbolt controller and included your ack for this patch.
+>> >
+>> >
+>> > > I assume somebody else will merge this with the rest of the series.
+>> >
+>> > The maintainer of the thunderbolt driver is Andreas Noever, however
+>> > I don't think Andreas sends pull requests to Linus. Everything in
+>> > drivers/thunderbolt/ has so far been picked up by Greg KH.
+>> >
+>> > I have more thunderbolt stuff in the pipeline, some of which needs
+>> > changes to drivers/pci/. Therefore it would be ideal from my perspective
+>> > if my thunderbolt patches could go in via your tree, if that is possible.
+>>
+>> I have no objection if they go through the PCI tree, especially as
+>> Thunderbolt really just is PCI express, it makes sense to take them that
+>> way.
+>
+> Andreas, what's your preference?  If you want me to merge Thunderbolt
+> stuff via my PCI tree, I can do that.  But I don't know anything about
+> Thunderbolt and don't have specs or ability to test it, so I would
+> rely on you to ack any changes.  If you'd like to merge Thunderbolt
+> stuff yourself, that would be less work for me, so even better :)  But
+> either way is fine.
+>
+> Bjorn
