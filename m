@@ -1,146 +1,80 @@
-From: Shannon Zhao <zhaoshenglong@huawei.com>
-Subject: [PATCH v11 01/17] Xen: ACPI: Hide UART used by Xen
-Date: Thu, 7 Apr 2016 20:03:18 +0800
-Message-ID: <1460030614-16112-2-git-send-email-zhaoshenglong@huawei.com>
-References: <1460030614-16112-1-git-send-email-zhaoshenglong@huawei.com>
+From: Octavian Purdila <octavian.purdila@intel.com>
+Subject: Re: [RFC PATCH 0/4] Add ACPI support for pinctrl configuration
+Date: Thu, 7 Apr 2016 15:11:53 +0300
+Message-ID: <CAE1zotJ4OiQ_tMvCDm-KoF8cTJ9Z-n09FX7KR75j0DyAcsznLA@mail.gmail.com>
+References: <1459424685-26965-1-git-send-email-irina.tirdea@intel.com>
+	<20160404225200.GA1615@svinekod>
+	<1F3AC3675D538145B1661F571FE1805F2F2342A6@irsmsx105.ger.corp.intel.com>
+	<20160405181625.GA3064@svinekod>
+	<CAE1zot+kyANCTPHGmj2W26f4LbS9Nkgt_9DNon-=0nsqRpT3Rw@mail.gmail.com>
+	<20160406000130.GB8903@svinekod>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1460030614-16112-1-git-send-email-zhaoshenglong@huawei.com>
+In-Reply-To: <20160406000130.GB8903@svinekod>
 Sender: linux-kernel-owner@vger.kernel.org
-To: linux-arm-kernel@lists.infradead.org, sstabellini@kernel.org
-Cc: catalin.marinas@arm.com, will.deacon@arm.com, julien.grall@arm.com, david.vrabel@citrix.com, xen-devel@lists.xen.org, devicetree@vger.kernel.org, linux-efi@vger.kernel.org, linux-kernel@vger.kernel.org, shannon.zhao@linaro.org, peter.huangpeng@huawei.com, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, "open list:ACPI" <linux-acpi@vger.kernel.org>
+To: Mark Rutland <mark.rutland@arm.com>
+Cc: "Tirdea, Irina" <irina.tirdea@intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Mika Westerberg <mika.westerberg@linux.intel.com>, Linus Walleij <linus.walleij@linaro.org>, "linux-gpio@vger.kernel.org" <linux-gpio@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Rob Herring <robh+dt@kernel.org>, Heikki Krogerus <heikki.krogerus@linux.intel.com>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, "Ciocan, Cristina" <cristina.ciocan@intel.com>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "charles.garcia-tobin@arm.com" <charles.garcia-tobin@arm.com>
 List-Id: linux-acpi@vger.kernel.org
 
-From: Shannon Zhao <shannon.zhao@linaro.org>
+On Wed, Apr 6, 2016 at 3:01 AM, Mark Rutland <mark.rutland@arm.com> wrote:
+> On Tue, Apr 05, 2016 at 11:09:34PM +0300, Octavian Purdila wrote:
+>> On Tue, Apr 5, 2016 at 9:16 PM, Mark Rutland <mark.rutland@arm.com> wrote:
+>> > * The firmware is to some extent expected to manage pinctrl today (for power
+>> >   management of devices it does know about), and hence a pinctrl device is
+>> >   potentially under shared management of ACPI and the OS.
+>> >
+>> > * The ACPI specification says nothing about this style of pinctrl management,
+>> >   so it is unclear what the expectations are:
+>>
+>> Does it say anything at all about pinctrl management?
+>
+> To the best of my knowledge the ACPI spec does not explicitly mention pinctrl.
+> In another reply it was mentioned that there is work in progress for pinmuxing,
+> so evidently it is on the ASWG radar and within the scope of ACPI.
+>
+> I was trying to point out that it is _implicitly_ firmware's responsibility to
+> do any pinctrl today, due to the ACPI model for power management, and the lack
+> of an existing ACPI mechanisms to provide pinctrl data.
+>
+> In practice, firmware configures pinctrl at boot, and may modify pinctrl as
+> part of the runtime power management firmware is put in charge of.
+>
 
-ACPI 6.0 introduces a new table STAO to list the devices which are used
-by Xen and can't be used by Dom0. On Xen virtual platforms, the physical
-UART is used by Xen. So here it hides UART from Dom0.
+AFAIK the firmware only uses the pinctrl at boot to set the initial
+values and the OS owns it after boot. The only interaction I know of
+after boot are GPIO signaled events, but those are executed under the
+control of the OS.
 
-CC: "Rafael J. Wysocki" <rjw@rjwysocki.net> (supporter:ACPI)
-CC: Len Brown <lenb@kernel.org> (supporter:ACPI)
-CC: linux-acpi@vger.kernel.org (open list:ACPI)
-Signed-off-by: Shannon Zhao <shannon.zhao@linaro.org>
----
- drivers/acpi/scan.c | 74 +++++++++++++++++++++++++++++++++++++++++++++++++++++
- 1 file changed, 74 insertions(+)
+I don't understand the part about firmware being put in charge of
+runtime power management. Do you mean that the firmware directly
+accesses the pinctrl registers? Doesn't this contradict the ACPI goal
+of having the OS control power management? Or do you mean accessing
+pinctrl registers via _PSx and PowerResource._On/_Off?
 
-diff --git a/drivers/acpi/scan.c b/drivers/acpi/scan.c
-index 5f28cf7..cfc73fe 100644
---- a/drivers/acpi/scan.c
-+++ b/drivers/acpi/scan.c
-@@ -46,6 +46,13 @@ DEFINE_MUTEX(acpi_device_lock);
- LIST_HEAD(acpi_wakeup_device_list);
- static DEFINE_MUTEX(acpi_hp_context_lock);
- 
-+/*
-+ * The UART device described by the SPCR table is the only object which needs
-+ * special-casing. Everything else is covered by ACPI namespace paths in STAO
-+ * table.
-+ */
-+static u64 spcr_uart_addr;
-+
- struct acpi_dep_data {
- 	struct list_head node;
- 	acpi_handle master;
-@@ -1453,6 +1460,41 @@ static int acpi_add_single_object(struct acpi_device **child,
- 	return 0;
- }
- 
-+static acpi_status acpi_get_resource_memory(struct acpi_resource *ares,
-+					    void *context)
-+{
-+	struct resource *res = context;
-+
-+	if (acpi_dev_resource_memory(ares, res))
-+		return AE_CTRL_TERMINATE;
-+
-+	return AE_OK;
-+}
-+
-+static bool acpi_device_should_be_hidden(acpi_handle handle)
-+{
-+	acpi_status status;
-+	struct resource res;
-+
-+	/* Check if it should ignore the UART device */
-+	if (!(spcr_uart_addr && acpi_has_method(handle, METHOD_NAME__CRS)))
-+		return false;
-+
-+	/*
-+	 * The UART device described in SPCR table is assumed to have only one
-+	 * memory resource present. So we only look for the first one here.
-+	 */
-+	status = acpi_walk_resources(handle, METHOD_NAME__CRS,
-+				     acpi_get_resource_memory, &res);
-+	if (ACPI_FAILURE(status) || res.start != spcr_uart_addr)
-+		return false;
-+
-+	acpi_handle_info(handle, "The UART device @%pa in SPCR table will be hidden\n",
-+			 &res.start);
-+
-+	return true;
-+}
-+
- static int acpi_bus_type_and_status(acpi_handle handle, int *type,
- 				    unsigned long long *sta)
- {
-@@ -1466,6 +1508,9 @@ static int acpi_bus_type_and_status(acpi_handle handle, int *type,
- 	switch (acpi_type) {
- 	case ACPI_TYPE_ANY:		/* for ACPI_ROOT_OBJECT */
- 	case ACPI_TYPE_DEVICE:
-+		if (acpi_device_should_be_hidden(handle))
-+			return -ENODEV;
-+
- 		*type = ACPI_BUS_TYPE_DEVICE;
- 		status = acpi_bus_get_status_handle(handle, sta);
- 		if (ACPI_FAILURE(status))
-@@ -1916,9 +1961,24 @@ static int acpi_bus_scan_fixed(void)
- 	return result < 0 ? result : 0;
- }
- 
-+static void __init acpi_get_spcr_uart_addr(void)
-+{
-+	acpi_status status;
-+	struct acpi_table_spcr *spcr_ptr;
-+
-+	status = acpi_get_table(ACPI_SIG_SPCR, 0,
-+				(struct acpi_table_header **)&spcr_ptr);
-+	if (ACPI_SUCCESS(status))
-+		spcr_uart_addr = spcr_ptr->serial_port.address;
-+	else
-+		printk(KERN_WARNING PREFIX "STAO table present, but SPCR is missing\n");
-+}
-+
- int __init acpi_scan_init(void)
- {
- 	int result;
-+	acpi_status status;
-+	struct acpi_table_stao *stao_ptr;
- 
- 	acpi_pci_root_init();
- 	acpi_pci_link_init();
-@@ -1934,6 +1994,20 @@ int __init acpi_scan_init(void)
- 
- 	acpi_scan_add_handler(&generic_device_handler);
- 
-+	/*
-+	 * If there is STAO table, check whether it needs to ignore the UART
-+	 * device in SPCR table.
-+	 */
-+	status = acpi_get_table(ACPI_SIG_STAO, 0,
-+				(struct acpi_table_header **)&stao_ptr);
-+	if (ACPI_SUCCESS(status)) {
-+		if (stao_ptr->header.length > sizeof(struct acpi_table_stao))
-+			printk(KERN_INFO PREFIX "STAO Name List not yet supported.");
-+
-+		if (stao_ptr->ignore_uart)
-+			acpi_get_spcr_uart_addr();
-+	}
-+
- 	mutex_lock(&acpi_scan_lock);
- 	/*
- 	 * Enumerate devices in the ACPI namespace.
--- 
-2.0.4
+> The lack of any statement about pinctrl would mean that there is effectively no
+> reasonable limitation on what firmware might do with pinctrl, and we cannot
+> assume specific behaviour from the firmware.
+>
+
+There is noting specified in the spec about other controllers, why is
+pinctrl special in this regard?
+
+> [...]
+>
+>> Since our focus is for open-ended configurations and for hardware that
+>> it is not know to firmware we only considered the case where the pins
+>> are not touched after the system boots.
+>>
+>> Now I wonder what are the cases were the firmware changes the pin
+>> configuration after boot.
+>
+> Device power management and suspend/resume seem like the obvious cases.
+
+I assume you are suggesting something like the following: we have a
+device that is powered via a GPIO and associated ACPI _PS3/_PS0
+methods are poking the pinctrl register to drive 0 or 1 to power on or
+off the device.
+
+If that is the case, we can easily break that today, by changing that
+particular GPIO value via, e.g., sysfs.
