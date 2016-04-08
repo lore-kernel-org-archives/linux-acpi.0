@@ -1,310 +1,123 @@
-From: Lv Zheng <lv.zheng@intel.com>
-Subject: [PATCH 3/3] ACPI / tables: Convert the initrd table override mechanisms to the table upgrade mechanism
-Date: Fri,  8 Apr 2016 15:35:36 +0800
-Message-ID: <273fd92043ff4972a71a94efdf01b67ee4638131.1460100857.git.lv.zheng@intel.com>
-References: <cover.1460100857.git.lv.zheng@intel.com>
+From: "Luis R. Rodriguez" <mcgrof@kernel.org>
+Subject: Re: [PATCH v4 04/14] x86/rtc: replace paravirt rtc check with
+ platform legacy quirk
+Date: Fri, 8 Apr 2016 00:36:44 -0700
+Message-ID: <CAB=NE6XHL87=FzwnoS-0Rm=GMNZHXSKybHiXzVkfX1hcd_b3qQ@mail.gmail.com>
+References: <1459987594-5434-1-git-send-email-mcgrof@kernel.org>
+ <1459987594-5434-5-git-send-email-mcgrof@kernel.org> <570658DA.7060509@oracle.com>
+ <20160408003207.GN1990@wotan.suse.de> <57073F0F.400@suse.com>
+ <CAB=NE6UfgbUiF0v4X2O+FzGCqU3eevEXejrRO4bGWtmYOr0mxg@mail.gmail.com>
+ <57075201.5080207@suse.com> <CAB=NE6W3gnH8_cFE4q2QStm-KXn+TtEB_sZHWoSD5ZF7cqD04A@mail.gmail.com>
+ <57075A0F.2020303@suse.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga01.intel.com ([192.55.52.88]:2928 "EHLO mga01.intel.com"
+Received: from mail.kernel.org ([198.145.29.136]:41913 "EHLO mail.kernel.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757726AbcDHHfm (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 8 Apr 2016 03:35:42 -0400
-In-Reply-To: <cover.1460100857.git.lv.zheng@intel.com>
+	id S1753498AbcDHHhK (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 8 Apr 2016 03:37:10 -0400
+In-Reply-To: <57075A0F.2020303@suse.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <len.brown@intel.com>
-Cc: Lv Zheng <lv.zheng@intel.com>, Lv Zheng <zetalog@gmail.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
+To: Juergen Gross <jgross@suse.com>, "H. Peter Anvin" <hpa@zytor.com>
+Cc: Boris Ostrovsky <boris.ostrovsky@oracle.com>, Borislav Petkov <bp@alien8.de>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, Rusty Russell <rusty@rustcorp.com.au>, X86 ML <x86@kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Andy Lutomirski <luto@amacapital.net>, David Vrabel <david.vrabel@citrix.com>, Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, "xen-devel@lists.xensource.com" <xen-devel@lists.xensource.com>, lguest@lists.ozlabs.org, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Joey Lee <jlee@suse.com>, Gary Lin <glin@suse.com>, Matt Fleming <matt@codeblueprint.co.uk>, Andrew Cooper <andrew.cooper3@citrix.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, "Moore, Robert" <robert.moore@intel.com>, Lv Zheng <lv.zheng@intel.com>, Toshi Kani <toshi.kani@hp.com>, ACPI
 
-This patch converts the initrd table override mechanism to the table
-upgrade mechanism by restricting its usage to the tables released with
-compatibility and more recent revision.
+On Fri, Apr 8, 2016 at 12:13 AM, Juergen Gross <jgross@suse.com> wrote:
+> On 08/04/16 08:56, Luis R. Rodriguez wrote:
+>> On Thu, Apr 7, 2016 at 11:38 PM, Juergen Gross <jgross@suse.com> wrote:
+>>> On 08/04/16 08:29, Luis R. Rodriguez wrote:
+>>>> On Thu, Apr 7, 2016 at 10:18 PM, Juergen Gross <jgross@suse.com> wrote:
+>>>>> On 08/04/16 02:32, Luis R. Rodriguez wrote:
+>>>>>> This highlights a semantic gap issue. From a quick cursory review, I think
+>>>>>> we can address this temporarily by just using a check:
+>>>>>>
+>>>>>> void __init x86_early_init_platform_quirks(void)
+>>>>>> {
+>>>>>>       x86_platform.legacy.rtc = 1;
+>>>>>>
+>>>>>>       switch (boot_params.hdr.hardware_subarch) {
+>>>>>>       case X86_SUBARCH_XEN:
+>>>>>>       case X86_SUBARCH_LGUEST:
+>>>>>>       case X86_SUBARCH_INTEL_MID:
+>>>>>> -             x86_platform.legacy.rtc = 0;
+>>>>>> +             if (x86_init.mpparse.get_smp_config != x86_init_uint_noop)
+>>>>>> +                     x86_platform.legacy.rtc = 0;
+>>>>>
+>>>>> No! Why don't you just use the explicit test xen_initial_domain() ?
+>>>>
+>>>> Because we don't want to sprinkle Xen specific code outside of Xen
+>>>> code. What do you think about the second possibility I listed?
+>>>> Otherwise, any other ideas?
+>>>
+>>> Don't try to guess.
+>>
+>> I can only do that given there is nothing at all to tell me what to
+>> expect here with regards to RTC on Xen guest, if there is some
+>> documentation that could help with that please let me know.
+>
+> Only Xen inernals. :-)
 
-This use case has been encouraged by the ACPI specification:
-1. OEMID:
-   An OEM-supplied string that identifies the OEM.
-2. OEM Table ID:
-   An OEM-supplied string that the OEM uses to identify the particular data
-   table. This field is particularly useful when defining a definition
-   block to distinguish definition block functions. OEM assigns each
-   dissimilar table a new OEM Table Id.
-3. OEM Revision:
-   An OEM-supplied revision number. Larger numbers are assumed to be newer
-   revisions.
-For OEMs, good practices will ensure consistency when assigning OEMID and
-OEM Table ID fields in any table. The intent of these fields is to allow
-for a binary control system that support services can use. Because many
-support function can be automated, it is useful when a tool can
-programatically determine which table release is a compatible and more
-recent revision of a prior table on the same OEMID and OEM Table ID.
+Where can I look at this specifically on the Xen sources? No worries
+if you don't care -- as I don't really either.
 
-The facility can now be used by the vendors to upgrade wrong tables for bug
-fixing purpose, thus lockdep disabling taint is not suitable for it and it
-should be a default 'y' option to implement the spec encouraged use case.
+>>> In case you don't want to inject Xen internals here, just call a Xen
+>>> function to either return the correct value, or to set all structure
+>>> elements correctly.
+>>
+>> I like the later as an option, in case there are further hardware
+>> subarch specific quirks which require internal logistics. What do
+>> others think?
+>>
+>>> Thinking more about it: why not do that for all the subarchs?
+>>
+>> I originally had went with that approach, but Ingo made the point that
+>> it would be best to instead move all quirk settings into one place.
+>> That lets a reader easily tell what is going on in one place, it also
+>> compartmentalizes the hardware subarch uses.
+>
+> Okay. Another idea (not sure whether this is really a good one):
+>
+> Add X86_SUBARCH_XEN_DOM0. As hardware_subarch is 32 bits wide I don't
+> think the number of subarchs is a scarce resource. :-)
 
-Note that, by implementing table upgrade inside of ACPICA itself, it is
-possible to remove acpi_table_initrd_override() and tables can be upgraded
-by acpi_install_table() automatically. Though current ACPICA impelentation
-hasn't implemented this, this patched changes the table flag setting timing
-to allow this to be implemented in ACPICA without changing the code here.
+This would mean bumping the x86 boot protocol, we shouldn't take that
+lightly, but given that in this case the new subarch would really only
+be set by the kernel (or future loaders for perhaps HVMLite) I'd think
+this is not such an intrusive alternative.
 
-Documentation of initrd override mechanism is upgraded accordingly.
+> I'd expect other quirks in future might have different settings for
+> domU and dom0, too.
 
-Original-by: Octavian Purdila <octavian.purdila@intel.com>
-Signed-off-by: Lv Zheng <lv.zheng@intel.com>
----
- Documentation/acpi/initrd_table_override.txt |   65 +++++++++++++++-----------
- drivers/acpi/Kconfig                         |    8 ++--
- drivers/acpi/tables.c                        |   48 +++++++++++++------
- include/linux/acpi.h                         |    2 +-
- 4 files changed, 78 insertions(+), 45 deletions(-)
+Can you elaborate a bit more on this. I realize we expect domU and
+dom0 on HVMLite in the future, would HVMLite use the subarch ? From
+the last discussions on the HVMLite thread Boris noted HVMLite would
+use the PC subarch -- how would we do dom0 Vs domU quirk management?
 
-diff --git a/Documentation/acpi/initrd_table_override.txt b/Documentation/acpi/initrd_table_override.txt
-index 35c3f54..eb651a6 100644
---- a/Documentation/acpi/initrd_table_override.txt
-+++ b/Documentation/acpi/initrd_table_override.txt
-@@ -1,5 +1,5 @@
--Overriding ACPI tables via initrd
--=================================
-+Upgrading ACPI tables via initrd
-+================================
- 
- 1) Introduction (What is this about)
- 2) What is this for
-@@ -9,12 +9,14 @@ Overriding ACPI tables via initrd
- 1) What is this about
- ---------------------
- 
--If the ACPI_INITRD_TABLE_OVERRIDE compile option is true, it is possible to
--override nearly any ACPI table provided by the BIOS with an instrumented,
--modified one.
-+If the ACPI_TABLE_UPGRADE compile option is true, it is possible to
-+upgrade the ACPI execution environment that is defined by the ACPI tables
-+via upgrading the ACPI tables provided by the BIOS with an instrumented,
-+modified, more recent version one, or installing brand new ACPI tables.
- 
--For a full list of ACPI tables that can be overridden, take a look at
--the char *table_sigs[MAX_ACPI_SIGNATURE]; definition in drivers/acpi/osl.c
-+For a full list of ACPI tables that can be upgraded/installed, take a look
-+at the char *table_sigs[MAX_ACPI_SIGNATURE]; definition in
-+drivers/acpi/tables.c.
- All ACPI tables iasl (Intel's ACPI compiler and disassembler) knows should
- be overridable, except:
-    - ACPI_SIG_RSDP (has a signature of 6 bytes)
-@@ -25,17 +27,20 @@ Both could get implemented as well.
- 2) What is this for
- -------------------
- 
--Please keep in mind that this is a debug option.
--ACPI tables should not get overridden for productive use.
--If BIOS ACPI tables are overridden the kernel will get tainted with the
--TAINT_OVERRIDDEN_ACPI_TABLE flag.
--Complain to your platform/BIOS vendor if you find a bug which is so sever
--that a workaround is not accepted in the Linux kernel.
-+Complain to your platform/BIOS vendor if you find a bug which is so severe
-+that a workaround is not accepted in the Linux kernel. And this facility
-+allows you to upgrade the buggy tables before your platform/BIOS vendor
-+releases an upgraded BIOS binary.
- 
--Still, it can and should be enabled in any kernel, because:
--  - There is no functional change with not instrumented initrds
--  - It provides a powerful feature to easily debug and test ACPI BIOS table
--    compatibility with the Linux kernel.
-+This facility can be used by platform/BIOS vendors to provide a Linux
-+compatible environment without modifying the underlying platform firmware.
-+
-+This facility also provides a powerful feature to easily debug and test
-+ACPI BIOS table compatibility with the Linux kernel by modifying old
-+platform provided ACPI tables or inserting new ACPI tables.
-+
-+It can and should be enabled in any kernel because there is no functional
-+change with not instrumented initrds.
- 
- 
- 3) How does it work
-@@ -50,23 +55,31 @@ iasl -d *.dat
- # For example add this statement into a _PRT (PCI Routing Table) function
- # of the DSDT:
- Store("HELLO WORLD", debug)
-+# And increase the OEM Revision. For example, before modification:
-+DefinitionBlock ("DSDT.aml", "DSDT", 2, "INTEL ", "TEMPLATE", 0x00000000)
-+# After modification:
-+DefinitionBlock ("DSDT.aml", "DSDT", 2, "INTEL ", "TEMPLATE", 0x00000001)
- iasl -sa dsdt.dsl
- # Add the raw ACPI tables to an uncompressed cpio archive.
--# They must be put into a /kernel/firmware/acpi directory inside the
--# cpio archive.
--# The uncompressed cpio archive must be the first.
--# Other, typically compressed cpio archives, must be
--# concatenated on top of the uncompressed one.
-+# They must be put into a /kernel/firmware/acpi directory inside the cpio
-+# archive. Note that if the table put here matches a platform table
-+# (similar Table Signature, and similar OEMID, and similar OEM Table ID)
-+# with a more recent OEM Revision, the platform table will be upgraded by
-+# this table. If the table put here doesn't match a platform table
-+# (dissimilar Table Signature, or dissimilar OEMID, or dissimilar OEM Table
-+# ID), this table will be appended.
- mkdir -p kernel/firmware/acpi
- cp dsdt.aml kernel/firmware/acpi
--# A maximum of: #define ACPI_OVERRIDE_TABLES 10
--# tables are  currently allowed (see osl.c):
-+# A maximum of "NR_ACPI_INITRD_TABLES (64)" tables are currently allowed
-+# (see osl.c):
- iasl -sa facp.dsl
- iasl -sa ssdt1.dsl
- cp facp.aml kernel/firmware/acpi
- cp ssdt1.aml kernel/firmware/acpi
--# Create the uncompressed cpio archive and concatenate the original initrd
--# on top:
-+# The uncompressed cpio archive must be the first. Other, typically
-+# compressed cpio archives, must be concatenated on top of the uncompressed
-+# one. Following command creates the uncompressed cpio archive and
-+# concatenates the original initrd on top:
- find kernel | cpio -H newc --create > /boot/instrumented_initrd
- cat /boot/initrd >>/boot/instrumented_initrd
- # reboot with increased acpi debug level, e.g. boot params:
-diff --git a/drivers/acpi/Kconfig b/drivers/acpi/Kconfig
-index 82b96ee..b225c4b 100644
---- a/drivers/acpi/Kconfig
-+++ b/drivers/acpi/Kconfig
-@@ -311,12 +311,12 @@ config ACPI_CUSTOM_DSDT
- 	bool
- 	default ACPI_CUSTOM_DSDT_FILE != ""
- 
--config ACPI_INITRD_TABLE_OVERRIDE
--	bool "ACPI tables override via initrd"
-+config ACPI_TABLE_UPGRADE
-+	bool "Allow upgrading ACPI tables via initrd"
- 	depends on BLK_DEV_INITRD && X86
--	default n
-+	default y
- 	help
--	  This option provides functionality to override arbitrary ACPI tables
-+	  This option provides functionality to upgrade arbitrary ACPI tables
- 	  via initrd. No functional change if no ACPI tables are passed via
- 	  initrd, therefore it's safe to say Y.
- 	  See Documentation/acpi/initrd_table_override.txt for details
-diff --git a/drivers/acpi/tables.c b/drivers/acpi/tables.c
-index 2e74dbf..08795fb 100644
---- a/drivers/acpi/tables.c
-+++ b/drivers/acpi/tables.c
-@@ -442,7 +442,7 @@ static void acpi_table_taint(struct acpi_table_header *table)
- 	add_taint(TAINT_OVERRIDDEN_ACPI_TABLE, LOCKDEP_NOW_UNRELIABLE);
- }
- 
--#ifdef CONFIG_ACPI_INITRD_TABLE_OVERRIDE
-+#ifdef CONFIG_ACPI_TABLE_UPGRADE
- static u64 acpi_tables_addr;
- static int all_tables_size;
- 
-@@ -471,9 +471,9 @@ static const char * const table_sigs[] = {
- 
- #define ACPI_HEADER_SIZE sizeof(struct acpi_table_header)
- 
--#define ACPI_OVERRIDE_TABLES 64
--static struct cpio_data __initdata acpi_initrd_files[ACPI_OVERRIDE_TABLES];
--static DECLARE_BITMAP(acpi_initrd_installed, ACPI_OVERRIDE_TABLES);
-+#define NR_ACPI_INITRD_TABLES 64
-+static struct cpio_data __initdata acpi_initrd_files[NR_ACPI_INITRD_TABLES];
-+static DECLARE_BITMAP(acpi_initrd_installed, NR_ACPI_INITRD_TABLES);
- 
- #define MAP_CHUNK_SIZE   (NR_FIX_BTMAPS << PAGE_SHIFT)
- 
-@@ -488,7 +488,7 @@ static void __init acpi_table_initrd_init(void *data, size_t size)
- 	if (data == NULL || size == 0)
- 		return;
- 
--	for (no = 0; no < ACPI_OVERRIDE_TABLES; no++) {
-+	for (no = 0; no < NR_ACPI_INITRD_TABLES; no++) {
- 		file = find_cpio_data(cpio_path, data, size, &offset);
- 		if (!file.data)
- 			break;
-@@ -611,19 +611,30 @@ acpi_table_initrd_override(struct acpi_table_header *existing_table,
- 		table_length = table->length;
- 
- 		/* Only override tables matched */
--		if (test_bit(table_index, acpi_initrd_installed) ||
--		    memcmp(existing_table->signature, table->signature, 4) ||
-+		if (memcmp(existing_table->signature, table->signature, 4) ||
-+		    memcmp(table->oem_id, existing_table->oem_id,
-+			   ACPI_OEM_ID_SIZE) ||
- 		    memcmp(table->oem_table_id, existing_table->oem_table_id,
- 			   ACPI_OEM_TABLE_ID_SIZE)) {
- 			acpi_os_unmap_memory(table, ACPI_HEADER_SIZE);
- 			goto next_table;
- 		}
-+		/*
-+		 * Mark the table to avoid being used in
-+		 * acpi_table_initrd_scan() and check the revision.
-+		 */
-+		if (test_and_set_bit(table_index, acpi_initrd_installed) ||
-+		    existing_table->oem_revision >= table->oem_revision) {
-+			acpi_os_unmap_memory(table, ACPI_HEADER_SIZE);
-+			goto next_table;
-+		}
- 
- 		*length = table_length;
- 		*address = acpi_tables_addr + table_offset;
--		acpi_table_taint(existing_table);
-+		pr_info("Table Upgrade: override [%4.4s-%6.6s-%8.8s]\n",
-+			table->signature, table->oem_id,
-+			table->oem_table_id);
- 		acpi_os_unmap_memory(table, ACPI_HEADER_SIZE);
--		set_bit(table_index, acpi_initrd_installed);
- 		break;
- 
- next_table:
-@@ -655,17 +666,26 @@ static void __init acpi_table_initrd_scan(void)
- 		table_length = table->length;
- 
- 		/* Skip RSDT/XSDT which should only be used for override */
--		if (test_bit(table_index, acpi_initrd_installed) ||
--		    ACPI_COMPARE_NAME(table->signature, ACPI_SIG_RSDT) ||
-+		if (ACPI_COMPARE_NAME(table->signature, ACPI_SIG_RSDT) ||
- 		    ACPI_COMPARE_NAME(table->signature, ACPI_SIG_XSDT)) {
- 			acpi_os_unmap_memory(table, ACPI_HEADER_SIZE);
- 			goto next_table;
- 		}
-+		/*
-+		 * Mark the table to avoid being used in
-+		 * acpi_table_initrd_override(). Though this is not possible
-+		 * because override is disabled in acpi_install_table().
-+		 */
-+		if (test_and_set_bit(table_index, acpi_initrd_installed)) {
-+			acpi_os_unmap_memory(table, ACPI_HEADER_SIZE);
-+			goto next_table;
-+		}
- 
--		acpi_table_taint(table);
-+		pr_info("Table Upgrade: install [%4.4s-%6.6s-%8.8s]\n",
-+			table->signature, table->oem_id,
-+			table->oem_table_id);
- 		acpi_os_unmap_memory(table, ACPI_HEADER_SIZE);
- 		acpi_install_table(acpi_tables_addr + table_offset, TRUE);
--		set_bit(table_index, acpi_initrd_installed);
- next_table:
- 		table_offset += table_length;
- 		table_index++;
-@@ -689,7 +709,7 @@ acpi_table_initrd_override(struct acpi_table_header *existing_table,
- static void __init acpi_table_initrd_scan(void)
- {
- }
--#endif /* CONFIG_ACPI_INITRD_TABLE_OVERRIDE */
-+#endif /* CONFIG_ACPI_TABLE_UPGRADE */
- 
- acpi_status
- acpi_os_physical_table_override(struct acpi_table_header *existing_table,
-diff --git a/include/linux/acpi.h b/include/linux/acpi.h
-index 86ac608..68ff412 100644
---- a/include/linux/acpi.h
-+++ b/include/linux/acpi.h
-@@ -190,7 +190,7 @@ static inline int acpi_debugger_notify_command_complete(void)
- }
- #endif
- 
--#ifdef CONFIG_ACPI_INITRD_TABLE_OVERRIDE
-+#ifdef CONFIG_ACPI_TABLE_UPGRADE
- void early_acpi_table_init(void *data, size_t size);
- #else
- static inline void early_acpi_table_init(void *data, size_t size)
--- 
-1.7.10
+If it goes the EFI route, I gather Xen instead can use the EFI
+configuration tables for Xen specific tunings, however we may also
+need a generic x86 configuration table for generic quirks I think. We
+may need to provide a 1-1 mapping of these quirks there, if the
+subarch is not used.
 
+>>> You'd
+>>> have the specific settings where they belong: in a subarch specific
+>>> source. Just do the default settings in x86_early_init_platform_quirks()
+>>> and let the subarch functions set the non-default values.
+>>
+>> This is a rather different approach than what I had originally tried.
+>> Bike shed thing -- someone just has to decide.
+>>
+>> Left up to me, I kind of really like centralizing the quirk settings
+>> in one place approach as it means a reader can easily tell what's
+>> going on regardless of platform in one place for odd settings. I
+>> prefer this given that we *already* have the semantics over hardware
+>> subarch in a generalized fashion. We *do not* have semantics for dom0
+>> Vs domU -- if such a notion is generic to other virtualization
+>
+> That's not carved in stone - see above. :-)
+
+Another subarch for Xen dom0 works well for me as well given the new
+subarch would just all set in the kernel. It does mean extending the
+x86 boot protocol though, and so for that I yield to hpa.
+
+ Luis
