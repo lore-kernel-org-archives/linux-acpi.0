@@ -1,69 +1,41 @@
 From: "Luis R. Rodriguez" <mcgrof@kernel.org>
-Subject: [PATCH v5 05/14] x86, ACPI: move ACPI_FADT_NO_CMOS_RTC check to ACPI boot code
-Date: Fri,  8 Apr 2016 16:57:45 -0700
-Message-ID: <1460159865-13296-1-git-send-email-mcgrof@kernel.org>
+Subject: [PATCH v5 07/14] tools/lguest: force disable tboot and apm
+Date: Fri,  8 Apr 2016 16:58:06 -0700
+Message-ID: <1460159886-13344-1-git-send-email-mcgrof@kernel.org>
 References: <1460158825-13117-1-git-send-email-mcgrof@kernel.org>
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.136]:41567 "EHLO mail.kernel.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752736AbcDHX5u (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 8 Apr 2016 19:57:50 -0400
+Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1460158825-13117-1-git-send-email-mcgrof@kernel.org>
-Sender: linux-acpi-owner@vger.kernel.org
-List-Id: linux-acpi@vger.kernel.org
+Sender: linux-kernel-owner@vger.kernel.org
 To: bp@alien8.de, hpa@zytor.com, tglx@linutronix.de, mingo@redhat.com, rusty@rustcorp.com.au
 Cc: x86@kernel.org, linux-kernel@vger.kernel.org, luto@amacapital.net, boris.ostrovsky@oracle.com, david.vrabel@citrix.com, konrad.wilk@oracle.com, xen-devel@lists.xensource.com, lguest@lists.ozlabs.org, andriy.shevchenko@linux.intel.com, jlee@suse.com, glin@suse.com, matt@codeblueprint.co.uk, andrew.cooper3@citrix.com, rjw@rjwysocki.net, lenb@kernel.org, robert.moore@intel.com, lv.zheng@intel.com, toshi.kani@hp.com, linux-acpi@vger.kernel.org, kozerkov@parallels.com, josh@joshtriplett.org, joro@8bytes.org, tiwai@suse.de, "Luis R. Rodriguez" <mcgrof@kernel.org>
+List-Id: linux-acpi@vger.kernel.org
 
-This moves the ACPI specific check into the ACPI boot code,
-it also takes advantage of the x86_platform.legacy.rtc which
-is checked for already on the RTC initialization code. This
-lets us remove the nasty #ifdefery and consolidate the checks
-to use only one toggle to disable the RTC init code.
-
-The works as RTC is initialized by device_initcall(add_rtc_cmos),
-this will run late in boot on start_kernel() during rest_init(),
-acpi_parse_fadt() gets called earlier during setup_arch().
+The paravirt_enabled() check is going away, the area tossed to
+the kernel on lguest is not zerored out, so ensure lguest force
+disables tboot and apm just in case the kernel file being read might
+have this set for whatever reason.
 
 Signed-off-by: Luis R. Rodriguez <mcgrof@kernel.org>
 ---
- arch/x86/kernel/acpi/boot.c | 4 ++++
- arch/x86/kernel/rtc.c       | 8 --------
- 2 files changed, 4 insertions(+), 8 deletions(-)
+ tools/lguest/lguest.c | 6 ++++++
+ 1 file changed, 6 insertions(+)
 
-diff --git a/arch/x86/kernel/acpi/boot.c b/arch/x86/kernel/acpi/boot.c
-index 8c2f1ef6ca23..8c9c2bdba092 100644
---- a/arch/x86/kernel/acpi/boot.c
-+++ b/arch/x86/kernel/acpi/boot.c
-@@ -913,6 +913,10 @@ late_initcall(hpet_insert_resource);
+diff --git a/tools/lguest/lguest.c b/tools/lguest/lguest.c
+index ff0aa580c6e1..0aa75af6e862 100644
+--- a/tools/lguest/lguest.c
++++ b/tools/lguest/lguest.c
+@@ -3357,6 +3357,12 @@ int main(int argc, char *argv[])
+ 	/* Tell the entry path not to try to reload segment registers. */
+ 	boot->hdr.loadflags |= KEEP_SEGMENTS;
  
- static int __init acpi_parse_fadt(struct acpi_table_header *table)
- {
-+	if (acpi_gbl_FADT.boot_flags & ACPI_FADT_NO_CMOS_RTC) {
-+		pr_debug("ACPI: not registering RTC platform device\n");
-+		x86_platform.legacy.rtc = 0;
-+	}
- 
- #ifdef CONFIG_X86_PM_TIMER
- 	/* detect the location of the ACPI PM Timer */
-diff --git a/arch/x86/kernel/rtc.c b/arch/x86/kernel/rtc.c
-index 62c48da3889d..ff4f4180fefd 100644
---- a/arch/x86/kernel/rtc.c
-+++ b/arch/x86/kernel/rtc.c
-@@ -189,14 +189,6 @@ static __init int add_rtc_cmos(void)
- 	if (of_have_populated_dt())
- 		return 0;
- 
--#ifdef CONFIG_ACPI
--	if (acpi_gbl_FADT.boot_flags & ACPI_FADT_NO_CMOS_RTC) {
--		/* This warning can likely go away again in a year or two. */
--		pr_info("ACPI: not registering RTC platform device\n");
--		return -ENODEV;
--	}
--#endif
--
- 	if (!x86_platform.legacy.rtc)
- 		return -ENODEV;
++	/* We don't support tboot */
++	boot->tboot_addr = 0;
++
++	/* Ensure this is 0 to prevent apm from loading */
++	boot->apm_bios_info.version = 0;
++
+ 	/* We tell the kernel to initialize the Guest. */
+ 	tell_kernel(start);
  
 -- 
 2.7.2
-
