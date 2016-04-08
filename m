@@ -1,49 +1,81 @@
-From: Andy Shevchenko <andy.shevchenko@gmail.com>
-Subject: Re: [PATCH 0/3] ACPI / tables: Add table upgrade mechanism
-Date: Fri, 8 Apr 2016 11:22:04 +0300
-Message-ID: <CAHp75Vdec8M+5sBJbRjE8Nt-aOH3XhhAT7WHcDjkZQydvjdNSQ@mail.gmail.com>
-References: <cover.1460100857.git.lv.zheng@intel.com>
+From: Linus Walleij <linus.walleij@linaro.org>
+Subject: Re: [PATCH v7 3/3] gpio: dwapb: add gpio-signaled acpi event support
+Date: Fri, 8 Apr 2016 10:26:28 +0200
+Message-ID: <CACRpkdb63AZtEOSJ0R+EqdHfKXcUr7Hs8fh9N5XHNcWjQ1Ba8A@mail.gmail.com>
+References: <1459926480-32966-1-git-send-email-qiujiang@huawei.com>
+	<1459926480-32966-4-git-send-email-qiujiang@huawei.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-oi0-f48.google.com ([209.85.218.48]:36386 "EHLO
-	mail-oi0-f48.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753730AbcDHIWF (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 8 Apr 2016 04:22:05 -0400
-In-Reply-To: <cover.1460100857.git.lv.zheng@intel.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Return-path: <linux-gpio-owner@vger.kernel.org>
+In-Reply-To: <1459926480-32966-4-git-send-email-qiujiang@huawei.com>
+Sender: linux-gpio-owner@vger.kernel.org
+To: qiujiang <qiujiang@huawei.com>
+Cc: Alexandre Courbot <gnurou@gmail.com>, Mika Westerberg <mika.westerberg@linux.intel.com>, Andy Shevchenko <andy.shevchenko@gmail.com>, Alan Tull <delicious.quinoa@gmail.com>, Jamie Iles <jamie@jamieiles.com>, charles.chenxin@huawei.com, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-gpio@vger.kernel.org" <linux-gpio@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linuxarm <linuxarm@huawei.com>
 List-Id: linux-acpi@vger.kernel.org
-To: Lv Zheng <lv.zheng@intel.com>, Mika Westerberg <mika.westerberg@linux.intel.com>
-Cc: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <len.brown@intel.com>, Lv Zheng <zetalog@gmail.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
 
-On Fri, Apr 8, 2016 at 10:35 AM, Lv Zheng <lv.zheng@intel.com> wrote:
-> This patch introduces a table upgrade mechanism based on the existing
-> initrd table override mechanism.
+On Wed, Apr 6, 2016 at 9:08 AM, qiujiang <qiujiang@huawei.com> wrote:
+
+> This patch adds gpio-signaled acpi event support. It is used for
+> power button on hisilicon D02 board, an arm64 platform.
 >
-
-Mika, I think we might take advantage of this change.
-
-> Lv Zheng (3):
->   ACPI / tables: Move table override mechanisms to tables.c
->   ACPI / x86: Cleanup initrd related code
->   ACPI / tables: Convert the initrd table override mechanisms to the
->     table upgrade mechanism
+> The corresponding DSDT file is defined as follows:
+>  Device(GPI0) {
+>         Name(_HID, "HISI0181")
+>         Name(_ADR, 0)
+>         Name(_UID, 0)
 >
->  Documentation/acpi/initrd_table_override.txt |   65 +++---
->  arch/x86/kernel/setup.c                      |   12 +-
->  drivers/acpi/Kconfig                         |    8 +-
->  drivers/acpi/internal.h                      |    1 -
->  drivers/acpi/osl.c                           |  274 ----------------------
->  drivers/acpi/tables.c                        |  312 +++++++++++++++++++++++++-
->  include/linux/acpi.h                         |    6 +-
->  7 files changed, 366 insertions(+), 312 deletions(-)
+>         Name (_CRS, ResourceTemplate ()  {
+>                 Memory32Fixed (ReadWrite, 0x802e0000, 0x10000)
+>                 Interrupt (ResourceConsumer, Level, ActiveHigh,
+>                 Exclusive,,,)  {344}
+>         })
 >
-> --
-> 1.7.10
+>         Device(PRTa) {
+>                 Name (_DSD, Package () {
+>                 Package () {
+>                         Package () {"reg",0},
+>                         Package () {"snps,nr-gpios",32},
+>                         }
+>                 })
+>         }
 >
+>         Name (_AEI, ResourceTemplate () {
+>                 GpioInt(Edge, ActiveLow, ExclusiveAndWake,
+>                 PullUp, , " \\_SB.GPI0") {8}
+>         })
+>
+>         Method (_E08, 0x0, NotSerialized) {
+>                 Notify (\_SB.PWRB, 0x80)
+>         }
+> }
+>
+> Acked-by: Mika Westerberg <mika.westerberg@linux.intel.com>
+> Reviewed-by: Andy Shevchenko <andy.shevchenko@gmail.com>
+> Signed-off-by: qiujiang <qiujiang@huawei.com>
 
+Admittedly I'm an ACPI novice and need help with deciding
+about ACPI, but I mostly trust Mika to know these things right.
 
+About this:
 
--- 
-With Best Regards,
-Andy Shevchenko
+> +       /* Add GPIO-signaled ACPI event support */
+> +       if (pp->irq)
+> +               acpi_gpiochip_request_interrupts(&port->gc);
+
+It's weird to me that the driver already has a requested IRQ and
+everything, now it has to request it again from ACPI.
+
+When I look into the acpi_gpiochip_request_interrupts()
+I find it weird that it is void given how much can go wrong
+inside it. Should it not return an errorcode?
+
+> +               if (has_acpi_companion(dev) && pp->idx == 0)
+> +                       pp->irq = platform_get_irq(to_platform_device(dev), 0);
+
+As it was already fetched here and then later requested,
+we still have to call acpi_gpiochip_request_interrupts()
+further down the road? That is confusing to me, can you
+explain what is going on?
+
+Yours,
+Linus Walleij
