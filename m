@@ -1,46 +1,36 @@
-From: "Derrick, Jonathan" <jonathan.derrick@intel.com>
-Subject: RE: [PATCH 0/2] Fixups for mixed pcie_ports=auto and native
-Date: Fri, 8 Apr 2016 17:32:45 +0000
-Message-ID: <8D943B239464E04C9184454D8B3F5CFF0ACF55D7@ORSMSX101.amr.corp.intel.com>
-References: <1460131280-184287-1-git-send-email-jonathan.derrick@intel.com>
- <20160408162517.GA15034@localhost>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+From: Jon Derrick <jonathan.derrick@intel.com>
+Subject: [PATCHv2 0/2] Fixups for mixed pcie_ports=auto and native
+Date: Fri,  8 Apr 2016 11:35:49 -0600
+Message-ID: <1460136951-28217-1-git-send-email-jonathan.derrick@intel.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga11.intel.com ([192.55.52.93]:49357 "EHLO mga11.intel.com"
+Received: from mga04.intel.com ([192.55.52.120]:20483 "EHLO mga04.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753138AbcDHRcs convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 8 Apr 2016 13:32:48 -0400
-In-Reply-To: <20160408162517.GA15034@localhost>
-Content-Language: en-US
+	id S1751707AbcDHRgg (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 8 Apr 2016 13:36:36 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Bjorn Helgaas <helgaas@kernel.org>
-Cc: Rafael Wysocki <rjw@rjwysocki.net>, "Busch, Keith" <keith.busch@intel.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>
+To: rjw@rjwysocki.net
+Cc: Jon Derrick <jonathan.derrick@intel.com>, helgaas@kernel.org, keith.busch@intel.com, linux-acpi@vger.kernel.org, linux-pci@vger.kernel.org
 
-I noticed that too. Thanks for letting me know it's happening. I'll give it another shot on v2
+This set introduces a fixup that lets non-acpi pcie ports subscribe to
+native port services. The theory is that on an acpi system, native
+services will require acpi to release control of the port instance.
 
------Original Message-----
-From: Bjorn Helgaas [mailto:helgaas@kernel.org] 
-Sent: Friday, April 8, 2016 10:25 AM
-To: Derrick, Jonathan <jonathan.derrick@intel.com>
-Cc: Rafael Wysocki <rjw@rjwysocki.net>; Busch, Keith <keith.busch@intel.com>; linux-acpi@vger.kernel.org; linux-pci@vger.kernel.org
-Subject: Re: [PATCH 0/2] Fixups for mixed pcie_ports=auto and native
+Rather than failing on non-acpi devices, we should continue as if they
+were native to begin with, and try to subscribe to native services just
+the same.
 
-On Fri, Apr 08, 2016 at 10:01:18AM -0600, Jon Derrick wrote:
-> This set introduces a fixup that lets non-acpi pcie ports subscribe to 
-> native port services. The theory is that on an acpi system, native 
-> services will require acpi to release control of the port instance.
-> 
-> Rather than failing on non-acpi devices, we should continue as if they 
-> were native to begin with, and try to subscribe to native services 
-> just the same.
-> 
-> Jon Derrick (2):
->   PCI/ACPI: Do not fail ports without ACPI entries
->   PCI/PCIe: Fixups for acpi port setup not being allowed to fail
+No change from v1 - the emails just didn't reach all of their targets
 
-I don't know what happened, but I don't see the first patch either in patchwork (https://patchwork.ozlabs.org/project/linux-pci/list/), the linux-pci archives, or my own email.
+Jon Derrick (2):
+  PCI/ACPI: Do not fail ports without ACPI entries
+  PCI/PCIe: Fixups for acpi port setup not being allowed to fail
 
-Bjorn
+ drivers/pci/pcie/portdrv.h      | 11 ++++-------
+ drivers/pci/pcie/portdrv_acpi.c | 10 ++++------
+ drivers/pci/pcie/portdrv_core.c |  8 ++------
+ 3 files changed, 10 insertions(+), 19 deletions(-)
+
+-- 
+1.8.3.1
+
