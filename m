@@ -1,93 +1,51 @@
 From: Boris Ostrovsky <boris.ostrovsky@oracle.com>
-Subject: Re: [PATCH v4 04/14] x86/rtc: replace paravirt rtc
- check with platform legacy quirk
-Date: Fri, 8 Apr 2016 08:25:33 -0400
-Message-ID: <5707A33D.5060400@oracle.com>
+Subject: Re: [PATCH v4 04/14] x86/rtc: replace paravirt rtc check with
+ platform legacy quirk
+Date: Fri, 8 Apr 2016 08:37:44 -0400
+Message-ID: <5707A618.7040608@oracle.com>
 References: <1459987594-5434-1-git-send-email-mcgrof@kernel.org>
  <1459987594-5434-5-git-send-email-mcgrof@kernel.org>
  <570658DA.7060509@oracle.com> <20160408003207.GN1990@wotan.suse.de>
  <57073F0F.400@suse.com>
  <CAB=NE6UfgbUiF0v4X2O+FzGCqU3eevEXejrRO4bGWtmYOr0mxg@mail.gmail.com>
+ <57075201.5080207@suse.com>
+ <CAB=NE6W3gnH8_cFE4q2QStm-KXn+TtEB_sZHWoSD5ZF7cqD04A@mail.gmail.com>
+ <57075A0F.2020303@suse.com>
+ <CAB=NE6XHL87=FzwnoS-0Rm=GMNZHXSKybHiXzVkfX1hcd_b3qQ@mail.gmail.com>
+ <570764F8.6020902@suse.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"; Format="flowed"
-Content-Transfer-Encoding: base64
-Return-path: <xen-devel-bounces@lists.xen.org>
-In-Reply-To: <CAB=NE6UfgbUiF0v4X2O+FzGCqU3eevEXejrRO4bGWtmYOr0mxg@mail.gmail.com>
-List-Unsubscribe: <http://lists.xen.org/cgi-bin/mailman/options/xen-devel>,
- <mailto:xen-devel-request@lists.xen.org?subject=unsubscribe>
-List-Post: <mailto:xen-devel@lists.xen.org>
-List-Help: <mailto:xen-devel-request@lists.xen.org?subject=help>
-List-Subscribe: <http://lists.xen.org/cgi-bin/mailman/listinfo/xen-devel>,
- <mailto:xen-devel-request@lists.xen.org?subject=subscribe>
-Errors-To: xen-devel-bounces@lists.xen.org
-Sender: "Xen-devel" <xen-devel-bounces@lists.xen.org>
-To: "Luis R. Rodriguez" <mcgrof@kernel.org>, Juergen Gross <jgross@suse.com>
-Cc: kozerkov@parallels.com, Matt Fleming <matt@codeblueprint.co.uk>, Lv Zheng <lv.zheng@intel.com>, "H. Peter Anvin" <hpa@zytor.com>, lguest@lists.ozlabs.org, Joerg Roedel <joro@8bytes.org>, X86 ML <x86@kernel.org>, "Moore, Robert" <robert.moore@intel.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Ingo Molnar <mingo@redhat.com>, Gary Lin <glin@suse.com>, Len Brown <lenb@kernel.org>, Rusty Russell <rusty@rustcorp.com.au>, Josh Triplett <josh@joshtriplett.org>, Joey Lee <jlee@suse.com>, "xen-devel@lists.xensource.com" <xen-devel@lists.xensource.com>, Borislav Petkov <bp@alien8.de>, Thomas Gleixner <tglx@linutronix.de>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Toshi Kani <toshi.kani@hp.com>, Andrew Cooper <andrew.cooper3@citrix.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from userp1040.oracle.com ([156.151.31.81]:17991 "EHLO
+	userp1040.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751757AbcDHMi6 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 8 Apr 2016 08:38:58 -0400
+In-Reply-To: <570764F8.6020902@suse.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Juergen Gross <jgross@suse.com>, "Luis R. Rodriguez" <mcgrof@kernel.org>, "H. Peter Anvin" <hpa@zytor.com>
+Cc: Borislav Petkov <bp@alien8.de>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, Rusty Russell <rusty@rustcorp.com.au>, X86 ML <x86@kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Andy Lutomirski <luto@amacapital.net>, David Vrabel <david.vrabel@citrix.com>, Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, "xen-devel@lists.xensource.com" <xen-devel@lists.xensource.com>, lguest@lists.ozlabs.org, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Joey Lee <jlee@suse.com>, Gary Lin <glin@suse.com>, Matt Fleming <matt@codeblueprint.co.uk>, Andrew Cooper <andrew.cooper3@citrix.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, "Moore, Robert" <robert.moore@intel.com>, Lv Zheng <lv.zheng@intel.com>, Toshi Kani <toshi.kani@hp.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, kozerkov@paral
 
-T24gMDQvMDgvMjAxNiAwMjoyOSBBTSwgTHVpcyBSLiBSb2RyaWd1ZXogd3JvdGU6Cj4gT24gVGh1
-LCBBcHIgNywgMjAxNiBhdCAxMDoxOCBQTSwgSnVlcmdlbiBHcm9zcyA8amdyb3NzQHN1c2UuY29t
-PiB3cm90ZToKPj4gT24gMDgvMDQvMTYgMDI6MzIsIEx1aXMgUi4gUm9kcmlndWV6IHdyb3RlOgo+
-Pj4gT24gVGh1LCBBcHIgMDcsIDIwMTYgYXQgMDg6NTU6NTRBTSAtMDQwMCwgQm9yaXMgT3N0cm92
-c2t5IHdyb3RlOgo+Pj4+IE9uIDA0LzA2LzIwMTYgMDg6MDYgUE0sIEx1aXMgUi4gUm9kcmlndWV6
-IHdyb3RlOgo+Pj4+PiBXZSBoYXZlIDQgdHlwZXMgb2YgeDg2IHBsYXRmb3JtcyB0aGF0IGRpc2Fi
-bGUgUlRDOgo+Pj4+Pgo+Pj4+PiAgICAqIEludGVsIE1JRAo+Pj4+PiAgICAqIExndWVzdCAtIHVz
-ZXMgcGFyYXZpcnQKPj4+Pj4gICAgKiBYZW4gZG9tLVUgLSB1c2VzIHBhcmF2aXJ0Cj4+Pj4+ICAg
-ICogeDg2IG9uIGxlZ2FjeSBzeXN0ZW1zIGFubm90YXRlZCB3aXRoIGFuIEFDUEkgbGVnYWN5IGZs
-YWcKPj4+Pj4KPj4+Pj4gV2UgY2FuIGNvbnNvbGlkYXRlIGFsbCBvZiB0aGVzZSBpbnRvIGEgcGxh
-dGZvcm0gc3BlY2lmaWMgbGVnYWN5Cj4+Pj4+IHF1aXJrIHNldCBlYXJseSBpbiBib290IHRocm91
-Z2ggaTM4Nl9zdGFydF9rZXJuZWwoKSBhbmQgdGhyb3VnaAo+Pj4+PiB4ODZfNjRfc3RhcnRfcmVz
-ZXJ2YXRpb25zKCkuIFRoaXMgZGVhbHMgd2l0aCB0aGUgUlRDIHF1aXJrcyB3aGljaAo+Pj4+PiB3
-ZSBjYW4gcmVseSBvbiB0aHJvdWdoIHRoZSBoYXJkd2FyZSBzdWJhcmNoLCB0aGUgQUNQSSBjaGVj
-ayBjYW4KPj4+Pj4gYmUgZGVhbHQgd2l0aCBzZXBhcmF0ZWx5Lgo+Pj4+Pgo+Pj4+PiB2Mjogc3Bs
-aXQgdGhlIHN1YmFyY2ggY2hlY2sgZnJvbSB0aGUgQUNQSSBjaGVjaywgY2xhcmlmeQo+Pj4+PiAg
-ICAgIG9uIHRoZSBBQ1BJIGNoYW5nZSBjb21taXQgbG9nIHdoeSBvcmRlcmluZyB3b3Jrcwo+Pj4+
-Pgo+Pj4+PiBTdWdnZXN0ZWQtYnk6IEluZ28gTW9sbmFyIDxtaW5nb0BrZXJuZWwub3JnPgo+Pj4+
-PiBTaWduZWQtb2ZmLWJ5OiBMdWlzIFIuIFJvZHJpZ3VleiA8bWNncm9mQGtlcm5lbC5vcmc+Cj4+
-PiA8LS0gc25pcCAtLT4KPj4+Cj4+Pj4+IGRpZmYgLS1naXQgYS9hcmNoL3g4Ni9rZXJuZWwvcGxh
-dGZvcm0tcXVpcmtzLmMgYi9hcmNoL3g4Ni9rZXJuZWwvcGxhdGZvcm0tcXVpcmtzLmMKPj4+Pj4g
-bmV3IGZpbGUgbW9kZSAxMDA2NDQKPj4+Pj4gaW5kZXggMDAwMDAwMDAwMDAwLi4xYjExNGFjNTk5
-NmYKPj4+Pj4gLS0tIC9kZXYvbnVsbAo+Pj4+PiArKysgYi9hcmNoL3g4Ni9rZXJuZWwvcGxhdGZv
-cm0tcXVpcmtzLmMKPj4+Pj4gQEAgLTAsMCArMSwxOCBAQAo+Pj4+PiArI2luY2x1ZGUgPGxpbnV4
-L2tlcm5lbC5oPgo+Pj4+PiArI2luY2x1ZGUgPGxpbnV4L2luaXQuaD4KPj4+Pj4gKwo+Pj4+PiAr
-I2luY2x1ZGUgPGFzbS9zZXR1cC5oPgo+Pj4+PiArI2luY2x1ZGUgPGFzbS9iaW9zX2ViZGEuaD4K
-Pj4+Pj4gKwo+Pj4+PiArdm9pZCBfX2luaXQgeDg2X2Vhcmx5X2luaXRfcGxhdGZvcm1fcXVpcmtz
-KHZvaWQpCj4+Pj4+ICt7Cj4+Pj4+ICsgICB4ODZfcGxhdGZvcm0ubGVnYWN5LnJ0YyA9IDE7Cj4+
-Pj4+ICsKPj4+Pj4gKyAgIHN3aXRjaCAoYm9vdF9wYXJhbXMuaGRyLmhhcmR3YXJlX3N1YmFyY2gp
-IHsKPj4+Pj4gKyAgIGNhc2UgWDg2X1NVQkFSQ0hfWEVOOgo+Pj4+PiArICAgY2FzZSBYODZfU1VC
-QVJDSF9MR1VFU1Q6Cj4+Pj4+ICsgICBjYXNlIFg4Nl9TVUJBUkNIX0lOVEVMX01JRDoKPj4+Pj4g
-KyAgICAgICAgICAgeDg2X3BsYXRmb3JtLmxlZ2FjeS5ydGMgPSAwOwo+Pj4+PiArICAgICAgICAg
-ICBicmVhazsKPj4+Pj4gKyAgIH0KPj4+Pj4gK30KPj4+PiBXaGF0IGFib3V0IFhlbiBkb20wIChh
-a2EgaW5pdGlhbCBkb21haW4pPwo+Pj4gSW5kZWVkLCB0aGFua3MgZm9yIGNhdGNoaW5nIHRoaXMs
-IHRoZSBodW5rIGJlbG93IHJlbW92ZXMgdGhlIHJlLWVuYWJsZW1lbnQgb2YKPj4+IHRoZSB0aGUg
-UlRDIGZvciBkb20wOgo+Pj4KPj4+Pj4gLS0tIGEvYXJjaC94ODYveGVuL2VubGlnaHRlbi5jCj4+
-Pj4+ICsrKyBiL2FyY2gveDg2L3hlbi9lbmxpZ2h0ZW4uYwo+Pj4+PiBAQCAtMTE5Miw3ICsxMTky
-LDYgQEAgc3RhdGljIGNvbnN0IHN0cnVjdCBwdl9pbmZvIHhlbl9pbmZvIF9faW5pdGNvbnN0ID0g
-ewo+Pj4+PiAgICNpZmRlZiBDT05GSUdfWDg2XzY0Cj4+Pj4+ICAgICAgLmV4dHJhX3VzZXJfNjRi
-aXRfY3MgPSBGTEFUX1VTRVJfQ1M2NCwKPj4+Pj4gICAjZW5kaWYKPj4+Pj4gLSAgIC5mZWF0dXJl
-cyA9IDAsCj4+Pj4+ICAgICAgLm5hbWUgPSAiWGVuIiwKPj4+Pj4gICB9Owo+Pj4+PiBAQCAtMTUy
-NSw4ICsxNTI0LDYgQEAgYXNtbGlua2FnZSBfX3Zpc2libGUgdm9pZCBfX2luaXQgeGVuX3N0YXJ0
-X2tlcm5lbCh2b2lkKQo+Pj4+PiAgICAgIC8qIEluc3RhbGwgWGVuIHBhcmF2aXJ0IG9wcyAqLwo+
-Pj4+PiAgICAgIHB2X2luZm8gPSB4ZW5faW5mbzsKPj4+Pj4gLSAgIGlmICh4ZW5faW5pdGlhbF9k
-b21haW4oKSkKPj4+Pj4gLSAgICAgICAgICAgcHZfaW5mby5mZWF0dXJlcyB8PSBQVl9TVVBQT1JU
-RURfUlRDOwo+Pj4+PiAgICAgIHB2X2luaXRfb3BzID0geGVuX2luaXRfb3BzOwo+Pj4+PiAgICAg
-IGlmICgheGVuX3B2aF9kb21haW4oKSkgewo+Pj4+PiAgICAgICAgICAgICAgcHZfY3B1X29wcyA9
-IHhlbl9jcHVfb3BzOwo+Pj4gVGhpcyBzaG91bGQgdGhlbiBicmVhayBkb20wIHVubGVzcyBvZiBj
-b3Vyc2UgeW91IGhhdmUgdGhlIHJlc3BlY3RpdmUgbmV4dAo+Pj4gcGF0Y2ggYXBwbGllZCBhbmQg
-dGhhdCBkaXNhYmxlZCB0aGUgUlRDIGR1ZSB0byBhbiBBQ1BJIHNldHRpbmcgb24geW91cgo+Pj4g
-cGxhdGZvcm0uIEp1ZXJnZW4sIGNhbiB5b3UgY2hlY2sgdG8gc2VlIGlmIHRoYXQgd2FzIHRoZSBj
-YXNlIGZvciB5b3VyCj4+PiB0ZXN0aW5nIHBsYXRmb3JtIG9uIGRvbTAgPwo+PiBBcmUgeW91IHN1
-cmUgaXQgd291bGQgYnJlYWs/Cj4gTm8sIHN1c3BlY3RlZCB0aGF0IGl0IHNob3VsZCB0aG91Z2gu
-Cj4KPj4gV291bGRuJ3QgaXQganVzdCBmYWxsIGJhY2sgdG8gYW5vdGhlcgo+PiBjbG9jayBzb3Vy
-Y2UsIGUuZy4gaHBldD8KPiBJIHN1cHBvc2Ugc28uCj4KPj4gSSBsb29rZWQgaW50byBteSB0ZXN0
-IHN5c3RlbTogc2VlbXMgYXMgaWYgYWRkX3J0Y19jbW9zKCkgaXMgcmV0dXJuaW5nCj4+IGJlZm9y
-ZSB0aGUgLmxlZ2FjeS5ydGMgdGVzdC4KPiBPSyB0aGFua3MuLi4KCkl0IHdvcmtzIGJlY2F1c2Ug
-dGhlIGNsb2NrIG11c3QgaGF2ZSBiZWVuIGRpc2NvdmVyZWQgYnkgQUNQSSBwcmlvciB0byAKYWRk
-X3J0Y19jbW9zKCkgY2FsbC4gSXQncyBQTlAwYjAwIG9iamVjdCwgSSBiZWxpZXZlLiBUaGUgcmVz
-dCBvZiB0aGUgCnJvdXRpbmUgaXMgdG8gaGFuZGxlIHRoZSBjYXNlIHdoZW4gUlRDIGlzIG5vdCBm
-b3VuZCBpbiBBQ1BJIHRhYmxlcyBmb3IgCndoYXRldmVyIHJlYXNvbnMgKEkgdGhpbmspLgoKVGhh
-dCdzIHdoeSB3ZSBhZGRlZCBwYXJhdmlydF9oYXMoUlRDKSAtLS0gZG9tMCBzaG91bGQgYmUgYWJs
-ZSB0byBoYW5kbGUgCnN1Y2ggY2FzZXMsIGp1c3QgbGlrZSBiYXJlIG1ldGFsLgoKLWJvcmlzCgpf
-X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fXwpYZW4tZGV2ZWwg
-bWFpbGluZyBsaXN0Clhlbi1kZXZlbEBsaXN0cy54ZW4ub3JnCmh0dHA6Ly9saXN0cy54ZW4ub3Jn
-L3hlbi1kZXZlbAo=
+On 04/08/2016 03:59 AM, Juergen Gross wrote:
+> On 08/04/16 09:36, Luis R. Rodriguez wrote:
+>> On Fri, Apr 8, 2016 at 12:13 AM, Juergen Gross <jgross@suse.com> wrote:
+>>> On 08/04/16 08:56, Luis R. Rodriguez wrote:
+>>>> On Thu, Apr 7, 2016 at 11:38 PM, Juergen Gross <jgross@suse.com> wrote:
+>>>>
+>>>> Okay. Another idea (not sure whether this is really a good one):
+>>>>
+>>>> Add X86_SUBARCH_XEN_DOM0. As hardware_subarch is 32 bits wide I don't
+>>>> think the number of subarchs is a scarce resource. :-)
+>> This would mean bumping the x86 boot protocol, we shouldn't take that
+>> lightly, but given that in this case the new subarch would really only
+>> be set by the kernel (or future loaders for perhaps HVMLite) I'd think
+>> this is not such an intrusive alternative.
+> I think adding an own subarch for dom0 isn't that bad. It really is
+> different from domU as dom0 has per default access to the real hardware
+> (or at least to most of it).
+
+Can we do this (overwrite quirks) in x86_init_ops.arch_setup? I'd really 
+like to avoid adding a what essentially is a sub-subarch.
+
+-boris
