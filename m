@@ -1,30 +1,68 @@
 From: Lv Zheng <lv.zheng@intel.com>
-Subject: [PATCH 0/3] ACPI / tables: Add table upgrade mechanism
-Date: Fri,  8 Apr 2016 15:35:12 +0800
-Message-ID: <cover.1460100857.git.lv.zheng@intel.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
+Subject: [PATCH 2/3] ACPI / x86: Cleanup initrd related code
+Date: Fri,  8 Apr 2016 15:35:30 +0800
+Message-ID: <48dd3c36244bcc657a4c5eb0a47e6c96c94b6d5d.1460100857.git.lv.zheng@intel.com>
+References: <cover.1460100857.git.lv.zheng@intel.com>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga01.intel.com ([192.55.52.88]:39004 "EHLO mga01.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1757726AbcDHHfb (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 8 Apr 2016 03:35:31 -0400
+In-Reply-To: <cover.1460100857.git.lv.zheng@intel.com>
+Sender: linux-acpi-owner@vger.kernel.org
+List-Id: linux-acpi@vger.kernel.org
 To: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <len.brown@intel.com>
 Cc: Lv Zheng <lv.zheng@intel.com>, Lv Zheng <zetalog@gmail.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
-List-Id: linux-acpi@vger.kernel.org
 
-This patch introduces a table upgrade mechanism based on the existing
-initrd table override mechanism.
+In arch/x86/kernel/setup.c, the #ifdef kept for CONFIG_ACPI actually is
+related to the accessibility of initrd_start/initrd_end, so the stub should
+be provided from this source file and should only be dependent on
+CONFIG_BLK_DEV_INITRD.
+Note that when ACPI=n and BLK_DEV_INITRD=y, early_initrd_acpi_init() is
+still a stub because of the stub prepared for early_acpi_table_init().
 
-Lv Zheng (3):
-  ACPI / tables: Move table override mechanisms to tables.c
-  ACPI / x86: Cleanup initrd related code
-  ACPI / tables: Convert the initrd table override mechanisms to the
-    table upgrade mechanism
+Signed-off-by: Lv Zheng <lv.zheng@intel.com>
+---
+ arch/x86/kernel/setup.c |   12 +++++++++---
+ 1 file changed, 9 insertions(+), 3 deletions(-)
 
- Documentation/acpi/initrd_table_override.txt |   65 +++---
- arch/x86/kernel/setup.c                      |   12 +-
- drivers/acpi/Kconfig                         |    8 +-
- drivers/acpi/internal.h                      |    1 -
- drivers/acpi/osl.c                           |  274 ----------------------
- drivers/acpi/tables.c                        |  312 +++++++++++++++++++++++++-
- include/linux/acpi.h                         |    6 +-
- 7 files changed, 366 insertions(+), 312 deletions(-)
-
+diff --git a/arch/x86/kernel/setup.c b/arch/x86/kernel/setup.c
+index 902a6f7..c4e7b39 100644
+--- a/arch/x86/kernel/setup.c
++++ b/arch/x86/kernel/setup.c
+@@ -398,6 +398,11 @@ static void __init reserve_initrd(void)
+ 
+ 	memblock_free(ramdisk_image, ramdisk_end - ramdisk_image);
+ }
++
++static void __init early_initrd_acpi_init(void)
++{
++	early_acpi_table_init((void *)initrd_start, initrd_end - initrd_start);
++}
+ #else
+ static void __init early_reserve_initrd(void)
+ {
+@@ -405,6 +410,9 @@ static void __init early_reserve_initrd(void)
+ static void __init reserve_initrd(void)
+ {
+ }
++static void __init early_initrd_acpi_init(void)
++{
++}
+ #endif /* CONFIG_BLK_DEV_INITRD */
+ 
+ static void __init parse_setup_data(void)
+@@ -1138,9 +1146,7 @@ void __init setup_arch(char **cmdline_p)
+ 
+ 	reserve_initrd();
+ 
+-#if defined(CONFIG_ACPI) && defined(CONFIG_BLK_DEV_INITRD)
+-	early_acpi_table_init((void *)initrd_start, initrd_end - initrd_start);
+-#endif
++	early_initrd_acpi_init();
+ 
+ 	vsmp_init();
+ 
 -- 
 1.7.10
+
