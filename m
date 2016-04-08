@@ -1,68 +1,104 @@
-From: Andreas Noever <andreas.noever@gmail.com>
-Subject: Re: [RFC 1/4] PCI: Add Thunderbolt device IDs
-Date: Fri, 8 Apr 2016 00:42:21 +0200
-Message-ID: <CAMxnaaW5hFw_wb-tAYofyj-+tP--Ehz1Rw6MNVzXrYKwAxCeEA@mail.gmail.com>
-References: <cover.1458126755.git.lukas@wunner.de> <d30491f2c4c1c6d28c78c5883820f9dc28c010d9.1458126755.git.lukas@wunner.de>
- <20160317150320.GA22769@localhost> <20160320131135.GA29174@wunner.de>
- <20160320171246.GB16658@kroah.com> <20160405232712.GI15353@localhost>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-pm-owner@vger.kernel.org>
-In-Reply-To: <20160405232712.GI15353@localhost>
-Sender: linux-pm-owner@vger.kernel.org
-To: Bjorn Helgaas <helgaas@kernel.org>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Lukas Wunner <lukas@wunner.de>, "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>, linux-acpi@vger.kernel.org, Linux PM list <linux-pm@vger.kernel.org>, Matthew Garrett <mjg59@srcf.ucam.org>
+From: Yinghai Lu <yinghai@kernel.org>
+Subject: [PATCH v11 20/60] PCI: Separate realloc list checking after allocation
+Date: Thu,  7 Apr 2016 17:15:33 -0700
+Message-ID: <1460074573-7481-21-git-send-email-yinghai@kernel.org>
+References: <1460074573-7481-1-git-send-email-yinghai@kernel.org>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from aserp1040.oracle.com ([141.146.126.69]:42790 "EHLO
+	aserp1040.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757134AbcDHATK (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 7 Apr 2016 20:19:10 -0400
+In-Reply-To: <1460074573-7481-1-git-send-email-yinghai@kernel.org>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Bjorn Helgaas <bhelgaas@google.com>, David Miller <davem@davemloft.net>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Linus Torvalds <torvalds@linux-foundation.org>
+Cc: Wei Yang <weiyang@linux.vnet.ibm.com>, TJ <linux@iam.tj>, Yijing Wang <wangyijing@huawei.com>, Khalid Aziz <khalid.aziz@oracle.com>, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, Yinghai Lu <yinghai@kernel.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org
 
-Hi Bjorn,
+We check the realloc list, as list must be empty after allocation.
 
-I think merging thunderbolt through your tree makes sense, so that is
-fine with me!
+Separate the realloc list checking to another function.
 
-Best,
-Andreas
+Add checking that is missed in acpiphp driver.
 
-On Wed, Apr 6, 2016 at 1:27 AM, Bjorn Helgaas <helgaas@kernel.org> wrote:
-> On Sun, Mar 20, 2016 at 10:12:46AM -0700, Greg Kroah-Hartman wrote:
->> On Sun, Mar 20, 2016 at 02:11:35PM +0100, Lukas Wunner wrote:
->> > Hi Bjorn,
->> >
->> > On Thu, Mar 17, 2016 at 10:03:20AM -0500, Bjorn Helgaas wrote:
->> > > On Wed, Mar 16, 2016 at 03:50:35PM +0100, Lukas Wunner wrote:
->> > > > Gen 1 and 2 chips use the same ID for NHI, bridges and switch.
->> > > > Gen 3 chips and onward use a distinct ID for the NHI.
->> > >
->> > > I assume this is strictly using #defines instead of bare numbers and
->> > > hence "no functional change intended."
->> > >
->> > > > Cc: Andreas Noever <andreas.noever@gmail.com>
->> > > > Signed-off-by: Lukas Wunner <lukas@wunner.de>
->> > >
->> > > Acked-by: Bjorn Helgaas <bhelgaas@google.com>
->> >
->> > Thanks, I've just posted a 3 patch series to support the Light Ridge
->> > Thunderbolt controller and included your ack for this patch.
->> >
->> >
->> > > I assume somebody else will merge this with the rest of the series.
->> >
->> > The maintainer of the thunderbolt driver is Andreas Noever, however
->> > I don't think Andreas sends pull requests to Linus. Everything in
->> > drivers/thunderbolt/ has so far been picked up by Greg KH.
->> >
->> > I have more thunderbolt stuff in the pipeline, some of which needs
->> > changes to drivers/pci/. Therefore it would be ideal from my perspective
->> > if my thunderbolt patches could go in via your tree, if that is possible.
->>
->> I have no objection if they go through the PCI tree, especially as
->> Thunderbolt really just is PCI express, it makes sense to take them that
->> way.
->
-> Andreas, what's your preference?  If you want me to merge Thunderbolt
-> stuff via my PCI tree, I can do that.  But I don't know anything about
-> Thunderbolt and don't have specs or ability to test it, so I would
-> rely on you to ack any changes.  If you'd like to merge Thunderbolt
-> stuff yourself, that would be less work for me, so even better :)  But
-> either way is fine.
->
-> Bjorn
+-v2: change from BUG_ON to WARN_ON according to Rafael.
+
+Signed-off-by: Yinghai Lu <yinghai@kernel.org>
+Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: Len Brown <lenb@kernel.org>
+Cc: linux-acpi@vger.kernel.org
+---
+ drivers/pci/hotplug/acpiphp_glue.c |  1 +
+ drivers/pci/pci.h                  |  1 +
+ drivers/pci/setup-bus.c            | 12 +++++++++---
+ 3 files changed, 11 insertions(+), 3 deletions(-)
+
+diff --git a/drivers/pci/hotplug/acpiphp_glue.c b/drivers/pci/hotplug/acpiphp_glue.c
+index fa49f91..c35983a 100644
+--- a/drivers/pci/hotplug/acpiphp_glue.c
++++ b/drivers/pci/hotplug/acpiphp_glue.c
+@@ -507,6 +507,7 @@ static void enable_slot(struct acpiphp_slot *slot)
+ 		}
+ 	}
+ 	__pci_bus_assign_resources(bus, &add_list, NULL);
++	pci_bus_check_realloc(&add_list);
+ 
+ 	acpiphp_sanitize_bus(bus);
+ 	pcie_bus_configure_settings(bus);
+diff --git a/drivers/pci/pci.h b/drivers/pci/pci.h
+index 0ac4229..0bb8eee 100644
+--- a/drivers/pci/pci.h
++++ b/drivers/pci/pci.h
+@@ -238,6 +238,7 @@ void __pci_bus_size_bridges(struct pci_bus *bus,
+ void __pci_bus_assign_resources(const struct pci_bus *bus,
+ 				struct list_head *realloc_head,
+ 				struct list_head *fail_head);
++void pci_bus_check_realloc(struct list_head *realloc_head);
+ bool pci_bus_clip_resource(struct pci_dev *dev, int idx);
+ 
+ void pci_reassigndev_resource_alignment(struct pci_dev *dev);
+diff --git a/drivers/pci/setup-bus.c b/drivers/pci/setup-bus.c
+index 6385cf7..7d58f3f 100644
+--- a/drivers/pci/setup-bus.c
++++ b/drivers/pci/setup-bus.c
+@@ -279,6 +279,12 @@ out:
+ 	}
+ }
+ 
++void pci_bus_check_realloc(struct list_head *realloc_head)
++{
++	if (WARN_ON(!list_empty(realloc_head)))
++		free_list(realloc_head);
++}
++
+ /**
+  * assign_requested_resources_sorted() - satisfy resource requests
+  *
+@@ -1776,7 +1782,7 @@ again:
+ 	/* Depth last, allocate resources and update the hardware. */
+ 	__pci_bus_assign_resources(bus, add_list, &fail_head);
+ 	if (add_list)
+-		BUG_ON(!list_empty(add_list));
++		pci_bus_check_realloc(add_list);
+ 	tried_times++;
+ 
+ 	/* any device complain? */
+@@ -1851,7 +1857,7 @@ void pci_assign_unassigned_bridge_resources(struct pci_dev *bridge)
+ again:
+ 	__pci_bus_size_bridges(parent, &add_list);
+ 	__pci_bridge_assign_resources(bridge, &add_list, &fail_head);
+-	BUG_ON(!list_empty(&add_list));
++	pci_bus_check_realloc(&add_list);
+ 	tried_times++;
+ 
+ 	if (list_empty(&fail_head))
+@@ -1910,6 +1916,6 @@ void pci_assign_unassigned_bus_resources(struct pci_bus *bus)
+ 							 &add_list);
+ 	up_read(&pci_bus_sem);
+ 	__pci_bus_assign_resources(bus, &add_list, NULL);
+-	BUG_ON(!list_empty(&add_list));
++	pci_bus_check_realloc(&add_list);
+ }
+ EXPORT_SYMBOL_GPL(pci_assign_unassigned_bus_resources);
+-- 
+1.8.4.5
+
