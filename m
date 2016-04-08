@@ -1,74 +1,130 @@
-From: hotran <hotran@apm.com>
-Subject: [PATCH] ACPICA: ACPI 6.1: Add PCC HW-Reduced Communication Subspace Type 2
-Date: Fri,  8 Apr 2016 14:00:05 -0700
-Message-ID: <1460149205-10502-1-git-send-email-hotran@apm.com>
+From: "Rafael J. Wysocki" <rafael@kernel.org>
+Subject: [GIT PULL] Power management and ACPI material for v4.6-rc3
+Date: Fri, 8 Apr 2016 23:22:13 +0200
+Message-ID: <CAJZ5v0i4t99+ATUSECMJnVotAEm7vaMY=9-wDfQdc80sCzAajw@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-pf0-f178.google.com ([209.85.192.178]:33946 "EHLO
-	mail-pf0-f178.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752864AbcDHVAe (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 8 Apr 2016 17:00:34 -0400
-Received: by mail-pf0-f178.google.com with SMTP id c20so82472258pfc.1
-        for <linux-acpi@vger.kernel.org>; Fri, 08 Apr 2016 14:00:34 -0700 (PDT)
+Received: from mail-lf0-f46.google.com ([209.85.215.46]:33254 "EHLO
+	mail-lf0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1759036AbcDHVWP (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 8 Apr 2016 17:22:15 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Robert Moore <robert.moore@intel.com>, Lv Zheng <lv.zheng@intel.com>, linux-acpi@vger.kernel.org, devel@acpica.org, linux-kernel@vger.kernel.org
-Cc: lho@apm.com, hotran@apm.com, dhdang@apm.com
+To: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: "linux-pm@vger.kernel.org" <linux-pm@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
 
-ACPI 6.1 PCC has a HW-Reduced Communication Subspace Type 2 intended for
-using on HW-Reduce ACPI Platform, which requires read-modify-write sequence
-to acknowledge doorbell interrupt. This patch adds the Communication
-Subspace Type 2.
+Hi Linus,
 
-Signed-off-by: Hoan Tran <hotran@apm.com>
----
- include/acpi/actbl3.h | 8 ++++++--
- 1 file changed, 6 insertions(+), 2 deletions(-)
+Please pull from
 
-diff --git a/include/acpi/actbl3.h b/include/acpi/actbl3.h
-index ddf5e66..5937075 100644
---- a/include/acpi/actbl3.h
-+++ b/include/acpi/actbl3.h
-@@ -476,7 +476,8 @@ struct acpi_table_pcct {
- enum acpi_pcct_type {
- 	ACPI_PCCT_TYPE_GENERIC_SUBSPACE = 0,
- 	ACPI_PCCT_TYPE_HW_REDUCED_SUBSPACE = 1,
--	ACPI_PCCT_TYPE_RESERVED = 2	/* 2 and greater are reserved */
-+	ACPI_PCCT_TYPE_HW_REDUCED_SUBSPACE_TYPE2 = 2,
-+	ACPI_PCCT_TYPE_RESERVED = 3	/* 3 and greater are reserved */
- };
- 
- /*
-@@ -498,7 +499,7 @@ struct acpi_pcct_subspace {
- 	u16 min_turnaround_time;
- };
- 
--/* 1: HW-reduced Communications Subspace (ACPI 5.1) */
-+/* 1 or 2: HW-reduced Communications Subspace (ACPI 6.1) */
- 
- struct acpi_pcct_hw_reduced {
- 	struct acpi_subtable_header header;
-@@ -513,6 +514,9 @@ struct acpi_pcct_hw_reduced {
- 	u32 latency;
- 	u32 max_access_rate;
- 	u16 min_turnaround_time;
-+	struct acpi_generic_address doorbell_ack_register;
-+	u64 ack_preserve_mask;
-+	u64 ack_write_mask;
- };
- 
- /* Values for doorbell flags above */
--- 
-1.9.1
+ git://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm.git \
+ pm+acpi-4.6-rc3
+
+to receive power management and ACPI material for v4.6-rc3 with top-most
+commit 73659be769a4f0ac26a6b3fc6699754adba36485
+
+ Merge branches 'pm-core', 'powercap' and 'pm-tools'
+
+on top of commit 9735a22799b9214d17d3c231fe377fc852f042e9
+
+ Linux 4.6-rc2
+
+Fixes for some issues discovered after recent changes and for
+some that have just been found lately regardless of those changes
+(intel_pstate, intel_idle, PM core, mailbox/pcc, turbostat) plus
+support for some new CPU models (intel_idle, Intel RAPL driver,
+turbostat) and documentation updates (intel_pstate, PM core).
+
+Specifics:
+
+ - intel_pstate fixes for two issues exposed by the recent switch
+   over from using timers and for one issue introduced during the
+   4.4 cycle plus new comments describing data structures used by
+   the driver (Rafael Wysocki, Srinivas Pandruvada).
+
+ - intel_idle fixes related to CPU offline/online (Richard Cochran).
+
+ - intel_idle support (new CPU IDs and state definitions mostly) for
+   Skylake-X and Kabylake processors (Len Brown).
+
+ - PCC mailbox driver fix for an out-of-bounds memory access that
+   may cause the kernel to panic() (Shanker Donthineni).
+
+ - New (missing) CPU ID for one apparently overlooked Haswell model
+   in the Intel RAPL power capping driver (Srinivas Pandruvada).
+
+ - Fix for the PM core's wakeup IRQs framework to make it work after
+   wakeup settings reconfiguration from sysfs (Grygorii Strashko).
+
+ - Runtime PM documentation update to make it describe what needs
+   to be done during device removal more precisely (Krzysztof
+   Kozlowski).
+
+ - Stale comment removal cleanup in the cpufreq-dt driver (Viresh
+   Kumar).
+
+ - turbostat utility fixes and support for Broxton, Skylake-X
+   and Kabylake processors (Len Brown).
+
+Thanks!
 
 
--- 
-CONFIDENTIALITY NOTICE: This e-mail message, including any attachments, is 
-for the sole use of the intended recipient(s) and contains information that 
-is confidential and proprietary to Applied Micro Circuits Corporation or 
-its subsidiaries. It is to be used solely for the purpose of furthering the 
-parties' business relationship. All unauthorized review, use, disclosure or 
-distribution is prohibited. If you are not the intended recipient, please 
-contact the sender by reply e-mail and destroy all copies of the original 
-message.
+---------------
+
+Krzysztof Kozlowski (1):
+      PM / runtime: Document steps for device removal
+
+Len Brown (9):
+      intel_idle: Add SKX support
+      intel_idle: Add KBL support
+      tools/power turbostat: SGX state should print only if --debug
+      tools/power turbostat: print IRTL MSRs
+      tools/power turbostat: initial BXT support
+      tools/power turbostat: decode BXT TSC frequency via CPUID
+      tools/power turbostat: initial SKX support
+      tools/power turbostat: initial KBL support
+      tools/power turbostat: work around RC6 counter wrap
+
+Rafael J. Wysocki (2):
+      intel_pstate: Do not set utilization update hook too early
+      intel_pstate: Avoid extra invocation of intel_pstate_sample()
+
+Richard Cochran (10):
+      intel_idle: remove useless return from void function.
+      intel_idle: Fix a helper function's return value.
+      intel_idle: Remove redundant initialization calls.
+      intel_idle: Fix deallocation order on the driver exit path.
+      intel_idle: Fix dangling registration on error path.
+      intel_idle: Avoid a double free of the per-CPU data.
+      intel_idle: Setup the timer broadcast only on successful driver load.
+      intel_idle: Don't overreact to a cpuidle registration failure.
+      intel_idle: Propagate hot plug errors.
+      intel_idle: Clean up all registered devices on exit.
+
+Shanker Donthineni (1):
+      mailbox: pcc: Don't access an unmapped memory address space
+
+Srinivas Pandruvada (3):
+      cpufreq: intel_pstate: fix inconsistency in setting policy limits
+      cpufreq: intel_pstate: Documenation for structures
+      powercap: intel_rapl: Add missing Haswell model
+
+Strashko, Grygorii (1):
+      PM / wakeirq: fix wakeirq setting after wakup re-configuration from sysfs
+
+Viresh Kumar (1):
+      cpufreq: dt: Drop stale comment
+
+---------------
+
+ Documentation/power/runtime_pm.txt    |   4 +
+ arch/x86/include/asm/msr-index.h      |   8 ++
+ drivers/base/power/wakeup.c           |   2 +
+ drivers/cpufreq/cpufreq-dt.c          |   3 -
+ drivers/cpufreq/intel_pstate.c        | 206 +++++++++++++++++++++++++++++++---
+ drivers/idle/intel_idle.c             |  97 +++++++++++-----
+ drivers/mailbox/pcc.c                 |   4 +-
+ drivers/powercap/intel_rapl.c         |   1 +
+ tools/power/x86/turbostat/turbostat.c | 117 +++++++++++++++++--
+ 9 files changed, 380 insertions(+), 62 deletions(-)
