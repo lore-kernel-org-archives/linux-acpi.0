@@ -1,130 +1,88 @@
-From: "Rafael J. Wysocki" <rafael@kernel.org>
-Subject: [GIT PULL] Power management and ACPI material for v4.6-rc3
-Date: Fri, 8 Apr 2016 23:22:13 +0200
-Message-ID: <CAJZ5v0i4t99+ATUSECMJnVotAEm7vaMY=9-wDfQdc80sCzAajw@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+From: "Luis R. Rodriguez" <mcgrof@kernel.org>
+Subject: [PATCH v5 00/14] x86: remove paravirt_enabled()
+Date: Fri,  8 Apr 2016 16:40:11 -0700
+Message-ID: <1460158825-13117-1-git-send-email-mcgrof@kernel.org>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-lf0-f46.google.com ([209.85.215.46]:33254 "EHLO
-	mail-lf0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1759036AbcDHVWP (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 8 Apr 2016 17:22:15 -0400
+Received: from mail.kernel.org ([198.145.29.136]:39664 "EHLO mail.kernel.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752686AbcDHXko (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 8 Apr 2016 19:40:44 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: "linux-pm@vger.kernel.org" <linux-pm@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+To: bp@alien8.de, hpa@zytor.com, tglx@linutronix.de, mingo@redhat.com, rusty@rustcorp.com.au
+Cc: x86@kernel.org, linux-kernel@vger.kernel.org, luto@amacapital.net, boris.ostrovsky@oracle.com, david.vrabel@citrix.com, konrad.wilk@oracle.com, xen-devel@lists.xensource.com, lguest@lists.ozlabs.org, andriy.shevchenko@linux.intel.com, jlee@suse.com, glin@suse.com, matt@codeblueprint.co.uk, andrew.cooper3@citrix.com, rjw@rjwysocki.net, lenb@kernel.org, robert.moore@intel.com, lv.zheng@intel.com, toshi.kani@hp.com, linux-acpi@vger.kernel.org, kozerkov@parallels.com, josh@joshtriplett.org, joro@8bytes.org, tiwai@suse.de, "Luis R. Rodriguez" <mcgrof@kernel.org>
 
-Hi Linus,
+This v5 updates the subarch documentation to annotate that
+X86_SUBARCH_XEN can be use for both Xen dom0 and domU, and
+adds an optional x86_platform.set_legacy_features() in order
+to deal with further platform legacy fine tunings when the
+platform requires further semantics than what is currently
+available generically, and we've determined we don't need
+these semantics added in a generic form to x86. In this case
+this was needed for Xen given X86_SUBARCH_XEN can be used for
+both dom0 and domU and Xen needs to enable RTC for dom0.
 
-Please pull from
+I suspect the hook can possibly later be used for further
+fine tunings for HVMLite as it will use X86_SUBARCH_PC, so
+its placed towards the end of x86_early_init_platform_quirks()
+to enable any platform to take advantage of this.
 
- git://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm.git \
- pm+acpi-4.6-rc3
+This also updates the commit logs a bit more to make some
+clarifications, and lists the impact of vmlinux size as per
+trusty good 'ol 0-day.
 
-to receive power management and ACPI material for v4.6-rc3 with top-most
-commit 73659be769a4f0ac26a6b3fc6699754adba36485
+The total size impact on vmlinux using i386-tinyconfig:
 
- Merge branches 'pm-core', 'powercap' and 'pm-tools'
+TOTAL   TEXT   init.text   x86_early_init_platform_quirks()
++136    +125   +125        +96
 
-on top of commit 9735a22799b9214d17d3c231fe377fc852f042e9
+In total that's only 11 byte overhead, 125 bytes are all .init.text
+and that's all freed after boot.
 
- Linux 4.6-rc2
+Luis R. Rodriguez (14):
+  x86/boot: enumerate documentation for the x86 hardware_subarch
+  x86/xen: use X86_SUBARCH_XEN for PV guest boots
+  tools/lguest: make lguest launcher use X86_SUBARCH_LGUEST explicitly
+  x86/rtc: replace paravirt rtc check with platform legacy quirk
+  x86, ACPI: move ACPI_FADT_NO_CMOS_RTC check to ACPI boot code
+  x86/init: use a platform legacy quirk for ebda
+  tools/lguest: force disable tboot and apm
+  apm32: remove paravirt_enabled() use
+  x86/tboot: remove paravirt_enabled()
+  x86/cpu/intel: remove not needed paravirt_enabled() for f00f work
+    around
+  pnpbios: replace paravirt_enabled() check with legacy device check
+  x86, ACPI: parse ACPI_FADT_LEGACY_DEVICES
+  x86/init: rename ebda code file
+  x86/paravirt: remove paravirt_enabled()
 
-Fixes for some issues discovered after recent changes and for
-some that have just been found lately regardless of those changes
-(intel_pstate, intel_idle, PM core, mailbox/pcc, turbostat) plus
-support for some new CPU models (intel_idle, Intel RAPL driver,
-turbostat) and documentation updates (intel_pstate, PM core).
+ arch/x86/Makefile                     |  3 ++-
+ arch/x86/include/asm/paravirt.h       | 11 --------
+ arch/x86/include/asm/paravirt_types.h |  6 -----
+ arch/x86/include/asm/processor.h      |  2 --
+ arch/x86/include/asm/x86_init.h       | 50 +++++++++++++++++++++++++++++++++++
+ arch/x86/include/uapi/asm/bootparam.h | 37 +++++++++++++++++++++++++-
+ arch/x86/kernel/Makefile              |  6 ++++-
+ arch/x86/kernel/acpi/boot.c           |  9 +++++++
+ arch/x86/kernel/apm_32.c              |  2 +-
+ arch/x86/kernel/cpu/intel.c           |  2 +-
+ arch/x86/kernel/{head.c => ebda.c}    |  2 +-
+ arch/x86/kernel/head32.c              |  2 ++
+ arch/x86/kernel/head64.c              |  1 +
+ arch/x86/kernel/kvm.c                 |  8 ------
+ arch/x86/kernel/paravirt.c            |  1 -
+ arch/x86/kernel/platform-quirks.c     | 36 +++++++++++++++++++++++++
+ arch/x86/kernel/rtc.c                 | 15 ++---------
+ arch/x86/kernel/tboot.c               |  6 -----
+ arch/x86/lguest/boot.c                |  3 ---
+ arch/x86/xen/enlighten.c              | 12 ++++++---
+ drivers/pnp/pnpbios/core.c            |  3 ++-
+ include/linux/pnp.h                   |  2 ++
+ tools/lguest/lguest.c                 | 10 +++++--
+ 23 files changed, 166 insertions(+), 63 deletions(-)
+ rename arch/x86/kernel/{head.c => ebda.c} (98%)
+ create mode 100644 arch/x86/kernel/platform-quirks.c
 
-Specifics:
+-- 
+2.7.2
 
- - intel_pstate fixes for two issues exposed by the recent switch
-   over from using timers and for one issue introduced during the
-   4.4 cycle plus new comments describing data structures used by
-   the driver (Rafael Wysocki, Srinivas Pandruvada).
-
- - intel_idle fixes related to CPU offline/online (Richard Cochran).
-
- - intel_idle support (new CPU IDs and state definitions mostly) for
-   Skylake-X and Kabylake processors (Len Brown).
-
- - PCC mailbox driver fix for an out-of-bounds memory access that
-   may cause the kernel to panic() (Shanker Donthineni).
-
- - New (missing) CPU ID for one apparently overlooked Haswell model
-   in the Intel RAPL power capping driver (Srinivas Pandruvada).
-
- - Fix for the PM core's wakeup IRQs framework to make it work after
-   wakeup settings reconfiguration from sysfs (Grygorii Strashko).
-
- - Runtime PM documentation update to make it describe what needs
-   to be done during device removal more precisely (Krzysztof
-   Kozlowski).
-
- - Stale comment removal cleanup in the cpufreq-dt driver (Viresh
-   Kumar).
-
- - turbostat utility fixes and support for Broxton, Skylake-X
-   and Kabylake processors (Len Brown).
-
-Thanks!
-
-
----------------
-
-Krzysztof Kozlowski (1):
-      PM / runtime: Document steps for device removal
-
-Len Brown (9):
-      intel_idle: Add SKX support
-      intel_idle: Add KBL support
-      tools/power turbostat: SGX state should print only if --debug
-      tools/power turbostat: print IRTL MSRs
-      tools/power turbostat: initial BXT support
-      tools/power turbostat: decode BXT TSC frequency via CPUID
-      tools/power turbostat: initial SKX support
-      tools/power turbostat: initial KBL support
-      tools/power turbostat: work around RC6 counter wrap
-
-Rafael J. Wysocki (2):
-      intel_pstate: Do not set utilization update hook too early
-      intel_pstate: Avoid extra invocation of intel_pstate_sample()
-
-Richard Cochran (10):
-      intel_idle: remove useless return from void function.
-      intel_idle: Fix a helper function's return value.
-      intel_idle: Remove redundant initialization calls.
-      intel_idle: Fix deallocation order on the driver exit path.
-      intel_idle: Fix dangling registration on error path.
-      intel_idle: Avoid a double free of the per-CPU data.
-      intel_idle: Setup the timer broadcast only on successful driver load.
-      intel_idle: Don't overreact to a cpuidle registration failure.
-      intel_idle: Propagate hot plug errors.
-      intel_idle: Clean up all registered devices on exit.
-
-Shanker Donthineni (1):
-      mailbox: pcc: Don't access an unmapped memory address space
-
-Srinivas Pandruvada (3):
-      cpufreq: intel_pstate: fix inconsistency in setting policy limits
-      cpufreq: intel_pstate: Documenation for structures
-      powercap: intel_rapl: Add missing Haswell model
-
-Strashko, Grygorii (1):
-      PM / wakeirq: fix wakeirq setting after wakup re-configuration from sysfs
-
-Viresh Kumar (1):
-      cpufreq: dt: Drop stale comment
-
----------------
-
- Documentation/power/runtime_pm.txt    |   4 +
- arch/x86/include/asm/msr-index.h      |   8 ++
- drivers/base/power/wakeup.c           |   2 +
- drivers/cpufreq/cpufreq-dt.c          |   3 -
- drivers/cpufreq/intel_pstate.c        | 206 +++++++++++++++++++++++++++++++---
- drivers/idle/intel_idle.c             |  97 +++++++++++-----
- drivers/mailbox/pcc.c                 |   4 +-
- drivers/powercap/intel_rapl.c         |   1 +
- tools/power/x86/turbostat/turbostat.c | 117 +++++++++++++++++--
- 9 files changed, 380 insertions(+), 62 deletions(-)
