@@ -1,37 +1,73 @@
-From: Sinan Kaya <okaya@codeaurora.org>
-Subject: Re: [PATCH 1/4] acpi,pci,irq: reduce resource requirements
-Date: Fri, 8 Apr 2016 21:28:42 -0400
-Message-ID: <57085ACA.2040108@codeaurora.org>
-References: <1457484079-18202-1-git-send-email-okaya@codeaurora.org>
- <20160314185251.GA19703@localhost> <56E7211F.3070203@codeaurora.org>
- <20160314210147.GA11459@localhost> <56E73232.9030704@codeaurora.org>
- <20160315014843.GA16967@localhost> <56E7733B.4050308@codeaurora.org>
- <20160315023632.GA23940@localhost> <56E80F19.7010503@codeaurora.org>
- <56EEE925.7070202@codeaurora.org> <20160405232124.GH15353@localhost>
+From: Tomasz Nowicki <tn@semihalf.com>
+Subject: Re: [PATCH 2/2] pci, acpi: free IO resource during shutdown
+Date: Sat, 9 Apr 2016 10:44:17 +0200
+Message-ID: <5708C0E1.2020303@semihalf.com>
+References: <1457389310-3538-1-git-send-email-okaya@codeaurora.org>
+ <1457389310-3538-2-git-send-email-okaya@codeaurora.org>
+ <20160407160624.GB8780@localhost> <57069CAF.8090803@codeaurora.org>
+ <20160407214108.GB24492@localhost> <5707281B.6020805@codeaurora.org>
+ <570754D7.3010009@semihalf.com> <5707EE6F.2050509@codeaurora.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252
+Content-Type: text/plain; charset=windows-1252; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-pci-owner@vger.kernel.org>
-In-Reply-To: <20160405232124.GH15353@localhost>
-Sender: linux-pci-owner@vger.kernel.org
-To: Bjorn Helgaas <helgaas@kernel.org>
-Cc: linux-acpi@vger.kernel.org, timur@codeaurora.org, cov@codeaurora.org, linux-pci@vger.kernel.org, ravikanth.nalla@hpe.com, lenb@kernel.org, harish.k@hpe.com, ashwin.reghunandanan@hpe.com, bhelgaas@google.com, rjw@rjwysocki.net, linux-kernel@vger.kernel.org
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-lf0-f49.google.com ([209.85.215.49]:34241 "EHLO
+	mail-lf0-f49.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751153AbcDIIoW (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sat, 9 Apr 2016 04:44:22 -0400
+Received: by mail-lf0-f49.google.com with SMTP id j11so102465893lfb.1
+        for <linux-acpi@vger.kernel.org>; Sat, 09 Apr 2016 01:44:21 -0700 (PDT)
+In-Reply-To: <5707EE6F.2050509@codeaurora.org>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Sinan Kaya <okaya@codeaurora.org>, Bjorn Helgaas <helgaas@kernel.org>
+Cc: linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, timur@codeaurora.org, cov@codeaurora.org, jcm@redhat.com, agross@codeaurora.org, linux-arm-msm@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
 
-Hi Bjorn,
+On 08.04.2016 19:46, Sinan Kaya wrote:
+> Hi Tomasz,
+>
+> On 4/8/2016 2:51 AM, Tomasz Nowicki wrote:
+>> Hi Sinan,
+>>
+>> On 08.04.2016 05:40, Sinan Kaya wrote:
+>>> Hi Tomasz,
+>>>
+>>> On 4/7/2016 5:41 PM, Bjorn Helgaas wrote:
+>>>>>> You say this is undoing the effect of pci_remap_iospace(), but that's
+>>>>>>>> only called by native drivers and the generic (OF) driver, not by
+>>>>>>>> pci_root.c.
+>>>>>>
+>>>>>> See the ACPI root bridge driver above.
+>>>> If this is a fix to patches that haven't been merged yet, we need to
+>>>> squash the fix into the patches.
+>>>>
+>>>
+>>> Can you merge these to two patches to your series for the next post?
+>>>
+>>> I need to remove weak on the first patch per direction from Bjorn and
+>>> fix the function comments. You could as well do this while you are merging.
+>>>
+>>> Let me know what your preference is.
+>>>
+>>
+>> Please do necessary fixes for your patches and send me the repo reference link. I will merge these to my patch set. Thanks!
+>>
+>> Tomasz
+>> --
+>> To unsubscribe from this list: send the line "unsubscribe linux-pci" in
+>> the body of a message to majordomo@vger.kernel.org
+>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>
+> I posted the updated patch here. Changes are:
+>
+> - I squashed these two patches together per Bjorn's request.
+> - Removed the weak declarations from both remap and unmap calls.
+> - Fixed the doxygen document to match the actual parameters.
+>
+> https://us.codeaurora.org/cgit/quic/server/kernel/commit/?h=okaya/pciunmapv2&id=6120a5f0c5e6d757f18a076917fa202e2c9823d0
+>
 
-On 4/5/2016 7:21 PM, Bjorn Helgaas wrote:
->> I know you want to validate that all PCI interrupts are level, it looks like the code
->> > is allowing other combinations.
-> It's not that we need to validate that all PCI interrupts are level.  What
-> we need is to make sure all users sharing an IRQ agree on the mode.
-> 
+Thanks Sinan!
 
-I posted v2. Let me know if the implementation feels like what you are looking for.
+Tomasz
 
-Sinan
-
--- 
-Sinan Kaya
-Qualcomm Technologies, Inc. on behalf of Qualcomm Innovation Center, Inc.
-Qualcomm Innovation Center, Inc. is a member of Code Aurora Forum, a Linux Foundation Collaborative Project
