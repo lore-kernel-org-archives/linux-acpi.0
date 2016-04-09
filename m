@@ -1,43 +1,36 @@
-From: "Luis R. Rodriguez" <mcgrof@kernel.org>
-Subject: [PATCH v1 2/2] x86/init: disable pnpbios for X86_SUBARCH_CE4100
-Date: Fri,  8 Apr 2016 17:22:41 -0700
-Message-ID: <1460161361-13635-3-git-send-email-mcgrof@kernel.org>
-References: <1460161361-13635-1-git-send-email-mcgrof@kernel.org>
+From: Sinan Kaya <okaya@codeaurora.org>
+Subject: [PATCH V2 0/3] simplify ACPI PCI IRQ code
+Date: Fri,  8 Apr 2016 21:26:29 -0400
+Message-ID: <1460165192-4526-1-git-send-email-okaya@codeaurora.org>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.136]:42536 "EHLO mail.kernel.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1759220AbcDIAWw (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 8 Apr 2016 20:22:52 -0400
-In-Reply-To: <1460161361-13635-1-git-send-email-mcgrof@kernel.org>
+Received: from smtp.codeaurora.org ([198.145.29.96]:53093 "EHLO
+	smtp.codeaurora.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753436AbcDIB0r (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 8 Apr 2016 21:26:47 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: bp@alien8.de, hpa@zytor.com, tglx@linutronix.de, mingo@redhat.com, rusty@rustcorp.com.au
-Cc: x86@kernel.org, linux-kernel@vger.kernel.org, luto@amacapital.net, boris.ostrovsky@oracle.com, david.vrabel@citrix.com, konrad.wilk@oracle.com, xen-devel@lists.xensource.com, lguest@lists.ozlabs.org, andriy.shevchenko@linux.intel.com, jlee@suse.com, glin@suse.com, matt@codeblueprint.co.uk, andrew.cooper3@citrix.com, rjw@rjwysocki.net, lenb@kernel.org, robert.moore@intel.com, lv.zheng@intel.com, toshi.kani@hp.com, linux-acpi@vger.kernel.org, kozerkov@parallels.com, josh@joshtriplett.org, joro@8bytes.org, tiwai@suse.de, sathyanarayanan.kuppuswamy@linux.intel.com, alan@linux.intel.com, rui.zhang@intel.com, mbizon@freebox.fr, bigeasy@linutronix.de, ffainelli@freebox.fr, "Luis R. Rodriguez" <mcgrof@kernel.org>
+To: linux-acpi@vger.kernel.org, timur@codeaurora.org, cov@codeaurora.org
+Cc: linux-pci@vger.kernel.org, ravikanth.nalla@hpe.com, lenb@kernel.org, harish.k@hpe.com, ashwin.reghunandanan@hpe.com, bhelgaas@google.com, rjw@rjwysocki.net, Sinan Kaya <okaya@codeaurora.org>
 
-As per hpa CE4100 platforms can also disable pnpbios [0].
+differences from V1: https://patchwork.ozlabs.org/patch/599869/
 
-[0] http://lkml.kernel.org/r/5702B5C2.7070101@zytor.com
+Implement acpi_link_trigger and acpi_pci_compatible_trigger functions to
+validate that all requesters agree on the IRQ polarity and trigger before
+claiming for PCI and SCI interrupts.
 
-Suggested-by: H. Peter Anvin <hpa@zytor.com>
-Signed-off-by: Luis R. Rodriguez <mcgrof@kernel.org>
----
- arch/x86/kernel/platform-quirks.c | 3 +++
- 1 file changed, 3 insertions(+)
 
-diff --git a/arch/x86/kernel/platform-quirks.c b/arch/x86/kernel/platform-quirks.c
-index 853919484340..1b63daf0dd06 100644
---- a/arch/x86/kernel/platform-quirks.c
-+++ b/arch/x86/kernel/platform-quirks.c
-@@ -20,6 +20,9 @@ void __init x86_early_init_platform_quirks(void)
- 		x86_platform.legacy.devices.pnpbios = 0;
- 		x86_platform.legacy.rtc = 0;
- 		break;
-+	case X86_SUBARCH_CE4100:
-+		x86_platform.legacy.devices.pnpbios = 0;
-+		break;
- 	}
- 
- 	if (x86_platform.set_legacy_features)
+Sinan Kaya (3):
+  acpi,pci,irq: reduce resource requirements
+  acpi,pci,irq: remove redundant code in acpi_irq_penalty_init
+  acpi,pci,irq: remove SCI penalize function
+
+ arch/x86/kernel/acpi/boot.c |   1 -
+ arch/x86/pci/acpi.c         |   1 -
+ drivers/acpi/pci_link.c     | 185 +++++++++++++++++++++++++++++---------------
+ include/acpi/acpi_drivers.h |   1 -
+ include/linux/acpi.h        |   1 -
+ 5 files changed, 122 insertions(+), 67 deletions(-)
+
 -- 
-2.7.2
+1.8.2.1
 
