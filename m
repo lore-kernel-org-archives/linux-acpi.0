@@ -1,68 +1,37 @@
 From: Sinan Kaya <okaya@codeaurora.org>
-Subject: [PATCH V2 3/3] acpi,pci,irq: remove SCI penalize function
-Date: Fri,  8 Apr 2016 21:26:32 -0400
-Message-ID: <1460165192-4526-4-git-send-email-okaya@codeaurora.org>
-References: <1460165192-4526-1-git-send-email-okaya@codeaurora.org>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1460165192-4526-1-git-send-email-okaya@codeaurora.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: linux-acpi@vger.kernel.org, timur@codeaurora.org, cov@codeaurora.org
-Cc: linux-pci@vger.kernel.org, ravikanth.nalla@hpe.com, lenb@kernel.org, harish.k@hpe.com, ashwin.reghunandanan@hpe.com, bhelgaas@google.com, rjw@rjwysocki.net, Sinan Kaya <okaya@codeaurora.org>, Len Brown <len.brown@intel.com>, Pavel Machek <pavel@ucw.cz>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, x86@kernel.org, linux-pm@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: Re: [PATCH 1/4] acpi,pci,irq: reduce resource requirements
+Date: Fri, 8 Apr 2016 21:28:42 -0400
+Message-ID: <57085ACA.2040108@codeaurora.org>
+References: <1457484079-18202-1-git-send-email-okaya@codeaurora.org>
+ <20160314185251.GA19703@localhost> <56E7211F.3070203@codeaurora.org>
+ <20160314210147.GA11459@localhost> <56E73232.9030704@codeaurora.org>
+ <20160315014843.GA16967@localhost> <56E7733B.4050308@codeaurora.org>
+ <20160315023632.GA23940@localhost> <56E80F19.7010503@codeaurora.org>
+ <56EEE925.7070202@codeaurora.org> <20160405232124.GH15353@localhost>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-pci-owner@vger.kernel.org>
+In-Reply-To: <20160405232124.GH15353@localhost>
+Sender: linux-pci-owner@vger.kernel.org
+To: Bjorn Helgaas <helgaas@kernel.org>
+Cc: linux-acpi@vger.kernel.org, timur@codeaurora.org, cov@codeaurora.org, linux-pci@vger.kernel.org, ravikanth.nalla@hpe.com, lenb@kernel.org, harish.k@hpe.com, ashwin.reghunandanan@hpe.com, bhelgaas@google.com, rjw@rjwysocki.net, linux-kernel@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-Removing the SCI penalize function as the penalty is now calculated on the
-fly.
+Hi Bjorn,
 
-Signed-off-by: Sinan Kaya <okaya@codeaurora.org>
----
- arch/x86/kernel/acpi/boot.c | 1 -
- drivers/acpi/pci_link.c     | 9 ---------
- include/linux/acpi.h        | 1 -
- 3 files changed, 11 deletions(-)
+On 4/5/2016 7:21 PM, Bjorn Helgaas wrote:
+>> I know you want to validate that all PCI interrupts are level, it looks like the code
+>> > is allowing other combinations.
+> It's not that we need to validate that all PCI interrupts are level.  What
+> we need is to make sure all users sharing an IRQ agree on the mode.
+> 
 
-diff --git a/arch/x86/kernel/acpi/boot.c b/arch/x86/kernel/acpi/boot.c
-index e759076..5e99f22 100644
---- a/arch/x86/kernel/acpi/boot.c
-+++ b/arch/x86/kernel/acpi/boot.c
-@@ -445,7 +445,6 @@ static void __init acpi_sci_ioapic_setup(u8 bus_irq, u16 polarity, u16 trigger,
- 		polarity = acpi_sci_flags & ACPI_MADT_POLARITY_MASK;
- 
- 	mp_override_legacy_irq(bus_irq, polarity, trigger, gsi);
--	acpi_penalize_sci_irq(bus_irq, trigger, polarity);
- 
- 	/*
- 	 * stash over-ride to indicate we've been here
-diff --git a/drivers/acpi/pci_link.c b/drivers/acpi/pci_link.c
-index 63dae95..5b9a2d0 100644
---- a/drivers/acpi/pci_link.c
-+++ b/drivers/acpi/pci_link.c
-@@ -909,15 +909,6 @@ bool acpi_isa_irq_available(int irq)
- }
- 
- /*
-- * Penalize IRQ used by ACPI SCI. If ACPI SCI pin attributes conflict with
-- * PCI IRQ attributes, mark ACPI SCI as ISA_ALWAYS so it won't be use for
-- * PCI IRQs.
-- */
--void acpi_penalize_sci_irq(int irq, int trigger, int polarity)
--{
--}
--
--/*
-  * Over-ride default table to reserve additional IRQs for use by ISA
-  * e.g. acpi_irq_isa=5
-  * Useful for telling ACPI how not to interfere with your ISA sound card.
-diff --git a/include/linux/acpi.h b/include/linux/acpi.h
-index 06ed7e5..0f41317 100644
---- a/include/linux/acpi.h
-+++ b/include/linux/acpi.h
-@@ -311,7 +311,6 @@ struct pci_dev;
- int acpi_pci_irq_enable (struct pci_dev *dev);
- void acpi_penalize_isa_irq(int irq, int active);
- bool acpi_isa_irq_available(int irq);
--void acpi_penalize_sci_irq(int irq, int trigger, int polarity);
- void acpi_pci_irq_disable (struct pci_dev *dev);
- 
- extern int ec_read(u8 addr, u8 *val);
+I posted v2. Let me know if the implementation feels like what you are looking for.
+
+Sinan
+
 -- 
-1.8.2.1
+Sinan Kaya
+Qualcomm Technologies, Inc. on behalf of Qualcomm Innovation Center, Inc.
+Qualcomm Innovation Center, Inc. is a member of Code Aurora Forum, a Linux Foundation Collaborative Project
