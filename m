@@ -1,91 +1,73 @@
-From: "Rafael J. Wysocki" <rafael@kernel.org>
-Subject: Re: [PATCH v3] device property: don't bother the drivers with struct property_set
-Date: Mon, 11 Apr 2016 23:14:35 +0200
-Message-ID: <CAJZ5v0irXZTVAPrP40oEPahxQb-DNOO_-CKLBhJFx_7rmQodiA@mail.gmail.com>
-References: <1459252343-105426-1-git-send-email-heikki.krogerus@linux.intel.com>
-	<20160411082027.GF4592@x1>
-	<20160411095234.GA26606@kuha.fi.intel.com>
-	<CAJZ5v0iHWvp1UvLx1X=MozD0EZ7+L2h7aJYKm6WGBYO0FzGj7g@mail.gmail.com>
-	<20160411140541.GY8094@x1>
-	<CAJZ5v0hqTj0r=Ky7SNO8ZwhycnNrLefFmx3Vi9qgOyoA02NeHQ@mail.gmail.com>
-	<20160411162034.GA8094@x1>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20160411162034.GA8094@x1>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Lee Jones <lee.jones@linaro.org>
-Cc: "Rafael J. Wysocki" <rafael@kernel.org>, Heikki Krogerus <heikki.krogerus@linux.intel.com>, Daniel Mack <daniel@zonque.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Mika Westerberg <mika.westerberg@linux.intel.com>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Thierry Reding <treding@nvidia.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+From: Jayachandran C <jchandra@broadcom.com>
+Subject: [PATCH v2 0/4] ACPI based PCI host driver with generic ECAM
+Date: Tue, 12 Apr 2016 04:15:03 +0530
+Message-ID: <1460414707-19153-1-git-send-email-jchandra@broadcom.com>
+Return-path: <linux-pci-owner@vger.kernel.org>
+Sender: linux-pci-owner@vger.kernel.org
+To: Bjorn Helgaas <helgaas@kernel.org>, Tomasz Nowicki <tn@semihalf.com>, rafael@kernel.org
+Cc: Jayachandran C <jchandra@broadcom.com>, Arnd Bergmann <arnd@arndb.de>, Will Deacon <will.deacon@arm.com>, Catalin Marinas <catalin.marinas@arm.com>, Hanjun Guo <hanjun.guo@linaro.org>, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, okaya@codeaurora.org, jiang.liu@linux.intel.com, Stefano Stabellini <Stefano.Stabellini@eu.citrix.com>, robert.richter@caviumnetworks.com, Marcin Wojtas <mw@semihalf.com>, Liviu.Dudau@arm.com, David Daney <ddaney@caviumnetworks.com>, wangyijing@huawei.com, Suravee.Suthikulpanit@amd.com, msalter@redhat.com, linux-pci@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linaro-acpi@lists.linaro.org, Jon Masters <jcm@redhat.com>
 List-Id: linux-acpi@vger.kernel.org
 
-On Mon, Apr 11, 2016 at 6:20 PM, Lee Jones <lee.jones@linaro.org> wrote:
-> On Mon, 11 Apr 2016, Rafael J. Wysocki wrote:
->
->> On Mon, Apr 11, 2016 at 4:05 PM, Lee Jones <lee.jones@linaro.org> wrote:
->> > On Mon, 11 Apr 2016, Rafael J. Wysocki wrote:
->> >
->> >> On Mon, Apr 11, 2016 at 11:52 AM, Heikki Krogerus
->> >> <heikki.krogerus@linux.intel.com> wrote:
->> >> > On Mon, Apr 11, 2016 at 09:20:27AM +0100, Lee Jones wrote:
->> >> >> On Tue, 29 Mar 2016, Heikki Krogerus wrote:
->> >> >>
->> >> >> > Since device_add_property_set() now always takes a copy of
->> >> >> > the property_set, and also since the fwnode type is always
->> >> >> > hard coded to be FWNODE_PDATA, there is no need for the
->> >> >> > drivers to deliver the entire struct property_set. The
->> >> >> > function can just create the instance of it on its own and
->> >> >> > bind the properties from the drivers to it on the spot.
->> >> >> >
->> >> >> > This renames device_add_property_set() to
->> >> >> > device_add_properties(). The function now takes struct
->> >> >> > property_entry as its parameter instead of struct
->> >> >> > property_set.
->> >> >> >
->> >> >> > Reviewed-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
->> >> >> > Reviewed-by: Mika Westerberg <mika.westerberg@linux.intel.com>
->> >> >> > Acked-by: Thierry Reding <treding@nvidia.com>
->> >> >> > Acked-by: Lee Jones <lee.jones@linaro.org>
->> >> >> > Signed-off-by: Heikki Krogerus <heikki.krogerus@linux.intel.com>
->> >> >> > ---
->> >> >> >  arch/arm/mach-pxa/raumfeld.c      | 12 ++++--------
->> >> >
->> >> > Daniel, I think we just need your ACK for this one.
->> >> >
->> >> > Otherwise I think we are covered.
->> >> >
->> >> >> >  arch/arm/mach-tegra/board-paz00.c |  6 +-----
->> >> >> >  drivers/base/platform.c           | 19 ++++++++++---------
->> >> >> >  drivers/base/property.c           | 34 +++++++++++++++++++++-------------
->> >> >> >  drivers/mfd/intel-lpss-acpi.c     | 12 ++----------
->> >> >> >  drivers/mfd/intel-lpss-pci.c      | 20 ++++----------------
->> >> >> >  drivers/mfd/intel-lpss.c          |  2 +-
->> >> >> >  drivers/mfd/intel-lpss.h          |  4 ++--
->> >> >> >  drivers/mfd/mfd-core.c            |  4 ++--
->> >> >> >  include/linux/mfd/core.h          |  4 ++--
->> >> >> >  include/linux/platform_device.h   |  6 +++---
->> >> >> >  include/linux/property.h          | 15 +++------------
->> >> >> >  12 files changed, 55 insertions(+), 83 deletions(-)
->> >> >>
->> >> >> What's happening with this patch?  I believe we're still missing
->> >> >> Acks.  Once they are collected someone needs to create an immutable
->> >> >> branch and send out a pull-request.
->> >> >
->> >> > Rafael, have you had time to take a look at this?
->> >>
->> >> Yes, it's in my bleeding-edge branch now.  I'm planning to move it to
->> >> linux-next this week
->> >
->> > Please ensure you send out the relevant pull-requests.  Linus doesn't
->> > look his best when he's angry.
->>
->> I guess you mean I should expose by device-properties branch and
->> notify the relevant people about that, right?
->
-> Exactly.  And the easiest way to do that is by sending out a
-> pull-request.
+Here is v2 of the patchset for the ACPI PCI controller driver based on
+the earlier discussion[1].
 
-I hoping that sending a message with the relevant information in a
-reply to this one will be sufficient.
+This patchset unifies the pci-host-generic ECAM code and the ACPI PCI
+ECAM code much further so that both the implementations can use the
+same structure (struct pci_config_window) as ->sysdata.
+
+The patchset should also make it easier to share platform quirks between
+DT and ACPI PCI controller drivers using struct pci_generic_ecam_ops.
+
+Short description of the patches in the patchset:
+ - fixup arm64 PCI code so that it can use the generic ACPI PCI driver.
+ - implement pci/drivers/ecam.[ch] which will replace
+   drivers/pci/host/pci-host-common.h API for ECAM access and will be
+   shared by ACPI and DT.
+ - Update users of the pci-host-common API to the ecam API
+ - implement a simple PCI ACPI host. I have not used the pci_mmcfg_list
+   or the region definitions from x86, but have used a much simpler
+   approach here.
+
+This should apply cleanly on top of the current 4.6 tree or the pci
+next tree, and can be reviewed as a patchset. The full set of changes
+for arm64 includes other fixes, that series is available at
+https://github.com/jchandra-brcm/linux branch arm64-acpi-pci-v2
+
+This has been tested on qemu with OVMF for the ACPI part and with
+device tree for pci-host-generic code. Further testing and reviews
+are welcome.
 
 Thanks,
-Rafael
+JC.
+
+[1] https://lkml.org/lkml/2016/3/3/921
+
+Jayachandran C (4):
+  arm64: Prepare to use generic ACPI PCI implementation
+  PCI: Provide common functions for ECAM mapping
+  PCI: generic, thunder: update to use generic ECAM API
+  ACPI: PCI: Add generic PCI host controller
+
+ arch/arm64/Kconfig                  |   3 +
+ arch/arm64/kernel/pci.c             |   7 +-
+ drivers/acpi/Kconfig                |   9 ++
+ drivers/acpi/Makefile               |   1 +
+ drivers/acpi/pci_gen_host.c         | 258 ++++++++++++++++++++++++++++++++++++
+ drivers/pci/Kconfig                 |   3 +
+ drivers/pci/Makefile                |   2 +
+ drivers/pci/ecam.c                  | 130 ++++++++++++++++++
+ drivers/pci/ecam.h                  |  63 +++++++++
+ drivers/pci/host/Kconfig            |   1 +
+ drivers/pci/host/pci-host-common.c  | 121 ++++++++---------
+ drivers/pci/host/pci-host-common.h  |  47 -------
+ drivers/pci/host/pci-host-generic.c |  50 ++-----
+ drivers/pci/host/pci-thunder-ecam.c |  37 +-----
+ drivers/pci/host/pci-thunder-pem.c  |  53 +++-----
+ 15 files changed, 560 insertions(+), 225 deletions(-)
+ create mode 100644 drivers/acpi/pci_gen_host.c
+ create mode 100644 drivers/pci/ecam.c
+ create mode 100644 drivers/pci/ecam.h
+ delete mode 100644 drivers/pci/host/pci-host-common.h
+
+-- 
+1.9.1
