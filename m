@@ -1,178 +1,48 @@
-From: "Abdulhamid, Harb" <harba@codeaurora.org>
-Subject: Re: [PATCH V2 5/9] arm64: exception: handle instruction abort at
- current EL
-Date: Mon, 11 Apr 2016 18:57:24 -0400
-Message-ID: <570C2BD4.6070402@codeaurora.org>
-References: <1459955578-24602-1-git-send-email-tbaicar@codeaurora.org>
- <1459955578-24602-6-git-send-email-tbaicar@codeaurora.org>
- <57052D0E.5070903@arm.com> <57058140.5040507@codeaurora.org>
- <20160407085414.5be649f0@arm.com>
+From: "Zheng, Lv" <lv.zheng@intel.com>
+Subject: RE: [PATCH 1/3] ACPI / tables: Move table override mechanisms to
+ tables.c
+Date: Mon, 11 Apr 2016 23:27:01 +0000
+Message-ID: <1AE640813FDE7649BE1B193DEA596E883BB7E94A@SHSMSX101.ccr.corp.intel.com>
+References: <cover.1460100857.git.lv.zheng@intel.com>
+	<3ef8c14e35fc835260f2f2c62a2227e7b570be24.1460100857.git.lv.zheng@intel.com>
+	<1AE640813FDE7649BE1B193DEA596E883BB7E62D@SHSMSX101.ccr.corp.intel.com>
+ <CAJZ5v0jV_b7BxPBGRPVPNx47FR+sqYv=ZFCNuZO+MBUK-u2yqA@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp.codeaurora.org ([198.145.29.96]:56510 "EHLO
-	smtp.codeaurora.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751427AbcDKW5a (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 11 Apr 2016 18:57:30 -0400
-In-Reply-To: <20160407085414.5be649f0@arm.com>
+Received: from mga01.intel.com ([192.55.52.88]:41420 "EHLO mga01.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752191AbcDKX1H (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 11 Apr 2016 19:27:07 -0400
+In-Reply-To: <CAJZ5v0jV_b7BxPBGRPVPNx47FR+sqYv=ZFCNuZO+MBUK-u2yqA@mail.gmail.com>
+Content-Language: en-US
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Marc Zyngier <marc.zyngier@arm.com>, "Baicar, Tyler" <tbaicar@codeaurora.org>
-Cc: fu.wei@linaro.org, timur@codeaurora.org, rruigrok@codeaurora.org, ahs3@redhat.com, catalin.marinas@arm.com, will.deacon@arm.com, rjw@rjwysocki.net, lenb@kernel.org, matt@codeblueprint.co.uk, robert.moore@intel.com, lv.zheng@intel.com, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, linux-efi@vger.kernel.org, devel@acpica.org, Naveen Kaje <nkaje@codeaurora.org>
+To: "Rafael J. Wysocki" <rafael@kernel.org>
+Cc: "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, "Brown, Len" <len.brown@intel.com>, Lv Zheng <zetalog@gmail.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
 
-On 4/7/2016 3:54 AM, Marc Zyngier wrote:
-> On Wed, 6 Apr 2016 15:36:00 -0600
-> "Baicar, Tyler" <tbaicar@codeaurora.org> wrote:
-> 
-> Hi Tyler,
-> 
->> Hello Marc,
->>
->> On 4/6/2016 9:36 AM, Marc Zyngier wrote:
->>> On 06/04/16 16:12, Tyler Baicar wrote:
->>>> Add a handler for instruction aborts at the current EL
->>>> (ESR_ELx_EC_IABT_CUR) so they are no longer handled in el1_inv.
->>>> This allows firmware first handling for possible SEA
->>>> (Synchronous External Abort) caused instruction abort at
->>>> current EL.
->>>>
->>>> Signed-off-by: Tyler Baicar <tbaicar@codeaurora.org>
->>>> Signed-off-by: Naveen Kaje <nkaje@codeaurora.org>
->>>> ---
->>>>   arch/arm64/kernel/entry.S | 19 +++++++++++++++++++
->>>>   1 file changed, 19 insertions(+)
->>>>
->>>> diff --git a/arch/arm64/kernel/entry.S b/arch/arm64/kernel/entry.S
->>>> index 12e8d2b..f257856 100644
->>>> --- a/arch/arm64/kernel/entry.S
->>>> +++ b/arch/arm64/kernel/entry.S
->>>> @@ -336,6 +336,8 @@ el1_sync:
->>>>   	lsr	x24, x1, #ESR_ELx_EC_SHIFT	// exception class
->>>>   	cmp	x24, #ESR_ELx_EC_DABT_CUR	// data abort in EL1
->>>>   	b.eq	el1_da
->>>> +	cmp	x24, #ESR_ELx_EC_IABT_CUR	// instruction abort in EL1
->>>> +	b.eq	el1_ia
->>>>   	cmp	x24, #ESR_ELx_EC_SYS64		// configurable trap
->>>>   	b.eq	el1_undef
->>>>   	cmp	x24, #ESR_ELx_EC_SP_ALIGN	// stack alignment exception
->>>> @@ -363,6 +365,23 @@ el1_da:
->>>>   	// disable interrupts before pulling preserved data off the stack
->>>>   	disable_irq
->>>>   	kernel_exit 1
->>>> +el1_ia:
->>>> +	/*
->>>> +	 * Instruction abort handling
->>>> +	 */
->>>> +	mrs	x0, far_el1
->>>> +	enable_dbg
->>>> +	// re-enable interrupts if they were enabled in the aborted context
->>>> +	tbnz	x23, #7, 1f			// PSR_I_BIT
->>>> +	enable_irq
->>>> +1:
->>>> +	orr	x1, x1, #1 << 24		// use reserved ISS bit for instruction aborts
->>>> +	mov	x2, sp				// struct pt_regs
->>>> +	bl	do_mem_abort
->>>> +
->>>> +	// disable interrupts before pulling preserved data off the stack
->>>> +	disable_irq
->>>> +	kernel_exit 1
->>>>   el1_sp_pc:
->>>>   	/*
->>>>   	 * Stack or PC alignment exception handling
->>>>
->>> What happens if you were running at EL2 when this faults gets injected?
->>> It looks like KVM needs something similar, doesn't it?
->>>
->>> Thanks,
->>>
->>> 	M.
->> Thank you for your comment. I don't think this case is possible, or at 
->> least the current KVM code suggests that this case should never happen.  
->> In the EL1 code, we get to this case via the vector:
->>
->> ventry  el1_sync                        // Synchronous EL1h
->>
->> The EL2 KVM equivalent appears to be in arch/arm64/kvm/hyp-entry.S and is:
->>
->> ventry  el2h_sync_invalid               // Synchronous EL2h
->>
->> This vector is defined as an invalid_vector and has a comment suggesting 
->> that it should never happen:
->>
->> /* None of these should ever happen */
->> ...
->>          invalid_vector  el2h_sync_invalid
->>
->> Please correct me if I am wrong, but it looks like this case should not 
->> be possible.
-> 
-> This comments really means that we shouldn't ever take any of these
-> exception. If we do, we'll crash and burn (just like the kernel didn't
-> expect to take an instruction fault from the kernel itself, up until
-> this patch).
-> 
-> I expect that the firmware does inject the fault into the exception
-> level it has preempted. So let me turn the question the other way
-> around: what guarantees that we will never have to handle such a fault
-> at EL2?
-> 
-
-It is definitely possible to take an external abort (instruction or
-data) as well as SError interrupts in EL2.  One would expect that they
-would be trapped in EL2 when running guest VMs.
-
-However, this patch was not intended to address KVM APEI support at EL2
-(at this point).  The aim here was to enable APEI (namely firmware first
-error handling support) in the host/root kernel.
-
-The general idea of how APEI would work with Hypervisors may vary
-depending on the specific Hypervisor (e.g. KVM, Xen, HyperV, VMWare,
-etc.).
-
-For example, if the Hypervisor (i.e. code running at EL2) traps SEI/SEA
-exceptions (either during EL2 code execution or an SEI/SEA exception
-encountered during guest VM execution), the Hypervisor may not have
-built-in APEI support, or the ability to handle such faults directly.
-One option is for the Hypervisor to forward or "replay" SEA/SEI
-exceptions to the host/root kernel for handling of such exceptions.  If
-the root/host kernel happens to support APEI, the kernel will attempt to
-leverage GHES information to identify the severity of the error, and if
-possible, may attempt to recover from the error.  Essentially, the final
-decision on how to handle SEA/SEI faults falls on the root/host kernel.
-
-Extending APEI support to KVM should be addressed in a separate
-patchset, as the implication would go beyond just the EL2 exception
-handlers we are referencing here.  There would be much more work and
-validation needed.
-
-> As a corollary, what happens when the firmware injects a fault
-> triggered by a VM running at EL1, under the control of a hypervisor
-> running at EL2? There should be some form of exception delegation to
-> the hypervisor, which makes the lack of handling at EL2 even more
-> worrying.
-> 
-> Thanks,
-> 
-> 	M.
-> 
-
-See above example.  The Hypervisor could forward/replay such faults to
-the root/host kernel (or DOM0 in the case of Xen).
-
-Just a clarification on firmware injecting faults:  The firmware does
-not inject faults directly into a particular exception level.  If
-hardware error injection is supported, it will be at a particular
-physical address in memory, possibly a specific cache line, or other
-specific hardware component.  For example, one could target a specific
-exception level by injecting an error at an instruction address that is
-known to run at EL2, but the fault injection itself does not usually
-target exception levels.
-
-Thanks,
-Harb
--- 
-Qualcomm Technologies, Inc.
-on behalf of Qualcomm Innovation Center, Inc.
-Qualcomm Innovation Center, Inc. is a member of Code Aurora Forum,
-a Linux Foundation Collaborative Project
+SGksDQoNCj4gRnJvbTogcmp3eXNvY2tpQGdtYWlsLmNvbSBbbWFpbHRvOnJqd3lzb2NraUBnbWFp
+bC5jb21dIE9uIEJlaGFsZiBPZg0KPiBSYWZhZWwgSi4gV3lzb2NraQ0KPiBTZW50OiBNb25kYXks
+IEFwcmlsIDExLCAyMDE2IDk6MzEgUE0NCj4gU3ViamVjdDogUmU6IFtQQVRDSCAxLzNdIEFDUEkg
+LyB0YWJsZXM6IE1vdmUgdGFibGUgb3ZlcnJpZGUgbWVjaGFuaXNtcyB0bw0KPiB0YWJsZXMuYw0K
+PiANCj4gT24gTW9uLCBBcHIgMTEsIDIwMTYgYXQgNDoxNiBBTSwgWmhlbmcsIEx2IDxsdi56aGVu
+Z0BpbnRlbC5jb20+IHdyb3RlOg0KPiA+IEhpLCBSYWZhZWwNCj4gDQo+IEhpLA0KPiANCj4gPj4g
+RnJvbTogWmhlbmcsIEx2DQo+ID4+IFN1YmplY3Q6IFtQQVRDSCAxLzNdIEFDUEkgLyB0YWJsZXM6
+IE1vdmUgdGFibGUgb3ZlcnJpZGUgbWVjaGFuaXNtcyB0bw0KPiA+PiB0YWJsZXMuYw0KPiA+Pg0K
+PiA+PiBUaGlzIHBhdGNoIG1vdmVzIGFjcGlfb3NfdGFibGVfb3ZlcnJpZGUoKSBhbmQNCj4gPj4g
+YWNwaV9vc19waHlzaWNhbF90YWJsZV9vdmVycmlkZSgpIHRvIHRhYmxlcy5jLg0KPiA+Pg0KPiAN
+Cj4gW2N1dF0NCj4gDQo+ID4+ICAjaWZkZWYgQ09ORklHX0FDUElfSU5JVFJEX1RBQkxFX09WRVJS
+SURFDQo+ID4+IC12b2lkIGFjcGlfaW5pdHJkX292ZXJyaWRlKHZvaWQgKmRhdGEsIHNpemVfdCBz
+aXplKTsNCj4gPj4gK3ZvaWQgZWFybHlfYWNwaV90YWJsZV9pbml0KHZvaWQgKmRhdGEsIHNpemVf
+dCBzaXplKTsNCj4gPj4gICNlbHNlDQo+ID4+IC1zdGF0aWMgaW5saW5lIHZvaWQgYWNwaV9pbml0
+cmRfb3ZlcnJpZGUodm9pZCAqZGF0YSwgc2l6ZV90IHNpemUpDQo+ID4+ICtzdGF0aWMgaW5saW5l
+IHZvaWQgZWFybHlfYWNwaV90YWJsZV9pbml0KHZvaWQgKmRhdGEsIHNpemVfdCBzaXplKQ0KPiA+
+PiAgew0KPiA+PiAgfQ0KPiA+PiAgI2VuZGlmDQo+ID4gW0x2IFpoZW5nXQ0KPiA+IFRoaXMgYmxv
+Y2sgd2FzIHdyb25nLg0KPiA+IGVhcmx5X2FjcGlfdGFibGVfaW5pdCgpIGlzIG5vIGxvbmdlciBk
+ZXBlbmRlbnQgb24NCj4gQ09ORklHX0FDUElfSU5JVFJEX1RBQkxFX09WRVJSSURFIGJ1dCBkZXBl
+bmRlbnQgb24gQ09ORklHX0FDUEkuDQo+IA0KPiBJIHNlZS4NCj4gDQo+ID4gVXBkYXRlZCB2MiBw
+YXRjaGVzIGFyZSBzZW50IHRvIHRoZSBtYWlsaW5nIGxpc3QuDQo+IA0KPiBJcyB0aGlzIHRoZSBv
+bmx5IGRpZmZlcmVuY2UgYmV0d2VlbiB2MSBhbmQgdjI/DQoNCltMdiBaaGVuZ10gDQpPbmUgb2Yg
+dGhlIGZvbGxvdy11cCBwYXRjaGVzIChQQVRDSCAzKSBpbiB0aGlzIHNlcmllcyBpcyB1cGRhdGVk
+IGFjY29yZGluZ2x5Lg0KDQpUaGFua3MgYW5kIGJlc3QgcmVnYXJkcw0KLUx2DQo=
