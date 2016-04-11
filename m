@@ -1,72 +1,110 @@
-From: Heikki Krogerus <heikki.krogerus@linux.intel.com>
-Subject: Re: [PATCH v3] device property: don't bother the drivers with struct
- property_set
-Date: Mon, 11 Apr 2016 12:52:34 +0300
-Message-ID: <20160411095234.GA26606@kuha.fi.intel.com>
-References: <1459252343-105426-1-git-send-email-heikki.krogerus@linux.intel.com>
- <20160411082027.GF4592@x1>
+From: Jiang Qiu <qiujiang@huawei.com>
+Subject: Re: [PATCH v7 3/3] gpio: dwapb: add gpio-signaled acpi event support
+Date: Mon, 11 Apr 2016 20:33:26 +0800
+Message-ID: <570B9996.10402@huawei.com>
+References: <1459926480-32966-1-git-send-email-qiujiang@huawei.com>
+ <1459926480-32966-4-git-send-email-qiujiang@huawei.com>
+ <CACRpkdb63AZtEOSJ0R+EqdHfKXcUr7Hs8fh9N5XHNcWjQ1Ba8A@mail.gmail.com>
+Reply-To: <qiujiang@huawei.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga01.intel.com ([192.55.52.88]:45664 "EHLO mga01.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750719AbcDKJwk (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 11 Apr 2016 05:52:40 -0400
-Content-Disposition: inline
-In-Reply-To: <20160411082027.GF4592@x1>
+Received: from szxga02-in.huawei.com ([119.145.14.65]:45247 "EHLO
+	szxga02-in.huawei.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754563AbcDKMhR (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 11 Apr 2016 08:37:17 -0400
+In-Reply-To: <CACRpkdb63AZtEOSJ0R+EqdHfKXcUr7Hs8fh9N5XHNcWjQ1Ba8A@mail.gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Lee Jones <lee.jones@linaro.org>, Daniel Mack <daniel@zonque.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: Mika Westerberg <mika.westerberg@linux.intel.com>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Thierry Reding <treding@nvidia.com>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+To: Linus Walleij <linus.walleij@linaro.org>
+Cc: Alexandre Courbot <gnurou@gmail.com>, Mika Westerberg <mika.westerberg@linux.intel.com>, Andy Shevchenko <andy.shevchenko@gmail.com>, Alan Tull <delicious.quinoa@gmail.com>, Jamie Iles <jamie@jamieiles.com>, charles.chenxin@huawei.com, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-gpio@vger.kernel.org" <linux-gpio@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linuxarm <linuxarm@huawei.com>
 
-On Mon, Apr 11, 2016 at 09:20:27AM +0100, Lee Jones wrote:
-> On Tue, 29 Mar 2016, Heikki Krogerus wrote:
-> 
-> > Since device_add_property_set() now always takes a copy of
-> > the property_set, and also since the fwnode type is always
-> > hard coded to be FWNODE_PDATA, there is no need for the
-> > drivers to deliver the entire struct property_set. The
-> > function can just create the instance of it on its own and
-> > bind the properties from the drivers to it on the spot.
-> > 
-> > This renames device_add_property_set() to
-> > device_add_properties(). The function now takes struct
-> > property_entry as its parameter instead of struct
-> > property_set.
-> > 
-> > Reviewed-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-> > Reviewed-by: Mika Westerberg <mika.westerberg@linux.intel.com>
-> > Acked-by: Thierry Reding <treding@nvidia.com>
-> > Acked-by: Lee Jones <lee.jones@linaro.org>
-> > Signed-off-by: Heikki Krogerus <heikki.krogerus@linux.intel.com>
-> > ---
-> >  arch/arm/mach-pxa/raumfeld.c      | 12 ++++--------
+=E5=9C=A8 2016/4/8 16:26, Linus Walleij =E5=86=99=E9=81=93:
+> On Wed, Apr 6, 2016 at 9:08 AM, qiujiang <qiujiang@huawei.com> wrote:
+>
+>> This patch adds gpio-signaled acpi event support. It is used for
+>> power button on hisilicon D02 board, an arm64 platform.
+>>
+>> The corresponding DSDT file is defined as follows:
+>>  Device(GPI0) {
+>>         Name(_HID, "HISI0181")
+>>         Name(_ADR, 0)
+>>         Name(_UID, 0)
+>>
+>>         Name (_CRS, ResourceTemplate ()  {
+>>                 Memory32Fixed (ReadWrite, 0x802e0000, 0x10000)
+>>                 Interrupt (ResourceConsumer, Level, ActiveHigh,
+>>                 Exclusive,,,)  {344}
+>>         })
+>>
+>>         Device(PRTa) {
+>>                 Name (_DSD, Package () {
+>>                 Package () {
+>>                         Package () {"reg",0},
+>>                         Package () {"snps,nr-gpios",32},
+>>                         }
+>>                 })
+>>         }
+>>
+>>         Name (_AEI, ResourceTemplate () {
+>>                 GpioInt(Edge, ActiveLow, ExclusiveAndWake,
+>>                 PullUp, , " \\_SB.GPI0") {8}
+>>         })
+>>
+>>         Method (_E08, 0x0, NotSerialized) {
+>>                 Notify (\_SB.PWRB, 0x80)
+>>         }
+>> }
+>>
+>> Acked-by: Mika Westerberg <mika.westerberg@linux.intel.com>
+>> Reviewed-by: Andy Shevchenko <andy.shevchenko@gmail.com>
+>> Signed-off-by: qiujiang <qiujiang@huawei.com>
+> Admittedly I'm an ACPI novice and need help with deciding
+> about ACPI, but I mostly trust Mika to know these things right.
+>
+> About this:
+>
+>> +       /* Add GPIO-signaled ACPI event support */
+>> +       if (pp->irq)
+>> +               acpi_gpiochip_request_interrupts(&port->gc);
+> It's weird to me that the driver already has a requested IRQ and
+> everything, now it has to request it again from ACPI.
+>
+> When I look into the acpi_gpiochip_request_interrupts()
+> I find it weird that it is void given how much can go wrong
+> inside it. Should it not return an errorcode?
+Just as Mika said, these are two different things:
 
-Daniel, I think we just need your ACK for this one.
+platform_get_irq() requestedIRQ resource from interrupt subsystem and
+create irq mapping, then gose ready for device, but dose not request
+a handler immediately.
 
-Otherwise I think we are covered.
+acpi_gpiochip_request_interrupts() parse the _AEI and _EVT object and=20
+result awareness of what GPIO pin is used.Then, install a event handler
+for each pin by request this pp->irq.
 
-> >  arch/arm/mach-tegra/board-paz00.c |  6 +-----
-> >  drivers/base/platform.c           | 19 ++++++++++---------
-> >  drivers/base/property.c           | 34 +++++++++++++++++++++-------------
-> >  drivers/mfd/intel-lpss-acpi.c     | 12 ++----------
-> >  drivers/mfd/intel-lpss-pci.c      | 20 ++++----------------
-> >  drivers/mfd/intel-lpss.c          |  2 +-
-> >  drivers/mfd/intel-lpss.h          |  4 ++--
-> >  drivers/mfd/mfd-core.c            |  4 ++--
-> >  include/linux/mfd/core.h          |  4 ++--
-> >  include/linux/platform_device.h   |  6 +++---
-> >  include/linux/property.h          | 15 +++------------
-> >  12 files changed, 55 insertions(+), 83 deletions(-)
-> 
-> What's happening with this patch?  I believe we're still missing
-> Acks.  Once they are collected someone needs to create an immutable
-> branch and send out a pull-request.
+If something gose wrong when acpi_gpiochip_request_interrupts() process=
+,
+GPIO itself can still works fine.
 
-Rafael, have you had time to take a look at this?
+>> +               if (has_acpi_companion(dev) && pp->idx =3D=3D 0)
+>> +                       pp->irq =3D platform_get_irq(to_platform_dev=
+ice(dev), 0);
+> As it was already fetched here and then later requested,
+> we still have to call acpi_gpiochip_request_interrupts()
+> further down the road? That is confusing to me, can you
+> explain what is going on?
+>
+> Yours,
+> Linus Walleij
+>
+> .
+>
 
 
-Thanks,
-
--- 
-heikki
+--
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
