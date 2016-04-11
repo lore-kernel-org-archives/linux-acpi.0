@@ -1,726 +1,357 @@
-From: "Zheng, Lv" <lv.zheng@intel.com>
-Subject: RE: [PATCH 1/3] ACPI / tables: Move table override mechanisms to
- tables.c
-Date: Mon, 11 Apr 2016 02:16:46 +0000
-Message-ID: <1AE640813FDE7649BE1B193DEA596E883BB7E62D@SHSMSX101.ccr.corp.intel.com>
-References: <cover.1460100857.git.lv.zheng@intel.com>
- <3ef8c14e35fc835260f2f2c62a2227e7b570be24.1460100857.git.lv.zheng@intel.com>
+From: Juergen Gross <jgross@suse.com>
+Subject: Re: [Xen-devel] [PATCH v5 04/14] x86/rtc: replace paravirt rtc check
+ with platform legacy quirk
+Date: Mon, 11 Apr 2016 08:50:19 +0200
+Message-ID: <570B492B.80608@suse.com>
+References: <1460158825-13117-1-git-send-email-mcgrof@kernel.org>
+ <1460158825-13117-5-git-send-email-mcgrof@kernel.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga14.intel.com ([192.55.52.115]:31057 "EHLO mga14.intel.com"
+Received: from mx2.suse.de ([195.135.220.15]:59999 "EHLO mx2.suse.de"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752026AbcDKCQy convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sun, 10 Apr 2016 22:16:54 -0400
-In-Reply-To: <3ef8c14e35fc835260f2f2c62a2227e7b570be24.1460100857.git.lv.zheng@intel.com>
-Content-Language: en-US
+	id S1751515AbcDKGuZ (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 11 Apr 2016 02:50:25 -0400
+In-Reply-To: <1460158825-13117-5-git-send-email-mcgrof@kernel.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, "Brown, Len" <len.brown@intel.com>
-Cc: Lv Zheng <zetalog@gmail.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
+To: "Luis R. Rodriguez" <mcgrof@kernel.org>, bp@alien8.de, hpa@zytor.com, tglx@linutronix.de, mingo@redhat.com, rusty@rustcorp.com.au
+Cc: kozerkov@parallels.com, matt@codeblueprint.co.uk, lv.zheng@intel.com, xen-devel@lists.xensource.com, joro@8bytes.org, x86@kernel.org, robert.moore@intel.com, linux-acpi@vger.kernel.org, glin@suse.com, lenb@kernel.org, josh@joshtriplett.org, jlee@suse.com, lguest@lists.ozlabs.org, boris.ostrovsky@oracle.com, andriy.shevchenko@linux.intel.com, toshi.kani@hp.com, andrew.cooper3@citrix.com, rjw@rjwysocki.net, linux-kernel@vger.kernel.org, luto@amacapital.net, david.vrabel@citrix.com, tiwai@suse.de
 
-Hi, Rafael
+On 09/04/16 01:40, Luis R. Rodriguez wrote:
+> We have 4 types of x86 platforms that disable RTC:
+> 
+>   * Intel MID
+>   * Lguest - uses paravirt
+>   * Xen dom-U - uses paravirt
+>   * x86 on legacy systems annotated with an ACPI legacy flag
+> 
+> We can consolidate all of these into a platform specific legacy
+> quirk set early in boot through i386_start_kernel() and through
+> x86_64_start_reservations(). This deals with the RTC quirks which
+> we can rely on through the hardware subarch, the ACPI check can
+> be dealt with separately.
+> 
+> For Xen things are bit more complex given that the @X86_SUBARCH_XEN
+> x86_hardware_subarch is shared on for Xen which uses the PV path for
+> both domU and dom0. Since the semantics for differentiating between
+> the two are Xen specific we provide a platform helper to help override
+> default legacy features -- x86_platform.set_legacy_features(). Use
+> of this helper is highly discouraged, its only purpose should be
+> to account for the lack of semantics available within your given
+> x86_hardware_subarch.
+> 
+> As per 0-day, this bumps the vmlinux size using i386-tinyconfig as
+> follows:
+> 
+> TOTAL   TEXT   init.text    x86_early_init_platform_quirks()
+> +70     +62    +62          +43
+> 
+> Only 8 bytes overhead total, as the main increase in size is
+> all removed via __init.
 
-> From: Zheng, Lv
-> Subject: [PATCH 1/3] ACPI / tables: Move table override mechanisms to
-> tables.c
+I think this could be even less (see comment below).
+
 > 
-> This patch moves acpi_os_table_override() and
-> acpi_os_physical_table_override() to tables.c.
+> v2: split the subarch check from the ACPI check, clarify
+>     on the ACPI change commit log why ordering works
+> v3: add x86_platform.set_legacy_features() to account for dom0,
+>     add also size impact on vmlinux as per 0-day report
+
+You missed the v5 changes here.
+
 > 
-> Along with the mechanisms, acpi_initrd_initialize_tables() is also moved to
-> tables.c to form a static function. The following functions are renamed
-> according to this change:
-> 1. acpi_initrd_override() -> renamed to early_acpi_table_init(), which
->    invokes acpi_table_initrd_init()
-> 2. acpi_os_physical_table_override() -> which invokes
->    acpi_table_initrd_override()
-> 3. acpi_initialize_initrd_tables() -> renamed to acpi_table_initrd_scan()
-> 
-> Signed-off-by: Lv Zheng <lv.zheng@intel.com>
+> Suggested-by: Ingo Molnar <mingo@kernel.org>
+> Signed-off-by: Luis R. Rodriguez <mcgrof@kernel.org>
 > ---
->  arch/x86/kernel/setup.c |    2 +-
->  drivers/acpi/internal.h |    1 -
->  drivers/acpi/osl.c      |  274 --------------------------------------------
->  drivers/acpi/tables.c   |  292
-> ++++++++++++++++++++++++++++++++++++++++++++++-
->  include/linux/acpi.h    |    4 +-
->  5 files changed, 294 insertions(+), 279 deletions(-)
+>  arch/x86/Makefile                     |  1 +
+>  arch/x86/include/asm/paravirt.h       |  6 ------
+>  arch/x86/include/asm/paravirt_types.h |  5 -----
+>  arch/x86/include/asm/processor.h      |  1 -
+>  arch/x86/include/asm/x86_init.h       | 21 +++++++++++++++++++++
+>  arch/x86/kernel/Makefile              |  6 +++++-
+>  arch/x86/kernel/head32.c              |  2 ++
+>  arch/x86/kernel/head64.c              |  1 +
+>  arch/x86/kernel/platform-quirks.c     | 21 +++++++++++++++++++++
+>  arch/x86/kernel/rtc.c                 |  7 ++-----
+>  arch/x86/lguest/boot.c                |  1 -
+>  arch/x86/xen/enlighten.c              | 10 +++++++---
+>  12 files changed, 60 insertions(+), 22 deletions(-)
+>  create mode 100644 arch/x86/kernel/platform-quirks.c
 > 
-> diff --git a/arch/x86/kernel/setup.c b/arch/x86/kernel/setup.c
-> index 2367ae0..902a6f7 100644
-> --- a/arch/x86/kernel/setup.c
-> +++ b/arch/x86/kernel/setup.c
-> @@ -1139,7 +1139,7 @@ void __init setup_arch(char **cmdline_p)
->  	reserve_initrd();
-> 
->  #if defined(CONFIG_ACPI) && defined(CONFIG_BLK_DEV_INITRD)
-> -	acpi_initrd_override((void *)initrd_start, initrd_end - initrd_start);
-> +	early_acpi_table_init((void *)initrd_start, initrd_end - initrd_start);
->  #endif
-> 
->  	vsmp_init();
-> diff --git a/drivers/acpi/internal.h b/drivers/acpi/internal.h
-> index 7c18847..1b0e6fd 100644
-> --- a/drivers/acpi/internal.h
-> +++ b/drivers/acpi/internal.h
-> @@ -20,7 +20,6 @@
-> 
->  #define PREFIX "ACPI: "
-> 
-> -void acpi_initrd_initialize_tables(void);
->  acpi_status acpi_os_initialize1(void);
->  void init_acpi_device_notify(void);
->  int acpi_scan_init(void);
-> diff --git a/drivers/acpi/osl.c b/drivers/acpi/osl.c
-> index bef06c9..00d2a22 100644
-> --- a/drivers/acpi/osl.c
-> +++ b/drivers/acpi/osl.c
-> @@ -602,280 +602,6 @@ acpi_os_predefined_override(const struct
-> acpi_predefined_names *init_val,
->  	return AE_OK;
+> diff --git a/arch/x86/Makefile b/arch/x86/Makefile
+> index 4086abca0b32..f9ed8a7ce2b6 100644
+> --- a/arch/x86/Makefile
+> +++ b/arch/x86/Makefile
+> @@ -209,6 +209,7 @@ endif
+>  head-y := arch/x86/kernel/head_$(BITS).o
+>  head-y += arch/x86/kernel/head$(BITS).o
+>  head-y += arch/x86/kernel/head.o
+> +head-y += arch/x86/kernel/platform-quirks.o
+>  
+>  libs-y  += arch/x86/lib/
+>  
+> diff --git a/arch/x86/include/asm/paravirt.h b/arch/x86/include/asm/paravirt.h
+> index 601f1b8f9961..6c7a4a192032 100644
+> --- a/arch/x86/include/asm/paravirt.h
+> +++ b/arch/x86/include/asm/paravirt.h
+> @@ -20,12 +20,6 @@ static inline int paravirt_enabled(void)
+>  	return pv_info.paravirt_enabled;
 >  }
-> 
-> -static void acpi_table_taint(struct acpi_table_header *table)
+>  
+> -static inline int paravirt_has_feature(unsigned int feature)
 > -{
-> -	pr_warn(PREFIX
-> -		"Override [%4.4s-%8.8s], this is unsafe: tainting kernel\n",
-> -		table->signature, table->oem_table_id);
-> -	add_taint(TAINT_OVERRIDDEN_ACPI_TABLE,
-> LOCKDEP_NOW_UNRELIABLE);
+> -	WARN_ON_ONCE(!pv_info.paravirt_enabled);
+> -	return (pv_info.features & feature);
 > -}
 > -
-> -#ifdef CONFIG_ACPI_INITRD_TABLE_OVERRIDE
-> -#include <linux/earlycpio.h>
-> -#include <linux/memblock.h>
-> -
-> -static u64 acpi_tables_addr;
-> -static int all_tables_size;
-> -
-> -/* Copied from acpica/tbutils.c:acpi_tb_checksum() */
-> -static u8 __init acpi_table_checksum(u8 *buffer, u32 length)
-> -{
-> -	u8 sum = 0;
-> -	u8 *end = buffer + length;
-> -
-> -	while (buffer < end)
-> -		sum = (u8) (sum + *(buffer++));
-> -	return sum;
-> -}
-> -
-> -/* All but ACPI_SIG_RSDP and ACPI_SIG_FACS: */
-> -static const char * const table_sigs[] = {
-> -	ACPI_SIG_BERT, ACPI_SIG_CPEP, ACPI_SIG_ECDT, ACPI_SIG_EINJ,
-> -	ACPI_SIG_ERST, ACPI_SIG_HEST, ACPI_SIG_MADT, ACPI_SIG_MSCT,
-> -	ACPI_SIG_SBST, ACPI_SIG_SLIT, ACPI_SIG_SRAT, ACPI_SIG_ASF,
-> -	ACPI_SIG_BOOT, ACPI_SIG_DBGP, ACPI_SIG_DMAR, ACPI_SIG_HPET,
-> -	ACPI_SIG_IBFT, ACPI_SIG_IVRS, ACPI_SIG_MCFG, ACPI_SIG_MCHI,
-> -	ACPI_SIG_SLIC, ACPI_SIG_SPCR, ACPI_SIG_SPMI, ACPI_SIG_TCPA,
-> -	ACPI_SIG_UEFI, ACPI_SIG_WAET, ACPI_SIG_WDAT, ACPI_SIG_WDDT,
-> -	ACPI_SIG_WDRT, ACPI_SIG_DSDT, ACPI_SIG_FADT, ACPI_SIG_PSDT,
-> -	ACPI_SIG_RSDT, ACPI_SIG_XSDT, ACPI_SIG_SSDT, NULL };
-> -
-> -#define ACPI_HEADER_SIZE sizeof(struct acpi_table_header)
-> -
-> -#define ACPI_OVERRIDE_TABLES 64
-> -static struct cpio_data __initdata acpi_initrd_files[ACPI_OVERRIDE_TABLES];
-> -static DECLARE_BITMAP(acpi_initrd_installed, ACPI_OVERRIDE_TABLES);
-> -
-> -#define MAP_CHUNK_SIZE   (NR_FIX_BTMAPS << PAGE_SHIFT)
-> -
-> -void __init acpi_initrd_override(void *data, size_t size)
-> -{
-> -	int sig, no, table_nr = 0, total_offset = 0;
-> -	long offset = 0;
-> -	struct acpi_table_header *table;
-> -	char cpio_path[32] = "kernel/firmware/acpi/";
-> -	struct cpio_data file;
-> -
-> -	if (data == NULL || size == 0)
-> -		return;
-> -
-> -	for (no = 0; no < ACPI_OVERRIDE_TABLES; no++) {
-> -		file = find_cpio_data(cpio_path, data, size, &offset);
-> -		if (!file.data)
-> -			break;
-> -
-> -		data += offset;
-> -		size -= offset;
-> -
-> -		if (file.size < sizeof(struct acpi_table_header)) {
-> -			pr_err("ACPI OVERRIDE: Table smaller than ACPI
-> header [%s%s]\n",
-> -				cpio_path, file.name);
-> -			continue;
-> -		}
-> -
-> -		table = file.data;
-> -
-> -		for (sig = 0; table_sigs[sig]; sig++)
-> -			if (!memcmp(table->signature, table_sigs[sig], 4))
-> -				break;
-> -
-> -		if (!table_sigs[sig]) {
-> -			pr_err("ACPI OVERRIDE: Unknown signature
-> [%s%s]\n",
-> -				cpio_path, file.name);
-> -			continue;
-> -		}
-> -		if (file.size != table->length) {
-> -			pr_err("ACPI OVERRIDE: File length does not match
-> table length [%s%s]\n",
-> -				cpio_path, file.name);
-> -			continue;
-> -		}
-> -		if (acpi_table_checksum(file.data, table->length)) {
-> -			pr_err("ACPI OVERRIDE: Bad table checksum
-> [%s%s]\n",
-> -				cpio_path, file.name);
-> -			continue;
-> -		}
-> -
-> -		pr_info("%4.4s ACPI table found in initrd [%s%s][0x%x]\n",
-> -			table->signature, cpio_path, file.name, table->length);
-> -
-> -		all_tables_size += table->length;
-> -		acpi_initrd_files[table_nr].data = file.data;
-> -		acpi_initrd_files[table_nr].size = file.size;
-> -		table_nr++;
-> -	}
-> -	if (table_nr == 0)
-> -		return;
-> -
-> -	acpi_tables_addr =
-> -		memblock_find_in_range(0, max_low_pfn_mapped <<
-> PAGE_SHIFT,
-> -				       all_tables_size, PAGE_SIZE);
-> -	if (!acpi_tables_addr) {
-> -		WARN_ON(1);
-> -		return;
-> -	}
-> -	/*
-> -	 * Only calling e820_add_reserve does not work and the
-> -	 * tables are invalid (memory got used) later.
-> -	 * memblock_reserve works as expected and the tables won't get
-> modified.
-> -	 * But it's not enough on X86 because ioremap will
-> -	 * complain later (used by acpi_os_map_memory) that the pages
-> -	 * that should get mapped are not marked "reserved".
-> -	 * Both memblock_reserve and e820_add_region (via
-> arch_reserve_mem_area)
-> -	 * works fine.
-> -	 */
-> -	memblock_reserve(acpi_tables_addr, all_tables_size);
-> -	arch_reserve_mem_area(acpi_tables_addr, all_tables_size);
-> -
-> -	/*
-> -	 * early_ioremap only can remap 256k one time. If we map all
-> -	 * tables one time, we will hit the limit. Need to map chunks
-> -	 * one by one during copying the same as that in relocate_initrd().
-> -	 */
-> -	for (no = 0; no < table_nr; no++) {
-> -		unsigned char *src_p = acpi_initrd_files[no].data;
-> -		phys_addr_t size = acpi_initrd_files[no].size;
-> -		phys_addr_t dest_addr = acpi_tables_addr + total_offset;
-> -		phys_addr_t slop, clen;
-> -		char *dest_p;
-> -
-> -		total_offset += size;
-> -
-> -		while (size) {
-> -			slop = dest_addr & ~PAGE_MASK;
-> -			clen = size;
-> -			if (clen > MAP_CHUNK_SIZE - slop)
-> -				clen = MAP_CHUNK_SIZE - slop;
-> -			dest_p = early_ioremap(dest_addr & PAGE_MASK,
-> -						 clen + slop);
-> -			memcpy(dest_p + slop, src_p, clen);
-> -			early_iounmap(dest_p, clen + slop);
-> -			src_p += clen;
-> -			dest_addr += clen;
-> -			size -= clen;
-> -		}
-> -	}
-> -}
-> -
-> -acpi_status
-> -acpi_os_physical_table_override(struct acpi_table_header *existing_table,
-> -				acpi_physical_address *address, u32 *length)
-> -{
-> -	int table_offset = 0;
-> -	int table_index = 0;
-> -	struct acpi_table_header *table;
-> -	u32 table_length;
-> -
-> -	*length = 0;
-> -	*address = 0;
-> -	if (!acpi_tables_addr)
-> -		return AE_OK;
-> -
-> -	while (table_offset + ACPI_HEADER_SIZE <= all_tables_size) {
-> -		table = acpi_os_map_memory(acpi_tables_addr + table_offset,
-> -					   ACPI_HEADER_SIZE);
-> -		if (table_offset + table->length > all_tables_size) {
-> -			acpi_os_unmap_memory(table, ACPI_HEADER_SIZE);
-> -			WARN_ON(1);
-> -			return AE_OK;
-> -		}
-> -
-> -		table_length = table->length;
-> -
-> -		/* Only override tables matched */
-> -		if (test_bit(table_index, acpi_initrd_installed) ||
-> -		    memcmp(existing_table->signature, table->signature, 4) ||
-> -		    memcmp(table->oem_table_id, existing_table-
-> >oem_table_id,
-> -			   ACPI_OEM_TABLE_ID_SIZE)) {
-> -			acpi_os_unmap_memory(table, ACPI_HEADER_SIZE);
-> -			goto next_table;
-> -		}
-> -
-> -		*length = table_length;
-> -		*address = acpi_tables_addr + table_offset;
-> -		acpi_table_taint(existing_table);
-> -		acpi_os_unmap_memory(table, ACPI_HEADER_SIZE);
-> -		set_bit(table_index, acpi_initrd_installed);
-> -		break;
-> -
-> -next_table:
-> -		table_offset += table_length;
-> -		table_index++;
-> -	}
-> -	return AE_OK;
-> -}
-> -
-> -void __init acpi_initrd_initialize_tables(void)
-> -{
-> -	int table_offset = 0;
-> -	int table_index = 0;
-> -	u32 table_length;
-> -	struct acpi_table_header *table;
-> -
-> -	if (!acpi_tables_addr)
-> -		return;
-> -
-> -	while (table_offset + ACPI_HEADER_SIZE <= all_tables_size) {
-> -		table = acpi_os_map_memory(acpi_tables_addr + table_offset,
-> -					   ACPI_HEADER_SIZE);
-> -		if (table_offset + table->length > all_tables_size) {
-> -			acpi_os_unmap_memory(table, ACPI_HEADER_SIZE);
-> -			WARN_ON(1);
-> -			return;
-> -		}
-> -
-> -		table_length = table->length;
-> -
-> -		/* Skip RSDT/XSDT which should only be used for override */
-> -		if (test_bit(table_index, acpi_initrd_installed) ||
-> -		    ACPI_COMPARE_NAME(table->signature, ACPI_SIG_RSDT)
-> ||
-> -		    ACPI_COMPARE_NAME(table->signature, ACPI_SIG_XSDT)) {
-> -			acpi_os_unmap_memory(table, ACPI_HEADER_SIZE);
-> -			goto next_table;
-> -		}
-> -
-> -		acpi_table_taint(table);
-> -		acpi_os_unmap_memory(table, ACPI_HEADER_SIZE);
-> -		acpi_install_table(acpi_tables_addr + table_offset, TRUE);
-> -		set_bit(table_index, acpi_initrd_installed);
-> -next_table:
-> -		table_offset += table_length;
-> -		table_index++;
-> -	}
-> -}
-> -#else
-> -acpi_status
-> -acpi_os_physical_table_override(struct acpi_table_header *existing_table,
-> -				acpi_physical_address *address,
-> -				u32 *table_length)
-> -{
-> -	*table_length = 0;
-> -	*address = 0;
-> -	return AE_OK;
-> -}
-> -
-> -void __init acpi_initrd_initialize_tables(void)
-> -{
-> -}
-> -#endif /* CONFIG_ACPI_INITRD_TABLE_OVERRIDE */
-> -
-> -acpi_status
-> -acpi_os_table_override(struct acpi_table_header *existing_table,
-> -		       struct acpi_table_header **new_table)
-> -{
-> -	if (!existing_table || !new_table)
-> -		return AE_BAD_PARAMETER;
-> -
-> -	*new_table = NULL;
-> -
-> -#ifdef CONFIG_ACPI_CUSTOM_DSDT
-> -	if (strncmp(existing_table->signature, "DSDT", 4) == 0)
-> -		*new_table = (struct acpi_table_header *)AmlCode;
-> -#endif
-> -	if (*new_table != NULL)
-> -		acpi_table_taint(existing_table);
-> -	return AE_OK;
-> -}
-> -
->  static irqreturn_t acpi_irq(int irq, void *dev_id)
+>  static inline void load_sp0(struct tss_struct *tss,
+>  			     struct thread_struct *thread)
 >  {
->  	u32 handled;
-> diff --git a/drivers/acpi/tables.c b/drivers/acpi/tables.c
-> index f49c024..2e74dbf 100644
-> --- a/drivers/acpi/tables.c
-> +++ b/drivers/acpi/tables.c
-> @@ -32,6 +32,8 @@
->  #include <linux/errno.h>
->  #include <linux/acpi.h>
->  #include <linux/bootmem.h>
-> +#include <linux/earlycpio.h>
-> +#include <linux/memblock.h>
->  #include "internal.h"
-> 
->  #define ACPI_MAX_TABLES		128
-> @@ -433,6 +435,294 @@ static void __init check_multiple_madt(void)
->  	return;
->  }
-> 
-> +static void acpi_table_taint(struct acpi_table_header *table)
-> +{
-> +	pr_warn("Override [%4.4s-%8.8s], this is unsafe: tainting kernel\n",
-> +		table->signature, table->oem_table_id);
-> +	add_taint(TAINT_OVERRIDDEN_ACPI_TABLE,
-> LOCKDEP_NOW_UNRELIABLE);
-> +}
-> +
-> +#ifdef CONFIG_ACPI_INITRD_TABLE_OVERRIDE
-> +static u64 acpi_tables_addr;
-> +static int all_tables_size;
-> +
-> +/* Copied from acpica/tbutils.c:acpi_tb_checksum() */
-> +static u8 __init acpi_table_checksum(u8 *buffer, u32 length)
-> +{
-> +	u8 sum = 0;
-> +	u8 *end = buffer + length;
-> +
-> +	while (buffer < end)
-> +		sum = (u8) (sum + *(buffer++));
-> +	return sum;
-> +}
-> +
-> +/* All but ACPI_SIG_RSDP and ACPI_SIG_FACS: */
-> +static const char * const table_sigs[] = {
-> +	ACPI_SIG_BERT, ACPI_SIG_CPEP, ACPI_SIG_ECDT, ACPI_SIG_EINJ,
-> +	ACPI_SIG_ERST, ACPI_SIG_HEST, ACPI_SIG_MADT, ACPI_SIG_MSCT,
-> +	ACPI_SIG_SBST, ACPI_SIG_SLIT, ACPI_SIG_SRAT, ACPI_SIG_ASF,
-> +	ACPI_SIG_BOOT, ACPI_SIG_DBGP, ACPI_SIG_DMAR, ACPI_SIG_HPET,
-> +	ACPI_SIG_IBFT, ACPI_SIG_IVRS, ACPI_SIG_MCFG, ACPI_SIG_MCHI,
-> +	ACPI_SIG_SLIC, ACPI_SIG_SPCR, ACPI_SIG_SPMI, ACPI_SIG_TCPA,
-> +	ACPI_SIG_UEFI, ACPI_SIG_WAET, ACPI_SIG_WDAT, ACPI_SIG_WDDT,
-> +	ACPI_SIG_WDRT, ACPI_SIG_DSDT, ACPI_SIG_FADT, ACPI_SIG_PSDT,
-> +	ACPI_SIG_RSDT, ACPI_SIG_XSDT, ACPI_SIG_SSDT, NULL };
-> +
-> +#define ACPI_HEADER_SIZE sizeof(struct acpi_table_header)
-> +
-> +#define ACPI_OVERRIDE_TABLES 64
-> +static struct cpio_data __initdata acpi_initrd_files[ACPI_OVERRIDE_TABLES];
-> +static DECLARE_BITMAP(acpi_initrd_installed, ACPI_OVERRIDE_TABLES);
-> +
-> +#define MAP_CHUNK_SIZE   (NR_FIX_BTMAPS << PAGE_SHIFT)
-> +
-> +static void __init acpi_table_initrd_init(void *data, size_t size)
-> +{
-> +	int sig, no, table_nr = 0, total_offset = 0;
-> +	long offset = 0;
-> +	struct acpi_table_header *table;
-> +	char cpio_path[32] = "kernel/firmware/acpi/";
-> +	struct cpio_data file;
-> +
-> +	if (data == NULL || size == 0)
-> +		return;
-> +
-> +	for (no = 0; no < ACPI_OVERRIDE_TABLES; no++) {
-> +		file = find_cpio_data(cpio_path, data, size, &offset);
-> +		if (!file.data)
-> +			break;
-> +
-> +		data += offset;
-> +		size -= offset;
-> +
-> +		if (file.size < sizeof(struct acpi_table_header)) {
-> +			pr_err("ACPI OVERRIDE: Table smaller than ACPI
-> header [%s%s]\n",
-> +				cpio_path, file.name);
-> +			continue;
-> +		}
-> +
-> +		table = file.data;
-> +
-> +		for (sig = 0; table_sigs[sig]; sig++)
-> +			if (!memcmp(table->signature, table_sigs[sig], 4))
-> +				break;
-> +
-> +		if (!table_sigs[sig]) {
-> +			pr_err("ACPI OVERRIDE: Unknown signature
-> [%s%s]\n",
-> +				cpio_path, file.name);
-> +			continue;
-> +		}
-> +		if (file.size != table->length) {
-> +			pr_err("ACPI OVERRIDE: File length does not match
-> table length [%s%s]\n",
-> +				cpio_path, file.name);
-> +			continue;
-> +		}
-> +		if (acpi_table_checksum(file.data, table->length)) {
-> +			pr_err("ACPI OVERRIDE: Bad table checksum
-> [%s%s]\n",
-> +				cpio_path, file.name);
-> +			continue;
-> +		}
-> +
-> +		pr_info("%4.4s ACPI table found in initrd [%s%s][0x%x]\n",
-> +			table->signature, cpio_path, file.name, table->length);
-> +
-> +		all_tables_size += table->length;
-> +		acpi_initrd_files[table_nr].data = file.data;
-> +		acpi_initrd_files[table_nr].size = file.size;
-> +		table_nr++;
-> +	}
-> +	if (table_nr == 0)
-> +		return;
-> +
-> +	acpi_tables_addr =
-> +		memblock_find_in_range(0, max_low_pfn_mapped <<
-> PAGE_SHIFT,
-> +				       all_tables_size, PAGE_SIZE);
-> +	if (!acpi_tables_addr) {
-> +		WARN_ON(1);
-> +		return;
-> +	}
-> +	/*
-> +	 * Only calling e820_add_reserve does not work and the
-> +	 * tables are invalid (memory got used) later.
-> +	 * memblock_reserve works as expected and the tables won't get
-> modified.
-> +	 * But it's not enough on X86 because ioremap will
-> +	 * complain later (used by acpi_os_map_memory) that the pages
-> +	 * that should get mapped are not marked "reserved".
-> +	 * Both memblock_reserve and e820_add_region (via
-> arch_reserve_mem_area)
-> +	 * works fine.
-> +	 */
-> +	memblock_reserve(acpi_tables_addr, all_tables_size);
-> +	arch_reserve_mem_area(acpi_tables_addr, all_tables_size);
-> +
-> +	/*
-> +	 * early_ioremap only can remap 256k one time. If we map all
-> +	 * tables one time, we will hit the limit. Need to map chunks
-> +	 * one by one during copying the same as that in relocate_initrd().
-> +	 */
-> +	for (no = 0; no < table_nr; no++) {
-> +		unsigned char *src_p = acpi_initrd_files[no].data;
-> +		phys_addr_t size = acpi_initrd_files[no].size;
-> +		phys_addr_t dest_addr = acpi_tables_addr + total_offset;
-> +		phys_addr_t slop, clen;
-> +		char *dest_p;
-> +
-> +		total_offset += size;
-> +
-> +		while (size) {
-> +			slop = dest_addr & ~PAGE_MASK;
-> +			clen = size;
-> +			if (clen > MAP_CHUNK_SIZE - slop)
-> +				clen = MAP_CHUNK_SIZE - slop;
-> +			dest_p = early_ioremap(dest_addr & PAGE_MASK,
-> +						 clen + slop);
-> +			memcpy(dest_p + slop, src_p, clen);
-> +			early_iounmap(dest_p, clen + slop);
-> +			src_p += clen;
-> +			dest_addr += clen;
-> +			size -= clen;
-> +		}
-> +	}
-> +}
-> +
-> +static acpi_status
-> +acpi_table_initrd_override(struct acpi_table_header *existing_table,
-> +			   acpi_physical_address *address, u32 *length)
-> +{
-> +	int table_offset = 0;
-> +	int table_index = 0;
-> +	struct acpi_table_header *table;
-> +	u32 table_length;
-> +
-> +	*length = 0;
-> +	*address = 0;
-> +	if (!acpi_tables_addr)
-> +		return AE_OK;
-> +
-> +	while (table_offset + ACPI_HEADER_SIZE <= all_tables_size) {
-> +		table = acpi_os_map_memory(acpi_tables_addr + table_offset,
-> +					   ACPI_HEADER_SIZE);
-> +		if (table_offset + table->length > all_tables_size) {
-> +			acpi_os_unmap_memory(table, ACPI_HEADER_SIZE);
-> +			WARN_ON(1);
-> +			return AE_OK;
-> +		}
-> +
-> +		table_length = table->length;
-> +
-> +		/* Only override tables matched */
-> +		if (test_bit(table_index, acpi_initrd_installed) ||
-> +		    memcmp(existing_table->signature, table->signature, 4) ||
-> +		    memcmp(table->oem_table_id, existing_table-
-> >oem_table_id,
-> +			   ACPI_OEM_TABLE_ID_SIZE)) {
-> +			acpi_os_unmap_memory(table, ACPI_HEADER_SIZE);
-> +			goto next_table;
-> +		}
-> +
-> +		*length = table_length;
-> +		*address = acpi_tables_addr + table_offset;
-> +		acpi_table_taint(existing_table);
-> +		acpi_os_unmap_memory(table, ACPI_HEADER_SIZE);
-> +		set_bit(table_index, acpi_initrd_installed);
-> +		break;
-> +
-> +next_table:
-> +		table_offset += table_length;
-> +		table_index++;
-> +	}
-> +	return AE_OK;
-> +}
-> +
-> +static void __init acpi_table_initrd_scan(void)
-> +{
-> +	int table_offset = 0;
-> +	int table_index = 0;
-> +	u32 table_length;
-> +	struct acpi_table_header *table;
-> +
-> +	if (!acpi_tables_addr)
-> +		return;
-> +
-> +	while (table_offset + ACPI_HEADER_SIZE <= all_tables_size) {
-> +		table = acpi_os_map_memory(acpi_tables_addr + table_offset,
-> +					   ACPI_HEADER_SIZE);
-> +		if (table_offset + table->length > all_tables_size) {
-> +			acpi_os_unmap_memory(table, ACPI_HEADER_SIZE);
-> +			WARN_ON(1);
-> +			return;
-> +		}
-> +
-> +		table_length = table->length;
-> +
-> +		/* Skip RSDT/XSDT which should only be used for override */
-> +		if (test_bit(table_index, acpi_initrd_installed) ||
-> +		    ACPI_COMPARE_NAME(table->signature, ACPI_SIG_RSDT)
-> ||
-> +		    ACPI_COMPARE_NAME(table->signature, ACPI_SIG_XSDT)) {
-> +			acpi_os_unmap_memory(table, ACPI_HEADER_SIZE);
-> +			goto next_table;
-> +		}
-> +
-> +		acpi_table_taint(table);
-> +		acpi_os_unmap_memory(table, ACPI_HEADER_SIZE);
-> +		acpi_install_table(acpi_tables_addr + table_offset, TRUE);
-> +		set_bit(table_index, acpi_initrd_installed);
-> +next_table:
-> +		table_offset += table_length;
-> +		table_index++;
-> +	}
-> +}
-> +#else
-> +static void __init acpi_table_initrd_init(void *data, size_t size)
-> +{
-> +}
-> +
-> +static acpi_status
-> +acpi_table_initrd_override(struct acpi_table_header *existing_table,
-> +			   acpi_physical_address *address,
-> +			   u32 *table_length)
-> +{
-> +	*table_length = 0;
-> +	*address = 0;
-> +	return AE_OK;
-> +}
-> +
-> +static void __init acpi_table_initrd_scan(void)
-> +{
-> +}
-> +#endif /* CONFIG_ACPI_INITRD_TABLE_OVERRIDE */
-> +
-> +acpi_status
-> +acpi_os_physical_table_override(struct acpi_table_header *existing_table,
-> +				acpi_physical_address *address,
-> +				u32 *table_length)
-> +{
-> +	return acpi_table_initrd_override(existing_table, address,
-> +					  table_length);
-> +}
-> +
-> +acpi_status
-> +acpi_os_table_override(struct acpi_table_header *existing_table,
-> +		       struct acpi_table_header **new_table)
-> +{
-> +	if (!existing_table || !new_table)
-> +		return AE_BAD_PARAMETER;
-> +
-> +	*new_table = NULL;
-> +
-> +#ifdef CONFIG_ACPI_CUSTOM_DSDT
-> +	if (strncmp(existing_table->signature, "DSDT", 4) == 0)
-> +		*new_table = (struct acpi_table_header *)AmlCode;
-> +#endif
-> +	if (*new_table != NULL)
-> +		acpi_table_taint(existing_table);
-> +	return AE_OK;
-> +}
-> +
-> +void __init early_acpi_table_init(void *data, size_t size)
-> +{
-> +	acpi_table_initrd_init(data, size);
-> +}
-> +
->  /*
->   * acpi_table_init()
->   *
-> @@ -457,7 +747,7 @@ int __init acpi_table_init(void)
->  	status = acpi_initialize_tables(initial_tables, ACPI_MAX_TABLES, 0);
->  	if (ACPI_FAILURE(status))
->  		return -EINVAL;
-> -	acpi_initrd_initialize_tables();
-> +	acpi_table_initrd_scan();
-> 
->  	check_multiple_madt();
->  	return 0;
-> diff --git a/include/linux/acpi.h b/include/linux/acpi.h
-> index 06ed7e5..86ac608 100644
-> --- a/include/linux/acpi.h
-> +++ b/include/linux/acpi.h
-> @@ -191,9 +191,9 @@ static inline int
-> acpi_debugger_notify_command_complete(void)
+> diff --git a/arch/x86/include/asm/paravirt_types.h b/arch/x86/include/asm/paravirt_types.h
+> index e8c2326478c8..6acc1b26cf40 100644
+> --- a/arch/x86/include/asm/paravirt_types.h
+> +++ b/arch/x86/include/asm/paravirt_types.h
+> @@ -70,14 +70,9 @@ struct pv_info {
 >  #endif
-> 
->  #ifdef CONFIG_ACPI_INITRD_TABLE_OVERRIDE
-> -void acpi_initrd_override(void *data, size_t size);
-> +void early_acpi_table_init(void *data, size_t size);
+>  
+>  	int paravirt_enabled;
+> -	unsigned int features;	  /* valid only if paravirt_enabled is set */
+>  	const char *name;
+>  };
+>  
+> -#define paravirt_has(x) paravirt_has_feature(PV_SUPPORTED_##x)
+> -/* Supported features */
+> -#define PV_SUPPORTED_RTC        (1<<0)
+> -
+>  struct pv_init_ops {
+>  	/*
+>  	 * Patch may replace one of the defined code sequences with
+> diff --git a/arch/x86/include/asm/processor.h b/arch/x86/include/asm/processor.h
+> index 9264476f3d57..0c70c7daa6b8 100644
+> --- a/arch/x86/include/asm/processor.h
+> +++ b/arch/x86/include/asm/processor.h
+> @@ -474,7 +474,6 @@ static inline unsigned long current_top_of_stack(void)
 >  #else
-> -static inline void acpi_initrd_override(void *data, size_t size)
-> +static inline void early_acpi_table_init(void *data, size_t size)
->  {
->  }
+>  #define __cpuid			native_cpuid
+>  #define paravirt_enabled()	0
+> -#define paravirt_has(x) 	0
+>  
+>  static inline void load_sp0(struct tss_struct *tss,
+>  			    struct thread_struct *thread)
+> diff --git a/arch/x86/include/asm/x86_init.h b/arch/x86/include/asm/x86_init.h
+> index 1ae89a2721d6..8bb8c1a4615a 100644
+> --- a/arch/x86/include/asm/x86_init.h
+> +++ b/arch/x86/include/asm/x86_init.h
+> @@ -142,6 +142,15 @@ struct x86_cpuinit_ops {
+>  struct timespec;
+>  
+>  /**
+> + * struct x86_legacy_features - legacy x86 features
+> + *
+> + * @rtc: this device has a CMOS real-time clock present
+> + */
+> +struct x86_legacy_features {
+> +	int rtc;
+> +};
+> +
+> +/**
+>   * struct x86_platform_ops - platform specific runtime functions
+>   * @calibrate_tsc:		calibrate TSC
+>   * @get_wallclock:		get time from HW clock like RTC etc.
+> @@ -152,6 +161,14 @@ struct timespec;
+>   * @save_sched_clock_state:	save state for sched_clock() on suspend
+>   * @restore_sched_clock_state:	restore state for sched_clock() on resume
+>   * @apic_post_init:		adjust apic if neeeded
+> + * @legacy:			legacy features
+> + * @set_legacy_features:	override legacy features. Use of this callback
+> + * 				is highly discouraged. You should only need
+> + * 				this if your hardware platform requires further
+> + * 				custom fine tuning far beyong what may be
+> + * 				possible in x86_early_init_platform_quirks() by
+> + * 				only using the current x86_hardware_subarch
+> + * 				semantics.
+>   */
+>  struct x86_platform_ops {
+>  	unsigned long (*calibrate_tsc)(void);
+> @@ -165,6 +182,8 @@ struct x86_platform_ops {
+>  	void (*save_sched_clock_state)(void);
+>  	void (*restore_sched_clock_state)(void);
+>  	void (*apic_post_init)(void);
+> +	struct x86_legacy_features legacy;
+> +	void (*set_legacy_features)(void);
+>  };
+>  
+>  struct pci_dev;
+> @@ -186,6 +205,8 @@ extern struct x86_cpuinit_ops x86_cpuinit;
+>  extern struct x86_platform_ops x86_platform;
+>  extern struct x86_msi_ops x86_msi;
+>  extern struct x86_io_apic_ops x86_io_apic_ops;
+> +
+> +extern void x86_early_init_platform_quirks(void);
+>  extern void x86_init_noop(void);
+>  extern void x86_init_uint_noop(unsigned int unused);
+>  
+> diff --git a/arch/x86/kernel/Makefile b/arch/x86/kernel/Makefile
+> index 89f8ade0bc7c..7a9e44d935de 100644
+> --- a/arch/x86/kernel/Makefile
+> +++ b/arch/x86/kernel/Makefile
+> @@ -2,7 +2,11 @@
+>  # Makefile for the linux kernel.
+>  #
+>  
+> -extra-y                := head_$(BITS).o head$(BITS).o head.o vmlinux.lds
+> +extra-y	:= head_$(BITS).o
+> +extra-y	+= head$(BITS).o
+> +extra-y	+= head.o
+> +extra-y	+= platform-quirks.o
+> +extra-y	+= vmlinux.lds
+>  
+>  CPPFLAGS_vmlinux.lds += -U$(UTS_MACHINE)
+>  
+> diff --git a/arch/x86/kernel/head32.c b/arch/x86/kernel/head32.c
+> index 2911ef3a9f1c..d784bb547a9d 100644
+> --- a/arch/x86/kernel/head32.c
+> +++ b/arch/x86/kernel/head32.c
+> @@ -34,6 +34,8 @@ asmlinkage __visible void __init i386_start_kernel(void)
+>  	cr4_init_shadow();
+>  	sanitize_boot_params(&boot_params);
+>  
+> +	x86_early_init_platform_quirks();
+> +
+>  	/* Call the subarch specific early setup function */
+>  	switch (boot_params.hdr.hardware_subarch) {
+>  	case X86_SUBARCH_INTEL_MID:
+> diff --git a/arch/x86/kernel/head64.c b/arch/x86/kernel/head64.c
+> index 1f4422d5c8d0..b72fb0b71dd1 100644
+> --- a/arch/x86/kernel/head64.c
+> +++ b/arch/x86/kernel/head64.c
+> @@ -182,6 +182,7 @@ void __init x86_64_start_reservations(char *real_mode_data)
+>  	if (!boot_params.hdr.version)
+>  		copy_bootdata(__va(real_mode_data));
+>  
+> +	x86_early_init_platform_quirks();
+>  	reserve_ebda_region();
+>  
+>  	switch (boot_params.hdr.hardware_subarch) {
+> diff --git a/arch/x86/kernel/platform-quirks.c b/arch/x86/kernel/platform-quirks.c
+> new file mode 100644
+> index 000000000000..021a5f973ce3
+> --- /dev/null
+> +++ b/arch/x86/kernel/platform-quirks.c
+> @@ -0,0 +1,21 @@
+> +#include <linux/kernel.h>
+> +#include <linux/init.h>
+> +
+> +#include <asm/setup.h>
+> +#include <asm/bios_ebda.h>
+> +
+> +void __init x86_early_init_platform_quirks(void)
+> +{
+> +	x86_platform.legacy.rtc = 1;
+> +
+> +	switch (boot_params.hdr.hardware_subarch) {
+> +	case X86_SUBARCH_XEN:
+> +	case X86_SUBARCH_LGUEST:
+> +	case X86_SUBARCH_INTEL_MID:
+> +		x86_platform.legacy.rtc = 0;
+> +		break;
+> +	}
+> +
+> +	if (x86_platform.set_legacy_features)
+> +		x86_platform.set_legacy_features();
+> +}
+> diff --git a/arch/x86/kernel/rtc.c b/arch/x86/kernel/rtc.c
+> index 4af8d063fb36..62c48da3889d 100644
+> --- a/arch/x86/kernel/rtc.c
+> +++ b/arch/x86/kernel/rtc.c
+> @@ -14,6 +14,7 @@
+>  #include <asm/time.h>
+>  #include <asm/intel-mid.h>
+>  #include <asm/rtc.h>
+> +#include <asm/setup.h>
+>  
+>  #ifdef CONFIG_X86_32
+>  /*
+> @@ -188,10 +189,6 @@ static __init int add_rtc_cmos(void)
+>  	if (of_have_populated_dt())
+>  		return 0;
+>  
+> -	/* Intel MID platforms don't have ioport rtc */
+> -	if (intel_mid_identify_cpu())
+> -		return -ENODEV;
+> -
+>  #ifdef CONFIG_ACPI
+>  	if (acpi_gbl_FADT.boot_flags & ACPI_FADT_NO_CMOS_RTC) {
+>  		/* This warning can likely go away again in a year or two. */
+> @@ -200,7 +197,7 @@ static __init int add_rtc_cmos(void)
+>  	}
 >  #endif
-[Lv Zheng] 
-This block was wrong.
-early_acpi_table_init() is no longer dependent on CONFIG_ACPI_INITRD_TABLE_OVERRIDE but dependent on CONFIG_ACPI.
-Updated v2 patches are sent to the mailing list.
+>  
+> -	if (paravirt_enabled() && !paravirt_has(RTC))
+> +	if (!x86_platform.legacy.rtc)
+>  		return -ENODEV;
+>  
+>  	platform_device_register(&rtc_device);
+> diff --git a/arch/x86/lguest/boot.c b/arch/x86/lguest/boot.c
+> index fd57d3ae7e16..f5497ee5fd2f 100644
+> --- a/arch/x86/lguest/boot.c
+> +++ b/arch/x86/lguest/boot.c
+> @@ -1414,7 +1414,6 @@ __init void lguest_init(void)
+>  	pv_info.kernel_rpl = 1;
+>  	/* Everyone except Xen runs with this set. */
+>  	pv_info.shared_kernel_pmd = 1;
+> -	pv_info.features = 0;
+>  
+>  	/*
+>  	 * We set up all the lguest overrides for sensitive operations.  These
+> diff --git a/arch/x86/xen/enlighten.c b/arch/x86/xen/enlighten.c
+> index 40487f1ecb4c..e066fcf87c3d 100644
+> --- a/arch/x86/xen/enlighten.c
+> +++ b/arch/x86/xen/enlighten.c
+> @@ -1192,7 +1192,6 @@ static const struct pv_info xen_info __initconst = {
+>  #ifdef CONFIG_X86_64
+>  	.extra_user_64bit_cs = FLAT_USER_CS64,
+>  #endif
+> -	.features = 0,
+>  	.name = "Xen",
+>  };
+>  
+> @@ -1505,6 +1504,11 @@ static void __init xen_pvh_early_guest_init(void)
+>  }
+>  #endif    /* CONFIG_XEN_PVH */
+>  
+> +static void xen_dom0_set_legacy_features(void)
 
-Thanks
--Lv
+Can't you make this __init ?
 
-> --
-> 1.7.10
+> +{
+> +	x86_platform.legacy.rtc = 1;
+> +}
+> +
+>  /* First C function to be called on Xen boot */
+>  asmlinkage __visible void __init xen_start_kernel(void)
+>  {
+> @@ -1525,8 +1529,6 @@ asmlinkage __visible void __init xen_start_kernel(void)
+>  
+>  	/* Install Xen paravirt ops */
+>  	pv_info = xen_info;
+> -	if (xen_initial_domain())
+> -		pv_info.features |= PV_SUPPORTED_RTC;
+>  	pv_init_ops = xen_init_ops;
+>  	if (!xen_pvh_domain()) {
+>  		pv_cpu_ops = xen_cpu_ops;
+> @@ -1679,6 +1681,8 @@ asmlinkage __visible void __init xen_start_kernel(void)
+>  			.u.firmware_info.type = XEN_FW_KBD_SHIFT_FLAGS,
+>  		};
+>  
+> +		x86_platform.set_legacy_features =
+> +				xen_dom0_set_legacy_features;
+>  		xen_init_vga(info, xen_start_info->console.dom0.info_size);
+>  		xen_start_info->console.domU.mfn = 0;
+>  		xen_start_info->console.domU.evtchn = 0;
+> 
 
+
+Juergen
