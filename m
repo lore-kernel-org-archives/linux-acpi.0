@@ -1,73 +1,70 @@
 From: Jayachandran C <jchandra@broadcom.com>
-Subject: [PATCH v2 0/4] ACPI based PCI host driver with generic ECAM
-Date: Tue, 12 Apr 2016 04:15:03 +0530
-Message-ID: <1460414707-19153-1-git-send-email-jchandra@broadcom.com>
-Return-path: <linux-pci-owner@vger.kernel.org>
-Sender: linux-pci-owner@vger.kernel.org
+Subject: [PATCH v2 1/4] arm64: Prepare to use generic ACPI PCI implementation
+Date: Tue, 12 Apr 2016 04:15:04 +0530
+Message-ID: <1460414707-19153-2-git-send-email-jchandra@broadcom.com>
+References: <1460414707-19153-1-git-send-email-jchandra@broadcom.com>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1460414707-19153-1-git-send-email-jchandra@broadcom.com>
+Sender: linux-kernel-owner@vger.kernel.org
 To: Bjorn Helgaas <helgaas@kernel.org>, Tomasz Nowicki <tn@semihalf.com>, rafael@kernel.org
 Cc: Jayachandran C <jchandra@broadcom.com>, Arnd Bergmann <arnd@arndb.de>, Will Deacon <will.deacon@arm.com>, Catalin Marinas <catalin.marinas@arm.com>, Hanjun Guo <hanjun.guo@linaro.org>, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, okaya@codeaurora.org, jiang.liu@linux.intel.com, Stefano Stabellini <Stefano.Stabellini@eu.citrix.com>, robert.richter@caviumnetworks.com, Marcin Wojtas <mw@semihalf.com>, Liviu.Dudau@arm.com, David Daney <ddaney@caviumnetworks.com>, wangyijing@huawei.com, Suravee.Suthikulpanit@amd.com, msalter@redhat.com, linux-pci@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linaro-acpi@lists.linaro.org, Jon Masters <jcm@redhat.com>
 List-Id: linux-acpi@vger.kernel.org
 
-Here is v2 of the patchset for the ACPI PCI controller driver based on
-the earlier discussion[1].
+Define PCI_MMCONFIG config option for arm64.
 
-This patchset unifies the pci-host-generic ECAM code and the ACPI PCI
-ECAM code much further so that both the implementations can use the
-same structure (struct pci_config_window) as ->sysdata.
+Weaken implementations of raw_pci_read/write and pci_acpi_scan_root,
+the generic ACPI PCI driver will implement these.
 
-The patchset should also make it easier to share platform quirks between
-DT and ACPI PCI controller drivers using struct pci_generic_ecam_ops.
+Signed-off-by: Jayachandran C <jchandra@broadcom.com>
+---
+ arch/arm64/Kconfig      | 3 +++
+ arch/arm64/kernel/pci.c | 7 +++----
+ 2 files changed, 6 insertions(+), 4 deletions(-)
 
-Short description of the patches in the patchset:
- - fixup arm64 PCI code so that it can use the generic ACPI PCI driver.
- - implement pci/drivers/ecam.[ch] which will replace
-   drivers/pci/host/pci-host-common.h API for ECAM access and will be
-   shared by ACPI and DT.
- - Update users of the pci-host-common API to the ecam API
- - implement a simple PCI ACPI host. I have not used the pci_mmcfg_list
-   or the region definitions from x86, but have used a much simpler
-   approach here.
-
-This should apply cleanly on top of the current 4.6 tree or the pci
-next tree, and can be reviewed as a patchset. The full set of changes
-for arm64 includes other fixes, that series is available at
-https://github.com/jchandra-brcm/linux branch arm64-acpi-pci-v2
-
-This has been tested on qemu with OVMF for the ACPI part and with
-device tree for pci-host-generic code. Further testing and reviews
-are welcome.
-
-Thanks,
-JC.
-
-[1] https://lkml.org/lkml/2016/3/3/921
-
-Jayachandran C (4):
-  arm64: Prepare to use generic ACPI PCI implementation
-  PCI: Provide common functions for ECAM mapping
-  PCI: generic, thunder: update to use generic ECAM API
-  ACPI: PCI: Add generic PCI host controller
-
- arch/arm64/Kconfig                  |   3 +
- arch/arm64/kernel/pci.c             |   7 +-
- drivers/acpi/Kconfig                |   9 ++
- drivers/acpi/Makefile               |   1 +
- drivers/acpi/pci_gen_host.c         | 258 ++++++++++++++++++++++++++++++++++++
- drivers/pci/Kconfig                 |   3 +
- drivers/pci/Makefile                |   2 +
- drivers/pci/ecam.c                  | 130 ++++++++++++++++++
- drivers/pci/ecam.h                  |  63 +++++++++
- drivers/pci/host/Kconfig            |   1 +
- drivers/pci/host/pci-host-common.c  | 121 ++++++++---------
- drivers/pci/host/pci-host-common.h  |  47 -------
- drivers/pci/host/pci-host-generic.c |  50 ++-----
- drivers/pci/host/pci-thunder-ecam.c |  37 +-----
- drivers/pci/host/pci-thunder-pem.c  |  53 +++-----
- 15 files changed, 560 insertions(+), 225 deletions(-)
- create mode 100644 drivers/acpi/pci_gen_host.c
- create mode 100644 drivers/pci/ecam.c
- create mode 100644 drivers/pci/ecam.h
- delete mode 100644 drivers/pci/host/pci-host-common.h
-
+diff --git a/arch/arm64/Kconfig b/arch/arm64/Kconfig
+index 4f43622..6c6658a 100644
+--- a/arch/arm64/Kconfig
++++ b/arch/arm64/Kconfig
+@@ -236,6 +236,9 @@ config PCI_DOMAINS_GENERIC
+ config PCI_SYSCALL
+ 	def_bool PCI
+ 
++config PCI_MMCONFIG
++	bool
++
+ source "drivers/pci/Kconfig"
+ 
+ endmenu
+diff --git a/arch/arm64/kernel/pci.c b/arch/arm64/kernel/pci.c
+index 15109c11..098028c 100644
+--- a/arch/arm64/kernel/pci.c
++++ b/arch/arm64/kernel/pci.c
+@@ -67,13 +67,13 @@ int pcibios_alloc_irq(struct pci_dev *dev)
+ /*
+  * raw_pci_read/write - Platform-specific PCI config space access.
+  */
+-int raw_pci_read(unsigned int domain, unsigned int bus,
++int __weak raw_pci_read(unsigned int domain, unsigned int bus,
+ 		  unsigned int devfn, int reg, int len, u32 *val)
+ {
+ 	return -ENXIO;
+ }
+ 
+-int raw_pci_write(unsigned int domain, unsigned int bus,
++int __weak raw_pci_write(unsigned int domain, unsigned int bus,
+ 		unsigned int devfn, int reg, int len, u32 val)
+ {
+ 	return -ENXIO;
+@@ -81,9 +81,8 @@ int raw_pci_write(unsigned int domain, unsigned int bus,
+ 
+ #ifdef CONFIG_ACPI
+ /* Root bridge scanning */
+-struct pci_bus *pci_acpi_scan_root(struct acpi_pci_root *root)
++struct pci_bus *__weak pci_acpi_scan_root(struct acpi_pci_root *root)
+ {
+-	/* TODO: Should be revisited when implementing PCI on ACPI */
+ 	return NULL;
+ }
+ #endif
 -- 
 1.9.1
