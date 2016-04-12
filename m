@@ -1,48 +1,60 @@
-From: "Zheng, Lv" <lv.zheng@intel.com>
-Subject: RE: [PATCH 1/3] ACPI / tables: Move table override mechanisms to
- tables.c
-Date: Mon, 11 Apr 2016 23:27:01 +0000
-Message-ID: <1AE640813FDE7649BE1B193DEA596E883BB7E94A@SHSMSX101.ccr.corp.intel.com>
-References: <cover.1460100857.git.lv.zheng@intel.com>
-	<3ef8c14e35fc835260f2f2c62a2227e7b570be24.1460100857.git.lv.zheng@intel.com>
-	<1AE640813FDE7649BE1B193DEA596E883BB7E62D@SHSMSX101.ccr.corp.intel.com>
- <CAJZ5v0jV_b7BxPBGRPVPNx47FR+sqYv=ZFCNuZO+MBUK-u2yqA@mail.gmail.com>
+From: David Daney <ddaney@caviumnetworks.com>
+Subject: Re: [PATCH v2 2/4] PCI: Provide common functions for ECAM mapping
+Date: Mon, 11 Apr 2016 17:24:20 -0700
+Message-ID: <570C4034.20105@caviumnetworks.com>
+References: <1460414707-19153-1-git-send-email-jchandra@broadcom.com> <1460414707-19153-3-git-send-email-jchandra@broadcom.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga01.intel.com ([192.55.52.88]:41420 "EHLO mga01.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752191AbcDKX1H (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 11 Apr 2016 19:27:07 -0400
-In-Reply-To: <CAJZ5v0jV_b7BxPBGRPVPNx47FR+sqYv=ZFCNuZO+MBUK-u2yqA@mail.gmail.com>
-Content-Language: en-US
+Received: from mail-by2on0059.outbound.protection.outlook.com ([207.46.100.59]:8384
+	"EHLO na01-by2-obe.outbound.protection.outlook.com"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1752686AbcDLAY3 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 11 Apr 2016 20:24:29 -0400
+In-Reply-To: <1460414707-19153-3-git-send-email-jchandra@broadcom.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rafael@kernel.org>
-Cc: "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, "Brown, Len" <len.brown@intel.com>, Lv Zheng <zetalog@gmail.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
+To: Jayachandran C <jchandra@broadcom.com>
+Cc: Bjorn Helgaas <helgaas@kernel.org>, Tomasz Nowicki <tn@semihalf.com>, rafael@kernel.org, Arnd Bergmann <arnd@arndb.de>, Will Deacon <will.deacon@arm.com>, Catalin Marinas <catalin.marinas@arm.com>, Hanjun Guo <hanjun.guo@linaro.org>, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, okaya@codeaurora.org, jiang.liu@linux.intel.com, Stefano Stabellini <Stefano.Stabellini@eu.citrix.com>, robert.richter@caviumnetworks.com, Marcin Wojtas <mw@semihalf.com>, Liviu.Dudau@arm.com, wangyijing@huawei.com, Suravee.Suthikulpanit@amd.com, msalter@redhat.com, linux-pci@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linaro-acpi@lists.linaro.org, Jon Masters <jcm@redhat.com>
 
-SGksDQoNCj4gRnJvbTogcmp3eXNvY2tpQGdtYWlsLmNvbSBbbWFpbHRvOnJqd3lzb2NraUBnbWFp
-bC5jb21dIE9uIEJlaGFsZiBPZg0KPiBSYWZhZWwgSi4gV3lzb2NraQ0KPiBTZW50OiBNb25kYXks
-IEFwcmlsIDExLCAyMDE2IDk6MzEgUE0NCj4gU3ViamVjdDogUmU6IFtQQVRDSCAxLzNdIEFDUEkg
-LyB0YWJsZXM6IE1vdmUgdGFibGUgb3ZlcnJpZGUgbWVjaGFuaXNtcyB0bw0KPiB0YWJsZXMuYw0K
-PiANCj4gT24gTW9uLCBBcHIgMTEsIDIwMTYgYXQgNDoxNiBBTSwgWmhlbmcsIEx2IDxsdi56aGVu
-Z0BpbnRlbC5jb20+IHdyb3RlOg0KPiA+IEhpLCBSYWZhZWwNCj4gDQo+IEhpLA0KPiANCj4gPj4g
-RnJvbTogWmhlbmcsIEx2DQo+ID4+IFN1YmplY3Q6IFtQQVRDSCAxLzNdIEFDUEkgLyB0YWJsZXM6
-IE1vdmUgdGFibGUgb3ZlcnJpZGUgbWVjaGFuaXNtcyB0bw0KPiA+PiB0YWJsZXMuYw0KPiA+Pg0K
-PiA+PiBUaGlzIHBhdGNoIG1vdmVzIGFjcGlfb3NfdGFibGVfb3ZlcnJpZGUoKSBhbmQNCj4gPj4g
-YWNwaV9vc19waHlzaWNhbF90YWJsZV9vdmVycmlkZSgpIHRvIHRhYmxlcy5jLg0KPiA+Pg0KPiAN
-Cj4gW2N1dF0NCj4gDQo+ID4+ICAjaWZkZWYgQ09ORklHX0FDUElfSU5JVFJEX1RBQkxFX09WRVJS
-SURFDQo+ID4+IC12b2lkIGFjcGlfaW5pdHJkX292ZXJyaWRlKHZvaWQgKmRhdGEsIHNpemVfdCBz
-aXplKTsNCj4gPj4gK3ZvaWQgZWFybHlfYWNwaV90YWJsZV9pbml0KHZvaWQgKmRhdGEsIHNpemVf
-dCBzaXplKTsNCj4gPj4gICNlbHNlDQo+ID4+IC1zdGF0aWMgaW5saW5lIHZvaWQgYWNwaV9pbml0
-cmRfb3ZlcnJpZGUodm9pZCAqZGF0YSwgc2l6ZV90IHNpemUpDQo+ID4+ICtzdGF0aWMgaW5saW5l
-IHZvaWQgZWFybHlfYWNwaV90YWJsZV9pbml0KHZvaWQgKmRhdGEsIHNpemVfdCBzaXplKQ0KPiA+
-PiAgew0KPiA+PiAgfQ0KPiA+PiAgI2VuZGlmDQo+ID4gW0x2IFpoZW5nXQ0KPiA+IFRoaXMgYmxv
-Y2sgd2FzIHdyb25nLg0KPiA+IGVhcmx5X2FjcGlfdGFibGVfaW5pdCgpIGlzIG5vIGxvbmdlciBk
-ZXBlbmRlbnQgb24NCj4gQ09ORklHX0FDUElfSU5JVFJEX1RBQkxFX09WRVJSSURFIGJ1dCBkZXBl
-bmRlbnQgb24gQ09ORklHX0FDUEkuDQo+IA0KPiBJIHNlZS4NCj4gDQo+ID4gVXBkYXRlZCB2MiBw
-YXRjaGVzIGFyZSBzZW50IHRvIHRoZSBtYWlsaW5nIGxpc3QuDQo+IA0KPiBJcyB0aGlzIHRoZSBv
-bmx5IGRpZmZlcmVuY2UgYmV0d2VlbiB2MSBhbmQgdjI/DQoNCltMdiBaaGVuZ10gDQpPbmUgb2Yg
-dGhlIGZvbGxvdy11cCBwYXRjaGVzIChQQVRDSCAzKSBpbiB0aGlzIHNlcmllcyBpcyB1cGRhdGVk
-IGFjY29yZGluZ2x5Lg0KDQpUaGFua3MgYW5kIGJlc3QgcmVnYXJkcw0KLUx2DQo=
+On 04/11/2016 03:45 PM, Jayachandran C wrote:
+> Add config option PCI_GENERIC_ECAM and file drivers/pci/ecam.c to
+> provide generic functions for accessing memory mapped PCI config space.
+>
+> The API is defined in drivers/pci/ecam.h and is written to replace the
+> API in drivers/pci/host/pci-host-common.h. The file defines a new
+> 'struct pci_config_window' to hold the information related to a PCI
+> config area and its mapping. This structure is expected to be used as
+> sysdata for controllers that have ECAM based mapping.
+>
+> Helper functions are provided to setup the mapping, free the mapping
+> and to implement the map_bus method in 'struct pci_ops'
+>
+> Signed-off-by: Jayachandran C <jchandra@broadcom.com>
+
+Tested-by: David Daney <david.daney@cavium.com>
+
+
+> ---
+>   drivers/pci/Kconfig  |   3 ++
+>   drivers/pci/Makefile |   2 +
+>   drivers/pci/ecam.c   | 130 +++++++++++++++++++++++++++++++++++++++++++++++++++
+>   drivers/pci/ecam.h   |  58 +++++++++++++++++++++++
+
+I wonder if these files should go in drivers/pci/host ...  I understand 
+that you still have to use them from drivers/pci/acpi though.
+
+I will let others opine on this, but could you put the contents of 
+ecam.h into include/linux/pci.h along with the  pci_generic_config_*() 
+declarations?
+
+If you did that, the contents of ecam.c could  go into 
+drivers/pci/access.c...
+
+
+>   4 files changed, 193 insertions(+)
+>   create mode 100644 drivers/pci/ecam.c
+>   create mode 100644 drivers/pci/ecam.h
+>
+[...]
