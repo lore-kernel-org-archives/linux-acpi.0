@@ -1,138 +1,199 @@
 From: Zhu Guihua <zhugh.fnst@cn.fujitsu.com>
-Subject: Re: [lkp] [x86, ACPI, cpu] f962c29c2f: BUG: unable to handle kernel
- paging request at 0000000000001b00
-Date: Tue, 12 Apr 2016 15:59:38 +0800
-Message-ID: <570CAAEA.5050608@cn.fujitsu.com>
-References: <87pou38t30.fsf@yhuang-dev.intel.com> <57052962.4030507@intel.com>
+Subject: Re: [PATCH v6 5/5] x86, acpi, cpu-hotplug: Set persistent cpuid <->
+ nodeid mapping when booting.
+Date: Tue, 12 Apr 2016 16:03:42 +0800
+Message-ID: <570CABDE.7030902@cn.fujitsu.com>
+References: <cover.1458177577.git.zhugh.fnst@cn.fujitsu.com> <0ecee1cba429e53220c7887c7a139ad598c5a4a2.1458177577.git.zhugh.fnst@cn.fujitsu.com> <20160406142916.GA1462@red-moon>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="windows-1252"; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <57052962.4030507@intel.com>
+In-Reply-To: <20160406142916.GA1462@red-moon>
 Sender: linux-kernel-owner@vger.kernel.org
-To: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, kernel test robot <ying.huang@linux.intel.com>
-Cc: lkp@01.org, devel@acpica.org, linux-acpi@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>, Thomas Gleixner <tglx@linutronix.de>, Tang Chen <tangchen@cn.fujitsu.com>
+To: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+Cc: cl@linux.com, tj@kernel.org, mika.j.penttila@gmail.com, mingo@redhat.com, akpm@linux-foundation.org, rjw@rjwysocki.net, hpa@zytor.com, yasu.isimatu@gmail.com, isimatu.yasuaki@jp.fujitsu.com, kamezawa.hiroyu@jp.fujitsu.com, izumi.taku@jp.fujitsu.com, gongzhaogang@inspur.com, len.brown@intel.com, lenb@kernel.org, tglx@linutronix.de, chen.tang@easystack.cn, x86@kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linux-mm@kvack.org, dennis.chen@arm.com
 List-Id: linux-acpi@vger.kernel.org
 
-Hi Rafael,
+Hi Lorenzo,
 
-On 04/06/2016 11:21 PM, Rafael J. Wysocki wrote:
-> On 4/6/2016 2:43 AM, kernel test robot wrote:
->> FYI, we noticed the below changes on
->>
->> https://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm.git 
->> linux-next
->> commit f962c29c2f5d80be28bd76e2c3fadf1ce97ccd76 ("x86, ACPI, 
->> cpu-hotplug: Set persistent cpuid <-> nodeid mapping when booting")
->>
->
-> Thanks for the report.
->
-> I've dropped the patch series that commit is part of from the 
-> linux-next branch of linux-pm.git because of this problem.
->
-
-I tried to reproduce this failure, but I failed.
-I compiled linux-next branch source code of linux-pm.git with this 
-config, then I
-used qemu to boot a guest with my compiled kernel, it worked well.
-
-QEMU command line is:
-./x86_64-softmmu/qemu-system-x86_64 -hda /home/fedora21.img \
--kernel /home/linux-pm/arch/x86_64/boot/bzImage \
--m 512,slots=100,maxmem=100G -smp 2,maxcpus=100 -serial stdio -enable-kvm \
--initrd /home/initramfs-4.6.0-rc2-00250-g8767898.img -append 
-"root=/dev/sda3 console=ttyS0
-
-Anyone succeed?
+Thanks for your test and detailed suggestions.
+I will update those later.
 
 Thanks,
 Zhu
 
+On 04/06/2016 10:29 PM, Lorenzo Pieralisi wrote:
+> [+Dennis since he reported ARM64 build breakage]
 >
->> +------------------------------------------+------------+------------+
->> |                                          | 40d4d2e6c5 | f962c29c2f |
->> +------------------------------------------+------------+------------+
->> | boot_successes                           | 12         | 4          |
->> | boot_failures                            | 0          | 8          |
->> | BUG:unable_to_handle_kernel              | 0          | 8          |
->> | Oops                                     | 0          | 8          |
->> | RIP:__alloc_pages_nodemask               | 0          | 8          |
->> | Kernel_panic-not_syncing:Fatal_exception | 0          | 8          |
->> | backtrace:pcpu_balance_workfn            | 0          | 8          |
->> +------------------------------------------+------------+------------+
+> On Thu, Mar 17, 2016 at 09:32:40AM +0800, Zhu Guihua wrote:
+>> From: Gu Zheng <guz.fnst@cn.fujitsu.com>
 >>
+>> The whole patch-set aims at making cpuid <-> nodeid mapping persistent. So that,
+>> when node online/offline happens, cache based on cpuid <-> nodeid mapping such as
+>> wq_numa_possible_cpumask will not cause any problem.
+>> It contains 4 steps:
+>> 1. Enable apic registeration flow to handle both enabled and disabled cpus.
+>> 2. Introduce a new array storing all possible cpuid <-> apicid mapping.
+>> 3. Enable _MAT and MADT relative apis to return non-presnet or disabled cpus' apicid.
+>> 4. Establish all possible cpuid <-> nodeid mapping.
 >>
->>
->> [   10.413471] RAPL PMU: hw unit of domain pp0-core 2^-16 Joules
->> [   10.419886] RAPL PMU: hw unit of domain package 2^-16 Joules
->> [   10.426206] RAPL PMU: hw unit of domain dram 2^-16 Joules
->> [   10.433905] BUG: unable to handle kernel paging request at 
->> 0000000000001b00
->> [   10.441699] IP: [<ffffffff8117e350>] 
->> __alloc_pages_nodemask+0x210/0xc10
->> [   10.449097] PGD 0
->> [   10.451350] Oops: 0000 [#1] SMP
->> [   10.454972] Modules linked in:
->> [   10.458390] CPU: 12 PID: 407 Comm: kworker/12:1 Not tainted 
->> 4.6.0-rc1-00007-gf962c29 #1
->> [   10.467326] Hardware name: Intel Corporation S2600WP/S2600WP, BIOS 
->> SE5C600.86B.02.02.0002.122320131210 12/23/2013
->> [   10.478776] Workqueue: events pcpu_balance_workfn
->> [   10.484035] task: ffff88100d858000 ti: ffff88100d860000 task.ti: 
->> ffff88100d860000
->> [   10.492381] RIP: 0010:[<ffffffff8117e350>] [<ffffffff8117e350>] 
->> __alloc_pages_nodemask+0x210/0xc10
->> [   10.502491] RSP: 0000:ffff88100d863c28  EFLAGS: 00010286
->> [   10.508419] RAX: 0000000000000000 RBX: 0000000000000000 RCX: 
->> 0000000000000004
->> [   10.516383] RDX: 0000000080000000 RSI: 0000000000000d06 RDI: 
->> ffffffff81c9d430
->> [   10.524348] RBP: ffff88100d863d40 R08: 0000000000000000 R09: 
->> 0000000000000000
->> [   10.532312] R10: ffffffff81ca1e87 R11: ffffc90000076000 R12: 
->> 0000000000000003
->> [   10.540278] R13: 0000000000001b00 R14: 0000000000000000 R15: 
->> ffff88100d43e480
->> [   10.548243] FS:  0000000000000000(0000) GS:ffff881013400000(0000) 
->> knlGS:0000000000000000
->> [   10.557275] CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
->> [   10.563687] CR2: 0000000000001b00 CR3: 000000103ee06000 CR4: 
->> 00000000001406e0
->> [   10.571652] Stack:
->> [   10.573894]  ffffc90000090fff ffffc90000091000 ffff881013002008 
->> 0000000000000001
->> [   10.582196]  8000000000000163 00000000ffffffff 00000000024082c2 
->> 0000000000400000
->> [   10.590492]  000000000000001e ffff880ffe57c0c0 ffff88100d863c88 
->> ffffffff811b7766
->> [   10.598794] Call Trace:
->> [   10.601527]  [<ffffffff811b7766>] ? map_vm_area+0x36/0x50
->> [   10.607553]  [<ffffffff81198ade>] pcpu_populate_chunk+0xae/0x340
->> [   10.614257]  [<ffffffff8119a118>] pcpu_balance_workfn+0x578/0x5b0
->> [   10.621060]  [<ffffffff81094be5>] process_one_work+0x155/0x440
->> [   10.627562]  [<ffffffff8109582e>] worker_thread+0x4e/0x4c0
->> [   10.633687]  [<ffffffff818f1b9b>] ? __schedule+0x34b/0x8b0
->> [   10.639809]  [<ffffffff810957e0>] ? rescuer_thread+0x350/0x350
->> [   10.646319]  [<ffffffff810957e0>] ? rescuer_thread+0x350/0x350
->> [   10.652831]  [<ffffffff8109ade4>] kthread+0xd4/0xf0
->> [   10.658276]  [<ffffffff818f6742>] ret_from_fork+0x22/0x40
->> [   10.664302]  [<ffffffff8109ad10>] ? kthread_park+0x60/0x60
->> [   10.670423] Code: d0 49 8b 04 24 48 85 c0 75 e0 65 ff 0d 22 f0 e8 
->> 7e eb 8b 31 d2 be 06 0d 00 00 48 c7 c7 30 d4 c9 81 e8 35 2c f2 ff e8 
->> 50 40 77 00 <49> 83 7d 00 00 0f 85 7c fe ff ff 31 c0 e9 6d ff ff ff 
->> 0f 1f 44
->> [   10.692137] RIP  [<ffffffff8117e350>] 
->> __alloc_pages_nodemask+0x210/0xc10
->> [   10.699627]  RSP <ffff88100d863c28>
->> [   10.703518] CR2: 0000000000001b00
->> [   10.707220] ---[ end trace bc83ef9ded88f808 ]---
->> [   10.712373] Kernel panic - not syncing: Fatal exception
->>
->>
->> Thanks,
->> Kernel Test Robot
+>> This patch finishes step 4.
+> And it breaks the build on ARM64.
 >
+> drivers/acpi/processor_core.c: In function 'set_processor_node_mapping':
+> drivers/acpi/processor_core.c:316:2: error: implicit declaration of
+> function 'acpi_map_cpu2node' [-Werror=implicit-function-declaration]
+>
+> [...]
+>
+>> diff --git a/arch/ia64/kernel/acpi.c b/arch/ia64/kernel/acpi.c
+>> index b1698bc..7db5563 100644
+>> --- a/arch/ia64/kernel/acpi.c
+>> +++ b/arch/ia64/kernel/acpi.c
+>> @@ -796,7 +796,7 @@ int acpi_isa_irq_to_gsi(unsigned isa_irq, u32 *gsi)
+>>    *  ACPI based hotplug CPU support
+>>    */
+>>   #ifdef CONFIG_ACPI_HOTPLUG_CPU
+>> -static int acpi_map_cpu2node(acpi_handle handle, int cpu, int physid)
+>> +int acpi_map_cpu2node(acpi_handle handle, int cpu, int physid)
+> Return value seems to be ignored on IA64 so you can get rid of it,
+> see below.
+>
+>>   {
+>>   #ifdef CONFIG_ACPI_NUMA
+>>   	/*
+>> diff --git a/arch/x86/kernel/acpi/boot.c b/arch/x86/kernel/acpi/boot.c
+>> index 0ce06ee..7d45261 100644
+>> --- a/arch/x86/kernel/acpi/boot.c
+>> +++ b/arch/x86/kernel/acpi/boot.c
+>> @@ -696,7 +696,7 @@ static void __init acpi_set_irq_model_ioapic(void)
+>>   #ifdef CONFIG_ACPI_HOTPLUG_CPU
+>>   #include <acpi/processor.h>
+>>   
+>> -static void acpi_map_cpu2node(acpi_handle handle, int cpu, int physid)
+>> +void acpi_map_cpu2node(acpi_handle handle, int cpu, int physid)
+>>   {
+>>   #ifdef CONFIG_ACPI_NUMA
+>>   	int nid;
+>> diff --git a/drivers/acpi/bus.c b/drivers/acpi/bus.c
+>> index 0e85678..215177a 100644
+>> --- a/drivers/acpi/bus.c
+>> +++ b/drivers/acpi/bus.c
+>> @@ -1110,6 +1110,9 @@ static int __init acpi_init(void)
+>>   	acpi_sleep_proc_init();
+>>   	acpi_wakeup_device_init();
+>>   	acpi_debugger_init();
+>> +#ifdef CONFIG_ACPI_HOTPLUG_CPU
+>> +	acpi_set_processor_mapping();
+>> +#endif
+>>   	return 0;
+>>   }
+>>   
+>> diff --git a/drivers/acpi/processor_core.c b/drivers/acpi/processor_core.c
+>> index 824b98b..45580ff 100644
+>> --- a/drivers/acpi/processor_core.c
+>> +++ b/drivers/acpi/processor_core.c
+>> @@ -261,6 +261,71 @@ int acpi_get_cpuid(acpi_handle handle, int type, u32 acpi_id)
+>>   }
+>>   EXPORT_SYMBOL_GPL(acpi_get_cpuid);
+>>   
+>> +#ifdef CONFIG_ACPI_HOTPLUG_CPU
+>> +static bool map_processor(acpi_handle handle, int *phys_id, int *cpuid)
+> phys_id size is 64 bits (phys_cpuid_t) on ARM64, (phys_cpuid_t *phys_id) is
+> what you have to have here.
+>
+>> +{
+>> +	int type;
+>> +	u32 acpi_id;
+>> +	acpi_status status;
+>> +	acpi_object_type acpi_type;
+>> +	unsigned long long tmp;
+>> +	union acpi_object object = { 0 };
+>> +	struct acpi_buffer buffer = { sizeof(union acpi_object), &object };
+>> +
+>> +	status = acpi_get_type(handle, &acpi_type);
+>> +	if (ACPI_FAILURE(status))
+>> +		return false;
+>> +
+>> +	switch (acpi_type) {
+>> +	case ACPI_TYPE_PROCESSOR:
+>> +		status = acpi_evaluate_object(handle, NULL, NULL, &buffer);
+>> +		if (ACPI_FAILURE(status))
+>> +			return false;
+>> +		acpi_id = object.processor.proc_id;
+>> +		break;
+>> +	case ACPI_TYPE_DEVICE:
+>> +		status = acpi_evaluate_integer(handle, "_UID", NULL, &tmp);
+>> +		if (ACPI_FAILURE(status))
+>> +			return false;
+>> +		acpi_id = tmp;
+>> +		break;
+>> +	default:
+>> +		return false;
+>> +	}
+>> +
+>> +	type = (acpi_type == ACPI_TYPE_DEVICE) ? 1 : 0;
+>> +
+>> +	*phys_id = __acpi_get_phys_id(handle, type, acpi_id, false);
+> Wrong on ARM64, see above.
+>
+>> +	*cpuid = acpi_map_cpuid(*phys_id, acpi_id);
+>> +	if (*cpuid == -1)
+>> +		return false;
+>> +
+>> +	return true;
+>> +}
+>> +
+>> +static acpi_status __init
+>> +set_processor_node_mapping(acpi_handle handle, u32 lvl, void *context,
+>> +			   void **rv)
+>> +{
+>> +	u32 apic_id;
+> - You can't use u32 here see above
+> - This is generic code and on ARM64 I have no idea what apic_id means,
+>    choose another variable name please (phys_id ?)
+>
+>> +	int cpu_id;
+>> +
+>> +	if (!map_processor(handle, &apic_id, &cpu_id))
+>> +		return AE_ERROR;
+>> +
+>> +	acpi_map_cpu2node(handle, cpu_id, apic_id);
+>> +	return AE_OK;
+>> +}
+>> +
+>> +void __init acpi_set_processor_mapping(void)
+>> +{
+>> +	/* Set persistent cpu <-> node mapping for all processors. */
+>> +	acpi_walk_namespace(ACPI_TYPE_PROCESSOR, ACPI_ROOT_OBJECT,
+>> +			    ACPI_UINT32_MAX, set_processor_node_mapping,
+>> +			    NULL, NULL, NULL);
+>> +}
+>> +#endif
+>> +
+>>   #ifdef CONFIG_ACPI_HOTPLUG_IOAPIC
+>>   static int get_ioapic_id(struct acpi_subtable_header *entry, u32 gsi_base,
+>>   			 u64 *phys_addr, int *ioapic_id)
+>> diff --git a/include/linux/acpi.h b/include/linux/acpi.h
+>> index 06ed7e5..ad9e7c7 100644
+>> --- a/include/linux/acpi.h
+>> +++ b/include/linux/acpi.h
+>> @@ -265,6 +265,12 @@ static inline bool invalid_phys_cpuid(phys_cpuid_t phys_id)
+>>   /* Arch dependent functions for cpu hotplug support */
+>>   int acpi_map_cpu(acpi_handle handle, phys_cpuid_t physid, int *pcpu);
+>>   int acpi_unmap_cpu(int cpu);
+>> +#if defined(CONFIG_X86)
+>> +void acpi_map_cpu2node(acpi_handle handle, int cpu, int physid);
+>> +#elif defined(CONFIG_IA64)
+>> +int acpi_map_cpu2node(acpi_handle handle, int cpu, int physid);
+>> +#endif
+> We do not need this per-arch ifdeffery unless I am missing something
+> obvious here, either you change the IA64 prototype or X86 one and
+> declare one prototype for all arches, either will do given that return
+> value is always ignored (I think changing x86 to return an int is
+> advisable).
+>
+> Lorenzo
 >
 >
 > .
