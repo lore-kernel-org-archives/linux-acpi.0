@@ -1,46 +1,55 @@
-From: Sinan Kaya <okaya@codeaurora.org>
-Subject: Re: [PATCH V2 1/3] acpi,pci,irq: reduce resource requirements
-Date: Tue, 12 Apr 2016 12:25:20 -0400
-Message-ID: <570D2170.303@codeaurora.org>
-References: <1460165192-4526-1-git-send-email-okaya@codeaurora.org>
- <1460165192-4526-2-git-send-email-okaya@codeaurora.org>
- <20160412051942.GE11361@localhost>
+From: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+Subject: Re: [PATCH v2 2/4] PCI: Provide common functions for ECAM mapping
+Date: Tue, 12 Apr 2016 17:44:13 +0100
+Message-ID: <20160412164413.GA32297@red-moon>
+References: <1460414707-19153-1-git-send-email-jchandra@broadcom.com>
+ <1460414707-19153-3-git-send-email-jchandra@broadcom.com>
+ <570C4034.20105@caviumnetworks.com>
+ <570C78F1.4090701@jonmasters.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20160412051942.GE11361@localhost>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Bjorn Helgaas <helgaas@kernel.org>
-Cc: linux-acpi@vger.kernel.org, timur@codeaurora.org, cov@codeaurora.org, linux-pci@vger.kernel.org, ravikanth.nalla@hpe.com, lenb@kernel.org, harish.k@hpe.com, ashwin.reghunandanan@hpe.com, bhelgaas@google.com, rjw@rjwysocki.net, linux-kernel@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-pci-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <570C78F1.4090701@jonmasters.org>
+Sender: linux-pci-owner@vger.kernel.org
+To: Jon Masters <jcm@jonmasters.org>
+Cc: David Daney <ddaney@caviumnetworks.com>, Jayachandran C <jchandra@broadcom.com>, Bjorn Helgaas <helgaas@kernel.org>, Tomasz Nowicki <tn@semihalf.com>, rafael@kernel.org, Arnd Bergmann <arnd@arndb.de>, Will Deacon <will.deacon@arm.com>, Catalin Marinas <catalin.marinas@arm.com>, Hanjun Guo <hanjun.guo@linaro.org>, okaya@codeaurora.org, jiang.liu@linux.intel.com, Stefano Stabellini <Stefano.Stabellini@eu.citrix.com>, robert.richter@caviumnetworks.com, Marcin Wojtas <mw@semihalf.com>, Liviu.Dudau@arm.com, wangyijing@huawei.com, Suravee.Suthikulpanit@amd.com, msalter@redhat.com, linux-pci@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linaro-acpi@lists.linaro.org, Jon Masters <jcm@redhat.com>
 List-Id: linux-acpi@vger.kernel.org
 
-On 4/12/2016 1:19 AM, Bjorn Helgaas wrote:
-> Hi Sinan,
-> 
-> I was hoping we could *simplify* this, but I think it's just getting
-> even more complicated (it's a net addition of 100 lines), which is due
-> to feature creep that I'm afraid is my fault.
-> 
-> IIRC, the main thing you need is to get rid of some early memory
-> allocation.
-> 
-> I don't think all the trigger mode/level checking is worth it.  The
-> current code doesn't do it, and it's not fixing a problem for you.
-> It's conceivable that it could even make us trip over a new problem,
-> e.g., some broken BIOS that we currently tolerate.
-> 
-> I think you could make this a little easier to review if you split
-> things like the acpi_irq_penalty[] -> acpi_isa_irq_penalty[] rename
-> into their own patches.  Little patches like that are trivial to
-> review because a simple rename is pretty safe, and then the patches
-> that actually *do* interesting things are smaller and easier to
-> review, too.
+On Tue, Apr 12, 2016 at 12:26:25AM -0400, Jon Masters wrote:
 
-OK. I honestly didn't like adding this check either. I'll work on a new
-set and post with your additional comments in this patch.
+[...]
 
--- 
-Sinan Kaya
-Qualcomm Technologies, Inc. on behalf of Qualcomm Innovation Center, Inc.
-Qualcomm Innovation Center, Inc. is a member of Code Aurora Forum, a Linux Foundation Collaborative Project
+> Quoting Bjorn's original reply to the previous series:
+> 
+> > Some of the code that moved to drivers/acpi/pci_mcfg.c is not
+> > really ACPI-specific, and could potentially be used for non-ACPI
+> > bridges that support ECAM.  I'd like to see that sort of code
+> > moved to a new file like drivers/pci/ecam.c.
+> 
+> So my guess is that this is the reasoning behind JC's file layout.
+> 
+> I'm curious what Lorenzo's take on things is currently. I assume this
+> series is now to be the official coordinated version of this effort for
+> upstream, following the advice of Bjorn previously, but I would like to
+> know if everyone is behind this plan. I've (previously) requested a
+> Linaro LEG meeting this week (part of our bootarch working group) to
+> specifically discuss the status of PCI upstreaming in order to get the
+> different vendors together to ensure every single one of them is
+> tracking the correct latest effort and doing what is needed to test/aid,
+> hence my ask. If this is now plan A, I'll make sure everyone is aligned
+> behind it and start pinging people individually for testing.
+
+My take is that JC's aim is to get this four patch series reviewed and
+merged (which is *not* sufficient to get ACPI PCI to work fully on ARM64
+- see cover letter - the remaining patches in his branch are not
+fixes, it is code that is required to get things to work, these 4
+patches stand alone are not sufficient but I understand he wants to get
+them reviewed following feedback on the lists) so that we can make
+progress on ACPI PCI on ARM64.
+
+I will comment on the patches as soon as I have time to review
+them, I certainly would like to understand what we have to do with the
+rest of the code though (provided this series is good to go) see above.
+
+Lorenzo
