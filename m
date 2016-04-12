@@ -1,90 +1,101 @@
-From: Catalin Marinas <catalin.marinas@arm.com>
-Subject: Re: [PATCH] ACPI / ARM64: Remove EXPERT dependency for ACPI on ARM64
-Date: Tue, 12 Apr 2016 18:23:15 +0100
-Message-ID: <20160412172315.GH8066@e104818-lin.cambridge.arm.com>
-References: <1459360718-24125-1-git-send-email-broonie@kernel.org>
+From: "Luis R. Rodriguez" <mcgrof@kernel.org>
+Subject: Re: [Xen-devel] [PATCH v5 04/14] x86/rtc: replace paravirt rtc check
+ with platform legacy quirk
+Date: Tue, 12 Apr 2016 22:50:56 +0200
+Message-ID: <20160412205056.GJ1990@wotan.suse.de>
+References: <1460158825-13117-1-git-send-email-mcgrof@kernel.org>
+ <1460158825-13117-5-git-send-email-mcgrof@kernel.org>
+ <570B492B.80608@suse.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from foss.arm.com ([217.140.101.70]:57293 "EHLO foss.arm.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S933675AbcDLRXU (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 12 Apr 2016 13:23:20 -0400
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <1459360718-24125-1-git-send-email-broonie@kernel.org>
-Sender: linux-acpi-owner@vger.kernel.org
+In-Reply-To: <570B492B.80608@suse.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Juergen Gross <jgross@suse.com>
+Cc: "Luis R. Rodriguez" <mcgrof@kernel.org>, bp@alien8.de, hpa@zytor.com, tglx@linutronix.de, mingo@redhat.com, rusty@rustcorp.com.au, kozerkov@parallels.com, matt@codeblueprint.co.uk, lv.zheng@intel.com, xen-devel@lists.xensource.com, joro@8bytes.org, x86@kernel.org, robert.moore@intel.com, linux-acpi@vger.kernel.org, glin@suse.com, lenb@kernel.org, josh@joshtriplett.org, jlee@suse.com, lguest@lists.ozlabs.org, boris.ostrovsky@oracle.com, andriy.shevchenko@linux.intel.com, toshi.kani@hp.com, andrew.cooper3@citrix.com, rjw@rjwysocki.net, linux-kernel@vger.kernel.org, luto@amacapital.net, david.vrabel@citrix.com, tiwai@suse.de
 List-Id: linux-acpi@vger.kernel.org
-To: Mark Brown <broonie@kernel.org>
-Cc: Will Deacon <will.deacon@arm.com>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Mark Rutland <mark.rutland@arm.com>, Steve Capper <steve.capper@linaro.org>, Graeme Gregory <graeme.gregory@linaro.org>, linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Arnd Bergmann <arnd@arndb.de>, Olof Johansson <olof@lixom.net>
 
-On Wed, Mar 30, 2016 at 10:58:38AM -0700, Mark Brown wrote:
-> When ACPI was originally merged for arm64 it had only been tested on
-> emulators and not on real physical platforms and no platforms were
-> relying on it.  This meant that there were concerns that there might be
-> serious issues attempting to use it on practical systems so it had a
-> dependency on EXPERT added to warn people that it was in an early stage
-> of development with very little practical testing.  Since then things
-> have moved on a bit.  We have seen people testing on real hardware and
-> now have people starting to produce some platforms (the most prominent
-> being the 96boards Cello) which only have ACPI support and which build
-> and run to some useful extent with mainline.
+On Mon, Apr 11, 2016 at 08:50:19AM +0200, Juergen Gross wrote:
+> On 09/04/16 01:40, Luis R. Rodriguez wrote:
+> > We have 4 types of x86 platforms that disable RTC:
+> > 
+> >   * Intel MID
+> >   * Lguest - uses paravirt
+> >   * Xen dom-U - uses paravirt
+> >   * x86 on legacy systems annotated with an ACPI legacy flag
+> > 
+> > We can consolidate all of these into a platform specific legacy
+> > quirk set early in boot through i386_start_kernel() and through
+> > x86_64_start_reservations(). This deals with the RTC quirks which
+> > we can rely on through the hardware subarch, the ACPI check can
+> > be dealt with separately.
+> > 
+> > For Xen things are bit more complex given that the @X86_SUBARCH_XEN
+> > x86_hardware_subarch is shared on for Xen which uses the PV path for
+> > both domU and dom0. Since the semantics for differentiating between
+> > the two are Xen specific we provide a platform helper to help override
+> > default legacy features -- x86_platform.set_legacy_features(). Use
+> > of this helper is highly discouraged, its only purpose should be
+> > to account for the lack of semantics available within your given
+> > x86_hardware_subarch.
+> > 
+> > As per 0-day, this bumps the vmlinux size using i386-tinyconfig as
+> > follows:
+> > 
+> > TOTAL   TEXT   init.text    x86_early_init_platform_quirks()
+> > +70     +62    +62          +43
+> > 
+> > Only 8 bytes overhead total, as the main increase in size is
+> > all removed via __init.
 > 
-> This is not to say that ACPI support or support for these systems is
-> completely done, there are still areas being worked on such as PCI, but
-> at this point it seems that we can be reasonably sure that ACPI will be
-> viable for use on ARM64 and that the already merged support works for
-> the cases it handles.  For the AMD Seattle based platforms support
-> outside of PCI has been fairly complete in mainline a few releases now.
+> I think this could be even less (see comment below).
+
+Indeed.
+
 > 
-> This is also not to say that we don't have vendors working with ACPI who
-> are trying do things that we would not consider optimal but it does not
-> appear that the EXPERT dependency is having a substantial impact on
-> these vendors.
+> > 
+> > v2: split the subarch check from the ACPI check, clarify
+> >     on the ACPI change commit log why ordering works
+> > v3: add x86_platform.set_legacy_features() to account for dom0,
+> >     add also size impact on vmlinux as per 0-day report
 > 
-> Given all this it seems that at this point the EXPERT dependency mainly
-> creates inconvenience for users with systems that are doing the right
-> thing and gets in the way of including the ACPI code in the testing that
-> people are doing on mainline.  Removing it should help our ongoing
-> testing cover those platforms with only ACPI support and help ensure
-> that when ACPI code is merged any problems it causes for other users are
-> more easily discovered.
+> You missed the v5 changes here.
+
+
+Sorry this was a mismatch, the v3 notes are the v5 notes, the
+discrepancy between this and the subject was that the patches
+have changed over time to be split out on their own and so 
+iterations have been meshed / split, etc.. I'll just
+update the accounting to match the subject next.
+
+In next replies it would really help if you trim your review on
+patches by removing context of the e-mail for hunks / file without
+feedback, and only keep the file name / hunk for which you are
+commenting on.
+
+For instance:
+
+> > diff --git a/arch/x86/xen/enlighten.c b/arch/x86/xen/enlighten.c
+> > index 40487f1ecb4c..e066fcf87c3d 100644
+> > --- a/arch/x86/xen/enlighten.c
+> > +++ b/arch/x86/xen/enlighten.c
+> > @@ -1192,7 +1192,6 @@ static const struct pv_info xen_info __initconst = {
+> >  #ifdef CONFIG_X86_64
+> >  	.extra_user_64bit_cs = FLAT_USER_CS64,
+> >  #endif
+> > -	.features = 0,
+> >  	.name = "Xen",
+> >  };
+> >  
+> > @@ -1505,6 +1504,11 @@ static void __init xen_pvh_early_guest_init(void)
+> >  }
+> >  #endif    /* CONFIG_XEN_PVH */
+> >  
+> > +static void xen_dom0_set_legacy_features(void)
 > 
-> Signed-off-by: Mark Brown <broonie@kernel.org>
+> Can't you make this __init ?
 
-I'm fine with dropping the EXPERT dependency (of course, not a cc
-stable). While arm64 ACPI is not "done" yet (nor is DT; there are
-important ongoing developments like PCIe, IORT), I think the core arm64
-ACPI support passed the EXPERT stage. I also don't think a default y
-would imply any maintainer endorsement; vendors targeting ACPI are
-already doing this for various reasons (distro requirement, certain ACPI
-features like RAS). But, hopefully, it will encourage more vendors to
-start upstreaming their ACPI-related patches.
+Indeed, will change.
 
-However, building ACPI by default on arm64 doesn't mean that we can
-ignore potential misuses like PRP0001+_DSD blindly following DT
-(mis)concepts, breaking compatibility with older/newer firmware (this
-goes in both directions) or using ACPI for SoCs where it is clearly not
-suitable (e.g. non-SBSA). Such patches should be NAK'ed accordingly.
-
-> diff --git a/drivers/acpi/Kconfig b/drivers/acpi/Kconfig
-> index 82b96ee8624c..bf5dc1ac3446 100644
-> --- a/drivers/acpi/Kconfig
-> +++ b/drivers/acpi/Kconfig
-> @@ -5,7 +5,7 @@
->  menuconfig ACPI
->  	bool "ACPI (Advanced Configuration and Power Interface) Support"
->  	depends on !IA64_HP_SIM
-> -	depends on IA64 || X86 || (ARM64 && EXPERT)
-> +	depends on IA64 || X86 || ARM64
->  	depends on PCI
->  	select PNP
->  	default y
-
-Acked-by: Catalin Marinas <catalin.marinas@arm.com>
-
-That said, I'd like to see an opinion from the arm-soc maintainers since
-they were active on the original arm64 ACPI threads introducing this
-dependency (and I think they have the right to veto ;)).
-
--- 
-Catalin
+  Luis
