@@ -1,118 +1,77 @@
-From: Lee Jones <lee.jones@linaro.org>
-Subject: Re: [PATCH v3] device property: don't bother the drivers with struct
- property_set
-Date: Tue, 12 Apr 2016 08:24:01 +0100
-Message-ID: <20160412072401.GF8094@x1>
-References: <1459252343-105426-1-git-send-email-heikki.krogerus@linux.intel.com>
- <20160411082027.GF4592@x1>
- <20160411095234.GA26606@kuha.fi.intel.com>
- <CAJZ5v0iHWvp1UvLx1X=MozD0EZ7+L2h7aJYKm6WGBYO0FzGj7g@mail.gmail.com>
- <20160411140541.GY8094@x1>
- <CAJZ5v0hqTj0r=Ky7SNO8ZwhycnNrLefFmx3Vi9qgOyoA02NeHQ@mail.gmail.com>
- <20160411162034.GA8094@x1>
- <CAJZ5v0irXZTVAPrP40oEPahxQb-DNOO_-CKLBhJFx_7rmQodiA@mail.gmail.com>
+From: Tomasz Nowicki <tn@semihalf.com>
+Subject: Re: [PATCH V4 0/7] Introduce ACPI world to ITS irqchip
+Date: Tue, 12 Apr 2016 09:39:25 +0200
+Message-ID: <570CA62D.6080508@semihalf.com>
+References: <1459759975-24097-1-git-send-email-tn@semihalf.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <CAJZ5v0irXZTVAPrP40oEPahxQb-DNOO_-CKLBhJFx_7rmQodiA@mail.gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: "Rafael J. Wysocki" <rafael@kernel.org>
-Cc: Heikki Krogerus <heikki.krogerus@linux.intel.com>, Daniel Mack <daniel@zonque.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Mika Westerberg <mika.westerberg@linux.intel.com>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Thierry Reding <treding@nvidia.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-wm0-f45.google.com ([74.125.82.45]:33882 "EHLO
+	mail-wm0-f45.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755625AbcDLHjs (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 12 Apr 2016 03:39:48 -0400
+Received: by mail-wm0-f45.google.com with SMTP id l6so175782216wml.1
+        for <linux-acpi@vger.kernel.org>; Tue, 12 Apr 2016 00:39:47 -0700 (PDT)
+In-Reply-To: <1459759975-24097-1-git-send-email-tn@semihalf.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: marc.zyngier@arm.com, rjw@rjwysocki.net, Bjorn Helgaas <bhelgaas@google.com>
+Cc: tglx@linutronix.de, jason@lakedaemon.net, lorenzo.pieralisi@arm.com, robert.richter@caviumnetworks.com, shijie.huang@arm.com, Suravee.Suthikulpanit@amd.com, hanjun.guo@linaro.org, al.stone@linaro.org, mw@semihalf.com, graeme.gregory@linaro.org, Catalin.Marinas@arm.com, will.deacon@arm.com, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org, ddaney.cavm@gmail.com, okaya@codeaurora.org
 
-On Mon, 11 Apr 2016, Rafael J. Wysocki wrote:
+Hi Marc, Bjorn, Rafael,
 
-> On Mon, Apr 11, 2016 at 6:20 PM, Lee Jones <lee.jones@linaro.org> wro=
-te:
-> > On Mon, 11 Apr 2016, Rafael J. Wysocki wrote:
-> >
-> >> On Mon, Apr 11, 2016 at 4:05 PM, Lee Jones <lee.jones@linaro.org> =
-wrote:
-> >> > On Mon, 11 Apr 2016, Rafael J. Wysocki wrote:
-> >> >
-> >> >> On Mon, Apr 11, 2016 at 11:52 AM, Heikki Krogerus
-> >> >> <heikki.krogerus@linux.intel.com> wrote:
-> >> >> > On Mon, Apr 11, 2016 at 09:20:27AM +0100, Lee Jones wrote:
-> >> >> >> On Tue, 29 Mar 2016, Heikki Krogerus wrote:
-> >> >> >>
-> >> >> >> > Since device_add_property_set() now always takes a copy of
-> >> >> >> > the property_set, and also since the fwnode type is always
-> >> >> >> > hard coded to be FWNODE_PDATA, there is no need for the
-> >> >> >> > drivers to deliver the entire struct property_set. The
-> >> >> >> > function can just create the instance of it on its own and
-> >> >> >> > bind the properties from the drivers to it on the spot.
-> >> >> >> >
-> >> >> >> > This renames device_add_property_set() to
-> >> >> >> > device_add_properties(). The function now takes struct
-> >> >> >> > property_entry as its parameter instead of struct
-> >> >> >> > property_set.
-> >> >> >> >
-> >> >> >> > Reviewed-by: Andy Shevchenko <andriy.shevchenko@linux.inte=
-l.com>
-> >> >> >> > Reviewed-by: Mika Westerberg <mika.westerberg@linux.intel.=
-com>
-> >> >> >> > Acked-by: Thierry Reding <treding@nvidia.com>
-> >> >> >> > Acked-by: Lee Jones <lee.jones@linaro.org>
-> >> >> >> > Signed-off-by: Heikki Krogerus <heikki.krogerus@linux.inte=
-l.com>
-> >> >> >> > ---
-> >> >> >> >  arch/arm/mach-pxa/raumfeld.c      | 12 ++++--------
-> >> >> >
-> >> >> > Daniel, I think we just need your ACK for this one.
-> >> >> >
-> >> >> > Otherwise I think we are covered.
-> >> >> >
-> >> >> >> >  arch/arm/mach-tegra/board-paz00.c |  6 +-----
-> >> >> >> >  drivers/base/platform.c           | 19 ++++++++++--------=
--
-> >> >> >> >  drivers/base/property.c           | 34 ++++++++++++++++++=
-+++-------------
-> >> >> >> >  drivers/mfd/intel-lpss-acpi.c     | 12 ++----------
-> >> >> >> >  drivers/mfd/intel-lpss-pci.c      | 20 ++++--------------=
---
-> >> >> >> >  drivers/mfd/intel-lpss.c          |  2 +-
-> >> >> >> >  drivers/mfd/intel-lpss.h          |  4 ++--
-> >> >> >> >  drivers/mfd/mfd-core.c            |  4 ++--
-> >> >> >> >  include/linux/mfd/core.h          |  4 ++--
-> >> >> >> >  include/linux/platform_device.h   |  6 +++---
-> >> >> >> >  include/linux/property.h          | 15 +++------------
-> >> >> >> >  12 files changed, 55 insertions(+), 83 deletions(-)
-> >> >> >>
-> >> >> >> What's happening with this patch?  I believe we're still mis=
-sing
-> >> >> >> Acks.  Once they are collected someone needs to create an im=
-mutable
-> >> >> >> branch and send out a pull-request.
-> >> >> >
-> >> >> > Rafael, have you had time to take a look at this?
-> >> >>
-> >> >> Yes, it's in my bleeding-edge branch now.  I'm planning to move=
- it to
-> >> >> linux-next this week
-> >> >
-> >> > Please ensure you send out the relevant pull-requests.  Linus do=
-esn't
-> >> > look his best when he's angry.
-> >>
-> >> I guess you mean I should expose by device-properties branch and
-> >> notify the relevant people about that, right?
-> >
-> > Exactly.  And the easiest way to do that is by sending out a
-> > pull-request.
->=20
-> I hoping that sending a message with the relevant information in a
-> reply to this one will be sufficient.
+Can you please have a look at this series? Thanks in advance.
 
-Because of the nature of MFD, I end up doing this kind of thing a lot.
+Tomasz
 
-Here's what I normally do.  Normally in reply to the cover-letter (0/x)=
-:
-  https://lkml.org/lkml/2015/8/12/138
 
---=20
-Lee Jones
-Linaro STMicroelectronics Landing Team Lead
-Linaro.org =E2=94=82 Open source software for ARM SoCs
-=46ollow Linaro: Facebook | Twitter | Blog
+On 04.04.2016 10:52, Tomasz Nowicki wrote:
+> The following git branch contains submitted patches along with
+> the useful patches from the test point of view (mainly ACPI ARM64 PCI support).
+> https://github.com/semihalf-nowicki-tomasz/linux.git (its-acpi-v4)
+>
+> Series has been tested on Cavium ThunderX and Qualcomm QDF2xxx server.
+>
+> v3 -> v4
+> - rebased against v4.5
+> - add ACPI support for IRQ domain handling on a per-device basis
+> - reorder domain setup step
+> - improve error handling
+> - code style improvements
+>
+> v2 -> v3
+> - rebased on top of 4.4
+> - fixes and improvements for redistributor init via GICC structures
+> - fixes as per kbuild reports
+>
+> v1 -> v2
+> - rebased on top of 4.4-rc4
+> - use pci_msi_domain_get_msi_rid for requester ID to device ID translation
+>
+> Tomasz Nowicki (7):
+>    acpi, pci: Setup MSI domain on a per-devices basis.
+>    irqchip, GICv3, ITS: Cleanup for ITS domain initialization.
+>    irqchip, GICv3, ITS: Refator ITS DT init code to prepare for ACPI.
+>    ARM64, ACPI, PCI: I/O Remapping Table (IORT) initial support.
+>    irqchip, gicv3, its: Probe ITS in the ACPI way.
+>    its, pci, msi: Factor out code that might be reused for ACPI.
+>    acpi, gicv3, its: Use MADT ITS subtable to do PCI/MSI domain
+>      initialization.
+>
+>   drivers/acpi/Kconfig                     |   3 +
+>   drivers/acpi/Makefile                    |   1 +
+>   drivers/acpi/iort.c                      | 335 +++++++++++++++++++++++++++++++
+>   drivers/irqchip/Kconfig                  |   1 +
+>   drivers/irqchip/irq-gic-v3-its-pci-msi.c |  87 ++++++--
+>   drivers/irqchip/irq-gic-v3-its.c         | 188 ++++++++++++-----
+>   drivers/irqchip/irq-gic-v3.c             |   7 +-
+>   drivers/pci/msi.c                        |  10 +-
+>   drivers/pci/pci-acpi.c                   |  77 +++++++
+>   include/linux/iort.h                     |  31 +++
+>   include/linux/irqchip/arm-gic-v3.h       |   2 +-
+>   include/linux/pci.h                      |  11 +
+>   12 files changed, 678 insertions(+), 75 deletions(-)
+>   create mode 100644 drivers/acpi/iort.c
+>   create mode 100644 include/linux/iort.h
+>
