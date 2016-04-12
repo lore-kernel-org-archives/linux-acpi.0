@@ -1,67 +1,46 @@
-From: Sudeep Holla <sudeep.holla@arm.com>
-Subject: Re: [PATCH v3 5/5] ACPI / processor_idle: Add support for Low Power
- Idle(LPI) states
-Date: Tue, 12 Apr 2016 15:29:42 +0100
-Message-ID: <570D0656.1000608@arm.com>
-References: <1449065446-26115-1-git-send-email-sudeep.holla@arm.com>
- <1449065446-26115-6-git-send-email-sudeep.holla@arm.com>
- <CAGm_ybhENGdNCUQw3OPb7XN+kLVdeyugTq+Py0iMNP-v3rGBsg@mail.gmail.com>
+From: Sinan Kaya <okaya@codeaurora.org>
+Subject: Re: [PATCH V2 1/3] acpi,pci,irq: reduce resource requirements
+Date: Tue, 12 Apr 2016 12:25:20 -0400
+Message-ID: <570D2170.303@codeaurora.org>
+References: <1460165192-4526-1-git-send-email-okaya@codeaurora.org>
+ <1460165192-4526-2-git-send-email-okaya@codeaurora.org>
+ <20160412051942.GE11361@localhost>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Type: text/plain; charset=windows-1252
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-ia64-owner@vger.kernel.org>
-In-Reply-To: <CAGm_ybhENGdNCUQw3OPb7XN+kLVdeyugTq+Py0iMNP-v3rGBsg@mail.gmail.com>
-Sender: linux-ia64-owner@vger.kernel.org
-To: Vikas Sajjan <sajjan.linux@gmail.com>
-Cc: Sudeep Holla <sudeep.holla@arm.com>, linux-acpi@vger.kernel.org, "Rafael J. Wysocki" <rjw@rjwysocki.net>, linux-kernel@vger.kernel.org, linux-ia64@vger.kernel.org, x86@kernel.org, Al Stone <al.stone@linaro.org>, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, Mahesh Sivasubramanian <msivasub@codeaurora.org>, Ashwin Chaugule <ashwin.chaugule@linaro.org>, Prashanth Prakash <pprakash@codeaurora.org>, Vikas C Sajjan <vikas.cha.sajjan@hpe.com>, Sunil V L <sunil.vl@hpe.com>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20160412051942.GE11361@localhost>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Bjorn Helgaas <helgaas@kernel.org>
+Cc: linux-acpi@vger.kernel.org, timur@codeaurora.org, cov@codeaurora.org, linux-pci@vger.kernel.org, ravikanth.nalla@hpe.com, lenb@kernel.org, harish.k@hpe.com, ashwin.reghunandanan@hpe.com, bhelgaas@google.com, rjw@rjwysocki.net, linux-kernel@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
+On 4/12/2016 1:19 AM, Bjorn Helgaas wrote:
+> Hi Sinan,
+> 
+> I was hoping we could *simplify* this, but I think it's just getting
+> even more complicated (it's a net addition of 100 lines), which is due
+> to feature creep that I'm afraid is my fault.
+> 
+> IIRC, the main thing you need is to get rid of some early memory
+> allocation.
+> 
+> I don't think all the trigger mode/level checking is worth it.  The
+> current code doesn't do it, and it's not fixing a problem for you.
+> It's conceivable that it could even make us trip over a new problem,
+> e.g., some broken BIOS that we currently tolerate.
+> 
+> I think you could make this a little easier to review if you split
+> things like the acpi_irq_penalty[] -> acpi_isa_irq_penalty[] rename
+> into their own patches.  Little patches like that are trivial to
+> review because a simple rename is pretty safe, and then the patches
+> that actually *do* interesting things are smaller and easier to
+> review, too.
 
-
-On 12/04/16 05:06, Vikas Sajjan wrote:
-> Hi Sudeep,
->
->
-> On Wed, Dec 2, 2015 at 7:40 PM, Sudeep Holla <sudeep.holla@arm.com> wrote:
-
-[...]
-
->> diff --git a/drivers/acpi/processor_driver.c b/drivers/acpi/processor_driver.c
->> index 29f787b2493f..bfc59de0ce6b 100644
->> --- a/drivers/acpi/processor_driver.c
->> +++ b/drivers/acpi/processor_driver.c
->> @@ -90,7 +90,7 @@ static void acpi_processor_notify(acpi_handle handle, u32 event, void *data)
->>                                                    pr->performance_platform_limit);
->>                  break;
->>          case ACPI_PROCESSOR_NOTIFY_POWER:
->> -               acpi_processor_cst_has_changed(pr);
->> +               acpi_processor_power_state_has_changed(pr);
->
-> The function  acpi_processor_power_state_has_changed() has a check as below,
->
->   if (nocst)
->             return -ENODEV;
->
-> So was wondering if the platform supports only _LPI and  _CST is not
-> supported, the 'nocst' module param passed will be 1,
-> and function will return -ENODEV.
->
-
-You are right, it needs to be handled correctly. Thanks for spotting this.
-
-> Hence, with the introduction of LPI, should we be handling "nocst"
-> appropriately.
-> Similar is the case in function  int acpi_processor_hotplug(struct
-> acpi_processor *pr);
->
-
-Correct.
-
-> Let me know, if i am missing something here.
->
-
-I don't think so. Once again thanks for the review.
+OK. I honestly didn't like adding this check either. I'll work on a new
+set and post with your additional comments in this patch.
 
 -- 
-Regards,
-Sudeep
+Sinan Kaya
+Qualcomm Technologies, Inc. on behalf of Qualcomm Innovation Center, Inc.
+Qualcomm Innovation Center, Inc. is a member of Code Aurora Forum, a Linux Foundation Collaborative Project
