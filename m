@@ -1,40 +1,80 @@
-From: "Luis R. Rodriguez" <mcgrof@kernel.org>
-Subject: Re: [PATCH v5 01/14] x86/boot: enumerate documentation for the x86
- hardware_subarch
-Date: Wed, 13 Apr 2016 17:17:20 +0200
-Message-ID: <20160413151720.GT1990@wotan.suse.de>
-References: <1460158825-13117-1-git-send-email-mcgrof@kernel.org>
- <1460158825-13117-2-git-send-email-mcgrof@kernel.org>
- <20160413080132.GA9697@gmail.com>
+From: Marc Zyngier <marc.zyngier@arm.com>
+Subject: Re: [PATCH V4 4/7] ARM64, ACPI, PCI: I/O Remapping Table (IORT)
+ initial support.
+Date: Wed, 13 Apr 2016 16:23:06 +0100
+Message-ID: <570E645A.9010600@arm.com>
+References: <1459759975-24097-1-git-send-email-tn@semihalf.com>
+ <1459759975-24097-5-git-send-email-tn@semihalf.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20160413080132.GA9697@gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Ingo Molnar <mingo@kernel.org>
-Cc: "Luis R. Rodriguez" <mcgrof@kernel.org>, bp@alien8.de, hpa@zytor.com, tglx@linutronix.de, mingo@redhat.com, rusty@rustcorp.com.au, x86@kernel.org, linux-kernel@vger.kernel.org, luto@amacapital.net, boris.ostrovsky@oracle.com, david.vrabel@citrix.com, konrad.wilk@oracle.com, xen-devel@lists.xensource.com, lguest@lists.ozlabs.org, andriy.shevchenko@linux.intel.com, jlee@suse.com, glin@suse.com, matt@codeblueprint.co.uk, andrew.cooper3@citrix.com, rjw@rjwysocki.net, lenb@kernel.org, robert.moore@intel.com, lv.zheng@intel.com, toshi.kani@hp.com, linux-acpi@vger.kernel.org, kozerkov@parallels.com, josh@joshtriplett.org, joro@8bytes.org, tiwai@suse.de
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from foss.arm.com ([217.140.101.70]:35470 "EHLO foss.arm.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751104AbcDMPXL (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 13 Apr 2016 11:23:11 -0400
+In-Reply-To: <1459759975-24097-5-git-send-email-tn@semihalf.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Tomasz Nowicki <tn@semihalf.com>, tglx@linutronix.de, jason@lakedaemon.net, rjw@rjwysocki.net, lorenzo.pieralisi@arm.com, robert.richter@caviumnetworks.com, shijie.huang@arm.com, Suravee.Suthikulpanit@amd.com, hanjun.guo@linaro.org
+Cc: al.stone@linaro.org, mw@semihalf.com, graeme.gregory@linaro.org, Catalin.Marinas@arm.com, will.deacon@arm.com, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org, ddaney.cavm@gmail.com, okaya@codeaurora.org
 
-On Wed, Apr 13, 2016 at 10:01:32AM +0200, Ingo Molnar wrote:
-> > diff --git a/arch/x86/include/uapi/asm/bootparam.h b/arch/x86/include/uapi/asm/bootparam.h
-> > index 329254373479..bf9fea2f4591 100644
-> > --- a/arch/x86/include/uapi/asm/bootparam.h
-> > +++ b/arch/x86/include/uapi/asm/bootparam.h
-> > @@ -157,7 +157,42 @@ struct boot_params {
-> >  	__u8  _pad9[276];				/* 0xeec */
-> >  } __attribute__((packed));
-> >  
-> > -enum {
-> > +/**
-> > + * enum x86_hardware_subarch - x86 hardware subarchitecture
+On 04/04/16 09:52, Tomasz Nowicki wrote:
+> IORT shows representation of IO topology for ARM based systems.
+> It describes how various components are connected together on
+> parent-child basis e.g. PCI RC -> SMMU -> ITS. Also see IORT spec.
 > 
-> Could you add some prominent warning here, like:
+> Initial support allows to:
+> - register ITS MSI chip along with ITS translation ID and domain token
+> - deregister ITS MSI chip based on ITS translation ID
+> - find registered domain token based on ITS translation ID
+> - map MSI RID based on PCI device and requester ID
+> - find domain token based on PCI device and requester ID
 > 
-> > + * WARNING: the 'x86 subarch flag' is only used for legacy hacks, for platform
-> > + *          features that are not easily enumerated or discoverable. You should
-> > + *          not ever use this for new features.
+> To: Rafael J. Wysocki <rjw@rjwysocki.net>
+> Signed-off-by: Tomasz Nowicki <tn@semihalf.com>
+> ---
+>  drivers/acpi/Kconfig    |   3 +
+>  drivers/acpi/Makefile   |   1 +
+>  drivers/acpi/iort.c     | 335 ++++++++++++++++++++++++++++++++++++++++++++++++
+>  drivers/irqchip/Kconfig |   1 +
+>  include/linux/iort.h    |  31 +++++
+>  5 files changed, 371 insertions(+)
+>  create mode 100644 drivers/acpi/iort.c
+>  create mode 100644 include/linux/iort.h
+> 
 
-With pleasure, added.
+[...]
 
-  Luis
+> +static acpi_status
+> +iort_find_dev_callback(struct acpi_iort_node *node, void *context)
+> +{
+> +	struct acpi_iort_root_complex *pci_rc;
+> +	struct device *dev = context;
+> +	struct pci_bus *bus;
+> +
+> +	switch (node->type) {
+> +	case ACPI_IORT_NODE_PCI_ROOT_COMPLEX:
+> +		bus = to_pci_bus(dev);
+> +		pci_rc = (struct acpi_iort_root_complex *)node->node_data;
+> +
+> +		/*
+> +		 * It is assumed that PCI segment numbers maps one-to-one
+> +		 * with root complexes. Each segment number can represent only
+> +		 * one root complex.
+> +		 */
+> +		if (pci_rc->pci_segment_number == pci_domain_nr(bus))
+> +			return AE_OK;
+
+What guarantees that this is ever valid? As far as I know, pci_domain_nr
+is completely arbitrary, and depends both on the probe order and the
+phase of the moon. If you want this to be reliable, you need to allocate
+the domain number from pci_segment_number.
+
+I must be missing something. Care to shed some light on this?
+
+Thanks,
+
+	M.
+-- 
+Jazz is not dead. It just smells funny...
