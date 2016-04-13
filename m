@@ -1,73 +1,72 @@
-From: "Rafael J. Wysocki" <rafael@kernel.org>
-Subject: Re: [RFC PATCH 0/4] Add ACPI support for pinctrl configuration
-Date: Wed, 13 Apr 2016 07:08:42 +0200
-Message-ID: <CAJZ5v0hFBkH6B0rA+x4h67sCgUax_8N_ZHGQGPu-=L3HUVNA9g@mail.gmail.com>
-References: <1459424685-26965-1-git-send-email-irina.tirdea@intel.com>
-	<CAE1zotJ4OiQ_tMvCDm-KoF8cTJ9Z-n09FX7KR75j0DyAcsznLA@mail.gmail.com>
-	<20160406103925.GA31110@svinekod>
-	<2161127.3msi2j0Rxi@vostro.rjw.lan>
-	<20160412121533.GB14664@sirena.org.uk>
+From: Mark Brown <broonie@kernel.org>
+Subject: Re: [PATCH] ACPI / ARM64: Remove EXPERT dependency for ACPI on ARM64
+Date: Wed, 13 Apr 2016 06:25:53 +0100
+Message-ID: <20160413052553.GF14664@sirena.org.uk>
+References: <1459360718-24125-1-git-send-email-broonie@kernel.org>
+ <20160412172315.GH8066@e104818-lin.cambridge.arm.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-gpio-owner@vger.kernel.org>
-In-Reply-To: <20160412121533.GB14664@sirena.org.uk>
-Sender: linux-gpio-owner@vger.kernel.org
-To: Mark Brown <broonie@kernel.org>
-Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Mark Rutland <mark.rutland@arm.com>, Octavian Purdila <octavian.purdila@intel.com>, "Tirdea, Irina" <irina.tirdea@intel.com>, Len Brown <lenb@kernel.org>, Mika Westerberg <mika.westerberg@linux.intel.com>, Linus Walleij <linus.walleij@linaro.org>, "linux-gpio@vger.kernel.org" <linux-gpio@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Rob Herring <robh+dt@kernel.org>, Heikki Krogerus <heikki.krogerus@linux.intel.com>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, "Ciocan, Cristina" <cristina.ciocan@intel.com>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "charles.garcia-tobin@arm.com" <charles.garcia-tobin@arm.com>
+Content-Type: multipart/signed; micalg=pgp-sha256;
+	protocol="application/pgp-signature"; boundary="JSkcQAAxhB1h8DcT"
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mezzanine.sirena.org.uk ([106.187.55.193]:36578 "EHLO
+	mezzanine.sirena.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757327AbcDMF0L (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 13 Apr 2016 01:26:11 -0400
+Content-Disposition: inline
+In-Reply-To: <20160412172315.GH8066@e104818-lin.cambridge.arm.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Catalin Marinas <catalin.marinas@arm.com>
+Cc: Will Deacon <will.deacon@arm.com>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Mark Rutland <mark.rutland@arm.com>, Steve Capper <steve.capper@linaro.org>, Graeme Gregory <graeme.gregory@linaro.org>, linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Arnd Bergmann <arnd@arndb.de>, Olof Johansson <olof@lixom.net>
 
-On Tue, Apr 12, 2016 at 2:15 PM, Mark Brown <broonie@kernel.org> wrote:
-> On Thu, Apr 07, 2016 at 11:24:00PM +0200, Rafael J. Wysocki wrote:
->> On Wednesday, April 06, 2016 11:39:27 AM Mark Rutland wrote:
->
->> > The ACPI model implies FW-driven pinctrl management, so if we're going to put
->> > the OS in direct control of pinctrl, we have to make clear what expectation FW
->> > and OS can have.
->
->> Well, orthodox ACPI people from the Windows camp would definitely agree with you,
->> but I'm not one of them, so let me play a devil's advocate for a while. :-)
->
->> IMO, exposing anything in the ACPI tables without explicitly saying "but you
->> should not touch that", eg by defining an operation region covering it or similar,
->> is equivalent to giving the OS a license to play with that thing as it wishes.
->
->> Therefore I would regard exposing pin control information in cases when the
->> OS is not allowed to use it to its fit as a firmware bug.
->
-> This is something where it seems like it would be very easy for people
-> to end up relying on current OS behaviour even if that only happened
-> through accident rather than design.  You might assume that such
-> behaviour is a bug but that may not be obvious to the firmware author if
-> the OS behaviour makes sense to them.
 
-If the OS started to support that interface, it would need to
-guarantee consistent behavior with respect to it going forward.
+--JSkcQAAxhB1h8DcT
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-It would be an interface for interacting with firmware, so it is not
-much different from an interface to user space as far as the stability
-rules go.  Which may be a reason for refusing to support it in the
-first place if the OS is not willing to make such a guarantee.
+On Tue, Apr 12, 2016 at 06:23:15PM +0100, Catalin Marinas wrote:
 
-> There may also be some expectation on the part of firmware that the OS
-> will do some management of the pins even for devices that it's not
-> actively working with (put them in an idle mode for example).
->
->> Now, the question in this patch series is how to expose things and not when to
->> do that.  It adds support for a specific method of exposing information to the
->> OS, but should it be concerned about the possible consequences of inappropriate
->> use of that method by firmware?
->
-> The other issue here is that if (as Octavian mentioned) there are
-> ongoing discussions within ASWG on producing an actual spec for this it
-> doesn't seem great that we'd just go and do something completely
-> different rather than trying to make sure that the spec works well.  Or
-> if there isn't any spec work then writing one there for other OSs to
-> pick up if they like.  This seems like it'd make us much better
-> community players.
+> I'm fine with dropping the EXPERT dependency (of course, not a cc
+> stable). While arm64 ACPI is not "done" yet (nor is DT; there are
+> important ongoing developments like PCIe, IORT), I think the core arm64
+> ACPI support passed the EXPERT stage. I also don't think a default y
+> would imply any maintainer endorsement; vendors targeting ACPI are
+> already doing this for various reasons (distro requirement, certain ACPI
 
-Agreed.  I actually asked Octavian to look at the other proposal and
-see if/how that could be used to address the use case in question
-and/or possibly extended to cover it.
+So you're OK with the current patch?
 
-Thanks,
-Rafael
+> features like RAS). But, hopefully, it will encourage more vendors to
+> start upstreaming their ACPI-related patches.
+
+Yes, and also help include ACPI systems in the work we're doing testing
+things upstream.
+
+> However, building ACPI by default on arm64 doesn't mean that we can
+> ignore potential misuses like PRP0001+_DSD blindly following DT
+> (mis)concepts, breaking compatibility with older/newer firmware (this
+> goes in both directions) or using ACPI for SoCs where it is clearly not
+> suitable (e.g. non-SBSA). Such patches should be NAK'ed accordingly.
+
+Yes, I'm very concerned about some of the activity I'm seeing there
+myself - it does seem likely that we're going to have to extend ACPI for
+arm64 SoCs simply because things like SBSA are so bare bones but we need
+to pay attention to what's going on there to promote best practices and
+try to get people producing firmwares that make well thought through
+decisions regarding their ACPI usage.
+
+--JSkcQAAxhB1h8DcT
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2
+
+iQEcBAEBCAAGBQJXDdhgAAoJECTWi3JdVIfQ4XQH/0auTfXEh/yqmc+B11PJAjNk
+9co2zlQSEPr2x1cXu8RiJTUvkzRJIEfBurOTJcQIVciG7Q2xBYKLY6WX7enFm8qW
+jA0+KMIK1Px8AymmyZ4ioWEclcgKEJnVQqXyjWxQ9z3IPY6D03sZqU+CPz9h9DnT
+6BabsbLi01FZadizMuNoCv2QTvxgvmu1NYDW99/erd+YKDvForrdflk160y7uGU1
+0Epn764F3OGqxKu5bv9WgsdJpkqh4ph2lv+JKcertPZq3z1l26yu5c2Kx+tKXymk
+6GoodS6Lh0XfUVy8rg8AzAnDU70P22v8h/re6jlH9qqyB7WP9j/AMV6cPs0hWMQ=
+=m/Ri
+-----END PGP SIGNATURE-----
+
+--JSkcQAAxhB1h8DcT--
