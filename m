@@ -1,35 +1,75 @@
-From: Marc Zyngier <marc.zyngier@arm.com>
-Subject: Re: [PATCH V4 2/7] irqchip, GICv3, ITS: Cleanup for ITS domain
- initialization.
-Date: Wed, 13 Apr 2016 15:18:07 +0100
-Message-ID: <570E551F.608@arm.com>
-References: <1459759975-24097-1-git-send-email-tn@semihalf.com>
- <1459759975-24097-3-git-send-email-tn@semihalf.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+From: Betty Dall <betty.dall@hpe.com>
+Subject: [PATCH] ACPI/device_sysfs: Add sysfs support for _HRV hardware revision
+Date: Wed, 13 Apr 2016 08:48:14 -0600
+Message-ID: <1460558894-11971-1-git-send-email-betty.dall@hpe.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from foss.arm.com ([217.140.101.70]:34866 "EHLO foss.arm.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753542AbcDMOSM (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 13 Apr 2016 10:18:12 -0400
-In-Reply-To: <1459759975-24097-3-git-send-email-tn@semihalf.com>
+Received: from g9t1613g.houston.hp.com ([15.240.0.71]:32852 "EHLO
+	g9t1613g.houston.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757822AbcDMOxS (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 13 Apr 2016 10:53:18 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Tomasz Nowicki <tn@semihalf.com>, tglx@linutronix.de, jason@lakedaemon.net, rjw@rjwysocki.net, lorenzo.pieralisi@arm.com, robert.richter@caviumnetworks.com, shijie.huang@arm.com, Suravee.Suthikulpanit@amd.com, hanjun.guo@linaro.org
-Cc: al.stone@linaro.org, mw@semihalf.com, graeme.gregory@linaro.org, Catalin.Marinas@arm.com, will.deacon@arm.com, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org, ddaney.cavm@gmail.com, okaya@codeaurora.org
+To: rjw@rjwysocki.net, lenb@kernel.org, linux-acpi@vger.kernel.org
+Cc: linux-kernel@vger.kernel.org, Betty Dall <betty.dall@hpe.com>
 
-On 04/04/16 09:52, Tomasz Nowicki wrote:
-> There is no point to initialize ITS without having msi-controller
-> property in corresponding DT node. However, its_probe is checking
-> msi-controller presence at the end, so we can save our time and do that
-> check prior to its_probe call. Also, for the code clarity purpose,
-> we put domain initialization to separate function.
-> 
-> Signed-off-by: Tomasz Nowicki <tn@semihalf.com>
+The ACPI _HRV object on the device is used to supply Linux with
+the device's hardware revision. This is an optional object. Add
+sysfs support for the _HRV object if it exists on the device.
 
-Acked-by: Marc Zyngier <marc.zyngier@arm.com>
+Signed-off-by: Betty Dall <betty.dall@hpe.com>
+---
+ drivers/acpi/device_sysfs.c | 24 ++++++++++++++++++++++++
+ 1 file changed, 24 insertions(+)
 
-	M.
+diff --git a/drivers/acpi/device_sysfs.c b/drivers/acpi/device_sysfs.c
+index b9afb47..bf12dbe 100644
+--- a/drivers/acpi/device_sysfs.c
++++ b/drivers/acpi/device_sysfs.c
+@@ -473,6 +473,21 @@ acpi_device_sun_show(struct device *dev, struct device_attribute *attr,
+ }
+ static DEVICE_ATTR(sun, 0444, acpi_device_sun_show, NULL);
+ 
++static ssize_t
++acpi_device_hrv_show(struct device *dev, struct device_attribute *attr,
++		     char *buf) {
++	struct acpi_device *acpi_dev = to_acpi_device(dev);
++	acpi_status status;
++	unsigned long long hrv;
++
++	status = acpi_evaluate_integer(acpi_dev->handle, "_HRV", NULL, &hrv);
++	if (ACPI_FAILURE(status))
++		return -ENODEV;
++
++	return sprintf(buf, "%llu\n", hrv);
++}
++static DEVICE_ATTR(hrv, 0444, acpi_device_hrv_show, NULL);
++
+ static ssize_t status_show(struct device *dev, struct device_attribute *attr,
+ 				char *buf) {
+ 	struct acpi_device *acpi_dev = to_acpi_device(dev);
+@@ -541,6 +556,12 @@ int acpi_device_setup_files(struct acpi_device *dev)
+ 			goto end;
+ 	}
+ 
++	if (acpi_has_method(dev->handle, "_HRV")) {
++		result = device_create_file(&dev->dev, &dev_attr_hrv);
++		if (result)
++			goto end;
++	}
++
+ 	if (acpi_has_method(dev->handle, "_STA")) {
+ 		result = device_create_file(&dev->dev, &dev_attr_status);
+ 		if (result)
+@@ -604,6 +625,9 @@ void acpi_device_remove_files(struct acpi_device *dev)
+ 	if (acpi_has_method(dev->handle, "_SUN"))
+ 		device_remove_file(&dev->dev, &dev_attr_sun);
+ 
++	if (acpi_has_method(dev->handle, "_HRV"))
++		device_remove_file(&dev->dev, &dev_attr_hrv);
++
+ 	if (dev->pnp.unique_id)
+ 		device_remove_file(&dev->dev, &dev_attr_uid);
+ 	if (dev->pnp.type.bus_address)
 -- 
-Jazz is not dead. It just smells funny...
+1.9.1
+
