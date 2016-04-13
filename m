@@ -1,19 +1,18 @@
 From: Ingo Molnar <mingo@kernel.org>
-Subject: Re: [PATCH v5 01/14] x86/boot: enumerate documentation for the x86
- hardware_subarch
-Date: Wed, 13 Apr 2016 10:01:32 +0200
-Message-ID: <20160413080132.GA9697@gmail.com>
+Subject: Re: [PATCH v5 07/14] tools/lguest: force disable tboot and apm
+Date: Wed, 13 Apr 2016 10:44:46 +0200
+Message-ID: <20160413084446.GA21471@gmail.com>
 References: <1460158825-13117-1-git-send-email-mcgrof@kernel.org>
- <1460158825-13117-2-git-send-email-mcgrof@kernel.org>
+ <1460159886-13344-1-git-send-email-mcgrof@kernel.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-wm0-f66.google.com ([74.125.82.66]:35138 "EHLO
+Received: from mail-wm0-f66.google.com ([74.125.82.66]:34693 "EHLO
 	mail-wm0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751061AbcDMIBi (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 13 Apr 2016 04:01:38 -0400
+	with ESMTP id S932482AbcDMIow (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 13 Apr 2016 04:44:52 -0400
 Content-Disposition: inline
-In-Reply-To: <1460158825-13117-2-git-send-email-mcgrof@kernel.org>
+In-Reply-To: <1460159886-13344-1-git-send-email-mcgrof@kernel.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: "Luis R. Rodriguez" <mcgrof@kernel.org>
@@ -22,43 +21,24 @@ Cc: bp@alien8.de, hpa@zytor.com, tglx@linutronix.de, mingo@redhat.com, rusty@rus
 
 * Luis R. Rodriguez <mcgrof@kernel.org> wrote:
 
-> Although hardware_subarch has been in place since the x86 boot
-> protocol 2.07 it hasn't been used much. Enumerate current possible
-> values to avoid misuses and help with semantics later at boot
-> time should this be used further.
+> The paravirt_enabled() check is going away, the area tossed to
+> the kernel on lguest is not zerored out, so ensure lguest force
+> disables tboot and apm just in case the kernel file being read might
+> have this set for whatever reason.
 > 
-> These enums should only ever be used by architecture x86 code,
-> and all that code should be well contained and compartamentalized,
-> clarify that as well.
-> 
-> v2: updates documentation further -- be a bit more pedantic about
->     annotating care and use of these guys.
-> v3: Use s/SOC/SoC and also anntoate that both domU and dom0 are
->     both currently supported through the PV boot path.
-> 
-> Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
 > Signed-off-by: Luis R. Rodriguez <mcgrof@kernel.org>
 > ---
->  arch/x86/include/uapi/asm/bootparam.h | 37 ++++++++++++++++++++++++++++++++++-
->  1 file changed, 36 insertions(+), 1 deletion(-)
-> 
-> diff --git a/arch/x86/include/uapi/asm/bootparam.h b/arch/x86/include/uapi/asm/bootparam.h
-> index 329254373479..bf9fea2f4591 100644
-> --- a/arch/x86/include/uapi/asm/bootparam.h
-> +++ b/arch/x86/include/uapi/asm/bootparam.h
-> @@ -157,7 +157,42 @@ struct boot_params {
->  	__u8  _pad9[276];				/* 0xeec */
->  } __attribute__((packed));
->  
-> -enum {
-> +/**
-> + * enum x86_hardware_subarch - x86 hardware subarchitecture
+>  tools/lguest/lguest.c | 6 ++++++
+>  1 file changed, 6 insertions(+)
 
-Could you add some prominent warning here, like:
+Yeah, so the v4 patch was acked by Rusty:
 
-> + * WARNING: the 'x86 subarch flag' is only used for legacy hacks, for platform
-> + *          features that are not easily enumerated or discoverable. You should
-> + *          not ever use this for new features.
+  Acked-by: Rusty Russell <rusty@rustcorp.com.au>
+
+... but you didn't add his ack to the v5 patch :-(
+
+Please don't do this! Also please double check all past replies to make sure no 
+acks got lost. I noticed this one, but there might be more.
 
 Thanks,
 
