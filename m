@@ -1,105 +1,54 @@
-From: Hanjun Guo <hanjun.guo@linaro.org>
-Subject: Re: [PATCH v9] acpi, apei, arm64: APEI initial support for aarch64.
-Date: Wed, 13 Apr 2016 18:57:33 +0800
-Message-ID: <570E261D.8050503@linaro.org>
-References: <1459867788-14678-1-git-send-email-fu.wei@linaro.org>
+From: Mark Brown <broonie@kernel.org>
+Subject: Re: [PATCH] ACPI / ARM64: Remove EXPERT dependency for ACPI on ARM64
+Date: Wed, 13 Apr 2016 13:49:07 +0100
+Message-ID: <20160413124907.GQ14664@sirena.org.uk>
+References: <1459360718-24125-1-git-send-email-broonie@kernel.org>
+ <20160412172315.GH8066@e104818-lin.cambridge.arm.com>
+ <20160413052553.GF14664@sirena.org.uk>
+ <20160413085139.GA15182@e104818-lin.cambridge.arm.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/signed; micalg=pgp-sha256;
+	protocol="application/pgp-signature"; boundary="V2tfspbppmK1TQo2"
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-pa0-f48.google.com ([209.85.220.48]:33863 "EHLO
-	mail-pa0-f48.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933982AbcDMK5s (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 13 Apr 2016 06:57:48 -0400
-Received: by mail-pa0-f48.google.com with SMTP id ot11so31677322pab.1
-        for <linux-acpi@vger.kernel.org>; Wed, 13 Apr 2016 03:57:47 -0700 (PDT)
-In-Reply-To: <1459867788-14678-1-git-send-email-fu.wei@linaro.org>
+Received: from mezzanine.sirena.org.uk ([106.187.55.193]:38514 "EHLO
+	mezzanine.sirena.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756492AbcDMMtc (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 13 Apr 2016 08:49:32 -0400
+Content-Disposition: inline
+In-Reply-To: <20160413085139.GA15182@e104818-lin.cambridge.arm.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: fu.wei@linaro.org, tn@semihalf.com, rjw@rjwysocki.net, len.brown@intel.com, pavel@ucw.cz, catalin.marinas@arm.com, will.deacon@arm.com, tglx@linutronix.de, mingo@redhat.com, hpa@zytor.com
-Cc: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, x86@kernel.org, linaro-acpi@lists.linaro.org, linux-arm-kernel@lists.infradead.org, linux-pm@vger.kernel.org, graeme.gregory@linaro.org, al.stone@linaro.org, mark.rutland@arm.com, Marc.Zyngier@arm.com, lorenzo.pieralisi@arm.com, rruigrok@codeaurora.org, harba@qti.qualcomm.com, tbaicar@codeaurora.org, jcm@redhat.com, msalter@redhat.com, grant.likely@linaro.org, rrichter@cavium.com, jarkko.nikula@linux.intel.com, jon.zhixiong.zhang@gmail.com, Tomasz Nowicki <tomasz.nowicki@linaro.org>
+To: Catalin Marinas <catalin.marinas@arm.com>
+Cc: Mark Rutland <mark.rutland@arm.com>, Steve Capper <steve.capper@linaro.org>, Arnd Bergmann <arnd@arndb.de>, Graeme Gregory <graeme.gregory@linaro.org>, Will Deacon <will.deacon@arm.com>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, linux-acpi@vger.kernel.org, Olof Johansson <olof@lixom.net>, linux-arm-kernel@lists.infradead.org, Len Brown <lenb@kernel.org>
 
-On 2016/4/5 22:49, fu.wei@linaro.org wrote:
-> From: Tomasz Nowicki <tomasz.nowicki@linaro.org>
->
-> This commit provides APEI arch-specific bits for aarch64
->
-> Meanwhile,
-> (1)add a new subfunction "hest_ia32_init" for
-> "acpi_disable_cmcff" which is used by IA-32 Architecture
-> Corrected Machine Check (CMC).
-> (2)move HEST type (ACPI_HEST_TYPE_IA32_CORRECTED_CHECK) checking to
-> a generic place.
-> (3)select HAVE_ACPI_APEI when EFI and ACPI is set on ARM64,
-> because arch_apei_get_mem_attribute is using efi_mem_attributes on ARM64.
->
-> [Fu Wei: improve && upstream]
->
-> Signed-off-by: Tomasz Nowicki <tomasz.nowicki@linaro.org>
-> Tested-by: Jonathan (Zhixiong) Zhang <zjzhang@codeaurora.org>
-> Signed-off-by: Fu Wei <fu.wei@linaro.org>
-> Acked-by: Hanjun Guo <hanjun.guo@linaro.org>
-> Tested-by: Tyler Baicar <tbaicar@codeaurora.org>
-> Acked-by: Will Deacon <will.deacon@arm.com>
-> ---
-> Changelog:
-> v9: Improve the comment for arch_apei_flush_tlb_one.
->      Using select "HAVE_ACPI_APEI if (ACPI && EFI)" to fix the EFI dependence
->      problem.
->
-> v8: https://lkml.org/lkml/2016/3/29/132
->      Fix a "undefined reference" bug by selecting EFI when ACPI_APEI is set
->      on ARM64.
->
-> v7: https://lkml.org/lkml/2016/3/17/183
->      Add comment for arch_apei_flush_tlb_one in arch/arm64/include/asm/acpi.h
->
-> v6: https://lists.linaro.org/pipermail/linaro-acpi/2016-March/006644.html
->      Move HEST type (ACPI_HEST_TYPE_IA32_CORRECTED_CHECK) checking to
->      a generic place.
->      Delete HAVE_ACPI_APEI_HEST_IA32.
->
-> v5: https://lkml.org/lkml/2015/12/10/131
->      Add "HAVE_ACPI_APEI_HEST_IA32" instead of
->      "#if defined(__i386__) || defined(__x86_64__)".
->
-> v4: https://lkml.org/lkml/2015/12/8/188
->      Rebase to latest kernel version(4.4-rc4).
->      Move arch_apei_flush_tlb_one into header file as a inline function
->      Add a new subfunction "hest_ia_init" for "acpi_disable_cmcff".
->
-> v3: https://lkml.org/lkml/2015/12/3/521
->      Remove "acpi_disable_cmcff" from arm64 code,
->      and wrap it in hest.c by "#if defined(__i386__) || defined(__x86_64__)"
->
-> v2: https://lkml.org/lkml/2015/12/2/432
->      Rebase to latest kernel version(4.4-rc3).
->      Move arch_apei_flush_tlb_one() to arch/arm64/kernel/acpi.c
->
-> v1: https://lkml.org/lkml/2015/8/14/199
->      Move arch_apei_flush_tlb_one() to arch/arm64/include/asm/apci.h.
->      Delete arch/arm64/kernel/apei.c.
->      Add "#ifdef CONFIG_ACPI_APEI" for "acpi_disable_cmcff".
->
->   arch/arm64/Kconfig            |  1 +
->   arch/arm64/include/asm/acpi.h | 15 ++++++++++++++-
->   arch/x86/kernel/acpi/apei.c   |  3 ---
->   drivers/acpi/apei/hest.c      | 18 +++++++++++++++---
->   4 files changed, 30 insertions(+), 7 deletions(-)
->
-> diff --git a/arch/arm64/Kconfig b/arch/arm64/Kconfig
-> index 4f43622..308fdb1 100644
-> --- a/arch/arm64/Kconfig
-> +++ b/arch/arm64/Kconfig
-> @@ -3,6 +3,7 @@ config ARM64
->   	select ACPI_CCA_REQUIRED if ACPI
->   	select ACPI_GENERIC_GSI if ACPI
->   	select ACPI_REDUCED_HARDWARE_ONLY if ACPI
-> +	select HAVE_ACPI_APEI if (ACPI && EFI)
 
-Alphabetical order please, as people already strictly
-did that in arch/arm64/Kconfig, with this fixed, my
-ack is still valid.
+--V2tfspbppmK1TQo2
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-Thanks
-Hanjun
+On Wed, Apr 13, 2016 at 09:51:39AM +0100, Catalin Marinas wrote:
+> On Wed, Apr 13, 2016 at 06:25:53AM +0100, Mark Brown wrote:
+
+> > So you're OK with the current patch?
+
+> Yes, I posted an ack in the previous reply (with a note that Will and
+> the arm-soc maintainers still have a right to veto this change).
+
+Oh, sorry - I missed that somehow.
+
+--V2tfspbppmK1TQo2
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2
+
+iQEcBAEBCAAGBQJXDkBCAAoJECTWi3JdVIfQwx8H/Rk3Q8vfNLD8/rOnTOxbc8on
+pn45PjYfhmM3GcOah/xDiAXe5G8HSM2CMzBBvEbKoJvYL6ThcvQCM8PiDzkd02Wr
+t6acUDi3x6j8vjs2OqCv70I5Wg2q4kPiP1hbFcUUCW9zyFLVz2NKTn4oWmb2v4r/
+33CA0grDvadSU0AQFe/qD6/oJ3pNmWapwCQkRasuneLedVI4LDs23OCwmpBONxnc
+c4TsZyUIn8NMm26EMGI1tT7JNg1FjRqPjxtkHyKvl/KkATAbK5YVi9oau+97GgGp
+YA+Ziqq2ehQERJSb11Z39TKCxa/rMLBZEybhtqFm7YCkiO1I9ii+E/mUYO+eiro=
+=PMk2
+-----END PGP SIGNATURE-----
+
+--V2tfspbppmK1TQo2--
