@@ -1,53 +1,65 @@
-From: Aaron Lu <aaron.lu@intel.com>
-Subject: [PATCH v2 0/3] Support INT3406 Display thermal device
-Date: Wed, 13 Apr 2016 15:32:48 +0800
-Message-ID: <1460532771-22779-1-git-send-email-aaron.lu@intel.com>
+From: Ingo Molnar <mingo@kernel.org>
+Subject: Re: [PATCH v5 01/14] x86/boot: enumerate documentation for the x86
+ hardware_subarch
+Date: Wed, 13 Apr 2016 10:01:32 +0200
+Message-ID: <20160413080132.GA9697@gmail.com>
+References: <1460158825-13117-1-git-send-email-mcgrof@kernel.org>
+ <1460158825-13117-2-git-send-email-mcgrof@kernel.org>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga02.intel.com ([134.134.136.20]:2058 "EHLO mga02.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1759884AbcDMHcy (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 13 Apr 2016 03:32:54 -0400
+Received: from mail-wm0-f66.google.com ([74.125.82.66]:35138 "EHLO
+	mail-wm0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751061AbcDMIBi (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 13 Apr 2016 04:01:38 -0400
+Content-Disposition: inline
+In-Reply-To: <1460158825-13117-2-git-send-email-mcgrof@kernel.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Jingoo Han <jingoohan1@gmail.com>, Zhang Rui <rui.zhang@intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: linux-fbdev@vger.kernel.org, linux-acpi@vger.kernel.org, linux-pm@vger.kernel.org, srinivas.pandruvada@intel.com
+To: "Luis R. Rodriguez" <mcgrof@kernel.org>
+Cc: bp@alien8.de, hpa@zytor.com, tglx@linutronix.de, mingo@redhat.com, rusty@rustcorp.com.au, x86@kernel.org, linux-kernel@vger.kernel.org, luto@amacapital.net, boris.ostrovsky@oracle.com, david.vrabel@citrix.com, konrad.wilk@oracle.com, xen-devel@lists.xensource.com, lguest@lists.ozlabs.org, andriy.shevchenko@linux.intel.com, jlee@suse.com, glin@suse.com, matt@codeblueprint.co.uk, andrew.cooper3@citrix.com, rjw@rjwysocki.net, lenb@kernel.org, robert.moore@intel.com, lv.zheng@intel.com, toshi.kani@hp.com, linux-acpi@vger.kernel.org, kozerkov@parallels.com, josh@joshtriplett.org, joro@8bytes.org, tiwai@suse.de
 
-The display thermal device represents the LED/LCD display panel
-that may or may not include touch support. The main function of
-the display thermal device is to allow control of the display
-brightness in order to address a thermal condition or to reduce
-power consumed by display device.
 
-Due to the way this thermal device changes brightness level is said
-to be deprecated so we are using the raw interface to do the actual
-backlight change. This requires the backlight core support so two
-new APIs are added and exported in patch 1/3. With this, the previous
-API backlight_device_registered can be removed and this is done in
-patch 2/3. Patch 3/3 adds the new int3406 thermal driver.
+* Luis R. Rodriguez <mcgrof@kernel.org> wrote:
 
-The 1st version is here:
-http://thread.gmane.org/gmane.linux.acpi.devel/72619
+> Although hardware_subarch has been in place since the x86 boot
+> protocol 2.07 it hasn't been used much. Enumerate current possible
+> values to avoid misuses and help with semantics later at boot
+> time should this be used further.
+> 
+> These enums should only ever be used by architecture x86 code,
+> and all that code should be well contained and compartamentalized,
+> clarify that as well.
+> 
+> v2: updates documentation further -- be a bit more pedantic about
+>     annotating care and use of these guys.
+> v3: Use s/SOC/SoC and also anntoate that both domU and dom0 are
+>     both currently supported through the PV boot path.
+> 
+> Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+> Signed-off-by: Luis R. Rodriguez <mcgrof@kernel.org>
+> ---
+>  arch/x86/include/uapi/asm/bootparam.h | 37 ++++++++++++++++++++++++++++++++++-
+>  1 file changed, 36 insertions(+), 1 deletion(-)
+> 
+> diff --git a/arch/x86/include/uapi/asm/bootparam.h b/arch/x86/include/uapi/asm/bootparam.h
+> index 329254373479..bf9fea2f4591 100644
+> --- a/arch/x86/include/uapi/asm/bootparam.h
+> +++ b/arch/x86/include/uapi/asm/bootparam.h
+> @@ -157,7 +157,42 @@ struct boot_params {
+>  	__u8  _pad9[276];				/* 0xeec */
+>  } __attribute__((packed));
+>  
+> -enum {
+> +/**
+> + * enum x86_hardware_subarch - x86 hardware subarchitecture
 
-This whole series should go through the thermal tree if applied.
+Could you add some prominent warning here, like:
 
-Aaron Lu (3):
-  video / backlight: add two APIs for drivers to use
-  video / backlight: remove the backlight_device_registered API
-  Thermal: add INT3406 thermal driver
+> + * WARNING: the 'x86 subarch flag' is only used for legacy hacks, for platform
+> + *          features that are not easily enumerated or discoverable. You should
+> + *          not ever use this for new features.
 
- drivers/acpi/acpi_video.c                         |  83 ++++----
- drivers/acpi/video_detect.c                       |   2 +-
- drivers/thermal/Kconfig                           |  28 +--
- drivers/thermal/int340x_thermal/Kconfig           |  42 ++++
- drivers/thermal/int340x_thermal/Makefile          |   1 +
- drivers/thermal/int340x_thermal/int3406_thermal.c | 236 ++++++++++++++++++++++
- drivers/video/backlight/backlight.c               |  39 ++--
- include/acpi/video.h                              |  20 ++
- include/linux/backlight.h                         |   3 +-
- 9 files changed, 374 insertions(+), 80 deletions(-)
- create mode 100644 drivers/thermal/int340x_thermal/Kconfig
- create mode 100644 drivers/thermal/int340x_thermal/int3406_thermal.c
+Thanks,
 
--- 
-2.5.5
-
+	Ingo
