@@ -1,96 +1,65 @@
-From: Marc Zyngier <marc.zyngier@arm.com>
-Subject: Re: [PATCH V4 4/7] ARM64, ACPI, PCI: I/O Remapping Table (IORT)
- initial support.
-Date: Wed, 13 Apr 2016 16:52:12 +0100
-Message-ID: <570E6B2C.3060700@arm.com>
-References: <1459759975-24097-1-git-send-email-tn@semihalf.com>
- <1459759975-24097-5-git-send-email-tn@semihalf.com>
- <570E645A.9010600@arm.com> <570E6794.4080409@semihalf.com>
+From: Octavian Purdila <octavian.purdila@intel.com>
+Subject: Re: [PATCH v2 3/3] ACPI / tables: Convert the initrd table override
+ mechanisms to the table upgrade mechanism
+Date: Wed, 13 Apr 2016 19:01:36 +0300
+Message-ID: <CAMoF9u2rwWF5ZguMHPti70C=vS33phUGWJGNbH-5ASp5CK58bg@mail.gmail.com>
+References: <cover.1460340514.git.lv.zheng@intel.com>
+	<b4bd2cb8102b66c034f94abae2969797d004f039.1460340514.git.lv.zheng@intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from foss.arm.com ([217.140.101.70]:35712 "EHLO foss.arm.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752965AbcDMPwS (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 13 Apr 2016 11:52:18 -0400
-In-Reply-To: <570E6794.4080409@semihalf.com>
+Received: from mail-ig0-f179.google.com ([209.85.213.179]:36520 "EHLO
+	mail-ig0-f179.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753740AbcDMQBq (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 13 Apr 2016 12:01:46 -0400
+Received: by mail-ig0-f179.google.com with SMTP id f1so124168816igr.1
+        for <linux-acpi@vger.kernel.org>; Wed, 13 Apr 2016 09:01:41 -0700 (PDT)
+In-Reply-To: <b4bd2cb8102b66c034f94abae2969797d004f039.1460340514.git.lv.zheng@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Tomasz Nowicki <tn@semihalf.com>, tglx@linutronix.de, jason@lakedaemon.net, rjw@rjwysocki.net, lorenzo.pieralisi@arm.com, robert.richter@caviumnetworks.com, shijie.huang@arm.com, Suravee.Suthikulpanit@amd.com, hanjun.guo@linaro.org
-Cc: al.stone@linaro.org, mw@semihalf.com, graeme.gregory@linaro.org, Catalin.Marinas@arm.com, will.deacon@arm.com, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org, ddaney.cavm@gmail.com, okaya@codeaurora.org
+To: Lv Zheng <lv.zheng@intel.com>
+Cc: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <len.brown@intel.com>, Lv Zheng <zetalog@gmail.com>, lkml <linux-kernel@vger.kernel.org>, linux-acpi@vger.kernel.org
 
-On 13/04/16 16:36, Tomasz Nowicki wrote:
-> On 13.04.2016 17:23, Marc Zyngier wrote:
->> On 04/04/16 09:52, Tomasz Nowicki wrote:
->>> IORT shows representation of IO topology for ARM based systems.
->>> It describes how various components are connected together on
->>> parent-child basis e.g. PCI RC -> SMMU -> ITS. Also see IORT spec.
->>>
->>> Initial support allows to:
->>> - register ITS MSI chip along with ITS translation ID and domain token
->>> - deregister ITS MSI chip based on ITS translation ID
->>> - find registered domain token based on ITS translation ID
->>> - map MSI RID based on PCI device and requester ID
->>> - find domain token based on PCI device and requester ID
->>>
->>> To: Rafael J. Wysocki <rjw@rjwysocki.net>
->>> Signed-off-by: Tomasz Nowicki <tn@semihalf.com>
->>> ---
->>>   drivers/acpi/Kconfig    |   3 +
->>>   drivers/acpi/Makefile   |   1 +
->>>   drivers/acpi/iort.c     | 335 ++++++++++++++++++++++++++++++++++++++++++++++++
->>>   drivers/irqchip/Kconfig |   1 +
->>>   include/linux/iort.h    |  31 +++++
->>>   5 files changed, 371 insertions(+)
->>>   create mode 100644 drivers/acpi/iort.c
->>>   create mode 100644 include/linux/iort.h
->>>
->>
->> [...]
->>
->>> +static acpi_status
->>> +iort_find_dev_callback(struct acpi_iort_node *node, void *context)
->>> +{
->>> +	struct acpi_iort_root_complex *pci_rc;
->>> +	struct device *dev = context;
->>> +	struct pci_bus *bus;
->>> +
->>> +	switch (node->type) {
->>> +	case ACPI_IORT_NODE_PCI_ROOT_COMPLEX:
->>> +		bus = to_pci_bus(dev);
->>> +		pci_rc = (struct acpi_iort_root_complex *)node->node_data;
->>> +
->>> +		/*
->>> +		 * It is assumed that PCI segment numbers maps one-to-one
->>> +		 * with root complexes. Each segment number can represent only
->>> +		 * one root complex.
->>> +		 */
->>> +		if (pci_rc->pci_segment_number == pci_domain_nr(bus))
->>> +			return AE_OK;
->>
->> What guarantees that this is ever valid? As far as I know, pci_domain_nr
->> is completely arbitrary, and depends both on the probe order and the
->> phase of the moon. If you want this to be reliable, you need to allocate
->> the domain number from pci_segment_number.
->>
->> I must be missing something. Care to shed some light on this?
->>
-> Sure. Please see:
-> http://infocenter.arm.com/help/topic/com.arm.doc.den0049a/DEN0049A_IO_Remapping_Table.pdf
-> 3.1.1.5 PCI root complex node
-> PCI Segment number -> The PCI segment number, as in MCFG and as
-> returned by _SEG in the namespace.
-> 
-> So IORT spec states that pci_segment_number corresponds to the segment 
-> number from MCFG table and _SEG method. Here is my patch which makes 
-> sure pci_domain_nr(bus) is set properly:
-> https://lkml.org/lkml/2016/2/16/418
+On Mon, Apr 11, 2016 at 5:13 AM, Lv Zheng <lv.zheng@intel.com> wrote:
+>
+> This patch converts the initrd table override mechanism to the table
+> upgrade mechanism by restricting its usage to the tables released with
+> compatibility and more recent revision.
+>
+> This use case has been encouraged by the ACPI specification:
+> 1. OEMID:
+>    An OEM-supplied string that identifies the OEM.
+> 2. OEM Table ID:
+>    An OEM-supplied string that the OEM uses to identify the particular data
+>    table. This field is particularly useful when defining a definition
+>    block to distinguish definition block functions. OEM assigns each
+>    dissimilar table a new OEM Table Id.
+> 3. OEM Revision:
+>    An OEM-supplied revision number. Larger numbers are assumed to be newer
+>    revisions.
+> For OEMs, good practices will ensure consistency when assigning OEMID and
+> OEM Table ID fields in any table. The intent of these fields is to allow
+> for a binary control system that support services can use. Because many
+> support function can be automated, it is useful when a tool can
+> programatically determine which table release is a compatible and more
+> recent revision of a prior table on the same OEMID and OEM Table ID.
+>
+> The facility can now be used by the vendors to upgrade wrong tables for bug
+> fixing purpose, thus lockdep disabling taint is not suitable for it and it
+> should be a default 'y' option to implement the spec encouraged use case.
+>
 
-Lovely. So this series is actually dependent on the PCI one. I guess we
-need to solve that one first, because IORT seems pretty pointless if we
-don't have PCI support. What's the plan?
+I agree that we should not force lockdep disabling. I wonder if we
+should add a new taint (like the one I proposed in the overlay patch
+set) to see in bug reports that the ACPI tables have been modified.
 
-	M.
--- 
-Jazz is not dead. It just smells funny...
+Also, do we need a new config option? IMO it would be better if we can
+keep the existing config option and do the following:
+
+* if CONFIG_ACPI_INITRD_TABLE_OVERRIDE is set: allow arbitrary
+overrides (preserve the current behavior)
+
+* if CONFIG_ACPI_INITRD_TABLE_OVERRIDE is not set: allow upgrades
+based on the revision number
+
+* allow adding new tables regardless of CONFIG_ACPI_INITRD_TABLE_OVERRIDE
