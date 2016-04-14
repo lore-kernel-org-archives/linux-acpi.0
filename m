@@ -1,84 +1,49 @@
-From: Marc Zyngier <marc.zyngier@arm.com>
-Subject: Re: [PATCH V4 4/7] ARM64, ACPI, PCI: I/O Remapping Table (IORT)
- initial support.
-Date: Thu, 14 Apr 2016 12:48:18 +0100
-Message-ID: <570F8382.6040307@arm.com>
-References: <1459759975-24097-1-git-send-email-tn@semihalf.com>
- <1459759975-24097-5-git-send-email-tn@semihalf.com>
- <570E645A.9010600@arm.com> <570E6794.4080409@semihalf.com>
- <570E6B2C.3060700@arm.com> <570EB78E.4060705@codeaurora.org>
- <570F44CD.7090605@semihalf.com> <570F4886.70405@arm.com>
- <32c49fc25832b4cee05e5c9352c2f6cf@codeaurora.org>
+From: Linus Walleij <linus.walleij@linaro.org>
+Subject: Re: [RFC PATCH v2 0/3] Add ACPI support for pinctrl configuration
+Date: Thu, 14 Apr 2016 13:58:17 +0200
+Message-ID: <CACRpkdbj==q5wp2Z5-ZXkbfeXa4y+beLF_3YN-vS3CtyAKGwkg@mail.gmail.com>
+References: <1459870406-15219-1-git-send-email-irina.tirdea@intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <32c49fc25832b4cee05e5c9352c2f6cf@codeaurora.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: okaya@codeaurora.org
-Cc: Tomasz Nowicki <tn@semihalf.com>, tglx@linutronix.de, jason@lakedaemon.net, rjw@rjwysocki.net, lorenzo.pieralisi@arm.com, robert.richter@caviumnetworks.com, shijie.huang@arm.com, Suravee.Suthikulpanit@amd.com, hanjun.guo@linaro.org, al.stone@linaro.org, mw@semihalf.com, graeme.gregory@linaro.org, Catalin.Marinas@arm.com, will.deacon@arm.com, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org, ddaney.cavm@gmail.com
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-gpio-owner@vger.kernel.org>
+In-Reply-To: <1459870406-15219-1-git-send-email-irina.tirdea@intel.com>
+Sender: linux-gpio-owner@vger.kernel.org
+To: Irina Tirdea <irina.tirdea@intel.com>, Graeme Gregory <gg@slimlogic.co.uk>, Octavian Purdila <octavian.purdila@intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: Len Brown <lenb@kernel.org>, Mika Westerberg <mika.westerberg@linux.intel.com>, "linux-gpio@vger.kernel.org" <linux-gpio@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Rob Herring <robh+dt@kernel.org>, Heikki Krogerus <heikki.krogerus@linux.intel.com>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Cristina Ciocan <cristina.ciocan@intel.com>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On 14/04/16 12:37, okaya@codeaurora.org wrote:
-> On 2016-04-14 03:36, Marc Zyngier wrote:
->> On 14/04/16 08:20, Tomasz Nowicki wrote:
->>> On 13.04.2016 23:18, Sinan Kaya wrote:
->>>> On 4/13/2016 11:52 AM, Marc Zyngier wrote:
->>>>>>> Sure. Please see:
->>>>>>> http://infocenter.arm.com/help/topic/com.arm.doc.den0049a/DEN0049A_IO_Remapping_Table.pdf
->>>>>>> 3.1.1.5 PCI root complex node
->>>>>>> PCI Segment number -> The PCI segment number, as in MCFG and as
->>>>>>> returned by _SEG in the namespace.
->>>>>>>
->>>>>>> So IORT spec states that pci_segment_number corresponds to the 
->>>>>>> segment
->>>>>>> number from MCFG table and _SEG method. Here is my patch which 
->>>>>>> makes
->>>>>>> sure pci_domain_nr(bus) is set properly:
->>>>>>> https://lkml.org/lkml/2016/2/16/418
->>>>> Lovely. So this series is actually dependent on the PCI one. I guess 
->>>>> we
->>>>> need to solve that one first, because IORT seems pretty pointless if 
->>>>> we
->>>>> don't have PCI support. What's the plan?
->>>>
->>>> Would it be OK to split the PCI specific section of the patch and 
->>>> continue
->>>> review? PCI is a user of the IORT table. Not the other way around.
->>>
->>> I need to disagree. What would be the use case for patches w/o "PCI 
->>> part" ?
->>
->> Quite. PCI (as a subsystem) doesn't need IORT at all, thank you very
->> much. GIC (implementing MSI) and SMMU (implementing DMA) do, by virtue
->> of RID/SID/DID being translated all over the place.
->>
->> So by the look of it, the dependency chain is GIC+SMMU->IORT->PCI.
->>
->> The GIC changes here are pretty mechanical, and not that interesting.
->> The stuff that needs sorting quickly is PCI, because all this work is
->> pointless if we don't have it.
->>
->> At the risk of sounding like a stuck record: What's the plan?
->>
->> Thanks,
->>
->> 	M.
-> 
-> My answer is based on the spec definition. The spec defines named 
-> components for other peripherals that are behind iommu and can 
-> potentially implement msi.
-> 
-> You could have used a basic device like platform sata to take care of 
-> basic iort and smmu support.
-> 
-> You can then come back and implement PCIe support.
+On Tue, Apr 5, 2016 at 5:33 PM, Irina Tirdea <irina.tirdea@intel.com> wrote:
 
-I could. You could do it too. Thankfully, the dependency is dictated by
-whoever is writing the code.
+> This is a proposal for adding ACPI support for pin controller
+> configuration.
 
-Thanks,
+The patch set is tagged RFC and I see that comments you
+got a lot of, so I'm looking forward to see what is happening.
 
-	M.
--- 
-Jazz is not dead. It just smells funny...
+I have identified the following stakeholders:
+
+- Irina, Octavian, Mika: want to use ACPI for pin control,
+  their draft idea is expressed in this RFC
+
+- Mark R, Mark B, Graeme + more: want to avoid clashes
+  with existing or upcoming ACPI standardization attempts
+
+- Rafael as ACPI maintainer for Linux, he seems to be
+  in the same diplomatic middle-ground as I am
+
+Clearly this is too high level of conflicting interests for me
+to proceed with this proposal as it stands today.
+
+If however we see products deployed using this method as
+put forward in the proposal, there is not much to do: we will
+just have to support it. I am just hoping that this is not happening
+as we speak.
+
+I am somewhat waiting for the ACPI crowd to bring a
+counter-proposal to the table. Or some statement of when
+they would be able to present one: I certainly understand that
+standardization takes time. DT and ACPI both suffer from the
+fact that they sometimes need big upfront design.
+
+Yours,
+Linus Walleij
