@@ -1,168 +1,63 @@
 From: "Luis R. Rodriguez" <mcgrof@kernel.org>
-Subject: [PATCH v6 11/16] pnpbios: replace paravirt_enabled() check with legacy device check
-Date: Wed, 13 Apr 2016 17:04:41 -0700
-Message-ID: <1460592286-300-12-git-send-email-mcgrof@kernel.org>
+Subject: [PATCH v6 06/16] x86/init: use a platform legacy quirk
+	for ebda
+Date: Wed, 13 Apr 2016 17:04:36 -0700
+Message-ID: <1460592286-300-7-git-send-email-mcgrof@kernel.org>
 References: <1460592286-300-1-git-send-email-mcgrof@kernel.org>
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <xen-devel-bounces@lists.xen.org>
 In-Reply-To: <1460592286-300-1-git-send-email-mcgrof@kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
+List-Unsubscribe: <http://lists.xen.org/cgi-bin/mailman/options/xen-devel>,
+ <mailto:xen-devel-request@lists.xen.org?subject=unsubscribe>
+List-Post: <mailto:xen-devel@lists.xen.org>
+List-Help: <mailto:xen-devel-request@lists.xen.org?subject=help>
+List-Subscribe: <http://lists.xen.org/cgi-bin/mailman/listinfo/xen-devel>,
+ <mailto:xen-devel-request@lists.xen.org?subject=subscribe>
+Errors-To: xen-devel-bounces@lists.xen.org
+Sender: "Xen-devel" <xen-devel-bounces@lists.xen.org>
 To: bp@alien8.de, hpa@zytor.com, tglx@linutronix.de, mingo@redhat.com, rusty@rustcorp.com.au
-Cc: x86@kernel.org, linux-kernel@vger.kernel.org, luto@amacapital.net, boris.ostrovsky@oracle.com, jgross@suse.com, david.vrabel@citrix.com, konrad.wilk@oracle.com, xen-devel@lists.xensource.com, lguest@lists.ozlabs.org, andriy.shevchenko@linux.intel.com, jlee@suse.com, glin@suse.com, matt@codeblueprint.co.uk, andrew.cooper3@citrix.com, rjw@rjwysocki.net, lenb@kernel.org, robert.moore@intel.com, lv.zheng@intel.com, toshi.kani@hp.com, linux-acpi@vger.kernel.org, kozerkov@parallels.com, josh@joshtriplett.org, bigeasy@linutronix.de, ffainelli@freebox.fr, george.dunlap@citrix.com, julien.grall@linaro.org, mbizon@freebox.fr, tiwai@suse.de, "Luis R. Rodriguez" <mcgrof@kernel.org>
+Cc: kozerkov@parallels.com, matt@codeblueprint.co.uk, bigeasy@linutronix.de, lv.zheng@intel.com, ffainelli@freebox.fr, mbizon@freebox.fr, xen-devel@lists.xensource.com, x86@kernel.org, robert.moore@intel.com, linux-acpi@vger.kernel.org, glin@suse.com, lenb@kernel.org, julien.grall@linaro.org, josh@joshtriplett.org, george.dunlap@citrix.com, jlee@suse.com, lguest@lists.ozlabs.org, boris.ostrovsky@oracle.com, andriy.shevchenko@linux.intel.com, jgross@suse.com, toshi.kani@hp.com, andrew.cooper3@citrix.com, rjw@rjwysocki.net, linux-kernel@vger.kernel.org, luto@amacapital.net, "Luis R. Rodriguez" <mcgrof@kernel.org>, david.vrabel@citrix.com, tiwai@suse.de
 List-Id: linux-acpi@vger.kernel.org
 
-Since we are removing paravirt_enabled() replace it with a
-logical equivalent. Even though PNPBIOS is x86 specific we
-add an arch-specific type call, which can be implemented by
-any architecture to show how other legacy attribute devices
-can later be also checked for with other ACPI legacy attribute
-flags.
-
-This implicates the first ACPI 5.2.9.3 IA-PC Boot Architecture
-ACPI_FADT_LEGACY_DEVICES flag device, and shows how to add more.
-
-The reason pnpbios gets a defined structure and as such uses
-a different approach than the RTC legacy quirk is that ACPI
-has a respective RTC flag, while pnpbios does not. We fold
-the pnpbios quirk under ACPI_FADT_LEGACY_DEVICES ACPI flag
-use case, and use a struct of possible devices to enable
-future extensions of this.
-
-As per 0-day, this bumps the vmlinux size using i386-tinyconfig as
-follows:
-
-TOTAL   TEXT   init.text   x86_early_init_platform_quirks()
-+32     +28    +28         +28
-
-That's 4 byte overhead total, the rest is cleared out on init
-as its all __init text.
-
-v2: split out subarch handlng on switch to make it easier
-    later to add other subarchs. The 'fall-through' switch
-    handling can be confusing and we'll remove it later
-    when we add handling for X86_SUBARCH_CE4100.
-v3: document vmlinux size impact as per 0-day, and also
-    explain why pnpbios is treated differently than the
-    RTC legacy feature.
-
-Signed-off-by: Luis R. Rodriguez <mcgrof@kernel.org>
----
- arch/x86/include/asm/x86_init.h   | 26 ++++++++++++++++++++++++++
- arch/x86/kernel/platform-quirks.c | 11 +++++++++++
- drivers/pnp/pnpbios/core.c        |  3 ++-
- include/linux/pnp.h               |  2 ++
- 4 files changed, 41 insertions(+), 1 deletion(-)
-
-diff --git a/arch/x86/include/asm/x86_init.h b/arch/x86/include/asm/x86_init.h
-index 89d9d57e145d..4dcdf74dfed8 100644
---- a/arch/x86/include/asm/x86_init.h
-+++ b/arch/x86/include/asm/x86_init.h
-@@ -142,15 +142,41 @@ struct x86_cpuinit_ops {
- struct timespec;
- 
- /**
-+ * struct x86_legacy_devices - legacy x86 devices
-+ *
-+ * @pnpbios: this platform can have a PNPBIOS. If this is disabled the platform
-+ * 	is known to never have a PNPBIOS.
-+ *
-+ * These are devices known to require LPC or ISA bus. The definition of legacy
-+ * devices adheres to the ACPI 5.2.9.3 IA-PC Boot Architecture flag
-+ * ACPI_FADT_LEGACY_DEVICES. These devices consist of user visible devices on
-+ * the LPC or ISA bus. User visible devices are devices that have end-user
-+ * accessible connectors (for example, LPT parallel port). Legacy devices on
-+ * the LPC bus consist for example of serial and parallel ports, PS/2 keyboard
-+ * / mouse, and the floppy disk controller. A system that lacks all known
-+ * legacy devices can assume all devices can be detected exclusively via
-+ * standard device enumeration mechanisms including the ACPI namespace.
-+ *
-+ * A system which has does not have ACPI_FADT_LEGACY_DEVICES enabled must not
-+ * have any of the legacy devices enumerated below present.
-+ */
-+struct x86_legacy_devices {
-+	int pnpbios;
-+};
-+
-+/**
-  * struct x86_legacy_features - legacy x86 features
-  *
-  * @rtc: this device has a CMOS real-time clock present
-  * @ebda_search: it's safe to search for the EBDA signature in the hardware's
-  * 	low RAM
-+ * @devices: legacy x86 devices, refer to struct x86_legacy_devices
-+ * 	documentation for further details.
-  */
- struct x86_legacy_features {
- 	int rtc;
- 	int ebda_search;
-+	struct x86_legacy_devices devices;
- };
- 
- /**
-diff --git a/arch/x86/kernel/platform-quirks.c b/arch/x86/kernel/platform-quirks.c
-index 01b159781d96..ab643825a7aa 100644
---- a/arch/x86/kernel/platform-quirks.c
-+++ b/arch/x86/kernel/platform-quirks.c
-@@ -8,6 +8,7 @@ void __init x86_early_init_platform_quirks(void)
- {
- 	x86_platform.legacy.rtc = 1;
- 	x86_platform.legacy.ebda_search = 0;
-+	x86_platform.legacy.devices.pnpbios = 1;
- 
- 	switch (boot_params.hdr.hardware_subarch) {
- 	case X86_SUBARCH_PC:
-@@ -15,6 +16,9 @@ void __init x86_early_init_platform_quirks(void)
- 		break;
- 	case X86_SUBARCH_XEN:
- 	case X86_SUBARCH_LGUEST:
-+		x86_platform.legacy.devices.pnpbios = 0;
-+		x86_platform.legacy.rtc = 0;
-+		break;
- 	case X86_SUBARCH_INTEL_MID:
- 		x86_platform.legacy.rtc = 0;
- 		break;
-@@ -23,3 +27,10 @@ void __init x86_early_init_platform_quirks(void)
- 	if (x86_platform.set_legacy_features)
- 		x86_platform.set_legacy_features();
- }
-+
-+#if defined(CONFIG_PNPBIOS)
-+bool __init arch_pnpbios_disabled(void)
-+{
-+	return x86_platform.legacy.devices.pnpbios == 0;
-+}
-+#endif
-diff --git a/drivers/pnp/pnpbios/core.c b/drivers/pnp/pnpbios/core.c
-index facd43b8516c..81603d99082b 100644
---- a/drivers/pnp/pnpbios/core.c
-+++ b/drivers/pnp/pnpbios/core.c
-@@ -521,10 +521,11 @@ static int __init pnpbios_init(void)
- 	int ret;
- 
- 	if (pnpbios_disabled || dmi_check_system(pnpbios_dmi_table) ||
--	    paravirt_enabled()) {
-+	    arch_pnpbios_disabled()) {
- 		printk(KERN_INFO "PnPBIOS: Disabled\n");
- 		return -ENODEV;
- 	}
-+
- #ifdef CONFIG_PNPACPI
- 	if (!acpi_disabled && !pnpacpi_disabled) {
- 		pnpbios_disabled = 1;
-diff --git a/include/linux/pnp.h b/include/linux/pnp.h
-index 5df733b8f704..2588ca6a9028 100644
---- a/include/linux/pnp.h
-+++ b/include/linux/pnp.h
-@@ -337,9 +337,11 @@ extern struct mutex pnp_res_mutex;
- 
- #ifdef CONFIG_PNPBIOS
- extern struct pnp_protocol pnpbios_protocol;
-+extern bool arch_pnpbios_disabled(void);
- #define pnp_device_is_pnpbios(dev) ((dev)->protocol == (&pnpbios_protocol))
- #else
- #define pnp_device_is_pnpbios(dev) 0
-+#define arch_pnpbios_disabled()	false
- #endif
- 
- #ifdef CONFIG_PNPACPI
--- 
-2.7.2
+VGhpcyByZXBsYWNlcyB0aGUgcGFyYXZpcnRfZW5hYmxlZCgpIGNoZWNrIHdpdGggYQpwcm9wZXIg
+eDg2IGxlZ2FjeSBwbGF0Zm9ybSBxdWlyay4KCkFzIHBlciAwLWRheSwgdGhpcyBidW1wcyB0aGUg
+dm1saW51eCBzaXplIHVzaW5nIGkzODYtdGlueWNvbmZpZyBhcwpmb2xsb3dzOgoKVE9UQUwgICBU
+RVhUICAgaW5pdC50ZXh0ICAgeDg2X2Vhcmx5X2luaXRfcGxhdGZvcm1fcXVpcmtzKCkKKzM5ICAg
+ICArMzUgICAgKzM1ICAgICAgICAgKzI1CgpUaGF0J3MgYSA0IGJ5dGUgdG90YWwgb3ZlcmhlYWQs
+IHRoZSByZXN0IGlzIGFsbCBjbGVhcmVkIG91dAp1cG9uIGluaXQgYXMgaXRzIGFsbCBfX2luaXQg
+dGV4dC4KCnYyOiBkb2N1bWVudCAwLWRheSB2bWxpbnV4IHNpemUgaW1wYWN0CgpTaWduZWQtb2Zm
+LWJ5OiBMdWlzIFIuIFJvZHJpZ3VleiA8bWNncm9mQGtlcm5lbC5vcmc+Ci0tLQogYXJjaC94ODYv
+aW5jbHVkZS9hc20veDg2X2luaXQuaCAgIHwgMyArKysKIGFyY2gveDg2L2tlcm5lbC9oZWFkLmMg
+ICAgICAgICAgICB8IDIgKy0KIGFyY2gveDg2L2tlcm5lbC9wbGF0Zm9ybS1xdWlya3MuYyB8IDQg
+KysrKwogMyBmaWxlcyBjaGFuZ2VkLCA4IGluc2VydGlvbnMoKyksIDEgZGVsZXRpb24oLSkKCmRp
+ZmYgLS1naXQgYS9hcmNoL3g4Ni9pbmNsdWRlL2FzbS94ODZfaW5pdC5oIGIvYXJjaC94ODYvaW5j
+bHVkZS9hc20veDg2X2luaXQuaAppbmRleCA4YmI4YzFhNDYxNWEuLjg5ZDlkNTdlMTQ1ZCAxMDA2
+NDQKLS0tIGEvYXJjaC94ODYvaW5jbHVkZS9hc20veDg2X2luaXQuaAorKysgYi9hcmNoL3g4Ni9p
+bmNsdWRlL2FzbS94ODZfaW5pdC5oCkBAIC0xNDUsOSArMTQ1LDEyIEBAIHN0cnVjdCB0aW1lc3Bl
+YzsKICAqIHN0cnVjdCB4ODZfbGVnYWN5X2ZlYXR1cmVzIC0gbGVnYWN5IHg4NiBmZWF0dXJlcwog
+ICoKICAqIEBydGM6IHRoaXMgZGV2aWNlIGhhcyBhIENNT1MgcmVhbC10aW1lIGNsb2NrIHByZXNl
+bnQKKyAqIEBlYmRhX3NlYXJjaDogaXQncyBzYWZlIHRvIHNlYXJjaCBmb3IgdGhlIEVCREEgc2ln
+bmF0dXJlIGluIHRoZSBoYXJkd2FyZSdzCisgKiAJbG93IFJBTQogICovCiBzdHJ1Y3QgeDg2X2xl
+Z2FjeV9mZWF0dXJlcyB7CiAJaW50IHJ0YzsKKwlpbnQgZWJkYV9zZWFyY2g7CiB9OwogCiAvKioK
+ZGlmZiAtLWdpdCBhL2FyY2gveDg2L2tlcm5lbC9oZWFkLmMgYi9hcmNoL3g4Ni9rZXJuZWwvaGVh
+ZC5jCmluZGV4IDk5MmY0NDJjYTE1NS4uYWZlNjVkZmZlZTgwIDEwMDY0NAotLS0gYS9hcmNoL3g4
+Ni9rZXJuZWwvaGVhZC5jCisrKyBiL2FyY2gveDg2L2tlcm5lbC9oZWFkLmMKQEAgLTM4LDcgKzM4
+LDcgQEAgdm9pZCBfX2luaXQgcmVzZXJ2ZV9lYmRhX3JlZ2lvbih2b2lkKQogCSAqIHRoYXQgdGhl
+IHBhcmF2aXJ0IGNhc2UgY2FuIGhhbmRsZSBtZW1vcnkgc2V0dXAKIAkgKiBjb3JyZWN0bHksIHdp
+dGhvdXQgb3VyIGhlbHAuCiAJICovCi0JaWYgKHBhcmF2aXJ0X2VuYWJsZWQoKSkKKwlpZiAoIXg4
+Nl9wbGF0Zm9ybS5sZWdhY3kuZWJkYV9zZWFyY2gpCiAJCXJldHVybjsKIAogCS8qIGVuZCBvZiBs
+b3cgKGNvbnZlbnRpb25hbCkgbWVtb3J5ICovCmRpZmYgLS1naXQgYS9hcmNoL3g4Ni9rZXJuZWwv
+cGxhdGZvcm0tcXVpcmtzLmMgYi9hcmNoL3g4Ni9rZXJuZWwvcGxhdGZvcm0tcXVpcmtzLmMKaW5k
+ZXggMDIxYTVmOTczY2UzLi4wMWIxNTk3ODFkOTYgMTAwNjQ0Ci0tLSBhL2FyY2gveDg2L2tlcm5l
+bC9wbGF0Zm9ybS1xdWlya3MuYworKysgYi9hcmNoL3g4Ni9rZXJuZWwvcGxhdGZvcm0tcXVpcmtz
+LmMKQEAgLTcsOCArNywxMiBAQAogdm9pZCBfX2luaXQgeDg2X2Vhcmx5X2luaXRfcGxhdGZvcm1f
+cXVpcmtzKHZvaWQpCiB7CiAJeDg2X3BsYXRmb3JtLmxlZ2FjeS5ydGMgPSAxOworCXg4Nl9wbGF0
+Zm9ybS5sZWdhY3kuZWJkYV9zZWFyY2ggPSAwOwogCiAJc3dpdGNoIChib290X3BhcmFtcy5oZHIu
+aGFyZHdhcmVfc3ViYXJjaCkgeworCWNhc2UgWDg2X1NVQkFSQ0hfUEM6CisJCXg4Nl9wbGF0Zm9y
+bS5sZWdhY3kuZWJkYV9zZWFyY2ggPSAxOworCQlicmVhazsKIAljYXNlIFg4Nl9TVUJBUkNIX1hF
+TjoKIAljYXNlIFg4Nl9TVUJBUkNIX0xHVUVTVDoKIAljYXNlIFg4Nl9TVUJBUkNIX0lOVEVMX01J
+RDoKLS0gCjIuNy4yCgoKX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
+X19fX18KWGVuLWRldmVsIG1haWxpbmcgbGlzdApYZW4tZGV2ZWxAbGlzdHMueGVuLm9yZwpodHRw
+Oi8vbGlzdHMueGVuLm9yZy94ZW4tZGV2ZWwK
