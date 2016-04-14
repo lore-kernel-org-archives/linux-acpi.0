@@ -1,247 +1,81 @@
-From: Suzuki K Poulose <Suzuki.Poulose-5wv7dgnIgG8@public.gmane.org>
-Subject: Re: [PATCH V2 2/9] ras: acpi/apei: cper: generic error data entry v3
- per ACPI 6.1
-Date: Thu, 14 Apr 2016 11:22:46 +0100
-Message-ID: <570F6F76.3060804@arm.com>
-References: <1459955578-24602-1-git-send-email-tbaicar@codeaurora.org>
- <1459955578-24602-3-git-send-email-tbaicar@codeaurora.org>
+From: okaya@codeaurora.org
+Subject: Re: [PATCH V4 4/7] ARM64, ACPI, PCI: I/O Remapping Table (IORT)
+ initial support.
+Date: Thu, 14 Apr 2016 07:37:48 -0400
+Message-ID: <32c49fc25832b4cee05e5c9352c2f6cf@codeaurora.org>
+References: <1459759975-24097-1-git-send-email-tn@semihalf.com>
+ <1459759975-24097-5-git-send-email-tn@semihalf.com>
+ <570E645A.9010600@arm.com> <570E6794.4080409@semihalf.com>
+ <570E6B2C.3060700@arm.com> <570EB78E.4060705@codeaurora.org>
+ <570F44CD.7090605@semihalf.com> <570F4886.70405@arm.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Type: text/plain; charset=US-ASCII;
+ format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-efi-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1459955578-24602-3-git-send-email-tbaicar-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>
-Sender: linux-efi-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Tyler Baicar <tbaicar-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, fu.wei-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org, timur-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org, harba-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org, rruigrok-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org, ahs3-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, catalin.marinas-5wv7dgnIgG8@public.gmane.org, will.deacon-5wv7dgnIgG8@public.gmane.org, rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org, lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, matt-mF/unelCI9GS6iBeEJttW/XRex20P6io@public.gmane.org, robert.moore-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, lv.zheng-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-efi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devel-E0kO6a4B6psdnm+yROfE0A@public.gmane.org
-Cc: "Jonathan (Zhixiong) Zhang" <zjzhang-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, Naveen Kaje <nkaje-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from smtp.codeaurora.org ([198.145.29.96]:60793 "EHLO
+	smtp.codeaurora.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754558AbcDNLhu (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 14 Apr 2016 07:37:50 -0400
+In-Reply-To: <570F4886.70405@arm.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Marc Zyngier <marc.zyngier@arm.com>
+Cc: Tomasz Nowicki <tn@semihalf.com>, tglx@linutronix.de, jason@lakedaemon.net, rjw@rjwysocki.net, lorenzo.pieralisi@arm.com, robert.richter@caviumnetworks.com, shijie.huang@arm.com, Suravee.Suthikulpanit@amd.com, hanjun.guo@linaro.org, al.stone@linaro.org, mw@semihalf.com, graeme.gregory@linaro.org, Catalin.Marinas@arm.com, will.deacon@arm.com, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org, ddaney.cavm@gmail.com
 
-On 06/04/16 16:12, Tyler Baicar wrote:
-> Currently when a RAS error is reported it is not timestamped.
-> The ACPI 6.1 spec adds the timestamp field to the generic error
-> data entry v3 structure. The timestamp of when the firmware
-> generated the error is now being reported.
->
-> Signed-off-by: Jonathan (Zhixiong) Zhang <zjzhang-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>
-> Signed-off-by: Richard Ruigrok <rruigrok-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>
-> Signed-off-by: Tyler Baicar <tbaicar-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>
-> Signed-off-by: Naveen Kaje <nkaje-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>
-> ---
->   drivers/acpi/apei/ghes.c    |  35 ++++++++++++--
->   drivers/firmware/efi/cper.c | 111 +++++++++++++++++++++++++++++++++++++-------
->   2 files changed, 126 insertions(+), 20 deletions(-)
->
-> diff --git a/drivers/acpi/apei/ghes.c b/drivers/acpi/apei/ghes.c
-> index 9b0543e..a6848706 100644
-> --- a/drivers/acpi/apei/ghes.c
-> +++ b/drivers/acpi/apei/ghes.c
-> @@ -419,7 +419,15 @@ static void ghes_handle_memory_failure(struct acpi_hest_generic_data *gdata, int
->   	int flags = -1;
->   	int sec_sev = ghes_severity(gdata->error_severity);
->   	struct cper_sec_mem_err *mem_err;
-> -	mem_err = (struct cper_sec_mem_err *)(gdata + 1);
-> +	struct acpi_hest_generic_data_v300 *gdata_v3 = NULL;
-> +
-> +	if ((gdata->revision >> 8) >= 0x03)
+On 2016-04-14 03:36, Marc Zyngier wrote:
+> On 14/04/16 08:20, Tomasz Nowicki wrote:
+>> On 13.04.2016 23:18, Sinan Kaya wrote:
+>>> On 4/13/2016 11:52 AM, Marc Zyngier wrote:
+>>>>>> Sure. Please see:
+>>>>>> http://infocenter.arm.com/help/topic/com.arm.doc.den0049a/DEN0049A_IO_Remapping_Table.pdf
+>>>>>> 3.1.1.5 PCI root complex node
+>>>>>> PCI Segment number -> The PCI segment number, as in MCFG and as
+>>>>>> returned by _SEG in the namespace.
+>>>>>> 
+>>>>>> So IORT spec states that pci_segment_number corresponds to the 
+>>>>>> segment
+>>>>>> number from MCFG table and _SEG method. Here is my patch which 
+>>>>>> makes
+>>>>>> sure pci_domain_nr(bus) is set properly:
+>>>>>> https://lkml.org/lkml/2016/2/16/418
+>>>> Lovely. So this series is actually dependent on the PCI one. I guess 
+>>>> we
+>>>> need to solve that one first, because IORT seems pretty pointless if 
+>>>> we
+>>>> don't have PCI support. What's the plan?
+>>> 
+>>> Would it be OK to split the PCI specific section of the patch and 
+>>> continue
+>>> review? PCI is a user of the IORT table. Not the other way around.
+>> 
+>> I need to disagree. What would be the use case for patches w/o "PCI 
+>> part" ?
+> 
+> Quite. PCI (as a subsystem) doesn't need IORT at all, thank you very
+> much. GIC (implementing MSI) and SMMU (implementing DMA) do, by virtue
+> of RID/SID/DID being translated all over the place.
+> 
+> So by the look of it, the dependency chain is GIC+SMMU->IORT->PCI.
+> 
+> The GIC changes here are pretty mechanical, and not that interesting.
+> The stuff that needs sorting quickly is PCI, because all this work is
+> pointless if we don't have it.
+> 
+> At the risk of sounding like a stuck record: What's the plan?
+> 
+> Thanks,
+> 
+> 	M.
 
-Could we please make that a macro ? We seem to be using the check everywhere.
+My answer is based on the spec definition. The spec defines named 
+components for other peripherals that are behind iommu and can 
+potentially implement msi.
 
-> +		gdata_v3 = (struct acpi_hest_generic_data_v300 *)gdata;
-> +
-> +	if (gdata_v3)
-> +		mem_err = (struct cper_sec_mem_err *)(gdata_v3 + 1);
-> +	else
-> +		mem_err = (struct cper_sec_mem_err *)(gdata + 1);
->
->   	if (!(mem_err->validation_bits & CPER_MEM_VALID_PA))
->   		return;
-> @@ -449,14 +457,27 @@ static void ghes_do_proc(struct ghes *ghes,
->   {
->   	int sev, sec_sev;
->   	struct acpi_hest_generic_data *gdata;
-> +	struct acpi_hest_generic_data_v300 *gdata_v3 = NULL;
-> +	uuid_le sec_type;
->
->   	sev = ghes_severity(estatus->error_severity);
->   	apei_estatus_for_each_section(estatus, gdata) {
->   		sec_sev = ghes_severity(gdata->error_severity);
-> -		if (!uuid_le_cmp(*(uuid_le *)gdata->section_type,
-> +		sec_type = *(uuid_le *)gdata->section_type;
-> +
-> +		if ((gdata->revision >> 8) >= 0x03)
-> +			gdata_v3 = (struct acpi_hest_generic_data_v300 *)gdata;
-> +
-> +		if (!uuid_le_cmp(sec_type,
->   				 CPER_SEC_PLATFORM_MEM)) {
->   			struct cper_sec_mem_err *mem_err;
-> -			mem_err = (struct cper_sec_mem_err *)(gdata+1);
-> +
-> +			if (gdata_v3)
-> +				mem_err = (struct cper_sec_mem_err *)
-> +					  (gdata_v3 + 1);
-> +			else
-> +				mem_err = (struct cper_sec_mem_err *)
-> +					  (gdata + 1);
->   			ghes_edac_report_mem_error(ghes, sev, mem_err);
->
->   			arch_apei_report_mem_error(sev, mem_err);
-> @@ -466,7 +487,13 @@ static void ghes_do_proc(struct ghes *ghes,
->   		else if (!uuid_le_cmp(*(uuid_le *)gdata->section_type,
->   				      CPER_SEC_PCIE)) {
->   			struct cper_sec_pcie *pcie_err;
-> -			pcie_err = (struct cper_sec_pcie *)(gdata+1);
-> +
-> +			if (gdata_v3)
-> +				pcie_err = (struct cper_sec_pcie *)
-> +					   (gdata_v3 + 1);
-> +			else
-> +				pcie_err = (struct cper_sec_pcie *)
-> +					   (gdata + 1);
->   			if (sev == GHES_SEV_RECOVERABLE &&
->   			    sec_sev == GHES_SEV_RECOVERABLE &&
->   			    pcie_err->validation_bits & CPER_PCIE_VALID_DEVICE_ID &&
-> diff --git a/drivers/firmware/efi/cper.c b/drivers/firmware/efi/cper.c
-> index d425374..23f62962 100644
-> --- a/drivers/firmware/efi/cper.c
-> +++ b/drivers/firmware/efi/cper.c
-> @@ -32,6 +32,8 @@
->   #include <linux/acpi.h>
->   #include <linux/pci.h>
->   #include <linux/aer.h>
-> +#include <linux/printk.h>
-> +#include <linux/bcd.h>
->
->   #define INDENT_SP	" "
->
-> @@ -392,6 +394,10 @@ static void cper_estatus_print_section(
->   	uuid_le *sec_type = (uuid_le *)gdata->section_type;
->   	__u16 severity;
->   	char newpfx[64];
-> +	struct acpi_hest_generic_data_v300 *gdata_v3 = NULL;
-> +
-> +	if ((gdata->revision >> 8) >= 0x03)
-> +		gdata_v3 = (struct acpi_hest_generic_data_v300 *)gdata;
->
->   	severity = gdata->error_severity;
->   	printk("%s""Error %d, type: %s\n", pfx, sec_no,
-> @@ -403,14 +409,24 @@ static void cper_estatus_print_section(
->
->   	snprintf(newpfx, sizeof(newpfx), "%s%s", pfx, INDENT_SP);
->   	if (!uuid_le_cmp(*sec_type, CPER_SEC_PROC_GENERIC)) {
-> -		struct cper_sec_proc_generic *proc_err = (void *)(gdata + 1);
-> +		struct cper_sec_proc_generic *proc_err;
-> +
-> +		if (gdata_v3)
-> +			proc_err = (void *)(gdata_v3 + 1);
-> +		else
-> +			proc_err = (void *)(gdata + 1);
->   		printk("%s""section_type: general processor error\n", newpfx);
->   		if (gdata->error_data_length >= sizeof(*proc_err))
->   			cper_print_proc_generic(newpfx, proc_err);
->   		else
->   			goto err_section_too_small;
->   	} else if (!uuid_le_cmp(*sec_type, CPER_SEC_PLATFORM_MEM)) {
-> -		struct cper_sec_mem_err *mem_err = (void *)(gdata + 1);
-> +		struct cper_sec_mem_err *mem_err;
-> +
-> +		if (gdata_v3)
-> +			mem_err = (void *)(gdata_v3 + 1);
-> +		else
-> +			mem_err = (void *)(gdata + 1);
->   		printk("%s""section_type: memory error\n", newpfx);
->   		if (gdata->error_data_length >=
->   		    sizeof(struct cper_sec_mem_err_old))
-> @@ -419,7 +435,12 @@ static void cper_estatus_print_section(
->   		else
->   			goto err_section_too_small;
->   	} else if (!uuid_le_cmp(*sec_type, CPER_SEC_PCIE)) {
-> -		struct cper_sec_pcie *pcie = (void *)(gdata + 1);
-> +		struct cper_sec_pcie *pcie;
-> +
-> +		if (gdata_v3)
-> +			pcie = (void *)(gdata_v3 + 1);
-> +		else
-> +			pcie = (void *)(gdata + 1);
+You could have used a basic device like platform sata to take care of 
+basic iort and smmu support.
+
+You can then come back and implement PCIe support.
 
 
-The only use of the gdata_v3 above cases is to get the payload(or error_record).
-So instead of spilling these checks all over could we use something like :
 
-#define acpi_hest_generic_data_version(gdata) \
-	(gdata->revision >> 8)
-
-static inline void *
-acpi_hest_generic_data_payload(struct acpi_hest_generic_data *gdata)
-{
-	return acpi_hest_generic_data_version(gdata) >= 3 ?
-		((struct acpi_hest_generic_data_v300 *)(gdata)) + 1 :
-		gdata + 1;
-}
-
-And then do :
-
-	void *payload = acpi_hest_generic_data_payload(gdata);
-
-
->   		printk("%s""section_type: PCIe error\n", newpfx);
->   		if (gdata->error_data_length >= sizeof(*pcie))
->   			cper_print_pcie(newpfx, pcie, gdata);
-> @@ -434,10 +455,38 @@ err_section_too_small:
->   	pr_err(FW_WARN "error section length is too small\n");
->   }
->
-> +static void cper_estatus_print_section_v300(const char *pfx,
-> +	const struct acpi_hest_generic_data_v300 *gdata, int sec_no)
-> +{
-> +	__u8 hour, min, sec, day, mon, year, century, *timestamp;
-> +
-> +	if (gdata->validation_bits & ACPI_HEST_GEN_VALID_TIMESTAMP) {
-> +		timestamp = (__u8 *)&(gdata->time_stamp);
-> +		memcpy(&sec, timestamp, 1);
-> +		memcpy(&min, timestamp + 1, 1);
-> +		memcpy(&hour, timestamp + 2, 1);
-> +		memcpy(&day, timestamp + 4, 1);
-> +		memcpy(&mon, timestamp + 5, 1);
-> +		memcpy(&year, timestamp + 6, 1);
-> +		memcpy(&century, timestamp + 7, 1);
-> +		printk("%stime: ", pfx);
-> +		printk("%7s", 0x01 & *(timestamp + 3) ? "precise" : "");
-> +		printk(" %02d:%02d:%02d %02d%02d-%02d-%02d\n",
-> +			bcd2bin(hour), bcd2bin(min), bcd2bin(sec),
-> +			bcd2bin(century), bcd2bin(year), bcd2bin(mon),
-> +			bcd2bin(day));
-> +	}
-> +
-> +	cper_estatus_print_section(pfx,
-> +				   (const struct acpi_hest_generic_data *)gdata,
-> +				   sec_no);
-> +}
-
-
-Wouldn't it be better do the v3 header check from cper_erstatus_print_section() and call out
-to cper_erstatus_print_section_v300() ? That way, we can leave the callers unaffected,
-even for future changes.
-
-
-> +	if (gdata_v3) {
-> +		while (data_len >= sizeof(*gdata_v3)) {
-> +			gedata_len = gdata_v3->error_data_length;
-> +			cper_estatus_print_section_v300(newpfx, gdata_v3,
-> +							sec_no);
-> +			data_len -= gedata_len + sizeof(*gdata_v3);
-> +			gdata_v3 = (void *)(gdata_v3 + 1) + gedata_len;
-> +			sec_no++;
-> +		}
-> +	} else {
-> +		while (data_len >= sizeof(*gdata)) {
-> +			gedata_len = gdata->error_data_length;
-> +			cper_estatus_print_section(newpfx, gdata, sec_no);
-> +			data_len -= gedata_len + sizeof(*gdata);
-> +			gdata = (void *)(gdata + 1) + gedata_len;
-> +			sec_no++;
-> +		}
-
-With the change mentioned above and storing the sizeof(), we could make this
-hunk a bit more cleaner.
-
-
-Suzuki
