@@ -1,7 +1,7 @@
 From: "Luis R. Rodriguez" <mcgrof@kernel.org>
-Subject: [PATCH v6 03/16] tools/lguest: make lguest launcher use X86_SUBARCH_LGUEST explicitly
-Date: Wed, 13 Apr 2016 17:04:33 -0700
-Message-ID: <1460592286-300-4-git-send-email-mcgrof@kernel.org>
+Subject: [PATCH v6 10/16] x86/cpu/intel: remove not needed paravirt_enabled() for f00f work around
+Date: Wed, 13 Apr 2016 17:04:40 -0700
+Message-ID: <1460592286-300-11-git-send-email-mcgrof@kernel.org>
 References: <1460592286-300-1-git-send-email-mcgrof@kernel.org>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1460592286-300-1-git-send-email-mcgrof@kernel.org>
@@ -10,28 +10,31 @@ To: bp@alien8.de, hpa@zytor.com, tglx@linutronix.de, mingo@redhat.com, rusty@rus
 Cc: x86@kernel.org, linux-kernel@vger.kernel.org, luto@amacapital.net, boris.ostrovsky@oracle.com, jgross@suse.com, david.vrabel@citrix.com, konrad.wilk@oracle.com, xen-devel@lists.xensource.com, lguest@lists.ozlabs.org, andriy.shevchenko@linux.intel.com, jlee@suse.com, glin@suse.com, matt@codeblueprint.co.uk, andrew.cooper3@citrix.com, rjw@rjwysocki.net, lenb@kernel.org, robert.moore@intel.com, lv.zheng@intel.com, toshi.kani@hp.com, linux-acpi@vger.kernel.org, kozerkov@parallels.com, josh@joshtriplett.org, bigeasy@linutronix.de, ffainelli@freebox.fr, george.dunlap@citrix.com, julien.grall@linaro.org, mbizon@freebox.fr, tiwai@suse.de, "Luis R. Rodriguez" <mcgrof@kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-Be explicit and make use of X86_SUBARCH_LGUEST directly.
+The X86_BUG_F00F work around is responsible for fixing up the error
+generated on attempted F00F exploitation from an OOPS to a SIGILL.
+There is no reason why this code should not be allowed to run on
+PV guest on a F00F-affected CPU -- it would simply never trigger.
+The pv_enabled() check was there only to avoid printing the f00f
+workaround, so removing the check is purely a cosmetic change.
 
-Acked-by: Rusty Russell <rusty@rustcorp.com.au>
+Suggested-by: Andy Lutomirski <luto@amacapital.net>
 Signed-off-by: Luis R. Rodriguez <mcgrof@kernel.org>
 ---
- tools/lguest/lguest.c | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ arch/x86/kernel/cpu/intel.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/tools/lguest/lguest.c b/tools/lguest/lguest.c
-index 80159e6811c2..ff0aa580c6e1 100644
---- a/tools/lguest/lguest.c
-+++ b/tools/lguest/lguest.c
-@@ -3351,8 +3351,8 @@ int main(int argc, char *argv[])
- 	/* Boot protocol version: 2.07 supports the fields for lguest. */
- 	boot->hdr.version = 0x207;
+diff --git a/arch/x86/kernel/cpu/intel.c b/arch/x86/kernel/cpu/intel.c
+index f71a34944b56..66509285ffdd 100644
+--- a/arch/x86/kernel/cpu/intel.c
++++ b/arch/x86/kernel/cpu/intel.c
+@@ -233,7 +233,7 @@ static void intel_workarounds(struct cpuinfo_x86 *c)
+ 	 * The Quark is also family 5, but does not have the same bug.
+ 	 */
+ 	clear_cpu_bug(c, X86_BUG_F00F);
+-	if (!paravirt_enabled() && c->x86 == 5 && c->x86_model < 9) {
++	if (c->x86 == 5 && c->x86_model < 9) {
+ 		static int f00f_workaround_enabled;
  
--	/* The hardware_subarch value of "1" tells the Guest it's an lguest. */
--	boot->hdr.hardware_subarch = 1;
-+	/* X86_SUBARCH_LGUEST tells the Guest it's an lguest. */
-+	boot->hdr.hardware_subarch = X86_SUBARCH_LGUEST;
- 
- 	/* Tell the entry path not to try to reload segment registers. */
- 	boot->hdr.loadflags |= KEEP_SEGMENTS;
+ 		set_cpu_bug(c, X86_BUG_F00F);
 -- 
 2.7.2
