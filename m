@@ -1,107 +1,143 @@
 From: Marc Zyngier <marc.zyngier@arm.com>
-Subject: Re: [PATCH V4 4/7] ARM64, ACPI, PCI: I/O Remapping Table (IORT)
- initial support.
-Date: Thu, 14 Apr 2016 08:46:33 +0100
-Message-ID: <570F4AD9.4040007@arm.com>
+Subject: Re: [PATCH V4 5/7] irqchip, gicv3, its: Probe ITS in the ACPI way.
+Date: Thu, 14 Apr 2016 10:01:03 +0100
+Message-ID: <570F5C4F.30004@arm.com>
 References: <1459759975-24097-1-git-send-email-tn@semihalf.com>
- <1459759975-24097-5-git-send-email-tn@semihalf.com>
- <570E645A.9010600@arm.com> <570E6794.4080409@semihalf.com>
- <570E6B2C.3060700@arm.com> <570F4926.9080505@semihalf.com>
+ <1459759975-24097-6-git-send-email-tn@semihalf.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=windows-1252
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from foss.arm.com ([217.140.101.70]:40076 "EHLO foss.arm.com"
+Received: from foss.arm.com ([217.140.101.70]:40653 "EHLO foss.arm.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752453AbcDNHqi (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 14 Apr 2016 03:46:38 -0400
-In-Reply-To: <570F4926.9080505@semihalf.com>
+	id S1753456AbcDNJBI (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 14 Apr 2016 05:01:08 -0400
+In-Reply-To: <1459759975-24097-6-git-send-email-tn@semihalf.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: Tomasz Nowicki <tn@semihalf.com>, tglx@linutronix.de, jason@lakedaemon.net, rjw@rjwysocki.net, lorenzo.pieralisi@arm.com, robert.richter@caviumnetworks.com, shijie.huang@arm.com, Suravee.Suthikulpanit@amd.com, hanjun.guo@linaro.org
 Cc: al.stone@linaro.org, mw@semihalf.com, graeme.gregory@linaro.org, Catalin.Marinas@arm.com, will.deacon@arm.com, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org, ddaney.cavm@gmail.com, okaya@codeaurora.org
 
-On 14/04/16 08:39, Tomasz Nowicki wrote:
-> On 13.04.2016 17:52, Marc Zyngier wrote:
->> On 13/04/16 16:36, Tomasz Nowicki wrote:
->>> On 13.04.2016 17:23, Marc Zyngier wrote:
->>>> On 04/04/16 09:52, Tomasz Nowicki wrote:
->>>>> IORT shows representation of IO topology for ARM based systems.
->>>>> It describes how various components are connected together on
->>>>> parent-child basis e.g. PCI RC -> SMMU -> ITS. Also see IORT spec.
->>>>>
->>>>> Initial support allows to:
->>>>> - register ITS MSI chip along with ITS translation ID and domain token
->>>>> - deregister ITS MSI chip based on ITS translation ID
->>>>> - find registered domain token based on ITS translation ID
->>>>> - map MSI RID based on PCI device and requester ID
->>>>> - find domain token based on PCI device and requester ID
->>>>>
->>>>> To: Rafael J. Wysocki <rjw@rjwysocki.net>
->>>>> Signed-off-by: Tomasz Nowicki <tn@semihalf.com>
->>>>> ---
->>>>>    drivers/acpi/Kconfig    |   3 +
->>>>>    drivers/acpi/Makefile   |   1 +
->>>>>    drivers/acpi/iort.c     | 335 ++++++++++++++++++++++++++++++++++++++++++++++++
->>>>>    drivers/irqchip/Kconfig |   1 +
->>>>>    include/linux/iort.h    |  31 +++++
->>>>>    5 files changed, 371 insertions(+)
->>>>>    create mode 100644 drivers/acpi/iort.c
->>>>>    create mode 100644 include/linux/iort.h
->>>>>
->>>>
->>>> [...]
->>>>
->>>>> +static acpi_status
->>>>> +iort_find_dev_callback(struct acpi_iort_node *node, void *context)
->>>>> +{
->>>>> +	struct acpi_iort_root_complex *pci_rc;
->>>>> +	struct device *dev = context;
->>>>> +	struct pci_bus *bus;
->>>>> +
->>>>> +	switch (node->type) {
->>>>> +	case ACPI_IORT_NODE_PCI_ROOT_COMPLEX:
->>>>> +		bus = to_pci_bus(dev);
->>>>> +		pci_rc = (struct acpi_iort_root_complex *)node->node_data;
->>>>> +
->>>>> +		/*
->>>>> +		 * It is assumed that PCI segment numbers maps one-to-one
->>>>> +		 * with root complexes. Each segment number can represent only
->>>>> +		 * one root complex.
->>>>> +		 */
->>>>> +		if (pci_rc->pci_segment_number == pci_domain_nr(bus))
->>>>> +			return AE_OK;
->>>>
->>>> What guarantees that this is ever valid? As far as I know, pci_domain_nr
->>>> is completely arbitrary, and depends both on the probe order and the
->>>> phase of the moon. If you want this to be reliable, you need to allocate
->>>> the domain number from pci_segment_number.
->>>>
->>>> I must be missing something. Care to shed some light on this?
->>>>
->>> Sure. Please see:
->>> http://infocenter.arm.com/help/topic/com.arm.doc.den0049a/DEN0049A_IO_Remapping_Table.pdf
->>> 3.1.1.5 PCI root complex node
->>> PCI Segment number -> The PCI segment number, as in MCFG and as
->>> returned by _SEG in the namespace.
->>>
->>> So IORT spec states that pci_segment_number corresponds to the segment
->>> number from MCFG table and _SEG method. Here is my patch which makes
->>> sure pci_domain_nr(bus) is set properly:
->>> https://lkml.org/lkml/2016/2/16/418
->>
->> Lovely. So this series is actually dependent on the PCI one. I guess we
->> need to solve that one first, because IORT seems pretty pointless if we
->> don't have PCI support. What's the plan?
->>
+On 04/04/16 09:52, Tomasz Nowicki wrote:
+> ITS is prepared for being initialized different than DT,
+> therefore we can initialize it in ACPI way. We collect register base
+> address from MADT table and pass mandatory info to firmware-agnostic
+> ITS init call.
 > 
-> The plan is to make this series ready for being merged. Once we get PCI 
-> series upstream, we can just retest ITS final series and pull it in, if 
-> you agree. PCI domain assignment is settled so it will not be the reason 
-> for fundamental changes here. What do you think?
+> Note that we are using here IORT lib to register ITS domain which
+> then can be found and used to build another PCI MSI domain
+> in hierarchical stack domain.
+> 
+> Signed-off-by: Tomasz Nowicki <tn@semihalf.com>
+> ---
+>  drivers/irqchip/irq-gic-v3-its.c | 61 ++++++++++++++++++++++++++++++++++++++++
+>  1 file changed, 61 insertions(+)
+> 
+> diff --git a/drivers/irqchip/irq-gic-v3-its.c b/drivers/irqchip/irq-gic-v3-its.c
+> index 2dcc7b4..a277c9b 100644
+> --- a/drivers/irqchip/irq-gic-v3-its.c
+> +++ b/drivers/irqchip/irq-gic-v3-its.c
+> @@ -15,10 +15,13 @@
+>   * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+>   */
+>  
+> +#include <linux/acpi.h>
+>  #include <linux/bitmap.h>
+>  #include <linux/cpu.h>
+>  #include <linux/delay.h>
+>  #include <linux/interrupt.h>
+> +#include <linux/irqdomain.h>
+> +#include <linux/iort.h>
+>  #include <linux/log2.h>
+>  #include <linux/mm.h>
+>  #include <linux/msi.h>
+> @@ -1277,6 +1280,11 @@ static int its_irq_gic_domain_alloc(struct irq_domain *domain,
+>  		fwspec.param[0] = GIC_IRQ_TYPE_LPI;
+>  		fwspec.param[1] = hwirq;
+>  		fwspec.param[2] = IRQ_TYPE_EDGE_RISING;
+> +	} else if (is_fwnode_irqchip(domain->parent->fwnode)) {
+> +		fwspec.fwnode = domain->parent->fwnode;
+> +		fwspec.param_count = 2;
+> +		fwspec.param[0] = hwirq;
+> +		fwspec.param[1] = IRQ_TYPE_EDGE_RISING;
+>  	} else {
+>  		return -EINVAL;
+>  	}
+> @@ -1617,6 +1625,57 @@ its_of_probe(struct device_node *node, struct irq_domain *parent)
+>  	return 0;
+>  }
+>  
+> +#ifdef CONFIG_ACPI
+> +
+> +#define ACPI_GICV3_ITS_MEM_SIZE (2 * SZ_64K)
+> +
+> +static struct irq_domain *its_parent __initdata;
 
-As long as you are making progress on the PCI front, and that we
-establish that PCI must go in first, I'm OK with that.
+Given that there is only one of those, maybe it is worth making it
+common to DT and ACPI, and drop the parameter from its_probe_one.
+
+> +
+> +static int __init
+> +gic_acpi_parse_madt_its(struct acpi_subtable_header *header,
+> +			const unsigned long end)
+> +{
+> +	struct acpi_madt_generic_translator *its_entry;
+> +	struct fwnode_handle *domain_handle;
+> +	int err;
+> +
+> +	its_entry = (struct acpi_madt_generic_translator *)header;
+> +	domain_handle = irq_domain_alloc_fwnode((void *)its_entry->base_address);
+> +	if (!domain_handle) {
+> +		pr_err("Unable to allocate GICv3 ITS domain token\n");
+> +		return -ENOMEM;
+> +	}
+> +
+> +	err = iort_register_domain_token(its_entry->translation_id, domain_handle);
+> +	if (err) {
+> +		irq_domain_free_fwnode(domain_handle);
+> +		goto out;
+> +	}
+> +
+> +	err = its_probe_one(its_entry->base_address, ACPI_GICV3_ITS_MEM_SIZE,
+> +			    its_parent, domain_handle);
+
+struct resource.
+
+> +	if (err) {
+> +		iort_deregister_domain_token(its_entry->translation_id);
+> +		irq_domain_free_fwnode(domain_handle);
+> +	}
+> +out:
+> +	return err;
+> +}
+> +
+> +void __init its_acpi_probe(struct irq_domain *parent_domain)
+> +{
+> +	int count;
+> +
+> +	its_parent = parent_domain;
+> +	count = acpi_table_parse_madt(ACPI_MADT_TYPE_GENERIC_TRANSLATOR,
+> +				      gic_acpi_parse_madt_its, 0);
+> +	if (count <= 0)
+> +		pr_info("No valid GIC ITS entries exist\n");
+> +}
+> +#else
+> +static inline void __init its_acpi_probe(struct irq_domain *parent_domain) { }
+> +#endif
+> +
+>  int __init its_init(struct fwnode_handle *handle, struct rdists *rdists,
+>  		    struct irq_domain *parent_domain)
+>  {
+> @@ -1625,6 +1684,8 @@ int __init its_init(struct fwnode_handle *handle, struct rdists *rdists,
+>  	of_node = to_of_node(handle);
+>  	if (of_node)
+>  		its_of_probe(of_node, parent_domain);
+> +	else
+> +		its_acpi_probe(parent_domain);
+>  
+>  	if (list_empty(&its_nodes)) {
+>  		pr_warn("ITS: No ITS available, not enabling LPIs\n");
+> 
 
 Thanks,
 
