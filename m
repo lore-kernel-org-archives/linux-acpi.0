@@ -1,81 +1,84 @@
-From: okaya@codeaurora.org
+From: Marc Zyngier <marc.zyngier@arm.com>
 Subject: Re: [PATCH V4 4/7] ARM64, ACPI, PCI: I/O Remapping Table (IORT)
  initial support.
-Date: Thu, 14 Apr 2016 07:37:48 -0400
-Message-ID: <32c49fc25832b4cee05e5c9352c2f6cf@codeaurora.org>
+Date: Thu, 14 Apr 2016 12:48:18 +0100
+Message-ID: <570F8382.6040307@arm.com>
 References: <1459759975-24097-1-git-send-email-tn@semihalf.com>
  <1459759975-24097-5-git-send-email-tn@semihalf.com>
  <570E645A.9010600@arm.com> <570E6794.4080409@semihalf.com>
  <570E6B2C.3060700@arm.com> <570EB78E.4060705@codeaurora.org>
  <570F44CD.7090605@semihalf.com> <570F4886.70405@arm.com>
+ <32c49fc25832b4cee05e5c9352c2f6cf@codeaurora.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII;
- format=flowed
+Content-Type: text/plain; charset=windows-1252
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp.codeaurora.org ([198.145.29.96]:60793 "EHLO
-	smtp.codeaurora.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754558AbcDNLhu (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 14 Apr 2016 07:37:50 -0400
-In-Reply-To: <570F4886.70405@arm.com>
-Sender: linux-acpi-owner@vger.kernel.org
-List-Id: linux-acpi@vger.kernel.org
-To: Marc Zyngier <marc.zyngier@arm.com>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <32c49fc25832b4cee05e5c9352c2f6cf@codeaurora.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: okaya@codeaurora.org
 Cc: Tomasz Nowicki <tn@semihalf.com>, tglx@linutronix.de, jason@lakedaemon.net, rjw@rjwysocki.net, lorenzo.pieralisi@arm.com, robert.richter@caviumnetworks.com, shijie.huang@arm.com, Suravee.Suthikulpanit@amd.com, hanjun.guo@linaro.org, al.stone@linaro.org, mw@semihalf.com, graeme.gregory@linaro.org, Catalin.Marinas@arm.com, will.deacon@arm.com, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org, ddaney.cavm@gmail.com
+List-Id: linux-acpi@vger.kernel.org
 
-On 2016-04-14 03:36, Marc Zyngier wrote:
-> On 14/04/16 08:20, Tomasz Nowicki wrote:
->> On 13.04.2016 23:18, Sinan Kaya wrote:
->>> On 4/13/2016 11:52 AM, Marc Zyngier wrote:
->>>>>> Sure. Please see:
->>>>>> http://infocenter.arm.com/help/topic/com.arm.doc.den0049a/DEN0049A_IO_Remapping_Table.pdf
->>>>>> 3.1.1.5 PCI root complex node
->>>>>> PCI Segment number -> The PCI segment number, as in MCFG and as
->>>>>> returned by _SEG in the namespace.
->>>>>> 
->>>>>> So IORT spec states that pci_segment_number corresponds to the 
->>>>>> segment
->>>>>> number from MCFG table and _SEG method. Here is my patch which 
->>>>>> makes
->>>>>> sure pci_domain_nr(bus) is set properly:
->>>>>> https://lkml.org/lkml/2016/2/16/418
->>>> Lovely. So this series is actually dependent on the PCI one. I guess 
->>>> we
->>>> need to solve that one first, because IORT seems pretty pointless if 
->>>> we
->>>> don't have PCI support. What's the plan?
->>> 
->>> Would it be OK to split the PCI specific section of the patch and 
->>> continue
->>> review? PCI is a user of the IORT table. Not the other way around.
->> 
->> I need to disagree. What would be the use case for patches w/o "PCI 
->> part" ?
+On 14/04/16 12:37, okaya@codeaurora.org wrote:
+> On 2016-04-14 03:36, Marc Zyngier wrote:
+>> On 14/04/16 08:20, Tomasz Nowicki wrote:
+>>> On 13.04.2016 23:18, Sinan Kaya wrote:
+>>>> On 4/13/2016 11:52 AM, Marc Zyngier wrote:
+>>>>>>> Sure. Please see:
+>>>>>>> http://infocenter.arm.com/help/topic/com.arm.doc.den0049a/DEN0049A_IO_Remapping_Table.pdf
+>>>>>>> 3.1.1.5 PCI root complex node
+>>>>>>> PCI Segment number -> The PCI segment number, as in MCFG and as
+>>>>>>> returned by _SEG in the namespace.
+>>>>>>>
+>>>>>>> So IORT spec states that pci_segment_number corresponds to the 
+>>>>>>> segment
+>>>>>>> number from MCFG table and _SEG method. Here is my patch which 
+>>>>>>> makes
+>>>>>>> sure pci_domain_nr(bus) is set properly:
+>>>>>>> https://lkml.org/lkml/2016/2/16/418
+>>>>> Lovely. So this series is actually dependent on the PCI one. I guess 
+>>>>> we
+>>>>> need to solve that one first, because IORT seems pretty pointless if 
+>>>>> we
+>>>>> don't have PCI support. What's the plan?
+>>>>
+>>>> Would it be OK to split the PCI specific section of the patch and 
+>>>> continue
+>>>> review? PCI is a user of the IORT table. Not the other way around.
+>>>
+>>> I need to disagree. What would be the use case for patches w/o "PCI 
+>>> part" ?
+>>
+>> Quite. PCI (as a subsystem) doesn't need IORT at all, thank you very
+>> much. GIC (implementing MSI) and SMMU (implementing DMA) do, by virtue
+>> of RID/SID/DID being translated all over the place.
+>>
+>> So by the look of it, the dependency chain is GIC+SMMU->IORT->PCI.
+>>
+>> The GIC changes here are pretty mechanical, and not that interesting.
+>> The stuff that needs sorting quickly is PCI, because all this work is
+>> pointless if we don't have it.
+>>
+>> At the risk of sounding like a stuck record: What's the plan?
+>>
+>> Thanks,
+>>
+>> 	M.
 > 
-> Quite. PCI (as a subsystem) doesn't need IORT at all, thank you very
-> much. GIC (implementing MSI) and SMMU (implementing DMA) do, by virtue
-> of RID/SID/DID being translated all over the place.
+> My answer is based on the spec definition. The spec defines named 
+> components for other peripherals that are behind iommu and can 
+> potentially implement msi.
 > 
-> So by the look of it, the dependency chain is GIC+SMMU->IORT->PCI.
+> You could have used a basic device like platform sata to take care of 
+> basic iort and smmu support.
 > 
-> The GIC changes here are pretty mechanical, and not that interesting.
-> The stuff that needs sorting quickly is PCI, because all this work is
-> pointless if we don't have it.
-> 
-> At the risk of sounding like a stuck record: What's the plan?
-> 
-> Thanks,
-> 
-> 	M.
+> You can then come back and implement PCIe support.
 
-My answer is based on the spec definition. The spec defines named 
-components for other peripherals that are behind iommu and can 
-potentially implement msi.
+I could. You could do it too. Thankfully, the dependency is dictated by
+whoever is writing the code.
 
-You could have used a basic device like platform sata to take care of 
-basic iort and smmu support.
+Thanks,
 
-You can then come back and implement PCIe support.
-
-
-
+	M.
+-- 
+Jazz is not dead. It just smells funny...
