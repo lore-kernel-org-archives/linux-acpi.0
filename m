@@ -1,7 +1,7 @@
 From: "Luis R. Rodriguez" <mcgrof@kernel.org>
-Subject: [PATCH v6 10/16] x86/cpu/intel: remove not needed paravirt_enabled() for f00f work around
-Date: Wed, 13 Apr 2016 17:04:40 -0700
-Message-ID: <1460592286-300-11-git-send-email-mcgrof@kernel.org>
+Subject: [PATCH v6 07/16] tools/lguest: force disable tboot and apm
+Date: Wed, 13 Apr 2016 17:04:37 -0700
+Message-ID: <1460592286-300-8-git-send-email-mcgrof@kernel.org>
 References: <1460592286-300-1-git-send-email-mcgrof@kernel.org>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1460592286-300-1-git-send-email-mcgrof@kernel.org>
@@ -10,31 +10,33 @@ To: bp@alien8.de, hpa@zytor.com, tglx@linutronix.de, mingo@redhat.com, rusty@rus
 Cc: x86@kernel.org, linux-kernel@vger.kernel.org, luto@amacapital.net, boris.ostrovsky@oracle.com, jgross@suse.com, david.vrabel@citrix.com, konrad.wilk@oracle.com, xen-devel@lists.xensource.com, lguest@lists.ozlabs.org, andriy.shevchenko@linux.intel.com, jlee@suse.com, glin@suse.com, matt@codeblueprint.co.uk, andrew.cooper3@citrix.com, rjw@rjwysocki.net, lenb@kernel.org, robert.moore@intel.com, lv.zheng@intel.com, toshi.kani@hp.com, linux-acpi@vger.kernel.org, kozerkov@parallels.com, josh@joshtriplett.org, bigeasy@linutronix.de, ffainelli@freebox.fr, george.dunlap@citrix.com, julien.grall@linaro.org, mbizon@freebox.fr, tiwai@suse.de, "Luis R. Rodriguez" <mcgrof@kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-The X86_BUG_F00F work around is responsible for fixing up the error
-generated on attempted F00F exploitation from an OOPS to a SIGILL.
-There is no reason why this code should not be allowed to run on
-PV guest on a F00F-affected CPU -- it would simply never trigger.
-The pv_enabled() check was there only to avoid printing the f00f
-workaround, so removing the check is purely a cosmetic change.
+The paravirt_enabled() check is going away, the area tossed to
+the kernel on lguest is not zeroed out, so ensure lguest force
+disables tboot and apm just in case the kernel file being read
+might have this set for whatever reason.
 
-Suggested-by: Andy Lutomirski <luto@amacapital.net>
+Acked-by: Rusty Russell <rusty@rustcorp.com.au>
 Signed-off-by: Luis R. Rodriguez <mcgrof@kernel.org>
 ---
- arch/x86/kernel/cpu/intel.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ tools/lguest/lguest.c | 6 ++++++
+ 1 file changed, 6 insertions(+)
 
-diff --git a/arch/x86/kernel/cpu/intel.c b/arch/x86/kernel/cpu/intel.c
-index f71a34944b56..66509285ffdd 100644
---- a/arch/x86/kernel/cpu/intel.c
-+++ b/arch/x86/kernel/cpu/intel.c
-@@ -233,7 +233,7 @@ static void intel_workarounds(struct cpuinfo_x86 *c)
- 	 * The Quark is also family 5, but does not have the same bug.
- 	 */
- 	clear_cpu_bug(c, X86_BUG_F00F);
--	if (!paravirt_enabled() && c->x86 == 5 && c->x86_model < 9) {
-+	if (c->x86 == 5 && c->x86_model < 9) {
- 		static int f00f_workaround_enabled;
+diff --git a/tools/lguest/lguest.c b/tools/lguest/lguest.c
+index ff0aa580c6e1..0aa75af6e862 100644
+--- a/tools/lguest/lguest.c
++++ b/tools/lguest/lguest.c
+@@ -3357,6 +3357,12 @@ int main(int argc, char *argv[])
+ 	/* Tell the entry path not to try to reload segment registers. */
+ 	boot->hdr.loadflags |= KEEP_SEGMENTS;
  
- 		set_cpu_bug(c, X86_BUG_F00F);
++	/* We don't support tboot */
++	boot->tboot_addr = 0;
++
++	/* Ensure this is 0 to prevent apm from loading */
++	boot->apm_bios_info.version = 0;
++
+ 	/* We tell the kernel to initialize the Guest. */
+ 	tell_kernel(start);
+ 
 -- 
 2.7.2
