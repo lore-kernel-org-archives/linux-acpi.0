@@ -1,82 +1,47 @@
-From: Jon Masters <jcm@jonmasters.org>
-Subject: Re: [PATCH v2 2/4] PCI: Provide common functions for ECAM mapping
-Date: Thu, 14 Apr 2016 01:55:32 -0400
-Message-ID: <570F30D4.2030102@jonmasters.org>
-References: <1460414707-19153-1-git-send-email-jchandra@broadcom.com>
- <1460414707-19153-3-git-send-email-jchandra@broadcom.com>
- <570C4034.20105@caviumnetworks.com> <570C78F1.4090701@jonmasters.org>
- <20160412164413.GA32297@red-moon>
+From: Tomasz Nowicki <tn@semihalf.com>
+Subject: Re: [PATCH V4 4/7] ARM64, ACPI, PCI: I/O Remapping Table (IORT)
+ initial support.
+Date: Thu, 14 Apr 2016 09:20:45 +0200
+Message-ID: <570F44CD.7090605@semihalf.com>
+References: <1459759975-24097-1-git-send-email-tn@semihalf.com>
+ <1459759975-24097-5-git-send-email-tn@semihalf.com>
+ <570E645A.9010600@arm.com> <570E6794.4080409@semihalf.com>
+ <570E6B2C.3060700@arm.com> <570EB78E.4060705@codeaurora.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset=windows-1252; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <20160412164413.GA32297@red-moon>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Jon Masters <jcm@jonmasters.org>
-Cc: Catalin Marinas <catalin.marinas@arm.com>, rafael@kernel.org, linux-pci@vger.kernel.org, Will Deacon <will.deacon@arm.com>, okaya@codeaurora.org, wangyijing@huawei.com, Tomasz Nowicki <tn@semihalf.com>, linaro-acpi@lists.linaro.org, David Daney <ddaney@caviumnetworks.com>, linux-acpi@vger.kernel.org, robert.richter@caviumnetworks.com, Bjorn Helgaas <helgaas@kernel.org>, msalter@redhat.com, Arnd Bergmann <arnd@arndb.de>, Stefano Stabellini <Stefano.Stabellini@eu.citrix.com>, Liviu.Dudau@arm.com, Marcin Wojtas <mw@semihalf.com>, linux-arm-kernel@lists.infradead.org, Jayachandran C <jchandra@broadcom.com>, linux-kernel@vger.kernel.org, Hanjun Guo <hanjun.guo@linaro.org>, Suravee.Suthikulpanit@amd.com, jiang.liu@linux.intel.com
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-lf0-f53.google.com ([209.85.215.53]:35749 "EHLO
+	mail-lf0-f53.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751249AbcDNHVH (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 14 Apr 2016 03:21:07 -0400
+Received: by mail-lf0-f53.google.com with SMTP id c126so98326394lfb.2
+        for <linux-acpi@vger.kernel.org>; Thu, 14 Apr 2016 00:21:06 -0700 (PDT)
+In-Reply-To: <570EB78E.4060705@codeaurora.org>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Sinan Kaya <okaya@codeaurora.org>, Marc Zyngier <marc.zyngier@arm.com>, tglx@linutronix.de, jason@lakedaemon.net, rjw@rjwysocki.net, lorenzo.pieralisi@arm.com, robert.richter@caviumnetworks.com, shijie.huang@arm.com, Suravee.Suthikulpanit@amd.com, hanjun.guo@linaro.org
+Cc: al.stone@linaro.org, mw@semihalf.com, graeme.gregory@linaro.org, Catalin.Marinas@arm.com, will.deacon@arm.com, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org, ddaney.cavm@gmail.com
 
-On 04/12/2016 12:44 PM, Lorenzo Pieralisi wrote:
-> On Tue, Apr 12, 2016 at 12:26:25AM -0400, Jon Masters wrote:
-> 
-> [...]
-> 
->> Quoting Bjorn's original reply to the previous series:
->>
->>> Some of the code that moved to drivers/acpi/pci_mcfg.c is not
->>> really ACPI-specific, and could potentially be used for non-ACPI
->>> bridges that support ECAM.  I'd like to see that sort of code
->>> moved to a new file like drivers/pci/ecam.c.
->>
->> So my guess is that this is the reasoning behind JC's file layout.
->>
->> I'm curious what Lorenzo's take on things is currently. I assume this
->> series is now to be the official coordinated version of this effort for
->> upstream, following the advice of Bjorn previously, but I would like to
->> know if everyone is behind this plan. I've (previously) requested a
->> Linaro LEG meeting this week (part of our bootarch working group) to
->> specifically discuss the status of PCI upstreaming in order to get the
->> different vendors together to ensure every single one of them is
->> tracking the correct latest effort and doing what is needed to test/aid,
->> hence my ask. If this is now plan A, I'll make sure everyone is aligned
->> behind it and start pinging people individually for testing.
-> 
-> My take is that JC's aim is to get this four patch series reviewed and
-> merged
+On 13.04.2016 23:18, Sinan Kaya wrote:
+> On 4/13/2016 11:52 AM, Marc Zyngier wrote:
+>>>> Sure. Please see:
+>>>> http://infocenter.arm.com/help/topic/com.arm.doc.den0049a/DEN0049A_IO_Remapping_Table.pdf
+>>>> 3.1.1.5 PCI root complex node
+>>>> PCI Segment number -> The PCI segment number, as in MCFG and as
+>>>> returned by _SEG in the namespace.
+>>>>
+>>>> So IORT spec states that pci_segment_number corresponds to the segment
+>>>> number from MCFG table and _SEG method. Here is my patch which makes
+>>>> sure pci_domain_nr(bus) is set properly:
+>>>> https://lkml.org/lkml/2016/2/16/418
+>> Lovely. So this series is actually dependent on the PCI one. I guess we
+>> need to solve that one first, because IORT seems pretty pointless if we
+>> don't have PCI support. What's the plan?
+>
+> Would it be OK to split the PCI specific section of the patch and continue
+> review? PCI is a user of the IORT table. Not the other way around.
 
-Indeed, I see that's probably the goal, and why not :)
+I need to disagree. What would be the use case for patches w/o "PCI part" ?
 
-> (which is *not* sufficient to get ACPI PCI to work fully on ARM64
-> - see cover letter - the remaining patches in his branch are not
-> fixes, it is code that is required to get things to work, these 4
-> patches stand alone are not sufficient but I understand he wants to get
-> them reviewed following feedback on the lists) so that we can make
-> progress on ACPI PCI on ARM64.
-
-Agreed. I went through the branch and the 11 patches there, reacquainted
-myself with what's what. So what we have now is 4 patches here plus a
-few others that in total replace v5 of your previous mmconfig patches in
-functionality. The question is what happens with the rest (of JC's
-branch let's say) - do they get sent out now too?
-
-> I will comment on the patches as soon as I have time to review
-> them, I certainly would like to understand what we have to do with the
-> rest of the code though (provided this series is good to go) see above.
-
-Right. That's my reason for asking. I'd like to know who is driving (I
-believe that to be Lorenzo) and what the path forward is, and whether we
-need to get additional support from anyone else. There's a multi-vendor
-meeting in the morning where I'm going to summarize the current state of
-these patches and I would like to know (soon) what the plan is so that
-we can get everyone on deck to help out at least with testing (most have
-tested the previous set, but we need public acks happening).
-
-Jon.
+Tomasz
