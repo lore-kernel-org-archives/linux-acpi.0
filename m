@@ -1,46 +1,69 @@
 From: "Luis R. Rodriguez" <mcgrof@kernel.org>
-Subject: [PATCH v6 13/16] x86/init: rename ebda code file
-Date: Wed, 13 Apr 2016 17:04:43 -0700
-Message-ID: <1460592286-300-14-git-send-email-mcgrof@kernel.org>
+Subject: [PATCH v6 05/16] x86, ACPI: move ACPI_FADT_NO_CMOS_RTC check to ACPI boot code
+Date: Wed, 13 Apr 2016 17:13:11 -0700
+Message-ID: <1460592791-360-1-git-send-email-mcgrof@kernel.org>
 References: <1460592286-300-1-git-send-email-mcgrof@kernel.org>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <xen-devel-bounces@lists.xen.org>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail.kernel.org ([198.145.29.136]:37935 "EHLO mail.kernel.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751040AbcDNANP (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 13 Apr 2016 20:13:15 -0400
 In-Reply-To: <1460592286-300-1-git-send-email-mcgrof@kernel.org>
-List-Unsubscribe: <http://lists.xen.org/cgi-bin/mailman/options/xen-devel>,
- <mailto:xen-devel-request@lists.xen.org?subject=unsubscribe>
-List-Post: <mailto:xen-devel@lists.xen.org>
-List-Help: <mailto:xen-devel-request@lists.xen.org?subject=help>
-List-Subscribe: <http://lists.xen.org/cgi-bin/mailman/listinfo/xen-devel>,
- <mailto:xen-devel-request@lists.xen.org?subject=subscribe>
-Errors-To: xen-devel-bounces@lists.xen.org
-Sender: "Xen-devel" <xen-devel-bounces@lists.xen.org>
-To: bp@alien8.de, hpa@zytor.com, tglx@linutronix.de, mingo@redhat.com, rusty@rustcorp.com.au
-Cc: kozerkov@parallels.com, matt@codeblueprint.co.uk, bigeasy@linutronix.de, lv.zheng@intel.com, ffainelli@freebox.fr, mbizon@freebox.fr, xen-devel@lists.xensource.com, x86@kernel.org, robert.moore@intel.com, linux-acpi@vger.kernel.org, glin@suse.com, lenb@kernel.org, julien.grall@linaro.org, josh@joshtriplett.org, george.dunlap@citrix.com, jlee@suse.com, lguest@lists.ozlabs.org, boris.ostrovsky@oracle.com, andriy.shevchenko@linux.intel.com, jgross@suse.com, toshi.kani@hp.com, andrew.cooper3@citrix.com, rjw@rjwysocki.net, linux-kernel@vger.kernel.org, luto@amacapital.net, "Luis R. Rodriguez" <mcgrof@kernel.org>, david.vrabel@citrix.com, tiwai@suse.de
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: bp@alien8.de, hpa@zytor.com, tglx@linutronix.de, mingo@redhat.com, rusty@rustcorp.com.au
+Cc: x86@kernel.org, linux-kernel@vger.kernel.org, luto@amacapital.net, boris.ostrovsky@oracle.com, jgross@suse.com, david.vrabel@citrix.com, konrad.wilk@oracle.com, xen-devel@lists.xensource.com, lguest@lists.ozlabs.org, andriy.shevchenko@linux.intel.com, jlee@suse.com, glin@suse.com, matt@codeblueprint.co.uk, andrew.cooper3@citrix.com, rjw@rjwysocki.net, lenb@kernel.org, robert.moore@intel.com, lv.zheng@intel.com, toshi.kani@hp.com, linux-acpi@vger.kernel.org, kozerkov@parallels.com, josh@joshtriplett.org, bigeasy@linutronix.de, ffainelli@freebox.fr, george.dunlap@citrix.com, julien.grall@linaro.org, mbizon@freebox.fr, tiwai@suse.de, "Luis R. Rodriguez" <mcgrof@kernel.org>
 
-VGhpcyBtYWtlcyBpdCBjbGVhcmVyIHdoYXQgdGhpcyBpcy4KClNpZ25lZC1vZmYtYnk6IEx1aXMg
-Ui4gUm9kcmlndWV6IDxtY2dyb2ZAa2VybmVsLm9yZz4KLS0tCiBhcmNoL3g4Ni9NYWtlZmlsZSAg
-ICAgICAgICAgICAgICAgIHwgMiArLQogYXJjaC94ODYva2VybmVsL01ha2VmaWxlICAgICAgICAg
-ICB8IDIgKy0KIGFyY2gveDg2L2tlcm5lbC97aGVhZC5jID0+IGViZGEuY30gfCAwCiAzIGZpbGVz
-IGNoYW5nZWQsIDIgaW5zZXJ0aW9ucygrKSwgMiBkZWxldGlvbnMoLSkKIHJlbmFtZSBhcmNoL3g4
-Ni9rZXJuZWwve2hlYWQuYyA9PiBlYmRhLmN9ICgxMDAlKQoKZGlmZiAtLWdpdCBhL2FyY2gveDg2
-L01ha2VmaWxlIGIvYXJjaC94ODYvTWFrZWZpbGUKaW5kZXggZjllZDhhN2NlMmI2Li42ZmNlN2Yw
-OTZiODggMTAwNjQ0Ci0tLSBhL2FyY2gveDg2L01ha2VmaWxlCisrKyBiL2FyY2gveDg2L01ha2Vm
-aWxlCkBAIC0yMDgsNyArMjA4LDcgQEAgZW5kaWYKIAogaGVhZC15IDo9IGFyY2gveDg2L2tlcm5l
-bC9oZWFkXyQoQklUUykubwogaGVhZC15ICs9IGFyY2gveDg2L2tlcm5lbC9oZWFkJChCSVRTKS5v
-Ci1oZWFkLXkgKz0gYXJjaC94ODYva2VybmVsL2hlYWQubworaGVhZC15ICs9IGFyY2gveDg2L2tl
-cm5lbC9lYmRhLm8KIGhlYWQteSArPSBhcmNoL3g4Ni9rZXJuZWwvcGxhdGZvcm0tcXVpcmtzLm8K
-IAogbGlicy15ICArPSBhcmNoL3g4Ni9saWIvCmRpZmYgLS1naXQgYS9hcmNoL3g4Ni9rZXJuZWwv
-TWFrZWZpbGUgYi9hcmNoL3g4Ni9rZXJuZWwvTWFrZWZpbGUKaW5kZXggN2E5ZTQ0ZDkzNWRlLi4w
-NTAzZjViZmIxOGQgMTAwNjQ0Ci0tLSBhL2FyY2gveDg2L2tlcm5lbC9NYWtlZmlsZQorKysgYi9h
-cmNoL3g4Ni9rZXJuZWwvTWFrZWZpbGUKQEAgLTQsNyArNCw3IEBACiAKIGV4dHJhLXkJOj0gaGVh
-ZF8kKEJJVFMpLm8KIGV4dHJhLXkJKz0gaGVhZCQoQklUUykubwotZXh0cmEteQkrPSBoZWFkLm8K
-K2V4dHJhLXkJKz0gZWJkYS5vCiBleHRyYS15CSs9IHBsYXRmb3JtLXF1aXJrcy5vCiBleHRyYS15
-CSs9IHZtbGludXgubGRzCiAKZGlmZiAtLWdpdCBhL2FyY2gveDg2L2tlcm5lbC9oZWFkLmMgYi9h
-cmNoL3g4Ni9rZXJuZWwvZWJkYS5jCnNpbWlsYXJpdHkgaW5kZXggMTAwJQpyZW5hbWUgZnJvbSBh
-cmNoL3g4Ni9rZXJuZWwvaGVhZC5jCnJlbmFtZSB0byBhcmNoL3g4Ni9rZXJuZWwvZWJkYS5jCi0t
-IAoyLjcuMgoKCl9fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
-Clhlbi1kZXZlbCBtYWlsaW5nIGxpc3QKWGVuLWRldmVsQGxpc3RzLnhlbi5vcmcKaHR0cDovL2xp
-c3RzLnhlbi5vcmcveGVuLWRldmVsCg==
+This moves the ACPI specific check into the ACPI boot code,
+it also takes advantage of the x86_platform.legacy.rtc which
+is checked for already on the RTC initialization code. This
+lets us remove the nasty #ifdefery and consolidate the checks
+to use only one toggle to disable the RTC init code.
+
+The works as RTC is initialized by device_initcall(add_rtc_cmos),
+this will run late in boot on start_kernel() during rest_init(),
+acpi_parse_fadt() gets called earlier during setup_arch().
+
+Signed-off-by: Luis R. Rodriguez <mcgrof@kernel.org>
+---
+ arch/x86/kernel/acpi/boot.c | 4 ++++
+ arch/x86/kernel/rtc.c       | 8 --------
+ 2 files changed, 4 insertions(+), 8 deletions(-)
+
+diff --git a/arch/x86/kernel/acpi/boot.c b/arch/x86/kernel/acpi/boot.c
+index 8c2f1ef6ca23..8c9c2bdba092 100644
+--- a/arch/x86/kernel/acpi/boot.c
++++ b/arch/x86/kernel/acpi/boot.c
+@@ -913,6 +913,10 @@ late_initcall(hpet_insert_resource);
+ 
+ static int __init acpi_parse_fadt(struct acpi_table_header *table)
+ {
++	if (acpi_gbl_FADT.boot_flags & ACPI_FADT_NO_CMOS_RTC) {
++		pr_debug("ACPI: not registering RTC platform device\n");
++		x86_platform.legacy.rtc = 0;
++	}
+ 
+ #ifdef CONFIG_X86_PM_TIMER
+ 	/* detect the location of the ACPI PM Timer */
+diff --git a/arch/x86/kernel/rtc.c b/arch/x86/kernel/rtc.c
+index 62c48da3889d..ff4f4180fefd 100644
+--- a/arch/x86/kernel/rtc.c
++++ b/arch/x86/kernel/rtc.c
+@@ -189,14 +189,6 @@ static __init int add_rtc_cmos(void)
+ 	if (of_have_populated_dt())
+ 		return 0;
+ 
+-#ifdef CONFIG_ACPI
+-	if (acpi_gbl_FADT.boot_flags & ACPI_FADT_NO_CMOS_RTC) {
+-		/* This warning can likely go away again in a year or two. */
+-		pr_info("ACPI: not registering RTC platform device\n");
+-		return -ENODEV;
+-	}
+-#endif
+-
+ 	if (!x86_platform.legacy.rtc)
+ 		return -ENODEV;
+ 
+-- 
+2.7.2
+
