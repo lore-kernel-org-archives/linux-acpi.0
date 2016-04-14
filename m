@@ -1,146 +1,44 @@
-From: Marc Zyngier <marc.zyngier@arm.com>
-Subject: Re: [PATCH V4 5/7] irqchip, gicv3, its: Probe ITS in the ACPI way.
-Date: Thu, 14 Apr 2016 10:01:03 +0100
-Message-ID: <570F5C4F.30004@arm.com>
-References: <1459759975-24097-1-git-send-email-tn@semihalf.com>
- <1459759975-24097-6-git-send-email-tn@semihalf.com>
+From: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+Subject: Re: [PATCH v2 2/4] PCI: Provide common functions for ECAM mapping
+Date: Thu, 14 Apr 2016 11:05:49 +0100
+Message-ID: <20160414100549.GC24733@red-moon>
+References: <1460414707-19153-1-git-send-email-jchandra@broadcom.com>
+ <1460414707-19153-3-git-send-email-jchandra@broadcom.com>
+ <570C4034.20105@caviumnetworks.com>
+ <570C78F1.4090701@jonmasters.org>
+ <20160412164413.GA32297@red-moon>
+ <570F30D4.2030102@jonmasters.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from foss.arm.com ([217.140.101.70]:40653 "EHLO foss.arm.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753456AbcDNJBI (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 14 Apr 2016 05:01:08 -0400
-In-Reply-To: <1459759975-24097-6-git-send-email-tn@semihalf.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <570F30D4.2030102@jonmasters.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Jon Masters <jcm@jonmasters.org>
+Cc: Catalin Marinas <catalin.marinas@arm.com>, rafael@kernel.org, linux-pci@vger.kernel.org, Will Deacon <will.deacon@arm.com>, okaya@codeaurora.org, wangyijing@huawei.com, Tomasz Nowicki <tn@semihalf.com>, linaro-acpi@lists.linaro.org, David Daney <ddaney@caviumnetworks.com>, linux-acpi@vger.kernel.org, robert.richter@caviumnetworks.com, Bjorn Helgaas <helgaas@kernel.org>, msalter@redhat.com, Arnd Bergmann <arnd@arndb.de>, Stefano Stabellini <Stefano.Stabellini@eu.citrix.com>, Liviu.Dudau@arm.com, Marcin Wojtas <mw@semihalf.com>, linux-arm-kernel@lists.infradead.org, Jayachandran C <jchandra@broadcom.com>, linux-kernel@vger.kernel.org, Hanjun Guo <hanjun.guo@linaro.org>, Suravee.Suthikulpanit@amd.com, jiang.liu@linux.intel.com
 List-Id: linux-acpi@vger.kernel.org
-To: Tomasz Nowicki <tn@semihalf.com>, tglx@linutronix.de, jason@lakedaemon.net, rjw@rjwysocki.net, lorenzo.pieralisi@arm.com, robert.richter@caviumnetworks.com, shijie.huang@arm.com, Suravee.Suthikulpanit@amd.com, hanjun.guo@linaro.org
-Cc: al.stone@linaro.org, mw@semihalf.com, graeme.gregory@linaro.org, Catalin.Marinas@arm.com, will.deacon@arm.com, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org, ddaney.cavm@gmail.com, okaya@codeaurora.org
 
-On 04/04/16 09:52, Tomasz Nowicki wrote:
-> ITS is prepared for being initialized different than DT,
-> therefore we can initialize it in ACPI way. We collect register base
-> address from MADT table and pass mandatory info to firmware-agnostic
-> ITS init call.
+On Thu, Apr 14, 2016 at 01:55:32AM -0400, Jon Masters wrote:
+
+[...]
+
+> > I will comment on the patches as soon as I have time to review
+> > them, I certainly would like to understand what we have to do with the
+> > rest of the code though (provided this series is good to go) see above.
 > 
-> Note that we are using here IORT lib to register ITS domain which
-> then can be found and used to build another PCI MSI domain
-> in hierarchical stack domain.
-> 
-> Signed-off-by: Tomasz Nowicki <tn@semihalf.com>
-> ---
->  drivers/irqchip/irq-gic-v3-its.c | 61 ++++++++++++++++++++++++++++++++++++++++
->  1 file changed, 61 insertions(+)
-> 
-> diff --git a/drivers/irqchip/irq-gic-v3-its.c b/drivers/irqchip/irq-gic-v3-its.c
-> index 2dcc7b4..a277c9b 100644
-> --- a/drivers/irqchip/irq-gic-v3-its.c
-> +++ b/drivers/irqchip/irq-gic-v3-its.c
-> @@ -15,10 +15,13 @@
->   * along with this program.  If not, see <http://www.gnu.org/licenses/>.
->   */
->  
-> +#include <linux/acpi.h>
->  #include <linux/bitmap.h>
->  #include <linux/cpu.h>
->  #include <linux/delay.h>
->  #include <linux/interrupt.h>
-> +#include <linux/irqdomain.h>
-> +#include <linux/iort.h>
->  #include <linux/log2.h>
->  #include <linux/mm.h>
->  #include <linux/msi.h>
-> @@ -1277,6 +1280,11 @@ static int its_irq_gic_domain_alloc(struct irq_domain *domain,
->  		fwspec.param[0] = GIC_IRQ_TYPE_LPI;
->  		fwspec.param[1] = hwirq;
->  		fwspec.param[2] = IRQ_TYPE_EDGE_RISING;
-> +	} else if (is_fwnode_irqchip(domain->parent->fwnode)) {
-> +		fwspec.fwnode = domain->parent->fwnode;
-> +		fwspec.param_count = 2;
-> +		fwspec.param[0] = hwirq;
-> +		fwspec.param[1] = IRQ_TYPE_EDGE_RISING;
->  	} else {
->  		return -EINVAL;
->  	}
-> @@ -1617,6 +1625,57 @@ its_of_probe(struct device_node *node, struct irq_domain *parent)
->  	return 0;
->  }
->  
-> +#ifdef CONFIG_ACPI
-> +
-> +#define ACPI_GICV3_ITS_MEM_SIZE (2 * SZ_64K)
-> +
-> +static struct irq_domain *its_parent __initdata;
+> Right. That's my reason for asking. I'd like to know who is driving (I
+> believe that to be Lorenzo) and what the path forward is, and whether we
+> need to get additional support from anyone else. There's a multi-vendor
+> meeting in the morning where I'm going to summarize the current state of
+> these patches and I would like to know (soon) what the plan is so that
+> we can get everyone on deck to help out at least with testing (most have
+> tested the previous set, but we need public acks happening).
 
-Given that there is only one of those, maybe it is worth making it
-common to DT and ACPI, and drop the parameter from its_probe_one.
+Testing always helps, this code needs reviewing from PCI and ACPI
+standpoints, what we can do is review this series and repost the whole
+thing when we agree the ECAM refactoring this series is implementing
+is the right way to go and it is a step in that direction, with no
+generic MCFG support in the kernel ACPI PCI on ARM64 can't be
+implemented so I would start from that.
 
-> +
-> +static int __init
-> +gic_acpi_parse_madt_its(struct acpi_subtable_header *header,
-> +			const unsigned long end)
-> +{
-> +	struct acpi_madt_generic_translator *its_entry;
-> +	struct fwnode_handle *domain_handle;
-> +	int err;
-> +
-> +	its_entry = (struct acpi_madt_generic_translator *)header;
-> +	domain_handle = irq_domain_alloc_fwnode((void *)its_entry->base_address);
-> +	if (!domain_handle) {
-> +		pr_err("Unable to allocate GICv3 ITS domain token\n");
-> +		return -ENOMEM;
-> +	}
-> +
-> +	err = iort_register_domain_token(its_entry->translation_id, domain_handle);
-> +	if (err) {
-> +		irq_domain_free_fwnode(domain_handle);
-> +		goto out;
-> +	}
-> +
-> +	err = its_probe_one(its_entry->base_address, ACPI_GICV3_ITS_MEM_SIZE,
-> +			    its_parent, domain_handle);
-
-struct resource.
-
-> +	if (err) {
-> +		iort_deregister_domain_token(its_entry->translation_id);
-> +		irq_domain_free_fwnode(domain_handle);
-> +	}
-> +out:
-> +	return err;
-> +}
-> +
-> +void __init its_acpi_probe(struct irq_domain *parent_domain)
-> +{
-> +	int count;
-> +
-> +	its_parent = parent_domain;
-> +	count = acpi_table_parse_madt(ACPI_MADT_TYPE_GENERIC_TRANSLATOR,
-> +				      gic_acpi_parse_madt_its, 0);
-> +	if (count <= 0)
-> +		pr_info("No valid GIC ITS entries exist\n");
-> +}
-> +#else
-> +static inline void __init its_acpi_probe(struct irq_domain *parent_domain) { }
-> +#endif
-> +
->  int __init its_init(struct fwnode_handle *handle, struct rdists *rdists,
->  		    struct irq_domain *parent_domain)
->  {
-> @@ -1625,6 +1684,8 @@ int __init its_init(struct fwnode_handle *handle, struct rdists *rdists,
->  	of_node = to_of_node(handle);
->  	if (of_node)
->  		its_of_probe(of_node, parent_domain);
-> +	else
-> +		its_acpi_probe(parent_domain);
->  
->  	if (list_empty(&its_nodes)) {
->  		pr_warn("ITS: No ITS available, not enabling LPIs\n");
-> 
-
-Thanks,
-
-	M.
--- 
-Jazz is not dead. It just smells funny...
+Lorenzo
