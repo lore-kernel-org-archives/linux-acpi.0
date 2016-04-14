@@ -1,66 +1,82 @@
-From: Juergen Gross <jgross@suse.com>
-Subject: Re: [PATCH v6 04/16] x86/rtc: replace paravirt rtc check with
- platform legacy quirk
-Date: Thu, 14 Apr 2016 06:28:33 +0200
-Message-ID: <570F1C71.9000604@suse.com>
-References: <1460592286-300-1-git-send-email-mcgrof@kernel.org>
- <1460592286-300-5-git-send-email-mcgrof@kernel.org>
+From: Jon Masters <jcm@jonmasters.org>
+Subject: Re: [PATCH v2 2/4] PCI: Provide common functions for ECAM mapping
+Date: Thu, 14 Apr 2016 01:55:32 -0400
+Message-ID: <570F30D4.2030102@jonmasters.org>
+References: <1460414707-19153-1-git-send-email-jchandra@broadcom.com>
+ <1460414707-19153-3-git-send-email-jchandra@broadcom.com>
+ <570C4034.20105@caviumnetworks.com> <570C78F1.4090701@jonmasters.org>
+ <20160412164413.GA32297@red-moon>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mx2.suse.de ([195.135.220.15]:40968 "EHLO mx2.suse.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753937AbcDNE2j (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 14 Apr 2016 00:28:39 -0400
-In-Reply-To: <1460592286-300-5-git-send-email-mcgrof@kernel.org>
-Sender: linux-acpi-owner@vger.kernel.org
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <20160412164413.GA32297@red-moon>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Jon Masters <jcm@jonmasters.org>
+Cc: Catalin Marinas <catalin.marinas@arm.com>, rafael@kernel.org, linux-pci@vger.kernel.org, Will Deacon <will.deacon@arm.com>, okaya@codeaurora.org, wangyijing@huawei.com, Tomasz Nowicki <tn@semihalf.com>, linaro-acpi@lists.linaro.org, David Daney <ddaney@caviumnetworks.com>, linux-acpi@vger.kernel.org, robert.richter@caviumnetworks.com, Bjorn Helgaas <helgaas@kernel.org>, msalter@redhat.com, Arnd Bergmann <arnd@arndb.de>, Stefano Stabellini <Stefano.Stabellini@eu.citrix.com>, Liviu.Dudau@arm.com, Marcin Wojtas <mw@semihalf.com>, linux-arm-kernel@lists.infradead.org, Jayachandran C <jchandra@broadcom.com>, linux-kernel@vger.kernel.org, Hanjun Guo <hanjun.guo@linaro.org>, Suravee.Suthikulpanit@amd.com, jiang.liu@linux.intel.com
 List-Id: linux-acpi@vger.kernel.org
-To: "Luis R. Rodriguez" <mcgrof@kernel.org>, bp@alien8.de, hpa@zytor.com, tglx@linutronix.de, mingo@redhat.com, rusty@rustcorp.com.au
-Cc: x86@kernel.org, linux-kernel@vger.kernel.org, luto@amacapital.net, boris.ostrovsky@oracle.com, david.vrabel@citrix.com, konrad.wilk@oracle.com, xen-devel@lists.xensource.com, lguest@lists.ozlabs.org, andriy.shevchenko@linux.intel.com, jlee@suse.com, glin@suse.com, matt@codeblueprint.co.uk, andrew.cooper3@citrix.com, rjw@rjwysocki.net, lenb@kernel.org, robert.moore@intel.com, lv.zheng@intel.com, toshi.kani@hp.com, linux-acpi@vger.kernel.org, kozerkov@parallels.com, josh@joshtriplett.org, bigeasy@linutronix.de, ffainelli@freebox.fr, george.dunlap@citrix.com, julien.grall@linaro.org, mbizon@freebox.fr, tiwai@suse.de
 
-On 14/04/16 02:04, Luis R. Rodriguez wrote:
-> We have 4 types of x86 platforms that disable RTC:
+On 04/12/2016 12:44 PM, Lorenzo Pieralisi wrote:
+> On Tue, Apr 12, 2016 at 12:26:25AM -0400, Jon Masters wrote:
 > 
->   * Intel MID
->   * Lguest - uses paravirt
->   * Xen dom-U - uses paravirt
->   * x86 on legacy systems annotated with an ACPI legacy flag
+> [...]
 > 
-> We can consolidate all of these into a platform specific legacy
-> quirk set early in boot through i386_start_kernel() and through
-> x86_64_start_reservations(). This deals with the RTC quirks which
-> we can rely on through the hardware subarch, the ACPI check can
-> be dealt with separately.
+>> Quoting Bjorn's original reply to the previous series:
+>>
+>>> Some of the code that moved to drivers/acpi/pci_mcfg.c is not
+>>> really ACPI-specific, and could potentially be used for non-ACPI
+>>> bridges that support ECAM.  I'd like to see that sort of code
+>>> moved to a new file like drivers/pci/ecam.c.
+>>
+>> So my guess is that this is the reasoning behind JC's file layout.
+>>
+>> I'm curious what Lorenzo's take on things is currently. I assume this
+>> series is now to be the official coordinated version of this effort for
+>> upstream, following the advice of Bjorn previously, but I would like to
+>> know if everyone is behind this plan. I've (previously) requested a
+>> Linaro LEG meeting this week (part of our bootarch working group) to
+>> specifically discuss the status of PCI upstreaming in order to get the
+>> different vendors together to ensure every single one of them is
+>> tracking the correct latest effort and doing what is needed to test/aid,
+>> hence my ask. If this is now plan A, I'll make sure everyone is aligned
+>> behind it and start pinging people individually for testing.
 > 
-> For Xen things are bit more complex given that the @X86_SUBARCH_XEN
-> x86_hardware_subarch is shared on for Xen which uses the PV path for
-> both domU and dom0. Since the semantics for differentiating between
-> the two are Xen specific we provide a platform helper to help override
-> default legacy features -- x86_platform.set_legacy_features(). Use
-> of this helper is highly discouraged, its only purpose should be
-> to account for the lack of semantics available within your given
-> x86_hardware_subarch.
-> 
-> As per 0-day, this bumps the vmlinux size using i386-tinyconfig as
-> follows:
-> 
-> TOTAL   TEXT   init.text    x86_early_init_platform_quirks()
-> +70     +62    +62          +43
-> 
-> Only 8 bytes overhead total, as the main increase in size is
-> all removed via __init.
-> 
-> v4: split the subarch check from the ACPI check, clarify
->     on the ACPI change commit log why ordering works
-> v5: add x86_platform.set_legacy_features() to account for dom0,
->     add also size impact on vmlinux as per 0-day report
-> v6: Use __init on xen_dom0_set_legacy_features()
-> 
-> Suggested-by: Ingo Molnar <mingo@kernel.org>
-> Signed-off-by: Luis R. Rodriguez <mcgrof@kernel.org>
+> My take is that JC's aim is to get this four patch series reviewed and
+> merged
 
-Reviewed-by: Juergen Gross <jgross@suse.com>
+Indeed, I see that's probably the goal, and why not :)
 
+> (which is *not* sufficient to get ACPI PCI to work fully on ARM64
+> - see cover letter - the remaining patches in his branch are not
+> fixes, it is code that is required to get things to work, these 4
+> patches stand alone are not sufficient but I understand he wants to get
+> them reviewed following feedback on the lists) so that we can make
+> progress on ACPI PCI on ARM64.
 
-Juergen
+Agreed. I went through the branch and the 11 patches there, reacquainted
+myself with what's what. So what we have now is 4 patches here plus a
+few others that in total replace v5 of your previous mmconfig patches in
+functionality. The question is what happens with the rest (of JC's
+branch let's say) - do they get sent out now too?
+
+> I will comment on the patches as soon as I have time to review
+> them, I certainly would like to understand what we have to do with the
+> rest of the code though (provided this series is good to go) see above.
+
+Right. That's my reason for asking. I'd like to know who is driving (I
+believe that to be Lorenzo) and what the path forward is, and whether we
+need to get additional support from anyone else. There's a multi-vendor
+meeting in the morning where I'm going to summarize the current state of
+these patches and I would like to know (soon) what the plan is so that
+we can get everyone on deck to help out at least with testing (most have
+tested the previous set, but we need public acks happening).
+
+Jon.
