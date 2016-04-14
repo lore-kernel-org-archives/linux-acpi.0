@@ -1,63 +1,104 @@
-From: Marc Zyngier <marc.zyngier@arm.com>
+From: Tomasz Nowicki <tn@semihalf.com>
 Subject: Re: [PATCH V4 4/7] ARM64, ACPI, PCI: I/O Remapping Table (IORT)
  initial support.
-Date: Thu, 14 Apr 2016 08:36:38 +0100
-Message-ID: <570F4886.70405@arm.com>
+Date: Thu, 14 Apr 2016 09:39:18 +0200
+Message-ID: <570F4926.9080505@semihalf.com>
 References: <1459759975-24097-1-git-send-email-tn@semihalf.com>
  <1459759975-24097-5-git-send-email-tn@semihalf.com>
  <570E645A.9010600@arm.com> <570E6794.4080409@semihalf.com>
- <570E6B2C.3060700@arm.com> <570EB78E.4060705@codeaurora.org>
- <570F44CD.7090605@semihalf.com>
+ <570E6B2C.3060700@arm.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252
+Content-Type: text/plain; charset=windows-1252; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from foss.arm.com ([217.140.101.70]:39978 "EHLO foss.arm.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752213AbcDNHgo (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 14 Apr 2016 03:36:44 -0400
-In-Reply-To: <570F44CD.7090605@semihalf.com>
+Received: from mail-wm0-f44.google.com ([74.125.82.44]:38141 "EHLO
+	mail-wm0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751817AbcDNHjk (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 14 Apr 2016 03:39:40 -0400
+Received: by mail-wm0-f44.google.com with SMTP id u206so112364752wme.1
+        for <linux-acpi@vger.kernel.org>; Thu, 14 Apr 2016 00:39:39 -0700 (PDT)
+In-Reply-To: <570E6B2C.3060700@arm.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Tomasz Nowicki <tn@semihalf.com>, Sinan Kaya <okaya@codeaurora.org>, tglx@linutronix.de, jason@lakedaemon.net, rjw@rjwysocki.net, lorenzo.pieralisi@arm.com, robert.richter@caviumnetworks.com, shijie.huang@arm.com, Suravee.Suthikulpanit@amd.com, hanjun.guo@linaro.org
-Cc: al.stone@linaro.org, mw@semihalf.com, graeme.gregory@linaro.org, Catalin.Marinas@arm.com, will.deacon@arm.com, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org, ddaney.cavm@gmail.com
+To: Marc Zyngier <marc.zyngier@arm.com>, tglx@linutronix.de, jason@lakedaemon.net, rjw@rjwysocki.net, lorenzo.pieralisi@arm.com, robert.richter@caviumnetworks.com, shijie.huang@arm.com, Suravee.Suthikulpanit@amd.com, hanjun.guo@linaro.org
+Cc: al.stone@linaro.org, mw@semihalf.com, graeme.gregory@linaro.org, Catalin.Marinas@arm.com, will.deacon@arm.com, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org, ddaney.cavm@gmail.com, okaya@codeaurora.org
 
-On 14/04/16 08:20, Tomasz Nowicki wrote:
-> On 13.04.2016 23:18, Sinan Kaya wrote:
->> On 4/13/2016 11:52 AM, Marc Zyngier wrote:
->>>>> Sure. Please see:
->>>>> http://infocenter.arm.com/help/topic/com.arm.doc.den0049a/DEN0049A_IO_Remapping_Table.pdf
->>>>> 3.1.1.5 PCI root complex node
->>>>> PCI Segment number -> The PCI segment number, as in MCFG and as
->>>>> returned by _SEG in the namespace.
->>>>>
->>>>> So IORT spec states that pci_segment_number corresponds to the segment
->>>>> number from MCFG table and _SEG method. Here is my patch which makes
->>>>> sure pci_domain_nr(bus) is set properly:
->>>>> https://lkml.org/lkml/2016/2/16/418
->>> Lovely. So this series is actually dependent on the PCI one. I guess we
->>> need to solve that one first, because IORT seems pretty pointless if we
->>> don't have PCI support. What's the plan?
+On 13.04.2016 17:52, Marc Zyngier wrote:
+> On 13/04/16 16:36, Tomasz Nowicki wrote:
+>> On 13.04.2016 17:23, Marc Zyngier wrote:
+>>> On 04/04/16 09:52, Tomasz Nowicki wrote:
+>>>> IORT shows representation of IO topology for ARM based systems.
+>>>> It describes how various components are connected together on
+>>>> parent-child basis e.g. PCI RC -> SMMU -> ITS. Also see IORT spec.
+>>>>
+>>>> Initial support allows to:
+>>>> - register ITS MSI chip along with ITS translation ID and domain token
+>>>> - deregister ITS MSI chip based on ITS translation ID
+>>>> - find registered domain token based on ITS translation ID
+>>>> - map MSI RID based on PCI device and requester ID
+>>>> - find domain token based on PCI device and requester ID
+>>>>
+>>>> To: Rafael J. Wysocki <rjw@rjwysocki.net>
+>>>> Signed-off-by: Tomasz Nowicki <tn@semihalf.com>
+>>>> ---
+>>>>    drivers/acpi/Kconfig    |   3 +
+>>>>    drivers/acpi/Makefile   |   1 +
+>>>>    drivers/acpi/iort.c     | 335 ++++++++++++++++++++++++++++++++++++++++++++++++
+>>>>    drivers/irqchip/Kconfig |   1 +
+>>>>    include/linux/iort.h    |  31 +++++
+>>>>    5 files changed, 371 insertions(+)
+>>>>    create mode 100644 drivers/acpi/iort.c
+>>>>    create mode 100644 include/linux/iort.h
+>>>>
+>>>
+>>> [...]
+>>>
+>>>> +static acpi_status
+>>>> +iort_find_dev_callback(struct acpi_iort_node *node, void *context)
+>>>> +{
+>>>> +	struct acpi_iort_root_complex *pci_rc;
+>>>> +	struct device *dev = context;
+>>>> +	struct pci_bus *bus;
+>>>> +
+>>>> +	switch (node->type) {
+>>>> +	case ACPI_IORT_NODE_PCI_ROOT_COMPLEX:
+>>>> +		bus = to_pci_bus(dev);
+>>>> +		pci_rc = (struct acpi_iort_root_complex *)node->node_data;
+>>>> +
+>>>> +		/*
+>>>> +		 * It is assumed that PCI segment numbers maps one-to-one
+>>>> +		 * with root complexes. Each segment number can represent only
+>>>> +		 * one root complex.
+>>>> +		 */
+>>>> +		if (pci_rc->pci_segment_number == pci_domain_nr(bus))
+>>>> +			return AE_OK;
+>>>
+>>> What guarantees that this is ever valid? As far as I know, pci_domain_nr
+>>> is completely arbitrary, and depends both on the probe order and the
+>>> phase of the moon. If you want this to be reliable, you need to allocate
+>>> the domain number from pci_segment_number.
+>>>
+>>> I must be missing something. Care to shed some light on this?
+>>>
+>> Sure. Please see:
+>> http://infocenter.arm.com/help/topic/com.arm.doc.den0049a/DEN0049A_IO_Remapping_Table.pdf
+>> 3.1.1.5 PCI root complex node
+>> PCI Segment number -> The PCI segment number, as in MCFG and as
+>> returned by _SEG in the namespace.
 >>
->> Would it be OK to split the PCI specific section of the patch and continue
->> review? PCI is a user of the IORT table. Not the other way around.
-> 
-> I need to disagree. What would be the use case for patches w/o "PCI part" ?
+>> So IORT spec states that pci_segment_number corresponds to the segment
+>> number from MCFG table and _SEG method. Here is my patch which makes
+>> sure pci_domain_nr(bus) is set properly:
+>> https://lkml.org/lkml/2016/2/16/418
+>
+> Lovely. So this series is actually dependent on the PCI one. I guess we
+> need to solve that one first, because IORT seems pretty pointless if we
+> don't have PCI support. What's the plan?
+>
 
-Quite. PCI (as a subsystem) doesn't need IORT at all, thank you very
-much. GIC (implementing MSI) and SMMU (implementing DMA) do, by virtue
-of RID/SID/DID being translated all over the place.
+The plan is to make this series ready for being merged. Once we get PCI 
+series upstream, we can just retest ITS final series and pull it in, if 
+you agree. PCI domain assignment is settled so it will not be the reason 
+for fundamental changes here. What do you think?
 
-So by the look of it, the dependency chain is GIC+SMMU->IORT->PCI.
-
-The GIC changes here are pretty mechanical, and not that interesting.
-The stuff that needs sorting quickly is PCI, because all this work is
-pointless if we don't have it.
-
-At the risk of sounding like a stuck record: What's the plan?
-
-Thanks,
-
-	M.
--- 
-Jazz is not dead. It just smells funny...
+Tomasz
