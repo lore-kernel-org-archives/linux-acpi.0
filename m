@@ -1,86 +1,131 @@
-From: "Roy Franz (HPE)" <roy.lists@gmail.com>
-Subject: Re: [PATCH 2/3] ACPI / ARM64: Remove EXPERT dependency for ACPI on ARM64
-Date: Fri, 15 Apr 2016 09:19:42 -0700
-Message-ID: <CAK-u0Q=nbNmFrzPG=bYPhJ_rifDD6_hVxARhz3X9qnEZJ4rvfA@mail.gmail.com>
-References: <1460706823-16566-1-git-send-email-broonie@kernel.org>
-	<1460706823-16566-2-git-send-email-broonie@kernel.org>
-Reply-To: roy.franz@hpe.com
+From: "Moore, Robert" <robert.moore@intel.com>
+Subject: RE: [PATCH] acpi/acpica: fix Thunderbolt hotplug
+Date: Fri, 15 Apr 2016 16:21:41 +0000
+Message-ID: <94F2FBAB4432B54E8AACC7DFDE6C92E37E474F3C@ORSMSX110.amr.corp.intel.com>
+References: <1459291540-8746-1-git-send-email-prarit@redhat.com>
+ <20160415073950.GC1714@lahna.fi.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-lf0-f67.google.com ([209.85.215.67]:36796 "EHLO
-	mail-lf0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752154AbcDOQTo (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 15 Apr 2016 12:19:44 -0400
-Received: by mail-lf0-f67.google.com with SMTP id 13so5270211lfz.3
-        for <linux-acpi@vger.kernel.org>; Fri, 15 Apr 2016 09:19:43 -0700 (PDT)
-In-Reply-To: <1460706823-16566-2-git-send-email-broonie@kernel.org>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20160415073950.GC1714@lahna.fi.intel.com>
+Content-Language: en-US
+Sender: linux-kernel-owner@vger.kernel.org
+To: Mika Westerberg <mika.westerberg@linux.intel.com>, Prarit Bhargava <prarit@redhat.com>
+Cc: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "Zheng, Lv" <lv.zheng@intel.com>, "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>, Len Brown <lenb@kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "devel@acpica.org" <devel@acpica.org>
 List-Id: linux-acpi@vger.kernel.org
-To: Mark Brown <broonie@kernel.org>
-Cc: "Rafael J . Wysocki" <rjw@rjwysocki.net>, Catalin Marinas <catalin.marinas@arm.com>, Len Brown <lenb@kernel.org>, Will Deacon <will.deacon@arm.com>, Mark Rutland <mark.rutland@arm.com>, Steve Capper <steve.capper@linaro.org>, Graeme Gregory <graeme.gregory@linaro.org>, linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org, arm@kernel.org
 
-On Fri, Apr 15, 2016 at 12:53 AM, Mark Brown <broonie@kernel.org> wrote:
-> When ACPI was originally merged for arm64 it had only been tested on
-> emulators and not on real physical platforms and no platforms were
-> relying on it.  This meant that there were concerns that there might be
-> serious issues attempting to use it on practical systems so it had a
-> dependency on EXPERT added to warn people that it was in an early stage
-> of development with very little practical testing.  Since then things
-> have moved on a bit.  We have seen people testing on real hardware and
-> now have people starting to produce some platforms (the most prominent
-> being the 96boards Cello) which only have ACPI support and which build
-> and run to some useful extent with mainline.
->
-> This is not to say that ACPI support or support for these systems is
-> completely done, there are still areas being worked on such as PCI, but
-> at this point it seems that we can be reasonably sure that ACPI will be
-> viable for use on ARM64 and that the already merged support works for
-> the cases it handles.  For the AMD Seattle based platforms support
-> outside of PCI has been fairly complete in mainline a few releases now.
->
-> This is also not to say that we don't have vendors working with ACPI who
-> are trying do things that we would not consider optimal but it does not
-> appear that the EXPERT dependency is having a substantial impact on
-> these vendors.
->
-> Given all this it seems that at this point the EXPERT dependency mainly
-> creates inconvenience for users with systems that are doing the right
-> thing and gets in the way of including the ACPI code in the testing that
-> people are doing on mainline.  Removing it should help our ongoing
-> testing cover those platforms with only ACPI support and help ensure
-> that when ACPI code is merged any problems it causes for other users are
-> more easily discovered.
->
-> Signed-off-by: Mark Brown <broonie@kernel.org>
-> Acked-by: Graeme Gregory <graeme.gregory@linaro.org>
-> Acked-by: Ard Biesheuvel <ard.biesheuvel@linaro.org>
-> Reviewed-by: Al Stone <ahs3@redhat.com>
-> Acked-by: Hanjun Guo <hanjun.guo@linaro.org>
-> Acked-by: Catalin Marinas <catalin.marinas@arm.com>
+Lv is looking at it. He has already commented that this might not be the best solution, so he is continuing to investigate.
 
-Acked-by: Roy Franz <roy.franz@hpe.com>
-> ---
->  drivers/acpi/Kconfig | 2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
->
-> diff --git a/drivers/acpi/Kconfig b/drivers/acpi/Kconfig
-> index 2fcf87a6d270..fa0d319283e3 100644
-> --- a/drivers/acpi/Kconfig
-> +++ b/drivers/acpi/Kconfig
-> @@ -5,7 +5,7 @@
->  menuconfig ACPI
->         bool "ACPI (Advanced Configuration and Power Interface) Support"
->         depends on !IA64_HP_SIM
-> -       depends on IA64 || X86 || (ARM64 && EXPERT)
-> +       depends on IA64 || X86 || ARM64
->         depends on PCI
->         select PNP
->         default y if (IA64 || X86)
-> --
-> 2.8.0.rc3
->
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
+> -----Original Message-----
+> From: Mika Westerberg [mailto:mika.westerberg@linux.intel.com]
+> Sent: Friday, April 15, 2016 12:40 AM
+> To: Prarit Bhargava
+> Cc: linux-kernel@vger.kernel.org; Moore, Robert; Zheng, Lv; Wysocki,
+> Rafael J; Len Brown; linux-acpi@vger.kernel.org; devel@acpica.org
+> Subject: Re: [PATCH] acpi/acpica: fix Thunderbolt hotplug
+> 
+> Bob, Rafael, any comments about this?
+> 
+> This seems to solve a real issue with Thunderbolt hotplug on Dell XPS
+> laptops. I do not know ACPICA that well to tell if this is 100% correct
+> fix but many reporters say it fixes the problem they are facing:
+> 
+> https://bugzilla.kernel.org/show_bug.cgi?id=115121
+> 
+> On Tue, Mar 29, 2016 at 06:45:40PM -0400, Prarit Bhargava wrote:
+> > The following hung task trace is seen when hotplugging an ethernet
+> > dongle in a Thunderbolt port on Linux.
+> >
+> > INFO: task kworker/0:4:1468 blocked for more than 120 seconds.
+> >       Tainted: G        W       4.6.0-rc1+ #1
+> >  "echo 0 > /proc/sys/kernel/hung_task_timeout_secs" disables this
+> message.
+> >  kworker/0:4     D ffff8802a265ba38 13344  1468      2 0x00000000
+> >  Workqueue: kacpid acpi_os_execute_deferred
+> >  ffff8802a265ba38 ffff8802a265ba00 ffffffff81130200 ffffffff81e0d580
+> >  ffff88029e5eb340 ffff8802a265c000 ffff88029d69d000 ffff88029e5eb340
+> > ffffffff818c1b8d ffff8802b64e8758 ffff8802a265ba50 ffffffff818bdfcc
+> > Call Trace:
+> >  [<ffffffff81130200>] ? test_callback+0x10/0x30  [<ffffffff818c1b8d>]
+> > ? __down_timeout+0x5d/0xd0  [<ffffffff818bdfcc>] schedule+0x3c/0x90
+> > [<ffffffff818c2d60>] schedule_timeout+0x210/0x360
+> > [<ffffffff8103fc89>] ? sched_clock+0x9/0x10  [<ffffffff810ee51c>] ?
+> > local_clock+0x1c/0x20  [<ffffffff81110c16>] ?
+> > mark_held_locks+0x76/0xa0  [<ffffffff818c3cfc>] ?
+> > _raw_spin_unlock_irq+0x2c/0x40  [<ffffffff818c1b8d>] ?
+> > __down_timeout+0x5d/0xd0  [<ffffffff81110d35>] ?
+> > trace_hardirqs_on_caller+0xf5/0x1b0
+> >  [<ffffffff818c1b8d>] ? __down_timeout+0x5d/0xd0  [<ffffffff818c1bac>]
+> > __down_timeout+0x7c/0xd0  [<ffffffff818c44b2>] ?
+> > _raw_spin_lock_irqsave+0x82/0x90  [<ffffffff8110b87c>]
+> > down_timeout+0x4c/0x60  [<ffffffff814e3a9c>]
+> > acpi_os_wait_semaphore+0xaa/0x16a  [<ffffffff81510f37>]
+> > acpi_ex_system_wait_mutex+0x81/0xfa
+> >  [<ffffffff814f8796>] acpi_ds_begin_method_execution+0x25a/0x373
+> >  [<ffffffff814f8cea>] acpi_ds_call_control_method+0x107/0x2e0
+> >  [<ffffffff8151ed60>] acpi_ps_parse_aml+0x177/0x495
+> > [<ffffffff8151fa46>] acpi_ps_execute_method+0x1f7/0x2b9
+> >  [<ffffffff81516c9a>] acpi_ns_evaluate+0x2ee/0x435
+> > [<ffffffff814ff84a>] acpi_ev_asynch_execute_gpe_method+0xbd/0x159
+> >  [<ffffffff814e2a69>] acpi_os_execute_deferred+0x17/0x23
+> >  [<ffffffff810d1fc2>] process_one_work+0x242/0x700
+> > [<ffffffff810d1f3a>] ? process_one_work+0x1ba/0x700
+> > [<ffffffff810d24ce>] worker_thread+0x4e/0x490  [<ffffffff810d2480>] ?
+> > process_one_work+0x700/0x700  [<ffffffff810d2480>] ?
+> > process_one_work+0x700/0x700  [<ffffffff810d98b1>] kthread+0x101/0x120
+> > [<ffffffff81110d35>] ? trace_hardirqs_on_caller+0xf5/0x1b0
+> >  [<ffffffff818c4832>] ret_from_fork+0x22/0x50  [<ffffffff810d97b0>] ?
+> > kthread_create_on_node+0x250/0x250
+> >  2 locks held by kworker/0:4/1468:
+> >  #0:  ("kacpid"){.+.+.+}, at: [<ffffffff810d1f3a>]
+> > process_one_work+0x1ba/0x700
+> >  #1:  ((&dpc->work)){+.+.+.}, at: [<ffffffff810d1f3a>]
+> > process_one_work+0x1ba/0x700
+> >
+> > The issue appears to be that the kworker thread attempts to acquire
+> > the
+> > _E42 method's mutex twice when executing  acpi_ps_execute_method() and
+> > recursing through the entry method.
+> >
+> > The current code does take the possiblity of this recursion into
+> > account, however, it is only for the case where the walk_state has been
+> populated.
+> >
+> > This can be fixed by setting the thread id in the !walk_state case to
+> > allow for recursion.
+> >
+> > Cc: Robert Moore <robert.moore@intel.com>
+> > Cc: Lv Zheng <lv.zheng@intel.com>
+> > Cc: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>
+> > Cc: Len Brown <lenb@kernel.org>
+> > Cc: linux-acpi@vger.kernel.org
+> > Cc: devel@acpica.org
+> > Signed-off-by: Prarit Bhargava <prarit@redhat.com>
+> > ---
+> >  drivers/acpi/acpica/dsmethod.c |    3 +++
+> >  1 file changed, 3 insertions(+)
+> >
+> > diff --git a/drivers/acpi/acpica/dsmethod.c
+> > b/drivers/acpi/acpica/dsmethod.c index 1982310..93799db 100644
+> > --- a/drivers/acpi/acpica/dsmethod.c
+> > +++ b/drivers/acpi/acpica/dsmethod.c
+> > @@ -428,6 +428,9 @@ acpi_ds_begin_method_execution(struct
+> acpi_namespace_node *method_node,
+> >  				obj_desc->method.mutex->mutex.
+> >  				    original_sync_level =
+> >  				    obj_desc->method.mutex->mutex.sync_level;
+> > +
+> > +				obj_desc->method.mutex->mutex.thread_id =
+> > +					acpi_os_get_thread_id();
+> >  			}
+> >  		}
+> >
+> > --
+> > 1.7.9.3
+> >
+> > --
+> > To unsubscribe from this list: send the line "unsubscribe linux-acpi"
+> > in the body of a message to majordomo@vger.kernel.org More majordomo
+> > info at  http://vger.kernel.org/majordomo-info.html
