@@ -1,46 +1,41 @@
-From: Linus Walleij <linus.walleij@linaro.org>
-Subject: Re: [PATCH v7 3/3] gpio: dwapb: add gpio-signaled acpi event support
-Date: Fri, 15 Apr 2016 09:40:05 +0200
-Message-ID: <CACRpkdY=i9BVYEpu0svmKOQJURH2nQ5iwCM0895fODmkVuPBew@mail.gmail.com>
-References: <1459926480-32966-1-git-send-email-qiujiang@huawei.com>
-	<1459926480-32966-4-git-send-email-qiujiang@huawei.com>
-	<CACRpkdb63AZtEOSJ0R+EqdHfKXcUr7Hs8fh9N5XHNcWjQ1Ba8A@mail.gmail.com>
-	<20160408083830.GT1727@lahna.fi.intel.com>
-	<570B9BEA.8060608@huawei.com>
-	<20160412064657.GF1714@lahna.fi.intel.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20160412064657.GF1714@lahna.fi.intel.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Mika Westerberg <mika.westerberg@linux.intel.com>
-Cc: Jiang Qiu <qiujiang@huawei.com>, Alexandre Courbot <gnurou@gmail.com>, Andy Shevchenko <andy.shevchenko@gmail.com>, Alan Tull <delicious.quinoa@gmail.com>, Jamie Iles <jamie@jamieiles.com>, charles.chenxin@huawei.com, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-gpio@vger.kernel.org" <linux-gpio@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linuxarm <linuxarm@huawei.com>
+From: Mark Brown <broonie@kernel.org>
+Subject: [PATCH 1/3] ACPI / ARM64: Don't enable ACPI by default on ARM64
+Date: Fri, 15 Apr 2016 08:53:41 +0100
+Message-ID: <1460706823-16566-1-git-send-email-broonie@kernel.org>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mezzanine.sirena.org.uk ([106.187.55.193]:43566 "EHLO
+	mezzanine.sirena.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752325AbcDOHyK (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 15 Apr 2016 03:54:10 -0400
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: "Rafael J . Wysocki" <rjw@rjwysocki.net>, Catalin Marinas <catalin.marinas@arm.com>, Len Brown <lenb@kernel.org>, Will Deacon <will.deacon@arm.com>
+Cc: Mark Rutland <mark.rutland@arm.com>, Steve Capper <steve.capper@linaro.org>, Graeme Gregory <graeme.gregory@linaro.org>, linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org, arm@kernel.org, Mark Brown <broonie@kernel.org>
 
-On Tue, Apr 12, 2016 at 8:46 AM, Mika Westerberg
-<mika.westerberg@linux.intel.com> wrote:
-> On Mon, Apr 11, 2016 at 08:43:22PM +0800, Jiang Qiu wrote:
->> > Currently it just complains if something goes wrong. The GPIO driver
->> > itself can still work just fine (including interrupts).
->> >
->> > I'm fine to change it to return an error code.
->> Agree, if add a error code for acpi_gpiochip_request_interrupts(), it looks more pretty.
->>
->> However, this function is common for other part, maybe cause any other effects if I
->> do this change, did you think so?
->
-> I'm thinking what the callers are going to do with the error code.
-> Basically it means that we were not able to attach and configure ACPI
-> event GPIOs. It does not prevent GPIO drivers from functioning so they
-> probably just print out some warning message and continue probing, and
-> we already warn in acpi_gpiochip_request_interrupts() if something fails.
->
-> Unless Linus W insists, let's just keep it as is for now :)
+If ACPI is selectable it is enabled by default.  This is a good choice
+for architectures where the overwhelming majority of systems use ACPI
+like x86 and IA-64 but is less clear for architectures where it's less
+common like ARM64.  Change the default selection so that it's only done
+explicitly on those architectures where ACPI is universally used.
 
-I'm fine with it, don' worry.
+Signed-off-by: Mark Brown <broonie@kernel.org>
+---
+ drivers/acpi/Kconfig | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-I'm just waiting for this patch set to mature so I can apply
-it.
+diff --git a/drivers/acpi/Kconfig b/drivers/acpi/Kconfig
+index 82b96ee8624c..2fcf87a6d270 100644
+--- a/drivers/acpi/Kconfig
++++ b/drivers/acpi/Kconfig
+@@ -8,7 +8,7 @@ menuconfig ACPI
+ 	depends on IA64 || X86 || (ARM64 && EXPERT)
+ 	depends on PCI
+ 	select PNP
+-	default y
++	default y if (IA64 || X86)
+ 	help
+ 	  Advanced Configuration and Power Interface (ACPI) support for 
+ 	  Linux requires an ACPI-compliant platform (hardware/firmware),
+-- 
+2.8.0.rc3
 
-Yours,
-Linus Walleij
