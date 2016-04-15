@@ -1,34 +1,31 @@
-From: Hanjun Guo <guohanjun@huawei.com>
-Subject: Re: [PATCH 3/3] arm64: defconfig: Enable ACPI
-Date: Fri, 15 Apr 2016 17:04:55 +0800
-Message-ID: <5710AEB7.4050108@huawei.com>
-References: <1460706823-16566-1-git-send-email-broonie@kernel.org>
- <1460706823-16566-3-git-send-email-broonie@kernel.org>
+From: Dan Carpenter <dan.carpenter@oracle.com>
+Subject: [patch] PCI: acpiphp_ibm: potential uninitialized variable bug
+Date: Fri, 15 Apr 2016 17:51:06 +0300
+Message-ID: <20160415145106.GH8953@mwanda>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from szxga02-in.huawei.com ([119.145.14.65]:54159 "EHLO
-	szxga02-in.huawei.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753490AbcDOJFQ (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 15 Apr 2016 05:05:16 -0400
-In-Reply-To: <1460706823-16566-3-git-send-email-broonie@kernel.org>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+Sender: linux-kernel-owner@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: Len Brown <lenb@kernel.org>, Bjorn Helgaas <bhelgaas@google.com>, linux-acpi@vger.kernel.org, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, kernel-janitors@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Mark Brown <broonie@kernel.org>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, Catalin Marinas <catalin.marinas@arm.com>, Len Brown <lenb@kernel.org>, Will Deacon <will.deacon@arm.com>
-Cc: Mark Rutland <mark.rutland@arm.com>, Steve Capper <steve.capper@linaro.org>, Graeme Gregory <graeme.gregory@linaro.org>, linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org, arm@kernel.org
 
-On 2016/4/15 15:53, Mark Brown wrote:
-> Enable ACPI by default to support testing of ACPI only systems and
-> ensure that defconfig will boot on anything, for arm64 this is not done
-> in Kconfig since a very large proportion of arm64 systems have no ACPI
-> at all.
->
-> Signed-off-by: Mark Brown <broonie@kernel.org>
+If ibm_get_table_from_acpi() fails then "table" isn't initialized.  I
+fixed this by adding a check for failure.
 
+Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
 
-Acked-by: Hanjun Guo <hanjun.guo@linaro.org>
-
-Thanks
-Hanjun
-
+diff --git a/drivers/pci/hotplug/acpiphp_ibm.c b/drivers/pci/hotplug/acpiphp_ibm.c
+index 2f6d3a1..f6221d7 100644
+--- a/drivers/pci/hotplug/acpiphp_ibm.c
++++ b/drivers/pci/hotplug/acpiphp_ibm.c
+@@ -138,6 +138,8 @@ static union apci_descriptor *ibm_slot_from_id(int id)
+ 	char *table;
+ 
+ 	size = ibm_get_table_from_acpi(&table);
++	if (size < 0)
++		return NULL;
+ 	des = (union apci_descriptor *)table;
+ 	if (memcmp(des->header.sig, "aPCI", 4) != 0)
+ 		goto ibm_slot_done;
