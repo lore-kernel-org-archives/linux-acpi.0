@@ -1,59 +1,61 @@
-From: Timur Tabi <timur@codeaurora.org>
-Subject: Re: [RFC PATCH 09/11] drivers: acpi: implement acpi_dma_configure
-Date: Fri, 15 Apr 2016 13:29:14 -0500
-Message-ID: <CAOZdJXXtZq6uyE+5sseX7M_6Kq8wFG+37qd5TNSusKj=0gd8zA@mail.gmail.com>
-References: <1460654743-7896-1-git-send-email-lorenzo.pieralisi@arm.com>
-	<1460654743-7896-10-git-send-email-lorenzo.pieralisi@arm.com>
+From: Arnd Bergmann <arnd@arndb.de>
+Subject: Re: [PATCH V6 08/13] PCI: generic, thunder: update to use generic ECAM API
+Date: Fri, 15 Apr 2016 20:39:27 +0200
+Message-ID: <5110401.mGEq6IVFz2@wuerfel>
+References: <1460740008-19489-1-git-send-email-tn@semihalf.com> <1460740008-19489-9-git-send-email-tn@semihalf.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7Bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp.codeaurora.org ([198.145.29.96]:57203 "EHLO
-	smtp.codeaurora.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751139AbcDOS3R (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 15 Apr 2016 14:29:17 -0400
-In-Reply-To: <1460654743-7896-10-git-send-email-lorenzo.pieralisi@arm.com>
+Received: from mout.kundenserver.de ([212.227.126.131]:58783 "EHLO
+	mout.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750976AbcDOSk6 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 15 Apr 2016 14:40:58 -0400
+In-Reply-To: <1460740008-19489-9-git-send-email-tn@semihalf.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
-Cc: iommu@lists.linux-foundation.org, Marc Zyngier <marc.zyngier@arm.com>, Tomasz Nowicki <tn@semihalf.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, lkml <linux-kernel@vger.kernel.org>, Will Deacon <will.deacon@arm.com>, Sinan Kaya <okaya@codeaurora.org>, linux-acpi@vger.kernel.org, linux-pci@vger.kernel.org, Hanjun Guo <hanjun.guo@linaro.org>, Jon Masters <jcm@redhat.com>, Bjorn Helgaas <bhelgaas@google.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, vikrams@codeaurora.org
+To: linux-arm-kernel@lists.infradead.org
+Cc: Tomasz Nowicki <tn@semihalf.com>, helgaas@kernel.org, will.deacon@arm.com, catalin.marinas@arm.com, rafael@kernel.org, hanjun.guo@linaro.org, Lorenzo.Pieralisi@arm.com, okaya@codeaurora.org, jiang.liu@linux.intel.com, jchandra@broadcom.com, jcm@redhat.com, linaro-acpi@lists.linaro.org, linux-pci@vger.kernel.org, Liviu.Dudau@arm.com, ddaney@caviumnetworks.com, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, robert.richter@caviumnetworks.com, Suravee.Suthikulpanit@amd.com, msalter@redhat.com, wangyijing@huawei.com, mw@semihalf.com
 
-On Thu, Apr 14, 2016 at 12:25 PM, Lorenzo Pieralisi
-<lorenzo.pieralisi@arm.com> wrote:
-> +void acpi_dma_configure(struct device *dev, enum dev_dma_attr attr)
-> +{
-> +       struct iommu_ops *iommu;
-> +
-> +       iommu = iort_iommu_configure(dev);
-> +
-> +       /*
-> +        * Assume dma valid range starts at 0 and covers the whole
-> +        * coherent_dma_mask.
-> +        */
-> +       arch_setup_dma_ops(dev, 0, dev->coherent_dma_mask + 1, iommu,
-> +                          attr == DEV_DMA_COHERENT);
+On Friday 15 April 2016 19:06:43 Tomasz Nowicki wrote:
+> -MODULE_DEVICE_TABLE(of, thunder_pem_of_match);
+> -
+> -static int thunder_pem_probe(struct platform_device *pdev)
+> +static int thunder_pem_init(struct device *dev, struct pci_config_window *cfg)
+>  {
+> -       struct device *dev = &pdev->dev;
+> -       const struct of_device_id *of_id;
+>         resource_size_t bar4_start;
+>         struct resource *res_pem;
+>         struct thunder_pem_pci *pem_pci;
+> +       struct platform_device *pdev;
+>  
+>         pem_pci = devm_kzalloc(dev, sizeof(*pem_pci), GFP_KERNEL);
+>         if (!pem_pci)
+>                 return -ENOMEM;
+>  
+> -       of_id = of_match_node(thunder_pem_of_match, dev->of_node);
+> -       pem_pci->gen_pci.cfg.ops = (struct gen_pci_cfg_bus_ops *)of_id->data;
+> +       pdev = to_platform_device(dev);
+>  
+>         /*
+>          * The second register range is the PEM bridge to the PCIe
+> @@ -330,7 +298,29 @@ static int thunder_pem_probe(struct platform_device *pdev)
+>         pem_pci->ea_entry[1] = (u32)(res_pem->end - bar4_start) & ~3u;
+>         pem_pci->ea_entry[2] = (u32)(bar4_start >> 32);
+>  
+> -       return pci_host_common_probe(pdev, &pem_pci->gen_pci);
+> +       cfg->priv = pem_pci;
+> +       return 0;
 > +}
+> +
+> 
 
-I have a network driver that is impacted by this code, so thank you
-for posting this. (See
-https://www.mail-archive.com/netdev@vger.kernel.org/msg106249.html).
+I still think it would be better to keep the loadable PCI host drivers
+separate from the ACPI PCI infrastructure. There are a number of
+simplifications that we want to do to the DT based drivers in the long
+run, so it's better if that code is not shared at this level. Abstracting
+out the ECAM code is fine, but at that point you should be able to just
+call it from the ACPI layer.
 
-One one SOC, the driver needs to set the mask to 32 bits.  On another
-SOC, it needs to set it to 64 bits.  On device tree, the driver will
-use dma-ranges.
-
-In your patches, where is coherent_dma_mask initialized?  I found this
-code in add_smmu_platform_device(), but I think this is setting the
-mask for the IOMMU driver, not the individual devices.  Either way, I
-don't understand where the correct value is going to be overridden.
-
-+       /*
-+        * Set default dma mask value for the table walker,
-+        * to be overridden on probing with correct value.
-+        */
-+       *pdev->dev.dma_mask = DMA_BIT_MASK(32);
-+       pdev->dev.coherent_dma_mask = *pdev->dev.dma_mask;
-
--- 
-Qualcomm Innovation Center, Inc.
-The Qualcomm Innovation Center, Inc. is a member of the Code Aurora Forum,
-a Linux Foundation Collaborative Project.
+	Arnd
