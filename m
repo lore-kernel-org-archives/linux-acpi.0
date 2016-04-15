@@ -1,354 +1,147 @@
 From: Tomasz Nowicki <tn@semihalf.com>
-Subject: [PATCH V6 09/13] pci, acpi: Support for ACPI based generic PCI host controller
-Date: Fri, 15 Apr 2016 19:06:44 +0200
-Message-ID: <1460740008-19489-10-git-send-email-tn@semihalf.com>
+Subject: [PATCH V6 12/13] pci, pci-thunder-ecam: Add ACPI support for ThunderX ECAM.
+Date: Fri, 15 Apr 2016 19:06:47 +0200
+Message-ID: <1460740008-19489-13-git-send-email-tn@semihalf.com>
 References: <1460740008-19489-1-git-send-email-tn@semihalf.com>
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-wm0-f52.google.com ([74.125.82.52]:37656 "EHLO
-	mail-wm0-f52.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753163AbcDORHb (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 15 Apr 2016 13:07:31 -0400
-Received: by mail-wm0-f52.google.com with SMTP id n3so41532363wmn.0
-        for <linux-acpi@vger.kernel.org>; Fri, 15 Apr 2016 10:07:30 -0700 (PDT)
+Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1460740008-19489-1-git-send-email-tn@semihalf.com>
-Sender: linux-acpi-owner@vger.kernel.org
-List-Id: linux-acpi@vger.kernel.org
+Sender: linux-kernel-owner@vger.kernel.org
 To: helgaas@kernel.org, arnd@arndb.de, will.deacon@arm.com, catalin.marinas@arm.com, rafael@kernel.org, hanjun.guo@linaro.org, Lorenzo.Pieralisi@arm.com, okaya@codeaurora.org, jiang.liu@linux.intel.com, jchandra@broadcom.com
 Cc: robert.richter@caviumnetworks.com, mw@semihalf.com, Liviu.Dudau@arm.com, ddaney@caviumnetworks.com, wangyijing@huawei.com, Suravee.Suthikulpanit@amd.com, msalter@redhat.com, linux-pci@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linaro-acpi@lists.linaro.org, jcm@redhat.com, Tomasz Nowicki <tn@semihalf.com>
+List-Id: linux-acpi@vger.kernel.org
 
-This patch is going to implement generic PCI host controller for
-ACPI world, similar to what pci-host-generic.c driver does for DT world.
+Passes 1.x miss PCI enhanced allocation (EA) header for fixed-BARs,
+thus these passes should use Cavium-specific config access functions
+that synthesize the missing EA capabilities.
 
-All such drivers, which we have seen so far, were implemented within
-arch/ directory since they had some arch assumptions (x86 and ia64).
-However, they all are doing similar thing, so it makes sense to find
-some common code and abstract it into the generic driver.
-
-In order to handle PCI config space regions properly, we define new
-MCFG interface which parses MCFG table and keep its entries
-in a list. New pci_mcfg_init call is defined so that we do not depend
-on PCI_MMCONFIG. Regions are not mapped until host bridge ask for it.
-
-The implementation of pci_acpi_scan_root() looks up the saved MCFG entries
-and sets up a new mapping. Generic PCI functions are used for
-accessing config space. Driver selects PCI_GENERIC_ECAM and uses functions
-from drivers/pci/ecam.h to create and access ECAM mappings.
-
-As mentioned in Kconfig help section, ACPI_PCI_HOST_GENERIC choice
-should be made on a per-architecture basis.
-
-This patch is heavily based on the updated version from Jayachandran C:
-https://lkml.org/lkml/2016/4/11/908
-git: https://github.com/jchandra-brcm/linux/ (arm64-acpi-pci-v3)
+We already have DT driver which addresses errata requirements and
+allows to use special PCI config accessors. Currently this driver uses
+compatible = "cavium,pci-host-thunder-ecam" to mach against the errata.
+For ACPI case we need explicit errata number and corresponding
+DECLARE_ACPI_MCFG_FIXUP fixup code.
 
 Signed-off-by: Tomasz Nowicki <tn@semihalf.com>
-Signed-off-by: Jayachandran C <jchandra@broadcom.com>
 ---
- drivers/acpi/Kconfig        |   8 ++
- drivers/acpi/Makefile       |   1 +
- drivers/acpi/bus.c          |   1 +
- drivers/acpi/pci_gen_host.c | 231 ++++++++++++++++++++++++++++++++++++++++++++
- include/linux/pci.h         |   6 ++
- 5 files changed, 247 insertions(+)
- create mode 100644 drivers/acpi/pci_gen_host.c
+ arch/arm64/Kconfig                  | 14 ++++++++++++++
+ arch/arm64/include/asm/cpufeature.h |  3 ++-
+ arch/arm64/kernel/cpu_errata.c      |  8 ++++++++
+ drivers/pci/host/pci-thunder-ecam.c | 35 +++++++++++++++++++++++++++++++++++
+ 4 files changed, 59 insertions(+), 1 deletion(-)
 
-diff --git a/drivers/acpi/Kconfig b/drivers/acpi/Kconfig
-index 183ffa3..70272c5 100644
---- a/drivers/acpi/Kconfig
-+++ b/drivers/acpi/Kconfig
-@@ -346,6 +346,14 @@ config ACPI_PCI_SLOT
- 	  i.e., segment/bus/device/function tuples, with physical slots in
- 	  the system.  If you are unsure, say N.
+diff --git a/arch/arm64/Kconfig b/arch/arm64/Kconfig
+index 1bded87..b7614b8 100644
+--- a/arch/arm64/Kconfig
++++ b/arch/arm64/Kconfig
+@@ -445,6 +445,20 @@ config CAVIUM_ERRATUM_27456
  
-+config ACPI_PCI_HOST_GENERIC
-+	bool
-+	select PCI_GENERIC_ECAM
+ 	  If unsure, say Y.
+ 
++config CAVIUM_ERRATUM_24575
++	bool "Cavium erratum 24575: Enhanced Allocation (EA) emualaion"
++	default y
 +	help
-+	  Select this config option from the architecture Kconfig,
-+	  if it is preferred to enable ACPI PCI host controller driver which
-+	  has no arch-specific assumptions.
++	  Enable workaround for erratum 24575.
 +
- config X86_PM_TIMER
- 	bool "Power Management Timer Support" if EXPERT
- 	depends on X86
-diff --git a/drivers/acpi/Makefile b/drivers/acpi/Makefile
-index 81e5cbc..b12fa64 100644
---- a/drivers/acpi/Makefile
-+++ b/drivers/acpi/Makefile
-@@ -40,6 +40,7 @@ acpi-$(CONFIG_ARCH_MIGHT_HAVE_ACPI_PDC) += processor_pdc.o
- acpi-y				+= ec.o
- acpi-$(CONFIG_ACPI_DOCK)	+= dock.o
- acpi-y				+= pci_root.o pci_link.o pci_irq.o
-+obj-$(CONFIG_ACPI_PCI_HOST_GENERIC)	+= pci_gen_host.o
- acpi-y				+= acpi_lpss.o acpi_apd.o
- acpi-y				+= acpi_platform.o
- acpi-y				+= acpi_pnp.o
-diff --git a/drivers/acpi/bus.c b/drivers/acpi/bus.c
-index c068c82..803a1d7 100644
---- a/drivers/acpi/bus.c
-+++ b/drivers/acpi/bus.c
-@@ -1107,6 +1107,7 @@ static int __init acpi_init(void)
- 	}
++	  Early versions of the Cavium Thunder CN88XX processor are missing
++	  Enhanced Allocation (EA) capabilities for the fixed BAR addresses used
++	  by the on-SoC hardware blocks. The erratum adds config access
++	  functions that synthesize the missing EA capabilities for versions
++	  that are missing that information.
++
++	  If unsure, say Y.
++
+ endmenu
  
- 	pci_mmcfg_late_init();
-+	pci_mcfg_init();
- 	acpi_scan_init();
- 	acpi_ec_init();
- 	acpi_debugfs_init();
-diff --git a/drivers/acpi/pci_gen_host.c b/drivers/acpi/pci_gen_host.c
-new file mode 100644
-index 0000000..fd360b5
---- /dev/null
-+++ b/drivers/acpi/pci_gen_host.c
-@@ -0,0 +1,231 @@
-+/*
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License, version 2, as
-+ * published by the Free Software Foundation (the "GPL").
-+ *
-+ * This program is distributed in the hope that it will be useful, but
-+ * WITHOUT ANY WARRANTY; without even the implied warranty of
-+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-+ * General Public License version 2 (GPLv2) for more details.
-+ *
-+ * You should have received a copy of the GNU General Public License
-+ * version 2 (GPLv2) along with this source code.
-+ */
-+#include <linux/kernel.h>
-+#include <linux/pci.h>
-+#include <linux/pci-acpi.h>
-+#include <linux/sfi_acpi.h>
-+#include <linux/slab.h>
-+
-+#include "../pci/ecam.h"
-+
-+#define PREFIX	"ACPI: "
-+
-+/* Structure to hold entries from the MCFG table */
-+struct mcfg_entry {
-+	struct list_head	list;
-+	phys_addr_t		addr;
-+	u16			segment;
-+	u8			bus_start;
-+	u8			bus_end;
-+};
-+
-+/* List to save mcfg entries */
-+static LIST_HEAD(pci_mcfg_list);
-+static DEFINE_MUTEX(pci_mcfg_lock);
-+
-+/* ACPI info for generic ACPI PCI controller */
-+struct acpi_pci_generic_root_info {
-+	struct acpi_pci_root_info	common;
-+	struct pci_config_window	*cfg;	/* config space mapping */
-+};
-+
-+/* Find the entry in mcfg list which contains range bus_start */
-+static struct mcfg_entry *pci_mcfg_lookup(u16 seg, u8 bus_start)
-+{
-+	struct mcfg_entry *e;
-+
-+	list_for_each_entry(e, &pci_mcfg_list, list) {
-+		if (e->segment == seg &&
-+		    e->bus_start <= bus_start && bus_start <= e->bus_end)
-+			return e;
-+	}
-+
-+	return NULL;
-+}
-+
-+
-+/*
-+ * Lookup the bus range for the domain in MCFG, and set up config space
-+ * mapping.
-+ */
-+static int pci_acpi_setup_ecam_mapping(struct acpi_pci_root *root,
-+				       struct acpi_pci_generic_root_info *ri)
-+{
-+	u16 seg = root->segment;
-+	u8 bus_start = root->secondary.start;
-+	u8 bus_end = root->secondary.end;
-+	struct pci_config_window *cfg;
-+	struct mcfg_entry *e;
-+	phys_addr_t addr;
-+	int err = 0;
-+
-+	mutex_lock(&pci_mcfg_lock);
-+	e = pci_mcfg_lookup(seg, bus_start);
-+	if (!e) {
-+		addr = acpi_pci_root_get_mcfg_addr(root->device->handle);
-+		if (addr == 0) {
-+			pr_err(PREFIX"%04x:%02x-%02x bus range error\n",
-+			       seg, bus_start, bus_end);
-+			err = -ENOENT;
-+			goto err_out;
-+		}
-+	} else {
-+		if (bus_start != e->bus_start) {
-+			pr_err("%04x:%02x-%02x bus range mismatch %02x\n",
-+			       seg, bus_start, bus_end, e->bus_start);
-+			err = -EINVAL;
-+			goto err_out;
-+		} else if (bus_end != e->bus_end) {
-+			pr_warn("%04x:%02x-%02x bus end mismatch %02x\n",
-+				seg, bus_start, bus_end, e->bus_end);
-+			bus_end = min(bus_end, e->bus_end);
-+		}
-+		addr = e->addr;
-+	}
-+
-+	cfg = pci_generic_ecam_create(&root->device->dev, addr, bus_start,
-+				      bus_end, &pci_generic_ecam_default_ops);
-+	if (IS_ERR(cfg)) {
-+		err = PTR_ERR(cfg);
-+		pr_err("%04x:%02x-%02x error %d mapping CAM\n", seg,
-+			bus_start, bus_end, err);
-+		goto err_out;
-+	}
-+
-+	cfg->domain = seg;
-+	ri->cfg = cfg;
-+err_out:
-+	mutex_unlock(&pci_mcfg_lock);
-+	return err;
-+}
-+
-+/* release_info: free resrouces allocated by init_info */
-+static void pci_acpi_generic_release_info(struct acpi_pci_root_info *ci)
-+{
-+	struct acpi_pci_generic_root_info *ri;
-+
-+	ri = container_of(ci, struct acpi_pci_generic_root_info, common);
-+	pci_generic_ecam_free(ri->cfg);
-+	kfree(ri);
-+}
-+
-+static struct acpi_pci_root_ops acpi_pci_root_ops = {
-+	.release_info = pci_acpi_generic_release_info,
-+};
-+
-+/* Interface called from ACPI code to setup PCI host controller */
-+struct pci_bus *pci_acpi_scan_root(struct acpi_pci_root *root)
-+{
-+	int node = acpi_get_node(root->device->handle);
-+	struct acpi_pci_generic_root_info *ri;
-+	struct pci_bus *bus, *child;
-+	int err;
-+
-+	ri = kzalloc_node(sizeof(*ri), GFP_KERNEL, node);
-+	if (!ri)
-+		return NULL;
-+
-+	err = pci_acpi_setup_ecam_mapping(root, ri);
-+	if (err)
-+		return NULL;
-+
-+	acpi_pci_root_ops.pci_ops = &ri->cfg->ops->pci_ops;
-+	bus = acpi_pci_root_create(root, &acpi_pci_root_ops, &ri->common,
-+				   ri->cfg);
-+	if (!bus)
-+		return NULL;
-+
-+	pci_bus_size_bridges(bus);
-+	pci_bus_assign_resources(bus);
-+
-+	list_for_each_entry(child, &bus->children, node)
-+		pcie_bus_configure_settings(child);
-+
-+	return bus;
-+}
-+
-+/* handle MCFG table entries */
-+static __init int pci_mcfg_parse(struct acpi_table_header *header)
-+{
-+	struct acpi_table_mcfg *mcfg;
-+	struct acpi_mcfg_allocation *mptr;
-+	struct mcfg_entry *e, *arr;
-+	int i, n;
-+
-+	if (!header)
-+		return -EINVAL;
-+
-+	mcfg = (struct acpi_table_mcfg *)header;
-+	mptr = (struct acpi_mcfg_allocation *) &mcfg[1];
-+	n = (header->length - sizeof(*mcfg)) / sizeof(*mptr);
-+	if (n <= 0 || n > 255) {
-+		pr_err(PREFIX " MCFG has incorrect entries (%d).\n", n);
-+		return -EINVAL;
-+	}
-+
-+	arr = kcalloc(n, sizeof(*arr), GFP_KERNEL);
-+	if (!arr)
-+		return -ENOMEM;
-+
-+	for (i = 0, e = arr; i < n; i++, mptr++, e++) {
-+		e->segment = mptr->pci_segment;
-+		e->addr =  mptr->address;
-+		e->bus_start = mptr->start_bus_number;
-+		e->bus_end = mptr->end_bus_number;
-+		list_add(&e->list, &pci_mcfg_list);
-+		pr_info(PREFIX
-+			"MCFG entry for domain %04x [bus %02x-%02x] (base %pa)\n",
-+			e->segment, e->bus_start, e->bus_end, &e->addr);
-+	}
-+
-+	return 0;
-+}
-+
-+/* Interface called by ACPI - parse and save MCFG table */
-+void __init pci_mcfg_init(void)
-+{
-+	int err = acpi_table_parse(ACPI_SIG_MCFG, pci_mcfg_parse);
-+	if (err)
-+		pr_err(PREFIX "Failed to parse MCFG (%d)\n", err);
-+	else if (list_empty(&pci_mcfg_list))
-+		pr_info(PREFIX "No valid entries in MCFG table.\n");
-+	else {
-+		struct mcfg_entry *e;
-+		int i = 0;
-+		list_for_each_entry(e, &pci_mcfg_list, list)
-+			i++;
-+		pr_info(PREFIX "MCFG table loaded, %d entries\n", i);
-+	}
-+}
-+
-+/* Raw operations, works only for MCFG entries with an associated bus */
-+int raw_pci_read(unsigned int domain, unsigned int busn, unsigned int devfn,
-+		 int reg, int len, u32 *val)
-+{
-+	struct pci_bus *bus = pci_find_bus(domain, busn);
-+
-+	if (!bus)
-+		return PCIBIOS_DEVICE_NOT_FOUND;
-+	return bus->ops->read(bus, devfn, reg, len, val);
-+}
-+
-+int raw_pci_write(unsigned int domain, unsigned int busn, unsigned int devfn,
-+		  int reg, int len, u32 val)
-+{
-+	struct pci_bus *bus = pci_find_bus(domain, busn);
-+
-+	if (!bus)
-+		return PCIBIOS_DEVICE_NOT_FOUND;
-+	return bus->ops->write(bus, devfn, reg, len, val);
-+}
-diff --git a/include/linux/pci.h b/include/linux/pci.h
-index df1f33d..c0422ea 100644
---- a/include/linux/pci.h
-+++ b/include/linux/pci.h
-@@ -1729,6 +1729,12 @@ static inline void pci_mmcfg_early_init(void) { }
- static inline void pci_mmcfg_late_init(void) { }
+ 
+diff --git a/arch/arm64/include/asm/cpufeature.h b/arch/arm64/include/asm/cpufeature.h
+index b9b6494..a78364e 100644
+--- a/arch/arm64/include/asm/cpufeature.h
++++ b/arch/arm64/include/asm/cpufeature.h
+@@ -35,8 +35,9 @@
+ #define ARM64_ALT_PAN_NOT_UAO			10
+ #define ARM64_HAS_VIRT_HOST_EXTN		11
+ #define ARM64_WORKAROUND_CAVIUM_27456		12
++#define ARM64_WORKAROUND_CAVIUM_24575		13
+ 
+-#define ARM64_NCAPS				13
++#define ARM64_NCAPS				14
+ 
+ #ifndef __ASSEMBLY__
+ 
+diff --git a/arch/arm64/kernel/cpu_errata.c b/arch/arm64/kernel/cpu_errata.c
+index 06afd04..89c13d7 100644
+--- a/arch/arm64/kernel/cpu_errata.c
++++ b/arch/arm64/kernel/cpu_errata.c
+@@ -97,6 +97,14 @@ const struct arm64_cpu_capabilities arm64_errata[] = {
+ 			   (1 << MIDR_VARIANT_SHIFT) | 1),
+ 	},
  #endif
++#ifdef CONFIG_CAVIUM_ERRATUM_24575
++	{
++	/* Cavium ThunderX, pass 1.x */
++		.desc = "Cavium erratum 24575",
++		.capability = ARM64_WORKAROUND_CAVIUM_24575,
++		MIDR_RANGE(MIDR_THUNDERX, 0x00, 0x01),
++	},
++#endif
+ 	{
+ 	}
+ };
+diff --git a/drivers/pci/host/pci-thunder-ecam.c b/drivers/pci/host/pci-thunder-ecam.c
+index f67c6d7..01de697 100644
+--- a/drivers/pci/host/pci-thunder-ecam.c
++++ b/drivers/pci/host/pci-thunder-ecam.c
+@@ -11,10 +11,14 @@
+ #include <linux/ioport.h>
+ #include <linux/of_pci.h>
+ #include <linux/of.h>
++#include <linux/pci-acpi.h>
+ #include <linux/platform_device.h>
  
-+#ifdef CONFIG_ACPI_PCI_HOST_GENERIC
-+void __init pci_mcfg_init(void);
-+#else
-+static inline void pci_mcfg_init(void) { return; }
++#include <asm/virt.h>
++
+ #include "../ecam.h"
+ 
++
+ static void set_val(u32 v, int where, int size, u32 *val)
+ {
+ 	int shift = (where & 3) * 8;
+@@ -376,5 +380,36 @@ static struct platform_driver thunder_ecam_driver = {
+ };
+ module_platform_driver(thunder_ecam_driver);
+ 
++#ifdef CONFIG_ACPI
++
++static bool needs_cavium_erratum_24575(struct pci_cfg_fixup *fixup,
++				      struct acpi_pci_root *root)
++{
++	/*
++	 * We must match errata code and be hypervisor, quirk does not apply
++	 * for virtual machines.
++	 */
++	return cpus_have_cap(ARM64_WORKAROUND_CAVIUM_24575) &&
++	       is_hyp_mode_available();
++}
++
++DECLARE_ACPI_MCFG_FIXUP(NULL, needs_cavium_erratum_24575, &pci_thunder_ecam_ops,
++			0, PCI_MCFG_BUS_ANY);
++DECLARE_ACPI_MCFG_FIXUP(NULL, needs_cavium_erratum_24575, &pci_thunder_ecam_ops,
++			1, PCI_MCFG_BUS_ANY);
++DECLARE_ACPI_MCFG_FIXUP(NULL, needs_cavium_erratum_24575, &pci_thunder_ecam_ops,
++			2, PCI_MCFG_BUS_ANY);
++DECLARE_ACPI_MCFG_FIXUP(NULL, needs_cavium_erratum_24575, &pci_thunder_ecam_ops,
++			3, PCI_MCFG_BUS_ANY);
++DECLARE_ACPI_MCFG_FIXUP(NULL, needs_cavium_erratum_24575, &pci_thunder_ecam_ops,
++			10, PCI_MCFG_BUS_ANY);
++DECLARE_ACPI_MCFG_FIXUP(NULL, needs_cavium_erratum_24575, &pci_thunder_ecam_ops,
++			11, PCI_MCFG_BUS_ANY);
++DECLARE_ACPI_MCFG_FIXUP(NULL, needs_cavium_erratum_24575, &pci_thunder_ecam_ops,
++			12, PCI_MCFG_BUS_ANY);
++DECLARE_ACPI_MCFG_FIXUP(NULL, needs_cavium_erratum_24575, &pci_thunder_ecam_ops,
++			13, PCI_MCFG_BUS_ANY);
 +#endif
 +
- int pci_ext_cfg_avail(void);
- 
- void __iomem *pci_ioremap_bar(struct pci_dev *pdev, int bar);
+ MODULE_DESCRIPTION("Thunder ECAM PCI host driver");
+ MODULE_LICENSE("GPL v2");
 -- 
 1.9.1
-
