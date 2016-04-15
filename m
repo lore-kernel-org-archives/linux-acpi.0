@@ -1,44 +1,119 @@
 From: Bjorn Helgaas <helgaas@kernel.org>
-Subject: Re: [patch] PCI: acpiphp_ibm: potential uninitialized variable bug
-Date: Fri, 15 Apr 2016 10:34:22 -0500
-Message-ID: <20160415153422.GB7973@localhost>
-References: <20160415145106.GH8953@mwanda>
+Subject: Re: [RFC PATCH 09/11] drivers: acpi: implement acpi_dma_configure
+Date: Fri, 15 Apr 2016 11:14:00 -0500
+Message-ID: <20160415161400.GC7973@localhost>
+References: <1460654743-7896-1-git-send-email-lorenzo.pieralisi@arm.com>
+ <1460654743-7896-10-git-send-email-lorenzo.pieralisi@arm.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.136]:58511 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.136]:33500 "EHLO mail.kernel.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751164AbcDOPe1 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 15 Apr 2016 11:34:27 -0400
+	id S1751839AbcDOQOG (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 15 Apr 2016 12:14:06 -0400
 Content-Disposition: inline
-In-Reply-To: <20160415145106.GH8953@mwanda>
+In-Reply-To: <1460654743-7896-10-git-send-email-lorenzo.pieralisi@arm.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Dan Carpenter <dan.carpenter@oracle.com>
-Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Bjorn Helgaas <bhelgaas@google.com>, linux-acpi@vger.kernel.org, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, kernel-janitors@vger.kernel.org
+To: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+Cc: iommu@lists.linux-foundation.org, Bjorn Helgaas <bhelgaas@google.com>, Robin Murphy <robin.murphy@arm.com>, Tomasz Nowicki <tn@semihalf.com>, Joerg Roedel <joro@8bytes.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Will Deacon <will.deacon@arm.com>, Marc Zyngier <marc.zyngier@arm.com>, Hanjun Guo <hanjun.guo@linaro.org>, Jon Masters <jcm@redhat.com>, Sinan Kaya <okaya@codeaurora.org>, linux-acpi@vger.kernel.org, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-On Fri, Apr 15, 2016 at 05:51:06PM +0300, Dan Carpenter wrote:
-> If ibm_get_table_from_acpi() fails then "table" isn't initialized.  I
-> fixed this by adding a check for failure.
+On Thu, Apr 14, 2016 at 06:25:41PM +0100, Lorenzo Pieralisi wrote:
+> On DT based systems, the of_dma_configure() API implements DMA configuration
+> for a given device. On ACPI systems an API equivalent to of_dma_configure()
+> is missing which implies that it is currently not possible to set-up DMA
+> operations for devices through the ACPI generic kernel layer.
 > 
-> Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
+> This patch fills the gap by introducing acpi_dma_configure/deconfigure()
+> calls, that carry out IOMMU configuration through IORT (on systems where
+> it is present) and call arch_setup_dma_ops(...) with the retrieved
+> parameters.
+> 
+> The DMA range size passed to arch_setup_dma_ops() is sized according
+> to the device coherent_dma_mask (starting at address 0x0), mirroring the
+> DT probing path behaviour when a dma-ranges property is not provided
+> for the device being probed; this changes the current arch_setup_dma_ops()
+> call parameters in the ACPI probing case, but since arch_setup_dma_ops()
+> is a NOP on all architectures but ARM/ARM64 this patch does not change
+> the current kernel behaviour on them.
+> 
+> This patch updates ACPI and PCI core code to use the newly introduced
+> acpi_dma_configure function, providing the same functionality
+> as of_dma_configure on ARM systems and leaving behaviour unchanged
+> for all other arches.
+> 
+> Signed-off-by: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+> Cc: Bjorn Helgaas <bhelgaas@google.com>
+> Cc: Robin Murphy <robin.murphy@arm.com>
+> Cc: Tomasz Nowicki <tn@semihalf.com>
+> Cc: Joerg Roedel <joro@8bytes.org>
+> Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>
 
-Applied to pci/hotplug for v4.7, thanks, Dan!
+There's only a tiny PCI change in this series, so I assume somebody
+else will merge all this.  Here's my ack for the PCI part:
 
-> diff --git a/drivers/pci/hotplug/acpiphp_ibm.c b/drivers/pci/hotplug/acpiphp_ibm.c
-> index 2f6d3a1..f6221d7 100644
-> --- a/drivers/pci/hotplug/acpiphp_ibm.c
-> +++ b/drivers/pci/hotplug/acpiphp_ibm.c
-> @@ -138,6 +138,8 @@ static union apci_descriptor *ibm_slot_from_id(int id)
->  	char *table;
->  
->  	size = ibm_get_table_from_acpi(&table);
-> +	if (size < 0)
+Acked-by: Bjorn Helgaas <bhelgaas@google.com>	# for drivers/pci/probe.c change
+
+One question on use of pci_for_each_dma_alias() below.
+
+> +static int __get_pci_rid(struct pci_dev *pdev, u16 alias, void *data)
+> +{
+> +	u32 *rid = data;
+> +
+> +	*rid = alias;
+> +	return 0;
+> +}
+> +
+> +/**
+> + * iort_iommu_configure - Set-up IOMMU configuration for a device.
+> + *
+> + * @dev: device that requires IOMMU set-up
+> + *
+> + * Returns: iommu_ops pointer on configuration success
+> + *          NULL on configuration failure
+> + */
+> +struct iommu_ops *iort_iommu_configure(struct device *dev)
+> +{
+> +	struct acpi_iort_node *node, *parent;
+> +	struct iommu_ops *ops = NULL;
+> +	struct iommu_fwspec fwspec;
+> +	struct iort_iommu_node *iommu_node;
+> +	u32 rid = 0, devid = 0;
+> +
+> +	if (dev_is_pci(dev)) {
+> +		struct pci_bus *bus = to_pci_dev(dev)->bus;
+> +
+> +		pci_for_each_dma_alias(to_pci_dev(dev), __get_pci_rid,
+> +				       &rid);
+
+You end up with only the last DMA alias in "rid".  Is it really true
+that you only need to call iort_dev_map_rid() for one of the aliases?
+
+> +		node = iort_scan_node(ACPI_IORT_NODE_PCI_ROOT_COMPLEX,
+> +				      iort_find_dev_callback, &bus->dev);
+> +	} else
+> +		node = iort_scan_node(ACPI_IORT_NODE_NAMED_COMPONENT,
+> +				      iort_find_dev_callback, dev);
+> +
+> +	if (!node)
 > +		return NULL;
->  	des = (union apci_descriptor *)table;
->  	if (memcmp(des->header.sig, "aPCI", 4) != 0)
->  		goto ibm_slot_done;
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> +
+> +	iort_dev_map_rid(node, rid, &devid, ACPI_IORT_NODE_SMMU);
+> +
+> +	parent = iort_find_parent_node(node, ACPI_IORT_NODE_SMMU);
+> +
+> +	if (!parent)
+> +		return NULL;
+> +
+> +	iommu_node = iort_iommu_get_node(parent);
+> +	ops = iommu_node->ops;
+> +
+> +	fwspec.fwnode = iommu_node->fwnode;
+> +	fwspec.param_count = 1;
+> +	fwspec.param[0] = devid;
+> +
+> +	if (!ops || !ops->fw_xlate || ops->fw_xlate(dev, &fwspec))
+> +		return NULL;
+> +
+> +	return ops;
+> +}
