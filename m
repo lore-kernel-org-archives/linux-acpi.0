@@ -1,49 +1,59 @@
-From: Jon Masters <jcm@redhat.com>
-Subject: Re: [PATCH V6 00/13] Support for generic ACPI based PCI host
- controller
-Date: Fri, 15 Apr 2016 14:19:39 -0400
-Message-ID: <571130BB.9030508@redhat.com>
-References: <1460740008-19489-1-git-send-email-tn@semihalf.com>
+From: Timur Tabi <timur@codeaurora.org>
+Subject: Re: [RFC PATCH 09/11] drivers: acpi: implement acpi_dma_configure
+Date: Fri, 15 Apr 2016 13:29:14 -0500
+Message-ID: <CAOZdJXXtZq6uyE+5sseX7M_6Kq8wFG+37qd5TNSusKj=0gd8zA@mail.gmail.com>
+References: <1460654743-7896-1-git-send-email-lorenzo.pieralisi@arm.com>
+	<1460654743-7896-10-git-send-email-lorenzo.pieralisi@arm.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-pci-owner@vger.kernel.org>
-In-Reply-To: <1460740008-19489-1-git-send-email-tn@semihalf.com>
-Sender: linux-pci-owner@vger.kernel.org
-To: Tomasz Nowicki <tn@semihalf.com>, helgaas@kernel.org, arnd@arndb.de, will.deacon@arm.com, catalin.marinas@arm.com, rafael@kernel.org, hanjun.guo@linaro.org, Lorenzo.Pieralisi@arm.com, okaya@codeaurora.org, jiang.liu@linux.intel.com, jchandra@broadcom.com
-Cc: robert.richter@caviumnetworks.com, mw@semihalf.com, Liviu.Dudau@arm.com, ddaney@caviumnetworks.com, wangyijing@huawei.com, Suravee.Suthikulpanit@amd.com, msalter@redhat.com, linux-pci@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linaro-acpi@lists.linaro.org
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from smtp.codeaurora.org ([198.145.29.96]:57203 "EHLO
+	smtp.codeaurora.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751139AbcDOS3R (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 15 Apr 2016 14:29:17 -0400
+In-Reply-To: <1460654743-7896-10-git-send-email-lorenzo.pieralisi@arm.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+Cc: iommu@lists.linux-foundation.org, Marc Zyngier <marc.zyngier@arm.com>, Tomasz Nowicki <tn@semihalf.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, lkml <linux-kernel@vger.kernel.org>, Will Deacon <will.deacon@arm.com>, Sinan Kaya <okaya@codeaurora.org>, linux-acpi@vger.kernel.org, linux-pci@vger.kernel.org, Hanjun Guo <hanjun.guo@linaro.org>, Jon Masters <jcm@redhat.com>, Bjorn Helgaas <bhelgaas@google.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, vikrams@codeaurora.org
 
-On 04/15/2016 01:06 PM, Tomasz Nowicki wrote:
-> From the functionality point of view this series might be split into the
-> following logic parts:
-> 1. Necessary fixes as the preparation for using driver on ARM64.
-> 2. New ECAM API and update for users of the pci-host-common API
-> 3. Use new MCFG interface and implement generic ACPI based PCI host controller driver.
-> 4. Enable above driver on ARM64
-> 
-> Patches has been built on top of 4.6-rc2 and can be found here:
-> git@github.com:semihalf-nowicki-tomasz/linux.git (pci-acpi-v6)
-> 
-> This has been tested on Cavium ThunderX server. Any help in reviewing and
-> testing is very appreciated.
-> 
-> v5 -> v6
-> - dropped idea of x86 MMCONFIG code refactoring
-> - integrated JC's patches which introduce new ECAM API:
->   https://lkml.org/lkml/2016/4/11/907
->   git: https://github.com/jchandra-brcm/linux/ (arm64-acpi-pci-v3)
-> - integrated Sinan's fix for releasing IO resources, see patch [06/13]
-> - added ACPI support for ThunderX ECAM and PEM drivers
-> - rebased to 4.6-rc2
+On Thu, Apr 14, 2016 at 12:25 PM, Lorenzo Pieralisi
+<lorenzo.pieralisi@arm.com> wrote:
+> +void acpi_dma_configure(struct device *dev, enum dev_dma_attr attr)
+> +{
+> +       struct iommu_ops *iommu;
+> +
+> +       iommu = iort_iommu_configure(dev);
+> +
+> +       /*
+> +        * Assume dma valid range starts at 0 and covers the whole
+> +        * coherent_dma_mask.
+> +        */
+> +       arch_setup_dma_ops(dev, 0, dev->coherent_dma_mask + 1, iommu,
+> +                          attr == DEV_DMA_COHERENT);
+> +}
 
-JC: can you explicitly confirm that you're ok with letting Tomasz drive
-this? We would like to see one driver. Either that is Tomasz, or
-Lorenzo, or it is you. But we need to have one overall cooordinated
-effort to get this enablement into upstream as quickly as possible.
+I have a network driver that is impacted by this code, so thank you
+for posting this. (See
+https://www.mail-archive.com/netdev@vger.kernel.org/msg106249.html).
 
-Some of the Enterprise folks are going to otherwise end up in a very
-nasty situation of supporting the previous non-upstream patches for many
-years, which is absolutely something we want to avoid...
+One one SOC, the driver needs to set the mask to 32 bits.  On another
+SOC, it needs to set it to 64 bits.  On device tree, the driver will
+use dma-ranges.
 
-Jon.
+In your patches, where is coherent_dma_mask initialized?  I found this
+code in add_smmu_platform_device(), but I think this is setting the
+mask for the IOMMU driver, not the individual devices.  Either way, I
+don't understand where the correct value is going to be overridden.
+
++       /*
++        * Set default dma mask value for the table walker,
++        * to be overridden on probing with correct value.
++        */
++       *pdev->dev.dma_mask = DMA_BIT_MASK(32);
++       pdev->dev.coherent_dma_mask = *pdev->dev.dma_mask;
+
+-- 
+Qualcomm Innovation Center, Inc.
+The Qualcomm Innovation Center, Inc. is a member of the Code Aurora Forum,
+a Linux Foundation Collaborative Project.
