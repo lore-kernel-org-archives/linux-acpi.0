@@ -1,218 +1,156 @@
 From: Tomasz Nowicki <tn@semihalf.com>
-Subject: [PATCH V6 13/13] pci, pci-thunder-pem: Add ACPI support for ThunderX PEM.
-Date: Fri, 15 Apr 2016 19:06:48 +0200
-Message-ID: <1460740008-19489-14-git-send-email-tn@semihalf.com>
+Subject: [PATCH V6 05/13] acpi,
+ pci: Support IO resources when parsing PCI host bridge resources.
+Date: Fri, 15 Apr 2016 19:06:40 +0200
+Message-ID: <1460740008-19489-6-git-send-email-tn@semihalf.com>
 References: <1460740008-19489-1-git-send-email-tn@semihalf.com>
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-wm0-f43.google.com ([74.125.82.43]:34449 "EHLO
-	mail-wm0-f43.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753180AbcDORHk (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 15 Apr 2016 13:07:40 -0400
-Received: by mail-wm0-f43.google.com with SMTP id l6so10653949wml.1
-        for <linux-acpi@vger.kernel.org>; Fri, 15 Apr 2016 10:07:39 -0700 (PDT)
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
 In-Reply-To: <1460740008-19489-1-git-send-email-tn@semihalf.com>
-Sender: linux-acpi-owner@vger.kernel.org
-List-Id: linux-acpi@vger.kernel.org
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
 To: helgaas@kernel.org, arnd@arndb.de, will.deacon@arm.com, catalin.marinas@arm.com, rafael@kernel.org, hanjun.guo@linaro.org, Lorenzo.Pieralisi@arm.com, okaya@codeaurora.org, jiang.liu@linux.intel.com, jchandra@broadcom.com
-Cc: robert.richter@caviumnetworks.com, mw@semihalf.com, Liviu.Dudau@arm.com, ddaney@caviumnetworks.com, wangyijing@huawei.com, Suravee.Suthikulpanit@amd.com, msalter@redhat.com, linux-pci@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linaro-acpi@lists.linaro.org, jcm@redhat.com, Tomasz Nowicki <tn@semihalf.com>
+Cc: jcm@redhat.com, linaro-acpi@lists.linaro.org, linux-pci@vger.kernel.org, Liviu.Dudau@arm.com, ddaney@caviumnetworks.com, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, robert.richter@caviumnetworks.com, Suravee.Suthikulpanit@amd.com, msalter@redhat.com, wangyijing@huawei.com, Tomasz Nowicki <tn@semihalf.com>, mw@semihalf.com, linux-arm-kernel@lists.infradead.org
+List-Id: linux-acpi@vger.kernel.org
 
-This patch uses DECLARE_ACPI_MCFG_FIXUP to overwrite PCI config accessors.
-Also, it provides alternative way to find additional configuration region:
-thunder_pem_get_acpi_res is looking for host bridge's child (_HID "THRX0001")
-which contains mentioned configuration region description.
-See example below:
+Platforms that have memory mapped IO port (such as ARM64) need special
+handling for PCI I/O resources. For host bridge's resource probing case
+these resources need to be fixed up with pci_register_io_range/pci_remap_iospace etc.
 
-Device (PEM0) {
-    Name (_HID, EISAID ("PNP0A08"))
-    Name (_CID, EISAID ("PNP0A03"))
+Furthermore, the same I/O resources need to be released after hotplug
+removal so that it can be re-added back by the pci_remap_iospace
+function during insertion. Therefore we implement new pci_unmap_iospace call
+which unmaps I/O space as the symmetry to pci_remap_iospace.
 
-    [...]
-
-    Device (CFG0)
-    {
-      Name (_HID, "THRX0001") // PEM configuration space resources
-      Name (_CRS, ResourceTemplate () {
-        QWordMemory(ResourceConsumer, PosDecode, MinFixed, MaxFixed,
-          NonCacheable, ReadWrite, 0, 0x87e0c5000000, 0x87E0C5FFFFFF,
-          0, 0x01000000)
-      })
-    }
-}
-
+Signed-off-by: Jayachandran C <jchandra@broadcom.com>
+Signed-off-by: Sinan Kaya <okaya@codeaurora.org>
 Signed-off-by: Tomasz Nowicki <tn@semihalf.com>
 ---
- drivers/pci/host/pci-thunder-pem.c | 137 ++++++++++++++++++++++++++++++++++---
- 1 file changed, 128 insertions(+), 9 deletions(-)
+ drivers/acpi/pci_root.c | 33 +++++++++++++++++++++++++++++++++
+ drivers/pci/pci.c       | 24 ++++++++++++++++++++++++
+ include/linux/pci.h     |  1 +
+ 3 files changed, 58 insertions(+)
 
-diff --git a/drivers/pci/host/pci-thunder-pem.c b/drivers/pci/host/pci-thunder-pem.c
-index 91cfeb9..685cd79 100644
---- a/drivers/pci/host/pci-thunder-pem.c
-+++ b/drivers/pci/host/pci-thunder-pem.c
-@@ -18,6 +18,7 @@
- #include <linux/module.h>
- #include <linux/of_address.h>
- #include <linux/of_pci.h>
-+#include <linux/pci-acpi.h>
- #include <linux/platform_device.h>
+diff --git a/drivers/acpi/pci_root.c b/drivers/acpi/pci_root.c
+index d9a70c4..815b6ca 100644
+--- a/drivers/acpi/pci_root.c
++++ b/drivers/acpi/pci_root.c
+@@ -742,6 +742,34 @@ next:
+ 			resource_list_add_tail(entry, resources);
+ 	}
+ }
++static void acpi_pci_root_remap_iospace(struct resource_entry *entry)
++{
++#ifdef PCI_IOBASE
++	struct resource *res = entry->res;
++	resource_size_t cpu_addr = res->start;
++	resource_size_t pci_addr = cpu_addr - entry->offset;
++	resource_size_t length = resource_size(res);
++	unsigned long port;
++
++	if (pci_register_io_range(cpu_addr, length))
++		goto err;
++
++	port = pci_address_to_pio(cpu_addr);
++	if (port == (unsigned long)-1)
++		goto err;
++
++	res->start = port;
++	res->end = port + length - 1;
++	entry->offset = port - pci_addr;
++
++	if (pci_remap_iospace(res, cpu_addr) < 0)
++		goto err;
++	pr_info("Remapped I/O %pa to %pR\n", &cpu_addr, res);
++	return;
++err:
++	res->flags |= IORESOURCE_DISABLED;
++#endif
++}
  
- #include "../ecam.h"
-@@ -259,6 +260,83 @@ static int thunder_pem_config_write(struct pci_bus *bus, unsigned int devfn,
- 	return pci_generic_config_write(bus, devfn, where, size, val);
+ int acpi_pci_probe_root_resources(struct acpi_pci_root_info *info)
+ {
+@@ -763,6 +791,9 @@ int acpi_pci_probe_root_resources(struct acpi_pci_root_info *info)
+ 			"no IO and memory resources present in _CRS\n");
+ 	else {
+ 		resource_list_for_each_entry_safe(entry, tmp, list) {
++			if (entry->res->flags & IORESOURCE_IO)
++				acpi_pci_root_remap_iospace(entry);
++
+ 			if (entry->res->flags & IORESOURCE_DISABLED)
+ 				resource_list_destroy_entry(entry);
+ 			else
+@@ -834,6 +865,8 @@ static void acpi_pci_root_release_info(struct pci_host_bridge *bridge)
+ 
+ 	resource_list_for_each_entry(entry, &bridge->windows) {
+ 		res = entry->res;
++		if (res->flags & IORESOURCE_IO)
++			pci_unmap_iospace(res);
+ 		if (res->parent &&
+ 		    (res->flags & (IORESOURCE_MEM | IORESOURCE_IO)))
+ 			release_resource(res);
+diff --git a/drivers/pci/pci.c b/drivers/pci/pci.c
+index 89e9996..c0f8a4e 100644
+--- a/drivers/pci/pci.c
++++ b/drivers/pci/pci.c
+@@ -26,6 +26,7 @@
+ #include <linux/device.h>
+ #include <linux/pm_runtime.h>
+ #include <linux/pci_hotplug.h>
++#include <linux/vmalloc.h>
+ #include <asm/setup.h>
+ #include <linux/aer.h>
+ #include "pci.h"
+@@ -3168,6 +3169,29 @@ int __weak pci_remap_iospace(const struct resource *res, phys_addr_t phys_addr)
+ #endif
  }
  
-+#ifdef CONFIG_ACPI
-+
-+struct pem_acpi_res {
-+	struct resource	resource;
-+	int found;
-+};
-+
-+static acpi_status
-+thunder_pem_cfg(struct acpi_resource *resource, void *ctx)
++/**
++ *	pci_unmap_iospace - Unmap the memory mapped I/O space
++ *	@res: resource to be unmapped
++ *
++ *	Unmap the CPU virtual address @res from virtual address space.
++ *	Only architectures that have memory mapped IO functions defined
++ *	(and the PCI_IOBASE value defined) should call this function.
++ */
++void  pci_unmap_iospace(struct resource *res)
 +{
-+	struct pem_acpi_res *pem_ctx = ctx;
-+	struct resource *res = &pem_ctx->resource;
++#if defined(PCI_IOBASE) && defined(CONFIG_MMU)
++	unsigned long vaddr = (unsigned long)PCI_IOBASE + res->start;
 +
-+	if ((resource->type != ACPI_RESOURCE_TYPE_ADDRESS64) ||
-+	    (resource->data.address32.resource_type != ACPI_MEMORY_RANGE))
-+		return AE_OK;
-+
-+	res->start = resource->data.address64.address.minimum;
-+	res->end = resource->data.address64.address.maximum;
-+	res->flags = IORESOURCE_MEM;
-+
-+	pem_ctx->found++;
-+	return AE_OK;
-+}
-+
-+static acpi_status
-+thunder_pem_find_dev(acpi_handle handle, u32 level, void *ctx, void **ret)
-+{
-+	struct pem_acpi_res *pem_ctx = ctx;
-+	struct acpi_device_info *info;
-+	acpi_status status = AE_OK;
-+
-+	status = acpi_get_object_info(handle, &info);
-+	if (ACPI_FAILURE(status))
-+		return AE_OK;
-+
-+	if (strncmp(info->hardware_id.string, "THRX0001", 8) != 0)
-+		goto out;
-+
-+	pem_ctx->found = 0;
-+	status = acpi_walk_resources(handle, METHOD_NAME__CRS, thunder_pem_cfg,
-+				     pem_ctx);
-+	if (ACPI_FAILURE(status))
-+		goto out;
-+
-+	if (pem_ctx->found)
-+		status = AE_CTRL_TERMINATE;
-+out:
-+	kfree(info);
-+	return status;
-+}
-+
-+static struct resource *thunder_pem_get_acpi_res(struct device *dev)
-+{
-+	struct acpi_device *adev = ACPI_COMPANION(dev);
-+	acpi_handle handle = acpi_device_handle(adev);
-+	struct pem_acpi_res *pem_ctx;
-+	acpi_status status;
-+
-+	pem_ctx = devm_kzalloc(dev, sizeof(*pem_ctx), GFP_KERNEL);
-+	if (!pem_ctx)
-+		return NULL;
-+
-+	status = acpi_walk_namespace(ACPI_TYPE_DEVICE, handle, 1,
-+				     thunder_pem_find_dev, NULL, pem_ctx, NULL);
-+	if (ACPI_FAILURE(status) || !pem_ctx->found)
-+		return NULL;
-+
-+	return &pem_ctx->resource;
-+}
++	unmap_kernel_range(vaddr, resource_size(res));
 +#else
-+static struct resource *thunder_pem_get_acpi_res(struct device *dev)
-+{
-+	return NULL;
-+}
++	/*
++	 * This architecture does not have memory mapped I/O space,
++	 * so this function should never be called.
++	 */
++	WARN_ONCE(1, "This architecture does not support memory mapped I/O\n");
 +#endif
++}
 +
- static int thunder_pem_init(struct device *dev, struct pci_config_window *cfg)
+ static void __pci_set_master(struct pci_dev *dev, bool enable)
  {
- 	resource_size_t bar4_start;
-@@ -270,16 +348,20 @@ static int thunder_pem_init(struct device *dev, struct pci_config_window *cfg)
- 	if (!pem_pci)
- 		return -ENOMEM;
+ 	u16 old_cmd, cmd;
+diff --git a/include/linux/pci.h b/include/linux/pci.h
+index c28adb4..df1f33d 100644
+--- a/include/linux/pci.h
++++ b/include/linux/pci.h
+@@ -1168,6 +1168,7 @@ int pci_register_io_range(phys_addr_t addr, resource_size_t size);
+ unsigned long pci_address_to_pio(phys_addr_t addr);
+ phys_addr_t pci_pio_to_address(unsigned long pio);
+ int pci_remap_iospace(const struct resource *res, phys_addr_t phys_addr);
++void pci_unmap_iospace(struct resource *res);
  
--	pdev = to_platform_device(dev);
--
--	/*
--	 * The second register range is the PEM bridge to the PCIe
--	 * bus.  It has a different config access method than those
--	 * devices behind the bridge.
--	 */
--	res_pem = platform_get_resource(pdev, IORESOURCE_MEM, 1);
-+	if (acpi_disabled) {
-+		pdev = to_platform_device(dev);
-+
-+		/*
-+		 * The second register range is the PEM bridge to the PCIe
-+		 * bus.  It has a different config access method than those
-+		 * devices behind the bridge.
-+		 */
-+		res_pem = platform_get_resource(pdev, IORESOURCE_MEM, 1);
-+	} else {
-+		res_pem = thunder_pem_get_acpi_res(dev);
-+	}
- 	if (!res_pem) {
--		dev_err(dev, "missing \"reg[1]\"property\n");
-+		dev_err(dev, "missing configuration region\n");
- 		return -EINVAL;
- 	}
- 
-@@ -332,5 +414,42 @@ static struct platform_driver thunder_pem_driver = {
- };
- module_platform_driver(thunder_pem_driver);
- 
-+#ifdef CONFIG_ACPI
-+
-+static bool thunder_pem_acpi_init(struct pci_cfg_fixup *fixup,
-+				 struct acpi_pci_root *root)
-+{
-+	u32 midr = read_cpuid_id();
-+
-+	return (MIDR_IMPLEMENTOR(midr) == ARM_CPU_IMP_CAVIUM) &&
-+	    (MIDR_PARTNUM(midr) == CAVIUM_CPU_PART_THUNDERX);
-+}
-+
-+DECLARE_ACPI_MCFG_FIXUP(NULL, thunder_pem_acpi_init, &pci_thunder_pem_ops,
-+			4, PCI_MCFG_BUS_ANY);
-+DECLARE_ACPI_MCFG_FIXUP(NULL, thunder_pem_acpi_init, &pci_thunder_pem_ops,
-+			5, PCI_MCFG_BUS_ANY);
-+DECLARE_ACPI_MCFG_FIXUP(NULL, thunder_pem_acpi_init, &pci_thunder_pem_ops,
-+			6, PCI_MCFG_BUS_ANY);
-+DECLARE_ACPI_MCFG_FIXUP(NULL, thunder_pem_acpi_init, &pci_thunder_pem_ops,
-+			7, PCI_MCFG_BUS_ANY);
-+DECLARE_ACPI_MCFG_FIXUP(NULL, thunder_pem_acpi_init, &pci_thunder_pem_ops,
-+			8, PCI_MCFG_BUS_ANY);
-+DECLARE_ACPI_MCFG_FIXUP(NULL, thunder_pem_acpi_init, &pci_thunder_pem_ops,
-+			9, PCI_MCFG_BUS_ANY);
-+DECLARE_ACPI_MCFG_FIXUP(NULL, thunder_pem_acpi_init, &pci_thunder_pem_ops,
-+			14, PCI_MCFG_BUS_ANY);
-+DECLARE_ACPI_MCFG_FIXUP(NULL, thunder_pem_acpi_init, &pci_thunder_pem_ops,
-+			15, PCI_MCFG_BUS_ANY);
-+DECLARE_ACPI_MCFG_FIXUP(NULL, thunder_pem_acpi_init, &pci_thunder_pem_ops,
-+			16, PCI_MCFG_BUS_ANY);
-+DECLARE_ACPI_MCFG_FIXUP(NULL, thunder_pem_acpi_init, &pci_thunder_pem_ops,
-+			17, PCI_MCFG_BUS_ANY);
-+DECLARE_ACPI_MCFG_FIXUP(NULL, thunder_pem_acpi_init, &pci_thunder_pem_ops,
-+			18, PCI_MCFG_BUS_ANY);
-+DECLARE_ACPI_MCFG_FIXUP(NULL, thunder_pem_acpi_init, &pci_thunder_pem_ops,
-+			19, PCI_MCFG_BUS_ANY);
-+#endif
-+
- MODULE_DESCRIPTION("Thunder PEM PCIe host driver");
- MODULE_LICENSE("GPL v2");
+ static inline pci_bus_addr_t pci_bus_address(struct pci_dev *pdev, int bar)
+ {
 -- 
 1.9.1
-
