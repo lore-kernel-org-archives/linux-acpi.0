@@ -1,119 +1,55 @@
-From: Bjorn Helgaas <helgaas@kernel.org>
-Subject: Re: [RFC PATCH 09/11] drivers: acpi: implement acpi_dma_configure
-Date: Fri, 15 Apr 2016 11:14:00 -0500
-Message-ID: <20160415161400.GC7973@localhost>
-References: <1460654743-7896-1-git-send-email-lorenzo.pieralisi@arm.com>
- <1460654743-7896-10-git-send-email-lorenzo.pieralisi@arm.com>
+From: "Roy Franz (HPE)" <roy.lists@gmail.com>
+Subject: Re: [PATCH 3/3] arm64: defconfig: Enable ACPI
+Date: Fri, 15 Apr 2016 09:17:15 -0700
+Message-ID: <CAK-u0QkjH-UgPJ0C4UKePQQ-En+XgZigqJROwMFVfd0cQrbEkg@mail.gmail.com>
+References: <1460706823-16566-1-git-send-email-broonie@kernel.org>
+	<1460706823-16566-3-git-send-email-broonie@kernel.org>
+Reply-To: roy.franz@hpe.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.136]:33500 "EHLO mail.kernel.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751839AbcDOQOG (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 15 Apr 2016 12:14:06 -0400
-Content-Disposition: inline
-In-Reply-To: <1460654743-7896-10-git-send-email-lorenzo.pieralisi@arm.com>
+Received: from mail-lf0-f66.google.com ([209.85.215.66]:35402 "EHLO
+	mail-lf0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751194AbcDOQRR (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 15 Apr 2016 12:17:17 -0400
+Received: by mail-lf0-f66.google.com with SMTP id o124so17455827lfb.2
+        for <linux-acpi@vger.kernel.org>; Fri, 15 Apr 2016 09:17:16 -0700 (PDT)
+In-Reply-To: <1460706823-16566-3-git-send-email-broonie@kernel.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
-Cc: iommu@lists.linux-foundation.org, Bjorn Helgaas <bhelgaas@google.com>, Robin Murphy <robin.murphy@arm.com>, Tomasz Nowicki <tn@semihalf.com>, Joerg Roedel <joro@8bytes.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Will Deacon <will.deacon@arm.com>, Marc Zyngier <marc.zyngier@arm.com>, Hanjun Guo <hanjun.guo@linaro.org>, Jon Masters <jcm@redhat.com>, Sinan Kaya <okaya@codeaurora.org>, linux-acpi@vger.kernel.org, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: Mark Brown <broonie@kernel.org>
+Cc: "Rafael J . Wysocki" <rjw@rjwysocki.net>, Catalin Marinas <catalin.marinas@arm.com>, Len Brown <lenb@kernel.org>, Will Deacon <will.deacon@arm.com>, Mark Rutland <mark.rutland@arm.com>, Steve Capper <steve.capper@linaro.org>, Graeme Gregory <graeme.gregory@linaro.org>, linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org, arm@kernel.org
 
-On Thu, Apr 14, 2016 at 06:25:41PM +0100, Lorenzo Pieralisi wrote:
-> On DT based systems, the of_dma_configure() API implements DMA configuration
-> for a given device. On ACPI systems an API equivalent to of_dma_configure()
-> is missing which implies that it is currently not possible to set-up DMA
-> operations for devices through the ACPI generic kernel layer.
-> 
-> This patch fills the gap by introducing acpi_dma_configure/deconfigure()
-> calls, that carry out IOMMU configuration through IORT (on systems where
-> it is present) and call arch_setup_dma_ops(...) with the retrieved
-> parameters.
-> 
-> The DMA range size passed to arch_setup_dma_ops() is sized according
-> to the device coherent_dma_mask (starting at address 0x0), mirroring the
-> DT probing path behaviour when a dma-ranges property is not provided
-> for the device being probed; this changes the current arch_setup_dma_ops()
-> call parameters in the ACPI probing case, but since arch_setup_dma_ops()
-> is a NOP on all architectures but ARM/ARM64 this patch does not change
-> the current kernel behaviour on them.
-> 
-> This patch updates ACPI and PCI core code to use the newly introduced
-> acpi_dma_configure function, providing the same functionality
-> as of_dma_configure on ARM systems and leaving behaviour unchanged
-> for all other arches.
-> 
-> Signed-off-by: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
-> Cc: Bjorn Helgaas <bhelgaas@google.com>
-> Cc: Robin Murphy <robin.murphy@arm.com>
-> Cc: Tomasz Nowicki <tn@semihalf.com>
-> Cc: Joerg Roedel <joro@8bytes.org>
-> Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+On Fri, Apr 15, 2016 at 12:53 AM, Mark Brown <broonie@kernel.org> wrote:
+> Enable ACPI by default to support testing of ACPI only systems and
+> ensure that defconfig will boot on anything, for arm64 this is not done
+> in Kconfig since a very large proportion of arm64 systems have no ACPI
+> at all.
+>
+> Signed-off-by: Mark Brown <broonie@kernel.org>
 
-There's only a tiny PCI change in this series, so I assume somebody
-else will merge all this.  Here's my ack for the PCI part:
+Acked-by: Roy Franz <roy.franz@hpe.com>
 
-Acked-by: Bjorn Helgaas <bhelgaas@google.com>	# for drivers/pci/probe.c change
-
-One question on use of pci_for_each_dma_alias() below.
-
-> +static int __get_pci_rid(struct pci_dev *pdev, u16 alias, void *data)
-> +{
-> +	u32 *rid = data;
-> +
-> +	*rid = alias;
-> +	return 0;
-> +}
-> +
-> +/**
-> + * iort_iommu_configure - Set-up IOMMU configuration for a device.
-> + *
-> + * @dev: device that requires IOMMU set-up
-> + *
-> + * Returns: iommu_ops pointer on configuration success
-> + *          NULL on configuration failure
-> + */
-> +struct iommu_ops *iort_iommu_configure(struct device *dev)
-> +{
-> +	struct acpi_iort_node *node, *parent;
-> +	struct iommu_ops *ops = NULL;
-> +	struct iommu_fwspec fwspec;
-> +	struct iort_iommu_node *iommu_node;
-> +	u32 rid = 0, devid = 0;
-> +
-> +	if (dev_is_pci(dev)) {
-> +		struct pci_bus *bus = to_pci_dev(dev)->bus;
-> +
-> +		pci_for_each_dma_alias(to_pci_dev(dev), __get_pci_rid,
-> +				       &rid);
-
-You end up with only the last DMA alias in "rid".  Is it really true
-that you only need to call iort_dev_map_rid() for one of the aliases?
-
-> +		node = iort_scan_node(ACPI_IORT_NODE_PCI_ROOT_COMPLEX,
-> +				      iort_find_dev_callback, &bus->dev);
-> +	} else
-> +		node = iort_scan_node(ACPI_IORT_NODE_NAMED_COMPONENT,
-> +				      iort_find_dev_callback, dev);
-> +
-> +	if (!node)
-> +		return NULL;
-> +
-> +	iort_dev_map_rid(node, rid, &devid, ACPI_IORT_NODE_SMMU);
-> +
-> +	parent = iort_find_parent_node(node, ACPI_IORT_NODE_SMMU);
-> +
-> +	if (!parent)
-> +		return NULL;
-> +
-> +	iommu_node = iort_iommu_get_node(parent);
-> +	ops = iommu_node->ops;
-> +
-> +	fwspec.fwnode = iommu_node->fwnode;
-> +	fwspec.param_count = 1;
-> +	fwspec.param[0] = devid;
-> +
-> +	if (!ops || !ops->fw_xlate || ops->fw_xlate(dev, &fwspec))
-> +		return NULL;
-> +
-> +	return ops;
-> +}
+> ---
+>  arch/arm64/configs/defconfig | 1 +
+>  1 file changed, 1 insertion(+)
+>
+> diff --git a/arch/arm64/configs/defconfig b/arch/arm64/configs/defconfig
+> index a44ef995d8ae..c5e0132eec57 100644
+> --- a/arch/arm64/configs/defconfig
+> +++ b/arch/arm64/configs/defconfig
+> @@ -264,6 +264,7 @@ CONFIG_PHY_RCAR_GEN3_USB2=y
+>  CONFIG_PHY_HI6220_USB=y
+>  CONFIG_PHY_XGENE=y
+>  CONFIG_ARM_SCPI_PROTOCOL=y
+> +CONFIG_ACPI=y
+>  CONFIG_EXT2_FS=y
+>  CONFIG_EXT3_FS=y
+>  CONFIG_FANOTIFY=y
+> --
+> 2.8.0.rc3
+>
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
