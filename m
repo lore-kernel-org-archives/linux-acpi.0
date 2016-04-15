@@ -1,166 +1,118 @@
-From: Shannon Zhao <zhaoshenglong-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH v11 01/17] Xen: ACPI: Hide UART used by Xen
-Date: Fri, 15 Apr 2016 14:43:37 +0800
-Message-ID: <57108D99.5030800@huawei.com>
-References: <1460030614-16112-1-git-send-email-zhaoshenglong@huawei.com> <1460030614-16112-2-git-send-email-zhaoshenglong@huawei.com>
+From: Mika Westerberg <mika.westerberg@linux.intel.com>
+Subject: Re: [PATCH] acpi/acpica: fix Thunderbolt hotplug
+Date: Fri, 15 Apr 2016 10:39:50 +0300
+Message-ID: <20160415073950.GC1714@lahna.fi.intel.com>
+References: <1459291540-8746-1-git-send-email-prarit@redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-efi-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1460030614-16112-2-git-send-email-zhaoshenglong-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
-Sender: linux-efi-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, sstabellini-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, "Rafael J. Wysocki" <rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org>
-Cc: catalin.marinas-5wv7dgnIgG8@public.gmane.org, will.deacon-5wv7dgnIgG8@public.gmane.org, julien.grall-5wv7dgnIgG8@public.gmane.org, david.vrabel-Sxgqhf6Nn4DQT0dZR+AlfA@public.gmane.org, xen-devel-GuqFBffKawuEi8DpZVb4nw@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-efi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, shannon.zhao-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org, peter.huangpeng-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, Len Brown <lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, ACPI <linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga01.intel.com ([192.55.52.88]:27915 "EHLO mga01.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751116AbcDOHj4 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 15 Apr 2016 03:39:56 -0400
+Content-Disposition: inline
+In-Reply-To: <1459291540-8746-1-git-send-email-prarit@redhat.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Prarit Bhargava <prarit@redhat.com>
+Cc: linux-kernel@vger.kernel.org, Robert Moore <robert.moore@intel.com>, Lv Zheng <lv.zheng@intel.com>, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, devel@acpica.org
 
-Hi Rafael=EF=BC=8C
+Bob, Rafael, any comments about this?
 
-Could you please give your comments on this patch? Thanks in advanced!
+This seems to solve a real issue with Thunderbolt hotplug on Dell XPS
+laptops. I do not know ACPICA that well to tell if this is 100% correct
+fix but many reporters say it fixes the problem they are facing:
 
-On 2016/4/7 20:03, Shannon Zhao wrote:
-> From: Shannon Zhao <shannon.zhao-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
->=20
-> ACPI 6.0 introduces a new table STAO to list the devices which are us=
-ed
-> by Xen and can't be used by Dom0. On Xen virtual platforms, the physi=
-cal
-> UART is used by Xen. So here it hides UART from Dom0.
->=20
-> CC: "Rafael J. Wysocki" <rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org> (supporter:ACPI)
-> CC: Len Brown <lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org> (supporter:ACPI)
-> CC: linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org (open list:ACPI)
-> Signed-off-by: Shannon Zhao <shannon.zhao-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
+https://bugzilla.kernel.org/show_bug.cgi?id=115121
+
+On Tue, Mar 29, 2016 at 06:45:40PM -0400, Prarit Bhargava wrote:
+> The following hung task trace is seen when hotplugging
+> an ethernet dongle in a Thunderbolt port on Linux.
+> 
+> INFO: task kworker/0:4:1468 blocked for more than 120 seconds.
+>       Tainted: G        W       4.6.0-rc1+ #1
+>  "echo 0 > /proc/sys/kernel/hung_task_timeout_secs" disables this message.
+>  kworker/0:4     D ffff8802a265ba38 13344  1468      2 0x00000000
+>  Workqueue: kacpid acpi_os_execute_deferred
+>  ffff8802a265ba38 ffff8802a265ba00 ffffffff81130200 ffffffff81e0d580
+>  ffff88029e5eb340 ffff8802a265c000 ffff88029d69d000 ffff88029e5eb340
+>  ffffffff818c1b8d ffff8802b64e8758 ffff8802a265ba50 ffffffff818bdfcc
+>  Call Trace:
+>  [<ffffffff81130200>] ? test_callback+0x10/0x30
+>  [<ffffffff818c1b8d>] ? __down_timeout+0x5d/0xd0
+>  [<ffffffff818bdfcc>] schedule+0x3c/0x90
+>  [<ffffffff818c2d60>] schedule_timeout+0x210/0x360
+>  [<ffffffff8103fc89>] ? sched_clock+0x9/0x10
+>  [<ffffffff810ee51c>] ? local_clock+0x1c/0x20
+>  [<ffffffff81110c16>] ? mark_held_locks+0x76/0xa0
+>  [<ffffffff818c3cfc>] ? _raw_spin_unlock_irq+0x2c/0x40
+>  [<ffffffff818c1b8d>] ? __down_timeout+0x5d/0xd0
+>  [<ffffffff81110d35>] ? trace_hardirqs_on_caller+0xf5/0x1b0
+>  [<ffffffff818c1b8d>] ? __down_timeout+0x5d/0xd0
+>  [<ffffffff818c1bac>] __down_timeout+0x7c/0xd0
+>  [<ffffffff818c44b2>] ? _raw_spin_lock_irqsave+0x82/0x90
+>  [<ffffffff8110b87c>] down_timeout+0x4c/0x60
+>  [<ffffffff814e3a9c>] acpi_os_wait_semaphore+0xaa/0x16a
+>  [<ffffffff81510f37>] acpi_ex_system_wait_mutex+0x81/0xfa
+>  [<ffffffff814f8796>] acpi_ds_begin_method_execution+0x25a/0x373
+>  [<ffffffff814f8cea>] acpi_ds_call_control_method+0x107/0x2e0
+>  [<ffffffff8151ed60>] acpi_ps_parse_aml+0x177/0x495
+>  [<ffffffff8151fa46>] acpi_ps_execute_method+0x1f7/0x2b9
+>  [<ffffffff81516c9a>] acpi_ns_evaluate+0x2ee/0x435
+>  [<ffffffff814ff84a>] acpi_ev_asynch_execute_gpe_method+0xbd/0x159
+>  [<ffffffff814e2a69>] acpi_os_execute_deferred+0x17/0x23
+>  [<ffffffff810d1fc2>] process_one_work+0x242/0x700
+>  [<ffffffff810d1f3a>] ? process_one_work+0x1ba/0x700
+>  [<ffffffff810d24ce>] worker_thread+0x4e/0x490
+>  [<ffffffff810d2480>] ? process_one_work+0x700/0x700
+>  [<ffffffff810d2480>] ? process_one_work+0x700/0x700
+>  [<ffffffff810d98b1>] kthread+0x101/0x120
+>  [<ffffffff81110d35>] ? trace_hardirqs_on_caller+0xf5/0x1b0
+>  [<ffffffff818c4832>] ret_from_fork+0x22/0x50
+>  [<ffffffff810d97b0>] ? kthread_create_on_node+0x250/0x250
+>  2 locks held by kworker/0:4/1468:
+>  #0:  ("kacpid"){.+.+.+}, at: [<ffffffff810d1f3a>] process_one_work+0x1ba/0x700
+>  #1:  ((&dpc->work)){+.+.+.}, at: [<ffffffff810d1f3a>] process_one_work+0x1ba/0x700
+> 
+> The issue appears to be that the kworker thread attempts to acquire the
+> _E42 method's mutex twice when executing  acpi_ps_execute_method() and
+> recursing through the entry method.
+> 
+> The current code does take the possiblity of this recursion into account,
+> however, it is only for the case where the walk_state has been populated.
+> 
+> This can be fixed by setting the thread id in the !walk_state case to
+> allow for recursion.
+> 
+> Cc: Robert Moore <robert.moore@intel.com>
+> Cc: Lv Zheng <lv.zheng@intel.com>
+> Cc: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>
+> Cc: Len Brown <lenb@kernel.org>
+> Cc: linux-acpi@vger.kernel.org
+> Cc: devel@acpica.org
+> Signed-off-by: Prarit Bhargava <prarit@redhat.com>
 > ---
->  drivers/acpi/scan.c | 74 +++++++++++++++++++++++++++++++++++++++++++=
-++++++++++
->  1 file changed, 74 insertions(+)
->=20
-> diff --git a/drivers/acpi/scan.c b/drivers/acpi/scan.c
-> index 5f28cf7..cfc73fe 100644
-> --- a/drivers/acpi/scan.c
-> +++ b/drivers/acpi/scan.c
-> @@ -46,6 +46,13 @@ DEFINE_MUTEX(acpi_device_lock);
->  LIST_HEAD(acpi_wakeup_device_list);
->  static DEFINE_MUTEX(acpi_hp_context_lock);
-> =20
-> +/*
-> + * The UART device described by the SPCR table is the only object wh=
-ich needs
-> + * special-casing. Everything else is covered by ACPI namespace path=
-s in STAO
-> + * table.
-> + */
-> +static u64 spcr_uart_addr;
+>  drivers/acpi/acpica/dsmethod.c |    3 +++
+>  1 file changed, 3 insertions(+)
+> 
+> diff --git a/drivers/acpi/acpica/dsmethod.c b/drivers/acpi/acpica/dsmethod.c
+> index 1982310..93799db 100644
+> --- a/drivers/acpi/acpica/dsmethod.c
+> +++ b/drivers/acpi/acpica/dsmethod.c
+> @@ -428,6 +428,9 @@ acpi_ds_begin_method_execution(struct acpi_namespace_node *method_node,
+>  				obj_desc->method.mutex->mutex.
+>  				    original_sync_level =
+>  				    obj_desc->method.mutex->mutex.sync_level;
 > +
->  struct acpi_dep_data {
->  	struct list_head node;
->  	acpi_handle master;
-> @@ -1453,6 +1460,41 @@ static int acpi_add_single_object(struct acpi_=
-device **child,
->  	return 0;
->  }
-> =20
-> +static acpi_status acpi_get_resource_memory(struct acpi_resource *ar=
-es,
-> +					    void *context)
-> +{
-> +	struct resource *res =3D context;
-> +
-> +	if (acpi_dev_resource_memory(ares, res))
-> +		return AE_CTRL_TERMINATE;
-> +
-> +	return AE_OK;
-> +}
-> +
-> +static bool acpi_device_should_be_hidden(acpi_handle handle)
-> +{
-> +	acpi_status status;
-> +	struct resource res;
-> +
-> +	/* Check if it should ignore the UART device */
-> +	if (!(spcr_uart_addr && acpi_has_method(handle, METHOD_NAME__CRS)))
-> +		return false;
-> +
-> +	/*
-> +	 * The UART device described in SPCR table is assumed to have only =
-one
-> +	 * memory resource present. So we only look for the first one here.
-> +	 */
-> +	status =3D acpi_walk_resources(handle, METHOD_NAME__CRS,
-> +				     acpi_get_resource_memory, &res);
-> +	if (ACPI_FAILURE(status) || res.start !=3D spcr_uart_addr)
-> +		return false;
-> +
-> +	acpi_handle_info(handle, "The UART device @%pa in SPCR table will b=
-e hidden\n",
-> +			 &res.start);
-> +
-> +	return true;
-> +}
-> +
->  static int acpi_bus_type_and_status(acpi_handle handle, int *type,
->  				    unsigned long long *sta)
->  {
-> @@ -1466,6 +1508,9 @@ static int acpi_bus_type_and_status(acpi_handle=
- handle, int *type,
->  	switch (acpi_type) {
->  	case ACPI_TYPE_ANY:		/* for ACPI_ROOT_OBJECT */
->  	case ACPI_TYPE_DEVICE:
-> +		if (acpi_device_should_be_hidden(handle))
-> +			return -ENODEV;
-> +
->  		*type =3D ACPI_BUS_TYPE_DEVICE;
->  		status =3D acpi_bus_get_status_handle(handle, sta);
->  		if (ACPI_FAILURE(status))
-> @@ -1916,9 +1961,24 @@ static int acpi_bus_scan_fixed(void)
->  	return result < 0 ? result : 0;
->  }
-> =20
-> +static void __init acpi_get_spcr_uart_addr(void)
-> +{
-> +	acpi_status status;
-> +	struct acpi_table_spcr *spcr_ptr;
-> +
-> +	status =3D acpi_get_table(ACPI_SIG_SPCR, 0,
-> +				(struct acpi_table_header **)&spcr_ptr);
-> +	if (ACPI_SUCCESS(status))
-> +		spcr_uart_addr =3D spcr_ptr->serial_port.address;
-> +	else
-> +		printk(KERN_WARNING PREFIX "STAO table present, but SPCR is missin=
-g\n");
-> +}
-> +
->  int __init acpi_scan_init(void)
->  {
->  	int result;
-> +	acpi_status status;
-> +	struct acpi_table_stao *stao_ptr;
-> =20
->  	acpi_pci_root_init();
->  	acpi_pci_link_init();
-> @@ -1934,6 +1994,20 @@ int __init acpi_scan_init(void)
-> =20
->  	acpi_scan_add_handler(&generic_device_handler);
-> =20
-> +	/*
-> +	 * If there is STAO table, check whether it needs to ignore the UAR=
-T
-> +	 * device in SPCR table.
-> +	 */
-> +	status =3D acpi_get_table(ACPI_SIG_STAO, 0,
-> +				(struct acpi_table_header **)&stao_ptr);
-> +	if (ACPI_SUCCESS(status)) {
-> +		if (stao_ptr->header.length > sizeof(struct acpi_table_stao))
-> +			printk(KERN_INFO PREFIX "STAO Name List not yet supported.");
-> +
-> +		if (stao_ptr->ignore_uart)
-> +			acpi_get_spcr_uart_addr();
-> +	}
-> +
->  	mutex_lock(&acpi_scan_lock);
->  	/*
->  	 * Enumerate devices in the ACPI namespace.
->=20
-
---=20
-Shannon
+> +				obj_desc->method.mutex->mutex.thread_id =
+> +					acpi_os_get_thread_id();
+>  			}
+>  		}
+>  
+> -- 
+> 1.7.9.3
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
