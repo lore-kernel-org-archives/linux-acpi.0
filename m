@@ -1,73 +1,218 @@
 From: Tomasz Nowicki <tn@semihalf.com>
-Subject: [PATCH V6 06/13] arm64, pci,
- acpi: ACPI support for legacy IRQs parsing and consolidation with DT
- code.
-Date: Fri, 15 Apr 2016 19:06:41 +0200
-Message-ID: <1460740008-19489-7-git-send-email-tn@semihalf.com>
+Subject: [PATCH V6 13/13] pci, pci-thunder-pem: Add ACPI support for ThunderX PEM.
+Date: Fri, 15 Apr 2016 19:06:48 +0200
+Message-ID: <1460740008-19489-14-git-send-email-tn@semihalf.com>
 References: <1460740008-19489-1-git-send-email-tn@semihalf.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-wm0-f43.google.com ([74.125.82.43]:34449 "EHLO
+	mail-wm0-f43.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753180AbcDORHk (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 15 Apr 2016 13:07:40 -0400
+Received: by mail-wm0-f43.google.com with SMTP id l6so10653949wml.1
+        for <linux-acpi@vger.kernel.org>; Fri, 15 Apr 2016 10:07:39 -0700 (PDT)
 In-Reply-To: <1460740008-19489-1-git-send-email-tn@semihalf.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: helgaas@kernel.org, arnd@arndb.de, will.deacon@arm.com, catalin.marinas@arm.com, rafael@kernel.org, hanjun.guo@linaro.org, Lorenzo.Pieralisi@arm.com, okaya@codeaurora.org, jiang.liu@linux.intel.com, jchandra@broadcom.com
-Cc: jcm@redhat.com, linaro-acpi@lists.linaro.org, linux-pci@vger.kernel.org, Liviu.Dudau@arm.com, ddaney@caviumnetworks.com, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, robert.richter@caviumnetworks.com, Suravee.Suthikulpanit@amd.com, msalter@redhat.com, wangyijing@huawei.com, Tomasz Nowicki <tn@semihalf.com>, mw@semihalf.com, linux-arm-kernel@lists.infradead.org
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: helgaas@kernel.org, arnd@arndb.de, will.deacon@arm.com, catalin.marinas@arm.com, rafael@kernel.org, hanjun.guo@linaro.org, Lorenzo.Pieralisi@arm.com, okaya@codeaurora.org, jiang.liu@linux.intel.com, jchandra@broadcom.com
+Cc: robert.richter@caviumnetworks.com, mw@semihalf.com, Liviu.Dudau@arm.com, ddaney@caviumnetworks.com, wangyijing@huawei.com, Suravee.Suthikulpanit@amd.com, msalter@redhat.com, linux-pci@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linaro-acpi@lists.linaro.org, jcm@redhat.com, Tomasz Nowicki <tn@semihalf.com>
 
-To enable PCI legacy IRQs on platforms booting with ACPI, arch code
-should include ACPI specific callbacks that parse and set-up the
-device IRQ number, equivalent to the DT boot path. Owing to the current
-ACPI core scan handlers implementation, ACPI PCI legacy IRQs bindings
-cannot be parsed at device add time, since that would trigger ACPI scan
-handlers ordering issues depending on how the ACPI tables are defined.
+This patch uses DECLARE_ACPI_MCFG_FIXUP to overwrite PCI config accessors.
+Also, it provides alternative way to find additional configuration region:
+thunder_pem_get_acpi_res is looking for host bridge's child (_HID "THRX0001")
+which contains mentioned configuration region description.
+See example below:
 
-To solve this problem and consolidate FW PCI legacy IRQs parsing in
-one single pcibios callback (pending final removal), this patch moves
-DT PCI IRQ parsing to the pcibios_alloc_irq() callback (called by
-PCI core code at device probe time) and adds ACPI PCI legacy IRQs
-parsing to the same callback too, so that FW PCI legacy IRQs parsing
-is confined in one single arch callback that can be easily removed
-when code parsing PCI legacy IRQs is consolidated and moved to core
-PCI code.
+Device (PEM0) {
+    Name (_HID, EISAID ("PNP0A08"))
+    Name (_CID, EISAID ("PNP0A03"))
+
+    [...]
+
+    Device (CFG0)
+    {
+      Name (_HID, "THRX0001") // PEM configuration space resources
+      Name (_CRS, ResourceTemplate () {
+        QWordMemory(ResourceConsumer, PosDecode, MinFixed, MaxFixed,
+          NonCacheable, ReadWrite, 0, 0x87e0c5000000, 0x87E0C5FFFFFF,
+          0, 0x01000000)
+      })
+    }
+}
 
 Signed-off-by: Tomasz Nowicki <tn@semihalf.com>
-Suggested-by: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
 ---
- arch/arm64/kernel/pci.c | 11 ++++++++---
- 1 file changed, 8 insertions(+), 3 deletions(-)
+ drivers/pci/host/pci-thunder-pem.c | 137 ++++++++++++++++++++++++++++++++++---
+ 1 file changed, 128 insertions(+), 9 deletions(-)
 
-diff --git a/arch/arm64/kernel/pci.c b/arch/arm64/kernel/pci.c
-index c72de66..15109c11 100644
---- a/arch/arm64/kernel/pci.c
-+++ b/arch/arm64/kernel/pci.c
-@@ -50,11 +50,16 @@ int pcibios_enable_device(struct pci_dev *dev, int mask)
+diff --git a/drivers/pci/host/pci-thunder-pem.c b/drivers/pci/host/pci-thunder-pem.c
+index 91cfeb9..685cd79 100644
+--- a/drivers/pci/host/pci-thunder-pem.c
++++ b/drivers/pci/host/pci-thunder-pem.c
+@@ -18,6 +18,7 @@
+ #include <linux/module.h>
+ #include <linux/of_address.h>
+ #include <linux/of_pci.h>
++#include <linux/pci-acpi.h>
+ #include <linux/platform_device.h>
+ 
+ #include "../ecam.h"
+@@ -259,6 +260,83 @@ static int thunder_pem_config_write(struct pci_bus *bus, unsigned int devfn,
+ 	return pci_generic_config_write(bus, devfn, where, size, val);
  }
  
- /*
-- * Try to assign the IRQ number from DT when adding a new device
-+ * Try to assign the IRQ number when probing a new device
-  */
--int pcibios_add_device(struct pci_dev *dev)
-+int pcibios_alloc_irq(struct pci_dev *dev)
- {
--	dev->irq = of_irq_parse_and_map_pci(dev, 0, 0);
-+	if (acpi_disabled)
-+		dev->irq = of_irq_parse_and_map_pci(dev, 0, 0);
 +#ifdef CONFIG_ACPI
-+	else
-+		return acpi_pci_irq_enable(dev);
++
++struct pem_acpi_res {
++	struct resource	resource;
++	int found;
++};
++
++static acpi_status
++thunder_pem_cfg(struct acpi_resource *resource, void *ctx)
++{
++	struct pem_acpi_res *pem_ctx = ctx;
++	struct resource *res = &pem_ctx->resource;
++
++	if ((resource->type != ACPI_RESOURCE_TYPE_ADDRESS64) ||
++	    (resource->data.address32.resource_type != ACPI_MEMORY_RANGE))
++		return AE_OK;
++
++	res->start = resource->data.address64.address.minimum;
++	res->end = resource->data.address64.address.maximum;
++	res->flags = IORESOURCE_MEM;
++
++	pem_ctx->found++;
++	return AE_OK;
++}
++
++static acpi_status
++thunder_pem_find_dev(acpi_handle handle, u32 level, void *ctx, void **ret)
++{
++	struct pem_acpi_res *pem_ctx = ctx;
++	struct acpi_device_info *info;
++	acpi_status status = AE_OK;
++
++	status = acpi_get_object_info(handle, &info);
++	if (ACPI_FAILURE(status))
++		return AE_OK;
++
++	if (strncmp(info->hardware_id.string, "THRX0001", 8) != 0)
++		goto out;
++
++	pem_ctx->found = 0;
++	status = acpi_walk_resources(handle, METHOD_NAME__CRS, thunder_pem_cfg,
++				     pem_ctx);
++	if (ACPI_FAILURE(status))
++		goto out;
++
++	if (pem_ctx->found)
++		status = AE_CTRL_TERMINATE;
++out:
++	kfree(info);
++	return status;
++}
++
++static struct resource *thunder_pem_get_acpi_res(struct device *dev)
++{
++	struct acpi_device *adev = ACPI_COMPANION(dev);
++	acpi_handle handle = acpi_device_handle(adev);
++	struct pem_acpi_res *pem_ctx;
++	acpi_status status;
++
++	pem_ctx = devm_kzalloc(dev, sizeof(*pem_ctx), GFP_KERNEL);
++	if (!pem_ctx)
++		return NULL;
++
++	status = acpi_walk_namespace(ACPI_TYPE_DEVICE, handle, 1,
++				     thunder_pem_find_dev, NULL, pem_ctx, NULL);
++	if (ACPI_FAILURE(status) || !pem_ctx->found)
++		return NULL;
++
++	return &pem_ctx->resource;
++}
++#else
++static struct resource *thunder_pem_get_acpi_res(struct device *dev)
++{
++	return NULL;
++}
 +#endif
++
+ static int thunder_pem_init(struct device *dev, struct pci_config_window *cfg)
+ {
+ 	resource_size_t bar4_start;
+@@ -270,16 +348,20 @@ static int thunder_pem_init(struct device *dev, struct pci_config_window *cfg)
+ 	if (!pem_pci)
+ 		return -ENOMEM;
  
- 	return 0;
- }
+-	pdev = to_platform_device(dev);
+-
+-	/*
+-	 * The second register range is the PEM bridge to the PCIe
+-	 * bus.  It has a different config access method than those
+-	 * devices behind the bridge.
+-	 */
+-	res_pem = platform_get_resource(pdev, IORESOURCE_MEM, 1);
++	if (acpi_disabled) {
++		pdev = to_platform_device(dev);
++
++		/*
++		 * The second register range is the PEM bridge to the PCIe
++		 * bus.  It has a different config access method than those
++		 * devices behind the bridge.
++		 */
++		res_pem = platform_get_resource(pdev, IORESOURCE_MEM, 1);
++	} else {
++		res_pem = thunder_pem_get_acpi_res(dev);
++	}
+ 	if (!res_pem) {
+-		dev_err(dev, "missing \"reg[1]\"property\n");
++		dev_err(dev, "missing configuration region\n");
+ 		return -EINVAL;
+ 	}
+ 
+@@ -332,5 +414,42 @@ static struct platform_driver thunder_pem_driver = {
+ };
+ module_platform_driver(thunder_pem_driver);
+ 
++#ifdef CONFIG_ACPI
++
++static bool thunder_pem_acpi_init(struct pci_cfg_fixup *fixup,
++				 struct acpi_pci_root *root)
++{
++	u32 midr = read_cpuid_id();
++
++	return (MIDR_IMPLEMENTOR(midr) == ARM_CPU_IMP_CAVIUM) &&
++	    (MIDR_PARTNUM(midr) == CAVIUM_CPU_PART_THUNDERX);
++}
++
++DECLARE_ACPI_MCFG_FIXUP(NULL, thunder_pem_acpi_init, &pci_thunder_pem_ops,
++			4, PCI_MCFG_BUS_ANY);
++DECLARE_ACPI_MCFG_FIXUP(NULL, thunder_pem_acpi_init, &pci_thunder_pem_ops,
++			5, PCI_MCFG_BUS_ANY);
++DECLARE_ACPI_MCFG_FIXUP(NULL, thunder_pem_acpi_init, &pci_thunder_pem_ops,
++			6, PCI_MCFG_BUS_ANY);
++DECLARE_ACPI_MCFG_FIXUP(NULL, thunder_pem_acpi_init, &pci_thunder_pem_ops,
++			7, PCI_MCFG_BUS_ANY);
++DECLARE_ACPI_MCFG_FIXUP(NULL, thunder_pem_acpi_init, &pci_thunder_pem_ops,
++			8, PCI_MCFG_BUS_ANY);
++DECLARE_ACPI_MCFG_FIXUP(NULL, thunder_pem_acpi_init, &pci_thunder_pem_ops,
++			9, PCI_MCFG_BUS_ANY);
++DECLARE_ACPI_MCFG_FIXUP(NULL, thunder_pem_acpi_init, &pci_thunder_pem_ops,
++			14, PCI_MCFG_BUS_ANY);
++DECLARE_ACPI_MCFG_FIXUP(NULL, thunder_pem_acpi_init, &pci_thunder_pem_ops,
++			15, PCI_MCFG_BUS_ANY);
++DECLARE_ACPI_MCFG_FIXUP(NULL, thunder_pem_acpi_init, &pci_thunder_pem_ops,
++			16, PCI_MCFG_BUS_ANY);
++DECLARE_ACPI_MCFG_FIXUP(NULL, thunder_pem_acpi_init, &pci_thunder_pem_ops,
++			17, PCI_MCFG_BUS_ANY);
++DECLARE_ACPI_MCFG_FIXUP(NULL, thunder_pem_acpi_init, &pci_thunder_pem_ops,
++			18, PCI_MCFG_BUS_ANY);
++DECLARE_ACPI_MCFG_FIXUP(NULL, thunder_pem_acpi_init, &pci_thunder_pem_ops,
++			19, PCI_MCFG_BUS_ANY);
++#endif
++
+ MODULE_DESCRIPTION("Thunder PEM PCIe host driver");
+ MODULE_LICENSE("GPL v2");
 -- 
 1.9.1
+
