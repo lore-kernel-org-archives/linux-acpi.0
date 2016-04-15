@@ -1,131 +1,139 @@
-From: "Moore, Robert" <robert.moore@intel.com>
-Subject: RE: [PATCH] acpi/acpica: fix Thunderbolt hotplug
-Date: Fri, 15 Apr 2016 16:21:41 +0000
-Message-ID: <94F2FBAB4432B54E8AACC7DFDE6C92E37E474F3C@ORSMSX110.amr.corp.intel.com>
-References: <1459291540-8746-1-git-send-email-prarit@redhat.com>
- <20160415073950.GC1714@lahna.fi.intel.com>
+From: Robin Murphy <robin.murphy-5wv7dgnIgG8@public.gmane.org>
+Subject: Re: [RFC PATCH 09/11] drivers: acpi: implement acpi_dma_configure
+Date: Fri, 15 Apr 2016 17:31:58 +0100
+Message-ID: <5711177E.2000509@arm.com>
+References: <1460654743-7896-1-git-send-email-lorenzo.pieralisi@arm.com>
+	<1460654743-7896-10-git-send-email-lorenzo.pieralisi@arm.com>
+	<20160415161400.GC7973@localhost>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20160415073950.GC1714@lahna.fi.intel.com>
-Content-Language: en-US
-Sender: linux-kernel-owner@vger.kernel.org
-To: Mika Westerberg <mika.westerberg@linux.intel.com>, Prarit Bhargava <prarit@redhat.com>
-Cc: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "Zheng, Lv" <lv.zheng@intel.com>, "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>, Len Brown <lenb@kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "devel@acpica.org" <devel@acpica.org>
+Content-Type: text/plain; charset="us-ascii"; Format="flowed"
+Content-Transfer-Encoding: 7bit
+Return-path: <iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
+In-Reply-To: <20160415161400.GC7973@localhost>
+List-Unsubscribe: <https://lists.linuxfoundation.org/mailman/options/iommu>,
+	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.linuxfoundation.org/pipermail/iommu/>
+List-Post: <mailto:iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
+List-Help: <mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.linuxfoundation.org/mailman/listinfo/iommu>,
+	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=subscribe>
+Sender: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
+Errors-To: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
+To: Bjorn Helgaas <helgaas-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Lorenzo Pieralisi <lorenzo.pieralisi-5wv7dgnIgG8@public.gmane.org>
+Cc: linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, Marc Zyngier <marc.zyngier-5wv7dgnIgG8@public.gmane.org>, Tomasz Nowicki <tn-nYOzD4b6Jr9Wk0Htik3J/w@public.gmane.org>, "Rafael J. Wysocki" <rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org>, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Will Deacon <will.deacon-5wv7dgnIgG8@public.gmane.org>, Sinan Kaya <okaya-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org, Hanjun Guo <hanjun.guo-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Bjorn Helgaas <bhelgaas-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>, Jon Masters <jcm-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-Lv is looking at it. He has already commented that this might not be the best solution, so he is continuing to investigate.
+Hi Bjorn,
 
+On 15/04/16 17:14, Bjorn Helgaas wrote:
+> On Thu, Apr 14, 2016 at 06:25:41PM +0100, Lorenzo Pieralisi wrote:
+>> On DT based systems, the of_dma_configure() API implements DMA configuration
+>> for a given device. On ACPI systems an API equivalent to of_dma_configure()
+>> is missing which implies that it is currently not possible to set-up DMA
+>> operations for devices through the ACPI generic kernel layer.
+>>
+>> This patch fills the gap by introducing acpi_dma_configure/deconfigure()
+>> calls, that carry out IOMMU configuration through IORT (on systems where
+>> it is present) and call arch_setup_dma_ops(...) with the retrieved
+>> parameters.
+>>
+>> The DMA range size passed to arch_setup_dma_ops() is sized according
+>> to the device coherent_dma_mask (starting at address 0x0), mirroring the
+>> DT probing path behaviour when a dma-ranges property is not provided
+>> for the device being probed; this changes the current arch_setup_dma_ops()
+>> call parameters in the ACPI probing case, but since arch_setup_dma_ops()
+>> is a NOP on all architectures but ARM/ARM64 this patch does not change
+>> the current kernel behaviour on them.
+>>
+>> This patch updates ACPI and PCI core code to use the newly introduced
+>> acpi_dma_configure function, providing the same functionality
+>> as of_dma_configure on ARM systems and leaving behaviour unchanged
+>> for all other arches.
+>>
+>> Signed-off-by: Lorenzo Pieralisi <lorenzo.pieralisi-5wv7dgnIgG8@public.gmane.org>
+>> Cc: Bjorn Helgaas <bhelgaas-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>
+>> Cc: Robin Murphy <robin.murphy-5wv7dgnIgG8@public.gmane.org>
+>> Cc: Tomasz Nowicki <tn-nYOzD4b6Jr9Wk0Htik3J/w@public.gmane.org>
+>> Cc: Joerg Roedel <joro-zLv9SwRftAIdnm+yROfE0A@public.gmane.org>
+>> Cc: "Rafael J. Wysocki" <rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org>
+>
+> There's only a tiny PCI change in this series, so I assume somebody
+> else will merge all this.  Here's my ack for the PCI part:
+>
+> Acked-by: Bjorn Helgaas <bhelgaas-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>	# for drivers/pci/probe.c change
+>
+> One question on use of pci_for_each_dma_alias() below.
+>
+>> +static int __get_pci_rid(struct pci_dev *pdev, u16 alias, void *data)
+>> +{
+>> +	u32 *rid = data;
+>> +
+>> +	*rid = alias;
+>> +	return 0;
+>> +}
+>> +
+>> +/**
+>> + * iort_iommu_configure - Set-up IOMMU configuration for a device.
+>> + *
+>> + * @dev: device that requires IOMMU set-up
+>> + *
+>> + * Returns: iommu_ops pointer on configuration success
+>> + *          NULL on configuration failure
+>> + */
+>> +struct iommu_ops *iort_iommu_configure(struct device *dev)
+>> +{
+>> +	struct acpi_iort_node *node, *parent;
+>> +	struct iommu_ops *ops = NULL;
+>> +	struct iommu_fwspec fwspec;
+>> +	struct iort_iommu_node *iommu_node;
+>> +	u32 rid = 0, devid = 0;
+>> +
+>> +	if (dev_is_pci(dev)) {
+>> +		struct pci_bus *bus = to_pci_dev(dev)->bus;
+>> +
+>> +		pci_for_each_dma_alias(to_pci_dev(dev), __get_pci_rid,
+>> +				       &rid);
+>
+> You end up with only the last DMA alias in "rid".  Is it really true
+> that you only need to call iort_dev_map_rid() for one of the aliases?
 
-> -----Original Message-----
-> From: Mika Westerberg [mailto:mika.westerberg@linux.intel.com]
-> Sent: Friday, April 15, 2016 12:40 AM
-> To: Prarit Bhargava
-> Cc: linux-kernel@vger.kernel.org; Moore, Robert; Zheng, Lv; Wysocki,
-> Rafael J; Len Brown; linux-acpi@vger.kernel.org; devel@acpica.org
-> Subject: Re: [PATCH] acpi/acpica: fix Thunderbolt hotplug
-> 
-> Bob, Rafael, any comments about this?
-> 
-> This seems to solve a real issue with Thunderbolt hotplug on Dell XPS
-> laptops. I do not know ACPICA that well to tell if this is 100% correct
-> fix but many reporters say it fixes the problem they are facing:
-> 
-> https://bugzilla.kernel.org/show_bug.cgi?id=115121
-> 
-> On Tue, Mar 29, 2016 at 06:45:40PM -0400, Prarit Bhargava wrote:
-> > The following hung task trace is seen when hotplugging an ethernet
-> > dongle in a Thunderbolt port on Linux.
-> >
-> > INFO: task kworker/0:4:1468 blocked for more than 120 seconds.
-> >       Tainted: G        W       4.6.0-rc1+ #1
-> >  "echo 0 > /proc/sys/kernel/hung_task_timeout_secs" disables this
-> message.
-> >  kworker/0:4     D ffff8802a265ba38 13344  1468      2 0x00000000
-> >  Workqueue: kacpid acpi_os_execute_deferred
-> >  ffff8802a265ba38 ffff8802a265ba00 ffffffff81130200 ffffffff81e0d580
-> >  ffff88029e5eb340 ffff8802a265c000 ffff88029d69d000 ffff88029e5eb340
-> > ffffffff818c1b8d ffff8802b64e8758 ffff8802a265ba50 ffffffff818bdfcc
-> > Call Trace:
-> >  [<ffffffff81130200>] ? test_callback+0x10/0x30  [<ffffffff818c1b8d>]
-> > ? __down_timeout+0x5d/0xd0  [<ffffffff818bdfcc>] schedule+0x3c/0x90
-> > [<ffffffff818c2d60>] schedule_timeout+0x210/0x360
-> > [<ffffffff8103fc89>] ? sched_clock+0x9/0x10  [<ffffffff810ee51c>] ?
-> > local_clock+0x1c/0x20  [<ffffffff81110c16>] ?
-> > mark_held_locks+0x76/0xa0  [<ffffffff818c3cfc>] ?
-> > _raw_spin_unlock_irq+0x2c/0x40  [<ffffffff818c1b8d>] ?
-> > __down_timeout+0x5d/0xd0  [<ffffffff81110d35>] ?
-> > trace_hardirqs_on_caller+0xf5/0x1b0
-> >  [<ffffffff818c1b8d>] ? __down_timeout+0x5d/0xd0  [<ffffffff818c1bac>]
-> > __down_timeout+0x7c/0xd0  [<ffffffff818c44b2>] ?
-> > _raw_spin_lock_irqsave+0x82/0x90  [<ffffffff8110b87c>]
-> > down_timeout+0x4c/0x60  [<ffffffff814e3a9c>]
-> > acpi_os_wait_semaphore+0xaa/0x16a  [<ffffffff81510f37>]
-> > acpi_ex_system_wait_mutex+0x81/0xfa
-> >  [<ffffffff814f8796>] acpi_ds_begin_method_execution+0x25a/0x373
-> >  [<ffffffff814f8cea>] acpi_ds_call_control_method+0x107/0x2e0
-> >  [<ffffffff8151ed60>] acpi_ps_parse_aml+0x177/0x495
-> > [<ffffffff8151fa46>] acpi_ps_execute_method+0x1f7/0x2b9
-> >  [<ffffffff81516c9a>] acpi_ns_evaluate+0x2ee/0x435
-> > [<ffffffff814ff84a>] acpi_ev_asynch_execute_gpe_method+0xbd/0x159
-> >  [<ffffffff814e2a69>] acpi_os_execute_deferred+0x17/0x23
-> >  [<ffffffff810d1fc2>] process_one_work+0x242/0x700
-> > [<ffffffff810d1f3a>] ? process_one_work+0x1ba/0x700
-> > [<ffffffff810d24ce>] worker_thread+0x4e/0x490  [<ffffffff810d2480>] ?
-> > process_one_work+0x700/0x700  [<ffffffff810d2480>] ?
-> > process_one_work+0x700/0x700  [<ffffffff810d98b1>] kthread+0x101/0x120
-> > [<ffffffff81110d35>] ? trace_hardirqs_on_caller+0xf5/0x1b0
-> >  [<ffffffff818c4832>] ret_from_fork+0x22/0x50  [<ffffffff810d97b0>] ?
-> > kthread_create_on_node+0x250/0x250
-> >  2 locks held by kworker/0:4/1468:
-> >  #0:  ("kacpid"){.+.+.+}, at: [<ffffffff810d1f3a>]
-> > process_one_work+0x1ba/0x700
-> >  #1:  ((&dpc->work)){+.+.+.}, at: [<ffffffff810d1f3a>]
-> > process_one_work+0x1ba/0x700
-> >
-> > The issue appears to be that the kworker thread attempts to acquire
-> > the
-> > _E42 method's mutex twice when executing  acpi_ps_execute_method() and
-> > recursing through the entry method.
-> >
-> > The current code does take the possiblity of this recursion into
-> > account, however, it is only for the case where the walk_state has been
-> populated.
-> >
-> > This can be fixed by setting the thread id in the !walk_state case to
-> > allow for recursion.
-> >
-> > Cc: Robert Moore <robert.moore@intel.com>
-> > Cc: Lv Zheng <lv.zheng@intel.com>
-> > Cc: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>
-> > Cc: Len Brown <lenb@kernel.org>
-> > Cc: linux-acpi@vger.kernel.org
-> > Cc: devel@acpica.org
-> > Signed-off-by: Prarit Bhargava <prarit@redhat.com>
-> > ---
-> >  drivers/acpi/acpica/dsmethod.c |    3 +++
-> >  1 file changed, 3 insertions(+)
-> >
-> > diff --git a/drivers/acpi/acpica/dsmethod.c
-> > b/drivers/acpi/acpica/dsmethod.c index 1982310..93799db 100644
-> > --- a/drivers/acpi/acpica/dsmethod.c
-> > +++ b/drivers/acpi/acpica/dsmethod.c
-> > @@ -428,6 +428,9 @@ acpi_ds_begin_method_execution(struct
-> acpi_namespace_node *method_node,
-> >  				obj_desc->method.mutex->mutex.
-> >  				    original_sync_level =
-> >  				    obj_desc->method.mutex->mutex.sync_level;
-> > +
-> > +				obj_desc->method.mutex->mutex.thread_id =
-> > +					acpi_os_get_thread_id();
-> >  			}
-> >  		}
-> >
-> > --
-> > 1.7.9.3
-> >
-> > --
-> > To unsubscribe from this list: send the line "unsubscribe linux-acpi"
-> > in the body of a message to majordomo@vger.kernel.org More majordomo
-> > info at  http://vger.kernel.org/majordomo-info.html
+Indeed - all we care about is what things look like by the time they 
+come out of the root complex on their way to the the IOMMU, so whatever 
+intermediate aliasing _within_ the PCI bus might happen along the way 
+doesn't actually matter.
+
+Robin.
+
+>> +		node = iort_scan_node(ACPI_IORT_NODE_PCI_ROOT_COMPLEX,
+>> +				      iort_find_dev_callback, &bus->dev);
+>> +	} else
+>> +		node = iort_scan_node(ACPI_IORT_NODE_NAMED_COMPONENT,
+>> +				      iort_find_dev_callback, dev);
+>> +
+>> +	if (!node)
+>> +		return NULL;
+>> +
+>> +	iort_dev_map_rid(node, rid, &devid, ACPI_IORT_NODE_SMMU);
+>> +
+>> +	parent = iort_find_parent_node(node, ACPI_IORT_NODE_SMMU);
+>> +
+>> +	if (!parent)
+>> +		return NULL;
+>> +
+>> +	iommu_node = iort_iommu_get_node(parent);
+>> +	ops = iommu_node->ops;
+>> +
+>> +	fwspec.fwnode = iommu_node->fwnode;
+>> +	fwspec.param_count = 1;
+>> +	fwspec.param[0] = devid;
+>> +
+>> +	if (!ops || !ops->fw_xlate || ops->fw_xlate(dev, &fwspec))
+>> +		return NULL;
+>> +
+>> +	return ops;
+>> +}
+> _______________________________________________
+> iommu mailing list
+> iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
+> https://lists.linuxfoundation.org/mailman/listinfo/iommu
+>
