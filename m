@@ -1,73 +1,74 @@
-From: Mark Brown <broonie@kernel.org>
-Subject: [PATCH 2/3] ACPI / ARM64: Remove EXPERT dependency for ACPI on ARM64
-Date: Fri, 15 Apr 2016 08:53:42 +0100
-Message-ID: <1460706823-16566-2-git-send-email-broonie@kernel.org>
-References: <1460706823-16566-1-git-send-email-broonie@kernel.org>
+From: Jiang Qiu <qiujiang@huawei.com>
+Subject: Re: [PATCH v7 3/3] gpio: dwapb: add gpio-signaled acpi event support
+Date: Fri, 15 Apr 2016 15:58:37 +0800
+Message-ID: <57109F2D.6020807@huawei.com>
+References: <1459926480-32966-1-git-send-email-qiujiang@huawei.com>
+ <1459926480-32966-4-git-send-email-qiujiang@huawei.com>
+ <CACRpkdb63AZtEOSJ0R+EqdHfKXcUr7Hs8fh9N5XHNcWjQ1Ba8A@mail.gmail.com>
+ <20160408083830.GT1727@lahna.fi.intel.com> <570B9BEA.8060608@huawei.com>
+ <20160412064657.GF1714@lahna.fi.intel.com>
+ <CACRpkdY=i9BVYEpu0svmKOQJURH2nQ5iwCM0895fODmkVuPBew@mail.gmail.com>
+Reply-To: <qiujiang@huawei.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mezzanine.sirena.org.uk ([106.187.55.193]:43570 "EHLO
-	mezzanine.sirena.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752418AbcDOHyK (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 15 Apr 2016 03:54:10 -0400
-In-Reply-To: <1460706823-16566-1-git-send-email-broonie@kernel.org>
+Received: from szxga02-in.huawei.com ([119.145.14.65]:4663 "EHLO
+	szxga02-in.huawei.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752493AbcDOH7n (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 15 Apr 2016 03:59:43 -0400
+In-Reply-To: <CACRpkdY=i9BVYEpu0svmKOQJURH2nQ5iwCM0895fODmkVuPBew@mail.gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J . Wysocki" <rjw@rjwysocki.net>, Catalin Marinas <catalin.marinas@arm.com>, Len Brown <lenb@kernel.org>, Will Deacon <will.deacon@arm.com>
-Cc: Mark Rutland <mark.rutland@arm.com>, Steve Capper <steve.capper@linaro.org>, Graeme Gregory <graeme.gregory@linaro.org>, linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org, arm@kernel.org, Mark Brown <broonie@kernel.org>
+To: Linus Walleij <linus.walleij@linaro.org>, Mika Westerberg <mika.westerberg@linux.intel.com>
+Cc: Alexandre Courbot <gnurou@gmail.com>, Andy Shevchenko <andy.shevchenko@gmail.com>, Alan Tull <delicious.quinoa@gmail.com>, Jamie Iles <jamie@jamieiles.com>, charles.chenxin@huawei.com, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-gpio@vger.kernel.org" <linux-gpio@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linuxarm <linuxarm@huawei.com>
 
-When ACPI was originally merged for arm64 it had only been tested on
-emulators and not on real physical platforms and no platforms were
-relying on it.  This meant that there were concerns that there might be
-serious issues attempting to use it on practical systems so it had a
-dependency on EXPERT added to warn people that it was in an early stage
-of development with very little practical testing.  Since then things
-have moved on a bit.  We have seen people testing on real hardware and
-now have people starting to produce some platforms (the most prominent
-being the 96boards Cello) which only have ACPI support and which build
-and run to some useful extent with mainline.
+=E5=9C=A8 2016/4/15 15:40, Linus Walleij =E5=86=99=E9=81=93:
+> On Tue, Apr 12, 2016 at 8:46 AM, Mika Westerberg
+> <mika.westerberg@linux.intel.com> wrote:
+>> On Mon, Apr 11, 2016 at 08:43:22PM +0800, Jiang Qiu wrote:
+>>>> Currently it just complains if something goes wrong. The GPIO driv=
+er
+>>>> itself can still work just fine (including interrupts).
+>>>>
+>>>> I'm fine to change it to return an error code.
+>>> Agree, if add a error code for acpi_gpiochip_request_interrupts(), =
+it looks more pretty.
+>>>
+>>> However, this function is common for other part, maybe cause any ot=
+her effects if I
+>>> do this change, did you think so?
+>> I'm thinking what the callers are going to do with the error code.
+>> Basically it means that we were not able to attach and configure ACP=
+I
+>> event GPIOs. It does not prevent GPIO drivers from functioning so th=
+ey
+>> probably just print out some warning message and continue probing, a=
+nd
+>> we already warn in acpi_gpiochip_request_interrupts() if something f=
+ails.
+>>
+>> Unless Linus W insists, let's just keep it as is for now :)
+> I'm fine with it, don' worry.
+>
+> I'm just waiting for this patch set to mature so I can apply
+> it.
+Many thanks, I will fix these minor mentioned by Andy and get ready for=
+ the new version
+ASAP.
 
-This is not to say that ACPI support or support for these systems is
-completely done, there are still areas being worked on such as PCI, but
-at this point it seems that we can be reasonably sure that ACPI will be
-viable for use on ARM64 and that the already merged support works for
-the cases it handles.  For the AMD Seattle based platforms support
-outside of PCI has been fairly complete in mainline a few releases now.
+Regards,
+Jiang
+>
+> Yours,
+> Linus Walleij
+>
+> .
+>
 
-This is also not to say that we don't have vendors working with ACPI who
-are trying do things that we would not consider optimal but it does not
-appear that the EXPERT dependency is having a substantial impact on
-these vendors.
 
-Given all this it seems that at this point the EXPERT dependency mainly
-creates inconvenience for users with systems that are doing the right
-thing and gets in the way of including the ACPI code in the testing that
-people are doing on mainline.  Removing it should help our ongoing
-testing cover those platforms with only ACPI support and help ensure
-that when ACPI code is merged any problems it causes for other users are
-more easily discovered.
-
-Signed-off-by: Mark Brown <broonie@kernel.org>
-Acked-by: Graeme Gregory <graeme.gregory@linaro.org>
-Acked-by: Ard Biesheuvel <ard.biesheuvel@linaro.org>
-Reviewed-by: Al Stone <ahs3@redhat.com>
-Acked-by: Hanjun Guo <hanjun.guo@linaro.org>
-Acked-by: Catalin Marinas <catalin.marinas@arm.com>
----
- drivers/acpi/Kconfig | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
-
-diff --git a/drivers/acpi/Kconfig b/drivers/acpi/Kconfig
-index 2fcf87a6d270..fa0d319283e3 100644
---- a/drivers/acpi/Kconfig
-+++ b/drivers/acpi/Kconfig
-@@ -5,7 +5,7 @@
- menuconfig ACPI
- 	bool "ACPI (Advanced Configuration and Power Interface) Support"
- 	depends on !IA64_HP_SIM
--	depends on IA64 || X86 || (ARM64 && EXPERT)
-+	depends on IA64 || X86 || ARM64
- 	depends on PCI
- 	select PNP
- 	default y if (IA64 || X86)
--- 
-2.8.0.rc3
-
+--
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
