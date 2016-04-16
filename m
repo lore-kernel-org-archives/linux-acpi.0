@@ -1,53 +1,68 @@
-From: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
-Subject: Re: [PATCH 1/3] ACPI / ARM64: Don't enable ACPI by default on ARM64
-Date: Sat, 16 Apr 2016 18:11:44 +0300
-Message-ID: <57125630.9080305@cogentembedded.com>
-References: <1460706823-16566-1-git-send-email-broonie@kernel.org>
+From: Jayachandran C <jchandra@broadcom.com>
+Subject: Re: [PATCH V6 00/13] Support for generic ACPI based PCI host controller
+Date: Sat, 16 Apr 2016 21:01:28 +0530
+Message-ID: <CAKc_7PVC6O4oh+bTmpLQRrhHrqGbaKB2hynecKOLmc5fBc-VVQ@mail.gmail.com>
+References: <1460740008-19489-1-git-send-email-tn@semihalf.com> <571130BB.9030508@redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-lf0-f44.google.com ([209.85.215.44]:35965 "EHLO
-	mail-lf0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751386AbcDPPLr (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sat, 16 Apr 2016 11:11:47 -0400
-Received: by mail-lf0-f44.google.com with SMTP id g184so174976341lfb.3
-        for <linux-acpi@vger.kernel.org>; Sat, 16 Apr 2016 08:11:46 -0700 (PDT)
-In-Reply-To: <1460706823-16566-1-git-send-email-broonie@kernel.org>
+Received: from mail-yw0-f175.google.com ([209.85.161.175]:35103 "EHLO
+	mail-yw0-f175.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751443AbcDPPcI (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sat, 16 Apr 2016 11:32:08 -0400
+Received: by mail-yw0-f175.google.com with SMTP id i84so164150727ywc.2
+        for <linux-acpi@vger.kernel.org>; Sat, 16 Apr 2016 08:32:08 -0700 (PDT)
+In-Reply-To: <571130BB.9030508@redhat.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Mark Brown <broonie@kernel.org>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, Catalin Marinas <catalin.marinas@arm.com>, Len Brown <lenb@kernel.org>, Will Deacon <will.deacon@arm.com>
-Cc: Mark Rutland <mark.rutland@arm.com>, Steve Capper <steve.capper@linaro.org>, Graeme Gregory <graeme.gregory@linaro.org>, linux-acpi@vger.kernel.org, arm@kernel.org, linux-arm-kernel@lists.infradead.org
+To: Jon Masters <jcm@redhat.com>
+Cc: Tomasz Nowicki <tn@semihalf.com>, Bjorn Helgaas <helgaas@kernel.org>, Arnd Bergmann <arnd@arndb.de>, Will Deacon <will.deacon@arm.com>, Catalin Marinas <catalin.marinas@arm.com>, rafael@kernel.org, Hanjun Guo <hanjun.guo@linaro.org>, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, Sinan Kaya <okaya@codeaurora.org>, jiang.liu@linux.intel.com, robert.richter@caviumnetworks.com, Marcin Wojtas <mw@semihalf.com>, Liviu.Dudau@arm.com, David Daney <ddaney@caviumnetworks.com>, Wangyijing <wangyijing@huawei.com>, Suravee.Suthikulpanit@amd.com, msalter@redhat.com, linux-pci@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linaro-acpi@lists.linaro.org
 
-Hello.
-
-On 4/15/2016 10:53 AM, Mark Brown wrote:
-
-> If ACPI is selectable it is enabled by default.  This is a good choice
-> for architectures where the overwhelming majority of systems use ACPI
-> like x86 and IA-64 but is less clear for architectures where it's less
-> common like ARM64.  Change the default selection so that it's only done
-> explicitly on those architectures where ACPI is universally used.
+On Fri, Apr 15, 2016 at 11:49 PM, Jon Masters <jcm@redhat.com> wrote:
+> On 04/15/2016 01:06 PM, Tomasz Nowicki wrote:
+>> From the functionality point of view this series might be split into the
+>> following logic parts:
+>> 1. Necessary fixes as the preparation for using driver on ARM64.
+>> 2. New ECAM API and update for users of the pci-host-common API
+>> 3. Use new MCFG interface and implement generic ACPI based PCI host controller driver.
+>> 4. Enable above driver on ARM64
+>>
+>> Patches has been built on top of 4.6-rc2 and can be found here:
+>> git@github.com:semihalf-nowicki-tomasz/linux.git (pci-acpi-v6)
+>>
+>> This has been tested on Cavium ThunderX server. Any help in reviewing and
+>> testing is very appreciated.
+>>
+>> v5 -> v6
+>> - dropped idea of x86 MMCONFIG code refactoring
+>> - integrated JC's patches which introduce new ECAM API:
+>>   https://lkml.org/lkml/2016/4/11/907
+>>   git: https://github.com/jchandra-brcm/linux/ (arm64-acpi-pci-v3)
+>> - integrated Sinan's fix for releasing IO resources, see patch [06/13]
+>> - added ACPI support for ThunderX ECAM and PEM drivers
+>> - rebased to 4.6-rc2
 >
-> Signed-off-by: Mark Brown <broonie@kernel.org>
-> ---
->   drivers/acpi/Kconfig | 2 +-
->   1 file changed, 1 insertion(+), 1 deletion(-)
->
-> diff --git a/drivers/acpi/Kconfig b/drivers/acpi/Kconfig
-> index 82b96ee8624c..2fcf87a6d270 100644
-> --- a/drivers/acpi/Kconfig
-> +++ b/drivers/acpi/Kconfig
-> @@ -8,7 +8,7 @@ menuconfig ACPI
->   	depends on IA64 || X86 || (ARM64 && EXPERT)
->   	depends on PCI
->   	select PNP
-> -	default y
-> +	default y if (IA64 || X86)
+> JC: can you explicitly confirm that you're ok with letting Tomasz drive
+> this? We would like to see one driver. Either that is Tomasz, or
+> Lorenzo, or it is you. But we need to have one overall cooordinated
+> effort to get this enablement into upstream as quickly as possible.
 
-    Parens not needed.
+I have been concentrating on the ECAM code and ECAM based ACPI
+host controller, the rest of the code is from Tomasz original patchset.
 
-[...]
+I am not happy with the way the ACPI quirk handling is done in Tomasz's
+current patchset. I believe that it has to be done in a separate patchset
+with another set of discussions. It introduces additional complexity and
+mixing that discussion with the ECAM one will not help in making progress.
 
-MBR, Sergei
+I hope things will be clearer when more maintainers chime in. When
+there is clarity on if the ECAM split is fine, I think we can look at how
+to drive the whole patchset forward, otherwise we are back to square one.
 
+> Some of the Enterprise folks are going to otherwise end up in a very
+> nasty situation of supporting the previous non-upstream patches for many
+> years, which is absolutely something we want to avoid...
+
+Not having ACPI/PCI support upstream is a huge problem for us too...
+
+JC.
