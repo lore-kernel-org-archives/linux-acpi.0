@@ -1,96 +1,161 @@
-From: Sinan Kaya <okaya@codeaurora.org>
-Subject: [PATCH V3 3/4] acpi,pci,irq: remove redundant code in acpi_irq_penalty_init
-Date: Sun, 17 Apr 2016 13:36:55 -0400
-Message-ID: <1460914617-8259-3-git-send-email-okaya@codeaurora.org>
-References: <1460914617-8259-1-git-send-email-okaya@codeaurora.org>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1460914617-8259-1-git-send-email-okaya@codeaurora.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: linux-acpi@vger.kernel.org, timur@codeaurora.org, cov@codeaurora.org
-Cc: linux-pci@vger.kernel.org, ravikanth.nalla@hpe.com, lenb@kernel.org, harish.k@hpe.com, ashwin.reghunandanan@hpe.com, bhelgaas@google.com, rjw@rjwysocki.net, Sinan Kaya <okaya@codeaurora.org>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, x86@kernel.org, Robert Moore <robert.moore@intel.com>, Lv Zheng <lv.zheng@intel.com>, linux-kernel@vger.kernel.org, devel@acpica.org
+From: "Rafael J. Wysocki" <rafael-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Subject: Re: [PATCH v11 01/17] Xen: ACPI: Hide UART used by Xen
+Date: Mon, 18 Apr 2016 01:58:09 +0200
+Message-ID: <CAJZ5v0gN9S0AKX8SZbbVFOn6ydwCa_7GyxzzJHod8s0xyCXgvA@mail.gmail.com>
+References: <1460030614-16112-1-git-send-email-zhaoshenglong@huawei.com>
+	<1460030614-16112-2-git-send-email-zhaoshenglong@huawei.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1460030614-16112-2-git-send-email-zhaoshenglong-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Shannon Zhao <zhaoshenglong-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
+Cc: "linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org" <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>, sstabellini-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, Catalin Marinas <catalin.marinas-5wv7dgnIgG8@public.gmane.org>, Will Deacon <will.deacon-5wv7dgnIgG8@public.gmane.org>, julien.grall-5wv7dgnIgG8@public.gmane.org, david.vrabel-Sxgqhf6Nn4DQT0dZR+AlfA@public.gmane.org, xen-devel-GuqFBffKawuEi8DpZVb4nw@public.gmane.org, "devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-efi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Linux Kernel Mailing List <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Shannon Zhao <shannon.zhao-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, peter.huangpeng-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, "Rafael J. Wysocki" <rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org>, Len Brown <lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, "open list:ACPI" <linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-acpi_irq_get_penalty is now calculating the penalty on the fly now.
-No need to maintain global list of penalties or calculate them
-at the init time. Removing duplicate code in acpi_irq_penalty_init.
+On Thu, Apr 7, 2016 at 2:03 PM, Shannon Zhao <zhaoshenglong-hv44wF8Li93QT0dZR+AlfA@public.gmane.org> wrote:
+> From: Shannon Zhao <shannon.zhao-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
+>
+> ACPI 6.0 introduces a new table STAO to list the devices which are used
+> by Xen and can't be used by Dom0. On Xen virtual platforms, the physical
+> UART is used by Xen. So here it hides UART from Dom0.
+>
+> CC: "Rafael J. Wysocki" <rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org> (supporter:ACPI)
+> CC: Len Brown <lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org> (supporter:ACPI)
+> CC: linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org (open list:ACPI)
+> Signed-off-by: Shannon Zhao <shannon.zhao-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
 
-Signed-off-by: Sinan Kaya <okaya@codeaurora.org>
----
- arch/x86/pci/acpi.c         |  1 -
- drivers/acpi/pci_link.c     | 36 ------------------------------------
- include/acpi/acpi_drivers.h |  1 -
- 3 files changed, 38 deletions(-)
+Acked-by: Rafael J. Wysocki <rafael.j.wysocki-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 
-diff --git a/arch/x86/pci/acpi.c b/arch/x86/pci/acpi.c
-index 3cd6983..b2a4e2a 100644
---- a/arch/x86/pci/acpi.c
-+++ b/arch/x86/pci/acpi.c
-@@ -396,7 +396,6 @@ int __init pci_acpi_init(void)
- 		return -ENODEV;
- 
- 	printk(KERN_INFO "PCI: Using ACPI for IRQ routing\n");
--	acpi_irq_penalty_init();
- 	pcibios_enable_irq = acpi_pci_irq_enable;
- 	pcibios_disable_irq = acpi_pci_irq_disable;
- 	x86_init.pci.init_irq = x86_init_noop;
-diff --git a/drivers/acpi/pci_link.c b/drivers/acpi/pci_link.c
-index 12ea784..ab39208 100644
---- a/drivers/acpi/pci_link.c
-+++ b/drivers/acpi/pci_link.c
-@@ -520,42 +520,6 @@ static int acpi_irq_get_penalty(int irq)
- 	return penalty;
- }
- 
--int __init acpi_irq_penalty_init(void)
--{
--	struct acpi_pci_link *link;
--	int i;
--
--	/*
--	 * Update penalties to facilitate IRQ balancing.
--	 */
--	list_for_each_entry(link, &acpi_link_list, list) {
--
--		/*
--		 * reflect the possible and active irqs in the penalty table --
--		 * useful for breaking ties.
--		 */
--		if (link->irq.possible_count) {
--			int penalty =
--			    PIRQ_PENALTY_PCI_POSSIBLE /
--			    link->irq.possible_count;
--
--			for (i = 0; i < link->irq.possible_count; i++) {
--				if (link->irq.possible[i] < ACPI_MAX_ISA_IRQS)
--					acpi_isa_irq_penalty[link->irq.
--							 possible[i]] +=
--					    penalty;
--			}
--
--		} else if (link->irq.active &&
--				(link->irq.active < ACPI_MAX_ISA_IRQS)) {
--			acpi_isa_irq_penalty[link->irq.active] +=
--			    PIRQ_PENALTY_PCI_POSSIBLE;
--		}
--	}
--
--	return 0;
--}
--
- static int acpi_irq_balance = -1;	/* 0: static, 1: balance */
- 
- static int acpi_pci_link_allocate(struct acpi_pci_link *link)
-diff --git a/include/acpi/acpi_drivers.h b/include/acpi/acpi_drivers.h
-index 29c6912..797ae2e 100644
---- a/include/acpi/acpi_drivers.h
-+++ b/include/acpi/acpi_drivers.h
-@@ -78,7 +78,6 @@
- 
- /* ACPI PCI Interrupt Link (pci_link.c) */
- 
--int acpi_irq_penalty_init(void);
- int acpi_pci_link_allocate_irq(acpi_handle handle, int index, int *triggering,
- 			       int *polarity, char **name);
- int acpi_pci_link_free_irq(acpi_handle handle);
--- 
-1.8.2.1
+> ---
+>  drivers/acpi/scan.c | 74 +++++++++++++++++++++++++++++++++++++++++++++++++++++
+>  1 file changed, 74 insertions(+)
+>
+> diff --git a/drivers/acpi/scan.c b/drivers/acpi/scan.c
+> index 5f28cf7..cfc73fe 100644
+> --- a/drivers/acpi/scan.c
+> +++ b/drivers/acpi/scan.c
+> @@ -46,6 +46,13 @@ DEFINE_MUTEX(acpi_device_lock);
+>  LIST_HEAD(acpi_wakeup_device_list);
+>  static DEFINE_MUTEX(acpi_hp_context_lock);
+>
+> +/*
+> + * The UART device described by the SPCR table is the only object which needs
+> + * special-casing. Everything else is covered by ACPI namespace paths in STAO
+> + * table.
+> + */
+> +static u64 spcr_uart_addr;
+> +
+>  struct acpi_dep_data {
+>         struct list_head node;
+>         acpi_handle master;
+> @@ -1453,6 +1460,41 @@ static int acpi_add_single_object(struct acpi_device **child,
+>         return 0;
+>  }
+>
+> +static acpi_status acpi_get_resource_memory(struct acpi_resource *ares,
+> +                                           void *context)
+> +{
+> +       struct resource *res = context;
+> +
+> +       if (acpi_dev_resource_memory(ares, res))
+> +               return AE_CTRL_TERMINATE;
+> +
+> +       return AE_OK;
+> +}
+> +
+> +static bool acpi_device_should_be_hidden(acpi_handle handle)
+> +{
+> +       acpi_status status;
+> +       struct resource res;
+> +
+> +       /* Check if it should ignore the UART device */
+> +       if (!(spcr_uart_addr && acpi_has_method(handle, METHOD_NAME__CRS)))
+> +               return false;
+> +
+> +       /*
+> +        * The UART device described in SPCR table is assumed to have only one
+> +        * memory resource present. So we only look for the first one here.
+> +        */
+> +       status = acpi_walk_resources(handle, METHOD_NAME__CRS,
+> +                                    acpi_get_resource_memory, &res);
+> +       if (ACPI_FAILURE(status) || res.start != spcr_uart_addr)
+> +               return false;
+> +
+> +       acpi_handle_info(handle, "The UART device @%pa in SPCR table will be hidden\n",
+> +                        &res.start);
+> +
+> +       return true;
+> +}
+> +
+>  static int acpi_bus_type_and_status(acpi_handle handle, int *type,
+>                                     unsigned long long *sta)
+>  {
+> @@ -1466,6 +1508,9 @@ static int acpi_bus_type_and_status(acpi_handle handle, int *type,
+>         switch (acpi_type) {
+>         case ACPI_TYPE_ANY:             /* for ACPI_ROOT_OBJECT */
+>         case ACPI_TYPE_DEVICE:
+> +               if (acpi_device_should_be_hidden(handle))
+> +                       return -ENODEV;
+> +
+>                 *type = ACPI_BUS_TYPE_DEVICE;
+>                 status = acpi_bus_get_status_handle(handle, sta);
+>                 if (ACPI_FAILURE(status))
+> @@ -1916,9 +1961,24 @@ static int acpi_bus_scan_fixed(void)
+>         return result < 0 ? result : 0;
+>  }
+>
+> +static void __init acpi_get_spcr_uart_addr(void)
+> +{
+> +       acpi_status status;
+> +       struct acpi_table_spcr *spcr_ptr;
+> +
+> +       status = acpi_get_table(ACPI_SIG_SPCR, 0,
+> +                               (struct acpi_table_header **)&spcr_ptr);
+> +       if (ACPI_SUCCESS(status))
+> +               spcr_uart_addr = spcr_ptr->serial_port.address;
+> +       else
+> +               printk(KERN_WARNING PREFIX "STAO table present, but SPCR is missing\n");
+> +}
+> +
+>  int __init acpi_scan_init(void)
+>  {
+>         int result;
+> +       acpi_status status;
+> +       struct acpi_table_stao *stao_ptr;
+>
+>         acpi_pci_root_init();
+>         acpi_pci_link_init();
+> @@ -1934,6 +1994,20 @@ int __init acpi_scan_init(void)
+>
+>         acpi_scan_add_handler(&generic_device_handler);
+>
+> +       /*
+> +        * If there is STAO table, check whether it needs to ignore the UART
+> +        * device in SPCR table.
+> +        */
+> +       status = acpi_get_table(ACPI_SIG_STAO, 0,
+> +                               (struct acpi_table_header **)&stao_ptr);
+> +       if (ACPI_SUCCESS(status)) {
+> +               if (stao_ptr->header.length > sizeof(struct acpi_table_stao))
+> +                       printk(KERN_INFO PREFIX "STAO Name List not yet supported.");
+> +
+> +               if (stao_ptr->ignore_uart)
+> +                       acpi_get_spcr_uart_addr();
+> +       }
+> +
+>         mutex_lock(&acpi_scan_lock);
+>         /*
+>          * Enumerate devices in the ACPI namespace.
+> --
+> 2.0.4
+>
+>
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
+> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
