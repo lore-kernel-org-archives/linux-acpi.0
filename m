@@ -1,39 +1,37 @@
-From: Duc Dang <dhdang@apm.com>
-Subject: Re: [PATCH V6 00/13] Support for generic ACPI based PCI host controller
-Date: Sat, 16 Apr 2016 11:30:10 -0700
-Message-ID: <CADaLNDm0+aQexz643H5=jhc86jFbQO-zqT+9VoHyF5QMKqmRkA@mail.gmail.com>
+From: Sinan Kaya <okaya@codeaurora.org>
+Subject: Re: [PATCH V6 00/13] Support for generic ACPI based PCI host
+ controller
+Date: Sun, 17 Apr 2016 00:18:26 -0400
+Message-ID: <57130E92.1020600@codeaurora.org>
 References: <1460740008-19489-1-git-send-email-tn@semihalf.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-pci-owner@vger.kernel.org>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from smtp.codeaurora.org ([198.145.29.96]:55792 "EHLO
+	smtp.codeaurora.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751064AbcDQESf (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sun, 17 Apr 2016 00:18:35 -0400
 In-Reply-To: <1460740008-19489-1-git-send-email-tn@semihalf.com>
-Sender: linux-pci-owner@vger.kernel.org
-To: Tomasz Nowicki <tn@semihalf.com>
-Cc: Bjorn Helgaas <helgaas@kernel.org>, Arnd Bergmann <arnd@arndb.de>, Will Deacon <will.deacon@arm.com>, Catalin Marinas <catalin.marinas@arm.com>, rafael@kernel.org, Hanjun Guo <hanjun.guo@linaro.org>, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, okaya@codeaurora.org, Jiang Liu <jiang.liu@linux.intel.com>, Jayachandran C <jchandra@broadcom.com>, Jon Masters <jcm@redhat.com>, linaro-acpi@lists.linaro.org, linux-pci@vger.kernel.org, Liviu Dudau <Liviu.Dudau@arm.com>, David Daney <ddaney@caviumnetworks.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-acpi@vger.kernel.org, robert.richter@caviumnetworks.com, Suravee Suthikulpanit <Suravee.Suthikulpanit@amd.com>, Mark Salter <msalter@redhat.com>, Yijing Wang <wangyijing@huawei.com>, Marcin Wojtas <mw@semihalf.com>, linux-arm <linux-arm-kernel@lists.infradead.org>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Tomasz Nowicki <tn@semihalf.com>, helgaas@kernel.org, arnd@arndb.de, will.deacon@arm.com, catalin.marinas@arm.com, rafael@kernel.org, hanjun.guo@linaro.org, Lorenzo.Pieralisi@arm.com, jiang.liu@linux.intel.com, jchandra@broadcom.com
+Cc: robert.richter@caviumnetworks.com, mw@semihalf.com, Liviu.Dudau@arm.com, ddaney@caviumnetworks.com, wangyijing@huawei.com, Suravee.Suthikulpanit@amd.com, msalter@redhat.com, linux-pci@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linaro-acpi@lists.linaro.org, jcm@redhat.com
 
-On Fri, Apr 15, 2016 at 10:06 AM, Tomasz Nowicki <tn@semihalf.com> wrote:
-> From the functionality point of view this series might be split into the
+On 4/15/2016 1:06 PM, Tomasz Nowicki wrote:
+>>From the functionality point of view this series might be split into the
 > following logic parts:
 > 1. Necessary fixes as the preparation for using driver on ARM64.
 > 2. New ECAM API and update for users of the pci-host-common API
 > 3. Use new MCFG interface and implement generic ACPI based PCI host controller driver.
 > 4. Enable above driver on ARM64
->
+> 
 > Patches has been built on top of 4.6-rc2 and can be found here:
 > git@github.com:semihalf-nowicki-tomasz/linux.git (pci-acpi-v6)
->
+> 
 > This has been tested on Cavium ThunderX server. Any help in reviewing and
 > testing is very appreciated.
-
-Hi Tomasz,
-
-I changed X-Gene ECAM fixup code to follow the new ECAM APIs and my
-X-Gene PCIe on Mustang board works fine with this series.
-
-Thanks and regards,
-Duc Dang.
->
+> 
 > v5 -> v6
 > - dropped idea of x86 MMCONFIG code refactoring
 > - integrated JC's patches which introduce new ECAM API:
@@ -42,7 +40,7 @@ Duc Dang.
 > - integrated Sinan's fix for releasing IO resources, see patch [06/13]
 > - added ACPI support for ThunderX ECAM and PEM drivers
 > - rebased to 4.6-rc2
->
+> 
 > v4 -> v5
 > - dropped MCFG refactoring group patches 1-6 from series v4 and integrated Jayachandran's patch
 >   https://patchwork.ozlabs.org/patch/575525/
@@ -50,7 +48,7 @@ Duc Dang.
 > - squashed two patches 11 and 12 from series v4, fixed bisection issue
 > - changelog improvements
 > - rebased to 4.5-rc3
->
+> 
 > v3 -> v4
 > - dropped Jiang's fix http://lkml.iu.edu/hypermail/linux/kernel/1601.1/04318.html
 > - added Lorenzo's fix patch 19/24
@@ -59,7 +57,7 @@ Duc Dang.
 > - improvements for applying quirks
 > - dropped Matthew's http://www.spinics.net/lists/linux-pci/msg45950.html dependency
 > - rebased to 4.5-rc1
->
+> 
 > v2 -> v3
 > - fix legacy IRQ assigning and IO ports registration
 > - remove reference to arch specific companion device for ia64
@@ -71,23 +69,23 @@ Duc Dang.
 >   https://patchwork.ozlabs.org/patch/557504/
 > - extend MCFG quirk code
 > - rebased to 4.4
->
+> 
 > v1 -> v2
 > - moved non-arch specific piece of code to dirver/acpi/ directory
 > - fixed IO resource handling
 > - introduced PCI config accessors quirks matching
 > - moved ACPI_COMPANION_SET to generic code
->
+> 
 > v1 - https://lkml.org/lkml/2015/10/27/504
 > v2 - https://lkml.org/lkml/2015/12/16/246
 > v3 - http://lkml.iu.edu/hypermail/linux/kernel/1601.1/04308.html
 > v4 - https://lkml.org/lkml/2016/2/4/646
 > v5 - https://lkml.org/lkml/2016/2/16/426
->
+> 
 > Jayachandran C (2):
 >   PCI: Provide common functions for ECAM mapping
 >   PCI: generic, thunder: update to use generic ECAM API
->
+> 
 > Tomasz Nowicki (11):
 >   pci, acpi, x86, ia64: Move ACPI host bridge device companion
 >     assignment to core code.
@@ -106,7 +104,7 @@ Duc Dang.
 >     quirks.
 >   pci, pci-thunder-ecam: Add ACPI support for ThunderX ECAM.
 >   pci, pci-thunder-pem: Add ACPI support for ThunderX PEM.
->
+> 
 >  arch/arm64/Kconfig                  |  15 +++
 >  arch/arm64/include/asm/cpufeature.h |   3 +-
 >  arch/arm64/kernel/cpu_errata.c      |   8 ++
@@ -145,12 +143,16 @@ Duc Dang.
 >  create mode 100644 drivers/pci/ecam.c
 >  create mode 100644 drivers/pci/ecam.h
 >  delete mode 100644 drivers/pci/host/pci-host-common.h
->
-> --
-> 1.9.1
->
->
-> _______________________________________________
-> linux-arm-kernel mailing list
-> linux-arm-kernel@lists.infradead.org
-> http://lists.infradead.org/mailman/listinfo/linux-arm-kernel
+> 
+
++tested by for the v6.
+
+Tested-by: Sinan Kaya <okaya@codeaurora.org>
+
+using the Qualcomm Technologies QDF2XXX server.
+
+
+-- 
+Sinan Kaya
+Qualcomm Technologies, Inc. on behalf of Qualcomm Innovation Center, Inc.
+Qualcomm Innovation Center, Inc. is a member of Code Aurora Forum, a Linux Foundation Collaborative Project
