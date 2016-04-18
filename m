@@ -1,105 +1,107 @@
 From: David Daney <ddaney.cavm@gmail.com>
-Subject: [PATCH v4 00/14] ACPI NUMA support for ARM64
-Date: Mon, 18 Apr 2016 14:13:58 -0700
-Message-ID: <1461014052-30788-1-git-send-email-ddaney.cavm@gmail.com>
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-pa0-f53.google.com ([209.85.220.53]:34429 "EHLO
-	mail-pa0-f53.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751126AbcDRVO1 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 18 Apr 2016 17:14:27 -0400
-Sender: linux-acpi-owner@vger.kernel.org
-List-Id: linux-acpi@vger.kernel.org
+Subject: [PATCH v4 05/14] acpi, numa: move acpi_numa_slit_init() to drivers/acpi/numa.c
+Date: Mon, 18 Apr 2016 14:14:03 -0700
+Message-ID: <1461014052-30788-6-git-send-email-ddaney.cavm@gmail.com>
+References: <1461014052-30788-1-git-send-email-ddaney.cavm@gmail.com>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1461014052-30788-1-git-send-email-ddaney.cavm@gmail.com>
+Sender: linux-kernel-owner@vger.kernel.org
 To: Will Deacon <will.deacon@arm.com>, linux-arm-kernel@lists.infradead.org, Mark Rutland <mark.rutland@arm.com>, Catalin Marinas <catalin.marinas@arm.com>, Tony Luck <tony.luck@intel.com>, Fenghua Yu <fenghua.yu@intel.com>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, x86@kernel.org, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Rob Herring <robh+dt@kernel.org>, Frank Rowand <frowand.list@gmail.com>, Grant Likely <grant.likely@linaro.org>, Robert Moore <robert.moore@intel.com>, Lv Zheng <lv.zheng@intel.com>, Hanjun Guo <hanjun.guo@linaro.org>, Marc Zyngier <Marc.Zyngier@arm.com>, linux-ia64@vger.kernel.org, linux-acpi@vger.kernel.org, devel@acpica.org
 Cc: linux-kernel@vger.kernel.org, Robert Richter <rrichter@cavium.com>, David Daney <david.daney@cavium.com>
+List-Id: linux-acpi@vger.kernel.org
 
-From: David Daney <david.daney@cavium.com>
+From: Hanjun Guo <hanjun.guo@linaro.org>
 
-Based on v16 of device-tree NUMA patch set for arm64 [1],this patch
-set introduce the ACPI based configuration to provide NUMA
-information.
+Identical implementations of acpi_numa_slit_init() are used by both
+x86 and follow-on arm64 support.  Move it to drivers/acpi/numa.c, and
+mark it as __weak because ia64 has its own architecture specific
+implementation.
 
-ACPI 5.1 already introduced NUMA support for ARM64, which can get the
-NUMA domain information from SRAT and SLIT table, so parse those two
-tables to get mappings from cpu/mem to numa node configuration and
-system locality.
+No code change.
 
-v4 updates:
+Signed-off-by: Hanjun Guo <hanjun.guo@linaro.org>
+Signed-off-by: Robert Richter <rrichter@cavium.com>
+Signed-off-by: David Daney <david.daney@cavium.com>
+---
+ arch/x86/mm/srat.c  | 27 ---------------------------
+ drivers/acpi/numa.c | 27 +++++++++++++++++++++++++++
+ 2 files changed, 27 insertions(+), 27 deletions(-)
 
- - Updated from Hanjun Guo's v3 patches.
-
- - Rebased on top of v16 of device-tree NUMA patches.
-
- - Reordered some of the changes so that we don't introduce code and
-   then change it several times in the patch set.  New code is
-   introduced in its final form.  Code reused from x86 is first moved
-   with no change, and then a separate patch to make any needed
-   changes.
-
- - code that is used only by ia64, moved to architecture specific
-   files.
-
-v3 updates:
- - Deep investigation about the ACPI_DEBUG_PRINT() and remvoe
-   that for acpi/numa.c (patch 2/12)
-
- - Remove the duplicate NULL check for table print (patch 3/12)
-
- - Introduce CONFIG_ACPI_HAS_NUMA_ARCH_FIXUP to remove duplicate
-   dummy function for acpi_numa_arch_fixup()
-
- - Solve the problem that the mapping from logical cpu to numa node
-   is wrong which spotted out by Lorenzo
-
- - cleanups for x86 and move acpi_numa_slit_init() and some other
-   functions to common place, then reduce the duplicate of x86
-   and arm64 (patch 7-12/12).
-
- - rebased on top of 4.4 and Ganapat's v9 patch set.
-
-[1]: https://lkml.org/lkml/2016/4/8/571
-
-David Daney (1):
-  acpi, numa, srat: Improve SRAT error detection and add messages.
-
-Hanjun Guo (11):
-  acpi, numa: Use pr_fmt() instead of printk
-  acpi, numa: Replace ACPI_DEBUG_PRINT() with pr_debug()
-  acpi, numa: remove duplicate NULL check
-  acpi, numa: move acpi_numa_slit_init() to drivers/acpi/numa.c
-  arm64, numa: rework numa_add_memblk()
-  x86, acpi, numa: cleanup acpi_numa_processor_affinity_init()
-  acpi, numa: move bad_srat() and srat_disabled() to
-    drivers/acpi/numa.c
-  acpi, numa: remove unneeded acpi_numa=1
-  acpi, numa: Move acpi_numa_memory_affinity_init() to
-    drivers/acpi/numa.c
-  arm64, acpi, numa: NUMA support based on SRAT and SLIT
-  acpi, numa: Enable ACPI based NUMA on ARM64
-
-Robert Richter (2):
-  acpi, numa: Move acpi_numa_arch_fixup() to ia64 only
-  arm64, acpi, numa: Default enable ACPI_NUMA with NUMA
-
- arch/arm64/include/asm/acpi.h |   8 ++
- arch/arm64/include/asm/numa.h |   2 +
- arch/arm64/kernel/Makefile    |   1 +
- arch/arm64/kernel/acpi_numa.c | 149 +++++++++++++++++++++++++++++
- arch/arm64/kernel/smp.c       |   2 +
- arch/arm64/mm/numa.c          |  17 ++--
- arch/ia64/include/asm/acpi.h  |   3 +
- arch/ia64/kernel/acpi.c       |   2 +-
- arch/ia64/kernel/setup.c      |   1 +
- arch/x86/include/asm/acpi.h   |   1 -
- arch/x86/mm/numa.c            |   2 +-
- arch/x86/mm/srat.c            | 115 +----------------------
- drivers/acpi/Kconfig          |   4 +-
- drivers/acpi/numa.c           | 211 +++++++++++++++++++++++++++++++-----------
- drivers/of/of_numa.c          |   4 +-
- include/acpi/acpi_numa.h      |  12 +++
- include/linux/acpi.h          |  18 +++-
- 17 files changed, 370 insertions(+), 182 deletions(-)
- create mode 100644 arch/arm64/kernel/acpi_numa.c
-
+diff --git a/arch/x86/mm/srat.c b/arch/x86/mm/srat.c
+index 90b6ed9..f242a11 100644
+--- a/arch/x86/mm/srat.c
++++ b/arch/x86/mm/srat.c
+@@ -42,33 +42,6 @@ static __init inline int srat_disabled(void)
+ 	return acpi_numa < 0;
+ }
+ 
+-/*
+- * Callback for SLIT parsing.  pxm_to_node() returns NUMA_NO_NODE for
+- * I/O localities since SRAT does not list them.  I/O localities are
+- * not supported at this point.
+- */
+-void __init acpi_numa_slit_init(struct acpi_table_slit *slit)
+-{
+-	int i, j;
+-
+-	for (i = 0; i < slit->locality_count; i++) {
+-		const int from_node = pxm_to_node(i);
+-
+-		if (from_node == NUMA_NO_NODE)
+-			continue;
+-
+-		for (j = 0; j < slit->locality_count; j++) {
+-			const int to_node = pxm_to_node(j);
+-
+-			if (to_node == NUMA_NO_NODE)
+-				continue;
+-
+-			numa_set_distance(from_node, to_node,
+-				slit->entry[slit->locality_count * i + j]);
+-		}
+-	}
+-}
+-
+ /* Callback for Proximity Domain -> x2APIC mapping */
+ void __init
+ acpi_numa_x2apic_affinity_init(struct acpi_srat_x2apic_cpu_affinity *pa)
+diff --git a/drivers/acpi/numa.c b/drivers/acpi/numa.c
+index f41f06b..5403d62 100644
+--- a/drivers/acpi/numa.c
++++ b/drivers/acpi/numa.c
+@@ -197,6 +197,33 @@ static int __init slit_valid(struct acpi_table_slit *slit)
+ 	return 1;
+ }
+ 
++/*
++ * Callback for SLIT parsing.  pxm_to_node() returns NUMA_NO_NODE for
++ * I/O localities since SRAT does not list them.  I/O localities are
++ * not supported at this point.
++ */
++void __init __weak acpi_numa_slit_init(struct acpi_table_slit *slit)
++{
++	int i, j;
++
++	for (i = 0; i < slit->locality_count; i++) {
++		const int from_node = pxm_to_node(i);
++
++		if (from_node == NUMA_NO_NODE)
++			continue;
++
++		for (j = 0; j < slit->locality_count; j++) {
++			const int to_node = pxm_to_node(j);
++
++			if (to_node == NUMA_NO_NODE)
++				continue;
++
++			numa_set_distance(from_node, to_node,
++				slit->entry[slit->locality_count * i + j]);
++		}
++	}
++}
++
+ static int __init acpi_parse_slit(struct acpi_table_header *table)
+ {
+ 	struct acpi_table_slit *slit = (struct acpi_table_slit *)table;
 -- 
 1.7.11.7
-
