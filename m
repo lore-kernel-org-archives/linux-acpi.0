@@ -1,25 +1,175 @@
-From: "Rafael J. Wysocki" <rafael-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: [PATCH v11 01/17] Xen: ACPI: Hide UART used by Xen
-Date: Mon, 18 Apr 2016 01:59:00 +0200
-Message-ID: <CAJZ5v0jwxghXED6E20TDa-+PHQW7wZ=cLiesnizLZYF7R8FiVQ@mail.gmail.com>
-References: <1460030614-16112-1-git-send-email-zhaoshenglong@huawei.com>
-	<1460030614-16112-2-git-send-email-zhaoshenglong@huawei.com>
-	<57108D99.5030800@huawei.com>
+From: Viresh Kumar <viresh.kumar@linaro.org>
+Subject: Re: [PATCH] Force cppc_cpufreq to report values in KHz to fix user
+ space reporting
+Date: Mon, 18 Apr 2016 15:58:10 +0530
+Message-ID: <20160418102810.GC2322@vireshk-i7>
+References: <1460758594-1596-1-git-send-email-ahs3@redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-efi-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <57108D99.5030800-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
-Sender: linux-efi-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Shannon Zhao <zhaoshenglong-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
-Cc: "linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org" <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>, sstabellini-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, "Rafael J. Wysocki" <rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org>, Catalin Marinas <catalin.marinas-5wv7dgnIgG8@public.gmane.org>, Will Deacon <will.deacon-5wv7dgnIgG8@public.gmane.org>, julien.grall-5wv7dgnIgG8@public.gmane.org, david.vrabel-Sxgqhf6Nn4DQT0dZR+AlfA@public.gmane.org, xen-devel-GuqFBffKawuEi8DpZVb4nw@public.gmane.org, "devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-efi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Linux Kernel Mailing List <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Shannon Zhao <shannon.zhao-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, peter.huangpeng-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, Len Brown <lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, ACPI <linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-pa0-f52.google.com ([209.85.220.52]:35712 "EHLO
+	mail-pa0-f52.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751572AbcDRK2O (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 18 Apr 2016 06:28:14 -0400
+Received: by mail-pa0-f52.google.com with SMTP id fs9so58998686pac.2
+        for <linux-acpi@vger.kernel.org>; Mon, 18 Apr 2016 03:28:14 -0700 (PDT)
+Content-Disposition: inline
+In-Reply-To: <1460758594-1596-1-git-send-email-ahs3@redhat.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Al Stone <ahs3@redhat.com>, ashwin.chaugule@linaro.org
+Cc: rjw@rjwysocki.net, lenb@kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linux-pm@vger.kernel.org
 
-On Fri, Apr 15, 2016 at 8:43 AM, Shannon Zhao <zhaoshenglong-hv44wF8Li93QT0dZR+AlfA@public.gmane.org=
-> wrote:
-> Hi Rafael=EF=BC=8C
->
-> Could you please give your comments on this patch? Thanks in advanced=
-!
+Cc'ing Ashwin.
 
-I was traveling last week, sorry for the slow response.
+-- 
+viresh
+
+On 15-04-16, 16:16, Al Stone wrote:
+> When CPPC is being used by ACPI on arm64, user space tools such as
+> cpupower report CPU frequency values from sysfs that are incorrect.
+> 
+> What the driver was doing was reporting the values given by ACPI tables
+> in whatever scale was used to provide them.  However, the ACPI spec
+> defines the CPPC values as unitless abstract numbers.  Internal kernel
+> structures such as struct perf_cap, in contrast, expect these values
+> to be in KHz.  When these struct values get reported via sysfs, the
+> user space tools also assume they are in KHz, causing them to report
+> incorrect values (for example, reporting a CPU frequency of 1MHz when
+> it should be 1.8GHz).
+> 
+> While the investigation for a long term fix proceeds (several options
+> are being explored, some of which may require spec changes or other
+> much more invasive fixes), this patch forces the values read by CPPC
+> to be read in KHz, regardless of what they actually represent.
+> 
+> The downside is that this approach has some assumptions:
+> 
+>    (1) It relies on SMBIOS3 being used, *and* that the Max Frequency
+>    value for a processor is set to a non-zero value.
+> 
+>    (2) It assumes that all processors run at the same speed.  This
+>    patch retrieves the first CPU Max Frequency from a type 4 DMI
+>    record that it can find.  This may not be an issue, however, as a
+>    sampling of DMI data on x86 and arm64 indicates there is often only
+>    one such record regardless.
+> 
+> For arm64 servers, this may be sufficient, but it does rely on
+> firmware values being set correctly.  Hence, other approaches are
+> also being considered.
+> 
+> This has been tested on three arm64 servers, with and without DMI, with
+> and without CPPC support.
+> 
+> Signed-off-by: Al Stone <ahs3@redhat.com>
+> ---
+>  drivers/acpi/cppc_acpi.c    | 61 +++++++++++++++++++++++++++++++++++++++++----
+>  drivers/cpufreq/Kconfig.arm |  1 +
+>  2 files changed, 57 insertions(+), 5 deletions(-)
+> 
+> diff --git a/drivers/acpi/cppc_acpi.c b/drivers/acpi/cppc_acpi.c
+> index 8adac69..049dced 100644
+> --- a/drivers/acpi/cppc_acpi.c
+> +++ b/drivers/acpi/cppc_acpi.c
+> @@ -40,6 +40,9 @@
+>  #include <linux/cpufreq.h>
+>  #include <linux/delay.h>
+>  #include <linux/ktime.h>
+> +#include <linux/dmi.h>
+> +
+> +#include <asm/unaligned.h>
+>  
+>  #include <acpi/cppc_acpi.h>
+>  /*
+> @@ -709,6 +712,47 @@ static int cpc_write(struct cpc_reg *reg, u64 val)
+>  	return ret_val;
+>  }
+>  
+> +static u64 cppc_dmi_khz;
+> +
+> +static void cppc_find_dmi_mhz(const struct dmi_header *dm, void *private)
+> +{
+> +	u16 *mhz = (u16 *)private;
+> +	const u8 *dmi_data = (const u8 *)dm;
+> +
+> +	if (dm->type == DMI_ENTRY_PROCESSOR && dm->length >= 48)
+> +		*mhz = (u16)get_unaligned((const u16 *)(dmi_data + 0x14));
+> +}
+> +
+> +
+> +static u64 cppc_get_dmi_khz(void)
+> +{
+> +	u16 mhz;
+> +
+> +	dmi_walk(cppc_find_dmi_mhz, &mhz);
+> +
+> +	/*
+> +	 * Real stupid fallback value, just in case there is no
+> +	 * actual value set.
+> +	 */
+> +	mhz = mhz ? mhz : 1;
+> +
+> +	return (1000 * mhz);
+> +}
+> +
+> +static u64 cppc_unitless_to_khz(u64 min, u64 max, u64 val)
+> +{
+> +	/*
+> +	 * The incoming val should be min <= val <= max.  Our
+> +	 * job is to convert that to KHz so it can be properly
+> +	 * reported to user space via cpufreq_policy.
+> +	 */
+> +
+> +	if (!cppc_dmi_khz)
+> +		cppc_dmi_khz = cppc_get_dmi_khz();
+> +
+> +	return ((val - min) * cppc_dmi_khz) / (max - min);
+> +}
+> +
+>  /**
+>   * cppc_get_perf_caps - Get a CPUs performance capabilities.
+>   * @cpunum: CPU from which to get capabilities info.
+> @@ -748,17 +792,24 @@ int cppc_get_perf_caps(int cpunum, struct cppc_perf_caps *perf_caps)
+>  		}
+>  	}
+>  
+> +	/*
+> +	 * Since these values in perf_caps will be used in setting
+> +	 * up the cpufreq policy, they must always be stored in units
+> +	 * of KHz.  If they are not, user space tools will become very
+> +	 * confused since they assume these are in KHz when reading
+> +	 * sysfs.
+> +	 */
+>  	cpc_read(&highest_reg->cpc_entry.reg, &high);
+> -	perf_caps->highest_perf = high;
+> -
+>  	cpc_read(&lowest_reg->cpc_entry.reg, &low);
+> -	perf_caps->lowest_perf = low;
+> +
+> +	perf_caps->highest_perf = cppc_unitless_to_khz(low, high, high);
+> +	perf_caps->lowest_perf = cppc_unitless_to_khz(low, high, low);
+>  
+>  	cpc_read(&ref_perf->cpc_entry.reg, &ref);
+> -	perf_caps->reference_perf = ref;
+> +	perf_caps->reference_perf = cppc_unitless_to_khz(low, high, ref);
+>  
+>  	cpc_read(&nom_perf->cpc_entry.reg, &nom);
+> -	perf_caps->nominal_perf = nom;
+> +	perf_caps->nominal_perf = cppc_unitless_to_khz(low, high, nom);
+>  
+>  	if (!ref)
+>  		perf_caps->reference_perf = perf_caps->nominal_perf;
+> diff --git a/drivers/cpufreq/Kconfig.arm b/drivers/cpufreq/Kconfig.arm
+> index 14b1f93..0573982 100644
+> --- a/drivers/cpufreq/Kconfig.arm
+> +++ b/drivers/cpufreq/Kconfig.arm
+> @@ -255,6 +255,7 @@ config ACPI_CPPC_CPUFREQ
+>  	tristate "CPUFreq driver based on the ACPI CPPC spec"
+>  	depends on ACPI
+>  	select ACPI_CPPC_LIB
+> +	select DMI
+>  	default n
+>  	help
+>  	  This adds a CPUFreq driver which uses CPPC methods
+> -- 
+> 2.5.5
