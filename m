@@ -1,175 +1,86 @@
-From: Viresh Kumar <viresh.kumar@linaro.org>
-Subject: Re: [PATCH] Force cppc_cpufreq to report values in KHz to fix user
- space reporting
-Date: Mon, 18 Apr 2016 15:58:10 +0530
-Message-ID: <20160418102810.GC2322@vireshk-i7>
-References: <1460758594-1596-1-git-send-email-ahs3@redhat.com>
+From: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+Subject: Re: [RFC PATCH 09/11] drivers: acpi: implement acpi_dma_configure
+Date: Mon, 18 Apr 2016 11:30:07 +0100
+Message-ID: <20160418103007.GC2427@red-moon>
+References: <1460654743-7896-1-git-send-email-lorenzo.pieralisi@arm.com>
+ <1460654743-7896-10-git-send-email-lorenzo.pieralisi@arm.com>
+ <CAOZdJXXtZq6uyE+5sseX7M_6Kq8wFG+37qd5TNSusKj=0gd8zA@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-pa0-f52.google.com ([209.85.220.52]:35712 "EHLO
-	mail-pa0-f52.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751572AbcDRK2O (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 18 Apr 2016 06:28:14 -0400
-Received: by mail-pa0-f52.google.com with SMTP id fs9so58998686pac.2
-        for <linux-acpi@vger.kernel.org>; Mon, 18 Apr 2016 03:28:14 -0700 (PDT)
+Received: from foss.arm.com ([217.140.101.70]:60993 "EHLO foss.arm.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751806AbcDRKaO (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 18 Apr 2016 06:30:14 -0400
 Content-Disposition: inline
-In-Reply-To: <1460758594-1596-1-git-send-email-ahs3@redhat.com>
+In-Reply-To: <CAOZdJXXtZq6uyE+5sseX7M_6Kq8wFG+37qd5TNSusKj=0gd8zA@mail.gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Al Stone <ahs3@redhat.com>, ashwin.chaugule@linaro.org
-Cc: rjw@rjwysocki.net, lenb@kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linux-pm@vger.kernel.org
+To: Timur Tabi <timur@codeaurora.org>
+Cc: iommu@lists.linux-foundation.org, Marc Zyngier <marc.zyngier@arm.com>, Tomasz Nowicki <tn@semihalf.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, lkml <linux-kernel@vger.kernel.org>, Will Deacon <will.deacon@arm.com>, Sinan Kaya <okaya@codeaurora.org>, linux-acpi@vger.kernel.org, linux-pci@vger.kernel.org, Hanjun Guo <hanjun.guo@linaro.org>, Jon Masters <jcm@redhat.com>, Bjorn Helgaas <bhelgaas@google.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, vikrams@codeaurora.org
 
-Cc'ing Ashwin.
+On Fri, Apr 15, 2016 at 01:29:14PM -0500, Timur Tabi wrote:
+> On Thu, Apr 14, 2016 at 12:25 PM, Lorenzo Pieralisi
+> <lorenzo.pieralisi@arm.com> wrote:
+> > +void acpi_dma_configure(struct device *dev, enum dev_dma_attr attr)
+> > +{
+> > +       struct iommu_ops *iommu;
+> > +
+> > +       iommu = iort_iommu_configure(dev);
+> > +
+> > +       /*
+> > +        * Assume dma valid range starts at 0 and covers the whole
+> > +        * coherent_dma_mask.
+> > +        */
+> > +       arch_setup_dma_ops(dev, 0, dev->coherent_dma_mask + 1, iommu,
+> > +                          attr == DEV_DMA_COHERENT);
+> > +}
+> 
+> I have a network driver that is impacted by this code, so thank you
+> for posting this. (See
+> https://www.mail-archive.com/netdev@vger.kernel.org/msg106249.html).
+> 
+> One one SOC, the driver needs to set the mask to 32 bits.  On another
+> SOC, it needs to set it to 64 bits.  On device tree, the driver will
+> use dma-ranges.
 
--- 
-viresh
+First off I think we agree this patch does not change current behaviour
+as far as the devices default dma_mask are concerned. They are
+initialized in PCI/ACPI core code:
 
-On 15-04-16, 16:16, Al Stone wrote:
-> When CPPC is being used by ACPI on arm64, user space tools such as
-> cpupower report CPU frequency values from sysfs that are incorrect.
+- pci_setup_device()
+- acpi_create_platform_device()
+
+As for ACPI DT-dma-ranges equivalent I have to check if I can use
+the _DMA method for that so that we can put in place the same
+mechanism as DT to override the default masks, other than that it is
+up to the drivers to set-up the dma mask accordingly, that's not
+something this patchset is changing anyway.
+
+> In your patches, where is coherent_dma_mask initialized?  I found this
+> code in add_smmu_platform_device(), but I think this is setting the
+> mask for the IOMMU driver, not the individual devices.  Either way, I
+> don't understand where the correct value is going to be overridden.
+
+For the ARM SMMU table walker:
+
+arm_smmu_device_cfg_probe() - dma_set_mask_and_coherent()
+
+For other devices see above.
+
+Thanks,
+Lorenzo
+
 > 
-> What the driver was doing was reporting the values given by ACPI tables
-> in whatever scale was used to provide them.  However, the ACPI spec
-> defines the CPPC values as unitless abstract numbers.  Internal kernel
-> structures such as struct perf_cap, in contrast, expect these values
-> to be in KHz.  When these struct values get reported via sysfs, the
-> user space tools also assume they are in KHz, causing them to report
-> incorrect values (for example, reporting a CPU frequency of 1MHz when
-> it should be 1.8GHz).
+> +       /*
+> +        * Set default dma mask value for the table walker,
+> +        * to be overridden on probing with correct value.
+> +        */
+> +       *pdev->dev.dma_mask = DMA_BIT_MASK(32);
+> +       pdev->dev.coherent_dma_mask = *pdev->dev.dma_mask;
 > 
-> While the investigation for a long term fix proceeds (several options
-> are being explored, some of which may require spec changes or other
-> much more invasive fixes), this patch forces the values read by CPPC
-> to be read in KHz, regardless of what they actually represent.
-> 
-> The downside is that this approach has some assumptions:
-> 
->    (1) It relies on SMBIOS3 being used, *and* that the Max Frequency
->    value for a processor is set to a non-zero value.
-> 
->    (2) It assumes that all processors run at the same speed.  This
->    patch retrieves the first CPU Max Frequency from a type 4 DMI
->    record that it can find.  This may not be an issue, however, as a
->    sampling of DMI data on x86 and arm64 indicates there is often only
->    one such record regardless.
-> 
-> For arm64 servers, this may be sufficient, but it does rely on
-> firmware values being set correctly.  Hence, other approaches are
-> also being considered.
-> 
-> This has been tested on three arm64 servers, with and without DMI, with
-> and without CPPC support.
-> 
-> Signed-off-by: Al Stone <ahs3@redhat.com>
-> ---
->  drivers/acpi/cppc_acpi.c    | 61 +++++++++++++++++++++++++++++++++++++++++----
->  drivers/cpufreq/Kconfig.arm |  1 +
->  2 files changed, 57 insertions(+), 5 deletions(-)
-> 
-> diff --git a/drivers/acpi/cppc_acpi.c b/drivers/acpi/cppc_acpi.c
-> index 8adac69..049dced 100644
-> --- a/drivers/acpi/cppc_acpi.c
-> +++ b/drivers/acpi/cppc_acpi.c
-> @@ -40,6 +40,9 @@
->  #include <linux/cpufreq.h>
->  #include <linux/delay.h>
->  #include <linux/ktime.h>
-> +#include <linux/dmi.h>
-> +
-> +#include <asm/unaligned.h>
->  
->  #include <acpi/cppc_acpi.h>
->  /*
-> @@ -709,6 +712,47 @@ static int cpc_write(struct cpc_reg *reg, u64 val)
->  	return ret_val;
->  }
->  
-> +static u64 cppc_dmi_khz;
-> +
-> +static void cppc_find_dmi_mhz(const struct dmi_header *dm, void *private)
-> +{
-> +	u16 *mhz = (u16 *)private;
-> +	const u8 *dmi_data = (const u8 *)dm;
-> +
-> +	if (dm->type == DMI_ENTRY_PROCESSOR && dm->length >= 48)
-> +		*mhz = (u16)get_unaligned((const u16 *)(dmi_data + 0x14));
-> +}
-> +
-> +
-> +static u64 cppc_get_dmi_khz(void)
-> +{
-> +	u16 mhz;
-> +
-> +	dmi_walk(cppc_find_dmi_mhz, &mhz);
-> +
-> +	/*
-> +	 * Real stupid fallback value, just in case there is no
-> +	 * actual value set.
-> +	 */
-> +	mhz = mhz ? mhz : 1;
-> +
-> +	return (1000 * mhz);
-> +}
-> +
-> +static u64 cppc_unitless_to_khz(u64 min, u64 max, u64 val)
-> +{
-> +	/*
-> +	 * The incoming val should be min <= val <= max.  Our
-> +	 * job is to convert that to KHz so it can be properly
-> +	 * reported to user space via cpufreq_policy.
-> +	 */
-> +
-> +	if (!cppc_dmi_khz)
-> +		cppc_dmi_khz = cppc_get_dmi_khz();
-> +
-> +	return ((val - min) * cppc_dmi_khz) / (max - min);
-> +}
-> +
->  /**
->   * cppc_get_perf_caps - Get a CPUs performance capabilities.
->   * @cpunum: CPU from which to get capabilities info.
-> @@ -748,17 +792,24 @@ int cppc_get_perf_caps(int cpunum, struct cppc_perf_caps *perf_caps)
->  		}
->  	}
->  
-> +	/*
-> +	 * Since these values in perf_caps will be used in setting
-> +	 * up the cpufreq policy, they must always be stored in units
-> +	 * of KHz.  If they are not, user space tools will become very
-> +	 * confused since they assume these are in KHz when reading
-> +	 * sysfs.
-> +	 */
->  	cpc_read(&highest_reg->cpc_entry.reg, &high);
-> -	perf_caps->highest_perf = high;
-> -
->  	cpc_read(&lowest_reg->cpc_entry.reg, &low);
-> -	perf_caps->lowest_perf = low;
-> +
-> +	perf_caps->highest_perf = cppc_unitless_to_khz(low, high, high);
-> +	perf_caps->lowest_perf = cppc_unitless_to_khz(low, high, low);
->  
->  	cpc_read(&ref_perf->cpc_entry.reg, &ref);
-> -	perf_caps->reference_perf = ref;
-> +	perf_caps->reference_perf = cppc_unitless_to_khz(low, high, ref);
->  
->  	cpc_read(&nom_perf->cpc_entry.reg, &nom);
-> -	perf_caps->nominal_perf = nom;
-> +	perf_caps->nominal_perf = cppc_unitless_to_khz(low, high, nom);
->  
->  	if (!ref)
->  		perf_caps->reference_perf = perf_caps->nominal_perf;
-> diff --git a/drivers/cpufreq/Kconfig.arm b/drivers/cpufreq/Kconfig.arm
-> index 14b1f93..0573982 100644
-> --- a/drivers/cpufreq/Kconfig.arm
-> +++ b/drivers/cpufreq/Kconfig.arm
-> @@ -255,6 +255,7 @@ config ACPI_CPPC_CPUFREQ
->  	tristate "CPUFreq driver based on the ACPI CPPC spec"
->  	depends on ACPI
->  	select ACPI_CPPC_LIB
-> +	select DMI
->  	default n
->  	help
->  	  This adds a CPUFreq driver which uses CPPC methods
 > -- 
-> 2.5.5
+> Qualcomm Innovation Center, Inc.
+> The Qualcomm Innovation Center, Inc. is a member of the Code Aurora Forum,
+> a Linux Foundation Collaborative Project.
+> 
