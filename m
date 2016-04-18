@@ -1,149 +1,35 @@
 From: David Daney <ddaney.cavm@gmail.com>
-Subject: [PATCH v4 02/14] acpi,
- numa: Replace ACPI_DEBUG_PRINT() with pr_debug()
-Date: Mon, 18 Apr 2016 14:14:00 -0700
-Message-ID: <1461014052-30788-3-git-send-email-ddaney.cavm@gmail.com>
+Subject: [PATCH v4 14/14] arm64, acpi, numa: Default enable ACPI_NUMA with NUMA
+Date: Mon, 18 Apr 2016 14:14:12 -0700
+Message-ID: <1461014052-30788-15-git-send-email-ddaney.cavm@gmail.com>
 References: <1461014052-30788-1-git-send-email-ddaney.cavm@gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1461014052-30788-1-git-send-email-ddaney.cavm@gmail.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+Sender: linux-kernel-owner@vger.kernel.org
 To: Will Deacon <will.deacon@arm.com>, linux-arm-kernel@lists.infradead.org, Mark Rutland <mark.rutland@arm.com>, Catalin Marinas <catalin.marinas@arm.com>, Tony Luck <tony.luck@intel.com>, Fenghua Yu <fenghua.yu@intel.com>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, x86@kernel.org, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Rob Herring <robh+dt@kernel.org>, Frank Rowand <frowand.list@gmail.com>, Grant Likely <grant.likely@linaro.org>, Robert Moore <robert.moore@intel.com>, Lv Zheng <lv.zheng@intel.com>, Hanjun Guo <hanjun.guo@linaro.org>, Marc Zyngier <Marc.Zyngier@arm.com>, linux-ia64@vger.kernel.org, linux-acpi@vger.kernel.org, devel@acpica.org
-Cc: Robert Richter <rrichter@cavium.com>, linux-kernel@vger.kernel.org, David Daney <david.daney@cavium.com>
+Cc: linux-kernel@vger.kernel.org, Robert Richter <rrichter@cavium.com>, David Daney <david.daney@cavium.com>
 List-Id: linux-acpi@vger.kernel.org
 
-From: Hanjun Guo <hanjun.guo@linaro.org>
+From: Robert Richter <rrichter@cavium.com>
 
-ACPI_DEBUG_PRINT is a bit fragile in acpi/numa.c, the first thing
-is that component ACPI_NUMA(0x80000000) is not described in the
-Documentation/acpi/debug.txt, and even not defined in the struct
-acpi_dlayer acpi_debug_layers which we can not dynamically enable/disable
-it with /sys/modules/acpi/parameters/debug_layer. another thing
-is that ACPI_DEBUG_OUTPUT is controlled by ACPICA which not coordinate
-well with ACPI drivers.
-
-Replace ACPI_DEBUG_PRINT() with pr_debug() in this patch as pr_debug
-will do the same thing for debug purpose and it can make the code much
-cleaner, also remove the related code which not needed anymore if
-ACPI_DEBUG_PRINT() is gone.
-
-Signed-off-by: Hanjun Guo <hanjun.guo@linaro.org>
 Signed-off-by: Robert Richter <rrichter@cavium.com>
 Signed-off-by: David Daney <david.daney@cavium.com>
 ---
- drivers/acpi/numa.c | 59 +++++++++++++++++++----------------------------------
- 1 file changed, 21 insertions(+), 38 deletions(-)
+ drivers/acpi/Kconfig | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/drivers/acpi/numa.c b/drivers/acpi/numa.c
-index 4e427fc..e34b5d0 100644
---- a/drivers/acpi/numa.c
-+++ b/drivers/acpi/numa.c
-@@ -31,10 +31,6 @@
- #include <linux/nodemask.h>
- #include <linux/topology.h>
+diff --git a/drivers/acpi/Kconfig b/drivers/acpi/Kconfig
+index 5ce9f66..bacf245 100644
+--- a/drivers/acpi/Kconfig
++++ b/drivers/acpi/Kconfig
+@@ -292,7 +292,7 @@ config ACPI_NUMA
+ 	bool "NUMA support"
+ 	depends on NUMA
+ 	depends on (X86 || IA64 || ARM64)
+-	default y if IA64_GENERIC || IA64_SGI_SN2
++	default y if IA64_GENERIC || IA64_SGI_SN2 || ARM64
  
--#define ACPI_NUMA	0x80000000
--#define _COMPONENT	ACPI_NUMA
--ACPI_MODULE_NAME("numa");
--
- static nodemask_t nodes_found_map = NODE_MASK_NONE;
- 
- /* maps to convert between proximity domain and logical node ID */
-@@ -129,64 +125,51 @@ EXPORT_SYMBOL(acpi_map_pxm_to_online_node);
- static void __init
- acpi_table_print_srat_entry(struct acpi_subtable_header *header)
- {
--
--	ACPI_FUNCTION_NAME("acpi_table_print_srat_entry");
--
- 	if (!header)
- 		return;
- 
- 	switch (header->type) {
--
- 	case ACPI_SRAT_TYPE_CPU_AFFINITY:
--#ifdef ACPI_DEBUG_OUTPUT
- 		{
- 			struct acpi_srat_cpu_affinity *p =
- 			    (struct acpi_srat_cpu_affinity *)header;
--			ACPI_DEBUG_PRINT((ACPI_DB_INFO,
--					  "SRAT Processor (id[0x%02x] eid[0x%02x]) in proximity domain %d %s\n",
--					  p->apic_id, p->local_sapic_eid,
--					  p->proximity_domain_lo,
--					  (p->flags & ACPI_SRAT_CPU_ENABLED)?
--					  "enabled" : "disabled"));
-+			pr_debug("SRAT Processor (id[0x%02x] eid[0x%02x]) in proximity domain %d %s\n",
-+				 p->apic_id, p->local_sapic_eid,
-+				 p->proximity_domain_lo,
-+				 (p->flags & ACPI_SRAT_CPU_ENABLED) ?
-+				 "enabled" : "disabled");
- 		}
--#endif				/* ACPI_DEBUG_OUTPUT */
- 		break;
- 
- 	case ACPI_SRAT_TYPE_MEMORY_AFFINITY:
--#ifdef ACPI_DEBUG_OUTPUT
- 		{
- 			struct acpi_srat_mem_affinity *p =
- 			    (struct acpi_srat_mem_affinity *)header;
--			ACPI_DEBUG_PRINT((ACPI_DB_INFO,
--					  "SRAT Memory (0x%lx length 0x%lx) in proximity domain %d %s%s%s\n",
--					  (unsigned long)p->base_address,
--					  (unsigned long)p->length,
--					  p->proximity_domain,
--					  (p->flags & ACPI_SRAT_MEM_ENABLED)?
--					  "enabled" : "disabled",
--					  (p->flags & ACPI_SRAT_MEM_HOT_PLUGGABLE)?
--					  " hot-pluggable" : "",
--					  (p->flags & ACPI_SRAT_MEM_NON_VOLATILE)?
--					  " non-volatile" : ""));
-+			pr_debug("SRAT Memory (0x%lx length 0x%lx) in proximity domain %d %s%s%s\n",
-+				 (unsigned long)p->base_address,
-+				 (unsigned long)p->length,
-+				 p->proximity_domain,
-+				 (p->flags & ACPI_SRAT_MEM_ENABLED) ?
-+				 "enabled" : "disabled",
-+				 (p->flags & ACPI_SRAT_MEM_HOT_PLUGGABLE) ?
-+				 " hot-pluggable" : "",
-+				 (p->flags & ACPI_SRAT_MEM_NON_VOLATILE) ?
-+				 " non-volatile" : "");
- 		}
--#endif				/* ACPI_DEBUG_OUTPUT */
- 		break;
- 
- 	case ACPI_SRAT_TYPE_X2APIC_CPU_AFFINITY:
--#ifdef ACPI_DEBUG_OUTPUT
- 		{
- 			struct acpi_srat_x2apic_cpu_affinity *p =
- 			    (struct acpi_srat_x2apic_cpu_affinity *)header;
--			ACPI_DEBUG_PRINT((ACPI_DB_INFO,
--					  "SRAT Processor (x2apicid[0x%08x]) in"
--					  " proximity domain %d %s\n",
--					  p->apic_id,
--					  p->proximity_domain,
--					  (p->flags & ACPI_SRAT_CPU_ENABLED) ?
--					  "enabled" : "disabled"));
-+			pr_debug("SRAT Processor (x2apicid[0x%08x]) in proximity domain %d %s\n",
-+				 p->apic_id,
-+				 p->proximity_domain,
-+				 (p->flags & ACPI_SRAT_CPU_ENABLED) ?
-+				 "enabled" : "disabled");
- 		}
--#endif				/* ACPI_DEBUG_OUTPUT */
- 		break;
-+
- 	default:
- 		pr_warn("Found unsupported SRAT entry (type = 0x%x)\n",
- 			header->type);
+ config ACPI_CUSTOM_DSDT_FILE
+ 	string "Custom DSDT Table file to include"
 -- 
 1.7.11.7
