@@ -1,100 +1,66 @@
 From: Tomasz Nowicki <tn@semihalf.com>
-Subject: Re: [PATCH V6 08/13] PCI: generic, thunder: update to use generic
- ECAM API
-Date: Mon, 18 Apr 2016 15:03:51 +0200
-Message-ID: <5714DB37.7000907@semihalf.com>
+Subject: Re: [PATCH V6 00/13] Support for generic ACPI based PCI host
+ controller
+Date: Mon, 18 Apr 2016 15:33:24 +0200
+Message-ID: <5714E224.1030307@semihalf.com>
 References: <1460740008-19489-1-git-send-email-tn@semihalf.com>
- <5110401.mGEq6IVFz2@wuerfel>
- <CAKc_7PWFacFJZA2JpfM4RcRFVj0jyUE73HhhvmX0cKm07JGupg@mail.gmail.com>
- <4240660.NqlPcXaV7N@wuerfel>
- <CAKc_7PWw5VaPxcOpWbonksx6k4W5fe9yO8wBfigXNRkFAYAYEg@mail.gmail.com>
+ <571130BB.9030508@redhat.com>
+ <CAKc_7PVC6O4oh+bTmpLQRrhHrqGbaKB2hynecKOLmc5fBc-VVQ@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=utf-8; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-pci-owner@vger.kernel.org>
-In-Reply-To: <CAKc_7PWw5VaPxcOpWbonksx6k4W5fe9yO8wBfigXNRkFAYAYEg@mail.gmail.com>
+In-Reply-To: <CAKc_7PVC6O4oh+bTmpLQRrhHrqGbaKB2hynecKOLmc5fBc-VVQ@mail.gmail.com>
 Sender: linux-pci-owner@vger.kernel.org
-To: Jayachandran C <jchandra@broadcom.com>, Arnd Bergmann <arnd@arndb.de>
-Cc: linux-arm-kernel@lists.infradead.org, Bjorn Helgaas <helgaas@kernel.org>, Will Deacon <will.deacon@arm.com>, Catalin Marinas <catalin.marinas@arm.com>, rafael@kernel.org, Hanjun Guo <hanjun.guo@linaro.org>, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, Sinan Kaya <okaya@codeaurora.org>, jiang.liu@linux.intel.com, Jon Masters <jcm@redhat.com>, linaro-acpi@lists.linaro.org, linux-pci@vger.kernel.org, Liviu.Dudau@arm.com, David Daney <ddaney@caviumnetworks.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, robert.richter@caviumnetworks.com, Suravee.Suthikulpanit@amd.com, msalter@redhat.com, Wangyijing <wangyijing@huawei.com>, Marcin Wojtas <mw@semihalf.com>
+To: Jayachandran C <jchandra@broadcom.com>, Jon Masters <jcm@redhat.com>
+Cc: Bjorn Helgaas <helgaas@kernel.org>, Arnd Bergmann <arnd@arndb.de>, Will Deacon <will.deacon@arm.com>, Catalin Marinas <catalin.marinas@arm.com>, rafael@kernel.org, Hanjun Guo <hanjun.guo@linaro.org>, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, Sinan Kaya <okaya@codeaurora.org>, jiang.liu@linux.intel.com, robert.richter@caviumnetworks.com, Marcin Wojtas <mw@semihalf.com>, Liviu.Dudau@arm.com, David Daney <ddaney@caviumnetworks.com>, Wangyijing <wangyijing@huawei.com>, Suravee.Suthikulpanit@amd.com, msalter@redhat.com, linux-pci@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linaro-acpi@lists.linaro.org
 List-Id: linux-acpi@vger.kernel.org
 
-On 16.04.2016 16:36, Jayachandran C wrote:
-> On Sat, Apr 16, 2016 at 1:01 PM, Arnd Bergmann <arnd@arndb.de> wrote:
->> On Saturday 16 April 2016 12:50:13 Jayachandran C wrote:
->>>>
->>>> I still think it would be better to keep the loadable PCI host drivers
->>>> separate from the ACPI PCI infrastructure. There are a number of
->>>> simplifications that we want to do to the DT based drivers in the long
->>>> run, so it's better if that code is not shared at this level. Abstracting
->>>> out the ECAM code is fine, but at that point you should be able to just
->>>> call it from the ACPI layer.
+On 16.04.2016 17:31, Jayachandran C wrote:
+> On Fri, Apr 15, 2016 at 11:49 PM, Jon Masters <jcm@redhat.com> wrote:
+>> On 04/15/2016 01:06 PM, Tomasz Nowicki wrote:
+>>>  From the functionality point of view this series might be split into the
+>>> following logic parts:
+>>> 1. Necessary fixes as the preparation for using driver on ARM64.
+>>> 2. New ECAM API and update for users of the pci-host-common API
+>>> 3. Use new MCFG interface and implement generic ACPI based PCI host controller driver.
+>>> 4. Enable above driver on ARM64
 >>>
->>> The issue is not with this patch (in my opinion). This patch is just
->>> re-arranging how thunder specific data is maintained. Earlier it was
->>> a container_of gen_pci, now it is ->priv of pci_config_window.
+>>> Patches has been built on top of 4.6-rc2 and can be found here:
+>>> git@github.com:semihalf-nowicki-tomasz/linux.git (pci-acpi-v6)
 >>>
->>> I can see the issue in patches 12 and 13 of this patchset which adds
->>> ACPI fixups into the thunder OF driver.
+>>> This has been tested on Cavium ThunderX server. Any help in reviewing and
+>>> testing is very appreciated.
+>>>
+>>> v5 -> v6
+>>> - dropped idea of x86 MMCONFIG code refactoring
+>>> - integrated JC's patches which introduce new ECAM API:
+>>>    https://lkml.org/lkml/2016/4/11/907
+>>>    git: https://github.com/jchandra-brcm/linux/ (arm64-acpi-pci-v3)
+>>> - integrated Sinan's fix for releasing IO resources, see patch [06/13]
+>>> - added ACPI support for ThunderX ECAM and PEM drivers
+>>> - rebased to 4.6-rc2
 >>
->> Right, I commented on this one, because it seems to rearrange the code
->> in order to do the later one.
+>> JC: can you explicitly confirm that you're ok with letting Tomasz drive
+>> this? We would like to see one driver. Either that is Tomasz, or
+>> Lorenzo, or it is you. But we need to have one overall cooordinated
+>> effort to get this enablement into upstream as quickly as possible.
 >
-> Patches 11- 13 are not from me, and I am not completely on board
-> on the approach of adding the sections.We can look at reworking this.
+> I have been concentrating on the ECAM code and ECAM based ACPI
+> host controller, the rest of the code is from Tomasz original patchset.
 >
->>> The simple approach when doing modular PCI drivers would be to make
->>> pci-thunder-*.c like pci-host-common.c, to be compiled in if configured.
->>> The fie will contain all the Thunder quirks and can export
->>> pci_thunder_ecam_ops.
->>
->> I would argue that we should not export anything from drivers/pci/host,
->> those should really be standalone drivers that do not interact with other
->> subsystems.
->
-> pci-host-common.c goes against being standalone. The files calling
-> pci_host_common_probe() are expected to have custom ECAM ops
-> the way it is written now. We need to have a reasonable way to share
-> those ECAM ops if needed by ACPI.
->
->> How much code would you need to duplicate from thunder-ecam to have
->> the same functionality available in ACPI? My expectation is that it's
->> not really that much more compared to the code you need for sharing
->> a single implementation, but you get a lower complexity here, which
->> makes it easier to understand and to rework.
->
-> Like I wrote above, the sharing is really simple because both generic
-> ACPI and pci-host-common.c have been written for "ECAM with quirks".
->
-> The whole pci-thunder-*.c is to support thunder PCI quirks since the
-> generic OF is handled by pci-host-common.c and generic ECAM is now
-> separated -  duplicating the whole file for ACPI will be bad.
+> I am not happy with the way the ACPI quirk handling is done in Tomasz's
+> current patchset. I believe that it has to be done in a separate patchset
+> with another set of discussions. It introduces additional complexity and
+> mixing that discussion with the ECAM one will not help in making progress.
 
-Yes, it would be too much code duplication. Also, we already know 
-drivers which need quirks.
+Of course we can split discussion into the two topics:
+1. ECAM based ACPI host controller - patches [1-10]
+2. Quirks handling and examples.
 
-We really need to agree on best approach here. Here are requirements 
-which came up (please correct me if misunderstood sth):
-
-Arnd:
-1. Initial DT driver should be standalone [Arnd]
-2. No exported symbols [Arnd]
-3. Duplicate necessary code to ACPI framework.
-
-JC:
-1. Adding linker section is wrong.
-2. Quirks should be exported (pci_thunder_ecam_ops), then no need for 
-adding linker section
-3. To much duplication to copy code into the ACPI framework.
-
-My opinion:
-1. I like linker section because it is easy to maintain and no need to 
-export symbols.
-2. We need more sophisticated algorithm for matching quirks (DMI is not 
-enough and not only for ThunderX drivers). Of course I am open to any 
-new suggestions.
-3. To much duplication to copy code into the ACPI framework.
-
-Thanks in advance for any pointers.
+IMO, it is very helpful for reviewers to go with one unified patch set 
+and see the whole picture. Also, as you can see, quirks handling allows 
+people to test it easily with their servers (not only QEMU but real HW).
 
 Thanks,
 Tomasz
