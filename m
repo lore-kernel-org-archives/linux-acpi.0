@@ -1,59 +1,40 @@
-From: David Daney <ddaney.cavm@gmail.com>
-Subject: [PATCH v4 09/14] acpi, numa: remove unneeded acpi_numa=1
-Date: Mon, 18 Apr 2016 14:14:07 -0700
-Message-ID: <1461014052-30788-10-git-send-email-ddaney.cavm@gmail.com>
-References: <1461014052-30788-1-git-send-email-ddaney.cavm@gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <1461014052-30788-1-git-send-email-ddaney.cavm@gmail.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Will Deacon <will.deacon@arm.com>, linux-arm-kernel@lists.infradead.org, Mark Rutland <mark.rutland@arm.com>, Catalin Marinas <catalin.marinas@arm.com>, Tony Luck <tony.luck@intel.com>, Fenghua Yu <fenghua.yu@intel.com>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, x86@kernel.org, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Rob Herring <robh+dt@kernel.org>, Frank Rowand <frowand.list@gmail.com>, Grant Likely <grant.likely@linaro.org>, Robert Moore <robert.moore@intel.com>, Lv Zheng <lv.zheng@intel.com>, Hanjun Guo <hanjun.guo@linaro.org>, Marc Zyngier <Marc.Zyngier@arm.com>, linux-ia64@vger.kernel.org, linux-acpi@vger.kernel.org, devel@acpica.org
-Cc: Robert Richter <rrichter@cavium.com>, linux-kernel@vger.kernel.org, David Daney <david.daney@cavium.com>
+From: Colin King <colin.king@canonical.com>
+Subject: [PATCH] tools/acpi: fix inverted logic when closing fd
+Date: Mon, 18 Apr 2016 23:17:51 +0100
+Message-ID: <1461017871-5395-1-git-send-email-colin.king@canonical.com>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from youngberry.canonical.com ([91.189.89.112]:42168 "EHLO
+	youngberry.canonical.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751126AbcDRWR4 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 18 Apr 2016 18:17:56 -0400
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: "Rafael J . Wysocki" <rafael.j.wysocki@intel.com>, Len Brown <lenb@kernel.org>, Robert Moore <robert.moore@intel.com>, Lv Zheng <lv.zheng@intel.com>, linux-acpi@vger.kernel.org, devel@acpica.org
+Cc: linux-kernel@vger.kernel.org
 
-From: Hanjun Guo <hanjun.guo@linaro.org>
+From: Colin Ian King <colin.king@canonical.com>
 
-acpi_numa is default to 0, it's set to -1 when disable acpi numa or
-when a bad SRAT is parsed, and it's only consumed in srat_disabled()
-(compare it with 0) to continue parse the SRAT or not, so we don't
-need to set acpi_numa to 1 when we get a valid SRAT entry.
+The current close on fd only occurs when fd is -ve, it should
+actually be closing the file if it a valid fd. Fix the inverted logic.
 
-Signed-off-by: Hanjun Guo <hanjun.guo@linaro.org>
-Signed-off-by: Robert Richter <rrichter@cavium.com>
-Signed-off-by: David Daney <david.daney@cavium.com>
+Signed-off-by: Colin Ian King <colin.king@canonical.com>
 ---
- arch/x86/mm/srat.c | 2 --
- 1 file changed, 2 deletions(-)
+ tools/power/acpi/tools/acpidbg/acpidbg.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/arch/x86/mm/srat.c b/arch/x86/mm/srat.c
-index 4217071f..30460f5 100644
---- a/arch/x86/mm/srat.c
-+++ b/arch/x86/mm/srat.c
-@@ -59,7 +59,6 @@ acpi_numa_x2apic_affinity_init(struct acpi_srat_x2apic_cpu_affinity *pa)
- 	}
- 	set_apicid_to_node(apic_id, node);
- 	node_set(node, numa_nodes_parsed);
--	acpi_numa = 1;
- 	printk(KERN_INFO "SRAT: PXM %u -> APIC 0x%04x -> Node %u\n",
- 	       pxm, apic_id, node);
- }
-@@ -101,7 +100,6 @@ acpi_numa_processor_affinity_init(struct acpi_srat_cpu_affinity *pa)
+diff --git a/tools/power/acpi/tools/acpidbg/acpidbg.c b/tools/power/acpi/tools/acpidbg/acpidbg.c
+index d070fcc..ebe44dd 100644
+--- a/tools/power/acpi/tools/acpidbg/acpidbg.c
++++ b/tools/power/acpi/tools/acpidbg/acpidbg.c
+@@ -430,7 +430,7 @@ int main(int argc, char **argv)
+ 	acpi_aml_loop(fd);
  
- 	set_apicid_to_node(apic_id, node);
- 	node_set(node, numa_nodes_parsed);
--	acpi_numa = 1;
- 	printk(KERN_INFO "SRAT: PXM %u -> APIC 0x%02x -> Node %u\n",
- 	       pxm, apic_id, node);
- }
+ exit:
+-	if (fd < 0)
++	if (fd >= 0)
+ 		close(fd);
+ 	if (acpi_aml_batch_cmd)
+ 		free(acpi_aml_batch_cmd);
 -- 
-1.7.11.7
+2.7.4
+
