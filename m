@@ -1,108 +1,116 @@
-From: Arnd Bergmann <arnd@arndb.de>
-Subject: Re: [PATCH V6 08/13] PCI: generic, thunder: update to use generic ECAM API
-Date: Tue, 19 Apr 2016 23:40:38 +0200
-Message-ID: <124097091.1DmSn50Vlh@wuerfel>
-References: <1460740008-19489-1-git-send-email-tn@semihalf.com> <1460740008-19489-9-git-send-email-tn@semihalf.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7Bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mout.kundenserver.de ([217.72.192.75]:58412 "EHLO
-	mout.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750812AbcDSVl7 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 19 Apr 2016 17:41:59 -0400
-In-Reply-To: <1460740008-19489-9-git-send-email-tn@semihalf.com>
-Sender: linux-acpi-owner@vger.kernel.org
+From: Octavian Purdila <octavian.purdila-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: [RFC PATCH v2 00/10] ACPI overlays
+Date: Wed, 20 Apr 2016 01:38:58 +0300
+Message-ID: <1461105548-20618-1-git-send-email-octavian.purdila@intel.com>
+Return-path: <linux-efi-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: linux-efi-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: "Rafael J. Wysocki" <rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org>, Len Brown <lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Matt Fleming <matt-mF/unelCI9GS6iBeEJttW/XRex20P6io@public.gmane.org>, Mark Brown <broonie-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Wolfram Sang <wsa-z923LK4zBo2bacvFa/9K2g@public.gmane.org>
+Cc: Joel Becker <jlbec-aKy9MeLSZ9dg9hUCZPvPmw@public.gmane.org>, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-efi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-spi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, irina.tirdea-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, Octavian Purdila <octavian.purdila-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
-To: linux-arm-kernel@lists.infradead.org
-Cc: Tomasz Nowicki <tn@semihalf.com>, helgaas@kernel.org, will.deacon@arm.com, catalin.marinas@arm.com, rafael@kernel.org, hanjun.guo@linaro.org, Lorenzo.Pieralisi@arm.com, okaya@codeaurora.org, jiang.liu@linux.intel.com, jchandra@broadcom.com, jcm@redhat.com, linaro-acpi@lists.linaro.org, linux-pci@vger.kernel.org, Liviu.Dudau@arm.com, ddaney@caviumnetworks.com, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, robert.richter@caviumnetworks.com, Suravee.Suthikulpanit@amd.com, msalter@redhat.com, wangyijing@huawei.com, mw@semihalf.com
 
-On Friday 15 April 2016 19:06:43 Tomasz Nowicki wrote:
-> From: Jayachandran C <jchandra@broadcom.com>
->
-> Add config option PCI_GENERIC_ECAM and file drivers/pci/ecam.c to
-> provide generic functions for accessing memory mapped PCI config space.
->
-> The API is defined in drivers/pci/ecam.h and is written to replace the
-> API in drivers/pci/host/pci-host-common.h. The file defines a new
-> 'struct pci_config_window' to hold the information related to a PCI
-> config area and its mapping. This structure is expected to be used as
-> sysdata for controllers that have ECAM based mapping.
->
-> Helper functions are provided to setup the mapping, free the mapping
-> and to implement the map_bus method in 'struct pci_ops'
->
-> Signed-off-by: Jayachandran C <jchandra@broadcom.com>
+This patch set enables custom ACPI board configuration by adding
+mechanisms in the Linux kernel for loading user defined SSDTs.
 
-I've taken a fresh look now at what is going on here.
+In order to support ACPI open-ended hardware configurations we need a
+way to augment the ACPI configuration provided by the firmware
+image. A common example is connecting sensors on I2C / SPI buses on
+development boards.
 
-> @@ -58,4 +58,9 @@ void __iomem *pci_generic_ecam_map_bus(struct pci_bus *bus, unsigned int devfn,
->  /* default ECAM ops, bus shift 20, generic read and write */
->  extern struct pci_generic_ecam_ops pci_generic_ecam_default_ops;
->  
-> +#ifdef CONFIG_PCI_HOST_GENERIC
-> +/* for DT based pci controllers that support ECAM */
-> +int pci_host_common_probe(struct platform_device *pdev,
-> +			  struct pci_generic_ecam_ops *ops);
-> +#endif
->  #endif
+Although this can be accomplished by creating a kernel platform driver
+or recompiling the firmware image with updated ACPI tables, neither is
+practical: the former proliferates board specific kernel code while
+the latter requires access to firmware tools which are often not
+publicly available.
 
-This doesn't seem to belong here: just leave the declaration
-in the existing file. 
+Because ACPI supports external references in AML code a more practical
+way to augment firmware ACPI configuration is by dynamically loading
+user defined SSDT tables that contain the board specific information.
 
-> diff --git a/drivers/pci/host/Kconfig b/drivers/pci/host/Kconfig
-> index 7a0780d..31d6eb5 100644
-> --- a/drivers/pci/host/Kconfig
-> +++ b/drivers/pci/host/Kconfig
-> @@ -82,6 +82,7 @@ config PCI_HOST_GENERIC
->  	bool "Generic PCI host controller"
->  	depends on (ARM || ARM64) && OF
->  	select PCI_HOST_COMMON
-> +	select PCI_GENERIC_ECAM
->  	help
->  	  Say Y here if you want to support a simple generic PCI host
->  	  controller, such as the one emulated by kvmtool.
-> diff --git a/drivers/pci/host/pci-host-common.c b/drivers/pci/host/pci-host-common.c
-> index e9f850f..99d99b3 100644
-> --- a/drivers/pci/host/pci-host-common.c
-> +++ b/drivers/pci/host/pci-host-common.c
-> @@ -22,27 +22,21 @@
->  #include <linux/of_pci.h>
->  #include <linux/platform_device.h>
->  
-> -#include "pci-host-common.h"
-> +#include "../ecam.h"
+This patch sets provides three methods for loading custom SSDTs:
 
-As mentioned, don't use headers from parent directories, anything
-that needs to be shared must go into include/linux, while the parts
-that are only needed in one directory should be declared there.
+* From an EFI variable
 
-> -static int gen_pci_parse_map_cfg_windows(struct gen_pci *pci)
-> +static void gen_pci_generic_unmap_cfg(void *ptr)
-> +{
-> +	pci_generic_ecam_free((struct pci_config_window *)ptr);
-> +}
+  This is the preferred method, when EFI is supported on the platform,
+  because it allows a persistent, OS independent way of storing and
+  updating the user defined SSDTs. There is also work underway to
+  implement EFI support for loading user defined SSDTs and using this
+  method will make it easier to convert to the EFI loading mechanism
+  when that will arrive.
 
-Why the void pointer?
+* From the first uncompressed initrd (similar with the override
+  functionality)
 
-> +static struct pci_generic_ecam_ops pci_thunder_pem_ops = {
-> +	.bus_shift	= 24,
-> +	.init		= thunder_pem_init,
-> +	.pci_ops	= {
-> +		.map_bus	= pci_generic_ecam_map_bus,
-> +		.read		= thunder_pem_config_read,
-> +		.write		= thunder_pem_config_write,
-> +	}
-> +};
+  This is useful when EFI is not supported on the platform and when it
+  is not possible to defer the loading to userspace.
 
-Adding the callback pointer for init here and yet another structure
-pci_config_window really seems to go too far with the number of
-abstraction levels.
+* From userspace via configfs
 
-I think here it makes much more sense to just implement ECAM pci_ops
-in ACPI separately, as the implementation really trivial to start with,
-and all the complexity comes just from trying to share it with other
-stuff. Doesn't ACPI already have an ECAM implementation for x86
-that you could simply use?
+  This is useful when we want to defer the operation to userspace for
+  platform detection, loading the SSDTs from a custom partition, etc.
 
-	Arnd
+
+Changes from v1:
+
+* rebased on top of the ACPI install from initrd table functionality;
+  there is significant overlap between the 1st patch in this series
+  and these patch [1] from Lv - I kept it in this series until the
+  discussions around the taint and config option are resolved
+
+* make sure EFI_RUNTIME_SERVICES are available before trying to use
+  EFI variables to load tables
+
+* rework the ACPI reconfiguration notifications to work on device
+  granularity (device added or removed) instead of table granularity
+  (table loaded or unloaded)
+
+* add support for table unloading / device removal
+
+* note that the last patch is just a hack to be able to test the table
+  unload / device remove functionality, if someone wants to try out
+  this patch set
+
+[1] https://patchwork.kernel.org/patch/8795931/
+
+
+Octavian Purdila (10):
+  kernel: add TAINT_OVERLAY_ACPI_TABLE
+  acpi: decouple initrd table install from
+    CONFIG_ACPI_INITRD_TABLE_OVERRIDE
+  acpi: fix enumeration (visited) flags for bus rescans
+  acpi: add support for ACPI reconfiguration notifiers
+  i2c: add support for ACPI reconfigure notifications
+  spi: add support for ACPI reconfigure notifications
+  efi: load SSTDs from EFI variables
+  acpi: add support for configfs
+  acpi: add support for loading SSDTs via configfs
+  HACK: acpi: configfs: add unload_hanlde_path attribute for tables
+
+ Documentation/ABI/testing/configfs-acpi |  23 ++++
+ Documentation/acpi/ssdt-overlays.txt    | 171 +++++++++++++++++++++++++++
+ Documentation/kernel-parameters.txt     |   7 ++
+ Documentation/oops-tracing.txt          |   2 +
+ Documentation/sysctl/kernel.txt         |   1 +
+ MAINTAINERS                             |   1 +
+ arch/x86/kernel/setup.c                 |   2 +-
+ drivers/acpi/Kconfig                    |   9 ++
+ drivers/acpi/Makefile                   |   1 +
+ drivers/acpi/bus.c                      |   9 ++
+ drivers/acpi/configfs.c                 | 198 ++++++++++++++++++++++++++++++++
+ drivers/acpi/internal.h                 |   3 +
+ drivers/acpi/osl.c                      |  80 +++++++------
+ drivers/acpi/scan.c                     |  79 ++++++++++++-
+ drivers/acpi/sysfs.c                    |   6 +-
+ drivers/firmware/efi/efi.c              | 109 ++++++++++++++++++
+ drivers/i2c/i2c-core.c                  | 170 +++++++++++++++++++++------
+ drivers/spi/spi.c                       |  94 +++++++++++++--
+ include/acpi/acpi_bus.h                 |  18 +++
+ include/linux/acpi.h                    |   8 +-
+ include/linux/kernel.h                  |   1 +
+ kernel/panic.c                          |   2 +
+ 22 files changed, 895 insertions(+), 99 deletions(-)
+ create mode 100644 Documentation/ABI/testing/configfs-acpi
+ create mode 100644 Documentation/acpi/ssdt-overlays.txt
+ create mode 100644 drivers/acpi/configfs.c
+
+-- 
+1.9.1
