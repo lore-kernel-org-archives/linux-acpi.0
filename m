@@ -1,294 +1,171 @@
-From: Marek Szyprowski <m.szyprowski-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org>
-Subject: Re: [RFC PATCH 06/11] drivers: iommu: make of_xlate() interface DT
-	agnostic
-Date: Tue, 19 Apr 2016 10:28:02 +0200
-Message-ID: <5715EC12.2000009@samsung.com>
-References: <1460654743-7896-1-git-send-email-lorenzo.pieralisi@arm.com>
-	<1460654743-7896-7-git-send-email-lorenzo.pieralisi@arm.com>
+From: Tomasz Nowicki <tn@semihalf.com>
+Subject: Re: [PATCH V6 12/13] pci, pci-thunder-ecam: Add ACPI support for
+ ThunderX ECAM.
+Date: Tue, 19 Apr 2016 12:26:08 +0200
+Message-ID: <571607C0.10909@semihalf.com>
+References: <1460740008-19489-1-git-send-email-tn@semihalf.com>
+ <1460740008-19489-13-git-send-email-tn@semihalf.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"; Format="flowed"
+Content-Type: text/plain; charset=windows-1252; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
-In-reply-to: <1460654743-7896-7-git-send-email-lorenzo.pieralisi-5wv7dgnIgG8@public.gmane.org>
-List-Unsubscribe: <https://lists.linuxfoundation.org/mailman/options/iommu>,
-	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.linuxfoundation.org/pipermail/iommu/>
-List-Post: <mailto:iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
-List-Help: <mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.linuxfoundation.org/mailman/listinfo/iommu>,
-	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=subscribe>
-Sender: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
-Errors-To: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
-To: Lorenzo Pieralisi <lorenzo.pieralisi-5wv7dgnIgG8@public.gmane.org>, iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
-Cc: "Rafael J. Wysocki" <rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org>, Krzysztof Kozlowski <k.kozlowski-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org>, Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>, Marc Zyngier <marc.zyngier-5wv7dgnIgG8@public.gmane.org>, Tomasz Nowicki <tn-nYOzD4b6Jr9Wk0Htik3J/w@public.gmane.org>, Will Deacon <will.deacon-5wv7dgnIgG8@public.gmane.org>, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Sinan Kaya <okaya-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Hanjun Guo <hanjun.guo-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Jon Masters <jcm-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Matthias Brugger <matthias.bgg-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1460740008-19489-13-git-send-email-tn@semihalf.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: helgaas@kernel.org, arnd@arndb.de, will.deacon@arm.com, catalin.marinas@arm.com, rafael@kernel.org
+Cc: hanjun.guo@linaro.org, Lorenzo.Pieralisi@arm.com, okaya@codeaurora.org, jiang.liu@linux.intel.com, jchandra@broadcom.com, robert.richter@caviumnetworks.com, mw@semihalf.com, Liviu.Dudau@arm.com, ddaney@caviumnetworks.com, wangyijing@huawei.com, Suravee.Suthikulpanit@amd.com, msalter@redhat.com, linux-pci@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linaro-acpi@lists.linaro.org, jcm@redhat.com
 List-Id: linux-acpi@vger.kernel.org
 
-Hello,
-
-On 2016-04-14 19:25, Lorenzo Pieralisi wrote:
-> On systems booting with ACPI, the IOMMU drivers require the same
-> kind of id mapping carried out with a DT tree through the of_xlate()
-> API in order to map devices identifiers to IOMMU ones.
+On 15.04.2016 19:06, Tomasz Nowicki wrote:
+> Passes 1.x miss PCI enhanced allocation (EA) header for fixed-BARs,
+> thus these passes should use Cavium-specific config access functions
+> that synthesize the missing EA capabilities.
 >
-> On ACPI systems, since DT nodes are not present (ie struct
-> device.of_node == NULL), to identify the device requiring the translation
-> the struct device_node (and the structure used to pass translation
-> information - struct of_phandle_args - that contains a struct device_node)
-> cannot be used, so a generic translation structure to be used for IOMMU
-> mapping should be defined, based on the firmware agnostic fwnode_handle
-> type.
+> We already have DT driver which addresses errata requirements and
+> allows to use special PCI config accessors. Currently this driver uses
+> compatible = "cavium,pci-host-thunder-ecam" to mach against the errata.
+> For ACPI case we need explicit errata number and corresponding
+> DECLARE_ACPI_MCFG_FIXUP fixup code.
 >
-> This patch mechanically refactors/renames the of_xlate API to make
-> it DT agnostic, by declaring a new type (struct iommu_fwspec), that
-> allows the kernel to pass a device identifier (fwnode - which can
-> represent either a DT node or an IOMMU FW node) and by changing the
-> of_xlate signature so that it does not take anymore the DT specific
-> of_phandle_args argument and replaces it with the DT agnostic
-> iommu_fwspec one.
->
-> Signed-off-by: Lorenzo Pieralisi <lorenzo.pieralisi-5wv7dgnIgG8@public.gmane.org>
-> Cc: Matthias Brugger <matthias.bgg-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-> Cc: Will Deacon <will.deacon-5wv7dgnIgG8@public.gmane.org>
-> Cc: Hanjun Guo <hanjun.guo-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
-> Cc: Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-> Cc: Krzysztof Kozlowski <k.kozlowski-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org>
-> Cc: Robin Murphy <robin.murphy-5wv7dgnIgG8@public.gmane.org>
-> Cc: Tomasz Nowicki <tn-nYOzD4b6Jr9Wk0Htik3J/w@public.gmane.org>
-> Cc: Joerg Roedel <joro-zLv9SwRftAIdnm+yROfE0A@public.gmane.org>
-> Cc: Marek Szyprowski <m.szyprowski-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org>
-
-I'm not sure if this is the right approach, although I have not enough
-knowledge on ACPI firmware. Do you plan to rewrite all subsystems to the
-new "fwspec" based interface? Right now of_xlate is rather common
-interface used by various subsystems. Maybe it will be much easier to
-just add acpi_xlate callback and plumb it to the generic code? Maybe later
-when similar code will be in other subsystems and drivers, it can be
-unified, having much more real use cases?
-
+> Signed-off-by: Tomasz Nowicki <tn@semihalf.com>
 > ---
->   drivers/iommu/arm-smmu.c     | 12 +++++++-----
->   drivers/iommu/exynos-iommu.c | 11 +++++++----
->   drivers/iommu/mtk_iommu.c    | 13 ++++++++-----
->   drivers/iommu/of_iommu.c     | 20 ++++++++++++++++++--
->   include/linux/iommu.h        | 24 ++++++++++++++++++++----
->   5 files changed, 60 insertions(+), 20 deletions(-)
+>   arch/arm64/Kconfig                  | 14 ++++++++++++++
+>   arch/arm64/include/asm/cpufeature.h |  3 ++-
+>   arch/arm64/kernel/cpu_errata.c      |  8 ++++++++
+>   drivers/pci/host/pci-thunder-ecam.c | 35 +++++++++++++++++++++++++++++++++++
+>   4 files changed, 59 insertions(+), 1 deletion(-)
 >
-> diff --git a/drivers/iommu/arm-smmu.c b/drivers/iommu/arm-smmu.c
-> index 6c42770..84bcff7 100644
-> --- a/drivers/iommu/arm-smmu.c
-> +++ b/drivers/iommu/arm-smmu.c
-> @@ -1440,18 +1440,20 @@ out_unlock:
->   	return ret;
->   }
->   
-> -static int arm_smmu_of_xlate(struct device *dev, struct of_phandle_args *args)
-> +static int arm_smmu_fw_xlate(struct device *dev, struct iommu_fwspec *args)
->   {
->   	struct arm_smmu_device *smmu;
-> -	struct platform_device *smmu_pdev;
-> +	struct platform_device *smmu_pdev = NULL;
+> diff --git a/arch/arm64/Kconfig b/arch/arm64/Kconfig
+> index 1bded87..b7614b8 100644
+> --- a/arch/arm64/Kconfig
+> +++ b/arch/arm64/Kconfig
+> @@ -445,6 +445,20 @@ config CAVIUM_ERRATUM_27456
+>
+>   	  If unsure, say Y.
+>
+> +config CAVIUM_ERRATUM_24575
+> +	bool "Cavium erratum 24575: Enhanced Allocation (EA) emualaion"
+> +	default y
+> +	help
+> +	  Enable workaround for erratum 24575.
 > +
-> +	if (is_of_node(args->fwnode))
-> +		smmu_pdev = of_find_device_by_node(to_of_node(args->fwnode));
->   
-> -	smmu_pdev = of_find_device_by_node(args->np);
->   	if (!smmu_pdev)
->   		return -ENODEV;
->   
->   	smmu = platform_get_drvdata(smmu_pdev);
->   
-> -	return arm_smmu_add_dev_streamid(smmu, dev, args->args[0]);
-> +	return arm_smmu_add_dev_streamid(smmu, dev, args->param[0]);
->   }
->   
->   static struct iommu_ops arm_smmu_ops = {
-> @@ -1468,7 +1470,7 @@ static struct iommu_ops arm_smmu_ops = {
->   	.device_group		= arm_smmu_device_group,
->   	.domain_get_attr	= arm_smmu_domain_get_attr,
->   	.domain_set_attr	= arm_smmu_domain_set_attr,
-> -	.of_xlate		= arm_smmu_of_xlate,
-> +	.fw_xlate		= arm_smmu_fw_xlate,
->   	.pgsize_bitmap		= -1UL, /* Restricted during device attach */
->   };
->   
-> diff --git a/drivers/iommu/exynos-iommu.c b/drivers/iommu/exynos-iommu.c
-> index 5ecc86c..84ff5bb 100644
-> --- a/drivers/iommu/exynos-iommu.c
-> +++ b/drivers/iommu/exynos-iommu.c
-> @@ -1250,13 +1250,16 @@ static void exynos_iommu_remove_device(struct device *dev)
->   	iommu_group_remove_device(dev);
->   }
->   
-> -static int exynos_iommu_of_xlate(struct device *dev,
-> -				 struct of_phandle_args *spec)
-> +static int exynos_iommu_fw_xlate(struct device *dev,
-> +				 struct iommu_fwspec *args)
->   {
->   	struct exynos_iommu_owner *owner = dev->archdata.iommu;
-> -	struct platform_device *sysmmu = of_find_device_by_node(spec->np);
-> +	struct platform_device *sysmmu = NULL;
->   	struct sysmmu_drvdata *data;
->   
-> +	if (is_of_node(args->fwnode))
-> +		sysmmu = of_find_device_by_node(to_of_node(args->fwnode));
+> +	  Early versions of the Cavium Thunder CN88XX processor are missing
+> +	  Enhanced Allocation (EA) capabilities for the fixed BAR addresses used
+> +	  by the on-SoC hardware blocks. The erratum adds config access
+> +	  functions that synthesize the missing EA capabilities for versions
+> +	  that are missing that information.
 > +
->   	if (!sysmmu)
->   		return -ENODEV;
->   
-> @@ -1290,7 +1293,7 @@ static struct iommu_ops exynos_iommu_ops = {
->   	.add_device = exynos_iommu_add_device,
->   	.remove_device = exynos_iommu_remove_device,
->   	.pgsize_bitmap = SECT_SIZE | LPAGE_SIZE | SPAGE_SIZE,
-> -	.of_xlate = exynos_iommu_of_xlate,
-> +	.fw_xlate = exynos_iommu_fw_xlate,
->   };
->   
->   static bool init_done;
-> diff --git a/drivers/iommu/mtk_iommu.c b/drivers/iommu/mtk_iommu.c
-> index 929a66a..e08dc0a 100644
-> --- a/drivers/iommu/mtk_iommu.c
-> +++ b/drivers/iommu/mtk_iommu.c
-> @@ -436,20 +436,23 @@ static struct iommu_group *mtk_iommu_device_group(struct device *dev)
->   	return data->m4u_group;
->   }
->   
-> -static int mtk_iommu_of_xlate(struct device *dev, struct of_phandle_args *args)
-> +static int mtk_iommu_fw_xlate(struct device *dev, struct iommu_fwspec *args)
->   {
->   	struct mtk_iommu_client_priv *head, *priv, *next;
->   	struct platform_device *m4updev;
->   
-> -	if (args->args_count != 1) {
-> +	if (!is_of_node(args->fwnode))
-> +		return -ENODEV;
+> +	  If unsure, say Y.
 > +
-> +	if (args->param_count != 1) {
->   		dev_err(dev, "invalid #iommu-cells(%d) property for IOMMU\n",
-> -			args->args_count);
-> +			args->param_count);
->   		return -EINVAL;
+>   endmenu
+>
+>
+> diff --git a/arch/arm64/include/asm/cpufeature.h b/arch/arm64/include/asm/cpufeature.h
+> index b9b6494..a78364e 100644
+> --- a/arch/arm64/include/asm/cpufeature.h
+> +++ b/arch/arm64/include/asm/cpufeature.h
+> @@ -35,8 +35,9 @@
+>   #define ARM64_ALT_PAN_NOT_UAO			10
+>   #define ARM64_HAS_VIRT_HOST_EXTN		11
+>   #define ARM64_WORKAROUND_CAVIUM_27456		12
+> +#define ARM64_WORKAROUND_CAVIUM_24575		13
+>
+> -#define ARM64_NCAPS				13
+> +#define ARM64_NCAPS				14
+>
+>   #ifndef __ASSEMBLY__
+>
+> diff --git a/arch/arm64/kernel/cpu_errata.c b/arch/arm64/kernel/cpu_errata.c
+> index 06afd04..89c13d7 100644
+> --- a/arch/arm64/kernel/cpu_errata.c
+> +++ b/arch/arm64/kernel/cpu_errata.c
+> @@ -97,6 +97,14 @@ const struct arm64_cpu_capabilities arm64_errata[] = {
+>   			   (1 << MIDR_VARIANT_SHIFT) | 1),
+>   	},
+>   #endif
+> +#ifdef CONFIG_CAVIUM_ERRATUM_24575
+> +	{
+> +	/* Cavium ThunderX, pass 1.x */
+> +		.desc = "Cavium erratum 24575",
+> +		.capability = ARM64_WORKAROUND_CAVIUM_24575,
+> +		MIDR_RANGE(MIDR_THUNDERX, 0x00, 0x01),
+> +	},
+> +#endif
+>   	{
 >   	}
->   
->   	if (!dev->archdata.iommu) {
->   		/* Get the m4u device */
-> -		m4updev = of_find_device_by_node(args->np);
-> +		m4updev = of_find_device_by_node(to_of_node(args->fwnode));
->   		of_node_put(args->np);
->   		if (WARN_ON(!m4updev))
->   			return -EINVAL;
-> @@ -469,7 +472,7 @@ static int mtk_iommu_of_xlate(struct device *dev, struct of_phandle_args *args)
->   	if (!priv)
->   		goto err_free_mem;
->   
-> -	priv->mtk_m4u_id = args->args[0];
-> +	priv->mtk_m4u_id = args->param[0];
->   	list_add_tail(&priv->client, &head->client);
->   
->   	return 0;
-> diff --git a/drivers/iommu/of_iommu.c b/drivers/iommu/of_iommu.c
-> index 910826c..331dd78 100644
-> --- a/drivers/iommu/of_iommu.c
-> +++ b/drivers/iommu/of_iommu.c
-> @@ -135,6 +135,18 @@ struct iommu_ops *of_iommu_get_ops(struct device_node *np)
->   	return ops;
->   }
->   
-> +static void of_phandle_args_to_fwspec(struct of_phandle_args *iommu_data,
-> +				      struct iommu_fwspec *fwspec)
+>   };
+> diff --git a/drivers/pci/host/pci-thunder-ecam.c b/drivers/pci/host/pci-thunder-ecam.c
+> index f67c6d7..01de697 100644
+> --- a/drivers/pci/host/pci-thunder-ecam.c
+> +++ b/drivers/pci/host/pci-thunder-ecam.c
+> @@ -11,10 +11,14 @@
+>   #include <linux/ioport.h>
+>   #include <linux/of_pci.h>
+>   #include <linux/of.h>
+> +#include <linux/pci-acpi.h>
+>   #include <linux/platform_device.h>
+>
+> +#include <asm/virt.h>
+> +
+>   #include "../ecam.h"
+>
+> +
+>   static void set_val(u32 v, int where, int size, u32 *val)
+>   {
+>   	int shift = (where & 3) * 8;
+> @@ -376,5 +380,36 @@ static struct platform_driver thunder_ecam_driver = {
+>   };
+>   module_platform_driver(thunder_ecam_driver);
+>
+> +#ifdef CONFIG_ACPI
+> +
+> +static bool needs_cavium_erratum_24575(struct pci_cfg_fixup *fixup,
+> +				      struct acpi_pci_root *root)
 > +{
-> +	int i;
-> +
-> +	fwspec->fwnode = iommu_data->np ? &iommu_data->np->fwnode : NULL;
-> +	fwspec->param_count = iommu_data->args_count;
-> +
-> +	for (i = 0; i < iommu_data->args_count; i++)
-> +		fwspec->param[i] = iommu_data->args[i];
+> +	/*
+> +	 * We must match errata code and be hypervisor, quirk does not apply
+> +	 * for virtual machines.
+> +	 */
+> +	return cpus_have_cap(ARM64_WORKAROUND_CAVIUM_24575) &&
+> +	       is_hyp_mode_available();
 > +}
 > +
->   static int __get_pci_rid(struct pci_dev *pdev, u16 alias, void *data)
->   {
->   	struct of_phandle_args *iommu_spec = data;
-> @@ -148,6 +160,7 @@ struct iommu_ops *of_iommu_configure(struct device *dev,
->   				     struct device_node *master_np)
->   {
->   	struct of_phandle_args iommu_spec;
-> +	struct iommu_fwspec fwspec;
->   	struct device_node *np = NULL;
->   	struct iommu_ops *ops = NULL;
->   	int idx = 0;
-> @@ -170,8 +183,9 @@ struct iommu_ops *of_iommu_configure(struct device *dev,
->   
->   		iommu_spec.np = np;
->   		iommu_spec.args_count = 1;
-> +		of_phandle_args_to_fwspec(&iommu_spec, &fwspec);
->   		ops = of_iommu_get_ops(np);
-> -		if (!ops || !ops->of_xlate || ops->of_xlate(dev, &iommu_spec))
-> +		if (!ops || !ops->fw_xlate || ops->fw_xlate(dev, &fwspec))
->   			goto err_put_node;
->   
->   		of_node_put(np);
-> @@ -189,7 +203,9 @@ struct iommu_ops *of_iommu_configure(struct device *dev,
->   		np = iommu_spec.np;
->   		ops = of_iommu_get_ops(np);
->   
-> -		if (!ops || !ops->of_xlate || ops->of_xlate(dev, &iommu_spec))
-> +		of_phandle_args_to_fwspec(&iommu_spec, &fwspec);
+> +DECLARE_ACPI_MCFG_FIXUP(NULL, needs_cavium_erratum_24575, &pci_thunder_ecam_ops,
+> +			0, PCI_MCFG_BUS_ANY);
+> +DECLARE_ACPI_MCFG_FIXUP(NULL, needs_cavium_erratum_24575, &pci_thunder_ecam_ops,
+> +			1, PCI_MCFG_BUS_ANY);
+> +DECLARE_ACPI_MCFG_FIXUP(NULL, needs_cavium_erratum_24575, &pci_thunder_ecam_ops,
+> +			2, PCI_MCFG_BUS_ANY);
+> +DECLARE_ACPI_MCFG_FIXUP(NULL, needs_cavium_erratum_24575, &pci_thunder_ecam_ops,
+> +			3, PCI_MCFG_BUS_ANY);
+> +DECLARE_ACPI_MCFG_FIXUP(NULL, needs_cavium_erratum_24575, &pci_thunder_ecam_ops,
+> +			10, PCI_MCFG_BUS_ANY);
+> +DECLARE_ACPI_MCFG_FIXUP(NULL, needs_cavium_erratum_24575, &pci_thunder_ecam_ops,
+> +			11, PCI_MCFG_BUS_ANY);
+> +DECLARE_ACPI_MCFG_FIXUP(NULL, needs_cavium_erratum_24575, &pci_thunder_ecam_ops,
+> +			12, PCI_MCFG_BUS_ANY);
+> +DECLARE_ACPI_MCFG_FIXUP(NULL, needs_cavium_erratum_24575, &pci_thunder_ecam_ops,
+> +			13, PCI_MCFG_BUS_ANY);
+> +#endif
 > +
-> +		if (!ops || !ops->fw_xlate || ops->fw_xlate(dev, &fwspec))
->   			goto err_put_node;
->   
->   		of_node_put(np);
-> diff --git a/include/linux/iommu.h b/include/linux/iommu.h
-> index 0bba25e..5184d81 100644
-> --- a/include/linux/iommu.h
-> +++ b/include/linux/iommu.h
-> @@ -85,6 +85,24 @@ struct iommu_domain {
->   	void *iova_cookie;
->   };
->   
-> +#define IOMMU_MAP_SPEC_PARAMS 16
-> +
-> +/**
-> + * struct iommu_fwspec - generic IOMMU specifier structure
-> + *
-> + * @fwnode:		Pointer to a firmware-specific descriptor
-> + * @param_count:	Number of device-specific parameters
-> + * @param:		Device-specific parameters
-> + *
-> + * This structure, directly modeled after of_phandle_args, is used to
-> + * pass a device-specific description of an IOMMU mapping.
-> + */
-> +struct iommu_fwspec {
-> +	struct fwnode_handle *fwnode;
-> +	int param_count;
-> +	u32 param[IOMMU_MAP_SPEC_PARAMS];
-> +};
-> +
->   enum iommu_cap {
->   	IOMMU_CAP_CACHE_COHERENCY,	/* IOMMU can enforce cache coherent DMA
->   					   transactions */
-> @@ -155,7 +173,7 @@ struct iommu_dm_region {
->    * @domain_window_disable: Disable a particular window for a domain
->    * @domain_set_windows: Set the number of windows for a domain
->    * @domain_get_windows: Return the number of windows for a domain
-> - * @of_xlate: add OF master IDs to iommu grouping
-> + * @fw_xlate: add FW master IDs to iommu grouping
->    * @pgsize_bitmap: bitmap of supported page sizes
->    * @priv: per-instance data private to the iommu driver
->    */
-> @@ -196,9 +214,7 @@ struct iommu_ops {
->   	/* Get the number of windows per domain */
->   	u32 (*domain_get_windows)(struct iommu_domain *domain);
->   
-> -#ifdef CONFIG_OF_IOMMU
-> -	int (*of_xlate)(struct device *dev, struct of_phandle_args *args);
-> -#endif
-> +	int (*fw_xlate)(struct device *dev, struct iommu_fwspec *args);
->   
->   	unsigned long pgsize_bitmap;
->   	void *priv;
 
-Best regards
--- 
-Marek Szyprowski, PhD
-Samsung R&D Institute Poland
+I wonder if we can identify quirk based on _DSD properties, like that:
+
+Name (_DSD, Package () {
+	ToUUID("daffd814-6eba-4d8c-8a91-bc9bbf4aa301"),
+	Package () {
+		Package (2) {"cavium,pci-host-thunder-ecam", 1},
+	}
+})
+
+similar for PEM driver:
+
+Name (_DSD, Package () {
+	ToUUID("daffd814-6eba-4d8c-8a91-bc9bbf4aa301"),
+	Package () {
+		Package (2) {"cavium,pci-host-thunder-pem", 1},
+	}
+})
+
+Do you think it is right thing to do?
+
+Tomasz
