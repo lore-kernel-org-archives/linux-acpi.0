@@ -1,111 +1,315 @@
-From: David Daney <ddaney@caviumnetworks.com>
-Subject: Re: [PATCH v4 00/14] ACPI NUMA support for ARM64
-Date: Tue, 19 Apr 2016 11:44:01 -0700
-Message-ID: <57167C71.5010800@caviumnetworks.com>
-References: <1461014052-30788-1-git-send-email-ddaney.cavm@gmail.com>
+From: Alexey Klimov <alexey.klimov@arm.com>
+Subject: Re: [PATCH] mailbox: pcc: Support HW-Reduced Communication Subspace
+ Type 2
+Date: Tue, 19 Apr 2016 20:02:34 +0100
+Message-ID: <20160419190234.GA11479@arm.com>
+References: <1459894447-15400-1-git-send-email-hotran@apm.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1461014052-30788-1-git-send-email-ddaney.cavm@gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: David Daney <ddaney.cavm@gmail.com>
-Cc: Will Deacon <will.deacon@arm.com>, linux-arm-kernel@lists.infradead.org, Mark Rutland <mark.rutland@arm.com>, Catalin Marinas <catalin.marinas@arm.com>, Tony Luck <tony.luck@intel.com>, Fenghua Yu <fenghua.yu@intel.com>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, x86@kernel.org, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Rob Herring <robh+dt@kernel.org>, Frank Rowand <frowand.list@gmail.com>, Grant Likely <grant.likely@linaro.org>, Robert Moore <robert.moore@intel.com>, Lv Zheng <lv.zheng@intel.com>, Hanjun Guo <hanjun.guo@linaro.org>, Marc Zyngier <Marc.Zyngier@arm.com>, linux-ia64@vger.kernel.org, linux-acpi@vger.kernel.org, devel@acpica.org, linux-kernel@vger.kernel.org, Robert Richter <rrichter@cavium.com>, David Daney <david.daney@cavium.com>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from foss.arm.com ([217.140.101.70]:42483 "EHLO foss.arm.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S933880AbcDSTCs (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 19 Apr 2016 15:02:48 -0400
+Content-Disposition: inline
+In-Reply-To: <1459894447-15400-1-git-send-email-hotran@apm.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: hotran@apm.com
+Cc: jassisinghbrar@gmail.com, rjw@rjwysocki.net, lenb@kernel.org, robert.moore@intel.com, lv.zheng@intel.com, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, devel@acpica.org, lho@apm.com, dhdang@apm.com
 
-There is a build  problem on ia64 that slipped by.  It is easy to 
-correct, so I will have to send another version of the patches.
+Hi Hoan,
 
-Sorry for the noise,
-David Daney
+On Tue, Apr 5, 2016 at 11:14 PM, hotran <hotran@apm.com> wrote:
+> ACPI 6.1 has a HW-Reduced Communication Subspace Type 2 intended for
+> use on HW-Reduce ACPI Platform, which requires read-modify-write sequence
+> to acknowledge doorbell interrupt. This patch provides the implementation
+> for the Communication Subspace Type 2.
+>
+> Signed-off-by: Hoan Tran <hotran@apm.com>
+> ---
+>  drivers/mailbox/pcc.c | 384 +++++++++++++++++++++++++++++++++++++-------------
+>  include/acpi/actbl3.h |   8 +-
+>  2 files changed, 294 insertions(+), 98 deletions(-)
+>
+> diff --git a/drivers/mailbox/pcc.c b/drivers/mailbox/pcc.c
+> index 0ddf638..4ed8153 100644
+> --- a/drivers/mailbox/pcc.c
+> +++ b/drivers/mailbox/pcc.c
+> @@ -59,6 +59,7 @@
+>  #include <linux/delay.h>
+>  #include <linux/io.h>
+>  #include <linux/init.h>
+> +#include <linux/interrupt.h>
+>  #include <linux/list.h>
+>  #include <linux/platform_device.h>
+>  #include <linux/mailbox_controller.h>
+> @@ -68,27 +69,178 @@
+>  #include "mailbox.h"
+>
+>  #define MAX_PCC_SUBSPACES      256
+> +#define MBOX_IRQ_NAME          "pcc-mbox"
+>
+> -static struct mbox_chan *pcc_mbox_channels;
+> +/**
+> + * PCC mailbox channel information
+> + *
+> + * @chan:      Pointer to mailbox communication channel
+> + * @pcc_doorbell_vaddr: PCC doorbell register address
+> + * @pcc_doorbell_ack_vaddr: PCC doorbell ack register address
+> + * @irq:       Interrupt number of the channel
+> + */
+> +struct pcc_mbox_chan {
+> +       struct mbox_chan        *chan;
+> +       void __iomem            *pcc_doorbell_vaddr;
+> +       void __iomem            *pcc_doorbell_ack_vaddr;
+> +       int                     irq;
+> +};
+>
+> -/* Array of cached virtual address for doorbell registers */
+> -static void __iomem **pcc_doorbell_vaddr;
+> +/**
+> + * PCC mailbox controller data
+> + *
+> + * @mb_ctrl:   Representation of the communication channel controller
+> + * @mbox_chan: Array of PCC mailbox channels of the controller
+> + * @chans:     Array of mailbox communication channels
+> + */
+> +struct pcc_mbox {
+> +       struct mbox_controller  mbox_ctrl;
+> +       struct pcc_mbox_chan    *mbox_chans;
+> +       struct mbox_chan        *chans;
+> +};
+> +
+> +static struct pcc_mbox pcc_mbox_ctx = {};
+>
+> -static struct mbox_controller pcc_mbox_ctrl = {};
+>  /**
+>   * get_pcc_channel - Given a PCC subspace idx, get
+> - *     the respective mbox_channel.
+> + *     the respective pcc mbox_channel.
+>   * @id: PCC subspace index.
+>   *
+>   * Return: ERR_PTR(errno) if error, else pointer
+> - *     to mbox channel.
+> + *     to pcc mbox channel.
+>   */
+> -static struct mbox_chan *get_pcc_channel(int id)
+> +static struct pcc_mbox_chan *get_pcc_channel(int id)
+>  {
+> -       if (id < 0 || id > pcc_mbox_ctrl.num_chans)
+> +       if (id < 0 || id > pcc_mbox_ctx.mbox_ctrl.num_chans)
+>                 return ERR_PTR(-ENOENT);
+>
+> -       return &pcc_mbox_channels[id];
+> +       return &pcc_mbox_ctx.mbox_chans[id];
+> +}
+> +
+> +/*
+> + * PCC can be used with perf critical drivers such as CPPC
+> + * So it makes sense to locally cache the virtual address and
+> + * use it to read/write to PCC registers such as doorbell register
+> + *
+> + * The below read_register and write_registers are used to read and
+> + * write from perf critical registers such as PCC doorbell register
+> + */
+> +static int read_register(void __iomem *vaddr, u64 *val, unsigned int bit_width)
+> +{
+> +       int ret_val = 0;
+> +
+> +       switch (bit_width) {
+> +       case 8:
+> +               *val = readb(vaddr);
+> +               break;
+> +       case 16:
+> +               *val = readw(vaddr);
+> +               break;
+> +       case 32:
+> +               *val = readl(vaddr);
+> +               break;
+> +       case 64:
+> +               *val = readq(vaddr);
+> +               break;
+> +       default:
+> +               pr_debug("Error: Cannot read register of %u bit width",
+> +                       bit_width);
+> +               ret_val = -EFAULT;
+> +               break;
+> +       }
+> +       return ret_val;
+> +}
+> +
+> +static int write_register(void __iomem *vaddr, u64 val, unsigned int bit_width)
+> +{
+> +       int ret_val = 0;
+> +
+> +       switch (bit_width) {
+> +       case 8:
+> +               writeb(val, vaddr);
+> +               break;
+> +       case 16:
+> +               writew(val, vaddr);
+> +               break;
+> +       case 32:
+> +               writel(val, vaddr);
+> +               break;
+> +       case 64:
+> +               writeq(val, vaddr);
+> +               break;
+> +       default:
+> +               pr_debug("Error: Cannot write register of %u bit width",
+> +                       bit_width);
+> +               ret_val = -EFAULT;
+> +               break;
+> +       }
+> +       return ret_val;
+> +}
+> +
+> +/**
+> + * pcc_map_interrupt - Map a PCC subspace GSI to a linux IRQ number
+> + * @interrupt: GSI number.
+> + * @flags: interrupt flags
+> + *
+> + * Returns: a valid linux IRQ number on success
+> + *             0 or -EINVAL on failure
+> + */
+> +static int pcc_map_interrupt(u32 interrupt, u32 flags)
+> +{
+> +       int trigger, polarity;
+> +
+> +       if (!interrupt)
+> +               return 0;
+> +
+> +       trigger = (flags & ACPI_PCCT_INTERRUPT_MODE) ? ACPI_EDGE_SENSITIVE
+> +                       : ACPI_LEVEL_SENSITIVE;
+> +
+> +       polarity = (flags & ACPI_PCCT_INTERRUPT_POLARITY) ? ACPI_ACTIVE_LOW
+> +                       : ACPI_ACTIVE_HIGH;
+> +
+> +       return acpi_register_gsi(NULL, interrupt, trigger, polarity);
+> +}
+> +
+> +/**
+> + * pcc_mbox_irq - PCC mailbox interrupt handler
+> + */
+> +static irqreturn_t pcc_mbox_irq(int irq, void *id)
+> +{
+> +       struct acpi_generic_address *doorbell_ack;
+> +       struct acpi_pcct_hw_reduced *pcct_ss;
+> +       struct pcc_mbox_chan *pcc_chan = id;
+> +       u64 doorbell_ack_preserve;
+> +       struct mbox_chan *chan;
+> +       u64 doorbell_ack_write;
+> +       u64 doorbell_ack_val;
+> +       int ret = 0;
+
+Could you please check that you really need this initialization?
+
+> +       chan = pcc_chan->chan;
+> +       pcct_ss = chan->con_priv;
+> +
+> +       /* Clear interrupt status */
+> +       if (pcct_ss->header.type == ACPI_PCCT_TYPE_HW_REDUCED_SUBSPACE_TYPE2) {
+> +               doorbell_ack = &pcct_ss->doorbell_ack_register;
+> +               doorbell_ack_preserve = pcct_ss->ack_preserve_mask;
+> +               doorbell_ack_write = pcct_ss->ack_write_mask;
+> +
+> +               ret = read_register(pcc_chan->pcc_doorbell_ack_vaddr,
+> +                                   &doorbell_ack_val,
+> +                                   doorbell_ack->bit_width);
+> +               if (ret)
+> +                       return ret;
+> +
+> +               ret = write_register(pcc_chan->pcc_doorbell_ack_vaddr,
+> +                                    (doorbell_ack_val & doorbell_ack_preserve)
+> +                                       | doorbell_ack_write,
+> +                                    doorbell_ack->bit_width);
+> +               if (ret)
+> +                       return ret;
+
+Could you please check that really need to return -EFAULT here in case of error?
+Looking through irqreturn values it looks like IRQ_NONE is more proper value.
 
 
-On 04/18/2016 02:13 PM, David Daney wrote:
-> From: David Daney <david.daney@cavium.com>
+> +       }
+> +
+> +       mbox_chan_received_data(chan, NULL);
+> +
+> +       return IRQ_HANDLED;
+>  }
 >
-> Based on v16 of device-tree NUMA patch set for arm64 [1],this patch
-> set introduce the ACPI based configuration to provide NUMA
-> information.
+
+[...]
+
+>  /**
+> + * pcc_parse_subspace_irq - Parse the PCC IRQ and PCC ACK register
+> + *             There should be one entry per PCC client.
+> + * @mbox_chans: Pointer to the PCC mailbox channel data
+> + * @pcct_ss: Pointer to the ACPI subtable header under the PCCT.
+> + *
+> + * Return: 0 for Success, else errno.
+> + *
+> + * This gets called for each entry in the PCC table.
+> + */
+> +static int pcc_parse_subspace_irq(struct pcc_mbox_chan *mbox_chans,
+> +               struct acpi_pcct_hw_reduced *pcct_ss)
+> +{
+> +       mbox_chans->irq = pcc_map_interrupt(pcct_ss->doorbell_interrupt,
+> +                                           (u32)pcct_ss->flags);
+> +       if (mbox_chans->irq <= 0) {
+> +               pr_err("PCC GSI %d not registered\n",
+> +                      pcct_ss->doorbell_interrupt);
+> +               return -EINVAL;
+> +       }
+> +
+> +       if (pcct_ss->header.type
+> +               == ACPI_PCCT_TYPE_HW_REDUCED_SUBSPACE_TYPE2) {
+> +               mbox_chans->pcc_doorbell_ack_vaddr = acpi_os_ioremap(
+> +                               pcct_ss->doorbell_ack_register.address,
+> +                               pcct_ss->doorbell_ack_register.bit_width / 8);
+> +               if (!mbox_chans->pcc_doorbell_ack_vaddr) {
+> +                       pr_err("Failed to ioremap PCC ACK register\n");
+> +                       return -ENOMEM;
+> +               }
+> +       }
+> +
+> +       return 0;
+> +}
+> +
+> +/**
+>   * acpi_pcc_probe - Parse the ACPI tree for the PCCT.
+>   *
+>   * Return: 0 for Success, else errno.
+> @@ -316,7 +479,8 @@ static int __init acpi_pcc_probe(void)
+>         acpi_size pcct_tbl_header_size;
+>         struct acpi_table_header *pcct_tbl;
+>         struct acpi_subtable_header *pcct_entry;
+> -       int count, i;
+> +       struct acpi_table_pcct *acpi_pcct_tbl;
+> +       int count, i, rc;
+>         acpi_status status = AE_OK;
 >
-> ACPI 5.1 already introduced NUMA support for ARM64, which can get the
-> NUMA domain information from SRAT and SLIT table, so parse those two
-> tables to get mappings from cpu/mem to numa node configuration and
-> system locality.
+>         /* Search for PCCT */
+> @@ -335,21 +499,29 @@ static int __init acpi_pcc_probe(void)
+>                         parse_pcc_subspace, MAX_PCC_SUBSPACES);
 >
-> v4 updates:
->
->   - Updated from Hanjun Guo's v3 patches.
->
->   - Rebased on top of v16 of device-tree NUMA patches.
->
->   - Reordered some of the changes so that we don't introduce code and
->     then change it several times in the patch set.  New code is
->     introduced in its final form.  Code reused from x86 is first moved
->     with no change, and then a separate patch to make any needed
->     changes.
->
->   - code that is used only by ia64, moved to architecture specific
->     files.
->
-> v3 updates:
->   - Deep investigation about the ACPI_DEBUG_PRINT() and remvoe
->     that for acpi/numa.c (patch 2/12)
->
->   - Remove the duplicate NULL check for table print (patch 3/12)
->
->   - Introduce CONFIG_ACPI_HAS_NUMA_ARCH_FIXUP to remove duplicate
->     dummy function for acpi_numa_arch_fixup()
->
->   - Solve the problem that the mapping from logical cpu to numa node
->     is wrong which spotted out by Lorenzo
->
->   - cleanups for x86 and move acpi_numa_slit_init() and some other
->     functions to common place, then reduce the duplicate of x86
->     and arm64 (patch 7-12/12).
->
->   - rebased on top of 4.4 and Ganapat's v9 patch set.
->
-> [1]: https://lkml.org/lkml/2016/4/8/571
->
-> David Daney (1):
->    acpi, numa, srat: Improve SRAT error detection and add messages.
->
-> Hanjun Guo (11):
->    acpi, numa: Use pr_fmt() instead of printk
->    acpi, numa: Replace ACPI_DEBUG_PRINT() with pr_debug()
->    acpi, numa: remove duplicate NULL check
->    acpi, numa: move acpi_numa_slit_init() to drivers/acpi/numa.c
->    arm64, numa: rework numa_add_memblk()
->    x86, acpi, numa: cleanup acpi_numa_processor_affinity_init()
->    acpi, numa: move bad_srat() and srat_disabled() to
->      drivers/acpi/numa.c
->    acpi, numa: remove unneeded acpi_numa=1
->    acpi, numa: Move acpi_numa_memory_affinity_init() to
->      drivers/acpi/numa.c
->    arm64, acpi, numa: NUMA support based on SRAT and SLIT
->    acpi, numa: Enable ACPI based NUMA on ARM64
->
-> Robert Richter (2):
->    acpi, numa: Move acpi_numa_arch_fixup() to ia64 only
->    arm64, acpi, numa: Default enable ACPI_NUMA with NUMA
->
->   arch/arm64/include/asm/acpi.h |   8 ++
->   arch/arm64/include/asm/numa.h |   2 +
->   arch/arm64/kernel/Makefile    |   1 +
->   arch/arm64/kernel/acpi_numa.c | 149 +++++++++++++++++++++++++++++
->   arch/arm64/kernel/smp.c       |   2 +
->   arch/arm64/mm/numa.c          |  17 ++--
->   arch/ia64/include/asm/acpi.h  |   3 +
->   arch/ia64/kernel/acpi.c       |   2 +-
->   arch/ia64/kernel/setup.c      |   1 +
->   arch/x86/include/asm/acpi.h   |   1 -
->   arch/x86/mm/numa.c            |   2 +-
->   arch/x86/mm/srat.c            | 115 +----------------------
->   drivers/acpi/Kconfig          |   4 +-
->   drivers/acpi/numa.c           | 211 +++++++++++++++++++++++++++++++-----------
->   drivers/of/of_numa.c          |   4 +-
->   include/acpi/acpi_numa.h      |  12 +++
->   include/linux/acpi.h          |  18 +++-
->   17 files changed, 370 insertions(+), 182 deletions(-)
->   create mode 100644 arch/arm64/kernel/acpi_numa.c
->
+>         if (count <= 0) {
+> +               count = acpi_table_parse_entries(ACPI_SIG_PCCT,
+> +                               sizeof(struct acpi_table_pcct),
+> +                               ACPI_PCCT_TYPE_HW_REDUCED_SUBSPACE_TYPE2,
+> +                               parse_pcc_subspace, MAX_PCC_SUBSPACES);
+> +       }
+> +
+> +       if (count <= 0) {
+
+Do I understand this change correctly: in case type1 is present code flow doesn't try to parse type2 tables?
+Is presence of both type2 and type1 prohibited by specs?
+
+>                 pr_err("Error parsing PCC subspaces from PCCT\n");
+>                 return -EINVAL;
+>         }
+
+[...]
+
+Best regards,
+Alexey
