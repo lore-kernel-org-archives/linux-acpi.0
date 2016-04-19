@@ -1,42 +1,32 @@
-From: Sudeep Holla <sudeep.holla@arm.com>
-Subject: Re: [PATCH v4 1/5] ACPI / processor_idle: introduce
- ARCH_SUPPORTS_ACPI_PROCESSOR_CSTATE
-Date: Tue, 19 Apr 2016 14:00:05 +0100
-Message-ID: <57162BD5.90006@arm.com>
-References: <201604192041.pUqHza4O%fengguang.wu@intel.com>
+From: Arnd Bergmann <arnd@arndb.de>
+Subject: Re: [PATCH V6 08/13] PCI: generic, thunder: update to use generic ECAM API
+Date: Tue, 19 Apr 2016 15:06:59 +0200
+Message-ID: <3830999.dF71UWYsBP@wuerfel>
+References: <1460740008-19489-1-git-send-email-tn@semihalf.com> <10639671.xGDtp1R8bk@wuerfel> <5715362A.7070701@semihalf.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-ia64-owner@vger.kernel.org>
-In-Reply-To: <201604192041.pUqHza4O%fengguang.wu@intel.com>
-Sender: linux-ia64-owner@vger.kernel.org
-To: kbuild test robot <lkp@intel.com>
-Cc: Sudeep Holla <sudeep.holla@arm.com>, kbuild-all@01.org, "Rafael J. Wysocki" <rjw@rjwysocki.net>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Al Stone <al.stone@linaro.org>, Prashanth Prakash <pprakash@codeaurora.org>, Ashwin Chaugule <ashwin.chaugule@linaro.org>, x86@kernel.org, linux-ia64@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7Bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <5715362A.7070701@semihalf.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Tomasz Nowicki <tn@semihalf.com>
+Cc: Jayachandran C <jchandra@broadcom.com>, linux-arm-kernel@lists.infradead.org, Bjorn Helgaas <helgaas@kernel.org>, Will Deacon <will.deacon@arm.com>, Catalin Marinas <catalin.marinas@arm.com>, rafael@kernel.org, Hanjun Guo <hanjun.guo@linaro.org>, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, Sinan Kaya <okaya@codeaurora.org>, jiang.liu@linux.intel.com, Jon Masters <jcm@redhat.com>, linaro-acpi@lists.linaro.org, linux-pci@vger.kernel.org, Liviu.Dudau@arm.com, David Daney <ddaney@caviumnetworks.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, robert.richter@caviumnetworks.com, Suravee.Suthikulpanit@amd.com, msalter@redhat.com, Wangyijing <wangyijing@huawei.com>, Marcin Wojtas <mw@semihalf.com>
 List-Id: linux-acpi@vger.kernel.org
 
-Hi,
+On Monday 18 April 2016 21:31:54 Tomasz Nowicki wrote:
+> 
+> Basically the whole content of pci-thunder-ecam.c and pci-thunder-pem.c.
+> 
+> pci-thunder-ecam.c contains config space accessors. Similar for 
+> pci-thunder-pem.c but it also has extra init call (it is now called 
+> thunder_pem_init) which finds and maps related registers.
 
-On 19/04/16 13:49, kbuild test robot wrote:
-> Hi,
->
-> [auto build test ERROR on pm/linux-next]
-> [also build test ERROR on v4.6-rc4 next-20160419]
-> [if your patch is applied to the wrong git tree, please drop us a note to help improving the system]
->
-> url:    https://github.com/0day-ci/linux/commits/Sudeep-Holla/ACPI-processor_idle-Add-ACPI-v6-0-LPI-support/20160419-203500
-> base:   https://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm.git linux-next
-> config: i386-randconfig-x000-201616 (attached as .config)
-> reproduce:
->          # save the attached .config to linux build tree
->          make ARCH=i386
->
-> Note: the linux-review/Sudeep-Holla/ACPI-processor_idle-Add-ACPI-v6-0-LPI-support/20160419-203500 HEAD c51fc2a756d7b0dce908a4ca043d1d458c400af5 builds fine.
->        It only hurts bisectibility.
->
+They seem to do much more than just override the accessors, they actually
+change the contents of the config space as well. Is that really necessary
+on ACPI based systems as well?
 
-Thanks for the report, it's now fixed locally.
-It will part of the next version.
+Another idea: how about moving all of this logic into ACPI and calling
+some AML method to access the config space if the devices are that
+far out of spec.
 
---
-Regards,
-Sudeep
+	Arnd
