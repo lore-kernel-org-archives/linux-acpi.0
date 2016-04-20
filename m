@@ -1,67 +1,50 @@
-From: David Daney <ddaney.cavm@gmail.com>
-Subject: Re: [PATCH v5 12/14] arm64, acpi, numa: NUMA support based on SRAT
- and SLIT
-Date: Wed, 20 Apr 2016 09:29:45 -0700
-Message-ID: <5717AE79.5060605@gmail.com>
-References: <1461116439-22991-1-git-send-email-ddaney.cavm@gmail.com> <1461116439-22991-13-git-send-email-ddaney.cavm@gmail.com> <CADKHWaeZPj7UWU4znf7NRo3JO8+JGrBP4WJE6S5gVM0KvydNug@mail.gmail.com> <CAFpQJXXeQKKrgObdhxu8QaTm-wb81yddLtwFreed4eS5Qi1TPw@mail.gmail.com>
+From: Timur Tabi <timur@codeaurora.org>
+Subject: Re: [PATCH 2/3] ACPI / ARM64: Remove EXPERT dependency for ACPI on ARM64
+Date: Wed, 20 Apr 2016 11:30:12 -0500
+Message-ID: <CAOZdJXWzqwZMHV0Qu4FE=j+N3oP3XrDN-+AqUhG61wxFdC945w@mail.gmail.com>
+References: <1460706823-16566-1-git-send-email-broonie@kernel.org>
+	<1460706823-16566-2-git-send-email-broonie@kernel.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-pf0-f193.google.com ([209.85.192.193]:33069 "EHLO
-	mail-pf0-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751302AbcDTQ3t (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 20 Apr 2016 12:29:49 -0400
-In-Reply-To: <CAFpQJXXeQKKrgObdhxu8QaTm-wb81yddLtwFreed4eS5Qi1TPw@mail.gmail.com>
+Received: from smtp.codeaurora.org ([198.145.29.96]:60434 "EHLO
+	smtp.codeaurora.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751126AbcDTQaP (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 20 Apr 2016 12:30:15 -0400
+Received: from mail-ig0-f174.google.com (mail-ig0-f174.google.com [209.85.213.174])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+	(No client certificate requested)
+	(Authenticated sender: timur@smtp.codeaurora.org)
+	by smtp.codeaurora.org (Postfix) with ESMTPSA id 3871260F71
+	for <linux-acpi@vger.kernel.org>; Wed, 20 Apr 2016 16:30:13 +0000 (UTC)
+Received: by mail-ig0-f174.google.com with SMTP id g8so54293483igr.0
+        for <linux-acpi@vger.kernel.org>; Wed, 20 Apr 2016 09:30:13 -0700 (PDT)
+In-Reply-To: <1460706823-16566-2-git-send-email-broonie@kernel.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Ganapatrao Kulkarni <gpkulkarni@gmail.com>
-Cc: Dennis Chen <dennis.chen@linaro.org>, Mark Rutland <mark.rutland@arm.com>, linux-ia64@vger.kernel.org, David Daney <david.daney@cavium.com>, Catalin Marinas <catalin.marinas@arm.com>, Will Deacon <will.deacon@arm.com>, Lv Zheng <lv.zheng@intel.com>, "H. Peter Anvin" <hpa@zytor.com>, Frank Rowand <frowand.list@gmail.com>, x86@kernel.org, Robert Moore <robert.moore@intel.com>, linux-acpi@vger.kernel.org, Ingo Molnar <mingo@redhat.com>, Grant Likely <grant.likely@linaro.org>, Len Brown <lenb@kernel.org>, Fenghua Yu <fenghua.yu@intel.com>, Marc Zyngier <Marc.Zyngier@arm.com>, Robert Richter <rrichter@cavium.com>, Rob Herring <robh+dt@kernel.org>, Thomas Gleixner <tglx@linutronix.de>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, devel@acpica.org, Tony Luck <tony.luck@intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, linux-kernel@v
+To: Mark Brown <broonie@kernel.org>
+Cc: "Rafael J . Wysocki" <rjw@rjwysocki.net>, Catalin Marinas <catalin.marinas@arm.com>, Len Brown <lenb@kernel.org>, Will Deacon <will.deacon@arm.com>, Mark Rutland <mark.rutland@arm.com>, Steve Capper <steve.capper@linaro.org>, Graeme Gregory <graeme.gregory@linaro.org>, linux-acpi@vger.kernel.org, arm@kernel.org, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
-On 04/20/2016 01:31 AM, Ganapatrao Kulkarni wrote:
-> On Wed, Apr 20, 2016 at 1:11 PM, Dennis Chen <dennis.chen@linaro.org> wrote:
->> On 20 April 2016 at 09:40, David Daney <ddaney.cavm@gmail.com> wrote:
-[...]
->>> @@ -388,7 +389,9 @@ static int __init dummy_numa_init(void)
->>>   void __init arm64_numa_init(void)
->>>   {
->>>          if (!numa_off) {
->>> -               if (!numa_init(of_numa_init))
->>> +               if (!acpi_disabled && !numa_init(arm64_acpi_numa_init))
->>> +                       return;
->>> +               if (acpi_disabled && !numa_init(of_numa_init))
->>>                          return;
->>>          }
->>>
->> On top of the latest version of the dt-based numa patch, if 'numa=off'
->> specified in the command line,
->> this function will fallback to invoke dummy_numa_init(), which give
->> rise the question here is, do we need to
->> touch any ACPI related stuff in the case? If not, then the output
+On Fri, Apr 15, 2016 at 2:53 AM, Mark Brown <broonie@kernel.org> wrote:
 >
-> no, ACPI is not fallback configuration for DT and vice versa.
+> Given all this it seems that at this point the EXPERT dependency mainly
+> creates inconvenience for users with systems that are doing the right
+> thing and gets in the way of including the ACPI code in the testing that
+> people are doing on mainline.  Removing it should help our ongoing
+> testing cover those platforms with only ACPI support and help ensure
+> that when ACPI code is merged any problems it causes for other users are
+> more easily discovered.
 >
->> message "No NUMA configuration found" followed
->> seems is not necessary since it's a little bit confusing in case of
->> numa has already been turned off explicitly.
->
-> thanks, this print can be moved out.
-> from function dummy_numa_init and it can be added in function arm64_numa_init
-> as a last line of if (!numa_off) to indicate, ACPI/DT based NUMA
-> configuration failed.
->
-> more appropriate would be,
-> pr_info("%s\n", "NUMA configuration failed or not found");
->
+> Signed-off-by: Mark Brown <broonie@kernel.org>
+> Acked-by: Graeme Gregory <graeme.gregory@linaro.org>
+> Acked-by: Ard Biesheuvel <ard.biesheuvel@linaro.org>
+> Reviewed-by: Al Stone <ahs3@redhat.com>
+> Acked-by: Hanjun Guo <hanjun.guo@linaro.org>
+> Acked-by: Catalin Marinas <catalin.marinas@arm.com>
 
-Although purely cosmetic, I agree that we need to improve the messages 
-as to not confuse people.
+Acked-by: Timur Tabi <timur@codeaurora.org>
 
-I will rework the messages with your suggestions in mind to see if we 
-can get something that is both concise and unambiguously reflects what 
-the user asked for.
-
-David.
-
-
-
+-- 
+Qualcomm Innovation Center, Inc.
+The Qualcomm Innovation Center, Inc. is a member of the Code Aurora Forum,
+a Linux Foundation Collaborative Project.
