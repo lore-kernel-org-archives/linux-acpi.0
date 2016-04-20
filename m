@@ -1,164 +1,299 @@
-From: Jiang Qiu <qiujiang@huawei.com>
-Subject: [PATCH v9 2/3] gpio: dwapb: convert device node to fwnode
-Date: Wed, 20 Apr 2016 15:13:48 +0800
-Message-ID: <1461136429-85114-3-git-send-email-qiujiang@huawei.com>
-References: <1461136429-85114-1-git-send-email-qiujiang@huawei.com>
+From: Marek Szyprowski <m.szyprowski-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org>
+Subject: Re: [RFC PATCH 06/11] drivers: iommu: make of_xlate() interface DT
+	agnostic
+Date: Wed, 20 Apr 2016 09:14:46 +0200
+Message-ID: <57172C66.2080602@samsung.com>
+References: <1460654743-7896-1-git-send-email-lorenzo.pieralisi@arm.com>
+	<1460654743-7896-7-git-send-email-lorenzo.pieralisi@arm.com>
+	<5715EC12.2000009@samsung.com> <20160419113046.GD9571@red-moon>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-gpio-owner@vger.kernel.org>
-In-Reply-To: <1461136429-85114-1-git-send-email-qiujiang@huawei.com>
-Sender: linux-gpio-owner@vger.kernel.org
-To: linus.walleij@linaro.org, gnurou@gmail.com
-Cc: mika.westerberg@linux.intel.com, andy.shevchenko@gmail.com, delicious.quinoa@gmail.com, jamie@jamieiles.com, charles.chenxin@huawei.com, linux-kernel@vger.kernel.org, linux-gpio@vger.kernel.org, linux-acpi@vger.kernel.org, linuxarm@huawei.com, Jiang Qiu <qiujiang@huawei.com>
+Content-Type: text/plain; charset="us-ascii"; Format="flowed"
+Content-Transfer-Encoding: 7bit
+Return-path: <iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
+In-reply-to: <20160419113046.GD9571@red-moon>
+List-Unsubscribe: <https://lists.linuxfoundation.org/mailman/options/iommu>,
+	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.linuxfoundation.org/pipermail/iommu/>
+List-Post: <mailto:iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
+List-Help: <mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.linuxfoundation.org/mailman/listinfo/iommu>,
+	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=subscribe>
+Sender: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
+Errors-To: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
+To: Lorenzo Pieralisi <lorenzo.pieralisi-5wv7dgnIgG8@public.gmane.org>
+Cc: "Rafael J. Wysocki" <rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org>, Krzysztof Kozlowski <k.kozlowski-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org>, Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>, Marc Zyngier <marc.zyngier-5wv7dgnIgG8@public.gmane.org>, Tomasz Nowicki <tn-nYOzD4b6Jr9Wk0Htik3J/w@public.gmane.org>, Will Deacon <will.deacon-5wv7dgnIgG8@public.gmane.org>, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Sinan Kaya <okaya-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org, Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Hanjun Guo <hanjun.guo-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Jon Masters <jcm-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Matthias Brugger <matthias.bgg-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-This patch converts device node to fwnode for dwapb driver, so
-as to provide a unified fwnode for DT and ACPI bindings.
+Hi Lorenzo,
 
-Tested-by: Alan Tull <delicious.quinoa@gmail.com>
-Acked-by: Andy Shevchenko <andy.shevchenko@gmail.com>
-Signed-off-by: Jiang Qiu <qiujiang@huawei.com>
----
- drivers/gpio/gpio-dwapb.c                | 37 ++++++++++++++++----------------
- drivers/mfd/intel_quark_i2c_gpio.c       |  2 +-
- include/linux/platform_data/gpio-dwapb.h |  2 +-
- 3 files changed, 20 insertions(+), 21 deletions(-)
+On 2016-04-19 13:30, Lorenzo Pieralisi wrote:
+> Hi Marek,
+>
+> On Tue, Apr 19, 2016 at 10:28:02AM +0200, Marek Szyprowski wrote:
+>> Hello,
+>>
+>> On 2016-04-14 19:25, Lorenzo Pieralisi wrote:
+>>> On systems booting with ACPI, the IOMMU drivers require the same
+>>> kind of id mapping carried out with a DT tree through the of_xlate()
+>>> API in order to map devices identifiers to IOMMU ones.
+>>>
+>>> On ACPI systems, since DT nodes are not present (ie struct
+>>> device.of_node == NULL), to identify the device requiring the translation
+>>> the struct device_node (and the structure used to pass translation
+>>> information - struct of_phandle_args - that contains a struct device_node)
+>>> cannot be used, so a generic translation structure to be used for IOMMU
+>>> mapping should be defined, based on the firmware agnostic fwnode_handle
+>>> type.
+>>>
+>>> This patch mechanically refactors/renames the of_xlate API to make
+>>> it DT agnostic, by declaring a new type (struct iommu_fwspec), that
+>>> allows the kernel to pass a device identifier (fwnode - which can
+>>> represent either a DT node or an IOMMU FW node) and by changing the
+>>> of_xlate signature so that it does not take anymore the DT specific
+>>> of_phandle_args argument and replaces it with the DT agnostic
+>>> iommu_fwspec one.
+>>>
+>>> Signed-off-by: Lorenzo Pieralisi <lorenzo.pieralisi-5wv7dgnIgG8@public.gmane.org>
+>>> Cc: Matthias Brugger <matthias.bgg-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+>>> Cc: Will Deacon <will.deacon-5wv7dgnIgG8@public.gmane.org>
+>>> Cc: Hanjun Guo <hanjun.guo-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
+>>> Cc: Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+>>> Cc: Krzysztof Kozlowski <k.kozlowski-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org>
+>>> Cc: Robin Murphy <robin.murphy-5wv7dgnIgG8@public.gmane.org>
+>>> Cc: Tomasz Nowicki <tn-nYOzD4b6Jr9Wk0Htik3J/w@public.gmane.org>
+>>> Cc: Joerg Roedel <joro-zLv9SwRftAIdnm+yROfE0A@public.gmane.org>
+>>> Cc: Marek Szyprowski <m.szyprowski-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org>
+>> I'm not sure if this is the right approach, although I have not enough
+>> knowledge on ACPI firmware. Do you plan to rewrite all subsystems to the
+>> new "fwspec" based interface? Right now of_xlate is rather common
+>> interface used by various subsystems. Maybe it will be much easier to
+> Yes, that's a valid concern, when you say "it is rather common" though,
+> it seems to me that the of_xlate footprint is still subsystem specific,
+> so this patch should be self-contained anyway (granted, doing this
+> conversion for a specific subsystem is questionable, I guess that what
+> you are asking is, if you do it for IOMMU, why would not you do it for
+> other subsystems ?).
 
-diff --git a/drivers/gpio/gpio-dwapb.c b/drivers/gpio/gpio-dwapb.c
-index 772d743..92bc204 100644
---- a/drivers/gpio/gpio-dwapb.c
-+++ b/drivers/gpio/gpio-dwapb.c
-@@ -22,6 +22,7 @@
- #include <linux/of_address.h>
- #include <linux/of_irq.h>
- #include <linux/platform_device.h>
-+#include <linux/property.h>
- #include <linux/spinlock.h>
- #include <linux/platform_data/gpio-dwapb.h>
- #include <linux/slab.h>
-@@ -290,14 +291,14 @@ static void dwapb_configure_irqs(struct dwapb_gpio *gpio,
- 				 struct dwapb_port_property *pp)
- {
- 	struct gpio_chip *gc = &port->gc;
--	struct device_node *node = pp->node;
-+	struct fwnode_handle  *fwnode = pp->fwnode;
- 	struct irq_chip_generic	*irq_gc = NULL;
- 	unsigned int hwirq, ngpio = gc->ngpio;
- 	struct irq_chip_type *ct;
- 	int err, i;
- 
--	gpio->domain = irq_domain_add_linear(node, ngpio,
--					     &irq_generic_chip_ops, gpio);
-+	gpio->domain = irq_domain_create_linear(fwnode, ngpio,
-+						 &irq_generic_chip_ops, gpio);
- 	if (!gpio->domain)
- 		return;
- 
-@@ -415,7 +416,8 @@ static int dwapb_gpio_add_port(struct dwapb_gpio *gpio,
- 	}
- 
- #ifdef CONFIG_OF_GPIO
--	port->gc.of_node = pp->node;
-+	port->gc.of_node = is_of_node(pp->fwnode) ?
-+		to_of_node(pp->fwnode) : NULL;
- #endif
- 	port->gc.ngpio = pp->ngpio;
- 	port->gc.base = pp->gpio_base;
-@@ -447,19 +449,15 @@ static void dwapb_gpio_unregister(struct dwapb_gpio *gpio)
- }
- 
- static struct dwapb_platform_data *
--dwapb_gpio_get_pdata_of(struct device *dev)
-+dwapb_gpio_get_pdata(struct device *dev)
- {
--	struct device_node *node, *port_np;
-+	struct fwnode_handle *fwnode;
- 	struct dwapb_platform_data *pdata;
- 	struct dwapb_port_property *pp;
- 	int nports;
- 	int i;
- 
--	node = dev->of_node;
--	if (!IS_ENABLED(CONFIG_OF_GPIO) || !node)
--		return ERR_PTR(-ENODEV);
--
--	nports = of_get_child_count(node);
-+	nports = device_get_child_node_count(dev);
- 	if (nports == 0)
- 		return ERR_PTR(-ENODEV);
- 
-@@ -474,18 +472,18 @@ dwapb_gpio_get_pdata_of(struct device *dev)
- 	pdata->nports = nports;
- 
- 	i = 0;
--	for_each_child_of_node(node, port_np) {
-+	device_for_each_child_node(dev, fwnode)  {
- 		pp = &pdata->properties[i++];
--		pp->node = port_np;
-+		pp->fwnode = fwnode;
- 
--		if (of_property_read_u32(port_np, "reg", &pp->idx) ||
-+		if (fwnode_property_read_u32(fwnode, "reg", &pp->idx) ||
- 		    pp->idx >= DWAPB_MAX_PORTS) {
- 			dev_err(dev,
- 				"missing/invalid port index for port%d\n", i);
- 			return ERR_PTR(-EINVAL);
- 		}
- 
--		if (of_property_read_u32(port_np, "snps,nr-gpios",
-+		if (fwnode_property_read_u32(fwnode, "snps,nr-gpios",
- 					 &pp->ngpio)) {
- 			dev_info(dev,
- 				 "failed to get number of gpios for port%d\n",
-@@ -497,9 +495,10 @@ dwapb_gpio_get_pdata_of(struct device *dev)
- 		 * Only port A can provide interrupts in all configurations of
- 		 * the IP.
- 		 */
--		if (pp->idx == 0 &&
--		    of_property_read_bool(port_np, "interrupt-controller")) {
--			pp->irq = irq_of_parse_and_map(port_np, 0);
-+		if (dev->of_node && pp->idx == 0 &&
-+			fwnode_property_read_bool(fwnode,
-+						  "interrupt-controller")) {
-+			pp->irq = irq_of_parse_and_map(to_of_node(fwnode), 0);
- 			if (!pp->irq)
- 				dev_warn(dev, "no irq for port%d\n", pp->idx);
- 		}
-@@ -521,7 +520,7 @@ static int dwapb_gpio_probe(struct platform_device *pdev)
- 	struct dwapb_platform_data *pdata = dev_get_platdata(dev);
- 
- 	if (!pdata) {
--		pdata = dwapb_gpio_get_pdata_of(dev);
-+		pdata = dwapb_gpio_get_pdata(dev);
- 		if (IS_ERR(pdata))
- 			return PTR_ERR(pdata);
- 	}
-diff --git a/drivers/mfd/intel_quark_i2c_gpio.c b/drivers/mfd/intel_quark_i2c_gpio.c
-index a4ef99b..a24b35f 100644
---- a/drivers/mfd/intel_quark_i2c_gpio.c
-+++ b/drivers/mfd/intel_quark_i2c_gpio.c
-@@ -219,7 +219,7 @@ static int intel_quark_gpio_setup(struct pci_dev *pdev, struct mfd_cell *cell)
- 		return -ENOMEM;
- 
- 	/* Set the properties for portA */
--	pdata->properties->node		= NULL;
-+	pdata->properties->fwnode	= NULL;
- 	pdata->properties->idx		= 0;
- 	pdata->properties->ngpio	= INTEL_QUARK_MFD_NGPIO;
- 	pdata->properties->gpio_base	= INTEL_QUARK_MFD_GPIO_BASE;
-diff --git a/include/linux/platform_data/gpio-dwapb.h b/include/linux/platform_data/gpio-dwapb.h
-index 955b579..2dc7f4a 100644
---- a/include/linux/platform_data/gpio-dwapb.h
-+++ b/include/linux/platform_data/gpio-dwapb.h
-@@ -15,7 +15,7 @@
- #define GPIO_DW_APB_H
- 
- struct dwapb_port_property {
--	struct device_node *node;
-+	struct fwnode_handle *fwnode;
- 	unsigned int	idx;
- 	unsigned int	ngpio;
- 	unsigned int	gpio_base;
+I was curious if you want to replace of_xlate() interface in other 
+subsystems
+like clocks, power domains, regulators, etc. Each of_xlate interface is
+specific to particular subsystem, but they all more or less follows the same
+style, what makes it easier to understand the code.
+
+> It is an RFC for this specific reason.
+>
+>> just add acpi_xlate callback and plumb it to the generic code? Maybe later
+>> when similar code will be in other subsystems and drivers, it can be
+>> unified, having much more real use cases?
+> Yes, that's a possibility, it means adding yet another hook into
+> the IOMMU drivers, probably a simpler change than this one, I
+> posted this code as and RFC to see which direction we want to take
+> so further feedback is welcome we can then choose the best approach.
+>
+> Thanks,
+> Lorenzo
+>
+>>> ---
+>>>   drivers/iommu/arm-smmu.c     | 12 +++++++-----
+>>>   drivers/iommu/exynos-iommu.c | 11 +++++++----
+>>>   drivers/iommu/mtk_iommu.c    | 13 ++++++++-----
+>>>   drivers/iommu/of_iommu.c     | 20 ++++++++++++++++++--
+>>>   include/linux/iommu.h        | 24 ++++++++++++++++++++----
+>>>   5 files changed, 60 insertions(+), 20 deletions(-)
+>>>
+>>> diff --git a/drivers/iommu/arm-smmu.c b/drivers/iommu/arm-smmu.c
+>>> index 6c42770..84bcff7 100644
+>>> --- a/drivers/iommu/arm-smmu.c
+>>> +++ b/drivers/iommu/arm-smmu.c
+>>> @@ -1440,18 +1440,20 @@ out_unlock:
+>>>   	return ret;
+>>>   }
+>>> -static int arm_smmu_of_xlate(struct device *dev, struct of_phandle_args *args)
+>>> +static int arm_smmu_fw_xlate(struct device *dev, struct iommu_fwspec *args)
+>>>   {
+>>>   	struct arm_smmu_device *smmu;
+>>> -	struct platform_device *smmu_pdev;
+>>> +	struct platform_device *smmu_pdev = NULL;
+>>> +
+>>> +	if (is_of_node(args->fwnode))
+>>> +		smmu_pdev = of_find_device_by_node(to_of_node(args->fwnode));
+>>> -	smmu_pdev = of_find_device_by_node(args->np);
+>>>   	if (!smmu_pdev)
+>>>   		return -ENODEV;
+>>>   	smmu = platform_get_drvdata(smmu_pdev);
+>>> -	return arm_smmu_add_dev_streamid(smmu, dev, args->args[0]);
+>>> +	return arm_smmu_add_dev_streamid(smmu, dev, args->param[0]);
+>>>   }
+>>>   static struct iommu_ops arm_smmu_ops = {
+>>> @@ -1468,7 +1470,7 @@ static struct iommu_ops arm_smmu_ops = {
+>>>   	.device_group		= arm_smmu_device_group,
+>>>   	.domain_get_attr	= arm_smmu_domain_get_attr,
+>>>   	.domain_set_attr	= arm_smmu_domain_set_attr,
+>>> -	.of_xlate		= arm_smmu_of_xlate,
+>>> +	.fw_xlate		= arm_smmu_fw_xlate,
+>>>   	.pgsize_bitmap		= -1UL, /* Restricted during device attach */
+>>>   };
+>>> diff --git a/drivers/iommu/exynos-iommu.c b/drivers/iommu/exynos-iommu.c
+>>> index 5ecc86c..84ff5bb 100644
+>>> --- a/drivers/iommu/exynos-iommu.c
+>>> +++ b/drivers/iommu/exynos-iommu.c
+>>> @@ -1250,13 +1250,16 @@ static void exynos_iommu_remove_device(struct device *dev)
+>>>   	iommu_group_remove_device(dev);
+>>>   }
+>>> -static int exynos_iommu_of_xlate(struct device *dev,
+>>> -				 struct of_phandle_args *spec)
+>>> +static int exynos_iommu_fw_xlate(struct device *dev,
+>>> +				 struct iommu_fwspec *args)
+>>>   {
+>>>   	struct exynos_iommu_owner *owner = dev->archdata.iommu;
+>>> -	struct platform_device *sysmmu = of_find_device_by_node(spec->np);
+>>> +	struct platform_device *sysmmu = NULL;
+>>>   	struct sysmmu_drvdata *data;
+>>> +	if (is_of_node(args->fwnode))
+>>> +		sysmmu = of_find_device_by_node(to_of_node(args->fwnode));
+>>> +
+>>>   	if (!sysmmu)
+>>>   		return -ENODEV;
+>>> @@ -1290,7 +1293,7 @@ static struct iommu_ops exynos_iommu_ops = {
+>>>   	.add_device = exynos_iommu_add_device,
+>>>   	.remove_device = exynos_iommu_remove_device,
+>>>   	.pgsize_bitmap = SECT_SIZE | LPAGE_SIZE | SPAGE_SIZE,
+>>> -	.of_xlate = exynos_iommu_of_xlate,
+>>> +	.fw_xlate = exynos_iommu_fw_xlate,
+>>>   };
+>>>   static bool init_done;
+>>> diff --git a/drivers/iommu/mtk_iommu.c b/drivers/iommu/mtk_iommu.c
+>>> index 929a66a..e08dc0a 100644
+>>> --- a/drivers/iommu/mtk_iommu.c
+>>> +++ b/drivers/iommu/mtk_iommu.c
+>>> @@ -436,20 +436,23 @@ static struct iommu_group *mtk_iommu_device_group(struct device *dev)
+>>>   	return data->m4u_group;
+>>>   }
+>>> -static int mtk_iommu_of_xlate(struct device *dev, struct of_phandle_args *args)
+>>> +static int mtk_iommu_fw_xlate(struct device *dev, struct iommu_fwspec *args)
+>>>   {
+>>>   	struct mtk_iommu_client_priv *head, *priv, *next;
+>>>   	struct platform_device *m4updev;
+>>> -	if (args->args_count != 1) {
+>>> +	if (!is_of_node(args->fwnode))
+>>> +		return -ENODEV;
+>>> +
+>>> +	if (args->param_count != 1) {
+>>>   		dev_err(dev, "invalid #iommu-cells(%d) property for IOMMU\n",
+>>> -			args->args_count);
+>>> +			args->param_count);
+>>>   		return -EINVAL;
+>>>   	}
+>>>   	if (!dev->archdata.iommu) {
+>>>   		/* Get the m4u device */
+>>> -		m4updev = of_find_device_by_node(args->np);
+>>> +		m4updev = of_find_device_by_node(to_of_node(args->fwnode));
+>>>   		of_node_put(args->np);
+>>>   		if (WARN_ON(!m4updev))
+>>>   			return -EINVAL;
+>>> @@ -469,7 +472,7 @@ static int mtk_iommu_of_xlate(struct device *dev, struct of_phandle_args *args)
+>>>   	if (!priv)
+>>>   		goto err_free_mem;
+>>> -	priv->mtk_m4u_id = args->args[0];
+>>> +	priv->mtk_m4u_id = args->param[0];
+>>>   	list_add_tail(&priv->client, &head->client);
+>>>   	return 0;
+>>> diff --git a/drivers/iommu/of_iommu.c b/drivers/iommu/of_iommu.c
+>>> index 910826c..331dd78 100644
+>>> --- a/drivers/iommu/of_iommu.c
+>>> +++ b/drivers/iommu/of_iommu.c
+>>> @@ -135,6 +135,18 @@ struct iommu_ops *of_iommu_get_ops(struct device_node *np)
+>>>   	return ops;
+>>>   }
+>>> +static void of_phandle_args_to_fwspec(struct of_phandle_args *iommu_data,
+>>> +				      struct iommu_fwspec *fwspec)
+>>> +{
+>>> +	int i;
+>>> +
+>>> +	fwspec->fwnode = iommu_data->np ? &iommu_data->np->fwnode : NULL;
+>>> +	fwspec->param_count = iommu_data->args_count;
+>>> +
+>>> +	for (i = 0; i < iommu_data->args_count; i++)
+>>> +		fwspec->param[i] = iommu_data->args[i];
+>>> +}
+>>> +
+>>>   static int __get_pci_rid(struct pci_dev *pdev, u16 alias, void *data)
+>>>   {
+>>>   	struct of_phandle_args *iommu_spec = data;
+>>> @@ -148,6 +160,7 @@ struct iommu_ops *of_iommu_configure(struct device *dev,
+>>>   				     struct device_node *master_np)
+>>>   {
+>>>   	struct of_phandle_args iommu_spec;
+>>> +	struct iommu_fwspec fwspec;
+>>>   	struct device_node *np = NULL;
+>>>   	struct iommu_ops *ops = NULL;
+>>>   	int idx = 0;
+>>> @@ -170,8 +183,9 @@ struct iommu_ops *of_iommu_configure(struct device *dev,
+>>>   		iommu_spec.np = np;
+>>>   		iommu_spec.args_count = 1;
+>>> +		of_phandle_args_to_fwspec(&iommu_spec, &fwspec);
+>>>   		ops = of_iommu_get_ops(np);
+>>> -		if (!ops || !ops->of_xlate || ops->of_xlate(dev, &iommu_spec))
+>>> +		if (!ops || !ops->fw_xlate || ops->fw_xlate(dev, &fwspec))
+>>>   			goto err_put_node;
+>>>   		of_node_put(np);
+>>> @@ -189,7 +203,9 @@ struct iommu_ops *of_iommu_configure(struct device *dev,
+>>>   		np = iommu_spec.np;
+>>>   		ops = of_iommu_get_ops(np);
+>>> -		if (!ops || !ops->of_xlate || ops->of_xlate(dev, &iommu_spec))
+>>> +		of_phandle_args_to_fwspec(&iommu_spec, &fwspec);
+>>> +
+>>> +		if (!ops || !ops->fw_xlate || ops->fw_xlate(dev, &fwspec))
+>>>   			goto err_put_node;
+>>>   		of_node_put(np);
+>>> diff --git a/include/linux/iommu.h b/include/linux/iommu.h
+>>> index 0bba25e..5184d81 100644
+>>> --- a/include/linux/iommu.h
+>>> +++ b/include/linux/iommu.h
+>>> @@ -85,6 +85,24 @@ struct iommu_domain {
+>>>   	void *iova_cookie;
+>>>   };
+>>> +#define IOMMU_MAP_SPEC_PARAMS 16
+>>> +
+>>> +/**
+>>> + * struct iommu_fwspec - generic IOMMU specifier structure
+>>> + *
+>>> + * @fwnode:		Pointer to a firmware-specific descriptor
+>>> + * @param_count:	Number of device-specific parameters
+>>> + * @param:		Device-specific parameters
+>>> + *
+>>> + * This structure, directly modeled after of_phandle_args, is used to
+>>> + * pass a device-specific description of an IOMMU mapping.
+>>> + */
+>>> +struct iommu_fwspec {
+>>> +	struct fwnode_handle *fwnode;
+>>> +	int param_count;
+>>> +	u32 param[IOMMU_MAP_SPEC_PARAMS];
+>>> +};
+>>> +
+>>>   enum iommu_cap {
+>>>   	IOMMU_CAP_CACHE_COHERENCY,	/* IOMMU can enforce cache coherent DMA
+>>>   					   transactions */
+>>> @@ -155,7 +173,7 @@ struct iommu_dm_region {
+>>>    * @domain_window_disable: Disable a particular window for a domain
+>>>    * @domain_set_windows: Set the number of windows for a domain
+>>>    * @domain_get_windows: Return the number of windows for a domain
+>>> - * @of_xlate: add OF master IDs to iommu grouping
+>>> + * @fw_xlate: add FW master IDs to iommu grouping
+>>>    * @pgsize_bitmap: bitmap of supported page sizes
+>>>    * @priv: per-instance data private to the iommu driver
+>>>    */
+>>> @@ -196,9 +214,7 @@ struct iommu_ops {
+>>>   	/* Get the number of windows per domain */
+>>>   	u32 (*domain_get_windows)(struct iommu_domain *domain);
+>>> -#ifdef CONFIG_OF_IOMMU
+>>> -	int (*of_xlate)(struct device *dev, struct of_phandle_args *args);
+>>> -#endif
+>>> +	int (*fw_xlate)(struct device *dev, struct iommu_fwspec *args);
+>>>   	unsigned long pgsize_bitmap;
+>>>   	void *priv;
+
+Best regards
 -- 
-1.9.1
-
+Marek Szyprowski, PhD
+Samsung R&D Institute Poland
