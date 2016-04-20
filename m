@@ -1,144 +1,108 @@
 From: David Daney <ddaney.cavm@gmail.com>
-Subject: [PATCH v5 13/14] acpi, numa: Enable ACPI based NUMA on ARM64
-Date: Tue, 19 Apr 2016 18:40:38 -0700
-Message-ID: <1461116439-22991-14-git-send-email-ddaney.cavm@gmail.com>
+Subject: [PATCH v5 04/14] acpi, numa: Move acpi_numa_arch_fixup() to ia64 only
+Date: Tue, 19 Apr 2016 18:40:29 -0700
+Message-ID: <1461116439-22991-5-git-send-email-ddaney.cavm@gmail.com>
 References: <1461116439-22991-1-git-send-email-ddaney.cavm@gmail.com>
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-pa0-f47.google.com ([209.85.220.47]:35208 "EHLO
-	mail-pa0-f47.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932557AbcDTBlD (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 19 Apr 2016 21:41:03 -0400
+Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1461116439-22991-1-git-send-email-ddaney.cavm@gmail.com>
-Sender: linux-acpi-owner@vger.kernel.org
-List-Id: linux-acpi@vger.kernel.org
+Sender: linux-kernel-owner@vger.kernel.org
 To: Will Deacon <will.deacon@arm.com>, linux-arm-kernel@lists.infradead.org, Mark Rutland <mark.rutland@arm.com>, Catalin Marinas <catalin.marinas@arm.com>, Tony Luck <tony.luck@intel.com>, Fenghua Yu <fenghua.yu@intel.com>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, x86@kernel.org, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Rob Herring <robh+dt@kernel.org>, Frank Rowand <frowand.list@gmail.com>, Grant Likely <grant.likely@linaro.org>, Robert Moore <robert.moore@intel.com>, Lv Zheng <lv.zheng@intel.com>, Hanjun Guo <hanjun.guo@linaro.org>, Marc Zyngier <Marc.Zyngier@arm.com>, linux-ia64@vger.kernel.org, linux-acpi@vger.kernel.org, devel@acpica.org
 Cc: linux-kernel@vger.kernel.org, Robert Richter <rrichter@cavium.com>, David Daney <david.daney@cavium.com>
+List-Id: linux-acpi@vger.kernel.org
 
-From: Hanjun Guo <hanjun.guo@linaro.org>
+From: Robert Richter <rrichter@cavium.com>
 
-Add function needed for cpu to node mapping, and enable ACPI based
-NUMA for ARM64 in Kconfig
+Since acpi_numa_arch_fixup() is only used in arch ia64, move it there
+to make a generic interface easier. This avoids empty function stubs
+or some complex kconfig options for x86 and arm64.
 
-Signed-off-by: Hanjun Guo <hanjun.guo@linaro.org>
 Signed-off-by: Robert Richter <rrichter@cavium.com>
 Signed-off-by: David Daney <david.daney@cavium.com>
 ---
- drivers/acpi/Kconfig |  2 +-
- drivers/acpi/numa.c  | 35 +++++++++++++++++++++++++++++++++++
- include/linux/acpi.h | 17 ++++++++++++++++-
- 3 files changed, 52 insertions(+), 2 deletions(-)
+ arch/ia64/include/asm/acpi.h | 3 +++
+ arch/ia64/kernel/acpi.c      | 2 +-
+ arch/ia64/kernel/setup.c     | 1 +
+ arch/x86/mm/srat.c           | 2 --
+ drivers/acpi/numa.c          | 2 --
+ include/linux/acpi.h         | 1 -
+ 6 files changed, 5 insertions(+), 6 deletions(-)
 
-diff --git a/drivers/acpi/Kconfig b/drivers/acpi/Kconfig
-index 82b96ee..5ce9f66 100644
---- a/drivers/acpi/Kconfig
-+++ b/drivers/acpi/Kconfig
-@@ -291,7 +291,7 @@ config ACPI_THERMAL
- config ACPI_NUMA
- 	bool "NUMA support"
- 	depends on NUMA
--	depends on (X86 || IA64)
-+	depends on (X86 || IA64 || ARM64)
- 	default y if IA64_GENERIC || IA64_SGI_SN2
- 
- config ACPI_CUSTOM_DSDT_FILE
-diff --git a/drivers/acpi/numa.c b/drivers/acpi/numa.c
-index d244018..02c6dd8 100644
---- a/drivers/acpi/numa.c
-+++ b/drivers/acpi/numa.c
-@@ -170,6 +170,18 @@ acpi_table_print_srat_entry(struct acpi_subtable_header *header)
+diff --git a/arch/ia64/include/asm/acpi.h b/arch/ia64/include/asm/acpi.h
+index aa0fdf1..a3d0211 100644
+--- a/arch/ia64/include/asm/acpi.h
++++ b/arch/ia64/include/asm/acpi.h
+@@ -140,6 +140,9 @@ static inline void per_cpu_scan_finalize(int min_cpus, int reserve_cpus)
  		}
- 		break;
- 
-+	case ACPI_SRAT_TYPE_GICC_AFFINITY:
-+		{
-+			struct acpi_srat_gicc_affinity *p =
-+			    (struct acpi_srat_gicc_affinity *)header;
-+			pr_debug("SRAT Processor (acpi id[0x%04x]) in proximity domain %d %s\n",
-+				 p->acpi_processor_uid,
-+				 p->proximity_domain,
-+				 (p->flags & ACPI_SRAT_GICC_ENABLED) ?
-+				 "enabled" : "disabled");
-+		}
-+		break;
+ 	}
+ }
 +
- 	default:
- 		pr_warn("Found unsupported SRAT entry (type = 0x%x)\n",
- 			header->type);
-@@ -360,6 +372,24 @@ acpi_parse_processor_affinity(struct acpi_subtable_header *header,
++extern void acpi_numa_fixup(void);
++
+ #endif /* CONFIG_ACPI_NUMA */
+ 
+ #endif /*__KERNEL__*/
+diff --git a/arch/ia64/kernel/acpi.c b/arch/ia64/kernel/acpi.c
+index b1698bc..92b7bc9 100644
+--- a/arch/ia64/kernel/acpi.c
++++ b/arch/ia64/kernel/acpi.c
+@@ -524,7 +524,7 @@ acpi_numa_memory_affinity_init(struct acpi_srat_mem_affinity *ma)
  	return 0;
  }
  
-+static int __init
-+acpi_parse_gicc_affinity(struct acpi_subtable_header *header,
-+			 const unsigned long end)
-+{
-+	struct acpi_srat_gicc_affinity *processor_affinity;
-+
-+	processor_affinity = (struct acpi_srat_gicc_affinity *)header;
-+	if (!processor_affinity)
-+		return -EINVAL;
-+
-+	acpi_table_print_srat_entry(header);
-+
-+	/* let architecture-dependent part to do it */
-+	acpi_numa_gicc_affinity_init(processor_affinity);
-+
-+	return 0;
-+}
-+
- static int __initdata parsed_numa_memblks;
- 
- static int __init
-@@ -404,6 +434,9 @@ int __init acpi_numa_init(void)
+-void __init acpi_numa_arch_fixup(void)
++void __init acpi_numa_fixup(void)
  {
- 	int cnt = 0;
+ 	int i, j, node_from, node_to;
  
-+	if (acpi_disabled)
-+		return -EINVAL;
-+
- 	/*
- 	 * Should not limit number with cpu num that is from NR_CPUS or nr_cpus=
- 	 * SRAT cpu entries could have different order with that in MADT.
-@@ -416,6 +449,8 @@ int __init acpi_numa_init(void)
- 				     acpi_parse_x2apic_affinity, 0);
- 		acpi_table_parse_srat(ACPI_SRAT_TYPE_CPU_AFFINITY,
- 				     acpi_parse_processor_affinity, 0);
-+		acpi_table_parse_srat(ACPI_SRAT_TYPE_GICC_AFFINITY,
-+				      acpi_parse_gicc_affinity, 0);
- 		cnt = acpi_table_parse_srat(ACPI_SRAT_TYPE_MEMORY_AFFINITY,
- 					    acpi_parse_memory_affinity,
- 					    NR_NODE_MEMBLKS);
+diff --git a/arch/ia64/kernel/setup.c b/arch/ia64/kernel/setup.c
+index 2029a38..afddb3e 100644
+--- a/arch/ia64/kernel/setup.c
++++ b/arch/ia64/kernel/setup.c
+@@ -552,6 +552,7 @@ setup_arch (char **cmdline_p)
+ 	early_acpi_boot_init();
+ # ifdef CONFIG_ACPI_NUMA
+ 	acpi_numa_init();
++	acpi_numa_fixup();
+ #  ifdef CONFIG_ACPI_HOTPLUG_CPU
+ 	prefill_possible_map();
+ #  endif
+diff --git a/arch/x86/mm/srat.c b/arch/x86/mm/srat.c
+index b5f8218..90b6ed9 100644
+--- a/arch/x86/mm/srat.c
++++ b/arch/x86/mm/srat.c
+@@ -212,8 +212,6 @@ out_err:
+ 	return -1;
+ }
+ 
+-void __init acpi_numa_arch_fixup(void) {}
+-
+ int __init x86_acpi_numa_init(void)
+ {
+ 	int ret;
+diff --git a/drivers/acpi/numa.c b/drivers/acpi/numa.c
+index 2de6068..f41f06b 100644
+--- a/drivers/acpi/numa.c
++++ b/drivers/acpi/numa.c
+@@ -316,8 +316,6 @@ int __init acpi_numa_init(void)
+ 	/* SLIT: System Locality Information Table */
+ 	acpi_table_parse(ACPI_SIG_SLIT, acpi_parse_slit);
+ 
+-	acpi_numa_arch_fixup();
+-
+ 	if (cnt < 0)
+ 		return cnt;
+ 	else if (!parsed_numa_memblks)
 diff --git a/include/linux/acpi.h b/include/linux/acpi.h
-index ab6fd96..af34064 100644
+index 06ed7e5..ab6fd96 100644
 --- a/include/linux/acpi.h
 +++ b/include/linux/acpi.h
-@@ -239,10 +239,25 @@ int acpi_table_parse_madt(enum acpi_madt_type id,
- int acpi_parse_mcfg (struct acpi_table_header *header);
- void acpi_table_print_madt_entry (struct acpi_subtable_header *madt);
- 
--/* the following four functions are architecture-dependent */
-+/* the following numa functions are architecture-dependent */
- void acpi_numa_slit_init (struct acpi_table_slit *slit);
-+
-+#if defined(CONFIG_X86) || defined(CONFIG_IA64)
+@@ -244,7 +244,6 @@ void acpi_numa_slit_init (struct acpi_table_slit *slit);
  void acpi_numa_processor_affinity_init (struct acpi_srat_cpu_affinity *pa);
-+#else
-+static inline void
-+acpi_numa_processor_affinity_init(struct acpi_srat_cpu_affinity *pa) { }
-+#endif
-+
  void acpi_numa_x2apic_affinity_init(struct acpi_srat_x2apic_cpu_affinity *pa);
-+
-+#ifdef CONFIG_ARM64
-+void acpi_numa_gicc_affinity_init(struct acpi_srat_gicc_affinity *pa);
-+#else
-+static inline void
-+acpi_numa_gicc_affinity_init(struct acpi_srat_gicc_affinity *pa) { }
-+#endif
-+
  int acpi_numa_memory_affinity_init (struct acpi_srat_mem_affinity *ma);
+-void acpi_numa_arch_fixup(void);
  
  #ifndef PHYS_CPUID_INVALID
+ typedef u32 phys_cpuid_t;
 -- 
 1.7.11.7
-
