@@ -1,82 +1,27 @@
-From: Sudeep Holla <sudeep.holla@arm.com>
-Subject: Re: [PATCH v4 1/5] ACPI / processor_idle: introduce
- ARCH_SUPPORTS_ACPI_PROCESSOR_CSTATE
-Date: Wed, 20 Apr 2016 11:09:34 +0100
-Message-ID: <5717555E.8040401@arm.com>
-References: <1461069013-13292-1-git-send-email-sudeep.holla@arm.com>
- <1461069013-13292-2-git-send-email-sudeep.holla@arm.com>
- <CAGm_ybjZ8ePc9KhcaaSX9aDJTE1Svuc-OnpYJpd9TTfi_sm_cQ@mail.gmail.com>
+From: Mika Westerberg <mika.westerberg@linux.intel.com>
+Subject: Re: [PATCH] ACPI / APD: Remove CLK_IS_ROOT
+Date: Wed, 20 Apr 2016 13:09:57 +0300
+Message-ID: <20160420100957.GM1725@lahna.fi.intel.com>
+References: <1461115666-30906-1-git-send-email-sboyd@codeaurora.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from foss.arm.com ([217.140.101.70]:46017 "EHLO foss.arm.com"
+Received: from mga14.intel.com ([192.55.52.115]:3565 "EHLO mga14.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752748AbcDTKJi (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 20 Apr 2016 06:09:38 -0400
-In-Reply-To: <CAGm_ybjZ8ePc9KhcaaSX9aDJTE1Svuc-OnpYJpd9TTfi_sm_cQ@mail.gmail.com>
+	id S933452AbcDTKKD (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 20 Apr 2016 06:10:03 -0400
+Content-Disposition: inline
+In-Reply-To: <1461115666-30906-1-git-send-email-sboyd@codeaurora.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Vikas Sajjan <sajjan.linux@gmail.com>
-Cc: Sudeep Holla <sudeep.holla@arm.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, linux-ia64@vger.kernel.org, Al Stone <al.stone@linaro.org>, Prashanth Prakash <pprakash@codeaurora.org>, x86@kernel.org, Ashwin Chaugule <ashwin.chaugule@linaro.org>
+To: Stephen Boyd <sboyd@codeaurora.org>
+Cc: "Rafael J . Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Ken Xue <Ken.Xue@amd.com>
 
+On Tue, Apr 19, 2016 at 06:27:46PM -0700, Stephen Boyd wrote:
+> This flag is a no-op now (see commit 47b0eeb3dc8a "clk: Deprecate
+> CLK_IS_ROOT", 2016-02-02) so remove it.
+> 
+> Cc: Ken Xue <Ken.Xue@amd.com>
+> Cc: Mika Westerberg <mika.westerberg@linux.intel.com>
 
-
-On 20/04/16 10:56, Vikas Sajjan wrote:
-> Hi Sudeep,
->
-> On Tue, Apr 19, 2016 at 6:00 PM, Sudeep Holla <sudeep.holla@arm.com> wrote:
->> ACPI 6.0 adds a new method to specify the CPU idle states(C-states)
->> called Low Power Idle(LPI) states. Since new architectures like ARM64
->> use only LPIs, introduce ARCH_SUPPORTS_ACPI_PROCESSOR_CSTATE to
->> encapsulate all the code supporting the old style C-states(_CST)
->>
->> This patch will help to extend the processor_idle module to support
->> LPI.
->>
-
-[...]
-
->> @@ -1018,29 +1062,11 @@ int acpi_processor_power_init(struct acpi_processor *pr)
->>          acpi_status status;
->>          int retval;
->>          struct cpuidle_device *dev;
->> -       static int first_run;
->>
->>          if (disabled_by_idle_boot_param())
->>                  return 0;
->>
->> -       if (!first_run) {
->> -               dmi_check_system(processor_power_dmi_table);
->> -               max_cstate = acpi_processor_cstate_check(max_cstate);
->> -               if (max_cstate < ACPI_C_STATES_MAX)
->> -                       printk(KERN_NOTICE
->> -                              "ACPI: processor limited to max C-state %d\n",
->> -                              max_cstate);
->> -               first_run++;
->> -       }
->> -
->> -       if (acpi_gbl_FADT.cst_control && !nocst) {
->> -               status =
->> -                   acpi_os_write_port(acpi_gbl_FADT.smi_command, acpi_gbl_FADT.cst_control, 8);
->> -               if (ACPI_FAILURE(status)) {
->> -                       ACPI_EXCEPTION((AE_INFO, status,
->> -                                       "Notifying BIOS of _CST ability failed"));
->> -               }
->> -       }
->> +       acpi_processor_cstate_first_run_checks();
->>
->>          acpi_processor_get_power_info(pr);
->>          pr->flags.power_setup_done = 1;
->
-> Not related to your change,
-> The acpi_processor_get_power_info() function can return failure, so i
-> thought it makes sense to check for the return value
-> and then set the  flag pr->flags.power_setup_done appropriately.
->
-
-Makes sense, will do that.
-
--- 
-Regards,
-Sudeep
+Acked-by: Mika Westerberg <mika.westerberg@linux.intel.com>
