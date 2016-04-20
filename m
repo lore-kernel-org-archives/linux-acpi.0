@@ -1,131 +1,194 @@
 From: David Daney <ddaney.cavm@gmail.com>
-Subject: [PATCH v5 08/14] acpi, numa: move bad_srat() and srat_disabled() to drivers/acpi/numa.c
-Date: Tue, 19 Apr 2016 18:40:33 -0700
-Message-ID: <1461116439-22991-9-git-send-email-ddaney.cavm@gmail.com>
+Subject: [PATCH v5 10/14] acpi,
+ numa: Move acpi_numa_memory_affinity_init() to drivers/acpi/numa.c
+Date: Tue, 19 Apr 2016 18:40:35 -0700
+Message-ID: <1461116439-22991-11-git-send-email-ddaney.cavm@gmail.com>
 References: <1461116439-22991-1-git-send-email-ddaney.cavm@gmail.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
 In-Reply-To: <1461116439-22991-1-git-send-email-ddaney.cavm@gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
 To: Will Deacon <will.deacon@arm.com>, linux-arm-kernel@lists.infradead.org, Mark Rutland <mark.rutland@arm.com>, Catalin Marinas <catalin.marinas@arm.com>, Tony Luck <tony.luck@intel.com>, Fenghua Yu <fenghua.yu@intel.com>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, x86@kernel.org, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Rob Herring <robh+dt@kernel.org>, Frank Rowand <frowand.list@gmail.com>, Grant Likely <grant.likely@linaro.org>, Robert Moore <robert.moore@intel.com>, Lv Zheng <lv.zheng@intel.com>, Hanjun Guo <hanjun.guo@linaro.org>, Marc Zyngier <Marc.Zyngier@arm.com>, linux-ia64@vger.kernel.org, linux-acpi@vger.kernel.org, devel@acpica.org
-Cc: linux-kernel@vger.kernel.org, Robert Richter <rrichter@cavium.com>, David Daney <david.daney@cavium.com>
+Cc: Robert Richter <rrichter@cavium.com>, linux-kernel@vger.kernel.org, David Daney <david.daney@cavium.com>
 List-Id: linux-acpi@vger.kernel.org
 
 From: Hanjun Guo <hanjun.guo@linaro.org>
 
-bad_srat() and srat_disabled() are shared by x86 and follow-on arm64
-patches.  Move them to drivers/acpi/numa.c in preparation for arm64
-support.
+acpi_numa_memory_affinity_init() will be reused by arm64.  Move it to
+drivers/acpi/numa.c to facilitate reuse.
+
+No code change.
 
 Signed-off-by: Hanjun Guo <hanjun.guo@linaro.org>
 Signed-off-by: Robert Richter <rrichter@cavium.com>
-[david.daney@cavium.com moved definitions to drivers/acpi/numa.c]
 Signed-off-by: David Daney <david.daney@cavium.com>
 ---
- arch/x86/include/asm/acpi.h |  1 -
- arch/x86/mm/numa.c          |  2 +-
- arch/x86/mm/srat.c          | 13 -------------
- drivers/acpi/numa.c         | 12 ++++++++++++
- include/acpi/acpi_numa.h    |  4 ++++
- 5 files changed, 17 insertions(+), 15 deletions(-)
+ arch/x86/mm/srat.c  | 57 --------------------------------------------------
+ drivers/acpi/numa.c | 60 +++++++++++++++++++++++++++++++++++++++++++++++++++++
+ 2 files changed, 60 insertions(+), 57 deletions(-)
 
-diff --git a/arch/x86/include/asm/acpi.h b/arch/x86/include/asm/acpi.h
-index 94c18eb..65f1e95 100644
---- a/arch/x86/include/asm/acpi.h
-+++ b/arch/x86/include/asm/acpi.h
-@@ -145,7 +145,6 @@ static inline void disable_acpi(void) { }
- #define ARCH_HAS_POWER_INIT	1
- 
- #ifdef CONFIG_ACPI_NUMA
--extern int acpi_numa;
- extern int x86_acpi_numa_init(void);
- #endif /* CONFIG_ACPI_NUMA */
- 
-diff --git a/arch/x86/mm/numa.c b/arch/x86/mm/numa.c
-index f70c1ff..57673f5 100644
---- a/arch/x86/mm/numa.c
-+++ b/arch/x86/mm/numa.c
-@@ -1,4 +1,5 @@
- /* Common code for 32 and 64-bit NUMA */
-+#include <linux/acpi.h>
- #include <linux/kernel.h>
- #include <linux/mm.h>
- #include <linux/string.h>
-@@ -15,7 +16,6 @@
- #include <asm/e820.h>
- #include <asm/proto.h>
- #include <asm/dma.h>
--#include <asm/acpi.h>
- #include <asm/amd_nb.h>
- 
- #include "numa_internal.h"
 diff --git a/arch/x86/mm/srat.c b/arch/x86/mm/srat.c
-index 9e2a833..4217071f 100644
+index 30460f5..b1ecff4 100644
 --- a/arch/x86/mm/srat.c
 +++ b/arch/x86/mm/srat.c
-@@ -24,19 +24,6 @@
- #include <asm/apic.h>
- #include <asm/uv/uv.h>
- 
--int acpi_numa __initdata;
--
--static __init void bad_srat(void)
--{
--	printk(KERN_ERR "SRAT: SRAT not used.\n");
--	acpi_numa = -1;
--}
--
--static __init inline int srat_disabled(void)
--{
--	return acpi_numa < 0;
--}
--
- /* Callback for Proximity Domain -> x2APIC mapping */
- void __init
- acpi_numa_x2apic_affinity_init(struct acpi_srat_x2apic_cpu_affinity *pa)
-diff --git a/drivers/acpi/numa.c b/drivers/acpi/numa.c
-index acc361d..7174a38 100644
---- a/drivers/acpi/numa.c
-+++ b/drivers/acpi/numa.c
-@@ -40,6 +40,7 @@ static int node_to_pxm_map[MAX_NUMNODES]
- 			= { [0 ... MAX_NUMNODES - 1] = PXM_INVAL };
- 
- unsigned char acpi_srat_revision __initdata;
-+int acpi_numa __initdata;
- 
- int pxm_to_node(int pxm)
- {
-@@ -197,6 +198,17 @@ static int __init slit_valid(struct acpi_table_slit *slit)
- 	return 1;
+@@ -15,8 +15,6 @@
+ #include <linux/bitmap.h>
+ #include <linux/module.h>
+ #include <linux/topology.h>
+-#include <linux/bootmem.h>
+-#include <linux/memblock.h>
+ #include <linux/mm.h>
+ #include <asm/proto.h>
+ #include <asm/numa.h>
+@@ -104,61 +102,6 @@ acpi_numa_processor_affinity_init(struct acpi_srat_cpu_affinity *pa)
+ 	       pxm, apic_id, node);
  }
  
-+void __init bad_srat(void)
+-/* Callback for parsing of the Proximity Domain <-> Memory Area mappings */
+-int __init
+-acpi_numa_memory_affinity_init(struct acpi_srat_mem_affinity *ma)
+-{
+-	u64 start, end;
+-	u32 hotpluggable;
+-	int node, pxm;
+-
+-	if (srat_disabled())
+-		goto out_err;
+-	if (ma->header.length != sizeof(struct acpi_srat_mem_affinity))
+-		goto out_err_bad_srat;
+-	if ((ma->flags & ACPI_SRAT_MEM_ENABLED) == 0)
+-		goto out_err;
+-	hotpluggable = ma->flags & ACPI_SRAT_MEM_HOT_PLUGGABLE;
+-	if (hotpluggable && !IS_ENABLED(CONFIG_MEMORY_HOTPLUG))
+-		goto out_err;
+-
+-	start = ma->base_address;
+-	end = start + ma->length;
+-	pxm = ma->proximity_domain;
+-	if (acpi_srat_revision <= 1)
+-		pxm &= 0xff;
+-
+-	node = acpi_map_pxm_to_node(pxm);
+-	if (node < 0) {
+-		printk(KERN_ERR "SRAT: Too many proximity domains.\n");
+-		goto out_err_bad_srat;
+-	}
+-
+-	if (numa_add_memblk(node, start, end) < 0)
+-		goto out_err_bad_srat;
+-
+-	node_set(node, numa_nodes_parsed);
+-
+-	pr_info("SRAT: Node %u PXM %u [mem %#010Lx-%#010Lx]%s%s\n",
+-		node, pxm,
+-		(unsigned long long) start, (unsigned long long) end - 1,
+-		hotpluggable ? " hotplug" : "",
+-		ma->flags & ACPI_SRAT_MEM_NON_VOLATILE ? " non-volatile" : "");
+-
+-	/* Mark hotplug range in memblock. */
+-	if (hotpluggable && memblock_mark_hotplug(start, ma->length))
+-		pr_warn("SRAT: Failed to mark hotplug range [mem %#010Lx-%#010Lx] in memblock\n",
+-			(unsigned long long)start, (unsigned long long)end - 1);
+-
+-	max_possible_pfn = max(max_possible_pfn, PFN_UP(end - 1));
+-
+-	return 0;
+-out_err_bad_srat:
+-	bad_srat();
+-out_err:
+-	return -EINVAL;
+-}
+-
+ int __init x86_acpi_numa_init(void)
+ {
+ 	int ret;
+diff --git a/drivers/acpi/numa.c b/drivers/acpi/numa.c
+index 7174a38..8ba90ad 100644
+--- a/drivers/acpi/numa.c
++++ b/drivers/acpi/numa.c
+@@ -27,6 +27,8 @@
+ #include <linux/types.h>
+ #include <linux/errno.h>
+ #include <linux/acpi.h>
++#include <linux/bootmem.h>
++#include <linux/memblock.h>
+ #include <linux/numa.h>
+ #include <linux/nodemask.h>
+ #include <linux/topology.h>
+@@ -236,6 +238,64 @@ void __init acpi_numa_slit_init(struct acpi_table_slit *slit)
+ 		}
+ 	}
+ }
++
++/*
++ * Default callback for parsing of the Proximity Domain <-> Memory
++ * Area mappings
++ */
++int __init
++acpi_numa_memory_affinity_init(struct acpi_srat_mem_affinity *ma)
 +{
-+	pr_err("SRAT: SRAT not used.\n");
-+	acpi_numa = -1;
++	u64 start, end;
++	u32 hotpluggable;
++	int node, pxm;
++
++	if (srat_disabled())
++		goto out_err;
++	if (ma->header.length != sizeof(struct acpi_srat_mem_affinity))
++		goto out_err_bad_srat;
++	if ((ma->flags & ACPI_SRAT_MEM_ENABLED) == 0)
++		goto out_err;
++	hotpluggable = ma->flags & ACPI_SRAT_MEM_HOT_PLUGGABLE;
++	if (hotpluggable && !IS_ENABLED(CONFIG_MEMORY_HOTPLUG))
++		goto out_err;
++
++	start = ma->base_address;
++	end = start + ma->length;
++	pxm = ma->proximity_domain;
++	if (acpi_srat_revision <= 1)
++		pxm &= 0xff;
++
++	node = acpi_map_pxm_to_node(pxm);
++	if (node < 0) {
++		printk(KERN_ERR "SRAT: Too many proximity domains.\n");
++		goto out_err_bad_srat;
++	}
++
++	if (numa_add_memblk(node, start, end) < 0)
++		goto out_err_bad_srat;
++
++	node_set(node, numa_nodes_parsed);
++
++	pr_info("SRAT: Node %u PXM %u [mem %#010Lx-%#010Lx]%s%s\n",
++		node, pxm,
++		(unsigned long long) start, (unsigned long long) end - 1,
++		hotpluggable ? " hotplug" : "",
++		ma->flags & ACPI_SRAT_MEM_NON_VOLATILE ? " non-volatile" : "");
++
++	/* Mark hotplug range in memblock. */
++	if (hotpluggable && memblock_mark_hotplug(start, ma->length))
++		pr_warn("SRAT: Failed to mark hotplug range [mem %#010Lx-%#010Lx] in memblock\n",
++			(unsigned long long)start, (unsigned long long)end - 1);
++
++	max_possible_pfn = max(max_possible_pfn, PFN_UP(end - 1));
++
++	return 0;
++out_err_bad_srat:
++	bad_srat();
++out_err:
++	return -EINVAL;
 +}
-+
-+int __init srat_disabled(void)
-+{
-+	return acpi_numa < 0;
-+}
-+
- #if defined(CONFIG_X86) || defined(CONFIG_ARM64)
- /*
-  * Callback for SLIT parsing.  pxm_to_node() returns NUMA_NO_NODE for
-diff --git a/include/acpi/acpi_numa.h b/include/acpi/acpi_numa.h
-index 94a37cd..d4b7294 100644
---- a/include/acpi/acpi_numa.h
-+++ b/include/acpi/acpi_numa.h
-@@ -15,6 +15,10 @@ extern int pxm_to_node(int);
- extern int node_to_pxm(int);
- extern int acpi_map_pxm_to_node(int);
- extern unsigned char acpi_srat_revision;
-+extern int acpi_numa __initdata;
-+
-+extern void bad_srat(void);
-+extern int srat_disabled(void);
+ #endif /* defined(CONFIG_X86) || defined (CONFIG_ARM64) */
  
- #endif				/* CONFIG_ACPI_NUMA */
- #endif				/* __ACP_NUMA_H */
+ static int __init acpi_parse_slit(struct acpi_table_header *table)
 -- 
 1.7.11.7
