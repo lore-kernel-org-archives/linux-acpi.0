@@ -1,66 +1,59 @@
 From: David Daney <ddaney.cavm@gmail.com>
-Subject: [PATCH v5 11/14] acpi, numa, srat: Improve SRAT error detection and add messages.
-Date: Tue, 19 Apr 2016 18:40:36 -0700
-Message-ID: <1461116439-22991-12-git-send-email-ddaney.cavm@gmail.com>
+Subject: [PATCH v5 09/14] acpi, numa: remove unneeded acpi_numa=1
+Date: Tue, 19 Apr 2016 18:40:34 -0700
+Message-ID: <1461116439-22991-10-git-send-email-ddaney.cavm@gmail.com>
 References: <1461116439-22991-1-git-send-email-ddaney.cavm@gmail.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
 In-Reply-To: <1461116439-22991-1-git-send-email-ddaney.cavm@gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
 To: Will Deacon <will.deacon@arm.com>, linux-arm-kernel@lists.infradead.org, Mark Rutland <mark.rutland@arm.com>, Catalin Marinas <catalin.marinas@arm.com>, Tony Luck <tony.luck@intel.com>, Fenghua Yu <fenghua.yu@intel.com>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, x86@kernel.org, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Rob Herring <robh+dt@kernel.org>, Frank Rowand <frowand.list@gmail.com>, Grant Likely <grant.likely@linaro.org>, Robert Moore <robert.moore@intel.com>, Lv Zheng <lv.zheng@intel.com>, Hanjun Guo <hanjun.guo@linaro.org>, Marc Zyngier <Marc.Zyngier@arm.com>, linux-ia64@vger.kernel.org, linux-acpi@vger.kernel.org, devel@acpica.org
-Cc: linux-kernel@vger.kernel.org, Robert Richter <rrichter@cavium.com>, David Daney <david.daney@cavium.com>
+Cc: Robert Richter <rrichter@cavium.com>, linux-kernel@vger.kernel.org, David Daney <david.daney@cavium.com>
 List-Id: linux-acpi@vger.kernel.org
 
-From: David Daney <david.daney@cavium.com>
+From: Hanjun Guo <hanjun.guo@linaro.org>
 
-Loosely based on code from Robert Richter and Hanjun Guo.
+acpi_numa is default to 0, it's set to -1 when disable acpi numa or
+when a bad SRAT is parsed, and it's only consumed in srat_disabled()
+(compare it with 0) to continue parse the SRAT or not, so we don't
+need to set acpi_numa to 1 when we get a valid SRAT entry.
 
-Improve out of range node detection as well as allow for Larger SRAT
-entities.
-
-Add printing of nice messages.
-
+Signed-off-by: Hanjun Guo <hanjun.guo@linaro.org>
+Signed-off-by: Robert Richter <rrichter@cavium.com>
 Signed-off-by: David Daney <david.daney@cavium.com>
 ---
- drivers/acpi/numa.c | 15 +++++++++++----
- 1 file changed, 11 insertions(+), 4 deletions(-)
+ arch/x86/mm/srat.c | 2 --
+ 1 file changed, 2 deletions(-)
 
-diff --git a/drivers/acpi/numa.c b/drivers/acpi/numa.c
-index 8ba90ad..d244018 100644
---- a/drivers/acpi/numa.c
-+++ b/drivers/acpi/numa.c
-@@ -252,8 +252,11 @@ acpi_numa_memory_affinity_init(struct acpi_srat_mem_affinity *ma)
- 
- 	if (srat_disabled())
- 		goto out_err;
--	if (ma->header.length != sizeof(struct acpi_srat_mem_affinity))
-+	if (ma->header.length < sizeof(struct acpi_srat_mem_affinity)) {
-+		pr_err("SRAT: Unexpected header length: %d\n",
-+		       ma->header.length);
- 		goto out_err_bad_srat;
-+	}
- 	if ((ma->flags & ACPI_SRAT_MEM_ENABLED) == 0)
- 		goto out_err;
- 	hotpluggable = ma->flags & ACPI_SRAT_MEM_HOT_PLUGGABLE;
-@@ -267,13 +270,17 @@ acpi_numa_memory_affinity_init(struct acpi_srat_mem_affinity *ma)
- 		pxm &= 0xff;
- 
- 	node = acpi_map_pxm_to_node(pxm);
--	if (node < 0) {
--		printk(KERN_ERR "SRAT: Too many proximity domains.\n");
-+	if (node == NUMA_NO_NODE || node >= MAX_NUMNODES) {
-+		pr_err("SRAT: Too many proximity domains.\n");
- 		goto out_err_bad_srat;
+diff --git a/arch/x86/mm/srat.c b/arch/x86/mm/srat.c
+index 4217071f..30460f5 100644
+--- a/arch/x86/mm/srat.c
++++ b/arch/x86/mm/srat.c
+@@ -59,7 +59,6 @@ acpi_numa_x2apic_affinity_init(struct acpi_srat_x2apic_cpu_affinity *pa)
  	}
- 
--	if (numa_add_memblk(node, start, end) < 0)
-+	if (numa_add_memblk(node, start, end) < 0) {
-+		pr_err("SRAT: Failed to add memblk to node %u [mem %#010Lx-%#010Lx]\n",
-+		       node, (unsigned long long) start,
-+		       (unsigned long long) end - 1);
- 		goto out_err_bad_srat;
-+	}
- 
+ 	set_apicid_to_node(apic_id, node);
  	node_set(node, numa_nodes_parsed);
+-	acpi_numa = 1;
+ 	printk(KERN_INFO "SRAT: PXM %u -> APIC 0x%04x -> Node %u\n",
+ 	       pxm, apic_id, node);
+ }
+@@ -101,7 +100,6 @@ acpi_numa_processor_affinity_init(struct acpi_srat_cpu_affinity *pa)
  
+ 	set_apicid_to_node(apic_id, node);
+ 	node_set(node, numa_nodes_parsed);
+-	acpi_numa = 1;
+ 	printk(KERN_INFO "SRAT: PXM %u -> APIC 0x%02x -> Node %u\n",
+ 	       pxm, apic_id, node);
+ }
 -- 
 1.7.11.7
