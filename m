@@ -1,7 +1,7 @@
 From: Jiang Qiu <qiujiang@huawei.com>
-Subject: [PATCH v9 1/3] gpio: dwapb: remove name from dwapb_port_property
-Date: Wed, 20 Apr 2016 15:13:47 +0800
-Message-ID: <1461136429-85114-2-git-send-email-qiujiang@huawei.com>
+Subject: [PATCH v9 3/3] gpio: dwapb: add gpio-signaled acpi event support
+Date: Wed, 20 Apr 2016 15:13:49 +0800
+Message-ID: <1461136429-85114-4-git-send-email-qiujiang@huawei.com>
 References: <1461136429-85114-1-git-send-email-qiujiang@huawei.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -12,106 +12,109 @@ To: linus.walleij@linaro.org, gnurou@gmail.com
 Cc: mika.westerberg@linux.intel.com, andy.shevchenko@gmail.com, delicious.quinoa@gmail.com, jamie@jamieiles.com, charles.chenxin@huawei.com, linux-kernel@vger.kernel.org, linux-gpio@vger.kernel.org, linux-acpi@vger.kernel.org, linuxarm@huawei.com, Jiang Qiu <qiujiang@huawei.com>
 List-Id: linux-acpi@vger.kernel.org
 
-This patch removed the name property from dwapb_port_property.
-The name property is redundant, since we can get this info
-from dwapb_gpio dev node.
+This patch adds gpio-signaled acpi event support. It is used for
+power button on hisilicon D02 board, an arm64 platform.
 
+The corresponding DSDT file is defined as follows:
+Device(GPI0) {
+	Name(_HID, "HISI0181")
+	Name(_ADR, 0)
+	Name(_UID, 0)
+
+	Name (_CRS, ResourceTemplate ()  {
+		Memory32Fixed (ReadWrite, 0x802e0000, 0x10000)
+		Interrupt (ResourceConsumer, Level, ActiveHigh,
+		Exclusive,,,)  {344}
+	})
+
+	Device(PRTa) {
+		Name (_DSD, Package () {
+		Package () {
+			Package () {"reg",0},
+			Package () {"snps,nr-gpios",32},
+		}
+		})
+	}
+
+	Name (_AEI, ResourceTemplate () {
+		GpioInt(Edge, ActiveLow, ExclusiveAndWake,
+		PullUp, , " \\_SB.GPI0") {8}
+	})
+
+	Method (_E08, 0x0, NotSerialized) {
+		Notify (\_SB.PWRB, 0x80)
+	}
+}
+
+Acked-by: Mika Westerberg <mika.westerberg@linux.intel.com>
 Reviewed-by: Andy Shevchenko <andy.shevchenko@gmail.com>
 Signed-off-by: Jiang Qiu <qiujiang@huawei.com>
 ---
- drivers/gpio/gpio-dwapb.c                | 24 +++++++++++-------------
- drivers/mfd/intel_quark_i2c_gpio.c       |  1 -
- include/linux/platform_data/gpio-dwapb.h |  1 -
- 3 files changed, 11 insertions(+), 15 deletions(-)
+ drivers/gpio/gpio-dwapb.c | 17 +++++++++++++++++
+ 1 file changed, 17 insertions(+)
 
 diff --git a/drivers/gpio/gpio-dwapb.c b/drivers/gpio/gpio-dwapb.c
-index 597de1e..772d743 100644
+index 92bc204..c411e95 100644
 --- a/drivers/gpio/gpio-dwapb.c
 +++ b/drivers/gpio/gpio-dwapb.c
-@@ -409,8 +409,8 @@ static int dwapb_gpio_add_port(struct dwapb_gpio *gpio,
- 	err = bgpio_init(&port->gc, gpio->dev, 4, dat, set, NULL, dirout,
- 			 NULL, false);
- 	if (err) {
--		dev_err(gpio->dev, "failed to init gpio chip for %s\n",
--			pp->name);
-+		dev_err(gpio->dev, "failed to init gpio chip for port%d\n",
-+			port->idx);
- 		return err;
- 	}
+@@ -7,6 +7,7 @@
+  *
+  * All enquiries to support@picochip.com
+  */
++#include <linux/acpi.h>
+ #include <linux/gpio/driver.h>
+ /* FIXME: for gpio_get_value(), replace this with direct register read */
+ #include <linux/gpio.h>
+@@ -27,6 +28,8 @@
+ #include <linux/platform_data/gpio-dwapb.h>
+ #include <linux/slab.h>
  
-@@ -429,8 +429,8 @@ static int dwapb_gpio_add_port(struct dwapb_gpio *gpio,
- 
- 	err = gpiochip_add_data(&port->gc, port);
- 	if (err)
--		dev_err(gpio->dev, "failed to register gpiochip for %s\n",
--			pp->name);
-+		dev_err(gpio->dev, "failed to register gpiochip for port%d\n",
-+			port->idx);
++#include "gpiolib.h"
++
+ #define GPIO_SWPORTA_DR		0x00
+ #define GPIO_SWPORTA_DDR	0x04
+ #define GPIO_SWPORTB_DR		0x0c
+@@ -436,6 +439,10 @@ static int dwapb_gpio_add_port(struct dwapb_gpio *gpio,
  	else
  		port->is_registered = true;
  
-@@ -480,15 +480,16 @@ dwapb_gpio_get_pdata_of(struct device *dev)
++	/* Add GPIO-signaled ACPI event support */
++	if (pp->irq)
++		acpi_gpiochip_request_interrupts(&port->gc);
++
+ 	return err;
+ }
  
- 		if (of_property_read_u32(port_np, "reg", &pp->idx) ||
- 		    pp->idx >= DWAPB_MAX_PORTS) {
--			dev_err(dev, "missing/invalid port index for %s\n",
--				port_np->full_name);
-+			dev_err(dev,
-+				"missing/invalid port index for port%d\n", i);
- 			return ERR_PTR(-EINVAL);
+@@ -503,6 +510,9 @@ dwapb_gpio_get_pdata(struct device *dev)
+ 				dev_warn(dev, "no irq for port%d\n", pp->idx);
  		}
  
- 		if (of_property_read_u32(port_np, "snps,nr-gpios",
- 					 &pp->ngpio)) {
--			dev_info(dev, "failed to get number of gpios for %s\n",
--				 port_np->full_name);
-+			dev_info(dev,
-+				 "failed to get number of gpios for port%d\n",
-+				 i);
- 			pp->ngpio = 32;
- 		}
- 
-@@ -499,15 +500,12 @@ dwapb_gpio_get_pdata_of(struct device *dev)
- 		if (pp->idx == 0 &&
- 		    of_property_read_bool(port_np, "interrupt-controller")) {
- 			pp->irq = irq_of_parse_and_map(port_np, 0);
--			if (!pp->irq) {
--				dev_warn(dev, "no irq for bank %s\n",
--					 port_np->full_name);
--			}
-+			if (!pp->irq)
-+				dev_warn(dev, "no irq for port%d\n", pp->idx);
- 		}
- 
++		if (has_acpi_companion(dev) && pp->idx == 0)
++			pp->irq = platform_get_irq(to_platform_device(dev), 0);
++
  		pp->irq_shared	= false;
  		pp->gpio_base	= -1;
--		pp->name	= port_np->full_name;
  	}
+@@ -577,6 +587,12 @@ static const struct of_device_id dwapb_of_match[] = {
+ };
+ MODULE_DEVICE_TABLE(of, dwapb_of_match);
  
- 	return pdata;
-diff --git a/drivers/mfd/intel_quark_i2c_gpio.c b/drivers/mfd/intel_quark_i2c_gpio.c
-index bdc5e27..a4ef99b 100644
---- a/drivers/mfd/intel_quark_i2c_gpio.c
-+++ b/drivers/mfd/intel_quark_i2c_gpio.c
-@@ -220,7 +220,6 @@ static int intel_quark_gpio_setup(struct pci_dev *pdev, struct mfd_cell *cell)
- 
- 	/* Set the properties for portA */
- 	pdata->properties->node		= NULL;
--	pdata->properties->name		= "intel-quark-x1000-gpio-portA";
- 	pdata->properties->idx		= 0;
- 	pdata->properties->ngpio	= INTEL_QUARK_MFD_NGPIO;
- 	pdata->properties->gpio_base	= INTEL_QUARK_MFD_GPIO_BASE;
-diff --git a/include/linux/platform_data/gpio-dwapb.h b/include/linux/platform_data/gpio-dwapb.h
-index 28702c8..955b579 100644
---- a/include/linux/platform_data/gpio-dwapb.h
-+++ b/include/linux/platform_data/gpio-dwapb.h
-@@ -16,7 +16,6 @@
- 
- struct dwapb_port_property {
- 	struct device_node *node;
--	const char	*name;
- 	unsigned int	idx;
- 	unsigned int	ngpio;
- 	unsigned int	gpio_base;
++static const struct acpi_device_id dwapb_acpi_match[] = {
++	{"HISI0181", 0},
++	{ }
++};
++MODULE_DEVICE_TABLE(acpi, dwapb_acpi_match);
++
+ #ifdef CONFIG_PM_SLEEP
+ static int dwapb_gpio_suspend(struct device *dev)
+ {
+@@ -671,6 +687,7 @@ static struct platform_driver dwapb_gpio_driver = {
+ 		.name	= "gpio-dwapb",
+ 		.pm	= &dwapb_gpio_pm_ops,
+ 		.of_match_table = of_match_ptr(dwapb_of_match),
++		.acpi_match_table = ACPI_PTR(dwapb_acpi_match),
+ 	},
+ 	.probe		= dwapb_gpio_probe,
+ 	.remove		= dwapb_gpio_remove,
 -- 
 1.9.1
