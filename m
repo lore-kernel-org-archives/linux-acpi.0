@@ -1,42 +1,116 @@
-From: Stephen Boyd <sboyd@codeaurora.org>
-Subject: [PATCH] ACPI / amba: Remove CLK_IS_ROOT
-Date: Tue, 19 Apr 2016 18:28:38 -0700
-Message-ID: <1461115718-31151-1-git-send-email-sboyd@codeaurora.org>
+From: David Daney <ddaney.cavm@gmail.com>
+Subject: [PATCH v5 00/14]  ACPI NUMA support for ARM64
+Date: Tue, 19 Apr 2016 18:40:25 -0700
+Message-ID: <1461116439-22991-1-git-send-email-ddaney.cavm@gmail.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp.codeaurora.org ([198.145.29.96]:32969 "EHLO
-	smtp.codeaurora.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751808AbcDTB2l (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 19 Apr 2016 21:28:41 -0400
+Received: from mail-pf0-f179.google.com ([209.85.192.179]:35902 "EHLO
+	mail-pf0-f179.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932437AbcDTBkr (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 19 Apr 2016 21:40:47 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J . Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>
-Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Graeme Gregory <graeme.gregory@linaro.org>, Aleksey Makarov <aleksey.makarov@linaro.org>
+To: Will Deacon <will.deacon@arm.com>, linux-arm-kernel@lists.infradead.org, Mark Rutland <mark.rutland@arm.com>, Catalin Marinas <catalin.marinas@arm.com>, Tony Luck <tony.luck@intel.com>, Fenghua Yu <fenghua.yu@intel.com>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, x86@kernel.org, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Rob Herring <robh+dt@kernel.org>, Frank Rowand <frowand.list@gmail.com>, Grant Likely <grant.likely@linaro.org>, Robert Moore <robert.moore@intel.com>, Lv Zheng <lv.zheng@intel.com>, Hanjun Guo <hanjun.guo@linaro.org>, Marc Zyngier <Marc.Zyngier@arm.com>, linux-ia64@vger.kernel.org, linux-acpi@vger.kernel.org, devel@acpica.org
+Cc: linux-kernel@vger.kernel.org, Robert Richter <rrichter@cavium.com>, David Daney <david.daney@cavium.com>
 
-This flag is a no-op now (see commit 47b0eeb3dc8a "clk: Deprecate
-CLK_IS_ROOT", 2016-02-02) so remove it.
+From: David Daney <david.daney@cavium.com>
 
-Cc: Graeme Gregory <graeme.gregory@linaro.org>
-Cc: Aleksey Makarov <aleksey.makarov@linaro.org>
-Signed-off-by: Stephen Boyd <sboyd@codeaurora.org>
----
- drivers/acpi/acpi_amba.c | 3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+Based on v16 of device-tree NUMA patch set for arm64 [1],this patch
+set introduce the ACPI based configuration to provide NUMA
+information.
 
-diff --git a/drivers/acpi/acpi_amba.c b/drivers/acpi/acpi_amba.c
-index 2a61b54ab968..7f77c071709a 100644
---- a/drivers/acpi/acpi_amba.c
-+++ b/drivers/acpi/acpi_amba.c
-@@ -35,8 +35,7 @@ static void amba_register_dummy_clk(void)
- 	if (amba_dummy_clk)
- 		return;
- 
--	amba_dummy_clk = clk_register_fixed_rate(NULL, "apb_pclk", NULL,
--						CLK_IS_ROOT, 0);
-+	amba_dummy_clk = clk_register_fixed_rate(NULL, "apb_pclk", NULL, 0, 0);
- 	clk_register_clkdev(amba_dummy_clk, "apb_pclk", NULL);
- }
- 
+ACPI 5.1 already introduced NUMA support for ARM64, which can get the
+NUMA domain information from SRAT and SLIT table, so parse those two
+tables to get mappings from cpu/mem to numa node configuration and
+system locality.
+
+v5 updates:
+
+ - Fixed ia64 build failure by gating some unused functions with #if
+   CONFIG_{X86,ARM64}.
+
+ - Fixed section mismatch errors for X86 case.
+
+ - Removed unneeded #include from some files.
+
+ - Tested to build cleanly on ARM64, X86_64, IA64
+
+v4 updates:
+
+ - Updated from Hanjun Guo's v3 patches.
+
+ - Rebased on top of v16 of device-tree NUMA patches.
+
+ - Reordered some of the changes so that we don't introduce code and
+   then change it several times in the patch set.  New code is
+   introduced in its final form.  Code reused from x86 is first moved
+   with no change, and then a separate patch to make any needed
+   changes.
+
+ - code that is used only by ia64, moved to architecture specific
+   files.
+
+v3 updates:
+ - Deep investigation about the ACPI_DEBUG_PRINT() and remvoe
+   that for acpi/numa.c (patch 2/12)
+
+ - Remove the duplicate NULL check for table print (patch 3/12)
+
+ - Introduce CONFIG_ACPI_HAS_NUMA_ARCH_FIXUP to remove duplicate
+   dummy function for acpi_numa_arch_fixup()
+
+ - Solve the problem that the mapping from logical cpu to numa node
+   is wrong which spotted out by Lorenzo
+
+ - cleanups for x86 and move acpi_numa_slit_init() and some other
+   functions to common place, then reduce the duplicate of x86
+   and arm64 (patch 7-12/12).
+
+ - rebased on top of 4.4 and Ganapat's v9 patch set.
+
+[1]: https://lkml.org/lkml/2016/4/8/571
+
+David Daney (1):
+  acpi, numa, srat: Improve SRAT error detection and add messages.
+
+Hanjun Guo (11):
+  acpi, numa: Use pr_fmt() instead of printk
+  acpi, numa: Replace ACPI_DEBUG_PRINT() with pr_debug()
+  acpi, numa: remove duplicate NULL check
+  acpi, numa: move acpi_numa_slit_init() to drivers/acpi/numa.c
+  arm64, numa: rework numa_add_memblk()
+  x86, acpi, numa: cleanup acpi_numa_processor_affinity_init()
+  acpi, numa: move bad_srat() and srat_disabled() to
+    drivers/acpi/numa.c
+  acpi, numa: remove unneeded acpi_numa=1
+  acpi, numa: Move acpi_numa_memory_affinity_init() to
+    drivers/acpi/numa.c
+  arm64, acpi, numa: NUMA support based on SRAT and SLIT
+  acpi, numa: Enable ACPI based NUMA on ARM64
+
+Robert Richter (2):
+  acpi, numa: Move acpi_numa_arch_fixup() to ia64 only
+  arm64, acpi, numa: Default enable ACPI_NUMA with NUMA
+
+ arch/arm64/include/asm/acpi.h |   8 ++
+ arch/arm64/include/asm/numa.h |   2 +
+ arch/arm64/kernel/Makefile    |   1 +
+ arch/arm64/kernel/acpi_numa.c | 149 ++++++++++++++++++++++++++++
+ arch/arm64/kernel/smp.c       |   2 +
+ arch/arm64/mm/numa.c          |  17 ++--
+ arch/ia64/include/asm/acpi.h  |   3 +
+ arch/ia64/kernel/acpi.c       |   2 +-
+ arch/ia64/kernel/setup.c      |   1 +
+ arch/x86/include/asm/acpi.h   |   1 -
+ arch/x86/mm/numa.c            |   2 +-
+ arch/x86/mm/srat.c            | 116 +---------------------
+ drivers/acpi/Kconfig          |   4 +-
+ drivers/acpi/numa.c           | 224 ++++++++++++++++++++++++++++++++----------
+ drivers/of/of_numa.c          |   4 +-
+ include/acpi/acpi_numa.h      |   4 +
+ include/linux/acpi.h          |  18 +++-
+ 17 files changed, 375 insertions(+), 183 deletions(-)
+ create mode 100644 arch/arm64/kernel/acpi_numa.c
+
 -- 
-The Qualcomm Innovation Center, Inc. is a member of the Code Aurora Forum,
-a Linux Foundation Collaborative Project
+1.7.11.7
 
