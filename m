@@ -1,85 +1,163 @@
-From: Sudeep Holla <sudeep.holla@arm.com>
-Subject: Re: [PATCH v4 4/5] arm64: add support for ACPI Low Power Idle(LPI)
-Date: Wed, 20 Apr 2016 11:20:59 +0100
-Message-ID: <5717580B.8060209@arm.com>
-References: <1461069013-13292-1-git-send-email-sudeep.holla@arm.com>
- <1461069013-13292-5-git-send-email-sudeep.holla@arm.com>
- <CAGm_ybgNWyRXc3PmOE99=3q9A0Jpjm9taHww8p3oD3YRwfJDxA@mail.gmail.com>
+From: "Rafael J. Wysocki" <rafael@kernel.org>
+Subject: Re: [PATCH] ACPICA / Interpreter: Fix a regression triggered because
+ of wrong Linux ECDT support
+Date: Wed, 20 Apr 2016 12:27:17 +0200
+Message-ID: <CAJZ5v0i32aQet6vc2o12E6K6F3vcnqQMymu=O3oy-aeHhB+=FQ@mail.gmail.com>
+References: <1461119996-1861-1-git-send-email-lv.zheng@intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from foss.arm.com ([217.140.101.70]:46113 "EHLO foss.arm.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754013AbcDTKVD (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 20 Apr 2016 06:21:03 -0400
-In-Reply-To: <CAGm_ybgNWyRXc3PmOE99=3q9A0Jpjm9taHww8p3oD3YRwfJDxA@mail.gmail.com>
+Received: from mail-lb0-f180.google.com ([209.85.217.180]:36096 "EHLO
+	mail-lb0-f180.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932188AbcDTK1T (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 20 Apr 2016 06:27:19 -0400
+In-Reply-To: <1461119996-1861-1-git-send-email-lv.zheng@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Vikas Sajjan <sajjan.linux@gmail.com>
-Cc: Sudeep Holla <sudeep.holla@arm.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Al Stone <al.stone@linaro.org>, Prashanth Prakash <pprakash@codeaurora.org>, Ashwin Chaugule <ashwin.chaugule@linaro.org>, Mark Rutland <mark.rutland@arm.com>, Vikas C Sajjan <vikas.cha.sajjan@hpe.com>, Sunil V L <sunil.vl@hpe.com>
+To: Lv Zheng <lv.zheng@intel.com>
+Cc: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <len.brown@intel.com>, Lv Zheng <zetalog@gmail.com>, Stable <stable@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>
 
+On Wed, Apr 20, 2016 at 4:39 AM, Lv Zheng <lv.zheng@intel.com> wrote:
+> 4.5-stable review patch. If anyone has any objects, please let me know.
 
+This should be a request to the maintainers of -stable trees to apply
+the following backport of a mainline commit.  Something like:
 
-On 20/04/16 10:59, Vikas Sajjan wrote:
-> Hi Sudeep,
+"Please take the following backport of mainline commit
+5508df89756f8378024828e185724a9bd2348985 to the 4.5.y tree as it fixes
+a regression introduced by commit
+efaed9be998b5ae0afb7458e057e5f4402b43fa0 (ACPICA: Events: Enhance
+acpi_ev_execute_reg_method() to  ensure no _REG evaluations can happen
+during OS early boot stages)".
+
+> ---------------
 >
-> On Tue, Apr 19, 2016 at 6:00 PM, Sudeep Holla <sudeep.holla@arm.com> wrote:
->> This patch adds appropriate callbacks to support ACPI Low Power Idle
->> (LPI) on ARM64.
->>
->> It also selects ARCH_SUPPORTS_ACPI_PROCESSOR_LPI if ACPI is enabled
->> on ARM64.
->>
-
-[...]
-
->> @@ -211,6 +214,37 @@ void __init acpi_boot_table_init(void)
->>          }
->>   }
->>
->> +int acpi_processor_ffh_lpi_probe(unsigned int cpu)
->> +{
->> +       return arm_cpuidle_init(cpu);
->> +}
->> +
+> From: Lv Zheng <lv.zheng@intel.com>
 >
-> This is generating warning as below:
+> commit 5508df89756f8378024828e185724a9bd2348985 upstream.
 >
-> WARNING: vmlinux.o(.text+0x11024): Section mismatch in reference from
-> the function acpi_processor_ffh_lpi_probe() to the function
-> .init.text:arm_cpuidle_init()
-> The function acpi_processor_ffh_lpi_probe() references
-> the function __init arm_cpuidle_init().
-> This is often because acpi_processor_ffh_lpi_probe lacks a __init
-> annotation or the annotation of arm_cpuidle_init is wrong.
+> It is reported that the following commit triggers regressions:
+>  Linux commit: efaed9be998b5ae0afb7458e057e5f4402b43fa0
+>  ACPICA commit: 31178590dde82368fdb0f6b0e466b6c0add96c57
+>  Subject: ACPICA: Events: Enhance acpi_ev_execute_reg_method() to
+>           ensure no _REG evaluations can happen during OS early boot
+>           stages
 >
-
-I am aware of this and needs to be fixed. I posted ARM64/PSCI related
-patches for completeness.
-
-We can't have __init annotation for ..ffh_lpi_probe as it can be called
-from hotplug paths in ACPI. Only solution I see is to remove __init tag
-for arm_cpuidle_init. I raised similar concern on the other thread
-yesterday[1]
-
-Thanks for looking at these patches, much appreciated.
-
+> This is because that the ECDT support is not corrected in Linux, and Linux
+> requires to execute _REG for ECDT (though this sounds so wrong), we need to
+> ensure acpi_gbl_reg_methods_enabled is set before ECDT probing in order
+> for _REG to be executed. Since we have to move
+> "acpi_gbl_reg_methods_enabled = TRUE" to the initialization step
+> happening before ECDT probing, acpi_load_tables() is the best candidate for
+> now. Thus this patch fixes the regression by doing so.
 >
->> +struct acpi_processor_lpi *lpi;
->> +int acpi_processor_ffh_lpi_enter(struct acpi_processor_lpi *lpi, int idx)
+> But if the ECDT support is fixed, Linux will not execute _REG for ECDT, and
+> ECDT probing will happen before acpi_load_tables(). At that time, we still
+> want to ensure acpi_gbl_reg_methods_enabled is set after executing
+> acpi_ns_initialize_objects() (under the condition of
+> acpi_gbl_group_module_level_code = FALSE), this patch also moves
+> acpi_ns_initialize_objects() to acpi_load_tables() accordingly.
 >
-> Wondering how are you handling with Resource Dependencies for Idle.
-> I mean _RDI needs to be taken care, since the dependency between the
-> power resources and the LPI state is described in _RDI.
+> Since acpi_ns_initialize_objects() doesn't seem to be skippable, this
+> patch also removes ACPI_NO_OBJECT_INIT for the one invoked in
+> acpi_load_tables(). Reported by Chris Bainbridge, Fixed by Lv Zheng.
 >
-
-Correct, right now I haven't considered RDI yet as I don't have proper
-platform to test. IMO it can be added later as RDI is optional and not
-used on all platforms.
-
--- 
-Regards,
-Sudeep
-
-[1] http://lkml.iu.edu/hypermail/linux/kernel/1604.2/02181.html
+> Fixes: efaed9be998b (ACPICA: Events: Enhance acpi_ev_execute_reg_method() to ensure no _REG evaluations can happen during OS early boot stages)
+> Reported-and-tested-by: Chris Bainbridge <chris.bainbridge@gmail.com>
+> Signed-off-by: Lv Zheng <lv.zheng@intel.com>
+> Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+> ---
+>  drivers/acpi/acpica/nsinit.c   |    2 ++
+>  drivers/acpi/acpica/tbxfload.c |   14 ++++++++++++++
+>  drivers/acpi/acpica/utxfinit.c |   25 +++++++++++--------------
+>  3 files changed, 27 insertions(+), 14 deletions(-)
+>
+> diff --git a/drivers/acpi/acpica/nsinit.c b/drivers/acpi/acpica/nsinit.c
+> index bd75d46..ddb436f 100644
+> --- a/drivers/acpi/acpica/nsinit.c
+> +++ b/drivers/acpi/acpica/nsinit.c
+> @@ -83,6 +83,8 @@ acpi_status acpi_ns_initialize_objects(void)
+>
+>         ACPI_FUNCTION_TRACE(ns_initialize_objects);
+>
+> +       ACPI_DEBUG_PRINT((ACPI_DB_EXEC,
+> +                         "[Init] Completing Initialization of ACPI Objects\n"));
+>         ACPI_DEBUG_PRINT((ACPI_DB_DISPATCH,
+>                           "**** Starting initialization of namespace objects ****\n"));
+>         ACPI_DEBUG_PRINT_RAW((ACPI_DB_INIT,
+> diff --git a/drivers/acpi/acpica/tbxfload.c b/drivers/acpi/acpica/tbxfload.c
+> index 278666e..c37d479 100644
+> --- a/drivers/acpi/acpica/tbxfload.c
+> +++ b/drivers/acpi/acpica/tbxfload.c
+> @@ -83,6 +83,20 @@ acpi_status __init acpi_load_tables(void)
+>                                 "While loading namespace from ACPI tables"));
+>         }
+>
+> +       if (!acpi_gbl_group_module_level_code) {
+> +               /*
+> +                * Initialize the objects that remain uninitialized. This
+> +                * runs the executable AML that may be part of the
+> +                * declaration of these objects:
+> +                * operation_regions, buffer_fields, Buffers, and Packages.
+> +                */
+> +               status = acpi_ns_initialize_objects();
+> +               if (ACPI_FAILURE(status)) {
+> +                       return_ACPI_STATUS(status);
+> +               }
+> +       }
+> +
+> +       acpi_gbl_reg_methods_enabled = TRUE;
+>         return_ACPI_STATUS(status);
+>  }
+>
+> diff --git a/drivers/acpi/acpica/utxfinit.c b/drivers/acpi/acpica/utxfinit.c
+> index 721b87c..638fbd4 100644
+> --- a/drivers/acpi/acpica/utxfinit.c
+> +++ b/drivers/acpi/acpica/utxfinit.c
+> @@ -267,7 +267,6 @@ acpi_status __init acpi_initialize_objects(u32 flags)
+>          * initialized, even if they contain executable AML (see the call to
+>          * acpi_ns_initialize_objects below).
+>          */
+> -       acpi_gbl_reg_methods_enabled = TRUE;
+>         if (!(flags & ACPI_NO_ADDRESS_SPACE_INIT)) {
+>                 ACPI_DEBUG_PRINT((ACPI_DB_EXEC,
+>                                   "[Init] Executing _REG OpRegion methods\n"));
+> @@ -299,20 +298,18 @@ acpi_status __init acpi_initialize_objects(u32 flags)
+>          */
+>         if (acpi_gbl_group_module_level_code) {
+>                 acpi_ns_exec_module_code_list();
+> -       }
+>
+> -       /*
+> -        * Initialize the objects that remain uninitialized. This runs the
+> -        * executable AML that may be part of the declaration of these objects:
+> -        * operation_regions, buffer_fields, Buffers, and Packages.
+> -        */
+> -       if (!(flags & ACPI_NO_OBJECT_INIT)) {
+> -               ACPI_DEBUG_PRINT((ACPI_DB_EXEC,
+> -                                 "[Init] Completing Initialization of ACPI Objects\n"));
+> -
+> -               status = acpi_ns_initialize_objects();
+> -               if (ACPI_FAILURE(status)) {
+> -                       return_ACPI_STATUS(status);
+> +               /*
+> +                * Initialize the objects that remain uninitialized. This
+> +                * runs the executable AML that may be part of the
+> +                * declaration of these objects:
+> +                * operation_regions, buffer_fields, Buffers, and Packages.
+> +                */
+> +               if (!(flags & ACPI_NO_OBJECT_INIT)) {
+> +                       status = acpi_ns_initialize_objects();
+> +                       if (ACPI_FAILURE(status)) {
+> +                               return_ACPI_STATUS(status);
+> +                       }
+>                 }
+>         }
+>
+> --
+> 1.7.10
+>
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
