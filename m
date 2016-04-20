@@ -1,162 +1,215 @@
-From: Stefano Stabellini <sstabellini@kernel.org>
-Subject: Re: [PATCH v11 01/17] Xen: ACPI: Hide UART used by Xen
-Date: Wed, 20 Apr 2016 10:39:47 +0100 (BST)
-Message-ID: <alpine.DEB.2.10.1604201038490.25611@sstabellini-ThinkPad-X260>
-References: <1460030614-16112-1-git-send-email-zhaoshenglong@huawei.com> <1460030614-16112-2-git-send-email-zhaoshenglong@huawei.com> <CAJZ5v0gN9S0AKX8SZbbVFOn6ydwCa_7GyxzzJHod8s0xyCXgvA@mail.gmail.com>
+From: Vikas Sajjan <sajjan.linux@gmail.com>
+Subject: Re: [PATCH v4 1/5] ACPI / processor_idle: introduce ARCH_SUPPORTS_ACPI_PROCESSOR_CSTATE
+Date: Wed, 20 Apr 2016 15:26:48 +0530
+Message-ID: <CAGm_ybjZ8ePc9KhcaaSX9aDJTE1Svuc-OnpYJpd9TTfi_sm_cQ@mail.gmail.com>
+References: <1461069013-13292-1-git-send-email-sudeep.holla@arm.com>
+	<1461069013-13292-2-git-send-email-sudeep.holla@arm.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <CAJZ5v0gN9S0AKX8SZbbVFOn6ydwCa_7GyxzzJHod8s0xyCXgvA@mail.gmail.com>
+In-Reply-To: <1461069013-13292-2-git-send-email-sudeep.holla@arm.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: "Rafael J. Wysocki" <rafael@kernel.org>
-Cc: Shannon Zhao <zhaoshenglong@huawei.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, sstabellini@kernel.org, Catalin Marinas <catalin.marinas@arm.com>, Will Deacon <will.deacon@arm.com>, julien.grall@arm.com, david.vrabel@citrix.com, xen-devel@lists.xen.org, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, linux-efi@vger.kernel.org, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Shannon Zhao <shannon.zhao@linaro.org>, peter.huangpeng@huawei.com, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, "open list:ACPI" <linux-acpi@vger.kernel.org>
+To: Sudeep Holla <sudeep.holla@arm.com>
+Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, linux-ia64@vger.kernel.org, Al Stone <al.stone@linaro.org>, Prashanth Prakash <pprakash@codeaurora.org>, x86@kernel.org, Ashwin Chaugule <ashwin.chaugule@linaro.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On Mon, 18 Apr 2016, Rafael J. Wysocki wrote:
-> On Thu, Apr 7, 2016 at 2:03 PM, Shannon Zhao <zhaoshenglong@huawei.com> wrote:
-> > From: Shannon Zhao <shannon.zhao@linaro.org>
-> >
-> > ACPI 6.0 introduces a new table STAO to list the devices which are used
-> > by Xen and can't be used by Dom0. On Xen virtual platforms, the physical
-> > UART is used by Xen. So here it hides UART from Dom0.
-> >
-> > CC: "Rafael J. Wysocki" <rjw@rjwysocki.net> (supporter:ACPI)
-> > CC: Len Brown <lenb@kernel.org> (supporter:ACPI)
-> > CC: linux-acpi@vger.kernel.org (open list:ACPI)
-> > Signed-off-by: Shannon Zhao <shannon.zhao@linaro.org>
-> 
-> Acked-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+Hi Sudeep,
 
-I am going to commit it to the xentip tree, if you prefer to take it in
-your tree please let me know.
+On Tue, Apr 19, 2016 at 6:00 PM, Sudeep Holla <sudeep.holla@arm.com> wrote:
+> ACPI 6.0 adds a new method to specify the CPU idle states(C-states)
+> called Low Power Idle(LPI) states. Since new architectures like ARM64
+> use only LPIs, introduce ARCH_SUPPORTS_ACPI_PROCESSOR_CSTATE to
+> encapsulate all the code supporting the old style C-states(_CST)
+>
+> This patch will help to extend the processor_idle module to support
+> LPI.
+>
+> Cc: x86@kernel.org
+> Cc: linux-ia64@vger.kernel.org
+> Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+> Signed-off-by: Sudeep Holla <sudeep.holla@arm.com>
+> ---
+>  arch/ia64/Kconfig             |  1 +
+>  arch/x86/Kconfig              |  1 +
+>  drivers/acpi/Kconfig          |  3 ++
+>  drivers/acpi/processor_idle.c | 74 +++++++++++++++++++++++++++++--------------
+>  include/acpi/processor.h      |  3 +-
+>  5 files changed, 57 insertions(+), 25 deletions(-)
+>
+> diff --git a/arch/ia64/Kconfig b/arch/ia64/Kconfig
+> index b534ebab36ea..717de2a146e2 100644
+> --- a/arch/ia64/Kconfig
+> +++ b/arch/ia64/Kconfig
+> @@ -16,6 +16,7 @@ config IA64
+>         select PCI if (!IA64_HP_SIM)
+>         select ACPI if (!IA64_HP_SIM)
+>         select ACPI_SYSTEM_POWER_STATES_SUPPORT if ACPI
+> +       select ARCH_SUPPORTS_ACPI_PROCESSOR_CSTATE if ACPI
+>         select ARCH_MIGHT_HAVE_ACPI_PDC if ACPI
+>         select HAVE_UNSTABLE_SCHED_CLOCK
+>         select HAVE_IDE
+> diff --git a/arch/x86/Kconfig b/arch/x86/Kconfig
+> index 2dc18605831f..eb03fd0d63b9 100644
+> --- a/arch/x86/Kconfig
+> +++ b/arch/x86/Kconfig
+> @@ -37,6 +37,7 @@ config X86
+>         select ARCH_MIGHT_HAVE_ACPI_PDC         if ACPI
+>         select ARCH_MIGHT_HAVE_PC_PARPORT
+>         select ARCH_MIGHT_HAVE_PC_SERIO
+> +       select ARCH_SUPPORTS_ACPI_PROCESSOR_CSTATE if ACPI
+>         select ARCH_SUPPORTS_ATOMIC_RMW
+>         select ARCH_SUPPORTS_DEFERRED_STRUCT_PAGE_INIT
+>         select ARCH_SUPPORTS_INT128             if X86_64
+> diff --git a/drivers/acpi/Kconfig b/drivers/acpi/Kconfig
+> index 82b96ee8624c..ec289078667c 100644
+> --- a/drivers/acpi/Kconfig
+> +++ b/drivers/acpi/Kconfig
+> @@ -48,6 +48,9 @@ config ACPI_LEGACY_TABLES_LOOKUP
+>  config ARCH_MIGHT_HAVE_ACPI_PDC
+>         bool
+>
+> +config ARCH_SUPPORTS_ACPI_PROCESSOR_CSTATE
+> +       bool
+> +
+>  config ACPI_GENERIC_GSI
+>         bool
+>
+> diff --git a/drivers/acpi/processor_idle.c b/drivers/acpi/processor_idle.c
+> index 444e3745c8b3..1f3fe54194b5 100644
+> --- a/drivers/acpi/processor_idle.c
+> +++ b/drivers/acpi/processor_idle.c
+> @@ -59,6 +59,12 @@ module_param(latency_factor, uint, 0644);
+>
+>  static DEFINE_PER_CPU(struct cpuidle_device *, acpi_cpuidle_device);
+>
+> +struct cpuidle_driver acpi_idle_driver = {
+> +       .name =         "acpi_idle",
+> +       .owner =        THIS_MODULE,
+> +};
+> +
+> +#ifdef CONFIG_ARCH_SUPPORTS_ACPI_PROCESSOR_CSTATE
+>  static
+>  DEFINE_PER_CPU(struct acpi_processor_cx * [CPUIDLE_STATE_MAX], acpi_cstate);
+>
+> @@ -804,11 +810,6 @@ static void acpi_idle_enter_freeze(struct cpuidle_device *dev,
+>         acpi_idle_do_entry(cx);
+>  }
+>
+> -struct cpuidle_driver acpi_idle_driver = {
+> -       .name =         "acpi_idle",
+> -       .owner =        THIS_MODULE,
+> -};
+> -
+>  /**
+>   * acpi_processor_setup_cpuidle_cx - prepares and configures CPUIDLE
+>   * device i.e. per-cpu data
+> @@ -925,6 +926,49 @@ static int acpi_processor_setup_cpuidle_states(struct acpi_processor *pr)
+>         return 0;
+>  }
+>
+> +static inline void acpi_processor_cstate_first_run_checks(void)
+> +{
+> +       static int first_run;
+> +
+> +       if (first_run)
+> +               return;
+> +       dmi_check_system(processor_power_dmi_table);
+> +       max_cstate = acpi_processor_cstate_check(max_cstate);
+> +       if (max_cstate < ACPI_C_STATES_MAX)
+> +               pr_notice("ACPI: processor limited to max C-state %d\n",
+> +                         max_cstate);
+> +       first_run++;
+> +
+> +       if (acpi_gbl_FADT.cst_control && !nocst) {
+> +               status = acpi_os_write_port(acpi_gbl_FADT.smi_command,
+> +                                           acpi_gbl_FADT.cst_control, 8);
+> +               if (ACPI_FAILURE(status))
+> +                       ACPI_EXCEPTION((AE_INFO, status,
+> +                                       "Notifying BIOS of _CST ability failed"));
+> +       }
+> +}
+> +#else
+> +
+> +static inline int disabled_by_idle_boot_param(void) { return 0; }
+> +static inline void acpi_processor_cstate_first_run_checks(void) { }
+> +static int acpi_processor_get_power_info(struct acpi_processor *pr)
+> +{
+> +       return -ENODEV;
+> +}
+> +
+> +static int acpi_processor_setup_cpuidle_cx(struct acpi_processor *pr,
+> +                                          struct cpuidle_device *dev)
+> +{
+> +       return -EINVAL;
+> +}
+> +
+> +static int acpi_processor_setup_cpuidle_states(struct acpi_processor *pr)
+> +{
+> +       return -EINVAL;
+> +}
+> +
+> +#endif
+> +
+>  int acpi_processor_hotplug(struct acpi_processor *pr)
+>  {
+>         int ret = 0;
+> @@ -1018,29 +1062,11 @@ int acpi_processor_power_init(struct acpi_processor *pr)
+>         acpi_status status;
+>         int retval;
+>         struct cpuidle_device *dev;
+> -       static int first_run;
+>
+>         if (disabled_by_idle_boot_param())
+>                 return 0;
+>
+> -       if (!first_run) {
+> -               dmi_check_system(processor_power_dmi_table);
+> -               max_cstate = acpi_processor_cstate_check(max_cstate);
+> -               if (max_cstate < ACPI_C_STATES_MAX)
+> -                       printk(KERN_NOTICE
+> -                              "ACPI: processor limited to max C-state %d\n",
+> -                              max_cstate);
+> -               first_run++;
+> -       }
+> -
+> -       if (acpi_gbl_FADT.cst_control && !nocst) {
+> -               status =
+> -                   acpi_os_write_port(acpi_gbl_FADT.smi_command, acpi_gbl_FADT.cst_control, 8);
+> -               if (ACPI_FAILURE(status)) {
+> -                       ACPI_EXCEPTION((AE_INFO, status,
+> -                                       "Notifying BIOS of _CST ability failed"));
+> -               }
+> -       }
+> +       acpi_processor_cstate_first_run_checks();
+>
+>         acpi_processor_get_power_info(pr);
+>         pr->flags.power_setup_done = 1;
+
+Not related to your change,
+The acpi_processor_get_power_info() function can return failure, so i
+thought it makes sense to check for the return value
+and then set the  flag pr->flags.power_setup_done appropriately.
 
 
-> > ---
-> >  drivers/acpi/scan.c | 74 +++++++++++++++++++++++++++++++++++++++++++++++++++++
-> >  1 file changed, 74 insertions(+)
-> >
-> > diff --git a/drivers/acpi/scan.c b/drivers/acpi/scan.c
-> > index 5f28cf7..cfc73fe 100644
-> > --- a/drivers/acpi/scan.c
-> > +++ b/drivers/acpi/scan.c
-> > @@ -46,6 +46,13 @@ DEFINE_MUTEX(acpi_device_lock);
-> >  LIST_HEAD(acpi_wakeup_device_list);
-> >  static DEFINE_MUTEX(acpi_hp_context_lock);
-> >
-> > +/*
-> > + * The UART device described by the SPCR table is the only object which needs
-> > + * special-casing. Everything else is covered by ACPI namespace paths in STAO
-> > + * table.
-> > + */
-> > +static u64 spcr_uart_addr;
-> > +
-> >  struct acpi_dep_data {
-> >         struct list_head node;
-> >         acpi_handle master;
-> > @@ -1453,6 +1460,41 @@ static int acpi_add_single_object(struct acpi_device **child,
-> >         return 0;
-> >  }
-> >
-> > +static acpi_status acpi_get_resource_memory(struct acpi_resource *ares,
-> > +                                           void *context)
-> > +{
-> > +       struct resource *res = context;
-> > +
-> > +       if (acpi_dev_resource_memory(ares, res))
-> > +               return AE_CTRL_TERMINATE;
-> > +
-> > +       return AE_OK;
-> > +}
-> > +
-> > +static bool acpi_device_should_be_hidden(acpi_handle handle)
-> > +{
-> > +       acpi_status status;
-> > +       struct resource res;
-> > +
-> > +       /* Check if it should ignore the UART device */
-> > +       if (!(spcr_uart_addr && acpi_has_method(handle, METHOD_NAME__CRS)))
-> > +               return false;
-> > +
-> > +       /*
-> > +        * The UART device described in SPCR table is assumed to have only one
-> > +        * memory resource present. So we only look for the first one here.
-> > +        */
-> > +       status = acpi_walk_resources(handle, METHOD_NAME__CRS,
-> > +                                    acpi_get_resource_memory, &res);
-> > +       if (ACPI_FAILURE(status) || res.start != spcr_uart_addr)
-> > +               return false;
-> > +
-> > +       acpi_handle_info(handle, "The UART device @%pa in SPCR table will be hidden\n",
-> > +                        &res.start);
-> > +
-> > +       return true;
-> > +}
-> > +
-> >  static int acpi_bus_type_and_status(acpi_handle handle, int *type,
-> >                                     unsigned long long *sta)
-> >  {
-> > @@ -1466,6 +1508,9 @@ static int acpi_bus_type_and_status(acpi_handle handle, int *type,
-> >         switch (acpi_type) {
-> >         case ACPI_TYPE_ANY:             /* for ACPI_ROOT_OBJECT */
-> >         case ACPI_TYPE_DEVICE:
-> > +               if (acpi_device_should_be_hidden(handle))
-> > +                       return -ENODEV;
-> > +
-> >                 *type = ACPI_BUS_TYPE_DEVICE;
-> >                 status = acpi_bus_get_status_handle(handle, sta);
-> >                 if (ACPI_FAILURE(status))
-> > @@ -1916,9 +1961,24 @@ static int acpi_bus_scan_fixed(void)
-> >         return result < 0 ? result : 0;
-> >  }
-> >
-> > +static void __init acpi_get_spcr_uart_addr(void)
-> > +{
-> > +       acpi_status status;
-> > +       struct acpi_table_spcr *spcr_ptr;
-> > +
-> > +       status = acpi_get_table(ACPI_SIG_SPCR, 0,
-> > +                               (struct acpi_table_header **)&spcr_ptr);
-> > +       if (ACPI_SUCCESS(status))
-> > +               spcr_uart_addr = spcr_ptr->serial_port.address;
-> > +       else
-> > +               printk(KERN_WARNING PREFIX "STAO table present, but SPCR is missing\n");
-> > +}
-> > +
-> >  int __init acpi_scan_init(void)
-> >  {
-> >         int result;
-> > +       acpi_status status;
-> > +       struct acpi_table_stao *stao_ptr;
-> >
-> >         acpi_pci_root_init();
-> >         acpi_pci_link_init();
-> > @@ -1934,6 +1994,20 @@ int __init acpi_scan_init(void)
-> >
-> >         acpi_scan_add_handler(&generic_device_handler);
-> >
-> > +       /*
-> > +        * If there is STAO table, check whether it needs to ignore the UART
-> > +        * device in SPCR table.
-> > +        */
-> > +       status = acpi_get_table(ACPI_SIG_STAO, 0,
-> > +                               (struct acpi_table_header **)&stao_ptr);
-> > +       if (ACPI_SUCCESS(status)) {
-> > +               if (stao_ptr->header.length > sizeof(struct acpi_table_stao))
-> > +                       printk(KERN_INFO PREFIX "STAO Name List not yet supported.");
-> > +
-> > +               if (stao_ptr->ignore_uart)
-> > +                       acpi_get_spcr_uart_addr();
-> > +       }
-> > +
-> >         mutex_lock(&acpi_scan_lock);
-> >         /*
-> >          * Enumerate devices in the ACPI namespace.
-> > --
-> > 2.0.4
-> >
-> >
-> > --
-> > To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
-> > the body of a message to majordomo@vger.kernel.org
-> > More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
+> diff --git a/include/acpi/processor.h b/include/acpi/processor.h
+> index 6f1805dd5d3c..50f2423d31fa 100644
+> --- a/include/acpi/processor.h
+> +++ b/include/acpi/processor.h
+> @@ -242,7 +242,8 @@ extern int acpi_processor_get_performance_info(struct acpi_processor *pr);
+>  DECLARE_PER_CPU(struct acpi_processor *, processors);
+>  extern struct acpi_processor_errata errata;
+>
+> -#ifdef ARCH_HAS_POWER_INIT
+> +#if defined(ARCH_HAS_POWER_INIT) && \
+> +       defined(CONFIG_ARCH_SUPPORTS_ACPI_PROCESSOR_CSTATE)
+>  void acpi_processor_power_init_bm_check(struct acpi_processor_flags *flags,
+>                                         unsigned int cpu);
+>  int acpi_processor_ffh_cstate_probe(unsigned int cpu,
+> --
+> 1.9.1
+>
+>
+> _______________________________________________
+> linux-arm-kernel mailing list
+> linux-arm-kernel@lists.infradead.org
+> http://lists.infradead.org/mailman/listinfo/linux-arm-kernel
