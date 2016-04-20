@@ -1,215 +1,207 @@
 From: Vikas Sajjan <sajjan.linux@gmail.com>
-Subject: Re: [PATCH v4 1/5] ACPI / processor_idle: introduce ARCH_SUPPORTS_ACPI_PROCESSOR_CSTATE
-Date: Wed, 20 Apr 2016 15:26:48 +0530
-Message-ID: <CAGm_ybjZ8ePc9KhcaaSX9aDJTE1Svuc-OnpYJpd9TTfi_sm_cQ@mail.gmail.com>
+Subject: Re: [PATCH v4 4/5] arm64: add support for ACPI Low Power Idle(LPI)
+Date: Wed, 20 Apr 2016 15:29:56 +0530
+Message-ID: <CAGm_ybgNWyRXc3PmOE99=3q9A0Jpjm9taHww8p3oD3YRwfJDxA@mail.gmail.com>
 References: <1461069013-13292-1-git-send-email-sudeep.holla@arm.com>
-	<1461069013-13292-2-git-send-email-sudeep.holla@arm.com>
+	<1461069013-13292-5-git-send-email-sudeep.holla@arm.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1461069013-13292-2-git-send-email-sudeep.holla@arm.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Sudeep Holla <sudeep.holla@arm.com>
-Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, linux-ia64@vger.kernel.org, Al Stone <al.stone@linaro.org>, Prashanth Prakash <pprakash@codeaurora.org>, x86@kernel.org, Ashwin Chaugule <ashwin.chaugule@linaro.org>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-yw0-f196.google.com ([209.85.161.196]:33608 "EHLO
+	mail-yw0-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933283AbcDTJ75 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 20 Apr 2016 05:59:57 -0400
+In-Reply-To: <1461069013-13292-5-git-send-email-sudeep.holla@arm.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Sudeep Holla <sudeep.holla@arm.com>
+Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Al Stone <al.stone@linaro.org>, Prashanth Prakash <pprakash@codeaurora.org>, Ashwin Chaugule <ashwin.chaugule@linaro.org>, Mark Rutland <mark.rutland@arm.com>, Vikas C Sajjan <vikas.cha.sajjan@hpe.com>, Sunil V L <sunil.vl@hpe.com>
 
 Hi Sudeep,
 
 On Tue, Apr 19, 2016 at 6:00 PM, Sudeep Holla <sudeep.holla@arm.com> wrote:
-> ACPI 6.0 adds a new method to specify the CPU idle states(C-states)
-> called Low Power Idle(LPI) states. Since new architectures like ARM64
-> use only LPIs, introduce ARCH_SUPPORTS_ACPI_PROCESSOR_CSTATE to
-> encapsulate all the code supporting the old style C-states(_CST)
+> This patch adds appropriate callbacks to support ACPI Low Power Idle
+> (LPI) on ARM64.
 >
-> This patch will help to extend the processor_idle module to support
-> LPI.
+> It also selects ARCH_SUPPORTS_ACPI_PROCESSOR_LPI if ACPI is enabled
+> on ARM64.
 >
-> Cc: x86@kernel.org
-> Cc: linux-ia64@vger.kernel.org
-> Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+> Cc: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+> Cc: Mark Rutland <mark.rutland@arm.com>
+> Cc: linux-arm-kernel@lists.infradead.org
 > Signed-off-by: Sudeep Holla <sudeep.holla@arm.com>
 > ---
->  arch/ia64/Kconfig             |  1 +
->  arch/x86/Kconfig              |  1 +
->  drivers/acpi/Kconfig          |  3 ++
->  drivers/acpi/processor_idle.c | 74 +++++++++++++++++++++++++++++--------------
->  include/acpi/processor.h      |  3 +-
->  5 files changed, 57 insertions(+), 25 deletions(-)
+>  arch/arm64/Kconfig       |  1 +
+>  arch/arm64/kernel/acpi.c | 34 ++++++++++++++++++++++++++++++++++
+>  drivers/firmware/psci.c  | 48 ++++++++++++++++++++++++++++++++++++++++++++++++
+>  3 files changed, 83 insertions(+)
 >
-> diff --git a/arch/ia64/Kconfig b/arch/ia64/Kconfig
-> index b534ebab36ea..717de2a146e2 100644
-> --- a/arch/ia64/Kconfig
-> +++ b/arch/ia64/Kconfig
-> @@ -16,6 +16,7 @@ config IA64
->         select PCI if (!IA64_HP_SIM)
->         select ACPI if (!IA64_HP_SIM)
->         select ACPI_SYSTEM_POWER_STATES_SUPPORT if ACPI
-> +       select ARCH_SUPPORTS_ACPI_PROCESSOR_CSTATE if ACPI
->         select ARCH_MIGHT_HAVE_ACPI_PDC if ACPI
->         select HAVE_UNSTABLE_SCHED_CLOCK
->         select HAVE_IDE
-> diff --git a/arch/x86/Kconfig b/arch/x86/Kconfig
-> index 2dc18605831f..eb03fd0d63b9 100644
-> --- a/arch/x86/Kconfig
-> +++ b/arch/x86/Kconfig
-> @@ -37,6 +37,7 @@ config X86
->         select ARCH_MIGHT_HAVE_ACPI_PDC         if ACPI
->         select ARCH_MIGHT_HAVE_PC_PARPORT
->         select ARCH_MIGHT_HAVE_PC_SERIO
-> +       select ARCH_SUPPORTS_ACPI_PROCESSOR_CSTATE if ACPI
+> diff --git a/arch/arm64/Kconfig b/arch/arm64/Kconfig
+> index 4f436220384f..e7536540387d 100644
+> --- a/arch/arm64/Kconfig
+> +++ b/arch/arm64/Kconfig
+> @@ -10,6 +10,7 @@ config ARM64
+>         select ARCH_HAS_SG_CHAIN
+>         select ARCH_HAS_TICK_BROADCAST if GENERIC_CLOCKEVENTS_BROADCAST
+>         select ARCH_USE_CMPXCHG_LOCKREF
+> +       select ARCH_SUPPORTS_ACPI_PROCESSOR_LPI if ACPI
 >         select ARCH_SUPPORTS_ATOMIC_RMW
->         select ARCH_SUPPORTS_DEFERRED_STRUCT_PAGE_INIT
->         select ARCH_SUPPORTS_INT128             if X86_64
-> diff --git a/drivers/acpi/Kconfig b/drivers/acpi/Kconfig
-> index 82b96ee8624c..ec289078667c 100644
-> --- a/drivers/acpi/Kconfig
-> +++ b/drivers/acpi/Kconfig
-> @@ -48,6 +48,9 @@ config ACPI_LEGACY_TABLES_LOOKUP
->  config ARCH_MIGHT_HAVE_ACPI_PDC
->         bool
+>         select ARCH_WANT_OPTIONAL_GPIOLIB
+>         select ARCH_WANT_COMPAT_IPC_PARSE_VERSION
+> diff --git a/arch/arm64/kernel/acpi.c b/arch/arm64/kernel/acpi.c
+> index d1ce8e2f98b9..3c05ad5957be 100644
+> --- a/arch/arm64/kernel/acpi.c
+> +++ b/arch/arm64/kernel/acpi.c
+> @@ -18,6 +18,7 @@
+>  #include <linux/acpi.h>
+>  #include <linux/bootmem.h>
+>  #include <linux/cpumask.h>
+> +#include <linux/cpu_pm.h>
+>  #include <linux/init.h>
+>  #include <linux/irq.h>
+>  #include <linux/irqdomain.h>
+> @@ -25,9 +26,11 @@
+>  #include <linux/of_fdt.h>
+>  #include <linux/smp.h>
 >
-> +config ARCH_SUPPORTS_ACPI_PROCESSOR_CSTATE
-> +       bool
-> +
->  config ACPI_GENERIC_GSI
->         bool
+> +#include <asm/cpuidle.h>
+>  #include <asm/cputype.h>
+>  #include <asm/cpu_ops.h>
+>  #include <asm/smp_plat.h>
+> +#include <acpi/processor.h>
 >
-> diff --git a/drivers/acpi/processor_idle.c b/drivers/acpi/processor_idle.c
-> index 444e3745c8b3..1f3fe54194b5 100644
-> --- a/drivers/acpi/processor_idle.c
-> +++ b/drivers/acpi/processor_idle.c
-> @@ -59,6 +59,12 @@ module_param(latency_factor, uint, 0644);
->
->  static DEFINE_PER_CPU(struct cpuidle_device *, acpi_cpuidle_device);
->
-> +struct cpuidle_driver acpi_idle_driver = {
-> +       .name =         "acpi_idle",
-> +       .owner =        THIS_MODULE,
-> +};
-> +
-> +#ifdef CONFIG_ARCH_SUPPORTS_ACPI_PROCESSOR_CSTATE
->  static
->  DEFINE_PER_CPU(struct acpi_processor_cx * [CPUIDLE_STATE_MAX], acpi_cstate);
->
-> @@ -804,11 +810,6 @@ static void acpi_idle_enter_freeze(struct cpuidle_device *dev,
->         acpi_idle_do_entry(cx);
+>  #ifdef CONFIG_ACPI_APEI
+>  # include <linux/efi.h>
+> @@ -211,6 +214,37 @@ void __init acpi_boot_table_init(void)
+>         }
 >  }
 >
-> -struct cpuidle_driver acpi_idle_driver = {
-> -       .name =         "acpi_idle",
-> -       .owner =        THIS_MODULE,
-> -};
-> -
->  /**
->   * acpi_processor_setup_cpuidle_cx - prepares and configures CPUIDLE
->   * device i.e. per-cpu data
-> @@ -925,6 +926,49 @@ static int acpi_processor_setup_cpuidle_states(struct acpi_processor *pr)
->         return 0;
->  }
->
-> +static inline void acpi_processor_cstate_first_run_checks(void)
+> +int acpi_processor_ffh_lpi_probe(unsigned int cpu)
 > +{
-> +       static int first_run;
+> +       return arm_cpuidle_init(cpu);
+> +}
 > +
-> +       if (first_run)
-> +               return;
-> +       dmi_check_system(processor_power_dmi_table);
-> +       max_cstate = acpi_processor_cstate_check(max_cstate);
-> +       if (max_cstate < ACPI_C_STATES_MAX)
-> +               pr_notice("ACPI: processor limited to max C-state %d\n",
-> +                         max_cstate);
-> +       first_run++;
+
+This is generating warning as below:
+
+WARNING: vmlinux.o(.text+0x11024): Section mismatch in reference from
+the function acpi_processor_ffh_lpi_probe() to the function
+.init.text:arm_cpuidle_init()
+The function acpi_processor_ffh_lpi_probe() references
+the function __init arm_cpuidle_init().
+This is often because acpi_processor_ffh_lpi_probe lacks a __init
+annotation or the annotation of arm_cpuidle_init is wrong.
+
+
+> +struct acpi_processor_lpi *lpi;
+> +int acpi_processor_ffh_lpi_enter(struct acpi_processor_lpi *lpi, int idx)
+
+Wondering how are you handling with Resource Dependencies for Idle.
+I mean _RDI needs to be taken care, since the dependency between the
+power resources and the LPI state is described in _RDI.
+
+> +{
+> +       int ret;
 > +
-> +       if (acpi_gbl_FADT.cst_control && !nocst) {
-> +               status = acpi_os_write_port(acpi_gbl_FADT.smi_command,
-> +                                           acpi_gbl_FADT.cst_control, 8);
-> +               if (ACPI_FAILURE(status))
-> +                       ACPI_EXCEPTION((AE_INFO, status,
-> +                                       "Notifying BIOS of _CST ability failed"));
+> +       if (!idx) {
+> +               cpu_do_idle();
+> +               return idx;
 > +       }
-> +}
-> +#else
 > +
-> +static inline int disabled_by_idle_boot_param(void) { return 0; }
-> +static inline void acpi_processor_cstate_first_run_checks(void) { }
-> +static int acpi_processor_get_power_info(struct acpi_processor *pr)
-> +{
-> +       return -ENODEV;
-> +}
+> +       /* TODO cpu_pm_{enter,exit} can be done in generic code ? */
+> +       ret = cpu_pm_enter();
+> +       if (!ret) {
+> +               /*
+> +                * Pass idle state index to cpu_suspend which in turn will
+> +                * call the CPU ops suspend protocol with idle index as a
+> +                * parameter.
+> +                */
+> +               ret = arm_cpuidle_suspend(idx);
 > +
-> +static int acpi_processor_setup_cpuidle_cx(struct acpi_processor *pr,
-> +                                          struct cpuidle_device *dev)
-> +{
-> +       return -EINVAL;
-> +}
+> +               cpu_pm_exit();
+> +       }
 > +
-> +static int acpi_processor_setup_cpuidle_states(struct acpi_processor *pr)
-> +{
-> +       return -EINVAL;
+> +       return ret ? -1 : idx;
 > +}
 > +
-> +#endif
-> +
->  int acpi_processor_hotplug(struct acpi_processor *pr)
+>  #ifdef CONFIG_ACPI_APEI
+>  pgprot_t arch_apei_get_mem_attribute(phys_addr_t addr)
 >  {
->         int ret = 0;
-> @@ -1018,29 +1062,11 @@ int acpi_processor_power_init(struct acpi_processor *pr)
->         acpi_status status;
->         int retval;
->         struct cpuidle_device *dev;
-> -       static int first_run;
+> diff --git a/drivers/firmware/psci.c b/drivers/firmware/psci.c
+> index af6c5c839568..70cf2a500d4b 100644
+> --- a/drivers/firmware/psci.c
+> +++ b/drivers/firmware/psci.c
+> @@ -24,6 +24,7 @@
+>  #include <linux/reboot.h>
+>  #include <linux/slab.h>
+>  #include <linux/suspend.h>
+> +#include <linux/acpi.h>
 >
->         if (disabled_by_idle_boot_param())
->                 return 0;
+>  #include <uapi/linux/psci.h>
 >
-> -       if (!first_run) {
-> -               dmi_check_system(processor_power_dmi_table);
-> -               max_cstate = acpi_processor_cstate_check(max_cstate);
-> -               if (max_cstate < ACPI_C_STATES_MAX)
-> -                       printk(KERN_NOTICE
-> -                              "ACPI: processor limited to max C-state %d\n",
-> -                              max_cstate);
-> -               first_run++;
-> -       }
-> -
-> -       if (acpi_gbl_FADT.cst_control && !nocst) {
-> -               status =
-> -                   acpi_os_write_port(acpi_gbl_FADT.smi_command, acpi_gbl_FADT.cst_control, 8);
-> -               if (ACPI_FAILURE(status)) {
-> -                       ACPI_EXCEPTION((AE_INFO, status,
-> -                                       "Notifying BIOS of _CST ability failed"));
-> -               }
-> -       }
-> +       acpi_processor_cstate_first_run_checks();
+> @@ -32,6 +33,7 @@
+>  #include <asm/system_misc.h>
+>  #include <asm/smp_plat.h>
+>  #include <asm/suspend.h>
+> +#include <acpi/processor.h>
 >
->         acpi_processor_get_power_info(pr);
->         pr->flags.power_setup_done = 1;
-
-Not related to your change,
-The acpi_processor_get_power_info() function can return failure, so i
-thought it makes sense to check for the return value
-and then set the  flag pr->flags.power_setup_done appropriately.
-
-
-> diff --git a/include/acpi/processor.h b/include/acpi/processor.h
-> index 6f1805dd5d3c..50f2423d31fa 100644
-> --- a/include/acpi/processor.h
-> +++ b/include/acpi/processor.h
-> @@ -242,7 +242,8 @@ extern int acpi_processor_get_performance_info(struct acpi_processor *pr);
->  DECLARE_PER_CPU(struct acpi_processor *, processors);
->  extern struct acpi_processor_errata errata;
+>  /*
+>   * While a 64-bit OS can make calls with SMC32 calling conventions, for some
+> @@ -316,8 +318,54 @@ static int psci_dt_cpu_init_idle(unsigned int cpu)
+>         return ret;
+>  }
 >
-> -#ifdef ARCH_HAS_POWER_INIT
-> +#if defined(ARCH_HAS_POWER_INIT) && \
-> +       defined(CONFIG_ARCH_SUPPORTS_ACPI_PROCESSOR_CSTATE)
->  void acpi_processor_power_init_bm_check(struct acpi_processor_flags *flags,
->                                         unsigned int cpu);
->  int acpi_processor_ffh_cstate_probe(unsigned int cpu,
+> +static int __maybe_unused psci_acpi_cpu_init_idle(unsigned int cpu)
+> +{
+> +       int i, count;
+> +       u32 *psci_states;
+> +       struct acpi_processor *pr;
+> +       struct acpi_processor_lpi *lpi;
+> +
+> +       pr = per_cpu(processors, cpu);
+> +       if (unlikely(!pr || !pr->flags.has_lpi))
+> +               return -EINVAL;
+> +
+> +       /*
+> +        * If the PSCI cpu_suspend function hook has not been initialized
+> +        * idle states must not be enabled, so bail out
+> +        */
+> +       if (!psci_ops.cpu_suspend)
+> +               return -EOPNOTSUPP;
+> +
+> +       count = pr->power.count - 1;
+> +       if (!count)
+> +               return -ENODEV;
+> +
+> +       psci_states = kcalloc(count, sizeof(*psci_states), GFP_KERNEL);
+> +       if (!psci_states)
+> +               return -ENOMEM;
+> +
+> +       for (i = 0; i < count; i++) {
+> +               u32 state;
+> +
+> +               lpi = &pr->power.lpi_states[i + 1];
+> +               state = lpi->address & 0xFFFFFFFF;
+> +               if (!psci_power_state_is_valid(state)) {
+> +                       pr_warn("Invalid PSCI power state %#x\n", state);
+> +                       kfree(psci_states);
+> +                       return -EINVAL;
+> +               }
+> +               psci_states[i] = state;
+> +       }
+> +       /* Idle states parsed correctly, initialize per-cpu pointer */
+> +       per_cpu(psci_power_state, cpu) = psci_states;
+> +       return 0;
+> +}
+> +
+>  int psci_cpu_init_idle(unsigned int cpu)
+>  {
+> +       if (!acpi_disabled)
+> +               return psci_acpi_cpu_init_idle(cpu);
+> +
+>         return psci_dt_cpu_init_idle(cpu);
+>  }
+>
 > --
 > 1.9.1
 >
->
-> _______________________________________________
-> linux-arm-kernel mailing list
-> linux-arm-kernel@lists.infradead.org
-> http://lists.infradead.org/mailman/listinfo/linux-arm-kernel
