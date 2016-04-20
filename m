@@ -1,94 +1,67 @@
-From: Alan Tull <delicious.quinoa@gmail.com>
-Subject: Re: [PATCH v9 0/3] gpio: dwapb: add gpio-signaled acpi event support
- for power button
-Date: Wed, 20 Apr 2016 11:10:09 -0500
-Message-ID: <CANk1AXQNe160XkSH4zLWKRN4d92=25=-Hn1jkwVzsQXiUvSnCA@mail.gmail.com>
-References: <1461136429-85114-1-git-send-email-qiujiang@huawei.com>
-	<CAHp75VfW=07SQdR3rH1gh0Q-CEBkBDrdNgoeYKc7QGbVB6THfw@mail.gmail.com>
+From: David Daney <ddaney.cavm@gmail.com>
+Subject: Re: [PATCH v5 12/14] arm64, acpi, numa: NUMA support based on SRAT
+ and SLIT
+Date: Wed, 20 Apr 2016 09:29:45 -0700
+Message-ID: <5717AE79.5060605@gmail.com>
+References: <1461116439-22991-1-git-send-email-ddaney.cavm@gmail.com> <1461116439-22991-13-git-send-email-ddaney.cavm@gmail.com> <CADKHWaeZPj7UWU4znf7NRo3JO8+JGrBP4WJE6S5gVM0KvydNug@mail.gmail.com> <CAFpQJXXeQKKrgObdhxu8QaTm-wb81yddLtwFreed4eS5Qi1TPw@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <CAHp75VfW=07SQdR3rH1gh0Q-CEBkBDrdNgoeYKc7QGbVB6THfw@mail.gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Andy Shevchenko <andy.shevchenko@gmail.com>
-Cc: Jiang Qiu <qiujiang@huawei.com>, Linus Walleij <linus.walleij@linaro.org>, Alexandre Courbot <gnurou@gmail.com>, Mika Westerberg <mika.westerberg@linux.intel.com>, Jamie Iles <jamie@jamieiles.com>, charles.chenxin@huawei.com, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-gpio@vger.kernel.org" <linux-gpio@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, linuxarm@huawei.com
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-pf0-f193.google.com ([209.85.192.193]:33069 "EHLO
+	mail-pf0-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751302AbcDTQ3t (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 20 Apr 2016 12:29:49 -0400
+In-Reply-To: <CAFpQJXXeQKKrgObdhxu8QaTm-wb81yddLtwFreed4eS5Qi1TPw@mail.gmail.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Ganapatrao Kulkarni <gpkulkarni@gmail.com>
+Cc: Dennis Chen <dennis.chen@linaro.org>, Mark Rutland <mark.rutland@arm.com>, linux-ia64@vger.kernel.org, David Daney <david.daney@cavium.com>, Catalin Marinas <catalin.marinas@arm.com>, Will Deacon <will.deacon@arm.com>, Lv Zheng <lv.zheng@intel.com>, "H. Peter Anvin" <hpa@zytor.com>, Frank Rowand <frowand.list@gmail.com>, x86@kernel.org, Robert Moore <robert.moore@intel.com>, linux-acpi@vger.kernel.org, Ingo Molnar <mingo@redhat.com>, Grant Likely <grant.likely@linaro.org>, Len Brown <lenb@kernel.org>, Fenghua Yu <fenghua.yu@intel.com>, Marc Zyngier <Marc.Zyngier@arm.com>, Robert Richter <rrichter@cavium.com>, Rob Herring <robh+dt@kernel.org>, Thomas Gleixner <tglx@linutronix.de>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, devel@acpica.org, Tony Luck <tony.luck@intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, linux-kernel@v
 
-On Wed, Apr 20, 2016 at 8:06 AM, Andy Shevchenko
-<andy.shevchenko@gmail.com> wrote:
-> On Wed, Apr 20, 2016 at 10:13 AM, Jiang Qiu <qiujiang@huawei.com> wrote:
->> This patchset adds gpio-signaled acpi events support for power button on hisilicon
->> D02 board.
->>
->> The three patches respectively:
->>         - remove name from dwapb_port_property
->>         - convert device node to fwnode
->>         - add gpio-signaled acpi event support
->>
->>    This patchset is based on
->>    https://git.kernel.org/pub/scm/linux/kernel/git/linusw/linux-gpio.git
->>    branch "devel"
->>
->> Changes v8 -> v9:
->>    - fixed a low-level compile warning
+On 04/20/2016 01:31 AM, Ganapatrao Kulkarni wrote:
+> On Wed, Apr 20, 2016 at 1:11 PM, Dennis Chen <dennis.chen@linaro.org> wrote:
+>> On 20 April 2016 at 09:40, David Daney <ddaney.cavm@gmail.com> wrote:
+[...]
+>>> @@ -388,7 +389,9 @@ static int __init dummy_numa_init(void)
+>>>   void __init arm64_numa_init(void)
+>>>   {
+>>>          if (!numa_off) {
+>>> -               if (!numa_init(of_numa_init))
+>>> +               if (!acpi_disabled && !numa_init(arm64_acpi_numa_init))
+>>> +                       return;
+>>> +               if (acpi_disabled && !numa_init(of_numa_init))
+>>>                          return;
+>>>          }
+>>>
+>> On top of the latest version of the dt-based numa patch, if 'numa=off'
+>> specified in the command line,
+>> this function will fallback to invoke dummy_numa_init(), which give
+>> rise the question here is, do we need to
+>> touch any ACPI related stuff in the case? If not, then the output
 >
-> Please, don't send updates to often. You see, now I noticed one more
-> thing you have to address.
-> Usually the time between fixup series is something like 24h. Thus,
-> waiting for v10 at least tomorrow or even next week.
+> no, ACPI is not fallback configuration for DT and vice versa.
 >
-> Linus, for my point of view next version should be fine and final. The
-> current code is in a good shape already.
+>> message "No NUMA configuration found" followed
+>> seems is not necessary since it's a little bit confusing in case of
+>> numa has already been turned off explicitly.
+>
+> thanks, this print can be moved out.
+> from function dummy_numa_init and it can be added in function arm64_numa_init
+> as a last line of if (!numa_off) to indicate, ACPI/DT based NUMA
+> configuration failed.
+>
+> more appropriate would be,
+> pr_info("%s\n", "NUMA configuration failed or not found");
+>
 
-Reviewed, tested v9, looks good.
+Although purely cosmetic, I agree that we need to improve the messages 
+as to not confuse people.
 
-Alan Tull
+I will rework the messages with your suggestions in mind to see if we 
+can get something that is both concise and unambiguously reflects what 
+the user asked for.
+
+David.
 
 
->
->>
->> Changes v7 -> v8:
->>    - fixed few minors
->>
->> Changes v6 -> v7:
->>    - add patch1 by Alan's suggestion
->>
->> Changes v5 -> v6:
->>    - merge patch 2~3 to one patch
->>    - small fixed from Alan's suggestion
->>    - fixed subject title reference commit history
->>
->> Changes v4 -> v5:
->>    - split into three patchs
->>    - add Andy's ACKs
->>
->> Changes v3 -> v4:
->>    - re-organize this two patchs by Andy's suggestion
->>
->> Changes v2 -> v3:
->>    - fixed the build error reported by Kbuild test robot
->>
->> Changes v1 -> v2:
->>    - rebase to branch "devel" of Linus Walleij's repository
->>    - split in two patch as suggested by Andy S
->>    - add Mika's ACKs
->>
->> Jiang Qiu (3):
->>   gpio: dwapb: remove name from dwapb_port_property
->>   gpio: dwapb: convert device node to fwnode
->>   gpio: dwapb: add gpio-signaled acpi event support
->>
->>  drivers/gpio/gpio-dwapb.c                | 78 +++++++++++++++++++-------------
->>  drivers/mfd/intel_quark_i2c_gpio.c       |  3 +-
->>  include/linux/platform_data/gpio-dwapb.h |  3 +-
->>  3 files changed, 48 insertions(+), 36 deletions(-)
->>
->> --
->> 1.9.1
->>
->
->
->
-> --
-> With Best Regards,
-> Andy Shevchenko
+
