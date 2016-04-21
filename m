@@ -1,51 +1,55 @@
 From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [PATCH 1/3] ACPI / ARM64: Don't enable ACPI by default on ARM64
-Date: Thu, 21 Apr 2016 02:10:47 +0200
-Message-ID: <9772131.95BO0QMhPX@vostro.rjw.lan>
-References: <1460706823-16566-1-git-send-email-broonie@kernel.org>
+Subject: Re: [PATCH v3] device property: don't bother the drivers with struct property_set
+Date: Thu, 21 Apr 2016 02:15:08 +0200
+Message-ID: <9220737.yhvp89BWgp@vostro.rjw.lan>
+References: <1459252343-105426-1-git-send-email-heikki.krogerus@linux.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7Bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cloudserver094114.home.net.pl ([79.96.170.134]:59284 "HELO
+Received: from cloudserver094114.home.net.pl ([79.96.170.134]:43186 "HELO
 	cloudserver094114.home.net.pl" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with SMTP id S1751341AbcDUAH4 (ORCPT
+	by vger.kernel.org with SMTP id S1751335AbcDUAMR (ORCPT
 	<rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 20 Apr 2016 20:07:56 -0400
-In-Reply-To: <1460706823-16566-1-git-send-email-broonie@kernel.org>
+	Wed, 20 Apr 2016 20:12:17 -0400
+In-Reply-To: <1459252343-105426-1-git-send-email-heikki.krogerus@linux.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Mark Brown <broonie@kernel.org>
-Cc: Catalin Marinas <catalin.marinas@arm.com>, Len Brown <lenb@kernel.org>, Will Deacon <will.deacon@arm.com>, Mark Rutland <mark.rutland@arm.com>, Steve Capper <steve.capper@linaro.org>, Graeme Gregory <graeme.gregory@linaro.org>, linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org, arm@kernel.org
+To: linux-acpi@vger.kernel.org
+Cc: Heikki Krogerus <heikki.krogerus@linux.intel.com>, Mika Westerberg <mika.westerberg@linux.intel.com>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Thierry Reding <treding@nvidia.com>, Lee Jones <lee.jones@linaro.org>, Daniel Mack <daniel@zonque.org>, linux-kernel@vger.kernel.org
 
-On Friday, April 15, 2016 08:53:41 AM Mark Brown wrote:
-> If ACPI is selectable it is enabled by default.  This is a good choice
-> for architectures where the overwhelming majority of systems use ACPI
-> like x86 and IA-64 but is less clear for architectures where it's less
-> common like ARM64.  Change the default selection so that it's only done
-> explicitly on those architectures where ACPI is universally used.
+On Tuesday, March 29, 2016 02:52:23 PM Heikki Krogerus wrote:
+> Since device_add_property_set() now always takes a copy of
+> the property_set, and also since the fwnode type is always
+> hard coded to be FWNODE_PDATA, there is no need for the
+> drivers to deliver the entire struct property_set. The
+> function can just create the instance of it on its own and
+> bind the properties from the drivers to it on the spot.
 > 
-> Signed-off-by: Mark Brown <broonie@kernel.org>
-> ---
->  drivers/acpi/Kconfig | 2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
+> This renames device_add_property_set() to
+> device_add_properties(). The function now takes struct
+> property_entry as its parameter instead of struct
+> property_set.
 > 
-> diff --git a/drivers/acpi/Kconfig b/drivers/acpi/Kconfig
-> index 82b96ee8624c..2fcf87a6d270 100644
-> --- a/drivers/acpi/Kconfig
-> +++ b/drivers/acpi/Kconfig
-> @@ -8,7 +8,7 @@ menuconfig ACPI
->  	depends on IA64 || X86 || (ARM64 && EXPERT)
->  	depends on PCI
->  	select PNP
-> -	default y
-> +	default y if (IA64 || X86)
->  	help
->  	  Advanced Configuration and Power Interface (ACPI) support for 
->  	  Linux requires an ACPI-compliant platform (hardware/firmware),
-> 
+> Reviewed-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+> Reviewed-by: Mika Westerberg <mika.westerberg@linux.intel.com>
+> Acked-by: Thierry Reding <treding@nvidia.com>
+> Acked-by: Lee Jones <lee.jones@linaro.org>
+> Signed-off-by: Heikki Krogerus <heikki.krogerus@linux.intel.com>
 
-Everyone seems to be fine with the whole series, so I'm going to apply it.
+This patch has been applied to linux-pm.git and is available from its
+device-properties branch
+
+ git://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm.git \
+ device-properties
+
+as commit f4d05266032346531b9f889e26aa31a0cf2a9822
+
+  device property: don't bother the drivers with struct property_set
+
+on top of 9735a22799b9214d17d3c231fe377fc852f042e9
+
+  Linux 4.6-rc2
 
 Thanks,
 Rafael
