@@ -1,44 +1,33 @@
 From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [PATCH V2] acpi: implement Generic Event Device
-Date: Thu, 21 Apr 2016 02:16:22 +0200
-Message-ID: <9220738.hpb0S9FjMY@vostro.rjw.lan>
-References: <1454857231-21388-1-git-send-email-okaya@codeaurora.org>
+Subject: Re: [PATCH][v6] ACPI / PM: Introduce efi poweroff for HW-full platforms without _S5
+Date: Thu, 21 Apr 2016 02:17:27 +0200
+Message-ID: <1562468.HF88ABVP4x@vostro.rjw.lan>
+References: <1458607870-22522-1-git-send-email-yu.c.chen@intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7Bit
-Return-path: <linux-arm-msm-owner@vger.kernel.org>
-In-Reply-To: <1454857231-21388-1-git-send-email-okaya@codeaurora.org>
-Sender: linux-arm-msm-owner@vger.kernel.org
-To: Sinan Kaya <okaya@codeaurora.org>
-Cc: linux-acpi@vger.kernel.org, timur@codeaurora.org, cov@codeaurora.org, jcm@redhat.com, agross@codeaurora.org, linux-arm-msm@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1458607870-22522-1-git-send-email-yu.c.chen@intel.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Chen Yu <yu.c.chen@intel.com>
+Cc: linux-acpi@vger.kernel.org, "Rafael J. Wysocki" <rafael@kernel.org>, Matt Fleming <matt@codeblueprint.co.uk>, Len Brown <lenb@kernel.org>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, linux-efi@vger.kernel.org, linux-kernel@vger.kernel.org, linux-pm@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Sunday, February 07, 2016 10:00:31 AM Sinan Kaya wrote:
-> Generic Event Device described in ACPI 6.1 allows platforms to handle
-> platform interrupts in ACPI ASL statements. It borrows constructs like
-> _EVT from GPIO events. All interrupts are listed in _CRS and the handler
-> is written in _EVT method. Here is an example.
+On Tuesday, March 22, 2016 08:51:10 AM Chen Yu wrote:
+> The problem is Linux registers pm_power_off = efi_power_off only if
+> we are in hardware reduced mode. Actually, what we also want is to do
+> this when ACPI S5 is simply not supported on non-legacy platforms.
+> Since some future Intel platforms are HW-full mode where the DSDT
+> fails to supply an _S5 object(without SLP_TYP), we should let such
+> kind of platform to leverage efi runtime service to poweroff.
 > 
-> Device (GED0)
-> {
+> This patch uses efi power off as first choice when S5 is unavailable,
+> even if there is a customized poweroff(driver provided, eg).
+> Meanwhile, the legacy platforms will not be affected because there is
+> no path for them to overwrite the pm_power_off to efi power off.
 > 
-> 	Name (_HID, "ACPI0013")
-> 	Name (_UID, 0)
-> 	Name(_CRS, ResourceTemplate ()
-> 	{
-> 		Interrupt(ResourceConsumer, Edge, ActiveHigh, Shared, , , )
-> 		 {123}
-> 	})
-> 
-> 	Method (_EVT, 1) {
-> 		if (Lequal(123, Arg0))
-> 		{
-> 		}
-> 	}
-> }
-> 
-> Wake capability has not been implemented yet.
-> 
-> Signed-off-by: Sinan Kaya <okaya@codeaurora.org>
+> Suggested-by: Len Brown <len.brown@intel.com>
+> Reviewed-by: Matt Fleming <matt@codeblueprint.co.uk>
+> Signed-off-by: Chen Yu <yu.c.chen@intel.com>
 
 Applied, thanks!
