@@ -1,48 +1,32 @@
-From: Tomasz Nowicki <tn@semihalf.com>
-Subject: Re: [PATCH V6 08/13] PCI: generic, thunder: update to use generic
- ECAM API
-Date: Thu, 21 Apr 2016 11:28:15 +0200
-Message-ID: <57189D2F.9070802@semihalf.com>
-References: <1460740008-19489-1-git-send-email-tn@semihalf.com>
- <10639671.xGDtp1R8bk@wuerfel> <5715362A.7070701@semihalf.com>
- <3830999.dF71UWYsBP@wuerfel>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-pci-owner@vger.kernel.org>
-In-Reply-To: <3830999.dF71UWYsBP@wuerfel>
-Sender: linux-pci-owner@vger.kernel.org
-To: Arnd Bergmann <arnd@arndb.de>
-Cc: Jayachandran C <jchandra@broadcom.com>, linux-arm-kernel@lists.infradead.org, Bjorn Helgaas <helgaas@kernel.org>, Will Deacon <will.deacon@arm.com>, Catalin Marinas <catalin.marinas@arm.com>, rafael@kernel.org, Hanjun Guo <hanjun.guo@linaro.org>, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, Sinan Kaya <okaya@codeaurora.org>, jiang.liu@linux.intel.com, Jon Masters <jcm@redhat.com>, linaro-acpi@lists.linaro.org, linux-pci@vger.kernel.org, Liviu.Dudau@arm.com, David Daney <ddaney@caviumnetworks.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, robert.richter@caviumnetworks.com, Suravee.Suthikulpanit@amd.com, msalter@redhat.com, Wangyijing <wangyijing@huawei.com>, Marcin Wojtas <mw@semihalf.com>
+From: Lukasz Anaczkowski <lukasz.anaczkowski@intel.com>
+Subject: Re: [PATCH] ACPI/SRAT: fix SRAT order parsing when both LAPIC and X2APIC present
+Date: Thu, 21 Apr 2016 11:28:59 +0200
+Message-ID: <1461230940-5037-1-git-send-email-lukasz.anaczkowski@intel.com>
+References: <5650804.Bpcz1v4kAC@vostro.rjw.lan>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga03.intel.com ([134.134.136.65]:10640 "EHLO mga03.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751743AbcDUJ3H (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 21 Apr 2016 05:29:07 -0400
+In-Reply-To: <5650804.Bpcz1v4kAC@vostro.rjw.lan>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: rjw@rjwysocki.net, len.brown@intel.com, mingo@redhat.com, x86@kernel.org
+Cc: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, lukasz.anaczkowski@intel.com
 
+From: Rafael J. Wysocki [mailto:rjw@rjwysocki.net]
+Sent: Thursday, April 21, 2016 2:08 AM
+> The changelog describes the problem (good), but it doesn't say anything
+> about the mitigation (not good).  You should say something about what the
+> patch does to address the issue, like "To address that problem, do X".
 
+Thanks, Rafael. Sending v2 of the patch with extended commit message.
 
-On 19.04.2016 15:06, Arnd Bergmann wrote:
-> On Monday 18 April 2016 21:31:54 Tomasz Nowicki wrote:
->>
->> Basically the whole content of pci-thunder-ecam.c and pci-thunder-pem.c.
->>
->> pci-thunder-ecam.c contains config space accessors. Similar for
->> pci-thunder-pem.c but it also has extra init call (it is now called
->> thunder_pem_init) which finds and maps related registers.
->
-> They seem to do much more than just override the accessors, they actually
-> change the contents of the config space as well. Is that really necessary
-> on ACPI based systems as well?
+> Looking at the code, the idea is to check each entry against both LAPIC and
+> X2APIC in table order so as to cause them to be mapped in that order too, right?
 
-Yes, the pci-thunder-ecam.c accessors are meant to emulate config space 
-capabilities. They are necessary to synthesize EA capabilities (fixed 
-PCI BARs), it wont work without this, for ACPI boot as well.
-
->
-> Another idea: how about moving all of this logic into ACPI and calling
-> some AML method to access the config space if the devices are that
-> far out of spec.
-
-Do you mean Linux specific way to call non-standard config space 
-accessors? Then non-standard accessors are going to AML methods which 
-are called from common code which handles quirks via unified API ?
+Yes, that is correct.
 
 Thanks,
-Tomasz
+Lukasz
+
