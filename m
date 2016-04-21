@@ -1,66 +1,52 @@
-From: Lukasz Anaczkowski <lukasz.anaczkowski@intel.com>
-Subject: [PATCH v2] ACPI/SRAT: fix SRAT order parsing when both LAPIC and X2APIC present
-Date: Thu, 21 Apr 2016 11:29:00 +0200
-Message-ID: <1461230940-5037-2-git-send-email-lukasz.anaczkowski@intel.com>
-References: <5650804.Bpcz1v4kAC@vostro.rjw.lan>
- <1461230940-5037-1-git-send-email-lukasz.anaczkowski@intel.com>
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga03.intel.com ([134.134.136.65]:34148 "EHLO mga03.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751614AbcDUJ3I (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 21 Apr 2016 05:29:08 -0400
-In-Reply-To: <1461230940-5037-1-git-send-email-lukasz.anaczkowski@intel.com>
-Sender: linux-acpi-owner@vger.kernel.org
+From: Arnd Bergmann <arnd@arndb.de>
+Subject: Re: [PATCH V6 08/13] PCI: generic, thunder: update to use generic ECAM API
+Date: Thu, 21 Apr 2016 11:36:53 +0200
+Message-ID: <8950494.UV8UrWiFbx@wuerfel>
+References: <1460740008-19489-1-git-send-email-tn@semihalf.com> <3830999.dF71UWYsBP@wuerfel> <57189D2F.9070802@semihalf.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7Bit
+Return-path: <linux-pci-owner@vger.kernel.org>
+In-Reply-To: <57189D2F.9070802@semihalf.com>
+Sender: linux-pci-owner@vger.kernel.org
+To: Tomasz Nowicki <tn@semihalf.com>
+Cc: Jayachandran C <jchandra@broadcom.com>, linux-arm-kernel@lists.infradead.org, Bjorn Helgaas <helgaas@kernel.org>, Will Deacon <will.deacon@arm.com>, Catalin Marinas <catalin.marinas@arm.com>, rafael@kernel.org, Hanjun Guo <hanjun.guo@linaro.org>, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, Sinan Kaya <okaya@codeaurora.org>, jiang.liu@linux.intel.com, Jon Masters <jcm@redhat.com>, linaro-acpi@lists.linaro.org, linux-pci@vger.kernel.org, Liviu.Dudau@arm.com, David Daney <ddaney@caviumnetworks.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, robert.richter@caviumnetworks.com, Suravee.Suthikulpanit@amd.com, msalter@redhat.com, Wangyijing <wangyijing@huawei.com>, Marcin Wojtas <mw@semihalf.com>
 List-Id: linux-acpi@vger.kernel.org
-To: rjw@rjwysocki.net, len.brown@intel.com, mingo@redhat.com, x86@kernel.org
-Cc: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, lukasz.anaczkowski@intel.com
 
-SRAT maps APIC ID to proximity domains ids (PXM). Mapping from PXM to
-NUMA node ids is based on order of entries in SRAT table.
-SRAT table has just LAPIC entires or mix of LAPIC and X2APIC entries.
-As long as there are only LAPIC entires, mapping from proximity domain
-id to NUMA node id is as assumed by BIOS. However, once APIC entries are
-mixed, X2APIC entries would be first mapped which causes unexpected NUMA
-node mapping.
-To fix that, change parsing to check each entry against both LAPIC and
-X2APIC so mapping is in the SRAT/PXM order.
-This is supplemental change to the fix made by d81056b5278 (thus
-"Fixes:" tag) and using same mechanism introduced by 9b3fedd (ACPI / tables:
-Add acpi_subtable_proc to ACPI table parsers).
+On Thursday 21 April 2016 11:28:15 Tomasz Nowicki wrote:
+> On 19.04.2016 15:06, Arnd Bergmann wrote:
+> > On Monday 18 April 2016 21:31:54 Tomasz Nowicki wrote:
+> >>
+> >> Basically the whole content of pci-thunder-ecam.c and pci-thunder-pem.c.
+> >>
+> >> pci-thunder-ecam.c contains config space accessors. Similar for
+> >> pci-thunder-pem.c but it also has extra init call (it is now called
+> >> thunder_pem_init) which finds and maps related registers.
+> >
+> > They seem to do much more than just override the accessors, they actually
+> > change the contents of the config space as well. Is that really necessary
+> > on ACPI based systems as well?
+> 
+> Yes, the pci-thunder-ecam.c accessors are meant to emulate config space 
+> capabilities. They are necessary to synthesize EA capabilities (fixed 
+> PCI BARs), it wont work without this, for ACPI boot as well.
 
-Fixes: d81056b5278 (Handle apic/x2apic entries in MADT in correct order)
-Signed-off-by: Lukasz Anaczkowski <lukasz.anaczkowski@intel.com>
----
- drivers/acpi/numa.c | 16 ++++++++++++----
- 1 file changed, 12 insertions(+), 4 deletions(-)
+Why is that? I thought the BARs never get reassigned when using ACPI,
+so I'm surprised it's actually needed. Maybe I misunderstood what
+you mean by fixed PCI BARs.
 
-diff --git a/drivers/acpi/numa.c b/drivers/acpi/numa.c
-index 72b6e9e..d176e0e 100644
---- a/drivers/acpi/numa.c
-+++ b/drivers/acpi/numa.c
-@@ -327,10 +327,18 @@ int __init acpi_numa_init(void)
- 
- 	/* SRAT: Static Resource Affinity Table */
- 	if (!acpi_table_parse(ACPI_SIG_SRAT, acpi_parse_srat)) {
--		acpi_table_parse_srat(ACPI_SRAT_TYPE_X2APIC_CPU_AFFINITY,
--				     acpi_parse_x2apic_affinity, 0);
--		acpi_table_parse_srat(ACPI_SRAT_TYPE_CPU_AFFINITY,
--				     acpi_parse_processor_affinity, 0);
-+		struct acpi_subtable_proc srat_proc[2];
-+
-+		memset(srat_proc, 0, sizeof(srat_proc));
-+		srat_proc[0].id = ACPI_SRAT_TYPE_CPU_AFFINITY;
-+		srat_proc[0].handler = acpi_parse_processor_affinity;
-+		srat_proc[1].id = ACPI_SRAT_TYPE_X2APIC_CPU_AFFINITY;
-+		srat_proc[1].handler = acpi_parse_x2apic_affinity;
-+
-+		acpi_table_parse_entries_array(ACPI_SIG_SRAT,
-+					sizeof(struct acpi_table_srat),
-+					srat_proc, ARRAY_SIZE(srat_proc), 0);
-+
- 		cnt = acpi_table_parse_srat(ACPI_SRAT_TYPE_MEMORY_AFFINITY,
- 					    acpi_parse_memory_affinity,
- 					    NR_NODE_MEMBLKS);
--- 
-1.8.3.1
+> > Another idea: how about moving all of this logic into ACPI and calling
+> > some AML method to access the config space if the devices are that
+> > far out of spec.
+> 
+> Do you mean Linux specific way to call non-standard config space 
+> accessors? Then non-standard accessors are going to AML methods which 
+> are called from common code which handles quirks via unified API ?
 
+What I really meant was a standardized way to do handle hardware that
+is in some way or another not compliant with PNP0A08: We could have
+a different hardware ID for this and let all the first-generation
+ARM servers and also anything else using ACPI with nonstandard PCI
+use the same method across operating systems.
+
+	Arnd
