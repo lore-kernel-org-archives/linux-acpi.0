@@ -1,33 +1,44 @@
 From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [PATCH][v6] ACPI / PM: Introduce efi poweroff for HW-full platforms without _S5
-Date: Thu, 21 Apr 2016 02:17:27 +0200
-Message-ID: <1562468.HF88ABVP4x@vostro.rjw.lan>
-References: <1458607870-22522-1-git-send-email-yu.c.chen@intel.com>
+Subject: Re: [PATCH v2 0/3] ACPI / tables: Add table upgrade mechanism
+Date: Thu, 21 Apr 2016 02:18:36 +0200
+Message-ID: <3948235.FadEB4uYLA@vostro.rjw.lan>
+References: <cover.1460340514.git.lv.zheng@intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7Bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1458607870-22522-1-git-send-email-yu.c.chen@intel.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Chen Yu <yu.c.chen@intel.com>
-Cc: linux-acpi@vger.kernel.org, "Rafael J. Wysocki" <rafael@kernel.org>, Matt Fleming <matt@codeblueprint.co.uk>, Len Brown <lenb@kernel.org>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, linux-efi@vger.kernel.org, linux-kernel@vger.kernel.org, linux-pm@vger.kernel.org
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from cloudserver094114.home.net.pl ([79.96.170.134]:42762 "HELO
+	cloudserver094114.home.net.pl" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with SMTP id S1751369AbcDUAPp (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 20 Apr 2016 20:15:45 -0400
+In-Reply-To: <cover.1460340514.git.lv.zheng@intel.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Lv Zheng <lv.zheng@intel.com>
+Cc: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Len Brown <len.brown@intel.com>, Lv Zheng <zetalog@gmail.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
 
-On Tuesday, March 22, 2016 08:51:10 AM Chen Yu wrote:
-> The problem is Linux registers pm_power_off = efi_power_off only if
-> we are in hardware reduced mode. Actually, what we also want is to do
-> this when ACPI S5 is simply not supported on non-legacy platforms.
-> Since some future Intel platforms are HW-full mode where the DSDT
-> fails to supply an _S5 object(without SLP_TYP), we should let such
-> kind of platform to leverage efi runtime service to poweroff.
+On Monday, April 11, 2016 10:13:07 AM Lv Zheng wrote:
+> This patch introduces a table upgrade mechanism based on the existing
+> initrd table override mechanism.
 > 
-> This patch uses efi power off as first choice when S5 is unavailable,
-> even if there is a customized poweroff(driver provided, eg).
-> Meanwhile, the legacy platforms will not be affected because there is
-> no path for them to overwrite the pm_power_off to efi power off.
+> Updated due to a build error reported against early_acpi_table_init()
+> stub.
 > 
-> Suggested-by: Len Brown <len.brown@intel.com>
-> Reviewed-by: Matt Fleming <matt@codeblueprint.co.uk>
-> Signed-off-by: Chen Yu <yu.c.chen@intel.com>
+> Lv Zheng (3):
+>   ACPI / tables: Move table override mechanisms to tables.c
+>   ACPI / x86: Cleanup initrd related code
+>   ACPI / tables: Convert the initrd table override mechanisms to the
+>     table upgrade mechanism
+> 
+>  Documentation/acpi/initrd_table_override.txt |   65 +++---
+>  arch/x86/kernel/setup.c                      |   12 +-
+>  drivers/acpi/Kconfig                         |    8 +-
+>  drivers/acpi/internal.h                      |    1 -
+>  drivers/acpi/osl.c                           |  274 ----------------------
+>  drivers/acpi/tables.c                        |  312 +++++++++++++++++++++++++-
+>  include/linux/acpi.h                         |   10 +-
+>  7 files changed, 365 insertions(+), 317 deletions(-)
 
-Applied, thanks!
+All [1-3/3] applied, thanks!
+
