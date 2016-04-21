@@ -1,85 +1,154 @@
-From: Octavian Purdila <octavian.purdila@intel.com>
-Subject: Re: [RFC PATCH v2 05/10] i2c: add support for ACPI reconfigure notifications
-Date: Fri, 22 Apr 2016 00:41:07 +0300
-Message-ID: <CAE1zotJsvw_oM61Kheo_g-C5ZcRaT-4AxOb6U0QbgXC06M0wTg@mail.gmail.com>
-References: <1461105548-20618-1-git-send-email-octavian.purdila@intel.com>
-	<1461105548-20618-6-git-send-email-octavian.purdila@intel.com>
-	<CAHp75VdCX65bftG+5D2r1N0nwYV0tSDf6+ZgJYPgxu9AV54eKA@mail.gmail.com>
+From: Andy Shevchenko <andy.shevchenko@gmail.com>
+Subject: Re: [RFC PATCH 09/11] drivers: acpi: implement acpi_dma_configure
+Date: Fri, 22 Apr 2016 01:45:38 +0300
+Message-ID: <CAHp75VesfEDSnyjKunPzyJ1qUrdi8qE8Q2sOYpwo7h39ePjdow@mail.gmail.com>
+References: <1460654743-7896-1-git-send-email-lorenzo.pieralisi@arm.com>
+	<1460654743-7896-10-git-send-email-lorenzo.pieralisi@arm.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-wm0-f46.google.com ([74.125.82.46]:38119 "EHLO
-	mail-wm0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751872AbcDUVlJ (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 21 Apr 2016 17:41:09 -0400
-Received: by mail-wm0-f46.google.com with SMTP id u206so152686949wme.1
-        for <linux-acpi@vger.kernel.org>; Thu, 21 Apr 2016 14:41:08 -0700 (PDT)
-In-Reply-To: <CAHp75VdCX65bftG+5D2r1N0nwYV0tSDf6+ZgJYPgxu9AV54eKA@mail.gmail.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Return-path: <linux-pci-owner@vger.kernel.org>
+In-Reply-To: <1460654743-7896-10-git-send-email-lorenzo.pieralisi@arm.com>
+Sender: linux-pci-owner@vger.kernel.org
+To: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+Cc: iommu@lists.linux-foundation.org, Bjorn Helgaas <bhelgaas@google.com>, Robin Murphy <robin.murphy@arm.com>, Tomasz Nowicki <tn@semihalf.com>, Joerg Roedel <joro@8bytes.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Will Deacon <will.deacon@arm.com>, Marc Zyngier <marc.zyngier@arm.com>, Hanjun Guo <hanjun.guo@linaro.org>, Jon Masters <jcm@redhat.com>, Sinan Kaya <okaya@codeaurora.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, linux-arm Mailing List <linux-arm-kernel@lists.infradead.org>
 List-Id: linux-acpi@vger.kernel.org
-To: Andy Shevchenko <andy.shevchenko@gmail.com>
-Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Matt Fleming <matt@codeblueprint.co.uk>, Mark Brown <broonie@kernel.org>, Wolfram Sang <wsa@the-dreams.de>, Joel Becker <jlbec@evilplan.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, linux-efi@vger.kernel.org, linux-i2c <linux-i2c@vger.kernel.org>, linux-spi <linux-spi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Irina Tirdea <irina.tirdea@intel.com>
 
-On Fri, Apr 22, 2016 at 12:27 AM, Andy Shevchenko
-<andy.shevchenko@gmail.com> wrote:
+On Thu, Apr 14, 2016 at 8:25 PM, Lorenzo Pieralisi
+<lorenzo.pieralisi@arm.com> wrote:
+> On DT based systems, the of_dma_configure() API implements DMA configuration
+> for a given device. On ACPI systems an API equivalent to of_dma_configure()
+> is missing which implies that it is currently not possible to set-up DMA
+> operations for devices through the ACPI generic kernel layer.
 >
-
-Hi Andy and thanks for the review!
-
-> On Wed, Apr 20, 2016 at 1:39 AM, Octavian Purdila
-> <octavian.purdila@intel.com> wrote:
-> > This patch adds supports for I2C device enumeration and removal via
-> > ACPI reconfiguration notifications that are send as a result of an
-> > ACPI table load or unload operation.
+> This patch fills the gap by introducing acpi_dma_configure/deconfigure()
+> calls, that carry out IOMMU configuration through IORT (on systems where
+> it is present) and call arch_setup_dma_ops(...) with the retrieved
+> parameters.
 >
-> >
-> >         acpi_dev_free_resource_list(&resource_list);
-> >
-> > +       strlcpy(info->type, dev_name(&adev->dev), sizeof(info->type));
+> The DMA range size passed to arch_setup_dma_ops() is sized according
+> to the device coherent_dma_mask (starting at address 0x0), mirroring the
+> DT probing path behaviour when a dma-ranges property is not provided
+> for the device being probed; this changes the current arch_setup_dma_ops()
+> call parameters in the ACPI probing case, but since arch_setup_dma_ops()
+> is a NOP on all architectures but ARM/ARM64 this patch does not change
+> the current kernel behaviour on them.
 >
-> strscpy() ?
-
-That is the original code, I just moved it in a different function.
-Its probably best if we use a separate patch for this, but is it worth
-it?
-
->
-> > +static int acpi_i2c_match_adapter(struct device *dev, void *data)
-> > +{
-> > +       struct i2c_adapter *adapter = i2c_verify_adapter(dev);
-> > +
-> > +       if (!adapter)
-> > +               return 0;
-> > +
->
-> > +       return ACPI_HANDLE(dev) == (acpi_handle)data;
->
-> What is suppose to return? Hidden bool to integer conversion is not
-> best option I suppose.
+> This patch updates ACPI and PCI core code to use the newly introduced
+> acpi_dma_configure function, providing the same functionality
+> as of_dma_configure on ARM systems and leaving behaviour unchanged
+> for all other arches.
 >
 
-per bus_find_device() :
+Nitpicks below.
 
- * The callback should return 0 if the device doesn't match and
-non-zero
- * if it does.  If the callback returns non-zero, this function will
- * return to the caller and not iterate over any more devices.
- */
-struct device *bus_find_device(struct bus_type *bus,
-                               struct device *start, void *data,
-                               int (*match)(struct device *dev, void *data))
+> --- a/drivers/acpi/iort.c
+> +++ b/drivers/acpi/iort.c
+> @@ -72,6 +72,31 @@ int iort_iommu_set_node(struct iommu_ops *ops, struct acpi_iort_node *node,
+>         return 0;
+>  }
+>
+> +/**
+> + * iort_iommu_get_node - Retrieve iort_iommu_node associated with an IORT node.
+> + *
+> + * @node: IORT table node to be looked-up
+> + *
+> + * Returns: iort_iommu_node pointer on success
+> + *          NULL on failure
+> + */
+> +static struct iort_iommu_node *iort_iommu_get_node(struct acpi_iort_node *node)
+> +{
+> +       struct iort_iommu_node *iommu_node;
+> +
+> +       spin_lock(&iort_iommu_lock);
+> +       list_for_each_entry(iommu_node, &iort_iommu_list, list) {
+> +               if (iommu_node->node == node)
+> +                       goto found;
+> +       }
+> +
+> +       iommu_node = NULL;
+> +found:
+> +       spin_unlock(&iort_iommu_lock);
+> +
+> +       return iommu_node;
+
+Ouch, and why not to
+
+strut iommu_node = NULL;
+
+lock
+list for each() {
+ if ()
+  break;
+}
+unlock
+
+return iommu_node;
+
+?
+
+> +}
 
 
-> > +}
-> > +
-> > +static int acpi_i2c_match_device(struct device *dev, void *data)
-> > +{
-> > +       return ACPI_COMPANION(dev) == data;
->
-> Ditto.
->
-> > +}
->
-> --
-> With Best Regards,
-> Andy Shevchenko
+> +/**
+> + * iort_iommu_configure - Set-up IOMMU configuration for a device.
+> + *
+> + * @dev: device that requires IOMMU set-up
+> + *
+> + * Returns: iommu_ops pointer on configuration success
+> + *          NULL on configuration failure
+> + */
+> +struct iommu_ops *iort_iommu_configure(struct device *dev)
+> +{
+> +       struct acpi_iort_node *node, *parent;
+> +       struct iommu_ops *ops = NULL;
+> +       struct iommu_fwspec fwspec;
+> +       struct iort_iommu_node *iommu_node;
+> +       u32 rid = 0, devid = 0;
+> +
+> +       if (dev_is_pci(dev)) {
+> +               struct pci_bus *bus = to_pci_dev(dev)->bus;
+> +
+> +               pci_for_each_dma_alias(to_pci_dev(dev), __get_pci_rid,
+> +                                      &rid);
+> +
+> +               node = iort_scan_node(ACPI_IORT_NODE_PCI_ROOT_COMPLEX,
+> +                                     iort_find_dev_callback, &bus->dev);
+
+> +       } else
+
+checkpatch.pl ?
+
+> +               node = iort_scan_node(ACPI_IORT_NODE_NAMED_COMPONENT,
+> +                                     iort_find_dev_callback, dev);
+> +
+> +       if (!node)
+> +               return NULL;
+> +
+> +       iort_dev_map_rid(node, rid, &devid, ACPI_IORT_NODE_SMMU);
+> +
+> +       parent = iort_find_parent_node(node, ACPI_IORT_NODE_SMMU);
+
+> +
+
+Redundant.
+
+> +       if (!parent)
+> +               return NULL;
+> +
+> +       iommu_node = iort_iommu_get_node(parent);
+> +       ops = iommu_node->ops;
+> +
+> +       fwspec.fwnode = iommu_node->fwnode;
+> +       fwspec.param_count = 1;
+> +       fwspec.param[0] = devid;
+> +
+> +       if (!ops || !ops->fw_xlate || ops->fw_xlate(dev, &fwspec))
+> +               return NULL;
+> +
+> +       return ops;
+> +}
+> +
+
+-- 
+With Best Regards,
+Andy Shevchenko
