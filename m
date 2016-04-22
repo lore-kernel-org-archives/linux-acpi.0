@@ -1,60 +1,91 @@
-From: Greg KH <greg@kroah.com>
-Subject: Re: [PATCH] ACPICA / Interpreter: Fix a regression triggered because
- of wrong Linux ECDT support
-Date: Fri, 22 Apr 2016 12:14:31 +0900
-Message-ID: <20160422031430.GB20313@kroah.com>
-References: <1461119996-1861-1-git-send-email-lv.zheng@intel.com>
- <20160420055806.GA6285@kroah.com>
- <1AE640813FDE7649BE1B193DEA596E883BB8205F@SHSMSX101.ccr.corp.intel.com>
+From: Viresh Kumar <viresh.kumar@linaro.org>
+Subject: Re: [PATCH v2] Force cppc_cpufreq to report values in KHz to fix
+ user space reporting
+Date: Fri, 22 Apr 2016 11:00:20 +0530
+Message-ID: <20160422053020.GB2235@vireshk-i7>
+References: <1461024699-13734-1-git-send-email-ahs3@redhat.com>
+ <CAJ5Y-ea+oO22FAjXJBWdFYTZ+6xqpQvYXGZuyy4ZwPDO5hToqA@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from out2-smtp.messagingengine.com ([66.111.4.26]:33829 "EHLO
-	out2-smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751835AbcDVDOg (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 21 Apr 2016 23:14:36 -0400
-Received: from compute2.internal (compute2.nyi.internal [10.202.2.42])
-	by mailout.nyi.internal (Postfix) with ESMTP id AF03E203A7
-	for <linux-acpi@vger.kernel.org>; Thu, 21 Apr 2016 23:14:35 -0400 (EDT)
+Return-path: <linux-pm-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <1AE640813FDE7649BE1B193DEA596E883BB8205F@SHSMSX101.ccr.corp.intel.com>
-Sender: linux-acpi-owner@vger.kernel.org
+In-Reply-To: <CAJ5Y-ea+oO22FAjXJBWdFYTZ+6xqpQvYXGZuyy4ZwPDO5hToqA@mail.gmail.com>
+Sender: linux-pm-owner@vger.kernel.org
+To: Ashwin Chaugule <ashwin.chaugule@linaro.org>
+Cc: Al Stone <ahs3@redhat.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, linux acpi <linux-acpi@vger.kernel.org>, lkml <linux-kernel@vger.kernel.org>, "linux-pm@vger.kernel.org" <linux-pm@vger.kernel.org>, "rwells@codeaurora.org" <rwells@codeaurora.org>
 List-Id: linux-acpi@vger.kernel.org
-To: "Zheng, Lv" <lv.zheng@intel.com>
-Cc: "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, "Brown, Len" <len.brown@intel.com>, Lv Zheng <zetalog@gmail.com>, "stable@vger.kernel.org" <stable@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
 
-On Fri, Apr 22, 2016 at 03:05:39AM +0000, Zheng, Lv wrote:
-> Hi, Greg
+On 19-04-16, 16:12, Ashwin Chaugule wrote:
+> + Ryan
 > 
-> > From: Greg KH [mailto:greg@kroah.com]
-> > Subject: Re: [PATCH] ACPICA / Interpreter: Fix a regression triggered because
-> > of wrong Linux ECDT support
-> > 
-> > On Wed, Apr 20, 2016 at 10:39:56AM +0800, Lv Zheng wrote:
-> > > 4.5-stable review patch. If anyone has any objects, please let me know.
-> > 
-> > Huh?  I don't understand this email...
-> > 
-> > 
-> [Lv Zheng] 
+> Hi Al,
 > 
-> I received an error notice from you on 4/11/2016:
-> FAILED: patch "[PATCH] ACPICA / Interpreter: Fix a regression triggered because of ACPICA: Events: Enhance acpi_ev_execute_reg_method() to" failed to apply to 4.5-stable tree
-> And promised you to perform the back porting.
-> After having it tested by LKP for several days, I sent it out to the stable mailing list.
-> 
-> I'm sorry I didn't send this email to you directly and didn't send it to the original mail thread for you to reference.
-> The original thread is:
-> Message-ID: <14603111697259@kroah.com>
-> Subject: FAILED: patch "[PATCH] ACPICA / Interpreter: Fix a regression triggered because of
->  ACPICA: Events: Enhance acpi_ev_execute_reg_method() to" failed to apply to 4.5-stable tree
-> 
-> Hope you can help to have this shipped in 4.5-stable.
+> On 18 April 2016 at 20:11, Al Stone <ahs3@redhat.com> wrote:
+> > When CPPC is being used by ACPI on arm64, user space tools such as
+> > cpupower report CPU frequency values from sysfs that are incorrect.
+> >
+> > What the driver was doing was reporting the values given by ACPI tables
+> > in whatever scale was used to provide them.  However, the ACPI spec
+> > defines the CPPC values as unitless abstract numbers.  Internal kernel
+> > structures such as struct perf_cap, in contrast, expect these values
+> > to be in KHz.  When these struct values get reported via sysfs, the
+> > user space tools also assume they are in KHz, causing them to report
+> > incorrect values (for example, reporting a CPU frequency of 1MHz when
+> > it should be 1.8GHz).
+> >
+> > While the investigation for a long term fix proceeds (several options
+> > are being explored, some of which may require spec changes or other
+> > much more invasive fixes), this patch forces the values read by CPPC
+> > to be read in KHz, regardless of what they actually represent.
+> >
+> > The downside is that this approach has some assumptions:
+> >
+> >    (1) It relies on SMBIOS3 being used, *and* that the Max Frequency
+> >    value for a processor is set to a non-zero value.
+> >
+> >    (2) It assumes that all processors run at the same speed.  This
+> >    patch retrieves the first CPU Max Frequency from a type 4 DMI
+> >    record that it can find.  This may not be an issue, however, as a
+> >    sampling of DMI data on x86 and arm64 indicates there is often only
+> >    one such record regardless.
 
-Yes, it's in my "to apply" queue, which is still not empty.  Don't
-worry, it's not lost :)
+Don't we have any big LITTLE ARM servers yet ? Or we will not have them at all ?
 
-thanks,
+> > For arm64 servers, this may be sufficient, but it does rely on
+> > firmware values being set correctly.  Hence, other approaches are
+> > also being considered.
+> >
+> > This has been tested on three arm64 servers, with and without DMI, with
+> > and without CPPC support.
+> >
+> > Changes for v2:
+> >     -- Corrected thinko: needed to have DEPENDS on DMI in Kconfig.arm,
+> >        not SELECT DMI (found by build daemon)
+> >
+> > Signed-off-by: Al Stone <ahs3@redhat.com>
+> 
+> This looks like a good short term solution. Does it make more sense to
+> move this to the cppc_cpufreq driver though? Since that ties more
+> closely into the cpufreq framework which requires the kHz values in
+> sysfs. That way we can keep the cppc_acpi.c shim compliant with the
+> ACPI spec. (i.e. values read in cppc structures remain abstract and
+> unitless).
+> 
+> Rafael, Viresh, others,
+> 
+> Any other ideas how to handle this better in the long term?
+> 
+>  - Decouple the cpufreq sysfs from the cppc driver and introduce its
+> own entries. Is it possibly to do this cleanly while still allowing
+> usage of cpufreq registration with existing governors?
+> 
+>  - Come up with a scaling factor using the PMU cycle counter at boot
+> before the CPPC drivers are initialized. This would use the current
+> freq set by some UEFI var. This would possibly require some messy
+> perfevents plumbing and added bootup time though.
 
-greg k-h
+I may be missing the obvious, but can't we just create the cpufreq-table from
+this table in khz? We wouldn't require any further change then.
+
+-- 
+viresh
