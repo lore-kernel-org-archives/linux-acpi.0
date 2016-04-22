@@ -1,74 +1,72 @@
-From: Jon Masters <jcm@redhat.com>
-Subject: Re: [PATCH V6 09/13] pci, acpi: Support for ACPI based generic PCI
- host controller
-Date: Fri, 22 Apr 2016 10:40:29 -0400
-Message-ID: <571A37DD.4070003@redhat.com>
-References: <1460740008-19489-1-git-send-email-tn@semihalf.com>
- <1460740008-19489-10-git-send-email-tn@semihalf.com>
- <CAKc_7PXLbX+wxesGVKni7tkKPUbfo7AgfPNxA+Uc25ctOWRk=Q@mail.gmail.com>
- <57189824.7080908@semihalf.com>
+From: David Daney <ddaney.cavm@gmail.com>
+Subject: Re: [PATCH V6 08/13] PCI: generic, thunder: update to use generic
+ ECAM API
+Date: Fri, 22 Apr 2016 09:00:28 -0700
+Message-ID: <571A4A9C.7000201@gmail.com>
+References: <1460740008-19489-1-git-send-email-tn@semihalf.com> <3830999.dF71UWYsBP@wuerfel> <57189D2F.9070802@semihalf.com> <8950494.UV8UrWiFbx@wuerfel> <5718A6AE.4080203@semihalf.com> <571A3587.2020704@redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:54064 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751840AbcDVOki (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 22 Apr 2016 10:40:38 -0400
-In-Reply-To: <57189824.7080908@semihalf.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Return-path: <linux-pci-owner@vger.kernel.org>
+In-Reply-To: <571A3587.2020704@redhat.com>
+Sender: linux-pci-owner@vger.kernel.org
+To: Jon Masters <jcm@redhat.com>
+Cc: Tomasz Nowicki <tn@semihalf.com>, Arnd Bergmann <arnd@arndb.de>, msalter@redhat.com, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, Jayachandran C <jchandra@broadcom.com>, rafael@kernel.org, Catalin Marinas <catalin.marinas@arm.com>, linaro-acpi@lists.linaro.org, Will Deacon <will.deacon@arm.com>, David Daney <ddaney@caviumnetworks.com>, linux-kernel@vger.kernel.org, Sinan Kaya <okaya@codeaurora.org>, linux-acpi@vger.kernel.org, robert.richter@caviumnetworks.com, Bjorn Helgaas <helgaas@kernel.org>, Hanjun Guo <hanjun.guo@linaro.org>, Suravee.Suthikulpanit@amd.com, linux-pci@vger.kernel.org, Wangyijing <wangyijing@huawei.com>, Liviu.Dudau@arm.com, Marcin Wojtas <mw@semihalf.com>, jiang.liu@linux.intel.com, linux-arm-kernel@lists.infradead.org
 List-Id: linux-acpi@vger.kernel.org
-To: Tomasz Nowicki <tn@semihalf.com>, Jayachandran C <jchandra@broadcom.com>
-Cc: Bjorn Helgaas <helgaas@kernel.org>, Arnd Bergmann <arnd@arndb.de>, Will Deacon <will.deacon@arm.com>, Catalin Marinas <catalin.marinas@arm.com>, rafael@kernel.org, Hanjun Guo <hanjun.guo@linaro.org>, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, Sinan Kaya <okaya@codeaurora.org>, jiang.liu@linux.intel.com, robert.richter@caviumnetworks.com, Marcin Wojtas <mw@semihalf.com>, Liviu.Dudau@arm.com, David Daney <ddaney@caviumnetworks.com>, Wangyijing <wangyijing@huawei.com>, Suravee.Suthikulpanit@amd.com, msalter@redhat.com, linux-pci@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linaro-acpi@lists.linaro.org
 
-On 04/21/2016 05:06 AM, Tomasz Nowicki wrote:
-> On 20.04.2016 21:12, Jayachandran C wrote:
->> On Fri, Apr 15, 2016 at 10:36 PM, Tomasz Nowicki <tn@semihalf.com> wrote:
-
->>> This patch is heavily based on the updated version from Jayachandran C:
->>> https://lkml.org/lkml/2016/4/11/908
->>> git: https://github.com/jchandra-brcm/linux/ (arm64-acpi-pci-v3)
+On 04/22/2016 07:30 AM, Jon Masters wrote:
+> On 04/21/2016 06:08 AM, Tomasz Nowicki wrote:
+>> On 21.04.2016 11:36, Arnd Bergmann wrote:
+>>> On Thursday 21 April 2016 11:28:15 Tomasz Nowicki wrote:
+>>>> On 19.04.2016 15:06, Arnd Bergmann wrote:
+>>>>> On Monday 18 April 2016 21:31:54 Tomasz Nowicki wrote:
+>>>>>>
+>>>>>> Basically the whole content of pci-thunder-ecam.c and
+>>>>>> pci-thunder-pem.c.
+>>>>>>
+>>>>>> pci-thunder-ecam.c contains config space accessors. Similar for
+>>>>>> pci-thunder-pem.c but it also has extra init call (it is now called
+>>>>>> thunder_pem_init) which finds and maps related registers.
+>>>>>
+>>>>> They seem to do much more than just override the accessors, they
+>>>>> actually
+>>>>> change the contents of the config space as well. Is that really
+>>>>> necessary
+>>>>> on ACPI based systems as well?
+>>>>
+>>>> Yes, the pci-thunder-ecam.c accessors are meant to emulate config space
+>>>> capabilities. They are necessary to synthesize EA capabilities (fixed
+>>>> PCI BARs), it wont work without this, for ACPI boot as well.
+>>>
+>>> Why is that? I thought the BARs never get reassigned when using ACPI,
+>>> so I'm surprised it's actually needed. Maybe I misunderstood what
+>>> you mean by fixed PCI BARs.
 >>
->> This is a little bit unusual because I had not posted the v3 patch
->> to the mailing list yet, but you posted a variant of it The git
->> repository
->> should not be in the commit comment because it is a temporary location.
-> 
-> We all agree this too important for everybody to delay this series. So
-> main motivation is to keep all discussion&patches within one unified
-> series. I would like to finally find direction we need to go. Stating
-> another discussion based on my previous patch set v5 confused people,
-> they do no know who is driving this. Again, lets cooperate to move it
-> forward within one patch set.
+>> Yes, I meant something else. ThunderX has non-programmable PCI BAR
+>> addresses. So it uses PCI EA (Extended allocation) capabilities to get
+>> know PCI BARs addresses. But the early implementation (pass1.x) misses
+>> EA capabilities hence we need to emulate it in config space accessors.
+>
+> Aside: In case it's helpful, at least one enterprise vendor I know of is
+> only supporting later silicon as a result of this. So IMO there's no
+> need to worry about this issue on the early preproduction chips.
+>
 
-We need one person in the driver's seat here for this patch series. I
-believe the intention is that this is Tomasz, with others cooperating
-and assisting. The previous alternative patch series did serve to cause
-confusion, and worse, they made it look like the ARM vendors can't work
-together. That ends. Right now. I've raised this individually with each
-of you (and with all of the other vendors), as well as inside Linaro.
-There will be one person driving this, and everyone else will help.
+There are two separate issues that make fixing up the ECAM space necessary:
 
-> I agree with you we need maintainers to join this discussion.
+1) As Jon mentioned, preproduction silicon lacks EA capabilities.
 
-Please. I really want to lend support to the sense of urgency of getting
-something merged that provides the basic ACPI based ECAM functionality
-on ARMv8 systems. Until that happens, there are vendors who are going to
-have to delay various other activities around ARM server until it is
-done (because of the lack of an upstream patch is a critical blocker -
-this isn't embedded, and we don't work that way).
+2) On 2-node NUMA systems, the EA capabilities of some devices may be 
+incorrect even in production silicon.
 
-This is incredibly critical and central to the successful adoption of
-larger ARMv8 servers over the next year or so, all of which will rely
-upon PCIe, using ACPI. We therefore need all hands on deck, and all
-vendors getting overwhelmingly excited about making this patch series a
-success. As an aside, to help the engineering orgs within these vendors
-understand how much I need motion on this thread, I'm buzzing in their
-ears multiple times per week specifically on engagement on this thread.
-We need this done. If Bjorn or anyone else needs something, tell us.
+In general, the strategy we use for dealing with both of these is to 
+hook into the ECAM access methods, and supply corrected config space 
+data.  For the case of device-tree provisioned ECAM access, the fix ups 
+are done in pci-thunder-ecam.c.  This code is already present and seems 
+to be working well.
 
-Jon.
+As we consider ACPI support, supporting case #2 above will be desirable. 
+  If we reuse the code in pci-thunder-ecam.c for this, we will probably 
+get support for #1 for free.
 
--- 
-Computer Architect | Sent from my Fedora powered laptop
-
+David Daney
