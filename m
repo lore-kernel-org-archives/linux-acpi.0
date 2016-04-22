@@ -1,154 +1,187 @@
-From: Andy Shevchenko <andy.shevchenko@gmail.com>
-Subject: Re: [RFC PATCH 09/11] drivers: acpi: implement acpi_dma_configure
-Date: Fri, 22 Apr 2016 01:45:38 +0300
-Message-ID: <CAHp75VesfEDSnyjKunPzyJ1qUrdi8qE8Q2sOYpwo7h39ePjdow@mail.gmail.com>
-References: <1460654743-7896-1-git-send-email-lorenzo.pieralisi@arm.com>
-	<1460654743-7896-10-git-send-email-lorenzo.pieralisi@arm.com>
+From: "Zheng, Lv" <lv.zheng@intel.com>
+Subject: RE: [PATCH] ACPICA / Interpreter: Fix a regression triggered
+ because of wrong Linux ECDT support
+Date: Fri, 22 Apr 2016 03:05:39 +0000
+Message-ID: <1AE640813FDE7649BE1B193DEA596E883BB8205F@SHSMSX101.ccr.corp.intel.com>
+References: <1461119996-1861-1-git-send-email-lv.zheng@intel.com>
+ <20160420055806.GA6285@kroah.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-pci-owner@vger.kernel.org>
-In-Reply-To: <1460654743-7896-10-git-send-email-lorenzo.pieralisi@arm.com>
-Sender: linux-pci-owner@vger.kernel.org
-To: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
-Cc: iommu@lists.linux-foundation.org, Bjorn Helgaas <bhelgaas@google.com>, Robin Murphy <robin.murphy@arm.com>, Tomasz Nowicki <tn@semihalf.com>, Joerg Roedel <joro@8bytes.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Will Deacon <will.deacon@arm.com>, Marc Zyngier <marc.zyngier@arm.com>, Hanjun Guo <hanjun.guo@linaro.org>, Jon Masters <jcm@redhat.com>, Sinan Kaya <okaya@codeaurora.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, linux-arm Mailing List <linux-arm-kernel@lists.infradead.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+Return-path: <stable-owner@vger.kernel.org>
+In-Reply-To: <20160420055806.GA6285@kroah.com>
+Content-Language: en-US
+Sender: stable-owner@vger.kernel.org
+To: Greg KH <greg@kroah.com>
+Cc: "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, "Brown, Len" <len.brown@intel.com>, Lv Zheng <zetalog@gmail.com>, "stable@vger.kernel.org" <stable@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On Thu, Apr 14, 2016 at 8:25 PM, Lorenzo Pieralisi
-<lorenzo.pieralisi@arm.com> wrote:
-> On DT based systems, the of_dma_configure() API implements DMA configuration
-> for a given device. On ACPI systems an API equivalent to of_dma_configure()
-> is missing which implies that it is currently not possible to set-up DMA
-> operations for devices through the ACPI generic kernel layer.
->
-> This patch fills the gap by introducing acpi_dma_configure/deconfigure()
-> calls, that carry out IOMMU configuration through IORT (on systems where
-> it is present) and call arch_setup_dma_ops(...) with the retrieved
-> parameters.
->
-> The DMA range size passed to arch_setup_dma_ops() is sized according
-> to the device coherent_dma_mask (starting at address 0x0), mirroring the
-> DT probing path behaviour when a dma-ranges property is not provided
-> for the device being probed; this changes the current arch_setup_dma_ops()
-> call parameters in the ACPI probing case, but since arch_setup_dma_ops()
-> is a NOP on all architectures but ARM/ARM64 this patch does not change
-> the current kernel behaviour on them.
->
-> This patch updates ACPI and PCI core code to use the newly introduced
-> acpi_dma_configure function, providing the same functionality
-> as of_dma_configure on ARM systems and leaving behaviour unchanged
-> for all other arches.
->
+Hi, Greg
 
-Nitpicks below.
+> From: Greg KH [mailto:greg@kroah.com]
+> Subject: Re: [PATCH] ACPICA / Interpreter: Fix a regression triggered because
+> of wrong Linux ECDT support
+> 
+> On Wed, Apr 20, 2016 at 10:39:56AM +0800, Lv Zheng wrote:
+> > 4.5-stable review patch. If anyone has any objects, please let me know.
+> 
+> Huh?  I don't understand this email...
+> 
+> 
+[Lv Zheng] 
 
-> --- a/drivers/acpi/iort.c
-> +++ b/drivers/acpi/iort.c
-> @@ -72,6 +72,31 @@ int iort_iommu_set_node(struct iommu_ops *ops, struct acpi_iort_node *node,
->         return 0;
->  }
->
-> +/**
-> + * iort_iommu_get_node - Retrieve iort_iommu_node associated with an IORT node.
-> + *
-> + * @node: IORT table node to be looked-up
-> + *
-> + * Returns: iort_iommu_node pointer on success
-> + *          NULL on failure
-> + */
-> +static struct iort_iommu_node *iort_iommu_get_node(struct acpi_iort_node *node)
-> +{
-> +       struct iort_iommu_node *iommu_node;
-> +
-> +       spin_lock(&iort_iommu_lock);
-> +       list_for_each_entry(iommu_node, &iort_iommu_list, list) {
-> +               if (iommu_node->node == node)
-> +                       goto found;
-> +       }
-> +
-> +       iommu_node = NULL;
-> +found:
-> +       spin_unlock(&iort_iommu_lock);
-> +
-> +       return iommu_node;
+I received an error notice from you on 4/11/2016:
+FAILED: patch "[PATCH] ACPICA / Interpreter: Fix a regression triggered because of ACPICA: Events: Enhance acpi_ev_execute_reg_method() to" failed to apply to 4.5-stable tree
+And promised you to perform the back porting.
+After having it tested by LKP for several days, I sent it out to the stable mailing list.
 
-Ouch, and why not to
+I'm sorry I didn't send this email to you directly and didn't send it to the original mail thread for you to reference.
+The original thread is:
+Message-ID: <14603111697259@kroah.com>
+Subject: FAILED: patch "[PATCH] ACPICA / Interpreter: Fix a regression triggered because of
+ ACPICA: Events: Enhance acpi_ev_execute_reg_method() to" failed to apply to 4.5-stable tree
 
-strut iommu_node = NULL;
+Hope you can help to have this shipped in 4.5-stable.
 
-lock
-list for each() {
- if ()
-  break;
-}
-unlock
-
-return iommu_node;
-
-?
-
-> +}
+Thanks and best regards
+-Lv
 
 
-> +/**
-> + * iort_iommu_configure - Set-up IOMMU configuration for a device.
-> + *
-> + * @dev: device that requires IOMMU set-up
-> + *
-> + * Returns: iommu_ops pointer on configuration success
-> + *          NULL on configuration failure
-> + */
-> +struct iommu_ops *iort_iommu_configure(struct device *dev)
-> +{
-> +       struct acpi_iort_node *node, *parent;
-> +       struct iommu_ops *ops = NULL;
-> +       struct iommu_fwspec fwspec;
-> +       struct iort_iommu_node *iommu_node;
-> +       u32 rid = 0, devid = 0;
-> +
-> +       if (dev_is_pci(dev)) {
-> +               struct pci_bus *bus = to_pci_dev(dev)->bus;
-> +
-> +               pci_for_each_dma_alias(to_pci_dev(dev), __get_pci_rid,
-> +                                      &rid);
-> +
-> +               node = iort_scan_node(ACPI_IORT_NODE_PCI_ROOT_COMPLEX,
-> +                                     iort_find_dev_callback, &bus->dev);
-
-> +       } else
-
-checkpatch.pl ?
-
-> +               node = iort_scan_node(ACPI_IORT_NODE_NAMED_COMPONENT,
-> +                                     iort_find_dev_callback, dev);
-> +
-> +       if (!node)
-> +               return NULL;
-> +
-> +       iort_dev_map_rid(node, rid, &devid, ACPI_IORT_NODE_SMMU);
-> +
-> +       parent = iort_find_parent_node(node, ACPI_IORT_NODE_SMMU);
-
-> +
-
-Redundant.
-
-> +       if (!parent)
-> +               return NULL;
-> +
-> +       iommu_node = iort_iommu_get_node(parent);
-> +       ops = iommu_node->ops;
-> +
-> +       fwspec.fwnode = iommu_node->fwnode;
-> +       fwspec.param_count = 1;
-> +       fwspec.param[0] = devid;
-> +
-> +       if (!ops || !ops->fw_xlate || ops->fw_xlate(dev, &fwspec))
-> +               return NULL;
-> +
-> +       return ops;
-> +}
-> +
-
--- 
-With Best Regards,
-Andy Shevchenko
+> 
+> >
+> > ---------------
+> >
+> > From: Lv Zheng <lv.zheng@intel.com>
+> >
+> > commit 5508df89756f8378024828e185724a9bd2348985 upstream.
+> >
+> > It is reported that the following commit triggers regressions:
+> >  Linux commit: efaed9be998b5ae0afb7458e057e5f4402b43fa0
+> >  ACPICA commit: 31178590dde82368fdb0f6b0e466b6c0add96c57
+> >  Subject: ACPICA: Events: Enhance acpi_ev_execute_reg_method() to
+> >           ensure no _REG evaluations can happen during OS early boot
+> >           stages
+> >
+> > This is because that the ECDT support is not corrected in Linux, and Linux
+> > requires to execute _REG for ECDT (though this sounds so wrong), we need to
+> > ensure acpi_gbl_reg_methods_enabled is set before ECDT probing in order
+> > for _REG to be executed. Since we have to move
+> > "acpi_gbl_reg_methods_enabled = TRUE" to the initialization step
+> > happening before ECDT probing, acpi_load_tables() is the best candidate for
+> > now. Thus this patch fixes the regression by doing so.
+> >
+> > But if the ECDT support is fixed, Linux will not execute _REG for ECDT, and
+> > ECDT probing will happen before acpi_load_tables(). At that time, we still
+> > want to ensure acpi_gbl_reg_methods_enabled is set after executing
+> > acpi_ns_initialize_objects() (under the condition of
+> > acpi_gbl_group_module_level_code = FALSE), this patch also moves
+> > acpi_ns_initialize_objects() to acpi_load_tables() accordingly.
+> >
+> > Since acpi_ns_initialize_objects() doesn't seem to be skippable, this
+> > patch also removes ACPI_NO_OBJECT_INIT for the one invoked in
+> > acpi_load_tables(). Reported by Chris Bainbridge, Fixed by Lv Zheng.
+> >
+> > Fixes: efaed9be998b (ACPICA: Events: Enhance
+> acpi_ev_execute_reg_method() to ensure no _REG evaluations can happen
+> during OS early boot stages)
+> > Reported-and-tested-by: Chris Bainbridge <chris.bainbridge@gmail.com>
+> > Signed-off-by: Lv Zheng <lv.zheng@intel.com>
+> > Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+> > ---
+> >  drivers/acpi/acpica/nsinit.c   |    2 ++
+> >  drivers/acpi/acpica/tbxfload.c |   14 ++++++++++++++
+> >  drivers/acpi/acpica/utxfinit.c |   25 +++++++++++--------------
+> >  3 files changed, 27 insertions(+), 14 deletions(-)
+> >
+> > diff --git a/drivers/acpi/acpica/nsinit.c b/drivers/acpi/acpica/nsinit.c
+> > index bd75d46..ddb436f 100644
+> > --- a/drivers/acpi/acpica/nsinit.c
+> > +++ b/drivers/acpi/acpica/nsinit.c
+> > @@ -83,6 +83,8 @@ acpi_status acpi_ns_initialize_objects(void)
+> >
+> >  	ACPI_FUNCTION_TRACE(ns_initialize_objects);
+> >
+> > +	ACPI_DEBUG_PRINT((ACPI_DB_EXEC,
+> > +			  "[Init] Completing Initialization of ACPI Objects\n"));
+> >  	ACPI_DEBUG_PRINT((ACPI_DB_DISPATCH,
+> >  			  "**** Starting initialization of namespace objects
+> ****\n"));
+> >  	ACPI_DEBUG_PRINT_RAW((ACPI_DB_INIT,
+> > diff --git a/drivers/acpi/acpica/tbxfload.c b/drivers/acpi/acpica/tbxfload.c
+> > index 278666e..c37d479 100644
+> > --- a/drivers/acpi/acpica/tbxfload.c
+> > +++ b/drivers/acpi/acpica/tbxfload.c
+> > @@ -83,6 +83,20 @@ acpi_status __init acpi_load_tables(void)
+> >  				"While loading namespace from ACPI tables"));
+> >  	}
+> >
+> > +	if (!acpi_gbl_group_module_level_code) {
+> > +		/*
+> > +		 * Initialize the objects that remain uninitialized. This
+> > +		 * runs the executable AML that may be part of the
+> > +		 * declaration of these objects:
+> > +		 * operation_regions, buffer_fields, Buffers, and Packages.
+> > +		 */
+> > +		status = acpi_ns_initialize_objects();
+> > +		if (ACPI_FAILURE(status)) {
+> > +			return_ACPI_STATUS(status);
+> > +		}
+> > +	}
+> > +
+> > +	acpi_gbl_reg_methods_enabled = TRUE;
+> >  	return_ACPI_STATUS(status);
+> >  }
+> >
+> > diff --git a/drivers/acpi/acpica/utxfinit.c b/drivers/acpi/acpica/utxfinit.c
+> > index 721b87c..638fbd4 100644
+> > --- a/drivers/acpi/acpica/utxfinit.c
+> > +++ b/drivers/acpi/acpica/utxfinit.c
+> > @@ -267,7 +267,6 @@ acpi_status __init acpi_initialize_objects(u32 flags)
+> >  	 * initialized, even if they contain executable AML (see the call to
+> >  	 * acpi_ns_initialize_objects below).
+> >  	 */
+> > -	acpi_gbl_reg_methods_enabled = TRUE;
+> >  	if (!(flags & ACPI_NO_ADDRESS_SPACE_INIT)) {
+> >  		ACPI_DEBUG_PRINT((ACPI_DB_EXEC,
+> >  				  "[Init] Executing _REG OpRegion
+> methods\n"));
+> > @@ -299,20 +298,18 @@ acpi_status __init acpi_initialize_objects(u32 flags)
+> >  	 */
+> >  	if (acpi_gbl_group_module_level_code) {
+> >  		acpi_ns_exec_module_code_list();
+> > -	}
+> >
+> > -	/*
+> > -	 * Initialize the objects that remain uninitialized. This runs the
+> > -	 * executable AML that may be part of the declaration of these objects:
+> > -	 * operation_regions, buffer_fields, Buffers, and Packages.
+> > -	 */
+> > -	if (!(flags & ACPI_NO_OBJECT_INIT)) {
+> > -		ACPI_DEBUG_PRINT((ACPI_DB_EXEC,
+> > -				  "[Init] Completing Initialization of ACPI
+> Objects\n"));
+> > -
+> > -		status = acpi_ns_initialize_objects();
+> > -		if (ACPI_FAILURE(status)) {
+> > -			return_ACPI_STATUS(status);
+> > +		/*
+> > +		 * Initialize the objects that remain uninitialized. This
+> > +		 * runs the executable AML that may be part of the
+> > +		 * declaration of these objects:
+> > +		 * operation_regions, buffer_fields, Buffers, and Packages.
+> > +		 */
+> > +		if (!(flags & ACPI_NO_OBJECT_INIT)) {
+> > +			status = acpi_ns_initialize_objects();
+> > +			if (ACPI_FAILURE(status)) {
+> > +				return_ACPI_STATUS(status);
+> > +			}
+> >  		}
+> >  	}
+> >
+> > --
+> > 1.7.10
+> >
+> > --
+> > To unsubscribe from this list: send the line "unsubscribe stable" in
+> > the body of a message to majordomo@vger.kernel.org
+> > More majordomo info at  http://vger.kernel.org/majordomo-info.html
