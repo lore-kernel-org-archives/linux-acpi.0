@@ -1,95 +1,26 @@
-From: Robert Richter <robert.richter@caviumnetworks.com>
-Subject: Re: [PATCH V6 00/13] Support for generic ACPI based PCI host
- controller
-Date: Fri, 22 Apr 2016 18:08:59 +0200
-Message-ID: <20160422160859.GF24726@rric.localdomain>
-References: <1460740008-19489-1-git-send-email-tn@semihalf.com>
+From: Melissa Robert <sambos@unijos.edu.ng>
+Subject: HELLO DEAR
+Date: Fri, 22 Apr 2016 18:48:33 +0100 (WAT)
+Message-ID: <1043083210.431384.1461347313780.JavaMail.zimbra__10543.8062492341$1461348004$gmane$org@unijos.edu.ng>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-Content-Disposition: inline
-In-Reply-To: <1460740008-19489-1-git-send-email-tn@semihalf.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Tomasz Nowicki <tn@semihalf.com>
-Cc: rafael@kernel.org, linux-pci@vger.kernel.org, will.deacon@arm.com, okaya@codeaurora.org, wangyijing@huawei.com, Lorenzo.Pieralisi@arm.com, linaro-acpi@lists.linaro.org, ddaney@caviumnetworks.com, linux-acpi@vger.kernel.org, helgaas@kernel.org, catalin.marinas@arm.com, Liviu.Dudau@arm.com, arnd@arndb.de, jcm@redhat.com, msalter@redhat.com, mw@semihalf.com, linux-arm-kernel@lists.infradead.org, jchandra@broadcom.com, linux-kernel@vger.kernel.org, hanjun.guo@linaro.org, Suravee.Suthikulpanit@amd.com, jiang.liu@linux.intel.com
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from unijos-mail01.inetuhosted.net ([209.235.225.227]:42757 "EHLO
+	unijos-mail01.inetuhosted.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752028AbcDVR7z (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 22 Apr 2016 13:59:55 -0400
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-On 15.04.16 19:06:35, Tomasz Nowicki wrote:
-> From the functionality point of view this series might be split into the
-> following logic parts:
-> 1. Necessary fixes as the preparation for using driver on ARM64.
-> 2. New ECAM API and update for users of the pci-host-common API
-> 3. Use new MCFG interface and implement generic ACPI based PCI host controller driver.
-> 4. Enable above driver on ARM64
-> 
-> Patches has been built on top of 4.6-rc2 and can be found here:
-> git@github.com:semihalf-nowicki-tomasz/linux.git (pci-acpi-v6)
-> 
-> This has been tested on Cavium ThunderX server. Any help in reviewing and
-> testing is very appreciated.
 
-For the whole series:
 
-Tested-by: Robert Richter <rrichter@cavium.com>
-Acked-by: Robert Richter <rrichter@cavium.com>
+Hello Dear,
+how are you doing hope fine, I am (Melissa Robert) by name. i will like
+to
+know more about you believing that friendship is a free gift of nature.
+Please get back to me as soon as possible through this my private Email.
+(mr4785395@gmail.com)
+thank you.
 
--Robert
-
-> v5 -> v6
-> - dropped idea of x86 MMCONFIG code refactoring
-> - integrated JC's patches which introduce new ECAM API:
->   https://lkml.org/lkml/2016/4/11/907
->   git: https://github.com/jchandra-brcm/linux/ (arm64-acpi-pci-v3)
-> - integrated Sinan's fix for releasing IO resources, see patch [06/13]
-> - added ACPI support for ThunderX ECAM and PEM drivers
-> - rebased to 4.6-rc2
-> 
-> v4 -> v5
-> - dropped MCFG refactoring group patches 1-6 from series v4 and integrated Jayachandran's patch
->   https://patchwork.ozlabs.org/patch/575525/
-> - rewrite PCI legacy IRQs allocation
-> - squashed two patches 11 and 12 from series v4, fixed bisection issue
-> - changelog improvements
-> - rebased to 4.5-rc3
-> 
-> v3 -> v4
-> - dropped Jiang's fix http://lkml.iu.edu/hypermail/linux/kernel/1601.1/04318.html
-> - added Lorenzo's fix patch 19/24
-> - ACPI PCI bus domain number assigning cleanup
-> - changed resource management, we now claim and reassign resources
-> - improvements for applying quirks
-> - dropped Matthew's http://www.spinics.net/lists/linux-pci/msg45950.html dependency
-> - rebased to 4.5-rc1
-> 
-> v2 -> v3
-> - fix legacy IRQ assigning and IO ports registration
-> - remove reference to arch specific companion device for ia64
-> - move ACPI PCI host controller driver to pci_root.c
-> - drop generic domain assignment for x86 and ia64 as I am not
->   able to run all necessary test variants
-> - drop patch which cleaned legacy IRQ assignment since it belongs to
->   Mathew's series:
->   https://patchwork.ozlabs.org/patch/557504/
-> - extend MCFG quirk code
-> - rebased to 4.4
-> 
-> v1 -> v2
-> - moved non-arch specific piece of code to dirver/acpi/ directory
-> - fixed IO resource handling
-> - introduced PCI config accessors quirks matching
-> - moved ACPI_COMPANION_SET to generic code
-> 
-> v1 - https://lkml.org/lkml/2015/10/27/504
-> v2 - https://lkml.org/lkml/2015/12/16/246
-> v3 - http://lkml.iu.edu/hypermail/linux/kernel/1601.1/04308.html
-> v4 - https://lkml.org/lkml/2016/2/4/646
-> v5 - https://lkml.org/lkml/2016/2/16/426
