@@ -1,162 +1,133 @@
-From: Lukas Wunner <lukas@wunner.de>
-Subject: Re: [RFC 4/4] thunderbolt: Support runtime pm
-Date: Sun, 24 Apr 2016 17:23:08 +0200
-Message-ID: <20160424152308.GA16898@wunner.de>
-References: <cover.1458126755.git.lukas@wunner.de>
- <4560ddb26a2bb15eeaf8eab565ac41c35e36d092.1458126755.git.lukas@wunner.de>
- <CAMxnaaXLAEERtc7=odiqXAp_pA-PnsaQFw6bQhLN=DWeBngq9g@mail.gmail.com>
+From: Will Deacon <will.deacon@arm.com>
+Subject: Re: [PATCH v5 00/14]  ACPI NUMA support for ARM64
+Date: Mon, 25 Apr 2016 12:13:39 +0100
+Message-ID: <20160425111338.GJ16065@arm.com>
+References: <1461116439-22991-1-git-send-email-ddaney.cavm@gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mailout1.hostsharing.net ([83.223.95.204]:45864 "EHLO
-	mailout1.hostsharing.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752637AbcDXPUj (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sun, 24 Apr 2016 11:20:39 -0400
+Return-path: <linux-ia64-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <CAMxnaaXLAEERtc7=odiqXAp_pA-PnsaQFw6bQhLN=DWeBngq9g@mail.gmail.com>
-Sender: linux-acpi-owner@vger.kernel.org
+In-Reply-To: <1461116439-22991-1-git-send-email-ddaney.cavm@gmail.com>
+Sender: linux-ia64-owner@vger.kernel.org
+To: David Daney <ddaney.cavm@gmail.com>
+Cc: linux-arm-kernel@lists.infradead.org, Mark Rutland <mark.rutland@arm.com>, Catalin Marinas <catalin.marinas@arm.com>, Tony Luck <tony.luck@intel.com>, Fenghua Yu <fenghua.yu@intel.com>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, x86@kernel.org, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Rob Herring <robh+dt@kernel.org>, Frank Rowand <frowand.list@gmail.com>, Grant Likely <grant.likely@linaro.org>, Robert Moore <robert.moore@intel.com>, Lv Zheng <lv.zheng@intel.com>, Hanjun Guo <hanjun.guo@linaro.org>, Marc Zyngier <Marc.Zyngier@arm.com>, linux-ia64@vger.kernel.org, linux-acpi@vger.kernel.org, devel@acpica.org, linux-kernel@vger.kernel.org, Robert Richter <rrichter@cavium.com>, David Daney <david.daney@cavium.com>
 List-Id: linux-acpi@vger.kernel.org
-To: Andreas Noever <andreas.noever@gmail.com>
-Cc: "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>, linux-acpi@vger.kernel.org, Linux PM list <linux-pm@vger.kernel.org>, Matthew Garrett <mjg59@srcf.ucam.org>, Bjorn Helgaas <bhelgaas@google.com>
 
-Hi Andreas,
+Hi David,
 
-thank you for your valuable feedback.
+On Tue, Apr 19, 2016 at 06:40:25PM -0700, David Daney wrote:
+> From: David Daney <david.daney@cavium.com>
+> 
+> Based on v16 of device-tree NUMA patch set for arm64 [1],this patch
+> set introduce the ACPI based configuration to provide NUMA
+> information.
+> 
+> ACPI 5.1 already introduced NUMA support for ARM64, which can get the
+> NUMA domain information from SRAT and SLIT table, so parse those two
+> tables to get mappings from cpu/mem to numa node configuration and
+> system locality.
 
-On Sun, Mar 20, 2016 at 02:53:10PM +0100, Andreas Noever wrote:
-> - My firmware does not provide the TRPE ACPI method, only XRPE. So
-> either TRPE is only post CactusRidge or it is only present in newer
-> MBPs. In any case the OS X driver looks for TRPE first and uses XRPE
-> only if TRPE does not exists. I suggest we do the same (but see below
-> for TRPE).
+Whilst I've queued the main NUMA series for arm64, I'd really like to
+see more movement on the generic header file cleanups that you posted
+separately:
 
-I only had the acpidump of an MBA6 (2013) available when I implemented
-this and it uses TRPE. I have since been able to obtain the acpidump of
-an MBP10 (2012) and you're right, it uses XRPE. Both have the same
-controller, Cactus Ridge 4C. It looks like they changed this on machines
-introduced 2013. It's just a rename of the method, there are no machines
-which have both methods.
+http://lkml.kernel.org/r/1456358528-24213-1-git-send-email-ddaney.cavm@gmail.com
 
+Given that this ACPI series already requires some significant cross-arch
+interaction (which is actually good!), perhaps extending the clean-up
+patches to encompass some of the ACPI bits might make sense, and we can
+get that queued as a pre-requisite.
 
-> - The XRIN GPE fired immediately after the power was cut. The problem
-> seems to be that the controller takes a bit to shut down. The solution
-> is to poll until XRIL returns 1 before activating the GPE. On "Type 2"
-> devices the OS X driver polls up to 300 times with a 1ms sleep in
-> between (for me 1 or 2 iterations were always enough). Afaik no
-> polling is done on "Type 1" devices.
+Will
 
-Hm, this means that the semantics of XRIN and XRIL changed on Cactus
-Ridge. I have changed the behaviour to be exactly as you've specified
-above, this works fine on Light Ridge and should hopefully also work
-on Cactus Ridge, no distinction between Type 1 and Type 2 necessary.
-
-
-> Also the OS X interrupt handler checks XRIL
-> and only wakes up the device if it returns 0. This was not necessary
-> to do on my model - but maybe spurious interrupts can happen with
-> newer controllers?
-
-They're doing lots of stuff which seems superfluous or needlessly
-complicated, e.g. they also reset the controller upon driver load using
-the XRST method (which exists only on some models). I don't think we
-have to do everything exactly as they do as long as it works.
-FWIW I haven't seen any spurious XRIN interrupts on Light Ridge.
-
-
-> Concerning TRPE style hardware: It seems that pm is more complicated
-> here. I see a bunch of references to SX* ACPI methods (SXFP, SXLV,
-> SXIO) and have not yet figured out what they do. Maybe we should not
-> enable PM if XRPE is not present until we find someone to test it.
-
-But you do have the SX* methods on your machine even though it uses
-XRPE, right? I've mostly figured out now what these methods are there
-for and have documented them extensively in upstream.c. However I cannot
-verify if my documentation is accurate as they are not present on my
-machine, but perhaps you can if your machine has them.
-
-SXLV, SXIO and SXIL exist only on Cactus Ridge machines and utilize
-the Go2Sx and Ok2Go2Sx pins. Judging by the PCI quirk you've added,
-it seems that a Go2Sx dance is necessary on this controller before
-power is cut (either by going to S3 / S4 / S5 or by using the Force
-Power pin, which is what XRPE / TRPE / SXFP do).
-
-
-> As you have noted the "correct" place to but this logic would be at
-> the upstream bridge. Ideally the downstream bridges should go into
-> D3hot by themselves if no devices are attached. The NHI as well
-
-In v2 it works exactly like this now:
-https://github.com/l1k/linux/commits/thunderbolt_runpm_v2
-
-The trick is to allocate a Thunderbolt port service for the upstream
-bridge which we can bind to. In fact I'm allocating such a port service
-for *any* PCIe port on Thunderbolt devices, this could be useful for all
-sorts of other stuff.
-
-Binding to the upstream bridge also allows us to replace the PCI quirk
-which delays resume_noirq on the downstream bridges, as demonstrated by
-this experimental commit (works fine on Light Ridge but YMMV):
-https://github.com/l1k/linux/commit/79e0b8b8fb5da50b63836939f75212f824d8cba7
-
-
-> (did you by chance check whether the NHI can be put into D3hot without
-> killing the thunderbolt tunnels?).
-
-Amazingly this works. However the NHI does not act on hotplug events
-after thunderbolt_suspend() has been called. Even without calling
-thunderbolt_suspend(), it seems that the control channel is down
-when the NHI is in D3hot, I'm getting RX timeouts. Also, I cannot
-see any reduction in power consumption when putting the NHI in D3,
-same for the downstream bridges.
-
-You can test this for yourself by commenting out the two calls to
-pm_runtime_get() and pm_runtime_put_autosuspend() in switch.c.
-Plug in a Thunderbolt device, wait 10 sec for the NHI to autosuspend,
-try accessing the Thunderbolt device. Works for me.
-
-If the NHI suspended before you had a chance to plug in the device,
-invoke "echo on > /sys/bus/pci/devices/0000:06:00.0/power/control".
-Plug in the device and use "echo auto" to let the NHI autosuspend.
-
-
-> (1) should be possible to fix? For (2): D3Cold always requires a
-> platform specific mechanism and the pci subsystem only supports ACPI.
-> Would it be possible to add an API to tell the pci subsystem that we
-> know how to put a specific device(tree) into D3Cold from a platform
-> driver [+CC Bjorn]? Then this whole thing would become a normal pci
-> suspend operation.
-
-I simply go to D3cold in the driver's ->runtime_suspend callback.
-There's just one small fix necessary in pci_raw_set_power_state()
-for this to work. Plus some changes in portdrv to call down to the
-port service drivers on each pm transition. (It already does this
-for ->suspend and ->resume, we just need the same functionality for
-additional pm callbacks).
-
-
-> Bridges in Hotplugged TB devices might have the same PCI ids as the
-> "root" bridges (if they use the same TB chip). You probably should
-> check that dev is a bridge of the builtin controller (for example by
-> checking for the presence of ACPI methods, see the comment in the
-> other tb quirks).
-
-For the upstream bridge I'm checking if its parent is a root port now
-to determine if it's a host controller built into the machine.
-
-I think the only chance for a false positive is if two machines are
-connected with Thunderbolt and one of them has multiple Thunderbolt
-controllers built in. Might look like this:
-
-RP - UPSB - DSB - UPSB - DSB - RP - RP - UPSB - DSB
-^^^^^^^^^^^^^^^   ^^^^                   ^^^^^^^^^^
-local machine     remote machine         secondary controller on remote
-
-If the topology indeed looks like this (which I'm not sure of, I lack
-the hardware to test it), a thunderbolt_upstream driver will try to
-attach to UPSB on the secondary controller of the remote machine but
-should bail out because it can't find an ACPI handle for its NHI.
-So we should even have this corner case covered.
-
-Best regards,
-
-Lukas
+> v5 updates:
+> 
+>  - Fixed ia64 build failure by gating some unused functions with #if
+>    CONFIG_{X86,ARM64}.
+> 
+>  - Fixed section mismatch errors for X86 case.
+> 
+>  - Removed unneeded #include from some files.
+> 
+>  - Tested to build cleanly on ARM64, X86_64, IA64
+> 
+> v4 updates:
+> 
+>  - Updated from Hanjun Guo's v3 patches.
+> 
+>  - Rebased on top of v16 of device-tree NUMA patches.
+> 
+>  - Reordered some of the changes so that we don't introduce code and
+>    then change it several times in the patch set.  New code is
+>    introduced in its final form.  Code reused from x86 is first moved
+>    with no change, and then a separate patch to make any needed
+>    changes.
+> 
+>  - code that is used only by ia64, moved to architecture specific
+>    files.
+> 
+> v3 updates:
+>  - Deep investigation about the ACPI_DEBUG_PRINT() and remvoe
+>    that for acpi/numa.c (patch 2/12)
+> 
+>  - Remove the duplicate NULL check for table print (patch 3/12)
+> 
+>  - Introduce CONFIG_ACPI_HAS_NUMA_ARCH_FIXUP to remove duplicate
+>    dummy function for acpi_numa_arch_fixup()
+> 
+>  - Solve the problem that the mapping from logical cpu to numa node
+>    is wrong which spotted out by Lorenzo
+> 
+>  - cleanups for x86 and move acpi_numa_slit_init() and some other
+>    functions to common place, then reduce the duplicate of x86
+>    and arm64 (patch 7-12/12).
+> 
+>  - rebased on top of 4.4 and Ganapat's v9 patch set.
+> 
+> [1]: https://lkml.org/lkml/2016/4/8/571
+> 
+> David Daney (1):
+>   acpi, numa, srat: Improve SRAT error detection and add messages.
+> 
+> Hanjun Guo (11):
+>   acpi, numa: Use pr_fmt() instead of printk
+>   acpi, numa: Replace ACPI_DEBUG_PRINT() with pr_debug()
+>   acpi, numa: remove duplicate NULL check
+>   acpi, numa: move acpi_numa_slit_init() to drivers/acpi/numa.c
+>   arm64, numa: rework numa_add_memblk()
+>   x86, acpi, numa: cleanup acpi_numa_processor_affinity_init()
+>   acpi, numa: move bad_srat() and srat_disabled() to
+>     drivers/acpi/numa.c
+>   acpi, numa: remove unneeded acpi_numa=1
+>   acpi, numa: Move acpi_numa_memory_affinity_init() to
+>     drivers/acpi/numa.c
+>   arm64, acpi, numa: NUMA support based on SRAT and SLIT
+>   acpi, numa: Enable ACPI based NUMA on ARM64
+> 
+> Robert Richter (2):
+>   acpi, numa: Move acpi_numa_arch_fixup() to ia64 only
+>   arm64, acpi, numa: Default enable ACPI_NUMA with NUMA
+> 
+>  arch/arm64/include/asm/acpi.h |   8 ++
+>  arch/arm64/include/asm/numa.h |   2 +
+>  arch/arm64/kernel/Makefile    |   1 +
+>  arch/arm64/kernel/acpi_numa.c | 149 ++++++++++++++++++++++++++++
+>  arch/arm64/kernel/smp.c       |   2 +
+>  arch/arm64/mm/numa.c          |  17 ++--
+>  arch/ia64/include/asm/acpi.h  |   3 +
+>  arch/ia64/kernel/acpi.c       |   2 +-
+>  arch/ia64/kernel/setup.c      |   1 +
+>  arch/x86/include/asm/acpi.h   |   1 -
+>  arch/x86/mm/numa.c            |   2 +-
+>  arch/x86/mm/srat.c            | 116 +---------------------
+>  drivers/acpi/Kconfig          |   4 +-
+>  drivers/acpi/numa.c           | 224 ++++++++++++++++++++++++++++++++----------
+>  drivers/of/of_numa.c          |   4 +-
+>  include/acpi/acpi_numa.h      |   4 +
+>  include/linux/acpi.h          |  18 +++-
+>  17 files changed, 375 insertions(+), 183 deletions(-)
+>  create mode 100644 arch/arm64/kernel/acpi_numa.c
+> 
+> -- 
+> 1.7.11.7
+> 
