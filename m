@@ -1,44 +1,67 @@
 From: Toshi Kani <toshi.kani@hpe.com>
-Subject: [PATCH v3 0/2] Support ACPI 6.1 update in NFIT Control Region Structure
-Date: Mon, 25 Apr 2016 15:34:57 -0600
-Message-ID: <1461620099-11933-1-git-send-email-toshi.kani@hpe.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: rjw@rjwysocki.net, dan.j.williams@intel.com
-Cc: robert.moore@intel.com, elliott@hpe.com, linux-nvdimm@lists.01.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: [PATCH v3 2/2] acpi/nfit: Add sysfs "id" for NVDIMM ID
+Date: Mon, 25 Apr 2016 15:34:59 -0600
+Message-ID: <1461620099-11933-3-git-send-email-toshi.kani@hpe.com>
+References: <1461620099-11933-1-git-send-email-toshi.kani@hpe.com>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from g4t3426.houston.hp.com ([15.201.208.54]:46737 "EHLO
+	g4t3426.houston.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S965188AbcDYVnr (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 25 Apr 2016 17:43:47 -0400
+In-Reply-To: <1461620099-11933-1-git-send-email-toshi.kani@hpe.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: rjw@rjwysocki.net, dan.j.williams@intel.com
+Cc: robert.moore@intel.com, elliott@hpe.com, linux-nvdimm@lists.01.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Toshi Kani <toshi.kani@hpe.com>
 
-ACPI 6.1, Table 5-133, updates NVDIMM Control Region Structure as
-follows.
- - Valid Fields, Manufacturing Location, and Manufacturing Date
-   are added from reserved range.  No change in the structure size.
- - IDs (SPD values) are stored as arrays of bytes (i.e. big-endian
-   format).  The spec clarifies that they need to be represented
-   as arrays of bytes as well.
+ACPI 6.1, section 5.2.25.9, defines an identifier for an NVDIMM.
 
-Patch 1 changes the NFIT driver to comply with ACPI 6.1.
-Patch 2 adds a new sysfs file "id" to show NVDIMM ID defined in ACPI 6.1.
+Change the NFIT driver to add a new sysfs file "id" under nfit
+directory.
 
-The patch-set applies on linux-pm.git acpica.
-
-link: http://www.uefi.org/sites/default/files/resources/ACPI_6_1.pdf
-
+Signed-off-by: Toshi Kani <toshi.kani@hpe.com>
+Cc: Rafael J. Wysocki <rjw@rjwysocki.net>
+Cc: Dan Williams <dan.j.williams@intel.com>
+Cc: Robert Moore <robert.moore@intel.com>
+Cc: Robert Elliott <elliott@hpe.com>
 ---
-v3:
- - Need to coordinate with ACPICA update (Bob Moore, Dan Williams)
- - Integrate with ACPICA changes in struct acpi_nfit_control_region.
-   (commit 138a95547ab0)
+ drivers/acpi/nfit.c |   19 +++++++++++++++++++
+ 1 file changed, 19 insertions(+)
 
-v2:
- - Remove 'mfg_location' and 'mfg_date'. (Dan Williams)
- - Rename 'unique_id' to 'id' and make this change as a separate patch.
-   (Dan Williams)
-
----
-Toshi Kani (3):
- 1/2 acpi/nfit: Update nfit driver to comply with ACPI 6.1
- 2/3 acpi/nfit: Add sysfs "id" for NVDIMM ID
-
----
- drivers/acpi/nfit.c | 29 ++++++++++++++++++++++++-----
- 1 file changed, 24 insertions(+), 5 deletions(-)
+diff --git a/drivers/acpi/nfit.c b/drivers/acpi/nfit.c
+index 5dc243c..5a7199d 100644
+--- a/drivers/acpi/nfit.c
++++ b/drivers/acpi/nfit.c
+@@ -870,6 +870,24 @@ static ssize_t flags_show(struct device *dev,
+ }
+ static DEVICE_ATTR_RO(flags);
+ 
++static ssize_t id_show(struct device *dev,
++		struct device_attribute *attr, char *buf)
++{
++	struct acpi_nfit_control_region *dcr = to_nfit_dcr(dev);
++
++	if (dcr->valid_fields & ACPI_NFIT_CONTROL_MFG_INFO_VALID)
++		return sprintf(buf, "%04x-%02x-%04x-%08x\n",
++				be16_to_cpu(dcr->vendor_id),
++				dcr->manufacturing_location,
++				be16_to_cpu(dcr->manufacturing_date),
++				be32_to_cpu(dcr->serial_number));
++	else
++		return sprintf(buf, "%04x-%08x\n",
++				be16_to_cpu(dcr->vendor_id),
++				be32_to_cpu(dcr->serial_number));
++}
++static DEVICE_ATTR_RO(id);
++
+ static struct attribute *acpi_nfit_dimm_attributes[] = {
+ 	&dev_attr_handle.attr,
+ 	&dev_attr_phys_id.attr,
+@@ -879,6 +897,7 @@ static struct attribute *acpi_nfit_dimm_attributes[] = {
+ 	&dev_attr_serial.attr,
+ 	&dev_attr_rev_id.attr,
+ 	&dev_attr_flags.attr,
++	&dev_attr_id.attr,
+ 	NULL,
+ };
+ 
