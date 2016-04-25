@@ -1,156 +1,157 @@
-From: David Daney <ddaney@caviumnetworks.com>
-Subject: Re: [PATCH v5 00/14]  ACPI NUMA support for ARM64
-Date: Mon, 25 Apr 2016 09:47:38 -0700
-Message-ID: <571E4A2A.8070908@caviumnetworks.com>
-References: <1461116439-22991-1-git-send-email-ddaney.cavm@gmail.com> <20160425111338.GJ16065@arm.com>
+From: Jeremy Linton <jeremy.linton@arm.com>
+Subject: Re: [PATCH V6 00/13] Support for generic ACPI based PCI host
+ controller
+Date: Mon, 25 Apr 2016 12:23:20 -0500
+Message-ID: <571E5288.8030602@arm.com>
+References: <1460740008-19489-1-git-send-email-tn@semihalf.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Type: text/plain; charset=windows-1252; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-bl2on0086.outbound.protection.outlook.com ([65.55.169.86]:1567
-	"EHLO na01-bl2-obe.outbound.protection.outlook.com"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1754874AbcDYQrr (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 25 Apr 2016 12:47:47 -0400
-In-Reply-To: <20160425111338.GJ16065@arm.com>
+Received: from foss.arm.com ([217.140.101.70]:48480 "EHLO foss.arm.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751696AbcDYRXW (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 25 Apr 2016 13:23:22 -0400
+In-Reply-To: <1460740008-19489-1-git-send-email-tn@semihalf.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Will Deacon <will.deacon@arm.com>
-Cc: David Daney <ddaney.cavm@gmail.com>, linux-arm-kernel@lists.infradead.org, Mark Rutland <mark.rutland@arm.com>, Catalin Marinas <catalin.marinas@arm.com>, Tony Luck <tony.luck@intel.com>, Fenghua Yu <fenghua.yu@intel.com>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, x86@kernel.org, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Rob Herring <robh+dt@kernel.org>, Frank Rowand <frowand.list@gmail.com>, Grant Likely <grant.likely@linaro.org>, Robert Moore <robert.moore@intel.com>, Lv Zheng <lv.zheng@intel.com>, Hanjun Guo <hanjun.guo@linaro.org>, Marc Zyngier <Marc.Zyngier@arm.com>, linux-ia64@vger.kernel.org, linux-acpi@vger.kernel.org, devel@acpica.org, linux-kernel@vger.kernel.org, Robert Richter <rrichter@cavium.com>, David Daney <david.daney@cavium.com>
+To: Tomasz Nowicki <tn@semihalf.com>, helgaas@kernel.org, arnd@arndb.de, will.deacon@arm.com, catalin.marinas@arm.com, rafael@kernel.org, hanjun.guo@linaro.org, Lorenzo.Pieralisi@arm.com, okaya@codeaurora.org, jiang.liu@linux.intel.com, jchandra@broadcom.com
+Cc: jcm@redhat.com, linaro-acpi@lists.linaro.org, linux-pci@vger.kernel.org, Liviu.Dudau@arm.com, ddaney@caviumnetworks.com, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, robert.richter@caviumnetworks.com, Suravee.Suthikulpanit@amd.com, msalter@redhat.com, wangyijing@huawei.com, mw@semihalf.com, linux-arm-kernel@lists.infradead.org
 
-On 04/25/2016 04:13 AM, Will Deacon wrote:
-> Hi David,
+On 04/15/2016 12:06 PM, Tomasz Nowicki wrote:
+>  From the functionality point of view this series might be split into the
+> following logic parts:
+> 1. Necessary fixes as the preparation for using driver on ARM64.
+> 2. New ECAM API and update for users of the pci-host-common API
+> 3. Use new MCFG interface and implement generic ACPI based PCI host controller driver.
+> 4. Enable above driver on ARM64
 >
-> On Tue, Apr 19, 2016 at 06:40:25PM -0700, David Daney wrote:
->> From: David Daney <david.daney@cavium.com>
->>
->> Based on v16 of device-tree NUMA patch set for arm64 [1],this patch
->> set introduce the ACPI based configuration to provide NUMA
->> information.
->>
->> ACPI 5.1 already introduced NUMA support for ARM64, which can get the
->> NUMA domain information from SRAT and SLIT table, so parse those two
->> tables to get mappings from cpu/mem to numa node configuration and
->> system locality.
+> Patches has been built on top of 4.6-rc2 and can be found here:
+> git@github.com:semihalf-nowicki-tomasz/linux.git (pci-acpi-v6)
 >
-> Whilst I've queued the main NUMA series for arm64, I'd really like to
-> see more movement on the generic header file cleanups that you posted
-> separately:
->
-> http://lkml.kernel.org/r/1456358528-24213-1-git-send-email-ddaney.cavm@gmail.com
+> This has been tested on Cavium ThunderX server. Any help in reviewing and
+> testing is very appreciated.
 
-FWIW:  Those patches should still apply.  I am carrying them in my 
-development trees, and have not changed them in any way.
+I did some basic testing of this series on ARM's JunoR2 platform. 
+Everything seems to work as expected, the on-board SATA/Ethernet work 
+correctly as do a couple of boards plugged into the slots.
 
->
-> Given that this ACPI series already requires some significant cross-arch
-> interaction (which is actually good!), perhaps extending the clean-up
-> patches to encompass some of the ACPI bits might make sense, and we can
-> get that queued as a pre-requisite.
+Tested-by: Jeremy Linton <jeremy.linton@arm.com>
 
-The cleanup patches you mention above are really independent of the ACPI 
-things.  I have applied them both before and after the ACPI patches, and 
-both seem to work.  With a quick perusal of the ACPI patches nothing 
-jumps out at me as being a candidate for inclusion in the header file 
-cleanup series.
-
-If you think it would be a good idea, I can repost the cleanup series.
-
-David Daney
+Thanks!
 
 
 >
-> Will
+> v5 -> v6
+> - dropped idea of x86 MMCONFIG code refactoring
+> - integrated JC's patches which introduce new ECAM API:
+>    https://lkml.org/lkml/2016/4/11/907
+>    git: https://github.com/jchandra-brcm/linux/ (arm64-acpi-pci-v3)
+> - integrated Sinan's fix for releasing IO resources, see patch [06/13]
+> - added ACPI support for ThunderX ECAM and PEM drivers
+> - rebased to 4.6-rc2
 >
->> v5 updates:
->>
->>   - Fixed ia64 build failure by gating some unused functions with #if
->>     CONFIG_{X86,ARM64}.
->>
->>   - Fixed section mismatch errors for X86 case.
->>
->>   - Removed unneeded #include from some files.
->>
->>   - Tested to build cleanly on ARM64, X86_64, IA64
->>
->> v4 updates:
->>
->>   - Updated from Hanjun Guo's v3 patches.
->>
->>   - Rebased on top of v16 of device-tree NUMA patches.
->>
->>   - Reordered some of the changes so that we don't introduce code and
->>     then change it several times in the patch set.  New code is
->>     introduced in its final form.  Code reused from x86 is first moved
->>     with no change, and then a separate patch to make any needed
->>     changes.
->>
->>   - code that is used only by ia64, moved to architecture specific
->>     files.
->>
->> v3 updates:
->>   - Deep investigation about the ACPI_DEBUG_PRINT() and remvoe
->>     that for acpi/numa.c (patch 2/12)
->>
->>   - Remove the duplicate NULL check for table print (patch 3/12)
->>
->>   - Introduce CONFIG_ACPI_HAS_NUMA_ARCH_FIXUP to remove duplicate
->>     dummy function for acpi_numa_arch_fixup()
->>
->>   - Solve the problem that the mapping from logical cpu to numa node
->>     is wrong which spotted out by Lorenzo
->>
->>   - cleanups for x86 and move acpi_numa_slit_init() and some other
->>     functions to common place, then reduce the duplicate of x86
->>     and arm64 (patch 7-12/12).
->>
->>   - rebased on top of 4.4 and Ganapat's v9 patch set.
->>
->> [1]: https://lkml.org/lkml/2016/4/8/571
->>
->> David Daney (1):
->>    acpi, numa, srat: Improve SRAT error detection and add messages.
->>
->> Hanjun Guo (11):
->>    acpi, numa: Use pr_fmt() instead of printk
->>    acpi, numa: Replace ACPI_DEBUG_PRINT() with pr_debug()
->>    acpi, numa: remove duplicate NULL check
->>    acpi, numa: move acpi_numa_slit_init() to drivers/acpi/numa.c
->>    arm64, numa: rework numa_add_memblk()
->>    x86, acpi, numa: cleanup acpi_numa_processor_affinity_init()
->>    acpi, numa: move bad_srat() and srat_disabled() to
->>      drivers/acpi/numa.c
->>    acpi, numa: remove unneeded acpi_numa=1
->>    acpi, numa: Move acpi_numa_memory_affinity_init() to
->>      drivers/acpi/numa.c
->>    arm64, acpi, numa: NUMA support based on SRAT and SLIT
->>    acpi, numa: Enable ACPI based NUMA on ARM64
->>
->> Robert Richter (2):
->>    acpi, numa: Move acpi_numa_arch_fixup() to ia64 only
->>    arm64, acpi, numa: Default enable ACPI_NUMA with NUMA
->>
->>   arch/arm64/include/asm/acpi.h |   8 ++
->>   arch/arm64/include/asm/numa.h |   2 +
->>   arch/arm64/kernel/Makefile    |   1 +
->>   arch/arm64/kernel/acpi_numa.c | 149 ++++++++++++++++++++++++++++
->>   arch/arm64/kernel/smp.c       |   2 +
->>   arch/arm64/mm/numa.c          |  17 ++--
->>   arch/ia64/include/asm/acpi.h  |   3 +
->>   arch/ia64/kernel/acpi.c       |   2 +-
->>   arch/ia64/kernel/setup.c      |   1 +
->>   arch/x86/include/asm/acpi.h   |   1 -
->>   arch/x86/mm/numa.c            |   2 +-
->>   arch/x86/mm/srat.c            | 116 +---------------------
->>   drivers/acpi/Kconfig          |   4 +-
->>   drivers/acpi/numa.c           | 224 ++++++++++++++++++++++++++++++++----------
->>   drivers/of/of_numa.c          |   4 +-
->>   include/acpi/acpi_numa.h      |   4 +
->>   include/linux/acpi.h          |  18 +++-
->>   17 files changed, 375 insertions(+), 183 deletions(-)
->>   create mode 100644 arch/arm64/kernel/acpi_numa.c
->>
->> --
->> 1.7.11.7
->>
+> v4 -> v5
+> - dropped MCFG refactoring group patches 1-6 from series v4 and integrated Jayachandran's patch
+>    https://patchwork.ozlabs.org/patch/575525/
+> - rewrite PCI legacy IRQs allocation
+> - squashed two patches 11 and 12 from series v4, fixed bisection issue
+> - changelog improvements
+> - rebased to 4.5-rc3
+>
+> v3 -> v4
+> - dropped Jiang's fix http://lkml.iu.edu/hypermail/linux/kernel/1601.1/04318.html
+> - added Lorenzo's fix patch 19/24
+> - ACPI PCI bus domain number assigning cleanup
+> - changed resource management, we now claim and reassign resources
+> - improvements for applying quirks
+> - dropped Matthew's http://www.spinics.net/lists/linux-pci/msg45950.html dependency
+> - rebased to 4.5-rc1
+>
+> v2 -> v3
+> - fix legacy IRQ assigning and IO ports registration
+> - remove reference to arch specific companion device for ia64
+> - move ACPI PCI host controller driver to pci_root.c
+> - drop generic domain assignment for x86 and ia64 as I am not
+>    able to run all necessary test variants
+> - drop patch which cleaned legacy IRQ assignment since it belongs to
+>    Mathew's series:
+>    https://patchwork.ozlabs.org/patch/557504/
+> - extend MCFG quirk code
+> - rebased to 4.4
+>
+> v1 -> v2
+> - moved non-arch specific piece of code to dirver/acpi/ directory
+> - fixed IO resource handling
+> - introduced PCI config accessors quirks matching
+> - moved ACPI_COMPANION_SET to generic code
+>
+> v1 - https://lkml.org/lkml/2015/10/27/504
+> v2 - https://lkml.org/lkml/2015/12/16/246
+> v3 - http://lkml.iu.edu/hypermail/linux/kernel/1601.1/04308.html
+> v4 - https://lkml.org/lkml/2016/2/4/646
+> v5 - https://lkml.org/lkml/2016/2/16/426
+>
+> Jayachandran C (2):
+>    PCI: Provide common functions for ECAM mapping
+>    PCI: generic, thunder: update to use generic ECAM API
+>
+> Tomasz Nowicki (11):
+>    pci, acpi, x86, ia64: Move ACPI host bridge device companion
+>      assignment to core code.
+>    pci, acpi: Provide generic way to assign bus domain number.
+>    x86, ia64: Include acpi_pci_{add|remove}_bus to the default
+>      pcibios_{add|remove}_bus implementation.
+>    pci, of: Move the PCI I/O space management to PCI core code.
+>    acpi, pci: Support IO resources when parsing PCI host bridge
+>      resources.
+>    arm64, pci, acpi: ACPI support for legacy IRQs parsing and
+>      consolidation with DT code.
+>    pci, acpi: Support for ACPI based generic PCI host controller
+>    arm64, pci, acpi: Start using ACPI based PCI host controller driver
+>      for ARM64.
+>    pci, acpi: Match PCI config space accessors against platfrom specific
+>      quirks.
+>    pci, pci-thunder-ecam: Add ACPI support for ThunderX ECAM.
+>    pci, pci-thunder-pem: Add ACPI support for ThunderX PEM.
+>
+>   arch/arm64/Kconfig                  |  15 +++
+>   arch/arm64/include/asm/cpufeature.h |   3 +-
+>   arch/arm64/kernel/cpu_errata.c      |   8 ++
+>   arch/arm64/kernel/pci.c             |  35 ++---
+>   arch/ia64/hp/common/sba_iommu.c     |   2 +-
+>   arch/ia64/include/asm/pci.h         |   1 -
+>   arch/ia64/pci/pci.c                 |  26 ----
+>   arch/ia64/sn/kernel/io_acpi_init.c  |   4 +-
+>   arch/x86/include/asm/pci.h          |   3 -
+>   arch/x86/pci/acpi.c                 |  17 ---
+>   arch/x86/pci/common.c               |  10 --
+>   drivers/acpi/Kconfig                |   8 ++
+>   drivers/acpi/Makefile               |   1 +
+>   drivers/acpi/bus.c                  |   1 +
+>   drivers/acpi/pci_gen_host.c         | 259 ++++++++++++++++++++++++++++++++++++
+>   drivers/acpi/pci_root.c             |  58 +++++++-
+>   drivers/of/address.c                | 116 +---------------
+>   drivers/pci/Kconfig                 |   3 +
+>   drivers/pci/Makefile                |   2 +
+>   drivers/pci/ecam.c                  | 137 +++++++++++++++++++
+>   drivers/pci/ecam.h                  |  66 +++++++++
+>   drivers/pci/host/Kconfig            |   1 +
+>   drivers/pci/host/pci-host-common.c  | 119 ++++++++---------
+>   drivers/pci/host/pci-host-common.h  |  47 -------
+>   drivers/pci/host/pci-host-generic.c |  52 ++------
+>   drivers/pci/host/pci-thunder-ecam.c |  70 ++++++----
+>   drivers/pci/host/pci-thunder-pem.c  | 215 ++++++++++++++++++++++--------
+>   drivers/pci/pci.c                   | 150 ++++++++++++++++++++-
+>   drivers/pci/probe.c                 |   5 +
+>   include/asm-generic/vmlinux.lds.h   |   7 +
+>   include/linux/of_address.h          |   9 --
+>   include/linux/pci-acpi.h            |  20 +++
+>   include/linux/pci.h                 |  12 ++
+>   33 files changed, 1029 insertions(+), 453 deletions(-)
+>   create mode 100644 drivers/acpi/pci_gen_host.c
+>   create mode 100644 drivers/pci/ecam.c
+>   create mode 100644 drivers/pci/ecam.h
+>   delete mode 100644 drivers/pci/host/pci-host-common.h
+>
 
