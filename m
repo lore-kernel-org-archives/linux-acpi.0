@@ -1,62 +1,53 @@
-From: Hanjun Guo <hanjun.guo@linaro.org>
-Subject: Re: [PATCH v5 00/14] ACPI NUMA support for ARM64
-Date: Tue, 26 Apr 2016 13:31:07 +0800
-Message-ID: <571EFD1B.1070609@linaro.org>
-References: <1461116439-22991-1-git-send-email-ddaney.cavm@gmail.com>
- <20160425111338.GJ16065@arm.com> <571E4A2A.8070908@caviumnetworks.com>
+From: Aaron Lu <aaron.lu@intel.com>
+Subject: Re: [PATCH v2 0/3] Support INT3406 Display thermal device
+Date: Tue, 26 Apr 2016 15:33:24 +0800
+Message-ID: <cdf06c09-c30b-05ee-8195-a60aac5a88ea@intel.com>
+References: <1460532771-22779-1-git-send-email-aaron.lu@intel.com>
+ <2383528.7J2tIpIfEZ@vostro.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <571E4A2A.8070908@caviumnetworks.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: David Daney <ddaney@caviumnetworks.com>, Will Deacon <will.deacon@arm.com>
-Cc: David Daney <ddaney.cavm@gmail.com>, linux-arm-kernel@lists.infradead.org, Mark Rutland <mark.rutland@arm.com>, Catalin Marinas <catalin.marinas@arm.com>, Tony Luck <tony.luck@intel.com>, Fenghua Yu <fenghua.yu@intel.com>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, x86@kernel.org, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Rob Herring <robh+dt@kernel.org>, Frank Rowand <frowand.list@gmail.com>, Grant Likely <grant.likely@linaro.org>, Robert Moore <robert.moore@intel.com>, Lv Zheng <lv.zheng@intel.com>, Marc Zyngier <Marc.Zyngier@arm.com>, linux-ia64@vger.kernel.org, linux-acpi@vger.kernel.org, devel@acpica.org, linux-kernel@vger.kernel.org, Robert Richter <rrichter@cavium.com>, David Daney <david.daney@cavium.com>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga03.intel.com ([134.134.136.65]:37478 "EHLO mga03.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752081AbcDZHeE (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 26 Apr 2016 03:34:04 -0400
+In-Reply-To: <2383528.7J2tIpIfEZ@vostro.rjw.lan>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: Jingoo Han <jingoohan1@gmail.com>, Zhang Rui <rui.zhang@intel.com>, linux-fbdev@vger.kernel.org, linux-acpi@vger.kernel.org, linux-pm@vger.kernel.org, srinivas.pandruvada@intel.com
 
-Hi Will, David,
+On 04/26/2016 08:58 AM, Rafael J. Wysocki wrote:
+> On Wednesday, April 13, 2016 03:32:48 PM Aaron Lu wrote:
+>> The display thermal device represents the LED/LCD display panel
+>> that may or may not include touch support. The main function of
+>> the display thermal device is to allow control of the display
+>> brightness in order to address a thermal condition or to reduce
+>> power consumed by display device.
+>>
+>> Due to the way this thermal device changes brightness level is said
+>> to be deprecated so we are using the raw interface to do the actual
+>> backlight change. This requires the backlight core support so two
+>> new APIs are added and exported in patch 1/3. With this, the previous
+>> API backlight_device_registered can be removed and this is done in
+>> patch 2/3. Patch 3/3 adds the new int3406 thermal driver.
+>>
+>> The 1st version is here:
+>> http://thread.gmane.org/gmane.linux.acpi.devel/72619
+>>
+>> This whole series should go through the thermal tree if applied.
+>>
+>> Aaron Lu (3):
+>>   video / backlight: add two APIs for drivers to use
+>>   video / backlight: remove the backlight_device_registered API
+>>   Thermal: add INT3406 thermal driver
+> 
+> So I have nothing against [1-2/3], but the [3/3] tries to do too many things
+> in one go.  It should be at least two separate patches to my eyes, one making
+> changes to the ACPI video driver and the other adding the INT3406 one.
 
-On 2016/4/26 0:47, David Daney wrote:
-> On 04/25/2016 04:13 AM, Will Deacon wrote:
->> Hi David,
->>
->> On Tue, Apr 19, 2016 at 06:40:25PM -0700, David Daney wrote:
->>> From: David Daney <david.daney@cavium.com>
->>>
->>> Based on v16 of device-tree NUMA patch set for arm64 [1],this patch
->>> set introduce the ACPI based configuration to provide NUMA
->>> information.
->>>
->>> ACPI 5.1 already introduced NUMA support for ARM64, which can get the
->>> NUMA domain information from SRAT and SLIT table, so parse those two
->>> tables to get mappings from cpu/mem to numa node configuration and
->>> system locality.
->>
->> Whilst I've queued the main NUMA series for arm64, I'd really like to
->> see more movement on the generic header file cleanups that you posted
->> separately:
->>
->> http://lkml.kernel.org/r/1456358528-24213-1-git-send-email-ddaney.cavm@gmail.com
->>
->
-> FWIW:  Those patches should still apply.  I am carrying them in my
-> development trees, and have not changed them in any way.
->
->>
->> Given that this ACPI series already requires some significant cross-arch
->> interaction (which is actually good!), perhaps extending the clean-up
->> patches to encompass some of the ACPI bits might make sense, and we can
->> get that queued as a pre-requisite.
->
-> The cleanup patches you mention above are really independent of the ACPI
-> things.  I have applied them both before and after the ACPI patches, and
-> both seem to work.  With a quick perusal of the ACPI patches nothing
-> jumps out at me as being a candidate for inclusion in the header file
-> cleanup series.
+Thanks for the review, will split the last patch and re-send.
 
-I agree. My patch set is ACPI related enablement, cleanups and
-consolidations, it would be good to merge as a single patch set
-as it's self-contained.
-
-Thanks
-Hanjun
+Regards,
+Aaron
