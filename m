@@ -1,74 +1,61 @@
-From: Mika Westerberg <mika.westerberg@linux.intel.com>
-Subject: Re: OpRegion conflicts for Skylake LPSS
-Date: Tue, 26 Apr 2016 18:54:37 +0300
-Message-ID: <20160426155437.GA10202@lahna.fi.intel.com>
-References: <87lh41nqqq.fsf@smart-cactus.org>
+From: Sudeep Holla <sudeep.holla@arm.com>
+Subject: Re: [PATCH v4 4/5] arm64: add support for ACPI Low Power Idle(LPI)
+Date: Tue, 26 Apr 2016 17:01:43 +0100
+Message-ID: <571F90E7.3010801@arm.com>
+References: <1461069013-13292-1-git-send-email-sudeep.holla@arm.com>
+ <1461069013-13292-5-git-send-email-sudeep.holla@arm.com>
+ <571F8E7D.4000706@codeaurora.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga11.intel.com ([192.55.52.93]:27369 "EHLO mga11.intel.com"
+Received: from foss.arm.com ([217.140.101.70]:55833 "EHLO foss.arm.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751363AbcDZPyn (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 26 Apr 2016 11:54:43 -0400
-Content-Disposition: inline
-In-Reply-To: <87lh41nqqq.fsf@smart-cactus.org>
+	id S1751363AbcDZQBt (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 26 Apr 2016 12:01:49 -0400
+In-Reply-To: <571F8E7D.4000706@codeaurora.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Ben Gamari <ben@smart-cactus.org>
-Cc: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Heikki Krogerus <heikki.krogerus@linux.intel.com>, Jarkko Nikula <jarkko.nikula@linux.intel.com>
+To: "Prakash, Prashanth" <pprakash@codeaurora.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Cc: Sudeep Holla <sudeep.holla@arm.com>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Al Stone <al.stone@linaro.org>, Ashwin Chaugule <ashwin.chaugule@linaro.org>, Mark Rutland <mark.rutland@arm.com>
 
-On Tue, Apr 26, 2016 at 02:44:13AM +0200, Ben Gamari wrote:
-> 
-> While trying to troubleshoot some touchpad issues on a Dell Latitude
-> E7470 (namely the touchpad being exposed only as a PS/2 device) I
-> noticed that the intel-lpss driver (using a 4.6-rc4 kernel) fails to
-> load with,
-> 
->     ACPI Warning: SystemMemory range 0x00000000FE028000-0x00000000FE0281FF conflicts with OpRegion 0x00000000FE028000-0x00000000FE028207 (\_SB.PCI0.GEXP.BAR0) (20160108/utaddress-255)
->     ACPI: If an ACPI driver is available for this device, you should use it instead of the native driver
->     intel-lpss: probe of INT3446:00 failed with error -16
-> 
-> The DSDT OpRegion in question looks like this,
-> 
->     Scope (_SB.PCI0)
->     {
->         Device (GEXP)
->         {
->             Name (_ADR, One)  // _ADR: Address
->             Name (_STA, 0x0B)  // _STA: Status
->             OperationRegion (BAR0, SystemMemory, SB04, 0x0208)
->             Field (BAR0, DWordAcc, NoLock, Preserve)
->             {
->                 ICON,   32, 
->                 TAR,    32, 
->                 Offset (0x10), 
->                 DATA,   32, 
->                 HCNT,   32, 
->                 LCNT,   32, 
->                 Offset (0x2C), 
->                     ,   5, 
->                 ABRT,   1, 
->                 Offset (0x40), 
->                 RBCK,   32, 
->                 Offset (0x54), 
->                 CLR,    32, 
->                 Offset (0x6C), 
->                 ENB,    1, 
->                 Offset (0x70), 
->                 ACTV,   1, 
->                 TFNF,   1, 
->                     ,   1, 
->                 RFNE,   1, 
->                 Offset (0x7C), 
->                 HOLD,   32, 
->                 Offset (0x9C), 
->                 ENSB,   1, 
->                 Offset (0x204), 
->                 RST,    32
->             }
-> 
-> It looks very much like these are describing the same device. Perhaps
-> the lpss driver should be binding to this ACPI node? Or perhaps this is
-> a firmware issue? Any guidance would be greatly appreciated.
+Hi Prashanth,
 
-Can you send me full acpidump of that machine?
+On 26/04/16 16:51, Prakash, Prashanth wrote:
+> Hi Sudeep,
+>
+> On 4/19/2016 6:30 AM, Sudeep Holla wrote:
+>> +struct acpi_processor_lpi *lpi;
+>> +int acpi_processor_ffh_lpi_enter(struct acpi_processor_lpi *lpi, int idx)
+>> +{
+>> +	int ret;
+>> +
+>> +	if (!idx) {
+>> +		cpu_do_idle();
+>> +		return idx;
+>> +	}
+>> +
+>> +	/* TODO cpu_pm_{enter,exit} can be done in generic code ? */
+>> +	ret = cpu_pm_enter();
+> Can we avoid calling cpu_pm_enter and cpu_pm_exit for retention
+> states as it is not necessary? May be we can check LPI architecture
+> specific context loss flags prior to calling these.
+
+Ah right, you had mentioned this before. Sorry for missing that.
+Anyways, we need to get the driver reviewed before we can finalize arch
+specific callbacks, so I will include this change when I post next version.
+
+>> +	}
+>> +
+>> +	return ret ? -1 : idx;
+>> +}
+>> +
+>
+> By the way, thanks for posting these patches!
+>
+
+Thanks for taking look at these patches again :)
+
+-- 
+Regards,
+Sudeep
