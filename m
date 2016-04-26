@@ -1,61 +1,66 @@
-From: Sudeep Holla <sudeep.holla@arm.com>
-Subject: Re: [PATCH v4 4/5] arm64: add support for ACPI Low Power Idle(LPI)
-Date: Tue, 26 Apr 2016 17:01:43 +0100
-Message-ID: <571F90E7.3010801@arm.com>
-References: <1461069013-13292-1-git-send-email-sudeep.holla@arm.com>
- <1461069013-13292-5-git-send-email-sudeep.holla@arm.com>
- <571F8E7D.4000706@codeaurora.org>
+From: David Daney <ddaney@caviumnetworks.com>
+Subject: Re: [PATCH v5 00/14] ACPI NUMA support for ARM64
+Date: Tue, 26 Apr 2016 09:48:28 -0700
+Message-ID: <571F9BDC.5090804@caviumnetworks.com>
+References: <1461116439-22991-1-git-send-email-ddaney.cavm@gmail.com> <20160425111338.GJ16065@arm.com> <571E4A2A.8070908@caviumnetworks.com> <571EFD1B.1070609@linaro.org> <20160426121547.GL27312@arm.com> <571F671D.70401@linaro.org> <20160426133500.GQ27312@arm.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from foss.arm.com ([217.140.101.70]:55833 "EHLO foss.arm.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751363AbcDZQBt (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 26 Apr 2016 12:01:49 -0400
-In-Reply-To: <571F8E7D.4000706@codeaurora.org>
+Received: from mail-bn1on0077.outbound.protection.outlook.com ([157.56.110.77]:19456
+	"EHLO na01-bn1-obe.outbound.protection.outlook.com"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1751583AbcDZQsi (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 26 Apr 2016 12:48:38 -0400
+In-Reply-To: <20160426133500.GQ27312@arm.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Prakash, Prashanth" <pprakash@codeaurora.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org
-Cc: Sudeep Holla <sudeep.holla@arm.com>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Al Stone <al.stone@linaro.org>, Ashwin Chaugule <ashwin.chaugule@linaro.org>, Mark Rutland <mark.rutland@arm.com>
+To: Will Deacon <will.deacon@arm.com>
+Cc: Hanjun Guo <hanjun.guo@linaro.org>, David Daney <ddaney@caviumnetworks.com>, linux-arm-kernel@lists.infradead.org, Mark Rutland <mark.rutland@arm.com>, Catalin Marinas <catalin.marinas@arm.com>, Tony Luck <tony.luck@intel.com>, Fenghua Yu <fenghua.yu@intel.com>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, x86@kernel.org, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Rob Herring <robh+dt@kernel.org>, Frank Rowand <frowand.list@gmail.com>, Grant Likely <grant.likely@linaro.org>, Robert Moore <robert.moore@intel.com>, Lv Zheng <lv.zheng@intel.com>, Marc Zyngier <Marc.Zyngier@arm.com>, linux-ia64@vger.kernel.org, linux-acpi@vger.kernel.org, devel@acpica.org, linux-kernel@vger.kernel.org, Robert Richter <rrichter@cavium.com>, David Daney <david.daney@cavium.com>
 
-Hi Prashanth,
-
-On 26/04/16 16:51, Prakash, Prashanth wrote:
-> Hi Sudeep,
+On 04/26/2016 06:35 AM, Will Deacon wrote:
+> On Tue, Apr 26, 2016 at 09:03:25PM +0800, Hanjun Guo wrote:
+>> On 2016/4/26 20:15, Will Deacon wrote:
+>>> On Tue, Apr 26, 2016 at 01:31:07PM +0800, Hanjun Guo wrote:
+>>>> On 2016/4/26 0:47, David Daney wrote:
+[...]
+>>>>>> Given that this ACPI series already requires some significant cross-arch
+>>>>>> interaction (which is actually good!), perhaps extending the clean-up
+>>>>>> patches to encompass some of the ACPI bits might make sense, and we can
+>>>>>> get that queued as a pre-requisite.
+>>>>>
+>>>>> The cleanup patches you mention above are really independent of the ACPI
+>>>>> things.  I have applied them both before and after the ACPI patches, and
+>>>>> both seem to work.  With a quick perusal of the ACPI patches nothing
+>>>>> jumps out at me as being a candidate for inclusion in the header file
+>>>>> cleanup series.
+>>>>
+>>>> I agree. My patch set is ACPI related enablement, cleanups and
+>>>> consolidations, it would be good to merge as a single patch set
+>>>> as it's self-contained.
+>>>
+>>> Up to you. I just thought you might want to avoid having two sets of
+>>> cross-arch changes and the associated merging headaches that go with
+>>> that.
+>>
+>> Good point, as I suggested above, it can go with ACPI tree if it's ok
+>> to you and Rafael. The problem we have now is that dt based core NUMA
+>> support for ARM64 is queued in your tree, that would be the headache.
 >
-> On 4/19/2016 6:30 AM, Sudeep Holla wrote:
->> +struct acpi_processor_lpi *lpi;
->> +int acpi_processor_ffh_lpi_enter(struct acpi_processor_lpi *lpi, int idx)
->> +{
->> +	int ret;
->> +
->> +	if (!idx) {
->> +		cpu_do_idle();
->> +		return idx;
->> +	}
->> +
->> +	/* TODO cpu_pm_{enter,exit} can be done in generic code ? */
->> +	ret = cpu_pm_enter();
-> Can we avoid calling cpu_pm_enter and cpu_pm_exit for retention
-> states as it is not necessary? May be we can check LPI architecture
-> specific context loss flags prior to calling these.
+> Sorry, but if you wanted me *not* to queue the patches, then you should
+> have said so (similarly, if you wanted a stable branch). I'm not rebasing
+> our for-next/core branch now.
 
-Ah right, you had mentioned this before. Sorry for missing that.
-Anyways, we need to get the driver reviewed before we can finalize arch
-specific callbacks, so I will include this change when I post next version.
+I am quite happy with the fact that you put the base device-tree based 
+NUMA patches on for-next/core.
 
->> +	}
->> +
->> +	return ret ? -1 : idx;
->> +}
->> +
->
-> By the way, thanks for posting these patches!
->
+There is only a very small adjustment to those in the ACPI-NUMA patches 
+([PATCH v5 06/14] arm64, numa: rework numa_add_memblk()), so I think we 
+are fine as far as that goes.
 
-Thanks for taking look at these patches again :)
+My plan is to post a v6 later today that adjusts some of the messages 
+printed out and adds some Reviewed-by and Acked-by that were accumulated.
 
--- 
-Regards,
-Sudeep
+David.
+
+
