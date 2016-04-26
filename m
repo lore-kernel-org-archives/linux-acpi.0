@@ -1,66 +1,207 @@
-From: David Daney <ddaney@caviumnetworks.com>
-Subject: Re: [PATCH v5 00/14] ACPI NUMA support for ARM64
-Date: Tue, 26 Apr 2016 09:48:28 -0700
-Message-ID: <571F9BDC.5090804@caviumnetworks.com>
-References: <1461116439-22991-1-git-send-email-ddaney.cavm@gmail.com> <20160425111338.GJ16065@arm.com> <571E4A2A.8070908@caviumnetworks.com> <571EFD1B.1070609@linaro.org> <20160426121547.GL27312@arm.com> <571F671D.70401@linaro.org> <20160426133500.GQ27312@arm.com>
+From: Bjorn Helgaas <helgaas@kernel.org>
+Subject: Re: [PATCH V3 1/4] acpi,pci,irq: reduce resource requirements
+Date: Tue, 26 Apr 2016 13:36:11 -0500
+Message-ID: <20160426183611.GC27803@localhost>
+References: <1460914617-8259-1-git-send-email-okaya@codeaurora.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-bn1on0077.outbound.protection.outlook.com ([157.56.110.77]:19456
-	"EHLO na01-bn1-obe.outbound.protection.outlook.com"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1751583AbcDZQsi (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 26 Apr 2016 12:48:38 -0400
-In-Reply-To: <20160426133500.GQ27312@arm.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <1460914617-8259-1-git-send-email-okaya@codeaurora.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Sinan Kaya <okaya@codeaurora.org>
+Cc: linux-acpi@vger.kernel.org, timur@codeaurora.org, cov@codeaurora.org, linux-pci@vger.kernel.org, ravikanth.nalla@hpe.com, lenb@kernel.org, harish.k@hpe.com, ashwin.reghunandanan@hpe.com, bhelgaas@google.com, rjw@rjwysocki.net, linux-kernel@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Will Deacon <will.deacon@arm.com>
-Cc: Hanjun Guo <hanjun.guo@linaro.org>, David Daney <ddaney@caviumnetworks.com>, linux-arm-kernel@lists.infradead.org, Mark Rutland <mark.rutland@arm.com>, Catalin Marinas <catalin.marinas@arm.com>, Tony Luck <tony.luck@intel.com>, Fenghua Yu <fenghua.yu@intel.com>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, x86@kernel.org, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Rob Herring <robh+dt@kernel.org>, Frank Rowand <frowand.list@gmail.com>, Grant Likely <grant.likely@linaro.org>, Robert Moore <robert.moore@intel.com>, Lv Zheng <lv.zheng@intel.com>, Marc Zyngier <Marc.Zyngier@arm.com>, linux-ia64@vger.kernel.org, linux-acpi@vger.kernel.org, devel@acpica.org, linux-kernel@vger.kernel.org, Robert Richter <rrichter@cavium.com>, David Daney <david.daney@cavium.com>
 
-On 04/26/2016 06:35 AM, Will Deacon wrote:
-> On Tue, Apr 26, 2016 at 09:03:25PM +0800, Hanjun Guo wrote:
->> On 2016/4/26 20:15, Will Deacon wrote:
->>> On Tue, Apr 26, 2016 at 01:31:07PM +0800, Hanjun Guo wrote:
->>>> On 2016/4/26 0:47, David Daney wrote:
-[...]
->>>>>> Given that this ACPI series already requires some significant cross-arch
->>>>>> interaction (which is actually good!), perhaps extending the clean-up
->>>>>> patches to encompass some of the ACPI bits might make sense, and we can
->>>>>> get that queued as a pre-requisite.
->>>>>
->>>>> The cleanup patches you mention above are really independent of the ACPI
->>>>> things.  I have applied them both before and after the ACPI patches, and
->>>>> both seem to work.  With a quick perusal of the ACPI patches nothing
->>>>> jumps out at me as being a candidate for inclusion in the header file
->>>>> cleanup series.
->>>>
->>>> I agree. My patch set is ACPI related enablement, cleanups and
->>>> consolidations, it would be good to merge as a single patch set
->>>> as it's self-contained.
->>>
->>> Up to you. I just thought you might want to avoid having two sets of
->>> cross-arch changes and the associated merging headaches that go with
->>> that.
->>
->> Good point, as I suggested above, it can go with ACPI tree if it's ok
->> to you and Rafael. The problem we have now is that dt based core NUMA
->> support for ARM64 is queued in your tree, that would be the headache.
->
-> Sorry, but if you wanted me *not* to queue the patches, then you should
-> have said so (similarly, if you wanted a stable branch). I'm not rebasing
-> our for-next/core branch now.
+On Sun, Apr 17, 2016 at 01:36:53PM -0400, Sinan Kaya wrote:
+> Code has been redesigned to calculate penalty requirements on the fly. This
+> significantly simplifies the implementation and removes some of the init
+> calls from x86 architecture.
+> 
+> Signed-off-by: Sinan Kaya <okaya@codeaurora.org>
 
-I am quite happy with the fact that you put the base device-tree based 
-NUMA patches on for-next/core.
+For all four patches:
 
-There is only a very small adjustment to those in the ACPI-NUMA patches 
-([PATCH v5 06/14] arm64, numa: rework numa_add_memblk()), so I think we 
-are fine as far as that goes.
+Acked-by: Bjorn Helgaas <bhelgaas@google.com>
 
-My plan is to post a v6 later today that adjusts some of the messages 
-printed out and adds some Reviewed-by and Acked-by that were accumulated.
-
-David.
-
-
+> ---
+>  drivers/acpi/pci_link.c | 97 ++++++++++++++++++++++++++++++++++---------------
+>  1 file changed, 68 insertions(+), 29 deletions(-)
+> 
+> diff --git a/drivers/acpi/pci_link.c b/drivers/acpi/pci_link.c
+> index ededa90..cc0ba16 100644
+> --- a/drivers/acpi/pci_link.c
+> +++ b/drivers/acpi/pci_link.c
+> @@ -36,6 +36,7 @@
+>  #include <linux/mutex.h>
+>  #include <linux/slab.h>
+>  #include <linux/acpi.h>
+> +#include <linux/irq.h>
+>  
+>  #include "internal.h"
+>  
+> @@ -440,7 +441,6 @@ static int acpi_pci_link_set(struct acpi_pci_link *link, int irq)
+>  #define ACPI_MAX_IRQS		256
+>  #define ACPI_MAX_ISA_IRQ	16
+>  
+> -#define PIRQ_PENALTY_PCI_AVAILABLE	(0)
+>  #define PIRQ_PENALTY_PCI_POSSIBLE	(16*16)
+>  #define PIRQ_PENALTY_PCI_USING		(16*16*16)
+>  #define PIRQ_PENALTY_ISA_TYPICAL	(16*16*16*16)
+> @@ -457,9 +457,9 @@ static int acpi_irq_penalty[ACPI_MAX_IRQS] = {
+>  	PIRQ_PENALTY_ISA_TYPICAL,	/* IRQ6 */
+>  	PIRQ_PENALTY_ISA_TYPICAL,	/* IRQ7 parallel, spurious */
+>  	PIRQ_PENALTY_ISA_TYPICAL,	/* IRQ8 rtc, sometimes */
+> -	PIRQ_PENALTY_PCI_AVAILABLE,	/* IRQ9  PCI, often acpi */
+> -	PIRQ_PENALTY_PCI_AVAILABLE,	/* IRQ10 PCI */
+> -	PIRQ_PENALTY_PCI_AVAILABLE,	/* IRQ11 PCI */
+> +	0,				/* IRQ9  PCI, often acpi */
+> +	0,				/* IRQ10 PCI */
+> +	0,				/* IRQ11 PCI */
+>  	PIRQ_PENALTY_ISA_USED,		/* IRQ12 mouse */
+>  	PIRQ_PENALTY_ISA_USED,		/* IRQ13 fpe, sometimes */
+>  	PIRQ_PENALTY_ISA_USED,		/* IRQ14 ide0 */
+> @@ -467,6 +467,60 @@ static int acpi_irq_penalty[ACPI_MAX_IRQS] = {
+>  	/* >IRQ15 */
+>  };
+>  
+> +static int acpi_irq_pci_sharing_penalty(int irq)
+> +{
+> +	struct acpi_pci_link *link;
+> +	int penalty = 0;
+> +
+> +	list_for_each_entry(link, &acpi_link_list, list) {
+> +		/*
+> +		 * If a link is active, penalize its IRQ heavily
+> +		 * so we try to choose a different IRQ.
+> +		 */
+> +		if (link->irq.active && link->irq.active == irq)
+> +			penalty += PIRQ_PENALTY_PCI_USING;
+> +		else {
+> +			int i;
+> +
+> +			/*
+> +			 * If a link is inactive, penalize the IRQs it
+> +			 * might use, but not as severely.
+> +			 */
+> +			for (i = 0; i < link->irq.possible_count; i++)
+> +				if (link->irq.possible[i] == irq)
+> +					penalty += PIRQ_PENALTY_PCI_POSSIBLE /
+> +						link->irq.possible_count;
+> +		}
+> +	}
+> +
+> +	return penalty;
+> +}
+> +
+> +static int acpi_irq_get_penalty(int irq)
+> +{
+> +	int penalty = 0;
+> +
+> +	if (irq < ACPI_MAX_ISA_IRQ)
+> +		penalty += acpi_irq_penalty[irq];
+> +
+> +	/*
+> +	* Penalize IRQ used by ACPI SCI. If ACPI SCI pin attributes conflict
+> +	* with PCI IRQ attributes, mark ACPI SCI as ISA_ALWAYS so it won't be
+> +	* use for PCI IRQs.
+> +	*/
+> +	if (irq == acpi_gbl_FADT.sci_interrupt) {
+> +		u32 type = irq_get_trigger_type(irq) & IRQ_TYPE_SENSE_MASK;
+> +
+> +		if (type != IRQ_TYPE_LEVEL_LOW)
+> +			penalty += PIRQ_PENALTY_ISA_ALWAYS;
+> +		else
+> +			penalty += PIRQ_PENALTY_PCI_USING;
+> +	}
+> +
+> +	penalty += acpi_irq_pci_sharing_penalty(irq);
+> +	return penalty;
+> +}
+> +
+>  int __init acpi_irq_penalty_init(void)
+>  {
+>  	struct acpi_pci_link *link;
+> @@ -547,12 +601,12 @@ static int acpi_pci_link_allocate(struct acpi_pci_link *link)
+>  		 * the use of IRQs 9, 10, 11, and >15.
+>  		 */
+>  		for (i = (link->irq.possible_count - 1); i >= 0; i--) {
+> -			if (acpi_irq_penalty[irq] >
+> -			    acpi_irq_penalty[link->irq.possible[i]])
+> +			if (acpi_irq_get_penalty(irq) >
+> +			    acpi_irq_get_penalty(link->irq.possible[i]))
+>  				irq = link->irq.possible[i];
+>  		}
+>  	}
+> -	if (acpi_irq_penalty[irq] >= PIRQ_PENALTY_ISA_ALWAYS) {
+> +	if (acpi_irq_get_penalty(irq) >= PIRQ_PENALTY_ISA_ALWAYS) {
+>  		printk(KERN_ERR PREFIX "No IRQ available for %s [%s]. "
+>  			    "Try pci=noacpi or acpi=off\n",
+>  			    acpi_device_name(link->device),
+> @@ -568,7 +622,6 @@ static int acpi_pci_link_allocate(struct acpi_pci_link *link)
+>  			    acpi_device_bid(link->device));
+>  		return -ENODEV;
+>  	} else {
+> -		acpi_irq_penalty[link->irq.active] += PIRQ_PENALTY_PCI_USING;
+>  		printk(KERN_WARNING PREFIX "%s [%s] enabled at IRQ %d\n",
+>  		       acpi_device_name(link->device),
+>  		       acpi_device_bid(link->device), link->irq.active);
+> @@ -800,9 +853,10 @@ static int __init acpi_irq_penalty_update(char *str, int used)
+>  			continue;
+>  
+>  		if (used)
+> -			acpi_irq_penalty[irq] += PIRQ_PENALTY_ISA_USED;
+> +			acpi_irq_penalty[irq] = acpi_irq_get_penalty(irq) +
+> +				PIRQ_PENALTY_ISA_USED;
+>  		else
+> -			acpi_irq_penalty[irq] = PIRQ_PENALTY_PCI_AVAILABLE;
+> +			acpi_irq_penalty[irq] = 0;
+>  
+>  		if (retval != 2)	/* no next number */
+>  			break;
+> @@ -819,34 +873,19 @@ static int __init acpi_irq_penalty_update(char *str, int used)
+>   */
+>  void acpi_penalize_isa_irq(int irq, int active)
+>  {
+> -	if (irq >= 0 && irq < ARRAY_SIZE(acpi_irq_penalty)) {
+> -		if (active)
+> -			acpi_irq_penalty[irq] += PIRQ_PENALTY_ISA_USED;
+> -		else
+> -			acpi_irq_penalty[irq] += PIRQ_PENALTY_PCI_USING;
+> -	}
+> +	if (irq >= 0 && irq < ARRAY_SIZE(acpi_irq_penalty))
+> +		acpi_irq_penalty[irq] = acpi_irq_get_penalty(irq) +
+> +			active ? PIRQ_PENALTY_ISA_USED : PIRQ_PENALTY_PCI_USING;
+>  }
+>  
+>  bool acpi_isa_irq_available(int irq)
+>  {
+>  	return irq >= 0 && (irq >= ARRAY_SIZE(acpi_irq_penalty) ||
+> -			    acpi_irq_penalty[irq] < PIRQ_PENALTY_ISA_ALWAYS);
+> +		    acpi_irq_get_penalty(irq) < PIRQ_PENALTY_ISA_ALWAYS);
+>  }
+>  
+> -/*
+> - * Penalize IRQ used by ACPI SCI. If ACPI SCI pin attributes conflict with
+> - * PCI IRQ attributes, mark ACPI SCI as ISA_ALWAYS so it won't be use for
+> - * PCI IRQs.
+> - */
+>  void acpi_penalize_sci_irq(int irq, int trigger, int polarity)
+>  {
+> -	if (irq >= 0 && irq < ARRAY_SIZE(acpi_irq_penalty)) {
+> -		if (trigger != ACPI_MADT_TRIGGER_LEVEL ||
+> -		    polarity != ACPI_MADT_POLARITY_ACTIVE_LOW)
+> -			acpi_irq_penalty[irq] += PIRQ_PENALTY_ISA_ALWAYS;
+> -		else
+> -			acpi_irq_penalty[irq] += PIRQ_PENALTY_PCI_USING;
+> -	}
+>  }
+>  
+>  /*
+> -- 
+> 1.8.2.1
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-pci" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
