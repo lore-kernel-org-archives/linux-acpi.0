@@ -1,20 +1,117 @@
-From: =?utf-8?B?5oiR55qE5L+h5oGv5ZyoOg==?= <hrfrp@251.com.cn>
-Subject: =?utf-8?B?5oiR55qE5L+h5oGv5ZyoOg==?=
-Date: Mon, 25 Apr 2016 13:01:18 +0800
-Message-ID: <20160425130131022815@251.com.cn>
+From: Hanjun Guo <hanjun.guo@linaro.org>
+Subject: Re: [PATCH v5 04/14] acpi, numa: Move acpi_numa_arch_fixup() to ia64
+ only
+Date: Tue, 26 Apr 2016 13:15:09 +0800
+Message-ID: <571EF95D.5090703@linaro.org>
+References: <1461116439-22991-1-git-send-email-ddaney.cavm@gmail.com>
+ <1461116439-22991-5-git-send-email-ddaney.cavm@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from [111.207.66.55] ([111.207.66.55]:4844 "HELO 251.com.cn"
-	rhost-flags-FAIL-FAIL-OK-FAIL) by vger.kernel.org with SMTP
-	id S1751095AbcDZC7X (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 25 Apr 2016 22:59:23 -0400
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-ia64-owner@vger.kernel.org>
+In-Reply-To: <1461116439-22991-5-git-send-email-ddaney.cavm@gmail.com>
+Sender: linux-ia64-owner@vger.kernel.org
+To: David Daney <ddaney.cavm@gmail.com>, Will Deacon <will.deacon@arm.com>, linux-arm-kernel@lists.infradead.org, Mark Rutland <mark.rutland@arm.com>, Catalin Marinas <catalin.marinas@arm.com>, Tony Luck <tony.luck@intel.com>, Fenghua Yu <fenghua.yu@intel.com>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, x86@kernel.org, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Rob Herring <robh+dt@kernel.org>, Frank Rowand <frowand.list@gmail.com>, Grant Likely <grant.likely@linaro.org>, Robert Moore <robert.moore@intel.com>, Lv Zheng <lv.zheng@intel.com>, Marc Zyngier <Marc.Zyngier@arm.com>, linux-ia64@vger.kernel.org, linux-acpi@vger.kernel.org, devel@acpica.org
+Cc: linux-kernel@vger.kernel.org, Robert Richter <rrichter@cavium.com>, David Daney <david.daney@cavium.com>
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
 
-5L2g55qE6ICB5pyL5Y+L6YKA5L2g5p2lUee+pDozNDMyNTc3NTkg5oqi5LyY5oOg5Yi4
+On 2016/4/20 9:40, David Daney wrote:
+> From: Robert Richter <rrichter@cavium.com>
+>
+> Since acpi_numa_arch_fixup() is only used in arch ia64, move it there
+> to make a generic interface easier. This avoids empty function stubs
+> or some complex kconfig options for x86 and arm64.
+>
+> Signed-off-by: Robert Richter <rrichter@cavium.com>
+> Signed-off-by: David Daney <david.daney@cavium.com>
+> ---
+>   arch/ia64/include/asm/acpi.h | 3 +++
+>   arch/ia64/kernel/acpi.c      | 2 +-
+>   arch/ia64/kernel/setup.c     | 1 +
+>   arch/x86/mm/srat.c           | 2 --
+>   drivers/acpi/numa.c          | 2 --
+>   include/linux/acpi.h         | 1 -
+>   6 files changed, 5 insertions(+), 6 deletions(-)
+>
+> diff --git a/arch/ia64/include/asm/acpi.h b/arch/ia64/include/asm/acpi.h
+> index aa0fdf1..a3d0211 100644
+> --- a/arch/ia64/include/asm/acpi.h
+> +++ b/arch/ia64/include/asm/acpi.h
+> @@ -140,6 +140,9 @@ static inline void per_cpu_scan_finalize(int min_cpus, int reserve_cpus)
+>   		}
+>   	}
+>   }
+> +
+> +extern void acpi_numa_fixup(void);
+> +
+>   #endif /* CONFIG_ACPI_NUMA */
+>
+>   #endif /*__KERNEL__*/
+> diff --git a/arch/ia64/kernel/acpi.c b/arch/ia64/kernel/acpi.c
+> index b1698bc..92b7bc9 100644
+> --- a/arch/ia64/kernel/acpi.c
+> +++ b/arch/ia64/kernel/acpi.c
+> @@ -524,7 +524,7 @@ acpi_numa_memory_affinity_init(struct acpi_srat_mem_affinity *ma)
+>   	return 0;
+>   }
+>
+> -void __init acpi_numa_arch_fixup(void)
+> +void __init acpi_numa_fixup(void)
+>   {
+>   	int i, j, node_from, node_to;
+>
+> diff --git a/arch/ia64/kernel/setup.c b/arch/ia64/kernel/setup.c
+> index 2029a38..afddb3e 100644
+> --- a/arch/ia64/kernel/setup.c
+> +++ b/arch/ia64/kernel/setup.c
+> @@ -552,6 +552,7 @@ setup_arch (char **cmdline_p)
+>   	early_acpi_boot_init();
+>   # ifdef CONFIG_ACPI_NUMA
+>   	acpi_numa_init();
+> +	acpi_numa_fixup();
+>   #  ifdef CONFIG_ACPI_HOTPLUG_CPU
+>   	prefill_possible_map();
+>   #  endif
+> diff --git a/arch/x86/mm/srat.c b/arch/x86/mm/srat.c
+> index b5f8218..90b6ed9 100644
+> --- a/arch/x86/mm/srat.c
+> +++ b/arch/x86/mm/srat.c
+> @@ -212,8 +212,6 @@ out_err:
+>   	return -1;
+>   }
+>
+> -void __init acpi_numa_arch_fixup(void) {}
+> -
+>   int __init x86_acpi_numa_init(void)
+>   {
+>   	int ret;
+> diff --git a/drivers/acpi/numa.c b/drivers/acpi/numa.c
+> index 2de6068..f41f06b 100644
+> --- a/drivers/acpi/numa.c
+> +++ b/drivers/acpi/numa.c
+> @@ -316,8 +316,6 @@ int __init acpi_numa_init(void)
+>   	/* SLIT: System Locality Information Table */
+>   	acpi_table_parse(ACPI_SIG_SLIT, acpi_parse_slit);
+>
+> -	acpi_numa_arch_fixup();
+> -
+>   	if (cnt < 0)
+>   		return cnt;
+>   	else if (!parsed_numa_memblks)
+> diff --git a/include/linux/acpi.h b/include/linux/acpi.h
+> index 06ed7e5..ab6fd96 100644
+> --- a/include/linux/acpi.h
+> +++ b/include/linux/acpi.h
+> @@ -244,7 +244,6 @@ void acpi_numa_slit_init (struct acpi_table_slit *slit);
+>   void acpi_numa_processor_affinity_init (struct acpi_srat_cpu_affinity *pa);
+>   void acpi_numa_x2apic_affinity_init(struct acpi_srat_x2apic_cpu_affinity *pa);
+>   int acpi_numa_memory_affinity_init (struct acpi_srat_mem_affinity *ma);
+> -void acpi_numa_arch_fixup(void);
+>
+>   #ifndef PHYS_CPUID_INVALID
+>   typedef u32 phys_cpuid_t;
 
+Reviewed-by: Hanjun Guo <hanjun.guo@linaro.org>
 
+Thanks
+Hanjun
