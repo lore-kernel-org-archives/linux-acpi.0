@@ -1,48 +1,57 @@
-From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [PATCH] ACPI/device_sysfs: Add sysfs support for _HRV hardware revision
-Date: Tue, 26 Apr 2016 22:41:50 +0200
-Message-ID: <2388310.jGjaKS2NDe@vostro.rjw.lan>
-References: <1460558894-11971-1-git-send-email-betty.dall@hpe.com>
+From: Ben Gamari <ben@smart-cactus.org>
+Subject: Re: OpRegion conflicts for Skylake LPSS
+Date: Tue, 26 Apr 2016 23:10:47 +0200
+Message-ID: <87eg9snkiw.fsf@smart-cactus.org>
+References: <87lh41nqqq.fsf@smart-cactus.org> <20160426155437.GA10202@lahna.fi.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7Bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1460558894-11971-1-git-send-email-betty.dall@hpe.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Betty Dall <betty.dall@hpe.com>
-Cc: lenb@kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+Content-Type: multipart/signed; boundary="=-=-=";
+	micalg=pgp-sha256; protocol="application/pgp-signature"
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail.smart-cactus.org ([54.187.36.80]:55398 "EHLO
+	mail.smart-cactus.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753089AbcDZVLB (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 26 Apr 2016 17:11:01 -0400
+In-Reply-To: <20160426155437.GA10202@lahna.fi.intel.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Mika Westerberg <mika.westerberg@linux.intel.com>
+Cc: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Heikki Krogerus <heikki.krogerus@linux.intel.com>, Jarkko Nikula <jarkko.nikula@linux.intel.com>
 
-On Wednesday, April 13, 2016 08:48:14 AM Betty Dall wrote:
-> The ACPI _HRV object on the device is used to supply Linux with
-> the device's hardware revision. This is an optional object. Add
-> sysfs support for the _HRV object if it exists on the device.
-> 
-> Signed-off-by: Betty Dall <betty.dall@hpe.com>
-> ---
->  drivers/acpi/device_sysfs.c | 24 ++++++++++++++++++++++++
->  1 file changed, 24 insertions(+)
-> 
-> diff --git a/drivers/acpi/device_sysfs.c b/drivers/acpi/device_sysfs.c
-> index b9afb47..bf12dbe 100644
-> --- a/drivers/acpi/device_sysfs.c
-> +++ b/drivers/acpi/device_sysfs.c
-> @@ -473,6 +473,21 @@ acpi_device_sun_show(struct device *dev, struct device_attribute *attr,
->  }
->  static DEVICE_ATTR(sun, 0444, acpi_device_sun_show, NULL);
->  
-> +static ssize_t
-> +acpi_device_hrv_show(struct device *dev, struct device_attribute *attr,
-> +		     char *buf) {
-> +	struct acpi_device *acpi_dev = to_acpi_device(dev);
-> +	acpi_status status;
-> +	unsigned long long hrv;
-> +
-> +	status = acpi_evaluate_integer(acpi_dev->handle, "_HRV", NULL, &hrv);
-> +	if (ACPI_FAILURE(status))
-> +		return -ENODEV;
+--=-=-=
+Content-Type: text/plain
+Content-Transfer-Encoding: quoted-printable
 
-Actually, this should be -EIO I think.
+Mika Westerberg <mika.westerberg@linux.intel.com> writes:
 
-Thanks,
-Rafael
+> On Tue, Apr 26, 2016 at 02:44:13AM +0200, Ben Gamari wrote:
+>>=20
+snip
+
+>> It looks very much like these are describing the same device. Perhaps
+>> the lpss driver should be binding to this ACPI node? Or perhaps this is
+>> a firmware issue? Any guidance would be greatly appreciated.
+>
+> Can you send me full acpidump of that machine?
+
+It can be found at
+https://github.com/bgamari/dell-e7470-dsdt/blob/master/acpi.log.
+
+Cheers,
+
+=2D Ben
+
+--=-=-=
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2
+
+iQEcBAEBCAAGBQJXH9lXAAoJEHPt6ejPuu8BAr4H/jzIjA5A8zwqQRVhsRSBOoHI
+WvfhJ50E7gXLOZUN9npHde+0eiM1cSfwiIMxbClFMlxcJSDuqEZ7ZyyMxBiA2Vq5
+Lu5goA7kJM5gd62COM+udrBuNXICRxx41avJiFdz1zC7GJdZPJMm0hPUG2Qxc6lm
+XqR1dC8PntyyEALONrL27KZ2FMNMI/3R3UbUZqG0c7NnUVFlcQdtbJEwGsFEKqU9
+yRhac4EssfJNdIrrMrPxzN7Qtj7tN0yD/rYOudAz4GsN5zLcJDoXwJU+BWyyxVDf
+Nyc2hDswrmhdny3/21oyH1uSA0TFPnrNtp9HMHGLdhXuj1gUgScV6LWOiH8+UlQ=
+=wAlw
+-----END PGP SIGNATURE-----
+--=-=-=--
