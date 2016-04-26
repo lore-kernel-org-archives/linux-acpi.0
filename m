@@ -1,85 +1,51 @@
-From: Toshi Kani <toshi.kani@hpe.com>
-Subject: [PATCH v3 1/2] acpi/nfit: Update nfit driver to comply with ACPI 6.1
-Date: Mon, 25 Apr 2016 15:34:58 -0600
-Message-ID: <1461620099-11933-2-git-send-email-toshi.kani@hpe.com>
-References: <1461620099-11933-1-git-send-email-toshi.kani@hpe.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1461620099-11933-1-git-send-email-toshi.kani@hpe.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: rjw@rjwysocki.net, dan.j.williams@intel.com
-Cc: robert.moore@intel.com, elliott@hpe.com, linux-nvdimm@lists.01.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Toshi Kani <toshi.kani@hpe.com>
+From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Subject: Re: [PATCH v2 0/3] Support INT3406 Display thermal device
+Date: Tue, 26 Apr 2016 02:58:41 +0200
+Message-ID: <2383528.7J2tIpIfEZ@vostro.rjw.lan>
+References: <1460532771-22779-1-git-send-email-aaron.lu@intel.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7Bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from cloudserver094114.home.net.pl ([79.96.170.134]:58974 "HELO
+	cloudserver094114.home.net.pl" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with SMTP id S1751220AbcDZAzn (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 25 Apr 2016 20:55:43 -0400
+In-Reply-To: <1460532771-22779-1-git-send-email-aaron.lu@intel.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Aaron Lu <aaron.lu@intel.com>
+Cc: Jingoo Han <jingoohan1@gmail.com>, Zhang Rui <rui.zhang@intel.com>, linux-fbdev@vger.kernel.org, linux-acpi@vger.kernel.org, linux-pm@vger.kernel.org, srinivas.pandruvada@intel.com
 
-ACPI 6.1, Table 5-133, updates NVDIMM Control Region Structure
-as follows.
- - Valid Fields, Manufacturing Location, and Manufacturing Date
-   are added from reserved range.  No change in the structure size.
- - IDs (SPD values) are stored as arrays of bytes (i.e. big-endian
-   format).  The spec clarifies that they need to be represented
-   as arrays of bytes as well.
+On Wednesday, April 13, 2016 03:32:48 PM Aaron Lu wrote:
+> The display thermal device represents the LED/LCD display panel
+> that may or may not include touch support. The main function of
+> the display thermal device is to allow control of the display
+> brightness in order to address a thermal condition or to reduce
+> power consumed by display device.
+> 
+> Due to the way this thermal device changes brightness level is said
+> to be deprecated so we are using the raw interface to do the actual
+> backlight change. This requires the backlight core support so two
+> new APIs are added and exported in patch 1/3. With this, the previous
+> API backlight_device_registered can be removed and this is done in
+> patch 2/3. Patch 3/3 adds the new int3406 thermal driver.
+> 
+> The 1st version is here:
+> http://thread.gmane.org/gmane.linux.acpi.devel/72619
+> 
+> This whole series should go through the thermal tree if applied.
+> 
+> Aaron Lu (3):
+>   video / backlight: add two APIs for drivers to use
+>   video / backlight: remove the backlight_device_registered API
+>   Thermal: add INT3406 thermal driver
 
-This patch makes the following changes to support this update.
- - Change the NFIT driver to show SPD ID values in big-endian
-   format.
- - Change sprintf format to use "0x" instead of "#" since "%#02x"
-   does not prepend '0'.
+So I have nothing against [1-2/3], but the [3/3] tries to do too many things
+in one go.  It should be at least two separate patches to my eyes, one making
+changes to the ACPI video driver and the other adding the INT3406 one.
 
-link: http://www.uefi.org/sites/default/files/resources/ACPI_6_1.pdf
-Signed-off-by: Toshi Kani <toshi.kani@hpe.com>
-Cc: Rafael J. Wysocki <rjw@rjwysocki.net>
-Cc: Dan Williams <dan.j.williams@intel.com>
-Cc: Robert Moore <robert.moore@intel.com>
-Cc: Robert Elliott <elliott@hpe.com>
----
- drivers/acpi/nfit.c |   10 +++++-----
- 1 file changed, 5 insertions(+), 5 deletions(-)
+Thanks,
+Rafael
 
-diff --git a/drivers/acpi/nfit.c b/drivers/acpi/nfit.c
-index d0f35e6..5dc243c 100644
---- a/drivers/acpi/nfit.c
-+++ b/drivers/acpi/nfit.c
-@@ -816,7 +816,7 @@ static ssize_t vendor_show(struct device *dev,
- {
- 	struct acpi_nfit_control_region *dcr = to_nfit_dcr(dev);
- 
--	return sprintf(buf, "%#x\n", dcr->vendor_id);
-+	return sprintf(buf, "0x%04x\n", be16_to_cpu(dcr->vendor_id));
- }
- static DEVICE_ATTR_RO(vendor);
- 
-@@ -825,7 +825,7 @@ static ssize_t rev_id_show(struct device *dev,
- {
- 	struct acpi_nfit_control_region *dcr = to_nfit_dcr(dev);
- 
--	return sprintf(buf, "%#x\n", dcr->revision_id);
-+	return sprintf(buf, "0x%04x\n", be16_to_cpu(dcr->revision_id));
- }
- static DEVICE_ATTR_RO(rev_id);
- 
-@@ -834,7 +834,7 @@ static ssize_t device_show(struct device *dev,
- {
- 	struct acpi_nfit_control_region *dcr = to_nfit_dcr(dev);
- 
--	return sprintf(buf, "%#x\n", dcr->device_id);
-+	return sprintf(buf, "0x%04x\n", be16_to_cpu(dcr->device_id));
- }
- static DEVICE_ATTR_RO(device);
- 
-@@ -843,7 +843,7 @@ static ssize_t format_show(struct device *dev,
- {
- 	struct acpi_nfit_control_region *dcr = to_nfit_dcr(dev);
- 
--	return sprintf(buf, "%#x\n", dcr->code);
-+	return sprintf(buf, "0x%04x\n", be16_to_cpu(dcr->code));
- }
- static DEVICE_ATTR_RO(format);
- 
-@@ -852,7 +852,7 @@ static ssize_t serial_show(struct device *dev,
- {
- 	struct acpi_nfit_control_region *dcr = to_nfit_dcr(dev);
- 
--	return sprintf(buf, "%#x\n", dcr->serial_number);
-+	return sprintf(buf, "0x%08x\n", be32_to_cpu(dcr->serial_number));
- }
- static DEVICE_ATTR_RO(serial);
- 
