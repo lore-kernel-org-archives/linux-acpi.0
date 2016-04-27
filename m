@@ -1,65 +1,53 @@
-From: Jon Masters <jcm@redhat.com>
-Subject: Re: [PATCH V6 05/13] acpi, pci: Support IO resources when parsing PCI
- host bridge resources.
-Date: Wed, 27 Apr 2016 01:36:27 -0400
-Message-ID: <57204FDB.6010202@redhat.com>
-References: <1460740008-19489-1-git-send-email-tn@semihalf.com>
- <1460740008-19489-6-git-send-email-tn@semihalf.com>
- <20160427023916.GF6789@localhost>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+From: Lv Zheng <lv.zheng@intel.com>
+Subject: [PATCH v2 0/6] ACPI / osi: Fix several issues in _OSI handling
+Date: Wed, 27 Apr 2016 16:54:17 +0800
+Message-ID: <cover.1461736123.git.lv.zheng@intel.com>
+References: <cover.1461656216.git.lv.zheng@intel.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:41982 "EHLO mx1.redhat.com"
+Received: from mga11.intel.com ([192.55.52.93]:2272 "EHLO mga11.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752541AbcD0Fgh (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 27 Apr 2016 01:36:37 -0400
-In-Reply-To: <20160427023916.GF6789@localhost>
+	id S1751710AbcD0IyX (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 27 Apr 2016 04:54:23 -0400
+In-Reply-To: <cover.1461656216.git.lv.zheng@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Bjorn Helgaas <helgaas@kernel.org>, Tomasz Nowicki <tn@semihalf.com>
-Cc: arnd@arndb.de, will.deacon@arm.com, catalin.marinas@arm.com, rafael@kernel.org, hanjun.guo@linaro.org, Lorenzo.Pieralisi@arm.com, okaya@codeaurora.org, jiang.liu@linux.intel.com, jchandra@broadcom.com, robert.richter@caviumnetworks.com, mw@semihalf.com, Liviu.Dudau@arm.com, ddaney@caviumnetworks.com, wangyijing@huawei.com, Suravee.Suthikulpanit@amd.com, msalter@redhat.com, linux-pci@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linaro-acpi@lists.linaro.org
+To: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <len.brown@intel.com>
+Cc: Lv Zheng <lv.zheng@intel.com>, Lv Zheng <zetalog@gmail.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
 
-On 04/26/2016 10:39 PM, Bjorn Helgaas wrote:
-> On Fri, Apr 15, 2016 at 07:06:40PM +0200, Tomasz Nowicki wrote:
->> Platforms that have memory mapped IO port (such as ARM64) need speci=
-al
->> handling for PCI I/O resources. For host bridge's resource probing c=
-ase
->> these resources need to be fixed up with pci_register_io_range/pci_r=
-emap_iospace etc.
->=20
-> ia64 also has memory-mapped I/O port space.
+This patchset cleans up _OSI handling code and fixes several issues in it.
 
-The specific references of interest to anyone here are:
+In the v2 version, as one fix has been changed to be a stable material,
+patches originally put before it need to be rebased. The necessary changes
+that are required by this fix are still kept before the fix patch, and the
+unnecessary changes that are not required by this fix are moved after the
+fix patch. So that the back porting of the stable materials could be
+easier. The coding style in the stable materials is kept wrong to be
+consistent to the coding style used by the old code, so checkpatch.pl may
+report warnings on the stable materials.
 
-*). Volume 2, Part 1: Itanium=AE Architecture-based Operating System
-Interaction Model with IA-32 Applications 2:267 section "10.7 I/O Port
-Space Model" which describes how they can map 4 "legacy" IO ports on a
-virtual page when operating in a "sparse" mode.
+Chen Yu (1):
+  ACPI / osi: Fix default _OSI(Darwin) support
 
-*). Page 378 of the ACPI6.1 specification Table 6-213 I/O Resource Flag
-(Resource Type =3D 1) Definitions describes how a "sparse" translation =
-can
-exist depending upon bit _TRS. This seems to be implemented in Linux
-using the ACPI_SPARSE_TRANSLATION types.
+Lv Zheng (5):
+  ACPI / osi: Fix an issue that acpi_osi=!* cannot disable ACPICA
+    internal strings
+  ACPI / osi: Cleanup _OSI("Linux") related code before introducing new
+    support
+  ACPI / osi: Add acpi_osi=!! to allow reverting acpi_osi=!
+  ACPI / osi: Cleanup coding style issues before creating a separate
+    OSI source file
+  ACPI / osi: Collect _OSI handling into one single file
 
-> It would be ideal to find
-> some way to handle ia64 and ARM64 similarly.  At the very least, we
-> have to make sure that this doesn't break ia64.  The ia64 dense/spars=
-e
-> I/O spaces complicate things; I don't know if ARM64 has something
-> similar or not.
+ Documentation/kernel-parameters.txt |    2 +
+ drivers/acpi/Makefile               |    2 +-
+ drivers/acpi/blacklist.c            |  196 +------------
+ drivers/acpi/internal.h             |    2 +
+ drivers/acpi/osi.c                  |  518 +++++++++++++++++++++++++++++++++++
+ drivers/acpi/osl.c                  |  228 +--------------
+ include/linux/acpi.h                |    1 -
+ 7 files changed, 530 insertions(+), 419 deletions(-)
+ create mode 100644 drivers/acpi/osi.c
 
-There's nothing directly similar - it's just regular MMIO.
+-- 
+1.7.10
 
-Jon.
-
---=20
-Computer Architect | Sent from my Fedora powered laptop
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
