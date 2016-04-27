@@ -1,98 +1,136 @@
 From: David Daney <ddaney.cavm@gmail.com>
-Subject: [PATCH v6 06/14] arm64, numa: rework numa_add_memblk()
-Date: Wed, 27 Apr 2016 11:07:08 -0700
-Message-ID: <1461780436-27182-7-git-send-email-ddaney.cavm@gmail.com>
+Subject: [PATCH v6 09/14] acpi, numa: move bad_srat() and srat_disabled() to drivers/acpi/numa.c
+Date: Wed, 27 Apr 2016 11:07:11 -0700
+Message-ID: <1461780436-27182-10-git-send-email-ddaney.cavm@gmail.com>
 References: <1461780436-27182-1-git-send-email-ddaney.cavm@gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-pf0-f195.google.com ([209.85.192.195]:32879 "EHLO
+	mail-pf0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753027AbcD0SHp (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 27 Apr 2016 14:07:45 -0400
 In-Reply-To: <1461780436-27182-1-git-send-email-ddaney.cavm@gmail.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Will Deacon <will.deacon@arm.com>, linux-arm-kernel@lists.infradead.org, Mark Rutland <mark.rutland@arm.com>, Catalin Marinas <catalin.marinas@arm.com>, Tony Luck <tony.luck@intel.com>, Fenghua Yu <fenghua.yu@intel.com>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, x86@kernel.org, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Rob Herring <robh+dt@kernel.org>, Frank Rowand <frowand.list@gmail.com>, Grant Likely <grant.likely@linaro.org>, Robert Moore <robert.moore@intel.com>, Lv Zheng <lv.zheng@intel.com>, Hanjun Guo <hanjun.guo@linaro.org>, Marc Zyngier <Marc.Zyngier@arm.com>, linux-ia64@vger.kernel.org, linux-acpi@vger.kernel.org, devel@acpica.org
-Cc: Robert Richter <rrichter@cavium.com>, linux-kernel@vger.kernel.org, David Daney <david.daney@cavium.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Will Deacon <will.deacon@arm.com>, linux-arm-kernel@lists.infradead.org, Mark Rutland <mark.rutland@arm.com>, Catalin Marinas <catalin.marinas@arm.com>, Tony Luck <tony.luck@intel.com>, Fenghua Yu <fenghua.yu@intel.com>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, x86@kernel.org, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Rob Herring <robh+dt@kernel.org>, Frank Rowand <frowand.list@gmail.com>, Grant Likely <grant.likely@linaro.org>, Robert Moore <robert.moore@intel.com>, Lv Zheng <lv.zheng@intel.com>, Hanjun Guo <hanjun.guo@linaro.org>, Marc Zyngier <Marc.Zyngier@arm.com>, linux-ia64@vger.kernel.org, linux-acpi@vger.kernel.org, devel@acpica.org
+Cc: linux-kernel@vger.kernel.org, Robert Richter <rrichter@cavium.com>, David Daney <david.daney@cavium.com>
 
 From: Hanjun Guo <hanjun.guo@linaro.org>
 
-Rework numa_add_memblk() to update the parameter "u64 size" to "u64
-end", this will make it consistent with x86 and simplifies the arm64
-ACPI NUMA code to be added later.
+bad_srat() and srat_disabled() are shared by x86 and follow-on arm64
+patches.  Move them to drivers/acpi/numa.c in preparation for arm64
+support.
 
 Signed-off-by: Hanjun Guo <hanjun.guo@linaro.org>
 Signed-off-by: Robert Richter <rrichter@cavium.com>
+[david.daney@cavium.com moved definitions to drivers/acpi/numa.c]
 Signed-off-by: David Daney <david.daney@cavium.com>
 ---
- arch/arm64/mm/numa.c | 12 ++++++------
- drivers/of/of_numa.c |  4 ++--
- 2 files changed, 8 insertions(+), 8 deletions(-)
+ arch/x86/include/asm/acpi.h |  1 -
+ arch/x86/mm/numa.c          |  2 +-
+ arch/x86/mm/srat.c          | 13 -------------
+ drivers/acpi/numa.c         | 12 ++++++++++++
+ include/acpi/acpi_numa.h    |  4 ++++
+ 5 files changed, 17 insertions(+), 15 deletions(-)
 
-diff --git a/arch/arm64/mm/numa.c b/arch/arm64/mm/numa.c
-index 98dc104..6cb03f9 100644
---- a/arch/arm64/mm/numa.c
-+++ b/arch/arm64/mm/numa.c
-@@ -131,25 +131,25 @@ void __init early_map_cpu_to_node(unsigned int cpu, int nid)
-  * numa_add_memblk - Set node id to memblk
-  * @nid: NUMA node ID of the new memblk
-  * @start: Start address of the new memblk
-- * @size:  Size of the new memblk
-+ * @end:  End address of the new memblk
-  *
-  * RETURNS:
-  * 0 on success, -errno on failure.
-  */
--int __init numa_add_memblk(int nid, u64 start, u64 size)
-+int __init numa_add_memblk(int nid, u64 start, u64 end)
+diff --git a/arch/x86/include/asm/acpi.h b/arch/x86/include/asm/acpi.h
+index 94c18eb..65f1e95 100644
+--- a/arch/x86/include/asm/acpi.h
++++ b/arch/x86/include/asm/acpi.h
+@@ -145,7 +145,6 @@ static inline void disable_acpi(void) { }
+ #define ARCH_HAS_POWER_INIT	1
+ 
+ #ifdef CONFIG_ACPI_NUMA
+-extern int acpi_numa;
+ extern int x86_acpi_numa_init(void);
+ #endif /* CONFIG_ACPI_NUMA */
+ 
+diff --git a/arch/x86/mm/numa.c b/arch/x86/mm/numa.c
+index f70c1ff..57673f5 100644
+--- a/arch/x86/mm/numa.c
++++ b/arch/x86/mm/numa.c
+@@ -1,4 +1,5 @@
+ /* Common code for 32 and 64-bit NUMA */
++#include <linux/acpi.h>
+ #include <linux/kernel.h>
+ #include <linux/mm.h>
+ #include <linux/string.h>
+@@ -15,7 +16,6 @@
+ #include <asm/e820.h>
+ #include <asm/proto.h>
+ #include <asm/dma.h>
+-#include <asm/acpi.h>
+ #include <asm/amd_nb.h>
+ 
+ #include "numa_internal.h"
+diff --git a/arch/x86/mm/srat.c b/arch/x86/mm/srat.c
+index 9e2a833..4217071f 100644
+--- a/arch/x86/mm/srat.c
++++ b/arch/x86/mm/srat.c
+@@ -24,19 +24,6 @@
+ #include <asm/apic.h>
+ #include <asm/uv/uv.h>
+ 
+-int acpi_numa __initdata;
+-
+-static __init void bad_srat(void)
+-{
+-	printk(KERN_ERR "SRAT: SRAT not used.\n");
+-	acpi_numa = -1;
+-}
+-
+-static __init inline int srat_disabled(void)
+-{
+-	return acpi_numa < 0;
+-}
+-
+ /* Callback for Proximity Domain -> x2APIC mapping */
+ void __init
+ acpi_numa_x2apic_affinity_init(struct acpi_srat_x2apic_cpu_affinity *pa)
+diff --git a/drivers/acpi/numa.c b/drivers/acpi/numa.c
+index 6fa528a..f6fd87c 100644
+--- a/drivers/acpi/numa.c
++++ b/drivers/acpi/numa.c
+@@ -40,6 +40,7 @@ static int node_to_pxm_map[MAX_NUMNODES]
+ 			= { [0 ... MAX_NUMNODES - 1] = PXM_INVAL };
+ 
+ unsigned char acpi_srat_revision __initdata;
++int acpi_numa __initdata;
+ 
+ int pxm_to_node(int pxm)
  {
- 	int ret;
- 
--	ret = memblock_set_node(start, size, &memblock.memory, nid);
-+	ret = memblock_set_node(start, (end - start), &memblock.memory, nid);
- 	if (ret < 0) {
- 		pr_err("NUMA: memblock [0x%llx - 0x%llx] failed to add on node %d\n",
--			start, (start + size - 1), nid);
-+			start, (end - 1), nid);
- 		return ret;
- 	}
- 
- 	node_set(nid, numa_nodes_parsed);
- 	pr_info("NUMA: Adding memblock [0x%llx - 0x%llx] on node %d\n",
--			start, (start + size - 1), nid);
-+			start, (end - 1), nid);
- 	return ret;
+@@ -197,6 +198,17 @@ static int __init slit_valid(struct acpi_table_slit *slit)
+ 	return 1;
  }
  
-@@ -367,7 +367,7 @@ static int __init dummy_numa_init(void)
- 	       0LLU, PFN_PHYS(max_pfn) - 1);
- 
- 	for_each_memblock(memory, mblk) {
--		ret = numa_add_memblk(0, mblk->base, mblk->size);
-+		ret = numa_add_memblk(0, mblk->base, mblk->base + mblk->size);
- 		if (!ret)
- 			continue;
- 
-diff --git a/drivers/of/of_numa.c b/drivers/of/of_numa.c
-index 0f2784b..ed5a097 100644
---- a/drivers/of/of_numa.c
-+++ b/drivers/of/of_numa.c
-@@ -91,8 +91,8 @@ static int __init of_numa_parse_memory_nodes(void)
- 		pr_debug("NUMA:  base = %llx len = %llx, node = %u\n",
- 			 rsrc.start, rsrc.end - rsrc.start + 1, nid);
- 
--		r = numa_add_memblk(nid, rsrc.start,
--				    rsrc.end - rsrc.start + 1);
++void __init bad_srat(void)
++{
++	pr_err("SRAT: SRAT not used.\n");
++	acpi_numa = -1;
++}
 +
-+		r = numa_add_memblk(nid, rsrc.start, rsrc.end + 1);
- 		if (r)
- 			break;
- 	}
++int __init srat_disabled(void)
++{
++	return acpi_numa < 0;
++}
++
+ #if defined(CONFIG_X86) || defined (CONFIG_ARM64)
+ /*
+  * Callback for SLIT parsing.  pxm_to_node() returns NUMA_NO_NODE for
+diff --git a/include/acpi/acpi_numa.h b/include/acpi/acpi_numa.h
+index 94a37cd..d4b7294 100644
+--- a/include/acpi/acpi_numa.h
++++ b/include/acpi/acpi_numa.h
+@@ -15,6 +15,10 @@ extern int pxm_to_node(int);
+ extern int node_to_pxm(int);
+ extern int acpi_map_pxm_to_node(int);
+ extern unsigned char acpi_srat_revision;
++extern int acpi_numa __initdata;
++
++extern void bad_srat(void);
++extern int srat_disabled(void);
+ 
+ #endif				/* CONFIG_ACPI_NUMA */
+ #endif				/* __ACP_NUMA_H */
 -- 
 1.7.11.7
+
