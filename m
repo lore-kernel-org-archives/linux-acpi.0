@@ -1,247 +1,115 @@
-From: Dennis Chen <dennis.chen@linaro.org>
-Subject: Re: [PATCH v5 12/14] arm64, acpi, numa: NUMA support based on SRAT
- and SLIT
-Date: Wed, 27 Apr 2016 19:37:22 +0800
-Message-ID: <CADKHWadTL5dB__Y-LGtoPs_mQQ+A36nnhwJo3muTC_z9X1FZag@mail.gmail.com>
-References: <1461116439-22991-1-git-send-email-ddaney.cavm@gmail.com>
- <1461116439-22991-13-git-send-email-ddaney.cavm@gmail.com>
- <CADKHWadFBh2TbyoZSmYJHX24roMQQXf8Kx8rEoLABJ8xaTGL=Q@mail.gmail.com>
- <5720127E.1030307@caviumnetworks.com> <57203A47.9000108@linaro.org>
+From: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+Subject: Re: [PATCH V6 06/13] arm64, pci, acpi: ACPI support for legacy IRQs
+ parsing and consolidation with DT code.
+Date: Wed, 27 Apr 2016 12:46:37 +0100
+Message-ID: <20160427114637.GA6795@red-moon>
+References: <1460740008-19489-1-git-send-email-tn@semihalf.com>
+ <1460740008-19489-7-git-send-email-tn@semihalf.com>
+ <20160427024430.GG6789@localhost>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-ia64-owner@vger.kernel.org>
-In-Reply-To: <57203A47.9000108@linaro.org>
-Sender: linux-ia64-owner@vger.kernel.org
-To: Hanjun Guo <hanjun.guo@linaro.org>
-Cc: David Daney <ddaney@caviumnetworks.com>, David Daney <ddaney.cavm@gmail.com>, Will Deacon <will.deacon@arm.com>, linux-arm-kernel@lists.infradead.org, Mark Rutland <mark.rutland@arm.com>, Catalin Marinas <catalin.marinas@arm.com>, Tony Luck <tony.luck@intel.com>, Fenghua Yu <fenghua.yu@intel.com>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, x86@kernel.org, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Rob Herring <robh+dt@kernel.org>, Frank Rowand <frowand.list@gmail.com>, Grant Likely <grant.likely@linaro.org>, Robert Moore <robert.moore@intel.com>, Lv Zheng <lv.zheng@intel.com>, Marc Zyngier <Marc.Zyngier@arm.com>, linux-ia64@vger.kernel.org, linux-acpi@vger.kernel.org, devel@acpica.org, linux-kernel@vger.kernel.org, Robert Richter <rrichter@cavium.com>, Ganapatrao Kulkarni <gku>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-pci-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20160427024430.GG6789@localhost>
+Sender: linux-pci-owner@vger.kernel.org
+To: Bjorn Helgaas <helgaas@kernel.org>
+Cc: Tomasz Nowicki <tn@semihalf.com>, arnd@arndb.de, will.deacon@arm.com, catalin.marinas@arm.com, rafael@kernel.org, hanjun.guo@linaro.org, okaya@codeaurora.org, jiang.liu@linux.intel.com, jchandra@broadcom.com, robert.richter@caviumnetworks.com, mw@semihalf.com, Liviu.Dudau@arm.com, ddaney@caviumnetworks.com, wangyijing@huawei.com, Suravee.Suthikulpanit@amd.com, msalter@redhat.com, linux-pci@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linaro-acpi@lists.linaro.org, jcm@redhat.com
 List-Id: linux-acpi@vger.kernel.org
 
-Hi Hanjun,
+On Tue, Apr 26, 2016 at 09:44:30PM -0500, Bjorn Helgaas wrote:
+> On Fri, Apr 15, 2016 at 07:06:41PM +0200, Tomasz Nowicki wrote:
+> > To enable PCI legacy IRQs on platforms booting with ACPI, arch code
+> > should include ACPI specific callbacks that parse and set-up the
+> > device IRQ number, equivalent to the DT boot path. Owing to the current
+> > ACPI core scan handlers implementation, ACPI PCI legacy IRQs bindings
+> > cannot be parsed at device add time, since that would trigger ACPI scan
+> > handlers ordering issues depending on how the ACPI tables are defined.
+> 
+> Can you be a little more specific about the issue here?  I think you
+> mean pci_device_add()-time, because that's where we call
+> pcibios_add_device.  Which ACPI tables are involved?  _PRT?  Why is
+> that a problem?  We don't cache those tables any more after
+> 181380b702ee ("PCI/ACPI: Don't cache _PRT, and don't associate them
+> with bus numbers").
 
-Thanks for the clarification and some little comments ;-)
+https://lists.linaro.org/pipermail/linaro-acpi/2015-October/005944.html
 
-On 27 April 2016 at 12:04, Hanjun Guo <hanjun.guo@linaro.org> wrote:
-> Hi Dennis, David,
->
-> Sorry for the late reply, please see my comments below.
->
->
-> On 2016/4/27 9:14, David Daney wrote:
->>
->> On 04/21/2016 03:06 AM, Dennis Chen wrote:
->>>
->>> On 20 April 2016 at 09:40, David Daney <ddaney.cavm@gmail.com> wrote:
->>
->> [...]
->>>>
->>>> +/* Callback for Proximity Domain -> ACPI processor UID mapping */
->>>> +void __init acpi_numa_gicc_affinity_init(struct
->>>> acpi_srat_gicc_affinity *pa)
->>>> +{
->>>> +       int pxm, node;
->>>> +       u64 mpidr;
->>>> +
->>>> +       if (srat_disabled())
->>>> +               return;
->>>> +
->>>> +       if (pa->header.length < sizeof(struct
->>>> acpi_srat_gicc_affinity)) {
->>>> +               pr_err("SRAT: Invalid SRAT header length: %d\n",
->>>> +                       pa->header.length);
->>>> +               bad_srat();
->>>> +               return;
->>>> +       }
->>>> +
->>>> +       if (!(pa->flags & ACPI_SRAT_GICC_ENABLED))
->>>> +               return;
->>>> +
->>>> +       if (cpus_in_srat >= NR_CPUS) {
->>>> +               pr_warn_once("SRAT: cpu_to_node_map[%d] is too small,
->>>> may not be able to use all cpus\n",
->>>> +                            NR_CPUS);
->>>> +               return;
->>>> +       }
->>>> +
->>>> +       pxm = pa->proximity_domain;
->>>> +       node = acpi_map_pxm_to_node(pxm);
->>>> +
->>>> +       if (node == NUMA_NO_NODE || node >= MAX_NUMNODES) {
->>>> +               pr_err("SRAT: Too many proximity domains %d\n", pxm);
->>>> +               bad_srat();
->>>> +               return;
->>>> +       }
->>>> +
->>>> +       if (get_mpidr_in_madt(pa->acpi_processor_uid, &mpidr)) {
->>>> +               pr_err("SRAT: PXM %d with ACPI ID %d has no valid
->>>> MPIDR in MADT\n",
->>>> +                       pxm, pa->acpi_processor_uid);
->>>> +               bad_srat();
->>>> +               return;
->>>> +       }
->>>> +
->>>> +       early_node_cpu_hwid[cpus_in_srat].node_id = node;
->>>> +       early_node_cpu_hwid[cpus_in_srat].cpu_hwid =  mpidr;
->>>> +       node_set(node, numa_nodes_parsed);
->>>> +       cpus_in_srat++;
->>>> +       pr_info("SRAT: PXM %d -> MPIDR 0x%Lx -> Node %d cpu %d\n",
->>>> +               pxm, mpidr, node, cpus_in_srat);
->>>> +}
->>>
->>>
->>> What does the *cpu* means in above pr_info function? If it's the
->>> logical processor ID or ACPI processor UID, then I suggest to use
->>> pa->acpi_processor_uid instead of cpus_in_srat, I understand the
->
->
-> I think print cpus_in_srat is pointless here, as the logic cpu number
-> is allocated by OS when initializing SMP by scanning MADT table. As
-> Dennis said, it's just a count number, not a number mapping to MPIDR.
->
-> ACPI processor UID is the key value to connect MADT, SRAT, DSDT.
->
-> For MADT, it will have MPIDR and ACPI processor UID, and OS will
-> create mappings to MPIDR and cpu logical number,
-> ACPI processor UID <------> MPIDR <------> CPU logical number
->
-> In SRAT, there is ACPI processor UID represented, mappings will be
-> ACPI processor UID <------> PXM <------> NUMA node logical number
->
-> So we can use ACPI processor UID to get the MPIDR by scanning the
-> MADT, then we can map NUMA node logical number to cpu logical
-> number later.
->
-Right, kernel will record the logical cpu index info (begins from 0,
-the boot cpu) into the cpu_possible bit map by parsing the MADT GICC
-sub-table. So I am thinking here if we can reduce the parsing walk by
-only one, because I see the acpi_numa_gicc_affinity_init() calls
-get_mpidr_in_madt() to traverse the entire MADT, actually the kernel
-will also traverse the MADT in smp_init_cpus(), merge them into one?
->
->>> cpus_in_srat is just a count number of the entries of GICC Affinity
->>> Struct instance in SRAT, correct me if I am wrong. So at least it sees
->>> to me, the above pr_info will output message looks like:
->>> SRAT: PXM 0 -> MPIDR 0x100 -> Node 0 cpu 1
->>> SRAT: PXM 0 -> MPIDR 0x101 -> Node 0 cpu 2
->>> SRAT: PXM 0 -> MPIDR 0x102 -> Node 0 cpu 3
->>>
->>
->> Yes, that is correct, and for my system seems to be what we want as the
->> names in /sys/devices/system/cpu/ and /proc/cpu_info agree with the
->> sequential numbering (0..95) with 48 CPUs on each node.
->
->
-> That's because you place CPUs in the same order both in MADT and SRAT :)
-> if not, that will be not match.
->
-Hmm, I think I made a mistake presumption here that the ACPI processor
-UID is the logical processor number, just take a look at the ACPI
-processor driver module code, the logic process number should comes
-from the bit map. And from the below output message pasted by David,
-we can see that his firmware is using MPIDR as the ACPI processor UID,
-it's not incorrect implementation according to the ACPI spec...
->
->>
->> If I make the change you suggest, I get :
->> .
->> .
->> .
->> [    0.000000] ACPI: NUMA: SRAT: PXM 0 -> MPIDR 0x0 -> Node 0 cpu 0
->> [    0.000000] ACPI: NUMA: SRAT: PXM 0 -> MPIDR 0x1 -> Node 0 cpu 1
->> [    0.000000] ACPI: NUMA: SRAT: PXM 0 -> MPIDR 0x2 -> Node 0 cpu 2
->> [    0.000000] ACPI: NUMA: SRAT: PXM 0 -> MPIDR 0x3 -> Node 0 cpu 3
->> [    0.000000] ACPI: NUMA: SRAT: PXM 0 -> MPIDR 0x4 -> Node 0 cpu 4
->> [    0.000000] ACPI: NUMA: SRAT: PXM 0 -> MPIDR 0x5 -> Node 0 cpu 5
->> [    0.000000] ACPI: NUMA: SRAT: PXM 0 -> MPIDR 0x6 -> Node 0 cpu 6
->> [    0.000000] ACPI: NUMA: SRAT: PXM 0 -> MPIDR 0x7 -> Node 0 cpu 7
->> [    0.000000] ACPI: NUMA: SRAT: PXM 0 -> MPIDR 0x8 -> Node 0 cpu 8
->> [    0.000000] ACPI: NUMA: SRAT: PXM 0 -> MPIDR 0x9 -> Node 0 cpu 9
->> [    0.000000] ACPI: NUMA: SRAT: PXM 0 -> MPIDR 0xa -> Node 0 cpu 10
->> [    0.000000] ACPI: NUMA: SRAT: PXM 0 -> MPIDR 0xb -> Node 0 cpu 11
->> [    0.000000] ACPI: NUMA: SRAT: PXM 0 -> MPIDR 0xc -> Node 0 cpu 12
->> [    0.000000] ACPI: NUMA: SRAT: PXM 0 -> MPIDR 0xd -> Node 0 cpu 13
->> [    0.000000] ACPI: NUMA: SRAT: PXM 0 -> MPIDR 0xe -> Node 0 cpu 14
->> [    0.000000] ACPI: NUMA: SRAT: PXM 0 -> MPIDR 0xf -> Node 0 cpu 15
->> [    0.000000] ACPI: NUMA: SRAT: PXM 0 -> MPIDR 0x100 -> Node 0 cpu 256
->> [    0.000000] ACPI: NUMA: SRAT: PXM 0 -> MPIDR 0x101 -> Node 0 cpu 257
->> [    0.000000] ACPI: NUMA: SRAT: PXM 0 -> MPIDR 0x102 -> Node 0 cpu 258
->> [    0.000000] ACPI: NUMA: SRAT: PXM 0 -> MPIDR 0x103 -> Node 0 cpu 259
->> [    0.000000] ACPI: NUMA: SRAT: PXM 0 -> MPIDR 0x104 -> Node 0 cpu 260
->> [    0.000000] ACPI: NUMA: SRAT: PXM 0 -> MPIDR 0x105 -> Node 0 cpu 261
->> [    0.000000] ACPI: NUMA: SRAT: PXM 0 -> MPIDR 0x106 -> Node 0 cpu 262
->> [    0.000000] ACPI: NUMA: SRAT: PXM 0 -> MPIDR 0x107 -> Node 0 cpu 263
->> [    0.000000] ACPI: NUMA: SRAT: PXM 0 -> MPIDR 0x108 -> Node 0 cpu 264
->> [    0.000000] ACPI: NUMA: SRAT: PXM 0 -> MPIDR 0x109 -> Node 0 cpu 265
->> [    0.000000] ACPI: NUMA: SRAT: PXM 0 -> MPIDR 0x10a -> Node 0 cpu 266
->> [    0.000000] ACPI: NUMA: SRAT: PXM 0 -> MPIDR 0x10b -> Node 0 cpu 267
->> [    0.000000] ACPI: NUMA: SRAT: PXM 0 -> MPIDR 0x10c -> Node 0 cpu 268
->> [    0.000000] ACPI: NUMA: SRAT: PXM 0 -> MPIDR 0x10d -> Node 0 cpu 269
->> [    0.000000] ACPI: NUMA: SRAT: PXM 0 -> MPIDR 0x10e -> Node 0 cpu 270
->> [    0.000000] ACPI: NUMA: SRAT: PXM 0 -> MPIDR 0x10f -> Node 0 cpu 271
->> [    0.000000] ACPI: NUMA: SRAT: PXM 0 -> MPIDR 0x200 -> Node 0 cpu 512
->> [    0.000000] ACPI: NUMA: SRAT: PXM 0 -> MPIDR 0x201 -> Node 0 cpu 513
->> [    0.000000] ACPI: NUMA: SRAT: PXM 0 -> MPIDR 0x202 -> Node 0 cpu 514
->> [    0.000000] ACPI: NUMA: SRAT: PXM 0 -> MPIDR 0x203 -> Node 0 cpu 515
->> [    0.000000] ACPI: NUMA: SRAT: PXM 0 -> MPIDR 0x204 -> Node 0 cpu 516
->> [    0.000000] ACPI: NUMA: SRAT: PXM 0 -> MPIDR 0x205 -> Node 0 cpu 517
->> [    0.000000] ACPI: NUMA: SRAT: PXM 0 -> MPIDR 0x206 -> Node 0 cpu 518
->> [    0.000000] ACPI: NUMA: SRAT: PXM 0 -> MPIDR 0x207 -> Node 0 cpu 519
->> [    0.000000] ACPI: NUMA: SRAT: PXM 0 -> MPIDR 0x208 -> Node 0 cpu 520
->> [    0.000000] ACPI: NUMA: SRAT: PXM 0 -> MPIDR 0x209 -> Node 0 cpu 521
->> [    0.000000] ACPI: NUMA: SRAT: PXM 0 -> MPIDR 0x20a -> Node 0 cpu 522
->> [    0.000000] ACPI: NUMA: SRAT: PXM 0 -> MPIDR 0x20b -> Node 0 cpu 523
->> [    0.000000] ACPI: NUMA: SRAT: PXM 0 -> MPIDR 0x20c -> Node 0 cpu 524
->> [    0.000000] ACPI: NUMA: SRAT: PXM 0 -> MPIDR 0x20d -> Node 0 cpu 525
->> [    0.000000] ACPI: NUMA: SRAT: PXM 0 -> MPIDR 0x20e -> Node 0 cpu 526
->> [    0.000000] ACPI: NUMA: SRAT: PXM 0 -> MPIDR 0x20f -> Node 0 cpu 527
->> [    0.000000] ACPI: NUMA: SRAT: PXM 1 -> MPIDR 0x10000 -> Node 1 cpu
->> 65536
->> [    0.000000] ACPI: NUMA: SRAT: PXM 1 -> MPIDR 0x10001 -> Node 1 cpu
->> 65537
->> [    0.000000] ACPI: NUMA: SRAT: PXM 1 -> MPIDR 0x10002 -> Node 1 cpu
->> 65538
->> [    0.000000] ACPI: NUMA: SRAT: PXM 1 -> MPIDR 0x10003 -> Node 1 cpu
->> 65539
->> .
->> .
->> .
->>
->> Not really what I would want.
->
->
-> How about remove the print for "cpu"? it's not the right value we want,
-> and we can get such mapping information under in sysfs.
->
-I think you may remove the *cpu* in the print, indeed it's pointless.
-You can, IMO, use cpu_possible bitmask if you want to get the logical
-processor number just as the ACPI processor does. About the
-early_node_cpu_hwid, the only reason I can see now is to map logic cpu
-into the numa node number, can we refer to the implementation under
-x86, anyway I am not sure since not very familiar with that codes
-dependency...
->
->>
->>
->>> While the /sys/devices/system/cpu will use the ACPI processor UID to
->>> generate the index of the cpu, like:
->>> cpu0  cpu1  cpu2 ...
->>>
->>> As the GICC Affinity Struct indicated, the ps->proximity_domain is the
->>> domain to which the logical processor belongs...
->
->
-> Yes, we can get such information in /sys/devices/system/node, I think
-> we can only print:
->
-> ACPI: NUMA: SRAT: PXM x -> MPIDR y -> Node z
-Agree.
->
->
-> Thanks
-> Hanjun
->
+I think it is a scan handler ordering issue and probably by caching
+_PRT this problem would not exist but I have to read the commit above
+in details to understand if that's the case.
 
+> x86 and ia64 both call acpi_pci_irq_enable() from
+> pcibios_enable_device().  Could you do the same on ARM64?
+> pcibios_enable_device() happens later than either pci_device_add() or
+> pci_device_probe().
 
+We could in theory. In practice we have to see if that triggers DT
+regressions on PCI host controllers that do not call pci_fixup_irqs(),
+but rely on the legacy IRQ routing to be done in arm64
+pcibios_add_device().
 
--- 
-Regards,
-Dennis
+> > To solve this problem and consolidate FW PCI legacy IRQs parsing in
+> > one single pcibios callback (pending final removal), this patch moves
+> > DT PCI IRQ parsing to the pcibios_alloc_irq() callback (called by
+> > PCI core code at device probe time) and adds ACPI PCI legacy IRQs
+> > parsing to the same callback too, so that FW PCI legacy IRQs parsing
+> > is confined in one single arch callback that can be easily removed
+> > when code parsing PCI legacy IRQs is consolidated and moved to core
+> > PCI code.
+> > 
+> > Signed-off-by: Tomasz Nowicki <tn@semihalf.com>
+> > Suggested-by: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+> > ---
+> >  arch/arm64/kernel/pci.c | 11 ++++++++---
+> >  1 file changed, 8 insertions(+), 3 deletions(-)
+> > 
+> > diff --git a/arch/arm64/kernel/pci.c b/arch/arm64/kernel/pci.c
+> > index c72de66..15109c11 100644
+> > --- a/arch/arm64/kernel/pci.c
+> > +++ b/arch/arm64/kernel/pci.c
+> > @@ -50,11 +50,16 @@ int pcibios_enable_device(struct pci_dev *dev, int mask)
+> >  }
+> >  
+> >  /*
+> > - * Try to assign the IRQ number from DT when adding a new device
+> > + * Try to assign the IRQ number when probing a new device
+> >   */
+> > -int pcibios_add_device(struct pci_dev *dev)
+> > +int pcibios_alloc_irq(struct pci_dev *dev)
+> >  {
+> > -	dev->irq = of_irq_parse_and_map_pci(dev, 0, 0);
+> > +	if (acpi_disabled)
+> > +		dev->irq = of_irq_parse_and_map_pci(dev, 0, 0);
+> > +#ifdef CONFIG_ACPI
+> > +	else
+> > +		return acpi_pci_irq_enable(dev);
+> > +#endif
+> 
+> Not your problem, but your patch makes it obvious: it's ugly that we
+> set dev->irq to the IRQ returned from of_irq_parse_and_map_pci(), but
+> acpi_pci_irq_enable() sets dev->irq internally.
+> 
+> x86 also has the situation of calling either acpi_pci_irq_enable() or
+> of_irq_parse_and_map_pci(), and it looks like they can even decide at
+> run-time as you can here.  If we're solving the same problem, can we
+> use a similar mechanism?  x86 sets a pcibios_enable_irq function
+> pointer.
+
+Yes we could, but that's orthogonal to this patch, it's basically
+rewriting this code in a different way and adding flexibility to the
+function mapping irqs.
+
+Thanks,
+Lorenzo
+
+> 
+> >  	return 0;
+> >  }
+> > -- 
+> > 1.9.1
+> > 
+> > --
+> > To unsubscribe from this list: send the line "unsubscribe linux-pci" in
+> > the body of a message to majordomo@vger.kernel.org
+> > More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
