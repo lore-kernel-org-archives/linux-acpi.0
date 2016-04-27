@@ -1,114 +1,183 @@
 From: Lv Zheng <lv.zheng@intel.com>
-Subject: [PATCH v2 1/6] ACPI / osi: Fix an issue that acpi_osi=!* cannot disable ACPICA internal strings
-Date: Wed, 27 Apr 2016 16:54:24 +0800
-Message-ID: <5ae425087280a575ed35f21987b0c1f4b351d3db.1461736123.git.lv.zheng@intel.com>
+Subject: [PATCH v2 4/6] ACPI / osi: Fix default _OSI(Darwin) support
+Date: Wed, 27 Apr 2016 16:54:43 +0800
+Message-ID: <e8ea6e8841adce9e10e5bd0b278b47a7c799c276.1461736123.git.lv.zheng@intel.com>
 References: <cover.1461656216.git.lv.zheng@intel.com> <cover.1461736123.git.lv.zheng@intel.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <cover.1461736123.git.lv.zheng@intel.com>
 Sender: linux-kernel-owner@vger.kernel.org
 To: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <len.brown@intel.com>
-Cc: Lv Zheng <lv.zheng@intel.com>, Lv Zheng <zetalog@gmail.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
+Cc: Lv Zheng <lv.zheng@intel.com>, Lv Zheng <zetalog@gmail.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Chen Yu <yu.c.chen@intel.com>
 List-Id: linux-acpi@vger.kernel.org
 
-The order of the _OSI related functionalities is as follows:
-  acpi_blacklisted()
-    acpi_dmi_osi_linux()
-      acpi_osi_setup()
-    acpi_osi_setup()
-      acpi_update_interfaces() if "!*"
-      <<<<<<<<<<<<<<<<<<<<<<<<
-  parse_args()
-    __setup("acpi_osi=")
-      acpi_osi_setup_linux()
-        acpi_update_interfaces() if "!*"
-        <<<<<<<<<<<<<<<<<<<<<<<<
-  acpi_early_init()
-    acpi_initialize_subsystem()
-      acpi_ut_initialize_interfaces()
-      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  acpi_bus_init()
-    acpi_os_initialize1()
-      acpi_install_interface_handler(acpi_osi_handler)
-      acpi_osi_setup_late()
-        acpi_update_interfaces() for "!"
-        >>>>>>>>>>>>>>>>>>>>>>>>
-  acpi_osi_handler()
-Since acpi_osi_setup_linux() can override acpi_dmi_osi_linux(), the command
-line setting can override the DMI detection. That's why acpi_blacklisted()
-is put before __setup("acpi_osi=").
+From: Chen Yu <yu.c.chen@intel.com>
 
-Then we can notice the following wrong invocation order. There are
-acpi_update_interfaces() (marked by <<<<) calls invoked before
-acpi_ut_initialize_interfaces() (marked by ^^^^). This makes it impossible
-to use acpi_osi=!* correctly from OSI DMI table or from the command line.
-The use of acpi_osi=!* is meant to disable both ACPICA
-(acpi_gbl_supported_interfaces) and Linux specific strings
-(osi_setup_entries) while the ACPICA part should have stopped working
-because of the order issue.
+The following commit always reports positive value when Apple hardware
+queries _OSI("Darwin"):
+ Commit: 7bc5a2bad0b8d9d1ac9f7b8b33150e4ddf197334
+ Subject: ACPI: Support _OSI("Darwin") correctly
+However since this implementation places the judgement in runtime, it
+breaks acpi_osi=!Darwin and cannot return unsupported for _OSI("WinXXX")
+invoked before invoking _OSI("Darwin").
 
-This patch fixes this issue by moving acpi_update_interfaces() to where
-it is invoked for acpi_osi=! (marked by >>>>) as this is ensured to be
-invoked after acpi_ut_initialize_interfaces() (marked by ^^^^). Linux
-specific strings are still handled in the original place in order to make
-the following command line working: acpi_osi=!* acpi_osi="Module Device".
+This patch fixes the issues by reverting the wrong support and implementing
+the default behavior of _OSI("Darwin")/_OSI("WinXXX") on Apple hardware via
+DMI matching.
 
-Note that since acpi_osi=!* is meant to further disable linux specific
-string comparing to the acpi_osi=!, there is no such use case in our bug
-fixing work and hence there is no one using acpi_osi=!* either from the
-command line or from the DMI quirks, this issue is just a theoretical
-issue.
-
-Fixes: 741d81280ad2 ("ACPI: Add facility to remove all _OSI strings")
-Cc: <stable@vger.kernel.org> # 3.12+
+Fixes: 7bc5a2bad0b8 ("ACPI: Support _OSI("Darwin") correctly")
+Cc: <stable@vger.kernel.org> # 3.18+
+Link: https://bugzilla.kernel.org/show_bug.cgi?id=92111
+Reported-by: Lukas Wunner <lukas@wunner.de>
+Signed-off-by: Chen Yu <yu.c.chen@intel.com>
 Signed-off-by: Lv Zheng <lv.zheng@intel.com>
 ---
- drivers/acpi/osl.c |   16 +++++++++++-----
- 1 file changed, 11 insertions(+), 5 deletions(-)
+ drivers/acpi/blacklist.c |   23 ++++++++++++++++++
+ drivers/acpi/osl.c       |   58 ++++++++++++++++++++++++++++++++++++++++------
+ include/linux/acpi.h     |    1 +
+ 3 files changed, 75 insertions(+), 7 deletions(-)
 
+diff --git a/drivers/acpi/blacklist.c b/drivers/acpi/blacklist.c
+index 96809cd..e947d3e 100644
+--- a/drivers/acpi/blacklist.c
++++ b/drivers/acpi/blacklist.c
+@@ -133,6 +133,11 @@ int __init acpi_blacklisted(void)
+ 	return blacklisted;
+ }
+ #ifdef CONFIG_DMI
++static int __init dmi_enable_osi_darwin(const struct dmi_system_id *d)
++{
++	acpi_dmi_osi_darwin(1, d);	/* enable */
++	return 0;
++}
+ static int __init dmi_enable_osi_linux(const struct dmi_system_id *d)
+ {
+ 	acpi_dmi_osi_linux(1, d);	/* enable */
+@@ -331,6 +336,24 @@ static struct dmi_system_id acpi_osi_dmi_table[] __initdata = {
+ 		},
+ 	},
+ 
++	/*
++	 * Enable _OSI("Darwin") for all apple platforms.
++	 */
++	{
++	.callback = dmi_enable_osi_darwin,
++	.ident = "Apple hardware",
++	.matches = {
++		     DMI_MATCH(DMI_SYS_VENDOR, "Apple INC."),
++		},
++	},
++	{
++	.callback = dmi_enable_osi_darwin,
++	.ident = "Apple hardware",
++	.matches = {
++		     DMI_MATCH(DMI_SYS_VENDOR, "Apple Computer, INC."),
++		},
++	},
++
+ #ifdef CONFIG_ACPI_REV_OVERRIDE_POSSIBLE
+ 	/*
+ 	 * DELL XPS 13 (2015) switches sound between HDA and I2S
 diff --git a/drivers/acpi/osl.c b/drivers/acpi/osl.c
-index 00d2a22..d7d84a8 100644
+index fbedea7..5dd2a79 100644
 --- a/drivers/acpi/osl.c
 +++ b/drivers/acpi/osl.c
-@@ -135,7 +135,7 @@ static struct osi_linux {
- 	unsigned int	enable:1;
- 	unsigned int	dmi:1;
- 	unsigned int	cmdline:1;
--	unsigned int	default_disabling:1;
-+	u8		default_disabling;
- } osi_linux = {0, 0, 0, 0};
+@@ -135,6 +135,9 @@ static struct acpi_osi_config {
+ 	unsigned int	linux_enable:1;
+ 	unsigned int	linux_dmi:1;
+ 	unsigned int	linux_cmdline:1;
++	unsigned int	darwin_enable:1;
++	unsigned int	darwin_dmi:1;
++	unsigned int	darwin_cmdline:1;
+ 	u8		default_disabling;
+ } osi_config = {0, 0, 0, 0};
  
- static u32 acpi_osi_handler(acpi_string interface, u32 supported)
-@@ -1477,10 +1477,13 @@ void __init acpi_osi_setup(char *str)
- 	if (*str == '!') {
- 		str++;
- 		if (*str == '\0') {
--			osi_linux.default_disabling = 1;
-+			/* Do not override acpi_osi=!* */
-+			if (!osi_linux.default_disabling)
-+				osi_linux.default_disabling =
-+					ACPI_DISABLE_ALL_VENDOR_STRINGS;
- 			return;
- 		} else if (*str == '*') {
--			acpi_update_interfaces(ACPI_DISABLE_ALL_STRINGS);
-+			osi_linux.default_disabling = ACPI_DISABLE_ALL_STRINGS;
- 			for (i = 0; i < OSI_STRING_ENTRIES_MAX; i++) {
- 				osi = &osi_setup_entries[i];
- 				osi->enable = false;
-@@ -1553,10 +1556,13 @@ static void __init acpi_osi_setup_late(void)
- 	acpi_status status;
- 
- 	if (osi_linux.default_disabling) {
--		status = acpi_update_interfaces(ACPI_DISABLE_ALL_VENDOR_STRINGS);
-+		status = acpi_update_interfaces(osi_linux.default_disabling);
- 
- 		if (ACPI_SUCCESS(status))
--			printk(KERN_INFO PREFIX "Disabled all _OSI OS vendors\n");
-+			printk(KERN_INFO PREFIX "Disabled all _OSI OS vendors%s\n",
-+				osi_linux.default_disabling ==
-+				ACPI_DISABLE_ALL_STRINGS ?
-+				" and feature groups" : "");
+@@ -150,13 +153,12 @@ static u32 acpi_osi_handler(acpi_string interface, u32 supported)
  	}
  
- 	for (i = 0; i < OSI_STRING_ENTRIES_MAX; i++) {
+ 	if (!strcmp("Darwin", interface)) {
+-		/*
+-		 * Apple firmware will behave poorly if it receives positive
+-		 * answers to "Darwin" and any other OS. Respond positively
+-		 * to Darwin and then disable all other vendor strings.
+-		 */
+-		acpi_update_interfaces(ACPI_DISABLE_ALL_VENDOR_STRINGS);
+-		supported = ACPI_UINT32_MAX;
++
++		printk_once(KERN_NOTICE PREFIX
++			"BIOS _OSI(Darwin) query %s%s\n",
++			osi_config.darwin_enable ? "honored" : "ignored",
++			osi_config.darwin_cmdline ? " via cmdline" :
++			osi_config.darwin_dmi ? " via DMI" : "");
+ 	}
+ 
+ 	return supported;
+@@ -1509,6 +1511,44 @@ void __init acpi_osi_setup(char *str)
+ 	}
+ }
+ 
++static void __init set_osi_darwin(unsigned int enable)
++{
++	if (osi_config.darwin_enable != enable)
++		osi_config.darwin_enable = enable;
++
++	if (enable) {
++		acpi_osi_setup("!");
++		acpi_osi_setup("Darwin");
++	} else {
++		acpi_osi_setup("!!");
++		acpi_osi_setup("!Darwin");
++	}
++}
++
++static void __init acpi_cmdline_osi_darwin(unsigned int enable)
++{
++	/* cmdline set the default and override DMI */
++	osi_config.darwin_cmdline = 1;
++	osi_config.darwin_dmi = 0;
++	set_osi_darwin(enable);
++
++	return;
++}
++
++void __init acpi_dmi_osi_darwin(int enable, const struct dmi_system_id *d)
++{
++	printk(KERN_NOTICE PREFIX "DMI detected: %s\n", d->ident);
++
++	if (enable == -1)
++		return;
++
++	/* DMI knows that this box asks OSI(Darwin) */
++	osi_config.darwin_dmi = 1;
++	set_osi_darwin(enable);
++
++	return;
++}
++
+ static void __init set_osi_linux(unsigned int enable)
+ {
+ 	if (osi_config.linux_enable != enable)
+@@ -1596,6 +1636,10 @@ static int __init osi_setup(char *str)
+ 		acpi_cmdline_osi_linux(1);
+ 	else if (str && !strcmp("!Linux", str))
+ 		acpi_cmdline_osi_linux(0);
++	else if (str && !strcmp("Darwin", str))
++		acpi_cmdline_osi_darwin(1);
++	else if (str && !strcmp("!Darwin", str))
++		acpi_cmdline_osi_darwin(0);
+ 	else
+ 		acpi_osi_setup(str);
+ 
+diff --git a/include/linux/acpi.h b/include/linux/acpi.h
+index be5d206..8fd3a82 100644
+--- a/include/linux/acpi.h
++++ b/include/linux/acpi.h
+@@ -354,6 +354,7 @@ extern char acpi_video_backlight_string[];
+ extern long acpi_is_video_device(acpi_handle handle);
+ extern int acpi_blacklisted(void);
+ extern void acpi_dmi_osi_linux(int enable, const struct dmi_system_id *d);
++extern void acpi_dmi_osi_darwin(int enable, const struct dmi_system_id *d);
+ extern void acpi_osi_setup(char *str);
+ extern bool acpi_osi_is_win8(void);
+ 
 -- 
 1.7.10
