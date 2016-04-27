@@ -1,136 +1,67 @@
-From: David Daney <ddaney.cavm@gmail.com>
-Subject: [PATCH v6 09/14] acpi, numa: move bad_srat() and srat_disabled() to drivers/acpi/numa.c
-Date: Wed, 27 Apr 2016 11:07:11 -0700
-Message-ID: <1461780436-27182-10-git-send-email-ddaney.cavm@gmail.com>
-References: <1461780436-27182-1-git-send-email-ddaney.cavm@gmail.com>
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-pf0-f195.google.com ([209.85.192.195]:32879 "EHLO
-	mail-pf0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753027AbcD0SHp (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 27 Apr 2016 14:07:45 -0400
-In-Reply-To: <1461780436-27182-1-git-send-email-ddaney.cavm@gmail.com>
-Sender: linux-acpi-owner@vger.kernel.org
+From: "Rafael J. Wysocki" <rafael@kernel.org>
+Subject: Re: [PATCH v3 0/4] Support INT3406 Display thermal device
+Date: Wed, 27 Apr 2016 21:38:40 +0200
+Message-ID: <CAJZ5v0hjvMc98WgAUJG3MPNNZm8YiCBxP6OdmW-oP7MnH+69wA@mail.gmail.com>
+References: <1461761105-5961-1-git-send-email-aaron.lu@intel.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-pm-owner@vger.kernel.org>
+In-Reply-To: <1461761105-5961-1-git-send-email-aaron.lu@intel.com>
+Sender: linux-pm-owner@vger.kernel.org
+To: Aaron Lu <aaron.lu@intel.com>
+Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Zhang Rui <rui.zhang@intel.com>, Jingoo Han <jingoohan1@gmail.com>, "open list:FRAMEBUFFER LAYER" <linux-fbdev@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, "linux-pm@vger.kernel.org" <linux-pm@vger.kernel.org>, Srinivas Pandruvada <srinivas.pandruvada@intel.com>
 List-Id: linux-acpi@vger.kernel.org
-To: Will Deacon <will.deacon@arm.com>, linux-arm-kernel@lists.infradead.org, Mark Rutland <mark.rutland@arm.com>, Catalin Marinas <catalin.marinas@arm.com>, Tony Luck <tony.luck@intel.com>, Fenghua Yu <fenghua.yu@intel.com>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, x86@kernel.org, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Rob Herring <robh+dt@kernel.org>, Frank Rowand <frowand.list@gmail.com>, Grant Likely <grant.likely@linaro.org>, Robert Moore <robert.moore@intel.com>, Lv Zheng <lv.zheng@intel.com>, Hanjun Guo <hanjun.guo@linaro.org>, Marc Zyngier <Marc.Zyngier@arm.com>, linux-ia64@vger.kernel.org, linux-acpi@vger.kernel.org, devel@acpica.org
-Cc: linux-kernel@vger.kernel.org, Robert Richter <rrichter@cavium.com>, David Daney <david.daney@cavium.com>
 
-From: Hanjun Guo <hanjun.guo@linaro.org>
+On Wed, Apr 27, 2016 at 2:45 PM, Aaron Lu <aaron.lu@intel.com> wrote:
+> v3:
+> Split patch 3/3 in v2 into 2 patches: one makes changes to acpi_video
+> and one adds the int3406 driver as suggested by Rafael. There should
+> be no functionality change compared to v2.
+>
+> v2:
+> The display thermal device represents the LED/LCD display panel
+> that may or may not include touch support. The main function of
+> the display thermal device is to allow control of the display
+> brightness in order to address a thermal condition or to reduce
+> power consumed by display device.
+>
+> Due to the way this thermal device changes brightness level is said
+> to be deprecated so we are using the raw interface to do the actual
+> backlight change. This requires the backlight core support so two
+> new APIs are added and exported in patch 1/3. With this, the previous
+> API backlight_device_registered can be removed and this is done in
+> patch 2/3. Patch 3/3 adds the new int3406 thermal driver.
+>
+> The 1st version is here:
+> http://thread.gmane.org/gmane.linux.acpi.devel/72619
+>
+> This whole series should go through the thermal tree if applied.
+>
+> Aaron Lu (3):
+>   video / backlight: add two APIs for drivers to use
+>   video / backlight: remove the backlight_device_registered API
+>   Thermal: add INT3406 thermal driver
+>
+>  drivers/acpi/acpi_video.c                         |  83 ++++----
+>  drivers/acpi/video_detect.c                       |   2 +-
+>  drivers/thermal/Kconfig                           |  28 +--
+>  drivers/thermal/int340x_thermal/Kconfig           |  42 ++++
+>  drivers/thermal/int340x_thermal/Makefile          |   1 +
+>  drivers/thermal/int340x_thermal/int3406_thermal.c | 236 ++++++++++++++++++++++
+>  drivers/video/backlight/backlight.c               |  39 ++--
+>  include/acpi/video.h                              |  20 ++
+>  include/linux/backlight.h                         |   3 +-
+>  9 files changed, 374 insertions(+), 80 deletions(-)
+>  create mode 100644 drivers/thermal/int340x_thermal/Kconfig
+>  create mode 100644 drivers/thermal/int340x_thermal/int3406_thermal.c
 
-bad_srat() and srat_disabled() are shared by x86 and follow-on arm64
-patches.  Move them to drivers/acpi/numa.c in preparation for arm64
-support.
+The first three patches in this series look OK to me, so
 
-Signed-off-by: Hanjun Guo <hanjun.guo@linaro.org>
-Signed-off-by: Robert Richter <rrichter@cavium.com>
-[david.daney@cavium.com moved definitions to drivers/acpi/numa.c]
-Signed-off-by: David Daney <david.daney@cavium.com>
----
- arch/x86/include/asm/acpi.h |  1 -
- arch/x86/mm/numa.c          |  2 +-
- arch/x86/mm/srat.c          | 13 -------------
- drivers/acpi/numa.c         | 12 ++++++++++++
- include/acpi/acpi_numa.h    |  4 ++++
- 5 files changed, 17 insertions(+), 15 deletions(-)
+Acked-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 
-diff --git a/arch/x86/include/asm/acpi.h b/arch/x86/include/asm/acpi.h
-index 94c18eb..65f1e95 100644
---- a/arch/x86/include/asm/acpi.h
-+++ b/arch/x86/include/asm/acpi.h
-@@ -145,7 +145,6 @@ static inline void disable_acpi(void) { }
- #define ARCH_HAS_POWER_INIT	1
- 
- #ifdef CONFIG_ACPI_NUMA
--extern int acpi_numa;
- extern int x86_acpi_numa_init(void);
- #endif /* CONFIG_ACPI_NUMA */
- 
-diff --git a/arch/x86/mm/numa.c b/arch/x86/mm/numa.c
-index f70c1ff..57673f5 100644
---- a/arch/x86/mm/numa.c
-+++ b/arch/x86/mm/numa.c
-@@ -1,4 +1,5 @@
- /* Common code for 32 and 64-bit NUMA */
-+#include <linux/acpi.h>
- #include <linux/kernel.h>
- #include <linux/mm.h>
- #include <linux/string.h>
-@@ -15,7 +16,6 @@
- #include <asm/e820.h>
- #include <asm/proto.h>
- #include <asm/dma.h>
--#include <asm/acpi.h>
- #include <asm/amd_nb.h>
- 
- #include "numa_internal.h"
-diff --git a/arch/x86/mm/srat.c b/arch/x86/mm/srat.c
-index 9e2a833..4217071f 100644
---- a/arch/x86/mm/srat.c
-+++ b/arch/x86/mm/srat.c
-@@ -24,19 +24,6 @@
- #include <asm/apic.h>
- #include <asm/uv/uv.h>
- 
--int acpi_numa __initdata;
--
--static __init void bad_srat(void)
--{
--	printk(KERN_ERR "SRAT: SRAT not used.\n");
--	acpi_numa = -1;
--}
--
--static __init inline int srat_disabled(void)
--{
--	return acpi_numa < 0;
--}
--
- /* Callback for Proximity Domain -> x2APIC mapping */
- void __init
- acpi_numa_x2apic_affinity_init(struct acpi_srat_x2apic_cpu_affinity *pa)
-diff --git a/drivers/acpi/numa.c b/drivers/acpi/numa.c
-index 6fa528a..f6fd87c 100644
---- a/drivers/acpi/numa.c
-+++ b/drivers/acpi/numa.c
-@@ -40,6 +40,7 @@ static int node_to_pxm_map[MAX_NUMNODES]
- 			= { [0 ... MAX_NUMNODES - 1] = PXM_INVAL };
- 
- unsigned char acpi_srat_revision __initdata;
-+int acpi_numa __initdata;
- 
- int pxm_to_node(int pxm)
- {
-@@ -197,6 +198,17 @@ static int __init slit_valid(struct acpi_table_slit *slit)
- 	return 1;
- }
- 
-+void __init bad_srat(void)
-+{
-+	pr_err("SRAT: SRAT not used.\n");
-+	acpi_numa = -1;
-+}
-+
-+int __init srat_disabled(void)
-+{
-+	return acpi_numa < 0;
-+}
-+
- #if defined(CONFIG_X86) || defined (CONFIG_ARM64)
- /*
-  * Callback for SLIT parsing.  pxm_to_node() returns NUMA_NO_NODE for
-diff --git a/include/acpi/acpi_numa.h b/include/acpi/acpi_numa.h
-index 94a37cd..d4b7294 100644
---- a/include/acpi/acpi_numa.h
-+++ b/include/acpi/acpi_numa.h
-@@ -15,6 +15,10 @@ extern int pxm_to_node(int);
- extern int node_to_pxm(int);
- extern int acpi_map_pxm_to_node(int);
- extern unsigned char acpi_srat_revision;
-+extern int acpi_numa __initdata;
-+
-+extern void bad_srat(void);
-+extern int srat_disabled(void);
- 
- #endif				/* CONFIG_ACPI_NUMA */
- #endif				/* __ACP_NUMA_H */
--- 
-1.7.11.7
+for the [1-3/4].
 
+That said it may be better if those three go in via ACPI.  I can put
+them into a separate branch for Rui to pull from.
+
+Please let me know what you think.
