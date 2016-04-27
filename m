@@ -1,55 +1,77 @@
-From: Tomasz Nowicki <tn@semihalf.com>
-Subject: Re: [PATCH V6 01/13] pci, acpi, x86, ia64: Move ACPI host bridge
- device companion assignment to core code.
-Date: Wed, 27 Apr 2016 12:12:51 +0200
-Message-ID: <572090A3.7000503@semihalf.com>
-References: <1460740008-19489-2-git-send-email-tn@semihalf.com>
- <201604160430.P8zNe8Vl%fengguang.wu@intel.com>
- <20160426223618.GB6789@localhost>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-pci-owner@vger.kernel.org>
-In-Reply-To: <20160426223618.GB6789@localhost>
-Sender: linux-pci-owner@vger.kernel.org
-To: Bjorn Helgaas <helgaas@kernel.org>, kbuild test robot <lkp@intel.com>
-Cc: kbuild-all@01.org, arnd@arndb.de, will.deacon@arm.com, catalin.marinas@arm.com, rafael@kernel.org, hanjun.guo@linaro.org, Lorenzo.Pieralisi@arm.com, okaya@codeaurora.org, jiang.liu@linux.intel.com, jchandra@broadcom.com, robert.richter@caviumnetworks.com, mw@semihalf.com, Liviu.Dudau@arm.com, ddaney@caviumnetworks.com, wangyijing@huawei.com, Suravee.Suthikulpanit@amd.com, msalter@redhat.com, linux-pci@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linaro-acpi@lists.linaro.org, jcm@redhat.com
+From: Heikki Krogerus <heikki.krogerus@linux.intel.com>
+Subject: [PATCH] device property: fix a potential oops
+Date: Wed, 27 Apr 2016 14:04:20 +0300
+Message-ID: <1461755060-138091-1-git-send-email-heikki.krogerus@linux.intel.com>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga01.intel.com ([192.55.52.88]:50303 "EHLO mga01.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752999AbcD0LEY (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 27 Apr 2016 07:04:24 -0400
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>
+Cc: Dan Carpenter <dan.carpenter@oracle.com>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
-On 27.04.2016 00:36, Bjorn Helgaas wrote:
-> On Sat, Apr 16, 2016 at 04:41:45AM +0800, kbuild test robot wrote:
->> Hi Tomasz,
->>
->> [auto build test ERROR on pci/next]
->> [also build test ERROR on v4.6-rc3 next-20160415]
->> [if your patch is applied to the wrong git tree, please drop us a note to help improving the system]
->>
->> url:    https://github.com/0day-ci/linux/commits/Tomasz-Nowicki/Support-for-generic-ACPI-based-PCI-host-controller/20160416-011935
->> base:   https://git.kernel.org/pub/scm/linux/kernel/git/helgaas/pci.git next
->> config: ia64-allmodconfig (attached as .config)
->> reproduce:
->>          wget https://git.kernel.org/cgit/linux/kernel/git/wfg/lkp-tests.git/plain/sbin/make.cross -O ~/bin/make.cross
->>          chmod +x ~/bin/make.cross
->>          # save the attached .config to linux build tree
->>          make.cross ARCH=ia64
->>
->> All errors (new ones prefixed by >>):
->>
->>     drivers/pci/hotplug/sgi_hotplug.c: In function 'enable_slot':
->>>> drivers/pci/hotplug/sgi_hotplug.c:412:61: error: 'struct pci_controller' has no member named 'companion'
->>        phandle = acpi_device_handle(PCI_CONTROLLER(slot->pci_bus)->companion);
->>                                                                  ^
->>     drivers/pci/hotplug/sgi_hotplug.c: In function 'disable_slot':
->>     drivers/pci/hotplug/sgi_hotplug.c:491:32: error: 'struct pci_controller' has no member named 'companion'
->>        PCI_CONTROLLER(slot->pci_bus)->companion) {
->>                                     ^
->>     drivers/pci/hotplug/sgi_hotplug.c:500:61: error: 'struct pci_controller' has no member named 'companion'
->>        phandle = acpi_device_handle(PCI_CONTROLLER(slot->pci_bus)->companion);
->>                                                                  ^
->
-> I assume somebody is fixing this?
+Since fwnode may hold ERR_PTR(-ENODEV) or it may point to
+NULL, the fwnode type checks is_of_node(), is_acpi_node()
+and is is_pset_node() need to consider it. Using
+IS_ERR_OR_NULL() to check it.
 
-Yes, it will be fixed in next version also I will ask Hanjun to re-test 
-it on IA64 as in the past.
+Fixes: 0d67e0fa1664 ("device property: fix for a case of use-after-free")
+Reported-by: Dan Carpenter <dan.carpenter@oracle.com>
+Signed-off-by: Heikki Krogerus <heikki.krogerus@linux.intel.com>
+---
+ drivers/base/property.c | 2 +-
+ include/acpi/acpi_bus.h | 4 ++--
+ include/linux/of.h      | 2 +-
+ 3 files changed, 4 insertions(+), 4 deletions(-)
 
-Tomasz
+diff --git a/drivers/base/property.c b/drivers/base/property.c
+index 210423d..f38c21d 100644
+--- a/drivers/base/property.c
++++ b/drivers/base/property.c
+@@ -26,7 +26,7 @@ struct property_set {
+ 
+ static inline bool is_pset_node(struct fwnode_handle *fwnode)
+ {
+-	return fwnode && fwnode->type == FWNODE_PDATA;
++	return !IS_ERR_OR_NULL(fwnode) && fwnode->type == FWNODE_PDATA;
+ }
+ 
+ static inline struct property_set *to_pset_node(struct fwnode_handle *fwnode)
+diff --git a/include/acpi/acpi_bus.h b/include/acpi/acpi_bus.h
+index a84fd15..4d40e9b 100644
+--- a/include/acpi/acpi_bus.h
++++ b/include/acpi/acpi_bus.h
+@@ -394,13 +394,13 @@ struct acpi_data_node {
+ 
+ static inline bool is_acpi_node(struct fwnode_handle *fwnode)
+ {
+-	return fwnode && (fwnode->type == FWNODE_ACPI
++	return !IS_ERR_OR_NULL(fwnode) && (fwnode->type == FWNODE_ACPI
+ 		|| fwnode->type == FWNODE_ACPI_DATA);
+ }
+ 
+ static inline bool is_acpi_device_node(struct fwnode_handle *fwnode)
+ {
+-	return fwnode && fwnode->type == FWNODE_ACPI;
++	return !IS_ERR_OR_NULL(fwnode) && fwnode->type == FWNODE_ACPI;
+ }
+ 
+ static inline struct acpi_device *to_acpi_device_node(struct fwnode_handle *fwnode)
+diff --git a/include/linux/of.h b/include/linux/of.h
+index 520cf2d..c7292e8 100644
+--- a/include/linux/of.h
++++ b/include/linux/of.h
+@@ -150,7 +150,7 @@ void of_core_init(void);
+ 
+ static inline bool is_of_node(struct fwnode_handle *fwnode)
+ {
+-	return fwnode && fwnode->type == FWNODE_OF;
++	return !IS_ERR_OR_NULL(fwnode) && fwnode->type == FWNODE_OF;
+ }
+ 
+ static inline struct device_node *to_of_node(struct fwnode_handle *fwnode)
+-- 
+2.8.0.rc3
+
