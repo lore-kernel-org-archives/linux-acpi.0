@@ -1,41 +1,146 @@
-From: "Zheng, Lv" <lv.zheng@intel.com>
-Subject: RE: [PATCH 3/4] ACPI / osi: Change default _OSI(Darwin) support
-Date: Wed, 27 Apr 2016 02:01:37 +0000
-Message-ID: <1AE640813FDE7649BE1B193DEA596E883BB828E1@SHSMSX101.ccr.corp.intel.com>
-References: <cover.1461656216.git.lv.zheng@intel.com>
-	<721499bcaa3559f71023c6ab960481564f58f22a.1461656216.git.lv.zheng@intel.com>
- <CAJZ5v0gOY==-PUNcp-5rsp1mrD=V215rUAWmx6LFM7+CgF=8dA@mail.gmail.com>
+From: Bjorn Helgaas <helgaas@kernel.org>
+Subject: Re: [PATCH V6 02/13] pci, acpi: Provide generic way to assign bus
+ domain number.
+Date: Tue, 26 Apr 2016 21:26:49 -0500
+Message-ID: <20160427022649.GD6789@localhost>
+References: <1460740008-19489-1-git-send-email-tn@semihalf.com>
+ <1460740008-19489-3-git-send-email-tn@semihalf.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <CAJZ5v0gOY==-PUNcp-5rsp1mrD=V215rUAWmx6LFM7+CgF=8dA@mail.gmail.com>
-Content-Language: en-US
-Sender: linux-kernel-owner@vger.kernel.org
-To: "Rafael J. Wysocki" <rafael@kernel.org>
-Cc: "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, "Brown, Len" <len.brown@intel.com>, Lv Zheng <zetalog@gmail.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, "Chen, Yu C" <yu.c.chen@intel.com>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail.kernel.org ([198.145.29.136]:52793 "EHLO mail.kernel.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752166AbcD0C1A (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 26 Apr 2016 22:27:00 -0400
+Content-Disposition: inline
+In-Reply-To: <1460740008-19489-3-git-send-email-tn@semihalf.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Tomasz Nowicki <tn@semihalf.com>
+Cc: arnd@arndb.de, will.deacon@arm.com, catalin.marinas@arm.com, rafael@kernel.org, hanjun.guo@linaro.org, Lorenzo.Pieralisi@arm.com, okaya@codeaurora.org, jiang.liu@linux.intel.com, jchandra@broadcom.com, robert.richter@caviumnetworks.com, mw@semihalf.com, Liviu.Dudau@arm.com, ddaney@caviumnetworks.com, wangyijing@huawei.com, Suravee.Suthikulpanit@amd.com, msalter@redhat.com, linux-pci@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linaro-acpi@lists.linaro.org, jcm@redhat.com
 
-SGksDQoNCj4gRnJvbTogcmp3eXNvY2tpQGdtYWlsLmNvbSBbbWFpbHRvOnJqd3lzb2NraUBnbWFp
-bC5jb21dIE9uIEJlaGFsZiBPZg0KPiBSYWZhZWwgSi4gV3lzb2NraQ0KPiBTZW50OiBXZWRuZXNk
-YXksIEFwcmlsIDI3LCAyMDE2IDQ6MTMgQU0NCj4gU3ViamVjdDogUmU6IFtQQVRDSCAzLzRdIEFD
-UEkgLyBvc2k6IENoYW5nZSBkZWZhdWx0IF9PU0koRGFyd2luKSBzdXBwb3J0DQo+IA0KPiBPbiBU
-dWUsIEFwciAyNiwgMjAxNiBhdCA5OjQwIEFNLCBMdiBaaGVuZyA8bHYuemhlbmdAaW50ZWwuY29t
-PiB3cm90ZToNCj4gPiBGcm9tOiBDaGVuIFl1IDx5dS5jLmNoZW5AaW50ZWwuY29tPg0KPiA+DQo+
-ID4gQ29tbWl0IDdiYzVhMmJhZDBiOCAoIkFDUEk6IFN1cHBvcnQgX09TSSgiRGFyd2luIikgY29y
-cmVjdGx5IikgYWx3YXlzDQo+ID4gcmVwb3J0cyBwb3NpdGl2ZSB2YWx1ZSB3aGVuIEFwcGxlIGhh
-cmR3YXJlIHF1ZXJpZXMgX09TSSgiRGFyd2luIikuIEhvd2V2ZXINCj4gPiBzaW5jZSB0aGlzIGlt
-cGxlbWVudGF0aW9uIHBsYWNlcyB0aGUganVkZ2VtZW50IGluIHJ1bnRpbWUsIGl0IGJyZWFrcw0K
-PiA+IGFjcGlfb3NpPSFEYXJ3aW4gYW5kIGNhbm5vdCByZXR1cm4gdW5zdXBwb3J0ZWQgZm9yIF9P
-U0koIldpblhYWCIpIGludm9rZWQNCj4gPiBiZWZvcmUgaW52b2tpbmcgX09TSSgiRGFyd2luIiku
-DQo+ID4NCj4gPiBUaGlzIHBhdGNoIGZpeGVzIHRoZSBpc3N1ZXMgYnkgcmV2ZXJ0aW5nIHRoZSB3
-cm9uZyBzdXBwb3J0IGFuZCBpbXBsZW1lbnRpbmcNCj4gPiB0aGUgZGVmYXVsdCBiZWhhdmlvciBv
-ZiBfT1NJKCJEYXJ3aW4iKS9fT1NJKCJXaW5YWFgiKSBvbiBBcHBsZSBoYXJkd2FyZQ0KPiB2aWEN
-Cj4gPiBETUkgbWF0Y2hpbmcuDQo+ID4NCj4gPiBMaW5rOiBodHRwczovL2J1Z3ppbGxhLmtlcm5l
-bC5vcmcvc2hvd19idWcuY2dpP2lkPTkyMTExDQo+ID4gUmVwb3J0ZWQtYnk6IEx1a2FzIFd1bm5l
-ciA8bHVrYXNAd3VubmVyLmRlPg0KPiA+IFNpZ25lZC1vZmYtYnk6IENoZW4gWXUgPHl1LmMuY2hl
-bkBpbnRlbC5jb20+DQo+ID4gU2lnbmVkLW9mZi1ieTogTHYgWmhlbmcgPGx2LnpoZW5nQGludGVs
-LmNvbT4NCj4gDQo+IFdoeSBkb24ndCB5b3UgYWRkIGEgRml4ZXMgdGFnIHBvaW50aW5nIHRvIHRo
-ZSBwcm9ibGVtYXRpYyBjb21taXQ/DQpbTHYgWmhlbmddIA0KT0ssIEknbGwgaGVscCB0byBhZGQg
-aXQgYW5kIHJlLXNlbmQgYW4gVVBEQVRFIGZvciB0aGlzIHBhdGNoLg0KDQpUaGFua3MNCi1MdiAN
-Cg==
+On Fri, Apr 15, 2016 at 07:06:37PM +0200, Tomasz Nowicki wrote:
+> As we now have valid PCI host bridge device reference we can
+> introduce code that is going to find its bus domain number using
+> ACPI _SEG method.
+> 
+> Note that _SEG method is optional, therefore _SEG absence means
+> that all PCI buses belong to domain 0.
+> 
+> While at it, for the sake of code clarity we put ACPI and DT domain
+> assign methods into the corresponding helpers.
+> 
+> Signed-off-by: Tomasz Nowicki <tn@semihalf.com>
+> Reviewed-by: Liviu Dudau <Liviu.Dudau@arm.com>
+> Tested-by: Suravee Suthikulpanit <Suravee.Suthikulpanit@amd.com>
+> Tested-by: Jeremy Linton <jeremy.linton@arm.com>
+> Tested-by: Duc Dang <dhdang@apm.com>
+> Tested-by: Dongdong Liu <liudongdong3@huawei.com>
+> Tested-by: Hanjun Guo <hanjun.guo@linaro.org>
+> Tested-by: Graeme Gregory <graeme.gregory@linaro.org>
+> Tested-by: Sinan Kaya <okaya@codeaurora.org>
+> ---
+>  drivers/acpi/pci_root.c  | 18 ++++++++++++++++++
+>  drivers/pci/pci.c        | 11 +++++++++--
+>  include/linux/pci-acpi.h |  2 ++
+>  3 files changed, 29 insertions(+), 2 deletions(-)
+> 
+> diff --git a/drivers/acpi/pci_root.c b/drivers/acpi/pci_root.c
+> index 4581e0e..d9a70c4 100644
+> --- a/drivers/acpi/pci_root.c
+> +++ b/drivers/acpi/pci_root.c
+> @@ -419,6 +419,24 @@ out:
+>  }
+>  EXPORT_SYMBOL(acpi_pci_osc_control_set);
+>  
+> +int acpi_pci_bus_domain_nr(struct device *parent)
+> +{
+> +	struct acpi_device *acpi_dev = to_acpi_device(parent);
+> +	unsigned long long segment = 0;
+> +	acpi_status status;
+> +
+> +	/*
+> +	 * If _SEG method does not exist, following ACPI spec (6.5.6)
+> +	 * all PCI buses belong to domain 0.
+> +	 */
+> +	status = acpi_evaluate_integer(acpi_dev->handle, METHOD_NAME__SEG, NULL,
+> +				       &segment);
+
+We already have code in acpi_pci_root_add() to evaluate _SEG.  We
+don't want to evaluate it *twice*, do we?
+
+I was sort of expecting that if you added it here, we'd remove the
+existing call, but it looks like you're keeping both?
+
+> +	if (ACPI_FAILURE(status) && status != AE_NOT_FOUND)
+> +		dev_err(&acpi_dev->dev, "can't evaluate _SEG\n");
+> +
+> +	return segment;
+> +}
+> +
+>  static void negotiate_os_control(struct acpi_pci_root *root, int *no_aspm)
+>  {
+>  	u32 support, control, requested;
+> diff --git a/drivers/pci/pci.c b/drivers/pci/pci.c
+> index 25e0327..1a74e87 100644
+> --- a/drivers/pci/pci.c
+> +++ b/drivers/pci/pci.c
+> @@ -19,6 +19,7 @@
+>  #include <linux/spinlock.h>
+>  #include <linux/string.h>
+>  #include <linux/log2.h>
+> +#include <linux/pci-acpi.h>
+>  #include <linux/pci-aspm.h>
+>  #include <linux/pm_wakeup.h>
+>  #include <linux/interrupt.h>
+> @@ -4779,7 +4780,7 @@ int pci_get_new_domain_nr(void)
+>  }
+>  
+>  #ifdef CONFIG_PCI_DOMAINS_GENERIC
+> -void pci_bus_assign_domain_nr(struct pci_bus *bus, struct device *parent)
+> +static int of_pci_bus_domain_nr(struct device *parent)
+>  {
+>  	static int use_dt_domains = -1;
+>  	int domain = -1;
+> @@ -4823,7 +4824,13 @@ void pci_bus_assign_domain_nr(struct pci_bus *bus, struct device *parent)
+>  		domain = -1;
+>  	}
+>  
+> -	bus->domain_nr = domain;
+> +	return domain;
+> +}
+> +
+> +void pci_bus_assign_domain_nr(struct pci_bus *bus, struct device *parent)
+> +{
+> +	bus->domain_nr = acpi_disabled ? of_pci_bus_domain_nr(parent) :
+> +					 acpi_pci_bus_domain_nr(parent);
+>  }
+>  #endif
+>  #endif
+> diff --git a/include/linux/pci-acpi.h b/include/linux/pci-acpi.h
+> index 89ab057..a72e22d 100644
+> --- a/include/linux/pci-acpi.h
+> +++ b/include/linux/pci-acpi.h
+> @@ -22,6 +22,7 @@ static inline acpi_status pci_acpi_remove_pm_notifier(struct acpi_device *dev)
+>  {
+>  	return acpi_remove_pm_notifier(dev);
+>  }
+> +extern int acpi_pci_bus_domain_nr(struct device *parent);
+>  extern phys_addr_t acpi_pci_root_get_mcfg_addr(acpi_handle handle);
+>  
+>  static inline acpi_handle acpi_find_root_bridge_handle(struct pci_dev *pdev)
+> @@ -109,6 +110,7 @@ extern const u8 pci_acpi_dsm_uuid[];
+>  #else	/* CONFIG_ACPI */
+>  static inline void acpi_pci_add_bus(struct pci_bus *bus) { }
+>  static inline void acpi_pci_remove_bus(struct pci_bus *bus) { }
+> +static inline int acpi_pci_bus_domain_nr(struct device *parent) { return -1; }
+>  #endif	/* CONFIG_ACPI */
+>  
+>  #ifdef CONFIG_ACPI_APEI
+> -- 
+> 1.9.1
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
