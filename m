@@ -1,39 +1,103 @@
 From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [PATCH v2] ACPI/SRAT: fix SRAT order parsing when both LAPIC and X2APIC present
-Date: Wed, 27 Apr 2016 23:23:24 +0200
-Message-ID: <32506564.fbJE22l67l@vostro.rjw.lan>
-References: <5650804.Bpcz1v4kAC@vostro.rjw.lan> <1461230940-5037-1-git-send-email-lukasz.anaczkowski@intel.com> <1461230940-5037-2-git-send-email-lukasz.anaczkowski@intel.com>
+Subject: Re: [PATCH v2 4/6] ACPI / osi: Fix default _OSI(Darwin) support
+Date: Wed, 27 Apr 2016 23:24:47 +0200
+Message-ID: <2223787.tzTyTqLAjo@vostro.rjw.lan>
+References: <cover.1461656216.git.lv.zheng@intel.com> <e8ea6e8841adce9e10e5bd0b278b47a7c799c276.1461736123.git.lv.zheng@intel.com> <36DF59CE26D8EE47B0655C516E9CE64028748233@shsmsx102.ccr.corp.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7Bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cloudserver094114.home.net.pl ([79.96.170.134]:42752 "HELO
+Received: from cloudserver094114.home.net.pl ([79.96.170.134]:47611 "HELO
 	cloudserver094114.home.net.pl" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with SMTP id S1752286AbcD0VUX (ORCPT
+	by vger.kernel.org with SMTP id S1752666AbcD0VVp (ORCPT
 	<rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 27 Apr 2016 17:20:23 -0400
-In-Reply-To: <1461230940-5037-2-git-send-email-lukasz.anaczkowski@intel.com>
+	Wed, 27 Apr 2016 17:21:45 -0400
+In-Reply-To: <36DF59CE26D8EE47B0655C516E9CE64028748233@shsmsx102.ccr.corp.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Lukasz Anaczkowski <lukasz.anaczkowski@intel.com>
-Cc: len.brown@intel.com, mingo@redhat.com, x86@kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
+To: "Chen, Yu C" <yu.c.chen@intel.com>, "Zheng, Lv" <lv.zheng@intel.com>
+Cc: Lv Zheng <zetalog@gmail.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>, "Brown, Len" <len.brown@intel.com>
 
-On Thursday, April 21, 2016 11:29:00 AM Lukasz Anaczkowski wrote:
-> SRAT maps APIC ID to proximity domains ids (PXM). Mapping from PXM to
-> NUMA node ids is based on order of entries in SRAT table.
-> SRAT table has just LAPIC entires or mix of LAPIC and X2APIC entries.
-> As long as there are only LAPIC entires, mapping from proximity domain
-> id to NUMA node id is as assumed by BIOS. However, once APIC entries are
-> mixed, X2APIC entries would be first mapped which causes unexpected NUMA
-> node mapping.
-> To fix that, change parsing to check each entry against both LAPIC and
-> X2APIC so mapping is in the SRAT/PXM order.
-> This is supplemental change to the fix made by d81056b5278 (thus
-> "Fixes:" tag) and using same mechanism introduced by 9b3fedd (ACPI / tables:
-> Add acpi_subtable_proc to ACPI table parsers).
+On Wednesday, April 27, 2016 09:45:21 AM Chen, Yu C wrote:
+> Hi Lv,
 > 
-> Fixes: d81056b5278 (Handle apic/x2apic entries in MADT in correct order)
-> Signed-off-by: Lukasz Anaczkowski <lukasz.anaczkowski@intel.com>
+> > -----Original Message-----
+> > From: Zheng, Lv
+> > Sent: Wednesday, April 27, 2016 4:55 PM
+> > To: Wysocki, Rafael J; Rafael J. Wysocki; Brown, Len
+> > Cc: Zheng, Lv; Lv Zheng; linux-kernel@vger.kernel.org; linux-
+> > acpi@vger.kernel.org; Chen, Yu C
+> > Subject: [PATCH v2 4/6] ACPI / osi: Fix default _OSI(Darwin) support
+> > 
+> > From: Chen Yu <yu.c.chen@intel.com>
+> > 
+> > The following commit always reports positive value when Apple hardware
+> > queries _OSI("Darwin"):
+> >  Commit: 7bc5a2bad0b8d9d1ac9f7b8b33150e4ddf197334
+> >  Subject: ACPI: Support _OSI("Darwin") correctly However since this
+> > implementation places the judgement in runtime, it breaks acpi_osi=!Darwin
+> > and cannot return unsupported for _OSI("WinXXX") invoked before invoking
+> > _OSI("Darwin").
+> > 
+> > This patch fixes the issues by reverting the wrong support and implementing
+> > the default behavior of _OSI("Darwin")/_OSI("WinXXX") on Apple hardware via
+> > DMI matching.
+> > 
+> > Fixes: 7bc5a2bad0b8 ("ACPI: Support _OSI("Darwin") correctly")
+> > Cc: <stable@vger.kernel.org> # 3.18+
+> > Link: https://bugzilla.kernel.org/show_bug.cgi?id=92111
+> > Reported-by: Lukas Wunner <lukas@wunner.de>
+> > Signed-off-by: Chen Yu <yu.c.chen@intel.com>
+> > Signed-off-by: Lv Zheng <lv.zheng@intel.com>
+> > ---
+> >  drivers/acpi/blacklist.c |   23 ++++++++++++++++++
+> >  drivers/acpi/osl.c       |   58 ++++++++++++++++++++++++++++++++++++++++---
+> > ---
+> >  include/linux/acpi.h     |    1 +
+> >  3 files changed, 75 insertions(+), 7 deletions(-)
+> > 
+> > diff --git a/drivers/acpi/blacklist.c b/drivers/acpi/blacklist.c index
+> > 96809cd..e947d3e 100644
+> > --- a/drivers/acpi/blacklist.c
+> > +++ b/drivers/acpi/blacklist.c
+> > @@ -133,6 +133,11 @@ int __init acpi_blacklisted(void)
+> >  	return blacklisted;
+> >  }
+> >  #ifdef CONFIG_DMI
+> > +static int __init dmi_enable_osi_darwin(const struct dmi_system_id *d)
+> > +{
+> > +	acpi_dmi_osi_darwin(1, d);	/* enable */
+> > +	return 0;
+> > +}
+> >  static int __init dmi_enable_osi_linux(const struct dmi_system_id *d)  {
+> >  	acpi_dmi_osi_linux(1, d);	/* enable */
+> > @@ -331,6 +336,24 @@ static struct dmi_system_id acpi_osi_dmi_table[]
+> > __initdata = {
+> >  		},
+> >  	},
+> > 
+> > +	/*
+> > +	 * Enable _OSI("Darwin") for all apple platforms.
+> > +	 */
+> > +	{
+> > +	.callback = dmi_enable_osi_darwin,
+> > +	.ident = "Apple hardware",
+> > +	.matches = {
+> > +		     DMI_MATCH(DMI_SYS_VENDOR, "Apple INC."),
+> > +		},
+> > +	},
+> > +	{
+> > +	.callback = dmi_enable_osi_darwin,
+> > +	.ident = "Apple hardware",
+> > +	.matches = {
+> > +		     DMI_MATCH(DMI_SYS_VENDOR, "Apple Computer, INC."),
+> > +		},
+> > +	},
+> > +
+> The  vendor id should be 'Apple Inc.' and 'Apple Computer, Inc.' instead.
 
-Applied, thanks!
+If this is the only problem with this patch, I can fix it up.  No need to resend.
+
+Thanks,
+Rafael
 
