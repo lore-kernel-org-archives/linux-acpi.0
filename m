@@ -1,97 +1,55 @@
-From: "Chen, Yu C" <yu.c.chen@intel.com>
-Subject: RE: [PATCH v2 4/6] ACPI / osi: Fix default _OSI(Darwin) support
-Date: Wed, 27 Apr 2016 09:45:21 +0000
-Message-ID: <36DF59CE26D8EE47B0655C516E9CE64028748233@shsmsx102.ccr.corp.intel.com>
-References: <cover.1461656216.git.lv.zheng@intel.com>
- <cover.1461736123.git.lv.zheng@intel.com>
- <e8ea6e8841adce9e10e5bd0b278b47a7c799c276.1461736123.git.lv.zheng@intel.com>
+From: Tomasz Nowicki <tn@semihalf.com>
+Subject: Re: [PATCH V6 01/13] pci, acpi, x86, ia64: Move ACPI host bridge
+ device companion assignment to core code.
+Date: Wed, 27 Apr 2016 12:12:51 +0200
+Message-ID: <572090A3.7000503@semihalf.com>
+References: <1460740008-19489-2-git-send-email-tn@semihalf.com>
+ <201604160430.P8zNe8Vl%fengguang.wu@intel.com>
+ <20160426223618.GB6789@localhost>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <e8ea6e8841adce9e10e5bd0b278b47a7c799c276.1461736123.git.lv.zheng@intel.com>
-Content-Language: en-US
-Sender: linux-kernel-owner@vger.kernel.org
-To: "Zheng, Lv" <lv.zheng@intel.com>
-Cc: Lv Zheng <zetalog@gmail.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, "Brown, Len" <len.brown@intel.com>
+Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-pci-owner@vger.kernel.org>
+In-Reply-To: <20160426223618.GB6789@localhost>
+Sender: linux-pci-owner@vger.kernel.org
+To: Bjorn Helgaas <helgaas@kernel.org>, kbuild test robot <lkp@intel.com>
+Cc: kbuild-all@01.org, arnd@arndb.de, will.deacon@arm.com, catalin.marinas@arm.com, rafael@kernel.org, hanjun.guo@linaro.org, Lorenzo.Pieralisi@arm.com, okaya@codeaurora.org, jiang.liu@linux.intel.com, jchandra@broadcom.com, robert.richter@caviumnetworks.com, mw@semihalf.com, Liviu.Dudau@arm.com, ddaney@caviumnetworks.com, wangyijing@huawei.com, Suravee.Suthikulpanit@amd.com, msalter@redhat.com, linux-pci@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linaro-acpi@lists.linaro.org, jcm@redhat.com
 List-Id: linux-acpi@vger.kernel.org
 
-Hi Lv,
+On 27.04.2016 00:36, Bjorn Helgaas wrote:
+> On Sat, Apr 16, 2016 at 04:41:45AM +0800, kbuild test robot wrote:
+>> Hi Tomasz,
+>>
+>> [auto build test ERROR on pci/next]
+>> [also build test ERROR on v4.6-rc3 next-20160415]
+>> [if your patch is applied to the wrong git tree, please drop us a note to help improving the system]
+>>
+>> url:    https://github.com/0day-ci/linux/commits/Tomasz-Nowicki/Support-for-generic-ACPI-based-PCI-host-controller/20160416-011935
+>> base:   https://git.kernel.org/pub/scm/linux/kernel/git/helgaas/pci.git next
+>> config: ia64-allmodconfig (attached as .config)
+>> reproduce:
+>>          wget https://git.kernel.org/cgit/linux/kernel/git/wfg/lkp-tests.git/plain/sbin/make.cross -O ~/bin/make.cross
+>>          chmod +x ~/bin/make.cross
+>>          # save the attached .config to linux build tree
+>>          make.cross ARCH=ia64
+>>
+>> All errors (new ones prefixed by >>):
+>>
+>>     drivers/pci/hotplug/sgi_hotplug.c: In function 'enable_slot':
+>>>> drivers/pci/hotplug/sgi_hotplug.c:412:61: error: 'struct pci_controller' has no member named 'companion'
+>>        phandle = acpi_device_handle(PCI_CONTROLLER(slot->pci_bus)->companion);
+>>                                                                  ^
+>>     drivers/pci/hotplug/sgi_hotplug.c: In function 'disable_slot':
+>>     drivers/pci/hotplug/sgi_hotplug.c:491:32: error: 'struct pci_controller' has no member named 'companion'
+>>        PCI_CONTROLLER(slot->pci_bus)->companion) {
+>>                                     ^
+>>     drivers/pci/hotplug/sgi_hotplug.c:500:61: error: 'struct pci_controller' has no member named 'companion'
+>>        phandle = acpi_device_handle(PCI_CONTROLLER(slot->pci_bus)->companion);
+>>                                                                  ^
+>
+> I assume somebody is fixing this?
 
-> -----Original Message-----
-> From: Zheng, Lv
-> Sent: Wednesday, April 27, 2016 4:55 PM
-> To: Wysocki, Rafael J; Rafael J. Wysocki; Brown, Len
-> Cc: Zheng, Lv; Lv Zheng; linux-kernel@vger.kernel.org; linux-
-> acpi@vger.kernel.org; Chen, Yu C
-> Subject: [PATCH v2 4/6] ACPI / osi: Fix default _OSI(Darwin) support
-> 
-> From: Chen Yu <yu.c.chen@intel.com>
-> 
-> The following commit always reports positive value when Apple hardware
-> queries _OSI("Darwin"):
->  Commit: 7bc5a2bad0b8d9d1ac9f7b8b33150e4ddf197334
->  Subject: ACPI: Support _OSI("Darwin") correctly However since this
-> implementation places the judgement in runtime, it breaks acpi_osi=!Darwin
-> and cannot return unsupported for _OSI("WinXXX") invoked before invoking
-> _OSI("Darwin").
-> 
-> This patch fixes the issues by reverting the wrong support and implementing
-> the default behavior of _OSI("Darwin")/_OSI("WinXXX") on Apple hardware via
-> DMI matching.
-> 
-> Fixes: 7bc5a2bad0b8 ("ACPI: Support _OSI("Darwin") correctly")
-> Cc: <stable@vger.kernel.org> # 3.18+
-> Link: https://bugzilla.kernel.org/show_bug.cgi?id=92111
-> Reported-by: Lukas Wunner <lukas@wunner.de>
-> Signed-off-by: Chen Yu <yu.c.chen@intel.com>
-> Signed-off-by: Lv Zheng <lv.zheng@intel.com>
-> ---
->  drivers/acpi/blacklist.c |   23 ++++++++++++++++++
->  drivers/acpi/osl.c       |   58 ++++++++++++++++++++++++++++++++++++++++---
-> ---
->  include/linux/acpi.h     |    1 +
->  3 files changed, 75 insertions(+), 7 deletions(-)
-> 
-> diff --git a/drivers/acpi/blacklist.c b/drivers/acpi/blacklist.c index
-> 96809cd..e947d3e 100644
-> --- a/drivers/acpi/blacklist.c
-> +++ b/drivers/acpi/blacklist.c
-> @@ -133,6 +133,11 @@ int __init acpi_blacklisted(void)
->  	return blacklisted;
->  }
->  #ifdef CONFIG_DMI
-> +static int __init dmi_enable_osi_darwin(const struct dmi_system_id *d)
-> +{
-> +	acpi_dmi_osi_darwin(1, d);	/* enable */
-> +	return 0;
-> +}
->  static int __init dmi_enable_osi_linux(const struct dmi_system_id *d)  {
->  	acpi_dmi_osi_linux(1, d);	/* enable */
-> @@ -331,6 +336,24 @@ static struct dmi_system_id acpi_osi_dmi_table[]
-> __initdata = {
->  		},
->  	},
-> 
-> +	/*
-> +	 * Enable _OSI("Darwin") for all apple platforms.
-> +	 */
-> +	{
-> +	.callback = dmi_enable_osi_darwin,
-> +	.ident = "Apple hardware",
-> +	.matches = {
-> +		     DMI_MATCH(DMI_SYS_VENDOR, "Apple INC."),
-> +		},
-> +	},
-> +	{
-> +	.callback = dmi_enable_osi_darwin,
-> +	.ident = "Apple hardware",
-> +	.matches = {
-> +		     DMI_MATCH(DMI_SYS_VENDOR, "Apple Computer, INC."),
-> +		},
-> +	},
-> +
-The  vendor id should be 'Apple Inc.' and 'Apple Computer, Inc.' instead.
+Yes, it will be fixed in next version also I will ask Hanjun to re-test 
+it on IA64 as in the past.
 
-thanks,
-yu
+Tomasz
