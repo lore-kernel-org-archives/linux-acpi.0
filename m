@@ -1,71 +1,121 @@
 From: David Daney <ddaney.cavm@gmail.com>
-Subject: [PATCH v6 12/14] acpi, numa, srat: Improve SRAT error detection and add messages.
-Date: Wed, 27 Apr 2016 11:07:14 -0700
-Message-ID: <1461780436-27182-13-git-send-email-ddaney.cavm@gmail.com>
+Subject: [PATCH v6 05/14] acpi,
+ numa: move acpi_numa_slit_init() to drivers/acpi/numa.c
+Date: Wed, 27 Apr 2016 11:07:07 -0700
+Message-ID: <1461780436-27182-6-git-send-email-ddaney.cavm@gmail.com>
 References: <1461780436-27182-1-git-send-email-ddaney.cavm@gmail.com>
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-pa0-f65.google.com ([209.85.220.65]:35895 "EHLO
-	mail-pa0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753662AbcD0SHt (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 27 Apr 2016 14:07:49 -0400
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
 In-Reply-To: <1461780436-27182-1-git-send-email-ddaney.cavm@gmail.com>
-Sender: linux-acpi-owner@vger.kernel.org
-List-Id: linux-acpi@vger.kernel.org
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
 To: Will Deacon <will.deacon@arm.com>, linux-arm-kernel@lists.infradead.org, Mark Rutland <mark.rutland@arm.com>, Catalin Marinas <catalin.marinas@arm.com>, Tony Luck <tony.luck@intel.com>, Fenghua Yu <fenghua.yu@intel.com>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, x86@kernel.org, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Rob Herring <robh+dt@kernel.org>, Frank Rowand <frowand.list@gmail.com>, Grant Likely <grant.likely@linaro.org>, Robert Moore <robert.moore@intel.com>, Lv Zheng <lv.zheng@intel.com>, Hanjun Guo <hanjun.guo@linaro.org>, Marc Zyngier <Marc.Zyngier@arm.com>, linux-ia64@vger.kernel.org, linux-acpi@vger.kernel.org, devel@acpica.org
-Cc: linux-kernel@vger.kernel.org, Robert Richter <rrichter@cavium.com>, David Daney <david.daney@cavium.com>
+Cc: Robert Richter <rrichter@cavium.com>, linux-kernel@vger.kernel.org, David Daney <david.daney@cavium.com>
+List-Id: linux-acpi@vger.kernel.org
 
-From: David Daney <david.daney@cavium.com>
+From: Hanjun Guo <hanjun.guo@linaro.org>
 
-Loosely based on code from Robert Richter and Hanjun Guo.
+Identical implementations of acpi_numa_slit_init() are used by both
+x86 and follow-on arm64 support.  Move it to drivers/acpi/numa.c, and
+guard with CONFIG_X86 || CONFIG_ARM64 because ia64 has its own
+architecture specific implementation.
 
-Improve out of range node detection as well as allow for Larger SRAT
-entities.
+No code change.
 
-Add printing of nice messages.
-
+Signed-off-by: Hanjun Guo <hanjun.guo@linaro.org>
+Signed-off-by: Robert Richter <rrichter@cavium.com>
 Signed-off-by: David Daney <david.daney@cavium.com>
 ---
- drivers/acpi/numa.c | 15 +++++++++++----
- 1 file changed, 11 insertions(+), 4 deletions(-)
+ arch/x86/mm/srat.c  | 27 ---------------------------
+ drivers/acpi/numa.c | 29 +++++++++++++++++++++++++++++
+ 2 files changed, 29 insertions(+), 27 deletions(-)
 
+diff --git a/arch/x86/mm/srat.c b/arch/x86/mm/srat.c
+index 90b6ed9..f242a11 100644
+--- a/arch/x86/mm/srat.c
++++ b/arch/x86/mm/srat.c
+@@ -42,33 +42,6 @@ static __init inline int srat_disabled(void)
+ 	return acpi_numa < 0;
+ }
+ 
+-/*
+- * Callback for SLIT parsing.  pxm_to_node() returns NUMA_NO_NODE for
+- * I/O localities since SRAT does not list them.  I/O localities are
+- * not supported at this point.
+- */
+-void __init acpi_numa_slit_init(struct acpi_table_slit *slit)
+-{
+-	int i, j;
+-
+-	for (i = 0; i < slit->locality_count; i++) {
+-		const int from_node = pxm_to_node(i);
+-
+-		if (from_node == NUMA_NO_NODE)
+-			continue;
+-
+-		for (j = 0; j < slit->locality_count; j++) {
+-			const int to_node = pxm_to_node(j);
+-
+-			if (to_node == NUMA_NO_NODE)
+-				continue;
+-
+-			numa_set_distance(from_node, to_node,
+-				slit->entry[slit->locality_count * i + j]);
+-		}
+-	}
+-}
+-
+ /* Callback for Proximity Domain -> x2APIC mapping */
+ void __init
+ acpi_numa_x2apic_affinity_init(struct acpi_srat_x2apic_cpu_affinity *pa)
 diff --git a/drivers/acpi/numa.c b/drivers/acpi/numa.c
-index d7d0499..50c8f42 100644
+index f41f06b..6fa528a 100644
 --- a/drivers/acpi/numa.c
 +++ b/drivers/acpi/numa.c
-@@ -252,8 +252,11 @@ acpi_numa_memory_affinity_init(struct acpi_srat_mem_affinity *ma)
+@@ -197,6 +197,35 @@ static int __init slit_valid(struct acpi_table_slit *slit)
+ 	return 1;
+ }
  
- 	if (srat_disabled())
- 		goto out_err;
--	if (ma->header.length != sizeof(struct acpi_srat_mem_affinity))
-+	if (ma->header.length < sizeof(struct acpi_srat_mem_affinity)) {
-+		pr_err("SRAT: Unexpected header length: %d\n",
-+		       ma->header.length);
- 		goto out_err_bad_srat;
++#if defined(CONFIG_X86) || defined (CONFIG_ARM64)
++/*
++ * Callback for SLIT parsing.  pxm_to_node() returns NUMA_NO_NODE for
++ * I/O localities since SRAT does not list them.  I/O localities are
++ * not supported at this point.
++ */
++void __init acpi_numa_slit_init(struct acpi_table_slit *slit)
++{
++	int i, j;
++
++	for (i = 0; i < slit->locality_count; i++) {
++		const int from_node = pxm_to_node(i);
++
++		if (from_node == NUMA_NO_NODE)
++			continue;
++
++		for (j = 0; j < slit->locality_count; j++) {
++			const int to_node = pxm_to_node(j);
++
++			if (to_node == NUMA_NO_NODE)
++				continue;
++
++			numa_set_distance(from_node, to_node,
++				slit->entry[slit->locality_count * i + j]);
++		}
 +	}
- 	if ((ma->flags & ACPI_SRAT_MEM_ENABLED) == 0)
- 		goto out_err;
- 	hotpluggable = ma->flags & ACPI_SRAT_MEM_HOT_PLUGGABLE;
-@@ -267,13 +270,17 @@ acpi_numa_memory_affinity_init(struct acpi_srat_mem_affinity *ma)
- 		pxm &= 0xff;
- 
- 	node = acpi_map_pxm_to_node(pxm);
--	if (node < 0) {
--		printk(KERN_ERR "SRAT: Too many proximity domains.\n");
-+	if (node == NUMA_NO_NODE || node >= MAX_NUMNODES) {
-+		pr_err("SRAT: Too many proximity domains.\n");
- 		goto out_err_bad_srat;
- 	}
- 
--	if (numa_add_memblk(node, start, end) < 0)
-+	if (numa_add_memblk(node, start, end) < 0) {
-+		pr_err("SRAT: Failed to add memblk to node %u [mem %#010Lx-%#010Lx]\n",
-+		       node, (unsigned long long) start,
-+		       (unsigned long long) end - 1);
- 		goto out_err_bad_srat;
-+	}
- 
- 	node_set(node, numa_nodes_parsed);
- 
++}
++#endif /* defined(CONFIG_X86) || defined (CONFIG_ARM64) */
++
+ static int __init acpi_parse_slit(struct acpi_table_header *table)
+ {
+ 	struct acpi_table_slit *slit = (struct acpi_table_slit *)table;
 -- 
 1.7.11.7
-
