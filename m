@@ -1,33 +1,128 @@
-From: <Mario_Limonciello@Dell.com>
-Subject: RE: [PATCH] ACPI: fix Thunderbolt hotplug
-Date: Wed, 27 Apr 2016 13:07:52 +0000
-Message-ID: <267715506ea94c48bc98d61f1e2919bd@ausx13mpc120.AMER.DELL.COM>
-References: <1461760019-12930-1-git-send-email-prarit@redhat.com>
- <CAJZ5v0hdnQDZt2ur5R0xVH-985+pj5yQSxRBS+LgJZ_Ykk9Uww@mail.gmail.com>
+From: Tomasz Nowicki <tn@semihalf.com>
+Subject: Re: [PATCH V6 03/13] x86, ia64: Include acpi_pci_{add|remove}_bus to
+ the default pcibios_{add|remove}_bus implementation.
+Date: Wed, 27 Apr 2016 15:19:48 +0200
+Message-ID: <5720BC74.7050200@semihalf.com>
+References: <1460740008-19489-1-git-send-email-tn@semihalf.com>
+ <1460740008-19489-4-git-send-email-tn@semihalf.com>
+ <20160427023429.GE6789@localhost>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <stable-owner@vger.kernel.org>
-In-Reply-To: <CAJZ5v0hdnQDZt2ur5R0xVH-985+pj5yQSxRBS+LgJZ_Ykk9Uww@mail.gmail.com>
-Content-Language: en-US
-Sender: stable-owner@vger.kernel.org
-To: rafael@kernel.org, prarit@redhat.com
-Cc: linux-kernel@vger.kernel.org, robert.moore@intel.com, lv.zheng@intel.com, rafael.j.wysocki@intel.com, lenb@kernel.org, linux-acpi@vger.kernel.org, stable@vger.kernel.org, devel@acpica.org
+Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20160427023429.GE6789@localhost>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Bjorn Helgaas <helgaas@kernel.org>
+Cc: arnd@arndb.de, will.deacon@arm.com, catalin.marinas@arm.com, rafael@kernel.org, hanjun.guo@linaro.org, Lorenzo.Pieralisi@arm.com, okaya@codeaurora.org, jiang.liu@linux.intel.com, jchandra@broadcom.com, robert.richter@caviumnetworks.com, mw@semihalf.com, Liviu.Dudau@arm.com, ddaney@caviumnetworks.com, wangyijing@huawei.com, Suravee.Suthikulpanit@amd.com, msalter@redhat.com, linux-pci@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linaro-acpi@lists.linaro.org, jcm@redhat.com
 List-Id: linux-acpi@vger.kernel.org
 
-PiBPbiBXZWQsIEFwciAyNywgMjAxNiBhdCAyOjI2IFBNLCBQcmFyaXQgQmhhcmdhdmEgPHByYXJp
-dEByZWRoYXQuY29tPiB3cm90ZToNCj4gPiBSYWZhZWwsIHRoaXMgcGF0Y2ggaXMgaW4gdGhlIGFj
-cGljYS5naXQgdHJlZSBhcyA3YTNiZDJkICgiRGlzcGF0Y2hlcjoNCj4gPiBVcGRhdGUgdGhyZWFk
-IElEIGZvciByZWN1cnNpdmUgbWV0aG9kIGNhbGxzIikuICBJJ3ZlIGhhZCBtYW55IHBvc2l0aXZl
-DQo+ID4gdGVzdGluZyByZXN1bHRzIGZyb20gaGFyZHdhcmUgdmVuZG9ycyBhbmQgdXNlcnMgd2l0
-aCB0aGlzIHBhdGNoIGFuZA0KPiA+IHRoaXMgcmVzb2x2ZXMgbWFueSBvZiB0aGUgcHJvYmxlbXMg
-c2VlbiBoZXJlOg0KPiA+DQo+ID4gaHR0cHM6Ly9idWd6aWxsYS5rZXJuZWwub3JnL3Nob3dfYnVn
-LmNnaT9pZD0xMTUxMjENCj4gPg0KPiA+IFRoaXMgZG9lcyBub3QgZml4IHRoZSBwcm9ibGVtcyB3
-aXRoIHRoZSBUQiBkb2NraW5nIHN0YXRpb24uICBBbHRob3VnaA0KPiA+IHRoaXMgcGF0Y2ggd2ls
-bCBhbHNvIGJlIHJlcXVpcmVkLCB0aGUgZG9ja2luZyBzdGF0aW9uIGlzc3VlcyByZXF1aXJlIGEg
-RlcgdXBkYXRlLg0KPiA+IFVwZGF0ZWQgRlcgc2hvdWxkIGJlIGNvbWluZyBzb29uIHRvIHJlc29s
-dmUgdGhvc2UgcHJvYmxlbXMuDQo+IA0KPiBMdiBpcyBnb2luZyB0byBzZW5kIG1lIHBhdGNoZXMg
-Zm9yIHRoZSBjdXJyZW50IEFDUElDQSByZWxlYXNlIHNob3J0bHkuDQo+IA0KPiBJJ2xsIHBpY2sg
-dXAgdGhpcyBvbmUgZnJvbSB0aGF0IHNlcmllcy4gIEhvcGVmdWxseSwgdGhhdCdzIG5vdCBhIHBy
-b2JsZW0uDQo+IA0KDQpSYWZhZWwsDQoNCkFueSBjaGFuY2UgdGhpcyBjYW4gc3RpbGwgbWFrZSA0
-LjYgYW5kIGFsc28gd291bGQgYmUgYXBwcm9wcmlhdGUgZm9yIHN0YWJsZT8gIA0K
+On 27.04.2016 04:34, Bjorn Helgaas wrote:
+> On Fri, Apr 15, 2016 at 07:06:38PM +0200, Tomasz Nowicki wrote:
+>> x86 and ia64 are the only arches that implement pcibios_{add|remove}_bus hooks
+>> and implement them in the same way. Moreover ARM64 is going to do the same.
+>> So it seems that acpi_pci_{add|remove}_bus is generic enough to be default
+>> option for pcibios_{add|remove}_bus hooks. Also, it is always safe to run
+>> acpi_pci_{add|remove}_bus as they have empty stubs for !ACPI case and
+>> return if ACPI has been switched off in run time.
+>>
+>> After all we can remove x86 and ia64 pcibios_{add|remove}_bus
+>> implementation.
+>>
+>> Signed-off-by: Tomasz Nowicki <tn@semihalf.com>
+>> Reviewed-by: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+>> Tested-by: Duc Dang <dhdang@apm.com>
+>> Tested-by: Dongdong Liu <liudongdong3@huawei.com>
+>> Tested-by: Hanjun Guo <hanjun.guo@linaro.org>
+>> Tested-by: Graeme Gregory <graeme.gregory@linaro.org>
+>> Tested-by: Sinan Kaya <okaya@codeaurora.org>
+>> ---
+>>   arch/ia64/pci/pci.c   | 10 ----------
+>>   arch/x86/pci/common.c | 10 ----------
+>>   drivers/pci/probe.c   |  3 +++
+>>   3 files changed, 3 insertions(+), 20 deletions(-)
+>>
+>> diff --git a/arch/ia64/pci/pci.c b/arch/ia64/pci/pci.c
+>> index 978d6af..be4c9ef 100644
+>> --- a/arch/ia64/pci/pci.c
+>> +++ b/arch/ia64/pci/pci.c
+>> @@ -358,16 +358,6 @@ void pcibios_fixup_bus(struct pci_bus *b)
+>>   	platform_pci_fixup_bus(b);
+>>   }
+>>
+>> -void pcibios_add_bus(struct pci_bus *bus)
+>> -{
+>> -	acpi_pci_add_bus(bus);
+>> -}
+>> -
+>> -void pcibios_remove_bus(struct pci_bus *bus)
+>> -{
+>> -	acpi_pci_remove_bus(bus);
+>> -}
+>> -
+>>   void pcibios_set_master (struct pci_dev *dev)
+>>   {
+>>   	/* No special bus mastering setup handling */
+>> diff --git a/arch/x86/pci/common.c b/arch/x86/pci/common.c
+>> index 381a43c..7763a84 100644
+>> --- a/arch/x86/pci/common.c
+>> +++ b/arch/x86/pci/common.c
+>> @@ -170,16 +170,6 @@ void pcibios_fixup_bus(struct pci_bus *b)
+>>   		pcibios_fixup_device_resources(dev);
+>>   }
+>>
+>> -void pcibios_add_bus(struct pci_bus *bus)
+>> -{
+>> -	acpi_pci_add_bus(bus);
+>> -}
+>> -
+>> -void pcibios_remove_bus(struct pci_bus *bus)
+>> -{
+>> -	acpi_pci_remove_bus(bus);
+>> -}
+>> -
+>>   /*
+>>    * Only use DMI information to set this if nothing was passed
+>>    * on the kernel command line (which was parsed earlier).
+>> diff --git a/drivers/pci/probe.c b/drivers/pci/probe.c
+>> index 8087297..ef569e8 100644
+>> --- a/drivers/pci/probe.c
+>> +++ b/drivers/pci/probe.c
+>> @@ -12,6 +12,7 @@
+>>   #include <linux/slab.h>
+>>   #include <linux/module.h>
+>>   #include <linux/cpumask.h>
+>> +#include <linux/pci-acpi.h>
+>>   #include <linux/pci-aspm.h>
+>>   #include <linux/aer.h>
+>>   #include <linux/acpi.h>
+>> @@ -2101,10 +2102,12 @@ int __weak pcibios_root_bridge_prepare(struct pci_host_bridge *bridge)
+>>
+>>   void __weak pcibios_add_bus(struct pci_bus *bus)
+>>   {
+>> +	acpi_pci_add_bus(bus);
+>>   }
+>>
+>>   void __weak pcibios_remove_bus(struct pci_bus *bus)
+>>   {
+>> +	acpi_pci_remove_bus(bus);
+>>   }
+>
+> Is this buying us something more than just getting rid of these
+> pcibios functions in the arches?  The arch-specific pcibios methods
+> by themselves don't seem too onerous, and I don't really want to add
+> #includes and calls to every firmware interface under the sun.
+>
+> I admit it's a net removal of 17 lines, but I'm not sure it's a net
+> reduction in complexity for the reader, who now has to remember that
+> this ACPI stuff is a no-op on most arches.
+>
+> As a tangent, some of the stuff in acpi_pci_add_bus() really belongs
+> elsewhere anyway.  For example, the _DSM stuff should probably be in
+> acpi_pci_root_create() since it's a one-per-host bridge kind of thing.
+>
+
+OK, I will add pcibios_add_bus to ARM64 arch code and call 
+acpi_pci_remove_bus(bus) from there.
+
+Thanks,
+Tomasz
