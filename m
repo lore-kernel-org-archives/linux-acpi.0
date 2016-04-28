@@ -1,120 +1,203 @@
-From: Jiang Qiu <qiujiang@huawei.com>
-Subject: [PATCH v10 3/3] gpio: dwapb: add gpio-signaled acpi event support
-Date: Thu, 28 Apr 2016 17:32:03 +0800
-Message-ID: <1461835923-68492-4-git-send-email-qiujiang@huawei.com>
-References: <1461835923-68492-1-git-send-email-qiujiang@huawei.com>
-Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1461835923-68492-1-git-send-email-qiujiang@huawei.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: linus.walleij@linaro.org, gnurou@gmail.com
-Cc: mika.westerberg@linux.intel.com, andy.shevchenko@gmail.com, delicious.quinoa@gmail.com, jamie@jamieiles.com, charles.chenxin@huawei.com, linux-kernel@vger.kernel.org, linux-gpio@vger.kernel.org, linux-acpi@vger.kernel.org, linuxarm@huawei.com, Jiang Qiu <qiujiang@huawei.com>
+From: Mika Westerberg <mika.westerberg@linux.intel.com>
+Subject: [PATCH] i2c: i801: Allow ACPI SystemIO OpRegion to conflict with PCI BAR
+Date: Thu, 28 Apr 2016 13:23:30 +0300
+Message-ID: <1461839010-110231-1-git-send-email-mika.westerberg@linux.intel.com>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga04.intel.com ([192.55.52.120]:37899 "EHLO mga04.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750923AbcD1KXe (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 28 Apr 2016 06:23:34 -0400
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Jean Delvare <jdelvare@suse.com>, Wolfram Sang <wsa@the-dreams.de>
+Cc: Jarkko Nikula <jarkko.nikula@linux.intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Mika Westerberg <mika.westerberg@linux.intel.com>, linux-i2c@vger.kernel.org, linux-acpi@vger.kernel.org
 
-This patch adds gpio-signaled acpi event support. It is used for
-power button on hisilicon D02 board, an arm64 platform.
+Many Intel systems the BIOS declares a SystemIO OpRegion below the SMBus
+PCI device as can be seen in ACPI DSDT table from Lenovo Yoga 900:
 
-The corresponding DSDT file is defined as follows:
-Device(GPI0) {
-	Name(_HID, "HISI0181")
-	Name(_ADR, 0)
-	Name(_UID, 0)
+  Device (SBUS)
+  {
+      OperationRegion (SMBI, SystemIO, (SBAR << 0x05), 0x10)
+      Field (SMBI, ByteAcc, NoLock, Preserve)
+      {
+          HSTS,   8,
+          Offset (0x02),
+          HCON,   8,
+          HCOM,   8,
+          TXSA,   8,
+          DAT0,   8,
+          DAT1,   8,
+          HBDR,   8,
+          PECR,   8,
+          RXSA,   8,
+          SDAT,   16
+      }
 
-	Name (_CRS, ResourceTemplate ()  {
-		Memory32Fixed (ReadWrite, 0x802e0000, 0x10000)
-		Interrupt (ResourceConsumer, Level, ActiveHigh,
-		Exclusive,,,)  {344}
-	})
+There are also bunch of ASL methods that that the BIOS can use to access
+these fields. Most of the systems in question ASL methods accessing the
+SMBI OpRegion are never used.
 
-	Device(PRTa) {
-		Name (_DSD, Package () {
-		Package () {
-			Package () {"reg",0},
-			Package () {"snps,nr-gpios",32},
-		}
-		})
-	}
+Now, because of this SMBI OpRegion many systems fail to load the SMBus
+driver with an error looking like one below:
 
-	Name (_AEI, ResourceTemplate () {
-		GpioInt(Edge, ActiveLow, ExclusiveAndWake,
-		PullUp, , " \\_SB.GPI0") {8}
-	})
+  ACPI Warning: SystemIO range 0x0000000000003040-0x000000000000305F
+       conflicts with OpRegion 0x0000000000003040-0x000000000000304F
+       (\_SB.PCI0.SBUS.SMBI) (20160108/utaddress-255)
+  ACPI: If an ACPI driver is available for this device, you should use
+       it instead of the native driver
 
-	Method (_E08, 0x0, NotSerialized) {
-		Notify (\_SB.PWRB, 0x80)
-	}
-}
+The reason is that this SMBI OpRegion conflicts with the PCI BAR used by
+the SMBus driver.
 
-Acked-by: Mika Westerberg <mika.westerberg@linux.intel.com>
-Reviewed-by: Andy Shevchenko <andy.shevchenko@gmail.com>
-Signed-off-by: Jiang Qiu <qiujiang@huawei.com>
+It turns out that we can install a custom SystemIO address space handler
+for the SMBus device to intercept all accesses through that OpRegion. This
+allows us to share the PCI BAR with the ASL code if it for some reason is
+using it. We do not expect that this OpRegion handler will ever be called
+but if it is we print a warning and execute the read/write operation under
+a lock which prevents ASL and OS from messing each other.
+
+Suggested-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+Signed-off-by: Mika Westerberg <mika.westerberg@linux.intel.com>
 ---
- drivers/gpio/gpio-dwapb.c | 17 +++++++++++++++++
- 1 file changed, 17 insertions(+)
+ drivers/i2c/busses/i2c-i801.c | 83 ++++++++++++++++++++++++++++++++++++++++---
+ 1 file changed, 79 insertions(+), 4 deletions(-)
 
-diff --git a/drivers/gpio/gpio-dwapb.c b/drivers/gpio/gpio-dwapb.c
-index 7517c2f..b235d70 100644
---- a/drivers/gpio/gpio-dwapb.c
-+++ b/drivers/gpio/gpio-dwapb.c
-@@ -7,6 +7,7 @@
-  *
-  * All enquiries to support@picochip.com
-  */
-+#include <linux/acpi.h>
- #include <linux/gpio/driver.h>
- /* FIXME: for gpio_get_value(), replace this with direct register read */
- #include <linux/gpio.h>
-@@ -27,6 +28,8 @@
- #include <linux/platform_data/gpio-dwapb.h>
- #include <linux/slab.h>
- 
-+#include "gpiolib.h"
+diff --git a/drivers/i2c/busses/i2c-i801.c b/drivers/i2c/busses/i2c-i801.c
+index 5652bf6ce9be..7c0957870ee8 100644
+--- a/drivers/i2c/busses/i2c-i801.c
++++ b/drivers/i2c/busses/i2c-i801.c
+@@ -247,6 +247,9 @@ struct i801_priv {
+ 	struct platform_device *mux_pdev;
+ #endif
+ 	struct platform_device *tco_pdev;
 +
- #define GPIO_SWPORTA_DR		0x00
- #define GPIO_SWPORTA_DDR	0x04
- #define GPIO_SWPORTB_DR		0x0c
-@@ -435,6 +438,10 @@ static int dwapb_gpio_add_port(struct dwapb_gpio *gpio,
- 	else
- 		port->is_registered = true;
++	/* Serialize ACPI ASL and OS access to the registers */
++	struct mutex acpi_lock;
+ };
  
-+	/* Add GPIO-signaled ACPI event support */
-+	if (pp->irq)
-+		acpi_gpiochip_request_interrupts(&port->gc);
-+
- 	return err;
+ #define FEATURE_SMBUS_PEC	(1 << 0)
+@@ -721,6 +724,7 @@ static s32 i801_access(struct i2c_adapter *adap, u16 addr,
+ 	struct i801_priv *priv = i2c_get_adapdata(adap);
+ 
+ 	pm_runtime_get_sync(&priv->pci_dev->dev);
++	mutex_lock(&priv->acpi_lock);
+ 
+ 	hwpec = (priv->features & FEATURE_SMBUS_PEC) && (flags & I2C_CLIENT_PEC)
+ 		&& size != I2C_SMBUS_QUICK
+@@ -820,6 +824,7 @@ static s32 i801_access(struct i2c_adapter *adap, u16 addr,
+ 	}
+ 
+ out:
++	mutex_unlock(&priv->acpi_lock);
+ 	pm_runtime_mark_last_busy(&priv->pci_dev->dev);
+ 	pm_runtime_put_autosuspend(&priv->pci_dev->dev);
+ 	return ret;
+@@ -1260,6 +1265,75 @@ static void i801_add_tco(struct i801_priv *priv)
+ 	priv->tco_pdev = pdev;
  }
  
-@@ -502,6 +509,9 @@ dwapb_gpio_get_pdata(struct device *dev)
- 				dev_warn(dev, "no irq for port%d\n", pp->idx);
- 		}
- 
-+		if (has_acpi_companion(dev) && pp->idx == 0)
-+			pp->irq = platform_get_irq(to_platform_device(dev), 0);
++#ifdef CONFIG_ACPI
++static acpi_status
++i801_acpi_io_handler(u32 function, acpi_physical_address address, u32 bits,
++		     u64 *value, void *handler_context, void *region_context)
++{
++	struct i801_priv *priv = handler_context;
++	struct pci_dev *pdev = priv->pci_dev;
++	acpi_status status;
 +
- 		pp->irq_shared	= false;
- 		pp->gpio_base	= -1;
- 	}
-@@ -576,6 +586,12 @@ static const struct of_device_id dwapb_of_match[] = {
- };
- MODULE_DEVICE_TABLE(of, dwapb_of_match);
- 
-+static const struct acpi_device_id dwapb_acpi_match[] = {
-+	{"HISI0181", 0},
-+	{ }
-+};
-+MODULE_DEVICE_TABLE(acpi, dwapb_acpi_match);
++	dev_warn_once(&pdev->dev,
++		      "BIOS is accessing SMBus registers from ASL\n");
 +
- #ifdef CONFIG_PM_SLEEP
- static int dwapb_gpio_suspend(struct device *dev)
++	/*
++	 * ASL code is trying to access the I/O port. Make sure we do not
++	 * access the bus at the same time from OS side by taking the lock
++	 * here.
++	 */
++	pm_runtime_get_sync(&pdev->dev);
++	mutex_lock(&priv->acpi_lock);
++
++	if (function == ACPI_READ) {
++		u32 val = (u32)*value;
++		status = acpi_os_read_port(address, &val, bits);
++		if (ACPI_SUCCESS(status))
++			*value = val;
++	} else {
++		status = acpi_os_write_port(address, (u32)*value, bits);
++	}
++
++	mutex_unlock(&priv->acpi_lock);
++	pm_runtime_mark_last_busy(&pdev->dev);
++	pm_runtime_put_autosuspend(&pdev->dev);
++
++	return status;
++}
++
++static int i801_acpi_probe(struct i801_priv *priv)
++{
++	struct acpi_device *adev;
++	acpi_status status;
++
++	adev = ACPI_COMPANION(&priv->pci_dev->dev);
++	if (adev) {
++		status = acpi_install_address_space_handler(adev->handle,
++				ACPI_ADR_SPACE_SYSTEM_IO, i801_acpi_io_handler,
++				NULL, priv);
++		if (ACPI_SUCCESS(status))
++			return 0;
++	}
++
++	return acpi_check_resource_conflict(&priv->pci_dev->resource[SMBBAR]);
++}
++
++static void i801_acpi_remove(struct i801_priv *priv)
++{
++	struct acpi_device *adev;
++
++	adev = ACPI_COMPANION(&priv->pci_dev->dev);
++	if (!adev)
++		return;
++
++	acpi_remove_address_space_handler(adev->handle,
++		ACPI_ADR_SPACE_SYSTEM_IO, i801_acpi_io_handler);
++}
++#else
++static inline int i801_acpi_probe(struct i801_priv *priv) { return 0; }
++static inline void i801_acpi_remove(struct i801_priv *priv) { }
++#endif
++
+ static int i801_probe(struct pci_dev *dev, const struct pci_device_id *id)
  {
-@@ -670,6 +686,7 @@ static struct platform_driver dwapb_gpio_driver = {
- 		.name	= "gpio-dwapb",
- 		.pm	= &dwapb_gpio_pm_ops,
- 		.of_match_table = of_match_ptr(dwapb_of_match),
-+		.acpi_match_table = ACPI_PTR(dwapb_acpi_match),
- 	},
- 	.probe		= dwapb_gpio_probe,
- 	.remove		= dwapb_gpio_remove,
+ 	unsigned char temp;
+@@ -1277,6 +1351,7 @@ static int i801_probe(struct pci_dev *dev, const struct pci_device_id *id)
+ 	priv->adapter.dev.parent = &dev->dev;
+ 	ACPI_COMPANION_SET(&priv->adapter.dev, ACPI_COMPANION(&dev->dev));
+ 	priv->adapter.retries = 3;
++	mutex_init(&priv->acpi_lock);
+ 
+ 	priv->pci_dev = dev;
+ 	switch (dev->device) {
+@@ -1339,10 +1414,9 @@ static int i801_probe(struct pci_dev *dev, const struct pci_device_id *id)
+ 		return -ENODEV;
+ 	}
+ 
+-	err = acpi_check_resource_conflict(&dev->resource[SMBBAR]);
+-	if (err) {
+-		return -ENODEV;
+-	}
++	err = i801_acpi_probe(priv);
++	if (err)
++		return err;
+ 
+ 	err = pcim_iomap_regions(dev, 1 << SMBBAR,
+ 				 dev_driver_string(&dev->dev));
+@@ -1439,6 +1513,7 @@ static void i801_remove(struct pci_dev *dev)
+ 	pm_runtime_forbid(&dev->dev);
+ 	pm_runtime_get_noresume(&dev->dev);
+ 
++	i801_acpi_remove(priv);
+ 	i801_del_mux(priv);
+ 	i2c_del_adapter(&priv->adapter);
+ 	pci_write_config_byte(dev, SMBHSTCFG, priv->original_hstcfg);
 -- 
-1.9.1
+2.8.0.rc3
+
