@@ -1,312 +1,69 @@
-From: Liviu.Dudau@arm.com
-Subject: Re: [PATCH V6 02/13] pci, acpi: Provide generic way to assign bus
- domain number.
-Date: Thu, 28 Apr 2016 09:13:50 +0100
-Message-ID: <20160428081349.GU28464@e106497-lin.cambridge.arm.com>
-References: <1460740008-19489-1-git-send-email-tn@semihalf.com>
- <1460740008-19489-3-git-send-email-tn@semihalf.com>
- <20160427022649.GD6789@localhost>
- <20160427111758.GA6234@red-moon>
- <20160427164453.GB17629@localhost>
- <20160427173118.GA26653@red-moon>
+From: Jiang Qiu <qiujiang@huawei.com>
+Subject: [PATCH v10 0/3] gpio: dwapb: add gpio-signaled acpi event support for power button
+Date: Thu, 28 Apr 2016 17:32:00 +0800
+Message-ID: <1461835923-68492-1-git-send-email-qiujiang@huawei.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from foss.arm.com ([217.140.101.70]:40746 "EHLO foss.arm.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750845AbcD1INx (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 28 Apr 2016 04:13:53 -0400
-Content-Disposition: inline
-In-Reply-To: <20160427173118.GA26653@red-moon>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain
+Return-path: <linux-gpio-owner@vger.kernel.org>
+Sender: linux-gpio-owner@vger.kernel.org
+To: linus.walleij@linaro.org, gnurou@gmail.com
+Cc: mika.westerberg@linux.intel.com, andy.shevchenko@gmail.com, delicious.quinoa@gmail.com, jamie@jamieiles.com, charles.chenxin@huawei.com, linux-kernel@vger.kernel.org, linux-gpio@vger.kernel.org, linux-acpi@vger.kernel.org, linuxarm@huawei.com, Jiang Qiu <qiujiang@huawei.com>
 List-Id: linux-acpi@vger.kernel.org
-To: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
-Cc: Bjorn Helgaas <helgaas@kernel.org>, Tomasz Nowicki <tn@semihalf.com>, arnd@arndb.de, will.deacon@arm.com, catalin.marinas@arm.com, rafael@kernel.org, hanjun.guo@linaro.org, okaya@codeaurora.org, jiang.liu@linux.intel.com, jchandra@broadcom.com, robert.richter@caviumnetworks.com, mw@semihalf.com, ddaney@caviumnetworks.com, wangyijing@huawei.com, Suravee.Suthikulpanit@amd.com, msalter@redhat.com, linux-pci@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linaro-acpi@lists.linaro.org, jcm@redhat.com
 
-On Wed, Apr 27, 2016 at 06:31:29PM +0100, Lorenzo Pieralisi wrote:
-> On Wed, Apr 27, 2016 at 11:44:53AM -0500, Bjorn Helgaas wrote:
-> > On Wed, Apr 27, 2016 at 12:17:58PM +0100, Lorenzo Pieralisi wrote:
-> > > On Tue, Apr 26, 2016 at 09:26:49PM -0500, Bjorn Helgaas wrote:
-> > > > On Fri, Apr 15, 2016 at 07:06:37PM +0200, Tomasz Nowicki wrote:
-> > > > > As we now have valid PCI host bridge device reference we can
-> > > > > introduce code that is going to find its bus domain number us=
-ing
-> > > > > ACPI _SEG method.
-> > > > >=20
-> > > > > Note that _SEG method is optional, therefore _SEG absence mea=
-ns
-> > > > > that all PCI buses belong to domain 0.
-> > > > >=20
-> > > > > While at it, for the sake of code clarity we put ACPI and DT =
-domain
-> > > > > assign methods into the corresponding helpers.
-> > > > >=20
-> > > > > Signed-off-by: Tomasz Nowicki <tn@semihalf.com>
-> > > > > Reviewed-by: Liviu Dudau <Liviu.Dudau@arm.com>
-> > > > > Tested-by: Suravee Suthikulpanit <Suravee.Suthikulpanit@amd.c=
-om>
-> > > > > Tested-by: Jeremy Linton <jeremy.linton@arm.com>
-> > > > > Tested-by: Duc Dang <dhdang@apm.com>
-> > > > > Tested-by: Dongdong Liu <liudongdong3@huawei.com>
-> > > > > Tested-by: Hanjun Guo <hanjun.guo@linaro.org>
-> > > > > Tested-by: Graeme Gregory <graeme.gregory@linaro.org>
-> > > > > Tested-by: Sinan Kaya <okaya@codeaurora.org>
-> > > > > ---
-> > > > >  drivers/acpi/pci_root.c  | 18 ++++++++++++++++++
-> > > > >  drivers/pci/pci.c        | 11 +++++++++--
-> > > > >  include/linux/pci-acpi.h |  2 ++
-> > > > >  3 files changed, 29 insertions(+), 2 deletions(-)
-> > > > >=20
-> > > > > diff --git a/drivers/acpi/pci_root.c b/drivers/acpi/pci_root.=
-c
-> > > > > index 4581e0e..d9a70c4 100644
-> > > > > --- a/drivers/acpi/pci_root.c
-> > > > > +++ b/drivers/acpi/pci_root.c
-> > > > > @@ -419,6 +419,24 @@ out:
-> > > > >  }
-> > > > >  EXPORT_SYMBOL(acpi_pci_osc_control_set);
-> > > > > =20
-> > > > > +int acpi_pci_bus_domain_nr(struct device *parent)
-> >=20
-> > It looks like acpi_pci_bus_domain_nr() could be under #ifdef
-> > CONFIG_PCI_DOMAINS_GENERIC, right?
->=20
-> Yes it should.
->=20
-> > > > > +{
-> > > > > +	struct acpi_device *acpi_dev =3D to_acpi_device(parent);
-> > > > > +	unsigned long long segment =3D 0;
-> > > > > +	acpi_status status;
-> > > > > +
-> > > > > +	/*
-> > > > > +	 * If _SEG method does not exist, following ACPI spec (6.5.=
-6)
-> > > > > +	 * all PCI buses belong to domain 0.
-> > > > > +	 */
-> > > > > +	status =3D acpi_evaluate_integer(acpi_dev->handle, METHOD_N=
-AME__SEG, NULL,
-> > > > > +				       &segment);
-> > > >=20
-> > > > We already have code in acpi_pci_root_add() to evaluate _SEG.  =
-We
-> > > > don't want to evaluate it *twice*, do we?
-> > > >=20
-> > > > I was sort of expecting that if you added it here, we'd remove =
-the
-> > > > existing call, but it looks like you're keeping both?
-> > >=20
-> > > We can't remove the existing call, since it is used on X86 and IA=
-64
-> > > to store the segment number that, in the process, is used in thei=
-r
-> > > pci_domain_nr() arch specific callback to retrieve the domain nr.
-> > >=20
-> > > On ARM64, that selects PCI_DOMAINS_GENERIC, we have to find a way
-> > > to retrieve the domain number that is not arch dependent, since
-> > > this is generic code, we can't rely on any bus->sysdata format (u=
-nless
-> > > we do something like JC did below), therefore the only way is to =
-call
-> > > the _SEG method *again* here, which also forced Tomasz to go thro=
-ugh
-> > > the ACPI_COMPANION setting song and dance and pass the parent poi=
-nter
-> > > to pci_create_root_bus() (see patch 1), which BTW is a source of
-> > > trouble on its own as you noticed.
-> > >=20
-> > > JC solved it differently, via sysdata and pseudo-generic code:
-> > >=20
-> > > http://www.spinics.net/lists/arm-kernel/msg478167.html
-> >=20
-> > The thing I don't like about this is the special case of checking
-> > parent and parent->of_node to figure out whether we should use the
-> > segment from ACPI and the fragility of depending on the fact that t=
-he
-> > companion hasn't been set yet.
-> >=20
-> > > http://www.spinics.net/lists/arm-kernel/msg478169.html
-> > >=20
-> > > I like neither, we need the lesser of two evils though.
-> >=20
-> > Today we call pci_bus_assign_domain_nr() from the PCI core (from
-> > pci_create_root_bus()).  This is only implemented for
-> > PCI_DOMAINS_GENERIC, but even so, it fiddles around to figure out
-> > whether to get the domain from DT or to assign a new one.
-> >=20
-> > That seems backwards to me.  The host bridge drivers already know
-> > where the domain should come from (ACPI _SEG, DT, etc.) and in the
-> > long term, I think they should be responsible for looking up or
-> > assigning a domain number *before* they call pci_create_root_bus().
->=20
-> Yes, the question still is how pci_create_root_bus() can get that
-> value (I am pretty certain this was heavily debated in the past, whic=
-h
-> does not mean we can't give it another try).
+This patchset adds gpio-signaled acpi events support for power button on hisilicon
+D02 board.
 
-The main issue is that pci_create_root_bus() does a weird dance trying =
-to
-figure out if the root bus hasn't been already allocated. It allocates =
-a
-new bus, assigns a domain number and then it tries to find it in the li=
-st
-of already allocated busses. Because pci_alloc_bus() does not pass any
-additional information, pci_bus_assign_domain_nr() needs to try to gues=
-s
-where the barely initialised bus should live and give you back a number=
-=2E
+The three patches respectively:
+        - remove name from dwapb_port_property
+        - convert device node to fwnode
+        - add gpio-signaled acpi event support
 
-Simplifying the creation of root busses to be the job of the host bridg=
-es
-would greatly simplify the code as well.
+   This patchset is based on
+   https://git.kernel.org/pub/scm/linux/kernel/git/linusw/linux-gpio.git
+   branch "devel"
 
-Best regards,
-Liviu
+Changes v9 -> v10:
+   - fixed one minor
 
->=20
-> > > > > +	if (ACPI_FAILURE(status) && status !=3D AE_NOT_FOUND)
-> > > > > +		dev_err(&acpi_dev->dev, "can't evaluate _SEG\n");
-> > > > > +
-> > > > > +	return segment;
-> > > > > +}
-> > > > > +
-> > > > >  static void negotiate_os_control(struct acpi_pci_root *root,=
- int *no_aspm)
-> > > > >  {
-> > > > >  	u32 support, control, requested;
-> > > > > diff --git a/drivers/pci/pci.c b/drivers/pci/pci.c
-> > > > > index 25e0327..1a74e87 100644
-> > > > > --- a/drivers/pci/pci.c
-> > > > > +++ b/drivers/pci/pci.c
-> > > > > @@ -19,6 +19,7 @@
-> > > > >  #include <linux/spinlock.h>
-> > > > >  #include <linux/string.h>
-> > > > >  #include <linux/log2.h>
-> > > > > +#include <linux/pci-acpi.h>
-> > > > >  #include <linux/pci-aspm.h>
-> > > > >  #include <linux/pm_wakeup.h>
-> > > > >  #include <linux/interrupt.h>
-> > > > > @@ -4779,7 +4780,7 @@ int pci_get_new_domain_nr(void)
-> > > > >  }
-> > > > > =20
-> > > > >  #ifdef CONFIG_PCI_DOMAINS_GENERIC
-> > > > > -void pci_bus_assign_domain_nr(struct pci_bus *bus, struct de=
-vice *parent)
-> > > > > +static int of_pci_bus_domain_nr(struct device *parent)
-> > > > >  {
-> > > > >  	static int use_dt_domains =3D -1;
-> > > > >  	int domain =3D -1;
-> > > > > @@ -4823,7 +4824,13 @@ void pci_bus_assign_domain_nr(struct p=
-ci_bus *bus, struct device *parent)
-> > > > >  		domain =3D -1;
-> > > > >  	}
-> > > > > =20
-> > > > > -	bus->domain_nr =3D domain;
-> > > > > +	return domain;
-> > > > > +}
-> > > > > +
-> > > > > +void pci_bus_assign_domain_nr(struct pci_bus *bus, struct de=
-vice *parent)
-> > > > > +{
-> > > > > +	bus->domain_nr =3D acpi_disabled ? of_pci_bus_domain_nr(par=
-ent) :
-> > > > > +					 acpi_pci_bus_domain_nr(parent);
-> >=20
-> > We have the pci_bus * here, so to_pci_host_bridge(bus->bridge) give=
-s
-> > us the struct pci_host_bridge.  I can't remember why we put domain_=
-nr
-> > in the struct pci_bus instead of in the struct pci_host_bridge.  It
-> > seems like pci_host_bridge is the more logical place for it, becaus=
-e
-> > every bus below the host bridge must have the same domain by
-> > definition.
-> >=20
-> > Would it be feasible to either (a) move domain_nr to the
-> > pci_host_bridge, or (b) change acpi_pci_bus_domain_nr() so it uses =
-the
-> > struct pci_bus * or the struct device * to find the struct
-> > acpi_pci_root where segment has already been stored by
-> > acpi_pci_root_add()?
->=20
-> (b) is what JC implemented even though it works differently for
-> different hosts since it all depends on what's in bus->sysdata.
->=20
-> It can certainly be done in a generic way (that works on X86 and IA64
-> too), let's give it more thought.
->=20
-> > Another wrinkle is the quirk added by 1f09b09b4de0 ("x86/PCI: Ignor=
-e
-> > _SEG on HP xw9300").  x86 doesn't use PCI_DOMAINS_GENERIC yet, so t=
-his
-> > patch wouldn't break it, but I hope x86 can use PCI_DOMAINS_GENERIC=
- in
-> > the future, and then it will be a problem if we evaluate _SEG again=
-=2E
->=20
-> Yes, I share your concern here and I thought about that, if that's th=
-e
-> end goal let's find a solution that works across arches (or we tempor=
-arily
-> use JC's code and we then generalize it).
->=20
-> Thanks,
-> Lorenzo
->=20
-> >=20
-> > > > >  }
-> > > > >  #endif
-> > > > >  #endif
-> > > > > diff --git a/include/linux/pci-acpi.h b/include/linux/pci-acp=
-i.h
-> > > > > index 89ab057..a72e22d 100644
-> > > > > --- a/include/linux/pci-acpi.h
-> > > > > +++ b/include/linux/pci-acpi.h
-> > > > > @@ -22,6 +22,7 @@ static inline acpi_status pci_acpi_remove_p=
-m_notifier(struct acpi_device *dev)
-> > > > >  {
-> > > > >  	return acpi_remove_pm_notifier(dev);
-> > > > >  }
-> > > > > +extern int acpi_pci_bus_domain_nr(struct device *parent);
-> > > > >  extern phys_addr_t acpi_pci_root_get_mcfg_addr(acpi_handle h=
-andle);
-> > > > > =20
-> > > > >  static inline acpi_handle acpi_find_root_bridge_handle(struc=
-t pci_dev *pdev)
-> > > > > @@ -109,6 +110,7 @@ extern const u8 pci_acpi_dsm_uuid[];
-> > > > >  #else	/* CONFIG_ACPI */
-> > > > >  static inline void acpi_pci_add_bus(struct pci_bus *bus) { }
-> > > > >  static inline void acpi_pci_remove_bus(struct pci_bus *bus) =
-{ }
-> > > > > +static inline int acpi_pci_bus_domain_nr(struct device *pare=
-nt) { return -1; }
-> > > > >  #endif	/* CONFIG_ACPI */
-> > > > > =20
-> > > > >  #ifdef CONFIG_ACPI_APEI
-> > > > > --=20
-> > > > > 1.9.1
-> > > > >=20
-> > > > > --
-> > > > > To unsubscribe from this list: send the line "unsubscribe lin=
-ux-acpi" in
-> > > > > the body of a message to majordomo@vger.kernel.org
-> > > > > More majordomo info at  http://vger.kernel.org/majordomo-info=
-=2Ehtml
-> > > >=20
-> >=20
->=20
+Changes v8 -> v9:
+   - fixed a low-level compile warning
 
---=20
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
-| I would like to |
-| fix the world,  |
-| but they're not |
-| giving me the   |
- \ source code!  /
-  ---------------
-    =C2=AF\_(=E3=83=84)_/=C2=AF
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Changes v7 -> v8:
+   - fixed few minors
+
+Changes v6 -> v7:
+   - add patch1 by Alan's suggestion
+
+Changes v5 -> v6:
+   - merge patch 2~3 to one patch
+   - small fixed from Alan's suggestion
+   - fixed subject title reference commit history
+
+Changes v4 -> v5:
+   - split into three patchs
+   - add Andy's ACKs
+   
+Changes v3 -> v4:
+   - re-organize this two patchs by Andy's suggestion
+
+Changes v2 -> v3:
+   - fixed the build error reported by Kbuild test robot
+
+Changes v1 -> v2: 
+   - rebase to branch "devel" of Linus Walleij's repository
+   - split in two patch as suggested by Andy S
+   - add Mika's ACKs
+
+Jiang Qiu (3):
+  gpio: dwapb: remove name from dwapb_port_property
+  gpio: dwapb: convert device node to fwnode
+  gpio: dwapb: add gpio-signaled acpi event support
+
+ drivers/gpio/gpio-dwapb.c                | 77 +++++++++++++++++++-------------
+ drivers/mfd/intel_quark_i2c_gpio.c       |  3 +-
+ include/linux/platform_data/gpio-dwapb.h |  3 +-
+ 3 files changed, 47 insertions(+), 36 deletions(-)
+
+-- 
+1.9.1
+
