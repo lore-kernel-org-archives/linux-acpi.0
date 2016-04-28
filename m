@@ -1,103 +1,79 @@
-From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [PATCH v2 4/6] ACPI / osi: Fix default _OSI(Darwin) support
-Date: Wed, 27 Apr 2016 23:24:47 +0200
-Message-ID: <2223787.tzTyTqLAjo@vostro.rjw.lan>
-References: <cover.1461656216.git.lv.zheng@intel.com> <e8ea6e8841adce9e10e5bd0b278b47a7c799c276.1461736123.git.lv.zheng@intel.com> <36DF59CE26D8EE47B0655C516E9CE64028748233@shsmsx102.ccr.corp.intel.com>
+From: Aaron Lu <aaron.lu@intel.com>
+Subject: Re: [PATCH v3 0/4] Support INT3406 Display thermal device
+Date: Thu, 28 Apr 2016 09:48:30 +0800
+Message-ID: <56b0b394-4984-62b8-9d4c-efefe8fdae8d@intel.com>
+References: <1461761105-5961-1-git-send-email-aaron.lu@intel.com>
+ <CAJZ5v0hjvMc98WgAUJG3MPNNZm8YiCBxP6OdmW-oP7MnH+69wA@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cloudserver094114.home.net.pl ([79.96.170.134]:47611 "HELO
-	cloudserver094114.home.net.pl" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with SMTP id S1752666AbcD0VVp (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 27 Apr 2016 17:21:45 -0400
-In-Reply-To: <36DF59CE26D8EE47B0655C516E9CE64028748233@shsmsx102.ccr.corp.intel.com>
+Received: from mga11.intel.com ([192.55.52.93]:46121 "EHLO mga11.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750785AbcD1Bsd (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 27 Apr 2016 21:48:33 -0400
+In-Reply-To: <CAJZ5v0hjvMc98WgAUJG3MPNNZm8YiCBxP6OdmW-oP7MnH+69wA@mail.gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Chen, Yu C" <yu.c.chen@intel.com>, "Zheng, Lv" <lv.zheng@intel.com>
-Cc: Lv Zheng <zetalog@gmail.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>, "Brown, Len" <len.brown@intel.com>
+To: "Rafael J. Wysocki" <rafael@kernel.org>
+Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Zhang Rui <rui.zhang@intel.com>, Jingoo Han <jingoohan1@gmail.com>, "open list:FRAMEBUFFER LAYER" <linux-fbdev@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, "linux-pm@vger.kernel.org" <linux-pm@vger.kernel.org>, Srinivas Pandruvada <srinivas.pandruvada@intel.com>
 
-On Wednesday, April 27, 2016 09:45:21 AM Chen, Yu C wrote:
-> Hi Lv,
+On 04/28/2016 03:38 AM, Rafael J. Wysocki wrote:
+> On Wed, Apr 27, 2016 at 2:45 PM, Aaron Lu <aaron.lu@intel.com> wrote:
+>> v3:
+>> Split patch 3/3 in v2 into 2 patches: one makes changes to acpi_video
+>> and one adds the int3406 driver as suggested by Rafael. There should
+>> be no functionality change compared to v2.
+>>
+>> v2:
+>> The display thermal device represents the LED/LCD display panel
+>> that may or may not include touch support. The main function of
+>> the display thermal device is to allow control of the display
+>> brightness in order to address a thermal condition or to reduce
+>> power consumed by display device.
+>>
+>> Due to the way this thermal device changes brightness level is said
+>> to be deprecated so we are using the raw interface to do the actual
+>> backlight change. This requires the backlight core support so two
+>> new APIs are added and exported in patch 1/3. With this, the previous
+>> API backlight_device_registered can be removed and this is done in
+>> patch 2/3. Patch 3/3 adds the new int3406 thermal driver.
+>>
+>> The 1st version is here:
+>> http://thread.gmane.org/gmane.linux.acpi.devel/72619
+>>
+>> This whole series should go through the thermal tree if applied.
+>>
+>> Aaron Lu (3):
+>>   video / backlight: add two APIs for drivers to use
+>>   video / backlight: remove the backlight_device_registered API
+>>   Thermal: add INT3406 thermal driver
+>>
+>>  drivers/acpi/acpi_video.c                         |  83 ++++----
+>>  drivers/acpi/video_detect.c                       |   2 +-
+>>  drivers/thermal/Kconfig                           |  28 +--
+>>  drivers/thermal/int340x_thermal/Kconfig           |  42 ++++
+>>  drivers/thermal/int340x_thermal/Makefile          |   1 +
+>>  drivers/thermal/int340x_thermal/int3406_thermal.c | 236 ++++++++++++++++++++++
+>>  drivers/video/backlight/backlight.c               |  39 ++--
+>>  include/acpi/video.h                              |  20 ++
+>>  include/linux/backlight.h                         |   3 +-
+>>  9 files changed, 374 insertions(+), 80 deletions(-)
+>>  create mode 100644 drivers/thermal/int340x_thermal/Kconfig
+>>  create mode 100644 drivers/thermal/int340x_thermal/int3406_thermal.c
 > 
-> > -----Original Message-----
-> > From: Zheng, Lv
-> > Sent: Wednesday, April 27, 2016 4:55 PM
-> > To: Wysocki, Rafael J; Rafael J. Wysocki; Brown, Len
-> > Cc: Zheng, Lv; Lv Zheng; linux-kernel@vger.kernel.org; linux-
-> > acpi@vger.kernel.org; Chen, Yu C
-> > Subject: [PATCH v2 4/6] ACPI / osi: Fix default _OSI(Darwin) support
-> > 
-> > From: Chen Yu <yu.c.chen@intel.com>
-> > 
-> > The following commit always reports positive value when Apple hardware
-> > queries _OSI("Darwin"):
-> >  Commit: 7bc5a2bad0b8d9d1ac9f7b8b33150e4ddf197334
-> >  Subject: ACPI: Support _OSI("Darwin") correctly However since this
-> > implementation places the judgement in runtime, it breaks acpi_osi=!Darwin
-> > and cannot return unsupported for _OSI("WinXXX") invoked before invoking
-> > _OSI("Darwin").
-> > 
-> > This patch fixes the issues by reverting the wrong support and implementing
-> > the default behavior of _OSI("Darwin")/_OSI("WinXXX") on Apple hardware via
-> > DMI matching.
-> > 
-> > Fixes: 7bc5a2bad0b8 ("ACPI: Support _OSI("Darwin") correctly")
-> > Cc: <stable@vger.kernel.org> # 3.18+
-> > Link: https://bugzilla.kernel.org/show_bug.cgi?id=92111
-> > Reported-by: Lukas Wunner <lukas@wunner.de>
-> > Signed-off-by: Chen Yu <yu.c.chen@intel.com>
-> > Signed-off-by: Lv Zheng <lv.zheng@intel.com>
-> > ---
-> >  drivers/acpi/blacklist.c |   23 ++++++++++++++++++
-> >  drivers/acpi/osl.c       |   58 ++++++++++++++++++++++++++++++++++++++++---
-> > ---
-> >  include/linux/acpi.h     |    1 +
-> >  3 files changed, 75 insertions(+), 7 deletions(-)
-> > 
-> > diff --git a/drivers/acpi/blacklist.c b/drivers/acpi/blacklist.c index
-> > 96809cd..e947d3e 100644
-> > --- a/drivers/acpi/blacklist.c
-> > +++ b/drivers/acpi/blacklist.c
-> > @@ -133,6 +133,11 @@ int __init acpi_blacklisted(void)
-> >  	return blacklisted;
-> >  }
-> >  #ifdef CONFIG_DMI
-> > +static int __init dmi_enable_osi_darwin(const struct dmi_system_id *d)
-> > +{
-> > +	acpi_dmi_osi_darwin(1, d);	/* enable */
-> > +	return 0;
-> > +}
-> >  static int __init dmi_enable_osi_linux(const struct dmi_system_id *d)  {
-> >  	acpi_dmi_osi_linux(1, d);	/* enable */
-> > @@ -331,6 +336,24 @@ static struct dmi_system_id acpi_osi_dmi_table[]
-> > __initdata = {
-> >  		},
-> >  	},
-> > 
-> > +	/*
-> > +	 * Enable _OSI("Darwin") for all apple platforms.
-> > +	 */
-> > +	{
-> > +	.callback = dmi_enable_osi_darwin,
-> > +	.ident = "Apple hardware",
-> > +	.matches = {
-> > +		     DMI_MATCH(DMI_SYS_VENDOR, "Apple INC."),
-> > +		},
-> > +	},
-> > +	{
-> > +	.callback = dmi_enable_osi_darwin,
-> > +	.ident = "Apple hardware",
-> > +	.matches = {
-> > +		     DMI_MATCH(DMI_SYS_VENDOR, "Apple Computer, INC."),
-> > +		},
-> > +	},
-> > +
-> The  vendor id should be 'Apple Inc.' and 'Apple Computer, Inc.' instead.
+> The first three patches in this series look OK to me, so
+> 
+> Acked-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+> 
+> for the [1-3/4].
+> 
+> That said it may be better if those three go in via ACPI.  I can put
+> them into a separate branch for Rui to pull from.
+> 
+> Please let me know what you think.
 
-If this is the only problem with this patch, I can fix it up.  No need to resend.
+I have no problem with that.
 
-Thanks,
-Rafael
-
+Regards,
+Aaron
