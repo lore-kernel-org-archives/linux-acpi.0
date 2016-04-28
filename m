@@ -1,41 +1,45 @@
-From: Octavian Purdila <octavian.purdila@intel.com>
-Subject: Re: [RFC PATCH v2 06/10] spi: add support for ACPI reconfigure notifications
-Date: Thu, 28 Apr 2016 22:37:57 +0300
-Message-ID: <CAE1zot+LuQJGrDrEDM2iVv-omz3Sg6k3bavX+5gde8jzrK0pog@mail.gmail.com>
-References: <1461105548-20618-1-git-send-email-octavian.purdila@intel.com>
-	<1461105548-20618-7-git-send-email-octavian.purdila@intel.com>
-	<20160428174215.GS3217@sirena.org.uk>
+From: Bjorn Helgaas <helgaas@kernel.org>
+Subject: Re: [PATCH V6 08/13] PCI: generic, thunder: update to use generic
+ ECAM API
+Date: Thu, 28 Apr 2016 15:14:39 -0500
+Message-ID: <20160428201439.GD25125@localhost>
+References: <1460740008-19489-1-git-send-email-tn@semihalf.com>
+ <3830999.dF71UWYsBP@wuerfel>
+ <57189D2F.9070802@semihalf.com>
+ <8950494.UV8UrWiFbx@wuerfel>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-i2c-owner@vger.kernel.org>
-In-Reply-To: <20160428174215.GS3217@sirena.org.uk>
-Sender: linux-i2c-owner@vger.kernel.org
-To: Mark Brown <broonie@kernel.org>
-Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Matt Fleming <matt@codeblueprint.co.uk>, Wolfram Sang <wsa@the-dreams.de>, Joel Becker <jlbec@evilplan.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, linux-efi@vger.kernel.org, linux-i2c <linux-i2c@vger.kernel.org>, linux-spi <linux-spi@vger.kernel.org>, lkml <linux-kernel@vger.kernel.org>, Irina Tirdea <irina.tirdea@intel.com>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-pci-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <8950494.UV8UrWiFbx@wuerfel>
+Sender: linux-pci-owner@vger.kernel.org
+To: Arnd Bergmann <arnd@arndb.de>
+Cc: Tomasz Nowicki <tn@semihalf.com>, Jayachandran C <jchandra@broadcom.com>, linux-arm-kernel@lists.infradead.org, Will Deacon <will.deacon@arm.com>, Catalin Marinas <catalin.marinas@arm.com>, rafael@kernel.org, Hanjun Guo <hanjun.guo@linaro.org>, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, Sinan Kaya <okaya@codeaurora.org>, jiang.liu@linux.intel.com, Jon Masters <jcm@redhat.com>, linaro-acpi@lists.linaro.org, linux-pci@vger.kernel.org, Liviu.Dudau@arm.com, David Daney <ddaney@caviumnetworks.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, robert.richter@caviumnetworks.com, Suravee.Suthikulpanit@amd.com, msalter@redhat.com, Wangyijing <wangyijing@huawei.com>, Marcin Wojtas <mw@semihalf.com>
 List-Id: linux-acpi@vger.kernel.org
 
-On Thu, Apr 28, 2016 at 8:42 PM, Mark Brown <broonie@kernel.org> wrote:
-> On Wed, Apr 20, 2016 at 01:39:04AM +0300, Octavian Purdila wrote:
->
->> +     switch (value) {
->> +     case ACPI_RECONFIG_DEVICE_ADD:
->> +             master = acpi_spi_find_master_by_adev(adev->parent);
->> +             if (!master)
->> +                     break;
->> +
->> +             acpi_register_spi_device(master, adev);
->> +             put_device(&master->dev);
->> +             break;
->> +     case ACPI_RECONFIG_DEVICE_REMOVE:
->> +             spi = acpi_spi_find_device_by_adev(adev);
->> +             if (!spi)
->> +                     break;
->
-> There's more code here now than I remember but this all looks *really*
-> close to the DT code except for the OF_POPULATED flag that we set when
-> things are instantiated in DT.  The duplication seems bad but the fact
-> that we're missing the flag worries me...  do we have guarantees that
-> ACPI won't double register?
+On Thu, Apr 21, 2016 at 11:36:53AM +0200, Arnd Bergmann wrote:
+> On Thursday 21 April 2016 11:28:15 Tomasz Nowicki wrote:
+> > On 19.04.2016 15:06, Arnd Bergmann wrote:
+> > > On Monday 18 April 2016 21:31:54 Tomasz Nowicki wrote:
+> > >>
+> > >> Basically the whole content of pci-thunder-ecam.c and pci-thunder-pem.c.
+> > >>
+> > >> pci-thunder-ecam.c contains config space accessors. Similar for
+> > >> pci-thunder-pem.c but it also has extra init call (it is now called
+> > >> thunder_pem_init) which finds and maps related registers.
+> > >
+> > > They seem to do much more than just override the accessors, they actually
+> > > change the contents of the config space as well. Is that really necessary
+> > > on ACPI based systems as well?
+> > 
+> > Yes, the pci-thunder-ecam.c accessors are meant to emulate config space 
+> > capabilities. They are necessary to synthesize EA capabilities (fixed 
+> > PCI BARs), it wont work without this, for ACPI boot as well.
+> 
+> Why is that? I thought the BARs never get reassigned when using ACPI,
 
-We use the adev->flags.visited to check when a device has been already
-enumerated, and we skip registering a new SPI slave in that case.
+In general, there's no reason we can't reassign BARs, whether we're
+using DT, ACPI, or whatever.  In many cases, systems with ACPI also
+assign all the BARs in firmware, and Linux doesn't reassign them
+unless it needs to.  But that's just a coincidence.  There's no
+requirement that Linux leave BARs as firmware programmed them.
