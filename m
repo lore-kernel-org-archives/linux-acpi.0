@@ -1,72 +1,75 @@
-From: Andy Lutomirski <luto@amacapital.net>
-Subject: Re: [PATCH] ACPI: fix Thunderbolt hotplug
-Date: Thu, 28 Apr 2016 11:46:42 -0700
-Message-ID: <CALCETrVoVS2rt6jeM_crgXPe5GTRu67N8=xi+TyS2aEQfXSpMQ@mail.gmail.com>
+From: <Mario_Limonciello@Dell.com>
+Subject: RE: [PATCH] ACPI: fix Thunderbolt hotplug
+Date: Thu, 28 Apr 2016 18:49:20 +0000
+Message-ID: <8f963a18fb384f0e89e0d069d8416abf@ausx13mpc120.AMER.DELL.COM>
 References: <1461760019-12930-1-git-send-email-prarit@redhat.com>
- <b80830ab-20b4-bd75-5331-4ad55cbff355@kernel.org> <0502496faa2f494a8d81e4789fa2a77e@ausx13mpc120.AMER.DELL.COM>
+ <b80830ab-20b4-bd75-5331-4ad55cbff355@kernel.org>
+ <0502496faa2f494a8d81e4789fa2a77e@ausx13mpc120.AMER.DELL.COM>
+ <CALCETrVoVS2rt6jeM_crgXPe5GTRu67N8=xi+TyS2aEQfXSpMQ@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <stable-owner@vger.kernel.org>
-In-Reply-To: <0502496faa2f494a8d81e4789fa2a77e@ausx13mpc120.AMER.DELL.COM>
-Sender: stable-owner@vger.kernel.org
-To: Mario Limonciello <Mario_Limonciello@dell.com>
-Cc: Andrew Lutomirski <luto@kernel.org>, Prarit Bhargava <prarit@redhat.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Robert Moore <robert.moore@intel.com>, Lv Zheng <lv.zheng@intel.com>, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Len Brown <lenb@kernel.org>, Linux ACPI <linux-acpi@vger.kernel.org>, stable <stable@vger.kernel.org>, devel@acpica.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from ausxipps301.us.dell.com ([143.166.148.223]:49431 "EHLO
+	ausxipps301.us.dell.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751824AbcD1Stf (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 28 Apr 2016 14:49:35 -0400
+In-Reply-To: <CALCETrVoVS2rt6jeM_crgXPe5GTRu67N8=xi+TyS2aEQfXSpMQ@mail.gmail.com>
+Content-Language: en-US
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: luto@amacapital.net
+Cc: luto@kernel.org, prarit@redhat.com, linux-kernel@vger.kernel.org, robert.moore@intel.com, lv.zheng@intel.com, rafael.j.wysocki@intel.com, lenb@kernel.org, linux-acpi@vger.kernel.org, stable@vger.kernel.org, devel@acpica.org
 
-On Thu, Apr 28, 2016 at 11:44 AM,  <Mario_Limonciello@dell.com> wrote:
->
->
->> -----Original Message-----
->> From: Andy Lutomirski [mailto:luto@kernel.org]
->> Sent: Thursday, April 28, 2016 1:39 PM
->> To: Prarit Bhargava <prarit@redhat.com>; linux-kernel@vger.kernel.org
->> Cc: Robert Moore <robert.moore@intel.com>; Lv Zheng
->> <lv.zheng@intel.com>; Rafael J. Wysocki <rafael.j.wysocki@intel.com>; Len
->> Brown <lenb@kernel.org>; linux-acpi@vger.kernel.org; Limonciello, Mario
->> <Mario_Limonciello@Dell.com>; stable@vger.kernel.org; devel@acpica.org
->> Subject: Re: [PATCH] ACPI: fix Thunderbolt hotplug
->>
->> On 04/27/2016 05:26 AM, Prarit Bhargava wrote:
->> > Rafael, this patch is in the acpica.git tree as 7a3bd2d ("Dispatcher:
->> > Update thread ID for recursive method calls").  I've had many positive
->> > testing results from hardware vendors and users with this patch and
->> > this resolves many of the problems seen here:
->> >
->> > https://bugzilla.kernel.org/show_bug.cgi?id=115121
->> >
->> > This does not fix the problems with the TB docking station.  Although
->> > this patch will also be required, the docking station issues require a FW
->> update.
->> > Updated FW should be coming soon to resolve those problems.
->> >
->>
->> No kidding!?!  Will that update be installable from Linux?  If so, could you cc
->> me on that?
->>
->
->
-> This patch does let the dock hotplug properly after the BIOS fix is applied.
->
-> For the dock devices not showing up on the other side of the thunderbolt bridge:
-> It's going to be a system firmware update for both the XPS 9350 and Precision 5510.  It will get distributed to LVFS and can be loaded up with fwupd/fwupdate.
-> I don't yet have an ETA that I can share other than "Next BIOS release"
->
-> After the update, set Thunderbolt Security to "No Security" and devices should be available.
-
-Great!
-
-Does this mean that I won't need to boot into Windows and run the
-little Intel tool to update the Alpine Ridge firmware?  I.e. will the
-LVFS / EFI executable do that part?
-
---Andy
-
->
-> Thanks,
->
-
-
-
--- 
-Andy Lutomirski
-AMA Capital Management, LLC
+DQoNCj4gLS0tLS1PcmlnaW5hbCBNZXNzYWdlLS0tLS0NCj4gRnJvbTogQW5keSBMdXRvbWlyc2tp
+IFttYWlsdG86bHV0b0BhbWFjYXBpdGFsLm5ldF0NCj4gU2VudDogVGh1cnNkYXksIEFwcmlsIDI4
+LCAyMDE2IDE6NDcgUE0NCj4gVG86IExpbW9uY2llbGxvLCBNYXJpbyA8TWFyaW9fTGltb25jaWVs
+bG9ARGVsbC5jb20+DQo+IENjOiBBbmRyZXcgTHV0b21pcnNraSA8bHV0b0BrZXJuZWwub3JnPjsg
+UHJhcml0IEJoYXJnYXZhDQo+IDxwcmFyaXRAcmVkaGF0LmNvbT47IGxpbnV4LWtlcm5lbEB2Z2Vy
+Lmtlcm5lbC5vcmc7IFJvYmVydCBNb29yZQ0KPiA8cm9iZXJ0Lm1vb3JlQGludGVsLmNvbT47IEx2
+IFpoZW5nIDxsdi56aGVuZ0BpbnRlbC5jb20+OyBSYWZhZWwgSi4NCj4gV3lzb2NraSA8cmFmYWVs
+Lmoud3lzb2NraUBpbnRlbC5jb20+OyBMZW4gQnJvd24gPGxlbmJAa2VybmVsLm9yZz47IExpbnV4
+DQo+IEFDUEkgPGxpbnV4LWFjcGlAdmdlci5rZXJuZWwub3JnPjsgc3RhYmxlIDxzdGFibGVAdmdl
+ci5rZXJuZWwub3JnPjsNCj4gZGV2ZWxAYWNwaWNhLm9yZw0KPiBTdWJqZWN0OiBSZTogW1BBVENI
+XSBBQ1BJOiBmaXggVGh1bmRlcmJvbHQgaG90cGx1Zw0KPiANCj4gT24gVGh1LCBBcHIgMjgsIDIw
+MTYgYXQgMTE6NDQgQU0sICA8TWFyaW9fTGltb25jaWVsbG9AZGVsbC5jb20+IHdyb3RlOg0KPiA+
+DQo+ID4NCj4gPj4gLS0tLS1PcmlnaW5hbCBNZXNzYWdlLS0tLS0NCj4gPj4gRnJvbTogQW5keSBM
+dXRvbWlyc2tpIFttYWlsdG86bHV0b0BrZXJuZWwub3JnXQ0KPiA+PiBTZW50OiBUaHVyc2RheSwg
+QXByaWwgMjgsIDIwMTYgMTozOSBQTQ0KPiA+PiBUbzogUHJhcml0IEJoYXJnYXZhIDxwcmFyaXRA
+cmVkaGF0LmNvbT47IGxpbnV4LWtlcm5lbEB2Z2VyLmtlcm5lbC5vcmcNCj4gPj4gQ2M6IFJvYmVy
+dCBNb29yZSA8cm9iZXJ0Lm1vb3JlQGludGVsLmNvbT47IEx2IFpoZW5nDQo+ID4+IDxsdi56aGVu
+Z0BpbnRlbC5jb20+OyBSYWZhZWwgSi4gV3lzb2NraSA8cmFmYWVsLmoud3lzb2NraUBpbnRlbC5j
+b20+Ow0KPiA+PiBMZW4gQnJvd24gPGxlbmJAa2VybmVsLm9yZz47IGxpbnV4LWFjcGlAdmdlci5r
+ZXJuZWwub3JnOyBMaW1vbmNpZWxsbywNCj4gPj4gTWFyaW8gPE1hcmlvX0xpbW9uY2llbGxvQERl
+bGwuY29tPjsgc3RhYmxlQHZnZXIua2VybmVsLm9yZzsNCj4gPj4gZGV2ZWxAYWNwaWNhLm9yZw0K
+PiA+PiBTdWJqZWN0OiBSZTogW1BBVENIXSBBQ1BJOiBmaXggVGh1bmRlcmJvbHQgaG90cGx1Zw0K
+PiA+Pg0KPiA+PiBPbiAwNC8yNy8yMDE2IDA1OjI2IEFNLCBQcmFyaXQgQmhhcmdhdmEgd3JvdGU6
+DQo+ID4+ID4gUmFmYWVsLCB0aGlzIHBhdGNoIGlzIGluIHRoZSBhY3BpY2EuZ2l0IHRyZWUgYXMg
+N2EzYmQyZCAoIkRpc3BhdGNoZXI6DQo+ID4+ID4gVXBkYXRlIHRocmVhZCBJRCBmb3IgcmVjdXJz
+aXZlIG1ldGhvZCBjYWxscyIpLiAgSSd2ZSBoYWQgbWFueQ0KPiA+PiA+IHBvc2l0aXZlIHRlc3Rp
+bmcgcmVzdWx0cyBmcm9tIGhhcmR3YXJlIHZlbmRvcnMgYW5kIHVzZXJzIHdpdGggdGhpcw0KPiA+
+PiA+IHBhdGNoIGFuZCB0aGlzIHJlc29sdmVzIG1hbnkgb2YgdGhlIHByb2JsZW1zIHNlZW4gaGVy
+ZToNCj4gPj4gPg0KPiA+PiA+IGh0dHBzOi8vYnVnemlsbGEua2VybmVsLm9yZy9zaG93X2J1Zy5j
+Z2k/aWQ9MTE1MTIxDQo+ID4+ID4NCj4gPj4gPiBUaGlzIGRvZXMgbm90IGZpeCB0aGUgcHJvYmxl
+bXMgd2l0aCB0aGUgVEIgZG9ja2luZyBzdGF0aW9uLg0KPiA+PiA+IEFsdGhvdWdoIHRoaXMgcGF0
+Y2ggd2lsbCBhbHNvIGJlIHJlcXVpcmVkLCB0aGUgZG9ja2luZyBzdGF0aW9uDQo+ID4+ID4gaXNz
+dWVzIHJlcXVpcmUgYSBGVw0KPiA+PiB1cGRhdGUuDQo+ID4+ID4gVXBkYXRlZCBGVyBzaG91bGQg
+YmUgY29taW5nIHNvb24gdG8gcmVzb2x2ZSB0aG9zZSBwcm9ibGVtcy4NCj4gPj4gPg0KPiA+Pg0K
+PiA+PiBObyBraWRkaW5nIT8hICBXaWxsIHRoYXQgdXBkYXRlIGJlIGluc3RhbGxhYmxlIGZyb20g
+TGludXg/ICBJZiBzbywNCj4gPj4gY291bGQgeW91IGNjIG1lIG9uIHRoYXQ/DQo+ID4+DQo+ID4N
+Cj4gPg0KPiA+IFRoaXMgcGF0Y2ggZG9lcyBsZXQgdGhlIGRvY2sgaG90cGx1ZyBwcm9wZXJseSBh
+ZnRlciB0aGUgQklPUyBmaXggaXMgYXBwbGllZC4NCj4gPg0KPiA+IEZvciB0aGUgZG9jayBkZXZp
+Y2VzIG5vdCBzaG93aW5nIHVwIG9uIHRoZSBvdGhlciBzaWRlIG9mIHRoZSB0aHVuZGVyYm9sdA0K
+PiBicmlkZ2U6DQo+ID4gSXQncyBnb2luZyB0byBiZSBhIHN5c3RlbSBmaXJtd2FyZSB1cGRhdGUg
+Zm9yIGJvdGggdGhlIFhQUyA5MzUwIGFuZA0KPiBQcmVjaXNpb24gNTUxMC4gIEl0IHdpbGwgZ2V0
+IGRpc3RyaWJ1dGVkIHRvIExWRlMgYW5kIGNhbiBiZSBsb2FkZWQgdXAgd2l0aA0KPiBmd3VwZC9m
+d3VwZGF0ZS4NCj4gPiBJIGRvbid0IHlldCBoYXZlIGFuIEVUQSB0aGF0IEkgY2FuIHNoYXJlIG90
+aGVyIHRoYW4gIk5leHQgQklPUyByZWxlYXNlIg0KPiA+DQo+ID4gQWZ0ZXIgdGhlIHVwZGF0ZSwg
+c2V0IFRodW5kZXJib2x0IFNlY3VyaXR5IHRvICJObyBTZWN1cml0eSIgYW5kIGRldmljZXMNCj4g
+c2hvdWxkIGJlIGF2YWlsYWJsZS4NCj4gDQo+IEdyZWF0IQ0KPiANCj4gRG9lcyB0aGlzIG1lYW4g
+dGhhdCBJIHdvbid0IG5lZWQgdG8gYm9vdCBpbnRvIFdpbmRvd3MgYW5kIHJ1biB0aGUgbGl0dGxl
+DQo+IEludGVsIHRvb2wgdG8gdXBkYXRlIHRoZSBBbHBpbmUgUmlkZ2UgZmlybXdhcmU/ICBJLmUu
+IHdpbGwgdGhlIExWRlMgLyBFRkkNCj4gZXhlY3V0YWJsZSBkbyB0aGF0IHBhcnQ/DQo+IA0KDQpV
+bmZvcnR1bmF0ZWx5IHRoYXQncyBhIHNlcGFyYXRlIHByb2JsZW0uICBXb3JraW5nIHRvd2FyZHMg
+YSBmZXcgZGlmZmVyZW50IHNvbHV0aW9ucyBvbiB0aGF0IHRvbywgYnV0IG5vdGhpbmcgdG8gc2hh
+cmUgcmlnaHQgbm93Lg0KDQo=
