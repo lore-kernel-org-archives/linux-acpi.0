@@ -1,91 +1,61 @@
-From: Bjorn Helgaas <helgaas@kernel.org>
-Subject: Re: [PATCH V6 05/13] acpi, pci: Support IO resources when parsing
- PCI host bridge resources.
-Date: Thu, 28 Apr 2016 10:45:17 -0500
-Message-ID: <20160428154517.GC15598@localhost>
-References: <1460740008-19489-1-git-send-email-tn@semihalf.com>
- <1460740008-19489-6-git-send-email-tn@semihalf.com>
- <20160427023916.GF6789@localhost>
- <20160427141429.GA7324@red-moon>
+From: Mark Brown <broonie-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Subject: Re: [RFC PATCH v2 06/10] spi: add support for ACPI reconfigure
+ notifications
+Date: Thu, 28 Apr 2016 18:42:15 +0100
+Message-ID: <20160428174215.GS3217@sirena.org.uk>
+References: <1461105548-20618-1-git-send-email-octavian.purdila@intel.com>
+ <1461105548-20618-7-git-send-email-octavian.purdila@intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-pci-owner@vger.kernel.org>
+Content-Type: multipart/signed; micalg=pgp-sha256;
+	protocol="application/pgp-signature"; boundary="Fbmjlltyndrrs22i"
+Return-path: <linux-efi-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <20160427141429.GA7324@red-moon>
-Sender: linux-pci-owner@vger.kernel.org
-To: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
-Cc: Tomasz Nowicki <tn@semihalf.com>, arnd@arndb.de, will.deacon@arm.com, catalin.marinas@arm.com, rafael@kernel.org, hanjun.guo@linaro.org, okaya@codeaurora.org, jiang.liu@linux.intel.com, jchandra@broadcom.com, robert.richter@caviumnetworks.com, mw@semihalf.com, Liviu.Dudau@arm.com, ddaney@caviumnetworks.com, wangyijing@huawei.com, Suravee.Suthikulpanit@amd.com, msalter@redhat.com, linux-pci@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linaro-acpi@lists.linaro.org, jcm@redhat.com
+In-Reply-To: <1461105548-20618-7-git-send-email-octavian.purdila-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Sender: linux-efi-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Octavian Purdila <octavian.purdila-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: "Rafael J. Wysocki" <rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org>, Len Brown <lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Matt Fleming <matt-mF/unelCI9GS6iBeEJttW/XRex20P6io@public.gmane.org>, Wolfram Sang <wsa-z923LK4zBo2bacvFa/9K2g@public.gmane.org>, Joel Becker <jlbec-aKy9MeLSZ9dg9hUCZPvPmw@public.gmane.org>, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-efi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-spi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, irina.tirdea-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Wed, Apr 27, 2016 at 03:26:59PM +0100, Lorenzo Pieralisi wrote:
-> On Tue, Apr 26, 2016 at 09:39:16PM -0500, Bjorn Helgaas wrote:
-> > On Fri, Apr 15, 2016 at 07:06:40PM +0200, Tomasz Nowicki wrote:
-> > > Platforms that have memory mapped IO port (such as ARM64) need special
-> > > handling for PCI I/O resources. For host bridge's resource probing case
-> > > these resources need to be fixed up with pci_register_io_range/pci_remap_iospace etc.
-> > 
-> > ia64 also has memory-mapped I/O port space.  It would be ideal to find
-> > some way to handle ia64 and ARM64 similarly.  At the very least, we
-> > have to make sure that this doesn't break ia64.  The ia64 dense/sparse
-> > I/O spaces complicate things; I don't know if ARM64 has something
-> > similar or not.
-> 
-> No it does not, and that's exactly the same problem we faced with
-> the DT generic version of of_pci_range_to_resource() which basically
-> relies on PCI_IOBASE to be defined to add code that creates IO port
-> resources out of the MMIO resource describing how IO port space is
-> mapped to MMIO (physical) address space.
 
-Mapping IO port space into MMIO space is pretty common since most
-arches don't have inb/outb instructions like x86 does.  Several arches
-(at least ia64 and parisc) have some sort of sparse mapping, but my
-point is that the "dense" mapping (one byte MMIO space per IO port) is
-pretty similar across arches.
+--Fbmjlltyndrrs22i
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-There are differences in how we compute the MMIO address from the IO
-port number, of course, e.g., on arm64 the CPU virtual MMIO address is
-a simple offset from the IO port number, i.e., "vaddr = PCI_IOBASE +
-res->start" in pci_remap_iospace(), while on ia64, that CPU address is
-less constrained, i.e., "vaddr = space->mmio_base | port" in
-__ia64_mk_io_addr().
+On Wed, Apr 20, 2016 at 01:39:04AM +0300, Octavian Purdila wrote:
 
-> IIRC everything hinges on PCI_IOBASE definition to make sure that
-> of_pci_range_to_resource() *works*, which means that if PCI_IOBASE is
-> not defined (ie IA64) that code - acpi_pci_root_remap_iospace() in this
-> case - does nothing.
+> +	switch (value) {
+> +	case ACPI_RECONFIG_DEVICE_ADD:
+> +		master = acpi_spi_find_master_by_adev(adev->parent);
+> +		if (!master)
+> +			break;
+> +
+> +		acpi_register_spi_device(master, adev);
+> +		put_device(&master->dev);
+> +		break;
+> +	case ACPI_RECONFIG_DEVICE_REMOVE:
+> +		spi = acpi_spi_find_device_by_adev(adev);
+> +		if (!spi)
+> +			break;
 
-OK.  That's confusing to read, but I see that it probably works.
+There's more code here now than I remember but this all looks *really*
+close to the DT code except for the OF_POPULATED flag that we set when
+things are instantiated in DT.  The duplication seems bad but the fact
+that we're missing the flag worries me...  do we have guarantees that
+ACPI won't double register?
 
-> So acpi_pci_root_remap_iospace() is of_pci_range_to_resource() ACPI
-> equivalent + the pci_remap_iospace() call (I have to dig into the
-> logs to check why Liviu did not add a call to pci_remap_iospace()
-> in of_pci_get_host_bridge_resources() - I want to do that actually).
-> 
-> The point here is: IO space (in DT and ACPI) handling is arch specific.
-> 
-> For DT, by relying on PCI_IOBASE, we left that code in drivers/of and
-> it works (well, with some niggles - see the thread with Murali on IO
-> space on TI keystone) for ARM/ARM64.
-> 
-> http://www.spinics.net/lists/linux-pci/msg49725.html
-> 
-> What are we going to do with the ACPI version ?
-> 
-> Do we want to add an arch specific call that takes the raw resource
-> describing IO space and creates an IO port resource (and the MMIO
-> equivalent - that's what add_io_space() does in IA64) and use that
-> in generic ACPI parsing code ?
+--Fbmjlltyndrrs22i
+Content-Type: application/pgp-signature; name="signature.asc"
 
-There's a lot of non-arch-specific stuff here, which is what's
-bothering me.  The arch-specific parts are:
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2
 
-  - discovering IO port region (bus address start and size)
-  - discovering MMIO mapping address and size (CPU "mem" resource)
-  - discovering or assigning IO port base (CPU "io" resource)
-  - setting up whatever structures arch uses to implement inb()
+iQEcBAEBCAAGBQJXIkt2AAoJECTWi3JdVIfQpzsH/1n7hl+pE1kFRXGcgoE4Nfpc
+owPTtbAhGra2SXpf0bg9kFHrkidpshYpNMp2I5bBma1pr97xWvWVkksUNCb+zD/X
+97x+eOBfVXAogdmrcorGbBWgF5Q/2o55oED9jPlHAufF7yXJhvxCrtD7hE2qWaEj
+xlvLE9w5BGmVQpg03emG/PIYVCV5LcFzmuA3UbYCe1uEp/xUb2IJbFm+6y2urIAw
+TN0/+aG5eRl+E90omFsswtCbSBtGVa8+HCPt135FxBCYuLz/FnaORmSKV2tjPMWF
+YcsnscsJODp550pbAtCGoOAjj6oZAnMZwx6gn7chT0r1unSBzp9ukUhSCLsmlDc=
+=oKzG
+-----END PGP SIGNATURE-----
 
-Once you have the CPU "mem" and "io" resources, the code to insert
-them into iomem_resource and ioport_resource and ioremap() the MMIO
-space should be pretty generic.  Right now that code is scattered
-through the arches and most of them don't do it correctly, e.g.,
-typically they don't request the "mem" resource.
+--Fbmjlltyndrrs22i--
