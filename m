@@ -1,66 +1,82 @@
-From: Bjorn Helgaas <helgaas@kernel.org>
-Subject: Re: [PATCH V6 08/13] PCI: generic, thunder: update to use generic
- ECAM API
-Date: Thu, 28 Apr 2016 16:18:34 -0500
-Message-ID: <20160428211834.GE25125@localhost>
+From: Christopher Covington <cov@codeaurora.org>
+Subject: [PATCH] acpi: pci: QDF2432 32 bit config space accessors
+Date: Thu, 28 Apr 2016 17:27:38 -0400
+Message-ID: <1461878858-23798-1-git-send-email-cov@codeaurora.org>
 References: <1460740008-19489-1-git-send-email-tn@semihalf.com>
- <8950494.UV8UrWiFbx@wuerfel>
- <20160428201439.GD25125@localhost>
- <5813591.CkzahFEfSl@wuerfel>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-pci-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <5813591.CkzahFEfSl@wuerfel>
+In-Reply-To: <1460740008-19489-1-git-send-email-tn@semihalf.com>
 Sender: linux-pci-owner@vger.kernel.org
-To: Arnd Bergmann <arnd@arndb.de>
-Cc: Tomasz Nowicki <tn@semihalf.com>, Jayachandran C <jchandra@broadcom.com>, linux-arm-kernel@lists.infradead.org, Will Deacon <will.deacon@arm.com>, Catalin Marinas <catalin.marinas@arm.com>, rafael@kernel.org, Hanjun Guo <hanjun.guo@linaro.org>, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, Sinan Kaya <okaya@codeaurora.org>, jiang.liu@linux.intel.com, Jon Masters <jcm@redhat.com>, linaro-acpi@lists.linaro.org, linux-pci@vger.kernel.org, Liviu.Dudau@arm.com, David Daney <ddaney@caviumnetworks.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, robert.richter@caviumnetworks.com, Suravee.Suthikulpanit@amd.com, msalter@redhat.com, Wangyijing <wangyijing@huawei.com>, Marcin Wojtas <mw@semihalf.com>
+To: Timur Tabi <timur@codeaurora.org>, Sinan Kaya <okaya@codeaurora.org>, Mark Salter <msalter@redhat.com>, Mark Langsdorf <mlangsdo@redhat.com>, Jon Masters <jcm@redhat.com>
+Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, Christopher Covington <cov@codeaurora.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On Thu, Apr 28, 2016 at 10:40:35PM +0200, Arnd Bergmann wrote:
-> On Thursday 28 April 2016 15:14:39 Bjorn Helgaas wrote:
-> > On Thu, Apr 21, 2016 at 11:36:53AM +0200, Arnd Bergmann wrote:
-> > > On Thursday 21 April 2016 11:28:15 Tomasz Nowicki wrote:
-> > > > On 19.04.2016 15:06, Arnd Bergmann wrote:
-> > > > > On Monday 18 April 2016 21:31:54 Tomasz Nowicki wrote:
-> > > > >>
-> > > > >> Basically the whole content of pci-thunder-ecam.c and pci-thunder-pem.c.
-> > > > >>
-> > > > >> pci-thunder-ecam.c contains config space accessors. Similar for
-> > > > >> pci-thunder-pem.c but it also has extra init call (it is now called
-> > > > >> thunder_pem_init) which finds and maps related registers.
-> > > > >
-> > > > > They seem to do much more than just override the accessors, they actually
-> > > > > change the contents of the config space as well. Is that really necessary
-> > > > > on ACPI based systems as well?
-> > > > 
-> > > > Yes, the pci-thunder-ecam.c accessors are meant to emulate config space 
-> > > > capabilities. They are necessary to synthesize EA capabilities (fixed 
-> > > > PCI BARs), it wont work without this, for ACPI boot as well.
-> > > 
-> > > Why is that? I thought the BARs never get reassigned when using ACPI,
-> > 
-> > In general, there's no reason we can't reassign BARs, whether we're
-> > using DT, ACPI, or whatever.  In many cases, systems with ACPI also
-> > assign all the BARs in firmware, and Linux doesn't reassign them
-> > unless it needs to.  But that's just a coincidence.  There's no
-> > requirement that Linux leave BARs as firmware programmed them.
-> 
-> I'm thought I've seen systems in which the ACPI BIOS assumes that
-> certain PCI devices never move around, because it pokes the registers
-> from AML, and changing them would require never using the same device
-> through ACPI. It's likely that this is against some standard, but that
-> won't help you if you have to deal with the system anyway.
+Qualcomm Technologies QDF2432 SoCs require 32 bit accessors to be used
+for the PCI configuration space. Register the appropriate quirk.
 
-Yes, I'm pretty sure there are systems like that, e.g., I think SMM
-code on some HP servers assumes the iLO address never changes.  I
-think that is a firmware defect because I don't think there's any spec
-that says firmware retains control over PCI BARs after handoff.  And
-this particular case isn't really ACPI-specific.
+Signed-off-by: Christopher Covington <cov@codeaurora.org>
+---
+Depends on Tomasz Nowicki's latest series:
+[PATCH V6 00/13] Support for generic ACPI based PCI host controller
+---
+ drivers/acpi/pci_gen_host.c | 13 +++++++++++++
+ drivers/pci/ecam.c          | 10 ++++++++++
+ drivers/pci/ecam.h          |  3 +++
+ 3 files changed, 26 insertions(+)
 
-But as you say, we have to deal with these systems anyway, even if we
-consider that behavior broken.  My proposal has been to add quirks to
-mark those devices as IORESOURCE_PCI_FIXED, but I don't think anybody
-has gotten around to doing that.
-
-Bjorn
+diff --git a/drivers/acpi/pci_gen_host.c b/drivers/acpi/pci_gen_host.c
+index e55dfca..daf8a86 100644
+--- a/drivers/acpi/pci_gen_host.c
++++ b/drivers/acpi/pci_gen_host.c
+@@ -257,3 +257,16 @@ int raw_pci_write(unsigned int domain, unsigned int busn, unsigned int devfn,
+ 		return PCIBIOS_DEVICE_NOT_FOUND;
+ 	return bus->ops->write(bus, devfn, reg, len, val);
+ }
++
++static const struct dmi_system_id qcom_qdf2432[] = {
++	{
++		.ident = "Qualcomm Technologies QDF2432",
++		.matches = {
++			DMI_MATCH(DMI_SYS_VENDOR, "Qualcomm"),
++			DMI_MATCH(DMI_PRODUCT_NAME, "QDF2432"),
++		},
++	},
++	{ }
++};
++
++DECLARE_ACPI_MCFG_FIXUP(qcom_qdf2432, NULL, &pci_generic_ecam_32b_ops, PCI_MCFG_DOMAIN_ANY, PCI_MCFG_BUS_ANY);
+diff --git a/drivers/pci/ecam.c b/drivers/pci/ecam.c
+index ff04c01..720a038 100644
+--- a/drivers/pci/ecam.c
++++ b/drivers/pci/ecam.c
+@@ -135,3 +135,13 @@ struct pci_generic_ecam_ops pci_generic_ecam_default_ops = {
+ 		.write		= pci_generic_config_write,
+ 	}
+ };
++
++/* ECAM ops with 32 bit config space access quirk */
++struct pci_generic_ecam_ops pci_generic_ecam_32b_ops = {
++	.bus_shift	= 20,
++	.pci_ops		= {
++		.map_bus	= pci_generic_ecam_map_bus,
++		.read		= pci_generic_config_read32,
++		.write		= pci_generic_config_write32,
++	}
++};
+diff --git a/drivers/pci/ecam.h b/drivers/pci/ecam.h
+index 706621a..4af764f 100644
+--- a/drivers/pci/ecam.h
++++ b/drivers/pci/ecam.h
+@@ -58,6 +58,9 @@ void __iomem *pci_generic_ecam_map_bus(struct pci_bus *bus, unsigned int devfn,
+ /* default ECAM ops, bus shift 20, generic read and write */
+ extern struct pci_generic_ecam_ops pci_generic_ecam_default_ops;
+ 
++/* ECAM ops with 32 bit config space access quirk */
++extern struct pci_generic_ecam_ops pci_generic_ecam_32b_ops;
++
+ #ifdef CONFIG_PCI_HOST_GENERIC
+ /* for DT based pci controllers that support ECAM */
+ int pci_host_common_probe(struct platform_device *pdev,
+-- 
+Qualcomm Innovation Center, Inc.
+Qualcomm Innovation Center, Inc. is a member of Code Aurora Forum,
+a Linux Foundation Collaborative Project
