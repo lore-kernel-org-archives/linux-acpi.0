@@ -1,148 +1,134 @@
-From: Pali =?utf-8?q?Roh=C3=A1r?= <pali.rohar@gmail.com>
-Subject: Re: [PATCH] i2c: i801: Allow ACPI SystemIO OpRegion to conflict with PCI BAR
-Date: Fri, 29 Apr 2016 23:00:23 +0200
-Message-ID: <201604292300.23616@pali>
-References: <1461839010-110231-1-git-send-email-mika.westerberg@linux.intel.com> <20160429090351.GS12528@pali> <CALCETrXO128w2ZyCj3TV96gS0k_f+9THYmT-Au7s26TLB18tpA@mail.gmail.com>
+From: "Dall, Betty" <betty.dall@hpe.com>
+Subject: Re: [PATCH v2 3/3] ACPI/device_sysfs: Clean up checkpatch errors
+Date: Fri, 29 Apr 2016 21:13:28 +0000
+Message-ID: <AT5PR84MB00838E755BEEE2769F1EA5209D660@AT5PR84MB0083.NAMPRD84.PROD.OUTLOOK.COM>
+References: <1461957681-6163-1-git-send-email-betty.dall@hpe.com>
+	<1461957681-6163-4-git-send-email-betty.dall@hpe.com>
+ <CAJZ5v0iAar-AJ8zsf6B0awm-xWT0xr3PQji5zoZeQYt+=+_W0A@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed;
-  boundary="nextPart1461971377.xvVVrqOhF8";
-  protocol="application/pgp-signature";
-  micalg=pgp-sha1
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-wm0-f46.google.com ([74.125.82.46]:37074 "EHLO
-	mail-wm0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752329AbcD2VA1 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 29 Apr 2016 17:00:27 -0400
-In-Reply-To: <CALCETrXO128w2ZyCj3TV96gS0k_f+9THYmT-Au7s26TLB18tpA@mail.gmail.com>
+Received: from mail-bn1on0141.outbound.protection.outlook.com ([157.56.110.141]:36897
+	"EHLO na01-bn1-obe.outbound.protection.outlook.com"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1751339AbcD2V21 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 29 Apr 2016 17:28:27 -0400
+Content-Language: en-US
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Andy Lutomirski <luto@amacapital.net>
-Cc: Andy Lutomirski <luto@kernel.org>, Mika Westerberg <mika.westerberg@linux.intel.com>, Jean Delvare <jdelvare@suse.com>, Wolfram Sang <wsa@the-dreams.de>, Jarkko Nikula <jarkko.nikula@linux.intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, "linux-i2c@vger.kernel.org" <linux-i2c@vger.kernel.org>, Linux ACPI <linux-acpi@vger.kernel.org>, Mario Limonciello <mario_limonciello@dell.com>
+To: "Rafael J. Wysocki" <rafael@kernel.org>
+Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
 
---nextPart1461971377.xvVVrqOhF8
-Content-Type: Text/Plain;
-  charset="utf-8"
-Content-Transfer-Encoding: quoted-printable
+On 04/29/2016 02:19 PM, Rafael J. Wysocki wrote:
+> On Fri, Apr 29, 2016 at 9:21 PM, Betty Dall <betty.dall@hpe.com> wrote:
+>> Cleaning up five existing checkpatch errors in device_sysfs.c since the
+>> file is being changed.
+>>
+>> Signed-off-by: Betty Dall <betty.dall@hpe.com>
+>> ---
+>>  drivers/acpi/device_sysfs.c | 22 ++++++++++++++--------
+>>  1 file changed, 14 insertions(+), 8 deletions(-)
+>>
+>> diff --git a/drivers/acpi/device_sysfs.c b/drivers/acpi/device_sysfs.c
+>> index e556a3e..5aaebec 100644
+>> --- a/drivers/acpi/device_sysfs.c
+>> +++ b/drivers/acpi/device_sysfs.c
+>> @@ -35,7 +35,7 @@ static ssize_t acpi_object_path(acpi_handle handle, char *buf)
+>>         if (result)
+>>                 return result;
+>>
+>> -       result = sprintf(buf, "%s\n", (char*)path.pointer);
+>> +       result = sprintf(buf, "%s\n", (char *)path.pointer);
+> 
+> OK
+> 
+>>         kfree(path.pointer);
+>>         return result;
+>>  }
+>> @@ -81,6 +81,7 @@ static const struct sysfs_ops acpi_data_node_sysfs_ops = {
+>>  static void acpi_data_node_release(struct kobject *kobj)
+>>  {
+>>         struct acpi_data_node *dn = to_data_node(kobj);
+>> +
+> 
+> Maybe.
 
-On Friday 29 April 2016 20:10:23 Andy Lutomirski wrote:
-> On Fri, Apr 29, 2016 at 2:03 AM, Pali Roh=C3=A1r <pali.rohar@gmail.com>
-> wrote:
-> > On Thursday 28 April 2016 11:34:38 Andy Lutomirski wrote:
-> >> On 04/28/2016 03:23 AM, Mika Westerberg wrote:
-> >> >Many Intel systems the BIOS declares a SystemIO OpRegion below
-> >> >the SMBus
-> >> >
-> >> >PCI device as can be seen in ACPI DSDT table from Lenovo Yoga 900:
-> >> >  Device (SBUS)
-> >> >  {
-> >> > =20
-> >> >      OperationRegion (SMBI, SystemIO, (SBAR << 0x05), 0x10)
-> >> >      Field (SMBI, ByteAcc, NoLock, Preserve)
-> >> >      {
-> >> >     =20
-> >> >          HSTS,   8,
-> >> >          Offset (0x02),
-> >> >          HCON,   8,
-> >> >          HCOM,   8,
-> >> >          TXSA,   8,
-> >> >          DAT0,   8,
-> >> >          DAT1,   8,
-> >> >          HBDR,   8,
-> >> >          PECR,   8,
-> >> >          RXSA,   8,
-> >> >          SDAT,   16
-> >> >     =20
-> >> >      }
-> >> >
-> >> >There are also bunch of ASL methods that that the BIOS can use to
-> >> >access these fields. Most of the systems in question ASL methods
-> >> >accessing the SMBI OpRegion are never used.
-> >> >
-> >> >Now, because of this SMBI OpRegion many systems fail to load the
-> >> >SMBus
-> >> >
-> >> >driver with an error looking like one below:
-> >> >  ACPI Warning: SystemIO range
-> >> >  0x0000000000003040-0x000000000000305F
-> >> > =20
-> >> >       conflicts with OpRegion
-> >> >       0x0000000000003040-0x000000000000304F
-> >> >       (\_SB.PCI0.SBUS.SMBI) (20160108/utaddress-255)
-> >> > =20
-> >> >  ACPI: If an ACPI driver is available for this device, you
-> >> >  should use
-> >> > =20
-> >> >       it instead of the native driver
-> >> >
-> >> >The reason is that this SMBI OpRegion conflicts with the PCI BAR
-> >> >used by the SMBus driver.
-> >> >
-> >> >It turns out that we can install a custom SystemIO address space
-> >> >handler for the SMBus device to intercept all accesses through
-> >> >that OpRegion. This allows us to share the PCI BAR with the ASL
-> >> >code if it for some reason is using it. We do not expect that
-> >> >this OpRegion handler will ever be called but if it is we print
-> >> >a warning and execute the read/write operation under a lock
-> >> >which prevents ASL and OS from messing each other.
-> >>=20
-> >> Tested-by: Andy Lutomirski <luto@kernel.org> # Dell XPS 13 9350
-> >>=20
-> >> This successfully works around:
-> >>=20
-> >> https://bugzilla.kernel.org/show_bug.cgi?id=3D110041
-> >>=20
-> >> but the BIOS people should still fix their ASL.  Sigh.
-> >>=20
-> >> On the Dell laptop, the observable effect is that the driver loads
-> >> and finds the iTCO thing.
-> >>=20
-> >> Pali, this may be considerably more useful on your laptop.
-> >=20
-> > Andy, I am right that I will be able to load i2c-i801.ko driver
-> > without acpi_enforce_resources=3Dlax parameter?
->=20
-> Yes, and it works on my laptop.
+Checkpatch wants a blank line after declarations.
 
-Looks like it is working also on my laptop.
+>>         complete(&dn->kobj_done);
+>>  }
+>>
+>> @@ -106,7 +107,8 @@ static void acpi_expose_nondev_subnodes(struct kobject *kobj,
+>>                 ret = kobject_init_and_add(&dn->kobj, &acpi_data_node_ktype,
+>>                                            kobj, "%s", dn->name);
+>>                 if (ret)
+>> -                       acpi_handle_err(dn->handle, "Failed to expose (%d)\n", ret);
+>> +                       acpi_handle_err(dn->handle,
+>> +                               "Failed to expose (%d)\n", ret);
+> 
+> No.  checkpatch is wrong here.
 
-> > If yes, then it sounds good! Finally I would be able to bind
-> > lis3lv02d_i2c.ko driver for accelerometer which is on my E6440
-> > machine.
-> >=20
-> > Andy, is there any way to tell i2c-i801.ko driver that on i2c bus
-> > (which that driver exports) is present some i2c device? Months ago
-> > I got list of Latitude machines on which i2c address is that
-> > accelerometer present.
-> >=20
-> > It is possible to hardcode that mapping (DMI name of laptop --> i2c
-> > address) into dell-laptop driver, so i2c-i801.ko and
-> > lis3lv02d_i2c.ko will be automatically loaded and lis3l binded
-> > correctly to i801 i2c address?
->=20
-> I don't know how this part works, but I doubt that doing it in
-> dell-laptop will be convenient.  After all, dell-laptop can load
-> before i2c-i801.
->=20
-> Jean and Wolfram: is there a quirk mechanism to add i2c devices that
-> aren't directly enumerable but are known to exist due to DMI?
+Ok - that was just an 80 char warning.
 
-Maybe something like i2c_register_board_info()?
+>>                 else
+>>                         acpi_expose_nondev_subnodes(&dn->kobj, &dn->data);
+>>         }
+>> @@ -333,7 +335,9 @@ int acpi_device_modalias(struct device *dev, char *buf, int size)
+>>  EXPORT_SYMBOL_GPL(acpi_device_modalias);
+>>
+>>  static ssize_t
+>> -acpi_device_modalias_show(struct device *dev, struct device_attribute *attr, char *buf) {
+>> +acpi_device_modalias_show(struct device *dev,
+>> +                       struct device_attribute *attr, char *buf)
+> 
+> The brace should go to the new line, but it's better if the header
+> takes one line only.
 
-=2D-=20
-Pali Roh=C3=A1r
-pali.rohar@gmail.com
+Ok - I was trying to clean up the 80 character warning, but I see your
+point.
 
---nextPart1461971377.xvVVrqOhF8
-Content-Type: application/pgp-signature; name=signature.asc 
-Content-Description: This is a digitally signed message part.
+>> +{
+>>         return __acpi_device_modalias(to_acpi_device(dev), buf, 1024);
+>>  }
+>>  static DEVICE_ATTR(modalias, 0444, acpi_device_modalias_show, NULL);
+>> @@ -397,7 +401,9 @@ acpi_eject_store(struct device *d, struct device_attribute *attr,
+>>  static DEVICE_ATTR(eject, 0200, NULL, acpi_eject_store);
+>>
+>>  static ssize_t
+>> -acpi_device_hid_show(struct device *dev, struct device_attribute *attr, char *buf) {
+>> +acpi_device_hid_show(struct device *dev,
+>> +       struct device_attribute *attr, char *buf)
+> 
+> Ditto.
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.11 (GNU/Linux)
+OK.
 
-iEYEABECAAYFAlcjy2cACgkQi/DJPQPkQ1JtOwCfV6DLIRygYAxxZMMWcHswHHyB
-tBoAoKr5dYah5cuz07eJkuJgfRCdW5Th
-=1EOJ
------END PGP SIGNATURE-----
+>> +{
+>>         struct acpi_device *acpi_dev = to_acpi_device(dev);
+>>
+>>         return sprintf(buf, "%s\n", acpi_device_hid(acpi_dev));
+>> @@ -568,10 +574,10 @@ int acpi_device_setup_files(struct acpi_device *dev)
+>>                         goto end;
+>>         }
+>>
+>> -        /*
+>> -         * If device has _EJ0, 'eject' file is created that is used to trigger
+>> -         * hot-removal function from userland.
+>> -         */
+>> +       /*
+>> +        * If device has _EJ0, 'eject' file is created that is used to trigger
+>> +        * hot-removal function from userland.
+>> +        */
+> 
+> What's the problem with this comment?
 
---nextPart1461971377.xvVVrqOhF8--
+They were spaces - not a tab.
+
+> 
+>>         if (acpi_has_method(dev->handle, "_EJ0")) {
+>>                 result = device_create_file(&dev->dev, &dev_attr_eject);
+>>                 if (result)
+>> --
+
+
