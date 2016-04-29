@@ -1,50 +1,75 @@
-From: "Zheng, Lv" <lv.zheng@intel.com>
-Subject: RE: [PATCH v2 4/6] ACPI / osi: Fix default _OSI(Darwin) support
-Date: Fri, 29 Apr 2016 02:07:53 +0000
-Message-ID: <1AE640813FDE7649BE1B193DEA596E883BB82EF4@SHSMSX101.ccr.corp.intel.com>
-References: <cover.1461656216.git.lv.zheng@intel.com>
- <e8ea6e8841adce9e10e5bd0b278b47a7c799c276.1461736123.git.lv.zheng@intel.com>
- <36DF59CE26D8EE47B0655C516E9CE64028748233@shsmsx102.ccr.corp.intel.com>
- <2223787.tzTyTqLAjo@vostro.rjw.lan>
- <1AE640813FDE7649BE1B193DEA596E883BB82C18@SHSMSX101.ccr.corp.intel.com>
+From: Dan Williams <dan.j.williams@intel.com>
+Subject: [PATCH v11 0/5] libnvidmm, nfit: dimm command marshaling
+Date: Thu, 28 Apr 2016 19:42:22 -0700
+Message-ID: <146189774241.29835.12947278159500915461.stgit@dwillia2-desk3.amr.corp.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga02.intel.com ([134.134.136.20]:9459 "EHLO mga02.intel.com"
+Received: from mga02.intel.com ([134.134.136.20]:43093 "EHLO mga02.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752244AbcD2CH7 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 28 Apr 2016 22:07:59 -0400
-In-Reply-To: <1AE640813FDE7649BE1B193DEA596E883BB82C18@SHSMSX101.ccr.corp.intel.com>
-Content-Language: en-US
+	id S1752356AbcD2CnM (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 28 Apr 2016 22:43:12 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Zheng, Lv" <lv.zheng@intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, "Chen, Yu C" <yu.c.chen@intel.com>
-Cc: Lv Zheng <zetalog@gmail.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>, "Brown, Len" <len.brown@intel.com>
+To: linux-nvdimm@lists.01.org
+Cc: Christoph Hellwig <hch@infradead.org>, linux-acpi@vger.kernel.org, rafael.j.wysocki@intel.com, Jerry Hoemann <jerry.hoemann@hpe.com>
 
-SGksIFJhZmFlbA0KDQo+IEZyb206IGxpbnV4LWFjcGktb3duZXJAdmdlci5rZXJuZWwub3JnIFtt
-YWlsdG86bGludXgtYWNwaS0NCj4gb3duZXJAdmdlci5rZXJuZWwub3JnXSBPbiBCZWhhbGYgT2Yg
-WmhlbmcsIEx2DQo+IFN1YmplY3Q6IFJFOiBbUEFUQ0ggdjIgNC82XSBBQ1BJIC8gb3NpOiBGaXgg
-ZGVmYXVsdCBfT1NJKERhcndpbikgc3VwcG9ydA0KPiANCg0KW0x2IFpoZW5nXSANClNraXAuDQoN
-Cj4gPiA+ID4gQEAgLTMzMSw2ICszMzYsMjQgQEAgc3RhdGljIHN0cnVjdCBkbWlfc3lzdGVtX2lk
-IGFjcGlfb3NpX2RtaV90YWJsZVtdDQo+ID4gPiA+IF9faW5pdGRhdGEgPSB7DQo+ID4gPiA+ICAJ
-CX0sDQo+ID4gPiA+ICAJfSwNCj4gPiA+ID4NCj4gPiA+ID4gKwkvKg0KPiA+ID4gPiArCSAqIEVu
-YWJsZSBfT1NJKCJEYXJ3aW4iKSBmb3IgYWxsIGFwcGxlIHBsYXRmb3Jtcy4NCj4gPiA+ID4gKwkg
-Ki8NCj4gPiA+ID4gKwl7DQo+ID4gPiA+ICsJLmNhbGxiYWNrID0gZG1pX2VuYWJsZV9vc2lfZGFy
-d2luLA0KPiA+ID4gPiArCS5pZGVudCA9ICJBcHBsZSBoYXJkd2FyZSIsDQo+ID4gPiA+ICsJLm1h
-dGNoZXMgPSB7DQo+ID4gPiA+ICsJCSAgICAgRE1JX01BVENIKERNSV9TWVNfVkVORE9SLCAiQXBw
-bGUgSU5DLiIpLA0KPiA+ID4gPiArCQl9LA0KPiA+ID4gPiArCX0sDQo+ID4gPiA+ICsJew0KPiA+
-ID4gPiArCS5jYWxsYmFjayA9IGRtaV9lbmFibGVfb3NpX2RhcndpbiwNCj4gPiA+ID4gKwkuaWRl
-bnQgPSAiQXBwbGUgaGFyZHdhcmUiLA0KPiA+ID4gPiArCS5tYXRjaGVzID0gew0KPiA+ID4gPiAr
-CQkgICAgIERNSV9NQVRDSChETUlfU1lTX1ZFTkRPUiwgIkFwcGxlIENvbXB1dGVyLCBJTkMuIiks
-DQo+ID4gPiA+ICsJCX0sDQo+ID4gPiA+ICsJfSwNCj4gPiA+ID4gKw0KPiA+ID4gVGhlICB2ZW5k
-b3IgaWQgc2hvdWxkIGJlICdBcHBsZSBJbmMuJyBhbmQgJ0FwcGxlIENvbXB1dGVyLCBJbmMuJyBp
-bnN0ZWFkLg0KPiA+DQo+ID4gSWYgdGhpcyBpcyB0aGUgb25seSBwcm9ibGVtIHdpdGggdGhpcyBw
-YXRjaCwgSSBjYW4gZml4IGl0IHVwLiAgTm8gbmVlZCB0byByZXNlbmQuDQo+IFtMdiBaaGVuZ10N
-Cj4gVGhpcyBpcyB0aGUgb25seSBwcm9ibGVtLg0KPiBUaGFua3MgZm9yIHRoZSBoZWxwLg0KPiAN
-Cg0KW0x2IFpoZW5nXSANCkkganVzdCBzZW50IFVQREFURSBvZiBQQVRDSCA0LzYgYW5kIFBBVENI
-IDYvNiB0byB0aGUgbWFpbGluZyBsaXN0IHdpdGggdGhpcyBjb3JyZWN0ZWQuDQpJIHdhcyBob3Bp
-bmcgdGhleSBjb3VsZCB1cGRhdGUgcGF0Y2h3b3JrIGNvbnRlbnQgc28gdGhhdCB0aGUgQnVnemls
-bGEgcmVwb3J0ZXJzIG1pZ2h0IHVzZSB0aGUgdXBkYXRlZCBwYXRjaGVzIGZvciBjb25maXJtYXRp
-b24uDQpUaGUgTWVzc2FnZS1JZChzKSBvZiB0aGUgMiBwYXRjaGVzIHdlcmUga2VwdCBhcyBzYW1l
-IGFzIHRoZSBvbGQgb25lcy4NCg0KVGhhbmtzIGFuZCBiZXN0IHJlZ2FyZHMNCi1Mdg0K
+Jerry and I have been working towards a way to support the ACPI DSM
+command set needed by HPE DIMMs.  The HPE command sets differ
+from the original Intel-defined command set already upstream.
+
+Ideally the kernel would only implement a single standard command
+format, however the standard is not yet available and devices
+implementing an alternate command set are already shipping.
+
+This rework of Jerry's initial patches [1] aims to support shipping
+devices while encouraging future / follow-on command definitions to wait
+for the standardization process to complete by:
+
+1/ Requiring public documentation of commands
+
+2/ Providing a mechanism to disable vendor-specific functionality
+
+See patch 2 for more details.  This patch passes the existing nvdimm
+unit tests, but I have yet to extend the tests to target this new
+mechanism.
+
+
+Changes since v10: [1]
+1/ Rewrote the commit message for the patch that introduces ND_CMD_CALL
+
+2/ Replace 'nfit_cmd_family_tbl' with nfit_mem->family to clean up some
+   lookup code.
+
+3/ Squash and reorganize the 7 patches into a smaller set.  Commit
+   8467ba4fc94a from my for-4.7/dsm branch [2] was also squashed.
+
+4/ Add sysfs attributes for the dimm family and DSM function-supported
+   mask.
+
+5/ Add a module parameter to disable vendor specific commands
+
+[1]: https://lists.01.org/pipermail/linux-nvdimm/2016-April/005484.html
+[2]: https://git.kernel.org/cgit/linux/kernel/git/djbw/nvdimm.git/commit/?h=for-4.7/dsm&id=8467ba4fc94a
+
+---
+
+Dan Williams (5):
+      nfit, libnvdimm: clarify "commands" vs "_DSMs"
+      nfit, libnvdimm: limited/whitelisted dimm command marshaling mechanism
+      nfit: disable vendor specific commands
+      tools/testing/nvdimm: ND_CMD_CALL support
+      nfit: add sysfs dimm 'family' and 'dsm_mask' attributes
+
+
+ drivers/acpi/nfit.c              |  145 +++++++++++++++++++++++++++++++++-----
+ drivers/acpi/nfit.h              |   18 ++++-
+ drivers/nvdimm/bus.c             |   47 +++++++++++-
+ drivers/nvdimm/core.c            |    2 -
+ drivers/nvdimm/dimm_devs.c       |   18 +++--
+ drivers/nvdimm/nd-core.h         |    2 -
+ include/linux/libnvdimm.h        |    5 +
+ include/uapi/linux/ndctl.h       |   42 +++++++++++
+ tools/testing/nvdimm/test/nfit.c |   46 ++++++++----
+ 9 files changed, 275 insertions(+), 50 deletions(-)
