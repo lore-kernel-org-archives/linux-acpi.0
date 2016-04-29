@@ -1,106 +1,74 @@
-From: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
-Subject: Re: [PATCH V6 09/13] pci, acpi: Support for ACPI based generic PCI
- host controller
-Date: Fri, 29 Apr 2016 09:37:09 +0100
-Message-ID: <20160429083709.GA3249@red-moon>
-References: <1460740008-19489-1-git-send-email-tn@semihalf.com>
- <1460740008-19489-10-git-send-email-tn@semihalf.com>
- <20160428214800.GG25125@localhost>
+From: Mika Westerberg <mika.westerberg@linux.intel.com>
+Subject: Re: [PATCH] i2c: i801: Allow ACPI SystemIO OpRegion to conflict with
+ PCI BAR
+Date: Fri, 29 Apr 2016 11:56:15 +0300
+Message-ID: <20160429085615.GK32610@lahna.fi.intel.com>
+References: <1461839010-110231-1-git-send-email-mika.westerberg@linux.intel.com>
+ <577f885f-b54d-cf55-b1a3-0b04358271d8@kernel.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-pci-owner@vger.kernel.org>
+Return-path: <linux-i2c-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20160428214800.GG25125@localhost>
-Sender: linux-pci-owner@vger.kernel.org
-To: Bjorn Helgaas <helgaas@kernel.org>
-Cc: Tomasz Nowicki <tn@semihalf.com>, arnd@arndb.de, will.deacon@arm.com, catalin.marinas@arm.com, rafael@kernel.org, hanjun.guo@linaro.org, okaya@codeaurora.org, jiang.liu@linux.intel.com, jchandra@broadcom.com, robert.richter@caviumnetworks.com, mw@semihalf.com, Liviu.Dudau@arm.com, ddaney@caviumnetworks.com, wangyijing@huawei.com, Suravee.Suthikulpanit@amd.com, msalter@redhat.com, linux-pci@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linaro-acpi@lists.linaro.org, jcm@redhat.com
+In-Reply-To: <577f885f-b54d-cf55-b1a3-0b04358271d8@kernel.org>
+Sender: linux-i2c-owner@vger.kernel.org
+To: Andy Lutomirski <luto@kernel.org>
+Cc: Jean Delvare <jdelvare@suse.com>, Wolfram Sang <wsa@the-dreams.de>, Jarkko Nikula <jarkko.nikula@linux.intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, linux-i2c@vger.kernel.org, linux-acpi@vger.kernel.org, Pali =?iso-8859-1?Q?Roh=E1r?= <pali.rohar@gmail.com>, Mario Limonciello <mario_limonciello@dell.com>
 List-Id: linux-acpi@vger.kernel.org
 
-On Thu, Apr 28, 2016 at 04:48:00PM -0500, Bjorn Helgaas wrote:
+On Thu, Apr 28, 2016 at 11:34:38AM -0700, Andy Lutomirski wrote:
+> On 04/28/2016 03:23 AM, Mika Westerberg wrote:
+> >Many Intel systems the BIOS declares a SystemIO OpRegion below the SMBus
+> >PCI device as can be seen in ACPI DSDT table from Lenovo Yoga 900:
+> >
+> >  Device (SBUS)
+> >  {
+> >      OperationRegion (SMBI, SystemIO, (SBAR << 0x05), 0x10)
+> >      Field (SMBI, ByteAcc, NoLock, Preserve)
+> >      {
+> >          HSTS,   8,
+> >          Offset (0x02),
+> >          HCON,   8,
+> >          HCOM,   8,
+> >          TXSA,   8,
+> >          DAT0,   8,
+> >          DAT1,   8,
+> >          HBDR,   8,
+> >          PECR,   8,
+> >          RXSA,   8,
+> >          SDAT,   16
+> >      }
+> >
+> >There are also bunch of ASL methods that that the BIOS can use to access
+> >these fields. Most of the systems in question ASL methods accessing the
+> >SMBI OpRegion are never used.
+> >
+> >Now, because of this SMBI OpRegion many systems fail to load the SMBus
+> >driver with an error looking like one below:
+> >
+> >  ACPI Warning: SystemIO range 0x0000000000003040-0x000000000000305F
+> >       conflicts with OpRegion 0x0000000000003040-0x000000000000304F
+> >       (\_SB.PCI0.SBUS.SMBI) (20160108/utaddress-255)
+> >  ACPI: If an ACPI driver is available for this device, you should use
+> >       it instead of the native driver
+> >
+> >The reason is that this SMBI OpRegion conflicts with the PCI BAR used by
+> >the SMBus driver.
+> >
+> >It turns out that we can install a custom SystemIO address space handler
+> >for the SMBus device to intercept all accesses through that OpRegion. This
+> >allows us to share the PCI BAR with the ASL code if it for some reason is
+> >using it. We do not expect that this OpRegion handler will ever be called
+> >but if it is we print a warning and execute the read/write operation under
+> >a lock which prevents ASL and OS from messing each other.
+> 
+> Tested-by: Andy Lutomirski <luto@kernel.org> # Dell XPS 13 9350
 
-[...]
+Thanks for testing!
 
-> > +static int pci_acpi_setup_ecam_mapping(struct acpi_pci_root *root,
-> > +				       struct acpi_pci_generic_root_info *ri)
-> > +{
-> > +	u16 seg = root->segment;
-> > +	u8 bus_start = root->secondary.start;
-> > +	u8 bus_end = root->secondary.end;
-> > +	struct pci_config_window *cfg;
-> > +	struct mcfg_entry *e;
-> > +	phys_addr_t addr;
-> > +	int err = 0;
-> > +
-> > +	mutex_lock(&pci_mcfg_lock);
+> This successfully works around:
 > 
-> What does this lock protect?  The pci_mcfg_list should already be
-> initialized by the time we get there, and it should be immutable for
-> the life of the system.  In fact, I would prefer if we could just
-> search the static table itself whenever we need it rather than caching
-> it in our own list.  But I don't think we can easily do that because
-> acpi_table_parse() is __init.
+> https://bugzilla.kernel.org/show_bug.cgi?id=110041
 > 
-> > +	e = pci_mcfg_lookup(seg, bus_start);
-> 
-> I would argue that we should check for _CBA first, and fall back to
-> MCFG if _CBA doesn't exist.
-> 
-> > +	if (!e) {
-> > +		addr = acpi_pci_root_get_mcfg_addr(root->device->handle);
-> 
-> IMO, acpi_pci_root_get_mcfg_addr() is misnamed.  It should be
-> acpi_pci_config_base_addr() or similar.  It definitely is not related
-> to MCFG.  Not your fault, obviously.
-> 
-> > +		if (addr == 0) {
-> > +			pr_err(PREFIX"%04x:%02x-%02x bus range error\n",
-> > +			       seg, bus_start, bus_end);
-> > +			err = -ENOENT;
-> > +			goto err_out;
-> > +		}
-> > +	} else {
-> > +		if (bus_start != e->bus_start) {
-> > +			pr_err("%04x:%02x-%02x bus range mismatch %02x\n",
-> > +			       seg, bus_start, bus_end, e->bus_start);
-> > +			err = -EINVAL;
-> > +			goto err_out;
-> > +		} else if (bus_end != e->bus_end) {
-> > +			pr_warn("%04x:%02x-%02x bus end mismatch %02x\n",
-> > +				seg, bus_start, bus_end, e->bus_end);
-> > +			bus_end = min(bus_end, e->bus_end);
-> > +		}
-> > +		addr = e->addr;
-> > +	}
-> 
-> I really don't think you need a lock around this, so you can factor
-> out the address lookup into something like:
-> 
->   addr = acpi_pci_config_base_addr(...);
->   if (addr)
->     return addr;
-> 
->   return acpi_pci_mcfg_lookup(seg, busn_res);
-> 
-> You can check inside acpi_pci_mcfg_lookup() to make sure the entry you
-> find covers the entire [busn_res.start-busn_res.end] range and return
-> failure if it doesn't.  At this point, I'm not sure it's worth it to
-> truncate the host bridge bus range to match something we find in MCFG.
-> 
-> If the MCFG entry covers *more* than the host bridge range from _CRS,
-> that's fine.  In any case, we have to be careful with the start address,
-> because the MCFG start address is always based on bus 0, but I think
-> pci_generic_ecam_create() expects the start address based on the
-> bus_start you pass to it.
+> but the BIOS people should still fix their ASL.  Sigh.
 
-Yes, I spotted this too, it is unfortunate but DT and MCFG handle
-the ECAM regions differently. In DT the reg property is relative
-to bus_start - ie reg MMIO region maps config space starting at
-the first bus in bus-range:
-
-Documentation/devicetree/bindings/pci/host-generic-pci.txt
-
-in ACPI(MCFG) as you said it is always relative to bus 0, it is
-unfortunate but the address to be mapped should be computed
-differently in the ECAM layer.
-
-Lorenzo
+For what it's worth Kabylake BIOS should not have this OpRegion anymore.
