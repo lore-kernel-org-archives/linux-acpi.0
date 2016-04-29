@@ -1,92 +1,116 @@
-From: "Dall, Betty" <betty.dall@hpe.com>
-Subject: Re: [PATCH] ACPI/device_sysfs: Add sysfs support for _HRV hardware
- revision
-Date: Fri, 29 Apr 2016 13:55:12 +0000
-Message-ID: <CS1PR84MB00855BF52B311516C15B6C5D9D660@CS1PR84MB0085.NAMPRD84.PROD.OUTLOOK.COM>
-References: <1460558894-11971-1-git-send-email-betty.dall@hpe.com>
- <2388310.jGjaKS2NDe@vostro.rjw.lan>
- <AT5PR84MB008340CB53E60CE8C511BEDE9D640@AT5PR84MB0083.NAMPRD84.PROD.OUTLOOK.COM>
- <1818106.auxzDWcdFV@vostro.rjw.lan>
+From: Jayachandran C <jchandra@broadcom.com>
+Subject: Re: [PATCH V6 09/13] pci, acpi: Support for ACPI based generic PCI
+ host controller
+Date: Fri, 29 Apr 2016 23:05:34 +0530
+Message-ID: <CAKc_7PUcjKkCrCTj9q26P8a+Tb3N_MffynnTXnJRacm6VNmFRw@mail.gmail.com>
+References: <1460740008-19489-1-git-send-email-tn@semihalf.com>
+ <1460740008-19489-10-git-send-email-tn@semihalf.com> <20160428214800.GG25125@localhost>
+ <20160429083709.GA3249@red-moon>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Language: en-US
-Sender: linux-kernel-owner@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: "lenb@kernel.org" <lenb@kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-yw0-f178.google.com ([209.85.161.178]:33061 "EHLO
+	mail-yw0-f178.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751954AbcD2RgP (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 29 Apr 2016 13:36:15 -0400
+Received: by mail-yw0-f178.google.com with SMTP id t10so204081138ywa.0
+        for <linux-acpi@vger.kernel.org>; Fri, 29 Apr 2016 10:36:15 -0700 (PDT)
+In-Reply-To: <20160429083709.GA3249@red-moon>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+Cc: Bjorn Helgaas <helgaas@kernel.org>, Tomasz Nowicki <tn@semihalf.com>, Arnd Bergmann <arnd@arndb.de>, Will Deacon <will.deacon@arm.com>, Catalin Marinas <catalin.marinas@arm.com>, rafael@kernel.org, Hanjun Guo <hanjun.guo@linaro.org>, Sinan Kaya <okaya@codeaurora.org>, jiang.liu@linux.intel.com, robert.richter@caviumnetworks.com, Marcin Wojtas <mw@semihalf.com>, Liviu.Dudau@arm.com, David Daney <ddaney@caviumnetworks.com>, Wangyijing <wangyijing@huawei.com>, Suravee.Suthikulpanit@amd.com, msalter@redhat.com, linux-pci@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linaro-acpi@lists.linaro.org, Jon Masters <jcm@redhat.com>
 
-On 04/27/2016 03:19 PM, Rafael J. Wysocki wrote:
-> On Wednesday, April 27, 2016 04:19:45 PM Dall, Betty wrote:
->> On 04/26/2016 02:39 PM, Rafael J. Wysocki wrote:
->>> On Wednesday, April 13, 2016 08:48:14 AM Betty Dall wrote:
->>>> The ACPI _HRV object on the device is used to supply Linux with
->>>> the device's hardware revision. This is an optional object. Add
->>>> sysfs support for the _HRV object if it exists on the device.
->>>>
->>>> Signed-off-by: Betty Dall <betty.dall@hpe.com>
->>>> ---
->>>>  drivers/acpi/device_sysfs.c | 24 ++++++++++++++++++++++++
->>>>  1 file changed, 24 insertions(+)
->>>>
->>>> diff --git a/drivers/acpi/device_sysfs.c b/drivers/acpi/device_sysfs.c
->>>> index b9afb47..bf12dbe 100644
->>>> --- a/drivers/acpi/device_sysfs.c
->>>> +++ b/drivers/acpi/device_sysfs.c
->>>> @@ -473,6 +473,21 @@ acpi_device_sun_show(struct device *dev, struct device_attribute *attr,
->>>>  }
->>>>  static DEVICE_ATTR(sun, 0444, acpi_device_sun_show, NULL);
->>>>  
->>>> +static ssize_t
->>>> +acpi_device_hrv_show(struct device *dev, struct device_attribute *attr,
->>>> +		     char *buf) {
->>>> +	struct acpi_device *acpi_dev = to_acpi_device(dev);
->>>> +	acpi_status status;
->>>> +	unsigned long long hrv;
->>>> +
->>>> +	status = acpi_evaluate_integer(acpi_dev->handle, "_HRV", NULL, &hrv);
->>>> +	if (ACPI_FAILURE(status))
->>>> +		return -ENODEV;
->>>
->>> Actually, this should be -EIO I think.
->>>
->>> Thanks,
->>> Rafael
+On Fri, Apr 29, 2016 at 2:07 PM, Lorenzo Pieralisi
+<lorenzo.pieralisi@arm.com> wrote:
+> On Thu, Apr 28, 2016 at 04:48:00PM -0500, Bjorn Helgaas wrote:
+>
+> [...]
+>
+>> > +static int pci_acpi_setup_ecam_mapping(struct acpi_pci_root *root,
+>> > +                                  struct acpi_pci_generic_root_info *ri)
+>> > +{
+>> > +   u16 seg = root->segment;
+>> > +   u8 bus_start = root->secondary.start;
+>> > +   u8 bus_end = root->secondary.end;
+>> > +   struct pci_config_window *cfg;
+>> > +   struct mcfg_entry *e;
+>> > +   phys_addr_t addr;
+>> > +   int err = 0;
+>> > +
+>> > +   mutex_lock(&pci_mcfg_lock);
 >>
->> Hi Rafael,
+>> What does this lock protect?  The pci_mcfg_list should already be
+>> initialized by the time we get there, and it should be immutable for
+>> the life of the system.  In fact, I would prefer if we could just
+>> search the static table itself whenever we need it rather than caching
+>> it in our own list.  But I don't think we can easily do that because
+>> acpi_table_parse() is __init.
 >>
->> I picked -ENODEV because the _SUN and _STA show functions use -ENODEV
->> for a return value when the acpi_evaluate_integer() fails.
-> 
-> Which isn't the best choice.
-> 
->> I checked in the sysfs code what the return value is used for and any
->> negative value is treated the same, that is, the sysfs code is not
->> looking specifically for -EIO.
-> 
-> But doesn't it pass the return value up the call chain?
+>> > +   e = pci_mcfg_lookup(seg, bus_start);
+>>
+>> I would argue that we should check for _CBA first, and fall back to
+>> MCFG if _CBA doesn't exist.
+>>
+>> > +   if (!e) {
+>> > +           addr = acpi_pci_root_get_mcfg_addr(root->device->handle);
+>>
+>> IMO, acpi_pci_root_get_mcfg_addr() is misnamed.  It should be
+>> acpi_pci_config_base_addr() or similar.  It definitely is not related
+>> to MCFG.  Not your fault, obviously.
+>>
+>> > +           if (addr == 0) {
+>> > +                   pr_err(PREFIX"%04x:%02x-%02x bus range error\n",
+>> > +                          seg, bus_start, bus_end);
+>> > +                   err = -ENOENT;
+>> > +                   goto err_out;
+>> > +           }
+>> > +   } else {
+>> > +           if (bus_start != e->bus_start) {
+>> > +                   pr_err("%04x:%02x-%02x bus range mismatch %02x\n",
+>> > +                          seg, bus_start, bus_end, e->bus_start);
+>> > +                   err = -EINVAL;
+>> > +                   goto err_out;
+>> > +           } else if (bus_end != e->bus_end) {
+>> > +                   pr_warn("%04x:%02x-%02x bus end mismatch %02x\n",
+>> > +                           seg, bus_start, bus_end, e->bus_end);
+>> > +                   bus_end = min(bus_end, e->bus_end);
+>> > +           }
+>> > +           addr = e->addr;
+>> > +   }
+>>
+>> I really don't think you need a lock around this, so you can factor
+>> out the address lookup into something like:
+>>
+>>   addr = acpi_pci_config_base_addr(...);
+>>   if (addr)
+>>     return addr;
+>>
+>>   return acpi_pci_mcfg_lookup(seg, busn_res);
+>>
+>> You can check inside acpi_pci_mcfg_lookup() to make sure the entry you
+>> find covers the entire [busn_res.start-busn_res.end] range and return
+>> failure if it doesn't.  At this point, I'm not sure it's worth it to
+>> truncate the host bridge bus range to match something we find in MCFG.
+>>
+>> If the MCFG entry covers *more* than the host bridge range from _CRS,
+>> that's fine.  In any case, we have to be careful with the start address,
+>> because the MCFG start address is always based on bus 0, but I think
+>> pci_generic_ecam_create() expects the start address based on the
+>> bus_start you pass to it.
+>
+> Yes, I spotted this too, it is unfortunate but DT and MCFG handle
+> the ECAM regions differently. In DT the reg property is relative
+> to bus_start - ie reg MMIO region maps config space starting at
+> the first bus in bus-range:
+>
+> Documentation/devicetree/bindings/pci/host-generic-pci.txt
+>
+> in ACPI(MCFG) as you said it is always relative to bus 0, it is
+> unfortunate but the address to be mapped should be computed
+> differently in the ECAM layer.
 
-Yes, it passes the return up the call chain. I see ENODEV returned from
-the read system call by using strace with a hard coded an error return
-in my show function. The kernel call chain is:
-	acpi_device_hrv_show+0x1c/0x48
-	dev_attr_show+0x20/0x58
-	sysfs_kf_seq_show+0xc0/0x158
-	kernfs_seq_show+0x28/0x30
-	seq_read+0x19c/0x418
-	kernfs_fop_read+0x104/0x198
-	__vfs_read+0x1c/0xd8
-	vfs_read+0x78/0x160
-	SyS_read+0x44/0xa0
+Can't this be handled by fixing up the address before passing to
+pci_generic_ecam_create?
 
->> Do you still want me to change it to -EIO?
-> 
-> I may, depending on the answer to the question above.
-
-I will change it to EIO. ENODEV makes less sense since the "device"
-exists or there wouldn't be a sysfs file. I can do the same for _SUN and
-_STA.
-
-Thanks,
--Betty
+JC.
