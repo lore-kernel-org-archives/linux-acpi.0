@@ -1,44 +1,37 @@
-From: Jon Masters <jcm@redhat.com>
-Subject: Re: [PATCH V6 05/13] acpi, pci: Support IO resources when parsing PCI
- host bridge resources.
-Date: Thu, 28 Apr 2016 17:53:53 -0400
-Message-ID: <57228671.7060606@redhat.com>
-References: <1460740008-19489-1-git-send-email-tn@semihalf.com>
- <1460740008-19489-6-git-send-email-tn@semihalf.com>
- <20160427023916.GF6789@localhost> <57204FDB.6010202@redhat.com>
+From: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Subject: Re: [PATCH v7 1/5] of/serial: move earlycon early_param handling to
+ serial
+Date: Thu, 28 Apr 2016 17:42:44 -0700
+Message-ID: <20160429004244.GA31752@kroah.com>
+References: <1459431629-27934-1-git-send-email-aleksey.makarov@linaro.org>
+ <1459431629-27934-2-git-send-email-aleksey.makarov@linaro.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:39829 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752805AbcD1VyD (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 28 Apr 2016 17:54:03 -0400
-In-Reply-To: <57204FDB.6010202@redhat.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <1459431629-27934-2-git-send-email-aleksey.makarov@linaro.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Aleksey Makarov <aleksey.makarov@linaro.org>
+Cc: Russell King <linux@arm.linux.org.uk>, linux-serial@vger.kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, "Rafael J . Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Leif Lindholm <leif.lindholm@linaro.org>, Graeme Gregory <graeme.gregory@linaro.org>, Al Stone <ahs3@redhat.com>, Christopher Covington <cov@codeaurora.org>, Yury Norov <ynorov@caviumnetworks.com>, Peter Hurley <peter@hurleysoftware.com>, Andy Shevchenko <andy.shevchenko@gmail.com>, "Zheng, Lv" <lv.zheng@intel.com>, Rob Herring <robh+dt@kernel.org>, Frank Rowand <frowand.list@gmail.com>, Grant Likely <grant.likely@linaro.org>, Jiri Slaby <jslaby@suse.com>, devicetree@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Bjorn Helgaas <helgaas@kernel.org>, Tomasz Nowicki <tn@semihalf.com>
-Cc: arnd@arndb.de, will.deacon@arm.com, catalin.marinas@arm.com, rafael@kernel.org, hanjun.guo@linaro.org, Lorenzo.Pieralisi@arm.com, okaya@codeaurora.org, jiang.liu@linux.intel.com, jchandra@broadcom.com, robert.richter@caviumnetworks.com, mw@semihalf.com, Liviu.Dudau@arm.com, ddaney@caviumnetworks.com, wangyijing@huawei.com, Suravee.Suthikulpanit@amd.com, msalter@redhat.com, linux-pci@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linaro-acpi@lists.linaro.org
 
-On 04/27/2016 01:36 AM, Jon Masters wrote:
-> On 04/26/2016 10:39 PM, Bjorn Helgaas wrote:
-
->> It would be ideal to find
->> some way to handle ia64 and ARM64 similarly.  At the very least, we
->> have to make sure that this doesn't break ia64.  The ia64 dense/sparse
->> I/O spaces complicate things; I don't know if ARM64 has something
->> similar or not.
+On Thu, Mar 31, 2016 at 04:40:23PM +0300, Aleksey Makarov wrote:
+> From: Leif Lindholm <leif.lindholm@linaro.org>
 > 
-> There's nothing directly similar - it's just regular MMIO.
+> We have multiple "earlycon" early_param handlers - merge the DT one into
+> the main earlycon one.  It's a cleanup that also will be useful
+> to defer setting up DT console until ACPI/DT decision is made.
+> 
+> Rename the exported function to avoid clashing with the function from
+> arch/microblaze/kernel/prom.c
+> 
+> Signed-off-by: Leif Lindholm <leif.lindholm@linaro.org>
+> Signed-off-by: Aleksey Makarov <aleksey.makarov@linaro.org>
+> Acked-by: Rob Herring <robh@kernel.org>
+> ---
+>  drivers/of/fdt.c              | 11 +----------
+>  drivers/tty/serial/earlycon.c |  2 +-
+>  include/linux/of_fdt.h        |  2 ++
+>  3 files changed, 4 insertions(+), 11 deletions(-)
 
-Just a footnote on the IA64 thing. I'm working on getting access to a
-few Itanium systems and running V6 on these (even bought my first
-Itanium system today so I can run this at home also). I'm also chatting
-with the internal RH QE folks about testing on a few dozen x86 systems.
-Will followup when we've any results on that testing.
-
-Jon.
-
--- 
-Computer Architect | Sent from my Fedora powered laptop
-
+Acked-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
