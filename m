@@ -1,116 +1,134 @@
-From: Jayachandran C <jchandra@broadcom.com>
-Subject: Re: [PATCH V6 09/13] pci, acpi: Support for ACPI based generic PCI
- host controller
-Date: Fri, 29 Apr 2016 23:05:34 +0530
-Message-ID: <CAKc_7PUcjKkCrCTj9q26P8a+Tb3N_MffynnTXnJRacm6VNmFRw@mail.gmail.com>
-References: <1460740008-19489-1-git-send-email-tn@semihalf.com>
- <1460740008-19489-10-git-send-email-tn@semihalf.com> <20160428214800.GG25125@localhost>
- <20160429083709.GA3249@red-moon>
+From: Andy Lutomirski <luto@amacapital.net>
+Subject: Re: [PATCH] i2c: i801: Allow ACPI SystemIO OpRegion to conflict with
+ PCI BAR
+Date: Fri, 29 Apr 2016 11:10:23 -0700
+Message-ID: <CALCETrXO128w2ZyCj3TV96gS0k_f+9THYmT-Au7s26TLB18tpA@mail.gmail.com>
+References: <1461839010-110231-1-git-send-email-mika.westerberg@linux.intel.com>
+ <577f885f-b54d-cf55-b1a3-0b04358271d8@kernel.org> <20160429090351.GS12528@pali>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-yw0-f178.google.com ([209.85.161.178]:33061 "EHLO
-	mail-yw0-f178.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751954AbcD2RgP (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 29 Apr 2016 13:36:15 -0400
-Received: by mail-yw0-f178.google.com with SMTP id t10so204081138ywa.0
-        for <linux-acpi@vger.kernel.org>; Fri, 29 Apr 2016 10:36:15 -0700 (PDT)
-In-Reply-To: <20160429083709.GA3249@red-moon>
+Received: from mail-oi0-f41.google.com ([209.85.218.41]:35010 "EHLO
+	mail-oi0-f41.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752271AbcD2SKn convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 29 Apr 2016 14:10:43 -0400
+Received: by mail-oi0-f41.google.com with SMTP id x19so127351938oix.2
+        for <linux-acpi@vger.kernel.org>; Fri, 29 Apr 2016 11:10:43 -0700 (PDT)
+In-Reply-To: <20160429090351.GS12528@pali>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
-Cc: Bjorn Helgaas <helgaas@kernel.org>, Tomasz Nowicki <tn@semihalf.com>, Arnd Bergmann <arnd@arndb.de>, Will Deacon <will.deacon@arm.com>, Catalin Marinas <catalin.marinas@arm.com>, rafael@kernel.org, Hanjun Guo <hanjun.guo@linaro.org>, Sinan Kaya <okaya@codeaurora.org>, jiang.liu@linux.intel.com, robert.richter@caviumnetworks.com, Marcin Wojtas <mw@semihalf.com>, Liviu.Dudau@arm.com, David Daney <ddaney@caviumnetworks.com>, Wangyijing <wangyijing@huawei.com>, Suravee.Suthikulpanit@amd.com, msalter@redhat.com, linux-pci@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linaro-acpi@lists.linaro.org, Jon Masters <jcm@redhat.com>
+To: =?UTF-8?Q?Pali_Roh=C3=A1r?= <pali.rohar@gmail.com>
+Cc: Andy Lutomirski <luto@kernel.org>, Mika Westerberg <mika.westerberg@linux.intel.com>, Jean Delvare <jdelvare@suse.com>, Wolfram Sang <wsa@the-dreams.de>, Jarkko Nikula <jarkko.nikula@linux.intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, "linux-i2c@vger.kernel.org" <linux-i2c@vger.kernel.org>, Linux ACPI <linux-acpi@vger.kernel.org>, Mario Limonciello <mario_limonciello@dell.com>
 
-On Fri, Apr 29, 2016 at 2:07 PM, Lorenzo Pieralisi
-<lorenzo.pieralisi@arm.com> wrote:
-> On Thu, Apr 28, 2016 at 04:48:00PM -0500, Bjorn Helgaas wrote:
+On Fri, Apr 29, 2016 at 2:03 AM, Pali Roh=C3=A1r <pali.rohar@gmail.com>=
+ wrote:
+> On Thursday 28 April 2016 11:34:38 Andy Lutomirski wrote:
+>> On 04/28/2016 03:23 AM, Mika Westerberg wrote:
+>> >Many Intel systems the BIOS declares a SystemIO OpRegion below the =
+SMBus
+>> >PCI device as can be seen in ACPI DSDT table from Lenovo Yoga 900:
+>> >
+>> >  Device (SBUS)
+>> >  {
+>> >      OperationRegion (SMBI, SystemIO, (SBAR << 0x05), 0x10)
+>> >      Field (SMBI, ByteAcc, NoLock, Preserve)
+>> >      {
+>> >          HSTS,   8,
+>> >          Offset (0x02),
+>> >          HCON,   8,
+>> >          HCOM,   8,
+>> >          TXSA,   8,
+>> >          DAT0,   8,
+>> >          DAT1,   8,
+>> >          HBDR,   8,
+>> >          PECR,   8,
+>> >          RXSA,   8,
+>> >          SDAT,   16
+>> >      }
+>> >
+>> >There are also bunch of ASL methods that that the BIOS can use to a=
+ccess
+>> >these fields. Most of the systems in question ASL methods accessing=
+ the
+>> >SMBI OpRegion are never used.
+>> >
+>> >Now, because of this SMBI OpRegion many systems fail to load the SM=
+Bus
+>> >driver with an error looking like one below:
+>> >
+>> >  ACPI Warning: SystemIO range 0x0000000000003040-0x000000000000305=
+=46
+>> >       conflicts with OpRegion 0x0000000000003040-0x000000000000304=
+=46
+>> >       (\_SB.PCI0.SBUS.SMBI) (20160108/utaddress-255)
+>> >  ACPI: If an ACPI driver is available for this device, you should =
+use
+>> >       it instead of the native driver
+>> >
+>> >The reason is that this SMBI OpRegion conflicts with the PCI BAR us=
+ed by
+>> >the SMBus driver.
+>> >
+>> >It turns out that we can install a custom SystemIO address space ha=
+ndler
+>> >for the SMBus device to intercept all accesses through that OpRegio=
+n. This
+>> >allows us to share the PCI BAR with the ASL code if it for some rea=
+son is
+>> >using it. We do not expect that this OpRegion handler will ever be =
+called
+>> >but if it is we print a warning and execute the read/write operatio=
+n under
+>> >a lock which prevents ASL and OS from messing each other.
+>>
+>> Tested-by: Andy Lutomirski <luto@kernel.org> # Dell XPS 13 9350
+>>
+>> This successfully works around:
+>>
+>> https://bugzilla.kernel.org/show_bug.cgi?id=3D110041
+>>
+>> but the BIOS people should still fix their ASL.  Sigh.
+>>
+>> On the Dell laptop, the observable effect is that the driver loads a=
+nd finds
+>> the iTCO thing.
+>>
+>> Pali, this may be considerably more useful on your laptop.
 >
-> [...]
->
->> > +static int pci_acpi_setup_ecam_mapping(struct acpi_pci_root *root,
->> > +                                  struct acpi_pci_generic_root_info *ri)
->> > +{
->> > +   u16 seg = root->segment;
->> > +   u8 bus_start = root->secondary.start;
->> > +   u8 bus_end = root->secondary.end;
->> > +   struct pci_config_window *cfg;
->> > +   struct mcfg_entry *e;
->> > +   phys_addr_t addr;
->> > +   int err = 0;
->> > +
->> > +   mutex_lock(&pci_mcfg_lock);
->>
->> What does this lock protect?  The pci_mcfg_list should already be
->> initialized by the time we get there, and it should be immutable for
->> the life of the system.  In fact, I would prefer if we could just
->> search the static table itself whenever we need it rather than caching
->> it in our own list.  But I don't think we can easily do that because
->> acpi_table_parse() is __init.
->>
->> > +   e = pci_mcfg_lookup(seg, bus_start);
->>
->> I would argue that we should check for _CBA first, and fall back to
->> MCFG if _CBA doesn't exist.
->>
->> > +   if (!e) {
->> > +           addr = acpi_pci_root_get_mcfg_addr(root->device->handle);
->>
->> IMO, acpi_pci_root_get_mcfg_addr() is misnamed.  It should be
->> acpi_pci_config_base_addr() or similar.  It definitely is not related
->> to MCFG.  Not your fault, obviously.
->>
->> > +           if (addr == 0) {
->> > +                   pr_err(PREFIX"%04x:%02x-%02x bus range error\n",
->> > +                          seg, bus_start, bus_end);
->> > +                   err = -ENOENT;
->> > +                   goto err_out;
->> > +           }
->> > +   } else {
->> > +           if (bus_start != e->bus_start) {
->> > +                   pr_err("%04x:%02x-%02x bus range mismatch %02x\n",
->> > +                          seg, bus_start, bus_end, e->bus_start);
->> > +                   err = -EINVAL;
->> > +                   goto err_out;
->> > +           } else if (bus_end != e->bus_end) {
->> > +                   pr_warn("%04x:%02x-%02x bus end mismatch %02x\n",
->> > +                           seg, bus_start, bus_end, e->bus_end);
->> > +                   bus_end = min(bus_end, e->bus_end);
->> > +           }
->> > +           addr = e->addr;
->> > +   }
->>
->> I really don't think you need a lock around this, so you can factor
->> out the address lookup into something like:
->>
->>   addr = acpi_pci_config_base_addr(...);
->>   if (addr)
->>     return addr;
->>
->>   return acpi_pci_mcfg_lookup(seg, busn_res);
->>
->> You can check inside acpi_pci_mcfg_lookup() to make sure the entry you
->> find covers the entire [busn_res.start-busn_res.end] range and return
->> failure if it doesn't.  At this point, I'm not sure it's worth it to
->> truncate the host bridge bus range to match something we find in MCFG.
->>
->> If the MCFG entry covers *more* than the host bridge range from _CRS,
->> that's fine.  In any case, we have to be careful with the start address,
->> because the MCFG start address is always based on bus 0, but I think
->> pci_generic_ecam_create() expects the start address based on the
->> bus_start you pass to it.
->
-> Yes, I spotted this too, it is unfortunate but DT and MCFG handle
-> the ECAM regions differently. In DT the reg property is relative
-> to bus_start - ie reg MMIO region maps config space starting at
-> the first bus in bus-range:
->
-> Documentation/devicetree/bindings/pci/host-generic-pci.txt
->
-> in ACPI(MCFG) as you said it is always relative to bus 0, it is
-> unfortunate but the address to be mapped should be computed
-> differently in the ECAM layer.
+> Andy, I am right that I will be able to load i2c-i801.ko driver witho=
+ut
+> acpi_enforce_resources=3Dlax parameter?
 
-Can't this be handled by fixing up the address before passing to
-pci_generic_ecam_create?
+Yes, and it works on my laptop.
 
-JC.
+>
+> If yes, then it sounds good! Finally I would be able to bind
+> lis3lv02d_i2c.ko driver for accelerometer which is on my E6440 machin=
+e.
+>
+> Andy, is there any way to tell i2c-i801.ko driver that on i2c bus (wh=
+ich
+> that driver exports) is present some i2c device? Months ago I got lis=
+t
+> of Latitude machines on which i2c address is that accelerometer prese=
+nt.
+>
+> It is possible to hardcode that mapping (DMI name of laptop --> i2c
+> address) into dell-laptop driver, so i2c-i801.ko and lis3lv02d_i2c.ko
+> will be automatically loaded and lis3l binded correctly to i801 i2c a=
+ddress?
+
+I don't know how this part works, but I doubt that doing it in
+dell-laptop will be convenient.  After all, dell-laptop can load
+before i2c-i801.
+
+Jean and Wolfram: is there a quirk mechanism to add i2c devices that
+aren't directly enumerable but are known to exist due to DMI?
+
+--Andy
+--
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
