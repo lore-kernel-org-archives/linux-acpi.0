@@ -1,346 +1,476 @@
 From: Dan Williams <dan.j.williams@intel.com>
-Subject: [PATCH v11 1/5] nfit, libnvdimm: clarify "commands" vs "_DSMs"
-Date: Thu, 28 Apr 2016 19:42:28 -0700
-Message-ID: <146189774794.29835.11997438198616276280.stgit@dwillia2-desk3.amr.corp.intel.com>
+Subject: [PATCH v11 2/5] nfit,
+ libnvdimm: limited/whitelisted dimm command marshaling mechanism
+Date: Thu, 28 Apr 2016 19:42:33 -0700
+Message-ID: <146189775335.29835.217177508880335589.stgit@dwillia2-desk3.amr.corp.intel.com>
 References: <146189774241.29835.12947278159500915461.stgit@dwillia2-desk3.amr.corp.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga09.intel.com ([134.134.136.24]:29167 "EHLO mga09.intel.com"
+Received: from mga01.intel.com ([192.55.52.88]:36653 "EHLO mga01.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752356AbcD2CnS (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 28 Apr 2016 22:43:18 -0400
+	id S1752356AbcD2CnW (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 28 Apr 2016 22:43:22 -0400
 In-Reply-To: <146189774241.29835.12947278159500915461.stgit@dwillia2-desk3.amr.corp.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: linux-nvdimm@lists.01.org
 Cc: Christoph Hellwig <hch@infradead.org>, linux-acpi@vger.kernel.org, rafael.j.wysocki@intel.com, Jerry Hoemann <jerry.hoemann@hpe.com>
 
-Clarify the distinction between "commands", the ioctls userspace calls
-to request the kernel take some action on a given dimm device, and
-"_DSMs", the actual function numbers used in the firmware interface to
-the DIMM.  _DSMs are ACPI specific whereas commands are Linux kernel
-generic.
+There are currently 4 known similar but incompatible definitions of the
+command sets that can be sent to an NVDIMM through ACPI.  It is also
+clear that future platform generations (ACPI or not) will continue to
+revise and extend the DIMM command set as new devices and use cases
+arrive.
 
-This is in preparation for breaking the 1:1 implicit relationship
-between the kernel ioctl number space and the firmware specific function
-numbers.
+It is obviously untenable to continue to proliferate divergence
+of these command definitions, and to that end a standardization process
+has begun to provide for a unified specification.  However, that leaves a
+problem about what to do with this first generation where vendors are
+already shipping divergence.
 
+The Linux kernel can support these initial diverged platforms without
+giving platform-firmware free reign to continue to diverge and compound
+kernel maintenance overhead.  The kernel implementation can encourage
+standardization in two ways:
+
+1/ Require that any function code that userspace wants to send be
+   explicitly white-listed in the implementation.  For ACPI this means
+   function codes marked as supported by acpi_check_dsm() may
+   only be invoked if they appear in the white-list.  A function must be
+   publicly documented before it is added to the white-list.
+
+2/ The above restrictions can be trivially bypassed by using the
+   "vendor-specific" payload command.  However, since vendor-specific
+   commands are by definition not publicly documented and have the
+   potential to corrupt the kernel's view of the dimm state, we provide a
+   toggle to disable vendor-specific operations.  Enabling undefined
+   behavior is a policy decision that can be made by the platform owner
+   and encourages firmware implementations to choose public over
+   private command implementations.
+
+Based on an initial patch from Jerry Hoemann
 Cc: Jerry Hoemann <jerry.hoemann@hpe.com>
 Cc: Christoph Hellwig <hch@infradead.org>
 Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 ---
- drivers/acpi/nfit.c              |   21 +++++++++++++--------
- drivers/acpi/nfit.h              |    4 ++--
- drivers/nvdimm/bus.c             |    8 ++++----
- drivers/nvdimm/core.c            |    2 +-
- drivers/nvdimm/dimm_devs.c       |   18 ++++++++++++------
- drivers/nvdimm/nd-core.h         |    2 +-
- include/linux/libnvdimm.h        |    5 +++--
- tools/testing/nvdimm/test/nfit.c |   27 ++++++++++++++-------------
- 8 files changed, 50 insertions(+), 37 deletions(-)
+ drivers/acpi/nfit.c        |  101 +++++++++++++++++++++++++++++++++++++-------
+ drivers/acpi/nfit.h        |   14 ++++++
+ drivers/nvdimm/bus.c       |   39 +++++++++++++++++
+ include/uapi/linux/ndctl.h |   42 ++++++++++++++++++
+ 4 files changed, 179 insertions(+), 17 deletions(-)
 
 diff --git a/drivers/acpi/nfit.c b/drivers/acpi/nfit.c
-index d0f35e63640b..1b98e9dc6138 100644
+index 1b98e9dc6138..710d3a07d178 100644
 --- a/drivers/acpi/nfit.c
 +++ b/drivers/acpi/nfit.c
-@@ -175,7 +175,7 @@ static int acpi_nfit_ctl(struct nvdimm_bus_descriptor *nd_desc,
+@@ -171,33 +171,46 @@ static int acpi_nfit_ctl(struct nvdimm_bus_descriptor *nd_desc,
+ 		unsigned int buf_len, int *cmd_rc)
+ {
+ 	struct acpi_nfit_desc *acpi_desc = to_acpi_nfit_desc(nd_desc);
+-	const struct nd_cmd_desc *desc = NULL;
  	union acpi_object in_obj, in_buf, *out_obj;
++	const struct nd_cmd_desc *desc = NULL;
  	struct device *dev = acpi_desc->dev;
++	struct nd_cmd_pkg *call_pkg = NULL;
  	const char *cmd_name, *dimm_name;
--	unsigned long dsm_mask;
-+	unsigned long cmd_mask;
+-	unsigned long cmd_mask;
++	unsigned long cmd_mask, dsm_mask;
  	acpi_handle handle;
++	unsigned int func;
  	const u8 *uuid;
  	u32 offset;
-@@ -189,7 +189,7 @@ static int acpi_nfit_ctl(struct nvdimm_bus_descriptor *nd_desc,
+ 	int rc, i;
+ 
++	func = cmd;
++	if (cmd == ND_CMD_CALL) {
++		call_pkg = buf;
++		func = call_pkg->nd_command;
++	}
++
+ 	if (nvdimm) {
+ 		struct nfit_mem *nfit_mem = nvdimm_provider_data(nvdimm);
+ 		struct acpi_device *adev = nfit_mem->adev;
+ 
+ 		if (!adev)
  			return -ENOTTY;
++		if (call_pkg && nfit_mem->family != call_pkg->nd_family)
++			return -ENOTTY;
++
  		dimm_name = nvdimm_name(nvdimm);
  		cmd_name = nvdimm_cmd_name(cmd);
--		dsm_mask = nfit_mem->dsm_mask;
-+		cmd_mask = nvdimm_cmd_mask(nvdimm);
+ 		cmd_mask = nvdimm_cmd_mask(nvdimm);
++		dsm_mask = nfit_mem->dsm_mask;
  		desc = nd_cmd_dimm_desc(cmd);
- 		uuid = to_nfit_uuid(NFIT_DEV_DIMM);
+-		uuid = to_nfit_uuid(NFIT_DEV_DIMM);
++		uuid = to_nfit_uuid(nfit_mem->family);
  		handle = adev->handle;
-@@ -197,7 +197,7 @@ static int acpi_nfit_ctl(struct nvdimm_bus_descriptor *nd_desc,
+ 	} else {
  		struct acpi_device *adev = to_acpi_dev(acpi_desc);
  
  		cmd_name = nvdimm_bus_cmd_name(cmd);
--		dsm_mask = nd_desc->dsm_mask;
-+		cmd_mask = nd_desc->cmd_mask;
+ 		cmd_mask = nd_desc->cmd_mask;
++		dsm_mask = cmd_mask;
  		desc = nd_cmd_bus_desc(cmd);
  		uuid = to_nfit_uuid(NFIT_DEV_BUS);
  		handle = adev->handle;
-@@ -207,7 +207,7 @@ static int acpi_nfit_ctl(struct nvdimm_bus_descriptor *nd_desc,
+@@ -207,7 +220,7 @@ static int acpi_nfit_ctl(struct nvdimm_bus_descriptor *nd_desc,
  	if (!desc || (cmd && (desc->out_num + desc->in_num == 0)))
  		return -ENOTTY;
  
--	if (!test_bit(cmd, &dsm_mask))
-+	if (!test_bit(cmd, &cmd_mask))
+-	if (!test_bit(cmd, &cmd_mask))
++	if (!test_bit(cmd, &cmd_mask) || !test_bit(func, &dsm_mask))
  		return -ENOTTY;
  
  	in_obj.type = ACPI_TYPE_PACKAGE;
-@@ -926,7 +926,8 @@ static int acpi_nfit_add_dimm(struct acpi_nfit_desc *acpi_desc,
- 	const u8 *uuid = to_nfit_uuid(NFIT_DEV_DIMM);
+@@ -222,21 +235,44 @@ static int acpi_nfit_ctl(struct nvdimm_bus_descriptor *nd_desc,
+ 		in_buf.buffer.length += nd_cmd_in_size(nvdimm, cmd, desc,
+ 				i, buf);
+ 
++	if (call_pkg) {
++		/* skip over package wrapper */
++		in_buf.buffer.pointer = (void *) &call_pkg->nd_payload;
++		in_buf.buffer.length = call_pkg->nd_size_in;
++	}
++
+ 	if (IS_ENABLED(CONFIG_ACPI_NFIT_DEBUG)) {
+-		dev_dbg(dev, "%s:%s cmd: %s input length: %d\n", __func__,
+-				dimm_name, cmd_name, in_buf.buffer.length);
+-		print_hex_dump_debug(cmd_name, DUMP_PREFIX_OFFSET, 4,
+-				4, in_buf.buffer.pointer, min_t(u32, 128,
+-					in_buf.buffer.length), true);
++		dev_dbg(dev, "%s:%s cmd: %d: func: %d input length: %d\n",
++				__func__, dimm_name, cmd, func,
++				in_buf.buffer.length);
++		print_hex_dump_debug("nvdimm in  ", DUMP_PREFIX_OFFSET, 4, 4,
++			in_buf.buffer.pointer,
++			min_t(u32, 256, in_buf.buffer.length), true);
+ 	}
+ 
+-	out_obj = acpi_evaluate_dsm(handle, uuid, 1, cmd, &in_obj);
++	out_obj = acpi_evaluate_dsm(handle, uuid, 1, func, &in_obj);
+ 	if (!out_obj) {
+ 		dev_dbg(dev, "%s:%s _DSM failed cmd: %s\n", __func__, dimm_name,
+ 				cmd_name);
+ 		return -EINVAL;
+ 	}
+ 
++	if (call_pkg) {
++		call_pkg->nd_fw_size = out_obj->buffer.length;
++		memcpy(call_pkg->nd_payload + call_pkg->nd_size_in,
++			out_obj->buffer.pointer,
++			min(call_pkg->nd_fw_size, call_pkg->nd_size_out));
++
++		ACPI_FREE(out_obj);
++		/*
++		 * Need to support FW function w/o known size in advance.
++		 * Caller can determine required size based upon nd_fw_size.
++		 * If call erroed (like elsewhere) then caller wouldn't
++		 * be able to rely upon data returned to make calculation.
++		 */
++		return 0;
++	}
++
+ 	if (out_obj->package.type != ACPI_TYPE_BUFFER) {
+ 		dev_dbg(dev, "%s:%s unexpected output object type cmd: %s type: %d\n",
+ 				__func__, dimm_name, cmd_name, out_obj->type);
+@@ -923,11 +959,13 @@ static int acpi_nfit_add_dimm(struct acpi_nfit_desc *acpi_desc,
+ {
+ 	struct acpi_device *adev, *adev_dimm;
+ 	struct device *dev = acpi_desc->dev;
+-	const u8 *uuid = to_nfit_uuid(NFIT_DEV_DIMM);
++	unsigned long dsm_mask;
++	const u8 *uuid;
  	int i;
  
--	nfit_mem->dsm_mask = acpi_desc->dimm_dsm_force_en;
-+	/* nfit test assumes 1:1 relationship between commands and dsms */
-+	nfit_mem->dsm_mask = acpi_desc->dimm_cmd_force_en;
+ 	/* nfit test assumes 1:1 relationship between commands and dsms */
+ 	nfit_mem->dsm_mask = acpi_desc->dimm_cmd_force_en;
++	nfit_mem->family = NVDIMM_FAMILY_INTEL;
  	adev = to_acpi_dev(acpi_desc);
  	if (!adev)
  		return 0;
-@@ -976,9 +977,13 @@ static int acpi_nfit_register_dimms(struct acpi_nfit_desc *acpi_desc)
- 		if (rc)
+@@ -940,7 +978,31 @@ static int acpi_nfit_add_dimm(struct acpi_nfit_desc *acpi_desc,
+ 		return force_enable_dimms ? 0 : -ENODEV;
+ 	}
+ 
+-	for (i = ND_CMD_SMART; i <= ND_CMD_VENDOR; i++)
++	/*
++	 * Until standardization materializes we need to consider up to 3
++	 * different command sets.  Note, that checking for function0 (bit0)
++	 * tells us if any commands are reachable through this uuid.
++	 */
++	for (i = NVDIMM_FAMILY_INTEL; i <= NVDIMM_FAMILY_HPE2; i++)
++		if (acpi_check_dsm(adev_dimm->handle, to_nfit_uuid(i), 1, 1))
++			break;
++
++	/* limit the supported commands to those that are publicly documented */
++	nfit_mem->family = i;
++	if (nfit_mem->family == NVDIMM_FAMILY_INTEL)
++		dsm_mask = 0x3fe;
++	else if (nfit_mem->family == NVDIMM_FAMILY_HPE1)
++		dsm_mask = 0x1c3c76;
++	else if (nfit_mem->family == NVDIMM_FAMILY_HPE2)
++		dsm_mask = 0x1fe;
++	else {
++		dev_err(dev, "unknown dimm command family\n");
++		nfit_mem->family = -1;
++		return force_enable_dimms ? 0 : -ENODEV;
++	}
++
++	uuid = to_nfit_uuid(nfit_mem->family);
++	for_each_set_bit(i, &dsm_mask, BITS_PER_LONG)
+ 		if (acpi_check_dsm(adev_dimm->handle, uuid, 1, 1ULL << i))
+ 			set_bit(i, &nfit_mem->dsm_mask);
+ 
+@@ -953,8 +1015,8 @@ static int acpi_nfit_register_dimms(struct acpi_nfit_desc *acpi_desc)
+ 	int dimm_count = 0;
+ 
+ 	list_for_each_entry(nfit_mem, &acpi_desc->dimms, list) {
++		unsigned long flags = 0, cmd_mask;
+ 		struct nvdimm *nvdimm;
+-		unsigned long flags = 0;
+ 		u32 device_handle;
+ 		u16 mem_flags;
+ 		int rc;
+@@ -978,12 +1040,17 @@ static int acpi_nfit_register_dimms(struct acpi_nfit_desc *acpi_desc)
  			continue;
  
-+		/*
-+		 * For now there is 1:1 relationship between cmd_mask and
-+		 * dsm_mask.
-+		 */
+ 		/*
+-		 * For now there is 1:1 relationship between cmd_mask and
+-		 * dsm_mask.
++		 * TODO: provide translation for non-NVDIMM_FAMILY_INTEL
++		 * devices (i.e. from nd_cmd to acpi_dsm) to standardize the
++		 * userspace interface.
+ 		 */
++		cmd_mask = 1UL << ND_CMD_CALL;
++		if (nfit_mem->family == NVDIMM_FAMILY_INTEL)
++			cmd_mask |= nfit_mem->dsm_mask;
++
  		nvdimm = nvdimm_create(acpi_desc->nvdimm_bus, nfit_mem,
  				acpi_nfit_dimm_attribute_groups,
--				flags, &nfit_mem->dsm_mask);
-+				flags, nfit_mem->dsm_mask);
+-				flags, nfit_mem->dsm_mask);
++				flags, cmd_mask);
  		if (!nvdimm)
  			return -ENOMEM;
  
-@@ -1007,14 +1012,14 @@ static void acpi_nfit_init_dsms(struct acpi_nfit_desc *acpi_desc)
- 	struct acpi_device *adev;
- 	int i;
+@@ -2468,6 +2535,8 @@ static __init int nfit_init(void)
+ 	acpi_str_to_uuid(UUID_PERSISTENT_VIRTUAL_CD, nfit_uuid[NFIT_SPA_PCD]);
+ 	acpi_str_to_uuid(UUID_NFIT_BUS, nfit_uuid[NFIT_DEV_BUS]);
+ 	acpi_str_to_uuid(UUID_NFIT_DIMM, nfit_uuid[NFIT_DEV_DIMM]);
++	acpi_str_to_uuid(UUID_NFIT_DIMM_N_HPE1, nfit_uuid[NFIT_DEV_DIMM_N_HPE1]);
++	acpi_str_to_uuid(UUID_NFIT_DIMM_N_HPE2, nfit_uuid[NFIT_DEV_DIMM_N_HPE2]);
  
--	nd_desc->dsm_mask = acpi_desc->bus_dsm_force_en;
-+	nd_desc->cmd_mask = acpi_desc->bus_cmd_force_en;
- 	adev = to_acpi_dev(acpi_desc);
- 	if (!adev)
- 		return;
- 
- 	for (i = ND_CMD_ARS_CAP; i <= ND_CMD_CLEAR_ERROR; i++)
- 		if (acpi_check_dsm(adev->handle, uuid, 1, 1ULL << i))
--			set_bit(i, &nd_desc->dsm_mask);
-+			set_bit(i, &nd_desc->cmd_mask);
- }
- 
- static ssize_t range_index_show(struct device *dev,
+ 	nfit_wq = create_singlethread_workqueue("nfit");
+ 	if (!nfit_wq)
 diff --git a/drivers/acpi/nfit.h b/drivers/acpi/nfit.h
-index c75576b2d50e..332ee6f01662 100644
+index 332ee6f01662..f82fda55b6de 100644
 --- a/drivers/acpi/nfit.h
 +++ b/drivers/acpi/nfit.h
-@@ -132,8 +132,8 @@ struct acpi_nfit_desc {
- 	size_t ars_status_size;
- 	struct work_struct work;
- 	unsigned int cancel:1;
--	unsigned long dimm_dsm_force_en;
--	unsigned long bus_dsm_force_en;
-+	unsigned long dimm_cmd_force_en;
-+	unsigned long bus_cmd_force_en;
- 	int (*blk_do_io)(struct nd_blk_region *ndbr, resource_size_t dpa,
- 			void *iobuf, u64 len, int rw);
+@@ -21,13 +21,25 @@
+ #include <linux/acpi.h>
+ #include <acpi/acuuid.h>
+ 
++/* ACPI 6.1 */
+ #define UUID_NFIT_BUS "2f10e7a4-9e91-11e4-89d3-123b93f75cba"
++
++/* http://pmem.io/documents/NVDIMM_DSM_Interface_Example.pdf */
+ #define UUID_NFIT_DIMM "4309ac30-0d11-11e4-9191-0800200c9a66"
++
++/* https://github.com/HewlettPackard/hpe-nvm/blob/master/Documentation/ */
++#define UUID_NFIT_DIMM_N_HPE1 "9002c334-acf3-4c0e-9642-a235f0d53bc6"
++#define UUID_NFIT_DIMM_N_HPE2 "5008664b-b758-41a0-a03c-27c2f2d04f7e"
++
+ #define ACPI_NFIT_MEM_FAILED_MASK (ACPI_NFIT_MEM_SAVE_FAILED \
+ 		| ACPI_NFIT_MEM_RESTORE_FAILED | ACPI_NFIT_MEM_FLUSH_FAILED \
+ 		| ACPI_NFIT_MEM_NOT_ARMED)
+ 
+ enum nfit_uuids {
++	/* for simplicity alias the uuid index with the family id */
++	NFIT_DEV_DIMM = NVDIMM_FAMILY_INTEL,
++	NFIT_DEV_DIMM_N_HPE1 = NVDIMM_FAMILY_HPE1,
++	NFIT_DEV_DIMM_N_HPE2 = NVDIMM_FAMILY_HPE2,
+ 	NFIT_SPA_VOLATILE,
+ 	NFIT_SPA_PM,
+ 	NFIT_SPA_DCR,
+@@ -37,7 +49,6 @@ enum nfit_uuids {
+ 	NFIT_SPA_PDISK,
+ 	NFIT_SPA_PCD,
+ 	NFIT_DEV_BUS,
+-	NFIT_DEV_DIMM,
+ 	NFIT_UUID_MAX,
  };
+ 
+@@ -110,6 +121,7 @@ struct nfit_mem {
+ 	struct list_head list;
+ 	struct acpi_device *adev;
+ 	unsigned long dsm_mask;
++	int family;
+ };
+ 
+ struct acpi_nfit_desc {
 diff --git a/drivers/nvdimm/bus.c b/drivers/nvdimm/bus.c
-index 19f822d7f652..cb2042a12b76 100644
+index cb2042a12b76..395a9fbbc69d 100644
 --- a/drivers/nvdimm/bus.c
 +++ b/drivers/nvdimm/bus.c
-@@ -589,24 +589,24 @@ static int __nd_ioctl(struct nvdimm_bus *nvdimm_bus, struct nvdimm *nvdimm,
+@@ -439,6 +439,12 @@ static const struct nd_cmd_desc __nd_cmd_dimm_descs[] = {
+ 		.out_num = 3,
+ 		.out_sizes = { 4, 4, UINT_MAX, },
+ 	},
++	[ND_CMD_CALL] = {
++		.in_num = 2,
++		.in_sizes = { sizeof(struct nd_cmd_pkg), UINT_MAX, },
++		.out_num = 1,
++		.out_sizes = { UINT_MAX, },
++	},
+ };
+ 
+ const struct nd_cmd_desc *nd_cmd_dimm_desc(int cmd)
+@@ -473,6 +479,12 @@ static const struct nd_cmd_desc __nd_cmd_bus_descs[] = {
+ 		.out_num = 3,
+ 		.out_sizes = { 4, 4, 8, },
+ 	},
++	[ND_CMD_CALL] = {
++		.in_num = 2,
++		.in_sizes = { sizeof(struct nd_cmd_pkg), UINT_MAX, },
++		.out_num = 1,
++		.out_sizes = { UINT_MAX, },
++	},
+ };
+ 
+ const struct nd_cmd_desc *nd_cmd_bus_desc(int cmd)
+@@ -500,6 +512,10 @@ u32 nd_cmd_in_size(struct nvdimm *nvdimm, int cmd,
+ 		struct nd_cmd_vendor_hdr *hdr = buf;
+ 
+ 		return hdr->in_length;
++	} else if (cmd == ND_CMD_CALL) {
++		struct nd_cmd_pkg *pkg = buf;
++
++		return pkg->nd_size_in;
+ 	}
+ 
+ 	return UINT_MAX;
+@@ -522,6 +538,12 @@ u32 nd_cmd_out_size(struct nvdimm *nvdimm, int cmd,
+ 		return out_field[1];
+ 	else if (!nvdimm && cmd == ND_CMD_ARS_STATUS && idx == 2)
+ 		return out_field[1] - 8;
++	else if (cmd == ND_CMD_CALL) {
++		struct nd_cmd_pkg *pkg = (struct nd_cmd_pkg *) in_field;
++
++		return pkg->nd_size_out;
++	}
++
+ 
+ 	return UINT_MAX;
+ }
+@@ -588,6 +610,7 @@ static int __nd_ioctl(struct nvdimm_bus *nvdimm_bus, struct nvdimm *nvdimm,
+ 	unsigned int cmd = _IOC_NR(ioctl_cmd);
  	void __user *p = (void __user *) arg;
  	struct device *dev = &nvdimm_bus->dev;
++	struct nd_cmd_pkg pkg;
  	const char *cmd_name, *dimm_name;
--	unsigned long dsm_mask;
-+	unsigned long cmd_mask;
+ 	unsigned long cmd_mask;
  	void *buf;
- 	int rc, i;
- 
- 	if (nvdimm) {
- 		desc = nd_cmd_dimm_desc(cmd);
- 		cmd_name = nvdimm_cmd_name(cmd);
--		dsm_mask = nvdimm->dsm_mask ? *(nvdimm->dsm_mask) : 0;
-+		cmd_mask = nvdimm->cmd_mask;
- 		dimm_name = dev_name(&nvdimm->dev);
- 	} else {
- 		desc = nd_cmd_bus_desc(cmd);
- 		cmd_name = nvdimm_bus_cmd_name(cmd);
--		dsm_mask = nd_desc->dsm_mask;
-+		cmd_mask = nd_desc->cmd_mask;
+@@ -605,6 +628,11 @@ static int __nd_ioctl(struct nvdimm_bus *nvdimm_bus, struct nvdimm *nvdimm,
  		dimm_name = "bus";
  	}
  
- 	if (!desc || (desc->out_num + desc->in_num == 0) ||
--			!test_bit(cmd, &dsm_mask))
-+			!test_bit(cmd, &cmd_mask))
- 		return -ENOTTY;
- 
- 	/* fail write commands (when read-only) */
-diff --git a/drivers/nvdimm/core.c b/drivers/nvdimm/core.c
-index 182a93fe3712..e8688a13cf4f 100644
---- a/drivers/nvdimm/core.c
-+++ b/drivers/nvdimm/core.c
-@@ -251,7 +251,7 @@ static ssize_t commands_show(struct device *dev,
- 	struct nvdimm_bus *nvdimm_bus = to_nvdimm_bus(dev);
- 	struct nvdimm_bus_descriptor *nd_desc = nvdimm_bus->nd_desc;
- 
--	for_each_set_bit(cmd, &nd_desc->dsm_mask, BITS_PER_LONG)
-+	for_each_set_bit(cmd, &nd_desc->cmd_mask, BITS_PER_LONG)
- 		len += sprintf(buf + len, "%s ", nvdimm_bus_cmd_name(cmd));
- 	len += sprintf(buf + len, "\n");
- 	return len;
-diff --git a/drivers/nvdimm/dimm_devs.c b/drivers/nvdimm/dimm_devs.c
-index c56f88217924..79a35a02053c 100644
---- a/drivers/nvdimm/dimm_devs.c
-+++ b/drivers/nvdimm/dimm_devs.c
-@@ -37,9 +37,9 @@ static int __validate_dimm(struct nvdimm_drvdata *ndd)
- 
- 	nvdimm = to_nvdimm(ndd->dev);
- 
--	if (!nvdimm->dsm_mask)
-+	if (!nvdimm->cmd_mask)
- 		return -ENXIO;
--	if (!test_bit(ND_CMD_GET_CONFIG_DATA, nvdimm->dsm_mask))
-+	if (!test_bit(ND_CMD_GET_CONFIG_DATA, &nvdimm->cmd_mask))
- 		return -ENXIO;
- 
- 	return 0;
-@@ -263,6 +263,12 @@ const char *nvdimm_name(struct nvdimm *nvdimm)
- }
- EXPORT_SYMBOL_GPL(nvdimm_name);
- 
-+unsigned long nvdimm_cmd_mask(struct nvdimm *nvdimm)
-+{
-+	return nvdimm->cmd_mask;
-+}
-+EXPORT_SYMBOL_GPL(nvdimm_cmd_mask);
++	if (cmd == ND_CMD_CALL) {
++		if (copy_from_user(&pkg, p, sizeof(pkg)))
++			return -EFAULT;
++	}
 +
- void *nvdimm_provider_data(struct nvdimm *nvdimm)
- {
- 	if (nvdimm)
-@@ -277,10 +283,10 @@ static ssize_t commands_show(struct device *dev,
- 	struct nvdimm *nvdimm = to_nvdimm(dev);
- 	int cmd, len = 0;
- 
--	if (!nvdimm->dsm_mask)
-+	if (!nvdimm->cmd_mask)
- 		return sprintf(buf, "\n");
- 
--	for_each_set_bit(cmd, nvdimm->dsm_mask, BITS_PER_LONG)
-+	for_each_set_bit(cmd, &nvdimm->cmd_mask, BITS_PER_LONG)
- 		len += sprintf(buf + len, "%s ", nvdimm_cmd_name(cmd));
- 	len += sprintf(buf + len, "\n");
- 	return len;
-@@ -340,7 +346,7 @@ EXPORT_SYMBOL_GPL(nvdimm_attribute_group);
- 
- struct nvdimm *nvdimm_create(struct nvdimm_bus *nvdimm_bus, void *provider_data,
- 		const struct attribute_group **groups, unsigned long flags,
--		unsigned long *dsm_mask)
-+		unsigned long cmd_mask)
- {
- 	struct nvdimm *nvdimm = kzalloc(sizeof(*nvdimm), GFP_KERNEL);
- 	struct device *dev;
-@@ -355,7 +361,7 @@ struct nvdimm *nvdimm_create(struct nvdimm_bus *nvdimm_bus, void *provider_data,
+ 	if (!desc || (desc->out_num + desc->in_num == 0) ||
+ 			!test_bit(cmd, &cmd_mask))
+ 		return -ENOTTY;
+@@ -616,6 +644,7 @@ static int __nd_ioctl(struct nvdimm_bus *nvdimm_bus, struct nvdimm *nvdimm,
+ 		case ND_CMD_SET_CONFIG_DATA:
+ 		case ND_CMD_ARS_START:
+ 		case ND_CMD_CLEAR_ERROR:
++		case ND_CMD_CALL:
+ 			dev_dbg(&nvdimm_bus->dev, "'%s' command while read-only.\n",
+ 					nvdimm ? nvdimm_cmd_name(cmd)
+ 					: nvdimm_bus_cmd_name(cmd));
+@@ -643,6 +672,16 @@ static int __nd_ioctl(struct nvdimm_bus *nvdimm_bus, struct nvdimm *nvdimm,
+ 		in_len += in_size;
  	}
- 	nvdimm->provider_data = provider_data;
- 	nvdimm->flags = flags;
--	nvdimm->dsm_mask = dsm_mask;
-+	nvdimm->cmd_mask = cmd_mask;
- 	atomic_set(&nvdimm->busy, 0);
- 	dev = &nvdimm->dev;
- 	dev_set_name(dev, "nmem%d", nvdimm->id);
-diff --git a/drivers/nvdimm/nd-core.h b/drivers/nvdimm/nd-core.h
-index 1d1500f3d8b5..da0d322ed7cb 100644
---- a/drivers/nvdimm/nd-core.h
-+++ b/drivers/nvdimm/nd-core.h
-@@ -37,7 +37,7 @@ struct nvdimm_bus {
- struct nvdimm {
- 	unsigned long flags;
- 	void *provider_data;
--	unsigned long *dsm_mask;
-+	unsigned long cmd_mask;
- 	struct device dev;
- 	atomic_t busy;
- 	int id;
-diff --git a/include/linux/libnvdimm.h b/include/linux/libnvdimm.h
-index af31d1c6fdd7..0c3c30cbbea5 100644
---- a/include/linux/libnvdimm.h
-+++ b/include/linux/libnvdimm.h
-@@ -68,7 +68,7 @@ struct nd_mapping {
  
- struct nvdimm_bus_descriptor {
- 	const struct attribute_group **attr_groups;
--	unsigned long dsm_mask;
-+	unsigned long cmd_mask;
- 	char *provider_name;
- 	ndctl_fn ndctl;
- 	int (*flush_probe)(struct nvdimm_bus_descriptor *nd_desc);
-@@ -130,10 +130,11 @@ struct nd_region *to_nd_region(struct device *dev);
- struct nd_blk_region *to_nd_blk_region(struct device *dev);
- struct nvdimm_bus_descriptor *to_nd_desc(struct nvdimm_bus *nvdimm_bus);
- const char *nvdimm_name(struct nvdimm *nvdimm);
-+unsigned long nvdimm_cmd_mask(struct nvdimm *nvdimm);
- void *nvdimm_provider_data(struct nvdimm *nvdimm);
- struct nvdimm *nvdimm_create(struct nvdimm_bus *nvdimm_bus, void *provider_data,
- 		const struct attribute_group **groups, unsigned long flags,
--		unsigned long *dsm_mask);
-+		unsigned long cmd_mask);
- const struct nd_cmd_desc *nd_cmd_dimm_desc(int cmd);
- const struct nd_cmd_desc *nd_cmd_bus_desc(int cmd);
- u32 nd_cmd_in_size(struct nvdimm *nvdimm, int cmd,
-diff --git a/tools/testing/nvdimm/test/nfit.c b/tools/testing/nvdimm/test/nfit.c
-index 3187322eeed7..ed899a411c22 100644
---- a/tools/testing/nvdimm/test/nfit.c
-+++ b/tools/testing/nvdimm/test/nfit.c
-@@ -344,8 +344,9 @@ static int nfit_test_ctl(struct nvdimm_bus_descriptor *nd_desc,
++	if (cmd == ND_CMD_CALL) {
++		dev_dbg(dev, "%s:%s, idx: %llu, in: %zu, out: %zu, len %zu\n",
++				__func__, dimm_name, pkg.nd_command,
++				in_len, out_len, buf_len);
++
++		for (i = 0; i < ARRAY_SIZE(pkg.nd_reserved2); i++)
++			if (pkg.nd_reserved2[i])
++				return -EINVAL;
++	}
++
+ 	/* process an output envelope */
+ 	for (i = 0; i < desc->out_num; i++) {
+ 		u32 out_size = nd_cmd_out_size(nvdimm, cmd, desc, i,
+diff --git a/include/uapi/linux/ndctl.h b/include/uapi/linux/ndctl.h
+index 7cc28ab05b87..45daa0be5ff9 100644
+--- a/include/uapi/linux/ndctl.h
++++ b/include/uapi/linux/ndctl.h
+@@ -125,6 +125,7 @@ enum {
+ 	ND_CMD_VENDOR_EFFECT_LOG_SIZE = 7,
+ 	ND_CMD_VENDOR_EFFECT_LOG = 8,
+ 	ND_CMD_VENDOR = 9,
++	ND_CMD_CALL = 10,
+ };
  
- 	if (nvdimm) {
- 		struct nfit_mem *nfit_mem = nvdimm_provider_data(nvdimm);
-+		unsigned long cmd_mask = nvdimm_cmd_mask(nvdimm);
+ enum {
+@@ -158,6 +159,7 @@ static inline const char *nvdimm_cmd_name(unsigned cmd)
+ 		[ND_CMD_VENDOR_EFFECT_LOG_SIZE] = "effect_size",
+ 		[ND_CMD_VENDOR_EFFECT_LOG] = "effect_log",
+ 		[ND_CMD_VENDOR] = "vendor",
++		[ND_CMD_CALL] = "cmd_call",
+ 	};
  
--		if (!nfit_mem || !test_bit(cmd, &nfit_mem->dsm_mask))
-+		if (!nfit_mem || !test_bit(cmd, &cmd_mask))
- 			return -ENOTTY;
- 
- 		/* lookup label space for the given dimm */
-@@ -374,7 +375,7 @@ static int nfit_test_ctl(struct nvdimm_bus_descriptor *nd_desc,
- 	} else {
- 		struct ars_state *ars_state = &t->ars_state;
- 
--		if (!nd_desc || !test_bit(cmd, &nd_desc->dsm_mask))
-+		if (!nd_desc || !test_bit(cmd, &nd_desc->cmd_mask))
- 			return -ENOTTY;
- 
- 		switch (cmd) {
-@@ -1251,13 +1252,13 @@ static void nfit_test0_setup(struct nfit_test *t)
- 	post_ars_status(&t->ars_state, t->spa_set_dma[0], SPA0_SIZE);
- 
- 	acpi_desc = &t->acpi_desc;
--	set_bit(ND_CMD_GET_CONFIG_SIZE, &acpi_desc->dimm_dsm_force_en);
--	set_bit(ND_CMD_GET_CONFIG_DATA, &acpi_desc->dimm_dsm_force_en);
--	set_bit(ND_CMD_SET_CONFIG_DATA, &acpi_desc->dimm_dsm_force_en);
--	set_bit(ND_CMD_ARS_CAP, &acpi_desc->bus_dsm_force_en);
--	set_bit(ND_CMD_ARS_START, &acpi_desc->bus_dsm_force_en);
--	set_bit(ND_CMD_ARS_STATUS, &acpi_desc->bus_dsm_force_en);
--	set_bit(ND_CMD_CLEAR_ERROR, &acpi_desc->bus_dsm_force_en);
-+	set_bit(ND_CMD_GET_CONFIG_SIZE, &acpi_desc->dimm_cmd_force_en);
-+	set_bit(ND_CMD_GET_CONFIG_DATA, &acpi_desc->dimm_cmd_force_en);
-+	set_bit(ND_CMD_SET_CONFIG_DATA, &acpi_desc->dimm_cmd_force_en);
-+	set_bit(ND_CMD_ARS_CAP, &acpi_desc->bus_cmd_force_en);
-+	set_bit(ND_CMD_ARS_START, &acpi_desc->bus_cmd_force_en);
-+	set_bit(ND_CMD_ARS_STATUS, &acpi_desc->bus_cmd_force_en);
-+	set_bit(ND_CMD_CLEAR_ERROR, &acpi_desc->bus_cmd_force_en);
- }
- 
- static void nfit_test1_setup(struct nfit_test *t)
-@@ -1315,10 +1316,10 @@ static void nfit_test1_setup(struct nfit_test *t)
- 	post_ars_status(&t->ars_state, t->spa_set_dma[0], SPA2_SIZE);
- 
- 	acpi_desc = &t->acpi_desc;
--	set_bit(ND_CMD_ARS_CAP, &acpi_desc->bus_dsm_force_en);
--	set_bit(ND_CMD_ARS_START, &acpi_desc->bus_dsm_force_en);
--	set_bit(ND_CMD_ARS_STATUS, &acpi_desc->bus_dsm_force_en);
--	set_bit(ND_CMD_CLEAR_ERROR, &acpi_desc->bus_dsm_force_en);
-+	set_bit(ND_CMD_ARS_CAP, &acpi_desc->bus_cmd_force_en);
-+	set_bit(ND_CMD_ARS_START, &acpi_desc->bus_cmd_force_en);
-+	set_bit(ND_CMD_ARS_STATUS, &acpi_desc->bus_cmd_force_en);
-+	set_bit(ND_CMD_CLEAR_ERROR, &acpi_desc->bus_cmd_force_en);
- }
- 
- static int nfit_test_blk_do_io(struct nd_blk_region *ndbr, resource_size_t dpa,
+ 	if (cmd < ARRAY_SIZE(names) && names[cmd])
+@@ -224,4 +226,44 @@ enum ars_masks {
+ 	ARS_STATUS_MASK = 0x0000FFFF,
+ 	ARS_EXT_STATUS_SHIFT = 16,
+ };
++
++/*
++ * struct nd_cmd_pkg
++ *
++ * is a wrapper to a quasi pass thru interface for invoking firmware
++ * associated with nvdimms.
++ *
++ * INPUT PARAMETERS
++ *
++ * nd_family corresponds to the firmware (e.g. DSM) interface.
++ *
++ * nd_command are the function index advertised by the firmware.
++ *
++ * nd_size_in is the size of the input parameters being passed to firmware
++ *
++ * OUTPUT PARAMETERS
++ *
++ * nd_fw_size is the size of the data firmware wants to return for
++ * the call.  If nd_fw_size is greater than size of nd_size_out, only
++ * the first nd_size_out bytes are returned.
++ */
++
++struct nd_cmd_pkg {
++	__u64   nd_family;		/* family of commands */
++	__u64   nd_command;
++	__u32   nd_size_in;		/* INPUT: size of input args */
++	__u32   nd_size_out;		/* INPUT: size of payload */
++	__u32   nd_reserved2[9];	/* reserved must be zero */
++	__u32   nd_fw_size;		/* OUTPUT: size fw wants to return */
++	unsigned char nd_payload[];	/* Contents of call      */
++};
++
++/* These NVDIMM families represent pre-standardization command sets */
++#define NVDIMM_FAMILY_INTEL 0
++#define NVDIMM_FAMILY_HPE1 1
++#define NVDIMM_FAMILY_HPE2 2
++
++#define ND_IOCTL_CALL			_IOWR(ND_IOCTL, ND_CMD_CALL,\
++					struct nd_cmd_pkg)
++
+ #endif /* __NDCTL_H__ */
 
