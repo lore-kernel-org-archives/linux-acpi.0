@@ -1,144 +1,50 @@
-From: Andy Lutomirski <luto@amacapital.net>
-Subject: Re: [PATCH] i2c: i801: Allow ACPI SystemIO OpRegion to conflict with
- PCI BAR
-Date: Fri, 29 Apr 2016 14:42:38 -0700
-Message-ID: <CALCETrXF0PnEnHrNXkQJ6dFq3HhF7tRgkOt7zZF5EBinU_Wc+g@mail.gmail.com>
-References: <1461839010-110231-1-git-send-email-mika.westerberg@linux.intel.com>
- <20160429090351.GS12528@pali> <CALCETrXO128w2ZyCj3TV96gS0k_f+9THYmT-Au7s26TLB18tpA@mail.gmail.com>
- <201604292300.23616@pali>
+From: Arnd Bergmann <arnd@arndb.de>
+Subject: Re: [PATCH V6 02/13] pci, acpi: Provide generic way to assign bus domain number.
+Date: Sat, 30 Apr 2016 00:50:11 +0200
+Message-ID: <1964262.h2oIOhyNUf@wuerfel>
+References: <1460740008-19489-1-git-send-email-tn@semihalf.com> <20160428150815.GB15598@localhost> <1614997.P8lXtkpXQq@wuerfel>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7Bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-oi0-f43.google.com ([209.85.218.43]:35512 "EHLO
-	mail-oi0-f43.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751303AbcD2Vm6 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 29 Apr 2016 17:42:58 -0400
-Received: by mail-oi0-f43.google.com with SMTP id x19so133285298oix.2
-        for <linux-acpi@vger.kernel.org>; Fri, 29 Apr 2016 14:42:58 -0700 (PDT)
-In-Reply-To: <201604292300.23616@pali>
+Received: from mout.kundenserver.de ([217.72.192.75]:63141 "EHLO
+	mout.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751153AbcD2Wv0 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 29 Apr 2016 18:51:26 -0400
+In-Reply-To: <1614997.P8lXtkpXQq@wuerfel>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: =?UTF-8?Q?Pali_Roh=C3=A1r?= <pali.rohar@gmail.com>
-Cc: Andy Lutomirski <luto@kernel.org>, Mika Westerberg <mika.westerberg@linux.intel.com>, Jean Delvare <jdelvare@suse.com>, Wolfram Sang <wsa@the-dreams.de>, Jarkko Nikula <jarkko.nikula@linux.intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, "linux-i2c@vger.kernel.org" <linux-i2c@vger.kernel.org>, Linux ACPI <linux-acpi@vger.kernel.org>, Mario Limonciello <mario_limonciello@dell.com>
+To: linux-arm-kernel@lists.infradead.org
+Cc: catalin.marinas@arm.com, linaro-acpi@lists.linaro.org, linux-pci@vger.kernel.org, will.deacon@arm.com, okaya@codeaurora.org, wangyijing@huawei.com, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Tomasz Nowicki <tn@semihalf.com>, rafael@kernel.org, ddaney@caviumnetworks.com, linux-acpi@vger.kernel.org, robert.richter@caviumnetworks.com, Bjorn Helgaas <helgaas@kernel.org>, msalter@redhat.com, Liviu.Dudau@arm.com, mw@semihalf.com, jcm@redhat.com, jchandra@broadcom.com, linux-kernel@vger.kernel.org, hanjun.guo@linaro.org, Suravee.Suthikulpanit@amd.com, jiang.liu@linux.intel.com
 
-On Fri, Apr 29, 2016 at 2:00 PM, Pali Roh=C3=A1r <pali.rohar@gmail.com>=
- wrote:
-> On Friday 29 April 2016 20:10:23 Andy Lutomirski wrote:
->> On Fri, Apr 29, 2016 at 2:03 AM, Pali Roh=C3=A1r <pali.rohar@gmail.c=
-om>
->> wrote:
->> > On Thursday 28 April 2016 11:34:38 Andy Lutomirski wrote:
->> >> On 04/28/2016 03:23 AM, Mika Westerberg wrote:
->> >> >Many Intel systems the BIOS declares a SystemIO OpRegion below
->> >> >the SMBus
->> >> >
->> >> >PCI device as can be seen in ACPI DSDT table from Lenovo Yoga 90=
-0:
->> >> >  Device (SBUS)
->> >> >  {
->> >> >
->> >> >      OperationRegion (SMBI, SystemIO, (SBAR << 0x05), 0x10)
->> >> >      Field (SMBI, ByteAcc, NoLock, Preserve)
->> >> >      {
->> >> >
->> >> >          HSTS,   8,
->> >> >          Offset (0x02),
->> >> >          HCON,   8,
->> >> >          HCOM,   8,
->> >> >          TXSA,   8,
->> >> >          DAT0,   8,
->> >> >          DAT1,   8,
->> >> >          HBDR,   8,
->> >> >          PECR,   8,
->> >> >          RXSA,   8,
->> >> >          SDAT,   16
->> >> >
->> >> >      }
->> >> >
->> >> >There are also bunch of ASL methods that that the BIOS can use t=
-o
->> >> >access these fields. Most of the systems in question ASL methods
->> >> >accessing the SMBI OpRegion are never used.
->> >> >
->> >> >Now, because of this SMBI OpRegion many systems fail to load the
->> >> >SMBus
->> >> >
->> >> >driver with an error looking like one below:
->> >> >  ACPI Warning: SystemIO range
->> >> >  0x0000000000003040-0x000000000000305F
->> >> >
->> >> >       conflicts with OpRegion
->> >> >       0x0000000000003040-0x000000000000304F
->> >> >       (\_SB.PCI0.SBUS.SMBI) (20160108/utaddress-255)
->> >> >
->> >> >  ACPI: If an ACPI driver is available for this device, you
->> >> >  should use
->> >> >
->> >> >       it instead of the native driver
->> >> >
->> >> >The reason is that this SMBI OpRegion conflicts with the PCI BAR
->> >> >used by the SMBus driver.
->> >> >
->> >> >It turns out that we can install a custom SystemIO address space
->> >> >handler for the SMBus device to intercept all accesses through
->> >> >that OpRegion. This allows us to share the PCI BAR with the ASL
->> >> >code if it for some reason is using it. We do not expect that
->> >> >this OpRegion handler will ever be called but if it is we print
->> >> >a warning and execute the read/write operation under a lock
->> >> >which prevents ASL and OS from messing each other.
->> >>
->> >> Tested-by: Andy Lutomirski <luto@kernel.org> # Dell XPS 13 9350
->> >>
->> >> This successfully works around:
->> >>
->> >> https://bugzilla.kernel.org/show_bug.cgi?id=3D110041
->> >>
->> >> but the BIOS people should still fix their ASL.  Sigh.
->> >>
->> >> On the Dell laptop, the observable effect is that the driver load=
-s
->> >> and finds the iTCO thing.
->> >>
->> >> Pali, this may be considerably more useful on your laptop.
->> >
->> > Andy, I am right that I will be able to load i2c-i801.ko driver
->> > without acpi_enforce_resources=3Dlax parameter?
->>
->> Yes, and it works on my laptop.
->
-> Looks like it is working also on my laptop.
->
->> > If yes, then it sounds good! Finally I would be able to bind
->> > lis3lv02d_i2c.ko driver for accelerometer which is on my E6440
->> > machine.
->> >
->> > Andy, is there any way to tell i2c-i801.ko driver that on i2c bus
->> > (which that driver exports) is present some i2c device? Months ago
->> > I got list of Latitude machines on which i2c address is that
->> > accelerometer present.
->> >
->> > It is possible to hardcode that mapping (DMI name of laptop --> i2=
-c
->> > address) into dell-laptop driver, so i2c-i801.ko and
->> > lis3lv02d_i2c.ko will be automatically loaded and lis3l binded
->> > correctly to i801 i2c address?
->>
->> I don't know how this part works, but I doubt that doing it in
->> dell-laptop will be convenient.  After all, dell-laptop can load
->> before i2c-i801.
->>
->> Jean and Wolfram: is there a quirk mechanism to add i2c devices that
->> aren't directly enumerable but are known to exist due to DMI?
->
-> Maybe something like i2c_register_board_info()?
+On Thursday 28 April 2016 17:34:10 Arnd Bergmann wrote:
+> On Thursday 28 April 2016 10:12:12 Bjorn Helgaas wrote:
+> > Right, we don't have a good mechanism for passing more info into
+> > pci_create_root_bus().  Maybe the caller could fill in a struct so we
+> > have a chance to extend it without having to change all the existing
+> > callers.
+> > 
+> > I wonder if there's a design pattern we can copy, e.g., would
+> > something like the scsi_host_alloc(), scsi_add_host(),
+> > scsi_scan_host() model work here?
+> 
+> Yes, I think that is a good idea in general. Especially
+> now that we have separate the ARM code from pci_common_init_dev
+> and pci_sys_data, that can help with cleanups in the other drivers
+> as well.
+> 
+> I see two common variations in other subsystems: some use a
+> special alloc() function that you pass the size of the private
+> data into, while others just expect you to embed a structure
+> inside of the driver specific one allocate that separately to
+> have the generic registration function fill out the common fields.
+> 
+> I have a slight preference for the second, but they are really
+> the same thing basically.
 
-Maybe.  i think that wants to be called before the adapter shows up, th=
-ough.
+I've tried this out now, and will follow up with a separate patch
+series. Overall, I think it works out well, though I haven't gotten
+to the point of actually saving code yet. I've converted two
+drivers for demonstration.
 
---Andy
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+	Arnd
