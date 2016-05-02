@@ -1,109 +1,79 @@
-From: Tomasz Nowicki <tn@semihalf.com>
-Subject: Re: [PATCH V6 09/13] pci, acpi: Support for ACPI based generic PCI
- host controller
-Date: Mon, 2 May 2016 13:31:46 +0200
-Message-ID: <57273AA2.4080806@semihalf.com>
-References: <1460740008-19489-1-git-send-email-tn@semihalf.com>
- <1460740008-19489-10-git-send-email-tn@semihalf.com>
- <20160428214800.GG25125@localhost> <20160429083709.GA3249@red-moon>
- <CAKc_7PUcjKkCrCTj9q26P8a+Tb3N_MffynnTXnJRacm6VNmFRw@mail.gmail.com>
+From: "Rafael J. Wysocki" <rafael@kernel.org>
+Subject: Re: [PATCH] i2c: i801: Allow ACPI SystemIO OpRegion to conflict with
+ PCI BAR
+Date: Mon, 2 May 2016 13:42:41 +0200
+Message-ID: <CAJZ5v0gjB5_2Oer_Oq1B-J9Sx9wBw89mcdhfd=7V2gTmQoaLKQ@mail.gmail.com>
+References: <1461839010-110231-1-git-send-email-mika.westerberg@linux.intel.com>
+	<577f885f-b54d-cf55-b1a3-0b04358271d8@kernel.org>
+	<20160429085615.GK32610@lahna.fi.intel.com>
+	<CALCETrWe+juuxO9bhv-=V6j9z=a2N+4BWO8Uaa_zMxYNQEA2Lg@mail.gmail.com>
+	<20160502101218.GM32610@lahna.fi.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-pci-owner@vger.kernel.org>
-In-Reply-To: <CAKc_7PUcjKkCrCTj9q26P8a+Tb3N_MffynnTXnJRacm6VNmFRw@mail.gmail.com>
-Sender: linux-pci-owner@vger.kernel.org
-To: Jayachandran C <jchandra@broadcom.com>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
-Cc: Bjorn Helgaas <helgaas@kernel.org>, Arnd Bergmann <arnd@arndb.de>, Will Deacon <will.deacon@arm.com>, Catalin Marinas <catalin.marinas@arm.com>, rafael@kernel.org, Hanjun Guo <hanjun.guo@linaro.org>, Sinan Kaya <okaya@codeaurora.org>, jiang.liu@linux.intel.com, robert.richter@caviumnetworks.com, Marcin Wojtas <mw@semihalf.com>, Liviu.Dudau@arm.com, David Daney <ddaney@caviumnetworks.com>, Wangyijing <wangyijing@huawei.com>, Suravee.Suthikulpanit@amd.com, msalter@redhat.com, linux-pci@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linaro-acpi@lists.linaro.org, Jon Masters <jcm@redhat.com>
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-lf0-f65.google.com ([209.85.215.65]:32794 "EHLO
+	mail-lf0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753519AbcEBLmo (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 2 May 2016 07:42:44 -0400
+In-Reply-To: <20160502101218.GM32610@lahna.fi.intel.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Mika Westerberg <mika.westerberg@linux.intel.com>
+Cc: Andy Lutomirski <luto@amacapital.net>, Andy Lutomirski <luto@kernel.org>, Jean Delvare <jdelvare@suse.com>, Wolfram Sang <wsa@the-dreams.de>, Jarkko Nikula <jarkko.nikula@linux.intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, "linux-i2c@vger.kernel.org" <linux-i2c@vger.kernel.org>, Linux ACPI <linux-acpi@vger.kernel.org>, =?UTF-8?Q?Pali_Roh=C3=A1r?= <pali.rohar@gmail.com>, Mario Limonciello <mario_limonciello@dell.com>
 
-On 04/29/2016 07:35 PM, Jayachandran C wrote:
-> On Fri, Apr 29, 2016 at 2:07 PM, Lorenzo Pieralisi
-> <lorenzo.pieralisi@arm.com> wrote:
->> On Thu, Apr 28, 2016 at 04:48:00PM -0500, Bjorn Helgaas wrote:
->>
->> [...]
->>
->>>> +static int pci_acpi_setup_ecam_mapping(struct acpi_pci_root *root,
->>>> +                                  struct acpi_pci_generic_root_info *ri)
->>>> +{
->>>> +   u16 seg = root->segment;
->>>> +   u8 bus_start = root->secondary.start;
->>>> +   u8 bus_end = root->secondary.end;
->>>> +   struct pci_config_window *cfg;
->>>> +   struct mcfg_entry *e;
->>>> +   phys_addr_t addr;
->>>> +   int err = 0;
->>>> +
->>>> +   mutex_lock(&pci_mcfg_lock);
->>> What does this lock protect?  The pci_mcfg_list should already be
->>> initialized by the time we get there, and it should be immutable for
->>> the life of the system.  In fact, I would prefer if we could just
->>> search the static table itself whenever we need it rather than caching
->>> it in our own list.  But I don't think we can easily do that because
->>> acpi_table_parse() is __init.
->>>
->>>> +   e = pci_mcfg_lookup(seg, bus_start);
->>> I would argue that we should check for _CBA first, and fall back to
->>> MCFG if _CBA doesn't exist.
->>>
->>>> +   if (!e) {
->>>> +           addr = acpi_pci_root_get_mcfg_addr(root->device->handle);
->>> IMO, acpi_pci_root_get_mcfg_addr() is misnamed.  It should be
->>> acpi_pci_config_base_addr() or similar.  It definitely is not related
->>> to MCFG.  Not your fault, obviously.
->>>
->>>> +           if (addr == 0) {
->>>> +                   pr_err(PREFIX"%04x:%02x-%02x bus range error\n",
->>>> +                          seg, bus_start, bus_end);
->>>> +                   err = -ENOENT;
->>>> +                   goto err_out;
->>>> +           }
->>>> +   } else {
->>>> +           if (bus_start != e->bus_start) {
->>>> +                   pr_err("%04x:%02x-%02x bus range mismatch %02x\n",
->>>> +                          seg, bus_start, bus_end, e->bus_start);
->>>> +                   err = -EINVAL;
->>>> +                   goto err_out;
->>>> +           } else if (bus_end != e->bus_end) {
->>>> +                   pr_warn("%04x:%02x-%02x bus end mismatch %02x\n",
->>>> +                           seg, bus_start, bus_end, e->bus_end);
->>>> +                   bus_end = min(bus_end, e->bus_end);
->>>> +           }
->>>> +           addr = e->addr;
->>>> +   }
->>> I really don't think you need a lock around this, so you can factor
->>> out the address lookup into something like:
->>>
->>>    addr = acpi_pci_config_base_addr(...);
->>>    if (addr)
->>>      return addr;
->>>
->>>    return acpi_pci_mcfg_lookup(seg, busn_res);
->>>
->>> You can check inside acpi_pci_mcfg_lookup() to make sure the entry you
->>> find covers the entire [busn_res.start-busn_res.end] range and return
->>> failure if it doesn't.  At this point, I'm not sure it's worth it to
->>> truncate the host bridge bus range to match something we find in MCFG.
->>>
->>> If the MCFG entry covers *more* than the host bridge range from _CRS,
->>> that's fine.  In any case, we have to be careful with the start address,
->>> because the MCFG start address is always based on bus 0, but I think
->>> pci_generic_ecam_create() expects the start address based on the
->>> bus_start you pass to it.
->> Yes, I spotted this too, it is unfortunate but DT and MCFG handle
->> the ECAM regions differently. In DT the reg property is relative
->> to bus_start - ie reg MMIO region maps config space starting at
->> the first bus in bus-range:
->>
->> Documentation/devicetree/bindings/pci/host-generic-pci.txt
->>
->> in ACPI(MCFG) as you said it is always relative to bus 0, it is
->> unfortunate but the address to be mapped should be computed
->> differently in the ECAM layer.
-> Can't this be handled by fixing up the address before passing to
-> pci_generic_ecam_create?
+On Mon, May 2, 2016 at 12:12 PM, Mika Westerberg
+<mika.westerberg@linux.intel.com> wrote:
+> On Fri, Apr 29, 2016 at 06:13:52PM -0700, Andy Lutomirski wrote:
+>> A question, though: there's nothing that keeps i801_access from being
+>> called in between consecutive ACPI accesses.  Could this confuse the
+>> ASL code?  Would it be helpful if i801_access were to save away the
+>> old register state and restore it when it's done in the event that an
+>> opregion access has been seen so that the ASL-configured state doesn't
+>> get stomped on?
 >
-I agree, this should work, IMO.
+> Looking at those ASL methods of Lenovo Yoga 900 for example they seem to
+> initialize the hardware, do the transaction and cleanup in one go.
+> That's also what the i2c-i801.c driver is doing as far as I can say. So
+> in that sense they should not mess with each other.
+>
+> Of course this all breaks if the ASL code expects the state to survive
+> between transactions.
+>
+>> Also, what happens if i801_access happens while the i801 master is
+>> busy with an ASL-initiated transaction?  Will it wait for the
+>> transaction to finish?
+>
+> Yes, it should since ->acpi_lock is taken by i801_acpi_io_handler().
+>
+>> If this is a problem, an alternative approach might be to virtualize
+>> the registers as seen by ACPI and to only load them into the real
+>> registers when a transaction starts.
+>>
+>> Also, what happens if the opregion is declared globally instead of in
+>> the scope of the ACPI companion?  Does that happen?  If so, it might
+>> make sense to deny loading the driver unless in lax mode.
+>
+> I don't know if that happens but it is certainly possible.
+>
+> Actually reading ACPI 6.1 spec again, chapter 5.5.2.4.3 says this:
+>
+>   If a platform uses a PCI BAR Target operation region, an ACPI OS will
+>   not load a native device driver for the associated PCI function. For
+>   example, if any of the BARs in a PCI function are associated with a PCI
+>   BAR Target operation region, then the OS will assume that the PCI
+>   function is to be entirely under the control of the ACPI system
+>   firmware. No driver will be loaded.
+>
+> So what we are currently doing (preventing the driver from loading) is
+> the right thing to do according the above.
 
-Tomasz
+In general, that is the right thing to do.  That's why we do it as a rule. :-)
+
+However, in this particular case we actually know that the opregion
+declaration is bogus at least on some systems.  So, this is a
+workaround for a known defect in some systems' ACPI tables.
+
+> Maybe we can change that warning into debug/info message instead?
+
+I wouldn't do that if it affected other cases in which opregion
+declarations were actually correct.
