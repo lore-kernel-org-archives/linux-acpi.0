@@ -1,84 +1,85 @@
-From: Jayachandran C <jchandra@broadcom.com>
-Subject: Re: [PATCH V6 02/13] pci, acpi: Provide generic way to assign bus
- domain number.
-Date: Mon, 2 May 2016 18:56:13 +0530
-Message-ID: <CAKc_7PU1AszF4y0OjZ3KVGaTEx9OL1cuT5YgOxQKhAQgQom7tA@mail.gmail.com>
-References: <1460740008-19489-1-git-send-email-tn@semihalf.com>
- <1460740008-19489-3-git-send-email-tn@semihalf.com> <20160427022649.GD6789@localhost>
- <20160427111758.GA6234@red-moon> <57274B8C.5030304@semihalf.com>
+From: Andy Lutomirski <luto@amacapital.net>
+Subject: Re: [PATCH] i2c: i801: Allow ACPI SystemIO OpRegion to conflict with
+ PCI BAR
+Date: Mon, 2 May 2016 08:29:42 -0700
+Message-ID: <CALCETrWur5HhsHsBAH2y85-ZPbRdkZSL_XyT-kNBrzTMCtMdLQ@mail.gmail.com>
+References: <1461839010-110231-1-git-send-email-mika.westerberg@linux.intel.com>
+ <577f885f-b54d-cf55-b1a3-0b04358271d8@kernel.org> <20160429085615.GK32610@lahna.fi.intel.com>
+ <CALCETrWe+juuxO9bhv-=V6j9z=a2N+4BWO8Uaa_zMxYNQEA2Lg@mail.gmail.com> <20160502101218.GM32610@lahna.fi.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-yw0-f181.google.com ([209.85.161.181]:35540 "EHLO
-	mail-yw0-f181.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752779AbcEBN0y (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 2 May 2016 09:26:54 -0400
-Received: by mail-yw0-f181.google.com with SMTP id g133so249095930ywb.2
-        for <linux-acpi@vger.kernel.org>; Mon, 02 May 2016 06:26:54 -0700 (PDT)
-In-Reply-To: <57274B8C.5030304@semihalf.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Return-path: <linux-i2c-owner@vger.kernel.org>
+In-Reply-To: <20160502101218.GM32610@lahna.fi.intel.com>
+Sender: linux-i2c-owner@vger.kernel.org
+To: Mika Westerberg <mika.westerberg@linux.intel.com>
+Cc: Andy Lutomirski <luto@kernel.org>, Jean Delvare <jdelvare@suse.com>, Wolfram Sang <wsa@the-dreams.de>, Jarkko Nikula <jarkko.nikula@linux.intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, "linux-i2c@vger.kernel.org" <linux-i2c@vger.kernel.org>, Linux ACPI <linux-acpi@vger.kernel.org>, =?UTF-8?Q?Pali_Roh=C3=A1r?= <pali.rohar@gmail.com>, Mario Limonciello <mario_limonciello@dell.com>
 List-Id: linux-acpi@vger.kernel.org
-To: Tomasz Nowicki <tn@semihalf.com>
-Cc: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Bjorn Helgaas <helgaas@kernel.org>, Arnd Bergmann <arnd@arndb.de>, Will Deacon <will.deacon@arm.com>, Catalin Marinas <catalin.marinas@arm.com>, rafael@kernel.org, Hanjun Guo <hanjun.guo@linaro.org>, Sinan Kaya <okaya@codeaurora.org>, jiang.liu@linux.intel.com, robert.richter@caviumnetworks.com, Marcin Wojtas <mw@semihalf.com>, Liviu.Dudau@arm.com, David Daney <ddaney@caviumnetworks.com>, Wangyijing <wangyijing@huawei.com>, Suravee.Suthikulpanit@amd.com, msalter@redhat.com, linux-pci@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linaro-acpi@lists.linaro.org, Jon Masters <jcm@redhat.com>
 
-On Mon, May 2, 2016 at 6:13 PM, Tomasz Nowicki <tn@semihalf.com> wrote:
-> On 04/27/2016 01:17 PM, Lorenzo Pieralisi wrote:
+On Mon, May 2, 2016 at 3:12 AM, Mika Westerberg
+<mika.westerberg@linux.intel.com> wrote:
+> On Fri, Apr 29, 2016 at 06:13:52PM -0700, Andy Lutomirski wrote:
+>> A question, though: there's nothing that keeps i801_access from being
+>> called in between consecutive ACPI accesses.  Could this confuse the
+>> ASL code?  Would it be helpful if i801_access were to save away the
+>> old register state and restore it when it's done in the event that an
+>> opregion access has been seen so that the ASL-configured state doesn't
+>> get stomped on?
+>
+> Looking at those ASL methods of Lenovo Yoga 900 for example they seem to
+> initialize the hardware, do the transaction and cleanup in one go.
+> That's also what the i2c-i801.c driver is doing as far as I can say. So
+> in that sense they should not mess with each other.
+>
+
+Is your locking actually sufficient to get that right?  You're taking
+acpi_lock, which is private to the driver, so you're only holding it
+during actual opregion access AFAICT.  That means that, if one thread
+is in the ACPI interpreter in one of these blocks and another thread
+is in the driver, they could still interleave their accesses.  Am I
+missing something?
+
+> Of course this all breaks if the ASL code expects the state to survive
+> between transactions.
+>
+>> Also, what happens if i801_access happens while the i801 master is
+>> busy with an ASL-initiated transaction?  Will it wait for the
+>> transaction to finish?
+>
+> Yes, it should since ->acpi_lock is taken by i801_acpi_io_handler().
+
+But i801_acpi_io_handler has no concept of a transaction AFAICT.
+
+>
+>> If this is a problem, an alternative approach might be to virtualize
+>> the registers as seen by ACPI and to only load them into the real
+>> registers when a transaction starts.
 >>
->> On Tue, Apr 26, 2016 at 09:26:49PM -0500, Bjorn Helgaas wrote:
->>>
->>> On Fri, Apr 15, 2016 at 07:06:37PM +0200, Tomasz Nowicki wrote:
+>> Also, what happens if the opregion is declared globally instead of in
+>> the scope of the ACPI companion?  Does that happen?  If so, it might
+>> make sense to deny loading the driver unless in lax mode.
 >
-> [...]
+> I don't know if that happens but it is certainly possible.
 >
->>>   +int acpi_pci_bus_domain_nr(struct device *parent)
->>> +{
->>> +       struct acpi_device *acpi_dev = to_acpi_device(parent);
->>> +       unsigned long long segment = 0;
->>> +       acpi_status status;
->>> +
->>> +       /*
->>> +        * If _SEG method does not exist, following ACPI spec (6.5.6)
->>> +        * all PCI buses belong to domain 0.
->>> +        */
->>> +       status = acpi_evaluate_integer(acpi_dev->handle,
->>> METHOD_NAME__SEG, NULL,
->>> +                                      &segment);
->>> We already have code in acpi_pci_root_add() to evaluate _SEG.  We
->>> don't want to evaluate it *twice*, do we?
->>>
->>> I was sort of expecting that if you added it here, we'd remove the
->>> existing call, but it looks like you're keeping both?
->>
->> We can't remove the existing call, since it is used on X86 and IA64
->> to store the segment number that, in the process, is used in their
->> pci_domain_nr() arch specific callback to retrieve the domain nr.
->>
->> On ARM64, that selects PCI_DOMAINS_GENERIC, we have to find a way
->> to retrieve the domain number that is not arch dependent, since
->> this is generic code, we can't rely on any bus->sysdata format (unless
->> we do something like JC did below), therefore the only way is to call
->> the _SEG method *again* here, which also forced Tomasz to go through
->> the ACPI_COMPANION setting song and dance and pass the parent pointer
->> to pci_create_root_bus() (see patch 1), which BTW is a source of
->> trouble on its own as you noticed.
+> Actually reading ACPI 6.1 spec again, chapter 5.5.2.4.3 says this:
 >
-> What trouble in patch 1 do you mean? I may miss something.
+>   If a platform uses a PCI BAR Target operation region, an ACPI OS will
+>   not load a native device driver for the associated PCI function. For
+>   example, if any of the BARs in a PCI function are associated with a PCI
+>   BAR Target operation region, then the OS will assume that the PCI
+>   function is to be entirely under the control of the ACPI system
+>   firmware. No driver will be loaded.
 >
-> I agree that patch 1 is not necessary if we decide to use sysdata or rework
-> root bus scanning to move domain to host bridge. Nevertheless, patch 1 is
-> still a cleanup IMO.
+> So what we are currently doing (preventing the driver from loading) is
+> the right thing to do according the above. Maybe we can change that
+> warning into debug/info message instead?
 
-In this case, getting the domain should be trivial since the ACPI
-companion on parent is already set, this should work
+Is there a way to ask the ACPI core to tell you the scope of the
+conflict?  This is more a question for Rafael and the ACPI folks: this
+patch installs an io handler for a region in the scope of the ACPI
+companion of the device, but what if the ASL code does IO using an
+opregion declared outside the scope of the device?  Or is the opregion
+handler for memory actually global?
 
-int acpi_pci_bus_domain_nr(struct device *parent)
-{
-        struct acpi_device *acpi_dev = to_acpi_device(parent);
-        struct acpi_pci_root *root = acpi_dev->driver_data;
+Given that this seems to be purely hypothetical, this may not be a big deal.
 
-        return root->segment;
-}
-
-Or am I missing something here?
-
-JC.
+--Andy
