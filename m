@@ -1,49 +1,74 @@
-From: Jiang Qiu <qiujiang@huawei.com>
-Subject: Re: [PATCH v10 1/3] gpio: dwapb: remove name from dwapb_port_property
-Date: Tue, 3 May 2016 11:38:36 +0800
-Message-ID: <57281D3C.5020503@huawei.com>
-References: <1461835923-68492-1-git-send-email-qiujiang@huawei.com>
- <1461835923-68492-2-git-send-email-qiujiang@huawei.com>
- <CACRpkdaS3+6ZJS0MJk-j4J3j2mKC-MULgCbS8Dqy=4_toy-x9Q@mail.gmail.com>
-Reply-To: <qiujiang@huawei.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+From: Eduardo Valentin <edubezval@gmail.com>
+Subject: [PATCH 1/1] drivers: acpi: add CPU id to cooling device type of processor driver
+Date: Mon,  2 May 2016 22:04:39 -0700
+Message-ID: <1462251879-7224-1-git-send-email-edubezval@gmail.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from szxga02-in.huawei.com ([119.145.14.65]:21910 "EHLO
-	szxga02-in.huawei.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932223AbcECDjQ (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 2 May 2016 23:39:16 -0400
-In-Reply-To: <CACRpkdaS3+6ZJS0MJk-j4J3j2mKC-MULgCbS8Dqy=4_toy-x9Q@mail.gmail.com>
+Received: from mail-pa0-f45.google.com ([209.85.220.45]:36433 "EHLO
+	mail-pa0-f45.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750820AbcECFEt (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 3 May 2016 01:04:49 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Linus Walleij <linus.walleij@linaro.org>
-Cc: Alexandre Courbot <gnurou@gmail.com>, Mika Westerberg <mika.westerberg@linux.intel.com>, Andy Shevchenko <andy.shevchenko@gmail.com>, Alan Tull <delicious.quinoa@gmail.com>, Jamie Iles <jamie@jamieiles.com>, charles.chenxin@huawei.com, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-gpio@vger.kernel.org" <linux-gpio@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linuxarm <linuxarm@huawei.com>
+To: rjw@rjwysocki.net, Rui Zhang <rui.zhang@intel.com>
+Cc: Linux PM <linux-pm@vger.kernel.org>, Eduardo Valentin <edubezval@gmail.com>, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
-=E5=9C=A8 4/29/2016 5:22 PM, Linus Walleij =E5=86=99=E9=81=93:
-> On Thu, Apr 28, 2016 at 11:32 AM, Jiang Qiu <qiujiang@huawei.com> wro=
-te:
->=20
->> This patch removed the name property from dwapb_port_property.
->> The name property is redundant, since we can get this info
->> from dwapb_gpio dev node.
->>
->> Reviewed-by: Andy Shevchenko <andy.shevchenko@gmail.com>
->> Signed-off-by: Jiang Qiu <qiujiang@huawei.com>
->=20
-> Hmmm just applied another version. Oh well, applying this
-> instead.
+Currently, in an ACPI based system, the processor driver registers
+one cooling device per processor. However, the cooling device type
+is the same for each processor. For example, on a system with four
+processors, the sysfs reading of each cooling device would look like:
+ebv@besouro ~ $ cat /sys/class/thermal/cooling_device*/type
+Processor
+Processor
+Processor
+Processor
 
-Hi, Linux, many thanks for applying.
->=20
-> Yours,
-> Linus Walleij
->=20
-> .
->=20
+which turns out to fine. But, some parts of the thermal code may use
+type to identify participating devices in a thermal zone. Besides,
+adding notifications to user space may cause the production of messages
+that may confuse the listener.
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+For this reason, this patch adds the processor ID cooling device type.
+After this change, the cooling device listing in the same previous example
+would look like this:
+ebv@besouro ~ $ cat /sys/class/thermal/cooling_device*/type
+Processor.0
+Processor.1
+Processor.2
+Processor.3
+
+allowing an easier identification of cooling device target.
+
+Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: Len Brown <lenb@kernel.org>
+Cc: linux-acpi@vger.kernel.org
+Cc: linux-kernel@vger.kernel.org
+Signed-off-by: Eduardo Valentin <edubezval@gmail.com>
+---
+ drivers/acpi/processor_driver.c | 4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
+
+diff --git a/drivers/acpi/processor_driver.c b/drivers/acpi/processor_driver.c
+index d2fa8cb..6e982c1 100644
+--- a/drivers/acpi/processor_driver.c
++++ b/drivers/acpi/processor_driver.c
+@@ -163,6 +163,7 @@ static struct notifier_block acpi_cpu_notifier = {
+ static int acpi_pss_perf_init(struct acpi_processor *pr,
+ 		struct acpi_device *device)
+ {
++	char cdev_name[THERMAL_NAME_LENGTH];
+ 	int result = 0;
+ 
+ 	acpi_processor_ppc_has_changed(pr, 0);
+@@ -172,7 +173,8 @@ static int acpi_pss_perf_init(struct acpi_processor *pr,
+ 	if (pr->flags.throttling)
+ 		pr->flags.limit = 1;
+ 
+-	pr->cdev = thermal_cooling_device_register("Processor", device,
++	snprintf(cdev_name, sizeof(cdev_name), "Processor.%d", pr->id);
++	pr->cdev = thermal_cooling_device_register(cdev_name, device,
+ 						   &processor_cooling_ops);
+ 	if (IS_ERR(pr->cdev)) {
+ 		result = PTR_ERR(pr->cdev);
+-- 
+2.1.4
+
