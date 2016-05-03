@@ -1,42 +1,52 @@
-From: Mika Westerberg <mika.westerberg@linux.intel.com>
-Subject: Re: [PATCH] i2c: i801: Allow ACPI SystemIO OpRegion to conflict with
- PCI BAR
-Date: Tue, 3 May 2016 11:53:07 +0300
-Message-ID: <20160503085307.GD1717@lahna.fi.intel.com>
-References: <1461839010-110231-1-git-send-email-mika.westerberg@linux.intel.com>
- <577f885f-b54d-cf55-b1a3-0b04358271d8@kernel.org>
- <20160429085615.GK32610@lahna.fi.intel.com>
- <CALCETrWe+juuxO9bhv-=V6j9z=a2N+4BWO8Uaa_zMxYNQEA2Lg@mail.gmail.com>
- <20160502101218.GM32610@lahna.fi.intel.com>
- <CALCETrWur5HhsHsBAH2y85-ZPbRdkZSL_XyT-kNBrzTMCtMdLQ@mail.gmail.com>
- <20160502155021.GB1717@lahna.fi.intel.com>
- <CAJZ5v0hS4O2eAUrAK4xC=s8OHtiTpj-bKjzry_GoKk2m5NktnA@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-i2c-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <CAJZ5v0hS4O2eAUrAK4xC=s8OHtiTpj-bKjzry_GoKk2m5NktnA@mail.gmail.com>
-Sender: linux-i2c-owner@vger.kernel.org
-To: "Rafael J. Wysocki" <rafael@kernel.org>
-Cc: Andy Lutomirski <luto@amacapital.net>, Andy Lutomirski <luto@kernel.org>, Jean Delvare <jdelvare@suse.com>, Wolfram Sang <wsa@the-dreams.de>, Jarkko Nikula <jarkko.nikula@linux.intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, "linux-i2c@vger.kernel.org" <linux-i2c@vger.kernel.org>, Linux ACPI <linux-acpi@vger.kernel.org>, Pali =?iso-8859-1?Q?Roh=E1r?= <pali.rohar@gmail.com>, Mario Limonciello <mario_limonciello@dell.com>
+From: Lv Zheng <lv.zheng@intel.com>
+Subject: [PATCH v3 3/7] ACPI / osi: Add acpi_osi=!! to allow reverting acpi_osi=!
+Date: Tue,  3 May 2016 16:48:32 +0800
+Message-ID: <9feb2e52793828de4931f16715b2ff872fe14274.1462263979.git.lv.zheng@intel.com>
+References: <cover.1461656216.git.lv.zheng@intel.com> <cover.1462263979.git.lv.zheng@intel.com>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <cover.1462263979.git.lv.zheng@intel.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <len.brown@intel.com>
+Cc: Lv Zheng <lv.zheng@intel.com>, Lv Zheng <zetalog@gmail.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Mon, May 02, 2016 at 11:29:01PM +0200, Rafael J. Wysocki wrote:
-> It doesn't look like trying to make it safe for both the driver and
-> AML to use the same range of addresses is a realistic goal.  At least
-> the benefit will not outweigh the resulting complexity if the opregion
-> is actually never used by AML in practice.
-> 
-> So, why don't we have a flag that will make i801_access() return an
-> error on every invocation when set (the callers of it should be able
-> to cope with that or they are broken IMO) and why don't we set it when
-> AML accesses the opregion first time?
+This patch introduces acpi_osi=!! so that quirks may use it to revert
+acpi_osi=!.
 
-Yeah, that occured to me also yesterday evening :)
+Reported-and-tested-by: Lukas Wunner <lukas@wunner.de>
+Tested-by: Chen Yu <yu.c.chen@intel.com>
+Signed-off-by: Lv Zheng <lv.zheng@intel.com>
+---
+ Documentation/kernel-parameters.txt |    2 ++
+ drivers/acpi/osl.c                  |    3 +++
+ 2 files changed, 5 insertions(+)
 
-> Yes, that will prevent the driver from actually working *when* AML
-> turns out to use the opregion, but IMO that's a bit more friendly than
-> preventing the driver from loading at all.
-
-I agree. If nobody objects, I'm going to create v2 of the patch that
-prevents further driver access if AML touches the OpRegion.
+diff --git a/Documentation/kernel-parameters.txt b/Documentation/kernel-parameters.txt
+index 0b3de80..c48f387 100644
+--- a/Documentation/kernel-parameters.txt
++++ b/Documentation/kernel-parameters.txt
+@@ -312,6 +312,8 @@ bytes respectively. Such letter suffixes can also be entirely omitted.
+ 			acpi_osi=!*		# remove all strings
+ 			acpi_osi=!		# disable all built-in OS vendor
+ 						  strings
++			acpi_osi=!!		# enable all built-in OS vendor
++						  strings
+ 			acpi_osi=		# disable all strings
+ 
+ 			'acpi_osi=!' can be used in combination with single or
+diff --git a/drivers/acpi/osl.c b/drivers/acpi/osl.c
+index cd9667f..fbedea7 100644
+--- a/drivers/acpi/osl.c
++++ b/drivers/acpi/osl.c
+@@ -1489,6 +1489,9 @@ void __init acpi_osi_setup(char *str)
+ 				osi->enable = false;
+ 			}
+ 			return;
++		} else if (*str == '!') {
++			osi_config.default_disabling = 0;
++			return;
+ 		}
+ 		enable = false;
+ 	}
+-- 
+1.7.10
