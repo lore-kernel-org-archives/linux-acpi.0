@@ -1,111 +1,61 @@
-From: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
-Subject: Re: [PATCH V6 02/13] pci, acpi: Provide generic way to assign bus
- domain number.
-Date: Tue, 3 May 2016 15:55:12 +0100
-Message-ID: <20160503145512.GA2429@red-moon>
-References: <1460740008-19489-1-git-send-email-tn@semihalf.com>
- <1460740008-19489-3-git-send-email-tn@semihalf.com>
- <20160427022649.GD6789@localhost>
- <20160427111758.GA6234@red-moon>
- <57274B8C.5030304@semihalf.com>
- <CAKc_7PU1AszF4y0OjZ3KVGaTEx9OL1cuT5YgOxQKhAQgQom7tA@mail.gmail.com>
- <20160503110225.GA1055@red-moon>
- <CAKc_7PXBrVduNkdVr13argTNekvhV+XJFB7XD6aYOnP1CY6A6w@mail.gmail.com>
+From: "Nalla, Ravikanth" <ravikanth.nalla@hpe.com>
+Subject: RE: [PATCH V3 1/4] acpi,pci,irq: reduce resource requirements
+Date: Tue, 3 May 2016 16:17:40 +0000
+Message-ID: <49D617FA63152941907AADE32CF072F12FF09400@G4W3290.americas.hpqcorp.net>
+References: <1460914617-8259-1-git-send-email-okaya@codeaurora.org>
+ <20160426183611.GC27803@localhost> <571FBACB.1020606@codeaurora.org>
+ <49D617FA63152941907AADE32CF072F12FF09187@G4W3290.americas.hpqcorp.net>
+ <57279551.3010000@codeaurora.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-pci-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <CAKc_7PXBrVduNkdVr13argTNekvhV+XJFB7XD6aYOnP1CY6A6w@mail.gmail.com>
-Sender: linux-pci-owner@vger.kernel.org
-To: Jayachandran C <jchandra@broadcom.com>
-Cc: Tomasz Nowicki <tn@semihalf.com>, Bjorn Helgaas <helgaas@kernel.org>, Arnd Bergmann <arnd@arndb.de>, Will Deacon <will.deacon@arm.com>, Catalin Marinas <catalin.marinas@arm.com>, rafael@kernel.org, Hanjun Guo <hanjun.guo@linaro.org>, Sinan Kaya <okaya@codeaurora.org>, jiang.liu@linux.intel.com, robert.richter@caviumnetworks.com, Marcin Wojtas <mw@semihalf.com>, Liviu.Dudau@arm.com, David Daney <ddaney@caviumnetworks.com>, Wangyijing <wangyijing@huawei.com>, Suravee.Suthikulpanit@amd.com, msalter@redhat.com, linux-pci@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linaro-acpi@lists.linaro.org, Jon Masters <jcm@redhat.com>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from g4t3426.houston.hp.com ([15.201.208.54]:35162 "EHLO
+	g4t3426.houston.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756134AbcECQRt convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 3 May 2016 12:17:49 -0400
+In-Reply-To: <57279551.3010000@codeaurora.org>
+Content-Language: en-US
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Sinan Kaya <okaya@codeaurora.org>, Bjorn Helgaas <helgaas@kernel.org>
+Cc: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "timur@codeaurora.org" <timur@codeaurora.org>, "cov@codeaurora.org" <cov@codeaurora.org>, "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>, "lenb@kernel.org" <lenb@kernel.org>, "K, Harish (MCOU/UPEL)" <harish.k@hpe.com>, "Reghunandanan, Ashwin (STSD)" <ashwin.reghunandanan@hpe.com>, "bhelgaas@google.com" <bhelgaas@google.com>, "rjw@rjwysocki.net" <rjw@rjwysocki.net>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
 
-On Tue, May 03, 2016 at 07:52:52PM +0530, Jayachandran C wrote:
-> On Tue, May 3, 2016 at 4:32 PM, Lorenzo Pieralisi
-> <lorenzo.pieralisi@arm.com> wrote:
-> > On Mon, May 02, 2016 at 06:56:13PM +0530, Jayachandran C wrote:
-> >> On Mon, May 2, 2016 at 6:13 PM, Tomasz Nowicki <tn@semihalf.com> wrote:
-> >> > On 04/27/2016 01:17 PM, Lorenzo Pieralisi wrote:
-> >> >>
-> >> >> On Tue, Apr 26, 2016 at 09:26:49PM -0500, Bjorn Helgaas wrote:
-> >> >>>
-> >> >>> On Fri, Apr 15, 2016 at 07:06:37PM +0200, Tomasz Nowicki wrote:
-> >> >
-> >> > [...]
-> >> >
-> >> >>>   +int acpi_pci_bus_domain_nr(struct device *parent)
-> >> >>> +{
-> >> >>> +       struct acpi_device *acpi_dev = to_acpi_device(parent);
-> >> >>> +       unsigned long long segment = 0;
-> >> >>> +       acpi_status status;
-> >> >>> +
-> >> >>> +       /*
-> >> >>> +        * If _SEG method does not exist, following ACPI spec (6.5.6)
-> >> >>> +        * all PCI buses belong to domain 0.
-> >> >>> +        */
-> >> >>> +       status = acpi_evaluate_integer(acpi_dev->handle,
-> >> >>> METHOD_NAME__SEG, NULL,
-> >> >>> +                                      &segment);
-> >> >>> We already have code in acpi_pci_root_add() to evaluate _SEG.  We
-> >> >>> don't want to evaluate it *twice*, do we?
-> >> >>>
-> >> >>> I was sort of expecting that if you added it here, we'd remove the
-> >> >>> existing call, but it looks like you're keeping both?
-> >> >>
-> >> >> We can't remove the existing call, since it is used on X86 and IA64
-> >> >> to store the segment number that, in the process, is used in their
-> >> >> pci_domain_nr() arch specific callback to retrieve the domain nr.
-> >> >>
-> >> >> On ARM64, that selects PCI_DOMAINS_GENERIC, we have to find a way
-> >> >> to retrieve the domain number that is not arch dependent, since
-> >> >> this is generic code, we can't rely on any bus->sysdata format (unless
-> >> >> we do something like JC did below), therefore the only way is to call
-> >> >> the _SEG method *again* here, which also forced Tomasz to go through
-> >> >> the ACPI_COMPANION setting song and dance and pass the parent pointer
-> >> >> to pci_create_root_bus() (see patch 1), which BTW is a source of
-> >> >> trouble on its own as you noticed.
-> >> >
-> >> > What trouble in patch 1 do you mean? I may miss something.
-> >> >
-> >> > I agree that patch 1 is not necessary if we decide to use sysdata or rework
-> >> > root bus scanning to move domain to host bridge. Nevertheless, patch 1 is
-> >> > still a cleanup IMO.
-> >>
-> >> In this case, getting the domain should be trivial since the ACPI
-> >> companion on parent is already set, this should work
-> >>
-> >> int acpi_pci_bus_domain_nr(struct device *parent)
-> >> {
-> >>         struct acpi_device *acpi_dev = to_acpi_device(parent);
-> >>         struct acpi_pci_root *root = acpi_dev->driver_data;
-> >>
-> >>         return root->segment;
-> >> }
-> >>
-> >> Or am I missing something here?
-> >
-> > Well, I thought that the whole idea behind this exercise was to move
-> > the domain number into struct pci_host_bridge (Arnd did not do it with
-> > his first set but this does not mean we can't add it as Bjorn suggested),
-> > so that the domain number could be read from there straight away in an
-> > arch (and FW) independent manner, right ?
-> 
-> The original issue was using _SEG call again instead of using
-> the value from acpi_pci_root, and the solution for that problem
-> is very simple.
-> 
-> The pci host bridge work is of course very useful, but creating a
-> dependency with that work for an issue that can be so easily solved
-> is unnecessary.
 
-It can be easily solved if we do not drop patch 1 (I understood the
-additional call to _SEG was only part of the problem). If we keep patch
-1 the code above is fine by me, if we have to drop patch 1 (IIRC by
-passing the parent pointer to pci_create_root_bus() we are affecting
-IA64 and X86 code, if that's acceptable that's fine by me) I do not
-think we can use the code above anymore, that's what my comment was
-all about because Bjorn was concerned about the fragility of the code
-setting the ACPI companion.
+-----Original Message-----
+From: Sinan Kaya [mailto:okaya@codeaurora.org] 
+Sent: Monday, May 02, 2016 11:29 PM
+To: Nalla, Ravikanth <ravikanth.nalla@hpe.com>; Bjorn Helgaas <helgaas@kernel.org>
+Cc: linux-acpi@vger.kernel.org; timur@codeaurora.org; cov@codeaurora.org; linux-pci@vger.kernel.org; lenb@kernel.org; K, Harish (MCOU/UPEL) <harish.k@hpe.com>; Reghunandanan, Ashwin (STSD) <ashwin.reghunandanan@hpe.com>; bhelgaas@google.com; rjw@rjwysocki.net; linux-kernel@vger.kernel.org
+Subject: Re: [PATCH V3 1/4] acpi,pci,irq: reduce resource requirements
 
-Lorenzo
+On 5/2/2016 1:44 PM, Nalla, Ravikanth wrote:
+>> Thanks, can the HPE developers in CC test the series in order to avoid another revert? 
+>  I'm facing below errors while applying these patches on mainline 
+> kernel for verification. Please check and let me know what is the 
+> issue or if I'm  missing  anything. I use outlook for mail and I 
+> copied your mail formatted patches into each individual file manually 
+> and converted these files into  unix format (using dos2unix cmd)  and when trying to apply with cmd "patch -p1  patch1.patch" /  "git apply patch1.patch" i see  below errors. I'm getting similar errors for remaining  patches too and also "checkpatch.pl" looks to be throwing errors. Hence I'm not able to  verify your changes.
+
+>This should get you the patch files.
+
+>https://patchwork.ozlabs.org/patch/611493/raw/
+>https://patchwork.ozlabs.org/patch/611496/raw/
+>https://patchwork.ozlabs.org/patch/611495/raw/
+>https://patchwork.ozlabs.org/patch/611494/raw/
+
+>You can download the mailbox files here and do "git am" instead
+
+>https://patchwork.ozlabs.org/patch/611493/mbox/
+>https://patchwork.ozlabs.org/patch/611496/mbox/
+>https://patchwork.ozlabs.org/patch/611495/mbox/
+>https://patchwork.ozlabs.org/patch/611494/mbox/
+
+The above mbox patches worked with "git apply".  We have now verified the fix after applying these 4 patches on a 60 CPU system 
+with mainline kernel (4.6-rc6) and we don't see any panic or issues during boot (multiple). We will try verifying on a high end system 
+and we will let you know the results.
+
+--
+Sinan Kaya
+Qualcomm Technologies, Inc. on behalf of Qualcomm Innovation Center, Inc.
+Qualcomm Innovation Center, Inc. is a member of Code Aurora Forum, a Linux Foundation Collaborative Project
