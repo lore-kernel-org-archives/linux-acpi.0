@@ -1,79 +1,128 @@
-From: "Rafael J. Wysocki" <rafael@kernel.org>
-Subject: Re: [PATCH] i2c: i801: Allow ACPI SystemIO OpRegion to conflict with
- PCI BAR
-Date: Mon, 2 May 2016 23:29:01 +0200
-Message-ID: <CAJZ5v0hS4O2eAUrAK4xC=s8OHtiTpj-bKjzry_GoKk2m5NktnA@mail.gmail.com>
-References: <1461839010-110231-1-git-send-email-mika.westerberg@linux.intel.com>
-	<577f885f-b54d-cf55-b1a3-0b04358271d8@kernel.org>
-	<20160429085615.GK32610@lahna.fi.intel.com>
-	<CALCETrWe+juuxO9bhv-=V6j9z=a2N+4BWO8Uaa_zMxYNQEA2Lg@mail.gmail.com>
-	<20160502101218.GM32610@lahna.fi.intel.com>
-	<CALCETrWur5HhsHsBAH2y85-ZPbRdkZSL_XyT-kNBrzTMCtMdLQ@mail.gmail.com>
-	<20160502155021.GB1717@lahna.fi.intel.com>
+From: "Zheng, Lv" <lv.zheng@intel.com>
+Subject: RE: [PATCH v2 4/6] ACPI / osi: Fix default _OSI(Darwin) support
+Date: Tue, 3 May 2016 01:56:09 +0000
+Message-ID: <1AE640813FDE7649BE1B193DEA596E883BB929B1@SHSMSX101.ccr.corp.intel.com>
+References: <cover.1461656216.git.lv.zheng@intel.com>
+ <e8ea6e8841adce9e10e5bd0b278b47a7c799c276.1461736123.git.lv.zheng@intel.com>
+ <36DF59CE26D8EE47B0655C516E9CE64028748233@shsmsx102.ccr.corp.intel.com>
+ <2223787.tzTyTqLAjo@vostro.rjw.lan>
+ <1AE640813FDE7649BE1B193DEA596E883BB82C18@SHSMSX101.ccr.corp.intel.com>
+ <1AE640813FDE7649BE1B193DEA596E883BB82EF4@SHSMSX101.ccr.corp.intel.com>
+ <20160429130123.GA18473@wunner.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-i2c-owner@vger.kernel.org>
-In-Reply-To: <20160502155021.GB1717@lahna.fi.intel.com>
-Sender: linux-i2c-owner@vger.kernel.org
-To: Mika Westerberg <mika.westerberg@linux.intel.com>
-Cc: Andy Lutomirski <luto@amacapital.net>, Andy Lutomirski <luto@kernel.org>, Jean Delvare <jdelvare@suse.com>, Wolfram Sang <wsa@the-dreams.de>, Jarkko Nikula <jarkko.nikula@linux.intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, "linux-i2c@vger.kernel.org" <linux-i2c@vger.kernel.org>, Linux ACPI <linux-acpi@vger.kernel.org>, =?UTF-8?Q?Pali_Roh=C3=A1r?= <pali.rohar@gmail.com>, Mario Limonciello <mario_limonciello@dell.com>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20160429130123.GA18473@wunner.de>
+Content-Language: en-US
+Sender: linux-kernel-owner@vger.kernel.org
+To: Lukas Wunner <lukas@wunner.de>, "Brown, Len" <len.brown@intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: "Chen, Yu C" <yu.c.chen@intel.com>, Lv Zheng <zetalog@gmail.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On Mon, May 2, 2016 at 5:50 PM, Mika Westerberg
-<mika.westerberg@linux.intel.com> wrote:
-> On Mon, May 02, 2016 at 08:29:42AM -0700, Andy Lutomirski wrote:
->> On Mon, May 2, 2016 at 3:12 AM, Mika Westerberg
->> <mika.westerberg@linux.intel.com> wrote:
->> > On Fri, Apr 29, 2016 at 06:13:52PM -0700, Andy Lutomirski wrote:
->> >> A question, though: there's nothing that keeps i801_access from being
->> >> called in between consecutive ACPI accesses.  Could this confuse the
->> >> ASL code?  Would it be helpful if i801_access were to save away the
->> >> old register state and restore it when it's done in the event that an
->> >> opregion access has been seen so that the ASL-configured state doesn't
->> >> get stomped on?
->> >
->> > Looking at those ASL methods of Lenovo Yoga 900 for example they seem to
->> > initialize the hardware, do the transaction and cleanup in one go.
->> > That's also what the i2c-i801.c driver is doing as far as I can say. So
->> > in that sense they should not mess with each other.
->> >
->>
->> Is your locking actually sufficient to get that right?  You're taking
->> acpi_lock, which is private to the driver, so you're only holding it
->> during actual opregion access AFAICT.  That means that, if one thread
->> is in the ACPI interpreter in one of these blocks and another thread
->> is in the driver, they could still interleave their accesses.  Am I
->> missing something?
->
-> No, you are right.
->
->> > Of course this all breaks if the ASL code expects the state to survive
->> > between transactions.
->> >
->> >> Also, what happens if i801_access happens while the i801 master is
->> >> busy with an ASL-initiated transaction?  Will it wait for the
->> >> transaction to finish?
->> >
->> > Yes, it should since ->acpi_lock is taken by i801_acpi_io_handler().
->>
->> But i801_acpi_io_handler has no concept of a transaction AFAICT.
->
-> Indeed it only handles access one-by-one not by transaction. So if the
-> ASL code is in middle of a transaction and i2c-i801.c starts one as well
-> it will mess the registers.
->
-> Back to drawing board :-/
+Hi, Lukas
 
-It doesn't look like trying to make it safe for both the driver and
-AML to use the same range of addresses is a realistic goal.  At least
-the benefit will not outweigh the resulting complexity if the opregion
-is actually never used by AML in practice.
+First, thanks for the test. :)
 
-So, why don't we have a flag that will make i801_access() return an
-error on every invocation when set (the callers of it should be able
-to cope with that or they are broken IMO) and why don't we set it when
-AML accesses the opregion first time?
+> From: Lukas Wunner [mailto:lukas@wunner.de]
+> Subject: Re: [PATCH v2 4/6] ACPI / osi: Fix default _OSI(Darwin) support
+> 
+> Hi Lv Zheng,
+> 
+> On Fri, Apr 29, 2016 at 02:07:53AM +0000, Zheng, Lv wrote:
+> > I just sent UPDATE of PATCH 4/6 and PATCH 6/6 to the mailing list with this
+> > corrected.
+> > I was hoping they could update patchwork content so that the Bugzilla
+> > reporters might use the updated patches for confirmation.
+> > The Message-Id(s) of the 2 patches were kept as same as the old ones.
+> 
+> As promised on Bugzilla I've tested v2 of this series (with the "INC"
+> manually fixed up) on a MacBookPro9,1.
+> 
+> I only reviewed the patches in a superficial fashion, but one issue I've
+> noticed is that
+> 
+> #define pr_fmt(fmt) "ACPI: " fmt
+> 
+> is missing in osi.c (patch [6/6]).
+[Lv Zheng] 
 
-Yes, that will prevent the driver from actually working *when* AML
-turns out to use the opregion, but IMO that's a bit more friendly than
-preventing the driver from loading at all.
+This is a bug of internal.h.
+I've been suffering from this in several my patches.
+And people working for ACPI subsystem have been suffering from this for decades...
+Sometimes we have to use printk(KERN_xxx PREFIX) here while checkpatch.pl complains coding style issues.
+You comment makes it a good chance to escalate this issue to the maintainers.
+
+This is a bug of internal.h because:
+1. checkpatch.pl enforces pr_xxx() instead of printk(KERN_xxx...)
+2. pr_xxx() macro is meant to eliminate KERN_xxx prefixes.
+3. kernel provides pr_fmt(fmt) to allow drivers to add their own prefixes when pr_xxx() macros are used.
+4. internal.h defines PREFIX for all ACPI drivers but doesn't provide the mean for the drivers to hide this prefix in pr_xxx() macros.
+So this becomes a trap where developers can easily make mistakes.
+
+Concluded from the point 1, 2, 3, the following code is wrong:
+In drivers/acpi/osl.c:
+		printk(KERN_ERR PREFIX "Cannot map memory that high\n");
+printk(KERN_ERR PREFIX should be replaced by pr_fmt(
+
+Concluded from the point 2, 3, the following code is wrong:
+In drivers/acpi/osl.c:
+	pr_info("ACPI: static SSDT installation disabled\n");
+		pr_debug(PREFIX "%s: map reset_reg status %d\n", __func__, rv);
+The PREFIX should be handled by pr_fmt().
+
+Concluded from the point 3, 4, the following code is wrong:
+In drivers/acpi/tables.c:
+#define pr_fmt(fmt) "ACPI: " fmt
+This should be handled by internal.h by default.
+
+So in fact, my patch is written correctly on top of the assumption that the PREFIX have already been handled by internal.h not osi.c...
+
+IMO, there are several ways to fix this long term issue:
+1. Fix it with post-override:
+This might be done in internal.h
+We may
+#ifndef PREFIX
+#define PREFIX	"ACPI: "
+#endif
+#undef pr_fmt
+#define pr_fmt(fmt)	PREFIX fmt
+This enforces ec.c to be changed to define PREFIX instead of pr_fmt() which is not developers friendly as developers are trained to use pre-override for pr_fmt().
+
+2. Fix it using pre-override:
+The above fix looks a little bit confusing because the pr_fmt() is meant to be defined before including <linux/printk.h>
+In internal.h:
+#ifndef pr_fmt
+#define pr_fmt(fmt) "ACPI: " fmt
+#endif
+
+#include <linux/xxxx.h>
+...
+
+In drivers/acpi/xxx.c, making internal.h the first one included by these files, so that they can override pr_fmt.
+For example, in ec.c:
+
+#define pr_fmt(fmt) "ACPI: EC: " fmt
+#include "internal.h"
+#include <linux/xxx.h>
+
+It's hard for me to make a decision.
+So I probably still have to work with this code quality issue and refresh this patchset.
+Possibly I will still make same mistakes in the future.
+Anyway, this is a chance for me to add your "Reported-and-tested-by:". :-)
+
+> 
+> Without command line arguments, Linux responds yay to _OSI("Darwin")
+> and nothing else and the Thunderbolt controller is powered up.
+> 
+> With "acpi_osi=!Darwin", Linux responds nay to everything and the
+> Thunderbolt controller is powered down.
+> 
+> So it seems to work as intended. If you want me to test anything else
+> please let me know.
+[Lv Zheng] 
+Sounds good.
+Thanks for the test.
+
+Thanks and best regards
+-Lv
