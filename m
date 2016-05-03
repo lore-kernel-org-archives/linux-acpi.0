@@ -1,52 +1,93 @@
-From: Lv Zheng <lv.zheng@intel.com>
-Subject: [PATCH v3 3/7] ACPI / osi: Add acpi_osi=!! to allow reverting acpi_osi=!
-Date: Tue,  3 May 2016 16:48:32 +0800
-Message-ID: <9feb2e52793828de4931f16715b2ff872fe14274.1462263979.git.lv.zheng@intel.com>
-References: <cover.1461656216.git.lv.zheng@intel.com> <cover.1462263979.git.lv.zheng@intel.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <cover.1462263979.git.lv.zheng@intel.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <len.brown@intel.com>
-Cc: Lv Zheng <lv.zheng@intel.com>, Lv Zheng <zetalog@gmail.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
+From: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+Subject: Re: [PATCH V6 02/13] pci, acpi: Provide generic way to assign bus
+ domain number.
+Date: Tue, 3 May 2016 12:02:25 +0100
+Message-ID: <20160503110225.GA1055@red-moon>
+References: <1460740008-19489-1-git-send-email-tn@semihalf.com>
+ <1460740008-19489-3-git-send-email-tn@semihalf.com>
+ <20160427022649.GD6789@localhost>
+ <20160427111758.GA6234@red-moon>
+ <57274B8C.5030304@semihalf.com>
+ <CAKc_7PU1AszF4y0OjZ3KVGaTEx9OL1cuT5YgOxQKhAQgQom7tA@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from foss.arm.com ([217.140.101.70]:37994 "EHLO foss.arm.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750728AbcECLCY (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 3 May 2016 07:02:24 -0400
+Content-Disposition: inline
+In-Reply-To: <CAKc_7PU1AszF4y0OjZ3KVGaTEx9OL1cuT5YgOxQKhAQgQom7tA@mail.gmail.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Jayachandran C <jchandra@broadcom.com>
+Cc: Tomasz Nowicki <tn@semihalf.com>, Bjorn Helgaas <helgaas@kernel.org>, Arnd Bergmann <arnd@arndb.de>, Will Deacon <will.deacon@arm.com>, Catalin Marinas <catalin.marinas@arm.com>, rafael@kernel.org, Hanjun Guo <hanjun.guo@linaro.org>, Sinan Kaya <okaya@codeaurora.org>, jiang.liu@linux.intel.com, robert.richter@caviumnetworks.com, Marcin Wojtas <mw@semihalf.com>, Liviu.Dudau@arm.com, David Daney <ddaney@caviumnetworks.com>, Wangyijing <wangyijing@huawei.com>, Suravee.Suthikulpanit@amd.com, msalter@redhat.com, linux-pci@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linaro-acpi@lists.linaro.org, Jon Masters <jcm@redhat.com>
 
-This patch introduces acpi_osi=!! so that quirks may use it to revert
-acpi_osi=!.
+On Mon, May 02, 2016 at 06:56:13PM +0530, Jayachandran C wrote:
+> On Mon, May 2, 2016 at 6:13 PM, Tomasz Nowicki <tn@semihalf.com> wrote:
+> > On 04/27/2016 01:17 PM, Lorenzo Pieralisi wrote:
+> >>
+> >> On Tue, Apr 26, 2016 at 09:26:49PM -0500, Bjorn Helgaas wrote:
+> >>>
+> >>> On Fri, Apr 15, 2016 at 07:06:37PM +0200, Tomasz Nowicki wrote:
+> >
+> > [...]
+> >
+> >>>   +int acpi_pci_bus_domain_nr(struct device *parent)
+> >>> +{
+> >>> +       struct acpi_device *acpi_dev = to_acpi_device(parent);
+> >>> +       unsigned long long segment = 0;
+> >>> +       acpi_status status;
+> >>> +
+> >>> +       /*
+> >>> +        * If _SEG method does not exist, following ACPI spec (6.5.6)
+> >>> +        * all PCI buses belong to domain 0.
+> >>> +        */
+> >>> +       status = acpi_evaluate_integer(acpi_dev->handle,
+> >>> METHOD_NAME__SEG, NULL,
+> >>> +                                      &segment);
+> >>> We already have code in acpi_pci_root_add() to evaluate _SEG.  We
+> >>> don't want to evaluate it *twice*, do we?
+> >>>
+> >>> I was sort of expecting that if you added it here, we'd remove the
+> >>> existing call, but it looks like you're keeping both?
+> >>
+> >> We can't remove the existing call, since it is used on X86 and IA64
+> >> to store the segment number that, in the process, is used in their
+> >> pci_domain_nr() arch specific callback to retrieve the domain nr.
+> >>
+> >> On ARM64, that selects PCI_DOMAINS_GENERIC, we have to find a way
+> >> to retrieve the domain number that is not arch dependent, since
+> >> this is generic code, we can't rely on any bus->sysdata format (unless
+> >> we do something like JC did below), therefore the only way is to call
+> >> the _SEG method *again* here, which also forced Tomasz to go through
+> >> the ACPI_COMPANION setting song and dance and pass the parent pointer
+> >> to pci_create_root_bus() (see patch 1), which BTW is a source of
+> >> trouble on its own as you noticed.
+> >
+> > What trouble in patch 1 do you mean? I may miss something.
+> >
+> > I agree that patch 1 is not necessary if we decide to use sysdata or rework
+> > root bus scanning to move domain to host bridge. Nevertheless, patch 1 is
+> > still a cleanup IMO.
+> 
+> In this case, getting the domain should be trivial since the ACPI
+> companion on parent is already set, this should work
+> 
+> int acpi_pci_bus_domain_nr(struct device *parent)
+> {
+>         struct acpi_device *acpi_dev = to_acpi_device(parent);
+>         struct acpi_pci_root *root = acpi_dev->driver_data;
+> 
+>         return root->segment;
+> }
+> 
+> Or am I missing something here?
 
-Reported-and-tested-by: Lukas Wunner <lukas@wunner.de>
-Tested-by: Chen Yu <yu.c.chen@intel.com>
-Signed-off-by: Lv Zheng <lv.zheng@intel.com>
----
- Documentation/kernel-parameters.txt |    2 ++
- drivers/acpi/osl.c                  |    3 +++
- 2 files changed, 5 insertions(+)
+Well, I thought that the whole idea behind this exercise was to move
+the domain number into struct pci_host_bridge (Arnd did not do it with
+his first set but this does not mean we can't add it as Bjorn suggested),
+so that the domain number could be read from there straight away in an
+arch (and FW) independent manner, right ?
 
-diff --git a/Documentation/kernel-parameters.txt b/Documentation/kernel-parameters.txt
-index 0b3de80..c48f387 100644
---- a/Documentation/kernel-parameters.txt
-+++ b/Documentation/kernel-parameters.txt
-@@ -312,6 +312,8 @@ bytes respectively. Such letter suffixes can also be entirely omitted.
- 			acpi_osi=!*		# remove all strings
- 			acpi_osi=!		# disable all built-in OS vendor
- 						  strings
-+			acpi_osi=!!		# enable all built-in OS vendor
-+						  strings
- 			acpi_osi=		# disable all strings
- 
- 			'acpi_osi=!' can be used in combination with single or
-diff --git a/drivers/acpi/osl.c b/drivers/acpi/osl.c
-index cd9667f..fbedea7 100644
---- a/drivers/acpi/osl.c
-+++ b/drivers/acpi/osl.c
-@@ -1489,6 +1489,9 @@ void __init acpi_osi_setup(char *str)
- 				osi->enable = false;
- 			}
- 			return;
-+		} else if (*str == '!') {
-+			osi_config.default_disabling = 0;
-+			return;
- 		}
- 		enable = false;
- 	}
--- 
-1.7.10
+Lorenzo
