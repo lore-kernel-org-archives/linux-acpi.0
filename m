@@ -1,102 +1,111 @@
-From: Jayachandran C <jchandra@broadcom.com>
+From: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
 Subject: Re: [PATCH V6 02/13] pci, acpi: Provide generic way to assign bus
  domain number.
-Date: Tue, 3 May 2016 19:52:52 +0530
-Message-ID: <CAKc_7PXBrVduNkdVr13argTNekvhV+XJFB7XD6aYOnP1CY6A6w@mail.gmail.com>
+Date: Tue, 3 May 2016 15:55:12 +0100
+Message-ID: <20160503145512.GA2429@red-moon>
 References: <1460740008-19489-1-git-send-email-tn@semihalf.com>
- <1460740008-19489-3-git-send-email-tn@semihalf.com> <20160427022649.GD6789@localhost>
- <20160427111758.GA6234@red-moon> <57274B8C.5030304@semihalf.com>
- <CAKc_7PU1AszF4y0OjZ3KVGaTEx9OL1cuT5YgOxQKhAQgQom7tA@mail.gmail.com> <20160503110225.GA1055@red-moon>
+ <1460740008-19489-3-git-send-email-tn@semihalf.com>
+ <20160427022649.GD6789@localhost>
+ <20160427111758.GA6234@red-moon>
+ <57274B8C.5030304@semihalf.com>
+ <CAKc_7PU1AszF4y0OjZ3KVGaTEx9OL1cuT5YgOxQKhAQgQom7tA@mail.gmail.com>
+ <20160503110225.GA1055@red-moon>
+ <CAKc_7PXBrVduNkdVr13argTNekvhV+XJFB7XD6aYOnP1CY6A6w@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-yw0-f173.google.com ([209.85.161.173]:32988 "EHLO
-	mail-yw0-f173.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755535AbcECOXe (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 3 May 2016 10:23:34 -0400
-Received: by mail-yw0-f173.google.com with SMTP id t10so22140097ywa.0
-        for <linux-acpi@vger.kernel.org>; Tue, 03 May 2016 07:23:34 -0700 (PDT)
-In-Reply-To: <20160503110225.GA1055@red-moon>
-Sender: linux-acpi-owner@vger.kernel.org
-List-Id: linux-acpi@vger.kernel.org
-To: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-pci-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <CAKc_7PXBrVduNkdVr13argTNekvhV+XJFB7XD6aYOnP1CY6A6w@mail.gmail.com>
+Sender: linux-pci-owner@vger.kernel.org
+To: Jayachandran C <jchandra@broadcom.com>
 Cc: Tomasz Nowicki <tn@semihalf.com>, Bjorn Helgaas <helgaas@kernel.org>, Arnd Bergmann <arnd@arndb.de>, Will Deacon <will.deacon@arm.com>, Catalin Marinas <catalin.marinas@arm.com>, rafael@kernel.org, Hanjun Guo <hanjun.guo@linaro.org>, Sinan Kaya <okaya@codeaurora.org>, jiang.liu@linux.intel.com, robert.richter@caviumnetworks.com, Marcin Wojtas <mw@semihalf.com>, Liviu.Dudau@arm.com, David Daney <ddaney@caviumnetworks.com>, Wangyijing <wangyijing@huawei.com>, Suravee.Suthikulpanit@amd.com, msalter@redhat.com, linux-pci@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linaro-acpi@lists.linaro.org, Jon Masters <jcm@redhat.com>
+List-Id: linux-acpi@vger.kernel.org
 
-On Tue, May 3, 2016 at 4:32 PM, Lorenzo Pieralisi
-<lorenzo.pieralisi@arm.com> wrote:
-> On Mon, May 02, 2016 at 06:56:13PM +0530, Jayachandran C wrote:
->> On Mon, May 2, 2016 at 6:13 PM, Tomasz Nowicki <tn@semihalf.com> wrote:
->> > On 04/27/2016 01:17 PM, Lorenzo Pieralisi wrote:
->> >>
->> >> On Tue, Apr 26, 2016 at 09:26:49PM -0500, Bjorn Helgaas wrote:
->> >>>
->> >>> On Fri, Apr 15, 2016 at 07:06:37PM +0200, Tomasz Nowicki wrote:
->> >
->> > [...]
->> >
->> >>>   +int acpi_pci_bus_domain_nr(struct device *parent)
->> >>> +{
->> >>> +       struct acpi_device *acpi_dev = to_acpi_device(parent);
->> >>> +       unsigned long long segment = 0;
->> >>> +       acpi_status status;
->> >>> +
->> >>> +       /*
->> >>> +        * If _SEG method does not exist, following ACPI spec (6.5.6)
->> >>> +        * all PCI buses belong to domain 0.
->> >>> +        */
->> >>> +       status = acpi_evaluate_integer(acpi_dev->handle,
->> >>> METHOD_NAME__SEG, NULL,
->> >>> +                                      &segment);
->> >>> We already have code in acpi_pci_root_add() to evaluate _SEG.  We
->> >>> don't want to evaluate it *twice*, do we?
->> >>>
->> >>> I was sort of expecting that if you added it here, we'd remove the
->> >>> existing call, but it looks like you're keeping both?
->> >>
->> >> We can't remove the existing call, since it is used on X86 and IA64
->> >> to store the segment number that, in the process, is used in their
->> >> pci_domain_nr() arch specific callback to retrieve the domain nr.
->> >>
->> >> On ARM64, that selects PCI_DOMAINS_GENERIC, we have to find a way
->> >> to retrieve the domain number that is not arch dependent, since
->> >> this is generic code, we can't rely on any bus->sysdata format (unless
->> >> we do something like JC did below), therefore the only way is to call
->> >> the _SEG method *again* here, which also forced Tomasz to go through
->> >> the ACPI_COMPANION setting song and dance and pass the parent pointer
->> >> to pci_create_root_bus() (see patch 1), which BTW is a source of
->> >> trouble on its own as you noticed.
->> >
->> > What trouble in patch 1 do you mean? I may miss something.
->> >
->> > I agree that patch 1 is not necessary if we decide to use sysdata or rework
->> > root bus scanning to move domain to host bridge. Nevertheless, patch 1 is
->> > still a cleanup IMO.
->>
->> In this case, getting the domain should be trivial since the ACPI
->> companion on parent is already set, this should work
->>
->> int acpi_pci_bus_domain_nr(struct device *parent)
->> {
->>         struct acpi_device *acpi_dev = to_acpi_device(parent);
->>         struct acpi_pci_root *root = acpi_dev->driver_data;
->>
->>         return root->segment;
->> }
->>
->> Or am I missing something here?
->
-> Well, I thought that the whole idea behind this exercise was to move
-> the domain number into struct pci_host_bridge (Arnd did not do it with
-> his first set but this does not mean we can't add it as Bjorn suggested),
-> so that the domain number could be read from there straight away in an
-> arch (and FW) independent manner, right ?
+On Tue, May 03, 2016 at 07:52:52PM +0530, Jayachandran C wrote:
+> On Tue, May 3, 2016 at 4:32 PM, Lorenzo Pieralisi
+> <lorenzo.pieralisi@arm.com> wrote:
+> > On Mon, May 02, 2016 at 06:56:13PM +0530, Jayachandran C wrote:
+> >> On Mon, May 2, 2016 at 6:13 PM, Tomasz Nowicki <tn@semihalf.com> wrote:
+> >> > On 04/27/2016 01:17 PM, Lorenzo Pieralisi wrote:
+> >> >>
+> >> >> On Tue, Apr 26, 2016 at 09:26:49PM -0500, Bjorn Helgaas wrote:
+> >> >>>
+> >> >>> On Fri, Apr 15, 2016 at 07:06:37PM +0200, Tomasz Nowicki wrote:
+> >> >
+> >> > [...]
+> >> >
+> >> >>>   +int acpi_pci_bus_domain_nr(struct device *parent)
+> >> >>> +{
+> >> >>> +       struct acpi_device *acpi_dev = to_acpi_device(parent);
+> >> >>> +       unsigned long long segment = 0;
+> >> >>> +       acpi_status status;
+> >> >>> +
+> >> >>> +       /*
+> >> >>> +        * If _SEG method does not exist, following ACPI spec (6.5.6)
+> >> >>> +        * all PCI buses belong to domain 0.
+> >> >>> +        */
+> >> >>> +       status = acpi_evaluate_integer(acpi_dev->handle,
+> >> >>> METHOD_NAME__SEG, NULL,
+> >> >>> +                                      &segment);
+> >> >>> We already have code in acpi_pci_root_add() to evaluate _SEG.  We
+> >> >>> don't want to evaluate it *twice*, do we?
+> >> >>>
+> >> >>> I was sort of expecting that if you added it here, we'd remove the
+> >> >>> existing call, but it looks like you're keeping both?
+> >> >>
+> >> >> We can't remove the existing call, since it is used on X86 and IA64
+> >> >> to store the segment number that, in the process, is used in their
+> >> >> pci_domain_nr() arch specific callback to retrieve the domain nr.
+> >> >>
+> >> >> On ARM64, that selects PCI_DOMAINS_GENERIC, we have to find a way
+> >> >> to retrieve the domain number that is not arch dependent, since
+> >> >> this is generic code, we can't rely on any bus->sysdata format (unless
+> >> >> we do something like JC did below), therefore the only way is to call
+> >> >> the _SEG method *again* here, which also forced Tomasz to go through
+> >> >> the ACPI_COMPANION setting song and dance and pass the parent pointer
+> >> >> to pci_create_root_bus() (see patch 1), which BTW is a source of
+> >> >> trouble on its own as you noticed.
+> >> >
+> >> > What trouble in patch 1 do you mean? I may miss something.
+> >> >
+> >> > I agree that patch 1 is not necessary if we decide to use sysdata or rework
+> >> > root bus scanning to move domain to host bridge. Nevertheless, patch 1 is
+> >> > still a cleanup IMO.
+> >>
+> >> In this case, getting the domain should be trivial since the ACPI
+> >> companion on parent is already set, this should work
+> >>
+> >> int acpi_pci_bus_domain_nr(struct device *parent)
+> >> {
+> >>         struct acpi_device *acpi_dev = to_acpi_device(parent);
+> >>         struct acpi_pci_root *root = acpi_dev->driver_data;
+> >>
+> >>         return root->segment;
+> >> }
+> >>
+> >> Or am I missing something here?
+> >
+> > Well, I thought that the whole idea behind this exercise was to move
+> > the domain number into struct pci_host_bridge (Arnd did not do it with
+> > his first set but this does not mean we can't add it as Bjorn suggested),
+> > so that the domain number could be read from there straight away in an
+> > arch (and FW) independent manner, right ?
+> 
+> The original issue was using _SEG call again instead of using
+> the value from acpi_pci_root, and the solution for that problem
+> is very simple.
+> 
+> The pci host bridge work is of course very useful, but creating a
+> dependency with that work for an issue that can be so easily solved
+> is unnecessary.
 
-The original issue was using _SEG call again instead of using
-the value from acpi_pci_root, and the solution for that problem
-is very simple.
+It can be easily solved if we do not drop patch 1 (I understood the
+additional call to _SEG was only part of the problem). If we keep patch
+1 the code above is fine by me, if we have to drop patch 1 (IIRC by
+passing the parent pointer to pci_create_root_bus() we are affecting
+IA64 and X86 code, if that's acceptable that's fine by me) I do not
+think we can use the code above anymore, that's what my comment was
+all about because Bjorn was concerned about the fragility of the code
+setting the ACPI companion.
 
-The pci host bridge work is of course very useful, but creating a
-dependency with that work for an issue that can be so easily solved
-is unnecessary.
-
-JC.
+Lorenzo
