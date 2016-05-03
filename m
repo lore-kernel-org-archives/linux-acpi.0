@@ -1,93 +1,57 @@
-From: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
-Subject: Re: [PATCH V6 02/13] pci, acpi: Provide generic way to assign bus
- domain number.
-Date: Tue, 3 May 2016 12:02:25 +0100
-Message-ID: <20160503110225.GA1055@red-moon>
-References: <1460740008-19489-1-git-send-email-tn@semihalf.com>
- <1460740008-19489-3-git-send-email-tn@semihalf.com>
- <20160427022649.GD6789@localhost>
- <20160427111758.GA6234@red-moon>
- <57274B8C.5030304@semihalf.com>
- <CAKc_7PU1AszF4y0OjZ3KVGaTEx9OL1cuT5YgOxQKhAQgQom7tA@mail.gmail.com>
+From: Mark Brown <broonie@kernel.org>
+Subject: Re: [RFC PATCH v2 06/10] spi: add support for ACPI reconfigure
+ notifications
+Date: Tue, 3 May 2016 13:19:54 +0100
+Message-ID: <20160503121954.GQ6292@sirena.org.uk>
+References: <1461105548-20618-1-git-send-email-octavian.purdila@intel.com>
+ <1461105548-20618-7-git-send-email-octavian.purdila@intel.com>
+ <20160428174215.GS3217@sirena.org.uk>
+ <CAE1zot+LuQJGrDrEDM2iVv-omz3Sg6k3bavX+5gde8jzrK0pog@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from foss.arm.com ([217.140.101.70]:37994 "EHLO foss.arm.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750728AbcECLCY (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 3 May 2016 07:02:24 -0400
+Content-Type: multipart/signed; micalg=pgp-sha256;
+	protocol="application/pgp-signature"; boundary="63aIh6YiuHX+oBFP"
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <CAKc_7PU1AszF4y0OjZ3KVGaTEx9OL1cuT5YgOxQKhAQgQom7tA@mail.gmail.com>
-Sender: linux-acpi-owner@vger.kernel.org
+In-Reply-To: <CAE1zot+LuQJGrDrEDM2iVv-omz3Sg6k3bavX+5gde8jzrK0pog@mail.gmail.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Octavian Purdila <octavian.purdila@intel.com>
+Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Matt Fleming <matt@codeblueprint.co.uk>, Wolfram Sang <wsa@the-dreams.de>, Joel Becker <jlbec@evilplan.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, linux-efi@vger.kernel.org, linux-i2c <linux-i2c@vger.kernel.org>, linux-spi <linux-spi@vger.kernel.org>, lkml <linux-kernel@vger.kernel.org>, Irina Tirdea <irina.tirdea@intel.com>
 List-Id: linux-acpi@vger.kernel.org
-To: Jayachandran C <jchandra@broadcom.com>
-Cc: Tomasz Nowicki <tn@semihalf.com>, Bjorn Helgaas <helgaas@kernel.org>, Arnd Bergmann <arnd@arndb.de>, Will Deacon <will.deacon@arm.com>, Catalin Marinas <catalin.marinas@arm.com>, rafael@kernel.org, Hanjun Guo <hanjun.guo@linaro.org>, Sinan Kaya <okaya@codeaurora.org>, jiang.liu@linux.intel.com, robert.richter@caviumnetworks.com, Marcin Wojtas <mw@semihalf.com>, Liviu.Dudau@arm.com, David Daney <ddaney@caviumnetworks.com>, Wangyijing <wangyijing@huawei.com>, Suravee.Suthikulpanit@amd.com, msalter@redhat.com, linux-pci@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linaro-acpi@lists.linaro.org, Jon Masters <jcm@redhat.com>
 
-On Mon, May 02, 2016 at 06:56:13PM +0530, Jayachandran C wrote:
-> On Mon, May 2, 2016 at 6:13 PM, Tomasz Nowicki <tn@semihalf.com> wrote:
-> > On 04/27/2016 01:17 PM, Lorenzo Pieralisi wrote:
-> >>
-> >> On Tue, Apr 26, 2016 at 09:26:49PM -0500, Bjorn Helgaas wrote:
-> >>>
-> >>> On Fri, Apr 15, 2016 at 07:06:37PM +0200, Tomasz Nowicki wrote:
-> >
-> > [...]
-> >
-> >>>   +int acpi_pci_bus_domain_nr(struct device *parent)
-> >>> +{
-> >>> +       struct acpi_device *acpi_dev = to_acpi_device(parent);
-> >>> +       unsigned long long segment = 0;
-> >>> +       acpi_status status;
-> >>> +
-> >>> +       /*
-> >>> +        * If _SEG method does not exist, following ACPI spec (6.5.6)
-> >>> +        * all PCI buses belong to domain 0.
-> >>> +        */
-> >>> +       status = acpi_evaluate_integer(acpi_dev->handle,
-> >>> METHOD_NAME__SEG, NULL,
-> >>> +                                      &segment);
-> >>> We already have code in acpi_pci_root_add() to evaluate _SEG.  We
-> >>> don't want to evaluate it *twice*, do we?
-> >>>
-> >>> I was sort of expecting that if you added it here, we'd remove the
-> >>> existing call, but it looks like you're keeping both?
-> >>
-> >> We can't remove the existing call, since it is used on X86 and IA64
-> >> to store the segment number that, in the process, is used in their
-> >> pci_domain_nr() arch specific callback to retrieve the domain nr.
-> >>
-> >> On ARM64, that selects PCI_DOMAINS_GENERIC, we have to find a way
-> >> to retrieve the domain number that is not arch dependent, since
-> >> this is generic code, we can't rely on any bus->sysdata format (unless
-> >> we do something like JC did below), therefore the only way is to call
-> >> the _SEG method *again* here, which also forced Tomasz to go through
-> >> the ACPI_COMPANION setting song and dance and pass the parent pointer
-> >> to pci_create_root_bus() (see patch 1), which BTW is a source of
-> >> trouble on its own as you noticed.
-> >
-> > What trouble in patch 1 do you mean? I may miss something.
-> >
-> > I agree that patch 1 is not necessary if we decide to use sysdata or rework
-> > root bus scanning to move domain to host bridge. Nevertheless, patch 1 is
-> > still a cleanup IMO.
-> 
-> In this case, getting the domain should be trivial since the ACPI
-> companion on parent is already set, this should work
-> 
-> int acpi_pci_bus_domain_nr(struct device *parent)
-> {
->         struct acpi_device *acpi_dev = to_acpi_device(parent);
->         struct acpi_pci_root *root = acpi_dev->driver_data;
-> 
->         return root->segment;
-> }
-> 
-> Or am I missing something here?
 
-Well, I thought that the whole idea behind this exercise was to move
-the domain number into struct pci_host_bridge (Arnd did not do it with
-his first set but this does not mean we can't add it as Bjorn suggested),
-so that the domain number could be read from there straight away in an
-arch (and FW) independent manner, right ?
+--63aIh6YiuHX+oBFP
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-Lorenzo
+On Thu, Apr 28, 2016 at 10:37:57PM +0300, Octavian Purdila wrote:
+> On Thu, Apr 28, 2016 at 8:42 PM, Mark Brown <broonie@kernel.org> wrote:
+
+> > There's more code here now than I remember but this all looks *really*
+> > close to the DT code except for the OF_POPULATED flag that we set when
+> > things are instantiated in DT.  The duplication seems bad but the fact
+> > that we're missing the flag worries me...  do we have guarantees that
+> > ACPI won't double register?
+
+> We use the adev->flags.visited to check when a device has been already
+> enumerated, and we skip registering a new SPI slave in that case.
+
+OK, but the fact that I need to know that isn't exactly thrilling -
+that's really the issue with the not quite duplication here.  It's not
+just if the code works but also the maintainability.
+
+--63aIh6YiuHX+oBFP
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2
+
+iQEcBAEBCAAGBQJXKJdpAAoJECTWi3JdVIfQObEH/jbLM9WkPdnF2TwM8vv7uEYA
+BF8GSfNudKnU9rmzDcbbDiwqulQ3lU6ZqUQMjTMBmzVVS/QuPXwgp/DOf4cvng1s
+pkej8hSOVOMsg95OMCqWHNcZbXyHbKnQw6RKOUT84QyUVsSItzg9I670feYGQBnA
+4/YIZ0Yl01YZgy8CTeuXUAIXm7vMNQ3vNvdqbXuqakAznwWuEwI9H3FyhtkS/Pe9
+o8hQXo3G7r86FyaqhASl33lOaGOZvUnyKqovtfkHjYqJXRTGI18HSX2un4zy74h7
+vHBUv0jpqKYcwQmsn8xDPZO60BoTwZttj9gh5eVaWX7fULahQfoK2+GuVKXHBHc=
+=JZy9
+-----END PGP SIGNATURE-----
+
+--63aIh6YiuHX+oBFP--
