@@ -1,7 +1,7 @@
 From: Lv Zheng <lv.zheng@intel.com>
-Subject: [PATCH v3 1/7] ACPI / osi: Fix an issue that acpi_osi=!* cannot disable ACPICA internal strings
-Date: Tue,  3 May 2016 16:48:20 +0800
-Message-ID: <2c3815d72ac69e60e278757d0c74cd5e3003f1ad.1462263979.git.lv.zheng@intel.com>
+Subject: [PATCH v3 2/7] ACPI / osi: Cleanup _OSI("Linux") related code before introducing new support
+Date: Tue,  3 May 2016 16:48:27 +0800
+Message-ID: <46b59ec75072da6efe5e25562f4a78bf3ea5795e.1462263979.git.lv.zheng@intel.com>
 References: <cover.1461656216.git.lv.zheng@intel.com> <cover.1462263979.git.lv.zheng@intel.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <cover.1462263979.git.lv.zheng@intel.com>
@@ -10,107 +10,118 @@ To: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, "Rafael J. Wysocki" <rjw@r
 Cc: Lv Zheng <lv.zheng@intel.com>, Lv Zheng <zetalog@gmail.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-The order of the _OSI related functionalities is as follows:
-  acpi_blacklisted()
-    acpi_dmi_osi_linux()
-      acpi_osi_setup()
-    acpi_osi_setup()
-      acpi_update_interfaces() if "!*"
-      <<<<<<<<<<<<<<<<<<<<<<<<
-  parse_args()
-    __setup("acpi_osi=")
-      acpi_osi_setup_linux()
-        acpi_update_interfaces() if "!*"
-        <<<<<<<<<<<<<<<<<<<<<<<<
-  acpi_early_init()
-    acpi_initialize_subsystem()
-      acpi_ut_initialize_interfaces()
-      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  acpi_bus_init()
-    acpi_os_initialize1()
-      acpi_install_interface_handler(acpi_osi_handler)
-      acpi_osi_setup_late()
-        acpi_update_interfaces() for "!"
-        >>>>>>>>>>>>>>>>>>>>>>>>
-  acpi_osi_handler()
-Since acpi_osi_setup_linux() can override acpi_dmi_osi_linux(), the command
-line setting can override the DMI detection. That's why acpi_blacklisted()
-is put before __setup("acpi_osi=").
+This patch cleans up OSI code in osl.c to make osi_linux work for OSI
+strings other than "Linux", so it can be re-used for other purposes.
 
-Then we can notice the following wrong invocation order. There are
-acpi_update_interfaces() (marked by <<<<) calls invoked before
-acpi_ut_initialize_interfaces() (marked by ^^^^). This makes it impossible
-to use acpi_osi=!* correctly from OSI DMI table or from the command line.
-The use of acpi_osi=!* is meant to disable both ACPICA
-(acpi_gbl_supported_interfaces) and Linux specific strings
-(osi_setup_entries) while the ACPICA part should have stopped working
-because of the order issue.
-
-This patch fixes this issue by moving acpi_update_interfaces() to where
-it is invoked for acpi_osi=! (marked by >>>>) as this is ensured to be
-invoked after acpi_ut_initialize_interfaces() (marked by ^^^^). Linux
-specific strings are still handled in the original place in order to make
-the following command line working: acpi_osi=!* acpi_osi="Module Device".
-
-Note that since acpi_osi=!* is meant to further disable linux specific
-string comparing to the acpi_osi=!, there is no such use case in our bug
-fixing work and hence there is no one using acpi_osi=!* either from the
-command line or from the DMI quirks, this issue is just a theoretical
-issue.
-
-Fixes: 741d81280ad2 ("ACPI: Add facility to remove all _OSI strings")
-Cc: <stable@vger.kernel.org> # 3.12+
-Tested-by: Lukas Wunner <lukas@wunner.de>
+Reported-and-tested-by: Lukas Wunner <lukas@wunner.de>
 Tested-by: Chen Yu <yu.c.chen@intel.com>
 Signed-off-by: Lv Zheng <lv.zheng@intel.com>
 ---
- drivers/acpi/osl.c |   16 +++++++++++-----
- 1 file changed, 11 insertions(+), 5 deletions(-)
+ drivers/acpi/osl.c |   42 ++++++++++++++++++++++--------------------
+ 1 file changed, 22 insertions(+), 20 deletions(-)
 
 diff --git a/drivers/acpi/osl.c b/drivers/acpi/osl.c
-index 00d2a22..d7d84a8 100644
+index d7d84a8..cd9667f 100644
 --- a/drivers/acpi/osl.c
 +++ b/drivers/acpi/osl.c
-@@ -135,7 +135,7 @@ static struct osi_linux {
- 	unsigned int	enable:1;
- 	unsigned int	dmi:1;
- 	unsigned int	cmdline:1;
--	unsigned int	default_disabling:1;
-+	u8		default_disabling;
- } osi_linux = {0, 0, 0, 0};
+@@ -131,12 +131,12 @@ static void __init acpi_osi_setup_late(void);
+  * or boot with "acpi_osi=Linux"
+  */
+ 
+-static struct osi_linux {
+-	unsigned int	enable:1;
+-	unsigned int	dmi:1;
+-	unsigned int	cmdline:1;
++static struct acpi_osi_config {
++	unsigned int	linux_enable:1;
++	unsigned int	linux_dmi:1;
++	unsigned int	linux_cmdline:1;
+ 	u8		default_disabling;
+-} osi_linux = {0, 0, 0, 0};
++} osi_config = {0, 0, 0, 0};
  
  static u32 acpi_osi_handler(acpi_string interface, u32 supported)
-@@ -1477,10 +1477,13 @@ void __init acpi_osi_setup(char *str)
- 	if (*str == '!') {
+ {
+@@ -144,9 +144,9 @@ static u32 acpi_osi_handler(acpi_string interface, u32 supported)
+ 
+ 		printk_once(KERN_NOTICE FW_BUG PREFIX
+ 			"BIOS _OSI(Linux) query %s%s\n",
+-			osi_linux.enable ? "honored" : "ignored",
+-			osi_linux.cmdline ? " via cmdline" :
+-			osi_linux.dmi ? " via DMI" : "");
++			osi_config.linux_enable ? "honored" : "ignored",
++			osi_config.linux_cmdline ? " via cmdline" :
++			osi_config.linux_dmi ? " via DMI" : "");
+ 	}
+ 
+ 	if (!strcmp("Darwin", interface)) {
+@@ -1478,12 +1478,12 @@ void __init acpi_osi_setup(char *str)
  		str++;
  		if (*str == '\0') {
--			osi_linux.default_disabling = 1;
-+			/* Do not override acpi_osi=!* */
-+			if (!osi_linux.default_disabling)
-+				osi_linux.default_disabling =
-+					ACPI_DISABLE_ALL_VENDOR_STRINGS;
+ 			/* Do not override acpi_osi=!* */
+-			if (!osi_linux.default_disabling)
+-				osi_linux.default_disabling =
++			if (!osi_config.default_disabling)
++				osi_config.default_disabling =
+ 					ACPI_DISABLE_ALL_VENDOR_STRINGS;
  			return;
  		} else if (*str == '*') {
--			acpi_update_interfaces(ACPI_DISABLE_ALL_STRINGS);
-+			osi_linux.default_disabling = ACPI_DISABLE_ALL_STRINGS;
+-			osi_linux.default_disabling = ACPI_DISABLE_ALL_STRINGS;
++			osi_config.default_disabling = ACPI_DISABLE_ALL_STRINGS;
  			for (i = 0; i < OSI_STRING_ENTRIES_MAX; i++) {
  				osi = &osi_setup_entries[i];
  				osi->enable = false;
-@@ -1553,10 +1556,13 @@ static void __init acpi_osi_setup_late(void)
+@@ -1508,10 +1508,10 @@ void __init acpi_osi_setup(char *str)
+ 
+ static void __init set_osi_linux(unsigned int enable)
+ {
+-	if (osi_linux.enable != enable)
+-		osi_linux.enable = enable;
++	if (osi_config.linux_enable != enable)
++		osi_config.linux_enable = enable;
+ 
+-	if (osi_linux.enable)
++	if (osi_config.linux_enable)
+ 		acpi_osi_setup("Linux");
+ 	else
+ 		acpi_osi_setup("!Linux");
+@@ -1521,8 +1521,9 @@ static void __init set_osi_linux(unsigned int enable)
+ 
+ static void __init acpi_cmdline_osi_linux(unsigned int enable)
+ {
+-	osi_linux.cmdline = 1;	/* cmdline set the default and override DMI */
+-	osi_linux.dmi = 0;
++	/* cmdline set the default and override DMI */
++	osi_config.linux_cmdline = 1;
++	osi_config.linux_dmi = 0;
+ 	set_osi_linux(enable);
+ 
+ 	return;
+@@ -1535,7 +1536,8 @@ void __init acpi_dmi_osi_linux(int enable, const struct dmi_system_id *d)
+ 	if (enable == -1)
+ 		return;
+ 
+-	osi_linux.dmi = 1;	/* DMI knows that this box asks OSI(Linux) */
++	/* DMI knows that this box asks OSI(Linux) */
++	osi_config.linux_dmi = 1;
+ 	set_osi_linux(enable);
+ 
+ 	return;
+@@ -1555,12 +1557,12 @@ static void __init acpi_osi_setup_late(void)
+ 	int i;
  	acpi_status status;
  
- 	if (osi_linux.default_disabling) {
--		status = acpi_update_interfaces(ACPI_DISABLE_ALL_VENDOR_STRINGS);
-+		status = acpi_update_interfaces(osi_linux.default_disabling);
+-	if (osi_linux.default_disabling) {
+-		status = acpi_update_interfaces(osi_linux.default_disabling);
++	if (osi_config.default_disabling) {
++		status = acpi_update_interfaces(osi_config.default_disabling);
  
  		if (ACPI_SUCCESS(status))
--			printk(KERN_INFO PREFIX "Disabled all _OSI OS vendors\n");
-+			printk(KERN_INFO PREFIX "Disabled all _OSI OS vendors%s\n",
-+				osi_linux.default_disabling ==
-+				ACPI_DISABLE_ALL_STRINGS ?
-+				" and feature groups" : "");
+ 			printk(KERN_INFO PREFIX "Disabled all _OSI OS vendors%s\n",
+-				osi_linux.default_disabling ==
++				osi_config.default_disabling ==
+ 				ACPI_DISABLE_ALL_STRINGS ?
+ 				" and feature groups" : "");
  	}
- 
- 	for (i = 0; i < OSI_STRING_ENTRIES_MAX; i++) {
 -- 
 1.7.10
