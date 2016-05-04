@@ -1,48 +1,68 @@
-From: <Mario_Limonciello@Dell.com>
-Subject: RE: [PATCH 08/15] ACPICA: Dispatcher: Update thread ID for recursive
+From: "Rafael J. Wysocki" <rafael@kernel.org>
+Subject: Re: [PATCH 08/15] ACPICA: Dispatcher: Update thread ID for recursive
  method calls
-Date: Wed, 4 May 2016 20:30:37 +0000
-Message-ID: <d28841bfa9d947c39a1cf54622299be8@ausx13mpc120.AMER.DELL.COM>
+Date: Wed, 4 May 2016 22:45:37 +0200
+Message-ID: <CAJZ5v0hZp_ZDkN7K=Ovr4EHTfE=GAB6n891N4n-VSUvnbQWTxA@mail.gmail.com>
 References: <cover.1462331120.git.lv.zheng@intel.com>
 	<b1748e389752c1f7d499770dea3fe5f4950aaecc.1462331121.git.lv.zheng@intel.com>
 	<572A10CE.20106@redhat.com>
- <CAJZ5v0j=4pGH-0guSQnVYTFo=zZ66duS8MrYmjxBtEy55Do=8Q@mail.gmail.com>
+	<CAJZ5v0j=4pGH-0guSQnVYTFo=zZ66duS8MrYmjxBtEy55Do=8Q@mail.gmail.com>
+	<d28841bfa9d947c39a1cf54622299be8@ausx13mpc120.AMER.DELL.COM>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <stable-owner@vger.kernel.org>
-In-Reply-To: <CAJZ5v0j=4pGH-0guSQnVYTFo=zZ66duS8MrYmjxBtEy55Do=8Q@mail.gmail.com>
-Content-Language: en-US
-Sender: stable-owner@vger.kernel.org
-To: rafael@kernel.org, prarit@redhat.com
-Cc: lv.zheng@intel.com, rafael.j.wysocki@intel.com, rjw@rjwysocki.net, len.brown@intel.com, zetalog@gmail.com, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, robert.moore@intel.com, stable@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-lf0-f65.google.com ([209.85.215.65]:34233 "EHLO
+	mail-lf0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752820AbcEDUpj (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 4 May 2016 16:45:39 -0400
+In-Reply-To: <d28841bfa9d947c39a1cf54622299be8@ausx13mpc120.AMER.DELL.COM>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Mario Limonciello <Mario_Limonciello@dell.com>, Prarit Bhargava <prarit@redhat.com>, Lv <lv.zheng@intel.com>
+Cc: Rafael Wysocki <rafael.j.wysocki@intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <len.brown@intel.com>, =?UTF-8?B?5b6L6YOR?= <zetalog@gmail.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Robert Moore <robert.moore@intel.com>, Andy Lutomirski <luto@kernel.org>
 
-PiAtLS0tLU9yaWdpbmFsIE1lc3NhZ2UtLS0tLQ0KPiBGcm9tOiByand5c29ja2lAZ21haWwuY29t
-IFttYWlsdG86cmp3eXNvY2tpQGdtYWlsLmNvbV0gT24gQmVoYWxmIE9mDQo+IFJhZmFlbCBKLiBX
-eXNvY2tpDQo+IFNlbnQ6IFdlZG5lc2RheSwgTWF5IDQsIDIwMTYgMjoyMyBQTQ0KPiBUbzogUHJh
-cml0IEJoYXJnYXZhIDxwcmFyaXRAcmVkaGF0LmNvbT4NCj4gQ2M6IEx2IFpoZW5nIDxsdi56aGVu
-Z0BpbnRlbC5jb20+OyBSYWZhZWwgSi4gV3lzb2NraQ0KPiA8cmFmYWVsLmoud3lzb2NraUBpbnRl
-bC5jb20+OyBSYWZhZWwgSi4gV3lzb2NraSA8cmp3QHJqd3lzb2NraS5uZXQ+OyBMZW4NCj4gQnJv
-d24gPGxlbi5icm93bkBpbnRlbC5jb20+OyBMdiBaaGVuZyA8emV0YWxvZ0BnbWFpbC5jb20+OyBM
-aW51eA0KPiBLZXJuZWwgTWFpbGluZyBMaXN0IDxsaW51eC1rZXJuZWxAdmdlci5rZXJuZWwub3Jn
-PjsgQUNQSSBEZXZlbCBNYWxpbmcgTGlzdA0KPiA8bGludXgtYWNwaUB2Z2VyLmtlcm5lbC5vcmc+
-OyBCb2IgTW9vcmUgPHJvYmVydC5tb29yZUBpbnRlbC5jb20+Ow0KPiBMaW1vbmNpZWxsbywgTWFy
-aW8gPE1hcmlvX0xpbW9uY2llbGxvQERlbGwuY29tPjsgc3RhYmxlDQo+IDxzdGFibGVAdmdlci5r
-ZXJuZWwub3JnPg0KPiBTdWJqZWN0OiBSZTogW1BBVENIIDA4LzE1XSBBQ1BJQ0E6IERpc3BhdGNo
-ZXI6IFVwZGF0ZSB0aHJlYWQgSUQgZm9yDQo+IHJlY3Vyc2l2ZSBtZXRob2QgY2FsbHMNCj4gDQo+
-IE9uIFdlZCwgTWF5IDQsIDIwMTYgYXQgNToxMCBQTSwgUHJhcml0IEJoYXJnYXZhIDxwcmFyaXRA
-cmVkaGF0LmNvbT4NCj4gd3JvdGU6DQo+ID4NCj4gPg0KPiA+IE9uIDA1LzA0LzIwMTYgMDE6NDgg
-QU0sIEx2IFpoZW5nIHdyb3RlOg0KPiA+PiBGcm9tOiBQcmFyaXQgQmhhcmdhdmEgPHByYXJpdEBy
-ZWRoYXQuY29tPg0KPiA+Pg0KPiA+PiBBQ1BJQ0EgY29tbWl0IDdhM2JkMmQ5NjJmMjIxODA5ZjI1
-ZGRiODI2YzllNTUxYjkxNmViMjUNCj4gPj4NCj4gPj4gU2V0IHRoZSBtdXRleCBvd25lciB0aHJl
-YWQgSUQuDQo+ID4+IE9yaWdpbmFsIHBhdGNoIGZyb206IFByYXJpdCBCaGFyZ2F2YSA8cHJhcml0
-QHJlZGhhdC5jb20+DQo+ID4+DQo+ID4+IExpbms6IGh0dHBzOi8vZ2l0aHViLmNvbS9hY3BpY2Ev
-YWNwaWNhL2NvbW1pdC83YTNiZDJkOQ0KPiA+PiBTaWduZWQtb2ZmLWJ5OiBQcmFyaXQgQmhhcmdh
-dmEgPHByYXJpdEByZWRoYXQuY29tPg0KPiA+PiBTaWduZWQtb2ZmLWJ5OiBCb2IgTW9vcmUgPHJv
-YmVydC5tb29yZUBpbnRlbC5jb20+DQo+ID4+IFNpZ25lZC1vZmYtYnk6IEx2IFpoZW5nIDxsdi56
-aGVuZ0BpbnRlbC5jb20+DQo+ID4NCj4gPiBjYydpbmcgTWFyaW8gQCBEZWxsIGFuZCBzdGFibGUu
-DQo+IA0KPiBJdCB3b24ndCBoZWxwIGlmIHlvdSBDQyBzdGFibGUgYXQgdGhpcyBwb2ludC4NCj4g
-DQo+IFdoYXQgc3RhYmxlIHNlcmllcyBzaG91bGQgdGhpcyBnbyBpbnRvPw0KDQpBdCBsZWFzdCBJ
-IHdhcyByZWFsbHkgaG9waW5nIHRvIHNlZSB0aGlzIGxhbmQgaW4ga2VybmVscyB0aGF0IGFyZSBp
-biB0aGUgY29tbW9uIGRpc3Ryb3MgdG9kYXk6IDQuNCwgNC4yIGFuZCAzLjE5Lg0KDQo=
+On Wed, May 4, 2016 at 10:30 PM,  <Mario_Limonciello@dell.com> wrote:
+>> -----Original Message-----
+>> From: rjwysocki@gmail.com [mailto:rjwysocki@gmail.com] On Behalf Of
+>> Rafael J. Wysocki
+>> Sent: Wednesday, May 4, 2016 2:23 PM
+>> To: Prarit Bhargava <prarit@redhat.com>
+>> Cc: Lv Zheng <lv.zheng@intel.com>; Rafael J. Wysocki
+>> <rafael.j.wysocki@intel.com>; Rafael J. Wysocki <rjw@rjwysocki.net>; Len
+>> Brown <len.brown@intel.com>; Lv Zheng <zetalog@gmail.com>; Linux
+>> Kernel Mailing List <linux-kernel@vger.kernel.org>; ACPI Devel Maling List
+>> <linux-acpi@vger.kernel.org>; Bob Moore <robert.moore@intel.com>;
+>> Limonciello, Mario <Mario_Limonciello@Dell.com>; stable
+>> <stable@vger.kernel.org>
+>> Subject: Re: [PATCH 08/15] ACPICA: Dispatcher: Update thread ID for
+>> recursive method calls
+>>
+>> On Wed, May 4, 2016 at 5:10 PM, Prarit Bhargava <prarit@redhat.com>
+>> wrote:
+>> >
+>> >
+>> > On 05/04/2016 01:48 AM, Lv Zheng wrote:
+>> >> From: Prarit Bhargava <prarit@redhat.com>
+>> >>
+>> >> ACPICA commit 7a3bd2d962f221809f25ddb826c9e551b916eb25
+>> >>
+>> >> Set the mutex owner thread ID.
+>> >> Original patch from: Prarit Bhargava <prarit@redhat.com>
+>> >>
+>> >> Link: https://github.com/acpica/acpica/commit/7a3bd2d9
+>> >> Signed-off-by: Prarit Bhargava <prarit@redhat.com>
+>> >> Signed-off-by: Bob Moore <robert.moore@intel.com>
+>> >> Signed-off-by: Lv Zheng <lv.zheng@intel.com>
+>> >
+>> > cc'ing Mario @ Dell and stable.
+>>
+>> It won't help if you CC stable at this point.
+>>
+>> What stable series should this go into?
+>
+> At least I was really hoping to see this land in kernels that are in the common distros today: 4.4, 4.2 and 3.19.
+>
+
+OK, let's make it "all applicable", then.
+
+Applied and queued up as a fix for v4.6, thanks everybody!
