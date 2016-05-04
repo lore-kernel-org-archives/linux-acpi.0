@@ -1,237 +1,288 @@
-From: Tomasz Nowicki <tn@semihalf.com>
-Subject: Re: [PATCH V6 01/13] pci, acpi, x86, ia64: Move ACPI host bridge
- device companion assignment to core code.
-Date: Wed, 4 May 2016 10:10:58 +0200
-Message-ID: <5729AE92.2090106@semihalf.com>
-References: <1460740008-19489-1-git-send-email-tn@semihalf.com>
- <1460740008-19489-2-git-send-email-tn@semihalf.com>
- <20160427024537.GH6789@localhost>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252; format=flowed
-Content-Transfer-Encoding: 7bit
+From: Mika Westerberg <mika.westerberg@linux.intel.com>
+Subject: [PATCH v2] i2c: i801: Allow ACPI SystemIO OpRegion to conflict with PCI BAR
+Date: Wed,  4 May 2016 12:27:25 +0300
+Message-ID: <1462354045-94455-1-git-send-email-mika.westerberg@linux.intel.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-lf0-f41.google.com ([209.85.215.41]:34749 "EHLO
-	mail-lf0-f41.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752335AbcEDILD (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 4 May 2016 04:11:03 -0400
-Received: by mail-lf0-f41.google.com with SMTP id m64so50336915lfd.1
-        for <linux-acpi@vger.kernel.org>; Wed, 04 May 2016 01:11:01 -0700 (PDT)
-In-Reply-To: <20160427024537.GH6789@localhost>
+Received: from mga01.intel.com ([192.55.52.88]:49876 "EHLO mga01.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751700AbcEDJ1j (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 4 May 2016 05:27:39 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Bjorn Helgaas <helgaas@kernel.org>, rafael@kernel.org
-Cc: arnd@arndb.de, will.deacon@arm.com, catalin.marinas@arm.com, hanjun.guo@linaro.org, Lorenzo.Pieralisi@arm.com, okaya@codeaurora.org, jiang.liu@linux.intel.com, jchandra@broadcom.com, robert.richter@caviumnetworks.com, mw@semihalf.com, Liviu.Dudau@arm.com, ddaney@caviumnetworks.com, wangyijing@huawei.com, Suravee.Suthikulpanit@amd.com, msalter@redhat.com, linux-pci@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linaro-acpi@lists.linaro.org, jcm@redhat.com
+To: Jean Delvare <jdelvare@suse.com>, Wolfram Sang <wsa@the-dreams.de>
+Cc: Jarkko Nikula <jarkko.nikula@linux.intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Mika Westerberg <mika.westerberg@linux.intel.com>, Andy Lutomirski <luto@kernel.org>, Mario Limonciello <mario_limonciello@dell.com>, pali.rohar@gmail.com, linux-i2c@vger.kernel.org, linux-acpi@vger.kernel.org
 
-On 27.04.2016 04:45, Bjorn Helgaas wrote:
-> [question for Rafael below]
->
-> On Fri, Apr 15, 2016 at 07:06:36PM +0200, Tomasz Nowicki wrote:
->> Currently we have two platforms (x86 & ia64) capable of PCI ACPI host
->> bridge initialization. They both use arch-specific sysdata to pass down
->> parent device reference and both rely on NULL parent in pci_create_root_bus()
->> to validate sysdata content.
->>
->> It looks hacky and prevents us from getting some firmware specific
->> info for PCI host controller based on its acpi_device structure
->> in generic pci_create_root_bus() function. However, we overcome that
->> blocker by passing down parent device via pci_create_root_bus parameter
->> (as the ACPI device type). Then we use ACPI_COMPANION_SET in core code
->> for ACPI boot method only. ACPI_COMPANION_SET is safe to run for all
->> cases DT, ACPI and DT&ACPI.
->>
->> Since now PCI core code is setting ACPI companion device for us,
->> x86 & ia64 specific ACPI companion device setting turns out to be dead now.
->> We can get rid of it, including related companion reference from
->> PCI sysdata structure. Aslo, PCI_CONTROLLER macro cannot return valid
->> companion device anymore. Therefore we need to convert its usage to
->> ACPI_COMPANION.
->>
->> Suggested-by: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
->> Signed-off-by: Tomasz Nowicki <tn@semihalf.com>
->> Reviewed-by: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
->> Tested-by: Duc Dang <dhdang@apm.com>
->> Tested-by: Dongdong Liu <liudongdong3@huawei.com>
->> Tested-by: Hanjun Guo <hanjun.guo@linaro.org>
->> Tested-by: Graeme Gregory <graeme.gregory@linaro.org>
->> Tested-by: Sinan Kaya <okaya@codeaurora.org>
->> ---
->>   arch/ia64/hp/common/sba_iommu.c    |  2 +-
->>   arch/ia64/include/asm/pci.h        |  1 -
->>   arch/ia64/pci/pci.c                | 16 ----------------
->>   arch/ia64/sn/kernel/io_acpi_init.c |  4 ++--
->>   arch/x86/include/asm/pci.h         |  3 ---
->>   arch/x86/pci/acpi.c                | 17 -----------------
->>   drivers/acpi/pci_root.c            |  7 ++++++-
->>   drivers/pci/probe.c                |  2 ++
->>   8 files changed, 11 insertions(+), 41 deletions(-)
->>
->> diff --git a/arch/ia64/hp/common/sba_iommu.c b/arch/ia64/hp/common/sba_iommu.c
->> index a6d6190..78e4444 100644
->> --- a/arch/ia64/hp/common/sba_iommu.c
->> +++ b/arch/ia64/hp/common/sba_iommu.c
->> @@ -1981,7 +1981,7 @@ sba_connect_bus(struct pci_bus *bus)
->>   	if (PCI_CONTROLLER(bus)->iommu)
->>   		return;
->>
->> -	handle = acpi_device_handle(PCI_CONTROLLER(bus)->companion);
->> +	handle = acpi_device_handle(ACPI_COMPANION(bus->bridge));
->>   	if (!handle)
->>   		return;
->>
->> diff --git a/arch/ia64/include/asm/pci.h b/arch/ia64/include/asm/pci.h
->> index c0835b0..12423f4 100644
->> --- a/arch/ia64/include/asm/pci.h
->> +++ b/arch/ia64/include/asm/pci.h
->> @@ -63,7 +63,6 @@ extern int pci_mmap_legacy_page_range(struct pci_bus *bus,
->>   #define pci_legacy_write platform_pci_legacy_write
->>
->>   struct pci_controller {
->> -	struct acpi_device *companion;
->>   	void *iommu;
->>   	int segment;
->>   	int node;		/* nearest node with memory or NUMA_NO_NODE for global allocation */
->> diff --git a/arch/ia64/pci/pci.c b/arch/ia64/pci/pci.c
->> index 8f6ac2f..978d6af 100644
->> --- a/arch/ia64/pci/pci.c
->> +++ b/arch/ia64/pci/pci.c
->> @@ -301,28 +301,12 @@ struct pci_bus *pci_acpi_scan_root(struct acpi_pci_root *root)
->>   	}
->>
->>   	info->controller.segment = root->segment;
->> -	info->controller.companion = device;
->>   	info->controller.node = acpi_get_node(device->handle);
->>   	INIT_LIST_HEAD(&info->io_resources);
->>   	return acpi_pci_root_create(root, &pci_acpi_root_ops,
->>   				    &info->common, &info->controller);
->>   }
->>
->> -int pcibios_root_bridge_prepare(struct pci_host_bridge *bridge)
->> -{
->> -	/*
->> -	 * We pass NULL as parent to pci_create_root_bus(), so if it is not NULL
->> -	 * here, pci_create_root_bus() has been called by someone else and
->> -	 * sysdata is likely to be different from what we expect.  Let it go in
->> -	 * that case.
->> -	 */
->> -	if (!bridge->dev.parent) {
->> -		struct pci_controller *controller = bridge->bus->sysdata;
->> -		ACPI_COMPANION_SET(&bridge->dev, controller->companion);
->> -	}
->> -	return 0;
->> -}
->> -
->>   void pcibios_fixup_device_resources(struct pci_dev *dev)
->>   {
->>   	int idx;
->> diff --git a/arch/ia64/sn/kernel/io_acpi_init.c b/arch/ia64/sn/kernel/io_acpi_init.c
->> index 231234c..e454492 100644
->> --- a/arch/ia64/sn/kernel/io_acpi_init.c
->> +++ b/arch/ia64/sn/kernel/io_acpi_init.c
->> @@ -132,7 +132,7 @@ sn_get_bussoft_ptr(struct pci_bus *bus)
->>   	struct acpi_resource_vendor_typed *vendor;
->>
->>
->> -	handle = acpi_device_handle(PCI_CONTROLLER(bus)->companion);
->> +	handle = acpi_device_handle(ACPI_COMPANION(bus->bridge));
->>   	status = acpi_get_vendor_resource(handle, METHOD_NAME__CRS,
->>   					  &sn_uuid, &buffer);
->>   	if (ACPI_FAILURE(status)) {
->> @@ -360,7 +360,7 @@ sn_acpi_get_pcidev_info(struct pci_dev *dev, struct pcidev_info **pcidev_info,
->>   	acpi_status status;
->>   	struct acpi_buffer name_buffer = { ACPI_ALLOCATE_BUFFER, NULL };
->>
->> -	rootbus_handle = acpi_device_handle(PCI_CONTROLLER(dev)->companion);
->> +	rootbus_handle = acpi_device_handle(ACPI_COMPANION(dev->bus->bridge));
->>           status = acpi_evaluate_integer(rootbus_handle, METHOD_NAME__SEG, NULL,
->>                                          &segment);
->>           if (ACPI_SUCCESS(status)) {
->> diff --git a/arch/x86/include/asm/pci.h b/arch/x86/include/asm/pci.h
->> index 9ab7507..24de07d 100644
->> --- a/arch/x86/include/asm/pci.h
->> +++ b/arch/x86/include/asm/pci.h
->> @@ -14,9 +14,6 @@
->>   struct pci_sysdata {
->>   	int		domain;		/* PCI domain */
->>   	int		node;		/* NUMA node */
->> -#ifdef CONFIG_ACPI
->> -	struct acpi_device *companion;	/* ACPI companion device */
->> -#endif
->>   #ifdef CONFIG_X86_64
->>   	void		*iommu;		/* IOMMU private data */
->>   #endif
->> diff --git a/arch/x86/pci/acpi.c b/arch/x86/pci/acpi.c
->> index 3cd6983..f4ca17a 100644
->> --- a/arch/x86/pci/acpi.c
->> +++ b/arch/x86/pci/acpi.c
->> @@ -340,7 +340,6 @@ struct pci_bus *pci_acpi_scan_root(struct acpi_pci_root *root)
->>   		struct pci_sysdata sd = {
->>   			.domain = domain,
->>   			.node = node,
->> -			.companion = root->device
->>   		};
->>
->>   		memcpy(bus->sysdata, &sd, sizeof(sd));
->> @@ -355,7 +354,6 @@ struct pci_bus *pci_acpi_scan_root(struct acpi_pci_root *root)
->>   		else {
->>   			info->sd.domain = domain;
->>   			info->sd.node = node;
->> -			info->sd.companion = root->device;
->>   			bus = acpi_pci_root_create(root, &acpi_pci_root_ops,
->>   						   &info->common, &info->sd);
->>   		}
->> @@ -373,21 +371,6 @@ struct pci_bus *pci_acpi_scan_root(struct acpi_pci_root *root)
->>   	return bus;
->>   }
->>
->> -int pcibios_root_bridge_prepare(struct pci_host_bridge *bridge)
->> -{
->> -	/*
->> -	 * We pass NULL as parent to pci_create_root_bus(), so if it is not NULL
->> -	 * here, pci_create_root_bus() has been called by someone else and
->> -	 * sysdata is likely to be different from what we expect.  Let it go in
->> -	 * that case.
->> -	 */
->> -	if (!bridge->dev.parent) {
->> -		struct pci_sysdata *sd = bridge->bus->sysdata;
->> -		ACPI_COMPANION_SET(&bridge->dev, sd->companion);
->> -	}
->> -	return 0;
->> -}
->> -
->>   int __init pci_acpi_init(void)
->>   {
->>   	struct pci_dev *dev = NULL;
->> diff --git a/drivers/acpi/pci_root.c b/drivers/acpi/pci_root.c
->> index ae3fe4e..4581e0e 100644
->> --- a/drivers/acpi/pci_root.c
->> +++ b/drivers/acpi/pci_root.c
->> @@ -564,6 +564,11 @@ static int acpi_pci_root_add(struct acpi_device *device,
->>   		}
->>   	}
->>
->> +	/*
->> +	 * pci_create_root_bus() needs to detect the parent device type,
->> +	 * so initialize its companion data accordingly.
->> +	 */
->> +	ACPI_COMPANION_SET(&device->dev, device);
->>   	root->device = device;
->>   	root->segment = segment & 0xFFFF;
->>   	strcpy(acpi_device_name(device), ACPI_PCI_ROOT_DEVICE_NAME);
->> @@ -846,7 +851,7 @@ struct pci_bus *acpi_pci_root_create(struct acpi_pci_root *root,
->>
->>   	pci_acpi_root_add_resources(info);
->>   	pci_add_resource(&info->resources, &root->secondary);
->> -	bus = pci_create_root_bus(NULL, busnum, ops->pci_ops,
->> +	bus = pci_create_root_bus(&device->dev, busnum, ops->pci_ops,
->>   				  sysdata, &info->resources);
->
-> "device" here is a struct acpi_device *.  Rafael, is that the right
-> thing to do?  I dimly recall proposing something similar long ago and
-> that it turned out to be a bad idea.
->
+Many Intel systems the BIOS declares a SystemIO OpRegion below the SMBus
+PCI device as can be seen in ACPI DSDT table from Lenovo Yoga 900:
 
-Joining Bjorn's question. Rafael, do you recall what was the issue here 
-from the past?
+  Device (SBUS)
+  {
+      OperationRegion (SMBI, SystemIO, (SBAR << 0x05), 0x10)
+      Field (SMBI, ByteAcc, NoLock, Preserve)
+      {
+          HSTS,   8,
+          Offset (0x02),
+          HCON,   8,
+          HCOM,   8,
+          TXSA,   8,
+          DAT0,   8,
+          DAT1,   8,
+          HBDR,   8,
+          PECR,   8,
+          RXSA,   8,
+          SDAT,   16
+      }
 
-Thanks,
-Tomasz
+There are also bunch of AML methods that that the BIOS can use to access
+these fields. Most of the systems in question AML methods accessing the
+SMBI OpRegion are never used.
+
+Now, because of this SMBI OpRegion many systems fail to load the SMBus
+driver with an error looking like one below:
+
+  ACPI Warning: SystemIO range 0x0000000000003040-0x000000000000305F
+       conflicts with OpRegion 0x0000000000003040-0x000000000000304F
+       (\_SB.PCI0.SBUS.SMBI) (20160108/utaddress-255)
+  ACPI: If an ACPI driver is available for this device, you should use
+       it instead of the native driver
+
+The reason is that this SMBI OpRegion conflicts with the PCI BAR used by
+the SMBus driver.
+
+It turns out that we can install a custom SystemIO address space handler
+for the SMBus device to intercept all accesses through that OpRegion. This
+allows us to share the PCI BAR with the AML code if it for some reason is
+using it. We do not expect that this OpRegion handler will ever be called
+but if it is we print a warning and prevent all access from the SMBus
+driver itself.
+
+Suggested-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+Signed-off-by: Mika Westerberg <mika.westerberg@linux.intel.com>
+---
+Hi,
+
+This is a second try. The first version of the patch is here:
+
+  https://patchwork.ozlabs.org/patch/616120/
+
+This version inhibits all further driver access to the SMBus device when
+BIOS first time uses the conflicting OpRegion.
+
+I've tested this using MinnowBoard MAX with modified DSDT where _STA
+(device status) method tries to read from the OpRegion and it seems to
+work. Below is the modified ASL if someone wants to give it a try:
+
+  Device (SBUS)
+  {
+      Name (_ADR, 0x001F0003)  // _ADR: Address
+      OperationRegion (SMBP, PCI_Config, 0x40, 0xC0)
+      Field (SMBP, DWordAcc, NoLock, Preserve)
+      {
+              ,   2, 
+          I2CE,   1
+      }
+
+      OperationRegion (SMPB, PCI_Config, 0x20, 0x04)
+      Field (SMPB, DWordAcc, NoLock, Preserve)
+      {
+              ,   5, 
+          SBAR,   11
+      }
+
+      OperationRegion (SMBI, SystemIO, (SBAR << 0x05), 0x10)
+      Field (SMBI, ByteAcc, NoLock, Preserve)
+      {
+          HSTS,   8, 
+          Offset (0x02), 
+          HCON,   8, 
+          HCOM,   8, 
+          TXSA,   8, 
+          DAT0,   8, 
+          DAT1,   8, 
+          HBDR,   8, 
+          PECR,   8, 
+          RXSA,   8, 
+          SDAT,   16
+      }
+
+      Method (_STA, 0, NotSerialized)
+      {
+          Local0 = HSTS
+          Local0 += 1
+          Local1 = SDAT
+          Local1 += 1
+          Return (0xF)
+      }
+  }
+
+Basically it just does two reads from the OpRegion whenever device status
+is queried. After that accesses to the bus fails:
+
+  # i2cget -y 9 0xc 0 b
+  Error: Read failed
+
+ drivers/i2c/busses/i2c-i801.c | 106 ++++++++++++++++++++++++++++++++++++++++--
+ 1 file changed, 102 insertions(+), 4 deletions(-)
+
+diff --git a/drivers/i2c/busses/i2c-i801.c b/drivers/i2c/busses/i2c-i801.c
+index 5652bf6ce9be..e200cdbd2882 100644
+--- a/drivers/i2c/busses/i2c-i801.c
++++ b/drivers/i2c/busses/i2c-i801.c
+@@ -247,6 +247,13 @@ struct i801_priv {
+ 	struct platform_device *mux_pdev;
+ #endif
+ 	struct platform_device *tco_pdev;
++
++	/*
++	 * If set to true the host controller registers are reserved for
++	 * ACPI AML use. Protected by acpi_lock.
++	 */
++	bool acpi_reserved;
++	struct mutex acpi_lock;
+ };
+ 
+ #define FEATURE_SMBUS_PEC	(1 << 0)
+@@ -720,6 +727,12 @@ static s32 i801_access(struct i2c_adapter *adap, u16 addr,
+ 	int ret = 0, xact = 0;
+ 	struct i801_priv *priv = i2c_get_adapdata(adap);
+ 
++	mutex_lock(&priv->acpi_lock);
++	if (priv->acpi_reserved) {
++		mutex_unlock(&priv->acpi_lock);
++		return -EPERM;
++	}
++
+ 	pm_runtime_get_sync(&priv->pci_dev->dev);
+ 
+ 	hwpec = (priv->features & FEATURE_SMBUS_PEC) && (flags & I2C_CLIENT_PEC)
+@@ -822,6 +835,7 @@ static s32 i801_access(struct i2c_adapter *adap, u16 addr,
+ out:
+ 	pm_runtime_mark_last_busy(&priv->pci_dev->dev);
+ 	pm_runtime_put_autosuspend(&priv->pci_dev->dev);
++	mutex_unlock(&priv->acpi_lock);
+ 	return ret;
+ }
+ 
+@@ -1260,6 +1274,89 @@ static void i801_add_tco(struct i801_priv *priv)
+ 	priv->tco_pdev = pdev;
+ }
+ 
++#ifdef CONFIG_ACPI
++static acpi_status
++i801_acpi_io_handler(u32 function, acpi_physical_address address, u32 bits,
++		     u64 *value, void *handler_context, void *region_context)
++{
++	struct i801_priv *priv = handler_context;
++	struct pci_dev *pdev = priv->pci_dev;
++	acpi_status status;
++
++	/*
++	 * Once BIOS AML code touches the OpRegion we warn and inhibit any
++	 * further access from the driver itself. This device is now owned
++	 * by the system firmware.
++	 */
++	dev_warn_once(&pdev->dev, "BIOS is accessing SMBus registers\n");
++	dev_warn_once(&pdev->dev, "Driver SMBus register access inhibited\n");
++
++	mutex_lock(&priv->acpi_lock);
++
++	if (!priv->acpi_reserved) {
++		priv->acpi_reserved = true;
++
++		/*
++		 * BIOS is accessing the host controller so prevent it from
++		 * suspending automatically from now on.
++		 */
++		pm_runtime_get_sync(&pdev->dev);
++	}
++
++	if (function == ACPI_READ) {
++		u32 val = (u32)*value;
++		status = acpi_os_read_port(address, &val, bits);
++		if (ACPI_SUCCESS(status))
++			*value = val;
++	} else {
++		status = acpi_os_write_port(address, (u32)*value, bits);
++	}
++
++	mutex_unlock(&priv->acpi_lock);
++
++	return status;
++}
++
++static int i801_acpi_probe(struct i801_priv *priv)
++{
++	struct acpi_device *adev;
++	acpi_status status;
++
++	adev = ACPI_COMPANION(&priv->pci_dev->dev);
++	if (adev) {
++		status = acpi_install_address_space_handler(adev->handle,
++				ACPI_ADR_SPACE_SYSTEM_IO, i801_acpi_io_handler,
++				NULL, priv);
++		if (ACPI_SUCCESS(status))
++			return 0;
++	}
++
++	return acpi_check_resource_conflict(&priv->pci_dev->resource[SMBBAR]);
++}
++
++static void i801_acpi_remove(struct i801_priv *priv)
++{
++	struct acpi_device *adev;
++
++	adev = ACPI_COMPANION(&priv->pci_dev->dev);
++	if (!adev)
++		return;
++
++	acpi_remove_address_space_handler(adev->handle,
++		ACPI_ADR_SPACE_SYSTEM_IO, i801_acpi_io_handler);
++
++	mutex_lock(&priv->acpi_lock);
++	if (priv->acpi_reserved) {
++		priv->acpi_reserved = false;
++		pm_runtime_put(&priv->pci_dev->dev);
++	}
++	mutex_unlock(&priv->acpi_lock);
++}
++#else
++static inline int i801_acpi_probe(struct i801_priv *priv) { return 0; }
++static inline void i801_acpi_remove(struct i801_priv *priv) { }
++#endif
++
+ static int i801_probe(struct pci_dev *dev, const struct pci_device_id *id)
+ {
+ 	unsigned char temp;
+@@ -1277,6 +1374,7 @@ static int i801_probe(struct pci_dev *dev, const struct pci_device_id *id)
+ 	priv->adapter.dev.parent = &dev->dev;
+ 	ACPI_COMPANION_SET(&priv->adapter.dev, ACPI_COMPANION(&dev->dev));
+ 	priv->adapter.retries = 3;
++	mutex_init(&priv->acpi_lock);
+ 
+ 	priv->pci_dev = dev;
+ 	switch (dev->device) {
+@@ -1339,10 +1437,9 @@ static int i801_probe(struct pci_dev *dev, const struct pci_device_id *id)
+ 		return -ENODEV;
+ 	}
+ 
+-	err = acpi_check_resource_conflict(&dev->resource[SMBBAR]);
+-	if (err) {
+-		return -ENODEV;
+-	}
++	err = i801_acpi_probe(priv);
++	if (err)
++		return err;
+ 
+ 	err = pcim_iomap_regions(dev, 1 << SMBBAR,
+ 				 dev_driver_string(&dev->dev));
+@@ -1439,6 +1536,7 @@ static void i801_remove(struct pci_dev *dev)
+ 	pm_runtime_forbid(&dev->dev);
+ 	pm_runtime_get_noresume(&dev->dev);
+ 
++	i801_acpi_remove(priv);
+ 	i801_del_mux(priv);
+ 	i2c_del_adapter(&priv->adapter);
+ 	pci_write_config_byte(dev, SMBHSTCFG, priv->original_hstcfg);
+-- 
+2.8.1
+
