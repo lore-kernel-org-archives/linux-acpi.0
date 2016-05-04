@@ -1,158 +1,237 @@
-From: Lv Zheng <lv.zheng@intel.com>
-Subject: [PATCH 06/15] ACPICA: ACPI 6.0, tools/iasl: Add support for new resource descriptors
-Date: Wed,  4 May 2016 13:48:40 +0800
-Message-ID: <949cc6c56b5f6e4578009ef07e1d0e6daa7fbda9.1462331121.git.lv.zheng@intel.com>
-References: <cover.1462331120.git.lv.zheng@intel.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <cover.1462331120.git.lv.zheng@intel.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <len.brown@intel.com>
-Cc: Lv Zheng <lv.zheng@intel.com>, Lv Zheng <zetalog@gmail.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Bob Moore <robert.moore@intel.com>
+From: Tomasz Nowicki <tn@semihalf.com>
+Subject: Re: [PATCH V6 01/13] pci, acpi, x86, ia64: Move ACPI host bridge
+ device companion assignment to core code.
+Date: Wed, 4 May 2016 10:10:58 +0200
+Message-ID: <5729AE92.2090106@semihalf.com>
+References: <1460740008-19489-1-git-send-email-tn@semihalf.com>
+ <1460740008-19489-2-git-send-email-tn@semihalf.com>
+ <20160427024537.GH6789@localhost>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-lf0-f41.google.com ([209.85.215.41]:34749 "EHLO
+	mail-lf0-f41.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752335AbcEDILD (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 4 May 2016 04:11:03 -0400
+Received: by mail-lf0-f41.google.com with SMTP id m64so50336915lfd.1
+        for <linux-acpi@vger.kernel.org>; Wed, 04 May 2016 01:11:01 -0700 (PDT)
+In-Reply-To: <20160427024537.GH6789@localhost>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Bjorn Helgaas <helgaas@kernel.org>, rafael@kernel.org
+Cc: arnd@arndb.de, will.deacon@arm.com, catalin.marinas@arm.com, hanjun.guo@linaro.org, Lorenzo.Pieralisi@arm.com, okaya@codeaurora.org, jiang.liu@linux.intel.com, jchandra@broadcom.com, robert.richter@caviumnetworks.com, mw@semihalf.com, Liviu.Dudau@arm.com, ddaney@caviumnetworks.com, wangyijing@huawei.com, Suravee.Suthikulpanit@amd.com, msalter@redhat.com, linux-pci@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linaro-acpi@lists.linaro.org, jcm@redhat.com
 
-From: Bob Moore <robert.moore@intel.com>
+On 27.04.2016 04:45, Bjorn Helgaas wrote:
+> [question for Rafael below]
+>
+> On Fri, Apr 15, 2016 at 07:06:36PM +0200, Tomasz Nowicki wrote:
+>> Currently we have two platforms (x86 & ia64) capable of PCI ACPI host
+>> bridge initialization. They both use arch-specific sysdata to pass down
+>> parent device reference and both rely on NULL parent in pci_create_root_bus()
+>> to validate sysdata content.
+>>
+>> It looks hacky and prevents us from getting some firmware specific
+>> info for PCI host controller based on its acpi_device structure
+>> in generic pci_create_root_bus() function. However, we overcome that
+>> blocker by passing down parent device via pci_create_root_bus parameter
+>> (as the ACPI device type). Then we use ACPI_COMPANION_SET in core code
+>> for ACPI boot method only. ACPI_COMPANION_SET is safe to run for all
+>> cases DT, ACPI and DT&ACPI.
+>>
+>> Since now PCI core code is setting ACPI companion device for us,
+>> x86 & ia64 specific ACPI companion device setting turns out to be dead now.
+>> We can get rid of it, including related companion reference from
+>> PCI sysdata structure. Aslo, PCI_CONTROLLER macro cannot return valid
+>> companion device anymore. Therefore we need to convert its usage to
+>> ACPI_COMPANION.
+>>
+>> Suggested-by: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+>> Signed-off-by: Tomasz Nowicki <tn@semihalf.com>
+>> Reviewed-by: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+>> Tested-by: Duc Dang <dhdang@apm.com>
+>> Tested-by: Dongdong Liu <liudongdong3@huawei.com>
+>> Tested-by: Hanjun Guo <hanjun.guo@linaro.org>
+>> Tested-by: Graeme Gregory <graeme.gregory@linaro.org>
+>> Tested-by: Sinan Kaya <okaya@codeaurora.org>
+>> ---
+>>   arch/ia64/hp/common/sba_iommu.c    |  2 +-
+>>   arch/ia64/include/asm/pci.h        |  1 -
+>>   arch/ia64/pci/pci.c                | 16 ----------------
+>>   arch/ia64/sn/kernel/io_acpi_init.c |  4 ++--
+>>   arch/x86/include/asm/pci.h         |  3 ---
+>>   arch/x86/pci/acpi.c                | 17 -----------------
+>>   drivers/acpi/pci_root.c            |  7 ++++++-
+>>   drivers/pci/probe.c                |  2 ++
+>>   8 files changed, 11 insertions(+), 41 deletions(-)
+>>
+>> diff --git a/arch/ia64/hp/common/sba_iommu.c b/arch/ia64/hp/common/sba_iommu.c
+>> index a6d6190..78e4444 100644
+>> --- a/arch/ia64/hp/common/sba_iommu.c
+>> +++ b/arch/ia64/hp/common/sba_iommu.c
+>> @@ -1981,7 +1981,7 @@ sba_connect_bus(struct pci_bus *bus)
+>>   	if (PCI_CONTROLLER(bus)->iommu)
+>>   		return;
+>>
+>> -	handle = acpi_device_handle(PCI_CONTROLLER(bus)->companion);
+>> +	handle = acpi_device_handle(ACPI_COMPANION(bus->bridge));
+>>   	if (!handle)
+>>   		return;
+>>
+>> diff --git a/arch/ia64/include/asm/pci.h b/arch/ia64/include/asm/pci.h
+>> index c0835b0..12423f4 100644
+>> --- a/arch/ia64/include/asm/pci.h
+>> +++ b/arch/ia64/include/asm/pci.h
+>> @@ -63,7 +63,6 @@ extern int pci_mmap_legacy_page_range(struct pci_bus *bus,
+>>   #define pci_legacy_write platform_pci_legacy_write
+>>
+>>   struct pci_controller {
+>> -	struct acpi_device *companion;
+>>   	void *iommu;
+>>   	int segment;
+>>   	int node;		/* nearest node with memory or NUMA_NO_NODE for global allocation */
+>> diff --git a/arch/ia64/pci/pci.c b/arch/ia64/pci/pci.c
+>> index 8f6ac2f..978d6af 100644
+>> --- a/arch/ia64/pci/pci.c
+>> +++ b/arch/ia64/pci/pci.c
+>> @@ -301,28 +301,12 @@ struct pci_bus *pci_acpi_scan_root(struct acpi_pci_root *root)
+>>   	}
+>>
+>>   	info->controller.segment = root->segment;
+>> -	info->controller.companion = device;
+>>   	info->controller.node = acpi_get_node(device->handle);
+>>   	INIT_LIST_HEAD(&info->io_resources);
+>>   	return acpi_pci_root_create(root, &pci_acpi_root_ops,
+>>   				    &info->common, &info->controller);
+>>   }
+>>
+>> -int pcibios_root_bridge_prepare(struct pci_host_bridge *bridge)
+>> -{
+>> -	/*
+>> -	 * We pass NULL as parent to pci_create_root_bus(), so if it is not NULL
+>> -	 * here, pci_create_root_bus() has been called by someone else and
+>> -	 * sysdata is likely to be different from what we expect.  Let it go in
+>> -	 * that case.
+>> -	 */
+>> -	if (!bridge->dev.parent) {
+>> -		struct pci_controller *controller = bridge->bus->sysdata;
+>> -		ACPI_COMPANION_SET(&bridge->dev, controller->companion);
+>> -	}
+>> -	return 0;
+>> -}
+>> -
+>>   void pcibios_fixup_device_resources(struct pci_dev *dev)
+>>   {
+>>   	int idx;
+>> diff --git a/arch/ia64/sn/kernel/io_acpi_init.c b/arch/ia64/sn/kernel/io_acpi_init.c
+>> index 231234c..e454492 100644
+>> --- a/arch/ia64/sn/kernel/io_acpi_init.c
+>> +++ b/arch/ia64/sn/kernel/io_acpi_init.c
+>> @@ -132,7 +132,7 @@ sn_get_bussoft_ptr(struct pci_bus *bus)
+>>   	struct acpi_resource_vendor_typed *vendor;
+>>
+>>
+>> -	handle = acpi_device_handle(PCI_CONTROLLER(bus)->companion);
+>> +	handle = acpi_device_handle(ACPI_COMPANION(bus->bridge));
+>>   	status = acpi_get_vendor_resource(handle, METHOD_NAME__CRS,
+>>   					  &sn_uuid, &buffer);
+>>   	if (ACPI_FAILURE(status)) {
+>> @@ -360,7 +360,7 @@ sn_acpi_get_pcidev_info(struct pci_dev *dev, struct pcidev_info **pcidev_info,
+>>   	acpi_status status;
+>>   	struct acpi_buffer name_buffer = { ACPI_ALLOCATE_BUFFER, NULL };
+>>
+>> -	rootbus_handle = acpi_device_handle(PCI_CONTROLLER(dev)->companion);
+>> +	rootbus_handle = acpi_device_handle(ACPI_COMPANION(dev->bus->bridge));
+>>           status = acpi_evaluate_integer(rootbus_handle, METHOD_NAME__SEG, NULL,
+>>                                          &segment);
+>>           if (ACPI_SUCCESS(status)) {
+>> diff --git a/arch/x86/include/asm/pci.h b/arch/x86/include/asm/pci.h
+>> index 9ab7507..24de07d 100644
+>> --- a/arch/x86/include/asm/pci.h
+>> +++ b/arch/x86/include/asm/pci.h
+>> @@ -14,9 +14,6 @@
+>>   struct pci_sysdata {
+>>   	int		domain;		/* PCI domain */
+>>   	int		node;		/* NUMA node */
+>> -#ifdef CONFIG_ACPI
+>> -	struct acpi_device *companion;	/* ACPI companion device */
+>> -#endif
+>>   #ifdef CONFIG_X86_64
+>>   	void		*iommu;		/* IOMMU private data */
+>>   #endif
+>> diff --git a/arch/x86/pci/acpi.c b/arch/x86/pci/acpi.c
+>> index 3cd6983..f4ca17a 100644
+>> --- a/arch/x86/pci/acpi.c
+>> +++ b/arch/x86/pci/acpi.c
+>> @@ -340,7 +340,6 @@ struct pci_bus *pci_acpi_scan_root(struct acpi_pci_root *root)
+>>   		struct pci_sysdata sd = {
+>>   			.domain = domain,
+>>   			.node = node,
+>> -			.companion = root->device
+>>   		};
+>>
+>>   		memcpy(bus->sysdata, &sd, sizeof(sd));
+>> @@ -355,7 +354,6 @@ struct pci_bus *pci_acpi_scan_root(struct acpi_pci_root *root)
+>>   		else {
+>>   			info->sd.domain = domain;
+>>   			info->sd.node = node;
+>> -			info->sd.companion = root->device;
+>>   			bus = acpi_pci_root_create(root, &acpi_pci_root_ops,
+>>   						   &info->common, &info->sd);
+>>   		}
+>> @@ -373,21 +371,6 @@ struct pci_bus *pci_acpi_scan_root(struct acpi_pci_root *root)
+>>   	return bus;
+>>   }
+>>
+>> -int pcibios_root_bridge_prepare(struct pci_host_bridge *bridge)
+>> -{
+>> -	/*
+>> -	 * We pass NULL as parent to pci_create_root_bus(), so if it is not NULL
+>> -	 * here, pci_create_root_bus() has been called by someone else and
+>> -	 * sysdata is likely to be different from what we expect.  Let it go in
+>> -	 * that case.
+>> -	 */
+>> -	if (!bridge->dev.parent) {
+>> -		struct pci_sysdata *sd = bridge->bus->sysdata;
+>> -		ACPI_COMPANION_SET(&bridge->dev, sd->companion);
+>> -	}
+>> -	return 0;
+>> -}
+>> -
+>>   int __init pci_acpi_init(void)
+>>   {
+>>   	struct pci_dev *dev = NULL;
+>> diff --git a/drivers/acpi/pci_root.c b/drivers/acpi/pci_root.c
+>> index ae3fe4e..4581e0e 100644
+>> --- a/drivers/acpi/pci_root.c
+>> +++ b/drivers/acpi/pci_root.c
+>> @@ -564,6 +564,11 @@ static int acpi_pci_root_add(struct acpi_device *device,
+>>   		}
+>>   	}
+>>
+>> +	/*
+>> +	 * pci_create_root_bus() needs to detect the parent device type,
+>> +	 * so initialize its companion data accordingly.
+>> +	 */
+>> +	ACPI_COMPANION_SET(&device->dev, device);
+>>   	root->device = device;
+>>   	root->segment = segment & 0xFFFF;
+>>   	strcpy(acpi_device_name(device), ACPI_PCI_ROOT_DEVICE_NAME);
+>> @@ -846,7 +851,7 @@ struct pci_bus *acpi_pci_root_create(struct acpi_pci_root *root,
+>>
+>>   	pci_acpi_root_add_resources(info);
+>>   	pci_add_resource(&info->resources, &root->secondary);
+>> -	bus = pci_create_root_bus(NULL, busnum, ops->pci_ops,
+>> +	bus = pci_create_root_bus(&device->dev, busnum, ops->pci_ops,
+>>   				  sysdata, &info->resources);
+>
+> "device" here is a struct acpi_device *.  Rafael, is that the right
+> thing to do?  I dimly recall proposing something similar long ago and
+> that it turned out to be a bad idea.
+>
 
-ACPICA commit 5a0555ece4ba9917e5842b21d88469ae06b4e815
+Joining Bjorn's question. Rafael, do you recall what was the issue here 
+from the past?
 
-Adds full support for:
-i2c_serial_bus_v2
-spi_serial_bus_v2
-uart_serial_bus_v2
-
-Compiler, Disassembler, Resource Manager, acpi_help.
-
-Link: https://github.com/acpica/acpica/commit/5a0555ec
-Signed-off-by: Bob Moore <robert.moore@intel.com>
-Signed-off-by: Lv Zheng <lv.zheng@intel.com>
----
- drivers/acpi/acpica/rsdumpinfo.c |    9 +++++----
- drivers/acpi/acpica/rsserial.c   |   21 ++++++++++++++++++---
- include/acpi/acrestyp.h          |    1 +
- 3 files changed, 24 insertions(+), 7 deletions(-)
-
-diff --git a/drivers/acpi/acpica/rsdumpinfo.c b/drivers/acpi/acpica/rsdumpinfo.c
-index 5c34913..61e8f16 100644
---- a/drivers/acpi/acpica/rsdumpinfo.c
-+++ b/drivers/acpi/acpica/rsdumpinfo.c
-@@ -330,19 +330,20 @@ struct acpi_rsdump_info acpi_rs_dump_fixed_dma[4] = {
- 	{ACPI_RSD_UINT8,    ACPI_RSD_OFFSET (common_serial_bus.type),           "Type",                     acpi_gbl_sbt_decode}, \
- 	{ACPI_RSD_1BITFLAG, ACPI_RSD_OFFSET (common_serial_bus.producer_consumer), "ProducerConsumer",      acpi_gbl_consume_decode}, \
- 	{ACPI_RSD_1BITFLAG, ACPI_RSD_OFFSET (common_serial_bus.slave_mode),     "SlaveMode",                acpi_gbl_sm_decode}, \
-+	{ACPI_RSD_1BITFLAG, ACPI_RSD_OFFSET (common_serial_bus.connection_sharing),"ConnectionSharing",     acpi_gbl_shr_decode}, \
- 	{ACPI_RSD_UINT8,    ACPI_RSD_OFFSET (common_serial_bus.type_revision_id), "TypeRevisionId",         NULL}, \
- 	{ACPI_RSD_UINT16,   ACPI_RSD_OFFSET (common_serial_bus.type_data_length), "TypeDataLength",         NULL}, \
- 	{ACPI_RSD_SOURCE,   ACPI_RSD_OFFSET (common_serial_bus.resource_source), "ResourceSource",          NULL}, \
- 	{ACPI_RSD_UINT16,   ACPI_RSD_OFFSET (common_serial_bus.vendor_length),  "VendorLength",             NULL}, \
- 	{ACPI_RSD_SHORTLISTX,ACPI_RSD_OFFSET (common_serial_bus.vendor_data),   "VendorData",               NULL},
- 
--struct acpi_rsdump_info acpi_rs_dump_common_serial_bus[10] = {
-+struct acpi_rsdump_info acpi_rs_dump_common_serial_bus[11] = {
- 	{ACPI_RSD_TITLE, ACPI_RSD_TABLE_SIZE(acpi_rs_dump_common_serial_bus),
- 	 "Common Serial Bus", NULL},
- 	ACPI_RS_DUMP_COMMON_SERIAL_BUS
- };
- 
--struct acpi_rsdump_info acpi_rs_dump_i2c_serial_bus[13] = {
-+struct acpi_rsdump_info acpi_rs_dump_i2c_serial_bus[14] = {
- 	{ACPI_RSD_TITLE, ACPI_RSD_TABLE_SIZE(acpi_rs_dump_i2c_serial_bus),
- 	 "I2C Serial Bus", NULL},
- 	ACPI_RS_DUMP_COMMON_SERIAL_BUS {ACPI_RSD_1BITFLAG,
-@@ -355,7 +356,7 @@ struct acpi_rsdump_info acpi_rs_dump_i2c_serial_bus[13] = {
- 	 "SlaveAddress", NULL},
- };
- 
--struct acpi_rsdump_info acpi_rs_dump_spi_serial_bus[17] = {
-+struct acpi_rsdump_info acpi_rs_dump_spi_serial_bus[18] = {
- 	{ACPI_RSD_TITLE, ACPI_RSD_TABLE_SIZE(acpi_rs_dump_spi_serial_bus),
- 	 "Spi Serial Bus", NULL},
- 	ACPI_RS_DUMP_COMMON_SERIAL_BUS {ACPI_RSD_1BITFLAG,
-@@ -376,7 +377,7 @@ struct acpi_rsdump_info acpi_rs_dump_spi_serial_bus[17] = {
- 	 "ConnectionSpeed", NULL},
- };
- 
--struct acpi_rsdump_info acpi_rs_dump_uart_serial_bus[19] = {
-+struct acpi_rsdump_info acpi_rs_dump_uart_serial_bus[20] = {
- 	{ACPI_RSD_TITLE, ACPI_RSD_TABLE_SIZE(acpi_rs_dump_uart_serial_bus),
- 	 "Uart Serial Bus", NULL},
- 	ACPI_RS_DUMP_COMMON_SERIAL_BUS {ACPI_RSD_2BITFLAG,
-diff --git a/drivers/acpi/acpica/rsserial.c b/drivers/acpi/acpica/rsserial.c
-index 8a01296..b82c061 100644
---- a/drivers/acpi/acpica/rsserial.c
-+++ b/drivers/acpi/acpica/rsserial.c
-@@ -151,7 +151,7 @@ struct acpi_rsconvert_info acpi_rs_convert_gpio[18] = {
-  *
-  ******************************************************************************/
- 
--struct acpi_rsconvert_info acpi_rs_convert_i2c_serial_bus[16] = {
-+struct acpi_rsconvert_info acpi_rs_convert_i2c_serial_bus[17] = {
- 	{ACPI_RSC_INITGET, ACPI_RESOURCE_TYPE_SERIAL_BUS,
- 	 ACPI_RS_SIZE(struct acpi_resource_i2c_serialbus),
- 	 ACPI_RSC_TABLE_SIZE(acpi_rs_convert_i2c_serial_bus)},
-@@ -177,6 +177,11 @@ struct acpi_rsconvert_info acpi_rs_convert_i2c_serial_bus[16] = {
- 	 AML_OFFSET(common_serial_bus.flags),
- 	 1},
- 
-+	{ACPI_RSC_1BITFLAG,
-+	 ACPI_RS_OFFSET(data.common_serial_bus.connection_sharing),
-+	 AML_OFFSET(common_serial_bus.flags),
-+	 2},
-+
- 	{ACPI_RSC_MOVE8,
- 	 ACPI_RS_OFFSET(data.common_serial_bus.type_revision_id),
- 	 AML_OFFSET(common_serial_bus.type_revision_id),
-@@ -237,7 +242,7 @@ struct acpi_rsconvert_info acpi_rs_convert_i2c_serial_bus[16] = {
-  *
-  ******************************************************************************/
- 
--struct acpi_rsconvert_info acpi_rs_convert_spi_serial_bus[20] = {
-+struct acpi_rsconvert_info acpi_rs_convert_spi_serial_bus[21] = {
- 	{ACPI_RSC_INITGET, ACPI_RESOURCE_TYPE_SERIAL_BUS,
- 	 ACPI_RS_SIZE(struct acpi_resource_spi_serialbus),
- 	 ACPI_RSC_TABLE_SIZE(acpi_rs_convert_spi_serial_bus)},
-@@ -263,6 +268,11 @@ struct acpi_rsconvert_info acpi_rs_convert_spi_serial_bus[20] = {
- 	 AML_OFFSET(common_serial_bus.flags),
- 	 1},
- 
-+	{ACPI_RSC_1BITFLAG,
-+	 ACPI_RS_OFFSET(data.common_serial_bus.connection_sharing),
-+	 AML_OFFSET(common_serial_bus.flags),
-+	 2},
-+
- 	{ACPI_RSC_MOVE8,
- 	 ACPI_RS_OFFSET(data.common_serial_bus.type_revision_id),
- 	 AML_OFFSET(common_serial_bus.type_revision_id),
-@@ -339,7 +349,7 @@ struct acpi_rsconvert_info acpi_rs_convert_spi_serial_bus[20] = {
-  *
-  ******************************************************************************/
- 
--struct acpi_rsconvert_info acpi_rs_convert_uart_serial_bus[22] = {
-+struct acpi_rsconvert_info acpi_rs_convert_uart_serial_bus[23] = {
- 	{ACPI_RSC_INITGET, ACPI_RESOURCE_TYPE_SERIAL_BUS,
- 	 ACPI_RS_SIZE(struct acpi_resource_uart_serialbus),
- 	 ACPI_RSC_TABLE_SIZE(acpi_rs_convert_uart_serial_bus)},
-@@ -365,6 +375,11 @@ struct acpi_rsconvert_info acpi_rs_convert_uart_serial_bus[22] = {
- 	 AML_OFFSET(common_serial_bus.flags),
- 	 1},
- 
-+	{ACPI_RSC_1BITFLAG,
-+	 ACPI_RS_OFFSET(data.common_serial_bus.connection_sharing),
-+	 AML_OFFSET(common_serial_bus.flags),
-+	 2},
-+
- 	{ACPI_RSC_MOVE8,
- 	 ACPI_RS_OFFSET(data.common_serial_bus.type_revision_id),
- 	 AML_OFFSET(common_serial_bus.type_revision_id),
-diff --git a/include/acpi/acrestyp.h b/include/acpi/acrestyp.h
-index cf2acb8..16c1892 100644
---- a/include/acpi/acrestyp.h
-+++ b/include/acpi/acrestyp.h
-@@ -417,6 +417,7 @@ struct acpi_resource_gpio {
- 	u8                                      type; \
- 	u8                                      producer_consumer;   /* For values, see Producer/Consumer above */\
- 	u8                                      slave_mode; \
-+	u8                                      connection_sharing; \
- 	u8                                      type_revision_id; \
- 	u16                                     type_data_length; \
- 	u16                                     vendor_length; \
--- 
-1.7.10
+Thanks,
+Tomasz
