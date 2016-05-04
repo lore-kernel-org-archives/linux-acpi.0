@@ -1,7 +1,7 @@
 From: Lv Zheng <lv.zheng@intel.com>
-Subject: [PATCH 07/15] ACPICA: Renamed some #defined flag constants for clarity
-Date: Wed,  4 May 2016 13:48:49 +0800
-Message-ID: <9d8a1543cc73390ab3fa0c2142c12a2543333e43.1462331121.git.lv.zheng@intel.com>
+Subject: [PATCH 04/15] ACPICA: ACPI 6.1: Support for new PCCT subtable
+Date: Wed,  4 May 2016 13:48:27 +0800
+Message-ID: <1844dead994caa25681c2691dfa05b787062d1e1.1462331121.git.lv.zheng@intel.com>
 References: <cover.1462331120.git.lv.zheng@intel.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <cover.1462331120.git.lv.zheng@intel.com>
@@ -12,74 +12,57 @@ List-Id: linux-acpi@vger.kernel.org
 
 From: Bob Moore <robert.moore@intel.com>
 
-ACPICA commit 438905b205e64e742f9670a0970419c426264831
+ACPICA commit de3ea7c322b9b6bdb09aa90c2e1d420cd4dce47c
 
-Expanded a couple of cryptic names.
+Additional subspace structure was added.
 
-Link: https://github.com/acpica/acpica/commit/438905b2
+Link: https://github.com/acpica/acpica/commit/de3ea7c3
 Signed-off-by: Bob Moore <robert.moore@intel.com>
 Signed-off-by: Lv Zheng <lv.zheng@intel.com>
 ---
- drivers/acpi/acpica/aclocal.h |   30 +++++++++++++++---------------
- drivers/acpi/acpica/psutils.c |    2 +-
- 2 files changed, 16 insertions(+), 16 deletions(-)
+ include/acpi/actbl3.h |   23 ++++++++++++++++++++++-
+ 1 file changed, 22 insertions(+), 1 deletion(-)
 
-diff --git a/drivers/acpi/acpica/aclocal.h b/drivers/acpi/acpica/aclocal.h
-index 166a67f..13331d7 100644
---- a/drivers/acpi/acpica/aclocal.h
-+++ b/drivers/acpi/acpica/aclocal.h
-@@ -856,24 +856,24 @@ struct acpi_parse_state {
+diff --git a/include/acpi/actbl3.h b/include/acpi/actbl3.h
+index f12f4bb..ebc1f4f 100644
+--- a/include/acpi/actbl3.h
++++ b/include/acpi/actbl3.h
+@@ -481,7 +481,8 @@ struct acpi_table_pcct {
+ enum acpi_pcct_type {
+ 	ACPI_PCCT_TYPE_GENERIC_SUBSPACE = 0,
+ 	ACPI_PCCT_TYPE_HW_REDUCED_SUBSPACE = 1,
+-	ACPI_PCCT_TYPE_RESERVED = 2	/* 2 and greater are reserved */
++	ACPI_PCCT_TYPE_HW_REDUCED_SUBSPACE_TYPE2 = 2,	/* ACPI 6.1 */
++	ACPI_PCCT_TYPE_RESERVED = 3	/* 3 and greater are reserved */
+ };
  
- /* Parse object flags */
+ /*
+@@ -520,6 +521,26 @@ struct acpi_pcct_hw_reduced {
+ 	u16 min_turnaround_time;
+ };
  
--#define ACPI_PARSEOP_GENERIC            0x01
--#define ACPI_PARSEOP_NAMED              0x02
--#define ACPI_PARSEOP_DEFERRED           0x04
--#define ACPI_PARSEOP_BYTELIST           0x08
--#define ACPI_PARSEOP_IN_STACK           0x10
--#define ACPI_PARSEOP_TARGET             0x20
--#define ACPI_PARSEOP_IN_CACHE           0x80
-+#define ACPI_PARSEOP_GENERIC                0x01
-+#define ACPI_PARSEOP_NAMED_OBJECT           0x02
-+#define ACPI_PARSEOP_DEFERRED               0x04
-+#define ACPI_PARSEOP_BYTELIST               0x08
-+#define ACPI_PARSEOP_IN_STACK               0x10
-+#define ACPI_PARSEOP_TARGET                 0x20
-+#define ACPI_PARSEOP_IN_CACHE               0x80
++/* 2: HW-reduced Communications Subspace Type 2 (ACPI 6.1) */
++
++struct acpi_pcct_hw_reduced_type2 {
++	struct acpi_subtable_header header;
++	u32 doorbell_interrupt;
++	u8 flags;
++	u8 reserved;
++	u64 base_address;
++	u64 length;
++	struct acpi_generic_address doorbell_register;
++	u64 preserve_mask;
++	u64 write_mask;
++	u32 latency;
++	u32 max_access_rate;
++	u16 min_turnaround_time;
++	struct acpi_generic_address doorbell_ack_register;
++	u64 ack_preserve_mask;
++	u64 ack_write_mask;
++};
++
+ /* Values for doorbell flags above */
  
- /* Parse object disasm_flags */
- 
--#define ACPI_PARSEOP_IGNORE             0x01
--#define ACPI_PARSEOP_PARAMLIST          0x02
--#define ACPI_PARSEOP_EMPTY_TERMLIST     0x04
--#define ACPI_PARSEOP_PREDEF_CHECKED     0x08
--#define ACPI_PARSEOP_CLOSING_PAREN      0x10
--#define ACPI_PARSEOP_COMPOUND           0x20
--#define ACPI_PARSEOP_ASSIGNMENT         0x40
--#define ACPI_PARSEOP_ELSEIF             0x80
-+#define ACPI_PARSEOP_IGNORE                 0x01
-+#define ACPI_PARSEOP_PARAMETER_LIST         0x02
-+#define ACPI_PARSEOP_EMPTY_TERMLIST         0x04
-+#define ACPI_PARSEOP_PREDEFINED_CHECKED     0x08
-+#define ACPI_PARSEOP_CLOSING_PAREN          0x10
-+#define ACPI_PARSEOP_COMPOUND_ASSIGNMENT    0x20
-+#define ACPI_PARSEOP_ASSIGNMENT             0x40
-+#define ACPI_PARSEOP_ELSEIF                 0x80
- 
- /*****************************************************************************
-  *
-diff --git a/drivers/acpi/acpica/psutils.c b/drivers/acpi/acpica/psutils.c
-index b28b0da..89cb4bf 100644
---- a/drivers/acpi/acpica/psutils.c
-+++ b/drivers/acpi/acpica/psutils.c
-@@ -128,7 +128,7 @@ union acpi_parse_object *acpi_ps_alloc_op(u16 opcode, u8 *aml)
- 	if (op_info->flags & AML_DEFER) {
- 		flags = ACPI_PARSEOP_DEFERRED;
- 	} else if (op_info->flags & AML_NAMED) {
--		flags = ACPI_PARSEOP_NAMED;
-+		flags = ACPI_PARSEOP_NAMED_OBJECT;
- 	} else if (opcode == AML_INT_BYTELIST_OP) {
- 		flags = ACPI_PARSEOP_BYTELIST;
- 	}
+ #define ACPI_PCCT_INTERRUPT_POLARITY    (1)
 -- 
 1.7.10
