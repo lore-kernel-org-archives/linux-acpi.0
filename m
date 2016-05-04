@@ -1,177 +1,163 @@
 From: Lv Zheng <lv.zheng@intel.com>
-Subject: [PATCH 03/15] ACPICA: Refactor evaluate_object to reduce nesting
-Date: Wed,  4 May 2016 13:48:20 +0800
-Message-ID: <ca05ede3bdbe1154af94cc8866e5c10bd166a0ee.1462331121.git.lv.zheng@intel.com>
+Subject: [PATCH 05/15] ACPICA: ACPI 6.0: Update _BIX support for new package element
+Date: Wed,  4 May 2016 13:48:33 +0800
+Message-ID: <bf835a8265f05bf0fcaa71ea5e4c1852f30ff1d1.1462331121.git.lv.zheng@intel.com>
 References: <cover.1462331120.git.lv.zheng@intel.com>
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga03.intel.com ([134.134.136.65]:47001 "EHLO mga03.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751568AbcEDFs2 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 4 May 2016 01:48:28 -0400
+Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <cover.1462331120.git.lv.zheng@intel.com>
-Sender: linux-acpi-owner@vger.kernel.org
-List-Id: linux-acpi@vger.kernel.org
+Sender: linux-kernel-owner@vger.kernel.org
 To: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <len.brown@intel.com>
 Cc: Lv Zheng <lv.zheng@intel.com>, Lv Zheng <zetalog@gmail.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Bob Moore <robert.moore@intel.com>
+List-Id: linux-acpi@vger.kernel.org
 
 From: Bob Moore <robert.moore@intel.com>
 
-ACPICA commit 599e9159f53565e4a3f3e67f6a03f81fcb10a4cf
+ACPICA commit 3451e6d49d37919c13ec2c0019a31534b0dfc0c0
 
-Original patch from hanjun.guo@linaro.org
-ACPICA BZ 1072.
+One integer was added at the end of the _BIX method, and the
+version number was incremented.
 
-Link: https://github.com/acpica/acpica/commit/599e9159
-Link: https://bugs.acpica.org/show_bug.cgi?id=1072
-Original-by: Hanjun Guo <hanjun.guo@linaro.org>
+Link: https://github.com/acpica/acpica/commit/3451e6d4
 Signed-off-by: Bob Moore <robert.moore@intel.com>
 Signed-off-by: Lv Zheng <lv.zheng@intel.com>
 ---
- drivers/acpi/acpica/nsxfeval.c |  111 ++++++++++++++++++++--------------------
- 1 file changed, 55 insertions(+), 56 deletions(-)
+ drivers/acpi/acpica/acpredef.h |    5 ++-
+ drivers/acpi/acpica/nsprepkg.c |   86 ++++++++++++++++++++++++++++++++++++++++
+ 2 files changed, 89 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/acpi/acpica/nsxfeval.c b/drivers/acpi/acpica/nsxfeval.c
-index 614e4ba..d2a9b4f 100644
---- a/drivers/acpi/acpica/nsxfeval.c
-+++ b/drivers/acpi/acpica/nsxfeval.c
-@@ -280,13 +280,12 @@ acpi_evaluate_object(acpi_handle handle,
- 		info->parameters[info->param_count] = NULL;
- 	}
+diff --git a/drivers/acpi/acpica/acpredef.h b/drivers/acpi/acpica/acpredef.h
+index 4ca426b..888440b 100644
+--- a/drivers/acpi/acpica/acpredef.h
++++ b/drivers/acpi/acpica/acpredef.h
+@@ -129,7 +129,8 @@ enum acpi_return_package_types {
+ 	ACPI_PTYPE2_REV_FIXED = 9,
+ 	ACPI_PTYPE2_FIX_VAR = 10,
+ 	ACPI_PTYPE2_VAR_VAR = 11,
+-	ACPI_PTYPE2_UUID_PAIR = 12
++	ACPI_PTYPE2_UUID_PAIR = 12,
++	ACPI_PTYPE_CUSTOM = 13
+ };
  
--#if 0
-+#ifdef _FUTURE_FEATURE
+ /* Support macros for users of the predefined info table */
+@@ -340,7 +341,7 @@ const union acpi_predefined_info acpi_gbl_predefined_methods[] = {
  
- 	/*
- 	 * Begin incoming argument count analysis. Check for too few args
- 	 * and too many args.
+ 	{{"_BIX", METHOD_0ARGS,
+ 	  METHOD_RETURNS(ACPI_RTYPE_PACKAGE)}},	/* Fixed-length (16 Int),(4 Str) */
+-	PACKAGE_INFO(ACPI_PTYPE1_FIXED, ACPI_RTYPE_INTEGER, 16,
++	PACKAGE_INFO(ACPI_PTYPE_CUSTOM, ACPI_RTYPE_INTEGER, 16,
+ 		     ACPI_RTYPE_STRING, 4, 0),
+ 
+ 	{{"_BLT",
+diff --git a/drivers/acpi/acpica/nsprepkg.c b/drivers/acpi/acpica/nsprepkg.c
+index fde5a09..fbedc6e 100644
+--- a/drivers/acpi/acpica/nsprepkg.c
++++ b/drivers/acpi/acpica/nsprepkg.c
+@@ -62,6 +62,10 @@ acpi_ns_check_package_elements(struct acpi_evaluate_info *info,
+ 			       u32 count1,
+ 			       u8 type2, u32 count2, u32 start_index);
+ 
++static acpi_status
++acpi_ns_custom_package(struct acpi_evaluate_info *info,
++		       union acpi_operand_object **elements, u32 count);
++
+ /*******************************************************************************
+  *
+  * FUNCTION:    acpi_ns_check_package
+@@ -135,6 +139,11 @@ acpi_ns_check_package(struct acpi_evaluate_info *info,
+ 	 * PTYPE2 packages contain subpackages
  	 */
--
- 	switch (acpi_ns_get_type(info->node)) {
- 	case ACPI_TYPE_METHOD:
- 
-@@ -370,68 +369,68 @@ acpi_evaluate_object(acpi_handle handle,
- 	 * If we are expecting a return value, and all went well above,
- 	 * copy the return value to an external object.
- 	 */
--	if (return_buffer) {
--		if (!info->return_object) {
--			return_buffer->length = 0;
--		} else {
--			if (ACPI_GET_DESCRIPTOR_TYPE(info->return_object) ==
--			    ACPI_DESC_TYPE_NAMED) {
--				/*
--				 * If we received a NS Node as a return object, this means that
--				 * the object we are evaluating has nothing interesting to
--				 * return (such as a mutex, etc.)  We return an error because
--				 * these types are essentially unsupported by this interface.
--				 * We don't check up front because this makes it easier to add
--				 * support for various types at a later date if necessary.
--				 */
--				status = AE_TYPE;
--				info->return_object = NULL;	/* No need to delete a NS Node */
--				return_buffer->length = 0;
--			}
-+	if (!return_buffer) {
-+		goto cleanup_return_object;
-+	}
- 
--			if (ACPI_SUCCESS(status)) {
-+	if (!info->return_object) {
-+		return_buffer->length = 0;
-+		goto cleanup;
-+	}
- 
--				/* Dereference Index and ref_of references */
-+	if (ACPI_GET_DESCRIPTOR_TYPE(info->return_object) ==
-+	    ACPI_DESC_TYPE_NAMED) {
-+		/*
-+		 * If we received a NS Node as a return object, this means that
-+		 * the object we are evaluating has nothing interesting to
-+		 * return (such as a mutex, etc.)  We return an error because
-+		 * these types are essentially unsupported by this interface.
-+		 * We don't check up front because this makes it easier to add
-+		 * support for various types at a later date if necessary.
-+		 */
-+		status = AE_TYPE;
-+		info->return_object = NULL;	/* No need to delete a NS Node */
-+		return_buffer->length = 0;
-+	}
- 
--				acpi_ns_resolve_references(info);
-+	if (ACPI_FAILURE(status)) {
-+		goto cleanup_return_object;
-+	}
- 
--				/* Get the size of the returned object */
-+	/* Dereference Index and ref_of references */
- 
--				status =
--				    acpi_ut_get_object_size(info->return_object,
--							    &buffer_space_needed);
--				if (ACPI_SUCCESS(status)) {
--
--					/* Validate/Allocate/Clear caller buffer */
--
--					status =
--					    acpi_ut_initialize_buffer
--					    (return_buffer,
--					     buffer_space_needed);
--					if (ACPI_FAILURE(status)) {
--						/*
--						 * Caller's buffer is too small or a new one can't
--						 * be allocated
--						 */
--						ACPI_DEBUG_PRINT((ACPI_DB_INFO,
--								  "Needed buffer size %X, %s\n",
--								  (u32)
--								  buffer_space_needed,
--								  acpi_format_exception
--								  (status)));
--					} else {
--						/* We have enough space for the object, build it */
--
--						status =
--						    acpi_ut_copy_iobject_to_eobject
--						    (info->return_object,
--						     return_buffer);
--					}
--				}
--			}
-+	acpi_ns_resolve_references(info);
+ 	switch (package->ret_info.type) {
++	case ACPI_PTYPE_CUSTOM:
 +
-+	/* Get the size of the returned object */
++		status = acpi_ns_custom_package(info, elements, count);
++		break;
 +
-+	status = acpi_ut_get_object_size(info->return_object,
-+					 &buffer_space_needed);
-+	if (ACPI_SUCCESS(status)) {
-+
-+		/* Validate/Allocate/Clear caller buffer */
-+
-+		status = acpi_ut_initialize_buffer(return_buffer,
-+						   buffer_space_needed);
-+		if (ACPI_FAILURE(status)) {
-+			/*
-+			 * Caller's buffer is too small or a new one can't
-+			 * be allocated
-+			 */
-+			ACPI_DEBUG_PRINT((ACPI_DB_INFO,
-+					  "Needed buffer size %X, %s\n",
-+					  (u32)buffer_space_needed,
-+					  acpi_format_exception(status)));
-+		} else {
-+			/* We have enough space for the object, build it */
-+
-+			status =
-+			    acpi_ut_copy_iobject_to_eobject(info->return_object,
-+							    return_buffer);
- 		}
- 	}
- 
-+cleanup_return_object:
-+
- 	if (info->return_object) {
+ 	case ACPI_PTYPE1_FIXED:
  		/*
- 		 * Delete the internal return object. NOTE: Interpreter must be
+ 		 * The package count is fixed and there are no subpackages
+@@ -626,6 +635,83 @@ package_too_small:
+ 
+ /*******************************************************************************
+  *
++ * FUNCTION:    acpi_ns_custom_package
++ *
++ * PARAMETERS:  info                - Method execution information block
++ *              elements            - Pointer to the package elements array
++ *              count               - Element count for the package
++ *
++ * RETURN:      Status
++ *
++ * DESCRIPTION: Check a returned package object for the correct count and
++ *              correct type of all sub-objects.
++ *
++ * NOTE: Currently used for the _BIX method only. When needed for two or more
++ * methods, probably a detect/dispatch mechanism will be required.
++ *
++ ******************************************************************************/
++
++static acpi_status
++acpi_ns_custom_package(struct acpi_evaluate_info *info,
++		       union acpi_operand_object **elements, u32 count)
++{
++	u32 expected_count;
++	u32 version;
++	acpi_status status = AE_OK;
++
++	ACPI_FUNCTION_NAME(ns_custom_package);
++
++	/* Get version number, must be Integer */
++
++	if ((*elements)->common.type != ACPI_TYPE_INTEGER) {
++		ACPI_WARN_PREDEFINED((AE_INFO, info->full_pathname,
++				      info->node_flags,
++				      "Return Package has invalid object type for version number"));
++		return_ACPI_STATUS(AE_AML_OPERAND_TYPE);
++	}
++
++	version = (u32)(*elements)->integer.value;
++	expected_count = 21;	/* Version 1 */
++
++	if (version == 0) {
++		expected_count = 20;	/* Version 0 */
++	}
++
++	if (count < expected_count) {
++		ACPI_WARN_PREDEFINED((AE_INFO, info->full_pathname,
++				      info->node_flags,
++				      "Return Package is too small - found %u elements, expected %u",
++				      count, expected_count));
++		return_ACPI_STATUS(AE_AML_OPERAND_VALUE);
++	} else if (count > expected_count) {
++		ACPI_DEBUG_PRINT((ACPI_DB_REPAIR,
++				  "%s: Return Package is larger than needed - "
++				  "found %u, expected %u\n",
++				  info->full_pathname, count, expected_count));
++	}
++
++	/* Validate all elements of the returned package */
++
++	status = acpi_ns_check_package_elements(info, elements,
++						ACPI_RTYPE_INTEGER, 16,
++						ACPI_RTYPE_STRING, 4, 0);
++	if (ACPI_FAILURE(status)) {
++		return_ACPI_STATUS(status);
++	}
++
++	/* Version 1 has a single trailing integer */
++
++	if (version > 0) {
++		status = acpi_ns_check_package_elements(info, elements + 20,
++							ACPI_RTYPE_INTEGER, 1,
++							0, 0, 20);
++	}
++
++	return_ACPI_STATUS(status);
++}
++
++/*******************************************************************************
++ *
+  * FUNCTION:    acpi_ns_check_package_elements
+  *
+  * PARAMETERS:  info            - Method execution information block
 -- 
 1.7.10
-
