@@ -1,194 +1,106 @@
-From: Dan Williams <dan.j.williams@intel.com>
-Subject: Re: [PATCH v11 2/5] nfit, libnvdimm: limited/whitelisted dimm command
- marshaling mechanism
-Date: Thu, 5 May 2016 16:44:06 -0700
-Message-ID: <CAPcyv4iU0NzxoTv9KLEofq3048z2335+f3dnNa=8hjSwo0xXSA@mail.gmail.com>
-References: <146189774241.29835.12947278159500915461.stgit@dwillia2-desk3.amr.corp.intel.com>
-	<146189775335.29835.217177508880335589.stgit@dwillia2-desk3.amr.corp.intel.com>
-	<20160505180135.GD6808@tevye.fc.hp.com>
+From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Subject: Re: [PATCH v2 00/13] ACPICA: 20160422 Release
+Date: Fri, 06 May 2016 01:49:02 +0200
+Message-ID: <2434982.zKfILYtmTK@vostro.rjw.lan>
+References: <cover.1462331120.git.lv.zheng@intel.com> <cover.1462418912.git.lv.zheng@intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7Bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-oi0-f50.google.com ([209.85.218.50]:33385 "EHLO
-	mail-oi0-f50.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754614AbcEEXoH (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 5 May 2016 19:44:07 -0400
-Received: by mail-oi0-f50.google.com with SMTP id v145so121026799oie.0
-        for <linux-acpi@vger.kernel.org>; Thu, 05 May 2016 16:44:07 -0700 (PDT)
-In-Reply-To: <20160505180135.GD6808@tevye.fc.hp.com>
+Received: from cloudserver094114.home.net.pl ([79.96.170.134]:43686 "HELO
+	cloudserver094114.home.net.pl" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with SMTP id S1754614AbcEEXpt (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 5 May 2016 19:45:49 -0400
+In-Reply-To: <cover.1462418912.git.lv.zheng@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Jerry Hoemann <Jerry.Hoemann@hpe.com>
-Cc: "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, Christoph Hellwig <hch@infradead.org>, Linux ACPI <linux-acpi@vger.kernel.org>, Rafael J Wysocki <rafael.j.wysocki@intel.com>
+To: Lv Zheng <lv.zheng@intel.com>
+Cc: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Len Brown <len.brown@intel.com>, Lv Zheng <zetalog@gmail.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
 
-On Thu, May 5, 2016 at 11:01 AM, Jerry Hoemann <jerry.hoemann@hpe.com> wrote:
-> On Thu, Apr 28, 2016 at 07:42:33PM -0700, Dan Williams wrote:
->
-> ...
->
->
->> diff --git a/drivers/acpi/nfit.c b/drivers/acpi/nfit.c
->> index 1b98e9dc6138..710d3a07d178 100644
->> --- a/drivers/acpi/nfit.c
->> +++ b/drivers/acpi/nfit.c
->> @@ -171,33 +171,46 @@ static int acpi_nfit_ctl(struct nvdimm_bus_descriptor *nd_desc,
->>               unsigned int buf_len, int *cmd_rc)
->>  {
->>       struct acpi_nfit_desc *acpi_desc = to_acpi_nfit_desc(nd_desc);
->> -     const struct nd_cmd_desc *desc = NULL;
->>       union acpi_object in_obj, in_buf, *out_obj;
->> +     const struct nd_cmd_desc *desc = NULL;
->>       struct device *dev = acpi_desc->dev;
->> +     struct nd_cmd_pkg *call_pkg = NULL;
->>       const char *cmd_name, *dimm_name;
->> -     unsigned long cmd_mask;
->> +     unsigned long cmd_mask, dsm_mask;
->>       acpi_handle handle;
->> +     unsigned int func;
->>       const u8 *uuid;
->>       u32 offset;
->>       int rc, i;
->>
->> +     func = cmd;
->> +     if (cmd == ND_CMD_CALL) {
->> +             call_pkg = buf;
->> +             func = call_pkg->nd_command;
->> +     }
->> +
->>       if (nvdimm) {
->>               struct nfit_mem *nfit_mem = nvdimm_provider_data(nvdimm);
->>               struct acpi_device *adev = nfit_mem->adev;
->>
->>               if (!adev)
->>                       return -ENOTTY;
->> +             if (call_pkg && nfit_mem->family != call_pkg->nd_family)
->> +                     return -ENOTTY;
->> +
->>               dimm_name = nvdimm_name(nvdimm);
->>               cmd_name = nvdimm_cmd_name(cmd);
->>               cmd_mask = nvdimm_cmd_mask(nvdimm);
->> +             dsm_mask = nfit_mem->dsm_mask;
->>               desc = nd_cmd_dimm_desc(cmd);
->> -             uuid = to_nfit_uuid(NFIT_DEV_DIMM);
->> +             uuid = to_nfit_uuid(nfit_mem->family);
->>               handle = adev->handle;
->>       } else {
->>               struct acpi_device *adev = to_acpi_dev(acpi_desc);
->>
->>               cmd_name = nvdimm_bus_cmd_name(cmd);
->>               cmd_mask = nd_desc->cmd_mask;
->> +             dsm_mask = cmd_mask;
->>               desc = nd_cmd_bus_desc(cmd);
->>               uuid = to_nfit_uuid(NFIT_DEV_BUS);
->>               handle = adev->handle;
->> @@ -207,7 +220,7 @@ static int acpi_nfit_ctl(struct nvdimm_bus_descriptor *nd_desc,
->>       if (!desc || (cmd && (desc->out_num + desc->in_num == 0)))
->>               return -ENOTTY;
->>
->> -     if (!test_bit(cmd, &cmd_mask))
->> +     if (!test_bit(cmd, &cmd_mask) || !test_bit(func, &dsm_mask))
->>               return -ENOTTY;
->>
->>       in_obj.type = ACPI_TYPE_PACKAGE;
->> @@ -222,21 +235,44 @@ static int acpi_nfit_ctl(struct nvdimm_bus_descriptor *nd_desc,
->>               in_buf.buffer.length += nd_cmd_in_size(nvdimm, cmd, desc,
->>                               i, buf);
->>
->> +     if (call_pkg) {
->> +             /* skip over package wrapper */
->> +             in_buf.buffer.pointer = (void *) &call_pkg->nd_payload;
->> +             in_buf.buffer.length = call_pkg->nd_size_in;
->> +     }
->> +
->>       if (IS_ENABLED(CONFIG_ACPI_NFIT_DEBUG)) {
->> -             dev_dbg(dev, "%s:%s cmd: %s input length: %d\n", __func__,
->> -                             dimm_name, cmd_name, in_buf.buffer.length);
->> -             print_hex_dump_debug(cmd_name, DUMP_PREFIX_OFFSET, 4,
->> -                             4, in_buf.buffer.pointer, min_t(u32, 128,
->> -                                     in_buf.buffer.length), true);
->> +             dev_dbg(dev, "%s:%s cmd: %d: func: %d input length: %d\n",
->> +                             __func__, dimm_name, cmd, func,
->> +                             in_buf.buffer.length);
->> +             print_hex_dump_debug("nvdimm in  ", DUMP_PREFIX_OFFSET, 4, 4,
->> +                     in_buf.buffer.pointer,
->> +                     min_t(u32, 256, in_buf.buffer.length), true);
->>       }
->>
->> -     out_obj = acpi_evaluate_dsm(handle, uuid, 1, cmd, &in_obj);
->> +     out_obj = acpi_evaluate_dsm(handle, uuid, 1, func, &in_obj);
->>       if (!out_obj) {
->>               dev_dbg(dev, "%s:%s _DSM failed cmd: %s\n", __func__, dimm_name,
->>                               cmd_name);
->>               return -EINVAL;
->>       }
->>
->> +     if (call_pkg) {
->> +             call_pkg->nd_fw_size = out_obj->buffer.length;
->> +             memcpy(call_pkg->nd_payload + call_pkg->nd_size_in,
->> +                     out_obj->buffer.pointer,
->> +                     min(call_pkg->nd_fw_size, call_pkg->nd_size_out));
->> +
->> +             ACPI_FREE(out_obj);
->> +             /*
->> +              * Need to support FW function w/o known size in advance.
->> +              * Caller can determine required size based upon nd_fw_size.
->> +              * If call erroed (like elsewhere) then caller wouldn't
->                            ^^^^^^^
->                         typo:  returned error?
+On Thursday, May 05, 2016 12:57:47 PM Lv Zheng wrote:
+> The 20160422 ACPICA kernel-resident subsystem updates are linuxized based
+> on the linux-pm/linux-next branch.
+> 
+> NOTE:
+> 1. Indentation improvement
+> The [PATCH 01] is a result of an ACPICA release process fix. It requires
+> much of human intervention, and many linuxized patches in the developers'
+> local working repositories that are not upstreamed to the ACPICA will be
+> burnt by this commit, and may take weeks or months for the developers to
+> recover. So hope we can do it correctly and rapidly.
+> 
+> 2. AcessSize/BitOffset support
+> ACPICA implements ACPI hardware register accesses using ACPI 1.0 style,
+> which contains only BLK/LEN fields. ACPI 2.0 starts to use Generic Address
+> Structure to define hardware registers, the ACPI 1.0 fields can be
+> translated into Address/BitWidth fields and ACPI 2.0 defines new
+> AccessSize/BitOffset fields as an extension. While the ACPICA code of the
+> GAS support is still Address/BitWidth aware only. This becomes one of the
+> significant ACPI 2.0 gaps in ACPICA.
+> But as we have already switched the address favor to 64-bit (aka., favor
+> GAS descriptors) and there is almost no regression report, enabling
+> AccessSize/BitOffset awareness seems to be just a theoretical issue because
+> there is no existing users requiring this, and enabling it might just be an
+> ecosystem enabling work for the future users.
+> So the most important thing of this improvement is to ensure regression
+> safer by keeping old behavior working. [PATCH 08] is thus generated for
+> this purpose. After ensuring this, we need this improvement to appear in
+> the upstream to have more users to test it so that we can learn unknown
+> cases from the feedback.
+> 
+> The patchset has passed the following build/boot tests.
+> Build tests are performed as follows:
+> 1. i386 + allyes
+> 2. i386 + allno
+> 3. i386 + default + ACPI_DEBUGGER=y
+> 4. i386 + default + ACPI_DEBUGGER=n + ACPI_DEBUG=y
+> 5. i386 + default + ACPI_DEBUG=n + ACPI=y
+> 6. i386 + default + ACPI=n
+> 7. x86_64 + allyes
+> 8. x86_64 + allno
+> 9. x86_64 + default + ACPI_DEBUGGER=y
+> 10.x86_64 + default + ACPI_DEBUGGER=n + ACPI_DEBUG=y
+> 11.x86_64 + default + ACPI_DEBUG=n + ACPI=y
+> 12.x86_64 + default + ACPI=n
+> Boot tests are performed as follows:
+> 1. i386 + default + ACPI_DEBUGGER=y
+> 2. x86_64 + default + ACPI_DEBUGGER=y
+> Where:
+> 1. i386: machine named as "Dell Inspiron Mini 1010"
+> 2. x86_64: machine named as "HP Compaq 8200 Elite SFF PC"
+> 3. default: kernel configuration with following items enabled:
+>    All hardware drivers related to the machines of i386/x86_64
+>    All "drivers/acpi" configurations
+>    All "drivers/platform" drivers
+>    All other drivers that link the APIs provided by ACPICA subsystem
+> 
+> The divergences checking result:
+> Before applying (20160318 Release):
+>   494 lines
+> After applying (20160422 Release):
+>   485 lines
+> The reduction is caused by recently merged module level improvement.
+> 
+> Bob Moore (7):
+>   ACPICA: Refactor evaluate_object to reduce nesting
+>   ACPICA: ACPI 6.1: Support for new PCCT subtable
+>   ACPICA: ACPI 6.0: Update _BIX support for new package element
+>   ACPICA: ACPI 6.0, tools/iasl: Add support for new resource
+>     descriptors
+>   ACPICA: Renamed some #defined flag constants for clarity
+>   ACPICA: Move all ASCII utilities to a common file
+>   ACPICA: Update version to 20160422
+> 
+> Lv Zheng (6):
+>   ACPICA: Divergence: remove unwanted spaces for typedef
+>   ACPICA: Utilities: Add ACPI_IS_ALIGNED() macro
+>   ACPICA: Hardware: Add optimized access bit width support
+>   ACPICA: Executer: Introduce a set of macros to handle bit width mask
+>     generation
+>   ACPICA: ACPI 2.0, Hardware: Add access_width/bit_offset support in
+>     acpi_hw_read()
+>   ACPICA: ACPI 2.0, Hardware: Add access_width/bit_offset support for
+>     acpi_hw_write()
 
-Yes, should be "returned an error"
+All [1-13/13] applied, thanks!
 
->
->
->
->> +              * be able to rely upon data returned to make calculation.
->> +              */
->> +             return 0;
->> +     }
->> +
->>       if (out_obj->package.type != ACPI_TYPE_BUFFER) {
->>               dev_dbg(dev, "%s:%s unexpected output object type cmd: %s type: %d\n",
->>                               __func__, dimm_name, cmd_name, out_obj->type);
->> @@ -923,11 +959,13 @@ static int acpi_nfit_add_dimm(struct acpi_nfit_desc *acpi_desc,
->>  {
->>       struct acpi_device *adev, *adev_dimm;
->>       struct device *dev = acpi_desc->dev;
->> -     const u8 *uuid = to_nfit_uuid(NFIT_DEV_DIMM);
->> +     unsigned long dsm_mask;
->> +     const u8 *uuid;
->>       int i;
->>
->>       /* nfit test assumes 1:1 relationship between commands and dsms */
->>       nfit_mem->dsm_mask = acpi_desc->dimm_cmd_force_en;
->> +     nfit_mem->family = NVDIMM_FAMILY_INTEL;
->>       adev = to_acpi_dev(acpi_desc);
->>       if (!adev)
->>               return 0;
->> @@ -940,7 +978,31 @@ static int acpi_nfit_add_dimm(struct acpi_nfit_desc *acpi_desc,
->>               return force_enable_dimms ? 0 : -ENODEV;
->>       }
->>
->> -     for (i = ND_CMD_SMART; i <= ND_CMD_VENDOR; i++)
->> +     /*
->> +      * Until standardization materializes we need to consider up to 3
->> +      * different command sets.  Note, that checking for function0 (bit0)
->> +      * tells us if any commands are reachable through this uuid.
->> +      */
->> +     for (i = NVDIMM_FAMILY_INTEL; i <= NVDIMM_FAMILY_HPE2; i++)
->> +             if (acpi_check_dsm(adev_dimm->handle, to_nfit_uuid(i), 1, 1))
->> +                     break;
->> +
->> +     /* limit the supported commands to those that are publicly documented */
->> +     nfit_mem->family = i;
->> +     if (nfit_mem->family == NVDIMM_FAMILY_INTEL)
->> +             dsm_mask = 0x3fe;
->> +     else if (nfit_mem->family == NVDIMM_FAMILY_HPE1)
->> +             dsm_mask = 0x1c3c76;
->
->
->
->                         ^ Missing defined function 0.
-
-This is deliberate as function0 does not return the effective dsm mask
-understood by the kernel.  This information is available in the
-"nfit/dsm_mask" attribute of the nmem device.
