@@ -1,168 +1,74 @@
-From: "Zheng, Lv" <lv.zheng@intel.com>
-Subject: RE: [PATCH 01/15] ACPICA: Linuxize: reduce divergences for 20160422
- release
-Date: Thu, 5 May 2016 02:16:58 +0000
-Message-ID: <1AE640813FDE7649BE1B193DEA596E883BB92F16@SHSMSX101.ccr.corp.intel.com>
-References: <cover.1462331120.git.lv.zheng@intel.com>
- <eb15d96bad1b4dd98f24fc249c8a540d0469cb7b.1462331121.git.lv.zheng@intel.com>
- <3430757.oQjUZYhhVi@vostro.rjw.lan> <3228917.WSuD8YVc96@vostro.rjw.lan>
+From: Eduardo Valentin <edubezval@gmail.com>
+Subject: Re: [PATCH 1/1] drivers: acpi: add CPU id to cooling device type of
+ processor driver
+Date: Wed, 4 May 2016 20:06:46 -0700
+Message-ID: <20160505030645.GA2158@localhost.localdomain>
+References: <1462251879-7224-1-git-send-email-edubezval@gmail.com>
+ <CAJZ5v0hPL3Wc1ZKZv-Gqny5cur9+262OCuqVqbQ2US9=gpsX7g@mail.gmail.com>
+ <1462398872.14904.29.camel@linux.intel.com>
+ <2680812.8DqCpBTJz8@vostro.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga14.intel.com ([192.55.52.115]:9097 "EHLO mga14.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755807AbcEECRD (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 4 May 2016 22:17:03 -0400
-In-Reply-To: <3228917.WSuD8YVc96@vostro.rjw.lan>
-Content-Language: en-US
-Sender: linux-acpi-owner@vger.kernel.org
-List-Id: linux-acpi@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-pm-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <2680812.8DqCpBTJz8@vostro.rjw.lan>
+Sender: linux-pm-owner@vger.kernel.org
 To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>, "Brown, Len" <len.brown@intel.com>, Lv Zheng <zetalog@gmail.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
+Cc: Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>, "Rafael J. Wysocki" <rafael@kernel.org>, Rui Zhang <rui.zhang@intel.com>, Linux PM <linux-pm@vger.kernel.org>, Len Brown <lenb@kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+List-Id: linux-acpi@vger.kernel.org
 
-SGksDQoNCj4gRnJvbTogbGludXgtYWNwaS1vd25lckB2Z2VyLmtlcm5lbC5vcmcgW21haWx0bzps
-aW51eC1hY3BpLQ0KPiBvd25lckB2Z2VyLmtlcm5lbC5vcmddIE9uIEJlaGFsZiBPZiBSYWZhZWwg
-Si4gV3lzb2NraQ0KPiBTdWJqZWN0OiBSZTogW1BBVENIIDAxLzE1XSBBQ1BJQ0E6IExpbnV4aXpl
-OiByZWR1Y2UgZGl2ZXJnZW5jZXMgZm9yIDIwMTYwNDIyDQo+IHJlbGVhc2UNCj4gDQo+IE9uIFdl
-ZG5lc2RheSwgTWF5IDA0LCAyMDE2IDExOjM3OjUxIFBNIFJhZmFlbCBKLiBXeXNvY2tpIHdyb3Rl
-Og0KPiA+IE9uIFdlZG5lc2RheSwgTWF5IDA0LCAyMDE2IDAxOjQ4OjA3IFBNIEx2IFpoZW5nIHdy
-b3RlOg0KPiA+ID4gVGhlIHBhdGNoIHJlZHVjZXMgc291cmNlIGNvZGUgZGlmZmVyZW5jZXMgYmV0
-d2VlbiB0aGUgTGludXgga2VybmVsIGFuZA0KPiB0aGUNCj4gPiA+IEFDUElDQSB1cHN0cmVhbSBz
-byB0aGF0IHRoZSBsaW51eGl6ZWQgQUNQSUNBIDIwMTYwNDIyIHJlbGVhc2UgY2FuIGJlDQo+ID4g
-PiBhcHBsaWVkIHdpdGggcmVkdWNlZCBodW1hbiBpbnRlcnZlbnRpb24uDQo+ID4gPg0KPiA+ID4g
-U2lnbmVkLW9mZi1ieTogTHYgWmhlbmcgPGx2LnpoZW5nQGludGVsLmNvbT4NCj4gPg0KPiA+IExp
-a2UgcHJldmlvdXNseSwgdGhpcyBhZGRzIHdoaXRlIHNwYWNlIHdoZXJlIGl0IHNob3VsZG4ndC4N
-Cj4gPg0KPiA+ID4gLS0tDQo+ID4gPiAgZHJpdmVycy9hY3BpL2FjcGljYS9hY2xvY2FsLmggIHwg
-ICAgMiArLQ0KPiA+ID4gIGRyaXZlcnMvYWNwaS9hY3BpY2EvYWNyZXNyYy5oICB8ICAgIDIgKy0N
-Cj4gPiA+ICBkcml2ZXJzL2FjcGkvYWNwaWNhL2FjdGFibGVzLmggfCAgICAyICstDQo+ID4gPiAg
-ZHJpdmVycy9hY3BpL2FjcGljYS9kc2ZpZWxkLmMgIHwgICAgNCArKy0tDQo+ID4gPiAgZHJpdmVy
-cy9hY3BpL2FjcGljYS9kc3dzdGF0ZS5jIHwgICAgMiArLQ0KPiA+ID4gIGRyaXZlcnMvYWNwaS9h
-Y3BpY2EvZXhjb25maWcuYyB8ICAgIDIgKy0NCj4gPiA+ICBkcml2ZXJzL2FjcGkvYWNwaWNhL2V4
-cmVnaW9uLmMgfCAgICAyICstDQo+ID4gPiAgZHJpdmVycy9hY3BpL2FjcGljYS9leHJlc29wLmMg
-IHwgICAgMiArLQ0KPiA+ID4gIGRyaXZlcnMvYWNwaS9hY3BpY2EvaHdncGUuYyAgICB8ICAgMTAg
-KysrKystLS0tLQ0KPiA+ID4gIGRyaXZlcnMvYWNwaS9hY3BpY2EvaHdyZWdzLmMgICB8ICAgIDQg
-KystLQ0KPiA+ID4gIGRyaXZlcnMvYWNwaS9hY3BpY2EvaHd4ZmFjZS5jICB8ICAgIDIgKy0NCj4g
-PiA+ICBkcml2ZXJzL2FjcGkvYWNwaWNhL25zcHJlZGVmLmMgfCAgICAyICstDQo+ID4gPiAgZHJp
-dmVycy9hY3BpL2FjcGljYS9uc3hmbmFtZS5jIHwgICAgMiArLQ0KPiA+ID4gIGRyaXZlcnMvYWNw
-aS9hY3BpY2EvcnNjYWxjLmMgICB8ICAgIDIgKy0NCj4gPiA+ICBkcml2ZXJzL2FjcGkvYWNwaWNh
-L3RieGZhY2UuYyAgfCAgICAyICstDQo+ID4gPiAgZHJpdmVycy9hY3BpL2FjcGljYS91dGNvcHku
-YyAgIHwgICAgOCArKysrLS0tLQ0KPiA+ID4gIGRyaXZlcnMvYWNwaS9hY3BpY2EvdXRsb2NrLmMg
-ICB8ICAgIDQgKystLQ0KPiA+ID4gIGRyaXZlcnMvYWNwaS9hY3BpY2EvdXRtYXRoLmMgICB8ICAg
-IDQgKystLQ0KPiA+ID4gIGluY2x1ZGUvYWNwaS9hY3Bpb3N4Zi5oICAgICAgICB8ICAgIDIgKy0N
-Cj4gPiA+ICAxOSBmaWxlcyBjaGFuZ2VkLCAzMCBpbnNlcnRpb25zKCspLCAzMCBkZWxldGlvbnMo
-LSkNCj4gPiA+DQo+ID4gPiBkaWZmIC0tZ2l0IGEvZHJpdmVycy9hY3BpL2FjcGljYS9hY2xvY2Fs
-LmggYi9kcml2ZXJzL2FjcGkvYWNwaWNhL2FjbG9jYWwuaA0KPiA+ID4gaW5kZXggMDgzYjE2YS4u
-Mzc5Nzk3ZSAxMDA2NDQNCj4gPiA+IC0tLSBhL2RyaXZlcnMvYWNwaS9hY3BpY2EvYWNsb2NhbC5o
-DQo+ID4gPiArKysgYi9kcml2ZXJzL2FjcGkvYWNwaWNhL2FjbG9jYWwuaA0KPiA+ID4gQEAgLTU0
-MSw3ICs1NDEsNyBAQCBzdHJ1Y3QgYWNwaV9ncGVfZGV2aWNlX2luZm8gew0KPiA+ID4NCj4gPiA+
-ICB0eXBlZGVmIGFjcGlfc3RhdHVzKCphY3BpX2dwZV9jYWxsYmFjaykgKHN0cnVjdCBhY3BpX2dw
-ZV94cnVwdF9pbmZvICoNCj4gPiA+ICAJCQkJCSBncGVfeHJ1cHRfaW5mbywNCj4gPiA+IC0JCQkJ
-CSBzdHJ1Y3QgYWNwaV9ncGVfYmxvY2tfaW5mbw0KPiAqZ3BlX2Jsb2NrLA0KPiA+ID4gKwkJCQkJ
-IHN0cnVjdCBhY3BpX2dwZV9ibG9ja19pbmZvICoNCj4gZ3BlX2Jsb2NrLA0KPiA+ID4gIAkJCQkJ
-IHZvaWQgKmNvbnRleHQpOw0KPiA+DQo+ID4gTm8sIHBsZWFzZSBkb24ndCBhZGQgdGhhdCB3aGl0
-ZSBzcGFjZS4NCj4gPg0KPiA+ID4gIC8qIEluZm9ybWF0aW9uIGFib3V0IGVhY2ggcGFydGljdWxh
-ciBmaXhlZCBldmVudCAqLw0KPiA+ID4gZGlmZiAtLWdpdCBhL2RyaXZlcnMvYWNwaS9hY3BpY2Ev
-YWNyZXNyYy5oIGIvZHJpdmVycy9hY3BpL2FjcGljYS9hY3Jlc3JjLmgNCj4gPiA+IGluZGV4IDgz
-ZTlhMjkuLmJhYWNkZTggMTAwNjQ0DQo+ID4gPiAtLS0gYS9kcml2ZXJzL2FjcGkvYWNwaWNhL2Fj
-cmVzcmMuaA0KPiA+ID4gKysrIGIvZHJpdmVycy9hY3BpL2FjcGljYS9hY3Jlc3JjLmgNCj4gPiA+
-IEBAIC0yMjMsNyArMjIzLDcgQEAgYWNwaV9yc19nZXRfYWVpX21ldGhvZF9kYXRhKHN0cnVjdA0K
-PiBhY3BpX25hbWVzcGFjZV9ub2RlICpub2RlLA0KPiA+ID4gICAqIHJzY2FsYw0KPiA+ID4gICAq
-Lw0KPiA+ID4gIGFjcGlfc3RhdHVzDQo+ID4gPiAtYWNwaV9yc19nZXRfbGlzdF9sZW5ndGgodTgg
-KiBhbWxfYnVmZmVyLA0KPiA+ID4gK2FjcGlfcnNfZ2V0X2xpc3RfbGVuZ3RoKHU4ICphbWxfYnVm
-ZmVyLA0KPiA+ID4gIAkJCXUzMiBhbWxfYnVmZmVyX2xlbmd0aCwgYWNwaV9zaXplICogc2l6ZV9u
-ZWVkZWQpOw0KPiA+DQo+ID4gV2h5IGRvIHlvdSBmaXggb25lIGFuZCBub3QgdGhlIG90aGVyPw0K
-PiA+DQo+ID4gPg0KPiA+ID4gIGFjcGlfc3RhdHVzDQo+ID4gPiBkaWZmIC0tZ2l0IGEvZHJpdmVy
-cy9hY3BpL2FjcGljYS9hY3RhYmxlcy5oIGIvZHJpdmVycy9hY3BpL2FjcGljYS9hY3RhYmxlcy5o
-DQo+ID4gPiBpbmRleCA4NDhhZDNhLi5mYTgxMDk5IDEwMDY0NA0KPiA+ID4gLS0tIGEvZHJpdmVy
-cy9hY3BpL2FjcGljYS9hY3RhYmxlcy5oDQo+ID4gPiArKysgYi9kcml2ZXJzL2FjcGkvYWNwaWNh
-L2FjdGFibGVzLmgNCj4gPiA+IEBAIC0xMzEsNyArMTMxLDcgQEAgYWNwaV9zdGF0dXMgYWNwaV90
-Yl9hbGxvY2F0ZV9vd25lcl9pZCh1MzINCj4gdGFibGVfaW5kZXgpOw0KPiA+ID4NCj4gPiA+ICBh
-Y3BpX3N0YXR1cyBhY3BpX3RiX3JlbGVhc2Vfb3duZXJfaWQodTMyIHRhYmxlX2luZGV4KTsNCj4g
-PiA+DQo+ID4gPiAtYWNwaV9zdGF0dXMgYWNwaV90Yl9nZXRfb3duZXJfaWQodTMyIHRhYmxlX2lu
-ZGV4LCBhY3BpX293bmVyX2lkDQo+ICpvd25lcl9pZCk7DQo+ID4gPiArYWNwaV9zdGF0dXMgYWNw
-aV90Yl9nZXRfb3duZXJfaWQodTMyIHRhYmxlX2luZGV4LCBhY3BpX293bmVyX2lkICoNCj4gb3du
-ZXJfaWQpOw0KPiA+DQo+ID4gVGhlIGFkZGVkIHdoaXRlIHNwYWNlIGRvZXMgbm90IGFkaGVyZSB0
-byB0aGUga2VybmVsIGNvZGluZyBzdHlsZS4NCj4gPg0KPiA+ID4gIC8qDQo+ID4gPiAgICogdGJ1
-dGlscyAtIHRhYmxlIG1hbmFnZXIgdXRpbGl0aWVzDQo+ID4gPiBkaWZmIC0tZ2l0IGEvZHJpdmVy
-cy9hY3BpL2FjcGljYS9kc2ZpZWxkLmMgYi9kcml2ZXJzL2FjcGkvYWNwaWNhL2RzZmllbGQuYw0K
-PiA+ID4gaW5kZXggNmE0YjYwMy4uMGNkNzc3ZiAxMDA2NDQNCj4gPiA+IC0tLSBhL2RyaXZlcnMv
-YWNwaS9hY3BpY2EvZHNmaWVsZC5jDQo+ID4gPiArKysgYi9kcml2ZXJzL2FjcGkvYWNwaWNhL2Rz
-ZmllbGQuYw0KPiA+ID4gQEAgLTE0Nyw4ICsxNDcsOCBAQCBhY3BpX2RzX2NyZWF0ZV9leHRlcm5h
-bF9yZWdpb24oYWNwaV9zdGF0dXMNCj4gbG9va3VwX3N0YXR1cywNCj4gPiA+DQo+ICoqKioqKioq
-KioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioN
-Cj4gKioqKioqKioqKioqKiovDQo+ID4gPg0KPiA+ID4gIGFjcGlfc3RhdHVzDQo+ID4gPiAtYWNw
-aV9kc19jcmVhdGVfYnVmZmVyX2ZpZWxkKHVuaW9uIGFjcGlfcGFyc2Vfb2JqZWN0ICpvcCwNCj4g
-PiA+IC0JCQkgICAgc3RydWN0IGFjcGlfd2Fsa19zdGF0ZSAqd2Fsa19zdGF0ZSkNCj4gPiA+ICth
-Y3BpX2RzX2NyZWF0ZV9idWZmZXJfZmllbGQodW5pb24gYWNwaV9wYXJzZV9vYmplY3QgKiBvcCwN
-Cj4gPiA+ICsJCQkgICAgc3RydWN0IGFjcGlfd2Fsa19zdGF0ZSAqIHdhbGtfc3RhdGUpDQo+ID4N
-Cj4gPiBTYW1lIGhlcmUuDQo+ID4NCj4gPiA+ICB7DQo+ID4gPiAgCXVuaW9uIGFjcGlfcGFyc2Vf
-b2JqZWN0ICphcmc7DQo+ID4gPiAgCXN0cnVjdCBhY3BpX25hbWVzcGFjZV9ub2RlICpub2RlOw0K
-PiA+ID4gZGlmZiAtLWdpdCBhL2RyaXZlcnMvYWNwaS9hY3BpY2EvZHN3c3RhdGUuYyBiL2RyaXZl
-cnMvYWNwaS9hY3BpY2EvZHN3c3RhdGUuYw0KPiA+ID4gaW5kZXggM2EyNmRkYi4uNmVjOGRjYSAx
-MDA2NDQNCj4gPiA+IC0tLSBhL2RyaXZlcnMvYWNwaS9hY3BpY2EvZHN3c3RhdGUuYw0KPiA+ID4g
-KysrIGIvZHJpdmVycy9hY3BpL2FjcGljYS9kc3dzdGF0ZS5jDQo+ID4gPiBAQCAtMTQzLDcgKzE0
-Myw3IEBAIGFjcGlfZHNfcmVzdWx0X3BvcCh1bmlvbiBhY3BpX29wZXJhbmRfb2JqZWN0DQo+ICoq
-b2JqZWN0LA0KPiA+ID4NCj4gKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioq
-KioqKioqKioqKioqKioqKioqKioqKioqKg0KPiAqKioqKioqKioqKioqKi8NCj4gPiA+DQo+ID4g
-PiAgYWNwaV9zdGF0dXMNCj4gPiA+IC1hY3BpX2RzX3Jlc3VsdF9wdXNoKHVuaW9uIGFjcGlfb3Bl
-cmFuZF9vYmplY3QgKiBvYmplY3QsDQo+ID4gPiArYWNwaV9kc19yZXN1bHRfcHVzaCh1bmlvbiBh
-Y3BpX29wZXJhbmRfb2JqZWN0ICpvYmplY3QsDQo+ID4gPiAgCQkgICAgc3RydWN0IGFjcGlfd2Fs
-a19zdGF0ZSAqIHdhbGtfc3RhdGUpDQo+ID4NCj4gPiBXaHkgZG8geW91IGZpeCBvbmUgYW5kIG5v
-dCB0aGUgb3RoZXI/DQo+ID4NCj4gPiA+ICB7DQo+ID4gPiAgCXVuaW9uIGFjcGlfZ2VuZXJpY19z
-dGF0ZSAqc3RhdGU7DQo+ID4gPiBkaWZmIC0tZ2l0IGEvZHJpdmVycy9hY3BpL2FjcGljYS9leGNv
-bmZpZy5jIGIvZHJpdmVycy9hY3BpL2FjcGljYS9leGNvbmZpZy5jDQo+ID4gPiBpbmRleCBhMWQx
-NzdkLi4wM2QyZWIwIDEwMDY0NA0KPiA+ID4gLS0tIGEvZHJpdmVycy9hY3BpL2FjcGljYS9leGNv
-bmZpZy5jDQo+ID4gPiArKysgYi9kcml2ZXJzL2FjcGkvYWNwaWNhL2V4Y29uZmlnLmMNCj4gPiA+
-IEBAIC0zMzQsNyArMzM0LDcgQEAgYWNwaV9leF9yZWdpb25fcmVhZCh1bmlvbiBhY3BpX29wZXJh
-bmRfb2JqZWN0DQo+ICpvYmpfZGVzYywgdTMyIGxlbmd0aCwgdTggKmJ1ZmZlcikNCj4gPiA+ICBh
-Y3BpX3N0YXR1cw0KPiA+ID4gIGFjcGlfZXhfbG9hZF9vcCh1bmlvbiBhY3BpX29wZXJhbmRfb2Jq
-ZWN0ICpvYmpfZGVzYywNCj4gPiA+ICAJCXVuaW9uIGFjcGlfb3BlcmFuZF9vYmplY3QgKnRhcmdl
-dCwNCj4gPiA+IC0JCXN0cnVjdCBhY3BpX3dhbGtfc3RhdGUgKndhbGtfc3RhdGUpDQo+ID4gPiAr
-CQlzdHJ1Y3QgYWNwaV93YWxrX3N0YXRlICogd2Fsa19zdGF0ZSkNCj4gPg0KPiA+IE1vcmUgZGFt
-YWdlZCB3aGl0ZSBzcGFjZS4NCj4gPg0KPiA+ID4gIHsNCj4gPiA+ICAJdW5pb24gYWNwaV9vcGVy
-YW5kX29iamVjdCAqZGRiX2hhbmRsZTsNCj4gPiA+ICAJc3RydWN0IGFjcGlfdGFibGVfaGVhZGVy
-ICp0YWJsZV9oZWFkZXI7DQo+ID4gPiBkaWZmIC0tZ2l0IGEvZHJpdmVycy9hY3BpL2FjcGljYS9l
-eHJlZ2lvbi5jIGIvZHJpdmVycy9hY3BpL2FjcGljYS9leHJlZ2lvbi5jDQo+ID4gPiBpbmRleCAw
-NzYwNzRkLi4zYmNlYTU5IDEwMDY0NA0KPiA+ID4gLS0tIGEvZHJpdmVycy9hY3BpL2FjcGljYS9l
-eHJlZ2lvbi5jDQo+ID4gPiArKysgYi9kcml2ZXJzL2FjcGkvYWNwaWNhL2V4cmVnaW9uLmMNCj4g
-PiA+IEBAIC0zMzMsNyArMzMzLDcgQEAgYWNwaV9leF9zeXN0ZW1faW9fc3BhY2VfaGFuZGxlcih1
-MzIgZnVuY3Rpb24sDQo+ID4gPiAgCWNhc2UgQUNQSV9XUklURToNCj4gPiA+DQo+ID4gPiAgCQlz
-dGF0dXMgPSBhY3BpX2h3X3dyaXRlX3BvcnQoKGFjcGlfaW9fYWRkcmVzcykgYWRkcmVzcywNCj4g
-PiA+IC0JCQkJCSAgICAodTMyKSAqIHZhbHVlLCBiaXRfd2lkdGgpOw0KPiA+ID4gKwkJCQkJICAg
-ICh1MzIpKnZhbHVlLCBiaXRfd2lkdGgpOw0KPiA+ID4gIAkJYnJlYWs7DQo+ID4gPg0KPiA+ID4g
-IAlkZWZhdWx0Og0KPiA+ID4gZGlmZiAtLWdpdCBhL2RyaXZlcnMvYWNwaS9hY3BpY2EvZXhyZXNv
-cC5jIGIvZHJpdmVycy9hY3BpL2FjcGljYS9leHJlc29wLmMNCj4gPiA+IGluZGV4IGNjMmMyNmMu
-LmRhNmJmMGUgMTAwNjQ0DQo+ID4gPiAtLS0gYS9kcml2ZXJzL2FjcGkvYWNwaWNhL2V4cmVzb3Au
-Yw0KPiA+ID4gKysrIGIvZHJpdmVycy9hY3BpL2FjcGljYS9leHJlc29wLmMNCj4gPiA+IEBAIC0x
-MzEsNyArMTMxLDcgQEAgYWNwaV9leF9jaGVja19vYmplY3RfdHlwZShhY3BpX29iamVjdF90eXBl
-DQo+IHR5cGVfbmVlZGVkLA0KPiA+ID4NCj4gPiA+ICBhY3BpX3N0YXR1cw0KPiA+ID4gIGFjcGlf
-ZXhfcmVzb2x2ZV9vcGVyYW5kcyh1MTYgb3Bjb2RlLA0KPiA+ID4gLQkJCSB1bmlvbiBhY3BpX29w
-ZXJhbmRfb2JqZWN0ICoqIHN0YWNrX3B0ciwNCj4gPiA+ICsJCQkgdW5pb24gYWNwaV9vcGVyYW5k
-X29iamVjdCAqKnN0YWNrX3B0ciwNCj4gPiA+ICAJCQkgc3RydWN0IGFjcGlfd2Fsa19zdGF0ZSAq
-IHdhbGtfc3RhdGUpDQo+ID4NCj4gPiBXaHkgZG8geW91IGZpeCBvbmUgYW5kIG5vdCB0aGUgb3Ro
-ZXI/DQo+ID4NCj4gPiA+ICB7DQo+ID4gPiAgCXVuaW9uIGFjcGlfb3BlcmFuZF9vYmplY3QgKm9i
-al9kZXNjOw0KPiA+ID4gZGlmZiAtLWdpdCBhL2RyaXZlcnMvYWNwaS9hY3BpY2EvaHdncGUuYyBi
-L2RyaXZlcnMvYWNwaS9hY3BpY2EvaHdncGUuYw0KPiA+ID4gaW5kZXggMWM0ZjQ1MS4uOGNjNWNj
-MCAxMDA2NDQNCj4gPiA+IC0tLSBhL2RyaXZlcnMvYWNwaS9hY3BpY2EvaHdncGUuYw0KPiA+ID4g
-KysrIGIvZHJpdmVycy9hY3BpL2FjcGljYS9od2dwZS5jDQo+ID4gPiBAQCAtMzE1LDggKzMxNSw4
-IEBAIGFjcGlfaHdfZ3BlX2VuYWJsZV93cml0ZSh1OCBlbmFibGVfbWFzaywNCj4gPiA+DQo+ICoq
-KioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioq
-KioqKioNCj4gKioqKioqKioqKioqKiovDQo+ID4gPg0KPiA+ID4gIGFjcGlfc3RhdHVzDQo+ID4g
-PiAtYWNwaV9od19kaXNhYmxlX2dwZV9ibG9jayhzdHJ1Y3QgYWNwaV9ncGVfeHJ1cHRfaW5mbyAq
-Z3BlX3hydXB0X2luZm8sDQo+ID4gPiAtCQkJICBzdHJ1Y3QgYWNwaV9ncGVfYmxvY2tfaW5mbyAq
-Z3BlX2Jsb2NrLCB2b2lkDQo+ICpjb250ZXh0KQ0KPiA+ID4gK2FjcGlfaHdfZGlzYWJsZV9ncGVf
-YmxvY2soc3RydWN0IGFjcGlfZ3BlX3hydXB0X2luZm8gKiBncGVfeHJ1cHRfaW5mbywNCj4gPiA+
-ICsJCQkgIHN0cnVjdCBhY3BpX2dwZV9ibG9ja19pbmZvICogZ3BlX2Jsb2NrLCB2b2lkDQo+ICpj
-b250ZXh0KQ0KPiA+DQo+ID4gTW9yZSBkYW1hZ2VkIHdoaXRlIHNwYWNlLg0KPiA+DQo+ID4gQW5k
-IGFuYWxvZ291c2x5IGJlbG93Lg0KPiA+DQo+ID4gSSdtIGFzc3VtaW5nIHRoYXQgdGhlIHJlc3Qg
-b2YgdGhlIHNlcmllcyB3b24ndCBhcHBseSB3aXRob3V0IHRoaXMgcGF0Y2gsDQo+ID4gc28gSSdt
-IG5vdCBnb2luZyB0byB0cnkgdG8gYXBwbHkgaXQuDQo+ID4NCj4gPiBQbGVhc2UgcmV2aXNlIGFu
-ZCByZXNlbmQuDQo+IA0KPiBPZiBjb3Vyc2UsIHBhdGNoIFs4LzE1XSBoYXMgYmVlbiBhcHBsaWVk
-IGFscmVhZHksIHNvIG5vIG5lZWQgdG8gcmVzZW5kIGl0Lg0KW0x2IFpoZW5nXSANCk9LLCBJJ2xs
-IGRyb3AgUEFUQ0ggMDggZnJvbSB2Mi4NCg0KVGhhbmtzIGFuZCBiZXN0IHJlZ2FyZHMNCi1Mdg0K
-DQo+IA0KPiBUaGFua3MsDQo+IFJhZmFlbA0KPiANCj4gLS0NCj4gVG8gdW5zdWJzY3JpYmUgZnJv
-bSB0aGlzIGxpc3Q6IHNlbmQgdGhlIGxpbmUgInVuc3Vic2NyaWJlIGxpbnV4LWFjcGkiIGluDQo+
-IHRoZSBib2R5IG9mIGEgbWVzc2FnZSB0byBtYWpvcmRvbW9Admdlci5rZXJuZWwub3JnDQo+IE1v
-cmUgbWFqb3Jkb21vIGluZm8gYXQgIGh0dHA6Ly92Z2VyLmtlcm5lbC5vcmcvbWFqb3Jkb21vLWlu
-Zm8uaHRtbA0K
+On Thu, May 05, 2016 at 12:00:57AM +0200, Rafael J. Wysocki wrote:
+> On Wednesday, May 04, 2016 02:54:32 PM Srinivas Pandruvada wrote:
+> > On Wed, 2016-05-04 at 23:49 +0200, Rafael J. Wysocki wrote:
+> > > On Tue, May 3, 2016 at 7:04 AM, Eduardo Valentin <edubezval@gmail.com
+> > > > wrote:
+> > > > 
+> > > > Currently, in an ACPI based system, the processor driver registers
+> > > > one cooling device per processor. However, the cooling device type
+> > > > is the same for each processor. For example, on a system with four
+> > > > processors, the sysfs reading of each cooling device would look
+> > > > like:
+> > > > ebv@besouro ~ $ cat /sys/class/thermal/cooling_device*/type
+> > > > Processor
+> > > > Processor
+> > > > Processor
+> > > > Processor
+> > > > 
+> > > > which turns out to fine. But, some parts of the thermal code may
+> > > > use
+> > > > type to identify participating devices in a thermal zone. Besides,
+> > > > adding notifications to user space may cause the production of
+> > > > messages
+> > > > that may confuse the listener.
+> > > > 
+> > > > For this reason, this patch adds the processor ID cooling device
+> > > > type.
+> > > > After this change, the cooling device listing in the same previous
+> > > > example
+> > > > would look like this:
+> > > > ebv@besouro ~ $ cat /sys/class/thermal/cooling_device*/type
+> > > > Processor.0
+> > > > Processor.1
+> > > > Processor.2
+> > > > Processor.3
+> > > > 
+> > > > allowing an easier identification of cooling device target.
+> > > 
+> > > Is it not going to confuse any user space scripts or similar?
+> >
+> > Yes, it will.
+> 
+> In that case the patch cannot be applied.
+
+In fact, we shall never brake userspace. 
+
+Srinivas, could you please elaborate a bit more on how this would break
+userspace? How different would it be having an extra id? Are you
+expecting "Processor" string in daemon?
+
+BR,
+
+> 
+> Thanks,
+> Rafael
+> 
