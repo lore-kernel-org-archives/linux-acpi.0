@@ -1,7 +1,7 @@
 From: Lv Zheng <lv.zheng@intel.com>
-Subject: [PATCH v2 10/13] ACPICA: ACPI 2.0, Hardware: Add access_width/bit_offset support in acpi_hw_read()
-Date: Thu,  5 May 2016 12:58:52 +0800
-Message-ID: <92c3ed7f87a4891a17181a0b46379d1690fadffb.1462418912.git.lv.zheng@intel.com>
+Subject: [PATCH v2 03/13] ACPICA: ACPI 6.1: Support for new PCCT subtable
+Date: Thu,  5 May 2016 12:58:05 +0800
+Message-ID: <2b8378fc2e16e572c9bc2d7aba1fbebd247389dd.1462418912.git.lv.zheng@intel.com>
 References: <cover.1462331120.git.lv.zheng@intel.com> <cover.1462418912.git.lv.zheng@intel.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <cover.1462418912.git.lv.zheng@intel.com>
@@ -10,134 +10,59 @@ To: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, "Rafael J. Wysocki" <rjw@r
 Cc: Lv Zheng <lv.zheng@intel.com>, Lv Zheng <zetalog@gmail.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Bob Moore <robert.moore@intel.com>
 List-Id: linux-acpi@vger.kernel.org
 
-ACPICA commit 96ece052d4d073aae4f935f0ff0746646aea1174
-ACPICA commit 3d8583a054e410f2ea4d73b48986facad9cfc0d4
+From: Bob Moore <robert.moore@intel.com>
 
-This patch adds access_width/bit_offset support in acpi_hw_read().
-This also enables GAS definition where bit_width is not a power of
-two. Lv Zheng.
+ACPICA commit de3ea7c322b9b6bdb09aa90c2e1d420cd4dce47c
 
-Link: https://github.com/acpica/acpica/commit/96ece052
-Link: https://github.com/acpica/acpica/commit/3d8583a0
-Link: https://bugs.acpica.org/show_bug.cgi?id=1240
-Signed-off-by: Lv Zheng <lv.zheng@intel.com>
+Additional subspace structure was added.
+
+Link: https://github.com/acpica/acpica/commit/de3ea7c3
 Signed-off-by: Bob Moore <robert.moore@intel.com>
+Signed-off-by: Lv Zheng <lv.zheng@intel.com>
 ---
- drivers/acpi/acpica/hwregs.c |   75 ++++++++++++++++++++++++++++++++++--------
- 1 file changed, 62 insertions(+), 13 deletions(-)
+ include/acpi/actbl3.h |   23 ++++++++++++++++++++++-
+ 1 file changed, 22 insertions(+), 1 deletion(-)
 
-diff --git a/drivers/acpi/acpica/hwregs.c b/drivers/acpi/acpica/hwregs.c
-index 892e677..6eee012 100644
---- a/drivers/acpi/acpica/hwregs.c
-+++ b/drivers/acpi/acpica/hwregs.c
-@@ -195,17 +195,19 @@ acpi_hw_validate_register(struct acpi_generic_address *reg,
-  *              64-bit values is not needed.
-  *
-  * LIMITATIONS: <These limitations also apply to acpi_hw_write>
-- *      bit_width must be exactly 8, 16, or 32.
-  *      space_ID must be system_memory or system_IO.
-- *      bit_offset and access_width are currently ignored, as there has
-- *          not been a need to implement these.
-  *
-  ******************************************************************************/
+diff --git a/include/acpi/actbl3.h b/include/acpi/actbl3.h
+index f12f4bb..ebc1f4f 100644
+--- a/include/acpi/actbl3.h
++++ b/include/acpi/actbl3.h
+@@ -481,7 +481,8 @@ struct acpi_table_pcct {
+ enum acpi_pcct_type {
+ 	ACPI_PCCT_TYPE_GENERIC_SUBSPACE = 0,
+ 	ACPI_PCCT_TYPE_HW_REDUCED_SUBSPACE = 1,
+-	ACPI_PCCT_TYPE_RESERVED = 2	/* 2 and greater are reserved */
++	ACPI_PCCT_TYPE_HW_REDUCED_SUBSPACE_TYPE2 = 2,	/* ACPI 6.1 */
++	ACPI_PCCT_TYPE_RESERVED = 3	/* 3 and greater are reserved */
+ };
  
- acpi_status acpi_hw_read(u32 *value, struct acpi_generic_address *reg)
- {
- 	u64 address;
-+	u8 access_width;
-+	u32 bit_width;
-+	u8 bit_offset;
- 	u64 value64;
-+	u32 value32;
-+	u8 index;
- 	acpi_status status;
+ /*
+@@ -520,6 +521,26 @@ struct acpi_pcct_hw_reduced {
+ 	u16 min_turnaround_time;
+ };
  
- 	ACPI_FUNCTION_NAME(hw_read);
-@@ -217,28 +219,75 @@ acpi_status acpi_hw_read(u32 *value, struct acpi_generic_address *reg)
- 		return (status);
- 	}
- 
--	/* Initialize entire 32-bit return value to zero */
--
-+	/*
-+	 * Initialize entire 32-bit return value to zero, convert access_width
-+	 * into number of bits based
-+	 */
- 	*value = 0;
-+	access_width = acpi_hw_get_access_bit_width(reg, 32);
-+	bit_width = reg->bit_offset + reg->bit_width;
-+	bit_offset = reg->bit_offset;
- 
- 	/*
- 	 * Two address spaces supported: Memory or IO. PCI_Config is
- 	 * not supported here because the GAS structure is insufficient
- 	 */
--	if (reg->space_id == ACPI_ADR_SPACE_SYSTEM_MEMORY) {
--		status = acpi_os_read_memory((acpi_physical_address)
--					     address, &value64, reg->bit_width);
-+	index = 0;
-+	while (bit_width) {
-+		if (bit_offset >= access_width) {
-+			value32 = 0;
-+			bit_offset -= access_width;
-+		} else {
-+			if (reg->space_id == ACPI_ADR_SPACE_SYSTEM_MEMORY) {
-+				status =
-+				    acpi_os_read_memory((acpi_physical_address)
-+							address +
-+							index *
-+							ACPI_DIV_8
-+							(access_width),
-+							&value64, access_width);
-+				value32 = (u32)value64;
-+			} else {	/* ACPI_ADR_SPACE_SYSTEM_IO, validated earlier */
++/* 2: HW-reduced Communications Subspace Type 2 (ACPI 6.1) */
 +
-+				status = acpi_hw_read_port((acpi_io_address)
-+							   address +
-+							   index *
-+							   ACPI_DIV_8
-+							   (access_width),
-+							   &value32,
-+							   access_width);
-+			}
- 
--		*value = (u32)value64;
--	} else {		/* ACPI_ADR_SPACE_SYSTEM_IO, validated earlier */
-+			/*
-+			 * Use offset style bit masks because:
-+			 * bit_offset < access_width/bit_width < access_width, and
-+			 * access_width is ensured to be less than 32-bits by
-+			 * acpi_hw_validate_register().
-+			 */
-+			if (bit_offset) {
-+				value32 &= ACPI_MASK_BITS_BELOW(bit_offset);
-+				bit_offset = 0;
-+			}
-+			if (bit_width < access_width) {
-+				value32 &= ACPI_MASK_BITS_ABOVE(bit_width);
-+			}
-+		}
++struct acpi_pcct_hw_reduced_type2 {
++	struct acpi_subtable_header header;
++	u32 doorbell_interrupt;
++	u8 flags;
++	u8 reserved;
++	u64 base_address;
++	u64 length;
++	struct acpi_generic_address doorbell_register;
++	u64 preserve_mask;
++	u64 write_mask;
++	u32 latency;
++	u32 max_access_rate;
++	u16 min_turnaround_time;
++	struct acpi_generic_address doorbell_ack_register;
++	u64 ack_preserve_mask;
++	u64 ack_write_mask;
++};
 +
-+		/*
-+		 * Use offset style bit writes because "Index * AccessWidth" is
-+		 * ensured to be less than 32-bits by acpi_hw_validate_register().
-+		 */
-+		ACPI_SET_BITS(value, index * access_width,
-+			      ACPI_MASK_BITS_ABOVE_32(access_width), value32);
+ /* Values for doorbell flags above */
  
--		status = acpi_hw_read_port((acpi_io_address)
--					   address, value, reg->bit_width);
-+		bit_width -=
-+		    bit_width > access_width ? access_width : bit_width;
-+		index++;
- 	}
- 
- 	ACPI_DEBUG_PRINT((ACPI_DB_IO,
- 			  "Read:  %8.8X width %2d from %8.8X%8.8X (%s)\n",
--			  *value, reg->bit_width, ACPI_FORMAT_UINT64(address),
-+			  *value, access_width, ACPI_FORMAT_UINT64(address),
- 			  acpi_ut_get_region_name(reg->space_id)));
- 
- 	return (status);
+ #define ACPI_PCCT_INTERRUPT_POLARITY    (1)
 -- 
 1.7.10
