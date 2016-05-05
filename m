@@ -1,7 +1,7 @@
 From: Lv Zheng <lv.zheng@intel.com>
-Subject: [PATCH v2 12/13] ACPICA: Move all ASCII utilities to a common file
-Date: Thu,  5 May 2016 13:00:36 +0800
-Message-ID: <b0c18be0f2866c5cc9980ad48c19185075dce43d.1462418912.git.lv.zheng@intel.com>
+Subject: [PATCH v2 11/13] ACPICA: ACPI 2.0, Hardware: Add access_width/bit_offset support for acpi_hw_write()
+Date: Thu,  5 May 2016 13:00:29 +0800
+Message-ID: <e82bb77dbbfa4ce33293ca6101db69d1d8564f28.1462418912.git.lv.zheng@intel.com>
 References: <cover.1462331120.git.lv.zheng@intel.com> <cover.1462418912.git.lv.zheng@intel.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <cover.1462418912.git.lv.zheng@intel.com>
@@ -10,466 +10,190 @@ To: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, "Rafael J. Wysocki" <rjw@r
 Cc: Lv Zheng <lv.zheng@intel.com>, Lv Zheng <zetalog@gmail.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Bob Moore <robert.moore@intel.com>
 List-Id: linux-acpi@vger.kernel.org
 
-From: Bob Moore <robert.moore@intel.com>
+ACPICA commit 48eea5e7993ccb7189bd63cd726e02adafee6057
 
-ACPICA commit ba60e4500053010bf775d58f6f61febbdb94d817
+This patch adds access_width/bit_offset support in acpi_hw_write().
+Lv Zheng.
 
-New file is utascii.c
-
-Link: https://github.com/acpica/acpica/commit/ba60e450
-Signed-off-by: Bob Moore <robert.moore@intel.com>
+Link: https://github.com/acpica/acpica/commit/48eea5e7
+Link: https://bugs.acpica.org/show_bug.cgi?id=1240
 Signed-off-by: Lv Zheng <lv.zheng@intel.com>
+Signed-off-by: Bob Moore <robert.moore@intel.com>
 ---
- drivers/acpi/acpica/Makefile             |    1 +
- drivers/acpi/acpica/actables.h           |    2 -
- drivers/acpi/acpica/acutils.h            |   13 ++-
- drivers/acpi/acpica/dbnames.c            |    2 +-
- drivers/acpi/acpica/exnames.c            |    2 +-
- drivers/acpi/acpica/tbdata.c             |    6 +-
- drivers/acpi/acpica/tbfind.c             |    2 +-
- drivers/acpi/acpica/tbinstal.c           |    6 +-
- drivers/acpi/acpica/tbutils.c            |   27 ------
- drivers/acpi/acpica/utascii.c            |  140 ++++++++++++++++++++++++++++++
- drivers/acpi/acpica/utstring.c           |   69 +--------------
- tools/power/acpi/tools/acpidump/Makefile |    1 +
- tools/power/acpi/tools/acpidump/apdump.c |    8 +-
- 13 files changed, 168 insertions(+), 111 deletions(-)
- create mode 100644 drivers/acpi/acpica/utascii.c
+ drivers/acpi/acpica/hwregs.c |  146 +++++++++++++++++++++++++++++++++++++++---
+ 1 file changed, 137 insertions(+), 9 deletions(-)
 
-diff --git a/drivers/acpi/acpica/Makefile b/drivers/acpi/acpica/Makefile
-index 188597f..227bb7b 100644
---- a/drivers/acpi/acpica/Makefile
-+++ b/drivers/acpi/acpica/Makefile
-@@ -150,6 +150,7 @@ acpi-y +=		\
- acpi-y +=		\
- 	utaddress.o	\
- 	utalloc.o	\
-+	utascii.o	\
- 	utbuffer.o	\
- 	utcopy.o	\
- 	utexcep.o	\
-diff --git a/drivers/acpi/acpica/actables.h b/drivers/acpi/acpica/actables.h
-index 848ad3a..cd5a135 100644
---- a/drivers/acpi/acpica/actables.h
-+++ b/drivers/acpi/acpica/actables.h
-@@ -161,8 +161,6 @@ acpi_tb_install_fixed_table(acpi_physical_address address,
+diff --git a/drivers/acpi/acpica/hwregs.c b/drivers/acpi/acpica/hwregs.c
+index 6eee012..0f18dbc 100644
+--- a/drivers/acpi/acpica/hwregs.c
++++ b/drivers/acpi/acpica/hwregs.c
+@@ -311,6 +311,12 @@ acpi_status acpi_hw_read(u32 *value, struct acpi_generic_address *reg)
+ acpi_status acpi_hw_write(u32 value, struct acpi_generic_address *reg)
+ {
+ 	u64 address;
++	u8 access_width;
++	u32 bit_width;
++	u8 bit_offset;
++	u64 value64;
++	u32 new_value32, old_value32;
++	u8 index;
+ 	acpi_status status;
  
- acpi_status acpi_tb_parse_root_table(acpi_physical_address rsdp_address);
- 
--u8 acpi_is_valid_signature(char *signature);
--
- /*
-  * tbxfload
-  */
-diff --git a/drivers/acpi/acpica/acutils.h b/drivers/acpi/acpica/acutils.h
-index 107f9e0..a7dbb2b 100644
---- a/drivers/acpi/acpica/acutils.h
-+++ b/drivers/acpi/acpica/acutils.h
-@@ -167,6 +167,15 @@ struct acpi_pkg_info {
- #define DB_QWORD_DISPLAY    8
- 
- /*
-+ * utascii - ASCII utilities
-+ */
-+u8 acpi_ut_valid_nameseg(char *signature);
-+
-+u8 acpi_ut_valid_name_char(char character, u32 position);
-+
-+void acpi_ut_check_and_repair_ascii(u8 *name, char *repaired_name, u32 count);
-+
-+/*
-  * utnonansi - Non-ANSI C library functions
-  */
- void acpi_ut_strupr(char *src_string);
-@@ -579,10 +588,6 @@ void acpi_ut_print_string(char *string, u16 max_length);
- void ut_convert_backslashes(char *pathname);
- #endif
- 
--u8 acpi_ut_valid_acpi_name(char *name);
--
--u8 acpi_ut_valid_acpi_char(char character, u32 position);
--
- void acpi_ut_repair_name(char *name);
- 
- #if defined (ACPI_DEBUGGER) || defined (ACPI_APPLICATION)
-diff --git a/drivers/acpi/acpica/dbnames.c b/drivers/acpi/acpica/dbnames.c
-index 4c9e59a..8667f14 100644
---- a/drivers/acpi/acpica/dbnames.c
-+++ b/drivers/acpi/acpica/dbnames.c
-@@ -709,7 +709,7 @@ acpi_db_integrity_walk(acpi_handle obj_handle,
- 		return (AE_OK);
+ 	ACPI_FUNCTION_NAME(hw_write);
+@@ -322,23 +328,145 @@ acpi_status acpi_hw_write(u32 value, struct acpi_generic_address *reg)
+ 		return (status);
  	}
  
--	if (!acpi_ut_valid_acpi_name(node->name.ascii)) {
-+	if (!acpi_ut_valid_nameseg(node->name.ascii)) {
- 		acpi_os_printf("Invalid AcpiName for Node %p\n", node);
- 		return (AE_OK);
- 	}
-diff --git a/drivers/acpi/acpica/exnames.c b/drivers/acpi/acpica/exnames.c
-index 27c11ab..3d6af93 100644
---- a/drivers/acpi/acpica/exnames.c
-+++ b/drivers/acpi/acpica/exnames.c
-@@ -178,7 +178,7 @@ static acpi_status acpi_ex_name_segment(u8 ** in_aml_address, char *name_string)
- 
- 	for (index = 0;
- 	     (index < ACPI_NAME_SIZE)
--	     && (acpi_ut_valid_acpi_char(*aml_address, 0)); index++) {
-+	     && (acpi_ut_valid_name_char(*aml_address, 0)); index++) {
- 		char_buf[index] = *aml_address++;
- 		ACPI_DEBUG_PRINT((ACPI_DB_LOAD, "%c\n", char_buf[index]));
- 	}
-diff --git a/drivers/acpi/acpica/tbdata.c b/drivers/acpi/acpica/tbdata.c
-index d471df3..1388a19 100644
---- a/drivers/acpi/acpica/tbdata.c
-+++ b/drivers/acpi/acpica/tbdata.c
-@@ -401,9 +401,9 @@ acpi_tb_verify_temp_table(struct acpi_table_desc *table_desc, char *signature)
- 			ACPI_EXCEPTION((AE_INFO, AE_NO_MEMORY,
- 					"%4.4s 0x%8.8X%8.8X"
- 					" Attempted table install failed",
--					acpi_ut_valid_acpi_name(table_desc->
--								signature.
--								ascii) ?
-+					acpi_ut_valid_nameseg(table_desc->
-+							      signature.
-+							      ascii) ?
- 					table_desc->signature.ascii : "????",
- 					ACPI_FORMAT_UINT64(table_desc->
- 							   address)));
-diff --git a/drivers/acpi/acpica/tbfind.c b/drivers/acpi/acpica/tbfind.c
-index f2d0803..e348d61 100644
---- a/drivers/acpi/acpica/tbfind.c
-+++ b/drivers/acpi/acpica/tbfind.c
-@@ -76,7 +76,7 @@ acpi_tb_find_table(char *signature,
- 
- 	/* Validate the input table signature */
- 
--	if (!acpi_is_valid_signature(signature)) {
-+	if (!acpi_ut_valid_nameseg(signature)) {
- 		return_ACPI_STATUS(AE_BAD_SIGNATURE);
- 	}
- 
-diff --git a/drivers/acpi/acpica/tbinstal.c b/drivers/acpi/acpica/tbinstal.c
-index 4dc6108..8b13052 100644
---- a/drivers/acpi/acpica/tbinstal.c
-+++ b/drivers/acpi/acpica/tbinstal.c
-@@ -299,9 +299,9 @@ acpi_tb_install_standard_table(acpi_physical_address address,
- 			ACPI_BIOS_ERROR((AE_INFO,
- 					 "Table has invalid signature [%4.4s] (0x%8.8X), "
- 					 "must be SSDT or OEMx",
--					 acpi_ut_valid_acpi_name(new_table_desc.
--								 signature.
--								 ascii) ?
-+					 acpi_ut_valid_nameseg(new_table_desc.
-+							       signature.
-+							       ascii) ?
- 					 new_table_desc.signature.
- 					 ascii : "????",
- 					 new_table_desc.signature.integer));
-diff --git a/drivers/acpi/acpica/tbutils.c b/drivers/acpi/acpica/tbutils.c
-index a962a85..e285539 100644
---- a/drivers/acpi/acpica/tbutils.c
-+++ b/drivers/acpi/acpica/tbutils.c
-@@ -380,30 +380,3 @@ next_table:
- 	acpi_os_unmap_memory(table, length);
- 	return_ACPI_STATUS(AE_OK);
- }
++	/* Convert access_width into number of bits based */
++
++	access_width = acpi_hw_get_access_bit_width(reg, 32);
++	bit_width = reg->bit_offset + reg->bit_width;
++	bit_offset = reg->bit_offset;
++
+ 	/*
+ 	 * Two address spaces supported: Memory or IO. PCI_Config is
+ 	 * not supported here because the GAS structure is insufficient
+ 	 */
+-	if (reg->space_id == ACPI_ADR_SPACE_SYSTEM_MEMORY) {
+-		status = acpi_os_write_memory((acpi_physical_address)
+-					      address, (u64)value,
+-					      reg->bit_width);
+-	} else {		/* ACPI_ADR_SPACE_SYSTEM_IO, validated earlier */
 -
--/*******************************************************************************
-- *
-- * FUNCTION:    acpi_is_valid_signature
-- *
-- * PARAMETERS:  signature           - Sig string to be validated
-- *
-- * RETURN:      TRUE if signature is has 4 valid ACPI characters
-- *
-- * DESCRIPTION: Validate an ACPI table signature.
-- *
-- ******************************************************************************/
--
--u8 acpi_is_valid_signature(char *signature)
--{
--	u32 i;
--
--	/* Validate each character in the signature */
--
--	for (i = 0; i < ACPI_NAME_SIZE; i++) {
--		if (!acpi_ut_valid_acpi_char(signature[i], i)) {
--			return (FALSE);
--		}
--	}
--
--	return (TRUE);
--}
-diff --git a/drivers/acpi/acpica/utascii.c b/drivers/acpi/acpica/utascii.c
-new file mode 100644
-index 0000000..706c1f3
---- /dev/null
-+++ b/drivers/acpi/acpica/utascii.c
-@@ -0,0 +1,140 @@
-+/******************************************************************************
-+ *
-+ * Module Name: utascii - Utility ascii functions
-+ *
-+ *****************************************************************************/
+-		status = acpi_hw_write_port((acpi_io_address)
+-					    address, value, reg->bit_width);
++	index = 0;
++	while (bit_width) {
++		/*
++		 * Use offset style bit reads because "Index * AccessWidth" is
++		 * ensured to be less than 32-bits by acpi_hw_validate_register().
++		 */
++		new_value32 = ACPI_GET_BITS(&value, index * access_width,
++					    ACPI_MASK_BITS_ABOVE_32
++					    (access_width));
 +
-+/*
-+ * Copyright (C) 2000 - 2016, Intel Corp.
-+ * All rights reserved.
-+ *
-+ * Redistribution and use in source and binary forms, with or without
-+ * modification, are permitted provided that the following conditions
-+ * are met:
-+ * 1. Redistributions of source code must retain the above copyright
-+ *    notice, this list of conditions, and the following disclaimer,
-+ *    without modification.
-+ * 2. Redistributions in binary form must reproduce at minimum a disclaimer
-+ *    substantially similar to the "NO WARRANTY" disclaimer below
-+ *    ("Disclaimer") and any redistribution must be conditioned upon
-+ *    including a substantially similar Disclaimer requirement for further
-+ *    binary redistribution.
-+ * 3. Neither the names of the above-listed copyright holders nor the names
-+ *    of any contributors may be used to endorse or promote products derived
-+ *    from this software without specific prior written permission.
-+ *
-+ * Alternatively, this software may be distributed under the terms of the
-+ * GNU General Public License ("GPL") version 2 as published by the Free
-+ * Software Foundation.
-+ *
-+ * NO WARRANTY
-+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
-+ * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
-+ * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTIBILITY AND FITNESS FOR
-+ * A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
-+ * HOLDERS OR CONTRIBUTORS BE LIABLE FOR SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
-+ * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
-+ * OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
-+ * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT,
-+ * STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING
-+ * IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
-+ * POSSIBILITY OF SUCH DAMAGES.
-+ */
++		if (bit_offset >= access_width) {
++			bit_offset -= access_width;
++		} else {
++			/*
++			 * Use offset style bit masks because access_width is ensured
++			 * to be less than 32-bits by acpi_hw_validate_register() and
++			 * bit_offset/bit_width is less than access_width here.
++			 */
++			if (bit_offset) {
++				new_value32 &= ACPI_MASK_BITS_BELOW(bit_offset);
++			}
++			if (bit_width < access_width) {
++				new_value32 &= ACPI_MASK_BITS_ABOVE(bit_width);
++			}
 +
-+#include <acpi/acpi.h>
-+#include "accommon.h"
++			if (reg->space_id == ACPI_ADR_SPACE_SYSTEM_MEMORY) {
++				if (bit_offset || bit_width < access_width) {
++					/*
++					 * Read old values in order not to modify the bits that
++					 * are beyond the register bit_width/bit_offset setting.
++					 */
++					status =
++					    acpi_os_read_memory((acpi_physical_address)
++								address +
++								index *
++								ACPI_DIV_8
++								(access_width),
++								&value64,
++								access_width);
++					old_value32 = (u32)value64;
 +
-+/*******************************************************************************
-+ *
-+ * FUNCTION:    acpi_ut_valid_nameseg
-+ *
-+ * PARAMETERS:  name            - The name or table signature to be examined.
-+ *                                Four characters, does not have to be a
-+ *                                NULL terminated string.
-+ *
-+ * RETURN:      TRUE if signature is has 4 valid ACPI characters
-+ *
-+ * DESCRIPTION: Validate an ACPI table signature.
-+ *
-+ ******************************************************************************/
++					/*
++					 * Use offset style bit masks because access_width is
++					 * ensured to be less than 32-bits by
++					 * acpi_hw_validate_register() and bit_offset/bit_width is
++					 * less than access_width here.
++					 */
++					if (bit_offset) {
++						old_value32 &=
++						    ACPI_MASK_BITS_ABOVE
++						    (bit_offset);
++						bit_offset = 0;
++					}
++					if (bit_width < access_width) {
++						old_value32 &=
++						    ACPI_MASK_BITS_BELOW
++						    (bit_width);
++					}
 +
-+u8 acpi_ut_valid_nameseg(char *name)
-+{
-+	u32 i;
++					new_value32 |= old_value32;
++				}
 +
-+	/* Validate each character in the signature */
++				value64 = (u64)new_value32;
++				status =
++				    acpi_os_write_memory((acpi_physical_address)
++							 address +
++							 index *
++							 ACPI_DIV_8
++							 (access_width),
++							 value64, access_width);
++			} else {	/* ACPI_ADR_SPACE_SYSTEM_IO, validated earlier */
 +
-+	for (i = 0; i < ACPI_NAME_SIZE; i++) {
-+		if (!acpi_ut_valid_name_char(name[i], i)) {
-+			return (FALSE);
-+		}
-+	}
++				if (bit_offset || bit_width < access_width) {
++					/*
++					 * Read old values in order not to modify the bits that
++					 * are beyond the register bit_width/bit_offset setting.
++					 */
++					status =
++					    acpi_hw_read_port((acpi_io_address)
++							      address +
++							      index *
++							      ACPI_DIV_8
++							      (access_width),
++							      &old_value32,
++							      access_width);
 +
-+	return (TRUE);
-+}
++					/*
++					 * Use offset style bit masks because access_width is
++					 * ensured to be less than 32-bits by
++					 * acpi_hw_validate_register() and bit_offset/bit_width is
++					 * less than access_width here.
++					 */
++					if (bit_offset) {
++						old_value32 &=
++						    ACPI_MASK_BITS_ABOVE
++						    (bit_offset);
++						bit_offset = 0;
++					}
++					if (bit_width < access_width) {
++						old_value32 &=
++						    ACPI_MASK_BITS_BELOW
++						    (bit_width);
++					}
 +
-+/*******************************************************************************
-+ *
-+ * FUNCTION:    acpi_ut_valid_name_char
-+ *
-+ * PARAMETERS:  char            - The character to be examined
-+ *              position        - Byte position (0-3)
-+ *
-+ * RETURN:      TRUE if the character is valid, FALSE otherwise
-+ *
-+ * DESCRIPTION: Check for a valid ACPI character. Must be one of:
-+ *              1) Upper case alpha
-+ *              2) numeric
-+ *              3) underscore
-+ *
-+ *              We allow a '!' as the last character because of the ASF! table
-+ *
-+ ******************************************************************************/
++					new_value32 |= old_value32;
++				}
 +
-+u8 acpi_ut_valid_name_char(char character, u32 position)
-+{
-+
-+	if (!((character >= 'A' && character <= 'Z') ||
-+	      (character >= '0' && character <= '9') || (character == '_'))) {
-+
-+		/* Allow a '!' in the last position */
-+
-+		if (character == '!' && position == 3) {
-+			return (TRUE);
++				status = acpi_hw_write_port((acpi_io_address)
++							    address +
++							    index *
++							    ACPI_DIV_8
++							    (access_width),
++							    new_value32,
++							    access_width);
++			}
 +		}
 +
-+		return (FALSE);
-+	}
-+
-+	return (TRUE);
-+}
-+
-+/*******************************************************************************
-+ *
-+ * FUNCTION:    acpi_ut_check_and_repair_ascii
-+ *
-+ * PARAMETERS:  name                - Ascii string
-+ *              count               - Number of characters to check
-+ *
-+ * RETURN:      None
-+ *
-+ * DESCRIPTION: Ensure that the requested number of characters are printable
-+ *              Ascii characters. Sets non-printable and null chars to <space>.
-+ *
-+ ******************************************************************************/
-+
-+void acpi_ut_check_and_repair_ascii(u8 *name, char *repaired_name, u32 count)
-+{
-+	u32 i;
-+
-+	for (i = 0; i < count; i++) {
-+		repaired_name[i] = (char)name[i];
-+
-+		if (!name[i]) {
-+			return;
-+		}
-+		if (!isprint(name[i])) {
-+			repaired_name[i] = ' ';
-+		}
-+	}
-+}
-diff --git a/drivers/acpi/acpica/utstring.c b/drivers/acpi/acpica/utstring.c
-index 241259b..288913a 100644
---- a/drivers/acpi/acpica/utstring.c
-+++ b/drivers/acpi/acpica/utstring.c
-@@ -145,73 +145,6 @@ void acpi_ut_print_string(char *string, u16 max_length)
- 
- /*******************************************************************************
-  *
-- * FUNCTION:    acpi_ut_valid_acpi_char
-- *
-- * PARAMETERS:  char            - The character to be examined
-- *              position        - Byte position (0-3)
-- *
-- * RETURN:      TRUE if the character is valid, FALSE otherwise
-- *
-- * DESCRIPTION: Check for a valid ACPI character. Must be one of:
-- *              1) Upper case alpha
-- *              2) numeric
-- *              3) underscore
-- *
-- *              We allow a '!' as the last character because of the ASF! table
-- *
-- ******************************************************************************/
--
--u8 acpi_ut_valid_acpi_char(char character, u32 position)
--{
--
--	if (!((character >= 'A' && character <= 'Z') ||
--	      (character >= '0' && character <= '9') || (character == '_'))) {
--
--		/* Allow a '!' in the last position */
--
--		if (character == '!' && position == 3) {
--			return (TRUE);
--		}
--
--		return (FALSE);
--	}
--
--	return (TRUE);
--}
--
--/*******************************************************************************
-- *
-- * FUNCTION:    acpi_ut_valid_acpi_name
-- *
-- * PARAMETERS:  name            - The name to be examined. Does not have to
-- *                                be NULL terminated string.
-- *
-- * RETURN:      TRUE if the name is valid, FALSE otherwise
-- *
-- * DESCRIPTION: Check for a valid ACPI name. Each character must be one of:
-- *              1) Upper case alpha
-- *              2) numeric
-- *              3) underscore
-- *
-- ******************************************************************************/
--
--u8 acpi_ut_valid_acpi_name(char *name)
--{
--	u32 i;
--
--	ACPI_FUNCTION_ENTRY();
--
--	for (i = 0; i < ACPI_NAME_SIZE; i++) {
--		if (!acpi_ut_valid_acpi_char(name[i], i)) {
--			return (FALSE);
--		}
--	}
--
--	return (TRUE);
--}
--
--/*******************************************************************************
-- *
-  * FUNCTION:    acpi_ut_repair_name
-  *
-  * PARAMETERS:  name            - The ACPI name to be repaired
-@@ -253,7 +186,7 @@ void acpi_ut_repair_name(char *name)
- 	/* Check each character in the name */
- 
- 	for (i = 0; i < ACPI_NAME_SIZE; i++) {
--		if (acpi_ut_valid_acpi_char(name[i], i)) {
-+		if (acpi_ut_valid_name_char(name[i], i)) {
- 			continue;
- 		}
- 
-diff --git a/tools/power/acpi/tools/acpidump/Makefile b/tools/power/acpi/tools/acpidump/Makefile
-index 8d76157..2942cdc 100644
---- a/tools/power/acpi/tools/acpidump/Makefile
-+++ b/tools/power/acpi/tools/acpidump/Makefile
-@@ -31,6 +31,7 @@ TOOL_OBJS = \
- 	osunixxf.o\
- 	tbprint.o\
- 	tbxfroot.o\
-+	utascii.o\
- 	utbuffer.o\
- 	utdebug.o\
- 	utexcep.o\
-diff --git a/tools/power/acpi/tools/acpidump/apdump.c b/tools/power/acpi/tools/acpidump/apdump.c
-index a39e445..fb8f1d9 100644
---- a/tools/power/acpi/tools/acpidump/apdump.c
-+++ b/tools/power/acpi/tools/acpidump/apdump.c
-@@ -68,7 +68,7 @@ u8 ap_is_valid_header(struct acpi_table_header *table)
- 
- 		/* Make sure signature is all ASCII and a valid ACPI name */
- 
--		if (!acpi_ut_valid_acpi_name(table->signature)) {
-+		if (!acpi_ut_valid_nameseg(table->signature)) {
- 			acpi_log_error("Table signature (0x%8.8X) is invalid\n",
- 				       *(u32 *)table->signature);
- 			return (FALSE);
-@@ -407,6 +407,12 @@ int ap_dump_table_from_file(char *pathname)
- 		return (-1);
++		/*
++		 * Index * access_width is ensured to be less than 32-bits by
++		 * acpi_hw_validate_register().
++		 */
++		bit_width -=
++		    bit_width > access_width ? access_width : bit_width;
++		index++;
  	}
  
-+	if (!acpi_ut_valid_nameseg(table->signature)) {
-+		acpi_log_error
-+		    ("No valid ACPI signature was found in input file %s\n",
-+		     pathname);
-+	}
-+
- 	/* File must be at least as long as the table length */
+ 	ACPI_DEBUG_PRINT((ACPI_DB_IO,
+ 			  "Wrote: %8.8X width %2d   to %8.8X%8.8X (%s)\n",
+-			  value, reg->bit_width, ACPI_FORMAT_UINT64(address),
++			  value, access_width, ACPI_FORMAT_UINT64(address),
+ 			  acpi_ut_get_region_name(reg->space_id)));
  
- 	if (table->length > file_size) {
+ 	return (status);
 -- 
 1.7.10
