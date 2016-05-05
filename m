@@ -1,48 +1,60 @@
 From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [PATCH V3 1/4] acpi,pci,irq: reduce resource requirements
-Date: Fri, 06 May 2016 01:40:40 +0200
-Message-ID: <6333411.fGcZIU6Ycq@vostro.rjw.lan>
-References: <1460914617-8259-1-git-send-email-okaya@codeaurora.org> <20160427000652.GC6789@localhost> <CAJZ5v0gpxk0SuiQym_0VjUWYFvDrnSYOZq7awxgsuxbCOcqPVg@mail.gmail.com>
+Subject: Re: [PATCH v3 0/7] ACPI / osi: Fix several issues in _OSI handling
+Date: Fri, 06 May 2016 01:41:16 +0200
+Message-ID: <1984770.JBv4BkVfFk@vostro.rjw.lan>
+References: <cover.1461656216.git.lv.zheng@intel.com> <cover.1462263979.git.lv.zheng@intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7Bit
-Return-path: <linux-pci-owner@vger.kernel.org>
-In-Reply-To: <CAJZ5v0gpxk0SuiQym_0VjUWYFvDrnSYOZq7awxgsuxbCOcqPVg@mail.gmail.com>
-Sender: linux-pci-owner@vger.kernel.org
-To: Sinan Kaya <okaya@codeaurora.org>
-Cc: "Rafael J. Wysocki" <rafael@kernel.org>, Bjorn Helgaas <helgaas@kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Timur Tabi <timur@codeaurora.org>, Christopher Covington <cov@codeaurora.org>, Linux PCI <linux-pci@vger.kernel.org>, ravikanth.nalla@hpe.com, Len Brown <lenb@kernel.org>, harish.k@hpe.com, ashwin.reghunandanan@hpe.com, Bjorn Helgaas <bhelgaas@google.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from cloudserver094114.home.net.pl ([79.96.170.134]:46008 "HELO
+	cloudserver094114.home.net.pl" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with SMTP id S1755704AbcEEXiE (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 5 May 2016 19:38:04 -0400
+In-Reply-To: <cover.1462263979.git.lv.zheng@intel.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Lv Zheng <lv.zheng@intel.com>
+Cc: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Len Brown <len.brown@intel.com>, Lv Zheng <zetalog@gmail.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
 
-On Wednesday, April 27, 2016 02:17:58 AM Rafael J. Wysocki wrote:
-> On Wed, Apr 27, 2016 at 2:06 AM, Bjorn Helgaas <helgaas@kernel.org> wrote:
-> > On Tue, Apr 26, 2016 at 01:36:11PM -0500, Bjorn Helgaas wrote:
-> >> On Sun, Apr 17, 2016 at 01:36:53PM -0400, Sinan Kaya wrote:
-> >> > Code has been redesigned to calculate penalty requirements on the fly. This
-> >> > significantly simplifies the implementation and removes some of the init
-> >> > calls from x86 architecture.
-> >> >
-> >> > Signed-off-by: Sinan Kaya <okaya@codeaurora.org>
-> >>
-> >> For all four patches:
-> >>
-> >> Acked-by: Bjorn Helgaas <bhelgaas@google.com>
-> >
-> > Rafael, I should have mentioned that I'm assuming you'll take these
-> > because they're in drivers/acpi and you merged the previous ones,
-> > e.g.,
-> >
-> >   0971686954f9 ACPI / PCI: Simplify acpi_penalize_isa_irq()
-> >   37c5939136d7 ACPI, PCI, irq: remove interrupt number restriction
-> >   b5bd02695471 ACPI, PCI, irq: remove interrupt count restriction
-> >
-> > Just let me know if you'd rather have me take them.
+On Tuesday, May 03, 2016 04:48:11 PM Lv Zheng wrote:
+> This patchset cleans up _OSI handling code and fixes several issues in it.
 > 
-> I can handle them.
+> In the v2 version, as one fix has been changed to be a stable material,
+> patches originally put before it need to be rebased. The necessary changes
+> that are required by this fix are still kept before the fix patch, and the
+> unnecessary changes that are not required by this fix are moved after the
+> fix patch. So that the back porting of the stable materials could be
+> easier. The coding style in the stable materials is kept wrong to be
+> consistent to the coding style used by the old code, so checkpatch.pl may
+> report warnings on the stable materials.
+> In the v3 version, SOB blocks are updated with the tester's information.
+> Some pr_xxx(PREFIX) related wrong stuffs are corrected. One bool cleanup
+> patch is split out.
 > 
-> I'll wait for the testing feedback from the HPE people though in case
-> there are any problems.
+> Chen Yu (1):
+>   ACPI / osi: Fix default _OSI(Darwin) support
+> 
+> Lv Zheng (6):
+>   ACPI / osi: Fix an issue that acpi_osi=!* cannot disable ACPICA
+>     internal strings
+>   ACPI / osi: Cleanup _OSI("Linux") related code before introducing new
+>     support
+>   ACPI / osi: Add acpi_osi=!! to allow reverting acpi_osi=!
+>   ACPI / osi: Cleanup OSI handling code to use bool
+>   ACPI / osi: Cleanup coding style issues before creating a separate
+>     OSI source file
+>   ACPI / osi: Collect _OSI handling into one single file
+> 
+>  Documentation/kernel-parameters.txt |    2 +
+>  drivers/acpi/Makefile               |    2 +-
+>  drivers/acpi/blacklist.c            |  196 +------------
+>  drivers/acpi/internal.h             |    2 +
+>  drivers/acpi/osi.c                  |  522 +++++++++++++++++++++++++++++++++++
+>  drivers/acpi/osl.c                  |  225 +--------------
+>  include/linux/acpi.h                |    1 -
+>  7 files changed, 533 insertions(+), 417 deletions(-)
+>  create mode 100644 drivers/acpi/osi.c
 
-All [1-4/4] applied with Bjorn's ACKs.
+All [1-7/7] applied, thanks!
 
-Thanks,
-Rafael
