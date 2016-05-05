@@ -1,7 +1,7 @@
 From: Lv Zheng <lv.zheng@intel.com>
-Subject: [PATCH v2 08/13] ACPICA: Hardware: Add optimized access bit width support
-Date: Thu,  5 May 2016 12:58:39 +0800
-Message-ID: <fe932d47355c652fa7114c369a427b44626da92a.1462418912.git.lv.zheng@intel.com>
+Subject: [PATCH v2 09/13] ACPICA: Executer: Introduce a set of macros to handle bit width mask generation
+Date: Thu,  5 May 2016 12:58:45 +0800
+Message-ID: <4d2d64afd645e4312b46c34429bff020de52efeb.1462418912.git.lv.zheng@intel.com>
 References: <cover.1462331120.git.lv.zheng@intel.com> <cover.1462418912.git.lv.zheng@intel.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <cover.1462418912.git.lv.zheng@intel.com>
@@ -10,104 +10,72 @@ To: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, "Rafael J. Wysocki" <rjw@r
 Cc: Lv Zheng <lv.zheng@intel.com>, Lv Zheng <zetalog@gmail.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Bob Moore <robert.moore@intel.com>
 List-Id: linux-acpi@vger.kernel.org
 
-ACPICA commit c49a751b4dae7baec1790748a2b4b6e8ab599f51
+ACPICA commit c23034a3a09d5ed79f1827d51f43cfbccf68ab64
 
-For Access Size = 0, it actually can use user expected access bit width.
-This patch implements this.
+A regression was reported to the shift offset >= width of type.
+This patch fixes this issue. BZ 1270.
+This is a part of the fix because the order of the patches are modified for
+Linux upstream, containing the cleanups for the old code. Lv Zheng.
 
-Besides of the ACPICA upstream commit, this patch also includes a fix fixing
-the issue reported by the FreeBSD community.
-The old register descriptors are translated in acpi_tb_init_generic_address()
-with access_width being filled with 0. This breaks code in
-acpi_hw_get_access_bit_width() when the registers are 16-bit IO ports and their
-bit_width fields are filled with 16. The rapid fix is meant to make code
-written for acpi_hw_get_access_bit_width() regression safer before the issue is
-correctly fixed from acpi_tb_init_generic_address(). Reported by
-John Baldwin <jhb@freebsd.org>, fixed by Lv Zheng <lv.zheng@intel.com>, tested
-by Jung-uk Kim <jkim@freebsd.org>.
-
-Link: https://github.com/acpica/acpica/commit/c49a751b
-Reported-by: John Baldwin <jhb@freebsd.org>
-Tested-by Jung-uk Kim <jkim@freebsd.org>.
+Link: https://github.com/acpica/acpica/commit/c23034a3
+Link: https://bugs.acpica.org/show_bug.cgi?id=1270
+Reported-by: Sascha Wildner <swildner@gmail.com>
 Signed-off-by: Lv Zheng <lv.zheng@intel.com>
 Signed-off-by: Bob Moore <robert.moore@intel.com>
 ---
- drivers/acpi/acpica/hwregs.c |   49 ++++++++++++++++++++++++++++++++++++++++--
- 1 file changed, 47 insertions(+), 2 deletions(-)
+ drivers/acpi/acpica/acmacros.h |   12 ++++++++++++
+ drivers/acpi/acpica/exfldio.c  |   12 ++----------
+ 2 files changed, 14 insertions(+), 10 deletions(-)
 
-diff --git a/drivers/acpi/acpica/hwregs.c b/drivers/acpi/acpica/hwregs.c
-index 035fb52..892e677 100644
---- a/drivers/acpi/acpica/hwregs.c
-+++ b/drivers/acpi/acpica/hwregs.c
-@@ -51,6 +51,10 @@ ACPI_MODULE_NAME("hwregs")
+diff --git a/drivers/acpi/acpica/acmacros.h b/drivers/acpi/acpica/acmacros.h
+index ecbaaba..a3b9543 100644
+--- a/drivers/acpi/acpica/acmacros.h
++++ b/drivers/acpi/acpica/acmacros.h
+@@ -270,9 +270,21 @@
+  * Bit positions start at zero.
+  * MASK_BITS_ABOVE creates a mask starting AT the position and above
+  * MASK_BITS_BELOW creates a mask starting one bit BELOW the position
++ * MASK_BITS_ABOVE/BELOW accpets a bit offset to create a mask
++ * MASK_BITS_ABOVE/BELOW_32/64 accpets a bit width to create a mask
++ * Note: The ACPI_INTEGER_BIT_SIZE check is used to bypass compiler
++ * differences with the shift operator
+  */
+ #define ACPI_MASK_BITS_ABOVE(position)      (~((ACPI_UINT64_MAX) << ((u32) (position))))
+ #define ACPI_MASK_BITS_BELOW(position)      ((ACPI_UINT64_MAX) << ((u32) (position)))
++#define ACPI_MASK_BITS_ABOVE_32(width)      ((u32) ACPI_MASK_BITS_ABOVE(width))
++#define ACPI_MASK_BITS_BELOW_32(width)      ((u32) ACPI_MASK_BITS_BELOW(width))
++#define ACPI_MASK_BITS_ABOVE_64(width)      ((width) == ACPI_INTEGER_BIT_SIZE ? \
++												ACPI_UINT64_MAX : \
++												ACPI_MASK_BITS_ABOVE(width))
++#define ACPI_MASK_BITS_BELOW_64(width)      ((width) == ACPI_INTEGER_BIT_SIZE ? \
++												(u64) 0 : \
++												ACPI_MASK_BITS_BELOW(width))
  
- #if (!ACPI_REDUCED_HARDWARE)
- /* Local Prototypes */
-+static u8
-+acpi_hw_get_access_bit_width(struct acpi_generic_address *reg,
-+			     u8 max_bit_width);
-+
- static acpi_status
- acpi_hw_read_multiple(u32 *value,
- 		      struct acpi_generic_address *register_a,
-@@ -65,6 +69,48 @@ acpi_hw_write_multiple(u32 value,
+ /* Bitfields within ACPI registers */
  
- /******************************************************************************
-  *
-+ * FUNCTION:    acpi_hw_get_access_bit_width
-+ *
-+ * PARAMETERS:  reg                 - GAS register structure
-+ *              max_bit_width       - Max bit_width supported (32 or 64)
-+ *
-+ * RETURN:      Status
-+ *
-+ * DESCRIPTION: Obtain optimal access bit width
-+ *
-+ ******************************************************************************/
-+
-+static u8
-+acpi_hw_get_access_bit_width(struct acpi_generic_address *reg, u8 max_bit_width)
-+{
-+	u64 address;
-+
-+	if (!reg->access_width) {
-+		/*
-+		 * Detect old register descriptors where only the bit_width field
-+		 * makes senses. The target address is copied to handle possible
-+		 * alignment issues.
-+		 */
-+		ACPI_MOVE_64_TO_64(&address, &reg->address);
-+		if (!reg->bit_offset && reg->bit_width &&
-+		    ACPI_IS_POWER_OF_TWO(reg->bit_width) &&
-+		    ACPI_IS_ALIGNED(reg->bit_width, 8) &&
-+		    ACPI_IS_ALIGNED(address, reg->bit_width)) {
-+			return (reg->bit_width);
-+		} else {
-+			if (reg->space_id == ACPI_ADR_SPACE_SYSTEM_IO) {
-+				return (32);
-+			} else {
-+				return (max_bit_width);
-+			}
-+		}
-+	} else {
-+		return (1 << (reg->access_width + 2));
-+	}
-+}
-+
-+/******************************************************************************
-+ *
-  * FUNCTION:    acpi_hw_validate_register
-  *
-  * PARAMETERS:  reg                 - GAS register structure
-@@ -122,8 +168,7 @@ acpi_hw_validate_register(struct acpi_generic_address *reg,
+diff --git a/drivers/acpi/acpica/exfldio.c b/drivers/acpi/acpica/exfldio.c
+index 72f9176..ee76d29 100644
+--- a/drivers/acpi/acpica/exfldio.c
++++ b/drivers/acpi/acpica/exfldio.c
+@@ -897,17 +897,9 @@ acpi_ex_insert_into_field(union acpi_operand_object *obj_desc,
  
- 	/* Validate the bit_width, convert access_width into number of bits */
+ 	access_bit_width = ACPI_MUL_8(obj_desc->common_field.access_byte_width);
  
--	access_width = reg->access_width ? reg->access_width : 1;
--	access_width = 1 << (access_width + 2);
-+	access_width = acpi_hw_get_access_bit_width(reg, max_bit_width);
- 	bit_width =
- 	    ACPI_ROUND_UP(reg->bit_offset + reg->bit_width, access_width);
- 	if (max_bit_width < bit_width) {
+-	/*
+-	 * Create the bitmasks used for bit insertion.
+-	 * Note: This if/else is used to bypass compiler differences with the
+-	 * shift operator
+-	 */
+-	if (access_bit_width == ACPI_INTEGER_BIT_SIZE) {
+-		width_mask = ACPI_UINT64_MAX;
+-	} else {
+-		width_mask = ACPI_MASK_BITS_ABOVE(access_bit_width);
+-	}
++	/* Create the bitmasks used for bit insertion */
+ 
++	width_mask = ACPI_MASK_BITS_ABOVE_64(access_bit_width);
+ 	mask = width_mask &
+ 	    ACPI_MASK_BITS_BELOW(obj_desc->common_field.start_field_bit_offset);
+ 
 -- 
 1.7.10
