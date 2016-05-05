@@ -1,45 +1,45 @@
-From: Lv Zheng <lv.zheng@intel.com>
-Subject: [PATCH v2 13/13] ACPICA: Update version to 20160422
-Date: Thu,  5 May 2016 13:00:42 +0800
-Message-ID: <c5d3df8f98ad55e17e0c259d8a7c1db536c8989d.1462418912.git.lv.zheng@intel.com>
-References: <cover.1462331120.git.lv.zheng@intel.com> <cover.1462418912.git.lv.zheng@intel.com>
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga09.intel.com ([134.134.136.24]:29288 "EHLO mga09.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754297AbcEEFA4 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 5 May 2016 01:00:56 -0400
-In-Reply-To: <cover.1462418912.git.lv.zheng@intel.com>
-Sender: linux-acpi-owner@vger.kernel.org
+From: Pali =?utf-8?B?Um9ow6Fy?= <pali.rohar@gmail.com>
+Subject: Re: [PATCH] i2c: i801: Allow ACPI SystemIO OpRegion to conflict with
+ PCI BAR
+Date: Thu, 5 May 2016 10:27:25 +0200
+Message-ID: <20160505082725.GQ12528@pali>
+References: <1461839010-110231-1-git-send-email-mika.westerberg@linux.intel.com>
+ <20160429090351.GS12528@pali>
+ <CALCETrXO128w2ZyCj3TV96gS0k_f+9THYmT-Au7s26TLB18tpA@mail.gmail.com>
+ <201604292300.23616@pali>
+ <CALCETrXF0PnEnHrNXkQJ6dFq3HhF7tRgkOt7zZF5EBinU_Wc+g@mail.gmail.com>
+ <CALCETrUL9kFrGuRJVOhOvJXQRiYOyHMeWsANr__PfSSEvYWaYw@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-i2c-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <CALCETrUL9kFrGuRJVOhOvJXQRiYOyHMeWsANr__PfSSEvYWaYw@mail.gmail.com>
+Sender: linux-i2c-owner@vger.kernel.org
+To: Andy Lutomirski <luto@amacapital.net>
+Cc: Andy Lutomirski <luto@kernel.org>, Mika Westerberg <mika.westerberg@linux.intel.com>, Jean Delvare <jdelvare@suse.com>, Wolfram Sang <wsa@the-dreams.de>, Jarkko Nikula <jarkko.nikula@linux.intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, "linux-i2c@vger.kernel.org" <linux-i2c@vger.kernel.org>, Linux ACPI <linux-acpi@vger.kernel.org>, Mario Limonciello <mario_limonciello@dell.com>
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <len.brown@intel.com>
-Cc: Lv Zheng <lv.zheng@intel.com>, Lv Zheng <zetalog@gmail.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Bob Moore <robert.moore@intel.com>
 
-From: Bob Moore <robert.moore@intel.com>
+On Friday 29 April 2016 17:56:14 Andy Lutomirski wrote:
+> On Fri, Apr 29, 2016 at 2:42 PM, Andy Lutomirski <luto@amacapital.net=
+> wrote:
+> > On Fri, Apr 29, 2016 at 2:00 PM, Pali Roh=C3=A1r <pali.rohar@gmail.=
+com> wrote:
+> >> On Friday 29 April 2016 20:10:23 Andy Lutomirski wrote:
+> >>> Jean and Wolfram: is there a quirk mechanism to add i2c devices t=
+hat
+> >>> aren't directly enumerable but are known to exist due to DMI?
+> >>
+> >> Maybe something like i2c_register_board_info()?
+> >
+> > Maybe.  i think that wants to be called before the adapter shows up=
+, though.
+>=20
+> i2c_probe_optional_slaves may be a more appropriate place to put this=
+=2E
 
-ACPICA commit a2327ba410e19c2aabaf34b711dbadf7d1dcf346
+I cannot find function i2c_probe_optional_slaves. Where is it?
 
-Version 20160422.
-
-Link: https://github.com/acpica/acpica/commit/a2327ba4
-Signed-off-by: Bob Moore <robert.moore@intel.com>
-Signed-off-by: Lv Zheng <lv.zheng@intel.com>
----
- include/acpi/acpixf.h |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
-
-diff --git a/include/acpi/acpixf.h b/include/acpi/acpixf.h
-index 366b364..4e4c214 100644
---- a/include/acpi/acpixf.h
-+++ b/include/acpi/acpixf.h
-@@ -46,7 +46,7 @@
- 
- /* Current ACPICA subsystem version in YYYYMMDD format */
- 
--#define ACPI_CA_VERSION                 0x20160318
-+#define ACPI_CA_VERSION                 0x20160422
- 
- #include <acpi/acconfig.h>
- #include <acpi/actypes.h>
--- 
-1.7.10
-
+--=20
+Pali Roh=C3=A1r
+pali.rohar@gmail.com
