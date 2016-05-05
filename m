@@ -1,60 +1,103 @@
-From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [PATCH v3 0/7] ACPI / osi: Fix several issues in _OSI handling
-Date: Fri, 06 May 2016 01:41:16 +0200
-Message-ID: <1984770.JBv4BkVfFk@vostro.rjw.lan>
-References: <cover.1461656216.git.lv.zheng@intel.com> <cover.1462263979.git.lv.zheng@intel.com>
+From: Dan Williams <dan.j.williams@intel.com>
+Subject: Re: [PATCH v11 1/5] nfit, libnvdimm: clarify "commands" vs "_DSMs"
+Date: Thu, 5 May 2016 16:38:51 -0700
+Message-ID: <CAPcyv4gVfWF_O0CFKON+263DfPO5SCTkTkM6QrJ0V9cg9U8wew@mail.gmail.com>
+References: <146189774241.29835.12947278159500915461.stgit@dwillia2-desk3.amr.corp.intel.com>
+	<146189774794.29835.11997438198616276280.stgit@dwillia2-desk3.amr.corp.intel.com>
+	<20160505162451.GB6808@tevye.fc.hp.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cloudserver094114.home.net.pl ([79.96.170.134]:46008 "HELO
-	cloudserver094114.home.net.pl" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with SMTP id S1755704AbcEEXiE (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 5 May 2016 19:38:04 -0400
-In-Reply-To: <cover.1462263979.git.lv.zheng@intel.com>
+Received: from mail-oi0-f50.google.com ([209.85.218.50]:33557 "EHLO
+	mail-oi0-f50.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755416AbcEEXiw (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 5 May 2016 19:38:52 -0400
+Received: by mail-oi0-f50.google.com with SMTP id v145so120923121oie.0
+        for <linux-acpi@vger.kernel.org>; Thu, 05 May 2016 16:38:51 -0700 (PDT)
+In-Reply-To: <20160505162451.GB6808@tevye.fc.hp.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Lv Zheng <lv.zheng@intel.com>
-Cc: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Len Brown <len.brown@intel.com>, Lv Zheng <zetalog@gmail.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
+To: Jerry Hoemann <Jerry.Hoemann@hpe.com>
+Cc: "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, Christoph Hellwig <hch@infradead.org>, Linux ACPI <linux-acpi@vger.kernel.org>, Rafael J Wysocki <rafael.j.wysocki@intel.com>
 
-On Tuesday, May 03, 2016 04:48:11 PM Lv Zheng wrote:
-> This patchset cleans up _OSI handling code and fixes several issues in it.
-> 
-> In the v2 version, as one fix has been changed to be a stable material,
-> patches originally put before it need to be rebased. The necessary changes
-> that are required by this fix are still kept before the fix patch, and the
-> unnecessary changes that are not required by this fix are moved after the
-> fix patch. So that the back porting of the stable materials could be
-> easier. The coding style in the stable materials is kept wrong to be
-> consistent to the coding style used by the old code, so checkpatch.pl may
-> report warnings on the stable materials.
-> In the v3 version, SOB blocks are updated with the tester's information.
-> Some pr_xxx(PREFIX) related wrong stuffs are corrected. One bool cleanup
-> patch is split out.
-> 
-> Chen Yu (1):
->   ACPI / osi: Fix default _OSI(Darwin) support
-> 
-> Lv Zheng (6):
->   ACPI / osi: Fix an issue that acpi_osi=!* cannot disable ACPICA
->     internal strings
->   ACPI / osi: Cleanup _OSI("Linux") related code before introducing new
->     support
->   ACPI / osi: Add acpi_osi=!! to allow reverting acpi_osi=!
->   ACPI / osi: Cleanup OSI handling code to use bool
->   ACPI / osi: Cleanup coding style issues before creating a separate
->     OSI source file
->   ACPI / osi: Collect _OSI handling into one single file
-> 
->  Documentation/kernel-parameters.txt |    2 +
->  drivers/acpi/Makefile               |    2 +-
->  drivers/acpi/blacklist.c            |  196 +------------
->  drivers/acpi/internal.h             |    2 +
->  drivers/acpi/osi.c                  |  522 +++++++++++++++++++++++++++++++++++
->  drivers/acpi/osl.c                  |  225 +--------------
->  include/linux/acpi.h                |    1 -
->  7 files changed, 533 insertions(+), 417 deletions(-)
->  create mode 100644 drivers/acpi/osi.c
+On Thu, May 5, 2016 at 9:24 AM, Jerry Hoemann <jerry.hoemann@hpe.com> wrote:
+> On Thu, Apr 28, 2016 at 07:42:28PM -0700, Dan Williams wrote:
+>> Clarify the distinction between "commands", the ioctls userspace calls
+>> to request the kernel take some action on a given dimm device, and
+>> "_DSMs", the actual function numbers used in the firmware interface to
+>> the DIMM.  _DSMs are ACPI specific whereas commands are Linux kernel
+>> generic.
+>>
+>> This is in preparation for breaking the 1:1 implicit relationship
+>> between the kernel ioctl number space and the firmware specific function
+>> numbers.
+>>
+>> Cc: Jerry Hoemann <jerry.hoemann@hpe.com>
+>> Cc: Christoph Hellwig <hch@infradead.org>
+>> Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+>> ---
+>>  drivers/acpi/nfit.c              |   21 +++++++++++++--------
+>>  drivers/acpi/nfit.h              |    4 ++--
+>>  drivers/nvdimm/bus.c             |    8 ++++----
+>>  drivers/nvdimm/core.c            |    2 +-
+>>  drivers/nvdimm/dimm_devs.c       |   18 ++++++++++++------
+>>  drivers/nvdimm/nd-core.h         |    2 +-
+>>  include/linux/libnvdimm.h        |    5 +++--
+>>  tools/testing/nvdimm/test/nfit.c |   27 ++++++++++++++-------------
+>>  8 files changed, 50 insertions(+), 37 deletions(-)
+>>
+>
+> ....
+>
+>
+>> diff --git a/tools/testing/nvdimm/test/nfit.c b/tools/testing/nvdimm/test/nfit.c
+>> index 3187322eeed7..ed899a411c22 100644
+>> --- a/tools/testing/nvdimm/test/nfit.c
+>> +++ b/tools/testing/nvdimm/test/nfit.c
+>> @@ -344,8 +344,9 @@ static int nfit_test_ctl(struct nvdimm_bus_descriptor *nd_desc,
+>>
+>>       if (nvdimm) {
+>>               struct nfit_mem *nfit_mem = nvdimm_provider_data(nvdimm);
+>> +             unsigned long cmd_mask = nvdimm_cmd_mask(nvdimm);
+>>
+>> -             if (!nfit_mem || !test_bit(cmd, &nfit_mem->dsm_mask))
+>> +             if (!nfit_mem || !test_bit(cmd, &cmd_mask))
+>>                       return -ENOTTY;
+>>
+>>               /* lookup label space for the given dimm */
+>> @@ -374,7 +375,7 @@ static int nfit_test_ctl(struct nvdimm_bus_descriptor *nd_desc,
+>>       } else {
+>>               struct ars_state *ars_state = &t->ars_state;
+>>
+>> -             if (!nd_desc || !test_bit(cmd, &nd_desc->dsm_mask))
+>> +             if (!nd_desc || !test_bit(cmd, &nd_desc->cmd_mask))
+>>                       return -ENOTTY;
+>>
+>>               switch (cmd) {
+>> @@ -1251,13 +1252,13 @@ static void nfit_test0_setup(struct nfit_test *t)
+>>       post_ars_status(&t->ars_state, t->spa_set_dma[0], SPA0_SIZE);
+>>
+>>       acpi_desc = &t->acpi_desc;
+>> -     set_bit(ND_CMD_GET_CONFIG_SIZE, &acpi_desc->dimm_dsm_force_en);
+>> -     set_bit(ND_CMD_GET_CONFIG_DATA, &acpi_desc->dimm_dsm_force_en);
+>> -     set_bit(ND_CMD_SET_CONFIG_DATA, &acpi_desc->dimm_dsm_force_en);
+>> -     set_bit(ND_CMD_ARS_CAP, &acpi_desc->bus_dsm_force_en);
+>> -     set_bit(ND_CMD_ARS_START, &acpi_desc->bus_dsm_force_en);
+>> -     set_bit(ND_CMD_ARS_STATUS, &acpi_desc->bus_dsm_force_en);
+>> -     set_bit(ND_CMD_CLEAR_ERROR, &acpi_desc->bus_dsm_force_en);
+>> +     set_bit(ND_CMD_GET_CONFIG_SIZE, &acpi_desc->dimm_cmd_force_en);
+>> +     set_bit(ND_CMD_GET_CONFIG_DATA, &acpi_desc->dimm_cmd_force_en);
+>> +     set_bit(ND_CMD_SET_CONFIG_DATA, &acpi_desc->dimm_cmd_force_en);
+>> +     set_bit(ND_CMD_ARS_CAP, &acpi_desc->bus_cmd_force_en);
+>> +     set_bit(ND_CMD_ARS_START, &acpi_desc->bus_cmd_force_en);
+>> +     set_bit(ND_CMD_ARS_STATUS, &acpi_desc->bus_cmd_force_en);
+>> +     set_bit(ND_CMD_CLEAR_ERROR, &acpi_desc->bus_cmd_force_en);
+>>  }
+>
+>
+> Do you still want to have ND_CMD_CALL bit set?
+>
+> ND_CMD_CALL is defined in your next patch, so you'll need
+> to re-order or put another patch to this function to set ND_CMD_CALL.
 
-All [1-7/7] applied, thanks!
-
+It's set automatically in acpi_nfit_register_dimms().
