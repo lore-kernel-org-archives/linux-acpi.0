@@ -1,89 +1,33 @@
-From: "Zheng, Lv" <lv.zheng@intel.com>
-Subject: RE: [PATCH v2] ACPI / tables: Fix DSDT override mechanism
-Date: Fri, 6 May 2016 08:32:00 +0000
-Message-ID: <1AE640813FDE7649BE1B193DEA596E883BB9D7FB@SHSMSX101.ccr.corp.intel.com>
-References: <2164912.tYyYIWGPTW@vostro.rjw.lan>
- <1946331.5n4iSuMqAq@vostro.rjw.lan>
- <1AE640813FDE7649BE1B193DEA596E883BB9B156@SHSMSX101.ccr.corp.intel.com>
+From: Mika Westerberg <mika.westerberg@linux.intel.com>
+Subject: Re: [PATCH v2] i2c: i801: Allow ACPI SystemIO OpRegion to conflict
+ with PCI BAR
+Date: Fri, 6 May 2016 11:55:07 +0300
+Message-ID: <20160506085507.GD15974@lahna.fi.intel.com>
+References: <1462354045-94455-1-git-send-email-mika.westerberg@linux.intel.com>
+ <2682382.6cA2VZCBS9@vostro.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga09.intel.com ([134.134.136.24]:28439 "EHLO mga09.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751511AbcEFIcF (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 6 May 2016 04:32:05 -0400
-In-Reply-To: <1AE640813FDE7649BE1B193DEA596E883BB9B156@SHSMSX101.ccr.corp.intel.com>
-Content-Language: en-US
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-i2c-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <2682382.6cA2VZCBS9@vostro.rjw.lan>
+Sender: linux-i2c-owner@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: Jean Delvare <jdelvare@suse.com>, Wolfram Sang <wsa@the-dreams.de>, Jarkko Nikula <jarkko.nikula@linux.intel.com>, Andy Lutomirski <luto@kernel.org>, Mario Limonciello <mario_limonciello@dell.com>, pali.rohar@gmail.com, linux-i2c@vger.kernel.org, linux-acpi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Zheng, Lv" <lv.zheng@intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>
-Cc: Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
 
-SGksDQoNCj4gRnJvbTogbGludXgtYWNwaS1vd25lckB2Z2VyLmtlcm5lbC5vcmcgW21haWx0bzps
-aW51eC1hY3BpLQ0KPiBvd25lckB2Z2VyLmtlcm5lbC5vcmddIE9uIEJlaGFsZiBPZiBaaGVuZywg
-THYNCj4gU3ViamVjdDogUkU6IFtQQVRDSCB2Ml0gQUNQSSAvIHRhYmxlczogRml4IERTRFQgb3Zl
-cnJpZGUgbWVjaGFuaXNtDQo+IA0KPiBIaSwNCj4gDQo+IEkgYWxzbyBub3RpY2VkIHRoaXMgYW5k
-IHdhcyBhYm91dCB0byB3cml0ZSBhIGZpeCBwYXRjaC4NCj4gVGhlIGJ1aWxkIGlzc3VlIHdhc24n
-dCBjYXVnaHQgYnkgTEtQLCBJIG5vdGljZWQgaXQgZHVyaW5nIEFDUElDQSByZWxlYXNlIHRlc3Qu
-DQo+IFRoYW5rcyBmb3IgZG9pbmcgdGhpcy4gOi0pDQo+IA0KPiA+IEZyb206IGxpbnV4LWFjcGkt
-b3duZXJAdmdlci5rZXJuZWwub3JnIFttYWlsdG86bGludXgtYWNwaS0NCj4gPiBvd25lckB2Z2Vy
-Lmtlcm5lbC5vcmddIE9uIEJlaGFsZiBPZiBSYWZhZWwgSi4gV3lzb2NraQ0KPiA+IFN1YmplY3Q6
-IFtQQVRDSCB2Ml0gQUNQSSAvIHRhYmxlczogRml4IERTRFQgb3ZlcnJpZGUgbWVjaGFuaXNtDQo+
-ID4NCj4gPiBGcm9tOiBSYWZhZWwgSi4gV3lzb2NraSA8cmFmYWVsLmoud3lzb2NraUBpbnRlbC5j
-b20+DQo+ID4NCj4gPiBDb21taXQgNWFlNzRmMmNjMmYxIChBQ1BJIC8gdGFibGVzOiBNb3ZlIHRh
-YmxlIG92ZXJyaWRlIG1lY2hhbmlzbXMgdG8NCj4gPiB0YWJsZXMuYykgZm9yZ290IHRvIG1vdmUg
-dGhlIENPTkZJR19BQ1BJX0NVU1RPTV9EU0RUX0ZJTEUgaW5jbHVzaW9uDQo+ID4gZGlyZWN0aXZl
-IGZyb20gb3NsLmMgdG8gdGFibGVzLmMuICBGaXggdGhhdC4NCj4gPg0KPiA+IEZpeGVzOiA1YWU3
-NGYyY2MyZjEgKEFDUEkgLyB0YWJsZXM6IE1vdmUgdGFibGUgb3ZlcnJpZGUgbWVjaGFuaXNtcyB0
-bw0KPiB0YWJsZXMuYykNCj4gPiBTaWduZWQtb2ZmLWJ5OiBSYWZhZWwgSi4gV3lzb2NraSA8cmFm
-YWVsLmoud3lzb2NraUBpbnRlbC5jb20+DQo+ID4gLS0tDQo+ID4NCj4gPiBBIGNvc21ldGljIGNo
-YW5nZS4NCj4gPg0KPiA+IHYxIC0+IHYyOiBNb3ZlIHRoZSBuZXcgI2luY2x1ZGUgY2xvc2VyIHRv
-IHRoZSBvdGhlciAjaW5jbHVkZSBkaXJlY3RpdmVzIGluDQo+ID4gICAgICAgICAgIHRhYmxlcy5j
-Lg0KPiA+DQo+ID4gLS0tDQo+ID4gIGRyaXZlcnMvYWNwaS9vc2wuYyAgICB8ICAgIDQgLS0tLQ0K
-PiA+ICBkcml2ZXJzL2FjcGkvdGFibGVzLmMgfCAgICA0ICsrKysNCj4gPiAgMiBmaWxlcyBjaGFu
-Z2VkLCA0IGluc2VydGlvbnMoKyksIDQgZGVsZXRpb25zKC0pDQo+ID4NCj4gPiBJbmRleDogbGlu
-dXgtcG0vZHJpdmVycy9hY3BpL3RhYmxlcy5jDQo+ID4NCj4gPT09PT09PT09PT09PT09PT09PT09
-PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PQ0KPiA+ID09PQ0KPiA+
-IC0tLSBsaW51eC1wbS5vcmlnL2RyaXZlcnMvYWNwaS90YWJsZXMuYw0KPiA+ICsrKyBsaW51eC1w
-bS9kcml2ZXJzL2FjcGkvdGFibGVzLmMNCj4gPiBAQCAtMzYsNiArMzYsMTAgQEANCj4gPiAgI2lu
-Y2x1ZGUgPGxpbnV4L21lbWJsb2NrLmg+DQo+ID4gICNpbmNsdWRlICJpbnRlcm5hbC5oIg0KPiA+
-DQo+ID4gKyNpZmRlZiBDT05GSUdfQUNQSV9DVVNUT01fRFNEVA0KPiA+ICsjaW5jbHVkZSBDT05G
-SUdfQUNQSV9DVVNUT01fRFNEVF9GSUxFDQo+ID4gKyNlbmRpZg0KPiA+ICsNCj4gW0x2IFpoZW5n
-XQ0KPiBJTU8sIHdlIGNvdWxkIG1vdmUgdGhpcyBjbG9zZXIgdG8gYWNwaV9vc190YWJsZV9vdmVy
-cmlkZS4NCj4gQW5kIG1vdmUgQ09ORklHX0FDUElfQ1VTVE9NX0RTRFQgb3V0IG9mIHRoaXMgZnVu
-Y3Rpb24gdG8gZm9ybSB0aGUNCj4gZm9sbG93aW5nIHN0eWxlOg0KPiANCj4gI2lmZGVmIENPTkZJ
-R19BQ1BJX0NVU1RPTV9EU0RUDQo+ICNpbmNsdWRlIENPTkZJR19BQ1BJX0NVU1RPTV9EU0RUX0ZJ
-TEUNCj4gDQo+IGFjcGlfc3RhdHVzIGFjcGlfb3NfdGFibGVfb3ZlcnJpZGUoLi4uKQ0KPiB7DQo+
-IH0NCj4gI2Vsc2UNCj4gYWNwaV9zdGF0dXMgYWNwaV9vc190YWJsZV9vdmVycmlkZSguLi4pDQo+
-IHsNCj4gCXJldHVybiBBRV9TVVBQT1JUOw0KPiB9DQo+ICNlbmRpZg0KPiANCj4gV2UgY2FuIHJl
-dHVybiBBRV9TVVBQT1JUIGZyb20gYWNwaV9vc190YWJsZV9vdmVycmlkZSgpIGhlcmUsIHBsZWFz
-ZSByZWZlcg0KPiB0byBkcml2ZXJzL2FjcGkvYWNwaWNhL3RiaW5zdGFsLmMuDQo+IEJ5IGRvaW5n
-IHNvLCB3ZSBjYW46DQo+IDEuIG1ha2UgYWNwaV9vc190YWJsZV9vdmVycmlkZSBjbGVhcmVyLCBh
-bmQNCj4gMi4gbWFrZSAjaWZkZWYgbWFpbnRhaW5lZCBhdCBmdW5jdGlvbiBib3VuZGFyeSwgYW5k
-DQo+IDMuIHJlbW92ZSBhZGRpdGlvbmFsICNpZmRlZiBDT05GSUdfQUNQSV9DVVNUT01fRFNEVCwg
-YW5kDQo+IDQuIGhlbHAgdG8gYXZvaWQgc2FtZSBmdXR1cmUgbWlzdGFrZXMuDQo+IA0KDQpbTHYg
-WmhlbmddIA0KV2hhdCBJIHNhaWQgYWJvdmUgbWF5IG5vdCBiZSBzdWl0YWJsZSBmb3IgYSBzdGFi
-bGUgbWF0ZXJpYWwuDQpBbmQgSSBhbHNvIG5vdGljZWQgdGhhdCBub3Qgb25seSBEU0RUIG92ZXJy
-aWRlLCBidXQgYWxzbyBpbml0cmQgb3ZlcnJpZGUgbmVlZCBhIHNpbWlsYXIgc3R1YiBjaGFuZ2Uu
-DQpTbyB3ZSBuZWVkbid0IHRoZW0gaW4gdGhpcyBwYXRjaC4NCg0KQWNrZWQtYnk6IEx2IFpoZW5n
-IDxsdi56aGVuZ0BpbnRlbC5jb20+DQoNClRoYW5rcyBhbmQgYmVzdCByZWdhcmRzDQotTHYNCg0K
-PiANCj4gPiAgI2RlZmluZSBBQ1BJX01BWF9UQUJMRVMJCTEyOA0KPiA+DQo+ID4gIHN0YXRpYyBj
-aGFyICptcHNfaW50aV9mbGFnc19wb2xhcml0eVtdID0geyAiZGZsIiwgImhpZ2giLCAicmVzIiwg
-ImxvdyIgfTsNCj4gPiBJbmRleDogbGludXgtcG0vZHJpdmVycy9hY3BpL29zbC5jDQo+ID4NCj4g
-PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09
-PT09PT09PQ0KPiA+ID09PQ0KPiA+IC0tLSBsaW51eC1wbS5vcmlnL2RyaXZlcnMvYWNwaS9vc2wu
-Yw0KPiA+ICsrKyBsaW51eC1wbS9kcml2ZXJzL2FjcGkvb3NsLmMNCj4gPiBAQCAtNTYsMTAgKzU2
-LDYgQEAgc3RydWN0IGFjcGlfb3NfZHBjIHsNCj4gPiAgCXN0cnVjdCB3b3JrX3N0cnVjdCB3b3Jr
-Ow0KPiA+ICB9Ow0KPiA+DQo+ID4gLSNpZmRlZiBDT05GSUdfQUNQSV9DVVNUT01fRFNEVA0KPiA+
-IC0jaW5jbHVkZSBDT05GSUdfQUNQSV9DVVNUT01fRFNEVF9GSUxFDQo+ID4gLSNlbmRpZg0KPiA+
-IC0NCj4gPiAgI2lmZGVmIEVOQUJMRV9ERUJVR0dFUg0KPiA+ICAjaW5jbHVkZSA8bGludXgva2Ri
-Lmg+DQo+ID4NCj4gPg0KPiA+IC0tDQo+ID4gVG8gdW5zdWJzY3JpYmUgZnJvbSB0aGlzIGxpc3Q6
-IHNlbmQgdGhlIGxpbmUgInVuc3Vic2NyaWJlIGxpbnV4LWFjcGkiIGluDQo+ID4gdGhlIGJvZHkg
-b2YgYSBtZXNzYWdlIHRvIG1ham9yZG9tb0B2Z2VyLmtlcm5lbC5vcmcNCj4gPiBNb3JlIG1ham9y
-ZG9tbyBpbmZvIGF0ICBodHRwOi8vdmdlci5rZXJuZWwub3JnL21ham9yZG9tby1pbmZvLmh0bWwN
-Cj4gBO+/vXsubu+/vSvvv73vv73vv73vv73vv73vv73vv70rJe+/ve+/vWx6d23vv73vv71i77+9
-66ey77+977+9cu+/ve+/vXpY77+977+9Fu+/ve+/vSjvv73vv70X77+977+93Kh977+977+977+9
-xqB677+9Jmo6K3bvv73vv73vv70N77+977+977+9DQo+IO+/vXpaK++/ve+/vSt6Zu+/ve+/ve+/
-vWjvv73vv73vv71+77+977+977+977+9ae+/ve+/ve+/vXrvv70e77+9d++/ve+/ve+/vT/vv73v
-v73vv73vv70m77+9Kd+iG2YNCg==
+On Wed, May 04, 2016 at 10:04:40PM +0200, Rafael J. Wysocki wrote:
+> > +	mutex_lock(&priv->acpi_lock);
+> > +	if (priv->acpi_reserved) {
+> > +		mutex_unlock(&priv->acpi_lock);
+> > +		return -EPERM;
+> 
+> I'd return -EIO from here as that's what it looks like from the caller's perspective.
+
+I can change that in v3 as I need to add reported-by and bugzilla links,
+which I forgot, to the patch as well.
+
+> That's not a big deal, though, so
+> 
+> Acked-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+
+Thanks!
