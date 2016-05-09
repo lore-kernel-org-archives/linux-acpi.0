@@ -1,138 +1,66 @@
-From: Alexey Klimov <alexey.klimov@arm.com>
-Subject: Re: [PATCH v2] mailbox: pcc: Support HW-Reduced Communication
- Subspace Type 2
-Date: Mon, 9 May 2016 10:43:10 +0100
-Message-ID: <20160509094309.GA14006@arm.com>
-References: <1462559914-28363-1-git-send-email-hotran@apm.com>
+From: Octavian Purdila <octavian.purdila-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: Re: [RFC PATCH v2 07/10] efi: load SSTDs from EFI variables
+Date: Mon, 9 May 2016 12:59:09 +0300
+Message-ID: <CAE1zotKgmr30rsTZCQTXuSsUTZybt41m0TJqQqJgTaZ0auSrPw@mail.gmail.com>
+References: <1461105548-20618-1-git-send-email-octavian.purdila@intel.com>
+	<1461105548-20618-8-git-send-email-octavian.purdila@intel.com>
+	<da0e65ef-7c04-e274-2f15-a50daa8c4c8c@redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from foss.arm.com ([217.140.101.70]:36530 "EHLO foss.arm.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750961AbcEIJnT (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 9 May 2016 05:43:19 -0400
-Content-Disposition: inline
-In-Reply-To: <1462559914-28363-1-git-send-email-hotran@apm.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-spi-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <da0e65ef-7c04-e274-2f15-a50daa8c4c8c-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Sender: linux-spi-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Jon Masters <jcm-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Cc: "Rafael J. Wysocki" <rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org>, Len Brown <lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Matt Fleming <matt-mF/unelCI9GS6iBeEJttW/XRex20P6io@public.gmane.org>, Mark Brown <broonie-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Wolfram Sang <wsa-z923LK4zBo2bacvFa/9K2g@public.gmane.org>, Joel Becker <jlbec-aKy9MeLSZ9dg9hUCZPvPmw@public.gmane.org>, "linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-efi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-i2c <linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-spi <linux-spi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, lkml <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Irina Tirdea <irina.tirdea-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Vincent Zimmer <vincent.zimmer-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
-To: Hoan Tran <hotran@apm.com>
-Cc: Jassi Brar <jassisinghbrar@gmail.com>, Ashwin Chaugule <ashwin.chaugule@linaro.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Robert Moore <robert.moore@intel.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, lho@apm.com, dhdang@apm.com
 
-Hi Hoan,
+On Mon, May 9, 2016 at 7:13 AM, Jon Masters <jcm-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org> wrote:
+> Hi Octavian,
+>
+> Apologies for missing this earlier, just catching up on this thread...
 
-On Fri, May 06, 2016 at 11:38:34AM -0700, Hoan Tran wrote:
-> From: hotran <hotran@apm.com>
-> 
-> ACPI 6.1 has a PCC HW-Reduced Communication Subspace Type 2 intended for
-> use on HW-Reduce ACPI Platform, which requires read-modify-write sequence
-> to acknowledge doorbell interrupt. This patch provides the implementation
-> for the Communication Subspace Type 2.
-> 
-> This patch depends on patch [1] which supports PCC subspace type 2 header
-> [1] https://lkml.org/lkml/2016/5/5/14
->  - [PATCH v2 03/13] ACPICA: ACPI 6.1: Support for new PCCT subtable
+Hi Jon,
 
-So you finally decided to use separate structure declaration for type 2. Good.
+>
+> On 04/19/2016 06:39 PM, Octavian Purdila wrote:
+>
+>> This patch allows SSDTs to be loaded from EFI variables. It works by
+>> specifying the EFI variable name containing the SSDT to be loaded. All
+>> variables with the same name (regardless of the vendor GUID) will be
+>> loaded.
+>
+> This sounds very useful during development. However, and using EFI
+> variables isn't so terrible, but I am concerned that this should be
+> standardized through ASWG and at least involve certain other OS vendors
+> so that the variable (GUID) can be captured somewhere. If not in the
+> spec itself, then it should be captured as an external ACPI resource on
+> the UEFI website with a clear pointer to the exact IDs to be used.
+>
+> Can you confirm that's the intention? i.e. that you're allowing a
+> command line option for specifying the ID now because you intend to go
+> ensure that there is a standard one that everyone will use later?
+>
 
-> v2
->  * Remove changes inside "actbl3.h". This file is taken care by ACPICA.
->  * Parse both subspace type 1 and subspace type 2
->  * Remove unnecessary variable initialization
->  * ISR returns IRQ_NONE in case of error
-> 
-> v1
->  * Initial
-> 
-> Signed-off-by: Hoan Tran <hotran@apm.com>
-> ---
->  drivers/mailbox/pcc.c | 395 +++++++++++++++++++++++++++++++++++++-------------
->  1 file changed, 296 insertions(+), 99 deletions(-)
-> 
-> diff --git a/drivers/mailbox/pcc.c b/drivers/mailbox/pcc.c
-> index 043828d..58c9a67 100644
-> --- a/drivers/mailbox/pcc.c
-> +++ b/drivers/mailbox/pcc.c
-> @@ -59,6 +59,7 @@
->  #include <linux/delay.h>
->  #include <linux/io.h>
->  #include <linux/init.h>
+Yes, that is the intention. As I mentioned in the commit the long term
+plan is to do the loading at the FW level (before the OS boots) using
+the same mechanisms. But since this is going to take some time, I
+think its worth having the option to do the loading from software for
+two reason:
 
-[...]
+a) to provide a way for using this mechanism on older boards that will
+not have the option to do a firmware update to get this functionality
 
-> @@ -307,6 +440,43 @@ static int parse_pcc_subspace(struct acpi_subtable_header *header,
->  }
->  
->  /**
-> + * pcc_parse_subspace_irq - Parse the PCC IRQ and PCC ACK register
-> + *		There should be one entry per PCC client.
-> + * @mbox_chans: Pointer to the PCC mailbox channel data
-> + * @pcct_ss: Pointer to the ACPI subtable header under the PCCT.
-> + *
-> + * Return: 0 for Success, else errno.
-> + *
-> + * This gets called for each entry in the PCC table.
-> + */
-> +static int pcc_parse_subspace_irq(struct pcc_mbox_chan *mbox_chans,
-> +		struct acpi_pcct_hw_reduced *pcct_ss)
-> +{
-> +	mbox_chans->irq = pcc_map_interrupt(pcct_ss->doorbell_interrupt,
-> +					    (u32)pcct_ss->flags);
-> +	if (mbox_chans->irq <= 0) {
-> +		pr_err("PCC GSI %d not registered\n",
-> +		       pcct_ss->doorbell_interrupt);
-> +		return -EINVAL;
-> +	}
-> +
-> +	if (pcct_ss->header.type
-> +		== ACPI_PCCT_TYPE_HW_REDUCED_SUBSPACE_TYPE2) {
-> +		struct acpi_pcct_hw_reduced_type2 *pcct2_ss = (void *)pcct_ss;
-> +
-> +		mbox_chans->pcc_doorbell_ack_vaddr = acpi_os_ioremap(
-> +				pcct2_ss->doorbell_ack_register.address,
-> +				pcct2_ss->doorbell_ack_register.bit_width / 8);
-> +		if (!mbox_chans->pcc_doorbell_ack_vaddr) {
-> +			pr_err("Failed to ioremap PCC ACK register\n");
-> +			return -ENOMEM;
-> +		}
-> +	}
-> +
-> +	return 0;
-> +}
-> +
-> +/**
->   * acpi_pcc_probe - Parse the ACPI tree for the PCCT.
->   *
->   * Return: 0 for Success, else errno.
-> @@ -316,7 +486,8 @@ static int __init acpi_pcc_probe(void)
->  	acpi_size pcct_tbl_header_size;
->  	struct acpi_table_header *pcct_tbl;
->  	struct acpi_subtable_header *pcct_entry;
-> -	int count, i;
-> +	struct acpi_table_pcct *acpi_pcct_tbl;
-> +	int count, i, rc;
->  	acpi_status status = AE_OK;
->  
->  	/* Search for PCCT */
-> @@ -334,22 +505,28 @@ static int __init acpi_pcc_probe(void)
->  			ACPI_PCCT_TYPE_HW_REDUCED_SUBSPACE,
->  			parse_pcc_subspace, MAX_PCC_SUBSPACES);
->  
-> +	count += acpi_table_parse_entries(ACPI_SIG_PCCT,
-> +			sizeof(struct acpi_table_pcct),
-> +			ACPI_PCCT_TYPE_HW_REDUCED_SUBSPACE_TYPE2,
-> +			parse_pcc_subspace, MAX_PCC_SUBSPACES);
-> +
->  	if (count <= 0) {
->  		pr_err("Error parsing PCC subspaces from PCCT\n");
->  		return -EINVAL;
->  	}
+b) to implement the software support needed in advance and have a way to test it
 
-Looks like after first call to acpi_table_parse_entries() you may have negative
-number in count. And then you add counted number of type 2 subtables to count variable.
+> I should check (but maybe you know) if the kernel is automatically
+> tainted by this codepath as well?
 
-I am not aware how pedantic this all should be but you may have more than MAX_PCC_SUBSPACES
-subspaces or don't probe any subspaces at all with such approach. Or other side effects.
+In this version of the patch the kernel is tainted. However, note that
+in future versions I intend to remove it because it was already
+removed part of the initrd ACPI table upgrade patch [1].
 
-
-Best regards,
-Alexey Klimov
+[1] http://lkml.iu.edu/hypermail/linux/kernel/1604.1/01488.html
+--
+To unsubscribe from this list: send the line "unsubscribe linux-spi" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
