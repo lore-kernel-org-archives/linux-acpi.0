@@ -1,102 +1,138 @@
-From: Peter Rosin <peda@axentia.se>
-Subject: Re: I2C driver for LTC1760 dual smart battery system manager
-Date: Mon, 9 May 2016 10:00:22 +0200
-Message-ID: <86aa60dc-1146-9eee-01e1-4388be7981f1@axentia.se>
-References: <1461870951.6670.33.camel@amnesix>
- <500153f6-32a9-3dd2-6bdc-cf96b6afde95@electromag.com.au>
- <1462562607.17299.26.camel@amnesix>
- <4fe0360a-304e-944a-3c77-9e5a701552de@electromag.com.au>
+From: Alexey Klimov <alexey.klimov@arm.com>
+Subject: Re: [PATCH v2] mailbox: pcc: Support HW-Reduced Communication
+ Subspace Type 2
+Date: Mon, 9 May 2016 10:43:10 +0100
+Message-ID: <20160509094309.GA14006@arm.com>
+References: <1462559914-28363-1-git-send-email-hotran@apm.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-i2c-owner@vger.kernel.org>
-In-Reply-To: <4fe0360a-304e-944a-3c77-9e5a701552de@electromag.com.au>
-Sender: linux-i2c-owner@vger.kernel.org
-To: Phil Reid <preid@electromag.com.au>, Karl-Heinz Schneider <karl-heinz@schneider-inet.de>
-Cc: linux-i2c@vger.kernel.org, linux-pm@vger.kernel.org, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from foss.arm.com ([217.140.101.70]:36530 "EHLO foss.arm.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750961AbcEIJnT (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 9 May 2016 05:43:19 -0400
+Content-Disposition: inline
+In-Reply-To: <1462559914-28363-1-git-send-email-hotran@apm.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Hoan Tran <hotran@apm.com>
+Cc: Jassi Brar <jassisinghbrar@gmail.com>, Ashwin Chaugule <ashwin.chaugule@linaro.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Robert Moore <robert.moore@intel.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, lho@apm.com, dhdang@apm.com
 
-Hi!
+Hi Hoan,
 
-[adding acpi people]
+On Fri, May 06, 2016 at 11:38:34AM -0700, Hoan Tran wrote:
+> From: hotran <hotran@apm.com>
+> 
+> ACPI 6.1 has a PCC HW-Reduced Communication Subspace Type 2 intended for
+> use on HW-Reduce ACPI Platform, which requires read-modify-write sequence
+> to acknowledge doorbell interrupt. This patch provides the implementation
+> for the Communication Subspace Type 2.
+> 
+> This patch depends on patch [1] which supports PCC subspace type 2 header
+> [1] https://lkml.org/lkml/2016/5/5/14
+>  - [PATCH v2 03/13] ACPICA: ACPI 6.1: Support for new PCCT subtable
 
-On 2016-05-09 03:41, Phil Reid wrote:
-> G'day Karl,
-> On 7/05/2016 03:23, Karl-Heinz Schneider wrote:
->> Hi Phil
->>
->> Am Freitag, den 06.05.2016, 15:27 +0800 schrieb Phil Reid:
->>> G'day Karl
->>> On 29/04/2016 03:15, Karl-Heinz Schneider wrote:
->>>>
->>>> I have written an Kernel driver for the LTC1760 which is basically an
->>>> charger which can handle 2 batteries. Datasheet can be found at
->>>> http://www.linear.com/product/LTC1760
->>> They're nice chips.
->>>>
->>>> However, the device has one speciality: Hence it handles two smart
->>>> batteries, which are expected to sit on I2C address 0x0b, it implements
->>>> an i2c mux. As the device does so, my driver does also (using
->>>> i2c_add_mux_adapter() call).
->>>> Further more, Linux already ships with an driver capable to talk to
->>>> these smart battery chips, namely "sbs-battery".
->>>>
->>>> I currently using device tree to bind the LTC1760 to the smbus it sits
->>>> on and further to define the i2c-lines it implements as well as the
->>>> batteries sitting on the two muxed lines.
->>>>
->>>> Would you say this approach is technically right? The LTC expects SBS
->>>> compliant batteries connected to it, which implies a standard minimal
->>>> interface. But binding the batteries via device tree gives the user the
->>>> freedom to specify a more specialized driver.
->>>> On the other hand one could argue that if the LTC is present, also
->>>> batteries are (potentially) present and the LTC driver is responsible to
->>>> read the related registers and provide proper PM attributes. Personally
->>>> I don't like to rewrite or copy code wich works just fine...
->>>>
->>>
->>> I've been writing a driver for the same chip :).
->>> My system has 2 ltc1760 for a total of 4 batteries.
->>> Haven't completed it as yet so hadn't posted, but got it talking to the batteries.
->>> I implemented an I2c mux in the driver and just attached two sbs-battery's to it in the device tree.
->>> I think the mux is the way to go, simple and reuses existing code.
->>>
->>
->> Think so too.
+So you finally decided to use separate structure declaration for type 2. Good.
 
-I also think the muxing in ltc1760 appears to fit nicely with the
-i2c-mux framework. But I only had a cursory look...
+> v2
+>  * Remove changes inside "actbl3.h". This file is taken care by ACPICA.
+>  * Parse both subspace type 1 and subspace type 2
+>  * Remove unnecessary variable initialization
+>  * ISR returns IRQ_NONE in case of error
+> 
+> v1
+>  * Initial
+> 
+> Signed-off-by: Hoan Tran <hotran@apm.com>
+> ---
+>  drivers/mailbox/pcc.c | 395 +++++++++++++++++++++++++++++++++++++-------------
+>  1 file changed, 296 insertions(+), 99 deletions(-)
+> 
+> diff --git a/drivers/mailbox/pcc.c b/drivers/mailbox/pcc.c
+> index 043828d..58c9a67 100644
+> --- a/drivers/mailbox/pcc.c
+> +++ b/drivers/mailbox/pcc.c
+> @@ -59,6 +59,7 @@
+>  #include <linux/delay.h>
+>  #include <linux/io.h>
+>  #include <linux/init.h>
 
->>> FYI, if you didn't find it there is an acpi only driver for the ltc1760 in the kernel.
->>> But I could see a way to make it work with device trees. It enumerates it's own
->>> batteries.
->>
->> Indeed I failed to find it. Looked through drivers to find something
->> similar. How is it named?
-> It wrapped up in the acpi/sbs.c driver. Does specifically mention the ltc1760.
-> It doesn't really do much with the charger other than use it to enumerate number of batteries
-> and switch the i2c mux.
-> Search for manager_present and you'll find the relevant code.
+[...]
 
-I had a look at the acpi code you point to, and it appears to be
-racy.
+> @@ -307,6 +440,43 @@ static int parse_pcc_subspace(struct acpi_subtable_header *header,
+>  }
+>  
+>  /**
+> + * pcc_parse_subspace_irq - Parse the PCC IRQ and PCC ACK register
+> + *		There should be one entry per PCC client.
+> + * @mbox_chans: Pointer to the PCC mailbox channel data
+> + * @pcct_ss: Pointer to the ACPI subtable header under the PCCT.
+> + *
+> + * Return: 0 for Success, else errno.
+> + *
+> + * This gets called for each entry in the PCC table.
+> + */
+> +static int pcc_parse_subspace_irq(struct pcc_mbox_chan *mbox_chans,
+> +		struct acpi_pcct_hw_reduced *pcct_ss)
+> +{
+> +	mbox_chans->irq = pcc_map_interrupt(pcct_ss->doorbell_interrupt,
+> +					    (u32)pcct_ss->flags);
+> +	if (mbox_chans->irq <= 0) {
+> +		pr_err("PCC GSI %d not registered\n",
+> +		       pcct_ss->doorbell_interrupt);
+> +		return -EINVAL;
+> +	}
+> +
+> +	if (pcct_ss->header.type
+> +		== ACPI_PCCT_TYPE_HW_REDUCED_SUBSPACE_TYPE2) {
+> +		struct acpi_pcct_hw_reduced_type2 *pcct2_ss = (void *)pcct_ss;
+> +
+> +		mbox_chans->pcc_doorbell_ack_vaddr = acpi_os_ioremap(
+> +				pcct2_ss->doorbell_ack_register.address,
+> +				pcct2_ss->doorbell_ack_register.bit_width / 8);
+> +		if (!mbox_chans->pcc_doorbell_ack_vaddr) {
+> +			pr_err("Failed to ioremap PCC ACK register\n");
+> +			return -ENOMEM;
+> +		}
+> +	}
+> +
+> +	return 0;
+> +}
+> +
+> +/**
+>   * acpi_pcc_probe - Parse the ACPI tree for the PCCT.
+>   *
+>   * Return: 0 for Success, else errno.
+> @@ -316,7 +486,8 @@ static int __init acpi_pcc_probe(void)
+>  	acpi_size pcct_tbl_header_size;
+>  	struct acpi_table_header *pcct_tbl;
+>  	struct acpi_subtable_header *pcct_entry;
+> -	int count, i;
+> +	struct acpi_table_pcct *acpi_pcct_tbl;
+> +	int count, i, rc;
+>  	acpi_status status = AE_OK;
+>  
+>  	/* Search for PCCT */
+> @@ -334,22 +505,28 @@ static int __init acpi_pcc_probe(void)
+>  			ACPI_PCCT_TYPE_HW_REDUCED_SUBSPACE,
+>  			parse_pcc_subspace, MAX_PCC_SUBSPACES);
+>  
+> +	count += acpi_table_parse_entries(ACPI_SIG_PCCT,
+> +			sizeof(struct acpi_table_pcct),
+> +			ACPI_PCCT_TYPE_HW_REDUCED_SUBSPACE_TYPE2,
+> +			parse_pcc_subspace, MAX_PCC_SUBSPACES);
+> +
+>  	if (count <= 0) {
+>  		pr_err("Error parsing PCC subspaces from PCCT\n");
+>  		return -EINVAL;
+>  	}
 
-It registers an attribute (alarm_attr) for every batteriy with the
-"store" function set to acpi_battery_alarm_store, which calls
-acpi_battery_set_alarm, which -- without any locking -- checks if
-the mux is set correctly, updates the mux if not, and then writes
-to the battery.
+Looks like after first call to acpi_table_parse_entries() you may have negative
+number in count. And then you add counted number of type 2 subtables to count variable.
 
-I see other code-paths that also appear to touch the mux in
-similar ways (i.e. without locking) but I didn't really look any
-further than the above, which seems to be enough of a real
-problem if separate users write to the alarm attr of batteries
-connected to the same manager.
+I am not aware how pedantic this all should be but you may have more than MAX_PCC_SUBSPACES
+subspaces or don't probe any subspaces at all with such approach. Or other side effects.
 
-The suggested fix is to register the ltc1760 mux as a real
-i2c-mux, which would probably be easiest when the i2c-mux locking
-update scheduled for 4.7 has landed (presently available in the
-i2c for-next branch and in linux-next).
 
-Cheers,
-Peter
+Best regards,
+Alexey Klimov
