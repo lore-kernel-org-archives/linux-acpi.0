@@ -1,47 +1,89 @@
-From: Jon Masters <jcm@redhat.com>
-Subject: Re: [RFC PATCH v2 07/10] efi: load SSTDs from EFI variables
-Date: Mon, 9 May 2016 00:13:22 -0400
-Message-ID: <da0e65ef-7c04-e274-2f15-a50daa8c4c8c@redhat.com>
-References: <1461105548-20618-1-git-send-email-octavian.purdila@intel.com>
- <1461105548-20618-8-git-send-email-octavian.purdila@intel.com>
+From: Ocean HY1 He <hehy1@lenovo.com>
+Subject: [PATCH] ACPI: Execute the _PTS method when system reboot
+Date: Mon, 9 May 2016 05:50:11 +0000
+Message-ID: <1462772495-71113-1-git-send-email-hehy1@lenovo.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1461105548-20618-8-git-send-email-octavian.purdila@intel.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Octavian Purdila <octavian.purdila@intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Matt Fleming <matt@codeblueprint.co.uk>, Mark Brown <broonie@kernel.org>, Wolfram Sang <wsa@the-dreams.de>
-Cc: Joel Becker <jlbec@evilplan.org>, linux-acpi@vger.kernel.org, linux-efi@vger.kernel.org, linux-i2c@vger.kernel.org, linux-spi@vger.kernel.org, linux-kernel@vger.kernel.org, irina.tirdea@intel.com
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail1.bemta8.messagelabs.com ([216.82.243.193]:16240 "EHLO
+	mail1.bemta8.messagelabs.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1750864AbcEIGC1 convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 9 May 2016 02:02:27 -0400
+Content-Language: en-US
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: "rjw@rjwysocki.net" <rjw@rjwysocki.net>, "lenb@kernel.org" <lenb@kernel.org>
+Cc: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, David Tanaka <dtanaka@lenovo.com>, Ocean HY1 He <hehy1@lenovo.com>, Nagananda Chumbalkar <nchumbalkar@lenovo.com>
 
-Hi Octavian,
+The _PTS control method is defined in the section 7.4.1 of acpi 6.0
+spec. The _PTS control method is executed by the OS during the sleep
+transition process for S1, S2, S3, S4, and for orderly S5 shutdown.
+The sleeping state value (For example, 1, 2, 3, 4 or 5 for the S5
+soft-off state) is passed to the _PTS control method. This method
+is called after OSPM has notified native device drivers of the sleep
+state transition and before the OSPM has had a chance to fully
+prepare the system for a sleep state transition.
 
-Apologies for missing this earlier, just catching up on this thread...
+The _PTS control method provides the BIOS a mechanism for performing
+some housekeeping, such as writing the sleep type value to the embedded
+controller, before entering the system sleeping state.
 
-On 04/19/2016 06:39 PM, Octavian Purdila wrote:
+According to section 7.5 of acpi 6.0 spec, _PTS should run after _TTS.
 
-> This patch allows SSDTs to be loaded from EFI variables. It works by
-> specifying the EFI variable name containing the SSDT to be loaded. All
-> variables with the same name (regardless of the vendor GUID) will be
-> loaded.
+Thus, a _PTS block notifier is added to the reboot notifier list so that
+the _PTS object will also be evaluated when the system reboot.
 
-This sounds very useful during development. However, and using EFI
-variables isn't so terrible, but I am concerned that this should be
-standardized through ASWG and at least involve certain other OS vendors
-so that the variable (GUID) can be captured somewhere. If not in the
-spec itself, then it should be captured as an external ACPI resource on
-the UEFI website with a clear pointer to the exact IDs to be used.
+Signed-off-by: Ocean He <hehy1@lenovo.com>
+Signed-off-by: Nagananda Chumbalkar <nchumbalkar@lenovo.com>
+---
+ drivers/acpi/sleep.c | 27 +++++++++++++++++++++++++++
+ 1 file changed, 27 insertions(+)
 
-Can you confirm that's the intention? i.e. that you're allowing a
-command line option for specifying the ID now because you intend to go
-ensure that there is a standard one that everyone will use later?
-
-I should check (but maybe you know) if the kernel is automatically
-tainted by this codepath as well?
-
-Thanks,
-
-Jon.
-
+diff --git a/drivers/acpi/sleep.c b/drivers/acpi/sleep.c
+index 2a8b596..8b290fb 100644
+--- a/drivers/acpi/sleep.c
++++ b/drivers/acpi/sleep.c
+@@ -55,6 +55,26 @@ static struct notifier_block tts_notifier = {
+ 	.priority	= 0,
+ };
+ 
++static int pts_notify_reboot(struct notifier_block *this,
++			unsigned long code, void *x)
++{
++	acpi_status status;
++
++	status = acpi_execute_simple_method(NULL, "\\_PTS", ACPI_STATE_S5);
++	if (ACPI_FAILURE(status) && status != AE_NOT_FOUND) {
++		/* It won't break anything. */
++		printk(KERN_NOTICE "Failure in evaluating _PTS object\n");
++	}
++
++	return NOTIFY_DONE;
++}
++
++static struct notifier_block pts_notifier = {
++	.notifier_call	= pts_notify_reboot,
++	.next		= NULL,
++	.priority	= 0,
++};
++
+ static int acpi_sleep_prepare(u32 acpi_state)
+ {
+ #ifdef CONFIG_ACPI_SLEEP
+@@ -896,5 +916,12 @@ int __init acpi_sleep_init(void)
+ 	 * object can also be evaluated when the system enters S5.
+ 	 */
+ 	register_reboot_notifier(&tts_notifier);
++
++	/*
++	 * According to section 7.5 of acpi 6.0 spec, _PTS should run after
++	 * _TTS when the system enters S5.
++	 */
++	register_reboot_notifier(&pts_notifier);
++
+ 	return 0;
+ }
 -- 
-Computer Architect | Sent from my Fedora powered laptop
+1.8.3.1
