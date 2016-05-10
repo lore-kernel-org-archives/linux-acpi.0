@@ -1,353 +1,67 @@
 From: Tomasz Nowicki <tn@semihalf.com>
-Subject: [PATCH V7 03/11] pci,
- of: Move the PCI I/O space management to PCI core code.
-Date: Tue, 10 May 2016 17:19:53 +0200
-Message-ID: <1462893601-8937-4-git-send-email-tn@semihalf.com>
+Subject: [PATCH V7 09/11] arm64, pci, acpi: ACPI support for legacy IRQs parsing and consolidation with DT code.
+Date: Tue, 10 May 2016 17:19:59 +0200
+Message-ID: <1462893601-8937-10-git-send-email-tn@semihalf.com>
 References: <1462893601-8937-1-git-send-email-tn@semihalf.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-lf0-f41.google.com ([209.85.215.41]:34544 "EHLO
+	mail-lf0-f41.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752838AbcEJPUU (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 10 May 2016 11:20:20 -0400
+Received: by mail-lf0-f41.google.com with SMTP id m64so18778594lfd.1
+        for <linux-acpi@vger.kernel.org>; Tue, 10 May 2016 08:20:14 -0700 (PDT)
 In-Reply-To: <1462893601-8937-1-git-send-email-tn@semihalf.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: helgaas@kernel.org, arnd@arndb.de, will.deacon@arm.com, catalin.marinas@arm.com, rafael@kernel.org, hanjun.guo@linaro.org, Lorenzo.Pieralisi@arm.com, okaya@codeaurora.org, jchandra@broadcom.com
-Cc: jcm@redhat.com, linaro-acpi@lists.linaro.org, linux-pci@vger.kernel.org, dhdang@apm.com, Liviu.Dudau@arm.com, ddaney@caviumnetworks.com, jeremy.linton@arm.com, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, robert.richter@caviumnetworks.com, cov@codeaurora.org, Suravee.Suthikulpanit@amd.com, msalter@redhat.com, wangyijing@huawei.com, Tomasz Nowicki <tn@semihalf.com>, mw@semihalf.com, andrea.gallo@linaro.org, linux-arm-kernel@lists.infradead.org, liudongdong3@huawei.com
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: helgaas@kernel.org, arnd@arndb.de, will.deacon@arm.com, catalin.marinas@arm.com, rafael@kernel.org, hanjun.guo@linaro.org, Lorenzo.Pieralisi@arm.com, okaya@codeaurora.org, jchandra@broadcom.com
+Cc: robert.richter@caviumnetworks.com, mw@semihalf.com, Liviu.Dudau@arm.com, ddaney@caviumnetworks.com, wangyijing@huawei.com, Suravee.Suthikulpanit@amd.com, msalter@redhat.com, linux-pci@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linaro-acpi@lists.linaro.org, jcm@redhat.com, andrea.gallo@linaro.org, dhdang@apm.com, jeremy.linton@arm.com, liudongdong3@huawei.com, cov@codeaurora.org, Tomasz Nowicki <tn@semihalf.com>
 
-No functional changes in this patch.
+To enable PCI legacy IRQs on platforms booting with ACPI, arch code
+should include ACPI specific callbacks that parse and set-up the
+device IRQ number, equivalent to the DT boot path. Owing to the current
+ACPI core scan handlers implementation, ACPI PCI legacy IRQs bindings
+cannot be parsed at device add time, since that would trigger ACPI scan
+handlers ordering issues depending on how the ACPI tables are defined.
 
-PCI I/O space mapping code does not depend on OF, therefore it can be
-moved to PCI core code. This way we will be able to use it
-e.g. in ACPI PCI code.
+To solve this problem and consolidate FW PCI legacy IRQs parsing in
+one single pcibios callback (pending final removal), this patch moves
+DT PCI IRQ parsing to the pcibios_alloc_irq() callback (called by
+PCI core code at device probe time) and adds ACPI PCI legacy IRQs
+parsing to the same callback too, so that FW PCI legacy IRQs parsing
+is confined in one single arch callback that can be easily removed
+when code parsing PCI legacy IRQs is consolidated and moved to core
+PCI code.
 
-Suggested-by: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
 Signed-off-by: Tomasz Nowicki <tn@semihalf.com>
-CC: Arnd Bergmann <arnd@arndb.de>
-CC: Liviu Dudau <Liviu.Dudau@arm.com>
+Suggested-by: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
 ---
- drivers/of/address.c       | 116 +--------------------------------------------
- drivers/pci/pci.c          | 115 ++++++++++++++++++++++++++++++++++++++++++++
- include/linux/of_address.h |   9 ----
- include/linux/pci.h        |   5 ++
- 4 files changed, 121 insertions(+), 124 deletions(-)
+ arch/arm64/kernel/pci.c | 11 ++++++++---
+ 1 file changed, 8 insertions(+), 3 deletions(-)
 
-diff --git a/drivers/of/address.c b/drivers/of/address.c
-index 91a469d..0a553c0 100644
---- a/drivers/of/address.c
-+++ b/drivers/of/address.c
-@@ -4,6 +4,7 @@
- #include <linux/ioport.h>
- #include <linux/module.h>
- #include <linux/of_address.h>
-+#include <linux/pci.h>
- #include <linux/pci_regs.h>
- #include <linux/sizes.h>
- #include <linux/slab.h>
-@@ -673,121 +674,6 @@ const __be32 *of_get_address(struct device_node *dev, int index, u64 *size,
- }
- EXPORT_SYMBOL(of_get_address);
- 
--#ifdef PCI_IOBASE
--struct io_range {
--	struct list_head list;
--	phys_addr_t start;
--	resource_size_t size;
--};
--
--static LIST_HEAD(io_range_list);
--static DEFINE_SPINLOCK(io_range_lock);
--#endif
--
--/*
-- * Record the PCI IO range (expressed as CPU physical address + size).
-- * Return a negative value if an error has occured, zero otherwise
-- */
--int __weak pci_register_io_range(phys_addr_t addr, resource_size_t size)
--{
--	int err = 0;
--
--#ifdef PCI_IOBASE
--	struct io_range *range;
--	resource_size_t allocated_size = 0;
--
--	/* check if the range hasn't been previously recorded */
--	spin_lock(&io_range_lock);
--	list_for_each_entry(range, &io_range_list, list) {
--		if (addr >= range->start && addr + size <= range->start + size) {
--			/* range already registered, bail out */
--			goto end_register;
--		}
--		allocated_size += range->size;
--	}
--
--	/* range not registed yet, check for available space */
--	if (allocated_size + size - 1 > IO_SPACE_LIMIT) {
--		/* if it's too big check if 64K space can be reserved */
--		if (allocated_size + SZ_64K - 1 > IO_SPACE_LIMIT) {
--			err = -E2BIG;
--			goto end_register;
--		}
--
--		size = SZ_64K;
--		pr_warn("Requested IO range too big, new size set to 64K\n");
--	}
--
--	/* add the range to the list */
--	range = kzalloc(sizeof(*range), GFP_ATOMIC);
--	if (!range) {
--		err = -ENOMEM;
--		goto end_register;
--	}
--
--	range->start = addr;
--	range->size = size;
--
--	list_add_tail(&range->list, &io_range_list);
--
--end_register:
--	spin_unlock(&io_range_lock);
--#endif
--
--	return err;
--}
--
--phys_addr_t pci_pio_to_address(unsigned long pio)
--{
--	phys_addr_t address = (phys_addr_t)OF_BAD_ADDR;
--
--#ifdef PCI_IOBASE
--	struct io_range *range;
--	resource_size_t allocated_size = 0;
--
--	if (pio > IO_SPACE_LIMIT)
--		return address;
--
--	spin_lock(&io_range_lock);
--	list_for_each_entry(range, &io_range_list, list) {
--		if (pio >= allocated_size && pio < allocated_size + range->size) {
--			address = range->start + pio - allocated_size;
--			break;
--		}
--		allocated_size += range->size;
--	}
--	spin_unlock(&io_range_lock);
--#endif
--
--	return address;
--}
--
--unsigned long __weak pci_address_to_pio(phys_addr_t address)
--{
--#ifdef PCI_IOBASE
--	struct io_range *res;
--	resource_size_t offset = 0;
--	unsigned long addr = -1;
--
--	spin_lock(&io_range_lock);
--	list_for_each_entry(res, &io_range_list, list) {
--		if (address >= res->start && address < res->start + res->size) {
--			addr = address - res->start + offset;
--			break;
--		}
--		offset += res->size;
--	}
--	spin_unlock(&io_range_lock);
--
--	return addr;
--#else
--	if (address > IO_SPACE_LIMIT)
--		return (unsigned long)-1;
--
--	return (unsigned long) address;
--#endif
--}
--
- static int __of_address_to_resource(struct device_node *dev,
- 		const __be32 *addrp, u64 size, unsigned int flags,
- 		const char *name, struct resource *r)
-diff --git a/drivers/pci/pci.c b/drivers/pci/pci.c
-index 25e0327..bc0c914 100644
---- a/drivers/pci/pci.c
-+++ b/drivers/pci/pci.c
-@@ -3021,6 +3021,121 @@ int pci_request_regions_exclusive(struct pci_dev *pdev, const char *res_name)
- }
- EXPORT_SYMBOL(pci_request_regions_exclusive);
- 
-+#ifdef PCI_IOBASE
-+struct io_range {
-+	struct list_head list;
-+	phys_addr_t start;
-+	resource_size_t size;
-+};
-+
-+static LIST_HEAD(io_range_list);
-+static DEFINE_SPINLOCK(io_range_lock);
-+#endif
-+
-+/*
-+ * Record the PCI IO range (expressed as CPU physical address + size).
-+ * Return a negative value if an error has occured, zero otherwise
-+ */
-+int __weak pci_register_io_range(phys_addr_t addr, resource_size_t size)
-+{
-+	int err = 0;
-+
-+#ifdef PCI_IOBASE
-+	struct io_range *range;
-+	resource_size_t allocated_size = 0;
-+
-+	/* check if the range hasn't been previously recorded */
-+	spin_lock(&io_range_lock);
-+	list_for_each_entry(range, &io_range_list, list) {
-+		if (addr >= range->start && addr + size <= range->start + size) {
-+			/* range already registered, bail out */
-+			goto end_register;
-+		}
-+		allocated_size += range->size;
-+	}
-+
-+	/* range not registed yet, check for available space */
-+	if (allocated_size + size - 1 > IO_SPACE_LIMIT) {
-+		/* if it's too big check if 64K space can be reserved */
-+		if (allocated_size + SZ_64K - 1 > IO_SPACE_LIMIT) {
-+			err = -E2BIG;
-+			goto end_register;
-+		}
-+
-+		size = SZ_64K;
-+		pr_warn("Requested IO range too big, new size set to 64K\n");
-+	}
-+
-+	/* add the range to the list */
-+	range = kzalloc(sizeof(*range), GFP_ATOMIC);
-+	if (!range) {
-+		err = -ENOMEM;
-+		goto end_register;
-+	}
-+
-+	range->start = addr;
-+	range->size = size;
-+
-+	list_add_tail(&range->list, &io_range_list);
-+
-+end_register:
-+	spin_unlock(&io_range_lock);
-+#endif
-+
-+	return err;
-+}
-+
-+phys_addr_t pci_pio_to_address(unsigned long pio)
-+{
-+	phys_addr_t address = (phys_addr_t)OF_BAD_ADDR;
-+
-+#ifdef PCI_IOBASE
-+	struct io_range *range;
-+	resource_size_t allocated_size = 0;
-+
-+	if (pio > IO_SPACE_LIMIT)
-+		return address;
-+
-+	spin_lock(&io_range_lock);
-+	list_for_each_entry(range, &io_range_list, list) {
-+		if (pio >= allocated_size && pio < allocated_size + range->size) {
-+			address = range->start + pio - allocated_size;
-+			break;
-+		}
-+		allocated_size += range->size;
-+	}
-+	spin_unlock(&io_range_lock);
-+#endif
-+
-+	return address;
-+}
-+
-+unsigned long __weak pci_address_to_pio(phys_addr_t address)
-+{
-+#ifdef PCI_IOBASE
-+	struct io_range *res;
-+	resource_size_t offset = 0;
-+	unsigned long addr = -1;
-+
-+	spin_lock(&io_range_lock);
-+	list_for_each_entry(res, &io_range_list, list) {
-+		if (address >= res->start && address < res->start + res->size) {
-+			addr = address - res->start + offset;
-+			break;
-+		}
-+		offset += res->size;
-+	}
-+	spin_unlock(&io_range_lock);
-+
-+	return addr;
-+#else
-+	if (address > IO_SPACE_LIMIT)
-+		return (unsigned long)-1;
-+
-+	return (unsigned long) address;
-+#endif
-+}
-+
- /**
-  *	pci_remap_iospace - Remap the memory mapped I/O space
-  *	@res: Resource describing the I/O space
-diff --git a/include/linux/of_address.h b/include/linux/of_address.h
-index 01c0a55..3786473 100644
---- a/include/linux/of_address.h
-+++ b/include/linux/of_address.h
-@@ -47,10 +47,6 @@ void __iomem *of_io_request_and_map(struct device_node *device,
- extern const __be32 *of_get_address(struct device_node *dev, int index,
- 			   u64 *size, unsigned int *flags);
- 
--extern int pci_register_io_range(phys_addr_t addr, resource_size_t size);
--extern unsigned long pci_address_to_pio(phys_addr_t addr);
--extern phys_addr_t pci_pio_to_address(unsigned long pio);
--
- extern int of_pci_range_parser_init(struct of_pci_range_parser *parser,
- 			struct device_node *node);
- extern struct of_pci_range *of_pci_range_parser_one(
-@@ -86,11 +82,6 @@ static inline const __be32 *of_get_address(struct device_node *dev, int index,
- 	return NULL;
+diff --git a/arch/arm64/kernel/pci.c b/arch/arm64/kernel/pci.c
+index c72de66..15109c11 100644
+--- a/arch/arm64/kernel/pci.c
++++ b/arch/arm64/kernel/pci.c
+@@ -50,11 +50,16 @@ int pcibios_enable_device(struct pci_dev *dev, int mask)
  }
  
--static inline phys_addr_t pci_pio_to_address(unsigned long pio)
--{
--	return 0;
--}
--
- static inline int of_pci_range_parser_init(struct of_pci_range_parser *parser,
- 			struct device_node *node)
+ /*
+- * Try to assign the IRQ number from DT when adding a new device
++ * Try to assign the IRQ number when probing a new device
+  */
+-int pcibios_add_device(struct pci_dev *dev)
++int pcibios_alloc_irq(struct pci_dev *dev)
  {
-diff --git a/include/linux/pci.h b/include/linux/pci.h
-index 932ec74..d2a57f3 100644
---- a/include/linux/pci.h
-+++ b/include/linux/pci.h
-@@ -1165,6 +1165,9 @@ int __must_check pci_bus_alloc_resource(struct pci_bus *bus,
- 			void *alignf_data);
+-	dev->irq = of_irq_parse_and_map_pci(dev, 0, 0);
++	if (acpi_disabled)
++		dev->irq = of_irq_parse_and_map_pci(dev, 0, 0);
++#ifdef CONFIG_ACPI
++	else
++		return acpi_pci_irq_enable(dev);
++#endif
  
- 
-+int pci_register_io_range(phys_addr_t addr, resource_size_t size);
-+unsigned long pci_address_to_pio(phys_addr_t addr);
-+phys_addr_t pci_pio_to_address(unsigned long pio);
- int pci_remap_iospace(const struct resource *res, phys_addr_t phys_addr);
- 
- static inline pci_bus_addr_t pci_bus_address(struct pci_dev *pdev, int bar)
-@@ -1481,6 +1484,8 @@ static inline int pci_request_regions(struct pci_dev *dev, const char *res_name)
- { return -EIO; }
- static inline void pci_release_regions(struct pci_dev *dev) { }
- 
-+static inline unsigned long pci_address_to_pio(phys_addr_t addr) { return -1; }
-+
- static inline void pci_block_cfg_access(struct pci_dev *dev) { }
- static inline int pci_block_cfg_access_in_atomic(struct pci_dev *dev)
- { return 0; }
+ 	return 0;
+ }
 -- 
 1.9.1
+
