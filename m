@@ -1,7 +1,7 @@
 From: Tomasz Nowicki <tn@semihalf.com>
-Subject: [PATCH V7 06/11] pci, acpi: Provide a way to assign bus domain number.
-Date: Tue, 10 May 2016 17:19:56 +0200
-Message-ID: <1462893601-8937-7-git-send-email-tn@semihalf.com>
+Subject: [PATCH V7 11/11] arm64, pci, acpi: Start using ACPI based PCI host controller driver for ARM64.
+Date: Tue, 10 May 2016 17:20:01 +0200
+Message-ID: <1462893601-8937-12-git-send-email-tn@semihalf.com>
 References: <1462893601-8937-1-git-send-email-tn@semihalf.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1462893601-8937-1-git-send-email-tn@semihalf.com>
@@ -10,77 +10,63 @@ To: helgaas@kernel.org, arnd@arndb.de, will.deacon@arm.com, catalin.marinas@arm.
 Cc: robert.richter@caviumnetworks.com, mw@semihalf.com, Liviu.Dudau@arm.com, ddaney@caviumnetworks.com, wangyijing@huawei.com, Suravee.Suthikulpanit@amd.com, msalter@redhat.com, linux-pci@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linaro-acpi@lists.linaro.org, jcm@redhat.com, andrea.gallo@linaro.org, dhdang@apm.com, jeremy.linton@arm.com, liudongdong3@huawei.com, cov@codeaurora.org, Tomasz Nowicki <tn@semihalf.com>
 List-Id: linux-acpi@vger.kernel.org
 
-This patch provides a way to set the ACPI domain number in PCI code.
-pci_create_root_bus is called with NULL as parent in ACPI. This
-ends up calling pci_bus_assign_domain_nr with a NULL parent.
-So we define acpi_pci_bus_domain_nr() which is meant to retrieve
-the PCI domain number based on 'struct pci_bus' in the ACPI way.
-pci_bus_assign_domain_nr() is updated to call acpi_pci_bus_domain_nr()
-and assign domain number on the root bus, in case of ACPI.
+It is perfectly fine to use ACPI_PCI_HOST_GENERIC for ARM64,
+so lets get rid of PCI init and RAW ACPI accessor empty stubs
+and go with full-blown PCI host controller driver.
 
-acpi_pci_bus_domain_nr function is stub for now.
-
-While at it, for the sake of code clarity we put ACPI and DT domain
-assign methods into the corresponding helpers.
-
-Signed-off-by: Jayachandran C <jchandra@broadcom.com>
 Signed-off-by: Tomasz Nowicki <tn@semihalf.com>
+To: Catalin Marinas <catalin.marinas@arm.com>
+To: Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>
+To: Will Deacon <will.deacon@arm.com>
+To: Arnd Bergmann <arnd@arndb.de>
 ---
- drivers/pci/pci.c        | 11 +++++++++--
- include/linux/pci-acpi.h |  5 +++++
- 2 files changed, 14 insertions(+), 2 deletions(-)
+ arch/arm64/Kconfig      |  1 +
+ arch/arm64/kernel/pci.c | 24 ------------------------
+ 2 files changed, 1 insertion(+), 24 deletions(-)
 
-diff --git a/drivers/pci/pci.c b/drivers/pci/pci.c
-index ff97a0b..a1d7bcf 100644
---- a/drivers/pci/pci.c
-+++ b/drivers/pci/pci.c
-@@ -19,6 +19,7 @@
- #include <linux/spinlock.h>
- #include <linux/string.h>
- #include <linux/log2.h>
-+#include <linux/pci-acpi.h>
- #include <linux/pci-aspm.h>
- #include <linux/pm_wakeup.h>
- #include <linux/interrupt.h>
-@@ -4918,7 +4919,7 @@ int pci_get_new_domain_nr(void)
- }
- 
- #ifdef CONFIG_PCI_DOMAINS_GENERIC
--void pci_bus_assign_domain_nr(struct pci_bus *bus, struct device *parent)
-+static int of_pci_bus_domain_nr(struct device *parent)
+diff --git a/arch/arm64/Kconfig b/arch/arm64/Kconfig
+index 4f43622..1bded87 100644
+--- a/arch/arm64/Kconfig
++++ b/arch/arm64/Kconfig
+@@ -2,6 +2,7 @@ config ARM64
+ 	def_bool y
+ 	select ACPI_CCA_REQUIRED if ACPI
+ 	select ACPI_GENERIC_GSI if ACPI
++	select ACPI_PCI_HOST_GENERIC if ACPI
+ 	select ACPI_REDUCED_HARDWARE_ONLY if ACPI
+ 	select ARCH_HAS_DEVMEM_IS_ALLOWED
+ 	select ARCH_HAS_ATOMIC64_DEC_IF_POSITIVE
+diff --git a/arch/arm64/kernel/pci.c b/arch/arm64/kernel/pci.c
+index eeec5f6..e484c91 100644
+--- a/arch/arm64/kernel/pci.c
++++ b/arch/arm64/kernel/pci.c
+@@ -74,27 +74,3 @@ void pcibios_remove_bus(struct pci_bus *bus)
  {
- 	static int use_dt_domains = -1;
- 	int domain = -1;
-@@ -4962,7 +4963,13 @@ void pci_bus_assign_domain_nr(struct pci_bus *bus, struct device *parent)
- 		domain = -1;
- 	}
- 
--	bus->domain_nr = domain;
-+	return domain;
-+}
-+
-+void pci_bus_assign_domain_nr(struct pci_bus *bus, struct device *parent)
-+{
-+	bus->domain_nr = acpi_disabled ? of_pci_bus_domain_nr(parent) :
-+					 acpi_pci_bus_domain_nr(bus);
+ 	acpi_pci_remove_bus(bus);
  }
- #endif
- #endif
-diff --git a/include/linux/pci-acpi.h b/include/linux/pci-acpi.h
-index 89ab057..09f9f02 100644
---- a/include/linux/pci-acpi.h
-+++ b/include/linux/pci-acpi.h
-@@ -111,6 +111,11 @@ static inline void acpi_pci_add_bus(struct pci_bus *bus) { }
- static inline void acpi_pci_remove_bus(struct pci_bus *bus) { }
- #endif	/* CONFIG_ACPI */
- 
-+static inline int acpi_pci_bus_domain_nr(struct pci_bus *bus)
-+{
-+	return 0;
-+}
-+
- #ifdef CONFIG_ACPI_APEI
- extern bool aer_acpi_firmware_first(void);
- #else
+-
+-/*
+- * raw_pci_read/write - Platform-specific PCI config space access.
+- */
+-int raw_pci_read(unsigned int domain, unsigned int bus,
+-		  unsigned int devfn, int reg, int len, u32 *val)
+-{
+-	return -ENXIO;
+-}
+-
+-int raw_pci_write(unsigned int domain, unsigned int bus,
+-		unsigned int devfn, int reg, int len, u32 val)
+-{
+-	return -ENXIO;
+-}
+-
+-#ifdef CONFIG_ACPI
+-/* Root bridge scanning */
+-struct pci_bus *pci_acpi_scan_root(struct acpi_pci_root *root)
+-{
+-	/* TODO: Should be revisited when implementing PCI on ACPI */
+-	return NULL;
+-}
+-#endif
 -- 
 1.9.1
