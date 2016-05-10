@@ -1,223 +1,213 @@
 From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [PATCH V6 01/13] pci, acpi, x86, ia64: Move ACPI host bridge device companion assignment to core code.
-Date: Tue, 10 May 2016 00:56:37 +0200
-Message-ID: <292578579.uIxhMjkdfG@vostro.rjw.lan>
-References: <1460740008-19489-1-git-send-email-tn@semihalf.com> <1460740008-19489-2-git-send-email-tn@semihalf.com>
+Subject: Re: [PATCH v4 1/5] ACPI / processor_idle: introduce ARCH_SUPPORTS_ACPI_PROCESSOR_CSTATE
+Date: Tue, 10 May 2016 02:02:39 +0200
+Message-ID: <5796685.UTMTWTestt@vostro.rjw.lan>
+References: <1461069013-13292-1-git-send-email-sudeep.holla@arm.com> <1461069013-13292-2-git-send-email-sudeep.holla@arm.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7Bit
-Return-path: <linux-pci-owner@vger.kernel.org>
-In-Reply-To: <1460740008-19489-2-git-send-email-tn@semihalf.com>
-Sender: linux-pci-owner@vger.kernel.org
-To: Tomasz Nowicki <tn@semihalf.com>
-Cc: helgaas@kernel.org, arnd@arndb.de, will.deacon@arm.com, catalin.marinas@arm.com, rafael@kernel.org, hanjun.guo@linaro.org, Lorenzo.Pieralisi@arm.com, okaya@codeaurora.org, jiang.liu@linux.intel.com, jchandra@broadcom.com, robert.richter@caviumnetworks.com, mw@semihalf.com, Liviu.Dudau@arm.com, ddaney@caviumnetworks.com, wangyijing@huawei.com, Suravee.Suthikulpanit@amd.com, msalter@redhat.com, linux-pci@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linaro-acpi@lists.linaro.org, jcm@redhat.com
+Return-path: <linux-ia64-owner@vger.kernel.org>
+In-Reply-To: <1461069013-13292-2-git-send-email-sudeep.holla@arm.com>
+Sender: linux-ia64-owner@vger.kernel.org
+To: Sudeep Holla <sudeep.holla@arm.com>
+Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Al Stone <al.stone@linaro.org>, Prashanth Prakash <pprakash@codeaurora.org>, Ashwin Chaugule <ashwin.chaugule@linaro.org>, x86@kernel.org, linux-ia64@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Friday, April 15, 2016 07:06:36 PM Tomasz Nowicki wrote:
-> Currently we have two platforms (x86 & ia64) capable of PCI ACPI host
-> bridge initialization. They both use arch-specific sysdata to pass down
-> parent device reference and both rely on NULL parent in pci_create_root_bus()
-> to validate sysdata content.
-
-No, this is not relied on for that.  It is just NULL, because we don't
-have a physical parent device representation for the PCI host bridge.
-
-> It looks hacky and prevents us from getting some firmware specific
-> info for PCI host controller based on its acpi_device structure
-> in generic pci_create_root_bus() function.
-
-You can't get that info without adding ACPI-specific code to that function
-anyway.
-
-> However, we overcome that blocker by passing down parent device via
-> pci_create_root_bus parameter (as the ACPI device type).
-
-Which is completely wrong.
-
-> Then we use ACPI_COMPANION_SET in core code
-> for ACPI boot method only. ACPI_COMPANION_SET is safe to run for all
-> cases DT, ACPI and DT&ACPI.
+On Tuesday, April 19, 2016 01:30:09 PM Sudeep Holla wrote:
+> ACPI 6.0 adds a new method to specify the CPU idle states(C-states)
+> called Low Power Idle(LPI) states. Since new architectures like ARM64
+> use only LPIs, introduce ARCH_SUPPORTS_ACPI_PROCESSOR_CSTATE to
+> encapsulate all the code supporting the old style C-states(_CST)
 > 
-> Since now PCI core code is setting ACPI companion device for us,
-> x86 & ia64 specific ACPI companion device setting turns out to be dead now.
-> We can get rid of it, including related companion reference from
-> PCI sysdata structure. Aslo, PCI_CONTROLLER macro cannot return valid
-> companion device anymore. Therefore we need to convert its usage to
-> ACPI_COMPANION.
+> This patch will help to extend the processor_idle module to support
+> LPI.
 > 
-> Suggested-by: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
-> Signed-off-by: Tomasz Nowicki <tn@semihalf.com>
-> Reviewed-by: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
-> Tested-by: Duc Dang <dhdang@apm.com>
-> Tested-by: Dongdong Liu <liudongdong3@huawei.com>
-> Tested-by: Hanjun Guo <hanjun.guo@linaro.org>
-> Tested-by: Graeme Gregory <graeme.gregory@linaro.org>
-> Tested-by: Sinan Kaya <okaya@codeaurora.org>
+> Cc: x86@kernel.org
+> Cc: linux-ia64@vger.kernel.org
+> Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+> Signed-off-by: Sudeep Holla <sudeep.holla@arm.com>
 > ---
->  arch/ia64/hp/common/sba_iommu.c    |  2 +-
->  arch/ia64/include/asm/pci.h        |  1 -
->  arch/ia64/pci/pci.c                | 16 ----------------
->  arch/ia64/sn/kernel/io_acpi_init.c |  4 ++--
->  arch/x86/include/asm/pci.h         |  3 ---
->  arch/x86/pci/acpi.c                | 17 -----------------
->  drivers/acpi/pci_root.c            |  7 ++++++-
->  drivers/pci/probe.c                |  2 ++
->  8 files changed, 11 insertions(+), 41 deletions(-)
+>  arch/ia64/Kconfig             |  1 +
+>  arch/x86/Kconfig              |  1 +
+>  drivers/acpi/Kconfig          |  3 ++
+>  drivers/acpi/processor_idle.c | 74 +++++++++++++++++++++++++++++--------------
+>  include/acpi/processor.h      |  3 +-
+>  5 files changed, 57 insertions(+), 25 deletions(-)
 > 
-> diff --git a/arch/ia64/hp/common/sba_iommu.c b/arch/ia64/hp/common/sba_iommu.c
-> index a6d6190..78e4444 100644
-> --- a/arch/ia64/hp/common/sba_iommu.c
-> +++ b/arch/ia64/hp/common/sba_iommu.c
-> @@ -1981,7 +1981,7 @@ sba_connect_bus(struct pci_bus *bus)
->  	if (PCI_CONTROLLER(bus)->iommu)
->  		return;
+> diff --git a/arch/ia64/Kconfig b/arch/ia64/Kconfig
+> index b534ebab36ea..717de2a146e2 100644
+> --- a/arch/ia64/Kconfig
+> +++ b/arch/ia64/Kconfig
+> @@ -16,6 +16,7 @@ config IA64
+>  	select PCI if (!IA64_HP_SIM)
+>  	select ACPI if (!IA64_HP_SIM)
+>  	select ACPI_SYSTEM_POWER_STATES_SUPPORT if ACPI
+> +	select ARCH_SUPPORTS_ACPI_PROCESSOR_CSTATE if ACPI
+>  	select ARCH_MIGHT_HAVE_ACPI_PDC if ACPI
+>  	select HAVE_UNSTABLE_SCHED_CLOCK
+>  	select HAVE_IDE
+> diff --git a/arch/x86/Kconfig b/arch/x86/Kconfig
+> index 2dc18605831f..eb03fd0d63b9 100644
+> --- a/arch/x86/Kconfig
+> +++ b/arch/x86/Kconfig
+> @@ -37,6 +37,7 @@ config X86
+>  	select ARCH_MIGHT_HAVE_ACPI_PDC		if ACPI
+>  	select ARCH_MIGHT_HAVE_PC_PARPORT
+>  	select ARCH_MIGHT_HAVE_PC_SERIO
+> +	select ARCH_SUPPORTS_ACPI_PROCESSOR_CSTATE if ACPI
+>  	select ARCH_SUPPORTS_ATOMIC_RMW
+>  	select ARCH_SUPPORTS_DEFERRED_STRUCT_PAGE_INIT
+>  	select ARCH_SUPPORTS_INT128		if X86_64
+> diff --git a/drivers/acpi/Kconfig b/drivers/acpi/Kconfig
+> index 82b96ee8624c..ec289078667c 100644
+> --- a/drivers/acpi/Kconfig
+> +++ b/drivers/acpi/Kconfig
+> @@ -48,6 +48,9 @@ config ACPI_LEGACY_TABLES_LOOKUP
+>  config ARCH_MIGHT_HAVE_ACPI_PDC
+>  	bool
 >  
-> -	handle = acpi_device_handle(PCI_CONTROLLER(bus)->companion);
-> +	handle = acpi_device_handle(ACPI_COMPANION(bus->bridge));
->  	if (!handle)
->  		return;
+> +config ARCH_SUPPORTS_ACPI_PROCESSOR_CSTATE
+> +	bool
+
+It might be better to do
+
+config ACPI_PROCESSOR_CST
+	bool
+	depends on ia64 || x86
+
+Should it depend on ARCH_HAS_POWER_INIT too?
+
+
+> +
+>  config ACPI_GENERIC_GSI
+>  	bool
 >  
-> diff --git a/arch/ia64/include/asm/pci.h b/arch/ia64/include/asm/pci.h
-> index c0835b0..12423f4 100644
-> --- a/arch/ia64/include/asm/pci.h
-> +++ b/arch/ia64/include/asm/pci.h
-> @@ -63,7 +63,6 @@ extern int pci_mmap_legacy_page_range(struct pci_bus *bus,
->  #define pci_legacy_write platform_pci_legacy_write
+> diff --git a/drivers/acpi/processor_idle.c b/drivers/acpi/processor_idle.c
+> index 444e3745c8b3..1f3fe54194b5 100644
+> --- a/drivers/acpi/processor_idle.c
+> +++ b/drivers/acpi/processor_idle.c
+> @@ -59,6 +59,12 @@ module_param(latency_factor, uint, 0644);
 >  
->  struct pci_controller {
-> -	struct acpi_device *companion;
->  	void *iommu;
->  	int segment;
->  	int node;		/* nearest node with memory or NUMA_NO_NODE for global allocation */
-> diff --git a/arch/ia64/pci/pci.c b/arch/ia64/pci/pci.c
-> index 8f6ac2f..978d6af 100644
-> --- a/arch/ia64/pci/pci.c
-> +++ b/arch/ia64/pci/pci.c
-> @@ -301,28 +301,12 @@ struct pci_bus *pci_acpi_scan_root(struct acpi_pci_root *root)
->  	}
+>  static DEFINE_PER_CPU(struct cpuidle_device *, acpi_cpuidle_device);
 >  
->  	info->controller.segment = root->segment;
-> -	info->controller.companion = device;
->  	info->controller.node = acpi_get_node(device->handle);
->  	INIT_LIST_HEAD(&info->io_resources);
->  	return acpi_pci_root_create(root, &pci_acpi_root_ops,
->  				    &info->common, &info->controller);
+> +struct cpuidle_driver acpi_idle_driver = {
+> +	.name =		"acpi_idle",
+> +	.owner =	THIS_MODULE,
+> +};
+> +
+> +#ifdef CONFIG_ARCH_SUPPORTS_ACPI_PROCESSOR_CSTATE
+>  static
+>  DEFINE_PER_CPU(struct acpi_processor_cx * [CPUIDLE_STATE_MAX], acpi_cstate);
+>  
+> @@ -804,11 +810,6 @@ static void acpi_idle_enter_freeze(struct cpuidle_device *dev,
+>  	acpi_idle_do_entry(cx);
 >  }
 >  
-> -int pcibios_root_bridge_prepare(struct pci_host_bridge *bridge)
-> -{
-> -	/*
-> -	 * We pass NULL as parent to pci_create_root_bus(), so if it is not NULL
-> -	 * here, pci_create_root_bus() has been called by someone else and
-> -	 * sysdata is likely to be different from what we expect.  Let it go in
-> -	 * that case.
-> -	 */
-> -	if (!bridge->dev.parent) {
-> -		struct pci_controller *controller = bridge->bus->sysdata;
-> -		ACPI_COMPANION_SET(&bridge->dev, controller->companion);
-> -	}
-> -	return 0;
-> -}
+> -struct cpuidle_driver acpi_idle_driver = {
+> -	.name =		"acpi_idle",
+> -	.owner =	THIS_MODULE,
+> -};
 > -
->  void pcibios_fixup_device_resources(struct pci_dev *dev)
+>  /**
+>   * acpi_processor_setup_cpuidle_cx - prepares and configures CPUIDLE
+>   * device i.e. per-cpu data
+> @@ -925,6 +926,49 @@ static int acpi_processor_setup_cpuidle_states(struct acpi_processor *pr)
+>  	return 0;
+>  }
+>  
+> +static inline void acpi_processor_cstate_first_run_checks(void)
+> +{
+> +	static int first_run;
+> +
+> +	if (first_run)
+> +		return;
+> +	dmi_check_system(processor_power_dmi_table);
+> +	max_cstate = acpi_processor_cstate_check(max_cstate);
+> +	if (max_cstate < ACPI_C_STATES_MAX)
+> +		pr_notice("ACPI: processor limited to max C-state %d\n",
+> +			  max_cstate);
+> +	first_run++;
+> +
+> +	if (acpi_gbl_FADT.cst_control && !nocst) {
+> +		status = acpi_os_write_port(acpi_gbl_FADT.smi_command,
+> +					    acpi_gbl_FADT.cst_control, 8);
+> +		if (ACPI_FAILURE(status))
+> +			ACPI_EXCEPTION((AE_INFO, status,
+> +					"Notifying BIOS of _CST ability failed"));
+> +	}
+> +}
+> +#else
+> +
+> +static inline int disabled_by_idle_boot_param(void) { return 0; }
+> +static inline void acpi_processor_cstate_first_run_checks(void) { }
+> +static int acpi_processor_get_power_info(struct acpi_processor *pr)
+> +{
+> +	return -ENODEV;
+> +}
+> +
+> +static int acpi_processor_setup_cpuidle_cx(struct acpi_processor *pr,
+> +					   struct cpuidle_device *dev)
+> +{
+> +	return -EINVAL;
+> +}
+> +
+> +static int acpi_processor_setup_cpuidle_states(struct acpi_processor *pr)
+> +{
+> +	return -EINVAL;
+> +}
+> +
+> +#endif
+
+Add a comment indicating what #ifdef block ends here?
+
+> +
+>  int acpi_processor_hotplug(struct acpi_processor *pr)
 >  {
->  	int idx;
-> diff --git a/arch/ia64/sn/kernel/io_acpi_init.c b/arch/ia64/sn/kernel/io_acpi_init.c
-> index 231234c..e454492 100644
-> --- a/arch/ia64/sn/kernel/io_acpi_init.c
-> +++ b/arch/ia64/sn/kernel/io_acpi_init.c
-> @@ -132,7 +132,7 @@ sn_get_bussoft_ptr(struct pci_bus *bus)
->  	struct acpi_resource_vendor_typed *vendor;
->  
->  
-> -	handle = acpi_device_handle(PCI_CONTROLLER(bus)->companion);
-> +	handle = acpi_device_handle(ACPI_COMPANION(bus->bridge));
->  	status = acpi_get_vendor_resource(handle, METHOD_NAME__CRS,
->  					  &sn_uuid, &buffer);
->  	if (ACPI_FAILURE(status)) {
-> @@ -360,7 +360,7 @@ sn_acpi_get_pcidev_info(struct pci_dev *dev, struct pcidev_info **pcidev_info,
+>  	int ret = 0;
+> @@ -1018,29 +1062,11 @@ int acpi_processor_power_init(struct acpi_processor *pr)
 >  	acpi_status status;
->  	struct acpi_buffer name_buffer = { ACPI_ALLOCATE_BUFFER, NULL };
+>  	int retval;
+>  	struct cpuidle_device *dev;
+> -	static int first_run;
 >  
-> -	rootbus_handle = acpi_device_handle(PCI_CONTROLLER(dev)->companion);
-> +	rootbus_handle = acpi_device_handle(ACPI_COMPANION(dev->bus->bridge));
->          status = acpi_evaluate_integer(rootbus_handle, METHOD_NAME__SEG, NULL,
->                                         &segment);
->          if (ACPI_SUCCESS(status)) {
-> diff --git a/arch/x86/include/asm/pci.h b/arch/x86/include/asm/pci.h
-> index 9ab7507..24de07d 100644
-> --- a/arch/x86/include/asm/pci.h
-> +++ b/arch/x86/include/asm/pci.h
-> @@ -14,9 +14,6 @@
->  struct pci_sysdata {
->  	int		domain;		/* PCI domain */
->  	int		node;		/* NUMA node */
-> -#ifdef CONFIG_ACPI
-> -	struct acpi_device *companion;	/* ACPI companion device */
-> -#endif
->  #ifdef CONFIG_X86_64
->  	void		*iommu;		/* IOMMU private data */
->  #endif
-> diff --git a/arch/x86/pci/acpi.c b/arch/x86/pci/acpi.c
-> index 3cd6983..f4ca17a 100644
-> --- a/arch/x86/pci/acpi.c
-> +++ b/arch/x86/pci/acpi.c
-> @@ -340,7 +340,6 @@ struct pci_bus *pci_acpi_scan_root(struct acpi_pci_root *root)
->  		struct pci_sysdata sd = {
->  			.domain = domain,
->  			.node = node,
-> -			.companion = root->device
->  		};
+>  	if (disabled_by_idle_boot_param())
+>  		return 0;
 >  
->  		memcpy(bus->sysdata, &sd, sizeof(sd));
-> @@ -355,7 +354,6 @@ struct pci_bus *pci_acpi_scan_root(struct acpi_pci_root *root)
->  		else {
->  			info->sd.domain = domain;
->  			info->sd.node = node;
-> -			info->sd.companion = root->device;
->  			bus = acpi_pci_root_create(root, &acpi_pci_root_ops,
->  						   &info->common, &info->sd);
->  		}
-> @@ -373,21 +371,6 @@ struct pci_bus *pci_acpi_scan_root(struct acpi_pci_root *root)
->  	return bus;
->  }
->  
-> -int pcibios_root_bridge_prepare(struct pci_host_bridge *bridge)
-> -{
-> -	/*
-> -	 * We pass NULL as parent to pci_create_root_bus(), so if it is not NULL
-> -	 * here, pci_create_root_bus() has been called by someone else and
-> -	 * sysdata is likely to be different from what we expect.  Let it go in
-> -	 * that case.
-> -	 */
-> -	if (!bridge->dev.parent) {
-> -		struct pci_sysdata *sd = bridge->bus->sysdata;
-> -		ACPI_COMPANION_SET(&bridge->dev, sd->companion);
+> -	if (!first_run) {
+> -		dmi_check_system(processor_power_dmi_table);
+> -		max_cstate = acpi_processor_cstate_check(max_cstate);
+> -		if (max_cstate < ACPI_C_STATES_MAX)
+> -			printk(KERN_NOTICE
+> -			       "ACPI: processor limited to max C-state %d\n",
+> -			       max_cstate);
+> -		first_run++;
 > -	}
-> -	return 0;
-> -}
 > -
->  int __init pci_acpi_init(void)
->  {
->  	struct pci_dev *dev = NULL;
-> diff --git a/drivers/acpi/pci_root.c b/drivers/acpi/pci_root.c
-> index ae3fe4e..4581e0e 100644
-> --- a/drivers/acpi/pci_root.c
-> +++ b/drivers/acpi/pci_root.c
-> @@ -564,6 +564,11 @@ static int acpi_pci_root_add(struct acpi_device *device,
->  		}
->  	}
+> -	if (acpi_gbl_FADT.cst_control && !nocst) {
+> -		status =
+> -		    acpi_os_write_port(acpi_gbl_FADT.smi_command, acpi_gbl_FADT.cst_control, 8);
+> -		if (ACPI_FAILURE(status)) {
+> -			ACPI_EXCEPTION((AE_INFO, status,
+> -					"Notifying BIOS of _CST ability failed"));
+> -		}
+> -	}
+> +	acpi_processor_cstate_first_run_checks();
 >  
-> +	/*
-> +	 * pci_create_root_bus() needs to detect the parent device type,
-> +	 * so initialize its companion data accordingly.
-> +	 */
-> +	ACPI_COMPANION_SET(&device->dev, device);
+>  	acpi_processor_get_power_info(pr);
+>  	pr->flags.power_setup_done = 1;
+> diff --git a/include/acpi/processor.h b/include/acpi/processor.h
+> index 6f1805dd5d3c..50f2423d31fa 100644
+> --- a/include/acpi/processor.h
+> +++ b/include/acpi/processor.h
+> @@ -242,7 +242,8 @@ extern int acpi_processor_get_performance_info(struct acpi_processor *pr);
+>  DECLARE_PER_CPU(struct acpi_processor *, processors);
+>  extern struct acpi_processor_errata errata;
+>  
+> -#ifdef ARCH_HAS_POWER_INIT
+> +#if defined(ARCH_HAS_POWER_INIT) && \
+> +	defined(CONFIG_ARCH_SUPPORTS_ACPI_PROCESSOR_CSTATE)
+>  void acpi_processor_power_init_bm_check(struct acpi_processor_flags *flags,
+>  					unsigned int cpu);
+>  int acpi_processor_ffh_cstate_probe(unsigned int cpu,
+> 
 
-This is a complete nonsense, sorry.
-
-This just means that the ACPI firmware object will now be an ACPI companion of
-itself.
-
-Thanks,
-Rafael
