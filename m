@@ -1,86 +1,56 @@
-From: "Rafael J. Wysocki" <rafael@kernel.org>
-Subject: Re: [PATCH V7 07/11] pci, acpi: Handle ACPI companion assignment.
-Date: Tue, 10 May 2016 20:43:42 +0200
-Message-ID: <CAJZ5v0jq0NWEYw2Dj6j0pHYrWu-8syYiGP4Nqkm729Uu6hrO7A@mail.gmail.com>
-References: <1462893601-8937-1-git-send-email-tn@semihalf.com>
-	<1462893601-8937-8-git-send-email-tn@semihalf.com>
-	<CAJZ5v0hM8WAr9GGku89zKgiVKt6ArHf=9CntRUyBjyMNUvie2A@mail.gmail.com>
+From: Al Stone <ahs3@redhat.com>
+Subject: Re: [PATCH 0/3] ACPI: Support for platform initiated graceful
+ shutdown
+Date: Tue, 10 May 2016 16:50:27 -0600
+Message-ID: <21470c3b-c176-ef46-fc93-081d482b4cab@redhat.com>
+References: <1458157022-18633-1-git-send-email-pprakash@codeaurora.org>
+Reply-To: ahs3@redhat.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-pci-owner@vger.kernel.org>
-In-Reply-To: <CAJZ5v0hM8WAr9GGku89zKgiVKt6ArHf=9CntRUyBjyMNUvie2A@mail.gmail.com>
-Sender: linux-pci-owner@vger.kernel.org
-To: "Rafael J. Wysocki" <rafael@kernel.org>
-Cc: Tomasz Nowicki <tn@semihalf.com>, Bjorn Helgaas <helgaas@kernel.org>, Arnd Bergmann <arnd@arndb.de>, Will Deacon <will.deacon@arm.com>, Catalin Marinas <catalin.marinas@arm.com>, Hanjun Guo <hanjun.guo@linaro.org>, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, Sinan Kaya <okaya@codeaurora.org>, jchandra@broadcom.com, robert.richter@caviumnetworks.com, Marcin Wojtas <mw@semihalf.com>, Liviu.Dudau@arm.com, David Daney <ddaney@caviumnetworks.com>, wangyijing@huawei.com, Suravee Suthikulanit <Suravee.Suthikulpanit@amd.com>, Mark Salter <msalter@redhat.com>, Linux PCI <linux-pci@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, "linaro-acpi@lists.linaro.org" <linaro-acpi@lists.linaro.org>, Jon Masters <jcm@redhat>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-ig0-f179.google.com ([209.85.213.179]:35113 "EHLO
+	mail-ig0-f179.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751293AbcEJWua (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 10 May 2016 18:50:30 -0400
+Received: by mail-ig0-f179.google.com with SMTP id bi2so144505708igb.0
+        for <linux-acpi@vger.kernel.org>; Tue, 10 May 2016 15:50:30 -0700 (PDT)
+In-Reply-To: <1458157022-18633-1-git-send-email-pprakash@codeaurora.org>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Prashanth Prakash <pprakash@codeaurora.org>, linux-acpi@vger.kernel.org
+Cc: harba@codeaurora.org, rjw@rjwysocki.net
 
-On Tue, May 10, 2016 at 8:37 PM, Rafael J. Wysocki <rafael@kernel.org> wrote:
-> On Tue, May 10, 2016 at 5:19 PM, Tomasz Nowicki <tn@semihalf.com> wrote:
->> This patch provides a way to set the ACPI companion in PCI code.
->> We define acpi_pci_set_companion() to set the ACPI companion pointer and
->> call it from PCI core code. The function is stub for now.
->>
->> Signed-off-by: Jayachandran C <jchandra@broadcom.com>
->> Signed-off-by: Tomasz Nowicki <tn@semihalf.com>
->> ---
->>  drivers/pci/probe.c      | 2 ++
->>  include/linux/pci-acpi.h | 4 ++++
->>  2 files changed, 6 insertions(+)
->>
->> diff --git a/drivers/pci/probe.c b/drivers/pci/probe.c
->> index 8004f67..fb0b752 100644
->> --- a/drivers/pci/probe.c
->> +++ b/drivers/pci/probe.c
->> @@ -12,6 +12,7 @@
->>  #include <linux/slab.h>
->>  #include <linux/module.h>
->>  #include <linux/cpumask.h>
->> +#include <linux/pci-acpi.h>
->>  #include <linux/pci-aspm.h>
->>  #include <linux/aer.h>
->>  #include <linux/acpi.h>
->> @@ -2141,6 +2142,7 @@ struct pci_bus *pci_create_root_bus(struct device *parent, int bus,
->>         bridge->dev.parent = parent;
->>         bridge->dev.release = pci_release_host_bridge_dev;
->>         dev_set_name(&bridge->dev, "pci%04x:%02x", pci_domain_nr(b), bus);
->> +       acpi_pci_set_companion(bridge);
->
-> Yes, we'll probably add something similar here.
->
-> Do I think now is the right time to do that?  No.
->
->>         error = pcibios_root_bridge_prepare(bridge);
->>         if (error) {
->>                 kfree(bridge);
->> diff --git a/include/linux/pci-acpi.h b/include/linux/pci-acpi.h
->> index 09f9f02..1baa515 100644
->> --- a/include/linux/pci-acpi.h
->> +++ b/include/linux/pci-acpi.h
->> @@ -111,6 +111,10 @@ static inline void acpi_pci_add_bus(struct pci_bus *bus) { }
->>  static inline void acpi_pci_remove_bus(struct pci_bus *bus) { }
->>  #endif /* CONFIG_ACPI */
->>
->> +static inline void acpi_pci_set_companion(struct pci_host_bridge *bridge)
->> +{
->> +}
->> +
->>  static inline int acpi_pci_bus_domain_nr(struct pci_bus *bus)
->>  {
->>         return 0;
->> --
->
-> Honestly, to me it looks like this series is trying very hard to avoid
-> doing any PCI host bridge configuration stuff from arch/arm64/
-> although (a) that might be simpler and (b) it would allow us to
-> identify the code that's common between *all* architectures using ACPI
-> support for host bridge configuration and to move *that* to a common
-> place later.  As done here it seems to be following the "ARM64 is
-> generic and the rest of the world is special" line which isn't really
-> helpful.
+On 03/16/2016 01:36 PM, Prashanth Prakash wrote:
+> This patch-set adds support for platform initited graceful shutdown as
+> described in the sections 5.6.6(Table-143) and 6.3.5.1 of ACPI 6.1 spec
+> 
+> Jonathan (Zhixiong) Zhang (1):
+>   ACPI: move ACPI_SYSTEM_HID to acpi_drivers.h
+> 
+> Prashanth Prakash (2):
+>   ACPI / sybus: add a driver for LNXSYBUS device
+>   ACPI: update the definition of common notification values
+> 
+>  drivers/acpi/Kconfig        |   6 +++
+>  drivers/acpi/Makefile       |   1 +
+>  drivers/acpi/scan.c         |   3 +-
+>  drivers/acpi/sybus.c        | 116 ++++++++++++++++++++++++++++++++++++++++++++
+>  include/acpi/acpi_drivers.h |   1 +
+>  include/acpi/actypes.h      |   2 +-
+>  6 files changed, 127 insertions(+), 2 deletions(-)
+>  create mode 100644 drivers/acpi/sybus.c
+> 
 
-Speaking of which, at least one of the reasons why the ACPI PCI host
-bridge thing on x86 and ia64 went to the arch code was to avoid
-explicit references to ACPI-specific data types and related #ifdeffery
-in the generic PCI code and data structures.  If you are going to add
-those references now anyway, that reason is not relevant any more and
-all of that can just be reworked to refer to ACPI explicitly.
+Is v2 coming along soon?  I'd like to try these out on a couple of
+systems.  Thanks, Prashanth.
+
+-- 
+ciao,
+al
+-----------------------------------
+Al Stone
+Software Engineer
+Red Hat, Inc.
+ahs3@redhat.com
+-----------------------------------
