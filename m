@@ -1,98 +1,81 @@
 From: "Rafael J. Wysocki" <rafael@kernel.org>
-Subject: Re: [PATCH V7 05/11] acpi, pci: Support IO resources when parsing PCI
- host bridge resources.
-Date: Tue, 10 May 2016 20:20:32 +0200
-Message-ID: <CAJZ5v0j-jiGmMWoyd-ab4qiKGAScbxMskqUThBQxkOxPR8unMA@mail.gmail.com>
+Subject: Re: [PATCH V7 07/11] pci, acpi: Handle ACPI companion assignment.
+Date: Tue, 10 May 2016 20:37:00 +0200
+Message-ID: <CAJZ5v0hM8WAr9GGku89zKgiVKt6ArHf=9CntRUyBjyMNUvie2A@mail.gmail.com>
 References: <1462893601-8937-1-git-send-email-tn@semihalf.com>
-	<1462893601-8937-6-git-send-email-tn@semihalf.com>
+	<1462893601-8937-8-git-send-email-tn@semihalf.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1462893601-8937-6-git-send-email-tn@semihalf.com>
-Sender: linux-kernel-owner@vger.kernel.org
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-lf0-f66.google.com ([209.85.215.66]:36472 "EHLO
+	mail-lf0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751162AbcEJShD (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 10 May 2016 14:37:03 -0400
+In-Reply-To: <1462893601-8937-8-git-send-email-tn@semihalf.com>
+Sender: linux-acpi-owner@vger.kernel.org
+List-Id: linux-acpi@vger.kernel.org
 To: Tomasz Nowicki <tn@semihalf.com>
 Cc: Bjorn Helgaas <helgaas@kernel.org>, Arnd Bergmann <arnd@arndb.de>, Will Deacon <will.deacon@arm.com>, Catalin Marinas <catalin.marinas@arm.com>, "Rafael J. Wysocki" <rafael@kernel.org>, Hanjun Guo <hanjun.guo@linaro.org>, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, Sinan Kaya <okaya@codeaurora.org>, jchandra@broadcom.com, robert.richter@caviumnetworks.com, mw@semihalf.com, Liviu.Dudau@arm.com, David Daney <ddaney@caviumnetworks.com>, wangyijing@huawei.com, Suravee Suthikulanit <Suravee.Suthikulpanit@amd.com>, Mark Salter <msalter@redhat.com>, Linux PCI <linux-pci@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, "linaro-acpi@lists.linaro.org" <linaro-acpi@lists.linaro.org>, Jon Masters <jcm@redhat.com>and
-List-Id: linux-acpi@vger.kernel.org
 
 On Tue, May 10, 2016 at 5:19 PM, Tomasz Nowicki <tn@semihalf.com> wrote:
-> Platforms that have memory mapped IO port (such as ARM64) need special
-> handling for PCI I/O resources. For host bridge's resource probing case
-> these resources need to be fixed up with pci_register_io_range/pci_remap_iospace etc.
->
-> The same I/O resources need to be released after hotplug
-> removal so that it can be re-added back by the pci_remap_iospace
-> function during insertion. As a consequence we unmap I/O resources
-> with pci_unmap_iospace when we release host bridge resources.
+> This patch provides a way to set the ACPI companion in PCI code.
+> We define acpi_pci_set_companion() to set the ACPI companion pointer and
+> call it from PCI core code. The function is stub for now.
 >
 > Signed-off-by: Jayachandran C <jchandra@broadcom.com>
-> Signed-off-by: Sinan Kaya <okaya@codeaurora.org>
 > Signed-off-by: Tomasz Nowicki <tn@semihalf.com>
 > ---
->  drivers/acpi/pci_root.c | 33 +++++++++++++++++++++++++++++++++
->  1 file changed, 33 insertions(+)
+>  drivers/pci/probe.c      | 2 ++
+>  include/linux/pci-acpi.h | 4 ++++
+>  2 files changed, 6 insertions(+)
 >
-> diff --git a/drivers/acpi/pci_root.c b/drivers/acpi/pci_root.c
-> index ae3fe4e..cb3071d 100644
-> --- a/drivers/acpi/pci_root.c
-> +++ b/drivers/acpi/pci_root.c
-> @@ -719,6 +719,34 @@ next:
->                         resource_list_add_tail(entry, resources);
->         }
->  }
-> +static void acpi_pci_root_remap_iospace(struct resource_entry *entry)
+> diff --git a/drivers/pci/probe.c b/drivers/pci/probe.c
+> index 8004f67..fb0b752 100644
+> --- a/drivers/pci/probe.c
+> +++ b/drivers/pci/probe.c
+> @@ -12,6 +12,7 @@
+>  #include <linux/slab.h>
+>  #include <linux/module.h>
+>  #include <linux/cpumask.h>
+> +#include <linux/pci-acpi.h>
+>  #include <linux/pci-aspm.h>
+>  #include <linux/aer.h>
+>  #include <linux/acpi.h>
+> @@ -2141,6 +2142,7 @@ struct pci_bus *pci_create_root_bus(struct device *parent, int bus,
+>         bridge->dev.parent = parent;
+>         bridge->dev.release = pci_release_host_bridge_dev;
+>         dev_set_name(&bridge->dev, "pci%04x:%02x", pci_domain_nr(b), bus);
+> +       acpi_pci_set_companion(bridge);
+
+Yes, we'll probably add something similar here.
+
+Do I think now is the right time to do that?  No.
+
+>         error = pcibios_root_bridge_prepare(bridge);
+>         if (error) {
+>                 kfree(bridge);
+> diff --git a/include/linux/pci-acpi.h b/include/linux/pci-acpi.h
+> index 09f9f02..1baa515 100644
+> --- a/include/linux/pci-acpi.h
+> +++ b/include/linux/pci-acpi.h
+> @@ -111,6 +111,10 @@ static inline void acpi_pci_add_bus(struct pci_bus *bus) { }
+>  static inline void acpi_pci_remove_bus(struct pci_bus *bus) { }
+>  #endif /* CONFIG_ACPI */
+>
+> +static inline void acpi_pci_set_companion(struct pci_host_bridge *bridge)
 > +{
-> +#ifdef PCI_IOBASE
-
-Same comment about the #ifdefs as in the other patch.
-
-> +       struct resource *res = entry->res;
-> +       resource_size_t cpu_addr = res->start;
-> +       resource_size_t pci_addr = cpu_addr - entry->offset;
-> +       resource_size_t length = resource_size(res);
-> +       unsigned long port;
-> +
-> +       if (pci_register_io_range(cpu_addr, length))
-> +               goto err;
-> +
-> +       port = pci_address_to_pio(cpu_addr);
-> +       if (port == (unsigned long)-1)
-> +               goto err;
-> +
-> +       res->start = port;
-> +       res->end = port + length - 1;
-> +       entry->offset = port - pci_addr;
-> +
-> +       if (pci_remap_iospace(res, cpu_addr) < 0)
-> +               goto err;
-
-An empty line here?
-
-> +       pr_info("Remapped I/O %pa to %pR\n", &cpu_addr, res);
-> +       return;
-> +err:
-> +       res->flags |= IORESOURCE_DISABLED;
-> +#endif
 > +}
->
->  int acpi_pci_probe_root_resources(struct acpi_pci_root_info *info)
->  {
-> @@ -740,6 +768,9 @@ int acpi_pci_probe_root_resources(struct acpi_pci_root_info *info)
->                         "no IO and memory resources present in _CRS\n");
->         else {
->                 resource_list_for_each_entry_safe(entry, tmp, list) {
-> +                       if (entry->res->flags & IORESOURCE_IO)
-> +                               acpi_pci_root_remap_iospace(entry);
 > +
->                         if (entry->res->flags & IORESOURCE_DISABLED)
->                                 resource_list_destroy_entry(entry);
->                         else
-> @@ -811,6 +842,8 @@ static void acpi_pci_root_release_info(struct pci_host_bridge *bridge)
->
->         resource_list_for_each_entry(entry, &bridge->windows) {
->                 res = entry->res;
-> +               if (res->flags & IORESOURCE_IO)
-> +                       pci_unmap_iospace(res);
->                 if (res->parent &&
->                     (res->flags & (IORESOURCE_MEM | IORESOURCE_IO)))
->                         release_resource(res);
+>  static inline int acpi_pci_bus_domain_nr(struct pci_bus *bus)
+>  {
+>         return 0;
 > --
+
+Honestly, to me it looks like this series is trying very hard to avoid
+doing any PCI host bridge configuration stuff from arch/arm64/
+although (a) that might be simpler and (b) it would allow us to
+identify the code that's common between *all* architectures using ACPI
+support for host bridge configuration and to move *that* to a common
+place later.  As done here it seems to be following the "ARM64 is
+generic and the rest of the world is special" line which isn't really
+helpful.
