@@ -1,82 +1,93 @@
 From: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
 Subject: Re: [PATCH V6 01/13] pci, acpi, x86, ia64: Move ACPI host bridge
  device companion assignment to core code.
-Date: Tue, 10 May 2016 11:07:28 +0100
-Message-ID: <20160510100728.GA15552@red-moon>
+Date: Tue, 10 May 2016 11:27:21 +0100
+Message-ID: <20160510102721.GB15552@red-moon>
 References: <1460740008-19489-1-git-send-email-tn@semihalf.com>
- <1460740008-19489-2-git-send-email-tn@semihalf.com>
- <292578579.uIxhMjkdfG@vostro.rjw.lan>
- <20160510015336.GA29582@localhost>
+ <20160427024537.GH6789@localhost>
+ <5729AE92.2090106@semihalf.com>
+ <8183907.bBqvG1yEkP@vostro.rjw.lan>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Return-path: <linux-pci-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20160510015336.GA29582@localhost>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Bjorn Helgaas <helgaas@kernel.org>
-Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Tomasz Nowicki <tn@semihalf.com>, arnd@arndb.de, will.deacon@arm.com, catalin.marinas@arm.com, rafael@kernel.org, hanjun.guo@linaro.org, okaya@codeaurora.org, jiang.liu@linux.intel.com, jchandra@broadcom.com, robert.richter@caviumnetworks.com, mw@semihalf.com, Liviu.Dudau@arm.com, ddaney@caviumnetworks.com, wangyijing@huawei.com, Suravee.Suthikulpanit@amd.com, msalter@redhat.com, linux-pci@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linaro-acpi@lists.linaro.org, jcm@redhat.com
+In-Reply-To: <8183907.bBqvG1yEkP@vostro.rjw.lan>
+Sender: linux-pci-owner@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: Tomasz Nowicki <tn@semihalf.com>, Bjorn Helgaas <helgaas@kernel.org>, rafael@kernel.org, arnd@arndb.de, will.deacon@arm.com, catalin.marinas@arm.com, hanjun.guo@linaro.org, okaya@codeaurora.org, jiang.liu@linux.intel.com, jchandra@broadcom.com, robert.richter@caviumnetworks.com, mw@semihalf.com, Liviu.Dudau@arm.com, ddaney@caviumnetworks.com, wangyijing@huawei.com, Suravee.Suthikulpanit@amd.com, msalter@redhat.com, linux-pci@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linaro-acpi@lists.linaro.org, jcm@redhat.com
 List-Id: linux-acpi@vger.kernel.org
 
-On Mon, May 09, 2016 at 08:53:36PM -0500, Bjorn Helgaas wrote:
-> On Tue, May 10, 2016 at 12:56:37AM +0200, Rafael J. Wysocki wrote:
-> > On Friday, April 15, 2016 07:06:36 PM Tomasz Nowicki wrote:
-> > > Currently we have two platforms (x86 & ia64) capable of PCI ACPI host
-> > > bridge initialization. They both use arch-specific sysdata to pass down
-> > > parent device reference and both rely on NULL parent in pci_create_root_bus()
-> > > to validate sysdata content.
+On Tue, May 10, 2016 at 12:18:59AM +0200, Rafael J. Wysocki wrote:
+
+[...]
+
+> > >> diff --git a/drivers/acpi/pci_root.c b/drivers/acpi/pci_root.c
+> > >> index ae3fe4e..4581e0e 100644
+> > >> --- a/drivers/acpi/pci_root.c
+> > >> +++ b/drivers/acpi/pci_root.c
+> > >> @@ -564,6 +564,11 @@ static int acpi_pci_root_add(struct acpi_device *device,
+> > >>   		}
+> > >>   	}
+> > >>
+> > >> +	/*
+> > >> +	 * pci_create_root_bus() needs to detect the parent device type,
+> > >> +	 * so initialize its companion data accordingly.
+> > >> +	 */
+> > >> +	ACPI_COMPANION_SET(&device->dev, device);
+> > >>   	root->device = device;
+> > >>   	root->segment = segment & 0xFFFF;
+> > >>   	strcpy(acpi_device_name(device), ACPI_PCI_ROOT_DEVICE_NAME);
+> > >> @@ -846,7 +851,7 @@ struct pci_bus *acpi_pci_root_create(struct acpi_pci_root *root,
+> > >>
+> > >>   	pci_acpi_root_add_resources(info);
+> > >>   	pci_add_resource(&info->resources, &root->secondary);
+> > >> -	bus = pci_create_root_bus(NULL, busnum, ops->pci_ops,
+> > >> +	bus = pci_create_root_bus(&device->dev, busnum, ops->pci_ops,
+> > >>   				  sysdata, &info->resources);
+> > >
+> > > "device" here is a struct acpi_device *.  Rafael, is that the right
+> > > thing to do?  I dimly recall proposing something similar long ago and
+> > > that it turned out to be a bad idea.
+> > >
 > > 
-> > No, this is not relied on for that.  It is just NULL, because we don't
-> > have a physical parent device representation for the PCI host bridge.
-> > 
-> > > It looks hacky and prevents us from getting some firmware specific
-> > > info for PCI host controller based on its acpi_device structure
-> > > in generic pci_create_root_bus() function.
-> > 
-> > You can't get that info without adding ACPI-specific code to that function
-> > anyway.
-> > 
-> > > However, we overcome that blocker by passing down parent device via
-> > > pci_create_root_bus parameter (as the ACPI device type).
-> > 
-> > Which is completely wrong.
-> > 
-> > > Then we use ACPI_COMPANION_SET in core code
-> > > for ACPI boot method only. ACPI_COMPANION_SET is safe to run for all
-> > > cases DT, ACPI and DT&ACPI.
-> > > 
-> > > Since now PCI core code is setting ACPI companion device for us,
-> > > x86 & ia64 specific ACPI companion device setting turns out to be dead now.
-> > > We can get rid of it, including related companion reference from
-> > > PCI sysdata structure. Aslo, PCI_CONTROLLER macro cannot return valid
-> > > companion device anymore. Therefore we need to convert its usage to
-> > > ACPI_COMPANION.
+> > Joining Bjorn's question. Rafael, do you recall what was the issue here 
+> > from the past?
 > 
-> I think getting rid of arch-specific sysdata is a good goal (at least
-> for things like the domain and ACPI companion that are really not
-> arch-specific).
+> Yes, I do.
 > 
-> But I'm afraid I've been guilty of allowing the perfect to be the
-> enemy of the good.  I think it will be more useful in the end if we
-> can get as much of this work in v4.7 as possible, even if there's more
-> polishing we'd like to do later.
+> Anything struct acpi_device doesn't represent a real device.  It
+> represents a firmware object that can be associated with a device.
+> IOW, nothing under LNXSYSTM\:00/ should ever be used as the parent or
+> sibling etc with respect to anything outside of that directory.  In
+> fact, the entire LNXSYSTM\:00/ should be located under
+> /sys/firmware/acpi/ and it was a mistake to put it under
+> /sys/devices/.
 > 
-> What if we keep the x86 and ia64 handling of ACPI_COMPANION the way it
-> is today, and do it the same way for arm64?  Then later, after we
-> merge Arnd's work to make a generic pci_register_host() or similar, I
-> suspect we might be able to unify the ACPI_COMPANION stuff more
-> easily.  If the driver (acpi/pci_root.c) allocates the struct
-> pci_host_bridge, then maybe it will be able to fill in the domain and
-> set up the ACPI_COMPANION before it calls the scan interface.
+> One immediate consequence of the above change, AFAICS, would be that
+> the whole PCI hierarchy would now hang under
+> /sys/devices/LNXSYSTM\:00/LNXSYBUS\:00/PNP0A08\:00/ which would not
+> make any sense whatever, because
+> /sys/devices/LNXSYSTM\:00/LNXSYBUS\:00/PNP0A08\:00/physical_node
+> already points to /sys/devices/pci0000\:00/.
+> 
+> IOW, both PNP0A08\:00/ and pci0000\:00/ already represent the same
+> thing, ie. the host bridge.
+> 
+> If you want to have a parent for pci0000\:00/, you need a
+> physical_node for LNXSYBUS\:00 and point to that as the parent from
+> pci0000\:00/.  That at least will lead to a sysfs hierarchy that makes
+> sense, although it may break user space tools I suppose (which may be
+> assuming that pci0000\:00/ will always be present directly under
+> /sys/devices/).
 
-Ok, JC already solved that problem like this:
+Ok, I have a question though. As an example, DT based host controllers
+(that pass the parent pointer to pci_create_root_bus()), are already
+rooted at the respective host controller platform device sysfs path, so
+if user space can't cope with that, that is a problem *now* on some
+systems unless I am missing something.
 
-http://www.spinics.net/lists/arm-kernel/msg478167.html
-http://www.spinics.net/lists/arm-kernel/msg478169.html
+Anyway, thanks for clarifying the companion handling mechanism, we
+decidedly have to find a proper way to handle it instead of working
+around it.
 
-Since ARM64 relies on PCI_DOMAINS_GENERIC (DT) I do not see any other
-way of pulling it off quickly (and in a really generic way), sysdata
-is the only way of handling it in ACPI unless we start clutching
-at straws (which we already did with the ACPI companion hacks).
-
-Thanks,
 Lorenzo
