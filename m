@@ -1,72 +1,91 @@
 From: Tomasz Nowicki <tn@semihalf.com>
-Subject: [PATCH V7 11/11] arm64, pci, acpi: Start using ACPI based PCI host controller driver for ARM64.
-Date: Tue, 10 May 2016 17:20:01 +0200
-Message-ID: <1462893601-8937-12-git-send-email-tn@semihalf.com>
+Subject: [PATCH V7 04/11] pci: Add new function to unmap IO resources.
+Date: Tue, 10 May 2016 17:19:54 +0200
+Message-ID: <1462893601-8937-5-git-send-email-tn@semihalf.com>
 References: <1462893601-8937-1-git-send-email-tn@semihalf.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
 In-Reply-To: <1462893601-8937-1-git-send-email-tn@semihalf.com>
-Sender: linux-kernel-owner@vger.kernel.org
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
 To: helgaas@kernel.org, arnd@arndb.de, will.deacon@arm.com, catalin.marinas@arm.com, rafael@kernel.org, hanjun.guo@linaro.org, Lorenzo.Pieralisi@arm.com, okaya@codeaurora.org, jchandra@broadcom.com
-Cc: robert.richter@caviumnetworks.com, mw@semihalf.com, Liviu.Dudau@arm.com, ddaney@caviumnetworks.com, wangyijing@huawei.com, Suravee.Suthikulpanit@amd.com, msalter@redhat.com, linux-pci@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linaro-acpi@lists.linaro.org, jcm@redhat.com, andrea.gallo@linaro.org, dhdang@apm.com, jeremy.linton@arm.com, liudongdong3@huawei.com, cov@codeaurora.org, Tomasz Nowicki <tn@semihalf.com>
+Cc: jcm@redhat.com, linaro-acpi@lists.linaro.org, linux-pci@vger.kernel.org, dhdang@apm.com, Liviu.Dudau@arm.com, ddaney@caviumnetworks.com, jeremy.linton@arm.com, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, robert.richter@caviumnetworks.com, cov@codeaurora.org, Suravee.Suthikulpanit@amd.com, msalter@redhat.com, wangyijing@huawei.com, Tomasz Nowicki <tn@semihalf.com>, mw@semihalf.com, andrea.gallo@linaro.org, linux-arm-kernel@lists.infradead.org, liudongdong3@huawei.com
 List-Id: linux-acpi@vger.kernel.org
 
-It is perfectly fine to use ACPI_PCI_HOST_GENERIC for ARM64,
-so lets get rid of PCI init and RAW ACPI accessor empty stubs
-and go with full-blown PCI host controller driver.
+It is very useful to release I/O resources so that the same I/O resources
+can be allocated again (pci_remap_iospace), like in PCI hotplug removal
+scenario. Therefore this patch implements new pci_unmap_iospace call which
+unmaps I/O space as the symmetry to pci_remap_iospace.
 
+Signed-off-by: Sinan Kaya <okaya@codeaurora.org>
 Signed-off-by: Tomasz Nowicki <tn@semihalf.com>
-To: Catalin Marinas <catalin.marinas@arm.com>
-To: Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>
-To: Will Deacon <will.deacon@arm.com>
-To: Arnd Bergmann <arnd@arndb.de>
 ---
- arch/arm64/Kconfig      |  1 +
- arch/arm64/kernel/pci.c | 24 ------------------------
- 2 files changed, 1 insertion(+), 24 deletions(-)
+ drivers/pci/pci.c   | 24 ++++++++++++++++++++++++
+ include/linux/pci.h |  1 +
+ 2 files changed, 25 insertions(+)
 
-diff --git a/arch/arm64/Kconfig b/arch/arm64/Kconfig
-index 4f43622..1bded87 100644
---- a/arch/arm64/Kconfig
-+++ b/arch/arm64/Kconfig
-@@ -2,6 +2,7 @@ config ARM64
- 	def_bool y
- 	select ACPI_CCA_REQUIRED if ACPI
- 	select ACPI_GENERIC_GSI if ACPI
-+	select ACPI_PCI_HOST_GENERIC if ACPI
- 	select ACPI_REDUCED_HARDWARE_ONLY if ACPI
- 	select ARCH_HAS_DEVMEM_IS_ALLOWED
- 	select ARCH_HAS_ATOMIC64_DEC_IF_POSITIVE
-diff --git a/arch/arm64/kernel/pci.c b/arch/arm64/kernel/pci.c
-index eeec5f6..e484c91 100644
---- a/arch/arm64/kernel/pci.c
-+++ b/arch/arm64/kernel/pci.c
-@@ -74,27 +74,3 @@ void pcibios_remove_bus(struct pci_bus *bus)
- {
- 	acpi_pci_remove_bus(bus);
+diff --git a/drivers/pci/pci.c b/drivers/pci/pci.c
+index bc0c914..ff97a0b 100644
+--- a/drivers/pci/pci.c
++++ b/drivers/pci/pci.c
+@@ -25,6 +25,7 @@
+ #include <linux/device.h>
+ #include <linux/pm_runtime.h>
+ #include <linux/pci_hotplug.h>
++#include <linux/vmalloc.h>
+ #include <asm/setup.h>
+ #include <linux/aer.h>
+ #include "pci.h"
+@@ -3167,6 +3168,29 @@ int __weak pci_remap_iospace(const struct resource *res, phys_addr_t phys_addr)
+ #endif
  }
--
--/*
-- * raw_pci_read/write - Platform-specific PCI config space access.
-- */
--int raw_pci_read(unsigned int domain, unsigned int bus,
--		  unsigned int devfn, int reg, int len, u32 *val)
--{
--	return -ENXIO;
--}
--
--int raw_pci_write(unsigned int domain, unsigned int bus,
--		unsigned int devfn, int reg, int len, u32 val)
--{
--	return -ENXIO;
--}
--
--#ifdef CONFIG_ACPI
--/* Root bridge scanning */
--struct pci_bus *pci_acpi_scan_root(struct acpi_pci_root *root)
--{
--	/* TODO: Should be revisited when implementing PCI on ACPI */
--	return NULL;
--}
--#endif
+ 
++/**
++ *	pci_unmap_iospace - Unmap the memory mapped I/O space
++ *	@res: resource to be unmapped
++ *
++ *	Unmap the CPU virtual address @res from virtual address space.
++ *	Only architectures that have memory mapped IO functions defined
++ *	(and the PCI_IOBASE value defined) should call this function.
++ */
++void  pci_unmap_iospace(struct resource *res)
++{
++#if defined(PCI_IOBASE) && defined(CONFIG_MMU)
++	unsigned long vaddr = (unsigned long)PCI_IOBASE + res->start;
++
++	unmap_kernel_range(vaddr, resource_size(res));
++#else
++	/*
++	 * This architecture does not have memory mapped I/O space,
++	 * so this function should never be called.
++	 */
++	WARN_ONCE(1, "This architecture does not support memory mapped I/O\n");
++#endif
++}
++
+ static void __pci_set_master(struct pci_dev *dev, bool enable)
+ {
+ 	u16 old_cmd, cmd;
+diff --git a/include/linux/pci.h b/include/linux/pci.h
+index d2a57f3..d6ea6ce 100644
+--- a/include/linux/pci.h
++++ b/include/linux/pci.h
+@@ -1169,6 +1169,7 @@ int pci_register_io_range(phys_addr_t addr, resource_size_t size);
+ unsigned long pci_address_to_pio(phys_addr_t addr);
+ phys_addr_t pci_pio_to_address(unsigned long pio);
+ int pci_remap_iospace(const struct resource *res, phys_addr_t phys_addr);
++void pci_unmap_iospace(struct resource *res);
+ 
+ static inline pci_bus_addr_t pci_bus_address(struct pci_dev *pdev, int bar)
+ {
 -- 
 1.9.1
