@@ -1,58 +1,73 @@
-From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [PATCH v4 2/5] ACPI / processor_idle: Add support for Low Power Idle(LPI) states
-Date: Tue, 10 May 2016 02:04:41 +0200
-Message-ID: <3339348.mi5ytyqrb0@vostro.rjw.lan>
-References: <1461069013-13292-1-git-send-email-sudeep.holla@arm.com> <1461069013-13292-3-git-send-email-sudeep.holla@arm.com>
+From: Bjorn Helgaas <helgaas@kernel.org>
+Subject: Re: [PATCH V6 01/13] pci, acpi, x86, ia64: Move ACPI host bridge
+ device companion assignment to core code.
+Date: Mon, 9 May 2016 20:53:36 -0500
+Message-ID: <20160510015336.GA29582@localhost>
+References: <1460740008-19489-1-git-send-email-tn@semihalf.com>
+ <1460740008-19489-2-git-send-email-tn@semihalf.com>
+ <292578579.uIxhMjkdfG@vostro.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7Bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1461069013-13292-3-git-send-email-sudeep.holla@arm.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Sudeep Holla <sudeep.holla@arm.com>
-Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Al Stone <al.stone@linaro.org>, Prashanth Prakash <pprakash@codeaurora.org>, Ashwin Chaugule <ashwin.chaugule@linaro.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail.kernel.org ([198.145.29.136]:51670 "EHLO mail.kernel.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753392AbcEJBxo (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 9 May 2016 21:53:44 -0400
+Content-Disposition: inline
+In-Reply-To: <292578579.uIxhMjkdfG@vostro.rjw.lan>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: Tomasz Nowicki <tn@semihalf.com>, arnd@arndb.de, will.deacon@arm.com, catalin.marinas@arm.com, rafael@kernel.org, hanjun.guo@linaro.org, Lorenzo.Pieralisi@arm.com, okaya@codeaurora.org, jiang.liu@linux.intel.com, jchandra@broadcom.com, robert.richter@caviumnetworks.com, mw@semihalf.com, Liviu.Dudau@arm.com, ddaney@caviumnetworks.com, wangyijing@huawei.com, Suravee.Suthikulpanit@amd.com, msalter@redhat.com, linux-pci@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linaro-acpi@lists.linaro.org, jcm@redhat.com
 
-On Tuesday, April 19, 2016 01:30:10 PM Sudeep Holla wrote:
-> ACPI 6.0 introduced an optional object _LPI that provides an alternate
-> method to describe Low Power Idle states. It defines the local power
-> states for each node in a hierarchical processor topology. The OSPM can
-> use _LPI object to select a local power state for each level of processor
-> hierarchy in the system. They used to produce a composite power state
-> request that is presented to the platform by the OSPM.
+On Tue, May 10, 2016 at 12:56:37AM +0200, Rafael J. Wysocki wrote:
+> On Friday, April 15, 2016 07:06:36 PM Tomasz Nowicki wrote:
+> > Currently we have two platforms (x86 & ia64) capable of PCI ACPI host
+> > bridge initialization. They both use arch-specific sysdata to pass down
+> > parent device reference and both rely on NULL parent in pci_create_root_bus()
+> > to validate sysdata content.
 > 
-> Since multiple processors affect the idle state for any non-leaf hierarchy
-> node, coordination of idle state requests between the processors is
-> required. ACPI supports two different coordination schemes: Platform
-> coordinated and  OS initiated.
+> No, this is not relied on for that.  It is just NULL, because we don't
+> have a physical parent device representation for the PCI host bridge.
 > 
-> This patch adds initial support for Platform coordination scheme of LPI.
+> > It looks hacky and prevents us from getting some firmware specific
+> > info for PCI host controller based on its acpi_device structure
+> > in generic pci_create_root_bus() function.
 > 
-> Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-> Signed-off-by: Sudeep Holla <sudeep.holla@arm.com>
-> ---
->  drivers/acpi/bus.c              |  11 +-
->  drivers/acpi/processor_driver.c |   2 +-
->  drivers/acpi/processor_idle.c   | 441 +++++++++++++++++++++++++++++++++++-----
->  include/acpi/processor.h        |  25 ++-
->  include/linux/acpi.h            |   4 +
->  5 files changed, 422 insertions(+), 61 deletions(-)
+> You can't get that info without adding ACPI-specific code to that function
+> anyway.
 > 
-> Hi Rafael,
+> > However, we overcome that blocker by passing down parent device via
+> > pci_create_root_bus parameter (as the ACPI device type).
 > 
-> Yet to be discussed(retained as in from previous version):
+> Which is completely wrong.
+> 
+> > Then we use ACPI_COMPANION_SET in core code
+> > for ACPI boot method only. ACPI_COMPANION_SET is safe to run for all
+> > cases DT, ACPI and DT&ACPI.
+> > 
+> > Since now PCI core code is setting ACPI companion device for us,
+> > x86 & ia64 specific ACPI companion device setting turns out to be dead now.
+> > We can get rid of it, including related companion reference from
+> > PCI sysdata structure. Aslo, PCI_CONTROLLER macro cannot return valid
+> > companion device anymore. Therefore we need to convert its usage to
+> > ACPI_COMPANION.
 
-I somehow didn't realize that you had been waiting for my feedback.  Sorry
-about that.
+I think getting rid of arch-specific sysdata is a good goal (at least
+for things like the domain and ACPI companion that are really not
+arch-specific).
 
-> - Kconfig entry removal: Need feedback on how to deal with that
->   without having to introduce dummy _CST related ARM64 callbacks
-> - Didn't defer processing of LPI buffers to flattening as it
->   results in the same buffer decoded multiple times
-> - ACPI_CSTATE_INTEGER : IMO it's reasonable to keep it aroundsince the
->   it's part of LPI specification(not just ARM FFH)
+But I'm afraid I've been guilty of allowing the perfect to be the
+enemy of the good.  I think it will be more useful in the end if we
+can get as much of this work in v4.7 as possible, even if there's more
+polishing we'd like to do later.
 
-OK, I'll have a look tomorrow.
+What if we keep the x86 and ia64 handling of ACPI_COMPANION the way it
+is today, and do it the same way for arm64?  Then later, after we
+merge Arnd's work to make a generic pci_register_host() or similar, I
+suspect we might be able to unify the ACPI_COMPANION stuff more
+easily.  If the driver (acpi/pci_root.c) allocates the struct
+pci_host_bridge, then maybe it will be able to fill in the domain and
+set up the ACPI_COMPANION before it calls the scan interface.
 
-Thanks,
-Rafael
+Bjorn
