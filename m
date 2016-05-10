@@ -1,204 +1,126 @@
 From: "Rafael J. Wysocki" <rafael@kernel.org>
-Subject: Re: [PATCH V7 03/11] pci, of: Move the PCI I/O space management to
- PCI core code.
-Date: Tue, 10 May 2016 19:59:00 +0200
-Message-ID: <CAJZ5v0ge+LGwp=AkPF50H1ZXFA6J5ByazuY7Opc-aLJwWrBNxg@mail.gmail.com>
+Subject: Re: [PATCH V7 08/11] pci, acpi: Support for ACPI based generic PCI
+ host controller
+Date: Tue, 10 May 2016 20:18:42 +0200
+Message-ID: <CAJZ5v0jTLGs1J_YXnAEa901hPHaupQeF1EFH_LGK47qadrYONw@mail.gmail.com>
 References: <1462893601-8937-1-git-send-email-tn@semihalf.com>
-	<1462893601-8937-4-git-send-email-tn@semihalf.com>
+	<1462893601-8937-9-git-send-email-tn@semihalf.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-lf0-f68.google.com ([209.85.215.68]:33350 "EHLO
-	mail-lf0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751325AbcEJR7E (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 10 May 2016 13:59:04 -0400
-In-Reply-To: <1462893601-8937-4-git-send-email-tn@semihalf.com>
-Sender: linux-acpi-owner@vger.kernel.org
-List-Id: linux-acpi@vger.kernel.org
+Return-path: <linux-pci-owner@vger.kernel.org>
+In-Reply-To: <1462893601-8937-9-git-send-email-tn@semihalf.com>
+Sender: linux-pci-owner@vger.kernel.org
 To: Tomasz Nowicki <tn@semihalf.com>
 Cc: Bjorn Helgaas <helgaas@kernel.org>, Arnd Bergmann <arnd@arndb.de>, Will Deacon <will.deacon@arm.com>, Catalin Marinas <catalin.marinas@arm.com>, "Rafael J. Wysocki" <rafael@kernel.org>, Hanjun Guo <hanjun.guo@linaro.org>, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, Sinan Kaya <okaya@codeaurora.org>, jchandra@broadcom.com, robert.richter@caviumnetworks.com, mw@semihalf.com, Liviu.Dudau@arm.com, David Daney <ddaney@caviumnetworks.com>, wangyijing@huawei.com, Suravee Suthikulanit <Suravee.Suthikulpanit@amd.com>, Mark Salter <msalter@redhat.com>, Linux PCI <linux-pci@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, "linaro-acpi@lists.linaro.org" <linaro-acpi@lists.linaro.org>, Jon Masters <jcm@redhat.com>and
+List-Id: linux-acpi@vger.kernel.org
 
 On Tue, May 10, 2016 at 5:19 PM, Tomasz Nowicki <tn@semihalf.com> wrote:
-> No functional changes in this patch.
+> This patch is going to implement generic PCI host controller for
+> ACPI world, similar to what pci-host-generic.c driver does for DT world.
 >
-> PCI I/O space mapping code does not depend on OF, therefore it can be
-> moved to PCI core code. This way we will be able to use it
-> e.g. in ACPI PCI code.
->
-> Suggested-by: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
-> Signed-off-by: Tomasz Nowicki <tn@semihalf.com>
-> CC: Arnd Bergmann <arnd@arndb.de>
-> CC: Liviu Dudau <Liviu.Dudau@arm.com>
-> ---
->  drivers/of/address.c       | 116 +--------------------------------------------
->  drivers/pci/pci.c          | 115 ++++++++++++++++++++++++++++++++++++++++++++
->  include/linux/of_address.h |   9 ----
->  include/linux/pci.h        |   5 ++
->  4 files changed, 121 insertions(+), 124 deletions(-)
->
-> diff --git a/drivers/of/address.c b/drivers/of/address.c
-> index 91a469d..0a553c0 100644
-> --- a/drivers/of/address.c
-> +++ b/drivers/of/address.c
-> @@ -4,6 +4,7 @@
->  #include <linux/ioport.h>
->  #include <linux/module.h>
->  #include <linux/of_address.h>
-> +#include <linux/pci.h>
->  #include <linux/pci_regs.h>
->  #include <linux/sizes.h>
->  #include <linux/slab.h>
-> @@ -673,121 +674,6 @@ const __be32 *of_get_address(struct device_node *dev, int index, u64 *size,
->  }
->  EXPORT_SYMBOL(of_get_address);
->
-> -#ifdef PCI_IOBASE
-> -struct io_range {
-> -       struct list_head list;
-> -       phys_addr_t start;
-> -       resource_size_t size;
-> -};
-> -
-> -static LIST_HEAD(io_range_list);
-> -static DEFINE_SPINLOCK(io_range_lock);
-> -#endif
-> -
-> -/*
-> - * Record the PCI IO range (expressed as CPU physical address + size).
-> - * Return a negative value if an error has occured, zero otherwise
-> - */
-> -int __weak pci_register_io_range(phys_addr_t addr, resource_size_t size)
-> -{
-> -       int err = 0;
-> -
-> -#ifdef PCI_IOBASE
-> -       struct io_range *range;
-> -       resource_size_t allocated_size = 0;
-> -
-> -       /* check if the range hasn't been previously recorded */
-> -       spin_lock(&io_range_lock);
-> -       list_for_each_entry(range, &io_range_list, list) {
-> -               if (addr >= range->start && addr + size <= range->start + size) {
-> -                       /* range already registered, bail out */
-> -                       goto end_register;
-> -               }
-> -               allocated_size += range->size;
-> -       }
-> -
-> -       /* range not registed yet, check for available space */
-> -       if (allocated_size + size - 1 > IO_SPACE_LIMIT) {
-> -               /* if it's too big check if 64K space can be reserved */
-> -               if (allocated_size + SZ_64K - 1 > IO_SPACE_LIMIT) {
-> -                       err = -E2BIG;
-> -                       goto end_register;
-> -               }
-> -
-> -               size = SZ_64K;
-> -               pr_warn("Requested IO range too big, new size set to 64K\n");
-> -       }
-> -
-> -       /* add the range to the list */
-> -       range = kzalloc(sizeof(*range), GFP_ATOMIC);
-> -       if (!range) {
-> -               err = -ENOMEM;
-> -               goto end_register;
-> -       }
-> -
-> -       range->start = addr;
-> -       range->size = size;
-> -
-> -       list_add_tail(&range->list, &io_range_list);
-> -
-> -end_register:
-> -       spin_unlock(&io_range_lock);
-> -#endif
-> -
-> -       return err;
-> -}
-> -
-> -phys_addr_t pci_pio_to_address(unsigned long pio)
-> -{
-> -       phys_addr_t address = (phys_addr_t)OF_BAD_ADDR;
-> -
-> -#ifdef PCI_IOBASE
-> -       struct io_range *range;
-> -       resource_size_t allocated_size = 0;
-> -
-> -       if (pio > IO_SPACE_LIMIT)
-> -               return address;
-> -
-> -       spin_lock(&io_range_lock);
-> -       list_for_each_entry(range, &io_range_list, list) {
-> -               if (pio >= allocated_size && pio < allocated_size + range->size) {
-> -                       address = range->start + pio - allocated_size;
-> -                       break;
-> -               }
-> -               allocated_size += range->size;
-> -       }
-> -       spin_unlock(&io_range_lock);
-> -#endif
-> -
-> -       return address;
-> -}
-> -
-> -unsigned long __weak pci_address_to_pio(phys_addr_t address)
-> -{
-> -#ifdef PCI_IOBASE
-> -       struct io_range *res;
-> -       resource_size_t offset = 0;
-> -       unsigned long addr = -1;
-> -
-> -       spin_lock(&io_range_lock);
-> -       list_for_each_entry(res, &io_range_list, list) {
-> -               if (address >= res->start && address < res->start + res->size) {
-> -                       addr = address - res->start + offset;
-> -                       break;
-> -               }
-> -               offset += res->size;
-> -       }
-> -       spin_unlock(&io_range_lock);
-> -
-> -       return addr;
-> -#else
-> -       if (address > IO_SPACE_LIMIT)
-> -               return (unsigned long)-1;
-> -
-> -       return (unsigned long) address;
-> -#endif
-> -}
-> -
->  static int __of_address_to_resource(struct device_node *dev,
->                 const __be32 *addrp, u64 size, unsigned int flags,
->                 const char *name, struct resource *r)
-> diff --git a/drivers/pci/pci.c b/drivers/pci/pci.c
-> index 25e0327..bc0c914 100644
-> --- a/drivers/pci/pci.c
-> +++ b/drivers/pci/pci.c
-> @@ -3021,6 +3021,121 @@ int pci_request_regions_exclusive(struct pci_dev *pdev, const char *res_name)
->  }
->  EXPORT_SYMBOL(pci_request_regions_exclusive);
->
-> +#ifdef PCI_IOBASE
-> +struct io_range {
-> +       struct list_head list;
-> +       phys_addr_t start;
-> +       resource_size_t size;
-> +};
-> +
-> +static LIST_HEAD(io_range_list);
-> +static DEFINE_SPINLOCK(io_range_lock);
-> +#endif
-> +
-> +/*
-> + * Record the PCI IO range (expressed as CPU physical address + size).
-> + * Return a negative value if an error has occured, zero otherwise
-> + */
-> +int __weak pci_register_io_range(phys_addr_t addr, resource_size_t size)
-> +{
-> +       int err = 0;
-> +
-> +#ifdef PCI_IOBASE
+> All such drivers, which we have seen so far, were implemented within
+> arch/ directory since they had some arch assumptions (x86 and ia64).
+> However, they all are doing similar thing, so it makes sense to find
+> some common code and abstract it into the generic driver.
 
-I understand that this moves code around, but those in-function
-#ifdefs aren't nice.  Any chance to get rid of them but putting whole
-functions under the #ifdef?
+Does it mean x86 and ia64 will now be able to use this code too?
+
+> In order to handle PCI config space regions properly, we define new
+> MCFG interface which does sanity checks on MCFG table and keeps its
+> root pointer. User is able to lookup MCFG regions based on that root
+> pointer and specified domain:bus_start:bus_end touple. We are using
+> pci_mmcfg_late_init old prototype to avoid another function name.
+>
+> The implementation of pci_acpi_scan_root() looks up the MCFG entries
+> and sets up a new mapping (regions are not mapped until host controller ask
+> for it). Generic PCI functions are used for accessing config space.
+> Driver selects PCI_ECAM and uses functions from drivers/pci/ecam.h
+> to create and access ECAM mappings.
+>
+> As mentioned in Kconfig help section, ACPI_PCI_HOST_GENERIC choice
+> should be made on a per-architecture basis.
+
+If that code really is generic and there will be more than one
+architecture using it ever, I think it'll be better for the
+architectures that don't use it to set something like
+ARCH_ACPI_PCI_HOST and whoever doesn't set that will use the generic
+thing.  That'd be more logical at least IMO.
+
+> Signed-off-by: Tomasz Nowicki <tn@semihalf.com>
+> Signed-off-by: Jayachandran C <jchandra@broadcom.com>
+> ---
+>  drivers/acpi/Kconfig            |   8 +++
+>  drivers/acpi/Makefile           |   1 +
+>  drivers/acpi/pci_mcfg.c         |  97 ++++++++++++++++++++++++++
+>  drivers/acpi/pci_root_generic.c | 149 ++++++++++++++++++++++++++++++++++++++++
+>  drivers/pci/ecam.h              |   5 ++
+>  include/linux/pci-acpi.h        |   5 ++
+>  include/linux/pci.h             |   5 +-
+>  7 files changed, 269 insertions(+), 1 deletion(-)
+>  create mode 100644 drivers/acpi/pci_mcfg.c
+>  create mode 100644 drivers/acpi/pci_root_generic.c
+>
+> diff --git a/drivers/acpi/Kconfig b/drivers/acpi/Kconfig
+> index 183ffa3..44afc76 100644
+> --- a/drivers/acpi/Kconfig
+> +++ b/drivers/acpi/Kconfig
+> @@ -346,6 +346,14 @@ config ACPI_PCI_SLOT
+>           i.e., segment/bus/device/function tuples, with physical slots in
+>           the system.  If you are unsure, say N.
+>
+> +config ACPI_PCI_HOST_GENERIC
+> +       bool
+> +       select PCI_ECAM
+> +       help
+> +         Select this config option from the architecture Kconfig,
+> +         if it is preferred to enable ACPI PCI host controller driver which
+> +         has no arch-specific assumptions.
+> +
+>  config X86_PM_TIMER
+>         bool "Power Management Timer Support" if EXPERT
+>         depends on X86
+> diff --git a/drivers/acpi/Makefile b/drivers/acpi/Makefile
+> index 81e5cbc..627a2b7 100644
+> --- a/drivers/acpi/Makefile
+> +++ b/drivers/acpi/Makefile
+> @@ -40,6 +40,7 @@ acpi-$(CONFIG_ARCH_MIGHT_HAVE_ACPI_PDC) += processor_pdc.o
+>  acpi-y                         += ec.o
+>  acpi-$(CONFIG_ACPI_DOCK)       += dock.o
+>  acpi-y                         += pci_root.o pci_link.o pci_irq.o
+> +obj-$(CONFIG_ACPI_PCI_HOST_GENERIC)    += pci_root_generic.o pci_mcfg.o
+>  acpi-y                         += acpi_lpss.o acpi_apd.o
+>  acpi-y                         += acpi_platform.o
+>  acpi-y                         += acpi_pnp.o
+> diff --git a/drivers/acpi/pci_mcfg.c b/drivers/acpi/pci_mcfg.c
+> new file mode 100644
+> index 0000000..373d079
+> --- /dev/null
+> +++ b/drivers/acpi/pci_mcfg.c
+> @@ -0,0 +1,97 @@
+> +/*
+> + * Copyright (C) 2016 Broadcom
+> + *     Author: Jayachandran C <jchandra@broadcom.com>
+> + * Copyright (C) 2016 Semihalf
+> + *     Author: Tomasz Nowicki <tn@semihalf.com>
+> + *
+> + * This program is free software; you can redistribute it and/or modify
+> + * it under the terms of the GNU General Public License, version 2, as
+> + * published by the Free Software Foundation (the "GPL").
+> + *
+> + * This program is distributed in the hope that it will be useful, but
+> + * WITHOUT ANY WARRANTY; without even the implied warranty of
+> + * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+> + * General Public License version 2 (GPLv2) for more details.
+> + *
+> + * You should have received a copy of the GNU General Public License
+> + * version 2 (GPLv2) along with this source code.
+> + */
+> +#include <linux/kernel.h>
+> +#include <linux/pci.h>
+> +#include <linux/pci-acpi.h>
+> +
+> +#define PREFIX "ACPI: "
+
+If that is a new file (and I'm totally unconvinced about the need for
+it), can we simply define a pr_fmt() here as all messages in it seem
+to be printed by the pr_* functions?
