@@ -1,75 +1,73 @@
-From: "Rafael J. Wysocki" <rafael@kernel.org>
-Subject: Re: [PATCH v4 2/5] ACPI / processor_idle: Add support for Low Power
- Idle(LPI) states
-Date: Wed, 11 May 2016 22:45:56 +0200
-Message-ID: <CAJZ5v0gbkQmgGuVBxficJjVrOudRTgKKFFp6tFRCG-Byud8Ozg@mail.gmail.com>
-References: <1461069013-13292-1-git-send-email-sudeep.holla@arm.com>
-	<1461069013-13292-3-git-send-email-sudeep.holla@arm.com>
-	<1857618.TLitUhExSh@vostro.rjw.lan>
-	<57334A66.6070004@arm.com>
+From: Al Stone <ahs3@redhat.com>
+Subject: Re: [PATCH 0/3] ACPI: Support for platform initiated graceful
+ shutdown
+Date: Wed, 11 May 2016 14:59:21 -0600
+Message-ID: <582b4ea3-ee9a-6961-a4aa-374beda10de2@redhat.com>
+References: <1458157022-18633-1-git-send-email-pprakash@codeaurora.org>
+ <21470c3b-c176-ef46-fc93-081d482b4cab@redhat.com>
+ <57326EA8.1060806@codeaurora.org>
+Reply-To: ahs3@redhat.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-lf0-f44.google.com ([209.85.215.44]:32832 "EHLO
-	mail-lf0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751707AbcEKUp6 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 11 May 2016 16:45:58 -0400
-In-Reply-To: <57334A66.6070004@arm.com>
+Received: from mail-io0-f173.google.com ([209.85.223.173]:36229 "EHLO
+	mail-io0-f173.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751391AbcEKU7X (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 11 May 2016 16:59:23 -0400
+Received: by mail-io0-f173.google.com with SMTP id i75so65359447ioa.3
+        for <linux-acpi@vger.kernel.org>; Wed, 11 May 2016 13:59:23 -0700 (PDT)
+In-Reply-To: <57326EA8.1060806@codeaurora.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Sudeep Holla <sudeep.holla@arm.com>
-Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Al Stone <al.stone@linaro.org>, Prashanth Prakash <pprakash@codeaurora.org>, Ashwin Chaugule <ashwin.chaugule@linaro.org>
+To: "Prakash, Prashanth" <pprakash@codeaurora.org>, linux-acpi@vger.kernel.org
+Cc: harba@codeaurora.org, rjw@rjwysocki.net
 
-On Wed, May 11, 2016 at 5:06 PM, Sudeep Holla <sudeep.holla@arm.com> wrote:
->
->
-> On 11/05/16 01:03, Rafael J. Wysocki wrote:
->>
->> On Tuesday, April 19, 2016 01:30:10 PM Sudeep Holla wrote:
+On 05/10/2016 05:28 PM, Prakash, Prashanth wrote:
+> Hi Al,
+> 
+> I should have v2 sometime next week.
+> 
+> Sorry about the delay. Vacation and couple of other issues kept me little busy and couldn't update this patch set in a timely manner.
+> 
+> Thanks,
+> Prashanth
+
+No worries, Prashanth.  Just curiosity, on my part.  Thanks for posting these.
+
+> On 5/10/2016 4:50 PM, Al Stone wrote:
+>> On 03/16/2016 01:36 PM, Prashanth Prakash wrote:
+>>> This patch-set adds support for platform initited graceful shutdown as
+>>> described in the sections 5.6.6(Table-143) and 6.3.5.1 of ACPI 6.1 spec
 >>>
-
-[cut]
-
+>>> Jonathan (Zhixiong) Zhang (1):
+>>>   ACPI: move ACPI_SYSTEM_HID to acpi_drivers.h
+>>>
+>>> Prashanth Prakash (2):
+>>>   ACPI / sybus: add a driver for LNXSYBUS device
+>>>   ACPI: update the definition of common notification values
+>>>
+>>>  drivers/acpi/Kconfig        |   6 +++
+>>>  drivers/acpi/Makefile       |   1 +
+>>>  drivers/acpi/scan.c         |   3 +-
+>>>  drivers/acpi/sybus.c        | 116 ++++++++++++++++++++++++++++++++++++++++++++
+>>>  include/acpi/acpi_drivers.h |   1 +
+>>>  include/acpi/actypes.h      |   2 +-
+>>>  6 files changed, 127 insertions(+), 2 deletions(-)
+>>>  create mode 100644 drivers/acpi/sybus.c
+>>>
+>> Is v2 coming along soon?  I'd like to try these out on a couple of
+>> systems.  Thanks, Prashanth.
 >>
->> My main concern about the flattening of _LPI is that at one point we'll
->> probably decide to unflatten it and that will change the behavior for
->> current users.  There needs to be a plan for that IMO.
->>
->
-> Are you referring the OS co-ordinated mode ? If yes, I agree. If not,
-> can you explain why would we not flatten the LPI states ?
+> 
 
-If the platform doesn't autopromote core-level states into
-package-level states, then having access to unflattened hierarchy may
-be useful.  In some cases the exit latency of core states may be
-acceptable, while the exit latency of package states may not be, for
-example.
 
-Also the scheduler may want to know which cores are in one package
-(from the idle states perspective) at one point.
-
-[cut]
-
->>> +
->>> +       for (i = 0; i < fl_scnt && i < CPUIDLE_STATE_MAX; i++) {
->>> +               lpi = &pr->power.lpi_states[i];
->>> +
->>> +               state = &drv->states[i];
->>> +               snprintf(state->name, CPUIDLE_NAME_LEN, "LPI-%d", i);
->>> +               strlcpy(state->desc, lpi->desc, CPUIDLE_DESC_LEN);
->>> +               state->exit_latency = lpi->wake_latency;
->>> +               state->target_residency = lpi->min_residency;
->>> +               if (lpi->arch_flags)
->>> +                       state->flags |= CPUIDLE_FLAG_TIMER_STOP;
->>> +               state->enter = acpi_idle_lpi_enter;
->>
->>
->> No ->enter_freeze ?
->>
->
-> I don't have a system to test this. Also IIUC the cpuidle does support
-> suspend-to-idle even when ->enter_freeze is not implemented right.
-> Can we add it later once I find a way to test. Correctly no wakeup on my
-> test platform :(
-
-Fair enough.
+-- 
+ciao,
+al
+-----------------------------------
+Al Stone
+Software Engineer
+Red Hat, Inc.
+ahs3@redhat.com
+-----------------------------------
