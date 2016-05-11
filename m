@@ -1,205 +1,210 @@
-From: Hoan Tran <hotran@apm.com>
-Subject: Re: [PATCH v2] mailbox: pcc: Support HW-Reduced Communication
- Subspace Type 2
-Date: Tue, 10 May 2016 21:21:26 -0700
-Message-ID: <CAFHUOYxWe2VOjABGmm9bnqL8iKeLJ6maN-YDjp3bzWXogU2img@mail.gmail.com>
-References: <1462559914-28363-1-git-send-email-hotran@apm.com>
-	<CAJ5Y-ebMB79QrSb4WRXkq-vhJED+JmW8wC1Vqyc3pg9Mh-DMjg@mail.gmail.com>
+From: Tomasz Nowicki <tn@semihalf.com>
+Subject: Re: [PATCH V7 03/11] pci, of: Move the PCI I/O space management to
+ PCI core code.
+Date: Wed, 11 May 2016 09:36:58 +0200
+Message-ID: <5732E11A.9090002@semihalf.com>
+References: <1462893601-8937-1-git-send-email-tn@semihalf.com>
+ <1462893601-8937-4-git-send-email-tn@semihalf.com>
+ <CAJZ5v0ge+LGwp=AkPF50H1ZXFA6J5ByazuY7Opc-aLJwWrBNxg@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-vk0-f52.google.com ([209.85.213.52]:35595 "EHLO
-	mail-vk0-f52.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751162AbcEKEV1 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 11 May 2016 00:21:27 -0400
-Received: by mail-vk0-f52.google.com with SMTP id f66so42380878vkh.2
-        for <linux-acpi@vger.kernel.org>; Tue, 10 May 2016 21:21:27 -0700 (PDT)
-In-Reply-To: <CAJ5Y-ebMB79QrSb4WRXkq-vhJED+JmW8wC1Vqyc3pg9Mh-DMjg@mail.gmail.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-pci-owner@vger.kernel.org>
+In-Reply-To: <CAJZ5v0ge+LGwp=AkPF50H1ZXFA6J5ByazuY7Opc-aLJwWrBNxg@mail.gmail.com>
+Sender: linux-pci-owner@vger.kernel.org
+To: "Rafael J. Wysocki" <rafael@kernel.org>
+Cc: Bjorn Helgaas <helgaas@kernel.org>, Arnd Bergmann <arnd@arndb.de>, Will Deacon <will.deacon@arm.com>, Catalin Marinas <catalin.marinas@arm.com>, Hanjun Guo <hanjun.guo@linaro.org>, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, Sinan Kaya <okaya@codeaurora.org>, jchandra@broadcom.com, robert.richter@caviumnetworks.com, mw@semihalf.com, Liviu.Dudau@arm.com, David Daney <ddaney@caviumnetworks.com>, wangyijing@huawei.com, Suravee Suthikulanit <Suravee.Suthikulpanit@amd.com>, Mark Salter <msalter@redhat.com>, Linux PCI <linux-pci@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, "linaro-acpi@lists.linaro.org" <linaro-acpi@lists.linaro.org>, Jon Masters <jcm@redhat.com>, andrea.gallo@linaro.org, dhdang@apm.com, jer
 List-Id: linux-acpi@vger.kernel.org
-To: Ashwin Chaugule <ashwin.chaugule@linaro.org>
-Cc: Jassi Brar <jassisinghbrar@gmail.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Robert Moore <robert.moore@intel.com>, Alexey Klimov <alexey.klimov@arm.com>, lkml <linux-kernel@vger.kernel.org>, linux acpi <linux-acpi@vger.kernel.org>, Loc Ho <lho@apm.com>, Duc Dang <dhdang@apm.com>
 
-Hi Ashwin,
-
-Thanks for your review !
-
-On Tue, May 10, 2016 at 5:00 AM, Ashwin Chaugule
-<ashwin.chaugule@linaro.org> wrote:
-> Hello,
->
-> On 6 May 2016 at 14:38, Hoan Tran <hotran@apm.com> wrote:
->> From: hotran <hotran@apm.com>
+On 10.05.2016 19:59, Rafael J. Wysocki wrote:
+> On Tue, May 10, 2016 at 5:19 PM, Tomasz Nowicki <tn@semihalf.com> wrote:
+>> No functional changes in this patch.
 >>
->> ACPI 6.1 has a PCC HW-Reduced Communication Subspace Type 2 intended for
->> use on HW-Reduce ACPI Platform, which requires read-modify-write sequence
->> to acknowledge doorbell interrupt. This patch provides the implementation
->> for the Communication Subspace Type 2.
+>> PCI I/O space mapping code does not depend on OF, therefore it can be
+>> moved to PCI core code. This way we will be able to use it
+>> e.g. in ACPI PCI code.
 >>
->> This patch depends on patch [1] which supports PCC subspace type 2 header
->> [1] https://lkml.org/lkml/2016/5/5/14
->>  - [PATCH v2 03/13] ACPICA: ACPI 6.1: Support for new PCCT subtable
->>
->> v2
->>  * Remove changes inside "actbl3.h". This file is taken care by ACPICA.
->>  * Parse both subspace type 1 and subspace type 2
->>  * Remove unnecessary variable initialization
->>  * ISR returns IRQ_NONE in case of error
->>
->> v1
->>  * Initial
->>
->> Signed-off-by: Hoan Tran <hotran@apm.com>
+>> Suggested-by: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+>> Signed-off-by: Tomasz Nowicki <tn@semihalf.com>
+>> CC: Arnd Bergmann <arnd@arndb.de>
+>> CC: Liviu Dudau <Liviu.Dudau@arm.com>
 >> ---
->>  drivers/mailbox/pcc.c | 395 +++++++++++++++++++++++++++++++++++++-------------
->>  1 file changed, 296 insertions(+), 99 deletions(-)
+>>   drivers/of/address.c       | 116 +--------------------------------------------
+>>   drivers/pci/pci.c          | 115 ++++++++++++++++++++++++++++++++++++++++++++
+>>   include/linux/of_address.h |   9 ----
+>>   include/linux/pci.h        |   5 ++
+>>   4 files changed, 121 insertions(+), 124 deletions(-)
 >>
->> diff --git a/drivers/mailbox/pcc.c b/drivers/mailbox/pcc.c
->> index 043828d..58c9a67 100644
->> --- a/drivers/mailbox/pcc.c
->> +++ b/drivers/mailbox/pcc.c
->> @@ -59,6 +59,7 @@
->>  #include <linux/delay.h>
->>  #include <linux/io.h>
->>  #include <linux/init.h>
->> +#include <linux/interrupt.h>
->>  #include <linux/list.h>
->>  #include <linux/platform_device.h>
->>  #include <linux/mailbox_controller.h>
->> @@ -68,27 +69,179 @@
->>  #include "mailbox.h"
+>> diff --git a/drivers/of/address.c b/drivers/of/address.c
+>> index 91a469d..0a553c0 100644
+>> --- a/drivers/of/address.c
+>> +++ b/drivers/of/address.c
+>> @@ -4,6 +4,7 @@
+>>   #include <linux/ioport.h>
+>>   #include <linux/module.h>
+>>   #include <linux/of_address.h>
+>> +#include <linux/pci.h>
+>>   #include <linux/pci_regs.h>
+>>   #include <linux/sizes.h>
+>>   #include <linux/slab.h>
+>> @@ -673,121 +674,6 @@ const __be32 *of_get_address(struct device_node *dev, int index, u64 *size,
+>>   }
+>>   EXPORT_SYMBOL(of_get_address);
 >>
->>  #define MAX_PCC_SUBSPACES      256
->> +#define MBOX_IRQ_NAME          "pcc-mbox"
+>> -#ifdef PCI_IOBASE
+>> -struct io_range {
+>> -       struct list_head list;
+>> -       phys_addr_t start;
+>> -       resource_size_t size;
+>> -};
+>> -
+>> -static LIST_HEAD(io_range_list);
+>> -static DEFINE_SPINLOCK(io_range_lock);
+>> -#endif
+>> -
+>> -/*
+>> - * Record the PCI IO range (expressed as CPU physical address + size).
+>> - * Return a negative value if an error has occured, zero otherwise
+>> - */
+>> -int __weak pci_register_io_range(phys_addr_t addr, resource_size_t size)
+>> -{
+>> -       int err = 0;
+>> -
+>> -#ifdef PCI_IOBASE
+>> -       struct io_range *range;
+>> -       resource_size_t allocated_size = 0;
+>> -
+>> -       /* check if the range hasn't been previously recorded */
+>> -       spin_lock(&io_range_lock);
+>> -       list_for_each_entry(range, &io_range_list, list) {
+>> -               if (addr >= range->start && addr + size <= range->start + size) {
+>> -                       /* range already registered, bail out */
+>> -                       goto end_register;
+>> -               }
+>> -               allocated_size += range->size;
+>> -       }
+>> -
+>> -       /* range not registed yet, check for available space */
+>> -       if (allocated_size + size - 1 > IO_SPACE_LIMIT) {
+>> -               /* if it's too big check if 64K space can be reserved */
+>> -               if (allocated_size + SZ_64K - 1 > IO_SPACE_LIMIT) {
+>> -                       err = -E2BIG;
+>> -                       goto end_register;
+>> -               }
+>> -
+>> -               size = SZ_64K;
+>> -               pr_warn("Requested IO range too big, new size set to 64K\n");
+>> -       }
+>> -
+>> -       /* add the range to the list */
+>> -       range = kzalloc(sizeof(*range), GFP_ATOMIC);
+>> -       if (!range) {
+>> -               err = -ENOMEM;
+>> -               goto end_register;
+>> -       }
+>> -
+>> -       range->start = addr;
+>> -       range->size = size;
+>> -
+>> -       list_add_tail(&range->list, &io_range_list);
+>> -
+>> -end_register:
+>> -       spin_unlock(&io_range_lock);
+>> -#endif
+>> -
+>> -       return err;
+>> -}
+>> -
+>> -phys_addr_t pci_pio_to_address(unsigned long pio)
+>> -{
+>> -       phys_addr_t address = (phys_addr_t)OF_BAD_ADDR;
+>> -
+>> -#ifdef PCI_IOBASE
+>> -       struct io_range *range;
+>> -       resource_size_t allocated_size = 0;
+>> -
+>> -       if (pio > IO_SPACE_LIMIT)
+>> -               return address;
+>> -
+>> -       spin_lock(&io_range_lock);
+>> -       list_for_each_entry(range, &io_range_list, list) {
+>> -               if (pio >= allocated_size && pio < allocated_size + range->size) {
+>> -                       address = range->start + pio - allocated_size;
+>> -                       break;
+>> -               }
+>> -               allocated_size += range->size;
+>> -       }
+>> -       spin_unlock(&io_range_lock);
+>> -#endif
+>> -
+>> -       return address;
+>> -}
+>> -
+>> -unsigned long __weak pci_address_to_pio(phys_addr_t address)
+>> -{
+>> -#ifdef PCI_IOBASE
+>> -       struct io_range *res;
+>> -       resource_size_t offset = 0;
+>> -       unsigned long addr = -1;
+>> -
+>> -       spin_lock(&io_range_lock);
+>> -       list_for_each_entry(res, &io_range_list, list) {
+>> -               if (address >= res->start && address < res->start + res->size) {
+>> -                       addr = address - res->start + offset;
+>> -                       break;
+>> -               }
+>> -               offset += res->size;
+>> -       }
+>> -       spin_unlock(&io_range_lock);
+>> -
+>> -       return addr;
+>> -#else
+>> -       if (address > IO_SPACE_LIMIT)
+>> -               return (unsigned long)-1;
+>> -
+>> -       return (unsigned long) address;
+>> -#endif
+>> -}
+>> -
+>>   static int __of_address_to_resource(struct device_node *dev,
+>>                  const __be32 *addrp, u64 size, unsigned int flags,
+>>                  const char *name, struct resource *r)
+>> diff --git a/drivers/pci/pci.c b/drivers/pci/pci.c
+>> index 25e0327..bc0c914 100644
+>> --- a/drivers/pci/pci.c
+>> +++ b/drivers/pci/pci.c
+>> @@ -3021,6 +3021,121 @@ int pci_request_regions_exclusive(struct pci_dev *pdev, const char *res_name)
+>>   }
+>>   EXPORT_SYMBOL(pci_request_regions_exclusive);
 >>
->> -static struct mbox_chan *pcc_mbox_channels;
->> +/**
->> + * PCC mailbox channel information
->> + *
->> + * @chan:      Pointer to mailbox communication channel
->> + * @pcc_doorbell_vaddr: PCC doorbell register address
->> + * @pcc_doorbell_ack_vaddr: PCC doorbell ack register address
->> + * @irq:       Interrupt number of the channel
->> + */
->> +struct pcc_mbox_chan {
->> +       struct mbox_chan        *chan;
->> +       void __iomem            *pcc_doorbell_vaddr;
->> +       void __iomem            *pcc_doorbell_ack_vaddr;
->> +       int                     irq;
+>> +#ifdef PCI_IOBASE
+>> +struct io_range {
+>> +       struct list_head list;
+>> +       phys_addr_t start;
+>> +       resource_size_t size;
 >> +};
->>
->> -/* Array of cached virtual address for doorbell registers */
->> -static void __iomem **pcc_doorbell_vaddr;
->> +/**
->> + * PCC mailbox controller data
->> + *
->> + * @mb_ctrl:   Representation of the communication channel controller
->> + * @mbox_chan: Array of PCC mailbox channels of the controller
->> + * @chans:     Array of mailbox communication channels
+>> +
+>> +static LIST_HEAD(io_range_list);
+>> +static DEFINE_SPINLOCK(io_range_lock);
+>> +#endif
+>> +
+>> +/*
+>> + * Record the PCI IO range (expressed as CPU physical address + size).
+>> + * Return a negative value if an error has occured, zero otherwise
 >> + */
->> +struct pcc_mbox {
->> +       struct mbox_controller  mbox_ctrl;
->> +       struct pcc_mbox_chan    *mbox_chans;
->> +       struct mbox_chan        *chans;
->> +};
+>> +int __weak pci_register_io_range(phys_addr_t addr, resource_size_t size)
+>> +{
+>> +       int err = 0;
 >> +
->> +static struct pcc_mbox pcc_mbox_ctx = {};
+>> +#ifdef PCI_IOBASE
 >
-> Im missing the idea behind creating this structure. Are you
-> registering multiple controllers somewhere?
-No, I just want to use a structure to store all global variables into
+> I understand that this moves code around, but those in-function
+> #ifdefs aren't nice.  Any chance to get rid of them but putting whole
+> functions under the #ifdef?
 >
->
-> [...]
->
->>
->> @@ -357,24 +534,44 @@ static int __init acpi_pcc_probe(void)
->>         pcct_entry = (struct acpi_subtable_header *) (
->>                 (unsigned long) pcct_tbl + sizeof(struct acpi_table_pcct));
->>
->> +       acpi_pcct_tbl = (struct acpi_table_pcct *) pcct_tbl;
->> +       if (acpi_pcct_tbl->flags & ACPI_PCCT_DOORBELL)
->> +               pcc_mbox_ctx.mbox_ctrl.txdone_irq = true;
->> +
->>         for (i = 0; i < count; i++) {
->>                 struct acpi_generic_address *db_reg;
->>                 struct acpi_pcct_hw_reduced *pcct_ss;
->> -               pcc_mbox_channels[i].con_priv = pcct_entry;
->> +
->> +               pcc_mbox_ctx.chans[i].con_priv = pcct_entry;
->> +               pcc_mbox_ctx.chans[i].mbox = &pcc_mbox_ctx.mbox_ctrl;
->> +
->> +               pcct_ss = (struct acpi_pcct_hw_reduced *) pcct_entry;
->> +
->> +               pcc_mbox_ctx.mbox_chans[i].chan = &pcc_mbox_ctx.chans[i];
->> +               if (pcc_mbox_ctx.mbox_ctrl.txdone_irq) {
->> +                       rc = pcc_parse_subspace_irq(&pcc_mbox_ctx.mbox_chans[i],
->> +                                                   pcct_ss);
->> +                       if (rc < 0)
->> +                               return rc;
->> +               }
->
-> I think we should parse the remaining entries and register them if
-> they are sane. Some other PCC clients can then continue to function.
-I think, it could be an error of PCCT table and need to be returned.
->
->>
->>                 /* If doorbell is in system memory cache the virt address */
->>                 pcct_ss = (struct acpi_pcct_hw_reduced *)pcct_entry;
->>                 db_reg = &pcct_ss->doorbell_register;
->> -               if (db_reg->space_id == ACPI_ADR_SPACE_SYSTEM_MEMORY)
->> -                       pcc_doorbell_vaddr[i] = acpi_os_ioremap(db_reg->address,
->> +               if (db_reg->space_id == ACPI_ADR_SPACE_SYSTEM_MEMORY) {
->> +                       pcc_mbox_ctx.mbox_chans[i].pcc_doorbell_vaddr =
->> +                                       acpi_os_ioremap(db_reg->address,
->>                                                         db_reg->bit_width/8);
->> +               }
->> +
->>                 pcct_entry = (struct acpi_subtable_header *)
->>                         ((unsigned long) pcct_entry + pcct_entry->length);
->>         }
->>
->> -       pcc_mbox_ctrl.num_chans = count;
->> +       pcc_mbox_ctx.mbox_ctrl.num_chans = count;
->>
->> -       pr_info("Detected %d PCC Subspaces\n", pcc_mbox_ctrl.num_chans);
->> +       pr_info("Detected %d PCC Subspaces\n",
->> +               pcc_mbox_ctx.mbox_ctrl.num_chans);
->>
->>         return 0;
->>  }
->> @@ -394,12 +591,12 @@ static int pcc_mbox_probe(struct platform_device *pdev)
->>  {
->>         int ret = 0;
->>
->> -       pcc_mbox_ctrl.chans = pcc_mbox_channels;
->> -       pcc_mbox_ctrl.ops = &pcc_chan_ops;
->> -       pcc_mbox_ctrl.dev = &pdev->dev;
->> +       pcc_mbox_ctx.mbox_ctrl.chans = pcc_mbox_ctx.chans;
->> +       pcc_mbox_ctx.mbox_ctrl.ops = &pcc_chan_ops;
->> +       pcc_mbox_ctx.mbox_ctrl.dev = &pdev->dev;
->>
->>         pr_info("Registering PCC driver as Mailbox controller\n");
->> -       ret = mbox_controller_register(&pcc_mbox_ctrl);
->> +       ret = mbox_controller_register(&pcc_mbox_ctx.mbox_ctrl);
->
-> That pcc_mbox_ctx usage everywhere seems questionable to me. But its
-> also too early in the morning here. ;)
-As the same with previous comments, I would like to move all global
-variables into a structure
 
-Thanks and Regards
-Hoan
->
-> Regards,
-> Ashwin.
+This is a __weak implementation, so assuming I would move #ifdef out of 
+function I need to provide another empty __weak stub. I do not know 
+which solution is more ugly. In any case we can do that cleanup separately.
 
--- 
-CONFIDENTIALITY NOTICE: This e-mail message, including any attachments, is 
-for the sole use of the intended recipient(s) and contains information that 
-is confidential and proprietary to Applied Micro Circuits Corporation or 
-its subsidiaries. It is to be used solely for the purpose of furthering the 
-parties' business relationship. All unauthorized review, use, disclosure or 
-distribution is prohibited. If you are not the intended recipient, please 
-contact the sender by reply e-mail and destroy all copies of the original 
-message.
+Tomasz
