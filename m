@@ -1,103 +1,103 @@
-From: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
-Subject: Re: [PATCH V7 07/11] pci, acpi: Handle ACPI companion assignment.
-Date: Wed, 11 May 2016 11:11:01 +0100
-Message-ID: <20160511101101.GA16101@red-moon>
-References: <1462893601-8937-1-git-send-email-tn@semihalf.com>
- <1462893601-8937-8-git-send-email-tn@semihalf.com>
- <CAJZ5v0hM8WAr9GGku89zKgiVKt6ArHf=9CntRUyBjyMNUvie2A@mail.gmail.com>
+From: Catalin Marinas <catalin.marinas@arm.com>
+Subject: Re: [PATCH v6 13/14] arm64, acpi, numa: NUMA support based on SRAT
+ and SLIT
+Date: Wed, 11 May 2016 11:39:29 +0100
+Message-ID: <20160511103929.GC3051@e104818-lin.cambridge.arm.com>
+References: <1461780436-27182-1-git-send-email-ddaney.cavm@gmail.com>
+ <1461780436-27182-14-git-send-email-ddaney.cavm@gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-pci-owner@vger.kernel.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <CAJZ5v0hM8WAr9GGku89zKgiVKt6ArHf=9CntRUyBjyMNUvie2A@mail.gmail.com>
-Sender: linux-pci-owner@vger.kernel.org
-To: "Rafael J. Wysocki" <rafael@kernel.org>
-Cc: Tomasz Nowicki <tn@semihalf.com>, Bjorn Helgaas <helgaas@kernel.org>, Arnd Bergmann <arnd@arndb.de>, Will Deacon <will.deacon@arm.com>, Catalin Marinas <catalin.marinas@arm.com>, Hanjun Guo <hanjun.guo@linaro.org>, Sinan Kaya <okaya@codeaurora.org>, jchandra@broadcom.com, robert.richter@caviumnetworks.com, mw@semihalf.com, Liviu.Dudau@arm.com, David Daney <ddaney@caviumnetworks.com>, wangyijing@huawei.com, Suravee Suthikulanit <Suravee.Suthikulpanit@amd.com>, Mark Salter <msalter@redhat.com>, Linux PCI <linux-pci@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, "linaro-acpi@lists.linaro.org" <linaro-acpi@lists.linaro.org>, Jon Masters <jcm@redhat.com>, andrea.gallo@linaro.org, dhdang@apm.com, jeremy.linton@a
+In-Reply-To: <1461780436-27182-14-git-send-email-ddaney.cavm@gmail.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: David Daney <ddaney.cavm@gmail.com>
+Cc: Will Deacon <will.deacon@arm.com>, linux-arm-kernel@lists.infradead.org, Mark Rutland <mark.rutland@arm.com>, Tony Luck <tony.luck@intel.com>, Fenghua Yu <fenghua.yu@intel.com>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, x86@kernel.org, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Rob Herring <robh+dt@kernel.org>, Frank Rowand <frowand.list@gmail.com>, Grant Likely <grant.likely@linaro.org>, Robert Moore <robert.moore@intel.com>, Lv Zheng <lv.zheng@intel.com>, Hanjun Guo <hanjun.guo@linaro.org>, Marc Zyngier <Marc.Zyngier@arm.com>, linux-ia64@vger.kernel.org, linux-acpi@vger.kernel.org, devel@acpica.org, Robert Richter <rrichter@cavium.com>, Ganapatrao Kulkarni <gkulkarni@caviumnetworks.com>, linux-kernel@vger.kernel.org, David Daney <david.daney@cavium.com>
 List-Id: linux-acpi@vger.kernel.org
 
-On Tue, May 10, 2016 at 08:37:00PM +0200, Rafael J. Wysocki wrote:
-> On Tue, May 10, 2016 at 5:19 PM, Tomasz Nowicki <tn@semihalf.com> wrote:
-> > This patch provides a way to set the ACPI companion in PCI code.
-> > We define acpi_pci_set_companion() to set the ACPI companion pointer and
-> > call it from PCI core code. The function is stub for now.
-> >
-> > Signed-off-by: Jayachandran C <jchandra@broadcom.com>
-> > Signed-off-by: Tomasz Nowicki <tn@semihalf.com>
-> > ---
-> >  drivers/pci/probe.c      | 2 ++
-> >  include/linux/pci-acpi.h | 4 ++++
-> >  2 files changed, 6 insertions(+)
-> >
-> > diff --git a/drivers/pci/probe.c b/drivers/pci/probe.c
-> > index 8004f67..fb0b752 100644
-> > --- a/drivers/pci/probe.c
-> > +++ b/drivers/pci/probe.c
-> > @@ -12,6 +12,7 @@
-> >  #include <linux/slab.h>
-> >  #include <linux/module.h>
-> >  #include <linux/cpumask.h>
-> > +#include <linux/pci-acpi.h>
-> >  #include <linux/pci-aspm.h>
-> >  #include <linux/aer.h>
-> >  #include <linux/acpi.h>
-> > @@ -2141,6 +2142,7 @@ struct pci_bus *pci_create_root_bus(struct device *parent, int bus,
-> >         bridge->dev.parent = parent;
-> >         bridge->dev.release = pci_release_host_bridge_dev;
-> >         dev_set_name(&bridge->dev, "pci%04x:%02x", pci_domain_nr(b), bus);
-> > +       acpi_pci_set_companion(bridge);
-> 
-> Yes, we'll probably add something similar here.
-> 
-> Do I think now is the right time to do that?  No.
-> 
-> >         error = pcibios_root_bridge_prepare(bridge);
-> >         if (error) {
-> >                 kfree(bridge);
-> > diff --git a/include/linux/pci-acpi.h b/include/linux/pci-acpi.h
-> > index 09f9f02..1baa515 100644
-> > --- a/include/linux/pci-acpi.h
-> > +++ b/include/linux/pci-acpi.h
-> > @@ -111,6 +111,10 @@ static inline void acpi_pci_add_bus(struct pci_bus *bus) { }
-> >  static inline void acpi_pci_remove_bus(struct pci_bus *bus) { }
-> >  #endif /* CONFIG_ACPI */
-> >
-> > +static inline void acpi_pci_set_companion(struct pci_host_bridge *bridge)
-> > +{
-> > +}
-> > +
-> >  static inline int acpi_pci_bus_domain_nr(struct pci_bus *bus)
-> >  {
-> >         return 0;
-> > --
-> 
-> Honestly, to me it looks like this series is trying very hard to avoid
-> doing any PCI host bridge configuration stuff from arch/arm64/
-> although (a) that might be simpler and (b) it would allow us to
-> identify the code that's common between *all* architectures using ACPI
-> support for host bridge configuration and to move *that* to a common
-> place later.  As done here it seems to be following the "ARM64 is
-> generic and the rest of the world is special" line which isn't really
-> helpful.
+On Wed, Apr 27, 2016 at 11:07:15AM -0700, David Daney wrote:
+> +static int __init get_mpidr_in_madt(int acpi_id, u64 *mpidr)
+> +{
+> +	unsigned long madt_end, entry;
+> +	struct acpi_table_madt *madt;
+> +	acpi_size tbl_size;
+> +
+> +	if (ACPI_FAILURE(acpi_get_table_with_size(ACPI_SIG_MADT, 0,
+> +			(struct acpi_table_header **)&madt, &tbl_size)))
+> +		return -ENODEV;
+> +
+> +	entry = (unsigned long)madt;
+> +	madt_end = entry + madt->header.length;
+> +
+> +	/* Parse all entries looking for a match. */
+> +	entry += sizeof(struct acpi_table_madt);
+> +	while (entry + sizeof(struct acpi_subtable_header) < madt_end) {
+> +		struct acpi_subtable_header *header =
+> +			(struct acpi_subtable_header *)entry;
+> +
+> +		if (header->type == ACPI_MADT_TYPE_GENERIC_INTERRUPT) {
+> +			struct acpi_madt_generic_interrupt *gicc =
+> +				container_of(header,
+> +				struct acpi_madt_generic_interrupt, header);
+> +
+> +			if ((gicc->flags & ACPI_MADT_ENABLED) &&
+> +			    (gicc->uid == acpi_id)) {
+> +				*mpidr = gicc->arm_mpidr;
+> +				early_acpi_os_unmap_memory(madt, tbl_size);
+> +				return 0;
+> +			}
+> +		}
+> +		entry += header->length;
+> +	}
+> +
+> +	early_acpi_os_unmap_memory(madt, tbl_size);
+> +	return -ENODEV;
+> +}
+> +
+> +/* Callback for Proximity Domain -> ACPI processor UID mapping */
+> +void __init acpi_numa_gicc_affinity_init(struct acpi_srat_gicc_affinity *pa)
+> +{
+> +	int pxm, node;
+> +	u64 mpidr;
+> +
+> +	if (srat_disabled())
+> +		return;
+> +
+> +	if (pa->header.length < sizeof(struct acpi_srat_gicc_affinity)) {
+> +		pr_err("SRAT: Invalid SRAT header length: %d\n",
+> +			pa->header.length);
+> +		bad_srat();
+> +		return;
+> +	}
+> +
+> +	if (!(pa->flags & ACPI_SRAT_GICC_ENABLED))
+> +		return;
+> +
+> +	if (cpus_in_srat >= NR_CPUS) {
+> +		pr_warn_once("SRAT: cpu_to_node_map[%d] is too small, may not be able to use all cpus\n",
+> +			     NR_CPUS);
+> +		return;
+> +	}
+> +
+> +	pxm = pa->proximity_domain;
+> +	node = acpi_map_pxm_to_node(pxm);
+> +
+> +	if (node == NUMA_NO_NODE || node >= MAX_NUMNODES) {
+> +		pr_err("SRAT: Too many proximity domains %d\n", pxm);
+> +		bad_srat();
+> +		return;
+> +	}
+> +
+> +	if (get_mpidr_in_madt(pa->acpi_processor_uid, &mpidr)) {
+> +		pr_err("SRAT: PXM %d with ACPI ID %d has no valid MPIDR in MADT\n",
+> +			pxm, pa->acpi_processor_uid);
+> +		bad_srat();
+> +		return;
+> +	}
 
-I think patch [1-2] should be merged regardless (they may require minor
-tweaks if we decide to move pci_acpi_scan_root() to arch/arm64 though,
-for include files location). I guess you are referring to patch 8 in
-your comments above, which boils down to deciding whether:
+I wonder whether you could replace the get_mpidr_in_madt() function with
+something like acpi_get_phys_id(). It looks like get_mpidr_in_madt()
+duplicates functionality already available elsewhere.
 
-- pci_acpi_scan_root() (and unfortunately all the MCFG/ECAM handling that
-  goes with it) should live in arch/arm64 or drivers/acpi
-
-acpi_pci_bus_domain_nr() is a bit more problematic since it is meant
-to be called from PCI core code (ARM64 selects PCI_DOMAINS_GENERIC for
-DT and same kernel has to work with OF and ACPI selected) and it is
-arch specific (because what we have in bus->sysdata is arch specific,
-waiting for the domain number to be embedded in struct pci_host_bridge).
-
-Your point is fair, I am not sure that moving the pci_acpi_scan_root()
-to arch/arm64 would make things much simpler though, it is just a matter
-of deciding where that code has to live.
-
-How do you want us to proceed ?
-
-Thanks,
-Lorenzo
+-- 
+Catalin
