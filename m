@@ -1,129 +1,67 @@
 From: "Rafael J. Wysocki" <rafael@kernel.org>
-Subject: Re: [PATCH V7 07/11] pci, acpi: Handle ACPI companion assignment.
-Date: Wed, 11 May 2016 22:30:51 +0200
-Message-ID: <CAJZ5v0hgw929W5PjF0PqT+ssiOHd8TeJoSQcz4NUiAovZY2pfQ@mail.gmail.com>
-References: <1462893601-8937-1-git-send-email-tn@semihalf.com>
-	<1462893601-8937-8-git-send-email-tn@semihalf.com>
-	<CAJZ5v0hM8WAr9GGku89zKgiVKt6ArHf=9CntRUyBjyMNUvie2A@mail.gmail.com>
-	<20160511101101.GA16101@red-moon>
+Subject: Re: [PATCH v6 00/14] ACPI NUMA support for ARM64
+Date: Wed, 11 May 2016 22:35:02 +0200
+Message-ID: <CAJZ5v0gQMR7OUyZo5Sa3bgMYZBzdnwFaktz9JCv1ocWXw7yHTg@mail.gmail.com>
+References: <1461780436-27182-1-git-send-email-ddaney.cavm@gmail.com>
+	<CAJZ5v0iMDQ4pWip4vyCos0o+1DFDvXQf4XZQqC4SGjJsDO4Lnw@mail.gmail.com>
+	<20160511104032.GA31374@arm.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-pci-owner@vger.kernel.org>
-In-Reply-To: <20160511101101.GA16101@red-moon>
-Sender: linux-pci-owner@vger.kernel.org
-To: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
-Cc: "Rafael J. Wysocki" <rafael@kernel.org>, Tomasz Nowicki <tn@semihalf.com>, Bjorn Helgaas <helgaas@kernel.org>, Arnd Bergmann <arnd@arndb.de>, Will Deacon <will.deacon@arm.com>, Catalin Marinas <catalin.marinas@arm.com>, Hanjun Guo <hanjun.guo@linaro.org>, Sinan Kaya <okaya@codeaurora.org>, jchandra@broadcom.com, robert.richter@caviumnetworks.com, Marcin Wojtas <mw@semihalf.com>, Liviu.Dudau@arm.com, David Daney <ddaney@caviumnetworks.com>, wangyijing@huawei.com, Suravee Suthikulanit <Suravee.Suthikulpanit@amd.com>, Mark Salter <msalter@redhat.com>, Linux PCI <linux-pci@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, "linaro-acpi@lists.linaro.org" <linaro-acpi@lists.linaro.org>, Jon Masters <jcm@redhat.com>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-lf0-f65.google.com ([209.85.215.65]:36744 "EHLO
+	mail-lf0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752500AbcEKUfF (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 11 May 2016 16:35:05 -0400
+In-Reply-To: <20160511104032.GA31374@arm.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Will Deacon <will.deacon@arm.com>
+Cc: "Rafael J. Wysocki" <rafael@kernel.org>, David Daney <ddaney.cavm@gmail.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Mark Rutland <mark.rutland@arm.com>, Catalin Marinas <catalin.marinas@arm.com>, Tony Luck <tony.luck@intel.com>, Fenghua Yu <fenghua.yu@intel.com>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, the arch/x86 maintainers <x86@kernel.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Rob Herring <robh+dt@kernel.org>, Frank Rowand <frowand.list@gmail.com>, Grant Likely <grant.likely@linaro.org>, Robert Moore <robert.moore@intel.com>, Lv Zheng <lv.zheng@intel.com>, Hanjun Guo <hanjun.guo@linaro.org>, Marc Zyngier <Marc.Zyngier@arm.com>, "linux-ia64@vger.kernel.org" <linux-ia64@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@>
 
-On Wed, May 11, 2016 at 12:11 PM, Lorenzo Pieralisi
-<lorenzo.pieralisi@arm.com> wrote:
-> On Tue, May 10, 2016 at 08:37:00PM +0200, Rafael J. Wysocki wrote:
->> On Tue, May 10, 2016 at 5:19 PM, Tomasz Nowicki <tn@semihalf.com> wrote:
->> > This patch provides a way to set the ACPI companion in PCI code.
->> > We define acpi_pci_set_companion() to set the ACPI companion pointer and
->> > call it from PCI core code. The function is stub for now.
+On Wed, May 11, 2016 at 12:40 PM, Will Deacon <will.deacon@arm.com> wrote:
+> On Wed, May 11, 2016 at 02:43:11AM +0200, Rafael J. Wysocki wrote:
+>> On Wed, Apr 27, 2016 at 8:07 PM, David Daney <ddaney.cavm@gmail.com> wrote:
+>> > From: David Daney <david.daney@cavium.com>
 >> >
->> > Signed-off-by: Jayachandran C <jchandra@broadcom.com>
->> > Signed-off-by: Tomasz Nowicki <tn@semihalf.com>
->> > ---
->> >  drivers/pci/probe.c      | 2 ++
->> >  include/linux/pci-acpi.h | 4 ++++
->> >  2 files changed, 6 insertions(+)
+>> > Based on git://git.kernel.org/pub/scm/linux/kernel/git/arm64/linux.git
+>> > for-next/core branch at commit 643d703d2d2d ("arm64: compat: Check for
+>> > AArch32 state")
+>
+> [...]
+>
+>> > David Daney (2):
+>> >   arm64, numa: Cleanup NUMA disabled messages.
+>> >   acpi, numa, srat: Improve SRAT error detection and add messages.
 >> >
->> > diff --git a/drivers/pci/probe.c b/drivers/pci/probe.c
->> > index 8004f67..fb0b752 100644
->> > --- a/drivers/pci/probe.c
->> > +++ b/drivers/pci/probe.c
->> > @@ -12,6 +12,7 @@
->> >  #include <linux/slab.h>
->> >  #include <linux/module.h>
->> >  #include <linux/cpumask.h>
->> > +#include <linux/pci-acpi.h>
->> >  #include <linux/pci-aspm.h>
->> >  #include <linux/aer.h>
->> >  #include <linux/acpi.h>
->> > @@ -2141,6 +2142,7 @@ struct pci_bus *pci_create_root_bus(struct device *parent, int bus,
->> >         bridge->dev.parent = parent;
->> >         bridge->dev.release = pci_release_host_bridge_dev;
->> >         dev_set_name(&bridge->dev, "pci%04x:%02x", pci_domain_nr(b), bus);
->> > +       acpi_pci_set_companion(bridge);
->>
->> Yes, we'll probably add something similar here.
->>
->> Do I think now is the right time to do that?  No.
->>
->> >         error = pcibios_root_bridge_prepare(bridge);
->> >         if (error) {
->> >                 kfree(bridge);
->> > diff --git a/include/linux/pci-acpi.h b/include/linux/pci-acpi.h
->> > index 09f9f02..1baa515 100644
->> > --- a/include/linux/pci-acpi.h
->> > +++ b/include/linux/pci-acpi.h
->> > @@ -111,6 +111,10 @@ static inline void acpi_pci_add_bus(struct pci_bus *bus) { }
->> >  static inline void acpi_pci_remove_bus(struct pci_bus *bus) { }
->> >  #endif /* CONFIG_ACPI */
+>> > Hanjun Guo (11):
+>> >   acpi, numa: Use pr_fmt() instead of printk
+>> >   acpi, numa: Replace ACPI_DEBUG_PRINT() with pr_debug()
+>> >   acpi, numa: remove duplicate NULL check
+>> >   acpi, numa: move acpi_numa_slit_init() to drivers/acpi/numa.c
+>> >   arm64, numa: rework numa_add_memblk()
+>> >   x86, acpi, numa: cleanup acpi_numa_processor_affinity_init()
+>> >   acpi, numa: move bad_srat() and srat_disabled() to
+>> >     drivers/acpi/numa.c
+>> >   acpi, numa: remove unneeded acpi_numa=1
+>> >   acpi, numa: Move acpi_numa_memory_affinity_init() to
+>> >     drivers/acpi/numa.c
+>> >   arm64, acpi, numa: NUMA support based on SRAT and SLIT
+>> >   acpi, numa: Enable ACPI based NUMA on ARM64
 >> >
->> > +static inline void acpi_pci_set_companion(struct pci_host_bridge *bridge)
->> > +{
->> > +}
->> > +
->> >  static inline int acpi_pci_bus_domain_nr(struct pci_bus *bus)
->> >  {
->> >         return 0;
->> > --
+>> > Robert Richter (1):
+>> >   acpi, numa: Move acpi_numa_arch_fixup() to ia64 only
 >>
->> Honestly, to me it looks like this series is trying very hard to avoid
->> doing any PCI host bridge configuration stuff from arch/arm64/
->> although (a) that might be simpler and (b) it would allow us to
->> identify the code that's common between *all* architectures using ACPI
->> support for host bridge configuration and to move *that* to a common
->> place later.  As done here it seems to be following the "ARM64 is
->> generic and the rest of the world is special" line which isn't really
->> helpful.
+>> I need ACKs from the ARM64 maintainers on patches [6-7/13] and [13-14/14].
 >
-> I think patch [1-2] should be merged regardless (they may require minor
-> tweaks if we decide to move pci_acpi_scan_root() to arch/arm64 though,
-> for include files location). I guess you are referring to patch 8 in
-> your comments above, which boils down to deciding whether:
->
-> - pci_acpi_scan_root() (and unfortunately all the MCFG/ECAM handling that
->   goes with it) should live in arch/arm64 or drivers/acpi
+> There's also a dependency on the arm64 for-next/core branch, so I've been
+> largely ignoring this as far as 4.6 is concerned and was planning to take
+> a proper look for 4.7 once the upcoming merge window is out of the way.
 
-To be precise, everything under #ifdef CONFIG_ACPI_PCI_HOST_GENERIC or
-equivalent is de facto ARM64-specific, because (as it stands in the
-patch series) ARM64 is the only architecture that will select that
-option.  Unless you are aware of any more architectures planning to
-use ACPI (and I'm not aware of any), it will stay the only
-architecture selecting it in the foreseeable future.
+That would be 4.7 and 4.8 respectively I suppose?
 
-Therefore you could replace CONFIG_ACPI_PCI_HOST_GENERIC with
-CONFIG_ARM64 everywhere in that code which is why in my opinion the
-code should live somewhere under arch/arm64/.
+Anyway, Catalin has ACKed all of them except for the [13/14], so
+technically I can apply [1-12/14] now and then [13-14/14] can be
+applied when they are ready.
 
-Going forward, it should be possible to identify common parts of the
-PCI host bridge configuration code in arch/ and move it to
-drivers/acpi/ or drivers/pci/, but I bet that won't be the entire code
-this series puts under CONFIG_ACPI_PCI_HOST_GENERIC.
-
-The above leads to a quite straightforward conclusion about the order
-in which to do things: I'd add ACPI support for PCI host bridge on
-ARM64 following what's been done on ia64 (as x86 is more quirky and
-kludgy overall) as far as reasonably possible first and then think
-about moving common stuff to a common place.
-
-> acpi_pci_bus_domain_nr() is a bit more problematic since it is meant
-> to be called from PCI core code (ARM64 selects PCI_DOMAINS_GENERIC for
-> DT and same kernel has to work with OF and ACPI selected) and it is
-> arch specific (because what we have in bus->sysdata is arch specific,
-> waiting for the domain number to be embedded in struct pci_host_bridge).
->
-> Your point is fair, I am not sure that moving the pci_acpi_scan_root()
-> to arch/arm64 would make things much simpler though, it is just a matter
-> of deciding where that code has to live.
->
-> How do you want us to proceed ?
-
-Pretty much as stated above. :-)
-
-Thanks,
-Rafael
+Do you think there will be any problems with merging [6-7/14] into 4.7
+via the ACPI tree?
