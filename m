@@ -1,78 +1,28 @@
-From: Tomasz Nowicki <tn@semihalf.com>
-Subject: Re: [PATCH V7 05/11] acpi, pci: Support IO resources when parsing PCI
- host bridge resources.
-Date: Wed, 11 May 2016 09:39:34 +0200
-Message-ID: <5732E1B6.1000709@semihalf.com>
-References: <1462893601-8937-1-git-send-email-tn@semihalf.com>
- <1462893601-8937-6-git-send-email-tn@semihalf.com>
- <CAJZ5v0j-jiGmMWoyd-ab4qiKGAScbxMskqUThBQxkOxPR8unMA@mail.gmail.com>
+From: Catalin Marinas <catalin.marinas@arm.com>
+Subject: Re: [PATCH v6 06/14] arm64, numa: rework numa_add_memblk()
+Date: Wed, 11 May 2016 10:12:08 +0100
+Message-ID: <20160511091207.GA3051@e104818-lin.cambridge.arm.com>
+References: <1461780436-27182-1-git-send-email-ddaney.cavm@gmail.com>
+ <1461780436-27182-7-git-send-email-ddaney.cavm@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-pci-owner@vger.kernel.org>
-In-Reply-To: <CAJZ5v0j-jiGmMWoyd-ab4qiKGAScbxMskqUThBQxkOxPR8unMA@mail.gmail.com>
-Sender: linux-pci-owner@vger.kernel.org
-To: "Rafael J. Wysocki" <rafael@kernel.org>
-Cc: Bjorn Helgaas <helgaas@kernel.org>, Arnd Bergmann <arnd@arndb.de>, Will Deacon <will.deacon@arm.com>, Catalin Marinas <catalin.marinas@arm.com>, Hanjun Guo <hanjun.guo@linaro.org>, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, Sinan Kaya <okaya@codeaurora.org>, jchandra@broadcom.com, robert.richter@caviumnetworks.com, mw@semihalf.com, Liviu.Dudau@arm.com, David Daney <ddaney@caviumnetworks.com>, wangyijing@huawei.com, Suravee Suthikulanit <Suravee.Suthikulpanit@amd.com>, Mark Salter <msalter@redhat.com>, Linux PCI <linux-pci@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, "linaro-acpi@lists.linaro.org" <linaro-acpi@lists.linaro.org>, Jon Masters <jcm@redhat.com>, andrea.gallo@linaro.org, dhdang@apm.com, jer
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-ia64-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <1461780436-27182-7-git-send-email-ddaney.cavm@gmail.com>
+Sender: linux-ia64-owner@vger.kernel.org
+To: David Daney <ddaney.cavm@gmail.com>
+Cc: Will Deacon <will.deacon@arm.com>, linux-arm-kernel@lists.infradead.org, Mark Rutland <mark.rutland@arm.com>, Tony Luck <tony.luck@intel.com>, Fenghua Yu <fenghua.yu@intel.com>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, x86@kernel.org, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Rob Herring <robh+dt@kernel.org>, Frank Rowand <frowand.list@gmail.com>, Grant Likely <grant.likely@linaro.org>, Robert Moore <robert.moore@intel.com>, Lv Zheng <lv.zheng@intel.com>, Hanjun Guo <hanjun.guo@linaro.org>, Marc Zyngier <Marc.Zyngier@arm.com>, linux-ia64@vger.kernel.org, linux-acpi@vger.kernel.org, devel@acpica.org, Robert Richter <rrichter@cavium.com>, linux-kernel@vger.kernel.org, David Daney <david.daney@cavium.com>
 List-Id: linux-acpi@vger.kernel.org
 
-On 10.05.2016 20:20, Rafael J. Wysocki wrote:
-> On Tue, May 10, 2016 at 5:19 PM, Tomasz Nowicki <tn@semihalf.com> wrote:
->> Platforms that have memory mapped IO port (such as ARM64) need special
->> handling for PCI I/O resources. For host bridge's resource probing case
->> these resources need to be fixed up with pci_register_io_range/pci_remap_iospace etc.
->>
->> The same I/O resources need to be released after hotplug
->> removal so that it can be re-added back by the pci_remap_iospace
->> function during insertion. As a consequence we unmap I/O resources
->> with pci_unmap_iospace when we release host bridge resources.
->>
->> Signed-off-by: Jayachandran C <jchandra@broadcom.com>
->> Signed-off-by: Sinan Kaya <okaya@codeaurora.org>
->> Signed-off-by: Tomasz Nowicki <tn@semihalf.com>
->> ---
->>   drivers/acpi/pci_root.c | 33 +++++++++++++++++++++++++++++++++
->>   1 file changed, 33 insertions(+)
->>
->> diff --git a/drivers/acpi/pci_root.c b/drivers/acpi/pci_root.c
->> index ae3fe4e..cb3071d 100644
->> --- a/drivers/acpi/pci_root.c
->> +++ b/drivers/acpi/pci_root.c
->> @@ -719,6 +719,34 @@ next:
->>                          resource_list_add_tail(entry, resources);
->>          }
->>   }
->> +static void acpi_pci_root_remap_iospace(struct resource_entry *entry)
->> +{
->> +#ifdef PCI_IOBASE
->
-> Same comment about the #ifdefs as in the other patch.
+On Wed, Apr 27, 2016 at 11:07:08AM -0700, David Daney wrote:
+> From: Hanjun Guo <hanjun.guo@linaro.org>
+> 
+> Rework numa_add_memblk() to update the parameter "u64 size" to "u64
+> end", this will make it consistent with x86 and simplifies the arm64
+> ACPI NUMA code to be added later.
+> 
+> Signed-off-by: Hanjun Guo <hanjun.guo@linaro.org>
+> Signed-off-by: Robert Richter <rrichter@cavium.com>
+> Signed-off-by: David Daney <david.daney@cavium.com>
 
-OK
-
->
->> +       struct resource *res = entry->res;
->> +       resource_size_t cpu_addr = res->start;
->> +       resource_size_t pci_addr = cpu_addr - entry->offset;
->> +       resource_size_t length = resource_size(res);
->> +       unsigned long port;
->> +
->> +       if (pci_register_io_range(cpu_addr, length))
->> +               goto err;
->> +
->> +       port = pci_address_to_pio(cpu_addr);
->> +       if (port == (unsigned long)-1)
->> +               goto err;
->> +
->> +       res->start = port;
->> +       res->end = port + length - 1;
->> +       entry->offset = port - pci_addr;
->> +
->> +       if (pci_remap_iospace(res, cpu_addr) < 0)
->> +               goto err;
->
-> An empty line here?
-
-yes, empty line would be nice here.
-
-Tomasz
+Acked-by: Catalin Marinas <catalin.marinas@arm.com>
