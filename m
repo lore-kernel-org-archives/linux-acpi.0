@@ -1,112 +1,204 @@
-From: "Rafael J. Wysocki" <rafael@kernel.org>
-Subject: Re: [PATCH v6 00/14] ACPI NUMA support for ARM64
-Date: Wed, 11 May 2016 02:43:11 +0200
-Message-ID: <CAJZ5v0iMDQ4pWip4vyCos0o+1DFDvXQf4XZQqC4SGjJsDO4Lnw@mail.gmail.com>
-References: <1461780436-27182-1-git-send-email-ddaney.cavm@gmail.com>
+From: Hoan Tran <hotran@apm.com>
+Subject: Re: [PATCH v2] mailbox: pcc: Support HW-Reduced Communication
+ Subspace Type 2
+Date: Tue, 10 May 2016 21:05:12 -0700
+Message-ID: <CAFHUOYwWe2=njjTZVS18AKBpy5eVauf77pqCEBOeGdjMpLGrEQ@mail.gmail.com>
+References: <1462559914-28363-1-git-send-email-hotran@apm.com>
+	<20160509094309.GA14006@arm.com>
+	<CAFHUOYygKoHhwdNSRpOz_2bV2pfbtq=J0S6HKZSHW6pa16gBxA@mail.gmail.com>
+	<20160510103406.GA24079@arm.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-ia64-owner@vger.kernel.org>
-In-Reply-To: <1461780436-27182-1-git-send-email-ddaney.cavm@gmail.com>
-Sender: linux-ia64-owner@vger.kernel.org
-To: David Daney <ddaney.cavm@gmail.com>
-Cc: Will Deacon <will.deacon@arm.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Mark Rutland <mark.rutland@arm.com>, Catalin Marinas <catalin.marinas@arm.com>, Tony Luck <tony.luck@intel.com>, Fenghua Yu <fenghua.yu@intel.com>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, the arch/x86 maintainers <x86@kernel.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Rob Herring <robh+dt@kernel.org>, Frank Rowand <frowand.list@gmail.com>, Grant Likely <grant.likely@linaro.org>, Robert Moore <robert.moore@intel.com>, Lv Zheng <lv.zheng@intel.com>, Hanjun Guo <hanjun.guo@linaro.org>, Marc Zyngier <Marc.Zyngier@arm.com>, "linux-ia64@vger.kernel.org" <linux-ia64@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, "devel@acpica.org" <devel>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-vk0-f42.google.com ([209.85.213.42]:35787 "EHLO
+	mail-vk0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750737AbcEKEFN (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 11 May 2016 00:05:13 -0400
+Received: by mail-vk0-f42.google.com with SMTP id f66so42066059vkh.2
+        for <linux-acpi@vger.kernel.org>; Tue, 10 May 2016 21:05:13 -0700 (PDT)
+In-Reply-To: <20160510103406.GA24079@arm.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Alexey Klimov <alexey.klimov@arm.com>
+Cc: Jassi Brar <jassisinghbrar@gmail.com>, Ashwin Chaugule <ashwin.chaugule@linaro.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Robert Moore <robert.moore@intel.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Loc Ho <lho@apm.com>, Duc Dang <dhdang@apm.com>
 
-On Wed, Apr 27, 2016 at 8:07 PM, David Daney <ddaney.cavm@gmail.com> wrote:
-> From: David Daney <david.daney@cavium.com>
->
-> Based on git://git.kernel.org/pub/scm/linux/kernel/git/arm64/linux.git
-> for-next/core branch at commit 643d703d2d2d ("arm64: compat: Check for
-> AArch32 state")
->
-> ACPI 5.1 already introduced NUMA support for ARM64, which can get the
-> NUMA domain information from SRAT and SLIT table, so parse those two
-> tables to get mappings from cpu/mem to numa node configuration and
-> system locality.
->
-> v6 updates:
->
->  - Changed message printed in 13/14 to omit meaningless "cpu"
->    number. (noted by Dennis Chen and Hanjun Guo)
->
->  - New patch 7/14 to print different messages for NUMA disabled case.
->    (noted by Dennis Chen)
->
->  - Squashed two patches into 14/14.
->
->  - Added Reviewed-by to 4/14
->
-> v5 updates:
->
->  - Fixed ia64 build failure by gating some unused functions with #if
->    CONFIG_{X86,ARM64}.
->
->  - Fixed section mismatch errors for X86 case.
->
->  - Removed unneeded #include from some files.
->
->  - Tested to build cleanly on ARM64, X86_64, IA64
->
-> v4 updates:
->
->  - Updated from Hanjun Guo's v3 patches.
->
->  - Rebased on top of v16 of device-tree NUMA patches.
->
->  - Reordered some of the changes so that we don't introduce code and
->    then change it several times in the patch set.  New code is
->    introduced in its final form.  Code reused from x86 is first moved
->    with no change, and then a separate patch to make any needed
->    changes.
->
->  - code that is used only by ia64, moved to architecture specific
->    files.
->
-> v3 updates:
->  - Deep investigation about the ACPI_DEBUG_PRINT() and remvoe
->    that for acpi/numa.c (patch 2/12)
->
->  - Remove the duplicate NULL check for table print (patch 3/12)
->
->  - Introduce CONFIG_ACPI_HAS_NUMA_ARCH_FIXUP to remove duplicate
->    dummy function for acpi_numa_arch_fixup()
->
->  - Solve the problem that the mapping from logical cpu to numa node
->    is wrong which spotted out by Lorenzo
->
->  - cleanups for x86 and move acpi_numa_slit_init() and some other
->    functions to common place, then reduce the duplicate of x86
->    and arm64 (patch 7-12/12).
->
->  - rebased on top of 4.4 and Ganapat's v9 patch set.
->
->
-> David Daney (2):
->   arm64, numa: Cleanup NUMA disabled messages.
->   acpi, numa, srat: Improve SRAT error detection and add messages.
->
-> Hanjun Guo (11):
->   acpi, numa: Use pr_fmt() instead of printk
->   acpi, numa: Replace ACPI_DEBUG_PRINT() with pr_debug()
->   acpi, numa: remove duplicate NULL check
->   acpi, numa: move acpi_numa_slit_init() to drivers/acpi/numa.c
->   arm64, numa: rework numa_add_memblk()
->   x86, acpi, numa: cleanup acpi_numa_processor_affinity_init()
->   acpi, numa: move bad_srat() and srat_disabled() to
->     drivers/acpi/numa.c
->   acpi, numa: remove unneeded acpi_numa=1
->   acpi, numa: Move acpi_numa_memory_affinity_init() to
->     drivers/acpi/numa.c
->   arm64, acpi, numa: NUMA support based on SRAT and SLIT
->   acpi, numa: Enable ACPI based NUMA on ARM64
->
-> Robert Richter (1):
->   acpi, numa: Move acpi_numa_arch_fixup() to ia64 only
+Hi Alexey,
 
-I need ACKs from the ARM64 maintainers on patches [6-7/13] and [13-14/14].
+On Tue, May 10, 2016 at 3:34 AM, Alexey Klimov <alexey.klimov@arm.com> wrote:
+> On Mon, May 09, 2016 at 10:38:24AM -0700, Hoan Tran wrote:
+>> Hi Alexey,
+>>
+>> On Mon, May 9, 2016 at 2:43 AM, Alexey Klimov <alexey.klimov@arm.com> wrote:
+>> > Hi Hoan,
+>> >
+>> > On Fri, May 06, 2016 at 11:38:34AM -0700, Hoan Tran wrote:
+>> >> From: hotran <hotran@apm.com>
+>> >>
+>> >> ACPI 6.1 has a PCC HW-Reduced Communication Subspace Type 2 intended for
+>> >> use on HW-Reduce ACPI Platform, which requires read-modify-write sequence
+>> >> to acknowledge doorbell interrupt. This patch provides the implementation
+>> >> for the Communication Subspace Type 2.
+>> >>
+>> >> This patch depends on patch [1] which supports PCC subspace type 2 header
+>> >> [1] https://lkml.org/lkml/2016/5/5/14
+>> >>  - [PATCH v2 03/13] ACPICA: ACPI 6.1: Support for new PCCT subtable
+>> >
+>> > So you finally decided to use separate structure declaration for type 2. Good.
+>> >
+>> >> v2
+>> >>  * Remove changes inside "actbl3.h". This file is taken care by ACPICA.
+>> >>  * Parse both subspace type 1 and subspace type 2
+>> >>  * Remove unnecessary variable initialization
+>> >>  * ISR returns IRQ_NONE in case of error
+>> >>
+>> >> v1
+>> >>  * Initial
+>> >>
+>> >> Signed-off-by: Hoan Tran <hotran@apm.com>
+>> >> ---
+>> >>  drivers/mailbox/pcc.c | 395 +++++++++++++++++++++++++++++++++++++-------------
+>> >>  1 file changed, 296 insertions(+), 99 deletions(-)
+>> >>
+>> >> diff --git a/drivers/mailbox/pcc.c b/drivers/mailbox/pcc.c
+>> >> index 043828d..58c9a67 100644
+>> >> --- a/drivers/mailbox/pcc.c
+>> >> +++ b/drivers/mailbox/pcc.c
+>> >> @@ -59,6 +59,7 @@
+>> >>  #include <linux/delay.h>
+>> >>  #include <linux/io.h>
+>> >>  #include <linux/init.h>
+>> >
+>> > [...]
+>> >
+>> >> @@ -307,6 +440,43 @@ static int parse_pcc_subspace(struct acpi_subtable_header *header,
+>> >>  }
+>> >>
+>> >>  /**
+>> >> + * pcc_parse_subspace_irq - Parse the PCC IRQ and PCC ACK register
+>> >> + *           There should be one entry per PCC client.
+>> >> + * @mbox_chans: Pointer to the PCC mailbox channel data
+>> >> + * @pcct_ss: Pointer to the ACPI subtable header under the PCCT.
+>> >> + *
+>> >> + * Return: 0 for Success, else errno.
+>> >> + *
+>> >> + * This gets called for each entry in the PCC table.
+>> >> + */
+>> >> +static int pcc_parse_subspace_irq(struct pcc_mbox_chan *mbox_chans,
+>> >> +             struct acpi_pcct_hw_reduced *pcct_ss)
+>> >> +{
+>> >> +     mbox_chans->irq = pcc_map_interrupt(pcct_ss->doorbell_interrupt,
+>> >> +                                         (u32)pcct_ss->flags);
+>> >> +     if (mbox_chans->irq <= 0) {
+>> >> +             pr_err("PCC GSI %d not registered\n",
+>> >> +                    pcct_ss->doorbell_interrupt);
+>> >> +             return -EINVAL;
+>> >> +     }
+>> >> +
+>> >> +     if (pcct_ss->header.type
+>> >> +             == ACPI_PCCT_TYPE_HW_REDUCED_SUBSPACE_TYPE2) {
+>> >> +             struct acpi_pcct_hw_reduced_type2 *pcct2_ss = (void *)pcct_ss;
+>> >> +
+>> >> +             mbox_chans->pcc_doorbell_ack_vaddr = acpi_os_ioremap(
+>> >> +                             pcct2_ss->doorbell_ack_register.address,
+>> >> +                             pcct2_ss->doorbell_ack_register.bit_width / 8);
+>> >> +             if (!mbox_chans->pcc_doorbell_ack_vaddr) {
+>> >> +                     pr_err("Failed to ioremap PCC ACK register\n");
+>> >> +                     return -ENOMEM;
+>> >> +             }
+>> >> +     }
+>> >> +
+>> >> +     return 0;
+>> >> +}
+>> >> +
+>> >> +/**
+>> >>   * acpi_pcc_probe - Parse the ACPI tree for the PCCT.
+>> >>   *
+>> >>   * Return: 0 for Success, else errno.
+>> >> @@ -316,7 +486,8 @@ static int __init acpi_pcc_probe(void)
+>> >>       acpi_size pcct_tbl_header_size;
+>> >>       struct acpi_table_header *pcct_tbl;
+>> >>       struct acpi_subtable_header *pcct_entry;
+>> >> -     int count, i;
+>> >> +     struct acpi_table_pcct *acpi_pcct_tbl;
+>> >> +     int count, i, rc;
+>> >>       acpi_status status = AE_OK;
+>> >>
+>> >>       /* Search for PCCT */
+>> >> @@ -334,22 +505,28 @@ static int __init acpi_pcc_probe(void)
+>> >>                       ACPI_PCCT_TYPE_HW_REDUCED_SUBSPACE,
+>> >>                       parse_pcc_subspace, MAX_PCC_SUBSPACES);
+>> >>
+>> >> +     count += acpi_table_parse_entries(ACPI_SIG_PCCT,
+>> >> +                     sizeof(struct acpi_table_pcct),
+>> >> +                     ACPI_PCCT_TYPE_HW_REDUCED_SUBSPACE_TYPE2,
+>> >> +                     parse_pcc_subspace, MAX_PCC_SUBSPACES);
+>> >> +
+>> >>       if (count <= 0) {
+>> >>               pr_err("Error parsing PCC subspaces from PCCT\n");
+>> >>               return -EINVAL;
+>> >>       }
+>> >
+>> > Looks like after first call to acpi_table_parse_entries() you may have negative
+>> > number in count. And then you add counted number of type 2 subtables to count variable.
+>> >
+>> > I am not aware how pedantic this all should be but you may have more than MAX_PCC_SUBSPACES
+>> > subspaces or don't probe any subspaces at all with such approach. Or other side effects.
+>> I should check the "count" at first call acpi_table_parse_entries().
+>> If "count < 0", assign count=0, then call the next
+>> acpi_table_parse_entries().
+>>
+>> Thanks for your review
+>> -Hoan
+>
+> That second call to acpi_table_parse_entries() might overwrite count with negative number again.
+Yes, it could
+>
+> What about the following below?
+>
+> int count;
+> int sum = 0;
+>
+> count = acpi_table_parse_entries(type1);
+> sum += count >= 0 ? count : 0;
+>
+> count = acpi_table_parse_entries(type2);
+> sum += count >= 0 ? count : 0;
+>
+> if (sum <= 0 || sum >= MAX_PCC_SUBSPACES) {
+>         pr_err();
+>         return -ENODEV;
+> }
+>
+> It's possible that I overlooked some corner case.
+> BTW, zero number of subspaces here doesn't indicate error actually (that's probably not the scope of this change).
+OK, I will use this suggestion with minor changes
+int count;
+int sum = 0;
 
-The rest looks good to me, so I can apply the series once the above
-have been ACKed.
+count = acpi_table_parse_entries(type1);
+sum += count > 0 ? count : 0;
 
-Thanks,
-Rafael
+count = acpi_table_parse_entries(type2);
+sum += count > 0 ? count : 0;
+
+if (sum == 0 || sum >= MAX_PCC_SUBSPACES) {
+         pr_err();
+         return -ENODEV;
+}
+
+Thanks and Regards
+Hoan
+>
+> Best regards,
+> Alexey
+>
+
+-- 
+CONFIDENTIALITY NOTICE: This e-mail message, including any attachments, is 
+for the sole use of the intended recipient(s) and contains information that 
+is confidential and proprietary to Applied Micro Circuits Corporation or 
+its subsidiaries. It is to be used solely for the purpose of furthering the 
+parties' business relationship. All unauthorized review, use, disclosure or 
+distribution is prohibited. If you are not the intended recipient, please 
+contact the sender by reply e-mail and destroy all copies of the original 
+message.
