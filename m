@@ -1,89 +1,233 @@
-From: Sudeep Holla <sudeep.holla@arm.com>
-Subject: Re: [PATCH v5 1/5] ACPI / processor_idle: introduce
- ACPI_PROCESSOR_CSTATE
-Date: Wed, 11 May 2016 17:57:28 +0100
-Message-ID: <57336478.5050304@arm.com>
-References: <1462981062-24909-1-git-send-email-sudeep.holla@arm.com>
- <1462981062-24909-2-git-send-email-sudeep.holla@arm.com>
- <CAJZ5v0jQJFra6BgvNTO_jvvD-S36iDHu0B6qNkRiUzv_UhOyTQ@mail.gmail.com>
+From: Hoan Tran <hotran@apm.com>
+Subject: Re: [PATCH v2] mailbox: pcc: Support HW-Reduced Communication
+ Subspace Type 2
+Date: Wed, 11 May 2016 11:15:03 -0700
+Message-ID: <CAFHUOYzDGZirZ-TfbQV-DDdZ7gmwGPUiQ1nZt_KS84=aOM-McA@mail.gmail.com>
+References: <1462559914-28363-1-git-send-email-hotran@apm.com>
+	<CAJ5Y-ebMB79QrSb4WRXkq-vhJED+JmW8wC1Vqyc3pg9Mh-DMjg@mail.gmail.com>
+	<CAFHUOYxWe2VOjABGmm9bnqL8iKeLJ6maN-YDjp3bzWXogU2img@mail.gmail.com>
+	<CAJ5Y-ebBmUHySP=wdeusACeM4wrTogVgWXNAkzc5p8jz_zbj2g@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-ia64-owner@vger.kernel.org>
-In-Reply-To: <CAJZ5v0jQJFra6BgvNTO_jvvD-S36iDHu0B6qNkRiUzv_UhOyTQ@mail.gmail.com>
-Sender: linux-ia64-owner@vger.kernel.org
-To: "Rafael J. Wysocki" <rafael@kernel.org>
-Cc: Sudeep Holla <sudeep.holla@arm.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Vikas Sajjan <vikas.cha.sajjan@hpe.com>, Sunil <sunil.vl@hpe.com>, Prashanth Prakash <pprakash@codeaurora.org>, Ashwin Chaugule <ashwin.chaugule@linaro.org>, Al Stone <al.stone@linaro.org>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, the arch/x86 maintainers <x86@kernel.org>, "linux-ia64@vger.kernel.org" <linux-ia64@vger.kernel.org>
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <CAJ5Y-ebBmUHySP=wdeusACeM4wrTogVgWXNAkzc5p8jz_zbj2g@mail.gmail.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Ashwin Chaugule <ashwin.chaugule@linaro.org>
+Cc: Jassi Brar <jassisinghbrar@gmail.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Robert Moore <robert.moore@intel.com>, Alexey Klimov <alexey.klimov@arm.com>, lkml <linux-kernel@vger.kernel.org>, linux acpi <linux-acpi@vger.kernel.org>, Loc Ho <lho@apm.com>, Duc Dang <dhdang@apm.com>
 List-Id: linux-acpi@vger.kernel.org
 
+Hi Ashwin,
 
+On Wed, May 11, 2016 at 4:57 AM, Ashwin Chaugule
+<ashwin.chaugule@linaro.org> wrote:
+> On 11 May 2016 at 00:21, Hoan Tran <hotran@apm.com> wrote:
+>> Hi Ashwin,
+>
+> Hi,
+>
+>> On Tue, May 10, 2016 at 5:00 AM, Ashwin Chaugule
+>>> On 6 May 2016 at 14:38, Hoan Tran <hotran@apm.com> wrote:
+>>>> From: hotran <hotran@apm.com>
+>>>>
+>>>> ACPI 6.1 has a PCC HW-Reduced Communication Subspace Type 2 intended for
+>>>> use on HW-Reduce ACPI Platform, which requires read-modify-write sequence
+>>>> to acknowledge doorbell interrupt. This patch provides the implementation
+>>>> for the Communication Subspace Type 2.
+>>>>
+>>>> This patch depends on patch [1] which supports PCC subspace type 2 header
+>>>> [1] https://lkml.org/lkml/2016/5/5/14
+>>>>  - [PATCH v2 03/13] ACPICA: ACPI 6.1: Support for new PCCT subtable
+>>>>
+>>>> v2
+>>>>  * Remove changes inside "actbl3.h". This file is taken care by ACPICA.
+>>>>  * Parse both subspace type 1 and subspace type 2
+>>>>  * Remove unnecessary variable initialization
+>>>>  * ISR returns IRQ_NONE in case of error
+>>>>
+>>>> v1
+>>>>  * Initial
+>>>>
+>>>> Signed-off-by: Hoan Tran <hotran@apm.com>
+>>>> ---
+>>>>  drivers/mailbox/pcc.c | 395 +++++++++++++++++++++++++++++++++++++-------------
+>>>>  1 file changed, 296 insertions(+), 99 deletions(-)
+>>>>
+>>>> diff --git a/drivers/mailbox/pcc.c b/drivers/mailbox/pcc.c
+>>>> index 043828d..58c9a67 100644
+>>>> --- a/drivers/mailbox/pcc.c
+>>>> +++ b/drivers/mailbox/pcc.c
+>>>> @@ -59,6 +59,7 @@
+>>>>  #include <linux/delay.h>
+>>>>  #include <linux/io.h>
+>>>>  #include <linux/init.h>
+>>>> +#include <linux/interrupt.h>
+>>>>  #include <linux/list.h>
+>>>>  #include <linux/platform_device.h>
+>>>>  #include <linux/mailbox_controller.h>
+>>>> @@ -68,27 +69,179 @@
+>>>>  #include "mailbox.h"
+>>>>
+>>>>  #define MAX_PCC_SUBSPACES      256
+>>>> +#define MBOX_IRQ_NAME          "pcc-mbox"
+>>>>
+>>>> -static struct mbox_chan *pcc_mbox_channels;
+>>>> +/**
+>>>> + * PCC mailbox channel information
+>>>> + *
+>>>> + * @chan:      Pointer to mailbox communication channel
+>>>> + * @pcc_doorbell_vaddr: PCC doorbell register address
+>>>> + * @pcc_doorbell_ack_vaddr: PCC doorbell ack register address
+>>>> + * @irq:       Interrupt number of the channel
+>>>> + */
+>>>> +struct pcc_mbox_chan {
+>>>> +       struct mbox_chan        *chan;
+>>>> +       void __iomem            *pcc_doorbell_vaddr;
+>>>> +       void __iomem            *pcc_doorbell_ack_vaddr;
+>>>> +       int                     irq;
+>>>> +};
+>>>>
+>>>> -/* Array of cached virtual address for doorbell registers */
+>>>> -static void __iomem **pcc_doorbell_vaddr;
+>>>> +/**
+>>>> + * PCC mailbox controller data
+>>>> + *
+>>>> + * @mb_ctrl:   Representation of the communication channel controller
+>>>> + * @mbox_chan: Array of PCC mailbox channels of the controller
+>>>> + * @chans:     Array of mailbox communication channels
+>>>> + */
+>>>> +struct pcc_mbox {
+>>>> +       struct mbox_controller  mbox_ctrl;
+>>>> +       struct pcc_mbox_chan    *mbox_chans;
+>>>> +       struct mbox_chan        *chans;
+>>>> +};
+>>>> +
+>>>> +static struct pcc_mbox pcc_mbox_ctx = {};
+>>>
+>>> Im missing the idea behind creating this structure. Are you
+>>> registering multiple controllers somewhere?
+>> No, I just want to use a structure to store all global variables into
+>>>
+>
+> I dont see how it makes things better. The functionality added by this
+> patchset is actually much smaller without this cosmetic change. So I'd
+> prefer if you could only introduce the IRQ related changes for now and
+> we'll deal with cosmetic cleanups later if needed. As it stands even
+> with this new structure, the "pcc_mbox::chans" and
+> "pcc_mbox_chan::chan" are quite confusing already.
+Ok, I'll remove these 2 structures and create 2 global array
+variables: "pcc_doorbell_ack_vaddr" and "irq"
+>
+>
+>>>
+>>> [...]
+>>>
+>>>>
+>>>> @@ -357,24 +534,44 @@ static int __init acpi_pcc_probe(void)
+>>>>         pcct_entry = (struct acpi_subtable_header *) (
+>>>>                 (unsigned long) pcct_tbl + sizeof(struct acpi_table_pcct));
+>>>>
+>>>> +       acpi_pcct_tbl = (struct acpi_table_pcct *) pcct_tbl;
+>>>> +       if (acpi_pcct_tbl->flags & ACPI_PCCT_DOORBELL)
+>>>> +               pcc_mbox_ctx.mbox_ctrl.txdone_irq = true;
+>>>> +
+>>>>         for (i = 0; i < count; i++) {
+>>>>                 struct acpi_generic_address *db_reg;
+>>>>                 struct acpi_pcct_hw_reduced *pcct_ss;
+>>>> -               pcc_mbox_channels[i].con_priv = pcct_entry;
+>>>> +
+>>>> +               pcc_mbox_ctx.chans[i].con_priv = pcct_entry;
+>>>> +               pcc_mbox_ctx.chans[i].mbox = &pcc_mbox_ctx.mbox_ctrl;
+>>>> +
+>>>> +               pcct_ss = (struct acpi_pcct_hw_reduced *) pcct_entry;
+>>>> +
+>>>> +               pcc_mbox_ctx.mbox_chans[i].chan = &pcc_mbox_ctx.chans[i];
+>>>> +               if (pcc_mbox_ctx.mbox_ctrl.txdone_irq) {
+>>>> +                       rc = pcc_parse_subspace_irq(&pcc_mbox_ctx.mbox_chans[i],
+>>>> +                                                   pcct_ss);
+>>>> +                       if (rc < 0)
+>>>> +                               return rc;
+>>>> +               }
+>>>
+>>> I think we should parse the remaining entries and register them if
+>>> they are sane. Some other PCC clients can then continue to function.
+>> I think, it could be an error of PCCT table and need to be returned.
+>>>
+>
+> Well, that could be dealt with a pr_err/warn() for that specific entry
+> ?
+But what happens if the PCC client requests this failed PCC subspace.
+"pcc_parse_subspace_irq" function does "pr_err" for error cases.
 
-On 11/05/16 17:23, Rafael J. Wysocki wrote:
-> On Wed, May 11, 2016 at 5:37 PM, Sudeep Holla <sudeep.holla@arm.com> wrote:
->> ACPI 6.0 adds a new method to specify the CPU idle states(C-states)
->> called Low Power Idle(LPI) states. Since new architectures like ARM64
->> use only LPIs, introduce ACPI_PROCESSOR_CSTATE to encapsulate all the
->> code supporting the old style C-states(_CST).
->>
->> This patch will help to extend the processor_idle module to support
->> LPI.
->>
->> Cc: x86@kernel.org
->> Cc: linux-ia64@vger.kernel.org
->> Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>
->> Signed-off-by: Sudeep Holla <sudeep.holla@arm.com>
->> ---
->>   arch/ia64/Kconfig             |  1 +
->>   arch/x86/Kconfig              |  1 +
->>   drivers/acpi/Kconfig          |  4 +++
->>   drivers/acpi/processor_idle.c | 80 ++++++++++++++++++++++++++++---------------
->>   include/acpi/processor.h      |  2 +-
->>   5 files changed, 60 insertions(+), 28 deletions(-)
->>
->> diff --git a/arch/ia64/Kconfig b/arch/ia64/Kconfig
->> index b534ebab36ea..e820670d7243 100644
->> --- a/arch/ia64/Kconfig
->> +++ b/arch/ia64/Kconfig
->> @@ -15,6 +15,7 @@ config IA64
->>          select ARCH_MIGHT_HAVE_PC_SERIO
->>          select PCI if (!IA64_HP_SIM)
->>          select ACPI if (!IA64_HP_SIM)
->> +       select ACPI_PROCESSOR_CSTATE if ACPI
+> IIRC not all subspaces require IRQ's. Its optional, isnt it?
+Maybe I misunderstood: if "doorbell interrupt" bit of "platform
+communications channel global flags" is set, the platform is capable
+of generating an interrupt to indicate completion of a command. And if
+this bit is set, "doorbell interrupt" and "doorbell interrupt flags"
+fields of each subspace are active
+Could you correct me, thanks
 >
-> You don't need this ->
->
->>          select ACPI_SYSTEM_POWER_STATES_SUPPORT if ACPI
->>          select ARCH_MIGHT_HAVE_ACPI_PDC if ACPI
->>          select HAVE_UNSTABLE_SCHED_CLOCK
->> diff --git a/arch/x86/Kconfig b/arch/x86/Kconfig
->> index 2dc18605831f..cb3e14757c9c 100644
->> --- a/arch/x86/Kconfig
->> +++ b/arch/x86/Kconfig
->> @@ -18,6 +18,7 @@ config X86_64
->>   config X86
->>          def_bool y
->>          select ACPI_LEGACY_TABLES_LOOKUP        if ACPI
->> +       select ACPI_PROCESSOR_CSTATE            if ACPI
->>          select ACPI_SYSTEM_POWER_STATES_SUPPORT if ACPI
->>          select ANON_INODES
->>          select ARCH_CLOCKSOURCE_DATA
->> diff --git a/drivers/acpi/Kconfig b/drivers/acpi/Kconfig
->> index b7e2e776397d..093bfcc4f9c3 100644
->> --- a/drivers/acpi/Kconfig
->> +++ b/drivers/acpi/Kconfig
->> @@ -213,6 +213,10 @@ config ACPI_CPU_FREQ_PSS
->>          bool
->>          select THERMAL
+>>>>
+>>>>                 /* If doorbell is in system memory cache the virt address */
+>>>>                 pcct_ss = (struct acpi_pcct_hw_reduced *)pcct_entry;
+>>>>                 db_reg = &pcct_ss->doorbell_register;
+>>>> -               if (db_reg->space_id == ACPI_ADR_SPACE_SYSTEM_MEMORY)
+>>>> -                       pcc_doorbell_vaddr[i] = acpi_os_ioremap(db_reg->address,
+>>>> +               if (db_reg->space_id == ACPI_ADR_SPACE_SYSTEM_MEMORY) {
+>>>> +                       pcc_mbox_ctx.mbox_chans[i].pcc_doorbell_vaddr =
+>>>> +                                       acpi_os_ioremap(db_reg->address,
+>>>>                                                         db_reg->bit_width/8);
+>>>> +               }
+>>>> +
+>>>>                 pcct_entry = (struct acpi_subtable_header *)
+>>>>                         ((unsigned long) pcct_entry + pcct_entry->length);
+>>>>         }
+>>>>
+>>>> -       pcc_mbox_ctrl.num_chans = count;
+>>>> +       pcc_mbox_ctx.mbox_ctrl.num_chans = count;
+>>>>
+>>>> -       pr_info("Detected %d PCC Subspaces\n", pcc_mbox_ctrl.num_chans);
+>>>> +       pr_info("Detected %d PCC Subspaces\n",
+>>>> +               pcc_mbox_ctx.mbox_ctrl.num_chans);
+>>>>
+>>>>         return 0;
+>>>>  }
+>>>> @@ -394,12 +591,12 @@ static int pcc_mbox_probe(struct platform_device *pdev)
+>>>>  {
+>>>>         int ret = 0;
+>>>>
+>>>> -       pcc_mbox_ctrl.chans = pcc_mbox_channels;
+>>>> -       pcc_mbox_ctrl.ops = &pcc_chan_ops;
+>>>> -       pcc_mbox_ctrl.dev = &pdev->dev;
+>>>> +       pcc_mbox_ctx.mbox_ctrl.chans = pcc_mbox_ctx.chans;
+>>>> +       pcc_mbox_ctx.mbox_ctrl.ops = &pcc_chan_ops;
+>>>> +       pcc_mbox_ctx.mbox_ctrl.dev = &pdev->dev;
+>>>>
+>>>>         pr_info("Registering PCC driver as Mailbox controller\n");
+>>>> -       ret = mbox_controller_register(&pcc_mbox_ctrl);
+>>>> +       ret = mbox_controller_register(&pcc_mbox_ctx.mbox_ctrl);
+>>>
+>>> That pcc_mbox_ctx usage everywhere seems questionable to me. But its
+>>> also too early in the morning here. ;)
+>> As the same with previous comments, I would like to move all global
+>> variables into a structure
 >>
->> +config ACPI_PROCESSOR_CSTATE
->> +       bool
 >
-> -> if you do "def_bool y" here.
->
+> Unfortunately, it doesn't add any value to the functionality you are
+> introducing. So please revert that back and add only the IRQ changes.
+Yes, I'll do it
 
-I agree and I did exactly the same, but then was not sure on your
-preference. So dropped it :)
+Thanks and Regards
+Hoan
+>
+> Regards,
+> Ashwin.
 
 -- 
-Regards,
-Sudeep
+CONFIDENTIALITY NOTICE: This e-mail message, including any attachments, is 
+for the sole use of the intended recipient(s) and contains information that 
+is confidential and proprietary to Applied Micro Circuits Corporation or 
+its subsidiaries. It is to be used solely for the purpose of furthering the 
+parties' business relationship. All unauthorized review, use, disclosure or 
+distribution is prohibited. If you are not the intended recipient, please 
+contact the sender by reply e-mail and destroy all copies of the original 
+message.
