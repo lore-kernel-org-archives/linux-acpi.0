@@ -1,116 +1,146 @@
-From: Gabriele Paoloni <gabriele.paoloni@huawei.com>
-Subject: RE: [PATCH V7 00/11] Support for generic ACPI based PCI host
- controller
-Date: Wed, 11 May 2016 12:53:25 +0000
-Message-ID: <EE11001F9E5DDD47B7634E2F8A612F2E1ED8E264@lhreml503-mbs>
-References: <1462893601-8937-1-git-send-email-tn@semihalf.com>
- <EE11001F9E5DDD47B7634E2F8A612F2E1ED8DF51@lhreml503-mbs>
- <57331290.7070104@semihalf.com>
+From: Sudeep Holla <sudeep.holla@arm.com>
+Subject: Re: [PATCH v4 2/5] ACPI / processor_idle: Add support for Low Power
+ Idle(LPI) states
+Date: Wed, 11 May 2016 16:06:14 +0100
+Message-ID: <57334A66.6070004@arm.com>
+References: <1461069013-13292-1-git-send-email-sudeep.holla@arm.com>
+ <1461069013-13292-3-git-send-email-sudeep.holla@arm.com>
+ <1857618.TLitUhExSh@vostro.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <57331290.7070104@semihalf.com>
-Content-Language: en-US
+In-Reply-To: <1857618.TLitUhExSh@vostro.rjw.lan>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Tomasz Nowicki <tn@semihalf.com>, "helgaas@kernel.org" <helgaas@kernel.org>, "arnd@arndb.de" <arnd@arndb.de>, "will.deacon@arm.com" <will.deacon@arm.com>, "catalin.marinas@arm.com" <catalin.marinas@arm.com>, "rafael@kernel.org" <rafael@kernel.org>, "hanjun.guo@linaro.org" <hanjun.guo@linaro.org>, "Lorenzo.Pieralisi@arm.com" <Lorenzo.Pieralisi@arm.com>, "okaya@codeaurora.org" <okaya@codeaurora.org>, "jchandra@broadcom.com" <jchandra@broadcom.com>
-Cc: "robert.richter@caviumnetworks.com" <robert.richter@caviumnetworks.com>, "mw@semihalf.com" <mw@semihalf.com>, "Liviu.Dudau@arm.com" <Liviu.Dudau@arm.com>, "ddaney@caviumnetworks.com" <ddaney@caviumnetworks.com>, Wangyijing <wangyijing@huawei.com>, "Suravee.Suthikulpanit@amd.com" <Suravee.Suthikulpanit@amd.com>, "msalter@redhat.com" <msalter@redhat.com>, "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linaro-acpi@lists.linaro.org" <linaro-acpi@lists.linaro.org>, "jcm@redhat.com" <jcm@redhat.com>, "andrea.gallo@linaro.org" <andrea.gallo@linaro.org>, "dhdang@apm.com" <dhdang@apm.com>, "jeremy.linton@arm.com" <jeremy.linton@arm.com>, "liudongdong (C)" <liudongd>
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: Sudeep Holla <sudeep.holla@arm.com>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Al Stone <al.stone@linaro.org>, Prashanth Prakash <pprakash@codeaurora.org>, Ashwin Chaugule <ashwin.chaugule@linaro.org>
 List-Id: linux-acpi@vger.kernel.org
 
-Hi Tomasz
 
-> -----Original Message-----
-> From: Tomasz Nowicki [mailto:tn@semihalf.com]
-> Sent: 11 May 2016 12:08
-> To: Gabriele Paoloni; helgaas@kernel.org; arnd@arndb.de;
-> will.deacon@arm.com; catalin.marinas@arm.com; rafael@kernel.org;
-> hanjun.guo@linaro.org; Lorenzo.Pieralisi@arm.com; okaya@codeaurora.org;
-> jchandra@broadcom.com
-> Cc: robert.richter@caviumnetworks.com; mw@semihalf.com;
-> Liviu.Dudau@arm.com; ddaney@caviumnetworks.com; Wangyijing;
-> Suravee.Suthikulpanit@amd.com; msalter@redhat.com; linux-
-> pci@vger.kernel.org; linux-arm-kernel@lists.infradead.org; linux-
-> acpi@vger.kernel.org; linux-kernel@vger.kernel.org; linaro-
-> acpi@lists.linaro.org; jcm@redhat.com; andrea.gallo@linaro.org;
-> dhdang@apm.com; jeremy.linton@arm.com; liudongdong (C);
-> cov@codeaurora.org
-> Subject: Re: [PATCH V7 00/11] Support for generic ACPI based PCI host
-> controller
-> 
-> Hi Gabriele,
-> 
-> On 11.05.2016 12:41, Gabriele Paoloni wrote:
-> > Hi Tomasz
-> >
-> >> -----Original Message-----
-> >> From: linux-kernel-owner@vger.kernel.org [mailto:linux-kernel-
-> >> owner@vger.kernel.org] On Behalf Of Tomasz Nowicki
-> >> Sent: 10 May 2016 16:20
-> >> To: helgaas@kernel.org; arnd@arndb.de; will.deacon@arm.com;
-> >> catalin.marinas@arm.com; rafael@kernel.org; hanjun.guo@linaro.org;
-> >> Lorenzo.Pieralisi@arm.com; okaya@codeaurora.org;
-> jchandra@broadcom.com
-> >> Cc: robert.richter@caviumnetworks.com; mw@semihalf.com;
-> >> Liviu.Dudau@arm.com; ddaney@caviumnetworks.com; Wangyijing;
-> >> Suravee.Suthikulpanit@amd.com; msalter@redhat.com; linux-
-> >> pci@vger.kernel.org; linux-arm-kernel@lists.infradead.org; linux-
-> >> acpi@vger.kernel.org; linux-kernel@vger.kernel.org; linaro-
-> >> acpi@lists.linaro.org; jcm@redhat.com; andrea.gallo@linaro.org;
-> >> dhdang@apm.com; jeremy.linton@arm.com; liudongdong (C);
-> >> cov@codeaurora.org; Tomasz Nowicki
-> >> Subject: [PATCH V7 00/11] Support for generic ACPI based PCI host
-> >> controller
-> >>
-> >>  From the functionality point of view this series may be split into
-> the
-> >> following logic parts:
-> >> 1. New ECAM API and update for users of the pci-host-common API
-> >> 2. Necessary fixes as the preparation for using driver on ARM64.
-> >> 3. Use new MCFG interface and implement generic ACPI based PCI host
-> >> controller driver.
-> >> 4. Enable above driver on ARM64
-> >>
-> >> Patches has been built on top of 4.6-rc7 and can be found here:
-> >> git@github.com:semihalf-nowicki-tomasz/linux.git (pci-acpi-v7)
-> >>
-> >> This has been tested on Cavium ThunderX server. Any help in
-> reviewing
-> >> and
-> >> testing is very appreciated.
-> >>
-> >> v6 -> v7
-> >> - drop quirks handling
-> >
-> > Maybe I missed something in the v6 discussion thread; when was it
-> > decided to drop quirk handling?
-> 
-> I had such requests in previous series.
-> 
-> >
-> > I think it is important to have this in place to accommodate
-> different
-> > vendors. If the intention is to keep this patchset "clean" maybe
-> > we can add it as a separate patch on top later on...
-> >
-> > What's your view?
-> 
-> Yes, keeping these things separated should help in review. Obviously I
-> agree that we need quirk handling but currently there is no
-> implementation which we all agree upon. For the test, you can use quirk
-> handling approach from the previous series until we sort out final
-> solution.
 
-Great
+On 11/05/16 01:03, Rafael J. Wysocki wrote:
+> On Tuesday, April 19, 2016 01:30:10 PM Sudeep Holla wrote:
+>> ACPI 6.0 introduced an optional object _LPI that provides an alternate
+>> method to describe Low Power Idle states. It defines the local power
+>> states for each node in a hierarchical processor topology. The OSPM can
+>> use _LPI object to select a local power state for each level of processor
+>> hierarchy in the system. They used to produce a composite power state
+>> request that is presented to the platform by the OSPM.
+>>
+>> Since multiple processors affect the idle state for any non-leaf hierarchy
+>> node, coordination of idle state requests between the processors is
+>> required. ACPI supports two different coordination schemes: Platform
+>> coordinated and  OS initiated.
+>>
+>> This patch adds initial support for Platform coordination scheme of LPI.
+>>
+>> Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+>> Signed-off-by: Sudeep Holla <sudeep.holla@arm.com>
+>> ---
+>>   drivers/acpi/bus.c              |  11 +-
+>>   drivers/acpi/processor_driver.c |   2 +-
+>>   drivers/acpi/processor_idle.c   | 441 +++++++++++++++++++++++++++++++++++-----
+>>   include/acpi/processor.h        |  25 ++-
+>>   include/linux/acpi.h            |   4 +
+>>   5 files changed, 422 insertions(+), 61 deletions(-)
+>>
+>> Hi Rafael,
+>>
+>> Yet to be discussed(retained as in from previous version):
+>> - Kconfig entry removal: Need feedback on how to deal with that
+>>    without having to introduce dummy _CST related ARM64 callbacks
+>> - Didn't defer processing of LPI buffers to flattening as it
+>>    results in the same buffer decoded multiple times
+>> - ACPI_CSTATE_INTEGER : IMO it's reasonable to keep it aroundsince the
+>>    it's part of LPI specification(not just ARM FFH)
+>
+> I'm basically fine with the current set, up to some minor points.
+>
+> I've sent my comments on patch [1/5] already.
+>
+> My main concern about the flattening of _LPI is that at one point we'll
+> probably decide to unflatten it and that will change the behavior for
+> current users.  There needs to be a plan for that IMO.
+>
 
-This explains perfectly
+Are you referring the OS co-ordinated mode ? If yes, I agree. If not,
+can you explain why would we not flatten the LPI states ?
 
-We will apply previous series quirks and try to test the patchset
-from Huawei side
+[...]
 
-Many Thanks
+>>
+>> +struct acpi_processor_lpi_info {
+>> +	int state_count;
+>> +	struct acpi_processor_lpi *lpix;
+>> +};
+>
+> This is a bit cryptic, especially the name of the lpix field.
+>
+> I'd do something like
+>
+> struct acpi_lpi_states_array {
+> 	unsigned int size;
+> 	struct acpi_lpi_state *entries;
+> };
+>
+> and that is sort of self-documenting.
+>
 
-Gab
+Agreed and that's looks much better.
 
-> 
-> Thanks,
-> Tomasz
+>> +
+>> +static int obj_get_integer(union acpi_object *obj, u32 *value)
+>> +{
+>> +	if (obj->type != ACPI_TYPE_INTEGER)
+>> +		return -EINVAL;
+>
+> I'd add an empty line here and everywhere where there's only one
+> statement after if () or for () etc.
+>
+> You've done that in some places IIRC, but please stick to one convention
+> everywhere.
+>
+
+I have taken all the review comments and fixed them as suggested.
+
+[...]
+
+>> +
+>> +	for (i = 0; i < fl_scnt && i < CPUIDLE_STATE_MAX; i++) {
+>> +		lpi = &pr->power.lpi_states[i];
+>> +
+>> +		state = &drv->states[i];
+>> +		snprintf(state->name, CPUIDLE_NAME_LEN, "LPI-%d", i);
+>> +		strlcpy(state->desc, lpi->desc, CPUIDLE_DESC_LEN);
+>> +		state->exit_latency = lpi->wake_latency;
+>> +		state->target_residency = lpi->min_residency;
+>> +		if (lpi->arch_flags)
+>> +			state->flags |= CPUIDLE_FLAG_TIMER_STOP;
+>> +		state->enter = acpi_idle_lpi_enter;
+>
+> No ->enter_freeze ?
+>
+
+I don't have a system to test this. Also IIUC the cpuidle does support
+suspend-to-idle even when ->enter_freeze is not implemented right.
+Can we add it later once I find a way to test. Correctly no wakeup on my
+test platform :(
+
+>>
+>> +struct acpi_processor_lpi {
+>
+> As I said above, I'd call this
+>
+> struct acpi_lpi_state {
+>
+> because (a) it represents a state and (b) that doesn't have to be a state
+> of a processor.
+>
+
+Agreed, that's mainly copy paste from _CST which calls it
+acpi_processor_cx :)
+
+-- 
+-- 
+Regards,
+Sudeep
