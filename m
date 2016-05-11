@@ -1,347 +1,201 @@
-From: Mika Westerberg <mika.westerberg@linux.intel.com>
-Subject: Re: [PATCH v3] i2c: i801: Allow ACPI SystemIO OpRegion to conflict
- with PCI BAR
-Date: Wed, 11 May 2016 14:40:48 +0300
-Message-ID: <20160511114048.GP1713@lahna.fi.intel.com>
-References: <1462781834-7890-1-git-send-email-mika.westerberg@linux.intel.com>
- <20160511113933.6868d115@endymion>
+From: Ashwin Chaugule <ashwin.chaugule@linaro.org>
+Subject: Re: [PATCH v2] mailbox: pcc: Support HW-Reduced Communication
+ Subspace Type 2
+Date: Wed, 11 May 2016 07:57:23 -0400
+Message-ID: <CAJ5Y-ebBmUHySP=wdeusACeM4wrTogVgWXNAkzc5p8jz_zbj2g@mail.gmail.com>
+References: <1462559914-28363-1-git-send-email-hotran@apm.com>
+ <CAJ5Y-ebMB79QrSb4WRXkq-vhJED+JmW8wC1Vqyc3pg9Mh-DMjg@mail.gmail.com> <CAFHUOYxWe2VOjABGmm9bnqL8iKeLJ6maN-YDjp3bzWXogU2img@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga04.intel.com ([192.55.52.120]:15375 "EHLO mga04.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751372AbcEKLky (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 11 May 2016 07:40:54 -0400
-Content-Disposition: inline
-In-Reply-To: <20160511113933.6868d115@endymion>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <CAFHUOYxWe2VOjABGmm9bnqL8iKeLJ6maN-YDjp3bzWXogU2img@mail.gmail.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Hoan Tran <hotran@apm.com>
+Cc: Jassi Brar <jassisinghbrar@gmail.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Robert Moore <robert.moore@intel.com>, Alexey Klimov <alexey.klimov@arm.com>, lkml <linux-kernel@vger.kernel.org>, linux acpi <linux-acpi@vger.kernel.org>, Loc Ho <lho@apm.com>, Duc Dang <dhdang@apm.com>
 List-Id: linux-acpi@vger.kernel.org
-To: Jean Delvare <jdelvare@suse.de>
-Cc: Wolfram Sang <wsa@the-dreams.de>, Jarkko Nikula <jarkko.nikula@linux.intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Andy Lutomirski <luto@kernel.org>, Mario Limonciello <mario_limonciello@dell.com>, pali.rohar@gmail.com, Matt Fleming <matt@codeblueprint.co.uk>, linux-i2c@vger.kernel.org, linux-acpi@vger.kernel.org
 
-On Wed, May 11, 2016 at 11:39:33AM +0200, Jean Delvare wrote:
-> Hi Mika,
->=20
-> First of all, thank you very much for working on this problem, this i=
-s
-> highly appreciated.
+On 11 May 2016 at 00:21, Hoan Tran <hotran@apm.com> wrote:
+> Hi Ashwin,
 
-You're welcome :)
+Hi,
 
-> On Mon,  9 May 2016 11:17:14 +0300, Mika Westerberg wrote:
-> > Many Intel systems the BIOS declares a SystemIO OpRegion below the =
-SMBus
-> > PCI device as can be seen in ACPI DSDT table from Lenovo Yoga 900:
-> >=20
-> >   Device (SBUS)
-> >   {
-> >       OperationRegion (SMBI, SystemIO, (SBAR << 0x05), 0x10)
-> >       Field (SMBI, ByteAcc, NoLock, Preserve)
-> >       {
-> >           HSTS,   8,
-> >           Offset (0x02),
-> >           HCON,   8,
-> >           HCOM,   8,
-> >           TXSA,   8,
-> >           DAT0,   8,
-> >           DAT1,   8,
-> >           HBDR,   8,
-> >           PECR,   8,
-> >           RXSA,   8,
-> >           SDAT,   16
-> >       }
-> >=20
-> > There are also bunch of AML methods that that the BIOS can use to a=
-ccess
-> > these fields. Most of the systems in question AML methods accessing=
- the
-> > SMBI OpRegion are never used.
-> >=20
-> > Now, because of this SMBI OpRegion many systems fail to load the SM=
-Bus
-> > driver with an error looking like one below:
-> >=20
-> >   ACPI Warning: SystemIO range 0x0000000000003040-0x000000000000305=
-=46
-> >        conflicts with OpRegion 0x0000000000003040-0x000000000000304=
-=46
-> >        (\_SB.PCI0.SBUS.SMBI) (20160108/utaddress-255)
-> >   ACPI: If an ACPI driver is available for this device, you should =
-use
-> >        it instead of the native driver
-> >=20
-> > The reason is that this SMBI OpRegion conflicts with the PCI BAR us=
-ed by
-> > the SMBus driver.
-> >=20
-> > It turns out that we can install a custom SystemIO address space ha=
-ndler
-> > for the SMBus device to intercept all accesses through that OpRegio=
-n. This
-> > allows us to share the PCI BAR with the AML code if it for some rea=
-son is
-> > using it. We do not expect that this OpRegion handler will ever be =
-called
-> > but if it is we print a warning and prevent all access from the SMB=
-us
-> > driver itself.
-> >=20
-> > Link: https://bugzilla.kernel.org/show_bug.cgi?id=3D110041
-> > Reported-by: Andy Lutomirski <luto@kernel.org>
-> > Reported-by: Pali Roh=E1r <pali.rohar@gmail.com>
-> > Signed-off-by: Mika Westerberg <mika.westerberg@linux.intel.com>
-> > Suggested-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-> > Acked-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-> > Cc: stable@vger.kernel.org
-> > ---
-> > Changes to v2:
-> >=20
-> >  - Return -EIO instead of -EPERM
-> >  - Added ACK from Rafael
-> >  - Added Link and Reported-by tags
-> >  - Tagged for stable inclusion
-> >=20
-> >  drivers/i2c/busses/i2c-i801.c | 106 ++++++++++++++++++++++++++++++=
-++++++++++--
-> >  1 file changed, 102 insertions(+), 4 deletions(-)
->=20
-> I have tested this on my Dell OptiPlex 9020 MT system, and it works
-> well. Gives me access to the SPD EEPROMs on my memory modules.
+> On Tue, May 10, 2016 at 5:00 AM, Ashwin Chaugule
+>> On 6 May 2016 at 14:38, Hoan Tran <hotran@apm.com> wrote:
+>>> From: hotran <hotran@apm.com>
+>>>
+>>> ACPI 6.1 has a PCC HW-Reduced Communication Subspace Type 2 intended for
+>>> use on HW-Reduce ACPI Platform, which requires read-modify-write sequence
+>>> to acknowledge doorbell interrupt. This patch provides the implementation
+>>> for the Communication Subspace Type 2.
+>>>
+>>> This patch depends on patch [1] which supports PCC subspace type 2 header
+>>> [1] https://lkml.org/lkml/2016/5/5/14
+>>>  - [PATCH v2 03/13] ACPICA: ACPI 6.1: Support for new PCCT subtable
+>>>
+>>> v2
+>>>  * Remove changes inside "actbl3.h". This file is taken care by ACPICA.
+>>>  * Parse both subspace type 1 and subspace type 2
+>>>  * Remove unnecessary variable initialization
+>>>  * ISR returns IRQ_NONE in case of error
+>>>
+>>> v1
+>>>  * Initial
+>>>
+>>> Signed-off-by: Hoan Tran <hotran@apm.com>
+>>> ---
+>>>  drivers/mailbox/pcc.c | 395 +++++++++++++++++++++++++++++++++++++-------------
+>>>  1 file changed, 296 insertions(+), 99 deletions(-)
+>>>
+>>> diff --git a/drivers/mailbox/pcc.c b/drivers/mailbox/pcc.c
+>>> index 043828d..58c9a67 100644
+>>> --- a/drivers/mailbox/pcc.c
+>>> +++ b/drivers/mailbox/pcc.c
+>>> @@ -59,6 +59,7 @@
+>>>  #include <linux/delay.h>
+>>>  #include <linux/io.h>
+>>>  #include <linux/init.h>
+>>> +#include <linux/interrupt.h>
+>>>  #include <linux/list.h>
+>>>  #include <linux/platform_device.h>
+>>>  #include <linux/mailbox_controller.h>
+>>> @@ -68,27 +69,179 @@
+>>>  #include "mailbox.h"
+>>>
+>>>  #define MAX_PCC_SUBSPACES      256
+>>> +#define MBOX_IRQ_NAME          "pcc-mbox"
+>>>
+>>> -static struct mbox_chan *pcc_mbox_channels;
+>>> +/**
+>>> + * PCC mailbox channel information
+>>> + *
+>>> + * @chan:      Pointer to mailbox communication channel
+>>> + * @pcc_doorbell_vaddr: PCC doorbell register address
+>>> + * @pcc_doorbell_ack_vaddr: PCC doorbell ack register address
+>>> + * @irq:       Interrupt number of the channel
+>>> + */
+>>> +struct pcc_mbox_chan {
+>>> +       struct mbox_chan        *chan;
+>>> +       void __iomem            *pcc_doorbell_vaddr;
+>>> +       void __iomem            *pcc_doorbell_ack_vaddr;
+>>> +       int                     irq;
+>>> +};
+>>>
+>>> -/* Array of cached virtual address for doorbell registers */
+>>> -static void __iomem **pcc_doorbell_vaddr;
+>>> +/**
+>>> + * PCC mailbox controller data
+>>> + *
+>>> + * @mb_ctrl:   Representation of the communication channel controller
+>>> + * @mbox_chan: Array of PCC mailbox channels of the controller
+>>> + * @chans:     Array of mailbox communication channels
+>>> + */
+>>> +struct pcc_mbox {
+>>> +       struct mbox_controller  mbox_ctrl;
+>>> +       struct pcc_mbox_chan    *mbox_chans;
+>>> +       struct mbox_chan        *chans;
+>>> +};
+>>> +
+>>> +static struct pcc_mbox pcc_mbox_ctx = {};
+>>
+>> Im missing the idea behind creating this structure. Are you
+>> registering multiple controllers somewhere?
+> No, I just want to use a structure to store all global variables into
+>>
 
-Good to know. Thanks for testing.
+I dont see how it makes things better. The functionality added by this
+patchset is actually much smaller without this cosmetic change. So I'd
+prefer if you could only introduce the IRQ related changes for now and
+we'll deal with cosmetic cleanups later if needed. As it stands even
+with this new structure, the "pcc_mbox::chans" and
+"pcc_mbox_chan::chan" are quite confusing already.
 
-> Below is my review.
->=20
-> > diff --git a/drivers/i2c/busses/i2c-i801.c b/drivers/i2c/busses/i2c=
--i801.c
-> > index 5652bf6ce9be..d69ad96460b5 100644
-> > --- a/drivers/i2c/busses/i2c-i801.c
-> > +++ b/drivers/i2c/busses/i2c-i801.c
-> > @@ -247,6 +247,13 @@ struct i801_priv {
-> >  	struct platform_device *mux_pdev;
-> >  #endif
-> >  	struct platform_device *tco_pdev;
-> > +
-> > +	/*
-> > +	 * If set to true the host controller registers are reserved for
-> > +	 * ACPI AML use. Protected by acpi_lock.
-> > +	 */
-> > +	bool acpi_reserved;
-> > +	struct mutex acpi_lock;
-> >  };
-> > =20
-> >  #define FEATURE_SMBUS_PEC	(1 << 0)
-> > @@ -720,6 +727,12 @@ static s32 i801_access(struct i2c_adapter *ada=
-p, u16 addr,
-> >  	int ret =3D 0, xact =3D 0;
-> >  	struct i801_priv *priv =3D i2c_get_adapdata(adap);
-> > =20
-> > +	mutex_lock(&priv->acpi_lock);
-> > +	if (priv->acpi_reserved) {
-> > +		mutex_unlock(&priv->acpi_lock);
-> > +		return -EIO;
->=20
-> I see this has been discussed before, but I don't think EIO is
-> appropriate here. You didn't even try to issue an I/O to the device, =
-so
-> how could it fail? EBUSY would better reflect the situation IMHO.
 
-That works for me as well. Rafael suggested -EIO and it was originally
--EPERM but I have no problems changing it to return -EBUSY.
+>>
+>> [...]
+>>
+>>>
+>>> @@ -357,24 +534,44 @@ static int __init acpi_pcc_probe(void)
+>>>         pcct_entry = (struct acpi_subtable_header *) (
+>>>                 (unsigned long) pcct_tbl + sizeof(struct acpi_table_pcct));
+>>>
+>>> +       acpi_pcct_tbl = (struct acpi_table_pcct *) pcct_tbl;
+>>> +       if (acpi_pcct_tbl->flags & ACPI_PCCT_DOORBELL)
+>>> +               pcc_mbox_ctx.mbox_ctrl.txdone_irq = true;
+>>> +
+>>>         for (i = 0; i < count; i++) {
+>>>                 struct acpi_generic_address *db_reg;
+>>>                 struct acpi_pcct_hw_reduced *pcct_ss;
+>>> -               pcc_mbox_channels[i].con_priv = pcct_entry;
+>>> +
+>>> +               pcc_mbox_ctx.chans[i].con_priv = pcct_entry;
+>>> +               pcc_mbox_ctx.chans[i].mbox = &pcc_mbox_ctx.mbox_ctrl;
+>>> +
+>>> +               pcct_ss = (struct acpi_pcct_hw_reduced *) pcct_entry;
+>>> +
+>>> +               pcc_mbox_ctx.mbox_chans[i].chan = &pcc_mbox_ctx.chans[i];
+>>> +               if (pcc_mbox_ctx.mbox_ctrl.txdone_irq) {
+>>> +                       rc = pcc_parse_subspace_irq(&pcc_mbox_ctx.mbox_chans[i],
+>>> +                                                   pcct_ss);
+>>> +                       if (rc < 0)
+>>> +                               return rc;
+>>> +               }
+>>
+>> I think we should parse the remaining entries and register them if
+>> they are sane. Some other PCC clients can then continue to function.
+> I think, it could be an error of PCCT table and need to be returned.
+>>
 
-> > +	}
-> > +
-> >  	pm_runtime_get_sync(&priv->pci_dev->dev);
-> > =20
-> >  	hwpec =3D (priv->features & FEATURE_SMBUS_PEC) && (flags & I2C_CL=
-IENT_PEC)
-> > @@ -822,6 +835,7 @@ static s32 i801_access(struct i2c_adapter *adap=
-, u16 addr,
-> >  out:
-> >  	pm_runtime_mark_last_busy(&priv->pci_dev->dev);
-> >  	pm_runtime_put_autosuspend(&priv->pci_dev->dev);
-> > +	mutex_unlock(&priv->acpi_lock);
-> >  	return ret;
-> >  }
-> > =20
-> > @@ -1260,6 +1274,89 @@ static void i801_add_tco(struct i801_priv *p=
-riv)
-> >  	priv->tco_pdev =3D pdev;
-> >  }
-> > =20
-> > +#ifdef CONFIG_ACPI
-> > +static acpi_status
-> > +i801_acpi_io_handler(u32 function, acpi_physical_address address, =
-u32 bits,
-> > +		     u64 *value, void *handler_context, void *region_context)
-> > +{
-> > +	struct i801_priv *priv =3D handler_context;
-> > +	struct pci_dev *pdev =3D priv->pci_dev;
-> > +	acpi_status status;
-> > +
-> > +	/*
-> > +	 * Once BIOS AML code touches the OpRegion we warn and inhibit an=
-y
-> > +	 * further access from the driver itself. This device is now owne=
-d
-> > +	 * by the system firmware.
-> > +	 */
-> > +	dev_warn_once(&pdev->dev, "BIOS is accessing SMBus registers\n");
-> > +	dev_warn_once(&pdev->dev, "Driver SMBus register access inhibited=
-\n");
->=20
-> Given that you have priv->acpi_reserved to record if we've been there
-> before, maybe you could move the warnings below, and use simple
-> dev_warn? I suspect it's cheaper than dev_warn_once.
+Well, that could be dealt with a pr_err/warn() for that specific entry
+? IIRC not all subspaces require IRQ's. Its optional, isnt it?
 
-OK, I'll move them to the block below.
+>>>
+>>>                 /* If doorbell is in system memory cache the virt address */
+>>>                 pcct_ss = (struct acpi_pcct_hw_reduced *)pcct_entry;
+>>>                 db_reg = &pcct_ss->doorbell_register;
+>>> -               if (db_reg->space_id == ACPI_ADR_SPACE_SYSTEM_MEMORY)
+>>> -                       pcc_doorbell_vaddr[i] = acpi_os_ioremap(db_reg->address,
+>>> +               if (db_reg->space_id == ACPI_ADR_SPACE_SYSTEM_MEMORY) {
+>>> +                       pcc_mbox_ctx.mbox_chans[i].pcc_doorbell_vaddr =
+>>> +                                       acpi_os_ioremap(db_reg->address,
+>>>                                                         db_reg->bit_width/8);
+>>> +               }
+>>> +
+>>>                 pcct_entry = (struct acpi_subtable_header *)
+>>>                         ((unsigned long) pcct_entry + pcct_entry->length);
+>>>         }
+>>>
+>>> -       pcc_mbox_ctrl.num_chans = count;
+>>> +       pcc_mbox_ctx.mbox_ctrl.num_chans = count;
+>>>
+>>> -       pr_info("Detected %d PCC Subspaces\n", pcc_mbox_ctrl.num_chans);
+>>> +       pr_info("Detected %d PCC Subspaces\n",
+>>> +               pcc_mbox_ctx.mbox_ctrl.num_chans);
+>>>
+>>>         return 0;
+>>>  }
+>>> @@ -394,12 +591,12 @@ static int pcc_mbox_probe(struct platform_device *pdev)
+>>>  {
+>>>         int ret = 0;
+>>>
+>>> -       pcc_mbox_ctrl.chans = pcc_mbox_channels;
+>>> -       pcc_mbox_ctrl.ops = &pcc_chan_ops;
+>>> -       pcc_mbox_ctrl.dev = &pdev->dev;
+>>> +       pcc_mbox_ctx.mbox_ctrl.chans = pcc_mbox_ctx.chans;
+>>> +       pcc_mbox_ctx.mbox_ctrl.ops = &pcc_chan_ops;
+>>> +       pcc_mbox_ctx.mbox_ctrl.dev = &pdev->dev;
+>>>
+>>>         pr_info("Registering PCC driver as Mailbox controller\n");
+>>> -       ret = mbox_controller_register(&pcc_mbox_ctrl);
+>>> +       ret = mbox_controller_register(&pcc_mbox_ctx.mbox_ctrl);
+>>
+>> That pcc_mbox_ctx usage everywhere seems questionable to me. But its
+>> also too early in the morning here. ;)
+> As the same with previous comments, I would like to move all global
+> variables into a structure
+>
 
-> > +
-> > +	mutex_lock(&priv->acpi_lock);
-> > +
-> > +	if (!priv->acpi_reserved) {
-> > +		priv->acpi_reserved =3D true;
-> > +
-> > +		/*
-> > +		 * BIOS is accessing the host controller so prevent it from
-> > +		 * suspending automatically from now on.
-> > +		 */
-> > +		pm_runtime_get_sync(&pdev->dev);
-> > +	}
-> > +
-> > +	if (function =3D=3D ACPI_READ) {
-> > +		u32 val =3D (u32)*value;
->=20
-> I'm confused. acpi_os_read_port is writing the result of the read to
-> "val", it doesn't read from it, so I don't think it needs to be
-> initialized?
+Unfortunately, it doesn't add any value to the functionality you are
+introducing. So please revert that back and add only the IRQ changes.
 
-Indeed, that's not needed at all.
-
-> Also, looking at the acpi_os_read_port() call in
-> drivers/acpi/apei/apei-base.c, it would seem you can cast *value
-> directly in-place, without using a temporary variable. This would lim=
-it
-> the overhead.
-
-OK.
-
-> > +		status =3D acpi_os_read_port(address, &val, bits);
-> > +		if (ACPI_SUCCESS(status))
-> > +			*value =3D val;
-> > +	} else {
-> > +		status =3D acpi_os_write_port(address, (u32)*value, bits);
-> > +	}
-> > +
-> > +	mutex_unlock(&priv->acpi_lock);
-> > +
-> > +	return status;
-> > +}
-> > +
-> > +static int i801_acpi_probe(struct i801_priv *priv)
-> > +{
-> > +	struct acpi_device *adev;
-> > +	acpi_status status;
-> > +
-> > +	adev =3D ACPI_COMPANION(&priv->pci_dev->dev);
-> > +	if (adev) {
-> > +		status =3D acpi_install_address_space_handler(adev->handle,
-> > +				ACPI_ADR_SPACE_SYSTEM_IO, i801_acpi_io_handler,
-> > +				NULL, priv);
-> > +		if (ACPI_SUCCESS(status))
-> > +			return 0;
-> > +	}
-> > +
-> > +	return acpi_check_resource_conflict(&priv->pci_dev->resource[SMBB=
-AR]);
-> > +}
-> > +
-> > +static void i801_acpi_remove(struct i801_priv *priv)
-> > +{
-> > +	struct acpi_device *adev;
-> > +
-> > +	adev =3D ACPI_COMPANION(&priv->pci_dev->dev);
-> > +	if (!adev)
-> > +		return;
-> > +
-> > +	acpi_remove_address_space_handler(adev->handle,
-> > +		ACPI_ADR_SPACE_SYSTEM_IO, i801_acpi_io_handler);
-> > +
-> > +	mutex_lock(&priv->acpi_lock);
-> > +	if (priv->acpi_reserved) {
-> > +		priv->acpi_reserved =3D false;
->=20
-> Is this actually needed? priv is about to be destroyed anyway.
-
-It is not needed. I'll remove it.
-
-> > +		pm_runtime_put(&priv->pci_dev->dev);
-> > +	}
-> > +	mutex_unlock(&priv->acpi_lock);
-> > +}
-> > +#else
-> > +static inline int i801_acpi_probe(struct i801_priv *priv) { return=
- 0; }
-> > +static inline void i801_acpi_remove(struct i801_priv *priv) { }
-> > +#endif
-> > +
-> >  static int i801_probe(struct pci_dev *dev, const struct pci_device=
-_id *id)
-> >  {
-> >  	unsigned char temp;
-> > @@ -1277,6 +1374,7 @@ static int i801_probe(struct pci_dev *dev, co=
-nst struct pci_device_id *id)
-> >  	priv->adapter.dev.parent =3D &dev->dev;
-> >  	ACPI_COMPANION_SET(&priv->adapter.dev, ACPI_COMPANION(&dev->dev))=
-;
-> >  	priv->adapter.retries =3D 3;
-> > +	mutex_init(&priv->acpi_lock);
-> > =20
-> >  	priv->pci_dev =3D dev;
-> >  	switch (dev->device) {
-> > @@ -1339,10 +1437,9 @@ static int i801_probe(struct pci_dev *dev, c=
-onst struct pci_device_id *id)
-> >  		return -ENODEV;
-> >  	}
-> > =20
-> > -	err =3D acpi_check_resource_conflict(&dev->resource[SMBBAR]);
-> > -	if (err) {
-> > -		return -ENODEV;
-> > -	}
-> > +	err =3D i801_acpi_probe(priv);
-> > +	if (err)
-> > +		return err;
->=20
-> Before your patch we would return -ENODEV in case of conflict. Now we
-> are returning -EBUSY instead. I see no reason for this change. Or if
-> you think this is actually needed, that seems independent from what
-> your patch is doing, so it should be a separate patch.
-
-Returning -ENODEV seems to be right thing to do. I'll change it in the
-next version.
-
-> > =20
-> >  	err =3D pcim_iomap_regions(dev, 1 << SMBBAR,
-> >  				 dev_driver_string(&dev->dev));
-> > @@ -1439,6 +1536,7 @@ static void i801_remove(struct pci_dev *dev)
-> >  	pm_runtime_forbid(&dev->dev);
-> >  	pm_runtime_get_noresume(&dev->dev);
-> > =20
-> > +	i801_acpi_remove(priv);
-> >  	i801_del_mux(priv);
-> >  	i2c_del_adapter(&priv->adapter);
->=20
-> This looks racy. Until i2c_del_adapter() is called, the SMBus may be
-> used. So I think you should call i801_acpi_remove() after
-> i2c_del_adapter().
-
-That's right. I'll move the call to happen after i2c_del_adapter() is
-called.
-
-Thanks for the review.
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Regards,
+Ashwin.
