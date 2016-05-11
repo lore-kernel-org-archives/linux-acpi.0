@@ -1,73 +1,87 @@
-From: Al Stone <ahs3@redhat.com>
-Subject: Re: [PATCH 0/3] ACPI: Support for platform initiated graceful
- shutdown
-Date: Wed, 11 May 2016 14:59:21 -0600
-Message-ID: <582b4ea3-ee9a-6961-a4aa-374beda10de2@redhat.com>
-References: <1458157022-18633-1-git-send-email-pprakash@codeaurora.org>
- <21470c3b-c176-ef46-fc93-081d482b4cab@redhat.com>
- <57326EA8.1060806@codeaurora.org>
-Reply-To: ahs3@redhat.com
+From: David Daney <ddaney@caviumnetworks.com>
+Subject: Re: [PATCH v6 00/14] ACPI NUMA support for ARM64
+Date: Wed, 11 May 2016 14:08:09 -0700
+Message-ID: <57339F39.3040603@caviumnetworks.com>
+References: <1461780436-27182-1-git-send-email-ddaney.cavm@gmail.com>
+ <CAJZ5v0iMDQ4pWip4vyCos0o+1DFDvXQf4XZQqC4SGjJsDO4Lnw@mail.gmail.com>
+ <20160511104032.GA31374@arm.com>
+ <CAJZ5v0gQMR7OUyZo5Sa3bgMYZBzdnwFaktz9JCv1ocWXw7yHTg@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252
+Content-Type: text/plain; charset="us-ascii"; Format="flowed"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-io0-f173.google.com ([209.85.223.173]:36229 "EHLO
-	mail-io0-f173.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751391AbcEKU7X (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 11 May 2016 16:59:23 -0400
-Received: by mail-io0-f173.google.com with SMTP id i75so65359447ioa.3
-        for <linux-acpi@vger.kernel.org>; Wed, 11 May 2016 13:59:23 -0700 (PDT)
-In-Reply-To: <57326EA8.1060806@codeaurora.org>
-Sender: linux-acpi-owner@vger.kernel.org
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <CAJZ5v0gQMR7OUyZo5Sa3bgMYZBzdnwFaktz9JCv1ocWXw7yHTg@mail.gmail.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: "Rafael J. Wysocki" <rafael@kernel.org>, Will Deacon <will.deacon@arm.com>
+Cc: Mark Rutland <mark.rutland@arm.com>, "linux-ia64@vger.kernel.org" <linux-ia64@vger.kernel.org>, David Daney <david.daney@cavium.com>, Catalin Marinas <catalin.marinas@arm.com>, Lv Zheng <lv.zheng@intel.com>, "H. Peter Anvin" <hpa@zytor.com>, Frank Rowand <frowand.list@gmail.com>, the arch/x86 maintainers <x86@kernel.org>, Robert Moore <robert.moore@intel.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Ingo Molnar <mingo@redhat.com>, Grant Likely <grant.likely@linaro.org>, Len Brown <lenb@kernel.org>, Fenghua Yu <fenghua.yu@intel.com>, Marc Zyngier <Marc.Zyngier@arm.com>, Jon Masters <jcm@redhat.com>, Robert Richter <rrichter@cavium.com>, Rob Herring <robh+dt@kernel.org>, David Daney <ddaney.cavm@gmail.com>, Thomas Gleixner <tglx@linutronix.de>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "devel@acpica.org" <devel@acpica.org>
 List-Id: linux-acpi@vger.kernel.org
-To: "Prakash, Prashanth" <pprakash@codeaurora.org>, linux-acpi@vger.kernel.org
-Cc: harba@codeaurora.org, rjw@rjwysocki.net
 
-On 05/10/2016 05:28 PM, Prakash, Prashanth wrote:
-> Hi Al,
-> 
-> I should have v2 sometime next week.
-> 
-> Sorry about the delay. Vacation and couple of other issues kept me little busy and couldn't update this patch set in a timely manner.
-> 
-> Thanks,
-> Prashanth
-
-No worries, Prashanth.  Just curiosity, on my part.  Thanks for posting these.
-
-> On 5/10/2016 4:50 PM, Al Stone wrote:
->> On 03/16/2016 01:36 PM, Prashanth Prakash wrote:
->>> This patch-set adds support for platform initited graceful shutdown as
->>> described in the sections 5.6.6(Table-143) and 6.3.5.1 of ACPI 6.1 spec
->>>
->>> Jonathan (Zhixiong) Zhang (1):
->>>   ACPI: move ACPI_SYSTEM_HID to acpi_drivers.h
->>>
->>> Prashanth Prakash (2):
->>>   ACPI / sybus: add a driver for LNXSYBUS device
->>>   ACPI: update the definition of common notification values
->>>
->>>  drivers/acpi/Kconfig        |   6 +++
->>>  drivers/acpi/Makefile       |   1 +
->>>  drivers/acpi/scan.c         |   3 +-
->>>  drivers/acpi/sybus.c        | 116 ++++++++++++++++++++++++++++++++++++++++++++
->>>  include/acpi/acpi_drivers.h |   1 +
->>>  include/acpi/actypes.h      |   2 +-
->>>  6 files changed, 127 insertions(+), 2 deletions(-)
->>>  create mode 100644 drivers/acpi/sybus.c
->>>
->> Is v2 coming along soon?  I'd like to try these out on a couple of
->> systems.  Thanks, Prashanth.
+On 05/11/2016 01:35 PM, Rafael J. Wysocki wrote:
+> On Wed, May 11, 2016 at 12:40 PM, Will Deacon <will.deacon@arm.com> wrote:
+>> On Wed, May 11, 2016 at 02:43:11AM +0200, Rafael J. Wysocki wrote:
+>>> On Wed, Apr 27, 2016 at 8:07 PM, David Daney <ddaney.cavm@gmail.com> wrote:
+>>>> From: David Daney <david.daney@cavium.com>
+>>>>
+>>>> Based on git://git.kernel.org/pub/scm/linux/kernel/git/arm64/linux.git
+>>>> for-next/core branch at commit 643d703d2d2d ("arm64: compat: Check for
+>>>> AArch32 state")
 >>
-> 
+>> [...]
+>>
+>>>> David Daney (2):
+>>>>    arm64, numa: Cleanup NUMA disabled messages.
+>>>>    acpi, numa, srat: Improve SRAT error detection and add messages.
+>>>>
+>>>> Hanjun Guo (11):
+>>>>    acpi, numa: Use pr_fmt() instead of printk
+>>>>    acpi, numa: Replace ACPI_DEBUG_PRINT() with pr_debug()
+>>>>    acpi, numa: remove duplicate NULL check
+>>>>    acpi, numa: move acpi_numa_slit_init() to drivers/acpi/numa.c
+>>>>    arm64, numa: rework numa_add_memblk()
+>>>>    x86, acpi, numa: cleanup acpi_numa_processor_affinity_init()
+>>>>    acpi, numa: move bad_srat() and srat_disabled() to
+>>>>      drivers/acpi/numa.c
+>>>>    acpi, numa: remove unneeded acpi_numa=1
+>>>>    acpi, numa: Move acpi_numa_memory_affinity_init() to
+>>>>      drivers/acpi/numa.c
+>>>>    arm64, acpi, numa: NUMA support based on SRAT and SLIT
+>>>>    acpi, numa: Enable ACPI based NUMA on ARM64
+>>>>
+>>>> Robert Richter (1):
+>>>>    acpi, numa: Move acpi_numa_arch_fixup() to ia64 only
+>>>
+>>> I need ACKs from the ARM64 maintainers on patches [6-7/13] and [13-14/14].
+>>
+>> There's also a dependency on the arm64 for-next/core branch, so I've been
+>> largely ignoring this as far as 4.6 is concerned and was planning to take
+>> a proper look for 4.7 once the upcoming merge window is out of the way.
+>
+> That would be 4.7 and 4.8 respectively I suppose?
+>
+> Anyway, Catalin has ACKed all of them except for the [13/14], so
+> technically I can apply [1-12/14] now and then [13-14/14] can be
+> applied when they are ready.
+>
+> Do you think there will be any problems with merging [6-7/14] into 4.7
+> via the ACPI tree?
+>
 
+I would defer to the arm64 maintainers for decisions about the arm64 
+specific parts of the patch set.  That said, many of the arm64 specific 
+patches depend on the arm64 for-next/core branch, so you would have to 
+be careful about merge ordering if you pull these in before the 
+for-next/core branch is merged.
 
--- 
-ciao,
-al
------------------------------------
-Al Stone
-Software Engineer
-Red Hat, Inc.
-ahs3@redhat.com
------------------------------------
+Also FWIW, I plan on addressing Catalin's comments about 13/14 and 
+posting a new version of the patch set in the next day or two.
+
+Thanks for looking at these,
+David Daney
