@@ -1,197 +1,198 @@
 From: Hoan Tran <hotran@apm.com>
 Subject: Re: [PATCH v2] mailbox: pcc: Support HW-Reduced Communication
  Subspace Type 2
-Date: Tue, 10 May 2016 21:05:12 -0700
-Message-ID: <CAFHUOYwWe2=njjTZVS18AKBpy5eVauf77pqCEBOeGdjMpLGrEQ@mail.gmail.com>
+Date: Tue, 10 May 2016 21:21:26 -0700
+Message-ID: <CAFHUOYxWe2VOjABGmm9bnqL8iKeLJ6maN-YDjp3bzWXogU2img@mail.gmail.com>
 References: <1462559914-28363-1-git-send-email-hotran@apm.com>
-	<20160509094309.GA14006@arm.com>
-	<CAFHUOYygKoHhwdNSRpOz_2bV2pfbtq=J0S6HKZSHW6pa16gBxA@mail.gmail.com>
-	<20160510103406.GA24079@arm.com>
+	<CAJ5Y-ebMB79QrSb4WRXkq-vhJED+JmW8wC1Vqyc3pg9Mh-DMjg@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-vk0-f42.google.com ([209.85.213.42]:35787 "EHLO
-	mail-vk0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750737AbcEKEFN (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 11 May 2016 00:05:13 -0400
-Received: by mail-vk0-f42.google.com with SMTP id f66so42066059vkh.2
-        for <linux-acpi@vger.kernel.org>; Tue, 10 May 2016 21:05:13 -0700 (PDT)
-In-Reply-To: <20160510103406.GA24079@arm.com>
+Received: from mail-vk0-f52.google.com ([209.85.213.52]:35595 "EHLO
+	mail-vk0-f52.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751162AbcEKEV1 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 11 May 2016 00:21:27 -0400
+Received: by mail-vk0-f52.google.com with SMTP id f66so42380878vkh.2
+        for <linux-acpi@vger.kernel.org>; Tue, 10 May 2016 21:21:27 -0700 (PDT)
+In-Reply-To: <CAJ5Y-ebMB79QrSb4WRXkq-vhJED+JmW8wC1Vqyc3pg9Mh-DMjg@mail.gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Alexey Klimov <alexey.klimov@arm.com>
-Cc: Jassi Brar <jassisinghbrar@gmail.com>, Ashwin Chaugule <ashwin.chaugule@linaro.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Robert Moore <robert.moore@intel.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Loc Ho <lho@apm.com>, Duc Dang <dhdang@apm.com>
+To: Ashwin Chaugule <ashwin.chaugule@linaro.org>
+Cc: Jassi Brar <jassisinghbrar@gmail.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Robert Moore <robert.moore@intel.com>, Alexey Klimov <alexey.klimov@arm.com>, lkml <linux-kernel@vger.kernel.org>, linux acpi <linux-acpi@vger.kernel.org>, Loc Ho <lho@apm.com>, Duc Dang <dhdang@apm.com>
 
-Hi Alexey,
+Hi Ashwin,
 
-On Tue, May 10, 2016 at 3:34 AM, Alexey Klimov <alexey.klimov@arm.com> wrote:
-> On Mon, May 09, 2016 at 10:38:24AM -0700, Hoan Tran wrote:
->> Hi Alexey,
+Thanks for your review !
+
+On Tue, May 10, 2016 at 5:00 AM, Ashwin Chaugule
+<ashwin.chaugule@linaro.org> wrote:
+> Hello,
+>
+> On 6 May 2016 at 14:38, Hoan Tran <hotran@apm.com> wrote:
+>> From: hotran <hotran@apm.com>
 >>
->> On Mon, May 9, 2016 at 2:43 AM, Alexey Klimov <alexey.klimov@arm.com> wrote:
->> > Hi Hoan,
->> >
->> > On Fri, May 06, 2016 at 11:38:34AM -0700, Hoan Tran wrote:
->> >> From: hotran <hotran@apm.com>
->> >>
->> >> ACPI 6.1 has a PCC HW-Reduced Communication Subspace Type 2 intended for
->> >> use on HW-Reduce ACPI Platform, which requires read-modify-write sequence
->> >> to acknowledge doorbell interrupt. This patch provides the implementation
->> >> for the Communication Subspace Type 2.
->> >>
->> >> This patch depends on patch [1] which supports PCC subspace type 2 header
->> >> [1] https://lkml.org/lkml/2016/5/5/14
->> >>  - [PATCH v2 03/13] ACPICA: ACPI 6.1: Support for new PCCT subtable
->> >
->> > So you finally decided to use separate structure declaration for type 2. Good.
->> >
->> >> v2
->> >>  * Remove changes inside "actbl3.h". This file is taken care by ACPICA.
->> >>  * Parse both subspace type 1 and subspace type 2
->> >>  * Remove unnecessary variable initialization
->> >>  * ISR returns IRQ_NONE in case of error
->> >>
->> >> v1
->> >>  * Initial
->> >>
->> >> Signed-off-by: Hoan Tran <hotran@apm.com>
->> >> ---
->> >>  drivers/mailbox/pcc.c | 395 +++++++++++++++++++++++++++++++++++++-------------
->> >>  1 file changed, 296 insertions(+), 99 deletions(-)
->> >>
->> >> diff --git a/drivers/mailbox/pcc.c b/drivers/mailbox/pcc.c
->> >> index 043828d..58c9a67 100644
->> >> --- a/drivers/mailbox/pcc.c
->> >> +++ b/drivers/mailbox/pcc.c
->> >> @@ -59,6 +59,7 @@
->> >>  #include <linux/delay.h>
->> >>  #include <linux/io.h>
->> >>  #include <linux/init.h>
->> >
->> > [...]
->> >
->> >> @@ -307,6 +440,43 @@ static int parse_pcc_subspace(struct acpi_subtable_header *header,
->> >>  }
->> >>
->> >>  /**
->> >> + * pcc_parse_subspace_irq - Parse the PCC IRQ and PCC ACK register
->> >> + *           There should be one entry per PCC client.
->> >> + * @mbox_chans: Pointer to the PCC mailbox channel data
->> >> + * @pcct_ss: Pointer to the ACPI subtable header under the PCCT.
->> >> + *
->> >> + * Return: 0 for Success, else errno.
->> >> + *
->> >> + * This gets called for each entry in the PCC table.
->> >> + */
->> >> +static int pcc_parse_subspace_irq(struct pcc_mbox_chan *mbox_chans,
->> >> +             struct acpi_pcct_hw_reduced *pcct_ss)
->> >> +{
->> >> +     mbox_chans->irq = pcc_map_interrupt(pcct_ss->doorbell_interrupt,
->> >> +                                         (u32)pcct_ss->flags);
->> >> +     if (mbox_chans->irq <= 0) {
->> >> +             pr_err("PCC GSI %d not registered\n",
->> >> +                    pcct_ss->doorbell_interrupt);
->> >> +             return -EINVAL;
->> >> +     }
->> >> +
->> >> +     if (pcct_ss->header.type
->> >> +             == ACPI_PCCT_TYPE_HW_REDUCED_SUBSPACE_TYPE2) {
->> >> +             struct acpi_pcct_hw_reduced_type2 *pcct2_ss = (void *)pcct_ss;
->> >> +
->> >> +             mbox_chans->pcc_doorbell_ack_vaddr = acpi_os_ioremap(
->> >> +                             pcct2_ss->doorbell_ack_register.address,
->> >> +                             pcct2_ss->doorbell_ack_register.bit_width / 8);
->> >> +             if (!mbox_chans->pcc_doorbell_ack_vaddr) {
->> >> +                     pr_err("Failed to ioremap PCC ACK register\n");
->> >> +                     return -ENOMEM;
->> >> +             }
->> >> +     }
->> >> +
->> >> +     return 0;
->> >> +}
->> >> +
->> >> +/**
->> >>   * acpi_pcc_probe - Parse the ACPI tree for the PCCT.
->> >>   *
->> >>   * Return: 0 for Success, else errno.
->> >> @@ -316,7 +486,8 @@ static int __init acpi_pcc_probe(void)
->> >>       acpi_size pcct_tbl_header_size;
->> >>       struct acpi_table_header *pcct_tbl;
->> >>       struct acpi_subtable_header *pcct_entry;
->> >> -     int count, i;
->> >> +     struct acpi_table_pcct *acpi_pcct_tbl;
->> >> +     int count, i, rc;
->> >>       acpi_status status = AE_OK;
->> >>
->> >>       /* Search for PCCT */
->> >> @@ -334,22 +505,28 @@ static int __init acpi_pcc_probe(void)
->> >>                       ACPI_PCCT_TYPE_HW_REDUCED_SUBSPACE,
->> >>                       parse_pcc_subspace, MAX_PCC_SUBSPACES);
->> >>
->> >> +     count += acpi_table_parse_entries(ACPI_SIG_PCCT,
->> >> +                     sizeof(struct acpi_table_pcct),
->> >> +                     ACPI_PCCT_TYPE_HW_REDUCED_SUBSPACE_TYPE2,
->> >> +                     parse_pcc_subspace, MAX_PCC_SUBSPACES);
->> >> +
->> >>       if (count <= 0) {
->> >>               pr_err("Error parsing PCC subspaces from PCCT\n");
->> >>               return -EINVAL;
->> >>       }
->> >
->> > Looks like after first call to acpi_table_parse_entries() you may have negative
->> > number in count. And then you add counted number of type 2 subtables to count variable.
->> >
->> > I am not aware how pedantic this all should be but you may have more than MAX_PCC_SUBSPACES
->> > subspaces or don't probe any subspaces at all with such approach. Or other side effects.
->> I should check the "count" at first call acpi_table_parse_entries().
->> If "count < 0", assign count=0, then call the next
->> acpi_table_parse_entries().
+>> ACPI 6.1 has a PCC HW-Reduced Communication Subspace Type 2 intended for
+>> use on HW-Reduce ACPI Platform, which requires read-modify-write sequence
+>> to acknowledge doorbell interrupt. This patch provides the implementation
+>> for the Communication Subspace Type 2.
 >>
->> Thanks for your review
->> -Hoan
+>> This patch depends on patch [1] which supports PCC subspace type 2 header
+>> [1] https://lkml.org/lkml/2016/5/5/14
+>>  - [PATCH v2 03/13] ACPICA: ACPI 6.1: Support for new PCCT subtable
+>>
+>> v2
+>>  * Remove changes inside "actbl3.h". This file is taken care by ACPICA.
+>>  * Parse both subspace type 1 and subspace type 2
+>>  * Remove unnecessary variable initialization
+>>  * ISR returns IRQ_NONE in case of error
+>>
+>> v1
+>>  * Initial
+>>
+>> Signed-off-by: Hoan Tran <hotran@apm.com>
+>> ---
+>>  drivers/mailbox/pcc.c | 395 +++++++++++++++++++++++++++++++++++++-------------
+>>  1 file changed, 296 insertions(+), 99 deletions(-)
+>>
+>> diff --git a/drivers/mailbox/pcc.c b/drivers/mailbox/pcc.c
+>> index 043828d..58c9a67 100644
+>> --- a/drivers/mailbox/pcc.c
+>> +++ b/drivers/mailbox/pcc.c
+>> @@ -59,6 +59,7 @@
+>>  #include <linux/delay.h>
+>>  #include <linux/io.h>
+>>  #include <linux/init.h>
+>> +#include <linux/interrupt.h>
+>>  #include <linux/list.h>
+>>  #include <linux/platform_device.h>
+>>  #include <linux/mailbox_controller.h>
+>> @@ -68,27 +69,179 @@
+>>  #include "mailbox.h"
+>>
+>>  #define MAX_PCC_SUBSPACES      256
+>> +#define MBOX_IRQ_NAME          "pcc-mbox"
+>>
+>> -static struct mbox_chan *pcc_mbox_channels;
+>> +/**
+>> + * PCC mailbox channel information
+>> + *
+>> + * @chan:      Pointer to mailbox communication channel
+>> + * @pcc_doorbell_vaddr: PCC doorbell register address
+>> + * @pcc_doorbell_ack_vaddr: PCC doorbell ack register address
+>> + * @irq:       Interrupt number of the channel
+>> + */
+>> +struct pcc_mbox_chan {
+>> +       struct mbox_chan        *chan;
+>> +       void __iomem            *pcc_doorbell_vaddr;
+>> +       void __iomem            *pcc_doorbell_ack_vaddr;
+>> +       int                     irq;
+>> +};
+>>
+>> -/* Array of cached virtual address for doorbell registers */
+>> -static void __iomem **pcc_doorbell_vaddr;
+>> +/**
+>> + * PCC mailbox controller data
+>> + *
+>> + * @mb_ctrl:   Representation of the communication channel controller
+>> + * @mbox_chan: Array of PCC mailbox channels of the controller
+>> + * @chans:     Array of mailbox communication channels
+>> + */
+>> +struct pcc_mbox {
+>> +       struct mbox_controller  mbox_ctrl;
+>> +       struct pcc_mbox_chan    *mbox_chans;
+>> +       struct mbox_chan        *chans;
+>> +};
+>> +
+>> +static struct pcc_mbox pcc_mbox_ctx = {};
 >
-> That second call to acpi_table_parse_entries() might overwrite count with negative number again.
-Yes, it could
+> Im missing the idea behind creating this structure. Are you
+> registering multiple controllers somewhere?
+No, I just want to use a structure to store all global variables into
 >
-> What about the following below?
 >
-> int count;
-> int sum = 0;
+> [...]
 >
-> count = acpi_table_parse_entries(type1);
-> sum += count >= 0 ? count : 0;
+>>
+>> @@ -357,24 +534,44 @@ static int __init acpi_pcc_probe(void)
+>>         pcct_entry = (struct acpi_subtable_header *) (
+>>                 (unsigned long) pcct_tbl + sizeof(struct acpi_table_pcct));
+>>
+>> +       acpi_pcct_tbl = (struct acpi_table_pcct *) pcct_tbl;
+>> +       if (acpi_pcct_tbl->flags & ACPI_PCCT_DOORBELL)
+>> +               pcc_mbox_ctx.mbox_ctrl.txdone_irq = true;
+>> +
+>>         for (i = 0; i < count; i++) {
+>>                 struct acpi_generic_address *db_reg;
+>>                 struct acpi_pcct_hw_reduced *pcct_ss;
+>> -               pcc_mbox_channels[i].con_priv = pcct_entry;
+>> +
+>> +               pcc_mbox_ctx.chans[i].con_priv = pcct_entry;
+>> +               pcc_mbox_ctx.chans[i].mbox = &pcc_mbox_ctx.mbox_ctrl;
+>> +
+>> +               pcct_ss = (struct acpi_pcct_hw_reduced *) pcct_entry;
+>> +
+>> +               pcc_mbox_ctx.mbox_chans[i].chan = &pcc_mbox_ctx.chans[i];
+>> +               if (pcc_mbox_ctx.mbox_ctrl.txdone_irq) {
+>> +                       rc = pcc_parse_subspace_irq(&pcc_mbox_ctx.mbox_chans[i],
+>> +                                                   pcct_ss);
+>> +                       if (rc < 0)
+>> +                               return rc;
+>> +               }
 >
-> count = acpi_table_parse_entries(type2);
-> sum += count >= 0 ? count : 0;
+> I think we should parse the remaining entries and register them if
+> they are sane. Some other PCC clients can then continue to function.
+I think, it could be an error of PCCT table and need to be returned.
 >
-> if (sum <= 0 || sum >= MAX_PCC_SUBSPACES) {
->         pr_err();
->         return -ENODEV;
-> }
+>>
+>>                 /* If doorbell is in system memory cache the virt address */
+>>                 pcct_ss = (struct acpi_pcct_hw_reduced *)pcct_entry;
+>>                 db_reg = &pcct_ss->doorbell_register;
+>> -               if (db_reg->space_id == ACPI_ADR_SPACE_SYSTEM_MEMORY)
+>> -                       pcc_doorbell_vaddr[i] = acpi_os_ioremap(db_reg->address,
+>> +               if (db_reg->space_id == ACPI_ADR_SPACE_SYSTEM_MEMORY) {
+>> +                       pcc_mbox_ctx.mbox_chans[i].pcc_doorbell_vaddr =
+>> +                                       acpi_os_ioremap(db_reg->address,
+>>                                                         db_reg->bit_width/8);
+>> +               }
+>> +
+>>                 pcct_entry = (struct acpi_subtable_header *)
+>>                         ((unsigned long) pcct_entry + pcct_entry->length);
+>>         }
+>>
+>> -       pcc_mbox_ctrl.num_chans = count;
+>> +       pcc_mbox_ctx.mbox_ctrl.num_chans = count;
+>>
+>> -       pr_info("Detected %d PCC Subspaces\n", pcc_mbox_ctrl.num_chans);
+>> +       pr_info("Detected %d PCC Subspaces\n",
+>> +               pcc_mbox_ctx.mbox_ctrl.num_chans);
+>>
+>>         return 0;
+>>  }
+>> @@ -394,12 +591,12 @@ static int pcc_mbox_probe(struct platform_device *pdev)
+>>  {
+>>         int ret = 0;
+>>
+>> -       pcc_mbox_ctrl.chans = pcc_mbox_channels;
+>> -       pcc_mbox_ctrl.ops = &pcc_chan_ops;
+>> -       pcc_mbox_ctrl.dev = &pdev->dev;
+>> +       pcc_mbox_ctx.mbox_ctrl.chans = pcc_mbox_ctx.chans;
+>> +       pcc_mbox_ctx.mbox_ctrl.ops = &pcc_chan_ops;
+>> +       pcc_mbox_ctx.mbox_ctrl.dev = &pdev->dev;
+>>
+>>         pr_info("Registering PCC driver as Mailbox controller\n");
+>> -       ret = mbox_controller_register(&pcc_mbox_ctrl);
+>> +       ret = mbox_controller_register(&pcc_mbox_ctx.mbox_ctrl);
 >
-> It's possible that I overlooked some corner case.
-> BTW, zero number of subspaces here doesn't indicate error actually (that's probably not the scope of this change).
-OK, I will use this suggestion with minor changes
-int count;
-int sum = 0;
-
-count = acpi_table_parse_entries(type1);
-sum += count > 0 ? count : 0;
-
-count = acpi_table_parse_entries(type2);
-sum += count > 0 ? count : 0;
-
-if (sum == 0 || sum >= MAX_PCC_SUBSPACES) {
-         pr_err();
-         return -ENODEV;
-}
+> That pcc_mbox_ctx usage everywhere seems questionable to me. But its
+> also too early in the morning here. ;)
+As the same with previous comments, I would like to move all global
+variables into a structure
 
 Thanks and Regards
 Hoan
 >
-> Best regards,
-> Alexey
->
+> Regards,
+> Ashwin.
 
 -- 
 CONFIDENTIALITY NOTICE: This e-mail message, including any attachments, is 
