@@ -1,127 +1,249 @@
-From: Catalin Marinas <catalin.marinas@arm.com>
-Subject: Re: [PATCH v6 13/14] arm64, acpi, numa: NUMA support based on SRAT
- and SLIT
-Date: Thu, 12 May 2016 10:49:16 +0100
-Message-ID: <20160512094915.GD11226@e104818-lin.cambridge.arm.com>
-References: <1461780436-27182-1-git-send-email-ddaney.cavm@gmail.com>
- <1461780436-27182-14-git-send-email-ddaney.cavm@gmail.com>
- <20160511103929.GC3051@e104818-lin.cambridge.arm.com>
- <5733C8F5.6090206@caviumnetworks.com>
+From: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+Subject: Re: [PATCH V7 07/11] pci, acpi: Handle ACPI companion assignment.
+Date: Thu, 12 May 2016 11:01:03 +0100
+Message-ID: <20160512100103.GA19460@red-moon>
+References: <1462893601-8937-1-git-send-email-tn@semihalf.com>
+ <1462893601-8937-8-git-send-email-tn@semihalf.com>
+ <CAJZ5v0hM8WAr9GGku89zKgiVKt6ArHf=9CntRUyBjyMNUvie2A@mail.gmail.com>
+ <20160511101101.GA16101@red-moon>
+ <CAJZ5v0hgw929W5PjF0PqT+ssiOHd8TeJoSQcz4NUiAovZY2pfQ@mail.gmail.com>
+ <20160511224314.GD28812@localhost>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from foss.arm.com ([217.140.101.70]:57222 "EHLO foss.arm.com"
+Received: from foss.arm.com ([217.140.101.70]:57295 "EHLO foss.arm.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752594AbcELJt3 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 12 May 2016 05:49:29 -0400
+	id S1752545AbcELKA5 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 12 May 2016 06:00:57 -0400
 Content-Disposition: inline
-In-Reply-To: <5733C8F5.6090206@caviumnetworks.com>
+In-Reply-To: <20160511224314.GD28812@localhost>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: David Daney <ddaney@caviumnetworks.com>
-Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Mark Rutland <mark.rutland@arm.com>, linux-ia64@vger.kernel.org, David Daney <david.daney@cavium.com>, Will Deacon <will.deacon@arm.com>, Lv Zheng <lv.zheng@intel.com>, "H. Peter Anvin" <hpa@zytor.com>, Frank Rowand <frowand.list@gmail.com>, x86@kernel.org, Robert Moore <robert.moore@intel.com>, linux-acpi@vger.kernel.org, Ingo Molnar <mingo@redhat.com>, Grant Likely <grant.likely@linaro.org>, Len Brown <lenb@kernel.org>, Fenghua Yu <fenghua.yu@intel.com>, Marc Zyngier <Marc.Zyngier@arm.com>, Jon Masters <jcm@redhat.com>, Robert Richter <rrichter@cavium.com>, Rob Herring <robh+dt@kernel.org>, David Daney <ddaney.cavm@gmail.com>, Thomas Gleixner <tglx@linutronix.de>, linux-arm-kernel@lists.infradead.org, devel@acpica.org, Tony Luck <tony.luck@intel.com>, linux-kernel@vger.kernel.org, Hanjun Guo <hanjun.guo@linaro.org>, Ganap
+To: Bjorn Helgaas <helgaas@kernel.org>
+Cc: "Rafael J. Wysocki" <rafael@kernel.org>, Tomasz Nowicki <tn@semihalf.com>, Arnd Bergmann <arnd@arndb.de>, Will Deacon <will.deacon@arm.com>, Catalin Marinas <catalin.marinas@arm.com>, Hanjun Guo <hanjun.guo@linaro.org>, Sinan Kaya <okaya@codeaurora.org>, jchandra@broadcom.com, robert.richter@caviumnetworks.com, Marcin Wojtas <mw@semihalf.com>, Liviu.Dudau@arm.com, David Daney <ddaney@caviumnetworks.com>, wangyijing@huawei.com, Suravee Suthikulanit <Suravee.Suthikulpanit@amd.com>, Mark Salter <msalter@redhat.com>, Linux PCI <linux-pci@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, "linaro-acpi@lists.linaro.org" <linaro-acpi@lists.linaro.org>, Jon Masters <jcm@redhat.com>, Andrea Gallo <andrea.gallo@linaro.o>
 
-On Wed, May 11, 2016 at 05:06:13PM -0700, David Daney wrote:
-> On 05/11/2016 03:39 AM, Catalin Marinas wrote:
-> >On Wed, Apr 27, 2016 at 11:07:15AM -0700, David Daney wrote:
-> >>+static int __init get_mpidr_in_madt(int acpi_id, u64 *mpidr)
-> >>+{
-> >>+	unsigned long madt_end, entry;
-> >>+	struct acpi_table_madt *madt;
-> >>+	acpi_size tbl_size;
-> >>+
-> >>+	if (ACPI_FAILURE(acpi_get_table_with_size(ACPI_SIG_MADT, 0,
-> >>+			(struct acpi_table_header **)&madt, &tbl_size)))
-> >>+		return -ENODEV;
-> >>+
-> >>+	entry = (unsigned long)madt;
-> >>+	madt_end = entry + madt->header.length;
-> >>+
-> >>+	/* Parse all entries looking for a match. */
-> >>+	entry += sizeof(struct acpi_table_madt);
-> >>+	while (entry + sizeof(struct acpi_subtable_header) < madt_end) {
-> >>+		struct acpi_subtable_header *header =
-> >>+			(struct acpi_subtable_header *)entry;
-> >>+
-> >>+		if (header->type == ACPI_MADT_TYPE_GENERIC_INTERRUPT) {
-> >>+			struct acpi_madt_generic_interrupt *gicc =
-> >>+				container_of(header,
-> >>+				struct acpi_madt_generic_interrupt, header);
-> >>+
-> >>+			if ((gicc->flags & ACPI_MADT_ENABLED) &&
-> >>+			    (gicc->uid == acpi_id)) {
-> >>+				*mpidr = gicc->arm_mpidr;
-> >>+				early_acpi_os_unmap_memory(madt, tbl_size);
-> >>+				return 0;
-> >>+			}
-> >>+		}
-> >>+		entry += header->length;
-> >>+	}
-> >>+
-> >>+	early_acpi_os_unmap_memory(madt, tbl_size);
-> >>+	return -ENODEV;
-> >>+}
-> >>+
-> >>+/* Callback for Proximity Domain -> ACPI processor UID mapping */
-> >>+void __init acpi_numa_gicc_affinity_init(struct acpi_srat_gicc_affinity *pa)
-> >>+{
-> >>+	int pxm, node;
-> >>+	u64 mpidr;
-> >>+
-> >>+	if (srat_disabled())
-> >>+		return;
-> >>+
-> >>+	if (pa->header.length < sizeof(struct acpi_srat_gicc_affinity)) {
-> >>+		pr_err("SRAT: Invalid SRAT header length: %d\n",
-> >>+			pa->header.length);
-> >>+		bad_srat();
-> >>+		return;
-> >>+	}
-> >>+
-> >>+	if (!(pa->flags & ACPI_SRAT_GICC_ENABLED))
-> >>+		return;
-> >>+
-> >>+	if (cpus_in_srat >= NR_CPUS) {
-> >>+		pr_warn_once("SRAT: cpu_to_node_map[%d] is too small, may not be able to use all cpus\n",
-> >>+			     NR_CPUS);
-> >>+		return;
-> >>+	}
-> >>+
-> >>+	pxm = pa->proximity_domain;
-> >>+	node = acpi_map_pxm_to_node(pxm);
-> >>+
-> >>+	if (node == NUMA_NO_NODE || node >= MAX_NUMNODES) {
-> >>+		pr_err("SRAT: Too many proximity domains %d\n", pxm);
-> >>+		bad_srat();
-> >>+		return;
-> >>+	}
-> >>+
-> >>+	if (get_mpidr_in_madt(pa->acpi_processor_uid, &mpidr)) {
-> >>+		pr_err("SRAT: PXM %d with ACPI ID %d has no valid MPIDR in MADT\n",
-> >>+			pxm, pa->acpi_processor_uid);
-> >>+		bad_srat();
-> >>+		return;
-> >>+	}
-> >
-> >I wonder whether you could replace the get_mpidr_in_madt() function with
-> >something like acpi_get_phys_id(). It looks like get_mpidr_in_madt()
-> >duplicates functionality already available elsewhere.
+On Wed, May 11, 2016 at 05:43:14PM -0500, Bjorn Helgaas wrote:
+> On Wed, May 11, 2016 at 10:30:51PM +0200, Rafael J. Wysocki wrote:
+> > On Wed, May 11, 2016 at 12:11 PM, Lorenzo Pieralisi
+> > <lorenzo.pieralisi@arm.com> wrote:
+> > > On Tue, May 10, 2016 at 08:37:00PM +0200, Rafael J. Wysocki wrote:
+> > >> On Tue, May 10, 2016 at 5:19 PM, Tomasz Nowicki <tn@semihalf.com> wrote:
+> > >> > This patch provides a way to set the ACPI companion in PCI code.
+> > >> > We define acpi_pci_set_companion() to set the ACPI companion pointer and
+> > >> > call it from PCI core code. The function is stub for now.
+> > >> >
+> > >> > Signed-off-by: Jayachandran C <jchandra@broadcom.com>
+> > >> > Signed-off-by: Tomasz Nowicki <tn@semihalf.com>
+> > >> > ---
+> > >> >  drivers/pci/probe.c      | 2 ++
+> > >> >  include/linux/pci-acpi.h | 4 ++++
+> > >> >  2 files changed, 6 insertions(+)
+> > >> >
+> > >> > diff --git a/drivers/pci/probe.c b/drivers/pci/probe.c
+> > >> > index 8004f67..fb0b752 100644
+> > >> > --- a/drivers/pci/probe.c
+> > >> > +++ b/drivers/pci/probe.c
+> > >> > @@ -12,6 +12,7 @@
+> > >> >  #include <linux/slab.h>
+> > >> >  #include <linux/module.h>
+> > >> >  #include <linux/cpumask.h>
+> > >> > +#include <linux/pci-acpi.h>
+> > >> >  #include <linux/pci-aspm.h>
+> > >> >  #include <linux/aer.h>
+> > >> >  #include <linux/acpi.h>
+> > >> > @@ -2141,6 +2142,7 @@ struct pci_bus *pci_create_root_bus(struct device *parent, int bus,
+> > >> >         bridge->dev.parent = parent;
+> > >> >         bridge->dev.release = pci_release_host_bridge_dev;
+> > >> >         dev_set_name(&bridge->dev, "pci%04x:%02x", pci_domain_nr(b), bus);
+> > >> > +       acpi_pci_set_companion(bridge);
+> > >>
+> > >> Yes, we'll probably add something similar here.
+> > >>
+> > >> Do I think now is the right time to do that?  No.
+> > >>
+> > >> >         error = pcibios_root_bridge_prepare(bridge);
+> > >> >         if (error) {
+> > >> >                 kfree(bridge);
+> > >> > diff --git a/include/linux/pci-acpi.h b/include/linux/pci-acpi.h
+> > >> > index 09f9f02..1baa515 100644
+> > >> > --- a/include/linux/pci-acpi.h
+> > >> > +++ b/include/linux/pci-acpi.h
+> > >> > @@ -111,6 +111,10 @@ static inline void acpi_pci_add_bus(struct pci_bus *bus) { }
+> > >> >  static inline void acpi_pci_remove_bus(struct pci_bus *bus) { }
+> > >> >  #endif /* CONFIG_ACPI */
+> > >> >
+> > >> > +static inline void acpi_pci_set_companion(struct pci_host_bridge *bridge)
+> > >> > +{
+> > >> > +}
+> > >> > +
+> > >> >  static inline int acpi_pci_bus_domain_nr(struct pci_bus *bus)
+> > >> >  {
+> > >> >         return 0;
+> > >> > --
+> > >>
+> > >> Honestly, to me it looks like this series is trying very hard to avoid
+> > >> doing any PCI host bridge configuration stuff from arch/arm64/
+> > >> although (a) that might be simpler and (b) it would allow us to
+> > >> identify the code that's common between *all* architectures using ACPI
+> > >> support for host bridge configuration and to move *that* to a common
+> > >> place later.  As done here it seems to be following the "ARM64 is
+> > >> generic and the rest of the world is special" line which isn't really
+> > >> helpful.
+> > >
+> > > I think patch [1-2] should be merged regardless (they may require minor
+> > > tweaks if we decide to move pci_acpi_scan_root() to arch/arm64 though,
+> > > for include files location). I guess you are referring to patch 8 in
+> > > your comments above, which boils down to deciding whether:
+> > >
+> > > - pci_acpi_scan_root() (and unfortunately all the MCFG/ECAM handling that
+> > >   goes with it) should live in arch/arm64 or drivers/acpi
+> > 
+> > To be precise, everything under #ifdef CONFIG_ACPI_PCI_HOST_GENERIC or
+> > equivalent is de facto ARM64-specific, because (as it stands in the
+> > patch series) ARM64 is the only architecture that will select that
+> > option.  Unless you are aware of any more architectures planning to
+> > use ACPI (and I'm not aware of any), it will stay the only
+> > architecture selecting it in the foreseeable future.
+> > 
+> > Therefore you could replace CONFIG_ACPI_PCI_HOST_GENERIC with
+> > CONFIG_ARM64 everywhere in that code which is why in my opinion the
+> > code should live somewhere under arch/arm64/.
+> > 
+> > Going forward, it should be possible to identify common parts of the
+> > PCI host bridge configuration code in arch/ and move it to
+> > drivers/acpi/ or drivers/pci/, but I bet that won't be the entire code
+> > this series puts under CONFIG_ACPI_PCI_HOST_GENERIC.
+> > 
+> > The above leads to a quite straightforward conclusion about the order
+> > in which to do things: I'd add ACPI support for PCI host bridge on
+> > ARM64 following what's been done on ia64 (as x86 is more quirky and
+> > kludgy overall) as far as reasonably possible first and then think
+> > about moving common stuff to a common place.
 > 
-> I just tried that, and it doesn't work.
-> 
-> The problem is that this code is being run very early in the boot, and
-> kmalloc cannot be used.  acpi_get_phys_id() and its ilk can only be used
-> once we have working kmalloc.  We need to extract the NUMA information early
-> like this precisely because it is needed to initializing the slab system
-> 
-> Notice that we are using early_acpi_os_unmap_memory() et al. in
-> get_mpidr_in_madt() explicitly for this reason.
-> 
-> In summary: I don't think we need another revision of this patch, it is like
-> this for a good reason.
+> That does seem like a reasonable approach.  I had hoped to get more of
+> this in for v4.7, but we don't have much time left.  Maybe some of
+> Rafael's comments can be addressed by moving and slight restructuring
+> and we can still squeeze it in.
 
-Slightly confusing, in another reply you said you are going to address
-my comment. So, is it doable?
+Yes, it seems like a reasonable approach, as long as we accept that
+part of this series has to live in arch/arm64 otherwise we are going
+round in circles (because that's the gist of this discussion, to
+decide where this code has to live, I do not think there is any objection
+to the code per-se anymore).
 
--- 
-Catalin
+I suggest we post a v8 (with code move to arch/arm64) end of merge
+window (or you prefer seeing patches now to prevent any additional
+changes later ?), my aim is to get this into -next (whether via arm64 or
+pci tree it has to be decided) as early as possible for next cycle (-rc1)
+so that it can get exposure and testing, I do not think that missing the
+merge window is a big issue if we agree that the code is ready to go.
+
+> The first three patches:
+> 
+>   PCI: Provide common functions for ECAM mapping
+>   PCI: generic, thunder: Use generic ECAM API
+>   PCI, of: Move PCI I/O space management to PCI core code
+> 
+> seem relatively straightforward, and I applied them to pci/arm64 with
+> the intent of merging them unless there are objections.  I made the
+> following tweaks, mainly to try to improve some error messages:
+
+Ok, thanks a lot !
+
+Lorenzo
+
+> diff --git a/drivers/pci/ecam.c b/drivers/pci/ecam.c
+> index 3d52005..e1add01 100644
+> --- a/drivers/pci/ecam.c
+> +++ b/drivers/pci/ecam.c
+> @@ -24,9 +24,9 @@
+>  #include "ecam.h"
+>  
+>  /*
+> - * On 64 bit systems, we do a single ioremap for the whole config space
+> - * since we have enough virtual address range available. On 32 bit, do an
+> - * ioremap per bus.
+> + * On 64-bit systems, we do a single ioremap for the whole config space
+> + * since we have enough virtual address range available.  On 32-bit, we
+> + * ioremap the config space for each bus individually.
+>   */
+>  static const bool per_bus_mapping = !config_enabled(CONFIG_64BIT);
+>  
+> @@ -42,6 +42,7 @@ struct pci_config_window *pci_ecam_create(struct device *dev,
+>  {
+>  	struct pci_config_window *cfg;
+>  	unsigned int bus_range, bus_range_max, bsz;
+> +	struct resource *conflict;
+>  	int i, err;
+>  
+>  	if (busr->start > busr->end)
+> @@ -58,10 +59,10 @@ struct pci_config_window *pci_ecam_create(struct device *dev,
+>  	bus_range = resource_size(&cfg->busr);
+>  	bus_range_max = resource_size(cfgres) >> ops->bus_shift;
+>  	if (bus_range > bus_range_max) {
+> -		dev_warn(dev, "bus max %#x reduced to %#x",
+> -					bus_range, bus_range_max);
+>  		bus_range = bus_range_max;
+>  		cfg->busr.end = busr->start + bus_range - 1;
+> +		dev_warn(dev, "ECAM area %pR can only accommodate %pR (reduced from %pR desired)\n",
+> +			 cfgres, &cfg->busr, busr);
+>  	}
+>  	bsz = 1 << ops->bus_shift;
+>  
+> @@ -70,9 +71,11 @@ struct pci_config_window *pci_ecam_create(struct device *dev,
+>  	cfg->res.flags = IORESOURCE_MEM | IORESOURCE_BUSY;
+>  	cfg->res.name = "PCI ECAM";
+>  
+> -	err = request_resource(&iomem_resource, &cfg->res);
+> -	if (err) {
+> -		dev_err(dev, "request ECAM res %pR failed\n", &cfg->res);
+> +	conflict = request_resource(&iomem_resource, &cfg->res);
+> +	if (conflict) {
+> +		err = -EBUSY;
+> +		dev_err(dev, "can't claim ECAM area %pR: address conflict with %s %pR\n",
+> +			&cfg->res, conflict->name, conflict);
+>  		goto err_exit;
+>  	}
+>  
+> diff --git a/drivers/pci/ecam.h b/drivers/pci/ecam.h
+> index 1ad2176..9878beb 100644
+> --- a/drivers/pci/ecam.h
+> +++ b/drivers/pci/ecam.h
+> @@ -33,7 +33,7 @@ struct pci_ecam_ops {
+>  
+>  /*
+>   * struct to hold the mappings of a config space window. This
+> - * is expected to be used as sysdata for PCI controlllers which
+> + * is expected to be used as sysdata for PCI controllers that
+>   * use ECAM.
+>   */
+>  struct pci_config_window {
+> @@ -43,11 +43,11 @@ struct pci_config_window {
+>  	struct pci_ecam_ops		*ops;
+>  	union {
+>  		void __iomem		*win;	/* 64-bit single mapping */
+> -		void __iomem		**winp; /* 32-bit per bus mapping */
+> +		void __iomem		**winp; /* 32-bit per-bus mapping */
+>  	};
+>  };
+>  
+> -/* create and free for pci_config_window */
+> +/* create and free pci_config_window */
+>  struct pci_config_window *pci_ecam_create(struct device *dev,
+>  		struct resource *cfgres, struct resource *busr,
+>  		struct pci_ecam_ops *ops);
+> @@ -56,11 +56,11 @@ void pci_ecam_free(struct pci_config_window *cfg);
+>  /* map_bus when ->sysdata is an instance of pci_config_window */
+>  void __iomem *pci_ecam_map_bus(struct pci_bus *bus, unsigned int devfn,
+>  			       int where);
+> -/* default ECAM ops, bus shift 20, generic read and write */
+> +/* default ECAM ops */
+>  extern struct pci_ecam_ops pci_generic_ecam_ops;
+>  
+>  #ifdef CONFIG_PCI_HOST_GENERIC
+> -/* for DT based pci controllers that support ECAM */
+> +/* for DT-based PCI controllers that support ECAM */
+>  int pci_host_common_probe(struct platform_device *pdev,
+>  			  struct pci_ecam_ops *ops);
+>  #endif
+> 
