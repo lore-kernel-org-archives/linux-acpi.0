@@ -1,52 +1,42 @@
-From: Aleksey Makarov <aleksey.makarov@linaro.org>
-Subject: Re: [PATCH v7 0/5] ACPI: parse the SPCR table
-Date: Thu, 12 May 2016 14:52:02 +0300
-Message-ID: <bc91f503-cee5-db03-51bf-a36ef3e95a1f@linaro.org>
-References: <1459431629-27934-1-git-send-email-aleksey.makarov@linaro.org>
- <1bff98e3-2d94-ed76-1165-ed7d43bbfcf3@jonmasters.org>
+From: Bjorn Helgaas <helgaas@kernel.org>
+Subject: Re: [PATCH V7 07/11] pci, acpi: Handle ACPI companion assignment.
+Date: Thu, 12 May 2016 07:08:36 -0500
+Message-ID: <20160512120836.GF28812@localhost>
+References: <1462893601-8937-1-git-send-email-tn@semihalf.com>
+ <1462893601-8937-8-git-send-email-tn@semihalf.com>
+ <CAJZ5v0hM8WAr9GGku89zKgiVKt6ArHf=9CntRUyBjyMNUvie2A@mail.gmail.com>
+ <20160511101101.GA16101@red-moon>
+ <CAJZ5v0hgw929W5PjF0PqT+ssiOHd8TeJoSQcz4NUiAovZY2pfQ@mail.gmail.com>
+ <20160511224314.GD28812@localhost>
+ <57345FDF.4000804@semihalf.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-lb0-f178.google.com ([209.85.217.178]:33439 "EHLO
-	mail-lb0-f178.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932121AbcELLxE (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 12 May 2016 07:53:04 -0400
-Received: by mail-lb0-f178.google.com with SMTP id jj5so9660457lbc.0
-        for <linux-acpi@vger.kernel.org>; Thu, 12 May 2016 04:53:03 -0700 (PDT)
-In-Reply-To: <1bff98e3-2d94-ed76-1165-ed7d43bbfcf3@jonmasters.org>
+Received: from mail.kernel.org ([198.145.29.136]:35349 "EHLO mail.kernel.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751338AbcELMIk (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 12 May 2016 08:08:40 -0400
+Content-Disposition: inline
+In-Reply-To: <57345FDF.4000804@semihalf.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Jon Masters <jcm@jonmasters.org>, Russell King <linux@arm.linux.org.uk>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: linux-serial@vger.kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, "Rafael J . Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Leif Lindholm <leif.lindholm@linaro.org>, Graeme Gregory <graeme.gregory@linaro.org>, Al Stone <ahs3@redhat.com>, Christopher Covington <cov@codeaurora.org>, Yury Norov <ynorov@caviumnetworks.com>, Peter Hurley <peter@hurleysoftware.com>, Andy Shevchenko <andy.shevchenko@gmail.com>, "Zheng, Lv" <lv.zheng@intel.com>
+To: Tomasz Nowicki <tn@semihalf.com>
+Cc: "Rafael J. Wysocki" <rafael@kernel.org>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Arnd Bergmann <arnd@arndb.de>, Will Deacon <will.deacon@arm.com>, Catalin Marinas <catalin.marinas@arm.com>, Hanjun Guo <hanjun.guo@linaro.org>, Sinan Kaya <okaya@codeaurora.org>, jchandra@broadcom.com, robert.richter@caviumnetworks.com, Marcin Wojtas <mw@semihalf.com>, Liviu.Dudau@arm.com, David Daney <ddaney@caviumnetworks.com>, wangyijing@huawei.com, Suravee Suthikulanit <Suravee.Suthikulpanit@amd.com>, Mark Salter <msalter@redhat.com>, Linux PCI <linux-pci@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, "linaro-acpi@lists.linaro.org" <linaro-acpi@lists.linaro.org>, Jon Masters <jcm@redhat.com>, Andrea Gallo <andrea.g>
 
-Hi Jon,
+On Thu, May 12, 2016 at 12:50:07PM +0200, Tomasz Nowicki wrote:
+> On 12.05.2016 00:43, Bjorn Helgaas wrote:
 
-In v7 I addressed the issues that were brought up by Rafael J . Wysocki
-(but I still do not have ACK from ACPI people).
-
-The issue with D02 will be addressed in a separate patch.
-
-There possibly is an issue with 16550 and command line console with I am
-investigating and probably will address in a separate patch.
-
-I know no other problems with it and reviewers seem happy.
-
-So I believe this patchset could be pulled.  If needed, I will send v8.
-
-Thank you
-Aleksey Makarov
-
-On 05/12/2016 11:20 AM, Jon Masters wrote:
-> On 03/31/2016 09:40 AM, Aleksey Makarov wrote:
+> >@@ -70,9 +71,11 @@ struct pci_config_window *pci_ecam_create(struct device *dev,
+> >  	cfg->res.flags = IORESOURCE_MEM | IORESOURCE_BUSY;
+> >  	cfg->res.name = "PCI ECAM";
+> >
+> >-	err = request_resource(&iomem_resource, &cfg->res);
+> >-	if (err) {
+> >-		dev_err(dev, "request ECAM res %pR failed\n", &cfg->res);
+> >+	conflict = request_resource(&iomem_resource, &cfg->res);
 > 
->> 'ARM Server Base Boot Requirements' [1] mentions SPCR (Serial Port
->> Console Redirection Table) [2] as a mandatory ACPI table that
->> specifies the configuration of serial console.
-> 
-> Hi Aleksey,
-> 
-> Can you summarize the status of this patch series?
-> 
-> Jon.
-> 
+> We need request_resource_conflict here then:
+> -	conflict = request_resource(&iomem_resource, &cfg->res);
+> +	conflict = request_resource_conflict(&iomem_resource, &cfg->res);
+
+Whoops, fixed, thanks!
