@@ -1,66 +1,80 @@
-From: Meelis Roos <mroos@linux.ee>
-Subject: UBSAN: Undefined behaviour in drivers/acpi/acpica/dsutils.c:641:16
-Date: Thu, 12 May 2016 19:08:04 +0300 (EEST)
-Message-ID: <alpine.LRH.2.20.1605121906100.4797@math.ut.ee>
+From: Catalin Marinas <catalin.marinas@arm.com>
+Subject: Re: [PATCH v6 13/14] arm64, acpi, numa: NUMA support based on SRAT
+ and SLIT
+Date: Thu, 12 May 2016 17:24:49 +0100
+Message-ID: <20160512162449.GK11226@e104818-lin.cambridge.arm.com>
+References: <1461780436-27182-1-git-send-email-ddaney.cavm@gmail.com>
+ <1461780436-27182-14-git-send-email-ddaney.cavm@gmail.com>
+ <20160511103929.GC3051@e104818-lin.cambridge.arm.com>
+ <5733C8F5.6090206@caviumnetworks.com>
+ <20160512094915.GD11226@e104818-lin.cambridge.arm.com>
+ <5734A0CC.8010600@caviumnetworks.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Linux Kernel list <linux-kernel@vger.kernel.org>, linux-acpi@vger.kernel.org, devel@acpica.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from foss.arm.com ([217.140.101.70]:60021 "EHLO foss.arm.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751743AbcELQY5 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 12 May 2016 12:24:57 -0400
+Content-Disposition: inline
+In-Reply-To: <5734A0CC.8010600@caviumnetworks.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: David Daney <ddaney@caviumnetworks.com>
+Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Will Deacon <will.deacon@arm.com>, Mark Rutland <mark.rutland@arm.com>, linux-ia64@vger.kernel.org, David Daney <david.daney@cavium.com>, Robert Moore <robert.moore@intel.com>, Lv Zheng <lv.zheng@intel.com>, "H. Peter Anvin" <hpa@zytor.com>, Frank Rowand <frowand.list@gmail.com>, x86@kernel.org, linux-acpi@vger.kernel.org, Ingo Molnar <mingo@redhat.com>, Grant Likely <grant.likely@linaro.org>, Len Brown <lenb@kernel.org>, Fenghua Yu <fenghua.yu@intel.com>, Marc Zyngier <Marc.Zyngier@arm.com>, Jon Masters <jcm@redhat.com>, Robert Richter <rrichter@cavium.com>, Rob Herring <robh+dt@kernel.org>, Thomas Gleixner <tglx@linutronix.de>, linux-arm-kernel@lists.infradead.org, devel@acpica.org, Tony Luck <tony.luck@intel.com>, linux-kernel@vger.kernel.org, Hanjun Guo <hanjun.guo@linaro.org>, Ganapatrao Kulkarni <gkulkarni@caviumnetwor>
 
-This appears on a lot of my test machines after turning on UBSAN checks.
+On Thu, May 12, 2016 at 08:27:08AM -0700, David Daney wrote:
+> On 05/12/2016 02:49 AM, Catalin Marinas wrote:
+> >On Wed, May 11, 2016 at 05:06:13PM -0700, David Daney wrote:
+> >>On 05/11/2016 03:39 AM, Catalin Marinas wrote:
+> [...]
+> >>>
+> >>>I wonder whether you could replace the get_mpidr_in_madt() function with
+> >>>something like acpi_get_phys_id(). It looks like get_mpidr_in_madt()
+> >>>duplicates functionality already available elsewhere.
+> >>
+> >>I just tried that, and it doesn't work.
+> >>
+> >>The problem is that this code is being run very early in the boot, and
+> >>kmalloc cannot be used.  acpi_get_phys_id() and its ilk can only be used
+> >>once we have working kmalloc.  We need to extract the NUMA information early
+> >>like this precisely because it is needed to initializing the slab system
+> >>
+> >>Notice that we are using early_acpi_os_unmap_memory() et al. in
+> >>get_mpidr_in_madt() explicitly for this reason.
+> >>
+> >>In summary: I don't think we need another revision of this patch, it is like
+> >>this for a good reason.
+> >
+> >Slightly confusing, in another reply you said you are going to address
+> >my comment. So, is it doable?
+> 
+> I don't think so.
+> 
+> My previous reply, to the thread in 0/14, was prematurely made with the
+> incorrect assumption that it was a simple change.  Now, after really digging
+> in to the code, and attempting to do as you suggested, I have changed my
+> mind.
 
-[    0.180837] ================================================================================
-[    0.181001] UBSAN: Undefined behaviour in drivers/acpi/acpica/dsutils.c:641:16
-[    0.181161] index -1 is out of range for type 'acpi_operand_object *[9]'
-[    0.181262] CPU: 0 PID: 1 Comm: swapper/0 Not tainted 4.6.0-rc6-00072-g33656a1 #22
-[    0.181421] Hardware name: Unknown Unknown/S2462 THUNDER K7, BIOS Guinness-8    04/07/2003
-[    0.181584]  00000000 c134beac 00000046 f6461cac ffffffff c1381f8b f6461ca4 c19182d4
-[    0.181941]  c13825bf c17001c8 f6461cb0 c19182ec 00000202 c100312d 00000299 f64ddc00
-[    0.182296]  f6461cf4 00000286 f6427000 c13ad4ec 00000286 f6427090 00000286 f64ddc00
-[    0.182655] Call Trace:
-[    0.182755]  [<c134beac>] ? dump_stack+0x45/0x69
-[    0.182853]  [<c1381f8b>] ? ubsan_epilogue+0xb/0x40
-[    0.182948]  [<c13825bf>] ? __ubsan_handle_out_of_bounds+0x5f/0x70
-[    0.183046]  [<c100312d>] ? perf_assign_events+0x36d/0x520
-[    0.183146]  [<c13ad4ec>] ? acpi_os_release_object+0x5/0x8
-[    0.183244]  [<c13c11af>] ? acpi_ds_create_operand+0x1f6/0x283
-[    0.183340]  [<c13c132b>] ? acpi_ds_create_operands+0xef/0x131
-[    0.183436]  [<c13ad4ec>] ? acpi_os_release_object+0x5/0x8
-[    0.183533]  [<c13ad4ec>] ? acpi_os_release_object+0x5/0x8
-[    0.183628]  [<c13c18d2>] ? acpi_ds_exec_end_op+0xe0/0x4be
-[    0.183729]  [<c13d7f02>] ? acpi_ps_complete_op+0x1c5/0x248
-[    0.183825]  [<c13d78da>] ? acpi_ps_parse_loop+0x618/0x65e
-[    0.183923]  [<c13d864c>] ? acpi_ps_parse_aml+0x8a/0x26d
-[    0.184000]  [<c13d8fd1>] ? acpi_ps_execute_method+0x1a0/0x1ce
-[    0.184000]  [<c13d2462>] ? acpi_ns_evaluate+0x1e4/0x263
-[    0.184000]  [<c13df567>] ? acpi_ut_evaluate_object+0x31/0x15b
-[    0.184000]  [<c13df57b>] ? acpi_ut_evaluate_object+0x45/0x15b
-[    0.184000]  [<c13df8b9>] ? acpi_ut_execute_HID+0x1e/0xcb
-[    0.184000]  [<c13d5c07>] ? acpi_ns_get_device_callback+0x7e/0x157
-[    0.184000]  [<c13ad469>] ? acpi_os_signal_semaphore+0x3f/0x4c
-[    0.184000]  [<c13d5632>] ? acpi_ns_walk_namespace+0xe9/0x1ae
-[    0.184000]  [<c1a6e163>] ? acpi_sleep_proc_init+0x1f/0x1f
-[    0.184000]  [<c13d5952>] ? acpi_get_devices+0x43/0x61
-[    0.184000]  [<c13d5b89>] ? acpi_evaluate_object_typed+0xcd/0xcd
-[    0.184000]  [<c13b659f>] ? ec_get_handle+0xf/0xf
-[    0.184000]  [<c1a6ebbd>] ? acpi_ec_ecdt_probe+0xfa/0x1d0
-[    0.184000]  [<c1a6e1de>] ? acpi_init+0x7b/0x25d
-[    0.184000]  [<c1363303>] ? kvasprintf+0x43/0x90
-[    0.184000]  [<c13507c8>] ? kset_create_and_add+0x58/0xa0
-[    0.184000]  [<c1000413>] ? do_one_initcall+0x73/0x260
-[    0.184000]  [<c100042a>] ? do_one_initcall+0x8a/0x260
-[    0.184000]  [<c1a6e163>] ? acpi_sleep_proc_init+0x1f/0x1f
-[    0.184000]  [<c10962af>] ? parameq+0xf/0xb0
-[    0.184000]  [<c1096555>] ? parse_args+0x205/0x510
-[    0.184000]  [<c1a46dad>] ? kernel_init_freeable+0x153/0x25c
-[    0.184000]  [<c1a46e2a>] ? kernel_init_freeable+0x1d0/0x25c
-[    0.184000]  [<c1644f99>] ? kernel_init+0x9/0x120
-[    0.184000]  [<c10a320b>] ? schedule_tail+0xb/0xa0
-[    0.184000]  [<c164de09>] ? ret_from_kernel_thread+0x21/0x38
-[    0.184000]  [<c1644f90>] ? rest_init+0x60/0x60
-[    0.184000] ================================================================================
+Would the snippet below help with avoiding any kmalloc calls? At a quick
+look, it seems that it's only map_mat_entry() that ends up using
+kmalloc() calls. Alternatively, exporting map_madt_entry() may work as
+well.
+
+diff --git a/drivers/acpi/processor_core.c b/drivers/acpi/processor_core.c
+index 33a38d604630..77af0a7df914 100644
+--- a/drivers/acpi/processor_core.c
++++ b/drivers/acpi/processor_core.c
+@@ -152,6 +152,9 @@ static phys_cpuid_t map_mat_entry(acpi_handle handle, int type, u32 acpi_id)
+ 	struct acpi_subtable_header *header;
+ 	phys_cpuid_t phys_id = PHYS_CPUID_INVALID;
+ 
++	if (!acpi_gbl_permanent_mmap)
++		return phys_id;
++
+ 	if (ACPI_FAILURE(acpi_evaluate_object(handle, "_MAT", NULL, &buffer)))
+ 		goto exit;
+ 
 
 -- 
-Meelis Roos (mroos@linux.ee)
+Catalin
