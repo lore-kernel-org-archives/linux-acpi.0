@@ -1,71 +1,184 @@
-From: Kefeng Wang <wangkefeng.wang@huawei.com>
-Subject: Re: [PATCH v7 0/5] ACPI: parse the SPCR table
-Date: Thu, 12 May 2016 21:08:59 +0800
-Message-ID: <5734806B.50705@huawei.com>
-References: <1459431629-27934-1-git-send-email-aleksey.makarov@linaro.org>
- <1bff98e3-2d94-ed76-1165-ed7d43bbfcf3@jonmasters.org>
- <bc91f503-cee5-db03-51bf-a36ef3e95a1f@linaro.org>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"
-Content-Transfer-Encoding: 7bit
+From: Sudeep Holla <sudeep.holla@arm.com>
+Subject: [UPDATE][PATCH v5] ACPI / processor_idle: introduce ACPI_PROCESSOR_CSTATE
+Date: Thu, 12 May 2016 14:21:02 +0100
+Message-ID: <1463059262-24949-1-git-send-email-sudeep.holla@arm.com>
+References: <1462981062-24909-2-git-send-email-sudeep.holla@arm.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from szxga01-in.huawei.com ([58.251.152.64]:64351 "EHLO
-	szxga01-in.huawei.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751806AbcELNJW (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 12 May 2016 09:09:22 -0400
-In-Reply-To: <bc91f503-cee5-db03-51bf-a36ef3e95a1f@linaro.org>
+Received: from foss.arm.com ([217.140.101.70]:58799 "EHLO foss.arm.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751395AbcELNVK (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 12 May 2016 09:21:10 -0400
+In-Reply-To: <1462981062-24909-2-git-send-email-sudeep.holla@arm.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Aleksey Makarov <aleksey.makarov@linaro.org>, Jon Masters <jcm@jonmasters.org>, Russell King <linux@arm.linux.org.uk>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: linux-serial@vger.kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, "Rafael J . Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Leif Lindholm <leif.lindholm@linaro.org>, Graeme Gregory <graeme.gregory@linaro.org>, Al Stone <ahs3@redhat.com>, Christopher Covington <cov@codeaurora.org>, Yury Norov <ynorov@caviumnetworks.com>, Peter Hurley <peter@hurleysoftware.com>, Andy Shevchenko <andy.shevchenko@gmail.com>, "Zheng, Lv" <lv.zheng@intel.com>
+To: linux-acpi@vger.kernel.org, "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: Sudeep Holla <sudeep.holla@arm.com>, linux-kernel@vger.kernel.org, Vikas Sajjan <vikas.cha.sajjan@hpe.com>, Sunil <sunil.vl@hpe.com>, Prashanth Prakash <pprakash@codeaurora.org>, Ashwin Chaugule <ashwin.chaugule@linaro.org>, Al Stone <al.stone@linaro.org>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
 
+ACPI 6.0 adds a new method to specify the CPU idle states(C-states)
+called Low Power Idle(LPI) states. Since new architectures like ARM64
+use only LPIs, introduce ACPI_PROCESSOR_CSTATE to encapsulate all the
+code supporting the old style C-states(_CST).
 
+This patch will help to extend the processor_idle module to support
+LPI.
 
-On 2016/5/12 19:52, Aleksey Makarov wrote:
-> Hi Jon,
-> 
-> In v7 I addressed the issues that were brought up by Rafael J . Wysocki
-> (but I still do not have ACK from ACPI people).
-> 
-> The issue with D02 will be addressed in a separate patch.
-> 
-> There possibly is an issue with 16550 and command line console with I am
-> investigating and probably will address in a separate patch.
+Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Signed-off-by: Sudeep Holla <sudeep.holla@arm.com>
+---
+ drivers/acpi/Kconfig          |  4 +++
+ drivers/acpi/processor_idle.c | 80 ++++++++++++++++++++++++++++---------------
+ include/acpi/processor.h      |  2 +-
+ 3 files changed, 58 insertions(+), 28 deletions(-)
 
+Updated to def_bool and removed selection from IA64 and X86
 
-Sound good, and will retest this in D02 with the coming patch, and
-
-Tested-by: Kefeng Wang <wangkefeng.wang@huawei.com>
-
-BRs,
-Kefeng
-
-> 
-> I know no other problems with it and reviewers seem happy.
-> 
-> So I believe this patchset could be pulled.  If needed, I will send v8.
-> 
-> Thank you
-> Aleksey Makarov
-> 
-> On 05/12/2016 11:20 AM, Jon Masters wrote:
->> On 03/31/2016 09:40 AM, Aleksey Makarov wrote:
->>
->>> 'ARM Server Base Boot Requirements' [1] mentions SPCR (Serial Port
->>> Console Redirection Table) [2] as a mandatory ACPI table that
->>> specifies the configuration of serial console.
->>
->> Hi Aleksey,
->>
->> Can you summarize the status of this patch series?
->>
->> Jon.
->>
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
-> .
-> 
+diff --git a/drivers/acpi/Kconfig b/drivers/acpi/Kconfig
+index b7e2e776397d..1358fb7d7a68 100644
+--- a/drivers/acpi/Kconfig
++++ b/drivers/acpi/Kconfig
+@@ -213,6 +213,10 @@ config ACPI_CPU_FREQ_PSS
+ 	bool
+ 	select THERMAL
+ 
++config ACPI_PROCESSOR_CSTATE
++	def_bool y
++	depends on IA64 || X86
++
+ config ACPI_PROCESSOR_IDLE
+ 	bool
+ 	select CPU_IDLE
+diff --git a/drivers/acpi/processor_idle.c b/drivers/acpi/processor_idle.c
+index 444e3745c8b3..ca0de35d1c3a 100644
+--- a/drivers/acpi/processor_idle.c
++++ b/drivers/acpi/processor_idle.c
+@@ -59,6 +59,12 @@ module_param(latency_factor, uint, 0644);
+ 
+ static DEFINE_PER_CPU(struct cpuidle_device *, acpi_cpuidle_device);
+ 
++struct cpuidle_driver acpi_idle_driver = {
++	.name =		"acpi_idle",
++	.owner =	THIS_MODULE,
++};
++
++#ifdef CONFIG_ACPI_PROCESSOR_CSTATE
+ static
+ DEFINE_PER_CPU(struct acpi_processor_cx * [CPUIDLE_STATE_MAX], acpi_cstate);
+ 
+@@ -804,11 +810,6 @@ static void acpi_idle_enter_freeze(struct cpuidle_device *dev,
+ 	acpi_idle_do_entry(cx);
+ }
+ 
+-struct cpuidle_driver acpi_idle_driver = {
+-	.name =		"acpi_idle",
+-	.owner =	THIS_MODULE,
+-};
+-
+ /**
+  * acpi_processor_setup_cpuidle_cx - prepares and configures CPUIDLE
+  * device i.e. per-cpu data
+@@ -925,6 +926,50 @@ static int acpi_processor_setup_cpuidle_states(struct acpi_processor *pr)
+ 	return 0;
+ }
+ 
++static inline void acpi_processor_cstate_first_run_checks(void)
++{
++	acpi_status status;
++	static int first_run;
++
++	if (first_run)
++		return;
++	dmi_check_system(processor_power_dmi_table);
++	max_cstate = acpi_processor_cstate_check(max_cstate);
++	if (max_cstate < ACPI_C_STATES_MAX)
++		pr_notice("ACPI: processor limited to max C-state %d\n",
++			  max_cstate);
++	first_run++;
++
++	if (acpi_gbl_FADT.cst_control && !nocst) {
++		status = acpi_os_write_port(acpi_gbl_FADT.smi_command,
++					    acpi_gbl_FADT.cst_control, 8);
++		if (ACPI_FAILURE(status))
++			ACPI_EXCEPTION((AE_INFO, status,
++					"Notifying BIOS of _CST ability failed"));
++	}
++}
++#else
++
++static inline int disabled_by_idle_boot_param(void) { return 0; }
++static inline void acpi_processor_cstate_first_run_checks(void) { }
++static int acpi_processor_get_power_info(struct acpi_processor *pr)
++{
++	return -ENODEV;
++}
++
++static int acpi_processor_setup_cpuidle_cx(struct acpi_processor *pr,
++					   struct cpuidle_device *dev)
++{
++	return -EINVAL;
++}
++
++static int acpi_processor_setup_cpuidle_states(struct acpi_processor *pr)
++{
++	return -EINVAL;
++}
++
++#endif /* CONFIG_ACPI_PROCESSOR_CSTATE */
++
+ int acpi_processor_hotplug(struct acpi_processor *pr)
+ {
+ 	int ret = 0;
+@@ -1015,35 +1060,16 @@ static int acpi_processor_registered;
+ 
+ int acpi_processor_power_init(struct acpi_processor *pr)
+ {
+-	acpi_status status;
+ 	int retval;
+ 	struct cpuidle_device *dev;
+-	static int first_run;
+ 
+ 	if (disabled_by_idle_boot_param())
+ 		return 0;
+ 
+-	if (!first_run) {
+-		dmi_check_system(processor_power_dmi_table);
+-		max_cstate = acpi_processor_cstate_check(max_cstate);
+-		if (max_cstate < ACPI_C_STATES_MAX)
+-			printk(KERN_NOTICE
+-			       "ACPI: processor limited to max C-state %d\n",
+-			       max_cstate);
+-		first_run++;
+-	}
++	acpi_processor_cstate_first_run_checks();
+ 
+-	if (acpi_gbl_FADT.cst_control && !nocst) {
+-		status =
+-		    acpi_os_write_port(acpi_gbl_FADT.smi_command, acpi_gbl_FADT.cst_control, 8);
+-		if (ACPI_FAILURE(status)) {
+-			ACPI_EXCEPTION((AE_INFO, status,
+-					"Notifying BIOS of _CST ability failed"));
+-		}
+-	}
+-
+-	acpi_processor_get_power_info(pr);
+-	pr->flags.power_setup_done = 1;
++	if (!acpi_processor_get_power_info(pr))
++		pr->flags.power_setup_done = 1;
+ 
+ 	/*
+ 	 * Install the idle handler if processor power management is supported.
+diff --git a/include/acpi/processor.h b/include/acpi/processor.h
+index 6f1805dd5d3c..48779d678122 100644
+--- a/include/acpi/processor.h
++++ b/include/acpi/processor.h
+@@ -242,7 +242,7 @@ extern int acpi_processor_get_performance_info(struct acpi_processor *pr);
+ DECLARE_PER_CPU(struct acpi_processor *, processors);
+ extern struct acpi_processor_errata errata;
+ 
+-#ifdef ARCH_HAS_POWER_INIT
++#if defined(ARCH_HAS_POWER_INIT) && defined(CONFIG_ACPI_PROCESSOR_CSTATE)
+ void acpi_processor_power_init_bm_check(struct acpi_processor_flags *flags,
+ 					unsigned int cpu);
+ int acpi_processor_ffh_cstate_probe(unsigned int cpu,
+-- 
+1.9.1
 
