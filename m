@@ -1,110 +1,71 @@
-From: "Rafael J. Wysocki" <rafael@kernel.org>
-Subject: Re: [PATCH v6 00/14] ACPI NUMA support for ARM64
-Date: Thu, 12 May 2016 14:54:35 +0200
-Message-ID: <CAJZ5v0iVf-+ngd-qDUk8Acf7mGrq0f8j2d_QtfxQxuBH_93t3w@mail.gmail.com>
-References: <1461780436-27182-1-git-send-email-ddaney.cavm@gmail.com>
-	<CAJZ5v0iMDQ4pWip4vyCos0o+1DFDvXQf4XZQqC4SGjJsDO4Lnw@mail.gmail.com>
-	<20160511104032.GA31374@arm.com>
-	<CAJZ5v0gQMR7OUyZo5Sa3bgMYZBzdnwFaktz9JCv1ocWXw7yHTg@mail.gmail.com>
-	<57339F39.3040603@caviumnetworks.com>
-	<CAJZ5v0h8zBEZ2nLLdk62r7uqHizUfVWamUVEriBGe1XBE6462Q@mail.gmail.com>
-	<5733A47B.8030908@caviumnetworks.com>
-	<CAJZ5v0gBTANFntBSkyaRtt-BKOMC+pz_R9CwM6wKnp=Ni1dPFA@mail.gmail.com>
-	<20160512085616.GA25355@arm.com>
+From: Kefeng Wang <wangkefeng.wang@huawei.com>
+Subject: Re: [PATCH v7 0/5] ACPI: parse the SPCR table
+Date: Thu, 12 May 2016 21:08:59 +0800
+Message-ID: <5734806B.50705@huawei.com>
+References: <1459431629-27934-1-git-send-email-aleksey.makarov@linaro.org>
+ <1bff98e3-2d94-ed76-1165-ed7d43bbfcf3@jonmasters.org>
+ <bc91f503-cee5-db03-51bf-a36ef3e95a1f@linaro.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset="windows-1252"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-wm0-f65.google.com ([74.125.82.65]:33140 "EHLO
-	mail-wm0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752959AbcELMyh (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 12 May 2016 08:54:37 -0400
-In-Reply-To: <20160512085616.GA25355@arm.com>
+Received: from szxga01-in.huawei.com ([58.251.152.64]:64351 "EHLO
+	szxga01-in.huawei.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751806AbcELNJW (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 12 May 2016 09:09:22 -0400
+In-Reply-To: <bc91f503-cee5-db03-51bf-a36ef3e95a1f@linaro.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Will Deacon <will.deacon@arm.com>
-Cc: "Rafael J. Wysocki" <rafael@kernel.org>, David Daney <ddaney@caviumnetworks.com>, David Daney <ddaney.cavm@gmail.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Mark Rutland <mark.rutland@arm.com>, Catalin Marinas <catalin.marinas@arm.com>, Tony Luck <tony.luck@intel.com>, Fenghua Yu <fenghua.yu@intel.com>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, the arch/x86 maintainers <x86@kernel.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Rob Herring <robh+dt@kernel.org>, Frank Rowand <frowand.list@gmail.com>, Grant Likely <grant.likely@linaro.org>, Robert Moore <robert.moore@intel.com>, Lv Zheng <lv.zheng@intel.com>, Hanjun Guo <hanjun.guo@linaro.org>, Marc Zyngier <Marc.Zyngier@arm.com>, "linux-ia64@vger.kernel.org" <linux-ia64@vger.kernel.>
+To: Aleksey Makarov <aleksey.makarov@linaro.org>, Jon Masters <jcm@jonmasters.org>, Russell King <linux@arm.linux.org.uk>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: linux-serial@vger.kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, "Rafael J . Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Leif Lindholm <leif.lindholm@linaro.org>, Graeme Gregory <graeme.gregory@linaro.org>, Al Stone <ahs3@redhat.com>, Christopher Covington <cov@codeaurora.org>, Yury Norov <ynorov@caviumnetworks.com>, Peter Hurley <peter@hurleysoftware.com>, Andy Shevchenko <andy.shevchenko@gmail.com>, "Zheng, Lv" <lv.zheng@intel.com>
 
-On Thu, May 12, 2016 at 10:56 AM, Will Deacon <will.deacon@arm.com> wrote:
-> On Thu, May 12, 2016 at 12:29:02AM +0200, Rafael J. Wysocki wrote:
->> On Wed, May 11, 2016 at 11:30 PM, David Daney <ddaney@caviumnetworks.com> wrote:
->> > On 05/11/2016 02:22 PM, Rafael J. Wysocki wrote:
->> >> On Wed, May 11, 2016 at 11:08 PM, David Daney <ddaney@caviumnetworks.com>
->> >> wrote:
->> >>> On 05/11/2016 01:35 PM, Rafael J. Wysocki wrote:
->> >>>> On Wed, May 11, 2016 at 12:40 PM, Will Deacon <will.deacon@arm.com>
->> >>>> wrote:
->> >>>>> On Wed, May 11, 2016 at 02:43:11AM +0200, Rafael J. Wysocki wrote:
->> >>>>> There's also a dependency on the arm64 for-next/core branch, so I've
->> >>>>> been
->> >>>>> largely ignoring this as far as 4.6 is concerned and was planning to
->> >>>>> take
->> >>>>> a proper look for 4.7 once the upcoming merge window is out of the way.
->> >>>>
->> >>>>
->> >>>>
->> >>>> That would be 4.7 and 4.8 respectively I suppose?
->
-> Argh, yes, of course! :)
->
->> >>>>
->> >>>> Anyway, Catalin has ACKed all of them except for the [13/14], so
->> >>>> technically I can apply [1-12/14] now and then [13-14/14] can be
->> >>>> applied when they are ready.
->> >>>>
->> >>>> Do you think there will be any problems with merging [6-7/14] into 4.7
->> >>>> via the ACPI tree?
->> >>>>
->> >>>
->> >>> I would defer to the arm64 maintainers for decisions about the arm64
->> >>> specific parts of the patch set.  That said, many of the arm64 specific
->> >>> patches depend on the arm64 for-next/core branch, so you would have to be
->> >>> careful about merge ordering if you pull these in before the
->> >>> for-next/core
->> >>> branch is merged.
->> >>
->> >>
->> >> Fair enough.  I will wait for an update then.
->> >>
->> >>> Also FWIW, I plan on addressing Catalin's comments about 13/14 and
->> >>> posting a
->> >>> new version of the patch set in the next day or two.
->> >>
->> >>
->> >> OK, but in that case it won't be considered for 4.7 (at least not by
->> >> me), so I'd suggest sending it in the second half of the 4.7 merge
->> >> window (or about that time).
->> >
->> >
->> > To be candid, I would very much like for you to pull in as many of the
->> > patches as you are comfortable with as soon as possible.
->> >
->> > I don't know where Will and Catalin stand on this, and their opinion is
->> > obviously important, but getting 1-12/14 merged to v4.7 and deferring the
->> > last two for v4.8 would simplify the whole process for me.  The drawback is
->> > carrying dead code around until the final parts are merged.
+
+
+On 2016/5/12 19:52, Aleksey Makarov wrote:
+> Hi Jon,
+> 
+> In v7 I addressed the issues that were brought up by Rafael J . Wysocki
+> (but I still do not have ACK from ACPI people).
+> 
+> The issue with D02 will be addressed in a separate patch.
+> 
+> There possibly is an issue with 16550 and command line console with I am
+> investigating and probably will address in a separate patch.
+
+
+Sound good, and will retest this in D02 with the coming patch, and
+
+Tested-by: Kefeng Wang <wangkefeng.wang@huawei.com>
+
+BRs,
+Kefeng
+
+> 
+> I know no other problems with it and reviewers seem happy.
+> 
+> So I believe this patchset could be pulled.  If needed, I will send v8.
+> 
+> Thank you
+> Aleksey Makarov
+> 
+> On 05/12/2016 11:20 AM, Jon Masters wrote:
+>> On 03/31/2016 09:40 AM, Aleksey Makarov wrote:
 >>
->> That is not unheard of, however.
+>>> 'ARM Server Base Boot Requirements' [1] mentions SPCR (Serial Port
+>>> Console Redirection Table) [2] as a mandatory ACPI table that
+>>> specifies the configuration of serial console.
 >>
->> OK, I'll try to put the [1-12/14] into my linux-next branch early next
->> week and we'll see if that triggers any conflicts.
->
-> I'd really much rather this waited until after the merge window.
+>> Hi Aleksey,
+>>
+>> Can you summarize the status of this patch series?
+>>
+>> Jon.
+>>
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
+> .
+> 
 
-That's fine by me, so I guess my previous request for the next version
-to be sent by the end of the merge window applies. :-)
-
-> My understanding is that it's bad practice to put stuff into -next during the
-> merge window,
-
-Unless you want to push that stuff to Linus during the merge window in
-progress, that is.
-
-> and you'd end up having to send a pull based on a random
-> commit (the arm64 pull request?) in the second half. On top of that, this
-> series would get very little exposure in -next during that time.
->
-> On the other hand, putting this into linux-next after the merge window
-> gives us time for testing, allows David to rework patch 13 (which is aiming
-> for 4.8 anyway iiuc) and avoids merge window churn.
-
-OK
