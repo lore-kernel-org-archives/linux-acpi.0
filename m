@@ -1,31 +1,67 @@
-From: <Mario_Limonciello@Dell.com>
-Subject: Proper kernel interface to fetch a buffer directly under system bus
-Date: Thu, 12 May 2016 15:00:26 +0000
-Message-ID: <e92efab79c4943aab206687cc8bd5af8@ausx13mpc124.AMER.DELL.COM>
+From: David Daney <ddaney@caviumnetworks.com>
+Subject: Re: [PATCH v6 13/14] arm64, acpi, numa: NUMA support based on SRAT
+ and SLIT
+Date: Thu, 12 May 2016 08:27:08 -0700
+Message-ID: <5734A0CC.8010600@caviumnetworks.com>
+References: <1461780436-27182-1-git-send-email-ddaney.cavm@gmail.com> <1461780436-27182-14-git-send-email-ddaney.cavm@gmail.com> <20160511103929.GC3051@e104818-lin.cambridge.arm.com> <5733C8F5.6090206@caviumnetworks.com> <20160512094915.GD11226@e104818-lin.cambridge.arm.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ausxipps301.us.dell.com ([143.166.148.223]:14357 "EHLO
-	ausxipps301.us.dell.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751923AbcELPAd convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 12 May 2016 11:00:33 -0400
-Content-Language: en-US
+Received: from mail-bl2on0068.outbound.protection.outlook.com ([65.55.169.68]:41890
+	"EHLO na01-bl2-obe.outbound.protection.outlook.com"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S932279AbcELP1R (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 12 May 2016 11:27:17 -0400
+In-Reply-To: <20160512094915.GD11226@e104818-lin.cambridge.arm.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
+To: Catalin Marinas <catalin.marinas@arm.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Will Deacon <will.deacon@arm.com>
+Cc: David Daney <ddaney@caviumnetworks.com>, Mark Rutland <mark.rutland@arm.com>, linux-ia64@vger.kernel.org, David Daney <david.daney@cavium.com>, Lv Zheng <lv.zheng@intel.com>, "H. Peter Anvin" <hpa@zytor.com>, Frank Rowand <frowand.list@gmail.com>, x86@kernel.org, Robert Moore <robert.moore@intel.com>, linux-acpi@vger.kernel.org, Ingo Molnar <mingo@redhat.com>, Grant Likely <grant.likely@linaro.org>, Len Brown <lenb@kernel.org>, Fenghua Yu <fenghua.yu@intel.com>, Marc Zyngier <Marc.Zyngier@arm.com>, Jon Masters <jcm@redhat.com>, Robert Richter <rrichter@cavium.com>, Rob Herring <robh+dt@kernel.org>, Thomas Gleixner <tglx@linutronix.de>, linux-arm-kernel@lists.infradead.org, devel@acpica.org, Tony Luck <tony.luck@intel.com>, linux-kernel@vger.kernel.org, Hanjun Guo <hanjun.guo@linaro.org>, Ganapatrao Kulkarni <gkulkarni@caviumnetworks.com>
 
-Hi,
+On 05/12/2016 02:49 AM, Catalin Marinas wrote:
+> On Wed, May 11, 2016 at 05:06:13PM -0700, David Daney wrote:
+>> On 05/11/2016 03:39 AM, Catalin Marinas wrote:
+[...]
+>>>
+>>> I wonder whether you could replace the get_mpidr_in_madt() function with
+>>> something like acpi_get_phys_id(). It looks like get_mpidr_in_madt()
+>>> duplicates functionality already available elsewhere.
+>>
+>> I just tried that, and it doesn't work.
+>>
+>> The problem is that this code is being run very early in the boot, and
+>> kmalloc cannot be used.  acpi_get_phys_id() and its ilk can only be used
+>> once we have working kmalloc.  We need to extract the NUMA information early
+>> like this precisely because it is needed to initializing the slab system
+>>
+>> Notice that we are using early_acpi_os_unmap_memory() et al. in
+>> get_mpidr_in_madt() explicitly for this reason.
+>>
+>> In summary: I don't think we need another revision of this patch, it is like
+>> this for a good reason.
+>
+> Slightly confusing, in another reply you said you are going to address
+> my comment. So, is it doable?
 
-I wanted to be able to access and parse a buffer that is directly under _SB in the DSDT.  What is the proper kernel interface for doing this?
+I don't think so.
 
-    Scope (_SB)
-    {
-        Name (AMAC, Buffer (0x17)
-        {
-            "_AUXMAC_#847BEB5992D2#"
-        })
-    }
+My previous reply, to the thread in 0/14, was prematurely made with the 
+incorrect assumption that it was a simple change.  Now, after really 
+digging in to the code, and attempting to do as you suggested, I have 
+changed my mind.
+
+As I indicated above, there are no remaining suggestions or requests for 
+changes to this patch set pending action.  Unless people find additional 
+problems, I think it is ready for merging.
+
+I know that Will and Rafael were discussing the proper timing for 
+merging this in the other thread, so I leave it in their hands at this 
+point.
 
 Thanks,
+David Daney
+
+
+>
 
