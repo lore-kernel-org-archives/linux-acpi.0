@@ -1,96 +1,45 @@
-From: Will Deacon <will.deacon@arm.com>
-Subject: Re: [PATCH v6 00/14] ACPI NUMA support for ARM64
-Date: Thu, 12 May 2016 09:56:16 +0100
-Message-ID: <20160512085616.GA25355@arm.com>
-References: <1461780436-27182-1-git-send-email-ddaney.cavm@gmail.com>
- <CAJZ5v0iMDQ4pWip4vyCos0o+1DFDvXQf4XZQqC4SGjJsDO4Lnw@mail.gmail.com>
- <20160511104032.GA31374@arm.com>
- <CAJZ5v0gQMR7OUyZo5Sa3bgMYZBzdnwFaktz9JCv1ocWXw7yHTg@mail.gmail.com>
- <57339F39.3040603@caviumnetworks.com>
- <CAJZ5v0h8zBEZ2nLLdk62r7uqHizUfVWamUVEriBGe1XBE6462Q@mail.gmail.com>
- <5733A47B.8030908@caviumnetworks.com>
- <CAJZ5v0gBTANFntBSkyaRtt-BKOMC+pz_R9CwM6wKnp=Ni1dPFA@mail.gmail.com>
+From: Sudeep Holla <sudeep.holla@arm.com>
+Subject: Re: [PATCH v5 1/5] ACPI / processor_idle: introduce
+ ACPI_PROCESSOR_CSTATE
+Date: Thu, 12 May 2016 10:10:56 +0100
+Message-ID: <573448A0.5030003@arm.com>
+References: <1462981062-24909-1-git-send-email-sudeep.holla@arm.com>
+ <1462981062-24909-2-git-send-email-sudeep.holla@arm.com>
+ <CAJvTdKnJPZ9Nfib=CqBczMP4BERqfqAzeSR-+jjFOGZR51oVmg@mail.gmail.com>
+ <CAJvTdKmTykoMBw9dCpw0X0ep2qTPSu94-zzUmdrFwUfDeXueqA@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <CAJZ5v0gBTANFntBSkyaRtt-BKOMC+pz_R9CwM6wKnp=Ni1dPFA@mail.gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: "Rafael J. Wysocki" <rafael@kernel.org>
-Cc: David Daney <ddaney@caviumnetworks.com>, David Daney <ddaney.cavm@gmail.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Mark Rutland <mark.rutland@arm.com>, Catalin Marinas <catalin.marinas@arm.com>, Tony Luck <tony.luck@intel.com>, Fenghua Yu <fenghua.yu@intel.com>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, the arch/x86 maintainers <x86@kernel.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Rob Herring <robh+dt@kernel.org>, Frank Rowand <frowand.list@gmail.com>, Grant Likely <grant.likely@linaro.org>, Robert Moore <robert.moore@intel.com>, Lv Zheng <lv.zheng@intel.com>, Hanjun Guo <hanjun.guo@linaro.org>, Marc Zyngier <Marc.Zyngier@arm.com>, "linux-ia64@vger.kernel.org" <linux-ia64@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vg>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-ia64-owner@vger.kernel.org>
+In-Reply-To: <CAJvTdKmTykoMBw9dCpw0X0ep2qTPSu94-zzUmdrFwUfDeXueqA@mail.gmail.com>
+Sender: linux-ia64-owner@vger.kernel.org
+To: Len Brown <lenb@kernel.org>
+Cc: Sudeep Holla <sudeep.holla@arm.com>, linux acpi <linux-acpi@vger.kernel.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Vikas Sajjan <vikas.cha.sajjan@hpe.com>, Sunil <sunil.vl@hpe.com>, Prashanth Prakash <pprakash@codeaurora.org>, Ashwin Chaugule <ashwin.chaugule@linaro.org>, Al Stone <al.stone@linaro.org>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, X86 ML <x86@kernel.org>, linux-ia64@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Thu, May 12, 2016 at 12:29:02AM +0200, Rafael J. Wysocki wrote:
-> On Wed, May 11, 2016 at 11:30 PM, David Daney <ddaney@caviumnetworks.com> wrote:
-> > On 05/11/2016 02:22 PM, Rafael J. Wysocki wrote:
-> >> On Wed, May 11, 2016 at 11:08 PM, David Daney <ddaney@caviumnetworks.com>
-> >> wrote:
-> >>> On 05/11/2016 01:35 PM, Rafael J. Wysocki wrote:
-> >>>> On Wed, May 11, 2016 at 12:40 PM, Will Deacon <will.deacon@arm.com>
-> >>>> wrote:
-> >>>>> On Wed, May 11, 2016 at 02:43:11AM +0200, Rafael J. Wysocki wrote:
-> >>>>> There's also a dependency on the arm64 for-next/core branch, so I've
-> >>>>> been
-> >>>>> largely ignoring this as far as 4.6 is concerned and was planning to
-> >>>>> take
-> >>>>> a proper look for 4.7 once the upcoming merge window is out of the way.
-> >>>>
-> >>>>
-> >>>>
-> >>>> That would be 4.7 and 4.8 respectively I suppose?
+(I seem to have 2 emails, replying on the second)
 
-Argh, yes, of course! :)
+On 11/05/16 19:28, Len Brown wrote:
+> What is the functional goal/purpose of adding CONFIG_ACPI_PROCESSOR_CSTATE?
+>
 
-> >>>>
-> >>>> Anyway, Catalin has ACKed all of them except for the [13/14], so
-> >>>> technically I can apply [1-12/14] now and then [13-14/14] can be
-> >>>> applied when they are ready.
-> >>>>
-> >>>> Do you think there will be any problems with merging [6-7/14] into 4.7
-> >>>> via the ACPI tree?
-> >>>>
-> >>>
-> >>> I would defer to the arm64 maintainers for decisions about the arm64
-> >>> specific parts of the patch set.  That said, many of the arm64 specific
-> >>> patches depend on the arm64 for-next/core branch, so you would have to be
-> >>> careful about merge ordering if you pull these in before the
-> >>> for-next/core
-> >>> branch is merged.
-> >>
-> >>
-> >> Fair enough.  I will wait for an update then.
-> >>
-> >>> Also FWIW, I plan on addressing Catalin's comments about 13/14 and
-> >>> posting a
-> >>> new version of the patch set in the next day or two.
-> >>
-> >>
-> >> OK, but in that case it won't be considered for 4.7 (at least not by
-> >> me), so I'd suggest sending it in the second half of the 4.7 merge
-> >> window (or about that time).
-> >
-> >
-> > To be candid, I would very much like for you to pull in as many of the
-> > patches as you are comfortable with as soon as possible.
-> >
-> > I don't know where Will and Catalin stand on this, and their opinion is
-> > obviously important, but getting 1-12/14 merged to v4.7 and deferring the
-> > last two for v4.8 would simplify the whole process for me.  The drawback is
-> > carrying dead code around until the final parts are merged.
-> 
-> That is not unheard of, however.
-> 
-> OK, I'll try to put the [1-12/14] into my linux-next branch early next
-> week and we'll see if that triggers any conflicts.
+Avoid adding unnecessary dummy implementations of functions and
+variables that will never be used on ARM64 and also looks ugly IMO. 
+E.g.:	arch_safe_halt
+	boot_option_idle_override
+	IDLE_NOMWAIT
+	acpi_unlazy_tlb
+	acpi_processor_cstate_check
+	disabled_by_idle_boot_param and more...
 
-I'd really much rather this waited until after the merge window. My
-understanding is that it's bad practice to put stuff into -next during the
-merge window, and you'd end up having to send a pull based on a random
-commit (the arm64 pull request?) in the second half. On top of that, this
-series would get very little exposure in -next during that time.
+> If the answer is that it saves code space on an ARM build, how much
+> space does it save?
+>
 
-On the other hand, putting this into linux-next after the merge window
-gives us time for testing, allows David to rework patch 13 (which is aiming
-for 4.8 anyway iiuc) and avoids merge window churn.
+NO, it doesn't even add a kB of code I believe, so that's definitely not
+the reason. I am fine to retain if we can find a saner way to solve the
+above issue.
 
-Will
+-- 
+Regards,
+Sudeep
