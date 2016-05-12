@@ -1,184 +1,175 @@
-From: Sudeep Holla <sudeep.holla@arm.com>
-Subject: [UPDATE][PATCH v5] ACPI / processor_idle: introduce ACPI_PROCESSOR_CSTATE
-Date: Thu, 12 May 2016 14:21:02 +0100
-Message-ID: <1463059262-24949-1-git-send-email-sudeep.holla@arm.com>
-References: <1462981062-24909-2-git-send-email-sudeep.holla@arm.com>
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from foss.arm.com ([217.140.101.70]:58799 "EHLO foss.arm.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751395AbcELNVK (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 12 May 2016 09:21:10 -0400
-In-Reply-To: <1462981062-24909-2-git-send-email-sudeep.holla@arm.com>
-Sender: linux-acpi-owner@vger.kernel.org
+From: Benjamin Tissoires <benjamin.tissoires@redhat.com>
+Subject: [PATCH] ACPI / scan: force creation of platform device for the Surface tablets
+Date: Thu, 12 May 2016 16:06:32 +0200
+Message-ID: <1463061992-11443-1-git-send-email-benjamin.tissoires@redhat.com>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>
+Cc: Mika Westerberg <mika.westerberg@linux.intel.com>, Bastien Nocera <hadess@hadess.net>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org, "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: Sudeep Holla <sudeep.holla@arm.com>, linux-kernel@vger.kernel.org, Vikas Sajjan <vikas.cha.sajjan@hpe.com>, Sunil <sunil.vl@hpe.com>, Prashanth Prakash <pprakash@codeaurora.org>, Ashwin Chaugule <ashwin.chaugule@linaro.org>, Al Stone <al.stone@linaro.org>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
 
-ACPI 6.0 adds a new method to specify the CPU idle states(C-states)
-called Low Power Idle(LPI) states. Since new architectures like ARM64
-use only LPIs, introduce ACPI_PROCESSOR_CSTATE to encapsulate all the
-code supporting the old style C-states(_CST).
+As mentioned in drivers/platform/x86/surfacepro3_button.c, the various
+Microsoft Surface tablets do not follow the ACPI SOC buttons specification.
+They present an I2C device like this:
 
-This patch will help to extend the processor_idle module to support
-LPI.
+  Device (WBUT)
+  {
+      Method (_HID, 0, NotSerialized)  // _HID: Hardware ID
+      {
+          Return ("PNP0C40")
+      }
+ 
+      Name (_CID, "PNP0C40" /* Standard Button Controller */)  // _CID: Compatible ID
+      Method (_STA, 0, NotSerialized)  // _STA: Status
+      {
+          Return (0x0F)
+      }
+ 
+      Method (_DSM, 4, Serialized)  // _DSM: Device-Specific Method
+      {
+          [stripped]
+      }
+  }
+ 
+  Device (TEV2)
+  {
+      Name (_HID, "MSHW0028")  // _HID: Hardware ID
+      Name (_DEP, Package (0x06)  // _DEP: Dependencies
+      {
+          GPO0,
+          GPO2,
+          GPO1,
+          ^PCI0.I2C2,
+          ^PCI0.I2C7,
+          ^PCI0.I2C7.PMIC
+      })
+      Method (_CRS, 0, NotSerialized)  // _CRS: Current Resource Settings
+      {
+          Name (RBUF, ResourceTemplate ()
+          {
+              GpioInt (Edge, ActiveBoth, SharedAndWake, PullDefault, 0x09C4,
+                  "\\_SB.GPO2", 0x00, ResourceConsumer, ,
+                  )
+                  {   // Pin list
+                      0x0008
+                  }
+              GpioInt (Edge, ActiveBoth, SharedAndWake, PullDefault, 0x09C4,
+                  "\\_SB.GPO2", 0x00, ResourceConsumer, ,
+                  )
+                  {   // Pin list
+                      0x000A
+                  }
+              GpioInt (Edge, ActiveBoth, Shared, PullDefault, 0x09C4,
+                  "\\_SB.GPO0", 0x00, ResourceConsumer, ,
+                  )
+                  {   // Pin list
+                      0x005D
+                  }
+              GpioInt (Edge, ActiveBoth, Shared, PullDefault, 0x09C4,
+                  "\\_SB.GPO1", 0x00, ResourceConsumer, ,
+                  )
+                  {   // Pin list
+                      0x0008
+                  }
+              I2cSerialBus (0x002D, ControllerInitiated, 0x00061A80,
+                  AddressingMode7Bit, "\\_SB.PCI0.I2C2",
+                  0x00, ResourceConsumer, ,
+                  )
+              [stripped]
+          })
+          [stripped]
+          If ((OBID <= 0x0C))
+          {
+              Return (RBUF) /* \_SB_.TEV2._CRS.RBUF */
+          }
+ 
+          Return (PBUF) /* \_SB_.TEV2._CRS.PBUF */
+      }
+ 
+      Method (_STA, 0, NotSerialized)  // _STA: Status
+      {
+          Return (0x0F)
+      }
+ 
+      Method (_DSM, 4, Serialized)  // _DSM: Device-Specific Method
+      {
+          [stripped]
+      }
+  }
 
-Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Signed-off-by: Sudeep Holla <sudeep.holla@arm.com>
+The actual HW button is named MSHW0028 on the MS Surface (Pro) 3 and
+is meant to be bound on the I2C bus 7. The problem is that the bus
+doesn't see any device on the address 0x002D.
+
+The Surface Pro devices have working ACPI events and thus we can use
+surfacepro3_button which is a pure acpi driver. The Surface 3 however
+does not generate any ACPI events and the buttons are not working
+through surfacepro3_button (even when we add the name TEV2 in this module).
+
+The solution consists in forcing the creation of an platform device
+which we can handle in soc_button_array as any proper SOC GPIO buttons
+should be.
+
+Signed-off-by: Benjamin Tissoires <benjamin.tissoires@redhat.com>
 ---
- drivers/acpi/Kconfig          |  4 +++
- drivers/acpi/processor_idle.c | 80 ++++++++++++++++++++++++++++---------------
- include/acpi/processor.h      |  2 +-
- 3 files changed, 58 insertions(+), 28 deletions(-)
 
-Updated to def_bool and removed selection from IA64 and X86
+Hi,
 
-diff --git a/drivers/acpi/Kconfig b/drivers/acpi/Kconfig
-index b7e2e776397d..1358fb7d7a68 100644
---- a/drivers/acpi/Kconfig
-+++ b/drivers/acpi/Kconfig
-@@ -213,6 +213,10 @@ config ACPI_CPU_FREQ_PSS
- 	bool
- 	select THERMAL
+this is IMO the best way to handle this situation (besides fixing the DSDT
+itself). The other solutions I thought were:
+- add a specific acpi driver that will unbind the current I2C acpi handle
+  and will create the platform_driver
+- add a specific acpi driver that merges surfacepro3_button and soc_button_array
+  but has a lot of code duplication
+
+I am open to any other solution if we could have this list of ids in a different
+place but I could not see any other.
+
+Cheers,
+Benjamin
+
+ drivers/acpi/scan.c | 16 +++++++++++++++-
+ 1 file changed, 15 insertions(+), 1 deletion(-)
+
+diff --git a/drivers/acpi/scan.c b/drivers/acpi/scan.c
+index 5f28cf7..6fe9296 100644
+--- a/drivers/acpi/scan.c
++++ b/drivers/acpi/scan.c
+@@ -46,6 +46,12 @@ DEFINE_MUTEX(acpi_device_lock);
+ LIST_HEAD(acpi_wakeup_device_list);
+ static DEFINE_MUTEX(acpi_hp_context_lock);
  
-+config ACPI_PROCESSOR_CSTATE
-+	def_bool y
-+	depends on IA64 || X86
-+
- config ACPI_PROCESSOR_IDLE
- 	bool
- 	select CPU_IDLE
-diff --git a/drivers/acpi/processor_idle.c b/drivers/acpi/processor_idle.c
-index 444e3745c8b3..ca0de35d1c3a 100644
---- a/drivers/acpi/processor_idle.c
-+++ b/drivers/acpi/processor_idle.c
-@@ -59,6 +59,12 @@ module_param(latency_factor, uint, 0644);
- 
- static DEFINE_PER_CPU(struct cpuidle_device *, acpi_cpuidle_device);
- 
-+struct cpuidle_driver acpi_idle_driver = {
-+	.name =		"acpi_idle",
-+	.owner =	THIS_MODULE,
++static const struct acpi_device_id i2c_whitelisted_id_list[] = {
++	{"MSHW0028", 0},	/* Surface (Pro) 3 buttons */
++	{"MSHW0040", 0},	/* Surface Pro 4 buttons */
++	{"", 0},
 +};
 +
-+#ifdef CONFIG_ACPI_PROCESSOR_CSTATE
- static
- DEFINE_PER_CPU(struct acpi_processor_cx * [CPUIDLE_STATE_MAX], acpi_cstate);
- 
-@@ -804,11 +810,6 @@ static void acpi_idle_enter_freeze(struct cpuidle_device *dev,
- 	acpi_idle_do_entry(cx);
- }
- 
--struct cpuidle_driver acpi_idle_driver = {
--	.name =		"acpi_idle",
--	.owner =	THIS_MODULE,
--};
--
- /**
-  * acpi_processor_setup_cpuidle_cx - prepares and configures CPUIDLE
-  * device i.e. per-cpu data
-@@ -925,6 +926,50 @@ static int acpi_processor_setup_cpuidle_states(struct acpi_processor *pr)
- 	return 0;
- }
- 
-+static inline void acpi_processor_cstate_first_run_checks(void)
-+{
-+	acpi_status status;
-+	static int first_run;
-+
-+	if (first_run)
-+		return;
-+	dmi_check_system(processor_power_dmi_table);
-+	max_cstate = acpi_processor_cstate_check(max_cstate);
-+	if (max_cstate < ACPI_C_STATES_MAX)
-+		pr_notice("ACPI: processor limited to max C-state %d\n",
-+			  max_cstate);
-+	first_run++;
-+
-+	if (acpi_gbl_FADT.cst_control && !nocst) {
-+		status = acpi_os_write_port(acpi_gbl_FADT.smi_command,
-+					    acpi_gbl_FADT.cst_control, 8);
-+		if (ACPI_FAILURE(status))
-+			ACPI_EXCEPTION((AE_INFO, status,
-+					"Notifying BIOS of _CST ability failed"));
-+	}
-+}
-+#else
-+
-+static inline int disabled_by_idle_boot_param(void) { return 0; }
-+static inline void acpi_processor_cstate_first_run_checks(void) { }
-+static int acpi_processor_get_power_info(struct acpi_processor *pr)
-+{
-+	return -ENODEV;
-+}
-+
-+static int acpi_processor_setup_cpuidle_cx(struct acpi_processor *pr,
-+					   struct cpuidle_device *dev)
-+{
-+	return -EINVAL;
-+}
-+
-+static int acpi_processor_setup_cpuidle_states(struct acpi_processor *pr)
-+{
-+	return -EINVAL;
-+}
-+
-+#endif /* CONFIG_ACPI_PROCESSOR_CSTATE */
-+
- int acpi_processor_hotplug(struct acpi_processor *pr)
- {
- 	int ret = 0;
-@@ -1015,35 +1060,16 @@ static int acpi_processor_registered;
- 
- int acpi_processor_power_init(struct acpi_processor *pr)
- {
--	acpi_status status;
- 	int retval;
- 	struct cpuidle_device *dev;
--	static int first_run;
- 
- 	if (disabled_by_idle_boot_param())
- 		return 0;
- 
--	if (!first_run) {
--		dmi_check_system(processor_power_dmi_table);
--		max_cstate = acpi_processor_cstate_check(max_cstate);
--		if (max_cstate < ACPI_C_STATES_MAX)
--			printk(KERN_NOTICE
--			       "ACPI: processor limited to max C-state %d\n",
--			       max_cstate);
--		first_run++;
--	}
-+	acpi_processor_cstate_first_run_checks();
- 
--	if (acpi_gbl_FADT.cst_control && !nocst) {
--		status =
--		    acpi_os_write_port(acpi_gbl_FADT.smi_command, acpi_gbl_FADT.cst_control, 8);
--		if (ACPI_FAILURE(status)) {
--			ACPI_EXCEPTION((AE_INFO, status,
--					"Notifying BIOS of _CST ability failed"));
--		}
--	}
--
--	acpi_processor_get_power_info(pr);
--	pr->flags.power_setup_done = 1;
-+	if (!acpi_processor_get_power_info(pr))
-+		pr->flags.power_setup_done = 1;
+ struct acpi_dep_data {
+ 	struct list_head node;
+ 	acpi_handle master;
+@@ -1676,13 +1682,21 @@ static void acpi_default_enumeration(struct acpi_device *device)
+ 	bool is_spi_i2c_slave = false;
  
  	/*
- 	 * Install the idle handler if processor power management is supported.
-diff --git a/include/acpi/processor.h b/include/acpi/processor.h
-index 6f1805dd5d3c..48779d678122 100644
---- a/include/acpi/processor.h
-+++ b/include/acpi/processor.h
-@@ -242,7 +242,7 @@ extern int acpi_processor_get_performance_info(struct acpi_processor *pr);
- DECLARE_PER_CPU(struct acpi_processor *, processors);
- extern struct acpi_processor_errata errata;
- 
--#ifdef ARCH_HAS_POWER_INIT
-+#if defined(ARCH_HAS_POWER_INIT) && defined(CONFIG_ACPI_PROCESSOR_CSTATE)
- void acpi_processor_power_init_bm_check(struct acpi_processor_flags *flags,
- 					unsigned int cpu);
- int acpi_processor_ffh_cstate_probe(unsigned int cpu,
+-	 * Do not enemerate SPI/I2C slaves as they will be enuerated by their
++	 * Do not enemerate SPI/I2C slaves as they will be enumerated by their
+ 	 * respective parents.
+ 	 */
+ 	INIT_LIST_HEAD(&resource_list);
+ 	acpi_dev_get_resources(device, &resource_list, acpi_check_spi_i2c_slave,
+ 			       &is_spi_i2c_slave);
+ 	acpi_dev_free_resource_list(&resource_list);
++
++	/*
++	 * these devices are declared as I2C but should actually be
++	 * enumerated as platform devices.
++	 */
++	if (!acpi_match_device_ids(device, i2c_whitelisted_id_list))
++		is_spi_i2c_slave = false;
++
+ 	if (!is_spi_i2c_slave)
+ 		acpi_create_platform_device(device);
+ }
 -- 
-1.9.1
-
+2.5.0
