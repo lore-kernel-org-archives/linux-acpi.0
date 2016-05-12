@@ -1,49 +1,52 @@
-From: "Rafael J. Wysocki" <rafael@kernel.org>
-Subject: Re: [PATCH V7 07/11] pci, acpi: Handle ACPI companion assignment.
-Date: Thu, 12 May 2016 13:27:23 +0200
-Message-ID: <CAJZ5v0jOAOWLNab0vMOVyciwOhtkuPdqZt3wkFbprq+PkEQNVg@mail.gmail.com>
-References: <1462893601-8937-1-git-send-email-tn@semihalf.com>
-	<1462893601-8937-8-git-send-email-tn@semihalf.com>
-	<CAJZ5v0hM8WAr9GGku89zKgiVKt6ArHf=9CntRUyBjyMNUvie2A@mail.gmail.com>
-	<20160511101101.GA16101@red-moon>
-	<CAJZ5v0hgw929W5PjF0PqT+ssiOHd8TeJoSQcz4NUiAovZY2pfQ@mail.gmail.com>
-	<20160511224314.GD28812@localhost>
-	<CAKc_7PW8BqQSTn01zDVsec4KXunQUKfcEft8=MH-E0xsmheo3w@mail.gmail.com>
+From: Aleksey Makarov <aleksey.makarov@linaro.org>
+Subject: Re: [PATCH v7 0/5] ACPI: parse the SPCR table
+Date: Thu, 12 May 2016 14:52:02 +0300
+Message-ID: <bc91f503-cee5-db03-51bf-a36ef3e95a1f@linaro.org>
+References: <1459431629-27934-1-git-send-email-aleksey.makarov@linaro.org>
+ <1bff98e3-2d94-ed76-1165-ed7d43bbfcf3@jonmasters.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 8bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-wm0-f67.google.com ([74.125.82.67]:35843 "EHLO
-	mail-wm0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932372AbcELL1a (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 12 May 2016 07:27:30 -0400
-In-Reply-To: <CAKc_7PW8BqQSTn01zDVsec4KXunQUKfcEft8=MH-E0xsmheo3w@mail.gmail.com>
+Received: from mail-lb0-f178.google.com ([209.85.217.178]:33439 "EHLO
+	mail-lb0-f178.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932121AbcELLxE (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 12 May 2016 07:53:04 -0400
+Received: by mail-lb0-f178.google.com with SMTP id jj5so9660457lbc.0
+        for <linux-acpi@vger.kernel.org>; Thu, 12 May 2016 04:53:03 -0700 (PDT)
+In-Reply-To: <1bff98e3-2d94-ed76-1165-ed7d43bbfcf3@jonmasters.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Jayachandran C <jchandra@broadcom.com>
-Cc: Bjorn Helgaas <helgaas@kernel.org>, "Rafael J. Wysocki" <rafael@kernel.org>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Tomasz Nowicki <tn@semihalf.com>, Arnd Bergmann <arnd@arndb.de>, Will Deacon <will.deacon@arm.com>, Catalin Marinas <catalin.marinas@arm.com>, Hanjun Guo <hanjun.guo@linaro.org>, Sinan Kaya <okaya@codeaurora.org>, robert.richter@caviumnetworks.com, Marcin Wojtas <mw@semihalf.com>, Liviu.Dudau@arm.com, David Daney <ddaney@caviumnetworks.com>, Wangyijing <wangyijing@huawei.com>, Suravee Suthikulanit <Suravee.Suthikulpanit@amd.com>, Mark Salter <msalter@redhat.com>, Linux PCI <linux-pci@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, "linaro-acpi@lists.linaro.org" <linaro-acpi@lists.linar>
+To: Jon Masters <jcm@jonmasters.org>, Russell King <linux@arm.linux.org.uk>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: linux-serial@vger.kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, "Rafael J . Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Leif Lindholm <leif.lindholm@linaro.org>, Graeme Gregory <graeme.gregory@linaro.org>, Al Stone <ahs3@redhat.com>, Christopher Covington <cov@codeaurora.org>, Yury Norov <ynorov@caviumnetworks.com>, Peter Hurley <peter@hurleysoftware.com>, Andy Shevchenko <andy.shevchenko@gmail.com>, "Zheng, Lv" <lv.zheng@intel.com>
 
-On Thu, May 12, 2016 at 12:43 PM, Jayachandran C <jchandra@broadcom.com> wrote:
-> On Thu, May 12, 2016 at 4:13 AM, Bjorn Helgaas <helgaas@kernel.org> wrote:
->> On Wed, May 11, 2016 at 10:30:51PM +0200, Rafael J. Wysocki wrote:
->>> On Wed, May 11, 2016 at 12:11 PM, Lorenzo Pieralisi
->>> <lorenzo.pieralisi@arm.com> wrote:
->>> > On Tue, May 10, 2016 at 08:37:00PM +0200, Rafael J. Wysocki wrote:
->>> >> On Tue, May 10, 2016 at 5:19 PM, Tomasz Nowicki <tn@semihalf.com> wrote:
+Hi Jon,
 
-[cut]
+In v7 I addressed the issues that were brought up by Rafael J . Wysocki
+(but I still do not have ACK from ACPI people).
 
->
-> If we are moving the ACPI/PCI code from drivers/acpi to
-> arch/arm64/ , there is an issue in having the header file
-> ecam.h in drivers/pci
->
-> The current include of "../pci/ecam.h" is slightly ugly (Arnd
-> and David had already noted this), but including the driver
-> header from arch code would be even worse.
->
-> I can either merge ecam.h into include/linux/pci.h
-> or move it to a new file include/linux/pci-ecam.h, any
-> suggestion on which is preferable?
+The issue with D02 will be addressed in a separate patch.
 
-My preference would be pci-ecam.h as we did a similar thing for
-pci-dma.h, for example, but basically this is up to Bjorn.
+There possibly is an issue with 16550 and command line console with I am
+investigating and probably will address in a separate patch.
+
+I know no other problems with it and reviewers seem happy.
+
+So I believe this patchset could be pulled.  If needed, I will send v8.
+
+Thank you
+Aleksey Makarov
+
+On 05/12/2016 11:20 AM, Jon Masters wrote:
+> On 03/31/2016 09:40 AM, Aleksey Makarov wrote:
+> 
+>> 'ARM Server Base Boot Requirements' [1] mentions SPCR (Serial Port
+>> Console Redirection Table) [2] as a mandatory ACPI table that
+>> specifies the configuration of serial console.
+> 
+> Hi Aleksey,
+> 
+> Can you summarize the status of this patch series?
+> 
+> Jon.
+> 
