@@ -1,72 +1,118 @@
-From: Al Stone <ahs3@redhat.com>
-Subject: Re: [PATCH v2] Force cppc_cpufreq to report values in KHz to fix user
- space reporting
-Date: Wed, 11 May 2016 17:08:10 -0600
-Message-ID: <359d426f-4e6d-6411-2bb0-0daa215dbbb4@redhat.com>
-References: <1461024699-13734-1-git-send-email-ahs3@redhat.com>
- <CAJ5Y-ea+oO22FAjXJBWdFYTZ+6xqpQvYXGZuyy4ZwPDO5hToqA@mail.gmail.com>
- <20160422053020.GB2235@vireshk-i7>
-Reply-To: ahs3@redhat.com
+From: David Daney <ddaney@caviumnetworks.com>
+Subject: Re: [PATCH v6 13/14] arm64, acpi, numa: NUMA support based on SRAT
+ and SLIT
+Date: Wed, 11 May 2016 17:06:13 -0700
+Message-ID: <5733C8F5.6090206@caviumnetworks.com>
+References: <1461780436-27182-1-git-send-email-ddaney.cavm@gmail.com> <1461780436-27182-14-git-send-email-ddaney.cavm@gmail.com> <20160511103929.GC3051@e104818-lin.cambridge.arm.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20160422053020.GB2235@vireshk-i7>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Viresh Kumar <viresh.kumar@linaro.org>, Ashwin Chaugule <ashwin.chaugule@linaro.org>
-Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, linux acpi <linux-acpi@vger.kernel.org>, lkml <linux-kernel@vger.kernel.org>, "linux-pm@vger.kernel.org" <linux-pm@vger.kernel.org>, "rwells@codeaurora.org" <rwells@codeaurora.org>
+Return-path: <linux-ia64-owner@vger.kernel.org>
+In-Reply-To: <20160511103929.GC3051@e104818-lin.cambridge.arm.com>
+Sender: linux-ia64-owner@vger.kernel.org
+To: Catalin Marinas <catalin.marinas@arm.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: David Daney <ddaney.cavm@gmail.com>, Will Deacon <will.deacon@arm.com>, linux-arm-kernel@lists.infradead.org, Mark Rutland <mark.rutland@arm.com>, Tony Luck <tony.luck@intel.com>, Fenghua Yu <fenghua.yu@intel.com>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, x86@kernel.org, Len Brown <lenb@kernel.org>, Rob Herring <robh+dt@kernel.org>, Frank Rowand <frowand.list@gmail.com>, Grant Likely <grant.likely@linaro.org>, Robert Moore <robert.moore@intel.com>, Lv Zheng <lv.zheng@intel.com>, Hanjun Guo <hanjun.guo@linaro.org>, Marc Zyngier <Marc.Zyngier@arm.com>, linux-ia64@vger.kernel.org, linux-acpi@vger.kernel.org, devel@acpica.org, Robert Richter <rrichter@cavium.com>, Ganapatrao Kulkarni <gkulkarni@caviumnetworks.com>, linux-kernel@vger.kernel.org, David Daney <david.daney@cavium.com>, Jon
 List-Id: linux-acpi@vger.kernel.org
 
-On 04/21/2016 11:30 PM, Viresh Kumar wrote:
-> On 19-04-16, 16:12, Ashwin Chaugule wrote:
->> + Ryan
->>
->> Hi Al,
->>
->> On 18 April 2016 at 20:11, Al Stone <ahs3@redhat.com> wrote:
->>> When CPPC is being used by ACPI on arm64, user space tools such as
->>> cpupower report CPU frequency values from sysfs that are incorrect.
->>>
->>> What the driver was doing was reporting the values given by ACPI tables
->>> in whatever scale was used to provide them.  However, the ACPI spec
->>> defines the CPPC values as unitless abstract numbers.  Internal kernel
->>> structures such as struct perf_cap, in contrast, expect these values
->>> to be in KHz.  When these struct values get reported via sysfs, the
->>> user space tools also assume they are in KHz, causing them to report
->>> incorrect values (for example, reporting a CPU frequency of 1MHz when
->>> it should be 1.8GHz).
->>>
->>> While the investigation for a long term fix proceeds (several options
->>> are being explored, some of which may require spec changes or other
->>> much more invasive fixes), this patch forces the values read by CPPC
->>> to be read in KHz, regardless of what they actually represent.
->>>
->>> The downside is that this approach has some assumptions:
->>>
->>>    (1) It relies on SMBIOS3 being used, *and* that the Max Frequency
->>>    value for a processor is set to a non-zero value.
->>>
->>>    (2) It assumes that all processors run at the same speed.  This
->>>    patch retrieves the first CPU Max Frequency from a type 4 DMI
->>>    record that it can find.  This may not be an issue, however, as a
->>>    sampling of DMI data on x86 and arm64 indicates there is often only
->>>    one such record regardless.
-> 
-> Don't we have any big LITTLE ARM servers yet ? Or we will not have them at all ?
+On 05/11/2016 03:39 AM, Catalin Marinas wrote:
+> On Wed, Apr 27, 2016 at 11:07:15AM -0700, David Daney wrote:
+>> +static int __init get_mpidr_in_madt(int acpi_id, u64 *mpidr)
+>> +{
+>> +	unsigned long madt_end, entry;
+>> +	struct acpi_table_madt *madt;
+>> +	acpi_size tbl_size;
+>> +
+>> +	if (ACPI_FAILURE(acpi_get_table_with_size(ACPI_SIG_MADT, 0,
+>> +			(struct acpi_table_header **)&madt, &tbl_size)))
+>> +		return -ENODEV;
+>> +
+>> +	entry = (unsigned long)madt;
+>> +	madt_end = entry + madt->header.length;
+>> +
+>> +	/* Parse all entries looking for a match. */
+>> +	entry += sizeof(struct acpi_table_madt);
+>> +	while (entry + sizeof(struct acpi_subtable_header) < madt_end) {
+>> +		struct acpi_subtable_header *header =
+>> +			(struct acpi_subtable_header *)entry;
+>> +
+>> +		if (header->type == ACPI_MADT_TYPE_GENERIC_INTERRUPT) {
+>> +			struct acpi_madt_generic_interrupt *gicc =
+>> +				container_of(header,
+>> +				struct acpi_madt_generic_interrupt, header);
+>> +
+>> +			if ((gicc->flags & ACPI_MADT_ENABLED) &&
+>> +			    (gicc->uid == acpi_id)) {
+>> +				*mpidr = gicc->arm_mpidr;
+>> +				early_acpi_os_unmap_memory(madt, tbl_size);
+>> +				return 0;
+>> +			}
+>> +		}
+>> +		entry += header->length;
+>> +	}
+>> +
+>> +	early_acpi_os_unmap_memory(madt, tbl_size);
+>> +	return -ENODEV;
+>> +}
+>> +
+>> +/* Callback for Proximity Domain -> ACPI processor UID mapping */
+>> +void __init acpi_numa_gicc_affinity_init(struct acpi_srat_gicc_affinity *pa)
+>> +{
+>> +	int pxm, node;
+>> +	u64 mpidr;
+>> +
+>> +	if (srat_disabled())
+>> +		return;
+>> +
+>> +	if (pa->header.length < sizeof(struct acpi_srat_gicc_affinity)) {
+>> +		pr_err("SRAT: Invalid SRAT header length: %d\n",
+>> +			pa->header.length);
+>> +		bad_srat();
+>> +		return;
+>> +	}
+>> +
+>> +	if (!(pa->flags & ACPI_SRAT_GICC_ENABLED))
+>> +		return;
+>> +
+>> +	if (cpus_in_srat >= NR_CPUS) {
+>> +		pr_warn_once("SRAT: cpu_to_node_map[%d] is too small, may not be able to use all cpus\n",
+>> +			     NR_CPUS);
+>> +		return;
+>> +	}
+>> +
+>> +	pxm = pa->proximity_domain;
+>> +	node = acpi_map_pxm_to_node(pxm);
+>> +
+>> +	if (node == NUMA_NO_NODE || node >= MAX_NUMNODES) {
+>> +		pr_err("SRAT: Too many proximity domains %d\n", pxm);
+>> +		bad_srat();
+>> +		return;
+>> +	}
+>> +
+>> +	if (get_mpidr_in_madt(pa->acpi_processor_uid, &mpidr)) {
+>> +		pr_err("SRAT: PXM %d with ACPI ID %d has no valid MPIDR in MADT\n",
+>> +			pxm, pa->acpi_processor_uid);
+>> +		bad_srat();
+>> +		return;
+>> +	}
+>
+> I wonder whether you could replace the get_mpidr_in_madt() function with
+> something like acpi_get_phys_id(). It looks like get_mpidr_in_madt()
+> duplicates functionality already available elsewhere.
+>
 
-My apologies, but I missed this question earlier and just now noticed
-it.  AFAIK, there are no big.LITTLE ARM servers yet.  That doesn't mean
-there aren't any, or that no one is planning one; I just don't know of
-any.  I have been in discussions about doing that, but in the past those
-have ended up concluding that there is probably no need for that level
-of power management in a server.
+I just tried that, and it doesn't work.
 
--- 
-ciao,
-al
------------------------------------
-Al Stone
-Software Engineer
-Red Hat, Inc.
-ahs3@redhat.com
------------------------------------
+The problem is that this code is being run very early in the boot, and 
+kmalloc cannot be used.  acpi_get_phys_id() and its ilk can only be used 
+once we have working kmalloc.  We need to extract the NUMA information 
+early like this precisely because it is needed to initializing the slab 
+system
+
+Notice that we are using early_acpi_os_unmap_memory() et al. in 
+get_mpidr_in_madt() explicitly for this reason.
+
+In summary: I don't think we need another revision of this patch, it is 
+like this for a good reason.
+
+David Daney
+
