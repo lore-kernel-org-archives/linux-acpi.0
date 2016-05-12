@@ -1,42 +1,110 @@
-From: Bjorn Helgaas <helgaas@kernel.org>
-Subject: Re: [PATCH V7 07/11] pci, acpi: Handle ACPI companion assignment.
-Date: Thu, 12 May 2016 07:08:36 -0500
-Message-ID: <20160512120836.GF28812@localhost>
-References: <1462893601-8937-1-git-send-email-tn@semihalf.com>
- <1462893601-8937-8-git-send-email-tn@semihalf.com>
- <CAJZ5v0hM8WAr9GGku89zKgiVKt6ArHf=9CntRUyBjyMNUvie2A@mail.gmail.com>
- <20160511101101.GA16101@red-moon>
- <CAJZ5v0hgw929W5PjF0PqT+ssiOHd8TeJoSQcz4NUiAovZY2pfQ@mail.gmail.com>
- <20160511224314.GD28812@localhost>
- <57345FDF.4000804@semihalf.com>
+From: "Rafael J. Wysocki" <rafael@kernel.org>
+Subject: Re: [PATCH v6 00/14] ACPI NUMA support for ARM64
+Date: Thu, 12 May 2016 14:54:35 +0200
+Message-ID: <CAJZ5v0iVf-+ngd-qDUk8Acf7mGrq0f8j2d_QtfxQxuBH_93t3w@mail.gmail.com>
+References: <1461780436-27182-1-git-send-email-ddaney.cavm@gmail.com>
+	<CAJZ5v0iMDQ4pWip4vyCos0o+1DFDvXQf4XZQqC4SGjJsDO4Lnw@mail.gmail.com>
+	<20160511104032.GA31374@arm.com>
+	<CAJZ5v0gQMR7OUyZo5Sa3bgMYZBzdnwFaktz9JCv1ocWXw7yHTg@mail.gmail.com>
+	<57339F39.3040603@caviumnetworks.com>
+	<CAJZ5v0h8zBEZ2nLLdk62r7uqHizUfVWamUVEriBGe1XBE6462Q@mail.gmail.com>
+	<5733A47B.8030908@caviumnetworks.com>
+	<CAJZ5v0gBTANFntBSkyaRtt-BKOMC+pz_R9CwM6wKnp=Ni1dPFA@mail.gmail.com>
+	<20160512085616.GA25355@arm.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.136]:35349 "EHLO mail.kernel.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751338AbcELMIk (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 12 May 2016 08:08:40 -0400
-Content-Disposition: inline
-In-Reply-To: <57345FDF.4000804@semihalf.com>
+Received: from mail-wm0-f65.google.com ([74.125.82.65]:33140 "EHLO
+	mail-wm0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752959AbcELMyh (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 12 May 2016 08:54:37 -0400
+In-Reply-To: <20160512085616.GA25355@arm.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Tomasz Nowicki <tn@semihalf.com>
-Cc: "Rafael J. Wysocki" <rafael@kernel.org>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Arnd Bergmann <arnd@arndb.de>, Will Deacon <will.deacon@arm.com>, Catalin Marinas <catalin.marinas@arm.com>, Hanjun Guo <hanjun.guo@linaro.org>, Sinan Kaya <okaya@codeaurora.org>, jchandra@broadcom.com, robert.richter@caviumnetworks.com, Marcin Wojtas <mw@semihalf.com>, Liviu.Dudau@arm.com, David Daney <ddaney@caviumnetworks.com>, wangyijing@huawei.com, Suravee Suthikulanit <Suravee.Suthikulpanit@amd.com>, Mark Salter <msalter@redhat.com>, Linux PCI <linux-pci@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, "linaro-acpi@lists.linaro.org" <linaro-acpi@lists.linaro.org>, Jon Masters <jcm@redhat.com>, Andrea Gallo <andrea.g>
+To: Will Deacon <will.deacon@arm.com>
+Cc: "Rafael J. Wysocki" <rafael@kernel.org>, David Daney <ddaney@caviumnetworks.com>, David Daney <ddaney.cavm@gmail.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Mark Rutland <mark.rutland@arm.com>, Catalin Marinas <catalin.marinas@arm.com>, Tony Luck <tony.luck@intel.com>, Fenghua Yu <fenghua.yu@intel.com>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, the arch/x86 maintainers <x86@kernel.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Rob Herring <robh+dt@kernel.org>, Frank Rowand <frowand.list@gmail.com>, Grant Likely <grant.likely@linaro.org>, Robert Moore <robert.moore@intel.com>, Lv Zheng <lv.zheng@intel.com>, Hanjun Guo <hanjun.guo@linaro.org>, Marc Zyngier <Marc.Zyngier@arm.com>, "linux-ia64@vger.kernel.org" <linux-ia64@vger.kernel.>
 
-On Thu, May 12, 2016 at 12:50:07PM +0200, Tomasz Nowicki wrote:
-> On 12.05.2016 00:43, Bjorn Helgaas wrote:
+On Thu, May 12, 2016 at 10:56 AM, Will Deacon <will.deacon@arm.com> wrote:
+> On Thu, May 12, 2016 at 12:29:02AM +0200, Rafael J. Wysocki wrote:
+>> On Wed, May 11, 2016 at 11:30 PM, David Daney <ddaney@caviumnetworks.com> wrote:
+>> > On 05/11/2016 02:22 PM, Rafael J. Wysocki wrote:
+>> >> On Wed, May 11, 2016 at 11:08 PM, David Daney <ddaney@caviumnetworks.com>
+>> >> wrote:
+>> >>> On 05/11/2016 01:35 PM, Rafael J. Wysocki wrote:
+>> >>>> On Wed, May 11, 2016 at 12:40 PM, Will Deacon <will.deacon@arm.com>
+>> >>>> wrote:
+>> >>>>> On Wed, May 11, 2016 at 02:43:11AM +0200, Rafael J. Wysocki wrote:
+>> >>>>> There's also a dependency on the arm64 for-next/core branch, so I've
+>> >>>>> been
+>> >>>>> largely ignoring this as far as 4.6 is concerned and was planning to
+>> >>>>> take
+>> >>>>> a proper look for 4.7 once the upcoming merge window is out of the way.
+>> >>>>
+>> >>>>
+>> >>>>
+>> >>>> That would be 4.7 and 4.8 respectively I suppose?
+>
+> Argh, yes, of course! :)
+>
+>> >>>>
+>> >>>> Anyway, Catalin has ACKed all of them except for the [13/14], so
+>> >>>> technically I can apply [1-12/14] now and then [13-14/14] can be
+>> >>>> applied when they are ready.
+>> >>>>
+>> >>>> Do you think there will be any problems with merging [6-7/14] into 4.7
+>> >>>> via the ACPI tree?
+>> >>>>
+>> >>>
+>> >>> I would defer to the arm64 maintainers for decisions about the arm64
+>> >>> specific parts of the patch set.  That said, many of the arm64 specific
+>> >>> patches depend on the arm64 for-next/core branch, so you would have to be
+>> >>> careful about merge ordering if you pull these in before the
+>> >>> for-next/core
+>> >>> branch is merged.
+>> >>
+>> >>
+>> >> Fair enough.  I will wait for an update then.
+>> >>
+>> >>> Also FWIW, I plan on addressing Catalin's comments about 13/14 and
+>> >>> posting a
+>> >>> new version of the patch set in the next day or two.
+>> >>
+>> >>
+>> >> OK, but in that case it won't be considered for 4.7 (at least not by
+>> >> me), so I'd suggest sending it in the second half of the 4.7 merge
+>> >> window (or about that time).
+>> >
+>> >
+>> > To be candid, I would very much like for you to pull in as many of the
+>> > patches as you are comfortable with as soon as possible.
+>> >
+>> > I don't know where Will and Catalin stand on this, and their opinion is
+>> > obviously important, but getting 1-12/14 merged to v4.7 and deferring the
+>> > last two for v4.8 would simplify the whole process for me.  The drawback is
+>> > carrying dead code around until the final parts are merged.
+>>
+>> That is not unheard of, however.
+>>
+>> OK, I'll try to put the [1-12/14] into my linux-next branch early next
+>> week and we'll see if that triggers any conflicts.
+>
+> I'd really much rather this waited until after the merge window.
 
-> >@@ -70,9 +71,11 @@ struct pci_config_window *pci_ecam_create(struct device *dev,
-> >  	cfg->res.flags = IORESOURCE_MEM | IORESOURCE_BUSY;
-> >  	cfg->res.name = "PCI ECAM";
-> >
-> >-	err = request_resource(&iomem_resource, &cfg->res);
-> >-	if (err) {
-> >-		dev_err(dev, "request ECAM res %pR failed\n", &cfg->res);
-> >+	conflict = request_resource(&iomem_resource, &cfg->res);
-> 
-> We need request_resource_conflict here then:
-> -	conflict = request_resource(&iomem_resource, &cfg->res);
-> +	conflict = request_resource_conflict(&iomem_resource, &cfg->res);
+That's fine by me, so I guess my previous request for the next version
+to be sent by the end of the merge window applies. :-)
 
-Whoops, fixed, thanks!
+> My understanding is that it's bad practice to put stuff into -next during the
+> merge window,
+
+Unless you want to push that stuff to Linus during the merge window in
+progress, that is.
+
+> and you'd end up having to send a pull based on a random
+> commit (the arm64 pull request?) in the second half. On top of that, this
+> series would get very little exposure in -next during that time.
+>
+> On the other hand, putting this into linux-next after the merge window
+> gives us time for testing, allows David to rework patch 13 (which is aiming
+> for 4.8 anyway iiuc) and avoids merge window churn.
+
+OK
