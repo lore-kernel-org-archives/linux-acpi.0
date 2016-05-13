@@ -1,51 +1,27 @@
-From: "Rafael J. Wysocki" <rafael@kernel.org>
-Subject: Re: [PATCH] ACPI/video: mark acpi_video_get_levels inline
-Date: Fri, 13 May 2016 23:59:40 +0200
-Message-ID: <CAJZ5v0jAyBfe6+FjzYgwe8FKxxjzzwHk3f2GyMU_sxaMve=3CQ@mail.gmail.com>
-References: <1463086839-2466302-1-git-send-email-arnd@arndb.de>
+From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Subject: Re: [PATCH v3 update 4/4] Thermal: add INT3406 thermal driver
+Date: Sat, 14 May 2016 00:05:24 +0200
+Message-ID: <5104945.McBGKbKeb7@vostro.rjw.lan>
+References: <1461761105-5961-1-git-send-email-aaron.lu@intel.com> <20160509075458.GA8945@aaronlu.sh.intel.com> <1462867730.25391.2.camel@rzhang1-mobl4>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-wm0-f68.google.com ([74.125.82.68]:34302 "EHLO
-	mail-wm0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753236AbcEMV7m (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 13 May 2016 17:59:42 -0400
-In-Reply-To: <1463086839-2466302-1-git-send-email-arnd@arndb.de>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7Bit
+Return-path: <linux-pm-owner@vger.kernel.org>
+In-Reply-To: <1462867730.25391.2.camel@rzhang1-mobl4>
+Sender: linux-pm-owner@vger.kernel.org
+To: "Zhang, Rui" <rui.zhang@intel.com>, "Lu, Aaron" <aaron.lu@intel.com>
+Cc: "jingoohan1@gmail.com" <jingoohan1@gmail.com>, "linux-fbdev@vger.kernel.org" <linux-fbdev@vger.kernel.org>, "Pandruvada, Srinivas" <srinivas.pandruvada@intel.com>, "linux-pm@vger.kernel.org" <linux-pm@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
-To: Arnd Bergmann <arnd@arndb.de>
-Cc: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Robert Moore <robert.moore@intel.com>, Lv Zheng <lv.zheng@intel.com>, Len Brown <lenb@kernel.org>, Hans de Goede <hdegoede@redhat.com>, Darren Hart <dvhart@linux.intel.com>, Borislav Petkov <bp@suse.de>, Aaron Lu <aaron.lu@intel.com>, Sudeep Holla <Sudeep.Holla@arm.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, "devel@acpica.org" <devel@acpica.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
 
-On Thu, May 12, 2016 at 11:00 PM, Arnd Bergmann <arnd@arndb.de> wrote:
-> A recent patch added a stub function for acpi_video_get_levels when
-> CONFIG_ACPI_VIDEO is disabled. However, this is marked as 'static'
-> and causes a warning about an unused function whereever the header
-> gets included:
->
-> In file included from ../drivers/gpu/drm/radeon/radeon_acpi.c:28:0:
-> include/acpi/video.h:74:12: error: 'acpi_video_get_levels' defined but not used [-Werror=unused-function]
->
-> This makes the declaration 'static inline', which gets rid of the
-> warning.
->
-> Signed-off-by: Arnd Bergmann <arnd@arndb.de>
-> Fixes: 059500940def ("ACPI/video: export acpi_video_get_levels")
-> ---
->  include/acpi/video.h | 2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
->
-> diff --git a/include/acpi/video.h b/include/acpi/video.h
-> index a4b96c971564..70a41f742037 100644
-> --- a/include/acpi/video.h
-> +++ b/include/acpi/video.h
-> @@ -71,7 +71,7 @@ static inline bool acpi_video_handles_brightness_key_presses(void)
->  {
->         return false;
->  }
-> -static int acpi_video_get_levels(struct acpi_device *device,
-> +static inline int acpi_video_get_levels(struct acpi_device *device,
->                         struct acpi_video_device_brightness **dev_br)
->  {
->         return -ENODEV;
+On Tuesday, May 10, 2016 08:08:52 AM Zhang, Rui wrote:
+> On Mon, 2016-05-09 at 15:54 +0800, Aaron Lu wrote:
+> > INT3406 ACPI device object resembles an ACPI video output device, but its
+> > _BCM is said to be deprecated and should not be used. So we will make
+> > use of the raw interface to do the actual cooling.
+> > 
+> > Signed-off-by: Aaron Lu <aaron.lu@intel.com>
+> 
+> Acked-by: Zhang Rui <rui.zhang@intel.com>
 
 Applied, thanks!
+
