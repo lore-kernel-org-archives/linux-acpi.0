@@ -1,98 +1,108 @@
-From: "Roy Franz (HPE)" <roy.lists@gmail.com>
-Subject: Re: [PATCH v5 0/1] ARM64: ACPI: Update documentation for latest
+From: Hanjun Guo <hanjun.guo@linaro.org>
+Subject: Re: [PATCH v5 1/1] ARM64: ACPI: Update documentation for latest
  specification version
-Date: Thu, 12 May 2016 14:30:26 -0700
-Message-ID: <CAK-u0Q=zrPhOnkut1vJgAS5DKKRSD2oVxCeZen_6LqvYCR5nCw@mail.gmail.com>
+Date: Fri, 13 May 2016 09:48:50 +0800
+Message-ID: <57353282.3090107@linaro.org>
 References: <1461619287-27211-1-git-send-email-al.stone@linaro.org>
-	<3b6d5be3-40ab-94dc-2590-8b2638cbdc15@redhat.com>
-Reply-To: roy.franz@hpe.com
+ <1461619287-27211-2-git-send-email-al.stone@linaro.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-lf0-f67.google.com ([209.85.215.67]:33811 "EHLO
-	mail-lf0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751420AbcELVa3 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 12 May 2016 17:30:29 -0400
-In-Reply-To: <3b6d5be3-40ab-94dc-2590-8b2638cbdc15@redhat.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-doc-owner@vger.kernel.org>
+In-Reply-To: <1461619287-27211-2-git-send-email-al.stone@linaro.org>
+Sender: linux-doc-owner@vger.kernel.org
+To: Al Stone <al.stone@linaro.org>, linux-doc@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
+Cc: linaro-acpi@lists.linaro.org, patches@linaro.org, linaro-kernel@lists.linaro.org
 List-Id: linux-acpi@vger.kernel.org
-To: ahs3@redhat.com
-Cc: Al Stone <al.stone@linaro.org>, linux-doc@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, linaro-acpi@lists.linaro.org, patches@linaro.org, linaro-kernel@lists.linaro.org
 
-On Mon, May 2, 2016 at 1:19 PM, Al Stone <ahs3@redhat.com> wrote:
-> On 04/25/2016 03:21 PM, Al Stone wrote:
->> The ACPI 6.1 specification was recently released at the end of January
->> 2016, but the arm64 kernel documentation for the use of ACPI was written
->> for the 5.1 version of the spec.  There were significant additions to the
->> spec that had not yet been mentioned -- for example, the 6.0 mechanisms
->> added to make it easier to define processors and low power idle states,
->> as well as the 6.1 addition allowing regular interrupts (not just from
->> GPIO) be used to signal ACPI general purpose events.
->>
->> This patch reflects going back through and examining the specs in detail
->> and updating content appropriately.  Whilst there, a few odds and ends of
->> typos were caught as well.  This brings the documentation up to date with
->> ACPI 6.1 for arm64.
->>
->> Changes for v5:
->>    -- Miscellaneous typos and corrections (Lorenzo Pieralisi)
->>    -- Add linux-acpi@ ML to the distribution list (Alexey Klimov)
->>    -- Corrections to CPPC information (Alexey Klimov)
->>    -- ACK from Lorenzo Pieralisi
->>    -- Updated bibliographic info (Al Stone)
->>
->> Changes for v4:
->>    -- Clarify that IORT can sometimes be optional (Jon Masters).
->>    -- Remove "Use as needed" descriptions of ACPI objects; they provide
->>       no substantive information and doing so simplifies maintenance of
->>       this document over time.  These have been replaced with a simpler
->>       notice that states that unless otherwise noted, do what the ACPI
->>       specification says is needed.
->>    -- Corrected the _OSI object usage recommendation; it described kernel
->>       behavior that does not exist (Al Stone).
->>
->> Changes for v3:
->>    -- Clarify use of _LPI/_RDI (Vikas Sajjan)
->>    -- Whitespace cleanup as pointed out by checkpatch
->>
->> Changes for v2:
->>    -- Clean up white space (Harb Abdulhahmid)
->>    -- Clarification on _CCA usage (Harb Abdulhamid)
->>    -- IORT moved to required from recommended (Hanjun Guo)
->>    -- Clarify IORT description (Hanjun Guo)
->>
->>
->> Al Stone (1):
->>   ARM64: ACPI: Update documentation for latest specification version
->>
->>  Documentation/arm64/acpi_object_usage.txt | 343 ++++++++++++++++--------------
->>  Documentation/arm64/arm-acpi.txt          |  40 ++--
->>  2 files changed, 213 insertions(+), 170 deletions(-)
->>
+On 2016/4/26 5:21, Al Stone wrote:
+> The ACPI 6.1 specification was recently released at the end of January
+> 2016, but the arm64 kernel documentation for the use of ACPI was written
+> for the 5.1 version of the spec.  There were significant additions to the
+> spec that had not yet been mentioned -- for example, the 6.0 mechanisms
+> added to make it easier to define processors and low power idle states,
+> as well as the 6.1 addition allowing regular interrupts (not just from
+> GPIO) be used to signal ACPI general purpose events.
 >
-> Ping?  If there are no further comments, can this be pulled in through
-> either the documentation or arm64 tree?
+> This patch reflects going back through and examining the specs in detail
+> and updating content appropriately.  Whilst there, a few odds and ends of
+> typos were caught as well.  This brings the documentation up to date with
+> ACPI 6.1 for arm64.
 >
-> Thanks.
-
-I've read through this - looks good to me.  I think it provides useful
-guidance to
-reference as we work on getting good ACPI support provided by various platforms
-under development.
-
-Reviewed-by: Roy Franz <roy.franz@hpe.com>
-
+> Signed-off-by: Al Stone <al.stone@linaro.org>
+> Acked-by: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+> ---
+>   Documentation/arm64/acpi_object_usage.txt | 343 ++++++++++++++++--------------
+>   Documentation/arm64/arm-acpi.txt          |  40 ++--
+>   2 files changed, 213 insertions(+), 170 deletions(-)
 >
-> --
-> ciao,
-> al
-> -----------------------------------
-> Al Stone
-> Software Engineer
-> Red Hat, Inc.
-> ahs3@redhat.com
-> -----------------------------------
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> diff --git a/Documentation/arm64/acpi_object_usage.txt b/Documentation/arm64/acpi_object_usage.txt
+> index a6e1a18..c77010c 100644
+> --- a/Documentation/arm64/acpi_object_usage.txt
+> +++ b/Documentation/arm64/acpi_object_usage.txt
+> @@ -13,14 +13,14 @@ For ACPI on arm64, tables also fall into the following categories:
+>
+>          -- Required: DSDT, FADT, GTDT, MADT, MCFG, RSDP, SPCR, XSDT
+>
+> -       -- Recommended: BERT, EINJ, ERST, HEST, SSDT
+> +       -- Recommended: BERT, EINJ, ERST, HEST, PCCT, SSDT
+>
+> -       -- Optional: BGRT, CPEP, CSRT, DRTM, ECDT, FACS, FPDT, MCHI, MPST,
+> -          MSCT, RASF, SBST, SLIT, SPMI, SRAT, TCPA, TPM2, UEFI
+> -
+> -       -- Not supported: BOOT, DBG2, DBGP, DMAR, ETDT, HPET, IBFT, IVRS,
+> -          LPIT, MSDM, RSDT, SLIC, WAET, WDAT, WDRT, WPBT
+> +       -- Optional: BGRT, CPEP, CSRT, DBG2, DRTM, ECDT, FACS, FPDT, IORT,
+> +          MCHI, MPST, MSCT, NFIT, PMTT, RASF, SBST, SLIT, SPMI, SRAT, STAO,
+> +	  TCPA, TPM2, UEFI, XENV
+>
+> +       -- Not supported: BOOT, DBGP, DMAR, ETDT, HPET, IBFT, IVRS, LPIT,
+> +          MSDM, OEMx, PSDT, RSDT, SLIC, WAET, WDAT, WDRT, WPBT
+>
+>   Table  Usage for ARMv8 Linux
+>   -----  ----------------------------------------------------------------
+> @@ -50,7 +50,8 @@ CSRT   Signature Reserved (signature == "CSRT")
+>
+>   DBG2   Signature Reserved (signature == "DBG2")
+>          == DeBuG port table 2 ==
+> -       Microsoft only table, will not be supported.
+> +       License has changed and should be usable.  Optional if used instead
+> +       of earlycon=<device> on the command line.
+>
+>   DBGP   Signature Reserved (signature == "DBGP")
+>          == DeBuG Port table ==
+> @@ -133,10 +134,11 @@ GTDT   Section 5.2.24 (signature == "GTDT")
+>
+>   HEST   Section 18.3.2 (signature == "HEST")
+>          == Hardware Error Source Table ==
+> -       Until further error source types are defined, use only types 6 (AER
+> -       Root Port), 7 (AER Endpoint), 8 (AER Bridge), or 9 (Generic Hardware
+> -       Error Source).  Firmware first error handling is possible if and only
+> -       if Trusted Firmware is being used on arm64.
+> +       ARM-specific error sources have been defined; please use those or the
+> +       PCI types such as type 6 (AER Root Port), 7 (AER Endpoint), or 8 (AER
+> +       Bridge), or use type 9 (Generic Hardware Error Source).  Firmware first
+> +       error handling is possible if and only if Trusted Firmware is being
+> +       used on arm64.
+>
+>          Must be supplied if RAS support is provided by the platform.  It
+>          is recommended this table be supplied.
+> @@ -149,20 +151,30 @@ IBFT   Signature Reserved (signature == "IBFT")
+>          == iSCSI Boot Firmware Table ==
+>          Microsoft defined table, support TBD.
+>
+> +IORT   Signature Reserved (signature == "IORT")
+> +       == Input Output Remapping Table ==
+> +       arm64 only table, required in order to describe IO topology, SMMUs,
+> +       and GIC ITSs, and how those various components are connected together,
+> +       such as identifying which components are behind which SMMUs/ITSs.
+> +       This table will only be required on certain SBSA platforms (e.g.,
+> +       when using GICv3-ITS and an SMMU); on SBSA Level 0 platforms, it
+> +       remains optional.
+
+Hmm, yes, for GICv2 based system, we don't need a IORT table,
+
+Reviewed-by: Hanjun Guo <hanjun.guo@linaro.org>
+
+Thanks
+Hanjun
