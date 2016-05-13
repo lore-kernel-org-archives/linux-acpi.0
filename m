@@ -1,155 +1,299 @@
-From: Duc Dang <dhdang@apm.com>
-Subject: Re: [PATCH V7 00/11] Support for generic ACPI based PCI host controller
-Date: Thu, 12 May 2016 19:55:20 -0700
-Message-ID: <CADaLNDnXiL2nYtSmd1h-9MSnUUY4S+dAEcFXRSE_jjWhqRzufQ@mail.gmail.com>
-References: <1462893601-8937-1-git-send-email-tn@semihalf.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+From: Lv Zheng <lv.zheng@intel.com>
+Subject: [PATCH v2 0/4] ACPI 2.0: Enable TermList interpretion for table loading
+Date: Fri, 13 May 2016 13:35:17 +0800
+Message-ID: <cover.1463109824.git.lv.zheng@intel.com>
+References: <0e65135af51d94db0410c7059f3bc3a2300fc3b5>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-vk0-f51.google.com ([209.85.213.51]:36079 "EHLO
-	mail-vk0-f51.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751940AbcEMCz4 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 12 May 2016 22:55:56 -0400
-Received: by mail-vk0-f51.google.com with SMTP id s184so121487796vkb.3
-        for <linux-acpi@vger.kernel.org>; Thu, 12 May 2016 19:55:50 -0700 (PDT)
-In-Reply-To: <1462893601-8937-1-git-send-email-tn@semihalf.com>
+Received: from mga09.intel.com ([134.134.136.24]:3473 "EHLO mga09.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751073AbcEMFfb (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 13 May 2016 01:35:31 -0400
+In-Reply-To: <0e65135af51d94db0410c7059f3bc3a2300fc3b5>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Tomasz Nowicki <tn@semihalf.com>
-Cc: Bjorn Helgaas <helgaas@kernel.org>, Arnd Bergmann <arnd@arndb.de>, Will Deacon <will.deacon@arm.com>, Catalin Marinas <catalin.marinas@arm.com>, Rafael Wysocki <rafael@kernel.org>, Hanjun Guo <hanjun.guo@linaro.org>, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, okaya@codeaurora.org, Jayachandran C <jchandra@broadcom.com>, robert.richter@caviumnetworks.com, Marcin Wojtas <mw@semihalf.com>, Liviu Dudau <Liviu.Dudau@arm.com>, David Daney <ddaney@caviumnetworks.com>, Yijing Wang <wangyijing@huawei.com>, Suravee Suthikulpanit <Suravee.Suthikulpanit@amd.com>, Mark Salter <msalter@redhat.com>, linux-pci@vger.kernel.org, linux-arm <linux-arm-kernel@lists.infradead.org>, linux-acpi@vger.kernel.org, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linaro-acpi@lists.linaro.org, Jon Masters <jcm@redhat.com>, andrea.gallo@linaro.org, jeremy.linton@arm.com, liudongdong
+To: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <len.brown@intel.com>
+Cc: Lv Zheng <lv.zheng@intel.com>, Lv Zheng <zetalog@gmail.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
 
-On Tue, May 10, 2016 at 8:19 AM, Tomasz Nowicki <tn@semihalf.com> wrote:
-> From the functionality point of view this series may be split into the
-> following logic parts:
-> 1. New ECAM API and update for users of the pci-host-common API
-> 2. Necessary fixes as the preparation for using driver on ARM64.
-> 3. Use new MCFG interface and implement generic ACPI based PCI host controller driver.
-> 4. Enable above driver on ARM64
->
-> Patches has been built on top of 4.6-rc7 and can be found here:
-> git@github.com:semihalf-nowicki-tomasz/linux.git (pci-acpi-v7)
->
-> This has been tested on Cavium ThunderX server. Any help in reviewing and
-> testing is very appreciated.
+MLC (module level code) is an ACPICA terminology describing the AML code
+out of any control method, currently only Type1Opcode (If/Else/While)
+wrapped MLC code blocks are executed by the AML interpreter after the table
+loading. But the issue which is fixed by this patchset is:
+   Not only Type1Opcode, but also Type2Opcode will be executed as MLC and
+   MLC is not executed after loading the table, but is executed right in
+   place.
 
-I tried this series on APM X-Gene platforms (with ECAM fix-up quirk
-added) and PCIe works fine.
+The following AML code is assembled into a static loading SSDT, and used
+as an instrumentation to pry into the de-facto standard AML interpreter
+behaviors:
+  Name (ECOK, Zero)
+  Scope (\)
+  {
+      DBUG ("TermList 1")
+      If (LEqual (ECOK, Zero))
+      {
+          DBUG ("TermList 2")
+          Device (MDEV)
+          {
+              DEBUG (TermList 3")
+              If (CondRefOf (MDEV))
+              {
+                  DBUG ("MDEV exists")
+              }
+              If (CondRefOf (MDEV._STA))
+              {
+                  DBUG ("MDEV._STA exists")
+              }
+              If (CondRefOf (\_SB.PCI0.EC))
+              {
+                  DBUG ("\\_SB.PCI0.EC exists")
+              }
+              Name (_HID, EisaId ("PNP9999"))
+              Method (_STA, 0, Serialized)
+              {
+                  DEBUG ("\\_SB.MDEV._STA")
+                  Return (0x0F)
+              }
+          }
+          DBUG ("TermList 4")
+      }
+      Method (_INI, 0, Serialized)
+      {
+          DBUG ("\\_SB._INI")
+      }
+  }
+  Scope (_SB.PCI0)
+  {
+      Device (EC)
+      {
+          ...
+      }
+  }
+The DBUG function is a function to write the debugging messages into a
+SystemIo debug port.
+Running Windows with the BIOS providing this SSDT via RSDT, the following
+messages are obtained from the debug port:
+  TermList 1
+  TermList 2
+  TermList 3
+  \_SB.MDEV exists
+  TermList 4
+  \_SB._INI
+  ...
 
-Regards,
-Duc Dang.
->
-> v6 -> v7
-> - drop quirks handling
-> - changes for ACPI companion and domain number assignment approach
-> - implement arch pcibios_{add|remove}_bus and call acpi_pci_{add|remove}_bus from there
-> - cleanups around nomenclature
-> - use resources oriented API for ECAM
-> - fix for based address calculation before mapping ECAM region
-> - remove useless lock for MCFG lookup
-> - move MCFG stuff to separated file pci_mcfg.c
-> - drop MCFG entries caching
-> - rebase against 4.6-rc7
->
-> v5 -> v6
-> - drop idea of x86 MMCONFIG code refactoring
-> - integrate JC's patches which introduce new ECAM API:
->   https://lkml.org/lkml/2016/4/11/907
->   git: https://github.com/jchandra-brcm/linux/ (arm64-acpi-pci-v3)
-> - integrate Sinan's fix for releasing IO resources, see patch [06/13]
-> - added ACPI support for ThunderX ECAM and PEM drivers
-> - rebase against 4.6-rc2
->
-> v4 -> v5
-> - drop MCFG refactoring group patches 1-6 from series v4 and integrate Jayachandran's patch
->   https://patchwork.ozlabs.org/patch/575525/
-> - rewrite PCI legacy IRQs allocation
-> - squash two patches 11 and 12 from series v4, fixed bisection issue
-> - changelog improvements
-> - rebase against 4.5-rc3
->
-> v3 -> v4
-> - drop Jiang's fix http://lkml.iu.edu/hypermail/linux/kernel/1601.1/04318.html
-> - add Lorenzo's fix patch 19/24
-> - ACPI PCI bus domain number assigning cleanup
-> - change resource management, we now claim and reassign resources
-> - improvements for applying quirks
-> - drop Matthew's http://www.spinics.net/lists/linux-pci/msg45950.html dependency
-> - rebase against 4.5-rc1
->
-> v2 -> v3
-> - fix legacy IRQ assigning and IO ports registration
-> - remove reference to arch specific companion device for ia64
-> - move ACPI PCI host controller driver to pci_root.c
-> - drop generic domain assignment for x86 and ia64 as I am not
->   able to run all necessary test variants
-> - drop patch which cleaned legacy IRQ assignment since it belongs to
->   Mathew's series:
->   https://patchwork.ozlabs.org/patch/557504/
-> - extend MCFG quirk code
-> - rebase against 4.4
->
-> v1 -> v2
-> - move non-arch specific piece of code to dirver/acpi/ directory
-> - fix IO resource handling
-> - introduce PCI config accessors quirks matching
-> - moved ACPI_COMPANION_SET to generic code
->
-> v1 - https://lkml.org/lkml/2015/10/27/504
-> v2 - https://lkml.org/lkml/2015/12/16/246
-> v3 - http://lkml.iu.edu/hypermail/linux/kernel/1601.1/04308.html
-> v4 - https://lkml.org/lkml/2016/2/4/646
-> v5 - https://lkml.org/lkml/2016/2/16/426
-> v6 - https://lkml.org/lkml/2016/4/15/594
->
-> Jayachandran C (2):
->   PCI: Provide common functions for ECAM mapping
->   PCI: generic, thunder: update to use generic ECAM API
->
-> Tomasz Nowicki (9):
->   pci, of: Move the PCI I/O space management to PCI core code.
->   pci: Add new function to unmap IO resources.
->   acpi, pci: Support IO resources when parsing PCI host bridge
->     resources.
->   pci, acpi: Provide a way to assign bus domain number.
->   pci, acpi: Handle ACPI companion assignment.
->   pci, acpi: Support for ACPI based generic PCI host controller
->   arm64, pci, acpi: ACPI support for legacy IRQs parsing and
->     consolidation with DT code.
->   arm64, pci, acpi: Provide ACPI-specific prerequisites for PCI bus
->     enumeration.
->   arm64, pci, acpi: Start using ACPI based PCI host controller driver
->     for ARM64.
->
->  arch/arm64/Kconfig                  |   1 +
->  arch/arm64/kernel/pci.c             |  34 +++-----
->  drivers/acpi/Kconfig                |   8 ++
->  drivers/acpi/Makefile               |   1 +
->  drivers/acpi/pci_mcfg.c             |  97 ++++++++++++++++++++++
->  drivers/acpi/pci_root.c             |  33 ++++++++
->  drivers/acpi/pci_root_generic.c     | 149 +++++++++++++++++++++++++++++++++
->  drivers/of/address.c                | 116 +-------------------------
->  drivers/pci/Kconfig                 |   3 +
->  drivers/pci/Makefile                |   2 +
->  drivers/pci/ecam.c                  | 161 ++++++++++++++++++++++++++++++++++++
->  drivers/pci/ecam.h                  |  72 ++++++++++++++++
->  drivers/pci/host/Kconfig            |   1 +
->  drivers/pci/host/pci-host-common.c  | 114 +++++++++++--------------
->  drivers/pci/host/pci-host-common.h  |  47 -----------
->  drivers/pci/host/pci-host-generic.c |  52 +++---------
->  drivers/pci/host/pci-thunder-ecam.c |  39 ++-------
->  drivers/pci/host/pci-thunder-pem.c  |  92 ++++++++++-----------
->  drivers/pci/pci.c                   | 150 ++++++++++++++++++++++++++++++++-
->  drivers/pci/probe.c                 |   2 +
->  include/linux/of_address.h          |   9 --
->  include/linux/pci-acpi.h            |  14 ++++
->  include/linux/pci.h                 |  11 ++-
->  23 files changed, 823 insertions(+), 385 deletions(-)
->  create mode 100644 drivers/acpi/pci_mcfg.c
->  create mode 100644 drivers/acpi/pci_root_generic.c
->  create mode 100644 drivers/pci/ecam.c
->  create mode 100644 drivers/pci/ecam.h
->  delete mode 100644 drivers/pci/host/pci-host-common.h
->
-> --
-> 1.9.1
->
+This test reveals the de-facto grammar for the AMLCode to us:
+1. During the table loading, MLC will be executed by the interpreter, this
+   is partially supported by the current ACPICA;
+2. For SystemIo, not only after the _REG(1, 1) is evaluated (current ACPICA
+   interpreter limitation), but when the table is being loaded, the
+   SystemIo (the debugging port) is accessible, this is recently fixed in
+   the upstream, now all early operation regions are accessible during the
+   table loading;
+3. Not only Type1Opcode, but also Type2Opcode will be executed as MLC and
+   MLC is not executed after loading the table, but is executed right in
+   place, the Linux upstream is not compliant to this behavior.
+
+The last compliance issue has already been clarified in ACPI 2.0
+specification, so the compliance issue is not that Linux is not compliant
+to the de-facto standard OS, but that Linux is not compliant to ACPI 2.0.
+Definition block tables in fact is defined by the spec as TermList, which
+has no difference than the control methods, thus the interpretion of the
+table should be no difference that the control method evaluation:
+     AMLCode := DefBlockHeader TermList
+     DefMethod := MethodOp PkgLength NameString MethodFlags TermList
+
+Why ACPICA interpreter is acting so differently from this definition? This
+is because, there are many software entropies preventing this from being
+enabled, such entropies need to be cleaned up first in order not to trigger
+regressions for specific platforms. These entropies include:
+1. ECDT support is broken. In fact, the original EC driver was correct, but
+   devlopers started to use the namespace EC instead of ECDT just because
+   several broken ECDT tables were reported on the bugzilla. They trusted
+   the namespace EC settings rather than the ECDT ones, this led to the
+   evaluation of _REG/_GPE/_CRS and namespace walk before executing the
+   module level AML opcodes. And the fixes in fact finally disable early EC
+   usages (used during table loading and early device enumeration
+   processes).
+2. _REG evaluations are wrong. ACPICA provides APIs for OSPMs to register
+   operation region handlers. But for the early operation region accesses,
+   ACPI spec declares that the evaluations of _REG are not required, but
+   the ACPICA APIs do not avoid running _REG to meet this early
+   requirements. Code to fix this is partially upstreamed during previous
+   ACPICA release cycle.
+3. _REG associations are wrong. ACPICA associates _REG control method to
+   all operation region objects before executing the _REG control method.
+   This can happen even when a control method is evaluated and operation
+   regions defined in the method is initialized
+   (acpi_ev_initialize_region). As a part of the ACPICA internal _REG
+   evaluation state machine, it requires the namespace walk, and all
+   namespace walk should be ensured to happen only "AFTER THE NAMESPACE IS
+   INITIALIZED". But when this logic happens during the table loading, it
+   may fail in finding the _REG method since the _REG method may not be
+   created by the interpreter just because _REG is defined after the
+   operation region object's declaration.
+4. _REG(CONNECT)/_REG(DISCONNECT) executions are not balanced, this can
+   lead to wrong table loading/unloading results. Since _REG evaluations
+   require the releasing of all interpreter/namespace locks in order to
+   allow another evaluation to happen, and ACPICA operand object
+   destruction code can be invoked from different locking environment, this
+   becomes difficult for the developers to provide one single function to
+   make _REG(CONNECT)/_REG(DISCONNECT) balanced.
+5. \_SB._INI is not the first control method evaluated by the interpreter.
+   Many platforms put initialization code in \_SB._INI in order to have
+   named objects initialized very early during the device enumeration
+   process. Without this order strictly ensured, early operation region
+   access enabling could break these platforms.
+6. Linux initialization order is wrong, it is now:
+   a. load namespace without executing root scope If/Else/While module
+      level code blocks;
+   b. probe ECDT and instal EmbeddedControl operation region handler with
+      _REG evaluated;
+   c. install SystemMemory, SystemIo, PciConfig operation region handlers
+      without evaluating _REG;
+   d. run _REG for SystemMemory, SystemIo, PciConfig operation regions;
+   e. execute root scope If/Else/While module level code blocks;
+   f. enable GPE and namespace EC.
+   While the correct order should be:
+   a. probe ECDT and install EmbeddedControl operation region handler
+      without evaluating _REG;
+   b. install SystemMemory, SystemIo, PciConfig operation region handlers
+      without evaluating _REG;
+   c. load namespace, in the meanshile, execute all module level AML
+      opcodes;
+   d. run _REG for SystemMemory, SystemIo, PciConfig operation regions;
+   e. enable GPE and namespace EC which results in _REG evaluation for EC.
+
+Until now we've upstreamed most of the entropy fixes into the Linux kernel,
+tested the grammar switch in the ACPICA upstream using ASLTS and no
+significant regressions can be seen while we need more tests before it is
+merged:
+  https://github.com/acpica/acpica/pull/134
+This is the ASLTS running result after applying the grammar switch, the
+test cases include new "module" case for which ACPICA interpreter cannot
+pass without this grammar switch applied:
+  ============================================================
+  Test cases specified for running:
+       arithmetic
+       bfield
+       constant
+       control
+       descriptor
+       logic
+       manipulation
+       name
+       reference
+       region
+       synchronization
+       table
+       misc
+       provoke
+       oarg
+       oconst
+       olocal
+       onamedloc
+       onamedglob
+       opackageel
+       oreftonamed
+       oreftopackageel
+       oreturn
+       rstore
+       roptional
+       rcopyobject
+       rindecrement
+       rexplicitconv
+       badasl
+       namespace
+       exc
+       exc_ref
+       exc_operand2
+       exc_result2
+       exc_tbl
+       mt_mutex
+       extra
+       extra_aslts
+       bdemo
+       bdemof
+       condbranches
+  TOTAL: (32-bit norm mode)
+    PASS       :  0
+    FAIL       :  0
+    BLOCKED    :  0
+    SKIPPED    :  0
+    Tests      :   0
+    Test Cases       : 40 (of 47)
+    Test Collections : 7 (of 8)
+    Outstanding allocations after execution : 0
+    Outstanding allocations (ACPI Error)    : 0
+    Large Reference Count   (ACPI Error)    : 0
+    Memory consumption total                : 0 Kb
+  TOTAL: (64-bit norm mode)
+    PASS       :  0
+    FAIL       :  0
+    BLOCKED    :  0
+    SKIPPED    :  0
+    Tests      :   0
+    Test Cases       : 40 (of 47)
+    Test Collections : 7 (of 8)
+    Outstanding allocations after execution : 0
+    Outstanding allocations (ACPI Error)    : 0
+    Large Reference Count   (ACPI Error)    : 0
+    Memory consumption total                : 0 Kb
+  TOTAL: (32-bit slack mode)
+    PASS       :  0
+    FAIL       :  0
+    BLOCKED    :  0
+    SKIPPED    :  0
+    Tests      :   0
+    Test Cases       : 40 (of 47)
+    Test Collections : 7 (of 8)
+    Outstanding allocations after execution : 0
+    Outstanding allocations (ACPI Error)    : 0
+    Large Reference Count   (ACPI Error)    : 0
+    Memory consumption total                : 0 Kb
+  TOTAL: (64-bit slack mode)
+    PASS       :  0
+    FAIL       :  0
+    BLOCKED    :  0
+    SKIPPED    :  0
+    Tests      :   0
+    Test Cases       : 40 (of 47)
+    Test Collections : 7 (of 8)
+    Outstanding allocations after execution : 0
+    Outstanding allocations (ACPI Error)    : 0
+    Large Reference Count   (ACPI Error)    : 0
+    Memory consumption total                : 0 Kb
+  ============================================================
+
+Since we need more tests from the real users, we could make the grammar
+switch released from the Linux upstream. It's safe to do so because we have
+implemented regression protection (acpi_gbl_parse_table_as_term_list) in
+the fixes. The earlier the fix is tested by more real users, the better
+quality can be achieved by knowing the unknown cases (if any).
+
+Lv Zheng (4):
+  ACPICA: Dispatcher: Fix an issue that the opregions created by the
+    linked MLC were not tracked
+  ACPICA: ACPI 2.0, Interpreter: Fix MLC issues by switching to new
+    TermList grammar for table loading
+  ACPI 2.0 / AML: Enable correct ACPI subsystem initialization order
+    for new table loading mode
+  ACPI 2.0 / AML: Fix module level execution by correctly parsing table
+    as TermList
+
+ drivers/acpi/acpica/acnamesp.h |    3 +
+ drivers/acpi/acpica/acparser.h |    2 +
+ drivers/acpi/acpica/dsopcode.c |    6 ++
+ drivers/acpi/acpica/evrgnini.c |    3 +-
+ drivers/acpi/acpica/exconfig.c |    6 +-
+ drivers/acpi/acpica/nsload.c   |    3 +-
+ drivers/acpi/acpica/nsparse.c  |  163 ++++++++++++++++++++++++++++++++--------
+ drivers/acpi/acpica/psparse.c  |    4 +-
+ drivers/acpi/acpica/psxface.c  |   73 ++++++++++++++++++
+ drivers/acpi/acpica/tbxfload.c |    3 +-
+ drivers/acpi/acpica/utxfinit.c |    3 +-
+ drivers/acpi/bus.c             |    6 +-
+ include/acpi/acpixf.h          |    6 ++
+ 13 files changed, 241 insertions(+), 40 deletions(-)
+
+-- 
+1.7.10
+
