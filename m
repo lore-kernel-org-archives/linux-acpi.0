@@ -1,124 +1,51 @@
-From: Hoan Tran <hotran@apm.com>
-Subject: Re: [PATCH v2] mailbox: pcc: Support HW-Reduced Communication
- Subspace Type 2
-Date: Fri, 13 May 2016 13:25:39 -0700
-Message-ID: <CAFHUOYz0CR5fYOvAjv0Xp5HPZGGYvKhtVacp2Jhjv_s8z3bSRQ@mail.gmail.com>
-References: <1462559914-28363-1-git-send-email-hotran@apm.com>
-	<CAJ5Y-ebMB79QrSb4WRXkq-vhJED+JmW8wC1Vqyc3pg9Mh-DMjg@mail.gmail.com>
-	<CAFHUOYxWe2VOjABGmm9bnqL8iKeLJ6maN-YDjp3bzWXogU2img@mail.gmail.com>
-	<CAJ5Y-ebBmUHySP=wdeusACeM4wrTogVgWXNAkzc5p8jz_zbj2g@mail.gmail.com>
-	<CAFHUOYzDGZirZ-TfbQV-DDdZ7gmwGPUiQ1nZt_KS84=aOM-McA@mail.gmail.com>
-	<CAJ5Y-eb6YwhgORdm4s_CO5_7j5M_oq6HSuTGDfVp2NwZbV6uFw@mail.gmail.com>
+From: "Rafael J. Wysocki" <rafael@kernel.org>
+Subject: Re: [PATCH] ACPI/video: mark acpi_video_get_levels inline
+Date: Fri, 13 May 2016 23:59:40 +0200
+Message-ID: <CAJZ5v0jAyBfe6+FjzYgwe8FKxxjzzwHk3f2GyMU_sxaMve=3CQ@mail.gmail.com>
+References: <1463086839-2466302-1-git-send-email-arnd@arndb.de>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-vk0-f51.google.com ([209.85.213.51]:34903 "EHLO
-	mail-vk0-f51.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753055AbcEMUZk (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 13 May 2016 16:25:40 -0400
-Received: by mail-vk0-f51.google.com with SMTP id f66so151145078vkh.2
-        for <linux-acpi@vger.kernel.org>; Fri, 13 May 2016 13:25:40 -0700 (PDT)
-In-Reply-To: <CAJ5Y-eb6YwhgORdm4s_CO5_7j5M_oq6HSuTGDfVp2NwZbV6uFw@mail.gmail.com>
+Received: from mail-wm0-f68.google.com ([74.125.82.68]:34302 "EHLO
+	mail-wm0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753236AbcEMV7m (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 13 May 2016 17:59:42 -0400
+In-Reply-To: <1463086839-2466302-1-git-send-email-arnd@arndb.de>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Ashwin Chaugule <ashwin.chaugule@linaro.org>
-Cc: Jassi Brar <jassisinghbrar@gmail.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Robert Moore <robert.moore@intel.com>, Alexey Klimov <alexey.klimov@arm.com>, lkml <linux-kernel@vger.kernel.org>, linux acpi <linux-acpi@vger.kernel.org>, Loc Ho <lho@apm.com>, Duc Dang <dhdang@apm.com>
+To: Arnd Bergmann <arnd@arndb.de>
+Cc: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Robert Moore <robert.moore@intel.com>, Lv Zheng <lv.zheng@intel.com>, Len Brown <lenb@kernel.org>, Hans de Goede <hdegoede@redhat.com>, Darren Hart <dvhart@linux.intel.com>, Borislav Petkov <bp@suse.de>, Aaron Lu <aaron.lu@intel.com>, Sudeep Holla <Sudeep.Holla@arm.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, "devel@acpica.org" <devel@acpica.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
 
-Hi Ashwin,
+On Thu, May 12, 2016 at 11:00 PM, Arnd Bergmann <arnd@arndb.de> wrote:
+> A recent patch added a stub function for acpi_video_get_levels when
+> CONFIG_ACPI_VIDEO is disabled. However, this is marked as 'static'
+> and causes a warning about an unused function whereever the header
+> gets included:
+>
+> In file included from ../drivers/gpu/drm/radeon/radeon_acpi.c:28:0:
+> include/acpi/video.h:74:12: error: 'acpi_video_get_levels' defined but not used [-Werror=unused-function]
+>
+> This makes the declaration 'static inline', which gets rid of the
+> warning.
+>
+> Signed-off-by: Arnd Bergmann <arnd@arndb.de>
+> Fixes: 059500940def ("ACPI/video: export acpi_video_get_levels")
+> ---
+>  include/acpi/video.h | 2 +-
+>  1 file changed, 1 insertion(+), 1 deletion(-)
+>
+> diff --git a/include/acpi/video.h b/include/acpi/video.h
+> index a4b96c971564..70a41f742037 100644
+> --- a/include/acpi/video.h
+> +++ b/include/acpi/video.h
+> @@ -71,7 +71,7 @@ static inline bool acpi_video_handles_brightness_key_presses(void)
+>  {
+>         return false;
+>  }
+> -static int acpi_video_get_levels(struct acpi_device *device,
+> +static inline int acpi_video_get_levels(struct acpi_device *device,
+>                         struct acpi_video_device_brightness **dev_br)
+>  {
+>         return -ENODEV;
 
-On Fri, May 13, 2016 at 10:23 AM, Ashwin Chaugule
-<ashwin.chaugule@linaro.org> wrote:
-> On 11 May 2016 at 14:15, Hoan Tran <hotran@apm.com> wrote:
->> On Wed, May 11, 2016 at 4:57 AM, Ashwin Chaugule
->> <ashwin.chaugule@linaro.org> wrote:
->>> On 11 May 2016 at 00:21, Hoan Tran <hotran@apm.com> wrote:
->>>> On Tue, May 10, 2016 at 5:00 AM, Ashwin Chaugule
->>>>> On 6 May 2016 at 14:38, Hoan Tran <hotran@apm.com> wrote:
->>>>>> From: hotran <hotran@apm.com>
->>>>>>
->>>>>> ACPI 6.1 has a PCC HW-Reduced Communication Subspace Type 2 intended for
->>>>>> use on HW-Reduce ACPI Platform, which requires read-modify-write sequence
->>>>>> to acknowledge doorbell interrupt. This patch provides the implementation
->>>>>> for the Communication Subspace Type 2.
->>>>>>
->>>>>> This patch depends on patch [1] which supports PCC subspace type 2 header
->>>>>> [1] https://lkml.org/lkml/2016/5/5/14
->>>>>>  - [PATCH v2 03/13] ACPICA: ACPI 6.1: Support for new PCCT subtable
->>>>>>
->>>>>> v2
->>>>>>  * Remove changes inside "actbl3.h". This file is taken care by ACPICA.
->>>>>>  * Parse both subspace type 1 and subspace type 2
->>>>>>  * Remove unnecessary variable initialization
->>>>>>  * ISR returns IRQ_NONE in case of error
->>>>>>
->>>>>> v1
->>>>>>  * Initial
->>>>>>
->>>>>> Signed-off-by: Hoan Tran <hotran@apm.com>
->>>>>> ---
->>>>>>  drivers/mailbox/pcc.c | 395 +++++++++++++++++++++++++++++++++++++-------------
->>>>>>  1 file changed, 296 insertions(+), 99 deletions(-)
->
-> [..]
->
->>>>>> @@ -357,24 +534,44 @@ static int __init acpi_pcc_probe(void)
->>>>>>         pcct_entry = (struct acpi_subtable_header *) (
->>>>>>                 (unsigned long) pcct_tbl + sizeof(struct acpi_table_pcct));
->>>>>>
->>>>>> +       acpi_pcct_tbl = (struct acpi_table_pcct *) pcct_tbl;
->>>>>> +       if (acpi_pcct_tbl->flags & ACPI_PCCT_DOORBELL)
->>>>>> +               pcc_mbox_ctx.mbox_ctrl.txdone_irq = true;
->>>>>> +
->>>>>>         for (i = 0; i < count; i++) {
->>>>>>                 struct acpi_generic_address *db_reg;
->>>>>>                 struct acpi_pcct_hw_reduced *pcct_ss;
->>>>>> -               pcc_mbox_channels[i].con_priv = pcct_entry;
->>>>>> +
->>>>>> +               pcc_mbox_ctx.chans[i].con_priv = pcct_entry;
->>>>>> +               pcc_mbox_ctx.chans[i].mbox = &pcc_mbox_ctx.mbox_ctrl;
->>>>>> +
->>>>>> +               pcct_ss = (struct acpi_pcct_hw_reduced *) pcct_entry;
->>>>>> +
->>>>>> +               pcc_mbox_ctx.mbox_chans[i].chan = &pcc_mbox_ctx.chans[i];
->>>>>> +               if (pcc_mbox_ctx.mbox_ctrl.txdone_irq) {
->>>>>> +                       rc = pcc_parse_subspace_irq(&pcc_mbox_ctx.mbox_chans[i],
->>>>>> +                                                   pcct_ss);
->>>>>> +                       if (rc < 0)
->>>>>> +                               return rc;
->>>>>> +               }
->>>>>
->>>>> I think we should parse the remaining entries and register them if
->>>>> they are sane. Some other PCC clients can then continue to function.
->>>> I think, it could be an error of PCCT table and need to be returned.
->>>>>
->>>
->>> Well, that could be dealt with a pr_err/warn() for that specific entry
->>> ?
->> But what happens if the PCC client requests this failed PCC subspace.
->> "pcc_parse_subspace_irq" function does "pr_err" for error cases.
->>
->>> IIRC not all subspaces require IRQ's. Its optional, isnt it?
->> Maybe I misunderstood: if "doorbell interrupt" bit of "platform
->> communications channel global flags" is set, the platform is capable
->> of generating an interrupt to indicate completion of a command. And if
->> this bit is set, "doorbell interrupt" and "doorbell interrupt flags"
->> fields of each subspace are active
->> Could you correct me, thanks
->>>
->
-> You're right. My concern is addressed by your check for txdone_irq.
-> Are you able to test this on a system which doesn't have Type 2
-> support?
-This is a testcase which I'm using CPPC driver. It is the same with
-the system doesn't support "doorbell interrupt".
-As CPPC driver sends CPPC command but doesn't allow platform to
-generate interrupt ("Generate Doorbell Interrupt" bit of "Generic
-Communications Channel Command Field" is 0)
-
-I'm not sure if it answers your question
-
-Thanks and Regards
--Hoan
->
-> Thanks,
-> Ashwin.
+Applied, thanks!
