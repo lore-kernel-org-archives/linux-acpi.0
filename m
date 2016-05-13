@@ -1,98 +1,63 @@
-From: Tomasz Nowicki <tn@semihalf.com>
-Subject: Re: [PATCH V7 08/11] pci, acpi: Support for ACPI based generic PCI
- host controller
-Date: Fri, 13 May 2016 13:42:09 +0200
-Message-ID: <5735BD91.3020206@semihalf.com>
-References: <1462893601-8937-1-git-send-email-tn@semihalf.com>
- <1462893601-8937-9-git-send-email-tn@semihalf.com>
- <CAKc_7PVJmhiD8x=zw4N3sSDPD-jZz-wh8TPTuuTYEdxn3v78og@mail.gmail.com>
- <CAJZ5v0jov37JErfRqw1bAkJzkyoGn+BsZLNLR5N=J3ZYu203GQ@mail.gmail.com>
+From: Lukas Wunner <lukas@wunner.de>
+Subject: Re: [RFC 4/4] thunderbolt: Support runtime pm
+Date: Fri, 13 May 2016 14:10:29 +0200
+Message-ID: <20160513121029.GA22994@wunner.de>
+References: <20160316162017.GA28372@wunner.de>
+ <Pine.LNX.4.44L0.1603171042520.2097-100000@iolanthe.rowland.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-lf0-f45.google.com ([209.85.215.45]:34935 "EHLO
-	mail-lf0-f45.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751857AbcEMLmN (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 13 May 2016 07:42:13 -0400
-Received: by mail-lf0-f45.google.com with SMTP id j8so86604000lfd.2
-        for <linux-acpi@vger.kernel.org>; Fri, 13 May 2016 04:42:12 -0700 (PDT)
-In-Reply-To: <CAJZ5v0jov37JErfRqw1bAkJzkyoGn+BsZLNLR5N=J3ZYu203GQ@mail.gmail.com>
+Received: from mailout2.hostsharing.net ([83.223.90.233]:46145 "EHLO
+	mailout2.hostsharing.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751510AbcEMMHZ (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 13 May 2016 08:07:25 -0400
+Content-Disposition: inline
+In-Reply-To: <Pine.LNX.4.44L0.1603171042520.2097-100000@iolanthe.rowland.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rafael@kernel.org>, Jayachandran C <jchandra@broadcom.com>
-Cc: Bjorn Helgaas <helgaas@kernel.org>, Arnd Bergmann <arnd@arndb.de>, Will Deacon <will.deacon@arm.com>, Catalin Marinas <catalin.marinas@arm.com>, Hanjun Guo <hanjun.guo@linaro.org>, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, Sinan Kaya <okaya@codeaurora.org>, robert.richter@caviumnetworks.com, Marcin Wojtas <mw@semihalf.com>, Liviu.Dudau@arm.com, David Daney <ddaney@caviumnetworks.com>, Wangyijing <wangyijing@huawei.com>, Suravee Suthikulanit <Suravee.Suthikulpanit@amd.com>, Mark Salter <msalter@redhat.com>, Linux PCI <linux-pci@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, "linaro-acpi@lists.linaro.org" <linaro-acpi@lists.linaro.org>, Jon Masters <jcm@redhat.com>, Andrea Gallo <andrea.gallo@linaro.org>
+To: Alan Stern <stern@rowland.harvard.edu>
+Cc: linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, linux-pm@vger.kernel.org, Andreas Noever <andreas.noever@gmail.com>, Matthew Garrett <mjg59@srcf.ucam.org>
+
+Hi Alan,
+
+On Thu, Mar 17, 2016 at 10:54:55AM -0400, Alan Stern wrote:
+> On Wed, 16 Mar 2016, Lukas Wunner wrote:
+> > > The way you're doing it, how does the NHI driver know when to go into 
+> > > suspend?  The runtime PM core won't notify it when all the hotplugged 
+> > > devices attached to the other bridges have been suspended, since it's 
+> > > not their parent.
+> > 
+> > The NHI knows when something is plugged in, it talks to the switches
+> > in devices that are hotplugged to the controller. As I've explained
+> > in the lengthy comment in the middle of patch [4/4], we acquire a
+> > runtime pm ref for each switch that is plugged in and release one
+> > whenever a switch is unplugged.
+> 
+> If I understand correctly, that means you allow the Thunderbolt
+> controller to go into runtime suspend only when nothing is plugged into
+> any of the ports.  Is that right?  It's quite inefficient.
+
+In the case of Thunderbolt on the Mac, runtime suspend means that the
+controller is powered down. A plug event is side-band signaled using a GPE
+so that we're able to power the controller up once something is plugged in.
+
+It's not possible to power the controller down while devices are attached
+because downstream devices have no way to side-band signal an interrupt
+when they need to send data to the controller.
 
 
+> What I'm getting at is that we should have proper runtime-PM support
+> for bridges, i.e., I agree with what you wrote above.  A bridge can
+> safely go into runtime suspend when there are no unsuspended devices
+> attached to any of its downstream ports.  (That's how the USB hub
+> driver works, for instance.)  Doing things that way would make
+> everything simpler in the long run.
+> 
+> So my suggestion is that you change over to the "less kludgy solution"  
+> and work on that instead.
 
-On 13.05.2016 13:31, Rafael J. Wysocki wrote:
-> On Fri, May 13, 2016 at 1:25 PM, Jayachandran C <jchandra@broadcom.com> wrote:
->> On Tue, May 10, 2016 at 8:49 PM, Tomasz Nowicki <tn@semihalf.com> wrote:
->>> This patch is going to implement generic PCI host controller for
->>> ACPI world, similar to what pci-host-generic.c driver does for DT world.
->>>
->>> All such drivers, which we have seen so far, were implemented within
->>> arch/ directory since they had some arch assumptions (x86 and ia64).
->>> However, they all are doing similar thing, so it makes sense to find
->>> some common code and abstract it into the generic driver.
->>>
->>> In order to handle PCI config space regions properly, we define new
->>> MCFG interface which does sanity checks on MCFG table and keeps its
->>> root pointer. User is able to lookup MCFG regions based on that root
->>> pointer and specified domain:bus_start:bus_end touple. We are using
->>> pci_mmcfg_late_init old prototype to avoid another function name.
->>>
->>> The implementation of pci_acpi_scan_root() looks up the MCFG entries
->>> and sets up a new mapping (regions are not mapped until host controller ask
->>> for it). Generic PCI functions are used for accessing config space.
->>> Driver selects PCI_ECAM and uses functions from drivers/pci/ecam.h
->>> to create and access ECAM mappings.
->>>
->>> As mentioned in Kconfig help section, ACPI_PCI_HOST_GENERIC choice
->>> should be made on a per-architecture basis.
->>>
->>> Signed-off-by: Tomasz Nowicki <tn@semihalf.com>
->>> Signed-off-by: Jayachandran C <jchandra@broadcom.com>
->>> ---
->> [....]
->>
->>> diff --git a/drivers/pci/ecam.h b/drivers/pci/ecam.h
->>> index 1ad2176..1cccf57 100644
->>> --- a/drivers/pci/ecam.h
->>> +++ b/drivers/pci/ecam.h
->>> @@ -45,6 +45,11 @@ struct pci_config_window {
->>>                  void __iomem            *win;   /* 64-bit single mapping */
->>>                  void __iomem            **winp; /* 32-bit per bus mapping */
->>>          };
->>> +#ifdef CONFIG_ACPI_PCI_HOST_GENERIC
->>> +       struct acpi_device              *companion; /* ACPI companion device */
->>> +#endif
->>> +       int                             domain;
->>> +
->>>   };
->>
->> Using struct pci_config_window to pass along domain and
->> companion looks bad.  I think there are two possible options
->> to do this better:
->>
->> 1. add a 'struct fwnode_handle *' or 'struct device *parent_dev'
->>     instead of the companion and domain fields above. In case of
->>     ACPI either of them can be used to get the acpi_device and
->>     both  domain and companion can be set from that.
->>
->> 2. make pci_config_window fully embeddable by moving allocation
->>     out of pci_ecam_create to its callers. Then it can be embedded
->>     into acpi_pci_generic_root_info, and container_of can be used
->>     to get acpi info from ->sysdata.
->>
->> The first option should be easier to implement but the second may
->> be better on long run. I would leave it to the Bjorn or Rafael to
->> suggest which is preferred.
->
-> Personally, I'd probably try to use fwnode_handle, but the second
-> option makes sense too in principle.
->
+Alright, posted as v2 today. :-)
 
-Thanks for suggestions. I will try to use fwnode_handle
+Thanks,
 
-Tomasz
+Lukas
