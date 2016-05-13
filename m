@@ -1,61 +1,155 @@
-From: Lv Zheng <lv.zheng@intel.com>
-Subject: [PATCH] ACPI: Add configuration item to configure ACPICA error logs out
-Date: Fri, 13 May 2016 10:26:54 +0800
-Message-ID: <94db29c4f0e4a6bc46d3587bb0414980b26dd98e.1463106348.git.lv.zheng@intel.com>
+From: Duc Dang <dhdang@apm.com>
+Subject: Re: [PATCH V7 00/11] Support for generic ACPI based PCI host controller
+Date: Thu, 12 May 2016 19:55:20 -0700
+Message-ID: <CADaLNDnXiL2nYtSmd1h-9MSnUUY4S+dAEcFXRSE_jjWhqRzufQ@mail.gmail.com>
+References: <1462893601-8937-1-git-send-email-tn@semihalf.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga03.intel.com ([134.134.136.65]:29114 "EHLO mga03.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752610AbcEMC1H (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 12 May 2016 22:27:07 -0400
+Received: from mail-vk0-f51.google.com ([209.85.213.51]:36079 "EHLO
+	mail-vk0-f51.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751940AbcEMCz4 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 12 May 2016 22:55:56 -0400
+Received: by mail-vk0-f51.google.com with SMTP id s184so121487796vkb.3
+        for <linux-acpi@vger.kernel.org>; Thu, 12 May 2016 19:55:50 -0700 (PDT)
+In-Reply-To: <1462893601-8937-1-git-send-email-tn@semihalf.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <len.brown@intel.com>
-Cc: Lv Zheng <lv.zheng@intel.com>, Lv Zheng <zetalog@gmail.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
+To: Tomasz Nowicki <tn@semihalf.com>
+Cc: Bjorn Helgaas <helgaas@kernel.org>, Arnd Bergmann <arnd@arndb.de>, Will Deacon <will.deacon@arm.com>, Catalin Marinas <catalin.marinas@arm.com>, Rafael Wysocki <rafael@kernel.org>, Hanjun Guo <hanjun.guo@linaro.org>, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, okaya@codeaurora.org, Jayachandran C <jchandra@broadcom.com>, robert.richter@caviumnetworks.com, Marcin Wojtas <mw@semihalf.com>, Liviu Dudau <Liviu.Dudau@arm.com>, David Daney <ddaney@caviumnetworks.com>, Yijing Wang <wangyijing@huawei.com>, Suravee Suthikulpanit <Suravee.Suthikulpanit@amd.com>, Mark Salter <msalter@redhat.com>, linux-pci@vger.kernel.org, linux-arm <linux-arm-kernel@lists.infradead.org>, linux-acpi@vger.kernel.org, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linaro-acpi@lists.linaro.org, Jon Masters <jcm@redhat.com>, andrea.gallo@linaro.org, jeremy.linton@arm.com, liudongdong
 
-Sometimes, we need to disable ACPICA error logs to leave only ACPICA
-debug logs enabled for debugging purpose. This is useful when ACPICA error
-logs become a flood.
+On Tue, May 10, 2016 at 8:19 AM, Tomasz Nowicki <tn@semihalf.com> wrote:
+> From the functionality point of view this series may be split into the
+> following logic parts:
+> 1. New ECAM API and update for users of the pci-host-common API
+> 2. Necessary fixes as the preparation for using driver on ARM64.
+> 3. Use new MCFG interface and implement generic ACPI based PCI host controller driver.
+> 4. Enable above driver on ARM64
+>
+> Patches has been built on top of 4.6-rc7 and can be found here:
+> git@github.com:semihalf-nowicki-tomasz/linux.git (pci-acpi-v7)
+>
+> This has been tested on Cavium ThunderX server. Any help in reviewing and
+> testing is very appreciated.
 
-Reference: https://bugzilla.kernel.org/show_bug.cgi?id=114201
-Signed-off-by: Lv Zheng <lv.zheng@intel.com>
----
- drivers/acpi/Kconfig            |    7 +++++++
- include/acpi/platform/aclinux.h |    4 ++++
- 2 files changed, 11 insertions(+)
+I tried this series on APM X-Gene platforms (with ECAM fix-up quirk
+added) and PCIe works fine.
 
-diff --git a/drivers/acpi/Kconfig b/drivers/acpi/Kconfig
-index b7e2e77..ebb8d3b 100644
---- a/drivers/acpi/Kconfig
-+++ b/drivers/acpi/Kconfig
-@@ -321,6 +321,13 @@ config ACPI_TABLE_UPGRADE
- 	  initrd, therefore it's safe to say Y.
- 	  See Documentation/acpi/initrd_table_override.txt for details
- 
-+config ACPI_NO_ERROR_MESSAGES
-+	bool "Disable error messages"
-+	default n
-+	help
-+	  The ACPI subsystem can produce error messages. Saying Y disables
-+	  this output.
-+
- config ACPI_DEBUG
- 	bool "Debug Statements"
- 	default n
-diff --git a/include/acpi/platform/aclinux.h b/include/acpi/platform/aclinux.h
-index 45c2d65..a6d9217 100644
---- a/include/acpi/platform/aclinux.h
-+++ b/include/acpi/platform/aclinux.h
-@@ -73,6 +73,10 @@
- #define ACPI_DEBUGGER
- #endif
- 
-+#ifdef CONFIG_ACPI_NO_ERROR_MESSAGES
-+#define ACPI_NO_ERROR_MESSAGES
-+#endif
-+
- #include <linux/string.h>
- #include <linux/kernel.h>
- #include <linux/ctype.h>
--- 
-1.7.10
-
+Regards,
+Duc Dang.
+>
+> v6 -> v7
+> - drop quirks handling
+> - changes for ACPI companion and domain number assignment approach
+> - implement arch pcibios_{add|remove}_bus and call acpi_pci_{add|remove}_bus from there
+> - cleanups around nomenclature
+> - use resources oriented API for ECAM
+> - fix for based address calculation before mapping ECAM region
+> - remove useless lock for MCFG lookup
+> - move MCFG stuff to separated file pci_mcfg.c
+> - drop MCFG entries caching
+> - rebase against 4.6-rc7
+>
+> v5 -> v6
+> - drop idea of x86 MMCONFIG code refactoring
+> - integrate JC's patches which introduce new ECAM API:
+>   https://lkml.org/lkml/2016/4/11/907
+>   git: https://github.com/jchandra-brcm/linux/ (arm64-acpi-pci-v3)
+> - integrate Sinan's fix for releasing IO resources, see patch [06/13]
+> - added ACPI support for ThunderX ECAM and PEM drivers
+> - rebase against 4.6-rc2
+>
+> v4 -> v5
+> - drop MCFG refactoring group patches 1-6 from series v4 and integrate Jayachandran's patch
+>   https://patchwork.ozlabs.org/patch/575525/
+> - rewrite PCI legacy IRQs allocation
+> - squash two patches 11 and 12 from series v4, fixed bisection issue
+> - changelog improvements
+> - rebase against 4.5-rc3
+>
+> v3 -> v4
+> - drop Jiang's fix http://lkml.iu.edu/hypermail/linux/kernel/1601.1/04318.html
+> - add Lorenzo's fix patch 19/24
+> - ACPI PCI bus domain number assigning cleanup
+> - change resource management, we now claim and reassign resources
+> - improvements for applying quirks
+> - drop Matthew's http://www.spinics.net/lists/linux-pci/msg45950.html dependency
+> - rebase against 4.5-rc1
+>
+> v2 -> v3
+> - fix legacy IRQ assigning and IO ports registration
+> - remove reference to arch specific companion device for ia64
+> - move ACPI PCI host controller driver to pci_root.c
+> - drop generic domain assignment for x86 and ia64 as I am not
+>   able to run all necessary test variants
+> - drop patch which cleaned legacy IRQ assignment since it belongs to
+>   Mathew's series:
+>   https://patchwork.ozlabs.org/patch/557504/
+> - extend MCFG quirk code
+> - rebase against 4.4
+>
+> v1 -> v2
+> - move non-arch specific piece of code to dirver/acpi/ directory
+> - fix IO resource handling
+> - introduce PCI config accessors quirks matching
+> - moved ACPI_COMPANION_SET to generic code
+>
+> v1 - https://lkml.org/lkml/2015/10/27/504
+> v2 - https://lkml.org/lkml/2015/12/16/246
+> v3 - http://lkml.iu.edu/hypermail/linux/kernel/1601.1/04308.html
+> v4 - https://lkml.org/lkml/2016/2/4/646
+> v5 - https://lkml.org/lkml/2016/2/16/426
+> v6 - https://lkml.org/lkml/2016/4/15/594
+>
+> Jayachandran C (2):
+>   PCI: Provide common functions for ECAM mapping
+>   PCI: generic, thunder: update to use generic ECAM API
+>
+> Tomasz Nowicki (9):
+>   pci, of: Move the PCI I/O space management to PCI core code.
+>   pci: Add new function to unmap IO resources.
+>   acpi, pci: Support IO resources when parsing PCI host bridge
+>     resources.
+>   pci, acpi: Provide a way to assign bus domain number.
+>   pci, acpi: Handle ACPI companion assignment.
+>   pci, acpi: Support for ACPI based generic PCI host controller
+>   arm64, pci, acpi: ACPI support for legacy IRQs parsing and
+>     consolidation with DT code.
+>   arm64, pci, acpi: Provide ACPI-specific prerequisites for PCI bus
+>     enumeration.
+>   arm64, pci, acpi: Start using ACPI based PCI host controller driver
+>     for ARM64.
+>
+>  arch/arm64/Kconfig                  |   1 +
+>  arch/arm64/kernel/pci.c             |  34 +++-----
+>  drivers/acpi/Kconfig                |   8 ++
+>  drivers/acpi/Makefile               |   1 +
+>  drivers/acpi/pci_mcfg.c             |  97 ++++++++++++++++++++++
+>  drivers/acpi/pci_root.c             |  33 ++++++++
+>  drivers/acpi/pci_root_generic.c     | 149 +++++++++++++++++++++++++++++++++
+>  drivers/of/address.c                | 116 +-------------------------
+>  drivers/pci/Kconfig                 |   3 +
+>  drivers/pci/Makefile                |   2 +
+>  drivers/pci/ecam.c                  | 161 ++++++++++++++++++++++++++++++++++++
+>  drivers/pci/ecam.h                  |  72 ++++++++++++++++
+>  drivers/pci/host/Kconfig            |   1 +
+>  drivers/pci/host/pci-host-common.c  | 114 +++++++++++--------------
+>  drivers/pci/host/pci-host-common.h  |  47 -----------
+>  drivers/pci/host/pci-host-generic.c |  52 +++---------
+>  drivers/pci/host/pci-thunder-ecam.c |  39 ++-------
+>  drivers/pci/host/pci-thunder-pem.c  |  92 ++++++++++-----------
+>  drivers/pci/pci.c                   | 150 ++++++++++++++++++++++++++++++++-
+>  drivers/pci/probe.c                 |   2 +
+>  include/linux/of_address.h          |   9 --
+>  include/linux/pci-acpi.h            |  14 ++++
+>  include/linux/pci.h                 |  11 ++-
+>  23 files changed, 823 insertions(+), 385 deletions(-)
+>  create mode 100644 drivers/acpi/pci_mcfg.c
+>  create mode 100644 drivers/acpi/pci_root_generic.c
+>  create mode 100644 drivers/pci/ecam.c
+>  create mode 100644 drivers/pci/ecam.h
+>  delete mode 100644 drivers/pci/host/pci-host-common.h
+>
+> --
+> 1.9.1
+>
