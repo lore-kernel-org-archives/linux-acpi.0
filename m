@@ -1,156 +1,76 @@
-From: Sinan Kaya <okaya@codeaurora.org>
-Subject: [PATCH V5 1/6] vfio: platform: rename reset function
-Date: Sun, 15 May 2016 22:13:34 -0400
-Message-ID: <1463364819-477-2-git-send-email-okaya@codeaurora.org>
-References: <1463364819-477-1-git-send-email-okaya@codeaurora.org>
+From: Ocean HY1 He <hehy1@lenovo.com>
+Subject: RE: [PATCH] ACPI: Execute the _PTS method when system reboot
+Date: Mon, 16 May 2016 03:04:05 +0000
+Message-ID: <BCBE834BAC19744BA2C3AC4D68DBF2198D7D7168@CNMAILEX03.lenovo.com>
+References: <1462772495-71113-1-git-send-email-hehy1@lenovo.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <1463364819-477-1-git-send-email-okaya@codeaurora.org>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: kvm@vger.kernel.org, timur@codeaurora.org, cov@codeaurora.org, jcm@redhat.com, eric.auger@linaro.org
-Cc: Baptiste Reynal <b.reynal@virtualopensystems.com>, linux-arm-msm@vger.kernel.org, linux-kernel@vger.kernel.org, Sinan Kaya <okaya@codeaurora.org>, linux-acpi@vger.kernel.org, Alex Williamson <alex.williamson@redhat.com>, agross@codeaurora.org, linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain; charset="gb2312"
+Content-Transfer-Encoding: base64
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail1.bemta8.messagelabs.com ([216.82.243.198]:40773 "EHLO
+	mail1.bemta8.messagelabs.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751921AbcEPDEZ (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>);
+	Sun, 15 May 2016 23:04:25 -0400
+In-Reply-To: <1462772495-71113-1-git-send-email-hehy1@lenovo.com>
+Content-Language: zh-CN
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: "rjw@rjwysocki.net" <rjw@rjwysocki.net>, "lenb@kernel.org" <lenb@kernel.org>
+Cc: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, David Tanaka <dtanaka@lenovo.com>, Nagananda Chumbalkar <nchumbalkar@lenovo.com>
 
-Renaming the reset function to of_reset as it is only used
-by the device tree based platforms.
-
-Signed-off-by: Sinan Kaya <okaya@codeaurora.org>
----
- drivers/vfio/platform/vfio_platform_common.c  | 30 +++++++++++++--------------
- drivers/vfio/platform/vfio_platform_private.h |  6 +++---
- 2 files changed, 18 insertions(+), 18 deletions(-)
-
-diff --git a/drivers/vfio/platform/vfio_platform_common.c b/drivers/vfio/platform/vfio_platform_common.c
-index e65b142..08fd7c2 100644
---- a/drivers/vfio/platform/vfio_platform_common.c
-+++ b/drivers/vfio/platform/vfio_platform_common.c
-@@ -41,7 +41,7 @@ static vfio_platform_reset_fn_t vfio_platform_lookup_reset(const char *compat,
- 		if (!strcmp(iter->compat, compat) &&
- 			try_module_get(iter->owner)) {
- 			*module = iter->owner;
--			reset_fn = iter->reset;
-+			reset_fn = iter->of_reset;
- 			break;
- 		}
- 	}
-@@ -51,18 +51,18 @@ static vfio_platform_reset_fn_t vfio_platform_lookup_reset(const char *compat,
- 
- static void vfio_platform_get_reset(struct vfio_platform_device *vdev)
- {
--	vdev->reset = vfio_platform_lookup_reset(vdev->compat,
--						&vdev->reset_module);
--	if (!vdev->reset) {
-+	vdev->of_reset = vfio_platform_lookup_reset(vdev->compat,
-+						    &vdev->reset_module);
-+	if (!vdev->of_reset) {
- 		request_module("vfio-reset:%s", vdev->compat);
--		vdev->reset = vfio_platform_lookup_reset(vdev->compat,
--							 &vdev->reset_module);
-+		vdev->of_reset = vfio_platform_lookup_reset(vdev->compat,
-+							&vdev->reset_module);
- 	}
- }
- 
- static void vfio_platform_put_reset(struct vfio_platform_device *vdev)
- {
--	if (vdev->reset)
-+	if (vdev->of_reset)
- 		module_put(vdev->reset_module);
- }
- 
-@@ -141,9 +141,9 @@ static void vfio_platform_release(void *device_data)
- 	mutex_lock(&driver_lock);
- 
- 	if (!(--vdev->refcnt)) {
--		if (vdev->reset) {
-+		if (vdev->of_reset) {
- 			dev_info(vdev->device, "reset\n");
--			vdev->reset(vdev);
-+			vdev->of_reset(vdev);
- 		} else {
- 			dev_warn(vdev->device, "no reset function found!\n");
- 		}
-@@ -175,9 +175,9 @@ static int vfio_platform_open(void *device_data)
- 		if (ret)
- 			goto err_irq;
- 
--		if (vdev->reset) {
-+		if (vdev->of_reset) {
- 			dev_info(vdev->device, "reset\n");
--			vdev->reset(vdev);
-+			vdev->of_reset(vdev);
- 		} else {
- 			dev_warn(vdev->device, "no reset function found!\n");
- 		}
-@@ -213,7 +213,7 @@ static long vfio_platform_ioctl(void *device_data,
- 		if (info.argsz < minsz)
- 			return -EINVAL;
- 
--		if (vdev->reset)
-+		if (vdev->of_reset)
- 			vdev->flags |= VFIO_DEVICE_FLAGS_RESET;
- 		info.flags = vdev->flags;
- 		info.num_regions = vdev->num_regions;
-@@ -312,8 +312,8 @@ static long vfio_platform_ioctl(void *device_data,
- 		return ret;
- 
- 	} else if (cmd == VFIO_DEVICE_RESET) {
--		if (vdev->reset)
--			return vdev->reset(vdev);
-+		if (vdev->of_reset)
-+			return vdev->of_reset(vdev);
- 		else
- 			return -EINVAL;
- 	}
-@@ -611,7 +611,7 @@ void vfio_platform_unregister_reset(const char *compat,
- 
- 	mutex_lock(&driver_lock);
- 	list_for_each_entry_safe(iter, temp, &reset_list, link) {
--		if (!strcmp(iter->compat, compat) && (iter->reset == fn)) {
-+		if (!strcmp(iter->compat, compat) && (iter->of_reset == fn)) {
- 			list_del(&iter->link);
- 			break;
- 		}
-diff --git a/drivers/vfio/platform/vfio_platform_private.h b/drivers/vfio/platform/vfio_platform_private.h
-index 42816dd..71ed7d1 100644
---- a/drivers/vfio/platform/vfio_platform_private.h
-+++ b/drivers/vfio/platform/vfio_platform_private.h
-@@ -71,7 +71,7 @@ struct vfio_platform_device {
- 	struct resource*
- 		(*get_resource)(struct vfio_platform_device *vdev, int i);
- 	int	(*get_irq)(struct vfio_platform_device *vdev, int i);
--	int	(*reset)(struct vfio_platform_device *vdev);
-+	int	(*of_reset)(struct vfio_platform_device *vdev);
- };
- 
- typedef int (*vfio_platform_reset_fn_t)(struct vfio_platform_device *vdev);
-@@ -80,7 +80,7 @@ struct vfio_platform_reset_node {
- 	struct list_head link;
- 	char *compat;
- 	struct module *owner;
--	vfio_platform_reset_fn_t reset;
-+	vfio_platform_reset_fn_t of_reset;
- };
- 
- extern int vfio_platform_probe_common(struct vfio_platform_device *vdev,
-@@ -103,7 +103,7 @@ extern void vfio_platform_unregister_reset(const char *compat,
- static struct vfio_platform_reset_node __reset ## _node = {	\
- 	.owner = THIS_MODULE,					\
- 	.compat = __compat,					\
--	.reset = __reset,					\
-+	.of_reset = __reset,					\
- };								\
- __vfio_platform_register_reset(&__reset ## _node)
- 
--- 
-1.8.2.1
+VG8gd2hvbSBtYXkgY29uY2VybiwNCg0KQSBMZW5vdm8gZmVhdHVyZSBkZXBlbmRzIG9uIF9QVFMg
+bWV0aG9kIGV4ZWN1dGlvbiB3aGVuIHJlYm9vdC4gQW5kIGFmdGVyIGNoZWNrIHRoZSBBQ1BJIHNw
+ZWMsIEkgdGhpbmsgX1BUUyBzaG91bGQgYmUgZXhlY3R1ZWQgd2hlbiByZWJvby4gVGhpcyBwYXRj
+aCBjb3VsZCBmaXggdGhlIHByb2JsZW0uDQoNCkFueSBjb21tZW50cyBvZiB0aGlzIHBhdGNoPyBN
+YW55IHRoYW5rcyENCg0KT2NlYW4gSGUgLyC6zrqj0fMNClNXIERldmVsb3BtZW50IERlcHQuIA0K
+QmVpamluZyBEZXNpZ24gQ2VudGVyDQpFbnRlcnByaXNlIFByb2R1Y3QgR3JvdXANCk1vYmlsZTog
+MTg5MTE3Nzg5MjYNCkUtbWFpbDogaGVoeTFAbGVub3ZvLmNvbQ0KTm8uNiBDaHVhbmcgWWUgUm9h
+ZCwgSGFpZGlhbiBEaXN0cmljdCwgQmVpamluZywgQ2hpbmEgMTAwMDg1DQoNCi0tLS0tT3JpZ2lu
+YWwgTWVzc2FnZS0tLS0tDQpGcm9tOiBPY2VhbiBIWTEgSGUgDQpTZW50OiBNb25kYXksIE1heSAw
+OSwgMjAxNiAxOjUwIFBNDQpUbzogcmp3QHJqd3lzb2NraS5uZXQ7IGxlbmJAa2VybmVsLm9yZw0K
+Q2M6IGxpbnV4LWFjcGlAdmdlci5rZXJuZWwub3JnOyBsaW51eC1rZXJuZWxAdmdlci5rZXJuZWwu
+b3JnOyBEYXZpZCBUYW5ha2E7IE9jZWFuIEhZMSBIZTsgTmFnYW5hbmRhIENodW1iYWxrYXINClN1
+YmplY3Q6IFtQQVRDSF0gQUNQSTogRXhlY3V0ZSB0aGUgX1BUUyBtZXRob2Qgd2hlbiBzeXN0ZW0g
+cmVib290DQoNClRoZSBfUFRTIGNvbnRyb2wgbWV0aG9kIGlzIGRlZmluZWQgaW4gdGhlIHNlY3Rp
+b24gNy40LjEgb2YgYWNwaSA2LjANCnNwZWMuIFRoZSBfUFRTIGNvbnRyb2wgbWV0aG9kIGlzIGV4
+ZWN1dGVkIGJ5IHRoZSBPUyBkdXJpbmcgdGhlIHNsZWVwDQp0cmFuc2l0aW9uIHByb2Nlc3MgZm9y
+IFMxLCBTMiwgUzMsIFM0LCBhbmQgZm9yIG9yZGVybHkgUzUgc2h1dGRvd24uDQpUaGUgc2xlZXBp
+bmcgc3RhdGUgdmFsdWUgKEZvciBleGFtcGxlLCAxLCAyLCAzLCA0IG9yIDUgZm9yIHRoZSBTNQ0K
+c29mdC1vZmYgc3RhdGUpIGlzIHBhc3NlZCB0byB0aGUgX1BUUyBjb250cm9sIG1ldGhvZC4gVGhp
+cyBtZXRob2QNCmlzIGNhbGxlZCBhZnRlciBPU1BNIGhhcyBub3RpZmllZCBuYXRpdmUgZGV2aWNl
+IGRyaXZlcnMgb2YgdGhlIHNsZWVwDQpzdGF0ZSB0cmFuc2l0aW9uIGFuZCBiZWZvcmUgdGhlIE9T
+UE0gaGFzIGhhZCBhIGNoYW5jZSB0byBmdWxseQ0KcHJlcGFyZSB0aGUgc3lzdGVtIGZvciBhIHNs
+ZWVwIHN0YXRlIHRyYW5zaXRpb24uDQoNClRoZSBfUFRTIGNvbnRyb2wgbWV0aG9kIHByb3ZpZGVz
+IHRoZSBCSU9TIGEgbWVjaGFuaXNtIGZvciBwZXJmb3JtaW5nDQpzb21lIGhvdXNla2VlcGluZywg
+c3VjaCBhcyB3cml0aW5nIHRoZSBzbGVlcCB0eXBlIHZhbHVlIHRvIHRoZSBlbWJlZGRlZA0KY29u
+dHJvbGxlciwgYmVmb3JlIGVudGVyaW5nIHRoZSBzeXN0ZW0gc2xlZXBpbmcgc3RhdGUuDQoNCkFj
+Y29yZGluZyB0byBzZWN0aW9uIDcuNSBvZiBhY3BpIDYuMCBzcGVjLCBfUFRTIHNob3VsZCBydW4g
+YWZ0ZXIgX1RUUy4NCg0KVGh1cywgYSBfUFRTIGJsb2NrIG5vdGlmaWVyIGlzIGFkZGVkIHRvIHRo
+ZSByZWJvb3Qgbm90aWZpZXIgbGlzdCBzbyB0aGF0DQp0aGUgX1BUUyBvYmplY3Qgd2lsbCBhbHNv
+IGJlIGV2YWx1YXRlZCB3aGVuIHRoZSBzeXN0ZW0gcmVib290Lg0KDQpTaWduZWQtb2ZmLWJ5OiBP
+Y2VhbiBIZSA8aGVoeTFAbGVub3ZvLmNvbT4NClNpZ25lZC1vZmYtYnk6IE5hZ2FuYW5kYSBDaHVt
+YmFsa2FyIDxuY2h1bWJhbGthckBsZW5vdm8uY29tPg0KLS0tDQogZHJpdmVycy9hY3BpL3NsZWVw
+LmMgfCAyNyArKysrKysrKysrKysrKysrKysrKysrKysrKysNCiAxIGZpbGUgY2hhbmdlZCwgMjcg
+aW5zZXJ0aW9ucygrKQ0KDQpkaWZmIC0tZ2l0IGEvZHJpdmVycy9hY3BpL3NsZWVwLmMgYi9kcml2
+ZXJzL2FjcGkvc2xlZXAuYw0KaW5kZXggMmE4YjU5Ni4uOGIyOTBmYiAxMDA2NDQNCi0tLSBhL2Ry
+aXZlcnMvYWNwaS9zbGVlcC5jDQorKysgYi9kcml2ZXJzL2FjcGkvc2xlZXAuYw0KQEAgLTU1LDYg
+KzU1LDI2IEBAIHN0YXRpYyBzdHJ1Y3Qgbm90aWZpZXJfYmxvY2sgdHRzX25vdGlmaWVyID0gew0K
+IAkucHJpb3JpdHkJPSAwLA0KIH07DQogDQorc3RhdGljIGludCBwdHNfbm90aWZ5X3JlYm9vdChz
+dHJ1Y3Qgbm90aWZpZXJfYmxvY2sgKnRoaXMsDQorCQkJdW5zaWduZWQgbG9uZyBjb2RlLCB2b2lk
+ICp4KQ0KK3sNCisJYWNwaV9zdGF0dXMgc3RhdHVzOw0KKw0KKwlzdGF0dXMgPSBhY3BpX2V4ZWN1
+dGVfc2ltcGxlX21ldGhvZChOVUxMLCAiXFxfUFRTIiwgQUNQSV9TVEFURV9TNSk7DQorCWlmIChB
+Q1BJX0ZBSUxVUkUoc3RhdHVzKSAmJiBzdGF0dXMgIT0gQUVfTk9UX0ZPVU5EKSB7DQorCQkvKiBJ
+dCB3b24ndCBicmVhayBhbnl0aGluZy4gKi8NCisJCXByaW50ayhLRVJOX05PVElDRSAiRmFpbHVy
+ZSBpbiBldmFsdWF0aW5nIF9QVFMgb2JqZWN0XG4iKTsNCisJfQ0KKw0KKwlyZXR1cm4gTk9USUZZ
+X0RPTkU7DQorfQ0KKw0KK3N0YXRpYyBzdHJ1Y3Qgbm90aWZpZXJfYmxvY2sgcHRzX25vdGlmaWVy
+ID0gew0KKwkubm90aWZpZXJfY2FsbAk9IHB0c19ub3RpZnlfcmVib290LA0KKwkubmV4dAkJPSBO
+VUxMLA0KKwkucHJpb3JpdHkJPSAwLA0KK307DQorDQogc3RhdGljIGludCBhY3BpX3NsZWVwX3By
+ZXBhcmUodTMyIGFjcGlfc3RhdGUpDQogew0KICNpZmRlZiBDT05GSUdfQUNQSV9TTEVFUA0KQEAg
+LTg5Niw1ICs5MTYsMTIgQEAgaW50IF9faW5pdCBhY3BpX3NsZWVwX2luaXQodm9pZCkNCiAJICog
+b2JqZWN0IGNhbiBhbHNvIGJlIGV2YWx1YXRlZCB3aGVuIHRoZSBzeXN0ZW0gZW50ZXJzIFM1Lg0K
+IAkgKi8NCiAJcmVnaXN0ZXJfcmVib290X25vdGlmaWVyKCZ0dHNfbm90aWZpZXIpOw0KKw0KKwkv
+Kg0KKwkgKiBBY2NvcmRpbmcgdG8gc2VjdGlvbiA3LjUgb2YgYWNwaSA2LjAgc3BlYywgX1BUUyBz
+aG91bGQgcnVuIGFmdGVyDQorCSAqIF9UVFMgd2hlbiB0aGUgc3lzdGVtIGVudGVycyBTNS4NCisJ
+ICovDQorCXJlZ2lzdGVyX3JlYm9vdF9ub3RpZmllcigmcHRzX25vdGlmaWVyKTsNCisNCiAJcmV0
+dXJuIDA7DQogfQ0KLS0gDQoxLjguMy4xDQo=
