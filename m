@@ -1,58 +1,74 @@
-From: <kchristopher@framingham.edu>
-Subject: (unknown)
-Date: Sun, 16 May 2016 15:47:29 0000
-Message-ID: <000101d1af8a$408c1174$c0a80001@pu.ru>
+From: Tomasz Nowicki <tn@semihalf.com>
+Subject: Re: [RFC PATCH 09/11] drivers: acpi: implement acpi_dma_configure
+Date: Mon, 16 May 2016 17:15:34 +0200
+Message-ID: <5739E416.6000501@semihalf.com>
+References: <1460654743-7896-1-git-send-email-lorenzo.pieralisi@arm.com>
+ <1460654743-7896-10-git-send-email-lorenzo.pieralisi@arm.com>
+ <CAOZdJXXtZq6uyE+5sseX7M_6Kq8wFG+37qd5TNSusKj=0gd8zA@mail.gmail.com>
+ <5714BA5A.2040008@arm.com>
 Mime-Version: 1.0
-Content-Type: application/zip; name="5153960517661_linux-acpi.zip"
-Content-Transfer-Encoding: base64
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from vlan586-172.net.pu.ru ([195.19.230.172]:52236 "HELO pu.ru"
-	rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org with SMTP
-	id S1753326AbcEPJrd (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 16 May 2016 05:47:33 -0400
-Subject: 
-Content-Disposition: attachment
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <5714BA5A.2040008@arm.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Robin Murphy <robin.murphy@arm.com>, Timur Tabi <timur@codeaurora.org>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+Cc: "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, vikrams@codeaurora.org, Marc Zyngier <marc.zyngier@arm.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, lkml <linux-kernel@vger.kernel.org>, Will Deacon <will.deacon@arm.com>, Sinan Kaya <okaya@codeaurora.org>, linux-acpi@vger.kernel.org, iommu@lists.linux-foundation.org, Hanjun Guo <hanjun.guo@linaro.org>, linux-pci@vger.kernel.org, Bjorn Helgaas <bhelgaas@google.com>, Jon Masters <jcm@redhat.com>
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi <linux-acpi@vger.kernel.org>
 
+On 18.04.2016 12:43, Robin Murphy wrote:
+> On 15/04/16 19:29, Timur Tabi wrote:
+>> On Thu, Apr 14, 2016 at 12:25 PM, Lorenzo Pieralisi
+>> <lorenzo.pieralisi@arm.com> wrote:
+>>> +void acpi_dma_configure(struct device *dev, enum dev_dma_attr attr)
+>>> +{
+>>> +       struct iommu_ops *iommu;
+>>> +
+>>> +       iommu = iort_iommu_configure(dev);
+>>> +
+>>> +       /*
+>>> +        * Assume dma valid range starts at 0 and covers the whole
+>>> +        * coherent_dma_mask.
+>>> +        */
+>>> +       arch_setup_dma_ops(dev, 0, dev->coherent_dma_mask + 1, iommu,
+>>> +                          attr == DEV_DMA_COHERENT);
+>>> +}
+>>
+>> I have a network driver that is impacted by this code, so thank you
+>> for posting this. (See
+>> https://www.mail-archive.com/netdev@vger.kernel.org/msg106249.html).
+>>
+>> One one SOC, the driver needs to set the mask to 32 bits.  On another
+>> SOC, it needs to set it to 64 bits.  On device tree, the driver will
+>> use dma-ranges.
+>
+> That's the wrong way to look at it - the driver isn't _using_
+> dma-ranges, you're merely relying on the OF code setting the _default_
+> DMA mask differently based on the property. If your driver is in the
+> minority of those which actually care about DMA masks, then it should be
+> calling dma_set_mask_and_coherent() appropriately and not relying on the
+> default.
 
+I don't see the clear strategy for setting DMA mask as well.
 
-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
-AAAA
+Lets consider DT boot method example:
+1. SMMUv2 supports 48bit translation and 1:1 address map
+dma-ranges = <0x0 0x0 0x0 0x0 0x00010000 0x0>;
+and we are adding PCI device:
+
+pci_device_add -> DMA_BIT_MASK(32) by default
+   pci_dma_configure
+     of_dma_configure -> reads dma-ranges and calculates 48bit DMA mask, 
+but it picks minimum, we stay with DMA_BIT_MASK(32)
+
+now PCI dev turns out to be e1000e NIC:
+e1000_probe
+   dma_set_mask_and_coherent -> tries to set DMA_BIT_MASK(64)
+     dma_set_mask -> there is no set_dma_mask ops for SMMUv2 so we let 
+it be DMA_BIT_MASK(64). From that point on, we let to use memory which 
+SMMUv2 cannot work with.
+
+Does lack of set_dma_mask is the only missing thing here?
+
+Thanks,
+Tomasz
