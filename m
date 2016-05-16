@@ -1,58 +1,155 @@
-From: "Rafael J. Wysocki" <rafael@kernel.org>
-Subject: [GIT PULL] Generic device properties framework update for v4.7-rc1
-Date: Mon, 16 May 2016 23:21:24 +0200
-Message-ID: <CAJZ5v0jGNXWrjzGme1ZppW48Q6Q0Rhzc276POtUViDV=RbYNKw@mail.gmail.com>
+From: "Zheng, Lv" <lv.zheng@intel.com>
+Subject: RE: [PATCH v2] ACPI: Support for platform initiated graceful
+ shutdown
+Date: Mon, 16 May 2016 22:43:52 +0000
+Message-ID: <1AE640813FDE7649BE1B193DEA596E883BBA2A24@SHSMSX101.ccr.corp.intel.com>
+References: <1463430112-8843-1-git-send-email-pprakash@codeaurora.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-wm0-f66.google.com ([74.125.82.66]:35286 "EHLO
-	mail-wm0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750816AbcEPVV0 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 16 May 2016 17:21:26 -0400
+Received: from mga01.intel.com ([192.55.52.88]:4297 "EHLO mga01.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751790AbcEPWn4 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 16 May 2016 18:43:56 -0400
+In-Reply-To: <1463430112-8843-1-git-send-email-pprakash@codeaurora.org>
+Content-Language: en-US
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>
+To: Prashanth Prakash <pprakash@codeaurora.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
+Cc: "rjw@rjwysocki.net" <rjw@rjwysocki.net>, "harba@codeaurora.org" <harba@codeaurora.org>, "ahs3@redhat.com" <ahs3@redhat.com>
 
-Hi Linus,
+Hi,
 
-Please pull from
+> From: linux-acpi-owner@vger.kernel.org [mailto:linux-acpi-
+> owner@vger.kernel.org] On Behalf Of Prashanth Prakash
+> Subject: [PATCH v2] ACPI: Support for platform initiated graceful shutdown
+> 
+> This patch adds support for platform initited graceful shutdown as
+> described in sections 5.6.6(Table-143) and 6.3.5.1 of ACPI 6.1 spec
+> 
+> The OSPM will get a graceful shutdown request via a Notify operator
+> on \_SB device with a value of 0x81 per section 5.6.6. Following the
+> shutdown request from platform the OSPM needs to follow the
+> processing sequence as described in section 6.2.5.1.
+[Lv Zheng] 
+Can you provide proofs on how other OS (ex., Windows) behave around this feature instead of using the spec description?
 
- git://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm.git \
- device-properties-4.7-rc1
+> 
+> Signed-off-by: Prashanth Prakash <pprakash@codeaurora.org>
+> ---
+>  drivers/acpi/bus.c     | 49
+> +++++++++++++++++++++++++++++++++++++++++++++++++
+>  include/acpi/actypes.h |  2 +-
+>  2 files changed, 50 insertions(+), 1 deletion(-)
+> 
+> diff --git a/drivers/acpi/bus.c b/drivers/acpi/bus.c
+> index 31e8da6..25d4806 100644
+> --- a/drivers/acpi/bus.c
+> +++ b/drivers/acpi/bus.c
+> @@ -30,6 +30,8 @@
+>  #include <linux/acpi.h>
+>  #include <linux/slab.h>
+>  #include <linux/regulator/machine.h>
+> +#include <linux/workqueue.h>
+> +#include <linux/reboot.h>
+>  #ifdef CONFIG_X86
+>  #include <asm/mpspec.h>
+>  #endif
+> @@ -475,6 +477,52 @@ static void acpi_device_remove_notify_handler(struct
+> acpi_device *device)
+>  					   acpi_device_notify);
+>  }
+> 
+> +/* Handle events targeting \_SB device (at present only graceful shutdown) */
+> +
+> +#define ACPI_SB_NOTIFY_SHUTDOWN_REQUEST 0x81
+> +#define ACPI_SYBUS_INDICATE_INTERVAL	10000
+> +
+> +static void sybus_evaluate_ost(struct work_struct *dummy);
+> +static DECLARE_DELAYED_WORK(acpi_sybus_work, sybus_evaluate_ost);
+> +
+> +static void sybus_evaluate_ost(struct work_struct *dummy)
+> +{
+> +	acpi_handle sb_handle;
+> +
+> +	if (ACPI_SUCCESS(acpi_get_handle(NULL, "\\_SB", &sb_handle))) {
+> +		acpi_evaluate_ost(sb_handle,
+> ACPI_OST_EC_OSPM_SHUTDOWN,
+> +				ACPI_OST_SC_OS_SHUTDOWN_IN_PROGRESS,
+> NULL);
+> +		schedule_delayed_work(&acpi_sybus_work,
+> +
+> 	msecs_to_jiffies(ACPI_SYBUS_INDICATE_INTERVAL));
+> +		pr_info("Graceful shutdown in progress.\n");
+> +	}
+> +}
+> +
+> +static void acpi_sybus_notify(acpi_handle handle, u32 event, void *data)
+> +{
+> +	if (event == ACPI_SB_NOTIFY_SHUTDOWN_REQUEST) {
+> +		if (!delayed_work_pending(&acpi_sybus_work)) {
+> +			sybus_evaluate_ost(NULL);
+> +			orderly_poweroff(true);
+> +		}
+> +	} else
+> +		pr_warn("event %x is not supported by \\_SB device\n", event);
+[Lv Zheng] 
+Do you need to evaluate _OST with status code = 2?
+This looks to me like we are lacking in general Notify handling support in the ACPICA core.
 
-to receive an update of the generic device properties framework for
-v4.7-rc1 with top-most commit dab2e29402f40431d2199e6faff48174204d2d06
+Thanks and best regards
+-Lv
 
- Merge back new device properties material for v4.7.
-
-on top of commit 0224a4a30b57385a60065aa598181868881d8fc6
-
- device property: Avoid potential dereferences of invalid pointers
-
-Just one commit reworking the handling of built-in properties
-initialization and updating a few drivers in accordance with the
-core framework changes.
-
-Thanks!
-
----------------
-
-Heikki Krogerus (1):
-      device property: don't bother the drivers with struct property_set
-
----------------
-
- arch/arm/mach-pxa/raumfeld.c      | 12 ++++--------
- arch/arm/mach-tegra/board-paz00.c |  6 +-----
- drivers/base/platform.c           | 19 ++++++++++---------
- drivers/base/property.c           | 34 +++++++++++++++++++++-------------
- drivers/mfd/intel-lpss-acpi.c     | 12 ++----------
- drivers/mfd/intel-lpss-pci.c      | 20 ++++----------------
- drivers/mfd/intel-lpss.c          |  2 +-
- drivers/mfd/intel-lpss.h          |  4 ++--
- drivers/mfd/mfd-core.c            |  4 ++--
- include/linux/mfd/core.h          |  4 ++--
- include/linux/platform_device.h   |  6 +++---
- include/linux/property.h          | 15 +++------------
- 12 files changed, 55 insertions(+), 83 deletions(-)
+> +}
+> +
+> +static int __init acpi_setup_sybus_notify_handler(void)
+> +{
+> +	acpi_handle sb_handle;
+> +
+> +	if (ACPI_FAILURE(acpi_get_handle(NULL, "\\_SB", &sb_handle)))
+> +		return -ENXIO;
+> +
+> +	if (ACPI_FAILURE(acpi_install_notify_handler(sb_handle,
+> ACPI_DEVICE_NOTIFY,
+> +						acpi_sybus_notify, NULL)))
+> +		return -EINVAL;
+> +
+> +	return 0;
+> +}
+> +
+>  /* --------------------------------------------------------------------------
+>                               Device Matching
+>     -------------------------------------------------------------------------- */
+> @@ -1124,6 +1172,7 @@ static int __init acpi_init(void)
+>  	acpi_sleep_proc_init();
+>  	acpi_wakeup_device_init();
+>  	acpi_debugger_init();
+> +	acpi_setup_sybus_notify_handler();
+>  	return 0;
+>  }
+> 
+> diff --git a/include/acpi/actypes.h b/include/acpi/actypes.h
+> index cb389ef..860b273 100644
+> --- a/include/acpi/actypes.h
+> +++ b/include/acpi/actypes.h
+> @@ -627,7 +627,7 @@ typedef u64 acpi_integer;
+>  #define ACPI_NOTIFY_DEVICE_PLD_CHECK    (u8) 0x09
+>  #define ACPI_NOTIFY_RESERVED            (u8) 0x0A
+>  #define ACPI_NOTIFY_LOCALITY_UPDATE     (u8) 0x0B
+> -#define ACPI_NOTIFY_SHUTDOWN_REQUEST    (u8) 0x0C
+> +#define ACPI_NOTIFY_RESERVED_2          (u8) 0x0C
+>  #define ACPI_NOTIFY_AFFINITY_UPDATE     (u8) 0x0D
+> 
+>  #define ACPI_GENERIC_NOTIFY_MAX         0x0D
+> --
+> Qualcomm Technologies, Inc. on behalf
+> of the Qualcomm Innovation Center, Inc.  The Qualcomm Innovation Center,
+> Inc.
+> is a member of the Code Aurora Forum, a Linux Foundation Collaborative
+> Project.
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
