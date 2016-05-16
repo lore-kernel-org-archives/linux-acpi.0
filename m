@@ -1,82 +1,120 @@
-From: Tomasz Nowicki <tn-nYOzD4b6Jr9Wk0Htik3J/w@public.gmane.org>
-Subject: Re: [RFC PATCH 09/11] drivers: acpi: implement acpi_dma_configure
-Date: Mon, 16 May 2016 17:26:03 +0200
-Message-ID: <5739E68B.2080907@semihalf.com>
-References: <1460654743-7896-1-git-send-email-lorenzo.pieralisi@arm.com>
-	<1460654743-7896-10-git-send-email-lorenzo.pieralisi@arm.com>
-	<CAOZdJXXtZq6uyE+5sseX7M_6Kq8wFG+37qd5TNSusKj=0gd8zA@mail.gmail.com>
-	<5714BA5A.2040008@arm.com> <5739E416.6000501@semihalf.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"; Format="flowed"
-Content-Transfer-Encoding: 7bit
-Return-path: <iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
-In-Reply-To: <5739E416.6000501-nYOzD4b6Jr9Wk0Htik3J/w@public.gmane.org>
-List-Unsubscribe: <https://lists.linuxfoundation.org/mailman/options/iommu>,
-	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.linuxfoundation.org/pipermail/iommu/>
-List-Post: <mailto:iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
-List-Help: <mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.linuxfoundation.org/mailman/listinfo/iommu>,
-	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=subscribe>
-Sender: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
-Errors-To: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
-To: Robin Murphy <robin.murphy-5wv7dgnIgG8@public.gmane.org>, Timur Tabi <timur-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, Lorenzo Pieralisi <lorenzo.pieralisi-5wv7dgnIgG8@public.gmane.org>
-Cc: Jon Masters <jcm-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, vikrams-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org, Marc Zyngier <marc.zyngier-5wv7dgnIgG8@public.gmane.org>, "Rafael J. Wysocki" <rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org>, Will Deacon <will.deacon-5wv7dgnIgG8@public.gmane.org>, lkml <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Sinan Kaya <okaya-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org, Hanjun Guo <hanjun.guo-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Bjorn Helgaas <bhelgaas-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>, "linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org" <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>
+From: Prashanth Prakash <pprakash@codeaurora.org>
+Subject: [PATCH v2] ACPI: Support for platform initiated graceful shutdown
+Date: Mon, 16 May 2016 14:21:52 -0600
+Message-ID: <1463430112-8843-1-git-send-email-pprakash@codeaurora.org>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from smtp.codeaurora.org ([198.145.29.96]:37166 "EHLO
+	smtp.codeaurora.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753537AbcEPUWR (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 16 May 2016 16:22:17 -0400
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: linux-acpi@vger.kernel.org
+Cc: rjw@rjwysocki.net, harba@codeaurora.org, ahs3@redhat.com, Prashanth Prakash <pprakash@codeaurora.org>
 
+This patch adds support for platform initited graceful shutdown as
+described in sections 5.6.6(Table-143) and 6.3.5.1 of ACPI 6.1 spec
 
+The OSPM will get a graceful shutdown request via a Notify operator
+on \_SB device with a value of 0x81 per section 5.6.6. Following the
+shutdown request from platform the OSPM needs to follow the
+processing sequence as described in section 6.2.5.1.
 
-On 16.05.2016 17:15, Tomasz Nowicki wrote:
-> On 18.04.2016 12:43, Robin Murphy wrote:
->> On 15/04/16 19:29, Timur Tabi wrote:
->>> On Thu, Apr 14, 2016 at 12:25 PM, Lorenzo Pieralisi
->>> <lorenzo.pieralisi-5wv7dgnIgG8@public.gmane.org> wrote:
->>>> +void acpi_dma_configure(struct device *dev, enum dev_dma_attr attr)
->>>> +{
->>>> +       struct iommu_ops *iommu;
->>>> +
->>>> +       iommu = iort_iommu_configure(dev);
->>>> +
->>>> +       /*
->>>> +        * Assume dma valid range starts at 0 and covers the whole
->>>> +        * coherent_dma_mask.
->>>> +        */
->>>> +       arch_setup_dma_ops(dev, 0, dev->coherent_dma_mask + 1, iommu,
->>>> +                          attr == DEV_DMA_COHERENT);
->>>> +}
->>>
->>> I have a network driver that is impacted by this code, so thank you
->>> for posting this. (See
->>> https://www.mail-archive.com/netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org/msg106249.html).
->>>
->>> One one SOC, the driver needs to set the mask to 32 bits.  On another
->>> SOC, it needs to set it to 64 bits.  On device tree, the driver will
->>> use dma-ranges.
->>
->> That's the wrong way to look at it - the driver isn't _using_
->> dma-ranges, you're merely relying on the OF code setting the _default_
->> DMA mask differently based on the property. If your driver is in the
->> minority of those which actually care about DMA masks, then it should be
->> calling dma_set_mask_and_coherent() appropriately and not relying on the
->> default.
->
-> I don't see the clear strategy for setting DMA mask as well.
->
-> Lets consider DT boot method example:
-> 1. SMMUv2 supports 48bit translation and 1:1 address map
-> dma-ranges = <0x0 0x0 0x0 0x0 0x00010000 0x0>;
-> and we are adding PCI device:
->
-> pci_device_add -> DMA_BIT_MASK(32) by default
->    pci_dma_configure
->      of_dma_configure -> reads dma-ranges and calculates 48bit DMA mask,
-> but it picks minimum, we stay with DMA_BIT_MASK(32)
->
-> now PCI dev turns out to be e1000e NIC:
-> e1000_probe
->    dma_set_mask_and_coherent -> tries to set DMA_BIT_MASK(64)
->      dma_set_mask -> there is no set_dma_mask ops for SMMUv2 so we let
+Signed-off-by: Prashanth Prakash <pprakash@codeaurora.org>
+---
+ drivers/acpi/bus.c     | 49 +++++++++++++++++++++++++++++++++++++++++++++++++
+ include/acpi/actypes.h |  2 +-
+ 2 files changed, 50 insertions(+), 1 deletion(-)
 
-Sorry, there is no .set_dma_mask ops for ARM64 (not SMMUv2)
+diff --git a/drivers/acpi/bus.c b/drivers/acpi/bus.c
+index 31e8da6..25d4806 100644
+--- a/drivers/acpi/bus.c
++++ b/drivers/acpi/bus.c
+@@ -30,6 +30,8 @@
+ #include <linux/acpi.h>
+ #include <linux/slab.h>
+ #include <linux/regulator/machine.h>
++#include <linux/workqueue.h>
++#include <linux/reboot.h>
+ #ifdef CONFIG_X86
+ #include <asm/mpspec.h>
+ #endif
+@@ -475,6 +477,52 @@ static void acpi_device_remove_notify_handler(struct acpi_device *device)
+ 					   acpi_device_notify);
+ }
+ 
++/* Handle events targeting \_SB device (at present only graceful shutdown) */
++
++#define ACPI_SB_NOTIFY_SHUTDOWN_REQUEST 0x81
++#define ACPI_SYBUS_INDICATE_INTERVAL	10000
++
++static void sybus_evaluate_ost(struct work_struct *dummy);
++static DECLARE_DELAYED_WORK(acpi_sybus_work, sybus_evaluate_ost);
++
++static void sybus_evaluate_ost(struct work_struct *dummy)
++{
++	acpi_handle sb_handle;
++
++	if (ACPI_SUCCESS(acpi_get_handle(NULL, "\\_SB", &sb_handle))) {
++		acpi_evaluate_ost(sb_handle, ACPI_OST_EC_OSPM_SHUTDOWN,
++				ACPI_OST_SC_OS_SHUTDOWN_IN_PROGRESS, NULL);
++		schedule_delayed_work(&acpi_sybus_work,
++				msecs_to_jiffies(ACPI_SYBUS_INDICATE_INTERVAL));
++		pr_info("Graceful shutdown in progress.\n");
++	}
++}
++
++static void acpi_sybus_notify(acpi_handle handle, u32 event, void *data)
++{
++	if (event == ACPI_SB_NOTIFY_SHUTDOWN_REQUEST) {
++		if (!delayed_work_pending(&acpi_sybus_work)) {
++			sybus_evaluate_ost(NULL);
++			orderly_poweroff(true);
++		}
++	} else
++		pr_warn("event %x is not supported by \\_SB device\n", event);
++}
++
++static int __init acpi_setup_sybus_notify_handler(void)
++{
++	acpi_handle sb_handle;
++
++	if (ACPI_FAILURE(acpi_get_handle(NULL, "\\_SB", &sb_handle)))
++		return -ENXIO;
++
++	if (ACPI_FAILURE(acpi_install_notify_handler(sb_handle, ACPI_DEVICE_NOTIFY,
++						acpi_sybus_notify, NULL)))
++		return -EINVAL;
++
++	return 0;
++}
++
+ /* --------------------------------------------------------------------------
+                              Device Matching
+    -------------------------------------------------------------------------- */
+@@ -1124,6 +1172,7 @@ static int __init acpi_init(void)
+ 	acpi_sleep_proc_init();
+ 	acpi_wakeup_device_init();
+ 	acpi_debugger_init();
++	acpi_setup_sybus_notify_handler();
+ 	return 0;
+ }
+ 
+diff --git a/include/acpi/actypes.h b/include/acpi/actypes.h
+index cb389ef..860b273 100644
+--- a/include/acpi/actypes.h
++++ b/include/acpi/actypes.h
+@@ -627,7 +627,7 @@ typedef u64 acpi_integer;
+ #define ACPI_NOTIFY_DEVICE_PLD_CHECK    (u8) 0x09
+ #define ACPI_NOTIFY_RESERVED            (u8) 0x0A
+ #define ACPI_NOTIFY_LOCALITY_UPDATE     (u8) 0x0B
+-#define ACPI_NOTIFY_SHUTDOWN_REQUEST    (u8) 0x0C
++#define ACPI_NOTIFY_RESERVED_2          (u8) 0x0C
+ #define ACPI_NOTIFY_AFFINITY_UPDATE     (u8) 0x0D
+ 
+ #define ACPI_GENERIC_NOTIFY_MAX         0x0D
+-- 
+Qualcomm Technologies, Inc. on behalf
+of the Qualcomm Innovation Center, Inc.  The Qualcomm Innovation Center, Inc. 
+is a member of the Code Aurora Forum, a Linux Foundation Collaborative Project.
 
-Tomasz
