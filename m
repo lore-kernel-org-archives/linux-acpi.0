@@ -1,113 +1,149 @@
 From: Lv Zheng <lv.zheng@intel.com>
-Subject: [PATCH 2/3] ACPI / sys: Update /sys/firmware/acpi/interrupts/gpexx using new GPE forced disabling/enabling mechanism
-Date: Mon, 16 May 2016 17:11:18 +0800
-Message-ID: <a4ce1750ef4a5ad3437ecb9934f6f640f831a35c.1463389640.git.lv.zheng@intel.com>
+Subject: [PATCH 3/3] ACPI / sysfs: Provide quirk mechanism to prevent GPE flooding
+Date: Mon, 16 May 2016 17:11:24 +0800
+Message-ID: <c6808078a092fbf990d535cc359b734108ae5d6b.1463389640.git.lv.zheng@intel.com>
 References: <cover.1463389639.git.lv.zheng@intel.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga14.intel.com ([192.55.52.115]:62070 "EHLO mga14.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753299AbcEPJL2 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 16 May 2016 05:11:28 -0400
 In-Reply-To: <cover.1463389639.git.lv.zheng@intel.com>
-Sender: linux-kernel-owner@vger.kernel.org
+Sender: linux-acpi-owner@vger.kernel.org
+List-Id: linux-acpi@vger.kernel.org
 To: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <len.brown@intel.com>
 Cc: Lv Zheng <lv.zheng@intel.com>, Lv Zheng <zetalog@gmail.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
-List-Id: linux-acpi@vger.kernel.org
 
-Now GPE can be forced enabling/disabling through GPE management APIs, this
-patch modifies /sys/firmware/acpi/interrupts/gpexx to use this new
-facility.
+Sometimes, the users may require a quirk to be provided from ACPI subsystem
+core to prevent a GPE from flooding. Normally, if a GPE cannot be
+dispatched, ACPICA core automatically prevents the GPE from firing. But
+there are cases the GPE is dispatched by _Lxx/_Exx provided via AML table,
+and OSPM is lacking of the knowledge to get _Lxx/_Exx correctly executed to
+handle the GPE, thus the GPE flooding may still occur.
 
-The "block" command is implemented to invoke acpi_block_gpe() and the
-"unblock" command is implemented to invoke acpi_unblock_gpe().
-The "force-poll"/"force-irq"/"unforce" command is implemented to invoke
-acpi_control_gpe_handling() to switch GPE handling mode (for EC driver
-only).
+This patch provides a quirk mechanism to stop this kind of GPE flooding.
 
-"EN STS" is returned to display the current hardware register status, along
-with "!" flag to indicate the register bit unset and "*" flag to indicate
-the managed state.
-
+Link: https://bugzilla.kernel.org/show_bug.cgi?id=53071
+Link: https://bugs.launchpad.net/ubuntu/+source/linux/+bug/887793
 Signed-off-by: Lv Zheng <lv.zheng@intel.com>
 ---
- drivers/acpi/sleep.c |    2 +-
- drivers/acpi/sysfs.c |   36 ++++++++++++++++++++++++++++++++----
- 2 files changed, 33 insertions(+), 5 deletions(-)
+ drivers/acpi/internal.h |    1 +
+ drivers/acpi/scan.c     |    1 +
+ drivers/acpi/sleep.c    |    2 ++
+ drivers/acpi/sysfs.c    |   56 +++++++++++++++++++++++++++++++++++++++++++++++
+ 4 files changed, 60 insertions(+)
 
+diff --git a/drivers/acpi/internal.h b/drivers/acpi/internal.h
+index 9bb0773..d0f1744 100644
+--- a/drivers/acpi/internal.h
++++ b/drivers/acpi/internal.h
+@@ -37,6 +37,7 @@ void acpi_amba_init(void);
+ static inline void acpi_amba_init(void) {}
+ #endif
+ int acpi_sysfs_init(void);
++void acpi_gpe_apply_blocked_gpes(void);
+ void acpi_container_init(void);
+ void acpi_memory_hotplug_init(void);
+ #ifdef	CONFIG_ACPI_HOTPLUG_IOAPIC
+diff --git a/drivers/acpi/scan.c b/drivers/acpi/scan.c
+index 5f28cf7..5ff366c 100644
+--- a/drivers/acpi/scan.c
++++ b/drivers/acpi/scan.c
+@@ -1958,6 +1958,7 @@ int __init acpi_scan_init(void)
+ 		}
+ 	}
+ 
++	acpi_gpe_apply_blocked_gpes();
+ 	acpi_update_all_gpes();
+ 
+  out:
 diff --git a/drivers/acpi/sleep.c b/drivers/acpi/sleep.c
-index 7a2e4d4..d00544c 100644
+index d00544c..daba3ba 100644
 --- a/drivers/acpi/sleep.c
 +++ b/drivers/acpi/sleep.c
-@@ -555,7 +555,7 @@ static int acpi_suspend_enter(suspend_state_t pm_state)
+@@ -414,6 +414,7 @@ static void acpi_pm_finish(void)
+ 		acpi_state);
+ 	acpi_disable_wakeup_devices(acpi_state);
+ 	acpi_leave_sleep_state(acpi_state);
++	acpi_gpe_apply_blocked_gpes();
  
- 		acpi_get_event_status(ACPI_EVENT_POWER_BUTTON, &pwr_btn_status);
+ 	/* reset firmware waking vector */
+ 	acpi_set_waking_vector(0);
+@@ -774,6 +775,7 @@ static void acpi_pm_thaw(void)
+ {
+ 	acpi_ec_unblock_transactions();
+ 	acpi_enable_all_runtime_gpes();
++	acpi_gpe_apply_blocked_gpes();
+ }
  
--		if (pwr_btn_status & ACPI_EVENT_FLAG_SET) {
-+		if (pwr_btn_status & ACPI_EVENT_FLAG_STATUS_SET) {
- 			acpi_clear_event(ACPI_EVENT_POWER_BUTTON);
- 			/* Flag for later */
- 			pwr_btn_event_pending = true;
+ static const struct platform_hibernation_ops acpi_hibernation_ops = {
 diff --git a/drivers/acpi/sysfs.c b/drivers/acpi/sysfs.c
-index 4b3a9e2..7f33c90 100644
+index 7f33c90..a2fb524 100644
 --- a/drivers/acpi/sysfs.c
 +++ b/drivers/acpi/sysfs.c
-@@ -599,6 +599,19 @@ static ssize_t counter_show(struct kobject *kobj,
- 	if (result)
- 		goto end;
+@@ -715,6 +715,62 @@ end:
+ 	return result ? result : size;
+ }
  
-+	if (status & ACPI_EVENT_FLAG_ENABLE_SET)
-+		size += sprintf(buf + size, "      EN");
-+	else
-+		size += sprintf(buf + size, "     !EN");
-+	if (status & ACPI_EVENT_FLAG_MANAGED)
-+		size += sprintf(buf + size, "*");
-+	else
-+		size += sprintf(buf + size, " ");
-+	if (status & ACPI_EVENT_FLAG_STATUS_SET)
-+		size += sprintf(buf + size, "     STS");
-+	else
-+		size += sprintf(buf + size, "    !STS");
++/*
++ * A Quirk Mechanism for GPE Flooding Prevention:
++ *
++ * Quirks may be needed to prevent GPE flooding on a specific GPE. The
++ * flooding typically cannot be detected and automatically prevented by
++ * ACPI_GPE_DISPATCH_NONE check because there is a _Lxx/_Exx prepared in
++ * the AML tables. This normally indicates a feature gap in Linux, thus
++ * instead of providing endless quirk tables, we provide a boot parameter
++ * for those who want this quirk. For example, if the users want to prevent
++ * the GPE flooding for GPE 00, they need to specify the following boot
++ * parameter:
++ *   acpi.block_gpe=0x00
++ * The blocking status can be modified by the following runtime controlling
++ * interface:
++ *   echo unblock > /sys/firmware/acpi/interrupts/gpe00
++ */
 +
- 	if (!(status & ACPI_EVENT_FLAG_HAS_HANDLER))
- 		size += sprintf(buf + size, "   invalid");
- 	else if (status & ACPI_EVENT_FLAG_ENABLED)
-@@ -656,8 +669,23 @@ static ssize_t counter_set(struct kobject *kobj,
- 		else if (!strcmp(buf, "enable\n") &&
- 			 !(status & ACPI_EVENT_FLAG_ENABLED))
- 			result = acpi_enable_gpe(handle, index);
-+		else if (!strcmp(buf, "block\n"))
-+			result = acpi_block_gpe(handle, index);
-+		else if (!strcmp(buf, "unblock\n") &&
-+			 (status & ACPI_EVENT_FLAG_MANAGED))
-+			result = acpi_unblock_gpe(handle, index);
-+		else if (!strcmp(buf, "force-poll\n"))
-+			result = acpi_control_gpe_handling(handle, index,
-+							   TRUE, FALSE);
-+		else if (!strcmp(buf, "force-irq\n"))
-+			result = acpi_control_gpe_handling(handle, index,
-+							   FALSE, TRUE);
-+		else if (!strcmp(buf, "unforce\n") &&
-+			 (status & ACPI_EVENT_FLAG_MANAGED))
-+			result = acpi_control_gpe_handling(handle, index,
-+							   TRUE, TRUE);
- 		else if (!strcmp(buf, "clear\n") &&
--			 (status & ACPI_EVENT_FLAG_SET))
-+			 (status & ACPI_EVENT_FLAG_STATUS_SET))
- 			result = acpi_clear_gpe(handle, index);
- 		else if (!kstrtoul(buf, 0, &tmp))
- 			all_counters[index].count = tmp;
-@@ -666,13 +694,13 @@ static ssize_t counter_set(struct kobject *kobj,
- 	} else if (index < num_gpes + ACPI_NUM_FIXED_EVENTS) {
- 		int event = index - num_gpes;
- 		if (!strcmp(buf, "disable\n") &&
--		    (status & ACPI_EVENT_FLAG_ENABLED))
-+		    (status & ACPI_EVENT_FLAG_ENABLE_SET))
- 			result = acpi_disable_event(event, ACPI_NOT_ISR);
- 		else if (!strcmp(buf, "enable\n") &&
--			 !(status & ACPI_EVENT_FLAG_ENABLED))
-+			 !(status & ACPI_EVENT_FLAG_ENABLE_SET))
- 			result = acpi_enable_event(event, ACPI_NOT_ISR);
- 		else if (!strcmp(buf, "clear\n") &&
--			 (status & ACPI_EVENT_FLAG_SET))
-+			 (status & ACPI_EVENT_FLAG_STATUS_SET))
- 			result = acpi_clear_event(event);
- 		else if (!kstrtoul(buf, 0, &tmp))
- 			all_counters[index].count = tmp;
++/*
++ * Currently, the GPE flooding prevention only supports to block the GPEs
++ * numbered from 00 to 63.
++ */
++#define ACPI_BLOCKABLE_GPE_MAX	64
++
++static u64 acpi_blocked_gpes;
++
++static int __init acpi_gpe_set_blocked_gpes(char *val)
++{
++	u8 gpe;
++
++	if (kstrtou8(val, 0, &gpe) || gpe > ACPI_BLOCKABLE_GPE_MAX)
++		return -EINVAL;
++	acpi_blocked_gpes |= ((u64)1<<gpe);
++
++	return 1;
++}
++__setup("acpi_block_gpe=", acpi_gpe_set_blocked_gpes);
++
++void acpi_gpe_apply_blocked_gpes(void)
++{
++	acpi_handle handle;
++	acpi_status status;
++	u8 gpe;
++
++	for (gpe = 0;
++	     gpe < min_t(u8, ACPI_BLOCKABLE_GPE_MAX, acpi_current_gpe_count);
++	     gpe++) {
++		if (acpi_blocked_gpes & ((u64)1<<gpe)) {
++			status = acpi_get_gpe_device(gpe, &handle);
++			if (ACPI_SUCCESS(status)) {
++				pr_info("Blocking GPE 0x%x.\n", gpe);
++				(void)acpi_block_gpe(handle, gpe);
++			}
++		}
++	}
++}
++
+ void acpi_irq_stats_init(void)
+ {
+ 	acpi_status status;
 -- 
 1.7.10
+
