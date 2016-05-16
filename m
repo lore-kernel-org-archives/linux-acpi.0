@@ -1,39 +1,85 @@
 From: Sinan Kaya <okaya@codeaurora.org>
-Subject: [PATCH V5 0/6] vfio, platform: add ACPI support
-Date: Sun, 15 May 2016 22:13:33 -0400
-Message-ID: <1463364819-477-1-git-send-email-okaya@codeaurora.org>
-Return-path: <linux-arm-msm-owner@vger.kernel.org>
-Sender: linux-arm-msm-owner@vger.kernel.org
+Subject: [PATCH V5 2/6] vfio: platform: move reset call to a common function
+Date: Sun, 15 May 2016 22:13:35 -0400
+Message-ID: <1463364819-477-3-git-send-email-okaya@codeaurora.org>
+References: <1463364819-477-1-git-send-email-okaya@codeaurora.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1463364819-477-1-git-send-email-okaya@codeaurora.org>
+Sender: linux-kernel-owner@vger.kernel.org
 To: kvm@vger.kernel.org, timur@codeaurora.org, cov@codeaurora.org, jcm@redhat.com, eric.auger@linaro.org
-Cc: linux-acpi@vger.kernel.org, agross@codeaurora.org, linux-arm-msm@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Sinan Kaya <okaya@codeaurora.org>
+Cc: linux-acpi@vger.kernel.org, agross@codeaurora.org, linux-arm-msm@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Sinan Kaya <okaya@codeaurora.org>, Baptiste Reynal <b.reynal@virtualopensystems.com>, Alex Williamson <alex.williamson@redhat.com>, linux-kernel@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-The device tree code checks for the presence of a reset driver and calls
-the of_reset function pointer by looking up the reset driver as a module.
+The reset call sequence seems to replicate itself multiple times
+across the file. Grouping them together for maintenance reasons.
 
-ACPI defines _RST method to perform device level reset. After the _RST
-method is executed, the OS can resume using the device.
+Signed-off-by: Sinan Kaya <okaya@codeaurora.org>
+---
+ drivers/vfio/platform/vfio_platform_common.c | 31 ++++++++++++++--------------
+ 1 file changed, 15 insertions(+), 16 deletions(-)
 
-This patch checks the presence of _RST method and calls the _RST
-method when reset is requested.
-
-Changes:
-1. No functional changes. Just divide the patches into subpatches for easy
-review.
-
-Sinan Kaya (6):
-  vfio: platform: rename reset function
-  vfio: platform: move reset call to a common function
-  vfio: platform: determine reset capability
-  vfio: platform: add support for ACPI probe
-  vfio: platform: call _RST method when using ACPI
-  vfio, platform: make reset driver a requirement by default
-
- drivers/vfio/platform/vfio_amba.c             |   5 +
- drivers/vfio/platform/vfio_platform.c         |   5 +
- drivers/vfio/platform/vfio_platform_common.c  | 170 +++++++++++++++++++++-----
- drivers/vfio/platform/vfio_platform_private.h |   8 +-
- 4 files changed, 153 insertions(+), 35 deletions(-)
-
+diff --git a/drivers/vfio/platform/vfio_platform_common.c b/drivers/vfio/platform/vfio_platform_common.c
+index 08fd7c2..cb91dd3 100644
+--- a/drivers/vfio/platform/vfio_platform_common.c
++++ b/drivers/vfio/platform/vfio_platform_common.c
+@@ -134,6 +134,18 @@ static void vfio_platform_regions_cleanup(struct vfio_platform_device *vdev)
+ 	kfree(vdev->regions);
+ }
+ 
++static int vfio_platform_call_reset(struct vfio_platform_device *vdev)
++{
++	if (vdev->of_reset) {
++		dev_info(vdev->device, "reset\n");
++		vdev->of_reset(vdev);
++		return 0;
++	}
++
++	dev_warn(vdev->device, "no reset function found!\n");
++	return -EINVAL;
++}
++
+ static void vfio_platform_release(void *device_data)
+ {
+ 	struct vfio_platform_device *vdev = device_data;
+@@ -141,12 +153,7 @@ static void vfio_platform_release(void *device_data)
+ 	mutex_lock(&driver_lock);
+ 
+ 	if (!(--vdev->refcnt)) {
+-		if (vdev->of_reset) {
+-			dev_info(vdev->device, "reset\n");
+-			vdev->of_reset(vdev);
+-		} else {
+-			dev_warn(vdev->device, "no reset function found!\n");
+-		}
++		vfio_platform_call_reset(vdev);
+ 		vfio_platform_regions_cleanup(vdev);
+ 		vfio_platform_irq_cleanup(vdev);
+ 	}
+@@ -175,12 +182,7 @@ static int vfio_platform_open(void *device_data)
+ 		if (ret)
+ 			goto err_irq;
+ 
+-		if (vdev->of_reset) {
+-			dev_info(vdev->device, "reset\n");
+-			vdev->of_reset(vdev);
+-		} else {
+-			dev_warn(vdev->device, "no reset function found!\n");
+-		}
++		vfio_platform_call_reset(vdev);
+ 	}
+ 
+ 	vdev->refcnt++;
+@@ -312,10 +314,7 @@ static long vfio_platform_ioctl(void *device_data,
+ 		return ret;
+ 
+ 	} else if (cmd == VFIO_DEVICE_RESET) {
+-		if (vdev->of_reset)
+-			return vdev->of_reset(vdev);
+-		else
+-			return -EINVAL;
++		return vfio_platform_call_reset(vdev);
+ 	}
+ 
+ 	return -ENOTTY;
 -- 
 1.8.2.1
