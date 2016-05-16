@@ -1,112 +1,59 @@
 From: Sinan Kaya <okaya@codeaurora.org>
-Subject: [PATCH V5 5/6] vfio: platform: call _RST method when using ACPI
-Date: Sun, 15 May 2016 22:13:38 -0400
-Message-ID: <1463364819-477-6-git-send-email-okaya@codeaurora.org>
+Subject: [PATCH V5 3/6] vfio: platform: determine reset capability
+Date: Sun, 15 May 2016 22:13:36 -0400
+Message-ID: <1463364819-477-4-git-send-email-okaya@codeaurora.org>
 References: <1463364819-477-1-git-send-email-okaya@codeaurora.org>
-Return-path: <linux-arm-msm-owner@vger.kernel.org>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
 In-Reply-To: <1463364819-477-1-git-send-email-okaya@codeaurora.org>
-Sender: linux-arm-msm-owner@vger.kernel.org
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
 To: kvm@vger.kernel.org, timur@codeaurora.org, cov@codeaurora.org, jcm@redhat.com, eric.auger@linaro.org
-Cc: linux-acpi@vger.kernel.org, agross@codeaurora.org, linux-arm-msm@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Sinan Kaya <okaya@codeaurora.org>, Baptiste Reynal <b.reynal@virtualopensystems.com>, Alex Williamson <alex.williamson@redhat.com>, linux-kernel@vger.kernel.org
+Cc: Baptiste Reynal <b.reynal@virtualopensystems.com>, linux-arm-msm@vger.kernel.org, linux-kernel@vger.kernel.org, Sinan Kaya <okaya@codeaurora.org>, linux-acpi@vger.kernel.org, Alex Williamson <alex.williamson@redhat.com>, agross@codeaurora.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-acpi@vger.kernel.org
 
-The device tree code checks for the presence of a reset driver and calls
-the of_reset function pointer by looking up the reset driver as a module.
-
-ACPI defines _RST method to perform device level reset. After the _RST
-method is executed, the OS can resume using the device.
-
-This patch checks the presence of _RST method and calls the _RST
-method when reset is requested.
+Creating a new function to determine if this driver supports reset
+function or not. This is an attempt to abstract device tree calls
+from the rest of the code.
 
 Signed-off-by: Sinan Kaya <okaya@codeaurora.org>
 ---
- drivers/vfio/platform/vfio_platform_common.c | 44 ++++++++++++++++++++++++++++
- 1 file changed, 44 insertions(+)
+ drivers/vfio/platform/vfio_platform_common.c | 7 ++++++-
+ 1 file changed, 6 insertions(+), 1 deletion(-)
 
 diff --git a/drivers/vfio/platform/vfio_platform_common.c b/drivers/vfio/platform/vfio_platform_common.c
-index d859d3b..095d5b7 100644
+index cb91dd3..25378bd 100644
 --- a/drivers/vfio/platform/vfio_platform_common.c
 +++ b/drivers/vfio/platform/vfio_platform_common.c
-@@ -73,21 +73,59 @@ int vfio_platform_acpi_probe(struct vfio_platform_device *vdev,
- 	}
- 	return 0;
- }
-+
-+static int vfio_platform_acpi_call_reset(struct vfio_platform_device *vdev)
-+{
-+	struct device *dev = vdev->device;
-+	acpi_handle handle = ACPI_HANDLE(dev);
-+	acpi_status acpi_ret;
-+	unsigned long long val;
-+
-+	acpi_ret = acpi_evaluate_integer(handle, "_RST", NULL, &val);
-+	if (ACPI_FAILURE(acpi_ret))
-+		return -EINVAL;
-+
-+	return 0;
-+}
-+
-+static bool vfio_platform_acpi_has_reset(struct vfio_platform_device *vdev)
-+{
-+	struct device *dev = vdev->device;
-+	acpi_handle handle = ACPI_HANDLE(dev);
-+
-+	return acpi_has_method(handle, "_RST");
-+}
- #else
- int vfio_platform_acpi_probe(struct vfio_platform_device *vdev,
- 			     struct device *dev)
- {
- 	return -EINVAL;
- }
-+
-+static int vfio_platform_acpi_call_reset(struct vfio_platform_device *vdev)
-+{
-+	return -EINVAL;
-+}
-+
-+static bool vfio_platform_acpi_has_reset(struct vfio_platform_device *vdev)
-+{
-+	return false;
-+}
- #endif
- 
- static bool vfio_platform_has_reset(struct vfio_platform_device *vdev)
- {
-+	if (vdev->acpihid)
-+		return vfio_platform_acpi_has_reset(vdev);
-+
- 	return vdev->of_reset ? true : false;
+@@ -49,6 +49,11 @@ static vfio_platform_reset_fn_t vfio_platform_lookup_reset(const char *compat,
+ 	return reset_fn;
  }
  
++static bool vfio_platform_has_reset(struct vfio_platform_device *vdev)
++{
++	return vdev->of_reset ? true : false;
++}
++
  static void vfio_platform_get_reset(struct vfio_platform_device *vdev)
  {
-+	if (vdev->acpihid)
-+		return;
-+
  	vdev->of_reset = vfio_platform_lookup_reset(vdev->compat,
- 						    &vdev->reset_module);
- 	if (!vdev->of_reset) {
-@@ -99,6 +137,9 @@ static void vfio_platform_get_reset(struct vfio_platform_device *vdev)
+@@ -215,7 +220,7 @@ static long vfio_platform_ioctl(void *device_data,
+ 		if (info.argsz < minsz)
+ 			return -EINVAL;
  
- static void vfio_platform_put_reset(struct vfio_platform_device *vdev)
- {
-+	if (vdev->acpihid)
-+		return;
-+
- 	if (vdev->of_reset)
- 		module_put(vdev->reset_module);
- }
-@@ -177,6 +218,9 @@ static int vfio_platform_call_reset(struct vfio_platform_device *vdev)
- 		dev_info(vdev->device, "reset\n");
- 		vdev->of_reset(vdev);
- 		return 0;
-+	} else if (vdev->acpihid) {
-+		dev_info(vdev->device, "reset\n");
-+		return vfio_platform_acpi_call_reset(vdev);
- 	}
- 
- 	dev_warn(vdev->device, "no reset function found!\n");
+-		if (vdev->of_reset)
++		if (vfio_platform_has_reset(vdev))
+ 			vdev->flags |= VFIO_DEVICE_FLAGS_RESET;
+ 		info.flags = vdev->flags;
+ 		info.num_regions = vdev->num_regions;
 -- 
 1.8.2.1
