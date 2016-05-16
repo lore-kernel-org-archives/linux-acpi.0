@@ -1,76 +1,182 @@
-From: Ocean HY1 He <hehy1@lenovo.com>
-Subject: RE: [PATCH] ACPI: Execute the _PTS method when system reboot
-Date: Mon, 16 May 2016 03:04:05 +0000
-Message-ID: <BCBE834BAC19744BA2C3AC4D68DBF2198D7D7168@CNMAILEX03.lenovo.com>
-References: <1462772495-71113-1-git-send-email-hehy1@lenovo.com>
+From: "K V, Nagendra" <nagendra.k-v@hpe.com>
+Subject: RE: [PATCH] Add support to parse RASF Table
+Date: Mon, 16 May 2016 08:35:14 +0000
+Message-ID: <TU4PR84MB0079FF2412932840DBE794C0C2770@TU4PR84MB0079.NAMPRD84.PROD.OUTLOOK.COM>
+References: <1462796276-3987-1-git-send-email-nagendra.k-v@hpe.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="gb2312"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail1.bemta8.messagelabs.com ([216.82.243.198]:40773 "EHLO
-	mail1.bemta8.messagelabs.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751921AbcEPDEZ (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>);
-	Sun, 15 May 2016 23:04:25 -0400
-In-Reply-To: <1462772495-71113-1-git-send-email-hehy1@lenovo.com>
-Content-Language: zh-CN
+Received: from mail-bn1bon0130.outbound.protection.outlook.com ([157.56.111.130]:54872
+	"EHLO na01-bn1-obe.outbound.protection.outlook.com"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1752194AbcEPItf convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 16 May 2016 04:49:35 -0400
+In-Reply-To: <1462796276-3987-1-git-send-email-nagendra.k-v@hpe.com>
+Content-Language: en-US
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "rjw@rjwysocki.net" <rjw@rjwysocki.net>, "lenb@kernel.org" <lenb@kernel.org>
-Cc: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, David Tanaka <dtanaka@lenovo.com>, Nagananda Chumbalkar <nchumbalkar@lenovo.com>
+To: "robert.moore@intel.com" <robert.moore@intel.com>
+Cc: "Sajjan, Vikas C" <vikas.cha.sajjan@hpe.com>, "Lakshminarasimha, Sunil Vishwanathpur" <sunil.vl@hpe.com>, "devel@acpica.org" <devel@acpica.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
 
-VG8gd2hvbSBtYXkgY29uY2VybiwNCg0KQSBMZW5vdm8gZmVhdHVyZSBkZXBlbmRzIG9uIF9QVFMg
-bWV0aG9kIGV4ZWN1dGlvbiB3aGVuIHJlYm9vdC4gQW5kIGFmdGVyIGNoZWNrIHRoZSBBQ1BJIHNw
-ZWMsIEkgdGhpbmsgX1BUUyBzaG91bGQgYmUgZXhlY3R1ZWQgd2hlbiByZWJvby4gVGhpcyBwYXRj
-aCBjb3VsZCBmaXggdGhlIHByb2JsZW0uDQoNCkFueSBjb21tZW50cyBvZiB0aGlzIHBhdGNoPyBN
-YW55IHRoYW5rcyENCg0KT2NlYW4gSGUgLyC6zrqj0fMNClNXIERldmVsb3BtZW50IERlcHQuIA0K
-QmVpamluZyBEZXNpZ24gQ2VudGVyDQpFbnRlcnByaXNlIFByb2R1Y3QgR3JvdXANCk1vYmlsZTog
-MTg5MTE3Nzg5MjYNCkUtbWFpbDogaGVoeTFAbGVub3ZvLmNvbQ0KTm8uNiBDaHVhbmcgWWUgUm9h
-ZCwgSGFpZGlhbiBEaXN0cmljdCwgQmVpamluZywgQ2hpbmEgMTAwMDg1DQoNCi0tLS0tT3JpZ2lu
-YWwgTWVzc2FnZS0tLS0tDQpGcm9tOiBPY2VhbiBIWTEgSGUgDQpTZW50OiBNb25kYXksIE1heSAw
-OSwgMjAxNiAxOjUwIFBNDQpUbzogcmp3QHJqd3lzb2NraS5uZXQ7IGxlbmJAa2VybmVsLm9yZw0K
-Q2M6IGxpbnV4LWFjcGlAdmdlci5rZXJuZWwub3JnOyBsaW51eC1rZXJuZWxAdmdlci5rZXJuZWwu
-b3JnOyBEYXZpZCBUYW5ha2E7IE9jZWFuIEhZMSBIZTsgTmFnYW5hbmRhIENodW1iYWxrYXINClN1
-YmplY3Q6IFtQQVRDSF0gQUNQSTogRXhlY3V0ZSB0aGUgX1BUUyBtZXRob2Qgd2hlbiBzeXN0ZW0g
-cmVib290DQoNClRoZSBfUFRTIGNvbnRyb2wgbWV0aG9kIGlzIGRlZmluZWQgaW4gdGhlIHNlY3Rp
-b24gNy40LjEgb2YgYWNwaSA2LjANCnNwZWMuIFRoZSBfUFRTIGNvbnRyb2wgbWV0aG9kIGlzIGV4
-ZWN1dGVkIGJ5IHRoZSBPUyBkdXJpbmcgdGhlIHNsZWVwDQp0cmFuc2l0aW9uIHByb2Nlc3MgZm9y
-IFMxLCBTMiwgUzMsIFM0LCBhbmQgZm9yIG9yZGVybHkgUzUgc2h1dGRvd24uDQpUaGUgc2xlZXBp
-bmcgc3RhdGUgdmFsdWUgKEZvciBleGFtcGxlLCAxLCAyLCAzLCA0IG9yIDUgZm9yIHRoZSBTNQ0K
-c29mdC1vZmYgc3RhdGUpIGlzIHBhc3NlZCB0byB0aGUgX1BUUyBjb250cm9sIG1ldGhvZC4gVGhp
-cyBtZXRob2QNCmlzIGNhbGxlZCBhZnRlciBPU1BNIGhhcyBub3RpZmllZCBuYXRpdmUgZGV2aWNl
-IGRyaXZlcnMgb2YgdGhlIHNsZWVwDQpzdGF0ZSB0cmFuc2l0aW9uIGFuZCBiZWZvcmUgdGhlIE9T
-UE0gaGFzIGhhZCBhIGNoYW5jZSB0byBmdWxseQ0KcHJlcGFyZSB0aGUgc3lzdGVtIGZvciBhIHNs
-ZWVwIHN0YXRlIHRyYW5zaXRpb24uDQoNClRoZSBfUFRTIGNvbnRyb2wgbWV0aG9kIHByb3ZpZGVz
-IHRoZSBCSU9TIGEgbWVjaGFuaXNtIGZvciBwZXJmb3JtaW5nDQpzb21lIGhvdXNla2VlcGluZywg
-c3VjaCBhcyB3cml0aW5nIHRoZSBzbGVlcCB0eXBlIHZhbHVlIHRvIHRoZSBlbWJlZGRlZA0KY29u
-dHJvbGxlciwgYmVmb3JlIGVudGVyaW5nIHRoZSBzeXN0ZW0gc2xlZXBpbmcgc3RhdGUuDQoNCkFj
-Y29yZGluZyB0byBzZWN0aW9uIDcuNSBvZiBhY3BpIDYuMCBzcGVjLCBfUFRTIHNob3VsZCBydW4g
-YWZ0ZXIgX1RUUy4NCg0KVGh1cywgYSBfUFRTIGJsb2NrIG5vdGlmaWVyIGlzIGFkZGVkIHRvIHRo
-ZSByZWJvb3Qgbm90aWZpZXIgbGlzdCBzbyB0aGF0DQp0aGUgX1BUUyBvYmplY3Qgd2lsbCBhbHNv
-IGJlIGV2YWx1YXRlZCB3aGVuIHRoZSBzeXN0ZW0gcmVib290Lg0KDQpTaWduZWQtb2ZmLWJ5OiBP
-Y2VhbiBIZSA8aGVoeTFAbGVub3ZvLmNvbT4NClNpZ25lZC1vZmYtYnk6IE5hZ2FuYW5kYSBDaHVt
-YmFsa2FyIDxuY2h1bWJhbGthckBsZW5vdm8uY29tPg0KLS0tDQogZHJpdmVycy9hY3BpL3NsZWVw
-LmMgfCAyNyArKysrKysrKysrKysrKysrKysrKysrKysrKysNCiAxIGZpbGUgY2hhbmdlZCwgMjcg
-aW5zZXJ0aW9ucygrKQ0KDQpkaWZmIC0tZ2l0IGEvZHJpdmVycy9hY3BpL3NsZWVwLmMgYi9kcml2
-ZXJzL2FjcGkvc2xlZXAuYw0KaW5kZXggMmE4YjU5Ni4uOGIyOTBmYiAxMDA2NDQNCi0tLSBhL2Ry
-aXZlcnMvYWNwaS9zbGVlcC5jDQorKysgYi9kcml2ZXJzL2FjcGkvc2xlZXAuYw0KQEAgLTU1LDYg
-KzU1LDI2IEBAIHN0YXRpYyBzdHJ1Y3Qgbm90aWZpZXJfYmxvY2sgdHRzX25vdGlmaWVyID0gew0K
-IAkucHJpb3JpdHkJPSAwLA0KIH07DQogDQorc3RhdGljIGludCBwdHNfbm90aWZ5X3JlYm9vdChz
-dHJ1Y3Qgbm90aWZpZXJfYmxvY2sgKnRoaXMsDQorCQkJdW5zaWduZWQgbG9uZyBjb2RlLCB2b2lk
-ICp4KQ0KK3sNCisJYWNwaV9zdGF0dXMgc3RhdHVzOw0KKw0KKwlzdGF0dXMgPSBhY3BpX2V4ZWN1
-dGVfc2ltcGxlX21ldGhvZChOVUxMLCAiXFxfUFRTIiwgQUNQSV9TVEFURV9TNSk7DQorCWlmIChB
-Q1BJX0ZBSUxVUkUoc3RhdHVzKSAmJiBzdGF0dXMgIT0gQUVfTk9UX0ZPVU5EKSB7DQorCQkvKiBJ
-dCB3b24ndCBicmVhayBhbnl0aGluZy4gKi8NCisJCXByaW50ayhLRVJOX05PVElDRSAiRmFpbHVy
-ZSBpbiBldmFsdWF0aW5nIF9QVFMgb2JqZWN0XG4iKTsNCisJfQ0KKw0KKwlyZXR1cm4gTk9USUZZ
-X0RPTkU7DQorfQ0KKw0KK3N0YXRpYyBzdHJ1Y3Qgbm90aWZpZXJfYmxvY2sgcHRzX25vdGlmaWVy
-ID0gew0KKwkubm90aWZpZXJfY2FsbAk9IHB0c19ub3RpZnlfcmVib290LA0KKwkubmV4dAkJPSBO
-VUxMLA0KKwkucHJpb3JpdHkJPSAwLA0KK307DQorDQogc3RhdGljIGludCBhY3BpX3NsZWVwX3By
-ZXBhcmUodTMyIGFjcGlfc3RhdGUpDQogew0KICNpZmRlZiBDT05GSUdfQUNQSV9TTEVFUA0KQEAg
-LTg5Niw1ICs5MTYsMTIgQEAgaW50IF9faW5pdCBhY3BpX3NsZWVwX2luaXQodm9pZCkNCiAJICog
-b2JqZWN0IGNhbiBhbHNvIGJlIGV2YWx1YXRlZCB3aGVuIHRoZSBzeXN0ZW0gZW50ZXJzIFM1Lg0K
-IAkgKi8NCiAJcmVnaXN0ZXJfcmVib290X25vdGlmaWVyKCZ0dHNfbm90aWZpZXIpOw0KKw0KKwkv
-Kg0KKwkgKiBBY2NvcmRpbmcgdG8gc2VjdGlvbiA3LjUgb2YgYWNwaSA2LjAgc3BlYywgX1BUUyBz
-aG91bGQgcnVuIGFmdGVyDQorCSAqIF9UVFMgd2hlbiB0aGUgc3lzdGVtIGVudGVycyBTNS4NCisJ
-ICovDQorCXJlZ2lzdGVyX3JlYm9vdF9ub3RpZmllcigmcHRzX25vdGlmaWVyKTsNCisNCiAJcmV0
-dXJuIDA7DQogfQ0KLS0gDQoxLjguMy4xDQo=
+Bob,
+
+Did you get chance to look into this?
+
+Regards
+Nagendra
+
+-----Original Message-----
+From: K V, Nagendra 
+Sent: Monday, May 09, 2016 5:48 PM
+To: robert.moore@intel.com
+Cc: Sajjan, Vikas C <vikas.cha.sajjan@hpe.com>; Lakshminarasimha, Sunil Vishwanathpur <sunil.vl@hpe.com>; devel@acpica.org; K V, Nagendra <nagendra.k-v@hpe.com>
+Subject: [PATCH] Add support to parse RASF Table
+
+This patch adds support to parse RASF table. Currently RASF table is not being recognized.
+---
+ source/common/ahtable.c      |  1 +
+ source/common/dmtable.c      |  7 +++++++
+ source/common/dmtbinfo.c     | 13 +++++++++++++
+ source/compiler/dtcompiler.h |  1 +
+ source/compiler/dttemplate.h | 11 +++++++++++
+ source/compiler/dtutils.c    |  5 +++++
+ source/include/acdisasm.h    |  2 ++
+ 7 files changed, 40 insertions(+)
+
+diff --git a/source/common/ahtable.c b/source/common/ahtable.c index 021ae33..59ddc83 100644
+--- a/source/common/ahtable.c
++++ b/source/common/ahtable.c
+@@ -196,6 +196,7 @@ const AH_TABLE      AcpiSupportedTables[] =
+     {ACPI_SIG_NFIT, "NVDIMM Firmware Interface Table"},
+     {ACPI_SIG_PCCT, "Platform Communications Channel Table"},
+     {ACPI_SIG_PMTT, "Platform Memory Topology Table"},
++    {ACPI_SIG_RASF, "RAS Features Table"},
+     {ACPI_RSDP_NAME,"Root System Description Pointer"},
+     {ACPI_SIG_RSDT, "Root System Description Table"},
+     {ACPI_SIG_S3PT, "S3 Performance Table"}, diff --git a/source/common/dmtable.c b/source/common/dmtable.c index 51d91f8..321407c 100644
+--- a/source/common/dmtable.c
++++ b/source/common/dmtable.c
+@@ -430,6 +430,7 @@ const ACPI_DMTABLE_DATA     AcpiDmTableData[] =
+     {ACPI_SIG_NFIT, AcpiDmTableInfoNfit,    AcpiDmDumpNfit, DtCompileNfit,  TemplateNfit},
+     {ACPI_SIG_PCCT, AcpiDmTableInfoPcct,    AcpiDmDumpPcct, DtCompilePcct,  TemplatePcct},
+     {ACPI_SIG_PMTT, NULL,                   AcpiDmDumpPmtt, DtCompilePmtt,  TemplatePmtt},
++    {ACPI_SIG_RASF, AcpiDmTableInfoRasf,    NULL,           NULL,           TemplateRasf},
+     {ACPI_SIG_RSDT, NULL,                   AcpiDmDumpRsdt, DtCompileRsdt,  TemplateRsdt},
+     {ACPI_SIG_S3PT, NULL,                   NULL,           NULL,           TemplateS3pt},
+     {ACPI_SIG_SBST, AcpiDmTableInfoSbst,    NULL,           NULL,           TemplateSbst},
+@@ -916,6 +917,11 @@ AcpiDmDumpTable (
+             ByteLength = 10;
+             break;
+ 
++        case ACPI_DMT_RASF:
++
++            ByteLength = 12;
++            break;
++
+         case ACPI_DMT_BUF16:
+         case ACPI_DMT_UUID:
+ 
+@@ -1048,6 +1054,7 @@ AcpiDmDumpTable (
+ 
+         /* Integer Data Types */
+ 
++        case ACPI_DMT_RASF:
+         case ACPI_DMT_UINT8:
+         case ACPI_DMT_UINT16:
+         case ACPI_DMT_UINT24:
+diff --git a/source/common/dmtbinfo.c b/source/common/dmtbinfo.c index 5520da2..3896b69 100644
+--- a/source/common/dmtbinfo.c
++++ b/source/common/dmtbinfo.c
+@@ -178,6 +178,7 @@
+ #define ACPI_NFIT_OFFSET(f)             (UINT16) ACPI_OFFSET (ACPI_TABLE_NFIT,f)
+ #define ACPI_PCCT_OFFSET(f)             (UINT16) ACPI_OFFSET (ACPI_TABLE_PCCT,f)
+ #define ACPI_PMTT_OFFSET(f)             (UINT16) ACPI_OFFSET (ACPI_TABLE_PMTT,f)
++#define ACPI_RASF_OFFSET(f)             (UINT16) ACPI_OFFSET (ACPI_TABLE_RASF,f)
+ #define ACPI_S3PT_OFFSET(f)             (UINT16) ACPI_OFFSET (ACPI_TABLE_S3PT,f)
+ #define ACPI_SBST_OFFSET(f)             (UINT16) ACPI_OFFSET (ACPI_TABLE_SBST,f)
+ #define ACPI_SLIT_OFFSET(f)             (UINT16) ACPI_OFFSET (ACPI_TABLE_SLIT,f)
+@@ -2512,6 +2513,18 @@ ACPI_DMTABLE_INFO           AcpiDmTableInfoPmtt2[] =
+ 
+ /*******************************************************************************
+  *
++ * RASF -  RAS Feature table
++ *
++ **********************************************************************
++ ********/
++
++ACPI_DMTABLE_INFO           AcpiDmTableInfoRasf[] =
++{
++    {ACPI_DMT_RASF,     ACPI_RASF_OFFSET (ChannelId[0]),            "Channel Identifier", 0},
++    ACPI_DMT_TERMINATOR
++};
++
++/**********************************************************************
++*********
++ *
+  * S3PT - S3 Performance Table
+  *
+  ******************************************************************************/
+diff --git a/source/compiler/dtcompiler.h b/source/compiler/dtcompiler.h index eb85ddc..1072f52 100644
+--- a/source/compiler/dtcompiler.h
++++ b/source/compiler/dtcompiler.h
+@@ -681,6 +681,7 @@ extern const unsigned char  TemplateMtmr[];  extern const unsigned char  TemplateNfit[];  extern const unsigned char  TemplatePcct[];  extern const unsigned char  TemplatePmtt[];
++extern const unsigned char  TemplateRasf[];
+ extern const unsigned char  TemplateRsdt[];  extern const unsigned char  TemplateS3pt[];  extern const unsigned char  TemplateSbst[]; diff --git a/source/compiler/dttemplate.h b/source/compiler/dttemplate.h index e420ec4..d17b2af 100644
+--- a/source/compiler/dttemplate.h
++++ b/source/compiler/dttemplate.h
+@@ -978,6 +978,17 @@ const unsigned char TemplatePmtt[] =
+     0x00,0x00,0x00,0x00                       /* 000000B0    "...."     */
+ };
+ 
++const unsigned char TemplateRasf[] =
++{
++    0x42,0x45,0x52,0x54,0x30,0x00,0x00,0x00,  /* 00000000    "RASF0..." */
++    0x01,0x15,0x49,0x4E,0x54,0x45,0x4C,0x20,  /* 00000008    "..INTEL " */
++    0x54,0x45,0x4D,0x50,0x4C,0x41,0x54,0x45,  /* 00000010    "TEMPLATE" */
++    0x01,0x00,0x00,0x00,0x49,0x4E,0x54,0x4C,  /* 00000018    "....INTL" */
++    0x28,0x05,0x10,0x20,0x00,0x00,0x00,0x00,  /* 00000020    "(.. ...." */
++    0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,  /* 00000028    "........" */
++    0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00   /* 00000030    "........" */
++};
++
+ const unsigned char TemplateRsdp[] =
+ {
+     0x52,0x53,0x44,0x20,0x50,0x54,0x52,0x20,  /* 00000000    "RSD PTR " */
+diff --git a/source/compiler/dtutils.c b/source/compiler/dtutils.c index 6ca418c..774db8b 100644
+--- a/source/compiler/dtutils.c
++++ b/source/compiler/dtutils.c
+@@ -688,6 +688,11 @@ DtGetFieldLength (
+         ByteLength = 10;
+         break;
+ 
++    case ACPI_DMT_RASF:
++
++        ByteLength = 12;
++        break;
++
+     case ACPI_DMT_BUF16:
+     case ACPI_DMT_UUID:
+ 
+diff --git a/source/include/acdisasm.h b/source/include/acdisasm.h index ba8f274..d59e4d9 100644
+--- a/source/include/acdisasm.h
++++ b/source/include/acdisasm.h
+@@ -227,6 +227,7 @@ typedef enum
+     ACPI_DMT_NFIT,
+     ACPI_DMT_PCCT,
+     ACPI_DMT_PMTT,
++    ACPI_DMT_RASF,
+     ACPI_DMT_SLIC,
+     ACPI_DMT_SRAT,
+ 
+@@ -458,6 +459,7 @@ extern ACPI_DMTABLE_INFO        AcpiDmTableInfoPcctHdr[];
+ extern ACPI_DMTABLE_INFO        AcpiDmTableInfoPcct0[];
+ extern ACPI_DMTABLE_INFO        AcpiDmTableInfoPcct1[];
+ extern ACPI_DMTABLE_INFO        AcpiDmTableInfoPcct2[];
++extern ACPI_DMTABLE_INFO        AcpiDmTableInfoRasf[];
+ extern ACPI_DMTABLE_INFO        AcpiDmTableInfoRsdp1[];
+ extern ACPI_DMTABLE_INFO        AcpiDmTableInfoRsdp2[];
+ extern ACPI_DMTABLE_INFO        AcpiDmTableInfoS3pt[];
+--
+2.5.0
+
