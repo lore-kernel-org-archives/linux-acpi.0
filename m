@@ -1,183 +1,69 @@
 From: Lv Zheng <lv.zheng@intel.com>
-Subject: [RFC PATCH 1/2] ACPI / button: Send "open" state after boot/resume
-Date: Tue, 17 May 2016 16:27:32 +0800
-Message-ID: <cbdaec17aba78c61f466efff8883d49067f2dad5.1463472125.git.lv.zheng@intel.com>
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga09.intel.com ([134.134.136.24]:4085 "EHLO mga09.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751118AbcEQI1h (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 17 May 2016 04:27:37 -0400
-Sender: linux-acpi-owner@vger.kernel.org
-List-Id: linux-acpi@vger.kernel.org
+Subject: [RFC PATCH 2/2] logind: Allow lid status remains "closed"
+Date: Tue, 17 May 2016 16:27:40 +0800
+Message-ID: <cbdaec17aba78c61f466efff8883d49067f2dad5.1463472231.git.lv.zheng@intel.com>
+References: <c6808078a092fbf990d535cc359b734108ae5d6b.1463472231.git.lv.zheng@intel.com>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <c6808078a092fbf990d535cc359b734108ae5d6b.1463472231.git.lv.zheng@intel.com>
+Sender: linux-kernel-owner@vger.kernel.org
 To: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <len.brown@intel.com>
 Cc: Lv Zheng <lv.zheng@intel.com>, Lv Zheng <zetalog@gmail.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, "Bastien Nocera:" <hadess@hadess.net>
+List-Id: linux-acpi@vger.kernel.org
 
-(This patch hasn't been tested, it's sent for comments)
+This patch adds an option to allow the lid status to remain closed.
+However we are not systemd developers, and this patch may be wrong.
+It's just a demo on how the issue can be addressed in systemd.
 
-Linux userspace (systemd-logind) keeps on rechecking lid state when the
-lid state is closed. If it failed to update the lid state to open after
-boot/resume, it could suspend the system. But as:
-1. Traditional ACPI platform may not generate the lid open event after
-   resuming as the open event is actually handled by the BIOS and the system
-   is then resumed from a FACS vector.
-2. The _LID control method's initial returning value is not reliable. The
-   _LID control method is described to return the "current" lid state,
-   however the word of "current" has ambiguity, many BIOSen return lid
-   state upon last lid notification while the developers may think the
-   BIOSen should always return the lid state upon last _LID evaluation.
-   There won't be difference when we evaluate _LID during the runtime, the
-   problem is the initial returning value of this function. When the BIOSen
-   implement this control method with cached value, the initial returning
-   value is likely not reliable.
-Thus there is no mean for the ACPI lid driver to provide such an event
-conveying correct current lid state. When there is no such an event or the
-event conveys wrong result, false suspending can be examined.
-
-The root cause of the issue is systemd itself, it could handle the ACPI
-control method lid device by implementing a special option like
-LidSwitchLevelTriggered=False when it detected the ACPI lid device. However
-there is no explicit documentation clarified the ambiguity, we need to
-work it around in the kernel before systemd changing its mind.
-
-Link 1: https://lkml.org/2016/3/7/460
-Link 2: https://github.com/systemd/systemd/issues/2087
-Link 3: https://bugzilla.kernel.org/show_bug.cgi?id=89211
-        https://bugzilla.kernel.org/show_bug.cgi?id=106151
-        https://bugzilla.kernel.org/show_bug.cgi?id=106941
 Signed-off-by: Lv Zheng <lv.zheng@intel.com>
 Cc: Bastien Nocera: <hadess@hadess.net>
 ---
- drivers/acpi/button.c |   63 +++++++++++++++++++++++++++++++++++++++++++++----
- 1 file changed, 59 insertions(+), 4 deletions(-)
-
-diff --git a/drivers/acpi/button.c b/drivers/acpi/button.c
-index 5c3b091..bb14ca5 100644
---- a/drivers/acpi/button.c
-+++ b/drivers/acpi/button.c
-@@ -53,6 +53,10 @@
- #define ACPI_BUTTON_DEVICE_NAME_LID	"Lid Switch"
- #define ACPI_BUTTON_TYPE_LID		0x05
+Index: systemd/src/login/logind-gperf.gperf
+===================================================================
+--- systemd.orig/src/login/logind-gperf.gperf
++++ systemd/src/login/logind-gperf.gperf
+@@ -29,6 +29,7 @@ Login.PowerKeyIgnoreInhibited,     confi
+ Login.SuspendKeyIgnoreInhibited,   config_parse_bool,          0, offsetof(Manager, suspend_key_ignore_inhibited)
+ Login.HibernateKeyIgnoreInhibited, config_parse_bool,          0, offsetof(Manager, hibernate_key_ignore_inhibited)
+ Login.LidSwitchIgnoreInhibited,    config_parse_bool,          0, offsetof(Manager, lid_switch_ignore_inhibited)
++Login.LidSwitchLevelTriggered,     config_parse_bool,          0, offsetof(Manager, lid_switch_level_triggered)
+ Login.HoldoffTimeoutSec,           config_parse_sec,           0, offsetof(Manager, holdoff_timeout_usec)
+ Login.IdleAction,                  config_parse_handle_action, 0, offsetof(Manager, idle_action)
+ Login.IdleActionSec,               config_parse_sec,           0, offsetof(Manager, idle_action_usec)
+Index: systemd/src/login/logind.c
+===================================================================
+--- systemd.orig/src/login/logind.c
++++ systemd/src/login/logind.c
+@@ -62,6 +62,7 @@ static Manager *manager_new(void) {
+         m->handle_lid_switch = HANDLE_SUSPEND;
+         m->handle_lid_switch_docked = HANDLE_IGNORE;
+         m->lid_switch_ignore_inhibited = true;
++        m->lid_switch_level_triggered = true;
+         m->holdoff_timeout_usec = 30 * USEC_PER_SEC;
  
-+#define ACPI_BUTTON_LID_INIT_IGNORE	0x00
-+#define ACPI_BUTTON_LID_INIT_OPEN	0x01
-+#define ACPI_BUTTON_LID_INIT_METHOD	0x02
+         m->idle_action_usec = 30 * USEC_PER_MINUTE;
+Index: systemd/src/login/logind.h
+===================================================================
+--- systemd.orig/src/login/logind.h
++++ systemd/src/login/logind.h
+@@ -123,6 +123,7 @@ struct Manager {
+         bool suspend_key_ignore_inhibited;
+         bool hibernate_key_ignore_inhibited;
+         bool lid_switch_ignore_inhibited;
++        bool lid_switch_level_triggered;
+ 
+         bool remove_ipc;
+ 
+Index: systemd/src/login/logind-button.c
+===================================================================
+--- systemd.orig/src/login/logind-button.c
++++ systemd/src/login/logind-button.c
+@@ -123,6 +123,9 @@ static int button_install_check_event_so
+         int r;
+         assert(b);
+ 
++        if (!b->manager->lid_switch_level_triggered)
++                return 0;
 +
- #define _COMPONENT		ACPI_BUTTON_COMPONENT
- ACPI_MODULE_NAME("button");
+         /* Install a post handler, so that we keep rechecking as long as the lid is closed. */
  
-@@ -105,6 +109,7 @@ struct acpi_button {
- 
- static BLOCKING_NOTIFIER_HEAD(acpi_lid_notifier);
- static struct acpi_device *lid_device;
-+static u8 lid_init_state = ACPI_BUTTON_LID_INIT_OPEN;
- 
- /* --------------------------------------------------------------------------
-                               FS Interface (/proc)
-@@ -246,7 +251,8 @@ int acpi_lid_open(void)
- }
- EXPORT_SYMBOL(acpi_lid_open);
- 
--static int acpi_lid_send_state(struct acpi_device *device)
-+static int acpi_lid_send_state(struct acpi_device *device,
-+			       bool notify_init_state)
- {
- 	struct acpi_button *button = acpi_driver_data(device);
- 	unsigned long long state;
-@@ -257,6 +263,10 @@ static int acpi_lid_send_state(struct acpi_device *device)
- 	if (ACPI_FAILURE(status))
- 		return -ENODEV;
- 
-+	if (notify_init_state &&
-+	    lid_init_state == ACPI_BUTTON_LID_INIT_OPEN)
-+		state = 1;
-+
- 	/* input layer checks if event is redundant */
- 	input_report_switch(button->input, SW_LID, !state);
- 	input_sync(button->input);
-@@ -278,6 +288,13 @@ static int acpi_lid_send_state(struct acpi_device *device)
- 	return ret;
- }
- 
-+static int acpi_lid_send_init_state(struct acpi_device *device)
-+{
-+	if (lid_init_state != ACPI_BUTTON_LID_INIT_IGNORE)
-+		return acpi_lid_send_state(device, true);
-+	return 0;
-+}
-+
- static void acpi_button_notify(struct acpi_device *device, u32 event)
- {
- 	struct acpi_button *button = acpi_driver_data(device);
-@@ -290,7 +307,7 @@ static void acpi_button_notify(struct acpi_device *device, u32 event)
- 	case ACPI_BUTTON_NOTIFY_STATUS:
- 		input = button->input;
- 		if (button->type == ACPI_BUTTON_TYPE_LID) {
--			acpi_lid_send_state(device);
-+			acpi_lid_send_state(device, false);
- 		} else {
- 			int keycode;
- 
-@@ -335,7 +352,7 @@ static int acpi_button_resume(struct device *dev)
- 
- 	button->suspended = false;
- 	if (button->type == ACPI_BUTTON_TYPE_LID)
--		return acpi_lid_send_state(device);
-+		return acpi_lid_send_init_state(device);
- 	return 0;
- }
- #endif
-@@ -416,7 +433,7 @@ static int acpi_button_add(struct acpi_device *device)
- 	if (error)
- 		goto err_remove_fs;
- 	if (button->type == ACPI_BUTTON_TYPE_LID) {
--		acpi_lid_send_state(device);
-+		acpi_lid_send_init_state(device);
- 		/*
- 		 * This assumes there's only one lid device, or if there are
- 		 * more we only care about the last one...
-@@ -446,4 +463,42 @@ static int acpi_button_remove(struct acpi_device *device)
- 	return 0;
- }
- 
-+static int param_set_lid_init_state(const char *val, struct kernel_param *kp)
-+{
-+	int result = 0;
-+
-+	if (!strncmp(val, "open", sizeof("open") - 1)) {
-+		lid_init_state = ACPI_BUTTON_LID_INIT_OPEN;
-+		pr_info("Notify initial lid state as open\n");
-+	} else if (!strncmp(val, "method", sizeof("method") - 1)) {
-+		lid_init_state = ACPI_BUTTON_LID_INIT_METHOD;
-+		pr_info("Notify initial lid state with _LID return value\n");
-+	} else if (!strncmp(val, "ignore", sizeof("ignore") - 1)) {
-+		lid_init_state = ACPI_BUTTON_LID_INIT_IGNORE;
-+		pr_info("Do not notify initial lid state\n");
-+	} else
-+		result = -EINVAL;
-+	return result;
-+}
-+
-+static int param_get_lid_init_state(char *buffer, struct kernel_param *kp)
-+{
-+	switch (lid_init_state) {
-+	case ACPI_BUTTON_LID_INIT_OPEN:
-+		return sprintf(buffer, "open");
-+	case ACPI_BUTTON_LID_INIT_METHOD:
-+		return sprintf(buffer, "method");
-+	case ACPI_BUTTON_LID_INIT_IGNORE:
-+		return sprintf(buffer, "ignore");
-+	default:
-+		return sprintf(buffer, "invalid");
-+	}
-+	return 0;
-+}
-+
-+module_param_call(lid_init_state,
-+		  param_set_lid_init_state, param_get_lid_init_state,
-+		  NULL, 0644);
-+MODULE_PARM_DESC(lid_init_state, "Behavior for reporting LID initial state");
-+
- module_acpi_driver(acpi_button_driver);
--- 
-1.7.10
-
+         if (b->check_event_source)
