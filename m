@@ -1,174 +1,170 @@
-From: Eduardo Valentin <edubezval@gmail.com>
-Subject: [GIT PULL] Thermal SoC management updates for v4.7
-Date: Mon, 16 May 2016 20:18:58 -0700
-Message-ID: <20160517031857.GA3318@localhost.localdomain>
+From: Tomasz Nowicki <tn-nYOzD4b6Jr9Wk0Htik3J/w@public.gmane.org>
+Subject: Re: [RFC PATCH 09/11] drivers: acpi: implement acpi_dma_configure
+Date: Tue, 17 May 2016 10:07:30 +0200
+Message-ID: <573AD142.6020107@semihalf.com>
+References: <1460654743-7896-1-git-send-email-lorenzo.pieralisi@arm.com>
+	<1460654743-7896-10-git-send-email-lorenzo.pieralisi@arm.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-pa0-f66.google.com ([209.85.220.66]:33463 "EHLO
-	mail-pa0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750964AbcEQDTJ (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 16 May 2016 23:19:09 -0400
-Content-Disposition: inline
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"; Format="flowed"
+Content-Transfer-Encoding: 7bit
+Return-path: <iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
+In-Reply-To: <1460654743-7896-10-git-send-email-lorenzo.pieralisi-5wv7dgnIgG8@public.gmane.org>
+List-Unsubscribe: <https://lists.linuxfoundation.org/mailman/options/iommu>,
+	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.linuxfoundation.org/pipermail/iommu/>
+List-Post: <mailto:iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
+List-Help: <mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.linuxfoundation.org/mailman/listinfo/iommu>,
+	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=subscribe>
+Sender: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
+Errors-To: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
+To: Lorenzo Pieralisi <lorenzo.pieralisi-5wv7dgnIgG8@public.gmane.org>, iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
+Cc: Marc Zyngier <marc.zyngier-5wv7dgnIgG8@public.gmane.org>, Will Deacon <will.deacon-5wv7dgnIgG8@public.gmane.org>, "Rafael J. Wysocki" <rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org>, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Sinan Kaya <okaya-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Hanjun Guo <hanjun.guo-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Jon Masters <jcm-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Bjorn Helgaas <bhelgaas-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
-Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux PM <linux-pm@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>, Rui Zhang <rui.zhang@intel.com>
 
-Hello Rui,
+Hi Lorenzo,
 
-Here is material for 4.7 on thermal SoC. I have rebased this branch on
-top of latest linus tree. But this material have been tested and on
-linux-next for several weeks.
+On 14.04.2016 19:25, Lorenzo Pieralisi wrote:
+> On DT based systems, the of_dma_configure() API implements DMA configuration
+> for a given device. On ACPI systems an API equivalent to of_dma_configure()
+> is missing which implies that it is currently not possible to set-up DMA
+> operations for devices through the ACPI generic kernel layer.
+>
+> This patch fills the gap by introducing acpi_dma_configure/deconfigure()
+> calls, that carry out IOMMU configuration through IORT (on systems where
+> it is present) and call arch_setup_dma_ops(...) with the retrieved
+> parameters.
+>
+> The DMA range size passed to arch_setup_dma_ops() is sized according
+> to the device coherent_dma_mask (starting at address 0x0), mirroring the
+> DT probing path behaviour when a dma-ranges property is not provided
+> for the device being probed; this changes the current arch_setup_dma_ops()
+> call parameters in the ACPI probing case, but since arch_setup_dma_ops()
+> is a NOP on all architectures but ARM/ARM64 this patch does not change
+> the current kernel behaviour on them.
+>
+> This patch updates ACPI and PCI core code to use the newly introduced
+> acpi_dma_configure function, providing the same functionality
+> as of_dma_configure on ARM systems and leaving behaviour unchanged
+> for all other arches.
+>
+> Signed-off-by: Lorenzo Pieralisi <lorenzo.pieralisi-5wv7dgnIgG8@public.gmane.org>
+> Cc: Bjorn Helgaas <bhelgaas-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>
+> Cc: Robin Murphy <robin.murphy-5wv7dgnIgG8@public.gmane.org>
+> Cc: Tomasz Nowicki <tn-nYOzD4b6Jr9Wk0Htik3J/w@public.gmane.org>
+> Cc: Joerg Roedel <joro-zLv9SwRftAIdnm+yROfE0A@public.gmane.org>
+> Cc: "Rafael J. Wysocki" <rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org>
+> ---
+>   drivers/acpi/glue.c     |  4 +--
+>   drivers/acpi/iort.c     | 85 +++++++++++++++++++++++++++++++++++++++++++++++++
+>   drivers/acpi/scan.c     | 29 +++++++++++++++++
+>   drivers/pci/probe.c     |  3 +-
+>   include/acpi/acpi_bus.h |  2 ++
+>   include/linux/acpi.h    |  5 +++
+>   include/linux/iort.h    |  9 ++++++
+>   7 files changed, 133 insertions(+), 4 deletions(-)
+>
+> diff --git a/drivers/acpi/glue.c b/drivers/acpi/glue.c
+> index 5ea5dc2..f8d6564 100644
+> --- a/drivers/acpi/glue.c
+> +++ b/drivers/acpi/glue.c
+> @@ -227,8 +227,7 @@ int acpi_bind_one(struct device *dev, struct acpi_device *acpi_dev)
+>
+>   	attr = acpi_get_dma_attr(acpi_dev);
+>   	if (attr != DEV_DMA_NOT_SUPPORTED)
+> -		arch_setup_dma_ops(dev, 0, 0, NULL,
+> -				   attr == DEV_DMA_COHERENT);
+> +		acpi_dma_configure(dev, attr);
+>
+>   	acpi_physnode_link_name(physical_node_name, node_id);
+>   	retval = sysfs_create_link(&acpi_dev->dev.kobj, &dev->kobj,
+> @@ -251,6 +250,7 @@ int acpi_bind_one(struct device *dev, struct acpi_device *acpi_dev)
+>   	return 0;
+>
+>    err:
+> +	acpi_dma_deconfigure(dev);
+>   	ACPI_COMPANION_SET(dev, NULL);
+>   	put_device(dev);
+>   	put_device(&acpi_dev->dev);
+> diff --git a/drivers/acpi/iort.c b/drivers/acpi/iort.c
+> index 2b5ce65..b1bb8fb 100644
+> --- a/drivers/acpi/iort.c
+> +++ b/drivers/acpi/iort.c
+> @@ -72,6 +72,31 @@ int iort_iommu_set_node(struct iommu_ops *ops, struct acpi_iort_node *node,
+>   	return 0;
+>   }
+>
+> +/**
+> + * iort_iommu_get_node - Retrieve iort_iommu_node associated with an IORT node.
+> + *
+> + * @node: IORT table node to be looked-up
+> + *
+> + * Returns: iort_iommu_node pointer on success
+> + *          NULL on failure
+> + */
+> +static struct iort_iommu_node *iort_iommu_get_node(struct acpi_iort_node *node)
+> +{
+> +	struct iort_iommu_node *iommu_node;
+> +
+> +	spin_lock(&iort_iommu_lock);
+> +	list_for_each_entry(iommu_node, &iort_iommu_list, list) {
+> +		if (iommu_node->node == node)
+> +			goto found;
+> +	}
+> +
+> +	iommu_node = NULL;
+> +found:
+> +	spin_unlock(&iort_iommu_lock);
+> +
+> +	return iommu_node;
+> +}
+> +
+>   typedef acpi_status (*iort_find_node_callback)
+>   	(struct acpi_iort_node *node, void *context);
+>
+> @@ -405,6 +430,66 @@ iort_pci_get_domain(struct pci_dev *pdev, u32 req_id)
+>   	return domain_handle;
+>   }
+>
+> +static int __get_pci_rid(struct pci_dev *pdev, u16 alias, void *data)
+> +{
+> +	u32 *rid = data;
+> +
+> +	*rid = alias;
+> +	return 0;
+> +}
+> +
+> +/**
+> + * iort_iommu_configure - Set-up IOMMU configuration for a device.
+> + *
+> + * @dev: device that requires IOMMU set-up
+> + *
+> + * Returns: iommu_ops pointer on configuration success
+> + *          NULL on configuration failure
+> + */
+> +struct iommu_ops *iort_iommu_configure(struct device *dev)
+> +{
+> +	struct acpi_iort_node *node, *parent;
+> +	struct iommu_ops *ops = NULL;
+> +	struct iommu_fwspec fwspec;
+> +	struct iort_iommu_node *iommu_node;
+> +	u32 rid = 0, devid = 0;
+> +
+> +	if (dev_is_pci(dev)) {
+> +		struct pci_bus *bus = to_pci_dev(dev)->bus;
+> +
+> +		pci_for_each_dma_alias(to_pci_dev(dev), __get_pci_rid,
+> +				       &rid);
+> +
+> +		node = iort_scan_node(ACPI_IORT_NODE_PCI_ROOT_COMPLEX,
+> +				      iort_find_dev_callback, &bus->dev);
+> +	} else
+> +		node = iort_scan_node(ACPI_IORT_NODE_NAMED_COMPONENT,
+> +				      iort_find_dev_callback, dev);
 
-The following changes since commit b6ae4055f4ab55c05df31cc1b6a7ea8c85eb525d:
+I think this will not work for finding host bridge stream ID. We still 
+need to use ACPI_IORT_NODE_PCI_ROOT_COMPLEX but 'dev' is not PCI device, 
+right?
 
-  Merge tag 'arm64-perf' of git://git.kernel.org/pub/scm/linux/kernel/git/arm64/linux (2016-05-16 17:39:29 -0700)
-
-are available in the git repository at:
-
-  git://git.kernel.org/pub/scm/linux/kernel/git/evalenti/linux-soc-thermal work-linus-4.7
-
-for you to fetch changes up to 17c403d8ba287212102c9d72696e2666d4516478:
-
-  thermal: tango: initialize TEMPSI_CFG (2016-05-16 18:00:40 -0700)
-
-In this pull you get:
-- Rockchip driver support for RK3399, RK3366, and some fixes.
-- Mediatek CPU power model
-- Wider usage of dev_thermal_zone_of_sensor_register
-- A generic ADC thermal driver, based on OF thermal
-- TI thermal driver gained a new maintainer (Keerthy)
-- New thermal driver for Tango chips
-- Various fixes on OF thermal, Tegra, and RCAR
-
-BR,
-
-
-Eduardo Valentin
-
-
-----------------------------------------------------------------
-Andy Champ (1):
-      thermal: Syntactic and factual errors in the API document
-
-Arnd Bergmann (1):
-      thermal: tegra: mark PM functions __maybe_unused
-
-Caesar Wang (5):
-      thermal: rockchip: fixes the code_to_temp for tsadc driver
-      thermal: rockchip: update the tsadc table for rk3399
-      thermal: rockchip: handle the power sequence for tsadc controller
-      thermal: rockchip: add the notes for better reading
-      thermal: rockchip: use the usleep_range instead of udelay
-
-Dawei Chien (1):
-      thermal: mediatek: Add cpu dynamic power cooling model.
-
-Eduardo Valentin (12):
-      hwmon: convert lm75 to use devm_thermal_zone_of_sensor_register
-      hwmon: convert ntc_thermistor to use devm_thermal_zone_of_sensor_register
-      hwmon: convert tmp102 to use devm_thermal_zone_of_sensor_register
-      hwmon: convert scpi-hwmon to use devm_thermal_zone_of_sensor_register
-      input: convert sun4i-ts to use devm_thermal_zone_of_sensor_register
-      thermal: convert hisi_thermal to use devm_thermal_zone_of_sensor_register
-      thermal: convert mtk_thermal to use devm_thermal_zone_of_sensor_register
-      thermal: convert qcom-spmi to use devm_thermal_zone_of_sensor_register
-      thermal: convert rcar_thermal to use devm_thermal_zone_of_sensor_register
-      thermal: convert rockchip_thermal to use devm_thermal_zone_of_sensor_register
-      thermal: convert tegra_thermal to use devm_thermal_zone_of_sensor_register
-      thermal: convert ti-thermal to use devm_thermal_zone_of_sensor_register
-
-Elaine Zhang (1):
-      thermal: rockchip: Support RK3366 SoCs in the thermal driver
-
-Keerthy (1):
-      MAINTAINERS: ti-soc-thermal: add a co-maintainer and update the entry
-
-Laxman Dewangan (2):
-      thermal: generic-adc: Add DT binding for ADC based thermal sensor
-      thermal: generic-adc: Add ADC based thermal sensor driver
-
-Leo Yan (2):
-      thermal: hisilicon: support to use any sensor
-      thermal: hisilicon: fix IRQ imbalance enabling
-
-Marc Gonzalez (2):
-      thermal: add temperature sensor support for tango SoC
-      thermal: tango: initialize TEMPSI_CFG
-
-Shawn Lin (1):
-      thermal: rockchip: disable thermal->clk in err case
-
-Simon Horman (1):
-      thermal: rcar: Remove binding docs for r8a7794
-
-Ulises Brindis (1):
-      thermal: of: fix cleanup when building a thermal zone
-
-Wei Ni (14):
-      thermal: tegra: move tegra thermal files into tegra directory
-      thermal: tegra: combine sensor group-related data
-      thermal: tegra: get rid of PDIV/HOTSPOT hack
-      thermal: tegra: split tegra_soctherm driver
-      thermal: tegra: add Tegra210 specific SOC_THERM driver
-      thermal: tegra: add a debugfs to show registers
-      thermal: of-thermal: allow setting trip_temp on hardware
-      of: add notes of critical trips for soctherm
-      thermal: tegra: add thermtrip function
-      thermal: tegra: handle clocks in one function
-      thermal: tegra: handle HW initialization in one funcotion
-      thermal: tegra: add PM support
-      thermal: tegra: fix static checker warning
-      thermal: tegra: add Tegra132 specific SOC_THERM driver
-
-kbuild test robot (1):
-      thermal: fix ptr_ret.cocci warnings
-
- .../devicetree/bindings/thermal/rcar-thermal.txt   |   1 -
- .../devicetree/bindings/thermal/tango-thermal.txt  |  17 +
- .../devicetree/bindings/thermal/tegra-soctherm.txt |  12 +
- .../bindings/thermal/thermal-generic-adc.txt       |  89 +++
- Documentation/thermal/sysfs-api.txt                |  44 +-
- MAINTAINERS                                        |   1 +
- drivers/cpufreq/mt8173-cpufreq.c                   |  11 +-
- drivers/hwmon/lm75.c                               |  10 +-
- drivers/hwmon/ntc_thermistor.c                     |  12 +-
- drivers/hwmon/scpi-hwmon.c                         |  48 +-
- drivers/hwmon/tmp102.c                             |   8 +-
- drivers/input/touchscreen/sun4i-ts.c               |   9 +-
- drivers/thermal/Kconfig                            |  31 +-
- drivers/thermal/Makefile                           |   4 +-
- drivers/thermal/hisi_thermal.c                     |  45 +-
- drivers/thermal/mtk_thermal.c                      |  12 +-
- drivers/thermal/of-thermal.c                       |  10 +-
- drivers/thermal/qcom-spmi-temp-alarm.c             |   3 +-
- drivers/thermal/rcar_thermal.c                     |   2 +-
- drivers/thermal/rockchip_thermal.c                 | 280 ++++++---
- drivers/thermal/tango_thermal.c                    | 109 ++++
- drivers/thermal/tegra/Kconfig                      |  13 +
- drivers/thermal/tegra/Makefile                     |   6 +
- drivers/thermal/tegra/soctherm-fuse.c              | 169 +++++
- drivers/thermal/tegra/soctherm.c                   | 685 +++++++++++++++++++++
- drivers/thermal/tegra/soctherm.h                   | 127 ++++
- drivers/thermal/tegra/tegra124-soctherm.c          | 196 ++++++
- drivers/thermal/tegra/tegra132-soctherm.c          | 196 ++++++
- drivers/thermal/tegra/tegra210-soctherm.c          | 197 ++++++
- drivers/thermal/tegra_soctherm.c                   | 476 --------------
- drivers/thermal/thermal-generic-adc.c              | 182 ++++++
- drivers/thermal/ti-soc-thermal/ti-thermal-common.c |   5 +-
- include/dt-bindings/thermal/tegra124-soctherm.h    |   1 +
- include/linux/thermal.h                            |   1 +
- 34 files changed, 2320 insertions(+), 692 deletions(-)
- create mode 100644 Documentation/devicetree/bindings/thermal/tango-thermal.txt
- create mode 100644 Documentation/devicetree/bindings/thermal/thermal-generic-adc.txt
- create mode 100644 drivers/thermal/tango_thermal.c
- create mode 100644 drivers/thermal/tegra/Kconfig
- create mode 100644 drivers/thermal/tegra/Makefile
- create mode 100644 drivers/thermal/tegra/soctherm-fuse.c
- create mode 100644 drivers/thermal/tegra/soctherm.c
- create mode 100644 drivers/thermal/tegra/soctherm.h
- create mode 100644 drivers/thermal/tegra/tegra124-soctherm.c
- create mode 100644 drivers/thermal/tegra/tegra132-soctherm.c
- create mode 100644 drivers/thermal/tegra/tegra210-soctherm.c
- delete mode 100644 drivers/thermal/tegra_soctherm.c
- create mode 100644 drivers/thermal/thermal-generic-adc.c
+Thanks,
+Tomasz
