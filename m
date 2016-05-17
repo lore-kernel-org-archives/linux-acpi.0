@@ -1,180 +1,109 @@
-From: Eduardo Valentin <edubezval@gmail.com>
-Subject: [GIT PULL v2] Thermal SoC management updates for v4.7
-Date: Tue, 17 May 2016 07:39:19 -0700
-Message-ID: <20160517143917.GA14550@localhost.localdomain>
+From: Al Stone <al.stone@linaro.org>
+Subject: Re: [PATCH v5 0/1] ARM64: ACPI: Update documentation for latest
+ specification version
+Date: Tue, 17 May 2016 10:30:34 -0600
+Message-ID: <44cda485-1c43-f7c3-676b-f9c47785daf6@linaro.org>
+References: <20160516234441.GA7425@arm.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-pf0-f195.google.com ([209.85.192.195]:35617 "EHLO
-	mail-pf0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752569AbcEQOjZ (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 17 May 2016 10:39:25 -0400
-Content-Disposition: inline
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20160516234441.GA7425@arm.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Alexey Klimov <alexey.klimov@arm.com>, Al Stone <ahs3@redhat.com>
+Cc: linux-doc@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, linaro-acpi@lists.linaro.org, patches@linaro.org, linaro-kernel@lists.linaro.org
 List-Id: linux-acpi@vger.kernel.org
-Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux PM <linux-pm@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>, Rui Zhang <rui.zhang@intel.com>
 
-Rui
+On 05/16/2016 05:44 PM, Alexey Klimov wrote:
+> On Mon, May 2, 2016 at 09:19 PM, Al Stone wrote:
+>> On 04/25/2016 03:21 PM, Al Stone wrote:
+>>> The ACPI 6.1 specification was recently released at the end of January
+>>> 2016, but the arm64 kernel documentation for the use of ACPI was written
+>>> for the 5.1 version of the spec.  There were significant additions to the
+>>> spec that had not yet been mentioned -- for example, the 6.0 mechanisms
+>>> added to make it easier to define processors and low power idle states,
+>>> as well as the 6.1 addition allowing regular interrupts (not just from
+>>> GPIO) be used to signal ACPI general purpose events.
+>>>
+>>> This patch reflects going back through and examining the specs in detail
+>>> and updating content appropriately.  Whilst there, a few odds and ends of
+>>> typos were caught as well.  This brings the documentation up to date with
+>>> ACPI 6.1 for arm64.
+>>>
+>>> Changes for v5:
+>>>    -- Miscellaneous typos and corrections (Lorenzo Pieralisi)
+>>>    -- Add linux-acpi@ ML to the distribution list (Alexey Klimov)
+>>>    -- Corrections to CPPC information (Alexey Klimov)
+>>>    -- ACK from Lorenzo Pieralisi
+>>>    -- Updated bibliographic info (Al Stone)
+>>>
+>>> Changes for v4:
+>>>    -- Clarify that IORT can sometimes be optional (Jon Masters).
+>>>    -- Remove "Use as needed" descriptions of ACPI objects; they provide
+>>>       no substantive information and doing so simplifies maintenance of
+>>>       this document over time.  These have been replaced with a simpler
+>>>       notice that states that unless otherwise noted, do what the ACPI
+>>>       specification says is needed.
+>>>    -- Corrected the _OSI object usage recommendation; it described kernel
+>>>       behavior that does not exist (Al Stone).
+>>>
+>>> Changes for v3:
+>>>    -- Clarify use of _LPI/_RDI (Vikas Sajjan)
+>>>    -- Whitespace cleanup as pointed out by checkpatch
+>>>
+>>> Changes for v2:
+>>>    -- Clean up white space (Harb Abdulhahmid)
+>>>    -- Clarification on _CCA usage (Harb Abdulhamid)
+>>>    -- IORT moved to required from recommended (Hanjun Guo)
+>>>    -- Clarify IORT description (Hanjun Guo)
+>>>
+>>>
+>>> Al Stone (1):
+>>>   ARM64: ACPI: Update documentation for latest specification version
+>>>
+>>>  Documentation/arm64/acpi_object_usage.txt | 343 ++++++++++++++++--------------
+>>>  Documentation/arm64/arm-acpi.txt          |  40 ++--
+>>>  2 files changed, 213 insertions(+), 170 deletions(-)
+>>>
+>>
+>> Ping?  If there are no further comments, can this be pulled in through
+>> either the documentation or arm64 tree?
+>>
+>> Thanks.
+> 
+> Hi Al,
+> sorry for delay.
+> 
+> CPPC and PCC corrections look fine. Thanks.
+> 
+> 
+> This comment is not to block your patch (maybe some to-do):
+> I greped sources and your patch and I don't see description of _PSD object.
+> This P-state dependancy object is optional but it's presense and correct data
+> are extremely useful for CPPC and can potentially descrease number of performance
+> changing requests.
+> 
+> ACPI spec in section about CPPC tells that it may use _PSD (page 503 if I remember
+> correctly) to specify domain belongings of CPUs.
+> 
+> You may consider to add description of _PSD object later.
+> 
+> Best regards,
+> Alexey.
+> 
 
-Here is material for 4.7 on thermal SoC. This time based on v4.6-rc6. In
-fact, ideally I should not rebase my branch for the merge window and you
-should just pull from its original cut, so we keep the history when
-patches got applied. Rebasing this branch right before the merge window
-makes it look like I just created it, when in fact it was been tested
-on linux-next for several weeks.
+Hrm.  Thanks, Alexey.  I'll take a look.  _PSD may be in one of
+the gray areas where we expect people to read the spec and follow
+it properly, but it may make sense to be very explicit about what
+they need to do to use it properly.  Perhaps this would make a good
+FWTS test, too.
 
-Anyways,
-
-The following changes since commit 04974df8049fc4240d22759a91e035082ccd18b4:
-
-  Linux 4.6-rc6 (2016-05-01 15:52:31 -0700)
-
-are available in the git repository at:
-
-  git://git.kernel.org/pub/scm/linux/kernel/git/evalenti/linux-soc-thermal work-linus-4.7
-
-for you to fetch changes up to 431c30f74cdffba6456b52742e80f9b629228940:
-
-  thermal: tango: initialize TEMPSI_CFG (2016-05-17 07:28:33 -0700)
-
-In this pull you get:
-- Rockchip driver support for RK3399, RK3366, and some fixes.
-- Mediatek CPU power model
-- Wider usage of dev_thermal_zone_of_sensor_register
-- A generic ADC thermal driver, based on OF thermal
-- TI thermal driver gained a new maintainer (Keerthy)
-- New thermal driver for Tango chips
-- Various fixes on OF thermal, Tegra, and RCAR
-
-You may find the same original branch (based on 4.6-rc1 though) here:
-  git://git.kernel.org/pub/scm/linux/kernel/git/evalenti/linux-soc-thermal work-linus
-
-BR,
-
-Eduardo Valentin
-
-----------------------------------------------------------------
-Andy Champ (1):
-      thermal: Syntactic and factual errors in the API document
-
-Arnd Bergmann (1):
-      thermal: tegra: mark PM functions __maybe_unused
-
-Caesar Wang (5):
-      thermal: rockchip: fixes the code_to_temp for tsadc driver
-      thermal: rockchip: update the tsadc table for rk3399
-      thermal: rockchip: handle the power sequence for tsadc controller
-      thermal: rockchip: add the notes for better reading
-      thermal: rockchip: use the usleep_range instead of udelay
-
-Dawei Chien (1):
-      thermal: mediatek: Add cpu dynamic power cooling model.
-
-Eduardo Valentin (12):
-      hwmon: convert lm75 to use devm_thermal_zone_of_sensor_register
-      hwmon: convert ntc_thermistor to use devm_thermal_zone_of_sensor_register
-      hwmon: convert tmp102 to use devm_thermal_zone_of_sensor_register
-      hwmon: convert scpi-hwmon to use devm_thermal_zone_of_sensor_register
-      input: convert sun4i-ts to use devm_thermal_zone_of_sensor_register
-      thermal: convert hisi_thermal to use devm_thermal_zone_of_sensor_register
-      thermal: convert mtk_thermal to use devm_thermal_zone_of_sensor_register
-      thermal: convert qcom-spmi to use devm_thermal_zone_of_sensor_register
-      thermal: convert rcar_thermal to use devm_thermal_zone_of_sensor_register
-      thermal: convert rockchip_thermal to use devm_thermal_zone_of_sensor_register
-      thermal: convert tegra_thermal to use devm_thermal_zone_of_sensor_register
-      thermal: convert ti-thermal to use devm_thermal_zone_of_sensor_register
-
-Elaine Zhang (1):
-      thermal: rockchip: Support RK3366 SoCs in the thermal driver
-
-Keerthy (1):
-      MAINTAINERS: ti-soc-thermal: add a co-maintainer and update the entry
-
-Laxman Dewangan (2):
-      thermal: generic-adc: Add DT binding for ADC based thermal sensor
-      thermal: generic-adc: Add ADC based thermal sensor driver
-
-Leo Yan (2):
-      thermal: hisilicon: support to use any sensor
-      thermal: hisilicon: fix IRQ imbalance enabling
-
-Marc Gonzalez (2):
-      thermal: add temperature sensor support for tango SoC
-      thermal: tango: initialize TEMPSI_CFG
-
-Shawn Lin (1):
-      thermal: rockchip: disable thermal->clk in err case
-
-Simon Horman (1):
-      thermal: rcar: Remove binding docs for r8a7794
-
-Ulises Brindis (1):
-      thermal: of: fix cleanup when building a thermal zone
-
-Wei Ni (14):
-      thermal: tegra: move tegra thermal files into tegra directory
-      thermal: tegra: combine sensor group-related data
-      thermal: tegra: get rid of PDIV/HOTSPOT hack
-      thermal: tegra: split tegra_soctherm driver
-      thermal: tegra: add Tegra210 specific SOC_THERM driver
-      thermal: tegra: add a debugfs to show registers
-      thermal: of-thermal: allow setting trip_temp on hardware
-      of: add notes of critical trips for soctherm
-      thermal: tegra: add thermtrip function
-      thermal: tegra: handle clocks in one function
-      thermal: tegra: handle HW initialization in one funcotion
-      thermal: tegra: add PM support
-      thermal: tegra: fix static checker warning
-      thermal: tegra: add Tegra132 specific SOC_THERM driver
-
-kbuild test robot (1):
-      thermal: fix ptr_ret.cocci warnings
-
- .../devicetree/bindings/thermal/rcar-thermal.txt   |   1 -
- .../devicetree/bindings/thermal/tango-thermal.txt  |  17 +
- .../devicetree/bindings/thermal/tegra-soctherm.txt |  12 +
- .../bindings/thermal/thermal-generic-adc.txt       |  89 +++
- Documentation/thermal/sysfs-api.txt                |  44 +-
- MAINTAINERS                                        |   1 +
- drivers/cpufreq/mt8173-cpufreq.c                   |  11 +-
- drivers/hwmon/lm75.c                               |  10 +-
- drivers/hwmon/ntc_thermistor.c                     |  12 +-
- drivers/hwmon/scpi-hwmon.c                         |  48 +-
- drivers/hwmon/tmp102.c                             |   8 +-
- drivers/input/touchscreen/sun4i-ts.c               |   9 +-
- drivers/thermal/Kconfig                            |  31 +-
- drivers/thermal/Makefile                           |   4 +-
- drivers/thermal/hisi_thermal.c                     |  45 +-
- drivers/thermal/mtk_thermal.c                      |  12 +-
- drivers/thermal/of-thermal.c                       |  10 +-
- drivers/thermal/qcom-spmi-temp-alarm.c             |   3 +-
- drivers/thermal/rcar_thermal.c                     |   2 +-
- drivers/thermal/rockchip_thermal.c                 | 280 ++++++---
- drivers/thermal/tango_thermal.c                    | 109 ++++
- drivers/thermal/tegra/Kconfig                      |  13 +
- drivers/thermal/tegra/Makefile                     |   6 +
- drivers/thermal/tegra/soctherm-fuse.c              | 169 +++++
- drivers/thermal/tegra/soctherm.c                   | 685 +++++++++++++++++++++
- drivers/thermal/tegra/soctherm.h                   | 127 ++++
- drivers/thermal/tegra/tegra124-soctherm.c          | 196 ++++++
- drivers/thermal/tegra/tegra132-soctherm.c          | 196 ++++++
- drivers/thermal/tegra/tegra210-soctherm.c          | 197 ++++++
- drivers/thermal/tegra_soctherm.c                   | 476 --------------
- drivers/thermal/thermal-generic-adc.c              | 182 ++++++
- drivers/thermal/ti-soc-thermal/ti-thermal-common.c |   5 +-
- include/dt-bindings/thermal/tegra124-soctherm.h    |   1 +
- include/linux/thermal.h                            |   1 +
- 34 files changed, 2320 insertions(+), 692 deletions(-)
- create mode 100644 Documentation/devicetree/bindings/thermal/tango-thermal.txt
- create mode 100644 Documentation/devicetree/bindings/thermal/thermal-generic-adc.txt
- create mode 100644 drivers/thermal/tango_thermal.c
- create mode 100644 drivers/thermal/tegra/Kconfig
- create mode 100644 drivers/thermal/tegra/Makefile
- create mode 100644 drivers/thermal/tegra/soctherm-fuse.c
- create mode 100644 drivers/thermal/tegra/soctherm.c
- create mode 100644 drivers/thermal/tegra/soctherm.h
- create mode 100644 drivers/thermal/tegra/tegra124-soctherm.c
- create mode 100644 drivers/thermal/tegra/tegra132-soctherm.c
- create mode 100644 drivers/thermal/tegra/tegra210-soctherm.c
- delete mode 100644 drivers/thermal/tegra_soctherm.c
- create mode 100644 drivers/thermal/thermal-generic-adc.c
+-- 
+ciao,
+al
+-----------------------------------
+Al Stone
+Software Engineer
+Linaro Enterprise Group
+al.stone@linaro.org
+-----------------------------------
