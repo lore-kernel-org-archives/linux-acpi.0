@@ -1,73 +1,50 @@
 From: "Rafael J. Wysocki" <rafael@kernel.org>
-Subject: Re: ACPI related warnings during boot
-Date: Tue, 17 May 2016 22:38:43 +0200
-Message-ID: <CAJZ5v0imG5FCjb=st8ieHSNJ+P0QfQ2r9ukT_+C1ju5Nqkqpmw@mail.gmail.com>
-References: <CADFy_4H1B2g0WL0hdStrFSxeAwVQdGpj7bBuC7xUng3tt6qgzw@mail.gmail.com>
+Subject: Re: linux-next 20160512 - ACPI issue with screen brightness
+Date: Tue, 17 May 2016 22:50:11 +0200
+Message-ID: <CAJZ5v0jrFoQxLY_ZQrP-HP888swZbvSJPM=xNopC5MgQgnSxNg@mail.gmail.com>
+References: <4736.1463510462@turing-police.cc.vt.edu>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-wm0-f54.google.com ([74.125.82.54]:35096 "EHLO
-	mail-wm0-f54.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750913AbcEQUiq (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 17 May 2016 16:38:46 -0400
-Received: by mail-wm0-f54.google.com with SMTP id r12so5920216wme.0
-        for <linux-acpi@vger.kernel.org>; Tue, 17 May 2016 13:38:45 -0700 (PDT)
-In-Reply-To: <CADFy_4H1B2g0WL0hdStrFSxeAwVQdGpj7bBuC7xUng3tt6qgzw@mail.gmail.com>
+Received: from mail-wm0-f44.google.com ([74.125.82.44]:34106 "EHLO
+	mail-wm0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751382AbcEQUuN (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 17 May 2016 16:50:13 -0400
+In-Reply-To: <4736.1463510462@turing-police.cc.vt.edu>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Augusto Mecking Caringi <augustocaringi@gmail.com>
-Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>
+To: Valdis Kletnieks <Valdis.Kletnieks@vt.edu>
+Cc: Aaron Lu <aaron.lu@intel.com>, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Len Brown <lenb@kernel.org>
 
-On Tue, May 17, 2016 at 8:14 PM, Augusto Mecking Caringi
-<augustocaringi@gmail.com> wrote:
-> Hi,
+On Tue, May 17, 2016 at 8:41 PM, Valdis Kletnieks
+<Valdis.Kletnieks@vt.edu> wrote:
+> next-20160512 sets the screen brightness to about 40%-ish or so, rather
+> than the 100% intensity I want.
 >
->     After I've upgraded to the latest kernel (4.6), I'm getting some
-> ACPI related warnings during startup like that:
+> Dell Latitude E6530 laptop.
 >
-> [ 5897.966583] WARNING: CPU: 0 PID: 8240 at
-> drivers/cpufreq/cpufreq.c:2173 cpufreq_update_policy+0xcf/0xf0
-> [ 5897.966586] Modules linked in: iptable_nat nf_nat_ipv4 nf_nat
-> x86_pkg_temp_thermal apple_gmux
-> [ 5897.966589] CPU: 0 PID: 8240 Comm: kworker/0:1 Not tainted
-> 4.6.0-00442-gcf6ed9a #13
-> [ 5897.966589] Hardware name: Apple Inc.
-> MacBookPro8,1/Mac-94245B3640C91C81, BIOS
-> MBP81.88Z.0047.B27.1201241646 01/24
-> /12
-> [ 5897.966593] Workqueue: kacpi_notify acpi_os_execute_deferred
-> [ 5897.966595]  0000000000000000 ffff8800347b3ba8 ffffffff8153d118
-> 0000000000000000
-> [ 5897.966596]  0000000000000000 ffff8800347b3be8 ffffffff810a9b06
-> 0000087d810e4eb2
-> [ 5897.966598]  ffff880169384a00 00000000fffffffb ffff880169384b10
-> 0000000000000000
-> [ 5897.966598] Call Trace:
-> [ 5897.966602]  [<ffffffff8153d118>] dump_stack+0x4d/0x65
-> [ 5897.966604]  [<ffffffff810a9b06>] __warn+0xc6/0xe0
-> [ 5897.966606]  [<ffffffff810a9bd8>] warn_slowpath_null+0x18/0x20
-> [ 5897.966607]  [<ffffffff8189ba3f>] cpufreq_update_policy+0xcf/0xf0
-> [ 5897.966608]  [<ffffffff8189ba60>] ? cpufreq_update_policy+0xf0/0xf0
-> [ 5897.966611]  [<ffffffff815d28a6>] acpi_processor_ppc_has_changed+0x6f/0x77
-> [ 5897.966614]  [<ffffffff815cf96f>] acpi_processor_notify+0x51/0xdc
-> [ 5897.966616]  [<ffffffff815b5468>] acpi_ev_notify_dispatch+0x3f/0x57
-> [ 5897.966617]  [<ffffffff815a0b32>] acpi_os_execute_deferred+0xf/0x1b
-> [ 5897.966620]  [<ffffffff810c0d98>] process_one_work+0x158/0x470
-> [ 5897.966621]  [<ffffffff810c10f3>] worker_thread+0x43/0x4d0
-> [ 5897.966623]  [<ffffffff810c10b0>] ? process_one_work+0x470/0x470
-> [ 5897.966625]  [<ffffffff810c6404>] kthread+0xc4/0xe0
-> [ 5897.966628]  [<ffffffff81b47412>] ret_from_fork+0x22/0x40
-> [ 5897.966630]  [<ffffffff810c6340>] ? kthread_worker_fn+0x160/0x160
-> [ 5897.966631] ---[ end trace f45cd8737fc1698b ]---
+> git bisect tells me:
 >
->     This message appears 6 times at each boot.
+> 059500940defe285222d3b189b366dfe7f299cae is the first bad commit
+> commit 059500940defe285222d3b189b366dfe7f299cae
+> Author: Aaron Lu <aaron.lu@intel.com>
+> Date:   Wed Apr 27 20:45:04 2016 +0800
 >
->     Are they normal? Maybe wrong ACPI kernel options configured?
+>     ACPI/video: export acpi_video_get_levels
+>
+>     The acpi_video_get_levels is useful for other drivers, i.e. the
+>     to-be-added int3406 thermal driver, so export it.
+>
+>     Signed-off-by: Aaron Lu <aaron.lu@intel.com>
+>     Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+>
+> :040000 040000 24f4f5abe8beda2fa219dee7549faacc2f63e29f dfbe3a3bb4f58d82d5be768263d91172276fed98 M      drivers
+> :040000 040000 603ffbf36e76717fe4f4ecb0418c9dbc59c76e25 a559bcd81c949a6471ffd045866df9b4e3fa4406 M      include
+>
+>
+> but I've stared at the code and don't see what would do this....
 
-They should not appear, but the problem may not be too serious.
-
-It looks like the cpufreq driver's ->get() callback returns 0 when
-asked for the current frequency.
-
-Please check what's in the
-/sys/devices/system/cpu/cpu0/cpufreq/scaling_driver file.
+Please try to check out the acpi-video branch from linux-pm.git and
+see if the problem is present then.  If it is, please revert all of
+the top-most commits up to and including the above one and see if the
+problem goes away.
