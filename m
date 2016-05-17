@@ -1,69 +1,134 @@
-From: Lv Zheng <lv.zheng@intel.com>
-Subject: [RFC PATCH 2/2] logind: Allow lid status remains "closed"
-Date: Tue, 17 May 2016 16:27:40 +0800
-Message-ID: <cbdaec17aba78c61f466efff8883d49067f2dad5.1463472231.git.lv.zheng@intel.com>
-References: <c6808078a092fbf990d535cc359b734108ae5d6b.1463472231.git.lv.zheng@intel.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <c6808078a092fbf990d535cc359b734108ae5d6b.1463472231.git.lv.zheng@intel.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <len.brown@intel.com>
-Cc: Lv Zheng <lv.zheng@intel.com>, Lv Zheng <zetalog@gmail.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, "Bastien Nocera:" <hadess@hadess.net>
+From: Adam Thomson <Adam.Thomson.Opensource@diasemi.com>
+Subject: [PATCH 1/2] device property: Add function to search
+ for named child of device
+Date: Tue, 17 May 2016 11:28:58 +0100
+Message-ID: <39ccf372455f0b21a9ca29e58baf30ac4cd0c281.1463477116.git.Adam.Thomson.Opensource@diasemi.com>
+References: <cover.1463477116.git.Adam.Thomson.Opensource@diasemi.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <alsa-devel-bounces@alsa-project.org>
+In-Reply-To: <cover.1463477116.git.Adam.Thomson.Opensource@diasemi.com>
+List-Unsubscribe: <http://mailman.alsa-project.org/mailman/options/alsa-devel>,
+ <mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
+List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel/>
+List-Post: <mailto:alsa-devel@alsa-project.org>
+List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
+List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+ <mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
+Errors-To: alsa-devel-bounces@alsa-project.org
+Sender: alsa-devel-bounces@alsa-project.org
+To: Mark Brown <broonie@kernel.org>, Liam Girdwood <lgirdwood@gmail.com>, Jaroslav Kysela <perex@perex.cz>, Takashi Iwai <tiwai@suse.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Robert Moore <robert.moore@intel.com>, Lv Zheng <lv.zheng@intel.com>, "Rafael J.Wysocki" <rafael.j.wysocki@intel.com>, Len Brown <lenb@kernel.org>
+Cc: alsa-devel@alsa-project.org, Heikki Krogerus <heikki.krogerus@linux.intel.com>, Support Opensource <support.opensource@diasemi.com>, Hanjun Guo <hanjun.guo@linaro.org>, linux-kernel@vger.kernel.org, Suthikulpanit@diasemi.com, linux-acpi@vger.kernel.org, Sathyanarayana Nujella <sathyanarayana.nujella@intel.com>, Suravee <Suravee.Suthikulpanit@amd.com>, Bjorn Helgaas <bhelgaas@google.com>, Andrew Morton <akpm@linux-foundation.org>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Mika Westerberg <mika.westerberg@linux.intel.com>, devel@acpica.org
 List-Id: linux-acpi@vger.kernel.org
 
-This patch adds an option to allow the lid status to remain closed.
-However we are not systemd developers, and this patch may be wrong.
-It's just a demo on how the issue can be addressed in systemd.
+For device nodes in both DT and ACPI, it possible to have named
+child nodes which contain properties (an existing example being
+gpio-leds). This adds a function to find a named child node for
+a device which can be used by drivers for property retrieval.
 
-Signed-off-by: Lv Zheng <lv.zheng@intel.com>
-Cc: Bastien Nocera: <hadess@hadess.net>
+For ACPI data node name matching, a helper function is also added
+which returns false if CONFIG_ACPI is not set, otherwise it
+performs a string comparison on the data node name. This avoids
+using the acpi_data_node struct for non CONFIG_ACPI builds,
+which would otherwise cause a build failure.
+
+Signed-off-by: Adam Thomson <Adam.Thomson.Opensource@diasemi.com>
+Tested-by: Sathyanarayana Nujella <sathyanarayana.nujella@intel.com>
 ---
-Index: systemd/src/login/logind-gperf.gperf
-===================================================================
---- systemd.orig/src/login/logind-gperf.gperf
-+++ systemd/src/login/logind-gperf.gperf
-@@ -29,6 +29,7 @@ Login.PowerKeyIgnoreInhibited,     confi
- Login.SuspendKeyIgnoreInhibited,   config_parse_bool,          0, offsetof(Manager, suspend_key_ignore_inhibited)
- Login.HibernateKeyIgnoreInhibited, config_parse_bool,          0, offsetof(Manager, hibernate_key_ignore_inhibited)
- Login.LidSwitchIgnoreInhibited,    config_parse_bool,          0, offsetof(Manager, lid_switch_ignore_inhibited)
-+Login.LidSwitchLevelTriggered,     config_parse_bool,          0, offsetof(Manager, lid_switch_level_triggered)
- Login.HoldoffTimeoutSec,           config_parse_sec,           0, offsetof(Manager, holdoff_timeout_usec)
- Login.IdleAction,                  config_parse_handle_action, 0, offsetof(Manager, idle_action)
- Login.IdleActionSec,               config_parse_sec,           0, offsetof(Manager, idle_action_usec)
-Index: systemd/src/login/logind.c
-===================================================================
---- systemd.orig/src/login/logind.c
-+++ systemd/src/login/logind.c
-@@ -62,6 +62,7 @@ static Manager *manager_new(void) {
-         m->handle_lid_switch = HANDLE_SUSPEND;
-         m->handle_lid_switch_docked = HANDLE_IGNORE;
-         m->lid_switch_ignore_inhibited = true;
-+        m->lid_switch_level_triggered = true;
-         m->holdoff_timeout_usec = 30 * USEC_PER_SEC;
- 
-         m->idle_action_usec = 30 * USEC_PER_MINUTE;
-Index: systemd/src/login/logind.h
-===================================================================
---- systemd.orig/src/login/logind.h
-+++ systemd/src/login/logind.h
-@@ -123,6 +123,7 @@ struct Manager {
-         bool suspend_key_ignore_inhibited;
-         bool hibernate_key_ignore_inhibited;
-         bool lid_switch_ignore_inhibited;
-+        bool lid_switch_level_triggered;
- 
-         bool remove_ipc;
- 
-Index: systemd/src/login/logind-button.c
-===================================================================
---- systemd.orig/src/login/logind-button.c
-+++ systemd/src/login/logind-button.c
-@@ -123,6 +123,9 @@ static int button_install_check_event_so
-         int r;
-         assert(b);
- 
-+        if (!b->manager->lid_switch_level_triggered)
-+                return 0;
+ drivers/base/property.c  | 28 ++++++++++++++++++++++++++++
+ include/acpi/acpi_bus.h  |  7 +++++++
+ include/linux/acpi.h     |  6 ++++++
+ include/linux/property.h |  3 +++
+ 4 files changed, 44 insertions(+)
+
+diff --git a/drivers/base/property.c b/drivers/base/property.c
+index 7f692ac..8b2cb09 100644
+--- a/drivers/base/property.c
++++ b/drivers/base/property.c
+@@ -880,6 +880,34 @@ struct fwnode_handle *device_get_next_child_node(struct device *dev,
+ EXPORT_SYMBOL_GPL(device_get_next_child_node);
+
+ /**
++ * device_get_named_child_node - Return first matching named child node handle
++ * @dev: Device to find the named child node for.
++ * @childname: String to match child node name against.
++ */
++struct fwnode_handle *device_get_named_child_node(struct device *dev,
++						  const char *childname)
++{
++	struct fwnode_handle *child;
 +
-         /* Install a post handler, so that we keep rechecking as long as the lid is closed. */
- 
-         if (b->check_event_source)
++	/*
++	 * Find first matching named child node of this device.
++	 * For ACPI this will be a data only sub-node.
++	 */
++	device_for_each_child_node(dev, child) {
++		if (is_of_node(child)) {
++			if (!strcasecmp(to_of_node(child)->name, childname))
++				return child;
++		} else if (is_acpi_data_node(child)) {
++			if (acpi_data_node_match(child, childname))
++				return child;
++		}
++	}
++
++	return NULL;
++}
++EXPORT_SYMBOL_GPL(device_get_named_child_node);
++
++/**
+  * fwnode_handle_put - Drop reference to a device node
+  * @fwnode: Pointer to the device node to drop the reference to.
+  *
+diff --git a/include/acpi/acpi_bus.h b/include/acpi/acpi_bus.h
+index 3a93250..6dc3544 100644
+--- a/include/acpi/acpi_bus.h
++++ b/include/acpi/acpi_bus.h
+@@ -420,6 +420,13 @@ static inline struct acpi_data_node *to_acpi_data_node(struct fwnode_handle *fwn
+ 		container_of(fwnode, struct acpi_data_node, fwnode) : NULL;
+ }
+
++static inline bool acpi_data_node_match(struct fwnode_handle *fwnode,
++					const char *name)
++{
++	return is_acpi_data_node(fwnode) ?
++		(!strcasecmp(to_acpi_data_node(fwnode)->name, name)) : false;
++}
++
+ static inline struct fwnode_handle *acpi_fwnode_handle(struct acpi_device *adev)
+ {
+ 	return &adev->fwnode;
+diff --git a/include/linux/acpi.h b/include/linux/acpi.h
+index 06ed7e5..c37a385 100644
+--- a/include/linux/acpi.h
++++ b/include/linux/acpi.h
+@@ -576,6 +576,12 @@ static inline struct acpi_data_node *to_acpi_data_node(struct fwnode_handle *fwn
+ 	return NULL;
+ }
+
++static inline bool acpi_data_node_match(struct fwnode_handle *fwnode,
++					const char *name)
++{
++	return false;
++}
++
+ static inline struct fwnode_handle *acpi_fwnode_handle(struct acpi_device *adev)
+ {
+ 	return NULL;
+diff --git a/include/linux/property.h b/include/linux/property.h
+index b51fcd3..d2752dc 100644
+--- a/include/linux/property.h
++++ b/include/linux/property.h
+@@ -77,6 +77,9 @@ struct fwnode_handle *device_get_next_child_node(struct device *dev,
+ 	for (child = device_get_next_child_node(dev, NULL); child;	\
+ 	     child = device_get_next_child_node(dev, child))
+
++struct fwnode_handle *device_get_named_child_node(struct device *dev,
++						  const char *childname);
++
+ void fwnode_handle_put(struct fwnode_handle *fwnode);
+
+ unsigned int device_get_child_node_count(struct device *dev);
+--
+1.9.3
