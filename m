@@ -1,170 +1,183 @@
-From: Tomasz Nowicki <tn-nYOzD4b6Jr9Wk0Htik3J/w@public.gmane.org>
-Subject: Re: [RFC PATCH 09/11] drivers: acpi: implement acpi_dma_configure
-Date: Tue, 17 May 2016 10:07:30 +0200
-Message-ID: <573AD142.6020107@semihalf.com>
-References: <1460654743-7896-1-git-send-email-lorenzo.pieralisi@arm.com>
-	<1460654743-7896-10-git-send-email-lorenzo.pieralisi@arm.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"; Format="flowed"
-Content-Transfer-Encoding: 7bit
-Return-path: <iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
-In-Reply-To: <1460654743-7896-10-git-send-email-lorenzo.pieralisi-5wv7dgnIgG8@public.gmane.org>
-List-Unsubscribe: <https://lists.linuxfoundation.org/mailman/options/iommu>,
-	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.linuxfoundation.org/pipermail/iommu/>
-List-Post: <mailto:iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
-List-Help: <mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.linuxfoundation.org/mailman/listinfo/iommu>,
-	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=subscribe>
-Sender: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
-Errors-To: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
-To: Lorenzo Pieralisi <lorenzo.pieralisi-5wv7dgnIgG8@public.gmane.org>, iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
-Cc: Marc Zyngier <marc.zyngier-5wv7dgnIgG8@public.gmane.org>, Will Deacon <will.deacon-5wv7dgnIgG8@public.gmane.org>, "Rafael J. Wysocki" <rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org>, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Sinan Kaya <okaya-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Hanjun Guo <hanjun.guo-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Jon Masters <jcm-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Bjorn Helgaas <bhelgaas-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
+From: Lv Zheng <lv.zheng@intel.com>
+Subject: [RFC PATCH 1/2] ACPI / button: Send "open" state after boot/resume
+Date: Tue, 17 May 2016 16:27:32 +0800
+Message-ID: <cbdaec17aba78c61f466efff8883d49067f2dad5.1463472125.git.lv.zheng@intel.com>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga09.intel.com ([134.134.136.24]:4085 "EHLO mga09.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751118AbcEQI1h (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 17 May 2016 04:27:37 -0400
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <len.brown@intel.com>
+Cc: Lv Zheng <lv.zheng@intel.com>, Lv Zheng <zetalog@gmail.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, "Bastien Nocera:" <hadess@hadess.net>
 
-Hi Lorenzo,
+(This patch hasn't been tested, it's sent for comments)
 
-On 14.04.2016 19:25, Lorenzo Pieralisi wrote:
-> On DT based systems, the of_dma_configure() API implements DMA configuration
-> for a given device. On ACPI systems an API equivalent to of_dma_configure()
-> is missing which implies that it is currently not possible to set-up DMA
-> operations for devices through the ACPI generic kernel layer.
->
-> This patch fills the gap by introducing acpi_dma_configure/deconfigure()
-> calls, that carry out IOMMU configuration through IORT (on systems where
-> it is present) and call arch_setup_dma_ops(...) with the retrieved
-> parameters.
->
-> The DMA range size passed to arch_setup_dma_ops() is sized according
-> to the device coherent_dma_mask (starting at address 0x0), mirroring the
-> DT probing path behaviour when a dma-ranges property is not provided
-> for the device being probed; this changes the current arch_setup_dma_ops()
-> call parameters in the ACPI probing case, but since arch_setup_dma_ops()
-> is a NOP on all architectures but ARM/ARM64 this patch does not change
-> the current kernel behaviour on them.
->
-> This patch updates ACPI and PCI core code to use the newly introduced
-> acpi_dma_configure function, providing the same functionality
-> as of_dma_configure on ARM systems and leaving behaviour unchanged
-> for all other arches.
->
-> Signed-off-by: Lorenzo Pieralisi <lorenzo.pieralisi-5wv7dgnIgG8@public.gmane.org>
-> Cc: Bjorn Helgaas <bhelgaas-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>
-> Cc: Robin Murphy <robin.murphy-5wv7dgnIgG8@public.gmane.org>
-> Cc: Tomasz Nowicki <tn-nYOzD4b6Jr9Wk0Htik3J/w@public.gmane.org>
-> Cc: Joerg Roedel <joro-zLv9SwRftAIdnm+yROfE0A@public.gmane.org>
-> Cc: "Rafael J. Wysocki" <rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org>
-> ---
->   drivers/acpi/glue.c     |  4 +--
->   drivers/acpi/iort.c     | 85 +++++++++++++++++++++++++++++++++++++++++++++++++
->   drivers/acpi/scan.c     | 29 +++++++++++++++++
->   drivers/pci/probe.c     |  3 +-
->   include/acpi/acpi_bus.h |  2 ++
->   include/linux/acpi.h    |  5 +++
->   include/linux/iort.h    |  9 ++++++
->   7 files changed, 133 insertions(+), 4 deletions(-)
->
-> diff --git a/drivers/acpi/glue.c b/drivers/acpi/glue.c
-> index 5ea5dc2..f8d6564 100644
-> --- a/drivers/acpi/glue.c
-> +++ b/drivers/acpi/glue.c
-> @@ -227,8 +227,7 @@ int acpi_bind_one(struct device *dev, struct acpi_device *acpi_dev)
->
->   	attr = acpi_get_dma_attr(acpi_dev);
->   	if (attr != DEV_DMA_NOT_SUPPORTED)
-> -		arch_setup_dma_ops(dev, 0, 0, NULL,
-> -				   attr == DEV_DMA_COHERENT);
-> +		acpi_dma_configure(dev, attr);
->
->   	acpi_physnode_link_name(physical_node_name, node_id);
->   	retval = sysfs_create_link(&acpi_dev->dev.kobj, &dev->kobj,
-> @@ -251,6 +250,7 @@ int acpi_bind_one(struct device *dev, struct acpi_device *acpi_dev)
->   	return 0;
->
->    err:
-> +	acpi_dma_deconfigure(dev);
->   	ACPI_COMPANION_SET(dev, NULL);
->   	put_device(dev);
->   	put_device(&acpi_dev->dev);
-> diff --git a/drivers/acpi/iort.c b/drivers/acpi/iort.c
-> index 2b5ce65..b1bb8fb 100644
-> --- a/drivers/acpi/iort.c
-> +++ b/drivers/acpi/iort.c
-> @@ -72,6 +72,31 @@ int iort_iommu_set_node(struct iommu_ops *ops, struct acpi_iort_node *node,
->   	return 0;
->   }
->
-> +/**
-> + * iort_iommu_get_node - Retrieve iort_iommu_node associated with an IORT node.
-> + *
-> + * @node: IORT table node to be looked-up
-> + *
-> + * Returns: iort_iommu_node pointer on success
-> + *          NULL on failure
-> + */
-> +static struct iort_iommu_node *iort_iommu_get_node(struct acpi_iort_node *node)
-> +{
-> +	struct iort_iommu_node *iommu_node;
-> +
-> +	spin_lock(&iort_iommu_lock);
-> +	list_for_each_entry(iommu_node, &iort_iommu_list, list) {
-> +		if (iommu_node->node == node)
-> +			goto found;
-> +	}
-> +
-> +	iommu_node = NULL;
-> +found:
-> +	spin_unlock(&iort_iommu_lock);
-> +
-> +	return iommu_node;
-> +}
-> +
->   typedef acpi_status (*iort_find_node_callback)
->   	(struct acpi_iort_node *node, void *context);
->
-> @@ -405,6 +430,66 @@ iort_pci_get_domain(struct pci_dev *pdev, u32 req_id)
->   	return domain_handle;
->   }
->
-> +static int __get_pci_rid(struct pci_dev *pdev, u16 alias, void *data)
-> +{
-> +	u32 *rid = data;
-> +
-> +	*rid = alias;
-> +	return 0;
-> +}
-> +
-> +/**
-> + * iort_iommu_configure - Set-up IOMMU configuration for a device.
-> + *
-> + * @dev: device that requires IOMMU set-up
-> + *
-> + * Returns: iommu_ops pointer on configuration success
-> + *          NULL on configuration failure
-> + */
-> +struct iommu_ops *iort_iommu_configure(struct device *dev)
-> +{
-> +	struct acpi_iort_node *node, *parent;
-> +	struct iommu_ops *ops = NULL;
-> +	struct iommu_fwspec fwspec;
-> +	struct iort_iommu_node *iommu_node;
-> +	u32 rid = 0, devid = 0;
-> +
-> +	if (dev_is_pci(dev)) {
-> +		struct pci_bus *bus = to_pci_dev(dev)->bus;
-> +
-> +		pci_for_each_dma_alias(to_pci_dev(dev), __get_pci_rid,
-> +				       &rid);
-> +
-> +		node = iort_scan_node(ACPI_IORT_NODE_PCI_ROOT_COMPLEX,
-> +				      iort_find_dev_callback, &bus->dev);
-> +	} else
-> +		node = iort_scan_node(ACPI_IORT_NODE_NAMED_COMPONENT,
-> +				      iort_find_dev_callback, dev);
+Linux userspace (systemd-logind) keeps on rechecking lid state when the
+lid state is closed. If it failed to update the lid state to open after
+boot/resume, it could suspend the system. But as:
+1. Traditional ACPI platform may not generate the lid open event after
+   resuming as the open event is actually handled by the BIOS and the system
+   is then resumed from a FACS vector.
+2. The _LID control method's initial returning value is not reliable. The
+   _LID control method is described to return the "current" lid state,
+   however the word of "current" has ambiguity, many BIOSen return lid
+   state upon last lid notification while the developers may think the
+   BIOSen should always return the lid state upon last _LID evaluation.
+   There won't be difference when we evaluate _LID during the runtime, the
+   problem is the initial returning value of this function. When the BIOSen
+   implement this control method with cached value, the initial returning
+   value is likely not reliable.
+Thus there is no mean for the ACPI lid driver to provide such an event
+conveying correct current lid state. When there is no such an event or the
+event conveys wrong result, false suspending can be examined.
 
-I think this will not work for finding host bridge stream ID. We still 
-need to use ACPI_IORT_NODE_PCI_ROOT_COMPLEX but 'dev' is not PCI device, 
-right?
+The root cause of the issue is systemd itself, it could handle the ACPI
+control method lid device by implementing a special option like
+LidSwitchLevelTriggered=False when it detected the ACPI lid device. However
+there is no explicit documentation clarified the ambiguity, we need to
+work it around in the kernel before systemd changing its mind.
 
-Thanks,
-Tomasz
+Link 1: https://lkml.org/2016/3/7/460
+Link 2: https://github.com/systemd/systemd/issues/2087
+Link 3: https://bugzilla.kernel.org/show_bug.cgi?id=89211
+        https://bugzilla.kernel.org/show_bug.cgi?id=106151
+        https://bugzilla.kernel.org/show_bug.cgi?id=106941
+Signed-off-by: Lv Zheng <lv.zheng@intel.com>
+Cc: Bastien Nocera: <hadess@hadess.net>
+---
+ drivers/acpi/button.c |   63 +++++++++++++++++++++++++++++++++++++++++++++----
+ 1 file changed, 59 insertions(+), 4 deletions(-)
+
+diff --git a/drivers/acpi/button.c b/drivers/acpi/button.c
+index 5c3b091..bb14ca5 100644
+--- a/drivers/acpi/button.c
++++ b/drivers/acpi/button.c
+@@ -53,6 +53,10 @@
+ #define ACPI_BUTTON_DEVICE_NAME_LID	"Lid Switch"
+ #define ACPI_BUTTON_TYPE_LID		0x05
+ 
++#define ACPI_BUTTON_LID_INIT_IGNORE	0x00
++#define ACPI_BUTTON_LID_INIT_OPEN	0x01
++#define ACPI_BUTTON_LID_INIT_METHOD	0x02
++
+ #define _COMPONENT		ACPI_BUTTON_COMPONENT
+ ACPI_MODULE_NAME("button");
+ 
+@@ -105,6 +109,7 @@ struct acpi_button {
+ 
+ static BLOCKING_NOTIFIER_HEAD(acpi_lid_notifier);
+ static struct acpi_device *lid_device;
++static u8 lid_init_state = ACPI_BUTTON_LID_INIT_OPEN;
+ 
+ /* --------------------------------------------------------------------------
+                               FS Interface (/proc)
+@@ -246,7 +251,8 @@ int acpi_lid_open(void)
+ }
+ EXPORT_SYMBOL(acpi_lid_open);
+ 
+-static int acpi_lid_send_state(struct acpi_device *device)
++static int acpi_lid_send_state(struct acpi_device *device,
++			       bool notify_init_state)
+ {
+ 	struct acpi_button *button = acpi_driver_data(device);
+ 	unsigned long long state;
+@@ -257,6 +263,10 @@ static int acpi_lid_send_state(struct acpi_device *device)
+ 	if (ACPI_FAILURE(status))
+ 		return -ENODEV;
+ 
++	if (notify_init_state &&
++	    lid_init_state == ACPI_BUTTON_LID_INIT_OPEN)
++		state = 1;
++
+ 	/* input layer checks if event is redundant */
+ 	input_report_switch(button->input, SW_LID, !state);
+ 	input_sync(button->input);
+@@ -278,6 +288,13 @@ static int acpi_lid_send_state(struct acpi_device *device)
+ 	return ret;
+ }
+ 
++static int acpi_lid_send_init_state(struct acpi_device *device)
++{
++	if (lid_init_state != ACPI_BUTTON_LID_INIT_IGNORE)
++		return acpi_lid_send_state(device, true);
++	return 0;
++}
++
+ static void acpi_button_notify(struct acpi_device *device, u32 event)
+ {
+ 	struct acpi_button *button = acpi_driver_data(device);
+@@ -290,7 +307,7 @@ static void acpi_button_notify(struct acpi_device *device, u32 event)
+ 	case ACPI_BUTTON_NOTIFY_STATUS:
+ 		input = button->input;
+ 		if (button->type == ACPI_BUTTON_TYPE_LID) {
+-			acpi_lid_send_state(device);
++			acpi_lid_send_state(device, false);
+ 		} else {
+ 			int keycode;
+ 
+@@ -335,7 +352,7 @@ static int acpi_button_resume(struct device *dev)
+ 
+ 	button->suspended = false;
+ 	if (button->type == ACPI_BUTTON_TYPE_LID)
+-		return acpi_lid_send_state(device);
++		return acpi_lid_send_init_state(device);
+ 	return 0;
+ }
+ #endif
+@@ -416,7 +433,7 @@ static int acpi_button_add(struct acpi_device *device)
+ 	if (error)
+ 		goto err_remove_fs;
+ 	if (button->type == ACPI_BUTTON_TYPE_LID) {
+-		acpi_lid_send_state(device);
++		acpi_lid_send_init_state(device);
+ 		/*
+ 		 * This assumes there's only one lid device, or if there are
+ 		 * more we only care about the last one...
+@@ -446,4 +463,42 @@ static int acpi_button_remove(struct acpi_device *device)
+ 	return 0;
+ }
+ 
++static int param_set_lid_init_state(const char *val, struct kernel_param *kp)
++{
++	int result = 0;
++
++	if (!strncmp(val, "open", sizeof("open") - 1)) {
++		lid_init_state = ACPI_BUTTON_LID_INIT_OPEN;
++		pr_info("Notify initial lid state as open\n");
++	} else if (!strncmp(val, "method", sizeof("method") - 1)) {
++		lid_init_state = ACPI_BUTTON_LID_INIT_METHOD;
++		pr_info("Notify initial lid state with _LID return value\n");
++	} else if (!strncmp(val, "ignore", sizeof("ignore") - 1)) {
++		lid_init_state = ACPI_BUTTON_LID_INIT_IGNORE;
++		pr_info("Do not notify initial lid state\n");
++	} else
++		result = -EINVAL;
++	return result;
++}
++
++static int param_get_lid_init_state(char *buffer, struct kernel_param *kp)
++{
++	switch (lid_init_state) {
++	case ACPI_BUTTON_LID_INIT_OPEN:
++		return sprintf(buffer, "open");
++	case ACPI_BUTTON_LID_INIT_METHOD:
++		return sprintf(buffer, "method");
++	case ACPI_BUTTON_LID_INIT_IGNORE:
++		return sprintf(buffer, "ignore");
++	default:
++		return sprintf(buffer, "invalid");
++	}
++	return 0;
++}
++
++module_param_call(lid_init_state,
++		  param_set_lid_init_state, param_get_lid_init_state,
++		  NULL, 0644);
++MODULE_PARM_DESC(lid_init_state, "Behavior for reporting LID initial state");
++
+ module_acpi_driver(acpi_button_driver);
+-- 
+1.7.10
+
