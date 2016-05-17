@@ -1,129 +1,73 @@
-From: Mark Rutland <mark.rutland@arm.com>
-Subject: Re: [PATCH 3/3] ACPI: ARM64: support for ACPI_TABLE_UPGRADE
-Date: Tue, 17 May 2016 13:46:29 +0100
-Message-ID: <20160517124629.GE14955@leverpostej>
-References: <1463486765-31827-1-git-send-email-aleksey.makarov@linaro.org>
- <1463486765-31827-4-git-send-email-aleksey.makarov@linaro.org>
+From: Tomasz Nowicki <tn@semihalf.com>
+Subject: Re: [PATCH V7 07/11] pci, acpi: Handle ACPI companion assignment.
+Date: Tue, 17 May 2016 15:44:47 +0200
+Message-ID: <573B204F.9040001@semihalf.com>
+References: <1462893601-8937-1-git-send-email-tn@semihalf.com>
+ <1462893601-8937-8-git-send-email-tn@semihalf.com>
+ <573A8BED.7030908@huawei.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from foss.arm.com ([217.140.101.70]:51760 "EHLO foss.arm.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751248AbcEQMqn (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 17 May 2016 08:46:43 -0400
-Content-Disposition: inline
-In-Reply-To: <1463486765-31827-4-git-send-email-aleksey.makarov@linaro.org>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=gbk; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-pci-owner@vger.kernel.org>
+In-Reply-To: <573A8BED.7030908@huawei.com>
+Sender: linux-pci-owner@vger.kernel.org
+To: Dongdong Liu <liudongdong3@huawei.com>, helgaas@kernel.org, arnd@arndb.de, will.deacon@arm.com, catalin.marinas@arm.com, rafael@kernel.org, hanjun.guo@linaro.org, Lorenzo.Pieralisi@arm.com, okaya@codeaurora.org, jchandra@broadcom.com
+Cc: robert.richter@caviumnetworks.com, mw@semihalf.com, Liviu.Dudau@arm.com, ddaney@caviumnetworks.com, wangyijing@huawei.com, Suravee.Suthikulpanit@amd.com, msalter@redhat.com, linux-pci@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linaro-acpi@lists.linaro.org, jcm@redhat.com, andrea.gallo@linaro.org, dhdang@apm.com, jeremy.linton@arm.com, cov@codeaurora.org, Linuxarm <linuxarm@huawei.com>
 List-Id: linux-acpi@vger.kernel.org
-To: Aleksey Makarov <aleksey.makarov@linaro.org>
-Cc: Russell King <linux@arm.linux.org.uk>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, Graeme Gregory <graeme.gregory@linaro.org>, Jon Masters <jcm@redhat.com>, "Zheng, Lv" <lv.zheng@intel.com>, Catalin Marinas <catalin.marinas@arm.com>, Will Deacon <will.deacon@arm.com>
 
-On Tue, May 17, 2016 at 03:06:03PM +0300, Aleksey Makarov wrote:
-> From: Jon Masters <jcm@redhat.com>
-> 
-> This patch adds support for ACPI_TABLE_UPGRADE for ARM64
+On 17.05.2016 05:11, Dongdong Liu wrote:
+> Hi Tomasz
+>
+> I used the patchset and added "PATCH V6 11/13 specic quirks", tested on
+> HiSilicon D02 board but met the below problem.
+>
+> [    2.614115] [<ffffff80083b13bc>] hisi_pcie_init+0x6c/0x1ec
+> [    2.619571] [<ffffff80083ab060>] pci_ecam_create+0x130/0x1ec
+> [    2.625209] [<ffffff80083f3764>] pci_acpi_scan_root+0x160/0x218
+> [    2.631096] [<ffffff80083d1f6c>] acpi_pci_root_add+0x36c/0x42c
+> [    2.636897] [<ffffff80083ce36c>] acpi_bus_attach+0xe4/0x1a8
+> [    2.642438] [<ffffff80083ce3d8>] acpi_bus_attach+0x150/0x1a8
+> [    2.648066] [<ffffff80083ce3d8>] acpi_bus_attach+0x150/0x1a8
+> [    2.653693] [<ffffff80083ce55c>] acpi_bus_scan+0x64/0x74
+> [    2.658975] [<ffffff8008ae665c>] acpi_scan_init+0x5c/0x19c
+> [    2.664429] [<ffffff8008ae6408>] acpi_init+0x280/0x2a4
+> [    2.669538] [<ffffff80080829e8>] do_one_initcall+0x8c/0x19c
+> [    2.675080] [<ffffff8008ac3af8>] kernel_init_freeable+0x14c/0x1ec
+> [    2.681139] [<ffffff80087a8438>] kernel_init+0x10/0xfc
+> [    2.686248] [<ffffff8008085e10>] ret_from_fork+0x10/0x40
+>
+> In hisi_pcie_init, I used "struct acpi_device *device =
+> ACPI_COMPANION(dev);".
+> I found the reason is V7 lack the below code. I added the below code, it
+> worked ok.
+>
+> [PATCH V6 01/13] pci, acpi, x86, ia64: Move ACPI host bridge device
+> companion assignment to core code.
+> --- a/drivers/acpi/pci_root.c
+> +++ b/drivers/acpi/pci_root.c
+> @@ -564,6 +564,11 @@ static int acpi_pci_root_add(struct acpi_device
+> *device,
+>           }
+>       }
+>
+> +    /*
+> +     * pci_create_root_bus() needs to detect the parent device type,
+> +     * so initialize its companion data accordingly.
+> +     */
+> +    ACPI_COMPANION_SET(&device->dev, device);
+>
+> This code will be upstreamed with the "PATCH V6 11/13 specic quirks" in
+> next time after the patchset is accepted.
+> Right ?
 
-This feels like a tool to paper over problems rather than solve them.
+We had that patch in previous series to retrieve PCI domain nicely. But 
+that has bad implication to userspace. See:
+https://lkml.org/lkml/2016/5/9/918
 
-If vendors are shipping horrendously broken tables today, clearly no
-software has ever really supported them. So why add workarounds?
+I understand that:
+[PATCH V6 01/13] pci, acpi, x86, ia64: Move ACPI host bridge device 
+companion assignment to core code.
+helps to get firmware specific info in hisi_pcie_init but we need to 
+figure out something better for quirk handling too.
 
-Why is this necessary? Is there a particular case for this, or is this
-just for parity with x86?
-
-IMO it would be better to put pressure on vendors to fix their FW and
-provide sensible OS-agnostic update mechanisms.
-
-> To access initrd image we need to move initialization
-> of linear mapping a bit earlier.
-> 
-> Signed-off-by: Jon Masters <jcm@redhat.com>
-> Signed-off-by: Aleksey Makarov <aleksey.makarov@linaro.org>
-> ---
->  arch/arm64/kernel/setup.c |  6 ++++--
->  drivers/acpi/Kconfig      |  2 +-
->  drivers/acpi/tables.c     | 10 +++++++++-
->  3 files changed, 14 insertions(+), 4 deletions(-)
-> 
-> diff --git a/arch/arm64/kernel/setup.c b/arch/arm64/kernel/setup.c
-> index feab2ee..1d5e24f 100644
-> --- a/arch/arm64/kernel/setup.c
-> +++ b/arch/arm64/kernel/setup.c
-> @@ -261,11 +261,13 @@ void __init setup_arch(char **cmdline_p)
->  	efi_init();
->  	arm64_memblock_init();
->  
-> +	paging_init();
-> +
-> +	early_initrd_acpi_init();
-
-Do we actually need full paging up here?
-
-Why can we not use fixmap based copying as we do for the other cases
-prior to paging_init?
-
-> +
->  	/* Parse the ACPI tables for possible boot-time configuration */
->  	acpi_boot_table_init();
->  
-> -	paging_init();
-> -
->  	if (acpi_disabled)
->  		unflatten_device_tree();
->  
-> diff --git a/drivers/acpi/Kconfig b/drivers/acpi/Kconfig
-> index c204344..ec694c0 100644
-> --- a/drivers/acpi/Kconfig
-> +++ b/drivers/acpi/Kconfig
-> @@ -313,7 +313,7 @@ config ACPI_CUSTOM_DSDT
->  
->  config ACPI_TABLE_UPGRADE
->  	bool "Allow upgrading ACPI tables via initrd"
-> -	depends on BLK_DEV_INITRD && X86
-> +	depends on BLK_DEV_INITRD && (X86 || ARM64)
->  	default y
->  	help
-
-Perhaps ARCH_HAS_ACPI_TABLE_UPGRADE?
-
->  	  This option provides functionality to upgrade arbitrary ACPI tables
-> diff --git a/drivers/acpi/tables.c b/drivers/acpi/tables.c
-> index 82be84a..c35034d8 100644
-> --- a/drivers/acpi/tables.c
-> +++ b/drivers/acpi/tables.c
-> @@ -482,6 +482,14 @@ static DECLARE_BITMAP(acpi_initrd_installed, NR_ACPI_INITRD_TABLES);
->  
->  #define MAP_CHUNK_SIZE   (NR_FIX_BTMAPS << PAGE_SHIFT)
->  
-> +#if defined(CONFIG_X86)
-> +#define MAX_PHYS_ACPI_TABLES (max_low_pfn_mapped << PAGE_SHIFT)
-> +#elif defined(CONFIG_ARM64)
-> +#define MAX_PHYS_ACPI_TABLES PFN_PHYS(max_pfn)
-> +#else
-> +#error "MAX_PHYS_ACPI_TABLES is not defiend for this architecture"
-> +#endif
-
-s/defiend/defined/
-
-This should be defined in an arch-specific header if it is actually
-arch-specific.
-
-Thanks,
-Mark.
-
-> +
->  static void __init acpi_table_initrd_init(void *data, size_t size)
->  {
->  	int sig, no, table_nr = 0, total_offset = 0;
-> @@ -541,7 +549,7 @@ static void __init acpi_table_initrd_init(void *data, size_t size)
->  		return;
->  
->  	acpi_tables_addr =
-> -		memblock_find_in_range(0, max_low_pfn_mapped << PAGE_SHIFT,
-> +		memblock_find_in_range(0, MAX_PHYS_ACPI_TABLES,
->  				       all_tables_size, PAGE_SIZE);
->  	if (!acpi_tables_addr) {
->  		WARN_ON(1);
-> -- 
-> 2.8.2
-> 
+Tomasz
