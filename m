@@ -1,97 +1,184 @@
-From: Aleksey Makarov <aleksey.makarov@linaro.org>
-Subject: [PATCH 2/3] ACPI: table upgrade: move early_initrd_acpi_init() to header file
-Date: Tue, 17 May 2016 15:06:02 +0300
-Message-ID: <1463486765-31827-3-git-send-email-aleksey.makarov@linaro.org>
-References: <1463486765-31827-1-git-send-email-aleksey.makarov@linaro.org>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1463486765-31827-1-git-send-email-aleksey.makarov@linaro.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Russell King <linux@arm.linux.org.uk>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>
-Cc: linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, Aleksey Makarov <aleksey.makarov@linaro.org>, Graeme Gregory <graeme.gregory@linaro.org>, Jon Masters <jcm@redhat.com>, "Zheng, Lv" <lv.zheng@intel.com>, Mark Rutland <mark.rutland@arm.com>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, x86@kernel.org
+From: Tomasz Nowicki <tn@semihalf.com>
+Subject: Re: [RFC PATCH 09/11] drivers: acpi: implement acpi_dma_configure
+Date: Tue, 17 May 2016 14:32:19 +0200
+Message-ID: <573B0F53.109@semihalf.com>
+References: <1460654743-7896-1-git-send-email-lorenzo.pieralisi@arm.com>
+ <1460654743-7896-10-git-send-email-lorenzo.pieralisi@arm.com>
+ <573AD142.6020107@semihalf.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-lf0-f41.google.com ([209.85.215.41]:33647 "EHLO
+	mail-lf0-f41.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751014AbcEQMco (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 17 May 2016 08:32:44 -0400
+Received: by mail-lf0-f41.google.com with SMTP id y84so6152477lfc.0
+        for <linux-acpi@vger.kernel.org>; Tue, 17 May 2016 05:32:43 -0700 (PDT)
+In-Reply-To: <573AD142.6020107@semihalf.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, iommu@lists.linux-foundation.org
+Cc: Bjorn Helgaas <bhelgaas@google.com>, Robin Murphy <robin.murphy@arm.com>, Joerg Roedel <joro@8bytes.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Will Deacon <will.deacon@arm.com>, Marc Zyngier <marc.zyngier@arm.com>, Hanjun Guo <hanjun.guo@linaro.org>, Jon Masters <jcm@redhat.com>, Sinan Kaya <okaya@codeaurora.org>, linux-acpi@vger.kernel.org, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-Move early_initrd_acpi_init() to header file so that
-it can be used with architectures other than X86
 
-Signed-off-by: Aleksey Makarov <aleksey.makarov@linaro.org>
----
- arch/x86/kernel/setup.c | 7 -------
- drivers/acpi/tables.c   | 7 +++++--
- include/linux/acpi.h    | 4 ++--
- 3 files changed, 7 insertions(+), 11 deletions(-)
 
-diff --git a/arch/x86/kernel/setup.c b/arch/x86/kernel/setup.c
-index c4e7b39..5ddbbfd 100644
---- a/arch/x86/kernel/setup.c
-+++ b/arch/x86/kernel/setup.c
-@@ -399,10 +399,6 @@ static void __init reserve_initrd(void)
- 	memblock_free(ramdisk_image, ramdisk_end - ramdisk_image);
- }
- 
--static void __init early_initrd_acpi_init(void)
--{
--	early_acpi_table_init((void *)initrd_start, initrd_end - initrd_start);
--}
- #else
- static void __init early_reserve_initrd(void)
- {
-@@ -410,9 +406,6 @@ static void __init early_reserve_initrd(void)
- static void __init reserve_initrd(void)
- {
- }
--static void __init early_initrd_acpi_init(void)
--{
--}
- #endif /* CONFIG_BLK_DEV_INITRD */
- 
- static void __init parse_setup_data(void)
-diff --git a/drivers/acpi/tables.c b/drivers/acpi/tables.c
-index 449a649..82be84a 100644
---- a/drivers/acpi/tables.c
-+++ b/drivers/acpi/tables.c
-@@ -34,6 +34,7 @@
- #include <linux/bootmem.h>
- #include <linux/earlycpio.h>
- #include <linux/memblock.h>
-+#include <linux/initrd.h>
- #include "internal.h"
- 
- #ifdef CONFIG_ACPI_CUSTOM_DSDT
-@@ -742,9 +743,11 @@ acpi_os_table_override(struct acpi_table_header *existing_table,
- 	return AE_OK;
- }
- 
--void __init early_acpi_table_init(void *data, size_t size)
-+void __init early_initrd_acpi_init(void)
- {
--	acpi_table_initrd_init(data, size);
-+#ifdef CONFIG_BLK_DEV_INITRD
-+	acpi_table_initrd_init((void *)initrd_start, initrd_end - initrd_start);
-+#endif
- }
- 
- /*
-diff --git a/include/linux/acpi.h b/include/linux/acpi.h
-index 288fac5..cb700c1 100644
---- a/include/linux/acpi.h
-+++ b/include/linux/acpi.h
-@@ -208,7 +208,7 @@ void acpi_boot_table_init (void);
- int acpi_mps_check (void);
- int acpi_numa_init (void);
- 
--void early_acpi_table_init(void *data, size_t size);
-+void early_initrd_acpi_init(void);
- int acpi_table_init (void);
- int acpi_table_parse(char *id, acpi_tbl_table_handler handler);
- int __init acpi_parse_entries(char *id, unsigned long table_size,
-@@ -588,7 +588,7 @@ static inline const char *acpi_dev_name(struct acpi_device *adev)
- 	return NULL;
- }
- 
--static inline void early_acpi_table_init(void *data, size_t size) { }
-+static inline void early_initrd_acpi_init(void) { }
- static inline void acpi_early_init(void) { }
- static inline void acpi_subsystem_init(void) { }
- 
--- 
-2.8.2
+On 17.05.2016 10:07, Tomasz Nowicki wrote:
+> Hi Lorenzo,
+>
+> On 14.04.2016 19:25, Lorenzo Pieralisi wrote:
+>> On DT based systems, the of_dma_configure() API implements DMA
+>> configuration
+>> for a given device. On ACPI systems an API equivalent to
+>> of_dma_configure()
+>> is missing which implies that it is currently not possible to set-up DMA
+>> operations for devices through the ACPI generic kernel layer.
+>>
+>> This patch fills the gap by introducing acpi_dma_configure/deconfigure()
+>> calls, that carry out IOMMU configuration through IORT (on systems where
+>> it is present) and call arch_setup_dma_ops(...) with the retrieved
+>> parameters.
+>>
+>> The DMA range size passed to arch_setup_dma_ops() is sized according
+>> to the device coherent_dma_mask (starting at address 0x0), mirroring the
+>> DT probing path behaviour when a dma-ranges property is not provided
+>> for the device being probed; this changes the current
+>> arch_setup_dma_ops()
+>> call parameters in the ACPI probing case, but since arch_setup_dma_ops()
+>> is a NOP on all architectures but ARM/ARM64 this patch does not change
+>> the current kernel behaviour on them.
+>>
+>> This patch updates ACPI and PCI core code to use the newly introduced
+>> acpi_dma_configure function, providing the same functionality
+>> as of_dma_configure on ARM systems and leaving behaviour unchanged
+>> for all other arches.
+>>
+>> Signed-off-by: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+>> Cc: Bjorn Helgaas <bhelgaas@google.com>
+>> Cc: Robin Murphy <robin.murphy@arm.com>
+>> Cc: Tomasz Nowicki <tn@semihalf.com>
+>> Cc: Joerg Roedel <joro@8bytes.org>
+>> Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+>> ---
+>>   drivers/acpi/glue.c     |  4 +--
+>>   drivers/acpi/iort.c     | 85
+>> +++++++++++++++++++++++++++++++++++++++++++++++++
+>>   drivers/acpi/scan.c     | 29 +++++++++++++++++
+>>   drivers/pci/probe.c     |  3 +-
+>>   include/acpi/acpi_bus.h |  2 ++
+>>   include/linux/acpi.h    |  5 +++
+>>   include/linux/iort.h    |  9 ++++++
+>>   7 files changed, 133 insertions(+), 4 deletions(-)
+>>
+>> diff --git a/drivers/acpi/glue.c b/drivers/acpi/glue.c
+>> index 5ea5dc2..f8d6564 100644
+>> --- a/drivers/acpi/glue.c
+>> +++ b/drivers/acpi/glue.c
+>> @@ -227,8 +227,7 @@ int acpi_bind_one(struct device *dev, struct
+>> acpi_device *acpi_dev)
+>>
+>>       attr = acpi_get_dma_attr(acpi_dev);
+>>       if (attr != DEV_DMA_NOT_SUPPORTED)
+>> -        arch_setup_dma_ops(dev, 0, 0, NULL,
+>> -                   attr == DEV_DMA_COHERENT);
+>> +        acpi_dma_configure(dev, attr);
+>>
+>>       acpi_physnode_link_name(physical_node_name, node_id);
+>>       retval = sysfs_create_link(&acpi_dev->dev.kobj, &dev->kobj,
+>> @@ -251,6 +250,7 @@ int acpi_bind_one(struct device *dev, struct
+>> acpi_device *acpi_dev)
+>>       return 0;
+>>
+>>    err:
+>> +    acpi_dma_deconfigure(dev);
+>>       ACPI_COMPANION_SET(dev, NULL);
+>>       put_device(dev);
+>>       put_device(&acpi_dev->dev);
+>> diff --git a/drivers/acpi/iort.c b/drivers/acpi/iort.c
+>> index 2b5ce65..b1bb8fb 100644
+>> --- a/drivers/acpi/iort.c
+>> +++ b/drivers/acpi/iort.c
+>> @@ -72,6 +72,31 @@ int iort_iommu_set_node(struct iommu_ops *ops,
+>> struct acpi_iort_node *node,
+>>       return 0;
+>>   }
+>>
+>> +/**
+>> + * iort_iommu_get_node - Retrieve iort_iommu_node associated with an
+>> IORT node.
+>> + *
+>> + * @node: IORT table node to be looked-up
+>> + *
+>> + * Returns: iort_iommu_node pointer on success
+>> + *          NULL on failure
+>> + */
+>> +static struct iort_iommu_node *iort_iommu_get_node(struct
+>> acpi_iort_node *node)
+>> +{
+>> +    struct iort_iommu_node *iommu_node;
+>> +
+>> +    spin_lock(&iort_iommu_lock);
+>> +    list_for_each_entry(iommu_node, &iort_iommu_list, list) {
+>> +        if (iommu_node->node == node)
+>> +            goto found;
+>> +    }
+>> +
+>> +    iommu_node = NULL;
+>> +found:
+>> +    spin_unlock(&iort_iommu_lock);
+>> +
+>> +    return iommu_node;
+>> +}
+>> +
+>>   typedef acpi_status (*iort_find_node_callback)
+>>       (struct acpi_iort_node *node, void *context);
+>>
+>> @@ -405,6 +430,66 @@ iort_pci_get_domain(struct pci_dev *pdev, u32
+>> req_id)
+>>       return domain_handle;
+>>   }
+>>
+>> +static int __get_pci_rid(struct pci_dev *pdev, u16 alias, void *data)
+>> +{
+>> +    u32 *rid = data;
+>> +
+>> +    *rid = alias;
+>> +    return 0;
+>> +}
+>> +
+>> +/**
+>> + * iort_iommu_configure - Set-up IOMMU configuration for a device.
+>> + *
+>> + * @dev: device that requires IOMMU set-up
+>> + *
+>> + * Returns: iommu_ops pointer on configuration success
+>> + *          NULL on configuration failure
+>> + */
+>> +struct iommu_ops *iort_iommu_configure(struct device *dev)
+>> +{
+>> +    struct acpi_iort_node *node, *parent;
+>> +    struct iommu_ops *ops = NULL;
+>> +    struct iommu_fwspec fwspec;
+>> +    struct iort_iommu_node *iommu_node;
+>> +    u32 rid = 0, devid = 0;
+>> +
+>> +    if (dev_is_pci(dev)) {
+>> +        struct pci_bus *bus = to_pci_dev(dev)->bus;
+>> +
+>> +        pci_for_each_dma_alias(to_pci_dev(dev), __get_pci_rid,
+>> +                       &rid);
+>> +
+>> +        node = iort_scan_node(ACPI_IORT_NODE_PCI_ROOT_COMPLEX,
+>> +                      iort_find_dev_callback, &bus->dev);
+>> +    } else
+>> +        node = iort_scan_node(ACPI_IORT_NODE_NAMED_COMPONENT,
+>> +                      iort_find_dev_callback, dev);
+>
+> I think this will not work for finding host bridge stream ID. We still
+> need to use ACPI_IORT_NODE_PCI_ROOT_COMPLEX but 'dev' is not PCI device,
+> right?
+
+After private conversation, I think this part is OK.
+
+Thanks,
+Tomasz
