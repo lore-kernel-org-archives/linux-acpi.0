@@ -1,113 +1,174 @@
-From: Dongdong Liu <liudongdong3@huawei.com>
-Subject: Re: [PATCH V7 07/11] pci, acpi: Handle ACPI companion assignment.
-Date: Tue, 17 May 2016 11:11:41 +0800
-Message-ID: <573A8BED.7030908@huawei.com>
-References: <1462893601-8937-1-git-send-email-tn@semihalf.com>
- <1462893601-8937-8-git-send-email-tn@semihalf.com>
+From: Eduardo Valentin <edubezval@gmail.com>
+Subject: [GIT PULL] Thermal SoC management updates for v4.7
+Date: Mon, 16 May 2016 20:18:58 -0700
+Message-ID: <20160517031857.GA3318@localhost.localdomain>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=gbk;
-	format=flowed
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-pci-owner@vger.kernel.org>
-In-Reply-To: <1462893601-8937-8-git-send-email-tn@semihalf.com>
-Sender: linux-pci-owner@vger.kernel.org
-To: Tomasz Nowicki <tn@semihalf.com>, helgaas@kernel.org, arnd@arndb.de, will.deacon@arm.com, catalin.marinas@arm.com, rafael@kernel.org, hanjun.guo@linaro.org, Lorenzo.Pieralisi@arm.com, okaya@codeaurora.org, jchandra@broadcom.com
-Cc: robert.richter@caviumnetworks.com, mw@semihalf.com, Liviu.Dudau@arm.com, ddaney@caviumnetworks.com, wangyijing@huawei.com, Suravee.Suthikulpanit@amd.com, msalter@redhat.com, linux-pci@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linaro-acpi@lists.linaro.org, jcm@redhat.com, andrea.gallo@linaro.org, dhdang@apm.com, jeremy.linton@arm.com, cov@codeaurora.org, Linuxarm <linuxarm@huawei.com>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-pa0-f66.google.com ([209.85.220.66]:33463 "EHLO
+	mail-pa0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750964AbcEQDTJ (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 16 May 2016 23:19:09 -0400
+Content-Disposition: inline
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux PM <linux-pm@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>, Rui Zhang <rui.zhang@intel.com>
 
-Hi Tomasz
+Hello Rui,
 
-I used the patchset and added "PATCH V6 11/13 specic quirks", tested on=
- HiSilicon D02 board but met the below problem.
+Here is material for 4.7 on thermal SoC. I have rebased this branch on
+top of latest linus tree. But this material have been tested and on
+linux-next for several weeks.
 
-[    2.614115] [<ffffff80083b13bc>] hisi_pcie_init+0x6c/0x1ec
-[    2.619571] [<ffffff80083ab060>] pci_ecam_create+0x130/0x1ec
-[    2.625209] [<ffffff80083f3764>] pci_acpi_scan_root+0x160/0x218
-[    2.631096] [<ffffff80083d1f6c>] acpi_pci_root_add+0x36c/0x42c
-[    2.636897] [<ffffff80083ce36c>] acpi_bus_attach+0xe4/0x1a8
-[    2.642438] [<ffffff80083ce3d8>] acpi_bus_attach+0x150/0x1a8
-[    2.648066] [<ffffff80083ce3d8>] acpi_bus_attach+0x150/0x1a8
-[    2.653693] [<ffffff80083ce55c>] acpi_bus_scan+0x64/0x74
-[    2.658975] [<ffffff8008ae665c>] acpi_scan_init+0x5c/0x19c
-[    2.664429] [<ffffff8008ae6408>] acpi_init+0x280/0x2a4
-[    2.669538] [<ffffff80080829e8>] do_one_initcall+0x8c/0x19c
-[    2.675080] [<ffffff8008ac3af8>] kernel_init_freeable+0x14c/0x1ec
-[    2.681139] [<ffffff80087a8438>] kernel_init+0x10/0xfc
-[    2.686248] [<ffffff8008085e10>] ret_from_fork+0x10/0x40
+The following changes since commit b6ae4055f4ab55c05df31cc1b6a7ea8c85eb525d:
 
-In hisi_pcie_init, I used "struct acpi_device *device =3D ACPI_COMPANIO=
-N(dev);".
-I found the reason is V7 lack the below code. I added the below code, i=
-t worked ok.
+  Merge tag 'arm64-perf' of git://git.kernel.org/pub/scm/linux/kernel/git/arm64/linux (2016-05-16 17:39:29 -0700)
 
-[PATCH V6 01/13] pci, acpi, x86, ia64: Move ACPI host bridge device com=
-panion assignment to core code.
---- a/drivers/acpi/pci_root.c
-+++ b/drivers/acpi/pci_root.c
-@@ -564,6 +564,11 @@ static int acpi_pci_root_add(struct acpi_device *d=
-evice,
-  		}
-  	}
+are available in the git repository at:
 
-+	/*
-+	 * pci_create_root_bus() needs to detect the parent device type,
-+	 * so initialize its companion data accordingly.
-+	 */
-+	ACPI_COMPANION_SET(&device->dev, device);
+  git://git.kernel.org/pub/scm/linux/kernel/git/evalenti/linux-soc-thermal work-linus-4.7
 
-This code will be upstreamed with the "PATCH V6 11/13 specic quirks" in=
- next time after the patchset is accepted.
-Right ?
+for you to fetch changes up to 17c403d8ba287212102c9d72696e2666d4516478:
 
-=D4=DA 2016/5/10 23:19, Tomasz Nowicki =D0=B4=B5=C0:
-> This patch provides a way to set the ACPI companion in PCI code.
-> We define acpi_pci_set_companion() to set the ACPI companion pointer =
-and
-> call it from PCI core code. The function is stub for now.
->
-> Signed-off-by: Jayachandran C <jchandra@broadcom.com>
-> Signed-off-by: Tomasz Nowicki <tn@semihalf.com>
-> ---
->   drivers/pci/probe.c      | 2 ++
->   include/linux/pci-acpi.h | 4 ++++
->   2 files changed, 6 insertions(+)
->
-> diff --git a/drivers/pci/probe.c b/drivers/pci/probe.c
-> index 8004f67..fb0b752 100644
-> --- a/drivers/pci/probe.c
-> +++ b/drivers/pci/probe.c
-> @@ -12,6 +12,7 @@
->   #include <linux/slab.h>
->   #include <linux/module.h>
->   #include <linux/cpumask.h>
-> +#include <linux/pci-acpi.h>
->   #include <linux/pci-aspm.h>
->   #include <linux/aer.h>
->   #include <linux/acpi.h>
-> @@ -2141,6 +2142,7 @@ struct pci_bus *pci_create_root_bus(struct devi=
-ce *parent, int bus,
->   	bridge->dev.parent =3D parent;
->   	bridge->dev.release =3D pci_release_host_bridge_dev;
->   	dev_set_name(&bridge->dev, "pci%04x:%02x", pci_domain_nr(b), bus);
-> +	acpi_pci_set_companion(bridge);
->   	error =3D pcibios_root_bridge_prepare(bridge);
->   	if (error) {
->   		kfree(bridge);
-> diff --git a/include/linux/pci-acpi.h b/include/linux/pci-acpi.h
-> index 09f9f02..1baa515 100644
-> --- a/include/linux/pci-acpi.h
-> +++ b/include/linux/pci-acpi.h
-> @@ -111,6 +111,10 @@ static inline void acpi_pci_add_bus(struct pci_b=
-us *bus) { }
->   static inline void acpi_pci_remove_bus(struct pci_bus *bus) { }
->   #endif	/* CONFIG_ACPI */
->
-> +static inline void acpi_pci_set_companion(struct pci_host_bridge *br=
-idge)
-> +{
-> +}
-> +
->   static inline int acpi_pci_bus_domain_nr(struct pci_bus *bus)
->   {
->   	return 0;
->
+  thermal: tango: initialize TEMPSI_CFG (2016-05-16 18:00:40 -0700)
+
+In this pull you get:
+- Rockchip driver support for RK3399, RK3366, and some fixes.
+- Mediatek CPU power model
+- Wider usage of dev_thermal_zone_of_sensor_register
+- A generic ADC thermal driver, based on OF thermal
+- TI thermal driver gained a new maintainer (Keerthy)
+- New thermal driver for Tango chips
+- Various fixes on OF thermal, Tegra, and RCAR
+
+BR,
+
+
+Eduardo Valentin
+
+
+----------------------------------------------------------------
+Andy Champ (1):
+      thermal: Syntactic and factual errors in the API document
+
+Arnd Bergmann (1):
+      thermal: tegra: mark PM functions __maybe_unused
+
+Caesar Wang (5):
+      thermal: rockchip: fixes the code_to_temp for tsadc driver
+      thermal: rockchip: update the tsadc table for rk3399
+      thermal: rockchip: handle the power sequence for tsadc controller
+      thermal: rockchip: add the notes for better reading
+      thermal: rockchip: use the usleep_range instead of udelay
+
+Dawei Chien (1):
+      thermal: mediatek: Add cpu dynamic power cooling model.
+
+Eduardo Valentin (12):
+      hwmon: convert lm75 to use devm_thermal_zone_of_sensor_register
+      hwmon: convert ntc_thermistor to use devm_thermal_zone_of_sensor_register
+      hwmon: convert tmp102 to use devm_thermal_zone_of_sensor_register
+      hwmon: convert scpi-hwmon to use devm_thermal_zone_of_sensor_register
+      input: convert sun4i-ts to use devm_thermal_zone_of_sensor_register
+      thermal: convert hisi_thermal to use devm_thermal_zone_of_sensor_register
+      thermal: convert mtk_thermal to use devm_thermal_zone_of_sensor_register
+      thermal: convert qcom-spmi to use devm_thermal_zone_of_sensor_register
+      thermal: convert rcar_thermal to use devm_thermal_zone_of_sensor_register
+      thermal: convert rockchip_thermal to use devm_thermal_zone_of_sensor_register
+      thermal: convert tegra_thermal to use devm_thermal_zone_of_sensor_register
+      thermal: convert ti-thermal to use devm_thermal_zone_of_sensor_register
+
+Elaine Zhang (1):
+      thermal: rockchip: Support RK3366 SoCs in the thermal driver
+
+Keerthy (1):
+      MAINTAINERS: ti-soc-thermal: add a co-maintainer and update the entry
+
+Laxman Dewangan (2):
+      thermal: generic-adc: Add DT binding for ADC based thermal sensor
+      thermal: generic-adc: Add ADC based thermal sensor driver
+
+Leo Yan (2):
+      thermal: hisilicon: support to use any sensor
+      thermal: hisilicon: fix IRQ imbalance enabling
+
+Marc Gonzalez (2):
+      thermal: add temperature sensor support for tango SoC
+      thermal: tango: initialize TEMPSI_CFG
+
+Shawn Lin (1):
+      thermal: rockchip: disable thermal->clk in err case
+
+Simon Horman (1):
+      thermal: rcar: Remove binding docs for r8a7794
+
+Ulises Brindis (1):
+      thermal: of: fix cleanup when building a thermal zone
+
+Wei Ni (14):
+      thermal: tegra: move tegra thermal files into tegra directory
+      thermal: tegra: combine sensor group-related data
+      thermal: tegra: get rid of PDIV/HOTSPOT hack
+      thermal: tegra: split tegra_soctherm driver
+      thermal: tegra: add Tegra210 specific SOC_THERM driver
+      thermal: tegra: add a debugfs to show registers
+      thermal: of-thermal: allow setting trip_temp on hardware
+      of: add notes of critical trips for soctherm
+      thermal: tegra: add thermtrip function
+      thermal: tegra: handle clocks in one function
+      thermal: tegra: handle HW initialization in one funcotion
+      thermal: tegra: add PM support
+      thermal: tegra: fix static checker warning
+      thermal: tegra: add Tegra132 specific SOC_THERM driver
+
+kbuild test robot (1):
+      thermal: fix ptr_ret.cocci warnings
+
+ .../devicetree/bindings/thermal/rcar-thermal.txt   |   1 -
+ .../devicetree/bindings/thermal/tango-thermal.txt  |  17 +
+ .../devicetree/bindings/thermal/tegra-soctherm.txt |  12 +
+ .../bindings/thermal/thermal-generic-adc.txt       |  89 +++
+ Documentation/thermal/sysfs-api.txt                |  44 +-
+ MAINTAINERS                                        |   1 +
+ drivers/cpufreq/mt8173-cpufreq.c                   |  11 +-
+ drivers/hwmon/lm75.c                               |  10 +-
+ drivers/hwmon/ntc_thermistor.c                     |  12 +-
+ drivers/hwmon/scpi-hwmon.c                         |  48 +-
+ drivers/hwmon/tmp102.c                             |   8 +-
+ drivers/input/touchscreen/sun4i-ts.c               |   9 +-
+ drivers/thermal/Kconfig                            |  31 +-
+ drivers/thermal/Makefile                           |   4 +-
+ drivers/thermal/hisi_thermal.c                     |  45 +-
+ drivers/thermal/mtk_thermal.c                      |  12 +-
+ drivers/thermal/of-thermal.c                       |  10 +-
+ drivers/thermal/qcom-spmi-temp-alarm.c             |   3 +-
+ drivers/thermal/rcar_thermal.c                     |   2 +-
+ drivers/thermal/rockchip_thermal.c                 | 280 ++++++---
+ drivers/thermal/tango_thermal.c                    | 109 ++++
+ drivers/thermal/tegra/Kconfig                      |  13 +
+ drivers/thermal/tegra/Makefile                     |   6 +
+ drivers/thermal/tegra/soctherm-fuse.c              | 169 +++++
+ drivers/thermal/tegra/soctherm.c                   | 685 +++++++++++++++++++++
+ drivers/thermal/tegra/soctherm.h                   | 127 ++++
+ drivers/thermal/tegra/tegra124-soctherm.c          | 196 ++++++
+ drivers/thermal/tegra/tegra132-soctherm.c          | 196 ++++++
+ drivers/thermal/tegra/tegra210-soctherm.c          | 197 ++++++
+ drivers/thermal/tegra_soctherm.c                   | 476 --------------
+ drivers/thermal/thermal-generic-adc.c              | 182 ++++++
+ drivers/thermal/ti-soc-thermal/ti-thermal-common.c |   5 +-
+ include/dt-bindings/thermal/tegra124-soctherm.h    |   1 +
+ include/linux/thermal.h                            |   1 +
+ 34 files changed, 2320 insertions(+), 692 deletions(-)
+ create mode 100644 Documentation/devicetree/bindings/thermal/tango-thermal.txt
+ create mode 100644 Documentation/devicetree/bindings/thermal/thermal-generic-adc.txt
+ create mode 100644 drivers/thermal/tango_thermal.c
+ create mode 100644 drivers/thermal/tegra/Kconfig
+ create mode 100644 drivers/thermal/tegra/Makefile
+ create mode 100644 drivers/thermal/tegra/soctherm-fuse.c
+ create mode 100644 drivers/thermal/tegra/soctherm.c
+ create mode 100644 drivers/thermal/tegra/soctherm.h
+ create mode 100644 drivers/thermal/tegra/tegra124-soctherm.c
+ create mode 100644 drivers/thermal/tegra/tegra132-soctherm.c
+ create mode 100644 drivers/thermal/tegra/tegra210-soctherm.c
+ delete mode 100644 drivers/thermal/tegra_soctherm.c
+ create mode 100644 drivers/thermal/thermal-generic-adc.c
