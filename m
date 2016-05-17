@@ -1,48 +1,42 @@
 From: Aleksey Makarov <aleksey.makarov@linaro.org>
-Subject: [PATCH 0/3] ACPI: ARM64: support for ACPI_TABLE_UPGRADE
-Date: Tue, 17 May 2016 15:06:00 +0300
-Message-ID: <1463486765-31827-1-git-send-email-aleksey.makarov@linaro.org>
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-lf0-f43.google.com ([209.85.215.43]:34352 "EHLO
-	mail-lf0-f43.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751535AbcEQMHd (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 17 May 2016 08:07:33 -0400
-Received: by mail-lf0-f43.google.com with SMTP id m64so5855570lfd.1
-        for <linux-acpi@vger.kernel.org>; Tue, 17 May 2016 05:07:32 -0700 (PDT)
-Sender: linux-acpi-owner@vger.kernel.org
-List-Id: linux-acpi@vger.kernel.org
+Subject: [PATCH 1/3] ACPI: table upgrade: use cacheable map for tables
+Date: Tue, 17 May 2016 15:06:01 +0300
+Message-ID: <1463486765-31827-2-git-send-email-aleksey.makarov@linaro.org>
+References: <1463486765-31827-1-git-send-email-aleksey.makarov@linaro.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1463486765-31827-1-git-send-email-aleksey.makarov@linaro.org>
+Sender: linux-kernel-owner@vger.kernel.org
 To: Russell King <linux@arm.linux.org.uk>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>
 Cc: linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, Aleksey Makarov <aleksey.makarov@linaro.org>, Graeme Gregory <graeme.gregory@linaro.org>, Jon Masters <jcm@redhat.com>, "Zheng, Lv" <lv.zheng@intel.com>, Mark Rutland <mark.rutland@arm.com>
+List-Id: linux-acpi@vger.kernel.org
 
-This patchset adds support for ACPI_TABLE_UPGRADE for ARM64
+The new memory allocated in acpi_table_initrd_init() is used to
+copy the upgraded tables to it.  So it should be mapped with
+early_memunmap() instead of early_ioremap().
 
-It refactors the code introduced by the patches by Lv Zheng [1], fixes access to
-the destination of new ACPI tables as suggested by Mark Rutland [2] and enables
-the feature for ARM64
+This is critical for ARM.
 
-It was first sent by Jon Masters [3] to linaro-acpi in December 2015
+Signed-off-by: Aleksey Makarov <aleksey.makarov@linaro.org>
+---
+ drivers/acpi/tables.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-Tested on QEMU (arm64 and x86) and ThunderX
-Should be applied to next-20160517
-
-[1] https://lkml.kernel.org/g/cover.1460340514.git.lv.zheng@intel.com
-[2] https://lists.linaro.org/pipermail/linaro-acpi/2015-December/006101.html
-[3] https://lists.linaro.org/pipermail/linaro-acpi/2015-December/006099.html
-
-Aleksey Makarov (2):
-  ACPI: table upgrade: use cacheable map for tables
-  ACPI: table upgrade: move early_initrd_acpi_init() to header file
-
-Jon Masters (1):
-  ACPI: ARM64: support for ACPI_TABLE_UPGRADE
-
- arch/arm64/kernel/setup.c |  6 ++++--
- arch/x86/kernel/setup.c   |  7 -------
- drivers/acpi/Kconfig      |  2 +-
- drivers/acpi/tables.c     | 21 ++++++++++++++++-----
- include/linux/acpi.h      |  4 ++--
- 5 files changed, 23 insertions(+), 17 deletions(-)
-
+diff --git a/drivers/acpi/tables.c b/drivers/acpi/tables.c
+index a372f9e..449a649 100644
+--- a/drivers/acpi/tables.c
++++ b/drivers/acpi/tables.c
+@@ -578,10 +578,10 @@ static void __init acpi_table_initrd_init(void *data, size_t size)
+ 			clen = size;
+ 			if (clen > MAP_CHUNK_SIZE - slop)
+ 				clen = MAP_CHUNK_SIZE - slop;
+-			dest_p = early_ioremap(dest_addr & PAGE_MASK,
++			dest_p = early_memremap(dest_addr & PAGE_MASK,
+ 						 clen + slop);
+ 			memcpy(dest_p + slop, src_p, clen);
+-			early_iounmap(dest_p, clen + slop);
++			early_memunmap(dest_p, clen + slop);
+ 			src_p += clen;
+ 			dest_addr += clen;
+ 			size -= clen;
 -- 
 2.8.2
-
