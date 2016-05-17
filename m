@@ -1,41 +1,66 @@
-From: Jon Masters <jcm@redhat.com>
-Subject: Re: [PATCH 3/3] ACPI: ARM64: support for ACPI_TABLE_UPGRADE
-Date: Tue, 17 May 2016 12:48:53 -0400
-Message-ID: <b0933a59-239d-536f-4f63-a65e469f62a1@redhat.com>
-References: <1463486765-31827-1-git-send-email-aleksey.makarov@linaro.org>
- <1463486765-31827-4-git-send-email-aleksey.makarov@linaro.org>
- <20160517124629.GE14955@leverpostej>
- <f0bf43ef-0be5-484c-5066-ab1929105b82@redhat.com>
+From: "Prakash, Prashanth" <pprakash@codeaurora.org>
+Subject: Re: [PATCH v5 2/5] ACPI / processor_idle: Add support for Low Power
+ Idle(LPI) states
+Date: Tue, 17 May 2016 11:46:13 -0600
+Message-ID: <573B58E5.2020005@codeaurora.org>
+References: <1462981062-24909-1-git-send-email-sudeep.holla@arm.com>
+ <1462981062-24909-3-git-send-email-sudeep.holla@arm.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=windows-1252
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:37152 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751050AbcEQQtA (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 17 May 2016 12:49:00 -0400
-In-Reply-To: <f0bf43ef-0be5-484c-5066-ab1929105b82@redhat.com>
+Received: from smtp.codeaurora.org ([198.145.29.96]:34749 "EHLO
+	smtp.codeaurora.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751885AbcEQRqY (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 17 May 2016 13:46:24 -0400
+In-Reply-To: <1462981062-24909-3-git-send-email-sudeep.holla@arm.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Mark Rutland <mark.rutland@arm.com>, Aleksey Makarov <aleksey.makarov@linaro.org>
-Cc: Russell King <linux@arm.linux.org.uk>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, Graeme Gregory <graeme.gregory@linaro.org>, "Zheng, Lv" <lv.zheng@intel.com>, Catalin Marinas <catalin.marinas@arm.com>, Will Deacon <will.deacon@arm.com>
+To: Sudeep Holla <sudeep.holla@arm.com>, linux-acpi@vger.kernel.org, "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: linux-kernel@vger.kernel.org, Vikas Sajjan <vikas.cha.sajjan@hpe.com>, Sunil <sunil.vl@hpe.com>, Ashwin Chaugule <ashwin.chaugule@linaro.org>, Al Stone <al.stone@linaro.org>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
 
-On 05/17/2016 12:44 PM, Jon Masters wrote:
+Hi Sudeep,
 
-> 1). During development of a platform, it is much easier to debug
-> problems with tables if you can test replacement ones without having to
-> respin the firmware. In the server world, you usually don't have the
-> firmware source code, so to get it respun could be days-weeks even if
-> you are working with the authors closely. We have practically used this
-> feature on a number of platforms already and it will continue.
+On 5/11/2016 9:37 AM, Sudeep Holla wrote:
+> +
+> +static int acpi_processor_get_lpi_info(struct acpi_processor *pr)
+> +{
+> +	int ret, i;
+> +	struct acpi_lpi_states_array *info;
+> +	struct acpi_device *d = NULL;
+> +	acpi_handle handle = pr->handle, pr_ahandle;
+> +	acpi_status status;
+> +
+> +	if (!osc_pc_lpi_support_confirmed)
+> +		return -EOPNOTSUPP;
+> +
+> +	max_leaf_depth = 0;
+> +	if (!acpi_has_method(handle, "_LPI"))
+> +		return -EINVAL;
+> +	flat_state_cnt = 0;
+> +
+> +	while (ACPI_SUCCESS(status = acpi_get_parent(handle, &pr_ahandle))) {
+> +		if (!acpi_has_method(handle, "_LPI"))
+> +			continue;
+> +
+> +		acpi_bus_get_device(handle, &d);
+> +		if (!strcmp(acpi_device_hid(d), ACPI_PROCESSOR_CONTAINER_HID))
+> +			break;
+> +
+> +		max_leaf_depth++;
+> +		handle = pr_ahandle;
+> +	}
+> +
+In the above loop, we break when we find a device with HID == ACPI_PROCESSOR_CONTAINER_HID.
+Shouldn't we continue to parse as long as the parent HID == ACPI_PROCESSOR_CONTAINER_HID?
+This is required to make sure we parse states in levels higher than cluster level
+in processor hierarchy.
 
-For example, on one platform we were unable to fully boot RHEL(SA) due
-to a bug in one of the ACPI tables. But I was able to boot the system to
-a ramdisk containing a uuencode library and then write out the content
-of the tables over the serial port, then decompile/patch/recompile, and
-override replacement tables on the system. Then we beat the vendor up
-with the fixes and the official firmware was corrected.
+Also, I think it might be safe to break out of the loop if we didn't find _LPI
+package, instead of continuing. Given  the presence of LPI entry: "Enabled Parent
+State", I can't think of a non-ambiguous scenario where we might find LPI packages
+in state N and N+2, but not in N+1, as we will not be able to figure out which
+state in N enables which states in N+2. Thoughts?
 
-
--- 
-Computer Architect | Sent from my Fedora powered laptop
+Thanks,
+Prashanth
