@@ -1,42 +1,90 @@
 From: Aleksey Makarov <aleksey.makarov@linaro.org>
-Subject: [PATCH 1/3] ACPI: table upgrade: use cacheable map for tables
-Date: Tue, 17 May 2016 15:06:01 +0300
-Message-ID: <1463486765-31827-2-git-send-email-aleksey.makarov@linaro.org>
+Subject: [PATCH 3/3] ACPI: ARM64: support for ACPI_TABLE_UPGRADE
+Date: Tue, 17 May 2016 15:06:03 +0300
+Message-ID: <1463486765-31827-4-git-send-email-aleksey.makarov@linaro.org>
 References: <1463486765-31827-1-git-send-email-aleksey.makarov@linaro.org>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1463486765-31827-1-git-send-email-aleksey.makarov@linaro.org>
 Sender: linux-kernel-owner@vger.kernel.org
 To: Russell King <linux@arm.linux.org.uk>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>
-Cc: linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, Aleksey Makarov <aleksey.makarov@linaro.org>, Graeme Gregory <graeme.gregory@linaro.org>, Jon Masters <jcm@redhat.com>, "Zheng, Lv" <lv.zheng@intel.com>, Mark Rutland <mark.rutland@arm.com>
+Cc: linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, Aleksey Makarov <aleksey.makarov@linaro.org>, Graeme Gregory <graeme.gregory@linaro.org>, Jon Masters <jcm@redhat.com>, "Zheng, Lv" <lv.zheng@intel.com>, Mark Rutland <mark.rutland@arm.com>, Catalin Marinas <catalin.marinas@arm.com>, Will Deacon <will.deacon@arm.com>
 List-Id: linux-acpi@vger.kernel.org
 
-The new memory allocated in acpi_table_initrd_init() is used to
-copy the upgraded tables to it.  So it should be mapped with
-early_memunmap() instead of early_ioremap().
+From: Jon Masters <jcm@redhat.com>
 
-This is critical for ARM.
+This patch adds support for ACPI_TABLE_UPGRADE for ARM64
 
+To access initrd image we need to move initialization
+of linear mapping a bit earlier.
+
+Signed-off-by: Jon Masters <jcm@redhat.com>
 Signed-off-by: Aleksey Makarov <aleksey.makarov@linaro.org>
 ---
- drivers/acpi/tables.c | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ arch/arm64/kernel/setup.c |  6 ++++--
+ drivers/acpi/Kconfig      |  2 +-
+ drivers/acpi/tables.c     | 10 +++++++++-
+ 3 files changed, 14 insertions(+), 4 deletions(-)
 
+diff --git a/arch/arm64/kernel/setup.c b/arch/arm64/kernel/setup.c
+index feab2ee..1d5e24f 100644
+--- a/arch/arm64/kernel/setup.c
++++ b/arch/arm64/kernel/setup.c
+@@ -261,11 +261,13 @@ void __init setup_arch(char **cmdline_p)
+ 	efi_init();
+ 	arm64_memblock_init();
+ 
++	paging_init();
++
++	early_initrd_acpi_init();
++
+ 	/* Parse the ACPI tables for possible boot-time configuration */
+ 	acpi_boot_table_init();
+ 
+-	paging_init();
+-
+ 	if (acpi_disabled)
+ 		unflatten_device_tree();
+ 
+diff --git a/drivers/acpi/Kconfig b/drivers/acpi/Kconfig
+index c204344..ec694c0 100644
+--- a/drivers/acpi/Kconfig
++++ b/drivers/acpi/Kconfig
+@@ -313,7 +313,7 @@ config ACPI_CUSTOM_DSDT
+ 
+ config ACPI_TABLE_UPGRADE
+ 	bool "Allow upgrading ACPI tables via initrd"
+-	depends on BLK_DEV_INITRD && X86
++	depends on BLK_DEV_INITRD && (X86 || ARM64)
+ 	default y
+ 	help
+ 	  This option provides functionality to upgrade arbitrary ACPI tables
 diff --git a/drivers/acpi/tables.c b/drivers/acpi/tables.c
-index a372f9e..449a649 100644
+index 82be84a..c35034d8 100644
 --- a/drivers/acpi/tables.c
 +++ b/drivers/acpi/tables.c
-@@ -578,10 +578,10 @@ static void __init acpi_table_initrd_init(void *data, size_t size)
- 			clen = size;
- 			if (clen > MAP_CHUNK_SIZE - slop)
- 				clen = MAP_CHUNK_SIZE - slop;
--			dest_p = early_ioremap(dest_addr & PAGE_MASK,
-+			dest_p = early_memremap(dest_addr & PAGE_MASK,
- 						 clen + slop);
- 			memcpy(dest_p + slop, src_p, clen);
--			early_iounmap(dest_p, clen + slop);
-+			early_memunmap(dest_p, clen + slop);
- 			src_p += clen;
- 			dest_addr += clen;
- 			size -= clen;
+@@ -482,6 +482,14 @@ static DECLARE_BITMAP(acpi_initrd_installed, NR_ACPI_INITRD_TABLES);
+ 
+ #define MAP_CHUNK_SIZE   (NR_FIX_BTMAPS << PAGE_SHIFT)
+ 
++#if defined(CONFIG_X86)
++#define MAX_PHYS_ACPI_TABLES (max_low_pfn_mapped << PAGE_SHIFT)
++#elif defined(CONFIG_ARM64)
++#define MAX_PHYS_ACPI_TABLES PFN_PHYS(max_pfn)
++#else
++#error "MAX_PHYS_ACPI_TABLES is not defiend for this architecture"
++#endif
++
+ static void __init acpi_table_initrd_init(void *data, size_t size)
+ {
+ 	int sig, no, table_nr = 0, total_offset = 0;
+@@ -541,7 +549,7 @@ static void __init acpi_table_initrd_init(void *data, size_t size)
+ 		return;
+ 
+ 	acpi_tables_addr =
+-		memblock_find_in_range(0, max_low_pfn_mapped << PAGE_SHIFT,
++		memblock_find_in_range(0, MAX_PHYS_ACPI_TABLES,
+ 				       all_tables_size, PAGE_SIZE);
+ 	if (!acpi_tables_addr) {
+ 		WARN_ON(1);
 -- 
 2.8.2
