@@ -1,272 +1,212 @@
-From: "Rafael J. Wysocki" <rafael@kernel.org>
-Subject: Re: [RFC PATCH 1/2] ACPI / button: Send "open" state after boot/resume
-Date: Thu, 19 May 2016 00:56:35 +0200
-Message-ID: <CAJZ5v0jZTtim8AeBokzz3uT-6rmNGAz3VMPAn-a4M3zaBm1dtA@mail.gmail.com>
-References: <cbdaec17aba78c61f466efff8883d49067f2dad5.1463472125.git.lv.zheng@intel.com>
-	<CAJZ5v0g6RM53oTWRGF-7k2=dDktawmOZbJY56xDXRbQcKoWpmg@mail.gmail.com>
-	<1AE640813FDE7649BE1B193DEA596E883BBA2DED@SHSMSX101.ccr.corp.intel.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+From: Al Stone <ahs3@redhat.com>
+Subject: [PATCH v3] Force cppc_cpufreq to report values in KHz to fix user space reporting
+Date: Wed, 18 May 2016 17:41:22 -0600
+Message-ID: <1463614882-26101-1-git-send-email-ahs3@redhat.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-wm0-f68.google.com ([74.125.82.68]:36071 "EHLO
-	mail-wm0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751140AbcERW4h (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 18 May 2016 18:56:37 -0400
-In-Reply-To: <1AE640813FDE7649BE1B193DEA596E883BBA2DED@SHSMSX101.ccr.corp.intel.com>
+Received: from mx1.redhat.com ([209.132.183.28]:47613 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751172AbcERXla (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 18 May 2016 19:41:30 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Zheng, Lv" <lv.zheng@intel.com>
-Cc: "Rafael J. Wysocki" <rafael@kernel.org>, "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, "Brown, Len" <len.brown@intel.com>, Lv Zheng <zetalog@gmail.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, "Bastien Nocera:" <hadess@hadess.net>
+To: viresh.kumar@linaro.org, ashwin.chaugule@linaro.org, rjw@rjwysocki.net
+Cc: lenb@kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linux-pm@vger.kernel.org, ahs3@redhat.com
 
-On Wed, May 18, 2016 at 3:25 AM, Zheng, Lv <lv.zheng@intel.com> wrote:
-> Hi, Rafael
->
-> Thanks for the review.
->
->> From: rjwysocki@gmail.com [mailto:rjwysocki@gmail.com] On Behalf Of
->> Rafael J. Wysocki
->> Sent: Wednesday, May 18, 2016 7:37 AM
->> To: Zheng, Lv <lv.zheng@intel.com>
->> Cc: Wysocki, Rafael J <rafael.j.wysocki@intel.com>; Rafael J. Wysocki
->> <rjw@rjwysocki.net>; Brown, Len <len.brown@intel.com>; Lv Zheng
->> <zetalog@gmail.com>; Linux Kernel Mailing List <linux-
->> kernel@vger.kernel.org>; ACPI Devel Maling List <linux-acpi@vger.kernel.org>;
->> Bastien Nocera: <hadess@hadess.net>
->> Subject: Re: [RFC PATCH 1/2] ACPI / button: Send "open" state after
->> boot/resume
->>
->> On Tue, May 17, 2016 at 10:27 AM, Lv Zheng <lv.zheng@intel.com> wrote:
->> > (This patch hasn't been tested, it's sent for comments)
->>
->> I have a couple of concerns (see below).
->>
->> > Linux userspace (systemd-logind) keeps on rechecking lid state when the
->> > lid state is closed. If it failed to update the lid state to open after
->> > boot/resume, it could suspend the system. But as:
->> > 1. Traditional ACPI platform may not generate the lid open event after
->> >    resuming as the open event is actually handled by the BIOS and the system
->> >    is then resumed from a FACS vector.
->> > 2. The _LID control method's initial returning value is not reliable. The
->> >    _LID control method is described to return the "current" lid state,
->> >    however the word of "current" has ambiguity, many BIOSen return lid
->> >    state upon last lid notification while the developers may think the
->> >    BIOSen should always return the lid state upon last _LID evaluation.
->> >    There won't be difference when we evaluate _LID during the runtime, the
->> >    problem is the initial returning value of this function. When the BIOSen
->> >    implement this control method with cached value, the initial returning
->> >    value is likely not reliable.
->> > Thus there is no mean for the ACPI lid driver to provide such an event
->> > conveying correct current lid state. When there is no such an event or the
->> > event conveys wrong result, false suspending can be examined.
->> >
->> > The root cause of the issue is systemd itself, it could handle the ACPI
->> > control method lid device by implementing a special option like
->> > LidSwitchLevelTriggered=False when it detected the ACPI lid device. However
->> > there is no explicit documentation clarified the ambiguity, we need to
->> > work it around in the kernel before systemd changing its mind.
->>
->> The above doesn't explain how the issue is addressed here.
-> [Lv Zheng]
-> The story is a bit long.
-> We can see several issues that some platform suspends right after boot/resume.
-> We noticed that on that platforms, _LID is always implemented with cached lid state returned.
-> And it's initial returning value may be "closed" after boot/resume.
->
-> It appears the acpi_lid_send_state() sent after boot/resume is the culprit to report the wrong lid state to the userspace.
-> But to our surprise, after delete the 2 lines, reporters still can see suspends after boot/resume.
-> That's because of systemd implementation.
-> It contains code logic that:
-> When the lid state is closed, a re-checking mechanism is installed.
-> So if we do not send any notification after boot/resume and the old lid state is "closed".
-> systemd determines to suspend in the re-checking mechanism.
+When CPPC is being used by ACPI on arm64, user space tools such as
+cpupower report CPU frequency values from sysfs that are incorrect.
 
-If that really is the case, it is plain silly and I don't think we can
-do anything in the kernel to help here.
+What the driver was doing was reporting the values given by ACPI tables
+in whatever scale was used to provide them.  However, the ACPI spec
+defines the CPPC values as unitless abstract numbers.  Internal kernel
+structures such as struct perf_cap, in contrast, expect these values
+to be in KHz.  When these struct values get reported via sysfs, the
+user space tools also assume they are in KHz, causing them to report
+incorrect values (for example, reporting a CPU frequency of 1MHz when
+it should be 1.8GHz).
 
->>
->> > Link 1: https://lkml.org/2016/3/7/460
->> > Link 2: https://github.com/systemd/systemd/issues/2087
->> > Link 3: https://bugzilla.kernel.org/show_bug.cgi?id=89211
->> >         https://bugzilla.kernel.org/show_bug.cgi?id=106151
->> >         https://bugzilla.kernel.org/show_bug.cgi?id=106941
->> > Signed-off-by: Lv Zheng <lv.zheng@intel.com>
->> > Cc: Bastien Nocera: <hadess@hadess.net>
->> > ---
->> >  drivers/acpi/button.c |   63
->> +++++++++++++++++++++++++++++++++++++++++++++----
->> >  1 file changed, 59 insertions(+), 4 deletions(-)
->> >
->> > diff --git a/drivers/acpi/button.c b/drivers/acpi/button.c
->> > index 5c3b091..bb14ca5 100644
->> > --- a/drivers/acpi/button.c
->> > +++ b/drivers/acpi/button.c
->> > @@ -53,6 +53,10 @@
->> >  #define ACPI_BUTTON_DEVICE_NAME_LID    "Lid Switch"
->> >  #define ACPI_BUTTON_TYPE_LID           0x05
->> >
->> > +#define ACPI_BUTTON_LID_INIT_IGNORE    0x00
->> > +#define ACPI_BUTTON_LID_INIT_OPEN      0x01
->> > +#define ACPI_BUTTON_LID_INIT_METHOD    0x02
->> > +
->> >  #define _COMPONENT             ACPI_BUTTON_COMPONENT
->> >  ACPI_MODULE_NAME("button");
->> >
->> > @@ -105,6 +109,7 @@ struct acpi_button {
->> >
->> >  static BLOCKING_NOTIFIER_HEAD(acpi_lid_notifier);
->> >  static struct acpi_device *lid_device;
->> > +static u8 lid_init_state = ACPI_BUTTON_LID_INIT_OPEN;
->> >
->> >  /* --------------------------------------------------------------------------
->> >                                FS Interface (/proc)
->> > @@ -246,7 +251,8 @@ int acpi_lid_open(void)
->> >  }
->> >  EXPORT_SYMBOL(acpi_lid_open);
->> >
->> > -static int acpi_lid_send_state(struct acpi_device *device)
->> > +static int acpi_lid_send_state(struct acpi_device *device,
->> > +                              bool notify_init_state)
->> >  {
->> >         struct acpi_button *button = acpi_driver_data(device);
->> >         unsigned long long state;
->> > @@ -257,6 +263,10 @@ static int acpi_lid_send_state(struct acpi_device
->> *device)
->> >         if (ACPI_FAILURE(status))
->> >                 return -ENODEV;
->> >
->> > +       if (notify_init_state &&
->> > +           lid_init_state == ACPI_BUTTON_LID_INIT_OPEN)
->> > +               state = 1;
->> > +
->>
->> Why do we need to complicate this function?
->>
->> Can't we have a separate function for sending the fake "lid open" event?
-> [Lv Zheng]
->
-> Yes, we can.
-> But I put the code here for reasons.
->
-> I intentionally kept the _LID evaluation right after boot/resume.
-> Because I validated Windows behavior.
-> It seems Windows evaluates _LID right after boot.
-> So I kept _LID evaluated right after boot to prevent compliance issues.
+While the investigation for a long term fix proceeds (several options
+are being explored, some of which may require spec changes or other
+much more invasive fixes), this patch forces the values read by CPPC
+to be read in KHz, regardless of what they actually represent.
 
-I don't quite see what compliance issues could result from skipping
-the _LID evaluation after boot.
+The downside is that this approach has some assumptions:
 
->>
->> >         /* input layer checks if event is redundant */
->> >         input_report_switch(button->input, SW_LID, !state);
->> >         input_sync(button->input);
->> > @@ -278,6 +288,13 @@ static int acpi_lid_send_state(struct acpi_device
->> *device)
->> >         return ret;
->> >  }
->> >
->> > +static int acpi_lid_send_init_state(struct acpi_device *device)
->> > +{
->> > +       if (lid_init_state != ACPI_BUTTON_LID_INIT_IGNORE)
->> > +               return acpi_lid_send_state(device, true);
->> > +       return 0;
->> > +}
->> > +
->> >  static void acpi_button_notify(struct acpi_device *device, u32 event)
->> >  {
->> >         struct acpi_button *button = acpi_driver_data(device);
->> > @@ -290,7 +307,7 @@ static void acpi_button_notify(struct acpi_device
->> *device, u32 event)
->> >         case ACPI_BUTTON_NOTIFY_STATUS:
->> >                 input = button->input;
->> >                 if (button->type == ACPI_BUTTON_TYPE_LID) {
->> > -                       acpi_lid_send_state(device);
->> > +                       acpi_lid_send_state(device, false);
->>
->> I wouldn't change this code at all.
->>
->> >                 } else {
->> >                         int keycode;
->> >
->> > @@ -335,7 +352,7 @@ static int acpi_button_resume(struct device *dev)
->> >
->> >         button->suspended = false;
->> >         if (button->type == ACPI_BUTTON_TYPE_LID)
->> > -               return acpi_lid_send_state(device);
->> > +               return acpi_lid_send_init_state(device);
->> >         return 0;
->> >  }
->> >  #endif
->> > @@ -416,7 +433,7 @@ static int acpi_button_add(struct acpi_device *device)
->> >         if (error)
->> >                 goto err_remove_fs;
->> >         if (button->type == ACPI_BUTTON_TYPE_LID) {
->> > -               acpi_lid_send_state(device);
->> > +               acpi_lid_send_init_state(device);
->> >                 /*
->> >                  * This assumes there's only one lid device, or if there are
->> >                  * more we only care about the last one...
->> > @@ -446,4 +463,42 @@ static int acpi_button_remove(struct acpi_device
->> *device)
->> >         return 0;
->> >  }
->> >
->> > +static int param_set_lid_init_state(const char *val, struct kernel_param *kp)
->> > +{
->> > +       int result = 0;
->> > +
->> > +       if (!strncmp(val, "open", sizeof("open") - 1)) {
->> > +               lid_init_state = ACPI_BUTTON_LID_INIT_OPEN;
->> > +               pr_info("Notify initial lid state as open\n");
->> > +       } else if (!strncmp(val, "method", sizeof("method") - 1)) {
->> > +               lid_init_state = ACPI_BUTTON_LID_INIT_METHOD;
->> > +               pr_info("Notify initial lid state with _LID return value\n");
->> > +       } else if (!strncmp(val, "ignore", sizeof("ignore") - 1)) {
->> > +               lid_init_state = ACPI_BUTTON_LID_INIT_IGNORE;
->> > +               pr_info("Do not notify initial lid state\n");
->> > +       } else
->> > +               result = -EINVAL;
->> > +       return result;
->> > +}
->> > +
->> > +static int param_get_lid_init_state(char *buffer, struct kernel_param *kp)
->> > +{
->> > +       switch (lid_init_state) {
->> > +       case ACPI_BUTTON_LID_INIT_OPEN:
->> > +               return sprintf(buffer, "open");
->> > +       case ACPI_BUTTON_LID_INIT_METHOD:
->> > +               return sprintf(buffer, "method");
->> > +       case ACPI_BUTTON_LID_INIT_IGNORE:
->> > +               return sprintf(buffer, "ignore");
->> > +       default:
->> > +               return sprintf(buffer, "invalid");
->> > +       }
->> > +       return 0;
->> > +}
->> > +
->> > +module_param_call(lid_init_state,
->> > +                 param_set_lid_init_state, param_get_lid_init_state,
->> > +                 NULL, 0644);
->> > +MODULE_PARM_DESC(lid_init_state, "Behavior for reporting LID initial
->> state");
->> > +
->>
->> I'm not seeing a particular value in having this command line switch
->> to be honest.  Apparently, the issue can be worked around from user
->> space in any case, so why do we need one more way to work around it?
->>
->> >  module_acpi_driver(acpi_button_driver);
->> > --
->>
->> The main concern is general, though.  Evidently, we send fake lid
->> input events to user space on init and resume.  I don't think this is
->> a good idea, because it may confuse systems like Chrome that want to
->> implement "dark resume" scenarios and may rely on input events to
->> decide whether to start a UI or suspend again.
->>
->> Thus it might be better to simply drop the sending of those fake input
->> events from the code.
-> [Lv Zheng]
-> If we did this right now, many other userspace could be broken.
-> So we prepared the options to allow users to choose.
+   (1) It relies on SMBIOS3 being used, *and* that the Max Frequency
+   value for a processor is set to a non-zero value.
 
-Do we have any evidence that any other user space stacks are affected?
+   (2) It assumes that all processors run at the same speed, or that
+   the CPPC values have all been scaled to reflect relative speed.
+   This patch retrieves the first CPU Max Frequency from a type 4 DMI
+   record that it can find.  This may not be an issue, however, as a
+   sampling of DMI data on x86 and arm64 indicates there is often only
+   one such record regardless.  Since CPPC is relatively new, it is
+   unclear if the ACPI ASL will always be written to reflect any sort
+   of relative performance of processors of differing speeds.
+
+   (3) It assumes that performance and frequency both scale linearly.
+
+For arm64 servers, this may be sufficient, but it does rely on
+firmware values being set correctly.  Hence, other approaches are
+also being considered.
+
+This has been tested on three arm64 servers, with and without DMI, with
+and without CPPC support.
+
+Changes for v3:
+    -- Added clarifying commentary re short-term vs long-term fix (Alexey
+       Klimov)
+    -- Added range checking code to ensure proper arithmetic occurs,
+       especially no division by zero (Alexey Klimov)
+
+Changes for v2:
+    -- Corrected thinko: needed to have DEPENDS on DMI in Kconfig.arm,
+       not SELECT DMI (found by build daemon)
+
+Signed-off-by: Al Stone <ahs3@redhat.com>
+---
+ drivers/acpi/cppc_acpi.c    | 96 ++++++++++++++++++++++++++++++++++++++++++---
+ drivers/cpufreq/Kconfig.arm |  1 +
+ 2 files changed, 92 insertions(+), 5 deletions(-)
+
+diff --git a/drivers/acpi/cppc_acpi.c b/drivers/acpi/cppc_acpi.c
+index 8adac69..56a46e6 100644
+--- a/drivers/acpi/cppc_acpi.c
++++ b/drivers/acpi/cppc_acpi.c
+@@ -40,6 +40,9 @@
+ #include <linux/cpufreq.h>
+ #include <linux/delay.h>
+ #include <linux/ktime.h>
++#include <linux/dmi.h>
++
++#include <asm/unaligned.h>
+ 
+ #include <acpi/cppc_acpi.h>
+ /*
+@@ -709,6 +712,55 @@ static int cpc_write(struct cpc_reg *reg, u64 val)
+ 	return ret_val;
+ }
+ 
++static u64 cppc_dmi_khz;
++
++static void cppc_find_dmi_mhz(const struct dmi_header *dm, void *private)
++{
++	u16 *mhz = (u16 *)private;
++	const u8 *dmi_data = (const u8 *)dm;
++
++	if (dm->type == DMI_ENTRY_PROCESSOR && dm->length >= 48)
++		*mhz = (u16)get_unaligned((const u16 *)(dmi_data + 0x14));
++}
++
++
++static u64 cppc_get_dmi_khz(void)
++{
++	u16 mhz;
++
++	dmi_walk(cppc_find_dmi_mhz, &mhz);
++
++	/*
++	 * Real stupid fallback value, just in case there is no
++	 * actual value set.
++	 */
++	mhz = mhz ? mhz : 1;
++
++	return (1000 * mhz);
++}
++
++static u64 cppc_unitless_to_khz(u64 min_in, u64 max_in, u64 val)
++{
++	/*
++	 * The incoming val should be min <= val <= max.  Our
++	 * job is to convert that to KHz so it can be properly
++	 * reported to user space via cpufreq_policy.
++	 */
++	u64 curval = val;
++	u64 maxf = max_in;
++	u64 minf = min_in;
++
++	if (!cppc_dmi_khz)
++		cppc_dmi_khz = cppc_get_dmi_khz();
++
++	/* range check the input values */
++	curval = curval < minf ? minf : curval;
++	curval = curval > maxf ? maxf : curval;
++	minf = minf >= maxf ? maxf - 1 : minf;
++
++	return ((curval - minf) * cppc_dmi_khz) / (maxf - minf);
++}
++
+ /**
+  * cppc_get_perf_caps - Get a CPUs performance capabilities.
+  * @cpunum: CPU from which to get capabilities info.
+@@ -748,17 +800,51 @@ int cppc_get_perf_caps(int cpunum, struct cppc_perf_caps *perf_caps)
+ 		}
+ 	}
+ 
++	/*
++	 * Since these values in perf_caps will be used in setting
++	 * up the cpufreq policy, they must always be stored in units
++	 * of KHz.  If they are not, user space tools will become very
++	 * confused since they assume these are in KHz when reading
++	 * sysfs.
++	 *
++	 * NB: there may be better approaches to this problem that, as
++	 * of this writing, are still being explored.  Ideally, this is
++	 * a short term solution since correlating CPPC abstract values
++	 * with CPU frequency may or may not reflect actual performance.
++	 *
++	 * The reason longer term solutions are being explored is because
++	 * this solution requires we make the following assumptions:
++	 *
++	 *    (1) It relies on SMBIOS3 being used, *and* that the Max
++	 *        Frequency value for a processor is set to a non-zero value.
++	 *
++	 *    (2) It assumes that all processors run at the same speed, or
++	 *        that the CPPC values have all been scaled to reflect any
++	 *        relative differences.  This code retrieves the first CPU
++	 *        Max Frequency from a type 4 DMI record that it can find.
++	 *        This may not be an issue, however, as a sampling of DMI
++	 *        data on x86 and arm64 indicates there is often only one
++	 *        such record regardless.
++	 *
++	 *    (3) It assumes that performance and frequency both scale
++	 *        linearly.
++	 *
++	 * None of these are particularly horrible assumptions.  But, they
++	 * are assumptions and ultimately we'd like to be able to report
++	 * performance without quite so many of them.
++	 *
++	 */
+ 	cpc_read(&highest_reg->cpc_entry.reg, &high);
+-	perf_caps->highest_perf = high;
+-
+ 	cpc_read(&lowest_reg->cpc_entry.reg, &low);
+-	perf_caps->lowest_perf = low;
++
++	perf_caps->highest_perf = cppc_unitless_to_khz(low, high, high);
++	perf_caps->lowest_perf = cppc_unitless_to_khz(low, high, low);
+ 
+ 	cpc_read(&ref_perf->cpc_entry.reg, &ref);
+-	perf_caps->reference_perf = ref;
++	perf_caps->reference_perf = cppc_unitless_to_khz(low, high, ref);
+ 
+ 	cpc_read(&nom_perf->cpc_entry.reg, &nom);
+-	perf_caps->nominal_perf = nom;
++	perf_caps->nominal_perf = cppc_unitless_to_khz(low, high, nom);
+ 
+ 	if (!ref)
+ 		perf_caps->reference_perf = perf_caps->nominal_perf;
+diff --git a/drivers/cpufreq/Kconfig.arm b/drivers/cpufreq/Kconfig.arm
+index 14b1f93..0573982 100644
+--- a/drivers/cpufreq/Kconfig.arm
++++ b/drivers/cpufreq/Kconfig.arm
+@@ -255,6 +255,7 @@ config ACPI_CPPC_CPUFREQ
+ 	tristate "CPUFreq driver based on the ACPI CPPC spec"
+ 	depends on ACPI
+ 	select ACPI_CPPC_LIB
++	select DMI
+ 	default n
+ 	help
+ 	  This adds a CPUFreq driver which uses CPPC methods
+-- 
+1.8.3.1
+
