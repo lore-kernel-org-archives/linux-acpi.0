@@ -1,148 +1,71 @@
 From: "Zheng, Lv" <lv.zheng@intel.com>
-Subject: RE: [PATCH 2/3] ACPI: table upgrade: move early_initrd_acpi_init()
- to header file
-Date: Wed, 18 May 2016 01:08:06 +0000
-Message-ID: <1AE640813FDE7649BE1B193DEA596E883BBA2DBF@SHSMSX101.ccr.corp.intel.com>
-References: <1463486765-31827-1-git-send-email-aleksey.makarov@linaro.org>
- <1463486765-31827-3-git-send-email-aleksey.makarov@linaro.org>
+Subject: RE: ACPI related warnings during boot
+Date: Wed, 18 May 2016 01:14:04 +0000
+Message-ID: <1AE640813FDE7649BE1B193DEA596E883BBA2DD7@SHSMSX101.ccr.corp.intel.com>
+References: <CADFy_4H1B2g0WL0hdStrFSxeAwVQdGpj7bBuC7xUng3tt6qgzw@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga09.intel.com ([134.134.136.24]:22782 "EHLO mga09.intel.com"
+Received: from mga02.intel.com ([134.134.136.20]:39225 "EHLO mga02.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751842AbcERBIW convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 17 May 2016 21:08:22 -0400
-In-Reply-To: <1463486765-31827-3-git-send-email-aleksey.makarov@linaro.org>
+	id S1751410AbcERBOL (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 17 May 2016 21:14:11 -0400
+In-Reply-To: <CADFy_4H1B2g0WL0hdStrFSxeAwVQdGpj7bBuC7xUng3tt6qgzw@mail.gmail.com>
 Content-Language: en-US
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Aleksey Makarov <aleksey.makarov@linaro.org>, Russell King <linux@arm.linux.org.uk>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>
-Cc: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Graeme Gregory <graeme.gregory@linaro.org>, Jon Masters <jcm@redhat.com>, Mark Rutland <mark.rutland@arm.com>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, "x86@kernel.org" <x86@kernel.org>
+To: Augusto Mecking Caringi <augustocaringi@gmail.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
 
-Hi,
-
-> From: Aleksey Makarov [mailto:aleksey.makarov@linaro.org]
-> Subject: [PATCH 2/3] ACPI: table upgrade: move early_initrd_acpi_init() to
-> header file
-> 
-> Move early_initrd_acpi_init() to header file so that
-> it can be used with architectures other than X86
-[Lv Zheng] 
-The patch looks OK to me.
-Except 2 possible improvements.
-You can feel free to add Acked-by: Lv Zheng <lv.zheng@intel.com>
-
-> 
-> Signed-off-by: Aleksey Makarov <aleksey.makarov@linaro.org>
-> ---
->  arch/x86/kernel/setup.c | 7 -------
->  drivers/acpi/tables.c   | 7 +++++--
->  include/linux/acpi.h    | 4 ++--
->  3 files changed, 7 insertions(+), 11 deletions(-)
-> 
-> diff --git a/arch/x86/kernel/setup.c b/arch/x86/kernel/setup.c
-> index c4e7b39..5ddbbfd 100644
-> --- a/arch/x86/kernel/setup.c
-> +++ b/arch/x86/kernel/setup.c
-> @@ -399,10 +399,6 @@ static void __init reserve_initrd(void)
->  	memblock_free(ramdisk_image, ramdisk_end - ramdisk_image);
->  }
-> 
-> -static void __init early_initrd_acpi_init(void)
-> -{
-> -	early_acpi_table_init((void *)initrd_start, initrd_end - initrd_start);
-> -}
->  #else
->  static void __init early_reserve_initrd(void)
->  {
-> @@ -410,9 +406,6 @@ static void __init early_reserve_initrd(void)
->  static void __init reserve_initrd(void)
->  {
->  }
-> -static void __init early_initrd_acpi_init(void)
-> -{
-> -}
->  #endif /* CONFIG_BLK_DEV_INITRD */
-> 
->  static void __init parse_setup_data(void)
-> diff --git a/drivers/acpi/tables.c b/drivers/acpi/tables.c
-> index 449a649..82be84a 100644
-> --- a/drivers/acpi/tables.c
-> +++ b/drivers/acpi/tables.c
-> @@ -34,6 +34,7 @@
->  #include <linux/bootmem.h>
->  #include <linux/earlycpio.h>
->  #include <linux/memblock.h>
-> +#include <linux/initrd.h>
->  #include "internal.h"
-> 
->  #ifdef CONFIG_ACPI_CUSTOM_DSDT
-> @@ -742,9 +743,11 @@ acpi_os_table_override(struct acpi_table_header
-> *existing_table,
->  	return AE_OK;
->  }
-> 
-> -void __init early_acpi_table_init(void *data, size_t size)
-> +void __init early_initrd_acpi_init(void)
->  {
-> -	acpi_table_initrd_init(data, size);
-> +#ifdef CONFIG_BLK_DEV_INITRD
-> +	acpi_table_initrd_init((void *)initrd_start, initrd_end - initrd_start);
-> +#endif
->  }
-[Lv Zheng] 
-Please avoid to make #ifdef appearing in a function body.
-You may consider a way to maintain #ifdef CONFIG_xxx at function boundary.
-The point is:
-#ifdef should be maintained at the function boundary, this is an implicit (maybe explicit in Documentation) programming rule in Linux.
-This helps to split the "functionality" and the "dependency" to make the code cleaner and easier to follow.
-
-For this case, you may:
-#ifdef CONFIG_BLK_DEV_INTRD
-#define ACPI_TABLE_INITRD_DATA	(initrd_start)
-#define ACPI_TABLE_INITRD_SIZE	(initrd_end - initrd_start)
-#else
-#define ACPI_TABLE_INITRD_DATA	NULL
-#define ACPI_TABLE_INITRD_SIZE	0
-#endif
-
-Or you can:
-Use initrd_start, inird_end directly in acpi_table_initrd_init, and delete its arguments.
-By doing so, you are able to achieve in-function #ifdef elimination by providing a stub for acpi_table_initrd_init().
-
-> 
->  /*
-> diff --git a/include/linux/acpi.h b/include/linux/acpi.h
-> index 288fac5..cb700c1 100644
-> --- a/include/linux/acpi.h
-> +++ b/include/linux/acpi.h
-> @@ -208,7 +208,7 @@ void acpi_boot_table_init (void);
->  int acpi_mps_check (void);
->  int acpi_numa_init (void);
-> 
-> -void early_acpi_table_init(void *data, size_t size);
-> +void early_initrd_acpi_init(void);
->  int acpi_table_init (void);
->  int acpi_table_parse(char *id, acpi_tbl_table_handler handler);
->  int __init acpi_parse_entries(char *id, unsigned long table_size,
-> @@ -588,7 +588,7 @@ static inline const char *acpi_dev_name(struct
-> acpi_device *adev)
->  	return NULL;
->  }
-> 
-> -static inline void early_acpi_table_init(void *data, size_t size) { }
-> +static inline void early_initrd_acpi_init(void) { }
->  static inline void acpi_early_init(void) { }
->  static inline void acpi_subsystem_init(void) { }
-> 
-[Lv Zheng] 
-You can rename early_initrd_acpi_init to early_acpi_table_init.
-We'd prefer not to export "initrd" awareness from acpi.h.
-
-Thanks and best regards
--Lv
-
-> --
-> 2.8.2
-
+SGksDQoNClRoaXMgZG9lc24ndCBsb29rIG5vcm1hbC4NCkkndmUgZmlsZWQgYSBrZXJuZWwgQnVn
+emlsbGEgYnVnIGZvciB5b3UuDQoNCmh0dHBzOi8vYnVnemlsbGEua2VybmVsLm9yZy9zaG93X2J1
+Zy5jZ2k/aWQ9MTE4MzgxDQoNCg0KPiBGcm9tOiBsaW51eC1hY3BpLW93bmVyQHZnZXIua2VybmVs
+Lm9yZyBbbWFpbHRvOmxpbnV4LWFjcGktDQo+IG93bmVyQHZnZXIua2VybmVsLm9yZ10gT24gQmVo
+YWxmIE9mIEF1Z3VzdG8gTWVja2luZyBDYXJpbmdpDQo+IFNlbnQ6IFdlZG5lc2RheSwgTWF5IDE4
+LCAyMDE2IDI6MTUgQU0NCj4gVG86IGxpbnV4LWFjcGlAdmdlci5rZXJuZWwub3JnDQo+IFN1Ympl
+Y3Q6IEFDUEkgcmVsYXRlZCB3YXJuaW5ncyBkdXJpbmcgYm9vdA0KPiANCj4gSGksDQo+IA0KPiAg
+ICAgQWZ0ZXIgSSd2ZSB1cGdyYWRlZCB0byB0aGUgbGF0ZXN0IGtlcm5lbCAoNC42KSwgSSdtIGdl
+dHRpbmcgc29tZQ0KPiBBQ1BJIHJlbGF0ZWQgd2FybmluZ3MgZHVyaW5nIHN0YXJ0dXAgbGlrZSB0
+aGF0Og0KPiANCj4gWyA1ODk3Ljk2NjU4M10gV0FSTklORzogQ1BVOiAwIFBJRDogODI0MCBhdA0K
+PiBkcml2ZXJzL2NwdWZyZXEvY3B1ZnJlcS5jOjIxNzMgY3B1ZnJlcV91cGRhdGVfcG9saWN5KzB4
+Y2YvMHhmMA0KPiBbIDU4OTcuOTY2NTg2XSBNb2R1bGVzIGxpbmtlZCBpbjogaXB0YWJsZV9uYXQg
+bmZfbmF0X2lwdjQgbmZfbmF0DQo+IHg4Nl9wa2dfdGVtcF90aGVybWFsIGFwcGxlX2dtdXgNCj4g
+WyA1ODk3Ljk2NjU4OV0gQ1BVOiAwIFBJRDogODI0MCBDb21tOiBrd29ya2VyLzA6MSBOb3QgdGFp
+bnRlZA0KPiA0LjYuMC0wMDQ0Mi1nY2Y2ZWQ5YSAjMTMNCj4gWyA1ODk3Ljk2NjU4OV0gSGFyZHdh
+cmUgbmFtZTogQXBwbGUgSW5jLg0KPiBNYWNCb29rUHJvOCwxL01hYy05NDI0NUIzNjQwQzkxQzgx
+LCBCSU9TDQo+IE1CUDgxLjg4Wi4wMDQ3LkIyNy4xMjAxMjQxNjQ2IDAxLzI0DQo+IC8xMg0KPiBb
+IDU4OTcuOTY2NTkzXSBXb3JrcXVldWU6IGthY3BpX25vdGlmeSBhY3BpX29zX2V4ZWN1dGVfZGVm
+ZXJyZWQNCj4gWyA1ODk3Ljk2NjU5NV0gIDAwMDAwMDAwMDAwMDAwMDAgZmZmZjg4MDAzNDdiM2Jh
+OCBmZmZmZmZmZjgxNTNkMTE4DQo+IDAwMDAwMDAwMDAwMDAwMDANCj4gWyA1ODk3Ljk2NjU5Nl0g
+IDAwMDAwMDAwMDAwMDAwMDAgZmZmZjg4MDAzNDdiM2JlOCBmZmZmZmZmZjgxMGE5YjA2DQo+IDAw
+MDAwODdkODEwZTRlYjINCj4gWyA1ODk3Ljk2NjU5OF0gIGZmZmY4ODAxNjkzODRhMDAgMDAwMDAw
+MDBmZmZmZmZmYiBmZmZmODgwMTY5Mzg0YjEwDQo+IDAwMDAwMDAwMDAwMDAwMDANCj4gWyA1ODk3
+Ljk2NjU5OF0gQ2FsbCBUcmFjZToNCj4gWyA1ODk3Ljk2NjYwMl0gIFs8ZmZmZmZmZmY4MTUzZDEx
+OD5dIGR1bXBfc3RhY2srMHg0ZC8weDY1DQo+IFsgNTg5Ny45NjY2MDRdICBbPGZmZmZmZmZmODEw
+YTliMDY+XSBfX3dhcm4rMHhjNi8weGUwDQo+IFsgNTg5Ny45NjY2MDZdICBbPGZmZmZmZmZmODEw
+YTliZDg+XSB3YXJuX3Nsb3dwYXRoX251bGwrMHgxOC8weDIwDQo+IFsgNTg5Ny45NjY2MDddICBb
+PGZmZmZmZmZmODE4OWJhM2Y+XSBjcHVmcmVxX3VwZGF0ZV9wb2xpY3krMHhjZi8weGYwDQo+IFsg
+NTg5Ny45NjY2MDhdICBbPGZmZmZmZmZmODE4OWJhNjA+XSA/IGNwdWZyZXFfdXBkYXRlX3BvbGlj
+eSsweGYwLzB4ZjANCj4gWyA1ODk3Ljk2NjYxMV0gIFs8ZmZmZmZmZmY4MTVkMjhhNj5dDQo+IGFj
+cGlfcHJvY2Vzc29yX3BwY19oYXNfY2hhbmdlZCsweDZmLzB4NzcNCj4gWyA1ODk3Ljk2NjYxNF0g
+IFs8ZmZmZmZmZmY4MTVjZjk2Zj5dIGFjcGlfcHJvY2Vzc29yX25vdGlmeSsweDUxLzB4ZGMNCj4g
+WyA1ODk3Ljk2NjYxNl0gIFs8ZmZmZmZmZmY4MTViNTQ2OD5dIGFjcGlfZXZfbm90aWZ5X2Rpc3Bh
+dGNoKzB4M2YvMHg1Nw0KPiBbIDU4OTcuOTY2NjE3XSAgWzxmZmZmZmZmZjgxNWEwYjMyPl0gYWNw
+aV9vc19leGVjdXRlX2RlZmVycmVkKzB4Zi8weDFiDQo+IFsgNTg5Ny45NjY2MjBdICBbPGZmZmZm
+ZmZmODEwYzBkOTg+XSBwcm9jZXNzX29uZV93b3JrKzB4MTU4LzB4NDcwDQo+IFsgNTg5Ny45NjY2
+MjFdICBbPGZmZmZmZmZmODEwYzEwZjM+XSB3b3JrZXJfdGhyZWFkKzB4NDMvMHg0ZDANCj4gWyA1
+ODk3Ljk2NjYyM10gIFs8ZmZmZmZmZmY4MTBjMTBiMD5dID8gcHJvY2Vzc19vbmVfd29yaysweDQ3
+MC8weDQ3MA0KPiBbIDU4OTcuOTY2NjI1XSAgWzxmZmZmZmZmZjgxMGM2NDA0Pl0ga3RocmVhZCsw
+eGM0LzB4ZTANCj4gWyA1ODk3Ljk2NjYyOF0gIFs8ZmZmZmZmZmY4MWI0NzQxMj5dIHJldF9mcm9t
+X2ZvcmsrMHgyMi8weDQwDQo+IFsgNTg5Ny45NjY2MzBdICBbPGZmZmZmZmZmODEwYzYzNDA+XSA/
+IGt0aHJlYWRfd29ya2VyX2ZuKzB4MTYwLzB4MTYwDQo+IFsgNTg5Ny45NjY2MzFdIC0tLVsgZW5k
+IHRyYWNlIGY0NWNkODczN2ZjMTY5OGIgXS0tLQ0KPiANCj4gICAgIFRoaXMgbWVzc2FnZSBhcHBl
+YXJzIDYgdGltZXMgYXQgZWFjaCBib290Lg0KPiANCj4gICAgIEFyZSB0aGV5IG5vcm1hbD8gTWF5
+YmUgd3JvbmcgQUNQSSBrZXJuZWwgb3B0aW9ucyBjb25maWd1cmVkPw0KW0x2IFpoZW5nXSANClNp
+bmNlIHRoaXMgaXMgYSByZWdyZXNzaW9uLCBjb3VsZCB5b3UgYmlzZWN0IHRoZSBjdWxwcml0IGFu
+ZCBwb3N0IHRoZSBiaXNlY3Rpb24gcmVzdWx0IG9uIHRoZSBCdWd6aWxsYT8NCg0KVGhhbmtzIGFu
+ZCBiZXN0IHJlZ2FyZHMNCi1Mdg0KDQo+IA0KPiAgICAgVGhhbmtzLA0KPiANCj4gLS0NCj4gQXVn
+dXN0byBNZWNraW5nIENhcmluZ2kNCj4gLS0NCj4gVG8gdW5zdWJzY3JpYmUgZnJvbSB0aGlzIGxp
+c3Q6IHNlbmQgdGhlIGxpbmUgInVuc3Vic2NyaWJlIGxpbnV4LWFjcGkiIGluDQo+IHRoZSBib2R5
+IG9mIGEgbWVzc2FnZSB0byBtYWpvcmRvbW9Admdlci5rZXJuZWwub3JnDQo+IE1vcmUgbWFqb3Jk
+b21vIGluZm8gYXQgIGh0dHA6Ly92Z2VyLmtlcm5lbC5vcmcvbWFqb3Jkb21vLWluZm8uaHRtbA0K
