@@ -1,64 +1,110 @@
-From: "Zheng, Lv" <lv.zheng@intel.com>
-Subject: RE: [PATCH 1/3] ACPI: table upgrade: use cacheable map for tables
-Date: Wed, 18 May 2016 03:06:35 +0000
-Message-ID: <1AE640813FDE7649BE1B193DEA596E883BBA2E5F@SHSMSX101.ccr.corp.intel.com>
-References: <1463486765-31827-1-git-send-email-aleksey.makarov@linaro.org>
- <1463486765-31827-2-git-send-email-aleksey.makarov@linaro.org>
+From: Ville =?iso-8859-1?Q?Syrj=E4l=E4?= <ville.syrjala@linux.intel.com>
+Subject: Re: S3 resume regression [1cf4f629d9d2 ("cpu/hotplug: Move online
+ calls to hotplugged cpu")]
+Date: Wed, 18 May 2016 10:24:24 +0300
+Message-ID: <20160518072424.GU4329@intel.com>
+References: <20160511101920.GZ4329@intel.com>
+ <57332171.8070403@linutronix.de>
+ <20160511122116.GA4329@intel.com>
+ <20160511084445.00030b49@gandalf.local.home>
+ <20160511133406.GC4329@intel.com>
+ <20160516193910.GL4329@intel.com>
+ <573BA5E2.5040506@intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga11.intel.com ([192.55.52.93]:35384 "EHLO mga11.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751517AbcERDGj convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 17 May 2016 23:06:39 -0400
-In-Reply-To: <1463486765-31827-2-git-send-email-aleksey.makarov@linaro.org>
-Content-Language: en-US
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <573BA5E2.5040506@intel.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>
+Cc: Steven Rostedt <rostedt@goodmis.org>, Sebastian Andrzej Siewior <bigeasy@linutronix.de>, Thomas Gleixner <tglx@linutronix.de>, linux-arch@vger.kernel.org, Rik van Riel <riel@redhat.com>, "Srivatsa S. Bhat" <srivatsa@mit.edu>, Peter Zijlstra <peterz@infradead.org>, Arjan van de Ven <arjan@linux.intel.com>, Rusty Russell <rusty@rustcorp.com.au>, Oleg Nesterov <oleg@redhat.com>, Tejun Heo <tj@kernel.org>, Andrew Morton <akpm@linux-foundation.org>, Paul McKenney <paulmck@linux.vnet.ibm.com>, Linus Torvalds <torvalds@linux-foundation.org>, Paul Turner <pjt@google.com>, linux-kernel@vger.kernel.org, rui.zhang@intel.com, len.brown@intel.com, Linux PM <linux-pm@vger.kernel.org>, Linux ACPI <linux-acpi@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
-To: Aleksey Makarov <aleksey.makarov@linaro.org>, Russell King <linux@arm.linux.org.uk>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>
-Cc: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Graeme Gregory <graeme.gregory@linaro.org>, Jon Masters <jcm@redhat.com>, Mark Rutland <mark.rutland@arm.com>
 
-Hi,
+On Wed, May 18, 2016 at 01:14:42AM +0200, Rafael J. Wysocki wrote:
+> On 5/16/2016 9:39 PM, Ville Syrj=E4l=E4 wrote:
+> > On Wed, May 11, 2016 at 04:34:06PM +0300, Ville Syrj=E4l=E4 wrote:
+> >> On Wed, May 11, 2016 at 08:44:45AM -0400, Steven Rostedt wrote:
+> >>> On Wed, 11 May 2016 15:21:16 +0300
+> >>> Ville Syrj=E4l=E4 <ville.syrjala@linux.intel.com> wrote:
+> >>>
+> >>>> Yeah can't get anything from the machine at that point. netconso=
+le
+> >>>> didn't help either, and no serial on this machine. And IIRC I've
+> >>>> tried ramoops on this thing in the past but unfortunately the me=
+mory
+> >>>> got cleared on reboot.
+> >>>>
+> >>> Can you look at the documentation in the kernel code at
+> >>>
+> >>> Documentation/power/basic-pm-debugging.txt And follow the procedu=
+res
+> >>> for testing suspend to RAM (although it requires mostly running t=
+he
+> >>> same tests as for hibernation suspending).
+> >>>
+> >>> You can also use the tool s2ram for this as well.
+> >>>
+> >>> See Documentation/power/s2ram.txt
+> >>>
+> >>> Perhaps this can give us a bit more light onto the problem.
+> >>>
+> >>> Basically the above does partial suspend and resume, and can pinp=
+oint
+> >>> problem areas down to a more select location.
+> >> All the pm_test modes work fine. The only difference between them =
+was
+> >> that 'platform' required me to manually wake up the machine (hitti=
+ng a
+> >> key was sufficient), whereas the others woke up without help.
+> >>
+> >> pm_trace gave me
+> >> [    1.306633]   Magic number: 0:185:178
+> >> [    1.322880]   hash matches ../drivers/base/power/main.c:1070
+> >> [    1.339270] acpi device:0e: hash matches
+> >> [    1.355414]  platform: hash matches
+> >>
+> >> which is the TRACE_SUSPEND in __device_suspend_noirq(), so no help
+> >> there.
+> >>
+> >> I guess I could try to sprinkle more TRACE_RESUMEs around into som=
+e
+> >> early resume code. If anyone has good ideas where to put them it
+> >> might speed things up a bit.
+> > So I did a bunch of that and found that it gets stuck somewhere
+> > around executing the _WAK method:
+> > platform_resume_noirq
+> >   acpi_pm_finish
+> >    acpi_leave_sleep_state
+> >     acpi_hw_sleep_dispatch
+> >      acpi_hw_legacy_wake
+> >       acpi_hw_execute_sleep_method
+> >        acpi_evaluate_object
+> >         acpi_ns_evaluate
+> >          acpi_ps_execute_method
+> >           acpi_ps_parse_aml
+> >
+> > It also seesm that adding a few TRACE_RESUME()s or an msleep() righ=
+t
+> > after enable_nonboot_cpus() can avoid the hang, sometimes.
+> >
+> > I've attached the DSDT in case anyone is interested in looking at i=
+t.
+> >
+>=20
+> What if you comment out the execution of _WAK (line 318 of=20
+> drivers/acpi/acpica/hwsleep.c in 4.6)?  Does that make any difference=
+?
 
-> From: Aleksey Makarov [mailto:aleksey.makarov@linaro.org]
-> Subject: [PATCH 1/3] ACPI: table upgrade: use cacheable map for tables
-> 
-> The new memory allocated in acpi_table_initrd_init() is used to
-> copy the upgraded tables to it.  So it should be mapped with
-> early_memunmap() instead of early_ioremap().
-> 
-> This is critical for ARM.
-> 
-> Signed-off-by: Aleksey Makarov <aleksey.makarov@linaro.org>
-[Lv Zheng] 
-Acked-by: Lv Zheng <lv.zheng@intel.com>
+Indeed it does. Tried with acpi_idle and intel_idle, and both appear to
+resume just fine with that hack.
 
-Thanks
--Lv
+-       acpi_hw_execute_sleep_method(METHOD_PATHNAME__WAK, sleep_state)=
+;
++       //acpi_hw_execute_sleep_method(METHOD_PATHNAME__WAK, sleep_stat=
+e);
++       printk(KERN_CRIT "skipping _WAK\n");
 
-> ---
->  drivers/acpi/tables.c | 4 ++--
->  1 file changed, 2 insertions(+), 2 deletions(-)
-> 
-> diff --git a/drivers/acpi/tables.c b/drivers/acpi/tables.c
-> index a372f9e..449a649 100644
-> --- a/drivers/acpi/tables.c
-> +++ b/drivers/acpi/tables.c
-> @@ -578,10 +578,10 @@ static void __init acpi_table_initrd_init(void *data,
-> size_t size)
->  			clen = size;
->  			if (clen > MAP_CHUNK_SIZE - slop)
->  				clen = MAP_CHUNK_SIZE - slop;
-> -			dest_p = early_ioremap(dest_addr & PAGE_MASK,
-> +			dest_p = early_memremap(dest_addr & PAGE_MASK,
->  						 clen + slop);
->  			memcpy(dest_p + slop, src_p, clen);
-> -			early_iounmap(dest_p, clen + slop);
-> +			early_memunmap(dest_p, clen + slop);
->  			src_p += clen;
->  			dest_addr += clen;
->  			size -= clen;
-> --
-> 2.8.2
-
+--=20
+Ville Syrj=E4l=E4
+Intel OTC
