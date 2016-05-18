@@ -1,124 +1,37 @@
-From: Aleksey Makarov <aleksey.makarov@linaro.org>
-Subject: Re: [PATCH 3/3] ACPI: ARM64: support for ACPI_TABLE_UPGRADE
-Date: Wed, 18 May 2016 18:11:34 +0300
-Message-ID: <b1a9ef97-618c-064c-7968-900c96fb7e27@linaro.org>
-References: <1463486765-31827-1-git-send-email-aleksey.makarov@linaro.org>
- <1463486765-31827-4-git-send-email-aleksey.makarov@linaro.org>
- <20160517124629.GE14955@leverpostej>
+From: Aaron Durbin <adurbin@google.com>
+Subject: ACPI device using sub-resource of PCI device
+Date: Wed, 18 May 2016 10:54:06 -0500
+Message-ID: <CAE2855tofJV=HV2dYuC+1=pi2mb942zrRF7f0+wqxPPay44RGA@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 8bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20160517124629.GE14955@leverpostej>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Mark Rutland <mark.rutland@arm.com>
-Cc: Russell King <linux@arm.linux.org.uk>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, Graeme Gregory <graeme.gregory@linaro.org>, Jon Masters <jcm@redhat.com>, "Zheng, Lv" <lv.zheng@intel.com>, Catalin Marinas <catalin.marinas@arm.com>, Will Deacon <will.deacon@arm.com>
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-yw0-f180.google.com ([209.85.161.180]:33903 "EHLO
+	mail-yw0-f180.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752818AbcERPyI (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 18 May 2016 11:54:08 -0400
+Received: by mail-yw0-f180.google.com with SMTP id j74so52363861ywg.1
+        for <linux-acpi@vger.kernel.org>; Wed, 18 May 2016 08:54:07 -0700 (PDT)
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: linux-acpi@vger.kernel.org
 
+Hi,
 
+We're currently running into a problem of resource conflicts with a
+PCI device and ACPI devices.
 
-On 05/17/2016 03:46 PM, Mark Rutland wrote:
-> On Tue, May 17, 2016 at 03:06:03PM +0300, Aleksey Makarov wrote:
+[    0.243534] pci 0000:00:0d.0: can't claim BAR 0 [mem
+0xd0000000-0xd0ffffff 64bit]: address conflict with INT3452:03 [mem
+0xd0c00000-0xd0c03fff]
 
-[...]
+The PCI BAR covers a large amount mmio resources, however, there are
+ACPI devices with their own HID (for probing) which uses resources
+that are a subset of the PCI BAR.
 
->> diff --git a/arch/arm64/kernel/setup.c b/arch/arm64/kernel/setup.c
->> index feab2ee..1d5e24f 100644
->> --- a/arch/arm64/kernel/setup.c
->> +++ b/arch/arm64/kernel/setup.c
->> @@ -261,11 +261,13 @@ void __init setup_arch(char **cmdline_p)
->>  	efi_init();
->>  	arm64_memblock_init();
->>  
->> +	paging_init();
->> +
->> +	early_initrd_acpi_init();
-> 
-> Do we actually need full paging up here?
-> 
-> Why can we not use fixmap based copying as we do for the other cases
-> prior to paging_init?
+Short of re-structuring the linux driver is there anything that can be
+done with ASL to properly have the ACPI device use a sub-resource of
+the PCI device during the ACPI/PCI probing?
 
-The implementation of the feature acpi_table_initrd_init()
-(drivers/acpi/tables.c) works with initrd data represented as an array
-in virtual memory.  It uses some library utility to find the redefined
-tables in that array and iterates over it to copy the data to new
-allocated memory.  So we need to rewrite it considerably to access the
-initrd data via fixmap.
+Thanks for the help/insight.
 
-In x86 arch, linear kernel memory is already mapped by the time when
-early_initrd_acpi_init() and acpi_boot_table_init() are called so I
-think that we can just move this mapping one function earlier too.
-
-Is it ok?
-
-I will address your other comments in the next version of the patchset.
-
-Thank you
-Aleksey Makarov
-
->> +
->>  	/* Parse the ACPI tables for possible boot-time configuration */
->>  	acpi_boot_table_init();
->>  
->> -	paging_init();
->> -
->>  	if (acpi_disabled)
->>  		unflatten_device_tree();
->>  
->> diff --git a/drivers/acpi/Kconfig b/drivers/acpi/Kconfig
->> index c204344..ec694c0 100644
->> --- a/drivers/acpi/Kconfig
->> +++ b/drivers/acpi/Kconfig
->> @@ -313,7 +313,7 @@ config ACPI_CUSTOM_DSDT
->>  
->>  config ACPI_TABLE_UPGRADE
->>  	bool "Allow upgrading ACPI tables via initrd"
->> -	depends on BLK_DEV_INITRD && X86
->> +	depends on BLK_DEV_INITRD && (X86 || ARM64)
->>  	default y
->>  	help
-> 
-> Perhaps ARCH_HAS_ACPI_TABLE_UPGRADE?
-> 
->>  	  This option provides functionality to upgrade arbitrary ACPI tables
->> diff --git a/drivers/acpi/tables.c b/drivers/acpi/tables.c
->> index 82be84a..c35034d8 100644
->> --- a/drivers/acpi/tables.c
->> +++ b/drivers/acpi/tables.c
->> @@ -482,6 +482,14 @@ static DECLARE_BITMAP(acpi_initrd_installed, NR_ACPI_INITRD_TABLES);
->>  
->>  #define MAP_CHUNK_SIZE   (NR_FIX_BTMAPS << PAGE_SHIFT)
->>  
->> +#if defined(CONFIG_X86)
->> +#define MAX_PHYS_ACPI_TABLES (max_low_pfn_mapped << PAGE_SHIFT)
->> +#elif defined(CONFIG_ARM64)
->> +#define MAX_PHYS_ACPI_TABLES PFN_PHYS(max_pfn)
->> +#else
->> +#error "MAX_PHYS_ACPI_TABLES is not defiend for this architecture"
->> +#endif
-> 
-> s/defiend/defined/
-> 
-> This should be defined in an arch-specific header if it is actually
-> arch-specific.
-> 
-> Thanks,
-> Mark.
-> 
->> +
->>  static void __init acpi_table_initrd_init(void *data, size_t size)
->>  {
->>  	int sig, no, table_nr = 0, total_offset = 0;
->> @@ -541,7 +549,7 @@ static void __init acpi_table_initrd_init(void *data, size_t size)
->>  		return;
->>  
->>  	acpi_tables_addr =
->> -		memblock_find_in_range(0, max_low_pfn_mapped << PAGE_SHIFT,
->> +		memblock_find_in_range(0, MAX_PHYS_ACPI_TABLES,
->>  				       all_tables_size, PAGE_SIZE);
->>  	if (!acpi_tables_addr) {
->>  		WARN_ON(1);
->> -- 
->> 2.8.2
->>
+-Aaron
