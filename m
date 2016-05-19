@@ -1,95 +1,52 @@
-From: "Zheng, Lv" <lv.zheng@intel.com>
-Subject: RE: [RFC PATCH 1/2] ACPI / button: Send "open" state after
- boot/resume
-Date: Thu, 19 May 2016 01:59:21 +0000
-Message-ID: <1AE640813FDE7649BE1B193DEA596E883BBA30A5@SHSMSX101.ccr.corp.intel.com>
-References: <cbdaec17aba78c61f466efff8883d49067f2dad5.1463472125.git.lv.zheng@intel.com>
- <1463576234.3440.25.camel@hadess.net>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+From: Chris Wilson <chris@chris-wilson.co.uk>
+Subject: [PATCH] acpi/battery: Correctly serialise with the pending async probe
+Date: Thu, 19 May 2016 09:11:52 +0100
+Message-ID: <1463645512-29363-1-git-send-email-chris@chris-wilson.co.uk>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga14.intel.com ([192.55.52.115]:39496 "EHLO mga14.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751807AbcESB70 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 18 May 2016 21:59:26 -0400
-In-Reply-To: <1463576234.3440.25.camel@hadess.net>
-Content-Language: en-US
+Received: from mail-wm0-f68.google.com ([74.125.82.68]:36535 "EHLO
+	mail-wm0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752002AbcESIMF (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 19 May 2016 04:12:05 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Bastien Nocera <hadess@hadess.net>, "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, "Brown, Len" <len.brown@intel.com>
-Cc: Lv Zheng <zetalog@gmail.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
+To: "Rafael J . Wysocki" <rjw@rjwysocki.net>
+Cc: Chris Wilson <chris@chris-wilson.co.uk>, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
-SGksDQoNCj4gRnJvbTogQmFzdGllbiBOb2NlcmEgW21haWx0bzpoYWRlc3NAaGFkZXNzLm5ldF0N
-Cj4gU3ViamVjdDogUmU6IFtSRkMgUEFUQ0ggMS8yXSBBQ1BJIC8gYnV0dG9uOiBTZW5kICJvcGVu
-IiBzdGF0ZSBhZnRlcg0KPiBib290L3Jlc3VtZQ0KPiANCj4gT24gVHVlLCAyMDE2LTA1LTE3IGF0
-IDE2OjI3ICswODAwLCBMdiBaaGVuZyB3cm90ZToNCj4gPiAoVGhpcyBwYXRjaCBoYXNuJ3QgYmVl
-biB0ZXN0ZWQsIGl0J3Mgc2VudCBmb3IgY29tbWVudHMpDQo+ID4NCj4gPiBMaW51eCB1c2Vyc3Bh
-Y2UgKHN5c3RlbWQtbG9naW5kKSBrZWVwcyBvbiByZWNoZWNraW5nIGxpZCBzdGF0ZSB3aGVuIHRo
-ZQ0KPiA+IGxpZCBzdGF0ZSBpcyBjbG9zZWQuIElmIGl0IGZhaWxlZCB0byB1cGRhdGUgdGhlIGxp
-ZCBzdGF0ZSB0byBvcGVuIGFmdGVyDQo+ID4gYm9vdC9yZXN1bWUsIGl0IGNvdWxkIHN1c3BlbmQg
-dGhlIHN5c3RlbS4gQnV0IGFzOg0KPiA+IDEuIFRyYWRpdGlvbmFsIEFDUEkgcGxhdGZvcm0gbWF5
-IG5vdCBnZW5lcmF0ZSB0aGUgbGlkIG9wZW4gZXZlbnQgYWZ0ZXINCj4gPiDCoMKgwqByZXN1bWlu
-ZyBhcyB0aGUgb3BlbiBldmVudCBpcyBhY3R1YWxseSBoYW5kbGVkIGJ5IHRoZSBCSU9TIGFuZCB0
-aGUgc3lzdGVtDQo+ID4gwqDCoMKgaXMgdGhlbiByZXN1bWVkIGZyb20gYSBGQUNTIHZlY3Rvci4N
-Cj4gPiAyLiBUaGUgX0xJRCBjb250cm9sIG1ldGhvZCdzIGluaXRpYWwgcmV0dXJuaW5nIHZhbHVl
-IGlzIG5vdCByZWxpYWJsZS4gVGhlDQo+ID4gwqDCoMKgX0xJRCBjb250cm9sIG1ldGhvZCBpcyBk
-ZXNjcmliZWQgdG8gcmV0dXJuIHRoZSAiY3VycmVudCIgbGlkIHN0YXRlLA0KPiA+IMKgwqDCoGhv
-d2V2ZXIgdGhlIHdvcmQgb2YgImN1cnJlbnQiIGhhcyBhbWJpZ3VpdHksIG1hbnkgQklPU2VuIHJl
-dHVybiBsaWQNCj4gPiDCoMKgwqBzdGF0ZSB1cG9uIGxhc3QgbGlkIG5vdGlmaWNhdGlvbiB3aGls
-ZSB0aGUgZGV2ZWxvcGVycyBtYXkgdGhpbmsgdGhlDQo+ID4gwqDCoMKgQklPU2VuIHNob3VsZCBh
-bHdheXMgcmV0dXJuIHRoZSBsaWQgc3RhdGUgdXBvbiBsYXN0IF9MSUQgZXZhbHVhdGlvbi4NCj4g
-PiDCoMKgwqBUaGVyZSB3b24ndCBiZSBkaWZmZXJlbmNlIHdoZW4gd2UgZXZhbHVhdGUgX0xJRCBk
-dXJpbmcgdGhlIHJ1bnRpbWUsIHRoZQ0KPiA+IMKgwqDCoHByb2JsZW0gaXMgdGhlIGluaXRpYWwg
-cmV0dXJuaW5nIHZhbHVlIG9mIHRoaXMgZnVuY3Rpb24uIFdoZW4gdGhlIEJJT1Nlbg0KPiA+IMKg
-wqDCoGltcGxlbWVudCB0aGlzIGNvbnRyb2wgbWV0aG9kIHdpdGggY2FjaGVkIHZhbHVlLCB0aGUg
-aW5pdGlhbCByZXR1cm5pbmcNCj4gPiDCoMKgwqB2YWx1ZSBpcyBsaWtlbHkgbm90IHJlbGlhYmxl
-Lg0KPiA+IFRodXMgdGhlcmUgaXMgbm8gbWVhbiBmb3IgdGhlIEFDUEkgbGlkIGRyaXZlciB0byBw
-cm92aWRlIHN1Y2ggYW4gZXZlbnQNCj4gPiBjb252ZXlpbmcgY29ycmVjdCBjdXJyZW50IGxpZCBz
-dGF0ZS4gV2hlbiB0aGVyZSBpcyBubyBzdWNoIGFuIGV2ZW50IG9yIHRoZQ0KPiA+IGV2ZW50IGNv
-bnZleXMgd3JvbmcgcmVzdWx0LCBmYWxzZSBzdXNwZW5kaW5nIGNhbiBiZSBleGFtaW5lZC4NCj4g
-Pg0KPiA+IFRoZSByb290IGNhdXNlIG9mIHRoZSBpc3N1ZSBpcyBzeXN0ZW1kIGl0c2VsZiwgaXQg
-Y291bGQgaGFuZGxlIHRoZSBBQ1BJDQo+ID4gY29udHJvbCBtZXRob2QgbGlkIGRldmljZSBieSBp
-bXBsZW1lbnRpbmcgYSBzcGVjaWFsIG9wdGlvbiBsaWtlDQo+ID4gTGlkU3dpdGNoTGV2ZWxUcmln
-Z2VyZWQ9RmFsc2Ugd2hlbiBpdCBkZXRlY3RlZCB0aGUgQUNQSSBsaWQgZGV2aWNlLiBIb3dldmVy
-DQo+ID4gdGhlcmUgaXMgbm8gZXhwbGljaXQgZG9jdW1lbnRhdGlvbiBjbGFyaWZpZWQgdGhlIGFt
-YmlndWl0eSwgd2UgbmVlZCB0bw0KPiA+IHdvcmsgaXQgYXJvdW5kIGluIHRoZSBrZXJuZWwgYmVm
-b3JlIHN5c3RlbWQgY2hhbmdpbmcgaXRzIG1pbmQuDQo+ID4NCj4gPiBMaW5rIDE6IGh0dHBzOi8v
-bGttbC5vcmcvMjAxNi8zLzcvNDYwDQo+ID4gTGluayAyOiBodHRwczovL2dpdGh1Yi5jb20vc3lz
-dGVtZC9zeXN0ZW1kL2lzc3Vlcy8yMDg3DQo+ID4gTGluayAzOiBodHRwczovL2J1Z3ppbGxhLmtl
-cm5lbC5vcmcvc2hvd19idWcuY2dpP2lkPTg5MjExDQo+ID4gwqDCoMKgwqDCoMKgwqDCoGh0dHBz
-Oi8vYnVnemlsbGEua2VybmVsLm9yZy9zaG93X2J1Zy5jZ2k/aWQ9MTA2MTUxDQo+ID4gwqDCoMKg
-wqDCoMKgwqDCoGh0dHBzOi8vYnVnemlsbGEua2VybmVsLm9yZy9zaG93X2J1Zy5jZ2k/aWQ9MTA2
-OTQxDQo+ID4gU2lnbmVkLW9mZi1ieTogTHYgWmhlbmcgPGx2LnpoZW5nQGludGVsLmNvbT4NCj4g
-PiBDYzogQmFzdGllbiBOb2NlcmE6IDxoYWRlc3NAaGFkZXNzLm5ldD4NCj4gDQo+IEFzIG1lbnRp
-b25lZCBwcmV2aW91c2x5LCBJJ2QgYmUgbXVjaCBoYXBwaWVyIGlmIGVpdGhlcjoNCj4gLSBhIG5l
-dyBzeXN0ZW0gd2FzIHB1dCBpbiBwbGFjZSB0aGF0IG1hdGNoZWQgdGhlIEFDUEkgc3BlY3MgYW5k
-IHRoZSB3YXkNCj4gdGhleSBhcmUgdXNlZCBieSBXaW5kb3dzDQpbTHYgWmhlbmddIA0KVGhlbiB3
-aGF0IGFib3V0IHRoZSBvbGQgc3lzdGVtcz8NClN1cmZhY2UgUHJvIDEgYW5kIFN1cmZhY2UgMyBh
-cmUgTVMgcGxhdGZvcm1zIHRoYXQgc2hvdWxkIGhhdmUgYWxyZWFkeSBhZGFwdGVkIHRvIHRoZSBX
-aW5kb3dzLg0KVGhleSBhcmUgY3VycmVudGx5IHN1ZmZlcmluZyBmcm9tIHRoZSBzYW1lIGlzc3Vl
-IGJ5IHJ1bm5pbmcgTGludXguDQoNCj4gLSBhbiBhZGRpdGlvbmFsIHRhZy9wcm9wZXJ0eSB3YXMg
-YWRkZWQgdG8gc2hvdyB0aGF0IHRoZSBBUEkgb2ZmZXJlZCBieQ0KPiB0aGUgTElEIHN3aXRjaCBp
-cyBkaWZmZXJlbnQgZnJvbSB0aGUgb25lIHRoYXQgZXhpc3Rpbmcgc2luY2UgQUNQSQ0KPiBzdXBw
-b3J0IHdhcyBhZGRlZCB0byBMaW51eC4NCj4gDQo+IEFuZCBJJ2QgcmVhbGx5IGFwcHJlY2lhdGUg
-aXQgaWYgeW91IHN0b3BwZWQgc2F5aW5nIHRoYXQgaXQncyBzeXN0ZW1kJ3MNCj4gZmF1bHQuDQpb
-THYgWmhlbmddIA0KT0suDQpJbnN0ZWFkIG9mIHNheWluZyB0aGlzIGlzIGEgZmF1bHQsIEknbGwg
-c2F5IHN5c3RlbWQgbWF5IG5lZWQgYW4gYWRkaXRpb25hbCBvcHRpb24gdG8gaGFuZGxlIEFDUEkg
-bGlkIGRldmljZS4NCg0KPiANCj4gVGhlIGtlcm5lbCBoYXMgb2ZmZXJlZCBhbiBBUEkgdG8gdXNl
-ci1zcGFjZSB0aGF0IGluY2x1ZGVkIHRoZSBzdGF0ZSBvZg0KPiB0aGUgTElEIHN3aXRjaC4gQW5k
-IHRoZSBzdGF0ZSBvZiB0aGUgTElEIHN3aXRjaCBoYXMgYmVlbiBjb3JyZWN0IGZvcg0KPiB0aGUg
-bWFqb3JpdHkgb2Ygc3lzdGVtcyBhbmQgZGV2aWNlcyBmb3IgdGhlIHBhc3QgZGVjYWRlIG9yIHNv
-LiBUaGUgZmFjdA0KPiB0aGF0IHRoaXMgZGV2aWNlIG1lYW5zIHRoYXQgdGhlIExJRCBzdGF0ZSBp
-c24ndCByZWxpYWJsZSBhbnltb3JlIG1lYW5zDQo+IHRoYXQgdGhlIGtlcm5lbCBuZWVkcyB0byBj
-b21tdW5pY2F0ZSB0aGF0IHRvIHVzZXItc3BhY2UuDQo+IA0KPiBJJ20gdm9sdW50ZWVyaW5nIHRv
-IG1vZGlmeSBzeXN0ZW1kIGFuZCBVUG93ZXIgdG8gcmVzcGVjdCB0aGUgZmFjdCB0aGF0DQo+IHRo
-ZSBMSUQgc3dpdGNoIHN0YXRlIGlzbid0IGF2YWlsYWJsZSBvbiB0aG9zZSBkZXZpY2VzLiBJZiB5
-b3Ugd2FudCB0bw0KPiBmaW5kIHNvbWV0aGluZyB0byBibGFtZSwgYmxhbWUgdGhlIGtlcm5lbCBm
-b3IgaW1wbGVtZW50aW5nIGFuIEFQSSB0aGF0DQo+IGRvZXNuJ3QgcmVmbGVjdCB3aGF0IHRoZSBo
-YXJkd2FyZSBtYWtlcyBhdmFpbGFibGUuIFRob3VnaCB5b3UgY2FuIG9ubHkNCj4gc2F5IHRoYXQg
-d2l0aCB0aGUgYmVuZWZpdCBvZiBoaW5kc2lnaHQuDQo+IA0KPiBTbywgTkFLIGZyb20gbWUuDQpb
-THYgWmhlbmddIA0KSSdtIG91dCBvZiB0aGUgY29udGV4dCBoZXJlLg0KVGhpcyBwYXRjaCBpcyBn
-ZW5lcmF0ZWQgdG8gcmVzcGVjdCB0aGUgY3VycmVudCBzeXN0ZW1kIGJlaGF2aW9yLg0KSWYgbm90
-LCB3ZSdkIHJhdGhlciBqdXN0IGRlbGV0ZSB0aGUgMiB3cm9uZyBsaW5lcy4NCkkga25vdyB0aGF0
-IHlvdSBuZWVkIGEgZG9jdW1lbnRhdGlvbiBjbGFyaWZpY2F0aW9uLCB3ZSBhcmUgcHV0dGluZyBl
-ZmZvcnQgb24gdGhpcy4NCg0KVGhhbmtzIGFuZCBiZXN0IHJlZ2FyZHMNCi1Mdg0KDQo=
+async_synchronize_cookie() only serialises all tasks up to the specified
+cookie, and importantly does not wait for the task corresponding with
+the cookie. (This is so that it can be trivially used from inside the
+async_func_t in order to serialise with all preceding tasks.) In order
+to serialise with acpi_battery_init_async() we need to compensate and
+pass in the next cookie instead.
+
+The impact today is zero since performing an async_schedule() from inside
+a module init function will trigger an async_synchronize_full() prior to
+the module loader's completion. However, if the probe was moved to its
+own unregistered async_domain, then the async_synchronize_cookie would
+be replaced with an async_synchronize_full_domain.
+
+Signed-off-by: Chris Wilson <chris@chris-wilson.co.uk>
+Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: Len Brown <lenb@kernel.org>
+Cc: linux-acpi@vger.kernel.org
+Cc: linux-kernel@vger.kernel.org
+---
+ drivers/acpi/battery.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/drivers/acpi/battery.c b/drivers/acpi/battery.c
+index b719ab3090bb..ab234791a0ba 100644
+--- a/drivers/acpi/battery.c
++++ b/drivers/acpi/battery.c
+@@ -1316,7 +1316,7 @@ static int __init acpi_battery_init(void)
+ 
+ static void __exit acpi_battery_exit(void)
+ {
+-	async_synchronize_cookie(async_cookie);
++	async_synchronize_cookie(async_cookie + 1);
+ 	acpi_bus_unregister_driver(&acpi_battery_driver);
+ #ifdef CONFIG_ACPI_PROCFS_POWER
+ 	acpi_unlock_battery_dir(acpi_battery_dir);
+-- 
+2.8.1
+
