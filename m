@@ -1,60 +1,50 @@
-From: Aleksey Makarov <aleksey.makarov@linaro.org>
-Subject: [PATCH v2 4/5] ACPI: table upgrade: introduce ARCH_HAS_ACPI_TABLE_UPGRADE
-Date: Thu, 19 May 2016 19:15:15 +0300
-Message-ID: <1463674518-22477-5-git-send-email-aleksey.makarov@linaro.org>
-References: <1463674518-22477-1-git-send-email-aleksey.makarov@linaro.org>
+From: Matthias Brugger <mbrugger@suse.com>
+Subject: [PATCH] ACPI / tables: Return error from table parse handler
+Date: Thu, 19 May 2016 18:51:07 +0200
+Message-ID: <1463676667-17945-1-git-send-email-mbrugger@suse.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-lb0-f182.google.com ([209.85.217.182]:33115 "EHLO
-	mail-lb0-f182.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932763AbcESQRC (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 19 May 2016 12:17:02 -0400
-Received: by mail-lb0-f182.google.com with SMTP id k7so5653175lbm.0
-        for <linux-acpi@vger.kernel.org>; Thu, 19 May 2016 09:17:01 -0700 (PDT)
-In-Reply-To: <1463674518-22477-1-git-send-email-aleksey.makarov@linaro.org>
+Received: from smtp.nue.novell.com ([195.135.221.5]:47785 "EHLO
+	smtp.nue.novell.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755208AbcESQvl (ORCPT
+	<rfc822;groupwise-linux-acpi@vger.kernel.org:0:0>);
+	Thu, 19 May 2016 12:51:41 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Russell King <linux@arm.linux.org.uk>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>
-Cc: linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, Aleksey Makarov <aleksey.makarov@linaro.org>, Graeme Gregory <graeme.gregory@linaro.org>, Jon Masters <jcm@redhat.com>, "Zheng, Lv" <lv.zheng@intel.com>, Mark Rutland <mark.rutland@arm.com>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, x86@kernel.org
+To: rjw@rjwysocki.net
+Cc: lenb@kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Matthias Brugger <mbrugger@suse.com>
 
-We want to use the table upgrade feature in ARM64.
-Introduce a new configuration option that allows that.
+The handler called in acpi_table_parse may return an error.
+This patch returns this error instead of ignoring it.
 
-Signed-off-by: Aleksey Makarov <aleksey.makarov@linaro.org>
+Signed-off-by: Matthias Brugger <mbrugger@suse.com>
 ---
- arch/x86/Kconfig     | 1 +
- drivers/acpi/Kconfig | 5 ++++-
- 2 files changed, 5 insertions(+), 1 deletion(-)
+ drivers/acpi/tables.c | 5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
 
-diff --git a/arch/x86/Kconfig b/arch/x86/Kconfig
-index 48ac290..f60fd27 100644
---- a/arch/x86/Kconfig
-+++ b/arch/x86/Kconfig
-@@ -22,6 +22,7 @@ config X86
- 	select ANON_INODES
- 	select ARCH_CLOCKSOURCE_DATA
- 	select ARCH_DISCARD_MEMBLOCK
-+	select ARCH_HAS_ACPI_TABLE_UPGRADE if ACPI
- 	select ARCH_HAS_ATOMIC64_DEC_IF_POSITIVE
- 	select ARCH_HAS_DEBUG_STRICT_USER_COPY_CHECKS
- 	select ARCH_HAS_DEVMEM_IS_ALLOWED
-diff --git a/drivers/acpi/Kconfig b/drivers/acpi/Kconfig
-index c204344..083da18 100644
---- a/drivers/acpi/Kconfig
-+++ b/drivers/acpi/Kconfig
-@@ -311,9 +311,12 @@ config ACPI_CUSTOM_DSDT
- 	bool
- 	default ACPI_CUSTOM_DSDT_FILE != ""
+diff --git a/drivers/acpi/tables.c b/drivers/acpi/tables.c
+index a372f9e..fb5cd80 100644
+--- a/drivers/acpi/tables.c
++++ b/drivers/acpi/tables.c
+@@ -394,6 +394,7 @@ int __init acpi_table_parse(char *id, acpi_tbl_table_handler handler)
+ {
+ 	struct acpi_table_header *table = NULL;
+ 	acpi_size tbl_size;
++	int ret;
  
-+config ARCH_HAS_ACPI_TABLE_UPGRADE
-+	def_bool n
-+
- config ACPI_TABLE_UPGRADE
- 	bool "Allow upgrading ACPI tables via initrd"
--	depends on BLK_DEV_INITRD && X86
-+	depends on BLK_DEV_INITRD && ARCH_HAS_ACPI_TABLE_UPGRADE
- 	default y
- 	help
- 	  This option provides functionality to upgrade arbitrary ACPI tables
+ 	if (acpi_disabled)
+ 		return -ENODEV;
+@@ -407,9 +408,9 @@ int __init acpi_table_parse(char *id, acpi_tbl_table_handler handler)
+ 		acpi_get_table_with_size(id, 0, &table, &tbl_size);
+ 
+ 	if (table) {
+-		handler(table);
++		ret = handler(table);
+ 		early_acpi_os_unmap_memory(table, tbl_size);
+-		return 0;
++		return ret;
+ 	} else
+ 		return -ENODEV;
+ }
 -- 
-2.8.2
+2.6.6
 
