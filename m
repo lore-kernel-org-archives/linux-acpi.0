@@ -1,94 +1,86 @@
-From: "Rafael J. Wysocki" <rafael@kernel.org>
-Subject: Re: [PATCH v2 0/5] ACPI: ARM64: support for ACPI_TABLE_UPGRADE
-Date: Thu, 19 May 2016 23:22:07 +0200
-Message-ID: <CAJZ5v0is7c833aQkRm-D+TwLM+eUYeKEAdLOOdrEdT-hrC_M1A@mail.gmail.com>
-References: <1463674518-22477-1-git-send-email-aleksey.makarov@linaro.org>
+From: Valdis.Kletnieks@vt.edu
+Subject: Re: linux-next 20160512 - ACPI issue with screen brightness
+Date: Thu, 19 May 2016 18:53:17 -0400
+Message-ID: <6459.1463698397@turing-police.cc.vt.edu>
+References: <4736.1463510462@turing-police.cc.vt.edu>
+ <CAJZ5v0jrFoQxLY_ZQrP-HP888swZbvSJPM=xNopC5MgQgnSxNg@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: multipart/signed; boundary="==_Exmh_1463698397_4779P";
+	 micalg=pgp-sha1; protocol="application/pgp-signature"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-wm0-f66.google.com ([74.125.82.66]:36543 "EHLO
-	mail-wm0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754484AbcESVWI (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 19 May 2016 17:22:08 -0400
-In-Reply-To: <1463674518-22477-1-git-send-email-aleksey.makarov@linaro.org>
+Received: from outbound.smtp.vt.edu ([198.82.183.121]:59693 "EHLO
+	omr2.cc.vt.edu" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1754492AbcESWyY (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 19 May 2016 18:54:24 -0400
+In-Reply-To: <CAJZ5v0jrFoQxLY_ZQrP-HP888swZbvSJPM=xNopC5MgQgnSxNg@mail.gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Aleksey Makarov <aleksey.makarov@linaro.org>
-Cc: Russell King <linux@arm.linux.org.uk>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Graeme Gregory <graeme.gregory@linaro.org>, Jon Masters <jcm@redhat.com>, "Zheng, Lv" <lv.zheng@intel.com>, Mark Rutland <mark.rutland@arm.com>
+To: "Rafael J. Wysocki" <rafael@kernel.org>
+Cc: Aaron Lu <aaron.lu@intel.com>, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Len Brown <lenb@kernel.org>
 
-On Thu, May 19, 2016 at 6:15 PM, Aleksey Makarov
-<aleksey.makarov@linaro.org> wrote:
-> This patchset adds support for ACPI_TABLE_UPGRADE for ARM64
->
-> These patches help with:
->
-> 1). During development of a platform, it is much easier to debug
-> problems with tables if you can test replacement ones without having to
-> respin the firmware. In the server world, you usually don't have the
-> firmware source code, so to get it respun could be days-weeks even if
-> you are working with the authors closely. We have practically used this
-> feature on a number of platforms already and it will continue.
->
-> 2). They empower (advanced) users and developers to work around problems
-> that they find on platforms. Sure, we want firmware to always be fixed
-> and working well, but it is better if folks have the tools.
->
-> It's also required for parity with x86 functionality on servers as Redhat
-> use that method in their tooling.
->
-> The patchset refactors the code introduced by the patches by Lv Zheng [1],
-> fixes access to the destination of new ACPI tables as suggested
-> by Mark Rutland [2] and enables the feature for ARM64
->
-> It was first sent by Jon Masters [3] to linaro-acpi in December 2015
->
-> Tested on QEMU (arm64 and x86) and ThunderX
-> Should be applied to next-20160519
->
-> v2:
-> - add Acked-by: Lv Zheng <lv.zheng@intel.com>
-> - replace the original patch "ACPI: table upgrade: move early_initrd_acpi_init()
->   to header file" with the patch "ACPI: table upgrade: refactor function
->   definitions".  This new patch is just the original one rewritten following the
->   suggestion by Lv Zheng to use initrd_start, inird_end directly in
->   acpi_table_initrd_init().  It simplifies things noticeably.
-> - add Jon's explanations to the cover of the patchset and my explanations
->   to "ACPI: ARM64: support for ACPI_TABLE_UPGRADE"
-> - introduce ARCH_HAS_ACPI_TABLE_UPGRADE in a separate patch (Mark Rutland)
-> - move arch-specific definition to an arch-specific header in a separate patch
->   (Mark Rutland)
->
-> v1:
-> https://lkml.kernel.org/g/1463486765-31827-1-git-send-email-aleksey.makarov@linaro.org
->
-> [1] https://lkml.kernel.org/g/cover.1460340514.git.lv.zheng@intel.com
-> [2] https://lists.linaro.org/pipermail/linaro-acpi/2015-December/006101.html
-> [3] https://lists.linaro.org/pipermail/linaro-acpi/2015-December/006099.html
->
-> Aleksey Makarov (4):
->   ACPI: table upgrade: use cacheable map for tables
->   ACPI: table upgrade: refactor function definitions
->   ACPI: table upgrade: move arch-specific symbol to asm/acpi.h
->   ACPI: table upgrade: introduce ARCH_HAS_ACPI_TABLE_UPGRADE
->
-> Jon Masters (1):
->   ACPI: ARM64: support for ACPI_TABLE_UPGRADE
->
->  arch/arm64/Kconfig            |  1 +
->  arch/arm64/include/asm/acpi.h |  2 ++
->  arch/arm64/kernel/setup.c     |  6 ++++--
->  arch/x86/Kconfig              |  1 +
->  arch/x86/include/asm/acpi.h   |  2 ++
->  arch/x86/kernel/setup.c       |  9 +--------
->  drivers/acpi/Kconfig          |  5 ++++-
->  drivers/acpi/tables.c         | 23 +++++++++--------------
->  include/linux/acpi.h          |  8 ++++++--
->  9 files changed, 30 insertions(+), 27 deletions(-)
+--==_Exmh_1463698397_4779P
+Content-Type: text/plain; charset=us-ascii
 
-I'm fine with the series.
+On Tue, 17 May 2016 22:50:11 +0200, "Rafael J. Wysocki" said:
+> On Tue, May 17, 2016 at 8:41 PM, Valdis Kletnieks <Valdis.Kletnieks@vt.edu> wrote:
+> > next-20160512 sets the screen brightness to about 40%-ish or so, rather
+> > than the 100% intensity I want.
+> >
+> > Dell Latitude E6530 laptop.
+> >
+> > git bisect tells me:
+> >
+> > 059500940defe285222d3b189b366dfe7f299cae is the first bad commit
+> > commit 059500940defe285222d3b189b366dfe7f299cae
+> > Author: Aaron Lu <aaron.lu@intel.com>
+> > Date:   Wed Apr 27 20:45:04 2016 +0800
+> >
+> >     ACPI/video: export acpi_video_get_levels
+> >
+> >     The acpi_video_get_levels is useful for other drivers, i.e. the
+> >     to-be-added int3406 thermal driver, so export it.
+> >
+> >     Signed-off-by: Aaron Lu <aaron.lu@intel.com>
+> >     Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+> >
+> > :040000 040000 24f4f5abe8beda2fa219dee7549faacc2f63e29fdfbe3a3bb4f58d82d5be768263d91172276fed98 M      drivers
+> > :040000 040000 603ffbf36e76717fe4f4ecb0418c9dbc59c76e25a559bcd81c949a6471ffd045866df9b4e3fa4406 M      include
+> >
+> >
+> > but I've stared at the code and don't see what would do this....
+>
+> Please try to check out the acpi-video branch from linux-pm.git and
+> see if the problem is present then.  If it is, please revert all of
+> the top-most commits up to and including the above one and see if the
+> problem goes away.
 
-I can queue up patches [1-4/5] for 4.8, but I'll need an ACK from the
-ARM64 maintainers for the [5/5].
+Put this one in the "things that go bump in the night" pile - the problem
+doesn't manifest on next-20160519, even though the commit I bisected to
+is in the tree for today, and I don't see any obvious smoking guns to
+have fixed it in the past week's worth of 'git log'....
 
-Thanks,
-Rafael
+
+--==_Exmh_1463698397_4779P
+Content-Type: application/pgp-signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+Comment: Exmh version 2.5 07/13/2001
+
+iQIVAwUBVz5D3QdmEQWDXROgAQKThhAAmnsmNyVQE54qPjnE2B3WrL5GzaTbKJQl
+gZiz0ADzUi+h9Psq0gl1QaTk7pkx2M+zx/A2Ro8bj5N82ZPsrIM25H12b4WDuF4q
+S1AgAkUJwPim+ugmifJDnExM9TQnnDPACwJ7xwy18Ez8UNx1o9i7rfVpQcwmVXzT
+IiYf3WuURSScnyGP48RT/oPSHqtuL+fn6uq1gDuqkFJTkV9qRGsLW+jC2N8pmo1O
+qPSxZ+6ahz4pgG/eF0dFrUHff0qYAhkDqZTOgoxd5hAq2Jzr/mEE0HmbOu5DN12e
+qqQQYmK/FEFvasv/ro5fJ40SRLI0mNRBc0gNJ8sVDG9Ve8SWr8lQJJdvOZbs1sQ5
+9Vtl75d8Ia3Y07891yevtypLFW6bPnT77ptL6IA6lDHjcpzIl0p0Y8Y2wEAQWKtA
+bsEWzUTv8I6RzxeDVkAwoY97AJ6K0ZyWUeX17AU0wrwPMg1Elw/ZfSHGupt0xqVU
+HSbdVbNfQNcPm4h7jTspdcZictlQQnMcEavZ77zKUIMjfh+RC05MqtrnoT/HZP7S
+VndymoC36/fcvf59R5TN+eI08RGerWUwwLRxa5MmmxWkkv2/dcStWW5GHgSRXtQE
+hh7Zs8LFW2Ulmnr23/rk/bCPiScAYDP4W1ve6FjFzgOU3IL8qTvW6NCS/zOLMWMr
+VEYZdZr3DKI=
+=FtiO
+-----END PGP SIGNATURE-----
+
+--==_Exmh_1463698397_4779P--
