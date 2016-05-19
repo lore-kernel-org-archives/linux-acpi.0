@@ -1,54 +1,36 @@
-From: "Rafael J. Wysocki" <rafael@kernel.org>
-Subject: Re: [PATCH 1/2] ACPI / PM: Export acpi_device_fix_up_power()
-Date: Thu, 19 May 2016 15:52:18 +0200
-Message-ID: <CAJZ5v0hNGiZWG55RHZt7m0Spg-cOEXpxYaCuF4rBc1NYsoSY3g@mail.gmail.com>
-References: <1463664342-19209-1-git-send-email-ulf.hansson@linaro.org>
+From: Peter Zijlstra <peterz@infradead.org>
+Subject: Re: [PATCH v7 0/5] Make cpuid <-> nodeid mapping persistent
+Date: Thu, 19 May 2016 16:46:57 +0200
+Message-ID: <20160519144657.GK3206@twins.programming.kicks-ass.net>
+References: <cover.1463652944.git.zhugh.fnst@cn.fujitsu.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <stable-owner@vger.kernel.org>
-In-Reply-To: <1463664342-19209-1-git-send-email-ulf.hansson@linaro.org>
-Sender: stable-owner@vger.kernel.org
-To: Ulf Hansson <ulf.hansson@linaro.org>
-Cc: linux-mmc@vger.kernel.org, Adrian Hunter <adrian.hunter@intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Laszlo Fiat <laszlo.fiat@gmail.com>, Nicholas Krause <xerofoify@gmail.com>, Stable <stable@vger.kernel.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <owner-linux-mm@kvack.org>
+Content-Disposition: inline
+In-Reply-To: <cover.1463652944.git.zhugh.fnst@cn.fujitsu.com>
+Sender: owner-linux-mm@kvack.org
+To: Zhu Guihua <zhugh.fnst@cn.fujitsu.com>
+Cc: cl@linux.com, tj@kernel.org, mika.j.penttila@gmail.com, mingo@redhat.com, akpm@linux-foundation.org, rjw@rjwysocki.net, hpa@zytor.com, yasu.isimatu@gmail.com, isimatu.yasuaki@jp.fujitsu.com, kamezawa.hiroyu@jp.fujitsu.com, izumi.taku@jp.fujitsu.com, gongzhaogang@inspur.com, len.brown@intel.com, lenb@kernel.org, tglx@linutronix.de, chen.tang@easystack.cn, rafael@kernel.org, x86@kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linux-mm@kvack.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Thu, May 19, 2016 at 3:25 PM, Ulf Hansson <ulf.hansson@linaro.org> wrote:
-> Drivers that needs acpi_device_fix_up_power(), allow them to be built as
-> modules by exporting this function.
->
-> Cc: <stable@vger.kernel.org> # 4.5+
-> Tested-by: Laszlo Fiat <laszlo.fiat@gmail.com>
-> Signed-off-by: Ulf Hansson <ulf.hansson@linaro.org>
-> ---
->
-> Rafael/Len, if you are okay with using acpi_device_fix_up_power() as a fix
-> for an issue in patch 2/2, then I would like to request an ack so I can take
-> both these patches via my MMC tree.
+On Thu, May 19, 2016 at 06:39:41PM +0800, Zhu Guihua wrote:
+> [Problem]
+> 
+> cpuid <-> nodeid mapping is firstly established at boot time. And workqueue caches
+> the mapping in wq_numa_possible_cpumask in wq_numa_init() at boot time.
+> 
+> When doing node online/offline, cpuid <-> nodeid mapping is established/destroyed,
+> which means, cpuid <-> nodeid mapping will change if node hotplug happens. But
+> workqueue does not update wq_numa_possible_cpumask.
 
-Yeah, should be fine.
+So why are you not fixing up wq_numa_possible_cpumask instead? That
+seems the far easier solution.
 
-Acked-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+Do all the other archs that support NUMA and HOTPLUG have the mapping
+stable, or will you now go fix each and every one of them?
 
-> ---
->  drivers/acpi/device_pm.c | 1 +
->  1 file changed, 1 insertion(+)
->
-> diff --git a/drivers/acpi/device_pm.c b/drivers/acpi/device_pm.c
-> index cd2c3d6..993fd31 100644
-> --- a/drivers/acpi/device_pm.c
-> +++ b/drivers/acpi/device_pm.c
-> @@ -319,6 +319,7 @@ int acpi_device_fix_up_power(struct acpi_device *device)
->
->         return ret;
->  }
-> +EXPORT_SYMBOL_GPL(acpi_device_fix_up_power);
->
->  int acpi_device_update_power(struct acpi_device *device, int *state_p)
->  {
-> --
-> 1.9.1
->
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+--
+To unsubscribe, send a message with 'unsubscribe linux-mm' in
+the body to majordomo@kvack.org.  For more info on Linux MM,
+see: http://www.linux-mm.org/ .
+Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
