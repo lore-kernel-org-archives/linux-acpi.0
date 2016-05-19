@@ -1,177 +1,266 @@
-From: Matthias Brugger <mbrugger@suse.com>
-Subject: Re: [PATCH V7 08/11] pci, acpi: Support for ACPI based generic PCI
- host controller
-Date: Thu, 19 May 2016 18:56:25 +0200
-Message-ID: <573DF039.5040405@suse.com>
-References: <1462893601-8937-1-git-send-email-tn@semihalf.com>
- <1462893601-8937-9-git-send-email-tn@semihalf.com>
+From: Al Stone <ahs3@redhat.com>
+Subject: Re: [PATCH v3] Force cppc_cpufreq to report values in KHz to fix user
+ space reporting
+Date: Thu, 19 May 2016 10:59:12 -0600
+Message-ID: <c2d86300-48cf-ba95-ac90-14f26a0912e4@redhat.com>
+References: <1463614882-26101-1-git-send-email-ahs3@redhat.com>
+ <CAJZ5v0hkRP6ZqZiB_RAjYt27zwK7met6XNvQBzCz5KaRFvgqwA@mail.gmail.com>
+Reply-To: ahs3@redhat.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1462893601-8937-9-git-send-email-tn@semihalf.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Tomasz Nowicki <tn@semihalf.com>, helgaas@kernel.org, arnd@arndb.de, will.deacon@arm.com, catalin.marinas@arm.com, rafael@kernel.org, hanjun.guo@linaro.org, Lorenzo.Pieralisi@arm.com, okaya@codeaurora.org, jchandra@broadcom.com
-Cc: jcm@redhat.com, linaro-acpi@lists.linaro.org, linux-pci@vger.kernel.org, dhdang@apm.com, Liviu.Dudau@arm.com, ddaney@caviumnetworks.com, jeremy.linton@arm.com, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, robert.richter@caviumnetworks.com, cov@codeaurora.org, Suravee.Suthikulpanit@amd.com, msalter@redhat.com, wangyijing@huawei.com, mw@semihalf.com, andrea.gallo@linaro.org, linux-arm-kernel@lists.infradead.org, liudongdong3@huawei.com
+Return-path: <linux-pm-owner@vger.kernel.org>
+In-Reply-To: <CAJZ5v0hkRP6ZqZiB_RAjYt27zwK7met6XNvQBzCz5KaRFvgqwA@mail.gmail.com>
+Sender: linux-pm-owner@vger.kernel.org
+To: "Rafael J. Wysocki" <rafael@kernel.org>
+Cc: Viresh Kumar <viresh.kumar@linaro.org>, Ashwin Chaugule <ashwin.chaugule@linaro.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, "linux-pm@vger.kernel.org" <linux-pm@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
+On 05/19/2016 07:12 AM, Rafael J. Wysocki wrote:
+> On Thu, May 19, 2016 at 1:41 AM, Al Stone <ahs3@redhat.com> wrote:
+>> When CPPC is being used by ACPI on arm64, user space tools such as
+>> cpupower report CPU frequency values from sysfs that are incorrect.
+>>
+>> What the driver was doing was reporting the values given by ACPI tables
+>> in whatever scale was used to provide them.  However, the ACPI spec
+>> defines the CPPC values as unitless abstract numbers.  Internal kernel
+>> structures such as struct perf_cap, in contrast, expect these values
+>> to be in KHz.  When these struct values get reported via sysfs, the
+>> user space tools also assume they are in KHz, causing them to report
+>> incorrect values (for example, reporting a CPU frequency of 1MHz when
+>> it should be 1.8GHz).
+>>
+>> While the investigation for a long term fix proceeds (several options
+>> are being explored, some of which may require spec changes or other
+>> much more invasive fixes), this patch forces the values read by CPPC
+>> to be read in KHz, regardless of what they actually represent.
+>>
+>> The downside is that this approach has some assumptions:
+>>
+>>    (1) It relies on SMBIOS3 being used, *and* that the Max Frequency
+>>    value for a processor is set to a non-zero value.
+>>
+>>    (2) It assumes that all processors run at the same speed, or that
+>>    the CPPC values have all been scaled to reflect relative speed.
+>>    This patch retrieves the first CPU Max Frequency from a type 4 DMI
+>>    record that it can find.  This may not be an issue, however, as a
+>>    sampling of DMI data on x86 and arm64 indicates there is often only
+>>    one such record regardless.  Since CPPC is relatively new, it is
+>>    unclear if the ACPI ASL will always be written to reflect any sort
+>>    of relative performance of processors of differing speeds.
+>>
+>>    (3) It assumes that performance and frequency both scale linearly.
+>>
+>> For arm64 servers, this may be sufficient, but it does rely on
+>> firmware values being set correctly.  Hence, other approaches are
+>> also being considered.
+>>
+>> This has been tested on three arm64 servers, with and without DMI, with
+>> and without CPPC support.
+>>
+>> Changes for v3:
+>>     -- Added clarifying commentary re short-term vs long-term fix (Alexey
+>>        Klimov)
+>>     -- Added range checking code to ensure proper arithmetic occurs,
+>>        especially no division by zero (Alexey Klimov)
+>>
+>> Changes for v2:
+>>     -- Corrected thinko: needed to have DEPENDS on DMI in Kconfig.arm,
+>>        not SELECT DMI (found by build daemon)
+>>
+>> Signed-off-by: Al Stone <ahs3@redhat.com>
+>> ---
+>>  drivers/acpi/cppc_acpi.c    | 96 ++++++++++++++++++++++++++++++++++++++++++---
+>>  drivers/cpufreq/Kconfig.arm |  1 +
+>>  2 files changed, 92 insertions(+), 5 deletions(-)
+>>
+>> diff --git a/drivers/acpi/cppc_acpi.c b/drivers/acpi/cppc_acpi.c
+>> index 8adac69..56a46e6 100644
+>> --- a/drivers/acpi/cppc_acpi.c
+>> +++ b/drivers/acpi/cppc_acpi.c
+>> @@ -40,6 +40,9 @@
+>>  #include <linux/cpufreq.h>
+>>  #include <linux/delay.h>
+>>  #include <linux/ktime.h>
+>> +#include <linux/dmi.h>
+>> +
+>> +#include <asm/unaligned.h>
+>>
+>>  #include <acpi/cppc_acpi.h>
+>>  /*
+>> @@ -709,6 +712,55 @@ static int cpc_write(struct cpc_reg *reg, u64 val)
+>>         return ret_val;
+>>  }
+>>
+>> +static u64 cppc_dmi_khz;
+>> +
+>> +static void cppc_find_dmi_mhz(const struct dmi_header *dm, void *private)
+>> +{
+>> +       u16 *mhz = (u16 *)private;
+>> +       const u8 *dmi_data = (const u8 *)dm;
+>> +
+>> +       if (dm->type == DMI_ENTRY_PROCESSOR && dm->length >= 48)
+>> +               *mhz = (u16)get_unaligned((const u16 *)(dmi_data + 0x14));
+> 
+> Is the offset standardized across architectures (I can't recall ATM)?
+> If so, maybe #define a symbol for it and add a comment saying that
+> next to its definition?
 
+It's part of the SMBIOS standard.  I'll fix it.
 
-On 10/05/16 17:19, Tomasz Nowicki wrote:
-> This patch is going to implement generic PCI host controller for
-> ACPI world, similar to what pci-host-generic.c driver does for DT world.
->
-> All such drivers, which we have seen so far, were implemented within
-> arch/ directory since they had some arch assumptions (x86 and ia64).
-> However, they all are doing similar thing, so it makes sense to find
-> some common code and abstract it into the generic driver.
->
-> In order to handle PCI config space regions properly, we define new
-> MCFG interface which does sanity checks on MCFG table and keeps its
-> root pointer. User is able to lookup MCFG regions based on that root
-> pointer and specified domain:bus_start:bus_end touple. We are using
-> pci_mmcfg_late_init old prototype to avoid another function name.
->
-> The implementation of pci_acpi_scan_root() looks up the MCFG entries
-> and sets up a new mapping (regions are not mapped until host controller ask
-> for it). Generic PCI functions are used for accessing config space.
-> Driver selects PCI_ECAM and uses functions from drivers/pci/ecam.h
-> to create and access ECAM mappings.
->
-> As mentioned in Kconfig help section, ACPI_PCI_HOST_GENERIC choice
-> should be made on a per-architecture basis.
->
-> Signed-off-by: Tomasz Nowicki <tn@semihalf.com>
-> Signed-off-by: Jayachandran C <jchandra@broadcom.com>
-> ---
->   drivers/acpi/Kconfig            |   8 +++
->   drivers/acpi/Makefile           |   1 +
->   drivers/acpi/pci_mcfg.c         |  97 ++++++++++++++++++++++++++
->   drivers/acpi/pci_root_generic.c | 149 ++++++++++++++++++++++++++++++++++++++++
->   drivers/pci/ecam.h              |   5 ++
->   include/linux/pci-acpi.h        |   5 ++
->   include/linux/pci.h             |   5 +-
->   7 files changed, 269 insertions(+), 1 deletion(-)
->   create mode 100644 drivers/acpi/pci_mcfg.c
->   create mode 100644 drivers/acpi/pci_root_generic.c
->
-> diff --git a/drivers/acpi/Kconfig b/drivers/acpi/Kconfig
-> index 183ffa3..44afc76 100644
-> --- a/drivers/acpi/Kconfig
-> +++ b/drivers/acpi/Kconfig
-> @@ -346,6 +346,14 @@ config ACPI_PCI_SLOT
->   	  i.e., segment/bus/device/function tuples, with physical slots in
->   	  the system.  If you are unsure, say N.
->
-> +config ACPI_PCI_HOST_GENERIC
-> +	bool
-> +	select PCI_ECAM
-> +	help
-> +	  Select this config option from the architecture Kconfig,
-> +	  if it is preferred to enable ACPI PCI host controller driver which
-> +	  has no arch-specific assumptions.
-> +
->   config X86_PM_TIMER
->   	bool "Power Management Timer Support" if EXPERT
->   	depends on X86
-> diff --git a/drivers/acpi/Makefile b/drivers/acpi/Makefile
-> index 81e5cbc..627a2b7 100644
-> --- a/drivers/acpi/Makefile
-> +++ b/drivers/acpi/Makefile
-> @@ -40,6 +40,7 @@ acpi-$(CONFIG_ARCH_MIGHT_HAVE_ACPI_PDC) += processor_pdc.o
->   acpi-y				+= ec.o
->   acpi-$(CONFIG_ACPI_DOCK)	+= dock.o
->   acpi-y				+= pci_root.o pci_link.o pci_irq.o
-> +obj-$(CONFIG_ACPI_PCI_HOST_GENERIC)	+= pci_root_generic.o pci_mcfg.o
->   acpi-y				+= acpi_lpss.o acpi_apd.o
->   acpi-y				+= acpi_platform.o
->   acpi-y				+= acpi_pnp.o
-> diff --git a/drivers/acpi/pci_mcfg.c b/drivers/acpi/pci_mcfg.c
-> new file mode 100644
-> index 0000000..373d079
-> --- /dev/null
-> +++ b/drivers/acpi/pci_mcfg.c
-> @@ -0,0 +1,97 @@
-> +/*
-> + * Copyright (C) 2016 Broadcom
-> + *	Author: Jayachandran C <jchandra@broadcom.com>
-> + * Copyright (C) 2016 Semihalf
-> + * 	Author: Tomasz Nowicki <tn@semihalf.com>
-> + *
-> + * This program is free software; you can redistribute it and/or modify
-> + * it under the terms of the GNU General Public License, version 2, as
-> + * published by the Free Software Foundation (the "GPL").
-> + *
-> + * This program is distributed in the hope that it will be useful, but
-> + * WITHOUT ANY WARRANTY; without even the implied warranty of
-> + * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-> + * General Public License version 2 (GPLv2) for more details.
-> + *
-> + * You should have received a copy of the GNU General Public License
-> + * version 2 (GPLv2) along with this source code.
-> + */
-> +#include <linux/kernel.h>
-> +#include <linux/pci.h>
-> +#include <linux/pci-acpi.h>
-> +
-> +#define PREFIX	"ACPI: "
-> +
-> +/* Root pointer to the mapped MCFG table */
-> +static struct acpi_table_mcfg *mcfg_table;
-> +
-> +#define MCFG_ENTRIES(mcfg_ptr)	(((mcfg_ptr)->header.length -		\
-> +				sizeof(struct acpi_table_mcfg)) /	\
-> +				sizeof(struct acpi_mcfg_allocation))
-> +
-> +static phys_addr_t pci_mcfg_lookup_static(u16 seg, u8 bus_start, u8 bus_end)
-> +{
-> +	struct acpi_mcfg_allocation *mptr;
-> +	int i;
-> +
-> +	if (!mcfg_table) {
-> +		pr_err(PREFIX "MCFG table not available, lookup failed\n");
-> +		return -ENXIO;
-> +	}
-> +
-> +	mptr = (struct acpi_mcfg_allocation *) &mcfg_table[1];
-> +
-> +	/*
-> +	 * We expect exact match, unless MCFG entry end bus covers more than
-> +	 * specified by caller.
-> +	 */
-> +	for (i = 0; i < MCFG_ENTRIES(mcfg_table); i++, mptr++) {
-> +		if (mptr->pci_segment == seg &&
-> +		    mptr->start_bus_number == bus_start &&
-> +		    mptr->end_bus_number >= bus_end) {
-> +			return mptr->address;
-> +		}
-> +	}
-> +
-> +	return -ENXIO;
-> +}
-> +
-> +phys_addr_t pci_mcfg_lookup(struct acpi_device *device, u16 seg,
-> +			    struct resource *bus_res)
-> +{
-> +	phys_addr_t addr;
-> +
-> +	addr = acpi_pci_root_get_mcfg_addr(device->handle);
-> +	if (addr)
-> +		return addr;
-> +
-> +	return pci_mcfg_lookup_static(seg, bus_res->start, bus_res->end);
-> +}
-> +
-> +static __init int pci_mcfg_parse(struct acpi_table_header *header)
-> +{
-> +	struct acpi_table_mcfg *mcfg;
-> +	int n;
-> +
-> +	if (!header)
-> +		return -EINVAL;
+I feel very silly -- I just bugged somebody else about magic constants; karma
+is an amazing thing :).
 
-Maybe that's bike shedding, but acpi_table_parse already checks that the 
-table passed to the handler exists, so this is redundant.
+>> +}
+>> +
+>> +
+>> +static u64 cppc_get_dmi_khz(void)
+>> +{
+>> +       u16 mhz;
+>> +
+>> +       dmi_walk(cppc_find_dmi_mhz, &mhz);
+>> +
+>> +       /*
+>> +        * Real stupid fallback value, just in case there is no
+>> +        * actual value set.
+>> +        */
+>> +       mhz = mhz ? mhz : 1;
+>> +
+>> +       return (1000 * mhz);
+>> +}
+>> +
+>> +static u64 cppc_unitless_to_khz(u64 min_in, u64 max_in, u64 val)
+> 
+> Is the "unitless" part of the name really necessary?
 
-Regards,
-Matthias
+Probably not essential, but descriptive.  "cppc_convert_to_khz()" instead?
+Or even "cppc_to_khz()"?
+
+> 
+>> +{
+>> +       /*
+>> +        * The incoming val should be min <= val <= max.  Our
+>> +        * job is to convert that to KHz so it can be properly
+>> +        * reported to user space via cpufreq_policy.
+>> +        */
+>> +       u64 curval = val;
+>> +       u64 maxf = max_in;
+>> +       u64 minf = min_in;
+>> +
+>> +       if (!cppc_dmi_khz)
+>> +               cppc_dmi_khz = cppc_get_dmi_khz();
+> 
+> I don't like hidden initializations like this if they are avoidable
+> and it very much looks like it is avoidable here.
+
+Fair enough.  I'll fix it.
+
+> Also you seem to be using the same cppc_dmi_khz value for all
+> processors handled by this driver.  Is that really guaranteed to be
+> correct?
+
+Yes and no.  It all depends on what's in the SMBIOS tables.  Let me
+see about making the search for that data a bit more robust; oddly
+enough, I poked at some random machines (x86 and arm64) and more often
+than not only found one CPU entry in the SMBIOS data.
+
+>> +
+>> +       /* range check the input values */
+>> +       curval = curval < minf ? minf : curval;
+>> +       curval = curval > maxf ? maxf : curval;
+>> +       minf = minf >= maxf ? maxf - 1 : minf;
+>> +
+>> +       return ((curval - minf) * cppc_dmi_khz) / (maxf - minf);
+>> +}
+>> +
+>>  /**
+>>   * cppc_get_perf_caps - Get a CPUs performance capabilities.
+>>   * @cpunum: CPU from which to get capabilities info.
+>> @@ -748,17 +800,51 @@ int cppc_get_perf_caps(int cpunum, struct cppc_perf_caps *perf_caps)
+>>                 }
+>>         }
+>>
+>> +       /*
+>> +        * Since these values in perf_caps will be used in setting
+>> +        * up the cpufreq policy, they must always be stored in units
+>> +        * of KHz.  If they are not, user space tools will become very
+>> +        * confused since they assume these are in KHz when reading
+>> +        * sysfs.
+>> +        *
+>> +        * NB: there may be better approaches to this problem that, as
+>> +        * of this writing, are still being explored.  Ideally, this is
+>> +        * a short term solution since correlating CPPC abstract values
+>> +        * with CPU frequency may or may not reflect actual performance.
+>> +        *
+>> +        * The reason longer term solutions are being explored is because
+>> +        * this solution requires we make the following assumptions:
+>> +        *
+>> +        *    (1) It relies on SMBIOS3 being used, *and* that the Max
+>> +        *        Frequency value for a processor is set to a non-zero value.
+>> +        *
+>> +        *    (2) It assumes that all processors run at the same speed, or
+>> +        *        that the CPPC values have all been scaled to reflect any
+>> +        *        relative differences.  This code retrieves the first CPU
+>> +        *        Max Frequency from a type 4 DMI record that it can find.
+>> +        *        This may not be an issue, however, as a sampling of DMI
+>> +        *        data on x86 and arm64 indicates there is often only one
+>> +        *        such record regardless.
+>> +        *
+>> +        *    (3) It assumes that performance and frequency both scale
+>> +        *        linearly.
+>> +        *
+>> +        * None of these are particularly horrible assumptions.  But, they
+>> +        * are assumptions and ultimately we'd like to be able to report
+>> +        * performance without quite so many of them.
+>> +        *
+>> +        */
+>>         cpc_read(&highest_reg->cpc_entry.reg, &high);
+>> -       perf_caps->highest_perf = high;
+>> -
+>>         cpc_read(&lowest_reg->cpc_entry.reg, &low);
+>> -       perf_caps->lowest_perf = low;
+>> +
+>> +       perf_caps->highest_perf = cppc_unitless_to_khz(low, high, high);
+>> +       perf_caps->lowest_perf = cppc_unitless_to_khz(low, high, low);
+>>
+>>         cpc_read(&ref_perf->cpc_entry.reg, &ref);
+>> -       perf_caps->reference_perf = ref;
+>> +       perf_caps->reference_perf = cppc_unitless_to_khz(low, high, ref);
+>>
+>>         cpc_read(&nom_perf->cpc_entry.reg, &nom);
+>> -       perf_caps->nominal_perf = nom;
+>> +       perf_caps->nominal_perf = cppc_unitless_to_khz(low, high, nom);
+>>
+>>         if (!ref)
+>>                 perf_caps->reference_perf = perf_caps->nominal_perf;
+>> diff --git a/drivers/cpufreq/Kconfig.arm b/drivers/cpufreq/Kconfig.arm
+>> index 14b1f93..0573982 100644
+>> --- a/drivers/cpufreq/Kconfig.arm
+>> +++ b/drivers/cpufreq/Kconfig.arm
+>> @@ -255,6 +255,7 @@ config ACPI_CPPC_CPUFREQ
+>>         tristate "CPUFreq driver based on the ACPI CPPC spec"
+>>         depends on ACPI
+>>         select ACPI_CPPC_LIB
+>> +       select DMI
+> 
+> What if there are unmet dependencies for DMI?  Or is that not possible?
+>
+
+I'll double check this.  I don't recall any, off hand.
+
+>>         default n
+>>         help
+>>           This adds a CPUFreq driver which uses CPPC methods
+>> --
+
+Thanks for the feedback, Rafael!
+
+-- 
+ciao,
+al
+-----------------------------------
+Al Stone
+Software Engineer
+Red Hat, Inc.
+ahs3@redhat.com
+-----------------------------------
