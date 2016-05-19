@@ -1,79 +1,141 @@
 From: Aleksey Makarov <aleksey.makarov@linaro.org>
-Subject: [PATCH v2 0/5] ACPI: ARM64: support for ACPI_TABLE_UPGRADE
-Date: Thu, 19 May 2016 19:15:11 +0300
-Message-ID: <1463674518-22477-1-git-send-email-aleksey.makarov@linaro.org>
+Subject: [PATCH v2 2/5] ACPI: table upgrade: refactor function definitions
+Date: Thu, 19 May 2016 19:15:13 +0300
+Message-ID: <1463674518-22477-3-git-send-email-aleksey.makarov@linaro.org>
+References: <1463674518-22477-1-git-send-email-aleksey.makarov@linaro.org>
 Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1463674518-22477-1-git-send-email-aleksey.makarov@linaro.org>
 Sender: linux-kernel-owner@vger.kernel.org
 To: Russell King <linux@arm.linux.org.uk>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>
-Cc: linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, Aleksey Makarov <aleksey.makarov@linaro.org>, Graeme Gregory <graeme.gregory@linaro.org>, Jon Masters <jcm@redhat.com>, "Zheng, Lv" <lv.zheng@intel.com>, Mark Rutland <mark.rutland@arm.com>
+Cc: linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, Aleksey Makarov <aleksey.makarov@linaro.org>, Graeme Gregory <graeme.gregory@linaro.org>, Jon Masters <jcm@redhat.com>, "Zheng, Lv" <lv.zheng@intel.com>, Mark Rutland <mark.rutland@arm.com>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, x86@kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-This patchset adds support for ACPI_TABLE_UPGRADE for ARM64
+Refer initrd_start, initrd_end directly from drivers/acpi/tables.c.
+This allows to use the table upgrade feature in architectures
+other than x86.  Also this simplifies header files.
 
-These patches help with:
+The patch renames acpi_table_initrd_init() to acpi_table_upgrade()
+(what reflects the purpose of the function) and removes the unneeded
+wraps early_acpi_table_init() and early_initrd_acpi_init().
 
-1). During development of a platform, it is much easier to debug
-problems with tables if you can test replacement ones without having to
-respin the firmware. In the server world, you usually don't have the
-firmware source code, so to get it respun could be days-weeks even if
-you are working with the authors closely. We have practically used this
-feature on a number of platforms already and it will continue.
+Signed-off-by: Aleksey Makarov <aleksey.makarov@linaro.org>
+---
+ arch/x86/kernel/setup.c |  9 +--------
+ drivers/acpi/tables.c   | 14 ++++----------
+ include/linux/acpi.h    |  8 ++++++--
+ 3 files changed, 11 insertions(+), 20 deletions(-)
 
-2). They empower (advanced) users and developers to work around problems
-that they find on platforms. Sure, we want firmware to always be fixed
-and working well, but it is better if folks have the tools.
-
-It's also required for parity with x86 functionality on servers as Redhat
-use that method in their tooling.
-
-The patchset refactors the code introduced by the patches by Lv Zheng [1],
-fixes access to the destination of new ACPI tables as suggested
-by Mark Rutland [2] and enables the feature for ARM64
-
-It was first sent by Jon Masters [3] to linaro-acpi in December 2015
-
-Tested on QEMU (arm64 and x86) and ThunderX
-Should be applied to next-20160519
-
-v2:
-- add Acked-by: Lv Zheng <lv.zheng@intel.com>
-- replace the original patch "ACPI: table upgrade: move early_initrd_acpi_init()
-  to header file" with the patch "ACPI: table upgrade: refactor function
-  definitions".  This new patch is just the original one rewritten following the
-  suggestion by Lv Zheng to use initrd_start, inird_end directly in
-  acpi_table_initrd_init().  It simplifies things noticeably.
-- add Jon's explanations to the cover of the patchset and my explanations
-  to "ACPI: ARM64: support for ACPI_TABLE_UPGRADE"
-- introduce ARCH_HAS_ACPI_TABLE_UPGRADE in a separate patch (Mark Rutland)
-- move arch-specific definition to an arch-specific header in a separate patch
-  (Mark Rutland)
-
-v1:
-https://lkml.kernel.org/g/1463486765-31827-1-git-send-email-aleksey.makarov@linaro.org
-
-[1] https://lkml.kernel.org/g/cover.1460340514.git.lv.zheng@intel.com
-[2] https://lists.linaro.org/pipermail/linaro-acpi/2015-December/006101.html
-[3] https://lists.linaro.org/pipermail/linaro-acpi/2015-December/006099.html
-
-Aleksey Makarov (4):
-  ACPI: table upgrade: use cacheable map for tables
-  ACPI: table upgrade: refactor function definitions
-  ACPI: table upgrade: move arch-specific symbol to asm/acpi.h
-  ACPI: table upgrade: introduce ARCH_HAS_ACPI_TABLE_UPGRADE
-
-Jon Masters (1):
-  ACPI: ARM64: support for ACPI_TABLE_UPGRADE
-
- arch/arm64/Kconfig            |  1 +
- arch/arm64/include/asm/acpi.h |  2 ++
- arch/arm64/kernel/setup.c     |  6 ++++--
- arch/x86/Kconfig              |  1 +
- arch/x86/include/asm/acpi.h   |  2 ++
- arch/x86/kernel/setup.c       |  9 +--------
- drivers/acpi/Kconfig          |  5 ++++-
- drivers/acpi/tables.c         | 23 +++++++++--------------
- include/linux/acpi.h          |  8 ++++++--
- 9 files changed, 30 insertions(+), 27 deletions(-)
-
+diff --git a/arch/x86/kernel/setup.c b/arch/x86/kernel/setup.c
+index c4e7b39..aac91be 100644
+--- a/arch/x86/kernel/setup.c
++++ b/arch/x86/kernel/setup.c
+@@ -399,10 +399,6 @@ static void __init reserve_initrd(void)
+ 	memblock_free(ramdisk_image, ramdisk_end - ramdisk_image);
+ }
+ 
+-static void __init early_initrd_acpi_init(void)
+-{
+-	early_acpi_table_init((void *)initrd_start, initrd_end - initrd_start);
+-}
+ #else
+ static void __init early_reserve_initrd(void)
+ {
+@@ -410,9 +406,6 @@ static void __init early_reserve_initrd(void)
+ static void __init reserve_initrd(void)
+ {
+ }
+-static void __init early_initrd_acpi_init(void)
+-{
+-}
+ #endif /* CONFIG_BLK_DEV_INITRD */
+ 
+ static void __init parse_setup_data(void)
+@@ -1146,7 +1139,7 @@ void __init setup_arch(char **cmdline_p)
+ 
+ 	reserve_initrd();
+ 
+-	early_initrd_acpi_init();
++	acpi_table_upgrade();
+ 
+ 	vsmp_init();
+ 
+diff --git a/drivers/acpi/tables.c b/drivers/acpi/tables.c
+index f829e6a..b05df13 100644
+--- a/drivers/acpi/tables.c
++++ b/drivers/acpi/tables.c
+@@ -34,6 +34,7 @@
+ #include <linux/bootmem.h>
+ #include <linux/earlycpio.h>
+ #include <linux/memblock.h>
++#include <linux/initrd.h>
+ #include "internal.h"
+ 
+ #ifdef CONFIG_ACPI_CUSTOM_DSDT
+@@ -481,8 +482,10 @@ static DECLARE_BITMAP(acpi_initrd_installed, NR_ACPI_INITRD_TABLES);
+ 
+ #define MAP_CHUNK_SIZE   (NR_FIX_BTMAPS << PAGE_SHIFT)
+ 
+-static void __init acpi_table_initrd_init(void *data, size_t size)
++void __init acpi_table_upgrade(void)
+ {
++	void *data = (void *)initrd_start;
++	size_t size = initrd_end - initrd_start;
+ 	int sig, no, table_nr = 0, total_offset = 0;
+ 	long offset = 0;
+ 	struct acpi_table_header *table;
+@@ -696,10 +699,6 @@ next_table:
+ 	}
+ }
+ #else
+-static void __init acpi_table_initrd_init(void *data, size_t size)
+-{
+-}
+-
+ static acpi_status
+ acpi_table_initrd_override(struct acpi_table_header *existing_table,
+ 			   acpi_physical_address *address,
+@@ -742,11 +741,6 @@ acpi_os_table_override(struct acpi_table_header *existing_table,
+ 	return AE_OK;
+ }
+ 
+-void __init early_acpi_table_init(void *data, size_t size)
+-{
+-	acpi_table_initrd_init(data, size);
+-}
+-
+ /*
+  * acpi_table_init()
+  *
+diff --git a/include/linux/acpi.h b/include/linux/acpi.h
+index 288fac5..ef2ad26 100644
+--- a/include/linux/acpi.h
++++ b/include/linux/acpi.h
+@@ -208,7 +208,6 @@ void acpi_boot_table_init (void);
+ int acpi_mps_check (void);
+ int acpi_numa_init (void);
+ 
+-void early_acpi_table_init(void *data, size_t size);
+ int acpi_table_init (void);
+ int acpi_table_parse(char *id, acpi_tbl_table_handler handler);
+ int __init acpi_parse_entries(char *id, unsigned long table_size,
+@@ -588,7 +587,6 @@ static inline const char *acpi_dev_name(struct acpi_device *adev)
+ 	return NULL;
+ }
+ 
+-static inline void early_acpi_table_init(void *data, size_t size) { }
+ static inline void acpi_early_init(void) { }
+ static inline void acpi_subsystem_init(void) { }
+ 
+@@ -997,4 +995,10 @@ static inline struct fwnode_handle *acpi_get_next_subnode(struct device *dev,
+ #define acpi_probe_device_table(t)	({ int __r = 0; __r;})
+ #endif
+ 
++#ifdef CONFIG_ACPI_TABLE_UPGRADE
++void acpi_table_upgrade(void);
++#else
++static inline void acpi_table_upgrade(void) { }
++#endif
++
+ #endif	/*_LINUX_ACPI_H*/
 -- 
 2.8.2
