@@ -1,61 +1,84 @@
-From: Ulf Hansson <ulf.hansson@linaro.org>
-Subject: [PATCH 2/2] mmc: sdhci-acpi: Ensure connected devices are powered when probing
-Date: Thu, 19 May 2016 15:25:42 +0200
-Message-ID: <1463664342-19209-2-git-send-email-ulf.hansson@linaro.org>
-References: <1463664342-19209-1-git-send-email-ulf.hansson@linaro.org>
+From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Subject: Re: [PATCH v2 2/2] ASoC: da7219: Convert driver to use generic
+ device/fwnode functions
+Date: Thu, 19 May 2016 16:27:31 +0300
+Message-ID: <1463664451.31269.3.camel@linux.intel.com>
+References: <cover.1463477116.git.Adam.Thomson.Opensource@diasemi.com>
+	 <eea79e2c26dafa785451931387cfce716bd150d4.1463477116.git.Adam.Thomson.Opensource@diasemi.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-lb0-f170.google.com ([209.85.217.170]:36464 "EHLO
-	mail-lb0-f170.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754679AbcESNZ4 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 19 May 2016 09:25:56 -0400
-Received: by mail-lb0-f170.google.com with SMTP id h1so24525411lbj.3
-        for <linux-acpi@vger.kernel.org>; Thu, 19 May 2016 06:25:55 -0700 (PDT)
-In-Reply-To: <1463664342-19209-1-git-send-email-ulf.hansson@linaro.org>
+Received: from mga02.intel.com ([134.134.136.20]:11213 "EHLO mga02.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754870AbcESN0Z (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 19 May 2016 09:26:25 -0400
+In-Reply-To: <eea79e2c26dafa785451931387cfce716bd150d4.1463477116.git.Adam.Thomson.Opensource@diasemi.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-mmc@vger.kernel.org, Ulf Hansson <ulf.hansson@linaro.org>, Adrian Hunter <adrian.hunter@intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>
-Cc: linux-acpi@vger.kernel.org, Laszlo Fiat <laszlo.fiat@gmail.com>, Nicholas Krause <xerofoify@gmail.com>, stable@vger.kernel.org
+To: Adam Thomson <Adam.Thomson.Opensource@diasemi.com>, Mark Brown <broonie@kernel.org>, Liam Girdwood <lgirdwood@gmail.com>, Jaroslav Kysela <perex@perex.cz>, Takashi Iwai <tiwai@suse.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Robert Moore <robert.moore@intel.com>, Lv Zheng <lv.zheng@intel.com>, "Rafael J.Wysocki" <rafael.j.wysocki@intel.com>, Len Brown <lenb@kernel.org>
+Cc: alsa-devel@alsa-project.org, linux-acpi@vger.kernel.org, devel@acpica.org, linux-kernel@vger.kernel.org, Support Opensource <support.opensource@diasemi.com>, Sathyanarayana Nujella <sathyanarayana.nujella@intel.com>, Suthikulpanit@diasemi.com, Suravee <Suravee.Suthikulpanit@amd.com>, Bjorn Helgaas <bhelgaas@google.com>, Hanjun Guo <hanjun.guo@linaro.org>, Mika Westerberg <mika.westerberg@linux.intel.com>, Andrew Morton <akpm@linux-foundation.org>, Heikki Krogerus <heikki.krogerus@linux.intel.com>
 
-From: Adrian Hunter <adrian.hunter@intel.com>
+On Tue, 2016-05-17 at 11:28 +0100, Adam Thomson wrote:
+> This change converts the driver from using the of_* functions to usin=
+g
+> the device_* and fwnode_* functions for accssing FW related data.
+>=20
+> Signed-off-by: Adam Thomson <Adam.Thomson.Opensource@diasemi.com>
+> Tested-by: Sathyanarayana Nujella <sathyanarayana.nujella@intel.com>
 
-Some devices connected to the SDHCI controller may have separate enabling
-lines that are controlled through GPIO. These devices need to be powered
-on and enabled before probing. This is to ensure all devices connected can
-be seen by the controller.
+@@ -538,97 +538,96 @@ static enum da7219_aad_adc_1bit_rpt
+> =C2=A0	}
+> =C2=A0}
+>=20
+> -static struct da7219_aad_pdata *da7219_aad_of_to_pdata(struct
+> snd_soc_codec *codec)
+> +static struct da7219_aad_pdata *da7219_aad_fw_to_pdata(struct
+> snd_soc_codec *codec)
+> =C2=A0{
+> -	struct device_node *np =3D codec->dev->of_node;
+> -	struct device_node *aad_np =3D of_find_node_by_name(np,
+> "da7219_aad");
+> +	struct device *dev =3D codec->dev;
+> +	struct i2c_client *i2c =3D to_i2c_client(dev);
+> +	struct fwnode_handle *aad_np =3D
+> +		device_get_named_child_node(dev, "da7219_aad");
 
-Signed-off-by: Adrian Hunter <adrian.hunter@intel.com>
-Tested-by: Laszlo Fiat <laszlo.fiat@gmail.com>
-Cc: <stable@vger.kernel.org> # 4.5+
-Signed-off-by: Ulf Hansson <ulf.hansson@linaro.org>
----
- drivers/mmc/host/sdhci-acpi.c | 7 ++++++-
- 1 file changed, 6 insertions(+), 1 deletion(-)
+I would suggest to do an assignment below...
 
-diff --git a/drivers/mmc/host/sdhci-acpi.c b/drivers/mmc/host/sdhci-acpi.c
-index b2d70ba..2d1c4870 100644
---- a/drivers/mmc/host/sdhci-acpi.c
-+++ b/drivers/mmc/host/sdhci-acpi.c
-@@ -378,7 +378,7 @@ static int sdhci_acpi_probe(struct platform_device *pdev)
- {
- 	struct device *dev = &pdev->dev;
- 	acpi_handle handle = ACPI_HANDLE(dev);
--	struct acpi_device *device;
-+	struct acpi_device *device, *child;
- 	struct sdhci_acpi_host *c;
- 	struct sdhci_host *host;
- 	struct resource *iomem;
-@@ -390,6 +390,11 @@ static int sdhci_acpi_probe(struct platform_device *pdev)
- 	if (acpi_bus_get_device(handle, &device))
- 		return -ENODEV;
- 
-+	/* Power on the SDHCI controller and its children */
-+	acpi_device_fix_up_power(device);
-+	list_for_each_entry(child, &device->children, node)
-+		acpi_device_fix_up_power(child);
-+
- 	if (acpi_bus_get_status(device) || !device->status.present)
- 		return -ENODEV;
- 
--- 
-1.9.1
+> =C2=A0	struct da7219_aad_pdata *aad_pdata;
+> -	const char *of_str;
+> -	u32 of_val32;
+> +	const char *fw_str;
+> +	u32 fw_val32;
+>=20
 
+
+=2E..right here.
+Same amount of LOC, but less difficult to see from where aad_np comes.
+
+> =C2=A0	if (!aad_np)
+> =C2=A0		return NULL;
+>=20
+
+> @@ -769,9 +768,9 @@ int da7219_aad_init(struct snd_soc_codec *codec)
+> =C2=A0	da7219->aad =3D da7219_aad;
+> =C2=A0	da7219_aad->codec =3D codec;
+>=20
+> -	/* Handle any DT/platform data */
+> -	if ((codec->dev->of_node) && (da7219->pdata))
+> -		da7219->pdata->aad_pdata =3D
+> da7219_aad_of_to_pdata(codec);
+> +	/* Handle any DT/ACPI/platform data */
+> + =C2=A0 =C2=A0 if ((da7219->pdata) && (!da7219->pdata->aad_pdata))
+
+Redundant parens, twice.
+
+--=20
+Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Intel Finland Oy
+--
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
