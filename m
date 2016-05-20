@@ -1,82 +1,45 @@
-From: Jon Masters <jcm@redhat.com>
-Subject: Re: [PATCH V7 00/11] Support for generic ACPI based PCI host
- controller
-Date: Fri, 20 May 2016 00:41:28 -0400
-Message-ID: <3d4aae09-51c4-f007-5100-191a4a85e27a@redhat.com>
-References: <1462893601-8937-1-git-send-email-tn@semihalf.com>
- <EE11001F9E5DDD47B7634E2F8A612F2E1ED8DF51@lhreml503-mbs>
- <57331290.7070104@semihalf.com>
+From: Aaron Lu <aaron.lu@intel.com>
+Subject: Re: linux-next 20160512 - ACPI issue with screen brightness
+Date: Fri, 20 May 2016 13:45:30 +0800
+Message-ID: <6674547c-cefb-1b93-893a-7c5909a180a7@intel.com>
+References: <4736.1463510462@turing-police.cc.vt.edu>
+ <CAJZ5v0jrFoQxLY_ZQrP-HP888swZbvSJPM=xNopC5MgQgnSxNg@mail.gmail.com>
+ <6459.1463698397@turing-police.cc.vt.edu>
+ <7208.1463713500@turing-police.cc.vt.edu>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=gbk
+Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-pci-owner@vger.kernel.org>
-In-Reply-To: <57331290.7070104@semihalf.com>
-Sender: linux-pci-owner@vger.kernel.org
-To: Tomasz Nowicki <tn@semihalf.com>, Gabriele Paoloni <gabriele.paoloni@huawei.com>, "helgaas@kernel.org" <helgaas@kernel.org>, "arnd@arndb.de" <arnd@arndb.de>, "will.deacon@arm.com" <will.deacon@arm.com>, "catalin.marinas@arm.com" <catalin.marinas@arm.com>, "rafael@kernel.org" <rafael@kernel.org>, "hanjun.guo@linaro.org" <hanjun.guo@linaro.org>, "Lorenzo.Pieralisi@arm.com" <Lorenzo.Pieralisi@arm.com>, "okaya@codeaurora.org" <okaya@codeaurora.org>, "jchandra@broadcom.com" <jchandra@broadcom.com>
-Cc: "robert.richter@caviumnetworks.com" <robert.richter@caviumnetworks.com>, "mw@semihalf.com" <mw@semihalf.com>, "Liviu.Dudau@arm.com" <Liviu.Dudau@arm.com>, "ddaney@caviumnetworks.com" <ddaney@caviumnetworks.com>, Wangyijing <wangyijing@huawei.com>, "Suravee.Suthikulpanit@amd.com" <Suravee.Suthikulpanit@amd.com>, "msalter@redhat.com" <msalter@redhat.com>, "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linaro-acpi@lists.linaro.org" <linaro-acpi@lists.linaro.org>, "jcm@redhat.com" <jcm@redhat.com>, "andrea.gallo@linaro.org" <andrea.gallo@linaro.org>, "dhdang@apm.com" <dhdang@apm.com>, "jeremy.linton@arm.com" <jeremy.linton@arm.com>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga01.intel.com ([192.55.52.88]:50250 "EHLO mga01.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750851AbcETFpd (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 20 May 2016 01:45:33 -0400
+In-Reply-To: <7208.1463713500@turing-police.cc.vt.edu>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Valdis.Kletnieks@vt.edu
+Cc: "Rafael J. Wysocki" <rafael@kernel.org>, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Len Brown <lenb@kernel.org>
 
-Hi Tomasz, all,
-
-On 05/11/2016 07:08 AM, Tomasz Nowicki wrote:
-
-> On 11.05.2016 12:41, Gabriele Paoloni wrote:
-
->>> v6 -> v7
->>> - drop quirks handling
->>
->> Maybe I missed something in the v6 discussion thread; when was it
->> decided to drop quirk handling?
+On 05/20/2016 11:05 AM, Valdis.Kletnieks@vt.edu wrote:
+> On Thu, 19 May 2016 18:53:17 -0400, Valdis.Kletnieks@vt.edu said:
 > 
-> I had such requests in previous series.
+>>>> next-20160512 sets the screen brightness to about 40%-ish or so, rather
+>>>> than the 100% intensity I want.
 
-A quick note on quirk handling. This, I believe, applies post-merge of
-the base infrastructure, which I realize will likely not have quirks.
+Do you mean after boot, the screen brightness is now 40% instead of the
+previous 100%? Are you using a GUI? If so, please boot into console mode
+to see if this is still the case as GUI sometimes will change backlight
+levels so better isolate its impact when testing.
 
-We've some "gen1" ARMv8 server platforms where we end up doing quirks
-(for things like forcing 32-bit config space accessors and the like) due
-to people repurposing existing embedded PCIe IP blocks or using them for
-the first time (especially in servers), and those being involved in the
-design not necessarily seeing this problem ahead of time, or not
-realizing that it would be an issue for servers. In the early days of
-ARM server designs 3-4 years ago, many of us had never really played
-with ECAM or realized how modern topologies are built.
+And please list your backlight interfaces:
+# ls /sys/class/backlight
+I assume it is acpi_video0 that is controlling your backlight levels,
+can you please check if it is still working well?
+# cd /sys/class/backlight/acpi_video0
+# cat max_brightness
+XXX
+# echo a_value_smaller_or_euqal_to_XXX > brightness
 
-Anyway. We missed this one in our SBSA requirements. They say (words to
-the effect of) "thou shalt do PCIe the way it is done on servers" but
-they aren't prescriptive, and they don't tell people how that actually
-is in reality. That is being fixed. A lot of things are happening behind
-the scenes - especially with third party IP block providers (all of whom
-myself and others are speaking with directly about this) - to ensure
-that the next wave of designs won't repeat these mistakes. We don't have
-a time machine, but we can contain this from becoming an ongoing mess
-for upstream, and we will do so. It won't be a zoo.
-
-Various proposals have arisen for how to handle quirks in the longer
-term, including elaborate frameworks and tables to describe them
-generically. I would like to caution against such approaches, especially
-in the case that they deviate from practice on x86, or prior to being
-standardized fully with other Operating System vendors. I don't expect
-there to be too many more than the existing initial set of quirks we
-have seen posted. A number of "future" server SoCs have already been
-fixed prior to silicon, and new design starts are being warned not to
-make this a problem for us to have to clean up later.
-
-So, I would like to suggest that the eventual framework mirror the
-existing approach on x86 systems (matching DMI, etc.) and not be made
-into some kind of generic, utopia. This is a case where we want there to
-be pain involved (and upstream patches required) when people screw up,
-so that they have a level of pain in response to ever making this
-mistake in the future. If we try to create too grand a generic scheme
-and make it too easy to handle this kind of situation beyond the small
-number of existing offenders, we undermine efforts to force vendors to
-ensure that their IP blocks are compliant going forward.
-
-Side note: if you're a third party IP vendor and we didn't already speak
-about this one, drop me a line, and let's collaborate also on your test
-frameworks to make sure you're covered as well.
-
-Jon.
-
--- 
-Computer Architect | Sent from my Fedora powered laptop
+BTW, do you see any error messages in your dmesg?
+Probably you can file a new bug at https://bugzilla.kernel.org under the
+ACPI/Power-Video category and attach your dmesg/acpidump there, thanks.
