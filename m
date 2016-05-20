@@ -1,80 +1,62 @@
-From: Aleksey Makarov <aleksey.makarov@linaro.org>
-Subject: [PATCH v8 3/4] ARM64: ACPI: enable ACPI_SPCR_TABLE
-Date: Fri, 20 May 2016 16:03:22 +0300
-Message-ID: <1463749405-11640-4-git-send-email-aleksey.makarov@linaro.org>
-References: <1463749405-11640-1-git-send-email-aleksey.makarov@linaro.org>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1463749405-11640-1-git-send-email-aleksey.makarov@linaro.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: "Rafael J . Wysocki" <rjw@rjwysocki.net>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: linux-serial@vger.kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Aleksey Makarov <aleksey.makarov@linaro.org>, Russell King <linux@arm.linux.org.uk>, Len Brown <lenb@kernel.org>, Leif Lindholm <leif.lindholm@linaro.org>, Graeme Gregory <graeme.gregory@linaro.org>, Al Stone <ahs3@redhat.com>, Christopher Covington <cov@codeaurora.org>, Yury Norov <ynorov@caviumnetworks.com>, Peter Hurley <peter@hurleysoftware.com>, Andy Shevchenko <andy.shevchenko@gmail.com>, "Zheng, Lv" <lv.zheng@intel.com>, Mark Salter <msalter@redhat.com>, Kefeng Wang <wangkefeng.wang@huawei.com>, Catalin Marinas <catalin.marinas@arm.com>, Will Deacon <will.deacon@arm.com>
+From: Ulf Hansson <ulf.hansson@linaro.org>
+Subject: Re: [PATCH 1/2] ACPI / PM: Export acpi_device_fix_up_power()
+Date: Fri, 20 May 2016 16:04:23 +0200
+Message-ID: <CAPDyKFoS+o9Z1XOphGu+kUqqvxy90EGr9Nq6uiu2118oNtSHQA@mail.gmail.com>
+References: <1463664342-19209-1-git-send-email-ulf.hansson@linaro.org>
+	<CAJZ5v0hNGiZWG55RHZt7m0Spg-cOEXpxYaCuF4rBc1NYsoSY3g@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Return-path: <stable-owner@vger.kernel.org>
+In-Reply-To: <CAJZ5v0hNGiZWG55RHZt7m0Spg-cOEXpxYaCuF4rBc1NYsoSY3g@mail.gmail.com>
+Sender: stable-owner@vger.kernel.org
+To: "Rafael J. Wysocki" <rafael@kernel.org>
+Cc: linux-mmc <linux-mmc@vger.kernel.org>, Adrian Hunter <adrian.hunter@intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Laszlo Fiat <laszlo.fiat@gmail.com>, Nicholas Krause <xerofoify@gmail.com>, Stable <stable@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-SBBR mentions SPCR as a mandatory ACPI table.  So enable it for ARM64
+On 19 May 2016 at 15:52, Rafael J. Wysocki <rafael@kernel.org> wrote:
+> On Thu, May 19, 2016 at 3:25 PM, Ulf Hansson <ulf.hansson@linaro.org> wrote:
+>> Drivers that needs acpi_device_fix_up_power(), allow them to be built as
+>> modules by exporting this function.
+>>
+>> Cc: <stable@vger.kernel.org> # 4.5+
+>> Tested-by: Laszlo Fiat <laszlo.fiat@gmail.com>
+>> Signed-off-by: Ulf Hansson <ulf.hansson@linaro.org>
+>> ---
+>>
+>> Rafael/Len, if you are okay with using acpi_device_fix_up_power() as a fix
+>> for an issue in patch 2/2, then I would like to request an ack so I can take
+>> both these patches via my MMC tree.
+>
+> Yeah, should be fine.
+>
+> Acked-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 
-Earlycon should be set up as early as possible.  ACPI boot tables are
-mapped in arch/arm64/kernel/acpi.c:acpi_boot_table_init() that
-is called from setup_arch() and that's where we parse SPCR.
-So it has to be opted-in per-arch.
+Thanks, applied for fixes!
 
-When ACPI_SPCR_TABLE is defined initialization of DT earlycon is
-deferred until the DT/ACPI decision is done.  Initialize DT earlycon
-if ACPI is disabled.
+Kind regards
+Uffe
 
-Signed-off-by: Aleksey Makarov <aleksey.makarov@linaro.org>
-Tested-by: Kefeng Wang <wangkefeng.wang@huawei.com>
----
- arch/arm64/Kconfig       |  1 +
- arch/arm64/kernel/acpi.c | 11 ++++++++++-
- 2 files changed, 11 insertions(+), 1 deletion(-)
-
-diff --git a/arch/arm64/Kconfig b/arch/arm64/Kconfig
-index 5d30abf..80c0816 100644
---- a/arch/arm64/Kconfig
-+++ b/arch/arm64/Kconfig
-@@ -4,6 +4,7 @@ config ARM64
- 	select ACPI_GENERIC_GSI if ACPI
- 	select ACPI_PCI_HOST_GENERIC if ACPI
- 	select ACPI_REDUCED_HARDWARE_ONLY if ACPI
-+	select ACPI_SPCR_TABLE if ACPI
- 	select ARCH_HAS_DEVMEM_IS_ALLOWED
- 	select ARCH_HAS_ATOMIC64_DEC_IF_POSITIVE
- 	select ARCH_HAS_ELF_RANDOMIZE
-diff --git a/arch/arm64/kernel/acpi.c b/arch/arm64/kernel/acpi.c
-index 3e4f1a4..252a6d9 100644
---- a/arch/arm64/kernel/acpi.c
-+++ b/arch/arm64/kernel/acpi.c
-@@ -24,6 +24,7 @@
- #include <linux/memblock.h>
- #include <linux/of_fdt.h>
- #include <linux/smp.h>
-+#include <linux/serial_core.h>
- 
- #include <asm/cputype.h>
- #include <asm/cpu_ops.h>
-@@ -206,7 +207,7 @@ void __init acpi_boot_table_init(void)
- 	if (param_acpi_off ||
- 	    (!param_acpi_on && !param_acpi_force &&
- 	     of_scan_flat_dt(dt_scan_depth1_nodes, NULL)))
--		return;
-+		goto done;
- 
- 	/*
- 	 * ACPI is disabled at this point. Enable it in order to parse
-@@ -226,6 +227,14 @@ void __init acpi_boot_table_init(void)
- 		if (!param_acpi_force)
- 			disable_acpi();
- 	}
-+
-+done:
-+	if (acpi_disabled) {
-+		if (earlycon_init_is_deferred)
-+			early_init_dt_scan_chosen_stdout();
-+	} else {
-+		parse_spcr(earlycon_init_is_deferred);
-+	}
- }
- 
- #ifdef CONFIG_ACPI_APEI
--- 
-2.8.2
+>
+>> ---
+>>  drivers/acpi/device_pm.c | 1 +
+>>  1 file changed, 1 insertion(+)
+>>
+>> diff --git a/drivers/acpi/device_pm.c b/drivers/acpi/device_pm.c
+>> index cd2c3d6..993fd31 100644
+>> --- a/drivers/acpi/device_pm.c
+>> +++ b/drivers/acpi/device_pm.c
+>> @@ -319,6 +319,7 @@ int acpi_device_fix_up_power(struct acpi_device *device)
+>>
+>>         return ret;
+>>  }
+>> +EXPORT_SYMBOL_GPL(acpi_device_fix_up_power);
+>>
+>>  int acpi_device_update_power(struct acpi_device *device, int *state_p)
+>>  {
+>> --
+>> 1.9.1
+>>
+>> --
+>> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
+>> the body of a message to majordomo@vger.kernel.org
+>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
