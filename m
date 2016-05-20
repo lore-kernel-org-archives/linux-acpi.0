@@ -1,168 +1,43 @@
 From: "Zheng, Lv" <lv.zheng@intel.com>
-Subject: RE: [PATCH v2 2/5] ACPI: table upgrade: refactor function
- definitions
-Date: Fri, 20 May 2016 00:52:14 +0000
-Message-ID: <1AE640813FDE7649BE1B193DEA596E883BBA461D@SHSMSX101.ccr.corp.intel.com>
-References: <1463674518-22477-1-git-send-email-aleksey.makarov@linaro.org>
- <1463674518-22477-3-git-send-email-aleksey.makarov@linaro.org>
+Subject: RE: [PATCH v2 0/4] ACPI 2.0: Enable TermList interpretion for table
+ loading
+Date: Fri, 20 May 2016 00:57:20 +0000
+Message-ID: <1AE640813FDE7649BE1B193DEA596E883BBA4649@SHSMSX101.ccr.corp.intel.com>
+References: <cover.1463109824.git.lv.zheng@intel.com>
+	<1AE640813FDE7649BE1B193DEA596E883BBA2A9A@SHSMSX101.ccr.corp.intel.com>
+ <CAJZ5v0gYBKC0GxBpFH-jOca7ide-pGc9R1bfi9PCSZgiB1hSAg@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga02.intel.com ([134.134.136.20]:63035 "EHLO mga02.intel.com"
+Received: from mga11.intel.com ([192.55.52.93]:54343 "EHLO mga11.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755123AbcETAwS convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 19 May 2016 20:52:18 -0400
-In-Reply-To: <1463674518-22477-3-git-send-email-aleksey.makarov@linaro.org>
+	id S932592AbcETA5Y (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 19 May 2016 20:57:24 -0400
+In-Reply-To: <CAJZ5v0gYBKC0GxBpFH-jOca7ide-pGc9R1bfi9PCSZgiB1hSAg@mail.gmail.com>
 Content-Language: en-US
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Aleksey Makarov <aleksey.makarov@linaro.org>, Russell King <linux@arm.linux.org.uk>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>
-Cc: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Graeme Gregory <graeme.gregory@linaro.org>, Jon Masters <jcm@redhat.com>, Mark Rutland <mark.rutland@arm.com>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, "x86@kernel.org" <x86@kernel.org>
+To: "Rafael J. Wysocki" <rafael@kernel.org>
+Cc: "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, "Brown, Len" <len.brown@intel.com>, Lv Zheng <zetalog@gmail.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
 
-Hi,
-
-Looks real good now. :)
-If there is a next version, feel free to add:
-Acked-by: Lv Zheng <lv.zheng@intel.com>
-
-Thanks and best regards
--Lv
-
-> From: Aleksey Makarov [mailto:aleksey.makarov@linaro.org]
-> Subject: [PATCH v2 2/5] ACPI: table upgrade: refactor function definitions
-> 
-> Refer initrd_start, initrd_end directly from drivers/acpi/tables.c.
-> This allows to use the table upgrade feature in architectures
-> other than x86.  Also this simplifies header files.
-> 
-> The patch renames acpi_table_initrd_init() to acpi_table_upgrade()
-> (what reflects the purpose of the function) and removes the unneeded
-> wraps early_acpi_table_init() and early_initrd_acpi_init().
-> 
-> Signed-off-by: Aleksey Makarov <aleksey.makarov@linaro.org>
-> ---
->  arch/x86/kernel/setup.c |  9 +--------
->  drivers/acpi/tables.c   | 14 ++++----------
->  include/linux/acpi.h    |  8 ++++++--
->  3 files changed, 11 insertions(+), 20 deletions(-)
-> 
-> diff --git a/arch/x86/kernel/setup.c b/arch/x86/kernel/setup.c
-> index c4e7b39..aac91be 100644
-> --- a/arch/x86/kernel/setup.c
-> +++ b/arch/x86/kernel/setup.c
-> @@ -399,10 +399,6 @@ static void __init reserve_initrd(void)
->  	memblock_free(ramdisk_image, ramdisk_end - ramdisk_image);
->  }
-> 
-> -static void __init early_initrd_acpi_init(void)
-> -{
-> -	early_acpi_table_init((void *)initrd_start, initrd_end - initrd_start);
-> -}
->  #else
->  static void __init early_reserve_initrd(void)
->  {
-> @@ -410,9 +406,6 @@ static void __init early_reserve_initrd(void)
->  static void __init reserve_initrd(void)
->  {
->  }
-> -static void __init early_initrd_acpi_init(void)
-> -{
-> -}
->  #endif /* CONFIG_BLK_DEV_INITRD */
-> 
->  static void __init parse_setup_data(void)
-> @@ -1146,7 +1139,7 @@ void __init setup_arch(char **cmdline_p)
-> 
->  	reserve_initrd();
-> 
-> -	early_initrd_acpi_init();
-> +	acpi_table_upgrade();
-> 
->  	vsmp_init();
-> 
-> diff --git a/drivers/acpi/tables.c b/drivers/acpi/tables.c
-> index f829e6a..b05df13 100644
-> --- a/drivers/acpi/tables.c
-> +++ b/drivers/acpi/tables.c
-> @@ -34,6 +34,7 @@
->  #include <linux/bootmem.h>
->  #include <linux/earlycpio.h>
->  #include <linux/memblock.h>
-> +#include <linux/initrd.h>
->  #include "internal.h"
-> 
->  #ifdef CONFIG_ACPI_CUSTOM_DSDT
-> @@ -481,8 +482,10 @@ static DECLARE_BITMAP(acpi_initrd_installed,
-> NR_ACPI_INITRD_TABLES);
-> 
->  #define MAP_CHUNK_SIZE   (NR_FIX_BTMAPS << PAGE_SHIFT)
-> 
-> -static void __init acpi_table_initrd_init(void *data, size_t size)
-> +void __init acpi_table_upgrade(void)
->  {
-> +	void *data = (void *)initrd_start;
-> +	size_t size = initrd_end - initrd_start;
->  	int sig, no, table_nr = 0, total_offset = 0;
->  	long offset = 0;
->  	struct acpi_table_header *table;
-> @@ -696,10 +699,6 @@ next_table:
->  	}
->  }
->  #else
-> -static void __init acpi_table_initrd_init(void *data, size_t size)
-> -{
-> -}
-> -
->  static acpi_status
->  acpi_table_initrd_override(struct acpi_table_header *existing_table,
->  			   acpi_physical_address *address,
-> @@ -742,11 +741,6 @@ acpi_os_table_override(struct acpi_table_header
-> *existing_table,
->  	return AE_OK;
->  }
-> 
-> -void __init early_acpi_table_init(void *data, size_t size)
-> -{
-> -	acpi_table_initrd_init(data, size);
-> -}
-> -
->  /*
->   * acpi_table_init()
->   *
-> diff --git a/include/linux/acpi.h b/include/linux/acpi.h
-> index 288fac5..ef2ad26 100644
-> --- a/include/linux/acpi.h
-> +++ b/include/linux/acpi.h
-> @@ -208,7 +208,6 @@ void acpi_boot_table_init (void);
->  int acpi_mps_check (void);
->  int acpi_numa_init (void);
-> 
-> -void early_acpi_table_init(void *data, size_t size);
->  int acpi_table_init (void);
->  int acpi_table_parse(char *id, acpi_tbl_table_handler handler);
->  int __init acpi_parse_entries(char *id, unsigned long table_size,
-> @@ -588,7 +587,6 @@ static inline const char *acpi_dev_name(struct
-> acpi_device *adev)
->  	return NULL;
->  }
-> 
-> -static inline void early_acpi_table_init(void *data, size_t size) { }
->  static inline void acpi_early_init(void) { }
->  static inline void acpi_subsystem_init(void) { }
-> 
-> @@ -997,4 +995,10 @@ static inline struct fwnode_handle
-> *acpi_get_next_subnode(struct device *dev,
->  #define acpi_probe_device_table(t)	({ int __r = 0; __r;})
->  #endif
-> 
-> +#ifdef CONFIG_ACPI_TABLE_UPGRADE
-> +void acpi_table_upgrade(void);
-> +#else
-> +static inline void acpi_table_upgrade(void) { }
-> +#endif
-> +
->  #endif	/*_LINUX_ACPI_H*/
-> --
-> 2.8.2
-
+SGksIFJhZmFlbA0KDQo+IEZyb206IHJqd3lzb2NraUBnbWFpbC5jb20gW21haWx0bzpyand5c29j
+a2lAZ21haWwuY29tXSBPbiBCZWhhbGYgT2YNCj4gUmFmYWVsIEouIFd5c29ja2kNCj4gU3ViamVj
+dDogUmU6IFtQQVRDSCB2MiAwLzRdIEFDUEkgMi4wOiBFbmFibGUgVGVybUxpc3QgaW50ZXJwcmV0
+aW9uIGZvciB0YWJsZQ0KPiBsb2FkaW5nDQo+IA0KPiBPbiBUdWUsIE1heSAxNywgMjAxNiBhdCAy
+OjI5IEFNLCBaaGVuZywgTHYgPGx2LnpoZW5nQGludGVsLmNvbT4gd3JvdGU6DQo+ID4gSGksIFJh
+ZmFlbA0KPiA+DQo+ID4gQ2FuIHdlIHF1ZXVlIHRoaXMgdXAgaW4gbGludXgtbmV4dD8NCj4gPiBB
+U0xUUyByZWN1cnNpdmUgdGVzdHMgYXJlIGRvbmUgaW4gQUNQSUNBIHVwc3RyZWFtIGFuZCBubyBy
+ZWdyZXNzaW9ucyBjYW4gYmUNCj4gc2Vlbi4NCj4gPiBXZSBuZWVkIG1vcmUgdGVzdHMgYXJvdW5k
+IHRoaXMgZXhwZXJpbWVudGFsIGNoYW5nZSBmcm9tIHRoZSByZWFsIHVzZXJzIHRvDQo+IGhhdmUg
+dGhlIGNoYW5jZXMgdG8gbGVhcm4gdGhlIHVua25vd24gY2FzZXMuDQo+ID4gSWYgdGhleSByZXBv
+cnRlZCByZWdyZXNzaW9ucywgd2UgY291bGQgc3RvcCB0aGUgcmVncmVzc2lvbnMgYnkgcmV2ZXJ0
+aW5nDQo+IFtQQVRDSCA0LzRdLg0KPiA+IFNvIGl0IHNob3VsZCBiZSBzYWZlIHRvIGRvIHN1Y2gg
+ZXhwZXJpbWVudHMgaW4gdGhlIExpbnV4IHVwc3RyZWFtLg0KPiA+IFRoYW5rcyBpbiBhZHZhbmNl
+Lg0KPiANCj4gVGhlcmUgaXMgYSBydWxlIHRoYXQgZHVyaW5nIGEgbWVyZ2Ugd2luZG93IGxpbnV4
+LW5leHQgc2hvdWxkIG9ubHkNCj4gY29udGFpbiBtYXRlcmlhbCBmb3IgdGhhdCBtZXJnZSB3aW5k
+b3cuICBUaGF0IGlzLCBjdXJyZW50bHkgbGludXgtbmV4dA0KPiBzaG91bGQgb25seSBjb250YWlu
+IG1hdGVyaWFsIHRhcmdldGVkIGF0IHY0LjcuDQo+IA0KPiBGb3IgdGhpcyByZWFzb24sIEkgY2Fu
+J3QgcHV0IHRoZSBzZXJpZXMgaW50byBsaW51eC1uZXh0IHJpZ2h0IG5vdywgYnV0DQo+IEknbGwg
+ZG8gdGhhdCBhcyBzb29uIGFzIDQuNy1yYzEgaXMgcmVsZWFzZWQuDQpbTHYgWmhlbmddIA0KR3Jl
+YXQhDQpUaGFua3MgZm9yIHRoZSBpbmZvcm1hdGlvbi4NCg0KQmVzdCByZWdhcmRzDQotTHYNCg==
