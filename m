@@ -1,69 +1,173 @@
-From: Ard Biesheuvel <ard.biesheuvel@linaro.org>
-Subject: Re: [PATCH V7 00/11] Support for generic ACPI based PCI host controller
-Date: Fri, 20 May 2016 11:14:03 +0200
-Message-ID: <CAKv+Gu_zpoFsDr7e8zPCDKPpRdKDVH+vnC0nfvmGaJ7xcP3Zng@mail.gmail.com>
-References: <1462893601-8937-1-git-send-email-tn@semihalf.com>
-	<EE11001F9E5DDD47B7634E2F8A612F2E1ED8DF51@lhreml503-mbs>
-	<57331290.7070104@semihalf.com>
-	<3d4aae09-51c4-f007-5100-191a4a85e27a@redhat.com>
-	<CAKv+Gu8fdeJ9OvRSmtu9zyvcjK3O-4WU=jG=6-7t4xZwvV8d2g@mail.gmail.com>
-	<95b1d06e-f9c5-39f3-1003-f536b65eef60@redhat.com>
-	<CAKv+Gu-_xp_t_Ze3Pw_-82-fmy=tCy-h=4FbP98eLbuXVk2hHQ@mail.gmail.com>
-	<EE11001F9E5DDD47B7634E2F8A612F2E1EDAF6AC@lhreml503-mbs>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-pci-owner@vger.kernel.org>
-In-Reply-To: <EE11001F9E5DDD47B7634E2F8A612F2E1EDAF6AC@lhreml503-mbs>
-Sender: linux-pci-owner@vger.kernel.org
-To: Gabriele Paoloni <gabriele.paoloni@huawei.com>
-Cc: Jon Masters <jcm@redhat.com>, Tomasz Nowicki <tn@semihalf.com>, "helgaas@kernel.org" <helgaas@kernel.org>, "arnd@arndb.de" <arnd@arndb.de>, "will.deacon@arm.com" <will.deacon@arm.com>, "catalin.marinas@arm.com" <catalin.marinas@arm.com>, "rafael@kernel.org" <rafael@kernel.org>, "hanjun.guo@linaro.org" <hanjun.guo@linaro.org>, "Lorenzo.Pieralisi@arm.com" <Lorenzo.Pieralisi@arm.com>, "okaya@codeaurora.org" <okaya@codeaurora.org>, "jchandra@broadcom.com" <jchandra@broadcom.com>, "linaro-acpi@lists.linaro.org" <linaro-acpi@lists.linaro.org>, "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>, "dhdang@apm.com" <dhdang@apm.com>, "Liviu.Dudau@arm.com" <Liviu.Dudau@arm.com>, "ddaney@caviumnetworks.com" <ddaney@caviumnetworks.com>, "jeremy.linton@arm.com" <jeremy.linton@arm.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, linux-acpi@vger.kernel.org
+From: Aleksey Makarov <aleksey.makarov@linaro.org>
+Subject: [PATCH v8 0/4] ACPI: parse the SPCR table
+Date: Fri, 20 May 2016 16:03:19 +0300
+Message-ID: <1463749405-11640-1-git-send-email-aleksey.makarov@linaro.org>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-lf0-f49.google.com ([209.85.215.49]:34303 "EHLO
+	mail-lf0-f49.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754887AbcETNE7 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 20 May 2016 09:04:59 -0400
+Received: by mail-lf0-f49.google.com with SMTP id m64so49264828lfd.1
+        for <linux-acpi@vger.kernel.org>; Fri, 20 May 2016 06:04:58 -0700 (PDT)
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: "Rafael J . Wysocki" <rjw@rjwysocki.net>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: linux-serial@vger.kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Aleksey Makarov <aleksey.makarov@linaro.org>, Russell King <linux@arm.linux.org.uk>, Len Brown <lenb@kernel.org>, Leif Lindholm <leif.lindholm@linaro.org>, Graeme Gregory <graeme.gregory@linaro.org>, Al Stone <ahs3@redhat.com>, Christopher Covington <cov@codeaurora.org>, Yury Norov <ynorov@caviumnetworks.com>, Peter Hurley <peter@hurleysoftware.com>, Andy Shevchenko <andy.shevchenko@gmail.com>, "Zheng, Lv" <lv.zheng@intel.com>, Mark Salter <msalter@redhat.com>, Kefeng Wang <wangkefeng.wang@huawei.com>
 
-On 20 May 2016 at 10:40, Gabriele Paoloni <gabriele.paoloni@huawei.com> wrote:
-> Hi Ard
->
->> -----Original Message-----
->> From: Ard Biesheuvel [mailto:ard.biesheuvel@linaro.org]
-[...]
->>
->> Is the PCIe root complex so special that you cannot simply describe an
->> implementation that is not PNP0408 compatible as something else, under
->> its own unique HID? If everybody is onboard with using ACPI, how is
->> this any different from describing other parts of the platform
->> topology? Even if the SBSA mandates generic PCI, they already deviated
->> from that when they built the hardware, so pretending that it is a
->> PNP0408 with quirks really does not buy us anything.
->
-> From my understanding we want to avoid this as this would allow each
-> vendor to come up with his own code and it would be much more effort
-> for the PCI maintainer to rework the PCI framework to accommodate X86
-> and "all" ARM64 Host Controllers...
->
-> I guess this approach is too risky and we want to avoid this. Through
-> standardization we can more easily maintain the code and scale it to
-> multiple SoCs...
->
-> So this is my understanding; maybe Jon, Tomasz or Lorenzo can give
-> a bit more explanation...
->
+'ARM Server Base Boot Requirements' [1] mentions SPCR (Serial Port Console
+Redirection Table) [2] as a mandatory ACPI table that specifies the
+configuration of serial console.
 
-OK, so that boils down to recommending to vendors to represent known
-non-compliant hardware as compliant, just so that we don't have to
-change the code to support additional flavors of ECAM ? It's fine to
-be pragmatic, but that sucks.
+Move "earlycon" early_param handling to earlycon.c to parse this option once
 
-We keep confusing the x86 case with the ARM case here: for x86, they
-needed to deal with broken hardware *after* the fact, and all they
-could do is find /some/ distinguishing feature in order to guess which
-exact hardware they might be running on. For arm64, it is the opposite
-case. We are currently in a position where we can demand vendors to
-comply with the standards they endorsed themselves, and (ab)using ACPI
-+ DMI as a de facto platform description rather than plain ACPI makes
-me think the DT crowd were actually right from the beginning. It
-*directly* violates the standardization principle, since it requires a
-priori knowledge inside the OS that a certain 'generic' device must be
-driven in a special way.
+Parse SPCR table, setup earlycon and register specified console.
 
-So can anyone comment on the feasibility of adding support for devices
-with vendor specific HIDs (and no generic CIDs) to the current ACPI
-ECAM driver in Linux?
+Enable parsing this table on ARM64.  Earlycon should be set up as early as
+possible.  ACPI boot tables are mapped in
+arch/arm64/kernel/acpi.c:acpi_boot_table_init() called from setup_arch() and
+that's where we parse spcr.  So it has to be opted-in per-arch. When
+ACPI_SPCR_TABLE is defined initialization of DT earlycon is deferred until the
+DT/ACPI decision is done.
+
+Implement console_match() for pl011.
+
+Based on the work by Leif Lindholm [3]
+Thanks to Peter Hurley for explaining how this should work.
+
+Should be applied to next-20160520
+Tested on QEMU and ThunderX.
+SPCR support is included in QEMU's ARM64 mach-virt since 2.4 release.
+
+v8:
+- rebase to next-20160520
+- remove the patch "ACPICA: Headers: Add new constants for the DBG2 ACPI table"
+  as it have got to linux-next
+- add Acked-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Reviewed-by:
+  Peter Hurley <peter@hurleysoftware.com> (but see below)
+- fix the patch "serial: pl011: add console matching function".  The patch by
+  Christopher Covington [4] specifies that SBSA uart does 32-bit access to
+  registers and this breaks the match function.  In this series the function
+  was changed to match when SPCR specifies both mmio32 and mmio access.
+  I removed Acked-by: Greg from this patch because of these changes.
+
+v7:
+https://lkml.kernel.org/g/1459431629-27934-1-git-send-email-aleksey.makarov@linaro.org
+- add Acked-by: Rob Herring for "of/serial: move earlycon early_param handling
+  to serial"
+- call DT earlycon initialization from the arch ACPI code, not from parse_spcr()
+  (Rafael J. Wysocki)
+- fix a few minor issues (Rafael J. Wysocki)
+
+v6:
+https://lkml.kernel.org/g/1458823925-19560-1-git-send-email-aleksey.makarov@linaro.org
+- add documentation for parse_spcr() functioin (Yury Norov)
+- don't initialize err variable (Yury Norov)
+- add __initdata for the earlycon_init_is_deferred flag variable
+- rename the function exported in "of/serial: move earlycon early_param handling
+  to serial" to avoid clash with the function from arch/microblaze/kernel/prom.c
+- defer initialization of DT earlycon until DT/ACPI decision is made
+  (Rob Herring, Peter Hurley)
+- use snprintf instead of sprintf (Andy Shevchenko)
+- drop patch that adds EARLYCON_DECLARE for pl011 as EARLYCON_DECLARE is
+  equivalent to OF_EARLYCON_DECLARE for 4.6+ (Peter Hurley).  This means that
+  SPCR earlycon will not work on the kernels before 4.6
+
+v5:
+https://lkml.kernel.org/g/1458643595-14719-1-git-send-email-aleksey.makarov@linaro.org
+- drop patch "serial: pl011: use ACPI SPCR to setup 32-bit access" because
+  it is ugly. Also because Christopher Covington came with a better solution [4]
+- remove error message when the table is not provided by ACPI (Andy Shevchenko)
+- rewrite spcr.c following the suggestions by Peter Hurley
+- add console_match() for pl011 in a separate patch
+- add EARLYCON_DECLARE for pl011 in a separate patch
+- add patch "of/serial: move earlycon early_param handling to serial" from
+  the GDB2 series
+
+v4:
+https://lkml.kernel.org/g/1456747355-15692-1-git-send-email-aleksey.makarov@linaro.org
+- drop patch "ACPI: change __init to __ref for early_acpi_os_unmap_memory()"
+  ACPI developers work on a new API and asked not to do that.
+  Instead, use acpi_get_table_with_size()/early_acpi_os_unmap_memory() once
+  and cache the result. (Lv Zheng)
+- fix some style issues (Yury Norov)
+
+v3:
+https://lkml.kernel.org/g/1455559532-8305-1-git-send-email-aleksey.makarov@linaro.org
+
+Greg Kroah-Hartman did not like v2 so I have rewritten this patchset:
+
+- drop acpi_match() member of struct console
+- drop implementations of this member for pl011 and 8250
+- drop the patch that renames some vars in printk.c as it is not needed anymore
+- drop patch that introduces system wide acpi_table_parse2().
+  Instead introduce a custom acpi_table_parse_spcr() in spcr.c
+
+Instead of introducing a new match_acpi() member of struct console,
+this patchset introduces a new function acpi_console_check().
+This function is called when a new uart is registered at serial_core.c
+the same way OF code checks for console.  If the registered uart is the
+console specified by SPCR table, this function calls add_preferred_console()
+
+The restrictions of this approach are:
+
+- only serial consoles can be set up
+- only consoles specified by the memory/io address can be set up
+  (SPCR can specify devices by PCI id/PCI address)
+
+v2:
+https://lkml.kernel.org/g/1455299022-11641-1-git-send-email-aleksey.makarov@linaro.org
+- don't use SPCR if user specified console in command line
+- fix initialization order of newcon->index = 0
+- rename some variables at printk.c (Joe Perches, Peter Hurley)
+- enable ACPI_SPCR_TABLE in a separate patch (Andy Shevchenko)
+- remove the retry loop for console registering (Peter Hurley).
+  Instead, obtain SPCR with acpi_get_table().  That works after
+  call to acpi_early_init() i. e. in any *_initcall()
+- describe design decision behind introducing acpi_match() (Peter Hurley)
+- fix compilation for x86 + ACPI (Graeme Gregory)
+- introduce DBG2 constants in a separate patch (Andy Shevchenko)
+- fix a typo in DBG2 constants (Andy Shevchenko)
+- add ACPI_DBG2_ARM_SBSA_32BIT constant (Christopher Covington)
+- add support for ACPI_DBG2_ARM_SBSA_* consoles (Christopher Covington)
+- add documentation for functions
+- add a patch that uses SPCR to find if SBSA serial driver should use 32-bit
+  accessor functions (Christopher Covington)
+- change __init to __ref for early_acpi_os_unmap_memory() in a separate patch
+- introduce acpi_table_parse2() in a separate patch
+- fix fetching the SPCR table early (Mark Salter)
+- add a patch from Mark Salter that introduces support for matching 8250-based
+  consoles
+
+v1:
+https://lkml.kernel.org/g/1453722324-22407-1-git-send-email-aleksey.makarov@linaro.org
+
+[1] http://infocenter.arm.com/help/index.jsp?topic=/com.arm.doc.den0044a/index.html
+[2] https://msdn.microsoft.com/en-us/library/windows/hardware/dn639132(v=vs.85).aspx
+[3] https://lkml.kernel.org/g/1441716217-23786-1-git-send-email-leif.lindholm@linaro.org
+[4] https://lkml.kernel.org/g/1457415800-8799-1-git-send-email-cov@codeaurora.org
+
+Aleksey Makarov (3):
+  ACPI: parse SPCR and enable matching console
+  ARM64: ACPI: enable ACPI_SPCR_TABLE
+  serial: pl011: add console matching function
+
+Leif Lindholm (1):
+  of/serial: move earlycon early_param handling to serial
+
+ arch/arm64/Kconfig              |   1 +
+ arch/arm64/kernel/acpi.c        |  11 +++-
+ drivers/acpi/Kconfig            |   3 ++
+ drivers/acpi/Makefile           |   1 +
+ drivers/acpi/spcr.c             | 111 ++++++++++++++++++++++++++++++++++++++++
+ drivers/of/fdt.c                |  11 +---
+ drivers/tty/serial/amba-pl011.c |  56 ++++++++++++++++++++
+ drivers/tty/serial/earlycon.c   |  19 ++++++-
+ include/linux/acpi.h            |   6 +++
+ include/linux/of_fdt.h          |   2 +
+ include/linux/serial_core.h     |   6 +++
+ 11 files changed, 214 insertions(+), 13 deletions(-)
+ create mode 100644 drivers/acpi/spcr.c
+
+-- 
+2.8.2
+
