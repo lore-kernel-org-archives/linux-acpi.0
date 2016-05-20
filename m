@@ -1,176 +1,203 @@
-From: Ard Biesheuvel <ard.biesheuvel@linaro.org>
-Subject: Re: [PATCH V7 00/11] Support for generic ACPI based PCI host controller
-Date: Fri, 20 May 2016 10:28:59 +0200
-Message-ID: <CAKv+Gu-_xp_t_Ze3Pw_-82-fmy=tCy-h=4FbP98eLbuXVk2hHQ@mail.gmail.com>
+From: Gabriele Paoloni <gabriele.paoloni@huawei.com>
+Subject: RE: [PATCH V7 00/11] Support for generic ACPI based PCI host
+ controller
+Date: Fri, 20 May 2016 08:40:34 +0000
+Message-ID: <EE11001F9E5DDD47B7634E2F8A612F2E1EDAF6AC@lhreml503-mbs>
 References: <1462893601-8937-1-git-send-email-tn@semihalf.com>
 	<EE11001F9E5DDD47B7634E2F8A612F2E1ED8DF51@lhreml503-mbs>
 	<57331290.7070104@semihalf.com>
 	<3d4aae09-51c4-f007-5100-191a4a85e27a@redhat.com>
 	<CAKv+Gu8fdeJ9OvRSmtu9zyvcjK3O-4WU=jG=6-7t4xZwvV8d2g@mail.gmail.com>
 	<95b1d06e-f9c5-39f3-1003-f536b65eef60@redhat.com>
+ <CAKv+Gu-_xp_t_Ze3Pw_-82-fmy=tCy-h=4FbP98eLbuXVk2hHQ@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-io0-f171.google.com ([209.85.223.171]:36427 "EHLO
-	mail-io0-f171.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932667AbcETI3B (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 20 May 2016 04:29:01 -0400
-Received: by mail-io0-f171.google.com with SMTP id f8so5466898ioe.3
-        for <linux-acpi@vger.kernel.org>; Fri, 20 May 2016 01:29:00 -0700 (PDT)
-In-Reply-To: <95b1d06e-f9c5-39f3-1003-f536b65eef60@redhat.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <CAKv+Gu-_xp_t_Ze3Pw_-82-fmy=tCy-h=4FbP98eLbuXVk2hHQ@mail.gmail.com>
+Content-Language: en-US
+Sender: linux-kernel-owner@vger.kernel.org
+To: Ard Biesheuvel <ard.biesheuvel@linaro.org>, Jon Masters <jcm@redhat.com>
+Cc: Tomasz Nowicki <tn@semihalf.com>, "helgaas@kernel.org" <helgaas@kernel.org>, "arnd@arndb.de" <arnd@arndb.de>, "will.deacon@arm.com" <will.deacon@arm.com>, "catalin.marinas@arm.com" <catalin.marinas@arm.com>, "rafael@kernel.org" <rafael@kernel.org>, "hanjun.guo@linaro.org" <hanjun.guo@linaro.org>, "Lorenzo.Pieralisi@arm.com" <Lorenzo.Pieralisi@arm.com>, "okaya@codeaurora.org" <okaya@codeaurora.org>, "jchandra@broadcom.com" <jchandra@broadcom.com>, "linaro-acpi@lists.linaro.org" <linaro-acpi@lists.linaro.org>, "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>, "dhdang@apm.com" <dhdang@apm.com>, "Liviu.Dudau@arm.com" <Liviu.Dudau@arm.com>, "ddaney@caviumnetworks.com" <ddaney@caviumnetworks.com>, "jeremy.linton@arm.com" <jeremy.linton@arm.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
-To: Jon Masters <jcm@redhat.com>
-Cc: Tomasz Nowicki <tn@semihalf.com>, Gabriele Paoloni <gabriele.paoloni@huawei.com>, "helgaas@kernel.org" <helgaas@kernel.org>, "arnd@arndb.de" <arnd@arndb.de>, "will.deacon@arm.com" <will.deacon@arm.com>, "catalin.marinas@arm.com" <catalin.marinas@arm.com>, "rafael@kernel.org" <rafael@kernel.org>, "hanjun.guo@linaro.org" <hanjun.guo@linaro.org>, "Lorenzo.Pieralisi@arm.com" <Lorenzo.Pieralisi@arm.com>, "okaya@codeaurora.org" <okaya@codeaurora.org>, "jchandra@broadcom.com" <jchandra@broadcom.com>, "linaro-acpi@lists.linaro.org" <linaro-acpi@lists.linaro.org>, "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>, "dhdang@apm.com" <dhdang@apm.com>, "Liviu.Dudau@arm.com" <Liviu.Dudau@arm.com>, "ddaney@caviumnetworks.com" <ddaney@caviumnetworks.com>, "jeremy.linton@arm.com" <jeremy.linton@arm.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, linux-acp
 
-On 20 May 2016 at 10:01, Jon Masters <jcm@redhat.com> wrote:
-> Hi Ard,
->
-> On 05/20/2016 03:37 AM, Ard Biesheuvel wrote:
->> On 20 May 2016 at 06:41, Jon Masters <jcm@redhat.com> wrote:
->>> Hi Tomasz, all,
->>>
->>> On 05/11/2016 07:08 AM, Tomasz Nowicki wrote:
->>>
->>>> On 11.05.2016 12:41, Gabriele Paoloni wrote:
->>>
->>>>>> v6 -> v7
->>>>>> - drop quirks handling
->>>>>
->>>>> Maybe I missed something in the v6 discussion thread; when was it
->>>>> decided to drop quirk handling?
->>>>
->>>> I had such requests in previous series.
->>>
->>> A quick note on quirk handling. This, I believe, applies post-merge of
->>> the base infrastructure, which I realize will likely not have quirks.
->>>
->>> We've some "gen1" ARMv8 server platforms where we end up doing quirks
->>> (for things like forcing 32-bit config space accessors and the like) due
->>> to people repurposing existing embedded PCIe IP blocks or using them for
->>> the first time (especially in servers), and those being involved in the
->>> design not necessarily seeing this problem ahead of time, or not
->>> realizing that it would be an issue for servers. In the early days of
->>> ARM server designs 3-4 years ago, many of us had never really played
->>> with ECAM or realized how modern topologies are built.
->>>
->>> Anyway. We missed this one in our SBSA requirements. They say (words to
->>> the effect of) "thou shalt do PCIe the way it is done on servers" but
->>> they aren't prescriptive, and they don't tell people how that actually
->>> is in reality. That is being fixed. A lot of things are happening behind
->>> the scenes - especially with third party IP block providers (all of whom
->>> myself and others are speaking with directly about this) - to ensure
->>> that the next wave of designs won't repeat these mistakes. We don't have
->>> a time machine, but we can contain this from becoming an ongoing mess
->>> for upstream, and we will do so. It won't be a zoo.
->>>
->>> Various proposals have arisen for how to handle quirks in the longer
->>> term, including elaborate frameworks and tables to describe them
->>> generically. I would like to caution against such approaches, especially
->>> in the case that they deviate from practice on x86, or prior to being
->>> standardized fully with other Operating System vendors. I don't expect
->>> there to be too many more than the existing initial set of quirks we
->>> have seen posted. A number of "future" server SoCs have already been
->>> fixed prior to silicon, and new design starts are being warned not to
->>> make this a problem for us to have to clean up later.
->>>
->>> So, I would like to suggest that the eventual framework mirror the
->>> existing approach on x86 systems (matching DMI, etc.) and not be made
->>> into some kind of generic, utopia. This is a case where we want there to
->>> be pain involved (and upstream patches required) when people screw up,
->>> so that they have a level of pain in response to ever making this
->>> mistake in the future. If we try to create too grand a generic scheme
->>> and make it too easy to handle this kind of situation beyond the small
->>> number of existing offenders, we undermine efforts to force vendors to
->>> ensure that their IP blocks are compliant going forward.
->
->> I understand that there is a desire from the RedHat side to mimic x86
->> as closely as possible, but I never saw any technical justification
->> for that.
->
-> Understood. My own motivation is always to make the experience as
-> familiar as possible, both for end users, as well as for ODMs and the
-> entire ecosystem. There are very many ODMs currently working on v8
-> server designs and they're already expecting this to be "just like x88".
-> Intentionally. But as to the specifics of using DMI...
->
->> DMI contains strings that are visible to userland, and you
->> effectively lock those down to certain values just so that the kernel
->> can distinguish a broken PCIe root complex from a working one. Linux
->> on x86 had no choice, since the overwhelming majority of existing
->> hardware misrepresented itself as generic, and DMI was the only thing
->> available to actually distinguish these broken implementations from
->> one another. This does not mean we should allow and/or encourage this
->> first gen hardware to misrepresent non-compliant hardware as compliant
->> as well.
->
-> That's a very reasonable argument. I don't disagree that it would be
-> nice to have nicer ways to distinguish the non-compliant IP than
-> treating the whole platform with an ASCII matching sledgehammer.
->
->> Since you are talking to all the people involved, how about you
->> convince them to put something in the ACPI tables that allows the
->> kernel to distinguish those non-standard PCIe implementations from
->> hardware that is really generic?
->
-> I'm open to this *BUT* it has to be something that will be adopted
-> beyond Linux. I have reached out to some non-Linux folks about this. If
-> there's buy-in, and if there's agreement to go standardize it through
-> the ASWG, then we should do so. What we should not do is treat ARM as
-> special in a way that the others aren't involved with. I'll admit DMI
-> ended up part of the SBBR in part because I wrote that piece in with the
-> assumption that exactly the same matches as on x86 would happen.
->
-
-Is the PCIe root complex so special that you cannot simply describe an
-implementation that is not PNP0408 compatible as something else, under
-its own unique HID? If everybody is onboard with using ACPI, how is
-this any different from describing other parts of the platform
-topology? Even if the SBSA mandates generic PCI, they already deviated
-from that when they built the hardware, so pretending that it is a
-PNP0408 with quirks really does not buy us anything.
-
->> This way, we can sidestep the quirks
->> debate entirely, since it will simply be a different device as far as
->> the kernel is concerned. This is no worse than a quirk from a
->> practical point of view, since an older OS will be equally unable to
->> run on newer hardware, but it is arguably more true to the standards
->> compliance you tend to preach about, especially since this small pool
->> of third party IP could potentially be identified directly rather than
->> based on some divination of the SoC we may or may not be running on. I
->> am also convinced that adding support for an additional HID() to the
->> ACPI ECAM driver with some special config space handling wired in is
->> an easier sell upstream than making the same ugly mess x86 has had to
->> make because they did not have any choice to begin with.
->
-> Again, open to it. I just don't want to do something that's Linux
-> specific. So it'll take time. It would be awesome if an interim quirk
-> solution existed that got platforms that are shipping in production
-> (e.g. HP Moonshot) actually booting upstream kernels this year. We
-> /really/ want F25 to be able to run on these without needing to carry an
-> out-of-tree quirk patch or just not support them. That's much worse.
->
-
-My whole point is that we don't need quirks in the first place if
-non-compliant devices are not being misrepresented as compliant ones.
-This is fine for other platform devices, i.e., SATA, network, so
-again, why is PCIe so special that we *must* use a generic ID + quirks
-rather than a specific ID?
-
->> If we do need a quirks handling mechanism, I still don't see how the
->> x86 situation extrapolates to ARM. ACPI offers plenty of ways for a
->> SoC vendor to identify the make and particular revision, and quirks
->> could be keyed off of that.
->
-> Fair enough. Is there any traction for an interim solution for these
-> initial platforms do you think? If we wait to add a new table it's
-> probably going to be the end of the year before we get this done.
->
-
-The 'interim solution' is to come to terms with the fact that these
-initial platforms are not SBSA compliant, contain a PCIe root complex
-that is not PNP0408 but can be identified by its own HID, and we make
-the software work with that. This means our message from the beginning
-is that, yes, you can have non-compliant hardware and the burden is on
-you to get it supported upstream, and no, you don't get to hang out
-with the cool SBSA kids if you decide to go that route
+SGkgQXJkDQoNCj4gLS0tLS1PcmlnaW5hbCBNZXNzYWdlLS0tLS0NCj4gRnJvbTogQXJkIEJpZXNo
+ZXV2ZWwgW21haWx0bzphcmQuYmllc2hldXZlbEBsaW5hcm8ub3JnXQ0KPiBTZW50OiAyMCBNYXkg
+MjAxNiAwOToyOQ0KPiBUbzogSm9uIE1hc3RlcnMNCj4gQ2M6IFRvbWFzeiBOb3dpY2tpOyBHYWJy
+aWVsZSBQYW9sb25pOyBoZWxnYWFzQGtlcm5lbC5vcmc7DQo+IGFybmRAYXJuZGIuZGU7IHdpbGwu
+ZGVhY29uQGFybS5jb207IGNhdGFsaW4ubWFyaW5hc0Bhcm0uY29tOw0KPiByYWZhZWxAa2VybmVs
+Lm9yZzsgaGFuanVuLmd1b0BsaW5hcm8ub3JnOyBMb3JlbnpvLlBpZXJhbGlzaUBhcm0uY29tOw0K
+PiBva2F5YUBjb2RlYXVyb3JhLm9yZzsgamNoYW5kcmFAYnJvYWRjb20uY29tOyBsaW5hcm8tDQo+
+IGFjcGlAbGlzdHMubGluYXJvLm9yZzsgbGludXgtcGNpQHZnZXIua2VybmVsLm9yZzsgZGhkYW5n
+QGFwbS5jb207DQo+IExpdml1LkR1ZGF1QGFybS5jb207IGRkYW5leUBjYXZpdW1uZXR3b3Jrcy5j
+b207IGplcmVteS5saW50b25AYXJtLmNvbTsNCj4gbGludXgta2VybmVsQHZnZXIua2VybmVsLm9y
+ZzsgbGludXgtYWNwaUB2Z2VyLmtlcm5lbC5vcmc7DQo+IHJvYmVydC5yaWNodGVyQGNhdml1bW5l
+dHdvcmtzLmNvbTsgU3VyYXZlZS5TdXRoaWt1bHBhbml0QGFtZC5jb207DQo+IG1zYWx0ZXJAcmVk
+aGF0LmNvbTsgV2FuZ3lpamluZzsgbXdAc2VtaWhhbGYuY29tOw0KPiBhbmRyZWEuZ2FsbG9AbGlu
+YXJvLm9yZzsgbGludXgtYXJtLWtlcm5lbEBsaXN0cy5pbmZyYWRlYWQub3JnDQo+IFN1YmplY3Q6
+IFJlOiBbUEFUQ0ggVjcgMDAvMTFdIFN1cHBvcnQgZm9yIGdlbmVyaWMgQUNQSSBiYXNlZCBQQ0kg
+aG9zdA0KPiBjb250cm9sbGVyDQo+IA0KPiBPbiAyMCBNYXkgMjAxNiBhdCAxMDowMSwgSm9uIE1h
+c3RlcnMgPGpjbUByZWRoYXQuY29tPiB3cm90ZToNCj4gPiBIaSBBcmQsDQo+ID4NCj4gPiBPbiAw
+NS8yMC8yMDE2IDAzOjM3IEFNLCBBcmQgQmllc2hldXZlbCB3cm90ZToNCj4gPj4gT24gMjAgTWF5
+IDIwMTYgYXQgMDY6NDEsIEpvbiBNYXN0ZXJzIDxqY21AcmVkaGF0LmNvbT4gd3JvdGU6DQo+ID4+
+PiBIaSBUb21hc3osIGFsbCwNCj4gPj4+DQo+ID4+PiBPbiAwNS8xMS8yMDE2IDA3OjA4IEFNLCBU
+b21hc3ogTm93aWNraSB3cm90ZToNCj4gPj4+DQo+ID4+Pj4gT24gMTEuMDUuMjAxNiAxMjo0MSwg
+R2FicmllbGUgUGFvbG9uaSB3cm90ZToNCj4gPj4+DQo+ID4+Pj4+PiB2NiAtPiB2Nw0KPiA+Pj4+
+Pj4gLSBkcm9wIHF1aXJrcyBoYW5kbGluZw0KPiA+Pj4+Pg0KPiA+Pj4+PiBNYXliZSBJIG1pc3Nl
+ZCBzb21ldGhpbmcgaW4gdGhlIHY2IGRpc2N1c3Npb24gdGhyZWFkOyB3aGVuIHdhcyBpdA0KPiA+
+Pj4+PiBkZWNpZGVkIHRvIGRyb3AgcXVpcmsgaGFuZGxpbmc/DQo+ID4+Pj4NCj4gPj4+PiBJIGhh
+ZCBzdWNoIHJlcXVlc3RzIGluIHByZXZpb3VzIHNlcmllcy4NCj4gPj4+DQo+ID4+PiBBIHF1aWNr
+IG5vdGUgb24gcXVpcmsgaGFuZGxpbmcuIFRoaXMsIEkgYmVsaWV2ZSwgYXBwbGllcyBwb3N0LW1l
+cmdlDQo+IG9mDQo+ID4+PiB0aGUgYmFzZSBpbmZyYXN0cnVjdHVyZSwgd2hpY2ggSSByZWFsaXpl
+IHdpbGwgbGlrZWx5IG5vdCBoYXZlDQo+IHF1aXJrcy4NCj4gPj4+DQo+ID4+PiBXZSd2ZSBzb21l
+ICJnZW4xIiBBUk12OCBzZXJ2ZXIgcGxhdGZvcm1zIHdoZXJlIHdlIGVuZCB1cCBkb2luZw0KPiBx
+dWlya3MNCj4gPj4+IChmb3IgdGhpbmdzIGxpa2UgZm9yY2luZyAzMi1iaXQgY29uZmlnIHNwYWNl
+IGFjY2Vzc29ycyBhbmQgdGhlDQo+IGxpa2UpIGR1ZQ0KPiA+Pj4gdG8gcGVvcGxlIHJlcHVycG9z
+aW5nIGV4aXN0aW5nIGVtYmVkZGVkIFBDSWUgSVAgYmxvY2tzIG9yIHVzaW5nDQo+IHRoZW0gZm9y
+DQo+ID4+PiB0aGUgZmlyc3QgdGltZSAoZXNwZWNpYWxseSBpbiBzZXJ2ZXJzKSwgYW5kIHRob3Nl
+IGJlaW5nIGludm9sdmVkIGluDQo+IHRoZQ0KPiA+Pj4gZGVzaWduIG5vdCBuZWNlc3NhcmlseSBz
+ZWVpbmcgdGhpcyBwcm9ibGVtIGFoZWFkIG9mIHRpbWUsIG9yIG5vdA0KPiA+Pj4gcmVhbGl6aW5n
+IHRoYXQgaXQgd291bGQgYmUgYW4gaXNzdWUgZm9yIHNlcnZlcnMuIEluIHRoZSBlYXJseSBkYXlz
+DQo+IG9mDQo+ID4+PiBBUk0gc2VydmVyIGRlc2lnbnMgMy00IHllYXJzIGFnbywgbWFueSBvZiB1
+cyBoYWQgbmV2ZXIgcmVhbGx5DQo+IHBsYXllZA0KPiA+Pj4gd2l0aCBFQ0FNIG9yIHJlYWxpemVk
+IGhvdyBtb2Rlcm4gdG9wb2xvZ2llcyBhcmUgYnVpbHQuDQo+ID4+Pg0KPiA+Pj4gQW55d2F5LiBX
+ZSBtaXNzZWQgdGhpcyBvbmUgaW4gb3VyIFNCU0EgcmVxdWlyZW1lbnRzLiBUaGV5IHNheQ0KPiAo
+d29yZHMgdG8NCj4gPj4+IHRoZSBlZmZlY3Qgb2YpICJ0aG91IHNoYWx0IGRvIFBDSWUgdGhlIHdh
+eSBpdCBpcyBkb25lIG9uIHNlcnZlcnMiDQo+IGJ1dA0KPiA+Pj4gdGhleSBhcmVuJ3QgcHJlc2Ny
+aXB0aXZlLCBhbmQgdGhleSBkb24ndCB0ZWxsIHBlb3BsZSBob3cgdGhhdA0KPiBhY3R1YWxseQ0K
+PiA+Pj4gaXMgaW4gcmVhbGl0eS4gVGhhdCBpcyBiZWluZyBmaXhlZC4gQSBsb3Qgb2YgdGhpbmdz
+IGFyZSBoYXBwZW5pbmcNCj4gYmVoaW5kDQo+ID4+PiB0aGUgc2NlbmVzIC0gZXNwZWNpYWxseSB3
+aXRoIHRoaXJkIHBhcnR5IElQIGJsb2NrIHByb3ZpZGVycyAoYWxsIG9mDQo+IHdob20NCj4gPj4+
+IG15c2VsZiBhbmQgb3RoZXJzIGFyZSBzcGVha2luZyB3aXRoIGRpcmVjdGx5IGFib3V0IHRoaXMp
+IC0gdG8NCj4gZW5zdXJlDQo+ID4+PiB0aGF0IHRoZSBuZXh0IHdhdmUgb2YgZGVzaWducyB3b24n
+dCByZXBlYXQgdGhlc2UgbWlzdGFrZXMuIFdlIGRvbid0DQo+IGhhdmUNCj4gPj4+IGEgdGltZSBt
+YWNoaW5lLCBidXQgd2UgY2FuIGNvbnRhaW4gdGhpcyBmcm9tIGJlY29taW5nIGFuIG9uZ29pbmcN
+Cj4gbWVzcw0KPiA+Pj4gZm9yIHVwc3RyZWFtLCBhbmQgd2Ugd2lsbCBkbyBzby4gSXQgd29uJ3Qg
+YmUgYSB6b28uDQo+ID4+Pg0KPiA+Pj4gVmFyaW91cyBwcm9wb3NhbHMgaGF2ZSBhcmlzZW4gZm9y
+IGhvdyB0byBoYW5kbGUgcXVpcmtzIGluIHRoZQ0KPiBsb25nZXINCj4gPj4+IHRlcm0sIGluY2x1
+ZGluZyBlbGFib3JhdGUgZnJhbWV3b3JrcyBhbmQgdGFibGVzIHRvIGRlc2NyaWJlIHRoZW0NCj4g
+Pj4+IGdlbmVyaWNhbGx5LiBJIHdvdWxkIGxpa2UgdG8gY2F1dGlvbiBhZ2FpbnN0IHN1Y2ggYXBw
+cm9hY2hlcywNCj4gZXNwZWNpYWxseQ0KPiA+Pj4gaW4gdGhlIGNhc2UgdGhhdCB0aGV5IGRldmlh
+dGUgZnJvbSBwcmFjdGljZSBvbiB4ODYsIG9yIHByaW9yIHRvDQo+IGJlaW5nDQo+ID4+PiBzdGFu
+ZGFyZGl6ZWQgZnVsbHkgd2l0aCBvdGhlciBPcGVyYXRpbmcgU3lzdGVtIHZlbmRvcnMuIEkgZG9u
+J3QNCj4gZXhwZWN0DQo+ID4+PiB0aGVyZSB0byBiZSB0b28gbWFueSBtb3JlIHRoYW4gdGhlIGV4
+aXN0aW5nIGluaXRpYWwgc2V0IG9mIHF1aXJrcw0KPiB3ZQ0KPiA+Pj4gaGF2ZSBzZWVuIHBvc3Rl
+ZC4gQSBudW1iZXIgb2YgImZ1dHVyZSIgc2VydmVyIFNvQ3MgaGF2ZSBhbHJlYWR5DQo+IGJlZW4N
+Cj4gPj4+IGZpeGVkIHByaW9yIHRvIHNpbGljb24sIGFuZCBuZXcgZGVzaWduIHN0YXJ0cyBhcmUg
+YmVpbmcgd2FybmVkIG5vdA0KPiB0bw0KPiA+Pj4gbWFrZSB0aGlzIGEgcHJvYmxlbSBmb3IgdXMg
+dG8gaGF2ZSB0byBjbGVhbiB1cCBsYXRlci4NCj4gPj4+DQo+ID4+PiBTbywgSSB3b3VsZCBsaWtl
+IHRvIHN1Z2dlc3QgdGhhdCB0aGUgZXZlbnR1YWwgZnJhbWV3b3JrIG1pcnJvciB0aGUNCj4gPj4+
+IGV4aXN0aW5nIGFwcHJvYWNoIG9uIHg4NiBzeXN0ZW1zIChtYXRjaGluZyBETUksIGV0Yy4pIGFu
+ZCBub3QgYmUNCj4gbWFkZQ0KPiA+Pj4gaW50byBzb21lIGtpbmQgb2YgZ2VuZXJpYywgdXRvcGlh
+LiBUaGlzIGlzIGEgY2FzZSB3aGVyZSB3ZSB3YW50DQo+IHRoZXJlIHRvDQo+ID4+PiBiZSBwYWlu
+IGludm9sdmVkIChhbmQgdXBzdHJlYW0gcGF0Y2hlcyByZXF1aXJlZCkgd2hlbiBwZW9wbGUgc2Ny
+ZXcNCj4gdXAsDQo+ID4+PiBzbyB0aGF0IHRoZXkgaGF2ZSBhIGxldmVsIG9mIHBhaW4gaW4gcmVz
+cG9uc2UgdG8gZXZlciBtYWtpbmcgdGhpcw0KPiA+Pj4gbWlzdGFrZSBpbiB0aGUgZnV0dXJlLiBJ
+ZiB3ZSB0cnkgdG8gY3JlYXRlIHRvbyBncmFuZCBhIGdlbmVyaWMNCj4gc2NoZW1lDQo+ID4+PiBh
+bmQgbWFrZSBpdCB0b28gZWFzeSB0byBoYW5kbGUgdGhpcyBraW5kIG9mIHNpdHVhdGlvbiBiZXlv
+bmQgdGhlDQo+IHNtYWxsDQo+ID4+PiBudW1iZXIgb2YgZXhpc3Rpbmcgb2ZmZW5kZXJzLCB3ZSB1
+bmRlcm1pbmUgZWZmb3J0cyB0byBmb3JjZSB2ZW5kb3JzDQo+IHRvDQo+ID4+PiBlbnN1cmUgdGhh
+dCB0aGVpciBJUCBibG9ja3MgYXJlIGNvbXBsaWFudCBnb2luZyBmb3J3YXJkLg0KPiA+DQo+ID4+
+IEkgdW5kZXJzdGFuZCB0aGF0IHRoZXJlIGlzIGEgZGVzaXJlIGZyb20gdGhlIFJlZEhhdCBzaWRl
+IHRvIG1pbWljDQo+IHg4Ng0KPiA+PiBhcyBjbG9zZWx5IGFzIHBvc3NpYmxlLCBidXQgSSBuZXZl
+ciBzYXcgYW55IHRlY2huaWNhbCBqdXN0aWZpY2F0aW9uDQo+ID4+IGZvciB0aGF0Lg0KPiA+DQo+
+ID4gVW5kZXJzdG9vZC4gTXkgb3duIG1vdGl2YXRpb24gaXMgYWx3YXlzIHRvIG1ha2UgdGhlIGV4
+cGVyaWVuY2UgYXMNCj4gPiBmYW1pbGlhciBhcyBwb3NzaWJsZSwgYm90aCBmb3IgZW5kIHVzZXJz
+LCBhcyB3ZWxsIGFzIGZvciBPRE1zIGFuZCB0aGUNCj4gPiBlbnRpcmUgZWNvc3lzdGVtLiBUaGVy
+ZSBhcmUgdmVyeSBtYW55IE9ETXMgY3VycmVudGx5IHdvcmtpbmcgb24gdjgNCj4gPiBzZXJ2ZXIg
+ZGVzaWducyBhbmQgdGhleSdyZSBhbHJlYWR5IGV4cGVjdGluZyB0aGlzIHRvIGJlICJqdXN0IGxp
+a2UNCj4geDg4Ii4NCj4gPiBJbnRlbnRpb25hbGx5LiBCdXQgYXMgdG8gdGhlIHNwZWNpZmljcyBv
+ZiB1c2luZyBETUkuLi4NCj4gPg0KPiA+PiBETUkgY29udGFpbnMgc3RyaW5ncyB0aGF0IGFyZSB2
+aXNpYmxlIHRvIHVzZXJsYW5kLCBhbmQgeW91DQo+ID4+IGVmZmVjdGl2ZWx5IGxvY2sgdGhvc2Ug
+ZG93biB0byBjZXJ0YWluIHZhbHVlcyBqdXN0IHNvIHRoYXQgdGhlDQo+IGtlcm5lbA0KPiA+PiBj
+YW4gZGlzdGluZ3Vpc2ggYSBicm9rZW4gUENJZSByb290IGNvbXBsZXggZnJvbSBhIHdvcmtpbmcg
+b25lLiBMaW51eA0KPiA+PiBvbiB4ODYgaGFkIG5vIGNob2ljZSwgc2luY2UgdGhlIG92ZXJ3aGVs
+bWluZyBtYWpvcml0eSBvZiBleGlzdGluZw0KPiA+PiBoYXJkd2FyZSBtaXNyZXByZXNlbnRlZCBp
+dHNlbGYgYXMgZ2VuZXJpYywgYW5kIERNSSB3YXMgdGhlIG9ubHkNCj4gdGhpbmcNCj4gPj4gYXZh
+aWxhYmxlIHRvIGFjdHVhbGx5IGRpc3Rpbmd1aXNoIHRoZXNlIGJyb2tlbiBpbXBsZW1lbnRhdGlv
+bnMgZnJvbQ0KPiA+PiBvbmUgYW5vdGhlci4gVGhpcyBkb2VzIG5vdCBtZWFuIHdlIHNob3VsZCBh
+bGxvdyBhbmQvb3IgZW5jb3VyYWdlDQo+IHRoaXMNCj4gPj4gZmlyc3QgZ2VuIGhhcmR3YXJlIHRv
+IG1pc3JlcHJlc2VudCBub24tY29tcGxpYW50IGhhcmR3YXJlIGFzDQo+IGNvbXBsaWFudA0KPiA+
+PiBhcyB3ZWxsLg0KPiA+DQo+ID4gVGhhdCdzIGEgdmVyeSByZWFzb25hYmxlIGFyZ3VtZW50LiBJ
+IGRvbid0IGRpc2FncmVlIHRoYXQgaXQgd291bGQgYmUNCj4gPiBuaWNlIHRvIGhhdmUgbmljZXIg
+d2F5cyB0byBkaXN0aW5ndWlzaCB0aGUgbm9uLWNvbXBsaWFudCBJUCB0aGFuDQo+ID4gdHJlYXRp
+bmcgdGhlIHdob2xlIHBsYXRmb3JtIHdpdGggYW4gQVNDSUkgbWF0Y2hpbmcgc2xlZGdlaGFtbWVy
+Lg0KPiA+DQo+ID4+IFNpbmNlIHlvdSBhcmUgdGFsa2luZyB0byBhbGwgdGhlIHBlb3BsZSBpbnZv
+bHZlZCwgaG93IGFib3V0IHlvdQ0KPiA+PiBjb252aW5jZSB0aGVtIHRvIHB1dCBzb21ldGhpbmcg
+aW4gdGhlIEFDUEkgdGFibGVzIHRoYXQgYWxsb3dzIHRoZQ0KPiA+PiBrZXJuZWwgdG8gZGlzdGlu
+Z3Vpc2ggdGhvc2Ugbm9uLXN0YW5kYXJkIFBDSWUgaW1wbGVtZW50YXRpb25zIGZyb20NCj4gPj4g
+aGFyZHdhcmUgdGhhdCBpcyByZWFsbHkgZ2VuZXJpYz8NCj4gPg0KPiA+IEknbSBvcGVuIHRvIHRo
+aXMgKkJVVCogaXQgaGFzIHRvIGJlIHNvbWV0aGluZyB0aGF0IHdpbGwgYmUgYWRvcHRlZA0KPiA+
+IGJleW9uZCBMaW51eC4gSSBoYXZlIHJlYWNoZWQgb3V0IHRvIHNvbWUgbm9uLUxpbnV4IGZvbGtz
+IGFib3V0IHRoaXMuDQo+IElmDQo+ID4gdGhlcmUncyBidXktaW4sIGFuZCBpZiB0aGVyZSdzIGFn
+cmVlbWVudCB0byBnbyBzdGFuZGFyZGl6ZSBpdCB0aHJvdWdoDQo+ID4gdGhlIEFTV0csIHRoZW4g
+d2Ugc2hvdWxkIGRvIHNvLiBXaGF0IHdlIHNob3VsZCBub3QgZG8gaXMgdHJlYXQgQVJNIGFzDQo+
+ID4gc3BlY2lhbCBpbiBhIHdheSB0aGF0IHRoZSBvdGhlcnMgYXJlbid0IGludm9sdmVkIHdpdGgu
+IEknbGwgYWRtaXQgRE1JDQo+ID4gZW5kZWQgdXAgcGFydCBvZiB0aGUgU0JCUiBpbiBwYXJ0IGJl
+Y2F1c2UgSSB3cm90ZSB0aGF0IHBpZWNlIGluIHdpdGgNCj4gdGhlDQo+ID4gYXNzdW1wdGlvbiB0
+aGF0IGV4YWN0bHkgdGhlIHNhbWUgbWF0Y2hlcyBhcyBvbiB4ODYgd291bGQgaGFwcGVuLg0KPiA+
+DQo+IA0KPiBJcyB0aGUgUENJZSByb290IGNvbXBsZXggc28gc3BlY2lhbCB0aGF0IHlvdSBjYW5u
+b3Qgc2ltcGx5IGRlc2NyaWJlIGFuDQo+IGltcGxlbWVudGF0aW9uIHRoYXQgaXMgbm90IFBOUDA0
+MDggY29tcGF0aWJsZSBhcyBzb21ldGhpbmcgZWxzZSwgdW5kZXINCj4gaXRzIG93biB1bmlxdWUg
+SElEPyBJZiBldmVyeWJvZHkgaXMgb25ib2FyZCB3aXRoIHVzaW5nIEFDUEksIGhvdyBpcw0KPiB0
+aGlzIGFueSBkaWZmZXJlbnQgZnJvbSBkZXNjcmliaW5nIG90aGVyIHBhcnRzIG9mIHRoZSBwbGF0
+Zm9ybQ0KPiB0b3BvbG9neT8gRXZlbiBpZiB0aGUgU0JTQSBtYW5kYXRlcyBnZW5lcmljIFBDSSwg
+dGhleSBhbHJlYWR5IGRldmlhdGVkDQo+IGZyb20gdGhhdCB3aGVuIHRoZXkgYnVpbHQgdGhlIGhh
+cmR3YXJlLCBzbyBwcmV0ZW5kaW5nIHRoYXQgaXQgaXMgYQ0KPiBQTlAwNDA4IHdpdGggcXVpcmtz
+IHJlYWxseSBkb2VzIG5vdCBidXkgdXMgYW55dGhpbmcuDQoNCkZyb20gbXkgdW5kZXJzdGFuZGlu
+ZyB3ZSB3YW50IHRvIGF2b2lkIHRoaXMgYXMgdGhpcyB3b3VsZCBhbGxvdyBlYWNoDQp2ZW5kb3Ig
+dG8gY29tZSB1cCB3aXRoIGhpcyBvd24gY29kZSBhbmQgaXQgd291bGQgYmUgbXVjaCBtb3JlIGVm
+Zm9ydA0KZm9yIHRoZSBQQ0kgbWFpbnRhaW5lciB0byByZXdvcmsgdGhlIFBDSSBmcmFtZXdvcmsg
+dG8gYWNjb21tb2RhdGUgWDg2DQphbmQgImFsbCIgQVJNNjQgSG9zdCBDb250cm9sbGVycy4uLg0K
+DQpJIGd1ZXNzIHRoaXMgYXBwcm9hY2ggaXMgdG9vIHJpc2t5IGFuZCB3ZSB3YW50IHRvIGF2b2lk
+IHRoaXMuIFRocm91Z2gNCnN0YW5kYXJkaXphdGlvbiB3ZSBjYW4gbW9yZSBlYXNpbHkgbWFpbnRh
+aW4gdGhlIGNvZGUgYW5kIHNjYWxlIGl0IHRvDQptdWx0aXBsZSBTb0NzLi4uDQoNClNvIHRoaXMg
+aXMgbXkgdW5kZXJzdGFuZGluZzsgbWF5YmUgSm9uLCBUb21hc3ogb3IgTG9yZW56byBjYW4gZ2l2
+ZQ0KYSBiaXQgbW9yZSBleHBsYW5hdGlvbi4uLg0KDQpUaGFua3MNCg0KR2FiDQoNCg0KPiANCj4g
+Pj4gVGhpcyB3YXksIHdlIGNhbiBzaWRlc3RlcCB0aGUgcXVpcmtzDQo+ID4+IGRlYmF0ZSBlbnRp
+cmVseSwgc2luY2UgaXQgd2lsbCBzaW1wbHkgYmUgYSBkaWZmZXJlbnQgZGV2aWNlIGFzIGZhcg0K
+PiBhcw0KPiA+PiB0aGUga2VybmVsIGlzIGNvbmNlcm5lZC4gVGhpcyBpcyBubyB3b3JzZSB0aGFu
+IGEgcXVpcmsgZnJvbSBhDQo+ID4+IHByYWN0aWNhbCBwb2ludCBvZiB2aWV3LCBzaW5jZSBhbiBv
+bGRlciBPUyB3aWxsIGJlIGVxdWFsbHkgdW5hYmxlIHRvDQo+ID4+IHJ1biBvbiBuZXdlciBoYXJk
+d2FyZSwgYnV0IGl0IGlzIGFyZ3VhYmx5IG1vcmUgdHJ1ZSB0byB0aGUgc3RhbmRhcmRzDQo+ID4+
+IGNvbXBsaWFuY2UgeW91IHRlbmQgdG8gcHJlYWNoIGFib3V0LCBlc3BlY2lhbGx5IHNpbmNlIHRo
+aXMgc21hbGwNCj4gcG9vbA0KPiA+PiBvZiB0aGlyZCBwYXJ0eSBJUCBjb3VsZCBwb3RlbnRpYWxs
+eSBiZSBpZGVudGlmaWVkIGRpcmVjdGx5IHJhdGhlcg0KPiB0aGFuDQo+ID4+IGJhc2VkIG9uIHNv
+bWUgZGl2aW5hdGlvbiBvZiB0aGUgU29DIHdlIG1heSBvciBtYXkgbm90IGJlIHJ1bm5pbmcgb24u
+DQo+IEkNCj4gPj4gYW0gYWxzbyBjb252aW5jZWQgdGhhdCBhZGRpbmcgc3VwcG9ydCBmb3IgYW4g
+YWRkaXRpb25hbCBISUQoKSB0byB0aGUNCj4gPj4gQUNQSSBFQ0FNIGRyaXZlciB3aXRoIHNvbWUg
+c3BlY2lhbCBjb25maWcgc3BhY2UgaGFuZGxpbmcgd2lyZWQgaW4gaXMNCj4gPj4gYW4gZWFzaWVy
+IHNlbGwgdXBzdHJlYW0gdGhhbiBtYWtpbmcgdGhlIHNhbWUgdWdseSBtZXNzIHg4NiBoYXMgaGFk
+DQo+IHRvDQo+ID4+IG1ha2UgYmVjYXVzZSB0aGV5IGRpZCBub3QgaGF2ZSBhbnkgY2hvaWNlIHRv
+IGJlZ2luIHdpdGguDQo+ID4NCj4gPiBBZ2Fpbiwgb3BlbiB0byBpdC4gSSBqdXN0IGRvbid0IHdh
+bnQgdG8gZG8gc29tZXRoaW5nIHRoYXQncyBMaW51eA0KPiA+IHNwZWNpZmljLiBTbyBpdCdsbCB0
+YWtlIHRpbWUuIEl0IHdvdWxkIGJlIGF3ZXNvbWUgaWYgYW4gaW50ZXJpbSBxdWlyaw0KPiA+IHNv
+bHV0aW9uIGV4aXN0ZWQgdGhhdCBnb3QgcGxhdGZvcm1zIHRoYXQgYXJlIHNoaXBwaW5nIGluIHBy
+b2R1Y3Rpb24NCj4gPiAoZS5nLiBIUCBNb29uc2hvdCkgYWN0dWFsbHkgYm9vdGluZyB1cHN0cmVh
+bSBrZXJuZWxzIHRoaXMgeWVhci4gV2UNCj4gPiAvcmVhbGx5LyB3YW50IEYyNSB0byBiZSBhYmxl
+IHRvIHJ1biBvbiB0aGVzZSB3aXRob3V0IG5lZWRpbmcgdG8gY2FycnkNCj4gYW4NCj4gPiBvdXQt
+b2YtdHJlZSBxdWlyayBwYXRjaCBvciBqdXN0IG5vdCBzdXBwb3J0IHRoZW0uIFRoYXQncyBtdWNo
+IHdvcnNlLg0KPiA+DQo+IA0KPiBNeSB3aG9sZSBwb2ludCBpcyB0aGF0IHdlIGRvbid0IG5lZWQg
+cXVpcmtzIGluIHRoZSBmaXJzdCBwbGFjZSBpZg0KPiBub24tY29tcGxpYW50IGRldmljZXMgYXJl
+IG5vdCBiZWluZyBtaXNyZXByZXNlbnRlZCBhcyBjb21wbGlhbnQgb25lcy4NCj4gVGhpcyBpcyBm
+aW5lIGZvciBvdGhlciBwbGF0Zm9ybSBkZXZpY2VzLCBpLmUuLCBTQVRBLCBuZXR3b3JrLCBzbw0K
+PiBhZ2Fpbiwgd2h5IGlzIFBDSWUgc28gc3BlY2lhbCB0aGF0IHdlICptdXN0KiB1c2UgYSBnZW5l
+cmljIElEICsgcXVpcmtzDQo+IHJhdGhlciB0aGFuIGEgc3BlY2lmaWMgSUQ/DQo+IA0KPiA+PiBJ
+ZiB3ZSBkbyBuZWVkIGEgcXVpcmtzIGhhbmRsaW5nIG1lY2hhbmlzbSwgSSBzdGlsbCBkb24ndCBz
+ZWUgaG93IHRoZQ0KPiA+PiB4ODYgc2l0dWF0aW9uIGV4dHJhcG9sYXRlcyB0byBBUk0uIEFDUEkg
+b2ZmZXJzIHBsZW50eSBvZiB3YXlzIGZvciBhDQo+ID4+IFNvQyB2ZW5kb3IgdG8gaWRlbnRpZnkg
+dGhlIG1ha2UgYW5kIHBhcnRpY3VsYXIgcmV2aXNpb24sIGFuZCBxdWlya3MNCj4gPj4gY291bGQg
+YmUga2V5ZWQgb2ZmIG9mIHRoYXQuDQo+ID4NCj4gPiBGYWlyIGVub3VnaC4gSXMgdGhlcmUgYW55
+IHRyYWN0aW9uIGZvciBhbiBpbnRlcmltIHNvbHV0aW9uIGZvciB0aGVzZQ0KPiA+IGluaXRpYWwg
+cGxhdGZvcm1zIGRvIHlvdSB0aGluaz8gSWYgd2Ugd2FpdCB0byBhZGQgYSBuZXcgdGFibGUgaXQn
+cw0KPiA+IHByb2JhYmx5IGdvaW5nIHRvIGJlIHRoZSBlbmQgb2YgdGhlIHllYXIgYmVmb3JlIHdl
+IGdldCB0aGlzIGRvbmUuDQo+ID4NCj4gDQo+IFRoZSAnaW50ZXJpbSBzb2x1dGlvbicgaXMgdG8g
+Y29tZSB0byB0ZXJtcyB3aXRoIHRoZSBmYWN0IHRoYXQgdGhlc2UNCj4gaW5pdGlhbCBwbGF0Zm9y
+bXMgYXJlIG5vdCBTQlNBIGNvbXBsaWFudCwgY29udGFpbiBhIFBDSWUgcm9vdCBjb21wbGV4DQo+
+IHRoYXQgaXMgbm90IFBOUDA0MDggYnV0IGNhbiBiZSBpZGVudGlmaWVkIGJ5IGl0cyBvd24gSElE
+LCBhbmQgd2UgbWFrZQ0KPiB0aGUgc29mdHdhcmUgd29yayB3aXRoIHRoYXQuIFRoaXMgbWVhbnMg
+b3VyIG1lc3NhZ2UgZnJvbSB0aGUgYmVnaW5uaW5nDQo+IGlzIHRoYXQsIHllcywgeW91IGNhbiBo
+YXZlIG5vbi1jb21wbGlhbnQgaGFyZHdhcmUgYW5kIHRoZSBidXJkZW4gaXMgb24NCj4geW91IHRv
+IGdldCBpdCBzdXBwb3J0ZWQgdXBzdHJlYW0sIGFuZCBubywgeW91IGRvbid0IGdldCB0byBoYW5n
+IG91dA0KPiB3aXRoIHRoZSBjb29sIFNCU0Ega2lkcyBpZiB5b3UgZGVjaWRlIHRvIGdvIHRoYXQg
+cm91dGUNCg==
