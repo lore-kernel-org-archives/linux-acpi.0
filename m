@@ -1,148 +1,110 @@
-From: Aaron Lu <aaron.lu@intel.com>
-Subject: Re: linux-next 20160512 - ACPI issue with screen brightness
-Date: Fri, 20 May 2016 15:35:36 +0800
-Message-ID: <20160520073536.GB30152@aaronlu.sh.intel.com>
-References: <4736.1463510462@turing-police.cc.vt.edu>
- <CAJZ5v0jrFoQxLY_ZQrP-HP888swZbvSJPM=xNopC5MgQgnSxNg@mail.gmail.com>
- <6459.1463698397@turing-police.cc.vt.edu>
- <7208.1463713500@turing-police.cc.vt.edu>
- <6674547c-cefb-1b93-893a-7c5909a180a7@intel.com>
- <2897.1463727728@turing-police.cc.vt.edu>
- <20160520071720.GA30152@aaronlu.sh.intel.com>
+From: Ard Biesheuvel <ard.biesheuvel@linaro.org>
+Subject: Re: [PATCH V7 00/11] Support for generic ACPI based PCI host controller
+Date: Fri, 20 May 2016 09:37:59 +0200
+Message-ID: <CAKv+Gu8fdeJ9OvRSmtu9zyvcjK3O-4WU=jG=6-7t4xZwvV8d2g@mail.gmail.com>
+References: <1462893601-8937-1-git-send-email-tn@semihalf.com>
+	<EE11001F9E5DDD47B7634E2F8A612F2E1ED8DF51@lhreml503-mbs>
+	<57331290.7070104@semihalf.com>
+	<3d4aae09-51c4-f007-5100-191a4a85e27a@redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga01.intel.com ([192.55.52.88]:9865 "EHLO mga01.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753719AbcETHfu (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 20 May 2016 03:35:50 -0400
-Content-Disposition: inline
-In-Reply-To: <20160520071720.GA30152@aaronlu.sh.intel.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-pci-owner@vger.kernel.org>
+In-Reply-To: <3d4aae09-51c4-f007-5100-191a4a85e27a@redhat.com>
+Sender: linux-pci-owner@vger.kernel.org
+To: Jon Masters <jcm@redhat.com>
+Cc: Tomasz Nowicki <tn@semihalf.com>, Gabriele Paoloni <gabriele.paoloni@huawei.com>, "helgaas@kernel.org" <helgaas@kernel.org>, "arnd@arndb.de" <arnd@arndb.de>, "will.deacon@arm.com" <will.deacon@arm.com>, "catalin.marinas@arm.com" <catalin.marinas@arm.com>, "rafael@kernel.org" <rafael@kernel.org>, "hanjun.guo@linaro.org" <hanjun.guo@linaro.org>, "Lorenzo.Pieralisi@arm.com" <Lorenzo.Pieralisi@arm.com>, "okaya@codeaurora.org" <okaya@codeaurora.org>, "jchandra@broadcom.com" <jchandra@broadcom.com>, "linaro-acpi@lists.linaro.org" <linaro-acpi@lists.linaro.org>, "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>, "dhdang@apm.com" <dhdang@apm.com>, "Liviu.Dudau@arm.com" <Liviu.Dudau@arm.com>, "ddaney@caviumnetworks.com" <ddaney@caviumnetworks.com>, "jeremy.linton@arm.com" <jeremy.linton@arm.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, linux-acp
 List-Id: linux-acpi@vger.kernel.org
-To: Valdis.Kletnieks@vt.edu
-Cc: "Rafael J. Wysocki" <rafael@kernel.org>, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Len Brown <lenb@kernel.org>
 
-On Fri, May 20, 2016 at 03:17:20PM +0800, Aaron Lu wrote:
-> On Fri, May 20, 2016 at 03:02:08AM -0400, Valdis.Kletnieks@vt.edu wrote:
-> > On Fri, 20 May 2016 13:45:30 +0800, Aaron Lu said:
-> > > On 05/20/2016 11:05 AM, Valdis.Kletnieks@vt.edu wrote:
-> > > > On Thu, 19 May 2016 18:53:17 -0400, Valdis.Kletnieks@vt.edu said:
-> > > >
-> > > >>>> next-20160512 sets the screen brightness to about 40%-ish or so, rather
-> > > >>>> than the 100% intensity I want.
-> > >
-> > > Do you mean after boot, the screen brightness is now 40% instead of the
-> > > previous 100%? Are you using a GUI?
-> > 
-> > Nope, even the very first line of output from initramfs is dim, and if I then
-> > reboot and go into the BIOS settings, the screen intensity is at 40%. While
-> > it's rebooting, the Dell bios splash will start off bright and then suddenly
-> > dim down.
-> > 
-> > With the patches reverted:
-> > 
-> > [/sys/class/backlight/acpi_video0] grep . *bright*
-> > actual_brightness:95
-> > brightness:95
-> > max_brightness:95
-> > 
-> > And the weird part inside the kernel - on a kernel that has the problem,
-> > /sys/class/backlight is *empty* - only '.' and '..' entries.
-> > 
-> > No, I don't understand why the acpi_video0 entry isn't created when that
-> > commit is in place.
-> 
-> The commit probably makes acpi_video_init_brightness bail out for some
-> reason, adding debug prints under those "if (result)" in
-> acpi_video_init_brightness should help to identify where it goes wrong.
+On 20 May 2016 at 06:41, Jon Masters <jcm@redhat.com> wrote:
+> Hi Tomasz, all,
+>
+> On 05/11/2016 07:08 AM, Tomasz Nowicki wrote:
+>
+>> On 11.05.2016 12:41, Gabriele Paoloni wrote:
+>
+>>>> v6 -> v7
+>>>> - drop quirks handling
+>>>
+>>> Maybe I missed something in the v6 discussion thread; when was it
+>>> decided to drop quirk handling?
+>>
+>> I had such requests in previous series.
+>
+> A quick note on quirk handling. This, I believe, applies post-merge of
+> the base infrastructure, which I realize will likely not have quirks.
+>
+> We've some "gen1" ARMv8 server platforms where we end up doing quirks
+> (for things like forcing 32-bit config space accessors and the like) due
+> to people repurposing existing embedded PCIe IP blocks or using them for
+> the first time (especially in servers), and those being involved in the
+> design not necessarily seeing this problem ahead of time, or not
+> realizing that it would be an issue for servers. In the early days of
+> ARM server designs 3-4 years ago, many of us had never really played
+> with ECAM or realized how modern topologies are built.
+>
+> Anyway. We missed this one in our SBSA requirements. They say (words to
+> the effect of) "thou shalt do PCIe the way it is done on servers" but
+> they aren't prescriptive, and they don't tell people how that actually
+> is in reality. That is being fixed. A lot of things are happening behind
+> the scenes - especially with third party IP block providers (all of whom
+> myself and others are speaking with directly about this) - to ensure
+> that the next wave of designs won't repeat these mistakes. We don't have
+> a time machine, but we can contain this from becoming an ongoing mess
+> for upstream, and we will do so. It won't be a zoo.
+>
+> Various proposals have arisen for how to handle quirks in the longer
+> term, including elaborate frameworks and tables to describe them
+> generically. I would like to caution against such approaches, especially
+> in the case that they deviate from practice on x86, or prior to being
+> standardized fully with other Operating System vendors. I don't expect
+> there to be too many more than the existing initial set of quirks we
+> have seen posted. A number of "future" server SoCs have already been
+> fixed prior to silicon, and new design starts are being warned not to
+> make this a problem for us to have to clean up later.
+>
+> So, I would like to suggest that the eventual framework mirror the
+> existing approach on x86 systems (matching DMI, etc.) and not be made
+> into some kind of generic, utopia. This is a case where we want there to
+> be pain involved (and upstream patches required) when people screw up,
+> so that they have a level of pain in response to ever making this
+> mistake in the future. If we try to create too grand a generic scheme
+> and make it too easy to handle this kind of situation beyond the small
+> number of existing offenders, we undermine efforts to force vendors to
+> ensure that their IP blocks are compliant going forward.
+>
 
-Like the below one:
+I understand that there is a desire from the RedHat side to mimic x86
+as closely as possible, but I never saw any technical justification
+for that. DMI contains strings that are visible to userland, and you
+effectively lock those down to certain values just so that the kernel
+can distinguish a broken PCIe root complex from a working one. Linux
+on x86 had no choice, since the overwhelming majority of existing
+hardware misrepresented itself as generic, and DMI was the only thing
+available to actually distinguish these broken implementations from
+one another. This does not mean we should allow and/or encourage this
+first gen hardware to misrepresent non-compliant hardware as compliant
+as well.
 
-diff --git a/drivers/acpi/acpi_video.c b/drivers/acpi/acpi_video.c
-index 3d5b8a099351..69b321580fa3 100644
---- a/drivers/acpi/acpi_video.c
-+++ b/drivers/acpi/acpi_video.c
-@@ -323,8 +323,10 @@ acpi_video_device_lcd_query_levels(acpi_handle handle,
- 	*levels = NULL;
- 
- 	status = acpi_evaluate_object(handle, "_BCL", NULL, &buffer);
--	if (!ACPI_SUCCESS(status))
-+	if (!ACPI_SUCCESS(status)) {
-+		pr_err("acpi_evaluate_BCL failed, %d\n", status);
- 		return status;
-+	}
- 	obj = (union acpi_object *)buffer.pointer;
- 	if (!obj || (obj->type != ACPI_TYPE_PACKAGE)) {
- 		printk(KERN_ERR PREFIX "Invalid _BCL data\n");
-@@ -765,13 +767,13 @@ int acpi_video_get_levels(struct acpi_device *device,
- 
- 	if (!ACPI_SUCCESS(acpi_video_device_lcd_query_levels(device->handle,
- 								&obj))) {
--		ACPI_DEBUG_PRINT((ACPI_DB_INFO, "Could not query available "
--						"LCD brightness level\n"));
-+		pr_err("Could not query available LCD brightness level\n");
- 		result = -ENODEV;
- 		goto out;
- 	}
- 
- 	if (obj->package.count < 2) {
-+		pr_err("_BCL count smaller than 2, %d\n", obj->package.count);
- 		result = -EINVAL;
- 		goto out;
- 	}
-@@ -786,6 +788,7 @@ int acpi_video_get_levels(struct acpi_device *device,
- 	br->levels = kmalloc((obj->package.count + 2) * sizeof *(br->levels),
- 				GFP_KERNEL);
- 	if (!br->levels) {
-+		pr_err("kmalloc for br->levels failed\n");
- 		result = -ENOMEM;
- 		goto out_free;
- 	}
-@@ -870,8 +873,10 @@ acpi_video_init_brightness(struct acpi_video_device *device)
- 	int result = -EINVAL;
- 
- 	result = acpi_video_get_levels(device->dev, &br);
--	if (result)
-+	if (result) {
-+		pr_err("acpi_video_get_levels failed, %d\n", result);
- 		return result;
-+	}
- 	device->brightness = br;
- 
- 	/* _BQC uses INDEX while _BCL uses VALUE in some laptops */
-@@ -882,12 +887,16 @@ acpi_video_init_brightness(struct acpi_video_device *device)
- 
- 	result = acpi_video_device_lcd_get_level_current(device,
- 							 &level_old, true);
--	if (result)
-+	if (result) {
-+		pr_err("acpi_video_device_lcd_get_level_current failed, %d\n", result);
- 		goto out_free_levels;
-+	}
- 
- 	result = acpi_video_bqc_quirk(device, max_level, level_old);
--	if (result)
-+	if (result) {
-+		pr_err("acpi_video_bqc_quirk failed, %d\n", result);
- 		goto out_free_levels;
-+	}
- 	/*
- 	 * cap._BQC may get cleared due to _BQC is found to be broken
- 	 * in acpi_video_bqc_quirk, so check again here.
-@@ -910,11 +919,12 @@ acpi_video_init_brightness(struct acpi_video_device *device)
- 
- set_level:
- 	result = acpi_video_device_lcd_set_level(device, level);
--	if (result)
-+	if (result) {
-+		pr_err("acpi_video_device_lcd_set_level failed, %d\n", result);
- 		goto out_free_levels;
-+	}
- 
--	ACPI_DEBUG_PRINT((ACPI_DB_INFO,
--			  "found %d brightness levels\n", br->count - 2));
-+	pr_info("found %d brightness levels\n", br->count - 2);
- 	return 0;
- 
- out_free_levels:
+Since you are talking to all the people involved, how about you
+convince them to put something in the ACPI tables that allows the
+kernel to distinguish those non-standard PCIe implementations from
+hardware that is really generic? This way, we can sidestep the quirks
+debate entirely, since it will simply be a different device as far as
+the kernel is concerned. This is no worse than a quirk from a
+practical point of view, since an older OS will be equally unable to
+run on newer hardware, but it is arguably more true to the standards
+compliance you tend to preach about, especially since this small pool
+of third party IP could potentially be identified directly rather than
+based on some divination of the SoC we may or may not be running on. I
+am also convinced that adding support for an additional HID() to the
+ACPI ECAM driver with some special config space handling wired in is
+an easier sell upstream than making the same ugly mess x86 has had to
+make because they did not have any choice to begin with.
+
+If we do need a quirks handling mechanism, I still don't see how the
+x86 situation extrapolates to ARM. ACPI offers plenty of ways for a
+SoC vendor to identify the make and particular revision, and quirks
+could be keyed off of that.
+
+-- 
+Ard.
