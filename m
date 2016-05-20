@@ -1,43 +1,65 @@
-From: "Zheng, Lv" <lv.zheng@intel.com>
-Subject: RE: [PATCH v2 0/4] ACPI 2.0: Enable TermList interpretion for table
- loading
-Date: Fri, 20 May 2016 00:57:20 +0000
-Message-ID: <1AE640813FDE7649BE1B193DEA596E883BBA4649@SHSMSX101.ccr.corp.intel.com>
-References: <cover.1463109824.git.lv.zheng@intel.com>
-	<1AE640813FDE7649BE1B193DEA596E883BBA2A9A@SHSMSX101.ccr.corp.intel.com>
- <CAJZ5v0gYBKC0GxBpFH-jOca7ide-pGc9R1bfi9PCSZgiB1hSAg@mail.gmail.com>
+From: Valdis.Kletnieks@vt.edu
+Subject: Re: linux-next 20160512 - ACPI issue with screen brightness
+Date: Thu, 19 May 2016 23:05:00 -0400
+Message-ID: <7208.1463713500@turing-police.cc.vt.edu>
+References: <4736.1463510462@turing-police.cc.vt.edu> <CAJZ5v0jrFoQxLY_ZQrP-HP888swZbvSJPM=xNopC5MgQgnSxNg@mail.gmail.com>
+ <6459.1463698397@turing-police.cc.vt.edu>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: multipart/signed; boundary="==_Exmh_1463713500_6311P";
+	 micalg=pgp-sha1; protocol="application/pgp-signature"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga11.intel.com ([192.55.52.93]:54343 "EHLO mga11.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932592AbcETA5Y (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 19 May 2016 20:57:24 -0400
-In-Reply-To: <CAJZ5v0gYBKC0GxBpFH-jOca7ide-pGc9R1bfi9PCSZgiB1hSAg@mail.gmail.com>
-Content-Language: en-US
+Received: from outbound.smtp.vt.edu ([198.82.183.121]:41373 "EHLO
+	omr2.cc.vt.edu" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1753604AbcETDFJ (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 19 May 2016 23:05:09 -0400
+In-Reply-To: <6459.1463698397@turing-police.cc.vt.edu>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rafael@kernel.org>
-Cc: "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, "Brown, Len" <len.brown@intel.com>, Lv Zheng <zetalog@gmail.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
+Cc: "Rafael J. Wysocki" <rafael@kernel.org>, Aaron Lu <aaron.lu@intel.com>, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Len Brown <lenb@kernel.org>
 
-SGksIFJhZmFlbA0KDQo+IEZyb206IHJqd3lzb2NraUBnbWFpbC5jb20gW21haWx0bzpyand5c29j
-a2lAZ21haWwuY29tXSBPbiBCZWhhbGYgT2YNCj4gUmFmYWVsIEouIFd5c29ja2kNCj4gU3ViamVj
-dDogUmU6IFtQQVRDSCB2MiAwLzRdIEFDUEkgMi4wOiBFbmFibGUgVGVybUxpc3QgaW50ZXJwcmV0
-aW9uIGZvciB0YWJsZQ0KPiBsb2FkaW5nDQo+IA0KPiBPbiBUdWUsIE1heSAxNywgMjAxNiBhdCAy
-OjI5IEFNLCBaaGVuZywgTHYgPGx2LnpoZW5nQGludGVsLmNvbT4gd3JvdGU6DQo+ID4gSGksIFJh
-ZmFlbA0KPiA+DQo+ID4gQ2FuIHdlIHF1ZXVlIHRoaXMgdXAgaW4gbGludXgtbmV4dD8NCj4gPiBB
-U0xUUyByZWN1cnNpdmUgdGVzdHMgYXJlIGRvbmUgaW4gQUNQSUNBIHVwc3RyZWFtIGFuZCBubyBy
-ZWdyZXNzaW9ucyBjYW4gYmUNCj4gc2Vlbi4NCj4gPiBXZSBuZWVkIG1vcmUgdGVzdHMgYXJvdW5k
-IHRoaXMgZXhwZXJpbWVudGFsIGNoYW5nZSBmcm9tIHRoZSByZWFsIHVzZXJzIHRvDQo+IGhhdmUg
-dGhlIGNoYW5jZXMgdG8gbGVhcm4gdGhlIHVua25vd24gY2FzZXMuDQo+ID4gSWYgdGhleSByZXBv
-cnRlZCByZWdyZXNzaW9ucywgd2UgY291bGQgc3RvcCB0aGUgcmVncmVzc2lvbnMgYnkgcmV2ZXJ0
-aW5nDQo+IFtQQVRDSCA0LzRdLg0KPiA+IFNvIGl0IHNob3VsZCBiZSBzYWZlIHRvIGRvIHN1Y2gg
-ZXhwZXJpbWVudHMgaW4gdGhlIExpbnV4IHVwc3RyZWFtLg0KPiA+IFRoYW5rcyBpbiBhZHZhbmNl
-Lg0KPiANCj4gVGhlcmUgaXMgYSBydWxlIHRoYXQgZHVyaW5nIGEgbWVyZ2Ugd2luZG93IGxpbnV4
-LW5leHQgc2hvdWxkIG9ubHkNCj4gY29udGFpbiBtYXRlcmlhbCBmb3IgdGhhdCBtZXJnZSB3aW5k
-b3cuICBUaGF0IGlzLCBjdXJyZW50bHkgbGludXgtbmV4dA0KPiBzaG91bGQgb25seSBjb250YWlu
-IG1hdGVyaWFsIHRhcmdldGVkIGF0IHY0LjcuDQo+IA0KPiBGb3IgdGhpcyByZWFzb24sIEkgY2Fu
-J3QgcHV0IHRoZSBzZXJpZXMgaW50byBsaW51eC1uZXh0IHJpZ2h0IG5vdywgYnV0DQo+IEknbGwg
-ZG8gdGhhdCBhcyBzb29uIGFzIDQuNy1yYzEgaXMgcmVsZWFzZWQuDQpbTHYgWmhlbmddIA0KR3Jl
-YXQhDQpUaGFua3MgZm9yIHRoZSBpbmZvcm1hdGlvbi4NCg0KQmVzdCByZWdhcmRzDQotTHYNCg==
+--==_Exmh_1463713500_6311P
+Content-Type: text/plain; charset=us-ascii
+
+On Thu, 19 May 2016 18:53:17 -0400, Valdis.Kletnieks@vt.edu said:
+
+> > > next-20160512 sets the screen brightness to about 40%-ish or so, rather
+> > > than the 100% intensity I want.
+
+> Put this one in the "things that go bump in the night" pile - the problem
+> doesn't manifest on next-20160519, even though the commit I bisected to
+> is in the tree for today, and I don't see any obvious smoking guns to
+> have fixed it in the past week's worth of 'git log'....
+
+Actually, put it in "things that go bump in the night but need a stake driven
+through them"- it looks like I booted the wrong kernel while testing, and in
+fact next-20160519 *is* still broken.  However, after:
+
+git revert -n e4f35c1339f0cfcf38d3f63dd6fea2b070399263
+git revert -n 059500940defe285222d3b189b366dfe7f299cae
+
+Things work again.
+
+--==_Exmh_1463713500_6311P
+Content-Type: application/pgp-signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+Comment: Exmh version 2.5 07/13/2001
+
+iQIVAwUBVz5+3AdmEQWDXROgAQKXbBAAuXYtsXTHQyhvelOhWWtzjC0A8VeArVNX
+Xw4pw1XKTn/+YQc1jPXhMp5Pjcx8J1blI+rsN2BCpn+P4Qn42vWhgPVpnoUot/43
+XWWbei3+D5AQ5ub7mnbSkoA5X5Gm1dGqKmiu4zOHnnsDwUyo3orYUBAAJg47TSRB
+uR1qd01m86UB7n2RQmvqjyDmYhGESrcJKO0zIQEPW7hTWek9AqePpXoc7a2BCJXZ
+2Wj22ZnQHR/ng8vJ+iuOjlCyo5UC/SM26/a6565VxI9A8i2hODm9tW4+9AxwBkqL
+pF2m7JPqcxEUd713O+egGqLEcJ8S3bGPopzSAW4pQP71iCWYmTBWa3yvFQoA4zRd
+KNidRm8rVpqhyQXDxPtd8atKU3Wg+kTmK9v5mLI0mMpPqo/49k9pf8Rwbwx3URLT
+zfLT8s5tOLeFmuBtKHM7RTDuZAUnGWNnpoIZgQGzjREe5PMP2jZyYEHuxGQB8vCt
+hvAhqLUV0Q+YNBI7mC2X58ZPkDvu3mHo7od0YKl/APz2c7vajXZzqfDZWFdXdVPv
+A+VdLgreF9LUcQnUD1uCC/IALF3r4XBdb7pkyz6a15sH+zRIA9FtDiREB/1zmhb5
+ai8Gm2UCvM8gqJS2NhHkFnbh/GH1nZS1AagWJigwcSXKzUQkj5UdPlLyl4bd0dKp
+ySkEAg3vi44=
+=5GAv
+-----END PGP SIGNATURE-----
+
+--==_Exmh_1463713500_6311P--
