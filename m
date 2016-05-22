@@ -1,80 +1,61 @@
-From: Ocean HY1 He <hehy1@lenovo.com>
-Subject: RE: [PATCH] ACPI: Execute the _PTS method when system reboot
-Date: Tue, 24 May 2016 06:41:42 +0000
-Message-ID: <BCBE834BAC19744BA2C3AC4D68DBF2198D8270D9@CNMAILEX03.lenovo.com>
-References: <1462772495-71113-1-git-send-email-hehy1@lenovo.com>
+From: Ralf Gerbig <rge@quengel.org>
+Subject: Patch Thinkpad X201T backlight
+Date: Sun, 22 May 2016 19:23:59 +0200
+Message-ID: <8737p8aq7k.fsf@quengel.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="gb2312"
-Content-Transfer-Encoding: base64
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Language: zh-CN
-Sender: linux-kernel-owner@vger.kernel.org
-To: "Prarit Bhargava (prarit@redhat.com)" <prarit@redhat.com>, "jcm@redhat.com" <jcm@redhat.com>
-Cc: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, David Tanaka <dtanaka@lenovo.com>, Nagananda Chumbalkar <nchumbalkar@lenovo.com>, "rjw@rjwysocki.net" <rjw@rjwysocki.net>, "lenb@kernel.org" <lenb@kernel.org>, "wefu@redhat.com" <wefu@redhat.com>
+Content-Type: text/plain
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from static.94.121.46.78.clients.your-server.de ([78.46.121.94]:41383
+	"EHLO mail" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1753566AbcEXHPB (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 24 May 2016 03:15:01 -0400
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: linux-acpi@vger.kernel.org
 
-SGkgUHJhcml0IGFuZCBKb24sDQoNCkhvdyBkbyB5b3UgdGhpbmsgb2YgdGhpcz8NCg0KVGhhbmtz
-Lg0KDQpPY2VhbiBIZSAvILrOuqPR8w0KU1cgRGV2ZWxvcG1lbnQgRGVwdC4gDQpCZWlqaW5nIERl
-c2lnbiBDZW50ZXINCkVudGVycHJpc2UgUHJvZHVjdCBHcm91cA0KTW9iaWxlOiAxODkxMTc3ODky
-Ng0KRS1tYWlsOiBoZWh5MUBsZW5vdm8uY29tDQpOby42IENodWFuZyBZZSBSb2FkLCBIYWlkaWFu
-IERpc3RyaWN0LCBCZWlqaW5nLCBDaGluYSAxMDAwODUNCg0KLS0tLS1PcmlnaW5hbCBNZXNzYWdl
-LS0tLS0NCkZyb206IE9jZWFuIEhZMSBIZSANClNlbnQ6IE1vbmRheSwgTWF5IDE2LCAyMDE2IDEx
-OjA0IEFNDQpUbzogcmp3QHJqd3lzb2NraS5uZXQ7IGxlbmJAa2VybmVsLm9yZw0KQ2M6IGxpbnV4
-LWFjcGlAdmdlci5rZXJuZWwub3JnOyBsaW51eC1rZXJuZWxAdmdlci5rZXJuZWwub3JnOyBEYXZp
-ZCBUYW5ha2E7IE5hZ2FuYW5kYSBDaHVtYmFsa2FyDQpTdWJqZWN0OiBSRTogW1BBVENIXSBBQ1BJ
-OiBFeGVjdXRlIHRoZSBfUFRTIG1ldGhvZCB3aGVuIHN5c3RlbSByZWJvb3QNCg0KVG8gd2hvbSBt
-YXkgY29uY2VybiwNCg0KQSBMZW5vdm8gZmVhdHVyZSBkZXBlbmRzIG9uIF9QVFMgbWV0aG9kIGV4
-ZWN1dGlvbiB3aGVuIHJlYm9vdC4gQW5kIGFmdGVyIGNoZWNrIHRoZSBBQ1BJIHNwZWMsIEkgdGhp
-bmsgX1BUUyBzaG91bGQgYmUgZXhlY3R1ZWQgd2hlbiByZWJvby4gVGhpcyBwYXRjaCBjb3VsZCBm
-aXggdGhlIHByb2JsZW0uDQoNCkFueSBjb21tZW50cyBvZiB0aGlzIHBhdGNoPyBNYW55IHRoYW5r
-cyENCg0KT2NlYW4gSGUgLyC6zrqj0fMNClNXIERldmVsb3BtZW50IERlcHQuIA0KQmVpamluZyBE
-ZXNpZ24gQ2VudGVyDQpFbnRlcnByaXNlIFByb2R1Y3QgR3JvdXANCk1vYmlsZTogMTg5MTE3Nzg5
-MjYNCkUtbWFpbDogaGVoeTFAbGVub3ZvLmNvbQ0KTm8uNiBDaHVhbmcgWWUgUm9hZCwgSGFpZGlh
-biBEaXN0cmljdCwgQmVpamluZywgQ2hpbmEgMTAwMDg1DQoNCi0tLS0tT3JpZ2luYWwgTWVzc2Fn
-ZS0tLS0tDQpGcm9tOiBPY2VhbiBIWTEgSGUgDQpTZW50OiBNb25kYXksIE1heSAwOSwgMjAxNiAx
-OjUwIFBNDQpUbzogcmp3QHJqd3lzb2NraS5uZXQ7IGxlbmJAa2VybmVsLm9yZw0KQ2M6IGxpbnV4
-LWFjcGlAdmdlci5rZXJuZWwub3JnOyBsaW51eC1rZXJuZWxAdmdlci5rZXJuZWwub3JnOyBEYXZp
-ZCBUYW5ha2E7IE9jZWFuIEhZMSBIZTsgTmFnYW5hbmRhIENodW1iYWxrYXINClN1YmplY3Q6IFtQ
-QVRDSF0gQUNQSTogRXhlY3V0ZSB0aGUgX1BUUyBtZXRob2Qgd2hlbiBzeXN0ZW0gcmVib290DQoN
-ClRoZSBfUFRTIGNvbnRyb2wgbWV0aG9kIGlzIGRlZmluZWQgaW4gdGhlIHNlY3Rpb24gNy40LjEg
-b2YgYWNwaSA2LjANCnNwZWMuIFRoZSBfUFRTIGNvbnRyb2wgbWV0aG9kIGlzIGV4ZWN1dGVkIGJ5
-IHRoZSBPUyBkdXJpbmcgdGhlIHNsZWVwDQp0cmFuc2l0aW9uIHByb2Nlc3MgZm9yIFMxLCBTMiwg
-UzMsIFM0LCBhbmQgZm9yIG9yZGVybHkgUzUgc2h1dGRvd24uDQpUaGUgc2xlZXBpbmcgc3RhdGUg
-dmFsdWUgKEZvciBleGFtcGxlLCAxLCAyLCAzLCA0IG9yIDUgZm9yIHRoZSBTNQ0Kc29mdC1vZmYg
-c3RhdGUpIGlzIHBhc3NlZCB0byB0aGUgX1BUUyBjb250cm9sIG1ldGhvZC4gVGhpcyBtZXRob2QN
-CmlzIGNhbGxlZCBhZnRlciBPU1BNIGhhcyBub3RpZmllZCBuYXRpdmUgZGV2aWNlIGRyaXZlcnMg
-b2YgdGhlIHNsZWVwDQpzdGF0ZSB0cmFuc2l0aW9uIGFuZCBiZWZvcmUgdGhlIE9TUE0gaGFzIGhh
-ZCBhIGNoYW5jZSB0byBmdWxseQ0KcHJlcGFyZSB0aGUgc3lzdGVtIGZvciBhIHNsZWVwIHN0YXRl
-IHRyYW5zaXRpb24uDQoNClRoZSBfUFRTIGNvbnRyb2wgbWV0aG9kIHByb3ZpZGVzIHRoZSBCSU9T
-IGEgbWVjaGFuaXNtIGZvciBwZXJmb3JtaW5nDQpzb21lIGhvdXNla2VlcGluZywgc3VjaCBhcyB3
-cml0aW5nIHRoZSBzbGVlcCB0eXBlIHZhbHVlIHRvIHRoZSBlbWJlZGRlZA0KY29udHJvbGxlciwg
-YmVmb3JlIGVudGVyaW5nIHRoZSBzeXN0ZW0gc2xlZXBpbmcgc3RhdGUuDQoNCkFjY29yZGluZyB0
-byBzZWN0aW9uIDcuNSBvZiBhY3BpIDYuMCBzcGVjLCBfUFRTIHNob3VsZCBydW4gYWZ0ZXIgX1RU
-Uy4NCg0KVGh1cywgYSBfUFRTIGJsb2NrIG5vdGlmaWVyIGlzIGFkZGVkIHRvIHRoZSByZWJvb3Qg
-bm90aWZpZXIgbGlzdCBzbyB0aGF0DQp0aGUgX1BUUyBvYmplY3Qgd2lsbCBhbHNvIGJlIGV2YWx1
-YXRlZCB3aGVuIHRoZSBzeXN0ZW0gcmVib290Lg0KDQpTaWduZWQtb2ZmLWJ5OiBPY2VhbiBIZSA8
-aGVoeTFAbGVub3ZvLmNvbT4NClNpZ25lZC1vZmYtYnk6IE5hZ2FuYW5kYSBDaHVtYmFsa2FyIDxu
-Y2h1bWJhbGthckBsZW5vdm8uY29tPg0KLS0tDQogZHJpdmVycy9hY3BpL3NsZWVwLmMgfCAyNyAr
-KysrKysrKysrKysrKysrKysrKysrKysrKysNCiAxIGZpbGUgY2hhbmdlZCwgMjcgaW5zZXJ0aW9u
-cygrKQ0KDQpkaWZmIC0tZ2l0IGEvZHJpdmVycy9hY3BpL3NsZWVwLmMgYi9kcml2ZXJzL2FjcGkv
-c2xlZXAuYw0KaW5kZXggMmE4YjU5Ni4uOGIyOTBmYiAxMDA2NDQNCi0tLSBhL2RyaXZlcnMvYWNw
-aS9zbGVlcC5jDQorKysgYi9kcml2ZXJzL2FjcGkvc2xlZXAuYw0KQEAgLTU1LDYgKzU1LDI2IEBA
-IHN0YXRpYyBzdHJ1Y3Qgbm90aWZpZXJfYmxvY2sgdHRzX25vdGlmaWVyID0gew0KIAkucHJpb3Jp
-dHkJPSAwLA0KIH07DQogDQorc3RhdGljIGludCBwdHNfbm90aWZ5X3JlYm9vdChzdHJ1Y3Qgbm90
-aWZpZXJfYmxvY2sgKnRoaXMsDQorCQkJdW5zaWduZWQgbG9uZyBjb2RlLCB2b2lkICp4KQ0KK3sN
-CisJYWNwaV9zdGF0dXMgc3RhdHVzOw0KKw0KKwlzdGF0dXMgPSBhY3BpX2V4ZWN1dGVfc2ltcGxl
-X21ldGhvZChOVUxMLCAiXFxfUFRTIiwgQUNQSV9TVEFURV9TNSk7DQorCWlmIChBQ1BJX0ZBSUxV
-UkUoc3RhdHVzKSAmJiBzdGF0dXMgIT0gQUVfTk9UX0ZPVU5EKSB7DQorCQkvKiBJdCB3b24ndCBi
-cmVhayBhbnl0aGluZy4gKi8NCisJCXByaW50ayhLRVJOX05PVElDRSAiRmFpbHVyZSBpbiBldmFs
-dWF0aW5nIF9QVFMgb2JqZWN0XG4iKTsNCisJfQ0KKw0KKwlyZXR1cm4gTk9USUZZX0RPTkU7DQor
-fQ0KKw0KK3N0YXRpYyBzdHJ1Y3Qgbm90aWZpZXJfYmxvY2sgcHRzX25vdGlmaWVyID0gew0KKwku
-bm90aWZpZXJfY2FsbAk9IHB0c19ub3RpZnlfcmVib290LA0KKwkubmV4dAkJPSBOVUxMLA0KKwku
-cHJpb3JpdHkJPSAwLA0KK307DQorDQogc3RhdGljIGludCBhY3BpX3NsZWVwX3ByZXBhcmUodTMy
-IGFjcGlfc3RhdGUpDQogew0KICNpZmRlZiBDT05GSUdfQUNQSV9TTEVFUA0KQEAgLTg5Niw1ICs5
-MTYsMTIgQEAgaW50IF9faW5pdCBhY3BpX3NsZWVwX2luaXQodm9pZCkNCiAJICogb2JqZWN0IGNh
-biBhbHNvIGJlIGV2YWx1YXRlZCB3aGVuIHRoZSBzeXN0ZW0gZW50ZXJzIFM1Lg0KIAkgKi8NCiAJ
-cmVnaXN0ZXJfcmVib290X25vdGlmaWVyKCZ0dHNfbm90aWZpZXIpOw0KKw0KKwkvKg0KKwkgKiBB
-Y2NvcmRpbmcgdG8gc2VjdGlvbiA3LjUgb2YgYWNwaSA2LjAgc3BlYywgX1BUUyBzaG91bGQgcnVu
-IGFmdGVyDQorCSAqIF9UVFMgd2hlbiB0aGUgc3lzdGVtIGVudGVycyBTNS4NCisJICovDQorCXJl
-Z2lzdGVyX3JlYm9vdF9ub3RpZmllcigmcHRzX25vdGlmaWVyKTsNCisNCiAJcmV0dXJuIDA7DQog
-fQ0KLS0gDQoxLjguMy4xDQo=
+Hi,
+
+the X201 Tablet needs the same treatmant as the X201s,
+otherwise you can't change levels.
+
+The patch is against 4.5.5 stable, but should apply to all recent
+kernels.
+
+Please be gentle, I am neither a programmer nor a developer.
+
+If you have questions, feel free to ask, but don't expect an answer in
+the next 10 to 20 days (going to hospital).
+
+Regards,
+
+Ralf Gerbig
+
+---
+commit a10b5a05eae1a990682ce238b8e0ac6ad791a8a9
+Author: Ralf Gerbig <rge@quengel.org>
+Date:   Sun May 22 18:56:22 2016 +0200
+
+    The Thinkpad X201 Tablet also needs video_detect_force_video
+    
+    Signed-off-by: Ralf Gerbig <rge@quengel.org>
+
+diff --git a/drivers/acpi/video_detect.c b/drivers/acpi/video_detect.c
+index 1316ddd..d8d7bd3 100644
+--- a/drivers/acpi/video_detect.c
++++ b/drivers/acpi/video_detect.c
+@@ -167,6 +167,14 @@ static const struct dmi_system_id video_detect_dmi_table[] = {
+ 		DMI_MATCH(DMI_PRODUCT_VERSION, "ThinkPad X201s"),
+ 		},
+ 	},
++        {
++         .callback = video_detect_force_video,
++         .ident = "ThinkPad X201T",
++         .matches = {
++                DMI_MATCH(DMI_SYS_VENDOR, "LENOVO"),
++                DMI_MATCH(DMI_PRODUCT_VERSION, "ThinkPad X201T"),
++                },
++        },
+ 
+ 	/* The native backlight controls do not work on some older machines */
+ 	{
