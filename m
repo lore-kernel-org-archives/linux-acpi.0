@@ -1,62 +1,80 @@
-From: Jon Masters <jcm@redhat.com>
-Subject: Re: [PATCH 3/3] ACPI: ARM64: support for ACPI_TABLE_UPGRADE
-Date: Mon, 23 May 2016 14:29:06 -0400
-Message-ID: <401c89a2-5dde-a4ae-6791-ccab7b4d366f@redhat.com>
-References: <1463486765-31827-1-git-send-email-aleksey.makarov@linaro.org>
- <1463486765-31827-4-git-send-email-aleksey.makarov@linaro.org>
- <20160517124629.GE14955@leverpostej>
- <f0bf43ef-0be5-484c-5066-ab1929105b82@redhat.com>
- <b0933a59-239d-536f-4f63-a65e469f62a1@redhat.com>
- <20160523175632.GA16456@red-moon>
+From: "Opensource [Adam Thomson]" <Adam.Thomson.Opensource@diasemi.com>
+Subject: Re: [PATCH v2 2/2] ASoC: da7219: Convert driver to use
+ generic device/fwnode functions
+Date: Mon, 23 May 2016 22:53:07 +0000
+Message-ID: <2E89032DDAA8B9408CB92943514A0337D463EEB5@SW-EX-MBX01.diasemi.com>
+References: <cover.1463477116.git.Adam.Thomson.Opensource@diasemi.com>
+ <eea79e2c26dafa785451931387cfce716bd150d4.1463477116.git.Adam.Thomson.Opensource@diasemi.com>
+ <1463664451.31269.3.camel@linux.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20160523175632.GA16456@red-moon>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
-Cc: Mark Rutland <mark.rutland@arm.com>, Aleksey Makarov <aleksey.makarov@linaro.org>, Russell King <linux@arm.linux.org.uk>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, Graeme Gregory <graeme.gregory@linaro.org>, "Zheng, Lv" <lv.zheng@intel.com>, Catalin Marinas <catalin.marinas@arm.com>, Will Deacon <will.deacon@arm.com>
+Return-path: <alsa-devel-bounces@alsa-project.org>
+In-Reply-To: <1463664451.31269.3.camel@linux.intel.com>
+Content-Language: en-US
+List-Unsubscribe: <http://mailman.alsa-project.org/mailman/options/alsa-devel>,
+ <mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
+List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel/>
+List-Post: <mailto:alsa-devel@alsa-project.org>
+List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
+List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+ <mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
+Errors-To: alsa-devel-bounces@alsa-project.org
+Sender: alsa-devel-bounces@alsa-project.org
+To: Andy Shevchenko <andriy.shevchenko@linux.intel.com>, "Opensource [Adam
+ Thomson]" <Adam.Thomson.Opensource@diasemi.com>, Mark Brown <broonie@kernel.org>, Liam Girdwood <lgirdwood@gmail.com>, Jaroslav Kysela <perex@perex.cz>, Takashi Iwai <tiwai@suse.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Robert Moore <robert.moore@intel.com>, Lv Zheng <lv.zheng@intel.com>, "Rafael J.Wysocki" <rafael.j.wysocki@intel.com>, Len
+ Brown <lenb@kernel.org>
+Cc: "alsa-devel@alsa-project.org" <alsa-devel@alsa-project.org>, Heikki Krogerus <heikki.krogerus@linux.intel.com>, Support Opensource <Support.Opensource@diasemi.com>, Hanjun Guo <hanjun.guo@linaro.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Sathyanarayana Nujella <sathyanarayana.nujella@intel.com>, Suravee <Suravee.Suthikulpanit@amd.com>, Bjorn Helgaas <bhelgaas@google.com>, Andrew Morton <akpm@linux-foundation.org>, Mika Westerberg <mika.westerberg@linux.intel.com>, "devel@acpica.org" <devel@acpica.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On 05/23/2016 01:56 PM, Lorenzo Pieralisi wrote:
-> On Tue, May 17, 2016 at 12:48:53PM -0400, Jon Masters wrote:
->> On 05/17/2016 12:44 PM, Jon Masters wrote:
->>
->>> 1). During development of a platform, it is much easier to debug
->>> problems with tables if you can test replacement ones without having to
->>> respin the firmware. In the server world, you usually don't have the
->>> firmware source code, so to get it respun could be days-weeks even if
->>> you are working with the authors closely. We have practically used this
->>> feature on a number of platforms already and it will continue.
->>
->> For example, on one platform we were unable to fully boot RHEL(SA) due
->> to a bug in one of the ACPI tables. But I was able to boot the system to
->> a ramdisk containing a uuencode library and then write out the content
->> of the tables over the serial port, then decompile/patch/recompile, and
->> override replacement tables on the system. Then we beat the vendor up
->> with the fixes and the official firmware was corrected.
+On May 19, 2015 14:28, Andy Shevchenko wrote:
+
+> > -static struct da7219_aad_pdata *da7219_aad_of_to_pdata(struct
+> > snd_soc_codec *codec)
+> > +static struct da7219_aad_pdata *da7219_aad_fw_to_pdata(struct
+> > snd_soc_codec *codec)
+> >  {
+> > -	struct device_node *np = codec->dev->of_node;
+> > -	struct device_node *aad_np = of_find_node_by_name(np,
+> > "da7219_aad");
+> > +	struct device *dev = codec->dev;
+> > +	struct i2c_client *i2c = to_i2c_client(dev);
+> > +	struct fwnode_handle *aad_np =
+> > +		device_get_named_child_node(dev, "da7219_aad");
 > 
-> Can you explain to me please why you can't do it with GRUB ?
-
-It's doable with GRUB (if you rebuild GRUB modules to include it)
-
-> I am using mainline GRUB and its acpi command all the time to update
-> static ACPI tables for testing new features (ie IORT) and it works
-> just fine for me (and you can still override the DSDT, which is
-> likely to be the main source of bugs, through the CONFIG_ACPI_CUSTOM_DSDT
-> config option, that works on ARM in mainline with no changes required).
+> I would suggest to do an assignment below...
 > 
-> I just want to understand if there is really a compelling reason
-> for adding this stuff when we can easily implement its features
-> through something that is usable today without any kernel changes.
+> >  	struct da7219_aad_pdata *aad_pdata;
+> > -	const char *of_str;
+> > -	u32 of_val32;
+> > +	const char *fw_str;
+> > +	u32 fw_val32;
+> >
+> 
+> 
+> ...right here.
+> Same amount of LOC, but less difficult to see from where aad_np comes.
+> 
+> >  	if (!aad_np)
+> >  		return NULL;
+> >
 
-We're looking for x86 feature parity in the base platform. Every time
-there's a gratuitous differentiation it's a waste of time for folks
-trying to figure out what is different on an ARM system. So if we
-completely remove the ACPI override feature from the kernel and make
-everyone use GRUB instead, then fine, but ARM shouldn't be special.
+To be fair the allocation of 'aad_np' is only a few lines above so this really
+doesn't seem to make much difference in my opinion. It really shouldn't be hard
+for someone to spot where it's allocated.
 
-Jon.
+> > @@ -769,9 +768,9 @@ int da7219_aad_init(struct snd_soc_codec *codec)
+> >  	da7219->aad = da7219_aad;
+> >  	da7219_aad->codec = codec;
+> >
+> > -	/* Handle any DT/platform data */
+> > -	if ((codec->dev->of_node) && (da7219->pdata))
+> > -		da7219->pdata->aad_pdata =
+> > da7219_aad_of_to_pdata(codec);
+> > +	/* Handle any DT/ACPI/platform data */
+> > +     if ((da7219->pdata) && (!da7219->pdata->aad_pdata))
+> 
+> Redundant parens, twice.
 
--- 
-Computer Architect | Sent from my Fedora powered laptop
+Not essential, but looks cleaner to me. Unless there's a real demand to change,
+I'd like to leave this as is.
