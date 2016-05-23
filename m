@@ -1,192 +1,165 @@
-From: Gabriele Paoloni <gabriele.paoloni@huawei.com>
-Subject: RE: [PATCH V7 00/11] Support for generic ACPI based PCI host
- controller
-Date: Mon, 23 May 2016 15:16:01 +0000
-Message-ID: <EE11001F9E5DDD47B7634E2F8A612F2E1EDB35A5@lhreml503-mbs>
-References: <1462893601-8937-1-git-send-email-tn@semihalf.com>
- <EE11001F9E5DDD47B7634E2F8A612F2E1ED8DF51@lhreml503-mbs>
- <57331290.7070104@semihalf.com>
- <3d4aae09-51c4-f007-5100-191a4a85e27a@redhat.com>
- <CAKv+Gu8fdeJ9OvRSmtu9zyvcjK3O-4WU=jG=6-7t4xZwvV8d2g@mail.gmail.com>
- <95b1d06e-f9c5-39f3-1003-f536b65eef60@redhat.com>
- <CAKv+Gu-_xp_t_Ze3Pw_-82-fmy=tCy-h=4FbP98eLbuXVk2hHQ@mail.gmail.com>
- <EE11001F9E5DDD47B7634E2F8A612F2E1EDAF6AC@lhreml503-mbs>
- <CAKv+Gu_zpoFsDr7e8zPCDKPpRdKDVH+vnC0nfvmGaJ7xcP3Zng@mail.gmail.com>
- <20160523105655.GA22902@red-moon>
+From: Eric Auger <eric.auger@linaro.org>
+Subject: Re: [PATCH V5 6/6] vfio, platform: make reset driver a requirement by
+ default
+Date: Mon, 23 May 2016 17:20:06 +0200
+Message-ID: <57431FA6.8060405@linaro.org>
+References: <1463364819-477-1-git-send-email-okaya@codeaurora.org>
+ <1463364819-477-7-git-send-email-okaya@codeaurora.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20160523105655.GA22902@red-moon>
-Content-Language: en-US
-Sender: linux-kernel-owner@vger.kernel.org
-To: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Ard Biesheuvel <ard.biesheuvel@linaro.org>
-Cc: Jon Masters <jcm@redhat.com>, Tomasz Nowicki <tn@semihalf.com>, "helgaas@kernel.org" <helgaas@kernel.org>, "arnd@arndb.de" <arnd@arndb.de>, "will.deacon@arm.com" <will.deacon@arm.com>, "catalin.marinas@arm.com" <catalin.marinas@arm.com>, "rafael@kernel.org" <rafael@kernel.org>, "hanjun.guo@linaro.org" <hanjun.guo@linaro.org>, "okaya@codeaurora.org" <okaya@codeaurora.org>, "jchandra@broadcom.com" <jchandra@broadcom.com>, "linaro-acpi@lists.linaro.org" <linaro-acpi@lists.linaro.org>, "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>, "dhdang@apm.com" <dhdang@apm.com>, "Liviu.Dudau@arm.com" <Liviu.Dudau@arm.com>, "ddaney@caviumnetworks.com" <ddaney@caviumnetworks.com>, "jeremy.linton@arm.com" <jeremy.linton@arm.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, robert.richter@caviumnetwo
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
+Return-path: <kvm-owner@vger.kernel.org>
+In-Reply-To: <1463364819-477-7-git-send-email-okaya@codeaurora.org>
+Sender: kvm-owner@vger.kernel.org
+To: Sinan Kaya <okaya@codeaurora.org>, kvm@vger.kernel.org, timur@codeaurora.org, cov@codeaurora.org, jcm@redhat.com
+Cc: linux-acpi@vger.kernel.org, agross@codeaurora.org, linux-arm-msm@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Baptiste Reynal <b.reynal@virtualopensystems.com>, Alex Williamson <alex.williamson@redhat.com>, linux-kernel@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hi Lorenzo
-
-> -----Original Message-----
-> From: Lorenzo Pieralisi [mailto:lorenzo.pieralisi@arm.com]
-> Sent: 23 May 2016 11:57
-> To: Ard Biesheuvel
-> Cc: Gabriele Paoloni; Jon Masters; Tomasz Nowicki; helgaas@kernel.org;
-> arnd@arndb.de; will.deacon@arm.com; catalin.marinas@arm.com;
-> rafael@kernel.org; hanjun.guo@linaro.org; okaya@codeaurora.org;
-> jchandra@broadcom.com; linaro-acpi@lists.linaro.org; linux-
-> pci@vger.kernel.org; dhdang@apm.com; Liviu.Dudau@arm.com;
-> ddaney@caviumnetworks.com; jeremy.linton@arm.com; linux-
-> kernel@vger.kernel.org; linux-acpi@vger.kernel.org;
-> robert.richter@caviumnetworks.com; Suravee.Suthikulpanit@amd.com;
-> msalter@redhat.com; Wangyijing; mw@semihalf.com;
-> andrea.gallo@linaro.org; linux-arm-kernel@lists.infradead.org
-> Subject: Re: [PATCH V7 00/11] Support for generic ACPI based PCI host
-> controller
+Hi Sinan,
+On 05/16/2016 04:13 AM, Sinan Kaya wrote:
+> The code was allowing platform devices to be used without a supporting
+> VFIO reset driver. The hardware can be left in some inconsistent state
+> after a guest machine abort.
 > 
-> On Fri, May 20, 2016 at 11:14:03AM +0200, Ard Biesheuvel wrote:
-> > On 20 May 2016 at 10:40, Gabriele Paoloni
-> <gabriele.paoloni@huawei.com> wrote:
-> > > Hi Ard
-> > >
-> > >> -----Original Message-----
-> > >> From: Ard Biesheuvel [mailto:ard.biesheuvel@linaro.org]
-> > [...]
-> > >>
-> > >> Is the PCIe root complex so special that you cannot simply
-> describe an
-> > >> implementation that is not PNP0408 compatible as something else,
-> under
-> > >> its own unique HID? If everybody is onboard with using ACPI, how
-> is
-> > >> this any different from describing other parts of the platform
-> > >> topology? Even if the SBSA mandates generic PCI, they already
-> deviated
-> > >> from that when they built the hardware, so pretending that it is a
-> > >> PNP0408 with quirks really does not buy us anything.
-> > >
-> > > From my understanding we want to avoid this as this would allow
-> each
-> > > vendor to come up with his own code and it would be much more
-> effort
-> > > for the PCI maintainer to rework the PCI framework to accommodate
-> X86
-> > > and "all" ARM64 Host Controllers...
-> > >
-> > > I guess this approach is too risky and we want to avoid this.
-> Through
-> > > standardization we can more easily maintain the code and scale it
-> to
-> > > multiple SoCs...
-> > >
-> > > So this is my understanding; maybe Jon, Tomasz or Lorenzo can give
-> > > a bit more explanation...
-> > >
-> >
-> > OK, so that boils down to recommending to vendors to represent known
-> > non-compliant hardware as compliant, just so that we don't have to
-> > change the code to support additional flavors of ECAM ? It's fine to
-> > be pragmatic, but that sucks.
-> >
-> > We keep confusing the x86 case with the ARM case here: for x86, they
-> > needed to deal with broken hardware *after* the fact, and all they
-> > could do is find /some/ distinguishing feature in order to guess
-> which
-> > exact hardware they might be running on. For arm64, it is the
-> opposite
-> > case. We are currently in a position where we can demand vendors to
-> > comply with the standards they endorsed themselves, and (ab)using
-> ACPI
-> > + DMI as a de facto platform description rather than plain ACPI makes
-> > me think the DT crowd were actually right from the beginning. It
-> > *directly* violates the standardization principle, since it requires
-> a
-> > priori knowledge inside the OS that a certain 'generic' device must
-> be
-> > driven in a special way.
-> >
-> > So can anyone comment on the feasibility of adding support for
-> devices
-> > with vendor specific HIDs (and no generic CIDs) to the current ACPI
-> > ECAM driver in Linux?
+> The reset driver will put the hardware back to safe state and disable
+> interrupts before returning the control back to the host machine.
+
+The commit message should describe the new module option.
+
+You should also describe this is not just a matter of having a reset
+function implemented & found somewhere but also a matter of having the
+reset call to succeed. A reset failure now induce a failure on the first
+open(). Shouldn't we handle this failure in a separate patch to make
+this clearer?
 > 
-> Host bridges in ACPI are handled through PNP0A08/PNP0A03 ids, and
-> most of the arch specific code is handled in the respective arch
-> directories (X86 and IA64, even though IA64 does not rely on ECAM/MCFG
-> for
-> PCI ops), it is not a driver per-se, PNP0A08/PNP0A03 are detected
-> through
-> ACPI scan handlers and the respective arch code (ie pci_acpi_scan_root)
-> sets-up resources AND config space on an arch specific basis.
+> Signed-off-by: Sinan Kaya <okaya@codeaurora.org>
+> ---
+>  drivers/vfio/platform/vfio_amba.c             |  5 +++++
+>  drivers/vfio/platform/vfio_platform.c         |  5 +++++
+>  drivers/vfio/platform/vfio_platform_common.c  | 18 ++++++++++++++----
+>  drivers/vfio/platform/vfio_platform_private.h |  1 +
+>  4 files changed, 25 insertions(+), 4 deletions(-)
 > 
-> X86 deals with that with code in arch/x86 that sets-up the pci_raw_ops
-> on a platform specific basis (and it is not nice, but it works because
-> as you all know the number of platforms in X86 world is contained).
-> 
-> Will this happen for ARM64 in arch/arm64 based on vendor specific
-> HIDs ?
-> 
-> No.
-> 
-> So given the current state of play (we were requested to move the
-> arch/arm64 specific ACPI PCI bits to arch/arm64), we would end up
-> with arch/arm64 code requiring code in /drivers to set-up pci_ops
-> in a platform specific way, it is horrible, if feasible at all.
-> 
-> The only way this can be implemented is by pretending that the
-> ACPI/PCI arch/arm64 implementation is generic code (that's what this
-> series does), move it to /drivers (where it is in this series), and
-> implement _DSD vendor specific bindings (per HID) to set-up the pci
-> operations; whether this solution should go upstream, given that it
-> is just a short-term solution for early platforms bugs, it is another
-> story and my personal answer is no.
+> diff --git a/drivers/vfio/platform/vfio_amba.c b/drivers/vfio/platform/vfio_amba.c
+> index a66479b..7585902 100644
+> --- a/drivers/vfio/platform/vfio_amba.c
+> +++ b/drivers/vfio/platform/vfio_amba.c
+> @@ -23,6 +23,10 @@
+>  #define DRIVER_AUTHOR   "Antonios Motakis <a.motakis@virtualopensystems.com>"
+>  #define DRIVER_DESC     "VFIO for AMBA devices - User Level meta-driver"
+>  
+> +static bool reset_required = true;
+> +module_param(reset_required, bool, 0644);
+> +MODULE_PARM_DESC(reset_required, "override reset requirement (default: 1)");
+> +
+>  /* probing devices from the AMBA bus */
+>  
+>  static struct resource *get_amba_resource(struct vfio_platform_device *vdev,
+> @@ -68,6 +72,7 @@ static int vfio_amba_probe(struct amba_device *adev, const struct amba_id *id)
+>  	vdev->get_resource = get_amba_resource;
+>  	vdev->get_irq = get_amba_irq;
+>  	vdev->parent_module = THIS_MODULE;
+> +	vdev->reset_required = reset_required;
+>  
+>  	ret = vfio_platform_probe_common(vdev, &adev->dev);
+>  	if (ret) {
+> diff --git a/drivers/vfio/platform/vfio_platform.c b/drivers/vfio/platform/vfio_platform.c
+> index b1cc3a7..ef89146 100644
+> --- a/drivers/vfio/platform/vfio_platform.c
+> +++ b/drivers/vfio/platform/vfio_platform.c
+> @@ -23,6 +23,10 @@
+>  #define DRIVER_AUTHOR   "Antonios Motakis <a.motakis@virtualopensystems.com>"
+>  #define DRIVER_DESC     "VFIO for platform devices - User Level meta-driver"
+>  
+> +static bool reset_required = true;
+> +module_param(reset_required, bool, 0644);
+> +MODULE_PARM_DESC(reset_required, "override reset requirement (default: 1)");
+> +
+>  /* probing devices from the linux platform bus */
+>  
+>  static struct resource *get_platform_resource(struct vfio_platform_device *vdev,
+> @@ -66,6 +70,7 @@ static int vfio_platform_probe(struct platform_device *pdev)
+>  	vdev->get_resource = get_platform_resource;
+>  	vdev->get_irq = get_platform_irq;
+>  	vdev->parent_module = THIS_MODULE;
+> +	vdev->reset_required = reset_required;
+>  
+>  	ret = vfio_platform_probe_common(vdev, &pdev->dev);
+>  	if (ret)
+> diff --git a/drivers/vfio/platform/vfio_platform_common.c b/drivers/vfio/platform/vfio_platform_common.c
+> index 095d5b7..89fb18f 100644
+> --- a/drivers/vfio/platform/vfio_platform_common.c
+> +++ b/drivers/vfio/platform/vfio_platform_common.c
+> @@ -121,10 +121,10 @@ static bool vfio_platform_has_reset(struct vfio_platform_device *vdev)
+>  	return vdev->of_reset ? true : false;
+>  }
+>  
+> -static void vfio_platform_get_reset(struct vfio_platform_device *vdev)
+> +static int vfio_platform_get_reset(struct vfio_platform_device *vdev)
+>  {
+>  	if (vdev->acpihid)
+> -		return;
+> +		return vfio_platform_acpi_has_reset(vdev) ? 0 : -EINVAL;
+-ENOENT instead?
+>  
+>  	vdev->of_reset = vfio_platform_lookup_reset(vdev->compat,
+>  						    &vdev->reset_module);
+> @@ -133,6 +133,8 @@ static void vfio_platform_get_reset(struct vfio_platform_device *vdev)
+>  		vdev->of_reset = vfio_platform_lookup_reset(vdev->compat,
+>  							&vdev->reset_module);
+>  	}
+> +
+> +	return vdev->of_reset ? 0 : -EINVAL;
+same
+>  }
+>  
+>  static void vfio_platform_put_reset(struct vfio_platform_device *vdev)
+> @@ -263,7 +265,9 @@ static int vfio_platform_open(void *device_data)
+>  		if (ret)
+>  			goto err_irq;
+>  
+> -		vfio_platform_call_reset(vdev);
+> +		ret = vfio_platform_call_reset(vdev);
+> +		if (ret && vdev->reset_required)
+> +			goto err_irq;
 
-I think it shouldn't be too bad to move quirk handling mechanism to
-arch/arm64. Effectively we would not move platform specific code into
-arch/arm64 but just the mechanism checking if there is any quirk that
-is defined.
-
-i.e.:
-
-extern struct pci_cfg_fixup __start_acpi_mcfg_fixups[];
-extern struct pci_cfg_fixup __end_acpi_mcfg_fixups[];
-
-static struct pci_ecam_ops *pci_acpi_get_ops(struct acpi_pci_root *root)
-{
-        int bus_num = root->secondary.start;
-        int domain = root->segment;
-        struct pci_cfg_fixup *f;
-
-        /*
-         * Match against platform specific quirks and return corresponding
-         * CAM ops.
-         *
-         * First match against PCI topology <domain:bus> then use DMI or
-         * custom match handler.
-         */
-        for (f = __start_acpi_mcfg_fixups; f < __end_acpi_mcfg_fixups; f++) {
-                if ((f->domain == domain || f->domain == PCI_MCFG_DOMAIN_ANY) &&
-                    (f->bus_num == bus_num || f->bus_num == PCI_MCFG_BUS_ANY) &&
-                    (f->system ? dmi_check_system(f->system) : 1) &&
-                    (f->match ? f->match(f, root) : 1))
-                        return f->ops;
-        }
-        /* No quirks, use ECAM */
-        return &pci_generic_ecam_ops;
-}
-
-Such quirks will be defined anyway in drivers/pci/host/ in the vendor
-specific quirk implementations.
-
-e.g. in HiSilicon case we would have
-
-DECLARE_ACPI_MCFG_FIXUP(NULL, hisi_pcie_match, &hisi_pcie_ecam_ops,
-			PCI_MCFG_DOMAIN_ANY, PCI_MCFG_BUS_ANY);
-
-in "drivers/pci/host/pcie-hisi-acpi.c "
+what do we do at release time in case the reset fails. You did not
+change anything. Shouldn't we at least emit a warning to the user if the
+reset becomes mandated (separate patch as evoked above)?
 
 Thanks
 
-Gab
+Eric
+>  	}
+>  
+>  	vdev->refcnt++;
+> @@ -669,7 +673,13 @@ int vfio_platform_probe_common(struct vfio_platform_device *vdev,
+>  		return ret;
+>  	}
+>  
+> -	vfio_platform_get_reset(vdev);
+> +	ret = vfio_platform_get_reset(vdev);
+> +	if (ret && vdev->reset_required) {
+> +		pr_err("vfio: no reset function found for device %s\n",
+> +		       vdev->name);
+> +		iommu_group_put(group);
+> +		return ret;
 
+> +	}
+>  
+>  	mutex_init(&vdev->igate);
+>  
+> diff --git a/drivers/vfio/platform/vfio_platform_private.h b/drivers/vfio/platform/vfio_platform_private.h
+> index ba9e4f8..68fbc00 100644
+> --- a/drivers/vfio/platform/vfio_platform_private.h
+> +++ b/drivers/vfio/platform/vfio_platform_private.h
+> @@ -50,6 +50,7 @@ struct vfio_platform_region {
+>  };
+>  
+>  struct vfio_platform_device {
+> +	bool				reset_required;
+>  	struct vfio_platform_region	*regions;
+>  	u32				num_regions;
+>  	struct vfio_platform_irq	*irqs;
 > 
-> Lorenzo
+
