@@ -1,140 +1,128 @@
 From: Eric Auger <eric.auger@linaro.org>
-Subject: Re: [PATCH V5 4/6] vfio: platform: add support for ACPI probe
-Date: Mon, 23 May 2016 15:18:19 +0200
-Message-ID: <5743031B.5000208@linaro.org>
+Subject: Re: [PATCH V5 5/6] vfio: platform: call _RST method when using ACPI
+Date: Mon, 23 May 2016 16:41:52 +0200
+Message-ID: <574316B0.5080306@linaro.org>
 References: <1463364819-477-1-git-send-email-okaya@codeaurora.org>
- <1463364819-477-5-git-send-email-okaya@codeaurora.org>
+ <1463364819-477-6-git-send-email-okaya@codeaurora.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=windows-1252
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1463364819-477-5-git-send-email-okaya@codeaurora.org>
-Sender: linux-kernel-owner@vger.kernel.org
+Return-path: <linux-arm-msm-owner@vger.kernel.org>
+In-Reply-To: <1463364819-477-6-git-send-email-okaya@codeaurora.org>
+Sender: linux-arm-msm-owner@vger.kernel.org
 To: Sinan Kaya <okaya@codeaurora.org>, kvm@vger.kernel.org, timur@codeaurora.org, cov@codeaurora.org, jcm@redhat.com
 Cc: linux-acpi@vger.kernel.org, agross@codeaurora.org, linux-arm-msm@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Baptiste Reynal <b.reynal@virtualopensystems.com>, Alex Williamson <alex.williamson@redhat.com>, linux-kernel@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
 On 05/16/2016 04:13 AM, Sinan Kaya wrote:
-> The code is using the compatible DT string to associate a reset driver
-> with the actual device itself. The compatible string does not exist on
-> ACPI based systems. HID is the unique identifier for a device driver
-> instead.
+> The device tree code checks for the presence of a reset driver and calls
+> the of_reset function pointer by looking up the reset driver as a module.
+> 
+> ACPI defines _RST method to perform device level reset. After the _RST
+> method is executed, the OS can resume using the device.
+> 
+> This patch checks the presence of _RST method and calls the _RST
+> method when reset is requested.
 > 
 > Signed-off-by: Sinan Kaya <okaya@codeaurora.org>
 > ---
->  drivers/vfio/platform/vfio_platform_common.c  | 58 ++++++++++++++++++++++++---
->  drivers/vfio/platform/vfio_platform_private.h |  1 +
->  2 files changed, 54 insertions(+), 5 deletions(-)
+>  drivers/vfio/platform/vfio_platform_common.c | 44 ++++++++++++++++++++++++++++
+>  1 file changed, 44 insertions(+)
 > 
 > diff --git a/drivers/vfio/platform/vfio_platform_common.c b/drivers/vfio/platform/vfio_platform_common.c
-> index 25378bd..d859d3b 100644
+> index d859d3b..095d5b7 100644
 > --- a/drivers/vfio/platform/vfio_platform_common.c
 > +++ b/drivers/vfio/platform/vfio_platform_common.c
-> @@ -13,6 +13,7 @@
->   */
->  
->  #include <linux/device.h>
-> +#include <linux/acpi.h>
->  #include <linux/iommu.h>
->  #include <linux/module.h>
->  #include <linux/mutex.h>
-> @@ -49,6 +50,37 @@ static vfio_platform_reset_fn_t vfio_platform_lookup_reset(const char *compat,
->  	return reset_fn;
+> @@ -73,21 +73,59 @@ int vfio_platform_acpi_probe(struct vfio_platform_device *vdev,
+>  	}
+>  	return 0;
 >  }
->  
-> +#ifdef CONFIG_ACPI
-> +int vfio_platform_acpi_probe(struct vfio_platform_device *vdev,
-> +			     struct device *dev)
-should be static
+> +
+> +static int vfio_platform_acpi_call_reset(struct vfio_platform_device *vdev)
 > +{
-> +	struct acpi_device *adev = ACPI_COMPANION(dev);
+> +	struct device *dev = vdev->device;
+> +	acpi_handle handle = ACPI_HANDLE(dev);
+> +	acpi_status acpi_ret;
+> +	unsigned long long val;
 > +
-> +	if (acpi_disabled)
-> +		return -ENODEV;
+> +	acpi_ret = acpi_evaluate_integer(handle, "_RST", NULL, &val);
+> +	if (ACPI_FAILURE(acpi_ret))
+> +		return -EINVAL;
 > +
-> +	if (!adev) {
-> +		pr_err("VFIO: ACPI companion device not found for %s\n",
-> +			vdev->name);
-> +		return -ENODEV;
-> +	}
-> +
-> +	vdev->acpihid = acpi_device_hid(adev);
-> +	if (!vdev->acpihid) {
-> +		pr_err("VFIO: cannot find ACPI HID for %s\n",
-> +		       vdev->name);
-> +		return -ENODEV;
-> +	}
 > +	return 0;
 > +}
-> +#else
-> +int vfio_platform_acpi_probe(struct vfio_platform_device *vdev,
-> +			     struct device *dev)
-static inline?
-> +{
-> +	return -EINVAL;
-nit: -ENOENT ?
-> +}
-> +#endif
 > +
->  static bool vfio_platform_has_reset(struct vfio_platform_device *vdev)
+> +static bool vfio_platform_acpi_has_reset(struct vfio_platform_device *vdev)
+> +{
+> +	struct device *dev = vdev->device;
+> +	acpi_handle handle = ACPI_HANDLE(dev);
+> +
+> +	return acpi_has_method(handle, "_RST");
+> +}
+>  #else
+>  int vfio_platform_acpi_probe(struct vfio_platform_device *vdev,
+>  			     struct device *dev)
 >  {
->  	return vdev->of_reset ? true : false;
-> @@ -548,6 +580,21 @@ static const struct vfio_device_ops vfio_platform_ops = {
->  	.mmap		= vfio_platform_mmap,
->  };
->  
-> +int vfio_platform_of_probe(struct vfio_platform_device *vdev,
-> +			   struct device *dev)
-> +{
-> +	int ret;
+>  	return -EINVAL;
+>  }
 > +
-> +	ret = device_property_read_string(dev, "compatible",
-> +					  &vdev->compat);
-> +	if (ret) {
-> +		pr_err("VFIO: cannot retrieve compat for %s\n",
-> +			vdev->name);
-> +		return ret;
-> +	}
-> +	return 0;
-nit: can be simplified by returning ret in any case.
+> +static int vfio_platform_acpi_call_reset(struct vfio_platform_device *vdev)
+> +{
+nit: inline
+> +	return -EINVAL;
+> +}
+> +
+> +static bool vfio_platform_acpi_has_reset(struct vfio_platform_device *vdev)
+nit: inline
+
+Besides Reviewed-by: Eric Auger <eric.auger@linaro.org>
+
+It is not explictly written in the ACPI spec that _RST is expected to
+stop DMA transfers and IRQs although this may be implicit in the notion
+of "function level reset ". May be worth adding this info in the commit msg?
 
 Best Regards
 
 Eric
-
+> +{
+> +	return false;
 > +}
-> +
->  int vfio_platform_probe_common(struct vfio_platform_device *vdev,
->  			       struct device *dev)
+>  #endif
+>  
+>  static bool vfio_platform_has_reset(struct vfio_platform_device *vdev)
 >  {
-> @@ -557,11 +604,12 @@ int vfio_platform_probe_common(struct vfio_platform_device *vdev,
->  	if (!vdev)
->  		return -EINVAL;
->  
-> -	ret = device_property_read_string(dev, "compatible", &vdev->compat);
-> -	if (ret) {
-> -		pr_err("VFIO: cannot retrieve compat for %s\n", vdev->name);
-> -		return -EINVAL;
-> -	}
-> +	ret = vfio_platform_acpi_probe(vdev, dev);
-> +	if (ret)
-> +		ret = vfio_platform_of_probe(vdev, dev);
+> +	if (vdev->acpihid)
+> +		return vfio_platform_acpi_has_reset(vdev);
 > +
-> +	if (ret)
-> +		return ret;
+>  	return vdev->of_reset ? true : false;
+>  }
 >  
->  	vdev->device = dev;
+>  static void vfio_platform_get_reset(struct vfio_platform_device *vdev)
+>  {
+> +	if (vdev->acpihid)
+> +		return;
+> +
+>  	vdev->of_reset = vfio_platform_lookup_reset(vdev->compat,
+>  						    &vdev->reset_module);
+>  	if (!vdev->of_reset) {
+> @@ -99,6 +137,9 @@ static void vfio_platform_get_reset(struct vfio_platform_device *vdev)
 >  
-> diff --git a/drivers/vfio/platform/vfio_platform_private.h b/drivers/vfio/platform/vfio_platform_private.h
-> index 71ed7d1..ba9e4f8 100644
-> --- a/drivers/vfio/platform/vfio_platform_private.h
-> +++ b/drivers/vfio/platform/vfio_platform_private.h
-> @@ -58,6 +58,7 @@ struct vfio_platform_device {
->  	struct mutex			igate;
->  	struct module			*parent_module;
->  	const char			*compat;
-> +	const char			*acpihid;
->  	struct module			*reset_module;
->  	struct device			*device;
+>  static void vfio_platform_put_reset(struct vfio_platform_device *vdev)
+>  {
+> +	if (vdev->acpihid)
+> +		return;
+> +
+>  	if (vdev->of_reset)
+>  		module_put(vdev->reset_module);
+>  }
+> @@ -177,6 +218,9 @@ static int vfio_platform_call_reset(struct vfio_platform_device *vdev)
+>  		dev_info(vdev->device, "reset\n");
+>  		vdev->of_reset(vdev);
+>  		return 0;
+> +	} else if (vdev->acpihid) {
+> +		dev_info(vdev->device, "reset\n");
+> +		return vfio_platform_acpi_call_reset(vdev);
+>  	}
 >  
+>  	dev_warn(vdev->device, "no reset function found!\n");
 > 
