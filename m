@@ -1,104 +1,252 @@
-From: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
-Subject: Re: [PATCH V7 00/11] Support for generic ACPI based PCI host
- controller
-Date: Mon, 23 May 2016 11:56:55 +0100
-Message-ID: <20160523105655.GA22902@red-moon>
+From: Tomasz Nowicki <tn@semihalf.com>
+Subject: Re: [PATCH V7 08/11] pci, acpi: Support for ACPI based generic PCI
+ host controller
+Date: Mon, 23 May 2016 13:34:08 +0200
+Message-ID: <5742EAB0.1080006@semihalf.com>
 References: <1462893601-8937-1-git-send-email-tn@semihalf.com>
- <EE11001F9E5DDD47B7634E2F8A612F2E1ED8DF51@lhreml503-mbs>
- <57331290.7070104@semihalf.com>
- <3d4aae09-51c4-f007-5100-191a4a85e27a@redhat.com>
- <CAKv+Gu8fdeJ9OvRSmtu9zyvcjK3O-4WU=jG=6-7t4xZwvV8d2g@mail.gmail.com>
- <95b1d06e-f9c5-39f3-1003-f536b65eef60@redhat.com>
- <CAKv+Gu-_xp_t_Ze3Pw_-82-fmy=tCy-h=4FbP98eLbuXVk2hHQ@mail.gmail.com>
- <EE11001F9E5DDD47B7634E2F8A612F2E1EDAF6AC@lhreml503-mbs>
- <CAKv+Gu_zpoFsDr7e8zPCDKPpRdKDVH+vnC0nfvmGaJ7xcP3Zng@mail.gmail.com>
+ <1462893601-8937-9-git-send-email-tn@semihalf.com>
+ <CAKc_7PVz8rgCTqMVuR7g944nonSHExAhx5rNsjiP3J=9LfA99g@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-pci-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <CAKv+Gu_zpoFsDr7e8zPCDKPpRdKDVH+vnC0nfvmGaJ7xcP3Zng@mail.gmail.com>
+In-Reply-To: <CAKc_7PVz8rgCTqMVuR7g944nonSHExAhx5rNsjiP3J=9LfA99g@mail.gmail.com>
 Sender: linux-pci-owner@vger.kernel.org
-To: Ard Biesheuvel <ard.biesheuvel@linaro.org>
-Cc: Gabriele Paoloni <gabriele.paoloni@huawei.com>, Jon Masters <jcm@redhat.com>, Tomasz Nowicki <tn@semihalf.com>, "helgaas@kernel.org" <helgaas@kernel.org>, "arnd@arndb.de" <arnd@arndb.de>, "will.deacon@arm.com" <will.deacon@arm.com>, "catalin.marinas@arm.com" <catalin.marinas@arm.com>, "rafael@kernel.org" <rafael@kernel.org>, "hanjun.guo@linaro.org" <hanjun.guo@linaro.org>, "okaya@codeaurora.org" <okaya@codeaurora.org>, "jchandra@broadcom.com" <jchandra@broadcom.com>, "linaro-acpi@lists.linaro.org" <linaro-acpi@lists.linaro.org>, "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>, "dhdang@apm.com" <dhdang@apm.com>, "Liviu.Dudau@arm.com" <Liviu.Dudau@arm.com>, "ddaney@caviumnetworks.com" <ddaney@caviumnetworks.com>, "jeremy.linton@arm.com" <jeremy.linton@arm.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-ac>
+To: Jayachandran C <jchandra@broadcom.com>, Bjorn Helgaas <helgaas@kernel.org>
+Cc: Arnd Bergmann <arnd@arndb.de>, Will Deacon <will.deacon@arm.com>, Catalin Marinas <catalin.marinas@arm.com>, Rafael Wysocki <rafael@kernel.org>, Hanjun Guo <hanjun.guo@linaro.org>, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, Sinan Kaya <okaya@codeaurora.org>, robert.richter@caviumnetworks.com, Marcin Wojtas <mw@semihalf.com>, Liviu.Dudau@arm.com, David Daney <ddaney@caviumnetworks.com>, Wangyijing <wangyijing@huawei.com>, Suravee Suthikulanit <Suravee.Suthikulpanit@amd.com>, Mark Salter <msalter@redhat.com>, Linux PCI <linux-pci@vger.kernel.org>, linux-arm-kernel@lists.infradead.org, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linaro-acpi@lists.linaro.org, Jon Masters <jcm@redhat.com>, Andrea Gallo <andrea.gallo@linaro.org>, Duc Dang <dhdang@apm.com>, jeremy.linton@arm.com, liudongdong3@huawei.com
 List-Id: linux-acpi@vger.kernel.org
 
-On Fri, May 20, 2016 at 11:14:03AM +0200, Ard Biesheuvel wrote:
-> On 20 May 2016 at 10:40, Gabriele Paoloni <gabriele.paoloni@huawei.com> wrote:
-> > Hi Ard
-> >
-> >> -----Original Message-----
-> >> From: Ard Biesheuvel [mailto:ard.biesheuvel@linaro.org]
-> [...]
-> >>
-> >> Is the PCIe root complex so special that you cannot simply describe an
-> >> implementation that is not PNP0408 compatible as something else, under
-> >> its own unique HID? If everybody is onboard with using ACPI, how is
-> >> this any different from describing other parts of the platform
-> >> topology? Even if the SBSA mandates generic PCI, they already deviated
-> >> from that when they built the hardware, so pretending that it is a
-> >> PNP0408 with quirks really does not buy us anything.
-> >
-> > From my understanding we want to avoid this as this would allow each
-> > vendor to come up with his own code and it would be much more effort
-> > for the PCI maintainer to rework the PCI framework to accommodate X86
-> > and "all" ARM64 Host Controllers...
-> >
-> > I guess this approach is too risky and we want to avoid this. Through
-> > standardization we can more easily maintain the code and scale it to
-> > multiple SoCs...
-> >
-> > So this is my understanding; maybe Jon, Tomasz or Lorenzo can give
-> > a bit more explanation...
-> >
-> 
-> OK, so that boils down to recommending to vendors to represent known
-> non-compliant hardware as compliant, just so that we don't have to
-> change the code to support additional flavors of ECAM ? It's fine to
-> be pragmatic, but that sucks.
-> 
-> We keep confusing the x86 case with the ARM case here: for x86, they
-> needed to deal with broken hardware *after* the fact, and all they
-> could do is find /some/ distinguishing feature in order to guess which
-> exact hardware they might be running on. For arm64, it is the opposite
-> case. We are currently in a position where we can demand vendors to
-> comply with the standards they endorsed themselves, and (ab)using ACPI
-> + DMI as a de facto platform description rather than plain ACPI makes
-> me think the DT crowd were actually right from the beginning. It
-> *directly* violates the standardization principle, since it requires a
-> priori knowledge inside the OS that a certain 'generic' device must be
-> driven in a special way.
-> 
-> So can anyone comment on the feasibility of adding support for devices
-> with vendor specific HIDs (and no generic CIDs) to the current ACPI
-> ECAM driver in Linux?
+On 14.05.2016 11:07, Jayachandran C wrote:
+> On Tue, May 10, 2016 at 8:49 PM, Tomasz Nowicki <tn@semihalf.com> wrote:
+>> This patch is going to implement generic PCI host controller for
+>> ACPI world, similar to what pci-host-generic.c driver does for DT world.
+>>
+>> All such drivers, which we have seen so far, were implemented within
+>> arch/ directory since they had some arch assumptions (x86 and ia64).
+>> However, they all are doing similar thing, so it makes sense to find
+>> some common code and abstract it into the generic driver.
+>>
+>> In order to handle PCI config space regions properly, we define new
+>> MCFG interface which does sanity checks on MCFG table and keeps its
+>> root pointer. User is able to lookup MCFG regions based on that root
+>> pointer and specified domain:bus_start:bus_end touple. We are using
+>> pci_mmcfg_late_init old prototype to avoid another function name.
+>>
+>> The implementation of pci_acpi_scan_root() looks up the MCFG entries
+>> and sets up a new mapping (regions are not mapped until host controller ask
+>> for it). Generic PCI functions are used for accessing config space.
+>> Driver selects PCI_ECAM and uses functions from drivers/pci/ecam.h
+>> to create and access ECAM mappings.
+>>
+>> As mentioned in Kconfig help section, ACPI_PCI_HOST_GENERIC choice
+>> should be made on a per-architecture basis.
+>
+> Looking thru the new code, I see a few issues, please see below
+>
+>> Signed-off-by: Tomasz Nowicki <tn@semihalf.com>
+>> Signed-off-by: Jayachandran C <jchandra@broadcom.com>
+>> ---
+>>   drivers/acpi/Kconfig            |   8 +++
+>>   drivers/acpi/Makefile           |   1 +
+>>   drivers/acpi/pci_mcfg.c         |  97 ++++++++++++++++++++++++++
+>>   drivers/acpi/pci_root_generic.c | 149 ++++++++++++++++++++++++++++++++++++++++
+>>   drivers/pci/ecam.h              |   5 ++
+>>   include/linux/pci-acpi.h        |   5 ++
+>>   include/linux/pci.h             |   5 +-
+>>   7 files changed, 269 insertions(+), 1 deletion(-)
+>>   create mode 100644 drivers/acpi/pci_mcfg.c
+>>   create mode 100644 drivers/acpi/pci_root_generic.c
+>>
+>> diff --git a/drivers/acpi/Kconfig b/drivers/acpi/Kconfig
+>> index 183ffa3..44afc76 100644
+>> --- a/drivers/acpi/Kconfig
+>> +++ b/drivers/acpi/Kconfig
+>> @@ -346,6 +346,14 @@ config ACPI_PCI_SLOT
+>>            i.e., segment/bus/device/function tuples, with physical slots in
+>>            the system.  If you are unsure, say N.
+>>
+>> +config ACPI_PCI_HOST_GENERIC
+>> +       bool
+>> +       select PCI_ECAM
+>> +       help
+>> +         Select this config option from the architecture Kconfig,
+>> +         if it is preferred to enable ACPI PCI host controller driver which
+>> +         has no arch-specific assumptions.
+>> +
+>>   config X86_PM_TIMER
+>>          bool "Power Management Timer Support" if EXPERT
+>>          depends on X86
+>> diff --git a/drivers/acpi/Makefile b/drivers/acpi/Makefile
+>> index 81e5cbc..627a2b7 100644
+>> --- a/drivers/acpi/Makefile
+>> +++ b/drivers/acpi/Makefile
+>> @@ -40,6 +40,7 @@ acpi-$(CONFIG_ARCH_MIGHT_HAVE_ACPI_PDC) += processor_pdc.o
+>>   acpi-y                         += ec.o
+>>   acpi-$(CONFIG_ACPI_DOCK)       += dock.o
+>>   acpi-y                         += pci_root.o pci_link.o pci_irq.o
+>> +obj-$(CONFIG_ACPI_PCI_HOST_GENERIC)    += pci_root_generic.o pci_mcfg.o
+>>   acpi-y                         += acpi_lpss.o acpi_apd.o
+>>   acpi-y                         += acpi_platform.o
+>>   acpi-y                         += acpi_pnp.o
+>> diff --git a/drivers/acpi/pci_mcfg.c b/drivers/acpi/pci_mcfg.c
+>> new file mode 100644
+>> index 0000000..373d079
+>> --- /dev/null
+>> +++ b/drivers/acpi/pci_mcfg.c
+>> @@ -0,0 +1,97 @@
+>> +/*
+>> + * Copyright (C) 2016 Broadcom
+>> + *     Author: Jayachandran C <jchandra@broadcom.com>
+>> + * Copyright (C) 2016 Semihalf
+>> + *     Author: Tomasz Nowicki <tn@semihalf.com>
+>> + *
+>> + * This program is free software; you can redistribute it and/or modify
+>> + * it under the terms of the GNU General Public License, version 2, as
+>> + * published by the Free Software Foundation (the "GPL").
+>> + *
+>> + * This program is distributed in the hope that it will be useful, but
+>> + * WITHOUT ANY WARRANTY; without even the implied warranty of
+>> + * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+>> + * General Public License version 2 (GPLv2) for more details.
+>> + *
+>> + * You should have received a copy of the GNU General Public License
+>> + * version 2 (GPLv2) along with this source code.
+>> + */
+>> +#include <linux/kernel.h>
+>> +#include <linux/pci.h>
+>> +#include <linux/pci-acpi.h>
+>> +
+>> +#define PREFIX "ACPI: "
+>> +
+>> +/* Root pointer to the mapped MCFG table */
+>> +static struct acpi_table_mcfg *mcfg_table;
+>> +
+>> +#define MCFG_ENTRIES(mcfg_ptr) (((mcfg_ptr)->header.length -           \
+>> +                               sizeof(struct acpi_table_mcfg)) /       \
+>> +                               sizeof(struct acpi_mcfg_allocation))
+>
+> It would be better if you used static inline function here.
 
-Host bridges in ACPI are handled through PNP0A08/PNP0A03 ids, and
-most of the arch specific code is handled in the respective arch
-directories (X86 and IA64, even though IA64 does not rely on ECAM/MCFG for
-PCI ops), it is not a driver per-se, PNP0A08/PNP0A03 are detected through
-ACPI scan handlers and the respective arch code (ie pci_acpi_scan_root)
-sets-up resources AND config space on an arch specific basis.
+OK
 
-X86 deals with that with code in arch/x86 that sets-up the pci_raw_ops
-on a platform specific basis (and it is not nice, but it works because
-as you all know the number of platforms in X86 world is contained).
+>
+>> +static phys_addr_t pci_mcfg_lookup_static(u16 seg, u8 bus_start, u8 bus_end)
+>> +{
+>> +       struct acpi_mcfg_allocation *mptr;
+>> +       int i;
+>> +
+>> +       if (!mcfg_table) {
+>> +               pr_err(PREFIX "MCFG table not available, lookup failed\n");
+>> +               return -ENXIO;
+>> +       }
+>> +
+>> +       mptr = (struct acpi_mcfg_allocation *) &mcfg_table[1];
+>> +
+>> +       /*
+>> +        * We expect exact match, unless MCFG entry end bus covers more than
+>> +        * specified by caller.
+>> +        */
+>> +       for (i = 0; i < MCFG_ENTRIES(mcfg_table); i++, mptr++) {
+>> +               if (mptr->pci_segment == seg &&
+>> +                   mptr->start_bus_number == bus_start &&
+>> +                   mptr->end_bus_number >= bus_end) {
+>> +                       return mptr->address;
+>> +               }
+>> +       }
+>
+> There is an issue here, the bus range is obtained if different
+> ways. If the _CRS has it, this should be fine. But if it is _BBN-0xff
+> or the default 0-0xff, then I would think taking the MCFG entry end
+> would be better. This would require updating the bus resource end.
 
-Will this happen for ARM64 in arch/arm64 based on vendor specific
-HIDs ?
+Yeah we can implement algorithm like that but IMO it would try to guess 
+what FW designer meant putting various combination of BUS resources into 
+the tables. We should rather be strict about this so I agree with Bjorn:
+https://lkml.org/lkml/2016/4/28/807
+Either we get exact match or MCFG covers more than the host bridge range.
 
-No.
+Host bridge bus range definition -> MCFG
+_BBN-0xff -> we expect exact _BBN-0xff match
+0-0xff -> ditto
+_CRS (the only way to trim host bridge bus rage) -> exact match or MCFG 
+covers more
 
-So given the current state of play (we were requested to move the
-arch/arm64 specific ACPI PCI bits to arch/arm64), we would end up
-with arch/arm64 code requiring code in /drivers to set-up pci_ops
-in a platform specific way, it is horrible, if feasible at all.
+>
+> Also (trivial), the braces are not needed.
 
-The only way this can be implemented is by pretending that the
-ACPI/PCI arch/arm64 implementation is generic code (that's what this
-series does), move it to /drivers (where it is in this series), and
-implement _DSD vendor specific bindings (per HID) to set-up the pci
-operations; whether this solution should go upstream, given that it
-is just a short-term solution for early platforms bugs, it is another
-story and my personal answer is no.
+OK
 
-Lorenzo
+>
+>> +       return -ENXIO;
+>> +}
+>> +
+>> +phys_addr_t pci_mcfg_lookup(struct acpi_device *device, u16 seg,
+>> +                           struct resource *bus_res)
+>> +{
+>> +       phys_addr_t addr;
+>> +
+>> +       addr = acpi_pci_root_get_mcfg_addr(device->handle);
+>> +       if (addr)
+>> +               return addr;
+>
+> When you have address from _CBA, you are assuming that the
+> bus range is also set correctly (from _CRS or as _BBN-0xff). Is
+> this assumption correct?
+
+I think so, see above. Maybe Bjorn may advise here.
+
+>
+> (this was discussed earlier)  you are doing the _CBA call again,
+> I think cleaning up the _CBA, _BBN, _CRS and MCFG based
+> ECAM area resources and defaults should be a different patch,
+> which would need changes to pci_root.c. We should use
+> root->mcfg_addr in this patchset.
+
+OK
+
+>
+>> +
+>> +       return pci_mcfg_lookup_static(seg, bus_res->start, bus_res->end);
+>
+> There is no need to have a separate function for this, based on by
+> above comment, you might need to change bus_res, so having it here
+> would be better.
+>
+>> +}
+>> +
+>> +static __init int pci_mcfg_parse(struct acpi_table_header *header)
+>> +{
+>> +       struct acpi_table_mcfg *mcfg;
+>> +       int n;
+>> +
+>> +       if (!header)
+>> +               return -EINVAL;
+>
+> This is not needed, the handler is not called if header is NULL
+
+OK
+
+>
+>> +
+>> +       mcfg = (struct acpi_table_mcfg *)header;
+>> +       n = MCFG_ENTRIES(mcfg);
+>> +       if (n <= 0 || n > 255) {
+>> +               pr_err(PREFIX "MCFG has incorrect entries (%d).\n", n);
+>> +               return -EINVAL;
+>> +       }
+>>
+>> +       mcfg_table = mcfg;
+>
+> Saving a reference of ACPI mapping seems dangerous, acpi_parse_table
+> calles early_acpi_os_unmap_memory() after calling handler, which does
+> not do anything since acpi_gbl_permanent_mmap is set.
+>
+> I would suggest copying the entries.
+
+You got the point about early_acpi_os_unmap_memory but that would be the 
+case if we call pci_mmcfg_late_init before acpi_early_init. But 
+pci_mmcfg_late_init is called much later. Also the code is much simpler 
+as is now.
+
+Thanks,
+Tomasz
