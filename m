@@ -1,73 +1,104 @@
-From: Jayachandran C <jchandra@broadcom.com>
-Subject: Re: [PATCH V7 04/11] pci: Add new function to unmap IO resources.
-Date: Mon, 23 May 2016 13:58:36 +0530
-Message-ID: <CAKc_7PVYyGNY3fv_w0c+epBP+WyJB8DtnA6f_E-P6Cz2jqbpgA@mail.gmail.com>
-References: <1462893601-8937-1-git-send-email-tn@semihalf.com> <1462893601-8937-5-git-send-email-tn@semihalf.com>
+From: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+Subject: Re: [PATCH V7 00/11] Support for generic ACPI based PCI host
+ controller
+Date: Mon, 23 May 2016 11:56:55 +0100
+Message-ID: <20160523105655.GA22902@red-moon>
+References: <1462893601-8937-1-git-send-email-tn@semihalf.com>
+ <EE11001F9E5DDD47B7634E2F8A612F2E1ED8DF51@lhreml503-mbs>
+ <57331290.7070104@semihalf.com>
+ <3d4aae09-51c4-f007-5100-191a4a85e27a@redhat.com>
+ <CAKv+Gu8fdeJ9OvRSmtu9zyvcjK3O-4WU=jG=6-7t4xZwvV8d2g@mail.gmail.com>
+ <95b1d06e-f9c5-39f3-1003-f536b65eef60@redhat.com>
+ <CAKv+Gu-_xp_t_Ze3Pw_-82-fmy=tCy-h=4FbP98eLbuXVk2hHQ@mail.gmail.com>
+ <EE11001F9E5DDD47B7634E2F8A612F2E1EDAF6AC@lhreml503-mbs>
+ <CAKv+Gu_zpoFsDr7e8zPCDKPpRdKDVH+vnC0nfvmGaJ7xcP3Zng@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-pci-owner@vger.kernel.org>
-In-Reply-To: <1462893601-8937-5-git-send-email-tn@semihalf.com>
+Content-Disposition: inline
+In-Reply-To: <CAKv+Gu_zpoFsDr7e8zPCDKPpRdKDVH+vnC0nfvmGaJ7xcP3Zng@mail.gmail.com>
 Sender: linux-pci-owner@vger.kernel.org
-To: Tomasz Nowicki <tn@semihalf.com>
-Cc: Bjorn Helgaas <helgaas@kernel.org>, Arnd Bergmann <arnd@arndb.de>, Will Deacon <will.deacon@arm.com>, Catalin Marinas <catalin.marinas@arm.com>, Rafael Wysocki <rafael@kernel.org>, Hanjun Guo <hanjun.guo@linaro.org>, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, Sinan Kaya <okaya@codeaurora.org>, robert.richter@caviumnetworks.com, Marcin Wojtas <mw@semihalf.com>, Liviu.Dudau@arm.com, David Daney <ddaney@caviumnetworks.com>, Wangyijing <wangyijing@huawei.com>, Suravee Suthikulanit <Suravee.Suthikulpanit@amd.com>, Mark Salter <msalter@redhat.com>, Linux PCI <linux-pci@vger.kernel.org>, linux-arm-kernel@lists.infradead.org, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linaro-acpi@lists.linaro.org, Jon Masters <jcm@redhat.com>, Andrea Gallo <andrea.gallo@linaro.org>, Duc Dang <dhdang@apm.com>, jeremy.lin
+To: Ard Biesheuvel <ard.biesheuvel@linaro.org>
+Cc: Gabriele Paoloni <gabriele.paoloni@huawei.com>, Jon Masters <jcm@redhat.com>, Tomasz Nowicki <tn@semihalf.com>, "helgaas@kernel.org" <helgaas@kernel.org>, "arnd@arndb.de" <arnd@arndb.de>, "will.deacon@arm.com" <will.deacon@arm.com>, "catalin.marinas@arm.com" <catalin.marinas@arm.com>, "rafael@kernel.org" <rafael@kernel.org>, "hanjun.guo@linaro.org" <hanjun.guo@linaro.org>, "okaya@codeaurora.org" <okaya@codeaurora.org>, "jchandra@broadcom.com" <jchandra@broadcom.com>, "linaro-acpi@lists.linaro.org" <linaro-acpi@lists.linaro.org>, "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>, "dhdang@apm.com" <dhdang@apm.com>, "Liviu.Dudau@arm.com" <Liviu.Dudau@arm.com>, "ddaney@caviumnetworks.com" <ddaney@caviumnetworks.com>, "jeremy.linton@arm.com" <jeremy.linton@arm.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-ac>
 List-Id: linux-acpi@vger.kernel.org
 
-On Tue, May 10, 2016 at 8:49 PM, Tomasz Nowicki <tn@semihalf.com> wrote:
-> It is very useful to release I/O resources so that the same I/O resources
-> can be allocated again (pci_remap_iospace), like in PCI hotplug removal
-> scenario. Therefore this patch implements new pci_unmap_iospace call which
-> unmaps I/O space as the symmetry to pci_remap_iospace.
->
-> Signed-off-by: Sinan Kaya <okaya@codeaurora.org>
-> Signed-off-by: Tomasz Nowicki <tn@semihalf.com>
-> ---
->  drivers/pci/pci.c   | 24 ++++++++++++++++++++++++
->  include/linux/pci.h |  1 +
->  2 files changed, 25 insertions(+)
->
-> diff --git a/drivers/pci/pci.c b/drivers/pci/pci.c
-> index bc0c914..ff97a0b 100644
-> --- a/drivers/pci/pci.c
-> +++ b/drivers/pci/pci.c
-> @@ -25,6 +25,7 @@
->  #include <linux/device.h>
->  #include <linux/pm_runtime.h>
->  #include <linux/pci_hotplug.h>
-> +#include <linux/vmalloc.h>
->  #include <asm/setup.h>
->  #include <linux/aer.h>
->  #include "pci.h"
-> @@ -3167,6 +3168,29 @@ int __weak pci_remap_iospace(const struct resource *res, phys_addr_t phys_addr)
->  #endif
->  }
->
-> +/**
-> + *     pci_unmap_iospace - Unmap the memory mapped I/O space
-> + *     @res: resource to be unmapped
-> + *
-> + *     Unmap the CPU virtual address @res from virtual address space.
-> + *     Only architectures that have memory mapped IO functions defined
-> + *     (and the PCI_IOBASE value defined) should call this function.
-> + */
-> +void  pci_unmap_iospace(struct resource *res)
-> +{
-> +#if defined(PCI_IOBASE) && defined(CONFIG_MMU)
-> +       unsigned long vaddr = (unsigned long)PCI_IOBASE + res->start;
-> +
-> +       unmap_kernel_range(vaddr, resource_size(res));
-> +#else
-> +       /*
-> +        * This architecture does not have memory mapped I/O space,
-> +        * so this function should never be called.
-> +        */
-> +       WARN_ONCE(1, "This architecture does not support memory mapped I/O\n");
-> +#endif
-> +}
+On Fri, May 20, 2016 at 11:14:03AM +0200, Ard Biesheuvel wrote:
+> On 20 May 2016 at 10:40, Gabriele Paoloni <gabriele.paoloni@huawei.com> wrote:
+> > Hi Ard
+> >
+> >> -----Original Message-----
+> >> From: Ard Biesheuvel [mailto:ard.biesheuvel@linaro.org]
+> [...]
+> >>
+> >> Is the PCIe root complex so special that you cannot simply describe an
+> >> implementation that is not PNP0408 compatible as something else, under
+> >> its own unique HID? If everybody is onboard with using ACPI, how is
+> >> this any different from describing other parts of the platform
+> >> topology? Even if the SBSA mandates generic PCI, they already deviated
+> >> from that when they built the hardware, so pretending that it is a
+> >> PNP0408 with quirks really does not buy us anything.
+> >
+> > From my understanding we want to avoid this as this would allow each
+> > vendor to come up with his own code and it would be much more effort
+> > for the PCI maintainer to rework the PCI framework to accommodate X86
+> > and "all" ARM64 Host Controllers...
+> >
+> > I guess this approach is too risky and we want to avoid this. Through
+> > standardization we can more easily maintain the code and scale it to
+> > multiple SoCs...
+> >
+> > So this is my understanding; maybe Jon, Tomasz or Lorenzo can give
+> > a bit more explanation...
+> >
+> 
+> OK, so that boils down to recommending to vendors to represent known
+> non-compliant hardware as compliant, just so that we don't have to
+> change the code to support additional flavors of ECAM ? It's fine to
+> be pragmatic, but that sucks.
+> 
+> We keep confusing the x86 case with the ARM case here: for x86, they
+> needed to deal with broken hardware *after* the fact, and all they
+> could do is find /some/ distinguishing feature in order to guess which
+> exact hardware they might be running on. For arm64, it is the opposite
+> case. We are currently in a position where we can demand vendors to
+> comply with the standards they endorsed themselves, and (ab)using ACPI
+> + DMI as a de facto platform description rather than plain ACPI makes
+> me think the DT crowd were actually right from the beginning. It
+> *directly* violates the standardization principle, since it requires a
+> priori knowledge inside the OS that a certain 'generic' device must be
+> driven in a special way.
+> 
+> So can anyone comment on the feasibility of adding support for devices
+> with vendor specific HIDs (and no generic CIDs) to the current ACPI
+> ECAM driver in Linux?
 
-WARN is not needed here, since we would have already done it in
-pci_remap_iospace.
+Host bridges in ACPI are handled through PNP0A08/PNP0A03 ids, and
+most of the arch specific code is handled in the respective arch
+directories (X86 and IA64, even though IA64 does not rely on ECAM/MCFG for
+PCI ops), it is not a driver per-se, PNP0A08/PNP0A03 are detected through
+ACPI scan handlers and the respective arch code (ie pci_acpi_scan_root)
+sets-up resources AND config space on an arch specific basis.
 
-Ideally, we should undo the pci_register_io_range as well, but
-re-registering the same range seems to be fine.
+X86 deals with that with code in arch/x86 that sets-up the pci_raw_ops
+on a platform specific basis (and it is not nice, but it works because
+as you all know the number of platforms in X86 world is contained).
 
-JC.
+Will this happen for ARM64 in arch/arm64 based on vendor specific
+HIDs ?
+
+No.
+
+So given the current state of play (we were requested to move the
+arch/arm64 specific ACPI PCI bits to arch/arm64), we would end up
+with arch/arm64 code requiring code in /drivers to set-up pci_ops
+in a platform specific way, it is horrible, if feasible at all.
+
+The only way this can be implemented is by pretending that the
+ACPI/PCI arch/arm64 implementation is generic code (that's what this
+series does), move it to /drivers (where it is in this series), and
+implement _DSD vendor specific bindings (per HID) to set-up the pci
+operations; whether this solution should go upstream, given that it
+is just a short-term solution for early platforms bugs, it is another
+story and my personal answer is no.
+
+Lorenzo
