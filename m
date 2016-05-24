@@ -1,7 +1,7 @@
 From: David Daney <ddaney.cavm@gmail.com>
-Subject: [PATCH v7 02/15] acpi, numa: Replace ACPI_DEBUG_PRINT() with pr_debug()
-Date: Tue, 24 May 2016 15:35:32 -0700
-Message-ID: <1464129345-18985-3-git-send-email-ddaney.cavm@gmail.com>
+Subject: [PATCH v7 12/15] acpi, numa, srat: Improve SRAT error detection and add messages.
+Date: Tue, 24 May 2016 15:35:42 -0700
+Message-ID: <1464129345-18985-13-git-send-email-ddaney.cavm@gmail.com>
 References: <1464129345-18985-1-git-send-email-ddaney.cavm@gmail.com>
 Return-path: <linux-ia64-owner@vger.kernel.org>
 In-Reply-To: <1464129345-18985-1-git-send-email-ddaney.cavm@gmail.com>
@@ -10,129 +10,58 @@ To: Will Deacon <will.deacon@arm.com>, linux-arm-kernel@lists.infradead.org, Mar
 Cc: linux-kernel@vger.kernel.org, Robert Richter <rrichter@cavium.com>, David Daney <david.daney@cavium.com>
 List-Id: linux-acpi@vger.kernel.org
 
-From: Hanjun Guo <hanjun.guo@linaro.org>
+From: David Daney <david.daney@cavium.com>
 
-ACPI_DEBUG_PRINT is a bit fragile in acpi/numa.c, the first thing
-is that component ACPI_NUMA(0x80000000) is not described in the
-Documentation/acpi/debug.txt, and even not defined in the struct
-acpi_dlayer acpi_debug_layers which we can not dynamically enable/disable
-it with /sys/modules/acpi/parameters/debug_layer. another thing
-is that ACPI_DEBUG_OUTPUT is controlled by ACPICA which not coordinate
-well with ACPI drivers.
+Loosely based on code from Robert Richter and Hanjun Guo.
 
-Replace ACPI_DEBUG_PRINT() with pr_debug() in this patch as pr_debug
-will do the same thing for debug purpose and it can make the code much
-cleaner, also remove the related code which not needed anymore if
-ACPI_DEBUG_PRINT() is gone.
+Improve out of range node detection as well as allow for Larger SRAT
+entities.
 
-Signed-off-by: Hanjun Guo <hanjun.guo@linaro.org>
-Signed-off-by: Robert Richter <rrichter@cavium.com>
+Add printing of nice messages.
+
 Signed-off-by: David Daney <david.daney@cavium.com>
 ---
- drivers/acpi/numa.c | 59 +++++++++++++++++++----------------------------------
- 1 file changed, 21 insertions(+), 38 deletions(-)
+ drivers/acpi/numa.c | 15 +++++++++++----
+ 1 file changed, 11 insertions(+), 4 deletions(-)
 
 diff --git a/drivers/acpi/numa.c b/drivers/acpi/numa.c
-index bdb7622..a089c39 100644
+index 811f90a..fad6d28 100644
 --- a/drivers/acpi/numa.c
 +++ b/drivers/acpi/numa.c
-@@ -31,10 +31,6 @@
- #include <linux/nodemask.h>
- #include <linux/topology.h>
+@@ -252,8 +252,11 @@ acpi_numa_memory_affinity_init(struct acpi_srat_mem_affinity *ma)
  
--#define ACPI_NUMA	0x80000000
--#define _COMPONENT	ACPI_NUMA
--ACPI_MODULE_NAME("numa");
--
- static nodemask_t nodes_found_map = NODE_MASK_NONE;
+ 	if (srat_disabled())
+ 		goto out_err;
+-	if (ma->header.length != sizeof(struct acpi_srat_mem_affinity))
++	if (ma->header.length < sizeof(struct acpi_srat_mem_affinity)) {
++		pr_err("SRAT: Unexpected header length: %d\n",
++		       ma->header.length);
+ 		goto out_err_bad_srat;
++	}
+ 	if ((ma->flags & ACPI_SRAT_MEM_ENABLED) == 0)
+ 		goto out_err;
+ 	hotpluggable = ma->flags & ACPI_SRAT_MEM_HOT_PLUGGABLE;
+@@ -267,13 +270,17 @@ acpi_numa_memory_affinity_init(struct acpi_srat_mem_affinity *ma)
+ 		pxm &= 0xff;
  
- /* maps to convert between proximity domain and logical node ID */
-@@ -129,64 +125,51 @@ EXPORT_SYMBOL(acpi_map_pxm_to_online_node);
- static void __init
- acpi_table_print_srat_entry(struct acpi_subtable_header *header)
- {
--
--	ACPI_FUNCTION_NAME("acpi_table_print_srat_entry");
--
- 	if (!header)
- 		return;
+ 	node = acpi_map_pxm_to_node(pxm);
+-	if (node < 0) {
+-		printk(KERN_ERR "SRAT: Too many proximity domains.\n");
++	if (node == NUMA_NO_NODE || node >= MAX_NUMNODES) {
++		pr_err("SRAT: Too many proximity domains.\n");
+ 		goto out_err_bad_srat;
+ 	}
  
- 	switch (header->type) {
--
- 	case ACPI_SRAT_TYPE_CPU_AFFINITY:
--#ifdef ACPI_DEBUG_OUTPUT
- 		{
- 			struct acpi_srat_cpu_affinity *p =
- 			    (struct acpi_srat_cpu_affinity *)header;
--			ACPI_DEBUG_PRINT((ACPI_DB_INFO,
--					  "SRAT Processor (id[0x%02x] eid[0x%02x]) in proximity domain %d %s\n",
--					  p->apic_id, p->local_sapic_eid,
--					  p->proximity_domain_lo,
--					  (p->flags & ACPI_SRAT_CPU_ENABLED)?
--					  "enabled" : "disabled"));
-+			pr_debug("SRAT Processor (id[0x%02x] eid[0x%02x]) in proximity domain %d %s\n",
-+				 p->apic_id, p->local_sapic_eid,
-+				 p->proximity_domain_lo,
-+				 (p->flags & ACPI_SRAT_CPU_ENABLED) ?
-+				 "enabled" : "disabled");
- 		}
--#endif				/* ACPI_DEBUG_OUTPUT */
- 		break;
+-	if (numa_add_memblk(node, start, end) < 0)
++	if (numa_add_memblk(node, start, end) < 0) {
++		pr_err("SRAT: Failed to add memblk to node %u [mem %#010Lx-%#010Lx]\n",
++		       node, (unsigned long long) start,
++		       (unsigned long long) end - 1);
+ 		goto out_err_bad_srat;
++	}
  
- 	case ACPI_SRAT_TYPE_MEMORY_AFFINITY:
--#ifdef ACPI_DEBUG_OUTPUT
- 		{
- 			struct acpi_srat_mem_affinity *p =
- 			    (struct acpi_srat_mem_affinity *)header;
--			ACPI_DEBUG_PRINT((ACPI_DB_INFO,
--					  "SRAT Memory (0x%lx length 0x%lx) in proximity domain %d %s%s%s\n",
--					  (unsigned long)p->base_address,
--					  (unsigned long)p->length,
--					  p->proximity_domain,
--					  (p->flags & ACPI_SRAT_MEM_ENABLED)?
--					  "enabled" : "disabled",
--					  (p->flags & ACPI_SRAT_MEM_HOT_PLUGGABLE)?
--					  " hot-pluggable" : "",
--					  (p->flags & ACPI_SRAT_MEM_NON_VOLATILE)?
--					  " non-volatile" : ""));
-+			pr_debug("SRAT Memory (0x%lx length 0x%lx) in proximity domain %d %s%s%s\n",
-+				 (unsigned long)p->base_address,
-+				 (unsigned long)p->length,
-+				 p->proximity_domain,
-+				 (p->flags & ACPI_SRAT_MEM_ENABLED) ?
-+				 "enabled" : "disabled",
-+				 (p->flags & ACPI_SRAT_MEM_HOT_PLUGGABLE) ?
-+				 " hot-pluggable" : "",
-+				 (p->flags & ACPI_SRAT_MEM_NON_VOLATILE) ?
-+				 " non-volatile" : "");
- 		}
--#endif				/* ACPI_DEBUG_OUTPUT */
- 		break;
+ 	node_set(node, numa_nodes_parsed);
  
- 	case ACPI_SRAT_TYPE_X2APIC_CPU_AFFINITY:
--#ifdef ACPI_DEBUG_OUTPUT
- 		{
- 			struct acpi_srat_x2apic_cpu_affinity *p =
- 			    (struct acpi_srat_x2apic_cpu_affinity *)header;
--			ACPI_DEBUG_PRINT((ACPI_DB_INFO,
--					  "SRAT Processor (x2apicid[0x%08x]) in"
--					  " proximity domain %d %s\n",
--					  p->apic_id,
--					  p->proximity_domain,
--					  (p->flags & ACPI_SRAT_CPU_ENABLED) ?
--					  "enabled" : "disabled"));
-+			pr_debug("SRAT Processor (x2apicid[0x%08x]) in proximity domain %d %s\n",
-+				 p->apic_id,
-+				 p->proximity_domain,
-+				 (p->flags & ACPI_SRAT_CPU_ENABLED) ?
-+				 "enabled" : "disabled");
- 		}
--#endif				/* ACPI_DEBUG_OUTPUT */
- 		break;
-+
- 	default:
- 		pr_warn("Found unsupported SRAT entry (type = 0x%x)\n",
- 			header->type);
 -- 
 1.7.11.7
 
