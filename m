@@ -1,107 +1,84 @@
-From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Subject: Re: [PATCH v2 2/2] ASoC: da7219: Convert driver to use generic
- device/fwnode functions
-Date: Tue, 24 May 2016 13:53:02 +0300
-Message-ID: <1464087182.31269.44.camel@linux.intel.com>
-References: <cover.1463477116.git.Adam.Thomson.Opensource@diasemi.com>
-	 <eea79e2c26dafa785451931387cfce716bd150d4.1463477116.git.Adam.Thomson.Opensource@diasemi.com>
- <1463664451.31269.3.camel@linux.intel.com>
-	 <2E89032DDAA8B9408CB92943514A0337D463EEB5@SW-EX-MBX01.diasemi.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+From: fu.wei@linaro.org
+Subject: [PATCH v5 0/6] acpi, clocksource: add GTDT driver and GTDT support in arm_arch_timer
+Date: Tue, 24 May 2016 21:30:27 +0800
+Message-ID: <1464096633-9309-1-git-send-email-fu.wei@linaro.org>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga01.intel.com ([192.55.52.88]:54983 "EHLO mga01.intel.com"
+Received: from mx1.redhat.com ([209.132.183.28]:46323 "EHLO mx1.redhat.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751627AbcEXKvy (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 24 May 2016 06:51:54 -0400
-In-Reply-To: <2E89032DDAA8B9408CB92943514A0337D463EEB5@SW-EX-MBX01.diasemi.com>
+	id S1753860AbcEXNaw (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 24 May 2016 09:30:52 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Opensource [Adam Thomson]" <Adam.Thomson.Opensource@diasemi.com>, Mark Brown <broonie@kernel.org>, Liam Girdwood <lgirdwood@gmail.com>, Jaroslav Kysela <perex@perex.cz>, Takashi Iwai <tiwai@suse.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Robert Moore <robert.moore@intel.com>, Lv Zheng <lv.zheng@intel.com>, "Rafael J.Wysocki" <rafael.j.wysocki@intel.com>, Len Brown <lenb@kernel.org>
-Cc: "alsa-devel@alsa-project.org" <alsa-devel@alsa-project.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "devel@acpica.org" <devel@acpica.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Support Opensource <Support.Opensource@diasemi.com>, Sathyanarayana Nujella <sathyanarayana.nujella@intel.com>, Suravee <Suravee.Suthikulpanit@amd.com>, Bjorn Helgaas <bhelgaas@google.com>, Hanjun Guo <hanjun.guo@linaro.org>, Mika Westerberg <mika.westerberg@linux.intel.com>, Andrew Morton <akpm@linux-foundation.org>, Heikki Krogerus <heikki.krogerus@linux.intel.com>
+To: rjw@rjwysocki.net, lenb@kernel.org, daniel.lezcano@linaro.org, tglx@linutronix.de, marc.zyngier@arm.com, hanjun.guo@linaro.org
+Cc: linux-arm-kernel@lists.infradead.org, linaro-acpi@lists.linaro.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, rruigrok@codeaurora.org, harba@codeaurora.org, cov@codeaurora.org, timur@codeaurora.org, graeme.gregory@linaro.org, al.stone@linaro.org, jcm@redhat.com, wei@redhat.com, arnd@arndb.de, wim@iguana.be, catalin.marinas@arm.com, will.deacon@arm.com, Suravee.Suthikulpanit@amd.com, leo.duran@amd.com, Fu Wei <fu.wei@linaro.org>
 
-On Mon, 2016-05-23 at 22:53 +0000, Opensource [Adam Thomson] wrote:
-> On May 19, 2015 14:28, Andy Shevchenko wrote:
->=20
-> > > -static struct da7219_aad_pdata *da7219_aad_of_to_pdata(struct
-> > > snd_soc_codec *codec)
-> > > +static struct da7219_aad_pdata *da7219_aad_fw_to_pdata(struct
-> > > snd_soc_codec *codec)
-> > > =C2=A0{
-> > > -	struct device_node *np =3D codec->dev->of_node;
-> > > -	struct device_node *aad_np =3D of_find_node_by_name(np,
-> > > "da7219_aad");
-> > > +	struct device *dev =3D codec->dev;
-> > > +	struct i2c_client *i2c =3D to_i2c_client(dev);
-> > > +	struct fwnode_handle *aad_np =3D
-> > > +		device_get_named_child_node(dev, "da7219_aad");
-> >=20
-> > I would suggest to do an assignment below...
-> >=20
-> > > =C2=A0	struct da7219_aad_pdata *aad_pdata;
-> > > -	const char *of_str;
-> > > -	u32 of_val32;
-> > > +	const char *fw_str;
-> > > +	u32 fw_val32;
-> > >=20
-> >=20
-> >=20
-> > ...right here.
-> > Same amount of LOC, but less difficult to see from where aad_np
-> > comes.
-> >=20
-> > > =C2=A0	if (!aad_np)
-> > > =C2=A0		return NULL;
-> > >=20
->=20
-> To be fair the allocation of 'aad_np' is only a few lines above so
-> this really
-> doesn't seem to make much difference in my opinion. It really
-> shouldn't be hard
-> for someone to spot where it's allocated.
+From: Fu Wei <fu.wei@linaro.org>
 
-Better to have it exactly before check. Just a readability and future
-maintenance. (Someone might insert something in between, and a matter o=
-f
-fact already did)
+This patchset:
+    (1)Preparation for adding GTDT support in arm_arch_timer
+        1. Move some enums and marcos to header file
+        2. Add a new enum for spi type.
+        3. Improve printk relevant code
 
-Though I agree this is minor.
+    (2)Introduce ACPI GTDT parser: drivers/acpi/gtdt.c
+    Parse all kinds of timer in GTDT table of ACPI:arch timer,
+    memory-mapped timer and SBSA Generic Watchdog timer.
+    This driver can help to simplify all the relevant timer drivers,
+    and separate all the ACPI GTDT knowledge from them.
 
->=20
-> > > @@ -769,9 +768,9 @@ int da7219_aad_init(struct snd_soc_codec
-> > > *codec)
-> > > =C2=A0	da7219->aad =3D da7219_aad;
-> > > =C2=A0	da7219_aad->codec =3D codec;
-> > >=20
-> > > -	/* Handle any DT/platform data */
-> > > -	if ((codec->dev->of_node) && (da7219->pdata))
-> > > -		da7219->pdata->aad_pdata =3D
-> > > da7219_aad_of_to_pdata(codec);
-> > > +	/* Handle any DT/ACPI/platform data */
-> > > +=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0if ((da7219->pdata) && (!da7219->p=
-data->aad_pdata))
-> >=20
-> > Redundant parens, twice.
->=20
-> Not essential, but looks cleaner to me. Unless there's a real demand
-> to change,
-> I'd like to leave this as is.
+    (3)Simplify ACPI code for arm_arch_timer
 
-It's really unusual pattern and doesn't add any value
+    (4)Add GTDT support for ARM memory-mapped timer
 
-Compare
-=C2=A0if ((da7219->pdata) && (!da7219->pdata->aad_pdata))=C2=A0
-to
-=C2=A0if (da7219->pdata && !da7219->pdata->aad_pdata)
+This patchset has been tested on the following platforms:
+    (1)ARM Foundation v8 model
 
-Latter looks cleaner.
+Changelog:
+v5: Sorting out all patches, simplify the API of GTDT driver:
+    GTDT driver just fills the data struct for arm_arch_timer driver.
 
---=20
-Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Intel Finland Oy
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+v4: https://lists.linaro.org/pipermail/linaro-acpi/2016-March/006667.html
+    Delete the kvm relevant patches
+    Separate two patches for sorting out the code for arm_arch_timer.
+    Improve irq info export code to allow missing irq info in GTDT table.
+
+v3: https://lkml.org/lkml/2016/2/1/658
+    Improve GTDT driver code:
+      (1)improve pr_* by defining pr_fmt(fmt)
+      (2)simplify gtdt_sbsa_gwdt_init
+      (3)improve gtdt_arch_timer_data_init, if table is NULL, it will try
+      to get GTDT table.
+    Move enum ppi_nr to arm_arch_timer.h, and add enum spi_nr.
+    Add arm_arch_timer get ppi from DT and GTDT support for kvm.
+
+v2: https://lkml.org/lkml/2015/12/2/10
+    Rebase to latest kernel version(4.4-rc3).
+    Fix the bug about the config problem,
+    use CONFIG_ACPI_GTDT instead of CONFIG_ACPI in arm_arch_timer.c
+
+v1: The first upstreaming version: https://lkml.org/lkml/2015/10/28/553
+
+
+Fu Wei (6):
+  clocksource/drivers/arm_arch_timer: Move enums and defines to header
+    file
+  clocksource/drivers/arm_arch_timer: Add a new enum for spi type
+  clocksource/drivers/arm_arch_timer: Improve printk relevant code
+  acpi: Add GTDT table parse driver into ACPI driver
+  clocksource/drivers/arm_arch_timer: Simplify ACPI support code.
+  clocksource/drivers/arm_arch_timer: Add GTDT support for memory-mapped
+    timer
+
+ drivers/acpi/Kconfig                 |   9 +
+ drivers/acpi/Makefile                |   1 +
+ drivers/acpi/acpi_gtdt.c             | 309 +++++++++++++++++++++++++++++++++++
+ drivers/clocksource/Kconfig          |   1 +
+ drivers/clocksource/arm_arch_timer.c | 233 ++++++++++++++++++--------
+ include/clocksource/arm_arch_timer.h |  33 ++++
+ include/linux/acpi.h                 |   6 +
+ 7 files changed, 522 insertions(+), 70 deletions(-)
+ create mode 100644 drivers/acpi/acpi_gtdt.c
+
+-- 
+2.5.5
+
