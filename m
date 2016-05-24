@@ -1,75 +1,80 @@
-From: Jon Masters <jcm@redhat.com>
-Subject: Re: [PATCH V7 00/11] Support for generic ACPI based PCI host
- controller
-Date: Tue, 24 May 2016 00:20:55 -0400
-Message-ID: <f9c8b16b-3027-d90d-c0d1-6afcd45c1e0f@redhat.com>
-References: <1462893601-8937-1-git-send-email-tn@semihalf.com>
- <EE11001F9E5DDD47B7634E2F8A612F2E1ED8DF51@lhreml503-mbs>
- <57331290.7070104@semihalf.com>
- <3d4aae09-51c4-f007-5100-191a4a85e27a@redhat.com>
- <CAKv+Gu8fdeJ9OvRSmtu9zyvcjK3O-4WU=jG=6-7t4xZwvV8d2g@mail.gmail.com>
- <95b1d06e-f9c5-39f3-1003-f536b65eef60@redhat.com>
- <CAKv+Gu-_xp_t_Ze3Pw_-82-fmy=tCy-h=4FbP98eLbuXVk2hHQ@mail.gmail.com>
- <EE11001F9E5DDD47B7634E2F8A612F2E1EDAF6AC@lhreml503-mbs>
- <CAKv+Gu_zpoFsDr7e8zPCDKPpRdKDVH+vnC0nfvmGaJ7xcP3Zng@mail.gmail.com>
- <20160523105655.GA22902@red-moon>
+From: Ocean HY1 He <hehy1@lenovo.com>
+Subject: RE: [PATCH] ACPI: Execute the _PTS method when system reboot
+Date: Tue, 24 May 2016 06:41:42 +0000
+Message-ID: <BCBE834BAC19744BA2C3AC4D68DBF2198D8270D9@CNMAILEX03.lenovo.com>
+References: <1462772495-71113-1-git-send-email-hehy1@lenovo.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:54061 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753594AbcEXEVJ (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 24 May 2016 00:21:09 -0400
-In-Reply-To: <20160523105655.GA22902@red-moon>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset="gb2312"
+Content-Transfer-Encoding: base64
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Language: zh-CN
+Sender: linux-kernel-owner@vger.kernel.org
+To: "Prarit Bhargava (prarit@redhat.com)" <prarit@redhat.com>, "jcm@redhat.com" <jcm@redhat.com>
+Cc: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, David Tanaka <dtanaka@lenovo.com>, Nagananda Chumbalkar <nchumbalkar@lenovo.com>, "rjw@rjwysocki.net" <rjw@rjwysocki.net>, "lenb@kernel.org" <lenb@kernel.org>, "wefu@redhat.com" <wefu@redhat.com>
 List-Id: linux-acpi@vger.kernel.org
-To: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Ard Biesheuvel <ard.biesheuvel@linaro.org>
-Cc: Gabriele Paoloni <gabriele.paoloni@huawei.com>, Tomasz Nowicki <tn@semihalf.com>, "helgaas@kernel.org" <helgaas@kernel.org>, "arnd@arndb.de" <arnd@arndb.de>, "will.deacon@arm.com" <will.deacon@arm.com>, "catalin.marinas@arm.com" <catalin.marinas@arm.com>, "rafael@kernel.org" <rafael@kernel.org>, "hanjun.guo@linaro.org" <hanjun.guo@linaro.org>, "okaya@codeaurora.org" <okaya@codeaurora.org>, "jchandra@broadcom.com" <jchandra@broadcom.com>, "linaro-acpi@lists.linaro.org" <linaro-acpi@lists.linaro.org>, "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>, "dhdang@apm.com" <dhdang@apm.com>, "Liviu.Dudau@arm.com" <Liviu.Dudau@arm.com>, "ddaney@caviumnetworks.com" <ddaney@caviumnetworks.com>, "jeremy.linton@arm.com" <jeremy.linton@arm.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, robert.
 
-On 05/23/2016 06:56 AM, Lorenzo Pieralisi wrote:
-
-> The only way this can be implemented is by pretending that the
-> ACPI/PCI arch/arm64 implementation is generic code (that's what this
-> series does), move it to /drivers (where it is in this series), and
-> implement _DSD vendor specific bindings (per HID) to set-up the pci
-> operations; whether this solution should go upstream, given that it
-> is just a short-term solution for early platforms bugs, it is another
-> story and my personal answer is no.
-
-Just for completeness, let me also followup to this one.
-
-We have real, shipping, systems in the field based on ARMv8. For
-example, HPE Moonshot ProLiant m400. Not everyone loves the first
-generation of anything (Applied get a lot of stick, but the reality is
-that someone had to go first, and whoever that was was going to learn
-all of the lessons that others don't need to) but it is out there and we
-need an upstream kernel solution that includes support for that.
-
-In the server world, we (speaking as a major distro vendor here) are not
-going to entertain a situation in which non-upstream patches are needed
-to even boot a platform. That simply won't do. We need to separate out
-the issue of getting the core in place from the quirks, but then we need
-quirks that include support for all early ARMv8 platforms that are out
-there today. If we can't get to a point where a Moonshot[0] cartridge
-boots out of the box with an upstream kernel, let's just give up and do
-something else instead :) (joke)
-
-Jon.
-
-[0] HPE have been *amazingly* patient with this stuff. They've reworked
-the firmware when someone (cough) pointed out that the early stuff
-they'd been fed was not built according to the standards (U-Boot). They
-have *really good* UEFI and ACPI enabled firmware that is running
-RHEL(SA) great. But that's not good enough. We don't ship a distro with
-hacks. We ship a distro derived from upstream code (although we might
-have to backport a lot of stuff later). There's wiggle room, but there
-is not wiggle room for core platforms. On ARM, users and developers
-*will* be able to take an upstream kernel and boot it on their RHEL
-install. And they *will* be able to reproduce problems against upstream,
-and help develop against upstream, and further the upstream first
-mentality in the ARM ecosystem. There will not be "oh well, it runs RHEL
-so that's good enough for the early generation...".
-
--- 
-Computer Architect | Sent from my Fedora powered laptop
+SGkgUHJhcml0IGFuZCBKb24sDQoNCkhvdyBkbyB5b3UgdGhpbmsgb2YgdGhpcz8NCg0KVGhhbmtz
+Lg0KDQpPY2VhbiBIZSAvILrOuqPR8w0KU1cgRGV2ZWxvcG1lbnQgRGVwdC4gDQpCZWlqaW5nIERl
+c2lnbiBDZW50ZXINCkVudGVycHJpc2UgUHJvZHVjdCBHcm91cA0KTW9iaWxlOiAxODkxMTc3ODky
+Ng0KRS1tYWlsOiBoZWh5MUBsZW5vdm8uY29tDQpOby42IENodWFuZyBZZSBSb2FkLCBIYWlkaWFu
+IERpc3RyaWN0LCBCZWlqaW5nLCBDaGluYSAxMDAwODUNCg0KLS0tLS1PcmlnaW5hbCBNZXNzYWdl
+LS0tLS0NCkZyb206IE9jZWFuIEhZMSBIZSANClNlbnQ6IE1vbmRheSwgTWF5IDE2LCAyMDE2IDEx
+OjA0IEFNDQpUbzogcmp3QHJqd3lzb2NraS5uZXQ7IGxlbmJAa2VybmVsLm9yZw0KQ2M6IGxpbnV4
+LWFjcGlAdmdlci5rZXJuZWwub3JnOyBsaW51eC1rZXJuZWxAdmdlci5rZXJuZWwub3JnOyBEYXZp
+ZCBUYW5ha2E7IE5hZ2FuYW5kYSBDaHVtYmFsa2FyDQpTdWJqZWN0OiBSRTogW1BBVENIXSBBQ1BJ
+OiBFeGVjdXRlIHRoZSBfUFRTIG1ldGhvZCB3aGVuIHN5c3RlbSByZWJvb3QNCg0KVG8gd2hvbSBt
+YXkgY29uY2VybiwNCg0KQSBMZW5vdm8gZmVhdHVyZSBkZXBlbmRzIG9uIF9QVFMgbWV0aG9kIGV4
+ZWN1dGlvbiB3aGVuIHJlYm9vdC4gQW5kIGFmdGVyIGNoZWNrIHRoZSBBQ1BJIHNwZWMsIEkgdGhp
+bmsgX1BUUyBzaG91bGQgYmUgZXhlY3R1ZWQgd2hlbiByZWJvby4gVGhpcyBwYXRjaCBjb3VsZCBm
+aXggdGhlIHByb2JsZW0uDQoNCkFueSBjb21tZW50cyBvZiB0aGlzIHBhdGNoPyBNYW55IHRoYW5r
+cyENCg0KT2NlYW4gSGUgLyC6zrqj0fMNClNXIERldmVsb3BtZW50IERlcHQuIA0KQmVpamluZyBE
+ZXNpZ24gQ2VudGVyDQpFbnRlcnByaXNlIFByb2R1Y3QgR3JvdXANCk1vYmlsZTogMTg5MTE3Nzg5
+MjYNCkUtbWFpbDogaGVoeTFAbGVub3ZvLmNvbQ0KTm8uNiBDaHVhbmcgWWUgUm9hZCwgSGFpZGlh
+biBEaXN0cmljdCwgQmVpamluZywgQ2hpbmEgMTAwMDg1DQoNCi0tLS0tT3JpZ2luYWwgTWVzc2Fn
+ZS0tLS0tDQpGcm9tOiBPY2VhbiBIWTEgSGUgDQpTZW50OiBNb25kYXksIE1heSAwOSwgMjAxNiAx
+OjUwIFBNDQpUbzogcmp3QHJqd3lzb2NraS5uZXQ7IGxlbmJAa2VybmVsLm9yZw0KQ2M6IGxpbnV4
+LWFjcGlAdmdlci5rZXJuZWwub3JnOyBsaW51eC1rZXJuZWxAdmdlci5rZXJuZWwub3JnOyBEYXZp
+ZCBUYW5ha2E7IE9jZWFuIEhZMSBIZTsgTmFnYW5hbmRhIENodW1iYWxrYXINClN1YmplY3Q6IFtQ
+QVRDSF0gQUNQSTogRXhlY3V0ZSB0aGUgX1BUUyBtZXRob2Qgd2hlbiBzeXN0ZW0gcmVib290DQoN
+ClRoZSBfUFRTIGNvbnRyb2wgbWV0aG9kIGlzIGRlZmluZWQgaW4gdGhlIHNlY3Rpb24gNy40LjEg
+b2YgYWNwaSA2LjANCnNwZWMuIFRoZSBfUFRTIGNvbnRyb2wgbWV0aG9kIGlzIGV4ZWN1dGVkIGJ5
+IHRoZSBPUyBkdXJpbmcgdGhlIHNsZWVwDQp0cmFuc2l0aW9uIHByb2Nlc3MgZm9yIFMxLCBTMiwg
+UzMsIFM0LCBhbmQgZm9yIG9yZGVybHkgUzUgc2h1dGRvd24uDQpUaGUgc2xlZXBpbmcgc3RhdGUg
+dmFsdWUgKEZvciBleGFtcGxlLCAxLCAyLCAzLCA0IG9yIDUgZm9yIHRoZSBTNQ0Kc29mdC1vZmYg
+c3RhdGUpIGlzIHBhc3NlZCB0byB0aGUgX1BUUyBjb250cm9sIG1ldGhvZC4gVGhpcyBtZXRob2QN
+CmlzIGNhbGxlZCBhZnRlciBPU1BNIGhhcyBub3RpZmllZCBuYXRpdmUgZGV2aWNlIGRyaXZlcnMg
+b2YgdGhlIHNsZWVwDQpzdGF0ZSB0cmFuc2l0aW9uIGFuZCBiZWZvcmUgdGhlIE9TUE0gaGFzIGhh
+ZCBhIGNoYW5jZSB0byBmdWxseQ0KcHJlcGFyZSB0aGUgc3lzdGVtIGZvciBhIHNsZWVwIHN0YXRl
+IHRyYW5zaXRpb24uDQoNClRoZSBfUFRTIGNvbnRyb2wgbWV0aG9kIHByb3ZpZGVzIHRoZSBCSU9T
+IGEgbWVjaGFuaXNtIGZvciBwZXJmb3JtaW5nDQpzb21lIGhvdXNla2VlcGluZywgc3VjaCBhcyB3
+cml0aW5nIHRoZSBzbGVlcCB0eXBlIHZhbHVlIHRvIHRoZSBlbWJlZGRlZA0KY29udHJvbGxlciwg
+YmVmb3JlIGVudGVyaW5nIHRoZSBzeXN0ZW0gc2xlZXBpbmcgc3RhdGUuDQoNCkFjY29yZGluZyB0
+byBzZWN0aW9uIDcuNSBvZiBhY3BpIDYuMCBzcGVjLCBfUFRTIHNob3VsZCBydW4gYWZ0ZXIgX1RU
+Uy4NCg0KVGh1cywgYSBfUFRTIGJsb2NrIG5vdGlmaWVyIGlzIGFkZGVkIHRvIHRoZSByZWJvb3Qg
+bm90aWZpZXIgbGlzdCBzbyB0aGF0DQp0aGUgX1BUUyBvYmplY3Qgd2lsbCBhbHNvIGJlIGV2YWx1
+YXRlZCB3aGVuIHRoZSBzeXN0ZW0gcmVib290Lg0KDQpTaWduZWQtb2ZmLWJ5OiBPY2VhbiBIZSA8
+aGVoeTFAbGVub3ZvLmNvbT4NClNpZ25lZC1vZmYtYnk6IE5hZ2FuYW5kYSBDaHVtYmFsa2FyIDxu
+Y2h1bWJhbGthckBsZW5vdm8uY29tPg0KLS0tDQogZHJpdmVycy9hY3BpL3NsZWVwLmMgfCAyNyAr
+KysrKysrKysrKysrKysrKysrKysrKysrKysNCiAxIGZpbGUgY2hhbmdlZCwgMjcgaW5zZXJ0aW9u
+cygrKQ0KDQpkaWZmIC0tZ2l0IGEvZHJpdmVycy9hY3BpL3NsZWVwLmMgYi9kcml2ZXJzL2FjcGkv
+c2xlZXAuYw0KaW5kZXggMmE4YjU5Ni4uOGIyOTBmYiAxMDA2NDQNCi0tLSBhL2RyaXZlcnMvYWNw
+aS9zbGVlcC5jDQorKysgYi9kcml2ZXJzL2FjcGkvc2xlZXAuYw0KQEAgLTU1LDYgKzU1LDI2IEBA
+IHN0YXRpYyBzdHJ1Y3Qgbm90aWZpZXJfYmxvY2sgdHRzX25vdGlmaWVyID0gew0KIAkucHJpb3Jp
+dHkJPSAwLA0KIH07DQogDQorc3RhdGljIGludCBwdHNfbm90aWZ5X3JlYm9vdChzdHJ1Y3Qgbm90
+aWZpZXJfYmxvY2sgKnRoaXMsDQorCQkJdW5zaWduZWQgbG9uZyBjb2RlLCB2b2lkICp4KQ0KK3sN
+CisJYWNwaV9zdGF0dXMgc3RhdHVzOw0KKw0KKwlzdGF0dXMgPSBhY3BpX2V4ZWN1dGVfc2ltcGxl
+X21ldGhvZChOVUxMLCAiXFxfUFRTIiwgQUNQSV9TVEFURV9TNSk7DQorCWlmIChBQ1BJX0ZBSUxV
+UkUoc3RhdHVzKSAmJiBzdGF0dXMgIT0gQUVfTk9UX0ZPVU5EKSB7DQorCQkvKiBJdCB3b24ndCBi
+cmVhayBhbnl0aGluZy4gKi8NCisJCXByaW50ayhLRVJOX05PVElDRSAiRmFpbHVyZSBpbiBldmFs
+dWF0aW5nIF9QVFMgb2JqZWN0XG4iKTsNCisJfQ0KKw0KKwlyZXR1cm4gTk9USUZZX0RPTkU7DQor
+fQ0KKw0KK3N0YXRpYyBzdHJ1Y3Qgbm90aWZpZXJfYmxvY2sgcHRzX25vdGlmaWVyID0gew0KKwku
+bm90aWZpZXJfY2FsbAk9IHB0c19ub3RpZnlfcmVib290LA0KKwkubmV4dAkJPSBOVUxMLA0KKwku
+cHJpb3JpdHkJPSAwLA0KK307DQorDQogc3RhdGljIGludCBhY3BpX3NsZWVwX3ByZXBhcmUodTMy
+IGFjcGlfc3RhdGUpDQogew0KICNpZmRlZiBDT05GSUdfQUNQSV9TTEVFUA0KQEAgLTg5Niw1ICs5
+MTYsMTIgQEAgaW50IF9faW5pdCBhY3BpX3NsZWVwX2luaXQodm9pZCkNCiAJICogb2JqZWN0IGNh
+biBhbHNvIGJlIGV2YWx1YXRlZCB3aGVuIHRoZSBzeXN0ZW0gZW50ZXJzIFM1Lg0KIAkgKi8NCiAJ
+cmVnaXN0ZXJfcmVib290X25vdGlmaWVyKCZ0dHNfbm90aWZpZXIpOw0KKw0KKwkvKg0KKwkgKiBB
+Y2NvcmRpbmcgdG8gc2VjdGlvbiA3LjUgb2YgYWNwaSA2LjAgc3BlYywgX1BUUyBzaG91bGQgcnVu
+IGFmdGVyDQorCSAqIF9UVFMgd2hlbiB0aGUgc3lzdGVtIGVudGVycyBTNS4NCisJICovDQorCXJl
+Z2lzdGVyX3JlYm9vdF9ub3RpZmllcigmcHRzX25vdGlmaWVyKTsNCisNCiAJcmV0dXJuIDA7DQog
+fQ0KLS0gDQoxLjguMy4xDQo=
