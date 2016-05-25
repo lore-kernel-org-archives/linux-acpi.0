@@ -1,31 +1,41 @@
 From: Catalin Marinas <catalin.marinas@arm.com>
-Subject: Re: [PATCH v7 13/15] ACPI / processor: Add acpi_map_madt_entry().
-Date: Wed, 25 May 2016 15:42:26 +0100
-Message-ID: <20160525144225.GF5996@e104818-lin.cambridge.arm.com>
+Subject: Re: [PATCH v7 14/15] arm64, acpi, numa: NUMA support based on SRAT
+ and SLIT
+Date: Wed, 25 May 2016 15:42:57 +0100
+Message-ID: <20160525144256.GG5996@e104818-lin.cambridge.arm.com>
 References: <1464129345-18985-1-git-send-email-ddaney.cavm@gmail.com>
- <1464129345-18985-14-git-send-email-ddaney.cavm@gmail.com>
+ <1464129345-18985-15-git-send-email-ddaney.cavm@gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from foss.arm.com ([217.140.101.70]:35227 "EHLO foss.arm.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753661AbcEYOnE (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 25 May 2016 10:43:04 -0400
 Content-Disposition: inline
-In-Reply-To: <1464129345-18985-14-git-send-email-ddaney.cavm@gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: David Daney <ddaney.cavm@gmail.com>
-Cc: Will Deacon <will.deacon@arm.com>, linux-arm-kernel@lists.infradead.org, Mark Rutland <mark.rutland@arm.com>, Tony Luck <tony.luck@intel.com>, Fenghua Yu <fenghua.yu@intel.com>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, x86@kernel.org, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Rob Herring <robh+dt@kernel.org>, Frank Rowand <frowand.list@gmail.com>, Grant Likely <grant.likely@linaro.org>, Robert Moore <robert.moore@intel.com>, Lv Zheng <lv.zheng@intel.com>, Hanjun Guo <hanjun.guo@linaro.org>, Marc Zyngier <Marc.Zyngier@arm.com>, linux-ia64@vger.kernel.org, linux-acpi@vger.kernel.org, devel@acpica.org, Robert Richter <rrichter@cavium.com>, linux-kernel@vger.kernel.org, David Daney <david.daney@cavium.com>
+In-Reply-To: <1464129345-18985-15-git-send-email-ddaney.cavm@gmail.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: David Daney <ddaney.cavm@gmail.com>
+Cc: Will Deacon <will.deacon@arm.com>, linux-arm-kernel@lists.infradead.org, Mark Rutland <mark.rutland@arm.com>, Tony Luck <tony.luck@intel.com>, Fenghua Yu <fenghua.yu@intel.com>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, x86@kernel.org, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Rob Herring <robh+dt@kernel.org>, Frank Rowand <frowand.list@gmail.com>, Grant Likely <grant.likely@linaro.org>, Robert Moore <robert.moore@intel.com>, Lv Zheng <lv.zheng@intel.com>, Hanjun Guo <hanjun.guo@linaro.org>, Marc Zyngier <Marc.Zyngier@arm.com>, linux-ia64@vger.kernel.org, linux-acpi@vger.kernel.org, devel@acpica.org, Robert Richter <rrichter@cavium.com>, Ganapatrao Kulkarni <gkulkarni@caviumnetworks.com>, linux-kernel@vger.kernel.org, David Daney <david.daney@cavium.com>
 
-On Tue, May 24, 2016 at 03:35:43PM -0700, David Daney wrote:
-> From: David Daney <david.daney@cavium.com>
+On Tue, May 24, 2016 at 03:35:44PM -0700, David Daney wrote:
+> From: Hanjun Guo <hanjun.guo@linaro.org>
 > 
-> Follow-on arm64 ACPI/NUMA patches need to map MADT entries very early
-> (before kmalloc is usable).
+> Introduce a new file to hold ACPI based NUMA information parsing from
+> SRAT and SLIT.
 > 
-> Add acpi_map_madt_entry() which, indirectly, uses
-> early_memremap()/early_memunmap() to access the table and parse out
-> the mpidr.  The existing implementation of map_madt_entry() is
-> modified to take a pointer to the MADT as a parameter and the callers
-> adjusted.
+> SRAT includes the CPU ACPI ID to Proximity Domain mappings and memory
+> ranges to Proximity Domain mapping.  SLIT has the information of inter
+> node distances(relative number for access latency).
 > 
+> Signed-off-by: Hanjun Guo <hanjun.guo@linaro.org>
+> Signed-off-by: Ganapatrao Kulkarni <gkulkarni@caviumnetworks.com>
+> [rrichter@cavium.com Reworked for numa v10 series ]
+> Signed-off-by: Robert Richter <rrichter@cavium.com>
+> [david.daney@cavium.com reorderd and combinded with other patches in
+> Hanjun Guo's original set, removed get_mpidr_in_madt() and use
+> acpi_map_madt_entry() instead.]
 > Signed-off-by: David Daney <david.daney@cavium.com>
 
-Acked-by: Catalin Marinas <catalin.marinas@arm.com>
+Reviewed-by: Catalin Marinas <catalin.marinas@arm.com>
