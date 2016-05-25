@@ -1,41 +1,53 @@
-From: Catalin Marinas <catalin.marinas@arm.com>
-Subject: Re: [PATCH v7 14/15] arm64, acpi, numa: NUMA support based on SRAT
- and SLIT
-Date: Wed, 25 May 2016 15:42:57 +0100
-Message-ID: <20160525144256.GG5996@e104818-lin.cambridge.arm.com>
-References: <1464129345-18985-1-git-send-email-ddaney.cavm@gmail.com>
- <1464129345-18985-15-git-send-email-ddaney.cavm@gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+From: Hoan Tran <hotran@apm.com>
+Subject: [PATCH] acpi: cppc: Prevent cpc_desc_ptr points to the invalid data
+Date: Wed, 25 May 2016 12:09:23 -0700
+Message-ID: <1464203363-20599-1-git-send-email-hotran@apm.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from foss.arm.com ([217.140.101.70]:35227 "EHLO foss.arm.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753661AbcEYOnE (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 25 May 2016 10:43:04 -0400
-Content-Disposition: inline
-In-Reply-To: <1464129345-18985-15-git-send-email-ddaney.cavm@gmail.com>
+Received: from mail-pf0-f175.google.com ([209.85.192.175]:35044 "EHLO
+	mail-pf0-f175.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751485AbcEYTKc (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 25 May 2016 15:10:32 -0400
+Received: by mail-pf0-f175.google.com with SMTP id g64so21390843pfb.2
+        for <linux-acpi@vger.kernel.org>; Wed, 25 May 2016 12:10:31 -0700 (PDT)
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: David Daney <ddaney.cavm@gmail.com>
-Cc: Will Deacon <will.deacon@arm.com>, linux-arm-kernel@lists.infradead.org, Mark Rutland <mark.rutland@arm.com>, Tony Luck <tony.luck@intel.com>, Fenghua Yu <fenghua.yu@intel.com>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, x86@kernel.org, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Rob Herring <robh+dt@kernel.org>, Frank Rowand <frowand.list@gmail.com>, Grant Likely <grant.likely@linaro.org>, Robert Moore <robert.moore@intel.com>, Lv Zheng <lv.zheng@intel.com>, Hanjun Guo <hanjun.guo@linaro.org>, Marc Zyngier <Marc.Zyngier@arm.com>, linux-ia64@vger.kernel.org, linux-acpi@vger.kernel.org, devel@acpica.org, Robert Richter <rrichter@cavium.com>, Ganapatrao Kulkarni <gkulkarni@caviumnetworks.com>, linux-kernel@vger.kernel.org, David Daney <david.daney@cavium.com>
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Ashwin Chaugule <ashwin.chaugule@linaro.org>
+Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Duc Dang <dhdang@apm.com>, lho@apm.com, Hoan Tran <hotran@apm.com>
 
-On Tue, May 24, 2016 at 03:35:44PM -0700, David Daney wrote:
-> From: Hanjun Guo <hanjun.guo@linaro.org>
-> 
-> Introduce a new file to hold ACPI based NUMA information parsing from
-> SRAT and SLIT.
-> 
-> SRAT includes the CPU ACPI ID to Proximity Domain mappings and memory
-> ranges to Proximity Domain mapping.  SLIT has the information of inter
-> node distances(relative number for access latency).
-> 
-> Signed-off-by: Hanjun Guo <hanjun.guo@linaro.org>
-> Signed-off-by: Ganapatrao Kulkarni <gkulkarni@caviumnetworks.com>
-> [rrichter@cavium.com Reworked for numa v10 series ]
-> Signed-off-by: Robert Richter <rrichter@cavium.com>
-> [david.daney@cavium.com reorderd and combinded with other patches in
-> Hanjun Guo's original set, removed get_mpidr_in_madt() and use
-> acpi_map_madt_entry() instead.]
-> Signed-off-by: David Daney <david.daney@cavium.com>
+When CPPC fails to request PCC channel, the CPC data is freed
+and cpc_desc_ptr points to the invalid data. This change prevents
+this issue by moving cpc_desc_ptr assignment after PCC channel
+request.
 
-Reviewed-by: Catalin Marinas <catalin.marinas@arm.com>
+Signed-off-by: Hoan Tran <hotran@apm.com>
+---
+ drivers/acpi/cppc_acpi.c | 6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
+
+diff --git a/drivers/acpi/cppc_acpi.c b/drivers/acpi/cppc_acpi.c
+index 8adac69..85fd8f7 100644
+--- a/drivers/acpi/cppc_acpi.c
++++ b/drivers/acpi/cppc_acpi.c
+@@ -595,9 +595,6 @@ int acpi_cppc_processor_probe(struct acpi_processor *pr)
+ 	/* Store CPU Logical ID */
+ 	cpc_ptr->cpu_id = pr->id;
+ 
+-	/* Plug it into this CPUs CPC descriptor. */
+-	per_cpu(cpc_desc_ptr, pr->id) = cpc_ptr;
+-
+ 	/* Parse PSD data for this CPU */
+ 	ret = acpi_get_psd(cpc_ptr, handle);
+ 	if (ret)
+@@ -610,6 +607,9 @@ int acpi_cppc_processor_probe(struct acpi_processor *pr)
+ 			goto out_free;
+ 	}
+ 
++	/* Plug PSD data into this CPUs CPC descriptor. */
++	per_cpu(cpc_desc_ptr, pr->id) = cpc_ptr;
++
+ 	/* Everything looks okay */
+ 	pr_debug("Parsed CPC struct for CPU: %d\n", pr->id);
+ 
+-- 
+1.9.1
+
