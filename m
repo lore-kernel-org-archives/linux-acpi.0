@@ -1,143 +1,132 @@
-From: David Daney <ddaney.cavm@gmail.com>
-Subject: [PATCH v7 09/15] acpi,
- numa: move bad_srat() and srat_disabled() to drivers/acpi/numa.c
-Date: Tue, 24 May 2016 15:35:39 -0700
-Message-ID: <1464129345-18985-10-git-send-email-ddaney.cavm@gmail.com>
-References: <1464129345-18985-1-git-send-email-ddaney.cavm@gmail.com>
+From: Aaron Lu <aaron.lu@intel.com>
+Subject: Re: [PATCH] ACPI / Thermal / video: fix max_level incorrect value
+Date: Wed, 25 May 2016 13:15:26 +0800
+Message-ID: <20160525051526.GA18305@aaronlu.sh.intel.com>
+References: <4736.1463510462@turing-police.cc.vt.edu>
+ <CAJZ5v0jrFoQxLY_ZQrP-HP888swZbvSJPM=xNopC5MgQgnSxNg@mail.gmail.com>
+ <6459.1463698397@turing-police.cc.vt.edu>
+ <7208.1463713500@turing-police.cc.vt.edu>
+ <6674547c-cefb-1b93-893a-7c5909a180a7@intel.com>
+ <2897.1463727728@turing-police.cc.vt.edu>
+ <20160520071720.GA30152@aaronlu.sh.intel.com>
+ <29833.1463789712@turing-police.cc.vt.edu>
+ <20160521032933.GA12918@aaronlu.sh.intel.com>
+ <20160521075500.GA22025@aaronlu.sh.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <1464129345-18985-1-git-send-email-ddaney.cavm@gmail.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Will Deacon <will.deacon@arm.com>, linux-arm-kernel@lists.infradead.org, Mark Rutland <mark.rutland@arm.com>, Catalin Marinas <catalin.marinas@arm.com>, Tony Luck <tony.luck@intel.com>, Fenghua Yu <fenghua.yu@intel.com>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, x86@kernel.org, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Rob Herring <robh+dt@kernel.org>, Frank Rowand <frowand.list@gmail.com>, Grant Likely <grant.likely@linaro.org>, Robert Moore <robert.moore@intel.com>, Lv Zheng <lv.zheng@intel.com>, Hanjun Guo <hanjun.guo@linaro.org>, Marc Zyngier <Marc.Zyngier@arm.com>, linux-ia64@vger.kernel.org, linux-acpi@vger.kernel.org, devel@acpica.org
-Cc: Robert Richter <rrichter@cavium.com>, linux-kernel@vger.kernel.org, David Daney <david.daney@cavium.com>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20160521075500.GA22025@aaronlu.sh.intel.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Valdis.Kletnieks@vt.edu
+Cc: "Rafael J. Wysocki" <rafael@kernel.org>, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Len Brown <lenb@kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-From: David Daney <david.daney@cavium.com>
+Valdis, can you please give the patch a try? Thanks.
 
-bad_srat() and srat_disabled() are shared by x86 and follow-on arm64
-patches.  Move them to drivers/acpi/numa.c in preparation for arm64
-support.
+-Aaron
 
-Signed-off-by: Hanjun Guo <hanjun.guo@linaro.org>
-Signed-off-by: Robert Richter <rrichter@cavium.com>
-[david.daney@cavium.com moved definitions to drivers/acpi/numa.c]
-Signed-off-by: David Daney <david.daney@cavium.com>
----
- arch/x86/include/asm/acpi.h |  1 -
- arch/x86/mm/numa.c          |  2 +-
- arch/x86/mm/srat.c          | 13 -------------
- drivers/acpi/numa.c         | 12 ++++++++++++
- include/acpi/acpi_numa.h    |  4 ++++
- 5 files changed, 17 insertions(+), 15 deletions(-)
-
-diff --git a/arch/x86/include/asm/acpi.h b/arch/x86/include/asm/acpi.h
-index 94c18eb..65f1e95 100644
---- a/arch/x86/include/asm/acpi.h
-+++ b/arch/x86/include/asm/acpi.h
-@@ -145,7 +145,6 @@ static inline void disable_acpi(void) { }
- #define ARCH_HAS_POWER_INIT	1
- 
- #ifdef CONFIG_ACPI_NUMA
--extern int acpi_numa;
- extern int x86_acpi_numa_init(void);
- #endif /* CONFIG_ACPI_NUMA */
- 
-diff --git a/arch/x86/mm/numa.c b/arch/x86/mm/numa.c
-index 9c086c5..968ac02 100644
---- a/arch/x86/mm/numa.c
-+++ b/arch/x86/mm/numa.c
-@@ -1,4 +1,5 @@
- /* Common code for 32 and 64-bit NUMA */
-+#include <linux/acpi.h>
- #include <linux/kernel.h>
- #include <linux/mm.h>
- #include <linux/string.h>
-@@ -15,7 +16,6 @@
- #include <asm/e820.h>
- #include <asm/proto.h>
- #include <asm/dma.h>
--#include <asm/acpi.h>
- #include <asm/amd_nb.h>
- 
- #include "numa_internal.h"
-diff --git a/arch/x86/mm/srat.c b/arch/x86/mm/srat.c
-index 9e2a833..4217071f 100644
---- a/arch/x86/mm/srat.c
-+++ b/arch/x86/mm/srat.c
-@@ -24,19 +24,6 @@
- #include <asm/apic.h>
- #include <asm/uv/uv.h>
- 
--int acpi_numa __initdata;
--
--static __init void bad_srat(void)
--{
--	printk(KERN_ERR "SRAT: SRAT not used.\n");
--	acpi_numa = -1;
--}
--
--static __init inline int srat_disabled(void)
--{
--	return acpi_numa < 0;
--}
--
- /* Callback for Proximity Domain -> x2APIC mapping */
- void __init
- acpi_numa_x2apic_affinity_init(struct acpi_srat_x2apic_cpu_affinity *pa)
-diff --git a/drivers/acpi/numa.c b/drivers/acpi/numa.c
-index 7e0649d..af0c8d5 100644
---- a/drivers/acpi/numa.c
-+++ b/drivers/acpi/numa.c
-@@ -40,6 +40,7 @@ static int node_to_pxm_map[MAX_NUMNODES]
- 			= { [0 ... MAX_NUMNODES - 1] = PXM_INVAL };
- 
- unsigned char acpi_srat_revision __initdata;
-+int acpi_numa __initdata;
- 
- int pxm_to_node(int pxm)
- {
-@@ -197,6 +198,17 @@ static int __init slit_valid(struct acpi_table_slit *slit)
- 	return 1;
- }
- 
-+void __init bad_srat(void)
-+{
-+	pr_err("SRAT: SRAT not used.\n");
-+	acpi_numa = -1;
-+}
-+
-+int __init srat_disabled(void)
-+{
-+	return acpi_numa < 0;
-+}
-+
- #if defined(CONFIG_X86) || defined(CONFIG_ARM64)
- /*
-  * Callback for SLIT parsing.  pxm_to_node() returns NUMA_NO_NODE for
-diff --git a/include/acpi/acpi_numa.h b/include/acpi/acpi_numa.h
-index 94a37cd..d4b7294 100644
---- a/include/acpi/acpi_numa.h
-+++ b/include/acpi/acpi_numa.h
-@@ -15,6 +15,10 @@ extern int pxm_to_node(int);
- extern int node_to_pxm(int);
- extern int acpi_map_pxm_to_node(int);
- extern unsigned char acpi_srat_revision;
-+extern int acpi_numa __initdata;
-+
-+extern void bad_srat(void);
-+extern int srat_disabled(void);
- 
- #endif				/* CONFIG_ACPI_NUMA */
- #endif				/* __ACP_NUMA_H */
--- 
-1.7.11.7
+On Sat, May 21, 2016 at 03:55:00PM +0800, Aaron Lu wrote:
+> I think I have found the problem, please give the patch a test, thanks.
+> 
+> From: Aaron Lu <aaron.lu@intel.com>
+> Date: Sat, 21 May 2016 15:30:46 +0800
+> Subject: [PATCH] ACPI / Thermal / video: fix max_level incorrect value
+> 
+> commit 059500940def("ACPI/video: export acpi_video_get_levels")
+> mistakenly dropped the correct value of max_level and that caused the
+> set_level function following failed and the acpi_video backlight interface
+> didn't get created. Fix this by passing back the correct max_level value.
+> 
+> While at it, also fix the param used in acpi_video_device_lcd_query_levels
+> where acpi_handle is expected but acpi_video_device is passed.
+> 
+> Reported-by: Valdis Kletnieks <valdis.kletnieks@vt.edu>
+> Signed-off-by: Aaron Lu <aaron.lu@intel.com>
+> ---
+>  drivers/acpi/acpi_video.c                         | 9 ++++++---
+>  drivers/thermal/int340x_thermal/int3406_thermal.c | 2 +-
+>  include/acpi/video.h                              | 6 ++++--
+>  3 files changed, 11 insertions(+), 6 deletions(-)
+> 
+> diff --git a/drivers/acpi/acpi_video.c b/drivers/acpi/acpi_video.c
+> index 3d5b8a099351..c1d138e128cb 100644
+> --- a/drivers/acpi/acpi_video.c
+> +++ b/drivers/acpi/acpi_video.c
+> @@ -754,7 +754,8 @@ static int acpi_video_bqc_quirk(struct acpi_video_device *device,
+>  }
+>  
+>  int acpi_video_get_levels(struct acpi_device *device,
+> -			  struct acpi_video_device_brightness **dev_br)
+> +			  struct acpi_video_device_brightness **dev_br,
+> +			  int *pmax_level)
+>  {
+>  	union acpi_object *obj = NULL;
+>  	int i, max_level = 0, count = 0, level_ac_battery = 0;
+> @@ -841,6 +842,8 @@ int acpi_video_get_levels(struct acpi_device *device,
+>  
+>  	br->count = count;
+>  	*dev_br = br;
+> +	if (pmax_level)
+> +		*pmax_level = max_level;
+>  
+>  out:
+>  	kfree(obj);
+> @@ -869,7 +872,7 @@ acpi_video_init_brightness(struct acpi_video_device *device)
+>  	struct acpi_video_device_brightness *br = NULL;
+>  	int result = -EINVAL;
+>  
+> -	result = acpi_video_get_levels(device->dev, &br);
+> +	result = acpi_video_get_levels(device->dev, &br, &max_level);
+>  	if (result)
+>  		return result;
+>  	device->brightness = br;
+> @@ -1737,7 +1740,7 @@ static void acpi_video_run_bcl_for_osi(struct acpi_video_bus *video)
+>  
+>  	mutex_lock(&video->device_list_lock);
+>  	list_for_each_entry(dev, &video->video_device_list, entry) {
+> -		if (!acpi_video_device_lcd_query_levels(dev, &levels))
+> +		if (!acpi_video_device_lcd_query_levels(dev->dev->handle, &levels))
+>  			kfree(levels);
+>  	}
+>  	mutex_unlock(&video->device_list_lock);
+> diff --git a/drivers/thermal/int340x_thermal/int3406_thermal.c b/drivers/thermal/int340x_thermal/int3406_thermal.c
+> index 13d431cbd29e..a578cd257db4 100644
+> --- a/drivers/thermal/int340x_thermal/int3406_thermal.c
+> +++ b/drivers/thermal/int340x_thermal/int3406_thermal.c
+> @@ -177,7 +177,7 @@ static int int3406_thermal_probe(struct platform_device *pdev)
+>  		return -ENODEV;
+>  	d->raw_bd = bd;
+>  
+> -	ret = acpi_video_get_levels(ACPI_COMPANION(&pdev->dev), &d->br);
+> +	ret = acpi_video_get_levels(ACPI_COMPANION(&pdev->dev), &d->br, NULL);
+>  	if (ret)
+>  		return ret;
+>  
+> diff --git a/include/acpi/video.h b/include/acpi/video.h
+> index 70a41f742037..5731ccb42585 100644
+> --- a/include/acpi/video.h
+> +++ b/include/acpi/video.h
+> @@ -51,7 +51,8 @@ extern void acpi_video_set_dmi_backlight_type(enum acpi_backlight_type type);
+>   */
+>  extern bool acpi_video_handles_brightness_key_presses(void);
+>  extern int acpi_video_get_levels(struct acpi_device *device,
+> -				 struct acpi_video_device_brightness **dev_br);
+> +				 struct acpi_video_device_brightness **dev_br,
+> +				 int *pmax_level);
+>  #else
+>  static inline int acpi_video_register(void) { return 0; }
+>  static inline void acpi_video_unregister(void) { return; }
+> @@ -72,7 +73,8 @@ static inline bool acpi_video_handles_brightness_key_presses(void)
+>  	return false;
+>  }
+>  static inline int acpi_video_get_levels(struct acpi_device *device,
+> -			struct acpi_video_device_brightness **dev_br)
+> +			struct acpi_video_device_brightness **dev_br,
+> +			int *pmax_level)
+>  {
+>  	return -ENODEV;
+>  }
+> -- 
+> 2.5.5
+> 
