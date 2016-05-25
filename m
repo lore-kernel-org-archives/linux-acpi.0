@@ -1,44 +1,43 @@
-From: Tejun Heo <tj@kernel.org>
-Subject: Re: [PATCH v7 0/5] Make cpuid <-> nodeid mapping persistent
-Date: Wed, 25 May 2016 16:37:31 -0400
-Message-ID: <20160525203731.GJ3354@mtj.duckdns.org>
-References: <cover.1463652944.git.zhugh.fnst@cn.fujitsu.com>
- <20160519144657.GK3206@twins.programming.kicks-ass.net>
- <5742AAF6.3060901@cn.fujitsu.com>
+From: "Rafael J. Wysocki" <rafael@kernel.org>
+Subject: [GIT PULL] Additional ACPI update for v4.7-rc1
+Date: Wed, 25 May 2016 22:51:13 +0200
+Message-ID: <CAJZ5v0gNjckTo55rG6WL3rjyLEqa=a7NqSGFtZD3OUa=z1egiQ@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <owner-linux-mm@kvack.org>
-Content-Disposition: inline
-In-Reply-To: <5742AAF6.3060901@cn.fujitsu.com>
-Sender: owner-linux-mm@kvack.org
-To: Zhu Guihua <zhugh.fnst@cn.fujitsu.com>
-Cc: Peter Zijlstra <peterz@infradead.org>, cl@linux.com, mika.j.penttila@gmail.com, mingo@redhat.com, akpm@linux-foundation.org, rjw@rjwysocki.net, hpa@zytor.com, yasu.isimatu@gmail.com, isimatu.yasuaki@jp.fujitsu.com, kamezawa.hiroyu@jp.fujitsu.com, izumi.taku@jp.fujitsu.com, gongzhaogang@inspur.com, len.brown@intel.com, lenb@kernel.org, tglx@linutronix.de, chen.tang@easystack.cn, rafael@kernel.org, x86@kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linux-mm@kvack.org
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On Mon, May 23, 2016 at 03:02:14PM +0800, Zhu Guihua wrote:
-> We tried to do that. You can see our patch at
-> http://www.gossamer-threads.com/lists/linux/kernel/2116748
-> 
-> But maintainer thought, we should establish persistent cpuid<->nodeid
-> relationship,
-> there is no need to change the map.
-> 
-> Cc TJ,
-> Could we return to workqueue to fix this?
+Hi Linus,
 
-Workqueue is just one of symptoms.  We have the same problem for
-memory allocation paths.  It's either keeping cpu <-> node mapping
-persistent or hunting down every case which may be affected and build
-likely costly synchronization construct around it.  It's not like we
-have a lot of archs which support CPU hotplug and NUMA.
+Please pull from
 
-Thanks.
+ git://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm.git \
+ acpi-4.7-rc1-more
 
--- 
-tejun
+to receive an additional ACPI update for v4.7-rc1 with top-most
+commit 0cc4b48149ff6948dd82a039ad55cdbec49107f7
 
---
-To unsubscribe, send a message with 'unsubscribe linux-mm' in
-the body to majordomo@kvack.org.  For more info on Linux MM,
-see: http://www.linux-mm.org/ .
-Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
+ Merge branch 'acpi-battery'
+
+on top of commit 46c13450624e36302547a2ac3695f2350fe7ffc3
+
+ Merge tag 'acpi-4.7-rc1' of
+git://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm
+
+Just one fix for incorrect async_synchronize_cookie() usage in the
+ACPI battery driver (Chris Wilson).
+
+Thanks!
+
+---------------
+
+Chris Wilson (1):
+      ACPI / battery: Correctly serialise with the pending async probe
+
+---------------
+
+ drivers/acpi/battery.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
