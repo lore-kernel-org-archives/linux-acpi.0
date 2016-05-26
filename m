@@ -1,255 +1,199 @@
-From: Gabriele Paoloni <gabriele.paoloni@huawei.com>
-Subject: RE: [PATCH V7 00/11] Support for generic ACPI based PCI host
- controller
-Date: Thu, 26 May 2016 09:58:21 +0000
-Message-ID: <EE11001F9E5DDD47B7634E2F8A612F2E1EDB835E@lhreml503-mbs>
-References: <3d4aae09-51c4-f007-5100-191a4a85e27a@redhat.com>
- <CAKv+Gu8fdeJ9OvRSmtu9zyvcjK3O-4WU=jG=6-7t4xZwvV8d2g@mail.gmail.com>
- <95b1d06e-f9c5-39f3-1003-f536b65eef60@redhat.com>
- <CAKv+Gu-_xp_t_Ze3Pw_-82-fmy=tCy-h=4FbP98eLbuXVk2hHQ@mail.gmail.com>
- <EE11001F9E5DDD47B7634E2F8A612F2E1EDAF6AC@lhreml503-mbs>
- <CAKv+Gu_zpoFsDr7e8zPCDKPpRdKDVH+vnC0nfvmGaJ7xcP3Zng@mail.gmail.com>
- <20160523105655.GA22902@red-moon>
- <EE11001F9E5DDD47B7634E2F8A612F2E1EDB35A5@lhreml503-mbs>
- <20160523233918.GA32555@localhost> <20160524172423.GA15855@red-moon>
- <20160524190048.GA4288@localhost>
+From: Benjamin Tissoires <benjamin.tissoires@gmail.com>
+Subject: Re: [RFC PATCH 1/2] ACPI / button: Send "open" state after
+ boot/resume
+Date: Thu, 26 May 2016 15:31:31 +0200
+Message-ID: <5746FAB3.7090604@gmail.com>
+References: <cbdaec17aba78c61f466efff8883d49067f2dad5.1463472125.git.lv.zheng@intel.com>
+ <CAJZ5v0g6RM53oTWRGF-7k2=dDktawmOZbJY56xDXRbQcKoWpmg@mail.gmail.com>
+ <1AE640813FDE7649BE1B193DEA596E883BBA2DED@SHSMSX101.ccr.corp.intel.com>
+ <CAJZ5v0jZTtim8AeBokzz3uT-6rmNGAz3VMPAn-a4M3zaBm1dtA@mail.gmail.com>
+ <1AE640813FDE7649BE1B193DEA596E883BBA3088@SHSMSX101.ccr.corp.intel.com>
+ <CAJZ5v0g2g9nDm+xOYpHQ6=NX40bem5atoSYhM46hjf+X_p+Ouw@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from lhrrgout.huawei.com ([194.213.3.17]:2299 "EHLO
-	lhrrgout.huawei.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750803AbcEZJ7R convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 26 May 2016 05:59:17 -0400
-In-Reply-To: <20160524190048.GA4288@localhost>
-Content-Language: en-US
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 8bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <CAJZ5v0g2g9nDm+xOYpHQ6=NX40bem5atoSYhM46hjf+X_p+Ouw@mail.gmail.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: "Rafael J. Wysocki" <rafael@kernel.org>
+Cc: "Zheng, Lv" <lv.zheng@intel.com>, "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, "Brown, Len" <len.brown@intel.com>, Lv Zheng <zetalog@gmail.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, "Bastien Nocera:" <hadess@hadess.net>
 List-Id: linux-acpi@vger.kernel.org
-To: Bjorn Helgaas <helgaas@kernel.org>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
-Cc: Ard Biesheuvel <ard.biesheuvel@linaro.org>, Jon Masters <jcm@redhat.com>, Tomasz Nowicki <tn@semihalf.com>, "arnd@arndb.de" <arnd@arndb.de>, "will.deacon@arm.com" <will.deacon@arm.com>, "catalin.marinas@arm.com" <catalin.marinas@arm.com>, "rafael@kernel.org" <rafael@kernel.org>, "hanjun.guo@linaro.org" <hanjun.guo@linaro.org>, "okaya@codeaurora.org" <okaya@codeaurora.org>, "jchandra@broadcom.com" <jchandra@broadcom.com>, "linaro-acpi@lists.linaro.org" <linaro-acpi@lists.linaro.org>, "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>, "dhdang@apm.com" <dhdang@apm.com>, "Liviu.Dudau@arm.com" <Liviu.Dudau@arm.com>, "ddaney@caviumnetworks.com" <ddaney@caviumnetworks.com>, "jeremy.linton@arm.com" <jeremy.linton@arm.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, robert.richter@caviumnetw
 
-Hi Bjorn many thanks for your suggestions
+[Jumping in the discussion at Bastien's request]
 
-> -----Original Message-----
-> From: Bjorn Helgaas [mailto:helgaas@kernel.org]
-> Sent: 24 May 2016 20:01
-> To: Lorenzo Pieralisi
-> Cc: Gabriele Paoloni; Ard Biesheuvel; Jon Masters; Tomasz Nowicki;
-> arnd@arndb.de; will.deacon@arm.com; catalin.marinas@arm.com;
-> rafael@kernel.org; hanjun.guo@linaro.org; okaya@codeaurora.org;
-> jchandra@broadcom.com; linaro-acpi@lists.linaro.org; linux-
-> pci@vger.kernel.org; dhdang@apm.com; Liviu.Dudau@arm.com;
-> ddaney@caviumnetworks.com; jeremy.linton@arm.com; linux-
-> kernel@vger.kernel.org; linux-acpi@vger.kernel.org;
-> robert.richter@caviumnetworks.com; Suravee.Suthikulpanit@amd.com;
-> msalter@redhat.com; Wangyijing; mw@semihalf.com;
-> andrea.gallo@linaro.org; linux-arm-kernel@lists.infradead.org
-> Subject: Re: [PATCH V7 00/11] Support for generic ACPI based PCI host
-> controller
-> 
-> On Tue, May 24, 2016 at 06:24:23PM +0100, Lorenzo Pieralisi wrote:
-> > Hi Bjorn,
-> >
-> > On Mon, May 23, 2016 at 06:39:18PM -0500, Bjorn Helgaas wrote:
-> >
-> > [...]
-> >
-> > > On Mon, May 23, 2016 at 03:16:01PM +0000, Gabriele Paoloni wrote:
-> > > I don't think of ECAM support itself as a "driver".  It's just a
-> > > service available to drivers, similar to OF resource parsing.
-> > >
-> > > Per PCI Firmware r3.2, sec 4.1.5, "PNP0A03" means a PCI/PCI-X/PCIe
-> > > host bridge.  "PNP0A08" means a PCI-X Mode 2 or PCIe bridge that
-> > > supports extended config space.  It doesn't specify how we access
-> that
-> > > config space, so I think hardware with non-standard ECAM should
-> still
-> > > have PNP0A03 and PNP0A08 in _CID or _HID.
-> > >
-> > > "ECAM" as used in the specs (PCIe r3.0, sec 7.2.2, and PCI Firmware
-> > > r3.2, sec 4.1) means:
-> > >
-> > >   (a) a memory-mapped model for config space access, and
-> > >   (b) a specific mapping of address bits to bus/device/function/
-> > >       register
-> > >
-> > > MCFG and _CBA assume both (a) and (b), so I think a device with
-> > > non-standard ECAM mappings should not be described in MCFG or _CBA.
-> > >
-> > > If a bridge has ECAM with non-standard mappings, I think either a
-> > > vendor-specific _HID or a device-specific method, e.g., _DSM, could
-> > > communicate that.
-> > >
-> > > Jon, I agree that we should avoid describing non-standardized
-> hardware
-> > > in Linux-specific ways.  Is there a mechanism in use already?  How
-> > > does Windows handle this?  DMI is a poor long-term solution because
-> it
-> > > requires ongoing maintenance for new platforms, but I think it's OK
-> > > for getting started with platforms already shipping.
-> > >
-> > > A _DSM has the advantage that once it is defined and supported,
-> OEMs
-> > > can ship new platforms without requiring a new quirk or a new _HID
-> to
-> > > be added to a driver.
-> > >
-> > > There would still be the problem of config access before the
-> namespace
-> > > is available, i.e., the MCFG use case.  I don't know how important
-> > > that is.  Defining an MCFG extension seems like the most obvious
-> > > solution.
-> >
-> > Your summary above is a perfect representation of the situation.
-> >
-> > We had an opportunity to sync-up on the current status of ACPI PCI
-> > for ARM64 (and talked about a way forward for this series, which
-> > includes quirks handling), let me summarize it here for everyone
-> > involved so that we can agree on a way forward.
-> >
-> > 1) ACPI PCI support for PNP0A03/PNP0A08 host bridges on top of MCFG
-> >    ECAM for config space is basically ready (Tomasz and JC addressed
-> >    Rafael's concerns in relation to ARM64 specific code, and managed
-> >    to find a way to allocate domain numbers in preparation for Arnd
-> >    pci_create_root_bus() clean-up, v8 to be posted shortly and should
-> >    be final). This provides support for de-facto ACPI/PCI ECAM base
-> >    standard for ARM64 (with a clean-split between generic code and
-> ARM64
-> >    bits, where ARM64, like X86 and IA64, manages in arch code IO
-> space and
-> >    PCI resources, to be further consolidated in the near future).
-> >    I do not think anyone can complain about the generality of what we
-> >    achieved, for systems that are PCI standard (yes, PCI STANDARD)
-> this
-> >    would just be sufficient.
-> 
-> Sounds good to me.
-> 
-> > 2) In a real world (1) is not enough. Some ARM64 platforms, not
-> entirely
-> >    ECAM compliant, already shipped with the corresponding firmware
-> that
-> >    we can't update. HW has ECAM quirks and to work around it in the
-> kernel
-> >    we put forward many solutions to the problem, it is time we found
-> a
-> >    solution (when, of course, (1) is completed and upstream).
-> >    Using the MCFG table OEMID matching floated around in this thread
-> >    would work fine for most of the platforms (and cross-OS) that have
-> >    shipped with HW ECAM quirks, so I think that's the starting point
-> for
-> >    our solution and that's how we can sort this out, _today_.
-> >
-> >    The solution is a trivial look-up table:
-> >    MCFG OEMID <-> PCI config space ops
-> 
-> Sounds reasonable to me.
-> 
-> > 3) (2) does not just work on some platforms (and we can't predict the
-> >    future either - actually I can, it is three letters, ECAM), simply
-> >    because MCFG OEMID matching does not provide a way to attach
-> further
-> >    data to the MCFG (eg if config space for, say, bus 0 domain 0, is
-> not
-> >    ECAM compliant, the config region can't be handled and must not be
-> >    handled through a corresponding MCFG region.
-> 
-> Couldn't this be handled by custom pci_ops that do something special
-> for bus 0 domain 0, and default to some different pci_ops for the
-> rest?
+On Thu, May 19, 2016 at 3:21 PM, Rafael J. Wysocki <rafael@kernel.org> wrote:
+> On Thu, May 19, 2016 at 3:50 AM, Zheng, Lv <lv.zheng@intel.com> wrote:
+>> Hi,
+>>
+>>> From: rjwysocki@gmail.com [mailto:rjwysocki@gmail.com] On Behalf Of
+>>> Rafael J. Wysocki
+>>> Subject: Re: [RFC PATCH 1/2] ACPI / button: Send "open" state after
+>>> boot/resume
+>
+> [cut]
+>
+>>> > That's because of systemd implementation.
+>>> > It contains code logic that:
+>>> > When the lid state is closed, a re-checking mechanism is installed.
+>>> > So if we do not send any notification after boot/resume and the old lid state
+>>> is "closed".
+>>> > systemd determines to suspend in the re-checking mechanism.
+>>>
+>>> If that really is the case, it is plain silly and I don't think we can
+>>> do anything in the kernel to help here.
+>>
+>> [Lv Zheng]
+>> The problem is:
+>> If we just removed the 2 lines sending wrong lid state after boot/resume.
+>> Problem couldn't be solved.
+>> It could only be solved by changing both the systemd and the kernel (deleting the 2 lines).
+>
+> There are two things here, there's a kernel issue (sending the fake
+> input events) and there's a user-visible problem.  Yes, it may not be
+> possible to fix the user-visible problem by fixing the kernel issue
+> alone, but pretty much by definition we can only fix the kernel issue
+> in the kernel.
+>
+> However, it looks like it may not be possible to fix the user-visible
+> problem without fixing the kernel issue in the first place, so maybe
+> we should do that and attach the additional user space patch to the
+> bug entries in question?
+>
+> [cut]
+>
+>>> > I intentionally kept the _LID evaluation right after boot/resume.
+>>> > Because I validated Windows behavior.
+>>> > It seems Windows evaluates _LID right after boot.
+>>> > So I kept _LID evaluated right after boot to prevent compliance issues.
+>>>
+>>> I don't quite see what compliance issues could result from skipping
+>>> the _LID evaluation after boot.
+>>
+>> [Lv Zheng]
+>> I'm not sure if there is a platform putting named object initialization code in _LID.
+>> If you don't like it, we can stop evaluating _LID in the next version.
+>
+> Well, unless there is a well-documented reason for doing this, I'd at
+> least try to see what happens if we don't.
+>
+> Doing things for unspecified reasons is not a very good idea overall IMO.
 
-My idea was to remove bus 0 from domain 0 MCFG (and also the other
-buses corresponding to the root complexes ports)
+I found an issue on the surface 3 which explains why the initial state
+of the _LID switch is wrong.
+In gpiolib-acpi, we initialize an operation region for the LID switch
+to be controlled by a GPIO. This GPIO triggers an _E4C method when
+changed (see https://bugzilla.kernel.org/attachment.cgi?id=187171 in
+GPO0). This GPIO event actually sets the correct initial state of LIDB,
+which is forwarded by _LID.
 
-So the driver would use the ECAM access with addresses retrieved from
-MCFG for any devices except the RCs.
+Now, on the surface 3, there is an other gpio event (_E10) which, when
+triggered at boot seems to put the sensor hub (over i2c-hid) in a
+better shape:
+I used to receive a5 a5 a5 a5 a5.. (garbage) after enabling S0 on the
+sensor and when requesting data from it. Now I get a nice
+[  +0.000137] i2c_hid i2c-MSHW0102:00: report (len=17): 11 00 01 02 05 00 00 00 00 00 00 00 00 00 18 fc 00
+which seems more sensible from a HID point of view.
 
-For the RC we could retrieve special addresses from the "PNP0C02"
-reserved resource... 
+The patch is the following:
 
+---
+>From 2c76d14a5ad089d0321a029edde3f91f3bc93ae3 Mon Sep 17 00:00:00 2001
+From: Benjamin Tissoires <benjamin.tissoires@redhat.com>
+Date: Thu, 26 May 2016 15:29:10 +0200
+Subject: [PATCH] gpiolib-acpi: make sure we trigger the events at least once
+ on boot
 
-> 
-> >    That's the problem Gabriele is facing and wants to solve through
-> >    something like:
-> >
-> >    https://lkml.org/lkml/2016/3/9/91
-> >
-> >    in the respective ACPI tables-bindings. It may be an idea worth
-> >    pursuing, it does not solve (2) simply because that FW has
-> shipped,
-> >    we can't patch it any longer.
-> 
-> (2) is for quirks to deal with MCFG.  Gabriele's post is a proposal
-> for ACPI namespace.  We can't use anything in the namespace to
-> implement MCFG quirks because MCFG is needed before the namespace is
-> available.
+The Surface 3 has its _LID state controlled by an ACPI operation region
+triggered by a GPIO event:
 
-Honestly I have to dig better into this (and I will once V8 is out),
-However from my current understanding so far we have look-up where
-MCFG OEMID is going to tell which specific pci-ops are going to be used.
+ OperationRegion (GPOR, GeneralPurposeIo, Zero, One)
+ Field (GPOR, ByteAcc, NoLock, Preserve)
+ {
+     Connection (
+         GpioIo (Shared, PullNone, 0x0000, 0x0000, IoRestrictionNone,
+             "\\_SB.GPO0", 0x00, ResourceConsumer, ,
+             )
+             {   // Pin list
+                 0x004C
+             }
+     ),
+     HELD,   1
+ }
 
-Now from my quirk idea I need to retrieve the "special address" from the
-ACPI namespace before cfg rd/wr take place...if this is not doable then
-I need to find a different solution...than can be the one you proposed
-below (many thanks for this).
+ Method (_E4C, 0, Serialized)  // _Exx: Edge-Triggered GPE
+ {
+     If ((HELD == One))
+     {
+         ^^LID.LIDB = One
+     }
+     Else
+     {
+         ^^LID.LIDB = Zero
+         Notify (LID, 0x80) // Status Change
+     }
 
-I will look into details later on once v8 is out.
+     Notify (^^PCI0.SPI1.NTRG, One) // Device Check
+ }
 
-Thanks
+Currently, the state of LIDB is wrong until the user actually closes or
+open the cover. We need to trigger the GPIO event once to update the
+internal ACPI state.
 
-Gab
+Coincidentally, this also enables the integrated HID sensor hub which also
+requires an ACPI gpio operation region to start initialization.
 
-> 
-> I think Gabriele's post is a good proposal for the namespace, but I
-> would propose the following modifications:
-> 
->   - Add PNP0A08 to the PCI1 _CID since this is a PCIe host bridge
->   - Add a PCI1 _DSM describing the ECAM space
->   - Remove the HISI0081 _HID
-> 
-> The result would be:
-> 
->   Device (PCI1) {
->     Name(_HID, "HISI0080")
->     Name(_CID, "PNP0A03,PNP0A08")
->     Method(_CRS) { ... }
->     Method(_DSM) { <describe ECAM base and mapping function> }
->   }
->   Device (RES0) {
->     Name(_HID, "PNP0C02")
->     Name(_CRS) { <describe ECAM base and size> }
->   }
-> 
-> RES0 could also be contained within PCI1, as Gabriele suggested.  I
-> don't really care whether it's contained or not, and making it
-> contained might make it easier for firmware, because addition/removal
-> of PCI1 and RES0 should always happen together.
-> 
-> I think the _DSM is important because it is really ugly if the
-> HISI0080 driver has to look for a separate HISI0081 device to learn
-> about the ECAM space.  There are several PCI drivers that do something
-> similar, using for_each_pci_dev(), and I cringe every time I see them,
-> because this totally screws up the driver model.  A driver should
-> claim a device via a .probe() method called by the core, and it
-> shouldn't look at devices it hasn't claimed.  This is required to make
-> hotplug work correctly.
-> 
-> > Hence to finally support ACPI PCI on ARM64 I suggest we carry out the
-> > following steps, in order:
-> >
-> > - Let's complete/merge (1), that's fundamental to this whole thread
-> > - On top of (1) we apply a quirking mechanism based on (2) that
-> allows
-> >   us to boot mainline with boxes shipping today with no FW update
-> required.
-> > - We devise a way to handle quirks that is more generic than (2) so
-> that
-> >   can we can accomodate further platforms that can't rely on (2) but
-> >   have more leeway in terms of FW updates.
-> >
-> > I hope that's a reasonable plan, Tomasz's v8 series coming to kick it
-> off.
-> 
-> Sounds very good to me; I'm looking forward to v8.
-> 
-> Bjorn
+Signed-off-by: Benjamin Tissoires <benjamin.tissoires@redhat.com>
+---
+ drivers/gpio/gpiolib-acpi.c | 13 ++++++++++++-
+ 1 file changed, 12 insertions(+), 1 deletion(-)
+
+diff --git a/drivers/gpio/gpiolib-acpi.c b/drivers/gpio/gpiolib-acpi.c
+index 2dc5258..71775a0 100644
+--- a/drivers/gpio/gpiolib-acpi.c
++++ b/drivers/gpio/gpiolib-acpi.c
+@@ -175,7 +175,7 @@ static acpi_status acpi_gpiochip_request_interrupt(struct acpi_resource *ares,
+ 	irq_handler_t handler = NULL;
+ 	struct gpio_desc *desc;
+ 	unsigned long irqflags;
+-	int ret, pin, irq;
++	int ret, pin, irq, value;
+ 
+ 	if (ares->type != ACPI_RESOURCE_TYPE_GPIO)
+ 		return AE_OK;
+@@ -214,6 +214,8 @@ static acpi_status acpi_gpiochip_request_interrupt(struct acpi_resource *ares,
+ 
+ 	gpiod_direction_input(desc);
+ 
++	value = gpiod_get_value(desc);
++
+ 	ret = gpiochip_lock_as_irq(chip, pin);
+ 	if (ret) {
+ 		dev_err(chip->parent, "Failed to lock GPIO as interrupt\n");
+@@ -266,6 +268,15 @@ static acpi_status acpi_gpiochip_request_interrupt(struct acpi_resource *ares,
+ 	}
+ 
+ 	list_add_tail(&event->node, &acpi_gpio->events);
++
++	/*
++	 * Make sure we trigger the initial state of the IRQ when
++	 * using RISING or FALLING.
++	 */
++	if (((irqflags & IRQF_TRIGGER_RISING) && value == 1) ||
++	    ((irqflags & IRQF_TRIGGER_FALLING) && value == 0))
++		handler(-1, event);
++
+ 	return AE_OK;
+ 
+ fail_free_event:
+-- 
+2.5.0
+
+---
+
+Now, if I am not mistaken, we could simply check the value of _LID on
+resume and if it differs from the previous state, force an input_event
+from the _LID. That should at least re-trigger the LID close event
+(sent by the ACPI) for the next attempt.
+
+Cheers,
+Benjamin
