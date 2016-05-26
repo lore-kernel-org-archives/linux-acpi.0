@@ -1,166 +1,81 @@
-From: Ville =?iso-8859-1?Q?Syrj=E4l=E4?= <ville.syrjala@linux.intel.com>
-Subject: Re: S3 resume regression [1cf4f629d9d2 ("cpu/hotplug: Move online
- calls to hotplugged cpu")]
-Date: Thu, 26 May 2016 21:32:07 +0300
-Message-ID: <20160526183207.GX4329@intel.com>
-References: <20160511101920.GZ4329@intel.com>
- <57332171.8070403@linutronix.de>
- <20160511122116.GA4329@intel.com>
- <20160511084445.00030b49@gandalf.local.home>
- <20160511133406.GC4329@intel.com>
- <20160516193910.GL4329@intel.com>
- <573BA5E2.5040506@intel.com>
- <20160518072424.GU4329@intel.com>
+From: Boris Ostrovsky <boris.ostrovsky@oracle.com>
+Subject: Re: [PATCH v2 08/13] ACPICA: Hardware: Add optimized access bit width
+ support
+Date: Thu, 26 May 2016 17:59:23 -0400
+Message-ID: <574771BB.7030307@oracle.com>
+References: <cover.1462331120.git.lv.zheng@intel.com>
+ <cover.1462418912.git.lv.zheng@intel.com>
+ <fe932d47355c652fa7114c369a427b44626da92a.1462418912.git.lv.zheng@intel.com>
+ <5745FA2C.8020303@oracle.com>
+ <574731DD02000078000E92FC@prv-mh.provo.novell.com>
+ <57472A95.5050100@oracle.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-arch-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20160518072424.GU4329@intel.com>
-Sender: linux-arch-owner@vger.kernel.org
-To: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>
-Cc: Steven Rostedt <rostedt@goodmis.org>, Sebastian Andrzej Siewior <bigeasy@linutronix.de>, Thomas Gleixner <tglx@linutronix.de>, linux-arch@vger.kernel.org, Rik van Riel <riel@redhat.com>, "Srivatsa S. Bhat" <srivatsa@mit.edu>, Peter Zijlstra <peterz@infradead.org>, Arjan van de Ven <arjan@linux.intel.com>, Rusty Russell <rusty@rustcorp.com.au>, Oleg Nesterov <oleg@redhat.com>, Tejun Heo <tj@kernel.org>, Andrew Morton <akpm@linux-foundation.org>, Paul McKenney <paulmck@linux.vnet.ibm.com>, Linus Torvalds <torvalds@linux-foundation.org>, Paul Turner <pjt@google.com>, linux-kernel@vger.kernel.org, rui.zhang@intel.com, len.brown@intel.com, Linux PM <linux-pm@vger.kernel.org>, Linux ACPI <linux-acpi@vger.kernel.org>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from aserp1040.oracle.com ([141.146.126.69]:19346 "EHLO
+	aserp1040.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754849AbcEZV7k convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 26 May 2016 17:59:40 -0400
+In-Reply-To: <57472A95.5050100@oracle.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Jan Beulich <jbeulich@suse.com>
+Cc: ian.jackson@eu.citrix.com, zetalog@gmail.com, len.brown@intel.com, lv.zheng@intel.com, rafael.j.wysocki@intel.com, robert.moore@intel.com, xen-devel@lists.xen.org, rjw@rjwysocki.net, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
-On Wed, May 18, 2016 at 10:24:24AM +0300, Ville Syrj=E4l=E4 wrote:
-> On Wed, May 18, 2016 at 01:14:42AM +0200, Rafael J. Wysocki wrote:
-> > On 5/16/2016 9:39 PM, Ville Syrj=E4l=E4 wrote:
-> > > On Wed, May 11, 2016 at 04:34:06PM +0300, Ville Syrj=E4l=E4 wrote=
-:
-> > >> On Wed, May 11, 2016 at 08:44:45AM -0400, Steven Rostedt wrote:
-> > >>> On Wed, 11 May 2016 15:21:16 +0300
-> > >>> Ville Syrj=E4l=E4 <ville.syrjala@linux.intel.com> wrote:
-> > >>>
-> > >>>> Yeah can't get anything from the machine at that point. netcon=
-sole
-> > >>>> didn't help either, and no serial on this machine. And IIRC I'=
-ve
-> > >>>> tried ramoops on this thing in the past but unfortunately the =
-memory
-> > >>>> got cleared on reboot.
-> > >>>>
-> > >>> Can you look at the documentation in the kernel code at
-> > >>>
-> > >>> Documentation/power/basic-pm-debugging.txt And follow the proce=
-dures
-> > >>> for testing suspend to RAM (although it requires mostly running=
- the
-> > >>> same tests as for hibernation suspending).
-> > >>>
-> > >>> You can also use the tool s2ram for this as well.
-> > >>>
-> > >>> See Documentation/power/s2ram.txt
-> > >>>
-> > >>> Perhaps this can give us a bit more light onto the problem.
-> > >>>
-> > >>> Basically the above does partial suspend and resume, and can pi=
-npoint
-> > >>> problem areas down to a more select location.
-> > >> All the pm_test modes work fine. The only difference between the=
-m was
-> > >> that 'platform' required me to manually wake up the machine (hit=
-ting a
-> > >> key was sufficient), whereas the others woke up without help.
-> > >>
-> > >> pm_trace gave me
-> > >> [    1.306633]   Magic number: 0:185:178
-> > >> [    1.322880]   hash matches ../drivers/base/power/main.c:1070
-> > >> [    1.339270] acpi device:0e: hash matches
-> > >> [    1.355414]  platform: hash matches
-> > >>
-> > >> which is the TRACE_SUSPEND in __device_suspend_noirq(), so no he=
-lp
-> > >> there.
-> > >>
-> > >> I guess I could try to sprinkle more TRACE_RESUMEs around into s=
-ome
-> > >> early resume code. If anyone has good ideas where to put them it
-> > >> might speed things up a bit.
-> > > So I did a bunch of that and found that it gets stuck somewhere
-> > > around executing the _WAK method:
-> > > platform_resume_noirq
-> > >   acpi_pm_finish
-> > >    acpi_leave_sleep_state
-> > >     acpi_hw_sleep_dispatch
-> > >      acpi_hw_legacy_wake
-> > >       acpi_hw_execute_sleep_method
-> > >        acpi_evaluate_object
-> > >         acpi_ns_evaluate
-> > >          acpi_ps_execute_method
-> > >           acpi_ps_parse_aml
-> > >
-> > > It also seesm that adding a few TRACE_RESUME()s or an msleep() ri=
-ght
-> > > after enable_nonboot_cpus() can avoid the hang, sometimes.
-> > >
-> > > I've attached the DSDT in case anyone is interested in looking at=
- it.
-> > >
-> >=20
-> > What if you comment out the execution of _WAK (line 318 of=20
-> > drivers/acpi/acpica/hwsleep.c in 4.6)?  Does that make any differen=
-ce?
->=20
-> Indeed it does. Tried with acpi_idle and intel_idle, and both appear =
-to
-> resume just fine with that hack.
->=20
-> -       acpi_hw_execute_sleep_method(METHOD_PATHNAME__WAK, sleep_stat=
-e);
-> +       //acpi_hw_execute_sleep_method(METHOD_PATHNAME__WAK, sleep_st=
-ate);
-> +       printk(KERN_CRIT "skipping _WAK\n");
+On 05/26/2016 12:55 PM, Boris Ostrovsky wrote:
+> On 05/26/2016 12:26 PM, Jan Beulich wrote:
+>>>>> Boris Ostrovsky <boris.ostrovsky@oracle.com> 05/25/16 9:17 PM >>>
+>>> On 05/05/2016 12:58 AM, Lv Zheng wrote:
+>>>> +static u8
+>>>> +acpi_hw_get_access_bit_width(struct acpi_generic_address *reg, u8 max_bit_width)
+>>>> +{
+>>>> +    u64 address;
+>>>> +
+>>>> +    if (!reg->access_width) {
+>>>> +        /*
+>>>> +         * Detect old register descriptors where only the bit_width field
+>>>> +         * makes senses. The target address is copied to handle possible
+>>>> +         * alignment issues.
+>>>> +         */
+>>>> +        ACPI_MOVE_64_TO_64(&address, &reg->address);
+>>>> +        if (!reg->bit_offset && reg->bit_width &&
+>>>> +            ACPI_IS_POWER_OF_TWO(reg->bit_width) &&
+>>>> +            ACPI_IS_ALIGNED(reg->bit_width, 8) &&
+>>>> +            ACPI_IS_ALIGNED(address, reg->bit_width)) {
+>>>> +            return (reg->bit_width);
+>>>> +        } else {
+>>>> +            if (reg->space_id == ACPI_ADR_SPACE_SYSTEM_IO) {
+>>>> +                return (32);
+>>> This (together with "... Add access_width/bit_offset support in
+>>> acpi_hw_write") breaks Xen guests using older QEMU which doesn't support
+>>> 4-byte IO accesses.
+>>>
+>>> Why not return "reg->bit_width?:max_bit_width" ? This will preserve
+>>> original behavior.
+>> Did you figure out why we get here in the first place, instead of taking the
+>> first "return"? I.e. isn't the issue the apparently wrong use of the second
+>> ACPI_IS_ALIGNED() above? Afaict it ought to be
+>> ACPI_IS_ALIGNED(address, reg->bit_width / 8)...
+> We are trying to access address 0x...b004 (PM1a control) so yes, fixing
+> alignment check would probably resolve the problem that we are seeing now.
+>
+> However, for compatibility purposes we may consider not doing any checks
+> and simply return bit_width if access_width is not available.
 
-Continuing with my detective work a bit, I decided to hack the DSDT a
-bit to see if I can narrow the it down further, and looks like I found
-it on the first guess. The following change stops it from hanging.
 
-@ -5056,7 +5056,7 @@
-         If (LEqual (Arg0, 0x03))
-         {
-             Store (0x01, \SPNF)
--	    TRAP (0x46)
-+	    //TRAP (0x46)
-             P8XH (0x00, 0x03)
-         }
+Interestingly enough I bisected what I thought was a completely
+different problem to this patch as well.
 
-So what does that do? Let's see:
+Something is messed up with 32-bit dom0 booting (so no QEMU) on one
+machine in my pool.  First error that I see is
+    pcieport 0000:00:02.0: can't find IRQ for PCI INT A; probably buggy
+MP table
 
-    OperationRegion (IO_T, SystemIO, 0x0800, 0x10)
-    Field (IO_T, ByteAcc, NoLock, Preserve)
-    {
-        Offset (0x08),=20
-        TRP0,   8
-    }
+I'll look at this tomorrow, hopefully.
 
-    OperationRegion (GNVS, SystemMemory, 0x3F5E0C7C, 0x0200)
-    Field (GNVS, AnyAcc, Lock, Preserve)
-    {
-        OSYS,   16,=20
-        SMIF,   8,
-    ...
+-boris
 
-    Method (TRAP, 1, Serialized)
-    {
-        Store (Arg0, SMIF) /* \SMIF */
-        Store (0x00, TRP0) /* \TRP0 */
-        Return (SMIF) /* \SMIF */
-    }
 
-and a dump of the IOTR registers shows:
 
-0x1e80: 0x0000fe01
-0x1e84: 0x00020001
-0x1e98: 0x000c0801
-0x1e9c: 0x000200f0
 
-which seems to be telling me that ports 0x800-0x80f and=20
-0xfe00-0xfe03 would trigger an SMI.
-
-So the next question is how do the idle drivers and cpu hotplug
-fit into this picture. Do we need to force the second HT into
-a specific C state before the SMI or something?
-
---=20
-Ville Syrj=E4l=E4
-Intel OTC
