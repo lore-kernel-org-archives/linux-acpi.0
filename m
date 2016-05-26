@@ -1,69 +1,143 @@
-From: Valdis.Kletnieks@vt.edu
+From: Aaron Lu <aaron.lu@intel.com>
 Subject: Re: [PATCH] ACPI / Thermal / video: fix max_level incorrect value
-Date: Wed, 25 May 2016 21:49:41 -0400
-Message-ID: <4305.1464227381@turing-police.cc.vt.edu>
-References: <4736.1463510462@turing-police.cc.vt.edu> <CAJZ5v0jrFoQxLY_ZQrP-HP888swZbvSJPM=xNopC5MgQgnSxNg@mail.gmail.com> <6459.1463698397@turing-police.cc.vt.edu> <7208.1463713500@turing-police.cc.vt.edu> <6674547c-cefb-1b93-893a-7c5909a180a7@intel.com> <2897.1463727728@turing-police.cc.vt.edu> <20160520071720.GA30152@aaronlu.sh.intel.com> <29833.1463789712@turing-police.cc.vt.edu> <20160521032933.GA12918@aaronlu.sh.intel.com> <20160521075500.GA22025@aaronlu.sh.intel.com>
+Date: Thu, 26 May 2016 13:15:21 +0800
+Message-ID: <84aa28c0-aec0-355b-ac85-6e98c47a1caf@intel.com>
+References: <4736.1463510462@turing-police.cc.vt.edu>
+ <CAJZ5v0jrFoQxLY_ZQrP-HP888swZbvSJPM=xNopC5MgQgnSxNg@mail.gmail.com>
+ <6459.1463698397@turing-police.cc.vt.edu>
+ <7208.1463713500@turing-police.cc.vt.edu>
+ <6674547c-cefb-1b93-893a-7c5909a180a7@intel.com>
+ <2897.1463727728@turing-police.cc.vt.edu>
+ <20160520071720.GA30152@aaronlu.sh.intel.com>
+ <29833.1463789712@turing-police.cc.vt.edu>
+ <20160521032933.GA12918@aaronlu.sh.intel.com>
+ <20160521075500.GA22025@aaronlu.sh.intel.com>
  <20160525051526.GA18305@aaronlu.sh.intel.com>
+ <4305.1464227381@turing-police.cc.vt.edu>
 Mime-Version: 1.0
-Content-Type: multipart/signed; boundary="==_Exmh_1464227381_2073P";
-	 micalg=pgp-sha1; protocol="application/pgp-signature"
+Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from outbound.smtp.vt.edu ([198.82.183.121]:57340 "EHLO
-	omr1.cc.vt.edu" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1752724AbcEZBts (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 25 May 2016 21:49:48 -0400
-In-Reply-To: <20160525051526.GA18305@aaronlu.sh.intel.com>
+Received: from mga14.intel.com ([192.55.52.115]:61418 "EHLO mga14.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750854AbcEZFP1 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 26 May 2016 01:15:27 -0400
+In-Reply-To: <4305.1464227381@turing-police.cc.vt.edu>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Aaron Lu <aaron.lu@intel.com>
+To: Valdis.Kletnieks@vt.edu
 Cc: "Rafael J. Wysocki" <rafael@kernel.org>, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Len Brown <lenb@kernel.org>
 
---==_Exmh_1464227381_2073P
-Content-Type: text/plain; charset=us-ascii
+On 05/26/2016 09:49 AM, Valdis.Kletnieks@vt.edu wrote:
+> On Wed, 25 May 2016 13:15:26 +0800, Aaron Lu said:
+>> Valdis, can you please give the patch a try? Thanks.
+> 
+> Sorry, had a few days where actual work commitments and other
+> things got in the way... I tested this patch against next-20160524,
+> and can report that the problem is fixed, so feel free to
+> stick a "Tested-By:" on it....
 
-On Wed, 25 May 2016 13:15:26 +0800, Aaron Lu said:
-> Valdis, can you please give the patch a try? Thanks.
+Thanks a lot for the confirm, here is the updated patch with your
+tested-by tag added.
 
-Sorry, had a few days where actual work commitments and other
-things got in the way... I tested this patch against next-20160524,
-and can report that the problem is fixed, so feel free to
-stick a "Tested-By:" on it....
+From: Aaron Lu <aaron.lu@intel.com>
+Date: Sat, 21 May 2016 15:30:46 +0800
+Subject: [PATCH] ACPI / Thermal / video: fix max_level incorrect value
 
-> > Reported-by: Valdis Kletnieks <valdis.kletnieks@vt.edu>
-> > Signed-off-by: Aaron Lu <aaron.lu@intel.com>
-> > ---
-> >  drivers/acpi/acpi_video.c                         | 9 ++++++---
-> >  drivers/thermal/int340x_thermal/int3406_thermal.c | 2 +-
-> >  include/acpi/video.h                              | 6 ++++--
-> >  3 files changed, 11 insertions(+), 6 deletions(-)
-> >
-> > diff --git a/drivers/acpi/acpi_video.c b/drivers/acpi/acpi_video.c
-> > index 3d5b8a099351..c1d138e128cb 100644
-> > --- a/drivers/acpi/acpi_video.c
-> > +++ b/drivers/acpi/acpi_video.c
+commit 059500940def("ACPI/video: export acpi_video_get_levels")
+mistakenly dropped the correct value of max_level and that caused the
+set_level function following failed and the acpi_video backlight interface
+didn't get created. Fix this by passing back the correct max_level value.
 
+While at it, also fix the param used in acpi_video_device_lcd_query_levels
+where acpi_handle is expected but acpi_video_device is passed.
 
---==_Exmh_1464227381_2073P
-Content-Type: application/pgp-signature
+Reported-and-tested-by: Valdis Kletnieks <valdis.kletnieks@vt.edu>
+Signed-off-by: Aaron Lu <aaron.lu@intel.com>
+---
+ drivers/acpi/acpi_video.c                         | 9 ++++++---
+ drivers/thermal/int340x_thermal/int3406_thermal.c | 2 +-
+ include/acpi/video.h                              | 6 ++++--
+ 3 files changed, 11 insertions(+), 6 deletions(-)
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-Comment: Exmh version 2.5 07/13/2001
+diff --git a/drivers/acpi/acpi_video.c b/drivers/acpi/acpi_video.c
+index 3d5b8a099351..c1d138e128cb 100644
+--- a/drivers/acpi/acpi_video.c
++++ b/drivers/acpi/acpi_video.c
+@@ -754,7 +754,8 @@ static int acpi_video_bqc_quirk(struct acpi_video_device *device,
+ }
+ 
+ int acpi_video_get_levels(struct acpi_device *device,
+-			  struct acpi_video_device_brightness **dev_br)
++			  struct acpi_video_device_brightness **dev_br,
++			  int *pmax_level)
+ {
+ 	union acpi_object *obj = NULL;
+ 	int i, max_level = 0, count = 0, level_ac_battery = 0;
+@@ -841,6 +842,8 @@ int acpi_video_get_levels(struct acpi_device *device,
+ 
+ 	br->count = count;
+ 	*dev_br = br;
++	if (pmax_level)
++		*pmax_level = max_level;
+ 
+ out:
+ 	kfree(obj);
+@@ -869,7 +872,7 @@ acpi_video_init_brightness(struct acpi_video_device *device)
+ 	struct acpi_video_device_brightness *br = NULL;
+ 	int result = -EINVAL;
+ 
+-	result = acpi_video_get_levels(device->dev, &br);
++	result = acpi_video_get_levels(device->dev, &br, &max_level);
+ 	if (result)
+ 		return result;
+ 	device->brightness = br;
+@@ -1737,7 +1740,7 @@ static void acpi_video_run_bcl_for_osi(struct acpi_video_bus *video)
+ 
+ 	mutex_lock(&video->device_list_lock);
+ 	list_for_each_entry(dev, &video->video_device_list, entry) {
+-		if (!acpi_video_device_lcd_query_levels(dev, &levels))
++		if (!acpi_video_device_lcd_query_levels(dev->dev->handle, &levels))
+ 			kfree(levels);
+ 	}
+ 	mutex_unlock(&video->device_list_lock);
+diff --git a/drivers/thermal/int340x_thermal/int3406_thermal.c b/drivers/thermal/int340x_thermal/int3406_thermal.c
+index 13d431cbd29e..a578cd257db4 100644
+--- a/drivers/thermal/int340x_thermal/int3406_thermal.c
++++ b/drivers/thermal/int340x_thermal/int3406_thermal.c
+@@ -177,7 +177,7 @@ static int int3406_thermal_probe(struct platform_device *pdev)
+ 		return -ENODEV;
+ 	d->raw_bd = bd;
+ 
+-	ret = acpi_video_get_levels(ACPI_COMPANION(&pdev->dev), &d->br);
++	ret = acpi_video_get_levels(ACPI_COMPANION(&pdev->dev), &d->br, NULL);
+ 	if (ret)
+ 		return ret;
+ 
+diff --git a/include/acpi/video.h b/include/acpi/video.h
+index 70a41f742037..5731ccb42585 100644
+--- a/include/acpi/video.h
++++ b/include/acpi/video.h
+@@ -51,7 +51,8 @@ extern void acpi_video_set_dmi_backlight_type(enum acpi_backlight_type type);
+  */
+ extern bool acpi_video_handles_brightness_key_presses(void);
+ extern int acpi_video_get_levels(struct acpi_device *device,
+-				 struct acpi_video_device_brightness **dev_br);
++				 struct acpi_video_device_brightness **dev_br,
++				 int *pmax_level);
+ #else
+ static inline int acpi_video_register(void) { return 0; }
+ static inline void acpi_video_unregister(void) { return; }
+@@ -72,7 +73,8 @@ static inline bool acpi_video_handles_brightness_key_presses(void)
+ 	return false;
+ }
+ static inline int acpi_video_get_levels(struct acpi_device *device,
+-			struct acpi_video_device_brightness **dev_br)
++			struct acpi_video_device_brightness **dev_br,
++			int *pmax_level)
+ {
+ 	return -ENODEV;
+ }
+-- 
+2.5.5
 
-iQIVAwUBV0ZWNQdmEQWDXROgAQJpyhAAmQdXKFE/spa5R6sBGz/84mHfmUv9bZHM
-7WDxnAayhnbbBqAyou+u6fGIVyBQxuMy1Ybj6zZa8Hx7/0fvEHRnjMc5ChOKqFGf
-nb2r7Jd3RXPo4xDMK4HqGaZgmMg8HKSd0p3EO6LR8fWd7t0EIm9W2+mhGYOC8zyb
-Gja6n8Iqjbd5GjwvNX6bDV8uCQ6P3i4Kh58aS7O1f8WuFN98G4qZpv5IzbIIxOvG
-ZtdrqokL+oqBNwDHUIoQr8D1mikm0us1Ta5ckmWZEsthCzjBzNpTejqPwgnyGdUV
-YeQVn6ScfSiql+ezZPYOP1+OJHe5gYtDKZnKye6TMeoSXuhEI3/CIhZxa+V+zKtK
-Lwfs0QnVkiAxqjqoEQI4O4m+MnA3/hEoGnC1zuHQNw2dBrDSl9jXTGig1p6Q4Xpc
-feAEyNBlCzU+7v651GcaKWXdcLOxw3DXIxYA2BLwMoJ/Dw9IJEt6toQBKWPs+36x
-xBZZcD1XVILS0jWFCLJ0nKB72H/Hj1P5Gk/8DIQoa6jsyUxGobDYNjuoa4c5d33Y
-5I3DB6T4zxovAxfrjMHQevu9dhGo4NdG6YuPMedg5o9HzWsfRahG7kG7DeBwiabC
-uscyx+mdaczqZoh/O5rHkrAKpEdkXRPTdqVsiOa02IIoDZumRNjMdsma6P37+ylx
-9ipz68Jh8Ec=
-=FGrA
------END PGP SIGNATURE-----
-
---==_Exmh_1464227381_2073P--
