@@ -1,38 +1,82 @@
-From: Alex Hung <alex.hung@canonical.com>
-Subject: [PATCH] ACPI:video: skip evaluating _DOD when it does not exist
-Date: Fri, 27 May 2016 15:47:06 +0800
-Message-ID: <1464335226-11212-1-git-send-email-alex.hung@canonical.com>
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from youngberry.canonical.com ([91.189.89.112]:43404 "EHLO
-	youngberry.canonical.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932416AbcE0HrS (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 27 May 2016 03:47:18 -0400
-Sender: linux-acpi-owner@vger.kernel.org
+From: Dennis Chen <dennis.chen@linaro.org>
+Subject: Re: [PATCH v7 07/15] arm64, numa: Cleanup NUMA disabled messages.
+Date: Fri, 27 May 2016 15:58:49 +0800
+Message-ID: <CADKHWac_0TO97JE8ZO43n+fSDWFJnB=QXJxnkpbYYeKausDHmA@mail.gmail.com>
+References: <1464129345-18985-1-git-send-email-ddaney.cavm@gmail.com> <1464129345-18985-8-git-send-email-ddaney.cavm@gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-ia64-owner@vger.kernel.org>
+In-Reply-To: <1464129345-18985-8-git-send-email-ddaney.cavm@gmail.com>
+Sender: linux-ia64-owner@vger.kernel.org
+To: David Daney <ddaney.cavm@gmail.com>
+Cc: Will Deacon <will.deacon@arm.com>, linux-arm-kernel@lists.infradead.org, Mark Rutland <mark.rutland@arm.com>, Catalin Marinas <catalin.marinas@arm.com>, Tony Luck <tony.luck@intel.com>, Fenghua Yu <fenghua.yu@intel.com>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, x86@kernel.org, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Rob Herring <robh+dt@kernel.org>, Frank Rowand <frowand.list@gmail.com>, Grant Likely <grant.likely@linaro.org>, Robert Moore <robert.moore@intel.com>, Lv Zheng <lv.zheng@intel.com>, Hanjun Guo <hanjun.guo@linaro.org>, Marc Zyngier <Marc.Zyngier@arm.com>, linux-ia64@vger.kernel.org, linux-acpi@vger.kernel.org, devel@acpica.org, Robert Richter <rrichter@cavium.com>, linux-kernel@vger.kernel.org, David Daney <david.daney@cavium.com>
 List-Id: linux-acpi@vger.kernel.org
-To: rui.zhang@intel.com, rjw@rjwysocki.net, lenb@kernel.org, linux-acpi@vger.kernel.org, alex.hung@canonical.com
 
-Some system supports hybrid graphics and its discrete VGA
-does not have any connectors and therefore has no _DOD method.
+On 25 May 2016 at 06:35, David Daney <ddaney.cavm@gmail.com> wrote:
+> From: David Daney <david.daney@cavium.com>
+>
+> As noted by Dennis Chen, we don't want to print "No NUMA configuration
+> found" if NUMA was forced off from the command line.
+>
+> Change the type of numa_off to bool, and clean up printing code.
+> Print "NUMA disabled" if forced off on command line and "No NUMA
+> configuration found" if there was no firmware NUMA information.
+>
+> Signed-off-by: David Daney <david.daney@cavium.com>
+> Acked-by: Catalin Marinas <catalin.marinas@arm.com>
+> ---
+>  arch/arm64/mm/numa.c | 11 +++++++----
+>  1 file changed, 7 insertions(+), 4 deletions(-)
+>
+> diff --git a/arch/arm64/mm/numa.c b/arch/arm64/mm/numa.c
+> index 6cb03f9..1def1de 100644
+> --- a/arch/arm64/mm/numa.c
+> +++ b/arch/arm64/mm/numa.c
+> @@ -29,7 +29,7 @@ static int cpu_to_node_map[NR_CPUS] = { [0 ... NR_CPUS-1] = NUMA_NO_NODE };
+>
+>  static int numa_distance_cnt;
+>  static u8 *numa_distance;
+> -static int numa_off;
+> +static bool numa_off;
+>
+>  static __init int numa_parse_early_param(char *opt)
+>  {
+> @@ -37,7 +37,7 @@ static __init int numa_parse_early_param(char *opt)
+>                 return -EINVAL;
+>         if (!strncmp(opt, "off", 3)) {
+>                 pr_info("%s\n", "NUMA turned off");
+> -               numa_off = 1;
+> +               numa_off = true;
+>         }
+>         return 0;
+>  }
+> @@ -362,7 +362,10 @@ static int __init dummy_numa_init(void)
+>         int ret;
+>         struct memblock_region *mblk;
+>
+> -       pr_info("%s\n", "No NUMA configuration found");
+> +       if (numa_off)
+> +               pr_info("NUMA disabled\n"); /* Forced off on command line. */
+> +       else
+> +               pr_info("No NUMA configuration found\n");
+>         pr_info("NUMA: Faking a node at [mem %#018Lx-%#018Lx]\n",
+>                0LLU, PFN_PHYS(max_pfn) - 1);
+>
+> @@ -375,7 +378,7 @@ static int __init dummy_numa_init(void)
+>                 return ret;
+>         }
+>
+> -       numa_off = 1;
+> +       numa_off = true;
+>         return 0;
+>  }
+>
+> --
+> 1.7.11.7
+>
 
-Signed-off-by: Alex Hung <alex.hung@canonical.com>
----
- drivers/acpi/acpi_video.c |    3 +++
- 1 file changed, 3 insertions(+)
+Reviewed-by: Dennis Chen <dennis.chen@arm.com>
 
-diff --git a/drivers/acpi/acpi_video.c b/drivers/acpi/acpi_video.c
-index 5fdac39..549cdbe 100644
---- a/drivers/acpi/acpi_video.c
-+++ b/drivers/acpi/acpi_video.c
-@@ -1211,6 +1211,9 @@ static int acpi_video_device_enumerate(struct acpi_video_bus *video)
- 	union acpi_object *dod = NULL;
- 	union acpi_object *obj;
- 
-+	if (!video->cap._DOD)
-+		return AE_NOT_EXIST;
-+
- 	status = acpi_evaluate_object(video->device->handle, "_DOD", NULL, &buffer);
- 	if (!ACPI_SUCCESS(status)) {
- 		ACPI_EXCEPTION((AE_INFO, status, "Evaluating _DOD"));
 -- 
-1.7.9.5
-
+Regards,
+Dennis
