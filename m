@@ -1,153 +1,92 @@
-From: Lv Zheng <lv.zheng@intel.com>
-Subject: [PATCH v2 2/3] ACPI / button: Refactor functions to eliminate redundant code
-Date: Fri, 27 May 2016 15:15:59 +0800
-Message-ID: <b08061cb22639254107840b7ba8da0907fd0191f.1464332745.git.lv.zheng@intel.com>
-References: <cbdaec17aba78c61f466efff8883d49067f2dad5.1463472125.git.lv.zheng@intel.com> <cover.1464332745.git.lv.zheng@intel.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <cover.1464332745.git.lv.zheng@intel.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <len.brown@intel.com>
-Cc: Lv Zheng <lv.zheng@intel.com>, Lv Zheng <zetalog@gmail.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
+From: "Zheng, Lv" <lv.zheng@intel.com>
+Subject: RE: [PATCH v2 08/13] ACPICA: Hardware: Add optimized access bit
+ width support
+Date: Fri, 27 May 2016 07:34:11 +0000
+Message-ID: <1AE640813FDE7649BE1B193DEA596E883BBB1530@SHSMSX101.ccr.corp.intel.com>
+References: <cover.1462331120.git.lv.zheng@intel.com>
+ <cover.1462418912.git.lv.zheng@intel.com>
+ <fe932d47355c652fa7114c369a427b44626da92a.1462418912.git.lv.zheng@intel.com>
+ <5745FA2C.8020303@oracle.com>
+ <574731DD02000078000E92FC@prv-mh.provo.novell.com>
+ <57472A95.5050100@oracle.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga14.intel.com ([192.55.52.115]:18792 "EHLO mga14.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755648AbcE0He4 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 27 May 2016 03:34:56 -0400
+In-Reply-To: <57472A95.5050100@oracle.com>
+Content-Language: en-US
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Boris Ostrovsky <boris.ostrovsky@oracle.com>, Jan Beulich <jbeulich@suse.com>
+Cc: "ian.jackson@eu.citrix.com" <ian.jackson@eu.citrix.com>, "zetalog@gmail.com" <zetalog@gmail.com>, "Brown, Len" <len.brown@intel.com>, "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>, "Moore, Robert" <robert.moore@intel.com>, "xen-devel@lists.xen.org" <xen-devel@lists.xen.org>, "rjw@rjwysocki.net" <rjw@rjwysocki.net>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
 
-This patch simplies the code by merging the redundant code. No functional
-changes.
+Hi,
 
-Signed-off-by: Lv Zheng <lv.zheng@intel.com>
----
- drivers/acpi/button.c |   92 +++++++++++++++++++++++++++----------------------
- 1 file changed, 50 insertions(+), 42 deletions(-)
+> From: Boris Ostrovsky [mailto:boris.ostrovsky@oracle.com]
+> Subject: Re: [PATCH v2 08/13] ACPICA: Hardware: Add optimized access
+> bit width support
+> 
+> On 05/26/2016 12:26 PM, Jan Beulich wrote:
+> >>>> Boris Ostrovsky <boris.ostrovsky@oracle.com> 05/25/16 9:17
+> PM >>>
+> >> On 05/05/2016 12:58 AM, Lv Zheng wrote:
+> >>> +static u8
+> >>> +acpi_hw_get_access_bit_width(struct acpi_generic_address *reg, u8
+> max_bit_width)
+> >>> +{
+> >>> +    u64 address;
+> >>> +
+> >>> +    if (!reg->access_width) {
+> >>> +        /*
+> >>> +         * Detect old register descriptors where only the bit_width field
+> >>> +         * makes senses. The target address is copied to handle possible
+> >>> +         * alignment issues.
+> >>> +         */
+> >>> +        ACPI_MOVE_64_TO_64(&address, &reg->address);
+> >>> +        if (!reg->bit_offset && reg->bit_width &&
+> >>> +            ACPI_IS_POWER_OF_TWO(reg->bit_width) &&
+> >>> +            ACPI_IS_ALIGNED(reg->bit_width, 8) &&
+> >>> +            ACPI_IS_ALIGNED(address, reg->bit_width)) {
+> >>> +            return (reg->bit_width);
+> >>> +        } else {
+> >>> +            if (reg->space_id == ACPI_ADR_SPACE_SYSTEM_IO) {
+> >>> +                return (32);
+> >> This (together with "... Add access_width/bit_offset support in
+> >> acpi_hw_write") breaks Xen guests using older QEMU which doesn't
+> support
+> >> 4-byte IO accesses.
+> >>
+> >> Why not return "reg->bit_width?:max_bit_width" ? This will preserve
+> >> original behavior.
+> > Did you figure out why we get here in the first place, instead of taking
+> the
+> > first "return"? I.e. isn't the issue the apparently wrong use of the second
+> > ACPI_IS_ALIGNED() above? Afaict it ought to be
+> > ACPI_IS_ALIGNED(address, reg->bit_width / 8)...
+> 
+> We are trying to access address 0x...b004 (PM1a control) so yes, fixing
+> alignment check would probably resolve the problem that we are seeing
+> now.
+> 
+> However, for compatibility purposes we may consider not doing any
+> checks
+> and simply return bit_width if access_width is not available.
 
-diff --git a/drivers/acpi/button.c b/drivers/acpi/button.c
-index 9863278..e706e4b 100644
---- a/drivers/acpi/button.c
-+++ b/drivers/acpi/button.c
-@@ -113,16 +113,53 @@ static struct acpi_device *lid_device;
- static struct proc_dir_entry *acpi_button_dir;
- static struct proc_dir_entry *acpi_lid_dir;
- 
-+static int acpi_lid_evaluate_state(struct acpi_device *device)
-+{
-+	unsigned long long lid_state;
-+	acpi_status status;
-+
-+	status = acpi_evaluate_integer(device->handle, "_LID", NULL, &lid_state);
-+	if (ACPI_FAILURE(status))
-+		return -ENODEV;
-+
-+	return lid_state ? 1 : 0;
-+}
-+
-+static int acpi_lid_notify_state(struct acpi_device *device, int state)
-+{
-+	struct acpi_button *button = acpi_driver_data(device);
-+	int ret;
-+
-+	/* input layer checks if event is redundant */
-+	input_report_switch(button->input, SW_LID, !state);
-+	input_sync(button->input);
-+
-+	if (state)
-+		pm_wakeup_event(&device->dev, 0);
-+
-+	ret = blocking_notifier_call_chain(&acpi_lid_notifier, state, device);
-+	if (ret == NOTIFY_DONE)
-+		ret = blocking_notifier_call_chain(&acpi_lid_notifier, state,
-+						   device);
-+	if (ret == NOTIFY_DONE || ret == NOTIFY_OK) {
-+		/*
-+		 * It is also regarded as success if the notifier_chain
-+		 * returns NOTIFY_OK or NOTIFY_DONE.
-+		 */
-+		ret = 0;
-+	}
-+	return ret;
-+}
-+
- static int acpi_button_state_seq_show(struct seq_file *seq, void *offset)
- {
- 	struct acpi_device *device = seq->private;
--	acpi_status status;
--	unsigned long long state;
-+	int state;
- 
--	status = acpi_evaluate_integer(device->handle, "_LID", NULL, &state);
-+	state = acpi_lid_evaluate_state(device);
- 	seq_printf(seq, "state:      %s\n",
--		   ACPI_FAILURE(status) ? "unsupported" :
--			(state ? "open" : "closed"));
-+		   IS_ERR_VALUE(state) ? "unsupported" :
-+		   (state ? "open" : "closed"));
- 	return 0;
- }
- 
-@@ -231,51 +268,22 @@ EXPORT_SYMBOL(acpi_lid_notifier_unregister);
- 
- int acpi_lid_open(void)
- {
--	acpi_status status;
--	unsigned long long state;
--
- 	if (!lid_device)
- 		return -ENODEV;
- 
--	status = acpi_evaluate_integer(lid_device->handle, "_LID", NULL,
--				       &state);
--	if (ACPI_FAILURE(status))
--		return -ENODEV;
--
--	return !!state;
-+	return acpi_lid_evaluate_state(lid_device);
- }
- EXPORT_SYMBOL(acpi_lid_open);
- 
--static int acpi_lid_send_state(struct acpi_device *device)
-+static int acpi_lid_update_state(struct acpi_device *device)
- {
--	struct acpi_button *button = acpi_driver_data(device);
--	unsigned long long state;
--	acpi_status status;
--	int ret;
--
--	status = acpi_evaluate_integer(device->handle, "_LID", NULL, &state);
--	if (ACPI_FAILURE(status))
--		return -ENODEV;
-+	int state;
- 
--	/* input layer checks if event is redundant */
--	input_report_switch(button->input, SW_LID, !state);
--	input_sync(button->input);
-+	state = acpi_lid_evaluate_state(device);
-+	if (IS_ERR_VALUE(state))
-+		return state;
- 
--	if (state)
--		pm_wakeup_event(&device->dev, 0);
--
--	ret = blocking_notifier_call_chain(&acpi_lid_notifier, state, device);
--	if (ret == NOTIFY_DONE)
--		ret = blocking_notifier_call_chain(&acpi_lid_notifier, state,
--						   device);
--	if (ret == NOTIFY_DONE || ret == NOTIFY_OK) {
--		/*
--		 * It is also regarded as success if the notifier_chain
--		 * returns NOTIFY_OK or NOTIFY_DONE.
--		 */
--		ret = 0;
--	}
--	return ret;
-+	return acpi_lid_notify_state(device, state);
- }
- 
- static void acpi_button_notify(struct acpi_device *device, u32 event)
-@@ -290,7 +298,7 @@ static void acpi_button_notify(struct acpi_device *device, u32 event)
- 	case ACPI_BUTTON_NOTIFY_STATUS:
- 		input = button->input;
- 		if (button->type == ACPI_BUTTON_TYPE_LID) {
--			acpi_lid_send_state(device);
-+			acpi_lid_update_state(device);
- 		} else {
- 			int keycode;
- 
--- 
-1.7.10
+[Lv Zheng] 
+Your solution could result in problems like:
+If a GAS is defined with bit_width not a power of 2, and access_width is any (0).
+
+So the correct fix here is to make sure if bit_width is exactly 8,16,32,64, which matches old register descriptors.
+I added address check here because I want to limit this regression safe check to old register descriptors.
+As since the old bit_width can actually reflect the register's access width, the address of the register should always be aligned.
+
+There might be cases that using the new GAS register descriptor format, it is possible to define a GAS that is not aligned, and it's bit_width is exactly 8,16,32,64.
+We shouldn't make a default access_width decision using bit_width here.
+The address check here can help to avoid applying this workaround on such cases.
+
+Thanks and best regards
+-Lv
