@@ -1,73 +1,65 @@
-From: Hoan Tran <hotran@apm.com>
-Subject: Re: [PATCH] acpi: cppc: Prevent cpc_desc_ptr points to the invalid data
-Date: Fri, 27 May 2016 09:41:40 -0700
-Message-ID: <CAFHUOYw3vB9ZDZ-E=WsyceZEFnZKPe0D8zFCDr0qyjdqUKBL5g@mail.gmail.com>
-References: <1464203363-20599-1-git-send-email-hotran@apm.com>
-	<CAJ5Y-ebkd6rbQkegdYUREn775Nu5jZqB3TBex5Rj1JsQ6Sjs-Q@mail.gmail.com>
+From: Catalin Marinas <catalin.marinas@arm.com>
+Subject: Re: [PATCH v2 5/5] ACPI: ARM64: support for ACPI_TABLE_UPGRADE
+Date: Fri, 27 May 2016 18:14:25 +0100
+Message-ID: <20160527171424.GG10909@e104818-lin.cambridge.arm.com>
+References: <1463674518-22477-1-git-send-email-aleksey.makarov@linaro.org>
+ <1463674518-22477-6-git-send-email-aleksey.makarov@linaro.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-vk0-f50.google.com ([209.85.213.50]:35110 "EHLO
-	mail-vk0-f50.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751575AbcE0Qlm (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 27 May 2016 12:41:42 -0400
-Received: by mail-vk0-f50.google.com with SMTP id f66so150715242vkh.2
-        for <linux-acpi@vger.kernel.org>; Fri, 27 May 2016 09:41:41 -0700 (PDT)
-In-Reply-To: <CAJ5Y-ebkd6rbQkegdYUREn775Nu5jZqB3TBex5Rj1JsQ6Sjs-Q@mail.gmail.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+Content-Disposition: inline
+In-Reply-To: <1463674518-22477-6-git-send-email-aleksey.makarov@linaro.org>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Aleksey Makarov <aleksey.makarov@linaro.org>
+Cc: Mark Rutland <mark.rutland@arm.com>, Russell King <linux@arm.linux.org.uk>, Graeme Gregory <graeme.gregory@linaro.org>, Jon Masters <jcm@redhat.com>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, linux-kernel@vger.kernel.org, Will Deacon <will.deacon@arm.com>, linux-acpi@vger.kernel.org, "Zheng,
+ Lv" <lv.zheng@intel.com>, linux-arm-kernel@lists.infradead.org, Len Brown <lenb@kernel.org>
 List-Id: linux-acpi@vger.kernel.org
-To: Ashwin Chaugule <ashwin.chaugule@linaro.org>
-Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, linux acpi <linux-acpi@vger.kernel.org>, lkml <linux-kernel@vger.kernel.org>, Duc Dang <dhdang@apm.com>, Loc Ho <lho@apm.com>
 
-Hi Ashwin,
+On Thu, May 19, 2016 at 07:15:16PM +0300, Aleksey Makarov wrote:
+> diff --git a/arch/arm64/include/asm/acpi.h b/arch/arm64/include/asm/acpi.h
+> index aee323b..d75f6c7 100644
+> --- a/arch/arm64/include/asm/acpi.h
+> +++ b/arch/arm64/include/asm/acpi.h
+> @@ -113,4 +113,6 @@ static inline const char *acpi_get_enable_method(int cpu)
+>  pgprot_t arch_apei_get_mem_attribute(phys_addr_t addr);
+>  #endif
+>  
+> +#define ACPI_TABLE_UPGRADE_MAX_PHYS PFN_PHYS(max_pfn)
+> +
+>  #endif /*_ASM_ACPI_H*/
+> diff --git a/arch/arm64/kernel/setup.c b/arch/arm64/kernel/setup.c
+> index feab2ee..4bce811 100644
+> --- a/arch/arm64/kernel/setup.c
+> +++ b/arch/arm64/kernel/setup.c
+> @@ -261,11 +261,13 @@ void __init setup_arch(char **cmdline_p)
+>  	efi_init();
+>  	arm64_memblock_init();
+>  
+> +	paging_init();
+> +
+> +	acpi_table_upgrade();
+> +
+>  	/* Parse the ACPI tables for possible boot-time configuration */
+>  	acpi_boot_table_init();
+>  
+> -	paging_init();
+> -
+>  	if (acpi_disabled)
+>  		unflatten_device_tree();
 
-Yes, I saw kernel crash.
-As cpc_desc_ptr is not NULL, cppc_cpufreq_init() still can pass then
-crash during cppc_get_perf_caps() access CPPC shared memory.
+So ACPI_TABLE_UPGRADE_MAX_PHYS is defined in terms of max_pfn and
+presumably used by acpi_table_upgrade(). max_pfn is only initialised in
+the arm64 bootmem_init() called just below the last line of context in
+the hunk above.
 
-It's not only "PCC channel request fail" can create this issue but
-"acpi_get_psd() fail" also creates it
-
-Thanks
-Hoan
-
-On Fri, May 27, 2016 at 9:10 AM, Ashwin Chaugule
-<ashwin.chaugule@linaro.org> wrote:
-> On 25 May 2016 at 15:09, Hoan Tran <hotran@apm.com> wrote:
->> When CPPC fails to request PCC channel, the CPC data is freed
->> and cpc_desc_ptr points to the invalid data. This change prevents
->> this issue by moving cpc_desc_ptr assignment after PCC channel
->> request.
->>
->> Signed-off-by: Hoan Tran <hotran@apm.com>
->> ---
->>  drivers/acpi/cppc_acpi.c | 6 +++---
->>  1 file changed, 3 insertions(+), 3 deletions(-)
->>
->> diff --git a/drivers/acpi/cppc_acpi.c b/drivers/acpi/cppc_acpi.c
->> index 8adac69..85fd8f7 100644
->> --- a/drivers/acpi/cppc_acpi.c
->> +++ b/drivers/acpi/cppc_acpi.c
->> @@ -595,9 +595,6 @@ int acpi_cppc_processor_probe(struct acpi_processor *pr)
->>         /* Store CPU Logical ID */
->>         cpc_ptr->cpu_id = pr->id;
->>
->> -       /* Plug it into this CPUs CPC descriptor. */
->> -       per_cpu(cpc_desc_ptr, pr->id) = cpc_ptr;
->> -
->>         /* Parse PSD data for this CPU */
->>         ret = acpi_get_psd(cpc_ptr, handle);
->>         if (ret)
->> @@ -610,6 +607,9 @@ int acpi_cppc_processor_probe(struct acpi_processor *pr)
->>                         goto out_free;
->>         }
->>
->> +       /* Plug PSD data into this CPUs CPC descriptor. */
->> +       per_cpu(cpc_desc_ptr, pr->id) = cpc_ptr;
->> +
->
-> Are you seeing a real problem without this change? I'm missing where
-> this pointer is dereferenced if the PCC channel request fails.
->
-> Thanks,
-> Ashwin.
+-- 
+Catalin
