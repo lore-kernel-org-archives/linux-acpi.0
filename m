@@ -1,72 +1,69 @@
-From: "Prakash, Prashanth" <pprakash@codeaurora.org>
-Subject: Re: [PATCH] ACPI/CPPC: Support for batching CPPC requests
-Date: Fri, 27 May 2016 11:49:43 -0600
-Message-ID: <7d1abc8a-c6e0-9841-5c03-115efa2930c9@codeaurora.org>
-References: <20160526220234.GA26524@arm.com>
+From: Linus Torvalds <torvalds@linux-foundation.org>
+Subject: IS_ERR_VALUE misuses
+Date: Fri, 27 May 2016 13:15:12 -0700
+Message-ID: <CA+55aFyi8_m0EJGcChe_SW_zzJUTJjPJjhEFbJzEL3gyhFNDLQ@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp.codeaurora.org ([198.145.29.96]:52454 "EHLO
-	smtp.codeaurora.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932320AbcE0Rtq (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 27 May 2016 13:49:46 -0400
-In-Reply-To: <20160526220234.GA26524@arm.com>
+Received: from mail-io0-f173.google.com ([209.85.223.173]:34131 "EHLO
+	mail-io0-f173.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756557AbcE0UPN (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 27 May 2016 16:15:13 -0400
+Received: by mail-io0-f173.google.com with SMTP id 190so78720764iow.1
+        for <linux-acpi@vger.kernel.org>; Fri, 27 May 2016 13:15:12 -0700 (PDT)
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Alexey Klimov <alexey.klimov@arm.com>
-Cc: linux-acpi@vger.kernel.org, rjw@rjwysocki.net, ashwin.chaugule@linaro.org, hotran@apm.com
+To: Dan Williams <dan.j.williams@intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>
+Cc: "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, Linux ACPI <linux-acpi@vger.kernel.org>
 
+This is just a heads-up: for some reason the acpi layer and nvdimm use
+the IS_ERR_VALUE() macro, and they use it incorrectly.
 
+To see warnings about it, change the macro from
 
-On 5/26/2016 4:02 PM, Alexey Klimov wrote:
-> On Tue, May 17, 2016 at 12:39 AM, Prashanth Prakash <pprakash@codeaurora.org> wrote:
->> CPPC defined in section 8.4.7 of ACPI 6.1 specification suggests
->> "To amortize the cost of PCC transactions, OSPM should read or write
->> all PCC registers via a single read or write command when possible"
->> This patch enables opportunistic batching of frequency transition
->> requests whenever the request happen to overlap in time.
->>
->> Currently the access to pcc is serialized by a spin lock which does
->> not scale well as we increase the number of cores in the system. This
->> patch improves the scalability by allowing the differnt CPU cores to
->> update PCC subspace in parallel and by batching requests which will
->> reduce certain types of operation(checking command completion bit,
->> ringing doorbell) by a significant margin.
->>
->> Profiling shows significant improvement in the time to service freq.
->> transition request. Using a workload which includes multiple iteration
->> of configure+make of vim (with -j24 option):
->> Without batching requests(without this patch),
->>         6 domains: Avg=20us/request; 24 domains: Avg=52us/request
->> With batching requests(with this patch),
->>         6 domains: Avg=16us/request; 24 domains: Avg=19us/request
->> domain: An individual cpu or a set of related CPUs whose frequency can
->> be scaled independently
-> With this approach sometimes you will send POSTCHANGE notifications about
-> frequency change for some random CPUs before actual request to change
-> frequency was sent (and received?) through PCC channel.
-> Depending on platform/firmware/configuration this time difference might be high.
->
-> How vital or important is to have POSTCHANGE notification in correct time
-> order?  
-Good catch. Yeah, we could end up notifying POSTCHANGE prior to ringing the doorbell.
-I haven't thought about this a lot and not sure if there are clients that rely on the
-accuracy of the notification.
+#define IS_ERR_VALUE(x) unlikely((x) >= (unsigned long)-MAX_ERRNO)
 
-Anyways, I suppose we can make cppc_set_perf return a value to indicate if a request
-was delivered (i.e doorbell was rang) or batched (request updated, but doorbell will
-be rung by a different CPU).  Using this return value cppc_cpufreq_set_target can
-notify all the pending CPUs at once or queue to be notified. Sounds reasonable?
+to do a cast to a pointer and back (ie make the "(x)" part be
+"(unsigned long)(void *)(x)" instead, which then will cause warnings
+like
 
-Also, if we think about CPPC, since we don't have a way to know exactly when platform
-did the frequency/voltage transition, I suppose POSTCHANGE will be a little out of
-order :)
+  warning: cast to pointer from integer of different size
+[-Wint-to-pointer-cast]
 
-Thanks,
-Prashanth
+when passed an "int" argument.
 
-> Best regards,
-> Alexey.
->
+The reason "int" arguments are wrong is that the macro really is
+designed to test the upper range of a pointer value. It happens to
+work for signed integers too, but looking at the users, pretty much
+none of them are right. The ACPI and nvdimm users are all about the
+perfectly standard "zero for success, negative error code for
+failure", and so using
 
+    if (IS_ERROR_VALUE(rc))
+        return rc;
+
+is just plain garbage. The code generally should just do
+
+    if (rc)
+        return rc;
+
+which is simpler, smaller, and generates better code.
+
+This bug seems to have been so common in the power management code
+that we even have a coccinelle script for it. But for some reason
+several uses remain in acpi_debug.c and now there are cases in
+drivers/nvdimm/ too.
+
+There are random various crap cases like that elsewhere too, but acpi
+and nvdimm were just more dense with this bug than most other places.
+
+The bug isn't fatal - as mentioned, IS_ERROR_VALUE() _does_ actually
+work on the range of integers that are normal errors, but it's
+pointless and actively misleading, and it's not meant for that use. So
+it just adds complexity and worse code generation for no actual gain.
+
+I noticed this when I was looking at similar idiocy in fs/gfs2, where
+the code in question caused warnings (for other reasons, but the main
+reason was "code too complex for gcc to understand it")
+
+               Linus
