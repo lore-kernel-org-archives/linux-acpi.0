@@ -1,122 +1,117 @@
-From: Al Stone <ahs3@redhat.com>
-Subject: Re: [PATCH v5 0/1] ARM64: ACPI: Update documentation for latest
- specification version
-Date: Thu, 26 May 2016 16:31:24 -0600
-Message-ID: <baa61d52-083f-574a-ed0e-6b57c9517d06@redhat.com>
-References: <20160516234441.GA7425@arm.com>
- <44cda485-1c43-f7c3-676b-f9c47785daf6@linaro.org>
-Reply-To: ahs3@redhat.com
+From: "Zhang, Rui" <rui.zhang@intel.com>
+Subject: Re: [PATCH] ACPI / Thermal / video: fix max_level incorrect value
+Date: Fri, 27 May 2016 00:42:30 +0000
+Message-ID: <1464309752.26336.14.camel@rzhang1-mobl4>
+References: <4736.1463510462@turing-police.cc.vt.edu>
+	 <CAJZ5v0jrFoQxLY_ZQrP-HP888swZbvSJPM=xNopC5MgQgnSxNg@mail.gmail.com>
+	 <6459.1463698397@turing-police.cc.vt.edu>
+	 <7208.1463713500@turing-police.cc.vt.edu>
+	 <6674547c-cefb-1b93-893a-7c5909a180a7@intel.com>
+	 <2897.1463727728@turing-police.cc.vt.edu>
+	 <20160520071720.GA30152@aaronlu.sh.intel.com>
+	 <29833.1463789712@turing-police.cc.vt.edu>
+	 <20160521032933.GA12918@aaronlu.sh.intel.com>
+	 <20160521075500.GA22025@aaronlu.sh.intel.com>
+	 <20160525051526.GA18305@aaronlu.sh.intel.com>
+	 <4305.1464227381@turing-police.cc.vt.edu>
+	 <84aa28c0-aec0-355b-ac85-6e98c47a1caf@intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-doc-owner@vger.kernel.org>
-In-Reply-To: <44cda485-1c43-f7c3-676b-f9c47785daf6@linaro.org>
-Sender: linux-doc-owner@vger.kernel.org
-To: Al Stone <al.stone@linaro.org>, Alexey Klimov <alexey.klimov@arm.com>
-Cc: linux-doc@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, linaro-acpi@lists.linaro.org, patches@linaro.org, linaro-kernel@lists.linaro.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga04.intel.com ([192.55.52.120]:59747 "EHLO mga04.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755469AbcE0Ame (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 26 May 2016 20:42:34 -0400
+In-Reply-To: <84aa28c0-aec0-355b-ac85-6e98c47a1caf@intel.com>
+Content-Language: en-US
+Content-ID: <8B5873AF8473BC47B3B999C103EA1C03@intel.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: "Lu, Aaron" <aaron.lu@intel.com>
+Cc: "Valdis.Kletnieks@vt.edu" <Valdis.Kletnieks@vt.edu>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "lenb@kernel.org" <lenb@kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "rafael@kernel.org" <rafael@kernel.org>, "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>
 
-On 05/17/2016 10:30 AM, Al Stone wrote:
-> On 05/16/2016 05:44 PM, Alexey Klimov wrote:
->> On Mon, May 2, 2016 at 09:19 PM, Al Stone wrote:
->>> On 04/25/2016 03:21 PM, Al Stone wrote:
->>>> The ACPI 6.1 specification was recently released at the end of January
->>>> 2016, but the arm64 kernel documentation for the use of ACPI was written
->>>> for the 5.1 version of the spec.  There were significant additions to the
->>>> spec that had not yet been mentioned -- for example, the 6.0 mechanisms
->>>> added to make it easier to define processors and low power idle states,
->>>> as well as the 6.1 addition allowing regular interrupts (not just from
->>>> GPIO) be used to signal ACPI general purpose events.
->>>>
->>>> This patch reflects going back through and examining the specs in detail
->>>> and updating content appropriately.  Whilst there, a few odds and ends of
->>>> typos were caught as well.  This brings the documentation up to date with
->>>> ACPI 6.1 for arm64.
->>>>
->>>> Changes for v5:
->>>>    -- Miscellaneous typos and corrections (Lorenzo Pieralisi)
->>>>    -- Add linux-acpi@ ML to the distribution list (Alexey Klimov)
->>>>    -- Corrections to CPPC information (Alexey Klimov)
->>>>    -- ACK from Lorenzo Pieralisi
->>>>    -- Updated bibliographic info (Al Stone)
->>>>
->>>> Changes for v4:
->>>>    -- Clarify that IORT can sometimes be optional (Jon Masters).
->>>>    -- Remove "Use as needed" descriptions of ACPI objects; they provide
->>>>       no substantive information and doing so simplifies maintenance of
->>>>       this document over time.  These have been replaced with a simpler
->>>>       notice that states that unless otherwise noted, do what the ACPI
->>>>       specification says is needed.
->>>>    -- Corrected the _OSI object usage recommendation; it described kernel
->>>>       behavior that does not exist (Al Stone).
->>>>
->>>> Changes for v3:
->>>>    -- Clarify use of _LPI/_RDI (Vikas Sajjan)
->>>>    -- Whitespace cleanup as pointed out by checkpatch
->>>>
->>>> Changes for v2:
->>>>    -- Clean up white space (Harb Abdulhahmid)
->>>>    -- Clarification on _CCA usage (Harb Abdulhamid)
->>>>    -- IORT moved to required from recommended (Hanjun Guo)
->>>>    -- Clarify IORT description (Hanjun Guo)
->>>>
->>>>
->>>> Al Stone (1):
->>>>   ARM64: ACPI: Update documentation for latest specification version
->>>>
->>>>  Documentation/arm64/acpi_object_usage.txt | 343 ++++++++++++++++--------------
->>>>  Documentation/arm64/arm-acpi.txt          |  40 ++--
->>>>  2 files changed, 213 insertions(+), 170 deletions(-)
->>>>
->>>
->>> Ping?  If there are no further comments, can this be pulled in through
->>> either the documentation or arm64 tree?
->>>
->>> Thanks.
->>
->> Hi Al,
->> sorry for delay.
->>
->> CPPC and PCC corrections look fine. Thanks.
->>
->>
->> This comment is not to block your patch (maybe some to-do):
->> I greped sources and your patch and I don't see description of _PSD object.
->> This P-state dependancy object is optional but it's presense and correct data
->> are extremely useful for CPPC and can potentially descrease number of performance
->> changing requests.
->>
->> ACPI spec in section about CPPC tells that it may use _PSD (page 503 if I remember
->> correctly) to specify domain belongings of CPUs.
->>
->> You may consider to add description of _PSD object later.
->>
->> Best regards,
->> Alexey.
->>
-> 
-> Hrm.  Thanks, Alexey.  I'll take a look.  _PSD may be in one of
-> the gray areas where we expect people to read the spec and follow
-> it properly, but it may make sense to be very explicit about what
-> they need to do to use it properly.  Perhaps this would make a good
-> FWTS test, too.
-> 
-
-Yet another ping...
-
-Just in case it is not clear, Alexey's comment and my reply here are
-things that *might* need to be done in the future.  This version of the
-patch I believe is sufficient for now, based on the comments received.
-
-Lorenzo has ACKd; Hanjun has reviewed.  Do I need Will and/or Catalin
-to ACK?  Any others?
-
--- 
-ciao,
-al
------------------------------------
-Al Stone
-Software Engineer
-Red Hat, Inc.
-ahs3@redhat.com
------------------------------------
+T24gVGh1LCAyMDE2LTA1LTI2IGF0IDEzOjE1ICswODAwLCBBYXJvbiBMdSB3cm90ZToNCj4gT24g
+MDUvMjYvMjAxNiAwOTo0OSBBTSwgVmFsZGlzLktsZXRuaWVrc0B2dC5lZHUgd3JvdGU6DQo+ID4g
+T24gV2VkLCAyNSBNYXkgMjAxNiAxMzoxNToyNiArMDgwMCwgQWFyb24gTHUgc2FpZDoNCj4gPj4g
+VmFsZGlzLCBjYW4geW91IHBsZWFzZSBnaXZlIHRoZSBwYXRjaCBhIHRyeT8gVGhhbmtzLg0KPiA+
+IA0KPiA+IFNvcnJ5LCBoYWQgYSBmZXcgZGF5cyB3aGVyZSBhY3R1YWwgd29yayBjb21taXRtZW50
+cyBhbmQgb3RoZXINCj4gPiB0aGluZ3MgZ290IGluIHRoZSB3YXkuLi4gSSB0ZXN0ZWQgdGhpcyBw
+YXRjaCBhZ2FpbnN0IG5leHQtMjAxNjA1MjQsDQo+ID4gYW5kIGNhbiByZXBvcnQgdGhhdCB0aGUg
+cHJvYmxlbSBpcyBmaXhlZCwgc28gZmVlbCBmcmVlIHRvDQo+ID4gc3RpY2sgYSAiVGVzdGVkLUJ5
+OiIgb24gaXQuLi4uDQo+IA0KPiBUaGFua3MgYSBsb3QgZm9yIHRoZSBjb25maXJtLCBoZXJlIGlz
+IHRoZSB1cGRhdGVkIHBhdGNoIHdpdGggeW91cg0KPiB0ZXN0ZWQtYnkgdGFnIGFkZGVkLg0KPiAN
+Cj4gRnJvbTogQWFyb24gTHUgPGFhcm9uLmx1QGludGVsLmNvbT4NCj4gRGF0ZTogU2F0LCAyMSBN
+YXkgMjAxNiAxNTozMDo0NiArMDgwMA0KPiBTdWJqZWN0OiBbUEFUQ0hdIEFDUEkgLyBUaGVybWFs
+IC8gdmlkZW86IGZpeCBtYXhfbGV2ZWwgaW5jb3JyZWN0IHZhbHVlDQo+IA0KPiBjb21taXQgMDU5
+NTAwOTQwZGVmKCJBQ1BJL3ZpZGVvOiBleHBvcnQgYWNwaV92aWRlb19nZXRfbGV2ZWxzIikNCj4g
+bWlzdGFrZW5seSBkcm9wcGVkIHRoZSBjb3JyZWN0IHZhbHVlIG9mIG1heF9sZXZlbCBhbmQgdGhh
+dCBjYXVzZWQgdGhlDQo+IHNldF9sZXZlbCBmdW5jdGlvbiBmb2xsb3dpbmcgZmFpbGVkIGFuZCB0
+aGUgYWNwaV92aWRlbyBiYWNrbGlnaHQgaW50ZXJmYWNlDQo+IGRpZG4ndCBnZXQgY3JlYXRlZC4g
+Rml4IHRoaXMgYnkgcGFzc2luZyBiYWNrIHRoZSBjb3JyZWN0IG1heF9sZXZlbCB2YWx1ZS4NCj4g
+DQo+IFdoaWxlIGF0IGl0LCBhbHNvIGZpeCB0aGUgcGFyYW0gdXNlZCBpbiBhY3BpX3ZpZGVvX2Rl
+dmljZV9sY2RfcXVlcnlfbGV2ZWxzDQo+IHdoZXJlIGFjcGlfaGFuZGxlIGlzIGV4cGVjdGVkIGJ1
+dCBhY3BpX3ZpZGVvX2RldmljZSBpcyBwYXNzZWQuDQo+IA0KPiBSZXBvcnRlZC1hbmQtdGVzdGVk
+LWJ5OiBWYWxkaXMgS2xldG5pZWtzIDx2YWxkaXMua2xldG5pZWtzQHZ0LmVkdT4NCj4gU2lnbmVk
+LW9mZi1ieTogQWFyb24gTHUgPGFhcm9uLmx1QGludGVsLmNvbT4NCg0KQWNrZWQtYnk6IFpoYW5n
+IFJ1aSA8cnVpLnpoYW5nQGludGVsLmNvbT4NCj4gLS0tDQo+ICBkcml2ZXJzL2FjcGkvYWNwaV92
+aWRlby5jICAgICAgICAgICAgICAgICAgICAgICAgIHwgOSArKysrKystLS0NCj4gIGRyaXZlcnMv
+dGhlcm1hbC9pbnQzNDB4X3RoZXJtYWwvaW50MzQwNl90aGVybWFsLmMgfCAyICstDQo+ICBpbmNs
+dWRlL2FjcGkvdmlkZW8uaCAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIHwgNiArKysrLS0N
+Cj4gIDMgZmlsZXMgY2hhbmdlZCwgMTEgaW5zZXJ0aW9ucygrKSwgNiBkZWxldGlvbnMoLSkNCj4g
+DQo+IGRpZmYgLS1naXQgYS9kcml2ZXJzL2FjcGkvYWNwaV92aWRlby5jIGIvZHJpdmVycy9hY3Bp
+L2FjcGlfdmlkZW8uYw0KPiBpbmRleCAzZDViOGEwOTkzNTEuLmMxZDEzOGUxMjhjYiAxMDA2NDQN
+Cj4gLS0tIGEvZHJpdmVycy9hY3BpL2FjcGlfdmlkZW8uYw0KPiArKysgYi9kcml2ZXJzL2FjcGkv
+YWNwaV92aWRlby5jDQo+IEBAIC03NTQsNyArNzU0LDggQEAgc3RhdGljIGludCBhY3BpX3ZpZGVv
+X2JxY19xdWlyayhzdHJ1Y3QgYWNwaV92aWRlb19kZXZpY2UgKmRldmljZSwNCj4gIH0NCj4gIA0K
+PiAgaW50IGFjcGlfdmlkZW9fZ2V0X2xldmVscyhzdHJ1Y3QgYWNwaV9kZXZpY2UgKmRldmljZSwN
+Cj4gLQkJCSAgc3RydWN0IGFjcGlfdmlkZW9fZGV2aWNlX2JyaWdodG5lc3MgKipkZXZfYnIpDQo+
+ICsJCQkgIHN0cnVjdCBhY3BpX3ZpZGVvX2RldmljZV9icmlnaHRuZXNzICoqZGV2X2JyLA0KPiAr
+CQkJICBpbnQgKnBtYXhfbGV2ZWwpDQo+ICB7DQo+ICAJdW5pb24gYWNwaV9vYmplY3QgKm9iaiA9
+IE5VTEw7DQo+ICAJaW50IGksIG1heF9sZXZlbCA9IDAsIGNvdW50ID0gMCwgbGV2ZWxfYWNfYmF0
+dGVyeSA9IDA7DQo+IEBAIC04NDEsNiArODQyLDggQEAgaW50IGFjcGlfdmlkZW9fZ2V0X2xldmVs
+cyhzdHJ1Y3QgYWNwaV9kZXZpY2UgKmRldmljZSwNCj4gIA0KPiAgCWJyLT5jb3VudCA9IGNvdW50
+Ow0KPiAgCSpkZXZfYnIgPSBicjsNCj4gKwlpZiAocG1heF9sZXZlbCkNCj4gKwkJKnBtYXhfbGV2
+ZWwgPSBtYXhfbGV2ZWw7DQo+ICANCj4gIG91dDoNCj4gIAlrZnJlZShvYmopOw0KPiBAQCAtODY5
+LDcgKzg3Miw3IEBAIGFjcGlfdmlkZW9faW5pdF9icmlnaHRuZXNzKHN0cnVjdCBhY3BpX3ZpZGVv
+X2RldmljZSAqZGV2aWNlKQ0KPiAgCXN0cnVjdCBhY3BpX3ZpZGVvX2RldmljZV9icmlnaHRuZXNz
+ICpiciA9IE5VTEw7DQo+ICAJaW50IHJlc3VsdCA9IC1FSU5WQUw7DQo+ICANCj4gLQlyZXN1bHQg
+PSBhY3BpX3ZpZGVvX2dldF9sZXZlbHMoZGV2aWNlLT5kZXYsICZicik7DQo+ICsJcmVzdWx0ID0g
+YWNwaV92aWRlb19nZXRfbGV2ZWxzKGRldmljZS0+ZGV2LCAmYnIsICZtYXhfbGV2ZWwpOw0KPiAg
+CWlmIChyZXN1bHQpDQo+ICAJCXJldHVybiByZXN1bHQ7DQo+ICAJZGV2aWNlLT5icmlnaHRuZXNz
+ID0gYnI7DQo+IEBAIC0xNzM3LDcgKzE3NDAsNyBAQCBzdGF0aWMgdm9pZCBhY3BpX3ZpZGVvX3J1
+bl9iY2xfZm9yX29zaShzdHJ1Y3QgYWNwaV92aWRlb19idXMgKnZpZGVvKQ0KPiAgDQo+ICAJbXV0
+ZXhfbG9jaygmdmlkZW8tPmRldmljZV9saXN0X2xvY2spOw0KPiAgCWxpc3RfZm9yX2VhY2hfZW50
+cnkoZGV2LCAmdmlkZW8tPnZpZGVvX2RldmljZV9saXN0LCBlbnRyeSkgew0KPiAtCQlpZiAoIWFj
+cGlfdmlkZW9fZGV2aWNlX2xjZF9xdWVyeV9sZXZlbHMoZGV2LCAmbGV2ZWxzKSkNCj4gKwkJaWYg
+KCFhY3BpX3ZpZGVvX2RldmljZV9sY2RfcXVlcnlfbGV2ZWxzKGRldi0+ZGV2LT5oYW5kbGUsICZs
+ZXZlbHMpKQ0KPiAgCQkJa2ZyZWUobGV2ZWxzKTsNCj4gIAl9DQo+ICAJbXV0ZXhfdW5sb2NrKCZ2
+aWRlby0+ZGV2aWNlX2xpc3RfbG9jayk7DQo+IGRpZmYgLS1naXQgYS9kcml2ZXJzL3RoZXJtYWwv
+aW50MzQweF90aGVybWFsL2ludDM0MDZfdGhlcm1hbC5jIGIvZHJpdmVycy90aGVybWFsL2ludDM0
+MHhfdGhlcm1hbC9pbnQzNDA2X3RoZXJtYWwuYw0KPiBpbmRleCAxM2Q0MzFjYmQyOWUuLmE1Nzhj
+ZDI1N2RiNCAxMDA2NDQNCj4gLS0tIGEvZHJpdmVycy90aGVybWFsL2ludDM0MHhfdGhlcm1hbC9p
+bnQzNDA2X3RoZXJtYWwuYw0KPiArKysgYi9kcml2ZXJzL3RoZXJtYWwvaW50MzQweF90aGVybWFs
+L2ludDM0MDZfdGhlcm1hbC5jDQo+IEBAIC0xNzcsNyArMTc3LDcgQEAgc3RhdGljIGludCBpbnQz
+NDA2X3RoZXJtYWxfcHJvYmUoc3RydWN0IHBsYXRmb3JtX2RldmljZSAqcGRldikNCj4gIAkJcmV0
+dXJuIC1FTk9ERVY7DQo+ICAJZC0+cmF3X2JkID0gYmQ7DQo+ICANCj4gLQlyZXQgPSBhY3BpX3Zp
+ZGVvX2dldF9sZXZlbHMoQUNQSV9DT01QQU5JT04oJnBkZXYtPmRldiksICZkLT5icik7DQo+ICsJ
+cmV0ID0gYWNwaV92aWRlb19nZXRfbGV2ZWxzKEFDUElfQ09NUEFOSU9OKCZwZGV2LT5kZXYpLCAm
+ZC0+YnIsIE5VTEwpOw0KPiAgCWlmIChyZXQpDQo+ICAJCXJldHVybiByZXQ7DQo+ICANCj4gZGlm
+ZiAtLWdpdCBhL2luY2x1ZGUvYWNwaS92aWRlby5oIGIvaW5jbHVkZS9hY3BpL3ZpZGVvLmgNCj4g
+aW5kZXggNzBhNDFmNzQyMDM3Li41NzMxY2NiNDI1ODUgMTAwNjQ0DQo+IC0tLSBhL2luY2x1ZGUv
+YWNwaS92aWRlby5oDQo+ICsrKyBiL2luY2x1ZGUvYWNwaS92aWRlby5oDQo+IEBAIC01MSw3ICs1
+MSw4IEBAIGV4dGVybiB2b2lkIGFjcGlfdmlkZW9fc2V0X2RtaV9iYWNrbGlnaHRfdHlwZShlbnVt
+IGFjcGlfYmFja2xpZ2h0X3R5cGUgdHlwZSk7DQo+ICAgKi8NCj4gIGV4dGVybiBib29sIGFjcGlf
+dmlkZW9faGFuZGxlc19icmlnaHRuZXNzX2tleV9wcmVzc2VzKHZvaWQpOw0KPiAgZXh0ZXJuIGlu
+dCBhY3BpX3ZpZGVvX2dldF9sZXZlbHMoc3RydWN0IGFjcGlfZGV2aWNlICpkZXZpY2UsDQo+IC0J
+CQkJIHN0cnVjdCBhY3BpX3ZpZGVvX2RldmljZV9icmlnaHRuZXNzICoqZGV2X2JyKTsNCj4gKwkJ
+CQkgc3RydWN0IGFjcGlfdmlkZW9fZGV2aWNlX2JyaWdodG5lc3MgKipkZXZfYnIsDQo+ICsJCQkJ
+IGludCAqcG1heF9sZXZlbCk7DQo+ICAjZWxzZQ0KPiAgc3RhdGljIGlubGluZSBpbnQgYWNwaV92
+aWRlb19yZWdpc3Rlcih2b2lkKSB7IHJldHVybiAwOyB9DQo+ICBzdGF0aWMgaW5saW5lIHZvaWQg
+YWNwaV92aWRlb191bnJlZ2lzdGVyKHZvaWQpIHsgcmV0dXJuOyB9DQo+IEBAIC03Miw3ICs3Myw4
+IEBAIHN0YXRpYyBpbmxpbmUgYm9vbCBhY3BpX3ZpZGVvX2hhbmRsZXNfYnJpZ2h0bmVzc19rZXlf
+cHJlc3Nlcyh2b2lkKQ0KPiAgCXJldHVybiBmYWxzZTsNCj4gIH0NCj4gIHN0YXRpYyBpbmxpbmUg
+aW50IGFjcGlfdmlkZW9fZ2V0X2xldmVscyhzdHJ1Y3QgYWNwaV9kZXZpY2UgKmRldmljZSwNCj4g
+LQkJCXN0cnVjdCBhY3BpX3ZpZGVvX2RldmljZV9icmlnaHRuZXNzICoqZGV2X2JyKQ0KPiArCQkJ
+c3RydWN0IGFjcGlfdmlkZW9fZGV2aWNlX2JyaWdodG5lc3MgKipkZXZfYnIsDQo+ICsJCQlpbnQg
+KnBtYXhfbGV2ZWwpDQo+ICB7DQo+ICAJcmV0dXJuIC1FTk9ERVY7DQo+ICB9DQoNCg==
