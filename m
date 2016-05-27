@@ -1,187 +1,111 @@
 From: Aleksey Makarov <aleksey.makarov@linaro.org>
-Subject: Re: [PATCH v8 0/4] ACPI: parse the SPCR table
-Date: Fri, 27 May 2016 16:41:47 +0300
-Message-ID: <8e18166c-74c0-644c-cbd3-783fc716ab6b@linaro.org>
-References: <1463749405-11640-1-git-send-email-aleksey.makarov@linaro.org>
+Subject: Re: [PATCH v2 0/5] ACPI: ARM64: support for ACPI_TABLE_UPGRADE
+Date: Fri, 27 May 2016 16:46:42 +0300
+Message-ID: <c20f022c-af3e-74be-d78e-e219f14c27a3@linaro.org>
+References: <1463674518-22477-1-git-send-email-aleksey.makarov@linaro.org>
+ <CAJZ5v0is7c833aQkRm-D+TwLM+eUYeKEAdLOOdrEdT-hrC_M1A@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-lf0-f51.google.com ([209.85.215.51]:35843 "EHLO
-	mail-lf0-f51.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753909AbcE0Nnr (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 27 May 2016 09:43:47 -0400
-Received: by mail-lf0-f51.google.com with SMTP id b73so23633180lfb.3
-        for <linux-acpi@vger.kernel.org>; Fri, 27 May 2016 06:43:46 -0700 (PDT)
-In-Reply-To: <1463749405-11640-1-git-send-email-aleksey.makarov@linaro.org>
+Received: from mail-lf0-f48.google.com ([209.85.215.48]:33338 "EHLO
+	mail-lf0-f48.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753177AbcE0Nsl (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 27 May 2016 09:48:41 -0400
+Received: by mail-lf0-f48.google.com with SMTP id s64so22212015lfe.0
+        for <linux-acpi@vger.kernel.org>; Fri, 27 May 2016 06:48:40 -0700 (PDT)
+In-Reply-To: <CAJZ5v0is7c833aQkRm-D+TwLM+eUYeKEAdLOOdrEdT-hrC_M1A@mail.gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Russell King <linux@arm.linux.org.uk>
-Cc: "Rafael J . Wysocki" <rjw@rjwysocki.net>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-serial@vger.kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Len Brown <lenb@kernel.org>, Leif Lindholm <leif.lindholm@linaro.org>, Graeme Gregory <graeme.gregory@linaro.org>, Al Stone <ahs3@redhat.com>, Christopher Covington <cov@codeaurora.org>, Yury Norov <ynorov@caviumnetworks.com>, Peter Hurley <peter@hurleysoftware.com>, Andy Shevchenko <andy.shevchenko@gmail.com>, "Zheng, Lv" <lv.zheng@intel.com>, Mark Salter <msalter@redhat.com>, Kefeng Wang <wangkefeng.wang@huawei.com>
+To: Catalin Marinas <catalin.marinas@arm.com>, Will Deacon <will.deacon@arm.com>
+Cc: "Rafael J. Wysocki" <rafael@kernel.org>, Russell King <linux@arm.linux.org.uk>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Graeme Gregory <graeme.gregory@linaro.org>, Jon Masters <jcm@redhat.com>, "Zheng, Lv" <lv.zheng@intel.com>, Mark Rutland <mark.rutland@arm.com>
 
-On 05/20/2016 04:03 PM, Aleksey Makarov wrote:
-> 'ARM Server Base Boot Requirements' [1] mentions SPCR (Serial Port Console
-> Redirection Table) [2] as a mandatory ACPI table that specifies the
-> configuration of serial console.
 
-Hi Russell,
 
-Can you review these patches and consider ACKing the pl011 part [4/4]
-please?  It had an ACK from Greg Kroah-Hartman in v7 but since then I
-changed it a bit.
+On 05/20/2016 12:22 AM, Rafael J. Wysocki wrote:
+> On Thu, May 19, 2016 at 6:15 PM, Aleksey Makarov
+> <aleksey.makarov@linaro.org> wrote:
+>> This patchset adds support for ACPI_TABLE_UPGRADE for ARM64
 
-Who can I ask to accept the patch set for the upstream tree?
+Hi Catalin, Will,
+
+Can you review these patches and consider ACKing the ARM64 part [5/5]
+please?
 
 Thank you
 Aleksey Makarov
 
-> Move "earlycon" early_param handling to earlycon.c to parse this option once
+>>
+>> These patches help with:
+>>
+>> 1). During development of a platform, it is much easier to debug
+>> problems with tables if you can test replacement ones without having to
+>> respin the firmware. In the server world, you usually don't have the
+>> firmware source code, so to get it respun could be days-weeks even if
+>> you are working with the authors closely. We have practically used this
+>> feature on a number of platforms already and it will continue.
+>>
+>> 2). They empower (advanced) users and developers to work around problems
+>> that they find on platforms. Sure, we want firmware to always be fixed
+>> and working well, but it is better if folks have the tools.
+>>
+>> It's also required for parity with x86 functionality on servers as Redhat
+>> use that method in their tooling.
+>>
+>> The patchset refactors the code introduced by the patches by Lv Zheng [1],
+>> fixes access to the destination of new ACPI tables as suggested
+>> by Mark Rutland [2] and enables the feature for ARM64
+>>
+>> It was first sent by Jon Masters [3] to linaro-acpi in December 2015
+>>
+>> Tested on QEMU (arm64 and x86) and ThunderX
+>> Should be applied to next-20160519
+>>
+>> v2:
+>> - add Acked-by: Lv Zheng <lv.zheng@intel.com>
+>> - replace the original patch "ACPI: table upgrade: move early_initrd_acpi_init()
+>>   to header file" with the patch "ACPI: table upgrade: refactor function
+>>   definitions".  This new patch is just the original one rewritten following the
+>>   suggestion by Lv Zheng to use initrd_start, inird_end directly in
+>>   acpi_table_initrd_init().  It simplifies things noticeably.
+>> - add Jon's explanations to the cover of the patchset and my explanations
+>>   to "ACPI: ARM64: support for ACPI_TABLE_UPGRADE"
+>> - introduce ARCH_HAS_ACPI_TABLE_UPGRADE in a separate patch (Mark Rutland)
+>> - move arch-specific definition to an arch-specific header in a separate patch
+>>   (Mark Rutland)
+>>
+>> v1:
+>> https://lkml.kernel.org/g/1463486765-31827-1-git-send-email-aleksey.makarov@linaro.org
+>>
+>> [1] https://lkml.kernel.org/g/cover.1460340514.git.lv.zheng@intel.com
+>> [2] https://lists.linaro.org/pipermail/linaro-acpi/2015-December/006101.html
+>> [3] https://lists.linaro.org/pipermail/linaro-acpi/2015-December/006099.html
+>>
+>> Aleksey Makarov (4):
+>>   ACPI: table upgrade: use cacheable map for tables
+>>   ACPI: table upgrade: refactor function definitions
+>>   ACPI: table upgrade: move arch-specific symbol to asm/acpi.h
+>>   ACPI: table upgrade: introduce ARCH_HAS_ACPI_TABLE_UPGRADE
+>>
+>> Jon Masters (1):
+>>   ACPI: ARM64: support for ACPI_TABLE_UPGRADE
+>>
+>>  arch/arm64/Kconfig            |  1 +
+>>  arch/arm64/include/asm/acpi.h |  2 ++
+>>  arch/arm64/kernel/setup.c     |  6 ++++--
+>>  arch/x86/Kconfig              |  1 +
+>>  arch/x86/include/asm/acpi.h   |  2 ++
+>>  arch/x86/kernel/setup.c       |  9 +--------
+>>  drivers/acpi/Kconfig          |  5 ++++-
+>>  drivers/acpi/tables.c         | 23 +++++++++--------------
+>>  include/linux/acpi.h          |  8 ++++++--
+>>  9 files changed, 30 insertions(+), 27 deletions(-)
 > 
-> Parse SPCR table, setup earlycon and register specified console.
+> I'm fine with the series.
 > 
-> Enable parsing this table on ARM64.  Earlycon should be set up as early as
-> possible.  ACPI boot tables are mapped in
-> arch/arm64/kernel/acpi.c:acpi_boot_table_init() called from setup_arch() and
-> that's where we parse spcr.  So it has to be opted-in per-arch. When
-> ACPI_SPCR_TABLE is defined initialization of DT earlycon is deferred until the
-> DT/ACPI decision is done.
+> I can queue up patches [1-4/5] for 4.8, but I'll need an ACK from the
+> ARM64 maintainers for the [5/5].
 > 
-> Implement console_match() for pl011.
-> 
-> Based on the work by Leif Lindholm [3]
-> Thanks to Peter Hurley for explaining how this should work.
-> 
-> Should be applied to next-20160520
-> Tested on QEMU and ThunderX.
-> SPCR support is included in QEMU's ARM64 mach-virt since 2.4 release.
-> 
-> v8:
-> - rebase to next-20160520
-> - remove the patch "ACPICA: Headers: Add new constants for the DBG2 ACPI table"
->   as it have got to linux-next
-> - add Acked-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Reviewed-by:
->   Peter Hurley <peter@hurleysoftware.com> (but see below)
-> - fix the patch "serial: pl011: add console matching function".  The patch by
->   Christopher Covington [4] specifies that SBSA uart does 32-bit access to
->   registers and this breaks the match function.  In this series the function
->   was changed to match when SPCR specifies both mmio32 and mmio access.
->   I removed Acked-by: Greg from this patch because of these changes.
-> 
-> v7:
-> https://lkml.kernel.org/g/1459431629-27934-1-git-send-email-aleksey.makarov@linaro.org
-> - add Acked-by: Rob Herring for "of/serial: move earlycon early_param handling
->   to serial"
-> - call DT earlycon initialization from the arch ACPI code, not from parse_spcr()
->   (Rafael J. Wysocki)
-> - fix a few minor issues (Rafael J. Wysocki)
-> 
-> v6:
-> https://lkml.kernel.org/g/1458823925-19560-1-git-send-email-aleksey.makarov@linaro.org
-> - add documentation for parse_spcr() functioin (Yury Norov)
-> - don't initialize err variable (Yury Norov)
-> - add __initdata for the earlycon_init_is_deferred flag variable
-> - rename the function exported in "of/serial: move earlycon early_param handling
->   to serial" to avoid clash with the function from arch/microblaze/kernel/prom.c
-> - defer initialization of DT earlycon until DT/ACPI decision is made
->   (Rob Herring, Peter Hurley)
-> - use snprintf instead of sprintf (Andy Shevchenko)
-> - drop patch that adds EARLYCON_DECLARE for pl011 as EARLYCON_DECLARE is
->   equivalent to OF_EARLYCON_DECLARE for 4.6+ (Peter Hurley).  This means that
->   SPCR earlycon will not work on the kernels before 4.6
-> 
-> v5:
-> https://lkml.kernel.org/g/1458643595-14719-1-git-send-email-aleksey.makarov@linaro.org
-> - drop patch "serial: pl011: use ACPI SPCR to setup 32-bit access" because
->   it is ugly. Also because Christopher Covington came with a better solution [4]
-> - remove error message when the table is not provided by ACPI (Andy Shevchenko)
-> - rewrite spcr.c following the suggestions by Peter Hurley
-> - add console_match() for pl011 in a separate patch
-> - add EARLYCON_DECLARE for pl011 in a separate patch
-> - add patch "of/serial: move earlycon early_param handling to serial" from
->   the GDB2 series
-> 
-> v4:
-> https://lkml.kernel.org/g/1456747355-15692-1-git-send-email-aleksey.makarov@linaro.org
-> - drop patch "ACPI: change __init to __ref for early_acpi_os_unmap_memory()"
->   ACPI developers work on a new API and asked not to do that.
->   Instead, use acpi_get_table_with_size()/early_acpi_os_unmap_memory() once
->   and cache the result. (Lv Zheng)
-> - fix some style issues (Yury Norov)
-> 
-> v3:
-> https://lkml.kernel.org/g/1455559532-8305-1-git-send-email-aleksey.makarov@linaro.org
-> 
-> Greg Kroah-Hartman did not like v2 so I have rewritten this patchset:
-> 
-> - drop acpi_match() member of struct console
-> - drop implementations of this member for pl011 and 8250
-> - drop the patch that renames some vars in printk.c as it is not needed anymore
-> - drop patch that introduces system wide acpi_table_parse2().
->   Instead introduce a custom acpi_table_parse_spcr() in spcr.c
-> 
-> Instead of introducing a new match_acpi() member of struct console,
-> this patchset introduces a new function acpi_console_check().
-> This function is called when a new uart is registered at serial_core.c
-> the same way OF code checks for console.  If the registered uart is the
-> console specified by SPCR table, this function calls add_preferred_console()
-> 
-> The restrictions of this approach are:
-> 
-> - only serial consoles can be set up
-> - only consoles specified by the memory/io address can be set up
->   (SPCR can specify devices by PCI id/PCI address)
-> 
-> v2:
-> https://lkml.kernel.org/g/1455299022-11641-1-git-send-email-aleksey.makarov@linaro.org
-> - don't use SPCR if user specified console in command line
-> - fix initialization order of newcon->index = 0
-> - rename some variables at printk.c (Joe Perches, Peter Hurley)
-> - enable ACPI_SPCR_TABLE in a separate patch (Andy Shevchenko)
-> - remove the retry loop for console registering (Peter Hurley).
->   Instead, obtain SPCR with acpi_get_table().  That works after
->   call to acpi_early_init() i. e. in any *_initcall()
-> - describe design decision behind introducing acpi_match() (Peter Hurley)
-> - fix compilation for x86 + ACPI (Graeme Gregory)
-> - introduce DBG2 constants in a separate patch (Andy Shevchenko)
-> - fix a typo in DBG2 constants (Andy Shevchenko)
-> - add ACPI_DBG2_ARM_SBSA_32BIT constant (Christopher Covington)
-> - add support for ACPI_DBG2_ARM_SBSA_* consoles (Christopher Covington)
-> - add documentation for functions
-> - add a patch that uses SPCR to find if SBSA serial driver should use 32-bit
->   accessor functions (Christopher Covington)
-> - change __init to __ref for early_acpi_os_unmap_memory() in a separate patch
-> - introduce acpi_table_parse2() in a separate patch
-> - fix fetching the SPCR table early (Mark Salter)
-> - add a patch from Mark Salter that introduces support for matching 8250-based
->   consoles
-> 
-> v1:
-> https://lkml.kernel.org/g/1453722324-22407-1-git-send-email-aleksey.makarov@linaro.org
-> 
-> [1] http://infocenter.arm.com/help/index.jsp?topic=/com.arm.doc.den0044a/index.html
-> [2] https://msdn.microsoft.com/en-us/library/windows/hardware/dn639132(v=vs.85).aspx
-> [3] https://lkml.kernel.org/g/1441716217-23786-1-git-send-email-leif.lindholm@linaro.org
-> [4] https://lkml.kernel.org/g/1457415800-8799-1-git-send-email-cov@codeaurora.org
-> 
-> Aleksey Makarov (3):
->   ACPI: parse SPCR and enable matching console
->   ARM64: ACPI: enable ACPI_SPCR_TABLE
->   serial: pl011: add console matching function
-> 
-> Leif Lindholm (1):
->   of/serial: move earlycon early_param handling to serial
-> 
->  arch/arm64/Kconfig              |   1 +
->  arch/arm64/kernel/acpi.c        |  11 +++-
->  drivers/acpi/Kconfig            |   3 ++
->  drivers/acpi/Makefile           |   1 +
->  drivers/acpi/spcr.c             | 111 ++++++++++++++++++++++++++++++++++++++++
->  drivers/of/fdt.c                |  11 +---
->  drivers/tty/serial/amba-pl011.c |  56 ++++++++++++++++++++
->  drivers/tty/serial/earlycon.c   |  19 ++++++-
->  include/linux/acpi.h            |   6 +++
->  include/linux/of_fdt.h          |   2 +
->  include/linux/serial_core.h     |   6 +++
->  11 files changed, 214 insertions(+), 13 deletions(-)
->  create mode 100644 drivers/acpi/spcr.c
+> Thanks,
+> Rafael
 > 
