@@ -1,7 +1,7 @@
 From: Sinan Kaya <okaya@codeaurora.org>
-Subject: [PATCH V6 2/8] vfio: platform: determine reset capability
-Date: Sat, 28 May 2016 18:01:12 -0400
-Message-ID: <1464472878-27176-3-git-send-email-okaya@codeaurora.org>
+Subject: [PATCH V6 8/8] vfio: platform: check reset call return code during release
+Date: Sat, 28 May 2016 18:01:18 -0400
+Message-ID: <1464472878-27176-9-git-send-email-okaya@codeaurora.org>
 References: <1464472878-27176-1-git-send-email-okaya@codeaurora.org>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1464472878-27176-1-git-send-email-okaya@codeaurora.org>
@@ -10,40 +10,38 @@ To: kvm@vger.kernel.org, timur@codeaurora.org, cov@codeaurora.org, jcm@redhat.co
 Cc: linux-acpi@vger.kernel.org, agross@codeaurora.org, linux-arm-msm@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Sinan Kaya <okaya@codeaurora.org>, Baptiste Reynal <b.reynal@virtualopensystems.com>, Alex Williamson <alex.williamson@redhat.com>, linux-kernel@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-Creating a new function to determine if this driver supports reset
-function or not. This is an attempt to abstract device tree calls
-from the rest of the code.
+Release call is ignoring the return code from reset call and can
+potentially continue even though reset call failed.
+
+If reset_required module parameter is set, this patch is going
+to validate the return code and will cause stack dump with
+WARN_ON and warn the user of failure.
 
 Signed-off-by: Sinan Kaya <okaya@codeaurora.org>
-Reviewed-by: Eric Auger <eric.auger@linaro.org>
 ---
- drivers/vfio/platform/vfio_platform_common.c | 7 ++++++-
- 1 file changed, 6 insertions(+), 1 deletion(-)
+ drivers/vfio/platform/vfio_platform_common.c | 10 +++++++++-
+ 1 file changed, 9 insertions(+), 1 deletion(-)
 
 diff --git a/drivers/vfio/platform/vfio_platform_common.c b/drivers/vfio/platform/vfio_platform_common.c
-index 3e2a7c0..6be92c3 100644
+index 962cfb1..bb05ca0 100644
 --- a/drivers/vfio/platform/vfio_platform_common.c
 +++ b/drivers/vfio/platform/vfio_platform_common.c
-@@ -49,6 +49,11 @@ static vfio_platform_reset_fn_t vfio_platform_lookup_reset(const char *compat,
- 	return reset_fn;
- }
+@@ -243,7 +243,15 @@ static void vfio_platform_release(void *device_data)
+ 	mutex_lock(&driver_lock);
  
-+static bool vfio_platform_has_reset(struct vfio_platform_device *vdev)
-+{
-+	return vdev->of_reset ? true : false;
-+}
+ 	if (!(--vdev->refcnt)) {
+-		vfio_platform_call_reset(vdev, NULL);
++		const char *extra_dbg = NULL;
++		int ret;
 +
- static void vfio_platform_get_reset(struct vfio_platform_device *vdev)
- {
- 	vdev->of_reset = vfio_platform_lookup_reset(vdev->compat,
-@@ -214,7 +219,7 @@ static long vfio_platform_ioctl(void *device_data,
- 		if (info.argsz < minsz)
- 			return -EINVAL;
- 
--		if (vdev->of_reset)
-+		if (vfio_platform_has_reset(vdev))
- 			vdev->flags |= VFIO_DEVICE_FLAGS_RESET;
- 		info.flags = vdev->flags;
- 		info.num_regions = vdev->num_regions;
++		ret = vfio_platform_call_reset(vdev, &extra_dbg);
++		if (ret && vdev->reset_required) {
++			dev_warn(vdev->device, "reset driver is required and reset call failed in release (%d) %s\n",
++				 ret, extra_dbg ? extra_dbg : "");
++			WARN_ON(1);
++		}
+ 		vfio_platform_regions_cleanup(vdev);
+ 		vfio_platform_irq_cleanup(vdev);
+ 	}
 -- 
 1.8.2.1
