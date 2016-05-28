@@ -1,45 +1,68 @@
-From: Linus Torvalds <torvalds-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org>
-Subject: Re: [PATCH] remove lots of IS_ERR_VALUE abuses
-Date: Fri, 27 May 2016 16:24:47 -0700
-Message-ID: <CA+55aFw_SZ7nydXMQKcaQJmYy1=pCg7S6mUgHJGyfGvNoRgoRg@mail.gmail.com>
-References: <1464384685-347275-1-git-send-email-arnd@arndb.de>
+From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Subject: Re: IS_ERR_VALUE misuses
+Date: Sat, 28 May 2016 14:13:07 +0200
+Message-ID: <7925824.43sdZ8TD9E@vostro.rjw.lan>
+References: <CA+55aFyi8_m0EJGcChe_SW_zzJUTJjPJjhEFbJzEL3gyhFNDLQ@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
-In-Reply-To: <1464384685-347275-1-git-send-email-arnd-r2nGTMty4D4@public.gmane.org>
-List-Unsubscribe: <https://lists.linuxfoundation.org/mailman/options/iommu>,
-	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.linuxfoundation.org/pipermail/iommu/>
-List-Post: <mailto:iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
-List-Help: <mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.linuxfoundation.org/mailman/listinfo/iommu>,
-	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=subscribe>
-Sender: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
-Errors-To: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
-To: Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>
-Cc: Linux Wireless List <linux-wireless-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux ACPI <linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux Kbuild mailing list <linux-kbuild-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, David Airlie <airlied-cv59FeDIM0c@public.gmane.org>, Network Development <netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "Rafael J. Wysocki" <rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org>, Linux Kernel Mailing List <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Adrian Hunter <adrian.hunter-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Andrzej Hajda <a.hajda-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org>, "open list:AMD IOMMU (AMD-VI)" <iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>, Thomas Gleixner <tglx-hfZtesqFncYOwBW4kG4KsQ@public.gmane.org>, V9FS Developers <v9fs-developer-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>, Bob Peterson <rpeterso-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Srinivas Kandagatla <srinivas.kandagatla-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Andrew Morton <akpm-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org>, Maxime Ripard <maxime.ripard-wi1+55ScJUtKEb57/3fJTNBPR1lH4CV8@public.gmane.org>, Russell King <linux-I+IVW8TIWO2tmTQ+vhA3Yw@public.gmane.org>, Linux Media Mailing List <linux-media-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7Bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from cloudserver094114.home.net.pl ([79.96.170.134]:55524 "HELO
+	cloudserver094114.home.net.pl" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with SMTP id S1750801AbcE1MJX (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>);
+	Sat, 28 May 2016 08:09:23 -0400
+In-Reply-To: <CA+55aFyi8_m0EJGcChe_SW_zzJUTJjPJjhEFbJzEL3gyhFNDLQ@mail.gmail.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: Dan Williams <dan.j.williams@intel.com>, Len Brown <lenb@kernel.org>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, Linux ACPI <linux-acpi@vger.kernel.org>, Arnd Bergmann <arnd@arndb.de>, Lv Zheng <lv.zheng@intel.com>
 
-On Fri, May 27, 2016 at 2:23 PM, Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org> wrote:
->
-> This patch changes all users of IS_ERR_VALUE() that I could find
-> on 32-bit ARM randconfig builds and x86 allmodconfig. For the
-> moment, this doesn't change the definition of IS_ERR_VALUE()
-> because there are probably still architecture specific users
-> elsewhere.
+On Friday, May 27, 2016 01:15:12 PM Linus Torvalds wrote:
+> This is just a heads-up: for some reason the acpi layer and nvdimm use
+> the IS_ERR_VALUE() macro, and they use it incorrectly.
+> 
+> To see warnings about it, change the macro from
+> 
+> #define IS_ERR_VALUE(x) unlikely((x) >= (unsigned long)-MAX_ERRNO)
+> 
+> to do a cast to a pointer and back (ie make the "(x)" part be
+> "(unsigned long)(void *)(x)" instead, which then will cause warnings
+> like
+> 
+>   warning: cast to pointer from integer of different size
+> [-Wint-to-pointer-cast]
+> 
+> when passed an "int" argument.
+> 
+> The reason "int" arguments are wrong is that the macro really is
+> designed to test the upper range of a pointer value. It happens to
+> work for signed integers too, but looking at the users, pretty much
+> none of them are right. The ACPI and nvdimm users are all about the
+> perfectly standard "zero for success, negative error code for
+> failure", and so using
+> 
+>     if (IS_ERROR_VALUE(rc))
+>         return rc;
+> 
+> is just plain garbage. The code generally should just do
+> 
+>     if (rc)
+>         return rc;
+> 
+> which is simpler, smaller, and generates better code.
+> 
+> This bug seems to have been so common in the power management code
+> that we even have a coccinelle script for it. But for some reason
+> several uses remain in acpi_debug.c and now there are cases in
+> drivers/nvdimm/ too.
+> 
+> There are random various crap cases like that elsewhere too, but acpi
+> and nvdimm were just more dense with this bug than most other places.
 
-Patch applied with the fixups from Al Viro edited in.
+Under drivers/acpi/ I could only find IS_ERR_VALUE() in acpi_dbg.c, but
+those instances should be removed by the Arnd's patch if I'm not mistaken.
 
-I also ended up removing a few other users (due to the vm_brk()
-interface), and then made IS_ERR_VALUE() do the "void *" cast so that
-integer use of a non-pointer size should now complain.
+Thanks,
+Rafael
 
-It works for me and has no new warnings in my allmodconfig build, and
-with your ARM work that is presumably clean too. But other
-architectures may see new warnings.
-
-People who got affected by this should check their subsystem code for
-the changes.
-
-              Linus
