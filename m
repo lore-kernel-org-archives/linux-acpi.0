@@ -1,34 +1,47 @@
-From: Linus Torvalds <torvalds@linux-foundation.org>
-Subject: Re: IS_ERR_VALUE misuses
-Date: Sat, 28 May 2016 12:15:06 -0700
-Message-ID: <CA+55aFwh79PohObOo4Y0=ZpK=Enhv+vQvQMOm+bvWnqv7-Zv=Q@mail.gmail.com>
-References: <CA+55aFyi8_m0EJGcChe_SW_zzJUTJjPJjhEFbJzEL3gyhFNDLQ@mail.gmail.com>
-	<7925824.43sdZ8TD9E@vostro.rjw.lan>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+From: Sinan Kaya <okaya@codeaurora.org>
+Subject: [PATCH V6 0/8] vfio, platform: add ACPI support
+Date: Sat, 28 May 2016 18:01:10 -0400
+Message-ID: <1464472878-27176-1-git-send-email-okaya@codeaurora.org>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-oi0-f47.google.com ([209.85.218.47]:34453 "EHLO
-	mail-oi0-f47.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750742AbcE1TPI (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sat, 28 May 2016 15:15:08 -0400
-Received: by mail-oi0-f47.google.com with SMTP id b65so219905333oia.1
-        for <linux-acpi@vger.kernel.org>; Sat, 28 May 2016 12:15:07 -0700 (PDT)
-In-Reply-To: <7925824.43sdZ8TD9E@vostro.rjw.lan>
+Received: from smtp.codeaurora.org ([198.145.29.96]:43041 "EHLO
+	smtp.codeaurora.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750798AbcE1WBZ (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sat, 28 May 2016 18:01:25 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: Dan Williams <dan.j.williams@intel.com>, Len Brown <lenb@kernel.org>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, Linux ACPI <linux-acpi@vger.kernel.org>, Arnd Bergmann <arnd@arndb.de>, Lv Zheng <lv.zheng@intel.com>
+To: kvm@vger.kernel.org, timur@codeaurora.org, cov@codeaurora.org, jcm@redhat.com, eric.auger@linaro.org
+Cc: linux-acpi@vger.kernel.org, agross@codeaurora.org, linux-arm-msm@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Sinan Kaya <okaya@codeaurora.org>
 
-On Sat, May 28, 2016 at 5:13 AM, Rafael J. Wysocki <rjw@rjwysocki.net> wrote:
->
-> Under drivers/acpi/ I could only find IS_ERR_VALUE() in acpi_dbg.c, but
-> those instances should be removed by the Arnd's patch if I'm not mistaken.
+The device tree code checks for the presence of a reset driver and calls
+the of_reset function pointer by looking up the reset driver as a module.
 
-Yes, I only saw that Arnd had a patch for this and asked him to just
-send it to me after I had already looked at this and sent the email
-out..
+ACPI defines _RST method to perform device level reset. After the _RST
+method is executed, the OS can resume using the device.
 
-The acpi/nvdimm misuses are gone now, although other suspect uses of
-that macro do remain..
+This patch checks the presence of _RST method and calls the _RST
+method when reset is requested.
 
-           Linus
+Changes from V5:
+1. Handle reset function call failures in open and release (new patch).
+2. Bring out extra debug information when failure happens (new patch).
+3. Address review comments from Eric in ACPI _RST patch.
+
+Sinan Kaya (8):
+  vfio: platform: move reset call to a common function
+  vfio: platform: determine reset capability
+  vfio: platform: add support for ACPI probe
+  vfio: platform: add extra debug info argument to call reset
+  vfio: platform: call _RST method when using ACPI
+  vfio, platform: make reset driver a requirement by default
+  vfio: platform: check reset call return code during open
+  vfio: platform: check reset call return code during release
+
+ drivers/vfio/platform/vfio_amba.c             |   5 +
+ drivers/vfio/platform/vfio_platform.c         |   5 +
+ drivers/vfio/platform/vfio_platform_common.c  | 169 ++++++++++++++++++++++----
+ drivers/vfio/platform/vfio_platform_private.h |   2 +
+ 4 files changed, 159 insertions(+), 22 deletions(-)
+
+-- 
+1.8.2.1
+
