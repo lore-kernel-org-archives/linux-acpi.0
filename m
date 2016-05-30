@@ -1,76 +1,37 @@
-From: Sinan Kaya <okaya@codeaurora.org>
-Subject: [PATCH V6 4/8] vfio: platform: add extra debug info argument to call
- reset
-Date: Sat, 28 May 2016 18:01:14 -0400
-Message-ID: <1464472878-27176-5-git-send-email-okaya@codeaurora.org>
-References: <1464472878-27176-1-git-send-email-okaya@codeaurora.org>
+From: "Zheng, Lv" <lv.zheng@intel.com>
+Subject: RE: IS_ERR_VALUE misuses
+Date: Mon, 30 May 2016 01:01:27 +0000
+Message-ID: <1AE640813FDE7649BE1B193DEA596E883BBB48BB@SHSMSX101.ccr.corp.intel.com>
+References: <CA+55aFyi8_m0EJGcChe_SW_zzJUTJjPJjhEFbJzEL3gyhFNDLQ@mail.gmail.com>
+	<7925824.43sdZ8TD9E@vostro.rjw.lan>
+ <CA+55aFwh79PohObOo4Y0=ZpK=Enhv+vQvQMOm+bvWnqv7-Zv=Q@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <1464472878-27176-1-git-send-email-okaya@codeaurora.org>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: kvm@vger.kernel.org, timur@codeaurora.org, cov@codeaurora.org, jcm@redhat.com, eric.auger@linaro.org
-Cc: Baptiste Reynal <b.reynal@virtualopensystems.com>, linux-arm-msm@vger.kernel.org, linux-kernel@vger.kernel.org, Sinan Kaya <okaya@codeaurora.org>, linux-acpi@vger.kernel.org, Alex Williamson <alex.williamson@redhat.com>, agross@codeaurora.org, linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga11.intel.com ([192.55.52.93]:9778 "EHLO mga11.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752025AbcE3BBb (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sun, 29 May 2016 21:01:31 -0400
+In-Reply-To: <CA+55aFwh79PohObOo4Y0=ZpK=Enhv+vQvQMOm+bvWnqv7-Zv=Q@mail.gmail.com>
+Content-Language: en-US
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Linus Torvalds <torvalds@linux-foundation.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Arnd Bergmann <arnd@arndb.de>
+Cc: "Williams, Dan J" <dan.j.williams@intel.com>, Len Brown <lenb@kernel.org>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, Linux ACPI <linux-acpi@vger.kernel.org>
 
-Getting ready to bring out extra debug information to the caller
-so that more verbose information can be printed when an error is
-observed.
-
-Signed-off-by: Sinan Kaya <okaya@codeaurora.org>
----
- drivers/vfio/platform/vfio_platform_common.c | 9 +++++----
- 1 file changed, 5 insertions(+), 4 deletions(-)
-
-diff --git a/drivers/vfio/platform/vfio_platform_common.c b/drivers/vfio/platform/vfio_platform_common.c
-index fbf4565..e7ce2c2 100644
---- a/drivers/vfio/platform/vfio_platform_common.c
-+++ b/drivers/vfio/platform/vfio_platform_common.c
-@@ -171,7 +171,8 @@ static void vfio_platform_regions_cleanup(struct vfio_platform_device *vdev)
- 	kfree(vdev->regions);
- }
- 
--static int vfio_platform_call_reset(struct vfio_platform_device *vdev)
-+static int vfio_platform_call_reset(struct vfio_platform_device *vdev,
-+				    const char **extra_dbg)
- {
- 	if (vdev->of_reset) {
- 		dev_info(vdev->device, "reset\n");
-@@ -189,7 +190,7 @@ static void vfio_platform_release(void *device_data)
- 	mutex_lock(&driver_lock);
- 
- 	if (!(--vdev->refcnt)) {
--		vfio_platform_call_reset(vdev);
-+		vfio_platform_call_reset(vdev, NULL);
- 		vfio_platform_regions_cleanup(vdev);
- 		vfio_platform_irq_cleanup(vdev);
- 	}
-@@ -218,7 +219,7 @@ static int vfio_platform_open(void *device_data)
- 		if (ret)
- 			goto err_irq;
- 
--		vfio_platform_call_reset(vdev);
-+		vfio_platform_call_reset(vdev, NULL);
- 	}
- 
- 	vdev->refcnt++;
-@@ -350,7 +351,7 @@ static long vfio_platform_ioctl(void *device_data,
- 		return ret;
- 
- 	} else if (cmd == VFIO_DEVICE_RESET) {
--		return vfio_platform_call_reset(vdev);
-+		return vfio_platform_call_reset(vdev, NULL);
- 	}
- 
- 	return -ENOTTY;
--- 
-1.8.2.1
+SGksIFJhZmFlbCwgTGludXMsIEFybmQNCg0KVGhlIGluc3RhbmNlcyBpbiBkcml2ZXJzL2FjcGkv
+YWNwaV9kYmcuYyB3ZXJlIG1hZGUgYnkgbWUuDQpTb3JyeSBmb3IgdGhlIGlzc3VlIGFuZCB0aGFu
+a3MgZm9yIGZpeGluZyBpdCBmb3IgbWUuDQoNCkJlc3QgcmVnYXJkcw0KLUx2DQoNCj4gRnJvbTog
+bGludXM5NzFAZ21haWwuY29tIFttYWlsdG86bGludXM5NzFAZ21haWwuY29tXSBPbiBCZWhhbGYg
+T2YNCj4gTGludXMgVG9ydmFsZHMNCj4gU3ViamVjdDogUmU6IElTX0VSUl9WQUxVRSBtaXN1c2Vz
+DQo+IA0KPiBPbiBTYXQsIE1heSAyOCwgMjAxNiBhdCA1OjEzIEFNLCBSYWZhZWwgSi4gV3lzb2Nr
+aSA8cmp3QHJqd3lzb2NraS5uZXQ+DQo+IHdyb3RlOg0KPiA+DQo+ID4gVW5kZXIgZHJpdmVycy9h
+Y3BpLyBJIGNvdWxkIG9ubHkgZmluZCBJU19FUlJfVkFMVUUoKSBpbiBhY3BpX2RiZy5jLCBidXQN
+Cj4gPiB0aG9zZSBpbnN0YW5jZXMgc2hvdWxkIGJlIHJlbW92ZWQgYnkgdGhlIEFybmQncyBwYXRj
+aCBpZiBJJ20gbm90DQo+IG1pc3Rha2VuLg0KPiANCj4gWWVzLCBJIG9ubHkgc2F3IHRoYXQgQXJu
+ZCBoYWQgYSBwYXRjaCBmb3IgdGhpcyBhbmQgYXNrZWQgaGltIHRvIGp1c3QNCj4gc2VuZCBpdCB0
+byBtZSBhZnRlciBJIGhhZCBhbHJlYWR5IGxvb2tlZCBhdCB0aGlzIGFuZCBzZW50IHRoZSBlbWFp
+bA0KPiBvdXQuLg0KPiANCj4gVGhlIGFjcGkvbnZkaW1tIG1pc3VzZXMgYXJlIGdvbmUgbm93LCBh
+bHRob3VnaCBvdGhlciBzdXNwZWN0IHVzZXMgb2YNCj4gdGhhdCBtYWNybyBkbyByZW1haW4uLg0K
+PiANCj4gICAgICAgICAgICBMaW51cw0K
