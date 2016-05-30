@@ -1,110 +1,289 @@
-From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Subject: Re: [patch v2 net-next 00/13] net: hns: add support of ACPI
-Date: Mon, 30 May 2016 11:28:33 +0300
-Message-ID: <1464596913.27624.53.camel@linux.intel.com>
-References: <1464574222-69608-1-git-send-email-yankejian@huawei.com>
+From: Yisen Zhuang <Yisen.Zhuang@huawei.com>
+Subject: [PATCH v3 net-next 12/13] net: hns: implement the miscellaneous operation by asl
+Date: Mon, 30 May 2016 20:34:23 +0800
+Message-ID: <1464611664-93775-13-git-send-email-Yisen.Zhuang@huawei.com>
+References: <1464611664-93775-1-git-send-email-Yisen.Zhuang@huawei.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1464574222-69608-1-git-send-email-yankejian@huawei.com>
+In-Reply-To: <1464611664-93775-1-git-send-email-Yisen.Zhuang@huawei.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Kejian Yan <yankejian@huawei.com>, rjw@rjwysocki.net, lenb@kernel.org, davem@davemloft.net
-Cc: fengguang.wu@intel.com, andrew@lunn.ch, ivecera@redhat.com, f.fainelli@gmail.com, haifeng.wei@huawei.com, charles.chenxin@huawei.com, netdev@vger.kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, linuxarm@huawei.com
+To: rjw@rjwysocki.net, lenb@kernel.org, davem@davemloft.net
+Cc: fengguang.wu@intel.com, andriy.shevchenko@linux.intel.com, andrew@lunn.ch, ivecera@redhat.com, f.fainelli@gmail.com, haifeng.wei@huawei.com, charles.chenxin@huawei.com, netdev@vger.kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, linuxarm@huawei.com
 List-Id: linux-acpi@vger.kernel.org
 
-On Mon, 2016-05-30 at 10:10 +0800, Kejian Yan wrote:
-> This series adds HNS support of acpi. The routine will call some ACPI
-> helper functions, like acpi_dev_found() and acpi_evaluate_dsm(), whic=
-h
-> are not included in other cases. In order to make system compile
-> successfully in other cases except ACPI, it needs to add relative stu=
-b
-> functions to linux/acpi.h. And we use device property functions
-> instead
-> of serial helper functions to suport both DT and ACPI cases. And then
-> add the supports of ACPI for HNS.
+From: Kejian Yan <yankejian@huawei.com>
 
-Looks better. I have only kinda bikeshedding comments in mind, which I
-didn't put here, though there is one you perhaps need to address.
+The miscellaneous operation is implemented in BIOS, the kernel can call
+_DSM method help to call the implementation in ACPI case. Here is a patch
+to do that.
 
-Otherwise FWIW:
+Signed-off-by: Kejian Yan <yankejian@huawei.com>
 Reviewed-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-
->=20
-> change log:
-> =C2=A0v1 -> v2:
-> =C2=A01. use acpi_dev_found() instead of acpi_match_device_ids() to c=
-heck
-> if
-> it is a acpi node.
-> =C2=A02. use is_of_node() instead of IS_ENABLED() to check if it is a=
- DT
-> node.
-> =C2=A03. split the patch("add support of acpi for hns-mdio") into two
-> patches:
-> =C2=A0=C2=A0=C2=A0=C2=A03.1 Move to use fwnode_handle
-> =C2=A0=C2=A0=C2=A0=C2=A03.2 Add ACPI
-> =C2=A04. add the patch which subject is dsaf misc operation method
-> =C2=A05. fix the comments by Andy Shevchenko
->=20
-> Kejian Yan (13):
-> =C2=A0 ACPI: bus: add stub acpi_dev_found() to linux/acpi.h
-> =C2=A0 ACPI: bus: add stub acpi_evaluate_dsm() to linux/acpi.h
-> =C2=A0 net: hisilicon: cleanup to prepare for other cases
-> =C2=A0 net: hisilicon: add support of acpi for hns-mdio
-> =C2=A0 net: hns: use device_* APIs instead of of_* APIs
-> =C2=A0 net: hns: use platform_get_irq instead of irq_of_parse_and_map
-> =C2=A0 net: hns: enet specify a reference to dsaf by fwnode_handle
-> =C2=A0 net: hns: add uniform interface for phy connection
-> =C2=A0 net: hns: add dsaf misc operation method
-> =C2=A0 net: hns: dsaf adds support of acpi
-> =C2=A0 net: hns: register phy device in each mac initial sequence
-> =C2=A0 net: hns: implement the miscellaneous operation by asl
-> =C2=A0 net: hns: net: hns: enet adds support of acpi
->=20
-> =C2=A0drivers/net/ethernet/hisilicon/hns/hnae.c=C2=A0=C2=A0=C2=A0=C2=A0=
-=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0|=C2=A0=C2=A018 +-
-> =C2=A0drivers/net/ethernet/hisilicon/hns/hnae.h=C2=A0=C2=A0=C2=A0=C2=A0=
-=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0|=C2=A0=C2=A0=C2=A05 +-
-> =C2=A0drivers/net/ethernet/hisilicon/hns/hns_ae_adapt.c=C2=A0=C2=A0|=C2=
-=A0=C2=A0=C2=A06 +-
-> =C2=A0drivers/net/ethernet/hisilicon/hns/hns_dsaf_gmac.c |=C2=A0=C2=A0=
-=C2=A06 +-
-> =C2=A0drivers/net/ethernet/hisilicon/hns/hns_dsaf_mac.c=C2=A0=C2=A0| =
-247
-> +++++++++++++++-----
-> =C2=A0drivers/net/ethernet/hisilicon/hns/hns_dsaf_mac.h=C2=A0=C2=A0|=C2=
-=A0=C2=A0=C2=A04 +-
-> =C2=A0drivers/net/ethernet/hisilicon/hns/hns_dsaf_main.c | 105 ++++++=
+Signed-off-by: Yisen Zhuang <Yisen.Zhuang@huawei.com>
 ---
-> =C2=A0drivers/net/ethernet/hisilicon/hns/hns_dsaf_main.h |=C2=A0=C2=A0=
-33 ++-
-> =C2=A0drivers/net/ethernet/hisilicon/hns/hns_dsaf_misc.c | 250
-> ++++++++++++++++++---
-> =C2=A0drivers/net/ethernet/hisilicon/hns/hns_dsaf_misc.h |=C2=A0=C2=A0=
-=C2=A07 +-
-> =C2=A0drivers/net/ethernet/hisilicon/hns/hns_dsaf_ppe.c=C2=A0=C2=A0|=C2=
-=A0=C2=A015 +-
-> =C2=A0drivers/net/ethernet/hisilicon/hns/hns_dsaf_rcb.c=C2=A0=C2=A0|=C2=
-=A0=C2=A0=C2=A05 +-
-> =C2=A0.../net/ethernet/hisilicon/hns/hns_dsaf_xgmac.c=C2=A0=C2=A0=C2=A0=
-=C2=A0|=C2=A0=C2=A010 +-
-> =C2=A0drivers/net/ethernet/hisilicon/hns/hns_enet.c=C2=A0=C2=A0=C2=A0=
-=C2=A0=C2=A0=C2=A0|=C2=A0=C2=A090 +++++---
-> =C2=A0drivers/net/ethernet/hisilicon/hns/hns_enet.h=C2=A0=C2=A0=C2=A0=
-=C2=A0=C2=A0=C2=A0|=C2=A0=C2=A0=C2=A02 +-
-> =C2=A0drivers/net/ethernet/hisilicon/hns/hns_ethtool.c=C2=A0=C2=A0=C2=
-=A0|=C2=A0=C2=A0=C2=A02 +-
-> =C2=A0drivers/net/ethernet/hisilicon/hns_mdio.c=C2=A0=C2=A0=C2=A0=C2=A0=
-=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0| 147 +++++++-----
-> =C2=A0include/linux/acpi.h=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=
-=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=
-=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0|=C2=
-=A0=C2=A013 ++
-> =C2=A018 files changed, 710 insertions(+), 255 deletions(-)
->=20
+change log:
+ v3: fix potential memory leak
+     add Reviewed-by: Andy Shevchenko
 
---=20
-Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Intel Finland Oy
+ v2: use a serial function to implement the reset sequence
+  link: https://lkml.org/lkml/2016/5/29/186
+
+ v1: first submit
+  link: https://lkml.org/lkml/2016/5/13/94
+---
+ drivers/net/ethernet/hisilicon/hns/hns_dsaf_misc.c | 171 +++++++++++++++++++++
+ 1 file changed, 171 insertions(+)
+
+diff --git a/drivers/net/ethernet/hisilicon/hns/hns_dsaf_misc.c b/drivers/net/ethernet/hisilicon/hns/hns_dsaf_misc.c
+index f21177b..6a75d81 100644
+--- a/drivers/net/ethernet/hisilicon/hns/hns_dsaf_misc.c
++++ b/drivers/net/ethernet/hisilicon/hns/hns_dsaf_misc.c
+@@ -12,6 +12,27 @@
+ #include "hns_dsaf_ppe.h"
+ #include "hns_dsaf_reg.h"
+ 
++enum _dsm_op_index {
++	HNS_OP_RESET_FUNC               = 0x1,
++	HNS_OP_SERDES_LP_FUNC           = 0x2,
++	HNS_OP_LED_SET_FUNC             = 0x3,
++	HNS_OP_GET_PORT_TYPE_FUNC       = 0x4,
++	HNS_OP_GET_SFP_STAT_FUNC        = 0x5,
++};
++
++enum _dsm_rst_type {
++	HNS_DSAF_RESET_FUNC     = 0x1,
++	HNS_PPE_RESET_FUNC      = 0x2,
++	HNS_XGE_CORE_RESET_FUNC = 0x3,
++	HNS_XGE_RESET_FUNC      = 0x4,
++	HNS_GE_RESET_FUNC       = 0x5,
++};
++
++const u8 hns_dsaf_acpi_dsm_uuid[] = {
++	0x1A, 0xAA, 0x85, 0x1A, 0x93, 0xE2, 0x5E, 0x41,
++	0x8E, 0x28, 0x8D, 0x69, 0x0A, 0x0F, 0x82, 0x0A
++};
++
+ static void dsaf_write_sub(struct dsaf_device *dsaf_dev, u32 reg, u32 val)
+ {
+ 	if (dsaf_dev->sub_ctrl)
+@@ -109,6 +130,34 @@ static int cpld_set_led_id(struct hns_mac_cb *mac_cb,
+ 
+ #define RESET_REQ_OR_DREQ 1
+ 
++static void hns_dsaf_acpi_srst_by_port(struct dsaf_device *dsaf_dev, u8 op_type,
++				       u32 port_type, u32 port, u32 val)
++{
++	union acpi_object *obj;
++	union acpi_object obj_args[3], argv4;
++
++	obj_args[0].integer.type = ACPI_TYPE_INTEGER;
++	obj_args[0].integer.value = port_type;
++	obj_args[1].integer.type = ACPI_TYPE_INTEGER;
++	obj_args[1].integer.value = port;
++	obj_args[2].integer.type = ACPI_TYPE_INTEGER;
++	obj_args[2].integer.value = val;
++
++	argv4.type = ACPI_TYPE_PACKAGE;
++	argv4.package.count = 3;
++	argv4.package.elements = obj_args;
++
++	obj = acpi_evaluate_dsm(ACPI_HANDLE(dsaf_dev->dev),
++				hns_dsaf_acpi_dsm_uuid, 0, op_type, &argv4);
++	if (!obj) {
++		dev_warn(dsaf_dev->dev, "reset port_type%d port%d fail!",
++			 port_type, port);
++		return;
++	}
++
++	ACPI_FREE(obj);
++}
++
+ static void hns_dsaf_rst(struct dsaf_device *dsaf_dev, bool dereset)
+ {
+ 	u32 xbar_reg_addr;
+@@ -126,6 +175,13 @@ static void hns_dsaf_rst(struct dsaf_device *dsaf_dev, bool dereset)
+ 	dsaf_write_sub(dsaf_dev, nt_reg_addr, RESET_REQ_OR_DREQ);
+ }
+ 
++static void hns_dsaf_rst_acpi(struct dsaf_device *dsaf_dev, bool dereset)
++{
++	hns_dsaf_acpi_srst_by_port(dsaf_dev, HNS_OP_RESET_FUNC,
++				   HNS_DSAF_RESET_FUNC,
++				   0, dereset);
++}
++
+ static void hns_dsaf_xge_srst_by_port(struct dsaf_device *dsaf_dev, u32 port,
+ 				      bool dereset)
+ {
+@@ -146,6 +202,13 @@ static void hns_dsaf_xge_srst_by_port(struct dsaf_device *dsaf_dev, u32 port,
+ 	dsaf_write_sub(dsaf_dev, reg_addr, reg_val);
+ }
+ 
++static void hns_dsaf_xge_srst_by_port_acpi(struct dsaf_device *dsaf_dev,
++					   u32 port, bool dereset)
++{
++	hns_dsaf_acpi_srst_by_port(dsaf_dev, HNS_OP_RESET_FUNC,
++				   HNS_XGE_RESET_FUNC, port, dereset);
++}
++
+ static void hns_dsaf_xge_core_srst_by_port(struct dsaf_device *dsaf_dev,
+ 					   u32 port, bool dereset)
+ {
+@@ -166,6 +229,14 @@ static void hns_dsaf_xge_core_srst_by_port(struct dsaf_device *dsaf_dev,
+ 	dsaf_write_sub(dsaf_dev, reg_addr, reg_val);
+ }
+ 
++static void
++hns_dsaf_xge_core_srst_by_port_acpi(struct dsaf_device *dsaf_dev,
++				    u32 port, bool dereset)
++{
++	hns_dsaf_acpi_srst_by_port(dsaf_dev, HNS_OP_RESET_FUNC,
++				   HNS_XGE_CORE_RESET_FUNC, port, dereset);
++}
++
+ static void hns_dsaf_ge_srst_by_port(struct dsaf_device *dsaf_dev, u32 port,
+ 				     bool dereset)
+ {
+@@ -218,6 +289,13 @@ static void hns_dsaf_ge_srst_by_port(struct dsaf_device *dsaf_dev, u32 port,
+ 	}
+ }
+ 
++static void hns_dsaf_ge_srst_by_port_acpi(struct dsaf_device *dsaf_dev,
++					  u32 port, bool dereset)
++{
++	hns_dsaf_acpi_srst_by_port(dsaf_dev, HNS_OP_RESET_FUNC,
++				   HNS_GE_RESET_FUNC, port, dereset);
++}
++
+ static void hns_ppe_srst_by_port(struct dsaf_device *dsaf_dev, u32 port,
+ 				 bool dereset)
+ {
+@@ -234,11 +312,21 @@ static void hns_ppe_srst_by_port(struct dsaf_device *dsaf_dev, u32 port,
+ 	dsaf_write_sub(dsaf_dev, reg_addr, reg_val);
+ }
+ 
++static void
++hns_ppe_srst_by_port_acpi(struct dsaf_device *dsaf_dev, u32 port, bool dereset)
++{
++	hns_dsaf_acpi_srst_by_port(dsaf_dev, HNS_OP_RESET_FUNC,
++				   HNS_PPE_RESET_FUNC, port, dereset);
++}
++
+ static void hns_ppe_com_srst(struct dsaf_device *dsaf_dev, bool dereset)
+ {
+ 	u32 reg_val;
+ 	u32 reg_addr;
+ 
++	if (!(dev_of_node(dsaf_dev->dev)))
++		return;
++
+ 	if (!HNS_DSAF_IS_DEBUG(dsaf_dev)) {
+ 		reg_val = RESET_REQ_OR_DREQ;
+ 		if (!dereset)
+@@ -295,6 +383,40 @@ static phy_interface_t hns_mac_get_phy_if(struct hns_mac_cb *mac_cb)
+ 	return phy_if;
+ }
+ 
++static phy_interface_t hns_mac_get_phy_if_acpi(struct hns_mac_cb *mac_cb)
++{
++	phy_interface_t phy_if = PHY_INTERFACE_MODE_NA;
++	union acpi_object *obj;
++	union acpi_object obj_args, argv4;
++
++	obj_args.integer.type = ACPI_TYPE_INTEGER;
++	obj_args.integer.value = mac_cb->mac_id;
++
++	argv4.type = ACPI_TYPE_PACKAGE,
++	argv4.package.count = 1,
++	argv4.package.elements = &obj_args,
++
++	obj = acpi_evaluate_dsm(ACPI_HANDLE(mac_cb->dev),
++				hns_dsaf_acpi_dsm_uuid, 0,
++				HNS_OP_GET_PORT_TYPE_FUNC, &argv4);
++
++	if (!obj)
++		return phy_if;
++
++	if (obj->type != ACPI_TYPE_INTEGER)
++		goto exit_free;
++
++	phy_if = obj->integer.value ?
++		PHY_INTERFACE_MODE_XGMII : PHY_INTERFACE_MODE_SGMII;
++
++	dev_dbg(mac_cb->dev, "mac_id=%d, phy_if=%d\n", mac_cb->mac_id, phy_if);
++
++exit_free:
++	ACPI_FREE(obj);
++
++	return phy_if;
++}
++
+ int hns_mac_get_sfp_prsnt(struct hns_mac_cb *mac_cb, int *sfp_prsnt)
+ {
+ 	if (!mac_cb->cpld_ctrl)
+@@ -354,6 +476,36 @@ static int hns_mac_config_sds_loopback(struct hns_mac_cb *mac_cb, bool en)
+ 	return 0;
+ }
+ 
++static int
++hns_mac_config_sds_loopback_acpi(struct hns_mac_cb *mac_cb, bool en)
++{
++	union acpi_object *obj;
++	union acpi_object obj_args[3], argv4;
++
++	obj_args[0].integer.type = ACPI_TYPE_INTEGER;
++	obj_args[0].integer.value = mac_cb->mac_id;
++	obj_args[1].integer.type = ACPI_TYPE_INTEGER;
++	obj_args[1].integer.value = !!en;
++
++	argv4.type = ACPI_TYPE_PACKAGE;
++	argv4.package.count = 2;
++	argv4.package.elements = obj_args;
++
++	obj = acpi_evaluate_dsm(ACPI_HANDLE(mac_cb->dsaf_dev->dev),
++				hns_dsaf_acpi_dsm_uuid, 0,
++				HNS_OP_SERDES_LP_FUNC, &argv4);
++	if (!obj) {
++		dev_warn(mac_cb->dsaf_dev->dev, "set port%d serdes lp fail!",
++			 mac_cb->mac_id);
++
++		return -ENOTSUPP;
++	}
++
++	ACPI_FREE(obj);
++
++	return 0;
++}
++
+ struct dsaf_misc_op *hns_misc_op_get(struct dsaf_device *dsaf_dev)
+ {
+ 	struct dsaf_misc_op *misc_op;
+@@ -378,6 +530,25 @@ struct dsaf_misc_op *hns_misc_op_get(struct dsaf_device *dsaf_dev)
+ 		misc_op->get_sfp_prsnt = hns_mac_get_sfp_prsnt;
+ 
+ 		misc_op->cfg_serdes_loopback = hns_mac_config_sds_loopback;
++	} else if (is_acpi_node(dsaf_dev->dev->fwnode)) {
++		misc_op->cpld_set_led = hns_cpld_set_led;
++		misc_op->cpld_reset_led = cpld_led_reset;
++		misc_op->cpld_set_led_id = cpld_set_led_id;
++
++		misc_op->dsaf_reset = hns_dsaf_rst_acpi;
++		misc_op->xge_srst = hns_dsaf_xge_srst_by_port_acpi;
++		misc_op->xge_core_srst = hns_dsaf_xge_core_srst_by_port_acpi;
++		misc_op->ge_srst = hns_dsaf_ge_srst_by_port_acpi;
++		misc_op->ppe_srst = hns_ppe_srst_by_port_acpi;
++		misc_op->ppe_comm_srst = hns_ppe_com_srst;
++
++		misc_op->get_phy_if = hns_mac_get_phy_if_acpi;
++		misc_op->get_sfp_prsnt = hns_mac_get_sfp_prsnt;
++
++		misc_op->cfg_serdes_loopback = hns_mac_config_sds_loopback_acpi;
++	} else {
++		devm_kfree(dsaf_dev->dev, (void *)misc_op);
++		misc_op = NULL;
+ 	}
+ 
+ 	return (void *)misc_op;
+-- 
+1.9.1
