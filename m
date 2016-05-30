@@ -1,7 +1,7 @@
 From: Tomasz Nowicki <tn@semihalf.com>
-Subject: [PATCH V8 3/9] pci: Add new function to unmap IO resources.
-Date: Mon, 30 May 2016 17:14:16 +0200
-Message-ID: <1464621262-26770-4-git-send-email-tn@semihalf.com>
+Subject: [PATCH V8 5/9] pci, acpi: add acpi hook to assign domain number.
+Date: Mon, 30 May 2016 17:14:18 +0200
+Message-ID: <1464621262-26770-6-git-send-email-tn@semihalf.com>
 References: <1464621262-26770-1-git-send-email-tn@semihalf.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -18,68 +18,95 @@ List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
 Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
 Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
 To: helgaas@kernel.org, arnd@arndb.de, will.deacon@arm.com, catalin.marinas@arm.com, rafael@kernel.org, hanjun.guo@linaro.org, Lorenzo.Pieralisi@arm.com, okaya@codeaurora.org, jchandra@broadcom.com
-Cc: jcm@redhat.com, linaro-acpi@lists.linaro.org, linux-pci@vger.kernel.org, dhdang@apm.com, Liviu.Dudau@arm.com, ddaney@caviumnetworks.com, jeremy.linton@arm.com, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, robert.richter@caviumnetworks.com, cov@codeaurora.org, Suravee.Suthikulpanit@amd.com, msalter@redhat.com, wangyijing@huawei.com, Tomasz Nowicki <tn@semihalf.com>, mw@semihalf.com, andrea.gallo@linaro.org, linux-arm-kernel@lists.infradead.org, liudongdong3@huawei.com
+Cc: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, jcm@redhat.com, linaro-acpi@lists.linaro.org, linux-pci@vger.kernel.org, dhdang@apm.com, Liviu.Dudau@arm.com, ddaney@caviumnetworks.com, jeremy.linton@arm.com, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, robert.richter@caviumnetworks.com, cov@codeaurora.org, Suravee.Suthikulpanit@amd.com, msalter@redhat.com, wangyijing@huawei.com, Tomasz Nowicki <tn@semihalf.com>, mw@semihalf.com, andrea.gallo@linaro.org, linux-arm-kernel@lists.infradead.org, liudongdong3@huawei.com
 List-Id: linux-acpi@vger.kernel.org
 
-We need to release I/O resources so that the same I/O resources
-can be allocated again (pci_remap_iospace), like in PCI hotplug removal
-scenario. Therefore this patch implements new pci_unmap_iospace call which
-unmaps I/O space as the symmetry to pci_remap_iospace.
+PCI core code provides a config option (CONFIG_PCI_DOMAINS_GENERIC)
+that allows assigning the PCI bus domain number generically by
+relying on device tree bindings, and falling back to a simple counter
+when the respective DT properties (ie "linux,pci-domain") are not
+specified in the host bridge device tree node.
 
-Signed-off-by: Sinan Kaya <okaya@codeaurora.org>
+In a similar way, when a system is booted through ACPI, architectures
+that are selecting CONFIG_PCI_DOMAINS_GENERIC (ie ARM64) require kernel
+hooks to retrieve the domain number so that the PCI bus domain number
+set-up can be handled seamlessly with DT and ACPI in generic core code
+when CONFIG_PCI_DOMAINS_GENERIC is selected.
+
+Since currently it is not possible to retrieve a pointer to the PCI
+host bridge ACPI device backing the host bridge from core PCI code
+(which would allow retrieving the domain number in an arch agnostic
+way through the ACPI _SEG method), an arch specific ACPI hook has to
+be declared and implemented by all arches that rely on
+CONFIG_PCI_DOMAINS_GENERIC to retrieve the domain number and set it
+up in core PCI code.
+
+For the aforementioned reasons, this patch introduces a dummy
+acpi_pci_bus_domain_nr() hook in preparation for per-arch implementation
+of the same to retrieve the domain number on a per-arch basis when
+the system boots through ACPI.
+
+For the sake of code clarity the current code implementing generic
+domain number assignment (ie pci_bus_assign_domain_nr(), selected by
+CONFIG_PCI_DOMAINS_GENERIC) is reshuffled so that the code implementing
+the DT domain assignment function is stubbed out into a corresponding
+helper, so that DT and ACPI functions are clearly separated in
+preparation for arches acpi_pci_bus_domain_nr() implementations.
+
 Signed-off-by: Tomasz Nowicki <tn@semihalf.com>
+Signed-off-by: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
 ---
- drivers/pci/pci.c   | 18 ++++++++++++++++++
+ drivers/pci/pci.c   | 11 +++++++++--
  include/linux/pci.h |  1 +
- 2 files changed, 19 insertions(+)
+ 2 files changed, 10 insertions(+), 2 deletions(-)
 
 diff --git a/drivers/pci/pci.c b/drivers/pci/pci.c
-index c8b4dbd..eb431b5 100644
+index eb431b5..2b52178 100644
 --- a/drivers/pci/pci.c
 +++ b/drivers/pci/pci.c
-@@ -25,6 +25,7 @@
- #include <linux/device.h>
- #include <linux/pm_runtime.h>
- #include <linux/pci_hotplug.h>
-+#include <linux/vmalloc.h>
- #include <asm/setup.h>
- #include <linux/aer.h>
- #include "pci.h"
-@@ -3165,6 +3166,23 @@ int __weak pci_remap_iospace(const struct resource *res, phys_addr_t phys_addr)
- #endif
+@@ -7,6 +7,7 @@
+  *	Copyright 1997 -- 2000 Martin Mares <mj@ucw.cz>
+  */
+ 
++#include <linux/acpi.h>
+ #include <linux/kernel.h>
+ #include <linux/delay.h>
+ #include <linux/init.h>
+@@ -4941,7 +4942,7 @@ int pci_get_new_domain_nr(void)
  }
  
-+/**
-+ *	pci_unmap_iospace - Unmap the memory mapped I/O space
-+ *	@res: resource to be unmapped
-+ *
-+ *	Unmap the CPU virtual address @res from virtual address space.
-+ *	Only architectures that have memory mapped IO functions defined
-+ *	(and the PCI_IOBASE value defined) should call this function.
-+ */
-+void pci_unmap_iospace(struct resource *res)
-+{
-+#if defined(PCI_IOBASE) && defined(CONFIG_MMU)
-+	unsigned long vaddr = (unsigned long)PCI_IOBASE + res->start;
-+
-+	unmap_kernel_range(vaddr, resource_size(res));
-+#endif
+ #ifdef CONFIG_PCI_DOMAINS_GENERIC
+-void pci_bus_assign_domain_nr(struct pci_bus *bus, struct device *parent)
++static int of_pci_bus_domain_nr(struct device *parent)
+ {
+ 	static int use_dt_domains = -1;
+ 	int domain = -1;
+@@ -4985,7 +4986,13 @@ void pci_bus_assign_domain_nr(struct pci_bus *bus, struct device *parent)
+ 		domain = -1;
+ 	}
+ 
+-	bus->domain_nr = domain;
++	return domain;
 +}
 +
- static void __pci_set_master(struct pci_dev *dev, bool enable)
- {
- 	u16 old_cmd, cmd;
++void pci_bus_assign_domain_nr(struct pci_bus *bus, struct device *parent)
++{
++	bus->domain_nr = acpi_disabled ? of_pci_bus_domain_nr(parent) :
++					 acpi_pci_bus_domain_nr(bus);
+ }
+ #endif
+ #endif
 diff --git a/include/linux/pci.h b/include/linux/pci.h
-index b67e4df..12349de 100644
+index 12349de..bba4053 100644
 --- a/include/linux/pci.h
 +++ b/include/linux/pci.h
-@@ -1167,6 +1167,7 @@ int pci_register_io_range(phys_addr_t addr, resource_size_t size);
- unsigned long pci_address_to_pio(phys_addr_t addr);
- phys_addr_t pci_pio_to_address(unsigned long pio);
- int pci_remap_iospace(const struct resource *res, phys_addr_t phys_addr);
-+void pci_unmap_iospace(struct resource *res);
- 
- static inline pci_bus_addr_t pci_bus_address(struct pci_dev *pdev, int bar)
+@@ -1390,6 +1390,7 @@ static inline int pci_domain_nr(struct pci_bus *bus)
  {
+ 	return bus->domain_nr;
+ }
++static inline int acpi_pci_bus_domain_nr(struct pci_bus *bus) { return -1; }
+ void pci_bus_assign_domain_nr(struct pci_bus *bus, struct device *parent);
+ #else
+ static inline void pci_bus_assign_domain_nr(struct pci_bus *bus,
 -- 
 1.9.1
