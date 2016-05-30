@@ -1,112 +1,41 @@
-From: Tomasz Nowicki <tn@semihalf.com>
-Subject: [PATCH V8 5/9] pci, acpi: add acpi hook to assign domain number.
-Date: Mon, 30 May 2016 17:14:18 +0200
-Message-ID: <1464621262-26770-6-git-send-email-tn@semihalf.com>
-References: <1464621262-26770-1-git-send-email-tn@semihalf.com>
+From: Arnd Bergmann <arnd@arndb.de>
+Subject: Re: [PATCH V8 9/9] pci, acpi: ARM64 support for ACPI based generic PCI host controller
+Date: Mon, 30 May 2016 17:38:13 +0200
+Message-ID: <8385994.W7ve9PrvHG@wuerfel>
+References: <1464621262-26770-1-git-send-email-tn@semihalf.com> <1464621262-26770-10-git-send-email-tn@semihalf.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <1464621262-26770-1-git-send-email-tn@semihalf.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: helgaas@kernel.org, arnd@arndb.de, will.deacon@arm.com, catalin.marinas@arm.com, rafael@kernel.org, hanjun.guo@linaro.org, Lorenzo.Pieralisi@arm.com, okaya@codeaurora.org, jchandra@broadcom.com
-Cc: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, jcm@redhat.com, linaro-acpi@lists.linaro.org, linux-pci@vger.kernel.org, dhdang@apm.com, Liviu.Dudau@arm.com, ddaney@caviumnetworks.com, jeremy.linton@arm.com, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, robert.richter@caviumnetworks.com, cov@codeaurora.org, Suravee.Suthikulpanit@amd.com, msalter@redhat.com, wangyijing@huawei.com, Tomasz Nowicki <tn@semihalf.com>, mw@semihalf.com, andrea.gallo@linaro.org, linux-arm-kernel@lists.infradead.org, liudongdong3@huawei.com
+Content-Transfer-Encoding: 7Bit
+Return-path: <linux-pci-owner@vger.kernel.org>
+In-Reply-To: <1464621262-26770-10-git-send-email-tn@semihalf.com>
+Sender: linux-pci-owner@vger.kernel.org
+To: Tomasz Nowicki <tn@semihalf.com>
+Cc: helgaas@kernel.org, will.deacon@arm.com, catalin.marinas@arm.com, rafael@kernel.org, hanjun.guo@linaro.org, Lorenzo.Pieralisi@arm.com, okaya@codeaurora.org, jchandra@broadcom.com, robert.richter@caviumnetworks.com, mw@semihalf.com, Liviu.Dudau@arm.com, ddaney@caviumnetworks.com, wangyijing@huawei.com, Suravee.Suthikulpanit@amd.com, msalter@redhat.com, linux-pci@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linaro-acpi@lists.linaro.org, jcm@redhat.com, andrea.gallo@linaro.org, dhdang@apm.com, jeremy.linton@arm.com, liudongdong3@huawei.com, cov@codeaurora.org
 List-Id: linux-acpi@vger.kernel.org
 
-PCI core code provides a config option (CONFIG_PCI_DOMAINS_GENERIC)
-that allows assigning the PCI bus domain number generically by
-relying on device tree bindings, and falling back to a simple counter
-when the respective DT properties (ie "linux,pci-domain") are not
-specified in the host bridge device tree node.
+On Monday, May 30, 2016 5:14:22 PM CEST Tomasz Nowicki wrote:
+> +       bsz = 1 << pci_generic_ecam_ops.bus_shift;
+> +       cfgres.start = root->mcfg_addr + bus_res->start * bsz;
+> +       cfgres.end = cfgres.start + resource_size(bus_res) * bsz - 1;
+> +       cfgres.flags = IORESOURCE_MEM;
+> +       cfg = pci_ecam_create(&root->device->dev, &cfgres, bus_res,
+> +                             &pci_generic_ecam_ops);
+> +       if (IS_ERR(cfg)) {
+> +               pr_err("%04x:%pR error %ld mapping CAM\n", seg, bus_res,
+> +                      PTR_ERR(cfg));
+> +               return PTR_ERR(cfg);
+> +       }
+> +
+> +       ri->cfg = cfg;
+> +       return 0;
+> +}
 
-In a similar way, when a system is booted through ACPI, architectures
-that are selecting CONFIG_PCI_DOMAINS_GENERIC (ie ARM64) require kernel
-hooks to retrieve the domain number so that the PCI bus domain number
-set-up can be handled seamlessly with DT and ACPI in generic core code
-when CONFIG_PCI_DOMAINS_GENERIC is selected.
+I wonder if we could do this a little simpler and just put a pointer
+to the mmconfig space into struct pci_host_bridge, and then have a trivial
+map_bus function alongside pci_generic_config_read/pci_generic_config_write.
 
-Since currently it is not possible to retrieve a pointer to the PCI
-host bridge ACPI device backing the host bridge from core PCI code
-(which would allow retrieving the domain number in an arch agnostic
-way through the ACPI _SEG method), an arch specific ACPI hook has to
-be declared and implemented by all arches that rely on
-CONFIG_PCI_DOMAINS_GENERIC to retrieve the domain number and set it
-up in core PCI code.
+As this code is specific to arch/arm64, we don't need any of the complexity
+of drivers/pci/ecam.c, which basically only exists to work around the
+limited virtual address space of 32-bit machines.
 
-For the aforementioned reasons, this patch introduces a dummy
-acpi_pci_bus_domain_nr() hook in preparation for per-arch implementation
-of the same to retrieve the domain number on a per-arch basis when
-the system boots through ACPI.
-
-For the sake of code clarity the current code implementing generic
-domain number assignment (ie pci_bus_assign_domain_nr(), selected by
-CONFIG_PCI_DOMAINS_GENERIC) is reshuffled so that the code implementing
-the DT domain assignment function is stubbed out into a corresponding
-helper, so that DT and ACPI functions are clearly separated in
-preparation for arches acpi_pci_bus_domain_nr() implementations.
-
-Signed-off-by: Tomasz Nowicki <tn@semihalf.com>
-Signed-off-by: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
----
- drivers/pci/pci.c   | 11 +++++++++--
- include/linux/pci.h |  1 +
- 2 files changed, 10 insertions(+), 2 deletions(-)
-
-diff --git a/drivers/pci/pci.c b/drivers/pci/pci.c
-index eb431b5..2b52178 100644
---- a/drivers/pci/pci.c
-+++ b/drivers/pci/pci.c
-@@ -7,6 +7,7 @@
-  *	Copyright 1997 -- 2000 Martin Mares <mj@ucw.cz>
-  */
- 
-+#include <linux/acpi.h>
- #include <linux/kernel.h>
- #include <linux/delay.h>
- #include <linux/init.h>
-@@ -4941,7 +4942,7 @@ int pci_get_new_domain_nr(void)
- }
- 
- #ifdef CONFIG_PCI_DOMAINS_GENERIC
--void pci_bus_assign_domain_nr(struct pci_bus *bus, struct device *parent)
-+static int of_pci_bus_domain_nr(struct device *parent)
- {
- 	static int use_dt_domains = -1;
- 	int domain = -1;
-@@ -4985,7 +4986,13 @@ void pci_bus_assign_domain_nr(struct pci_bus *bus, struct device *parent)
- 		domain = -1;
- 	}
- 
--	bus->domain_nr = domain;
-+	return domain;
-+}
-+
-+void pci_bus_assign_domain_nr(struct pci_bus *bus, struct device *parent)
-+{
-+	bus->domain_nr = acpi_disabled ? of_pci_bus_domain_nr(parent) :
-+					 acpi_pci_bus_domain_nr(bus);
- }
- #endif
- #endif
-diff --git a/include/linux/pci.h b/include/linux/pci.h
-index 12349de..bba4053 100644
---- a/include/linux/pci.h
-+++ b/include/linux/pci.h
-@@ -1390,6 +1390,7 @@ static inline int pci_domain_nr(struct pci_bus *bus)
- {
- 	return bus->domain_nr;
- }
-+static inline int acpi_pci_bus_domain_nr(struct pci_bus *bus) { return -1; }
- void pci_bus_assign_domain_nr(struct pci_bus *bus, struct device *parent);
- #else
- static inline void pci_bus_assign_domain_nr(struct pci_bus *bus,
--- 
-1.9.1
+	Arnd
