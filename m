@@ -1,189 +1,546 @@
-From: "Rafael J. Wysocki" <rafael@kernel.org>
-Subject: Re: S3 resume regression [1cf4f629d9d2 ("cpu/hotplug: Move online
- calls to hotplugged cpu")]
-Date: Mon, 30 May 2016 22:43:51 +0200
-Message-ID: <CAJZ5v0in8YwMBgLd6=KgGVc-f2yVvutOJG_u05OKLK7_EzN0yQ@mail.gmail.com>
-References: <20160511101920.GZ4329@intel.com>
-	<57332171.8070403@linutronix.de>
-	<20160511122116.GA4329@intel.com>
-	<20160511084445.00030b49@gandalf.local.home>
-	<20160511133406.GC4329@intel.com>
-	<20160516193910.GL4329@intel.com>
-	<573BA5E2.5040506@intel.com>
-	<20160518072424.GU4329@intel.com>
-	<20160526183207.GX4329@intel.com>
+From: Daniel Lezcano <daniel.lezcano@linaro.org>
+Subject: Re: [PATCH v5 4/6] acpi: Add GTDT table parse driver into ACPI driver
+Date: Tue, 31 May 2016 00:56:36 +0200
+Message-ID: <574CC524.5090601@linaro.org>
+References: <1464096633-9309-1-git-send-email-fu.wei@linaro.org>
+ <1464096633-9309-5-git-send-email-fu.wei@linaro.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset=utf-8;
+	format=flowed
 Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-arch-owner@vger.kernel.org>
-In-Reply-To: <20160526183207.GX4329@intel.com>
-Sender: linux-arch-owner@vger.kernel.org
-To: =?UTF-8?B?VmlsbGUgU3lyasOkbMOk?= <ville.syrjala@linux.intel.com>
-Cc: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Steven Rostedt <rostedt@goodmis.org>, Sebastian Andrzej Siewior <bigeasy@linutronix.de>, Thomas Gleixner <tglx@linutronix.de>, linux-arch@vger.kernel.org, Rik van Riel <riel@redhat.com>, "Srivatsa S. Bhat" <srivatsa@mit.edu>, Peter Zijlstra <peterz@infradead.org>, Arjan van de Ven <arjan@linux.intel.com>, Rusty Russell <rusty@rustcorp.com.au>, Oleg Nesterov <oleg@redhat.com>, Tejun Heo <tj@kernel.org>, Andrew Morton <akpm@linux-foundation.org>, Paul McKenney <paulmck@linux.vnet.ibm.com>, Linus Torvalds <torvalds@linux-foundation.org>, Paul Turner <pjt@google.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, "Zhang, Rui" <rui.zhang@intel.com>, Len Brown <len.brown@intel.com>, Linux PM <linux-pm@vger.kernel.org>, Linux ACPI <linux-acpi@vger.kernel.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1464096633-9309-5-git-send-email-fu.wei@linaro.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: fu.wei@linaro.org, rjw@rjwysocki.net, lenb@kernel.org, tglx@linutronix.de, marc.zyngier@arm.com, hanjun.guo@linaro.org
+Cc: linux-arm-kernel@lists.infradead.org, linaro-acpi@lists.linaro.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, rruigrok@codeaurora.org, harba@codeaurora.org, cov@codeaurora.org, timur@codeaurora.org, graeme.gregory@linaro.org, al.stone@linaro.org, jcm@redhat.com, wei@redhat.com, arnd@arndb.de, wim@iguana.be, catalin.marinas@arm.com, will.deacon@arm.com, Suravee.Suthikulpanit@amd.com, leo.duran@amd.com
 List-Id: linux-acpi@vger.kernel.org
 
-On Thu, May 26, 2016 at 8:32 PM, Ville Syrj=C3=A4l=C3=A4
-<ville.syrjala@linux.intel.com> wrote:
-> On Wed, May 18, 2016 at 10:24:24AM +0300, Ville Syrj=C3=A4l=C3=A4 wro=
-te:
->> On Wed, May 18, 2016 at 01:14:42AM +0200, Rafael J. Wysocki wrote:
->> > On 5/16/2016 9:39 PM, Ville Syrj=C3=A4l=C3=A4 wrote:
->> > > On Wed, May 11, 2016 at 04:34:06PM +0300, Ville Syrj=C3=A4l=C3=A4=
- wrote:
->> > >> On Wed, May 11, 2016 at 08:44:45AM -0400, Steven Rostedt wrote:
->> > >>> On Wed, 11 May 2016 15:21:16 +0300
->> > >>> Ville Syrj=C3=A4l=C3=A4 <ville.syrjala@linux.intel.com> wrote:
->> > >>>
->> > >>>> Yeah can't get anything from the machine at that point. netco=
-nsole
->> > >>>> didn't help either, and no serial on this machine. And IIRC I=
-'ve
->> > >>>> tried ramoops on this thing in the past but unfortunately the=
- memory
->> > >>>> got cleared on reboot.
->> > >>>>
->> > >>> Can you look at the documentation in the kernel code at
->> > >>>
->> > >>> Documentation/power/basic-pm-debugging.txt And follow the proc=
-edures
->> > >>> for testing suspend to RAM (although it requires mostly runnin=
-g the
->> > >>> same tests as for hibernation suspending).
->> > >>>
->> > >>> You can also use the tool s2ram for this as well.
->> > >>>
->> > >>> See Documentation/power/s2ram.txt
->> > >>>
->> > >>> Perhaps this can give us a bit more light onto the problem.
->> > >>>
->> > >>> Basically the above does partial suspend and resume, and can p=
-inpoint
->> > >>> problem areas down to a more select location.
->> > >> All the pm_test modes work fine. The only difference between th=
-em was
->> > >> that 'platform' required me to manually wake up the machine (hi=
-tting a
->> > >> key was sufficient), whereas the others woke up without help.
->> > >>
->> > >> pm_trace gave me
->> > >> [    1.306633]   Magic number: 0:185:178
->> > >> [    1.322880]   hash matches ../drivers/base/power/main.c:1070
->> > >> [    1.339270] acpi device:0e: hash matches
->> > >> [    1.355414]  platform: hash matches
->> > >>
->> > >> which is the TRACE_SUSPEND in __device_suspend_noirq(), so no h=
-elp
->> > >> there.
->> > >>
->> > >> I guess I could try to sprinkle more TRACE_RESUMEs around into =
-some
->> > >> early resume code. If anyone has good ideas where to put them i=
-t
->> > >> might speed things up a bit.
->> > > So I did a bunch of that and found that it gets stuck somewhere
->> > > around executing the _WAK method:
->> > > platform_resume_noirq
->> > >   acpi_pm_finish
->> > >    acpi_leave_sleep_state
->> > >     acpi_hw_sleep_dispatch
->> > >      acpi_hw_legacy_wake
->> > >       acpi_hw_execute_sleep_method
->> > >        acpi_evaluate_object
->> > >         acpi_ns_evaluate
->> > >          acpi_ps_execute_method
->> > >           acpi_ps_parse_aml
->> > >
->> > > It also seesm that adding a few TRACE_RESUME()s or an msleep() r=
-ight
->> > > after enable_nonboot_cpus() can avoid the hang, sometimes.
->> > >
->> > > I've attached the DSDT in case anyone is interested in looking a=
-t it.
->> > >
->> >
->> > What if you comment out the execution of _WAK (line 318 of
->> > drivers/acpi/acpica/hwsleep.c in 4.6)?  Does that make any differe=
-nce?
->>
->> Indeed it does. Tried with acpi_idle and intel_idle, and both appear=
- to
->> resume just fine with that hack.
->>
->> -       acpi_hw_execute_sleep_method(METHOD_PATHNAME__WAK, sleep_sta=
-te);
->> +       //acpi_hw_execute_sleep_method(METHOD_PATHNAME__WAK, sleep_s=
-tate);
->> +       printk(KERN_CRIT "skipping _WAK\n");
+On 05/24/2016 03:30 PM, fu.wei@linaro.org wrote:
+> From: Fu Wei <fu.wei@linaro.org>
 >
-> Continuing with my detective work a bit, I decided to hack the DSDT a
-> bit to see if I can narrow the it down further, and looks like I foun=
-d
-> it on the first guess. The following change stops it from hanging.
+> This driver adds support for parsing all kinds of timer in GTDT:
+> (1)arch timer: provide a kernel API to parse all the PPIs and
+> always-on info in GTDT and export them by filling the structs
+> which provided by parameters(pointer of them).
 >
-> @ -5056,7 +5056,7 @@
->          If (LEqual (Arg0, 0x03))
->          {
->              Store (0x01, \SPNF)
-> -           TRAP (0x46)
-> +           //TRAP (0x46)
->              P8XH (0x00, 0x03)
->          }
+> (2)memory-mapped timer: provide a kernel APIs to parse
+> GT Block Structure in GTDT, export all the timer info by filling
+> the struct which provided by parameter(pointer of the struct).
 >
-> So what does that do? Let's see:
+> (3)SBSA Generic Watchdog: parse all info in SBSA Generic Watchdog
+> Structure in GTDT, and creating a platform device with that
+> information. This allows the operating system to obtain device
+> data from the resource of platform device.
+> The platform device named "sbsa-gwdt" can be used by the ARM SBSA
+> Generic Watchdog driver.
 >
->     OperationRegion (IO_T, SystemIO, 0x0800, 0x10)
->     Field (IO_T, ByteAcc, NoLock, Preserve)
->     {
->         Offset (0x08),
->         TRP0,   8
->     }
+> By this driver, we can simplify all the relevant drivers, and
+> separate all the ACPI GTDT knowledge from them.
 >
->     OperationRegion (GNVS, SystemMemory, 0x3F5E0C7C, 0x0200)
->     Field (GNVS, AnyAcc, Lock, Preserve)
->     {
->         OSYS,   16,
->         SMIF,   8,
->     ...
->
->     Method (TRAP, 1, Serialized)
->     {
->         Store (Arg0, SMIF) /* \SMIF */
->         Store (0x00, TRP0) /* \TRP0 */
->         Return (SMIF) /* \SMIF */
->     }
->
-> and a dump of the IOTR registers shows:
->
-> 0x1e80: 0x0000fe01
-> 0x1e84: 0x00020001
-> 0x1e98: 0x000c0801
-> 0x1e9c: 0x000200f0
->
-> which seems to be telling me that ports 0x800-0x80f and
-> 0xfe00-0xfe03 would trigger an SMI.
+> Signed-off-by: Fu Wei <fu.wei@linaro.org>
+> Signed-off-by: Hanjun Guo <hanjun.guo@linaro.org>
 
-Well, the name of the method kind of suggests that it triggers an SMM t=
-rap. :-)
+Hi Fu Wei,
 
-> So the next question is how do the idle drivers and cpu hotplug
-> fit into this picture. Do we need to force the second HT into
-> a specific C state before the SMI or something?
+the code is better than the previous version but it is still confusing.=
+=20
+There are global variables accessed several times by different function=
+s=20
+and modified. This is an encapsulation issue.
 
-Or you can ask why exactly someone put that SMM trap into _WAK.
+This code is a bit hard to follow.
 
-Apparently, it was regarded as necessary or no one would have
-bothered.  The only reason I can see why it might be regarded as
-necessary was that Windows did something Linux doesn't do on that
-platform, or, which to me is far more interesting, that Windows didn't
-do something actually done by Linux.
+Please split it out into 4 patches:
 
-My theory would be that Windows didn't reinitialize the second HT
-properly during resume and the trap was added to let SMM do that.  If
-that's the case, the trap may trigger by the time the second HT
-already executes code in Linux and then it will mess up with it and
-crash.
+1. Create a clean base with helper functions and proper encapsulation=20
+for gtdt.
 
-Now, what do idles states have to do with that?  IIRC, Windows puts
-nonboot CPUs into idle states before suspend, so the SMM code
-triggered by the trap may make assumptions about the CPU being in such
-a state or similar.
+2. Add gtdt timer based code
+
+3. Add gtdt mem timer based code
+
+4. Add gtdt watchdog based code
+
+Comments below.
+
+Thanks !
+
+   -- Daniel
+
+> ---
+>   drivers/acpi/Kconfig                 |   9 +
+>   drivers/acpi/Makefile                |   1 +
+>   drivers/acpi/acpi_gtdt.c             | 309 ++++++++++++++++++++++++=
++++++++++++
+>   include/clocksource/arm_arch_timer.h |  16 ++
+>   include/linux/acpi.h                 |   6 +
+>   5 files changed, 341 insertions(+)
+>
+> diff --git a/drivers/acpi/Kconfig b/drivers/acpi/Kconfig
+> index b7e2e77..27a5cf9 100644
+> --- a/drivers/acpi/Kconfig
+> +++ b/drivers/acpi/Kconfig
+> @@ -521,4 +521,13 @@ config XPOWER_PMIC_OPREGION
+>
+>   endif
+>
+> +config ACPI_GTDT
+> +	bool "ACPI GTDT Support"
+> +	depends on ARM64
+> +	help
+> +	  GTDT (Generic Timer Description Table) provides information
+> +	  for per-processor timers and Platform (memory-mapped) timers
+> +	  for ARM platforms. Select this option to provide information
+> +	  needed for the timers init.
+
+Why not ARM64's Kconfig select ACPI_GTDT ?
+
+This config option assumes an user will manually select this option=20
+which I believe it makes sense to have always on when ARM64=3Dy. So why=
+=20
+not create a silent option and select it directly from the ARM64=20
+platform Kconfig ?
+
+>   endif	# ACPI
+> diff --git a/drivers/acpi/Makefile b/drivers/acpi/Makefile
+> index 251ce85..848aa8a 100644
+> --- a/drivers/acpi/Makefile
+> +++ b/drivers/acpi/Makefile
+> @@ -99,5 +99,6 @@ obj-$(CONFIG_ACPI_EXTLOG)	+=3D acpi_extlog.o
+>   obj-$(CONFIG_PMIC_OPREGION)	+=3D pmic/intel_pmic.o
+>   obj-$(CONFIG_CRC_PMIC_OPREGION) +=3D pmic/intel_pmic_crc.o
+>   obj-$(CONFIG_XPOWER_PMIC_OPREGION) +=3D pmic/intel_pmic_xpower.o
+> +obj-$(CONFIG_ACPI_GTDT)		+=3D acpi_gtdt.o
+>
+>   video-objs			+=3D acpi_video.o video_detect.o
+> diff --git a/drivers/acpi/acpi_gtdt.c b/drivers/acpi/acpi_gtdt.c
+> new file mode 100644
+> index 0000000..e54fadf
+> --- /dev/null
+> +++ b/drivers/acpi/acpi_gtdt.c
+> @@ -0,0 +1,309 @@
+> +/*
+> + * ARM Specific GTDT table Support
+> + *
+> + * Copyright (C) 2015, Linaro Ltd.
+> + * Author: Fu Wei <fu.wei@linaro.org>
+> + *         Hanjun Guo <hanjun.guo@linaro.org>
+> + *
+> + * This program is free software; you can redistribute it and/or mod=
+ify
+> + * it under the terms of the GNU General Public License version 2 as
+> + * published by the Free Software Foundation.
+> + */
+> +
+> +#include <linux/acpi.h>
+> +#include <linux/device.h>
+> +#include <linux/init.h>
+> +#include <linux/kernel.h>
+> +#include <linux/module.h>
+> +#include <linux/platform_device.h>
+> +
+> +#include <clocksource/arm_arch_timer.h>
+> +
+> +#undef pr_fmt
+> +#define pr_fmt(fmt) "GTDT: " fmt
+> +
+> +typedef int (*platform_timer_handler)(void *platform_timer, int inde=
+x,
+> +				      void *data);
+> +
+> +static void *platform_timer_struct __initdata;
+> +static u32 platform_timer_count __initdata;
+> +static void *gtdt_end __initdata;
+
+I am pretty sure you can get ride of these global variables with a=20
+little effort.
+
+> +static int __init for_platform_timer(enum acpi_gtdt_type type,
+> +				     platform_timer_handler handler, void *data)
+
+=46or the clarity of the code, I suggest to use a macro with a name=20
+similar to what we find in the kernel:
+
+#define gtdt_for_each(type, ...) ...
+#define gtdt_for_each_timer gtdt_for_each(ACPI_GTDT_TYPE_TIMER_BLOCK)
+#define gtdt_for_each_wd    gtdt_for_each(ACPI_GTDT_TYPE_WATCHDOG)
+
+=2E.. and rework this function to clarify its purpose.
+
+What is for ? Count the number of 'type' which succeed to call the hand=
+ler ?
+
+> +{
+> +	struct acpi_gtdt_header *header;
+> +	int i, index, ret;
+> +	void *platform_timer =3D platform_timer_struct;
+> +
+> +	for (i =3D 0, index =3D 0; i < platform_timer_count; i++) {
+> +		if (platform_timer > gtdt_end) {
+> +			pr_err(FW_BUG "subtable pointer overflows.\n");
+> +			platform_timer_count =3D i;
+
+=46ix firmware bug in the kernel ? No. Up to the firmware to fix it, "n=
+o=20
+handy, no candy".
+
+> +			break;
+> +		}
+> +		header =3D (struct acpi_gtdt_header *)platform_timer;
+> +		if (header->type =3D=3D type) {
+> +			ret =3D handler(platform_timer, index, data);
+> +			if (ret)
+> +				pr_err("failed to handler subtable %d.\n", i);
+> +			else
+> +				index++;
+> +		}
+> +		platform_timer +=3D header->length;
+
+That is not correct. This function is setting the platform_timer pointe=
+r=20
+to the end. Even if that works, it violates the encapsulation paradigm.=
+=20
+Regarding how are used those global variables, please kill them and use=
+=20
+proper parameter and structure encapsulation.
+
+> +	}
+> +
+> +	return index;
+> +}
+> +
+> +/*
+> + * Get some basic info from GTDT table, and init the global variable=
+s above
+> + * for all timers initialization of Generic Timer.
+> + * This function does some validation on GTDT table, and will be run=
+ only once.
+> + */
+> +static void __init platform_timer_init(struct acpi_table_header *tab=
+le,
+> +				       struct acpi_table_gtdt *gtdt)
+> +{
+> +	gtdt_end =3D (void *)table + table->length;
+> +
+> +	if (table->revision < 2) {
+> +		pr_info("Revision:%d doesn't support Platform Timers.\n",
+> +			table->revision);
+> +		return;
+> +	}
+
+This check should be called much sooner, before entering the gtdt=20
+subsystems. It is too late here.
+
+> +	platform_timer_count =3D gtdt->platform_timer_count;
+> +	if (!platform_timer_count) {
+> +		pr_info("No Platform Timer structures.\n");
+> +		return;
+> +	}
+> +
+> +	platform_timer_struct =3D (void *)gtdt + gtdt->platform_timer_offse=
+t;
+> +	if (platform_timer_struct < (void *)table +
+> +				    sizeof(struct acpi_table_gtdt)) {
+> +		pr_err(FW_BUG "Platform Timer pointer error.\n");
+> +		platform_timer_struct =3D NULL;
+> +		platform_timer_count =3D 0;
+> +	}
+
+Why this check ?
+
+> +}
+> +
+> +static int __init map_generic_timer_interrupt(u32 interrupt, u32 fla=
+gs)
+> +{
+> +	int trigger, polarity;
+> +
+> +	if (!interrupt)
+> +		return 0;
+> +
+> +	trigger =3D (flags & ACPI_GTDT_INTERRUPT_MODE) ? ACPI_EDGE_SENSITIV=
+E
+> +			: ACPI_LEVEL_SENSITIVE;
+> +
+> +	polarity =3D (flags & ACPI_GTDT_INTERRUPT_POLARITY) ? ACPI_ACTIVE_L=
+OW
+> +			: ACPI_ACTIVE_HIGH;
+> +
+> +	return acpi_register_gsi(NULL, interrupt, trigger, polarity);
+> +}
+> +
+> +/*
+> + * Get the necessary info of arch_timer from GTDT table.
+> + */
+> +int __init gtdt_arch_timer_init(struct acpi_table_header *table, int=
+ *ppi,
+> +				bool *c3stop, u32 *timer_count)
+> +{
+> +	struct acpi_table_gtdt *gtdt;
+
+This API is not correctly separating both subsystems. Moving the code=20
+from the arch_arm_timer init function here is not the solution.
+
+I suggest the following:
+
+1. Change CLOCKSOURCE_ACPI_DECLARE to pass the init function as:
+
+int __init gtdt_init(struct acpi_table_gtdt *gtdt);
+
+2. Add helpers:
+
+	int gtdt_map_irq(struct acpi_table_gtdt *gtdt, int flags);
+
+	int gtdt_c3stop(struct acpi_table_gtdt *gtdt);
+
+3. Export these helpers
+
+arch_arm_timer.c should see nothing more than:
+
+struct acpi_table_gtdt;
+
+4. Use these helpers in the arch_arm_timer.c
+
+static int __init arch_timer_acpi_init(struct acpi_table_gtdt *gtdt)
+{
+	arch_timer_ppi[PHYS_SECURE_PPI]    =3D gtdt_map_irq(gtdt, flags);
+	arch_timer_ppi[PHYS_NONSECURE_PPI] =3D gtdt_map_irq(gtdt, flags);
+	arch_timer_ppi[VIRT_PPI]           =3D gtdt_map_irq(gtdt, flags);
+	arch_timer_ppi[HYP_PPI]            =3D gtdt_map_irq(gtdt, flags);
+	arch_timer_c3stop                  =3D gtdt_c3stop(gtdt);
+
+	arch_timer_init();
+
+	return 0;
+}
+
+> +	if (acpi_disabled || !table || !ppi || !c3stop)
+> +		return -EINVAL;
+
+Why acpi_disabled is an error here but ok for gtdt_sbsa_gwdt_init() ?
+
+> +	gtdt =3D container_of(table, struct acpi_table_gtdt, header);
+> +	if (!gtdt) {
+> +		pr_err("table pointer error.\n");
+> +		return -EINVAL;
+> +	}
+> +
+> +	ppi[PHYS_SECURE_PPI] =3D
+> +		map_generic_timer_interrupt(gtdt->secure_el1_interrupt,
+> +					    gtdt->secure_el1_flags);
+> +
+> +	ppi[PHYS_NONSECURE_PPI] =3D
+> +		map_generic_timer_interrupt(gtdt->non_secure_el1_interrupt,
+> +					    gtdt->non_secure_el1_flags);
+> +
+> +	ppi[VIRT_PPI] =3D
+> +		map_generic_timer_interrupt(gtdt->virtual_timer_interrupt,
+> +					    gtdt->virtual_timer_flags);
+> +
+> +	ppi[HYP_PPI] =3D
+> +		map_generic_timer_interrupt(gtdt->non_secure_el2_interrupt,
+> +					    gtdt->non_secure_el2_flags);
+> +
+> +	*c3stop =3D !(gtdt->non_secure_el1_flags & ACPI_GTDT_ALWAYS_ON);
+> +
+> +	platform_timer_init(table, gtdt);
+> +	if (timer_count)
+> +		*timer_count =3D platform_timer_count;
+
+come on !
+
+> +
+> +	return 0;
+> +}
+> +
+> +/*
+> + * Helper function for getting the pointer of a timer frame in GT bl=
+ock.
+> + */
+> +static void __init *gtdt_gt_timer_frame(struct acpi_gtdt_timer_block=
+ *gt_block,
+> +					int index)
+> +{
+> +	void *timer_frame =3D (void *)gt_block + gt_block->timer_offset +
+> +			    sizeof(struct acpi_gtdt_timer_entry) * index;
+> +
+> +	if (timer_frame <=3D (void *)gt_block + gt_block->header.length -
+> +			   sizeof(struct acpi_gtdt_timer_entry))
+> +		return timer_frame;
+> +
+> +	return NULL;
+> +}
+> +
+> +static int __init gtdt_parse_gt_block(void *platform_timer, int inde=
+x,
+> +				      void *data)
+> +{
+> +	struct acpi_gtdt_timer_block *block;
+> +	struct acpi_gtdt_timer_entry *frame;
+> +	struct gt_block_data *block_data;
+> +	int i, j;
+> +
+> +	if (!platform_timer || !data)
+> +		return -EINVAL;
+> +
+> +	block =3D platform_timer;
+> +	block_data =3D data + sizeof(struct gt_block_data) * index;
+> +
+> +	if (!block->block_address || !block->timer_count) {
+> +		pr_err(FW_BUG "invalid GT Block data.\n");
+> +		return -EINVAL;
+> +	}
+> +	block_data->cntctlbase_phy =3D (phys_addr_t)block->block_address;
+> +	block_data->timer_count =3D block->timer_count;
+> +
+> +	/*
+> +	 * Get the GT timer Frame data for every GT Block Timer
+> +	 */
+> +	for (i =3D 0, j =3D 0; i < block->timer_count; i++) {
+> +		frame =3D gtdt_gt_timer_frame(block, i);
+> +		if (!frame || !frame->base_address || !frame->timer_interrupt) {
+> +			pr_err(FW_BUG "invalid GT Block Timer data, skip.\n");
+> +			continue;
+> +		}
+> +		block_data->timer[j].frame_nr =3D frame->frame_number;
+> +		block_data->timer[j].cntbase_phy =3D frame->base_address;
+> +		block_data->timer[j].irq =3D map_generic_timer_interrupt(
+> +						   frame->timer_interrupt,
+> +						   frame->timer_flags);
+> +		if (frame->virtual_timer_interrupt)
+> +			block_data->timer[j].virt_irq =3D
+> +				map_generic_timer_interrupt(
+> +					frame->virtual_timer_interrupt,
+> +					frame->virtual_timer_flags);
+> +		j++;
+> +	}
+> +
+> +	if (j)
+> +		return 0;
+> +
+> +	block_data->cntctlbase_phy =3D (phys_addr_t)NULL;
+> +	block_data->timer_count =3D 0;
+> +
+> +	return -EINVAL;
+> +}
+> +
+> +/*
+> + * Get the GT block info for memory-mapped timer from GTDT table.
+> + * Please make sure we have called gtdt_arch_timer_init, because it =
+helps to
+> + * init the global variables.
+> + */
+> +int __init gtdt_arch_timer_mem_init(struct gt_block_data *data)
+> +{
+> +	int ret =3D for_platform_timer(ACPI_GTDT_TYPE_TIMER_BLOCK,
+> +				     gtdt_parse_gt_block, (void *)data);
+
+(void *) explicit cast is not needed.
+
+> +	pr_info("found %d memory-mapped timer block.\n", ret);
+> +
+> +	return ret;
+> +}
+> +
+> +/*
+> + * Initialize a SBSA generic Watchdog platform device info from GTDT
+> + */
+> +static int __init gtdt_import_sbsa_gwdt(void *platform_timer,
+> +					int index, void *data)
+> +{
+> +	struct platform_device *pdev;
+> +	struct acpi_gtdt_watchdog *wd =3D platform_timer;
+> +	int irq =3D map_generic_timer_interrupt(wd->timer_interrupt,
+> +					      wd->timer_flags);
+> +	int no_irq =3D 1;
+> +
+> +	/*
+> +	 * According to SBSA specification the size of refresh and control
+> +	 * frames of SBSA Generic Watchdog is SZ_4K(Offset 0x000 =E2=80=93 =
+0xFFF).
+> +	 */
+> +	struct resource res[] =3D {
+> +		DEFINE_RES_MEM(wd->control_frame_address, SZ_4K),
+> +		DEFINE_RES_MEM(wd->refresh_frame_address, SZ_4K),
+> +		DEFINE_RES_IRQ(irq),
+> +	};
+> +
+> +	pr_debug("a Watchdog GT(0x%llx/0x%llx gsi:%u flags:0x%x).\n",
+> +		 wd->refresh_frame_address, wd->control_frame_address,
+> +		 wd->timer_interrupt, wd->timer_flags);
+> +
+> +	if (!(wd->refresh_frame_address && wd->control_frame_address)) {
+> +		pr_err(FW_BUG "failed getting the Watchdog GT frame addr.\n");
+> +		return -EINVAL;
+> +	}
+> +
+> +	if (!wd->timer_interrupt)
+> +		pr_warn(FW_BUG "failed getting the Watchdog GT GSIV.\n");
+> +	else if (irq <=3D 0)
+> +		pr_warn("failed to map the Watchdog GT GSIV.\n");
+> +	else
+> +		no_irq =3D 0;
+> +
+> +	/*
+> +	 * Add a platform device named "sbsa-gwdt" to match the platform dr=
+iver.
+> +	 * "sbsa-gwdt": SBSA(Server Base System Architecture) Generic Watch=
+dog
+> +	 * The platform driver (like drivers/watchdog/sbsa_gwdt.c)can get d=
+evice
+> +	 * info below by matching this name.
+> +	 */
+> +	pdev =3D platform_device_register_simple("sbsa-gwdt", index, res,
+> +					       ARRAY_SIZE(res) - no_irq);
+> +	if (IS_ERR(pdev)) {
+> +		acpi_unregister_gsi(wd->timer_interrupt);
+> +		return PTR_ERR(pdev);
+> +	}
+> +
+> +	return 0;
+> +}
+> +
+> +static int __init gtdt_sbsa_gwdt_init(void)
+> +{
+> +	struct acpi_table_header *table;
+> +	struct acpi_table_gtdt *gtdt;
+> +	int ret;
+> +
+> +	if (acpi_disabled)
+> +		return 0;
+> +
+> +	if (ACPI_FAILURE(acpi_get_table(ACPI_SIG_GTDT, 0, &table)))
+> +		return -EINVAL;
+> +
+> +	/* global variables initialization */
+> +	gtdt_end =3D (void *)table + table->length;
+
+That is prone to bug. The end of the table is computed here and stored=20
+in the global variable and then computed again in platform_timer_init=20
+and also stored in the global variable.
+
+Kill this global variable.
+
+> +	gtdt =3D container_of(table, struct acpi_table_gtdt, header);
+> +	platform_timer_struct =3D (void *)gtdt + gtdt->platform_timer_offse=
+t;
+> +
+> +	ret =3D for_platform_timer(ACPI_GTDT_TYPE_WATCHDOG,
+> +				 gtdt_import_sbsa_gwdt, NULL);
+> +	pr_info("found %d SBSA generic Watchdog.\n", ret);
+> +
+> +	return 0;
+> +}
+> +
+> +device_initcall(gtdt_sbsa_gwdt_init);
+
+Do you really have to call device_initcall ?
+
+
+--=20
+  <http://www.linaro.org/> Linaro.org =E2=94=82 Open source software fo=
+r ARM SoCs
+
+=46ollow Linaro:  <http://www.facebook.com/pages/Linaro> Facebook |
+<http://twitter.com/#!/linaroorg> Twitter |
+<http://www.linaro.org/linaro-blog/> Blog
