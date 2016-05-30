@@ -1,91 +1,131 @@
-From: Daniel Lezcano <daniel.lezcano@linaro.org>
-Subject: Re: [PATCH v5 2/6] clocksource/drivers/arm_arch_timer: Add a new enum
- for spi type
-Date: Mon, 30 May 2016 17:07:16 +0200
-Message-ID: <574C5724.30200@linaro.org>
-References: <1464096633-9309-1-git-send-email-fu.wei@linaro.org>
- <1464096633-9309-3-git-send-email-fu.wei@linaro.org>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8;
-	format=flowed
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-wm0-f45.google.com ([74.125.82.45]:35752 "EHLO
-	mail-wm0-f45.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754895AbcE3PHU (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 30 May 2016 11:07:20 -0400
-Received: by mail-wm0-f45.google.com with SMTP id a136so90970357wme.0
-        for <linux-acpi@vger.kernel.org>; Mon, 30 May 2016 08:07:19 -0700 (PDT)
-In-Reply-To: <1464096633-9309-3-git-send-email-fu.wei@linaro.org>
-Sender: linux-acpi-owner@vger.kernel.org
+From: Tomasz Nowicki <tn@semihalf.com>
+Subject: [PATCH V8 0/9] Support for ARM64 ACPI based PCI host controller
+Date: Mon, 30 May 2016 17:14:13 +0200
+Message-ID: <1464621262-26770-1-git-send-email-tn@semihalf.com>
+Return-path: <linux-pci-owner@vger.kernel.org>
+Sender: linux-pci-owner@vger.kernel.org
+To: helgaas@kernel.org, arnd@arndb.de, will.deacon@arm.com, catalin.marinas@arm.com, rafael@kernel.org, hanjun.guo@linaro.org, Lorenzo.Pieralisi@arm.com, okaya@codeaurora.org, jchandra@broadcom.com
+Cc: robert.richter@caviumnetworks.com, mw@semihalf.com, Liviu.Dudau@arm.com, ddaney@caviumnetworks.com, wangyijing@huawei.com, Suravee.Suthikulpanit@amd.com, msalter@redhat.com, linux-pci@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linaro-acpi@lists.linaro.org, jcm@redhat.com, andrea.gallo@linaro.org, dhdang@apm.com, jeremy.linton@arm.com, liudongdong3@huawei.com, cov@codeaurora.org, Tomasz Nowicki <tn@semihalf.com>
 List-Id: linux-acpi@vger.kernel.org
-To: fu.wei@linaro.org, rjw@rjwysocki.net, lenb@kernel.org, tglx@linutronix.de, marc.zyngier@arm.com, hanjun.guo@linaro.org
-Cc: linux-arm-kernel@lists.infradead.org, linaro-acpi@lists.linaro.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, rruigrok@codeaurora.org, harba@codeaurora.org, cov@codeaurora.org, timur@codeaurora.org, graeme.gregory@linaro.org, al.stone@linaro.org, jcm@redhat.com, wei@redhat.com, arnd@arndb.de, wim@iguana.be, catalin.marinas@arm.com, will.deacon@arm.com, Suravee.Suthikulpanit@amd.com, leo.duran@amd.com
 
-On 05/24/2016 03:30 PM, fu.wei@linaro.org wrote:
-> From: Fu Wei <fu.wei@linaro.org>
->
-> This patch add a new enum "spi_nr" and use it in the driver.
-> Just for code's readability, no functional change.
->
-> Signed-off-by: Fu Wei <fu.wei@linaro.org>
-> ---
->   drivers/clocksource/arm_arch_timer.c | 4 ++--
->   include/clocksource/arm_arch_timer.h | 6 ++++++
->   2 files changed, 8 insertions(+), 2 deletions(-)
->
-> diff --git a/drivers/clocksource/arm_arch_timer.c b/drivers/clocksour=
-ce/arm_arch_timer.c
-> index 5d7272e..966c574 100644
-> --- a/drivers/clocksource/arm_arch_timer.c
-> +++ b/drivers/clocksource/arm_arch_timer.c
-> @@ -826,9 +826,9 @@ static void __init arch_timer_mem_init(struct dev=
-ice_node *np)
->   	}
->
->   	if (arch_timer_mem_use_virtual)
-> -		irq =3D irq_of_parse_and_map(best_frame, 1);
-> +		irq =3D irq_of_parse_and_map(best_frame, VIRT_SPI);
->   	else
-> -		irq =3D irq_of_parse_and_map(best_frame, 0);
-> +		irq =3D irq_of_parse_and_map(best_frame, PHYS_SPI);
->
->   	if (!irq) {
->   		pr_err("arch_timer: Frame missing %s irq",
-> diff --git a/include/clocksource/arm_arch_timer.h b/include/clocksour=
-ce/arm_arch_timer.h
-> index 6f06481..16dcd10 100644
-> --- a/include/clocksource/arm_arch_timer.h
-> +++ b/include/clocksource/arm_arch_timer.h
-> @@ -45,6 +45,12 @@ enum ppi_nr {
->   	MAX_TIMER_PPI
->   };
->
-> +enum spi_nr {
-> +	PHYS_SPI,
-> +	VIRT_SPI,
-> +	MAX_TIMER_SPI
-> +};
+>From the functionality point of view this series may be split into the
+following logic parts:
+1. Export ECAM API and add parent device to pci_config_window
+2. Add IO resources handling to PCI core code
+3. Support for generic domain assignment based on ACPI
+4. New MCFG driver
+5. Implement ARM64 ACPI based PCI host controller driver under arch/arm64/
 
-Wouldn't make sense to use the constant below instead of defining new o=
-nes ?
+Patches has been built on top of 4.7-rc1 and can be found here:
+git@github.com:semihalf-nowicki-tomasz/linux.git (pci-acpi-v8)
 
->   #define ARCH_TIMER_PHYS_ACCESS		0
->   #define ARCH_TIMER_VIRT_ACCESS		1
->   #define ARCH_TIMER_MEM_PHYS_ACCESS	2
->
+This has been tested on Cavium ThunderX server. Any help in reviewing and
+testing is very appreciated.
 
+v7 -> v8
+- move code from drivers/acpi/pci_root_generic.c to arch/arm64/kernel/pci.c
+- minor changes around domain assignment
+- pci_mcfg.c improvements for parsing MCFG tables and lookup its entries
 
---=20
-  <http://www.linaro.org/> Linaro.org =E2=94=82 Open source software fo=
-r ARM SoCs
+v6 -> v7
+- drop quirks handling
+- changes for ACPI companion and domain number assignment approach
+- implement arch pcibios_{add|remove}_bus and call acpi_pci_{add|remove}_bus from there
+- cleanups around nomenclature
+- use resources oriented API for ECAM
+- fix for based address calculation before mapping ECAM region
+- remove useless lock for MCFG lookup
+- move MCFG stuff to separated file pci_mcfg.c
+- drop MCFG entries caching
+- rebase against 4.6-rc7
 
-=46ollow Linaro:  <http://www.facebook.com/pages/Linaro> Facebook |
-<http://twitter.com/#!/linaroorg> Twitter |
-<http://www.linaro.org/linaro-blog/> Blog
+v5 -> v6
+- drop idea of x86 MMCONFIG code refactoring
+- integrate JC's patches which introduce new ECAM API:
+  https://lkml.org/lkml/2016/4/11/907
+  git: https://github.com/jchandra-brcm/linux/ (arm64-acpi-pci-v3)
+- integrate Sinan's fix for releasing IO resources, see patch [06/13]
+- added ACPI support for ThunderX ECAM and PEM drivers
+- rebase against 4.6-rc2
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+v4 -> v5
+- drop MCFG refactoring group patches 1-6 from series v4 and integrate Jayachandran's patch
+  https://patchwork.ozlabs.org/patch/575525/
+- rewrite PCI legacy IRQs allocation
+- squash two patches 11 and 12 from series v4, fixed bisection issue
+- changelog improvements
+- rebase against 4.5-rc3
+
+v3 -> v4
+- drop Jiang's fix http://lkml.iu.edu/hypermail/linux/kernel/1601.1/04318.html
+- add Lorenzo's fix patch 19/24
+- ACPI PCI bus domain number assigning cleanup
+- change resource management, we now claim and reassign resources
+- improvements for applying quirks
+- drop Matthew's http://www.spinics.net/lists/linux-pci/msg45950.html dependency
+- rebase against 4.5-rc1
+
+v2 -> v3
+- fix legacy IRQ assigning and IO ports registration
+- remove reference to arch specific companion device for ia64
+- move ACPI PCI host controller driver to pci_root.c
+- drop generic domain assignment for x86 and ia64 as I am not
+  able to run all necessary test variants
+- drop patch which cleaned legacy IRQ assignment since it belongs to
+  Mathew's series:
+  https://patchwork.ozlabs.org/patch/557504/
+- extend MCFG quirk code
+- rebase against 4.4
+
+v1 -> v2
+- move non-arch specific piece of code to dirver/acpi/ directory
+- fix IO resource handling
+- introduce PCI config accessors quirks matching
+- moved ACPI_COMPANION_SET to generic code
+
+v1 - https://lkml.org/lkml/2015/10/27/504
+v2 - https://lkml.org/lkml/2015/12/16/246
+v3 - http://lkml.iu.edu/hypermail/linux/kernel/1601.1/04308.html
+v4 - https://lkml.org/lkml/2016/2/4/646
+v5 - https://lkml.org/lkml/2016/2/16/426
+v6 - https://lkml.org/lkml/2016/4/15/594
+
+Jayachandran C (2):
+  PCI: ecam: move ecam.h to linux/include/pci-ecam.h
+  PCI: ecam: Add parent device field to pci_config_window
+
+Tomasz Nowicki (7):
+  pci: Add new function to unmap IO resources.
+  acpi, pci: Support IO resources when parsing PCI host bridge
+    resources.
+  pci, acpi: add acpi hook to assign domain number.
+  arm64, pci, acpi: ACPI support for legacy IRQs parsing and
+    consolidation with DT code.
+  acpi: Add generic MCFG table handling
+  arm64, pci, acpi: Provide ACPI-specific prerequisites for PCI bus
+    enumeration.
+  pci, acpi: ARM64 support for ACPI based generic PCI host controller
+
+ arch/arm64/Kconfig                  |   2 +
+ arch/arm64/kernel/pci.c             | 143 ++++++++++++++++++++++++++++++++++--
+ drivers/acpi/Kconfig                |   3 +
+ drivers/acpi/Makefile               |   1 +
+ drivers/acpi/pci_mcfg.c             |  94 ++++++++++++++++++++++++
+ drivers/acpi/pci_root.c             |  39 ++++++++++
+ drivers/pci/ecam.c                  |   6 +-
+ drivers/pci/ecam.h                  |  67 -----------------
+ drivers/pci/host/pci-host-common.c  |   3 +-
+ drivers/pci/host/pci-host-generic.c |   3 +-
+ drivers/pci/host/pci-thunder-ecam.c |   3 +-
+ drivers/pci/host/pci-thunder-pem.c  |   6 +-
+ drivers/pci/pci.c                   |  29 +++++++-
+ include/linux/pci-acpi.h            |   2 +
+ include/linux/pci-ecam.h            |  67 +++++++++++++++++
+ include/linux/pci.h                 |   9 ++-
+ 16 files changed, 387 insertions(+), 90 deletions(-)
+ create mode 100644 drivers/acpi/pci_mcfg.c
+ delete mode 100644 drivers/pci/ecam.h
+ create mode 100644 include/linux/pci-ecam.h
+
+-- 
+1.9.1
