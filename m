@@ -1,60 +1,189 @@
-From: Jayachandran C <jchandra@broadcom.com>
-Subject: Re: [PATCH V8 9/9] pci, acpi: ARM64 support for ACPI based generic
- PCI host controller
-Date: Mon, 30 May 2016 21:43:58 +0530
-Message-ID: <CAKc_7PW3Hdk9zTZ53yhGVdeeFVGFaFExZEvp456s16DnnMMjWg@mail.gmail.com>
-References: <1464621262-26770-1-git-send-email-tn@semihalf.com>
- <1464621262-26770-10-git-send-email-tn@semihalf.com> <8385994.W7ve9PrvHG@wuerfel>
+From: "Rafael J. Wysocki" <rafael@kernel.org>
+Subject: Re: S3 resume regression [1cf4f629d9d2 ("cpu/hotplug: Move online
+ calls to hotplugged cpu")]
+Date: Mon, 30 May 2016 22:43:51 +0200
+Message-ID: <CAJZ5v0in8YwMBgLd6=KgGVc-f2yVvutOJG_u05OKLK7_EzN0yQ@mail.gmail.com>
+References: <20160511101920.GZ4329@intel.com>
+	<57332171.8070403@linutronix.de>
+	<20160511122116.GA4329@intel.com>
+	<20160511084445.00030b49@gandalf.local.home>
+	<20160511133406.GC4329@intel.com>
+	<20160516193910.GL4329@intel.com>
+	<573BA5E2.5040506@intel.com>
+	<20160518072424.GU4329@intel.com>
+	<20160526183207.GX4329@intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-yw0-f170.google.com ([209.85.161.170]:34629 "EHLO
-	mail-yw0-f170.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1161651AbcE3QOj (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 30 May 2016 12:14:39 -0400
-Received: by mail-yw0-f170.google.com with SMTP id c127so166034796ywb.1
-        for <linux-acpi@vger.kernel.org>; Mon, 30 May 2016 09:14:39 -0700 (PDT)
-In-Reply-To: <8385994.W7ve9PrvHG@wuerfel>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-arch-owner@vger.kernel.org>
+In-Reply-To: <20160526183207.GX4329@intel.com>
+Sender: linux-arch-owner@vger.kernel.org
+To: =?UTF-8?B?VmlsbGUgU3lyasOkbMOk?= <ville.syrjala@linux.intel.com>
+Cc: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Steven Rostedt <rostedt@goodmis.org>, Sebastian Andrzej Siewior <bigeasy@linutronix.de>, Thomas Gleixner <tglx@linutronix.de>, linux-arch@vger.kernel.org, Rik van Riel <riel@redhat.com>, "Srivatsa S. Bhat" <srivatsa@mit.edu>, Peter Zijlstra <peterz@infradead.org>, Arjan van de Ven <arjan@linux.intel.com>, Rusty Russell <rusty@rustcorp.com.au>, Oleg Nesterov <oleg@redhat.com>, Tejun Heo <tj@kernel.org>, Andrew Morton <akpm@linux-foundation.org>, Paul McKenney <paulmck@linux.vnet.ibm.com>, Linus Torvalds <torvalds@linux-foundation.org>, Paul Turner <pjt@google.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, "Zhang, Rui" <rui.zhang@intel.com>, Len Brown <len.brown@intel.com>, Linux PM <linux-pm@vger.kernel.org>, Linux ACPI <linux-acpi@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
-To: Arnd Bergmann <arnd@arndb.de>
-Cc: Tomasz Nowicki <tn@semihalf.com>, Bjorn Helgaas <helgaas@kernel.org>, Will Deacon <will.deacon@arm.com>, Catalin Marinas <catalin.marinas@arm.com>, Rafael Wysocki <rafael@kernel.org>, Hanjun Guo <hanjun.guo@linaro.org>, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, Sinan Kaya <okaya@codeaurora.org>, robert.richter@caviumnetworks.com, Marcin Wojtas <mw@semihalf.com>, Liviu.Dudau@arm.com, David Daney <ddaney@caviumnetworks.com>, Wangyijing <wangyijing@huawei.com>, Suravee Suthikulanit <Suravee.Suthikulpanit@amd.com>, Mark Salter <msalter@redhat.com>, Linux PCI <linux-pci@vger.kernel.org>, linux-arm-kernel@lists.infradead.org, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linaro-acpi@lists.linaro.org, Jon Masters <jcm@redhat.com>, Andrea Gallo <andrea.gallo@linaro.org>, Duc Dang <dhdang@apm.com>, jeremy
 
-On Mon, May 30, 2016 at 9:08 PM, Arnd Bergmann <arnd@arndb.de> wrote:
-> On Monday, May 30, 2016 5:14:22 PM CEST Tomasz Nowicki wrote:
->> +       bsz = 1 << pci_generic_ecam_ops.bus_shift;
->> +       cfgres.start = root->mcfg_addr + bus_res->start * bsz;
->> +       cfgres.end = cfgres.start + resource_size(bus_res) * bsz - 1;
->> +       cfgres.flags = IORESOURCE_MEM;
->> +       cfg = pci_ecam_create(&root->device->dev, &cfgres, bus_res,
->> +                             &pci_generic_ecam_ops);
->> +       if (IS_ERR(cfg)) {
->> +               pr_err("%04x:%pR error %ld mapping CAM\n", seg, bus_res,
->> +                      PTR_ERR(cfg));
->> +               return PTR_ERR(cfg);
->> +       }
->> +
->> +       ri->cfg = cfg;
->> +       return 0;
->> +}
+On Thu, May 26, 2016 at 8:32 PM, Ville Syrj=C3=A4l=C3=A4
+<ville.syrjala@linux.intel.com> wrote:
+> On Wed, May 18, 2016 at 10:24:24AM +0300, Ville Syrj=C3=A4l=C3=A4 wro=
+te:
+>> On Wed, May 18, 2016 at 01:14:42AM +0200, Rafael J. Wysocki wrote:
+>> > On 5/16/2016 9:39 PM, Ville Syrj=C3=A4l=C3=A4 wrote:
+>> > > On Wed, May 11, 2016 at 04:34:06PM +0300, Ville Syrj=C3=A4l=C3=A4=
+ wrote:
+>> > >> On Wed, May 11, 2016 at 08:44:45AM -0400, Steven Rostedt wrote:
+>> > >>> On Wed, 11 May 2016 15:21:16 +0300
+>> > >>> Ville Syrj=C3=A4l=C3=A4 <ville.syrjala@linux.intel.com> wrote:
+>> > >>>
+>> > >>>> Yeah can't get anything from the machine at that point. netco=
+nsole
+>> > >>>> didn't help either, and no serial on this machine. And IIRC I=
+'ve
+>> > >>>> tried ramoops on this thing in the past but unfortunately the=
+ memory
+>> > >>>> got cleared on reboot.
+>> > >>>>
+>> > >>> Can you look at the documentation in the kernel code at
+>> > >>>
+>> > >>> Documentation/power/basic-pm-debugging.txt And follow the proc=
+edures
+>> > >>> for testing suspend to RAM (although it requires mostly runnin=
+g the
+>> > >>> same tests as for hibernation suspending).
+>> > >>>
+>> > >>> You can also use the tool s2ram for this as well.
+>> > >>>
+>> > >>> See Documentation/power/s2ram.txt
+>> > >>>
+>> > >>> Perhaps this can give us a bit more light onto the problem.
+>> > >>>
+>> > >>> Basically the above does partial suspend and resume, and can p=
+inpoint
+>> > >>> problem areas down to a more select location.
+>> > >> All the pm_test modes work fine. The only difference between th=
+em was
+>> > >> that 'platform' required me to manually wake up the machine (hi=
+tting a
+>> > >> key was sufficient), whereas the others woke up without help.
+>> > >>
+>> > >> pm_trace gave me
+>> > >> [    1.306633]   Magic number: 0:185:178
+>> > >> [    1.322880]   hash matches ../drivers/base/power/main.c:1070
+>> > >> [    1.339270] acpi device:0e: hash matches
+>> > >> [    1.355414]  platform: hash matches
+>> > >>
+>> > >> which is the TRACE_SUSPEND in __device_suspend_noirq(), so no h=
+elp
+>> > >> there.
+>> > >>
+>> > >> I guess I could try to sprinkle more TRACE_RESUMEs around into =
+some
+>> > >> early resume code. If anyone has good ideas where to put them i=
+t
+>> > >> might speed things up a bit.
+>> > > So I did a bunch of that and found that it gets stuck somewhere
+>> > > around executing the _WAK method:
+>> > > platform_resume_noirq
+>> > >   acpi_pm_finish
+>> > >    acpi_leave_sleep_state
+>> > >     acpi_hw_sleep_dispatch
+>> > >      acpi_hw_legacy_wake
+>> > >       acpi_hw_execute_sleep_method
+>> > >        acpi_evaluate_object
+>> > >         acpi_ns_evaluate
+>> > >          acpi_ps_execute_method
+>> > >           acpi_ps_parse_aml
+>> > >
+>> > > It also seesm that adding a few TRACE_RESUME()s or an msleep() r=
+ight
+>> > > after enable_nonboot_cpus() can avoid the hang, sometimes.
+>> > >
+>> > > I've attached the DSDT in case anyone is interested in looking a=
+t it.
+>> > >
+>> >
+>> > What if you comment out the execution of _WAK (line 318 of
+>> > drivers/acpi/acpica/hwsleep.c in 4.6)?  Does that make any differe=
+nce?
+>>
+>> Indeed it does. Tried with acpi_idle and intel_idle, and both appear=
+ to
+>> resume just fine with that hack.
+>>
+>> -       acpi_hw_execute_sleep_method(METHOD_PATHNAME__WAK, sleep_sta=
+te);
+>> +       //acpi_hw_execute_sleep_method(METHOD_PATHNAME__WAK, sleep_s=
+tate);
+>> +       printk(KERN_CRIT "skipping _WAK\n");
 >
-> I wonder if we could do this a little simpler and just put a pointer
-> to the mmconfig space into struct pci_host_bridge, and then have a trivial
-> map_bus function alongside pci_generic_config_read/pci_generic_config_write.
+> Continuing with my detective work a bit, I decided to hack the DSDT a
+> bit to see if I can narrow the it down further, and looks like I foun=
+d
+> it on the first guess. The following change stops it from hanging.
 >
-> As this code is specific to arch/arm64, we don't need any of the complexity
-> of drivers/pci/ecam.c, which basically only exists to work around the
-> limited virtual address space of 32-bit machines.
+> @ -5056,7 +5056,7 @@
+>          If (LEqual (Arg0, 0x03))
+>          {
+>              Store (0x01, \SPNF)
+> -           TRAP (0x46)
+> +           //TRAP (0x46)
+>              P8XH (0x00, 0x03)
+>          }
+>
+> So what does that do? Let's see:
+>
+>     OperationRegion (IO_T, SystemIO, 0x0800, 0x10)
+>     Field (IO_T, ByteAcc, NoLock, Preserve)
+>     {
+>         Offset (0x08),
+>         TRP0,   8
+>     }
+>
+>     OperationRegion (GNVS, SystemMemory, 0x3F5E0C7C, 0x0200)
+>     Field (GNVS, AnyAcc, Lock, Preserve)
+>     {
+>         OSYS,   16,
+>         SMIF,   8,
+>     ...
+>
+>     Method (TRAP, 1, Serialized)
+>     {
+>         Store (Arg0, SMIF) /* \SMIF */
+>         Store (0x00, TRP0) /* \TRP0 */
+>         Return (SMIF) /* \SMIF */
+>     }
+>
+> and a dump of the IOTR registers shows:
+>
+> 0x1e80: 0x0000fe01
+> 0x1e84: 0x00020001
+> 0x1e98: 0x000c0801
+> 0x1e9c: 0x000200f0
+>
+> which seems to be telling me that ports 0x800-0x80f and
+> 0xfe00-0xfe03 would trigger an SMI.
 
-The map_bus provided by pci-ecam.h is already trivial in 64bit case,
-it was written so that it could be optimized at compile time. The
-pci_ecam_create is a useful to have here instead of redoing the
-request_resource/ioremap sequence.
+Well, the name of the method kind of suggests that it triggers an SMM t=
+rap. :-)
 
-The struct pci_config_window can be moved into struct
-pci_host_bridge (or a wrapper of pci_host_bridge) when we have
-the setup to point bus->sysdata to something like that. The ECAM
-API can be fixed up to handle that case as well. I did not make
-any changes since the pci_host_bridge discussion is still going on.
+> So the next question is how do the idle drivers and cpu hotplug
+> fit into this picture. Do we need to force the second HT into
+> a specific C state before the SMI or something?
 
-JC.
+Or you can ask why exactly someone put that SMM trap into _WAK.
+
+Apparently, it was regarded as necessary or no one would have
+bothered.  The only reason I can see why it might be regarded as
+necessary was that Windows did something Linux doesn't do on that
+platform, or, which to me is far more interesting, that Windows didn't
+do something actually done by Linux.
+
+My theory would be that Windows didn't reinitialize the second HT
+properly during resume and the trap was added to let SMM do that.  If
+that's the case, the trap may trigger by the time the second HT
+already executes code in Linux and then it will mess up with it and
+crash.
+
+Now, what do idles states have to do with that?  IIRC, Windows puts
+nonboot CPUs into idle states before suspend, so the SMM code
+triggered by the trap may make assumptions about the CPU being in such
+a state or similar.
