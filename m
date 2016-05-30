@@ -1,131 +1,111 @@
-From: Kejian Yan <yankejian@huawei.com>
-Subject: [patch v2 net-next 13/13] net: hns: net: hns: enet adds support of acpi
-Date: Mon, 30 May 2016 10:10:22 +0800
-Message-ID: <1464574222-69608-14-git-send-email-yankejian@huawei.com>
-References: <1464574222-69608-1-git-send-email-yankejian@huawei.com>
+From: Ocean HY1 He <hehy1@lenovo.com>
+Subject: RE: [PATCH] ACPI: Execute the _PTS method when system reboot
+Date: Mon, 30 May 2016 03:28:59 +0000
+Message-ID: <BCBE834BAC19744BA2C3AC4D68DBF2198D85B47D@CNMAILEX03.lenovo.com>
+References: <1462772495-71113-1-git-send-email-hehy1@lenovo.com>
+ <BCBE834BAC19744BA2C3AC4D68DBF2198D8270D9@CNMAILEX03.lenovo.com>
+ <574429C7.3050101@redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset="gb2312"
+Content-Transfer-Encoding: base64
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from szxga01-in.huawei.com ([58.251.152.64]:16025 "EHLO
-	szxga01-in.huawei.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753181AbcE3B6e (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sun, 29 May 2016 21:58:34 -0400
-In-Reply-To: <1464574222-69608-1-git-send-email-yankejian@huawei.com>
+Received: from mail1.bemta12.messagelabs.com ([216.82.251.4]:42066 "EHLO
+	mail1.bemta12.messagelabs.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752857AbcE3Da4 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>);
+	Sun, 29 May 2016 23:30:56 -0400
+In-Reply-To: <574429C7.3050101@redhat.com>
+Content-Language: zh-CN
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: rjw@rjwysocki.net, lenb@kernel.org, davem@davemloft.net
-Cc: fengguang.wu@intel.com, andriy.shevchenko@linux.intel.com, andrew@lunn.ch, ivecera@redhat.com, f.fainelli@gmail.com, haifeng.wei@huawei.com, charles.chenxin@huawei.com, netdev@vger.kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, linuxarm@huawei.com
+To: Prarit Bhargava <prarit@redhat.com>, "jcm@redhat.com" <jcm@redhat.com>
+Cc: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, David Tanaka <dtanaka@lenovo.com>, Nagananda Chumbalkar <nchumbalkar@lenovo.com>, "rjw@rjwysocki.net" <rjw@rjwysocki.net>, "lenb@kernel.org" <lenb@kernel.org>, "wefu@redhat.com" <wefu@redhat.com>
 
-Enet needs to get configration parameter by acpi. This patch
-adds support of ACPI for enet. The configuration parameter will
-be configed in BIOS.
-
-Signed-off-by: Kejian Yan <yankejian@huawei.com>
-Signed-off-by: Yisen Zhuang <Yisen.Zhuang@huawei.com>
----
-change log:
- v2:
-     1. use acpi_dev_found() instead of acpi_match_device_ids()
-     2. use is_acpi_node() to check if it works by ACPI case
-     3. use dev_of_node() to check if it works by DT case
-
- v1: first submit
-  link: https://lkml.org/lkml/2016/5/13/99
----
- drivers/net/ethernet/hisilicon/hns/hns_enet.c | 56 +++++++++++++++++++++------
- 1 file changed, 44 insertions(+), 12 deletions(-)
-
-diff --git a/drivers/net/ethernet/hisilicon/hns/hns_enet.c b/drivers/net/ethernet/hisilicon/hns/hns_enet.c
-index 3ec3c27..ad742a6 100644
---- a/drivers/net/ethernet/hisilicon/hns/hns_enet.c
-+++ b/drivers/net/ethernet/hisilicon/hns/hns_enet.c
-@@ -132,6 +132,13 @@ static void fill_v2_desc(struct hnae_ring *ring, void *priv,
- 	ring_ptr_move_fw(ring, next_to_use);
- }
- 
-+static const struct acpi_device_id hns_enet_acpi_match[] = {
-+	{ "HISI00C1", 0 },
-+	{ "HISI00C2", 0 },
-+	{ },
-+};
-+MODULE_DEVICE_TABLE(acpi, hns_enet_acpi_match);
-+
- static void fill_desc(struct hnae_ring *ring, void *priv,
- 		      int size, dma_addr_t dma, int frag_end,
- 		      int buf_num, enum hns_desc_type type, int mtu)
-@@ -1870,7 +1877,6 @@ static int hns_nic_dev_probe(struct platform_device *pdev)
- 	struct device *dev = &pdev->dev;
- 	struct net_device *ndev;
- 	struct hns_nic_priv *priv;
--	struct device_node *ae_node;
- 	u32 port_id;
- 	int ret;
- 
-@@ -1884,20 +1890,45 @@ static int hns_nic_dev_probe(struct platform_device *pdev)
- 	priv->dev = dev;
- 	priv->netdev = ndev;
- 
--	if (of_device_is_compatible(dev->of_node, "hisilicon,hns-nic-v1"))
--		priv->enet_ver = AE_VERSION_1;
--	else
--		priv->enet_ver = AE_VERSION_2;
-+	if (dev_of_node(dev)) {
-+		struct device_node *ae_node;
- 
--	ae_node = of_parse_phandle(dev->of_node, "ae-handle", 0);
--	if (IS_ERR_OR_NULL(ae_node)) {
--		ret = PTR_ERR(ae_node);
--		dev_err(dev, "not find ae-handle\n");
--		goto out_read_prop_fail;
-+		if (of_device_is_compatible(dev->of_node,
-+					    "hisilicon,hns-nic-v1"))
-+			priv->enet_ver = AE_VERSION_1;
-+		else
-+			priv->enet_ver = AE_VERSION_2;
-+
-+		ae_node = of_parse_phandle(dev->of_node, "ae-handle", 0);
-+		if (IS_ERR_OR_NULL(ae_node)) {
-+			ret = PTR_ERR(ae_node);
-+			dev_err(dev, "not find ae-handle\n");
-+			goto out_read_prop_fail;
-+		}
-+		priv->fwnode = &ae_node->fwnode;
-+	} else if (is_acpi_node(dev->fwnode)) {
-+		struct acpi_reference_args args;
-+
-+		if (acpi_dev_found(hns_enet_acpi_match[0].id))
-+			priv->enet_ver = AE_VERSION_1;
-+		else if (acpi_dev_found(hns_enet_acpi_match[1].id))
-+			priv->enet_ver = AE_VERSION_2;
-+		else
-+			return -ENXIO;
-+
-+		/* try to find port-idx-in-ae first */
-+		ret = acpi_node_get_property_reference(dev->fwnode,
-+						       "ae-handle", 0, &args);
-+		if (ret) {
-+			dev_err(dev, "not find ae-handle\n");
-+			goto out_read_prop_fail;
-+		}
-+		priv->fwnode = acpi_fwnode_handle(args.adev);
-+	} else {
-+		dev_err(dev, "cannot read cfg data from OF or acpi\n");
-+		return -ENXIO;
- 	}
--	priv->fwnode = &ae_node->fwnode;
- 
--	/* try to find port-idx-in-ae first */
- 	ret = device_property_read_u32(dev, "port-idx-in-ae", &port_id);
- 	if (ret) {
- 		/* only for old code compatible */
-@@ -2014,6 +2045,7 @@ static struct platform_driver hns_nic_dev_driver = {
- 	.driver = {
- 		.name = "hns-nic",
- 		.of_match_table = hns_enet_of_match,
-+		.acpi_match_table = ACPI_PTR(hns_enet_acpi_match),
- 	},
- 	.probe = hns_nic_dev_probe,
- 	.remove = hns_nic_dev_remove,
--- 
-1.9.1
-
+PiAtLS0tLU9yaWdpbmFsIE1lc3NhZ2UtLS0tLQ0KPiBGcm9tOiBQcmFyaXQgQmhhcmdhdmEgW21h
+aWx0bzpwcmFyaXRAcmVkaGF0LmNvbV0NCj4gU2VudDogVHVlc2RheSwgTWF5IDI0LCAyMDE2IDY6
+MTYgUE0NCj4gVG86IE9jZWFuIEhZMSBIZTsgamNtQHJlZGhhdC5jb20NCj4gQ2M6IGxpbnV4LWFj
+cGlAdmdlci5rZXJuZWwub3JnOyBsaW51eC1rZXJuZWxAdmdlci5rZXJuZWwub3JnOyBEYXZpZCBU
+YW5ha2E7DQo+IE5hZ2FuYW5kYSBDaHVtYmFsa2FyOyByandAcmp3eXNvY2tpLm5ldDsgbGVuYkBr
+ZXJuZWwub3JnOw0KPiB3ZWZ1QHJlZGhhdC5jb20NCj4gU3ViamVjdDogUmU6IFtQQVRDSF0gQUNQ
+STogRXhlY3V0ZSB0aGUgX1BUUyBtZXRob2Qgd2hlbiBzeXN0ZW0gcmVib290DQo+IA0KPiANCj4g
+DQo+IE9uIDA1LzI0LzIwMTYgMDI6NDEgQU0sIE9jZWFuIEhZMSBIZSB3cm90ZToNCj4gPiBIaSBQ
+cmFyaXQgYW5kIEpvbiwNCj4gPg0KPiA+IEhvdyBkbyB5b3UgdGhpbmsgb2YgdGhpcz8NCj4gPg0K
+PiA+IFRoYW5rcy4NCj4gPg0KPiA+IE9jZWFuIEhlIC8gus66o9HzDQo+ID4gU1cgRGV2ZWxvcG1l
+bnQgRGVwdC4NCj4gPiBCZWlqaW5nIERlc2lnbiBDZW50ZXINCj4gPiBFbnRlcnByaXNlIFByb2R1
+Y3QgR3JvdXANCj4gPiBNb2JpbGU6IDE4OTExNzc4OTI2DQo+ID4gRS1tYWlsOiBoZWh5MUBsZW5v
+dm8uY29tDQo+ID4gTm8uNiBDaHVhbmcgWWUgUm9hZCwgSGFpZGlhbiBEaXN0cmljdCwgQmVpamlu
+ZywgQ2hpbmEgMTAwMDg1DQo+ID4NCj4gPiAtLS0tLU9yaWdpbmFsIE1lc3NhZ2UtLS0tLQ0KPiA+
+IEZyb206IE9jZWFuIEhZMSBIZQ0KPiA+IFNlbnQ6IE1vbmRheSwgTWF5IDE2LCAyMDE2IDExOjA0
+IEFNDQo+ID4gVG86IHJqd0Byand5c29ja2kubmV0OyBsZW5iQGtlcm5lbC5vcmcNCj4gPiBDYzog
+bGludXgtYWNwaUB2Z2VyLmtlcm5lbC5vcmc7IGxpbnV4LWtlcm5lbEB2Z2VyLmtlcm5lbC5vcmc7
+IERhdmlkDQo+IFRhbmFrYTsgTmFnYW5hbmRhIENodW1iYWxrYXINCj4gPiBTdWJqZWN0OiBSRTog
+W1BBVENIXSBBQ1BJOiBFeGVjdXRlIHRoZSBfUFRTIG1ldGhvZCB3aGVuIHN5c3RlbQ0KPiByZWJv
+b3QNCj4gPg0KPiA+IFRvIHdob20gbWF5IGNvbmNlcm4sDQo+ID4NCj4gPiBBIExlbm92byBmZWF0
+dXJlIGRlcGVuZHMgb24gX1BUUyBtZXRob2QgZXhlY3V0aW9uIHdoZW4gcmVib290LiBBbmQNCj4g
+YWZ0ZXIgY2hlY2sgdGhlIEFDUEkgc3BlYywgSSB0aGluayBfUFRTIHNob3VsZCBiZSBleGVjdHVl
+ZCB3aGVuIHJlYm9vLg0KPiBUaGlzIHBhdGNoIGNvdWxkIGZpeCB0aGUgcHJvYmxlbS4NCj4gPg0K
+PiA+IEFueSBjb21tZW50cyBvZiB0aGlzIHBhdGNoPyBNYW55IHRoYW5rcyENCj4gPg0KPiA+IE9j
+ZWFuIEhlIC8gus66o9HzDQo+ID4gU1cgRGV2ZWxvcG1lbnQgRGVwdC4NCj4gPiBCZWlqaW5nIERl
+c2lnbiBDZW50ZXINCj4gPiBFbnRlcnByaXNlIFByb2R1Y3QgR3JvdXANCj4gPiBNb2JpbGU6IDE4
+OTExNzc4OTI2DQo+ID4gRS1tYWlsOiBoZWh5MUBsZW5vdm8uY29tDQo+ID4gTm8uNiBDaHVhbmcg
+WWUgUm9hZCwgSGFpZGlhbiBEaXN0cmljdCwgQmVpamluZywgQ2hpbmEgMTAwMDg1DQo+ID4NCj4g
+PiAtLS0tLU9yaWdpbmFsIE1lc3NhZ2UtLS0tLQ0KPiA+IEZyb206IE9jZWFuIEhZMSBIZQ0KPiA+
+IFNlbnQ6IE1vbmRheSwgTWF5IDA5LCAyMDE2IDE6NTAgUE0NCj4gPiBUbzogcmp3QHJqd3lzb2Nr
+aS5uZXQ7IGxlbmJAa2VybmVsLm9yZw0KPiA+IENjOiBsaW51eC1hY3BpQHZnZXIua2VybmVsLm9y
+ZzsgbGludXgta2VybmVsQHZnZXIua2VybmVsLm9yZzsgRGF2aWQNCj4gVGFuYWthOyBPY2VhbiBI
+WTEgSGU7IE5hZ2FuYW5kYSBDaHVtYmFsa2FyDQo+ID4gU3ViamVjdDogW1BBVENIXSBBQ1BJOiBF
+eGVjdXRlIHRoZSBfUFRTIG1ldGhvZCB3aGVuIHN5c3RlbSByZWJvb3QNCj4gPg0KPiA+IFRoZSBf
+UFRTIGNvbnRyb2wgbWV0aG9kIGlzIGRlZmluZWQgaW4gdGhlIHNlY3Rpb24gNy40LjEgb2YgYWNw
+aSA2LjANCj4gPiBzcGVjLiBUaGUgX1BUUyBjb250cm9sIG1ldGhvZCBpcyBleGVjdXRlZCBieSB0
+aGUgT1MgZHVyaW5nIHRoZSBzbGVlcA0KPiA+IHRyYW5zaXRpb24gcHJvY2VzcyBmb3IgUzEsIFMy
+LCBTMywgUzQsIGFuZCBmb3Igb3JkZXJseSBTNSBzaHV0ZG93bi4NCj4gPiBUaGUgc2xlZXBpbmcg
+c3RhdGUgdmFsdWUgKEZvciBleGFtcGxlLCAxLCAyLCAzLCA0IG9yIDUgZm9yIHRoZSBTNQ0KPiA+
+IHNvZnQtb2ZmIHN0YXRlKSBpcyBwYXNzZWQgdG8gdGhlIF9QVFMgY29udHJvbCBtZXRob2QuIFRo
+aXMgbWV0aG9kDQo+ID4gaXMgY2FsbGVkIGFmdGVyIE9TUE0gaGFzIG5vdGlmaWVkIG5hdGl2ZSBk
+ZXZpY2UgZHJpdmVycyBvZiB0aGUgc2xlZXANCj4gPiBzdGF0ZSB0cmFuc2l0aW9uIGFuZCBiZWZv
+cmUgdGhlIE9TUE0gaGFzIGhhZCBhIGNoYW5jZSB0byBmdWxseQ0KPiA+IHByZXBhcmUgdGhlIHN5
+c3RlbSBmb3IgYSBzbGVlcCBzdGF0ZSB0cmFuc2l0aW9uLg0KPiA+DQo+ID4gVGhlIF9QVFMgY29u
+dHJvbCBtZXRob2QgcHJvdmlkZXMgdGhlIEJJT1MgYSBtZWNoYW5pc20gZm9yIHBlcmZvcm1pbmcN
+Cj4gPiBzb21lIGhvdXNla2VlcGluZywgc3VjaCBhcyB3cml0aW5nIHRoZSBzbGVlcCB0eXBlIHZh
+bHVlIHRvIHRoZQ0KPiBlbWJlZGRlZA0KPiA+IGNvbnRyb2xsZXIsIGJlZm9yZSBlbnRlcmluZyB0
+aGUgc3lzdGVtIHNsZWVwaW5nIHN0YXRlLg0KPiA+DQo+ID4gQWNjb3JkaW5nIHRvIHNlY3Rpb24g
+Ny41IG9mIGFjcGkgNi4wIHNwZWMsIF9QVFMgc2hvdWxkIHJ1biBhZnRlciBfVFRTLg0KPiA+DQo+
+ID4gVGh1cywgYSBfUFRTIGJsb2NrIG5vdGlmaWVyIGlzIGFkZGVkIHRvIHRoZSByZWJvb3Qgbm90
+aWZpZXIgbGlzdCBzbyB0aGF0DQo+ID4gdGhlIF9QVFMgb2JqZWN0IHdpbGwgYWxzbyBiZSBldmFs
+dWF0ZWQgd2hlbiB0aGUgc3lzdGVtIHJlYm9vdC4NCj4gPg0KPiA+IFNpZ25lZC1vZmYtYnk6IE9j
+ZWFuIEhlIDxoZWh5MUBsZW5vdm8uY29tPg0KPiA+IFNpZ25lZC1vZmYtYnk6IE5hZ2FuYW5kYSBD
+aHVtYmFsa2FyIDxuY2h1bWJhbGthckBsZW5vdm8uY29tPg0KPiA+IC0tLQ0KPiA+ICBkcml2ZXJz
+L2FjcGkvc2xlZXAuYyB8IDI3ICsrKysrKysrKysrKysrKysrKysrKysrKysrKw0KPiA+ICAxIGZp
+bGUgY2hhbmdlZCwgMjcgaW5zZXJ0aW9ucygrKQ0KPiA+DQo+ID4gZGlmZiAtLWdpdCBhL2RyaXZl
+cnMvYWNwaS9zbGVlcC5jIGIvZHJpdmVycy9hY3BpL3NsZWVwLmMNCj4gPiBpbmRleCAyYThiNTk2
+Li44YjI5MGZiIDEwMDY0NA0KPiA+IC0tLSBhL2RyaXZlcnMvYWNwaS9zbGVlcC5jDQo+ID4gKysr
+IGIvZHJpdmVycy9hY3BpL3NsZWVwLmMNCj4gPiBAQCAtNTUsNiArNTUsMjYgQEAgc3RhdGljIHN0
+cnVjdCBub3RpZmllcl9ibG9jayB0dHNfbm90aWZpZXIgPSB7DQo+ID4gIAkucHJpb3JpdHkJPSAw
+LA0KPiA+ICB9Ow0KPiA+DQo+ID4gK3N0YXRpYyBpbnQgcHRzX25vdGlmeV9yZWJvb3Qoc3RydWN0
+IG5vdGlmaWVyX2Jsb2NrICp0aGlzLA0KPiA+ICsJCQl1bnNpZ25lZCBsb25nIGNvZGUsIHZvaWQg
+KngpDQo+ID4gK3sNCj4gPiArCWFjcGlfc3RhdHVzIHN0YXR1czsNCj4gPiArDQo+ID4gKwlzdGF0
+dXMgPSBhY3BpX2V4ZWN1dGVfc2ltcGxlX21ldGhvZChOVUxMLCAiXFxfUFRTIiwNCj4gQUNQSV9T
+VEFURV9TNSk7DQo+ID4gKwlpZiAoQUNQSV9GQUlMVVJFKHN0YXR1cykgJiYgc3RhdHVzICE9IEFF
+X05PVF9GT1VORCkgew0KPiA+ICsJCS8qIEl0IHdvbid0IGJyZWFrIGFueXRoaW5nLiAqLw0KPiA+
+ICsJCXByaW50ayhLRVJOX05PVElDRSAiRmFpbHVyZSBpbiBldmFsdWF0aW5nIF9QVFMgb2JqZWN0
+XG4iKTsNCj4gDQo+IF5eXl4NCj4gCXByX2RlYnVnKCJObyBfUFRTIG9iamVjdCBmb3VuZC5cbiIp
+Ow0KPiANCj4gSXQgaXNuJ3QgYSB3YXJuaW5nIG9yIGVycm9yLCBzbyBkb24ndCBwdXQgdGhlIHdv
+cmQgIkZhaWx1cmUiIGluIHRoZXJlLg0KPiANCj4gQmV5b25kIHRoYXQsIGxvb2tzIGVudGlyZWx5
+IHJlYXNvbmFibGUgdG8gbWUuDQo+IA0KPiBQLg0KPiANCkhpIFByYXJpdCwNCg0KVGhlIG1lc3Nh
+Z2Ugb3V0cHV0cyB3aGVuIF9QVFMgaXMgZm91bmQgYnV0IGZhaWwgdG8gZXhlY3V0ZS4gSSBjb3B5
+IHRoaXMgY29kZQ0KZnJvbSBleGlzdGVkIGZ1bmN0aW9uIGFjcGlfc2xlZXBfdHRzX3N3aXRjaCgp
+LiBJIGp1c3Qgd2FudHMgdG8ga2VlcCBuZXcgY29kZXMNCmFzIHRoZSBzYW1lIHN0eWxlIGFzIGV4
+aXN0ZWQgY29kZXMuIE1ha2Ugc2Vuc2U/IDstKQ0KDQpPY2Vhbi4NCj4gDQo+ID4gKwl9DQo+ID4g
+Kw0KPiA+ICsJcmV0dXJuIE5PVElGWV9ET05FOw0KPiA+ICt9DQo+ID4gKw0KPiA+ICtzdGF0aWMg
+c3RydWN0IG5vdGlmaWVyX2Jsb2NrIHB0c19ub3RpZmllciA9IHsNCj4gPiArCS5ub3RpZmllcl9j
+YWxsCT0gcHRzX25vdGlmeV9yZWJvb3QsDQo+ID4gKwkubmV4dAkJPSBOVUxMLA0KPiA+ICsJLnBy
+aW9yaXR5CT0gMCwNCj4gPiArfTsNCj4gPiArDQo+ID4gIHN0YXRpYyBpbnQgYWNwaV9zbGVlcF9w
+cmVwYXJlKHUzMiBhY3BpX3N0YXRlKQ0KPiA+ICB7DQo+ID4gICNpZmRlZiBDT05GSUdfQUNQSV9T
+TEVFUA0KPiA+IEBAIC04OTYsNSArOTE2LDEyIEBAIGludCBfX2luaXQgYWNwaV9zbGVlcF9pbml0
+KHZvaWQpDQo+ID4gIAkgKiBvYmplY3QgY2FuIGFsc28gYmUgZXZhbHVhdGVkIHdoZW4gdGhlIHN5
+c3RlbSBlbnRlcnMgUzUuDQo+ID4gIAkgKi8NCj4gPiAgCXJlZ2lzdGVyX3JlYm9vdF9ub3RpZmll
+cigmdHRzX25vdGlmaWVyKTsNCj4gPiArDQo+ID4gKwkvKg0KPiA+ICsJICogQWNjb3JkaW5nIHRv
+IHNlY3Rpb24gNy41IG9mIGFjcGkgNi4wIHNwZWMsIF9QVFMgc2hvdWxkIHJ1biBhZnRlcg0KPiA+
+ICsJICogX1RUUyB3aGVuIHRoZSBzeXN0ZW0gZW50ZXJzIFM1Lg0KPiA+ICsJICovDQo+ID4gKwly
+ZWdpc3Rlcl9yZWJvb3Rfbm90aWZpZXIoJnB0c19ub3RpZmllcik7DQo+ID4gKw0KPiA+ICAJcmV0
+dXJuIDA7DQo+ID4gIH0NCj4gPg0K
