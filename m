@@ -1,216 +1,194 @@
-From: Ville =?iso-8859-1?Q?Syrj=E4l=E4?= <ville.syrjala@linux.intel.com>
-Subject: Re: S3 resume regression [1cf4f629d9d2 ("cpu/hotplug: Move online
- calls to hotplugged cpu")]
-Date: Tue, 31 May 2016 10:26:50 +0300
-Message-ID: <20160531072650.GP4329@intel.com>
-References: <20160511101920.GZ4329@intel.com>
- <57332171.8070403@linutronix.de>
- <20160511122116.GA4329@intel.com>
- <20160511084445.00030b49@gandalf.local.home>
- <20160511133406.GC4329@intel.com>
- <20160516193910.GL4329@intel.com>
- <573BA5E2.5040506@intel.com>
- <20160518072424.GU4329@intel.com>
- <20160526183207.GX4329@intel.com>
- <CAJZ5v0in8YwMBgLd6=KgGVc-f2yVvutOJG_u05OKLK7_EzN0yQ@mail.gmail.com>
+From: Prarit Bhargava <prarit@redhat.com>
+Subject: Re: [PATCH] ACPI: Execute the _PTS method when system reboot
+Date: Tue, 31 May 2016 05:59:38 -0400
+Message-ID: <574D608A.1070102@redhat.com>
+References: <1462772495-71113-1-git-send-email-hehy1@lenovo.com> <BCBE834BAC19744BA2C3AC4D68DBF2198D8270D9@CNMAILEX03.lenovo.com> <574429C7.3050101@redhat.com> <BCBE834BAC19744BA2C3AC4D68DBF2198D85B47D@CNMAILEX03.lenovo.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
+Content-Type: text/plain; charset=gbk
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga09.intel.com ([134.134.136.24]:55936 "EHLO mga09.intel.com"
+Received: from mx1.redhat.com ([209.132.183.28]:43772 "EHLO mx1.redhat.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751316AbcEaH1L (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 31 May 2016 03:27:11 -0400
-Content-Disposition: inline
-In-Reply-To: <CAJZ5v0in8YwMBgLd6=KgGVc-f2yVvutOJG_u05OKLK7_EzN0yQ@mail.gmail.com>
+	id S1750696AbcEaJ7l (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 31 May 2016 05:59:41 -0400
+In-Reply-To: <BCBE834BAC19744BA2C3AC4D68DBF2198D85B47D@CNMAILEX03.lenovo.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rafael@kernel.org>
-Cc: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Steven Rostedt <rostedt@goodmis.org>, Sebastian Andrzej Siewior <bigeasy@linutronix.de>, Thomas Gleixner <tglx@linutronix.de>, linux-arch@vger.kernel.org, Rik van Riel <riel@redhat.com>, "Srivatsa S. Bhat" <srivatsa@mit.edu>, Peter Zijlstra <peterz@infradead.org>, Arjan van de Ven <arjan@linux.intel.com>, Rusty Russell <rusty@rustcorp.com.au>, Oleg Nesterov <oleg@redhat.com>, Tejun Heo <tj@kernel.org>, Andrew Morton <akpm@linux-foundation.org>, Paul McKenney <paulmck@linux.vnet.ibm.com>, Linus Torvalds <torvalds@linux-foundation.org>, Paul Turner <pjt@google.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, "Zhang, Rui" <rui.zhang@intel.com>, Len Brown <len.brown@intel.com>, Linux PM <linux-pm@vger.kernel.org>, Linux ACPI <linux-acpi@vger.kernel.org>
+To: Ocean HY1 He <hehy1@lenovo.com>, "jcm@redhat.com" <jcm@redhat.com>
+Cc: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, David Tanaka <dtanaka@lenovo.com>, Nagananda Chumbalkar <nchumbalkar@lenovo.com>, "rjw@rjwysocki.net" <rjw@rjwysocki.net>, "lenb@kernel.org" <lenb@kernel.org>, "wefu@redhat.com" <wefu@redhat.com>
 
-On Mon, May 30, 2016 at 10:43:51PM +0200, Rafael J. Wysocki wrote:
-> On Thu, May 26, 2016 at 8:32 PM, Ville Syrj=E4l=E4
-> <ville.syrjala@linux.intel.com> wrote:
-> > On Wed, May 18, 2016 at 10:24:24AM +0300, Ville Syrj=E4l=E4 wrote:
-> >> On Wed, May 18, 2016 at 01:14:42AM +0200, Rafael J. Wysocki wrote:
-> >> > On 5/16/2016 9:39 PM, Ville Syrj=E4l=E4 wrote:
-> >> > > On Wed, May 11, 2016 at 04:34:06PM +0300, Ville Syrj=E4l=E4 wr=
-ote:
-> >> > >> On Wed, May 11, 2016 at 08:44:45AM -0400, Steven Rostedt wrot=
-e:
-> >> > >>> On Wed, 11 May 2016 15:21:16 +0300
-> >> > >>> Ville Syrj=E4l=E4 <ville.syrjala@linux.intel.com> wrote:
-> >> > >>>
-> >> > >>>> Yeah can't get anything from the machine at that point. net=
-console
-> >> > >>>> didn't help either, and no serial on this machine. And IIRC=
- I've
-> >> > >>>> tried ramoops on this thing in the past but unfortunately t=
-he memory
-> >> > >>>> got cleared on reboot.
-> >> > >>>>
-> >> > >>> Can you look at the documentation in the kernel code at
-> >> > >>>
-> >> > >>> Documentation/power/basic-pm-debugging.txt And follow the pr=
-ocedures
-> >> > >>> for testing suspend to RAM (although it requires mostly runn=
-ing the
-> >> > >>> same tests as for hibernation suspending).
-> >> > >>>
-> >> > >>> You can also use the tool s2ram for this as well.
-> >> > >>>
-> >> > >>> See Documentation/power/s2ram.txt
-> >> > >>>
-> >> > >>> Perhaps this can give us a bit more light onto the problem.
-> >> > >>>
-> >> > >>> Basically the above does partial suspend and resume, and can=
- pinpoint
-> >> > >>> problem areas down to a more select location.
-> >> > >> All the pm_test modes work fine. The only difference between =
-them was
-> >> > >> that 'platform' required me to manually wake up the machine (=
-hitting a
-> >> > >> key was sufficient), whereas the others woke up without help.
-> >> > >>
-> >> > >> pm_trace gave me
-> >> > >> [    1.306633]   Magic number: 0:185:178
-> >> > >> [    1.322880]   hash matches ../drivers/base/power/main.c:10=
-70
-> >> > >> [    1.339270] acpi device:0e: hash matches
-> >> > >> [    1.355414]  platform: hash matches
-> >> > >>
-> >> > >> which is the TRACE_SUSPEND in __device_suspend_noirq(), so no=
- help
-> >> > >> there.
-> >> > >>
-> >> > >> I guess I could try to sprinkle more TRACE_RESUMEs around int=
-o some
-> >> > >> early resume code. If anyone has good ideas where to put them=
- it
-> >> > >> might speed things up a bit.
-> >> > > So I did a bunch of that and found that it gets stuck somewher=
-e
-> >> > > around executing the _WAK method:
-> >> > > platform_resume_noirq
-> >> > >   acpi_pm_finish
-> >> > >    acpi_leave_sleep_state
-> >> > >     acpi_hw_sleep_dispatch
-> >> > >      acpi_hw_legacy_wake
-> >> > >       acpi_hw_execute_sleep_method
-> >> > >        acpi_evaluate_object
-> >> > >         acpi_ns_evaluate
-> >> > >          acpi_ps_execute_method
-> >> > >           acpi_ps_parse_aml
-> >> > >
-> >> > > It also seesm that adding a few TRACE_RESUME()s or an msleep()=
- right
-> >> > > after enable_nonboot_cpus() can avoid the hang, sometimes.
-> >> > >
-> >> > > I've attached the DSDT in case anyone is interested in looking=
- at it.
-> >> > >
-> >> >
-> >> > What if you comment out the execution of _WAK (line 318 of
-> >> > drivers/acpi/acpica/hwsleep.c in 4.6)?  Does that make any diffe=
-rence?
-> >>
-> >> Indeed it does. Tried with acpi_idle and intel_idle, and both appe=
-ar to
-> >> resume just fine with that hack.
-> >>
-> >> -       acpi_hw_execute_sleep_method(METHOD_PATHNAME__WAK, sleep_s=
-tate);
-> >> +       //acpi_hw_execute_sleep_method(METHOD_PATHNAME__WAK, sleep=
-_state);
-> >> +       printk(KERN_CRIT "skipping _WAK\n");
-> >
-> > Continuing with my detective work a bit, I decided to hack the DSDT=
- a
-> > bit to see if I can narrow the it down further, and looks like I fo=
-und
-> > it on the first guess. The following change stops it from hanging.
-> >
-> > @ -5056,7 +5056,7 @@
-> >          If (LEqual (Arg0, 0x03))
-> >          {
-> >              Store (0x01, \SPNF)
-> > -           TRAP (0x46)
-> > +           //TRAP (0x46)
-> >              P8XH (0x00, 0x03)
-> >          }
-> >
-> > So what does that do? Let's see:
-> >
-> >     OperationRegion (IO_T, SystemIO, 0x0800, 0x10)
-> >     Field (IO_T, ByteAcc, NoLock, Preserve)
-> >     {
-> >         Offset (0x08),
-> >         TRP0,   8
-> >     }
-> >
-> >     OperationRegion (GNVS, SystemMemory, 0x3F5E0C7C, 0x0200)
-> >     Field (GNVS, AnyAcc, Lock, Preserve)
-> >     {
-> >         OSYS,   16,
-> >         SMIF,   8,
-> >     ...
-> >
-> >     Method (TRAP, 1, Serialized)
-> >     {
-> >         Store (Arg0, SMIF) /* \SMIF */
-> >         Store (0x00, TRP0) /* \TRP0 */
-> >         Return (SMIF) /* \SMIF */
-> >     }
-> >
-> > and a dump of the IOTR registers shows:
-> >
-> > 0x1e80: 0x0000fe01
-> > 0x1e84: 0x00020001
-> > 0x1e98: 0x000c0801
-> > 0x1e9c: 0x000200f0
-> >
-> > which seems to be telling me that ports 0x800-0x80f and
-> > 0xfe00-0xfe03 would trigger an SMI.
->=20
-> Well, the name of the method kind of suggests that it triggers an SMM=
- trap. :-)
 
-Which is why I wanted confirm that by looking at the IOTR regs ;)
 
->=20
-> > So the next question is how do the idle drivers and cpu hotplug
-> > fit into this picture. Do we need to force the second HT into
-> > a specific C state before the SMI or something?
->=20
-> Or you can ask why exactly someone put that SMM trap into _WAK.
->=20
-> Apparently, it was regarded as necessary or no one would have
-> bothered.  The only reason I can see why it might be regarded as
-> necessary was that Windows did something Linux doesn't do on that
-> platform, or, which to me is far more interesting, that Windows didn'=
+On 05/29/2016 11:28 PM, Ocean HY1 He wrote:
+>> -----Original Message-----
+>> From: Prarit Bhargava [mailto:prarit@redhat.com]
+>> Sent: Tuesday, May 24, 2016 6:16 PM
+>> To: Ocean HY1 He; jcm@redhat.com
+>> Cc: linux-acpi@vger.kernel.org; linux-kernel@vger.kernel.org; David =
+Tanaka;
+>> Nagananda Chumbalkar; rjw@rjwysocki.net; lenb@kernel.org;
+>> wefu@redhat.com
+>> Subject: Re: [PATCH] ACPI: Execute the _PTS method when system reboo=
 t
-> do something actually done by Linux.
+>>
+>>
+>>
+>> On 05/24/2016 02:41 AM, Ocean HY1 He wrote:
+>>> Hi Prarit and Jon,
+>>>
+>>> How do you think of this?
+>>>
+>>> Thanks.
+>>>
+>>> Ocean He / =BA=CE=BA=A3=D1=F3
+>>> SW Development Dept.
+>>> Beijing Design Center
+>>> Enterprise Product Group
+>>> Mobile: 18911778926
+>>> E-mail: hehy1@lenovo.com
+>>> No.6 Chuang Ye Road, Haidian District, Beijing, China 100085
+>>>
+>>> -----Original Message-----
+>>> From: Ocean HY1 He
+>>> Sent: Monday, May 16, 2016 11:04 AM
+>>> To: rjw@rjwysocki.net; lenb@kernel.org
+>>> Cc: linux-acpi@vger.kernel.org; linux-kernel@vger.kernel.org; David
+>> Tanaka; Nagananda Chumbalkar
+>>> Subject: RE: [PATCH] ACPI: Execute the _PTS method when system
+>> reboot
+>>>
+>>> To whom may concern,
+>>>
+>>> A Lenovo feature depends on _PTS method execution when reboot. And
+>> after check the ACPI spec, I think _PTS should be exectued when rebo=
+o.
+>> This patch could fix the problem.
+>>>
+>>> Any comments of this patch? Many thanks!
+>>>
+>>> Ocean He / =BA=CE=BA=A3=D1=F3
+>>> SW Development Dept.
+>>> Beijing Design Center
+>>> Enterprise Product Group
+>>> Mobile: 18911778926
+>>> E-mail: hehy1@lenovo.com
+>>> No.6 Chuang Ye Road, Haidian District, Beijing, China 100085
+>>>
+>>> -----Original Message-----
+>>> From: Ocean HY1 He
+>>> Sent: Monday, May 09, 2016 1:50 PM
+>>> To: rjw@rjwysocki.net; lenb@kernel.org
+>>> Cc: linux-acpi@vger.kernel.org; linux-kernel@vger.kernel.org; David
+>> Tanaka; Ocean HY1 He; Nagananda Chumbalkar
+>>> Subject: [PATCH] ACPI: Execute the _PTS method when system reboot
+>>>
+>>> The _PTS control method is defined in the section 7.4.1 of acpi 6.0
+>>> spec. The _PTS control method is executed by the OS during the slee=
+p
+>>> transition process for S1, S2, S3, S4, and for orderly S5 shutdown.
+>>> The sleeping state value (For example, 1, 2, 3, 4 or 5 for the S5
+>>> soft-off state) is passed to the _PTS control method. This method
+>>> is called after OSPM has notified native device drivers of the slee=
+p
+>>> state transition and before the OSPM has had a chance to fully
+>>> prepare the system for a sleep state transition.
+>>>
+>>> The _PTS control method provides the BIOS a mechanism for performin=
+g
+>>> some housekeeping, such as writing the sleep type value to the
+>> embedded
+>>> controller, before entering the system sleeping state.
+>>>
+>>> According to section 7.5 of acpi 6.0 spec, _PTS should run after _T=
+TS.
+>>>
+>>> Thus, a _PTS block notifier is added to the reboot notifier list so=
+ that
+>>> the _PTS object will also be evaluated when the system reboot.
+>>>
+>>> Signed-off-by: Ocean He <hehy1@lenovo.com>
+>>> Signed-off-by: Nagananda Chumbalkar <nchumbalkar@lenovo.com>
+>>> ---
+>>>  drivers/acpi/sleep.c | 27 +++++++++++++++++++++++++++
+>>>  1 file changed, 27 insertions(+)
+>>>
+>>> diff --git a/drivers/acpi/sleep.c b/drivers/acpi/sleep.c
+>>> index 2a8b596..8b290fb 100644
+>>> --- a/drivers/acpi/sleep.c
+>>> +++ b/drivers/acpi/sleep.c
+>>> @@ -55,6 +55,26 @@ static struct notifier_block tts_notifier =3D {
+>>>  	.priority	=3D 0,
+>>>  };
+>>>
+>>> +static int pts_notify_reboot(struct notifier_block *this,
+>>> +			unsigned long code, void *x)
+>>> +{
+>>> +	acpi_status status;
+>>> +
+>>> +	status =3D acpi_execute_simple_method(NULL, "\\_PTS",
+>> ACPI_STATE_S5);
+>>> +	if (ACPI_FAILURE(status) && status !=3D AE_NOT_FOUND) {
+>>> +		/* It won't break anything. */
+>>> +		printk(KERN_NOTICE "Failure in evaluating _PTS object\n");
+>>
+>> ^^^^
+>> 	pr_debug("No _PTS object found.\n");
+>>
+>> It isn't a warning or error, so don't put the word "Failure" in ther=
+e.
+>>
+>> Beyond that, looks entirely reasonable to me.
+>>
+>> P.
+>>
+> Hi Prarit,
 >=20
-> My theory would be that Windows didn't reinitialize the second HT
-> properly during resume and the trap was added to let SMM do that.  If
-> that's the case, the trap may trigger by the time the second HT
-> already executes code in Linux and then it will mess up with it and
-> crash.
+> The message outputs when _PTS is found but fail to execute. I copy th=
+is code
+> from existed function acpi_sleep_tts_switch(). I just wants to keep n=
+ew codes
+> as the same style as existed codes. Make sense? ;-)
+
+Not really.  "Failure" is something that QE groups look for when testin=
+g,
+debugging, or verifying.  This message implies something went wrong whe=
+n the
+_PTS object is an optional implementation of ACPI.
+
+P.
+
 >=20
-> Now, what do idles states have to do with that?  IIRC, Windows puts
-> nonboot CPUs into idle states before suspend, so the SMM code
-> triggered by the trap may make assumptions about the CPU being in suc=
-h
-> a state or similar.
-
-BTW I also tried to move the enable_nonboot_cpus() after _WAK, and I
-tried to boot with nosmp, but neither trick helped. If someone could
-throw some patches my way to force things into a specific state
-before suspend/_WAK I'd be happy to test them out.
-
---=20
-Ville Syrj=E4l=E4
-Intel OTC
+> Ocean.
+>>
+>>> +	}
+>>> +
+>>> +	return NOTIFY_DONE;
+>>> +}
+>>> +
+>>> +static struct notifier_block pts_notifier =3D {
+>>> +	.notifier_call	=3D pts_notify_reboot,
+>>> +	.next		=3D NULL,
+>>> +	.priority	=3D 0,
+>>> +};
+>>> +
+>>>  static int acpi_sleep_prepare(u32 acpi_state)
+>>>  {
+>>>  #ifdef CONFIG_ACPI_SLEEP
+>>> @@ -896,5 +916,12 @@ int __init acpi_sleep_init(void)
+>>>  	 * object can also be evaluated when the system enters S5.
+>>>  	 */
+>>>  	register_reboot_notifier(&tts_notifier);
+>>> +
+>>> +	/*
+>>> +	 * According to section 7.5 of acpi 6.0 spec, _PTS should run aft=
+er
+>>> +	 * _TTS when the system enters S5.
+>>> +	 */
+>>> +	register_reboot_notifier(&pts_notifier);
+>>> +
+>>>  	return 0;
+>>>  }
+>>>
 --
 To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
 n
