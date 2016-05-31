@@ -1,144 +1,290 @@
 From: Tomasz Nowicki <tn@semihalf.com>
-Subject: [PATCH V5 5/7] irqchip, gicv3, its: Probe ITS in the ACPI way.
-Date: Tue, 31 May 2016 13:19:42 +0200
-Message-ID: <1464693584-22343-6-git-send-email-tn@semihalf.com>
+Subject: [PATCH V5 4/7] irqchip, GICv3, ITS: Refator ITS DT init code to prepare for ACPI.
+Date: Tue, 31 May 2016 13:19:41 +0200
+Message-ID: <1464693584-22343-5-git-send-email-tn@semihalf.com>
 References: <1464693584-22343-1-git-send-email-tn@semihalf.com>
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-lf0-f44.google.com ([209.85.215.44]:35906 "EHLO
-	mail-lf0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753375AbcEaLUK (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 31 May 2016 07:20:10 -0400
-Received: by mail-lf0-f44.google.com with SMTP id b73so65419165lfb.3
-        for <linux-acpi@vger.kernel.org>; Tue, 31 May 2016 04:20:09 -0700 (PDT)
+Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1464693584-22343-1-git-send-email-tn@semihalf.com>
-Sender: linux-acpi-owner@vger.kernel.org
-List-Id: linux-acpi@vger.kernel.org
+Sender: linux-kernel-owner@vger.kernel.org
 To: marc.zyngier@arm.com, tglx@linutronix.de, jason@lakedaemon.net, rjw@rjwysocki.net, lorenzo.pieralisi@arm.com, robert.richter@caviumnetworks.com, shijie.huang@arm.com, Suravee.Suthikulpanit@amd.com, hanjun.guo@linaro.org
 Cc: al.stone@linaro.org, mw@semihalf.com, graeme.gregory@linaro.org, Catalin.Marinas@arm.com, will.deacon@arm.com, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org, ddaney.cavm@gmail.com, okaya@codeaurora.org, andrea.gallo@linaro.org, Tomasz Nowicki <tn@semihalf.com>
+List-Id: linux-acpi@vger.kernel.org
 
-ITS is prepared for being initialized different than DT,
-therefore we can initialize it in ACPI way. We collect register base
-address from MADT table and pass mandatory info to firmware-agnostic
-ITS init call.
+In order to add ACPI support we need to isolate ACPI&DT common code and
+move DT logic to corresponding functions. To achieve this we are using
+firmware agnostic handle which can be unpacked to either DT or ACPI node.
 
-Note that we are using here IORT lib to register ITS domain which
-then can be found and used on to build another PCI MSI domain
-in hierarchical stack domain.
+No functional changes other than a very minor one:
+1. Fix ITS base register address type (from 'unsigned long' to 'phys_addr_t'),
+as a bonus we get nice string formatting.
+2. Since there is only one of ITS parent domain convert it to static global
+variable and drop the parameter from its_probe_one. Users can refer to it
+in more convenient way then.
 
+Signed-off-by: Hanjun Guo <hanjun.guo@linaro.org>
 Signed-off-by: Tomasz Nowicki <tn@semihalf.com>
 ---
- drivers/irqchip/Kconfig          |  1 +
- drivers/irqchip/irq-gic-v3-its.c | 60 ++++++++++++++++++++++++++++++++++++++++
- 2 files changed, 61 insertions(+)
+ drivers/irqchip/irq-gic-v3-its.c   | 77 +++++++++++++++++++++-----------------
+ drivers/irqchip/irq-gic-v3.c       |  6 +--
+ include/linux/irqchip/arm-gic-v3.h |  4 +-
+ 3 files changed, 47 insertions(+), 40 deletions(-)
 
-diff --git a/drivers/irqchip/Kconfig b/drivers/irqchip/Kconfig
-index fa33c50..c6e652f 100644
---- a/drivers/irqchip/Kconfig
-+++ b/drivers/irqchip/Kconfig
-@@ -32,6 +32,7 @@ config ARM_GIC_V3
- config ARM_GIC_V3_ITS
- 	bool
- 	select PCI_MSI_IRQ_DOMAIN
-+	select IORT_TABLE if ACPI
- 
- config ARM_NVIC
- 	bool
 diff --git a/drivers/irqchip/irq-gic-v3-its.c b/drivers/irqchip/irq-gic-v3-its.c
-index 6a97ee5..c8f36a5 100644
+index cb33c92..6a97ee5 100644
 --- a/drivers/irqchip/irq-gic-v3-its.c
 +++ b/drivers/irqchip/irq-gic-v3-its.c
-@@ -15,10 +15,13 @@
-  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
-  */
+@@ -73,7 +73,7 @@ struct its_node {
+ 	raw_spinlock_t		lock;
+ 	struct list_head	entry;
+ 	void __iomem		*base;
+-	unsigned long		phys_base;
++	phys_addr_t		phys_base;
+ 	struct its_cmd_block	*cmd_base;
+ 	struct its_cmd_block	*cmd_write;
+ 	struct its_baser	tables[GITS_BASER_NR_REGS];
+@@ -112,6 +112,7 @@ struct its_device {
+ static LIST_HEAD(its_nodes);
+ static DEFINE_SPINLOCK(its_lock);
+ static struct rdists *gic_rdists;
++static struct irq_domain *its_parent;
  
-+#include <linux/acpi.h>
- #include <linux/bitmap.h>
- #include <linux/cpu.h>
- #include <linux/delay.h>
- #include <linux/interrupt.h>
-+#include <linux/irqdomain.h>
-+#include <linux/iort.h>
- #include <linux/log2.h>
- #include <linux/mm.h>
- #include <linux/msi.h>
-@@ -1312,6 +1315,11 @@ static int its_irq_gic_domain_alloc(struct irq_domain *domain,
- 		fwspec.param[0] = GIC_IRQ_TYPE_LPI;
- 		fwspec.param[1] = hwirq;
- 		fwspec.param[2] = IRQ_TYPE_EDGE_RISING;
-+	} else if (is_fwnode_irqchip(domain->parent->fwnode)) {
-+		fwspec.fwnode = domain->parent->fwnode;
-+		fwspec.param_count = 2;
-+		fwspec.param[0] = hwirq;
-+		fwspec.param[1] = IRQ_TYPE_EDGE_RISING;
- 	} else {
- 		return -EINVAL;
+ #define gic_data_rdist()		(raw_cpu_ptr(gic_rdists->rdist))
+ #define gic_data_rdist_rd_base()	(gic_data_rdist()->rd_base)
+@@ -823,7 +824,7 @@ static void its_free_tables(struct its_node *its)
  	}
-@@ -1645,6 +1653,56 @@ static int __init its_of_probe(struct device_node *node)
+ }
+ 
+-static int its_alloc_tables(const char *node_name, struct its_node *its)
++static int its_alloc_tables(struct its_node *its)
+ {
+ 	int err;
+ 	int i;
+@@ -879,8 +880,8 @@ static int its_alloc_tables(const char *node_name, struct its_node *its)
+ 				    order);
+ 			if (order >= MAX_ORDER) {
+ 				order = MAX_ORDER - 1;
+-				pr_warn("%s: Device Table too large, reduce its page order to %u\n",
+-					node_name, order);
++				pr_warn("ITS@%pa: Device Table too large, reduce its page order to %u\n",
++					&its->phys_base, order);
+ 			}
+ 		}
+ 
+@@ -889,8 +890,8 @@ retry_alloc_baser:
+ 		if (alloc_pages > GITS_BASER_PAGES_MAX) {
+ 			alloc_pages = GITS_BASER_PAGES_MAX;
+ 			order = get_order(GITS_BASER_PAGES_MAX * psz);
+-			pr_warn("%s: Device Table too large, reduce its page order to %u (%u pages)\n",
+-				node_name, order, alloc_pages);
++			pr_warn("ITS@%pa: Device Table too large, reduce its page order to %u (%u pages)\n",
++				&its->phys_base, order, alloc_pages);
+ 		}
+ 
+ 		base = (void *)__get_free_pages(GFP_KERNEL | __GFP_ZERO, order);
+@@ -964,8 +965,8 @@ retry_baser:
+ 		}
+ 
+ 		if (val != tmp) {
+-			pr_err("ITS: %s: GITS_BASER%d doesn't stick: %lx %lx\n",
+-			       node_name, i,
++			pr_err("ITS@%pa: GITS_BASER%d doesn't stick: %lx %lx\n",
++			       &its->phys_base, i,
+ 			       (unsigned long) val, (unsigned long) tmp);
+ 			err = -ENXIO;
+ 			goto out_free;
+@@ -1463,8 +1464,7 @@ static void its_enable_quirks(struct its_node *its)
+ 	gic_enable_quirks(iidr, its_quirks, its);
+ }
+ 
+-static int its_init_domain(struct device_node *node, struct its_node *its,
+-			   struct irq_domain *parent)
++static int its_init_domain(struct fwnode_handle *handle, struct its_node *its)
+ {
+ 	struct irq_domain *inner_domain;
+ 	struct msi_domain_info *info;
+@@ -1473,13 +1473,13 @@ static int its_init_domain(struct device_node *node, struct its_node *its,
+ 	if (!info)
+ 		return -ENOMEM;
+ 
+-	inner_domain = irq_domain_add_tree(node, &its_domain_ops, its);
++	inner_domain = irq_domain_create_tree(handle, &its_domain_ops, its);
+ 	if (!inner_domain) {
+ 		kfree(info);
+ 		return -ENOMEM;
+ 	}
+ 
+-	inner_domain->parent = parent;
++	inner_domain->parent = its_parent;
+ 	inner_domain->bus_token = DOMAIN_BUS_NEXUS;
+ 	info->ops = &its_msi_domain_ops;
+ 	info->data = its;
+@@ -1488,43 +1488,35 @@ static int its_init_domain(struct device_node *node, struct its_node *its,
  	return 0;
  }
  
-+#ifdef CONFIG_ACPI
-+
-+#define ACPI_GICV3_ITS_MEM_SIZE (2 * SZ_64K)
-+
-+static int __init gic_acpi_parse_madt_its(struct acpi_subtable_header *header,
-+					  const unsigned long end)
-+{
-+	struct acpi_madt_generic_translator *its_entry;
-+	struct fwnode_handle *dom_handle;
-+	struct resource res;
-+	int err;
-+
-+	its_entry = (struct acpi_madt_generic_translator *)header;
-+	res.start = its_entry->base_address;
-+	res.end = its_entry->base_address + ACPI_GICV3_ITS_MEM_SIZE - 1;
-+
-+	dom_handle = irq_domain_alloc_fwnode((void *)its_entry->base_address);
-+	if (!dom_handle) {
-+		pr_err("ITS@%pa: Unable to allocate GICv3 ITS domain token\n",
-+		       &res.start);
-+		return -ENOMEM;
-+	}
-+
-+	err = iort_register_domain_token(its_entry->translation_id, dom_handle);
-+	if (err) {
-+		pr_err("ITS@%pa: Unable to register GICv3 ITS domain token (ITS ID %d) to IORT\n",
-+		       &res.start, its_entry->translation_id);
-+		goto dom_err;
-+	}
-+
-+	err = its_probe_one(&res, dom_handle);
-+	if (!err)
-+		return 0;
-+
-+	iort_deregister_domain_token(its_entry->translation_id);
-+dom_err:
-+	irq_domain_free_fwnode(dom_handle);
-+	return err;
-+}
-+
-+void __init its_acpi_probe(void)
-+{
-+	if (acpi_table_parse_madt(ACPI_MADT_TYPE_GENERIC_TRANSLATOR,
-+				  gic_acpi_parse_madt_its, 0) <= 0)
-+		pr_info("No valid GIC ITS entries exist\n");
-+}
-+#else
-+static inline void __init its_acpi_probe(struct irq_domain *parent_domain) { }
-+#endif
-+
- int __init its_init(struct fwnode_handle *handle, struct rdists *rdists,
- 		    struct irq_domain *parent_domain)
+-static int __init its_probe(struct device_node *node,
+-			    struct irq_domain *parent)
++static int __init its_probe_one(struct resource *res,
++				struct fwnode_handle *handle)
  {
-@@ -1654,6 +1712,8 @@ int __init its_init(struct fwnode_handle *handle, struct rdists *rdists,
- 	of_node = to_of_node(handle);
- 	if (of_node)
- 		its_of_probe(of_node);
-+	else
-+		its_acpi_probe();
+-	struct resource res;
+ 	struct its_node *its;
+ 	void __iomem *its_base;
+ 	u32 val;
+ 	u64 baser, tmp;
+ 	int err;
+ 
+-	err = of_address_to_resource(node, 0, &res);
+-	if (err) {
+-		pr_warn("%s: no regs?\n", node->full_name);
+-		return -ENXIO;
+-	}
+-
+-	its_base = ioremap(res.start, resource_size(&res));
++	its_base = ioremap(res->start, resource_size(res));
+ 	if (!its_base) {
+-		pr_warn("%s: unable to map registers\n", node->full_name);
++		pr_warn("ITS@%pa: Unable to map ITS registers\n", &res->start);
+ 		return -ENOMEM;
+ 	}
+ 
+ 	val = readl_relaxed(its_base + GITS_PIDR2) & GIC_PIDR2_ARCH_MASK;
+ 	if (val != 0x30 && val != 0x40) {
+-		pr_warn("%s: no ITS detected, giving up\n", node->full_name);
++		pr_warn("ITS@%pa: No ITS detected, giving up\n", &res->start);
+ 		err = -ENODEV;
+ 		goto out_unmap;
+ 	}
+ 
+ 	err = its_force_quiescent(its_base);
+ 	if (err) {
+-		pr_warn("%s: failed to quiesce, giving up\n",
+-			node->full_name);
++		pr_warn("ITS@%pa: Failed to quiesce, giving up\n", &res->start);
+ 		goto out_unmap;
+ 	}
+ 
+-	pr_info("ITS: %s\n", node->full_name);
++	pr_info("ITS@%pa\n", &res->start);
+ 
+ 	its = kzalloc(sizeof(*its), GFP_KERNEL);
+ 	if (!its) {
+@@ -1536,7 +1528,7 @@ static int __init its_probe(struct device_node *node,
+ 	INIT_LIST_HEAD(&its->entry);
+ 	INIT_LIST_HEAD(&its->its_device_list);
+ 	its->base = its_base;
+-	its->phys_base = res.start;
++	its->phys_base = res->start;
+ 	its->ite_size = ((readl_relaxed(its_base + GITS_TYPER) >> 4) & 0xf) + 1;
+ 
+ 	its->cmd_base = kzalloc(ITS_CMD_QUEUE_SZ, GFP_KERNEL);
+@@ -1548,7 +1540,7 @@ static int __init its_probe(struct device_node *node,
+ 
+ 	its_enable_quirks(its);
+ 
+-	err = its_alloc_tables(node->full_name, its);
++	err = its_alloc_tables(its);
+ 	if (err)
+ 		goto out_free_cmd;
+ 
+@@ -1584,7 +1576,7 @@ static int __init its_probe(struct device_node *node,
+ 	writeq_relaxed(0, its->base + GITS_CWRITER);
+ 	writel_relaxed(GITS_CTLR_ENABLE, its->base + GITS_CTLR);
+ 
+-	err = its_init_domain(node, its, parent);
++	err = its_init_domain(handle, its);
+ 	if (err)
+ 		goto out_free_tables;
+ 
+@@ -1602,7 +1594,7 @@ out_free_its:
+ 	kfree(its);
+ out_unmap:
+ 	iounmap(its_base);
+-	pr_err("ITS: failed probing %s (%d)\n", node->full_name, err);
++	pr_err("ITS@%pa: failed probing (%d)\n", &res->start, err);
+ 	return err;
+ }
+ 
+@@ -1630,10 +1622,10 @@ static struct of_device_id its_device_id[] = {
+ 	{},
+ };
+ 
+-int __init its_init(struct device_node *node, struct rdists *rdists,
+-	     struct irq_domain *parent_domain)
++static int __init its_of_probe(struct device_node *node)
+ {
+ 	struct device_node *np;
++	struct resource res;
+ 
+ 	for (np = of_find_matching_node(node, its_device_id); np;
+ 	     np = of_find_matching_node(np, its_device_id)) {
+@@ -1643,8 +1635,25 @@ int __init its_init(struct device_node *node, struct rdists *rdists,
+ 			continue;
+ 		}
+ 
+-		its_probe(np, parent_domain);
++		if (of_address_to_resource(np, 0, &res)) {
++			pr_warn("%s: no regs?\n", np->full_name);
++			continue;
++		}
++
++		its_probe_one(&res, &np->fwnode);
+ 	}
++	return 0;
++}
++
++int __init its_init(struct fwnode_handle *handle, struct rdists *rdists,
++		    struct irq_domain *parent_domain)
++{
++	struct device_node *of_node;
++
++	its_parent = parent_domain;
++	of_node = to_of_node(handle);
++	if (of_node)
++		its_of_probe(of_node);
  
  	if (list_empty(&its_nodes)) {
  		pr_warn("ITS: No ITS available, not enabling LPIs\n");
+diff --git a/drivers/irqchip/irq-gic-v3.c b/drivers/irqchip/irq-gic-v3.c
+index fb042ba..cee8296 100644
+--- a/drivers/irqchip/irq-gic-v3.c
++++ b/drivers/irqchip/irq-gic-v3.c
+@@ -911,7 +911,6 @@ static int __init gic_init_bases(void __iomem *dist_base,
+ 				 u64 redist_stride,
+ 				 struct fwnode_handle *handle)
+ {
+-	struct device_node *node;
+ 	u32 typer;
+ 	int gic_irqs;
+ 	int err;
+@@ -952,10 +951,9 @@ static int __init gic_init_bases(void __iomem *dist_base,
+ 
+ 	set_handle_irq(gic_handle_irq);
+ 
+-	node = to_of_node(handle);
+ 	if (IS_ENABLED(CONFIG_ARM_GIC_V3_ITS) && gic_dist_supports_lpis() &&
+-	    node) /* Temp hack to prevent ITS init for ACPI */
+-		its_init(node, &gic_data.rdists, gic_data.domain);
++	    to_of_node(handle)) /* Temp hack to prevent ITS init for ACPI */
++		its_init(handle, &gic_data.rdists, gic_data.domain);
+ 
+ 	gic_smp_init();
+ 	gic_dist_init();
+diff --git a/include/linux/irqchip/arm-gic-v3.h b/include/linux/irqchip/arm-gic-v3.h
+index bfbd707..0e75cb7 100644
+--- a/include/linux/irqchip/arm-gic-v3.h
++++ b/include/linux/irqchip/arm-gic-v3.h
+@@ -334,9 +334,9 @@ struct rdists {
+ };
+ 
+ struct irq_domain;
+-struct device_node;
++struct fwnode_handle;
+ int its_cpu_init(void);
+-int its_init(struct device_node *node, struct rdists *rdists,
++int its_init(struct fwnode_handle *handle, struct rdists *rdists,
+ 	     struct irq_domain *domain);
+ 
+ static inline bool gic_enable_sre(void)
 -- 
 1.9.1
-
