@@ -1,90 +1,259 @@
-From: Hanjun Guo <hanjun.guo@linaro.org>
-Subject: Re: [PATCH v7 13/15] ACPI / processor: Add acpi_map_madt_entry().
-Date: Tue, 31 May 2016 21:05:13 +0800
-Message-ID: <574D8C09.3030608@linaro.org>
-References: <1464129345-18985-1-git-send-email-ddaney.cavm@gmail.com>
- <1464129345-18985-14-git-send-email-ddaney.cavm@gmail.com>
+From: "Moore, Robert" <robert.moore@intel.com>
+Subject: RE: [PATCH] Add support to parse RASF Table
+Date: Tue, 31 May 2016 14:16:07 +0000
+Message-ID: <94F2FBAB4432B54E8AACC7DFDE6C92E37E488955@ORSMSX110.amr.corp.intel.com>
+References: <1462796276-3987-1-git-send-email-nagendra.k-v@hpe.com>
+ <TU4PR84MB0079FF2412932840DBE794C0C2770@TU4PR84MB0079.NAMPRD84.PROD.OUTLOOK.COM>
+ <TU4PR84MB004598D95417F3C00FC6BFC7D9460@TU4PR84MB0045.NAMPRD84.PROD.OUTLOOK.COM>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-pa0-f53.google.com ([209.85.220.53]:34140 "EHLO
-	mail-pa0-f53.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753895AbcEaNFX (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 31 May 2016 09:05:23 -0400
-Received: by mail-pa0-f53.google.com with SMTP id bz2so41800808pad.1
-        for <linux-acpi@vger.kernel.org>; Tue, 31 May 2016 06:05:23 -0700 (PDT)
-In-Reply-To: <1464129345-18985-14-git-send-email-ddaney.cavm@gmail.com>
+Received: from mga11.intel.com ([192.55.52.93]:31272 "EHLO mga11.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753692AbcEaOQJ convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 31 May 2016 10:16:09 -0400
+In-Reply-To: <TU4PR84MB004598D95417F3C00FC6BFC7D9460@TU4PR84MB0045.NAMPRD84.PROD.OUTLOOK.COM>
+Content-Language: en-US
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: David Daney <ddaney.cavm@gmail.com>, Will Deacon <will.deacon@arm.com>, linux-arm-kernel@lists.infradead.org, Mark Rutland <mark.rutland@arm.com>, Catalin Marinas <catalin.marinas@arm.com>, Tony Luck <tony.luck@intel.com>, Fenghua Yu <fenghua.yu@intel.com>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, x86@kernel.org, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Rob Herring <robh+dt@kernel.org>, Frank Rowand <frowand.list@gmail.com>, Grant Likely <grant.likely@linaro.org>, Robert Moore <robert.moore@intel.com>, Lv Zheng <lv.zheng@intel.com>, Marc Zyngier <Marc.Zyngier@arm.com>, linux-ia64@vger.kernel.org, linux-acpi@vger.kernel.org, devel@acpica.org
-Cc: linux-kernel@vger.kernel.org, Robert Richter <rrichter@cavium.com>, David Daney <david.daney@cavium.com>
+To: "Sajjan, Vikas C" <vikas.cha.sajjan@hpe.com>
+Cc: "Lakshminarasimha, Sunil Vishwanathpur" <sunil.vl@hpe.com>, "rjw@rjwysocki.net" <rjw@rjwysocki.net>, "devel@acpica.org" <devel@acpica.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "K V, Nagendra" <nagendra.k-v@hpe.com>, "linaro-acpi@lists.linaro.org" <linaro-acpi@lists.linaro.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
-On 2016/5/25 6:35, David Daney wrote:
-> From: David Daney <david.daney@cavium.com>
->
-> Follow-on arm64 ACPI/NUMA patches need to map MADT entries very early
-> (before kmalloc is usable).
->
-> Add acpi_map_madt_entry() which, indirectly, uses
-> early_memremap()/early_memunmap() to access the table and parse out
-> the mpidr.  The existing implementation of map_madt_entry() is
-> modified to take a pointer to the MADT as a parameter and the callers
-> adjusted.
->
-> Signed-off-by: David Daney <david.daney@cavium.com>
+Sorry for the delay.
+Yes, this looks like we can take this.
+Bob
+
+
+> -----Original Message-----
+> From: Sajjan, Vikas C [mailto:vikas.cha.sajjan@hpe.com]
+> Sent: Monday, May 30, 2016 9:57 PM
+> To: Moore, Robert
+> Cc: Lakshminarasimha, Sunil Vishwanathpur; rjw@rjwysocki.net;
+> devel@acpica.org; linux-acpi@vger.kernel.org; K V, Nagendra; linaro-
+> acpi@lists.linaro.org; linux-arm-kernel@lists.infradead.org
+> Subject: RE: [PATCH] Add support to parse RASF Table
+> 
+> Hi Bob,
+> 
+> Any thoughts on this patch
+> 
+> Regards
+> Vikas Sajjan
+> 
+> -----Original Message-----
+> From: K V, Nagendra
+> Sent: Monday, May 16, 2016 2:05 PM
+> To: robert.moore@intel.com
+> Cc: Sajjan, Vikas C <vikas.cha.sajjan@hpe.com>; Lakshminarasimha, Sunil
+> Vishwanathpur <sunil.vl@hpe.com>; devel@acpica.org; linux-
+> acpi@vger.kernel.org
+> Subject: RE: [PATCH] Add support to parse RASF Table
+> 
+> Bob,
+> 
+> Did you get chance to look into this?
+> 
+> Regards
+> Nagendra
+> 
+> -----Original Message-----
+> From: K V, Nagendra
+> Sent: Monday, May 09, 2016 5:48 PM
+> To: robert.moore@intel.com
+> Cc: Sajjan, Vikas C <vikas.cha.sajjan@hpe.com>; Lakshminarasimha, Sunil
+> Vishwanathpur <sunil.vl@hpe.com>; devel@acpica.org; K V, Nagendra
+> <nagendra.k-v@hpe.com>
+> Subject: [PATCH] Add support to parse RASF Table
+> 
+> This patch adds support to parse RASF table. Currently RASF table is not
+> being recognized.
 > ---
->   drivers/acpi/processor_core.c | 26 ++++++++++++++++++++++----
->   include/acpi/processor.h      |  1 +
->   2 files changed, 23 insertions(+), 4 deletions(-)
->
-> diff --git a/drivers/acpi/processor_core.c b/drivers/acpi/processor_core.c
-> index 33a38d6..9125d7d 100644
-> --- a/drivers/acpi/processor_core.c
-> +++ b/drivers/acpi/processor_core.c
-> @@ -108,13 +108,12 @@ static int map_gicc_mpidr(struct acpi_subtable_header *entry,
->   	return -EINVAL;
->   }
->
-> -static phys_cpuid_t map_madt_entry(int type, u32 acpi_id)
-> +static phys_cpuid_t map_madt_entry(struct acpi_table_madt *madt,
-> +				   int type, u32 acpi_id)
->   {
->   	unsigned long madt_end, entry;
->   	phys_cpuid_t phys_id = PHYS_CPUID_INVALID;	/* CPU hardware ID */
-> -	struct acpi_table_madt *madt;
->
-> -	madt = get_madt_table();
->   	if (!madt)
->   		return phys_id;
->
-> @@ -145,6 +144,25 @@ static phys_cpuid_t map_madt_entry(int type, u32 acpi_id)
->   	return phys_id;
->   }
->
-> +phys_cpuid_t __init acpi_map_madt_entry(u32 acpi_id)
+>  source/common/ahtable.c      |  1 +
+>  source/common/dmtable.c      |  7 +++++++
+>  source/common/dmtbinfo.c     | 13 +++++++++++++
+>  source/compiler/dtcompiler.h |  1 +
+>  source/compiler/dttemplate.h | 11 +++++++++++
+>  source/compiler/dtutils.c    |  5 +++++
+>  source/include/acdisasm.h    |  2 ++
+>  7 files changed, 40 insertions(+)
+> 
+> diff --git a/source/common/ahtable.c b/source/common/ahtable.c index
+> 021ae33..59ddc83 100644
+> --- a/source/common/ahtable.c
+> +++ b/source/common/ahtable.c
+> @@ -196,6 +196,7 @@ const AH_TABLE      AcpiSupportedTables[] =
+>      {ACPI_SIG_NFIT, "NVDIMM Firmware Interface Table"},
+>      {ACPI_SIG_PCCT, "Platform Communications Channel Table"},
+>      {ACPI_SIG_PMTT, "Platform Memory Topology Table"},
+> +    {ACPI_SIG_RASF, "RAS Features Table"},
+>      {ACPI_RSDP_NAME,"Root System Description Pointer"},
+>      {ACPI_SIG_RSDT, "Root System Description Table"},
+>      {ACPI_SIG_S3PT, "S3 Performance Table"}, diff --git
+> a/source/common/dmtable.c b/source/common/dmtable.c index 51d91f8..321407c
+> 100644
+> --- a/source/common/dmtable.c
+> +++ b/source/common/dmtable.c
+> @@ -430,6 +430,7 @@ const ACPI_DMTABLE_DATA     AcpiDmTableData[] =
+>      {ACPI_SIG_NFIT, AcpiDmTableInfoNfit,    AcpiDmDumpNfit,
+> DtCompileNfit,  TemplateNfit},
+>      {ACPI_SIG_PCCT, AcpiDmTableInfoPcct,    AcpiDmDumpPcct,
+> DtCompilePcct,  TemplatePcct},
+>      {ACPI_SIG_PMTT, NULL,                   AcpiDmDumpPmtt,
+> DtCompilePmtt,  TemplatePmtt},
+> +    {ACPI_SIG_RASF, AcpiDmTableInfoRasf,    NULL,           NULL,
+> TemplateRasf},
+>      {ACPI_SIG_RSDT, NULL,                   AcpiDmDumpRsdt,
+> DtCompileRsdt,  TemplateRsdt},
+>      {ACPI_SIG_S3PT, NULL,                   NULL,           NULL,
+> TemplateS3pt},
+>      {ACPI_SIG_SBST, AcpiDmTableInfoSbst,    NULL,           NULL,
+> TemplateSbst},
+> @@ -916,6 +917,11 @@ AcpiDmDumpTable (
+>              ByteLength = 10;
+>              break;
+> 
+> +        case ACPI_DMT_RASF:
+> +
+> +            ByteLength = 12;
+> +            break;
+> +
+>          case ACPI_DMT_BUF16:
+>          case ACPI_DMT_UUID:
+> 
+> @@ -1048,6 +1054,7 @@ AcpiDmDumpTable (
+> 
+>          /* Integer Data Types */
+> 
+> +        case ACPI_DMT_RASF:
+>          case ACPI_DMT_UINT8:
+>          case ACPI_DMT_UINT16:
+>          case ACPI_DMT_UINT24:
+> diff --git a/source/common/dmtbinfo.c b/source/common/dmtbinfo.c index
+> 5520da2..3896b69 100644
+> --- a/source/common/dmtbinfo.c
+> +++ b/source/common/dmtbinfo.c
+> @@ -178,6 +178,7 @@
+>  #define ACPI_NFIT_OFFSET(f)             (UINT16) ACPI_OFFSET
+> (ACPI_TABLE_NFIT,f)
+>  #define ACPI_PCCT_OFFSET(f)             (UINT16) ACPI_OFFSET
+> (ACPI_TABLE_PCCT,f)
+>  #define ACPI_PMTT_OFFSET(f)             (UINT16) ACPI_OFFSET
+> (ACPI_TABLE_PMTT,f)
+> +#define ACPI_RASF_OFFSET(f)             (UINT16) ACPI_OFFSET
+> (ACPI_TABLE_RASF,f)
+>  #define ACPI_S3PT_OFFSET(f)             (UINT16) ACPI_OFFSET
+> (ACPI_TABLE_S3PT,f)
+>  #define ACPI_SBST_OFFSET(f)             (UINT16) ACPI_OFFSET
+> (ACPI_TABLE_SBST,f)
+>  #define ACPI_SLIT_OFFSET(f)             (UINT16) ACPI_OFFSET
+> (ACPI_TABLE_SLIT,f)
+> @@ -2512,6 +2513,18 @@ ACPI_DMTABLE_INFO           AcpiDmTableInfoPmtt2[]
+> =
+> 
+> 
+> /*************************************************************************
+> ******
+>   *
+> + * RASF -  RAS Feature table
+> + *
+> + **********************************************************************
+> + ********/
+> +
+> +ACPI_DMTABLE_INFO           AcpiDmTableInfoRasf[] =
 > +{
-> +	struct acpi_table_madt *madt = NULL;
-> +	acpi_size tbl_size;
-> +	phys_cpuid_t rv;
+> +    {ACPI_DMT_RASF,     ACPI_RASF_OFFSET (ChannelId[0]),
+> "Channel Identifier", 0},
+> +    ACPI_DMT_TERMINATOR
+> +};
 > +
-> +	acpi_get_table_with_size(ACPI_SIG_MADT, 0,
-> +				 (struct acpi_table_header **)&madt,
-> +				 &tbl_size);
-> +	if (!madt)
-> +		return PHYS_CPUID_INVALID;
+> +/**********************************************************************
+> +*********
+> + *
+>   * S3PT - S3 Performance Table
+>   *
+> 
+> **************************************************************************
+> ****/
+> diff --git a/source/compiler/dtcompiler.h b/source/compiler/dtcompiler.h
+> index eb85ddc..1072f52 100644
+> --- a/source/compiler/dtcompiler.h
+> +++ b/source/compiler/dtcompiler.h
+> @@ -681,6 +681,7 @@ extern const unsigned char  TemplateMtmr[];  extern
+> const unsigned char  TemplateNfit[];  extern const unsigned char
+> TemplatePcct[];  extern const unsigned char  TemplatePmtt[];
+> +extern const unsigned char  TemplateRasf[];
+>  extern const unsigned char  TemplateRsdt[];  extern const unsigned char
+> TemplateS3pt[];  extern const unsigned char  TemplateSbst[]; diff --git
+> a/source/compiler/dttemplate.h b/source/compiler/dttemplate.h index
+> e420ec4..d17b2af 100644
+> --- a/source/compiler/dttemplate.h
+> +++ b/source/compiler/dttemplate.h
+> @@ -978,6 +978,17 @@ const unsigned char TemplatePmtt[] =
+>      0x00,0x00,0x00,0x00                       /* 000000B0    "...."
+> */
+>  };
+> 
+> +const unsigned char TemplateRasf[] =
+> +{
+> +    0x42,0x45,0x52,0x54,0x30,0x00,0x00,0x00,  /* 00000000    "RASF0..."
+> */
+> +    0x01,0x15,0x49,0x4E,0x54,0x45,0x4C,0x20,  /* 00000008    "..INTEL "
+> */
+> +    0x54,0x45,0x4D,0x50,0x4C,0x41,0x54,0x45,  /* 00000010    "TEMPLATE"
+> */
+> +    0x01,0x00,0x00,0x00,0x49,0x4E,0x54,0x4C,  /* 00000018    "....INTL"
+> */
+> +    0x28,0x05,0x10,0x20,0x00,0x00,0x00,0x00,  /* 00000020    "(.. ...."
+> */
+> +    0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,  /* 00000028    "........"
+> */
+> +    0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00   /* 00000030    "........"
+> */
+> +};
 > +
-> +	rv = map_madt_entry(madt, 1, acpi_id);
+>  const unsigned char TemplateRsdp[] =
+>  {
+>      0x52,0x53,0x44,0x20,0x50,0x54,0x52,0x20,  /* 00000000    "RSD PTR "
+> */
+> diff --git a/source/compiler/dtutils.c b/source/compiler/dtutils.c index
+> 6ca418c..774db8b 100644
+> --- a/source/compiler/dtutils.c
+> +++ b/source/compiler/dtutils.c
+> @@ -688,6 +688,11 @@ DtGetFieldLength (
+>          ByteLength = 10;
+>          break;
+> 
+> +    case ACPI_DMT_RASF:
+> +
+> +        ByteLength = 12;
+> +        break;
+> +
+>      case ACPI_DMT_BUF16:
+>      case ACPI_DMT_UUID:
+> 
+> diff --git a/source/include/acdisasm.h b/source/include/acdisasm.h index
+> ba8f274..d59e4d9 100644
+> --- a/source/include/acdisasm.h
+> +++ b/source/include/acdisasm.h
+> @@ -227,6 +227,7 @@ typedef enum
+>      ACPI_DMT_NFIT,
+>      ACPI_DMT_PCCT,
+>      ACPI_DMT_PMTT,
+> +    ACPI_DMT_RASF,
+>      ACPI_DMT_SLIC,
+>      ACPI_DMT_SRAT,
+> 
+> @@ -458,6 +459,7 @@ extern ACPI_DMTABLE_INFO
+> AcpiDmTableInfoPcctHdr[];
+>  extern ACPI_DMTABLE_INFO        AcpiDmTableInfoPcct0[];
+>  extern ACPI_DMTABLE_INFO        AcpiDmTableInfoPcct1[];
+>  extern ACPI_DMTABLE_INFO        AcpiDmTableInfoPcct2[];
+> +extern ACPI_DMTABLE_INFO        AcpiDmTableInfoRasf[];
+>  extern ACPI_DMTABLE_INFO        AcpiDmTableInfoRsdp1[];
+>  extern ACPI_DMTABLE_INFO        AcpiDmTableInfoRsdp2[];
+>  extern ACPI_DMTABLE_INFO        AcpiDmTableInfoS3pt[];
+> --
+> 2.5.0
+> 
 
-Just nit-pick, pass 1 here means we need to define an acpi processor
-device object in DSDT (see function map_gicc_mpidr(),
-device_declaration), it would be fine for x2apic and gic mode,
-but not for lapic mode, since the function name is acpi_map_madt_entry
-which is general for all architecture, it will confuse people I think.
-
-How about rename acpi_map_madt_entry() to acpi_map_madt_gicc_entry()?
-It's only used for AMR64 to get mpidrs from GICC entries using acpi_id,
-other than that, it's good to me.
-
-Thanks
-Hanjun
