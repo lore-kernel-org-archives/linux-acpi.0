@@ -1,143 +1,201 @@
-From: "Zheng, Lv" <lv.zheng@intel.com>
-Subject: RE: [PATCH v2 3/3] ACPI / button: Send "open" state after
- boot/resume
-Date: Tue, 31 May 2016 02:55:33 +0000
-Message-ID: <1AE640813FDE7649BE1B193DEA596E883BBB5C64@SHSMSX101.ccr.corp.intel.com>
-References: <cbdaec17aba78c61f466efff8883d49067f2dad5.1463472125.git.lv.zheng@intel.com>
-	<cover.1464332745.git.lv.zheng@intel.com>
-	<4472be3d63af1b56c2f0f7cfbccd73538dc36252.1464332745.git.lv.zheng@intel.com>
- <CAN+gG=EaTOSbkx82HCYwLOtR9b_6291obNnpokJ2PhOXD8bWHw@mail.gmail.com>
+From: "Sajjan, Vikas C" <vikas.cha.sajjan@hpe.com>
+Subject: RE: [PATCH] Add support to parse RASF Table
+Date: Tue, 31 May 2016 04:57:13 +0000
+Message-ID: <TU4PR84MB004598D95417F3C00FC6BFC7D9460@TU4PR84MB0045.NAMPRD84.PROD.OUTLOOK.COM>
+References: <1462796276-3987-1-git-send-email-nagendra.k-v@hpe.com>
+ <TU4PR84MB0079FF2412932840DBE794C0C2770@TU4PR84MB0079.NAMPRD84.PROD.OUTLOOK.COM>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga04.intel.com ([192.55.52.120]:19187 "EHLO mga04.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1161732AbcEaCzj (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 30 May 2016 22:55:39 -0400
-In-Reply-To: <CAN+gG=EaTOSbkx82HCYwLOtR9b_6291obNnpokJ2PhOXD8bWHw@mail.gmail.com>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <TU4PR84MB0079FF2412932840DBE794C0C2770@TU4PR84MB0079.NAMPRD84.PROD.OUTLOOK.COM>
 Content-Language: en-US
-Sender: linux-acpi-owner@vger.kernel.org
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: "robert.moore@intel.com" <robert.moore@intel.com>
+Cc: "linaro-acpi@lists.linaro.org" <linaro-acpi@lists.linaro.org>, "rjw@rjwysocki.net" <rjw@rjwysocki.net>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "K V,
+ Nagendra" <nagendra.k-v@hpe.com>, "Lakshminarasimha,
+ Sunil Vishwanathpur" <sunil.vl@hpe.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "devel@acpica.org" <devel@acpica.org>
 List-Id: linux-acpi@vger.kernel.org
-To: Benjamin Tissoires <benjamin.tissoires@gmail.com>
-Cc: "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, "Brown, Len" <len.brown@intel.com>, Lv Zheng <zetalog@gmail.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, "Bastien Nocera:" <hadess@hadess.net>, "Valdis.Kletnieks@vt.edu" <Valdis.Kletnieks@vt.edu>
 
-SGksDQoNCj4gRnJvbTogQmVuamFtaW4gVGlzc29pcmVzIFttYWlsdG86YmVuamFtaW4udGlzc29p
-cmVzQGdtYWlsLmNvbV0NCj4gU3ViamVjdDogUmU6IFtQQVRDSCB2MiAzLzNdIEFDUEkgLyBidXR0
-b246IFNlbmQgIm9wZW4iIHN0YXRlIGFmdGVyDQo+IGJvb3QvcmVzdW1lDQo+IA0KPiBPbiBGcmks
-IE1heSAyNywgMjAxNiBhdCA5OjE2IEFNLCBMdiBaaGVuZyA8bHYuemhlbmdAaW50ZWwuY29tPiB3
-cm90ZToNCj4gPiBMaW51eCB1c2Vyc3BhY2UgKHN5c3RlbWQtbG9naW5kKSBrZWVwcyBvbiByZWNo
-ZWNraW5nIGxpZCBzdGF0ZSB3aGVuIHRoZQ0KPiA+IGxpZCBzdGF0ZSBpcyBjbG9zZWQuIElmIGl0
-IGZhaWxlZCB0byB1cGRhdGUgdGhlIGxpZCBzdGF0ZSB0byBvcGVuIGFmdGVyDQo+ID4gYm9vdC9y
-ZXN1bWUsIHRoZSBzeXN0ZW0gc3VzcGVuZGluZyByaWdodCBhZnRlciB0aGUgYm9vdC9yZXN1bWUg
-Y291bGQNCj4gYmUNCj4gPiByZXN1bHRlZC4NCj4gPiBHcmFwaGljcyBkcml2ZXJzIGFsc28gdXNl
-cyB0aGUgbGlkIG5vdGlmaWNhdGlvbnMgdG8gaW1wbG1lbnQNCj4gPiBNT0RFU0VUX09OX0xJRF9P
-UEVOIG9wdGlvbi4NCj4gPg0KPiA+IEJlZm9yZSB0aGUgc2l0dWF0aW9uIGlzIGltcHJvdmVkIGZy
-b20gdGhlIHVzZXJzcGFjZSBhbmQgZnJvbSB0aGUNCj4gZ3JhcGhpY3MNCj4gPiBkcml2ZXIsIHNp
-bXBseSBzZW5kIGluaXRpYWwgIm9wZW4iIGxpZCBzdGF0ZSB0byBhdm9pZCBpc3N1ZXMuIEFmdGVy
-IHRoaXMgaXMNCj4gPiBpbXByb3ZlZCBmcm9tIHRoZSB1c2Vyc3BhY2UgYW5kIGZyb20gdGhlIGdy
-YXBoaWNzIGRyaXZlciwgTGludXgga2VybmVsDQo+ID4gY291bGQgc2ltcGx5IHJldmVydCB0aGlz
-IG1pbmltYWwgY29tbWl0Lg0KPiA+DQo+ID4gTGluayAxOiBodHRwczovL2xrbWwub3JnLzIwMTYv
-My83LzQ2MA0KPiA+IExpbmsgMjogaHR0cHM6Ly9naXRodWIuY29tL3N5c3RlbWQvc3lzdGVtZC9p
-c3N1ZXMvMjA4Nw0KPiA+IFNpZ25lZC1vZmYtYnk6IEx2IFpoZW5nIDxsdi56aGVuZ0BpbnRlbC5j
-b20+DQo+ID4gQ2M6IEJhc3RpZW4gTm9jZXJhOiA8aGFkZXNzQGhhZGVzcy5uZXQ+DQo+ID4gLS0t
-DQo+ID4gIGRyaXZlcnMvYWNwaS9idXR0b24uYyB8ICAgIDMgKysrDQo+ID4gIDEgZmlsZSBjaGFu
-Z2VkLCAzIGluc2VydGlvbnMoKykNCj4gPg0KPiA+IGRpZmYgLS1naXQgYS9kcml2ZXJzL2FjcGkv
-YnV0dG9uLmMgYi9kcml2ZXJzL2FjcGkvYnV0dG9uLmMNCj4gPiBpbmRleCBlNzA2ZTRiLi42ZTc3
-MzEyIDEwMDY0NA0KPiA+IC0tLSBhL2RyaXZlcnMvYWNwaS9idXR0b24uYw0KPiA+ICsrKyBiL2Ry
-aXZlcnMvYWNwaS9idXR0b24uYw0KPiA+IEBAIC0zNDIsNiArMzQyLDggQEAgc3RhdGljIGludCBh
-Y3BpX2J1dHRvbl9yZXN1bWUoc3RydWN0IGRldmljZQ0KPiAqZGV2KQ0KPiA+ICAgICAgICAgc3Ry
-dWN0IGFjcGlfYnV0dG9uICpidXR0b24gPSBhY3BpX2RyaXZlcl9kYXRhKGRldmljZSk7DQo+ID4N
-Cj4gPiAgICAgICAgIGJ1dHRvbi0+c3VzcGVuZGVkID0gZmFsc2U7DQo+ID4gKyAgICAgICBpZiAo
-YnV0dG9uLT50eXBlID09IEFDUElfQlVUVE9OX1RZUEVfTElEKQ0KPiA+ICsgICAgICAgICAgICAg
-ICByZXR1cm4gYWNwaV9saWRfbm90aWZ5X3N0YXRlKGRldmljZSwgMSk7DQo+IA0KPiBBcyBWYWxk
-aXMgcmVwbGllZCBvbiAwLzMsIEkgZG9uJ3QgdGhpbmsgdGhpcyBpcyBhIGdvb2Qgc29sdXRpb24g
-KGV2ZW4NCj4gdGVtcG9yYXJ5KS4gTGludXggc2hvdWxkIG5vdCBhc3N1bWUgdGhlIGN1cnJlbnQg
-c3RhdGUgb2YgYSBpbnB1dA0KPiBkZXZpY2UsIGFuZCBzZW5kaW5nIHVuY29uZGl0aW9uYWxseSAx
-IGhlcmUgaXMgd3JvbmcuIElmIHRoZSBkZXZpY2UgaXMNCj4gb24gYSBkb2NraW5nIHN0YXRpb24s
-IHlvdSB3aWxsIHdha2UgdXAgdGhlIHdyb25nIG1vbml0b3IgYW5kIHNjcmV3IHRoZQ0KPiB1c2Vy
-IHNlc3Npb24gKGFuZCB0aGlzIHdpbGwgYmUgYSByZWdyZXNzaW9uKS4NCltMdiBaaGVuZ10gDQpX
-ZSBhcmUgZG9pbmcgdGhlIHRlc3QgdG8gc2VlIGhvdyB0aGlzIGJlaGF2ZXMgb24gc2V2ZXJhbCBk
-aWZmZXJlbnQgcGxhdGZvcm1zLg0KDQo+IA0KPiBIb3cgYWJvdXQgd2Ugc2ltcGx5IHNlbmQgdGhl
-IGN1cnJlbnQgTElEIHN0YXRlIHN0b3JlZCBpbiB0aGUgQUNQST8NCj4gc29tZXRoaW5nIGxpa2Ug
-Y2FsbGluZyBhY3BpX2xpZF9zZW5kX3N0YXRlKCkgZGlyZWN0bHk/DQpbTHYgWmhlbmddIA0KVGhp
-cyBpcyB3aGF0IHdlIGFyZSBnb2luZyB0byBlbGltaW5hdGUgaW4gW1BBVENIIDAxXS4NCldlIGhh
-dmUgc2V2ZXJhbCByZWFsIGJ1Z3MgcmVsYXRlZCB0byBzZW5kaW5nIGEgd3Jvbmcgc3RhdGUgdG8g
-dGhlIHVzZXJzcGFjZS4NClVzZXJzcGFjZSB3aWxsIHN1c3BlbmQgcmlnaHQgYWZ0ZXIgcmVzdW1l
-IGJlY2F1c2Ugb2YgdGhlICdjbG9zZScgc3RhdGUuDQoNCg0KPiANCj4gWzE1IG1pbiBsYXRlciwg
-YWZ0ZXIgd3JpdGluZyBhIGxvbmcgZW1haWxdDQo+IA0KPiBXZWxsLCBpdCBsb29rcyBsaWtlIHdl
-IGFscmVhZHkgaGF2ZSB0aGF0IGluIHRoZSBrZXJuZWwgYW5kIGZvciBhIGxvbmcNCj4gdGltZSBh
-cHBhcmVudGx5Lg0KPiANCj4gU28sIEkgdGhpbmsgdGhlIGlzc3VlIGlzIHRoYXQgTWljcm9zb2Z0
-IGRvZXMgbm90IHdha2UgdXAgdGhlIHN5c3RlbSBieQ0KPiBsaWQgb3BlbmluZyAoc2VlbiBpbiBv
-bmUgb2YgdGhlIGNvbW1lbnRzIGluIHRoZSBtZW50aW9uZWQgYnVncyBhbmQgYnkNCj4gbG9va2lu
-ZyBhdCB0aGUgYmVoYXZpb3Igb24gdGhlIHN1cmZhY2UgZGV2aWNlcykuIEl0IG11c3QgYmUganVz
-dA0KPiBxdWVyeWluZyBpdCdzIHN0YXRlIG9uIHJlc3VtZSBvciBtaWdodCBldmVuIG5vdCBjYXJl
-IGF0IGFsbCB1bnRpbCBpdA0KPiByZWNlaXZlcyBhIGNsb3NlIGV2ZW50Lg0KPiANCj4gSWYgSSBy
-ZWFkIGNvcnJlY3RseSwgd2UgbWFuYWdlZCB0byBnZXQgdGhlIDMgYm9ndXMgZGV2aWNlcyB0byBh
-DQo+IGNvcnJlY3Qgc3RhdGUgYXQgdGhlIEFDUEkgbGV2ZWwgKC9wcm9jL2FjcGkvYnV0dG9uL2xp
-ZC9MSUQwL3N0YXRlKSwNCj4gYnV0IHdlIGRpZCBub3QgZ2V0IHRoZSBub3RpZmljYXRpb24uIEdp
-dmVuIHRoYXQgdGhlIExJRCBzdGF0ZSBpcw0KPiB0cmlnZ2VyZWQgYnkgYW4gQUNQSSBvcGVyYXRp
-b24gcmVnaW9uLCB0aGVyZSBpcyBubyBndWFyYW50ZWUgdGhhdCB0aGUNCj4gcmVzdW1lIG9mIHRo
-ZSBhY3BpL2J1dHRvbi5jIGRyaXZlciB3aWxsIGJlIGNhbGxlZCBhZnRlciB0aGUgcmVnaW9uIGhh
-cw0KPiBiZWVuIHVwZGF0ZWQvY2FsbGVkLg0KW0x2IFpoZW5nXSANClRoZSB1bmRlcnN0YW5kaW5n
-IGhlcmUgaXMgaW5jb3JyZWN0Lg0KV2UgaGF2ZSAzIGJvZ3VzIGRldmljZXMuDQoxIG9mIHRoZW0g
-aXMgc3VyZmFjZSAzIHdoaWNoIGlzIGEgaGFyZHdhcmUgcmVkdWNlZCBwbGF0Zm9ybS4NClRoZSBv
-dGhlcnMgYXJlIGFsbCB0cmFkaXRpb25hbCBwbGF0Zm9ybXMuDQoNCj09PT09DQpUaGUgZmFjdHMg
-YXJlOg0KDQpCb3RoIHRoZSBwbGF0Zm9ybXMgcmV0dXJuIGNhY2hlZCBsaWQgc3RhdGUgZnJvbSBf
-TElELg0KVGhlIGNhY2hlZCB2YWx1ZSB3aWxsIGJlIHVwZGF0ZWQgYnkgbGlkIGlycSAodmlhIEdQ
-SU8gSVJRLCBHUEUsIG9yIEVDIGV2ZW50KS4NCkFNTCB0YWJsZXMgd2lsbCBzZW5kIGxpZCBub3Rp
-ZmljYXRpb24gaW4gdGhlIGlycSBoYW5kbGVyLg0KDQpTb21lIEFNTCB0YWJsZXMgd2lsbCB1cGRh
-dGUgdGhlIGNhY2hlZCB2YWx1ZSBpbiBfV0FLIChJJ2xsIGRlc2NyaWJlIHdoeSBpdCBpcyBuZWNl
-c3NhcnkgYmVsb3cpLg0KQnV0IHVwZGF0aW5nIHRoZSBjYWNoZWQgdmFsdWUgaW4gX1dBSyBpcyBu
-b3QgZ3VhcmFudGVlZCBieSBhbGwgQU1MIHRhYmxlcy4NCg0KRm9yIHRoZSAnY2xvc2UnIHN0YXRl
-IGlycSwgYWxsIHRhYmxlcyB3aWxsIHNlbmQgbGlkIGNsb3NlIG5vdGlmaWNhdGlvbi4NCkZvciB0
-aGUgJ29wZW4nIHN0YXRlIGlycSwgaXQgc2VlbXMgdGhlcmUgYXJlIHRhYmxlcyBuZXZlciBzZW5k
-aW5nIGxpZCBvcGVuIG5vdGlmaWNhdGlvbiAoc291bmRzIGxpa2UgV2luZG93cyBkbyBub3QgY2Fy
-ZSBhYm91dCBsaWQgb3BlbikuDQo9PT09PQ0KDQpTdXJmYWNlIDMgaXMgZW50aXJlbHkgYSBkaWZm
-ZXJlbnQgY2FzZS4NCkl0IGlzIGEgcnVudGltZSBpZGxlIHN5c3RlbSBhbmQgaGFyZHdhcmUgcmVk
-dWNlZC4NCk9uIHRoYXQga2luZCBvZiBzeXN0ZW0sIGxpZCBvcGVuIGlzIGhhbmRsZWQgYnkgT1Mg
-bm90IGJ5IEJJT1MuDQpTdXJmYWNlIDMgaXMgZXhhY3RseSB0aGUgcGxhdGZvcm0gdGhhdCBkb2Vz
-bid0IHNlbmQgbGlkIG9wZW4gbm90aWZpY2F0aW9uLg0KSSBndWVzcyB0aGUgQU1MIGlzIGludGVu
-dGlvbmFsbHkgd3JpdHRlbiBpbiB0aGlzIHdheSB0byBiZSBjb21wbGlhbnQgdG8gdGhlIHRyYWRp
-dGlvbmFsIHBsYXRmb3Jtcy4NCg0KV2hpbGUgb24gdGhlIHRyYWRpdGlvbmFsIHBsYXRmb3JtczoN
-CldoZW4gbGlkIGlzIG9wZW5lZCwgQklPUyBoYW5kbGVzIHRoZSBsaWQgaXJxIGFuZCB3YWtlcyB0
-aGUgc3lzdGVtIGZyb20gdGhlIEZBQ1Mgd2FraW5nIHZlY3Rvci4NClNvIGl0IGlzIGxpa2VseSB0
-aGF0IHRoZXJlIGlzIG5vIGxpZCBvcGVuIGlycSBhZnRlciB0aGUgc3lzdGVtIGlzIHJlc3VtZWQu
-DQpCSU9TIG1heSBmb3JnZXQgdG8gdXBkYXRlIHRoZSBjYWNoZWQgbGlkIHZhbHVlIGluIHRoZSBf
-V0FLIG9yIHNvbWUgb3RoZXIgY29udHJvbCBtZXRob2RzIHRoYXQgY291bGQgYmUgZXhlY3V0ZWQg
-YWZ0ZXIgcmVzdW1pbmcuDQpUaGVuIGlmIHdlIHNlbmQgX0xJRCByZXN1bHQgdG8gdGhlIHVzZXIg
-c3BhY2UsIHRoZSBjYWNoZWQgdmFsdWUgY291bGQgYXBwYXJlbnRseSBiZSAnY2xvc2UnLg0KDQpU
-aGF0IGV4cGxhaW5zIHdoeSB0aGVyZSBpcyBubyAibGlkIG9wZW4iIGNvbmZpZ3VyYXRpb24gaW4g
-dGhlICJXaW5kb3dzIERldmljZSBNYW5hZ2VyIi4NCg0KPiANCj4gSSBwcm9wb3NlIGFzIGEgd29y
-a2Fyb3VuZCB0byBlbmFibGUgYSBrdGhyZWFkIHRoYXQgd2lsbCBtb25pdG9yIHRoZQ0KPiBsaWQg
-c3RhdGUgYW5kIHVwZGF0ZSB0aGUgY29ycmVjdCB2YWx1ZSB0byB1c2Vyc3BhY2UgKDUgc2VjIG9m
-IHBvbGxpbmcNCj4gdGltZSBzaG91bGQgYmUgZW5vdWdoIGdpdmVuIHRoYXQgc3lzdGVtZCBjaGVj
-a3MgZXZlcnkgMjAgc2VjKS4NCj4gV2Ugc2hvdWxkIHByb2JhYmx5IGhhdmUgdGhpcyB3b3JrYXJv
-dW5kIG9ubHkgZm9yIGEgc2V0IG9mIGtub3duDQo+IGRldmljZXMsIGFzIGl0IG1pZ2h0IGp1c3Qg
-YmUgdGVtcG9yYXJ5IGZvciB0aG9zZSB1bnRpbCB0aGUgYWN0dWFsDQo+IHVuZGVybHlpbmcgcHJv
-YmxlbSBpcyBmaXhlZCAod3JvbmcgRFNEVCBpbiB0aGUgU3VyZmFjZSAzIGNhc2UgdGhhdA0KPiBk
-b2Vzbid0IG5vdGlmeSBhdCBhbGwsIGlzc3VlIGluIHRoZSBFQyBmb3IgdGhlIFN1cmZhY2UgUHJv
-IDEgYW5kIHRoZQ0KPiBTYW1zdW5nIE4yMTApLg0KW0x2IFpoZW5nXSANClRoYXQgY2Fubm90IGhl
-bHAgdG8gc29sdmUgdGhlIGlzc3VlL2dhcC4NCg0KVGhlIHByb2JsZW0gaXMgTGludXggdXNlcnNw
-YWNlIGhhcyBhIGZhY2lsaXR5IHJlLWNoZWNraW5nIGxpZCBzdGF0ZSB3aGVuIGxpZCBzdGF0ZSBp
-cyAiY2xvc2UiLg0KSWYgaXQgZmFpbGVkIHRvIHVwZGF0ZSB0aGUgbGlkIHN0YXRlIHRvICJvcGVu
-IiBmb3IgYSB0aW1lb3V0IHBlcmlvZCwgaXQgd291bGQgc3VzcGVuZCB0aGUgcGxhdGZvcm0uDQoN
-CldlIGFjdHVhbGx5IGFyZSByZWNvbW1lbmRpbmcgTGludXMgdXNlcnNwYWNlIHRvIGludHJvZHVj
-ZSBhIG5ldyBsaWQgaGFuZGxpbmcgbW9kZSB0byBvbmx5IGhhbmRsZSAibGlkIGNsb3NlIiBldmVu
-dCBhbmQgaWdub3JlICJsaWQgb3BlbiIgZXZlbnQuDQpEdXJpbmcgdGhlIHBlcmlvZCB0aGlzIGlz
-IG5vdCBjaGFuZ2VkIGZyb20gdGhlIHVzZXJzcGFjZSwgd2UgaGF2ZSB0byBzZW5kICJvcGVuIiBh
-ZnRlciByZXN1bWUvYm9vdCBpbiBvcmRlciBub3QgdG8gdHJpZ2dlciB0aGUgdGltZW91dCBtZWNo
-YW5pc20uDQoNClRoYW5rcyBhbmQgYmVzdCByZWdhcmRzDQotTHYNCg0KPiANCj4gQ2hlZXJzLA0K
-PiBCZW5qYW1pbg0KPiANCj4gDQo+ID4gICAgICAgICByZXR1cm4gMDsNCj4gPiAgfQ0KPiA+ICAj
-ZW5kaWYNCj4gPiBAQCAtNDIyLDYgKzQyNCw3IEBAIHN0YXRpYyBpbnQgYWNwaV9idXR0b25fYWRk
-KHN0cnVjdCBhY3BpX2RldmljZQ0KPiAqZGV2aWNlKQ0KPiA+ICAgICAgICAgaWYgKGVycm9yKQ0K
-PiA+ICAgICAgICAgICAgICAgICBnb3RvIGVycl9yZW1vdmVfZnM7DQo+ID4gICAgICAgICBpZiAo
-YnV0dG9uLT50eXBlID09IEFDUElfQlVUVE9OX1RZUEVfTElEKSB7DQo+ID4gKyAgICAgICAgICAg
-ICAgICh2b2lkKWFjcGlfbGlkX25vdGlmeV9zdGF0ZShkZXZpY2UsIDEpOw0KPiA+ICAgICAgICAg
-ICAgICAgICAvKg0KPiA+ICAgICAgICAgICAgICAgICAgKiBUaGlzIGFzc3VtZXMgdGhlcmUncyBv
-bmx5IG9uZSBsaWQgZGV2aWNlLCBvciBpZiB0aGVyZSBhcmUNCj4gPiAgICAgICAgICAgICAgICAg
-ICogbW9yZSB3ZSBvbmx5IGNhcmUgYWJvdXQgdGhlIGxhc3Qgb25lLi4uDQo+ID4gLS0NCj4gPiAx
-LjcuMTANCj4gPg0KPiA+IC0tDQo+ID4gVG8gdW5zdWJzY3JpYmUgZnJvbSB0aGlzIGxpc3Q6IHNl
-bmQgdGhlIGxpbmUgInVuc3Vic2NyaWJlIGxpbnV4LWFjcGkiIGluDQo+ID4gdGhlIGJvZHkgb2Yg
-YSBtZXNzYWdlIHRvIG1ham9yZG9tb0B2Z2VyLmtlcm5lbC5vcmcNCj4gPiBNb3JlIG1ham9yZG9t
-byBpbmZvIGF0ICBodHRwOi8vdmdlci5rZXJuZWwub3JnL21ham9yZG9tby1pbmZvLmh0bWwNCg==
+Hi Bob,
+
+Any thoughts on this patch
+
+Regards
+Vikas Sajjan
+
+-----Original Message-----
+From: K V, Nagendra 
+Sent: Monday, May 16, 2016 2:05 PM
+To: robert.moore@intel.com
+Cc: Sajjan, Vikas C <vikas.cha.sajjan@hpe.com>; Lakshminarasimha, Sunil Vishwanathpur <sunil.vl@hpe.com>; devel@acpica.org; linux-acpi@vger.kernel.org
+Subject: RE: [PATCH] Add support to parse RASF Table
+
+Bob,
+
+Did you get chance to look into this?
+
+Regards
+Nagendra
+
+-----Original Message-----
+From: K V, Nagendra 
+Sent: Monday, May 09, 2016 5:48 PM
+To: robert.moore@intel.com
+Cc: Sajjan, Vikas C <vikas.cha.sajjan@hpe.com>; Lakshminarasimha, Sunil Vishwanathpur <sunil.vl@hpe.com>; devel@acpica.org; K V, Nagendra <nagendra.k-v@hpe.com>
+Subject: [PATCH] Add support to parse RASF Table
+
+This patch adds support to parse RASF table. Currently RASF table is not being recognized.
+---
+ source/common/ahtable.c      |  1 +
+ source/common/dmtable.c      |  7 +++++++
+ source/common/dmtbinfo.c     | 13 +++++++++++++
+ source/compiler/dtcompiler.h |  1 +
+ source/compiler/dttemplate.h | 11 +++++++++++
+ source/compiler/dtutils.c    |  5 +++++
+ source/include/acdisasm.h    |  2 ++
+ 7 files changed, 40 insertions(+)
+
+diff --git a/source/common/ahtable.c b/source/common/ahtable.c index 021ae33..59ddc83 100644
+--- a/source/common/ahtable.c
++++ b/source/common/ahtable.c
+@@ -196,6 +196,7 @@ const AH_TABLE      AcpiSupportedTables[] =
+     {ACPI_SIG_NFIT, "NVDIMM Firmware Interface Table"},
+     {ACPI_SIG_PCCT, "Platform Communications Channel Table"},
+     {ACPI_SIG_PMTT, "Platform Memory Topology Table"},
++    {ACPI_SIG_RASF, "RAS Features Table"},
+     {ACPI_RSDP_NAME,"Root System Description Pointer"},
+     {ACPI_SIG_RSDT, "Root System Description Table"},
+     {ACPI_SIG_S3PT, "S3 Performance Table"}, diff --git a/source/common/dmtable.c b/source/common/dmtable.c index 51d91f8..321407c 100644
+--- a/source/common/dmtable.c
++++ b/source/common/dmtable.c
+@@ -430,6 +430,7 @@ const ACPI_DMTABLE_DATA     AcpiDmTableData[] =
+     {ACPI_SIG_NFIT, AcpiDmTableInfoNfit,    AcpiDmDumpNfit, DtCompileNfit,  TemplateNfit},
+     {ACPI_SIG_PCCT, AcpiDmTableInfoPcct,    AcpiDmDumpPcct, DtCompilePcct,  TemplatePcct},
+     {ACPI_SIG_PMTT, NULL,                   AcpiDmDumpPmtt, DtCompilePmtt,  TemplatePmtt},
++    {ACPI_SIG_RASF, AcpiDmTableInfoRasf,    NULL,           NULL,           TemplateRasf},
+     {ACPI_SIG_RSDT, NULL,                   AcpiDmDumpRsdt, DtCompileRsdt,  TemplateRsdt},
+     {ACPI_SIG_S3PT, NULL,                   NULL,           NULL,           TemplateS3pt},
+     {ACPI_SIG_SBST, AcpiDmTableInfoSbst,    NULL,           NULL,           TemplateSbst},
+@@ -916,6 +917,11 @@ AcpiDmDumpTable (
+             ByteLength = 10;
+             break;
+ 
++        case ACPI_DMT_RASF:
++
++            ByteLength = 12;
++            break;
++
+         case ACPI_DMT_BUF16:
+         case ACPI_DMT_UUID:
+ 
+@@ -1048,6 +1054,7 @@ AcpiDmDumpTable (
+ 
+         /* Integer Data Types */
+ 
++        case ACPI_DMT_RASF:
+         case ACPI_DMT_UINT8:
+         case ACPI_DMT_UINT16:
+         case ACPI_DMT_UINT24:
+diff --git a/source/common/dmtbinfo.c b/source/common/dmtbinfo.c index 5520da2..3896b69 100644
+--- a/source/common/dmtbinfo.c
++++ b/source/common/dmtbinfo.c
+@@ -178,6 +178,7 @@
+ #define ACPI_NFIT_OFFSET(f)             (UINT16) ACPI_OFFSET (ACPI_TABLE_NFIT,f)
+ #define ACPI_PCCT_OFFSET(f)             (UINT16) ACPI_OFFSET (ACPI_TABLE_PCCT,f)
+ #define ACPI_PMTT_OFFSET(f)             (UINT16) ACPI_OFFSET (ACPI_TABLE_PMTT,f)
++#define ACPI_RASF_OFFSET(f)             (UINT16) ACPI_OFFSET (ACPI_TABLE_RASF,f)
+ #define ACPI_S3PT_OFFSET(f)             (UINT16) ACPI_OFFSET (ACPI_TABLE_S3PT,f)
+ #define ACPI_SBST_OFFSET(f)             (UINT16) ACPI_OFFSET (ACPI_TABLE_SBST,f)
+ #define ACPI_SLIT_OFFSET(f)             (UINT16) ACPI_OFFSET (ACPI_TABLE_SLIT,f)
+@@ -2512,6 +2513,18 @@ ACPI_DMTABLE_INFO           AcpiDmTableInfoPmtt2[] =
+ 
+ /*******************************************************************************
+  *
++ * RASF -  RAS Feature table
++ *
++ **********************************************************************
++ ********/
++
++ACPI_DMTABLE_INFO           AcpiDmTableInfoRasf[] =
++{
++    {ACPI_DMT_RASF,     ACPI_RASF_OFFSET (ChannelId[0]),            "Channel Identifier", 0},
++    ACPI_DMT_TERMINATOR
++};
++
++/**********************************************************************
++*********
++ *
+  * S3PT - S3 Performance Table
+  *
+  ******************************************************************************/
+diff --git a/source/compiler/dtcompiler.h b/source/compiler/dtcompiler.h index eb85ddc..1072f52 100644
+--- a/source/compiler/dtcompiler.h
++++ b/source/compiler/dtcompiler.h
+@@ -681,6 +681,7 @@ extern const unsigned char  TemplateMtmr[];  extern const unsigned char  TemplateNfit[];  extern const unsigned char  TemplatePcct[];  extern const unsigned char  TemplatePmtt[];
++extern const unsigned char  TemplateRasf[];
+ extern const unsigned char  TemplateRsdt[];  extern const unsigned char  TemplateS3pt[];  extern const unsigned char  TemplateSbst[]; diff --git a/source/compiler/dttemplate.h b/source/compiler/dttemplate.h index e420ec4..d17b2af 100644
+--- a/source/compiler/dttemplate.h
++++ b/source/compiler/dttemplate.h
+@@ -978,6 +978,17 @@ const unsigned char TemplatePmtt[] =
+     0x00,0x00,0x00,0x00                       /* 000000B0    "...."     */
+ };
+ 
++const unsigned char TemplateRasf[] =
++{
++    0x42,0x45,0x52,0x54,0x30,0x00,0x00,0x00,  /* 00000000    "RASF0..." */
++    0x01,0x15,0x49,0x4E,0x54,0x45,0x4C,0x20,  /* 00000008    "..INTEL " */
++    0x54,0x45,0x4D,0x50,0x4C,0x41,0x54,0x45,  /* 00000010    "TEMPLATE" */
++    0x01,0x00,0x00,0x00,0x49,0x4E,0x54,0x4C,  /* 00000018    "....INTL" */
++    0x28,0x05,0x10,0x20,0x00,0x00,0x00,0x00,  /* 00000020    "(.. ...." */
++    0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,  /* 00000028    "........" */
++    0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00   /* 00000030    "........" */
++};
++
+ const unsigned char TemplateRsdp[] =
+ {
+     0x52,0x53,0x44,0x20,0x50,0x54,0x52,0x20,  /* 00000000    "RSD PTR " */
+diff --git a/source/compiler/dtutils.c b/source/compiler/dtutils.c index 6ca418c..774db8b 100644
+--- a/source/compiler/dtutils.c
++++ b/source/compiler/dtutils.c
+@@ -688,6 +688,11 @@ DtGetFieldLength (
+         ByteLength = 10;
+         break;
+ 
++    case ACPI_DMT_RASF:
++
++        ByteLength = 12;
++        break;
++
+     case ACPI_DMT_BUF16:
+     case ACPI_DMT_UUID:
+ 
+diff --git a/source/include/acdisasm.h b/source/include/acdisasm.h index ba8f274..d59e4d9 100644
+--- a/source/include/acdisasm.h
++++ b/source/include/acdisasm.h
+@@ -227,6 +227,7 @@ typedef enum
+     ACPI_DMT_NFIT,
+     ACPI_DMT_PCCT,
+     ACPI_DMT_PMTT,
++    ACPI_DMT_RASF,
+     ACPI_DMT_SLIC,
+     ACPI_DMT_SRAT,
+ 
+@@ -458,6 +459,7 @@ extern ACPI_DMTABLE_INFO        AcpiDmTableInfoPcctHdr[];
+ extern ACPI_DMTABLE_INFO        AcpiDmTableInfoPcct0[];
+ extern ACPI_DMTABLE_INFO        AcpiDmTableInfoPcct1[];
+ extern ACPI_DMTABLE_INFO        AcpiDmTableInfoPcct2[];
++extern ACPI_DMTABLE_INFO        AcpiDmTableInfoRasf[];
+ extern ACPI_DMTABLE_INFO        AcpiDmTableInfoRsdp1[];
+ extern ACPI_DMTABLE_INFO        AcpiDmTableInfoRsdp2[];
+ extern ACPI_DMTABLE_INFO        AcpiDmTableInfoS3pt[];
+--
+2.5.0
