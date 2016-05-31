@@ -1,201 +1,95 @@
-From: "Sajjan, Vikas C" <vikas.cha.sajjan@hpe.com>
-Subject: RE: [PATCH] Add support to parse RASF Table
-Date: Tue, 31 May 2016 04:57:13 +0000
-Message-ID: <TU4PR84MB004598D95417F3C00FC6BFC7D9460@TU4PR84MB0045.NAMPRD84.PROD.OUTLOOK.COM>
-References: <1462796276-3987-1-git-send-email-nagendra.k-v@hpe.com>
- <TU4PR84MB0079FF2412932840DBE794C0C2770@TU4PR84MB0079.NAMPRD84.PROD.OUTLOOK.COM>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <TU4PR84MB0079FF2412932840DBE794C0C2770@TU4PR84MB0079.NAMPRD84.PROD.OUTLOOK.COM>
-Content-Language: en-US
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: "robert.moore@intel.com" <robert.moore@intel.com>
-Cc: "linaro-acpi@lists.linaro.org" <linaro-acpi@lists.linaro.org>, "rjw@rjwysocki.net" <rjw@rjwysocki.net>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "K V,
- Nagendra" <nagendra.k-v@hpe.com>, "Lakshminarasimha,
- Sunil Vishwanathpur" <sunil.vl@hpe.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "devel@acpica.org" <devel@acpica.org>
+From: Lv Zheng <lv.zheng@intel.com>
+Subject: [RFC PATCH v2] ACPICA / Hardware: Fix old register check in acpi_hw_get_access_bit_width()
+Date: Tue, 31 May 2016 15:05:56 +0800
+Message-ID: <fa6ead5a123ea7c77caf5f14ee497823574506b7.1464678140.git.lv.zheng@intel.com>
+References: <fc78867f000b99f4c692876a77b3ea061e44a368>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga02.intel.com ([134.134.136.20]:10066 "EHLO mga02.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751316AbcEaHGH (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 31 May 2016 03:06:07 -0400
+In-Reply-To: <fc78867f000b99f4c692876a77b3ea061e44a368>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <len.brown@intel.com>
+Cc: Lv Zheng <lv.zheng@intel.com>, Lv Zheng <zetalog@gmail.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Boris Ostrovsky <boris.ostrovsky@oracle.com>, Mike Marshall <hubcap@omnibond.com>
 
-Hi Bob,
+The address check in acpi_hw_get_access_bit_width() should be byte width
+based, not bit width based. This patch fixes this mistake.
 
-Any thoughts on this patch
+For those who want to review acpi_hw_access_bit_width(), here is the
+concerns and the design details of the function:
 
-Regards
-Vikas Sajjan
+It is supposed that the GAS Address field should be aligned to the byte
+width indicated by the GAS AccessSize field. Similarly, for the old non
+GAS register, it is supposed that its Address should be aligned to its
+Length.
+For the "AccessSize = 0 (meaning ANY)" case, we try to return the maximum
+instruction width (64 for MMIO or 32 for PIO) or the user expected access
+bit width (64 for acpi_read()/acpi_write() or 32 for acpi_hw_read()/
+acpi_hw_write()) for futher operation and it is supposed that the GAS
+Address field should always be aligned to the maximum expected access bit
+width (otherwise it can't be ANY).
 
------Original Message-----
-From: K V, Nagendra 
-Sent: Monday, May 16, 2016 2:05 PM
-To: robert.moore@intel.com
-Cc: Sajjan, Vikas C <vikas.cha.sajjan@hpe.com>; Lakshminarasimha, Sunil Vishwanathpur <sunil.vl@hpe.com>; devel@acpica.org; linux-acpi@vger.kernel.org
-Subject: RE: [PATCH] Add support to parse RASF Table
+The problem is in acpi_tb_init_generic_address(), where the non GAS
+register's Length is converted into the GAS BitWidth field, its Address is
+converted into the GAS Address field, and the GAS AccessSize field is left
+0 but most of the register actually cannot be accessed using "ANY"
+accesses.
 
-Bob,
+As a conclusion, when AccessSize = 0 (ANY), the Address should either be
+aligned to the BitWidth (wrong conversion) or aligned to 32 (PIO) or 64
+(MMIO). Since BitWidth for the wrong conversion is 8,16,32, the Address
+of the real GAS should always be aligned to 8,16,32, the address alignment
+check is not necessary. But we in fact could enhance the check for a future
+case where max_bit_width could be 64 for a PIO access issued from
+acpi_read()/acpi_write().
 
-Did you get chance to look into this?
-
-Regards
-Nagendra
-
------Original Message-----
-From: K V, Nagendra 
-Sent: Monday, May 09, 2016 5:48 PM
-To: robert.moore@intel.com
-Cc: Sajjan, Vikas C <vikas.cha.sajjan@hpe.com>; Lakshminarasimha, Sunil Vishwanathpur <sunil.vl@hpe.com>; devel@acpica.org; K V, Nagendra <nagendra.k-v@hpe.com>
-Subject: [PATCH] Add support to parse RASF Table
-
-This patch adds support to parse RASF table. Currently RASF table is not being recognized.
+Fixes: b314a172ee96 ("ACPICA: Hardware: Add optimized access bit width support")
+Cc: Boris Ostrovsky <boris.ostrovsky@oracle.com>
+Cc: Mike Marshall <hubcap@omnibond.com>
+Suggested-by: Jan Beulich <jbeulich@suse.com>
+Signed-off-by: Lv Zheng <lv.zheng@intel.com>
 ---
- source/common/ahtable.c      |  1 +
- source/common/dmtable.c      |  7 +++++++
- source/common/dmtbinfo.c     | 13 +++++++++++++
- source/compiler/dtcompiler.h |  1 +
- source/compiler/dttemplate.h | 11 +++++++++++
- source/compiler/dtutils.c    |  5 +++++
- source/include/acdisasm.h    |  2 ++
- 7 files changed, 40 insertions(+)
+ drivers/acpi/acpica/hwregs.c |   16 +++++++---------
+ 1 file changed, 7 insertions(+), 9 deletions(-)
 
-diff --git a/source/common/ahtable.c b/source/common/ahtable.c index 021ae33..59ddc83 100644
---- a/source/common/ahtable.c
-+++ b/source/common/ahtable.c
-@@ -196,6 +196,7 @@ const AH_TABLE      AcpiSupportedTables[] =
-     {ACPI_SIG_NFIT, "NVDIMM Firmware Interface Table"},
-     {ACPI_SIG_PCCT, "Platform Communications Channel Table"},
-     {ACPI_SIG_PMTT, "Platform Memory Topology Table"},
-+    {ACPI_SIG_RASF, "RAS Features Table"},
-     {ACPI_RSDP_NAME,"Root System Description Pointer"},
-     {ACPI_SIG_RSDT, "Root System Description Table"},
-     {ACPI_SIG_S3PT, "S3 Performance Table"}, diff --git a/source/common/dmtable.c b/source/common/dmtable.c index 51d91f8..321407c 100644
---- a/source/common/dmtable.c
-+++ b/source/common/dmtable.c
-@@ -430,6 +430,7 @@ const ACPI_DMTABLE_DATA     AcpiDmTableData[] =
-     {ACPI_SIG_NFIT, AcpiDmTableInfoNfit,    AcpiDmDumpNfit, DtCompileNfit,  TemplateNfit},
-     {ACPI_SIG_PCCT, AcpiDmTableInfoPcct,    AcpiDmDumpPcct, DtCompilePcct,  TemplatePcct},
-     {ACPI_SIG_PMTT, NULL,                   AcpiDmDumpPmtt, DtCompilePmtt,  TemplatePmtt},
-+    {ACPI_SIG_RASF, AcpiDmTableInfoRasf,    NULL,           NULL,           TemplateRasf},
-     {ACPI_SIG_RSDT, NULL,                   AcpiDmDumpRsdt, DtCompileRsdt,  TemplateRsdt},
-     {ACPI_SIG_S3PT, NULL,                   NULL,           NULL,           TemplateS3pt},
-     {ACPI_SIG_SBST, AcpiDmTableInfoSbst,    NULL,           NULL,           TemplateSbst},
-@@ -916,6 +917,11 @@ AcpiDmDumpTable (
-             ByteLength = 10;
-             break;
+diff --git a/drivers/acpi/acpica/hwregs.c b/drivers/acpi/acpica/hwregs.c
+index 0f18dbc..0553c0b 100644
+--- a/drivers/acpi/acpica/hwregs.c
++++ b/drivers/acpi/acpica/hwregs.c
+@@ -86,24 +86,22 @@ acpi_hw_get_access_bit_width(struct acpi_generic_address *reg, u8 max_bit_width)
+ 	u64 address;
  
-+        case ACPI_DMT_RASF:
-+
-+            ByteLength = 12;
-+            break;
-+
-         case ACPI_DMT_BUF16:
-         case ACPI_DMT_UUID:
- 
-@@ -1048,6 +1054,7 @@ AcpiDmDumpTable (
- 
-         /* Integer Data Types */
- 
-+        case ACPI_DMT_RASF:
-         case ACPI_DMT_UINT8:
-         case ACPI_DMT_UINT16:
-         case ACPI_DMT_UINT24:
-diff --git a/source/common/dmtbinfo.c b/source/common/dmtbinfo.c index 5520da2..3896b69 100644
---- a/source/common/dmtbinfo.c
-+++ b/source/common/dmtbinfo.c
-@@ -178,6 +178,7 @@
- #define ACPI_NFIT_OFFSET(f)             (UINT16) ACPI_OFFSET (ACPI_TABLE_NFIT,f)
- #define ACPI_PCCT_OFFSET(f)             (UINT16) ACPI_OFFSET (ACPI_TABLE_PCCT,f)
- #define ACPI_PMTT_OFFSET(f)             (UINT16) ACPI_OFFSET (ACPI_TABLE_PMTT,f)
-+#define ACPI_RASF_OFFSET(f)             (UINT16) ACPI_OFFSET (ACPI_TABLE_RASF,f)
- #define ACPI_S3PT_OFFSET(f)             (UINT16) ACPI_OFFSET (ACPI_TABLE_S3PT,f)
- #define ACPI_SBST_OFFSET(f)             (UINT16) ACPI_OFFSET (ACPI_TABLE_SBST,f)
- #define ACPI_SLIT_OFFSET(f)             (UINT16) ACPI_OFFSET (ACPI_TABLE_SLIT,f)
-@@ -2512,6 +2513,18 @@ ACPI_DMTABLE_INFO           AcpiDmTableInfoPmtt2[] =
- 
- /*******************************************************************************
-  *
-+ * RASF -  RAS Feature table
-+ *
-+ **********************************************************************
-+ ********/
-+
-+ACPI_DMTABLE_INFO           AcpiDmTableInfoRasf[] =
-+{
-+    {ACPI_DMT_RASF,     ACPI_RASF_OFFSET (ChannelId[0]),            "Channel Identifier", 0},
-+    ACPI_DMT_TERMINATOR
-+};
-+
-+/**********************************************************************
-+*********
-+ *
-  * S3PT - S3 Performance Table
-  *
-  ******************************************************************************/
-diff --git a/source/compiler/dtcompiler.h b/source/compiler/dtcompiler.h index eb85ddc..1072f52 100644
---- a/source/compiler/dtcompiler.h
-+++ b/source/compiler/dtcompiler.h
-@@ -681,6 +681,7 @@ extern const unsigned char  TemplateMtmr[];  extern const unsigned char  TemplateNfit[];  extern const unsigned char  TemplatePcct[];  extern const unsigned char  TemplatePmtt[];
-+extern const unsigned char  TemplateRasf[];
- extern const unsigned char  TemplateRsdt[];  extern const unsigned char  TemplateS3pt[];  extern const unsigned char  TemplateSbst[]; diff --git a/source/compiler/dttemplate.h b/source/compiler/dttemplate.h index e420ec4..d17b2af 100644
---- a/source/compiler/dttemplate.h
-+++ b/source/compiler/dttemplate.h
-@@ -978,6 +978,17 @@ const unsigned char TemplatePmtt[] =
-     0x00,0x00,0x00,0x00                       /* 000000B0    "...."     */
- };
- 
-+const unsigned char TemplateRasf[] =
-+{
-+    0x42,0x45,0x52,0x54,0x30,0x00,0x00,0x00,  /* 00000000    "RASF0..." */
-+    0x01,0x15,0x49,0x4E,0x54,0x45,0x4C,0x20,  /* 00000008    "..INTEL " */
-+    0x54,0x45,0x4D,0x50,0x4C,0x41,0x54,0x45,  /* 00000010    "TEMPLATE" */
-+    0x01,0x00,0x00,0x00,0x49,0x4E,0x54,0x4C,  /* 00000018    "....INTL" */
-+    0x28,0x05,0x10,0x20,0x00,0x00,0x00,0x00,  /* 00000020    "(.. ...." */
-+    0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,  /* 00000028    "........" */
-+    0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00   /* 00000030    "........" */
-+};
-+
- const unsigned char TemplateRsdp[] =
- {
-     0x52,0x53,0x44,0x20,0x50,0x54,0x52,0x20,  /* 00000000    "RSD PTR " */
-diff --git a/source/compiler/dtutils.c b/source/compiler/dtutils.c index 6ca418c..774db8b 100644
---- a/source/compiler/dtutils.c
-+++ b/source/compiler/dtutils.c
-@@ -688,6 +688,11 @@ DtGetFieldLength (
-         ByteLength = 10;
-         break;
- 
-+    case ACPI_DMT_RASF:
-+
-+        ByteLength = 12;
-+        break;
-+
-     case ACPI_DMT_BUF16:
-     case ACPI_DMT_UUID:
- 
-diff --git a/source/include/acdisasm.h b/source/include/acdisasm.h index ba8f274..d59e4d9 100644
---- a/source/include/acdisasm.h
-+++ b/source/include/acdisasm.h
-@@ -227,6 +227,7 @@ typedef enum
-     ACPI_DMT_NFIT,
-     ACPI_DMT_PCCT,
-     ACPI_DMT_PMTT,
-+    ACPI_DMT_RASF,
-     ACPI_DMT_SLIC,
-     ACPI_DMT_SRAT,
- 
-@@ -458,6 +459,7 @@ extern ACPI_DMTABLE_INFO        AcpiDmTableInfoPcctHdr[];
- extern ACPI_DMTABLE_INFO        AcpiDmTableInfoPcct0[];
- extern ACPI_DMTABLE_INFO        AcpiDmTableInfoPcct1[];
- extern ACPI_DMTABLE_INFO        AcpiDmTableInfoPcct2[];
-+extern ACPI_DMTABLE_INFO        AcpiDmTableInfoRasf[];
- extern ACPI_DMTABLE_INFO        AcpiDmTableInfoRsdp1[];
- extern ACPI_DMTABLE_INFO        AcpiDmTableInfoRsdp2[];
- extern ACPI_DMTABLE_INFO        AcpiDmTableInfoS3pt[];
---
-2.5.0
+ 	if (!reg->access_width) {
++		if (reg->space_id == ACPI_ADR_SPACE_SYSTEM_IO) {
++			max_bit_width = 32;
++		}
+ 		/*
+ 		 * Detect old register descriptors where only the bit_width field
+ 		 * makes senses. The target address is copied to handle possible
+ 		 * alignment issues.
+ 		 */
+ 		ACPI_MOVE_64_TO_64(&address, &reg->address);
+-		if (!reg->bit_offset && reg->bit_width &&
++		if (reg->bit_width < max_bit_width &&
++		    !reg->bit_offset && reg->bit_width &&
+ 		    ACPI_IS_POWER_OF_TWO(reg->bit_width) &&
+-		    ACPI_IS_ALIGNED(reg->bit_width, 8) &&
+-		    ACPI_IS_ALIGNED(address, reg->bit_width)) {
++		    ACPI_IS_ALIGNED(reg->bit_width, 8)) {
+ 			return (reg->bit_width);
+-		} else {
+-			if (reg->space_id == ACPI_ADR_SPACE_SYSTEM_IO) {
+-				return (32);
+-			} else {
+-				return (max_bit_width);
+-			}
+ 		}
++		return (max_bit_width);
+ 	} else {
+ 		return (1 << (reg->access_width + 2));
+ 	}
+-- 
+1.7.10
+
