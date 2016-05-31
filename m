@@ -1,127 +1,173 @@
-From: Mike Marshall <hubcap@omnibond.com>
-Subject: Re: [RFC PATCH v2] ACPICA / Hardware: Fix old register check in acpi_hw_get_access_bit_width()
-Date: Tue, 31 May 2016 10:36:28 -0400
-Message-ID: <CAOg9mSQug_WrvgR=u_CDy-+y3nqjzCgOEC=yw+kkoyipB1aA=A@mail.gmail.com>
-References: <fa6ead5a123ea7c77caf5f14ee497823574506b7.1464678140.git.lv.zheng@intel.com>
-	<1AE640813FDE7649BE1B193DEA596E883BBB6D12@SHSMSX101.ccr.corp.intel.com>
+From: Benjamin Tissoires <benjamin.tissoires@gmail.com>
+Subject: Re: [PATCH v2 3/3] ACPI / button: Send "open" state after boot/resume
+Date: Tue, 31 May 2016 16:47:20 +0200
+Message-ID: <CAN+gG=Fzx0K6O4K9GRAjCe9Bg8-iGQhsYAiOdBZRpwoGeafRuw@mail.gmail.com>
+References: <cbdaec17aba78c61f466efff8883d49067f2dad5.1463472125.git.lv.zheng@intel.com>
+	<cover.1464332745.git.lv.zheng@intel.com>
+	<4472be3d63af1b56c2f0f7cfbccd73538dc36252.1464332745.git.lv.zheng@intel.com>
+	<CAN+gG=EaTOSbkx82HCYwLOtR9b_6291obNnpokJ2PhOXD8bWHw@mail.gmail.com>
+	<1AE640813FDE7649BE1B193DEA596E883BBB5C64@SHSMSX101.ccr.corp.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1AE640813FDE7649BE1B193DEA596E883BBB6D12@SHSMSX101.ccr.corp.intel.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: "Zheng, Lv" <lv.zheng@intel.com>
-Cc: Boris Ostrovsky <boris.ostrovsky@oracle.com>, Lv Zheng <zetalog@gmail.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, "Brown, Len" <len.brown@intel.com>, "Moore, Robert" <robert.moore@intel.com>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-vk0-f51.google.com ([209.85.213.51]:36858 "EHLO
+	mail-vk0-f51.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753686AbcEaOrW (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 31 May 2016 10:47:22 -0400
+In-Reply-To: <1AE640813FDE7649BE1B193DEA596E883BBB5C64@SHSMSX101.ccr.corp.intel.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: "Zheng, Lv" <lv.zheng@intel.com>
+Cc: "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, "Brown, Len" <len.brown@intel.com>, Lv Zheng <zetalog@gmail.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, "Bastien Nocera:" <hadess@hadess.net>, "Valdis.Kletnieks@vt.edu" <Valdis.Kletnieks@vt.edu>
 
-Hi Lv...
+Hi Lv,
 
-I was dead in the water before this patch, qemu-kvm would crash
-right away, now everything seems to work great again, thanks! From
-my perspective this fixes the c3bc26d problem.
-
-Acked-by: Mike Marshall <hubcap@omnibond.com>
-
--Mike
-
-On Tue, May 31, 2016 at 3:13 AM, Zheng, Lv <lv.zheng@intel.com> wrote:
-> Hi, Boris and Mike
+On Tue, May 31, 2016 at 4:55 AM, Zheng, Lv <lv.zheng@intel.com> wrote:
+> Hi,
 >
-> Please help to validate if this version can also fix your issues.
-> After enumerating the possible cases, I realized that the address check might not be necessary.
-> But we need a max_bit_width check in this function to make it prepared for a future usage in acpi_read()/acpi_write().
-> Thanks in advance.
+>> From: Benjamin Tissoires [mailto:benjamin.tissoires@gmail.com]
+>> Subject: Re: [PATCH v2 3/3] ACPI / button: Send "open" state after
+>> boot/resume
+>>
+>> On Fri, May 27, 2016 at 9:16 AM, Lv Zheng <lv.zheng@intel.com> wrote:
+[snipped
+]>> As Valdis replied on 0/3, I don't think this is a good solution (even
+>> temporary). Linux should not assume the current state of a input
+>> device, and sending unconditionally 1 here is wrong. If the device is
+>> on a docking station, you will wake up the wrong monitor and screw the
+>> user session (and this will be a regression).
+> [Lv Zheng]
+> We are doing the test to see how this behaves on several different platforms.
 >
-> Best regards
-> -Lv
+>>
+>> How about we simply send the current LID state stored in the ACPI?
+>> something like calling acpi_lid_send_state() directly?
+> [Lv Zheng]
+> This is what we are going to eliminate in [PATCH 01].
+> We have several real bugs related to sending a wrong state to the userspace.
+> Userspace will suspend right after resume because of the 'close' state.
+
+On the other hand, you are trying to remove 23de5d9ef2a4bbc4f733f, a
+patch that has been around for 9 years and we only start seeing
+devices where this logic is not working...
+
+I am not saying your approach is wrong, I am just saying that instead
+of a plain revert, we should probably be more conservative and add a
+quirk for those buggy machines. Ideally, we should try to understand
+why there is such an issue that Windows doesn't have (the solution
+might just be that given Windows doesn't care, we are screwed).
+
+BTW, on the Surface 3, there is a WMI
+(f7cc25ec-d20b-404c-8903-0ed4359c18ae -> WQHE) which returns the
+actual value of the LID, without using PNP0C0D at all. I have a
+feeling that Windows might use it when it is in trouble or in an
+unsure state. I couldn't find this WMI on the 2 other systems so that
+may also be just a one shot for the Surface 3.
+
+[snipped]
+> [Lv Zheng]
+> The understanding here is incorrect.
+> We have 3 bogus devices.
+> 1 of them is surface 3 which is a hardware reduced platform.
+> The others are all traditional platforms.
 >
->> From: Zheng, Lv
->> Subject: [RFC PATCH v2] ACPICA / Hardware: Fix old register check in
->> acpi_hw_get_access_bit_width()
->>
->> The address check in acpi_hw_get_access_bit_width() should be byte
->> width
->> based, not bit width based. This patch fixes this mistake.
->>
->> For those who want to review acpi_hw_access_bit_width(), here is the
->> concerns and the design details of the function:
->>
->> It is supposed that the GAS Address field should be aligned to the byte
->> width indicated by the GAS AccessSize field. Similarly, for the old non
->> GAS register, it is supposed that its Address should be aligned to its
->> Length.
->> For the "AccessSize = 0 (meaning ANY)" case, we try to return the
->> maximum
->> instruction width (64 for MMIO or 32 for PIO) or the user expected access
->> bit width (64 for acpi_read()/acpi_write() or 32 for acpi_hw_read()/
->> acpi_hw_write()) for futher operation and it is supposed that the GAS
->> Address field should always be aligned to the maximum expected access
->> bit
->> width (otherwise it can't be ANY).
->>
->> The problem is in acpi_tb_init_generic_address(), where the non GAS
->> register's Length is converted into the GAS BitWidth field, its Address is
->> converted into the GAS Address field, and the GAS AccessSize field is left
->> 0 but most of the register actually cannot be accessed using "ANY"
->> accesses.
->>
->> As a conclusion, when AccessSize = 0 (ANY), the Address should either be
->> aligned to the BitWidth (wrong conversion) or aligned to 32 (PIO) or 64
->> (MMIO). Since BitWidth for the wrong conversion is 8,16,32, the Address
->> of the real GAS should always be aligned to 8,16,32, the address alignment
->> check is not necessary. But we in fact could enhance the check for a future
->> case where max_bit_width could be 64 for a PIO access issued from
->> acpi_read()/acpi_write().
->>
->> Fixes: b314a172ee96 ("ACPICA: Hardware: Add optimized access bit width
->> support")
->> Cc: Boris Ostrovsky <boris.ostrovsky@oracle.com>
->> Cc: Mike Marshall <hubcap@omnibond.com>
->> Suggested-by: Jan Beulich <jbeulich@suse.com>
->> Signed-off-by: Lv Zheng <lv.zheng@intel.com>
->> ---
->>  drivers/acpi/acpica/hwregs.c |   16 +++++++---------
->>  1 file changed, 7 insertions(+), 9 deletions(-)
->>
->> diff --git a/drivers/acpi/acpica/hwregs.c b/drivers/acpi/acpica/hwregs.c
->> index 0f18dbc..0553c0b 100644
->> --- a/drivers/acpi/acpica/hwregs.c
->> +++ b/drivers/acpi/acpica/hwregs.c
->> @@ -86,24 +86,22 @@ acpi_hw_get_access_bit_width(struct
->> acpi_generic_address *reg, u8 max_bit_width)
->>       u64 address;
->>
->>       if (!reg->access_width) {
->> +             if (reg->space_id == ACPI_ADR_SPACE_SYSTEM_IO) {
->> +                     max_bit_width = 32;
->> +             }
->>               /*
->>                * Detect old register descriptors where only the bit_width
->> field
->>                * makes senses. The target address is copied to handle
->> possible
->>                * alignment issues.
->>                */
->>               ACPI_MOVE_64_TO_64(&address, &reg->address);
->> -             if (!reg->bit_offset && reg->bit_width &&
->> +             if (reg->bit_width < max_bit_width &&
->> +                 !reg->bit_offset && reg->bit_width &&
->>                   ACPI_IS_POWER_OF_TWO(reg->bit_width) &&
->> -                 ACPI_IS_ALIGNED(reg->bit_width, 8) &&
->> -                 ACPI_IS_ALIGNED(address, reg->bit_width)) {
->> +                 ACPI_IS_ALIGNED(reg->bit_width, 8)) {
->>                       return (reg->bit_width);
->> -             } else {
->> -                     if (reg->space_id == ACPI_ADR_SPACE_SYSTEM_IO)
->> {
->> -                             return (32);
->> -                     } else {
->> -                             return (max_bit_width);
->> -                     }
->>               }
->> +             return (max_bit_width);
->>       } else {
->>               return (1 << (reg->access_width + 2));
->>       }
->> --
->> 1.7.10
+> =====
+> The facts are:
 >
+> Both the platforms return cached lid state from _LID.
+> The cached value will be updated by lid irq (via GPIO IRQ, GPE, or EC event).
+> AML tables will send lid notification in the irq handler.
+>
+> Some AML tables will update the cached value in _WAK (I'll describe why it is necessary below).
+> But updating the cached value in _WAK is not guaranteed by all AML tables.
+>
+> For the 'close' state irq, all tables will send lid close notification.
+> For the 'open' state irq, it seems there are tables never sending lid open notification (sounds like Windows do not care about lid open).
+> =====
+>
+> Surface 3 is entirely a different case.
+> It is a runtime idle system and hardware reduced.
+> On that kind of system, lid open is handled by OS not by BIOS.
+> Surface 3 is exactly the platform that doesn't send lid open notification.
+> I guess the AML is intentionally written in this way to be compliant to the traditional platforms.
+>
+> While on the traditional platforms:
+> When lid is opened, BIOS handles the lid irq and wakes the system from the FACS waking vector.
+> So it is likely that there is no lid open irq after the system is resumed.
+> BIOS may forget to update the cached lid value in the _WAK or some other control methods that could be executed after resuming.
+> Then if we send _LID result to the user space, the cached value could apparently be 'close'.
+>
+> That explains why there is no "lid open" configuration in the "Windows Device Manager".
+>
+>>
+>> I propose as a workaround to enable a kthread that will monitor the
+>> lid state and update the correct value to userspace (5 sec of polling
+>> time should be enough given that systemd checks every 20 sec).
+>> We should probably have this workaround only for a set of known
+>> devices, as it might just be temporary for those until the actual
+>> underlying problem is fixed (wrong DSDT in the Surface 3 case that
+>> doesn't notify at all, issue in the EC for the Surface Pro 1 and the
+>> Samsung N210).
+> [Lv Zheng]
+> That cannot help to solve the issue/gap.
+>
+> The problem is Linux userspace has a facility re-checking lid state when lid state is "close".
+> If it failed to update the lid state to "open" for a timeout period, it would suspend the platform.
+>
+> We actually are recommending Linus userspace to introduce a new lid handling mode to only handle "lid close" event and ignore "lid open" event.
+> During the period this is not changed from the userspace, we have to send "open" after resume/boot in order not to trigger the timeout mechanism.
+>
+
+I hear your points and I couldn't agree more that the only solution
+for us is (sadly) to mimic Windows.
+
+I am just disagreeing on the method used here: I'd rather have a
+fallback mechanism where the lid is not sent to "one" at each boot
+resume because this will mess us people using docking stations. The
+problem is that Red Hat has a lot of them, and I foresee a lot of
+complains to me if this is merged in its current state.
+
+We could have a parameter (say "send_lid_open_on_resume" or
+"use_bios_lid_value") in acpi/button.c which would allow people to
+choose if they want the "new" behavior or the old one. And we could
+also add some DMI matching for the messed up laptops/tablets where we
+force one or the other quirk. When we agree that user space now
+behaves gently with us, we could then remove entirely the quirk and
+the dmi matching.
+
+How does that sound?
+
+Also, on the topic of the .notify not being sent by some BIOS, I have
+seen something similar on the surface 3.
+
+The ASL for the LID status change is the following:
+---
+            Method (_E4C, 0, Serialized)  // _Exx: Edge-Triggered GPE
+            {
+                If ((HELD == One))
+                {
+                    ^^LID.LIDB = One
+                }
+                Else
+                {
+                    ^^LID.LIDB = Zero
+                    Notify (LID, 0x80) // Status Change
+                }
+
+                Notify (^^PCI0.SPI1.NTRG, One) // Device Check
+            }
+---
+
+I noticed I received the hotplug event on the touchscreen when the LID
+state changed, and tried to initiate the notify on the LID acpi device
+from within the touchscreen driver.
+This works well, except that from time to time, on resume, I don't
+even receive the hotplug notification. It is as if the notification is
+lost while I receive it 80% of the time.
+
+This might be completely unrelated, but I think it is worth mentioning
+because there might be a common root at the state not being updated
+correctly.
+
+Cheers, and sorry for being annoying :)
+Benjamin
