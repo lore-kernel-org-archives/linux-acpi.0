@@ -1,290 +1,79 @@
-From: Tomasz Nowicki <tn@semihalf.com>
-Subject: [PATCH V5 4/7] irqchip, GICv3, ITS: Refator ITS DT init code to prepare for ACPI.
-Date: Tue, 31 May 2016 13:19:41 +0200
-Message-ID: <1464693584-22343-5-git-send-email-tn@semihalf.com>
-References: <1464693584-22343-1-git-send-email-tn@semihalf.com>
+From: Hanjun Guo <hanjun.guo@linaro.org>
+Subject: Re: [PATCH v7 07/15] arm64, numa: Cleanup NUMA disabled messages.
+Date: Tue, 31 May 2016 20:28:26 +0800
+Message-ID: <574D836A.2090905@linaro.org>
+References: <1464129345-18985-1-git-send-email-ddaney.cavm@gmail.com>
+ <1464129345-18985-8-git-send-email-ddaney.cavm@gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1464693584-22343-1-git-send-email-tn@semihalf.com>
+In-Reply-To: <1464129345-18985-8-git-send-email-ddaney.cavm@gmail.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: marc.zyngier@arm.com, tglx@linutronix.de, jason@lakedaemon.net, rjw@rjwysocki.net, lorenzo.pieralisi@arm.com, robert.richter@caviumnetworks.com, shijie.huang@arm.com, Suravee.Suthikulpanit@amd.com, hanjun.guo@linaro.org
-Cc: al.stone@linaro.org, mw@semihalf.com, graeme.gregory@linaro.org, Catalin.Marinas@arm.com, will.deacon@arm.com, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org, ddaney.cavm@gmail.com, okaya@codeaurora.org, andrea.gallo@linaro.org, Tomasz Nowicki <tn@semihalf.com>
+To: David Daney <ddaney.cavm@gmail.com>, Will Deacon <will.deacon@arm.com>, linux-arm-kernel@lists.infradead.org, Mark Rutland <mark.rutland@arm.com>, Catalin Marinas <catalin.marinas@arm.com>, Tony Luck <tony.luck@intel.com>, Fenghua Yu <fenghua.yu@intel.com>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, x86@kernel.org, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Rob Herring <robh+dt@kernel.org>, Frank Rowand <frowand.list@gmail.com>, Grant Likely <grant.likely@linaro.org>, Robert Moore <robert.moore@intel.com>, Lv Zheng <lv.zheng@intel.com>, Marc Zyngier <Marc.Zyngier@arm.com>, linux-ia64@vger.kernel.org, linux-acpi@vger.kernel.org, devel@acpica.org
+Cc: linux-kernel@vger.kernel.org, Robert Richter <rrichter@cavium.com>, David Daney <david.daney@cavium.com>
 List-Id: linux-acpi@vger.kernel.org
 
-In order to add ACPI support we need to isolate ACPI&DT common code and
-move DT logic to corresponding functions. To achieve this we are using
-firmware agnostic handle which can be unpacked to either DT or ACPI node.
+On 2016/5/25 6:35, David Daney wrote:
+> From: David Daney <david.daney@cavium.com>
+>
+> As noted by Dennis Chen, we don't want to print "No NUMA configuration
+> found" if NUMA was forced off from the command line.
+>
+> Change the type of numa_off to bool, and clean up printing code.
+> Print "NUMA disabled" if forced off on command line and "No NUMA
+> configuration found" if there was no firmware NUMA information.
+>
+> Signed-off-by: David Daney <david.daney@cavium.com>
+> Acked-by: Catalin Marinas <catalin.marinas@arm.com>
+> ---
+>   arch/arm64/mm/numa.c | 11 +++++++----
+>   1 file changed, 7 insertions(+), 4 deletions(-)
+>
+> diff --git a/arch/arm64/mm/numa.c b/arch/arm64/mm/numa.c
+> index 6cb03f9..1def1de 100644
+> --- a/arch/arm64/mm/numa.c
+> +++ b/arch/arm64/mm/numa.c
+> @@ -29,7 +29,7 @@ static int cpu_to_node_map[NR_CPUS] = { [0 ... NR_CPUS-1] = NUMA_NO_NODE };
+>
+>   static int numa_distance_cnt;
+>   static u8 *numa_distance;
+> -static int numa_off;
+> +static bool numa_off;
+>
+>   static __init int numa_parse_early_param(char *opt)
+>   {
+> @@ -37,7 +37,7 @@ static __init int numa_parse_early_param(char *opt)
+>   		return -EINVAL;
+>   	if (!strncmp(opt, "off", 3)) {
+>   		pr_info("%s\n", "NUMA turned off");
+> -		numa_off = 1;
+> +		numa_off = true;
+>   	}
+>   	return 0;
+>   }
+> @@ -362,7 +362,10 @@ static int __init dummy_numa_init(void)
+>   	int ret;
+>   	struct memblock_region *mblk;
+>
+> -	pr_info("%s\n", "No NUMA configuration found");
+> +	if (numa_off)
+> +		pr_info("NUMA disabled\n"); /* Forced off on command line. */
+> +	else
+> +		pr_info("No NUMA configuration found\n");
+>   	pr_info("NUMA: Faking a node at [mem %#018Lx-%#018Lx]\n",
+>   	       0LLU, PFN_PHYS(max_pfn) - 1);
+>
+> @@ -375,7 +378,7 @@ static int __init dummy_numa_init(void)
+>   		return ret;
+>   	}
+>
+> -	numa_off = 1;
+> +	numa_off = true;
+>   	return 0;
+>   }
 
-No functional changes other than a very minor one:
-1. Fix ITS base register address type (from 'unsigned long' to 'phys_addr_t'),
-as a bonus we get nice string formatting.
-2. Since there is only one of ITS parent domain convert it to static global
-variable and drop the parameter from its_probe_one. Users can refer to it
-in more convenient way then.
+Reviewed-by: Hanjun Guo <hanjun.guo@linaro.org>
 
-Signed-off-by: Hanjun Guo <hanjun.guo@linaro.org>
-Signed-off-by: Tomasz Nowicki <tn@semihalf.com>
----
- drivers/irqchip/irq-gic-v3-its.c   | 77 +++++++++++++++++++++-----------------
- drivers/irqchip/irq-gic-v3.c       |  6 +--
- include/linux/irqchip/arm-gic-v3.h |  4 +-
- 3 files changed, 47 insertions(+), 40 deletions(-)
-
-diff --git a/drivers/irqchip/irq-gic-v3-its.c b/drivers/irqchip/irq-gic-v3-its.c
-index cb33c92..6a97ee5 100644
---- a/drivers/irqchip/irq-gic-v3-its.c
-+++ b/drivers/irqchip/irq-gic-v3-its.c
-@@ -73,7 +73,7 @@ struct its_node {
- 	raw_spinlock_t		lock;
- 	struct list_head	entry;
- 	void __iomem		*base;
--	unsigned long		phys_base;
-+	phys_addr_t		phys_base;
- 	struct its_cmd_block	*cmd_base;
- 	struct its_cmd_block	*cmd_write;
- 	struct its_baser	tables[GITS_BASER_NR_REGS];
-@@ -112,6 +112,7 @@ struct its_device {
- static LIST_HEAD(its_nodes);
- static DEFINE_SPINLOCK(its_lock);
- static struct rdists *gic_rdists;
-+static struct irq_domain *its_parent;
- 
- #define gic_data_rdist()		(raw_cpu_ptr(gic_rdists->rdist))
- #define gic_data_rdist_rd_base()	(gic_data_rdist()->rd_base)
-@@ -823,7 +824,7 @@ static void its_free_tables(struct its_node *its)
- 	}
- }
- 
--static int its_alloc_tables(const char *node_name, struct its_node *its)
-+static int its_alloc_tables(struct its_node *its)
- {
- 	int err;
- 	int i;
-@@ -879,8 +880,8 @@ static int its_alloc_tables(const char *node_name, struct its_node *its)
- 				    order);
- 			if (order >= MAX_ORDER) {
- 				order = MAX_ORDER - 1;
--				pr_warn("%s: Device Table too large, reduce its page order to %u\n",
--					node_name, order);
-+				pr_warn("ITS@%pa: Device Table too large, reduce its page order to %u\n",
-+					&its->phys_base, order);
- 			}
- 		}
- 
-@@ -889,8 +890,8 @@ retry_alloc_baser:
- 		if (alloc_pages > GITS_BASER_PAGES_MAX) {
- 			alloc_pages = GITS_BASER_PAGES_MAX;
- 			order = get_order(GITS_BASER_PAGES_MAX * psz);
--			pr_warn("%s: Device Table too large, reduce its page order to %u (%u pages)\n",
--				node_name, order, alloc_pages);
-+			pr_warn("ITS@%pa: Device Table too large, reduce its page order to %u (%u pages)\n",
-+				&its->phys_base, order, alloc_pages);
- 		}
- 
- 		base = (void *)__get_free_pages(GFP_KERNEL | __GFP_ZERO, order);
-@@ -964,8 +965,8 @@ retry_baser:
- 		}
- 
- 		if (val != tmp) {
--			pr_err("ITS: %s: GITS_BASER%d doesn't stick: %lx %lx\n",
--			       node_name, i,
-+			pr_err("ITS@%pa: GITS_BASER%d doesn't stick: %lx %lx\n",
-+			       &its->phys_base, i,
- 			       (unsigned long) val, (unsigned long) tmp);
- 			err = -ENXIO;
- 			goto out_free;
-@@ -1463,8 +1464,7 @@ static void its_enable_quirks(struct its_node *its)
- 	gic_enable_quirks(iidr, its_quirks, its);
- }
- 
--static int its_init_domain(struct device_node *node, struct its_node *its,
--			   struct irq_domain *parent)
-+static int its_init_domain(struct fwnode_handle *handle, struct its_node *its)
- {
- 	struct irq_domain *inner_domain;
- 	struct msi_domain_info *info;
-@@ -1473,13 +1473,13 @@ static int its_init_domain(struct device_node *node, struct its_node *its,
- 	if (!info)
- 		return -ENOMEM;
- 
--	inner_domain = irq_domain_add_tree(node, &its_domain_ops, its);
-+	inner_domain = irq_domain_create_tree(handle, &its_domain_ops, its);
- 	if (!inner_domain) {
- 		kfree(info);
- 		return -ENOMEM;
- 	}
- 
--	inner_domain->parent = parent;
-+	inner_domain->parent = its_parent;
- 	inner_domain->bus_token = DOMAIN_BUS_NEXUS;
- 	info->ops = &its_msi_domain_ops;
- 	info->data = its;
-@@ -1488,43 +1488,35 @@ static int its_init_domain(struct device_node *node, struct its_node *its,
- 	return 0;
- }
- 
--static int __init its_probe(struct device_node *node,
--			    struct irq_domain *parent)
-+static int __init its_probe_one(struct resource *res,
-+				struct fwnode_handle *handle)
- {
--	struct resource res;
- 	struct its_node *its;
- 	void __iomem *its_base;
- 	u32 val;
- 	u64 baser, tmp;
- 	int err;
- 
--	err = of_address_to_resource(node, 0, &res);
--	if (err) {
--		pr_warn("%s: no regs?\n", node->full_name);
--		return -ENXIO;
--	}
--
--	its_base = ioremap(res.start, resource_size(&res));
-+	its_base = ioremap(res->start, resource_size(res));
- 	if (!its_base) {
--		pr_warn("%s: unable to map registers\n", node->full_name);
-+		pr_warn("ITS@%pa: Unable to map ITS registers\n", &res->start);
- 		return -ENOMEM;
- 	}
- 
- 	val = readl_relaxed(its_base + GITS_PIDR2) & GIC_PIDR2_ARCH_MASK;
- 	if (val != 0x30 && val != 0x40) {
--		pr_warn("%s: no ITS detected, giving up\n", node->full_name);
-+		pr_warn("ITS@%pa: No ITS detected, giving up\n", &res->start);
- 		err = -ENODEV;
- 		goto out_unmap;
- 	}
- 
- 	err = its_force_quiescent(its_base);
- 	if (err) {
--		pr_warn("%s: failed to quiesce, giving up\n",
--			node->full_name);
-+		pr_warn("ITS@%pa: Failed to quiesce, giving up\n", &res->start);
- 		goto out_unmap;
- 	}
- 
--	pr_info("ITS: %s\n", node->full_name);
-+	pr_info("ITS@%pa\n", &res->start);
- 
- 	its = kzalloc(sizeof(*its), GFP_KERNEL);
- 	if (!its) {
-@@ -1536,7 +1528,7 @@ static int __init its_probe(struct device_node *node,
- 	INIT_LIST_HEAD(&its->entry);
- 	INIT_LIST_HEAD(&its->its_device_list);
- 	its->base = its_base;
--	its->phys_base = res.start;
-+	its->phys_base = res->start;
- 	its->ite_size = ((readl_relaxed(its_base + GITS_TYPER) >> 4) & 0xf) + 1;
- 
- 	its->cmd_base = kzalloc(ITS_CMD_QUEUE_SZ, GFP_KERNEL);
-@@ -1548,7 +1540,7 @@ static int __init its_probe(struct device_node *node,
- 
- 	its_enable_quirks(its);
- 
--	err = its_alloc_tables(node->full_name, its);
-+	err = its_alloc_tables(its);
- 	if (err)
- 		goto out_free_cmd;
- 
-@@ -1584,7 +1576,7 @@ static int __init its_probe(struct device_node *node,
- 	writeq_relaxed(0, its->base + GITS_CWRITER);
- 	writel_relaxed(GITS_CTLR_ENABLE, its->base + GITS_CTLR);
- 
--	err = its_init_domain(node, its, parent);
-+	err = its_init_domain(handle, its);
- 	if (err)
- 		goto out_free_tables;
- 
-@@ -1602,7 +1594,7 @@ out_free_its:
- 	kfree(its);
- out_unmap:
- 	iounmap(its_base);
--	pr_err("ITS: failed probing %s (%d)\n", node->full_name, err);
-+	pr_err("ITS@%pa: failed probing (%d)\n", &res->start, err);
- 	return err;
- }
- 
-@@ -1630,10 +1622,10 @@ static struct of_device_id its_device_id[] = {
- 	{},
- };
- 
--int __init its_init(struct device_node *node, struct rdists *rdists,
--	     struct irq_domain *parent_domain)
-+static int __init its_of_probe(struct device_node *node)
- {
- 	struct device_node *np;
-+	struct resource res;
- 
- 	for (np = of_find_matching_node(node, its_device_id); np;
- 	     np = of_find_matching_node(np, its_device_id)) {
-@@ -1643,8 +1635,25 @@ int __init its_init(struct device_node *node, struct rdists *rdists,
- 			continue;
- 		}
- 
--		its_probe(np, parent_domain);
-+		if (of_address_to_resource(np, 0, &res)) {
-+			pr_warn("%s: no regs?\n", np->full_name);
-+			continue;
-+		}
-+
-+		its_probe_one(&res, &np->fwnode);
- 	}
-+	return 0;
-+}
-+
-+int __init its_init(struct fwnode_handle *handle, struct rdists *rdists,
-+		    struct irq_domain *parent_domain)
-+{
-+	struct device_node *of_node;
-+
-+	its_parent = parent_domain;
-+	of_node = to_of_node(handle);
-+	if (of_node)
-+		its_of_probe(of_node);
- 
- 	if (list_empty(&its_nodes)) {
- 		pr_warn("ITS: No ITS available, not enabling LPIs\n");
-diff --git a/drivers/irqchip/irq-gic-v3.c b/drivers/irqchip/irq-gic-v3.c
-index fb042ba..cee8296 100644
---- a/drivers/irqchip/irq-gic-v3.c
-+++ b/drivers/irqchip/irq-gic-v3.c
-@@ -911,7 +911,6 @@ static int __init gic_init_bases(void __iomem *dist_base,
- 				 u64 redist_stride,
- 				 struct fwnode_handle *handle)
- {
--	struct device_node *node;
- 	u32 typer;
- 	int gic_irqs;
- 	int err;
-@@ -952,10 +951,9 @@ static int __init gic_init_bases(void __iomem *dist_base,
- 
- 	set_handle_irq(gic_handle_irq);
- 
--	node = to_of_node(handle);
- 	if (IS_ENABLED(CONFIG_ARM_GIC_V3_ITS) && gic_dist_supports_lpis() &&
--	    node) /* Temp hack to prevent ITS init for ACPI */
--		its_init(node, &gic_data.rdists, gic_data.domain);
-+	    to_of_node(handle)) /* Temp hack to prevent ITS init for ACPI */
-+		its_init(handle, &gic_data.rdists, gic_data.domain);
- 
- 	gic_smp_init();
- 	gic_dist_init();
-diff --git a/include/linux/irqchip/arm-gic-v3.h b/include/linux/irqchip/arm-gic-v3.h
-index bfbd707..0e75cb7 100644
---- a/include/linux/irqchip/arm-gic-v3.h
-+++ b/include/linux/irqchip/arm-gic-v3.h
-@@ -334,9 +334,9 @@ struct rdists {
- };
- 
- struct irq_domain;
--struct device_node;
-+struct fwnode_handle;
- int its_cpu_init(void);
--int its_init(struct device_node *node, struct rdists *rdists,
-+int its_init(struct fwnode_handle *handle, struct rdists *rdists,
- 	     struct irq_domain *domain);
- 
- static inline bool gic_enable_sre(void)
--- 
-1.9.1
+>
+>
