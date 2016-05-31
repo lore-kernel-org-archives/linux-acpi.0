@@ -1,101 +1,49 @@
-From: Hoan Tran <hotran@apm.com>
-Subject: Re: [PATCH] acpi: cppc: Prevent cpc_desc_ptr points to the invalid data
-Date: Tue, 31 May 2016 12:38:17 -0700
-Message-ID: <CAFHUOYzpw6L8=_T-t4KQ8H7sVf+JJowPuYqeH1v+JBUdtXmKiQ@mail.gmail.com>
-References: <1464203363-20599-1-git-send-email-hotran@apm.com>
-	<CAJ5Y-ebkd6rbQkegdYUREn775Nu5jZqB3TBex5Rj1JsQ6Sjs-Q@mail.gmail.com>
-	<CAFHUOYw3vB9ZDZ-E=WsyceZEFnZKPe0D8zFCDr0qyjdqUKBL5g@mail.gmail.com>
-	<CAJ5Y-eYnC7og+06+WJHEWHWtVyT-frw68MaQNcfisb-nELrBig@mail.gmail.com>
+From: Roland Dreier <roland@purestorage.com>
+Subject: Regression in IO resource allocation
+Date: Tue, 31 May 2016 13:12:52 -0700
+Message-ID: <CAL1RGDW9z1FhgQwJZTkk0kUBipT68hmW2C4--3Hbb5vzj5ta2w@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-vk0-f53.google.com ([209.85.213.53]:34217 "EHLO
-	mail-vk0-f53.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756038AbcEaTiS (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 31 May 2016 15:38:18 -0400
-Received: by mail-vk0-f53.google.com with SMTP id c189so275757829vkb.1
-        for <linux-acpi@vger.kernel.org>; Tue, 31 May 2016 12:38:18 -0700 (PDT)
-In-Reply-To: <CAJ5Y-eYnC7og+06+WJHEWHWtVyT-frw68MaQNcfisb-nELrBig@mail.gmail.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>, LKML <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
-To: Ashwin Chaugule <ashwin.chaugule@linaro.org>
-Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, linux acpi <linux-acpi@vger.kernel.org>, lkml <linux-kernel@vger.kernel.org>, Duc Dang <dhdang@apm.com>, Loc Ho <lho@apm.com>
 
-Hi Ashwin,
+Hi,
 
+I recently updated one of my systems from 3.10.y to 4.4.11, and
+discovered a regression that stops it from booting.  It's actually
+very similar to https://bugzilla.kernel.org/show_bug.cgi?id=99831
+(which I reported about the same system last year).
 
-On Tue, May 31, 2016 at 12:29 PM, Ashwin Chaugule
-<ashwin.chaugule@linaro.org> wrote:
-> On 27 May 2016 at 12:41, Hoan Tran <hotran@apm.com> wrote:
->> Hi Ashwin,
->
-> Hi,
->
->>
->> Yes, I saw kernel crash.
->> As cpc_desc_ptr is not NULL, cppc_cpufreq_init() still can pass then
->> crash during cppc_get_perf_caps() access CPPC shared memory.
->>
->> It's not only "PCC channel request fail" can create this issue but
->> "acpi_get_psd() fail" also creates it
->>
->> Thanks
->> Hoan
->
->
-> Just for future reference. :)
->
-> https://web.archive.org/web/20080722025748/http://www.zip.com.au/~akpm/linux/patches/stuff/top-posting.txt
+The problem is that commit ac212b6980d8 ("ACPI / processor: Use common
+hotplug infrastructure") changes the order that the ACPI processor and
+PnP initialization run.  pnp_system_init() is run at fs_initcall time,
+while acpi_processor_init() is run from acpi_scan_init(), earlier at
+subsys_initcall time.  Pre-ac212b6980d8, the ACPI processor
+initialization all ran from acpi_processor_init() at module_init time.
+So the processor driver initialization has flipped from after to
+before pnp_system_init().
 
-My mistake and will fix in future :)
+Just as before, the failure is that the resource allocation code puts
+some AHCI IO BARs around 0x400, and reservation fails because some
+other ACPI stuff is also there.  The problem is that when acpi_processor_init()
+runs, it reserves a range 0x410 - 0x415 for "ACPI CPU throttle", and
+if that happens before pnp_system_init(), then I get
 
->
->
->>
->> On Fri, May 27, 2016 at 9:10 AM, Ashwin Chaugule
->> <ashwin.chaugule@linaro.org> wrote:
->>> On 25 May 2016 at 15:09, Hoan Tran <hotran@apm.com> wrote:
->>>> When CPPC fails to request PCC channel, the CPC data is freed
->>>> and cpc_desc_ptr points to the invalid data. This change prevents
->>>> this issue by moving cpc_desc_ptr assignment after PCC channel
->>>> request.
->>>>
->>>> Signed-off-by: Hoan Tran <hotran@apm.com>
->>>> ---
->>>>  drivers/acpi/cppc_acpi.c | 6 +++---
->>>>  1 file changed, 3 insertions(+), 3 deletions(-)
->>>>
->>>> diff --git a/drivers/acpi/cppc_acpi.c b/drivers/acpi/cppc_acpi.c
->>>> index 8adac69..85fd8f7 100644
->>>> --- a/drivers/acpi/cppc_acpi.c
->>>> +++ b/drivers/acpi/cppc_acpi.c
->>>> @@ -595,9 +595,6 @@ int acpi_cppc_processor_probe(struct acpi_processor *pr)
->>>>         /* Store CPU Logical ID */
->>>>         cpc_ptr->cpu_id = pr->id;
->>>>
->>>> -       /* Plug it into this CPUs CPC descriptor. */
->>>> -       per_cpu(cpc_desc_ptr, pr->id) = cpc_ptr;
->>>> -
->>>>         /* Parse PSD data for this CPU */
->>>>         ret = acpi_get_psd(cpc_ptr, handle);
->>>>         if (ret)
->>>> @@ -610,6 +607,9 @@ int acpi_cppc_processor_probe(struct acpi_processor *pr)
->>>>                         goto out_free;
->>>>         }
->>>>
->>>> +       /* Plug PSD data into this CPUs CPC descriptor. */
->>>> +       per_cpu(cpc_desc_ptr, pr->id) = cpc_ptr;
->>>> +
->>>
->>> Are you seeing a real problem without this change? I'm missing where
->>> this pointer is dereferenced if the PCC channel request fails.
->>>
->
-> So, after freeing the cpc_ptr, we need to NULL the per-cpu pointer as
-> well. Alternately, not assign it until everything passes and rely on
-> the static declaration, which is the path you've taken here.
->
-> Acked-by: Ashwin Chaugule <ashwin.chaugule@linaro.org>
+    system 00:01: [io  0x0400-0x047f] could not be reserved
 
-Thanks
-Hoan
+because that overlaps the already-reserved range.  Then the PCI
+resource allocation code is free to put PCI resources into that range
+and tons of things go south after that.
+
+For now I've worked around it by commenting out the request_region()
+in acpi_processor.c but that doesn't seem like a very good long-term
+solution.  Does it make sense to resurrect the patches you had to let
+ACPI and PnP coexist in resource reservation?  Or could we move the
+request_region() for CPU throttle into the still-modular
+initialization done from acpi_processor_driver_init()?
+
+Thanks!
+  Roland
