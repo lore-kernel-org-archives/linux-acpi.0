@@ -1,173 +1,492 @@
-From: Benjamin Tissoires <benjamin.tissoires@gmail.com>
-Subject: Re: [PATCH v2 3/3] ACPI / button: Send "open" state after boot/resume
-Date: Tue, 31 May 2016 16:47:20 +0200
-Message-ID: <CAN+gG=Fzx0K6O4K9GRAjCe9Bg8-iGQhsYAiOdBZRpwoGeafRuw@mail.gmail.com>
-References: <cbdaec17aba78c61f466efff8883d49067f2dad5.1463472125.git.lv.zheng@intel.com>
-	<cover.1464332745.git.lv.zheng@intel.com>
-	<4472be3d63af1b56c2f0f7cfbccd73538dc36252.1464332745.git.lv.zheng@intel.com>
-	<CAN+gG=EaTOSbkx82HCYwLOtR9b_6291obNnpokJ2PhOXD8bWHw@mail.gmail.com>
-	<1AE640813FDE7649BE1B193DEA596E883BBB5C64@SHSMSX101.ccr.corp.intel.com>
+From: Hoan Tran <hotran@apm.com>
+Subject: Re: [PATCH v3] mailbox: pcc: Support HW-Reduced Communication
+ Subspace type 2
+Date: Tue, 31 May 2016 09:32:04 -0700
+Message-ID: <CAFHUOYySb3bnsQhH0ZXutWOZ+tHUi+VyMA56riqPeB6Yn4dd9A@mail.gmail.com>
+References: <1463704347-22550-1-git-send-email-hotran@apm.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-vk0-f51.google.com ([209.85.213.51]:36858 "EHLO
-	mail-vk0-f51.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753686AbcEaOrW (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 31 May 2016 10:47:22 -0400
-In-Reply-To: <1AE640813FDE7649BE1B193DEA596E883BBB5C64@SHSMSX101.ccr.corp.intel.com>
+Received: from mail-vk0-f43.google.com ([209.85.213.43]:34312 "EHLO
+	mail-vk0-f43.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753822AbcEaQcH (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 31 May 2016 12:32:07 -0400
+Received: by mail-vk0-f43.google.com with SMTP id c189so267997834vkb.1
+        for <linux-acpi@vger.kernel.org>; Tue, 31 May 2016 09:32:05 -0700 (PDT)
+In-Reply-To: <1463704347-22550-1-git-send-email-hotran@apm.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Zheng, Lv" <lv.zheng@intel.com>
-Cc: "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, "Brown, Len" <len.brown@intel.com>, Lv Zheng <zetalog@gmail.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, "Bastien Nocera:" <hadess@hadess.net>, "Valdis.Kletnieks@vt.edu" <Valdis.Kletnieks@vt.edu>
+To: Jassi Brar <jassisinghbrar@gmail.com>, Ashwin Chaugule <ashwin.chaugule@linaro.org>
+Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Robert Moore <robert.moore@intel.com>, Alexey Klimov <alexey.klimov@arm.com>, lkml <linux-kernel@vger.kernel.org>, linux acpi <linux-acpi@vger.kernel.org>, Loc Ho <lho@apm.com>, Duc Dang <dhdang@apm.com>, Hoan Tran <hotran@apm.com>
 
-Hi Lv,
+Hi Ashwin,
 
-On Tue, May 31, 2016 at 4:55 AM, Zheng, Lv <lv.zheng@intel.com> wrote:
-> Hi,
+Do you have any comments ?
+
+Thanks
+Hoan
+
+On Thu, May 19, 2016 at 5:32 PM, Hoan Tran <hotran@apm.com> wrote:
+> ACPI 6.1 has a PCC HW-Reduced Communication Subspace type 2 intended for
+> use on HW-Reduce ACPI Platform, which requires read-modify-write sequence
+> to acknowledge doorbell interrupt. This patch provides the implementation
+> for the Communication Subspace Type 2.
 >
->> From: Benjamin Tissoires [mailto:benjamin.tissoires@gmail.com]
->> Subject: Re: [PATCH v2 3/3] ACPI / button: Send "open" state after
->> boot/resume
->>
->> On Fri, May 27, 2016 at 9:16 AM, Lv Zheng <lv.zheng@intel.com> wrote:
-[snipped
-]>> As Valdis replied on 0/3, I don't think this is a good solution (even
->> temporary). Linux should not assume the current state of a input
->> device, and sending unconditionally 1 here is wrong. If the device is
->> on a docking station, you will wake up the wrong monitor and screw the
->> user session (and this will be a regression).
-> [Lv Zheng]
-> We are doing the test to see how this behaves on several different platforms.
+> v3
+>  * Remove 2 global structures
+>  * Correct parsing subspace type 1 and subspace type 2
 >
->>
->> How about we simply send the current LID state stored in the ACPI?
->> something like calling acpi_lid_send_state() directly?
-> [Lv Zheng]
-> This is what we are going to eliminate in [PATCH 01].
-> We have several real bugs related to sending a wrong state to the userspace.
-> Userspace will suspend right after resume because of the 'close' state.
-
-On the other hand, you are trying to remove 23de5d9ef2a4bbc4f733f, a
-patch that has been around for 9 years and we only start seeing
-devices where this logic is not working...
-
-I am not saying your approach is wrong, I am just saying that instead
-of a plain revert, we should probably be more conservative and add a
-quirk for those buggy machines. Ideally, we should try to understand
-why there is such an issue that Windows doesn't have (the solution
-might just be that given Windows doesn't care, we are screwed).
-
-BTW, on the Surface 3, there is a WMI
-(f7cc25ec-d20b-404c-8903-0ed4359c18ae -> WQHE) which returns the
-actual value of the LID, without using PNP0C0D at all. I have a
-feeling that Windows might use it when it is in trouble or in an
-unsure state. I couldn't find this WMI on the 2 other systems so that
-may also be just a one shot for the Surface 3.
-
-[snipped]
-> [Lv Zheng]
-> The understanding here is incorrect.
-> We have 3 bogus devices.
-> 1 of them is surface 3 which is a hardware reduced platform.
-> The others are all traditional platforms.
+> v2
+>  * Remove changes inside "actbl3.h". This file is taken care by ACPICA.
+>  * Parse both subspace type 1 and subspace type 2
+>  * Remove unnecessary variable initialization
+>  * ISR returns IRQ_NONE in case of error
 >
-> =====
-> The facts are:
+> v1
+>  * Initial
 >
-> Both the platforms return cached lid state from _LID.
-> The cached value will be updated by lid irq (via GPIO IRQ, GPE, or EC event).
-> AML tables will send lid notification in the irq handler.
+> Signed-off-by: Hoan Tran <hotran@apm.com>
+> ---
+>  drivers/mailbox/pcc.c | 316 ++++++++++++++++++++++++++++++++++++++------------
+>  1 file changed, 245 insertions(+), 71 deletions(-)
 >
-> Some AML tables will update the cached value in _WAK (I'll describe why it is necessary below).
-> But updating the cached value in _WAK is not guaranteed by all AML tables.
+> diff --git a/drivers/mailbox/pcc.c b/drivers/mailbox/pcc.c
+> index 043828d..c98bd94 100644
+> --- a/drivers/mailbox/pcc.c
+> +++ b/drivers/mailbox/pcc.c
+> @@ -59,6 +59,7 @@
+>  #include <linux/delay.h>
+>  #include <linux/io.h>
+>  #include <linux/init.h>
+> +#include <linux/interrupt.h>
+>  #include <linux/list.h>
+>  #include <linux/platform_device.h>
+>  #include <linux/mailbox_controller.h>
+> @@ -68,11 +69,16 @@
+>  #include "mailbox.h"
 >
-> For the 'close' state irq, all tables will send lid close notification.
-> For the 'open' state irq, it seems there are tables never sending lid open notification (sounds like Windows do not care about lid open).
-> =====
+>  #define MAX_PCC_SUBSPACES      256
+> +#define MBOX_IRQ_NAME          "pcc-mbox"
 >
-> Surface 3 is entirely a different case.
-> It is a runtime idle system and hardware reduced.
-> On that kind of system, lid open is handled by OS not by BIOS.
-> Surface 3 is exactly the platform that doesn't send lid open notification.
-> I guess the AML is intentionally written in this way to be compliant to the traditional platforms.
+>  static struct mbox_chan *pcc_mbox_channels;
 >
-> While on the traditional platforms:
-> When lid is opened, BIOS handles the lid irq and wakes the system from the FACS waking vector.
-> So it is likely that there is no lid open irq after the system is resumed.
-> BIOS may forget to update the cached lid value in the _WAK or some other control methods that could be executed after resuming.
-> Then if we send _LID result to the user space, the cached value could apparently be 'close'.
+>  /* Array of cached virtual address for doorbell registers */
+>  static void __iomem **pcc_doorbell_vaddr;
+> +/* Array of cached virtual address for doorbell ack registers */
+> +static void __iomem **pcc_doorbell_ack_vaddr;
+> +/* Array of doorbell interrupts */
+> +static int *pcc_doorbell_irq;
 >
-> That explains why there is no "lid open" configuration in the "Windows Device Manager".
+>  static struct mbox_controller pcc_mbox_ctrl = {};
+>  /**
+> @@ -91,6 +97,132 @@ static struct mbox_chan *get_pcc_channel(int id)
+>         return &pcc_mbox_channels[id];
+>  }
 >
->>
->> I propose as a workaround to enable a kthread that will monitor the
->> lid state and update the correct value to userspace (5 sec of polling
->> time should be enough given that systemd checks every 20 sec).
->> We should probably have this workaround only for a set of known
->> devices, as it might just be temporary for those until the actual
->> underlying problem is fixed (wrong DSDT in the Surface 3 case that
->> doesn't notify at all, issue in the EC for the Surface Pro 1 and the
->> Samsung N210).
-> [Lv Zheng]
-> That cannot help to solve the issue/gap.
+> +/*
+> + * PCC can be used with perf critical drivers such as CPPC
+> + * So it makes sense to locally cache the virtual address and
+> + * use it to read/write to PCC registers such as doorbell register
+> + *
+> + * The below read_register and write_registers are used to read and
+> + * write from perf critical registers such as PCC doorbell register
+> + */
+> +static int read_register(void __iomem *vaddr, u64 *val, unsigned int bit_width)
+> +{
+> +       int ret_val = 0;
+> +
+> +       switch (bit_width) {
+> +       case 8:
+> +               *val = readb(vaddr);
+> +               break;
+> +       case 16:
+> +               *val = readw(vaddr);
+> +               break;
+> +       case 32:
+> +               *val = readl(vaddr);
+> +               break;
+> +       case 64:
+> +               *val = readq(vaddr);
+> +               break;
+> +       default:
+> +               pr_debug("Error: Cannot read register of %u bit width",
+> +                       bit_width);
+> +               ret_val = -EFAULT;
+> +               break;
+> +       }
+> +       return ret_val;
+> +}
+> +
+> +static int write_register(void __iomem *vaddr, u64 val, unsigned int bit_width)
+> +{
+> +       int ret_val = 0;
+> +
+> +       switch (bit_width) {
+> +       case 8:
+> +               writeb(val, vaddr);
+> +               break;
+> +       case 16:
+> +               writew(val, vaddr);
+> +               break;
+> +       case 32:
+> +               writel(val, vaddr);
+> +               break;
+> +       case 64:
+> +               writeq(val, vaddr);
+> +               break;
+> +       default:
+> +               pr_debug("Error: Cannot write register of %u bit width",
+> +                       bit_width);
+> +               ret_val = -EFAULT;
+> +               break;
+> +       }
+> +       return ret_val;
+> +}
+> +
+> +/**
+> + * pcc_map_interrupt - Map a PCC subspace GSI to a linux IRQ number
+> + * @interrupt: GSI number.
+> + * @flags: interrupt flags
+> + *
+> + * Returns: a valid linux IRQ number on success
+> + *             0 or -EINVAL on failure
+> + */
+> +static int pcc_map_interrupt(u32 interrupt, u32 flags)
+> +{
+> +       int trigger, polarity;
+> +
+> +       if (!interrupt)
+> +               return 0;
+> +
+> +       trigger = (flags & ACPI_PCCT_INTERRUPT_MODE) ? ACPI_EDGE_SENSITIVE
+> +                       : ACPI_LEVEL_SENSITIVE;
+> +
+> +       polarity = (flags & ACPI_PCCT_INTERRUPT_POLARITY) ? ACPI_ACTIVE_LOW
+> +                       : ACPI_ACTIVE_HIGH;
+> +
+> +       return acpi_register_gsi(NULL, interrupt, trigger, polarity);
+> +}
+> +
+> +/**
+> + * pcc_mbox_irq - PCC mailbox interrupt handler
+> + */
+> +static irqreturn_t pcc_mbox_irq(int irq, void *p)
+> +{
+> +       struct acpi_generic_address *doorbell_ack;
+> +       struct acpi_pcct_hw_reduced *pcct_ss;
+> +       struct mbox_chan *chan = p;
+> +       u64 doorbell_ack_preserve;
+> +       u64 doorbell_ack_write;
+> +       u64 doorbell_ack_val;
+> +       int ret;
+> +
+> +       pcct_ss = chan->con_priv;
+> +
+> +       mbox_chan_received_data(chan, NULL);
+> +
+> +       if (pcct_ss->header.type == ACPI_PCCT_TYPE_HW_REDUCED_SUBSPACE_TYPE2) {
+> +               struct acpi_pcct_hw_reduced_type2 *pcct2_ss = chan->con_priv;
+> +               u32 id = chan - pcc_mbox_channels;
+> +
+> +               doorbell_ack = &pcct2_ss->doorbell_ack_register;
+> +               doorbell_ack_preserve = pcct2_ss->ack_preserve_mask;
+> +               doorbell_ack_write = pcct2_ss->ack_write_mask;
+> +
+> +               ret = read_register(pcc_doorbell_ack_vaddr[id],
+> +                                   &doorbell_ack_val,
+> +                                   doorbell_ack->bit_width);
+> +               if (ret)
+> +                       return IRQ_NONE;
+> +
+> +               ret = write_register(pcc_doorbell_ack_vaddr[id],
+> +                                    (doorbell_ack_val & doorbell_ack_preserve)
+> +                                       | doorbell_ack_write,
+> +                                    doorbell_ack->bit_width);
+> +               if (ret)
+> +                       return IRQ_NONE;
+> +       }
+> +
+> +       return IRQ_HANDLED;
+> +}
+> +
+>  /**
+>   * pcc_mbox_request_channel - PCC clients call this function to
+>   *             request a pointer to their PCC subspace, from which they
+> @@ -135,6 +267,18 @@ struct mbox_chan *pcc_mbox_request_channel(struct mbox_client *cl,
+>         if (chan->txdone_method == TXDONE_BY_POLL && cl->knows_txdone)
+>                 chan->txdone_method |= TXDONE_BY_ACK;
 >
-> The problem is Linux userspace has a facility re-checking lid state when lid state is "close".
-> If it failed to update the lid state to "open" for a timeout period, it would suspend the platform.
+> +       if (pcc_doorbell_irq[subspace_id] > 0) {
+> +               int rc;
+> +
+> +               rc = devm_request_irq(dev, pcc_doorbell_irq[subspace_id],
+> +                                     pcc_mbox_irq, 0, MBOX_IRQ_NAME, chan);
+> +               if (unlikely(rc)) {
+> +                       dev_err(dev, "failed to register PCC interrupt %d\n",
+> +                               pcc_doorbell_irq[subspace_id]);
+> +                       chan = ERR_PTR(rc);
+> +               }
+> +       }
+> +
+>         spin_unlock_irqrestore(&chan->lock, flags);
 >
-> We actually are recommending Linus userspace to introduce a new lid handling mode to only handle "lid close" event and ignore "lid open" event.
-> During the period this is not changed from the userspace, we have to send "open" after resume/boot in order not to trigger the timeout mechanism.
+>         return chan;
+> @@ -149,80 +293,30 @@ EXPORT_SYMBOL_GPL(pcc_mbox_request_channel);
+>   */
+>  void pcc_mbox_free_channel(struct mbox_chan *chan)
+>  {
+> +       u32 id = chan - pcc_mbox_channels;
+>         unsigned long flags;
 >
-
-I hear your points and I couldn't agree more that the only solution
-for us is (sadly) to mimic Windows.
-
-I am just disagreeing on the method used here: I'd rather have a
-fallback mechanism where the lid is not sent to "one" at each boot
-resume because this will mess us people using docking stations. The
-problem is that Red Hat has a lot of them, and I foresee a lot of
-complains to me if this is merged in its current state.
-
-We could have a parameter (say "send_lid_open_on_resume" or
-"use_bios_lid_value") in acpi/button.c which would allow people to
-choose if they want the "new" behavior or the old one. And we could
-also add some DMI matching for the messed up laptops/tablets where we
-force one or the other quirk. When we agree that user space now
-behaves gently with us, we could then remove entirely the quirk and
-the dmi matching.
-
-How does that sound?
-
-Also, on the topic of the .notify not being sent by some BIOS, I have
-seen something similar on the surface 3.
-
-The ASL for the LID status change is the following:
----
-            Method (_E4C, 0, Serialized)  // _Exx: Edge-Triggered GPE
-            {
-                If ((HELD == One))
-                {
-                    ^^LID.LIDB = One
-                }
-                Else
-                {
-                    ^^LID.LIDB = Zero
-                    Notify (LID, 0x80) // Status Change
-                }
-
-                Notify (^^PCI0.SPI1.NTRG, One) // Device Check
-            }
----
-
-I noticed I received the hotplug event on the touchscreen when the LID
-state changed, and tried to initiate the notify on the LID acpi device
-from within the touchscreen driver.
-This works well, except that from time to time, on resume, I don't
-even receive the hotplug notification. It is as if the notification is
-lost while I receive it 80% of the time.
-
-This might be completely unrelated, but I think it is worth mentioning
-because there might be a common root at the state not being updated
-correctly.
-
-Cheers, and sorry for being annoying :)
-Benjamin
+>         if (!chan || !chan->cl)
+>                 return;
+>
+> +       if (id >= pcc_mbox_ctrl.num_chans) {
+> +               pr_debug("pcc_mbox_free_channel: Invalid mbox_chan passed\n");
+> +               return;
+> +       }
+> +
+>         spin_lock_irqsave(&chan->lock, flags);
+>         chan->cl = NULL;
+>         chan->active_req = NULL;
+>         if (chan->txdone_method == (TXDONE_BY_POLL | TXDONE_BY_ACK))
+>                 chan->txdone_method = TXDONE_BY_POLL;
+>
+> +       if (pcc_doorbell_irq[id] > 0)
+> +               devm_free_irq(chan->mbox->dev, pcc_doorbell_irq[id], chan);
+> +
+>         spin_unlock_irqrestore(&chan->lock, flags);
+>  }
+>  EXPORT_SYMBOL_GPL(pcc_mbox_free_channel);
+>
+> -/*
+> - * PCC can be used with perf critical drivers such as CPPC
+> - * So it makes sense to locally cache the virtual address and
+> - * use it to read/write to PCC registers such as doorbell register
+> - *
+> - * The below read_register and write_registers are used to read and
+> - * write from perf critical registers such as PCC doorbell register
+> - */
+> -static int read_register(void __iomem *vaddr, u64 *val, unsigned int bit_width)
+> -{
+> -       int ret_val = 0;
+> -
+> -       switch (bit_width) {
+> -       case 8:
+> -               *val = readb(vaddr);
+> -               break;
+> -       case 16:
+> -               *val = readw(vaddr);
+> -               break;
+> -       case 32:
+> -               *val = readl(vaddr);
+> -               break;
+> -       case 64:
+> -               *val = readq(vaddr);
+> -               break;
+> -       default:
+> -               pr_debug("Error: Cannot read register of %u bit width",
+> -                       bit_width);
+> -               ret_val = -EFAULT;
+> -               break;
+> -       }
+> -       return ret_val;
+> -}
+> -
+> -static int write_register(void __iomem *vaddr, u64 val, unsigned int bit_width)
+> -{
+> -       int ret_val = 0;
+> -
+> -       switch (bit_width) {
+> -       case 8:
+> -               writeb(val, vaddr);
+> -               break;
+> -       case 16:
+> -               writew(val, vaddr);
+> -               break;
+> -       case 32:
+> -               writel(val, vaddr);
+> -               break;
+> -       case 64:
+> -               writeq(val, vaddr);
+> -               break;
+> -       default:
+> -               pr_debug("Error: Cannot write register of %u bit width",
+> -                       bit_width);
+> -               ret_val = -EFAULT;
+> -               break;
+> -       }
+> -       return ret_val;
+> -}
+>
+>  /**
+>   * pcc_send_data - Called from Mailbox Controller code. Used
+> @@ -296,8 +390,10 @@ static int parse_pcc_subspace(struct acpi_subtable_header *header,
+>         if (pcc_mbox_ctrl.num_chans <= MAX_PCC_SUBSPACES) {
+>                 pcct_ss = (struct acpi_pcct_hw_reduced *) header;
+>
+> -               if (pcct_ss->header.type !=
+> -                               ACPI_PCCT_TYPE_HW_REDUCED_SUBSPACE) {
+> +               if ((pcct_ss->header.type !=
+> +                               ACPI_PCCT_TYPE_HW_REDUCED_SUBSPACE)
+> +                   && (pcct_ss->header.type !=
+> +                               ACPI_PCCT_TYPE_HW_REDUCED_SUBSPACE_TYPE2)) {
+>                         pr_err("Incorrect PCC Subspace type detected\n");
+>                         return -EINVAL;
+>                 }
+> @@ -307,6 +403,43 @@ static int parse_pcc_subspace(struct acpi_subtable_header *header,
+>  }
+>
+>  /**
+> + * pcc_parse_subspace_irq - Parse the PCC IRQ and PCC ACK register
+> + *             There should be one entry per PCC client.
+> + * @id: PCC subspace index.
+> + * @pcct_ss: Pointer to the ACPI subtable header under the PCCT.
+> + *
+> + * Return: 0 for Success, else errno.
+> + *
+> + * This gets called for each entry in the PCC table.
+> + */
+> +static int pcc_parse_subspace_irq(int id,
+> +                                 struct acpi_pcct_hw_reduced *pcct_ss)
+> +{
+> +       pcc_doorbell_irq[id] = pcc_map_interrupt(pcct_ss->doorbell_interrupt,
+> +                                                (u32)pcct_ss->flags);
+> +       if (pcc_doorbell_irq[id] <= 0) {
+> +               pr_err("PCC GSI %d not registered\n",
+> +                      pcct_ss->doorbell_interrupt);
+> +               return -EINVAL;
+> +       }
+> +
+> +       if (pcct_ss->header.type
+> +               == ACPI_PCCT_TYPE_HW_REDUCED_SUBSPACE_TYPE2) {
+> +               struct acpi_pcct_hw_reduced_type2 *pcct2_ss = (void *)pcct_ss;
+> +
+> +               pcc_doorbell_ack_vaddr[id] = acpi_os_ioremap(
+> +                               pcct2_ss->doorbell_ack_register.address,
+> +                               pcct2_ss->doorbell_ack_register.bit_width / 8);
+> +               if (!pcc_doorbell_ack_vaddr[id]) {
+> +                       pr_err("Failed to ioremap PCC ACK register\n");
+> +                       return -ENOMEM;
+> +               }
+> +       }
+> +
+> +       return 0;
+> +}
+> +
+> +/**
+>   * acpi_pcc_probe - Parse the ACPI tree for the PCCT.
+>   *
+>   * Return: 0 for Success, else errno.
+> @@ -316,7 +449,9 @@ static int __init acpi_pcc_probe(void)
+>         acpi_size pcct_tbl_header_size;
+>         struct acpi_table_header *pcct_tbl;
+>         struct acpi_subtable_header *pcct_entry;
+> -       int count, i;
+> +       struct acpi_table_pcct *acpi_pcct_tbl;
+> +       int count, i, rc;
+> +       int sum = 0;
+>         acpi_status status = AE_OK;
+>
+>         /* Search for PCCT */
+> @@ -333,37 +468,66 @@ static int __init acpi_pcc_probe(void)
+>                         sizeof(struct acpi_table_pcct),
+>                         ACPI_PCCT_TYPE_HW_REDUCED_SUBSPACE,
+>                         parse_pcc_subspace, MAX_PCC_SUBSPACES);
+> +       sum += (count > 0)? count: 0;
+> +
+> +       count = acpi_table_parse_entries(ACPI_SIG_PCCT,
+> +                       sizeof(struct acpi_table_pcct),
+> +                       ACPI_PCCT_TYPE_HW_REDUCED_SUBSPACE_TYPE2,
+> +                       parse_pcc_subspace, MAX_PCC_SUBSPACES);
+> +       sum += (count > 0)? count: 0;
+>
+> -       if (count <= 0) {
+> +       if (sum == 0 || sum >= MAX_PCC_SUBSPACES) {
+>                 pr_err("Error parsing PCC subspaces from PCCT\n");
+>                 return -EINVAL;
+>         }
+>
+>         pcc_mbox_channels = kzalloc(sizeof(struct mbox_chan) *
+> -                       count, GFP_KERNEL);
+> -
+> +                       sum, GFP_KERNEL);
+>         if (!pcc_mbox_channels) {
+>                 pr_err("Could not allocate space for PCC mbox channels\n");
+>                 return -ENOMEM;
+>         }
+>
+> -       pcc_doorbell_vaddr = kcalloc(count, sizeof(void *), GFP_KERNEL);
+> +       pcc_doorbell_vaddr = kcalloc(sum, sizeof(void *), GFP_KERNEL);
+>         if (!pcc_doorbell_vaddr) {
+> -               kfree(pcc_mbox_channels);
+> -               return -ENOMEM;
+> +               rc = -ENOMEM;
+> +               goto err_free_mbox;
+> +       }
+> +
+> +       pcc_doorbell_ack_vaddr = kcalloc(sum, sizeof(void *), GFP_KERNEL);
+> +       if (!pcc_doorbell_ack_vaddr) {
+> +               rc = -ENOMEM;
+> +               goto err_free_db_vaddr;
+> +       }
+> +
+> +       pcc_doorbell_irq = kcalloc(sum, sizeof(int), GFP_KERNEL);
+> +       if (!pcc_doorbell_irq) {
+> +               rc = -ENOMEM;
+> +               goto err_free_db_ack_vaddr;
+>         }
+>
+>         /* Point to the first PCC subspace entry */
+>         pcct_entry = (struct acpi_subtable_header *) (
+>                 (unsigned long) pcct_tbl + sizeof(struct acpi_table_pcct));
+>
+> -       for (i = 0; i < count; i++) {
+> +       acpi_pcct_tbl = (struct acpi_table_pcct *) pcct_tbl;
+> +       if (acpi_pcct_tbl->flags & ACPI_PCCT_DOORBELL)
+> +               pcc_mbox_ctrl.txdone_irq = true;
+> +
+> +       for (i = 0; i < sum; i++) {
+>                 struct acpi_generic_address *db_reg;
+>                 struct acpi_pcct_hw_reduced *pcct_ss;
+>                 pcc_mbox_channels[i].con_priv = pcct_entry;
+>
+> +               pcct_ss = (struct acpi_pcct_hw_reduced *) pcct_entry;
+> +
+> +               if (pcc_mbox_ctrl.txdone_irq) {
+> +                       rc = pcc_parse_subspace_irq(i, pcct_ss);
+> +                       if (rc < 0)
+> +                               goto err;
+> +               }
+> +
+>                 /* If doorbell is in system memory cache the virt address */
+> -               pcct_ss = (struct acpi_pcct_hw_reduced *)pcct_entry;
+>                 db_reg = &pcct_ss->doorbell_register;
+>                 if (db_reg->space_id == ACPI_ADR_SPACE_SYSTEM_MEMORY)
+>                         pcc_doorbell_vaddr[i] = acpi_os_ioremap(db_reg->address,
+> @@ -372,11 +536,21 @@ static int __init acpi_pcc_probe(void)
+>                         ((unsigned long) pcct_entry + pcct_entry->length);
+>         }
+>
+> -       pcc_mbox_ctrl.num_chans = count;
+> +       pcc_mbox_ctrl.num_chans = sum;
+>
+>         pr_info("Detected %d PCC Subspaces\n", pcc_mbox_ctrl.num_chans);
+>
+>         return 0;
+> +
+> +err:
+> +       kfree(pcc_doorbell_irq);
+> +err_free_db_ack_vaddr:
+> +       kfree(pcc_doorbell_ack_vaddr);
+> +err_free_db_vaddr:
+> +       kfree(pcc_doorbell_vaddr);
+> +err_free_mbox:
+> +       kfree(pcc_mbox_channels);
+> +       return rc;
+>  }
+>
+>  /**
+> --
+> 1.9.1
+>
