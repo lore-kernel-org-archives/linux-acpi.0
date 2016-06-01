@@ -1,26 +1,56 @@
-From: Roland Dreier <roland@purestorage.com>
-Subject: Re: Regression in IO resource allocation
-Date: Wed, 1 Jun 2016 10:08:59 -0700
-Message-ID: <CAL1RGDU+rMotA4XzBmnnS9GhZWu7v9LQ9NeL=jqVXtP40yfvYw@mail.gmail.com>
-References: <CAL1RGDW9z1FhgQwJZTkk0kUBipT68hmW2C4--3Hbb5vzj5ta2w@mail.gmail.com>
- <3491327.Z9FVFNvO7z@vostro.rjw.lan> <CAL1RGDUfCuZ0qiQT4xUf0koS3uxfXfBPMfYL41tkjB_cM36Nfw@mail.gmail.com>
- <CAJZ5v0jOg-oTDEZodhLHD5iz039kKP-UCQoB92nZ8=_qhSa-HA@mail.gmail.com>
+From: Adam Thomson <Adam.Thomson.Opensource@diasemi.com>
+Subject: [PATCH v2 0/2] ASoC: da7219: Convert driver to use
+	generic FW functions
+Date: Wed, 1 Jun 2016 19:06:24 +0100
+Message-ID: <cover.1464802265.git.Adam.Thomson.Opensource@diasemi.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <CAJZ5v0jOg-oTDEZodhLHD5iz039kKP-UCQoB92nZ8=_qhSa-HA@mail.gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: "Rafael J. Wysocki" <rafael@kernel.org>
-Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, LKML <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <alsa-devel-bounces@alsa-project.org>
+List-Unsubscribe: <http://mailman.alsa-project.org/mailman/options/alsa-devel>,
+ <mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
+List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel/>
+List-Post: <mailto:alsa-devel@alsa-project.org>
+List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
+List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+ <mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
+Errors-To: alsa-devel-bounces@alsa-project.org
+Sender: alsa-devel-bounces@alsa-project.org
+To: Mark Brown <broonie@kernel.org>, Liam Girdwood <lgirdwood@gmail.com>, Jaroslav Kysela <perex@perex.cz>, Takashi Iwai <tiwai@suse.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Robert Moore <robert.moore@intel.com>, Lv Zheng <lv.zheng@intel.com>, "Rafael J.Wysocki" <rafael.j.wysocki@intel.com>, Mika Westerberg <mika.westerberg@linux.intel.com>, Len Brown <lenb@kernel.org>
+Cc: alsa-devel@alsa-project.org, Heikki Krogerus <heikki.krogerus@linux.intel.com>, Support Opensource <support.opensource@diasemi.com>, Hanjun Guo <hanjun.guo@linaro.org>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Sathyanarayana Nujella <sathyanarayana.nujella@intel.com>, Suravee Suthikulpanit <Suravee.Suthikulpanit@amd.com>, Bjorn Helgaas <bhelgaas@google.com>, Andrew Morton <akpm@linux-foundation.org>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, devel@acpica.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Tue, May 31, 2016 at 3:31 PM, Rafael J. Wysocki <rafael@kernel.org> wrote:
-> It may not be called at all if _PTC is used on that system, for example.
+This patch set converts the da7219 codec driver to use device/fwnode functions
+to access properties, instead of the DT only of_* functions, allowing ACPI
+to be used as well.
 
-Yes, that's exactly the case on my system.
+The DT bindings for da7219 have a device node for the main codec properties,
+and a named child node (da7219_aad), which contains all of the accessory
+detection related properties for the device. ACPI also supports this kind of
+FW hierarchy (data only sub-nodes), but some support in the kernel needs to be
+added to take make use of this in driver code.
 
-So from my POV:
+The first patch adds functions to allow searching for a named child node of a
+device, for both DT and ACPI, and the second patch updates the codec driver to
+use the standard device/fwnode calls, including this new function.
 
-Tested-by: Roland Dreier <roland@purestorage.com>
+These changes are based on the v4.7-rc1 kernel.
 
-Thanks!
+Changes in v2:
+ - Rebase to v4.7-rc1
+ - Small updates to codec patch based on previous reviewer comments
+
+Adam Thomson (2):
+  device property: Add function to search for named child of device
+  ASoC: da7219: Convert driver to use generic device/fwnode functions
+
+ drivers/base/property.c       |  28 ++++++++++++
+ include/acpi/acpi_bus.h       |   7 +++
+ include/linux/acpi.h          |   6 +++
+ include/linux/property.h      |   3 ++
+ sound/soc/codecs/da7219-aad.c | 103 +++++++++++++++++++++---------------------
+ sound/soc/codecs/da7219.c     |  34 +++++++-------
+ 6 files changed, 112 insertions(+), 69 deletions(-)
+
+--
+1.9.3
