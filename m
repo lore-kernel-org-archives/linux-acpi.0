@@ -1,45 +1,26 @@
-From: Timur Tabi <timur@codeaurora.org>
-Subject: Re: [PATCH v5 5/6] clocksource/drivers/arm_arch_timer: Simplify ACPI
- support code.
-Date: Wed, 1 Jun 2016 11:03:41 -0500
-Message-ID: <574F075D.1010007@codeaurora.org>
-References: <1464096633-9309-1-git-send-email-fu.wei@linaro.org>
- <1464096633-9309-6-git-send-email-fu.wei@linaro.org>
+From: Roland Dreier <roland@purestorage.com>
+Subject: Re: Regression in IO resource allocation
+Date: Wed, 1 Jun 2016 10:08:59 -0700
+Message-ID: <CAL1RGDU+rMotA4XzBmnnS9GhZWu7v9LQ9NeL=jqVXtP40yfvYw@mail.gmail.com>
+References: <CAL1RGDW9z1FhgQwJZTkk0kUBipT68hmW2C4--3Hbb5vzj5ta2w@mail.gmail.com>
+ <3491327.Z9FVFNvO7z@vostro.rjw.lan> <CAL1RGDUfCuZ0qiQT4xUf0koS3uxfXfBPMfYL41tkjB_cM36Nfw@mail.gmail.com>
+ <CAJZ5v0jOg-oTDEZodhLHD5iz039kKP-UCQoB92nZ8=_qhSa-HA@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp.codeaurora.org ([198.145.29.96]:53205 "EHLO
-	smtp.codeaurora.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750970AbcFAQDt (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 1 Jun 2016 12:03:49 -0400
-In-Reply-To: <1464096633-9309-6-git-send-email-fu.wei@linaro.org>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <CAJZ5v0jOg-oTDEZodhLHD5iz039kKP-UCQoB92nZ8=_qhSa-HA@mail.gmail.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: "Rafael J. Wysocki" <rafael@kernel.org>
+Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, LKML <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
-To: fu.wei@linaro.org, rjw@rjwysocki.net, lenb@kernel.org, daniel.lezcano@linaro.org, tglx@linutronix.de, marc.zyngier@arm.com, hanjun.guo@linaro.org
-Cc: linux-arm-kernel@lists.infradead.org, linaro-acpi@lists.linaro.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, rruigrok@codeaurora.org, harba@codeaurora.org, cov@codeaurora.org, graeme.gregory@linaro.org, al.stone@linaro.org, jcm@redhat.com, wei@redhat.com, arnd@arndb.de, wim@iguana.be, catalin.marinas@arm.com, will.deacon@arm.com, Suravee.Suthikulpanit@amd.com, leo.duran@amd.com
 
-fu.wei@linaro.org wrote:
-> diff --git a/drivers/clocksource/Kconfig b/drivers/clocksource/Kconfig
-> index 47352d2..5a5baa1 100644
-> --- a/drivers/clocksource/Kconfig
-> +++ b/drivers/clocksource/Kconfig
-> @@ -8,6 +8,7 @@ config CLKSRC_OF
->   config CLKSRC_ACPI
->   	bool
->   	select CLKSRC_PROBE
-> +	select ACPI_GTDT
+On Tue, May 31, 2016 at 3:31 PM, Rafael J. Wysocki <rafael@kernel.org> wrote:
+> It may not be called at all if _PTC is used on that system, for example.
 
-I think this should be under the ARM64 Kconfig option 
-(arch/arm64/Kconfig), perhaps like this:
+Yes, that's exactly the case on my system.
 
-	select ACPI_SPCR_TABLE if ACPI
-+	select ACPI_GTDT if ACPI
+So from my POV:
 
-We want GTDT to be parsed on ARM64 if we have ACPI, even if we don't 
-have CLKSRC enabled.
+Tested-by: Roland Dreier <roland@purestorage.com>
 
--- 
-Qualcomm Innovation Center, Inc.
-The Qualcomm Innovation Center, Inc. is a member of the Code Aurora
-Forum, a Linux Foundation collaborative project.
+Thanks!
