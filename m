@@ -1,118 +1,104 @@
-From: "Zheng, Lv" <lv.zheng@intel.com>
-Subject: RE: [RFC PATCH v2] ACPICA / Hardware: Fix old register check in
- acpi_hw_get_access_bit_width()
-Date: Wed, 1 Jun 2016 01:30:47 +0000
-Message-ID: <1AE640813FDE7649BE1B193DEA596E883BBB6FD4@SHSMSX101.ccr.corp.intel.com>
-References: <fa6ead5a123ea7c77caf5f14ee497823574506b7.1464678140.git.lv.zheng@intel.com>
-	<1AE640813FDE7649BE1B193DEA596E883BBB6D12@SHSMSX101.ccr.corp.intel.com>
- <CAOg9mSQug_WrvgR=u_CDy-+y3nqjzCgOEC=yw+kkoyipB1aA=A@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+From: Lv Zheng <lv.zheng@intel.com>
+Subject: [PATCH v3] ACPICA / Hardware: Fix old register check in acpi_hw_get_access_bit_width()
+Date: Wed,  1 Jun 2016 11:03:20 +0800
+Message-ID: <076e22f0e5fdd4e4322b65e169a53945cb0a3962.1464750066.git.lv.zheng@intel.com>
+References: <fc78867f000b99f4c692876a77b3ea061e44a368>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga14.intel.com ([192.55.52.115]:28827 "EHLO mga14.intel.com"
+Received: from mga02.intel.com ([134.134.136.20]:3728 "EHLO mga02.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756887AbcFABbA (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 31 May 2016 21:31:00 -0400
-In-Reply-To: <CAOg9mSQug_WrvgR=u_CDy-+y3nqjzCgOEC=yw+kkoyipB1aA=A@mail.gmail.com>
-Content-Language: en-US
+	id S1752488AbcFADDl (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 31 May 2016 23:03:41 -0400
+In-Reply-To: <fc78867f000b99f4c692876a77b3ea061e44a368>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Mike Marshall <hubcap@omnibond.com>
-Cc: Boris Ostrovsky <boris.ostrovsky@oracle.com>, Lv Zheng <zetalog@gmail.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, "Brown, Len" <len.brown@intel.com>, "Moore, Robert" <robert.moore@intel.com>
+To: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <len.brown@intel.com>
+Cc: Lv Zheng <lv.zheng@intel.com>, Lv Zheng <zetalog@gmail.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
 
-SGksDQoNCj4gRnJvbTogTWlrZSBNYXJzaGFsbCBbbWFpbHRvOmh1YmNhcEBvbW5pYm9uZC5jb21d
-DQo+IFN1YmplY3Q6IFJlOiBbUkZDIFBBVENIIHYyXSBBQ1BJQ0EgLyBIYXJkd2FyZTogRml4IG9s
-ZCByZWdpc3RlciBjaGVjayBpbg0KPiBhY3BpX2h3X2dldF9hY2Nlc3NfYml0X3dpZHRoKCkNCj4g
-DQo+IEhpIEx2Li4uDQo+IA0KPiBJIHdhcyBkZWFkIGluIHRoZSB3YXRlciBiZWZvcmUgdGhpcyBw
-YXRjaCwgcWVtdS1rdm0gd291bGQgY3Jhc2gNCj4gcmlnaHQgYXdheSwgbm93IGV2ZXJ5dGhpbmcg
-c2VlbXMgdG8gd29yayBncmVhdCBhZ2FpbiwgdGhhbmtzISBGcm9tDQo+IG15IHBlcnNwZWN0aXZl
-IHRoaXMgZml4ZXMgdGhlIGMzYmMyNmQgcHJvYmxlbS4NCltMdiBaaGVuZ10gDQpHcmVhdC4NClRo
-ZSBiaXNlY3Rpb24gcmVzdWx0IGlzIGMzYmMyNmQsIGJ1dCB0aGUgY29kZSBpcyBhY3R1YWxseSB1
-cHN0cmVhbWVkIGluIGIzMTRhMTcyLg0KYzNiYzI2ZCBpcyB0aGUgZmlyc3QgY29tbWl0IGVuYWJs
-ZWQgdGhlIGJ1Zy4gOikNCg0KPiANCj4gQWNrZWQtYnk6IE1pa2UgTWFyc2hhbGwgPGh1YmNhcEBv
-bW5pYm9uZC5jb20+DQpbTHYgWmhlbmddIA0KVGhhbmtzIGZvciB0aGUgdGVzdC4NCg0KQmVzdCBy
-ZWdhcmRzDQotTHYNCg0KPiANCj4gLU1pa2UNCj4gDQo+IE9uIFR1ZSwgTWF5IDMxLCAyMDE2IGF0
-IDM6MTMgQU0sIFpoZW5nLCBMdiA8bHYuemhlbmdAaW50ZWwuY29tPiB3cm90ZToNCj4gPiBIaSwg
-Qm9yaXMgYW5kIE1pa2UNCj4gPg0KPiA+IFBsZWFzZSBoZWxwIHRvIHZhbGlkYXRlIGlmIHRoaXMg
-dmVyc2lvbiBjYW4gYWxzbyBmaXggeW91ciBpc3N1ZXMuDQo+ID4gQWZ0ZXIgZW51bWVyYXRpbmcg
-dGhlIHBvc3NpYmxlIGNhc2VzLCBJIHJlYWxpemVkIHRoYXQgdGhlIGFkZHJlc3MgY2hlY2sNCj4g
-bWlnaHQgbm90IGJlIG5lY2Vzc2FyeS4NCj4gPiBCdXQgd2UgbmVlZCBhIG1heF9iaXRfd2lkdGgg
-Y2hlY2sgaW4gdGhpcyBmdW5jdGlvbiB0byBtYWtlIGl0IHByZXBhcmVkDQo+IGZvciBhIGZ1dHVy
-ZSB1c2FnZSBpbiBhY3BpX3JlYWQoKS9hY3BpX3dyaXRlKCkuDQo+ID4gVGhhbmtzIGluIGFkdmFu
-Y2UuDQo+ID4NCj4gPiBCZXN0IHJlZ2FyZHMNCj4gPiAtTHYNCj4gPg0KPiA+PiBGcm9tOiBaaGVu
-ZywgTHYNCj4gPj4gU3ViamVjdDogW1JGQyBQQVRDSCB2Ml0gQUNQSUNBIC8gSGFyZHdhcmU6IEZp
-eCBvbGQgcmVnaXN0ZXIgY2hlY2sgaW4NCj4gPj4gYWNwaV9od19nZXRfYWNjZXNzX2JpdF93aWR0
-aCgpDQo+ID4+DQo+ID4+IFRoZSBhZGRyZXNzIGNoZWNrIGluIGFjcGlfaHdfZ2V0X2FjY2Vzc19i
-aXRfd2lkdGgoKSBzaG91bGQgYmUgYnl0ZQ0KPiA+PiB3aWR0aA0KPiA+PiBiYXNlZCwgbm90IGJp
-dCB3aWR0aCBiYXNlZC4gVGhpcyBwYXRjaCBmaXhlcyB0aGlzIG1pc3Rha2UuDQo+ID4+DQo+ID4+
-IEZvciB0aG9zZSB3aG8gd2FudCB0byByZXZpZXcgYWNwaV9od19hY2Nlc3NfYml0X3dpZHRoKCks
-IGhlcmUgaXMgdGhlDQo+ID4+IGNvbmNlcm5zIGFuZCB0aGUgZGVzaWduIGRldGFpbHMgb2YgdGhl
-IGZ1bmN0aW9uOg0KPiA+Pg0KPiA+PiBJdCBpcyBzdXBwb3NlZCB0aGF0IHRoZSBHQVMgQWRkcmVz
-cyBmaWVsZCBzaG91bGQgYmUgYWxpZ25lZCB0byB0aGUgYnl0ZQ0KPiA+PiB3aWR0aCBpbmRpY2F0
-ZWQgYnkgdGhlIEdBUyBBY2Nlc3NTaXplIGZpZWxkLiBTaW1pbGFybHksIGZvciB0aGUgb2xkIG5v
-bg0KPiA+PiBHQVMgcmVnaXN0ZXIsIGl0IGlzIHN1cHBvc2VkIHRoYXQgaXRzIEFkZHJlc3Mgc2hv
-dWxkIGJlIGFsaWduZWQgdG8gaXRzDQo+ID4+IExlbmd0aC4NCj4gPj4gRm9yIHRoZSAiQWNjZXNz
-U2l6ZSA9IDAgKG1lYW5pbmcgQU5ZKSIgY2FzZSwgd2UgdHJ5IHRvIHJldHVybiB0aGUNCj4gPj4g
-bWF4aW11bQ0KPiA+PiBpbnN0cnVjdGlvbiB3aWR0aCAoNjQgZm9yIE1NSU8gb3IgMzIgZm9yIFBJ
-Tykgb3IgdGhlIHVzZXIgZXhwZWN0ZWQNCj4gYWNjZXNzDQo+ID4+IGJpdCB3aWR0aCAoNjQgZm9y
-IGFjcGlfcmVhZCgpL2FjcGlfd3JpdGUoKSBvciAzMiBmb3IgYWNwaV9od19yZWFkKCkvDQo+ID4+
-IGFjcGlfaHdfd3JpdGUoKSkgZm9yIGZ1dGhlciBvcGVyYXRpb24gYW5kIGl0IGlzIHN1cHBvc2Vk
-IHRoYXQgdGhlIEdBUw0KPiA+PiBBZGRyZXNzIGZpZWxkIHNob3VsZCBhbHdheXMgYmUgYWxpZ25l
-ZCB0byB0aGUgbWF4aW11bSBleHBlY3RlZA0KPiBhY2Nlc3MNCj4gPj4gYml0DQo+ID4+IHdpZHRo
-IChvdGhlcndpc2UgaXQgY2FuJ3QgYmUgQU5ZKS4NCj4gPj4NCj4gPj4gVGhlIHByb2JsZW0gaXMg
-aW4gYWNwaV90Yl9pbml0X2dlbmVyaWNfYWRkcmVzcygpLCB3aGVyZSB0aGUgbm9uIEdBUw0KPiA+
-PiByZWdpc3RlcidzIExlbmd0aCBpcyBjb252ZXJ0ZWQgaW50byB0aGUgR0FTIEJpdFdpZHRoIGZp
-ZWxkLCBpdHMgQWRkcmVzcyBpcw0KPiA+PiBjb252ZXJ0ZWQgaW50byB0aGUgR0FTIEFkZHJlc3Mg
-ZmllbGQsIGFuZCB0aGUgR0FTIEFjY2Vzc1NpemUgZmllbGQgaXMNCj4gbGVmdA0KPiA+PiAwIGJ1
-dCBtb3N0IG9mIHRoZSByZWdpc3RlciBhY3R1YWxseSBjYW5ub3QgYmUgYWNjZXNzZWQgdXNpbmcg
-IkFOWSINCj4gPj4gYWNjZXNzZXMuDQo+ID4+DQo+ID4+IEFzIGEgY29uY2x1c2lvbiwgd2hlbiBB
-Y2Nlc3NTaXplID0gMCAoQU5ZKSwgdGhlIEFkZHJlc3Mgc2hvdWxkIGVpdGhlcg0KPiBiZQ0KPiA+
-PiBhbGlnbmVkIHRvIHRoZSBCaXRXaWR0aCAod3JvbmcgY29udmVyc2lvbikgb3IgYWxpZ25lZCB0
-byAzMiAoUElPKSBvciA2NA0KPiA+PiAoTU1JTykuIFNpbmNlIEJpdFdpZHRoIGZvciB0aGUgd3Jv
-bmcgY29udmVyc2lvbiBpcyA4LDE2LDMyLCB0aGUNCj4gQWRkcmVzcw0KPiA+PiBvZiB0aGUgcmVh
-bCBHQVMgc2hvdWxkIGFsd2F5cyBiZSBhbGlnbmVkIHRvIDgsMTYsMzIsIHRoZSBhZGRyZXNzDQo+
-IGFsaWdubWVudA0KPiA+PiBjaGVjayBpcyBub3QgbmVjZXNzYXJ5LiBCdXQgd2UgaW4gZmFjdCBj
-b3VsZCBlbmhhbmNlIHRoZSBjaGVjayBmb3IgYQ0KPiBmdXR1cmUNCj4gPj4gY2FzZSB3aGVyZSBt
-YXhfYml0X3dpZHRoIGNvdWxkIGJlIDY0IGZvciBhIFBJTyBhY2Nlc3MgaXNzdWVkIGZyb20NCj4g
-Pj4gYWNwaV9yZWFkKCkvYWNwaV93cml0ZSgpLg0KPiA+Pg0KPiA+PiBGaXhlczogYjMxNGExNzJl
-ZTk2ICgiQUNQSUNBOiBIYXJkd2FyZTogQWRkIG9wdGltaXplZCBhY2Nlc3MgYml0DQo+IHdpZHRo
-DQo+ID4+IHN1cHBvcnQiKQ0KPiA+PiBDYzogQm9yaXMgT3N0cm92c2t5IDxib3Jpcy5vc3Ryb3Zz
-a3lAb3JhY2xlLmNvbT4NCj4gPj4gQ2M6IE1pa2UgTWFyc2hhbGwgPGh1YmNhcEBvbW5pYm9uZC5j
-b20+DQo+ID4+IFN1Z2dlc3RlZC1ieTogSmFuIEJldWxpY2ggPGpiZXVsaWNoQHN1c2UuY29tPg0K
-PiA+PiBTaWduZWQtb2ZmLWJ5OiBMdiBaaGVuZyA8bHYuemhlbmdAaW50ZWwuY29tPg0KPiA+PiAt
-LS0NCj4gPj4gIGRyaXZlcnMvYWNwaS9hY3BpY2EvaHdyZWdzLmMgfCAgIDE2ICsrKysrKystLS0t
-LS0tLS0NCj4gPj4gIDEgZmlsZSBjaGFuZ2VkLCA3IGluc2VydGlvbnMoKyksIDkgZGVsZXRpb25z
-KC0pDQo+ID4+DQo+ID4+IGRpZmYgLS1naXQgYS9kcml2ZXJzL2FjcGkvYWNwaWNhL2h3cmVncy5j
-IGIvZHJpdmVycy9hY3BpL2FjcGljYS9od3JlZ3MuYw0KPiA+PiBpbmRleCAwZjE4ZGJjLi4wNTUz
-YzBiIDEwMDY0NA0KPiA+PiAtLS0gYS9kcml2ZXJzL2FjcGkvYWNwaWNhL2h3cmVncy5jDQo+ID4+
-ICsrKyBiL2RyaXZlcnMvYWNwaS9hY3BpY2EvaHdyZWdzLmMNCj4gPj4gQEAgLTg2LDI0ICs4Niwy
-MiBAQCBhY3BpX2h3X2dldF9hY2Nlc3NfYml0X3dpZHRoKHN0cnVjdA0KPiA+PiBhY3BpX2dlbmVy
-aWNfYWRkcmVzcyAqcmVnLCB1OCBtYXhfYml0X3dpZHRoKQ0KPiA+PiAgICAgICB1NjQgYWRkcmVz
-czsNCj4gPj4NCj4gPj4gICAgICAgaWYgKCFyZWctPmFjY2Vzc193aWR0aCkgew0KPiA+PiArICAg
-ICAgICAgICAgIGlmIChyZWctPnNwYWNlX2lkID09IEFDUElfQURSX1NQQUNFX1NZU1RFTV9JTykg
-ew0KPiA+PiArICAgICAgICAgICAgICAgICAgICAgbWF4X2JpdF93aWR0aCA9IDMyOw0KPiA+PiAr
-ICAgICAgICAgICAgIH0NCj4gPj4gICAgICAgICAgICAgICAvKg0KPiA+PiAgICAgICAgICAgICAg
-ICAqIERldGVjdCBvbGQgcmVnaXN0ZXIgZGVzY3JpcHRvcnMgd2hlcmUgb25seSB0aGUgYml0X3dp
-ZHRoDQo+ID4+IGZpZWxkDQo+ID4+ICAgICAgICAgICAgICAgICogbWFrZXMgc2Vuc2VzLiBUaGUg
-dGFyZ2V0IGFkZHJlc3MgaXMgY29waWVkIHRvIGhhbmRsZQ0KPiA+PiBwb3NzaWJsZQ0KPiA+PiAg
-ICAgICAgICAgICAgICAqIGFsaWdubWVudCBpc3N1ZXMuDQo+ID4+ICAgICAgICAgICAgICAgICov
-DQo+ID4+ICAgICAgICAgICAgICAgQUNQSV9NT1ZFXzY0X1RPXzY0KCZhZGRyZXNzLCAmcmVnLT5h
-ZGRyZXNzKTsNCj4gPj4gLSAgICAgICAgICAgICBpZiAoIXJlZy0+Yml0X29mZnNldCAmJiByZWct
-PmJpdF93aWR0aCAmJg0KPiA+PiArICAgICAgICAgICAgIGlmIChyZWctPmJpdF93aWR0aCA8IG1h
-eF9iaXRfd2lkdGggJiYNCj4gPj4gKyAgICAgICAgICAgICAgICAgIXJlZy0+Yml0X29mZnNldCAm
-JiByZWctPmJpdF93aWR0aCAmJg0KPiA+PiAgICAgICAgICAgICAgICAgICBBQ1BJX0lTX1BPV0VS
-X09GX1RXTyhyZWctPmJpdF93aWR0aCkgJiYNCj4gPj4gLSAgICAgICAgICAgICAgICAgQUNQSV9J
-U19BTElHTkVEKHJlZy0+Yml0X3dpZHRoLCA4KSAmJg0KPiA+PiAtICAgICAgICAgICAgICAgICBB
-Q1BJX0lTX0FMSUdORUQoYWRkcmVzcywgcmVnLT5iaXRfd2lkdGgpKSB7DQo+ID4+ICsgICAgICAg
-ICAgICAgICAgIEFDUElfSVNfQUxJR05FRChyZWctPmJpdF93aWR0aCwgOCkpIHsNCj4gPj4gICAg
-ICAgICAgICAgICAgICAgICAgIHJldHVybiAocmVnLT5iaXRfd2lkdGgpOw0KPiA+PiAtICAgICAg
-ICAgICAgIH0gZWxzZSB7DQo+ID4+IC0gICAgICAgICAgICAgICAgICAgICBpZiAocmVnLT5zcGFj
-ZV9pZCA9PSBBQ1BJX0FEUl9TUEFDRV9TWVNURU1fSU8pDQo+ID4+IHsNCj4gPj4gLSAgICAgICAg
-ICAgICAgICAgICAgICAgICAgICAgcmV0dXJuICgzMik7DQo+ID4+IC0gICAgICAgICAgICAgICAg
-ICAgICB9IGVsc2Ugew0KPiA+PiAtICAgICAgICAgICAgICAgICAgICAgICAgICAgICByZXR1cm4g
-KG1heF9iaXRfd2lkdGgpOw0KPiA+PiAtICAgICAgICAgICAgICAgICAgICAgfQ0KPiA+PiAgICAg
-ICAgICAgICAgIH0NCj4gPj4gKyAgICAgICAgICAgICByZXR1cm4gKG1heF9iaXRfd2lkdGgpOw0K
-PiA+PiAgICAgICB9IGVsc2Ugew0KPiA+PiAgICAgICAgICAgICAgIHJldHVybiAoMSA8PCAocmVn
-LT5hY2Nlc3Nfd2lkdGggKyAyKSk7DQo+ID4+ICAgICAgIH0NCj4gPj4gLS0NCj4gPj4gMS43LjEw
-DQo+ID4NCg==
+The address check in acpi_hw_get_access_bit_width() should be byte width
+based, not bit width based. This patch fixes this mistake.
+
+For those who want to review acpi_hw_access_bit_width(), here is the
+concerns and the design details of the function:
+
+It is supposed that the GAS Address field should be aligned to the byte
+width indicated by the GAS AccessSize field. Similarly, for the old non
+GAS register, it is supposed that its Address should be aligned to its
+Length.
+For the "AccessSize = 0 (meaning ANY)" case, we try to return the maximum
+instruction width (64 for MMIO or 32 for PIO) or the user expected access
+bit width (64 for acpi_read()/acpi_write() or 32 for acpi_hw_read()/
+acpi_hw_write()) and it is supposed that the GAS Address field should
+always be aligned to the maximum expected access bit width (otherwise it
+can't be accessed using ANY access bit width).
+
+The problem is in acpi_tb_init_generic_address(), where the non GAS
+register's Length is converted into the GAS BitWidth field, its Address is
+converted into the GAS Address field, and the GAS AccessSize field is left
+0 but most of the registers actually cannot be accessed using "ANY"
+accesses.
+
+As a conclusion, when AccessSize = 0 (ANY), the Address should either be
+aligned to the BitWidth (wrong conversion) or aligned to 32 for PIO or 64
+for MMIO (real GAS). Since currently, max_bit_width is 32, then:
+1. BitWidth for the wrong conversion is 8,16,32; and
+2. The Address of the real GAS should always be aligned to 8,16,32.
+The address alignment check to exclude false matched real GAS is not
+necessary. Thus this patch fixes the issue by removing the address
+alignment check.
+OTOH, we in fact could use a simpler check of
+"reg->bit_width < max_bit_width" to exclude the "BitWidth=64 PIO" case that
+may be issued from acpi_read()/acpi_write() in the future.
+
+Fixes: b314a172ee96 ("ACPICA: Hardware: Add optimized access bit width support")
+Reported-and-tested-by: Boris Ostrovsky <boris.ostrovsky@oracle.com>
+Acked-by: Mike Marshall <hubcap@omnibond.com>
+Suggested-by: Jan Beulich <jbeulich@suse.com>
+Signed-off-by: Lv Zheng <lv.zheng@intel.com>
+---
+ drivers/acpi/acpica/hwregs.c |   23 +++++++++--------------
+ 1 file changed, 9 insertions(+), 14 deletions(-)
+
+diff --git a/drivers/acpi/acpica/hwregs.c b/drivers/acpi/acpica/hwregs.c
+index 0f18dbc..daceb80 100644
+--- a/drivers/acpi/acpica/hwregs.c
++++ b/drivers/acpi/acpica/hwregs.c
+@@ -83,27 +83,22 @@ acpi_hw_write_multiple(u32 value,
+ static u8
+ acpi_hw_get_access_bit_width(struct acpi_generic_address *reg, u8 max_bit_width)
+ {
+-	u64 address;
+-
+ 	if (!reg->access_width) {
++		if (reg->space_id == ACPI_ADR_SPACE_SYSTEM_IO) {
++			max_bit_width = 32;
++		}
++
+ 		/*
+ 		 * Detect old register descriptors where only the bit_width field
+-		 * makes senses. The target address is copied to handle possible
+-		 * alignment issues.
++		 * makes senses.
+ 		 */
+-		ACPI_MOVE_64_TO_64(&address, &reg->address);
+-		if (!reg->bit_offset && reg->bit_width &&
++		if (reg->bit_width < max_bit_width &&
++		    !reg->bit_offset && reg->bit_width &&
+ 		    ACPI_IS_POWER_OF_TWO(reg->bit_width) &&
+-		    ACPI_IS_ALIGNED(reg->bit_width, 8) &&
+-		    ACPI_IS_ALIGNED(address, reg->bit_width)) {
++		    ACPI_IS_ALIGNED(reg->bit_width, 8)) {
+ 			return (reg->bit_width);
+-		} else {
+-			if (reg->space_id == ACPI_ADR_SPACE_SYSTEM_IO) {
+-				return (32);
+-			} else {
+-				return (max_bit_width);
+-			}
+ 		}
++		return (max_bit_width);
+ 	} else {
+ 		return (1 << (reg->access_width + 2));
+ 	}
+-- 
+1.7.10
+
