@@ -1,269 +1,201 @@
-From: Vikas Sajjan <sajjan.linux@gmail.com>
-Subject: Re: [Devel] [PATCH] Add support to parse RASF Table
-Date: Wed, 1 Jun 2016 10:44:22 +0530
-Message-ID: <CAGm_ybi+n-oeH=t2PVRipBNHoeGvzhjjaEASkWMg8_K2VnD2Fg@mail.gmail.com>
-References: <1462796276-3987-1-git-send-email-nagendra.k-v@hpe.com>
-	<TU4PR84MB0079FF2412932840DBE794C0C2770@TU4PR84MB0079.NAMPRD84.PROD.OUTLOOK.COM>
-	<TU4PR84MB004598D95417F3C00FC6BFC7D9460@TU4PR84MB0045.NAMPRD84.PROD.OUTLOOK.COM>
-	<94F2FBAB4432B54E8AACC7DFDE6C92E37E488955@ORSMSX110.amr.corp.intel.com>
+From: Gabriele Paoloni <gabriele.paoloni@huawei.com>
+Subject: RE: [PATCH V8 0/9] Support for ARM64 ACPI based PCI host controller
+Date: Wed, 1 Jun 2016 07:36:39 +0000
+Message-ID: <EE11001F9E5DDD47B7634E2F8A612F2E1F767865@lhreml507-mbx>
+References: <1464621262-26770-1-git-send-email-tn@semihalf.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-vk0-f41.google.com ([209.85.213.41]:33384 "EHLO
-	mail-vk0-f41.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750697AbcFAFOX (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 1 Jun 2016 01:14:23 -0400
-Received: by mail-vk0-f41.google.com with SMTP id r140so11987989vkf.0
-        for <linux-acpi@vger.kernel.org>; Tue, 31 May 2016 22:14:22 -0700 (PDT)
-In-Reply-To: <94F2FBAB4432B54E8AACC7DFDE6C92E37E488955@ORSMSX110.amr.corp.intel.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-pci-owner@vger.kernel.org>
+In-Reply-To: <1464621262-26770-1-git-send-email-tn@semihalf.com>
+Content-Language: en-US
+Sender: linux-pci-owner@vger.kernel.org
+To: Tomasz Nowicki <tn@semihalf.com>, "helgaas@kernel.org" <helgaas@kernel.org>, "arnd@arndb.de" <arnd@arndb.de>, "will.deacon@arm.com" <will.deacon@arm.com>, "catalin.marinas@arm.com" <catalin.marinas@arm.com>, "rafael@kernel.org" <rafael@kernel.org>, "hanjun.guo@linaro.org" <hanjun.guo@linaro.org>, "Lorenzo.Pieralisi@arm.com" <Lorenzo.Pieralisi@arm.com>, "okaya@codeaurora.org" <okaya@codeaurora.org>, "jchandra@broadcom.com" <jchandra@broadcom.com>
+Cc: "robert.richter@caviumnetworks.com" <robert.richter@caviumnetworks.com>, "mw@semihalf.com" <mw@semihalf.com>, "Liviu.Dudau@arm.com" <Liviu.Dudau@arm.com>, "ddaney@caviumnetworks.com" <ddaney@caviumnetworks.com>, Wangyijing <wangyijing@huawei.com>, "Suravee.Suthikulpanit@amd.com" <Suravee.Suthikulpanit@amd.com>, "msalter@redhat.com" <msalter@redhat.com>, "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linaro-acpi@lists.linaro.org" <linaro-acpi@lists.linaro.org>, "jcm@redhat.com" <jcm@redhat.com>, "andrea.gallo@linaro.org" <andrea.gallo@linaro.org>, "dhdang@apm.com" <dhdang@apm.com>, "jeremy.linton@arm.com" <jeremy.linton@arm.com>, "liudongdong (C)" <liudongd>
 List-Id: linux-acpi@vger.kernel.org
-To: "Moore, Robert" <robert.moore@intel.com>
-Cc: "Sajjan, Vikas C" <vikas.cha.sajjan@hpe.com>, "linaro-acpi@lists.linaro.org" <linaro-acpi@lists.linaro.org>, "rjw@rjwysocki.net" <rjw@rjwysocki.net>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "K V, Nagendra" <nagendra.k-v@hpe.com>, "Lakshminarasimha, Sunil Vishwanathpur" <sunil.vl@hpe.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "devel@acpica.org" <devel@acpica.org>
 
-On Tue, May 31, 2016 at 7:46 PM, Moore, Robert <robert.moore@intel.com> wrote:
-> Sorry for the delay.
-> Yes, this looks like we can take this.
+Hi all
 
-Thank you.
+In v7 thread Lorenzo has summarized a roadmap to
+get ACPI support for PCI controllers upstream.
+
+The second point of the roadmap was
+<< 2) In a real world (1) is not enough. Some ARM64 platforms, not entirely
+      ECAM compliant, already shipped with the corresponding firmware that
+      we can't update. HW has ECAM quirks and to work around it in the kernel
+      we put forward many solutions to the problem, it is time we found a
+      solution (when, of course, (1) is completed and upstream).
+      Using the MCFG table OEMID matching floated around in this thread
+      would work fine for most of the platforms (and cross-OS) that have
+      shipped with HW ECAM quirks, so I think that's the starting point for
+      our solution and that's how we can sort this out, _today_.
+
+      The solution is a trivial look-up table:
+      MCFG OEMID <-> PCI config space ops >>
+
+I think maybe it is worth to post this quirk mechanism as RFC on
+top of this v8 patchset, so that we can start to review it and
+make some progress on the quirks.
+ 
+If you agree I think Jon can tell who's the best person to
+push the quirk RFC (as my understanding is that this mechanism
+is currently used by some platforms deployed on the market...)
+
+Thanks
+
+Gab
 
 
-> Bob
->
->
->> -----Original Message-----
->> From: Sajjan, Vikas C [mailto:vikas.cha.sajjan@hpe.com]
->> Sent: Monday, May 30, 2016 9:57 PM
->> To: Moore, Robert
->> Cc: Lakshminarasimha, Sunil Vishwanathpur; rjw@rjwysocki.net;
->> devel@acpica.org; linux-acpi@vger.kernel.org; K V, Nagendra; linaro-
->> acpi@lists.linaro.org; linux-arm-kernel@lists.infradead.org
->> Subject: RE: [PATCH] Add support to parse RASF Table
->>
->> Hi Bob,
->>
->> Any thoughts on this patch
->>
->> Regards
->> Vikas Sajjan
->>
->> -----Original Message-----
->> From: K V, Nagendra
->> Sent: Monday, May 16, 2016 2:05 PM
->> To: robert.moore@intel.com
->> Cc: Sajjan, Vikas C <vikas.cha.sajjan@hpe.com>; Lakshminarasimha, Sunil
->> Vishwanathpur <sunil.vl@hpe.com>; devel@acpica.org; linux-
->> acpi@vger.kernel.org
->> Subject: RE: [PATCH] Add support to parse RASF Table
->>
->> Bob,
->>
->> Did you get chance to look into this?
->>
->> Regards
->> Nagendra
->>
->> -----Original Message-----
->> From: K V, Nagendra
->> Sent: Monday, May 09, 2016 5:48 PM
->> To: robert.moore@intel.com
->> Cc: Sajjan, Vikas C <vikas.cha.sajjan@hpe.com>; Lakshminarasimha, Sunil
->> Vishwanathpur <sunil.vl@hpe.com>; devel@acpica.org; K V, Nagendra
->> <nagendra.k-v@hpe.com>
->> Subject: [PATCH] Add support to parse RASF Table
->>
->> This patch adds support to parse RASF table. Currently RASF table is not
->> being recognized.
->> ---
->>  source/common/ahtable.c      |  1 +
->>  source/common/dmtable.c      |  7 +++++++
->>  source/common/dmtbinfo.c     | 13 +++++++++++++
->>  source/compiler/dtcompiler.h |  1 +
->>  source/compiler/dttemplate.h | 11 +++++++++++
->>  source/compiler/dtutils.c    |  5 +++++
->>  source/include/acdisasm.h    |  2 ++
->>  7 files changed, 40 insertions(+)
->>
->> diff --git a/source/common/ahtable.c b/source/common/ahtable.c index
->> 021ae33..59ddc83 100644
->> --- a/source/common/ahtable.c
->> +++ b/source/common/ahtable.c
->> @@ -196,6 +196,7 @@ const AH_TABLE      AcpiSupportedTables[] =
->>      {ACPI_SIG_NFIT, "NVDIMM Firmware Interface Table"},
->>      {ACPI_SIG_PCCT, "Platform Communications Channel Table"},
->>      {ACPI_SIG_PMTT, "Platform Memory Topology Table"},
->> +    {ACPI_SIG_RASF, "RAS Features Table"},
->>      {ACPI_RSDP_NAME,"Root System Description Pointer"},
->>      {ACPI_SIG_RSDT, "Root System Description Table"},
->>      {ACPI_SIG_S3PT, "S3 Performance Table"}, diff --git
->> a/source/common/dmtable.c b/source/common/dmtable.c index 51d91f8..321407c
->> 100644
->> --- a/source/common/dmtable.c
->> +++ b/source/common/dmtable.c
->> @@ -430,6 +430,7 @@ const ACPI_DMTABLE_DATA     AcpiDmTableData[] =
->>      {ACPI_SIG_NFIT, AcpiDmTableInfoNfit,    AcpiDmDumpNfit,
->> DtCompileNfit,  TemplateNfit},
->>      {ACPI_SIG_PCCT, AcpiDmTableInfoPcct,    AcpiDmDumpPcct,
->> DtCompilePcct,  TemplatePcct},
->>      {ACPI_SIG_PMTT, NULL,                   AcpiDmDumpPmtt,
->> DtCompilePmtt,  TemplatePmtt},
->> +    {ACPI_SIG_RASF, AcpiDmTableInfoRasf,    NULL,           NULL,
->> TemplateRasf},
->>      {ACPI_SIG_RSDT, NULL,                   AcpiDmDumpRsdt,
->> DtCompileRsdt,  TemplateRsdt},
->>      {ACPI_SIG_S3PT, NULL,                   NULL,           NULL,
->> TemplateS3pt},
->>      {ACPI_SIG_SBST, AcpiDmTableInfoSbst,    NULL,           NULL,
->> TemplateSbst},
->> @@ -916,6 +917,11 @@ AcpiDmDumpTable (
->>              ByteLength = 10;
->>              break;
->>
->> +        case ACPI_DMT_RASF:
->> +
->> +            ByteLength = 12;
->> +            break;
->> +
->>          case ACPI_DMT_BUF16:
->>          case ACPI_DMT_UUID:
->>
->> @@ -1048,6 +1054,7 @@ AcpiDmDumpTable (
->>
->>          /* Integer Data Types */
->>
->> +        case ACPI_DMT_RASF:
->>          case ACPI_DMT_UINT8:
->>          case ACPI_DMT_UINT16:
->>          case ACPI_DMT_UINT24:
->> diff --git a/source/common/dmtbinfo.c b/source/common/dmtbinfo.c index
->> 5520da2..3896b69 100644
->> --- a/source/common/dmtbinfo.c
->> +++ b/source/common/dmtbinfo.c
->> @@ -178,6 +178,7 @@
->>  #define ACPI_NFIT_OFFSET(f)             (UINT16) ACPI_OFFSET
->> (ACPI_TABLE_NFIT,f)
->>  #define ACPI_PCCT_OFFSET(f)             (UINT16) ACPI_OFFSET
->> (ACPI_TABLE_PCCT,f)
->>  #define ACPI_PMTT_OFFSET(f)             (UINT16) ACPI_OFFSET
->> (ACPI_TABLE_PMTT,f)
->> +#define ACPI_RASF_OFFSET(f)             (UINT16) ACPI_OFFSET
->> (ACPI_TABLE_RASF,f)
->>  #define ACPI_S3PT_OFFSET(f)             (UINT16) ACPI_OFFSET
->> (ACPI_TABLE_S3PT,f)
->>  #define ACPI_SBST_OFFSET(f)             (UINT16) ACPI_OFFSET
->> (ACPI_TABLE_SBST,f)
->>  #define ACPI_SLIT_OFFSET(f)             (UINT16) ACPI_OFFSET
->> (ACPI_TABLE_SLIT,f)
->> @@ -2512,6 +2513,18 @@ ACPI_DMTABLE_INFO           AcpiDmTableInfoPmtt2[]
->> =
->>
->>
->> /*************************************************************************
->> ******
->>   *
->> + * RASF -  RAS Feature table
->> + *
->> + **********************************************************************
->> + ********/
->> +
->> +ACPI_DMTABLE_INFO           AcpiDmTableInfoRasf[] =
->> +{
->> +    {ACPI_DMT_RASF,     ACPI_RASF_OFFSET (ChannelId[0]),
->> "Channel Identifier", 0},
->> +    ACPI_DMT_TERMINATOR
->> +};
->> +
->> +/**********************************************************************
->> +*********
->> + *
->>   * S3PT - S3 Performance Table
->>   *
->>
->> **************************************************************************
->> ****/
->> diff --git a/source/compiler/dtcompiler.h b/source/compiler/dtcompiler.h
->> index eb85ddc..1072f52 100644
->> --- a/source/compiler/dtcompiler.h
->> +++ b/source/compiler/dtcompiler.h
->> @@ -681,6 +681,7 @@ extern const unsigned char  TemplateMtmr[];  extern
->> const unsigned char  TemplateNfit[];  extern const unsigned char
->> TemplatePcct[];  extern const unsigned char  TemplatePmtt[];
->> +extern const unsigned char  TemplateRasf[];
->>  extern const unsigned char  TemplateRsdt[];  extern const unsigned char
->> TemplateS3pt[];  extern const unsigned char  TemplateSbst[]; diff --git
->> a/source/compiler/dttemplate.h b/source/compiler/dttemplate.h index
->> e420ec4..d17b2af 100644
->> --- a/source/compiler/dttemplate.h
->> +++ b/source/compiler/dttemplate.h
->> @@ -978,6 +978,17 @@ const unsigned char TemplatePmtt[] =
->>      0x00,0x00,0x00,0x00                       /* 000000B0    "...."
->> */
->>  };
->>
->> +const unsigned char TemplateRasf[] =
->> +{
->> +    0x42,0x45,0x52,0x54,0x30,0x00,0x00,0x00,  /* 00000000    "RASF0..."
->> */
->> +    0x01,0x15,0x49,0x4E,0x54,0x45,0x4C,0x20,  /* 00000008    "..INTEL "
->> */
->> +    0x54,0x45,0x4D,0x50,0x4C,0x41,0x54,0x45,  /* 00000010    "TEMPLATE"
->> */
->> +    0x01,0x00,0x00,0x00,0x49,0x4E,0x54,0x4C,  /* 00000018    "....INTL"
->> */
->> +    0x28,0x05,0x10,0x20,0x00,0x00,0x00,0x00,  /* 00000020    "(.. ...."
->> */
->> +    0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,  /* 00000028    "........"
->> */
->> +    0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00   /* 00000030    "........"
->> */
->> +};
->> +
->>  const unsigned char TemplateRsdp[] =
->>  {
->>      0x52,0x53,0x44,0x20,0x50,0x54,0x52,0x20,  /* 00000000    "RSD PTR "
->> */
->> diff --git a/source/compiler/dtutils.c b/source/compiler/dtutils.c index
->> 6ca418c..774db8b 100644
->> --- a/source/compiler/dtutils.c
->> +++ b/source/compiler/dtutils.c
->> @@ -688,6 +688,11 @@ DtGetFieldLength (
->>          ByteLength = 10;
->>          break;
->>
->> +    case ACPI_DMT_RASF:
->> +
->> +        ByteLength = 12;
->> +        break;
->> +
->>      case ACPI_DMT_BUF16:
->>      case ACPI_DMT_UUID:
->>
->> diff --git a/source/include/acdisasm.h b/source/include/acdisasm.h index
->> ba8f274..d59e4d9 100644
->> --- a/source/include/acdisasm.h
->> +++ b/source/include/acdisasm.h
->> @@ -227,6 +227,7 @@ typedef enum
->>      ACPI_DMT_NFIT,
->>      ACPI_DMT_PCCT,
->>      ACPI_DMT_PMTT,
->> +    ACPI_DMT_RASF,
->>      ACPI_DMT_SLIC,
->>      ACPI_DMT_SRAT,
->>
->> @@ -458,6 +459,7 @@ extern ACPI_DMTABLE_INFO
->> AcpiDmTableInfoPcctHdr[];
->>  extern ACPI_DMTABLE_INFO        AcpiDmTableInfoPcct0[];
->>  extern ACPI_DMTABLE_INFO        AcpiDmTableInfoPcct1[];
->>  extern ACPI_DMTABLE_INFO        AcpiDmTableInfoPcct2[];
->> +extern ACPI_DMTABLE_INFO        AcpiDmTableInfoRasf[];
->>  extern ACPI_DMTABLE_INFO        AcpiDmTableInfoRsdp1[];
->>  extern ACPI_DMTABLE_INFO        AcpiDmTableInfoRsdp2[];
->>  extern ACPI_DMTABLE_INFO        AcpiDmTableInfoS3pt[];
->> --
->> 2.5.0
->>
->
-> _______________________________________________
-> Devel mailing list
-> Devel@acpica.org
-> https://lists.acpica.org/mailman/listinfo/devel
+> -----Original Message-----
+> From: linux-pci-owner@vger.kernel.org [mailto:linux-pci-
+> owner@vger.kernel.org] On Behalf Of Tomasz Nowicki
+> Sent: 30 May 2016 16:14
+> To: helgaas@kernel.org; arnd@arndb.de; will.deacon@arm.com;
+> catalin.marinas@arm.com; rafael@kernel.org; hanjun.guo@linaro.org;
+> Lorenzo.Pieralisi@arm.com; okaya@codeaurora.org; jchandra@broadcom.com
+> Cc: robert.richter@caviumnetworks.com; mw@semihalf.com;
+> Liviu.Dudau@arm.com; ddaney@caviumnetworks.com; Wangyijing;
+> Suravee.Suthikulpanit@amd.com; msalter@redhat.com; linux-
+> pci@vger.kernel.org; linux-arm-kernel@lists.infradead.org; linux-
+> acpi@vger.kernel.org; linux-kernel@vger.kernel.org; linaro-
+> acpi@lists.linaro.org; jcm@redhat.com; andrea.gallo@linaro.org;
+> dhdang@apm.com; jeremy.linton@arm.com; liudongdong (C);
+> cov@codeaurora.org; Tomasz Nowicki
+> Subject: [PATCH V8 0/9] Support for ARM64 ACPI based PCI host
+> controller
+> 
+> From the functionality point of view this series may be split into the
+> following logic parts:
+> 1. Export ECAM API and add parent device to pci_config_window
+> 2. Add IO resources handling to PCI core code
+> 3. Support for generic domain assignment based on ACPI
+> 4. New MCFG driver
+> 5. Implement ARM64 ACPI based PCI host controller driver under
+> arch/arm64/
+> 
+> Patches has been built on top of 4.7-rc1 and can be found here:
+> git@github.com:semihalf-nowicki-tomasz/linux.git (pci-acpi-v8)
+> 
+> This has been tested on Cavium ThunderX server. Any help in reviewing
+> and
+> testing is very appreciated.
+> 
+> v7 -> v8
+> - move code from drivers/acpi/pci_root_generic.c to
+> arch/arm64/kernel/pci.c
+> - minor changes around domain assignment
+> - pci_mcfg.c improvements for parsing MCFG tables and lookup its
+> entries
+> 
+> v6 -> v7
+> - drop quirks handling
+> - changes for ACPI companion and domain number assignment approach
+> - implement arch pcibios_{add|remove}_bus and call
+> acpi_pci_{add|remove}_bus from there
+> - cleanups around nomenclature
+> - use resources oriented API for ECAM
+> - fix for based address calculation before mapping ECAM region
+> - remove useless lock for MCFG lookup
+> - move MCFG stuff to separated file pci_mcfg.c
+> - drop MCFG entries caching
+> - rebase against 4.6-rc7
+> 
+> v5 -> v6
+> - drop idea of x86 MMCONFIG code refactoring
+> - integrate JC's patches which introduce new ECAM API:
+>   https://lkml.org/lkml/2016/4/11/907
+>   git: https://github.com/jchandra-brcm/linux/ (arm64-acpi-pci-v3)
+> - integrate Sinan's fix for releasing IO resources, see patch [06/13]
+> - added ACPI support for ThunderX ECAM and PEM drivers
+> - rebase against 4.6-rc2
+> 
+> v4 -> v5
+> - drop MCFG refactoring group patches 1-6 from series v4 and integrate
+> Jayachandran's patch
+>   https://patchwork.ozlabs.org/patch/575525/
+> - rewrite PCI legacy IRQs allocation
+> - squash two patches 11 and 12 from series v4, fixed bisection issue
+> - changelog improvements
+> - rebase against 4.5-rc3
+> 
+> v3 -> v4
+> - drop Jiang's fix
+> http://lkml.iu.edu/hypermail/linux/kernel/1601.1/04318.html
+> - add Lorenzo's fix patch 19/24
+> - ACPI PCI bus domain number assigning cleanup
+> - change resource management, we now claim and reassign resources
+> - improvements for applying quirks
+> - drop Matthew's http://www.spinics.net/lists/linux-pci/msg45950.html
+> dependency
+> - rebase against 4.5-rc1
+> 
+> v2 -> v3
+> - fix legacy IRQ assigning and IO ports registration
+> - remove reference to arch specific companion device for ia64
+> - move ACPI PCI host controller driver to pci_root.c
+> - drop generic domain assignment for x86 and ia64 as I am not
+>   able to run all necessary test variants
+> - drop patch which cleaned legacy IRQ assignment since it belongs to
+>   Mathew's series:
+>   https://patchwork.ozlabs.org/patch/557504/
+> - extend MCFG quirk code
+> - rebase against 4.4
+> 
+> v1 -> v2
+> - move non-arch specific piece of code to dirver/acpi/ directory
+> - fix IO resource handling
+> - introduce PCI config accessors quirks matching
+> - moved ACPI_COMPANION_SET to generic code
+> 
+> v1 - https://lkml.org/lkml/2015/10/27/504
+> v2 - https://lkml.org/lkml/2015/12/16/246
+> v3 - http://lkml.iu.edu/hypermail/linux/kernel/1601.1/04308.html
+> v4 - https://lkml.org/lkml/2016/2/4/646
+> v5 - https://lkml.org/lkml/2016/2/16/426
+> v6 - https://lkml.org/lkml/2016/4/15/594
+> 
+> Jayachandran C (2):
+>   PCI: ecam: move ecam.h to linux/include/pci-ecam.h
+>   PCI: ecam: Add parent device field to pci_config_window
+> 
+> Tomasz Nowicki (7):
+>   pci: Add new function to unmap IO resources.
+>   acpi, pci: Support IO resources when parsing PCI host bridge
+>     resources.
+>   pci, acpi: add acpi hook to assign domain number.
+>   arm64, pci, acpi: ACPI support for legacy IRQs parsing and
+>     consolidation with DT code.
+>   acpi: Add generic MCFG table handling
+>   arm64, pci, acpi: Provide ACPI-specific prerequisites for PCI bus
+>     enumeration.
+>   pci, acpi: ARM64 support for ACPI based generic PCI host controller
+> 
+>  arch/arm64/Kconfig                  |   2 +
+>  arch/arm64/kernel/pci.c             | 143
+> ++++++++++++++++++++++++++++++++++--
+>  drivers/acpi/Kconfig                |   3 +
+>  drivers/acpi/Makefile               |   1 +
+>  drivers/acpi/pci_mcfg.c             |  94 ++++++++++++++++++++++++
+>  drivers/acpi/pci_root.c             |  39 ++++++++++
+>  drivers/pci/ecam.c                  |   6 +-
+>  drivers/pci/ecam.h                  |  67 -----------------
+>  drivers/pci/host/pci-host-common.c  |   3 +-
+>  drivers/pci/host/pci-host-generic.c |   3 +-
+>  drivers/pci/host/pci-thunder-ecam.c |   3 +-
+>  drivers/pci/host/pci-thunder-pem.c  |   6 +-
+>  drivers/pci/pci.c                   |  29 +++++++-
+>  include/linux/pci-acpi.h            |   2 +
+>  include/linux/pci-ecam.h            |  67 +++++++++++++++++
+>  include/linux/pci.h                 |   9 ++-
+>  16 files changed, 387 insertions(+), 90 deletions(-)
+>  create mode 100644 drivers/acpi/pci_mcfg.c
+>  delete mode 100644 drivers/pci/ecam.h
+>  create mode 100644 include/linux/pci-ecam.h
+> 
+> --
+> 1.9.1
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-pci" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
