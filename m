@@ -1,73 +1,100 @@
-From: Gabriele Paoloni <gabriele.paoloni@huawei.com>
-Subject: RE: [PATCH V8 0/9] Support for ARM64 ACPI based PCI host controller
-Date: Thu, 2 Jun 2016 10:06:27 +0000
-Message-ID: <EE11001F9E5DDD47B7634E2F8A612F2E1F769AAB@lhreml507-mbx>
+From: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+Subject: Re: [PATCH V8 2/9] PCI: ecam: Add parent device field to
+ pci_config_window
+Date: Thu, 2 Jun 2016 11:13:56 +0100
+Message-ID: <20160602101356.GD13962@red-moon>
 References: <1464621262-26770-1-git-send-email-tn@semihalf.com>
- <EE11001F9E5DDD47B7634E2F8A612F2E1F767865@lhreml507-mbx>
- <f606faa9-72f3-3219-02a8-69e948338d2e@redhat.com>
+ <1464621262-26770-3-git-send-email-tn@semihalf.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <f606faa9-72f3-3219-02a8-69e948338d2e@redhat.com>
-Content-Language: en-US
-Sender: linux-kernel-owner@vger.kernel.org
-To: Jon Masters <jcm@redhat.com>, Tomasz Nowicki <tn@semihalf.com>, "helgaas@kernel.org" <helgaas@kernel.org>, "arnd@arndb.de" <arnd@arndb.de>, "will.deacon@arm.com" <will.deacon@arm.com>, "catalin.marinas@arm.com" <catalin.marinas@arm.com>, "rafael@kernel.org" <rafael@kernel.org>, "hanjun.guo@linaro.org" <hanjun.guo@linaro.org>, "Lorenzo.Pieralisi@arm.com" <Lorenzo.Pieralisi@arm.com>, "okaya@codeaurora.org" <okaya@codeaurora.org>, "jchandra@broadcom.com" <jchandra@broadcom.com>
-Cc: "robert.richter@caviumnetworks.com" <robert.richter@caviumnetworks.com>, "mw@semihalf.com" <mw@semihalf.com>, "Liviu.Dudau@arm.com" <Liviu.Dudau@arm.com>, "ddaney@caviumnetworks.com" <ddaney@caviumnetworks.com>, Wangyijing <wangyijing@huawei.com>, "Suravee.Suthikulpanit@amd.com" <Suravee.Suthikulpanit@amd.com>, "msalter@redhat.com" <msalter@redhat.com>, "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linaro-acpi@lists.linaro.org" <linaro-acpi@lists.linaro.org>, "andrea.gallo@linaro.org" <andrea.gallo@linaro.org>, "dhdang@apm.com" <dhdang@apm.com>, "jeremy.linton@arm.com" <jeremy.linton@arm.com>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-pci-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <1464621262-26770-3-git-send-email-tn@semihalf.com>
+Sender: linux-pci-owner@vger.kernel.org
+To: Tomasz Nowicki <tn@semihalf.com>
+Cc: helgaas@kernel.org, arnd@arndb.de, will.deacon@arm.com, catalin.marinas@arm.com, rafael@kernel.org, hanjun.guo@linaro.org, okaya@codeaurora.org, jchandra@broadcom.com, robert.richter@caviumnetworks.com, mw@semihalf.com, Liviu.Dudau@arm.com, ddaney@caviumnetworks.com, wangyijing@huawei.com, Suravee.Suthikulpanit@amd.com, msalter@redhat.com, linux-pci@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linaro-acpi@lists.linaro.org, jcm@redhat.com, andrea.gallo@linaro.org, dhdang@apm.com, jeremy.linton@arm.com, liudongdong3@huawei.com, cov@codeaurora.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hi Jon
-
-> -----Original Message-----
-> From: Jon Masters [mailto:jcm@redhat.com]
-> Sent: 02 June 2016 08:32
-> To: Gabriele Paoloni; Tomasz Nowicki; helgaas@kernel.org;
-> arnd@arndb.de; will.deacon@arm.com; catalin.marinas@arm.com;
-> rafael@kernel.org; hanjun.guo@linaro.org; Lorenzo.Pieralisi@arm.com;
-> okaya@codeaurora.org; jchandra@broadcom.com
-> Cc: robert.richter@caviumnetworks.com; mw@semihalf.com;
-> Liviu.Dudau@arm.com; ddaney@caviumnetworks.com; Wangyijing;
-> Suravee.Suthikulpanit@amd.com; msalter@redhat.com; linux-
-> pci@vger.kernel.org; linux-arm-kernel@lists.infradead.org; linux-
-> acpi@vger.kernel.org; linux-kernel@vger.kernel.org; linaro-
-> acpi@lists.linaro.org; jcm@redhat.com; andrea.gallo@linaro.org;
-> dhdang@apm.com; jeremy.linton@arm.com
-> Subject: Re: [PATCH V8 0/9] Support for ARM64 ACPI based PCI host
-> controller
+On Mon, May 30, 2016 at 05:14:15PM +0200, Tomasz Nowicki wrote:
+> From: Jayachandran C <jchandra@broadcom.com>
 > 
-> On 06/01/2016 03:36 AM, Gabriele Paoloni wrote:
+> Add a parent device field to struct pci_config_window. The parent
+> is not saved now, but will be useful to save it in some cases.
+> Specifically in case of ACPI for ARM64, it can be used to setup
+> ACPI companion and domain.
 > 
-> > If you agree I think Jon can tell who's the best person to
-> > push the quirk RFC (as my understanding is that this mechanism
-> > is currently used by some platforms deployed on the market...)
+> Since the parent dev is in struct pci_config_window now, we need
+> not pass it to he init function as a separate argument.
+
+Nit: "the init function"
+
+> Signed-off-by: Jayachandran C <jchandra@broadcom.com>
+> ---
+>  drivers/pci/ecam.c                 | 3 ++-
+>  drivers/pci/host/pci-thunder-pem.c | 3 ++-
+>  include/linux/pci-ecam.h           | 4 ++--
+>  3 files changed, 6 insertions(+), 4 deletions(-)
+
+Acked-by: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+
+> diff --git a/drivers/pci/ecam.c b/drivers/pci/ecam.c
+> index 820e26b..66e0d71 100644
+> --- a/drivers/pci/ecam.c
+> +++ b/drivers/pci/ecam.c
+> @@ -51,6 +51,7 @@ struct pci_config_window *pci_ecam_create(struct device *dev,
+>  	if (!cfg)
+>  		return ERR_PTR(-ENOMEM);
+>  
+> +	cfg->parent = dev;
+>  	cfg->ops = ops;
+>  	cfg->busr.start = busr->start;
+>  	cfg->busr.end = busr->end;
+> @@ -94,7 +95,7 @@ struct pci_config_window *pci_ecam_create(struct device *dev,
+>  	}
+>  
+>  	if (ops->init) {
+> -		err = ops->init(dev, cfg);
+> +		err = ops->init(cfg);
+>  		if (err)
+>  			goto err_exit;
+>  	}
+> diff --git a/drivers/pci/host/pci-thunder-pem.c b/drivers/pci/host/pci-thunder-pem.c
+> index 5020d3d..91f6fc6 100644
+> --- a/drivers/pci/host/pci-thunder-pem.c
+> +++ b/drivers/pci/host/pci-thunder-pem.c
+> @@ -284,8 +284,9 @@ static int thunder_pem_config_write(struct pci_bus *bus, unsigned int devfn,
+>  	return pci_generic_config_write(bus, devfn, where, size, val);
+>  }
+>  
+> -static int thunder_pem_init(struct device *dev, struct pci_config_window *cfg)
+> +static int thunder_pem_init(struct pci_config_window *cfg)
+>  {
+> +	struct device *dev = cfg->parent;
+>  	resource_size_t bar4_start;
+>  	struct resource *res_pem;
+>  	struct thunder_pem_pci *pem_pci;
+> diff --git a/include/linux/pci-ecam.h b/include/linux/pci-ecam.h
+> index 9878beb..7adad20 100644
+> --- a/include/linux/pci-ecam.h
+> +++ b/include/linux/pci-ecam.h
+> @@ -27,8 +27,7 @@ struct pci_config_window;
+>  struct pci_ecam_ops {
+>  	unsigned int			bus_shift;
+>  	struct pci_ops			pci_ops;
+> -	int				(*init)(struct device *,
+> -						struct pci_config_window *);
+> +	int				(*init)(struct pci_config_window *);
+>  };
+>  
+>  /*
+> @@ -45,6 +44,7 @@ struct pci_config_window {
+>  		void __iomem		*win;	/* 64-bit single mapping */
+>  		void __iomem		**winp; /* 32-bit per-bus mapping */
+>  	};
+> +	struct device			*parent;/* ECAM res was from this dev */
+>  };
+>  
+>  /* create and free pci_config_window */
+> -- 
+> 1.9.1
 > 
-> Let me ping Linaro folks to see who has that (quirks) ball. We can
-> certainly share the older OEM matching quirks Mark Salter did for
-> earlier RHEL(SA) internal versions as a seed for that[0] activity.
-
-Tomasz has posted the RFC so we'll start to look at that
-
-> 
-> BUT...I don't think we should block this thread on the quirks. They're
-> separate (but important). I see Arnd's reply as well, but nobody else
-> has yet chimed in to this thread (and I am about to prod all of the
-> vendors to reply to this thread and ACK). Can I ask whether we can't
-> just stage v8 as-is for -next at this point? Can Arnd's (or other)
-> suggestions be handled as followup patches post-merge please? Bjorn?
-
-I will ask HiSilicon folks to test it so we can add Tested-by on this
-
-Thanks
-
-Gab
-
-> 
-> Jon.
-> 
-> [0] RHEL(SA) has had three different PCIe enabled ACPI stacks
-> maintained
-> independently so far since we need PCIe to boot most of the hundreds of
-> v8 systems we have internal to Red Hat - which all have PCI.
-> 
-> --
-> Computer Architect | Sent from my Fedora powered laptop
