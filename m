@@ -1,101 +1,99 @@
-From: Kees Cook <keescook@chromium.org>
-Subject: Re: [PATCH] pstore: set ecc_notice_size to zero
-Date: Thu, 2 Jun 2016 09:03:02 -0700
-Message-ID: <CAGXu5jJeLbe5D-wLPDR6z9y=DTz57gr56G6M2vZz9MXqRRerdQ@mail.gmail.com>
-References: <ca5ede6ead67d9f805748394c37f06e174543bd3.1464844327.git.geliangtang@gmail.com>
+From: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+Subject: Re: [PATCH V8 3/9] pci: Add new function to unmap IO resources.
+Date: Thu, 2 Jun 2016 17:50:18 +0100
+Message-ID: <20160602165018.GG13962@red-moon>
+References: <1464621262-26770-1-git-send-email-tn@semihalf.com>
+ <1464621262-26770-4-git-send-email-tn@semihalf.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-wm0-f54.google.com ([74.125.82.54]:35893 "EHLO
-	mail-wm0-f54.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932870AbcFBQDG (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 2 Jun 2016 12:03:06 -0400
-Received: by mail-wm0-f54.google.com with SMTP id n184so87098196wmn.1
-        for <linux-acpi@vger.kernel.org>; Thu, 02 Jun 2016 09:03:04 -0700 (PDT)
-In-Reply-To: <ca5ede6ead67d9f805748394c37f06e174543bd3.1464844327.git.geliangtang@gmail.com>
+Received: from foss.arm.com ([217.140.101.70]:46574 "EHLO foss.arm.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753331AbcFBQt4 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 2 Jun 2016 12:49:56 -0400
+Content-Disposition: inline
+In-Reply-To: <1464621262-26770-4-git-send-email-tn@semihalf.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Geliang Tang <geliangtang@gmail.com>
-Cc: Anton Vorontsov <anton@enomsg.org>, Colin Cross <ccross@android.com>, Tony Luck <tony.luck@intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Matt Fleming <matt@codeblueprint.co.uk>, linux-acpi@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>, "linux-efi@vger.kernel.org" <linux-efi@vger.kernel.org>
+To: Tomasz Nowicki <tn@semihalf.com>
+Cc: helgaas@kernel.org, arnd@arndb.de, will.deacon@arm.com, catalin.marinas@arm.com, rafael@kernel.org, hanjun.guo@linaro.org, okaya@codeaurora.org, jchandra@broadcom.com, robert.richter@caviumnetworks.com, mw@semihalf.com, Liviu.Dudau@arm.com, ddaney@caviumnetworks.com, wangyijing@huawei.com, Suravee.Suthikulpanit@amd.com, msalter@redhat.com, linux-pci@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linaro-acpi@lists.linaro.org, jcm@redhat.com, andrea.gallo@linaro.org, dhdang@apm.com, jeremy.linton@arm.com, liudongdong3@huawei.com, cov@codeaurora.org
 
-On Wed, Jun 1, 2016 at 10:17 PM, Geliang Tang <geliangtang@gmail.com> wrote:
-> Since a @ecc_notice_size parameter has been added in pstore_info.read(),
-> this patch sets this parameter to zero in efi_pstore_read() and
-> erst_reader().
->
-> Signed-off-by: Geliang Tang <geliangtang@gmail.com>
-
-Thanks! I'll get this added.
-
--Kees
-
+On Mon, May 30, 2016 at 05:14:16PM +0200, Tomasz Nowicki wrote:
+> We need to release I/O resources so that the same I/O resources
+> can be allocated again (pci_remap_iospace), like in PCI hotplug removal
+> scenario. Therefore this patch implements new pci_unmap_iospace call which
+> unmaps I/O space as the symmetry to pci_remap_iospace.
+> 
+> Signed-off-by: Sinan Kaya <okaya@codeaurora.org>
+> Signed-off-by: Tomasz Nowicki <tn@semihalf.com>
 > ---
->  drivers/acpi/apei/erst.c          | 1 +
->  drivers/firmware/efi/efi-pstore.c | 5 +++++
->  2 files changed, 6 insertions(+)
->
-> diff --git a/drivers/acpi/apei/erst.c b/drivers/acpi/apei/erst.c
-> index 3024edf..f096ab3 100644
-> --- a/drivers/acpi/apei/erst.c
-> +++ b/drivers/acpi/apei/erst.c
-> @@ -1035,6 +1035,7 @@ skip:
->         memcpy(*buf, rcd->data, len - sizeof(*rcd));
->         *id = record_id;
->         *compressed = false;
-> +       *ecc_notice_size = 0;
->         if (uuid_le_cmp(rcd->sec_hdr.section_type,
->                         CPER_SECTION_TYPE_DMESG_Z) == 0) {
->                 *type = PSTORE_TYPE_DMESG;
-> diff --git a/drivers/firmware/efi/efi-pstore.c b/drivers/firmware/efi/efi-pstore.c
-> index cd8c35f..d5903ea 100644
-> --- a/drivers/firmware/efi/efi-pstore.c
-> +++ b/drivers/firmware/efi/efi-pstore.c
-> @@ -34,6 +34,7 @@ struct pstore_read_data {
->         int *count;
->         struct timespec *timespec;
->         bool *compressed;
-> +       ssize_t *ecc_notice_size;
->         char **buf;
->  };
->
-> @@ -69,6 +70,7 @@ static int efi_pstore_read_func(struct efivar_entry *entry, void *data)
->                         *cb_data->compressed = true;
->                 else
->                         *cb_data->compressed = false;
-> +               *cb_data->ecc_notice_size = 0;
->         } else if (sscanf(name, "dump-type%u-%u-%d-%lu",
->                    cb_data->type, &part, &cnt, &time) == 4) {
->                 *cb_data->id = generic_id(time, part, cnt);
-> @@ -76,6 +78,7 @@ static int efi_pstore_read_func(struct efivar_entry *entry, void *data)
->                 cb_data->timespec->tv_sec = time;
->                 cb_data->timespec->tv_nsec = 0;
->                 *cb_data->compressed = false;
-> +               *cb_data->ecc_notice_size = 0;
->         } else if (sscanf(name, "dump-type%u-%u-%lu",
->                           cb_data->type, &part, &time) == 3) {
->                 /*
-> @@ -88,6 +91,7 @@ static int efi_pstore_read_func(struct efivar_entry *entry, void *data)
->                 cb_data->timespec->tv_sec = time;
->                 cb_data->timespec->tv_nsec = 0;
->                 *cb_data->compressed = false;
-> +               *cb_data->ecc_notice_size = 0;
->         } else
->                 return 0;
->
-> @@ -221,6 +225,7 @@ static ssize_t efi_pstore_read(u64 *id, enum pstore_type_id *type,
->         data.count = count;
->         data.timespec = timespec;
->         data.compressed = compressed;
-> +       data.ecc_notice_size = ecc_notice_size;
->         data.buf = buf;
->
->         *data.buf = kzalloc(EFIVARS_DATA_SIZE_MAX, GFP_KERNEL);
-> --
+>  drivers/pci/pci.c   | 18 ++++++++++++++++++
+>  include/linux/pci.h |  1 +
+>  2 files changed, 19 insertions(+)
+> 
+> diff --git a/drivers/pci/pci.c b/drivers/pci/pci.c
+> index c8b4dbd..eb431b5 100644
+> --- a/drivers/pci/pci.c
+> +++ b/drivers/pci/pci.c
+> @@ -25,6 +25,7 @@
+>  #include <linux/device.h>
+>  #include <linux/pm_runtime.h>
+>  #include <linux/pci_hotplug.h>
+> +#include <linux/vmalloc.h>
+>  #include <asm/setup.h>
+>  #include <linux/aer.h>
+>  #include "pci.h"
+> @@ -3165,6 +3166,23 @@ int __weak pci_remap_iospace(const struct resource *res, phys_addr_t phys_addr)
+>  #endif
+>  }
+>  
+> +/**
+> + *	pci_unmap_iospace - Unmap the memory mapped I/O space
+> + *	@res: resource to be unmapped
+> + *
+> + *	Unmap the CPU virtual address @res from virtual address space.
+> + *	Only architectures that have memory mapped IO functions defined
+> + *	(and the PCI_IOBASE value defined) should call this function.
+> + */
+> +void pci_unmap_iospace(struct resource *res)
+> +{
+> +#if defined(PCI_IOBASE) && defined(CONFIG_MMU)
+> +	unsigned long vaddr = (unsigned long)PCI_IOBASE + res->start;
+> +
+> +	unmap_kernel_range(vaddr, resource_size(res));
+> +#endif
+> +}
+
+Rafael mentioned that, it would be cleaner to move the ifdef outside
+the function and add an empty static inline (but that probably should
+be done in one go along with pci_remap_iospace() and
+pci_pio_to_address() and pci_address_to_pio()) it would be weird
+to do it just for pci_unmap_iospace().
+
+It is true that unmap_kernel_range() is not commonly used in generic
+code, but to the best of my knowledge it does what's required here,
+(ie clear page table entries and flush tlbs, given that it is used
+in conjuction with ioremap_page_range() that maps a physical address
+to a specific preallocated virtual address ie PCI_IOBASE), so:
+
+Acked-by: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+
+> +
+>  static void __pci_set_master(struct pci_dev *dev, bool enable)
+>  {
+>  	u16 old_cmd, cmd;
+> diff --git a/include/linux/pci.h b/include/linux/pci.h
+> index b67e4df..12349de 100644
+> --- a/include/linux/pci.h
+> +++ b/include/linux/pci.h
+> @@ -1167,6 +1167,7 @@ int pci_register_io_range(phys_addr_t addr, resource_size_t size);
+>  unsigned long pci_address_to_pio(phys_addr_t addr);
+>  phys_addr_t pci_pio_to_address(unsigned long pio);
+>  int pci_remap_iospace(const struct resource *res, phys_addr_t phys_addr);
+> +void pci_unmap_iospace(struct resource *res);
+>  
+>  static inline pci_bus_addr_t pci_bus_address(struct pci_dev *pdev, int bar)
+>  {
+> -- 
 > 1.9.1
->
-
-
-
--- 
-Kees Cook
-Chrome OS & Brillo Security
+> 
