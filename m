@@ -1,33 +1,46 @@
-From: Borislav Petkov <bp@alien8.de>
-Subject: Re: [PATCH 01/20] x86, intel: Introduce macros for Intel family
- numbers
-Date: Thu, 2 Jun 2016 08:57:15 +0200
-Message-ID: <20160602065715.GA10803@pd.tnic>
-References: <20160602001157.D8BE59D7@viggo.jf.intel.com>
+From: Jon Masters <jcm@redhat.com>
+Subject: Re: [PATCH V8 0/9] Support for ARM64 ACPI based PCI host controller
+Date: Thu, 2 Jun 2016 03:31:38 -0400
+Message-ID: <f606faa9-72f3-3219-02a8-69e948338d2e@redhat.com>
+References: <1464621262-26770-1-git-send-email-tn@semihalf.com>
+ <EE11001F9E5DDD47B7634E2F8A612F2E1F767865@lhreml507-mbx>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20160602001157.D8BE59D7@viggo.jf.intel.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Dave Hansen <dave@sr71.net>
-Cc: linux-kernel@vger.kernel.org, x86@kernel.org, dave.hansen@linux.intel.com, adrian.hunter@intel.com, ak@linux.intel.com, luto@kernel.org, dvhart@infradead.org, dougthompson@xmission.com, edubezval@gmail.com, hpa@zytor.com, mingo@redhat.com, jacob.jun.pan@linux.intel.com, kan.liang@intel.com, lenb@kernel.org, linux-acpi@vger.kernel.org, linux-edac@vger.kernel.org, linux-mmc@vger.kernel.org, linux-pm@vger.kernel.org, mchehab@osg.samsung.com, peterz@infradead.org, platform-driver-x86@vger.kernel.org, rafael.j.wysocki@intel.com, rajneesh.bhardwaj@intel.com, souvik.k.chakravarty@intel.com, srinivas.pandruvada@linux.intel.com, eranian@google.com, tglx@linutronix.de, tony.luck@intel.com, ulf.hansson@linaro.org, viresh.kumar@linaro.org, vishwanath.somayaji@intel.com, zheng.z.yan@intel.com, rui.zhang@intel.com
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mx1.redhat.com ([209.132.183.28]:43569 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S932099AbcFBHbx (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 2 Jun 2016 03:31:53 -0400
+In-Reply-To: <EE11001F9E5DDD47B7634E2F8A612F2E1F767865@lhreml507-mbx>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Gabriele Paoloni <gabriele.paoloni@huawei.com>, Tomasz Nowicki <tn@semihalf.com>, "helgaas@kernel.org" <helgaas@kernel.org>, "arnd@arndb.de" <arnd@arndb.de>, "will.deacon@arm.com" <will.deacon@arm.com>, "catalin.marinas@arm.com" <catalin.marinas@arm.com>, "rafael@kernel.org" <rafael@kernel.org>, "hanjun.guo@linaro.org" <hanjun.guo@linaro.org>, "Lorenzo.Pieralisi@arm.com" <Lorenzo.Pieralisi@arm.com>, "okaya@codeaurora.org" <okaya@codeaurora.org>, "jchandra@broadcom.com" <jchandra@broadcom.com>
+Cc: "robert.richter@caviumnetworks.com" <robert.richter@caviumnetworks.com>, "mw@semihalf.com" <mw@semihalf.com>, "Liviu.Dudau@arm.com" <Liviu.Dudau@arm.com>, "ddaney@caviumnetworks.com" <ddaney@caviumnetworks.com>, Wangyijing <wangyijing@huawei.com>, "Suravee.Suthikulpanit@amd.com" <Suravee.Suthikulpanit@amd.com>, "msalter@redhat.com" <msalter@redhat.com>, "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linaro-acpi@lists.linaro.org" <linaro-acpi@lists.linaro.org>, "jcm@redhat.com" <jcm@redhat.com>, "andrea.gallo@linaro.org" <andrea.gallo@linaro.org>, "dhdang@apm.com" <dhdang@apm.com>, "jeremy.linton@arm.com" <jeremy.linton@arm.com>
 
-On Wed, Jun 01, 2016 at 05:11:57PM -0700, Dave Hansen wrote:
-> +#define INTEL_FAM6_MODEL_CORE_YONAH		0x0E
-> +#define INTEL_FAM6_MODEL_CORE2_MEROM		0x0F
+On 06/01/2016 03:36 AM, Gabriele Paoloni wrote:
 
-That "MODEL_" part looks redundant too IMO - you could simply do
+> If you agree I think Jon can tell who's the best person to
+> push the quirk RFC (as my understanding is that this mechanism
+> is currently used by some platforms deployed on the market...)
 
-INTEL_FAM6_NEHALEM and
-INTEL_FAM6_SKYLAKE_DESKTOP
-...
+Let me ping Linaro folks to see who has that (quirks) ball. We can
+certainly share the older OEM matching quirks Mark Salter did for
+earlier RHEL(SA) internal versions as a seed for that[0] activity.
 
-and so on and it is still clear what it is.
+BUT...I don't think we should block this thread on the quirks. They're
+separate (but important). I see Arnd's reply as well, but nobody else
+has yet chimed in to this thread (and I am about to prod all of the
+vendors to reply to this thread and ACK). Can I ask whether we can't
+just stage v8 as-is for -next at this point? Can Arnd's (or other)
+suggestions be handled as followup patches post-merge please? Bjorn?
+
+Jon.
+
+[0] RHEL(SA) has had three different PCIe enabled ACPI stacks maintained
+independently so far since we need PCIe to boot most of the hundreds of
+v8 systems we have internal to Red Hat - which all have PCI.
 
 -- 
-Regards/Gruss,
-    Boris.
+Computer Architect | Sent from my Fedora powered laptop
 
-ECO tip #101: Trim your mails when you reply.
