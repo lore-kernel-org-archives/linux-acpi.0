@@ -1,46 +1,43 @@
-From: Jon Masters <jcm@redhat.com>
-Subject: Re: [PATCH V8 0/9] Support for ARM64 ACPI based PCI host controller
-Date: Thu, 2 Jun 2016 03:31:38 -0400
-Message-ID: <f606faa9-72f3-3219-02a8-69e948338d2e@redhat.com>
-References: <1464621262-26770-1-git-send-email-tn@semihalf.com>
- <EE11001F9E5DDD47B7634E2F8A612F2E1F767865@lhreml507-mbx>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+From: Tomasz Nowicki <tn@semihalf.com>
+Subject: [RFC PATCH 0/3] ECAM quirks handling for ARM64 platforms
+Date: Thu,  2 Jun 2016 10:41:00 +0200
+Message-ID: <1464856864-18049-1-git-send-email-tn@semihalf.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:43569 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932099AbcFBHbx (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 2 Jun 2016 03:31:53 -0400
-In-Reply-To: <EE11001F9E5DDD47B7634E2F8A612F2E1F767865@lhreml507-mbx>
+Received: from mail-lf0-f46.google.com ([209.85.215.46]:36847 "EHLO
+	mail-lf0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752062AbcFBIlz (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 2 Jun 2016 04:41:55 -0400
+Received: by mail-lf0-f46.google.com with SMTP id b73so29111570lfb.3
+        for <linux-acpi@vger.kernel.org>; Thu, 02 Jun 2016 01:41:54 -0700 (PDT)
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Gabriele Paoloni <gabriele.paoloni@huawei.com>, Tomasz Nowicki <tn@semihalf.com>, "helgaas@kernel.org" <helgaas@kernel.org>, "arnd@arndb.de" <arnd@arndb.de>, "will.deacon@arm.com" <will.deacon@arm.com>, "catalin.marinas@arm.com" <catalin.marinas@arm.com>, "rafael@kernel.org" <rafael@kernel.org>, "hanjun.guo@linaro.org" <hanjun.guo@linaro.org>, "Lorenzo.Pieralisi@arm.com" <Lorenzo.Pieralisi@arm.com>, "okaya@codeaurora.org" <okaya@codeaurora.org>, "jchandra@broadcom.com" <jchandra@broadcom.com>
-Cc: "robert.richter@caviumnetworks.com" <robert.richter@caviumnetworks.com>, "mw@semihalf.com" <mw@semihalf.com>, "Liviu.Dudau@arm.com" <Liviu.Dudau@arm.com>, "ddaney@caviumnetworks.com" <ddaney@caviumnetworks.com>, Wangyijing <wangyijing@huawei.com>, "Suravee.Suthikulpanit@amd.com" <Suravee.Suthikulpanit@amd.com>, "msalter@redhat.com" <msalter@redhat.com>, "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linaro-acpi@lists.linaro.org" <linaro-acpi@lists.linaro.org>, "jcm@redhat.com" <jcm@redhat.com>, "andrea.gallo@linaro.org" <andrea.gallo@linaro.org>, "dhdang@apm.com" <dhdang@apm.com>, "jeremy.linton@arm.com" <jeremy.linton@arm.com>
+To: helgaas@kernel.org, arnd@arndb.de, will.deacon@arm.com, catalin.marinas@arm.com, rafael@kernel.org, hanjun.guo@linaro.org, Lorenzo.Pieralisi@arm.com, okaya@codeaurora.org, jchandra@broadcom.com
+Cc: robert.richter@caviumnetworks.com, mw@semihalf.com, Liviu.Dudau@arm.com, ddaney@caviumnetworks.com, wangyijing@huawei.com, Suravee.Suthikulpanit@amd.com, msalter@redhat.com, linux-pci@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linaro-acpi@lists.linaro.org, jcm@redhat.com, andrea.gallo@linaro.org, dhdang@apm.com, jeremy.linton@arm.com, liudongdong3@huawei.com, cov@codeaurora.org, Tomasz Nowicki <tn@semihalf.com>
 
-On 06/01/2016 03:36 AM, Gabriele Paoloni wrote:
+This series bases on pending ACPI PCI support for ARM64:
+https://lkml.org/lkml/2016/5/30/468
 
-> If you agree I think Jon can tell who's the best person to
-> push the quirk RFC (as my understanding is that this mechanism
-> is currently used by some platforms deployed on the market...)
+Quirk handling relies on an idea of matching MCFG OEM ID and OEM revision
+(the ones from standard header of MCFG table). Linker section is used
+so that quirks can be registered using special macro (see patches) and
+kept self contained.
 
-Let me ping Linaro folks to see who has that (quirks) ball. We can
-certainly share the older OEM matching quirks Mark Salter did for
-earlier RHEL(SA) internal versions as a seed for that[0] activity.
+As an example, last patch presents above mechanism usage for ThunderX PEM driver.
 
-BUT...I don't think we should block this thread on the quirks. They're
-separate (but important). I see Arnd's reply as well, but nobody else
-has yet chimed in to this thread (and I am about to prod all of the
-vendors to reply to this thread and ACK). Can I ask whether we can't
-just stage v8 as-is for -next at this point? Can Arnd's (or other)
-suggestions be handled as followup patches post-merge please? Bjorn?
+Tomasz Nowicki (3):
+  pci, acpi: Match PCI config space accessors against platfrom specific
+    ECAM quirks.
+  arm64, pci: Start using quirks handling for ACPI based PCI host
+    controller.
+  pci, pci-thunder-pem: Add ACPI support for ThunderX PEM.
 
-Jon.
-
-[0] RHEL(SA) has had three different PCIe enabled ACPI stacks maintained
-independently so far since we need PCIe to boot most of the hundreds of
-v8 systems we have internal to Red Hat - which all have PCI.
+ arch/arm64/kernel/pci.c            |   7 +-
+ drivers/acpi/pci_mcfg.c            |  32 +++++++++
+ drivers/pci/host/pci-thunder-pem.c | 132 +++++++++++++++++++++++++++++++++----
+ include/asm-generic/vmlinux.lds.h  |   7 ++
+ include/linux/pci-acpi.h           |  19 ++++++
+ 5 files changed, 181 insertions(+), 16 deletions(-)
 
 -- 
-Computer Architect | Sent from my Fedora powered laptop
+1.9.1
 
