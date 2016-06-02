@@ -1,90 +1,145 @@
-From: Aleksey Makarov <aleksey.makarov@linaro.org>
-Subject: [PATCH v3 5/5] ACPI: ARM64: support for ACPI_TABLE_UPGRADE
-Date: Thu,  2 Jun 2016 20:49:10 +0300
-Message-ID: <20160602174910.30428-1-aleksey.makarov@linaro.org>
-References: <20160527171424.GG10909@e104818-lin.cambridge.arm.com>
+From: Aleksey Makarov <amakarov.linux@gmail.com>
+Subject: Re: [PATCH v8 4/4] serial: pl011: add console matching function
+Date: Thu, 2 Jun 2016 21:02:33 +0300
+Message-ID: <c37d62c7-1e1b-0b10-a083-c5207fbbb820@gmail.com>
+References: <1463749405-11640-1-git-send-email-aleksey.makarov@linaro.org>
+ <1463749405-11640-5-git-send-email-aleksey.makarov@linaro.org>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 8bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-lf0-f45.google.com ([209.85.215.45]:35556 "EHLO
-	mail-lf0-f45.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932324AbcFBRvf (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 2 Jun 2016 13:51:35 -0400
-Received: by mail-lf0-f45.google.com with SMTP id w16so39021620lfd.2
-        for <linux-acpi@vger.kernel.org>; Thu, 02 Jun 2016 10:51:34 -0700 (PDT)
-In-Reply-To: <20160527171424.GG10909@e104818-lin.cambridge.arm.com>
+Received: from mail-lf0-f65.google.com ([209.85.215.65]:35633 "EHLO
+	mail-lf0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933120AbcFBSEz (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 2 Jun 2016 14:04:55 -0400
+In-Reply-To: <1463749405-11640-5-git-send-email-aleksey.makarov@linaro.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Catalin Marinas <catalin.marinas@arm.com>
-Cc: Will Deacon <will.deacon@arm.com>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, Aleksey Makarov <aleksey.makarov@linaro.org>, Graeme Gregory <graeme.gregory@linaro.org>, Jon Masters <jcm@redhat.com>, "Zheng, Lv" <lv.zheng@intel.com>, Mark Rutland <mark.rutland@arm.com>
+To: Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Russell King <linux@arm.linux.org.uk>
+Cc: Aleksey Makarov <aleksey.makarov@linaro.org>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, linux-serial@vger.kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Len Brown <lenb@kernel.org>, Leif Lindholm <leif.lindholm@linaro.org>, Graeme Gregory <graeme.gregory@linaro.org>, Al Stone <ahs3@redhat.com>, Christopher Covington <cov@codeaurora.org>, Yury Norov <ynorov@caviumnetworks.com>, Peter Hurley <peter@hurleysoftware.com>, Andy Shevchenko <andy.shevchenko@gmail.com>, "Zheng, Lv" <lv.zheng@intel.com>, Mark Salter <msalter@redhat.com>, Kefeng Wang <wangkefeng.wang@huawei.com>, Russell King <linux@armlinux.org.uk>, Jiri Slaby <jslaby@suse.com>
 
-From: Jon Masters <jcm@redhat.com>
 
-This patch adds support for ACPI_TABLE_UPGRADE for ARM64
+On 05/20/2016 04:03 PM, Aleksey Makarov wrote:
+> This patch adds function pl011_console_match() that implements
+> method match of struct console.  It allows to match consoles against
+> data specified in a string, for example taken from command line or
+> compiled by ACPI SPCR table handler.
+> 
+> Signed-off-by: Aleksey Makarov <aleksey.makarov@linaro.org>
+> Reviewed-by: Peter Hurley <peter@hurleysoftware.com>
 
-To access initrd image we need to move initialization
-of linear mapping a bit earlier.
+Hi Greg, Russell,
 
-The implementation of the feature acpi_table_upgrade()
-(drivers/acpi/tables.c) works with initrd data represented as an array
-in virtual memory.  It uses some library utility to find the redefined
-tables in that array and iterates over it to copy the data to new
-allocated memory.  So to access the initrd data via fixmap
-we need to rewrite it considerably.
+Can you review this patch and consider ACKing it please?
+It had an ACK from Greg in v7 but since then I changed it a bit.
 
-In x86 arch, kernel memory is already mapped by the time when
-acpi_table_upgrade() and acpi_boot_table_init() are called so I
-think that we can just move this mapping one function earlier too.
+The patch by Christopher Covington [1] specifies that SBSA uart 
+does 32-bit access to registers and this breaks the match function.  
+In this series the function was changed to match when SPCR specifies
+both mmio32 and mmio access.  I removed Acked-by: Greg from this
+patch because of these changes.
 
-Signed-off-by: Jon Masters <jcm@redhat.com>
-Signed-off-by: Aleksey Makarov <aleksey.makarov@linaro.org>
----
- arch/arm64/Kconfig            | 1 +
- arch/arm64/include/asm/acpi.h | 2 ++
- arch/arm64/kernel/setup.c     | 6 ++++--
- 3 files changed, 7 insertions(+), 2 deletions(-)
+The difference between v7 and v8:
 
-diff --git a/arch/arm64/Kconfig b/arch/arm64/Kconfig
-index 87c48ad..baee459 100644
---- a/arch/arm64/Kconfig
-+++ b/arch/arm64/Kconfig
-@@ -5,6 +5,7 @@ config ARM64
- 	select ACPI_REDUCED_HARDWARE_ONLY if ACPI
- 	select ACPI_MCFG if ACPI
- 	select ARCH_HAS_DEVMEM_IS_ALLOWED
-+	select ARCH_HAS_ACPI_TABLE_UPGRADE if ACPI
- 	select ARCH_HAS_ATOMIC64_DEC_IF_POSITIVE
- 	select ARCH_HAS_ELF_RANDOMIZE
- 	select ARCH_HAS_GCOV_PROFILE_ALL
-diff --git a/arch/arm64/include/asm/acpi.h b/arch/arm64/include/asm/acpi.h
-index aee323b..c7aefc5 100644
---- a/arch/arm64/include/asm/acpi.h
-+++ b/arch/arm64/include/asm/acpi.h
-@@ -113,4 +113,6 @@ static inline const char *acpi_get_enable_method(int cpu)
- pgprot_t arch_apei_get_mem_attribute(phys_addr_t addr);
- #endif
+diff --git a/drivers/tty/serial/amba-pl011.c b/drivers/tty/serial/amba-pl011.c
+index 4139b64..388edc8 100644
+--- a/drivers/tty/serial/amba-pl011.c
++++ b/drivers/tty/serial/amba-pl011.c
+@@ -2328,10 +2329,10 @@ static int __init pl011_console_match(struct console *co, char *name, int idx,
  
-+#define ACPI_TABLE_UPGRADE_MAX_PHYS MEMBLOCK_ALLOC_ACCESSIBLE
+                port = &amba_ports[i]->port;
+ 
+-               if (port->iotype != iotype)
++               if (iotype != UPIO_MEM && iotype != UPIO_MEM32)
+                        continue;
+-               if ((iotype == UPIO_MEM || iotype == UPIO_MEM32) &&
+-                   (port->mapbase != addr))
 +
- #endif /*_ASM_ACPI_H*/
-diff --git a/arch/arm64/kernel/setup.c b/arch/arm64/kernel/setup.c
-index feab2ee..4bce811 100644
---- a/arch/arm64/kernel/setup.c
-+++ b/arch/arm64/kernel/setup.c
-@@ -261,11 +261,13 @@ void __init setup_arch(char **cmdline_p)
- 	efi_init();
- 	arm64_memblock_init();
++               if (port->mapbase != addr)
+                        continue;
  
-+	paging_init();
-+
-+	acpi_table_upgrade();
-+
- 	/* Parse the ACPI tables for possible boot-time configuration */
- 	acpi_boot_table_init();
- 
--	paging_init();
--
- 	if (acpi_disabled)
- 		unflatten_device_tree();
- 
--- 
-2.8.3
+                co->index = i;
 
+[1] https://lkml.kernel.org/g/1457415800-8799-1-git-send-email-cov@codeaurora.org
+
+Thank you
+Aleksey Makarov
+
+> ---
+>  drivers/tty/serial/amba-pl011.c | 56 +++++++++++++++++++++++++++++++++++++++++
+>  1 file changed, 56 insertions(+)
+> 
+> diff --git a/drivers/tty/serial/amba-pl011.c b/drivers/tty/serial/amba-pl011.c
+> index a2aa655..388edc8 100644
+> --- a/drivers/tty/serial/amba-pl011.c
+> +++ b/drivers/tty/serial/amba-pl011.c
+> @@ -2288,12 +2288,68 @@ static int __init pl011_console_setup(struct console *co, char *options)
+>  	return uart_set_options(&uap->port, co, baud, parity, bits, flow);
+>  }
+>  
+> +/**
+> + *	pl011_console_match - non-standard console matching
+> + *	@co:	  registering console
+> + *	@name:	  name from console command line
+> + *	@idx:	  index from console command line
+> + *	@options: ptr to option string from console command line
+> + *
+> + *	Only attempts to match console command lines of the form:
+> + *	    console=pl011,mmio|mmio32,<addr>[,<options>]
+> + *	    console=pl011,0x<addr>[,<options>]
+> + *	This form is used to register an initial earlycon boot console and
+> + *	replace it with the amba_console at pl011 driver init.
+> + *
+> + *	Performs console setup for a match (as required by interface)
+> + *	If no <options> are specified, then assume the h/w is already setup.
+> + *
+> + *	Returns 0 if console matches; otherwise non-zero to use default matching
+> + */
+> +static int __init pl011_console_match(struct console *co, char *name, int idx,
+> +				      char *options)
+> +{
+> +	char match[] = "pl011";	/* pl011-specific earlycon name */
+> +	unsigned char iotype;
+> +	unsigned long addr;
+> +	int i;
+> +
+> +	if (strncmp(name, match, 5) != 0)
+> +		return -ENODEV;
+> +
+> +	if (uart_parse_earlycon(options, &iotype, &addr, &options))
+> +		return -ENODEV;
+> +
+> +	/* try to match the port specified on the command line */
+> +	for (i = 0; i < ARRAY_SIZE(amba_ports); i++) {
+> +		struct uart_port *port;
+> +
+> +		if (!amba_ports[i])
+> +			continue;
+> +
+> +		port = &amba_ports[i]->port;
+> +
+> +		if (iotype != UPIO_MEM && iotype != UPIO_MEM32)
+> +			continue;
+> +
+> +		if (port->mapbase != addr)
+> +			continue;
+> +
+> +		co->index = i;
+> +		port->cons = co;
+> +		return pl011_console_setup(co, options);
+> +	}
+> +
+> +	return -ENODEV;
+> +}
+> +
+>  static struct uart_driver amba_reg;
+>  static struct console amba_console = {
+>  	.name		= "ttyAMA",
+>  	.write		= pl011_console_write,
+>  	.device		= uart_console_device,
+>  	.setup		= pl011_console_setup,
+> +	.match		= pl011_console_match,
+>  	.flags		= CON_PRINTBUFFER,
+>  	.index		= -1,
+>  	.data		= &amba_reg,
+> 
