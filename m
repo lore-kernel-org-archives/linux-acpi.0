@@ -1,52 +1,64 @@
-From: "Rafael J. Wysocki" <rafael@kernel.org>
-Subject: Re: Regression with commit c3bc26d4b4e3
-Date: Thu, 2 Jun 2016 14:22:24 +0200
-Message-ID: <CAJZ5v0g6EpVXk3C0bk6BJ-vD1rww0c7ayVARSQC9nFRpL01NXQ@mail.gmail.com>
-References: <20160602110805.GB32574@quack2.suse.cz>
+From: Arnd Bergmann <arnd@arndb.de>
+Subject: Re: [RFC PATCH 1/3] pci, acpi: Match PCI config space accessors against platfrom specific ECAM quirks.
+Date: Thu, 02 Jun 2016 14:32:33 +0200
+Message-ID: <9294389.sZPDtyjoUs@wuerfel>
+References: <1464856864-18049-1-git-send-email-tn@semihalf.com> <4347711.qDrKz2s8lr@wuerfel> <5750218F.9030406@semihalf.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-wm0-f53.google.com ([74.125.82.53]:38161 "EHLO
-	mail-wm0-f53.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750811AbcFBMW0 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 2 Jun 2016 08:22:26 -0400
-Received: by mail-wm0-f53.google.com with SMTP id a20so65054594wma.1
-        for <linux-acpi@vger.kernel.org>; Thu, 02 Jun 2016 05:22:25 -0700 (PDT)
-In-Reply-To: <20160602110805.GB32574@quack2.suse.cz>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7Bit
+Return-path: <linux-pci-owner@vger.kernel.org>
+In-Reply-To: <5750218F.9030406@semihalf.com>
+Sender: linux-pci-owner@vger.kernel.org
+To: linux-arm-kernel@lists.infradead.org
+Cc: Tomasz Nowicki <tn@semihalf.com>, rafael@kernel.org, linux-pci@vger.kernel.org, will.deacon@arm.com, okaya@codeaurora.org, wangyijing@huawei.com, andrea.gallo@linaro.org, Lorenzo.Pieralisi@arm.com, linaro-acpi@lists.linaro.org, ddaney@caviumnetworks.com, linux-acpi@vger.kernel.org, robert.richter@caviumnetworks.com, helgaas@kernel.org, liudongdong3@huawei.com, catalin.marinas@arm.com, Liviu.Dudau@arm.com, jcm@redhat.com, msalter@redhat.com, cov@codeaurora.org, mw@semihalf.com, jchandra@broadcom.com, dhdang@apm.com, linux-kernel@vger.kernel.org, jeremy.linton@arm.com, hanjun.guo@linaro.org, Suravee.Suthikulpanit@amd.com
 List-Id: linux-acpi@vger.kernel.org
-To: Jan Kara <jack@suse.cz>
-Cc: Lv Zheng <lv.zheng@intel.com>, "devel@acpica.org" <devel@acpica.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Robert Moore <robert.moore@intel.com>, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>
 
-On Thu, Jun 2, 2016 at 1:08 PM, Jan Kara <jack@suse.cz> wrote:
-> Hello,
->
-> commit c3bc26d4b4e3 (ACPICA: ACPI 2.0, Hardware: Add access_width/bit_offset
-> support in acpi_hw_read()) broke booting of my KVM test guest. When I
-> revert that commit and commit 66b1ed5aa8d (ACPICA: ACPI 2.0, Hardware: Add
-> access_width/bit_offset support for acpi_hw_write()) which looks similar,
-> the vm boots again. The problem manifests itself that the qemu-kvm just
-> aborts after the kernel prints:
->
-> [    0.333707] ACPI: bus type PCI registered
-> [    0.335494] PCI: Using configuration type 1 for base access
-> [    0.472716] ACPI: Added _OSI(Module Device)
-> [    0.475360] ACPI: Added _OSI(Processor Device)
-> [    0.476012] ACPI: Added _OSI(3.0 _SCP Extensions)
-> [    0.480035] ACPI: Added _OSI(Processor Aggregator Device)
-> [    0.494742] ACPI: 2 ACPI AML tables successfully acquired and loaded
-> [    0.496003]
->
-> For working kernel the messages continue like:
->
-> [    0.507616] ACPI: Interpreter enabled
-> [    0.508018] ACPI: (supports S0 S5)
-> [    0.509129] ACPI: Using IOAPIC for interrupt routing
-> [    0.510717] PCI: Using host bridge windows from ACPI; if necessary, use "pci=nocrs" and report a bug
-> [    0.533308] ACPI: PCI Root Bridge [PCI0] (domain 0000 [bus 00-ff])
-> [    0.535049] acpi PNP0A03:00: _OSC: OS supports [Segments]
-> [    0.536111] acpi PNP0A03:00: _OSC failed (AE_NOT_FOUND); disabling ASPM
-> [    0.538702] PCI host bridge to bus 0000:00
+On Thursday, June 2, 2016 2:07:43 PM CEST Tomasz Nowicki wrote:
+> On 02.06.2016 13:42, Arnd Bergmann wrote:
+> > On Thursday, June 2, 2016 10:41:01 AM CEST Tomasz Nowicki wrote:
+> >> +struct pci_ecam_ops *pci_mcfg_get_ops(struct acpi_pci_root *root)
+> >> +{
+> >> +       int bus_num = root->secondary.start;
+> >> +       int domain = root->segment;
+> >> +       struct pci_cfg_fixup *f;
+> >> +
+> >> +       if (!mcfg_table)
+> >> +               return &pci_generic_ecam_ops;
+> >> +
+> >> +       /*
+> >> +        * Match against platform specific quirks and return corresponding
+> >> +        * CAM ops.
+> >> +        *
+> >> +        * First match against PCI topology <domain:bus> then use OEM ID and
+> >> +        * OEM revision from MCFG table standard header.
+> >> +        */
+> >> +       for (f = __start_acpi_mcfg_fixups; f < __end_acpi_mcfg_fixups; f++) {
+> >> +               if ((f->domain == domain || f->domain == PCI_MCFG_DOMAIN_ANY) &&
+> >> +                   (f->bus_num == bus_num || f->bus_num == PCI_MCFG_BUS_ANY) &&
+> >> +                   (!strncmp(f->oem_id, mcfg_table->header.oem_id,
+> >> +                             ACPI_OEM_ID_SIZE)) &&
+> >> +                   (f->oem_revision == mcfg_table->header.oem_revision))
+> >> +                       return f->ops;
+> >> +       }
+> >> +       /* No quirks, use ECAM */
+> >> +       return &pci_generic_ecam_ops;
+> >> +}
+> >> +
+> >>   int pci_mcfg_lookup(struct acpi_pci_root *root)
+> >
+> > Can you explain the use of pci_ecam_ops instead of pci_ops here?
+> >
+> 
+> I wanted to get associated bus_shift and use it to setup configuration 
+> region properly before calling pci_ecam_create. Please see next patch.
+> 
 
-We have a fix in this area,
-https://patchwork.kernel.org/patch/9145955/, does it help?
+I see. It feels really odd to do it this way though, since having a
+nonstandard bus_shift essentially means not using anything resembling
+ECAM to start with.
+
+I realize that a lot of the host bridges are not ECAM, but because
+of this, it would be more logical to have their own pci_ops instead
+of pci_ecam_ops.
+
+	Arnd
