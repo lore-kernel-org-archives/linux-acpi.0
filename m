@@ -1,61 +1,73 @@
 From: Gabriele Paoloni <gabriele.paoloni@huawei.com>
 Subject: RE: [PATCH V8 0/9] Support for ARM64 ACPI based PCI host controller
-Date: Thu, 2 Jun 2016 09:58:42 +0000
-Message-ID: <EE11001F9E5DDD47B7634E2F8A612F2E1F769A84@lhreml507-mbx>
+Date: Thu, 2 Jun 2016 10:06:27 +0000
+Message-ID: <EE11001F9E5DDD47B7634E2F8A612F2E1F769AAB@lhreml507-mbx>
 References: <1464621262-26770-1-git-send-email-tn@semihalf.com>
  <EE11001F9E5DDD47B7634E2F8A612F2E1F767865@lhreml507-mbx>
- <574FF3BE.4010903@semihalf.com>
+ <f606faa9-72f3-3219-02a8-69e948338d2e@redhat.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 8BIT
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <574FF3BE.4010903@semihalf.com>
+In-Reply-To: <f606faa9-72f3-3219-02a8-69e948338d2e@redhat.com>
 Content-Language: en-US
 Sender: linux-kernel-owner@vger.kernel.org
-To: Tomasz Nowicki <tn@semihalf.com>, "helgaas@kernel.org" <helgaas@kernel.org>, "arnd@arndb.de" <arnd@arndb.de>, "will.deacon@arm.com" <will.deacon@arm.com>, "catalin.marinas@arm.com" <catalin.marinas@arm.com>, "rafael@kernel.org" <rafael@kernel.org>, "hanjun.guo@linaro.org" <hanjun.guo@linaro.org>, "Lorenzo.Pieralisi@arm.com" <Lorenzo.Pieralisi@arm.com>, "okaya@codeaurora.org" <okaya@codeaurora.org>, "jchandra@broadcom.com" <jchandra@broadcom.com>
-Cc: "robert.richter@caviumnetworks.com" <robert.richter@caviumnetworks.com>, "mw@semihalf.com" <mw@semihalf.com>, "Liviu.Dudau@arm.com" <Liviu.Dudau@arm.com>, "ddaney@caviumnetworks.com" <ddaney@caviumnetworks.com>, Wangyijing <wangyijing@huawei.com>, "Suravee.Suthikulpanit@amd.com" <Suravee.Suthikulpanit@amd.com>, "msalter@redhat.com" <msalter@redhat.com>, "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linaro-acpi@lists.linaro.org" <linaro-acpi@lists.linaro.org>, "jcm@redhat.com" <jcm@redhat.com>, "andrea.gallo@linaro.org" <andrea.gallo@linaro.org>, "dhdang@apm.com" <dhdang@apm.com>, "jeremy.linton@arm.com" <jeremy.linton@arm.com>, "liudongdong (C)" <liudongd>
+To: Jon Masters <jcm@redhat.com>, Tomasz Nowicki <tn@semihalf.com>, "helgaas@kernel.org" <helgaas@kernel.org>, "arnd@arndb.de" <arnd@arndb.de>, "will.deacon@arm.com" <will.deacon@arm.com>, "catalin.marinas@arm.com" <catalin.marinas@arm.com>, "rafael@kernel.org" <rafael@kernel.org>, "hanjun.guo@linaro.org" <hanjun.guo@linaro.org>, "Lorenzo.Pieralisi@arm.com" <Lorenzo.Pieralisi@arm.com>, "okaya@codeaurora.org" <okaya@codeaurora.org>, "jchandra@broadcom.com" <jchandra@broadcom.com>
+Cc: "robert.richter@caviumnetworks.com" <robert.richter@caviumnetworks.com>, "mw@semihalf.com" <mw@semihalf.com>, "Liviu.Dudau@arm.com" <Liviu.Dudau@arm.com>, "ddaney@caviumnetworks.com" <ddaney@caviumnetworks.com>, Wangyijing <wangyijing@huawei.com>, "Suravee.Suthikulpanit@amd.com" <Suravee.Suthikulpanit@amd.com>, "msalter@redhat.com" <msalter@redhat.com>, "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linaro-acpi@lists.linaro.org" <linaro-acpi@lists.linaro.org>, "andrea.gallo@linaro.org" <andrea.gallo@linaro.org>, "dhdang@apm.com" <dhdang@apm.com>, "jeremy.linton@arm.com" <jeremy.linton@arm.com>
 List-Id: linux-acpi@vger.kernel.org
 
-Hi Tomasz
+Hi Jon
 
 > -----Original Message-----
-> From: Tomasz Nowicki [mailto:tn@semihalf.com]
-> Sent: 02 June 2016 09:52
-> To: Gabriele Paoloni; helgaas@kernel.org; arnd@arndb.de;
-> will.deacon@arm.com; catalin.marinas@arm.com; rafael@kernel.org;
-> hanjun.guo@linaro.org; Lorenzo.Pieralisi@arm.com; okaya@codeaurora.org;
-> jchandra@broadcom.com
+> From: Jon Masters [mailto:jcm@redhat.com]
+> Sent: 02 June 2016 08:32
+> To: Gabriele Paoloni; Tomasz Nowicki; helgaas@kernel.org;
+> arnd@arndb.de; will.deacon@arm.com; catalin.marinas@arm.com;
+> rafael@kernel.org; hanjun.guo@linaro.org; Lorenzo.Pieralisi@arm.com;
+> okaya@codeaurora.org; jchandra@broadcom.com
 > Cc: robert.richter@caviumnetworks.com; mw@semihalf.com;
 > Liviu.Dudau@arm.com; ddaney@caviumnetworks.com; Wangyijing;
 > Suravee.Suthikulpanit@amd.com; msalter@redhat.com; linux-
 > pci@vger.kernel.org; linux-arm-kernel@lists.infradead.org; linux-
 > acpi@vger.kernel.org; linux-kernel@vger.kernel.org; linaro-
 > acpi@lists.linaro.org; jcm@redhat.com; andrea.gallo@linaro.org;
-> dhdang@apm.com; jeremy.linton@arm.com; liudongdong (C);
-> cov@codeaurora.org
+> dhdang@apm.com; jeremy.linton@arm.com
 > Subject: Re: [PATCH V8 0/9] Support for ARM64 ACPI based PCI host
 > controller
 > 
-> Hi Gabriele,
+> On 06/01/2016 03:36 AM, Gabriele Paoloni wrote:
 > 
-> On 01.06.2016 09:36, Gabriele Paoloni wrote:
-> > I think maybe it is worth to post this quirk mechanism as RFC on
-> > top of this v8 patchset, so that we can start to review it and
-> > make some progress on the quirks.
+> > If you agree I think Jon can tell who's the best person to
+> > push the quirk RFC (as my understanding is that this mechanism
+> > is currently used by some platforms deployed on the market...)
 > 
-> I've just posted my RFC patches, please see:
-> https://patchwork.ozlabs.org/patch/629121/
+> Let me ping Linaro folks to see who has that (quirks) ball. We can
+> certainly share the older OEM matching quirks Mark Salter did for
+> earlier RHEL(SA) internal versions as a seed for that[0] activity.
+
+Tomasz has posted the RFC so we'll start to look at that
+
 > 
-> We can start review from there so that this series is not blocked.
+> BUT...I don't think we should block this thread on the quirks. They're
+> separate (but important). I see Arnd's reply as well, but nobody else
+> has yet chimed in to this thread (and I am about to prod all of the
+> vendors to reply to this thread and ACK). Can I ask whether we can't
+> just stage v8 as-is for -next at this point? Can Arnd's (or other)
+> suggestions be handled as followup patches post-merge please? Bjorn?
 
-Many Thanks for this!
+I will ask HiSilicon folks to test it so we can add Tested-by on this
 
-Sure let's start working on this.
-
-Cheers
+Thanks
 
 Gab
 
 > 
-> Thanks,
-> Tomasz
+> Jon.
+> 
+> [0] RHEL(SA) has had three different PCIe enabled ACPI stacks
+> maintained
+> independently so far since we need PCIe to boot most of the hundreds of
+> v8 systems we have internal to Red Hat - which all have PCI.
+> 
+> --
+> Computer Architect | Sent from my Fedora powered laptop
