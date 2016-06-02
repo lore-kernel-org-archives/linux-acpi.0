@@ -1,130 +1,83 @@
-From: "Zheng, Lv" <lv.zheng@intel.com>
-Subject: RE: [PATCH v3 3/3] ACPI / button: Add quirks for initial lid state
- notification
-Date: Thu, 2 Jun 2016 01:08:36 +0000
-Message-ID: <1AE640813FDE7649BE1B193DEA596E883BBB7382@SHSMSX101.ccr.corp.intel.com>
-References: <cbdaec17aba78c61f466efff8883d49067f2dad5.1463472125.git.lv.zheng@intel.com>
-	 <284674cb8228f4f2b40f940a3c4a666f367d7b6a.1464775699.git.lv.zheng@intel.com>
- <1464778871.2432.12.camel@hadess.net>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1464778871.2432.12.camel@hadess.net>
-Content-Language: en-US
-Sender: linux-kernel-owner@vger.kernel.org
-To: Bastien Nocera <hadess@hadess.net>, "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, "Brown, Len" <len.brown@intel.com>
-Cc: Lv Zheng <zetalog@gmail.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Benjamin Tissoires <benjamin.tissoires@gmail.com>
+From: Geliang Tang <geliangtang@gmail.com>
+Subject: [PATCH] pstore: set ecc_notice_size to zero
+Date: Thu,  2 Jun 2016 13:17:03 +0800
+Message-ID: <ca5ede6ead67d9f805748394c37f06e174543bd3.1464844327.git.geliangtang@gmail.com>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-pf0-f194.google.com ([209.85.192.194]:33349 "EHLO
+	mail-pf0-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750931AbcFBFRH (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 2 Jun 2016 01:17:07 -0400
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Anton Vorontsov <anton@enomsg.org>, Colin Cross <ccross@android.com>, Kees Cook <keescook@chromium.org>, Tony Luck <tony.luck@intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Matt Fleming <matt@codeblueprint.co.uk>
+Cc: Geliang Tang <geliangtang@gmail.com>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linux-efi@vger.kernel.org
 
-SGksDQoNCj4gRnJvbTogQmFzdGllbiBOb2NlcmEgW21haWx0bzpoYWRlc3NAaGFkZXNzLm5ldF0N
-Cj4gU3ViamVjdDogUmU6IFtQQVRDSCB2MyAzLzNdIEFDUEkgLyBidXR0b246IEFkZCBxdWlya3Mg
-Zm9yIGluaXRpYWwgbGlkIHN0YXRlDQo+IG5vdGlmaWNhdGlvbg0KPiANCj4gT24gV2VkLCAyMDE2
-LTA2LTAxIGF0IDE4OjEwICswODAwLCBMdiBaaGVuZyB3cm90ZToNCj4gPiBMaW51eCB1c2Vyc3Bh
-Y2UgKHN5c3RlbWQtbG9naW5kKSBrZWVwcyBvbiByZWNoZWNraW5nIGxpZCBzdGF0ZSB3aGVuIHRo
-ZQ0KPiA+IGxpZCBzdGF0ZSBpcyBjbG9zZWQuIElmIGl0IGZhaWxlZCB0byB1cGRhdGUgdGhlIGxp
-ZCBzdGF0ZSB0byBvcGVuIGFmdGVyDQo+ID4gYm9vdC9yZXN1bWUsIHRoZSBzeXN0ZW0gc3VzcGVu
-ZGluZyByaWdodCBhZnRlciB0aGUgYm9vdC9yZXN1bWUgY291bGQNCj4gYmUNCj4gPiByZXN1bHRl
-ZC4NCj4gPiBHcmFwaGljcyBkcml2ZXJzIGFsc28gdXNlcyB0aGUgbGlkIG5vdGlmaWNhdGlvbnMg
-dG8gaW1wbG1lbnQNCj4gPiBNT0RFU0VUX09OX0xJRF9PUEVOIG9wdGlvbi4NCj4gDQo+ICJpbXBs
-ZW1lbnQiDQpbTHYgWmhlbmddIA0KVGhhbmtzIGZvciBwb2ludGluZyBvdXQsIEknbGwgc2VuZCBh
-biBVUERBVEUgdG8gdGhpcy4NCg0KPiANCj4gPiBCZWZvcmUgdGhlIHNpdHVhdGlvbiBpcyBpbXBy
-b3ZlZCBmcm9tIHRoZSB1c2Vyc3BhY2UgYW5kIGZyb20gdGhlDQo+IGdyYXBoaWNzDQo+ID4gZHJp
-dmVyLCB1c2VycyBjYW4gc2ltcGx5IGNvbmZpZ3VyZSBBQ1BJIGJ1dHRvbiBkcml2ZXIgdG8gc2Vu
-ZCBpbml0aWFsDQo+ID4gIm9wZW4iIGxpZCBzdGF0ZSB1c2luZyBidXR0b24ubGlkX2luaXRfc3Rh
-dGU9b3BlbiB0byBhdm9pZCBzdWNoIGtpbmQgb2YNCj4gPiBpc3N1ZXMuIEFuZCBvdXIgdWx0aW1h
-dGUgdGFyZ2V0IHNob3VsZCBiZSBtYWtpbmcNCj4gPiBidXR0b24ubGlkX2luaXRfc3RhdGU9aWdu
-b3JlIHRoZSBkZWZhdWx0IGJlaGF2aW9yLiBUaGlzIHBhdGNoIGltcGxlbWVudHMNCj4gPiB0aGUg
-MiBvcHRpb25zIGFuZCBrZWVwIHRoZSBvbGQgYmVoYXZpb3IgKGJ1dHRvbi5saWRfaW5pdF9zdGF0
-ZT1tZXRob2QpLg0KPiANCj4gSSBzdGlsbCBkb24ndCB0aGluayBpdCdzIHJlYXNvbmFibGUgdG8g
-ZXhwZWN0IGFueSBjaGFuZ2VzIGluIHVzZXItc3BhY2UNCj4gdW5sZXNzIHlvdSBzdGFydCBkb2N1
-bWVudGluZyB3aGF0IHRoZSBBUEkgdG8gdXNlci1zcGFjZSBhY3R1YWxseSBpcy4NCltMdiBaaGVu
-Z10gDQpJTU8sIHRoZSBBQ1BJIGxpZCBkcml2ZXIgc2hvdWxkIGJlIHJlc3BvbnNpYmxlIGZvciBz
-ZW5kaW5nIGxpZCBrZXkgZXZlbnQgKGVzcGVjaWFsbHkgImNsb3NlIikgdG8gdGhlIHVzZXIgc3Bh
-Y2UuDQpTbyBpZiBzb21lb25lIG5lZWQgdG8gaW1wbGVtZW50IGFuIEFDUEkgbGlkIGtleSBldmVu
-dCBxdWlyaywgd2UgY291bGQgaGVscCB0byBpbXBsZW1lbnQgaXQgZnJvbSB0aGUga2VybmVsIHNw
-YWNlLg0KQW5kIHNpbmNlIHRoZSBpbml0aWFsIGxpZCBzdGF0ZSBpcyBub3Qgc3RhYmxlLCB3ZSBo
-YXZlIHRvIHN0b3AgZG9pbmcgcXVpcmtzIGFyb3VuZCBpdCBpbnNpZGUgb2YgdGhlIExpbnV4IGtl
-cm5lbCwgb3IgaW5zaWRlIG9mIHRoZSBjdXN0b21pemVkIEFNTCB0YWJsZXMuDQpVc2VyIHNwYWNl
-IGNhbiBzdGlsbCBhY2Nlc3MgL3Byb2MvYWNwaS9idXR0b24vbGlkL0xJRDAvc3RhdGUsIGJ1dCBz
-aG91bGQgc3RvcCB0aGlua2luZyB0aGF0IGl0IGlzIHJlbGlhYmxlLg0KDQpUaGVzZSBhcmUgd2hh
-dCBJIGNhbiBjb25jbHVkZSBmcm9tIHRoZSBidWdzLg0KDQpUaGFua3MgYW5kIGJlc3QgcmVnYXJk
-cw0KLUx2DQoNCj4gDQo+IChJIHdvcmsgb24gVVBvd2VyLCB3aGljaCBhbHNvIGV4cG9ydHMgdGhh
-dCBpbmZvcm1hdGlvbiwgYW5kIHdoaWNoIGdldHMNCj4gdXNlZCBpbiBnbm9tZS1zZXR0aW5ncy1k
-YWVtb24gaW4gYSBudW1iZXIgb2Ygd2F5cykNCj4gDQo+ID4gTGluayAxOiBodHRwczovL2xrbWwu
-b3JnLzIwMTYvMy83LzQ2MA0KPiA+IExpbmsgMjogaHR0cHM6Ly9naXRodWIuY29tL3N5c3RlbWQv
-c3lzdGVtZC9pc3N1ZXMvMjA4Nw0KPiA+IFNpZ25lZC1vZmYtYnk6IEx2IFpoZW5nIDxsdi56aGVu
-Z0BpbnRlbC5jb20+DQo+ID4gQ2M6IEJhc3RpZW4gTm9jZXJhOiA8aGFkZXNzQGhhZGVzcy5uZXQ+
-DQo+ID4gQ2M6IEJlbmphbWluIFRpc3NvaXJlcyA8YmVuamFtaW4udGlzc29pcmVzQGdtYWlsLmNv
-bT4NCj4gPiAtLS0NCj4gPiDCoGRyaXZlcnMvYWNwaS9idXR0b24uYyB8wqDCoMKgNjENCj4gPiAr
-KysrKysrKysrKysrKysrKysrKysrKysrKysrKysrKysrKysrKysrKysrKysrKysrDQo+ID4gwqAx
-IGZpbGUgY2hhbmdlZCwgNjEgaW5zZXJ0aW9ucygrKQ0KPiA+DQo+ID4gZGlmZiAtLWdpdCBhL2Ry
-aXZlcnMvYWNwaS9idXR0b24uYyBiL2RyaXZlcnMvYWNwaS9idXR0b24uYw0KPiA+IGluZGV4IDZl
-MjkxYzEuLjE0OGY0ZTUgMTAwNjQ0DQo+ID4gLS0tIGEvZHJpdmVycy9hY3BpL2J1dHRvbi5jDQo+
-ID4gKysrIGIvZHJpdmVycy9hY3BpL2J1dHRvbi5jDQo+ID4gQEAgLTUzLDYgKzUzLDEwIEBADQo+
-ID4gwqAjZGVmaW5lIEFDUElfQlVUVE9OX0RFVklDRV9OQU1FX0xJRAkiTGlkIFN3aXRjaCINCj4g
-PiDCoCNkZWZpbmUgQUNQSV9CVVRUT05fVFlQRV9MSUQJCTB4MDUNCj4gPg0KPiA+ICsjZGVmaW5l
-IEFDUElfQlVUVE9OX0xJRF9JTklUX0lHTk9SRQkweDAwDQo+ID4gKyNkZWZpbmUgQUNQSV9CVVRU
-T05fTElEX0lOSVRfT1BFTgkweDAxDQo+ID4gKyNkZWZpbmUgQUNQSV9CVVRUT05fTElEX0lOSVRf
-TUVUSE9ECTB4MDINCj4gPiArDQo+ID4gwqAjZGVmaW5lIF9DT01QT05FTlQJCUFDUElfQlVUVE9O
-X0NPTVBPTkVOVA0KPiA+IMKgQUNQSV9NT0RVTEVfTkFNRSgiYnV0dG9uIik7DQo+ID4NCj4gPiBA
-QCAtMTA1LDYgKzEwOSw3IEBAIHN0cnVjdCBhY3BpX2J1dHRvbiB7DQo+ID4NCj4gPiDCoHN0YXRp
-YyBCTE9DS0lOR19OT1RJRklFUl9IRUFEKGFjcGlfbGlkX25vdGlmaWVyKTsNCj4gPiDCoHN0YXRp
-YyBzdHJ1Y3QgYWNwaV9kZXZpY2UgKmxpZF9kZXZpY2U7DQo+ID4gK3N0YXRpYyB1OCBsaWRfaW5p
-dF9zdGF0ZSA9IEFDUElfQlVUVE9OX0xJRF9JTklUX01FVEhPRDsNCj4gPg0KPiA+IMKgLyogLS0t
-LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
-LS0tDQo+ID4gLS0tLS0tLS0tLS0NCj4gPiDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDC
-oMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoEZTIEludGVyZmFjZSAoL3Byb2MpDQo+ID4g
-QEAgLTI4NSw2ICsyOTAsMjEgQEAgc3RhdGljIGludCBhY3BpX2xpZF91cGRhdGVfc3RhdGUoc3Ry
-dWN0DQo+ID4gYWNwaV9kZXZpY2UgKmRldmljZSkNCj4gPiDCoAlyZXR1cm4gYWNwaV9saWRfbm90
-aWZ5X3N0YXRlKGRldmljZSwgc3RhdGUpOw0KPiA+IMKgfQ0KPiA+DQo+ID4gK3N0YXRpYyB2b2lk
-IGFjcGlfbGlkX2luaXRpYWxpemVfc3RhdGUoc3RydWN0IGFjcGlfZGV2aWNlICpkZXZpY2UpDQo+
-ID4gK3sNCj4gPiArCXN3aXRjaCAobGlkX2luaXRfc3RhdGUpIHsNCj4gPiArCWNhc2UgQUNQSV9C
-VVRUT05fTElEX0lOSVRfT1BFTjoNCj4gPiArCQkodm9pZClhY3BpX2xpZF9ub3RpZnlfc3RhdGUo
-ZGV2aWNlLCAxKTsNCj4gPiArCQlicmVhazsNCj4gPiArCWNhc2UgQUNQSV9CVVRUT05fTElEX0lO
-SVRfTUVUSE9EOg0KPiA+ICsJCSh2b2lkKWFjcGlfbGlkX3VwZGF0ZV9zdGF0ZShkZXZpY2UpOw0K
-PiA+ICsJCWJyZWFrOw0KPiA+ICsJY2FzZSBBQ1BJX0JVVFRPTl9MSURfSU5JVF9JR05PUkU6DQo+
-ID4gKwlkZWZhdWx0Og0KPiA+ICsJCWJyZWFrOw0KPiA+ICsJfQ0KPiA+ICt9DQo+ID4gKw0KPiA+
-IMKgc3RhdGljIHZvaWQgYWNwaV9idXR0b25fbm90aWZ5KHN0cnVjdCBhY3BpX2RldmljZSAqZGV2
-aWNlLCB1MzINCj4gPiBldmVudCkNCj4gPiDCoHsNCj4gPiDCoAlzdHJ1Y3QgYWNwaV9idXR0b24g
-KmJ1dHRvbiA9IGFjcGlfZHJpdmVyX2RhdGEoZGV2aWNlKTsNCj4gPiBAQCAtMzQxLDYgKzM2MSw4
-IEBAIHN0YXRpYyBpbnQgYWNwaV9idXR0b25fcmVzdW1lKHN0cnVjdCBkZXZpY2UNCj4gKmRldikN
-Cj4gPiDCoAlzdHJ1Y3QgYWNwaV9idXR0b24gKmJ1dHRvbiA9IGFjcGlfZHJpdmVyX2RhdGEoZGV2
-aWNlKTsNCj4gPg0KPiA+IMKgCWJ1dHRvbi0+c3VzcGVuZGVkID0gZmFsc2U7DQo+ID4gKwlpZiAo
-YnV0dG9uLT50eXBlID09IEFDUElfQlVUVE9OX1RZUEVfTElEKQ0KPiA+ICsJCWFjcGlfbGlkX2lu
-aXRpYWxpemVfc3RhdGUoZGV2aWNlKTsNCj4gPiDCoAlyZXR1cm4gMDsNCj4gPiDCoH0NCj4gPiDC
-oCNlbmRpZg0KPiA+IEBAIC00MjEsNiArNDQzLDcgQEAgc3RhdGljIGludCBhY3BpX2J1dHRvbl9h
-ZGQoc3RydWN0IGFjcGlfZGV2aWNlDQo+ID4gKmRldmljZSkNCj4gPiDCoAlpZiAoZXJyb3IpDQo+
-ID4gwqAJCWdvdG8gZXJyX3JlbW92ZV9mczsNCj4gPiDCoAlpZiAoYnV0dG9uLT50eXBlID09IEFD
-UElfQlVUVE9OX1RZUEVfTElEKSB7DQo+ID4gKwkJYWNwaV9saWRfaW5pdGlhbGl6ZV9zdGF0ZShk
-ZXZpY2UpOw0KPiA+IMKgCQkvKg0KPiA+IMKgCQnCoCogVGhpcyBhc3N1bWVzIHRoZXJlJ3Mgb25s
-eSBvbmUgbGlkIGRldmljZSwgb3IgaWYNCj4gPiB0aGVyZSBhcmUNCj4gPiDCoAkJwqAqIG1vcmUg
-d2Ugb25seSBjYXJlIGFib3V0IHRoZSBsYXN0IG9uZS4uLg0KPiA+IEBAIC00NTAsNCArNDczLDQy
-IEBAIHN0YXRpYyBpbnQgYWNwaV9idXR0b25fcmVtb3ZlKHN0cnVjdA0KPiBhY3BpX2RldmljZQ0K
-PiA+ICpkZXZpY2UpDQo+ID4gwqAJcmV0dXJuIDA7DQo+ID4gwqB9DQo+ID4NCj4gPiArc3RhdGlj
-IGludCBwYXJhbV9zZXRfbGlkX2luaXRfc3RhdGUoY29uc3QgY2hhciAqdmFsLCBzdHJ1Y3QNCj4g
-PiBrZXJuZWxfcGFyYW0gKmtwKQ0KPiA+ICt7DQo+ID4gKwlpbnQgcmVzdWx0ID0gMDsNCj4gPiAr
-DQo+ID4gKwlpZiAoIXN0cm5jbXAodmFsLCAib3BlbiIsIHNpemVvZigib3BlbiIpIC0gMSkpIHsN
-Cj4gPiArCQlsaWRfaW5pdF9zdGF0ZSA9IEFDUElfQlVUVE9OX0xJRF9JTklUX09QRU47DQo+ID4g
-KwkJcHJfaW5mbygiTm90aWZ5IGluaXRpYWwgbGlkIHN0YXRlIGFzIG9wZW5cbiIpOw0KPiA+ICsJ
-fSBlbHNlIGlmICghc3RybmNtcCh2YWwsICJtZXRob2QiLCBzaXplb2YoIm1ldGhvZCIpIC0gMSkp
-IHsNCj4gPiArCQlsaWRfaW5pdF9zdGF0ZSA9IEFDUElfQlVUVE9OX0xJRF9JTklUX01FVEhPRDsN
-Cj4gPiArCQlwcl9pbmZvKCJOb3RpZnkgaW5pdGlhbCBsaWQgc3RhdGUgd2l0aCBfTElEIHJldHVy
-bg0KPiA+IHZhbHVlXG4iKTsNCj4gPiArCX0gZWxzZSBpZiAoIXN0cm5jbXAodmFsLCAiaWdub3Jl
-Iiwgc2l6ZW9mKCJpZ25vcmUiKSAtIDEpKSB7DQo+ID4gKwkJbGlkX2luaXRfc3RhdGUgPSBBQ1BJ
-X0JVVFRPTl9MSURfSU5JVF9JR05PUkU7DQo+ID4gKwkJcHJfaW5mbygiRG8gbm90IG5vdGlmeSBp
-bml0aWFsIGxpZCBzdGF0ZVxuIik7DQo+ID4gKwl9IGVsc2UNCj4gPiArCQlyZXN1bHQgPSAtRUlO
-VkFMOw0KPiA+ICsJcmV0dXJuIHJlc3VsdDsNCj4gPiArfQ0KPiA+ICsNCj4gPiArc3RhdGljIGlu
-dCBwYXJhbV9nZXRfbGlkX2luaXRfc3RhdGUoY2hhciAqYnVmZmVyLCBzdHJ1Y3QNCj4gPiBrZXJu
-ZWxfcGFyYW0gKmtwKQ0KPiA+ICt7DQo+ID4gKwlzd2l0Y2ggKGxpZF9pbml0X3N0YXRlKSB7DQo+
-ID4gKwljYXNlIEFDUElfQlVUVE9OX0xJRF9JTklUX09QRU46DQo+ID4gKwkJcmV0dXJuIHNwcmlu
-dGYoYnVmZmVyLCAib3BlbiIpOw0KPiA+ICsJY2FzZSBBQ1BJX0JVVFRPTl9MSURfSU5JVF9NRVRI
-T0Q6DQo+ID4gKwkJcmV0dXJuIHNwcmludGYoYnVmZmVyLCAibWV0aG9kIik7DQo+ID4gKwljYXNl
-IEFDUElfQlVUVE9OX0xJRF9JTklUX0lHTk9SRToNCj4gPiArCQlyZXR1cm4gc3ByaW50ZihidWZm
-ZXIsICJpZ25vcmUiKTsNCj4gPiArCWRlZmF1bHQ6DQo+ID4gKwkJcmV0dXJuIHNwcmludGYoYnVm
-ZmVyLCAiaW52YWxpZCIpOw0KPiA+ICsJfQ0KPiA+ICsJcmV0dXJuIDA7DQo+ID4gK30NCj4gPiAr
-DQo+ID4gK21vZHVsZV9wYXJhbV9jYWxsKGxpZF9pbml0X3N0YXRlLA0KPiA+ICsJCcKgwqBwYXJh
-bV9zZXRfbGlkX2luaXRfc3RhdGUsDQo+ID4gcGFyYW1fZ2V0X2xpZF9pbml0X3N0YXRlLA0KPiA+
-ICsJCcKgwqBOVUxMLCAwNjQ0KTsNCj4gPiArTU9EVUxFX1BBUk1fREVTQyhsaWRfaW5pdF9zdGF0
-ZSwgIkJlaGF2aW9yIGZvciByZXBvcnRpbmcgTElEIGluaXRpYWwNCj4gPiBzdGF0ZSIpOw0KPiA+
-ICsNCj4gPiDCoG1vZHVsZV9hY3BpX2RyaXZlcihhY3BpX2J1dHRvbl9kcml2ZXIpOw0K
+Since a @ecc_notice_size parameter has been added in pstore_info.read(),
+this patch sets this parameter to zero in efi_pstore_read() and
+erst_reader().
+
+Signed-off-by: Geliang Tang <geliangtang@gmail.com>
+---
+ drivers/acpi/apei/erst.c          | 1 +
+ drivers/firmware/efi/efi-pstore.c | 5 +++++
+ 2 files changed, 6 insertions(+)
+
+diff --git a/drivers/acpi/apei/erst.c b/drivers/acpi/apei/erst.c
+index 3024edf..f096ab3 100644
+--- a/drivers/acpi/apei/erst.c
++++ b/drivers/acpi/apei/erst.c
+@@ -1035,6 +1035,7 @@ skip:
+ 	memcpy(*buf, rcd->data, len - sizeof(*rcd));
+ 	*id = record_id;
+ 	*compressed = false;
++	*ecc_notice_size = 0;
+ 	if (uuid_le_cmp(rcd->sec_hdr.section_type,
+ 			CPER_SECTION_TYPE_DMESG_Z) == 0) {
+ 		*type = PSTORE_TYPE_DMESG;
+diff --git a/drivers/firmware/efi/efi-pstore.c b/drivers/firmware/efi/efi-pstore.c
+index cd8c35f..d5903ea 100644
+--- a/drivers/firmware/efi/efi-pstore.c
++++ b/drivers/firmware/efi/efi-pstore.c
+@@ -34,6 +34,7 @@ struct pstore_read_data {
+ 	int *count;
+ 	struct timespec *timespec;
+ 	bool *compressed;
++	ssize_t *ecc_notice_size;
+ 	char **buf;
+ };
+ 
+@@ -69,6 +70,7 @@ static int efi_pstore_read_func(struct efivar_entry *entry, void *data)
+ 			*cb_data->compressed = true;
+ 		else
+ 			*cb_data->compressed = false;
++		*cb_data->ecc_notice_size = 0;
+ 	} else if (sscanf(name, "dump-type%u-%u-%d-%lu",
+ 		   cb_data->type, &part, &cnt, &time) == 4) {
+ 		*cb_data->id = generic_id(time, part, cnt);
+@@ -76,6 +78,7 @@ static int efi_pstore_read_func(struct efivar_entry *entry, void *data)
+ 		cb_data->timespec->tv_sec = time;
+ 		cb_data->timespec->tv_nsec = 0;
+ 		*cb_data->compressed = false;
++		*cb_data->ecc_notice_size = 0;
+ 	} else if (sscanf(name, "dump-type%u-%u-%lu",
+ 			  cb_data->type, &part, &time) == 3) {
+ 		/*
+@@ -88,6 +91,7 @@ static int efi_pstore_read_func(struct efivar_entry *entry, void *data)
+ 		cb_data->timespec->tv_sec = time;
+ 		cb_data->timespec->tv_nsec = 0;
+ 		*cb_data->compressed = false;
++		*cb_data->ecc_notice_size = 0;
+ 	} else
+ 		return 0;
+ 
+@@ -221,6 +225,7 @@ static ssize_t efi_pstore_read(u64 *id, enum pstore_type_id *type,
+ 	data.count = count;
+ 	data.timespec = timespec;
+ 	data.compressed = compressed;
++	data.ecc_notice_size = ecc_notice_size;
+ 	data.buf = buf;
+ 
+ 	*data.buf = kzalloc(EFIVARS_DATA_SIZE_MAX, GFP_KERNEL);
+-- 
+1.9.1
+
