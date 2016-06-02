@@ -1,107 +1,130 @@
-From: Lv Zheng <lv.zheng@intel.com>
-Subject: [PATCH] ACPI / EC: Fix a boot EC regresion by restoring boot EC support for the DSDT EC
-Date: Thu,  2 Jun 2016 08:52:39 +0800
-Message-ID: <1464828759-1846-1-git-send-email-lv.zheng@intel.com>
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga01.intel.com ([192.55.52.88]:36739 "EHLO mga01.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751069AbcFBAwp (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 1 Jun 2016 20:52:45 -0400
-Sender: linux-acpi-owner@vger.kernel.org
+From: "Zheng, Lv" <lv.zheng@intel.com>
+Subject: RE: [PATCH v3 3/3] ACPI / button: Add quirks for initial lid state
+ notification
+Date: Thu, 2 Jun 2016 01:08:36 +0000
+Message-ID: <1AE640813FDE7649BE1B193DEA596E883BBB7382@SHSMSX101.ccr.corp.intel.com>
+References: <cbdaec17aba78c61f466efff8883d49067f2dad5.1463472125.git.lv.zheng@intel.com>
+	 <284674cb8228f4f2b40f940a3c4a666f367d7b6a.1464775699.git.lv.zheng@intel.com>
+ <1464778871.2432.12.camel@hadess.net>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1464778871.2432.12.camel@hadess.net>
+Content-Language: en-US
+Sender: linux-kernel-owner@vger.kernel.org
+To: Bastien Nocera <hadess@hadess.net>, "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, "Brown, Len" <len.brown@intel.com>
+Cc: Lv Zheng <zetalog@gmail.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Benjamin Tissoires <benjamin.tissoires@gmail.com>
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <len.brown@intel.com>
-Cc: Lv Zheng <lv.zheng@intel.com>, Lv Zheng <zetalog@gmail.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
 
-According to the Windows probing result, during the table loading, ECDT EC
-should be used. And the ECDT EC is also effective during the period the
-namespace objects are initialized (we can see a separate process executing
-_STA/_INI on Windows before executing other device specific control
-methods). During the device enumration, the EC device described in DSDT
-should be used. But there are differences between Linux and Windows around
-the device probing order. Thus in Linux, we should enable early EC accesses
-in order not to trigger issues by the device enumeration order difference.
-
-This patch thus converts acpi_boot_ec_enable() into acpi_ec_dsdt_probe() to
-fix the gap. This also fixes a regression reported by the real Linux users
-after we switched table loading/ECDT support to be ACPI spec 2.0 compliant.
-
-Fixes: 59f0aa9480cf ("ACPI 2.0 / ECDT: Remove early namespace reference from EC")
-Link: https://bugzilla.kernel.org/show_bug.cgi?id=119261
-Reported-and-tested-by: Gabriele Mazzotta <mzt@gmail.com>
-Signed-off-by: Lv Zheng <lv.zheng@intel.com>
----
-Index: linux-acpica/drivers/acpi/ec.c
-===================================================================
---- linux-acpica.orig/drivers/acpi/ec.c
-+++ linux-acpica/drivers/acpi/ec.c
-@@ -1446,10 +1446,30 @@ ec_parse_io_ports(struct acpi_resource *
- 	return AE_OK;
- }
- 
--int __init acpi_boot_ec_enable(void)
-+static const struct acpi_device_id ec_device_ids[] = {
-+	{"PNP0C09", 0},
-+	{"", 0},
-+};
-+
-+int __init acpi_ec_dsdt_probe(void)
- {
--	if (!boot_ec)
-+	acpi_status status;
-+
-+	if (boot_ec)
- 		return 0;
-+
-+	/*
-+	 * Finding EC from DSDT if there is no ECDT EC available. When this
-+	 * function is invoked, ACPI tables have been fully loaded, we can
-+	 * walk namespace now.
-+	 */
-+	boot_ec = make_acpi_ec();
-+	if (!boot_ec)
-+		return -ENOMEM;
-+	status = acpi_get_devices(ec_device_ids[0].id,
-+				  ec_parse_device, boot_ec, NULL);
-+	if (ACPI_FAILURE(status) || !boot_ec->handle)
-+		return -ENODEV;
- 	if (!ec_install_handlers(boot_ec)) {
- 		first_ec = boot_ec;
- 		return 0;
-@@ -1457,11 +1477,6 @@ int __init acpi_boot_ec_enable(void)
- 	return -EFAULT;
- }
- 
--static const struct acpi_device_id ec_device_ids[] = {
--	{"PNP0C09", 0},
--	{"", 0},
--};
--
- #if 0
- /*
-  * Some EC firmware variations refuses to respond QR_EC when SCI_EVT is not
-Index: linux-acpica/drivers/acpi/bus.c
-===================================================================
---- linux-acpica.orig/drivers/acpi/bus.c
-+++ linux-acpica/drivers/acpi/bus.c
-@@ -1053,7 +1053,7 @@ static int __init acpi_bus_init(void)
- 	 * Maybe EC region is required at bus_scan/acpi_get_devices. So it
- 	 * is necessary to enable it as early as possible.
- 	 */
--	acpi_boot_ec_enable();
-+	acpi_ec_dsdt_probe();
- 
- 	printk(KERN_INFO PREFIX "Interpreter enabled\n");
- 
-Index: linux-acpica/drivers/acpi/internal.h
-===================================================================
---- linux-acpica.orig/drivers/acpi/internal.h
-+++ linux-acpica/drivers/acpi/internal.h
-@@ -181,7 +181,7 @@ typedef int (*acpi_ec_query_func) (void 
- 
- int acpi_ec_init(void);
- int acpi_ec_ecdt_probe(void);
--int acpi_boot_ec_enable(void);
-+int acpi_ec_dsdt_probe(void);
- void acpi_ec_block_transactions(void);
- void acpi_ec_unblock_transactions(void);
- void acpi_ec_unblock_transactions_early(void);
+SGksDQoNCj4gRnJvbTogQmFzdGllbiBOb2NlcmEgW21haWx0bzpoYWRlc3NAaGFkZXNzLm5ldF0N
+Cj4gU3ViamVjdDogUmU6IFtQQVRDSCB2MyAzLzNdIEFDUEkgLyBidXR0b246IEFkZCBxdWlya3Mg
+Zm9yIGluaXRpYWwgbGlkIHN0YXRlDQo+IG5vdGlmaWNhdGlvbg0KPiANCj4gT24gV2VkLCAyMDE2
+LTA2LTAxIGF0IDE4OjEwICswODAwLCBMdiBaaGVuZyB3cm90ZToNCj4gPiBMaW51eCB1c2Vyc3Bh
+Y2UgKHN5c3RlbWQtbG9naW5kKSBrZWVwcyBvbiByZWNoZWNraW5nIGxpZCBzdGF0ZSB3aGVuIHRo
+ZQ0KPiA+IGxpZCBzdGF0ZSBpcyBjbG9zZWQuIElmIGl0IGZhaWxlZCB0byB1cGRhdGUgdGhlIGxp
+ZCBzdGF0ZSB0byBvcGVuIGFmdGVyDQo+ID4gYm9vdC9yZXN1bWUsIHRoZSBzeXN0ZW0gc3VzcGVu
+ZGluZyByaWdodCBhZnRlciB0aGUgYm9vdC9yZXN1bWUgY291bGQNCj4gYmUNCj4gPiByZXN1bHRl
+ZC4NCj4gPiBHcmFwaGljcyBkcml2ZXJzIGFsc28gdXNlcyB0aGUgbGlkIG5vdGlmaWNhdGlvbnMg
+dG8gaW1wbG1lbnQNCj4gPiBNT0RFU0VUX09OX0xJRF9PUEVOIG9wdGlvbi4NCj4gDQo+ICJpbXBs
+ZW1lbnQiDQpbTHYgWmhlbmddIA0KVGhhbmtzIGZvciBwb2ludGluZyBvdXQsIEknbGwgc2VuZCBh
+biBVUERBVEUgdG8gdGhpcy4NCg0KPiANCj4gPiBCZWZvcmUgdGhlIHNpdHVhdGlvbiBpcyBpbXBy
+b3ZlZCBmcm9tIHRoZSB1c2Vyc3BhY2UgYW5kIGZyb20gdGhlDQo+IGdyYXBoaWNzDQo+ID4gZHJp
+dmVyLCB1c2VycyBjYW4gc2ltcGx5IGNvbmZpZ3VyZSBBQ1BJIGJ1dHRvbiBkcml2ZXIgdG8gc2Vu
+ZCBpbml0aWFsDQo+ID4gIm9wZW4iIGxpZCBzdGF0ZSB1c2luZyBidXR0b24ubGlkX2luaXRfc3Rh
+dGU9b3BlbiB0byBhdm9pZCBzdWNoIGtpbmQgb2YNCj4gPiBpc3N1ZXMuIEFuZCBvdXIgdWx0aW1h
+dGUgdGFyZ2V0IHNob3VsZCBiZSBtYWtpbmcNCj4gPiBidXR0b24ubGlkX2luaXRfc3RhdGU9aWdu
+b3JlIHRoZSBkZWZhdWx0IGJlaGF2aW9yLiBUaGlzIHBhdGNoIGltcGxlbWVudHMNCj4gPiB0aGUg
+MiBvcHRpb25zIGFuZCBrZWVwIHRoZSBvbGQgYmVoYXZpb3IgKGJ1dHRvbi5saWRfaW5pdF9zdGF0
+ZT1tZXRob2QpLg0KPiANCj4gSSBzdGlsbCBkb24ndCB0aGluayBpdCdzIHJlYXNvbmFibGUgdG8g
+ZXhwZWN0IGFueSBjaGFuZ2VzIGluIHVzZXItc3BhY2UNCj4gdW5sZXNzIHlvdSBzdGFydCBkb2N1
+bWVudGluZyB3aGF0IHRoZSBBUEkgdG8gdXNlci1zcGFjZSBhY3R1YWxseSBpcy4NCltMdiBaaGVu
+Z10gDQpJTU8sIHRoZSBBQ1BJIGxpZCBkcml2ZXIgc2hvdWxkIGJlIHJlc3BvbnNpYmxlIGZvciBz
+ZW5kaW5nIGxpZCBrZXkgZXZlbnQgKGVzcGVjaWFsbHkgImNsb3NlIikgdG8gdGhlIHVzZXIgc3Bh
+Y2UuDQpTbyBpZiBzb21lb25lIG5lZWQgdG8gaW1wbGVtZW50IGFuIEFDUEkgbGlkIGtleSBldmVu
+dCBxdWlyaywgd2UgY291bGQgaGVscCB0byBpbXBsZW1lbnQgaXQgZnJvbSB0aGUga2VybmVsIHNw
+YWNlLg0KQW5kIHNpbmNlIHRoZSBpbml0aWFsIGxpZCBzdGF0ZSBpcyBub3Qgc3RhYmxlLCB3ZSBo
+YXZlIHRvIHN0b3AgZG9pbmcgcXVpcmtzIGFyb3VuZCBpdCBpbnNpZGUgb2YgdGhlIExpbnV4IGtl
+cm5lbCwgb3IgaW5zaWRlIG9mIHRoZSBjdXN0b21pemVkIEFNTCB0YWJsZXMuDQpVc2VyIHNwYWNl
+IGNhbiBzdGlsbCBhY2Nlc3MgL3Byb2MvYWNwaS9idXR0b24vbGlkL0xJRDAvc3RhdGUsIGJ1dCBz
+aG91bGQgc3RvcCB0aGlua2luZyB0aGF0IGl0IGlzIHJlbGlhYmxlLg0KDQpUaGVzZSBhcmUgd2hh
+dCBJIGNhbiBjb25jbHVkZSBmcm9tIHRoZSBidWdzLg0KDQpUaGFua3MgYW5kIGJlc3QgcmVnYXJk
+cw0KLUx2DQoNCj4gDQo+IChJIHdvcmsgb24gVVBvd2VyLCB3aGljaCBhbHNvIGV4cG9ydHMgdGhh
+dCBpbmZvcm1hdGlvbiwgYW5kIHdoaWNoIGdldHMNCj4gdXNlZCBpbiBnbm9tZS1zZXR0aW5ncy1k
+YWVtb24gaW4gYSBudW1iZXIgb2Ygd2F5cykNCj4gDQo+ID4gTGluayAxOiBodHRwczovL2xrbWwu
+b3JnLzIwMTYvMy83LzQ2MA0KPiA+IExpbmsgMjogaHR0cHM6Ly9naXRodWIuY29tL3N5c3RlbWQv
+c3lzdGVtZC9pc3N1ZXMvMjA4Nw0KPiA+IFNpZ25lZC1vZmYtYnk6IEx2IFpoZW5nIDxsdi56aGVu
+Z0BpbnRlbC5jb20+DQo+ID4gQ2M6IEJhc3RpZW4gTm9jZXJhOiA8aGFkZXNzQGhhZGVzcy5uZXQ+
+DQo+ID4gQ2M6IEJlbmphbWluIFRpc3NvaXJlcyA8YmVuamFtaW4udGlzc29pcmVzQGdtYWlsLmNv
+bT4NCj4gPiAtLS0NCj4gPiDCoGRyaXZlcnMvYWNwaS9idXR0b24uYyB8wqDCoMKgNjENCj4gPiAr
+KysrKysrKysrKysrKysrKysrKysrKysrKysrKysrKysrKysrKysrKysrKysrKysrDQo+ID4gwqAx
+IGZpbGUgY2hhbmdlZCwgNjEgaW5zZXJ0aW9ucygrKQ0KPiA+DQo+ID4gZGlmZiAtLWdpdCBhL2Ry
+aXZlcnMvYWNwaS9idXR0b24uYyBiL2RyaXZlcnMvYWNwaS9idXR0b24uYw0KPiA+IGluZGV4IDZl
+MjkxYzEuLjE0OGY0ZTUgMTAwNjQ0DQo+ID4gLS0tIGEvZHJpdmVycy9hY3BpL2J1dHRvbi5jDQo+
+ID4gKysrIGIvZHJpdmVycy9hY3BpL2J1dHRvbi5jDQo+ID4gQEAgLTUzLDYgKzUzLDEwIEBADQo+
+ID4gwqAjZGVmaW5lIEFDUElfQlVUVE9OX0RFVklDRV9OQU1FX0xJRAkiTGlkIFN3aXRjaCINCj4g
+PiDCoCNkZWZpbmUgQUNQSV9CVVRUT05fVFlQRV9MSUQJCTB4MDUNCj4gPg0KPiA+ICsjZGVmaW5l
+IEFDUElfQlVUVE9OX0xJRF9JTklUX0lHTk9SRQkweDAwDQo+ID4gKyNkZWZpbmUgQUNQSV9CVVRU
+T05fTElEX0lOSVRfT1BFTgkweDAxDQo+ID4gKyNkZWZpbmUgQUNQSV9CVVRUT05fTElEX0lOSVRf
+TUVUSE9ECTB4MDINCj4gPiArDQo+ID4gwqAjZGVmaW5lIF9DT01QT05FTlQJCUFDUElfQlVUVE9O
+X0NPTVBPTkVOVA0KPiA+IMKgQUNQSV9NT0RVTEVfTkFNRSgiYnV0dG9uIik7DQo+ID4NCj4gPiBA
+QCAtMTA1LDYgKzEwOSw3IEBAIHN0cnVjdCBhY3BpX2J1dHRvbiB7DQo+ID4NCj4gPiDCoHN0YXRp
+YyBCTE9DS0lOR19OT1RJRklFUl9IRUFEKGFjcGlfbGlkX25vdGlmaWVyKTsNCj4gPiDCoHN0YXRp
+YyBzdHJ1Y3QgYWNwaV9kZXZpY2UgKmxpZF9kZXZpY2U7DQo+ID4gK3N0YXRpYyB1OCBsaWRfaW5p
+dF9zdGF0ZSA9IEFDUElfQlVUVE9OX0xJRF9JTklUX01FVEhPRDsNCj4gPg0KPiA+IMKgLyogLS0t
+LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
+LS0tDQo+ID4gLS0tLS0tLS0tLS0NCj4gPiDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDC
+oMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoEZTIEludGVyZmFjZSAoL3Byb2MpDQo+ID4g
+QEAgLTI4NSw2ICsyOTAsMjEgQEAgc3RhdGljIGludCBhY3BpX2xpZF91cGRhdGVfc3RhdGUoc3Ry
+dWN0DQo+ID4gYWNwaV9kZXZpY2UgKmRldmljZSkNCj4gPiDCoAlyZXR1cm4gYWNwaV9saWRfbm90
+aWZ5X3N0YXRlKGRldmljZSwgc3RhdGUpOw0KPiA+IMKgfQ0KPiA+DQo+ID4gK3N0YXRpYyB2b2lk
+IGFjcGlfbGlkX2luaXRpYWxpemVfc3RhdGUoc3RydWN0IGFjcGlfZGV2aWNlICpkZXZpY2UpDQo+
+ID4gK3sNCj4gPiArCXN3aXRjaCAobGlkX2luaXRfc3RhdGUpIHsNCj4gPiArCWNhc2UgQUNQSV9C
+VVRUT05fTElEX0lOSVRfT1BFTjoNCj4gPiArCQkodm9pZClhY3BpX2xpZF9ub3RpZnlfc3RhdGUo
+ZGV2aWNlLCAxKTsNCj4gPiArCQlicmVhazsNCj4gPiArCWNhc2UgQUNQSV9CVVRUT05fTElEX0lO
+SVRfTUVUSE9EOg0KPiA+ICsJCSh2b2lkKWFjcGlfbGlkX3VwZGF0ZV9zdGF0ZShkZXZpY2UpOw0K
+PiA+ICsJCWJyZWFrOw0KPiA+ICsJY2FzZSBBQ1BJX0JVVFRPTl9MSURfSU5JVF9JR05PUkU6DQo+
+ID4gKwlkZWZhdWx0Og0KPiA+ICsJCWJyZWFrOw0KPiA+ICsJfQ0KPiA+ICt9DQo+ID4gKw0KPiA+
+IMKgc3RhdGljIHZvaWQgYWNwaV9idXR0b25fbm90aWZ5KHN0cnVjdCBhY3BpX2RldmljZSAqZGV2
+aWNlLCB1MzINCj4gPiBldmVudCkNCj4gPiDCoHsNCj4gPiDCoAlzdHJ1Y3QgYWNwaV9idXR0b24g
+KmJ1dHRvbiA9IGFjcGlfZHJpdmVyX2RhdGEoZGV2aWNlKTsNCj4gPiBAQCAtMzQxLDYgKzM2MSw4
+IEBAIHN0YXRpYyBpbnQgYWNwaV9idXR0b25fcmVzdW1lKHN0cnVjdCBkZXZpY2UNCj4gKmRldikN
+Cj4gPiDCoAlzdHJ1Y3QgYWNwaV9idXR0b24gKmJ1dHRvbiA9IGFjcGlfZHJpdmVyX2RhdGEoZGV2
+aWNlKTsNCj4gPg0KPiA+IMKgCWJ1dHRvbi0+c3VzcGVuZGVkID0gZmFsc2U7DQo+ID4gKwlpZiAo
+YnV0dG9uLT50eXBlID09IEFDUElfQlVUVE9OX1RZUEVfTElEKQ0KPiA+ICsJCWFjcGlfbGlkX2lu
+aXRpYWxpemVfc3RhdGUoZGV2aWNlKTsNCj4gPiDCoAlyZXR1cm4gMDsNCj4gPiDCoH0NCj4gPiDC
+oCNlbmRpZg0KPiA+IEBAIC00MjEsNiArNDQzLDcgQEAgc3RhdGljIGludCBhY3BpX2J1dHRvbl9h
+ZGQoc3RydWN0IGFjcGlfZGV2aWNlDQo+ID4gKmRldmljZSkNCj4gPiDCoAlpZiAoZXJyb3IpDQo+
+ID4gwqAJCWdvdG8gZXJyX3JlbW92ZV9mczsNCj4gPiDCoAlpZiAoYnV0dG9uLT50eXBlID09IEFD
+UElfQlVUVE9OX1RZUEVfTElEKSB7DQo+ID4gKwkJYWNwaV9saWRfaW5pdGlhbGl6ZV9zdGF0ZShk
+ZXZpY2UpOw0KPiA+IMKgCQkvKg0KPiA+IMKgCQnCoCogVGhpcyBhc3N1bWVzIHRoZXJlJ3Mgb25s
+eSBvbmUgbGlkIGRldmljZSwgb3IgaWYNCj4gPiB0aGVyZSBhcmUNCj4gPiDCoAkJwqAqIG1vcmUg
+d2Ugb25seSBjYXJlIGFib3V0IHRoZSBsYXN0IG9uZS4uLg0KPiA+IEBAIC00NTAsNCArNDczLDQy
+IEBAIHN0YXRpYyBpbnQgYWNwaV9idXR0b25fcmVtb3ZlKHN0cnVjdA0KPiBhY3BpX2RldmljZQ0K
+PiA+ICpkZXZpY2UpDQo+ID4gwqAJcmV0dXJuIDA7DQo+ID4gwqB9DQo+ID4NCj4gPiArc3RhdGlj
+IGludCBwYXJhbV9zZXRfbGlkX2luaXRfc3RhdGUoY29uc3QgY2hhciAqdmFsLCBzdHJ1Y3QNCj4g
+PiBrZXJuZWxfcGFyYW0gKmtwKQ0KPiA+ICt7DQo+ID4gKwlpbnQgcmVzdWx0ID0gMDsNCj4gPiAr
+DQo+ID4gKwlpZiAoIXN0cm5jbXAodmFsLCAib3BlbiIsIHNpemVvZigib3BlbiIpIC0gMSkpIHsN
+Cj4gPiArCQlsaWRfaW5pdF9zdGF0ZSA9IEFDUElfQlVUVE9OX0xJRF9JTklUX09QRU47DQo+ID4g
+KwkJcHJfaW5mbygiTm90aWZ5IGluaXRpYWwgbGlkIHN0YXRlIGFzIG9wZW5cbiIpOw0KPiA+ICsJ
+fSBlbHNlIGlmICghc3RybmNtcCh2YWwsICJtZXRob2QiLCBzaXplb2YoIm1ldGhvZCIpIC0gMSkp
+IHsNCj4gPiArCQlsaWRfaW5pdF9zdGF0ZSA9IEFDUElfQlVUVE9OX0xJRF9JTklUX01FVEhPRDsN
+Cj4gPiArCQlwcl9pbmZvKCJOb3RpZnkgaW5pdGlhbCBsaWQgc3RhdGUgd2l0aCBfTElEIHJldHVy
+bg0KPiA+IHZhbHVlXG4iKTsNCj4gPiArCX0gZWxzZSBpZiAoIXN0cm5jbXAodmFsLCAiaWdub3Jl
+Iiwgc2l6ZW9mKCJpZ25vcmUiKSAtIDEpKSB7DQo+ID4gKwkJbGlkX2luaXRfc3RhdGUgPSBBQ1BJ
+X0JVVFRPTl9MSURfSU5JVF9JR05PUkU7DQo+ID4gKwkJcHJfaW5mbygiRG8gbm90IG5vdGlmeSBp
+bml0aWFsIGxpZCBzdGF0ZVxuIik7DQo+ID4gKwl9IGVsc2UNCj4gPiArCQlyZXN1bHQgPSAtRUlO
+VkFMOw0KPiA+ICsJcmV0dXJuIHJlc3VsdDsNCj4gPiArfQ0KPiA+ICsNCj4gPiArc3RhdGljIGlu
+dCBwYXJhbV9nZXRfbGlkX2luaXRfc3RhdGUoY2hhciAqYnVmZmVyLCBzdHJ1Y3QNCj4gPiBrZXJu
+ZWxfcGFyYW0gKmtwKQ0KPiA+ICt7DQo+ID4gKwlzd2l0Y2ggKGxpZF9pbml0X3N0YXRlKSB7DQo+
+ID4gKwljYXNlIEFDUElfQlVUVE9OX0xJRF9JTklUX09QRU46DQo+ID4gKwkJcmV0dXJuIHNwcmlu
+dGYoYnVmZmVyLCAib3BlbiIpOw0KPiA+ICsJY2FzZSBBQ1BJX0JVVFRPTl9MSURfSU5JVF9NRVRI
+T0Q6DQo+ID4gKwkJcmV0dXJuIHNwcmludGYoYnVmZmVyLCAibWV0aG9kIik7DQo+ID4gKwljYXNl
+IEFDUElfQlVUVE9OX0xJRF9JTklUX0lHTk9SRToNCj4gPiArCQlyZXR1cm4gc3ByaW50ZihidWZm
+ZXIsICJpZ25vcmUiKTsNCj4gPiArCWRlZmF1bHQ6DQo+ID4gKwkJcmV0dXJuIHNwcmludGYoYnVm
+ZmVyLCAiaW52YWxpZCIpOw0KPiA+ICsJfQ0KPiA+ICsJcmV0dXJuIDA7DQo+ID4gK30NCj4gPiAr
+DQo+ID4gK21vZHVsZV9wYXJhbV9jYWxsKGxpZF9pbml0X3N0YXRlLA0KPiA+ICsJCcKgwqBwYXJh
+bV9zZXRfbGlkX2luaXRfc3RhdGUsDQo+ID4gcGFyYW1fZ2V0X2xpZF9pbml0X3N0YXRlLA0KPiA+
+ICsJCcKgwqBOVUxMLCAwNjQ0KTsNCj4gPiArTU9EVUxFX1BBUk1fREVTQyhsaWRfaW5pdF9zdGF0
+ZSwgIkJlaGF2aW9yIGZvciByZXBvcnRpbmcgTElEIGluaXRpYWwNCj4gPiBzdGF0ZSIpOw0KPiA+
+ICsNCj4gPiDCoG1vZHVsZV9hY3BpX2RyaXZlcihhY3BpX2J1dHRvbl9kcml2ZXIpOw0K
