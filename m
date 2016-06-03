@@ -1,230 +1,106 @@
-From: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
-Subject: Re: [PATCH V8 7/9] acpi: Add generic MCFG table handling
-Date: Fri, 3 Jun 2016 12:38:10 +0100
-Message-ID: <20160603113810.GA24764@red-moon>
-References: <1464621262-26770-1-git-send-email-tn@semihalf.com>
- <1464621262-26770-8-git-send-email-tn@semihalf.com>
+From: Christopher Covington <cov@codeaurora.org>
+Subject: Re: [RFC PATCH 1/3] pci, acpi: Match PCI config space accessors
+ against platfrom specific ECAM quirks.
+Date: Fri, 3 Jun 2016 11:15:21 -0400
+Message-ID: <57519F09.2010201@codeaurora.org>
+References: <1464856864-18049-1-git-send-email-tn@semihalf.com>
+ <1464856864-18049-2-git-send-email-tn@semihalf.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <1464621262-26770-8-git-send-email-tn@semihalf.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Tomasz Nowicki <tn@semihalf.com>
-Cc: helgaas@kernel.org, arnd@arndb.de, will.deacon@arm.com, catalin.marinas@arm.com, rafael@kernel.org, hanjun.guo@linaro.org, okaya@codeaurora.org, jchandra@broadcom.com, robert.richter@caviumnetworks.com, mw@semihalf.com, Liviu.Dudau@arm.com, ddaney@caviumnetworks.com, wangyijing@huawei.com, Suravee.Suthikulpanit@amd.com, msalter@redhat.com, linux-pci@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linaro-acpi@lists.linaro.org, jcm@redhat.com, andrea.gallo@linaro.org, dhdang@apm.com, jeremy.linton@arm.com, liudongdong3@huawei.com, cov@codeaurora.org
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-pci-owner@vger.kernel.org>
+In-Reply-To: <1464856864-18049-2-git-send-email-tn@semihalf.com>
+Sender: linux-pci-owner@vger.kernel.org
+To: Tomasz Nowicki <tn@semihalf.com>, helgaas@kernel.org, arnd@arndb.de, will.deacon@arm.com, catalin.marinas@arm.com, rafael@kernel.org, hanjun.guo@linaro.org, Lorenzo.Pieralisi@arm.com, okaya@codeaurora.org, jchandra@broadcom.com
+Cc: jcm@redhat.com, linaro-acpi@lists.linaro.org, linux-pci@vger.kernel.org, dhdang@apm.com, Liviu.Dudau@arm.com, ddaney@caviumnetworks.com, jeremy.linton@arm.com, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, robert.richter@caviumnetworks.com, Suravee.Suthikulpanit@amd.com, msalter@redhat.com, wangyijing@huawei.com, mw@semihalf.com, andrea.gallo@linaro.org, linux-arm-kernel@lists.infradead.org, liudongdong3@huawei.com, gabriele.paoloni@huawei.com
 List-Id: linux-acpi@vger.kernel.org
 
-On Mon, May 30, 2016 at 05:14:20PM +0200, Tomasz Nowicki wrote:
-> In order to handle PCI config space regions properly in ACPI, new MCFG
-> interface is defined which does sanity checks on MCFG table and keeps its
-> root pointer. The user is able to lookup MCFG regions based on
-> host bridge root structure and domain:bus_start:bus_end touple.
-> Use pci_mmcfg_late_init old prototype to avoid another function name.
+Hi Tomasz,
 
-"According to PCI firmware specifications, on systems booting with ACPI,
-PCI configuration for a host bridge must be set-up through the MCFG table
-regions for non-hotpluggable bridges and _CBA method for hotpluggable ones.
+Thanks for your work on this.
 
-Current MCFG table handling code, as implemented for x86, cannot be
-easily generalized owing to x86 specific quirks handling and related
-code, which makes it hard to reuse on other architectures.
-
-In order to implement MCFG PCI configuration handling for new platforms
-booting with ACPI (eg ARM64) this patch re-implements MCFG handling from
-scratch in a streamlined fashion and provides (through a generic
-interface available to all arches):
-
-- Simplified MCFG table parsing (executed through the pci_mmcfg_late_init()
-  hook as in current x86)
-- MCFG regions look-up interface through domain:bus_start:bus_end tuple
-
-The new MCFG regions handling interface is added to generic ACPI code
-so that existing architectures (eg x86) can be moved over to it and
-architectures relying on MCFG for ACPI PCI config space can rely on it
-without having to resort to arch specific implementations."
-
+On 06/02/2016 04:41 AM, Tomasz Nowicki wrote:
+> Some platforms may not be fully compliant with generic set of PCI config
+> accessors. For these cases we implement the way to overwrite accessors
+> set. Algorithm traverses available quirk list, matches against
+> <oem_id, oem_rev, domain, bus number> tuple and returns corresponding
+> PCI config ops. oem_id and oem_rev come from MCFG table standard header.
+> All quirks can be defined using DECLARE_ACPI_MCFG_FIXUP() macro and
+> kept self contained. Example:
+> 
+> /* Custom PCI config ops */
+> static struct pci_generic_ecam_ops foo_pci_ops = {
+> 	.bus_shift	= 24,
+> 	.pci_ops = {
+> 		.map_bus = pci_ecam_map_bus,
+> 		.read = foo_ecam_config_read,
+> 		.write = foo_ecam_config_write,
+> 	}
+> };
+> 
+> DECLARE_ACPI_MCFG_FIXUP(&foo_pci_ops, <oem_id_str>, <oem_rev>, <domain_nr>, <bus_nr>);
+> 
 > Signed-off-by: Tomasz Nowicki <tn@semihalf.com>
-> Signed-off-by: Jayachandran C <jchandra@broadcom.com>
 > ---
->  drivers/acpi/Kconfig     |  3 ++
->  drivers/acpi/Makefile    |  1 +
->  drivers/acpi/pci_mcfg.c  | 94 ++++++++++++++++++++++++++++++++++++++++++++++++
->  include/linux/pci-acpi.h |  2 ++
->  include/linux/pci.h      |  2 +-
->  5 files changed, 101 insertions(+), 1 deletion(-)
->  create mode 100644 drivers/acpi/pci_mcfg.c
+>  drivers/acpi/pci_mcfg.c           | 32 ++++++++++++++++++++++++++++++++
+>  include/asm-generic/vmlinux.lds.h |  7 +++++++
+>  include/linux/pci-acpi.h          | 19 +++++++++++++++++++
+>  3 files changed, 58 insertions(+)
 > 
-> diff --git a/drivers/acpi/Kconfig b/drivers/acpi/Kconfig
-> index b7e2e77..f98c328 100644
-> --- a/drivers/acpi/Kconfig
-> +++ b/drivers/acpi/Kconfig
-> @@ -217,6 +217,9 @@ config ACPI_PROCESSOR_IDLE
->  	bool
->  	select CPU_IDLE
->  
-> +config ACPI_MCFG
-> +	bool
-> +
->  config ACPI_CPPC_LIB
->  	bool
->  	depends on ACPI_PROCESSOR
-> diff --git a/drivers/acpi/Makefile b/drivers/acpi/Makefile
-> index 251ce85..632e81f 100644
-> --- a/drivers/acpi/Makefile
-> +++ b/drivers/acpi/Makefile
-> @@ -40,6 +40,7 @@ acpi-$(CONFIG_ARCH_MIGHT_HAVE_ACPI_PDC) += processor_pdc.o
->  acpi-y				+= ec.o
->  acpi-$(CONFIG_ACPI_DOCK)	+= dock.o
->  acpi-y				+= pci_root.o pci_link.o pci_irq.o
-> +obj-$(CONFIG_ACPI_MCFG)		+= pci_mcfg.o
->  acpi-y				+= acpi_lpss.o acpi_apd.o
->  acpi-y				+= acpi_platform.o
->  acpi-y				+= acpi_pnp.o
 > diff --git a/drivers/acpi/pci_mcfg.c b/drivers/acpi/pci_mcfg.c
-> new file mode 100644
-> index 0000000..1847f74
-> --- /dev/null
+> index 1847f74..f3d4570 100644
+> --- a/drivers/acpi/pci_mcfg.c
 > +++ b/drivers/acpi/pci_mcfg.c
-> @@ -0,0 +1,94 @@
-> +/*
-> + * Copyright (C) 2016 Broadcom
-> + *	Author: Jayachandran C <jchandra@broadcom.com>
-> + * Copyright (C) 2016 Semihalf
-> + * 	Author: Tomasz Nowicki <tn@semihalf.com>
-> + *
-> + * This program is free software; you can redistribute it and/or modify
-> + * it under the terms of the GNU General Public License, version 2, as
-> + * published by the Free Software Foundation (the "GPL").
-> + *
-> + * This program is distributed in the hope that it will be useful, but
-> + * WITHOUT ANY WARRANTY; without even the implied warranty of
-> + * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-> + * General Public License version 2 (GPLv2) for more details.
-> + *
-> + * You should have received a copy of the GNU General Public License
-> + * version 2 (GPLv2) along with this source code.
-> + */
-> +
-> +#define pr_fmt(fmt) "ACPI: " fmt
-> +
-> +#include <linux/kernel.h>
-> +#include <linux/pci.h>
-> +#include <linux/pci-acpi.h>
-> +
-> +/* Root pointer to the mapped MCFG table */
-> +static struct acpi_table_mcfg *mcfg_table;
-> +static int mcfg_entries;
-> +
-> +int pci_mcfg_lookup(struct acpi_pci_root *root)
-> +{
-> +	struct acpi_mcfg_allocation *mptr, *entry = NULL;
-> +	struct resource *bus_res = &root->secondary;
-> +	int i;
-> +
-> +	if (mcfg_table) {
-> +		mptr = (struct acpi_mcfg_allocation *) &mcfg_table[1];
-> +		for (i = 0; i < mcfg_entries && !entry; i++, mptr++)
-> +			if (mptr->pci_segment == root->segment &&
-> +			    mptr->start_bus_number == bus_res->start)
-> +				entry = mptr;
-> +	}
-> +
-> +	/* not found, use _CBA if available, else error */
-> +	if (!entry) {
-> +		if (root->mcfg_addr)
-> +			return root->mcfg_addr;
-> +		pr_err("%04x:%pR MCFG lookup failed\n", root->segment, bus_res);
-> +		return -ENOENT;
-> +	} else if (root->mcfg_addr && entry->address != root->mcfg_addr) {
-> +		pr_warn("%04x:%pR CBA %pa != MCFG %lx, using CBA\n",
-> +			root->segment, bus_res, &root->mcfg_addr,
-> +			(unsigned long)entry->address);
-> +		return 0;
-> +	}
-> +
-> +	/* found matching entry, bus range check */
-> +	if (entry->end_bus_number != bus_res->end) {
-> +		resource_size_t bus_end = min_t(resource_size_t,
-> +					entry->end_bus_number, bus_res->end);
-> +		pr_warn("%04x:%pR bus end mismatch, using %02lx\n",
-> +			root->segment, bus_res, (unsigned long)bus_end);
-> +		bus_res->end = bus_end;
-> +	}
-> +
-> +	if (!root->mcfg_addr)
-> +		root->mcfg_addr = entry->address;
-
-Let's hope that no one will ever implement a hotplug bridge with config
-space starting at physical address 0x0.
-
-Nit: You should define what the return value means. For success, once you
-return the _CBA address, once 0; this should be consistent.
-
-Anyway, this function is not easy to read but it may well be fine, I will let
-Bjorn decide what to do with corner cases:
-
-a) _CBA is != 0 and you get a MCFG entry that matches its address (I am
-    not sure that capping the _CRS bus numbers is PCI compliant in that case)
-b) bus_end capping, either you leave code as-is (that caps also _CRS) or
-   just warn and fail if the bus->end numbers mismatch
-
-Pending Bjorn's opinion on the above (and commit log update):
-
-Reviewed-by: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
-
-> +	return 0;
-> +}
-> +
-> +static __init int pci_mcfg_parse(struct acpi_table_header *header)
-> +{
-> +	if (header->length < sizeof(struct acpi_table_mcfg))
-> +		return -EINVAL;
-> +
-> +	mcfg_entries = (header->length - sizeof(struct acpi_table_mcfg)) /
-> +					sizeof(struct acpi_mcfg_allocation);
-> +	if (mcfg_entries == 0) {
-> +		pr_err("MCFG has no entries\n");
-> +		return -EINVAL;
-> +	}
-> +
-> +	mcfg_table = (struct acpi_table_mcfg *)header;
-> +	pr_info("MCFG table detected, %d entries\n", mcfg_entries);
-> +	return 0;
-> +}
-> +
-> +/* Interface called by ACPI - parse and save MCFG table */
-> +void __init pci_mmcfg_late_init(void)
-> +{
-> +	int err = acpi_table_parse(ACPI_SIG_MCFG, pci_mcfg_parse);
-> +	if (err)
-> +		pr_err("Failed to parse MCFG (%d)\n", err);
-> +}
-> diff --git a/include/linux/pci-acpi.h b/include/linux/pci-acpi.h
-> index 89ab057..e0e6dfc 100644
-> --- a/include/linux/pci-acpi.h
-> +++ b/include/linux/pci-acpi.h
-> @@ -24,6 +24,8 @@ static inline acpi_status pci_acpi_remove_pm_notifier(struct acpi_device *dev)
->  }
->  extern phys_addr_t acpi_pci_root_get_mcfg_addr(acpi_handle handle);
+> @@ -22,11 +22,43 @@
+>  #include <linux/kernel.h>
+>  #include <linux/pci.h>
+>  #include <linux/pci-acpi.h>
+> +#include <linux/pci-ecam.h>
 >  
-> +extern int pci_mcfg_lookup(struct acpi_pci_root *root);
-> +
->  static inline acpi_handle acpi_find_root_bridge_handle(struct pci_dev *pdev)
->  {
->  	struct pci_bus *pbus = pdev->bus;
-> diff --git a/include/linux/pci.h b/include/linux/pci.h
-> index bba4053..9661c85 100644
-> --- a/include/linux/pci.h
-> +++ b/include/linux/pci.h
-> @@ -1724,7 +1724,7 @@ void pcibios_free_irq(struct pci_dev *dev);
->  extern struct dev_pm_ops pcibios_pm_ops;
->  #endif
+>  /* Root pointer to the mapped MCFG table */
+>  static struct acpi_table_mcfg *mcfg_table;
+>  static int mcfg_entries;
 >  
-> -#ifdef CONFIG_PCI_MMCONFIG
-> +#if defined(CONFIG_PCI_MMCONFIG) || defined(CONFIG_ACPI_MCFG)
->  void __init pci_mmcfg_early_init(void);
->  void __init pci_mmcfg_late_init(void);
->  #else
-> -- 
-> 1.9.1
-> 
+> +extern struct pci_cfg_fixup __start_acpi_mcfg_fixups[];
+> +extern struct pci_cfg_fixup __end_acpi_mcfg_fixups[];
+> +
+> +struct pci_ecam_ops *pci_mcfg_get_ops(struct acpi_pci_root *root)
+> +{
+> +	int bus_num = root->secondary.start;
+> +	int domain = root->segment;
+> +	struct pci_cfg_fixup *f;
+> +
+> +	if (!mcfg_table)
+> +		return &pci_generic_ecam_ops;
+> +
+> +	/*
+> +	 * Match against platform specific quirks and return corresponding
+> +	 * CAM ops.
+> +	 *
+> +	 * First match against PCI topology <domain:bus> then use OEM ID and
+> +	 * OEM revision from MCFG table standard header.
+> +	 */
+> +	for (f = __start_acpi_mcfg_fixups; f < __end_acpi_mcfg_fixups; f++) {
+> +		if ((f->domain == domain || f->domain == PCI_MCFG_DOMAIN_ANY) &&
+> +		    (f->bus_num == bus_num || f->bus_num == PCI_MCFG_BUS_ANY) &&
+> +		    (!strncmp(f->oem_id, mcfg_table->header.oem_id,
+> +			      ACPI_OEM_ID_SIZE)) &&
+> +		    (f->oem_revision == mcfg_table->header.oem_revision))
+
+Is this more likely to be updated between quirky and fixed platforms
+than oem_table_id? What do folks think about using oem_table_id instead
+of, or in addition to, oem_revision?
+
+In case these details are helpful, here was my simple prototype of an
+MCFG based approach:
+
+https://codeaurora.org/cgit/quic/server/kernel/commit/?h=cov/4.7-rc1-testing&id=c5d8bc49a198fd8f61f82c7d8f169564d6176b07
+https://codeaurora.org/cgit/quic/server/kernel/commit/?h=cov/4.7-rc1-testing&id=50bfe77ccd1639e6ce8c7c4fcca187d50e0bead4
+
+Thanks,
+Cov
+
+-- 
+Qualcomm Innovation Center, Inc.
+Qualcomm Innovation Center, Inc. is a member of Code Aurora Forum,
+a Linux Foundation Collaborative Project
