@@ -1,65 +1,53 @@
-From: Darren Hart <dvhart@infradead.org>
-Subject: Re: [PATCH 01/20] x86, intel: Introduce macros for Intel family
- numbers
-Date: Thu, 2 Jun 2016 14:45:57 -0700
-Message-ID: <20160602214557.GB1975@f23x64.localdomain>
-References: <20160602001157.D8BE59D7@viggo.jf.intel.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+From: Dave Hansen <dave@sr71.net>
+Subject: [PATCH 14/20] x86, acpi, lss: use Intel family name macros for lpss driver
+Date: Thu, 02 Jun 2016 17:19:46 -0700
+Message-ID: <20160603001946.264CE704@viggo.jf.intel.com>
+References: <20160603001927.F2A7D828@viggo.jf.intel.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:56803 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932240AbcFBVqC (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 2 Jun 2016 17:46:02 -0400
-Content-Disposition: inline
-In-Reply-To: <20160602001157.D8BE59D7@viggo.jf.intel.com>
+Received: from mga11.intel.com ([192.55.52.93]:55917 "EHLO mga11.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1161319AbcFCATs (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 2 Jun 2016 20:19:48 -0400
+In-Reply-To: <20160603001927.F2A7D828@viggo.jf.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Dave Hansen <dave@sr71.net>
-Cc: linux-kernel@vger.kernel.org, x86@kernel.org, dave.hansen@linux.intel.com, adrian.hunter@intel.com, ak@linux.intel.com, luto@kernel.org, bp@alien8.de, dougthompson@xmission.com, edubezval@gmail.com, hpa@zytor.com, mingo@redhat.com, jacob.jun.pan@linux.intel.com, kan.liang@intel.com, lenb@kernel.org, linux-acpi@vger.kernel.org, linux-edac@vger.kernel.org, linux-mmc@vger.kernel.org, linux-pm@vger.kernel.org, mchehab@osg.samsung.com, peterz@infradead.org, platform-driver-x86@vger.kernel.org, rafael.j.wysocki@intel.com, rajneesh.bhardwaj@intel.com, souvik.k.chakravarty@intel.com, srinivas.pandruvada@linux.intel.com, eranian@google.com, tglx@linutronix.de, tony.luck@intel.com, ulf.hansson@linaro.org, viresh.kumar@linaro.org, vishwanath.somayaji@intel.com, zheng.z.yan@intel.com, rui.zhang@intel.com
+To: linux-kernel@vger.kernel.org
+Cc: x86@kernel.org, jacob.jun.pan@intel.com, Dave Hansen <dave@sr71.net>, dave.hansen@linux.intel.com, rjw@rjwysocki.net, lenb@kernel.org, linux-acpi@vger.kernel.org
 
-On Wed, Jun 01, 2016 at 05:11:57PM -0700, Dave Hansen wrote:
-> 
-> From: Dave Hansen <dave.hansen@linux.intel.com>
-> 
-> If you are cc'd on this code, please check _your_ code vs. the
-> model list in "intel-family.h".  Please make sure you have all
-> the models listed that you intend to.
-> 
-> Problem:
-> 
-> We have a boatload of open-coded family-6 model numbers.  Half of
-> them have these model numbers in hex and the other half in
-> decimal.  This makes grepping for them tons of fun, if you were
-> to try.
-> 
-> Solution:
-> 
-> Consolidate all the magic numbers.  Put all the definitions in
-> one header.
-> 
-> The names here are closely derived from the comments describing
-> the models from arch/x86/events/intel/core.c.  We could easily
-> make them shorter by doing things like s/SANDYBRIDGE/SNB/, but
-> they seemed fine even with the longer versions to me.
-> 
-> Do not take any of these names too literally, like "DESKTOP"
-> or "MOBILE".  These are all colloquial names and not precise
-> descriptions of everywhere a given model will show up.
-> 
-> Signed-off-by: Dave Hansen <dave.hansen@linux.intel.com>
-> Cc: Adrian Hunter <adrian.hunter@intel.com>
-> Cc: Andi Kleen <ak@linux.intel.com>
-> Cc: Andy Lutomirski <luto@kernel.org>
-> Cc: Borislav Petkov <bp@alien8.de>
-> Cc: Darren Hart <dvhart@infradead.org>
 
-For platform/drivers/x86:
+From: Dave Hansen <dave.hansen@linux.intel.com>
 
-Magic number to macro mapping verified.
+Another straightforward replacement of magic numbers.
 
-Acked-by: Darren Hart <dvhart@linux.intel.com>
+Signed-off-by: Dave Hansen <dave.hansen@linux.intel.com>
+Acked-by: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: Len Brown <lenb@kernel.org>
+Cc: linux-acpi@vger.kernel.org
+---
 
--- 
-Darren Hart
-Intel Open Source Technology Center
+ b/drivers/acpi/acpi_lpss.c |    5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
+
+diff -puN drivers/acpi/acpi_lpss.c~x86-intel-families-lpss drivers/acpi/acpi_lpss.c
+--- a/drivers/acpi/acpi_lpss.c~x86-intel-families-lpss	2016-06-02 15:19:21.576366389 -0700
++++ b/drivers/acpi/acpi_lpss.c	2016-06-02 15:19:21.581366616 -0700
+@@ -29,6 +29,7 @@ ACPI_MODULE_NAME("acpi_lpss");
+ #ifdef CONFIG_X86_INTEL_LPSS
+ 
+ #include <asm/cpu_device_id.h>
++#include <asm/intel-family.h>
+ #include <asm/iosf_mbi.h>
+ #include <asm/pmc_atom.h>
+ 
+@@ -229,8 +230,8 @@ static const struct lpss_device_desc bsw
+ #define ICPU(model)	{ X86_VENDOR_INTEL, 6, model, X86_FEATURE_ANY, }
+ 
+ static const struct x86_cpu_id lpss_cpu_ids[] = {
+-	ICPU(0x37),	/* Valleyview, Bay Trail */
+-	ICPU(0x4c),	/* Braswell, Cherry Trail */
++	ICPU(INTEL_FAM6_ATOM_SILVERMONT1),	/* Valleyview, Bay Trail */
++	ICPU(INTEL_FAM6_ATOM_AIRMONT),	/* Braswell, Cherry Trail */
+ 	{}
+ };
+ 
+_
