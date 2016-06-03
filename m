@@ -1,121 +1,121 @@
-From: "Zheng, Lv" <lv.zheng@intel.com>
-Subject: RE: [PATCH v3 3/3] ACPI / button: Add quirks for initial lid state
- notification
-Date: Fri, 3 Jun 2016 00:41:32 +0000
-Message-ID: <1AE640813FDE7649BE1B193DEA596E883BBB943B@SHSMSX101.ccr.corp.intel.com>
-References: <cbdaec17aba78c61f466efff8883d49067f2dad5.1463472125.git.lv.zheng@intel.com>
-	<284674cb8228f4f2b40f940a3c4a666f367d7b6a.1464775699.git.lv.zheng@intel.com>
-	<1464778871.2432.12.camel@hadess.net>
-	<1AE640813FDE7649BE1B193DEA596E883BBB7382@SHSMSX101.ccr.corp.intel.com>
-	<1464876110.2432.31.camel@hadess.net>
- <CAN+gG=Fb7tAYQRq6NsjtiL-2W=KgpntkiS_h4Jo=QaP3y+oCmA@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <CAN+gG=Fb7tAYQRq6NsjtiL-2W=KgpntkiS_h4Jo=QaP3y+oCmA@mail.gmail.com>
-Content-Language: en-US
-Sender: linux-kernel-owner@vger.kernel.org
-To: Benjamin Tissoires <benjamin.tissoires@gmail.com>, Bastien Nocera <hadess@hadess.net>
-Cc: "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, "Brown, Len" <len.brown@intel.com>, Lv Zheng <zetalog@gmail.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
+From: Lv Zheng <lv.zheng@intel.com>
+Subject: [UPDATE PATCH] ACPI / EC: Fix a boot EC regresion by restoring boot EC support for the DSDT EC
+Date: Fri,  3 Jun 2016 10:26:12 +0800
+Message-ID: <d2e91eb1bf5cd0fb67fa77f16863a52d4dfdbaa7.1464919752.git.lv.zheng@intel.com>
+References: <1464828759-1846-1-git-send-email-lv.zheng@intel.com>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga11.intel.com ([192.55.52.93]:5560 "EHLO mga11.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750929AbcFCC0c (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 2 Jun 2016 22:26:32 -0400
+In-Reply-To: <1464828759-1846-1-git-send-email-lv.zheng@intel.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <len.brown@intel.com>
+Cc: Lv Zheng <lv.zheng@intel.com>, Lv Zheng <zetalog@gmail.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
 
-SGksDQoNCj4gRnJvbTogQmVuamFtaW4gVGlzc29pcmVzIFttYWlsdG86YmVuamFtaW4udGlzc29p
-cmVzQGdtYWlsLmNvbV0NCj4gU3ViamVjdDogUmU6IFtQQVRDSCB2MyAzLzNdIEFDUEkgLyBidXR0
-b246IEFkZCBxdWlya3MgZm9yIGluaXRpYWwgbGlkIHN0YXRlDQo+IG5vdGlmaWNhdGlvbg0KPiAN
-Cj4gT24gVGh1LCBKdW4gMiwgMjAxNiBhdCA0OjAxIFBNLCBCYXN0aWVuIE5vY2VyYSA8aGFkZXNz
-QGhhZGVzcy5uZXQ+DQo+IHdyb3RlOg0KPiA+IE9uIFRodSwgMjAxNi0wNi0wMiBhdCAwMTowOCAr
-MDAwMCwgWmhlbmcsIEx2IHdyb3RlOg0KPiA+PiBIaSwNCj4gPj4NCj4gPj4gPiBGcm9tOiBCYXN0
-aWVuIE5vY2VyYSBbbWFpbHRvOmhhZGVzc0BoYWRlc3MubmV0XQ0KPiA+PiA+IFN1YmplY3Q6IFJl
-OiBbUEFUQ0ggdjMgMy8zXSBBQ1BJIC8gYnV0dG9uOiBBZGQgcXVpcmtzIGZvciBpbml0aWFsDQo+
-ID4+ID4gbGlkIHN0YXRlDQo+ID4+ID4gbm90aWZpY2F0aW9uDQo+ID4+ID4NCj4gPj4gPiBPbiBX
-ZWQsIDIwMTYtMDYtMDEgYXQgMTg6MTAgKzA4MDAsIEx2IFpoZW5nIHdyb3RlOg0KPiA+PiA+ID4g
-TGludXggdXNlcnNwYWNlIChzeXN0ZW1kLWxvZ2luZCkga2VlcHMgb24gcmVjaGVja2luZyBsaWQg
-c3RhdGUNCj4gPj4gPiA+IHdoZW4gdGhlDQo+ID4+ID4gPiBsaWQgc3RhdGUgaXMgY2xvc2VkLiBJ
-ZiBpdCBmYWlsZWQgdG8gdXBkYXRlIHRoZSBsaWQgc3RhdGUgdG8gb3Blbg0KPiA+PiA+ID4gYWZ0
-ZXINCj4gPj4gPiA+IGJvb3QvcmVzdW1lLCB0aGUgc3lzdGVtIHN1c3BlbmRpbmcgcmlnaHQgYWZ0
-ZXIgdGhlIGJvb3QvcmVzdW1lDQo+ID4+ID4gPiBjb3VsZA0KPiA+PiA+IGJlDQo+ID4+ID4gPiBy
-ZXN1bHRlZC4NCj4gPj4gPiA+IEdyYXBoaWNzIGRyaXZlcnMgYWxzbyB1c2VzIHRoZSBsaWQgbm90
-aWZpY2F0aW9ucyB0byBpbXBsbWVudA0KPiA+PiA+ID4gTU9ERVNFVF9PTl9MSURfT1BFTiBvcHRp
-b24uDQo+ID4+ID4NCj4gPj4gPiAiaW1wbGVtZW50Ig0KPiA+PiBbTHYgWmhlbmddDQo+ID4+IFRo
-YW5rcyBmb3IgcG9pbnRpbmcgb3V0LCBJJ2xsIHNlbmQgYW4gVVBEQVRFIHRvIHRoaXMuDQo+ID4+
-DQo+ID4+ID4NCj4gPj4gPiA+IEJlZm9yZSB0aGUgc2l0dWF0aW9uIGlzIGltcHJvdmVkIGZyb20g
-dGhlIHVzZXJzcGFjZSBhbmQgZnJvbSB0aGUNCj4gPj4gPiBncmFwaGljcw0KPiA+PiA+ID4gZHJp
-dmVyLCB1c2VycyBjYW4gc2ltcGx5IGNvbmZpZ3VyZSBBQ1BJIGJ1dHRvbiBkcml2ZXIgdG8gc2Vu
-ZA0KPiA+PiA+ID4gaW5pdGlhbA0KPiA+PiA+ID4gIm9wZW4iIGxpZCBzdGF0ZSB1c2luZyBidXR0
-b24ubGlkX2luaXRfc3RhdGU9b3BlbiB0byBhdm9pZCBzdWNoDQo+ID4+ID4gPiBraW5kIG9mDQo+
-ID4+ID4gPiBpc3N1ZXMuIEFuZCBvdXIgdWx0aW1hdGUgdGFyZ2V0IHNob3VsZCBiZSBtYWtpbmcN
-Cj4gPj4gPiA+IGJ1dHRvbi5saWRfaW5pdF9zdGF0ZT1pZ25vcmUgdGhlIGRlZmF1bHQgYmVoYXZp
-b3IuIFRoaXMgcGF0Y2gNCj4gPj4gPiA+IGltcGxlbWVudHMNCj4gPj4gPiA+IHRoZSAyIG9wdGlv
-bnMgYW5kIGtlZXAgdGhlIG9sZCBiZWhhdmlvcg0KPiA+PiA+ID4gKGJ1dHRvbi5saWRfaW5pdF9z
-dGF0ZT1tZXRob2QpLg0KPiA+PiA+DQo+ID4+ID4gSSBzdGlsbCBkb24ndCB0aGluayBpdCdzIHJl
-YXNvbmFibGUgdG8gZXhwZWN0IGFueSBjaGFuZ2VzIGluIHVzZXItDQo+ID4+ID4gc3BhY2UNCj4g
-Pj4gPiB1bmxlc3MgeW91IHN0YXJ0IGRvY3VtZW50aW5nIHdoYXQgdGhlIEFQSSB0byB1c2VyLXNw
-YWNlIGFjdHVhbGx5DQo+ID4+ID4gaXMuDQo+ID4+IFtMdiBaaGVuZ10NCj4gPj4gSU1PLCB0aGUg
-QUNQSSBsaWQgZHJpdmVyIHNob3VsZCBiZSByZXNwb25zaWJsZSBmb3Igc2VuZGluZyBsaWQga2V5
-DQo+ID4+IGV2ZW50IChlc3BlY2lhbGx5ICJjbG9zZSIpIHRvIHRoZSB1c2VyIHNwYWNlLg0KPiA+
-PiBTbyBpZiBzb21lb25lIG5lZWQgdG8gaW1wbGVtZW50IGFuIEFDUEkgbGlkIGtleSBldmVudCBx
-dWlyaywgd2UgY291bGQNCj4gPj4gaGVscCB0byBpbXBsZW1lbnQgaXQgZnJvbSB0aGUga2VybmVs
-IHNwYWNlLg0KPiA+PiBBbmQgc2luY2UgdGhlIGluaXRpYWwgbGlkIHN0YXRlIGlzIG5vdCBzdGFi
-bGUsIHdlIGhhdmUgdG8gc3RvcCBkb2luZw0KPiA+PiBxdWlya3MgYXJvdW5kIGl0IGluc2lkZSBv
-ZiB0aGUgTGludXgga2VybmVsLCBvciBpbnNpZGUgb2YgdGhlDQo+ID4+IGN1c3RvbWl6ZWQgQU1M
-IHRhYmxlcy4NCj4gPj4gVXNlciBzcGFjZSBjYW4gc3RpbGwgYWNjZXNzIC9wcm9jL2FjcGkvYnV0
-dG9uL2xpZC9MSUQwL3N0YXRlLCBidXQNCj4gPj4gc2hvdWxkIHN0b3AgdGhpbmtpbmcgdGhhdCBp
-dCBpcyByZWxpYWJsZS4NCj4gPj4NCj4gPj4gVGhlc2UgYXJlIHdoYXQgSSBjYW4gY29uY2x1ZGUg
-ZnJvbSB0aGUgYnVncy4NCj4gDQo+IEFmdGVyIGZ1cnRoZXIgdGhvdWdodHMsIEkgYWxzbyB0aGlu
-ayBpdCBpcyBhIGJhZCBpZGVhIHRvIHJlcXVlc3QgdXNlcg0KPiBzcGFjZSB0byBjaGFuZ2UgYmVo
-YXZpb3Igd2l0aCByZXNwZWN0IHRvIHRoZSBMSUQgc3dpdGNoIGV2ZW50IHdlDQo+IGZvcndhcmQg
-ZnJvbSB0aGUga2V5Ym9hcmQ6DQo+IC0gaXQgbG9va3MgbGlrZSBXaW5kb3dzIGRvZXNuJ3QgY2Fy
-ZSBhYm91dCBMSUQgb3BlbiBvbiBzb21lDQo+IChlbnRyeS1sZXZlbCkgcGxhdGZvcm1zOiB0aGUg
-U2Ftc3VuZyBOMjEwIGlzIG9uZSBvZiB0aGUgZmlyc3QgbmV0Ym9va3MNCj4gZnJvbSAyMDEwLiBU
-aGUgU3VyZmFjZSAocHJvIG9yIG5vdCkgYXJlIHRhYmxldHMuIE9uIHRoZXNlIGxvdyBjb3N0DQo+
-IHN5c3RlbXMsIHdlIGNhbiBlYXNpbHkgYXNzdW1lIHRoYXQgdGhlIHVzZXIgbmVlZHMgdG8gaGF2
-ZSB0aGUgTElEIG9wZW4NCj4gdG8gaGF2ZSB0aGUgc3lzdGVtIHdvcmtpbmcuIFlvdSBjYW4ndCBj
-b25uZWN0IGEgZG9ja2luZyBzdGF0aW9uLCBhbmQNCj4gdGhleSBhcmUgcHJvYmFibHkgbm90IHVz
-ZWQgaW4gYSBwcm9mZXNzaW9uYWwgZW52aXJvbm1lbnQuDQo+IC0gZm9yIHRoZSBoaWdoIGVuZCBt
-YWNoaW5lcyAodGhpbmsgcHJvZmVzc2lvbmFsKSwgd2UgYWN0dWFsbHkgbmVlZCB0bw0KPiBoYXZl
-IGEgdmFsaWQgTElEIHN0YXRlIGdpdmVuIHRoYXQgdGhlIG1hY2hpbmVzIGNhbiBiZSB1c2VkIG9u
-IGENCj4gZG9ja2luZyBzdGF0aW9uLCBzbyBMSUQgY2xvc2VkLiBJZiB3ZSBkbyBub3Qgc2VuZCBh
-IHJlbGlhYmxlIExJRCBzdGF0ZQ0KPiBmb3IgdGhvc2UgbGFwdG9wcyB3ZSB3aWxsIGJyZWFrIHVz
-ZXIgc3BhY2UgYW5kIG1vcmUgbGlrZWx5IGFubm95DQo+IHVzZXJzOiB3ZSBtaWdodCBsaWdodCB1
-cCB0aGUgY2xvc2VkIGludGVybmFsIG1vbml0b3IgYW5kIG1pZ3JhdGUgYWxsDQo+IHRoZSBjdXJy
-ZW50bHkgb3BlbiBhcHBsaWNhdGlvbnMgdG8gdGhpcyBzY3JlZW4uDQo+IA0KPiBTbyBJIHRoaW5r
-IFdpbmRvd3MgbWlnaHQgYmUgYWJsZSB0byBkZXRlY3QgdGhvc2UgMiBjYXRlZ29yaWVzIG9mDQo+
-IGVudmlyb25tZW50cyBhbmQgYmVoYXZlIGFjY29yZGluZ2x5Lg0KPiANCj4gVGhlbiwgaWYgd2Ug
-d2FudCB0byBleHByZXNzIHRvIHVzZXIgc3BhY2UgdGhhdCB0aGUgTElEIHN3aXRjaCBzdGF0ZSBp
-cw0KPiBub3QgcmVsaWFibGUsIHdlIHNob3VsZCBzdG9wIHNldHRpbmcgaXQgdXAgYXMgYW4gaW5w
-dXQgZGV2aWNlIHdpdGggYQ0KPiBFVl9TV0lUQ0ggaW4gaXQuIFRoZSBrZXJuZWwgaGFzIHRvIGJl
-IHJlbGlhYmxlLCBhbmQgd2UgY2FuJ3Qgc3RhcnQNCj4gc2F5aW5nIHRoYXQgdGhpcyBwYXJ0aWN1
-bGFyIHN3aXRjaCBpbiBhIHN5c3RlbSBtaWdodCBub3QgYmUgcmVsaWFibGUuDQo+IEluIHRoaXMs
-IEkgam9pbiBCYXN0aWVuJ3MgcG9pbnQgb2YgdmlldyB3aGVyZSB3ZSBuZWVkIHRvIHN0YXJ0DQo+
-IGRlcHJlY2F0aW5nIGFuZCBkb2N1bWVudCB3aGF0IG5lZWRzIHRvIGJlIGRvbmUsIGFuZCBpbnRy
-b2R1Y2UgYSBuZXcNCj4gd2F5IG9mIHJlcG9ydGluZyB0aGUgTElEIGV2ZW50cyB0byB1c2VyIHNw
-YWNlIChieSB1c2luZyBhDQo+IEtFWV9MSURfQ0xPU0UgZm9yIGluc3RhbmNlKS4NCj4gDQo+IEkg
-c3RpbGwgdGhpbmsgdGhpcyBwYXRjaCBpcyBuZWNlc3NhcnkuIFVudGlsIHdlIG1hbmFnZSB0byB1
-bmRlcnN0YW5kDQo+IHdoYXQgaXMgZ29pbmcgb24gb24gV2luZG93cyBmb3IgdGhlIG5vbiByZWxp
-YWJsZSBMSUQgc3RhdGUsIHdlIGNhbg0KPiBhbHdheXMgYXNrIHVzZXJzIHRvIHVzZSB0aGUgYnV0
-dG9uLmxpZF9pbml0X3N0YXRlPW9wZW4gdG8gcHJldmVudCB0aGUNCj4gZnJlZXplIGxvb3BzIHRo
-ZXkgYXJlIHNlZWluZy4NCj4gVGhlIGRlcHJlY2F0aW9uIHByb2Nlc3MgY291bGQgYmUgdG8gc2Vu
-ZCB0aGUgb3BlbiBzdGF0ZSBhdCByZXN1bWUgb24NCj4gdGhlIFNXX0xJRCBldmVudCwgYW5kIHNl
-bmQgYm90aCB0aGUgY2xvc2UgYW5kIGEgS0VZX0xJRF9DTE9TRSBldmVudCBvbg0KPiBjbG9zZSAo
-bm8gS0VZXyogb24gb3BlbikuDQo+IA0KPiBGb3IgcHJvZmVzc2lvbmFsIGxhcHRvcHMgKHdpdGgg
-ZG9ja2luZyBjYXBhYmlsaXR5KSwgSSBjYW4ndCBzZWUgaG93IHdlDQo+IGNvdWxkIGF2b2lkIGZv
-cndhcmRpbmcgYSByZWxpYWJsZSBzdGF0ZSwgYW5kIHdlIG5lZWQgdGhlbSB0byBzdGljayB0bw0K
-PiBidXR0b24ubGlkX2luaXRfc3RhdGU9bWV0aG9kIChrZWVwIFNXX0xJRCBhbmQgbm90IHNlbmQg
-dGhlDQo+IEtFWV9MSURfQ0xPU0UgZXZlbnQgc28gdXNlcnNwYWNlIGtub3dzIGl0J3MgcmVsaWFi
-bGUpLg0KW0x2IFpoZW5nXSANCkFsbCBzb3VuZCByZWFzb25hYmxlIHRvIG1lLg0KV2UnbGwgZGlz
-Y3VzcyB0aGlzIGludGVybmFsbHkgYmVmb3JlIG1ha2luZyBmdXJ0aGVyIGNoYW5nZXMuDQoNCkZv
-ciB0aGUgZG9jdW1lbnRhdGlvbiB3b3JrLg0KSSdtIHBsYW5uaW5nIHRvIHNlbmQgc2V2ZXJhbCBk
-b2N1bWVudHMgYXJvdW5kIEFDUElDQSByZWxlYXNlLCBBQ1BJQ0EgZGVidWdnZXIsIGFuZCBwcm9i
-aW5nIGRlLWZhY3RvIHN0YW5kYXJkIEFDUEkgYmVoYXZpb3IuDQpTbyBJIGNhbiBoZWxwIHRvIGFk
-ZCBvbmUgZm9yICJBQ1BJIGNvbnRyb2wgbWV0aG9kIGxpZCBkZXZpY2UiIHRvIGNsYXJpZnkgdGhp
-cyBpbiB0aGUgc2FtZSBzZXJpZXMuDQoNClRoYW5rcyBhbmQgYmVzdCByZWdhcmRzDQotTHYNCg0K
-PiANCj4gSG9wZSB0aGlzIGhlbHBzLA0KPiBCZW5qYW1pbg0KPiANCj4gDQo+ID4NCj4gPiBUaGVy
-ZSdzIHN0aWxsIG5vIGRvY3VtZW50YXRpb24gZm9yIHVzZXItc3BhY2UgaW4gdGhlIHBhdGNoLCBh
-bmQgbm8gd2F5DQo+ID4gdG8gZGlzYWJsZSB0aGUgImxlZ2FjeSIgc3VwcG9ydCAoZGlzYWJsaW5n
-IGFjY2VzcyB0byB0aGUgY2FjaGVkIExJRA0KPiA+IHN0YXRlLCBlc3BlY2lhbGx5IHRocm91Z2gg
-dGhlIGlucHV0IGxheWVyIHdoaWNoIGlzIHdoYXQgbG9naW5kIGFuZA0KPiA+IHVwb3dlciB1c2Up
-Lg0KPiA+DQo+ID4gWW91IGNhbid0IGV4cGVjdCB1c2VyLXNwYWNlIHRvIGNoYW5nZSBpbiBtYWpv
-ciB3YXlzIGZvciB0aG9zZSBmZXcNCj4gPiBkZXZpY2VzIGlmIHRoZSBBUEkgZG9lc24ndCBmb3Jj
-ZSB0aGVtIHRvLCB0aHJvdWdoIGRlcHJlY2F0aW9uIG5vdGljZXMNCj4gPiBhbmQgZG9jdW1lbnRh
-dGlvbi4NCj4gPg0KPiA+IENoZWVycw0K
+(Email addresses in the SOB section are fixed)
+
+According to the Windows probing result, during the table loading, the EC
+device described in the ECDT should be used. And the ECDT EC is also
+effective during the period the namespace objects are initialized (we can
+see a separate process executing _STA/_INI on Windows before executing
+other device specific control methods, for example, EC._REG). During the
+device enumration, the EC device described in the DSDT should be used. But
+there are differences between Linux and Windows around the device probing
+order. Thus in Linux, we should enable the DSDT EC as early as possible
+before enumerating devices in order not to trigger issues related to the
+device enumeration order differences.
+
+This patch thus converts acpi_boot_ec_enable() into acpi_ec_dsdt_probe() to
+fix the gap. This also fixes a user reported regression triggered after we
+switched the "table loading"/"ECDT support" to be ACPI spec 2.0 compliant.
+
+Fixes: 59f0aa9480cf ("ACPI 2.0 / ECDT: Remove early namespace reference from EC")
+Link: https://bugzilla.kernel.org/show_bug.cgi?id=119261
+Reported-and-tested-by: Gabriele Mazzotta <gabriele.mzt@gmail.com>
+Signed-off-by: Lv Zheng <lv.zheng@intel.com>
+---
+ drivers/acpi/bus.c      |    2 +-
+ drivers/acpi/ec.c       |   29 ++++++++++++++++++++++-------
+ drivers/acpi/internal.h |    2 +-
+ 3 files changed, 24 insertions(+), 9 deletions(-)
+
+diff --git a/drivers/acpi/bus.c b/drivers/acpi/bus.c
+index d177649..4582db3 100644
+--- a/drivers/acpi/bus.c
++++ b/drivers/acpi/bus.c
+@@ -1053,7 +1053,7 @@ static int __init acpi_bus_init(void)
+ 	 * Maybe EC region is required at bus_scan/acpi_get_devices. So it
+ 	 * is necessary to enable it as early as possible.
+ 	 */
+-	acpi_boot_ec_enable();
++	acpi_ec_dsdt_probe();
+ 
+ 	printk(KERN_INFO PREFIX "Interpreter enabled\n");
+ 
+diff --git a/drivers/acpi/ec.c b/drivers/acpi/ec.c
+index 0e70181..73c76d6 100644
+--- a/drivers/acpi/ec.c
++++ b/drivers/acpi/ec.c
+@@ -1446,10 +1446,30 @@ ec_parse_io_ports(struct acpi_resource *resource, void *context)
+ 	return AE_OK;
+ }
+ 
+-int __init acpi_boot_ec_enable(void)
++static const struct acpi_device_id ec_device_ids[] = {
++	{"PNP0C09", 0},
++	{"", 0},
++};
++
++int __init acpi_ec_dsdt_probe(void)
+ {
+-	if (!boot_ec)
++	acpi_status status;
++
++	if (boot_ec)
+ 		return 0;
++
++	/*
++	 * Finding EC from DSDT if there is no ECDT EC available. When this
++	 * function is invoked, ACPI tables have been fully loaded, we can
++	 * walk namespace now.
++	 */
++	boot_ec = make_acpi_ec();
++	if (!boot_ec)
++		return -ENOMEM;
++	status = acpi_get_devices(ec_device_ids[0].id,
++				  ec_parse_device, boot_ec, NULL);
++	if (ACPI_FAILURE(status) || !boot_ec->handle)
++		return -ENODEV;
+ 	if (!ec_install_handlers(boot_ec)) {
+ 		first_ec = boot_ec;
+ 		return 0;
+@@ -1457,11 +1477,6 @@ int __init acpi_boot_ec_enable(void)
+ 	return -EFAULT;
+ }
+ 
+-static const struct acpi_device_id ec_device_ids[] = {
+-	{"PNP0C09", 0},
+-	{"", 0},
+-};
+-
+ #if 0
+ /*
+  * Some EC firmware variations refuses to respond QR_EC when SCI_EVT is not
+diff --git a/drivers/acpi/internal.h b/drivers/acpi/internal.h
+index 9bb0773..27cc7fe 100644
+--- a/drivers/acpi/internal.h
++++ b/drivers/acpi/internal.h
+@@ -181,7 +181,7 @@ typedef int (*acpi_ec_query_func) (void *data);
+ 
+ int acpi_ec_init(void);
+ int acpi_ec_ecdt_probe(void);
+-int acpi_boot_ec_enable(void);
++int acpi_ec_dsdt_probe(void);
+ void acpi_ec_block_transactions(void);
+ void acpi_ec_unblock_transactions(void);
+ void acpi_ec_unblock_transactions_early(void);
+-- 
+1.7.10
+
