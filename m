@@ -1,193 +1,52 @@
-From: Jeffrey Hugo <jhugo@codeaurora.org>
-Subject: Re: [RFC PATCH 1/3] pci, acpi: Match PCI config space accessors
- against platfrom specific ECAM quirks.
-Date: Fri, 3 Jun 2016 10:59:35 -0600
-Message-ID: <470f6d93-4c83-e271-7e99-7e23f3f76e71@codeaurora.org>
-References: <1464856864-18049-1-git-send-email-tn@semihalf.com>
- <1464856864-18049-2-git-send-email-tn@semihalf.com>
- <57519F09.2010201@codeaurora.org>
- <EE11001F9E5DDD47B7634E2F8A612F2E1F76E9D7@lhreml507-mbx>
+From: Dan Williams <dan.j.williams@intel.com>
+Subject: Re: [PATCH] libnvdimm, nfit: treat volatile virtual CD region as
+ read-only pmem
+Date: Fri, 3 Jun 2016 12:27:34 -0700
+Message-ID: <CAPcyv4iLb9qzXZTLL5z-RH_CRObnRfzx=vGTvVvieJUEwNvtRw@mail.gmail.com>
+References: <1464938015-5489-1-git-send-email-jlee@suse.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"; Format="flowed"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <EE11001F9E5DDD47B7634E2F8A612F2E1F76E9D7@lhreml507-mbx>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Gabriele Paoloni <gabriele.paoloni@huawei.com>, Christopher Covington <cov@codeaurora.org>, Tomasz Nowicki <tn@semihalf.com>, "helgaas@kernel.org" <helgaas@kernel.org>, "arnd@arndb.de" <arnd@arndb.de>, "will.deacon@arm.com" <will.deacon@arm.com>, "catalin.marinas@arm.com" <catalin.marinas@arm.com>, "rafael@kernel.org" <rafael@kernel.org>, "hanjun.guo@linaro.org" <hanjun.guo@linaro.org>, "Lorenzo.Pieralisi@arm.com" <Lorenzo.Pieralisi@arm.com>, "okaya@codeaurora.org" <okaya@codeaurora.org>, "jchandra@broadcom.com" <jchandra@broadcom.com>
-Cc: "Suravee.Suthikulpanit@amd.com" <Suravee.Suthikulpanit@amd.com>, "linaro-acpi@lists.linaro.org" <linaro-acpi@lists.linaro.org>, "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>, "jcm@redhat.com" <jcm@redhat.com>, "dhdang@apm.com" <dhdang@apm.com>, "Liviu.Dudau@arm.com" <Liviu.Dudau@arm.com>, "ddaney@caviumnetworks.com" <ddaney@caviumnetworks.com>, "jeremy.linton@arm.com" <jeremy.linton@arm.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "robert.richter@caviumnetworks.com" <robert.richter@caviumnetworks.com>, "liudongdong (C)" <liudongdong3@huawei.com>, "msalter@redhat.com" <msalter@redhat.com>, Wangyijing <wangyijing@huawei.com>, "mw@semihalf.com" <mw@semihalf.com>, "andrea.gallo@linaro.org" <andrea.gallo@linaro.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.in>
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1464938015-5489-1-git-send-email-jlee@suse.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: "Lee, Chun-Yi" <joeyli.kernel@gmail.com>
+Cc: Ross Zwisler <ross.zwisler@linux.intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, Linux ACPI <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "Lee, Chun-Yi" <jlee@suse.com>, Gary Lin <GLin@suse.com>
 List-Id: linux-acpi@vger.kernel.org
 
-On 6/3/2016 9:32 AM, Gabriele Paoloni wrote:
-> Hi Cov
+On Fri, Jun 3, 2016 at 12:13 AM, Lee, Chun-Yi <joeyli.kernel@gmail.com> wrote:
+> This patch adds codes to treat a volatile virtual CD region as a
+> read-only pmem region, then read-only /dev/pmem* device can be mounted
+> with iso9660.
 >
->> -----Original Message-----
->> From: linux-pci-owner@vger.kernel.org [mailto:linux-pci-
->> owner@vger.kernel.org] On Behalf Of Christopher Covington
->> Sent: 03 June 2016 16:15
->> To: Tomasz Nowicki; helgaas@kernel.org; arnd@arndb.de;
->> will.deacon@arm.com; catalin.marinas@arm.com; rafael@kernel.org;
->> hanjun.guo@linaro.org; Lorenzo.Pieralisi@arm.com; okaya@codeaurora.org;
->> jchandra@broadcom.com
->> Cc: jcm@redhat.com; linaro-acpi@lists.linaro.org; linux-
->> pci@vger.kernel.org; dhdang@apm.com; Liviu.Dudau@arm.com;
->> ddaney@caviumnetworks.com; jeremy.linton@arm.com; linux-
->> kernel@vger.kernel.org; linux-acpi@vger.kernel.org;
->> robert.richter@caviumnetworks.com; Suravee.Suthikulpanit@amd.com;
->> msalter@redhat.com; Wangyijing; mw@semihalf.com;
->> andrea.gallo@linaro.org; linux-arm-kernel@lists.infradead.org;
->> liudongdong (C); Gabriele Paoloni
->> Subject: Re: [RFC PATCH 1/3] pci, acpi: Match PCI config space
->> accessors against platfrom specific ECAM quirks.
->>
->> Hi Tomasz,
->>
->> Thanks for your work on this.
->>
->> On 06/02/2016 04:41 AM, Tomasz Nowicki wrote:
->>> Some platforms may not be fully compliant with generic set of PCI
->> config
->>> accessors. For these cases we implement the way to overwrite
->> accessors
->>> set. Algorithm traverses available quirk list, matches against
->>> <oem_id, oem_rev, domain, bus number> tuple and returns corresponding
->>> PCI config ops. oem_id and oem_rev come from MCFG table standard
->> header.
->>> All quirks can be defined using DECLARE_ACPI_MCFG_FIXUP() macro and
->>> kept self contained. Example:
->>>
->>> /* Custom PCI config ops */
->>> static struct pci_generic_ecam_ops foo_pci_ops = {
->>> 	.bus_shift	= 24,
->>> 	.pci_ops = {
->>> 		.map_bus = pci_ecam_map_bus,
->>> 		.read = foo_ecam_config_read,
->>> 		.write = foo_ecam_config_write,
->>> 	}
->>> };
->>>
->>> DECLARE_ACPI_MCFG_FIXUP(&foo_pci_ops, <oem_id_str>, <oem_rev>,
->> <domain_nr>, <bus_nr>);
->>>
->>> Signed-off-by: Tomasz Nowicki <tn@semihalf.com>
->>> ---
->>>  drivers/acpi/pci_mcfg.c           | 32
->> ++++++++++++++++++++++++++++++++
->>>  include/asm-generic/vmlinux.lds.h |  7 +++++++
->>>  include/linux/pci-acpi.h          | 19 +++++++++++++++++++
->>>  3 files changed, 58 insertions(+)
->>>
->>> diff --git a/drivers/acpi/pci_mcfg.c b/drivers/acpi/pci_mcfg.c
->>> index 1847f74..f3d4570 100644
->>> --- a/drivers/acpi/pci_mcfg.c
->>> +++ b/drivers/acpi/pci_mcfg.c
->>> @@ -22,11 +22,43 @@
->>>  #include <linux/kernel.h>
->>>  #include <linux/pci.h>
->>>  #include <linux/pci-acpi.h>
->>> +#include <linux/pci-ecam.h>
->>>
->>>  /* Root pointer to the mapped MCFG table */
->>>  static struct acpi_table_mcfg *mcfg_table;
->>>  static int mcfg_entries;
->>>
->>> +extern struct pci_cfg_fixup __start_acpi_mcfg_fixups[];
->>> +extern struct pci_cfg_fixup __end_acpi_mcfg_fixups[];
->>> +
->>> +struct pci_ecam_ops *pci_mcfg_get_ops(struct acpi_pci_root *root)
->>> +{
->>> +	int bus_num = root->secondary.start;
->>> +	int domain = root->segment;
->>> +	struct pci_cfg_fixup *f;
->>> +
->>> +	if (!mcfg_table)
->>> +		return &pci_generic_ecam_ops;
->>> +
->>> +	/*
->>> +	 * Match against platform specific quirks and return
->> corresponding
->>> +	 * CAM ops.
->>> +	 *
->>> +	 * First match against PCI topology <domain:bus> then use OEM ID
->> and
->>> +	 * OEM revision from MCFG table standard header.
->>> +	 */
->>> +	for (f = __start_acpi_mcfg_fixups; f < __end_acpi_mcfg_fixups;
->> f++) {
->>> +		if ((f->domain == domain || f->domain ==
->> PCI_MCFG_DOMAIN_ANY) &&
->>> +		    (f->bus_num == bus_num || f->bus_num ==
->> PCI_MCFG_BUS_ANY) &&
->>> +		    (!strncmp(f->oem_id, mcfg_table->header.oem_id,
->>> +			      ACPI_OEM_ID_SIZE)) &&
->>> +		    (f->oem_revision == mcfg_table->header.oem_revision))
->>
->> Is this more likely to be updated between quirky and fixed platforms
->> than oem_table_id? What do folks think about using oem_table_id instead
->> of, or in addition to, oem_revision?
+> It's useful to work with the httpboot in EFI firmware to pull a remote
+> ISO file to the local memory region for booting and installation.
 >
-> From my understanding we need to stick to this mechanism as (otherwise)
-> there are platforms out in the field that would need a FW update.
+> Wiki page of UEFI HTTPBoot with OVMF:
+>         https://en.opensuse.org/UEFI_HTTPBoot_with_OVMF
 >
-> So I don't think that using oem_table_id "instead" is possible; about
-> "in addition" I think it is doable, but I do not see the advantage much.
-> I mean that if a platform gets fixed the oem revision should change too,
-> Right?
+> Signed-off-by: Lee, Chun-Yi <jlee@suse.com>
+> Cc: Gary Lin <GLin@suse.com>
+> Cc: Dan Williams <dan.j.williams@intel.com>
+> Cc: Ross Zwisler <ross.zwisler@linux.intel.com>
+> Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+> ---
+>  drivers/acpi/nfit.c          |  8 +++++++-
+>  drivers/nvdimm/region_devs.c | 26 +++++++++++++++++++++++++-
+>  include/linux/libnvdimm.h    |  2 ++
+>  3 files changed, 34 insertions(+), 2 deletions(-)
+>
+> diff --git a/drivers/acpi/nfit.c b/drivers/acpi/nfit.c
+> index 2215fc8..b100a17 100644
+> --- a/drivers/acpi/nfit.c
+> +++ b/drivers/acpi/nfit.c
+> @@ -1949,6 +1949,7 @@ static int acpi_nfit_init_mapping(struct acpi_nfit_desc *acpi_desc,
+>         switch (nfit_spa_type(spa)) {
+>         case NFIT_SPA_PM:
+>         case NFIT_SPA_VOLATILE:
+> +       case NFIT_SPA_VCD:
+>                 nd_mapping->start = memdev->address;
+>                 nd_mapping->size = memdev->region_size;
+>                 break;
 
-Cov and I had a discussion about this, so hopefully I can bring a 
-slightly different perspective that will make sense.
-
-We forsee a situation where we have platform A that needs a quirk, and 
-platform B that does not.  The OEM id is the same for both platforms as 
-they are different platforms from the same OEM.  Using the OEM revision 
-field does not seem to be appropriate since these are different 
-platforms and the revision field appears to be for the purpose of 
-tracking differences within a single platform.  Therefore, Cov is 
-proposing using the OEM table id as a mechanism to distinguish platform 
-A (needs quirk applied) vs platform B (no quirks) from the same OEM.
-
->
-> Thanks
->
-> Gab
->
->>
->> In case these details are helpful, here was my simple prototype of an
->> MCFG based approach:
->>
->> https://codeaurora.org/cgit/quic/server/kernel/commit/?h=cov/4.7-rc1-
->> testing&id=c5d8bc49a198fd8f61f82c7d8f169564d6176b07
->> https://codeaurora.org/cgit/quic/server/kernel/commit/?h=cov/4.7-rc1-
->> testing&id=50bfe77ccd1639e6ce8c7c4fcca187d50e0bead4
->>
->> Thanks,
->> Cov
->>
->> --
->> Qualcomm Innovation Center, Inc.
->> Qualcomm Innovation Center, Inc. is a member of Code Aurora Forum,
->> a Linux Foundation Collaborative Project
->> --
->> To unsubscribe from this list: send the line "unsubscribe linux-pci" in
->> the body of a message to majordomo@vger.kernel.org
->> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->
-> _______________________________________________
-> linux-arm-kernel mailing list
-> linux-arm-kernel@lists.infradead.org
-> http://lists.infradead.org/mailman/listinfo/linux-arm-kernel
->
-
-
--- 
-Jeffrey Hugo
-Qualcomm Innovation Center, Inc.
-Qualcomm Innovation Center, Inc. is a member of Code Aurora Forum, a 
-Linux Foundation Collaborative Project
+Why do we need to distinguish NFIT_SPA_VOLATILE vs NFIT_SPA_VCD, i.e.
+what happens if something writes to a VCD device?
