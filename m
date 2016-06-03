@@ -1,49 +1,43 @@
 From: Aaron Lu <aaron.lu@intel.com>
-Subject: Re: [PATCH] ACPI:video: skip evaluating _DOD when it does not exist
-Date: Fri, 3 Jun 2016 14:04:03 +0800
-Message-ID: <20160603060401.GA8618@aaronlu.sh.intel.com>
-References: <1464335226-11212-1-git-send-email-alex.hung@canonical.com>
+Subject: Re: Patch Thinkpad X201T backlight
+Date: Fri, 3 Jun 2016 14:16:59 +0800
+Message-ID: <20160603061655.GB8618@aaronlu.sh.intel.com>
+References: <8737p8aq7k.fsf@quengel.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga04.intel.com ([192.55.52.120]:47495 "EHLO mga04.intel.com"
+Received: from mga09.intel.com ([134.134.136.24]:34076 "EHLO mga09.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751126AbcFCGEH (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 3 Jun 2016 02:04:07 -0400
+	id S1751727AbcFCGRC (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 3 Jun 2016 02:17:02 -0400
 Content-Disposition: inline
-In-Reply-To: <1464335226-11212-1-git-send-email-alex.hung@canonical.com>
+In-Reply-To: <8737p8aq7k.fsf@quengel.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Alex Hung <alex.hung@canonical.com>
-Cc: rui.zhang@intel.com, rjw@rjwysocki.net, lenb@kernel.org, linux-acpi@vger.kernel.org
+To: Ralf Gerbig <rge@quengel.org>
+Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, linux-acpi@vger.kernel.org
 
-On Fri, May 27, 2016 at 03:47:06PM +0800, Alex Hung wrote:
-> Some system supports hybrid graphics and its discrete VGA
-> does not have any connectors and therefore has no _DOD method.
+On Sun, May 22, 2016 at 07:23:59PM +0200, Ralf Gerbig wrote:
+> Hi,
 > 
-> Signed-off-by: Alex Hung <alex.hung@canonical.com>
-> ---
->  drivers/acpi/acpi_video.c |    3 +++
->  1 file changed, 3 insertions(+)
+> the X201 Tablet needs the same treatmant as the X201s,
+> otherwise you can't change levels.
+
+I guess /sys/class/backlight/intel_backlight interface doesn't work?
+
 > 
-> diff --git a/drivers/acpi/acpi_video.c b/drivers/acpi/acpi_video.c
-> index 5fdac39..549cdbe 100644
-> --- a/drivers/acpi/acpi_video.c
-> +++ b/drivers/acpi/acpi_video.c
-> @@ -1211,6 +1211,9 @@ static int acpi_video_device_enumerate(struct acpi_video_bus *video)
->  	union acpi_object *dod = NULL;
->  	union acpi_object *obj;
->  
-> +	if (!video->cap._DOD)
-> +		return AE_NOT_EXIST;
-> +
->  	status = acpi_evaluate_object(video->device->handle, "_DOD", NULL, &buffer);
->  	if (!ACPI_SUCCESS(status)) {
->  		ACPI_EXCEPTION((AE_INFO, status, "Evaluating _DOD"));
+> The patch is against 4.5.5 stable, but should apply to all recent
+> kernels.
+> 
+> Please be gentle, I am neither a programmer nor a developer.
+> 
+> If you have questions, feel free to ask, but don't expect an answer in
+> the next 10 to 20 days (going to hospital).
 
-Is the patch supposed to avoid the above error message?
-I'm OK with the patch though, it's just not clear to me the point since
-the acpi_evaluate_object should probably also return AE_NOT_EXIST.
+Hope you are well.
+Can you please, when you have time, attach your acpidump?
+Perhaps file a new bug @https://bugzilla.kernel.org under
+ACPI/Power-Video category and put the acpidump there, thanks.
 
-Thanks,
+Regards,
 Aaron
