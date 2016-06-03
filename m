@@ -1,73 +1,54 @@
 From: "Rafael J. Wysocki" <rafael@kernel.org>
-Subject: [GIT PULL] ACPI fixes for v4.7-rc2
-Date: Fri, 3 Jun 2016 23:40:55 +0200
-Message-ID: <CAJZ5v0h7ZUts_V=qfL9MQr8g1dZ7b9X4ruTGcmaSUOfH3yTNng@mail.gmail.com>
+Subject: [GIT PULL] Power management fixes for v4.7-rc2
+Date: Fri, 3 Jun 2016 23:39:04 +0200
+Message-ID: <CAJZ5v0jCH7akpQDmKrXmBSFZNsit1REA5XPcSm4bx6Q1aJxmiQ@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-wm0-f67.google.com ([74.125.82.67]:36454 "EHLO
-	mail-wm0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1161022AbcFCVk5 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 3 Jun 2016 17:40:57 -0400
-Sender: linux-acpi-owner@vger.kernel.org
-List-Id: linux-acpi@vger.kernel.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
 To: Linus Torvalds <torvalds@linux-foundation.org>
 Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+List-Id: linux-acpi@vger.kernel.org
 
 Hi Linus,
 
 Please pull from
 
  git://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm.git \
- acpi-4.7-rc2
+ pm-4.7-rc2
 
-to receive ACPI fixes for v4.7-rc2 with top-most commit
-60c07f80b04698f6c054b675cb67ec5e7ee8db27
+to receive power management fixes for v4.7-rc2 with top-most commit
+8cd8cbd4906126951f1bd6ab8a28ee57f0dc1efc
 
- Merge branches 'acpica-fixes', 'acpi-video' and 'acpi-processor'
+ Merge branch 'pm-cpufreq-fixes'
 
 on top of commit 1a695a905c18548062509178b98bc91e67510864
 
  Linux 4.7-rc1
 
-Two fixes for problems introduced recently (ACPICA and the ACPI
-backlight driver) and one fix for an older issue that prevents at
-least one system from booting.
+Two fixes for problems introduced recently in the cpufreq core
+and the intel_pstate driver.
 
 Specifics:
 
- - Fix an incorrect check introduced by recent ACPICA changes which
-   causes problems with booting KVM guests to happen, among other
-   things (Lv Zheng).
+ - Fix a silly mistake related to the clamp_val() usage in
+   a function added by a recent commit (Rafael Wysocki).
 
- - Fix a backlight issue introduced by recent changes to the ACPI
-   video driver (Aaron Lu).
-
- - Fix the ACPI processor initialization which attempts to register
-   an IO region without checking if that really is necessary and
-   sometimes prevents drivers loaded subsequently from registering
-   their resources which leads to boot issues (Rafael Wysocki).
+ - Reduce the log level of an annoying message added to intel_pstate
+   during the recent merge window (Srinivas Pandruvada).
 
 Thanks!
 
 ---------------
 
-Aaron Lu (1):
-      ACPI / Thermal / video: fix max_level incorrect value
-
-Lv Zheng (1):
-      ACPICA / Hardware: Fix old register check in
-acpi_hw_get_access_bit_width()
-
 Rafael J. Wysocki (1):
-      ACPI / processor: Avoid reserving IO regions too early
+      cpufreq: Fix clamp_val() usage in cpufreq_driver_fast_switch()
+
+Srinivas Pandruvada (1):
+      cpufreq: intel_pstate: Downgrade print level for _PPC
 
 ---------------
 
- drivers/acpi/acpi_processor.c                     |  9 ---------
- drivers/acpi/acpi_video.c                         |  9 ++++++---
- drivers/acpi/acpica/hwregs.c                      | 23 +++++++++--------------
- drivers/acpi/processor_throttling.c               |  9 +++++++++
- drivers/thermal/int340x_thermal/int3406_thermal.c |  2 +-
- include/acpi/video.h                              |  6 ++++--
- 6 files changed, 29 insertions(+), 29 deletions(-)
+ drivers/cpufreq/cpufreq.c      | 2 +-
+ drivers/cpufreq/intel_pstate.c | 2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
