@@ -1,121 +1,57 @@
-From: Lv Zheng <lv.zheng@intel.com>
-Subject: [UPDATE PATCH] ACPI / EC: Fix a boot EC regresion by restoring boot EC support for the DSDT EC
-Date: Fri,  3 Jun 2016 10:26:12 +0800
-Message-ID: <d2e91eb1bf5cd0fb67fa77f16863a52d4dfdbaa7.1464919752.git.lv.zheng@intel.com>
-References: <1464828759-1846-1-git-send-email-lv.zheng@intel.com>
+From: Yisen Zhuang <Yisen.Zhuang@huawei.com>
+Subject: [PATCH v4 net-next 06/13] net: hns: use platform_get_irq instead of irq_of_parse_and_map
+Date: Fri, 3 Jun 2016 10:55:14 +0800
+Message-ID: <1464922521-30928-7-git-send-email-Yisen.Zhuang@huawei.com>
+References: <1464922521-30928-1-git-send-email-Yisen.Zhuang@huawei.com>
+Mime-Version: 1.0
+Content-Type: text/plain
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga11.intel.com ([192.55.52.93]:5560 "EHLO mga11.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750929AbcFCC0c (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 2 Jun 2016 22:26:32 -0400
-In-Reply-To: <1464828759-1846-1-git-send-email-lv.zheng@intel.com>
+Received: from szxga02-in.huawei.com ([119.145.14.65]:44496 "EHLO
+	szxga02-in.huawei.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750929AbcFCCgw (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 2 Jun 2016 22:36:52 -0400
+In-Reply-To: <1464922521-30928-1-git-send-email-Yisen.Zhuang@huawei.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <len.brown@intel.com>
-Cc: Lv Zheng <lv.zheng@intel.com>, Lv Zheng <zetalog@gmail.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
+To: rjw@rjwysocki.net, lenb@kernel.org, davem@davemloft.net
+Cc: fengguang.wu@intel.com, andriy.shevchenko@linux.intel.com, andrew@lunn.ch, ivecera@redhat.com, f.fainelli@gmail.com, haifeng.wei@huawei.com, charles.chenxin@huawei.com, netdev@vger.kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, linuxarm@huawei.com
 
-(Email addresses in the SOB section are fixed)
+From: Kejian Yan <yankejian@huawei.com>
 
-According to the Windows probing result, during the table loading, the EC
-device described in the ECDT should be used. And the ECDT EC is also
-effective during the period the namespace objects are initialized (we can
-see a separate process executing _STA/_INI on Windows before executing
-other device specific control methods, for example, EC._REG). During the
-device enumration, the EC device described in the DSDT should be used. But
-there are differences between Linux and Windows around the device probing
-order. Thus in Linux, we should enable the DSDT EC as early as possible
-before enumerating devices in order not to trigger issues related to the
-device enumeration order differences.
+As irq_of_parse_and_map is only used by DT case, it is excepted to use
+a uniform interface. So it is used platform_get_irq() instead.
 
-This patch thus converts acpi_boot_ec_enable() into acpi_ec_dsdt_probe() to
-fix the gap. This also fixes a user reported regression triggered after we
-switched the "table loading"/"ECDT support" to be ACPI spec 2.0 compliant.
-
-Fixes: 59f0aa9480cf ("ACPI 2.0 / ECDT: Remove early namespace reference from EC")
-Link: https://bugzilla.kernel.org/show_bug.cgi?id=119261
-Reported-and-tested-by: Gabriele Mazzotta <gabriele.mzt@gmail.com>
-Signed-off-by: Lv Zheng <lv.zheng@intel.com>
+Signed-off-by: Kejian Yan <yankejian@huawei.com>
+Signed-off-by: Yisen Zhuang <Yisen.Zhuang@huawei.com>
 ---
- drivers/acpi/bus.c      |    2 +-
- drivers/acpi/ec.c       |   29 ++++++++++++++++++++++-------
- drivers/acpi/internal.h |    2 +-
- 3 files changed, 24 insertions(+), 9 deletions(-)
+ drivers/net/ethernet/hisilicon/hns/hns_dsaf_rcb.c | 5 ++---
+ 1 file changed, 2 insertions(+), 3 deletions(-)
 
-diff --git a/drivers/acpi/bus.c b/drivers/acpi/bus.c
-index d177649..4582db3 100644
---- a/drivers/acpi/bus.c
-+++ b/drivers/acpi/bus.c
-@@ -1053,7 +1053,7 @@ static int __init acpi_bus_init(void)
- 	 * Maybe EC region is required at bus_scan/acpi_get_devices. So it
- 	 * is necessary to enable it as early as possible.
- 	 */
--	acpi_boot_ec_enable();
-+	acpi_ec_dsdt_probe();
- 
- 	printk(KERN_INFO PREFIX "Interpreter enabled\n");
- 
-diff --git a/drivers/acpi/ec.c b/drivers/acpi/ec.c
-index 0e70181..73c76d6 100644
---- a/drivers/acpi/ec.c
-+++ b/drivers/acpi/ec.c
-@@ -1446,10 +1446,30 @@ ec_parse_io_ports(struct acpi_resource *resource, void *context)
- 	return AE_OK;
- }
- 
--int __init acpi_boot_ec_enable(void)
-+static const struct acpi_device_id ec_device_ids[] = {
-+	{"PNP0C09", 0},
-+	{"", 0},
-+};
-+
-+int __init acpi_ec_dsdt_probe(void)
- {
--	if (!boot_ec)
-+	acpi_status status;
-+
-+	if (boot_ec)
- 		return 0;
-+
-+	/*
-+	 * Finding EC from DSDT if there is no ECDT EC available. When this
-+	 * function is invoked, ACPI tables have been fully loaded, we can
-+	 * walk namespace now.
-+	 */
-+	boot_ec = make_acpi_ec();
-+	if (!boot_ec)
-+		return -ENOMEM;
-+	status = acpi_get_devices(ec_device_ids[0].id,
-+				  ec_parse_device, boot_ec, NULL);
-+	if (ACPI_FAILURE(status) || !boot_ec->handle)
-+		return -ENODEV;
- 	if (!ec_install_handlers(boot_ec)) {
- 		first_ec = boot_ec;
- 		return 0;
-@@ -1457,11 +1477,6 @@ int __init acpi_boot_ec_enable(void)
- 	return -EFAULT;
- }
- 
--static const struct acpi_device_id ec_device_ids[] = {
--	{"PNP0C09", 0},
--	{"", 0},
--};
--
- #if 0
- /*
-  * Some EC firmware variations refuses to respond QR_EC when SCI_EVT is not
-diff --git a/drivers/acpi/internal.h b/drivers/acpi/internal.h
-index 9bb0773..27cc7fe 100644
---- a/drivers/acpi/internal.h
-+++ b/drivers/acpi/internal.h
-@@ -181,7 +181,7 @@ typedef int (*acpi_ec_query_func) (void *data);
- 
- int acpi_ec_init(void);
- int acpi_ec_ecdt_probe(void);
--int acpi_boot_ec_enable(void);
-+int acpi_ec_dsdt_probe(void);
- void acpi_ec_block_transactions(void);
- void acpi_ec_unblock_transactions(void);
- void acpi_ec_unblock_transactions_early(void);
+diff --git a/drivers/net/ethernet/hisilicon/hns/hns_dsaf_rcb.c b/drivers/net/ethernet/hisilicon/hns/hns_dsaf_rcb.c
+index 4ef6d23..3ce2409 100644
+--- a/drivers/net/ethernet/hisilicon/hns/hns_dsaf_rcb.c
++++ b/drivers/net/ethernet/hisilicon/hns/hns_dsaf_rcb.c
+@@ -458,7 +458,6 @@ void hns_rcb_get_cfg(struct rcb_common_cb *rcb_common)
+ 	u32 i;
+ 	u32 ring_num = rcb_common->ring_num;
+ 	int base_irq_idx = hns_rcb_get_base_irq_idx(rcb_common);
+-	struct device_node *np = rcb_common->dsaf_dev->dev->of_node;
+ 	struct platform_device *pdev =
+ 		to_platform_device(rcb_common->dsaf_dev->dev);
+ 	bool is_ver1 = AE_IS_VER1(rcb_common->dsaf_dev->dsaf_ver);
+@@ -473,10 +472,10 @@ void hns_rcb_get_cfg(struct rcb_common_cb *rcb_common)
+ 		ring_pair_cb->port_id_in_comm =
+ 			hns_rcb_get_port_in_comm(rcb_common, i);
+ 		ring_pair_cb->virq[HNS_RCB_IRQ_IDX_TX] =
+-		is_ver1 ? irq_of_parse_and_map(np, base_irq_idx + i * 2) :
++		is_ver1 ? platform_get_irq(pdev, base_irq_idx + i * 2) :
+ 			  platform_get_irq(pdev, base_irq_idx + i * 3 + 1);
+ 		ring_pair_cb->virq[HNS_RCB_IRQ_IDX_RX] =
+-		is_ver1 ? irq_of_parse_and_map(np, base_irq_idx + i * 2 + 1) :
++		is_ver1 ? platform_get_irq(pdev, base_irq_idx + i * 2 + 1) :
+ 			  platform_get_irq(pdev, base_irq_idx + i * 3);
+ 		ring_pair_cb->q.phy_base =
+ 			RCB_COMM_BASE_TO_RING_BASE(rcb_common->phy_base, i);
 -- 
-1.7.10
+1.9.1
 
