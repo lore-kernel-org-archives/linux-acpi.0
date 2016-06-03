@@ -1,52 +1,73 @@
-From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [PATCH v4 net-next 00/13] net: hns: add support of ACPI
-Date: Fri, 03 Jun 2016 23:34:50 +0200
-Message-ID: <3949626.e0mVHh16br@vostro.rjw.lan>
-References: <1464922521-30928-1-git-send-email-Yisen.Zhuang@huawei.com>
+From: "Rafael J. Wysocki" <rafael@kernel.org>
+Subject: [GIT PULL] ACPI fixes for v4.7-rc2
+Date: Fri, 3 Jun 2016 23:40:55 +0200
+Message-ID: <CAJZ5v0h7ZUts_V=qfL9MQr8g1dZ7b9X4ruTGcmaSUOfH3yTNng@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7Bit
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <1464922521-30928-1-git-send-email-Yisen.Zhuang@huawei.com>
-Sender: netdev-owner@vger.kernel.org
-To: Yisen Zhuang <Yisen.Zhuang@huawei.com>
-Cc: lenb@kernel.org, davem@davemloft.net, fengguang.wu@intel.com, andriy.shevchenko@linux.intel.com, andrew@lunn.ch, ivecera@redhat.com, f.fainelli@gmail.com, haifeng.wei@huawei.com, charles.chenxin@huawei.com, netdev@vger.kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, linuxarm@huawei.com
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-wm0-f67.google.com ([74.125.82.67]:36454 "EHLO
+	mail-wm0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1161022AbcFCVk5 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 3 Jun 2016 17:40:57 -0400
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
 
-On Friday, June 03, 2016 10:55:08 AM Yisen Zhuang wrote:
-> From: Kejian Yan <yankejian@huawei.com>
-> 
-> This series adds HNS support of acpi. The routine will call some ACPI
-> helper functions, like acpi_dev_found() and acpi_evaluate_dsm(), which
-> are not included in other cases. In order to make system compile
-> successfully in other cases except ACPI, it needs to add relative stub
-> functions to linux/acpi.h. And we use device property functions instead
-> of serial helper functions to suport both DT and ACPI cases. And then
-> add the supports of ACPI for HNS.
-> 
-> change log:
->  v3->v4:
->   mii-id gets from dev-name instead of address
-> 
->  v2->v3:
->  1. add Review-by: Andy Shevchenko
->  2. fix the potential memory leak
-> 
->  v1 -> v2:
->  1. use acpi_dev_found() instead of acpi_match_device_ids() to check if
-> it is a acpi node.
->  2. use is_of_node() instead of IS_ENABLED() to check if it is a DT node.
->  3. split the patch("add support of acpi for hns-mdio") into two patches:
->     3.1 Move to use fwnode_handle
->     3.2 Add ACPI
->  4. add the patch which subject is dsaf misc operation method
->  5. fix the comments by Andy Shevchenko
-> 
-> Kejian Yan (13):
->   ACPI: bus: add stub acpi_dev_found() to linux/acpi.h
->   ACPI: bus: add stub acpi_evaluate_dsm() to linux/acpi.h
+Hi Linus,
 
-Which patches need these stubs?
+Please pull from
 
-Thanks,
-Rafael
+ git://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm.git \
+ acpi-4.7-rc2
+
+to receive ACPI fixes for v4.7-rc2 with top-most commit
+60c07f80b04698f6c054b675cb67ec5e7ee8db27
+
+ Merge branches 'acpica-fixes', 'acpi-video' and 'acpi-processor'
+
+on top of commit 1a695a905c18548062509178b98bc91e67510864
+
+ Linux 4.7-rc1
+
+Two fixes for problems introduced recently (ACPICA and the ACPI
+backlight driver) and one fix for an older issue that prevents at
+least one system from booting.
+
+Specifics:
+
+ - Fix an incorrect check introduced by recent ACPICA changes which
+   causes problems with booting KVM guests to happen, among other
+   things (Lv Zheng).
+
+ - Fix a backlight issue introduced by recent changes to the ACPI
+   video driver (Aaron Lu).
+
+ - Fix the ACPI processor initialization which attempts to register
+   an IO region without checking if that really is necessary and
+   sometimes prevents drivers loaded subsequently from registering
+   their resources which leads to boot issues (Rafael Wysocki).
+
+Thanks!
+
+---------------
+
+Aaron Lu (1):
+      ACPI / Thermal / video: fix max_level incorrect value
+
+Lv Zheng (1):
+      ACPICA / Hardware: Fix old register check in
+acpi_hw_get_access_bit_width()
+
+Rafael J. Wysocki (1):
+      ACPI / processor: Avoid reserving IO regions too early
+
+---------------
+
+ drivers/acpi/acpi_processor.c                     |  9 ---------
+ drivers/acpi/acpi_video.c                         |  9 ++++++---
+ drivers/acpi/acpica/hwregs.c                      | 23 +++++++++--------------
+ drivers/acpi/processor_throttling.c               |  9 +++++++++
+ drivers/thermal/int340x_thermal/int3406_thermal.c |  2 +-
+ include/acpi/video.h                              |  6 ++++--
+ 6 files changed, 29 insertions(+), 29 deletions(-)
