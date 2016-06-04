@@ -1,158 +1,131 @@
 From: Marc Zyngier <marc.zyngier@arm.com>
-Subject: Re: [PATCH V5 5/7] irqchip, gicv3, its: Probe ITS in the ACPI way.
-Date: Sat, 4 Jun 2016 12:55:34 +0100
-Message-ID: <20160604125534.228e6a55@arm.com>
+Subject: Re: [PATCH V5 7/7] acpi, gicv3, its: Use MADT ITS subtable to do
+ PCI/MSI domain initialization.
+Date: Sat, 4 Jun 2016 13:07:15 +0100
+Message-ID: <20160604130715.2297c87d@arm.com>
 References: <1464693584-22343-1-git-send-email-tn@semihalf.com>
-	<1464693584-22343-6-git-send-email-tn@semihalf.com>
+	<1464693584-22343-8-git-send-email-tn@semihalf.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1464693584-22343-6-git-send-email-tn@semihalf.com>
-Sender: linux-kernel-owner@vger.kernel.org
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from foss.arm.com ([217.140.101.70]:57623 "EHLO foss.arm.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750824AbcFDMH0 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sat, 4 Jun 2016 08:07:26 -0400
+In-Reply-To: <1464693584-22343-8-git-send-email-tn@semihalf.com>
+Sender: linux-acpi-owner@vger.kernel.org
+List-Id: linux-acpi@vger.kernel.org
 To: Tomasz Nowicki <tn@semihalf.com>
 Cc: tglx@linutronix.de, jason@lakedaemon.net, rjw@rjwysocki.net, lorenzo.pieralisi@arm.com, robert.richter@caviumnetworks.com, shijie.huang@arm.com, Suravee.Suthikulpanit@amd.com, hanjun.guo@linaro.org, al.stone@linaro.org, mw@semihalf.com, graeme.gregory@linaro.org, Catalin.Marinas@arm.com, will.deacon@arm.com, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org, ddaney.cavm@gmail.com, okaya@codeaurora.org, andrea.gallo@linaro.org
-List-Id: linux-acpi@vger.kernel.org
 
-On Tue, 31 May 2016 13:19:42 +0200
+On Tue, 31 May 2016 13:19:44 +0200
 Tomasz Nowicki <tn@semihalf.com> wrote:
 
-> ITS is prepared for being initialized different than DT,
-> therefore we can initialize it in ACPI way. We collect register base
-> address from MADT table and pass mandatory info to firmware-agnostic
-> ITS init call.
+> Let ACPI build ITS PCI MSI domain. ACPI is responsible for retrieving
+> inner domain token and passing it on to its_pci_msi_init_one generic
+> init call.
 > 
-> Note that we are using here IORT lib to register ITS domain which
-> then can be found and used on to build another PCI MSI domain
-> in hierarchical stack domain.
+> We have now full PCI MSI domain stack, thus we can enable ITS initialization
+> from GICv3 core driver for ACPI scenario.
 > 
 > Signed-off-by: Tomasz Nowicki <tn@semihalf.com>
 > ---
->  drivers/irqchip/Kconfig          |  1 +
->  drivers/irqchip/irq-gic-v3-its.c | 60 ++++++++++++++++++++++++++++++++++++++++
->  2 files changed, 61 insertions(+)
+>  drivers/irqchip/irq-gic-v3-its-pci-msi.c | 42 +++++++++++++++++++++++++++++++-
+>  drivers/irqchip/irq-gic-v3.c             |  3 +--
+>  2 files changed, 42 insertions(+), 3 deletions(-)
 > 
-> diff --git a/drivers/irqchip/Kconfig b/drivers/irqchip/Kconfig
-> index fa33c50..c6e652f 100644
-> --- a/drivers/irqchip/Kconfig
-> +++ b/drivers/irqchip/Kconfig
-> @@ -32,6 +32,7 @@ config ARM_GIC_V3
->  config ARM_GIC_V3_ITS
->  	bool
->  	select PCI_MSI_IRQ_DOMAIN
-> +	select IORT_TABLE if ACPI
->  
->  config ARM_NVIC
->  	bool
-> diff --git a/drivers/irqchip/irq-gic-v3-its.c b/drivers/irqchip/irq-gic-v3-its.c
-> index 6a97ee5..c8f36a5 100644
-> --- a/drivers/irqchip/irq-gic-v3-its.c
-> +++ b/drivers/irqchip/irq-gic-v3-its.c
-> @@ -15,10 +15,13 @@
+> diff --git a/drivers/irqchip/irq-gic-v3-its-pci-msi.c b/drivers/irqchip/irq-gic-v3-its-pci-msi.c
+> index 23679ae..985f5d9 100644
+> --- a/drivers/irqchip/irq-gic-v3-its-pci-msi.c
+> +++ b/drivers/irqchip/irq-gic-v3-its-pci-msi.c
+> @@ -15,6 +15,7 @@
 >   * along with this program.  If not, see <http://www.gnu.org/licenses/>.
 >   */
 >  
-> +#include <linux/acpi.h>
->  #include <linux/bitmap.h>
->  #include <linux/cpu.h>
->  #include <linux/delay.h>
->  #include <linux/interrupt.h>
-> +#include <linux/irqdomain.h>
 > +#include <linux/iort.h>
->  #include <linux/log2.h>
->  #include <linux/mm.h>
 >  #include <linux/msi.h>
-> @@ -1312,6 +1315,11 @@ static int its_irq_gic_domain_alloc(struct irq_domain *domain,
->  		fwspec.param[0] = GIC_IRQ_TYPE_LPI;
->  		fwspec.param[1] = hwirq;
->  		fwspec.param[2] = IRQ_TYPE_EDGE_RISING;
-> +	} else if (is_fwnode_irqchip(domain->parent->fwnode)) {
-> +		fwspec.fwnode = domain->parent->fwnode;
-> +		fwspec.param_count = 2;
-> +		fwspec.param[0] = hwirq;
-> +		fwspec.param[1] = IRQ_TYPE_EDGE_RISING;
->  	} else {
->  		return -EINVAL;
->  	}
-> @@ -1645,6 +1653,56 @@ static int __init its_of_probe(struct device_node *node)
+>  #include <linux/of.h>
+>  #include <linux/of_irq.h>
+> @@ -144,10 +145,49 @@ static int __init its_pci_of_msi_init(void)
 >  	return 0;
 >  }
 >  
 > +#ifdef CONFIG_ACPI
 > +
-> +#define ACPI_GICV3_ITS_MEM_SIZE (2 * SZ_64K)
-
-SZ_128k?
-
-> +
-> +static int __init gic_acpi_parse_madt_its(struct acpi_subtable_header *header,
-> +					  const unsigned long end)
+> +static int __init
+> +its_pci_msi_parse_madt(struct acpi_subtable_header *header,
+> +		       const unsigned long end)
 > +{
 > +	struct acpi_madt_generic_translator *its_entry;
 > +	struct fwnode_handle *dom_handle;
-> +	struct resource res;
-> +	int err;
+> +	char node_name[6 + 16 + 1]; // ITS identification name
+
+Jeezus... Where is that coming from? Is that the size of "ITS@0x"+16
+hex digits and a final NUL? For the sake of keeping things
+maintainable/readable, please use kasprintf/kfree.
+
 > +
 > +	its_entry = (struct acpi_madt_generic_translator *)header;
-> +	res.start = its_entry->base_address;
-> +	res.end = its_entry->base_address + ACPI_GICV3_ITS_MEM_SIZE - 1;
-> +
-> +	dom_handle = irq_domain_alloc_fwnode((void *)its_entry->base_address);
+> +	snprintf(node_name, 23, "ITS@0x%lx", (long)its_entry->base_address);
+> +	dom_handle = iort_its_find_domain_token(its_entry->translation_id);
 > +	if (!dom_handle) {
-> +		pr_err("ITS@%pa: Unable to allocate GICv3 ITS domain token\n",
-> +		       &res.start);
-> +		return -ENOMEM;
-> +	}
-> +
-> +	err = iort_register_domain_token(its_entry->translation_id, dom_handle);
-> +	if (err) {
-> +		pr_err("ITS@%pa: Unable to register GICv3 ITS domain token (ITS ID %d) to IORT\n",
-> +		       &res.start, its_entry->translation_id);
-> +		goto dom_err;
-> +	}
-> +
-> +	err = its_probe_one(&res, dom_handle);
-> +	if (!err)
+> +		pr_err("%s: Unable to locate ITS domain handle\n", node_name);
 > +		return 0;
+
+return 0? not even a slap on the wrist? Hum...
+
+> +	}
 > +
-> +	iort_deregister_domain_token(its_entry->translation_id);
-> +dom_err:
-> +	irq_domain_free_fwnode(dom_handle);
-> +	return err;
+> +	if (its_pci_msi_init_one(dom_handle, node_name))
+> +		return 0;
+
+Same here.
+
+> +
+> +	pr_info("PCI/MSI: %s domain created\n", node_name);
+> +	return 0;
 > +}
 > +
-> +void __init its_acpi_probe(void)
-
-Should be static.
-
+> +static int __init its_pci_acpi_msi_init(void)
 > +{
-> +	if (acpi_table_parse_madt(ACPI_MADT_TYPE_GENERIC_TRANSLATOR,
-> +				  gic_acpi_parse_madt_its, 0) <= 0)
-> +		pr_info("No valid GIC ITS entries exist\n");
-
-We already have a message further down, no need to shout twice.
-
+> +	acpi_table_parse_madt(ACPI_MADT_TYPE_GENERIC_TRANSLATOR,
+> +			      its_pci_msi_parse_madt, 0);
+> +	return 0;
 > +}
 > +#else
-> +static inline void __init its_acpi_probe(struct irq_domain *parent_domain) { }
+> +inline static int __init its_pci_acpi_msi_init(void)
 
-Drop the inline, the compiler can figure out that by itself.
+static only.
 
+> +{
+> +	return 0;
+> +}
 > +#endif
 > +
->  int __init its_init(struct fwnode_handle *handle, struct rdists *rdists,
->  		    struct irq_domain *parent_domain)
+>  static int __init its_pci_msi_init(void)
 >  {
-> @@ -1654,6 +1712,8 @@ int __init its_init(struct fwnode_handle *handle, struct rdists *rdists,
->  	of_node = to_of_node(handle);
->  	if (of_node)
->  		its_of_probe(of_node);
-> +	else
-> +		its_acpi_probe();
+>  	its_pci_of_msi_init();
+> +	its_pci_acpi_msi_init();
+> +
+>  	return 0;
+>  }
+> -
+>  early_initcall(its_pci_msi_init);
+> diff --git a/drivers/irqchip/irq-gic-v3.c b/drivers/irqchip/irq-gic-v3.c
+> index cee8296..41c1cda 100644
+> --- a/drivers/irqchip/irq-gic-v3.c
+> +++ b/drivers/irqchip/irq-gic-v3.c
+> @@ -951,8 +951,7 @@ static int __init gic_init_bases(void __iomem *dist_base,
 >  
->  	if (list_empty(&its_nodes)) {
->  		pr_warn("ITS: No ITS available, not enabling LPIs\n");
-
+>  	set_handle_irq(gic_handle_irq);
+>  
+> -	if (IS_ENABLED(CONFIG_ARM_GIC_V3_ITS) && gic_dist_supports_lpis() &&
+> -	    to_of_node(handle)) /* Temp hack to prevent ITS init for ACPI */
+> +	if (IS_ENABLED(CONFIG_ARM_GIC_V3_ITS) && gic_dist_supports_lpis())
+>  		its_init(handle, &gic_data.rdists, gic_data.domain);
+>  
+>  	gic_smp_init();
 
 Thanks,
 
