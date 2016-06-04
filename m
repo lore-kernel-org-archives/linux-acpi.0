@@ -1,57 +1,81 @@
-From: Dan Carpenter <dan.carpenter@oracle.com>
-Subject: re: ACPICA: ACPI 2.0, Interpreter: Fix MLC issues by switching to
- new TermList grammar for table loading
-Date: Sat, 4 Jun 2016 17:04:15 +0300
-Message-ID: <20160604140415.GA3344@mwanda>
+From: Dan Williams <dan.j.williams@intel.com>
+Subject: Re: [PATCH] libnvdimm, nfit: treat volatile virtual CD region as
+ read-only pmem
+Date: Sat, 4 Jun 2016 09:24:54 -0700
+Message-ID: <CAPcyv4jY_jaN2kMxBAger6akJYjmF0RfsE4PSqEgOePjdVPgcw@mail.gmail.com>
+References: <1464938015-5489-1-git-send-email-jlee@suse.com>
+	<CAPcyv4iLb9qzXZTLL5z-RH_CRObnRfzx=vGTvVvieJUEwNvtRw@mail.gmail.com>
+	<20160604110156.GA4558@linux-rxt1.site>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from userp1040.oracle.com ([156.151.31.81]:30125 "EHLO
-	userp1040.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750862AbcFDOEg (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sat, 4 Jun 2016 10:04:36 -0400
-Content-Disposition: inline
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20160604110156.GA4558@linux-rxt1.site>
+Sender: linux-kernel-owner@vger.kernel.org
+To: joeyli <jlee@suse.com>
+Cc: "Lee, Chun-Yi" <joeyli.kernel@gmail.com>, Ross Zwisler <ross.zwisler@linux.intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, Linux ACPI <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Gary Lin <GLin@suse.com>
 List-Id: linux-acpi@vger.kernel.org
-To: lv.zheng@intel.com
-Cc: linux-acpi@vger.kernel.org
 
-Hello Lv Zheng,
+On Sat, Jun 4, 2016 at 4:01 AM, joeyli <jlee@suse.com> wrote:
+> Hi Dan,
+>
+> Thanks for your review.
+>
+> On Fri, Jun 03, 2016 at 12:27:34PM -0700, Dan Williams wrote:
+>> On Fri, Jun 3, 2016 at 12:13 AM, Lee, Chun-Yi <joeyli.kernel@gmail.com> wrote:
+>> > This patch adds codes to treat a volatile virtual CD region as a
+>> > read-only pmem region, then read-only /dev/pmem* device can be mounted
+>> > with iso9660.
+>> >
+>> > It's useful to work with the httpboot in EFI firmware to pull a remote
+>> > ISO file to the local memory region for booting and installation.
+>> >
+>> > Wiki page of UEFI HTTPBoot with OVMF:
+>> >         https://en.opensuse.org/UEFI_HTTPBoot_with_OVMF
+>> >
+>> > Signed-off-by: Lee, Chun-Yi <jlee@suse.com>
+>> > Cc: Gary Lin <GLin@suse.com>
+>> > Cc: Dan Williams <dan.j.williams@intel.com>
+>> > Cc: Ross Zwisler <ross.zwisler@linux.intel.com>
+>> > Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+>> > ---
+>> >  drivers/acpi/nfit.c          |  8 +++++++-
+>> >  drivers/nvdimm/region_devs.c | 26 +++++++++++++++++++++++++-
+>> >  include/linux/libnvdimm.h    |  2 ++
+>> >  3 files changed, 34 insertions(+), 2 deletions(-)
+>> >
+>> > diff --git a/drivers/acpi/nfit.c b/drivers/acpi/nfit.c
+>> > index 2215fc8..b100a17 100644
+>> > --- a/drivers/acpi/nfit.c
+>> > +++ b/drivers/acpi/nfit.c
+>> > @@ -1949,6 +1949,7 @@ static int acpi_nfit_init_mapping(struct acpi_nfit_desc *acpi_desc,
+>> >         switch (nfit_spa_type(spa)) {
+>> >         case NFIT_SPA_PM:
+>> >         case NFIT_SPA_VOLATILE:
+>> > +       case NFIT_SPA_VCD:
+>> >                 nd_mapping->start = memdev->address;
+>> >                 nd_mapping->size = memdev->region_size;
+>> >                 break;
+>>
+>> Why do we need to distinguish NFIT_SPA_VOLATILE vs NFIT_SPA_VCD, i.e.
+>> what happens if something writes to a VCD device?
+>
+> Actually I didn't try to write SPA-VCD device before. Every time I mount it
+> that the system responses read-only:
+>
+> # mount /dev/pmem0 /mnt/
+> mount: /dev/pmem0 is write-protected, mounting read-only
+>
+> If it can be written, then I think there have no difference between
+> NFIT_SPA_VOLATILE with NFIT_SPA_VCD region.
+>
+> I implemented this patch to treat VCD region as read-only pmem because the
+> pmem region generates /dev/pmem* device that it can be mounted.
+>
+> Maybe I missed. Does NFIT_SPA_VOLATILE region also generate a device in /dev
+> that it can be mounted with filesystem? Then I think treat the VCD region as
+> a read-only VOLATILE region that's also a solution.
 
-The patch 0bfd2f1ec274: "ACPICA: ACPI 2.0, Interpreter: Fix MLC
-issues by switching to new TermList grammar for table loading" from
-May 13, 2016, leads to the following static checker warning:
-
-	drivers/acpi/acpica/nsparse.c:139 acpi_ns_execute_table()
-	error: we previously assumed 'info' could be null (see line 110)
-
-drivers/acpi/acpica/nsparse.c
-   135          (void)acpi_ut_acquire_mutex(ACPI_MTX_NAMESPACE);
-   136  
-   137  cleanup:
-   138          acpi_ut_remove_reference(method_obj);
-   139          ACPI_FREE(info->full_pathname);
-                          ^^^^^^^^^^^^^^^^^^^
-Archetypal one err bug.  It's better to unwind in reverse order from how
-you allacted things and only free things you have allocated.  Use more
-than one label.  Also you can use more descriptive label names.
-
-	(void)acpi_ut_acquire_mutex(ACPI_MTX_NAMESPACE);
-
-free_pathname:
-	ACPI_FREE(info->full_pathname);
-free_info:
-	ACPI_FREE(info);
-remove_method:
-	acpi_ut_remove_reference(method_obj);
-
-	return_ACPI_STATUS(status);
-
-
-   140          info->full_pathname = NULL;
-   141          ACPI_FREE(info);
-   142          return_ACPI_STATUS(status);
-   143  }
-
-regards,
-dan carpenter
+My question is why does it need to be read-only?  If it's a volatile
+region, does it matter if we allow writes at the block device level?
+Especially if it is formatted as iso9660, it won't be writable through
+the filesystem anyway.
