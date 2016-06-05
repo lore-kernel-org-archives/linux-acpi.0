@@ -1,8 +1,8 @@
 From: joeyli <jlee@suse.com>
 Subject: Re: [PATCH] libnvdimm, nfit: treat volatile virtual CD region as
  read-only pmem
-Date: Sun, 5 Jun 2016 22:45:36 +0800
-Message-ID: <20160605144536.GB4558@linux-rxt1.site>
+Date: Sun, 5 Jun 2016 22:52:24 +0800
+Message-ID: <20160605145224.GC4558@linux-rxt1.site>
 References: <1464938015-5489-1-git-send-email-jlee@suse.com>
  <CAPcyv4iLb9qzXZTLL5z-RH_CRObnRfzx=vGTvVvieJUEwNvtRw@mail.gmail.com>
  <20160604110156.GA4558@linux-rxt1.site>
@@ -10,11 +10,11 @@ References: <1464938015-5489-1-git-send-email-jlee@suse.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp.nue.novell.com ([195.135.221.5]:56534 "EHLO
+Received: from smtp.nue.novell.com ([195.135.221.5]:42415 "EHLO
 	smtp.nue.novell.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750954AbcFEOqy (ORCPT
+	with ESMTP id S1750951AbcFEOwl (ORCPT
 	<rfc822;groupwise-linux-acpi@vger.kernel.org:0:0>);
-	Sun, 5 Jun 2016 10:46:54 -0400
+	Sun, 5 Jun 2016 10:52:41 -0400
 Content-Disposition: inline
 In-Reply-To: <CAPcyv4jY_jaN2kMxBAger6akJYjmF0RfsE4PSqEgOePjdVPgcw@mail.gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
@@ -104,3 +104,4 @@ region?
 
 Thanks a lot!
 Joey Lee
+
