@@ -1,148 +1,77 @@
-From: Hanjun Guo <hanjun.guo@linaro.org>
-Subject: Re: [RFC PATCH 1/3] pci, acpi: Match PCI config space accessors
- against platfrom specific ECAM quirks.
-Date: Mon, 6 Jun 2016 15:54:08 +0800
-Message-ID: <8e00d6fa-7ed6-e69f-d41c-c114375c98ae@linaro.org>
-References: <1464856864-18049-1-git-send-email-tn@semihalf.com>
- <1464856864-18049-2-git-send-email-tn@semihalf.com>
- <57519F09.2010201@codeaurora.org>
- <EE11001F9E5DDD47B7634E2F8A612F2E1F76E9D7@lhreml507-mbx>
- <470f6d93-4c83-e271-7e99-7e23f3f76e71@codeaurora.org>
- <EE11001F9E5DDD47B7634E2F8A612F2E1F7710AD@lhreml507-mbx>
+From: "Zheng, Lv" <lv.zheng@intel.com>
+Subject: RE: ACPICA: ACPI 2.0, Interpreter: Fix MLC issues by switching to
+ new TermList grammar for table loading
+Date: Mon, 6 Jun 2016 10:05:12 +0000
+Message-ID: <1AE640813FDE7649BE1B193DEA596E883BBB9B78@SHSMSX101.ccr.corp.intel.com>
+References: <20160604140415.GA3344@mwanda>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <EE11001F9E5DDD47B7634E2F8A612F2E1F7710AD@lhreml507-mbx>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Gabriele Paoloni <gabriele.paoloni@huawei.com>, Jeffrey Hugo <jhugo@codeaurora.org>, Christopher Covington <cov@codeaurora.org>, Tomasz Nowicki <tn@semihalf.com>, "helgaas@kernel.org" <helgaas@kernel.org>, "arnd@arndb.de" <arnd@arndb.de>, "will.deacon@arm.com" <will.deacon@arm.com>, "catalin.marinas@arm.com" <catalin.marinas@arm.com>, "rafael@kernel.org" <rafael@kernel.org>, "Lorenzo.Pieralisi@arm.com" <Lorenzo.Pieralisi@arm.com>, "okaya@codeaurora.org" <okaya@codeaurora.org>, "jchandra@broadcom.com" <jchandra@broadcom.com>
-Cc: "liudongdong (C)" <liudongdong3@huawei.com>, "linaro-acpi@lists.linaro.org" <linaro-acpi@lists.linaro.org>, "jcm@redhat.com" <jcm@redhat.com>, "dhdang@apm.com" <dhdang@apm.com>, "Liviu.Dudau@arm.com" <Liviu.Dudau@arm.com>, "ddaney@caviumnetworks.com" <ddaney@caviumnetworks.com>, "jeremy.linton@arm.com" <jeremy.linton@arm.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "robert.richter@caviumnetworks.com" <robert.richter@caviumnetworks.com>, "msalter@redhat.com" <msalter@redhat.com>, "Suravee.Suthikulpanit@amd.com" <Suravee.Suthikulpanit@amd.com>, "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>, Wangyijing <wangyijing@huawei.com>, "mw@semihalf.com" <mw@semihalf.com>, "andrea.gallo@linaro.org" <andrea.gallo@linaro.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@list>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga09.intel.com ([134.134.136.24]:61527 "EHLO mga09.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751025AbcFFKFT convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 6 Jun 2016 06:05:19 -0400
+In-Reply-To: <20160604140415.GA3344@mwanda>
+Content-Language: en-US
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Dan Carpenter <dan.carpenter@oracle.com>
+Cc: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
 
-On 2016/6/6 15:27, Gabriele Paoloni wrote:
-> Hi Jeffrey
->> On 6/3/2016 9:32 AM, Gabriele Paoloni wrote:
->>> Hi Cov
->>>
->>>> Hi Tomasz,
->>>>
->>>> Thanks for your work on this.
->>>>
->>>> On 06/02/2016 04:41 AM, Tomasz Nowicki wrote:
->>>>> Some platforms may not be fully compliant with generic set of PCI
->>>> config
->>>>> accessors. For these cases we implement the way to overwrite
->>>> accessors
->>>>> set. Algorithm traverses available quirk list, matches against
->>>>> <oem_id, oem_rev, domain, bus number> tuple and returns
->> corresponding
->>>>> PCI config ops. oem_id and oem_rev come from MCFG table standard
->>>> header.
->>>>> All quirks can be defined using DECLARE_ACPI_MCFG_FIXUP() macro and
->>>>> kept self contained. Example:
->>>>>
->>>>> /* Custom PCI config ops */
->>>>> static struct pci_generic_ecam_ops foo_pci_ops = {
->>>>> 	.bus_shift	= 24,
->>>>> 	.pci_ops = {
->>>>> 		.map_bus = pci_ecam_map_bus,
->>>>> 		.read = foo_ecam_config_read,
->>>>> 		.write = foo_ecam_config_write,
->>>>> 	}
->>>>> };
->>>>>
->>>>> DECLARE_ACPI_MCFG_FIXUP(&foo_pci_ops, <oem_id_str>, <oem_rev>,
->>>> <domain_nr>, <bus_nr>);
->>>>>
->>>>> Signed-off-by: Tomasz Nowicki <tn@semihalf.com>
->>>>> ---
->>>>>  drivers/acpi/pci_mcfg.c           | 32
->>>> ++++++++++++++++++++++++++++++++
->>>>>  include/asm-generic/vmlinux.lds.h |  7 +++++++
->>>>>  include/linux/pci-acpi.h          | 19 +++++++++++++++++++
->>>>>  3 files changed, 58 insertions(+)
->>>>>
->>>>> diff --git a/drivers/acpi/pci_mcfg.c b/drivers/acpi/pci_mcfg.c
->>>>> index 1847f74..f3d4570 100644
->>>>> --- a/drivers/acpi/pci_mcfg.c
->>>>> +++ b/drivers/acpi/pci_mcfg.c
->>>>> @@ -22,11 +22,43 @@
->>>>>  #include <linux/kernel.h>
->>>>>  #include <linux/pci.h>
->>>>>  #include <linux/pci-acpi.h>
->>>>> +#include <linux/pci-ecam.h>
->>>>>
->>>>>  /* Root pointer to the mapped MCFG table */
->>>>>  static struct acpi_table_mcfg *mcfg_table;
->>>>>  static int mcfg_entries;
->>>>>
->>>>> +extern struct pci_cfg_fixup __start_acpi_mcfg_fixups[];
->>>>> +extern struct pci_cfg_fixup __end_acpi_mcfg_fixups[];
->>>>> +
->>>>> +struct pci_ecam_ops *pci_mcfg_get_ops(struct acpi_pci_root *root)
->>>>> +{
->>>>> +	int bus_num = root->secondary.start;
->>>>> +	int domain = root->segment;
->>>>> +	struct pci_cfg_fixup *f;
->>>>> +
->>>>> +	if (!mcfg_table)
->>>>> +		return &pci_generic_ecam_ops;
->>>>> +
->>>>> +	/*
->>>>> +	 * Match against platform specific quirks and return
->>>> corresponding
->>>>> +	 * CAM ops.
->>>>> +	 *
->>>>> +	 * First match against PCI topology <domain:bus> then use OEM ID
->>>> and
->>>>> +	 * OEM revision from MCFG table standard header.
->>>>> +	 */
->>>>> +	for (f = __start_acpi_mcfg_fixups; f < __end_acpi_mcfg_fixups;
->>>> f++) {
->>>>> +		if ((f->domain == domain || f->domain ==
->>>> PCI_MCFG_DOMAIN_ANY) &&
->>>>> +		    (f->bus_num == bus_num || f->bus_num ==
->>>> PCI_MCFG_BUS_ANY) &&
->>>>> +		    (!strncmp(f->oem_id, mcfg_table->header.oem_id,
->>>>> +			      ACPI_OEM_ID_SIZE)) &&
->>>>> +		    (f->oem_revision == mcfg_table->header.oem_revision))
->>>>
->>>> Is this more likely to be updated between quirky and fixed platforms
->>>> than oem_table_id? What do folks think about using oem_table_id
->> instead
->>>> of, or in addition to, oem_revision?
->>>
->>> From my understanding we need to stick to this mechanism as
->> (otherwise)
->>> there are platforms out in the field that would need a FW update.
->>>
->>> So I don't think that using oem_table_id "instead" is possible; about
->>> "in addition" I think it is doable, but I do not see the advantage
->> much.
->>> I mean that if a platform gets fixed the oem revision should change
->> too,
->>> Right?
->>
->> Cov and I had a discussion about this, so hopefully I can bring a
->> slightly different perspective that will make sense.
->>
->> We forsee a situation where we have platform A that needs a quirk, and
->> platform B that does not.  The OEM id is the same for both platforms as
->> they are different platforms from the same OEM.  Using the OEM revision
->> field does not seem to be appropriate since these are different
->> platforms and the revision field appears to be for the purpose of
->> tracking differences within a single platform.  Therefore, Cov is
->> proposing using the OEM table id as a mechanism to distinguish platform
->> A (needs quirk applied) vs platform B (no quirks) from the same OEM.
->
-> Ah yes I see now...
->
-> Probably it should be ok to have a check on all three OEM fields.
+Hi, Dan
 
-Just for reference, x86 and IA64 use oem_id and oem_table_id to make a
-difference between different platforms, see
-acpi_madt_oem_check(char *oem_id, char *oem_table_id) for x86 and ia64,
-that can apply to ARM64 on MCFG too.
+Thanks for the report.
+I'll double check it with C=2 enabled build.
 
-Thanks
-Hanjun
+Best regards
+-Lv
+
+> From: linux-acpi-owner@vger.kernel.org [mailto:linux-acpi-
+> owner@vger.kernel.org] On Behalf Of Dan Carpenter
+> Subject: re: ACPICA: ACPI 2.0, Interpreter: Fix MLC issues by switching to
+> new TermList grammar for table loading
+> 
+> Hello Lv Zheng,
+> 
+> The patch 0bfd2f1ec274: "ACPICA: ACPI 2.0, Interpreter: Fix MLC
+> issues by switching to new TermList grammar for table loading" from
+> May 13, 2016, leads to the following static checker warning:
+> 
+> 	drivers/acpi/acpica/nsparse.c:139 acpi_ns_execute_table()
+> 	error: we previously assumed 'info' could be null (see line 110)
+> 
+> drivers/acpi/acpica/nsparse.c
+>    135          (void)acpi_ut_acquire_mutex(ACPI_MTX_NAMESPACE);
+>    136
+>    137  cleanup:
+>    138          acpi_ut_remove_reference(method_obj);
+>    139          ACPI_FREE(info->full_pathname);
+>                           ^^^^^^^^^^^^^^^^^^^
+> Archetypal one err bug.  It's better to unwind in reverse order from how
+> you allacted things and only free things you have allocated.  Use more
+> than one label.  Also you can use more descriptive label names.
+> 
+> 	(void)acpi_ut_acquire_mutex(ACPI_MTX_NAMESPACE);
+> 
+> free_pathname:
+> 	ACPI_FREE(info->full_pathname);
+> free_info:
+> 	ACPI_FREE(info);
+> remove_method:
+> 	acpi_ut_remove_reference(method_obj);
+> 
+> 	return_ACPI_STATUS(status);
+> 
+> 
+>    140          info->full_pathname = NULL;
+>    141          ACPI_FREE(info);
+>    142          return_ACPI_STATUS(status);
+>    143  }
+> 
+> regards,
+> dan carpenter
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
