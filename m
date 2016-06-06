@@ -1,49 +1,32 @@
-From: Peter Rosin <peda@axentia.se>
-Subject: Re: [PATCH] power: Add support for LTC1760 Dual Smart Battery System
- Manager
-Date: Mon, 6 Jun 2016 12:16:32 +0200
-Message-ID: <5860b17d-8958-4292-59ab-68dfd1efff4d@axentia.se>
-References: <1465160129.17905.24.camel@amnesix>
+From: Dan Carpenter <dan.carpenter@oracle.com>
+Subject: Re: ACPICA: ACPI 2.0, Interpreter: Fix MLC issues by switching to
+ new TermList grammar for table loading
+Date: Mon, 6 Jun 2016 13:24:56 +0300
+Message-ID: <20160606102456.GA32247@mwanda>
+References: <20160604140415.GA3344@mwanda>
+ <1AE640813FDE7649BE1B193DEA596E883BBB9B78@SHSMSX101.ccr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-i2c-owner@vger.kernel.org>
-In-Reply-To: <1465160129.17905.24.camel@amnesix>
-Sender: linux-i2c-owner@vger.kernel.org
-To: Karl-Heinz Schneider <karl-heinz@schneider-inet.de>, linux-i2c@vger.kernel.org, linux-pm@vger.kernel.org, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, sre@kernel.org, dbaryshkov@gmail.com, dwmw2@infradead.org
-Cc: Phil Reid <preid@electromag.com.au>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from userp1040.oracle.com ([156.151.31.81]:18022 "EHLO
+	userp1040.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750951AbcFFKYt (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 6 Jun 2016 06:24:49 -0400
+Content-Disposition: inline
+In-Reply-To: <1AE640813FDE7649BE1B193DEA596E883BBB9B78@SHSMSX101.ccr.corp.intel.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: "Zheng, Lv" <lv.zheng@intel.com>
+Cc: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
 
-Hi!
-
-On 2016-06-05 22:55, Karl-Heinz Schneider wrote:
-> This driver adds support for the LTC1760 Dual Smart Battery System
-> Manager.
-> The LTC1760 is an I2C device listening at address 0x0a and is capable of
-> communicating up to two I2C smart battery devices. Both smart battery
-> devices are listening at address 0x0b, so the LTC1760 muliplexes between
-> them. The driver makes use of the I2C-Mux framework to allow smart
-> batteries to be bound via device tree, i.e. the sbs-battery driver.
+On Mon, Jun 06, 2016 at 10:05:12AM +0000, Zheng, Lv wrote:
+> Hi, Dan
 > 
-> Via sysfs interface the online state and charge type are presented where
-> the charge type can also be changed between the default value "trickle"
-> and
-> "fast".
-> 
-> Signed-off-by: Karl-Heinz Schneider <karl-heinz@schneider-inet.de>
-> ---
-> Path generated against v4.7-rc1
+> Thanks for the report.
+> I'll double check it with C=2 enabled build.
 
-This patch has two fundamental problems. First, the patch is whitespace-
-damaged (your mailer probably destroyed it). Please fix that. Second, and
-more serious, the patch has not even been compile-tested when applied on
-top of v4.7-rc1.
+It's a Smatch warning.
 
-The i2c-muxing code saw an update in 4.6 and this driver needs adjustment.
-As a hint, I suspect that you can make this mux "mux-locked" and avoid
-the dead-lock workaround in ltc1760_write_select_bat_reg().
+regards,
+dan carpenter
 
-I didn't look further than this.
-
-Cheers,
-Peter
