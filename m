@@ -1,32 +1,45 @@
-From: Dan Carpenter <dan.carpenter@oracle.com>
-Subject: Re: ACPICA: ACPI 2.0, Interpreter: Fix MLC issues by switching to
- new TermList grammar for table loading
-Date: Mon, 6 Jun 2016 13:24:56 +0300
-Message-ID: <20160606102456.GA32247@mwanda>
+From: Lv Zheng <lv.zheng@intel.com>
+Subject: [PATCH] ACPICA: Namespace: Fix wrong cleanup code in acpi_ns_execute_table()
+Date: Mon,  6 Jun 2016 18:26:03 +0800
+Message-ID: <71c3504e656f59305c4f3fba98a476e3cc46a0f3.1465208705.git.lv.zheng@intel.com>
 References: <20160604140415.GA3344@mwanda>
- <1AE640813FDE7649BE1B193DEA596E883BBB9B78@SHSMSX101.ccr.corp.intel.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from userp1040.oracle.com ([156.151.31.81]:18022 "EHLO
-	userp1040.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750951AbcFFKYt (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 6 Jun 2016 06:24:49 -0400
-Content-Disposition: inline
-In-Reply-To: <1AE640813FDE7649BE1B193DEA596E883BBB9B78@SHSMSX101.ccr.corp.intel.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20160604140415.GA3344@mwanda>
+Sender: linux-kernel-owner@vger.kernel.org
+To: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <len.brown@intel.com>
+Cc: Lv Zheng <lv.zheng@intel.com>, Lv Zheng <zetalog@gmail.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Zheng, Lv" <lv.zheng@intel.com>
-Cc: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
 
-On Mon, Jun 06, 2016 at 10:05:12AM +0000, Zheng, Lv wrote:
-> Hi, Dan
-> 
-> Thanks for the report.
-> I'll double check it with C=2 enabled build.
+An error was captured by the static checker. This patch fixes the issue.
+introduced in:
+  Subject: ACPICA: ACPI 2.0, Interpreter: Fix MLC issues by switching to
+           new TermList grammar for table loading
 
-It's a Smatch warning.
+Reported-by: Dan Carpenter <dan.carpenter@oracle.com>
+Signed-off-by: Lv Zheng <lv.zheng@intel.com>
+---
+ drivers/acpi/acpica/nsparse.c |    8 +++++---
+ 1 file changed, 5 insertions(+), 3 deletions(-)
 
-regards,
-dan carpenter
-
+diff --git a/drivers/acpi/acpica/nsparse.c b/drivers/acpi/acpica/nsparse.c
+index 2452bf3..72893a9 100644
+--- a/drivers/acpi/acpica/nsparse.c
++++ b/drivers/acpi/acpica/nsparse.c
+@@ -135,10 +135,12 @@ acpi_ns_execute_table(u32 table_index, struct acpi_namespace_node *start_node)
+ 	(void)acpi_ut_acquire_mutex(ACPI_MTX_NAMESPACE);
+ 
+ cleanup:
+-	acpi_ut_remove_reference(method_obj);
+-	ACPI_FREE(info->full_pathname);
+-	info->full_pathname = NULL;
++	if (info) {
++		ACPI_FREE(info->full_pathname);
++		info->full_pathname = NULL;
++	}
+ 	ACPI_FREE(info);
++	acpi_ut_remove_reference(method_obj);
+ 	return_ACPI_STATUS(status);
+ }
+ 
+-- 
+1.7.10
