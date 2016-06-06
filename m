@@ -1,77 +1,49 @@
-From: "Zheng, Lv" <lv.zheng@intel.com>
-Subject: RE: ACPICA: ACPI 2.0, Interpreter: Fix MLC issues by switching to
- new TermList grammar for table loading
-Date: Mon, 6 Jun 2016 10:05:12 +0000
-Message-ID: <1AE640813FDE7649BE1B193DEA596E883BBB9B78@SHSMSX101.ccr.corp.intel.com>
-References: <20160604140415.GA3344@mwanda>
+From: Peter Rosin <peda@axentia.se>
+Subject: Re: [PATCH] power: Add support for LTC1760 Dual Smart Battery System
+ Manager
+Date: Mon, 6 Jun 2016 12:16:32 +0200
+Message-ID: <5860b17d-8958-4292-59ab-68dfd1efff4d@axentia.se>
+References: <1465160129.17905.24.camel@amnesix>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga09.intel.com ([134.134.136.24]:61527 "EHLO mga09.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751025AbcFFKFT convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 6 Jun 2016 06:05:19 -0400
-In-Reply-To: <20160604140415.GA3344@mwanda>
-Content-Language: en-US
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-i2c-owner@vger.kernel.org>
+In-Reply-To: <1465160129.17905.24.camel@amnesix>
+Sender: linux-i2c-owner@vger.kernel.org
+To: Karl-Heinz Schneider <karl-heinz@schneider-inet.de>, linux-i2c@vger.kernel.org, linux-pm@vger.kernel.org, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, sre@kernel.org, dbaryshkov@gmail.com, dwmw2@infradead.org
+Cc: Phil Reid <preid@electromag.com.au>
 List-Id: linux-acpi@vger.kernel.org
-To: Dan Carpenter <dan.carpenter@oracle.com>
-Cc: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
 
-Hi, Dan
+Hi!
 
-Thanks for the report.
-I'll double check it with C=2 enabled build.
+On 2016-06-05 22:55, Karl-Heinz Schneider wrote:
+> This driver adds support for the LTC1760 Dual Smart Battery System
+> Manager.
+> The LTC1760 is an I2C device listening at address 0x0a and is capable of
+> communicating up to two I2C smart battery devices. Both smart battery
+> devices are listening at address 0x0b, so the LTC1760 muliplexes between
+> them. The driver makes use of the I2C-Mux framework to allow smart
+> batteries to be bound via device tree, i.e. the sbs-battery driver.
+> 
+> Via sysfs interface the online state and charge type are presented where
+> the charge type can also be changed between the default value "trickle"
+> and
+> "fast".
+> 
+> Signed-off-by: Karl-Heinz Schneider <karl-heinz@schneider-inet.de>
+> ---
+> Path generated against v4.7-rc1
 
-Best regards
--Lv
+This patch has two fundamental problems. First, the patch is whitespace-
+damaged (your mailer probably destroyed it). Please fix that. Second, and
+more serious, the patch has not even been compile-tested when applied on
+top of v4.7-rc1.
 
-> From: linux-acpi-owner@vger.kernel.org [mailto:linux-acpi-
-> owner@vger.kernel.org] On Behalf Of Dan Carpenter
-> Subject: re: ACPICA: ACPI 2.0, Interpreter: Fix MLC issues by switching to
-> new TermList grammar for table loading
-> 
-> Hello Lv Zheng,
-> 
-> The patch 0bfd2f1ec274: "ACPICA: ACPI 2.0, Interpreter: Fix MLC
-> issues by switching to new TermList grammar for table loading" from
-> May 13, 2016, leads to the following static checker warning:
-> 
-> 	drivers/acpi/acpica/nsparse.c:139 acpi_ns_execute_table()
-> 	error: we previously assumed 'info' could be null (see line 110)
-> 
-> drivers/acpi/acpica/nsparse.c
->    135          (void)acpi_ut_acquire_mutex(ACPI_MTX_NAMESPACE);
->    136
->    137  cleanup:
->    138          acpi_ut_remove_reference(method_obj);
->    139          ACPI_FREE(info->full_pathname);
->                           ^^^^^^^^^^^^^^^^^^^
-> Archetypal one err bug.  It's better to unwind in reverse order from how
-> you allacted things and only free things you have allocated.  Use more
-> than one label.  Also you can use more descriptive label names.
-> 
-> 	(void)acpi_ut_acquire_mutex(ACPI_MTX_NAMESPACE);
-> 
-> free_pathname:
-> 	ACPI_FREE(info->full_pathname);
-> free_info:
-> 	ACPI_FREE(info);
-> remove_method:
-> 	acpi_ut_remove_reference(method_obj);
-> 
-> 	return_ACPI_STATUS(status);
-> 
-> 
->    140          info->full_pathname = NULL;
->    141          ACPI_FREE(info);
->    142          return_ACPI_STATUS(status);
->    143  }
-> 
-> regards,
-> dan carpenter
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+The i2c-muxing code saw an update in 4.6 and this driver needs adjustment.
+As a hint, I suspect that you can make this mux "mux-locked" and avoid
+the dead-lock workaround in ltc1760_write_select_bat_reg().
+
+I didn't look further than this.
+
+Cheers,
+Peter
