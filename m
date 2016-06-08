@@ -1,76 +1,155 @@
-From: M P <m.paniez@zoho.com>
-Subject: Tr : Bug with acpi to boot
-Date: Wed, 08 Jun 2016 15:20:17 +0200
-Message-ID: <155302b95ae.c55ce71746161.6684118391733533681@zoho.com>
-References: <1552ffa468f.121d7e5a345699.5097958136133155323@zoho.com>
+From: Bjorn Helgaas <helgaas@kernel.org>
+Subject: Re: [PATCH V8 5/9] pci, acpi: add acpi hook to assign domain number.
+Date: Wed, 8 Jun 2016 08:22:50 -0500
+Message-ID: <20160608132250.GC16764@localhost>
+References: <1464621262-26770-1-git-send-email-tn@semihalf.com>
+ <1464621262-26770-6-git-send-email-tn@semihalf.com>
+ <20160608001559.GD4759@localhost>
+ <5757F19F.6020200@semihalf.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from sender153-mail.zoho.com ([74.201.84.153]:21912 "EHLO
-	sender153-mail.zoho.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753460AbcFHNUU (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 8 Jun 2016 09:20:20 -0400
-In-Reply-To: <1552ffa468f.121d7e5a345699.5097958136133155323@zoho.com>
+Received: from mail.kernel.org ([198.145.29.136]:34703 "EHLO mail.kernel.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753982AbcFHNWz (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 8 Jun 2016 09:22:55 -0400
+Content-Disposition: inline
+In-Reply-To: <5757F19F.6020200@semihalf.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-Cc: linux-acpi@vger.kernel.org
+To: Tomasz Nowicki <tn@semihalf.com>
+Cc: arnd@arndb.de, will.deacon@arm.com, catalin.marinas@arm.com, rafael@kernel.org, hanjun.guo@linaro.org, Lorenzo.Pieralisi@arm.com, okaya@codeaurora.org, jchandra@broadcom.com, robert.richter@caviumnetworks.com, mw@semihalf.com, Liviu.Dudau@arm.com, ddaney@caviumnetworks.com, wangyijing@huawei.com, Suravee.Suthikulpanit@amd.com, msalter@redhat.com, linux-pci@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linaro-acpi@lists.linaro.org, jcm@redhat.com, andrea.gallo@linaro.org, dhdang@apm.com, jeremy.linton@arm.com, liudongdong3@huawei.com, cov@codeaurora.org
 
-Hi,
+On Wed, Jun 08, 2016 at 12:21:19PM +0200, Tomasz Nowicki wrote:
+> On 08.06.2016 02:15, Bjorn Helgaas wrote:
+> >On Mon, May 30, 2016 at 05:14:18PM +0200, Tomasz Nowicki wrote:
+> >>PCI core code provides a config option (CONFIG_PCI_DOMAINS_GENERIC)
+> >>that allows assigning the PCI bus domain number generically by
+> >>relying on device tree bindings, and falling back to a simple counter
+> >>when the respective DT properties (ie "linux,pci-domain") are not
+> >>specified in the host bridge device tree node.
+> >>
+> >>In a similar way, when a system is booted through ACPI, architectures
+> >>that are selecting CONFIG_PCI_DOMAINS_GENERIC (ie ARM64) require kernel
+> >>hooks to retrieve the domain number so that the PCI bus domain number
+> >>set-up can be handled seamlessly with DT and ACPI in generic core code
+> >>when CONFIG_PCI_DOMAINS_GENERIC is selected.
+> >>
+> >>Since currently it is not possible to retrieve a pointer to the PCI
+> >>host bridge ACPI device backing the host bridge from core PCI code
+> >>(which would allow retrieving the domain number in an arch agnostic
+> >>way through the ACPI _SEG method), an arch specific ACPI hook has to
+> >>be declared and implemented by all arches that rely on
+> >>CONFIG_PCI_DOMAINS_GENERIC to retrieve the domain number and set it
+> >>up in core PCI code.
+> >>
+> >>For the aforementioned reasons, this patch introduces a dummy
+> >>acpi_pci_bus_domain_nr() hook in preparation for per-arch implementation
+> >>of the same to retrieve the domain number on a per-arch basis when
+> >>the system boots through ACPI.
+> >>
+> >>For the sake of code clarity the current code implementing generic
+> >>domain number assignment (ie pci_bus_assign_domain_nr(), selected by
+> >>CONFIG_PCI_DOMAINS_GENERIC) is reshuffled so that the code implementing
+> >>the DT domain assignment function is stubbed out into a corresponding
+> >>helper, so that DT and ACPI functions are clearly separated in
+> >>preparation for arches acpi_pci_bus_domain_nr() implementations.
+> >>
+> >>Signed-off-by: Tomasz Nowicki <tn@semihalf.com>
+> >>Signed-off-by: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+> >>---
+> >>  drivers/pci/pci.c   | 11 +++++++++--
+> >>  include/linux/pci.h |  1 +
+> >>  2 files changed, 10 insertions(+), 2 deletions(-)
+> >>
+> >>diff --git a/drivers/pci/pci.c b/drivers/pci/pci.c
+> >>index eb431b5..2b52178 100644
+> >>--- a/drivers/pci/pci.c
+> >>+++ b/drivers/pci/pci.c
+> >>@@ -7,6 +7,7 @@
+> >>   *	Copyright 1997 -- 2000 Martin Mares <mj@ucw.cz>
+> >>   */
+> >>
+> >>+#include <linux/acpi.h>
+> >>  #include <linux/kernel.h>
+> >>  #include <linux/delay.h>
+> >>  #include <linux/init.h>
+> >>@@ -4941,7 +4942,7 @@ int pci_get_new_domain_nr(void)
+> >>  }
+> >>
+> >>  #ifdef CONFIG_PCI_DOMAINS_GENERIC
+> >>-void pci_bus_assign_domain_nr(struct pci_bus *bus, struct device *parent)
+> >>+static int of_pci_bus_domain_nr(struct device *parent)
+> >
+> >Can we do a little cleanup before this patch?
+> >
+> >   - pci_bus_assign_domain_nr() is only used inside drivers/pci, so
+> >     maybe we move the prototype to drivers/pci/pci.h?
+> 
+> pci_bus_assign_domain_nr() goes with pci_domain_nr() as an option
+> for CONFIG_PCI_DOMAINS_GENERIC. pci_domain_nr() is used commonly
+> outside drivers/pci so we would need to split these calls then, thus
+> personally I think it would be better to keep both in
+> inclue/linux/pci.h
 
-I post a bug to Launchpad and we ask me to report to you (sorry if it doesn't respect exactly your process, it's my first).
+OK.
 
+> >   - I don't really like the style of calling a function that
+> >     internally assigns bus->domain_nr.  Could we do something like
+> >     this instead?
+> >
+> >     int pci_bus_domain_nr(...)
+> >     {
+> >       ...
+> >       return domain;
+> >     }
+> >
+> >     ... pci_create_root_bus(...)
+> >     {
+> >       ...
+> >       b->domain_nr = pci_bus_domain_nr(...);
+> 
+> 
+> We can. I do not see much difference between pci_bus_domain_nr() and
+> pci_domain_nr() which we already have so how about calling it
+> pci_bus_find_domain_nr instead? Lorenzo, any strong preference for
+> it?
 
+I suggested that to make them all parallel:
 
-[1.] One line summary of the problem:
-"acpi=off" required to boot.
+  pci_bus_domain_nr()
+  of_pci_bus_domain_nr()
+  acpi_pci_bus_domain_nr()
 
+If you want to make them all *pci_bus_find_domain_nr() that would be
+OK with me, but I think it is worth keeping them the same except for
+the prefix (none/"of_"/"acpi_").  I think that's what you suggested
+below.
 
-[2.] Full description of the problem/report:
-Hi,
-I just install Ubuntu 16.04 on my new MSI laptop G72 6QE.
-My touchpad doesn't work and recognize at all.
-Furthermore "acpi=off" required to boot.
+> >That would be two new patches, if this makes sense.
+> >
+> >And this patch would only rename pci_bus_assign_domain_nr() to
+> >of_pci_bus_domain_nr() and add the pci_bus_domain_nr() wrapper.
+> 
+> Giving that we would keep prototypes in inclue/linux/pci.h
+> 
+> 1. First patch would rename pci_bus_assign_domain_nr() to
+> pci_bus_find_domain_nr() and it would return domain number so that
+> we could do:
+>      ... pci_create_root_bus(...)
+>      {
+>        ...
+>        b->domain_nr = pci_bus_domain_nr(...);
+>        ...
+>      }
+> 
+> 2. Second patch would transform pci_bus_find_domain_nr() to be the
+> wrapper for of_pci_bus_domain_nr()
+> 
+> 3. Third patch would add stub definition, the ARM64 definition and
+> the new call acpi_pci_bus_domain_nr() in pci_bus_find_domain_nr()
+> wrapper.
+> 
+> Does this plan sound reasonable?
 
-After tests with Christopher M. Penalver (penalvch), my touchpad problem comes from ACPI but I need disable it to boot.
-I try with kernel 4.6 and 4.7-rc2. With kernel 4.7-rc2, I can't go to login page because the start freezes (gnome-shell) ; so I need use 4.6 to work.
-
-My bug report on launchpad :
-Launchpad link : https://bugs.launchpad.net/ubuntu/+source/linux/+bug/1584479/comments/31
-
-
-[3.] Keywords
-
-
-[4.] Kernel version (from /proc/version):
-Linux version 4.7.0-040700rc2-generic (kernel@tangerine) (gcc version 5.3.1 20160528 (Ubuntu 5.3.1-21ubuntu11) ) #201606051831 SMP Sun Jun 5 22:33:44 UTC 2016
-
-
-[5.] Output of Oops.. message
-cf. syslog : https://bugs.launchpad.net/ubuntu/+source/linux/+bug/1584479/+attachment/4679536/+files/syslog_20160608.log
-
-
-[6.] A small shell script or example program which triggers the problem (if possible)
-
-
-
-Thanks
-
--- 
-Cordialement, Best regards,
-
-Mr Matthieu PANIEZ
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+Sounds perfect!
