@@ -1,79 +1,106 @@
-From: "Rafael J. Wysocki" <rafael@kernel.org>
-Subject: Re: [PATCH 1/3] ACPICA: Events: Introduce acpi_block_gpe()/acpi_unblock_gpe()/acpi_control_gpe_handling()
- to allow administrative GPE enabling/disabling
-Date: Wed, 8 Jun 2016 22:17:33 +0200
-Message-ID: <CAJZ5v0iaLoj5eJfbTfRAeQOPtSHBphRdxKt4puep79cy9HXbmA@mail.gmail.com>
-References: <cover.1463389639.git.lv.zheng@intel.com> <216c54dbfd2be7ab949cd16afffb84c45900f1d9.1463389639.git.lv.zheng@intel.com>
- <1585140.3ZMjLZu0YQ@vostro.rjw.lan> <1AE640813FDE7649BE1B193DEA596E883BBC884D@SHSMSX101.ccr.corp.intel.com>
+From: Stuart Hayes <stuart.w.hayes@gmail.com>
+Subject: Re: [PATCH] nfit: add Microsoft NVDIMM DSM command set to white list
+Date: Wed, 8 Jun 2016 16:47:54 -0500
+Message-ID: <790a33bd-98e9-89c8-6667-e135ada69f80@gmail.com>
+References: <5cff32b5-7849-4e9d-0ba8-1f12e21814a9@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1AE640813FDE7649BE1B193DEA596E883BBC884D@SHSMSX101.ccr.corp.intel.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: "Zheng, Lv" <lv.zheng@intel.com>
-Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>, "Brown, Len" <len.brown@intel.com>, Lv Zheng <zetalog@gmail.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-oi0-f68.google.com ([209.85.218.68]:36313 "EHLO
+	mail-oi0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751902AbcFHVr7 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 8 Jun 2016 17:47:59 -0400
+In-Reply-To: <5cff32b5-7849-4e9d-0ba8-1f12e21814a9@gmail.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: linux-nvdimm@lists.01.org, dan.j.williams@intel.com
+Cc: ross.zwisler@linux.intel.com, rjw@rjwysocki.net, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
-On Wed, Jun 8, 2016 at 9:49 AM, Zheng, Lv <lv.zheng@intel.com> wrote:
-> Hi,
+
+
+On 5/26/2016 11:38 AM, Stuart Hayes wrote:
+> Add the Microsoft _DSM command set to the white list of NVDIMM command sets.
 >
->> From: Rafael J. Wysocki [mailto:rjw@rjwysocki.net]
->> Subject: Re: [PATCH 1/3] ACPICA: Events: Introduce
->> acpi_block_gpe()/acpi_unblock_gpe()/acpi_control_gpe_handling() to
->> allow administrative GPE enabling/disabling
->>
->> On Monday, May 16, 2016 05:11:11 PM Lv Zheng wrote:
->> > There is a facility in Linux, developers can manage GPE enabling/disabling
->> > through /sys/firmware/acpi/interrupts/gpexx. This is mainly for
->> debugging
->> > purposes. Many users expect to use this facility to implement quirks to
->> > disable specific GPEs when there is a gap in Linux causing GPE flood.
->> > This is not working correctly because currently this facility invokes
->> > enabling/disabling counting based GPE driver APIs:
->> >  acpi_enable_gpe()/acpi_disable_gpe()
->> > and the GPE drivers can still affect the count to mess up the GPE
->> > management purposes.
->> >
->> > This patch introduces acpi_block_gpe()/acpi_unblock_gpe() to be used in
->> such
->> > situation instead of acpi_enable_gpe()/acpi_disable_gpe().
->>
->> Up to this point, I agree.
->>
->> > The idea to implement this is to replace the GPE register EN bit with the
->> > managed value, block EN set/clear operations but record the operation
->> > results in blocked_enabled, so that after the managed state is removed,
->> > restore the saved blocked_enabled back to the GPE register EN bit.
->>
->> Unfortunately, I don't really follow the above paragraph, so chances are
->> that
->> whoever is not familiar with the code will not be able to follow it either.
-> [Lv Zheng]
-> I see.
-> I should stop talking this using "managed".
-> It is better to use "masked".
-> As this facility is actually trying to implement the kind of the facility that can be seen in many other IRQ chips - the IRQ MASK bit.
+> This command set is documented at https://msdn.microsoft.com/library/windows/hardware/mt604741.
+>
+> Signed-off-by: Stuart Hayes <stuart.w.hayes@gmail.com>
+> ---
+>  drivers/acpi/nfit.c        | 9 ++++++---
+>  drivers/acpi/nfit.h        | 4 ++++
+>  include/uapi/linux/ndctl.h | 1 +
+>  3 files changed, 11 insertions(+), 3 deletions(-)
+>
+> diff --git a/drivers/acpi/nfit.c b/drivers/acpi/nfit.c
+> index 2215fc8..48fc575 100644
+> --- a/drivers/acpi/nfit.c
+> +++ b/drivers/acpi/nfit.c
+> @@ -1130,11 +1130,11 @@ static int acpi_nfit_add_dimm(struct acpi_nfit_desc *acpi_desc,
+>      }
+>
+>      /*
+> -     * Until standardization materializes we need to consider up to 3
+> +     * Until standardization materializes we need to consider several
+>       * different command sets.  Note, that checking for function0 (bit0)
+>       * tells us if any commands are reachable through this uuid.
+>       */
+> -    for (i = NVDIMM_FAMILY_INTEL; i <= NVDIMM_FAMILY_HPE2; i++)
+> +    for (i = NVDIMM_FAMILY_INTEL; i <= NVDIMM_FAMILY_MSFT; i++)
+>          if (acpi_check_dsm(adev_dimm->handle, to_nfit_uuid(i), 1, 1))
+>              break;
+>
+> @@ -1150,7 +1150,9 @@ static int acpi_nfit_add_dimm(struct acpi_nfit_desc *acpi_desc,
+>          dsm_mask = 0x1fe;
+>          if (disable_vendor_specific)
+>              dsm_mask &= ~(1 << 8);
+> -    } else {
+> +    } else if (nfit_mem->family == NVDIMM_FAMILY_MSFT)
+> +        dsm_mask = 0xffffffff;
+> +    else {
+>          dev_err(dev, "unknown dimm command family\n");
+>          nfit_mem->family = -1;
+>          return force_enable_dimms ? 0 : -ENODEV;
+> @@ -2692,6 +2694,7 @@ static __init int nfit_init(void)
+>      acpi_str_to_uuid(UUID_NFIT_DIMM, nfit_uuid[NFIT_DEV_DIMM]);
+>      acpi_str_to_uuid(UUID_NFIT_DIMM_N_HPE1, nfit_uuid[NFIT_DEV_DIMM_N_HPE1]);
+>      acpi_str_to_uuid(UUID_NFIT_DIMM_N_HPE2, nfit_uuid[NFIT_DEV_DIMM_N_HPE2]);
+> +    acpi_str_to_uuid(UUID_NFIT_DIMM_N_MSFT, nfit_uuid[NFIT_DEV_DIMM_N_MSFT]);
+>
+>      nfit_wq = create_singlethread_workqueue("nfit");
+>      if (!nfit_wq)
+> diff --git a/drivers/acpi/nfit.h b/drivers/acpi/nfit.h
+> index 11cb383..f06fa91 100644
+> --- a/drivers/acpi/nfit.h
+> +++ b/drivers/acpi/nfit.h
+> @@ -31,6 +31,9 @@
+>  #define UUID_NFIT_DIMM_N_HPE1 "9002c334-acf3-4c0e-9642-a235f0d53bc6"
+>  #define UUID_NFIT_DIMM_N_HPE2 "5008664b-b758-41a0-a03c-27c2f2d04f7e"
+>
+> +/* https://msdn.microsoft.com/library/windows/hardware/mt604741 */
+> +#define UUID_NFIT_DIMM_N_MSFT "1ee68b36-d4bd-4a1a-9a16-4f8e53d46e05"
+> +
+>  #define ACPI_NFIT_MEM_FAILED_MASK (ACPI_NFIT_MEM_SAVE_FAILED \
+>          | ACPI_NFIT_MEM_RESTORE_FAILED | ACPI_NFIT_MEM_FLUSH_FAILED \
+>          | ACPI_NFIT_MEM_NOT_ARMED)
+> @@ -40,6 +43,7 @@ enum nfit_uuids {
+>      NFIT_DEV_DIMM = NVDIMM_FAMILY_INTEL,
+>      NFIT_DEV_DIMM_N_HPE1 = NVDIMM_FAMILY_HPE1,
+>      NFIT_DEV_DIMM_N_HPE2 = NVDIMM_FAMILY_HPE2,
+> +    NFIT_DEV_DIMM_N_MSFT = NVDIMM_FAMILY_MSFT,
+>      NFIT_SPA_VOLATILE,
+>      NFIT_SPA_PM,
+>      NFIT_SPA_DCR,
+> diff --git a/include/uapi/linux/ndctl.h b/include/uapi/linux/ndctl.h
+> index 309915f..ba5a8c7 100644
+> --- a/include/uapi/linux/ndctl.h
+> +++ b/include/uapi/linux/ndctl.h
+> @@ -298,6 +298,7 @@ struct nd_cmd_pkg {
+>  #define NVDIMM_FAMILY_INTEL 0
+>  #define NVDIMM_FAMILY_HPE1 1
+>  #define NVDIMM_FAMILY_HPE2 2
+> +#define NVDIMM_FAMILY_MSFT 3
+>
+>  #define ND_IOCTL_CALL            _IOWR(ND_IOCTL, ND_CMD_CALL,\
+>                      struct nd_cmd_pkg)
 
-This is a somewhat simplified special case of it, though.
-
->> > Now OSPMs should be able to use this facility to generate quirks. ACPICA
->> > BZ 1102.
->> >
->> > This facility can also be used by the administrator to control the GPE
->> > handling mode during the runtime when the driver is capable of handling
->> the
->> > GPE in both the interrupt mode and the polling mode (for example, the
->> Linux
->> > EC driver). acpi_control_gpe_handling() is offered for this purpose. Lv
->> Zheng.
->>
->> That is too much.  The patch should focus on the block/unblock
->> functionality.
->> Anything beyond that should be added later IMO.
-> [Lv Zheng]
-> OK.
-> So after examining all of your comments.
-> I think what I need to improve is eliminating this feature.
-> That should be able to make the code simpler and thus easier for the others to follow.
-
-Sounds good!
+Is there a problem with this patch?  I never saw any responses, and wasn't sure if maybe I goofed.  Thanks!
