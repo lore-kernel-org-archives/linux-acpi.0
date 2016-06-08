@@ -1,47 +1,62 @@
 From: Rui Wang <rui.y.wang@intel.com>
-Subject: [PATCH V2 0/3] ioapic hot-removal bugs
-Date: Wed,  8 Jun 2016 14:59:50 +0800
-Message-ID: <1465369193-4816-1-git-send-email-rui.y.wang@intel.com>
-Return-path: <linux-pci-owner@vger.kernel.org>
-Sender: linux-pci-owner@vger.kernel.org
+Subject: [PATCH V2 3/3] x86/ioapic: Simplify ioapic_setup_resources()
+Date: Wed,  8 Jun 2016 14:59:53 +0800
+Message-ID: <1465369193-4816-4-git-send-email-rui.y.wang@intel.com>
+References: <1465369193-4816-1-git-send-email-rui.y.wang@intel.com>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1465369193-4816-1-git-send-email-rui.y.wang@intel.com>
+Sender: linux-kernel-owner@vger.kernel.org
 To: tglx@linutronix.de, rjw@rjwysocki.net, tony.luck@intel.com, bhelgaas@google.com
 Cc: linux-acpi@vger.kernel.org, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, rui.y.wang@intel.com
 List-Id: linux-acpi@vger.kernel.org
 
-Hi Thomas,
+Optimize the function by removing the variable 'num'.
 
-Here's the v2 patchset according to your suggestion.
-
-While testing ioapic hotplug, two bugs were found.
-
-1) acpi_ioapic_add() is only called during hotadd of ioapics. Those
-already present during system boot are not added, and thus cannot be
-hot-removed.
-
-2) ioapics[i].iomem_res were assigned the wrong pointers, causing panic
-while hot-removing ioapics.
-
-On a 4-socket brickland, hot-removal of the 3 sockets can be done
-only after applying the first two patches. The 3rd patch is optional.
-
-Regards,
-Rui
-
-v2: split the second patch into a one liner and a cleanup patch according
-to Thomas.
-
-Rui Wang (3):
-  x86/ioapic: Support hot-removal of IOAPICs present during boot
-  x86/ioapic: Fix wrong pointers in ioapic_setup_resources()
-  x86/ioapic: Simplify ioapic_setup_resources()
-
+Signed-off-by: Rui Wang <rui.y.wang@intel.com>
+---
  arch/x86/kernel/apic/io_apic.c | 18 +++++++-----------
- drivers/acpi/internal.h        |  2 --
- drivers/acpi/ioapic.c          |  7 ++++---
- drivers/acpi/pci_root.c        |  2 +-
- drivers/pci/setup-bus.c        |  5 ++++-
- include/linux/acpi.h           |  3 +++
- 6 files changed, 19 insertions(+), 18 deletions(-)
+ 1 file changed, 7 insertions(+), 11 deletions(-)
 
+diff --git a/arch/x86/kernel/apic/io_apic.c b/arch/x86/kernel/apic/io_apic.c
+index 446702e..e587295 100644
+--- a/arch/x86/kernel/apic/io_apic.c
++++ b/arch/x86/kernel/apic/io_apic.c
+@@ -2567,29 +2567,25 @@ static struct resource * __init ioapic_setup_resources(void)
+ 	unsigned long n;
+ 	struct resource *res;
+ 	char *mem;
+-	int i, num = 0;
++	int i;
+ 
+-	for_each_ioapic(i)
+-		num++;
+-	if (num == 0)
++	if (nr_ioapics == 0)
+ 		return NULL;
+ 
+ 	n = IOAPIC_RESOURCE_NAME_SIZE + sizeof(struct resource);
+-	n *= num;
++	n *= nr_ioapics;
+ 
+ 	mem = alloc_bootmem(n);
+ 	res = (void *)mem;
+ 
+-	mem += sizeof(struct resource) * num;
++	mem += sizeof(struct resource) * nr_ioapics;
+ 
+-	num = 0;
+ 	for_each_ioapic(i) {
+-		res[num].name = mem;
+-		res[num].flags = IORESOURCE_MEM | IORESOURCE_BUSY;
++		res[i].name = mem;
++		res[i].flags = IORESOURCE_MEM | IORESOURCE_BUSY;
+ 		snprintf(mem, IOAPIC_RESOURCE_NAME_SIZE, "IOAPIC %u", i);
+ 		mem += IOAPIC_RESOURCE_NAME_SIZE;
+-		ioapics[i].iomem_res = &res[num];
+-		num++;
++		ioapics[i].iomem_res = &res[i];
+ 	}
+ 
+ 	ioapic_resources = res;
 -- 
 1.8.3.1
