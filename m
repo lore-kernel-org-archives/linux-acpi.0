@@ -1,230 +1,342 @@
-From: Tomasz Nowicki <tn@semihalf.com>
-Subject: Re: [PATCH V8 7/9] acpi: Add generic MCFG table handling
-Date: Wed, 8 Jun 2016 14:21:30 +0200
-Message-ID: <57580DCA.7000703@semihalf.com>
-References: <1464621262-26770-1-git-send-email-tn@semihalf.com>
- <1464621262-26770-8-git-send-email-tn@semihalf.com>
- <20160608015631.GE4759@localhost>
+From: Ashwin Chaugule <ashwin.chaugule@linaro.org>
+Subject: Re: [PATCH v3] mailbox: pcc: Support HW-Reduced Communication
+ Subspace type 2
+Date: Wed, 8 Jun 2016 08:18:10 -0400
+Message-ID: <CAJ5Y-eYV+vf_GDCX6iX53Q5jLtOTzRktRHBfmZzW-yd5ffu2jg@mail.gmail.com>
+References: <1463704347-22550-1-git-send-email-hotran@apm.com>
+ <CAJ5Y-eZaaK_pbfgPxDfqJgtUOpxrCvHngM4_VT9p-fzFaPz28Q@mail.gmail.com> <CAFHUOYy0TEqdHzwXCTNtK+UVF_PhMHfr-gPTOkUwRks=MgTaVg@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20160608015631.GE4759@localhost>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Bjorn Helgaas <helgaas@kernel.org>
-Cc: arnd@arndb.de, will.deacon@arm.com, catalin.marinas@arm.com, rafael@kernel.org, hanjun.guo@linaro.org, Lorenzo.Pieralisi@arm.com, okaya@codeaurora.org, jchandra@broadcom.com, robert.richter@caviumnetworks.com, mw@semihalf.com, Liviu.Dudau@arm.com, ddaney@caviumnetworks.com, wangyijing@huawei.com, Suravee.Suthikulpanit@amd.com, msalter@redhat.com, linux-pci@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linaro-acpi@lists.linaro.org, jcm@redhat.com, andrea.gallo@linaro.org, dhdang@apm.com, jeremy.linton@arm.com, liudongdong3@huawei.com, cov@codeaurora.org
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-qt0-f182.google.com ([209.85.216.182]:33190 "EHLO
+	mail-qt0-f182.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1425069AbcFHMZz (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 8 Jun 2016 08:25:55 -0400
+Received: by mail-qt0-f182.google.com with SMTP id c34so1072229qte.0
+        for <linux-acpi@vger.kernel.org>; Wed, 08 Jun 2016 05:25:54 -0700 (PDT)
+In-Reply-To: <CAFHUOYy0TEqdHzwXCTNtK+UVF_PhMHfr-gPTOkUwRks=MgTaVg@mail.gmail.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Hoan Tran <hotran@apm.com>
+Cc: Jassi Brar <jassisinghbrar@gmail.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Robert Moore <robert.moore@intel.com>, Alexey Klimov <alexey.klimov@arm.com>, lkml <linux-kernel@vger.kernel.org>, linux acpi <linux-acpi@vger.kernel.org>, Loc Ho <lho@apm.com>, Duc Dang <dhdang@apm.com>, Prashanth Prakash <pprakash@codeaurora.org>
 
-On 08.06.2016 03:56, Bjorn Helgaas wrote:
-> On Mon, May 30, 2016 at 05:14:20PM +0200, Tomasz Nowicki wrote:
->> In order to handle PCI config space regions properly in ACPI, new MCFG
->> interface is defined which does sanity checks on MCFG table and keeps its
->> root pointer. The user is able to lookup MCFG regions based on
->> host bridge root structure and domain:bus_start:bus_end touple.
->> Use pci_mmcfg_late_init old prototype to avoid another function name.
++ Prashanth (Can you please have a look as well?)
+
+On 31 May 2016 at 15:35, Hoan Tran <hotran@apm.com> wrote:
+> Hi Ashwin,
+
+Hi,
+
+Sorry about the delay. I'm in the middle of switching jobs and
+locations, so its been a bit crazy lately. I dont have any major
+concerns with this code, although there could be subtle issues with
+this IRQ thing. In this patchset, your intent is to add support for
+PCC subspace type 2. But you're also adding support for tx command
+completion which is not specific to Type 2. We could support that even
+in Type 1. Hence I wanted to separate the two, not just for review,
+but also the async IRQ completion has subtle issues esp. in the case
+of async platform notification, where you could have a PCC client in
+the OS writing to the cmd bit and the platform sending an async
+notification by writing to some bits in the same 8byte address as the
+cmd bit. So we need some mutual exclusivity there, otherwise the OS
+and platform could step on each other. Perhaps Prashanth has better
+insight into this.
+
+>
+> On Tue, May 31, 2016 at 12:05 PM, Ashwin Chaugule
+> <ashwin.chaugule@linaro.org> wrote:
+>> On 19 May 2016 at 20:32, Hoan Tran <hotran@apm.com> wrote:
+>>> ACPI 6.1 has a PCC HW-Reduced Communication Subspace type 2 intended for
+>>> use on HW-Reduce ACPI Platform, which requires read-modify-write sequence
+>>> to acknowledge doorbell interrupt. This patch provides the implementation
+>>> for the Communication Subspace Type 2.
+>>>
+>>> v3
+>>>  * Remove 2 global structures
+>>>  * Correct parsing subspace type 1 and subspace type 2
+>>>
+>>> v2
+>>>  * Remove changes inside "actbl3.h". This file is taken care by ACPICA.
+>>>  * Parse both subspace type 1 and subspace type 2
+>>>  * Remove unnecessary variable initialization
+>>>  * ISR returns IRQ_NONE in case of error
+>>>
+>>> v1
+>>>  * Initial
+>>>
+>>> Signed-off-by: Hoan Tran <hotran@apm.com>
+>>> ---
+>>>  drivers/mailbox/pcc.c | 316 ++++++++++++++++++++++++++++++++++++++------------
+>>>  1 file changed, 245 insertions(+), 71 deletions(-)
+>>>
+>>> diff --git a/drivers/mailbox/pcc.c b/drivers/mailbox/pcc.c
+>>> index 043828d..c98bd94 100644
+>>> --- a/drivers/mailbox/pcc.c
+>>> +++ b/drivers/mailbox/pcc.c
+>>> @@ -59,6 +59,7 @@
+>>>  #include <linux/delay.h>
+>>>  #include <linux/io.h>
+>>>  #include <linux/init.h>
+>>> +#include <linux/interrupt.h>
+>>>  #include <linux/list.h>
+>>>  #include <linux/platform_device.h>
+>>>  #include <linux/mailbox_controller.h>
+>>> @@ -68,11 +69,16 @@
+>>>  #include "mailbox.h"
+>>>
+>>>  #define MAX_PCC_SUBSPACES      256
+>>> +#define MBOX_IRQ_NAME          "pcc-mbox"
+>>>
+>>>  static struct mbox_chan *pcc_mbox_channels;
+>>>
+>>>  /* Array of cached virtual address for doorbell registers */
+>>>  static void __iomem **pcc_doorbell_vaddr;
+>>> +/* Array of cached virtual address for doorbell ack registers */
+>>> +static void __iomem **pcc_doorbell_ack_vaddr;
+>>> +/* Array of doorbell interrupts */
+>>> +static int *pcc_doorbell_irq;
+>>>
+>>>  static struct mbox_controller pcc_mbox_ctrl = {};
+>>>  /**
+>>> @@ -91,6 +97,132 @@ static struct mbox_chan *get_pcc_channel(int id)
+>>>         return &pcc_mbox_channels[id];
+>>>  }
+>>>
+>>> +/*
+>>> + * PCC can be used with perf critical drivers such as CPPC
+>>> + * So it makes sense to locally cache the virtual address and
+>>> + * use it to read/write to PCC registers such as doorbell register
+>>> + *
+>>> + * The below read_register and write_registers are used to read and
+>>> + * write from perf critical registers such as PCC doorbell register
+>>> + */
+>>> +static int read_register(void __iomem *vaddr, u64 *val, unsigned int bit_width)
+>>> +{
+>>> +       int ret_val = 0;
+>>> +
+>>> +       switch (bit_width) {
+>>> +       case 8:
+>>> +               *val = readb(vaddr);
+>>> +               break;
+>>> +       case 16:
+>>> +               *val = readw(vaddr);
+>>> +               break;
+>>> +       case 32:
+>>> +               *val = readl(vaddr);
+>>> +               break;
+>>> +       case 64:
+>>> +               *val = readq(vaddr);
+>>> +               break;
+>>> +       default:
+>>> +               pr_debug("Error: Cannot read register of %u bit width",
+>>> +                       bit_width);
+>>> +               ret_val = -EFAULT;
+>>> +               break;
+>>> +       }
+>>> +       return ret_val;
+>>> +}
+>>> +
+>>> +static int write_register(void __iomem *vaddr, u64 val, unsigned int bit_width)
+>>> +{
+>>> +       int ret_val = 0;
+>>> +
+>>> +       switch (bit_width) {
+>>> +       case 8:
+>>> +               writeb(val, vaddr);
+>>> +               break;
+>>> +       case 16:
+>>> +               writew(val, vaddr);
+>>> +               break;
+>>> +       case 32:
+>>> +               writel(val, vaddr);
+>>> +               break;
+>>> +       case 64:
+>>> +               writeq(val, vaddr);
+>>> +               break;
+>>> +       default:
+>>> +               pr_debug("Error: Cannot write register of %u bit width",
+>>> +                       bit_width);
+>>> +               ret_val = -EFAULT;
+>>> +               break;
+>>> +       }
+>>> +       return ret_val;
+>>> +}
+>>> +
 >>
->> Signed-off-by: Tomasz Nowicki <tn@semihalf.com>
->> Signed-off-by: Jayachandran C <jchandra@broadcom.com>
->> ---
->>   drivers/acpi/Kconfig     |  3 ++
->>   drivers/acpi/Makefile    |  1 +
->>   drivers/acpi/pci_mcfg.c  | 94 ++++++++++++++++++++++++++++++++++++++++++++++++
->>   include/linux/pci-acpi.h |  2 ++
->>   include/linux/pci.h      |  2 +-
->>   5 files changed, 101 insertions(+), 1 deletion(-)
->>   create mode 100644 drivers/acpi/pci_mcfg.c
+>> Isn't this just reordering of function locations? I don't mean to be
+>> nitpicky, but your cosmetic changes in this file make it harder to
+>> review the meat of the patch.
+>
+> Yes, it is. As I would like to call these functions but actually, they
+> are declared quite late.
+> Do you have a any suggestion? Thanks
+>
+
+No this is fine. I missed the place where you needed to call these.
+
 >>
->> diff --git a/drivers/acpi/Kconfig b/drivers/acpi/Kconfig
->> index b7e2e77..f98c328 100644
->> --- a/drivers/acpi/Kconfig
->> +++ b/drivers/acpi/Kconfig
->> @@ -217,6 +217,9 @@ config ACPI_PROCESSOR_IDLE
->>   	bool
->>   	select CPU_IDLE
+>>> +/**
+>>> + * pcc_map_interrupt - Map a PCC subspace GSI to a linux IRQ number
+>>> + * @interrupt: GSI number.
+>>> + * @flags: interrupt flags
+>>> + *
+>>> + * Returns: a valid linux IRQ number on success
+>>> + *             0 or -EINVAL on failure
+>>> + */
+>>> +static int pcc_map_interrupt(u32 interrupt, u32 flags)
+>>> +{
+>>> +       int trigger, polarity;
+>>> +
+>>> +       if (!interrupt)
+>>> +               return 0;
+>>> +
+>>> +       trigger = (flags & ACPI_PCCT_INTERRUPT_MODE) ? ACPI_EDGE_SENSITIVE
+>>> +                       : ACPI_LEVEL_SENSITIVE;
+>>> +
+>>> +       polarity = (flags & ACPI_PCCT_INTERRUPT_POLARITY) ? ACPI_ACTIVE_LOW
+>>> +                       : ACPI_ACTIVE_HIGH;
+>>> +
+>>> +       return acpi_register_gsi(NULL, interrupt, trigger, polarity);
+>>> +}
+>>> +
+>>> +/**
+>>> + * pcc_mbox_irq - PCC mailbox interrupt handler
+>>> + */
+>>> +static irqreturn_t pcc_mbox_irq(int irq, void *p)
+>>> +{
+>>> +       struct acpi_generic_address *doorbell_ack;
+>>> +       struct acpi_pcct_hw_reduced *pcct_ss;
+>>> +       struct mbox_chan *chan = p;
+>>> +       u64 doorbell_ack_preserve;
+>>> +       u64 doorbell_ack_write;
+>>> +       u64 doorbell_ack_val;
+>>> +       int ret;
+>>> +
+>>> +       pcct_ss = chan->con_priv;
+>>> +
+>>> +       mbox_chan_received_data(chan, NULL);
 >>
->> +config ACPI_MCFG
->> +	bool
->> +
->>   config ACPI_CPPC_LIB
->>   	bool
->>   	depends on ACPI_PROCESSOR
->> diff --git a/drivers/acpi/Makefile b/drivers/acpi/Makefile
->> index 251ce85..632e81f 100644
->> --- a/drivers/acpi/Makefile
->> +++ b/drivers/acpi/Makefile
->> @@ -40,6 +40,7 @@ acpi-$(CONFIG_ARCH_MIGHT_HAVE_ACPI_PDC) += processor_pdc.o
->>   acpi-y				+= ec.o
->>   acpi-$(CONFIG_ACPI_DOCK)	+= dock.o
->>   acpi-y				+= pci_root.o pci_link.o pci_irq.o
->> +obj-$(CONFIG_ACPI_MCFG)		+= pci_mcfg.o
->>   acpi-y				+= acpi_lpss.o acpi_apd.o
->>   acpi-y				+= acpi_platform.o
->>   acpi-y				+= acpi_pnp.o
->> diff --git a/drivers/acpi/pci_mcfg.c b/drivers/acpi/pci_mcfg.c
->> new file mode 100644
->> index 0000000..1847f74
->> --- /dev/null
->> +++ b/drivers/acpi/pci_mcfg.c
->> @@ -0,0 +1,94 @@
->> +/*
->> + * Copyright (C) 2016 Broadcom
->> + *	Author: Jayachandran C <jchandra@broadcom.com>
->> + * Copyright (C) 2016 Semihalf
->> + * 	Author: Tomasz Nowicki <tn@semihalf.com>
->> + *
->> + * This program is free software; you can redistribute it and/or modify
->> + * it under the terms of the GNU General Public License, version 2, as
->> + * published by the Free Software Foundation (the "GPL").
->> + *
->> + * This program is distributed in the hope that it will be useful, but
->> + * WITHOUT ANY WARRANTY; without even the implied warranty of
->> + * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
->> + * General Public License version 2 (GPLv2) for more details.
->> + *
->> + * You should have received a copy of the GNU General Public License
->> + * version 2 (GPLv2) along with this source code.
->> + */
->> +
->> +#define pr_fmt(fmt) "ACPI: " fmt
->> +
->> +#include <linux/kernel.h>
->> +#include <linux/pci.h>
->> +#include <linux/pci-acpi.h>
->> +
->> +/* Root pointer to the mapped MCFG table */
->> +static struct acpi_table_mcfg *mcfg_table;
->> +static int mcfg_entries;
->> +
->> +int pci_mcfg_lookup(struct acpi_pci_root *root)
+>> Does this really do anything? IIUC, your mbox controller rings
+>> doorbell, platform sets cmd_completion and sends an IRQ to the OS.
+>> This is the function where you field it to ACK the doorbell. But
+>> you're not really consuming any new data sent by the platform, right?
+>> i.e. this IRQ use case is not the same as the async notification from
+>> platform as described in the ACPIv5+ spec. Or did I misunderstand the
+>> bigger picture?
+>>
 >
-> I think this would be better if we passed in the domain and a pointer
-> to the bus range resource and returned the ECAM base address.  I don't
-> think we need to be connected to struct acpi_pci_root.
+> The purpose of this function call is
+> 1./ Notify the completion of a command to OSPM.
+> For example, instead of using polling with udelay, CPPC could use this
+> call to complete a "completion".
+> I'm preparing to post a version to support it for CPPC.
+>
 
-I will use domain and bus range resource as you suggested.
+I see. This is the part I was missing. Seems like you could call the
+mbox_chan_received_data() only after you add support for this.
 
->
->> +{
->> +	struct acpi_mcfg_allocation *mptr, *entry = NULL;
->> +	struct resource *bus_res = &root->secondary;
->> +	int i;
->> +
->> +	if (mcfg_table) {
->> +		mptr = (struct acpi_mcfg_allocation *) &mcfg_table[1];
->> +		for (i = 0; i < mcfg_entries && !entry; i++, mptr++)
->> +			if (mptr->pci_segment == root->segment &&
->> +			    mptr->start_bus_number == bus_res->start)
->> +				entry = mptr;
->> +	}
->> +
->> +	/* not found, use _CBA if available, else error */
->> +	if (!entry) {
->> +		if (root->mcfg_addr)
->> +			return root->mcfg_addr;
->> +		pr_err("%04x:%pR MCFG lookup failed\n", root->segment, bus_res);
->> +		return -ENOENT;
->> +	} else if (root->mcfg_addr && entry->address != root->mcfg_addr) {
->> +		pr_warn("%04x:%pR CBA %pa != MCFG %lx, using CBA\n",
->> +			root->segment, bus_res, &root->mcfg_addr,
->> +			(unsigned long)entry->address);
->> +		return 0;
->> +	}
->
-> I keep looking at this code, trying to find where we "use _CBA", but I
-> can't find it.  Oh, I see, acpi_pci_root_add() calls
-> acpi_pci_root_get_mcfg_addr() (which evaluates _CBA), and sets
-> root->mcfg_addr to the result.
->
-> "root->mcfg_addr" is sort of an unfortunate name because "MCFG" is the
-> ACPI table name, we've used "ECAM" for the memory-mapped config space,
-> and this address can come from either the MCFG table or the _CBA
-> method.
->
-> In the case where we have both _CBA and an MCFG entry, I think we
-> should prefer _CBA, and I'm not sure it's even worth warning about it.
-> So I think you could simplify this function if you made
-> pci_acpi_setup_ecam_mapping() look like this:
->
->    ... pci_acpi_setup_ecam_mapping(...)
->    {
->      ...
->      if (!root->mcfg_addr)
->        root->mcfg_addr = pci_mcfg_lookup(root);
->
->      if (!root->mcfg_addr) {
->        dev_err(..., "no ECAM region found\n");
->        return -EINVAL;
->      }
+> 2./ Notify OSPM about a notification message sent by Platform
 
-OK
+This will require adding some sort of rx_callback to field the notification.
 
+>>
+>> [...]
+>>
+>>> +
+>>> +/**
+>>>   * acpi_pcc_probe - Parse the ACPI tree for the PCCT.
+>>>   *
+>>>   * Return: 0 for Success, else errno.
+>>> @@ -316,7 +449,9 @@ static int __init acpi_pcc_probe(void)
+>>>         acpi_size pcct_tbl_header_size;
+>>>         struct acpi_table_header *pcct_tbl;
+>>>         struct acpi_subtable_header *pcct_entry;
+>>> -       int count, i;
+>>> +       struct acpi_table_pcct *acpi_pcct_tbl;
+>>> +       int count, i, rc;
+>>> +       int sum = 0;
+>>>         acpi_status status = AE_OK;
+>>>
+>>>         /* Search for PCCT */
+>>> @@ -333,37 +468,66 @@ static int __init acpi_pcc_probe(void)
+>>>                         sizeof(struct acpi_table_pcct),
+>>>                         ACPI_PCCT_TYPE_HW_REDUCED_SUBSPACE,
+>>>                         parse_pcc_subspace, MAX_PCC_SUBSPACES);
+>>> +       sum += (count > 0)? count: 0;
+>>> +
+>>> +       count = acpi_table_parse_entries(ACPI_SIG_PCCT,
+>>> +                       sizeof(struct acpi_table_pcct),
+>>> +                       ACPI_PCCT_TYPE_HW_REDUCED_SUBSPACE_TYPE2,
+>>> +                       parse_pcc_subspace, MAX_PCC_SUBSPACES);
+>>> +       sum += (count > 0)? count: 0;
+>>>
+>>> -       if (count <= 0) {
+>>> +       if (sum == 0 || sum >= MAX_PCC_SUBSPACES) {
+>>>                 pr_err("Error parsing PCC subspaces from PCCT\n");
+>>>                 return -EINVAL;
+>>>         }
+>>>
+>>>         pcc_mbox_channels = kzalloc(sizeof(struct mbox_chan) *
+>>> -                       count, GFP_KERNEL);
+>>> -
+>>> +                       sum, GFP_KERNEL);
+>>>         if (!pcc_mbox_channels) {
+>>>                 pr_err("Could not allocate space for PCC mbox channels\n");
+>>>                 return -ENOMEM;
+>>>         }
+>>>
+>>> -       pcc_doorbell_vaddr = kcalloc(count, sizeof(void *), GFP_KERNEL);
+>>> +       pcc_doorbell_vaddr = kcalloc(sum, sizeof(void *), GFP_KERNEL);
+>>>         if (!pcc_doorbell_vaddr) {
+>>> -               kfree(pcc_mbox_channels);
+>>> -               return -ENOMEM;
+>>> +               rc = -ENOMEM;
+>>> +               goto err_free_mbox;
+>>> +       }
+>>> +
+>>> +       pcc_doorbell_ack_vaddr = kcalloc(sum, sizeof(void *), GFP_KERNEL);
+>>> +       if (!pcc_doorbell_ack_vaddr) {
+>>> +               rc = -ENOMEM;
+>>> +               goto err_free_db_vaddr;
+>>> +       }
+>>> +
+>>> +       pcc_doorbell_irq = kcalloc(sum, sizeof(int), GFP_KERNEL);
+>>> +       if (!pcc_doorbell_irq) {
+>>> +               rc = -ENOMEM;
+>>> +               goto err_free_db_ack_vaddr;
+>>>         }
+>>>
+>>>         /* Point to the first PCC subspace entry */
+>>>         pcct_entry = (struct acpi_subtable_header *) (
+>>>                 (unsigned long) pcct_tbl + sizeof(struct acpi_table_pcct));
+>>>
+>>> -       for (i = 0; i < count; i++) {
+>>> +       acpi_pcct_tbl = (struct acpi_table_pcct *) pcct_tbl;
+>>> +       if (acpi_pcct_tbl->flags & ACPI_PCCT_DOORBELL)
+>>> +               pcc_mbox_ctrl.txdone_irq = true;
+>>> +
+>>
+>> This flag is still bothering me. Can't you have a system where one
+>> client requires polling on the command completion bit and another can
+>> send a command completion IRQ? Seems to me that you need a channel
+>> specific flag to indicate this. Besides, this global flag seems to be
+>> used for async platform notifications. i.e. when the OS sets the
+>> Generate doorbell irq bit in the Command field (Section 14.2.1 in ACPI
+>> v6.1).
 >
->> +
->> +	/* found matching entry, bus range check */
->> +	if (entry->end_bus_number != bus_res->end) {
->> +		resource_size_t bus_end = min_t(resource_size_t,
->> +					entry->end_bus_number, bus_res->end);
->> +		pr_warn("%04x:%pR bus end mismatch, using %02lx\n",
->> +			root->segment, bus_res, (unsigned long)bus_end);
->> +		bus_res->end = bus_end;
->> +	}
-
-What about bus end mismatch case? Should we trim the host bridge bus 
-range or expect MCFG entry covers that range? Sometimes we get _BBN-0xFF 
-bus range, not from _CRS.
-
->> +
->> +	if (!root->mcfg_addr)
->> +		root->mcfg_addr = entry->address;
+> I thought this bit is the global configuration for PCC.
+> We still can support the polling mode if this flag is ON. Just don't
+> set "Generate Doorbell Interrupt" bit inside Command Field.
 >
-> Please move the assignment to the caller (I think Lorenzo pointed this
-> out already).
->
->> +	return 0;
->> +}
->> +
->> +static __init int pci_mcfg_parse(struct acpi_table_header *header)
->> +{
->> +	if (header->length < sizeof(struct acpi_table_mcfg))
->> +		return -EINVAL;
->> +
->> +	mcfg_entries = (header->length - sizeof(struct acpi_table_mcfg)) /
->> +					sizeof(struct acpi_mcfg_allocation);
->> +	if (mcfg_entries == 0) {
->> +		pr_err("MCFG has no entries\n");
->
-> Include an address here?  I'm not really sure either of the messages
-> here is necessary.  Users (callers of pci_mcfg_lookup()) will notice
-> if we can't find any ECAM space and will probably complain there,
-> where the message can include more information, e.g., the affected
-> device.
 
-I would keep message about how many entries we found here. It would be 
-valuable information IMO.
+>From the spec point of view it would seem so, but does the mbox
+controller code allow for that? i.e. let individual PCC channels
+decide whether to use txdone irq or poll? Seems like
+pcc_mbox_ctrl.txdone_irq is a global setting for all mbox channels.
 
->
->> +		return -EINVAL;
->> +	}
->> +
->> +	mcfg_table = (struct acpi_table_mcfg *)header;
->> +	pr_info("MCFG table detected, %d entries\n", mcfg_entries);
->> +	return 0;
->> +}
->> +
->> +/* Interface called by ACPI - parse and save MCFG table */
->
-> I think we save a *pointer* to the MCFG table, not the table itself.
-
-Right, the comment is broken.
-
->
-> And acpi_table_parse() calls early_acpi_os_unmap_memory() immediately
-> after it calls pci_mcfg_parse(), so I'm doubtful that the pointer
-> remains valid.
-
-At this stage early_acpi_os_unmap_memory() is doing nothing since 
-acpi_early_init() set acpi_gbl_permanent_mmap to 1 way before. The 
-pointer is fine then.
+I apologize again, going forward my replies could be further delayed.
+In process of relocating to a new job and role to a different city
+which is several time zones away. :)
 
 Thanks,
-Tomasz
+Ashwin.
