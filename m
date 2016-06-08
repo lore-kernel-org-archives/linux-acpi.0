@@ -1,89 +1,76 @@
-From: Bjorn Helgaas <helgaas@kernel.org>
-Subject: Re: [PATCH V8 7/9] acpi: Add generic MCFG table handling
-Date: Wed, 8 Jun 2016 08:17:09 -0500
-Message-ID: <20160608131709.GB16764@localhost>
-References: <1464621262-26770-1-git-send-email-tn@semihalf.com>
- <1464621262-26770-8-git-send-email-tn@semihalf.com>
- <20160608015631.GE4759@localhost>
- <57580DCA.7000703@semihalf.com>
+From: M P <m.paniez@zoho.com>
+Subject: Tr : Bug with acpi to boot
+Date: Wed, 08 Jun 2016 15:20:17 +0200
+Message-ID: <155302b95ae.c55ce71746161.6684118391733533681@zoho.com>
+References: <1552ffa468f.121d7e5a345699.5097958136133155323@zoho.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.136]:34456 "EHLO mail.kernel.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751796AbcFHNRP (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 8 Jun 2016 09:17:15 -0400
-Content-Disposition: inline
-In-Reply-To: <57580DCA.7000703@semihalf.com>
+Received: from sender153-mail.zoho.com ([74.201.84.153]:21912 "EHLO
+	sender153-mail.zoho.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753460AbcFHNUU (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 8 Jun 2016 09:20:20 -0400
+In-Reply-To: <1552ffa468f.121d7e5a345699.5097958136133155323@zoho.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Tomasz Nowicki <tn@semihalf.com>
-Cc: arnd@arndb.de, will.deacon@arm.com, catalin.marinas@arm.com, rafael@kernel.org, hanjun.guo@linaro.org, Lorenzo.Pieralisi@arm.com, okaya@codeaurora.org, jchandra@broadcom.com, robert.richter@caviumnetworks.com, mw@semihalf.com, Liviu.Dudau@arm.com, ddaney@caviumnetworks.com, wangyijing@huawei.com, Suravee.Suthikulpanit@amd.com, msalter@redhat.com, linux-pci@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linaro-acpi@lists.linaro.org, jcm@redhat.com, andrea.gallo@linaro.org, dhdang@apm.com, jeremy.linton@arm.com, liudongdong3@huawei.com, cov@codeaurora.org
+Cc: linux-acpi@vger.kernel.org
 
-On Wed, Jun 08, 2016 at 02:21:30PM +0200, Tomasz Nowicki wrote:
-> On 08.06.2016 03:56, Bjorn Helgaas wrote:
-> >On Mon, May 30, 2016 at 05:14:20PM +0200, Tomasz Nowicki wrote:
-> >>In order to handle PCI config space regions properly in ACPI, new MCFG
-> >>interface is defined which does sanity checks on MCFG table and keeps its
-> >>root pointer. The user is able to lookup MCFG regions based on
-> >>host bridge root structure and domain:bus_start:bus_end touple.
-> >>Use pci_mmcfg_late_init old prototype to avoid another function name.
+Hi,
 
-> >>+	/* found matching entry, bus range check */
-> >>+	if (entry->end_bus_number != bus_res->end) {
-> >>+		resource_size_t bus_end = min_t(resource_size_t,
-> >>+					entry->end_bus_number, bus_res->end);
-> >>+		pr_warn("%04x:%pR bus end mismatch, using %02lx\n",
-> >>+			root->segment, bus_res, (unsigned long)bus_end);
-> >>+		bus_res->end = bus_end;
-> >>+	}
-> 
-> What about bus end mismatch case? Should we trim the host bridge bus
-> range or expect MCFG entry covers that range? Sometimes we get
-> _BBN-0xFF bus range, not from _CRS.
+I post a bug to Launchpad and we ask me to report to you (sorry if it doesn't respect exactly your process, it's my first).
 
-Lack of a bus range in _CRS is a firmware defect.  There's a comment
-about this in acpi_pci_root_add().  On x86, we probably had to live
-with firmware in the field that had this defect.  I think we should
-expect all ARM64 systems to provide a bus number range in _CRS, and
-fail the attach if it's not there.
 
-I don't think we should warn about an MCFG entry that covers more than
-the _CRS bus range.  On x86, it's common to have something like:
 
-  ACPI: PCI Root Bridge [PCI0] (domain 0000 [bus 00-7f])
-  ACPI: PCI Root Bridge [PCI1] (domain 0000 [bus 80-ff])
+[1.] One line summary of the problem:
+"acpi=off" required to boot.
 
-with a single MCFG entry that covers [bus 00-ff].  That seems
-reasonable and I don't think it's worth warning about it.
 
-If the MCFG entry doesn't cover all of a _CRS bus range, we should
-just fail so we can find and fix broken firmware.
+[2.] Full description of the problem/report:
+Hi,
+I just install Ubuntu 16.04 on my new MSI laptop G72 6QE.
+My touchpad doesn't work and recognize at all.
+Furthermore "acpi=off" required to boot.
 
-> >>+/* Interface called by ACPI - parse and save MCFG table */
-> >
-> >I think we save a *pointer* to the MCFG table, not the table itself.
-> 
-> Right, the comment is broken.
-> 
-> >And acpi_table_parse() calls early_acpi_os_unmap_memory() immediately
-> >after it calls pci_mcfg_parse(), so I'm doubtful that the pointer
-> >remains valid.
-> 
-> At this stage early_acpi_os_unmap_memory() is doing nothing since
-> acpi_early_init() set acpi_gbl_permanent_mmap to 1 way before. The
-> pointer is fine then.
+After tests with Christopher M. Penalver (penalvch), my touchpad problem comes from ACPI but I need disable it to boot.
+I try with kernel 4.6 and 4.7-rc2. With kernel 4.7-rc2, I can't go to login page because the start freezes (gnome-shell) ; so I need use 4.6 to work.
 
-Hmmm...  I see your argument, but this is a problem waiting to happen.
-We should not depend on the internal implementation of
-early_acpi_os_unmap_memory().  The pattern of:
+My bug report on launchpad :
+Launchpad link : https://bugs.launchpad.net/ubuntu/+source/linux/+bug/1584479/comments/31
 
-  y = x;
-  unmap(x);
-  z = *y;
 
-is just broken and we shouldn't expect readers to recognize that "oh,
-unmap() isn't really unmapping anything in this special case, so this
-looks wrong but is really fine."
+[3.] Keywords
 
-Bjorn
+
+[4.] Kernel version (from /proc/version):
+Linux version 4.7.0-040700rc2-generic (kernel@tangerine) (gcc version 5.3.1 20160528 (Ubuntu 5.3.1-21ubuntu11) ) #201606051831 SMP Sun Jun 5 22:33:44 UTC 2016
+
+
+[5.] Output of Oops.. message
+cf. syslog : https://bugs.launchpad.net/ubuntu/+source/linux/+bug/1584479/+attachment/4679536/+files/syslog_20160608.log
+
+
+[6.] A small shell script or example program which triggers the problem (if possible)
+
+
+
+Thanks
+
+-- 
+Cordialement, Best regards,
+
+Mr Matthieu PANIEZ
+
+
+
+
+
+
+
+
+
+
+
+
+
+
