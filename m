@@ -1,62 +1,123 @@
 From: Rui Wang <rui.y.wang@intel.com>
-Subject: [PATCH V2 3/3] x86/ioapic: Simplify ioapic_setup_resources()
-Date: Wed,  8 Jun 2016 14:59:53 +0800
-Message-ID: <1465369193-4816-4-git-send-email-rui.y.wang@intel.com>
+Subject: [PATCH V2 1/3] x86/ioapic: Support hot-removal of IOAPICs present during boot
+Date: Wed,  8 Jun 2016 14:59:51 +0800
+Message-ID: <1465369193-4816-2-git-send-email-rui.y.wang@intel.com>
 References: <1465369193-4816-1-git-send-email-rui.y.wang@intel.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga02.intel.com ([134.134.136.20]:3590 "EHLO mga02.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752321AbcFHHQd (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 8 Jun 2016 03:16:33 -0400
 In-Reply-To: <1465369193-4816-1-git-send-email-rui.y.wang@intel.com>
-Sender: linux-kernel-owner@vger.kernel.org
+Sender: linux-acpi-owner@vger.kernel.org
+List-Id: linux-acpi@vger.kernel.org
 To: tglx@linutronix.de, rjw@rjwysocki.net, tony.luck@intel.com, bhelgaas@google.com
 Cc: linux-acpi@vger.kernel.org, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, rui.y.wang@intel.com
-List-Id: linux-acpi@vger.kernel.org
 
-Optimize the function by removing the variable 'num'.
+IOAPICs present during system boot aren't added to ioapic_list,
+thus are unable to be hot-removed. Fix it by calling
+acpi_ioapic_add() during root bus enumeration.
 
 Signed-off-by: Rui Wang <rui.y.wang@intel.com>
 ---
- arch/x86/kernel/apic/io_apic.c | 18 +++++++-----------
- 1 file changed, 7 insertions(+), 11 deletions(-)
+ drivers/acpi/internal.h | 2 --
+ drivers/acpi/ioapic.c   | 7 ++++---
+ drivers/acpi/pci_root.c | 2 +-
+ drivers/pci/setup-bus.c | 5 ++++-
+ include/linux/acpi.h    | 3 +++
+ 5 files changed, 12 insertions(+), 7 deletions(-)
 
-diff --git a/arch/x86/kernel/apic/io_apic.c b/arch/x86/kernel/apic/io_apic.c
-index 446702e..e587295 100644
---- a/arch/x86/kernel/apic/io_apic.c
-+++ b/arch/x86/kernel/apic/io_apic.c
-@@ -2567,29 +2567,25 @@ static struct resource * __init ioapic_setup_resources(void)
- 	unsigned long n;
- 	struct resource *res;
- 	char *mem;
--	int i, num = 0;
-+	int i;
+diff --git a/drivers/acpi/internal.h b/drivers/acpi/internal.h
+index 9bb0773..bb567a7 100644
+--- a/drivers/acpi/internal.h
++++ b/drivers/acpi/internal.h
+@@ -40,10 +40,8 @@ int acpi_sysfs_init(void);
+ void acpi_container_init(void);
+ void acpi_memory_hotplug_init(void);
+ #ifdef	CONFIG_ACPI_HOTPLUG_IOAPIC
+-int acpi_ioapic_add(struct acpi_pci_root *root);
+ int acpi_ioapic_remove(struct acpi_pci_root *root);
+ #else
+-static inline int acpi_ioapic_add(struct acpi_pci_root *root) { return 0; }
+ static inline int acpi_ioapic_remove(struct acpi_pci_root *root) { return 0; }
+ #endif
+ #ifdef CONFIG_ACPI_DOCK
+diff --git a/drivers/acpi/ioapic.c b/drivers/acpi/ioapic.c
+index ccdc8db..0f272e2 100644
+--- a/drivers/acpi/ioapic.c
++++ b/drivers/acpi/ioapic.c
+@@ -189,16 +189,17 @@ exit:
+ 	return AE_OK;
+ }
  
--	for_each_ioapic(i)
--		num++;
--	if (num == 0)
-+	if (nr_ioapics == 0)
- 		return NULL;
+-int acpi_ioapic_add(struct acpi_pci_root *root)
++int acpi_ioapic_add(acpi_handle root_handle)
+ {
+ 	acpi_status status, retval = AE_OK;
  
- 	n = IOAPIC_RESOURCE_NAME_SIZE + sizeof(struct resource);
--	n *= num;
-+	n *= nr_ioapics;
+-	status = acpi_walk_namespace(ACPI_TYPE_DEVICE, root->device->handle,
++	status = acpi_walk_namespace(ACPI_TYPE_DEVICE, root_handle,
+ 				     UINT_MAX, handle_ioapic_add, NULL,
+-				     root->device->handle, (void **)&retval);
++				     root_handle, (void **)&retval);
  
- 	mem = alloc_bootmem(n);
- 	res = (void *)mem;
+ 	return ACPI_SUCCESS(status) && ACPI_SUCCESS(retval) ? 0 : -ENODEV;
+ }
++EXPORT_SYMBOL_GPL(acpi_ioapic_add);
  
--	mem += sizeof(struct resource) * num;
-+	mem += sizeof(struct resource) * nr_ioapics;
- 
--	num = 0;
- 	for_each_ioapic(i) {
--		res[num].name = mem;
--		res[num].flags = IORESOURCE_MEM | IORESOURCE_BUSY;
-+		res[i].name = mem;
-+		res[i].flags = IORESOURCE_MEM | IORESOURCE_BUSY;
- 		snprintf(mem, IOAPIC_RESOURCE_NAME_SIZE, "IOAPIC %u", i);
- 		mem += IOAPIC_RESOURCE_NAME_SIZE;
--		ioapics[i].iomem_res = &res[num];
--		num++;
-+		ioapics[i].iomem_res = &res[i];
+ int acpi_ioapic_remove(struct acpi_pci_root *root)
+ {
+diff --git a/drivers/acpi/pci_root.c b/drivers/acpi/pci_root.c
+index ae3fe4e..53f5965 100644
+--- a/drivers/acpi/pci_root.c
++++ b/drivers/acpi/pci_root.c
+@@ -614,7 +614,7 @@ static int acpi_pci_root_add(struct acpi_device *device,
+ 	if (hotadd) {
+ 		pcibios_resource_survey_bus(root->bus);
+ 		pci_assign_unassigned_root_bus_resources(root->bus);
+-		acpi_ioapic_add(root);
++		acpi_ioapic_add(root->device->handle);
  	}
  
- 	ioapic_resources = res;
+ 	pci_lock_rescan_remove();
+diff --git a/drivers/pci/setup-bus.c b/drivers/pci/setup-bus.c
+index 55641a3..e32c356 100644
+--- a/drivers/pci/setup-bus.c
++++ b/drivers/pci/setup-bus.c
+@@ -25,6 +25,7 @@
+ #include <linux/ioport.h>
+ #include <linux/cache.h>
+ #include <linux/slab.h>
++#include <linux/acpi.h>
+ #include "pci.h"
+ 
+ unsigned int pci_flags;
+@@ -1779,8 +1780,10 @@ void __init pci_assign_unassigned_resources(void)
+ {
+ 	struct pci_bus *root_bus;
+ 
+-	list_for_each_entry(root_bus, &pci_root_buses, node)
++	list_for_each_entry(root_bus, &pci_root_buses, node) {
+ 		pci_assign_unassigned_root_bus_resources(root_bus);
++		acpi_ioapic_add(ACPI_HANDLE(root_bus->bridge));
++	}
+ }
+ 
+ void pci_assign_unassigned_bridge_resources(struct pci_dev *bridge)
+diff --git a/include/linux/acpi.h b/include/linux/acpi.h
+index 288fac5..3ed22df 100644
+--- a/include/linux/acpi.h
++++ b/include/linux/acpi.h
+@@ -262,6 +262,9 @@ int acpi_unmap_cpu(int cpu);
+ 
+ #ifdef CONFIG_ACPI_HOTPLUG_IOAPIC
+ int acpi_get_ioapic_id(acpi_handle handle, u32 gsi_base, u64 *phys_addr);
++int acpi_ioapic_add(acpi_handle root);
++#else
++static inline int acpi_ioapic_add(acpi_handle root) { return 0; }
+ #endif
+ 
+ int acpi_register_ioapic(acpi_handle handle, u64 phys_addr, u32 gsi_base);
 -- 
 1.8.3.1
+
