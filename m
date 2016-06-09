@@ -1,195 +1,67 @@
 From: Jeremy Linton <jeremy.linton@arm.com>
-Subject: [PATCH 6/8] arm64: pmu: Add routines for detecting differing PMU types in the system
-Date: Thu,  9 Jun 2016 17:23:31 -0500
-Message-ID: <1465511013-10742-7-git-send-email-jeremy.linton@arm.com>
+Subject: [PATCH 1/8] arm64: pmu: add fallback probe table
+Date: Thu,  9 Jun 2016 17:23:26 -0500
+Message-ID: <1465511013-10742-2-git-send-email-jeremy.linton@arm.com>
 References: <1465511013-10742-1-git-send-email-jeremy.linton@arm.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from foss.arm.com ([217.140.101.70]:34795 "EHLO foss.arm.com"
+Received: from foss.arm.com ([217.140.101.70]:34773 "EHLO foss.arm.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751936AbcFIWXi (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 9 Jun 2016 18:23:38 -0400
+	id S1751936AbcFIWXf (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 9 Jun 2016 18:23:35 -0400
 In-Reply-To: <1465511013-10742-1-git-send-email-jeremy.linton@arm.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: linux-arm-kernel@lists.infradead.org
 Cc: linux-acpi@vger.kernel.org, will.deacon@arm.com, mark.rutland@arm.com, lorenzo.pieralisi@arm.com, catalin.marinas@arm.com, peterz@infradead.org, mingo@redhat.com, acme@kernel.org, alexander.shishkin@linux.intel.com, mlangsdorf@redhat.com
 
-In preparation for enabling heterogeneous PMUs on ACPI systems
-add routines that detect this and group the resulting PMUs and
-interrupts.
+From: Mark Salter <msalter@redhat.com>
 
+In preparation for ACPI support, add a pmu_probe_info table to
+the arm_pmu_device_probe() call. This table gets used when
+probing in the absence of a devicetree node for PMU.
+
+Signed-off-by: Mark Salter <msalter@redhat.com>
 Signed-off-by: Jeremy Linton <jeremy.linton@arm.com>
 ---
- drivers/perf/arm_pmu_acpi.c | 135 +++++++++++++++++++++++++++++++++++++++++++-
- 1 file changed, 132 insertions(+), 3 deletions(-)
+ arch/arm64/kernel/perf_event.c | 8 +++++++-
+ include/linux/perf/arm_pmu.h   | 3 +++
+ 2 files changed, 10 insertions(+), 1 deletion(-)
 
-diff --git a/drivers/perf/arm_pmu_acpi.c b/drivers/perf/arm_pmu_acpi.c
-index 98c452d..a257fc0 100644
---- a/drivers/perf/arm_pmu_acpi.c
-+++ b/drivers/perf/arm_pmu_acpi.c
-@@ -1,14 +1,19 @@
- /*
-- * PMU support
-+ * ARM ACPI PMU support
-  *
-  * Copyright (C) 2015 Red Hat Inc.
-+ * Copyright (C) 2016 ARM Ltd.
-  * Author: Mark Salter <msalter@redhat.com>
-+ *         Jeremy Linton <jeremy.linton@arm.com>
-  *
-  * This work is licensed under the terms of the GNU GPL, version 2.  See
-  * the COPYING file in the top-level directory.
-  *
-  */
- 
-+#define pr_fmt(fmt) "ACPI-PMU: " fmt
-+
-+#include <asm/cpu.h>
- #include <linux/perf/arm_pmu.h>
- #include <linux/platform_device.h>
- #include <linux/acpi.h>
-@@ -18,8 +23,14 @@
- #define PMU_PDEV_NAME "armv8-pmu"
- 
- struct pmu_irq {
--	int gsi;
--	int trigger;
-+	int  gsi;
-+	int  trigger;
-+	bool registered;
-+};
-+
-+struct pmu_types {
-+	int cpu_type;
-+	int cpu_count;
+diff --git a/arch/arm64/kernel/perf_event.c b/arch/arm64/kernel/perf_event.c
+index 838ccf1..917c3e2 100644
+--- a/arch/arm64/kernel/perf_event.c
++++ b/arch/arm64/kernel/perf_event.c
+@@ -1044,9 +1044,15 @@ static const struct of_device_id armv8_pmu_of_device_ids[] = {
+ 	{},
  };
  
- static struct pmu_irq pmu_irqs[NR_CPUS] __initdata;
-@@ -31,6 +42,124 @@ void __init arm_pmu_parse_acpi(int cpu, struct acpi_madt_generic_interrupt *gic)
- 		pmu_irqs[cpu].trigger = ACPI_EDGE_SENSITIVE;
- 	else
- 		pmu_irqs[cpu].trigger = ACPI_LEVEL_SENSITIVE;
-+	pr_devel("Assign CPU %d girq %d level %d\n", cpu, pmu_irqs[cpu].gsi,
-+						   pmu_irqs[cpu].trigger);
-+}
++static const struct pmu_probe_info armv8_pmu_probe_table[] = {
++	PMU_PROBE(0, 0, armv8_pmuv3_init), /* if all else fails... */
++	{ /* sentinel value */ }
++};
 +
-+/* Count number and type of CPU cores in the system. */
-+void __init arm_pmu_acpi_determine_cpu_types(struct pmu_types *pmus)
-+{
-+	int i, j;
-+
-+	for_each_possible_cpu(i) {
-+		struct cpuinfo_arm64 *cinfo = per_cpu_ptr(&cpu_data, i);
-+		u32 partnum = MIDR_PARTNUM(cinfo->reg_midr);
-+
-+		pr_devel("Present CPU %d is a %X\n", i, partnum);
-+		for (j = 0; j < num_possible_cpus(); j++) {
-+			if (pmus[j].cpu_type == partnum) {
-+				pmus[j].cpu_count++;
-+				break;
-+			}
-+			if (pmus[j].cpu_count == 0) {
-+				pmus[j].cpu_type = partnum;
-+				pmus[j].cpu_count++;
-+				break;
-+			}
-+		}
-+	}
-+}
-+
-+/*
-+ * Registers the group of PMU interfaces which corrispond to the 'last_cpu_id'.
-+ * This group utlizes 'count' resources in the 'res'.
-+ */
-+int __init arm_pmu_acpi_register_pmu(int count, struct resource *res,
-+					    int last_cpu_id)
-+{
-+	int i;
-+	int err = -ENOMEM;
-+	bool free_gsi = false;
-+	struct platform_device *pdev;
-+
-+	if (count) {
-+		pdev = platform_device_alloc(PMU_PDEV_NAME, last_cpu_id);
-+		if (pdev) {
-+			err = platform_device_add_resources(pdev,
-+							    res, count);
-+			if (!err) {
-+				err = platform_device_add(pdev);
-+				if (err) {
-+					pr_warn("Unable to register PMU device\n");
-+					free_gsi = true;
-+				}
-+			} else {
-+				pr_warn("Unable to add resources to device\n");
-+				free_gsi = true;
-+				platform_device_put(pdev);
-+			}
-+		} else {
-+			pr_warn("Unable to allocate platform device\n");
-+			free_gsi = true;
-+		}
-+	}
-+
-+	/* unmark (and possibly unregister) registered GSIs */
-+	for_each_possible_cpu(i) {
-+		if (pmu_irqs[i].registered) {
-+			if (free_gsi)
-+				acpi_unregister_gsi(pmu_irqs[i].gsi);
-+			pmu_irqs[i].registered = false;
-+		}
-+	}
-+
-+	return err;
-+}
-+
-+/*
-+ * For the given cpu/pmu type, walk all known GSIs, register them, and add
-+ * them to the resource structure. Return the number of GSI's contained
-+ * in the res structure, and the id of the last CPU/PMU we added.
-+ */
-+int __init arm_pmu_acpi_gsi_res(struct pmu_types *pmus,
-+				       struct resource *res, int *last_cpu_id)
-+{
-+	int i, count;
-+	int irq;
-+
-+	pr_info("Setting up %d PMUs for CPU type %X\n", pmus->cpu_count,
-+							pmus->cpu_type);
-+	/* lets group all the PMU's from similar CPU's together */
-+	count = 0;
-+	for_each_possible_cpu(i) {
-+		struct cpuinfo_arm64 *cinfo = per_cpu_ptr(&cpu_data, i);
-+
-+		if (pmus->cpu_type == MIDR_PARTNUM(cinfo->reg_midr)) {
-+			pr_devel("Setting up CPU %d\n", i);
-+			if (pmu_irqs[i].gsi == 0)
-+				continue;
-+
-+			irq = acpi_register_gsi(NULL, pmu_irqs[i].gsi,
-+						pmu_irqs[i].trigger,
-+						ACPI_ACTIVE_HIGH);
-+
-+			res[count].start = res[count].end = irq;
-+			res[count].flags = IORESOURCE_IRQ;
-+
-+			if (pmu_irqs[i].trigger == ACPI_EDGE_SENSITIVE)
-+				res[count].flags |= IORESOURCE_IRQ_HIGHEDGE;
-+			else
-+				res[count].flags |= IORESOURCE_IRQ_HIGHLEVEL;
-+
-+			pmu_irqs[i].registered = true;
-+			count++;
-+			(*last_cpu_id) = cinfo->reg_midr;
-+
-+			if (irq_is_percpu(irq))
-+				pr_debug("PPI detected\n");
-+		}
-+	}
-+	return count;
+ static int armv8_pmu_device_probe(struct platform_device *pdev)
+ {
+-	return arm_pmu_device_probe(pdev, armv8_pmu_of_device_ids, NULL);
++	return arm_pmu_device_probe(pdev, armv8_pmu_of_device_ids,
++				    armv8_pmu_probe_table);
  }
  
- static int __init pmu_acpi_init(void)
+ static struct platform_driver armv8_pmu_driver = {
+diff --git a/include/linux/perf/arm_pmu.h b/include/linux/perf/arm_pmu.h
+index d28ac05..7e814fe 100644
+--- a/include/linux/perf/arm_pmu.h
++++ b/include/linux/perf/arm_pmu.h
+@@ -147,6 +147,9 @@ struct pmu_probe_info {
+ #define XSCALE_PMU_PROBE(_version, _fn) \
+ 	PMU_PROBE(ARM_CPU_IMP_INTEL << 24 | _version, ARM_PMU_XSCALE_MASK, _fn)
+ 
++#define ARMV8_PMU_PART_PROBE(_part, _fn) \
++	PMU_PROBE((_part) << MIDR_PARTNUM_SHIFT, MIDR_PARTNUM_MASK, _fn)
++
+ int arm_pmu_device_probe(struct platform_device *pdev,
+ 			 const struct of_device_id *of_table,
+ 			 const struct pmu_probe_info *probe_table);
 -- 
 2.5.5
 
