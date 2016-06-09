@@ -1,122 +1,149 @@
-From: "Prakash, Prashanth" <pprakash@codeaurora.org>
-Subject: Re: [PATCH] ACPI/CPPC: Support for batching CPPC requests
-Date: Thu, 9 Jun 2016 16:46:36 -0600
-Message-ID: <aee2936a-a9ec-d594-3f62-19de3ab1a38a@codeaurora.org>
-References: <1463441951-13207-1-git-send-email-pprakash@codeaurora.org>
- <20160526220234.GA26524@arm.com>
- <CAFHUOYyi4k5JuP5unxKyYH=tdxBE1BNm7zW9cjQchcnrmFNg9A@mail.gmail.com>
+From: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>
+Subject: Re: [RESEND PATCH v2 1/2] device property: Add function to search for
+ named child of device
+Date: Fri, 10 Jun 2016 01:11:06 +0200
+Message-ID: <97f80018-7cc4-0a50-498d-89d27dfa2fd1@intel.com>
+References: <cover.1464802265.git.Adam.Thomson.Opensource@diasemi.com>
+ <7105258db927c65dfa41a8abeef4b9735871d023.1464802265.git.Adam.Thomson.Opensource@diasemi.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
+Content-Type: text/plain; charset=windows-1252; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp.codeaurora.org ([198.145.29.96]:44824 "EHLO
-	smtp.codeaurora.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932077AbcFIWqp (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 9 Jun 2016 18:46:45 -0400
-In-Reply-To: <CAFHUOYyi4k5JuP5unxKyYH=tdxBE1BNm7zW9cjQchcnrmFNg9A@mail.gmail.com>
+Received: from mga09.intel.com ([134.134.136.24]:46769 "EHLO mga09.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751973AbcFIXLQ (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 9 Jun 2016 19:11:16 -0400
+In-Reply-To: <7105258db927c65dfa41a8abeef4b9735871d023.1464802265.git.Adam.Thomson.Opensource@diasemi.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Hoan Tran <hotran@apm.com>, Alexey Klimov <alexey.klimov@arm.com>
-Cc: linux acpi <linux-acpi@vger.kernel.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Ashwin Chaugule <ashwin.chaugule@linaro.org>
+To: Adam Thomson <Adam.Thomson.Opensource@diasemi.com>, Jaroslav Kysela <perex@perex.cz>, Mika Westerberg <mika.westerberg@linux.intel.com>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Heikki Krogerus <heikki.krogerus@linux.intel.com>
+Cc: Mark Brown <broonie@kernel.org>, Liam Girdwood <lgirdwood@gmail.com>, Takashi Iwai <tiwai@suse.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Robert Moore <robert.moore@intel.com>, Lv Zheng <lv.zheng@intel.com>, Len Brown <lenb@kernel.org>, alsa-devel@alsa-project.org, linux-acpi@vger.kernel.org, devel@acpica.org, linux-kernel@vger.kernel.org, Support Opensource <support.opensource@diasemi.com>, Sathyanarayana Nujella <sathyanarayana.nujella@intel.com>, Suravee Suthikulpanit <Suravee.Suthikulpanit@amd.com>, Bjorn Helgaas <bhelgaas@google.com>, Hanjun Guo <hanjun.guo@linaro.org>, Andrew Morton <akpm@linux-foundation.org>
 
-Hi Hoan,
-
-
-On 6/9/2016 11:22 AM, Hoan Tran wrote:
-> Hi Prashanth,
+On 6/9/2016 5:13 PM, Adam Thomson wrote:
+> For device nodes in both DT and ACPI, it possible to have named
+> child nodes which contain properties (an existing example being
+> gpio-leds). This adds a function to find a named child node for
+> a device which can be used by drivers for property retrieval.
 >
-> On Thu, May 26, 2016 at 3:02 PM, Alexey Klimov <alexey.klimov@arm.com> wrote:
->> On Tue, May 17, 2016 at 12:39 AM, Prashanth Prakash <pprakash@codeaurora.org> wrote:
->>> CPPC defined in section 8.4.7 of ACPI 6.1 specification suggests
->>> "To amortize the cost of PCC transactions, OSPM should read or write
->>> all PCC registers via a single read or write command when possible"
->>> This patch enables opportunistic batching of frequency transition
->>> requests whenever the request happen to overlap in time.
->>>
->>> Currently the access to pcc is serialized by a spin lock which does
->>> not scale well as we increase the number of cores in the system. This
->>> patch improves the scalability by allowing the differnt CPU cores to
->>> update PCC subspace in parallel and by batching requests which will
->>> reduce certain types of operation(checking command completion bit,
->>> ringing doorbell) by a significant margin.
->>>
->>> Profiling shows significant improvement in the time to service freq.
->>> transition request. Using a workload which includes multiple iteration
->>> of configure+make of vim (with -j24 option):
->>> Without batching requests(without this patch),
->>>         6 domains: Avg=20us/request; 24 domains: Avg=52us/request
->>> With batching requests(with this patch),
->>>         6 domains: Avg=16us/request; 24 domains: Avg=19us/request
->>> domain: An individual cpu or a set of related CPUs whose frequency can
->>> be scaled independently
->> With this approach sometimes you will send POSTCHANGE notifications about
->> frequency change for some random CPUs before actual request to change
->> frequency was sent (and received?) through PCC channel.
->> Depending on platform/firmware/configuration this time difference might be high.
->>
->> How vital or important is to have POSTCHANGE notification in correct time
->> order?
->>
->> Best regards,
->> Alexey.
->>
->>
->>
->>> Signed-off-by: Prashanth Prakash <pprakash@codeaurora.org>
->>> ---
->>>  drivers/acpi/cppc_acpi.c | 166 ++++++++++++++++++++++++++++++++++++++++-------
->>>  1 file changed, 141 insertions(+), 25 deletions(-)
->>>
->>> diff --git a/drivers/acpi/cppc_acpi.c b/drivers/acpi/cppc_acpi.c
->>> index 8adac69..3edfd50 100644
->>> --- a/drivers/acpi/cppc_acpi.c
->>> +++ b/drivers/acpi/cppc_acpi.c
->>> @@ -43,12 +43,34 @@
->>>
->>>  #include <acpi/cppc_acpi.h>
->>>  /*
->>> - * Lock to provide mutually exclusive access to the PCC
->>> - * channel. e.g. When the remote updates the shared region
->>> - * with new data, the reader needs to be protected from
->>> - * other CPUs activity on the same channel.
->>> + * Lock to provide controlled access to the PCC channel.
->>> + *
->>> + * For performance critical usecases(currently cppc_set_perf)
->>> + *     We need to take read_lock and check if channel belongs to OSPM before
->>> + * reading or writing to PCC subspace
->>> + *     We need to take write_lock before transferring the channel ownership to
->>> + * the platform via a Doorbell
->>> + *
->>> + * For non-performance critical usecases(init)
->>> + *     Take write_lock for all purposes which gives exclusive access
->>> + *
->>> + * Why not use spin lock?
->>> + *     One of the advantages of CPPC is that we can batch/group a large number
->>> + * of requests from differnt CPUs and send one request to the platform. Using a
->>> + * read-write spinlock allows us to do this in a effecient manner.
->>> + *     On larger multicore systems, if we get a large group of cppc_set_perf
->>> + * calls they all serialize behind a spin lock, but using a rwlock we can
->>> + * execute the requests in a much more scalable manner.
->>> + *     See cppc_set_perf() for more details
->>> + */
->>> +static DEFINE_RWLOCK(pcc_lock);
-> Any chance to use mutex instead of spinlock ?
-> In some cases such as (cmd = CMD_READ || pcc_mrtt), because of waiting
-> for command completion,this spinlock is kept for a while before
-> unlock. It could waste CPU time to acquire the spinlock.
+> For ACPI data node name matching, a helper function is also added
+> which returns false if CONFIG_ACPI is not set, otherwise it
+> performs a string comparison on the data node name. This avoids
+> using the acpi_data_node struct for non CONFIG_ACPI builds,
+> which would otherwise cause a build failure.
 >
-> Thanks
-> Hoan
+> Signed-off-by: Adam Thomson <Adam.Thomson.Opensource@diasemi.com>
+> Tested-by: Sathyanarayana Nujella <sathyanarayana.nujella@intel.com>
 
-The CMD_READ is primarily used during the init, so the returns on optimizing
-that path is very limited. Since the CPPC protocol requires only an ack for
-delivery of request from the platform and the platform can take its own time
-to do actual Freq. and Voltage transition, the time we are holding the lock
-should be very limited.  At least, in the profiling I have done, I haven't noticed
-any issues.
-Having said that, I haven't done profiling to compare spinlocks vs. mutex for
-this scenario. Ashwin might have some background on why spinlocks were
-used initially.
+For some reason that didn't make it into the linux-acpi list, or at 
+least I can't see it there.
 
-Thanks,
-Prashanth
+> ---
+>
+> Changes in v2:
+>   - Rebase to v4.7-rc1
+>
+>   drivers/base/property.c  | 28 ++++++++++++++++++++++++++++
+>   include/acpi/acpi_bus.h  |  7 +++++++
+>   include/linux/acpi.h     |  6 ++++++
+>   include/linux/property.h |  3 +++
+>   4 files changed, 44 insertions(+)
+>
+> diff --git a/drivers/base/property.c b/drivers/base/property.c
+> index f38c21d..573b361 100644
+> --- a/drivers/base/property.c
+> +++ b/drivers/base/property.c
+> @@ -888,6 +888,34 @@ struct fwnode_handle *device_get_next_child_node(struct device *dev,
+>   EXPORT_SYMBOL_GPL(device_get_next_child_node);
+>
+>   /**
+> + * device_get_named_child_node - Return first matching named child node handle
+> + * @dev: Device to find the named child node for.
+> + * @childname: String to match child node name against.
+> + */
+> +struct fwnode_handle *device_get_named_child_node(struct device *dev,
+> +						  const char *childname)
+> +{
+> +	struct fwnode_handle *child;
+> +
+> +	/*
+> +	 * Find first matching named child node of this device.
+> +	 * For ACPI this will be a data only sub-node.
+> +	 */
+> +	device_for_each_child_node(dev, child) {
+> +		if (is_of_node(child)) {
+> +			if (!strcasecmp(to_of_node(child)->name, childname))
+
+Why do you use strcasecmp() here?
+
+> +				return child;
+> +		} else if (is_acpi_data_node(child)) {
+> +			if (acpi_data_node_match(child, childname))
+> +				return child;
+> +		}
+> +	}
+> +
+> +	return NULL;
+> +}
+> +EXPORT_SYMBOL_GPL(device_get_named_child_node);
+> +
+> +/**
+>    * fwnode_handle_put - Drop reference to a device node
+>    * @fwnode: Pointer to the device node to drop the reference to.
+>    *
+> diff --git a/include/acpi/acpi_bus.h b/include/acpi/acpi_bus.h
+> index 788c6c3..993bdd0 100644
+> --- a/include/acpi/acpi_bus.h
+> +++ b/include/acpi/acpi_bus.h
+> @@ -420,6 +420,13 @@ static inline struct acpi_data_node *to_acpi_data_node(struct fwnode_handle *fwn
+>   		container_of(fwnode, struct acpi_data_node, fwnode) : NULL;
+>   }
+>
+> +static inline bool acpi_data_node_match(struct fwnode_handle *fwnode,
+> +					const char *name)
+> +{
+> +	return is_acpi_data_node(fwnode) ?
+> +		(!strcasecmp(to_acpi_data_node(fwnode)->name, name)) : false;
+> +}
+
+Is there any particular reason to introduce this function instead of 
+doing the test in device_get_named_child_node() directly?
+
+> +
+>   static inline struct fwnode_handle *acpi_fwnode_handle(struct acpi_device *adev)
+>   {
+>   	return &adev->fwnode;
+> diff --git a/include/linux/acpi.h b/include/linux/acpi.h
+> index 288fac5..03039c4 100644
+> --- a/include/linux/acpi.h
+> +++ b/include/linux/acpi.h
+> @@ -568,6 +568,12 @@ static inline struct acpi_data_node *to_acpi_data_node(struct fwnode_handle *fwn
+>   	return NULL;
+>   }
+>
+> +static inline bool acpi_data_node_match(struct fwnode_handle *fwnode,
+> +					const char *name)
+> +{
+> +	return false;
+> +}
+> +
+>   static inline struct fwnode_handle *acpi_fwnode_handle(struct acpi_device *adev)
+>   {
+>   	return NULL;
+> diff --git a/include/linux/property.h b/include/linux/property.h
+> index ecab11e..3a2f9ae 100644
+> --- a/include/linux/property.h
+> +++ b/include/linux/property.h
+> @@ -77,6 +77,9 @@ struct fwnode_handle *device_get_next_child_node(struct device *dev,
+>   	for (child = device_get_next_child_node(dev, NULL); child;	\
+>   	     child = device_get_next_child_node(dev, child))
+>
+> +struct fwnode_handle *device_get_named_child_node(struct device *dev,
+> +						  const char *childname);
+> +
+>   void fwnode_handle_put(struct fwnode_handle *fwnode);
+>
+>   unsigned int device_get_child_node_count(struct device *dev);
+> --
+
+Mika, Heikki, Andy, any feedback on this one?
+
