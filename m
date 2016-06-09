@@ -1,45 +1,36 @@
-From: Sinan Kaya <okaya@codeaurora.org>
-Subject: Re: [PATCH V6 5/8] vfio: platform: call _RST method when using ACPI
-Date: Wed, 8 Jun 2016 22:33:57 -0400
-Message-ID: <5758D595.5090006@codeaurora.org>
-References: <1464472878-27176-1-git-send-email-okaya@codeaurora.org>
- <1464472878-27176-6-git-send-email-okaya@codeaurora.org>
- <CAJZ5v0iHxtL3cZVymfz0BqCGjBeBAuEyMXwj5sNBvMQQXgm8rg@mail.gmail.com>
+From: Mika Westerberg <mika.westerberg@linux.intel.com>
+Subject: Re: [v5] i2c: i801: Allow ACPI SystemIO OpRegion to conflict with
+ PCI BAR
+Date: Thu, 9 Jun 2016 11:15:46 +0300
+Message-ID: <20160609081546.GA1791@lahna.fi.intel.com>
+References: <1463990658-53854-1-git-send-email-mika.westerberg@linux.intel.com>
+ <20160608162913.GA24234@mail.corp.redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp.codeaurora.org ([198.145.29.96]:51351 "EHLO
-	smtp.codeaurora.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1161396AbcFICeB (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 8 Jun 2016 22:34:01 -0400
-In-Reply-To: <CAJZ5v0iHxtL3cZVymfz0BqCGjBeBAuEyMXwj5sNBvMQQXgm8rg@mail.gmail.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-i2c-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20160608162913.GA24234@mail.corp.redhat.com>
+Sender: linux-i2c-owner@vger.kernel.org
+To: Benjamin Tissoires <benjamin.tissoires@redhat.com>
+Cc: Jean Delvare <jdelvare@suse.com>, Wolfram Sang <wsa@the-dreams.de>, Jarkko Nikula <jarkko.nikula@linux.intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Andy Lutomirski <luto@kernel.org>, Mario Limonciello <mario_limonciello@dell.com>, pali.rohar@gmail.com, Matt Fleming <matt@codeblueprint.co.uk>, linux-i2c@vger.kernel.org, linux-acpi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rafael@kernel.org>
-Cc: kvm@vger.kernel.org, Timur Tabi <timur@codeaurora.org>, Christopher Covington <cov@codeaurora.org>, Jon Masters <jcm@redhat.com>, eric.auger@linaro.org, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Andy Gross <agross@codeaurora.org>, linux-arm-msm@vger.kernel.org, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Baptiste Reynal <b.reynal@virtualopensystems.com>, Alex Williamson <alex.williamson@redhat.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
 
-On 6/8/2016 6:31 PM, Rafael J. Wysocki wrote:
-> On Sun, May 29, 2016 at 12:01 AM, Sinan Kaya <okaya@codeaurora.org> wrote:
->> The device tree code checks for the presence of a reset driver and calls
->> the of_reset function pointer by looking up the reset driver as a module.
->>
->> ACPI defines _RST method to perform device level reset. After the _RST
->> method is executed, the OS can resume using the device. _RST method is
->> expected to stop DMA transfers and IRQs.
->>
->> This patch checks the presence of _RST method and calls the _RST
->> method when reset is requested.
+On Wed, Jun 08, 2016 at 06:29:13PM +0200, Benjamin Tissoires wrote:
+> > -	err = acpi_check_resource_conflict(&dev->resource[SMBBAR]);
+> > -	if (err) {
+> > +	err = i801_acpi_probe(priv);
+> > +	if (err)
+> >  		return -ENODEV;
+> > -	}
 > 
-> You could check if _RST is present at probe time and store the ACPI
-> handle of it instead of the HID pointer.
-> 
-> This way you wouldn't need to repeat that check every time reset is used.
-> 
+> I'd say that once this has been set, we need to call
+> acpi_remove_address_space_handler() in case of failure later (in the 2
+> returns after).
 
-Makes sense. I'll give it a shot.
+Indeed - I wonder how many mistakes one patch can contain :-(
 
--- 
-Sinan Kaya
-Qualcomm Technologies, Inc. on behalf of Qualcomm Innovation Center, Inc.
-Qualcomm Innovation Center, Inc. is a member of Code Aurora Forum, a Linux Foundation Collaborative Project
+Let me fix this and submit yet another version.
+
+> The rest looks OK to me.
+
+Thanks!
