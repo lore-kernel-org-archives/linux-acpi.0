@@ -1,60 +1,116 @@
-From: Crestez Dan Leonard <leonard.crestez@intel.com>
-Subject: [RFC v2 0/2] Match i2c_device_id when using DT ids through ACPI
-Date: Thu,  9 Jun 2016 16:06:01 +0300
-Message-ID: <cover.1465477193.git.leonard.crestez@intel.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: linux-acpi@vger.kernel.org, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>
-Cc: Crestez Dan Leonard <leonard.crestez@intel.com>, linux-i2c@vger.kernel.org, Wolfram Sang <wsa@the-dreams.de>, Mika Westerberg <mika.westerberg@linux.intel.com>, linux-kernel@vger.kernel.org, Irina Tirdea <irina.tirdea@intel.com>, Octavian Purdila <octavian.purdila@intel.com>, Daniel Baluta <daniel.baluta@intel.com>
+From: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+Subject: Re: [PATCH v4 3/5] drivers: psci: refactor psci_cpu_init_idle in
+ preparation for ACPI LPI support
+Date: Thu, 9 Jun 2016 14:24:08 +0100
+Message-ID: <20160609132408.GA16831@red-moon>
+References: <1461069013-13292-1-git-send-email-sudeep.holla@arm.com>
+ <1461069013-13292-4-git-send-email-sudeep.holla@arm.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from foss.arm.com ([217.140.101.70]:59645 "EHLO foss.arm.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751172AbcFINXk (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 9 Jun 2016 09:23:40 -0400
+Content-Disposition: inline
+In-Reply-To: <1461069013-13292-4-git-send-email-sudeep.holla@arm.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Sudeep Holla <sudeep.holla@arm.com>
+Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Al Stone <al.stone@linaro.org>, Prashanth Prakash <pprakash@codeaurora.org>, Ashwin Chaugule <ashwin.chaugule@linaro.org>, Mark Rutland <mark.rutland@arm.com>
 
-Linux supports instantiating devices using devicetree ids from ACPI by setting
-the id to PRP0001 and adding the devicetree compatible string in _DSD
-properties. This is described in Documentation/acpi/enumeration.txt.
+On Tue, Apr 19, 2016 at 01:30:11PM +0100, Sudeep Holla wrote:
+> Inorder to accomodate bot DT and ACPI LPI support in psci_cpu_init_idle,
+> move the device tree specific into psci_dt_cpu_init_idle.
+> 
+> Cc: Mark Rutland <mark.rutland@arm.com>
+> Cc: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+> Cc: linux-arm-kernel@lists.infradead.org
+> Signed-off-by: Sudeep Holla <sudeep.holla@arm.com>
+> ---
+>  drivers/firmware/psci.c | 23 +++++++++--------------
+>  1 file changed, 9 insertions(+), 14 deletions(-)
+> 
+> diff --git a/drivers/firmware/psci.c b/drivers/firmware/psci.c
+> index 11bfee8b79a9..af6c5c839568 100644
+> --- a/drivers/firmware/psci.c
+> +++ b/drivers/firmware/psci.c
+> @@ -250,11 +250,11 @@ static int __init psci_features(u32 psci_func_id)
+>  #ifdef CONFIG_CPU_IDLE
+>  static DEFINE_PER_CPU_READ_MOSTLY(u32 *, psci_power_state);
+>  
+> -static int psci_dt_cpu_init_idle(struct device_node *cpu_node, int cpu)
+> +static int psci_dt_cpu_init_idle(unsigned int cpu)
 
-I've tried to use this feature using custom ACPI tables and one issue I
-encountered is that a lot of i2c device drivers are written for DT only and
-expect a valid i2c_device_id *id parameter to their probe function but this is
-always NULL for the PRP0001 case. Others call of_match_device in order to
-determine their exact model number and that will also fail.
+Unfortunately you would break ARM 32-bit if you did that.
 
-Drivers normally do this in order to differentiate between minor model numbers
-supported by the same driver, for example hmc5883 versus hmc5983.
+>  {
+>  	int i, ret, count = 0;
+>  	u32 *psci_states;
+> -	struct device_node *state_node;
+> +	struct device_node *state_node, *cpu_node;
+>  
+>  	/*
+>  	 * If the PSCI cpu_suspend function hook has not been initialized
+> @@ -263,6 +263,10 @@ static int psci_dt_cpu_init_idle(struct device_node *cpu_node, int cpu)
+>  	if (!psci_ops.cpu_suspend)
+>  		return -EOPNOTSUPP;
+>  
+> +	cpu_node = of_get_cpu_node(cpu, NULL);
+> +	if (!cpu_node)
+> +		return -ENODEV;
+> +
+>  	/* Count idle states */
+>  	while ((state_node = of_parse_phandle(cpu_node, "cpu-idle-states",
+>  					      count))) {
+> @@ -303,27 +307,18 @@ static int psci_dt_cpu_init_idle(struct device_node *cpu_node, int cpu)
+>  	}
+>  	/* Idle states parsed correctly, initialize per-cpu pointer */
+>  	per_cpu(psci_power_state, cpu) = psci_states;
+> +	of_node_put(cpu_node);
+>  	return 0;
+>  
+>  free_mem:
+> +	of_node_put(cpu_node);
+>  	kfree(psci_states);
+>  	return ret;
+>  }
+>  
+>  int psci_cpu_init_idle(unsigned int cpu)
+>  {
+> -	struct device_node *cpu_node;
+> -	int ret;
+> -
+> -	cpu_node = of_get_cpu_node(cpu, NULL);
+> -	if (!cpu_node)
+> -		return -ENODEV;
+> -
+> -	ret = psci_dt_cpu_init_idle(cpu_node, cpu);
+> -
+> -	of_node_put(cpu_node);
+> -
+> -	return ret;
+> +	return psci_dt_cpu_init_idle(cpu);
 
-For ACPI it is common to add calls to acpi_match_device in order to do such
-differentiation. It might make sense to call some form of acpi_of_match_device
-except no such function is currently exported. I think it makes a lot of sense
-to refactor the current acpi_of_match_device to return the of_device_id and
-export it.
+How about leaving code as is and you wrap the cpu_node retrieval:
 
-This is in PATCH 1. After exposing this function it could be called from each
-driver that needs to support multiple models through PRP0001. I guess the
-alternative to exposing acpi_of_match_device would be for driver code to poke
-at acpi_device->data.of_compatible?
+if (!acpi_disabled) {
+	acpi_idle_init();
+} else {
+	cpu_node = of_get_cpu_node(cpu, NULL);
+	if (!cpu_node)
+		return -ENODEV;
 
-Going further it might make sense to attempt to fetch the i2c_device_id when
-instantiating through PRP0001. This already happens automatically for
-devicetree and it makes a lot of sense it would work through ACPI with DT ids.
-Patch 2 hacks an additional search in i2c register code. This makes some
-drivers "just work" without manually handling the "ACPI with DT ids" case.
+	ret = psci_dt_cpu_init_idle(cpu_node, cpu);
 
-For P1 it might make sense to change the parameters around so that
-acpi_of_match_device will have the same signature as of_match_device.
+	of_node_put(cpu_node);
+}
 
-The purpose of these changes would be to make more drivers easier to
-instantiate through ACPI firmware.
+?
 
-v2 fixes the code to actually work correctly. Hopefully the patches will also
-be sent to the correct addresses this time.
+Alternatively, you could create an intermediate stub
+__psci_dt_cpu_init_idle(), that will be used for CONFIG_ARM
+cpuidle_ops.init and psci_dt_cpu_init_idle() after retrieving
+the cpu_node, which I think is slightly cleaner.
 
-Crestez Dan Leonard (2):
-  acpi: Expose acpi_of_match_device
-  i2c: Pass i2c_device_id to probe func when using DT ids through ACPI
-
- drivers/acpi/bus.c     | 13 +++++++------
- drivers/i2c/i2c-core.c | 30 ++++++++++++++++++++++++++----
- include/linux/acpi.h   |  8 ++++++++
- 3 files changed, 41 insertions(+), 10 deletions(-)
-
--- 
-2.5.5
+Lorenzo
