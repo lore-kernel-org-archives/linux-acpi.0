@@ -1,98 +1,109 @@
-From: Hoan Tran <hotran@apm.com>
-Subject: Re: [PATCH v3] mailbox: pcc: Support HW-Reduced Communication
- Subspace type 2
-Date: Thu, 9 Jun 2016 13:47:10 -0700
-Message-ID: <CAFHUOYyMpRgLzXN0XtFKG08Z9dLuhC7WNbJi8+nNTNET=m2qEA@mail.gmail.com>
-References: <1463704347-22550-1-git-send-email-hotran@apm.com>
-	<CAJ5Y-eZaaK_pbfgPxDfqJgtUOpxrCvHngM4_VT9p-fzFaPz28Q@mail.gmail.com>
-	<CAFHUOYy0TEqdHzwXCTNtK+UVF_PhMHfr-gPTOkUwRks=MgTaVg@mail.gmail.com>
-	<CAJ5Y-eYV+vf_GDCX6iX53Q5jLtOTzRktRHBfmZzW-yd5ffu2jg@mail.gmail.com>
-	<CAFHUOYxV8Jj_wUXqA7jqj3SZ4uqCSSgKuYmsC2k1MxvVyX3EfQ@mail.gmail.com>
-	<0f07c6dc-76b7-ab28-541b-090f6a2432a6@codeaurora.org>
-	<CAFHUOYyzQiUtpDL_oULCdbvMXxoXK5_bAvkW8SZV0BcrvPqa-Q@mail.gmail.com>
+From: Linda Knippers <linda.knippers@hpe.com>
+Subject: Re: [PATCH] libnvdimm, nfit: treat volatile virtual CD region as
+ read-only pmem
+Date: Thu, 9 Jun 2016 18:08:17 -0400
+Message-ID: <888aeb53-69b4-652b-8f89-822af4622acf@hpe.com>
+References: <1464938015-5489-1-git-send-email-jlee@suse.com>
+ <CAPcyv4iLb9qzXZTLL5z-RH_CRObnRfzx=vGTvVvieJUEwNvtRw@mail.gmail.com>
+ <20160604110156.GA4558@linux-rxt1.site>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <CAFHUOYyzQiUtpDL_oULCdbvMXxoXK5_bAvkW8SZV0BcrvPqa-Q@mail.gmail.com>
+In-Reply-To: <20160604110156.GA4558@linux-rxt1.site>
 Sender: linux-kernel-owner@vger.kernel.org
-To: "Prakash, Prashanth" <pprakash@codeaurora.org>
-Cc: Ashwin Chaugule <ashwin.chaugule@linaro.org>, Jassi Brar <jassisinghbrar@gmail.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Robert Moore <robert.moore@intel.com>, Alexey Klimov <alexey.klimov@arm.com>, lkml <linux-kernel@vger.kernel.org>, linux acpi <linux-acpi@vger.kernel.org>, Loc Ho <lho@apm.com>, Duc Dang <dhdang@apm.com>
+To: joeyli <jlee@suse.com>, Dan Williams <dan.j.williams@intel.com>
+Cc: "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Linux ACPI <linux-acpi@vger.kernel.org>, "Lee, Chun-Yi" <joeyli.kernel@gmail.com>, Gary Lin <GLin@suse.com>
 List-Id: linux-acpi@vger.kernel.org
 
-Hi Ashwin and Prashanth,
-
-On Wed, Jun 8, 2016 at 5:41 PM, Hoan Tran <hotran@apm.com> wrote:
-> Hi Prashanth,
->
->
-> On Wed, Jun 8, 2016 at 5:32 PM, Prakash, Prashanth
-> <pprakash@codeaurora.org> wrote:
->>
->>
->> On 6/8/2016 10:24 AM, Hoan Tran wrote:
->>> Hi Ashwin,
+On 6/4/2016 7:01 AM, joeyli wrote:
+> Hi Dan, 
+> 
+> Thanks for your review.
+> 
+> On Fri, Jun 03, 2016 at 12:27:34PM -0700, Dan Williams wrote:
+>> On Fri, Jun 3, 2016 at 12:13 AM, Lee, Chun-Yi <joeyli.kernel@gmail.com> wrote:
+>>> This patch adds codes to treat a volatile virtual CD region as a
+>>> read-only pmem region, then read-only /dev/pmem* device can be mounted
+>>> with iso9660.
 >>>
->>> On Wed, Jun 8, 2016 at 5:18 AM, Ashwin Chaugule
->>> <ashwin.chaugule@linaro.org> wrote:
->>>> + Prashanth (Can you please have a look as well?)
->>>>
->>>> On 31 May 2016 at 15:35, Hoan Tran <hotran@apm.com> wrote:
->>>>> Hi Ashwin,
->>>> Hi,
->>>>
->>>> Sorry about the delay. I'm in the middle of switching jobs and
->>>> locations, so its been a bit crazy lately.
->>> It's ok and hope you're doing well.
+>>> It's useful to work with the httpboot in EFI firmware to pull a remote
+>>> ISO file to the local memory region for booting and installation.
 >>>
->>>> I dont have any major
->>>> concerns with this code, although there could be subtle issues with
->>>> this IRQ thing. In this patchset, your intent is to add support for
->>>> PCC subspace type 2. But you're also adding support for tx command
->>>> completion which is not specific to Type 2. We could support that even
->>>> in Type 1. Hence I wanted to separate the two, not just for review,
->>>> but also the async IRQ completion has subtle issues esp. in the case
->>>> of async platform notification, where you could have a PCC client in
->>>> the OS writing to the cmd bit and the platform sending an async
->>>> notification by writing to some bits in the same 8byte address as the
->>>> cmd bit. So we need some mutual exclusivity there, otherwise the OS
->>>> and platform could step on each other. Perhaps Prashanth has better
->>>> insight into this.
->>> I think, this mutual exclusivity could be in another patch.
->> Ashwin,
->> Sorry, I am not sure how we can prevent platform and OSPM from stepping on
->> each other.  There is a line is spec that says "all operations on status field
->> must be made using interlocked operations", but not sure what these
->> interlocked operation translates to.
->
-> Yes, I had the same question about how to prevent it.
+>>> Wiki page of UEFI HTTPBoot with OVMF:
+>>>         https://en.opensuse.org/UEFI_HTTPBoot_with_OVMF
+>>>
+>>> Signed-off-by: Lee, Chun-Yi <jlee@suse.com>
+>>> Cc: Gary Lin <GLin@suse.com>
+>>> Cc: Dan Williams <dan.j.williams@intel.com>
+>>> Cc: Ross Zwisler <ross.zwisler@linux.intel.com>
+>>> Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+>>> ---
+>>>  drivers/acpi/nfit.c          |  8 +++++++-
+>>>  drivers/nvdimm/region_devs.c | 26 +++++++++++++++++++++++++-
+>>>  include/linux/libnvdimm.h    |  2 ++
+>>>  3 files changed, 34 insertions(+), 2 deletions(-)
+>>>
+>>> diff --git a/drivers/acpi/nfit.c b/drivers/acpi/nfit.c
+>>> index 2215fc8..b100a17 100644
+>>> --- a/drivers/acpi/nfit.c
+>>> +++ b/drivers/acpi/nfit.c
+>>> @@ -1949,6 +1949,7 @@ static int acpi_nfit_init_mapping(struct acpi_nfit_desc *acpi_desc,
+>>>         switch (nfit_spa_type(spa)) {
+>>>         case NFIT_SPA_PM:
+>>>         case NFIT_SPA_VOLATILE:
+>>> +       case NFIT_SPA_VCD:
+>>>                 nd_mapping->start = memdev->address;
+>>>                 nd_mapping->size = memdev->region_size;
+>>>                 break;
+>>
+>> Why do we need to distinguish NFIT_SPA_VOLATILE vs NFIT_SPA_VCD, i.e.
+>> what happens if something writes to a VCD device?
+> 
+> Actually I didn't try to write SPA-VCD device before. Every time I mount it
+> that the system responses read-only:
+> 
+> # mount /dev/pmem0 /mnt/
+> mount: /dev/pmem0 is write-protected, mounting read-only
+> 
+> If it can be written, then I think there have no difference between
+> NFIT_SPA_VOLATILE with NFIT_SPA_VCD region.
 
-For platform notification, if the hardware doesn't support interlocked
-operations. I think we can use a workaround that, platform triggers
-interrupt to OSPM without touching status field. The OSPM PCC client
-will decide what to do with this interrupt. For example, OSPM sends a
-consumer command to check it.
+It's not clear to me what the expectations for this type of device are, or
+whether they should be read-only.  The ACPI spec is not helpful here.
+The other Disk Region and CD Region types are also unclear.  Anyone
+care to define them?
 
-Thanks
-Hoan
+> I implemented this patch to treat VCD region as read-only pmem because the
+> pmem region generates /dev/pmem* device that it can be mounted.
 
->
->>
->> Hoan,
->> Even if we are not using platform notification, we still need to clear the doorbell
->> interrupt bit in the PCC interrupt handler (Section14.2.2 and 14.4).  I didn't see
->> clearing the doorbell interrupt bit in this patch (and platform is supposed to set
->> it again when it is sending the interrupt again). Did I miss it? or is it intentionally
->> left out to avoid the race that Ashwin mentioned above?
->>
->
-> The PCC client driver is supposed to do that. Which mean, the
-> mbox_chan_received_data() function should clear it.
->
-> Thanks
-> Hoan
->
->>
->> Thanks,
->> Prashanth
->>
->>
+I'm a bit worried about this type of device showing up as a "pmem" device.
+I realize they're described in the NFIT (not sure why but they are) but do
+any of the operations that we support for other pmem devices work on these?
+Do root device DSMs make any sense?  Are there other DSMs?  What will happen
+if someone uses ndctl to reconfigure the device?
+
+I'm especially concerned on systems that might have one of these devices
+and also have NVDIMMs.  Do all the pmem devices get numbered different if
+this device comes and goes across reboots?  (I know, we shouldn't rely on
+those names but it will still confuse people.)  Can they be some other name
+that better represents what they're trying to be?
+
+> Maybe I missed. Does NFIT_SPA_VOLATILE region also generate a device in /dev
+> that it can be mounted with filesystem? 
+
+Yes.
+
+-- ljk
+
+> Then I think treat the VCD region as
+> a read-only VOLATILE region that's also a solution.
+> 
+> 
+> Thanks a lot!
+> Joey Lee
+> _______________________________________________
+> Linux-nvdimm mailing list
+> Linux-nvdimm@lists.01.org
+> https://lists.01.org/mailman/listinfo/linux-nvdimm
+> 
