@@ -1,137 +1,122 @@
-From: Hoan Tran <hotran@apm.com>
-Subject: Re: [PATCH v3] mailbox: pcc: Support HW-Reduced Communication
- Subspace type 2
-Date: Thu, 9 Jun 2016 15:43:48 -0700
-Message-ID: <CAFHUOYwQhyjnmQyP2Vf2FctOoXRkB39yJujN09VQbBbpRtB43Q@mail.gmail.com>
-References: <1463704347-22550-1-git-send-email-hotran@apm.com>
-	<CAJ5Y-eZaaK_pbfgPxDfqJgtUOpxrCvHngM4_VT9p-fzFaPz28Q@mail.gmail.com>
-	<CAFHUOYy0TEqdHzwXCTNtK+UVF_PhMHfr-gPTOkUwRks=MgTaVg@mail.gmail.com>
-	<CAJ5Y-eYV+vf_GDCX6iX53Q5jLtOTzRktRHBfmZzW-yd5ffu2jg@mail.gmail.com>
-	<CAFHUOYxV8Jj_wUXqA7jqj3SZ4uqCSSgKuYmsC2k1MxvVyX3EfQ@mail.gmail.com>
-	<0f07c6dc-76b7-ab28-541b-090f6a2432a6@codeaurora.org>
-	<CAFHUOYyzQiUtpDL_oULCdbvMXxoXK5_bAvkW8SZV0BcrvPqa-Q@mail.gmail.com>
-	<CAFHUOYyMpRgLzXN0XtFKG08Z9dLuhC7WNbJi8+nNTNET=m2qEA@mail.gmail.com>
-	<4652800c-b518-6b9a-967f-bb31e6a496b0@codeaurora.org>
+From: "Prakash, Prashanth" <pprakash@codeaurora.org>
+Subject: Re: [PATCH] ACPI/CPPC: Support for batching CPPC requests
+Date: Thu, 9 Jun 2016 16:46:36 -0600
+Message-ID: <aee2936a-a9ec-d594-3f62-19de3ab1a38a@codeaurora.org>
+References: <1463441951-13207-1-git-send-email-pprakash@codeaurora.org>
+ <20160526220234.GA26524@arm.com>
+ <CAFHUOYyi4k5JuP5unxKyYH=tdxBE1BNm7zW9cjQchcnrmFNg9A@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-vk0-f50.google.com ([209.85.213.50]:34387 "EHLO
-	mail-vk0-f50.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751731AbcFIWnt (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 9 Jun 2016 18:43:49 -0400
-Received: by mail-vk0-f50.google.com with SMTP id e4so75251273vkb.1
-        for <linux-acpi@vger.kernel.org>; Thu, 09 Jun 2016 15:43:49 -0700 (PDT)
-In-Reply-To: <4652800c-b518-6b9a-967f-bb31e6a496b0@codeaurora.org>
+Received: from smtp.codeaurora.org ([198.145.29.96]:44824 "EHLO
+	smtp.codeaurora.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932077AbcFIWqp (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 9 Jun 2016 18:46:45 -0400
+In-Reply-To: <CAFHUOYyi4k5JuP5unxKyYH=tdxBE1BNm7zW9cjQchcnrmFNg9A@mail.gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Prakash, Prashanth" <pprakash@codeaurora.org>
-Cc: Ashwin Chaugule <ashwin.chaugule@linaro.org>, Jassi Brar <jassisinghbrar@gmail.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Robert Moore <robert.moore@intel.com>, Alexey Klimov <alexey.klimov@arm.com>, lkml <linux-kernel@vger.kernel.org>, linux acpi <linux-acpi@vger.kernel.org>, Loc Ho <lho@apm.com>, Duc Dang <dhdang@apm.com>
+To: Hoan Tran <hotran@apm.com>, Alexey Klimov <alexey.klimov@arm.com>
+Cc: linux acpi <linux-acpi@vger.kernel.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Ashwin Chaugule <ashwin.chaugule@linaro.org>
 
-Hi Prashanth,
+Hi Hoan,
 
-On Thu, Jun 9, 2016 at 3:25 PM, Prakash, Prashanth
-<pprakash@codeaurora.org> wrote:
+
+On 6/9/2016 11:22 AM, Hoan Tran wrote:
+> Hi Prashanth,
 >
->
-> On 6/9/2016 2:47 PM, Hoan Tran wrote:
->> Hi Ashwin and Prashanth,
+> On Thu, May 26, 2016 at 3:02 PM, Alexey Klimov <alexey.klimov@arm.com> wrote:
+>> On Tue, May 17, 2016 at 12:39 AM, Prashanth Prakash <pprakash@codeaurora.org> wrote:
+>>> CPPC defined in section 8.4.7 of ACPI 6.1 specification suggests
+>>> "To amortize the cost of PCC transactions, OSPM should read or write
+>>> all PCC registers via a single read or write command when possible"
+>>> This patch enables opportunistic batching of frequency transition
+>>> requests whenever the request happen to overlap in time.
+>>>
+>>> Currently the access to pcc is serialized by a spin lock which does
+>>> not scale well as we increase the number of cores in the system. This
+>>> patch improves the scalability by allowing the differnt CPU cores to
+>>> update PCC subspace in parallel and by batching requests which will
+>>> reduce certain types of operation(checking command completion bit,
+>>> ringing doorbell) by a significant margin.
+>>>
+>>> Profiling shows significant improvement in the time to service freq.
+>>> transition request. Using a workload which includes multiple iteration
+>>> of configure+make of vim (with -j24 option):
+>>> Without batching requests(without this patch),
+>>>         6 domains: Avg=20us/request; 24 domains: Avg=52us/request
+>>> With batching requests(with this patch),
+>>>         6 domains: Avg=16us/request; 24 domains: Avg=19us/request
+>>> domain: An individual cpu or a set of related CPUs whose frequency can
+>>> be scaled independently
+>> With this approach sometimes you will send POSTCHANGE notifications about
+>> frequency change for some random CPUs before actual request to change
+>> frequency was sent (and received?) through PCC channel.
+>> Depending on platform/firmware/configuration this time difference might be high.
 >>
->> On Wed, Jun 8, 2016 at 5:41 PM, Hoan Tran <hotran@apm.com> wrote:
->>> Hi Prashanth,
->>>
->>>
->>> On Wed, Jun 8, 2016 at 5:32 PM, Prakash, Prashanth
->>> <pprakash@codeaurora.org> wrote:
->>>>
->>>> On 6/8/2016 10:24 AM, Hoan Tran wrote:
->>>>> Hi Ashwin,
->>>>>
->>>>> On Wed, Jun 8, 2016 at 5:18 AM, Ashwin Chaugule
->>>>> <ashwin.chaugule@linaro.org> wrote:
->>>>>> + Prashanth (Can you please have a look as well?)
->>>>>>
->>>>>> On 31 May 2016 at 15:35, Hoan Tran <hotran@apm.com> wrote:
->>>>>>> Hi Ashwin,
->>>>>> Hi,
->>>>>>
->>>>>> Sorry about the delay. I'm in the middle of switching jobs and
->>>>>> locations, so its been a bit crazy lately.
->>>>> It's ok and hope you're doing well.
->>>>>
->>>>>> I dont have any major
->>>>>> concerns with this code, although there could be subtle issues with
->>>>>> this IRQ thing. In this patchset, your intent is to add support for
->>>>>> PCC subspace type 2. But you're also adding support for tx command
->>>>>> completion which is not specific to Type 2. We could support that even
->>>>>> in Type 1. Hence I wanted to separate the two, not just for review,
->>>>>> but also the async IRQ completion has subtle issues esp. in the case
->>>>>> of async platform notification, where you could have a PCC client in
->>>>>> the OS writing to the cmd bit and the platform sending an async
->>>>>> notification by writing to some bits in the same 8byte address as the
->>>>>> cmd bit. So we need some mutual exclusivity there, otherwise the OS
->>>>>> and platform could step on each other. Perhaps Prashanth has better
->>>>>> insight into this.
->>>>> I think, this mutual exclusivity could be in another patch.
->>>> Ashwin,
->>>> Sorry, I am not sure how we can prevent platform and OSPM from stepping on
->>>> each other.  There is a line is spec that says "all operations on status field
->>>> must be made using interlocked operations", but not sure what these
->>>> interlocked operation translates to.
->>> Yes, I had the same question about how to prevent it.
->> For platform notification, if the hardware doesn't support interlocked
->> operations. I think we can use a workaround that, platform triggers
->> interrupt to OSPM without touching status field. The OSPM PCC client
->> will decide what to do with this interrupt. For example, OSPM sends a
->> consumer command to check it.
-> How do we decide which platform can support this interlocked operation?
-> and how do we decide between a completion notification and platform
-> notification?
-
-Truly, we should follow the specification. But I don't know if there's
-any hardware support this interlocked operation.
-For the decide between a completion notification and platform notification
- - Completion notification: Bit "Command Complete" is set.
- - Platform notification: Bit "Command Complete" is not set.
-
->
-> I think the ACPI spec on platform notification is quite ambiguous and it is
-> best to get the necessary clarification and/or correction before implementing
-> anything related to platform notification.
-
-Agreed, a clarification inside ACPI Specification is needed
-
-Thanks
-Hoan
-
->
-> With respect to to this patch, since we are not doing anything specific to
-> platform notification and the interrupt can be used only for notification
-> of  completion, I suppose we should be okay.
->
-> Thanks,
-> Prashanth
->> Thanks
->> Hoan
+>> How vital or important is to have POSTCHANGE notification in correct time
+>> order?
 >>
->>>> Hoan,
->>>> Even if we are not using platform notification, we still need to clear the doorbell
->>>> interrupt bit in the PCC interrupt handler (Section14.2.2 and 14.4).  I didn't see
->>>> clearing the doorbell interrupt bit in this patch (and platform is supposed to set
->>>> it again when it is sending the interrupt again). Did I miss it? or is it intentionally
->>>> left out to avoid the race that Ashwin mentioned above?
->>>>
->>> The PCC client driver is supposed to do that. Which mean, the
->>> mbox_chan_received_data() function should clear it.
+>> Best regards,
+>> Alexey.
+>>
+>>
+>>
+>>> Signed-off-by: Prashanth Prakash <pprakash@codeaurora.org>
+>>> ---
+>>>  drivers/acpi/cppc_acpi.c | 166 ++++++++++++++++++++++++++++++++++++++++-------
+>>>  1 file changed, 141 insertions(+), 25 deletions(-)
 >>>
->>> Thanks
->>> Hoan
+>>> diff --git a/drivers/acpi/cppc_acpi.c b/drivers/acpi/cppc_acpi.c
+>>> index 8adac69..3edfd50 100644
+>>> --- a/drivers/acpi/cppc_acpi.c
+>>> +++ b/drivers/acpi/cppc_acpi.c
+>>> @@ -43,12 +43,34 @@
 >>>
->>>> Thanks,
->>>> Prashanth
->>>>
->>>>
->> --
->> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
->> the body of a message to majordomo@vger.kernel.org
->> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>>>  #include <acpi/cppc_acpi.h>
+>>>  /*
+>>> - * Lock to provide mutually exclusive access to the PCC
+>>> - * channel. e.g. When the remote updates the shared region
+>>> - * with new data, the reader needs to be protected from
+>>> - * other CPUs activity on the same channel.
+>>> + * Lock to provide controlled access to the PCC channel.
+>>> + *
+>>> + * For performance critical usecases(currently cppc_set_perf)
+>>> + *     We need to take read_lock and check if channel belongs to OSPM before
+>>> + * reading or writing to PCC subspace
+>>> + *     We need to take write_lock before transferring the channel ownership to
+>>> + * the platform via a Doorbell
+>>> + *
+>>> + * For non-performance critical usecases(init)
+>>> + *     Take write_lock for all purposes which gives exclusive access
+>>> + *
+>>> + * Why not use spin lock?
+>>> + *     One of the advantages of CPPC is that we can batch/group a large number
+>>> + * of requests from differnt CPUs and send one request to the platform. Using a
+>>> + * read-write spinlock allows us to do this in a effecient manner.
+>>> + *     On larger multicore systems, if we get a large group of cppc_set_perf
+>>> + * calls they all serialize behind a spin lock, but using a rwlock we can
+>>> + * execute the requests in a much more scalable manner.
+>>> + *     See cppc_set_perf() for more details
+>>> + */
+>>> +static DEFINE_RWLOCK(pcc_lock);
+> Any chance to use mutex instead of spinlock ?
+> In some cases such as (cmd = CMD_READ || pcc_mrtt), because of waiting
+> for command completion,this spinlock is kept for a while before
+> unlock. It could waste CPU time to acquire the spinlock.
 >
+> Thanks
+> Hoan
+
+The CMD_READ is primarily used during the init, so the returns on optimizing
+that path is very limited. Since the CPPC protocol requires only an ack for
+delivery of request from the platform and the platform can take its own time
+to do actual Freq. and Voltage transition, the time we are holding the lock
+should be very limited.  At least, in the profiling I have done, I haven't noticed
+any issues.
+Having said that, I haven't done profiling to compare spinlocks vs. mutex for
+this scenario. Ashwin might have some background on why spinlocks were
+used initially.
+
+Thanks,
+Prashanth
