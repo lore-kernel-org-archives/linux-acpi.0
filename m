@@ -1,67 +1,118 @@
-From: Jeremy Linton <jeremy.linton@arm.com>
-Subject: [PATCH 1/8] arm64: pmu: add fallback probe table
-Date: Thu,  9 Jun 2016 17:23:26 -0500
-Message-ID: <1465511013-10742-2-git-send-email-jeremy.linton@arm.com>
-References: <1465511013-10742-1-git-send-email-jeremy.linton@arm.com>
+From: "Prakash, Prashanth" <pprakash@codeaurora.org>
+Subject: Re: [PATCH v3] mailbox: pcc: Support HW-Reduced Communication
+ Subspace type 2
+Date: Thu, 9 Jun 2016 16:25:20 -0600
+Message-ID: <4652800c-b518-6b9a-967f-bb31e6a496b0@codeaurora.org>
+References: <1463704347-22550-1-git-send-email-hotran@apm.com>
+ <CAJ5Y-eZaaK_pbfgPxDfqJgtUOpxrCvHngM4_VT9p-fzFaPz28Q@mail.gmail.com>
+ <CAFHUOYy0TEqdHzwXCTNtK+UVF_PhMHfr-gPTOkUwRks=MgTaVg@mail.gmail.com>
+ <CAJ5Y-eYV+vf_GDCX6iX53Q5jLtOTzRktRHBfmZzW-yd5ffu2jg@mail.gmail.com>
+ <CAFHUOYxV8Jj_wUXqA7jqj3SZ4uqCSSgKuYmsC2k1MxvVyX3EfQ@mail.gmail.com>
+ <0f07c6dc-76b7-ab28-541b-090f6a2432a6@codeaurora.org>
+ <CAFHUOYyzQiUtpDL_oULCdbvMXxoXK5_bAvkW8SZV0BcrvPqa-Q@mail.gmail.com>
+ <CAFHUOYyMpRgLzXN0XtFKG08Z9dLuhC7WNbJi8+nNTNET=m2qEA@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from foss.arm.com ([217.140.101.70]:34773 "EHLO foss.arm.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751936AbcFIWXf (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 9 Jun 2016 18:23:35 -0400
-In-Reply-To: <1465511013-10742-1-git-send-email-jeremy.linton@arm.com>
+Received: from smtp.codeaurora.org ([198.145.29.96]:42367 "EHLO
+	smtp.codeaurora.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751193AbcFIWZ0 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 9 Jun 2016 18:25:26 -0400
+In-Reply-To: <CAFHUOYyMpRgLzXN0XtFKG08Z9dLuhC7WNbJi8+nNTNET=m2qEA@mail.gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-arm-kernel@lists.infradead.org
-Cc: linux-acpi@vger.kernel.org, will.deacon@arm.com, mark.rutland@arm.com, lorenzo.pieralisi@arm.com, catalin.marinas@arm.com, peterz@infradead.org, mingo@redhat.com, acme@kernel.org, alexander.shishkin@linux.intel.com, mlangsdorf@redhat.com
+To: Hoan Tran <hotran@apm.com>
+Cc: Ashwin Chaugule <ashwin.chaugule@linaro.org>, Jassi Brar <jassisinghbrar@gmail.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Robert Moore <robert.moore@intel.com>, Alexey Klimov <alexey.klimov@arm.com>, lkml <linux-kernel@vger.kernel.org>, linux acpi <linux-acpi@vger.kernel.org>, Loc Ho <lho@apm.com>, Duc Dang <dhdang@apm.com>
 
-From: Mark Salter <msalter@redhat.com>
 
-In preparation for ACPI support, add a pmu_probe_info table to
-the arm_pmu_device_probe() call. This table gets used when
-probing in the absence of a devicetree node for PMU.
 
-Signed-off-by: Mark Salter <msalter@redhat.com>
-Signed-off-by: Jeremy Linton <jeremy.linton@arm.com>
----
- arch/arm64/kernel/perf_event.c | 8 +++++++-
- include/linux/perf/arm_pmu.h   | 3 +++
- 2 files changed, 10 insertions(+), 1 deletion(-)
+On 6/9/2016 2:47 PM, Hoan Tran wrote:
+> Hi Ashwin and Prashanth,
+>
+> On Wed, Jun 8, 2016 at 5:41 PM, Hoan Tran <hotran@apm.com> wrote:
+>> Hi Prashanth,
+>>
+>>
+>> On Wed, Jun 8, 2016 at 5:32 PM, Prakash, Prashanth
+>> <pprakash@codeaurora.org> wrote:
+>>>
+>>> On 6/8/2016 10:24 AM, Hoan Tran wrote:
+>>>> Hi Ashwin,
+>>>>
+>>>> On Wed, Jun 8, 2016 at 5:18 AM, Ashwin Chaugule
+>>>> <ashwin.chaugule@linaro.org> wrote:
+>>>>> + Prashanth (Can you please have a look as well?)
+>>>>>
+>>>>> On 31 May 2016 at 15:35, Hoan Tran <hotran@apm.com> wrote:
+>>>>>> Hi Ashwin,
+>>>>> Hi,
+>>>>>
+>>>>> Sorry about the delay. I'm in the middle of switching jobs and
+>>>>> locations, so its been a bit crazy lately.
+>>>> It's ok and hope you're doing well.
+>>>>
+>>>>> I dont have any major
+>>>>> concerns with this code, although there could be subtle issues with
+>>>>> this IRQ thing. In this patchset, your intent is to add support for
+>>>>> PCC subspace type 2. But you're also adding support for tx command
+>>>>> completion which is not specific to Type 2. We could support that even
+>>>>> in Type 1. Hence I wanted to separate the two, not just for review,
+>>>>> but also the async IRQ completion has subtle issues esp. in the case
+>>>>> of async platform notification, where you could have a PCC client in
+>>>>> the OS writing to the cmd bit and the platform sending an async
+>>>>> notification by writing to some bits in the same 8byte address as the
+>>>>> cmd bit. So we need some mutual exclusivity there, otherwise the OS
+>>>>> and platform could step on each other. Perhaps Prashanth has better
+>>>>> insight into this.
+>>>> I think, this mutual exclusivity could be in another patch.
+>>> Ashwin,
+>>> Sorry, I am not sure how we can prevent platform and OSPM from stepping on
+>>> each other.  There is a line is spec that says "all operations on status field
+>>> must be made using interlocked operations", but not sure what these
+>>> interlocked operation translates to.
+>> Yes, I had the same question about how to prevent it.
+> For platform notification, if the hardware doesn't support interlocked
+> operations. I think we can use a workaround that, platform triggers
+> interrupt to OSPM without touching status field. The OSPM PCC client
+> will decide what to do with this interrupt. For example, OSPM sends a
+> consumer command to check it.
+How do we decide which platform can support this interlocked operation?
+and how do we decide between a completion notification and platform
+notification?
 
-diff --git a/arch/arm64/kernel/perf_event.c b/arch/arm64/kernel/perf_event.c
-index 838ccf1..917c3e2 100644
---- a/arch/arm64/kernel/perf_event.c
-+++ b/arch/arm64/kernel/perf_event.c
-@@ -1044,9 +1044,15 @@ static const struct of_device_id armv8_pmu_of_device_ids[] = {
- 	{},
- };
- 
-+static const struct pmu_probe_info armv8_pmu_probe_table[] = {
-+	PMU_PROBE(0, 0, armv8_pmuv3_init), /* if all else fails... */
-+	{ /* sentinel value */ }
-+};
-+
- static int armv8_pmu_device_probe(struct platform_device *pdev)
- {
--	return arm_pmu_device_probe(pdev, armv8_pmu_of_device_ids, NULL);
-+	return arm_pmu_device_probe(pdev, armv8_pmu_of_device_ids,
-+				    armv8_pmu_probe_table);
- }
- 
- static struct platform_driver armv8_pmu_driver = {
-diff --git a/include/linux/perf/arm_pmu.h b/include/linux/perf/arm_pmu.h
-index d28ac05..7e814fe 100644
---- a/include/linux/perf/arm_pmu.h
-+++ b/include/linux/perf/arm_pmu.h
-@@ -147,6 +147,9 @@ struct pmu_probe_info {
- #define XSCALE_PMU_PROBE(_version, _fn) \
- 	PMU_PROBE(ARM_CPU_IMP_INTEL << 24 | _version, ARM_PMU_XSCALE_MASK, _fn)
- 
-+#define ARMV8_PMU_PART_PROBE(_part, _fn) \
-+	PMU_PROBE((_part) << MIDR_PARTNUM_SHIFT, MIDR_PARTNUM_MASK, _fn)
-+
- int arm_pmu_device_probe(struct platform_device *pdev,
- 			 const struct of_device_id *of_table,
- 			 const struct pmu_probe_info *probe_table);
--- 
-2.5.5
+I think the ACPI spec on platform notification is quite ambiguous and it is
+best to get the necessary clarification and/or correction before implementing
+anything related to platform notification.
+
+With respect to to this patch, since we are not doing anything specific to
+platform notification and the interrupt can be used only for notification
+of  completion, I suppose we should be okay.
+
+Thanks,
+Prashanth
+> Thanks
+> Hoan
+>
+>>> Hoan,
+>>> Even if we are not using platform notification, we still need to clear the doorbell
+>>> interrupt bit in the PCC interrupt handler (Section14.2.2 and 14.4).  I didn't see
+>>> clearing the doorbell interrupt bit in this patch (and platform is supposed to set
+>>> it again when it is sending the interrupt again). Did I miss it? or is it intentionally
+>>> left out to avoid the race that Ashwin mentioned above?
+>>>
+>> The PCC client driver is supposed to do that. Which mean, the
+>> mbox_chan_received_data() function should clear it.
+>>
+>> Thanks
+>> Hoan
+>>
+>>> Thanks,
+>>> Prashanth
+>>>
+>>>
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
