@@ -1,98 +1,150 @@
-From: Sudeep Holla <sudeep.holla@arm.com>
-Subject: Re: [PATCH v4 3/5] drivers: psci: refactor psci_cpu_init_idle in
- preparation for ACPI LPI support
-Date: Thu, 9 Jun 2016 15:26:26 +0100
-Message-ID: <57597C92.3000609@arm.com>
-References: <1461069013-13292-1-git-send-email-sudeep.holla@arm.com>
- <1461069013-13292-4-git-send-email-sudeep.holla@arm.com>
- <20160609132408.GA16831@red-moon>
+From: Suravee Suthikulanit <suravee.suthikulpanit@amd.com>
+Subject: Re: [PATCH V8 0/9] Support for ARM64 ACPI based PCI host controller
+Date: Thu, 9 Jun 2016 11:45:36 -0500
+Message-ID: <8a23e566-3aae-3af2-7b9f-e94edf1076e9@amd.com>
+References: <1464621262-26770-1-git-send-email-tn@semihalf.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Type: text/plain; charset="us-ascii"; Format="flowed"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from foss.arm.com ([217.140.101.70]:60005 "EHLO foss.arm.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751393AbcFIO0b (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 9 Jun 2016 10:26:31 -0400
-In-Reply-To: <20160609132408.GA16831@red-moon>
-Sender: linux-acpi-owner@vger.kernel.org
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <1464621262-26770-1-git-send-email-tn@semihalf.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Tomasz Nowicki <tn@semihalf.com>, helgaas@kernel.org, arnd@arndb.de, will.deacon@arm.com, catalin.marinas@arm.com, rafael@kernel.org, hanjun.guo@linaro.org, Lorenzo.Pieralisi@arm.com, okaya@codeaurora.org, jchandra@broadcom.com
+Cc: jcm@redhat.com, linaro-acpi@lists.linaro.org, linux-pci@vger.kernel.org, dhdang@apm.com, Liviu.Dudau@arm.com, ddaney@caviumnetworks.com, jeremy.linton@arm.com, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, robert.richter@caviumnetworks.com, cov@codeaurora.org, liudongdong3@huawei.com, msalter@redhat.com, wangyijing@huawei.com, mw@semihalf.com, andrea.gallo@linaro.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-acpi@vger.kernel.org
-To: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
-Cc: Sudeep Holla <sudeep.holla@arm.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Al Stone <al.stone@linaro.org>, Prashanth Prakash <pprakash@codeaurora.org>, Ashwin Chaugule <ashwin.chaugule@linaro.org>, Mark Rutland <mark.rutland@arm.com>
 
+On 5/30/2016 10:14 AM, Tomasz Nowicki wrote:
+> From the functionality point of view this series may be split into the
+> following logic parts:
+> 1. Export ECAM API and add parent device to pci_config_window
+> 2. Add IO resources handling to PCI core code
+> 3. Support for generic domain assignment based on ACPI
+> 4. New MCFG driver
+> 5. Implement ARM64 ACPI based PCI host controller driver under arch/arm64/
+>
+> Patches has been built on top of 4.7-rc1 and can be found here:
+> git@github.com:semihalf-nowicki-tomasz/linux.git (pci-acpi-v8)
+>
+> This has been tested on Cavium ThunderX server. Any help in reviewing and
+> testing is very appreciated.
+>
+> v7 -> v8
+> - move code from drivers/acpi/pci_root_generic.c to arch/arm64/kernel/pci.c
+> - minor changes around domain assignment
+> - pci_mcfg.c improvements for parsing MCFG tables and lookup its entries
+>
+> v6 -> v7
+> - drop quirks handling
+> - changes for ACPI companion and domain number assignment approach
+> - implement arch pcibios_{add|remove}_bus and call acpi_pci_{add|remove}_bus from there
+> - cleanups around nomenclature
+> - use resources oriented API for ECAM
+> - fix for based address calculation before mapping ECAM region
+> - remove useless lock for MCFG lookup
+> - move MCFG stuff to separated file pci_mcfg.c
+> - drop MCFG entries caching
+> - rebase against 4.6-rc7
+>
+> v5 -> v6
+> - drop idea of x86 MMCONFIG code refactoring
+> - integrate JC's patches which introduce new ECAM API:
+>   https://lkml.org/lkml/2016/4/11/907
+>   git: https://github.com/jchandra-brcm/linux/ (arm64-acpi-pci-v3)
+> - integrate Sinan's fix for releasing IO resources, see patch [06/13]
+> - added ACPI support for ThunderX ECAM and PEM drivers
+> - rebase against 4.6-rc2
+>
+> v4 -> v5
+> - drop MCFG refactoring group patches 1-6 from series v4 and integrate Jayachandran's patch
+>   https://patchwork.ozlabs.org/patch/575525/
+> - rewrite PCI legacy IRQs allocation
+> - squash two patches 11 and 12 from series v4, fixed bisection issue
+> - changelog improvements
+> - rebase against 4.5-rc3
+>
+> v3 -> v4
+> - drop Jiang's fix http://lkml.iu.edu/hypermail/linux/kernel/1601.1/04318.html
+> - add Lorenzo's fix patch 19/24
+> - ACPI PCI bus domain number assigning cleanup
+> - change resource management, we now claim and reassign resources
+> - improvements for applying quirks
+> - drop Matthew's http://www.spinics.net/lists/linux-pci/msg45950.html dependency
+> - rebase against 4.5-rc1
+>
+> v2 -> v3
+> - fix legacy IRQ assigning and IO ports registration
+> - remove reference to arch specific companion device for ia64
+> - move ACPI PCI host controller driver to pci_root.c
+> - drop generic domain assignment for x86 and ia64 as I am not
+>   able to run all necessary test variants
+> - drop patch which cleaned legacy IRQ assignment since it belongs to
+>   Mathew's series:
+>   https://patchwork.ozlabs.org/patch/557504/
+> - extend MCFG quirk code
+> - rebase against 4.4
+>
+> v1 -> v2
+> - move non-arch specific piece of code to dirver/acpi/ directory
+> - fix IO resource handling
+> - introduce PCI config accessors quirks matching
+> - moved ACPI_COMPANION_SET to generic code
+>
+> v1 - https://lkml.org/lkml/2015/10/27/504
+> v2 - https://lkml.org/lkml/2015/12/16/246
+> v3 - http://lkml.iu.edu/hypermail/linux/kernel/1601.1/04308.html
+> v4 - https://lkml.org/lkml/2016/2/4/646
+> v5 - https://lkml.org/lkml/2016/2/16/426
+> v6 - https://lkml.org/lkml/2016/4/15/594
+>
+> Jayachandran C (2):
+>   PCI: ecam: move ecam.h to linux/include/pci-ecam.h
+>   PCI: ecam: Add parent device field to pci_config_window
+>
+> Tomasz Nowicki (7):
+>   pci: Add new function to unmap IO resources.
+>   acpi, pci: Support IO resources when parsing PCI host bridge
+>     resources.
+>   pci, acpi: add acpi hook to assign domain number.
+>   arm64, pci, acpi: ACPI support for legacy IRQs parsing and
+>     consolidation with DT code.
+>   acpi: Add generic MCFG table handling
+>   arm64, pci, acpi: Provide ACPI-specific prerequisites for PCI bus
+>     enumeration.
+>   pci, acpi: ARM64 support for ACPI based generic PCI host controller
+>
+>  arch/arm64/Kconfig                  |   2 +
+>  arch/arm64/kernel/pci.c             | 143 ++++++++++++++++++++++++++++++++++--
+>  drivers/acpi/Kconfig                |   3 +
+>  drivers/acpi/Makefile               |   1 +
+>  drivers/acpi/pci_mcfg.c             |  94 ++++++++++++++++++++++++
+>  drivers/acpi/pci_root.c             |  39 ++++++++++
+>  drivers/pci/ecam.c                  |   6 +-
+>  drivers/pci/ecam.h                  |  67 -----------------
+>  drivers/pci/host/pci-host-common.c  |   3 +-
+>  drivers/pci/host/pci-host-generic.c |   3 +-
+>  drivers/pci/host/pci-thunder-ecam.c |   3 +-
+>  drivers/pci/host/pci-thunder-pem.c  |   6 +-
+>  drivers/pci/pci.c                   |  29 +++++++-
+>  include/linux/pci-acpi.h            |   2 +
+>  include/linux/pci-ecam.h            |  67 +++++++++++++++++
+>  include/linux/pci.h                 |   9 ++-
+>  16 files changed, 387 insertions(+), 90 deletions(-)
+>  create mode 100644 drivers/acpi/pci_mcfg.c
+>  delete mode 100644 drivers/pci/ecam.h
+>  create mode 100644 include/linux/pci-ecam.h
+>
 
+For the series,
 
-On 09/06/16 14:24, Lorenzo Pieralisi wrote:
-> On Tue, Apr 19, 2016 at 01:30:11PM +0100, Sudeep Holla wrote:
->> Inorder to accomodate bot DT and ACPI LPI support in psci_cpu_init_idle,
->> move the device tree specific into psci_dt_cpu_init_idle.
->>
->> Cc: Mark Rutland <mark.rutland@arm.com>
->> Cc: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
->> Cc: linux-arm-kernel@lists.infradead.org
->> Signed-off-by: Sudeep Holla <sudeep.holla@arm.com>
->> ---
->>   drivers/firmware/psci.c | 23 +++++++++--------------
->>   1 file changed, 9 insertions(+), 14 deletions(-)
->>
->> diff --git a/drivers/firmware/psci.c b/drivers/firmware/psci.c
->> index 11bfee8b79a9..af6c5c839568 100644
->> --- a/drivers/firmware/psci.c
->> +++ b/drivers/firmware/psci.c
->> @@ -250,11 +250,11 @@ static int __init psci_features(u32 psci_func_id)
->>   #ifdef CONFIG_CPU_IDLE
->>   static DEFINE_PER_CPU_READ_MOSTLY(u32 *, psci_power_state);
->>
->> -static int psci_dt_cpu_init_idle(struct device_node *cpu_node, int cpu)
->> +static int psci_dt_cpu_init_idle(unsigned int cpu)
->
-> Unfortunately you would break ARM 32-bit if you did that.
->
+Tested-by: Suravee Suthikulpanit <suravee.suthikulpanit@amd.com>
 
-Ah right, I failed to catch this. Thanks for spotting this.
-
-[...]
-
->>   int psci_cpu_init_idle(unsigned int cpu)
->>   {
->> -	struct device_node *cpu_node;
->> -	int ret;
->> -
->> -	cpu_node = of_get_cpu_node(cpu, NULL);
->> -	if (!cpu_node)
->> -		return -ENODEV;
->> -
->> -	ret = psci_dt_cpu_init_idle(cpu_node, cpu);
->> -
->> -	of_node_put(cpu_node);
->> -
->> -	return ret;
->> +	return psci_dt_cpu_init_idle(cpu);
->
-> How about leaving code as is and you wrap the cpu_node retrieval:
->
-> if (!acpi_disabled) {
-> 	acpi_idle_init();
-> } else {
-> 	cpu_node = of_get_cpu_node(cpu, NULL);
-> 	if (!cpu_node)
-> 		return -ENODEV;
->
-> 	ret = psci_dt_cpu_init_idle(cpu_node, cpu);
->
-> 	of_node_put(cpu_node);
-> }
->
-> ?
->
-> Alternatively, you could create an intermediate stub
-> __psci_dt_cpu_init_idle(), that will be used for CONFIG_ARM
-> cpuidle_ops.init and psci_dt_cpu_init_idle() after retrieving
-> the cpu_node, which I think is slightly cleaner.
->
-
-I like this approach more.
-
--- 
-Regards,
-Sudeep
+Thanks,
+Suravee
