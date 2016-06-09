@@ -1,163 +1,98 @@
-From: Matthias Brugger <mbrugger@suse.com>
-Subject: Re: [PATCH v7 15/15] acpi, numa: Enable ACPI based NUMA on ARM64
-Date: Thu, 9 Jun 2016 21:47:12 +0200
-Message-ID: <5759C7C0.3050508@suse.com>
-References: <1464129345-18985-1-git-send-email-ddaney.cavm@gmail.com>
- <1464129345-18985-16-git-send-email-ddaney.cavm@gmail.com>
+From: Hoan Tran <hotran@apm.com>
+Subject: Re: [PATCH v3] mailbox: pcc: Support HW-Reduced Communication
+ Subspace type 2
+Date: Thu, 9 Jun 2016 13:47:10 -0700
+Message-ID: <CAFHUOYyMpRgLzXN0XtFKG08Z9dLuhC7WNbJi8+nNTNET=m2qEA@mail.gmail.com>
+References: <1463704347-22550-1-git-send-email-hotran@apm.com>
+	<CAJ5Y-eZaaK_pbfgPxDfqJgtUOpxrCvHngM4_VT9p-fzFaPz28Q@mail.gmail.com>
+	<CAFHUOYy0TEqdHzwXCTNtK+UVF_PhMHfr-gPTOkUwRks=MgTaVg@mail.gmail.com>
+	<CAJ5Y-eYV+vf_GDCX6iX53Q5jLtOTzRktRHBfmZzW-yd5ffu2jg@mail.gmail.com>
+	<CAFHUOYxV8Jj_wUXqA7jqj3SZ4uqCSSgKuYmsC2k1MxvVyX3EfQ@mail.gmail.com>
+	<0f07c6dc-76b7-ab28-541b-090f6a2432a6@codeaurora.org>
+	<CAFHUOYyzQiUtpDL_oULCdbvMXxoXK5_bAvkW8SZV0BcrvPqa-Q@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-ia64-owner@vger.kernel.org>
-In-Reply-To: <1464129345-18985-16-git-send-email-ddaney.cavm@gmail.com>
-Sender: linux-ia64-owner@vger.kernel.org
-To: David Daney <ddaney.cavm@gmail.com>, Will Deacon <will.deacon@arm.com>, linux-arm-kernel@lists.infradead.org, Mark Rutland <mark.rutland@arm.com>, Catalin Marinas <catalin.marinas@arm.com>, Tony Luck <tony.luck@intel.com>, Fenghua Yu <fenghua.yu@intel.com>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, x86@kernel.org, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Rob Herring <robh+dt@kernel.org>, Frank Rowand <frowand.list@gmail.com>, Grant Likely <grant.likely@linaro.org>, Robert Moore <robert.moore@intel.com>, Lv Zheng <lv.zheng@intel.com>, Hanjun Guo <hanjun.guo@linaro.org>, Marc Zyngier <Marc.Zyngier@arm.com>, linux-ia64@vger.kernel.org, linux-acpi@vger.kernel.org, devel@acpica.org
-Cc: Robert Richter <rrichter@cavium.com>, linux-kernel@vger.kernel.org, David Daney <david.daney@cavium.com>
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <CAFHUOYyzQiUtpDL_oULCdbvMXxoXK5_bAvkW8SZV0BcrvPqa-Q@mail.gmail.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: "Prakash, Prashanth" <pprakash@codeaurora.org>
+Cc: Ashwin Chaugule <ashwin.chaugule@linaro.org>, Jassi Brar <jassisinghbrar@gmail.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Robert Moore <robert.moore@intel.com>, Alexey Klimov <alexey.klimov@arm.com>, lkml <linux-kernel@vger.kernel.org>, linux acpi <linux-acpi@vger.kernel.org>, Loc Ho <lho@apm.com>, Duc Dang <dhdang@apm.com>
 List-Id: linux-acpi@vger.kernel.org
 
+Hi Ashwin and Prashanth,
 
+On Wed, Jun 8, 2016 at 5:41 PM, Hoan Tran <hotran@apm.com> wrote:
+> Hi Prashanth,
+>
+>
+> On Wed, Jun 8, 2016 at 5:32 PM, Prakash, Prashanth
+> <pprakash@codeaurora.org> wrote:
+>>
+>>
+>> On 6/8/2016 10:24 AM, Hoan Tran wrote:
+>>> Hi Ashwin,
+>>>
+>>> On Wed, Jun 8, 2016 at 5:18 AM, Ashwin Chaugule
+>>> <ashwin.chaugule@linaro.org> wrote:
+>>>> + Prashanth (Can you please have a look as well?)
+>>>>
+>>>> On 31 May 2016 at 15:35, Hoan Tran <hotran@apm.com> wrote:
+>>>>> Hi Ashwin,
+>>>> Hi,
+>>>>
+>>>> Sorry about the delay. I'm in the middle of switching jobs and
+>>>> locations, so its been a bit crazy lately.
+>>> It's ok and hope you're doing well.
+>>>
+>>>> I dont have any major
+>>>> concerns with this code, although there could be subtle issues with
+>>>> this IRQ thing. In this patchset, your intent is to add support for
+>>>> PCC subspace type 2. But you're also adding support for tx command
+>>>> completion which is not specific to Type 2. We could support that even
+>>>> in Type 1. Hence I wanted to separate the two, not just for review,
+>>>> but also the async IRQ completion has subtle issues esp. in the case
+>>>> of async platform notification, where you could have a PCC client in
+>>>> the OS writing to the cmd bit and the platform sending an async
+>>>> notification by writing to some bits in the same 8byte address as the
+>>>> cmd bit. So we need some mutual exclusivity there, otherwise the OS
+>>>> and platform could step on each other. Perhaps Prashanth has better
+>>>> insight into this.
+>>> I think, this mutual exclusivity could be in another patch.
+>> Ashwin,
+>> Sorry, I am not sure how we can prevent platform and OSPM from stepping on
+>> each other.  There is a line is spec that says "all operations on status field
+>> must be made using interlocked operations", but not sure what these
+>> interlocked operation translates to.
+>
+> Yes, I had the same question about how to prevent it.
 
-On 25/05/16 00:35, David Daney wrote:
-> From: Hanjun Guo <hanjun.guo@linaro.org>
->
-> Add function needed for cpu to node mapping, and enable ACPI based
-> NUMA for ARM64 in Kconfig
->
-> Signed-off-by: Hanjun Guo <hanjun.guo@linaro.org>
-> Signed-off-by: Robert Richter <rrichter@cavium.com>
-> [david.daney@cavium.com added ACPI_NUMA default to y for ARM64]
-> Signed-off-by: David Daney <david.daney@cavium.com>
-> Acked-by: Catalin Marinas <catalin.marinas@arm.com>
-> ---
->   drivers/acpi/Kconfig |  4 ++--
->   drivers/acpi/numa.c  | 37 ++++++++++++++++++++++++++++++++++++-
->   include/linux/acpi.h | 17 ++++++++++++++++-
->   3 files changed, 54 insertions(+), 4 deletions(-)
->
-> diff --git a/drivers/acpi/Kconfig b/drivers/acpi/Kconfig
-> index b7e2e77..dd76b36 100644
-> --- a/drivers/acpi/Kconfig
-> +++ b/drivers/acpi/Kconfig
-> @@ -291,8 +291,8 @@ config ACPI_THERMAL
->   config ACPI_NUMA
->   	bool "NUMA support"
->   	depends on NUMA
-> -	depends on (X86 || IA64)
-> -	default y if IA64_GENERIC || IA64_SGI_SN2
-> +	depends on (X86 || IA64 || ARM64)
-> +	default y if IA64_GENERIC || IA64_SGI_SN2 || ARM64
->
->   config ACPI_CUSTOM_DSDT_FILE
->   	string "Custom DSDT Table file to include"
-> diff --git a/drivers/acpi/numa.c b/drivers/acpi/numa.c
-> index fad6d28..9b7ce40 100644
-> --- a/drivers/acpi/numa.c
-> +++ b/drivers/acpi/numa.c
-> @@ -170,6 +170,18 @@ acpi_table_print_srat_entry(struct acpi_subtable_header *header)
->   		}
->   		break;
->
-> +	case ACPI_SRAT_TYPE_GICC_AFFINITY:
-> +		{
-> +			struct acpi_srat_gicc_affinity *p =
-> +			    (struct acpi_srat_gicc_affinity *)header;
-> +			pr_debug("SRAT Processor (acpi id[0x%04x]) in proximity domain %d %s\n",
-> +				 p->acpi_processor_uid,
-> +				 p->proximity_domain,
-> +				 (p->flags & ACPI_SRAT_GICC_ENABLED) ?
-> +				 "enabled" : "disabled");
-> +		}
-> +		break;
-> +
->   	default:
->   		pr_warn("Found unsupported SRAT entry (type = 0x%x)\n",
->   			header->type);
-> @@ -360,6 +372,24 @@ acpi_parse_processor_affinity(struct acpi_subtable_header *header,
->   	return 0;
->   }
->
-> +static int __init
-> +acpi_parse_gicc_affinity(struct acpi_subtable_header *header,
-> +			 const unsigned long end)
-> +{
-> +	struct acpi_srat_gicc_affinity *processor_affinity;
-> +
-> +	processor_affinity = (struct acpi_srat_gicc_affinity *)header;
-> +	if (!processor_affinity)
-> +		return -EINVAL;
-> +
-> +	acpi_table_print_srat_entry(header);
-> +
-> +	/* let architecture-dependent part to do it */
-> +	acpi_numa_gicc_affinity_init(processor_affinity);
-> +
-> +	return 0;
-> +}
-> +
->   static int __initdata parsed_numa_memblks;
->
->   static int __init
-> @@ -404,6 +434,9 @@ int __init acpi_numa_init(void)
->   {
->   	int cnt = 0;
->
-> +	if (acpi_disabled)
-> +		return -EINVAL;
-> +
->   	/*
->   	 * Should not limit number with cpu num that is from NR_CPUS or nr_cpus=
->   	 * SRAT cpu entries could have different order with that in MADT.
-> @@ -412,13 +445,15 @@ int __init acpi_numa_init(void)
->
->   	/* SRAT: Static Resource Affinity Table */
->   	if (!acpi_table_parse(ACPI_SIG_SRAT, acpi_parse_srat)) {
-> -		struct acpi_subtable_proc srat_proc[2];
-> +		struct acpi_subtable_proc srat_proc[3];
->
->   		memset(srat_proc, 0, sizeof(srat_proc));
->   		srat_proc[0].id = ACPI_SRAT_TYPE_CPU_AFFINITY;
->   		srat_proc[0].handler = acpi_parse_processor_affinity;
->   		srat_proc[1].id = ACPI_SRAT_TYPE_X2APIC_CPU_AFFINITY;
->   		srat_proc[1].handler = acpi_parse_x2apic_affinity;
-> +		srat_proc[1].id = ACPI_SRAT_TYPE_GICC_AFFINITY;
-> +		srat_proc[1].handler = acpi_parse_gicc_affinity;
+For platform notification, if the hardware doesn't support interlocked
+operations. I think we can use a workaround that, platform triggers
+interrupt to OSPM without touching status field. The OSPM PCC client
+will decide what to do with this interrupt. For example, OSPM sends a
+consumer command to check it.
 
-Should be srat_proc[2].id and srat_proc[2].handler, right?
-
-Regards,
-Matthias
+Thanks
+Hoan
 
 >
->   		acpi_table_parse_entries_array(ACPI_SIG_SRAT,
->   					sizeof(struct acpi_table_srat),
-> diff --git a/include/linux/acpi.h b/include/linux/acpi.h
-> index 8010b26..9515db6 100644
-> --- a/include/linux/acpi.h
-> +++ b/include/linux/acpi.h
-> @@ -232,10 +232,25 @@ int acpi_table_parse_madt(enum acpi_madt_type id,
->   int acpi_parse_mcfg (struct acpi_table_header *header);
->   void acpi_table_print_madt_entry (struct acpi_subtable_header *madt);
+>>
+>> Hoan,
+>> Even if we are not using platform notification, we still need to clear the doorbell
+>> interrupt bit in the PCC interrupt handler (Section14.2.2 and 14.4).  I didn't see
+>> clearing the doorbell interrupt bit in this patch (and platform is supposed to set
+>> it again when it is sending the interrupt again). Did I miss it? or is it intentionally
+>> left out to avoid the race that Ashwin mentioned above?
+>>
 >
-> -/* the following four functions are architecture-dependent */
-> +/* the following numa functions are architecture-dependent */
->   void acpi_numa_slit_init (struct acpi_table_slit *slit);
-> +
-> +#if defined(CONFIG_X86) || defined(CONFIG_IA64)
->   void acpi_numa_processor_affinity_init (struct acpi_srat_cpu_affinity *pa);
-> +#else
-> +static inline void
-> +acpi_numa_processor_affinity_init(struct acpi_srat_cpu_affinity *pa) { }
-> +#endif
-> +
->   void acpi_numa_x2apic_affinity_init(struct acpi_srat_x2apic_cpu_affinity *pa);
-> +
-> +#ifdef CONFIG_ARM64
-> +void acpi_numa_gicc_affinity_init(struct acpi_srat_gicc_affinity *pa);
-> +#else
-> +static inline void
-> +acpi_numa_gicc_affinity_init(struct acpi_srat_gicc_affinity *pa) { }
-> +#endif
-> +
->   int acpi_numa_memory_affinity_init (struct acpi_srat_mem_affinity *ma);
+> The PCC client driver is supposed to do that. Which mean, the
+> mbox_chan_received_data() function should clear it.
 >
->   #ifndef PHYS_CPUID_INVALID
+> Thanks
+> Hoan
 >
+>>
+>> Thanks,
+>> Prashanth
+>>
+>>
