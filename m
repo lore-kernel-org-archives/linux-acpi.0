@@ -1,29 +1,26 @@
-From: Jon Masters <jcm@redhat.com>
-Subject: Re: [PATCH V9 00/11] Support for ARM64 ACPI based PCI host controller
-Date: Fri, 10 Jun 2016 19:50:43 -0400 (EDT)
-Message-ID: <66887FB8-0D7E-42A0-AC25-A0BB8045D1B9@redhat.com>
-References: <1465588519-11334-1-git-send-email-tn@semihalf.com> <20160610234107.GC7671@localhost>
+From: Jon Masters <jcm@jonmasters.org>
+Subject: Re: [Linaro-acpi] [PATCH V9 00/11] Support for ARM64 ACPI based PCI
+ host controller
+Date: Fri, 10 Jun 2016 19:58:38 -0400
+Message-ID: <2e8ae0dc-d04e-3264-86d4-e2640060750c@jonmasters.org>
+References: <1465588519-11334-1-git-send-email-tn@semihalf.com>
+ <20160610234107.GC7671@localhost>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset=us-ascii
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-pci-owner@vger.kernel.org>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from edison.jonmasters.org ([173.255.233.168]:35599 "EHLO
+	edison.jonmasters.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752040AbcFJX7J (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 10 Jun 2016 19:59:09 -0400
 In-Reply-To: <20160610234107.GC7671@localhost>
-Sender: linux-pci-owner@vger.kernel.org
-To: Bjorn Helgaas <helgaas@kernel.org>
-Cc: Tomasz Nowicki <tn@semihalf.com>, arnd@arndb.de, will.deacon@arm.com, catalin.marinas@arm.com, rafael@kernel.org, hanjun.guo@linaro.org, Lorenzo.Pieralisi@arm.com, okaya@codeaurora.org, jchandra@broadcom.com, robert.richter@caviumnetworks.com, mw@semihalf.com, Liviu.Dudau@arm.com, ddaney@caviumnetworks.com, wangyijing@huawei.com, Suravee.Suthikulpanit@amd.com, msalter@redhat.com, linux-pci@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linaro-acpi@lists.linaro.org, andrea.gallo@linaro.org, dhdang@apm.com, jeremy.linton@arm.com, liudongdong3@huawei.com, cov@codeaurora.org
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Bjorn Helgaas <helgaas@kernel.org>, Tomasz Nowicki <tn@semihalf.com>
+Cc: rafael@kernel.org, linux-pci@vger.kernel.org, will.deacon@arm.com, okaya@codeaurora.org, wangyijing@huawei.com, andrea.gallo@linaro.org, linaro-acpi@lists.linaro.org, ddaney@caviumnetworks.com, linux-acpi@vger.kernel.org, robert.richter@caviumnetworks.com, catalin.marinas@arm.com, Liviu.Dudau@arm.com, arnd@arndb.de, jcm@redhat.com, cov@codeaurora.org, mw@semihalf.com, linux-arm-kernel@lists.infradead.org, jchandra@broadcom.com, dhdang@apm.com, linux-kernel@vger.kernel.org, jeremy.linton@arm.com
 
-Thank you Bjorn :)
-
-Next time we are in the same place (anyone involved in this series), beer is on me.
-
--- 
-Computer Architect | Sent from my 64-bit #ARM Powered phone
-
-> On Jun 10, 2016, at 18:41, Bjorn Helgaas <helgaas@kernel.org> wrote:
-> 
->> On Fri, Jun 10, 2016 at 09:55:08PM +0200, Tomasz Nowicki wrote:
+On 06/10/2016 07:41 PM, Bjorn Helgaas wrote:
+> On Fri, Jun 10, 2016 at 09:55:08PM +0200, Tomasz Nowicki wrote:
 >> From the functionality point of view this series may be split into the
 >> following logic parts:
 >> 1. Export ECAM API and add parent device to pci_config_window
@@ -35,5 +32,14 @@ Computer Architect | Sent from my 64-bit #ARM Powered phone
 > This is beautiful!  It really turned out well.
 > 
 > I applied all these to pci/arm64-acpi for v4.8.
-> 
-> Bjorn
+
+Quick followup - I've forwarded your mail to the Linaro Enterprise Group
+members and started nudging the vendors to prep any remaining pieces for
+post-merge. That includes quirks, and then any drivers that anyone has
+been sitting on until this was upstream.
+
+Looking forward to F25 Server booting out of the box, and finally
+getting to a point where Fedora is once again upstream of RHEL(SA).
+
+Jon.
+
