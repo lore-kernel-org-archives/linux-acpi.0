@@ -1,8 +1,7 @@
 From: Tomasz Nowicki <tn@semihalf.com>
-Subject: [PATCH V9 02/11] PCI/ECAM: Add parent device field to
- pci_config_window
-Date: Fri, 10 Jun 2016 21:55:10 +0200
-Message-ID: <1465588519-11334-3-git-send-email-tn@semihalf.com>
+Subject: [PATCH V9 03/11] PCI: Add new function to unmap IO resources
+Date: Fri, 10 Jun 2016 21:55:11 +0200
+Message-ID: <1465588519-11334-4-git-send-email-tn@semihalf.com>
 References: <1465588519-11334-1-git-send-email-tn@semihalf.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -19,84 +18,71 @@ List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
 Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
 Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
 To: helgaas@kernel.org, arnd@arndb.de, will.deacon@arm.com, catalin.marinas@arm.com, rafael@kernel.org, hanjun.guo@linaro.org, Lorenzo.Pieralisi@arm.com, okaya@codeaurora.org, jchandra@broadcom.com
-Cc: jcm@redhat.com, linaro-acpi@lists.linaro.org, linux-pci@vger.kernel.org, dhdang@apm.com, Liviu.Dudau@arm.com, ddaney@caviumnetworks.com, jeremy.linton@arm.com, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, robert.richter@caviumnetworks.com, cov@codeaurora.org, Suravee.Suthikulpanit@amd.com, msalter@redhat.com, wangyijing@huawei.com, mw@semihalf.com, andrea.gallo@linaro.org, linux-arm-kernel@lists.infradead.org, liudongdong3@huawei.com
+Cc: jcm@redhat.com, linaro-acpi@lists.linaro.org, linux-pci@vger.kernel.org, dhdang@apm.com, Liviu.Dudau@arm.com, ddaney@caviumnetworks.com, jeremy.linton@arm.com, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, robert.richter@caviumnetworks.com, cov@codeaurora.org, Suravee.Suthikulpanit@amd.com, msalter@redhat.com, wangyijing@huawei.com, Tomasz Nowicki <tn@semihalf.com>, mw@semihalf.com, andrea.gallo@linaro.org, linux-arm-kernel@lists.infradead.org, liudongdong3@huawei.com
 List-Id: linux-acpi@vger.kernel.org
 
-From: Jayachandran C <jchandra@broadcom.com>
+From: Sinan Kaya <okaya@codeaurora.org>
 
-Add a parent device field to struct pci_config_window. The parent
-is not saved now, but will be useful to save it in some cases.
-Specifically in case of ACPI for ARM64, it can be used to setup
-ACPI companion and domain.
+We need to release I/O resources so that the same I/O resources
+can be allocated again in pci_remap_iospace(), like in PCI hotplug removal
+scenario. Therefore implement new pci_unmap_iospace() call which
+unmaps I/O space as the symmetry to pci_remap_iospace().
 
-Since the parent dev is in struct pci_config_window now, we need
-not pass it to the init function as a separate argument.
-
-Signed-off-by: Jayachandran C <jchandra@broadcom.com>
+Signed-off-by: Sinan Kaya <okaya@codeaurora.org>
+Signed-off-by: Tomasz Nowicki <tn@semihalf.com>
 Acked-by: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
 ---
- drivers/pci/ecam.c                 | 3 ++-
- drivers/pci/host/pci-thunder-pem.c | 3 ++-
- include/linux/pci-ecam.h           | 4 ++--
- 3 files changed, 6 insertions(+), 4 deletions(-)
+ drivers/pci/pci.c   | 18 ++++++++++++++++++
+ include/linux/pci.h |  1 +
+ 2 files changed, 19 insertions(+)
 
-diff --git a/drivers/pci/ecam.c b/drivers/pci/ecam.c
-index 820e26b..66e0d71 100644
---- a/drivers/pci/ecam.c
-+++ b/drivers/pci/ecam.c
-@@ -51,6 +51,7 @@ struct pci_config_window *pci_ecam_create(struct device *dev,
- 	if (!cfg)
- 		return ERR_PTR(-ENOMEM);
- 
-+	cfg->parent = dev;
- 	cfg->ops = ops;
- 	cfg->busr.start = busr->start;
- 	cfg->busr.end = busr->end;
-@@ -94,7 +95,7 @@ struct pci_config_window *pci_ecam_create(struct device *dev,
- 	}
- 
- 	if (ops->init) {
--		err = ops->init(dev, cfg);
-+		err = ops->init(cfg);
- 		if (err)
- 			goto err_exit;
- 	}
-diff --git a/drivers/pci/host/pci-thunder-pem.c b/drivers/pci/host/pci-thunder-pem.c
-index 5020d3d..91f6fc6 100644
---- a/drivers/pci/host/pci-thunder-pem.c
-+++ b/drivers/pci/host/pci-thunder-pem.c
-@@ -284,8 +284,9 @@ static int thunder_pem_config_write(struct pci_bus *bus, unsigned int devfn,
- 	return pci_generic_config_write(bus, devfn, where, size, val);
+diff --git a/drivers/pci/pci.c b/drivers/pci/pci.c
+index c8b4dbd..eb431b5 100644
+--- a/drivers/pci/pci.c
++++ b/drivers/pci/pci.c
+@@ -25,6 +25,7 @@
+ #include <linux/device.h>
+ #include <linux/pm_runtime.h>
+ #include <linux/pci_hotplug.h>
++#include <linux/vmalloc.h>
+ #include <asm/setup.h>
+ #include <linux/aer.h>
+ #include "pci.h"
+@@ -3165,6 +3166,23 @@ int __weak pci_remap_iospace(const struct resource *res, phys_addr_t phys_addr)
+ #endif
  }
  
--static int thunder_pem_init(struct device *dev, struct pci_config_window *cfg)
-+static int thunder_pem_init(struct pci_config_window *cfg)
++/**
++ *	pci_unmap_iospace - Unmap the memory mapped I/O space
++ *	@res: resource to be unmapped
++ *
++ *	Unmap the CPU virtual address @res from virtual address space.
++ *	Only architectures that have memory mapped IO functions defined
++ *	(and the PCI_IOBASE value defined) should call this function.
++ */
++void pci_unmap_iospace(struct resource *res)
++{
++#if defined(PCI_IOBASE) && defined(CONFIG_MMU)
++	unsigned long vaddr = (unsigned long)PCI_IOBASE + res->start;
++
++	unmap_kernel_range(vaddr, resource_size(res));
++#endif
++}
++
+ static void __pci_set_master(struct pci_dev *dev, bool enable)
  {
-+	struct device *dev = cfg->parent;
- 	resource_size_t bar4_start;
- 	struct resource *res_pem;
- 	struct thunder_pem_pci *pem_pci;
-diff --git a/include/linux/pci-ecam.h b/include/linux/pci-ecam.h
-index 9878beb..7adad20 100644
---- a/include/linux/pci-ecam.h
-+++ b/include/linux/pci-ecam.h
-@@ -27,8 +27,7 @@ struct pci_config_window;
- struct pci_ecam_ops {
- 	unsigned int			bus_shift;
- 	struct pci_ops			pci_ops;
--	int				(*init)(struct device *,
--						struct pci_config_window *);
-+	int				(*init)(struct pci_config_window *);
- };
+ 	u16 old_cmd, cmd;
+diff --git a/include/linux/pci.h b/include/linux/pci.h
+index b67e4df..12349de 100644
+--- a/include/linux/pci.h
++++ b/include/linux/pci.h
+@@ -1167,6 +1167,7 @@ int pci_register_io_range(phys_addr_t addr, resource_size_t size);
+ unsigned long pci_address_to_pio(phys_addr_t addr);
+ phys_addr_t pci_pio_to_address(unsigned long pio);
+ int pci_remap_iospace(const struct resource *res, phys_addr_t phys_addr);
++void pci_unmap_iospace(struct resource *res);
  
- /*
-@@ -45,6 +44,7 @@ struct pci_config_window {
- 		void __iomem		*win;	/* 64-bit single mapping */
- 		void __iomem		**winp; /* 32-bit per-bus mapping */
- 	};
-+	struct device			*parent;/* ECAM res was from this dev */
- };
- 
- /* create and free pci_config_window */
+ static inline pci_bus_addr_t pci_bus_address(struct pci_dev *pdev, int bar)
+ {
 -- 
 1.9.1
