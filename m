@@ -1,91 +1,68 @@
-From: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
-Subject: Re: [PATCH V9 10/11] ARM64/PCI: Implement ACPI low-level calls to
- access PCI_Config region from AML
-Date: Fri, 10 Jun 2016 21:54:23 +0100
-Message-ID: <20160610205423.GC24178@red-moon>
-References: <1465588519-11334-1-git-send-email-tn@semihalf.com>
- <1465588519-11334-11-git-send-email-tn@semihalf.com>
+From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Subject: Re: acpi: broken suspend to RAM with v4.7-rc1
+Date: Fri, 10 Jun 2016 23:24:44 +0200
+Message-ID: <3027571.8eTQaleASL@vostro.rjw.lan>
+References: <20160610203210.GA2262@nest>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7Bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from foss.arm.com ([217.140.101.70]:41042 "EHLO foss.arm.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932558AbcFJUxy (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 10 Jun 2016 16:53:54 -0400
-Content-Disposition: inline
-In-Reply-To: <1465588519-11334-11-git-send-email-tn@semihalf.com>
+Received: from cloudserver094114.home.net.pl ([79.96.170.134]:42735 "HELO
+	cloudserver094114.home.net.pl" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with SMTP id S1751868AbcFJVUn (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 10 Jun 2016 17:20:43 -0400
+In-Reply-To: <20160610203210.GA2262@nest>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Tomasz Nowicki <tn@semihalf.com>
-Cc: helgaas@kernel.org, arnd@arndb.de, will.deacon@arm.com, catalin.marinas@arm.com, rafael@kernel.org, hanjun.guo@linaro.org, okaya@codeaurora.org, jchandra@broadcom.com, robert.richter@caviumnetworks.com, mw@semihalf.com, Liviu.Dudau@arm.com, ddaney@caviumnetworks.com, wangyijing@huawei.com, Suravee.Suthikulpanit@amd.com, msalter@redhat.com, linux-pci@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linaro-acpi@lists.linaro.org, jcm@redhat.com, andrea.gallo@linaro.org, dhdang@apm.com, jeremy.linton@arm.com, liudongdong3@huawei.com, cov@codeaurora.org
+To: Andrey Skvortsov <andrej.skvortzov@gmail.com>
+Cc: Lv Zheng <lv.zheng@intel.com>, Bob Moore <robert.moore@intel.com>, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, linux-acpi@vger.kernel.org, devel@acpica.org, linux-kernel@vger.kernel.org
 
-On Fri, Jun 10, 2016 at 09:55:18PM +0200, Tomasz Nowicki wrote:
-> ACPI spec6.1 - chapter: 5.5.2.4 defines OperationRegion (Declare Operation
-> Region). Following the spec: " [...] An Operation Region is a specific
-> region of operation within an address space that is declared as a subset
-> of the entire address space using a starting address (offset) and a length.
-> Control methods must have exclusive access to any address accessed via
-> fields declared in Operation Regions. [...]".
+On Friday, June 10, 2016 11:32:10 PM Andrey Skvortsov wrote:
 > 
-> OperationRegion allows to declare various of operation region address space
+> --IS0zKkzwUGydFO0o
+> Content-Type: text/plain; charset=utf-8
+> Content-Disposition: inline
+> Content-Transfer-Encoding: quoted-printable
+> 
+> Hi,
+> 
+> On my laptop (DELL Vostro 1500) in v4.7-rc1 is broken suspend to RAM.
+> Laptop doesn't finish suspend to RAM process (disks are off, but WiFi
+> and Power LEDs are still on). The only way to get it out of this
+> state, is to turn the power off.
+> 
+> I've bisected the issue to commit 66b1ed5aa8dd25
+> [ACPICA: ACPI 2.0, Hardware: Add access_width/bit_offset support for acpi_h=
+> w_write()].
+> 
+> If I revert this commit in v4.7-rc1 (or v4.7-rc2), suspend to RAM is
+> working again.
+> 
+> The cause of this problem is that after this commit write to PM1A Control B=
+> lock
+> (16-bit register) is done using two 8-bit writes. If I force this write
+> to be 16-bit, then all is working as before.
+> 
+> To get it working 'access_width' for PM1A Control Block needs to be 2 (16-b=
+> it), but it's=20
+> 1 (8-bit).
+> 
+> The root of the problem seems to be not the commit 66b1ed5aa8dd25 itself, b=
+> ut the ACPI
+> tables in BIOS where wrong access_width comes from. I fixed problem in FACP=
+>  table,
+> put it in initrd to override FACP table from BIOS. This fixed the issue,
+> suspend to RAM is working now again.
+> 
+> But I'm not sure whether is this proper fix for this problem.
+> Is there any place in the kernel, where such ACPI quirks are placed?
 
-s/of//
+Well, if the commit in question caused a problem to happen for you, it also
+might cause similar problems to happen elsewhere.
 
-> identifiers including PCI_Config. PCI_Config is meant to access PCI
-> configuration space from the ASL. So every time ASL opcode operates
-> on PCI_Config space region, ASL interpreter dispatches accesses to OS
-> low-level calls - raw_pci_write() and raw_pci_read() for Linux - so-called
-> ACPI RAW accessors.
-> 
-> In order to support PCI_Config operation region, implement mentioned
-> raw_pci_write() and raw_pci_read() calls so they find associated bus
-> and call read/write ops.
-> 
-> Waiting for clarification in the ACPI specifications in relation
-> to PCI_Config space handling before PCI bus enumeration is completed,
-> current code does not support PCI_Config region accesses before PCI bus
-> enumeration whilst providing full AML PCI_Config access availability
-> when the PCI bus enumeration is completed by the kernel so that
-> RAW accessors can look-up PCI operations through the struct pci_bus
-> associated with a PCI bus.
-> 
-> Signed-off-by: Tomasz Nowicki <tn@semihalf.com>
-> Signed-off-by: Jayachandran C <jchandra@broadcom.com>
+It looks like we'll need to revert that commit.
 
-Reviewed-by: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+Thanks,
+Rafael
 
-> ---
->  arch/arm64/kernel/pci.c | 12 ++++++++++--
->  1 file changed, 10 insertions(+), 2 deletions(-)
-> 
-> diff --git a/arch/arm64/kernel/pci.c b/arch/arm64/kernel/pci.c
-> index b3b8a2c..328f857 100644
-> --- a/arch/arm64/kernel/pci.c
-> +++ b/arch/arm64/kernel/pci.c
-> @@ -71,13 +71,21 @@ int pcibios_alloc_irq(struct pci_dev *dev)
->  int raw_pci_read(unsigned int domain, unsigned int bus,
->  		  unsigned int devfn, int reg, int len, u32 *val)
->  {
-> -	return -ENXIO;
-> +	struct pci_bus *b = pci_find_bus(domain, bus);
-> +
-> +	if (!b)
-> +		return PCIBIOS_DEVICE_NOT_FOUND;
-> +	return b->ops->read(b, devfn, reg, len, val);
->  }
->  
->  int raw_pci_write(unsigned int domain, unsigned int bus,
->  		unsigned int devfn, int reg, int len, u32 val)
->  {
-> -	return -ENXIO;
-> +	struct pci_bus *b = pci_find_bus(domain, bus);
-> +
-> +	if (!b)
-> +		return PCIBIOS_DEVICE_NOT_FOUND;
-> +	return b->ops->write(b, devfn, reg, len, val);
->  }
->  
->  #ifdef CONFIG_NUMA
-> -- 
-> 1.9.1
-> 
