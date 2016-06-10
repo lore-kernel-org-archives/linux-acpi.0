@@ -1,167 +1,161 @@
-From: Bjorn Helgaas <helgaas-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: [RFC PATCH v2 12/15] drivers: acpi: implement acpi_dma_configure
-Date: Fri, 10 Jun 2016 11:25:28 -0500
-Message-ID: <20160610162528.GI19309@localhost>
-References: <1465306270-27076-1-git-send-email-lorenzo.pieralisi@arm.com>
-	<1465306270-27076-13-git-send-email-lorenzo.pieralisi@arm.com>
+From: Bjorn Helgaas <helgaas@kernel.org>
+Subject: Re: [PATCH V3 1/3] x86/ioapic: Support hot-removal of IOAPICs
+ present during boot
+Date: Fri, 10 Jun 2016 11:43:04 -0500
+Message-ID: <20160610164304.GJ19309@localhost>
+References: <1465369193-4816-2-git-send-email-rui.y.wang@intel.com>
+ <1465378364-5982-1-git-send-email-rui.y.wang@intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail.kernel.org ([198.145.29.136]:39626 "EHLO mail.kernel.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752250AbcFJQnJ (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 10 Jun 2016 12:43:09 -0400
 Content-Disposition: inline
-In-Reply-To: <1465306270-27076-13-git-send-email-lorenzo.pieralisi-5wv7dgnIgG8@public.gmane.org>
-List-Unsubscribe: <https://lists.linuxfoundation.org/mailman/options/iommu>,
-	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.linuxfoundation.org/pipermail/iommu/>
-List-Post: <mailto:iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
-List-Help: <mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.linuxfoundation.org/mailman/listinfo/iommu>,
-	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=subscribe>
-Sender: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
-Errors-To: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
-To: Lorenzo Pieralisi <lorenzo.pieralisi-5wv7dgnIgG8@public.gmane.org>
-Cc: Marc Zyngier <marc.zyngier-5wv7dgnIgG8@public.gmane.org>, Tomasz Nowicki <tn-nYOzD4b6Jr9Wk0Htik3J/w@public.gmane.org>, "Rafael J. Wysocki" <rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org>, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Will Deacon <will.deacon-5wv7dgnIgG8@public.gmane.org>, linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Sinan Kaya <okaya-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org, Hanjun Guo <hanjun.guo-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Jon Masters <jcm-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Bjorn Helgaas <bhelgaas-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
+In-Reply-To: <1465378364-5982-1-git-send-email-rui.y.wang@intel.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Rui Wang <rui.y.wang@intel.com>
+Cc: tglx@linutronix.de, rjw@rjwysocki.net, tony.luck@intel.com, bhelgaas@google.com, linux-acpi@vger.kernel.org, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org
 
-On Tue, Jun 07, 2016 at 02:31:07PM +0100, Lorenzo Pieralisi wrote:
-> On DT based systems, the of_dma_configure() API implements DMA configuration
-> for a given device. On ACPI systems an API equivalent to of_dma_configure()
-> is missing which implies that it is currently not possible to set-up DMA
-> operations for devices through the ACPI generic kernel layer.
+On Wed, Jun 08, 2016 at 05:32:44PM +0800, Rui Wang wrote:
+> v3: Previous versions break mips. This version fixes it.
 > 
-> This patch fills the gap by introducing acpi_dma_configure/deconfigure()
-> calls that for now are just wrappers around arch_setup_dma_ops() and
-> arch_teardown_dma_ops() and also updates ACPI and PCI core code to use
-> the newly introduced acpi_dma_configure/acpi_dma_deconfigure functions.
+> IOAPICs present during system boot aren't added to ioapic_list,
+> thus are unable to be hot-removed. Fix it by calling
+> acpi_ioapic_add() during root bus enumeration.
 > 
-> The DMA range size passed to arch_setup_dma_ops() is sized according
-> to the device coherent_dma_mask (starting at address 0x0), mirroring the
-> DT probing path behaviour when a dma-ranges property is not provided
-> for the device being probed; this changes the current arch_setup_dma_ops()
-> call parameters in the ACPI probing case, but since arch_setup_dma_ops()
-> is a NOP on all architectures but ARM/ARM64 this patch does not change
-> the current kernel behaviour on them.
-> 
-> Signed-off-by: Lorenzo Pieralisi <lorenzo.pieralisi-5wv7dgnIgG8@public.gmane.org>
-> Cc: Bjorn Helgaas <bhelgaas-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>
-> Cc: Robin Murphy <robin.murphy-5wv7dgnIgG8@public.gmane.org>
-> Cc: Tomasz Nowicki <tn-nYOzD4b6Jr9Wk0Htik3J/w@public.gmane.org>
-> Cc: Joerg Roedel <joro-zLv9SwRftAIdnm+yROfE0A@public.gmane.org>
-> Cc: "Rafael J. Wysocki" <rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org>
-
-Acked-by: Bjorn Helgaas <bhelgaas-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>
-
-I assume this will be merged by somebody else along with the rest
-of the series.
-
+> Signed-off-by: Rui Wang <rui.y.wang@intel.com>
 > ---
->  drivers/acpi/glue.c     |  4 ++--
->  drivers/acpi/scan.c     | 24 ++++++++++++++++++++++++
->  drivers/pci/probe.c     |  3 +--
->  include/acpi/acpi_bus.h |  2 ++
->  include/linux/acpi.h    |  5 +++++
->  5 files changed, 34 insertions(+), 4 deletions(-)
+>  drivers/acpi/internal.h | 2 --
+>  drivers/acpi/ioapic.c   | 7 ++++---
+>  drivers/acpi/pci_root.c | 2 +-
+>  drivers/pci/setup-bus.c | 7 ++++++-
+>  include/linux/acpi.h    | 3 +++
+>  5 files changed, 14 insertions(+), 7 deletions(-)
 > 
-> diff --git a/drivers/acpi/glue.c b/drivers/acpi/glue.c
-> index 5ea5dc2..f8d6564 100644
-> --- a/drivers/acpi/glue.c
-> +++ b/drivers/acpi/glue.c
-> @@ -227,8 +227,7 @@ int acpi_bind_one(struct device *dev, struct acpi_device *acpi_dev)
->  
->  	attr = acpi_get_dma_attr(acpi_dev);
->  	if (attr != DEV_DMA_NOT_SUPPORTED)
-> -		arch_setup_dma_ops(dev, 0, 0, NULL,
-> -				   attr == DEV_DMA_COHERENT);
-> +		acpi_dma_configure(dev, attr);
->  
->  	acpi_physnode_link_name(physical_node_name, node_id);
->  	retval = sysfs_create_link(&acpi_dev->dev.kobj, &dev->kobj,
-> @@ -251,6 +250,7 @@ int acpi_bind_one(struct device *dev, struct acpi_device *acpi_dev)
->  	return 0;
->  
->   err:
-> +	acpi_dma_deconfigure(dev);
->  	ACPI_COMPANION_SET(dev, NULL);
->  	put_device(dev);
->  	put_device(&acpi_dev->dev);
-> diff --git a/drivers/acpi/scan.c b/drivers/acpi/scan.c
-> index 5f28cf7..b4b9064 100644
-> --- a/drivers/acpi/scan.c
-> +++ b/drivers/acpi/scan.c
-> @@ -1358,6 +1358,30 @@ enum dev_dma_attr acpi_get_dma_attr(struct acpi_device *adev)
->  		return DEV_DMA_NON_COHERENT;
+> diff --git a/drivers/acpi/internal.h b/drivers/acpi/internal.h
+> index 9bb0773..bb567a7 100644
+> --- a/drivers/acpi/internal.h
+> +++ b/drivers/acpi/internal.h
+> @@ -40,10 +40,8 @@ int acpi_sysfs_init(void);
+>  void acpi_container_init(void);
+>  void acpi_memory_hotplug_init(void);
+>  #ifdef	CONFIG_ACPI_HOTPLUG_IOAPIC
+> -int acpi_ioapic_add(struct acpi_pci_root *root);
+>  int acpi_ioapic_remove(struct acpi_pci_root *root);
+>  #else
+> -static inline int acpi_ioapic_add(struct acpi_pci_root *root) { return 0; }
+>  static inline int acpi_ioapic_remove(struct acpi_pci_root *root) { return 0; }
+>  #endif
+>  #ifdef CONFIG_ACPI_DOCK
+> diff --git a/drivers/acpi/ioapic.c b/drivers/acpi/ioapic.c
+> index ccdc8db..0f272e2 100644
+> --- a/drivers/acpi/ioapic.c
+> +++ b/drivers/acpi/ioapic.c
+> @@ -189,16 +189,17 @@ exit:
+>  	return AE_OK;
 >  }
 >  
-> +/**
-> + * acpi_dma_configure - Set-up DMA configuration for the device.
-> + * @dev: The pointer to the device
-> + * @attr: device dma attributes
-> + */
-> +void acpi_dma_configure(struct device *dev, enum dev_dma_attr attr)
-> +{
-> +	/*
-> +	 * Assume dma valid range starts at 0 and covers the whole
-> +	 * coherent_dma_mask.
-> +	 */
-> +	arch_setup_dma_ops(dev, 0, dev->coherent_dma_mask + 1, NULL,
-> +			   attr == DEV_DMA_COHERENT);
-> +}
-> +
-> +/**
-> + * acpi_dma_deconfigure - Tear-down DMA configuration for the device.
-> + * @dev: The pointer to the device
-> + */
-> +void acpi_dma_deconfigure(struct device *dev)
-> +{
-> +	arch_teardown_dma_ops(dev);
-> +}
-> +
->  static void acpi_init_coherency(struct acpi_device *adev)
+> -int acpi_ioapic_add(struct acpi_pci_root *root)
+> +int acpi_ioapic_add(acpi_handle root_handle)
 >  {
->  	unsigned long long cca = 0;
-> diff --git a/drivers/pci/probe.c b/drivers/pci/probe.c
-> index 8e3ef72..01dd369 100644
-> --- a/drivers/pci/probe.c
-> +++ b/drivers/pci/probe.c
-> @@ -1725,8 +1725,7 @@ static void pci_dma_configure(struct pci_dev *dev)
->  		if (attr == DEV_DMA_NOT_SUPPORTED)
->  			dev_warn(&dev->dev, "DMA not supported.\n");
->  		else
-> -			arch_setup_dma_ops(&dev->dev, 0, 0, NULL,
-> -					   attr == DEV_DMA_COHERENT);
-> +			acpi_dma_configure(&dev->dev, attr);
+>  	acpi_status status, retval = AE_OK;
+>  
+> -	status = acpi_walk_namespace(ACPI_TYPE_DEVICE, root->device->handle,
+> +	status = acpi_walk_namespace(ACPI_TYPE_DEVICE, root_handle,
+>  				     UINT_MAX, handle_ioapic_add, NULL,
+> -				     root->device->handle, (void **)&retval);
+> +				     root_handle, (void **)&retval);
+>  
+>  	return ACPI_SUCCESS(status) && ACPI_SUCCESS(retval) ? 0 : -ENODEV;
+>  }
+> +EXPORT_SYMBOL_GPL(acpi_ioapic_add);
+>  
+>  int acpi_ioapic_remove(struct acpi_pci_root *root)
+>  {
+> diff --git a/drivers/acpi/pci_root.c b/drivers/acpi/pci_root.c
+> index ae3fe4e..53f5965 100644
+> --- a/drivers/acpi/pci_root.c
+> +++ b/drivers/acpi/pci_root.c
+> @@ -614,7 +614,7 @@ static int acpi_pci_root_add(struct acpi_device *device,
+>  	if (hotadd) {
+>  		pcibios_resource_survey_bus(root->bus);
+>  		pci_assign_unassigned_root_bus_resources(root->bus);
+> -		acpi_ioapic_add(root);
+> +		acpi_ioapic_add(root->device->handle);
 >  	}
 >  
->  	pci_put_host_bridge_device(bridge);
-> diff --git a/include/acpi/acpi_bus.h b/include/acpi/acpi_bus.h
-> index 788c6c35..8b5039a 100644
-> --- a/include/acpi/acpi_bus.h
-> +++ b/include/acpi/acpi_bus.h
-> @@ -566,6 +566,8 @@ struct acpi_pci_root {
+>  	pci_lock_rescan_remove();
+> diff --git a/drivers/pci/setup-bus.c b/drivers/pci/setup-bus.c
+> index 55641a3..0658921 100644
+> --- a/drivers/pci/setup-bus.c
+> +++ b/drivers/pci/setup-bus.c
+> @@ -25,6 +25,7 @@
+>  #include <linux/ioport.h>
+>  #include <linux/cache.h>
+>  #include <linux/slab.h>
+> +#include <linux/acpi.h>
+>  #include "pci.h"
 >  
->  bool acpi_dma_supported(struct acpi_device *adev);
->  enum dev_dma_attr acpi_get_dma_attr(struct acpi_device *adev);
-> +void acpi_dma_configure(struct device *dev, enum dev_dma_attr attr);
-> +void acpi_dma_deconfigure(struct device *dev);
+>  unsigned int pci_flags;
+> @@ -1779,8 +1780,12 @@ void __init pci_assign_unassigned_resources(void)
+>  {
+>  	struct pci_bus *root_bus;
 >  
->  struct acpi_device *acpi_find_child_device(struct acpi_device *parent,
->  					   u64 address, bool check_children);
-> diff --git a/include/linux/acpi.h b/include/linux/acpi.h
-> index 288fac5..135a452 100644
-> --- a/include/linux/acpi.h
-> +++ b/include/linux/acpi.h
-> @@ -676,6 +676,11 @@ static inline enum dev_dma_attr acpi_get_dma_attr(struct acpi_device *adev)
->  	return DEV_DMA_NOT_SUPPORTED;
+> -	list_for_each_entry(root_bus, &pci_root_buses, node)
+> +	list_for_each_entry(root_bus, &pci_root_buses, node) {
+>  		pci_assign_unassigned_root_bus_resources(root_bus);
+> +#ifdef CONFIG_X86
+> +		acpi_ioapic_add(ACPI_HANDLE(root_bus->bridge));
+> +#endif
+
+This seems like a strange place to call acpi_ioapic_add().  Your
+object is to call acpi_ioapic_add() during root bus enumeration.
+
+I assume we *can't* call acpi_ioapic_add() from acpi_pci_root_add() at
+boot time, for some reason you'll explain.  But is there a reason we
+have to call it from pci_assign_unassigned_resources() (where it
+requires an ifdef) instead of from pcibios_assign_resources(), which
+is already x86-specific?
+
+In acpi_pci_root_add(), we have this:
+
+  acpi_pci_root_add(...)
+  {
+    ...
+    if (hotadd)
+      acpi_ioapic_add(root);
+
+So the obvious question is why don't we just remove the "if (hotadd)"
+and call acpi_ioapic_add() always.
+
+I'm sure the reason is some ordering problem, but we need a comment in
+acpi_pci_root_add() about why the obvious solution doesn't work.
+
+> +	}
 >  }
 >  
-> +static inline void acpi_dma_configure(struct device *dev,
-> +				      enum dev_dma_attr attr) { }
-> +
-> +static inline void acpi_dma_deconfigure(struct device *dev) { }
-> +
->  #define ACPI_PTR(_ptr)	(NULL)
+>  void pci_assign_unassigned_bridge_resources(struct pci_dev *bridge)
+> diff --git a/include/linux/acpi.h b/include/linux/acpi.h
+> index 288fac5..3ed22df 100644
+> --- a/include/linux/acpi.h
+> +++ b/include/linux/acpi.h
+> @@ -262,6 +262,9 @@ int acpi_unmap_cpu(int cpu);
 >  
->  #endif	/* !CONFIG_ACPI */
+>  #ifdef CONFIG_ACPI_HOTPLUG_IOAPIC
+>  int acpi_get_ioapic_id(acpi_handle handle, u32 gsi_base, u64 *phys_addr);
+> +int acpi_ioapic_add(acpi_handle root);
+> +#else
+> +static inline int acpi_ioapic_add(acpi_handle root) { return 0; }
+>  #endif
+>  
+>  int acpi_register_ioapic(acpi_handle handle, u64 phys_addr, u32 gsi_base);
 > -- 
-> 2.6.4
+> 1.8.3.1
 > 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
