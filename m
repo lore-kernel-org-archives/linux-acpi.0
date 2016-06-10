@@ -1,180 +1,219 @@
-From: Hoan Tran <hotran@apm.com>
-Subject: Re: [PATCH] ACPI/CPPC: Support for batching CPPC requests
-Date: Fri, 10 Jun 2016 14:45:43 -0700
-Message-ID: <CAFHUOYyP4AdmdCiXMaJDeBaiA7qdT6V2kF_oGvvuwOix1uoebA@mail.gmail.com>
-References: <1463441951-13207-1-git-send-email-pprakash@codeaurora.org>
-	<20160526220234.GA26524@arm.com>
-	<CAFHUOYyi4k5JuP5unxKyYH=tdxBE1BNm7zW9cjQchcnrmFNg9A@mail.gmail.com>
-	<aee2936a-a9ec-d594-3f62-19de3ab1a38a@codeaurora.org>
-	<CAFHUOYztBoB=_AbD3GVnbeZGqTn1y3rbHMxUzSdcbdHVo=-jxA@mail.gmail.com>
-	<1b3e7901-845d-0652-cc03-8ef6c35ec8fc@codeaurora.org>
+From: Bjorn Helgaas <helgaas@kernel.org>
+Subject: Re: [PATCH V9 05/11] ACPI/PCI: Add generic MCFG table handling
+Date: Fri, 10 Jun 2016 18:25:33 -0500
+Message-ID: <20160610232533.GA7671@localhost>
+References: <1465588519-11334-1-git-send-email-tn@semihalf.com>
+ <1465588519-11334-6-git-send-email-tn@semihalf.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-vk0-f47.google.com ([209.85.213.47]:36341 "EHLO
-	mail-vk0-f47.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752113AbcFJVpp (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 10 Jun 2016 17:45:45 -0400
-Received: by mail-vk0-f47.google.com with SMTP id u64so3470829vkf.3
-        for <linux-acpi@vger.kernel.org>; Fri, 10 Jun 2016 14:45:44 -0700 (PDT)
-In-Reply-To: <1b3e7901-845d-0652-cc03-8ef6c35ec8fc@codeaurora.org>
+Received: from mail.kernel.org ([198.145.29.136]:48312 "EHLO mail.kernel.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751382AbcFJXZj (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 10 Jun 2016 19:25:39 -0400
+Content-Disposition: inline
+In-Reply-To: <1465588519-11334-6-git-send-email-tn@semihalf.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Prakash, Prashanth" <pprakash@codeaurora.org>
-Cc: Alexey Klimov <alexey.klimov@arm.com>, linux acpi <linux-acpi@vger.kernel.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Ashwin Chaugule <ashwin.chaugule@linaro.org>
+To: Tomasz Nowicki <tn@semihalf.com>
+Cc: arnd@arndb.de, will.deacon@arm.com, catalin.marinas@arm.com, rafael@kernel.org, hanjun.guo@linaro.org, Lorenzo.Pieralisi@arm.com, okaya@codeaurora.org, jchandra@broadcom.com, robert.richter@caviumnetworks.com, mw@semihalf.com, Liviu.Dudau@arm.com, ddaney@caviumnetworks.com, wangyijing@huawei.com, Suravee.Suthikulpanit@amd.com, msalter@redhat.com, linux-pci@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linaro-acpi@lists.linaro.org, jcm@redhat.com, andrea.gallo@linaro.org, dhdang@apm.com, jeremy.linton@arm.com, liudongdong3@huawei.com, cov@codeaurora.org
 
-Hi Prashanth,
+On Fri, Jun 10, 2016 at 09:55:13PM +0200, Tomasz Nowicki wrote:
+> According to PCI firmware specifications, on systems booting with ACPI,
+> PCI configuration for a host bridge must be set-up through the MCFG table
+> regions for non-hotpluggable bridges and _CBA method for hotpluggable ones.
+> 
+> Current MCFG table handling code, as implemented for x86, cannot be
+> easily generalized owing to x86 specific quirks handling and related
+> code, which makes it hard to reuse on other architectures.
+> 
+> In order to implement MCFG PCI configuration handling for new platforms
+> booting with ACPI (eg ARM64) this patch re-implements MCFG handling from
+> scratch in a streamlined fashion and provides (through a generic
+> interface available to all arches):
+> 
+> - Simplified MCFG table parsing (executed through the pci_mmcfg_late_init()
+>   hook as in current x86)
+> - MCFG regions look-up interface through domain:bus_start:bus_end tuple
+> 
+> The new MCFG regions handling interface is added to generic ACPI code
+> so that existing architectures (eg x86) can be moved over to it and
+> architectures relying on MCFG for ACPI PCI config space can rely on it
+> without having to resort to arch specific implementations.
+> 
+> Signed-off-by: Tomasz Nowicki <tn@semihalf.com>
+> Signed-off-by: Jayachandran C <jchandra@broadcom.com>
+> Reviewed-by: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+> ---
+>  drivers/acpi/Kconfig     |  3 ++
+>  drivers/acpi/Makefile    |  1 +
+>  drivers/acpi/pci_mcfg.c  | 92 ++++++++++++++++++++++++++++++++++++++++++++++++
+>  include/linux/pci-acpi.h |  2 ++
+>  include/linux/pci.h      |  2 +-
+>  5 files changed, 99 insertions(+), 1 deletion(-)
+>  create mode 100644 drivers/acpi/pci_mcfg.c
+> 
+> diff --git a/drivers/acpi/Kconfig b/drivers/acpi/Kconfig
+> index b7e2e77..f98c328 100644
+> --- a/drivers/acpi/Kconfig
+> +++ b/drivers/acpi/Kconfig
+> @@ -217,6 +217,9 @@ config ACPI_PROCESSOR_IDLE
+>  	bool
+>  	select CPU_IDLE
+>  
+> +config ACPI_MCFG
+> +	bool
+> +
+>  config ACPI_CPPC_LIB
+>  	bool
+>  	depends on ACPI_PROCESSOR
+> diff --git a/drivers/acpi/Makefile b/drivers/acpi/Makefile
+> index 251ce85..632e81f 100644
+> --- a/drivers/acpi/Makefile
+> +++ b/drivers/acpi/Makefile
+> @@ -40,6 +40,7 @@ acpi-$(CONFIG_ARCH_MIGHT_HAVE_ACPI_PDC) += processor_pdc.o
+>  acpi-y				+= ec.o
+>  acpi-$(CONFIG_ACPI_DOCK)	+= dock.o
+>  acpi-y				+= pci_root.o pci_link.o pci_irq.o
+> +obj-$(CONFIG_ACPI_MCFG)		+= pci_mcfg.o
+>  acpi-y				+= acpi_lpss.o acpi_apd.o
+>  acpi-y				+= acpi_platform.o
+>  acpi-y				+= acpi_pnp.o
+> diff --git a/drivers/acpi/pci_mcfg.c b/drivers/acpi/pci_mcfg.c
+> new file mode 100644
+> index 0000000..d3c3e85
+> --- /dev/null
+> +++ b/drivers/acpi/pci_mcfg.c
+> @@ -0,0 +1,92 @@
+> +/*
+> + * Copyright (C) 2016 Broadcom
+> + *	Author: Jayachandran C <jchandra@broadcom.com>
+> + * Copyright (C) 2016 Semihalf
+> + * 	Author: Tomasz Nowicki <tn@semihalf.com>
+> + *
+> + * This program is free software; you can redistribute it and/or modify
+> + * it under the terms of the GNU General Public License, version 2, as
+> + * published by the Free Software Foundation (the "GPL").
+> + *
+> + * This program is distributed in the hope that it will be useful, but
+> + * WITHOUT ANY WARRANTY; without even the implied warranty of
+> + * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+> + * General Public License version 2 (GPLv2) for more details.
+> + *
+> + * You should have received a copy of the GNU General Public License
+> + * version 2 (GPLv2) along with this source code.
+> + */
+> +
+> +#define pr_fmt(fmt) "ACPI: " fmt
+> +
+> +#include <linux/kernel.h>
+> +#include <linux/pci.h>
+> +#include <linux/pci-acpi.h>
+> +
+> +/* Structure to hold entries from the MCFG table */
+> +struct mcfg_entry {
+> +	struct list_head	list;
+> +	phys_addr_t		addr;
+> +	u16			segment;
+> +	u8			bus_start;
+> +	u8			bus_end;
+> +};
+> +
+> +/* List to save mcfg entries */
+> +static LIST_HEAD(pci_mcfg_list);
+> +
+> +phys_addr_t pci_mcfg_lookup(u16 seg, struct resource *bus_res)
+> +{
+> +	struct mcfg_entry *e;
+> +
+> +	/*
+> +	 * We expect exact match, unless MCFG entry end bus covers more than
+> +	 * specified by caller.
+> +	 */
+> +	list_for_each_entry(e, &pci_mcfg_list, list) {
+> +		if (e->segment == seg && e->bus_start == bus_res->start &&
+> +		    e->bus_end >= bus_res->end)
+> +			return e->addr;
 
-On Fri, Jun 10, 2016 at 2:22 PM, Prakash, Prashanth
-<pprakash@codeaurora.org> wrote:
-> Hi Hoan,
->
-> On 6/9/2016 8:25 PM, Hoan Tran wrote:
->> Hi Prashanth,
->>
->> On Thu, Jun 9, 2016 at 3:46 PM, Prakash, Prashanth
->> <pprakash@codeaurora.org> wrote:
->>> Hi Hoan,
->>>
->>>
->>> On 6/9/2016 11:22 AM, Hoan Tran wrote:
->>>> Hi Prashanth,
->>>>
->>>> On Thu, May 26, 2016 at 3:02 PM, Alexey Klimov <alexey.klimov@arm.com> wrote:
->>>>> On Tue, May 17, 2016 at 12:39 AM, Prashanth Prakash <pprakash@codeaurora.org> wrote:
->>>>>> CPPC defined in section 8.4.7 of ACPI 6.1 specification suggests
->>>>>> "To amortize the cost of PCC transactions, OSPM should read or write
->>>>>> all PCC registers via a single read or write command when possible"
->>>>>> This patch enables opportunistic batching of frequency transition
->>>>>> requests whenever the request happen to overlap in time.
->>>>>>
->>>>>> Currently the access to pcc is serialized by a spin lock which does
->>>>>> not scale well as we increase the number of cores in the system. This
->>>>>> patch improves the scalability by allowing the differnt CPU cores to
->>>>>> update PCC subspace in parallel and by batching requests which will
->>>>>> reduce certain types of operation(checking command completion bit,
->>>>>> ringing doorbell) by a significant margin.
->>>>>>
->>>>>> Profiling shows significant improvement in the time to service freq.
->>>>>> transition request. Using a workload which includes multiple iteration
->>>>>> of configure+make of vim (with -j24 option):
->>>>>> Without batching requests(without this patch),
->>>>>>         6 domains: Avg=20us/request; 24 domains: Avg=52us/request
->>>>>> With batching requests(with this patch),
->>>>>>         6 domains: Avg=16us/request; 24 domains: Avg=19us/request
->>>>>> domain: An individual cpu or a set of related CPUs whose frequency can
->>>>>> be scaled independently
->>>>> With this approach sometimes you will send POSTCHANGE notifications about
->>>>> frequency change for some random CPUs before actual request to change
->>>>> frequency was sent (and received?) through PCC channel.
->>>>> Depending on platform/firmware/configuration this time difference might be high.
->>>>>
->>>>> How vital or important is to have POSTCHANGE notification in correct time
->>>>> order?
->>>>>
->>>>> Best regards,
->>>>> Alexey.
->>>>>
->>>>>
->>>>>
->>>>>> Signed-off-by: Prashanth Prakash <pprakash@codeaurora.org>
->>>>>> ---
->>>>>>  drivers/acpi/cppc_acpi.c | 166 ++++++++++++++++++++++++++++++++++++++++-------
->>>>>>  1 file changed, 141 insertions(+), 25 deletions(-)
->>>>>>
->>>>>> diff --git a/drivers/acpi/cppc_acpi.c b/drivers/acpi/cppc_acpi.c
->>>>>> index 8adac69..3edfd50 100644
->>>>>> --- a/drivers/acpi/cppc_acpi.c
->>>>>> +++ b/drivers/acpi/cppc_acpi.c
->>>>>> @@ -43,12 +43,34 @@
->>>>>>
->>>>>>  #include <acpi/cppc_acpi.h>
->>>>>>  /*
->>>>>> - * Lock to provide mutually exclusive access to the PCC
->>>>>> - * channel. e.g. When the remote updates the shared region
->>>>>> - * with new data, the reader needs to be protected from
->>>>>> - * other CPUs activity on the same channel.
->>>>>> + * Lock to provide controlled access to the PCC channel.
->>>>>> + *
->>>>>> + * For performance critical usecases(currently cppc_set_perf)
->>>>>> + *     We need to take read_lock and check if channel belongs to OSPM before
->>>>>> + * reading or writing to PCC subspace
->>>>>> + *     We need to take write_lock before transferring the channel ownership to
->>>>>> + * the platform via a Doorbell
->>>>>> + *
->>>>>> + * For non-performance critical usecases(init)
->>>>>> + *     Take write_lock for all purposes which gives exclusive access
->>>>>> + *
->>>>>> + * Why not use spin lock?
->>>>>> + *     One of the advantages of CPPC is that we can batch/group a large number
->>>>>> + * of requests from differnt CPUs and send one request to the platform. Using a
->>>>>> + * read-write spinlock allows us to do this in a effecient manner.
->>>>>> + *     On larger multicore systems, if we get a large group of cppc_set_perf
->>>>>> + * calls they all serialize behind a spin lock, but using a rwlock we can
->>>>>> + * execute the requests in a much more scalable manner.
->>>>>> + *     See cppc_set_perf() for more details
->>>>>> + */
->>>>>> +static DEFINE_RWLOCK(pcc_lock);
->>>> Any chance to use mutex instead of spinlock ?
->>>> In some cases such as (cmd = CMD_READ || pcc_mrtt), because of waiting
->>>> for command completion,this spinlock is kept for a while before
->>>> unlock. It could waste CPU time to acquire the spinlock.
->>>>
->>>> Thanks
->>>> Hoan
->>> The CMD_READ is primarily used during the init, so the returns on optimizing
->>> that path is very limited. Since the CPPC protocol requires only an ack for
->>> delivery of request from the platform and the platform can take its own time
->>> to do actual Freq. and Voltage transition, the time we are holding the lock
->>> should be very limited.  At least, in the profiling I have done, I haven't noticed
->>> any issues.
->> When pcc_mrtt is not zero, CPPC still have to wait for the command completion.
->> For CMD_READ, if we support to read performance feedback from CPPC
->> counters, it's not only used during init.
-> Looks like there was some discussion on why spinlocks earlier as well:
-> https://lists.linaro.org/pipermail/linaro-acpi/2015-September/005797.html
->
-> One could make an argument that pcc_mrtt and nominal command latency are
-> typically quite low(in very low us) as platform only acks or provides some info.
+I think this is more strict than necessary.  Here's a common situation
+on x86:
 
-With CMD_READ, firmware updates a full CPPC table. I don't think it's
-fast enough.
+  MCFG for domain 0000 [bus 00-ff] at [mem 0xe0000000-0xefffffff]
+  ACPI: PCI Root Bridge [PCI0] (domain 0000 [bus 00-7f])
+  ACPI: PCI Root Bridge [PCI1] (domain 0000 [bus 80-ff])
 
-> Since the spec doesn't put any restriction on pcc_mrtt, theoretically one could
-> design a platform with high pcc_mrtt, then the current implementation will be
-> sub-optimal on those.
->
-> My hesitation for changing this to mutex/semaphore is primarily due to lack
-> profiling.
+We would fail on PCI1 because the start doesn't match.  But what you
+have is fine for now, and we can loosen this up later if necessary.
 
-You can profile the opensource version, simply change spinlock to mutex.
-I think it's good if we can use mutex/semaphore.
-
-Thanks
-Hoan
-
-> How about we do this,  I will post v2 of this patch fixing the issue
-> Alexey pointed out about POSTCHANGE notification.
-> Following that, I can change this read-write spinlock into a read-write semaphore,
-> profile it and  if it looks good I can submit another patch.
->
-> If you have any profiling data from a different platform that suggest one way
-> is better than the other, please share it as well.
->
-> Thanks,
-> Prashanth
->>
->> Thanks
->> Hoan
->>
->>> Having said that, I haven't done profiling to compare spinlocks vs. mutex for
->>> this scenario. Ashwin might have some background on why spinlocks were
->>> used initially.
->>>
->>> Thanks,
->>> Prashanth
->> --
->> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
->> the body of a message to majordomo@vger.kernel.org
->> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->
+> +	}
+> +
+> +	return 0;
+> +}
+> +
+> +static __init int pci_mcfg_parse(struct acpi_table_header *header)
+> +{
+> +	struct acpi_table_mcfg *mcfg;
+> +	struct acpi_mcfg_allocation *mptr;
+> +	struct mcfg_entry *e, *arr;
+> +	int i, n;
+> +
+> +	if (header->length < sizeof(struct acpi_table_mcfg))
+> +		return -EINVAL;
+> +
+> +	n = (header->length - sizeof(struct acpi_table_mcfg)) /
+> +					sizeof(struct acpi_mcfg_allocation);
+> +	mcfg = (struct acpi_table_mcfg *)header;
+> +	mptr = (struct acpi_mcfg_allocation *) &mcfg[1];
+> +
+> +	arr = kcalloc(n, sizeof(*arr), GFP_KERNEL);
+> +	if (!arr)
+> +		return -ENOMEM;
+> +
+> +	for (i = 0, e = arr; i < n; i++, mptr++, e++) {
+> +		e->segment = mptr->pci_segment;
+> +		e->addr =  mptr->address;
+> +		e->bus_start = mptr->start_bus_number;
+> +		e->bus_end = mptr->end_bus_number;
+> +		list_add(&e->list, &pci_mcfg_list);
+> +	}
+> +
+> +	pr_info("MCFG table detected, %d entries\n", n);
+> +	return 0;
+> +}
+> +
+> +/* Interface called by ACPI - parse and save MCFG table */
+> +void __init pci_mmcfg_late_init(void)
+> +{
+> +	int err = acpi_table_parse(ACPI_SIG_MCFG, pci_mcfg_parse);
+> +	if (err)
+> +		pr_err("Failed to parse MCFG (%d)\n", err);
+> +}
+> diff --git a/include/linux/pci-acpi.h b/include/linux/pci-acpi.h
+> index 89ab057..7d63a66 100644
+> --- a/include/linux/pci-acpi.h
+> +++ b/include/linux/pci-acpi.h
+> @@ -24,6 +24,8 @@ static inline acpi_status pci_acpi_remove_pm_notifier(struct acpi_device *dev)
+>  }
+>  extern phys_addr_t acpi_pci_root_get_mcfg_addr(acpi_handle handle);
+>  
+> +extern phys_addr_t pci_mcfg_lookup(u16 domain, struct resource *bus_res);
+> +
+>  static inline acpi_handle acpi_find_root_bridge_handle(struct pci_dev *pdev)
+>  {
+>  	struct pci_bus *pbus = pdev->bus;
+> diff --git a/include/linux/pci.h b/include/linux/pci.h
+> index 12349de..ce03d65 100644
+> --- a/include/linux/pci.h
+> +++ b/include/linux/pci.h
+> @@ -1723,7 +1723,7 @@ void pcibios_free_irq(struct pci_dev *dev);
+>  extern struct dev_pm_ops pcibios_pm_ops;
+>  #endif
+>  
+> -#ifdef CONFIG_PCI_MMCONFIG
+> +#if defined(CONFIG_PCI_MMCONFIG) || defined(CONFIG_ACPI_MCFG)
+>  void __init pci_mmcfg_early_init(void);
+>  void __init pci_mmcfg_late_init(void);
+>  #else
+> -- 
+> 1.9.1
+> 
