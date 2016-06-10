@@ -1,62 +1,84 @@
-From: Crestez Dan Leonard <leonard.crestez@intel.com>
-Subject: Re: [RFC v2 2/2] i2c: Pass i2c_device_id to probe func when using DT
- ids through ACPI
-Date: Fri, 10 Jun 2016 15:00:17 +0300
-Message-ID: <bb2702c4-848a-4e0e-6381-66af079a7c13@intel.com>
-References: <cover.1465477193.git.leonard.crestez@intel.com>
- <f5d92224a005bc7b82e210957719b7be142c6388.1465477193.git.leonard.crestez@intel.com>
- <20160610070424.GA1552@katana>
+From: Tomasz Nowicki <tn@semihalf.com>
+Subject: Re: [RFC PATCH v2 13/15] drivers: acpi: iort: introduce
+ iort_iommu_configure
+Date: Fri, 10 Jun 2016 14:46:56 +0200
+Message-ID: <575AB6C0.4050808@semihalf.com>
+References: <1465306270-27076-1-git-send-email-lorenzo.pieralisi@arm.com>
+ <1465306270-27076-14-git-send-email-lorenzo.pieralisi@arm.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252
+Content-Type: text/plain; charset=windows-1252; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga09.intel.com ([134.134.136.24]:47334 "EHLO mga09.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752918AbcFJMAo (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 10 Jun 2016 08:00:44 -0400
-In-Reply-To: <20160610070424.GA1552@katana>
+Received: from mail-lf0-f51.google.com ([209.85.215.51]:33487 "EHLO
+	mail-lf0-f51.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932473AbcFJMrA (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 10 Jun 2016 08:47:00 -0400
+Received: by mail-lf0-f51.google.com with SMTP id f6so24448009lfg.0
+        for <linux-acpi@vger.kernel.org>; Fri, 10 Jun 2016 05:47:00 -0700 (PDT)
+In-Reply-To: <1465306270-27076-14-git-send-email-lorenzo.pieralisi@arm.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Wolfram Sang <wsa@the-dreams.de>
-Cc: linux-acpi@vger.kernel.org, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, linux-i2c@vger.kernel.org, Mika Westerberg <mika.westerberg@linux.intel.com>, linux-kernel@vger.kernel.org, Irina Tirdea <irina.tirdea@intel.com>, Octavian Purdila <octavian.purdila@intel.com>, Daniel Baluta <daniel.baluta@intel.com>
+To: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, iommu@lists.linux-foundation.org
+Cc: Hanjun Guo <hanjun.guo@linaro.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Will Deacon <will.deacon@arm.com>, Marc Zyngier <marc.zyngier@arm.com>, Robin Murphy <robin.murphy@arm.com>, Joerg Roedel <joro@8bytes.org>, Jon Masters <jcm@redhat.com>, Sinan Kaya <okaya@codeaurora.org>, linux-acpi@vger.kernel.org, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-On 06/10/2016 10:04 AM, Wolfram Sang wrote:
-> On Thu, Jun 09, 2016 at 04:06:03PM +0300, Crestez Dan Leonard wrote:
->> When devices are instatiated through devicetree the i2c_client->name is
->> set to the compatible string with company name stripped out. This is
->> then matched to the i2c_device_id table to pass the device_id to the
->> probe function. This id parameter is used by some device drivers to
->> differentiate between model numbers.
->>
->> When using ACPI this id parameter is NULL and the driver usually needs
->> to do ACPI-specific differentiation.
->>
->> This patch attempts to find a valid i2c_device_id when using ACPI with
->> DT-like compatible strings.
-> 
-> Note that this DT behaviour is about to be dropped to match I2C with
-> the "generic" behaviour".
-> 
-> https://lkml.org/lkml/2016/5/4/534
+On 07.06.2016 15:31, Lorenzo Pieralisi wrote:
+> +static int __get_pci_rid(struct pci_dev *pdev, u16 alias, void *data)
+> +{
+> +	u32 *rid = data;
+> +
+> +	*rid = alias;
+> +	return 0;
+> +}
+> +
+> +/**
+> + * iort_iommu_configure - Set-up IOMMU configuration for a device.
+> + *
+> + * @dev: device to configure
+> + *
+> + * Returns: iommu_ops pointer on configuration success
+> + *          NULL on configuration failure
+> + */
+> +const struct iommu_ops *iort_iommu_configure(struct device *dev)
+> +{
+> +	struct acpi_iort_node *node, *parent;
+> +	const struct iort_ops_node *iort_ops;
+> +	u32 rid = 0, devid = 0;
+> +
+> +	if (dev_is_pci(dev)) {
+> +		struct pci_bus *bus = to_pci_dev(dev)->bus;
+> +
+> +		pci_for_each_dma_alias(to_pci_dev(dev), __get_pci_rid,
+> +				       &rid);
 
-Looking at that series it seems that the intention is to eventually
-remove the i2c_device_id argument from probe completely? That would
-cause a lot of code churn. It would also require every driver that needs
-to differentiate between models to pretty much duplicate the matching
-logic performed by the core.
+I think we should find here the root bus which is connected to RC IORT node.
 
-This does seem better than receiving an i2c_device_id parameter argument
-which may or may not be NULL. Still, in order to support multiple models
-using ACPI DT ids every driver would have to attempt some sort of
-acpi_of_match_device, right?
+> +
+> +		node = iort_scan_node(ACPI_IORT_NODE_PCI_ROOT_COMPLEX,
+> +				      iort_find_dev_callback, &bus->dev);
+> +	} else {
+> +		node = iort_scan_node(ACPI_IORT_NODE_NAMED_COMPONENT,
+> +				      iort_find_dev_callback, dev);
+> +	}
+> +
+> +	if (!node)
+> +		return NULL;
+> +
+> +	parent = iort_find_parent_node(node);
+> +
+> +	if (!parent)
+> +		return NULL;
+> +
+> +	iort_ops = iort_smmu_get_ops_node(parent);
+> +
+> +	if (iort_ops && iort_ops->iommu_xlate) {
+> +		iort_dev_map_rid(node, rid, &devid, parent->type);
+> +		iort_ops->iommu_xlate(dev, devid, parent);
+> +		return iort_ops->ops;
+> +	}
+> +
+> +	return NULL;
+> +}
+> +
 
-Have you considered adding .probe_of(dev, of_device_id) and
-.probe_acpi(dev, acpi_device_id) instead, with arguments which are
-always guaranteed to be non-NULL? The main advantage would be that
-drivers don't need to do their own matching and all rules are only
-present ever in the core. Then ACPI with DT ids could be made to "just
-work" without per-driver support.
-
--- 
-Regards,
-Leonard
+Thanks,
+Tomasz
