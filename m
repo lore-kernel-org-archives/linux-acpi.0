@@ -1,33 +1,39 @@
-From: Bjorn Helgaas <helgaas@kernel.org>
+From: Jon Masters <jcm@redhat.com>
 Subject: Re: [PATCH V9 00/11] Support for ARM64 ACPI based PCI host controller
-Date: Fri, 10 Jun 2016 18:41:07 -0500
-Message-ID: <20160610234107.GC7671@localhost>
-References: <1465588519-11334-1-git-send-email-tn@semihalf.com>
+Date: Fri, 10 Jun 2016 19:50:43 -0400 (EDT)
+Message-ID: <66887FB8-0D7E-42A0-AC25-A0BB8045D1B9@redhat.com>
+References: <1465588519-11334-1-git-send-email-tn@semihalf.com> <20160610234107.GC7671@localhost>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.136]:48862 "EHLO mail.kernel.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751918AbcFJXlM (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 10 Jun 2016 19:41:12 -0400
-Content-Disposition: inline
-In-Reply-To: <1465588519-11334-1-git-send-email-tn@semihalf.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain;
+	charset=us-ascii
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-pci-owner@vger.kernel.org>
+In-Reply-To: <20160610234107.GC7671@localhost>
+Sender: linux-pci-owner@vger.kernel.org
+To: Bjorn Helgaas <helgaas@kernel.org>
+Cc: Tomasz Nowicki <tn@semihalf.com>, arnd@arndb.de, will.deacon@arm.com, catalin.marinas@arm.com, rafael@kernel.org, hanjun.guo@linaro.org, Lorenzo.Pieralisi@arm.com, okaya@codeaurora.org, jchandra@broadcom.com, robert.richter@caviumnetworks.com, mw@semihalf.com, Liviu.Dudau@arm.com, ddaney@caviumnetworks.com, wangyijing@huawei.com, Suravee.Suthikulpanit@amd.com, msalter@redhat.com, linux-pci@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linaro-acpi@lists.linaro.org, andrea.gallo@linaro.org, dhdang@apm.com, jeremy.linton@arm.com, liudongdong3@huawei.com, cov@codeaurora.org
 List-Id: linux-acpi@vger.kernel.org
-To: Tomasz Nowicki <tn@semihalf.com>
-Cc: arnd@arndb.de, will.deacon@arm.com, catalin.marinas@arm.com, rafael@kernel.org, hanjun.guo@linaro.org, Lorenzo.Pieralisi@arm.com, okaya@codeaurora.org, jchandra@broadcom.com, robert.richter@caviumnetworks.com, mw@semihalf.com, Liviu.Dudau@arm.com, ddaney@caviumnetworks.com, wangyijing@huawei.com, Suravee.Suthikulpanit@amd.com, msalter@redhat.com, linux-pci@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linaro-acpi@lists.linaro.org, jcm@redhat.com, andrea.gallo@linaro.org, dhdang@apm.com, jeremy.linton@arm.com, liudongdong3@huawei.com, cov@codeaurora.org
 
-On Fri, Jun 10, 2016 at 09:55:08PM +0200, Tomasz Nowicki wrote:
-> From the functionality point of view this series may be split into the
-> following logic parts:
-> 1. Export ECAM API and add parent device to pci_config_window
-> 2. Add IO resources handling to PCI core code
-> 3. New MCFG driver
-> 4. Cleanups and support for generic domain assignment based on ACPI
-> 5. Implement ARM64 ACPI based PCI host controller driver under arch/arm64/
+Thank you Bjorn :)
 
-This is beautiful!  It really turned out well.
+Next time we are in the same place (anyone involved in this series), beer is on me.
 
-I applied all these to pci/arm64-acpi for v4.8.
+-- 
+Computer Architect | Sent from my 64-bit #ARM Powered phone
 
-Bjorn
+> On Jun 10, 2016, at 18:41, Bjorn Helgaas <helgaas@kernel.org> wrote:
+> 
+>> On Fri, Jun 10, 2016 at 09:55:08PM +0200, Tomasz Nowicki wrote:
+>> From the functionality point of view this series may be split into the
+>> following logic parts:
+>> 1. Export ECAM API and add parent device to pci_config_window
+>> 2. Add IO resources handling to PCI core code
+>> 3. New MCFG driver
+>> 4. Cleanups and support for generic domain assignment based on ACPI
+>> 5. Implement ARM64 ACPI based PCI host controller driver under arch/arm64/
+> 
+> This is beautiful!  It really turned out well.
+> 
+> I applied all these to pci/arm64-acpi for v4.8.
+> 
+> Bjorn
