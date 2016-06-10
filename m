@@ -1,65 +1,69 @@
-From: Wolfram Sang <wsa@the-dreams.de>
-Subject: Re: [RFC v2 2/2] i2c: Pass i2c_device_id to probe func when using DT
- ids through ACPI
-Date: Fri, 10 Jun 2016 09:04:24 +0200
-Message-ID: <20160610070424.GA1552@katana>
-References: <cover.1465477193.git.leonard.crestez@intel.com>
- <f5d92224a005bc7b82e210957719b7be142c6388.1465477193.git.leonard.crestez@intel.com>
+From: "Opensource [Adam Thomson]" <Adam.Thomson.Opensource@diasemi.com>
+Subject: RE: [RESEND PATCH v2 1/2] device property: Add function to search
+ for named child of device
+Date: Fri, 10 Jun 2016 09:58:39 +0000
+Message-ID: <2E89032DDAA8B9408CB92943514A0337D46421B6@SW-EX-MBX01.diasemi.com>
+References: <cover.1464802265.git.Adam.Thomson.Opensource@diasemi.com>
+ <7105258db927c65dfa41a8abeef4b9735871d023.1464802265.git.Adam.Thomson.Opensource@diasemi.com>
+ <97f80018-7cc4-0a50-498d-89d27dfa2fd1@intel.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="YiEDa0DAkWCtVeE4"
-Return-path: <linux-i2c-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <f5d92224a005bc7b82e210957719b7be142c6388.1465477193.git.leonard.crestez@intel.com>
-Sender: linux-i2c-owner@vger.kernel.org
-To: Crestez Dan Leonard <leonard.crestez@intel.com>
-Cc: linux-acpi@vger.kernel.org, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, linux-i2c@vger.kernel.org, Mika Westerberg <mika.westerberg@linux.intel.com>, linux-kernel@vger.kernel.org, Irina Tirdea <irina.tirdea@intel.com>, Octavian Purdila <octavian.purdila@intel.com>, Daniel Baluta <daniel.baluta@intel.com>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail1.bemta3.messagelabs.com ([195.245.230.166]:25733 "EHLO
+	mail1.bemta3.messagelabs.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752006AbcFJJ6w (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 10 Jun 2016 05:58:52 -0400
+In-Reply-To: <97f80018-7cc4-0a50-498d-89d27dfa2fd1@intel.com>
+Content-Language: en-US
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, "Opensource [Adam Thomson]" <Adam.Thomson.Opensource@diasemi.com>, Jaroslav Kysela <perex@perex.cz>, Mika Westerberg <mika.westerberg@linux.intel.com>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Heikki Krogerus <heikki.krogerus@linux.intel.com>
+Cc: Mark Brown <broonie@kernel.org>, Liam Girdwood <lgirdwood@gmail.com>, Takashi Iwai <tiwai@suse.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Robert Moore <robert.moore@intel.com>, Lv Zheng <lv.zheng@intel.com>, Len Brown <lenb@kernel.org>, "alsa-devel@alsa-project.org" <alsa-devel@alsa-project.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "devel@acpica.org" <devel@acpica.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Support Opensource <Support.Opensource@diasemi.com>, Sathyanarayana Nujella <sathyanarayana.nujella@intel.com>, Suravee Suthikulpanit <Suravee.Suthikulpanit@amd.com>, Bjorn Helgaas <bhelgaas@google.com>, Hanjun Guo <hanjun.guo@linaro.org>, Andrew Morton <akpm@linux-foundation.org>
 
-
---YiEDa0DAkWCtVeE4
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
-
-On Thu, Jun 09, 2016 at 04:06:03PM +0300, Crestez Dan Leonard wrote:
-> When devices are instatiated through devicetree the i2c_client->name is
-> set to the compatible string with company name stripped out. This is
-> then matched to the i2c_device_id table to pass the device_id to the
-> probe function. This id parameter is used by some device drivers to
-> differentiate between model numbers.
->=20
-> When using ACPI this id parameter is NULL and the driver usually needs
-> to do ACPI-specific differentiation.
->=20
-> This patch attempts to find a valid i2c_device_id when using ACPI with
-> DT-like compatible strings.
-
-Note that this DT behaviour is about to be dropped to match I2C with
-the "generic" behaviour".
-
-https://lkml.org/lkml/2016/5/4/534
-
-
---YiEDa0DAkWCtVeE4
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iQIcBAEBAgAGBQJXWmZ4AAoJEBQN5MwUoCm2z+EP/Rf0AXiIN8ZV8KQNuP2MwZEO
-y5ENw1RDquLkQ578Z7N5NPWT+wfk97xz4snyxF3aCxwGkvh9UbNhN+2AXKqgYEXX
-82UEdReK38TgZkxgUW6H4lOtLwgJfk/7It2XPZjnu0/2OVGtEdZfsxjjhYALvVBM
-7++NppbUDprUO9s+AdX7fQiVMOD6Zin2iGfrXbmdZ5PMVRg1CqyGKpk5vvISwLqR
-gJ/biyAAf/c1Bz7DcWE99irH1SJNdyvefTXKVW+wwRkVCbgCjHLwDR3kRBCwd9qt
-ZR4hNApPk1yFLQdbXxWfXyEtuH+5SQzVJszzDhXh+cIGZ+uUHo4UPhW4GMAmy7di
-hfhLwGuxo1/eoMSSF7fJSSWTG9IhSgLewlHurWHTqlLMS9vRb/TmU7H9JMLfYpZa
-DackKeJMsHEc9qQ8vpwobnKq7XaUxXuaoCpAczgc/VD7P1/xL4S342MDVc9B6Knn
-0L+oFLHuWDrBGllWXTsbFVXNw71z9B3sSVy3UdZPHsbQpm1qz2TGsWyBlCQhHn+O
-8DJ/1Xz50XHep9PW8UE5DiZYZT8XecGisQp4DVSL8lI6RPdv4YRcEmVs2LFDmd3o
-ZSCeoL3AZyvvc4+2ggBjKyJOMeicCRd5zjjd6BpUWb6UwY/Jpwa8GbCOeVc/oN58
-JJr3cvY4H+XvA+sUh/dW
-=ohvP
------END PGP SIGNATURE-----
-
---YiEDa0DAkWCtVeE4--
+T24gMTAgSnVuZSAyMDE2IDAwOjExLCBSYWZhZWwgSi4gV3lzb2NraSB3cm90ZToNCg0KPiBGb3Ig
+c29tZSByZWFzb24gdGhhdCBkaWRuJ3QgbWFrZSBpdCBpbnRvIHRoZSBsaW51eC1hY3BpIGxpc3Qs
+IG9yIGF0DQo+IGxlYXN0IEkgY2FuJ3Qgc2VlIGl0IHRoZXJlLg0KDQpUaGF0J3Mgc3RyYW5nZS4g
+SSdtIG5vdCBhIHN1YnNjcmliZXIgdG8gdGhhdCBtYWlsaW5nIGxpc3QsIGJ1dCBJIGFzc3VtZSB0
+aGF0DQpzaG91bGRuJ3QgbWF0dGVyIGhlcmU/IFN0cmFuZ2VseSB0aG91Z2ggdGhlIG9ubHkgbWFp
+bGluZyBsaXN0IHRoZXNlIHNlZW0gdG8gaGF2ZQ0KbWFkZSBpdCB0byBpcyB0aGUgQUxTQSBvbmUu
+IDooIFdpbGwgc2VlIGlmIEkgY2FuIGZpbmQgb3V0IHdoeSBhcyBJJ3ZlIG5vdA0Kc2VlbiB0aGlz
+IHByb2JsZW0gYmVmb3JlLg0KDQo+ID4gKyAqIGRldmljZV9nZXRfbmFtZWRfY2hpbGRfbm9kZSAt
+IFJldHVybiBmaXJzdCBtYXRjaGluZyBuYW1lZCBjaGlsZCBub2RlDQo+IGhhbmRsZQ0KPiA+ICsg
+KiBAZGV2OiBEZXZpY2UgdG8gZmluZCB0aGUgbmFtZWQgY2hpbGQgbm9kZSBmb3IuDQo+ID4gKyAq
+IEBjaGlsZG5hbWU6IFN0cmluZyB0byBtYXRjaCBjaGlsZCBub2RlIG5hbWUgYWdhaW5zdC4NCj4g
+PiArICovDQo+ID4gK3N0cnVjdCBmd25vZGVfaGFuZGxlICpkZXZpY2VfZ2V0X25hbWVkX2NoaWxk
+X25vZGUoc3RydWN0IGRldmljZSAqZGV2LA0KPiA+ICsJCQkJCQkgIGNvbnN0IGNoYXIgKmNoaWxk
+bmFtZSkNCj4gPiArew0KPiA+ICsJc3RydWN0IGZ3bm9kZV9oYW5kbGUgKmNoaWxkOw0KPiA+ICsN
+Cj4gPiArCS8qDQo+ID4gKwkgKiBGaW5kIGZpcnN0IG1hdGNoaW5nIG5hbWVkIGNoaWxkIG5vZGUg
+b2YgdGhpcyBkZXZpY2UuDQo+ID4gKwkgKiBGb3IgQUNQSSB0aGlzIHdpbGwgYmUgYSBkYXRhIG9u
+bHkgc3ViLW5vZGUuDQo+ID4gKwkgKi8NCj4gPiArCWRldmljZV9mb3JfZWFjaF9jaGlsZF9ub2Rl
+KGRldiwgY2hpbGQpIHsNCj4gPiArCQlpZiAoaXNfb2Zfbm9kZShjaGlsZCkpIHsNCj4gPiArCQkJ
+aWYgKCFzdHJjYXNlY21wKHRvX29mX25vZGUoY2hpbGQpLT5uYW1lLCBjaGlsZG5hbWUpKQ0KPg0K
+PiBXaHkgZG8geW91IHVzZSBzdHJjYXNlY21wKCkgaGVyZT8NCg0KRFQgbm9kZSBuYW1lcyBhcmUg
+Y2FzZSBpbnNlbnNpdGl2ZS4gVGhlIG9mLmggaGVhZGVyIGRvZXMgcHJvdmlkZSBhIGhlbHBlciBt
+YWNybw0Kd2hpY2ggaXMgZXF1aXZhbGVudCB0byB0aGlzLCBidXQgdGhhdCBtYWNybyBpcyBwYXJ0
+IG9mIHRoZSAnI2lmZGVmIENPTkZJR19PRicNCmJsb2NrLiBJZiBJIHdlcmUgdG8gdXNlIGl0IHRo
+ZW4gaXQgd291bGQgY2F1c2Ugbm9uLURUIGJ1aWxkcyB0byBmYWlsLiBJIG9wdGVkDQpmb3Igc3Ry
+Y2FzZWNtcCgpIGRpcmVjdGx5IGFzIEkgZGlkbid0IHRoaW5rIGZvciBqdXN0IHRoaXMgb25lIHNj
+ZW5hcmlvIGl0IG1hZGUNCnNlbnNlIHRvIHJlb3JnYW5pc2UgdGhlIG9mLmggaGVhZGVyIHdpdGgg
+cmVnYXJkcyB0byB0aGUgaGVscGVyIG1hY3Jvcy4gT2YgY291cnNlDQppZiB0aGVyZSBhcmUgb3Ro
+ZXIgb3BpbmlvbnMgb24gdGhpcyB0aGVuIGFtIGhhcHB5IHRvIGxpc3Rlbi4NCg0KPiA+ICtzdGF0
+aWMgaW5saW5lIGJvb2wgYWNwaV9kYXRhX25vZGVfbWF0Y2goc3RydWN0IGZ3bm9kZV9oYW5kbGUg
+KmZ3bm9kZSwNCj4gPiArCQkJCQljb25zdCBjaGFyICpuYW1lKQ0KPiA+ICt7DQo+ID4gKwlyZXR1
+cm4gaXNfYWNwaV9kYXRhX25vZGUoZndub2RlKSA/DQo+ID4gKwkJKCFzdHJjYXNlY21wKHRvX2Fj
+cGlfZGF0YV9ub2RlKGZ3bm9kZSktPm5hbWUsIG5hbWUpKSA6IGZhbHNlOw0KPiA+ICt9DQo+DQo+
+IElzIHRoZXJlIGFueSBwYXJ0aWN1bGFyIHJlYXNvbiB0byBpbnRyb2R1Y2UgdGhpcyBmdW5jdGlv
+biBpbnN0ZWFkIG9mDQo+IGRvaW5nIHRoZSB0ZXN0IGluIGRldmljZV9nZXRfbmFtZWRfY2hpbGRf
+bm9kZSgpIGRpcmVjdGx5Pw0KDQpBZ2FpbiB0aGlzIGlzIGEgYnVpbGQgcmVsYXRlZCBkZXNpZ24g
+b3B0aW9uIChJIG1lbnRpb24gaXQgaW4gdGhlIHBhdGNoDQpkZXNjcmlwdGlvbikuIEluIGEgbm9u
+LURUIGJ1aWxkIHRoZXJlIGlzIG5vIGFjY2VzcyB0byB0aGUgYWNwaV9kYXRhX25vZGUgc3RydWN0
+DQoocmV0dXJuZWQgYnkgdG9fYWNwaV9kYXRhX25vZGUoKSBjYWxsKSBzbyBpZiB3ZSBjYWxsIHRo
+aXMgaW4gdGhhdCBzY2VuYXJpbyB0aGVuDQp0aGUgYnVpbGQgd2lsbCBmYWlsLiBJIGNvdWxkIGhh
+dmUgYWRkZWQgc29tZSAjaWZkZWZzIHRvIHRoZQ0KZGV2aWNlX2dldF9uYW1lZF9jaGlsZF9ub2Rl
+KCkgZnVuY3Rpb24gZGlyZWN0bHksIGJ1dCB0aGF0IHdvdWxkIGhhdmUgYmVlbiBhIGJpdA0KbWVz
+c3kgSSB0aGluay4gVG8gbWUgaXQgbWFkZSBtb3JlIHNlbnNlIHRvIGhhdmUgdGhpcyBoZWxwZXIg
+ZnVuY3Rpb24gd2hpY2ggY2FuDQpiZSBjYWxsZWQgcmVnYXJkbGVzcyBvZiBidWlsZCB0eXBlLCBh
+bmQgZm9yIG5vbi1BQ1BJIGJ1aWxkcyBpdHMgZGVmaW5pdGlvbg0KYWx3YXlzIHJldHVybnMgZmFs
+c2UuDQo=
