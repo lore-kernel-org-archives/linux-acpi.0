@@ -1,89 +1,167 @@
-From: Crestez Dan Leonard <leonard.crestez@intel.com>
-Subject: Re: [RFC v2 2/2] i2c: Pass i2c_device_id to probe func when using DT
- ids through ACPI
-Date: Fri, 10 Jun 2016 18:57:36 +0300
-Message-ID: <6721468a-753d-fb52-5bc5-8738312b7bd0@intel.com>
-References: <cover.1465477193.git.leonard.crestez@intel.com>
- <f5d92224a005bc7b82e210957719b7be142c6388.1465477193.git.leonard.crestez@intel.com>
- <20160610063232.GR1791@lahna.fi.intel.com>
+From: Bjorn Helgaas <helgaas-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Subject: Re: [RFC PATCH v2 12/15] drivers: acpi: implement acpi_dma_configure
+Date: Fri, 10 Jun 2016 11:25:28 -0500
+Message-ID: <20160610162528.GI19309@localhost>
+References: <1465306270-27076-1-git-send-email-lorenzo.pieralisi@arm.com>
+	<1465306270-27076-13-git-send-email-lorenzo.pieralisi@arm.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga01.intel.com ([192.55.52.88]:41065 "EHLO mga01.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S933255AbcFJP6H (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 10 Jun 2016 11:58:07 -0400
-In-Reply-To: <20160610063232.GR1791@lahna.fi.intel.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Return-path: <iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <1465306270-27076-13-git-send-email-lorenzo.pieralisi-5wv7dgnIgG8@public.gmane.org>
+List-Unsubscribe: <https://lists.linuxfoundation.org/mailman/options/iommu>,
+	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.linuxfoundation.org/pipermail/iommu/>
+List-Post: <mailto:iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
+List-Help: <mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.linuxfoundation.org/mailman/listinfo/iommu>,
+	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=subscribe>
+Sender: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
+Errors-To: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
+To: Lorenzo Pieralisi <lorenzo.pieralisi-5wv7dgnIgG8@public.gmane.org>
+Cc: Marc Zyngier <marc.zyngier-5wv7dgnIgG8@public.gmane.org>, Tomasz Nowicki <tn-nYOzD4b6Jr9Wk0Htik3J/w@public.gmane.org>, "Rafael J. Wysocki" <rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org>, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Will Deacon <will.deacon-5wv7dgnIgG8@public.gmane.org>, linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Sinan Kaya <okaya-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org, Hanjun Guo <hanjun.guo-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Jon Masters <jcm-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Bjorn Helgaas <bhelgaas-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
-To: Mika Westerberg <mika.westerberg@linux.intel.com>
-Cc: linux-acpi@vger.kernel.org, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, linux-i2c@vger.kernel.org, Wolfram Sang <wsa@the-dreams.de>, linux-kernel@vger.kernel.org, Irina Tirdea <irina.tirdea@intel.com>, Octavian Purdila <octavian.purdila@intel.com>, Daniel Baluta <daniel.baluta@intel.com>
 
-On 06/10/2016 09:32 AM, Mika Westerberg wrote:
-> On Thu, Jun 09, 2016 at 04:06:03PM +0300, Crestez Dan Leonard wrote:
->> When devices are instatiated through devicetree the i2c_client->name is
->> set to the compatible string with company name stripped out. This is
->> then matched to the i2c_device_id table to pass the device_id to the
->> probe function. This id parameter is used by some device drivers to
->> differentiate between model numbers.
->>
->> When using ACPI this id parameter is NULL and the driver usually needs
->> to do ACPI-specific differentiation.
->>
->> This patch attempts to find a valid i2c_device_id when using ACPI with
->> DT-like compatible strings.
+On Tue, Jun 07, 2016 at 02:31:07PM +0100, Lorenzo Pieralisi wrote:
+> On DT based systems, the of_dma_configure() API implements DMA configuration
+> for a given device. On ACPI systems an API equivalent to of_dma_configure()
+> is missing which implies that it is currently not possible to set-up DMA
+> operations for devices through the ACPI generic kernel layer.
 > 
-> So I don't really understand why it would be good idea to pass
-> i2c_device_id for devices which are matched against their ACPI/DT
-> tables. Apparently DT is already doing that so maybe there is some
-> reason.
+> This patch fills the gap by introducing acpi_dma_configure/deconfigure()
+> calls that for now are just wrappers around arch_setup_dma_ops() and
+> arch_teardown_dma_ops() and also updates ACPI and PCI core code to use
+> the newly introduced acpi_dma_configure/acpi_dma_deconfigure functions.
 > 
-> Anyway, why not fill in the device name when it is first enumerated
-> if it uses DT compatible property? Just like DT does.
+> The DMA range size passed to arch_setup_dma_ops() is sized according
+> to the device coherent_dma_mask (starting at address 0x0), mirroring the
+> DT probing path behaviour when a dma-ranges property is not provided
+> for the device being probed; this changes the current arch_setup_dma_ops()
+> call parameters in the ACPI probing case, but since arch_setup_dma_ops()
+> is a NOP on all architectures but ARM/ARM64 this patch does not change
+> the current kernel behaviour on them.
 > 
-This automatic matching of i2c_device_id works for devicetree because
-of_i2c_register_device sets i2c_board_info.type to the compatible string
-with the vendor prefix removed. For I2C devices described via ACPI the
-i2c_board_info.type string is set to the ACPI device name. This ends up
-something like "PRP0001:00".
+> Signed-off-by: Lorenzo Pieralisi <lorenzo.pieralisi-5wv7dgnIgG8@public.gmane.org>
+> Cc: Bjorn Helgaas <bhelgaas-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>
+> Cc: Robin Murphy <robin.murphy-5wv7dgnIgG8@public.gmane.org>
+> Cc: Tomasz Nowicki <tn-nYOzD4b6Jr9Wk0Htik3J/w@public.gmane.org>
+> Cc: Joerg Roedel <joro-zLv9SwRftAIdnm+yROfE0A@public.gmane.org>
+> Cc: "Rafael J. Wysocki" <rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org>
 
-This could be changed in acpi_i2c_get_info to use the of_compatible
-string from DSD if present. Is that what you mean? That would work and
-it would be cleaner than my patch. Something like this:
+Acked-by: Bjorn Helgaas <bhelgaas-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>
 
-diff --git drivers/i2c/i2c-core.c drivers/i2c/i2c-core.c
-index 1e0ef9b..ba2fe7f 100644
---- drivers/i2c/i2c-core.c
-+++ drivers/i2c/i2c-core.c
-@@ -181,7 +181,24 @@ static int acpi_i2c_get_info(struct acpi_device *adev,
+I assume this will be merged by somebody else along with the rest
+of the series.
 
-        acpi_dev_free_resource_list(&resource_list);
-
--       strlcpy(info->type, dev_name(&adev->dev), sizeof(info->type));
-+       /*
-+        * If we have a DT id set info.type to the first compatible
-string with
-+        * the vendor prefix stripped. This is similar to of_modalias_node
-+        */
-+       if (adev->data.of_compatible) {
-+               const union acpi_object *obj;
-+               const char *str, *chr;
-+
-+               obj = adev->data.of_compatible;
-+               if (obj->type == ACPI_TYPE_PACKAGE)
-+                       obj = obj->package.elements;
-+               str = obj->string.pointer;
-+               chr = strchr(str, ',');
-+               if (chr)
-+                       str = chr + 1;
-+               strlcpy(info->type, str, sizeof(info->type));
-+       } else
-+               strlcpy(info->type, dev_name(&adev->dev),
-sizeof(info->type));
-
-        return 0;
- }
-
-The biggest concern is that this would change the i2c device name
-between kernel versions. Is that acceptable?
+> ---
+>  drivers/acpi/glue.c     |  4 ++--
+>  drivers/acpi/scan.c     | 24 ++++++++++++++++++++++++
+>  drivers/pci/probe.c     |  3 +--
+>  include/acpi/acpi_bus.h |  2 ++
+>  include/linux/acpi.h    |  5 +++++
+>  5 files changed, 34 insertions(+), 4 deletions(-)
+> 
+> diff --git a/drivers/acpi/glue.c b/drivers/acpi/glue.c
+> index 5ea5dc2..f8d6564 100644
+> --- a/drivers/acpi/glue.c
+> +++ b/drivers/acpi/glue.c
+> @@ -227,8 +227,7 @@ int acpi_bind_one(struct device *dev, struct acpi_device *acpi_dev)
+>  
+>  	attr = acpi_get_dma_attr(acpi_dev);
+>  	if (attr != DEV_DMA_NOT_SUPPORTED)
+> -		arch_setup_dma_ops(dev, 0, 0, NULL,
+> -				   attr == DEV_DMA_COHERENT);
+> +		acpi_dma_configure(dev, attr);
+>  
+>  	acpi_physnode_link_name(physical_node_name, node_id);
+>  	retval = sysfs_create_link(&acpi_dev->dev.kobj, &dev->kobj,
+> @@ -251,6 +250,7 @@ int acpi_bind_one(struct device *dev, struct acpi_device *acpi_dev)
+>  	return 0;
+>  
+>   err:
+> +	acpi_dma_deconfigure(dev);
+>  	ACPI_COMPANION_SET(dev, NULL);
+>  	put_device(dev);
+>  	put_device(&acpi_dev->dev);
+> diff --git a/drivers/acpi/scan.c b/drivers/acpi/scan.c
+> index 5f28cf7..b4b9064 100644
+> --- a/drivers/acpi/scan.c
+> +++ b/drivers/acpi/scan.c
+> @@ -1358,6 +1358,30 @@ enum dev_dma_attr acpi_get_dma_attr(struct acpi_device *adev)
+>  		return DEV_DMA_NON_COHERENT;
+>  }
+>  
+> +/**
+> + * acpi_dma_configure - Set-up DMA configuration for the device.
+> + * @dev: The pointer to the device
+> + * @attr: device dma attributes
+> + */
+> +void acpi_dma_configure(struct device *dev, enum dev_dma_attr attr)
+> +{
+> +	/*
+> +	 * Assume dma valid range starts at 0 and covers the whole
+> +	 * coherent_dma_mask.
+> +	 */
+> +	arch_setup_dma_ops(dev, 0, dev->coherent_dma_mask + 1, NULL,
+> +			   attr == DEV_DMA_COHERENT);
+> +}
+> +
+> +/**
+> + * acpi_dma_deconfigure - Tear-down DMA configuration for the device.
+> + * @dev: The pointer to the device
+> + */
+> +void acpi_dma_deconfigure(struct device *dev)
+> +{
+> +	arch_teardown_dma_ops(dev);
+> +}
+> +
+>  static void acpi_init_coherency(struct acpi_device *adev)
+>  {
+>  	unsigned long long cca = 0;
+> diff --git a/drivers/pci/probe.c b/drivers/pci/probe.c
+> index 8e3ef72..01dd369 100644
+> --- a/drivers/pci/probe.c
+> +++ b/drivers/pci/probe.c
+> @@ -1725,8 +1725,7 @@ static void pci_dma_configure(struct pci_dev *dev)
+>  		if (attr == DEV_DMA_NOT_SUPPORTED)
+>  			dev_warn(&dev->dev, "DMA not supported.\n");
+>  		else
+> -			arch_setup_dma_ops(&dev->dev, 0, 0, NULL,
+> -					   attr == DEV_DMA_COHERENT);
+> +			acpi_dma_configure(&dev->dev, attr);
+>  	}
+>  
+>  	pci_put_host_bridge_device(bridge);
+> diff --git a/include/acpi/acpi_bus.h b/include/acpi/acpi_bus.h
+> index 788c6c35..8b5039a 100644
+> --- a/include/acpi/acpi_bus.h
+> +++ b/include/acpi/acpi_bus.h
+> @@ -566,6 +566,8 @@ struct acpi_pci_root {
+>  
+>  bool acpi_dma_supported(struct acpi_device *adev);
+>  enum dev_dma_attr acpi_get_dma_attr(struct acpi_device *adev);
+> +void acpi_dma_configure(struct device *dev, enum dev_dma_attr attr);
+> +void acpi_dma_deconfigure(struct device *dev);
+>  
+>  struct acpi_device *acpi_find_child_device(struct acpi_device *parent,
+>  					   u64 address, bool check_children);
+> diff --git a/include/linux/acpi.h b/include/linux/acpi.h
+> index 288fac5..135a452 100644
+> --- a/include/linux/acpi.h
+> +++ b/include/linux/acpi.h
+> @@ -676,6 +676,11 @@ static inline enum dev_dma_attr acpi_get_dma_attr(struct acpi_device *adev)
+>  	return DEV_DMA_NOT_SUPPORTED;
+>  }
+>  
+> +static inline void acpi_dma_configure(struct device *dev,
+> +				      enum dev_dma_attr attr) { }
+> +
+> +static inline void acpi_dma_deconfigure(struct device *dev) { }
+> +
+>  #define ACPI_PTR(_ptr)	(NULL)
+>  
+>  #endif	/* !CONFIG_ACPI */
+> -- 
+> 2.6.4
+> 
