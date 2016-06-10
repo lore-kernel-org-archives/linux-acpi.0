@@ -1,163 +1,234 @@
-From: Robert Richter <robert.richter@cavium.com>
-Subject: Re: [PATCH v7 00/15] ACPI NUMA support for ARM64
-Date: Fri, 10 Jun 2016 12:26:15 +0200
-Message-ID: <20160610102615.GI1535@rric.localdomain>
-References: <1464129345-18985-1-git-send-email-ddaney.cavm@gmail.com>
- <6187968.ZZVJRAFzpv@vostro.rjw.lan>
- <20160610102005.GH1535@rric.localdomain>
+From: Mike Marshall <hubcap@omnibond.com>
+Subject: Re: linux-next boots then hangs...
+Date: Fri, 10 Jun 2016 07:49:46 -0400
+Message-ID: <CAOg9mSQa7RhesaPrHj7S3=_rzZFfpj9Z5vrfMmh3XAriuo9p5Q@mail.gmail.com>
+References: <CAOg9mSTG08zt8PNjDZ4zKXxFUVyW9-AzjRLreHjN5ETuoqh-Rg@mail.gmail.com>
+ <1574a35b-a0e5-2ec0-f19e-8ff01ae5eec0@intel.com> <CAOg9mSRYcD9+P+914WY5_iLUWb4ZwXnQ02avtM3vV5+LiWsrXQ@mail.gmail.com>
+ <cface69a-ce21-3faf-bca9-267ddf05237a@intel.com> <CAOg9mSQPGpSOm0ef0rJWFObyBriSEZwDzEAJi3dNtRCjygHyuQ@mail.gmail.com>
+ <CAOg9mSSwRGZqQXhwQVi0=OG8xGqdFZbrHuNLSydL0WBziA2haQ@mail.gmail.com> <f3c64945-ff99-5afa-057b-b3734c0e3b39@intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-Content-Disposition: inline
-In-Reply-To: <20160610102005.GH1535@rric.localdomain>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: Mark Rutland <mark.rutland@arm.com>, linux-ia64@vger.kernel.org, David Daney <david.daney@cavium.com>, Catalin Marinas <catalin.marinas@arm.com>, Will Deacon <will.deacon@arm.com>, Lv Zheng <lv.zheng@intel.com>, "H. Peter Anvin" <hpa@zytor.com>, Frank Rowand <frowand.list@gmail.com>, x86@kernel.org, Robert Moore <robert.moore@intel.com>, linux-acpi@vger.kernel.org, Ingo Molnar <mingo@redhat.com>, Grant Likely <grant.likely@linaro.org>, Len Brown <lenb@kernel.org>, Fenghua Yu <fenghua.yu@intel.com>, Marc Zyngier <Marc.Zyngier@arm.com>, Rob Herring <robh+dt@kernel.org>, David Daney <ddaney.cavm@gmail.com>, Thomas Gleixner <tglx@linutronix.de>, linux-arm-kernel@lists.infradead.org, devel@acpica.org, Tony Luck <tony.luck@intel.com>, linux-kernel@vger.kernel.org, Hanjun Guo <hanjun.guo@linaro.org>
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-oi0-f53.google.com ([209.85.218.53]:33840 "EHLO
+	mail-oi0-f53.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751559AbcFJLtr (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 10 Jun 2016 07:49:47 -0400
+Received: by mail-oi0-f53.google.com with SMTP id d132so4639350oig.1
+        for <linux-acpi@vger.kernel.org>; Fri, 10 Jun 2016 04:49:47 -0700 (PDT)
+In-Reply-To: <f3c64945-ff99-5afa-057b-b3734c0e3b39@intel.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>
+Cc: Stephen Rothwell <sfr@canb.auug.org.au>, kvm@vger.kernel.org, "Zheng, Lv" <lv.zheng@intel.com>, Linux ACPI Mailing List <linux-acpi@vger.kernel.org>, Martin Brandenburg <martin@omnibond.com>
 
-On 10.06.16 12:20:05, Robert Richter wrote:
-> On 04.06.16 00:07:04, Rafael J. Wysocki wrote:
-> > On Tuesday, May 24, 2016 03:35:30 PM David Daney wrote:
-> > > From: David Daney <david.daney@cavium.com>
-> > > 
-> > > Rebased to Linus' master branch at commit 1d6da87a3241 ("Merge branch
-> > > 'drm-next' of git://people.freedesktop.org/~airlied/linux")
-> > > 
-> > > ACPI 5.1 already introduced NUMA support for ARM64, which can get the
-> > > NUMA domain information from SRAT and SLIT table, so parse those two
-> > > tables to get mappings from cpu/mem to numa node configuration and
-> > > system locality.
-> > > 
-> > > v7 updates:
-> > > 
-> > >  - Rebased to resolve one merge conflict.
-> > > 
-> > >  - New patch 13/15 to enable use of existing MADT parsing code instead
-> > >    of adding an additional implementation of the parser.
-> > > 
-> > >  - Added some Acked-by headers to patches in arm64 arch directories.
-> > > 
-> > > v6 updates:
-> > > 
-> > >  - Changed message printed in 13/14 to omit meaningless "cpu"
-> > >    number. (noted by Dennis Chen and Hanjun Guo)
-> > > 
-> > >  - New patch 7/14 to print different messages for NUMA disabled case.
-> > >    (noted by Dennis Chen)
-> > > 
-> > >  - Squashed two patches into 14/14.
-> > > 
-> > >  - Added Reviewed-by to 4/14
-> > > 
-> > > v5 updates:
-> > > 
-> > >  - Fixed ia64 build failure by gating some unused functions with #if
-> > >    CONFIG_{X86,ARM64}.
-> > > 
-> > >  - Fixed section mismatch errors for X86 case.
-> > > 
-> > >  - Removed unneeded #include from some files.
-> > > 
-> > >  - Tested to build cleanly on ARM64, X86_64, IA64
-> > > 
-> > > v4 updates:
-> > > 
-> > >  - Updated from Hanjun Guo's v3 patches.
-> > > 
-> > >  - Rebased on top of v16 of device-tree NUMA patches.
-> > > 
-> > >  - Reordered some of the changes so that we don't introduce code and
-> > >    then change it several times in the patch set.  New code is
-> > >    introduced in its final form.  Code reused from x86 is first moved
-> > >    with no change, and then a separate patch to make any needed
-> > >    changes.
-> > > 
-> > >  - code that is used only by ia64, moved to architecture specific
-> > >    files.
-> > > 
-> > > v3 updates:
-> > >  - Deep investigation about the ACPI_DEBUG_PRINT() and remvoe
-> > >    that for acpi/numa.c (patch 2/12)
-> > > 
-> > >  - Remove the duplicate NULL check for table print (patch 3/12)
-> > > 
-> > >  - Introduce CONFIG_ACPI_HAS_NUMA_ARCH_FIXUP to remove duplicate
-> > >    dummy function for acpi_numa_arch_fixup()
-> > > 
-> > >  - Solve the problem that the mapping from logical cpu to numa node
-> > >    is wrong which spotted out by Lorenzo
-> > > 
-> > >  - cleanups for x86 and move acpi_numa_slit_init() and some other
-> > >    functions to common place, then reduce the duplicate of x86
-> > >    and arm64 (patch 7-12/12).
-> > > 
-> > >  - rebased on top of 4.4 and Ganapat's v9 patch set.
-> > > 
-> > > David Daney (4):
-> > >   arm64, numa: Cleanup NUMA disabled messages.
-> > >   acpi, numa: move bad_srat() and srat_disabled() to
-> > >     drivers/acpi/numa.c
-> > >   acpi, numa, srat: Improve SRAT error detection and add messages.
-> > >   ACPI / processor: Add acpi_map_madt_entry().
-> > > 
-> > > Hanjun Guo (10):
-> > >   acpi, numa: Use pr_fmt() instead of printk
-> > >   acpi, numa: Replace ACPI_DEBUG_PRINT() with pr_debug()
-> > >   acpi, numa: remove duplicate NULL check
-> > >   acpi, numa: move acpi_numa_slit_init() to drivers/acpi/numa.c
-> > >   arm64, numa: rework numa_add_memblk()
-> > >   x86, acpi, numa: cleanup acpi_numa_processor_affinity_init()
-> > >   acpi, numa: remove unneeded acpi_numa=1
-> > >   acpi, numa: Move acpi_numa_memory_affinity_init() to
-> > >     drivers/acpi/numa.c
-> > >   arm64, acpi, numa: NUMA support based on SRAT and SLIT
-> > >   acpi, numa: Enable ACPI based NUMA on ARM64
-> > > 
-> > > Robert Richter (1):
-> > >   acpi, numa: Move acpi_numa_arch_fixup() to ia64 only
-> > > 
-> > >  arch/arm64/include/asm/acpi.h |   8 ++
-> > >  arch/arm64/include/asm/numa.h |   2 +
-> > >  arch/arm64/kernel/Makefile    |   1 +
-> > >  arch/arm64/kernel/acpi_numa.c | 112 +++++++++++++++++++++
-> > >  arch/arm64/kernel/smp.c       |   2 +
-> > >  arch/arm64/mm/numa.c          |  28 ++++--
-> > >  arch/ia64/include/asm/acpi.h  |   3 +
-> > >  arch/ia64/kernel/acpi.c       |   2 +-
-> > >  arch/ia64/kernel/setup.c      |   1 +
-> > >  arch/x86/include/asm/acpi.h   |   1 -
-> > >  arch/x86/mm/numa.c            |   2 +-
-> > >  arch/x86/mm/srat.c            | 116 +---------------------
-> > >  drivers/acpi/Kconfig          |   4 +-
-> > >  drivers/acpi/numa.c           | 226 ++++++++++++++++++++++++++++++++----------
-> > >  drivers/acpi/processor_core.c |  26 ++++-
-> > >  drivers/of/of_numa.c          |   4 +-
-> > >  include/acpi/acpi_numa.h      |   4 +
-> > >  include/acpi/processor.h      |   1 +
-> > >  include/linux/acpi.h          |  18 +++-
-> > >  19 files changed, 369 insertions(+), 192 deletions(-)
-> > >  create mode 100644 arch/arm64/kernel/acpi_numa.c
-> > 
-> > All [1-15/15] queued up for 4.8, thanks!
-> 
-> Rafael,
-> 
-> I noticed patch #15 missing in your today's tree, I only found:
-> 
->  d8b47fca8c23 arm64, ACPI, NUMA: NUMA support based on SRAT and SLIT
-> 
-> Is this intended? It still cleanly applies.
+I'm about to disappear until the 20th on a backroads motorcycle
+trip with The Wild Bunch from Tennessee... I have included
+my co-worker Martin in the CC list, I think he will be able to
+help - I'll give him access to my VMs. Access to the VM's
+graphics console is important here - when the problem
+occurs, the broken thing that boots can't be logged into,
+but the graphics console does a particular whacky
+thing... June 9th's linux-next boots and runs fine on
+my VM BTW...
 
-Ah, just seen Matthias' comment, I guess we need to resend a fixed
-version.
+I'll be able to peek into this thread some evenings
+from motel rooms, and we'll only be up to about rc4
+when I get back...
 
--Robert
+-Mike
+
+On Thu, Jun 9, 2016 at 7:40 PM, Rafael J. Wysocki
+<rafael.j.wysocki@intel.com> wrote:
+> Let's involve the author of the commits in question (and CC linux-acpi too).
+>
+> On 6/8/2016 6:18 PM, Mike Marshall wrote:
+>>
+>> Hello everyone...
+>>
+>> The problem is gone today, and it looks like Rafael
+>> dropped the ACPICA changes from linux-next.
+>
+>
+> Indeed, I did that.
+>
+> Now, it would be good if you could help to identify which of them exactly
+> introduced the problem.
+>
+> Those patches are available in the kernel.org Patchwork as:
+>
+> https://patchwork.kernel.org/patch/9087951/
+> https://patchwork.kernel.org/patch/9088001/
+> https://patchwork.kernel.org/patch/9088021/
+> https://patchwork.kernel.org/patch/9087971/
+>
+> plus one fix on top of them:
+>
+> https://patchwork.kernel.org/patch/9157765/
+>
+> The ordering of the links above should reflect the correct order of the
+> patches (or you can verify that by looking at their subjects).
+>
+> Can you please try to apply them one by one (they should apply on top of the
+> current mainline) and see which one breaks things for you?
+>
+> Thanks,
+> Rafael
+>
+>
+>
+>> Now linux-next has an Oops at leaf_walk_rcu and
+>> is not usable <g>... I think I see people on LKML
+>> talking about it.
+>>
+>> Thanks...
+>>
+>> -Mike
+>>
+>> On Tue, Jun 7, 2016 at 2:58 PM, Mike Marshall <hubcap@omnibond.com> wrote:
+>>>
+>>> Well, I started the bisect again, using Paolo's suggestion.
+>>>
+>>> It lead me in a circle back to 407aa3f.
+>>>
+>>> It could be that I'm not competent to perform this bisect, barring
+>>> that - it could be that the "bad" code only emerged as the result
+>>> of 407aa3f, which, according to the commit message, was a merge of
+>>> 41 commits...
+>>>
+>>> As to my bisect competency, sometimes (usually) the next bisect point
+>>> would be a place where 7f9bef9 wouldn't apply. I would only find out
+>>> that 7f9bef9 wouldn't apply by running the cherry pick, so each time
+>>> I'd have to clean up the failed cherry pick before I could continue,
+>>> which I did like this:
+>>>
+>>> git cherry-pick -n 7f9bef9                    <-- fail
+>>>
+>>> git reset HEAD drivers/acpi/acpica/hwregs.c   <-- to unstage
+>>>
+>>> git checkout -- drivers/acpi/acpica/hwregs.c  <-- discard cherry pick
+>>> wreckage
+>>>
+>>> Anyhow, I hope I'm being helpful, and not obstructionist, by trying
+>>> to follow up on this. Good luck Rafael, I'll definitely try
+>>> linux-next tomorrow.
+>>>
+>>> # git bisect log
+>>> git bisect start
+>>> # bad: [407aa3ff6f54ea2be7959639d664ae5183e2e9f8] Merge branch 'acpica'
+>>> git bisect bad 407aa3ff6f54ea2be7959639d664ae5183e2e9f8
+>>> # good: [7f9bef9debafcb767d00efb177d0f2edd4940eab] ACPICA / Hardware:
+>>> Fix old register check in acpi_hw_get_access_bit_width()
+>>> git bisect good 7f9bef9debafcb767d00efb177d0f2edd4940eab
+>>> # good: [d1ce3bb95511dacf8b9eea899c421f1b18a3ef6a] Merge back new
+>>> ACPICA material for v4.7.
+>>> git bisect good d1ce3bb95511dacf8b9eea899c421f1b18a3ef6a
+>>> # good: [d1ce3bb95511dacf8b9eea899c421f1b18a3ef6a] Merge back new
+>>> ACPICA material for v4.7.
+>>> git bisect good d1ce3bb95511dacf8b9eea899c421f1b18a3ef6a
+>>> # good: [21a9703de3045cda0b3aaa5bc193d2e1062908d2] Merge branch
+>>> 'for-linus' of git://git.kernel.org/pub/scm/linux/kernel/git/dtor/input
+>>> git bisect good 21a9703de3045cda0b3aaa5bc193d2e1062908d2
+>>> # good: [dd287690b0aa4b0d22e8dd7dd2cb3055f5141a27] Merge tag
+>>> 'arc-4.6-rc7-fixes' of
+>>> git://git.kernel.org/pub/scm/linux/kernel/git/vgupta/arc
+>>> git bisect good dd287690b0aa4b0d22e8dd7dd2cb3055f5141a27
+>>> # good: [35cd3f4563c4a0fc99be300afc7b82a822e634c7] Merge branch
+>>> 'for-4.6-fixes' of
+>>> git://git.kernel.org/pub/scm/linux/kernel/git/tj/libata
+>>> git bisect good 35cd3f4563c4a0fc99be300afc7b82a822e634c7
+>>> # good: [3f8f0cf2eddb558e5ccf9b155e758f4b950d8697] Merge tag
+>>> 'usb-4.6-rc7' of
+>>> git://git.kernel.org/pub/scm/linux/kernel/git/gregkh/usb
+>>> git bisect good 3f8f0cf2eddb558e5ccf9b155e758f4b950d8697
+>>> # good: [2b86c4a84377b74a6ec0ec9463feb0803bcb1066] Merge tag
+>>> 'iio-fixes-for-4.6d' of
+>>> git://git.kernel.org/pub/scm/linux/kernel/git/jic23/iio into
+>>> staging-linus
+>>> git bisect good 2b86c4a84377b74a6ec0ec9463feb0803bcb1066
+>>> # good: [d1306eb675ad7a9a760b6b8e8e189824b8db89e7] nvmem: mxs-ocotp:
+>>> fix buffer overflow in read
+>>> git bisect good d1306eb675ad7a9a760b6b8e8e189824b8db89e7
+>>> # good: [32cf95db22d49cf4a3b421ba9fd156bb5f920ebb] Merge tag
+>>> 'char-misc-4.6-rc7' of
+>>> git://git.kernel.org/pub/scm/linux/kernel/git/gregkh/char-misc
+>>> git bisect good 32cf95db22d49cf4a3b421ba9fd156bb5f920ebb
+>>> # good: [44549e8f5eea4e0a41b487b63e616cb089922b99] Linux 4.6-rc7
+>>> git bisect good 44549e8f5eea4e0a41b487b63e616cb089922b99
+>>> # first bad commit: [407aa3ff6f54ea2be7959639d664ae5183e2e9f8] Merge
+>>> branch 'acpica'
+>>>
+>>> On Tue, Jun 7, 2016 at 11:14 AM, Rafael J. Wysocki
+>>> <rafael.j.wysocki@intel.com> wrote:
+>>>>
+>>>> On 6/7/2016 5:08 PM, Mike Marshall wrote:
+>>>>>
+>>>>> I'm one of the original reporters and testers of that problem/fix...
+>>>>> my current problem started after that... I've tested
+>>>>> next-20160607 and 4.7.0-rc2-00004-g3613a62 (Linus' tree
+>>>>> of the moment) so far today... Linus' tree is still OK (because
+>>>>> it has 7f9bef9) and linux-next is still busted (for me).
+>>>>>
+>>>>> I'll keep on bisecting using the suggestions that Paolo sent...
+>>>>
+>>>>
+>>>> I see.
+>>>>
+>>>> I think I'll need to drop the latest ACPICA changes from linux-next
+>>>> then.
+>>>>
+>>>> Let me try to do that and please test linux-next again tomorrow.
+>>>>
+>>>> Thanks,
+>>>> Rafael
+>>>>
+>>>>
+>>>>
+>>>>> On Tue, Jun 7, 2016 at 10:55 AM, Rafael J. Wysocki
+>>>>> <rafael.j.wysocki@intel.com> wrote:
+>>>>>>
+>>>>>> On 6/6/2016 10:56 PM, Mike Marshall wrote:
+>>>>>>>
+>>>>>>> Greetings...
+>>>>>>>
+>>>>>>> Please keep my email in the loop on this, I'm only subscribed
+>>>>>>> to fs-devel...
+>>>>>>>
+>>>>>>> Linux-next fails to boot properly for me, but Linux 4.7-rc2 from
+>>>>>>> Linus' tree boots fine.
+>>>>>>>
+>>>>>>> I got started bisecting next-20160603 last Friday, but didn't get
+>>>>>>> done.
+>>>>>>>
+>>>>>>> git bisect start '64289ca' '7f9bef9'
+>>>>>>>
+>>>>>>> I picked 7f9bef9 as the good commit to start with because I knew
+>>>>>>> I needed 7f9bef9 or else my QEMU-KVM would crash. Before I started
+>>>>>>> the bisection, I verified that 7f9bef9 was indeed good by checking
+>>>>>>> out a branch from next-20160603 with 7f9bef9 as the HEAD and
+>>>>>>> building it: git checkout -b gas 7f9bef9
+>>>>>>>
+>>>>>>> Today I got next-20160606 and checked to see if the same failure
+>>>>>>> occurred - it did. So I continued with the bisection of
+>>>>>>> next-20160603.
+>>>>>>>
+>>>>>>> I arrived at 407aa3ff6f54ea2be7959639d664ae5183e2e9f8 as the bad
+>>>>>>> commit.
+>>>>>>>
+>>>>>>>
+>>>>>>> 407aa3f is a rather complex commit... there is a problem with it,
+>>>>>>> but I'm not sure what to do next... both 7f9bef9 and 407aa3f are
+>>>>>>> related to ACPICA...
+>>>>>>
+>>>>>>
+>>>>>> It looks like this commit
+>>>>>>
+>>>>>>
+>>>>>>
+>>>>>> https://git.kernel.org/cgit/linux/kernel/git/rafael/linux-pm.git/commit/?h=acpica-fixes&id=7f9bef9debafcb767d00efb177d0f2edd4940eab
+>>>>>>
+>>>>>> should fix the problem for you.
+>>>>>>
+>>>>>> Thanks,
+>>>>>> Rafael
+>>>>>>
+>
