@@ -1,105 +1,89 @@
-From: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
-Subject: Re: [PATCH V8 5/9] pci, acpi: add acpi hook to assign domain number.
-Date: Fri, 10 Jun 2016 16:49:08 +0100
-Message-ID: <20160610154908.GB23638@red-moon>
-References: <1464621262-26770-1-git-send-email-tn@semihalf.com>
- <1464621262-26770-6-git-send-email-tn@semihalf.com>
- <20160608001559.GD4759@localhost>
- <20160610151458.GA23638@red-moon>
+From: Crestez Dan Leonard <leonard.crestez@intel.com>
+Subject: Re: [RFC v2 2/2] i2c: Pass i2c_device_id to probe func when using DT
+ ids through ACPI
+Date: Fri, 10 Jun 2016 18:57:36 +0300
+Message-ID: <6721468a-753d-fb52-5bc5-8738312b7bd0@intel.com>
+References: <cover.1465477193.git.leonard.crestez@intel.com>
+ <f5d92224a005bc7b82e210957719b7be142c6388.1465477193.git.leonard.crestez@intel.com>
+ <20160610063232.GR1791@lahna.fi.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20160610151458.GA23638@red-moon>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Bjorn Helgaas <helgaas@kernel.org>
-Cc: Tomasz Nowicki <tn@semihalf.com>, arnd@arndb.de, will.deacon@arm.com, catalin.marinas@arm.com, rafael@kernel.org, hanjun.guo@linaro.org, okaya@codeaurora.org, jchandra@broadcom.com, robert.richter@caviumnetworks.com, mw@semihalf.com, Liviu.Dudau@arm.com, ddaney@caviumnetworks.com, wangyijing@huawei.com, Suravee.Suthikulpanit@amd.com, msalter@redhat.com, linux-pci@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linaro-acpi@lists.linaro.org, jcm@redhat.com, andrea.gallo@linaro.org, dhdang@apm.com, jeremy.linton@arm.com, liudongdong3@huawei.com, cov@codeaurora.org
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga01.intel.com ([192.55.52.88]:41065 "EHLO mga01.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S933255AbcFJP6H (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 10 Jun 2016 11:58:07 -0400
+In-Reply-To: <20160610063232.GR1791@lahna.fi.intel.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Mika Westerberg <mika.westerberg@linux.intel.com>
+Cc: linux-acpi@vger.kernel.org, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, linux-i2c@vger.kernel.org, Wolfram Sang <wsa@the-dreams.de>, linux-kernel@vger.kernel.org, Irina Tirdea <irina.tirdea@intel.com>, Octavian Purdila <octavian.purdila@intel.com>, Daniel Baluta <daniel.baluta@intel.com>
 
-On Fri, Jun 10, 2016 at 04:14:58PM +0100, Lorenzo Pieralisi wrote:
-> Hi Bjorn, Tomasz,
+On 06/10/2016 09:32 AM, Mika Westerberg wrote:
+> On Thu, Jun 09, 2016 at 04:06:03PM +0300, Crestez Dan Leonard wrote:
+>> When devices are instatiated through devicetree the i2c_client->name is
+>> set to the compatible string with company name stripped out. This is
+>> then matched to the i2c_device_id table to pass the device_id to the
+>> probe function. This id parameter is used by some device drivers to
+>> differentiate between model numbers.
+>>
+>> When using ACPI this id parameter is NULL and the driver usually needs
+>> to do ACPI-specific differentiation.
+>>
+>> This patch attempts to find a valid i2c_device_id when using ACPI with
+>> DT-like compatible strings.
 > 
-> On Tue, Jun 07, 2016 at 07:15:59PM -0500, Bjorn Helgaas wrote:
+> So I don't really understand why it would be good idea to pass
+> i2c_device_id for devices which are matched against their ACPI/DT
+> tables. Apparently DT is already doing that so maybe there is some
+> reason.
 > 
-> [...]
+> Anyway, why not fill in the device name when it is first enumerated
+> if it uses DT compatible property? Just like DT does.
 > 
-> > > diff --git a/drivers/pci/pci.c b/drivers/pci/pci.c
-> > > index eb431b5..2b52178 100644
-> > > --- a/drivers/pci/pci.c
-> > > +++ b/drivers/pci/pci.c
-> > > @@ -7,6 +7,7 @@
-> > >   *	Copyright 1997 -- 2000 Martin Mares <mj@ucw.cz>
-> > >   */
-> > >  
-> > > +#include <linux/acpi.h>
-> > >  #include <linux/kernel.h>
-> > >  #include <linux/delay.h>
-> > >  #include <linux/init.h>
-> > > @@ -4941,7 +4942,7 @@ int pci_get_new_domain_nr(void)
-> > >  }
-> > >  
-> > >  #ifdef CONFIG_PCI_DOMAINS_GENERIC
-> > > -void pci_bus_assign_domain_nr(struct pci_bus *bus, struct device *parent)
-> > > +static int of_pci_bus_domain_nr(struct device *parent)
-> > 
-> > Can we do a little cleanup before this patch?  
-> > 
-> >   - pci_bus_assign_domain_nr() is only used inside drivers/pci, so
-> >     maybe we move the prototype to drivers/pci/pci.h?
-> > 
-> >   - I don't really like the style of calling a function that
-> >     internally assigns bus->domain_nr.  Could we do something like
-> >     this instead?
-> > 
-> >     int pci_bus_domain_nr(...)
-> >     {
-> >       ...
-> >       return domain;
-> >     }
-> > 
-> >     ... pci_create_root_bus(...)
-> >     {
-> >       ...
-> >       b->domain_nr = pci_bus_domain_nr(...);
-> 
-> We noticed while preparing v9, that this would force us to
-> write an empty pci_bus_domain_nr() prototype for
-> !PCI_DOMAINS_GENERIC (ie every arch but ARM/ARM64) that should
-> return 0 to keep current behaviour unchanged.
-> 
-> That's why pci_bus_assign_domain_nr() was there, so that it
-> was compiled out on !PCI_DOMAINS_GENERIC.
-> 
-> I really would like v9 to be final so let's fix it before posting it
-> shortly please.
-> 
-> For the above we have three options:
-> 
-> 1) Leave code as-is in v8
-> 
-> 2) in pci_create_root_bus():
-> #ifdef CONFIG_PCI_DOMAINS_GENERIC
->        b->domain_nr = pci_bus_domain_nr(...);
-> #endif
-> 
-> + other changes requested above
-> 
-> 3) in pci_create_root_bus()
-> 
-> b->domain_nr = pci_bus_domain_nr(...);
-> 
-> unguarded and a stub:
-> 
-> #ifndef CONFIG_PCI_DOMAINS_GENERIC
-> static inline int pci_bus_domain_nr() { return 0; }
-> #endif
-> 
-> + other changes requested above
+This automatic matching of i2c_device_id works for devicetree because
+of_i2c_register_device sets i2c_board_info.type to the compatible string
+with the vendor prefix removed. For I2C devices described via ACPI the
+i2c_board_info.type string is set to the ACPI device name. This ends up
+something like "PRP0001:00".
 
-Actually, Tomasz made me notice that pci_bus.domain_nr is
-only declared for CONFIG_PCI_DOMAINS_GENERIC so (3) is not
-even an option and IMO (2) is not much nicer than code in
-v8 as-is with an ifdef in the middle of pci_create_root_bus().
+This could be changed in acpi_i2c_get_info to use the of_compatible
+string from DSD if present. Is that what you mean? That would work and
+it would be cleaner than my patch. Something like this:
 
-Thanks,
-Lorenzo
+diff --git drivers/i2c/i2c-core.c drivers/i2c/i2c-core.c
+index 1e0ef9b..ba2fe7f 100644
+--- drivers/i2c/i2c-core.c
++++ drivers/i2c/i2c-core.c
+@@ -181,7 +181,24 @@ static int acpi_i2c_get_info(struct acpi_device *adev,
+
+        acpi_dev_free_resource_list(&resource_list);
+
+-       strlcpy(info->type, dev_name(&adev->dev), sizeof(info->type));
++       /*
++        * If we have a DT id set info.type to the first compatible
+string with
++        * the vendor prefix stripped. This is similar to of_modalias_node
++        */
++       if (adev->data.of_compatible) {
++               const union acpi_object *obj;
++               const char *str, *chr;
++
++               obj = adev->data.of_compatible;
++               if (obj->type == ACPI_TYPE_PACKAGE)
++                       obj = obj->package.elements;
++               str = obj->string.pointer;
++               chr = strchr(str, ',');
++               if (chr)
++                       str = chr + 1;
++               strlcpy(info->type, str, sizeof(info->type));
++       } else
++               strlcpy(info->type, dev_name(&adev->dev),
+sizeof(info->type));
+
+        return 0;
+ }
+
+The biggest concern is that this would change the i2c device name
+between kernel versions. Is that acceptable?
