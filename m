@@ -1,69 +1,165 @@
-From: Wolfram Sang <wsa@the-dreams.de>
-Subject: Re: [RFC v2 2/2] i2c: Pass i2c_device_id to probe func when using DT
- ids through ACPI
-Date: Fri, 10 Jun 2016 15:07:06 +0200
-Message-ID: <20160610130706.GA1624@katana>
-References: <cover.1465477193.git.leonard.crestez@intel.com>
- <f5d92224a005bc7b82e210957719b7be142c6388.1465477193.git.leonard.crestez@intel.com>
- <20160610070424.GA1552@katana>
- <bb2702c4-848a-4e0e-6381-66af079a7c13@intel.com>
+From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Subject: Re: [PATCH v7 00/15] ACPI NUMA support for ARM64
+Date: Fri, 10 Jun 2016 15:51:37 +0200
+Message-ID: <9924676.C461dUbhRI@vostro.rjw.lan>
+References: <1464129345-18985-1-git-send-email-ddaney.cavm@gmail.com> <20160610102005.GH1535@rric.localdomain> <20160610102615.GI1535@rric.localdomain>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="y0ulUmNC+osPPQO6"
-Return-path: <linux-i2c-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <bb2702c4-848a-4e0e-6381-66af079a7c13@intel.com>
-Sender: linux-i2c-owner@vger.kernel.org
-To: Crestez Dan Leonard <leonard.crestez@intel.com>
-Cc: linux-acpi@vger.kernel.org, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, linux-i2c@vger.kernel.org, Mika Westerberg <mika.westerberg@linux.intel.com>, linux-kernel@vger.kernel.org, Irina Tirdea <irina.tirdea@intel.com>, Octavian Purdila <octavian.purdila@intel.com>, Daniel Baluta <daniel.baluta@intel.com>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7Bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from cloudserver094114.home.net.pl ([79.96.170.134]:54388 "HELO
+	cloudserver094114.home.net.pl" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with SMTP id S1751017AbcFJNrg (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 10 Jun 2016 09:47:36 -0400
+In-Reply-To: <20160610102615.GI1535@rric.localdomain>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Robert Richter <robert.richter@cavium.com>
+Cc: David Daney <ddaney.cavm@gmail.com>, Will Deacon <will.deacon@arm.com>, linux-arm-kernel@lists.infradead.org, Mark Rutland <mark.rutland@arm.com>, Catalin Marinas <catalin.marinas@arm.com>, Tony Luck <tony.luck@intel.com>, Fenghua Yu <fenghua.yu@intel.com>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, x86@kernel.org, Len Brown <lenb@kernel.org>, Rob Herring <robh+dt@kernel.org>, Frank Rowand <frowand.list@gmail.com>, Grant Likely <grant.likely@linaro.org>, Robert Moore <robert.moore@intel.com>, Lv Zheng <lv.zheng@intel.com>, Hanjun Guo <hanjun.guo@linaro.org>, Marc Zyngier <Marc.Zyngier@arm.com>, linux-ia64@vger.kernel.org, linux-acpi@vger.kernel.org, devel@acpica.org, linux-kernel@vger.kernel.org, David Daney <david.daney@cavium.com>
 
+On Friday, June 10, 2016 12:26:15 PM Robert Richter wrote:
+> On 10.06.16 12:20:05, Robert Richter wrote:
+> > On 04.06.16 00:07:04, Rafael J. Wysocki wrote:
+> > > On Tuesday, May 24, 2016 03:35:30 PM David Daney wrote:
+> > > > From: David Daney <david.daney@cavium.com>
+> > > > 
+> > > > Rebased to Linus' master branch at commit 1d6da87a3241 ("Merge branch
+> > > > 'drm-next' of git://people.freedesktop.org/~airlied/linux")
+> > > > 
+> > > > ACPI 5.1 already introduced NUMA support for ARM64, which can get the
+> > > > NUMA domain information from SRAT and SLIT table, so parse those two
+> > > > tables to get mappings from cpu/mem to numa node configuration and
+> > > > system locality.
+> > > > 
+> > > > v7 updates:
+> > > > 
+> > > >  - Rebased to resolve one merge conflict.
+> > > > 
+> > > >  - New patch 13/15 to enable use of existing MADT parsing code instead
+> > > >    of adding an additional implementation of the parser.
+> > > > 
+> > > >  - Added some Acked-by headers to patches in arm64 arch directories.
+> > > > 
+> > > > v6 updates:
+> > > > 
+> > > >  - Changed message printed in 13/14 to omit meaningless "cpu"
+> > > >    number. (noted by Dennis Chen and Hanjun Guo)
+> > > > 
+> > > >  - New patch 7/14 to print different messages for NUMA disabled case.
+> > > >    (noted by Dennis Chen)
+> > > > 
+> > > >  - Squashed two patches into 14/14.
+> > > > 
+> > > >  - Added Reviewed-by to 4/14
+> > > > 
+> > > > v5 updates:
+> > > > 
+> > > >  - Fixed ia64 build failure by gating some unused functions with #if
+> > > >    CONFIG_{X86,ARM64}.
+> > > > 
+> > > >  - Fixed section mismatch errors for X86 case.
+> > > > 
+> > > >  - Removed unneeded #include from some files.
+> > > > 
+> > > >  - Tested to build cleanly on ARM64, X86_64, IA64
+> > > > 
+> > > > v4 updates:
+> > > > 
+> > > >  - Updated from Hanjun Guo's v3 patches.
+> > > > 
+> > > >  - Rebased on top of v16 of device-tree NUMA patches.
+> > > > 
+> > > >  - Reordered some of the changes so that we don't introduce code and
+> > > >    then change it several times in the patch set.  New code is
+> > > >    introduced in its final form.  Code reused from x86 is first moved
+> > > >    with no change, and then a separate patch to make any needed
+> > > >    changes.
+> > > > 
+> > > >  - code that is used only by ia64, moved to architecture specific
+> > > >    files.
+> > > > 
+> > > > v3 updates:
+> > > >  - Deep investigation about the ACPI_DEBUG_PRINT() and remvoe
+> > > >    that for acpi/numa.c (patch 2/12)
+> > > > 
+> > > >  - Remove the duplicate NULL check for table print (patch 3/12)
+> > > > 
+> > > >  - Introduce CONFIG_ACPI_HAS_NUMA_ARCH_FIXUP to remove duplicate
+> > > >    dummy function for acpi_numa_arch_fixup()
+> > > > 
+> > > >  - Solve the problem that the mapping from logical cpu to numa node
+> > > >    is wrong which spotted out by Lorenzo
+> > > > 
+> > > >  - cleanups for x86 and move acpi_numa_slit_init() and some other
+> > > >    functions to common place, then reduce the duplicate of x86
+> > > >    and arm64 (patch 7-12/12).
+> > > > 
+> > > >  - rebased on top of 4.4 and Ganapat's v9 patch set.
+> > > > 
+> > > > David Daney (4):
+> > > >   arm64, numa: Cleanup NUMA disabled messages.
+> > > >   acpi, numa: move bad_srat() and srat_disabled() to
+> > > >     drivers/acpi/numa.c
+> > > >   acpi, numa, srat: Improve SRAT error detection and add messages.
+> > > >   ACPI / processor: Add acpi_map_madt_entry().
+> > > > 
+> > > > Hanjun Guo (10):
+> > > >   acpi, numa: Use pr_fmt() instead of printk
+> > > >   acpi, numa: Replace ACPI_DEBUG_PRINT() with pr_debug()
+> > > >   acpi, numa: remove duplicate NULL check
+> > > >   acpi, numa: move acpi_numa_slit_init() to drivers/acpi/numa.c
+> > > >   arm64, numa: rework numa_add_memblk()
+> > > >   x86, acpi, numa: cleanup acpi_numa_processor_affinity_init()
+> > > >   acpi, numa: remove unneeded acpi_numa=1
+> > > >   acpi, numa: Move acpi_numa_memory_affinity_init() to
+> > > >     drivers/acpi/numa.c
+> > > >   arm64, acpi, numa: NUMA support based on SRAT and SLIT
+> > > >   acpi, numa: Enable ACPI based NUMA on ARM64
+> > > > 
+> > > > Robert Richter (1):
+> > > >   acpi, numa: Move acpi_numa_arch_fixup() to ia64 only
+> > > > 
+> > > >  arch/arm64/include/asm/acpi.h |   8 ++
+> > > >  arch/arm64/include/asm/numa.h |   2 +
+> > > >  arch/arm64/kernel/Makefile    |   1 +
+> > > >  arch/arm64/kernel/acpi_numa.c | 112 +++++++++++++++++++++
+> > > >  arch/arm64/kernel/smp.c       |   2 +
+> > > >  arch/arm64/mm/numa.c          |  28 ++++--
+> > > >  arch/ia64/include/asm/acpi.h  |   3 +
+> > > >  arch/ia64/kernel/acpi.c       |   2 +-
+> > > >  arch/ia64/kernel/setup.c      |   1 +
+> > > >  arch/x86/include/asm/acpi.h   |   1 -
+> > > >  arch/x86/mm/numa.c            |   2 +-
+> > > >  arch/x86/mm/srat.c            | 116 +---------------------
+> > > >  drivers/acpi/Kconfig          |   4 +-
+> > > >  drivers/acpi/numa.c           | 226 ++++++++++++++++++++++++++++++++----------
+> > > >  drivers/acpi/processor_core.c |  26 ++++-
+> > > >  drivers/of/of_numa.c          |   4 +-
+> > > >  include/acpi/acpi_numa.h      |   4 +
+> > > >  include/acpi/processor.h      |   1 +
+> > > >  include/linux/acpi.h          |  18 +++-
+> > > >  19 files changed, 369 insertions(+), 192 deletions(-)
+> > > >  create mode 100644 arch/arm64/kernel/acpi_numa.c
+> > > 
+> > > All [1-15/15] queued up for 4.8, thanks!
+> > 
+> > Rafael,
+> > 
+> > I noticed patch #15 missing in your today's tree, I only found:
+> > 
+> >  d8b47fca8c23 arm64, ACPI, NUMA: NUMA support based on SRAT and SLIT
+> > 
+> > Is this intended? It still cleanly applies.
+> 
+> Ah, just seen Matthias' comment, I guess we need to resend a fixed
+> version.
 
---y0ulUmNC+osPPQO6
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+Right.
 
+Sorry about the confusion, I was about to ask for an update patch later
+today.
 
-> Looking at that series it seems that the intention is to eventually
-> remove the i2c_device_id argument from probe completely? That would
-> cause a lot of code churn. It would also require every driver that needs
-> to differentiate between models to pretty much duplicate the matching
-> logic performed by the core.
+Thanks,
+Rafael
 
-I am with you on the "duplicated matching" issue which I personally
-don't like at all.
-
-That being said, it is the de-facto standard way of doing it currently.
-If this is going to be changed, it should be done on a BIG SCALE.
-
-Currently, I2C has a special way of passing matches. Because I see more
-important topics to work on, I personally could leave it as is. But if
-people want I2C to behave as the rest of the kernel, this is fine with
-me if they are committed to do it 100%. Replacing the current I2C
-special way with another I2C special way is no option. The correct path
-IMO is to bring I2C in line with the rest of the kernel and fix the
-kernel.
-
-
---y0ulUmNC+osPPQO6
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iQIcBAEBAgAGBQJXWrt6AAoJEBQN5MwUoCm2BjwP/i0L5adfg2+sYGRO43BmllrG
-lyyLOg+KLDqh6HOmPTyWdFEq6WRihEkas5JLhMXYdfGbvEcc7VlGLDgGk97e33eZ
-XwBTlgJ+Mjn4Zk4kdBV3oBW9Y6cTyoBitnRCB8G2sgpGT36/XBu1YdxBZ/f/w7nL
-8ZcPa/0WVmBpWL4KS4PybiM2ETyNFUVwD3ldAsTpx94sadROEAWWKz8/uS8ibkx0
-AzBh17t6qPFgH+7ISt96ermRmMVgvHsA0umvAKQzbwE3WPWv7EJpws+A4tPwMkEK
-olta+pWVrBgZfB4mjrGusZyyuDyqbhCZ8kYDCfPlzxcfRGpECCNHF7xDwE5AfO26
-E3USO7VzcZq7fsJPu8fkBccOo88/t6KUkKeiFVAeOjDYMmNtIiWC7kFIFQSuOR0C
-0eHEdtb79E0CgrCH4oh8msTXCBur21/HL5gGFy/CgiPFfIAuSdZN45kkpUXnv97J
-SXBC7p+eYs4ZYNngGxXUcTiBSjCGXYWiHeBXPoCiijeQ4a+EL+W9jJkU/qJc6sRt
-/JNgE6m+e14t23zRzYcTgDnK2ZHUt6iLiBBhQx6YRn+o1GHJYvlGLmtx1NhuBLYv
-vvXqmG8O8AF8GHs/PsJkSeQn3aImKPeCua/CcEaeniprlJaaF1lV7SdcopoNWtKl
-Zcg0e6nzjn02LNCQ+X1G
-=DGSY
------END PGP SIGNATURE-----
-
---y0ulUmNC+osPPQO6--
