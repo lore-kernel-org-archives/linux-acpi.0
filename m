@@ -1,7 +1,7 @@
 From: Tomasz Nowicki <tn@semihalf.com>
-Subject: [PATCH V9 03/11] PCI: Add new function to unmap IO resources
-Date: Fri, 10 Jun 2016 21:55:11 +0200
-Message-ID: <1465588519-11334-4-git-send-email-tn@semihalf.com>
+Subject: [PATCH V9 06/11] PCI: Refactor generic bus domain assignment
+Date: Fri, 10 Jun 2016 21:55:14 +0200
+Message-ID: <1465588519-11334-7-git-send-email-tn@semihalf.com>
 References: <1465588519-11334-1-git-send-email-tn@semihalf.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -21,68 +21,76 @@ To: helgaas@kernel.org, arnd@arndb.de, will.deacon@arm.com, catalin.marinas@arm.
 Cc: jcm@redhat.com, linaro-acpi@lists.linaro.org, linux-pci@vger.kernel.org, dhdang@apm.com, Liviu.Dudau@arm.com, ddaney@caviumnetworks.com, jeremy.linton@arm.com, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, robert.richter@caviumnetworks.com, cov@codeaurora.org, Suravee.Suthikulpanit@amd.com, msalter@redhat.com, wangyijing@huawei.com, Tomasz Nowicki <tn@semihalf.com>, mw@semihalf.com, andrea.gallo@linaro.org, linux-arm-kernel@lists.infradead.org, liudongdong3@huawei.com
 List-Id: linux-acpi@vger.kernel.org
 
-From: Sinan Kaya <okaya@codeaurora.org>
+Change the way PCI bus domain number is assigned and improve function
+name to reflect what function does. No functional changes.
 
-We need to release I/O resources so that the same I/O resources
-can be allocated again in pci_remap_iospace(), like in PCI hotplug removal
-scenario. Therefore implement new pci_unmap_iospace() call which
-unmaps I/O space as the symmetry to pci_remap_iospace().
+Instead of assigning bus domain number inside of pci_bus_assign_domain_nr()
+simply return domain number and let pci_create_root_bus() do assignment.
+This way pci_create_root_bus() setups bus structure data in the consistent
+way. Since pci_bus_assign_domain_nr() now does not assign but retrieves
+domain number instead, rename it to pci_bus_find_domain_nr().
 
-Signed-off-by: Sinan Kaya <okaya@codeaurora.org>
 Signed-off-by: Tomasz Nowicki <tn@semihalf.com>
-Acked-by: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
 ---
- drivers/pci/pci.c   | 18 ++++++++++++++++++
- include/linux/pci.h |  1 +
- 2 files changed, 19 insertions(+)
+ drivers/pci/pci.c   | 4 ++--
+ drivers/pci/probe.c | 4 +++-
+ include/linux/pci.h | 7 +------
+ 3 files changed, 6 insertions(+), 9 deletions(-)
 
 diff --git a/drivers/pci/pci.c b/drivers/pci/pci.c
-index c8b4dbd..eb431b5 100644
+index eb431b5..b9a7833 100644
 --- a/drivers/pci/pci.c
 +++ b/drivers/pci/pci.c
-@@ -25,6 +25,7 @@
- #include <linux/device.h>
- #include <linux/pm_runtime.h>
- #include <linux/pci_hotplug.h>
-+#include <linux/vmalloc.h>
- #include <asm/setup.h>
- #include <linux/aer.h>
- #include "pci.h"
-@@ -3165,6 +3166,23 @@ int __weak pci_remap_iospace(const struct resource *res, phys_addr_t phys_addr)
- #endif
+@@ -4941,7 +4941,7 @@ int pci_get_new_domain_nr(void)
  }
  
-+/**
-+ *	pci_unmap_iospace - Unmap the memory mapped I/O space
-+ *	@res: resource to be unmapped
-+ *
-+ *	Unmap the CPU virtual address @res from virtual address space.
-+ *	Only architectures that have memory mapped IO functions defined
-+ *	(and the PCI_IOBASE value defined) should call this function.
-+ */
-+void pci_unmap_iospace(struct resource *res)
-+{
-+#if defined(PCI_IOBASE) && defined(CONFIG_MMU)
-+	unsigned long vaddr = (unsigned long)PCI_IOBASE + res->start;
-+
-+	unmap_kernel_range(vaddr, resource_size(res));
-+#endif
-+}
-+
- static void __pci_set_master(struct pci_dev *dev, bool enable)
+ #ifdef CONFIG_PCI_DOMAINS_GENERIC
+-void pci_bus_assign_domain_nr(struct pci_bus *bus, struct device *parent)
++int pci_bus_find_domain_nr(struct pci_bus *bus, struct device *parent)
  {
- 	u16 old_cmd, cmd;
+ 	static int use_dt_domains = -1;
+ 	int domain = -1;
+@@ -4985,7 +4985,7 @@ void pci_bus_assign_domain_nr(struct pci_bus *bus, struct device *parent)
+ 		domain = -1;
+ 	}
+ 
+-	bus->domain_nr = domain;
++	return domain;
+ }
+ #endif
+ #endif
+diff --git a/drivers/pci/probe.c b/drivers/pci/probe.c
+index 8e3ef72..380d46d 100644
+--- a/drivers/pci/probe.c
++++ b/drivers/pci/probe.c
+@@ -2127,7 +2127,9 @@ struct pci_bus *pci_create_root_bus(struct device *parent, int bus,
+ 	b->sysdata = sysdata;
+ 	b->ops = ops;
+ 	b->number = b->busn_res.start = bus;
+-	pci_bus_assign_domain_nr(b, parent);
++#ifdef CONFIG_PCI_DOMAINS_GENERIC
++	b->domain_nr = pci_bus_find_domain_nr(b, parent);
++#endif
+ 	b2 = pci_find_bus(pci_domain_nr(b), bus);
+ 	if (b2) {
+ 		/* If we already got to this bus through a different bridge, ignore it */
 diff --git a/include/linux/pci.h b/include/linux/pci.h
-index b67e4df..12349de 100644
+index ce03d65..48839e8 100644
 --- a/include/linux/pci.h
 +++ b/include/linux/pci.h
-@@ -1167,6 +1167,7 @@ int pci_register_io_range(phys_addr_t addr, resource_size_t size);
- unsigned long pci_address_to_pio(phys_addr_t addr);
- phys_addr_t pci_pio_to_address(unsigned long pio);
- int pci_remap_iospace(const struct resource *res, phys_addr_t phys_addr);
-+void pci_unmap_iospace(struct resource *res);
- 
- static inline pci_bus_addr_t pci_bus_address(struct pci_dev *pdev, int bar)
+@@ -1390,12 +1390,7 @@ static inline int pci_domain_nr(struct pci_bus *bus)
  {
+ 	return bus->domain_nr;
+ }
+-void pci_bus_assign_domain_nr(struct pci_bus *bus, struct device *parent);
+-#else
+-static inline void pci_bus_assign_domain_nr(struct pci_bus *bus,
+-					struct device *parent)
+-{
+-}
++int pci_bus_find_domain_nr(struct pci_bus *bus, struct device *parent);
+ #endif
+ 
+ /* some architectures require additional setup to direct VGA traffic */
 -- 
 1.9.1
