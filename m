@@ -1,80 +1,98 @@
-From: Andrey Skvortsov <andrej.skvortzov@gmail.com>
-Subject: acpi: broken suspend to RAM with v4.7-rc1
-Date: Fri, 10 Jun 2016 23:32:10 +0300
-Message-ID: <20160610203210.GA2262@nest>
+From: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+Subject: Re: [PATCH V9 06/11] PCI: Refactor generic bus domain assignment
+Date: Fri, 10 Jun 2016 21:50:26 +0100
+Message-ID: <20160610205026.GA24178@red-moon>
+References: <1465588519-11334-1-git-send-email-tn@semihalf.com>
+ <1465588519-11334-7-git-send-email-tn@semihalf.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha512;
-	protocol="application/pgp-signature"; boundary="IS0zKkzwUGydFO0o"
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from foss.arm.com ([217.140.101.70]:40974 "EHLO foss.arm.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S932579AbcFJUuB (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 10 Jun 2016 16:50:01 -0400
 Content-Disposition: inline
-Sender: linux-kernel-owner@vger.kernel.org
-To: Lv Zheng <lv.zheng@intel.com>, Bob Moore <robert.moore@intel.com>, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, linux-acpi@vger.kernel.org, devel@acpica.org, linux-kernel@vger.kernel.org
+In-Reply-To: <1465588519-11334-7-git-send-email-tn@semihalf.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Tomasz Nowicki <tn@semihalf.com>
+Cc: helgaas@kernel.org, arnd@arndb.de, will.deacon@arm.com, catalin.marinas@arm.com, rafael@kernel.org, hanjun.guo@linaro.org, okaya@codeaurora.org, jchandra@broadcom.com, robert.richter@caviumnetworks.com, mw@semihalf.com, Liviu.Dudau@arm.com, ddaney@caviumnetworks.com, wangyijing@huawei.com, Suravee.Suthikulpanit@amd.com, msalter@redhat.com, linux-pci@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linaro-acpi@lists.linaro.org, jcm@redhat.com, andrea.gallo@linaro.org, dhdang@apm.com, jeremy.linton@arm.com, liudongdong3@huawei.com, cov@codeaurora.org
 
+On Fri, Jun 10, 2016 at 09:55:14PM +0200, Tomasz Nowicki wrote:
+> Change the way PCI bus domain number is assigned and improve function
+> name to reflect what function does. No functional changes.
+> 
+> Instead of assigning bus domain number inside of pci_bus_assign_domain_nr()
+> simply return domain number and let pci_create_root_bus() do assignment.
+> This way pci_create_root_bus() setups bus structure data in the consistent
+> way. Since pci_bus_assign_domain_nr() now does not assign but retrieves
+> domain number instead, rename it to pci_bus_find_domain_nr().
+> 
+> Signed-off-by: Tomasz Nowicki <tn@semihalf.com>
 
---IS0zKkzwUGydFO0o
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Reviewed-by: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
 
-Hi,
-
-On my laptop (DELL Vostro 1500) in v4.7-rc1 is broken suspend to RAM.
-Laptop doesn't finish suspend to RAM process (disks are off, but WiFi
-and Power LEDs are still on). The only way to get it out of this
-state, is to turn the power off.
-
-I've bisected the issue to commit 66b1ed5aa8dd25
-[ACPICA: ACPI 2.0, Hardware: Add access_width/bit_offset support for acpi_h=
-w_write()].
-
-If I revert this commit in v4.7-rc1 (or v4.7-rc2), suspend to RAM is
-working again.
-
-The cause of this problem is that after this commit write to PM1A Control B=
-lock
-(16-bit register) is done using two 8-bit writes. If I force this write
-to be 16-bit, then all is working as before.
-
-To get it working 'access_width' for PM1A Control Block needs to be 2 (16-b=
-it), but it's=20
-1 (8-bit).
-
-The root of the problem seems to be not the commit 66b1ed5aa8dd25 itself, b=
-ut the ACPI
-tables in BIOS where wrong access_width comes from. I fixed problem in FACP=
- table,
-put it in initrd to override FACP table from BIOS. This fixed the issue,
-suspend to RAM is working now again.
-
-But I'm not sure whether is this proper fix for this problem.
-Is there any place in the kernel, where such ACPI quirks are placed?
-
-
---=20
-Best regards,
-Andrey Skvortsov
-
-
-
---IS0zKkzwUGydFO0o
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-
-iQIcBAEBCgAGBQJXWyPKAAoJEAF8y6L1SLCtmfoP/1FEo0EJzNCOLvQXhnVq5gXk
-NuBC6rJddAA176BalI3+lxj4WOpT/LJpQgnGvheL/lnxqEzhAZu8wbAlVMXHkoVD
-8++Tx+QfamfuVrk0Wh+/GKpgfIuydf0HXfnUxkd8V+y2hlRAy8j2CNyI/71Pyc/t
-ai3/I3kd3YFSlXkWdNmXbIo+PR4LK9xGOsPZeerUbtJmsqWoSvhHSrX13e3RjL89
-/jv538lefWEgpEKk4d8oJYuHtEgh6IFCspeVa1a//KyiPBg8zA6zt/R4i8FOgblF
-9mXwxQiKc3fzejs3TzrOReJ1KTNlYdLnDFMZ9M9Yr5Iv6fGnkNJnLhw03nyzsP20
-Dsqx471w6ruOVve6DPcmnI0WZW1tNAScrlD6CuGhrxZVTyfTrf/5UEXciJRvP9iE
-o/g+O14TjlQ6+SpEoEm5Cqg+He5zSO0+vDukNIQ0Dg9TmA0dGCzq5ebp4yUnV9AJ
-vMl/xPpzjZvu3/OZtDVWjmSg1PT5LJFYlGC1iNQ3Qw/NKn5v3UlGecBz9kIY7rgT
-kJ99v842gKfxkobyWtciChRFHxvkRRrfXOc5KX3+KnAXsO29Es3XozmRBmjPcqwN
-gu7a48Ob6nhPdHD90PRlBf074cxx8bjdSZFN/zQuJ4W/OXryy7TjamP4a7mcVDLV
-uuTloX/K0HX3nwS2Of9+
-=l+eI
------END PGP SIGNATURE-----
-
---IS0zKkzwUGydFO0o--
+> ---
+>  drivers/pci/pci.c   | 4 ++--
+>  drivers/pci/probe.c | 4 +++-
+>  include/linux/pci.h | 7 +------
+>  3 files changed, 6 insertions(+), 9 deletions(-)
+> 
+> diff --git a/drivers/pci/pci.c b/drivers/pci/pci.c
+> index eb431b5..b9a7833 100644
+> --- a/drivers/pci/pci.c
+> +++ b/drivers/pci/pci.c
+> @@ -4941,7 +4941,7 @@ int pci_get_new_domain_nr(void)
+>  }
+>  
+>  #ifdef CONFIG_PCI_DOMAINS_GENERIC
+> -void pci_bus_assign_domain_nr(struct pci_bus *bus, struct device *parent)
+> +int pci_bus_find_domain_nr(struct pci_bus *bus, struct device *parent)
+>  {
+>  	static int use_dt_domains = -1;
+>  	int domain = -1;
+> @@ -4985,7 +4985,7 @@ void pci_bus_assign_domain_nr(struct pci_bus *bus, struct device *parent)
+>  		domain = -1;
+>  	}
+>  
+> -	bus->domain_nr = domain;
+> +	return domain;
+>  }
+>  #endif
+>  #endif
+> diff --git a/drivers/pci/probe.c b/drivers/pci/probe.c
+> index 8e3ef72..380d46d 100644
+> --- a/drivers/pci/probe.c
+> +++ b/drivers/pci/probe.c
+> @@ -2127,7 +2127,9 @@ struct pci_bus *pci_create_root_bus(struct device *parent, int bus,
+>  	b->sysdata = sysdata;
+>  	b->ops = ops;
+>  	b->number = b->busn_res.start = bus;
+> -	pci_bus_assign_domain_nr(b, parent);
+> +#ifdef CONFIG_PCI_DOMAINS_GENERIC
+> +	b->domain_nr = pci_bus_find_domain_nr(b, parent);
+> +#endif
+>  	b2 = pci_find_bus(pci_domain_nr(b), bus);
+>  	if (b2) {
+>  		/* If we already got to this bus through a different bridge, ignore it */
+> diff --git a/include/linux/pci.h b/include/linux/pci.h
+> index ce03d65..48839e8 100644
+> --- a/include/linux/pci.h
+> +++ b/include/linux/pci.h
+> @@ -1390,12 +1390,7 @@ static inline int pci_domain_nr(struct pci_bus *bus)
+>  {
+>  	return bus->domain_nr;
+>  }
+> -void pci_bus_assign_domain_nr(struct pci_bus *bus, struct device *parent);
+> -#else
+> -static inline void pci_bus_assign_domain_nr(struct pci_bus *bus,
+> -					struct device *parent)
+> -{
+> -}
+> +int pci_bus_find_domain_nr(struct pci_bus *bus, struct device *parent);
+>  #endif
+>  
+>  /* some architectures require additional setup to direct VGA traffic */
+> -- 
+> 1.9.1
+> 
