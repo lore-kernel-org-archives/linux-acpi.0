@@ -1,84 +1,228 @@
-From: Tomasz Nowicki <tn@semihalf.com>
-Subject: Re: [RFC PATCH v2 13/15] drivers: acpi: iort: introduce
- iort_iommu_configure
-Date: Fri, 10 Jun 2016 14:46:56 +0200
-Message-ID: <575AB6C0.4050808@semihalf.com>
-References: <1465306270-27076-1-git-send-email-lorenzo.pieralisi@arm.com>
- <1465306270-27076-14-git-send-email-lorenzo.pieralisi@arm.com>
+From: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+Subject: Re: [PATCH v5 4/5] arm64: add support for ACPI Low Power Idle(LPI)
+Date: Fri, 10 Jun 2016 13:50:28 +0100
+Message-ID: <20160610125028.GA24002@red-moon>
+References: <1462981062-24909-1-git-send-email-sudeep.holla@arm.com>
+ <1462981062-24909-5-git-send-email-sudeep.holla@arm.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-lf0-f51.google.com ([209.85.215.51]:33487 "EHLO
-	mail-lf0-f51.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932473AbcFJMrA (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 10 Jun 2016 08:47:00 -0400
-Received: by mail-lf0-f51.google.com with SMTP id f6so24448009lfg.0
-        for <linux-acpi@vger.kernel.org>; Fri, 10 Jun 2016 05:47:00 -0700 (PDT)
-In-Reply-To: <1465306270-27076-14-git-send-email-lorenzo.pieralisi@arm.com>
+Received: from foss.arm.com ([217.140.101.70]:38130 "EHLO foss.arm.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S933118AbcFJMuA (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 10 Jun 2016 08:50:00 -0400
+Content-Disposition: inline
+In-Reply-To: <1462981062-24909-5-git-send-email-sudeep.holla@arm.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, iommu@lists.linux-foundation.org
-Cc: Hanjun Guo <hanjun.guo@linaro.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Will Deacon <will.deacon@arm.com>, Marc Zyngier <marc.zyngier@arm.com>, Robin Murphy <robin.murphy@arm.com>, Joerg Roedel <joro@8bytes.org>, Jon Masters <jcm@redhat.com>, Sinan Kaya <okaya@codeaurora.org>, linux-acpi@vger.kernel.org, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: Sudeep Holla <sudeep.holla@arm.com>
+Cc: linux-acpi@vger.kernel.org, "Rafael J. Wysocki" <rjw@rjwysocki.net>, linux-kernel@vger.kernel.org, Vikas Sajjan <vikas.cha.sajjan@hpe.com>, Sunil <sunil.vl@hpe.com>, Prashanth Prakash <pprakash@codeaurora.org>, Ashwin Chaugule <ashwin.chaugule@linaro.org>, Al Stone <al.stone@linaro.org>, Mark Rutland <mark.rutland@arm.com>, linux-arm-kernel@lists.infradead.org, daniel.lezcano@linaro.org, khilman@baylibre.com
 
-On 07.06.2016 15:31, Lorenzo Pieralisi wrote:
-> +static int __get_pci_rid(struct pci_dev *pdev, u16 alias, void *data)
-> +{
-> +	u32 *rid = data;
+[+ Daniel, Kevin]
+
+On Wed, May 11, 2016 at 04:37:41PM +0100, Sudeep Holla wrote:
+> This patch adds appropriate callbacks to support ACPI Low Power Idle
+> (LPI) on ARM64.
+> 
+> Cc: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+> Cc: Mark Rutland <mark.rutland@arm.com>
+> Cc: linux-arm-kernel@lists.infradead.org
+> Signed-off-by: Sudeep Holla <sudeep.holla@arm.com>
+> ---
+>  arch/arm64/kernel/acpi.c | 48 +++++++++++++++++++++++++++++++++++++++++
+>  drivers/firmware/psci.c  | 56 ++++++++++++++++++++++++++++++++++++++++++++++++
+>  2 files changed, 104 insertions(+)
+> 
+> diff --git a/arch/arm64/kernel/acpi.c b/arch/arm64/kernel/acpi.c
+
+I think we can add this to arm64/kernel/cpuidle.c so that we have all
+arch code managing idle in one place.
+
+> index d1ce8e2f98b9..bf82ce5c8fce 100644
+> --- a/arch/arm64/kernel/acpi.c
+> +++ b/arch/arm64/kernel/acpi.c
+> @@ -18,6 +18,7 @@
+>  #include <linux/acpi.h>
+>  #include <linux/bootmem.h>
+>  #include <linux/cpumask.h>
+> +#include <linux/cpu_pm.h>
+>  #include <linux/init.h>
+>  #include <linux/irq.h>
+>  #include <linux/irqdomain.h>
+> @@ -25,6 +26,9 @@
+>  #include <linux/of_fdt.h>
+>  #include <linux/smp.h>
+>  
+> +#include <acpi/processor.h>
 > +
-> +	*rid = alias;
+> +#include <asm/cpuidle.h>
+>  #include <asm/cputype.h>
+>  #include <asm/cpu_ops.h>
+>  #include <asm/smp_plat.h>
+> @@ -211,6 +215,50 @@ void __init acpi_boot_table_init(void)
+>  	}
+>  }
+>  
+> +int acpi_processor_ffh_lpi_probe(unsigned int cpu)
+> +{
+> +	return arm_cpuidle_init(cpu);
+> +}
+> +
+> +#define ACPI_FFH_LPI_ARM_FLAGS_CORE_CONTEXT	BIT(0)
+> +#define ACPI_FFH_LPI_ARM_FLAGS_TRACE_CONTEXT	BIT(1)
+> +#define ACPI_FFH_LPI_ARM_FLAGS_GICR_CONTEXT	BIT(2)
+> +#define ACPI_FFH_LPI_ARM_FLAGS_GICD_CONTEXT	BIT(3)
+> +#define ACPI_FFH_LPI_ARM_FLAGS_ALL_CONTEXT	\
+> +	(ACPI_FFH_LPI_ARM_FLAGS_CORE_CONTEXT |	\
+> +	 ACPI_FFH_LPI_ARM_FLAGS_TRACE_CONTEXT |	\
+> +	 ACPI_FFH_LPI_ARM_FLAGS_GICR_CONTEXT |	\
+> +	 ACPI_FFH_LPI_ARM_FLAGS_GICD_CONTEXT)
+> +
+> +struct acpi_lpi_state *lpi;
+> +int acpi_processor_ffh_lpi_enter(struct acpi_lpi_state *lpi, int idx)
+> +{
+> +	int ret = 0;
+> +	bool save_ctx = lpi->arch_flags & ACPI_FFH_LPI_ARM_FLAGS_ALL_CONTEXT;
+
+I am not really that keen on this, as you know. Those flags are
+there to say "save these components registers". I see the CPU PM
+notifiers as a way to save/restore CPU peripheral state, but
+they should *not* carry out any action that affects the power
+state itself, that's down to the suspend finisher (eg PSCI),
+because that's where the specific idle states are managed.
+
+I agree we have no clue whatsoever on what we *really* need
+to save/restore, but that's orthogonal to what you are solving
+here.
+
+See eg gic_cpu_if_down(). Do we call it from the GIC CPU PM notifier ?
+No. We should not handle the same problem differently.
+
+On top of that, we have no way to solve this problem for DT,
+all I am saying is that it is ill-defined and given that LPI
+is new I'd rather we got it right from the beginning.
+
+I am open to suggestions here.
+
+> +
+> +	if (!idx) {
+> +		cpu_do_idle();
+> +		return idx;
+> +	}
+> +
+> +	/* TODO cpu_pm_{enter,exit} can be done in generic code ? */
+> +	if (save_ctx)
+> +		ret = cpu_pm_enter();
+> +	if (!ret) {
+> +		/*
+> +		 * Pass idle state index to cpu_suspend which in turn will
+> +		 * call the CPU ops suspend protocol with idle index as a
+> +		 * parameter.
+> +		 */
+> +		ret = arm_cpuidle_suspend(idx);
+> +
+> +		if (save_ctx)
+> +			cpu_pm_exit();
+> +	}
+> +
+> +	return ret ? -1 : idx;
+
+The body of this function (if we remove save_ctx) is identical
+to arm_enter_idle_state(), it would be nice if we found a way
+where to put this code and share it with the ARM CPUidle driver,
+but I am not too fussed about that either.
+
+> +}
+> +
+>  #ifdef CONFIG_ACPI_APEI
+>  pgprot_t arch_apei_get_mem_attribute(phys_addr_t addr)
+>  {
+> diff --git a/drivers/firmware/psci.c b/drivers/firmware/psci.c
+> index fa4ea22ca12e..e06bfee68e1d 100644
+> --- a/drivers/firmware/psci.c
+> +++ b/drivers/firmware/psci.c
+> @@ -13,6 +13,7 @@
+>  
+>  #define pr_fmt(fmt) "psci: " fmt
+>  
+> +#include <linux/acpi.h>
+>  #include <linux/arm-smccc.h>
+>  #include <linux/cpuidle.h>
+>  #include <linux/errno.h>
+> @@ -310,11 +311,66 @@ static int psci_dt_cpu_init_idle(struct device_node *cpu_node, int cpu)
+>  	return ret;
+>  }
+>  
+> +#ifdef CONFIG_ACPI
+> +#include <acpi/processor.h>
+> +
+> +static int __maybe_unused psci_acpi_cpu_init_idle(unsigned int cpu)
+> +{
+> +	int i, count;
+> +	u32 *psci_states;
+> +	struct acpi_processor *pr;
+> +	struct acpi_lpi_state *lpi;
+> +
+> +	pr = per_cpu(processors, cpu);
+> +	if (unlikely(!pr || !pr->flags.has_lpi))
+> +		return -EINVAL;
+> +
+> +	/*
+> +	 * If the PSCI cpu_suspend function hook has not been initialized
+> +	 * idle states must not be enabled, so bail out
+> +	 */
+> +	if (!psci_ops.cpu_suspend)
+> +		return -EOPNOTSUPP;
+> +
+> +	count = pr->power.count - 1;
+
+Nit: I am not sure this can happen, but you really do not want
+count to become == -1.
+
+> +	if (!count)
+> +		return -ENODEV;
+> +
+> +	psci_states = kcalloc(count, sizeof(*psci_states), GFP_KERNEL);
+> +	if (!psci_states)
+> +		return -ENOMEM;
+> +
+> +	for (i = 0; i < count; i++) {
+> +		u32 state;
+> +
+> +		lpi = &pr->power.lpi_states[i + 1];
+> +		state = lpi->address & 0xFFFFFFFF;
+> +		if (!psci_power_state_is_valid(state)) {
+> +			pr_warn("Invalid PSCI power state %#x\n", state);
+> +			kfree(psci_states);
+> +			return -EINVAL;
+> +		}
+> +		psci_states[i] = state;
+> +	}
+> +	/* Idle states parsed correctly, initialize per-cpu pointer */
+> +	per_cpu(psci_power_state, cpu) = psci_states;
 > +	return 0;
 > +}
-> +
-> +/**
-> + * iort_iommu_configure - Set-up IOMMU configuration for a device.
-> + *
-> + * @dev: device to configure
-> + *
-> + * Returns: iommu_ops pointer on configuration success
-> + *          NULL on configuration failure
-> + */
-> +const struct iommu_ops *iort_iommu_configure(struct device *dev)
+> +#else
+> +static int __maybe_unused psci_acpi_cpu_init_idle(unsigned int cpu)
 > +{
-> +	struct acpi_iort_node *node, *parent;
-> +	const struct iort_ops_node *iort_ops;
-> +	u32 rid = 0, devid = 0;
-> +
-> +	if (dev_is_pci(dev)) {
-> +		struct pci_bus *bus = to_pci_dev(dev)->bus;
-> +
-> +		pci_for_each_dma_alias(to_pci_dev(dev), __get_pci_rid,
-> +				       &rid);
-
-I think we should find here the root bus which is connected to RC IORT node.
-
-> +
-> +		node = iort_scan_node(ACPI_IORT_NODE_PCI_ROOT_COMPLEX,
-> +				      iort_find_dev_callback, &bus->dev);
-> +	} else {
-> +		node = iort_scan_node(ACPI_IORT_NODE_NAMED_COMPONENT,
-> +				      iort_find_dev_callback, dev);
-> +	}
-> +
-> +	if (!node)
-> +		return NULL;
-> +
-> +	parent = iort_find_parent_node(node);
-> +
-> +	if (!parent)
-> +		return NULL;
-> +
-> +	iort_ops = iort_smmu_get_ops_node(parent);
-> +
-> +	if (iort_ops && iort_ops->iommu_xlate) {
-> +		iort_dev_map_rid(node, rid, &devid, parent->type);
-> +		iort_ops->iommu_xlate(dev, devid, parent);
-> +		return iort_ops->ops;
-> +	}
-> +
-> +	return NULL;
+> +	return -EINVAL;
 > +}
+> +#endif
 > +
+>  int psci_cpu_init_idle(unsigned int cpu)
+>  {
+>  	struct device_node *cpu_node;
+>  	int ret;
+>  
+> +	if (!acpi_disabled)
+> +		return psci_acpi_cpu_init_idle(cpu);
+> +
+>  	cpu_node = of_get_cpu_node(cpu, NULL);
+>  	if (!cpu_node)
+>  		return -ENODEV;
+
+save_ctx notwithstanding the patch is fine, let's define what to
+do with that, remainder of the code is ok.
 
 Thanks,
-Tomasz
+Lorenzo
