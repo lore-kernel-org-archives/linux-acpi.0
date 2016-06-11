@@ -1,41 +1,121 @@
-From: Tomasz Nowicki <tn@semihalf.com>
-Subject: Re: [PATCH V9 00/11] Support for ARM64 ACPI based PCI host controller
-Date: Sat, 11 Jun 2016 11:51:32 +0200
-Message-ID: <575BDF24.9030201@semihalf.com>
-References: <1465588519-11334-1-git-send-email-tn@semihalf.com>
- <20160610234107.GC7671@localhost>
+From: Andrey Skvortsov <andrej.skvortzov@gmail.com>
+Subject: Re: acpi: broken suspend to RAM with v4.7-rc1
+Date: Sat, 11 Jun 2016 13:49:22 +0300
+Message-ID: <20160611104922.GA2368@nest>
+References: <20160610203210.GA2262@nest>
+ <3027571.8eTQaleASL@vostro.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/signed; micalg=pgp-sha512;
+	protocol="application/pgp-signature"; boundary="5mCyUwZo2JvN/JJP"
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-lf0-f48.google.com ([209.85.215.48]:34527 "EHLO
-	mail-lf0-f48.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750995AbcFKJvm (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sat, 11 Jun 2016 05:51:42 -0400
-Received: by mail-lf0-f48.google.com with SMTP id j7so35302331lfg.1
-        for <linux-acpi@vger.kernel.org>; Sat, 11 Jun 2016 02:51:41 -0700 (PDT)
-In-Reply-To: <20160610234107.GC7671@localhost>
+Received: from mail-lf0-f68.google.com ([209.85.215.68]:36624 "EHLO
+	mail-lf0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751076AbcFKKt0 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sat, 11 Jun 2016 06:49:26 -0400
+Content-Disposition: inline
+In-Reply-To: <3027571.8eTQaleASL@vostro.rjw.lan>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Bjorn Helgaas <helgaas@kernel.org>
-Cc: arnd@arndb.de, will.deacon@arm.com, catalin.marinas@arm.com, rafael@kernel.org, hanjun.guo@linaro.org, Lorenzo.Pieralisi@arm.com, okaya@codeaurora.org, jchandra@broadcom.com, robert.richter@caviumnetworks.com, mw@semihalf.com, Liviu.Dudau@arm.com, ddaney@caviumnetworks.com, wangyijing@huawei.com, Suravee.Suthikulpanit@amd.com, msalter@redhat.com, linux-pci@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linaro-acpi@lists.linaro.org, jcm@redhat.com, andrea.gallo@linaro.org, dhdang@apm.com, jeremy.linton@arm.com, liudongdong3@huawei.com, cov@codeaurora.org
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: Lv Zheng <lv.zheng@intel.com>, Bob Moore <robert.moore@intel.com>, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, linux-acpi@vger.kernel.org, devel@acpica.org, linux-kernel@vger.kernel.org
 
-On 11.06.2016 01:41, Bjorn Helgaas wrote:
-> On Fri, Jun 10, 2016 at 09:55:08PM +0200, Tomasz Nowicki wrote:
->>  From the functionality point of view this series may be split into the
->> following logic parts:
->> 1. Export ECAM API and add parent device to pci_config_window
->> 2. Add IO resources handling to PCI core code
->> 3. New MCFG driver
->> 4. Cleanups and support for generic domain assignment based on ACPI
->> 5. Implement ARM64 ACPI based PCI host controller driver under arch/arm64/
->
-> This is beautiful!  It really turned out well.
->
-> I applied all these to pci/arm64-acpi for v4.8.
->
 
-Thanks Bjorn! This is great news.
+--5mCyUwZo2JvN/JJP
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-Tomasz
+On 10 Jun, Rafael J. Wysocki wrote:
+> On Friday, June 10, 2016 11:32:10 PM Andrey Skvortsov wrote:
+> > Hi,
+> >=20
+> > On my laptop (DELL Vostro 1500) in v4.7-rc1 is broken suspend to RAM.
+> > Laptop doesn't finish suspend to RAM process (disks are off, but WiFi
+> > and Power LEDs are still on). The only way to get it out of this
+> > state, is to turn the power off.
+> >=20
+> > I've bisected the issue to commit 66b1ed5aa8dd25
+> > [ACPICA: ACPI 2.0, Hardware: Add access_width/bit_offset support for ac=
+pi_h=3D
+> > w_write()].
+> >=20
+> > If I revert this commit in v4.7-rc1 (or v4.7-rc2), suspend to RAM is
+> > working again.
+> >=20
+> > The cause of this problem is that after this commit write to PM1A Contr=
+ol B=3D
+> > lock
+> > (16-bit register) is done using two 8-bit writes. If I force this write
+> > to be 16-bit, then all is working as before.
+> >=20
+> > To get it working 'access_width' for PM1A Control Block needs to be 2 (=
+16-b=3D
+> > it), but it's=3D20
+> > 1 (8-bit).
+> >=20
+> > The root of the problem seems to be not the commit 66b1ed5aa8dd25 itsel=
+f, b=3D
+> > ut the ACPI
+> > tables in BIOS where wrong access_width comes from. I fixed problem in =
+FACP=3D
+> >  table,
+> > put it in initrd to override FACP table from BIOS. This fixed the issue,
+> > suspend to RAM is working now again.
+> >=20
+> > But I'm not sure whether is this proper fix for this problem.
+> > Is there any place in the kernel, where such ACPI quirks are placed?
+>=20
+> Well, if the commit in question caused a problem to happen for you, it al=
+so
+> might cause similar problems to happen elsewhere.
+>=20
+> It looks like we'll need to revert that commit.
+Hi,
 
+or maybe to reset access_width AnyAcc from FACP table only for PM1A control
+register or even for all registers? This will fix the issue too.
+
+diff --git a/drivers/acpi/acpica/tbfadt.c b/drivers/acpi/acpica/tbfadt.c
+index 6208069..a476e94 100644
+--- a/drivers/acpi/acpica/tbfadt.c
++++ b/drivers/acpi/acpica/tbfadt.c
+@@ -714,7 +714,14 @@ static void acpi_tb_setup_fadt_registers(void)
+                        }
+                }
+        }
+
++       /*
++        * Reset access_width in the GAS for PM1A control register to
++        * undefined value. Because in some cases this field contains
++        * wrong value.
++        */
++       acpi_gbl_FADT.xpm1a_control_block.access_width =3D 0;
+
+
+--=20
+Best regards,
+Andrey Skvortsov
+
+
+
+--5mCyUwZo2JvN/JJP
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+
+iQIcBAEBCgAGBQJXW+yyAAoJEAF8y6L1SLCtv+IP/RKUvQpQhud/TMflPfc4hhsI
+XK3iqgV/3ee+B6NSG9EITY6nqDwyB36QibO4XT4IMIUqYyH7eCNMJE60+3adNTYX
+IDM/DhkYG0F7KIrJ1G/AqAHVy9f2wEPyK2rljh9sgxTyvLhUCy3Hd+mUj/6vcI9V
+ltW3kL0l+GBDACuvZ5JSFDKxeNe7SgxLfYD+zr6B+jOzyJCQT6QWKJYba5hLtYBE
+/auw+bJaS4H1rOVw8KUIlPnOrEY9+12Zb4S8pqPtAHI82qKbc9Lvnbjo5w8mqg6o
+2vNzrfDaBlLf+tHfL5Avgm7uJW/vVc6GlVQAkNUpJFF9pIkqtSyQbXcc3ewzBJOK
+Z6XFacXNIrbFwC7ytgBE8GrFH0irM/UQXd+pwbouhJKH9wNCdRwyxPRF7bIbOnbu
+BWAyitWNqetz2e9gBxoJAGc8qDf1EA1u2EDM5jNWiWBWceow/hoCzOVK2ZsmME7c
+a/Q4rZd88QZ6orkzFZyC77IDukuSmbt8jB8Sh1Xd7VuH3rAG6M/8D/ZcdMdiB9pS
+o83VmHZ9V9FAv4xB742LlPUDIfwrDrKUTZiMRLUqYTEy9+g0LNlLNEYVVzejYT4O
+qYWM6QK0X/sVt12NARd1mSXYLP/KyOurrK+KJEDeQ2PvJRw5NaBJW7iISo8SZd/2
+1txi9Iq+9gUFzKwEgDac
+=W5Mh
+-----END PGP SIGNATURE-----
+
+--5mCyUwZo2JvN/JJP--
