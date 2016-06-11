@@ -1,45 +1,38 @@
-From: Jon Masters <jcm@jonmasters.org>
-Subject: Re: [Linaro-acpi] [PATCH V9 00/11] Support for ARM64 ACPI based PCI
- host controller
-Date: Fri, 10 Jun 2016 19:58:38 -0400
-Message-ID: <2e8ae0dc-d04e-3264-86d4-e2640060750c@jonmasters.org>
-References: <1465588519-11334-1-git-send-email-tn@semihalf.com>
- <20160610234107.GC7671@localhost>
+From: Bin Gao <bin.gao@linux.intel.com>
+Subject: [PATCH 0/2] acpi/pmic: add opregion driver for Intel BXT WhiskeyCove
+ PMIC
+Date: Sat, 11 Jun 2016 00:14:44 -0700
+Message-ID: <20160611071444.GA89987@worksta>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from edison.jonmasters.org ([173.255.233.168]:35599 "EHLO
-	edison.jonmasters.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752040AbcFJX7J (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 10 Jun 2016 19:59:09 -0400
-In-Reply-To: <20160610234107.GC7671@localhost>
+Received: from mga11.intel.com ([192.55.52.93]:47192 "EHLO mga11.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751115AbcFKHLJ (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sat, 11 Jun 2016 03:11:09 -0400
+Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Bjorn Helgaas <helgaas@kernel.org>, Tomasz Nowicki <tn@semihalf.com>
-Cc: rafael@kernel.org, linux-pci@vger.kernel.org, will.deacon@arm.com, okaya@codeaurora.org, wangyijing@huawei.com, andrea.gallo@linaro.org, linaro-acpi@lists.linaro.org, ddaney@caviumnetworks.com, linux-acpi@vger.kernel.org, robert.richter@caviumnetworks.com, catalin.marinas@arm.com, Liviu.Dudau@arm.com, arnd@arndb.de, jcm@redhat.com, cov@codeaurora.org, mw@semihalf.com, linux-arm-kernel@lists.infradead.org, jchandra@broadcom.com, dhdang@apm.com, linux-kernel@vger.kernel.org, jeremy.linton@arm.com
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Aaron Lu <aaron.lu@intel.com>, Paul Gortmaker <paul.gortmaker@windriver.com>, linux-acpi@vger.kernel.org
+Cc: linux-kernel@vger.kernel.org, ysiyer <yegnesh.s.iyer@intel.com>, Ajay Thomas <ajay.thomas.david.rajamanickam@intel.com>, Bin Gao <bin.gao@intel.com>
 
-On 06/10/2016 07:41 PM, Bjorn Helgaas wrote:
-> On Fri, Jun 10, 2016 at 09:55:08PM +0200, Tomasz Nowicki wrote:
->> From the functionality point of view this series may be split into the
->> following logic parts:
->> 1. Export ECAM API and add parent device to pci_config_window
->> 2. Add IO resources handling to PCI core code
->> 3. New MCFG driver
->> 4. Cleanups and support for generic domain assignment based on ACPI
->> 5. Implement ARM64 ACPI based PCI host controller driver under arch/arm64/
-> 
-> This is beautiful!  It really turned out well.
-> 
-> I applied all these to pci/arm64-acpi for v4.8.
+This series modifies the pen function signature to take bit field
+and adds a new opregion driver for Intel BXT WhiskeyCove PMIC.
 
-Quick followup - I've forwarded your mail to the Linaro Enterprise Group
-members and started nudging the vendors to prep any remaining pieces for
-post-merge. That includes quirks, and then any drivers that anyone has
-been sitting on until this was upstream.
+Yegnesh Iyer (1):
+  acpi/pmic: Modifying the pen function signature to take bit field
 
-Looking forward to F25 Server booting out of the box, and finally
-getting to a point where Fedora is once again upstream of RHEL(SA).
+Ajay Thomas (1):
+  acpi/pmic: Add opregion driver for Intel BXT WhiskeyCove PMIC
 
-Jon.
+ drivers/acpi/pmic/intel_pmic.c       | 13 +++++++------
+ drivers/acpi/pmic/intel_pmic.h       |  4 ++--
+ drivers/acpi/pmic/intel_pmic_crc.c   |  5 +++--
+ drivers/acpi/Kconfig                 |   6 +
+ drivers/acpi/Makefile                |   1 +
+ drivers/acpi/pmic/intel_pmic_bxtwc.c | 424 +++++++++++++++++++++++++++++++++++
+ 6 files changed, 443 insertions(+), 10 deletions(-)
+ create mode 100644 drivers/acpi/pmic/intel_pmic_bxtwc.c
+--
+1.9.1
 
