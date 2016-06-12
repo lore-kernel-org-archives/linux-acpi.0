@@ -1,245 +1,138 @@
-From: joeyli <jlee@suse.com>
-Subject: Re: [PATCH] libnvdimm, nfit: treat volatile virtual CD region as
- read-only pmem
-Date: Sun, 12 Jun 2016 09:58:59 +0800
-Message-ID: <20160612015859.GI4558@linux-rxt1.site>
-References: <1464938015-5489-1-git-send-email-jlee@suse.com>
- <CAPcyv4iLb9qzXZTLL5z-RH_CRObnRfzx=vGTvVvieJUEwNvtRw@mail.gmail.com>
- <20160604110156.GA4558@linux-rxt1.site>
- <888aeb53-69b4-652b-8f89-822af4622acf@hpe.com>
+From: Aaron Lu <aaron.lu@intel.com>
+Subject: Re: [PATCH 1/2] acpi/pmic: modify the pen function signature to take
+ bit field
+Date: Sun, 12 Jun 2016 10:07:45 +0800
+Message-ID: <c5c47a42-b940-f2b7-aa21-598f316fd92e@intel.com>
+References: <20160611072246.GA90940@worksta>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp.nue.novell.com ([195.135.221.5]:45890 "EHLO
-	smtp.nue.novell.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752172AbcFLB7T (ORCPT
-	<rfc822;groupwise-linux-acpi@vger.kernel.org:0:0>);
-	Sat, 11 Jun 2016 21:59:19 -0400
-Content-Disposition: inline
-In-Reply-To: <888aeb53-69b4-652b-8f89-822af4622acf@hpe.com>
+Received: from mga14.intel.com ([192.55.52.115]:20740 "EHLO mga14.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752113AbcFLCHs (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sat, 11 Jun 2016 22:07:48 -0400
+In-Reply-To: <20160611072246.GA90940@worksta>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Linda Knippers <linda.knippers@hpe.com>
-Cc: Dan Williams <dan.j.williams@intel.com>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Linux ACPI <linux-acpi@vger.kernel.org>, "Lee, Chun-Yi" <joeyli.kernel@gmail.com>, Gary Lin <GLin@suse.com>
+To: Bin Gao <bin.gao@linux.intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Paul Gortmaker <paul.gortmaker@windriver.com>, linux-acpi@vger.kernel.org
+Cc: linux-kernel@vger.kernel.org, ysiyer <yegnesh.s.iyer@intel.com>, Ajay Thomas <ajay.thomas.david.rajamanickam@intel.com>, Bin Gao <bin.gao@intel.com>
 
-Hi Linda,=20
+On 06/11/2016 03:22 PM, Bin Gao wrote:
+> Issue description: On some pmics, the policy enable for thermal alerts
+> refers to different bit fields of the same registers, whereas on other
+> pmics, the policy enable refers to the same bit field on different
+> registers. Previous implementation did not provide the flexibility for
+> supporting the first approach.
+> 
+> Solution: Modified the policy enable function to take bit field as well.
+> The use of bit field is left to the pmic specific opregion driver.
+> 
+> Signed-off-by: Yegnesh Iyer <yegnesh.s.iyer@intel.com>
+> Signed-off-by: Bin Gao <bin.gao@intel.com>
 
-Thanks for your review and comments.
+Acked-by: Aaron Lu <aaron.lu@intel.com>
 
-On Thu, Jun 09, 2016 at 06:08:17PM -0400, Linda Knippers wrote:
-> On 6/4/2016 7:01 AM, joeyli wrote:
-> > Hi Dan,=20
-> >=20
-> > Thanks for your review.
-> >=20
-> > On Fri, Jun 03, 2016 at 12:27:34PM -0700, Dan Williams wrote:
-> >> On Fri, Jun 3, 2016 at 12:13 AM, Lee, Chun-Yi <joeyli.kernel@gmail=
-=2Ecom> wrote:
-> >>> This patch adds codes to treat a volatile virtual CD region as a
-> >>> read-only pmem region, then read-only /dev/pmem* device can be mo=
-unted
-> >>> with iso9660.
-> >>>
-> >>> It's useful to work with the httpboot in EFI firmware to pull a r=
-emote
-> >>> ISO file to the local memory region for booting and installation.
-> >>>
-> >>> Wiki page of UEFI HTTPBoot with OVMF:
-> >>>         https://en.opensuse.org/UEFI_HTTPBoot_with_OVMF
-> >>>
-> >>> Signed-off-by: Lee, Chun-Yi <jlee@suse.com>
-> >>> Cc: Gary Lin <GLin@suse.com>
-> >>> Cc: Dan Williams <dan.j.williams@intel.com>
-> >>> Cc: Ross Zwisler <ross.zwisler@linux.intel.com>
-> >>> Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-> >>> ---
-> >>>  drivers/acpi/nfit.c          |  8 +++++++-
-> >>>  drivers/nvdimm/region_devs.c | 26 +++++++++++++++++++++++++-
-> >>>  include/linux/libnvdimm.h    |  2 ++
-> >>>  3 files changed, 34 insertions(+), 2 deletions(-)
-> >>>
-> >>> diff --git a/drivers/acpi/nfit.c b/drivers/acpi/nfit.c
-> >>> index 2215fc8..b100a17 100644
-> >>> --- a/drivers/acpi/nfit.c
-> >>> +++ b/drivers/acpi/nfit.c
-> >>> @@ -1949,6 +1949,7 @@ static int acpi_nfit_init_mapping(struct ac=
-pi_nfit_desc *acpi_desc,
-> >>>         switch (nfit_spa_type(spa)) {
-> >>>         case NFIT_SPA_PM:
-> >>>         case NFIT_SPA_VOLATILE:
-> >>> +       case NFIT_SPA_VCD:
-> >>>                 nd_mapping->start =3D memdev->address;
-> >>>                 nd_mapping->size =3D memdev->region_size;
-> >>>                 break;
-> >>
-> >> Why do we need to distinguish NFIT_SPA_VOLATILE vs NFIT_SPA_VCD, i=
-=2Ee.
-> >> what happens if something writes to a VCD device?
-> >=20
-> > Actually I didn't try to write SPA-VCD device before. Every time I =
-mount it
-> > that the system responses read-only:
-> >=20
-> > # mount /dev/pmem0 /mnt/
-> > mount: /dev/pmem0 is write-protected, mounting read-only
-> >=20
-> > If it can be written, then I think there have no difference between
-> > NFIT_SPA_VOLATILE with NFIT_SPA_VCD region.
->=20
-> It's not clear to me what the expectations for this type of device ar=
-e, or
-> whether they should be read-only.  The ACPI spec is not helpful here.
-> The other Disk Region and CD Region types are also unclear.  Anyone
-> care to define them?
->
+Thanks,
+Aaron
 
-In ACPI spec 6.1, it said "a volatile memory region that contains an IS=
-O image":
+> ---
+>  drivers/acpi/pmic/intel_pmic.c     | 13 +++++++------
+>  drivers/acpi/pmic/intel_pmic.h     |  4 ++--
+>  drivers/acpi/pmic/intel_pmic_crc.c |  5 +++--
+>  3 files changed, 12 insertions(+), 10 deletions(-)
+> 
+> diff --git a/drivers/acpi/pmic/intel_pmic.c b/drivers/acpi/pmic/intel_pmic.c
+> index bd772cd..410e96f 100644
+> --- a/drivers/acpi/pmic/intel_pmic.c
+> +++ b/drivers/acpi/pmic/intel_pmic.c
+> @@ -131,7 +131,7 @@ static int pmic_thermal_aux(struct intel_pmic_opregion *opregion, int reg,
+>  }
+>  
+>  static int pmic_thermal_pen(struct intel_pmic_opregion *opregion, int reg,
+> -			    u32 function, u64 *value)
+> +			    int bit, u32 function, u64 *value)
+>  {
+>  	struct intel_pmic_opregion_data *d = opregion->data;
+>  	struct regmap *regmap = opregion->regmap;
+> @@ -140,12 +140,12 @@ static int pmic_thermal_pen(struct intel_pmic_opregion *opregion, int reg,
+>  		return -ENXIO;
+>  
+>  	if (function == ACPI_READ)
+> -		return d->get_policy(regmap, reg, value);
+> +		return d->get_policy(regmap, reg, bit, value);
+>  
+>  	if (*value != 0 && *value != 1)
+>  		return -EINVAL;
+>  
+> -	return d->update_policy(regmap, reg, *value);
+> +	return d->update_policy(regmap, reg, bit, *value);
+>  }
+>  
+>  static bool pmic_thermal_is_temp(int address)
+> @@ -170,13 +170,13 @@ static acpi_status intel_pmic_thermal_handler(u32 function,
+>  {
+>  	struct intel_pmic_opregion *opregion = region_context;
+>  	struct intel_pmic_opregion_data *d = opregion->data;
+> -	int reg, result;
+> +	int reg, bit, result;
+>  
+>  	if (bits != 32 || !value64)
+>  		return AE_BAD_PARAMETER;
+>  
+>  	result = pmic_get_reg_bit(address, d->thermal_table,
+> -				  d->thermal_table_count, &reg, NULL);
+> +				  d->thermal_table_count, &reg, &bit);
+>  	if (result == -ENOENT)
+>  		return AE_BAD_PARAMETER;
+>  
+> @@ -187,7 +187,8 @@ static acpi_status intel_pmic_thermal_handler(u32 function,
+>  	else if (pmic_thermal_is_aux(address))
+>  		result = pmic_thermal_aux(opregion, reg, function, value64);
+>  	else if (pmic_thermal_is_pen(address))
+> -		result = pmic_thermal_pen(opregion, reg, function, value64);
+> +		result = pmic_thermal_pen(opregion, reg, bit,
+> +						function, value64);
+>  	else
+>  		result = -EINVAL;
+>  
+> diff --git a/drivers/acpi/pmic/intel_pmic.h b/drivers/acpi/pmic/intel_pmic.h
+> index d4e90af..e8bfa7b 100644
+> --- a/drivers/acpi/pmic/intel_pmic.h
+> +++ b/drivers/acpi/pmic/intel_pmic.h
+> @@ -12,8 +12,8 @@ struct intel_pmic_opregion_data {
+>  	int (*update_power)(struct regmap *r, int reg, int bit, bool on);
+>  	int (*get_raw_temp)(struct regmap *r, int reg);
+>  	int (*update_aux)(struct regmap *r, int reg, int raw_temp);
+> -	int (*get_policy)(struct regmap *r, int reg, u64 *value);
+> -	int (*update_policy)(struct regmap *r, int reg, int enable);
+> +	int (*get_policy)(struct regmap *r, int reg, int bit, u64 *value);
+> +	int (*update_policy)(struct regmap *r, int reg, int bit, int enable);
+>  	struct pmic_table *power_table;
+>  	int power_table_count;
+>  	struct pmic_table *thermal_table;
+> diff --git a/drivers/acpi/pmic/intel_pmic_crc.c b/drivers/acpi/pmic/intel_pmic_crc.c
+> index fcd1852..d7f1761 100644
+> --- a/drivers/acpi/pmic/intel_pmic_crc.c
+> +++ b/drivers/acpi/pmic/intel_pmic_crc.c
+> @@ -141,7 +141,8 @@ static int intel_crc_pmic_update_aux(struct regmap *regmap, int reg, int raw)
+>  		regmap_update_bits(regmap, reg - 1, 0x3, raw >> 8) ? -EIO : 0;
+>  }
+>  
+> -static int intel_crc_pmic_get_policy(struct regmap *regmap, int reg, u64 *value)
+> +static int intel_crc_pmic_get_policy(struct regmap *regmap,
+> +					int reg, int bit, u64 *value)
+>  {
+>  	int pen;
+>  
+> @@ -152,7 +153,7 @@ static int intel_crc_pmic_get_policy(struct regmap *regmap, int reg, u64 *value)
+>  }
+>  
+>  static int intel_crc_pmic_update_policy(struct regmap *regmap,
+> -					int reg, int enable)
+> +					int reg, int bit, int enable)
+>  {
+>  	int alert0;
+>  
+> 
 
-This GUID defines a RAM Disk supporting a Virtual CD Region =E2=80=93 V=
-olatile (a volatile memory
-region that contains an ISO image):
-{ 0x3D5ABD30,0x4175,0x87CE,0x6D,0x64,0xD2,0xAD,0xE5,0x23,0xC4,0xBB }
-
-I think the behavior that is the same with a volatile memory region but=
- it
-contains ISO.
-
-I agree doesn't have any spec that it mentions the type should be read-=
-only, I
-will remove the code in patch.
-
-I also agree that it doesn't have detail description of those ram disk
-types. Do you have any idea or comment that you want to add to spec? Ei=
-ther
-for ACPI or UEFI?
-=20
-> > I implemented this patch to treat VCD region as read-only pmem beca=
-use the
-> > pmem region generates /dev/pmem* device that it can be mounted.
->=20
-> I'm a bit worried about this type of device showing up as a "pmem" de=
-vice.
-> I realize they're described in the NFIT (not sure why but they are) b=
-ut do
-> any of the operations that we support for other pmem devices work on =
-these?
-> Do root device DSMs make any sense?  Are there other DSMs?  What will=
- happen
-> if someone uses ndctl to reconfigure the device?
->
-
-By using the Ramdisk function in EDK2/OVMF, it only generates a ACPI001=
-2 root
-device that it contains a empty _STA but no _DSM support:
-
-DefinitionBlock ("ssdt2.aml", "SSDT", 2, "INTEL ", "RamDisk ", 0x000010=
-00)
-{
-    Scope (\_SB)
-    {  =20
-        Device (NVDR)
-        {  =20
-            Name (_HID, "ACPI0012")  // _HID: Hardware ID
-            Name (_STR, Unicode ("NVDIMM Root Device"))  // _STR: Descr=
-iption String
-            Method (_STA, 0, NotSerialized)  // _STA: Status
-            {  =20
-                Return (0x0F)
-            }
-        }
-    }
-}
-
-So there have no way to control this root device through _DSM. The ACPI=
-0012
-root device is used to trigger the nfit driver in acpi.
-
-I will put the above parser result to the patch description in next ver=
-sion.
-
-
-On the other hand, here is the NFIT that it is generated by OVMF:
-
-[000h 0000   4]                    Signature : "NFIT"    [NVDIMM Firmwa=
-re Interface Table]
-[004h 0004   4]                 Table Length : 00000060
-[008h 0008   1]                     Revision : 01
-[009h 0009   1]                     Checksum : 0C
-[00Ah 0010   6]                       Oem ID : "INTEL "
-[010h 0016   8]                 Oem Table ID : "EDK2    "
-[018h 0024   4]                 Oem Revision : 00000002
-[01Ch 0028   4]              Asl Compiler ID : "    "
-[020h 0032   4]        Asl Compiler Revision : 01000013
-
-[024h 0036   4]                     Reserved : 00000000
-
-[028h 0040   2]                Subtable Type : 0000 [System Physical Ad=
-dress Range]
-[02Ah 0042   2]                       Length : 0038
-
-[02Ch 0044   2]                  Range Index : 0000
-[02Eh 0046   2]        Flags (decoded below) : 0000
-                   Add/Online Operation Only : 0
-                      Proximity Domain Valid : 0
-[030h 0048   4]                     Reserved : 00000000
-[034h 0052   4]             Proximity Domain : 00000000
-[038h 0056  16]           Address Range GUID : 77AB535A-45FC-624B-5560-=
-=467B281D1F96E
-[048h 0072   8]           Address Range Base : 00000000B6ABD018
-[050h 0080   8]         Address Range Length : 0000000005500000
-[058h 0088   8]         Memory Map Attribute : 0000000000000000
-
-The "Address Range GUID" is a "Virtual Disk Region =E2=80=93 Volatile" =
-but not a VCD
-because I used the Ramdisk function in EDK2 to generate the NFIT. When =
-using
-http boot with a iso file, this GUID will be changed to VCD type.
-
-As the above NFIT, there have "Address Range Base" and "Address Range L=
-ength"
-but the "Range Index" will be zero. So my patch ignores the "Range Inde=
-x"
-checking on VCD type.
-=20
-> I'm especially concerned on systems that might have one of these devi=
-ces
-> and also have NVDIMMs.  Do all the pmem devices get numbered differen=
-t if
-> this device comes and goes across reboots?  (I know, we shouldn't rel=
-y on
-> those names but it will still confuse people.)  Can they be some othe=
-r name
-> that better represents what they're trying to be?
->=20
-> > Maybe I missed. Does NFIT_SPA_VOLATILE region also generate a devic=
-e in /dev
-> > that it can be mounted with filesystem?=20
->=20
-> Yes.
->=20
-> -- ljk
->
-
-I checked the NVDIMM driver, there have 3 drivers call register_blkdev(=
-) that
-may generates "nd_blk", "btt" and "pmem" block devices. But I didn't fi=
-nd the
-block device that it reflects to volatile memory SPA region. How can I =
-mount
-a volatile memory region with a filesystem?
-
-I have tried to call nvdimm_volatile_region_create() in my patch when V=
-CD
-region shows up. But I didn't find any new block device in /dev/devices=
-=2E
-
-
-Thanks a lot!
-Joey Lee=20
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
