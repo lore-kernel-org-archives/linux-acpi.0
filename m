@@ -1,114 +1,163 @@
-From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: acpi: broken suspend to RAM with v4.7-rc1
-Date: Sat, 11 Jun 2016 13:56:17 +0200
-Message-ID: <2544058.dYPSaC0ylY@vostro.rjw.lan>
-References: <20160610203210.GA2262@nest> <3027571.8eTQaleASL@vostro.rjw.lan> <20160611104922.GA2368@nest>
+From: "Zheng, Lv" <lv.zheng@intel.com>
+Subject: RE: linux-next boots then hangs...
+Date: Sun, 12 Jun 2016 01:01:02 +0000
+Message-ID: <1AE640813FDE7649BE1B193DEA596E883BBCC536@SHSMSX101.ccr.corp.intel.com>
+References: <CAOg9mSTG08zt8PNjDZ4zKXxFUVyW9-AzjRLreHjN5ETuoqh-Rg@mail.gmail.com>
+ <1574a35b-a0e5-2ec0-f19e-8ff01ae5eec0@intel.com>
+ <CAOg9mSRYcD9+P+914WY5_iLUWb4ZwXnQ02avtM3vV5+LiWsrXQ@mail.gmail.com>
+ <cface69a-ce21-3faf-bca9-267ddf05237a@intel.com>
+ <CAOg9mSQPGpSOm0ef0rJWFObyBriSEZwDzEAJi3dNtRCjygHyuQ@mail.gmail.com>
+ <CAOg9mSSwRGZqQXhwQVi0=OG8xGqdFZbrHuNLSydL0WBziA2haQ@mail.gmail.com>
+ <f3c64945-ff99-5afa-057b-b3734c0e3b39@intel.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; boundary="nextPart1624913.HDR8dQKlmh"; micalg="pgp-sha256"; protocol="application/pgp-signature"
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cloudserver094114.home.net.pl ([79.96.170.134]:48456 "HELO
-	cloudserver094114.home.net.pl" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with SMTP id S1751173AbcFKLwT (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>);
-	Sat, 11 Jun 2016 07:52:19 -0400
-In-Reply-To: <20160611104922.GA2368@nest>
+Received: from mga09.intel.com ([134.134.136.24]:41447 "EHLO mga09.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752602AbcFLBBG (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sat, 11 Jun 2016 21:01:06 -0400
+In-Reply-To: <f3c64945-ff99-5afa-057b-b3734c0e3b39@intel.com>
+Content-Language: en-US
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Andrey Skvortsov <andrej.skvortzov@gmail.com>
-Cc: Lv Zheng <lv.zheng@intel.com>, Bob Moore <robert.moore@intel.com>, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, linux-acpi@vger.kernel.org, devel@acpica.org, linux-kernel@vger.kernel.orgBob Moore <robert.moore@intel.com>
+To: "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>, Mike Marshall <hubcap@omnibond.com>
+Cc: Stephen Rothwell <sfr@canb.auug.org.au>, "kvm@vger.kernel.org" <kvm@vger.kernel.org>, Linux ACPI Mailing List <linux-acpi@vger.kernel.org>
 
-
---nextPart1624913.HDR8dQKlmh
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="utf-8"
-
-On Saturday, June 11, 2016 01:49:22 PM Andrey Skvortsov wrote:
-> On 10 Jun, Rafael J. Wysocki wrote:
-> > On Friday, June 10, 2016 11:32:10 PM Andrey Skvortsov wrote:
-> > > Hi,
-> > > 
-> > > On my laptop (DELL Vostro 1500) in v4.7-rc1 is broken suspend to RAM.
-> > > Laptop doesn't finish suspend to RAM process (disks are off, but WiFi
-> > > and Power LEDs are still on). The only way to get it out of this
-> > > state, is to turn the power off.
-> > > 
-> > > I've bisected the issue to commit 66b1ed5aa8dd25
-> > > [ACPICA: ACPI 2.0, Hardware: Add access_width/bit_offset support for acpi_h=
-> > > w_write()].
-> > > 
-> > > If I revert this commit in v4.7-rc1 (or v4.7-rc2), suspend to RAM is
-> > > working again.
-> > > 
-> > > The cause of this problem is that after this commit write to PM1A Control B=
-> > > lock
-> > > (16-bit register) is done using two 8-bit writes. If I force this write
-> > > to be 16-bit, then all is working as before.
-> > > 
-> > > To get it working 'access_width' for PM1A Control Block needs to be 2 (16-b=
-> > > it), but it's=20
-> > > 1 (8-bit).
-> > > 
-> > > The root of the problem seems to be not the commit 66b1ed5aa8dd25 itself, b=
-> > > ut the ACPI
-> > > tables in BIOS where wrong access_width comes from. I fixed problem in FACP=
-> > >  table,
-> > > put it in initrd to override FACP table from BIOS. This fixed the issue,
-> > > suspend to RAM is working now again.
-> > > 
-> > > But I'm not sure whether is this proper fix for this problem.
-> > > Is there any place in the kernel, where such ACPI quirks are placed?
-> > 
-> > Well, if the commit in question caused a problem to happen for you, it also
-> > might cause similar problems to happen elsewhere.
-> > 
-> > It looks like we'll need to revert that commit.
-> Hi,
-> 
-> or maybe to reset access_width AnyAcc from FACP table only for PM1A control
-> register or even for all registers? This will fix the issue too.
-
-That's a good idea actually.
-
-> diff --git a/drivers/acpi/acpica/tbfadt.c b/drivers/acpi/acpica/tbfadt.c
-> index 6208069..a476e94 100644
-> --- a/drivers/acpi/acpica/tbfadt.c
-> +++ b/drivers/acpi/acpica/tbfadt.c
-> @@ -714,7 +714,14 @@ static void acpi_tb_setup_fadt_registers(void)
->                         }
->                 }
->         }
-> 
-> +       /*
-> +        * Reset access_width in the GAS for PM1A control register to
-> +        * undefined value. Because in some cases this field contains
-> +        * wrong value.
-> +        */
-> +       acpi_gbl_FADT.xpm1a_control_block.access_width = 0;
-
-OK, let's see what Bob and Lv think about that.
-
---nextPart1624913.HDR8dQKlmh
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: This is a digitally signed message part.
-Content-Transfer-Encoding: 7Bit
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2.0.22 (GNU/Linux)
-
-iQIcBAABCAAGBQJXW/xnAAoJEILEb/54YlRxnBMP/jAyrgz1fSDFs6kfyCafM14c
-GZq1AuUGHAL8GRCmovXraIlGocPRG/ypIVUf8WB6UF5JJQQOuI0WqdNmgiqhLXoB
-P6Lkf2E2XVyqbV8n+uoUZejweKNrCFnznwmDZ+xAdEgvjw/S6djt8dm+xK1B/OHj
-DjuPePd4b/sHm6Ts8oOtEV1cAL87KSq4t9bpPQx2KBokBEH0lE/9GyUzm2RVma1G
-KPNqSCntb1JXq4Q1IHNWvr3uOxHZvlc7icIdZvxT0m43ZgwkC0fJpglctzNPyv0z
-MbeC4rutI5J3+nLm5E7tMHq2aGSh+Jp5pd0iYbs4Aj4bgAWI2ntJQEiuydv/abQd
-PUxBBFZf1GmSEiIyhFgcI2YAYuWeEMoTUa8IgX0lYCCR1a9WxJtDMAJNbGXVjcpk
-gpyH6SCsjs2q58RcvFabZb7CkoHphT/BOsT0Cbwmogd5VA5KOu/NX6n8YYqV/3MV
-Jp5FEPVuGp0GYRLVcO/muc0n/WdZVjovQWxH0slO9coNm55Xja8FAzUcCoN6Au/k
-PVhk8sap5MRHQrOLgMCHaPXRhxFBHpywW63DxhpjpNS97P10J37gYZLQuiJSMlEI
-PI4kg+0Ppsi7Gp1GM9YJ3NTXjgmtoqbScKEGahiqFxArcD35kGM1wFt50M75R5YX
-BvYykUlfySIrJoPhgX1T
-=cjnz
------END PGP SIGNATURE-----
-
---nextPart1624913.HDR8dQKlmh--
-
+SGksDQoNCklmIHRoaXMgc2VyaWVzIG1hdHRlcnMsIHByb2JhYmx5IHRoZSBvbmx5IG9uZSBzaG91
+bGQgZ2V0IGJpc2VjdGVkIGlzOg0KaHR0cHM6Ly9wYXRjaHdvcmsua2VybmVsLm9yZy9wYXRjaC85
+MDg3OTcxLw0KSGF2ZSB5b3UgdHJpZWQ6DQpJZiB0aGlzIHNlcmllcyBhcHBsaWVkIHdpdGhvdXQg
+dGhlIGFib3ZlIGNvbW1pdCwgYm9vdHMgaGFuZ3MgY2FuIHN0aWxsIG9jY3VyPw0KDQpUaGFua3Mg
+YW5kIGJlc3QgcmVnYXJkcw0KLUx2DQoNCj4gRnJvbTogV3lzb2NraSwgUmFmYWVsIEoNCj4gU3Vi
+amVjdDogUmU6IGxpbnV4LW5leHQgYm9vdHMgdGhlbiBoYW5ncy4uLg0KPiANCj4gTGV0J3MgaW52
+b2x2ZSB0aGUgYXV0aG9yIG9mIHRoZSBjb21taXRzIGluIHF1ZXN0aW9uIChhbmQgQ0MgbGludXgt
+YWNwaSB0b28pLg0KPiANCj4gT24gNi84LzIwMTYgNjoxOCBQTSwgTWlrZSBNYXJzaGFsbCB3cm90
+ZToNCj4gPiBIZWxsbyBldmVyeW9uZS4uLg0KPiA+DQo+ID4gVGhlIHByb2JsZW0gaXMgZ29uZSB0
+b2RheSwgYW5kIGl0IGxvb2tzIGxpa2UgUmFmYWVsDQo+ID4gZHJvcHBlZCB0aGUgQUNQSUNBIGNo
+YW5nZXMgZnJvbSBsaW51eC1uZXh0Lg0KPiANCj4gSW5kZWVkLCBJIGRpZCB0aGF0Lg0KPiANCj4g
+Tm93LCBpdCB3b3VsZCBiZSBnb29kIGlmIHlvdSBjb3VsZCBoZWxwIHRvIGlkZW50aWZ5IHdoaWNo
+IG9mIHRoZW0NCj4gZXhhY3RseSBpbnRyb2R1Y2VkIHRoZSBwcm9ibGVtLg0KPiANCj4gVGhvc2Ug
+cGF0Y2hlcyBhcmUgYXZhaWxhYmxlIGluIHRoZSBrZXJuZWwub3JnIFBhdGNod29yayBhczoNCj4g
+DQo+IGh0dHBzOi8vcGF0Y2h3b3JrLmtlcm5lbC5vcmcvcGF0Y2gvOTA4Nzk1MS8NCj4gaHR0cHM6
+Ly9wYXRjaHdvcmsua2VybmVsLm9yZy9wYXRjaC85MDg4MDAxLw0KPiBodHRwczovL3BhdGNod29y
+ay5rZXJuZWwub3JnL3BhdGNoLzkwODgwMjEvDQo+IGh0dHBzOi8vcGF0Y2h3b3JrLmtlcm5lbC5v
+cmcvcGF0Y2gvOTA4Nzk3MS8NCj4gDQo+IHBsdXMgb25lIGZpeCBvbiB0b3Agb2YgdGhlbToNCj4g
+DQo+IGh0dHBzOi8vcGF0Y2h3b3JrLmtlcm5lbC5vcmcvcGF0Y2gvOTE1Nzc2NS8NCj4gDQo+IFRo
+ZSBvcmRlcmluZyBvZiB0aGUgbGlua3MgYWJvdmUgc2hvdWxkIHJlZmxlY3QgdGhlIGNvcnJlY3Qg
+b3JkZXIgb2YgdGhlDQo+IHBhdGNoZXMgKG9yIHlvdSBjYW4gdmVyaWZ5IHRoYXQgYnkgbG9va2lu
+ZyBhdCB0aGVpciBzdWJqZWN0cykuDQo+IA0KPiBDYW4geW91IHBsZWFzZSB0cnkgdG8gYXBwbHkg
+dGhlbSBvbmUgYnkgb25lICh0aGV5IHNob3VsZCBhcHBseSBvbiB0b3Agb2YNCj4gdGhlIGN1cnJl
+bnQgbWFpbmxpbmUpIGFuZCBzZWUgd2hpY2ggb25lIGJyZWFrcyB0aGluZ3MgZm9yIHlvdT8NCj4g
+DQo+IFRoYW5rcywNCj4gUmFmYWVsDQo+IA0KPiANCj4gPiBOb3cgbGludXgtbmV4dCBoYXMgYW4g
+T29wcyBhdCBsZWFmX3dhbGtfcmN1IGFuZA0KPiA+IGlzIG5vdCB1c2FibGUgPGc+Li4uIEkgdGhp
+bmsgSSBzZWUgcGVvcGxlIG9uIExLTUwNCj4gPiB0YWxraW5nIGFib3V0IGl0Lg0KPiA+DQo+ID4g
+VGhhbmtzLi4uDQo+ID4NCj4gPiAtTWlrZQ0KPiA+DQo+ID4gT24gVHVlLCBKdW4gNywgMjAxNiBh
+dCAyOjU4IFBNLCBNaWtlIE1hcnNoYWxsDQo+IDxodWJjYXBAb21uaWJvbmQuY29tPiB3cm90ZToN
+Cj4gPj4gV2VsbCwgSSBzdGFydGVkIHRoZSBiaXNlY3QgYWdhaW4sIHVzaW5nIFBhb2xvJ3Mgc3Vn
+Z2VzdGlvbi4NCj4gPj4NCj4gPj4gSXQgbGVhZCBtZSBpbiBhIGNpcmNsZSBiYWNrIHRvIDQwN2Fh
+M2YuDQo+ID4+DQo+ID4+IEl0IGNvdWxkIGJlIHRoYXQgSSdtIG5vdCBjb21wZXRlbnQgdG8gcGVy
+Zm9ybSB0aGlzIGJpc2VjdCwgYmFycmluZw0KPiA+PiB0aGF0IC0gaXQgY291bGQgYmUgdGhhdCB0
+aGUgImJhZCIgY29kZSBvbmx5IGVtZXJnZWQgYXMgdGhlIHJlc3VsdA0KPiA+PiBvZiA0MDdhYTNm
+LCB3aGljaCwgYWNjb3JkaW5nIHRvIHRoZSBjb21taXQgbWVzc2FnZSwgd2FzIGEgbWVyZ2Ugb2YN
+Cj4gPj4gNDEgY29tbWl0cy4uLg0KPiA+Pg0KPiA+PiBBcyB0byBteSBiaXNlY3QgY29tcGV0ZW5j
+eSwgc29tZXRpbWVzICh1c3VhbGx5KSB0aGUgbmV4dCBiaXNlY3QgcG9pbnQNCj4gPj4gd291bGQg
+YmUgYSBwbGFjZSB3aGVyZSA3ZjliZWY5IHdvdWxkbid0IGFwcGx5LiBJIHdvdWxkIG9ubHkgZmlu
+ZCBvdXQNCj4gPj4gdGhhdCA3ZjliZWY5IHdvdWxkbid0IGFwcGx5IGJ5IHJ1bm5pbmcgdGhlIGNo
+ZXJyeSBwaWNrLCBzbyBlYWNoIHRpbWUNCj4gPj4gSSdkIGhhdmUgdG8gY2xlYW4gdXAgdGhlIGZh
+aWxlZCBjaGVycnkgcGljayBiZWZvcmUgSSBjb3VsZCBjb250aW51ZSwNCj4gPj4gd2hpY2ggSSBk
+aWQgbGlrZSB0aGlzOg0KPiA+Pg0KPiA+PiBnaXQgY2hlcnJ5LXBpY2sgLW4gN2Y5YmVmOSAgICAg
+ICAgICAgICAgICAgICAgPC0tIGZhaWwNCj4gPj4NCj4gPj4gZ2l0IHJlc2V0IEhFQUQgZHJpdmVy
+cy9hY3BpL2FjcGljYS9od3JlZ3MuYyAgIDwtLSB0byB1bnN0YWdlDQo+ID4+DQo+ID4+IGdpdCBj
+aGVja291dCAtLSBkcml2ZXJzL2FjcGkvYWNwaWNhL2h3cmVncy5jICA8LS0gZGlzY2FyZCBjaGVy
+cnkgcGljaw0KPiB3cmVja2FnZQ0KPiA+Pg0KPiA+PiBBbnlob3csIEkgaG9wZSBJJ20gYmVpbmcg
+aGVscGZ1bCwgYW5kIG5vdCBvYnN0cnVjdGlvbmlzdCwgYnkgdHJ5aW5nDQo+ID4+IHRvIGZvbGxv
+dyB1cCBvbiB0aGlzLiBHb29kIGx1Y2sgUmFmYWVsLCBJJ2xsIGRlZmluaXRlbHkgdHJ5DQo+ID4+
+IGxpbnV4LW5leHQgdG9tb3Jyb3cuDQo+ID4+DQo+ID4+ICMgZ2l0IGJpc2VjdCBsb2cNCj4gPj4g
+Z2l0IGJpc2VjdCBzdGFydA0KPiA+PiAjIGJhZDogWzQwN2FhM2ZmNmY1NGVhMmJlNzk1OTYzOWQ2
+NjRhZTUxODNlMmU5ZjhdIE1lcmdlIGJyYW5jaA0KPiAnYWNwaWNhJw0KPiA+PiBnaXQgYmlzZWN0
+IGJhZCA0MDdhYTNmZjZmNTRlYTJiZTc5NTk2MzlkNjY0YWU1MTgzZTJlOWY4DQo+ID4+ICMgZ29v
+ZDogWzdmOWJlZjlkZWJhZmNiNzY3ZDAwZWZiMTc3ZDBmMmVkZDQ5NDBlYWJdIEFDUElDQSAvDQo+
+IEhhcmR3YXJlOg0KPiA+PiBGaXggb2xkIHJlZ2lzdGVyIGNoZWNrIGluIGFjcGlfaHdfZ2V0X2Fj
+Y2Vzc19iaXRfd2lkdGgoKQ0KPiA+PiBnaXQgYmlzZWN0IGdvb2QgN2Y5YmVmOWRlYmFmY2I3Njdk
+MDBlZmIxNzdkMGYyZWRkNDk0MGVhYg0KPiA+PiAjIGdvb2Q6IFtkMWNlM2JiOTU1MTFkYWNmOGI5
+ZWVhODk5YzQyMWYxYjE4YTNlZjZhXSBNZXJnZSBiYWNrDQo+IG5ldw0KPiA+PiBBQ1BJQ0EgbWF0
+ZXJpYWwgZm9yIHY0LjcuDQo+ID4+IGdpdCBiaXNlY3QgZ29vZCBkMWNlM2JiOTU1MTFkYWNmOGI5
+ZWVhODk5YzQyMWYxYjE4YTNlZjZhDQo+ID4+ICMgZ29vZDogW2QxY2UzYmI5NTUxMWRhY2Y4Yjll
+ZWE4OTljNDIxZjFiMThhM2VmNmFdIE1lcmdlIGJhY2sNCj4gbmV3DQo+ID4+IEFDUElDQSBtYXRl
+cmlhbCBmb3IgdjQuNy4NCj4gPj4gZ2l0IGJpc2VjdCBnb29kIGQxY2UzYmI5NTUxMWRhY2Y4Yjll
+ZWE4OTljNDIxZjFiMThhM2VmNmENCj4gPj4gIyBnb29kOiBbMjFhOTcwM2RlMzA0NWNkYTBiM2Fh
+YTViYzE5M2QyZTEwNjI5MDhkMl0gTWVyZ2UNCj4gYnJhbmNoDQo+ID4+ICdmb3ItbGludXMnIG9m
+IGdpdDovL2dpdC5rZXJuZWwub3JnL3B1Yi9zY20vbGludXgva2VybmVsL2dpdC9kdG9yL2lucHV0
+DQo+ID4+IGdpdCBiaXNlY3QgZ29vZCAyMWE5NzAzZGUzMDQ1Y2RhMGIzYWFhNWJjMTkzZDJlMTA2
+MjkwOGQyDQo+ID4+ICMgZ29vZDogW2RkMjg3NjkwYjBhYTRiMGQyMmU4ZGQ3ZGQyY2IzMDU1ZjUx
+NDFhMjddIE1lcmdlIHRhZw0KPiA+PiAnYXJjLTQuNi1yYzctZml4ZXMnIG9mDQo+ID4+IGdpdDov
+L2dpdC5rZXJuZWwub3JnL3B1Yi9zY20vbGludXgva2VybmVsL2dpdC92Z3VwdGEvYXJjDQo+ID4+
+IGdpdCBiaXNlY3QgZ29vZCBkZDI4NzY5MGIwYWE0YjBkMjJlOGRkN2RkMmNiMzA1NWY1MTQxYTI3
+DQo+ID4+ICMgZ29vZDogWzM1Y2QzZjQ1NjNjNGEwZmM5OWJlMzAwYWZjN2I4MmE4MjJlNjM0Yzdd
+IE1lcmdlDQo+IGJyYW5jaA0KPiA+PiAnZm9yLTQuNi1maXhlcycgb2YNCj4gPj4gZ2l0Oi8vZ2l0
+Lmtlcm5lbC5vcmcvcHViL3NjbS9saW51eC9rZXJuZWwvZ2l0L3RqL2xpYmF0YQ0KPiA+PiBnaXQg
+YmlzZWN0IGdvb2QgMzVjZDNmNDU2M2M0YTBmYzk5YmUzMDBhZmM3YjgyYTgyMmU2MzRjNw0KPiA+
+PiAjIGdvb2Q6IFszZjhmMGNmMmVkZGI1NThlNWNjZjliMTU1ZTc1OGY0Yjk1MGQ4Njk3XSBNZXJn
+ZSB0YWcNCj4gPj4gJ3VzYi00LjYtcmM3JyBvZg0KPiA+PiBnaXQ6Ly9naXQua2VybmVsLm9yZy9w
+dWIvc2NtL2xpbnV4L2tlcm5lbC9naXQvZ3JlZ2toL3VzYg0KPiA+PiBnaXQgYmlzZWN0IGdvb2Qg
+M2Y4ZjBjZjJlZGRiNTU4ZTVjY2Y5YjE1NWU3NThmNGI5NTBkODY5Nw0KPiA+PiAjIGdvb2Q6IFsy
+Yjg2YzRhODQzNzdiNzRhNmVjMGVjOTQ2M2ZlYjA4MDNiY2IxMDY2XSBNZXJnZSB0YWcNCj4gPj4g
+J2lpby1maXhlcy1mb3ItNC42ZCcgb2YNCj4gPj4gZ2l0Oi8vZ2l0Lmtlcm5lbC5vcmcvcHViL3Nj
+bS9saW51eC9rZXJuZWwvZ2l0L2ppYzIzL2lpbyBpbnRvDQo+ID4+IHN0YWdpbmctbGludXMNCj4g
+Pj4gZ2l0IGJpc2VjdCBnb29kIDJiODZjNGE4NDM3N2I3NGE2ZWMwZWM5NDYzZmViMDgwM2JjYjEw
+NjYNCj4gPj4gIyBnb29kOiBbZDEzMDZlYjY3NWFkN2E5YTc2MGI2YjhlOGUxODk4MjRiOGRiODll
+N10gbnZtZW06DQo+IG14cy1vY290cDoNCj4gPj4gZml4IGJ1ZmZlciBvdmVyZmxvdyBpbiByZWFk
+DQo+ID4+IGdpdCBiaXNlY3QgZ29vZCBkMTMwNmViNjc1YWQ3YTlhNzYwYjZiOGU4ZTE4OTgyNGI4
+ZGI4OWU3DQo+ID4+ICMgZ29vZDogWzMyY2Y5NWRiMjJkNDljZjRhM2I0MjFiYTlmZDE1NmJiNWY5
+MjBlYmJdIE1lcmdlIHRhZw0KPiA+PiAnY2hhci1taXNjLTQuNi1yYzcnIG9mDQo+ID4+IGdpdDov
+L2dpdC5rZXJuZWwub3JnL3B1Yi9zY20vbGludXgva2VybmVsL2dpdC9ncmVna2gvY2hhci1taXNj
+DQo+ID4+IGdpdCBiaXNlY3QgZ29vZCAzMmNmOTVkYjIyZDQ5Y2Y0YTNiNDIxYmE5ZmQxNTZiYjVm
+OTIwZWJiDQo+ID4+ICMgZ29vZDogWzQ0NTQ5ZThmNWVlYTRlMGE0MWI0ODdiNjNlNjE2Y2IwODk5
+MjJiOTldIExpbnV4IDQuNi0NCj4gcmM3DQo+ID4+IGdpdCBiaXNlY3QgZ29vZCA0NDU0OWU4ZjVl
+ZWE0ZTBhNDFiNDg3YjYzZTYxNmNiMDg5OTIyYjk5DQo+ID4+ICMgZmlyc3QgYmFkIGNvbW1pdDog
+WzQwN2FhM2ZmNmY1NGVhMmJlNzk1OTYzOWQ2NjRhZTUxODNlMmU5ZjhdDQo+IE1lcmdlDQo+ID4+
+IGJyYW5jaCAnYWNwaWNhJw0KPiA+Pg0KPiA+PiBPbiBUdWUsIEp1biA3LCAyMDE2IGF0IDExOjE0
+IEFNLCBSYWZhZWwgSi4gV3lzb2NraQ0KPiA+PiA8cmFmYWVsLmoud3lzb2NraUBpbnRlbC5jb20+
+IHdyb3RlOg0KPiA+Pj4gT24gNi83LzIwMTYgNTowOCBQTSwgTWlrZSBNYXJzaGFsbCB3cm90ZToN
+Cj4gPj4+PiBJJ20gb25lIG9mIHRoZSBvcmlnaW5hbCByZXBvcnRlcnMgYW5kIHRlc3RlcnMgb2Yg
+dGhhdCBwcm9ibGVtL2ZpeC4uLg0KPiA+Pj4+IG15IGN1cnJlbnQgcHJvYmxlbSBzdGFydGVkIGFm
+dGVyIHRoYXQuLi4gSSd2ZSB0ZXN0ZWQNCj4gPj4+PiBuZXh0LTIwMTYwNjA3IGFuZCA0LjcuMC1y
+YzItMDAwMDQtZzM2MTNhNjIgKExpbnVzJyB0cmVlDQo+ID4+Pj4gb2YgdGhlIG1vbWVudCkgc28g
+ZmFyIHRvZGF5Li4uIExpbnVzJyB0cmVlIGlzIHN0aWxsIE9LIChiZWNhdXNlDQo+ID4+Pj4gaXQg
+aGFzIDdmOWJlZjkpIGFuZCBsaW51eC1uZXh0IGlzIHN0aWxsIGJ1c3RlZCAoZm9yIG1lKS4NCj4g
+Pj4+Pg0KPiA+Pj4+IEknbGwga2VlcCBvbiBiaXNlY3RpbmcgdXNpbmcgdGhlIHN1Z2dlc3Rpb25z
+IHRoYXQgUGFvbG8gc2VudC4uLg0KPiA+Pj4NCj4gPj4+IEkgc2VlLg0KPiA+Pj4NCj4gPj4+IEkg
+dGhpbmsgSSdsbCBuZWVkIHRvIGRyb3AgdGhlIGxhdGVzdCBBQ1BJQ0EgY2hhbmdlcyBmcm9tIGxp
+bnV4LW5leHQgdGhlbi4NCj4gPj4+DQo+ID4+PiBMZXQgbWUgdHJ5IHRvIGRvIHRoYXQgYW5kIHBs
+ZWFzZSB0ZXN0IGxpbnV4LW5leHQgYWdhaW4gdG9tb3Jyb3cuDQo+ID4+Pg0KPiA+Pj4gVGhhbmtz
+LA0KPiA+Pj4gUmFmYWVsDQo+ID4+Pg0KPiA+Pj4NCj4gPj4+DQo+ID4+Pj4gT24gVHVlLCBKdW4g
+NywgMjAxNiBhdCAxMDo1NSBBTSwgUmFmYWVsIEouIFd5c29ja2kNCj4gPj4+PiA8cmFmYWVsLmou
+d3lzb2NraUBpbnRlbC5jb20+IHdyb3RlOg0KPiA+Pj4+PiBPbiA2LzYvMjAxNiAxMDo1NiBQTSwg
+TWlrZSBNYXJzaGFsbCB3cm90ZToNCj4gPj4+Pj4+IEdyZWV0aW5ncy4uLg0KPiA+Pj4+Pj4NCj4g
+Pj4+Pj4+IFBsZWFzZSBrZWVwIG15IGVtYWlsIGluIHRoZSBsb29wIG9uIHRoaXMsIEknbSBvbmx5
+IHN1YnNjcmliZWQNCj4gPj4+Pj4+IHRvIGZzLWRldmVsLi4uDQo+ID4+Pj4+Pg0KPiA+Pj4+Pj4g
+TGludXgtbmV4dCBmYWlscyB0byBib290IHByb3Blcmx5IGZvciBtZSwgYnV0IExpbnV4IDQuNy1y
+YzIgZnJvbQ0KPiA+Pj4+Pj4gTGludXMnIHRyZWUgYm9vdHMgZmluZS4NCj4gPj4+Pj4+DQo+ID4+
+Pj4+PiBJIGdvdCBzdGFydGVkIGJpc2VjdGluZyBuZXh0LTIwMTYwNjAzIGxhc3QgRnJpZGF5LCBi
+dXQgZGlkbid0IGdldA0KPiBkb25lLg0KPiA+Pj4+Pj4NCj4gPj4+Pj4+IGdpdCBiaXNlY3Qgc3Rh
+cnQgJzY0Mjg5Y2EnICc3ZjliZWY5Jw0KPiA+Pj4+Pj4NCj4gPj4+Pj4+IEkgcGlja2VkIDdmOWJl
+ZjkgYXMgdGhlIGdvb2QgY29tbWl0IHRvIHN0YXJ0IHdpdGggYmVjYXVzZSBJIGtuZXcNCj4gPj4+
+Pj4+IEkgbmVlZGVkIDdmOWJlZjkgb3IgZWxzZSBteSBRRU1VLUtWTSB3b3VsZCBjcmFzaC4gQmVm
+b3JlIEkNCj4gc3RhcnRlZA0KPiA+Pj4+Pj4gdGhlIGJpc2VjdGlvbiwgSSB2ZXJpZmllZCB0aGF0
+IDdmOWJlZjkgd2FzIGluZGVlZCBnb29kIGJ5IGNoZWNraW5nDQo+ID4+Pj4+PiBvdXQgYSBicmFu
+Y2ggZnJvbSBuZXh0LTIwMTYwNjAzIHdpdGggN2Y5YmVmOSBhcyB0aGUgSEVBRCBhbmQNCj4gPj4+
+Pj4+IGJ1aWxkaW5nIGl0OiBnaXQgY2hlY2tvdXQgLWIgZ2FzIDdmOWJlZjkNCj4gPj4+Pj4+DQo+
+ID4+Pj4+PiBUb2RheSBJIGdvdCBuZXh0LTIwMTYwNjA2IGFuZCBjaGVja2VkIHRvIHNlZSBpZiB0
+aGUgc2FtZSBmYWlsdXJlDQo+ID4+Pj4+PiBvY2N1cnJlZCAtIGl0IGRpZC4gU28gSSBjb250aW51
+ZWQgd2l0aCB0aGUgYmlzZWN0aW9uIG9mIG5leHQtDQo+IDIwMTYwNjAzLg0KPiA+Pj4+Pj4NCj4g
+Pj4+Pj4+IEkgYXJyaXZlZCBhdCA0MDdhYTNmZjZmNTRlYTJiZTc5NTk2MzlkNjY0YWU1MTgzZTJl
+OWY4IGFzIHRoZQ0KPiBiYWQgY29tbWl0Lg0KPiA+Pj4+Pj4NCj4gPj4+Pj4+DQo+ID4+Pj4+PiA0
+MDdhYTNmIGlzIGEgcmF0aGVyIGNvbXBsZXggY29tbWl0Li4uIHRoZXJlIGlzIGEgcHJvYmxlbSB3
+aXRoIGl0LA0KPiA+Pj4+Pj4gYnV0IEknbSBub3Qgc3VyZSB3aGF0IHRvIGRvIG5leHQuLi4gYm90
+aCA3ZjliZWY5IGFuZCA0MDdhYTNmIGFyZQ0KPiA+Pj4+Pj4gcmVsYXRlZCB0byBBQ1BJQ0EuLi4N
+Cj4gPj4+Pj4NCj4gPj4+Pj4gSXQgbG9va3MgbGlrZSB0aGlzIGNvbW1pdA0KPiA+Pj4+Pg0KPiA+
+Pj4+Pg0KPiA+Pj4+PiBodHRwczovL2dpdC5rZXJuZWwub3JnL2NnaXQvbGludXgva2VybmVsL2dp
+dC9yYWZhZWwvbGludXgtDQo+IHBtLmdpdC9jb21taXQvP2g9YWNwaWNhLQ0KPiBmaXhlcyZpZD03
+ZjliZWY5ZGViYWZjYjc2N2QwMGVmYjE3N2QwZjJlZGQ0OTQwZWFiDQo+ID4+Pj4+DQo+ID4+Pj4+
+IHNob3VsZCBmaXggdGhlIHByb2JsZW0gZm9yIHlvdS4NCj4gPj4+Pj4NCj4gPj4+Pj4gVGhhbmtz
+LA0KPiA+Pj4+PiBSYWZhZWwNCj4gPj4+Pj4NCg0K
