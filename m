@@ -1,141 +1,52 @@
-From: joeyli <jlee@suse.com>
-Subject: Re: [PATCH] libnvdimm, nfit: treat volatile virtual CD region as
- read-only pmem
-Date: Sun, 12 Jun 2016 10:10:10 +0800
-Message-ID: <20160612021010.GJ4558@linux-rxt1.site>
-References: <1464938015-5489-1-git-send-email-jlee@suse.com>
- <CAPcyv4iLb9qzXZTLL5z-RH_CRObnRfzx=vGTvVvieJUEwNvtRw@mail.gmail.com>
- <20160604110156.GA4558@linux-rxt1.site>
- <888aeb53-69b4-652b-8f89-822af4622acf@hpe.com>
- <CAPcyv4jxq3XME9a7Upv0BvuaFvULCtqa9=L6L29nOeBGPiZZsA@mail.gmail.com>
+From: Aaron Lu <aaron.lu@intel.com>
+Subject: Re: [PATCH 2/2] acpi/pmic: Add opregion driver for Intel BXT
+ WhiskeyCove PMIC
+Date: Sun, 12 Jun 2016 10:13:33 +0800
+Message-ID: <54020215-86ac-77be-ea4f-19941ed3a176@intel.com>
+References: <20160611072531.GB90940@worksta>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp.nue.novell.com ([195.135.221.5]:60127 "EHLO
-	smtp.nue.novell.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752651AbcFLCK0 (ORCPT
-	<rfc822;groupwise-linux-acpi@vger.kernel.org:0:0>);
-	Sat, 11 Jun 2016 22:10:26 -0400
-Content-Disposition: inline
-In-Reply-To: <CAPcyv4jxq3XME9a7Upv0BvuaFvULCtqa9=L6L29nOeBGPiZZsA@mail.gmail.com>
+Received: from mga09.intel.com ([134.134.136.24]:65095 "EHLO mga09.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752359AbcFLCNg (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sat, 11 Jun 2016 22:13:36 -0400
+In-Reply-To: <20160611072531.GB90940@worksta>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Dan Williams <dan.j.williams@intel.com>
-Cc: Linda Knippers <linda.knippers@hpe.com>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Linux ACPI <linux-acpi@vger.kernel.org>, "Lee, Chun-Yi" <joeyli.kernel@gmail.com>, Gary Lin <GLin@suse.com>
+To: Bin Gao <bin.gao@linux.intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Paul Gortmaker <paul.gortmaker@windriver.com>, linux-acpi@vger.kernel.org
+Cc: linux-kernel@vger.kernel.org, ysiyer <yegnesh.s.iyer@intel.com>, Ajay Thomas <ajay.thomas.david.rajamanickam@intel.com>, Bin Gao <bin.gao@intel.com>
 
-On Thu, Jun 09, 2016 at 03:34:52PM -0700, Dan Williams wrote:
-> On Thu, Jun 9, 2016 at 3:08 PM, Linda Knippers <linda.knippers@hpe.com> wrote:
-> > On 6/4/2016 7:01 AM, joeyli wrote:
-> >> Hi Dan,
-> >>
-> >> Thanks for your review.
-> >>
-> >> On Fri, Jun 03, 2016 at 12:27:34PM -0700, Dan Williams wrote:
-> >>> On Fri, Jun 3, 2016 at 12:13 AM, Lee, Chun-Yi <joeyli.kernel@gmail.com> wrote:
-> >>>> This patch adds codes to treat a volatile virtual CD region as a
-> >>>> read-only pmem region, then read-only /dev/pmem* device can be mounted
-> >>>> with iso9660.
-> >>>>
-> >>>> It's useful to work with the httpboot in EFI firmware to pull a remote
-> >>>> ISO file to the local memory region for booting and installation.
-> >>>>
-> >>>> Wiki page of UEFI HTTPBoot with OVMF:
-> >>>>         https://en.opensuse.org/UEFI_HTTPBoot_with_OVMF
-> >>>>
-> >>>> Signed-off-by: Lee, Chun-Yi <jlee@suse.com>
-> >>>> Cc: Gary Lin <GLin@suse.com>
-> >>>> Cc: Dan Williams <dan.j.williams@intel.com>
-> >>>> Cc: Ross Zwisler <ross.zwisler@linux.intel.com>
-> >>>> Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-> >>>> ---
-> >>>>  drivers/acpi/nfit.c          |  8 +++++++-
-> >>>>  drivers/nvdimm/region_devs.c | 26 +++++++++++++++++++++++++-
-> >>>>  include/linux/libnvdimm.h    |  2 ++
-> >>>>  3 files changed, 34 insertions(+), 2 deletions(-)
-> >>>>
-> >>>> diff --git a/drivers/acpi/nfit.c b/drivers/acpi/nfit.c
-> >>>> index 2215fc8..b100a17 100644
-> >>>> --- a/drivers/acpi/nfit.c
-> >>>> +++ b/drivers/acpi/nfit.c
-> >>>> @@ -1949,6 +1949,7 @@ static int acpi_nfit_init_mapping(struct acpi_nfit_desc *acpi_desc,
-> >>>>         switch (nfit_spa_type(spa)) {
-> >>>>         case NFIT_SPA_PM:
-> >>>>         case NFIT_SPA_VOLATILE:
-> >>>> +       case NFIT_SPA_VCD:
-> >>>>                 nd_mapping->start = memdev->address;
-> >>>>                 nd_mapping->size = memdev->region_size;
-> >>>>                 break;
-> >>>
-> >>> Why do we need to distinguish NFIT_SPA_VOLATILE vs NFIT_SPA_VCD, i.e.
-> >>> what happens if something writes to a VCD device?
-> >>
-> >> Actually I didn't try to write SPA-VCD device before. Every time I mount it
-> >> that the system responses read-only:
-> >>
-> >> # mount /dev/pmem0 /mnt/
-> >> mount: /dev/pmem0 is write-protected, mounting read-only
-> >>
-> >> If it can be written, then I think there have no difference between
-> >> NFIT_SPA_VOLATILE with NFIT_SPA_VCD region.
-> >
-> > It's not clear to me what the expectations for this type of device are, or
-> > whether they should be read-only.  The ACPI spec is not helpful here.
-> > The other Disk Region and CD Region types are also unclear.  Anyone
-> > care to define them?
-> >
-> >> I implemented this patch to treat VCD region as read-only pmem because the
-> >> pmem region generates /dev/pmem* device that it can be mounted.
-> >
-> > I'm a bit worried about this type of device showing up as a "pmem" device.
-> > I realize they're described in the NFIT (not sure why but they are) but do
-> > any of the operations that we support for other pmem devices work on these?
+On 06/11/2016 03:25 PM, Bin Gao wrote:
+> This patch adds operation region driver for Intel BXT WhiskeyCove
+> PMIC. The register mapping is done as per the BXT WC data sheet.
 > 
-> It would be just another pmem device, so it would support all of them.
-> 
-> > Do root device DSMs make any sense?
-> 
-> Root device DSMs take a physical address so they could apply, but I
-> assume a firmware could simply refuse to run any operations against
-> them.
+> Signed-off-by: Ajay Thomas <ajay.thomas.david.rajamanickam@intel.com>
+> Signed-off-by: Bin Gao <bin.gao@intel.com>
+> ---
+> +static int __init intel_bxtwc_pmic_opregion_driver_init(void)
+> +{
+> +	return platform_driver_register(&intel_bxtwc_pmic_opregion_driver);
+> +}
+> +
+> +module_init(intel_bxtwc_pmic_opregion_driver_init);
+
+Last time Paul suggests device_initcall instead of module_init here:
+
+commit 75829dcf10862966f52716f2d67ac1c1b1eb486b
+Author: Paul Gortmaker <paul.gortmaker@windriver.com>
+Date:   Mon Feb 15 00:27:51 2016 -0500
+
+    drivers/acpi: make pmic/intel_pmic_crc.c explicitly non-modular
+
+Perhaps you should do the same.
+
+Thanks,
+Aaron
+
+> +
+> +MODULE_DESCRIPTION("BXT WhiskeyCove ACPI opregion driver");
+> +MODULE_LICENSE("GPL");
 > 
 
-Yes, I pasted the ACPI0012 root device in another mail that it doesn't
-have _DSM method.
-
-> > Are there other DSMs?
-> 
-> Not that I can think of...
-> 
-> > What will happen if someone uses ndctl to reconfigure the device?
-> 
-> It won't know or care about the difference.  Unless there's a negative
-> side effect of allowing writes to a "volatile cd" it would be yet
-> another pmem device.
->
-
-I didn't try to using ndctl because the ACPI device doesn't have _DSM method.
- 
-> > I'm especially concerned on systems that might have one of these devices
-> > and also have NVDIMMs.  Do all the pmem devices get numbered different if
-> > this device comes and goes across reboots?  (I know, we shouldn't rely on
-> > those names but it will still confuse people.)  Can they be some other name
-> > that better represents what they're trying to be?
-> 
-> If they all go through the same driver they should have the same
-> naming scheme.  Software should be identifying the block device via
-> blkid, not kernel device name.
-
-Honestly I didn't have machine to test this function with a real NVDIMM memory.
-
-This function may also applies to the machines that do not have NVDIMM memory
-but it provides httpboot function with ISO file for booting or installation. So
-it only generates a ACPI0012 root device and a simple NFIT that it only contains
-one SPA range structure.
-
-If we don't want to treat VCD type as PMEM device (I will removed the read-only
-parts in patch), then I think that we need another NVDIMM driver to generate
-block device for VCD type.
-
-
-Thanks a lot!
-Joey Lee
