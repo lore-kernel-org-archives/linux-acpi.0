@@ -1,65 +1,37 @@
-From: Rui Wang <rui.y.wang@intel.com>
-Subject: Re: [PATCH V3 1/3] x86/ioapic: Support hot-removal of IOAPICs present during boot
-Date: Sun, 12 Jun 2016 14:06:09 +0800
-Message-ID: <1465711569-19406-1-git-send-email-rui.y.wang@intel.com>
-References: <20160610164304.GJ19309@localhost>
-Return-path: <linux-pci-owner@vger.kernel.org>
-In-Reply-To: <20160610164304.GJ19309@localhost>
-Sender: linux-pci-owner@vger.kernel.org
-To: helgaas@kernel.org
-Cc: tglx@linutronix.de, rjw@rjwysocki.net, tony.luck@intel.com, bhelgaas@google.com, linux-acpi@vger.kernel.org, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, rui.y.wang@intel.com
+From: Sinan Kaya <okaya@codeaurora.org>
+Subject: Re: [PATCH V6 6/8] vfio, platform: make reset driver a requirement by
+ default
+Date: Sun, 12 Jun 2016 22:32:37 -0400
+Message-ID: <575E1B45.3070406@codeaurora.org>
+References: <1464472878-27176-1-git-send-email-okaya@codeaurora.org>
+ <1464472878-27176-7-git-send-email-okaya@codeaurora.org>
+ <c3538f11-d206-1ffc-35e0-ff5a7672c7d9@redhat.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-msm-owner@vger.kernel.org>
+In-Reply-To: <c3538f11-d206-1ffc-35e0-ff5a7672c7d9@redhat.com>
+Sender: linux-arm-msm-owner@vger.kernel.org
+To: Auger Eric <eric.auger@redhat.com>, kvm@vger.kernel.org, timur@codeaurora.org, cov@codeaurora.org, jcm@redhat.com, eric.auger@linaro.org
+Cc: linux-acpi@vger.kernel.org, agross@codeaurora.org, linux-arm-msm@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Baptiste Reynal <b.reynal@virtualopensystems.com>, Alex Williamson <alex.williamson@redhat.com>, linux-kernel@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Saturday, June 11, 2016 12:43 AM, Bjorn Helgaas wrote:
-> On Wed, Jun 08, 2016 at 05:32:44PM +0800, Rui Wang wrote:
-> > @@ -1779,8 +1780,12 @@ void __init
-> > pci_assign_unassigned_resources(void)
-> >  {
-> >  	struct pci_bus *root_bus;
-> >
-> > -	list_for_each_entry(root_bus, &pci_root_buses, node)
-> > +	list_for_each_entry(root_bus, &pci_root_buses, node) {
-> >  		pci_assign_unassigned_root_bus_resources(root_bus);
-> > +#ifdef CONFIG_X86
-> > +		acpi_ioapic_add(ACPI_HANDLE(root_bus->bridge));
-> > +#endif
+On 6/7/2016 3:59 PM, Auger Eric wrote:
+>> -	vfio_platform_get_reset(vdev);
+>> > +	ret = vfio_platform_get_reset(vdev);
+>> > +	if (ret && vdev->reset_required) {
+>> > +		pr_err("vfio: no reset function found for device %s\n",
+>> > +		       vdev->name);
+>> > +		iommu_group_put(group);
+>> > +		return ret;
+> nit: in case you respin you can factorize the group put and return ret in a goto label
+> (since also used above).
 > 
-> This seems like a strange place to call acpi_ioapic_add().  Your object is to call
-> acpi_ioapic_add() during root bus enumeration.
-> 
-> I assume we *can't* call acpi_ioapic_add() from acpi_pci_root_add() at boot
-> time, for some reason you'll explain.  But is there a reason we have to call it
-> from pci_assign_unassigned_resources() (where it requires an ifdef) instead
-> of from pcibios_assign_resources(), which is already x86-specific?
-> 
-> In acpi_pci_root_add(), we have this:
-> 
->   acpi_pci_root_add(...)
->   {
->     ...
->     if (hotadd)
->       acpi_ioapic_add(root);
-> 
-> So the obvious question is why don't we just remove the "if (hotadd)"
-> and call acpi_ioapic_add() always.
-> 
-> I'm sure the reason is some ordering problem, but we need a comment in
-> acpi_pci_root_add() about why the obvious solution doesn't work.
-> 
+> Besides Reviewed-by: Eric Auger <eric.auger@redhat.com>
 
-Hi Bjorn,
+thanks, done. I'll respin with your request.
 
-Yes it's an ording issue. acpi_ioapic_add() and also ioapic_insert_resources()
-have to be later than pci initialization in order to deal with IOAPICs mapped
-on a PCI BAR. There's a comment about this inside pcibios_resource_survey()
-above ioapic_insert_resources(). We can also add a comment inside
-acpi_pci_root_add(), though.
-
-And yes calling acpi_ioapic_add() in pcibios_assign_resources() doesn't require
-ifdef CONFIG_X86. But it'll require a loop to iterate through the root buses,
-and call acpi_ioapic_add() within the loop. pci_assign_unassigned_resources()
-already has that loop. Do you still prefer adding it to
-pcibios_assign_resources() ?
-
-Regards,
-Rui
+-- 
+Sinan Kaya
+Qualcomm Technologies, Inc. on behalf of Qualcomm Innovation Center, Inc.
+Qualcomm Innovation Center, Inc. is a member of Code Aurora Forum, a Linux Foundation Collaborative Project
