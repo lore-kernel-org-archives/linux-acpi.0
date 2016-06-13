@@ -1,111 +1,93 @@
-From: "Zheng, Lv" <lv.zheng@intel.com>
-Subject: RE: acpi: broken suspend to RAM with v4.7-rc1
-Date: Wed, 15 Jun 2016 06:05:00 +0000
-Message-ID: <1AE640813FDE7649BE1B193DEA596E883BBE2163@SHSMSX103.ccr.corp.intel.com>
-References: <20160610203210.GA2262@nest> <3027571.8eTQaleASL@vostro.rjw.lan>
- <20160611104922.GA2368@nest> <2544058.dYPSaC0ylY@vostro.rjw.lan>
- <744357E9AAD1214791ACBA4B0B9092633AA54819@SHSMSX101.ccr.corp.intel.com>
- <1AE640813FDE7649BE1B193DEA596E883BBCF836@SHSMSX101.ccr.corp.intel.com>
- <20160613100707.GA2365@nest>
- <CAJZ5v0jw=hvcYSOokPkHK+KgsLee9nc9Aj_33H37-3t7uNxX8w@mail.gmail.com>
+From: Frank Rowand <frowand.list@gmail.com>
+Subject: Re: [RESEND PATCH v2 1/2] device property: Add
+ function to search for named child of device
+Date: Mon, 13 Jun 2016 12:32:32 -0700
+Message-ID: <575F0A50.1090107@gmail.com>
+References: <cover.1464802265.git.Adam.Thomson.Opensource@diasemi.com>
+ <7105258db927c65dfa41a8abeef4b9735871d023.1464802265.git.Adam.Thomson.Opensource@diasemi.com>
+ <97f80018-7cc4-0a50-498d-89d27dfa2fd1@intel.com>
+ <2E89032DDAA8B9408CB92943514A0337D46421B6@SW-EX-MBX01.diasemi.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga01.intel.com ([192.55.52.88]:64244 "EHLO mga01.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750798AbcFOGFc (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 15 Jun 2016 02:05:32 -0400
-In-Reply-To: <CAJZ5v0jw=hvcYSOokPkHK+KgsLee9nc9Aj_33H37-3t7uNxX8w@mail.gmail.com>
-Content-Language: en-US
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <alsa-devel-bounces@alsa-project.org>
+In-Reply-To: <2E89032DDAA8B9408CB92943514A0337D46421B6@SW-EX-MBX01.diasemi.com>
+List-Unsubscribe: <http://mailman.alsa-project.org/mailman/options/alsa-devel>,
+ <mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
+List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel/>
+List-Post: <mailto:alsa-devel@alsa-project.org>
+List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
+List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+ <mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
+Errors-To: alsa-devel-bounces@alsa-project.org
+Sender: alsa-devel-bounces@alsa-project.org
+To: Adam, Adam.Thomson.Opensource@diasemi.com, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Jaroslav Kysela <perex@perex.cz>, Mika Westerberg <mika.westerberg@linux.intel.com>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Heikki Krogerus <heikki.krogerus@linux.intel.com>
+Cc: Sathyanarayana Nujella <sathyanarayana.nujella@intel.com>, Rob Herring <rob.herring@linaro.org>, "alsa-devel@alsa-project.org" <alsa-devel@alsa-project.org>, Support Opensource <Support.Opensource@diasemi.com>, Hanjun Guo <hanjun.guo@linaro.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Takashi Iwai <tiwai@suse.com>, Robert Moore <robert.moore@intel.com>, Liam Girdwood <lgirdwood@gmail.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Mark Brown <broonie@kernel.org>, Lv Zheng <lv.zheng@intel.com>, Suravee Suthikulpanit <Suravee.Suthikulpanit@amd.com>, Bjorn Helgaas <bhelgaas@google.com>, Andrew Morton <akpm@linux-foundation.org>, "devel@acpica.org" <devel@acpica.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Len Brown <lenb@kernel.org>
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rafael@kernel.org>, Andrey Skvortsov <andrej.skvortzov@gmail.com>, "Moore, Robert" <robert.moore@intel.com>, "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "devel@acpica.org" <devel@acpica.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
 
-SGksIFJhZmFlbA0KDQo+IEZyb206IHJqd3lzb2NraUBnbWFpbC5jb20gW21haWx0bzpyand5c29j
-a2lAZ21haWwuY29tXSBPbiBCZWhhbGYgT2YNCj4gUmFmYWVsIEouIFd5c29ja2kNCj4gU3ViamVj
-dDogUmU6IGFjcGk6IGJyb2tlbiBzdXNwZW5kIHRvIFJBTSB3aXRoIHY0LjctcmMxDQo+IA0KPiBP
-biBNb24sIEp1biAxMywgMjAxNiBhdCAxMjowNyBQTSwgQW5kcmV5IFNrdm9ydHNvdg0KPiA8YW5k
-cmVqLnNrdm9ydHpvdkBnbWFpbC5jb20+IHdyb3RlOg0KPiA+IEhpIEx2LA0KPiA+DQo+ID4gT24g
-MTMgSnVuLCBaaGVuZywgTHYgd3JvdGU6DQo+ID4+ID4gRnJvbTogbGludXgtYWNwaS1vd25lckB2
-Z2VyLmtlcm5lbC5vcmcgW21haWx0bzpsaW51eC1hY3BpLQ0KPiA+PiA+IG93bmVyQHZnZXIua2Vy
-bmVsLm9yZ10gT24gQmVoYWxmIE9mIFJhZmFlbCBKLiBXeXNvY2tpDQo+ID4+ID4gU3ViamVjdDog
-UmU6IGFjcGk6IGJyb2tlbiBzdXNwZW5kIHRvIFJBTSB3aXRoIHY0LjctcmMxDQo+ID4+ID4NCj4g
-Pj4gPiBPbiBTYXR1cmRheSwgSnVuZSAxMSwgMjAxNiAwMTo0OToyMiBQTSBBbmRyZXkgU2t2b3J0
-c292IHdyb3RlOg0KPiA+PiA+ID4gT24gMTAgSnVuLCBSYWZhZWwgSi4gV3lzb2NraSB3cm90ZToN
-Cj4gPj4gPiA+ID4gT24gRnJpZGF5LCBKdW5lIDEwLCAyMDE2IDExOjMyOjEwIFBNIEFuZHJleSBT
-a3ZvcnRzb3Ygd3JvdGU6DQo+ID4+ID4gPiA+ID4gSGksDQo+ID4+ID4gPiA+ID4NCj4gPj4gPiA+
-ID4gPiBPbiBteSBsYXB0b3AgKERFTEwgVm9zdHJvIDE1MDApIGluIHY0LjctcmMxIGlzIGJyb2tl
-biBzdXNwZW5kDQo+IHRvIFJBTS4NCj4gPj4gPiA+ID4gPiBMYXB0b3AgZG9lc24ndCBmaW5pc2gg
-c3VzcGVuZCB0byBSQU0gcHJvY2VzcyAoZGlza3MgYXJlIG9mZiwgYnV0DQo+ID4+ID4gPiA+ID4g
-V2lGaSBhbmQgUG93ZXIgTEVEcyBhcmUgc3RpbGwgb24pLiBUaGUgb25seSB3YXkgdG8gZ2V0IGl0
-IG91dCBvZg0KPiA+PiA+ID4gPiA+IHRoaXMgc3RhdGUsIGlzIHRvIHR1cm4gdGhlIHBvd2VyIG9m
-Zi4NCj4gPj4gPiA+ID4gPg0KPiA+PiA+ID4gPiA+IEkndmUgYmlzZWN0ZWQgdGhlIGlzc3VlIHRv
-IGNvbW1pdCA2NmIxZWQ1YWE4ZGQyNQ0KPiA+PiA+ID4gPiA+IFtBQ1BJQ0E6IEFDUEkgMi4wLCBI
-YXJkd2FyZTogQWRkIGFjY2Vzc193aWR0aC9iaXRfb2Zmc2V0DQo+IHN1cHBvcnQNCj4gPj4gPiA+
-ID4gPiBmb3IgYWNwaV9od193cml0ZSgpXS4NCj4gPj4gPiA+ID4gPg0KPiA+PiA+ID4gPiA+IElm
-IEkgcmV2ZXJ0IHRoaXMgY29tbWl0IGluIHY0LjctcmMxIChvciB2NC43LXJjMiksIHN1c3BlbmQg
-dG8gUkFNDQo+ID4+ID4gPiA+ID4gaXMgd29ya2luZyBhZ2Fpbi4NCj4gPj4gPiA+ID4gPg0KPiA+
-PiA+ID4gPiA+IFRoZSBjYXVzZSBvZiB0aGlzIHByb2JsZW0gaXMgdGhhdCBhZnRlciB0aGlzIGNv
-bW1pdCB3cml0ZSB0bw0KPiBQTTFBDQo+ID4+ID4gPiA+ID4gQ29udHJvbCBCbG9jayAoMTYtYml0
-IHJlZ2lzdGVyKSBpcyBkb25lIHVzaW5nIHR3byA4LWJpdCB3cml0ZXMuDQo+ID4+ID4gPiA+ID4g
-SWYgSSBmb3JjZSB0aGlzIHdyaXRlIHRvIGJlIDE2LWJpdCwgdGhlbiBhbGwgaXMgd29ya2luZyBh
-cyBiZWZvcmUuDQo+ID4+ID4gPiA+ID4NCj4gPj4gPiA+ID4gPiBUbyBnZXQgaXQgd29ya2luZyAn
-YWNjZXNzX3dpZHRoJyBmb3IgUE0xQSBDb250cm9sIEJsb2NrIG5lZWRzDQo+IHRvDQo+ID4+ID4g
-PiA+ID4gYmUgMiAoMTYtYml0KSwgYnV0IGl0J3MgMSAoOC1iaXQpLg0KPiA+PiBbTHYgWmhlbmdd
-DQo+ID4+IENvdWxkIHlvdSBzZW5kIG1lIHRoZSBhY3BpZHVtcCBvZiB0aGUgbWFjaGluZT8NCj4g
-PiBIZXJlIGl0IGlzDQo+ID4NCj4gaHR0cHM6Ly9kbC5kcm9wYm94dXNlcmNvbnRlbnQuY29tL3Uv
-MjQwMjM2MjYvZGVsbF92b3N0cm9fMTUwMC5hY3BpZA0KPiB1bXAuYmluDQo+ID4NCj4gPj4gPiA+
-ID4gPg0KPiA+PiA+ID4gPiA+IFRoZSByb290IG9mIHRoZSBwcm9ibGVtIHNlZW1zIHRvIGJlIG5v
-dCB0aGUgY29tbWl0DQo+ID4+ID4gNjZiMWVkNWFhOGRkMjUNCj4gPj4gPiA+ID4gPiBpdHNlbGYs
-IGJ1dCB0aGUgQUNQSSB0YWJsZXMgaW4gQklPUyB3aGVyZSB3cm9uZyBhY2Nlc3Nfd2lkdGgNCj4g
-Pj4gPiA+ID4gPiBjb21lcyBmcm9tLiBJIGZpeGVkIHByb2JsZW0gaW4gRkFDUCAgdGFibGUsIHB1
-dCBpdCBpbiBpbml0cmQgdG8NCj4gPj4gPiA+ID4gPiBvdmVycmlkZSBGQUNQIHRhYmxlIGZyb20g
-QklPUy4gVGhpcyBmaXhlZCB0aGUgaXNzdWUsIHN1c3BlbmQgdG8NCj4gPj4gPiA+ID4gPiBSQU0g
-aXMgd29ya2luZyBub3cgYWdhaW4uDQo+ID4+ID4gPiA+ID4NCj4gPj4gPiA+ID4gPiBCdXQgSSdt
-IG5vdCBzdXJlIHdoZXRoZXIgaXMgdGhpcyBwcm9wZXIgZml4IGZvciB0aGlzIHByb2JsZW0uDQo+
-ID4+ID4gPiA+ID4gSXMgdGhlcmUgYW55IHBsYWNlIGluIHRoZSBrZXJuZWwsIHdoZXJlIHN1Y2gg
-QUNQSSBxdWlya3MgYXJlDQo+IHBsYWNlZD8NCj4gPj4gW0x2IFpoZW5nXQ0KPiA+PiBNeSBxdWVz
-dGlvbiB3b3VsZCBiZToNCj4gPj4gRG9lcyBXaW5kb3dzIGJlaGF2ZSBjb3JyZWN0bHkgZm9yIHRo
-aXMgdGFibGU/DQo+ID4gWWVzLCBzdXNwZW5kIHRvIFJBTSBpcyB3b3JraW5nIHVuZGVyIFdpbmRv
-d3MgVmlzdGEuDQo+ID4gSUlSQyBpdCB3b3JrZWQgdW5kZXIgV2luZG93cyBYUCB0b28uDQo+ID4N
-Cj4gPj4gSG93ZXZlciB0aGVyZSBpcyBhIHJlYWwgY2FzZSBzaG93aW5nIHRoYXQgdGhlcmUgYXJl
-IHJlYWwgdGFibGVzIG5lZWQgdXMNCj4gdG8gY29ycmVjdGx5IHN1cHBvcnQgQml0V2lkdGgvQml0
-T2Zmc2V0Lg0KPiA+PiBIZXJlIGlzIHRoZSBpbmZvcm1hdGlvbiBmb3IgeW91IHRvIHJlZmVyOg0K
-PiA+PiBodHRwOi8vcGVybWFsaW5rLmdtYW5lLm9yZy9nbWFuZS5saW51eC5rZXJuZWwuY29tbWl0
-cy5oZWFkLzMxMzg3MA0KPiA+Pg0KPiA+PiA+ID4gPg0KPiA+PiA+ID4gPiBXZWxsLCBpZiB0aGUg
-Y29tbWl0IGluIHF1ZXN0aW9uIGNhdXNlZCBhIHByb2JsZW0gdG8gaGFwcGVuIGZvcg0KPiB5b3Us
-DQo+ID4+ID4gPiA+IGl0IGFsc28gbWlnaHQgY2F1c2Ugc2ltaWxhciBwcm9ibGVtcyB0byBoYXBw
-ZW4gZWxzZXdoZXJlLg0KPiA+PiA+ID4gPg0KPiA+PiA+ID4gPiBJdCBsb29rcyBsaWtlIHdlJ2xs
-IG5lZWQgdG8gcmV2ZXJ0IHRoYXQgY29tbWl0Lg0KPiA+PiA+ID4gSGksDQo+ID4+ID4gPg0KPiA+
-PiA+ID4gb3IgbWF5YmUgdG8gcmVzZXQgYWNjZXNzX3dpZHRoIEFueUFjYyBmcm9tIEZBQ1AgdGFi
-bGUgb25seSBmb3INCj4gUE0xQQ0KPiA+PiA+ID4gY29udHJvbCByZWdpc3RlciBvciBldmVuIGZv
-ciBhbGwgcmVnaXN0ZXJzPyBUaGlzIHdpbGwgZml4IHRoZSBpc3N1ZSB0b28uDQo+ID4+ID4NCj4g
-Pj4gPiBUaGF0J3MgYSBnb29kIGlkZWEgYWN0dWFsbHkuDQo+ID4+ID4NCj4gPj4gPiA+IGRpZmYg
-LS1naXQgYS9kcml2ZXJzL2FjcGkvYWNwaWNhL3RiZmFkdC5jDQo+ID4+ID4gPiBiL2RyaXZlcnMv
-YWNwaS9hY3BpY2EvdGJmYWR0LmMgaW5kZXggNjIwODA2OS4uYTQ3NmU5NCAxMDA2NDQNCj4gPj4g
-PiA+IC0tLSBhL2RyaXZlcnMvYWNwaS9hY3BpY2EvdGJmYWR0LmMNCj4gPj4gPiA+ICsrKyBiL2Ry
-aXZlcnMvYWNwaS9hY3BpY2EvdGJmYWR0LmMNCj4gPj4gPiA+IEBAIC03MTQsNyArNzE0LDE0IEBA
-IHN0YXRpYyB2b2lkDQo+IGFjcGlfdGJfc2V0dXBfZmFkdF9yZWdpc3RlcnModm9pZCkNCj4gPj4g
-PiA+ICAgICAgICAgICAgICAgICAgICAgICAgIH0NCj4gPj4gPiA+ICAgICAgICAgICAgICAgICB9
-DQo+ID4+ID4gPiAgICAgICAgIH0NCj4gPj4gPiA+DQo+ID4+ID4gPiArICAgICAgIC8qDQo+ID4+
-ID4gPiArICAgICAgICAqIFJlc2V0IGFjY2Vzc193aWR0aCBpbiB0aGUgR0FTIGZvciBQTTFBIGNv
-bnRyb2wgcmVnaXN0ZXIgdG8NCj4gPj4gPiA+ICsgICAgICAgICogdW5kZWZpbmVkIHZhbHVlLiBC
-ZWNhdXNlIGluIHNvbWUgY2FzZXMgdGhpcyBmaWVsZCBjb250YWlucw0KPiA+PiA+ID4gKyAgICAg
-ICAgKiB3cm9uZyB2YWx1ZS4NCj4gPj4gPiA+ICsgICAgICAgICovDQo+ID4+ID4gPiArICAgICAg
-IGFjcGlfZ2JsX0ZBRFQueHBtMWFfY29udHJvbF9ibG9jay5hY2Nlc3Nfd2lkdGggPSAwOw0KPiA+
-PiA+DQo+ID4+ID4gT0ssIGxldCdzIHNlZSB3aGF0IEJvYiBhbmQgTHYgdGhpbmsgYWJvdXQgdGhh
-dC4NCj4gPj4gW0x2IFpoZW5nXQ0KPiA+PiBUaGVyZSBpcyBhIGNvbW1pdCBpbiA0LjctcmMyOg0K
-PiA+Pg0KPiBodHRwczovL2dpdC5rZXJuZWwub3JnL2NnaXQvbGludXgva2VybmVsL2dpdC90b3J2
-YWxkcy9saW51eC5naXQvY29tbWl0Lz9pZD0NCj4gN2Y5YmVmOWQNCj4gPj4gSGF2ZSB5b3UgdHJp
-ZWQgaWYgdGhlIHByb2JsZW0gc3RpbGwgZXhpc3RzIGluIDQuNy1yYzI/DQo+ID4gSSd2ZSBqdXN0
-IHRyaWVkIHY0LjctcmMzLiBJdCBjb250YWlucyBjb21taXQgN2Y5YmVmOWQgYW5kIHRoZSBwcm9i
-bGVtDQo+ID4gZXhpc3RzIHRoZXJlIHRvby4NCj4gDQo+IEkgaGF2ZSBkZWNpZGVkIHRvIHJldmVy
-dCBjb21taXQgNjZiMWVkNWFhOGRkMjUgYXMgaW4gcHJpbmNpcGxlIG90aGVyDQo+IHJlZ2lzdGVy
-cyBtYXkgYmUgc2ltaWxhcmx5IGFmZmVjdGVkIG9uIG90aGVyIHN5c3RlbXMuDQpbTHYgWmhlbmdd
-IA0KWWVzLg0KSSBkaWRuJ3QgcHJlcGFyZSBmYWxsYmFjayBtZWNoYW5pc20gZm9yIHRoaXMgc3Vw
-cG9ydC4NCkl0IHNlZW1zIHdlIGhhdmUgdG8gZG8gdGhlIHJldmVyc2lvbi4NClBsZWFzZSByZXZl
-cnQgaXQuDQpOZXh0IHRpbWUgSSdsbCBwcmVwYXJlIGEgcXVpcmsgbWVjaGFuaXNtIHdoZW4gdGhp
-cyBpcyB1cHN0cmVhbWVkLg0KDQpGb3IgQW5kcmV5Og0KQ291bGQgeW91IHByb3ZpZGUgbWUgdGhl
-IERNSWRlY29kZSBvdXRwdXQgb2YgdGhlIG1hY2hpbmU/DQoNClRoYW5rcw0KLUx2DQoNCj4gDQo+
-IFRoYW5rcywNCj4gUmFmYWVsDQo=
+Hi Adam,
+
+(comment below and adding Rob to the cc:)
+
+On 06/10/16 02:58, Opensource [Adam Thomson] wrote:
+> On 10 June 2016 00:11, Rafael J. Wysocki wrote:
+> 
+>> For some reason that didn't make it into the linux-acpi list, or at
+>> least I can't see it there.
+> 
+> That's strange. I'm not a subscriber to that mailing list, but I assume that
+> shouldn't matter here? Strangely though the only mailing list these seem to have
+> made it to is the ALSA one. :( Will see if I can find out why as I've not
+> seen this problem before.
+> 
+>>> + * device_get_named_child_node - Return first matching named child node
+>> handle
+>>> + * @dev: Device to find the named child node for.
+>>> + * @childname: String to match child node name against.
+>>> + */
+>>> +struct fwnode_handle *device_get_named_child_node(struct device *dev,
+>>> +						  const char *childname)
+>>> +{
+>>> +	struct fwnode_handle *child;
+>>> +
+>>> +	/*
+>>> +	 * Find first matching named child node of this device.
+>>> +	 * For ACPI this will be a data only sub-node.
+>>> +	 */
+>>> +	device_for_each_child_node(dev, child) {
+>>> +		if (is_of_node(child)) {
+>>> +			if (!strcasecmp(to_of_node(child)->name, childname))
+>>
+>> Why do you use strcasecmp() here?
+> 
+> DT node names are case insensitive. The of.h header does provide a helper macro
+> which is equivalent to this, but that macro is part of the '#ifdef CONFIG_OF'
+> block. If I were to use it then it would cause non-DT builds to fail. I opted
+> for strcasecmp() directly as I didn't think for just this one scenario it made
+> sense to reorganise the of.h header with regards to the helper macros. Of course
+> if there are other opinions on this then am happy to listen.
+
+DT node names are not always case insensitive.  Please us of_node_cmp().
+
+-Frank
+
+> 
+>>> +static inline bool acpi_data_node_match(struct fwnode_handle *fwnode,
+>>> +					const char *name)
+>>> +{
+>>> +	return is_acpi_data_node(fwnode) ?
+>>> +		(!strcasecmp(to_acpi_data_node(fwnode)->name, name)) : false;
+>>> +}
+>>
+>> Is there any particular reason to introduce this function instead of
+>> doing the test in device_get_named_child_node() directly?
+> 
+> Again this is a build related design option (I mention it in the patch
+> description). In a non-DT build there is no access to the acpi_data_node struct
+> (returned by to_acpi_data_node() call) so if we call this in that scenario then
+> the build will fail. I could have added some #ifdefs to the
+> device_get_named_child_node() function directly, but that would have been a bit
+> messy I think. To me it made more sense to have this helper function which can
+> be called regardless of build type, and for non-ACPI builds its definition
+> always returns false.
+> 
