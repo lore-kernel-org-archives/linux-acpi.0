@@ -1,155 +1,135 @@
-From: Liviu.Dudau@arm.com
-Subject: Re: [PATCH V9 09/11] ARM64/PCI: ACPI support for legacy IRQs parsing
- and consolidation with DT code
-Date: Mon, 13 Jun 2016 16:56:46 +0100
-Message-ID: <20160613155646.GF1165@e106497-lin.cambridge.arm.com>
-References: <1465588519-11334-1-git-send-email-tn@semihalf.com>
- <1465588519-11334-10-git-send-email-tn@semihalf.com>
- <20160610233612.GB7671@localhost>
- <20160613104005.GA26738@red-moon>
+From: Jeffrey Hugo <jhugo@codeaurora.org>
+Subject: Re: [RFC PATCH V2 1/2] ACPI/PCI: Match PCI config space accessors
+ against platfrom specific ECAM quirks
+Date: Mon, 13 Jun 2016 09:59:21 -0600
+Message-ID: <036882b9-b781-cb56-2bcf-35afb21b2812@codeaurora.org>
+References: <1465822923-33599-1-git-send-email-liudongdong3@huawei.com>
+ <1465822923-33599-2-git-send-email-liudongdong3@huawei.com>
+ <EE11001F9E5DDD47B7634E2F8A612F2E1F782C86@lhreml507-mbx>
+ <575EBD13.8080808@codeaurora.org>
+ <EE11001F9E5DDD47B7634E2F8A612F2E1F782E15@lhreml507-mbx>
+ <b7202ebbb30f2c715427fbb387129e9c@codeaurora.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-pci-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20160613104005.GA26738@red-moon>
-Sender: linux-pci-owner@vger.kernel.org
-To: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
-Cc: Bjorn Helgaas <helgaas@kernel.org>, Tomasz Nowicki <tn@semihalf.com>, arnd@arndb.de, will.deacon@arm.com, catalin.marinas@arm.com, rafael@kernel.org, hanjun.guo@linaro.org, okaya@codeaurora.org, jchandra@broadcom.com, robert.richter@caviumnetworks.com, mw@semihalf.com, ddaney@caviumnetworks.com, wangyijing@huawei.com, Suravee.Suthikulpanit@amd.com, msalter@redhat.com, linux-pci@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linaro-acpi@lists.linaro.org, jcm@redhat.com, andrea.gallo@linaro.org, dhdang@apm.com, jeremy.linton@arm.com, liudongdong3@huawei.com, cov@codeaurora.org
+Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <b7202ebbb30f2c715427fbb387129e9c@codeaurora.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: okaya@codeaurora.org, Gabriele Paoloni <gabriele.paoloni@huawei.com>
+Cc: rafael@kernel.org, linux-pci@vger.kernel.org, will.deacon@arm.com, Linuxarm <linuxarm@huawei.com>, "Chenxin (Charles)" <charles.chenxin@huawei.com>, Wangyijing <wangyijing@huawei.com>, andrea.gallo@linaro.org, Lorenzo.Pieralisi@arm.com, tn@semihalf.com, linaro-acpi@lists.linaro.org, ddaney@caviumnetworks.com, linux-acpi@vger.kernel.org, robert.richter@caviumnetworks.com, helgaas@kernel.org, "liudongdong (C)" <liudongdong3@huawei.com>, catalin.marinas@arm.com, jcm@redhat.com, arnd@arndb.de, Liviu.Dudau@arm.com, msalter@redhat.com, cov@codeaurora.org, mw@semihalf.com, linux-arm-kernel@lists.infradead.org, jchandra@broadcom.com, dhdang@apm.com, linux-kernel@vger.kernel.org, jeremy.linton@arm.com, hanjun.guo@linaro.org, Suravee.Suthikulpanit@amd.com
 List-Id: linux-acpi@vger.kernel.org
 
-On Mon, Jun 13, 2016 at 11:40:05AM +0100, Lorenzo Pieralisi wrote:
-> On Fri, Jun 10, 2016 at 06:36:12PM -0500, Bjorn Helgaas wrote:
-> > On Fri, Jun 10, 2016 at 09:55:17PM +0200, Tomasz Nowicki wrote:
-> > > To enable PCI legacy IRQs on platforms booting with ACPI, arch co=
-de
-> > > should include ACPI specific callbacks that parse and set-up the
-> > > device IRQ number, equivalent to the DT boot path. Owing to the c=
-urrent
-> > > ACPI core scan handlers implementation, ACPI PCI legacy IRQs bind=
-ings
-> > > cannot be parsed at device add time, since that would trigger ACP=
-I scan
-> > > handlers ordering issues depending on how the ACPI tables are def=
-ined.
-> >=20
-> > Uh, OK :)  I can't figure out exactly what the problem is here -- I
-> > don't know where to look if I wanted to fix the scan handler orderi=
-ng
-> > issues, and I don't know how I could tell if it would ever be safe =
-to
-> > move this from driver probe-time back to device add-time.
->=20
-> Right, the commit log could have been more informative.
->=20
-> pcibios_add_device() was added in:
->=20
-> commit d1e6dc91b532 ("arm64: Add architectural support for PCI")
->=20
-> whose commit log does not specify why legacy IRQ parsing should
-> be done at pcibios_add_device() either, so honestly we had to
-> do with the information we have at hand.
+On 6/13/2016 9:12 AM, okaya@codeaurora.org wrote:
+> On 2016-06-13 10:29, Gabriele Paoloni wrote:
+>> Hi Sinan
+>>
+>>> -----Original Message-----
+>>> From: Sinan Kaya [mailto:okaya@codeaurora.org]
+>>> Sent: 13 June 2016 15:03
+>>> To: Gabriele Paoloni; liudongdong (C); helgaas@kernel.org;
+>>> arnd@arndb.de; will.deacon@arm.com; catalin.marinas@arm.com;
+>>> rafael@kernel.org; hanjun.guo@linaro.org; Lorenzo.Pieralisi@arm.com;
+>>> jchandra@broadcom.com; tn@semihalf.com
+>>> Cc: robert.richter@caviumnetworks.com; mw@semihalf.com;
+>>> Liviu.Dudau@arm.com; ddaney@caviumnetworks.com; Wangyijing;
+>>> Suravee.Suthikulpanit@amd.com; msalter@redhat.com; linux-
+>>> pci@vger.kernel.org; linux-arm-kernel@lists.infradead.org; linux-
+>>> acpi@vger.kernel.org; linux-kernel@vger.kernel.org; linaro-
+>>> acpi@lists.linaro.org; jcm@redhat.com; andrea.gallo@linaro.org;
+>>> dhdang@apm.com; jeremy.linton@arm.com; cov@codeaurora.org; Chenxin
+>>> (Charles); Linuxarm
+>>> Subject: Re: [RFC PATCH V2 1/2] ACPI/PCI: Match PCI config space
+>>> accessors against platfrom specific ECAM quirks
+>>>
+>>> On 6/13/2016 9:54 AM, Gabriele Paoloni wrote:
+>>> > As you can see here Liudongdong has replaced oem_revision with
+>>> > oem_table_id.
+>>> >
+>>> > Now it seems that there are some platforms that have already shipped
+>>> > using a matching based on the oem_revision (right Jon?)
+>>> >
+>>> > However I guess that if in FW they have defined oem_table_id properly
+>>> > they should be able to use this mechanism without needing to a FW
+>>> update.
+>>> >
+>>> > Can these vendors confirm this?
+>>> >
+>>> > Tomasz do you think this can work for Cavium Thunder?
+>>> >
+>>> > Thanks
+>>> >
+>>> > Gab
+>>>
+>>> Why not have all three of them?
+>>>
+>>> The initial approach was OEM id and revision id.
+>>>
+>>> Jeff Hugo indicated that addition (not removing any other fields) of
+>>> table id
+>>> would make more sense.
+>>
+>> Mmm from last email of Jeff Hugo on "[RFC PATCH 1/3] pci, acpi: Match
+>> PCI config space accessors against platfrom specific ECAM quirks."
+>>
+>> I quote:
+>>
+>>  "Using the OEM revision
+>>  field does not seem to be appropriate since these are different
+>>  platforms and the revision field appears to be for the purpose of
+>>  tracking differences within a single platform.  Therefore, Cov is
+>>  proposing using the OEM table id as a mechanism to distinguish
+>>  platform A (needs quirk applied) vs platform B (no quirks) from the
+>>  same OEM."
+>>
+>> So it looks to me that he pointed out that using the OEM revision field
+>> is wrong...and this is why I have asked if replacing it with the table
+>> id can work for other vendors....
+>>
+>> Thanks
+>>
+>> Gab
+>>
+>
+> I had an internal discussion with jeff and cov before posting on the
+> maillist.
+>
+> I think there is missing info in the email.
+>
+> Usage of oem id + table id + revision is ok.
+>
+> Usage of oem id + revision is not ok as one oem can build multiple chips
+> with the same oem id and revision id but different table id. Otherwise,
+> we can run out of revisions very quickly.
 
-Because at that time (September 2014) there was no pcibios_alloc_irq() =
-(added
-June 2015 by commit 890e4847587fcf) and after that nobody bothered to u=
-pdate
-the arm64 code to make use of the new API.
+Agreed.
 
-Best regards,
-Liviu
+I'm sorry for the confusion.  My intent was to point out that revision 
+alone appeared insufficient to address all the identified problems, but 
+I believe there is still a case for using revision. Table id is useful 
+for differentiating between platforms/chips.  Revision is useful for 
+differentiation between different versions of a single platform/chip 
+assuming the silicon is respun or some other fix is applied.  Both solve 
+different scenarios, and I'm not aware of a reason why they could not be 
+used together to solve all currently identified cases.
 
->=20
-> > I also notice that x86 and ia64 call acpi_pci_irq_enable() even lat=
-er,
-> > when the driver *enables* the device.  Is there a reason you didn't=
- do
-> > it at the same time as x86 and ia64?  This is another of those pcib=
-ios
-> > hooks that really don't do anything arch-specific, so I can imagine
-> > refactoring this somehow, someday.
->=20
-> Yes, with [1], that was the goal, that stopped because [1] does not
-> work on x86.
->=20
-> Only DT platform(s) affected by this change are all platforms relying=
- on
-> drivers/pci/host/pci-xgene.c (others rely on pci_fixup_irqs() that
-> should be removed too), if on those platforms probing IRQs at device
-> enable time works ok I can update this patch (it can be done through =
-[1]
-> once we figure out what to do with it on x86) and move the IRQ set-up=
- at
-> pcibios_enable_device() time.
->=20
-> @Duc: any feedback on this ?
->=20
-> Thanks,
-> Lorenzo
->=20
-> [1] http://www.spinics.net/lists/linux-pci/msg45950.html
->=20
-> > Did we have this conversation before?  It seems vaguely familiar, s=
-o I
-> > apologize if you already explained this once.
-> >=20
-> > > To solve this problem and consolidate FW PCI legacy IRQs parsing =
-in
-> > > one single pcibios callback (pending final removal), this patch m=
-oves
-> > > DT PCI IRQ parsing to the pcibios_alloc_irq() callback (called by
-> > > PCI core code at device probe time) and adds ACPI PCI legacy IRQs
-> > > parsing to the same callback too, so that FW PCI legacy IRQs pars=
-ing
-> > > is confined in one single arch callback that can be easily remove=
-d
-> > > when code parsing PCI legacy IRQs is consolidated and moved to co=
-re
-> > > PCI code.
-> > >=20
-> > > Signed-off-by: Tomasz Nowicki <tn@semihalf.com>
-> > > Suggested-by: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
-> > > ---
-> > >  arch/arm64/kernel/pci.c | 11 ++++++++---
-> > >  1 file changed, 8 insertions(+), 3 deletions(-)
-> > >=20
-> > > diff --git a/arch/arm64/kernel/pci.c b/arch/arm64/kernel/pci.c
-> > > index d5d3d26..b3b8a2c 100644
-> > > --- a/arch/arm64/kernel/pci.c
-> > > +++ b/arch/arm64/kernel/pci.c
-> > > @@ -51,11 +51,16 @@ int pcibios_enable_device(struct pci_dev *dev=
-, int mask)
-> > >  }
-> > > =20
-> > >  /*
-> > > - * Try to assign the IRQ number from DT when adding a new device
-> > > + * Try to assign the IRQ number when probing a new device
-> > >   */
-> > > -int pcibios_add_device(struct pci_dev *dev)
-> > > +int pcibios_alloc_irq(struct pci_dev *dev)
-> > >  {
-> > > -	dev->irq =3D of_irq_parse_and_map_pci(dev, 0, 0);
-> > > +	if (acpi_disabled)
-> > > +		dev->irq =3D of_irq_parse_and_map_pci(dev, 0, 0);
-> > > +#ifdef CONFIG_ACPI
-> > > +	else
-> > > +		return acpi_pci_irq_enable(dev);
-> > > +#endif
-> > > =20
-> > >  	return 0;
-> > >  }
-> > > --=20
-> > > 1.9.1
-> > >=20
-> >=20
->=20
+>
+>>
+>>>
+>>> --
+>>> Sinan Kaya
+>>> Qualcomm Technologies, Inc. on behalf of Qualcomm Innovation Center,
+>>> Inc.
+>>> Qualcomm Innovation Center, Inc. is a member of Code Aurora Forum, a
+>>> Linux Foundation Collaborative Project
+>
+> _______________________________________________
+> linux-arm-kernel mailing list
+> linux-arm-kernel@lists.infradead.org
+> http://lists.infradead.org/mailman/listinfo/linux-arm-kernel
 
---=20
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
-| I would like to |
-| fix the world,  |
-| but they're not |
-| giving me the   |
- \ source code!  /
-  ---------------
-    =C2=AF\_(=E3=83=84)_/=C2=AF
+
+-- 
+Jeffrey Hugo
+Qualcomm Innovation Center, Inc.
+Qualcomm Innovation Center, Inc. is a member of Code Aurora Forum, a 
+Linux Foundation Collaborative Project
