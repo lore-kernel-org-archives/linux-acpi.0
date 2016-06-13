@@ -1,76 +1,196 @@
-From: Sinan Kaya <okaya@codeaurora.org>
-Subject: [PATCH V7 5/9] vfio: platform: add extra debug info argument to call
- reset
-Date: Mon, 13 Jun 2016 00:26:37 -0400
-Message-ID: <1465792001-27960-6-git-send-email-okaya@codeaurora.org>
-References: <1465792001-27960-1-git-send-email-okaya@codeaurora.org>
+From: "Sajjan, Vikas C" <vikas.cha.sajjan@hpe.com>
+Subject: RE: [PATCH v5 4/5] arm64: add support for ACPI Low Power Idle(LPI)
+Date: Mon, 13 Jun 2016 04:47:24 +0000
+Message-ID: <DF4PR84MB0041D17321244DFB84979A84D9530@DF4PR84MB0041.NAMPRD84.PROD.OUTLOOK.COM>
+References: <1462981062-24909-1-git-send-email-sudeep.holla@arm.com>
+ <1462981062-24909-5-git-send-email-sudeep.holla@arm.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <1465792001-27960-1-git-send-email-okaya@codeaurora.org>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: kvm@vger.kernel.org, timur@codeaurora.org, cov@codeaurora.org, jcm@redhat.com, alex.williamson@redhat.com, eric.auger@linaro.org
-Cc: Baptiste Reynal <b.reynal@virtualopensystems.com>, linux-arm-msm@vger.kernel.org, linux-kernel@vger.kernel.org, Sinan Kaya <okaya@codeaurora.org>, linux-acpi@vger.kernel.org, agross@codeaurora.org, linux-arm-kernel@lists.infradead.org
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-bl2on0132.outbound.protection.outlook.com ([65.55.169.132]:3914
+	"EHLO na01-bl2-obe.outbound.protection.outlook.com"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1750702AbcFMEr2 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 13 Jun 2016 00:47:28 -0400
+In-Reply-To: <1462981062-24909-5-git-send-email-sudeep.holla@arm.com>
+Content-Language: en-US
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Sudeep Holla <sudeep.holla@arm.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "Lakshminarasimha, Sunil Vishwanathpur" <sunil.vl@hpe.com>, Prashanth Prakash <pprakash@codeaurora.org>, Ashwin Chaugule <ashwin.chaugule@linaro.org>, Al Stone <al.stone@linaro.org>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Mark Rutland <mark.rutland@arm.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
-Getting ready to bring out extra debug information to the caller
-so that more verbose information can be printed when an error is
-observed.
+Hi Sudeep,
 
-Signed-off-by: Sinan Kaya <okaya@codeaurora.org>
+-----Original Message-----
+From: Sudeep Holla [mailto:sudeep.holla@arm.com] 
+Sent: Wednesday, May 11, 2016 9:08 PM
+To: linux-acpi@vger.kernel.org; Rafael J. Wysocki <rjw@rjwysocki.net>
+Cc: Sudeep Holla <sudeep.holla@arm.com>; linux-kernel@vger.kernel.org; Sajjan, Vikas C <vikas.cha.sajjan@hpe.com>; Lakshminarasimha, Sunil Vishwanathpur <sunil.vl@hpe.com>; Prashanth Prakash <pprakash@codeaurora.org>; Ashwin Chaugule <ashwin.chaugule@linaro.org>; Al Stone <al.stone@linaro.org>; Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>; Mark Rutland <mark.rutland@arm.com>; linux-arm-kernel@lists.infradead.org
+Subject: [PATCH v5 4/5] arm64: add support for ACPI Low Power Idle(LPI)
+
+This patch adds appropriate callbacks to support ACPI Low Power Idle
+(LPI) on ARM64.
+
+Cc: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+Cc: Mark Rutland <mark.rutland@arm.com>
+Cc: linux-arm-kernel@lists.infradead.org
+Signed-off-by: Sudeep Holla <sudeep.holla@arm.com>
 ---
- drivers/vfio/platform/vfio_platform_common.c | 9 +++++----
- 1 file changed, 5 insertions(+), 4 deletions(-)
+ arch/arm64/kernel/acpi.c | 48 +++++++++++++++++++++++++++++++++++++++++
+ drivers/firmware/psci.c  | 56 ++++++++++++++++++++++++++++++++++++++++++++++++
+ 2 files changed, 104 insertions(+)
 
-diff --git a/drivers/vfio/platform/vfio_platform_common.c b/drivers/vfio/platform/vfio_platform_common.c
-index fbf4565..e7ce2c2 100644
---- a/drivers/vfio/platform/vfio_platform_common.c
-+++ b/drivers/vfio/platform/vfio_platform_common.c
-@@ -171,7 +171,8 @@ static void vfio_platform_regions_cleanup(struct vfio_platform_device *vdev)
- 	kfree(vdev->regions);
+diff --git a/arch/arm64/kernel/acpi.c b/arch/arm64/kernel/acpi.c index d1ce8e2f98b9..bf82ce5c8fce 100644
+--- a/arch/arm64/kernel/acpi.c
++++ b/arch/arm64/kernel/acpi.c
+@@ -18,6 +18,7 @@
+ #include <linux/acpi.h>
+ #include <linux/bootmem.h>
+ #include <linux/cpumask.h>
++#include <linux/cpu_pm.h>
+ #include <linux/init.h>
+ #include <linux/irq.h>
+ #include <linux/irqdomain.h>
+@@ -25,6 +26,9 @@
+ #include <linux/of_fdt.h>
+ #include <linux/smp.h>
+ 
++#include <acpi/processor.h>
++
++#include <asm/cpuidle.h>
+ #include <asm/cputype.h>
+ #include <asm/cpu_ops.h>
+ #include <asm/smp_plat.h>
+@@ -211,6 +215,50 @@ void __init acpi_boot_table_init(void)
+ 	}
  }
  
--static int vfio_platform_call_reset(struct vfio_platform_device *vdev)
-+static int vfio_platform_call_reset(struct vfio_platform_device *vdev,
-+				    const char **extra_dbg)
- {
- 	if (vdev->of_reset) {
- 		dev_info(vdev->device, "reset\n");
-@@ -189,7 +190,7 @@ static void vfio_platform_release(void *device_data)
- 	mutex_lock(&driver_lock);
++int acpi_processor_ffh_lpi_probe(unsigned int cpu) {
++	return arm_cpuidle_init(cpu);
++}
++
++#define ACPI_FFH_LPI_ARM_FLAGS_CORE_CONTEXT	BIT(0)
++#define ACPI_FFH_LPI_ARM_FLAGS_TRACE_CONTEXT	BIT(1)
++#define ACPI_FFH_LPI_ARM_FLAGS_GICR_CONTEXT	BIT(2)
++#define ACPI_FFH_LPI_ARM_FLAGS_GICD_CONTEXT	BIT(3)
++#define ACPI_FFH_LPI_ARM_FLAGS_ALL_CONTEXT	\
++	(ACPI_FFH_LPI_ARM_FLAGS_CORE_CONTEXT |	\
++	 ACPI_FFH_LPI_ARM_FLAGS_TRACE_CONTEXT |	\
++	 ACPI_FFH_LPI_ARM_FLAGS_GICR_CONTEXT |	\
++	 ACPI_FFH_LPI_ARM_FLAGS_GICD_CONTEXT)
++
++struct acpi_lpi_state *lpi;
++int acpi_processor_ffh_lpi_enter(struct acpi_lpi_state *lpi, int idx) {
++	int ret = 0;
++	bool save_ctx = lpi->arch_flags & ACPI_FFH_LPI_ARM_FLAGS_ALL_CONTEXT;
++
++	if (!idx) {
++		cpu_do_idle();
++		return idx;
++	}
++
++	/* TODO cpu_pm_{enter,exit} can be done in generic code ? */
++	if (save_ctx)
++		ret = cpu_pm_enter();
++	if (!ret) {
++		/*
++		 * Pass idle state index to cpu_suspend which in turn will
++		 * call the CPU ops suspend protocol with idle index as a
++		 * parameter.
++		 */
++		ret = arm_cpuidle_suspend(idx);
++
++		if (save_ctx)
++			cpu_pm_exit();
++	}
++
++	return ret ? -1 : idx;
++}
++
+ #ifdef CONFIG_ACPI_APEI
+ pgprot_t arch_apei_get_mem_attribute(phys_addr_t addr)  { diff --git a/drivers/firmware/psci.c b/drivers/firmware/psci.c index fa4ea22ca12e..e06bfee68e1d 100644
+--- a/drivers/firmware/psci.c
++++ b/drivers/firmware/psci.c
+@@ -13,6 +13,7 @@
  
- 	if (!(--vdev->refcnt)) {
--		vfio_platform_call_reset(vdev);
-+		vfio_platform_call_reset(vdev, NULL);
- 		vfio_platform_regions_cleanup(vdev);
- 		vfio_platform_irq_cleanup(vdev);
- 	}
-@@ -218,7 +219,7 @@ static int vfio_platform_open(void *device_data)
- 		if (ret)
- 			goto err_irq;
+ #define pr_fmt(fmt) "psci: " fmt
  
--		vfio_platform_call_reset(vdev);
-+		vfio_platform_call_reset(vdev, NULL);
- 	}
++#include <linux/acpi.h>
+ #include <linux/arm-smccc.h>
+ #include <linux/cpuidle.h>
+ #include <linux/errno.h>
+@@ -310,11 +311,66 @@ static int psci_dt_cpu_init_idle(struct device_node *cpu_node, int cpu)
+ 	return ret;
+ }
  
- 	vdev->refcnt++;
-@@ -350,7 +351,7 @@ static long vfio_platform_ioctl(void *device_data,
- 		return ret;
++#ifdef CONFIG_ACPI
++#include <acpi/processor.h>
++
++static int __maybe_unused psci_acpi_cpu_init_idle(unsigned int cpu) {
++	int i, count;
++	u32 *psci_states;
++	struct acpi_processor *pr;
++	struct acpi_lpi_state *lpi;
++
++	pr = per_cpu(processors, cpu);
++	if (unlikely(!pr || !pr->flags.has_lpi))
+
+Any particular reason for _not_ considering CST flag here.
+Or you are planning to add CST support in some other patch set.
+
++		return -EINVAL;
++
++	/*
++	 * If the PSCI cpu_suspend function hook has not been initialized
++	 * idle states must not be enabled, so bail out
++	 */
++	if (!psci_ops.cpu_suspend)
++		return -EOPNOTSUPP;
++
++	count = pr->power.count - 1;
++	if (!count)
++		return -ENODEV;
++
++	psci_states = kcalloc(count, sizeof(*psci_states), GFP_KERNEL);
++	if (!psci_states)
++		return -ENOMEM;
++
++	for (i = 0; i < count; i++) {
++		u32 state;
++
++		lpi = &pr->power.lpi_states[i + 1];
+
+  Same case here too.
+
++		state = lpi->address & 0xFFFFFFFF;
++		if (!psci_power_state_is_valid(state)) {
++			pr_warn("Invalid PSCI power state %#x\n", state);
++			kfree(psci_states);
++			return -EINVAL;
++		}
++		psci_states[i] = state;
++	}
++	/* Idle states parsed correctly, initialize per-cpu pointer */
++	per_cpu(psci_power_state, cpu) = psci_states;
++	return 0;
++}
++#else
++static int __maybe_unused psci_acpi_cpu_init_idle(unsigned int cpu) {
++	return -EINVAL;
++}
++#endif
++
+ int psci_cpu_init_idle(unsigned int cpu)  {
+ 	struct device_node *cpu_node;
+ 	int ret;
  
- 	} else if (cmd == VFIO_DEVICE_RESET) {
--		return vfio_platform_call_reset(vdev);
-+		return vfio_platform_call_reset(vdev, NULL);
- 	}
- 
- 	return -ENOTTY;
--- 
-1.8.2.1
++	if (!acpi_disabled)
++		return psci_acpi_cpu_init_idle(cpu);
++
+ 	cpu_node = of_get_cpu_node(cpu, NULL);
+ 	if (!cpu_node)
+ 		return -ENODEV;
+--
+1.9.1
+
