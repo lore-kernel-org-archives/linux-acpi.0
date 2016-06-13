@@ -1,261 +1,111 @@
-From: Mike Marshall <hubcap@omnibond.com>
-Subject: Re: linux-next boots then hangs...
-Date: Mon, 13 Jun 2016 06:13:25 -0400
-Message-ID: <CAOg9mSS-K0XmEVV15ZBu0c1J1ZQ9RS6hapqmDtNPM4FnAREodA@mail.gmail.com>
-References: <CAOg9mSTG08zt8PNjDZ4zKXxFUVyW9-AzjRLreHjN5ETuoqh-Rg@mail.gmail.com>
- <1574a35b-a0e5-2ec0-f19e-8ff01ae5eec0@intel.com> <CAOg9mSRYcD9+P+914WY5_iLUWb4ZwXnQ02avtM3vV5+LiWsrXQ@mail.gmail.com>
- <cface69a-ce21-3faf-bca9-267ddf05237a@intel.com> <CAOg9mSQPGpSOm0ef0rJWFObyBriSEZwDzEAJi3dNtRCjygHyuQ@mail.gmail.com>
- <CAOg9mSSwRGZqQXhwQVi0=OG8xGqdFZbrHuNLSydL0WBziA2haQ@mail.gmail.com>
- <f3c64945-ff99-5afa-057b-b3734c0e3b39@intel.com> <1AE640813FDE7649BE1B193DEA596E883BBCC59A@SHSMSX101.ccr.corp.intel.com>
+From: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+Subject: Re: [PATCH V9 09/11] ARM64/PCI: ACPI support for legacy IRQs parsing
+ and consolidation with DT code
+Date: Mon, 13 Jun 2016 11:40:05 +0100
+Message-ID: <20160613104005.GA26738@red-moon>
+References: <1465588519-11334-1-git-send-email-tn@semihalf.com>
+ <1465588519-11334-10-git-send-email-tn@semihalf.com>
+ <20160610233612.GB7671@localhost>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <kvm-owner@vger.kernel.org>
-In-Reply-To: <1AE640813FDE7649BE1B193DEA596E883BBCC59A@SHSMSX101.ccr.corp.intel.com>
-Sender: kvm-owner@vger.kernel.org
-To: "Zheng, Lv" <lv.zheng@intel.com>, Martin Brandenburg <martin@omnibond.com>
-Cc: "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>, Stephen Rothwell <sfr@canb.auug.org.au>, "kvm@vger.kernel.org" <kvm@vger.kernel.org>, Linux ACPI Mailing List <linux-acpi@vger.kernel.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20160610233612.GB7671@localhost>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Bjorn Helgaas <helgaas@kernel.org>
+Cc: Tomasz Nowicki <tn@semihalf.com>, arnd@arndb.de, will.deacon@arm.com, catalin.marinas@arm.com, rafael@kernel.org, hanjun.guo@linaro.org, okaya@codeaurora.org, jchandra@broadcom.com, robert.richter@caviumnetworks.com, mw@semihalf.com, Liviu.Dudau@arm.com, ddaney@caviumnetworks.com, wangyijing@huawei.com, Suravee.Suthikulpanit@amd.com, msalter@redhat.com, linux-pci@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linaro-acpi@lists.linaro.org, jcm@redhat.com, andrea.gallo@linaro.org, dhdang@apm.com, jeremy.linton@arm.com, liudongdong3@huawei.com, cov@codeaurora.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hi Lv...
+On Fri, Jun 10, 2016 at 06:36:12PM -0500, Bjorn Helgaas wrote:
+> On Fri, Jun 10, 2016 at 09:55:17PM +0200, Tomasz Nowicki wrote:
+> > To enable PCI legacy IRQs on platforms booting with ACPI, arch code
+> > should include ACPI specific callbacks that parse and set-up the
+> > device IRQ number, equivalent to the DT boot path. Owing to the current
+> > ACPI core scan handlers implementation, ACPI PCI legacy IRQs bindings
+> > cannot be parsed at device add time, since that would trigger ACPI scan
+> > handlers ordering issues depending on how the ACPI tables are defined.
+> 
+> Uh, OK :)  I can't figure out exactly what the problem is here -- I
+> don't know where to look if I wanted to fix the scan handler ordering
+> issues, and I don't know how I could tell if it would ever be safe to
+> move this from driver probe-time back to device add-time.
 
-I looked at the bugzilla link you sent, I'm glad to help,
-but don't know what I should add there...
+Right, the commit log could have been more informative.
 
-I am "on the road", my co-worker Martin Brandenburg is
-in the office helping with this this week, please keep
-him in the loop too, he knows what is going on and
-has access to the computer where this problem
-shows itself...
+pcibios_add_device() was added in:
 
--Mike
+commit d1e6dc91b532 ("arm64: Add architectural support for PCI")
 
-On Sat, Jun 11, 2016 at 9:40 PM, Zheng, Lv <lv.zheng@intel.com> wrote:
-> Hi, Mike
->
-> I just filed a kernel Bugzilla bug tracking this issue:
-> https://bugzilla.kernel.org/show_bug.cgi?id=120041
-> Could you sign into the kernel Bugzilla and help us there?
->
-> Thanks and best regards
-> -Lv
->
->> From: Zheng, Lv
->> Subject: RE: linux-next boots then hangs...
->>
->> Hi,
->>
->> If this series matters, probably the only one should get bisected is:
->> https://patchwork.kernel.org/patch/9087971/
->> Have you tried:
->> If this series applied without the above commit, boots hangs can still occur?
->>
->> Thanks and best regards
->> -Lv
->>
->> > From: Wysocki, Rafael J
->> > Subject: Re: linux-next boots then hangs...
->> >
->> > Let's involve the author of the commits in question (and CC linux-acpi
->> too).
->> >
->> > On 6/8/2016 6:18 PM, Mike Marshall wrote:
->> > > Hello everyone...
->> > >
->> > > The problem is gone today, and it looks like Rafael
->> > > dropped the ACPICA changes from linux-next.
->> >
->> > Indeed, I did that.
->> >
->> > Now, it would be good if you could help to identify which of them
->> > exactly introduced the problem.
->> >
->> > Those patches are available in the kernel.org Patchwork as:
->> >
->> > https://patchwork.kernel.org/patch/9087951/
->> > https://patchwork.kernel.org/patch/9088001/
->> > https://patchwork.kernel.org/patch/9088021/
->> > https://patchwork.kernel.org/patch/9087971/
->> >
->> > plus one fix on top of them:
->> >
->> > https://patchwork.kernel.org/patch/9157765/
->> >
->> > The ordering of the links above should reflect the correct order of the
->> > patches (or you can verify that by looking at their subjects).
->> >
->> > Can you please try to apply them one by one (they should apply on top
->> of
->> > the current mainline) and see which one breaks things for you?
->> >
->> > Thanks,
->> > Rafael
->> >
->> >
->> > > Now linux-next has an Oops at leaf_walk_rcu and
->> > > is not usable <g>... I think I see people on LKML
->> > > talking about it.
->> > >
->> > > Thanks...
->> > >
->> > > -Mike
->> > >
->> > > On Tue, Jun 7, 2016 at 2:58 PM, Mike Marshall
->> > <hubcap@omnibond.com> wrote:
->> > >> Well, I started the bisect again, using Paolo's suggestion.
->> > >>
->> > >> It lead me in a circle back to 407aa3f.
->> > >>
->> > >> It could be that I'm not competent to perform this bisect, barring
->> > >> that - it could be that the "bad" code only emerged as the result
->> > >> of 407aa3f, which, according to the commit message, was a merge of
->> > >> 41 commits...
->> > >>
->> > >> As to my bisect competency, sometimes (usually) the next bisect
->> point
->> > >> would be a place where 7f9bef9 wouldn't apply. I would only find out
->> > >> that 7f9bef9 wouldn't apply by running the cherry pick, so each time
->> > >> I'd have to clean up the failed cherry pick before I could continue,
->> > >> which I did like this:
->> > >>
->> > >> git cherry-pick -n 7f9bef9                    <-- fail
->> > >>
->> > >> git reset HEAD drivers/acpi/acpica/hwregs.c   <-- to unstage
->> > >>
->> > >> git checkout -- drivers/acpi/acpica/hwregs.c  <-- discard cherry pick
->> > wreckage
->> > >>
->> > >> Anyhow, I hope I'm being helpful, and not obstructionist, by trying
->> > >> to follow up on this. Good luck Rafael, I'll definitely try
->> > >> linux-next tomorrow.
->> > >>
->> > >> # git bisect log
->> > >> git bisect start
->> > >> # bad: [407aa3ff6f54ea2be7959639d664ae5183e2e9f8] Merge
->> branch
->> > 'acpica'
->> > >> git bisect bad 407aa3ff6f54ea2be7959639d664ae5183e2e9f8
->> > >> # good: [7f9bef9debafcb767d00efb177d0f2edd4940eab] ACPICA /
->> > Hardware:
->> > >> Fix old register check in acpi_hw_get_access_bit_width()
->> > >> git bisect good 7f9bef9debafcb767d00efb177d0f2edd4940eab
->> > >> # good: [d1ce3bb95511dacf8b9eea899c421f1b18a3ef6a] Merge back
->> > new
->> > >> ACPICA material for v4.7.
->> > >> git bisect good d1ce3bb95511dacf8b9eea899c421f1b18a3ef6a
->> > >> # good: [d1ce3bb95511dacf8b9eea899c421f1b18a3ef6a] Merge back
->> > new
->> > >> ACPICA material for v4.7.
->> > >> git bisect good d1ce3bb95511dacf8b9eea899c421f1b18a3ef6a
->> > >> # good: [21a9703de3045cda0b3aaa5bc193d2e1062908d2] Merge
->> > branch
->> > >> 'for-linus' of git://git.kernel.org/pub/scm/linux/kernel/git/dtor/input
->> > >> git bisect good 21a9703de3045cda0b3aaa5bc193d2e1062908d2
->> > >> # good: [dd287690b0aa4b0d22e8dd7dd2cb3055f5141a27] Merge
->> tag
->> > >> 'arc-4.6-rc7-fixes' of
->> > >> git://git.kernel.org/pub/scm/linux/kernel/git/vgupta/arc
->> > >> git bisect good dd287690b0aa4b0d22e8dd7dd2cb3055f5141a27
->> > >> # good: [35cd3f4563c4a0fc99be300afc7b82a822e634c7] Merge
->> > branch
->> > >> 'for-4.6-fixes' of
->> > >> git://git.kernel.org/pub/scm/linux/kernel/git/tj/libata
->> > >> git bisect good 35cd3f4563c4a0fc99be300afc7b82a822e634c7
->> > >> # good: [3f8f0cf2eddb558e5ccf9b155e758f4b950d8697] Merge tag
->> > >> 'usb-4.6-rc7' of
->> > >> git://git.kernel.org/pub/scm/linux/kernel/git/gregkh/usb
->> > >> git bisect good 3f8f0cf2eddb558e5ccf9b155e758f4b950d8697
->> > >> # good: [2b86c4a84377b74a6ec0ec9463feb0803bcb1066] Merge tag
->> > >> 'iio-fixes-for-4.6d' of
->> > >> git://git.kernel.org/pub/scm/linux/kernel/git/jic23/iio into
->> > >> staging-linus
->> > >> git bisect good 2b86c4a84377b74a6ec0ec9463feb0803bcb1066
->> > >> # good: [d1306eb675ad7a9a760b6b8e8e189824b8db89e7] nvmem:
->> > mxs-ocotp:
->> > >> fix buffer overflow in read
->> > >> git bisect good d1306eb675ad7a9a760b6b8e8e189824b8db89e7
->> > >> # good: [32cf95db22d49cf4a3b421ba9fd156bb5f920ebb] Merge tag
->> > >> 'char-misc-4.6-rc7' of
->> > >> git://git.kernel.org/pub/scm/linux/kernel/git/gregkh/char-misc
->> > >> git bisect good 32cf95db22d49cf4a3b421ba9fd156bb5f920ebb
->> > >> # good: [44549e8f5eea4e0a41b487b63e616cb089922b99] Linux 4.6-
->> > rc7
->> > >> git bisect good 44549e8f5eea4e0a41b487b63e616cb089922b99
->> > >> # first bad commit: [407aa3ff6f54ea2be7959639d664ae5183e2e9f8]
->> > Merge
->> > >> branch 'acpica'
->> > >>
->> > >> On Tue, Jun 7, 2016 at 11:14 AM, Rafael J. Wysocki
->> > >> <rafael.j.wysocki@intel.com> wrote:
->> > >>> On 6/7/2016 5:08 PM, Mike Marshall wrote:
->> > >>>> I'm one of the original reporters and testers of that problem/fix...
->> > >>>> my current problem started after that... I've tested
->> > >>>> next-20160607 and 4.7.0-rc2-00004-g3613a62 (Linus' tree
->> > >>>> of the moment) so far today... Linus' tree is still OK (because
->> > >>>> it has 7f9bef9) and linux-next is still busted (for me).
->> > >>>>
->> > >>>> I'll keep on bisecting using the suggestions that Paolo sent...
->> > >>>
->> > >>> I see.
->> > >>>
->> > >>> I think I'll need to drop the latest ACPICA changes from linux-next
->> then.
->> > >>>
->> > >>> Let me try to do that and please test linux-next again tomorrow.
->> > >>>
->> > >>> Thanks,
->> > >>> Rafael
->> > >>>
->> > >>>
->> > >>>
->> > >>>> On Tue, Jun 7, 2016 at 10:55 AM, Rafael J. Wysocki
->> > >>>> <rafael.j.wysocki@intel.com> wrote:
->> > >>>>> On 6/6/2016 10:56 PM, Mike Marshall wrote:
->> > >>>>>> Greetings...
->> > >>>>>>
->> > >>>>>> Please keep my email in the loop on this, I'm only subscribed
->> > >>>>>> to fs-devel...
->> > >>>>>>
->> > >>>>>> Linux-next fails to boot properly for me, but Linux 4.7-rc2 from
->> > >>>>>> Linus' tree boots fine.
->> > >>>>>>
->> > >>>>>> I got started bisecting next-20160603 last Friday, but didn't get
->> > done.
->> > >>>>>>
->> > >>>>>> git bisect start '64289ca' '7f9bef9'
->> > >>>>>>
->> > >>>>>> I picked 7f9bef9 as the good commit to start with because I
->> knew
->> > >>>>>> I needed 7f9bef9 or else my QEMU-KVM would crash. Before I
->> > started
->> > >>>>>> the bisection, I verified that 7f9bef9 was indeed good by
->> checking
->> > >>>>>> out a branch from next-20160603 with 7f9bef9 as the HEAD and
->> > >>>>>> building it: git checkout -b gas 7f9bef9
->> > >>>>>>
->> > >>>>>> Today I got next-20160606 and checked to see if the same
->> failure
->> > >>>>>> occurred - it did. So I continued with the bisection of next-
->> > 20160603.
->> > >>>>>>
->> > >>>>>> I arrived at 407aa3ff6f54ea2be7959639d664ae5183e2e9f8 as
->> the
->> > bad commit.
->> > >>>>>>
->> > >>>>>>
->> > >>>>>> 407aa3f is a rather complex commit... there is a problem with it,
->> > >>>>>> but I'm not sure what to do next... both 7f9bef9 and 407aa3f are
->> > >>>>>> related to ACPICA...
->> > >>>>>
->> > >>>>> It looks like this commit
->> > >>>>>
->> > >>>>>
->> > >>>>> https://git.kernel.org/cgit/linux/kernel/git/rafael/linux-
->> > pm.git/commit/?h=acpica-
->> > fixes&id=7f9bef9debafcb767d00efb177d0f2edd4940eab
->> > >>>>>
->> > >>>>> should fix the problem for you.
->> > >>>>>
->> > >>>>> Thanks,
->> > >>>>> Rafael
->> > >>>>>
->
+whose commit log does not specify why legacy IRQ parsing should
+be done at pcibios_add_device() either, so honestly we had to
+do with the information we have at hand.
+
+> I also notice that x86 and ia64 call acpi_pci_irq_enable() even later,
+> when the driver *enables* the device.  Is there a reason you didn't do
+> it at the same time as x86 and ia64?  This is another of those pcibios
+> hooks that really don't do anything arch-specific, so I can imagine
+> refactoring this somehow, someday.
+
+Yes, with [1], that was the goal, that stopped because [1] does not
+work on x86.
+
+Only DT platform(s) affected by this change are all platforms relying on
+drivers/pci/host/pci-xgene.c (others rely on pci_fixup_irqs() that
+should be removed too), if on those platforms probing IRQs at device
+enable time works ok I can update this patch (it can be done through [1]
+once we figure out what to do with it on x86) and move the IRQ set-up at
+pcibios_enable_device() time.
+
+@Duc: any feedback on this ?
+
+Thanks,
+Lorenzo
+
+[1] http://www.spinics.net/lists/linux-pci/msg45950.html
+
+> Did we have this conversation before?  It seems vaguely familiar, so I
+> apologize if you already explained this once.
+> 
+> > To solve this problem and consolidate FW PCI legacy IRQs parsing in
+> > one single pcibios callback (pending final removal), this patch moves
+> > DT PCI IRQ parsing to the pcibios_alloc_irq() callback (called by
+> > PCI core code at device probe time) and adds ACPI PCI legacy IRQs
+> > parsing to the same callback too, so that FW PCI legacy IRQs parsing
+> > is confined in one single arch callback that can be easily removed
+> > when code parsing PCI legacy IRQs is consolidated and moved to core
+> > PCI code.
+> > 
+> > Signed-off-by: Tomasz Nowicki <tn@semihalf.com>
+> > Suggested-by: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+> > ---
+> >  arch/arm64/kernel/pci.c | 11 ++++++++---
+> >  1 file changed, 8 insertions(+), 3 deletions(-)
+> > 
+> > diff --git a/arch/arm64/kernel/pci.c b/arch/arm64/kernel/pci.c
+> > index d5d3d26..b3b8a2c 100644
+> > --- a/arch/arm64/kernel/pci.c
+> > +++ b/arch/arm64/kernel/pci.c
+> > @@ -51,11 +51,16 @@ int pcibios_enable_device(struct pci_dev *dev, int mask)
+> >  }
+> >  
+> >  /*
+> > - * Try to assign the IRQ number from DT when adding a new device
+> > + * Try to assign the IRQ number when probing a new device
+> >   */
+> > -int pcibios_add_device(struct pci_dev *dev)
+> > +int pcibios_alloc_irq(struct pci_dev *dev)
+> >  {
+> > -	dev->irq = of_irq_parse_and_map_pci(dev, 0, 0);
+> > +	if (acpi_disabled)
+> > +		dev->irq = of_irq_parse_and_map_pci(dev, 0, 0);
+> > +#ifdef CONFIG_ACPI
+> > +	else
+> > +		return acpi_pci_irq_enable(dev);
+> > +#endif
+> >  
+> >  	return 0;
+> >  }
+> > -- 
+> > 1.9.1
+> > 
+> 
