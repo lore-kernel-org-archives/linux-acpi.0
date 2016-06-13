@@ -1,154 +1,261 @@
-From: Andrey Skvortsov <andrej.skvortzov@gmail.com>
-Subject: Re: acpi: broken suspend to RAM with v4.7-rc1
-Date: Mon, 13 Jun 2016 13:07:07 +0300
-Message-ID: <20160613100707.GA2365@nest>
-References: <20160610203210.GA2262@nest>
- <3027571.8eTQaleASL@vostro.rjw.lan>
- <20160611104922.GA2368@nest>
- <2544058.dYPSaC0ylY@vostro.rjw.lan>
- <744357E9AAD1214791ACBA4B0B9092633AA54819@SHSMSX101.ccr.corp.intel.com>
- <1AE640813FDE7649BE1B193DEA596E883BBCF836@SHSMSX101.ccr.corp.intel.com>
+From: Mike Marshall <hubcap@omnibond.com>
+Subject: Re: linux-next boots then hangs...
+Date: Mon, 13 Jun 2016 06:13:25 -0400
+Message-ID: <CAOg9mSS-K0XmEVV15ZBu0c1J1ZQ9RS6hapqmDtNPM4FnAREodA@mail.gmail.com>
+References: <CAOg9mSTG08zt8PNjDZ4zKXxFUVyW9-AzjRLreHjN5ETuoqh-Rg@mail.gmail.com>
+ <1574a35b-a0e5-2ec0-f19e-8ff01ae5eec0@intel.com> <CAOg9mSRYcD9+P+914WY5_iLUWb4ZwXnQ02avtM3vV5+LiWsrXQ@mail.gmail.com>
+ <cface69a-ce21-3faf-bca9-267ddf05237a@intel.com> <CAOg9mSQPGpSOm0ef0rJWFObyBriSEZwDzEAJi3dNtRCjygHyuQ@mail.gmail.com>
+ <CAOg9mSSwRGZqQXhwQVi0=OG8xGqdFZbrHuNLSydL0WBziA2haQ@mail.gmail.com>
+ <f3c64945-ff99-5afa-057b-b3734c0e3b39@intel.com> <1AE640813FDE7649BE1B193DEA596E883BBCC59A@SHSMSX101.ccr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha512;
-	protocol="application/pgp-signature"; boundary="HcAYCG3uE/tztfnV"
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-lf0-f42.google.com ([209.85.215.42]:36139 "EHLO
-	mail-lf0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S964862AbcFMKHM (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 13 Jun 2016 06:07:12 -0400
-Content-Disposition: inline
-In-Reply-To: <1AE640813FDE7649BE1B193DEA596E883BBCF836@SHSMSX101.ccr.corp.intel.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
+Return-path: <kvm-owner@vger.kernel.org>
+In-Reply-To: <1AE640813FDE7649BE1B193DEA596E883BBCC59A@SHSMSX101.ccr.corp.intel.com>
+Sender: kvm-owner@vger.kernel.org
+To: "Zheng, Lv" <lv.zheng@intel.com>, Martin Brandenburg <martin@omnibond.com>
+Cc: "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>, Stephen Rothwell <sfr@canb.auug.org.au>, "kvm@vger.kernel.org" <kvm@vger.kernel.org>, Linux ACPI Mailing List <linux-acpi@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
-To: "Zheng, Lv" <lv.zheng@intel.com>
-Cc: "Moore, Robert" <robert.moore@intel.com>, "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "devel@acpica.org" <devel@acpica.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
 
+Hi Lv...
 
---HcAYCG3uE/tztfnV
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+I looked at the bugzilla link you sent, I'm glad to help,
+but don't know what I should add there...
 
-Hi Lv,
+I am "on the road", my co-worker Martin Brandenburg is
+in the office helping with this this week, please keep
+him in the loop too, he knows what is going on and
+has access to the computer where this problem
+shows itself...
 
-On 13 Jun, Zheng, Lv wrote:
-> > From: linux-acpi-owner@vger.kernel.org [mailto:linux-acpi-
-> > owner@vger.kernel.org] On Behalf Of Rafael J. Wysocki
-> > Subject: Re: acpi: broken suspend to RAM with v4.7-rc1
-> >=20
-> > On Saturday, June 11, 2016 01:49:22 PM Andrey Skvortsov wrote:
-> > > On 10 Jun, Rafael J. Wysocki wrote:
-> > > > On Friday, June 10, 2016 11:32:10 PM Andrey Skvortsov wrote:
-> > > > > Hi,
-> > > > >
-> > > > > On my laptop (DELL Vostro 1500) in v4.7-rc1 is broken suspend to =
-RAM.
-> > > > > Laptop doesn't finish suspend to RAM process (disks are off, but
-> > > > > WiFi and Power LEDs are still on). The only way to get it out of
-> > > > > this state, is to turn the power off.
-> > > > >
-> > > > > I've bisected the issue to commit 66b1ed5aa8dd25
-> > > > > [ACPICA: ACPI 2.0, Hardware: Add access_width/bit_offset support
-> > > > > for acpi_hw_write()].
-> > > > >
-> > > > > If I revert this commit in v4.7-rc1 (or v4.7-rc2), suspend to RAM
-> > > > > is working again.
-> > > > >
-> > > > > The cause of this problem is that after this commit write to PM1A
-> > > > > Control Block (16-bit register) is done using two 8-bit writes.
-> > > > > If I force this write to be 16-bit, then all is working as before.
-> > > > >
-> > > > > To get it working 'access_width' for PM1A Control Block needs to
-> > > > > be 2 (16-bit), but it's 1 (8-bit).
-> [Lv Zheng]=20
-> Could you send me the acpidump of the machine?
-Here it is
-https://dl.dropboxusercontent.com/u/24023626/dell_vostro_1500.acpidump.bin
+-Mike
 
-> > > > >
-> > > > > The root of the problem seems to be not the commit
-> > 66b1ed5aa8dd25
-> > > > > itself, but the ACPI tables in BIOS where wrong access_width
-> > > > > comes from. I fixed problem in FACP  table, put it in initrd to
-> > > > > override FACP table from BIOS. This fixed the issue, suspend to
-> > > > > RAM is working now again.
-> > > > >
-> > > > > But I'm not sure whether is this proper fix for this problem.
-> > > > > Is there any place in the kernel, where such ACPI quirks are plac=
-ed?
-> [Lv Zheng]=20
-> My question would be:
-> Does Windows behave correctly for this table?
-Yes, suspend to RAM is working under Windows Vista.
-IIRC it worked under Windows XP too.
-
-> However there is a real case showing that there are real tables need us t=
-o correctly support BitWidth/BitOffset.
-> Here is the information for you to refer:
-> http://permalink.gmane.org/gmane.linux.kernel.commits.head/313870
->=20
-> > > >
-> > > > Well, if the commit in question caused a problem to happen for you,
-> > > > it also might cause similar problems to happen elsewhere.
-> > > >
-> > > > It looks like we'll need to revert that commit.
-> > > Hi,
-> > >
-> > > or maybe to reset access_width AnyAcc from FACP table only for PM1A
-> > > control register or even for all registers? This will fix the issue t=
-oo.
-> >=20
-> > That's a good idea actually.
-> >=20
-> > > diff --git a/drivers/acpi/acpica/tbfadt.c
-> > > b/drivers/acpi/acpica/tbfadt.c index 6208069..a476e94 100644
-> > > --- a/drivers/acpi/acpica/tbfadt.c
-> > > +++ b/drivers/acpi/acpica/tbfadt.c
-> > > @@ -714,7 +714,14 @@ static void acpi_tb_setup_fadt_registers(void)
-> > >                         }
-> > >                 }
-> > >         }
-> > >
-> > > +       /*
-> > > +        * Reset access_width in the GAS for PM1A control register to
-> > > +        * undefined value. Because in some cases this field contains
-> > > +        * wrong value.
-> > > +        */
-> > > +       acpi_gbl_FADT.xpm1a_control_block.access_width =3D 0;
-> >=20
-> > OK, let's see what Bob and Lv think about that.
-> [Lv Zheng]=20
-> There is a commit in 4.7-rc2:
-> https://git.kernel.org/cgit/linux/kernel/git/torvalds/linux.git/commit/?i=
-d=3D7f9bef9d
-> Have you tried if the problem still exists in 4.7-rc2?
-I've just tried v4.7-rc3. It contains commit 7f9bef9d and the problem
-exists there too.
-
---=20
-Best regards,
-Andrey Skvortsov
-
-
-
---HcAYCG3uE/tztfnV
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-
-iQIcBAEBCgAGBQJXXoXLAAoJEAF8y6L1SLCtl0QQANCMPsvVqS5z2uRaj/Hww+Ig
-DDg4HT70WEJB6ORdR8MzaNS6iiUWOYXgsj7DcN0/b3SwCXwKs7WSfJHzHYhu2CUY
-lmUHYHM59W7o53PvPJUZfjUi/Rflm7HjCa50YiaiUJ9mc7rbkkaxVwax4RKkULqw
-PwJM/doRkl2PgSB/pfMjA1lsikXzXCtfCgsOwDIV3cZv9OFDTq0yVRayEzvDeB+w
-gTBhl04zAvGWxc6XWgLRLvsvb9pKrrKxWk0omHnqxokcaUTx9XAYcz+TzgcK1Oz0
-nNcdZIZTdRHUv0y8n9RApLVdWkGhzVYGYhcJfNVnM7vmlZentCLAssay5HPByEdm
-EVxJ7jvvDWYNtbJICzfxOxE4Eh8R08kzPOa+lrAz7gP9bt1MQnvq+TmFQbDcYHy/
-lrlD8GxE6ekzHP77MJDXBqdFbhnegkMZZZUOljS3CpO23AdWvebqbMDE9yyf2B79
-taJaXbD8Y3y1S2Pg3IkOXOAjKlfjz2k1kpriQT1lE8Y2J2NMns9AshF0Sl158EWZ
-p0eshDEDlcw0AV50gIoTXvNLuAfF/rzqbiYtnfitunn6q1yvxbLIPUIRHcurNiZh
-7Upyugum5ozopYQ4L+5QOksicb5zVbl0hipbDwGIyUDYXiovX7O4sWuYh+I8d5hm
-yN46kZx8kEqFEUL1MLIz
-=EJ2b
------END PGP SIGNATURE-----
-
---HcAYCG3uE/tztfnV--
+On Sat, Jun 11, 2016 at 9:40 PM, Zheng, Lv <lv.zheng@intel.com> wrote:
+> Hi, Mike
+>
+> I just filed a kernel Bugzilla bug tracking this issue:
+> https://bugzilla.kernel.org/show_bug.cgi?id=120041
+> Could you sign into the kernel Bugzilla and help us there?
+>
+> Thanks and best regards
+> -Lv
+>
+>> From: Zheng, Lv
+>> Subject: RE: linux-next boots then hangs...
+>>
+>> Hi,
+>>
+>> If this series matters, probably the only one should get bisected is:
+>> https://patchwork.kernel.org/patch/9087971/
+>> Have you tried:
+>> If this series applied without the above commit, boots hangs can still occur?
+>>
+>> Thanks and best regards
+>> -Lv
+>>
+>> > From: Wysocki, Rafael J
+>> > Subject: Re: linux-next boots then hangs...
+>> >
+>> > Let's involve the author of the commits in question (and CC linux-acpi
+>> too).
+>> >
+>> > On 6/8/2016 6:18 PM, Mike Marshall wrote:
+>> > > Hello everyone...
+>> > >
+>> > > The problem is gone today, and it looks like Rafael
+>> > > dropped the ACPICA changes from linux-next.
+>> >
+>> > Indeed, I did that.
+>> >
+>> > Now, it would be good if you could help to identify which of them
+>> > exactly introduced the problem.
+>> >
+>> > Those patches are available in the kernel.org Patchwork as:
+>> >
+>> > https://patchwork.kernel.org/patch/9087951/
+>> > https://patchwork.kernel.org/patch/9088001/
+>> > https://patchwork.kernel.org/patch/9088021/
+>> > https://patchwork.kernel.org/patch/9087971/
+>> >
+>> > plus one fix on top of them:
+>> >
+>> > https://patchwork.kernel.org/patch/9157765/
+>> >
+>> > The ordering of the links above should reflect the correct order of the
+>> > patches (or you can verify that by looking at their subjects).
+>> >
+>> > Can you please try to apply them one by one (they should apply on top
+>> of
+>> > the current mainline) and see which one breaks things for you?
+>> >
+>> > Thanks,
+>> > Rafael
+>> >
+>> >
+>> > > Now linux-next has an Oops at leaf_walk_rcu and
+>> > > is not usable <g>... I think I see people on LKML
+>> > > talking about it.
+>> > >
+>> > > Thanks...
+>> > >
+>> > > -Mike
+>> > >
+>> > > On Tue, Jun 7, 2016 at 2:58 PM, Mike Marshall
+>> > <hubcap@omnibond.com> wrote:
+>> > >> Well, I started the bisect again, using Paolo's suggestion.
+>> > >>
+>> > >> It lead me in a circle back to 407aa3f.
+>> > >>
+>> > >> It could be that I'm not competent to perform this bisect, barring
+>> > >> that - it could be that the "bad" code only emerged as the result
+>> > >> of 407aa3f, which, according to the commit message, was a merge of
+>> > >> 41 commits...
+>> > >>
+>> > >> As to my bisect competency, sometimes (usually) the next bisect
+>> point
+>> > >> would be a place where 7f9bef9 wouldn't apply. I would only find out
+>> > >> that 7f9bef9 wouldn't apply by running the cherry pick, so each time
+>> > >> I'd have to clean up the failed cherry pick before I could continue,
+>> > >> which I did like this:
+>> > >>
+>> > >> git cherry-pick -n 7f9bef9                    <-- fail
+>> > >>
+>> > >> git reset HEAD drivers/acpi/acpica/hwregs.c   <-- to unstage
+>> > >>
+>> > >> git checkout -- drivers/acpi/acpica/hwregs.c  <-- discard cherry pick
+>> > wreckage
+>> > >>
+>> > >> Anyhow, I hope I'm being helpful, and not obstructionist, by trying
+>> > >> to follow up on this. Good luck Rafael, I'll definitely try
+>> > >> linux-next tomorrow.
+>> > >>
+>> > >> # git bisect log
+>> > >> git bisect start
+>> > >> # bad: [407aa3ff6f54ea2be7959639d664ae5183e2e9f8] Merge
+>> branch
+>> > 'acpica'
+>> > >> git bisect bad 407aa3ff6f54ea2be7959639d664ae5183e2e9f8
+>> > >> # good: [7f9bef9debafcb767d00efb177d0f2edd4940eab] ACPICA /
+>> > Hardware:
+>> > >> Fix old register check in acpi_hw_get_access_bit_width()
+>> > >> git bisect good 7f9bef9debafcb767d00efb177d0f2edd4940eab
+>> > >> # good: [d1ce3bb95511dacf8b9eea899c421f1b18a3ef6a] Merge back
+>> > new
+>> > >> ACPICA material for v4.7.
+>> > >> git bisect good d1ce3bb95511dacf8b9eea899c421f1b18a3ef6a
+>> > >> # good: [d1ce3bb95511dacf8b9eea899c421f1b18a3ef6a] Merge back
+>> > new
+>> > >> ACPICA material for v4.7.
+>> > >> git bisect good d1ce3bb95511dacf8b9eea899c421f1b18a3ef6a
+>> > >> # good: [21a9703de3045cda0b3aaa5bc193d2e1062908d2] Merge
+>> > branch
+>> > >> 'for-linus' of git://git.kernel.org/pub/scm/linux/kernel/git/dtor/input
+>> > >> git bisect good 21a9703de3045cda0b3aaa5bc193d2e1062908d2
+>> > >> # good: [dd287690b0aa4b0d22e8dd7dd2cb3055f5141a27] Merge
+>> tag
+>> > >> 'arc-4.6-rc7-fixes' of
+>> > >> git://git.kernel.org/pub/scm/linux/kernel/git/vgupta/arc
+>> > >> git bisect good dd287690b0aa4b0d22e8dd7dd2cb3055f5141a27
+>> > >> # good: [35cd3f4563c4a0fc99be300afc7b82a822e634c7] Merge
+>> > branch
+>> > >> 'for-4.6-fixes' of
+>> > >> git://git.kernel.org/pub/scm/linux/kernel/git/tj/libata
+>> > >> git bisect good 35cd3f4563c4a0fc99be300afc7b82a822e634c7
+>> > >> # good: [3f8f0cf2eddb558e5ccf9b155e758f4b950d8697] Merge tag
+>> > >> 'usb-4.6-rc7' of
+>> > >> git://git.kernel.org/pub/scm/linux/kernel/git/gregkh/usb
+>> > >> git bisect good 3f8f0cf2eddb558e5ccf9b155e758f4b950d8697
+>> > >> # good: [2b86c4a84377b74a6ec0ec9463feb0803bcb1066] Merge tag
+>> > >> 'iio-fixes-for-4.6d' of
+>> > >> git://git.kernel.org/pub/scm/linux/kernel/git/jic23/iio into
+>> > >> staging-linus
+>> > >> git bisect good 2b86c4a84377b74a6ec0ec9463feb0803bcb1066
+>> > >> # good: [d1306eb675ad7a9a760b6b8e8e189824b8db89e7] nvmem:
+>> > mxs-ocotp:
+>> > >> fix buffer overflow in read
+>> > >> git bisect good d1306eb675ad7a9a760b6b8e8e189824b8db89e7
+>> > >> # good: [32cf95db22d49cf4a3b421ba9fd156bb5f920ebb] Merge tag
+>> > >> 'char-misc-4.6-rc7' of
+>> > >> git://git.kernel.org/pub/scm/linux/kernel/git/gregkh/char-misc
+>> > >> git bisect good 32cf95db22d49cf4a3b421ba9fd156bb5f920ebb
+>> > >> # good: [44549e8f5eea4e0a41b487b63e616cb089922b99] Linux 4.6-
+>> > rc7
+>> > >> git bisect good 44549e8f5eea4e0a41b487b63e616cb089922b99
+>> > >> # first bad commit: [407aa3ff6f54ea2be7959639d664ae5183e2e9f8]
+>> > Merge
+>> > >> branch 'acpica'
+>> > >>
+>> > >> On Tue, Jun 7, 2016 at 11:14 AM, Rafael J. Wysocki
+>> > >> <rafael.j.wysocki@intel.com> wrote:
+>> > >>> On 6/7/2016 5:08 PM, Mike Marshall wrote:
+>> > >>>> I'm one of the original reporters and testers of that problem/fix...
+>> > >>>> my current problem started after that... I've tested
+>> > >>>> next-20160607 and 4.7.0-rc2-00004-g3613a62 (Linus' tree
+>> > >>>> of the moment) so far today... Linus' tree is still OK (because
+>> > >>>> it has 7f9bef9) and linux-next is still busted (for me).
+>> > >>>>
+>> > >>>> I'll keep on bisecting using the suggestions that Paolo sent...
+>> > >>>
+>> > >>> I see.
+>> > >>>
+>> > >>> I think I'll need to drop the latest ACPICA changes from linux-next
+>> then.
+>> > >>>
+>> > >>> Let me try to do that and please test linux-next again tomorrow.
+>> > >>>
+>> > >>> Thanks,
+>> > >>> Rafael
+>> > >>>
+>> > >>>
+>> > >>>
+>> > >>>> On Tue, Jun 7, 2016 at 10:55 AM, Rafael J. Wysocki
+>> > >>>> <rafael.j.wysocki@intel.com> wrote:
+>> > >>>>> On 6/6/2016 10:56 PM, Mike Marshall wrote:
+>> > >>>>>> Greetings...
+>> > >>>>>>
+>> > >>>>>> Please keep my email in the loop on this, I'm only subscribed
+>> > >>>>>> to fs-devel...
+>> > >>>>>>
+>> > >>>>>> Linux-next fails to boot properly for me, but Linux 4.7-rc2 from
+>> > >>>>>> Linus' tree boots fine.
+>> > >>>>>>
+>> > >>>>>> I got started bisecting next-20160603 last Friday, but didn't get
+>> > done.
+>> > >>>>>>
+>> > >>>>>> git bisect start '64289ca' '7f9bef9'
+>> > >>>>>>
+>> > >>>>>> I picked 7f9bef9 as the good commit to start with because I
+>> knew
+>> > >>>>>> I needed 7f9bef9 or else my QEMU-KVM would crash. Before I
+>> > started
+>> > >>>>>> the bisection, I verified that 7f9bef9 was indeed good by
+>> checking
+>> > >>>>>> out a branch from next-20160603 with 7f9bef9 as the HEAD and
+>> > >>>>>> building it: git checkout -b gas 7f9bef9
+>> > >>>>>>
+>> > >>>>>> Today I got next-20160606 and checked to see if the same
+>> failure
+>> > >>>>>> occurred - it did. So I continued with the bisection of next-
+>> > 20160603.
+>> > >>>>>>
+>> > >>>>>> I arrived at 407aa3ff6f54ea2be7959639d664ae5183e2e9f8 as
+>> the
+>> > bad commit.
+>> > >>>>>>
+>> > >>>>>>
+>> > >>>>>> 407aa3f is a rather complex commit... there is a problem with it,
+>> > >>>>>> but I'm not sure what to do next... both 7f9bef9 and 407aa3f are
+>> > >>>>>> related to ACPICA...
+>> > >>>>>
+>> > >>>>> It looks like this commit
+>> > >>>>>
+>> > >>>>>
+>> > >>>>> https://git.kernel.org/cgit/linux/kernel/git/rafael/linux-
+>> > pm.git/commit/?h=acpica-
+>> > fixes&id=7f9bef9debafcb767d00efb177d0f2edd4940eab
+>> > >>>>>
+>> > >>>>> should fix the problem for you.
+>> > >>>>>
+>> > >>>>> Thanks,
+>> > >>>>> Rafael
+>> > >>>>>
+>
