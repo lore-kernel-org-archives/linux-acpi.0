@@ -1,76 +1,84 @@
-From: Mark Brown <broonie@kernel.org>
-Subject: Re: [RESEND PATCH v2 1/2] device property: Add
- function to search for named child of device
-Date: Mon, 13 Jun 2016 09:47:24 +0100
-Message-ID: <20160613084724.GB2282@sirena.org.uk>
-References: <cover.1464802265.git.Adam.Thomson.Opensource@diasemi.com>
- <7105258db927c65dfa41a8abeef4b9735871d023.1464802265.git.Adam.Thomson.Opensource@diasemi.com>
- <97f80018-7cc4-0a50-498d-89d27dfa2fd1@intel.com>
- <2E89032DDAA8B9408CB92943514A0337D46421B6@SW-EX-MBX01.diasemi.com>
+From: "Zheng, Lv" <lv.zheng@intel.com>
+Subject: RE: acpi: broken suspend to RAM with v4.7-rc1
+Date: Mon, 13 Jun 2016 08:50:55 +0000
+Message-ID: <1AE640813FDE7649BE1B193DEA596E883BBCF836@SHSMSX101.ccr.corp.intel.com>
+References: <20160610203210.GA2262@nest> <3027571.8eTQaleASL@vostro.rjw.lan>
+ <20160611104922.GA2368@nest> <2544058.dYPSaC0ylY@vostro.rjw.lan>
+ <744357E9AAD1214791ACBA4B0B9092633AA54819@SHSMSX101.ccr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="===============7739345747402256594=="
-Return-path: <alsa-devel-bounces@alsa-project.org>
-In-Reply-To: <2E89032DDAA8B9408CB92943514A0337D46421B6@SW-EX-MBX01.diasemi.com>
-List-Unsubscribe: <http://mailman.alsa-project.org/mailman/options/alsa-devel>,
- <mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
-List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel/>
-List-Post: <mailto:alsa-devel@alsa-project.org>
-List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
-List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
- <mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
-Errors-To: alsa-devel-bounces@alsa-project.org
-Sender: alsa-devel-bounces@alsa-project.org
-To: "Opensource [Adam Thomson]" <Adam.Thomson.Opensource@diasemi.com>
-Cc: Sathyanarayana Nujella <sathyanarayana.nujella@intel.com>, "alsa-devel@alsa-project.org" <alsa-devel@alsa-project.org>, Heikki Krogerus <heikki.krogerus@linux.intel.com>, Support Opensource <Support.Opensource@diasemi.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Liam Girdwood <lgirdwood@gmail.com>, Andrew Morton <akpm@linux-foundation.org>, Robert Moore <robert.moore@intel.com>, Lv Zheng <lv.zheng@intel.com>, Suravee Suthikulpanit <Suravee.Suthikulpanit@amd.com>, Bjorn Helgaas <bhelgaas@google.com>, "devel@acpica.org" <devel@acpica.org>, Takashi Iwai <tiwai@suse.com>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Mika Westerberg <mika.westerberg@linux.intel.com>, Hanjun Guo <hanjun.guo@linaro.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vg>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga14.intel.com ([192.55.52.115]:61339 "EHLO mga14.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1422641AbcFMIvB (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 13 Jun 2016 04:51:01 -0400
+In-Reply-To: <744357E9AAD1214791ACBA4B0B9092633AA54819@SHSMSX101.ccr.corp.intel.com>
+Content-Language: en-US
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Andrey Skvortsov <andrej.skvortzov@gmail.com>
+Cc: "Moore, Robert" <robert.moore@intel.com>, "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "devel@acpica.org" <devel@acpica.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
 
-
---===============7739345747402256594==
-Content-Type: multipart/signed; micalg=pgp-sha256;
-	protocol="application/pgp-signature"; boundary="S96ff6o5osL9bGCL"
-Content-Disposition: inline
-
-
---S96ff6o5osL9bGCL
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-
-On Fri, Jun 10, 2016 at 09:58:39AM +0000, Opensource [Adam Thomson] wrote:
-> On 10 June 2016 00:11, Rafael J. Wysocki wrote:
-
-> > For some reason that didn't make it into the linux-acpi list, or at
-> > least I can't see it there.
-
-> That's strange. I'm not a subscriber to that mailing list, but I assume that
-> shouldn't matter here? Strangely though the only mailing list these seem to have
-> made it to is the ALSA one. :( Will see if I can find out why as I've not
-> seen this problem before.
-
-You have a very large number of people on copy, a lot of the lists have
-restrictions on the number of recipients.
-
---S96ff6o5osL9bGCL
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2
-
-iQEcBAEBCAAGBQJXXnMaAAoJECTWi3JdVIfQIPUH/RJm8wH/6FB3CIGgzsA+f0ru
-cMUYARou5dK+stqsRtQAqIx0idCEP/IZD1HvcLnj0M8JkJaqjN6xD0xdLQMbjWbs
-L8kjHvL9B/0KW2dIdjhy9DuLtr6Ut9ga7zhZF18vFRT2ebADFkxG5HThs3SXk5JY
-cErqM0Hyd/T48sN26r/7Gn1RBc0nQOwrhhzpW1rCy+MVDEzZaJQaUl+5OF414OVP
-DiJAjXp6+p+wWCVXJQvGcrCv3W2cQRPZDlnOxjn/or6Ixatji+asZrO6GEBu1X9/
-DJyHmCO5QXo/P9vlGK64Gt9WBE5ZXRsHR49H7HViOhO0Ga8YlQtwH2uiTKIqjrU=
-=QqcN
------END PGP SIGNATURE-----
-
---S96ff6o5osL9bGCL--
-
---===============7739345747402256594==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-
-
---===============7739345747402256594==--
+SGksIEFuZHJleQ0KDQo+IEZyb206IGxpbnV4LWFjcGktb3duZXJAdmdlci5rZXJuZWwub3JnIFtt
+YWlsdG86bGludXgtYWNwaS0NCj4gb3duZXJAdmdlci5rZXJuZWwub3JnXSBPbiBCZWhhbGYgT2Yg
+UmFmYWVsIEouIFd5c29ja2kNCj4gU3ViamVjdDogUmU6IGFjcGk6IGJyb2tlbiBzdXNwZW5kIHRv
+IFJBTSB3aXRoIHY0LjctcmMxDQo+IA0KPiBPbiBTYXR1cmRheSwgSnVuZSAxMSwgMjAxNiAwMTo0
+OToyMiBQTSBBbmRyZXkgU2t2b3J0c292IHdyb3RlOg0KPiA+IE9uIDEwIEp1biwgUmFmYWVsIEou
+IFd5c29ja2kgd3JvdGU6DQo+ID4gPiBPbiBGcmlkYXksIEp1bmUgMTAsIDIwMTYgMTE6MzI6MTAg
+UE0gQW5kcmV5IFNrdm9ydHNvdiB3cm90ZToNCj4gPiA+ID4gSGksDQo+ID4gPiA+DQo+ID4gPiA+
+IE9uIG15IGxhcHRvcCAoREVMTCBWb3N0cm8gMTUwMCkgaW4gdjQuNy1yYzEgaXMgYnJva2VuIHN1
+c3BlbmQgdG8gUkFNLg0KPiA+ID4gPiBMYXB0b3AgZG9lc24ndCBmaW5pc2ggc3VzcGVuZCB0byBS
+QU0gcHJvY2VzcyAoZGlza3MgYXJlIG9mZiwgYnV0DQo+ID4gPiA+IFdpRmkgYW5kIFBvd2VyIExF
+RHMgYXJlIHN0aWxsIG9uKS4gVGhlIG9ubHkgd2F5IHRvIGdldCBpdCBvdXQgb2YNCj4gPiA+ID4g
+dGhpcyBzdGF0ZSwgaXMgdG8gdHVybiB0aGUgcG93ZXIgb2ZmLg0KPiA+ID4gPg0KPiA+ID4gPiBJ
+J3ZlIGJpc2VjdGVkIHRoZSBpc3N1ZSB0byBjb21taXQgNjZiMWVkNWFhOGRkMjUNCj4gPiA+ID4g
+W0FDUElDQTogQUNQSSAyLjAsIEhhcmR3YXJlOiBBZGQgYWNjZXNzX3dpZHRoL2JpdF9vZmZzZXQg
+c3VwcG9ydA0KPiA+ID4gPiBmb3IgYWNwaV9od193cml0ZSgpXS4NCj4gPiA+ID4NCj4gPiA+ID4g
+SWYgSSByZXZlcnQgdGhpcyBjb21taXQgaW4gdjQuNy1yYzEgKG9yIHY0LjctcmMyKSwgc3VzcGVu
+ZCB0byBSQU0NCj4gPiA+ID4gaXMgd29ya2luZyBhZ2Fpbi4NCj4gPiA+ID4NCj4gPiA+ID4gVGhl
+IGNhdXNlIG9mIHRoaXMgcHJvYmxlbSBpcyB0aGF0IGFmdGVyIHRoaXMgY29tbWl0IHdyaXRlIHRv
+IFBNMUENCj4gPiA+ID4gQ29udHJvbCBCbG9jayAoMTYtYml0IHJlZ2lzdGVyKSBpcyBkb25lIHVz
+aW5nIHR3byA4LWJpdCB3cml0ZXMuDQo+ID4gPiA+IElmIEkgZm9yY2UgdGhpcyB3cml0ZSB0byBi
+ZSAxNi1iaXQsIHRoZW4gYWxsIGlzIHdvcmtpbmcgYXMgYmVmb3JlLg0KPiA+ID4gPg0KPiA+ID4g
+PiBUbyBnZXQgaXQgd29ya2luZyAnYWNjZXNzX3dpZHRoJyBmb3IgUE0xQSBDb250cm9sIEJsb2Nr
+IG5lZWRzIHRvDQo+ID4gPiA+IGJlIDIgKDE2LWJpdCksIGJ1dCBpdCdzIDEgKDgtYml0KS4NCltM
+diBaaGVuZ10gDQpDb3VsZCB5b3Ugc2VuZCBtZSB0aGUgYWNwaWR1bXAgb2YgdGhlIG1hY2hpbmU/
+DQoNCj4gPiA+ID4NCj4gPiA+ID4gVGhlIHJvb3Qgb2YgdGhlIHByb2JsZW0gc2VlbXMgdG8gYmUg
+bm90IHRoZSBjb21taXQNCj4gNjZiMWVkNWFhOGRkMjUNCj4gPiA+ID4gaXRzZWxmLCBidXQgdGhl
+IEFDUEkgdGFibGVzIGluIEJJT1Mgd2hlcmUgd3JvbmcgYWNjZXNzX3dpZHRoDQo+ID4gPiA+IGNv
+bWVzIGZyb20uIEkgZml4ZWQgcHJvYmxlbSBpbiBGQUNQICB0YWJsZSwgcHV0IGl0IGluIGluaXRy
+ZCB0bw0KPiA+ID4gPiBvdmVycmlkZSBGQUNQIHRhYmxlIGZyb20gQklPUy4gVGhpcyBmaXhlZCB0
+aGUgaXNzdWUsIHN1c3BlbmQgdG8NCj4gPiA+ID4gUkFNIGlzIHdvcmtpbmcgbm93IGFnYWluLg0K
+PiA+ID4gPg0KPiA+ID4gPiBCdXQgSSdtIG5vdCBzdXJlIHdoZXRoZXIgaXMgdGhpcyBwcm9wZXIg
+Zml4IGZvciB0aGlzIHByb2JsZW0uDQo+ID4gPiA+IElzIHRoZXJlIGFueSBwbGFjZSBpbiB0aGUg
+a2VybmVsLCB3aGVyZSBzdWNoIEFDUEkgcXVpcmtzIGFyZSBwbGFjZWQ/DQpbTHYgWmhlbmddIA0K
+TXkgcXVlc3Rpb24gd291bGQgYmU6DQpEb2VzIFdpbmRvd3MgYmVoYXZlIGNvcnJlY3RseSBmb3Ig
+dGhpcyB0YWJsZT8NCkhvd2V2ZXIgdGhlcmUgaXMgYSByZWFsIGNhc2Ugc2hvd2luZyB0aGF0IHRo
+ZXJlIGFyZSByZWFsIHRhYmxlcyBuZWVkIHVzIHRvIGNvcnJlY3RseSBzdXBwb3J0IEJpdFdpZHRo
+L0JpdE9mZnNldC4NCkhlcmUgaXMgdGhlIGluZm9ybWF0aW9uIGZvciB5b3UgdG8gcmVmZXI6DQpo
+dHRwOi8vcGVybWFsaW5rLmdtYW5lLm9yZy9nbWFuZS5saW51eC5rZXJuZWwuY29tbWl0cy5oZWFk
+LzMxMzg3MA0KDQo+ID4gPg0KPiA+ID4gV2VsbCwgaWYgdGhlIGNvbW1pdCBpbiBxdWVzdGlvbiBj
+YXVzZWQgYSBwcm9ibGVtIHRvIGhhcHBlbiBmb3IgeW91LA0KPiA+ID4gaXQgYWxzbyBtaWdodCBj
+YXVzZSBzaW1pbGFyIHByb2JsZW1zIHRvIGhhcHBlbiBlbHNld2hlcmUuDQo+ID4gPg0KPiA+ID4g
+SXQgbG9va3MgbGlrZSB3ZSdsbCBuZWVkIHRvIHJldmVydCB0aGF0IGNvbW1pdC4NCj4gPiBIaSwN
+Cj4gPg0KPiA+IG9yIG1heWJlIHRvIHJlc2V0IGFjY2Vzc193aWR0aCBBbnlBY2MgZnJvbSBGQUNQ
+IHRhYmxlIG9ubHkgZm9yIFBNMUENCj4gPiBjb250cm9sIHJlZ2lzdGVyIG9yIGV2ZW4gZm9yIGFs
+bCByZWdpc3RlcnM/IFRoaXMgd2lsbCBmaXggdGhlIGlzc3VlIHRvby4NCj4gDQo+IFRoYXQncyBh
+IGdvb2QgaWRlYSBhY3R1YWxseS4NCj4gDQo+ID4gZGlmZiAtLWdpdCBhL2RyaXZlcnMvYWNwaS9h
+Y3BpY2EvdGJmYWR0LmMNCj4gPiBiL2RyaXZlcnMvYWNwaS9hY3BpY2EvdGJmYWR0LmMgaW5kZXgg
+NjIwODA2OS4uYTQ3NmU5NCAxMDA2NDQNCj4gPiAtLS0gYS9kcml2ZXJzL2FjcGkvYWNwaWNhL3Ri
+ZmFkdC5jDQo+ID4gKysrIGIvZHJpdmVycy9hY3BpL2FjcGljYS90YmZhZHQuYw0KPiA+IEBAIC03
+MTQsNyArNzE0LDE0IEBAIHN0YXRpYyB2b2lkIGFjcGlfdGJfc2V0dXBfZmFkdF9yZWdpc3RlcnMo
+dm9pZCkNCj4gPiAgICAgICAgICAgICAgICAgICAgICAgICB9DQo+ID4gICAgICAgICAgICAgICAg
+IH0NCj4gPiAgICAgICAgIH0NCj4gPg0KPiA+ICsgICAgICAgLyoNCj4gPiArICAgICAgICAqIFJl
+c2V0IGFjY2Vzc193aWR0aCBpbiB0aGUgR0FTIGZvciBQTTFBIGNvbnRyb2wgcmVnaXN0ZXIgdG8N
+Cj4gPiArICAgICAgICAqIHVuZGVmaW5lZCB2YWx1ZS4gQmVjYXVzZSBpbiBzb21lIGNhc2VzIHRo
+aXMgZmllbGQgY29udGFpbnMNCj4gPiArICAgICAgICAqIHdyb25nIHZhbHVlLg0KPiA+ICsgICAg
+ICAgICovDQo+ID4gKyAgICAgICBhY3BpX2dibF9GQURULnhwbTFhX2NvbnRyb2xfYmxvY2suYWNj
+ZXNzX3dpZHRoID0gMDsNCj4gDQo+IE9LLCBsZXQncyBzZWUgd2hhdCBCb2IgYW5kIEx2IHRoaW5r
+IGFib3V0IHRoYXQuDQpbTHYgWmhlbmddIA0KVGhlcmUgaXMgYSBjb21taXQgaW4gNC43LXJjMjoN
+Cmh0dHBzOi8vZ2l0Lmtlcm5lbC5vcmcvY2dpdC9saW51eC9rZXJuZWwvZ2l0L3RvcnZhbGRzL2xp
+bnV4LmdpdC9jb21taXQvP2lkPTdmOWJlZjlkDQpIYXZlIHlvdSB0cmllZCBpZiB0aGUgcHJvYmxl
+bSBzdGlsbCBleGlzdHMgaW4gNC43LXJjMj8NCg0KVGhhbmtzIGFuZCBiZXN0IHJlZ2FyZHMNCi1M
+dg0KDQo=
