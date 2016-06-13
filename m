@@ -1,189 +1,155 @@
-From: Christopher Covington <cov@codeaurora.org>
-Subject: Re: [RFC PATCH V2 1/2] ACPI/PCI: Match PCI config space accessors
- against platfrom specific ECAM quirks
-Date: Mon, 13 Jun 2016 11:47:11 -0400
-Message-ID: <575ED57F.6050503@codeaurora.org>
-References: <1465822923-33599-1-git-send-email-liudongdong3@huawei.com>
- <1465822923-33599-2-git-send-email-liudongdong3@huawei.com>
+From: Liviu.Dudau@arm.com
+Subject: Re: [PATCH V9 09/11] ARM64/PCI: ACPI support for legacy IRQs parsing
+ and consolidation with DT code
+Date: Mon, 13 Jun 2016 16:56:46 +0100
+Message-ID: <20160613155646.GF1165@e106497-lin.cambridge.arm.com>
+References: <1465588519-11334-1-git-send-email-tn@semihalf.com>
+ <1465588519-11334-10-git-send-email-tn@semihalf.com>
+ <20160610233612.GB7671@localhost>
+ <20160613104005.GA26738@red-moon>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252
+Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-pci-owner@vger.kernel.org>
-In-Reply-To: <1465822923-33599-2-git-send-email-liudongdong3@huawei.com>
+Content-Disposition: inline
+In-Reply-To: <20160613104005.GA26738@red-moon>
 Sender: linux-pci-owner@vger.kernel.org
-To: Dongdong Liu <liudongdong3@huawei.com>, helgaas@kernel.org, arnd@arndb.de, will.deacon@arm.com, catalin.marinas@arm.com, rafael@kernel.org, hanjun.guo@linaro.org, Lorenzo.Pieralisi@arm.com, okaya@codeaurora.org, jchandra@broadcom.com, tn@semihalf.com
-Cc: robert.richter@caviumnetworks.com, mw@semihalf.com, Liviu.Dudau@arm.com, ddaney@caviumnetworks.com, wangyijing@huawei.com, Suravee.Suthikulpanit@amd.com, msalter@redhat.com, linux-pci@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linaro-acpi@lists.linaro.org, jcm@redhat.com, andrea.gallo@linaro.org, dhdang@apm.com, jeremy.linton@arm.com, gabriele.paoloni@huawei.com, charles.chenxin@huawei.com, linuxarm@huawei.com
+To: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+Cc: Bjorn Helgaas <helgaas@kernel.org>, Tomasz Nowicki <tn@semihalf.com>, arnd@arndb.de, will.deacon@arm.com, catalin.marinas@arm.com, rafael@kernel.org, hanjun.guo@linaro.org, okaya@codeaurora.org, jchandra@broadcom.com, robert.richter@caviumnetworks.com, mw@semihalf.com, ddaney@caviumnetworks.com, wangyijing@huawei.com, Suravee.Suthikulpanit@amd.com, msalter@redhat.com, linux-pci@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linaro-acpi@lists.linaro.org, jcm@redhat.com, andrea.gallo@linaro.org, dhdang@apm.com, jeremy.linton@arm.com, liudongdong3@huawei.com, cov@codeaurora.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hi Dongdong,
+On Mon, Jun 13, 2016 at 11:40:05AM +0100, Lorenzo Pieralisi wrote:
+> On Fri, Jun 10, 2016 at 06:36:12PM -0500, Bjorn Helgaas wrote:
+> > On Fri, Jun 10, 2016 at 09:55:17PM +0200, Tomasz Nowicki wrote:
+> > > To enable PCI legacy IRQs on platforms booting with ACPI, arch co=
+de
+> > > should include ACPI specific callbacks that parse and set-up the
+> > > device IRQ number, equivalent to the DT boot path. Owing to the c=
+urrent
+> > > ACPI core scan handlers implementation, ACPI PCI legacy IRQs bind=
+ings
+> > > cannot be parsed at device add time, since that would trigger ACP=
+I scan
+> > > handlers ordering issues depending on how the ACPI tables are def=
+ined.
+> >=20
+> > Uh, OK :)  I can't figure out exactly what the problem is here -- I
+> > don't know where to look if I wanted to fix the scan handler orderi=
+ng
+> > issues, and I don't know how I could tell if it would ever be safe =
+to
+> > move this from driver probe-time back to device add-time.
+>=20
+> Right, the commit log could have been more informative.
+>=20
+> pcibios_add_device() was added in:
+>=20
+> commit d1e6dc91b532 ("arm64: Add architectural support for PCI")
+>=20
+> whose commit log does not specify why legacy IRQ parsing should
+> be done at pcibios_add_device() either, so honestly we had to
+> do with the information we have at hand.
 
-On 06/13/2016 09:02 AM, Dongdong Liu wrote:
-> diff --git a/drivers/acpi/pci_mcfg.c b/drivers/acpi/pci_mcfg.c
-> index d3c3e85..49612b3 100644
-> --- a/drivers/acpi/pci_mcfg.c
-> +++ b/drivers/acpi/pci_mcfg.c
-> @@ -22,6 +22,10 @@
->  #include <linux/kernel.h>
->  #include <linux/pci.h>
->  #include <linux/pci-acpi.h>
-> +#include <linux/pci-ecam.h>
-> +
-> +/* Root pointer to the mapped MCFG table */
-> +static struct acpi_table_mcfg *mcfg_table;
-> =20
->  /* Structure to hold entries from the MCFG table */
->  struct mcfg_entry {
-> @@ -35,6 +39,38 @@ struct mcfg_entry {
->  /* List to save mcfg entries */
->  static LIST_HEAD(pci_mcfg_list);
-> =20
-> +extern struct pci_cfg_fixup __start_acpi_mcfg_fixups[];
-> +extern struct pci_cfg_fixup __end_acpi_mcfg_fixups[];
-> +
-> +struct pci_ecam_ops *pci_mcfg_get_ops(struct acpi_pci_root *root)
-> +{
-> +	int bus_num =3D root->secondary.start;
-> +	int domain =3D root->segment;
-> +	struct pci_cfg_fixup *f;
-> +
-> +	if (!mcfg_table)
-> +		return &pci_generic_ecam_ops;
-> +
-> +	/*
-> +	 * Match against platform specific quirks and return corresponding
-> +	 * CAM ops.
-> +	 *
-> +	 * First match against PCI topology <domain:bus> then use OEM ID an=
+Because at that time (September 2014) there was no pcibios_alloc_irq() =
+(added
+June 2015 by commit 890e4847587fcf) and after that nobody bothered to u=
+pdate
+the arm64 code to make use of the new API.
+
+Best regards,
+Liviu
+
+>=20
+> > I also notice that x86 and ia64 call acpi_pci_irq_enable() even lat=
+er,
+> > when the driver *enables* the device.  Is there a reason you didn't=
+ do
+> > it at the same time as x86 and ia64?  This is another of those pcib=
+ios
+> > hooks that really don't do anything arch-specific, so I can imagine
+> > refactoring this somehow, someday.
+>=20
+> Yes, with [1], that was the goal, that stopped because [1] does not
+> work on x86.
+>=20
+> Only DT platform(s) affected by this change are all platforms relying=
+ on
+> drivers/pci/host/pci-xgene.c (others rely on pci_fixup_irqs() that
+> should be removed too), if on those platforms probing IRQs at device
+> enable time works ok I can update this patch (it can be done through =
+[1]
+> once we figure out what to do with it on x86) and move the IRQ set-up=
+ at
+> pcibios_enable_device() time.
+>=20
+> @Duc: any feedback on this ?
+>=20
+> Thanks,
+> Lorenzo
+>=20
+> [1] http://www.spinics.net/lists/linux-pci/msg45950.html
+>=20
+> > Did we have this conversation before?  It seems vaguely familiar, s=
+o I
+> > apologize if you already explained this once.
+> >=20
+> > > To solve this problem and consolidate FW PCI legacy IRQs parsing =
+in
+> > > one single pcibios callback (pending final removal), this patch m=
+oves
+> > > DT PCI IRQ parsing to the pcibios_alloc_irq() callback (called by
+> > > PCI core code at device probe time) and adds ACPI PCI legacy IRQs
+> > > parsing to the same callback too, so that FW PCI legacy IRQs pars=
+ing
+> > > is confined in one single arch callback that can be easily remove=
 d
-> +	 * OEM revision from MCFG table standard header.
-> +	 */
-> +	for (f =3D __start_acpi_mcfg_fixups; f < __end_acpi_mcfg_fixups; f+=
-+) {
-> +		if ((f->domain =3D=3D domain || f->domain =3D=3D PCI_MCFG_DOMAIN_A=
-NY) &&
-> +		    (f->bus_num =3D=3D bus_num || f->bus_num =3D=3D PCI_MCFG_BUS_A=
-NY) &&
-> +		    (!strncmp(f->oem_id, mcfg_table->header.oem_id,
-> +			      ACPI_OEM_ID_SIZE)) &&
-> +		    (!strncmp(f->oem_table_id, mcfg_table->header.oem_table_id,
-> +			      ACPI_OEM_TABLE_ID_SIZE)))
-
-This would just be a small convenience, but if the character count used=
- here were
-
-min(strlen(f->oem_id), ACPI_OEM_ID_SIZE)
-
-then the parameters to DECLARE_ACPI_MCFG_FIXUP macro could be substring=
-s and
-wouldn't need to be padded out to the full length.
-
-> +			return f->ops;
-> +	}
-> +	/* No quirks, use ECAM */
-> +	return &pci_generic_ecam_ops;
-> +}
-
-> diff --git a/include/linux/pci-acpi.h b/include/linux/pci-acpi.h
-> index 7d63a66..088a1da 100644
-> --- a/include/linux/pci-acpi.h
-> +++ b/include/linux/pci-acpi.h
-> @@ -25,6 +25,7 @@ static inline acpi_status pci_acpi_remove_pm_notifi=
-er(struct acpi_device *dev)
->  extern phys_addr_t acpi_pci_root_get_mcfg_addr(acpi_handle handle);
-> =20
->  extern phys_addr_t pci_mcfg_lookup(u16 domain, struct resource *bus_=
-res);
-> +extern struct pci_ecam_ops *pci_mcfg_get_ops(struct acpi_pci_root *r=
-oot);
-> =20
->  static inline acpi_handle acpi_find_root_bridge_handle(struct pci_de=
-v *pdev)
->  {
-> @@ -72,6 +73,25 @@ struct acpi_pci_root_ops {
->  	int (*prepare_resources)(struct acpi_pci_root_info *info);
->  };
-> =20
-> +struct pci_cfg_fixup {
-> +	struct pci_ecam_ops *ops;
-> +	char *oem_id;
-> +	char *oem_table_id;
-> +	int domain;
-> +	int bus_num;
-> +};
-> +
-> +#define PCI_MCFG_DOMAIN_ANY	-1
-> +#define PCI_MCFG_BUS_ANY	-1
-> +
-> +/* Designate a routine to fix up buggy MCFG */
-> +#define DECLARE_ACPI_MCFG_FIXUP(ops, oem_id, oem_table_id, dom, bus)=
-	\
-> +	static const struct pci_cfg_fixup				\
-> +	__mcfg_fixup_##oem_id##oem_table_id##dom##bus			\
-
-I'm not entirely sure that this is the right fix--I'm pretty blindly
-following a GCC documentation suggestion [1]--but removing the first tw=
-o
-preprocessor concatenation operators "##" solved the following build er=
-ror
-for me.
-
-include/linux/pci-acpi.h:90:2: error: pasting "__mcfg_fixup_" and ""QCO=
-M"" does not give a valid preprocessing token
-  __mcfg_fixup_##oem_id##oem_table_id##dom##bus   \
-  ^
-arch/arm64/kernel/pci.c:225:1: note: in expansion of macro =91DECLARE_A=
-CPI_MCFG_FIXUP=92
- DECLARE_ACPI_MCFG_FIXUP(&pci_32b_ecam_ops, "QCOM", "QDF2432", PCI_MCFG=
-_DOMAIN_ANY, PCI_MCFG_BUS_ANY);
- ^
-arch/arm64/kernel/pci.c:225:44: error: pasting ""QCOM"" and ""QDF2432""=
- does not give a valid preprocessing token
- DECLARE_ACPI_MCFG_FIXUP(&pci_32b_ecam_ops, "QCOM", "QDF2432", PCI_MCFG=
-_DOMAIN_ANY, PCI_MCFG_BUS_ANY);
-                                            ^
-include/linux/pci-acpi.h:90:17: note: in definition of macro =91DECLARE=
-_ACPI_MCFG_FIXUP=92
-  __mcfg_fixup_##oem_id##oem_table_id##dom##bus   \
-                 ^
-arch/arm64/kernel/pci.c:225:52: error: pasting ""QDF2432"" and "PCI_MCF=
-G_DOMAIN_ANY" does not give a valid preprocessi
-ng token
- DECLARE_ACPI_MCFG_FIXUP(&pci_32b_ecam_ops, "QCOM", "QDF2432", PCI_MCFG=
-_DOMAIN_ANY, PCI_MCFG_BUS_ANY);
-                                                    ^
-include/linux/pci-acpi.h:90:25: note: in definition of macro =91DECLARE=
-_ACPI_MCFG_FIXUP=92
-  __mcfg_fixup_##oem_id##oem_table_id##dom##bus   \
-                         ^
-arch/arm64/kernel/pci.c:225:44: error: expected =91=3D=92, =91,=92, =91=
-;=92, =91asm=92 or =91__attribute__=92 before string constant
- DECLARE_ACPI_MCFG_FIXUP(&pci_32b_ecam_ops, "QCOM", "QDF2432", PCI_MCFG=
-_DOMAIN_ANY, PCI_MCFG_BUS_ANY);
-                                            ^
-include/linux/pci-acpi.h:90:17: note: in definition of macro =91DECLARE=
-_ACPI_MCFG_FIXUP=92
-  __mcfg_fixup_##oem_id##oem_table_id##dom##bus   \
-                 ^
-make[1]: *** [arch/arm64/kernel/pci.o] Error 1
-make: *** [arch/arm64/kernel] Error 2
-
-1. https://gcc.gnu.org/onlinedocs/cpp/Concatenation.html#Concatenation
-
-> +	__used	__attribute__((__section__(".acpi_fixup_mcfg"),		\
-> +				aligned((sizeof(void *))))) =3D		\
-> +	{ ops, oem_id, oem_table_id, dom, bus };
-> +
->  extern int acpi_pci_probe_root_resources(struct acpi_pci_root_info *=
-info);
->  extern struct pci_bus *acpi_pci_root_create(struct acpi_pci_root *ro=
-ot,
->  					    struct acpi_pci_root_ops *ops,
+> > > when code parsing PCI legacy IRQs is consolidated and moved to co=
+re
+> > > PCI code.
+> > >=20
+> > > Signed-off-by: Tomasz Nowicki <tn@semihalf.com>
+> > > Suggested-by: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+> > > ---
+> > >  arch/arm64/kernel/pci.c | 11 ++++++++---
+> > >  1 file changed, 8 insertions(+), 3 deletions(-)
+> > >=20
+> > > diff --git a/arch/arm64/kernel/pci.c b/arch/arm64/kernel/pci.c
+> > > index d5d3d26..b3b8a2c 100644
+> > > --- a/arch/arm64/kernel/pci.c
+> > > +++ b/arch/arm64/kernel/pci.c
+> > > @@ -51,11 +51,16 @@ int pcibios_enable_device(struct pci_dev *dev=
+, int mask)
+> > >  }
+> > > =20
+> > >  /*
+> > > - * Try to assign the IRQ number from DT when adding a new device
+> > > + * Try to assign the IRQ number when probing a new device
+> > >   */
+> > > -int pcibios_add_device(struct pci_dev *dev)
+> > > +int pcibios_alloc_irq(struct pci_dev *dev)
+> > >  {
+> > > -	dev->irq =3D of_irq_parse_and_map_pci(dev, 0, 0);
+> > > +	if (acpi_disabled)
+> > > +		dev->irq =3D of_irq_parse_and_map_pci(dev, 0, 0);
+> > > +#ifdef CONFIG_ACPI
+> > > +	else
+> > > +		return acpi_pci_irq_enable(dev);
+> > > +#endif
+> > > =20
+> > >  	return 0;
+> > >  }
+> > > --=20
+> > > 1.9.1
+> > >=20
+> >=20
 >=20
 
-Thanks,
-Cov
-
 --=20
-Qualcomm Innovation Center, Inc.
-Qualcomm Innovation Center, Inc. is a member of Code Aurora Forum,
-a Linux Foundation Collaborative Project
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
+| I would like to |
+| fix the world,  |
+| but they're not |
+| giving me the   |
+ \ source code!  /
+  ---------------
+    =C2=AF\_(=E3=83=84)_/=C2=AF
