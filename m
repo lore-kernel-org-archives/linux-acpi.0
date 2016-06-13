@@ -1,95 +1,62 @@
-From: Mika Westerberg <mika.westerberg@linux.intel.com>
-Subject: Re: [RFC v2 2/2] i2c: Pass i2c_device_id to probe func when using DT
- ids through ACPI
-Date: Mon, 13 Jun 2016 12:26:55 +0300
-Message-ID: <20160613092655.GF1791@lahna.fi.intel.com>
-References: <cover.1465477193.git.leonard.crestez@intel.com>
- <f5d92224a005bc7b82e210957719b7be142c6388.1465477193.git.leonard.crestez@intel.com>
- <20160610063232.GR1791@lahna.fi.intel.com>
- <6721468a-753d-fb52-5bc5-8738312b7bd0@intel.com>
+From: Sudeep Holla <sudeep.holla@arm.com>
+Subject: Re: [PATCH v5 4/5] arm64: add support for ACPI Low Power Idle(LPI)
+Date: Mon, 13 Jun 2016 10:40:20 +0100
+Message-ID: <575E7F84.2000106@arm.com>
+References: <1462981062-24909-1-git-send-email-sudeep.holla@arm.com>
+ <1462981062-24909-5-git-send-email-sudeep.holla@arm.com>
+ <DF4PR84MB0041D17321244DFB84979A84D9530@DF4PR84MB0041.NAMPRD84.PROD.OUTLOOK.COM>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-i2c-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <6721468a-753d-fb52-5bc5-8738312b7bd0@intel.com>
-Sender: linux-i2c-owner@vger.kernel.org
-To: Crestez Dan Leonard <leonard.crestez@intel.com>
-Cc: linux-acpi@vger.kernel.org, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, linux-i2c@vger.kernel.org, Wolfram Sang <wsa@the-dreams.de>, linux-kernel@vger.kernel.org, Irina Tirdea <irina.tirdea@intel.com>, Octavian Purdila <octavian.purdila@intel.com>, Daniel Baluta <daniel.baluta@intel.com>
+Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <DF4PR84MB0041D17321244DFB84979A84D9530@DF4PR84MB0041.NAMPRD84.PROD.OUTLOOK.COM>
+Sender: linux-kernel-owner@vger.kernel.org
+To: "Sajjan, Vikas C" <vikas.cha.sajjan@hpe.com>
+Cc: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Sudeep Holla <sudeep.holla@arm.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "Lakshminarasimha, Sunil Vishwanathpur" <sunil.vl@hpe.com>, Prashanth Prakash <pprakash@codeaurora.org>, Ashwin Chaugule <ashwin.chaugule@linaro.org>, Al Stone <al.stone@linaro.org>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Mark Rutland <mark.rutland@arm.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On Fri, Jun 10, 2016 at 06:57:36PM +0300, Crestez Dan Leonard wrote:
-> On 06/10/2016 09:32 AM, Mika Westerberg wrote:
-> > On Thu, Jun 09, 2016 at 04:06:03PM +0300, Crestez Dan Leonard wrote:
-> >> When devices are instatiated through devicetree the i2c_client->name is
-> >> set to the compatible string with company name stripped out. This is
-> >> then matched to the i2c_device_id table to pass the device_id to the
-> >> probe function. This id parameter is used by some device drivers to
-> >> differentiate between model numbers.
-> >>
-> >> When using ACPI this id parameter is NULL and the driver usually needs
-> >> to do ACPI-specific differentiation.
-> >>
-> >> This patch attempts to find a valid i2c_device_id when using ACPI with
-> >> DT-like compatible strings.
-> > 
-> > So I don't really understand why it would be good idea to pass
-> > i2c_device_id for devices which are matched against their ACPI/DT
-> > tables. Apparently DT is already doing that so maybe there is some
-> > reason.
-> > 
-> > Anyway, why not fill in the device name when it is first enumerated
-> > if it uses DT compatible property? Just like DT does.
-> > 
-> This automatic matching of i2c_device_id works for devicetree because
-> of_i2c_register_device sets i2c_board_info.type to the compatible string
-> with the vendor prefix removed. For I2C devices described via ACPI the
-> i2c_board_info.type string is set to the ACPI device name. This ends up
-> something like "PRP0001:00".
-> 
-> This could be changed in acpi_i2c_get_info to use the of_compatible
-> string from DSD if present. Is that what you mean? That would work and
-> it would be cleaner than my patch. Something like this:
-> 
-> diff --git drivers/i2c/i2c-core.c drivers/i2c/i2c-core.c
-> index 1e0ef9b..ba2fe7f 100644
-> --- drivers/i2c/i2c-core.c
-> +++ drivers/i2c/i2c-core.c
-> @@ -181,7 +181,24 @@ static int acpi_i2c_get_info(struct acpi_device *adev,
-> 
->         acpi_dev_free_resource_list(&resource_list);
-> 
-> -       strlcpy(info->type, dev_name(&adev->dev), sizeof(info->type));
-> +       /*
-> +        * If we have a DT id set info.type to the first compatible
-> string with
-> +        * the vendor prefix stripped. This is similar to of_modalias_node
-> +        */
-> +       if (adev->data.of_compatible) {
-> +               const union acpi_object *obj;
-> +               const char *str, *chr;
+
+
+On 13/06/16 05:47, Sajjan, Vikas C wrote:
+> Hi Sudeep,
+>
+
+[...]
+
+> --- a/drivers/firmware/psci.c
+> +++ b/drivers/firmware/psci.c
+> @@ -13,6 +13,7 @@
+>
+>   #define pr_fmt(fmt) "psci: " fmt
+>
+> +#include <linux/acpi.h>
+>   #include <linux/arm-smccc.h>
+>   #include <linux/cpuidle.h>
+>   #include <linux/errno.h>
+> @@ -310,11 +311,66 @@ static int psci_dt_cpu_init_idle(struct device_node *cpu_node, int cpu)
+>   	return ret;
+>   }
+>
+> +#ifdef CONFIG_ACPI
+> +#include <acpi/processor.h>
 > +
-> +               obj = adev->data.of_compatible;
-> +               if (obj->type == ACPI_TYPE_PACKAGE)
-> +                       obj = obj->package.elements;
-> +               str = obj->string.pointer;
-> +               chr = strchr(str, ',');
-> +               if (chr)
-> +                       str = chr + 1;
-> +               strlcpy(info->type, str, sizeof(info->type));
-> +       } else
-> +               strlcpy(info->type, dev_name(&adev->dev),
-> sizeof(info->type));
-> 
->         return 0;
->  }
+> +static int __maybe_unused psci_acpi_cpu_init_idle(unsigned int cpu) {
+> +	int i, count;
+> +	u32 *psci_states;
+> +	struct acpi_processor *pr;
+> +	struct acpi_lpi_state *lpi;
+> +
+> +	pr = per_cpu(processors, cpu);
+> +	if (unlikely(!pr || !pr->flags.has_lpi))
+>
+> Any particular reason for _not_ considering CST flag here.
+> Or you are planning to add CST support in some other patch set.
+>
 
-Yes, that's what I mean.
+Are you referring the old C-state objects ? We don't support them on
+ARM64. Only LPIs are support. The ARM FFH is not defined for CST, only
+for LPIs.
 
-> The biggest concern is that this would change the i2c device name
-> between kernel versions. Is that acceptable?
-
-I don't think that is a problem since I still have not seen a single
-system using ACPI _DSD so I would not expect anything to break.
-
-However, I'm still not convinced it is good idea to return i2c_device_id
-from a completely different table if we match using ACPI/DT table.
+-- 
+Regards,
+Sudeep
