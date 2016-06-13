@@ -1,151 +1,114 @@
-From: Tomasz Nowicki <tn@semihalf.com>
-Subject: [PATCH V6 5/7] irqchip/gicv3-its: Probe ITS in the ACPI way
-Date: Mon, 13 Jun 2016 16:41:11 +0200
-Message-ID: <1465828873-23498-6-git-send-email-tn@semihalf.com>
-References: <1465828873-23498-1-git-send-email-tn@semihalf.com>
+From: okaya@codeaurora.org
+Subject: RE: [RFC PATCH V2 1/2] ACPI/PCI: Match PCI config space accessors
+ against platfrom specific ECAM quirks
+Date: Mon, 13 Jun 2016 11:12:51 -0400
+Message-ID: <b7202ebbb30f2c715427fbb387129e9c@codeaurora.org>
+References: <1465822923-33599-1-git-send-email-liudongdong3@huawei.com>
+ <1465822923-33599-2-git-send-email-liudongdong3@huawei.com>
+ <EE11001F9E5DDD47B7634E2F8A612F2E1F782C86@lhreml507-mbx>
+ <575EBD13.8080808@codeaurora.org>
+ <EE11001F9E5DDD47B7634E2F8A612F2E1F782E15@lhreml507-mbx>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset=US-ASCII;
+ format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <1465828873-23498-1-git-send-email-tn@semihalf.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: marc.zyngier@arm.com, tglx@linutronix.de, jason@lakedaemon.net, rjw@rjwysocki.net, bhelgaas@google.com, lorenzo.pieralisi@arm.com, robert.richter@caviumnetworks.com, shijie.huang@arm.com, Suravee.Suthikulpanit@amd.com, hanjun.guo@linaro.org
-Cc: al.stone@linaro.org, graeme.gregory@linaro.org, Catalin.Marinas@arm.com, will.deacon@arm.com, linux-kernel@vger.kernel.org, okaya@codeaurora.org, linux-acpi@vger.kernel.org, ddaney.cavm@gmail.com, linux-pci@vger.kernel.org, Tomasz Nowicki <tn@semihalf.com>, mw@semihalf.com, andrea.gallo@linaro.org, linux-arm-kernel@lists.infradead.org
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from smtp.codeaurora.org ([198.145.29.96]:52404 "EHLO
+	smtp.codeaurora.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1422835AbcFMPM7 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 13 Jun 2016 11:12:59 -0400
+In-Reply-To: <EE11001F9E5DDD47B7634E2F8A612F2E1F782E15@lhreml507-mbx>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Gabriele Paoloni <gabriele.paoloni@huawei.com>
+Cc: "liudongdong (C)" <liudongdong3@huawei.com>, helgaas@kernel.org, arnd@arndb.de, will.deacon@arm.com, catalin.marinas@arm.com, rafael@kernel.org, hanjun.guo@linaro.org, Lorenzo.Pieralisi@arm.com, jchandra@broadcom.com, tn@semihalf.com, robert.richter@caviumnetworks.com, mw@semihalf.com, Liviu.Dudau@arm.com, ddaney@caviumnetworks.com, Wangyijing <wangyijing@huawei.com>, Suravee.Suthikulpanit@amd.com, msalter@redhat.com, linux-pci@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linaro-acpi@lists.linaro.org, jcm@redhat.com, andrea.gallo@linaro.org, dhdang@apm.com, jeremy.linton@arm.com, cov@codeaurora.org, "Chenxin (Charles)" <charles.chenxin@huawei.com>, Linuxarm <linuxarm@huawei.com>
 
-ITS is prepared for being initialized different than DT,
-therefore we can initialize it in ACPI way. We collect register base
-address from MADT table and pass mandatory info to firmware-agnostic
-ITS init call.
+On 2016-06-13 10:29, Gabriele Paoloni wrote:
+> Hi Sinan
+> 
+>> -----Original Message-----
+>> From: Sinan Kaya [mailto:okaya@codeaurora.org]
+>> Sent: 13 June 2016 15:03
+>> To: Gabriele Paoloni; liudongdong (C); helgaas@kernel.org;
+>> arnd@arndb.de; will.deacon@arm.com; catalin.marinas@arm.com;
+>> rafael@kernel.org; hanjun.guo@linaro.org; Lorenzo.Pieralisi@arm.com;
+>> jchandra@broadcom.com; tn@semihalf.com
+>> Cc: robert.richter@caviumnetworks.com; mw@semihalf.com;
+>> Liviu.Dudau@arm.com; ddaney@caviumnetworks.com; Wangyijing;
+>> Suravee.Suthikulpanit@amd.com; msalter@redhat.com; linux-
+>> pci@vger.kernel.org; linux-arm-kernel@lists.infradead.org; linux-
+>> acpi@vger.kernel.org; linux-kernel@vger.kernel.org; linaro-
+>> acpi@lists.linaro.org; jcm@redhat.com; andrea.gallo@linaro.org;
+>> dhdang@apm.com; jeremy.linton@arm.com; cov@codeaurora.org; Chenxin
+>> (Charles); Linuxarm
+>> Subject: Re: [RFC PATCH V2 1/2] ACPI/PCI: Match PCI config space
+>> accessors against platfrom specific ECAM quirks
+>> 
+>> On 6/13/2016 9:54 AM, Gabriele Paoloni wrote:
+>> > As you can see here Liudongdong has replaced oem_revision with
+>> > oem_table_id.
+>> >
+>> > Now it seems that there are some platforms that have already shipped
+>> > using a matching based on the oem_revision (right Jon?)
+>> >
+>> > However I guess that if in FW they have defined oem_table_id properly
+>> > they should be able to use this mechanism without needing to a FW
+>> update.
+>> >
+>> > Can these vendors confirm this?
+>> >
+>> > Tomasz do you think this can work for Cavium Thunder?
+>> >
+>> > Thanks
+>> >
+>> > Gab
+>> 
+>> Why not have all three of them?
+>> 
+>> The initial approach was OEM id and revision id.
+>> 
+>> Jeff Hugo indicated that addition (not removing any other fields) of
+>> table id
+>> would make more sense.
+> 
+> Mmm from last email of Jeff Hugo on "[RFC PATCH 1/3] pci, acpi: Match
+> PCI config space accessors against platfrom specific ECAM quirks."
+> 
+> I quote:
+> 
+>  "Using the OEM revision
+>  field does not seem to be appropriate since these are different
+>  platforms and the revision field appears to be for the purpose of
+>  tracking differences within a single platform.  Therefore, Cov is
+>  proposing using the OEM table id as a mechanism to distinguish
+>  platform A (needs quirk applied) vs platform B (no quirks) from the
+>  same OEM."
+> 
+> So it looks to me that he pointed out that using the OEM revision field
+> is wrong...and this is why I have asked if replacing it with the table
+> id can work for other vendors....
+> 
+> Thanks
+> 
+> Gab
+> 
 
-Use here IORT lib to register ITS domain which then can be found and
-used on to build another PCI MSI domain in hierarchical stack domain.
+I had an internal discussion with jeff and cov before posting on the 
+maillist.
 
-NOTE: Waiting for proper ITS and NUMA node relation description in IORT
-table, we pass around NUMA_NO_NODE to the its_probe_one init call.
-This means that Cavium ThunderX erratum 23144 (pass1.1 only)
-is not supported for ACPI boot method yet.
+I think there is missing info in the email.
 
-Signed-off-by: Tomasz Nowicki <tn@semihalf.com>
----
- drivers/irqchip/Kconfig          |  1 +
- drivers/irqchip/irq-gic-v3-its.c | 59 ++++++++++++++++++++++++++++++++++++++++
- 2 files changed, 60 insertions(+)
+Usage of oem id + table id + revision is ok.
 
-diff --git a/drivers/irqchip/Kconfig b/drivers/irqchip/Kconfig
-index fa33c50..c6e652f 100644
---- a/drivers/irqchip/Kconfig
-+++ b/drivers/irqchip/Kconfig
-@@ -32,6 +32,7 @@ config ARM_GIC_V3
- config ARM_GIC_V3_ITS
- 	bool
- 	select PCI_MSI_IRQ_DOMAIN
-+	select IORT_TABLE if ACPI
- 
- config ARM_NVIC
- 	bool
-diff --git a/drivers/irqchip/irq-gic-v3-its.c b/drivers/irqchip/irq-gic-v3-its.c
-index f033fd8..7315263 100644
---- a/drivers/irqchip/irq-gic-v3-its.c
-+++ b/drivers/irqchip/irq-gic-v3-its.c
-@@ -15,10 +15,13 @@
-  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
-  */
- 
-+#include <linux/acpi.h>
- #include <linux/bitmap.h>
- #include <linux/cpu.h>
- #include <linux/delay.h>
- #include <linux/interrupt.h>
-+#include <linux/irqdomain.h>
-+#include <linux/iort.h>
- #include <linux/log2.h>
- #include <linux/mm.h>
- #include <linux/msi.h>
-@@ -1336,6 +1339,11 @@ static int its_irq_gic_domain_alloc(struct irq_domain *domain,
- 		fwspec.param[0] = GIC_IRQ_TYPE_LPI;
- 		fwspec.param[1] = hwirq;
- 		fwspec.param[2] = IRQ_TYPE_EDGE_RISING;
-+	} else if (is_fwnode_irqchip(domain->parent->fwnode)) {
-+		fwspec.fwnode = domain->parent->fwnode;
-+		fwspec.param_count = 2;
-+		fwspec.param[0] = hwirq;
-+		fwspec.param[1] = IRQ_TYPE_EDGE_RISING;
- 	} else {
- 		return -EINVAL;
- 	}
-@@ -1690,6 +1698,55 @@ static int __init its_of_probe(struct device_node *node)
- 	return 0;
- }
- 
-+#ifdef CONFIG_ACPI
-+
-+#define ACPI_GICV3_ITS_MEM_SIZE (SZ_128K)
-+
-+static int __init gic_acpi_parse_madt_its(struct acpi_subtable_header *header,
-+					  const unsigned long end)
-+{
-+	struct acpi_madt_generic_translator *its_entry;
-+	struct fwnode_handle *dom_handle;
-+	struct resource res;
-+	int err;
-+
-+	its_entry = (struct acpi_madt_generic_translator *)header;
-+	res.start = its_entry->base_address;
-+	res.end = its_entry->base_address + ACPI_GICV3_ITS_MEM_SIZE - 1;
-+
-+	dom_handle = irq_domain_alloc_fwnode((void *)its_entry->base_address);
-+	if (!dom_handle) {
-+		pr_err("ITS@%pa: Unable to allocate GICv3 ITS domain token\n",
-+		       &res.start);
-+		return -ENOMEM;
-+	}
-+
-+	err = iort_register_domain_token(its_entry->translation_id, dom_handle);
-+	if (err) {
-+		pr_err("ITS@%pa: Unable to register GICv3 ITS domain token (ITS ID %d) to IORT\n",
-+		       &res.start, its_entry->translation_id);
-+		goto dom_err;
-+	}
-+
-+	err = its_probe_one(&res, dom_handle, NUMA_NO_NODE);
-+	if (!err)
-+		return 0;
-+
-+	iort_deregister_domain_token(its_entry->translation_id);
-+dom_err:
-+	irq_domain_free_fwnode(dom_handle);
-+	return err;
-+}
-+
-+static void __init its_acpi_probe(void)
-+{
-+	acpi_table_parse_madt(ACPI_MADT_TYPE_GENERIC_TRANSLATOR,
-+			      gic_acpi_parse_madt_its, 0);
-+}
-+#else
-+static void __init its_acpi_probe(void) { }
-+#endif
-+
- int __init its_init(struct fwnode_handle *handle, struct rdists *rdists,
- 		    struct irq_domain *parent_domain)
- {
-@@ -1699,6 +1756,8 @@ int __init its_init(struct fwnode_handle *handle, struct rdists *rdists,
- 	of_node = to_of_node(handle);
- 	if (of_node)
- 		its_of_probe(of_node);
-+	else
-+		its_acpi_probe();
- 
- 	if (list_empty(&its_nodes)) {
- 		pr_warn("ITS: No ITS available, not enabling LPIs\n");
--- 
-1.9.1
+Usage of oem id + revision is not ok as one oem can build multiple chips 
+with the same oem id and revision id but different table id. Otherwise, 
+we can run out of revisions very quickly.
+
+> 
+>> 
+>> --
+>> Sinan Kaya
+>> Qualcomm Technologies, Inc. on behalf of Qualcomm Innovation Center,
+>> Inc.
+>> Qualcomm Innovation Center, Inc. is a member of Code Aurora Forum, a
+>> Linux Foundation Collaborative Project
