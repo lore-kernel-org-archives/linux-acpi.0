@@ -1,40 +1,109 @@
-From: Mika Westerberg <mika.westerberg@linux.intel.com>
-Subject: Re: [v5] i2c: i801: Allow ACPI SystemIO OpRegion to conflict with
- PCI BAR
-Date: Mon, 13 Jun 2016 12:54:04 +0300
-Message-ID: <20160613095404.GH1791@lahna.fi.intel.com>
-References: <1463990658-53854-1-git-send-email-mika.westerberg@linux.intel.com>
- <20160608162913.GA24234@mail.corp.redhat.com>
- <20160613111946.54779d0d@endymion>
- <20160613094500.GY29844@pali>
- <20160613094618.GG1791@lahna.fi.intel.com>
- <20160613094830.GZ29844@pali>
+From: Tomasz Nowicki <tn@semihalf.com>
+Subject: Re: [PATCH V9 09/11] ARM64/PCI: ACPI support for legacy IRQs parsing
+ and consolidation with DT code
+Date: Mon, 13 Jun 2016 12:00:17 +0200
+Message-ID: <575E8431.9000104@semihalf.com>
+References: <1465588519-11334-1-git-send-email-tn@semihalf.com>
+ <1465588519-11334-10-git-send-email-tn@semihalf.com>
+ <20160610233612.GB7671@localhost>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga03.intel.com ([134.134.136.65]:18515 "EHLO mga03.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S965028AbcFMJyK (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 13 Jun 2016 05:54:10 -0400
-Content-Disposition: inline
-In-Reply-To: <20160613094830.GZ29844@pali>
+Received: from mail-lf0-f44.google.com ([209.85.215.44]:33059 "EHLO
+	mail-lf0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S964921AbcFMKAX (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 13 Jun 2016 06:00:23 -0400
+Received: by mail-lf0-f44.google.com with SMTP id f6so60241923lfg.0
+        for <linux-acpi@vger.kernel.org>; Mon, 13 Jun 2016 03:00:22 -0700 (PDT)
+In-Reply-To: <20160610233612.GB7671@localhost>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Pali =?iso-8859-1?Q?Roh=E1r?= <pali.rohar@gmail.com>
-Cc: Jean Delvare <jdelvare@suse.de>, Benjamin Tissoires <benjamin.tissoires@redhat.com>, Wolfram Sang <wsa@the-dreams.de>, Jarkko Nikula <jarkko.nikula@linux.intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Andy Lutomirski <luto@kernel.org>, Mario Limonciello <mario_limonciello@dell.com>, Matt Fleming <matt@codeblueprint.co.uk>, linux-i2c@vger.kernel.org, linux-acpi@vger.kernel.org
+To: Bjorn Helgaas <helgaas@kernel.org>
+Cc: arnd@arndb.de, will.deacon@arm.com, catalin.marinas@arm.com, rafael@kernel.org, hanjun.guo@linaro.org, Lorenzo.Pieralisi@arm.com, okaya@codeaurora.org, jchandra@broadcom.com, robert.richter@caviumnetworks.com, mw@semihalf.com, Liviu.Dudau@arm.com, ddaney@caviumnetworks.com, wangyijing@huawei.com, Suravee.Suthikulpanit@amd.com, msalter@redhat.com, linux-pci@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linaro-acpi@lists.linaro.org, jcm@redhat.com, andrea.gallo@linaro.org, dhdang@apm.com, jeremy.linton@arm.com, liudongdong3@huawei.com, cov@codeaurora.org
 
-On Mon, Jun 13, 2016 at 11:48:30AM +0200, Pali Roh=E1r wrote:
-> I mean to call acpi_remove_address_space_handler() in
-> i801_acpi_io_handler() after acpi_reserved is properly set.
->=20
-> As once acpi_reserved is set address space handler is not needed
-> anymore.
+On 11.06.2016 01:36, Bjorn Helgaas wrote:
+> On Fri, Jun 10, 2016 at 09:55:17PM +0200, Tomasz Nowicki wrote:
+>> To enable PCI legacy IRQs on platforms booting with ACPI, arch code
+>> should include ACPI specific callbacks that parse and set-up the
+>> device IRQ number, equivalent to the DT boot path. Owing to the current
+>> ACPI core scan handlers implementation, ACPI PCI legacy IRQs bindings
+>> cannot be parsed at device add time, since that would trigger ACPI scan
+>> handlers ordering issues depending on how the ACPI tables are defined.
+>
+> Uh, OK :)  I can't figure out exactly what the problem is here -- I
+> don't know where to look if I wanted to fix the scan handler ordering
+> issues, and I don't know how I could tell if it would ever be safe to
+> move this from driver probe-time back to device add-time.
+>
+> I also notice that x86 and ia64 call acpi_pci_irq_enable() even later,
+> when the driver *enables* the device.  Is there a reason you didn't do
+> it at the same time as x86 and ia64?  This is another of those pcibios
+> hooks that really don't do anything arch-specific, so I can imagine
+> refactoring this somehow, someday.
+>
+> Did we have this conversation before?  It seems vaguely familiar, so I
+> apologize if you already explained this once.
 
-It is still needed as we handle all AML OpRegion access in this driver
-from that point forward. Unless I'm missing something.
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+It stared with a scan handler ordering issue, please see:
+https://lists.linaro.org/pipermail/linaro-acpi/2015-October/005944.html
+hence we decided to postpone ACPI legacy IRQs parsing. We also decided 
+to keep ACPI and DT legacy IRQs parsing all together as the candidate 
+for further PCI legacy IRQs consolidation, please see [1].
+This will allow us to remove it from here (as you pointed out is is not 
+arch-specific at all).
+
+I share Lorenzo's option. We could put this to pcibios_enable_device 
+instead of pcibios_alloc_irq but since ACPI and DT code is in one call 
+we wanted to avoid regressions on PCI host controllers that do not call 
+pci_fixup_irqs(), but rely on the legacy IRQ routing to be done in arm64
+pcibios_add_device().
+
+[1] http://www.spinics.net/lists/linux-pci/msg45950.html
+
+Thanks,
+Tomasz
+
+>
+>> To solve this problem and consolidate FW PCI legacy IRQs parsing in
+>> one single pcibios callback (pending final removal), this patch moves
+>> DT PCI IRQ parsing to the pcibios_alloc_irq() callback (called by
+>> PCI core code at device probe time) and adds ACPI PCI legacy IRQs
+>> parsing to the same callback too, so that FW PCI legacy IRQs parsing
+>> is confined in one single arch callback that can be easily removed
+>> when code parsing PCI legacy IRQs is consolidated and moved to core
+>> PCI code.
+>>
+>> Signed-off-by: Tomasz Nowicki <tn@semihalf.com>
+>> Suggested-by: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+>> ---
+>>   arch/arm64/kernel/pci.c | 11 ++++++++---
+>>   1 file changed, 8 insertions(+), 3 deletions(-)
+>>
+>> diff --git a/arch/arm64/kernel/pci.c b/arch/arm64/kernel/pci.c
+>> index d5d3d26..b3b8a2c 100644
+>> --- a/arch/arm64/kernel/pci.c
+>> +++ b/arch/arm64/kernel/pci.c
+>> @@ -51,11 +51,16 @@ int pcibios_enable_device(struct pci_dev *dev, int mask)
+>>   }
+>>
+>>   /*
+>> - * Try to assign the IRQ number from DT when adding a new device
+>> + * Try to assign the IRQ number when probing a new device
+>>    */
+>> -int pcibios_add_device(struct pci_dev *dev)
+>> +int pcibios_alloc_irq(struct pci_dev *dev)
+>>   {
+>> -	dev->irq = of_irq_parse_and_map_pci(dev, 0, 0);
+>> +	if (acpi_disabled)
+>> +		dev->irq = of_irq_parse_and_map_pci(dev, 0, 0);
+>> +#ifdef CONFIG_ACPI
+>> +	else
+>> +		return acpi_pci_irq_enable(dev);
+>> +#endif
+>>
+>>   	return 0;
+>>   }
+>> --
+>> 1.9.1
+>>
