@@ -1,46 +1,59 @@
 From: Dongdong Liu <liudongdong3@huawei.com>
-Subject: [RFC PATCH V2 0/2] ECAM quirks handling for ARM64 platforms
-Date: Mon, 13 Jun 2016 21:02:01 +0800
-Message-ID: <1465822923-33599-1-git-send-email-liudongdong3@huawei.com>
+Subject: [RFC PATCH V2 2/2] ARM64/PCI: Start using quirks handling for ACPI based PCI host controller
+Date: Mon, 13 Jun 2016 21:02:03 +0800
+Message-ID: <1465822923-33599-3-git-send-email-liudongdong3@huawei.com>
+References: <1465822923-33599-1-git-send-email-liudongdong3@huawei.com>
 Mime-Version: 1.0
 Content-Type: text/plain
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from szxga03-in.huawei.com ([119.145.14.66]:48047 "EHLO
-	szxga03-in.huawei.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1422747AbcFMMuA (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 13 Jun 2016 08:50:00 -0400
-Sender: linux-acpi-owner@vger.kernel.org
-List-Id: linux-acpi@vger.kernel.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1465822923-33599-1-git-send-email-liudongdong3@huawei.com>
+Sender: linux-kernel-owner@vger.kernel.org
 To: helgaas@kernel.org, arnd@arndb.de, will.deacon@arm.com, catalin.marinas@arm.com, rafael@kernel.org, hanjun.guo@linaro.org, Lorenzo.Pieralisi@arm.com, okaya@codeaurora.org, jchandra@broadcom.com, tn@semihalf.com
 Cc: robert.richter@caviumnetworks.com, mw@semihalf.com, Liviu.Dudau@arm.com, ddaney@caviumnetworks.com, wangyijing@huawei.com, Suravee.Suthikulpanit@amd.com, msalter@redhat.com, linux-pci@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linaro-acpi@lists.linaro.org, jcm@redhat.com, andrea.gallo@linaro.org, dhdang@apm.com, jeremy.linton@arm.com, liudongdong3@huawei.com, cov@codeaurora.org, gabriele.paoloni@huawei.com, charles.chenxin@huawei.com, linuxarm@huawei.com
+List-Id: linux-acpi@vger.kernel.org
 
-This series bases on pending ACPI PCI support for ARM64:
-https://lkml.org/lkml/2016/6/10/706
+From: Tomasz Nowicki <tn@semihalf.com>
 
-Quirk handling relies on an idea of matching MCFG OEM ID and OEM TABLE ID
-(the ones from standard header of MCFG table). Linker section is used
-so that quirks can be registered using special macro (see patches) and
-kept self contained.
+pci_generic_ecam_ops is used by default. Since there are platforms
+which have non-compliant ECAM space we need to overwrite these
+accessors prior to PCI buses enumeration. In order to do that
+we call pci_mcfg_get_ops to retrieve pci_ecam_ops structure so that
+we can use proper PCI config space accessors and bus_shift.
 
-v1 -> v2
-- use oem_id and oem_table_id to replace oem_id and oem_revision to make 
-  a difference between different platforms.
-- change pci_cfg_fixup __mcfg_fixup_##system##dom##bus to
-  __mcfg_fixup_##oem_id##oem_table_id##dom##bus. With oem_id and oem_table_id
-  is to ensure that the object is unique.
+pci_generic_ecam_ops is still used for platforms free from quirks.
 
-Tomasz Nowicki (2):
-  ACPI/PCI: Match PCI config space accessors against platfrom specific
-    ECAM quirks
-  ARM64/PCI: Start using quirks handling for ACPI based PCI host
-    controller
+Signed-off-by: Tomasz Nowicki <tn@semihalf.com>
+---
+ arch/arm64/kernel/pci.c | 7 ++++---
+ 1 file changed, 4 insertions(+), 3 deletions(-)
 
- arch/arm64/kernel/pci.c           |  7 ++++---
- drivers/acpi/pci_mcfg.c           | 41 ++++++++++++++++++++++++++++++++++++---
- include/asm-generic/vmlinux.lds.h |  7 +++++++
- include/linux/pci-acpi.h          | 20 +++++++++++++++++++
- 4 files changed, 69 insertions(+), 6 deletions(-)
-
+diff --git a/arch/arm64/kernel/pci.c b/arch/arm64/kernel/pci.c
+index 94cd43c..a891bda 100644
+--- a/arch/arm64/kernel/pci.c
++++ b/arch/arm64/kernel/pci.c
+@@ -139,6 +139,7 @@ pci_acpi_setup_ecam_mapping(struct acpi_pci_root *root)
+ 	struct pci_config_window *cfg;
+ 	struct resource cfgres;
+ 	unsigned int bsz;
++	struct pci_ecam_ops *ops;
+ 
+ 	/* Use address from _CBA if present, otherwise lookup MCFG */
+ 	if (!root->mcfg_addr)
+@@ -150,12 +151,12 @@ pci_acpi_setup_ecam_mapping(struct acpi_pci_root *root)
+ 		return NULL;
+ 	}
+ 
+-	bsz = 1 << pci_generic_ecam_ops.bus_shift;
++	ops = pci_mcfg_get_ops(root);
++	bsz = 1 << ops->bus_shift;
+ 	cfgres.start = root->mcfg_addr + bus_res->start * bsz;
+ 	cfgres.end = cfgres.start + resource_size(bus_res) * bsz - 1;
+ 	cfgres.flags = IORESOURCE_MEM;
+-	cfg = pci_ecam_create(&root->device->dev, &cfgres, bus_res,
+-			      &pci_generic_ecam_ops);
++	cfg = pci_ecam_create(&root->device->dev, &cfgres, bus_res, ops);
+ 	if (IS_ERR(cfg)) {
+ 		dev_err(&root->device->dev, "%04x:%pR error %ld mapping ECAM\n",
+ 			seg, bus_res, PTR_ERR(cfg));
 -- 
 1.9.1
-
