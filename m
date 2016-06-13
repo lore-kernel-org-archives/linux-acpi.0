@@ -1,35 +1,44 @@
 From: Sinan Kaya <okaya@codeaurora.org>
-Subject: Re: [PATCH V6 6/8] vfio, platform: make reset driver a requirement by
- default
-Date: Sun, 12 Jun 2016 22:32:37 -0400
-Message-ID: <575E1B45.3070406@codeaurora.org>
+Subject: Re: [PATCH V6 7/8] vfio: platform: check reset call return code
+ during open
+Date: Sun, 12 Jun 2016 23:12:41 -0400
+Message-ID: <575E24A9.2070204@codeaurora.org>
 References: <1464472878-27176-1-git-send-email-okaya@codeaurora.org>
- <1464472878-27176-7-git-send-email-okaya@codeaurora.org>
- <c3538f11-d206-1ffc-35e0-ff5a7672c7d9@redhat.com>
+ <1464472878-27176-8-git-send-email-okaya@codeaurora.org>
+ <5ae51f93-d141-00bf-f58f-40fbf7b1307d@redhat.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=windows-1252
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-msm-owner@vger.kernel.org>
-In-Reply-To: <c3538f11-d206-1ffc-35e0-ff5a7672c7d9@redhat.com>
-Sender: linux-arm-msm-owner@vger.kernel.org
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from smtp.codeaurora.org ([198.145.29.96]:37537 "EHLO
+	smtp.codeaurora.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933130AbcFMDMq (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sun, 12 Jun 2016 23:12:46 -0400
+In-Reply-To: <5ae51f93-d141-00bf-f58f-40fbf7b1307d@redhat.com>
+Sender: linux-acpi-owner@vger.kernel.org
+List-Id: linux-acpi@vger.kernel.org
 To: Auger Eric <eric.auger@redhat.com>, kvm@vger.kernel.org, timur@codeaurora.org, cov@codeaurora.org, jcm@redhat.com, eric.auger@linaro.org
 Cc: linux-acpi@vger.kernel.org, agross@codeaurora.org, linux-arm-msm@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Baptiste Reynal <b.reynal@virtualopensystems.com>, Alex Williamson <alex.williamson@redhat.com>, linux-kernel@vger.kernel.org
-List-Id: linux-acpi@vger.kernel.org
 
-On 6/7/2016 3:59 PM, Auger Eric wrote:
->> -	vfio_platform_get_reset(vdev);
->> > +	ret = vfio_platform_get_reset(vdev);
->> > +	if (ret && vdev->reset_required) {
->> > +		pr_err("vfio: no reset function found for device %s\n",
->> > +		       vdev->name);
->> > +		iommu_group_put(group);
->> > +		return ret;
-> nit: in case you respin you can factorize the group put and return ret in a goto label
-> (since also used above).
+On 6/7/2016 4:21 PM, Auger Eric wrote:
+>> -		vfio_platform_call_reset(vdev, NULL);
+>> > +		ret = vfio_platform_call_reset(vdev, &extra_dbg);
+>> > +		if (ret && vdev->reset_required) {
+>> > +			dev_warn(vdev->device, "reset driver is required and reset call failed in open (%d) %s\n",
+>> > +				 ret, extra_dbg ? extra_dbg : "");
+>> > +			goto err_irq;
+> I am afraid you need to tear down the resources allocated by vfio_platform_irq_init. 
 > 
-> Besides Reviewed-by: Eric Auger <eric.auger@redhat.com>
+> Best Regards
+> 
+> Eric
 
-thanks, done. I'll respin with your request.
+I added this to the error path and replaced the goto above with err_rst.
+
++err_rst:
++        vfio_platform_irq_cleanup(vdev);
+err_irq:
+        vfio_platform_regions_cleanup(vdev);
 
 -- 
 Sinan Kaya
