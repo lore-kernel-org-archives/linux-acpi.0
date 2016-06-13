@@ -1,121 +1,77 @@
 From: Tomasz Nowicki <tn@semihalf.com>
-Subject: [PATCH V6 3/7] irqchip/gicv3-its: Cleanup for ITS domain initialization
-Date: Mon, 13 Jun 2016 16:41:09 +0200
-Message-ID: <1465828873-23498-4-git-send-email-tn@semihalf.com>
+Subject: [PATCH V6 2/7] PCI/MSI: Setup MSI domain on a per-devices basis using
+ IORT ACPI table
+Date: Mon, 13 Jun 2016 16:41:08 +0200
+Message-ID: <1465828873-23498-3-git-send-email-tn@semihalf.com>
 References: <1465828873-23498-1-git-send-email-tn@semihalf.com>
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-lf0-f41.google.com ([209.85.215.41]:35364 "EHLO
-	mail-lf0-f41.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1424260AbcFMOlv (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 13 Jun 2016 10:41:51 -0400
-Received: by mail-lf0-f41.google.com with SMTP id u74so85931721lff.2
-        for <linux-acpi@vger.kernel.org>; Mon, 13 Jun 2016 07:41:50 -0700 (PDT)
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
 In-Reply-To: <1465828873-23498-1-git-send-email-tn@semihalf.com>
-Sender: linux-acpi-owner@vger.kernel.org
-List-Id: linux-acpi@vger.kernel.org
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
 To: marc.zyngier@arm.com, tglx@linutronix.de, jason@lakedaemon.net, rjw@rjwysocki.net, bhelgaas@google.com, lorenzo.pieralisi@arm.com, robert.richter@caviumnetworks.com, shijie.huang@arm.com, Suravee.Suthikulpanit@amd.com, hanjun.guo@linaro.org
-Cc: al.stone@linaro.org, mw@semihalf.com, graeme.gregory@linaro.org, Catalin.Marinas@arm.com, will.deacon@arm.com, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org, ddaney.cavm@gmail.com, okaya@codeaurora.org, andrea.gallo@linaro.org, linux-pci@vger.kernel.org, Tomasz Nowicki <tn@semihalf.com>
+Cc: al.stone@linaro.org, graeme.gregory@linaro.org, Catalin.Marinas@arm.com, will.deacon@arm.com, linux-kernel@vger.kernel.org, okaya@codeaurora.org, linux-acpi@vger.kernel.org, ddaney.cavm@gmail.com, linux-pci@vger.kernel.org, Tomasz Nowicki <tn@semihalf.com>, mw@semihalf.com, andrea.gallo@linaro.org, linux-arm-kernel@lists.infradead.org
+List-Id: linux-acpi@vger.kernel.org
 
-There is no point to initialize ITS without having msi-controller
-property in corresponding DT node. However, its_probe is checking
-msi-controller presence at the end, so we can save our time and do that
-check prior to its_probe call. Also, for the code clarity purpose,
-we put domain initialization to separate function.
+It is possible to provide information about which MSI controller to
+use on a per-device basis for DT. This patch supply this with ACPI support.
+
+Currently, IORT is the only one ACPI table which can provide such mapping.
+In order to plug IORT into MSI infrastructure we are adding ACPI
+equivalents for finding PCI device domain and its RID translation
+(pci_msi_domain_get_msi_rid and pci_msi_domain_get_msi_rid calls).
 
 Signed-off-by: Tomasz Nowicki <tn@semihalf.com>
-Acked-by: Marc Zyngier <marc.zyngier@arm.com>
 ---
- drivers/irqchip/irq-gic-v3-its.c | 57 ++++++++++++++++++++++++----------------
- 1 file changed, 34 insertions(+), 23 deletions(-)
+ drivers/pci/msi.c | 11 ++++++++---
+ 1 file changed, 8 insertions(+), 3 deletions(-)
 
-diff --git a/drivers/irqchip/irq-gic-v3-its.c b/drivers/irqchip/irq-gic-v3-its.c
-index 5eb1f9e..43d32fc 100644
---- a/drivers/irqchip/irq-gic-v3-its.c
-+++ b/drivers/irqchip/irq-gic-v3-its.c
-@@ -1507,13 +1507,37 @@ static void its_enable_quirks(struct its_node *its)
- 	gic_enable_quirks(iidr, its_quirks, its);
+diff --git a/drivers/pci/msi.c b/drivers/pci/msi.c
+index a080f44..1d45e81 100644
+--- a/drivers/pci/msi.c
++++ b/drivers/pci/msi.c
+@@ -18,6 +18,7 @@
+ #include <linux/smp.h>
+ #include <linux/errno.h>
+ #include <linux/io.h>
++#include <linux/iort.h>
+ #include <linux/slab.h>
+ #include <linux/irqdomain.h>
+ #include <linux/of_irq.h>
+@@ -1364,8 +1365,8 @@ u32 pci_msi_domain_get_msi_rid(struct irq_domain *domain, struct pci_dev *pdev)
+ 	pci_for_each_dma_alias(pdev, get_msi_id_cb, &rid);
+ 
+ 	of_node = irq_domain_get_of_node(domain);
+-	if (of_node)
+-		rid = of_msi_map_rid(&pdev->dev, of_node, rid);
++	rid = of_node ? of_msi_map_rid(&pdev->dev, of_node, rid) :
++			iort_msi_map_rid(&pdev->dev, rid);
+ 
+ 	return rid;
  }
- 
-+static int its_init_domain(struct device_node *node, struct its_node *its,
-+			   struct irq_domain *parent)
-+{
-+	struct irq_domain *inner_domain;
-+	struct msi_domain_info *info;
-+
-+	info = kzalloc(sizeof(*info), GFP_KERNEL);
-+	if (!info)
-+		return -ENOMEM;
-+
-+	inner_domain = irq_domain_add_tree(node, &its_domain_ops, its);
-+	if (!inner_domain) {
-+		kfree(info);
-+		return -ENOMEM;
-+	}
-+
-+	inner_domain->parent = parent;
-+	inner_domain->bus_token = DOMAIN_BUS_NEXUS;
-+	info->ops = &its_msi_domain_ops;
-+	info->data = its;
-+	inner_domain->host_data = info;
-+
-+	return 0;
-+}
-+
- static int __init its_probe(struct device_node *node,
- 			    struct irq_domain *parent)
+@@ -1381,9 +1382,13 @@ u32 pci_msi_domain_get_msi_rid(struct irq_domain *domain, struct pci_dev *pdev)
+  */
+ struct irq_domain *pci_msi_get_device_domain(struct pci_dev *pdev)
  {
- 	struct resource res;
- 	struct its_node *its;
- 	void __iomem *its_base;
--	struct irq_domain *inner_domain;
- 	u32 val;
- 	u64 baser, tmp;
- 	int err;
-@@ -1605,28 +1629,9 @@ static int __init its_probe(struct device_node *node,
- 	writeq_relaxed(0, its->base + GITS_CWRITER);
- 	writel_relaxed(GITS_CTLR_ENABLE, its->base + GITS_CTLR);
++	struct irq_domain *dom;
+ 	u32 rid = 0;
  
--	if (of_property_read_bool(node, "msi-controller")) {
--		struct msi_domain_info *info;
--
--		info = kzalloc(sizeof(*info), GFP_KERNEL);
--		if (!info) {
--			err = -ENOMEM;
--			goto out_free_tables;
--		}
--
--		inner_domain = irq_domain_add_tree(node, &its_domain_ops, its);
--		if (!inner_domain) {
--			err = -ENOMEM;
--			kfree(info);
--			goto out_free_tables;
--		}
--
--		inner_domain->parent = parent;
--		inner_domain->bus_token = DOMAIN_BUS_NEXUS;
--		info->ops = &its_msi_domain_ops;
--		info->data = its;
--		inner_domain->host_data = info;
--	}
-+	err = its_init_domain(node, its, parent);
-+	if (err)
-+		goto out_free_tables;
- 
- 	spin_lock(&its_lock);
- 	list_add(&its->entry, &its_nodes);
-@@ -1677,6 +1682,12 @@ int __init its_init(struct device_node *node, struct rdists *rdists,
- 
- 	for (np = of_find_matching_node(node, its_device_id); np;
- 	     np = of_find_matching_node(np, its_device_id)) {
-+		if (!of_property_read_bool(np, "msi-controller")) {
-+			pr_warn("%s: no msi-controller property, ITS ignored\n",
-+				np->full_name);
-+			continue;
-+		}
-+
- 		its_probe(np, parent_domain);
- 	}
- 
+ 	pci_for_each_dma_alias(pdev, get_msi_id_cb, &rid);
+-	return of_msi_map_get_device_domain(&pdev->dev, rid);
++	dom = of_msi_map_get_device_domain(&pdev->dev, rid);
++	if (!dom)
++		dom = iort_get_device_domain(&pdev->dev, rid);
++	return dom;
+ }
+ #endif /* CONFIG_PCI_MSI_IRQ_DOMAIN */
 -- 
 1.9.1
-
