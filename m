@@ -1,62 +1,75 @@
-From: Sudeep Holla <sudeep.holla@arm.com>
-Subject: Re: [PATCH v5 4/5] arm64: add support for ACPI Low Power Idle(LPI)
-Date: Mon, 13 Jun 2016 10:40:20 +0100
-Message-ID: <575E7F84.2000106@arm.com>
-References: <1462981062-24909-1-git-send-email-sudeep.holla@arm.com>
- <1462981062-24909-5-git-send-email-sudeep.holla@arm.com>
- <DF4PR84MB0041D17321244DFB84979A84D9530@DF4PR84MB0041.NAMPRD84.PROD.OUTLOOK.COM>
+From: Pali =?utf-8?B?Um9ow6Fy?= <pali.rohar@gmail.com>
+Subject: Re: [v5] i2c: i801: Allow ACPI SystemIO OpRegion to conflict with
+ PCI BAR
+Date: Mon, 13 Jun 2016 11:45:00 +0200
+Message-ID: <20160613094500.GY29844@pali>
+References: <1463990658-53854-1-git-send-email-mika.westerberg@linux.intel.com>
+ <20160608162913.GA24234@mail.corp.redhat.com>
+ <20160613111946.54779d0d@endymion>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <DF4PR84MB0041D17321244DFB84979A84D9530@DF4PR84MB0041.NAMPRD84.PROD.OUTLOOK.COM>
-Sender: linux-kernel-owner@vger.kernel.org
-To: "Sajjan, Vikas C" <vikas.cha.sajjan@hpe.com>
-Cc: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Sudeep Holla <sudeep.holla@arm.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "Lakshminarasimha, Sunil Vishwanathpur" <sunil.vl@hpe.com>, Prashanth Prakash <pprakash@codeaurora.org>, Ashwin Chaugule <ashwin.chaugule@linaro.org>, Al Stone <al.stone@linaro.org>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Mark Rutland <mark.rutland@arm.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-wm0-f68.google.com ([74.125.82.68]:34823 "EHLO
+	mail-wm0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S964824AbcFMJpF (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 13 Jun 2016 05:45:05 -0400
+Content-Disposition: inline
+In-Reply-To: <20160613111946.54779d0d@endymion>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Jean Delvare <jdelvare@suse.de>
+Cc: Benjamin Tissoires <benjamin.tissoires@redhat.com>, Mika Westerberg <mika.westerberg@linux.intel.com>, Wolfram Sang <wsa@the-dreams.de>, Jarkko Nikula <jarkko.nikula@linux.intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Andy Lutomirski <luto@kernel.org>, Mario Limonciello <mario_limonciello@dell.com>, Matt Fleming <matt@codeblueprint.co.uk>, linux-i2c@vger.kernel.org, linux-acpi@vger.kernel.org
 
+On Monday 13 June 2016 11:19:46 Jean Delvare wrote:
+> Hi Benjamin,
+>=20
+> On Wed, 8 Jun 2016 18:29:13 +0200, Benjamin Tissoires wrote:
+> > >  static int i801_probe(struct pci_dev *dev, const struct pci_devi=
+ce_id *id)
+> > >  {
+> > >  	unsigned char temp;
+> > > @@ -1277,6 +1368,7 @@ static int i801_probe(struct pci_dev *dev, =
+const struct pci_device_id *id)
+> > >  	priv->adapter.dev.parent =3D &dev->dev;
+> > >  	ACPI_COMPANION_SET(&priv->adapter.dev, ACPI_COMPANION(&dev->dev=
+));
+> > >  	priv->adapter.retries =3D 3;
+> > > +	mutex_init(&priv->acpi_lock);
+> > > =20
+> > >  	priv->pci_dev =3D dev;
+> > >  	switch (dev->device) {
+> > > @@ -1339,10 +1431,9 @@ static int i801_probe(struct pci_dev *dev,=
+ const struct pci_device_id *id)
+> > >  		return -ENODEV;
+> > >  	}
+> > > =20
+> > > -	err =3D acpi_check_resource_conflict(&dev->resource[SMBBAR]);
+> > > -	if (err) {
+> > > +	err =3D i801_acpi_probe(priv);
+> > > +	if (err)
+> > >  		return -ENODEV;
+> > > -	}
+> >=20
+> > I'd say that once this has been set, we need to call
+> > acpi_remove_address_space_handler() in case of failure later (in th=
+e 2
+> > returns after).
+>=20
+> Good catch, sorry for missing it during my review.
+>=20
+> The first error return can probably be left unchanged by calling
+> i801_acpi_probe() after it rather than before. The second will need a
+> call to i801_acpi_remove(priv) for sure.
 
+Maybe we should call acpi_remove_address_space_handler() after first
+ACPI access to driver?
 
-On 13/06/16 05:47, Sajjan, Vikas C wrote:
-> Hi Sudeep,
->
-
-[...]
-
-> --- a/drivers/firmware/psci.c
-> +++ b/drivers/firmware/psci.c
-> @@ -13,6 +13,7 @@
->
->   #define pr_fmt(fmt) "psci: " fmt
->
-> +#include <linux/acpi.h>
->   #include <linux/arm-smccc.h>
->   #include <linux/cpuidle.h>
->   #include <linux/errno.h>
-> @@ -310,11 +311,66 @@ static int psci_dt_cpu_init_idle(struct device_node *cpu_node, int cpu)
->   	return ret;
->   }
->
-> +#ifdef CONFIG_ACPI
-> +#include <acpi/processor.h>
-> +
-> +static int __maybe_unused psci_acpi_cpu_init_idle(unsigned int cpu) {
-> +	int i, count;
-> +	u32 *psci_states;
-> +	struct acpi_processor *pr;
-> +	struct acpi_lpi_state *lpi;
-> +
-> +	pr = per_cpu(processors, cpu);
-> +	if (unlikely(!pr || !pr->flags.has_lpi))
->
-> Any particular reason for _not_ considering CST flag here.
-> Or you are planning to add CST support in some other patch set.
->
-
-Are you referring the old C-state objects ? We don't support them on
-ARM64. Only LPIs are support. The ARM FFH is not defined for CST, only
-for LPIs.
-
--- 
-Regards,
-Sudeep
+--=20
+Pali Roh=C3=A1r
+pali.rohar@gmail.com
+--
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
