@@ -1,340 +1,45 @@
-From: Duc Dang <dhdang@apm.com>
-Subject: Re: [RFC PATCH V2 1/2] ACPI/PCI: Match PCI config space accessors
- against platfrom specific ECAM quirks
-Date: Tue, 14 Jun 2016 10:43:37 -0700
-Message-ID: <CADaLND=q6zLA+Z7sDi5Vjv7-5VnFYbnpdKbxJv0HceCs96ccfQ@mail.gmail.com>
-References: <1465822923-33599-1-git-send-email-liudongdong3@huawei.com>
- <1465822923-33599-2-git-send-email-liudongdong3@huawei.com>
- <575ED57F.6050503@codeaurora.org> <CADaLNDkfKxxXWmG3eAawH1H=B+4ia6ZYh41anjTuOdTWGbhfNg@mail.gmail.com>
- <575F9B4D.8080501@huawei.com> <CADaLND=esW9rwrfdKtAvkyPhCs4F9hMH9LDY4DWTpOv0ZgoT9w@mail.gmail.com>
- <575FD253.3070508@huawei.com> <575FEFF1.9020105@semihalf.com>
+From: Will Deacon <will.deacon@arm.com>
+Subject: Re: [RFC PATCH v2 09/15] drivers: iommu: arm-smmu-v3: split probe
+ functions into DT/generic portions
+Date: Tue, 14 Jun 2016 19:09:16 +0100
+Message-ID: <20160614180916.GH16531@arm.com>
+References: <1465306270-27076-1-git-send-email-lorenzo.pieralisi@arm.com>
+ <1465306270-27076-10-git-send-email-lorenzo.pieralisi@arm.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-vk0-f51.google.com ([209.85.213.51]:34935 "EHLO
-	mail-vk0-f51.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751590AbcFNRoI convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 14 Jun 2016 13:44:08 -0400
-Received: by mail-vk0-f51.google.com with SMTP id j2so55182921vkg.2
-        for <linux-acpi@vger.kernel.org>; Tue, 14 Jun 2016 10:44:08 -0700 (PDT)
-In-Reply-To: <575FEFF1.9020105@semihalf.com>
+Received: from foss.arm.com ([217.140.101.70]:60721 "EHLO foss.arm.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752541AbcFNSJW (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 14 Jun 2016 14:09:22 -0400
+Content-Disposition: inline
+In-Reply-To: <1465306270-27076-10-git-send-email-lorenzo.pieralisi@arm.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Tomasz Nowicki <tn@semihalf.com>
-Cc: Dongdong Liu <liudongdong3@huawei.com>, Christopher Covington <cov@codeaurora.org>, Bjorn Helgaas <helgaas@kernel.org>, Arnd Bergmann <arnd@arndb.de>, Will Deacon <will.deacon@arm.com>, Catalin Marinas <catalin.marinas@arm.com>, Rafael Wysocki <rafael@kernel.org>, Hanjun Guo <hanjun.guo@linaro.org>, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, okaya@codeaurora.org, Jayachandran C <jchandra@broadcom.com>, robert.richter@caviumnetworks.com, Marcin Wojtas <mw@semihalf.com>, Liviu Dudau <Liviu.Dudau@arm.com>, David Daney <ddaney@caviumnetworks.com>, Yijing Wang <wangyijing@huawei.com>, Suravee Suthikulpanit <Suravee.Suthikulpanit@amd.com>, Mark Salter <msalter@redhat.com>, linux-pci@vger.kernel.org, linux-arm <linux-arm-kernel@lists.infradead.org>, linux-acpi@vger.kernel.org, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linaro-acpi@lists.linaro.org, Jon
+To: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+Cc: iommu@lists.linux-foundation.org, Hanjun Guo <hanjun.guo@linaro.org>, Robin Murphy <robin.murphy@arm.com>, Joerg Roedel <joro@8bytes.org>, Marc Zyngier <marc.zyngier@arm.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Tomasz Nowicki <tn@semihalf.com>, Jon Masters <jcm@redhat.com>, Sinan Kaya <okaya@codeaurora.org>, linux-acpi@vger.kernel.org, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-On Tue, Jun 14, 2016 at 4:52 AM, Tomasz Nowicki <tn@semihalf.com> wrote=
-:
-> On 14.06.2016 11:45, Dongdong Liu wrote:
->>
->> Hi Duc
->>
->> =E5=9C=A8 2016/6/14 17:00, Duc Dang =E5=86=99=E9=81=93:
->>>
->>> On Mon, Jun 13, 2016 at 10:51 PM, Dongdong Liu
->>> <liudongdong3@huawei.com> wrote:
->>>>
->>>> Hi Duc
->>>>
->>>> =E5=9C=A8 2016/6/14 4:57, Duc Dang =E5=86=99=E9=81=93:
->>>>>
->>>>>
->>>>> On Mon, Jun 13, 2016 at 8:47 AM, Christopher Covington
->>>>> <cov@codeaurora.org> wrote:
->>>>>>
->>>>>>
->>>>>> Hi Dongdong,
->>>>>>
->>>>>> On 06/13/2016 09:02 AM, Dongdong Liu wrote:
->>>>>>>
->>>>>>>
->>>>>>> diff --git a/drivers/acpi/pci_mcfg.c b/drivers/acpi/pci_mcfg.c
->>>>>>> index d3c3e85..49612b3 100644
->>>>>>> --- a/drivers/acpi/pci_mcfg.c
->>>>>>> +++ b/drivers/acpi/pci_mcfg.c
->>>>>>> @@ -22,6 +22,10 @@
->>>>>>>    #include <linux/kernel.h>
->>>>>>>    #include <linux/pci.h>
->>>>>>>    #include <linux/pci-acpi.h>
->>>>>>> +#include <linux/pci-ecam.h>
->>>>>>> +
->>>>>>> +/* Root pointer to the mapped MCFG table */
->>>>>>> +static struct acpi_table_mcfg *mcfg_table;
->>>>>>>
->>>>>>>    /* Structure to hold entries from the MCFG table */
->>>>>>>    struct mcfg_entry {
->>>>>>> @@ -35,6 +39,38 @@ struct mcfg_entry {
->>>>>>>    /* List to save mcfg entries */
->>>>>>>    static LIST_HEAD(pci_mcfg_list);
->>>>>>>
->>>>>>> +extern struct pci_cfg_fixup __start_acpi_mcfg_fixups[];
->>>>>>> +extern struct pci_cfg_fixup __end_acpi_mcfg_fixups[];
->>>>>>> +
->>>>>>> +struct pci_ecam_ops *pci_mcfg_get_ops(struct acpi_pci_root *ro=
-ot)
->>>>>>> +{
->>>>>>> +     int bus_num =3D root->secondary.start;
->>>>>>> +     int domain =3D root->segment;
->>>>>>> +     struct pci_cfg_fixup *f;
->>>>>>> +
->>>>>>> +     if (!mcfg_table)
->>>>>>> +             return &pci_generic_ecam_ops;
->>>>>>> +
->>>>>>> +     /*
->>>>>>> +      * Match against platform specific quirks and return
->>>>>>> corresponding
->>>>>>> +      * CAM ops.
->>>>>>> +      *
->>>>>>> +      * First match against PCI topology <domain:bus> then use
->>>>>>> OEM ID
->>>>>>> and
->>>>>>> +      * OEM revision from MCFG table standard header.
->>>>>>> +      */
->>>>>>> +     for (f =3D __start_acpi_mcfg_fixups; f < __end_acpi_mcfg_=
-fixups;
->>>>>>> f++) {
->>>>>>> +             if ((f->domain =3D=3D domain || f->domain =3D=3D
->>>>>>> PCI_MCFG_DOMAIN_ANY) &&
->>>>>>> +                 (f->bus_num =3D=3D bus_num || f->bus_num =3D=3D
->>>>>>> PCI_MCFG_BUS_ANY) &&
->>>>>>> +                 (!strncmp(f->oem_id, mcfg_table->header.oem_i=
-d,
->>>>>>> +                           ACPI_OEM_ID_SIZE)) &&
->>>>>>> +                 (!strncmp(f->oem_table_id,
->>>>>>> mcfg_table->header.oem_table_id,
->>>>>>> +                           ACPI_OEM_TABLE_ID_SIZE)))
->>>>>>
->>>>>>
->>>>>>
->>>>>> This would just be a small convenience, but if the character cou=
-nt
->>>>>> used
->>>>>> here were
->>>>>>
->>>>>> min(strlen(f->oem_id), ACPI_OEM_ID_SIZE)
->>>>>>
->>>>>> then the parameters to DECLARE_ACPI_MCFG_FIXUP macro could be
->>>>>> substrings
->>>>>> and
->>>>>> wouldn't need to be padded out to the full length.
->>>>>>
->>>>>>> +                     return f->ops;
->>>>>>> +     }
->>>>>>> +     /* No quirks, use ECAM */
->>>>>>> +     return &pci_generic_ecam_ops;
->>>>>>> +}
->>>>>>
->>>>>>
->>>>>>
->>>>>>> diff --git a/include/linux/pci-acpi.h b/include/linux/pci-acpi.=
-h
->>>>>>> index 7d63a66..088a1da 100644
->>>>>>> --- a/include/linux/pci-acpi.h
->>>>>>> +++ b/include/linux/pci-acpi.h
->>>>>>> @@ -25,6 +25,7 @@ static inline acpi_status
->>>>>>> pci_acpi_remove_pm_notifier(struct acpi_device *dev)
->>>>>>>    extern phys_addr_t acpi_pci_root_get_mcfg_addr(acpi_handle
->>>>>>> handle);
->>>>>>>
->>>>>>>    extern phys_addr_t pci_mcfg_lookup(u16 domain, struct resour=
-ce
->>>>>>> *bus_res);
->>>>>>> +extern struct pci_ecam_ops *pci_mcfg_get_ops(struct acpi_pci_r=
-oot
->>>>>>> *root);
->>>>>>>
->>>>>>>    static inline acpi_handle acpi_find_root_bridge_handle(struc=
-t
->>>>>>> pci_dev
->>>>>>> *pdev)
->>>>>>>    {
->>>>>>> @@ -72,6 +73,25 @@ struct acpi_pci_root_ops {
->>>>>>>         int (*prepare_resources)(struct acpi_pci_root_info *inf=
-o);
->>>>>>>    };
->>>>>>>
->>>>>>> +struct pci_cfg_fixup {
->>>>>>> +     struct pci_ecam_ops *ops;
->>>>>>> +     char *oem_id;
->>>>>>> +     char *oem_table_id;
->>>>>>> +     int domain;
->>>>>>> +     int bus_num;
->>>>>>> +};
->>>>>>> +
->>>>>>> +#define PCI_MCFG_DOMAIN_ANY  -1
->>>>>>> +#define PCI_MCFG_BUS_ANY     -1
->>>>>>> +
->>>>>>> +/* Designate a routine to fix up buggy MCFG */
->>>>>>> +#define DECLARE_ACPI_MCFG_FIXUP(ops, oem_id, oem_table_id, dom=
-,
->>>>>>> bus) \
->>>>>>> +     static const struct
->>>>>>> pci_cfg_fixup                               \
->>>>>>> +
->>>>>>> __mcfg_fixup_##oem_id##oem_table_id##dom##bus                  =
- \
->>>>>>
->>>>>>
->>>>>>
->>>>>> I'm not entirely sure that this is the right fix--I'm pretty bli=
-ndly
->>>>>> following a GCC documentation suggestion [1]--but removing the
->>>>>> first two
->>>>>> preprocessor concatenation operators "##" solved the following b=
-uild
->>>>>> error
->>>>>> for me.
->>>>>>
->>>>>> include/linux/pci-acpi.h:90:2: error: pasting "__mcfg_fixup_" an=
-d
->>>>>> ""QCOM"" does not give a valid preprocessing token
->>>>>>     __mcfg_fixup_##oem_id##oem_table_id##dom##bus   \
->>>>>
->>>>>
->>>>>
->>>>> I think the problem is gcc is not happy with quoted string when
->>>>> processing these tokens
->>>>> (""QCOM"", the extra "" are added by gcc). So should we not conca=
-t
->>>>> string tokens and
->>>>> use the fixup definition in v1 of this RFC:
->>>>> /* Designate a routine to fix up buggy MCFG */
->>>>> #define DECLARE_ACPI_MCFG_FIXUP(ops, oem_id, rev, dom,
->>>>> bus)             \
->>>>>           static const struct pci_cfg_fixup
->>>>> __mcfg_fixup_##system##dom##bus\
->>>>>            __used
->>>>> __attribute__((__section__(".acpi_fixup_mcfg"),         \
->>>>>                                   aligned((sizeof(void *)))))
->>>>> =3D           \
->>>>>           { ops, oem_id, rev, dom, bus };
->>>>
->>>>
->>>>
->>>> V1 fixup exist the redefinition error when compiling mutiple
->>>> DECLARE_ACPI_MCFG_FIXUP
->>>> with the same PCI_MCFG_DOMAIN_ANY and PCI_MCFG_BUS_ANY.
->>>>
->>>> #define EFI_ACPI_HISI_OEM_ID "HISI"
->>>> #define EFI_ACPI_HISI_D02_OEM_TABLE_ID "HISI-D02"
->>>> #define EFI_ACPI_HISI_D03_OEM_TABLE_ID "HISI-D03"
->>>>
->>>> DECLARE_ACPI_MCFG_FIXUP(&hisi_pcie_ecam_ops, EFI_ACPI_HISI_OEM_ID,
->>>>         EFI_ACPI_HISI_D02_OEM_TABLE_ID, PCI_MCFG_DOMAIN_ANY,
->>>> PCI_MCFG_BUS_ANY);
->>>>
->>>> DECLARE_ACPI_MCFG_FIXUP(&hisi_pcie_ecam_ops, EFI_ACPI_HISI_OEM_ID,
->>>>         EFI_ACPI_HISI_D03_OEM_TABLE_ID, PCI_MCFG_DOMAIN_ANY,
->>>> PCI_MCFG_BUS_ANY);
->>>>
->>>> In file included from drivers/pci/host/pcie-hisi-acpi.c:15:0:
->>>> include/linux/pci-acpi.h:98:43: error: redefinition of
->>>> '__mcfg_fixup_systemPCI_MCFG_DOMAIN_ANYPCI_MCFG_BUS_ANY'
->>>>           static const struct pci_cfg_fixup
->>>> __mcfg_fixup_##system##dom##bus\
->>>>                                             ^
->>>> drivers/pci/host/pcie-hisi-acpi.c:215:1: note: in expansion of mac=
-ro
->>>> 'DECLARE_ACPI_MCFG_FIXUP'
->>>>   DECLARE_ACPI_MCFG_FIXUP(&hisi_pcie_ecam_ops, EFI_ACPI_HISI_OEM_I=
-D,
->>>>   ^
->>>> include/linux/pci-acpi.h:98:43: note: previous definition of
->>>> '__mcfg_fixup_systemPCI_MCFG_DOMAIN_ANYPCI_MCFG_BUS_ANY' was here
->>>>           static const struct pci_cfg_fixup
->>>> __mcfg_fixup_##system##dom##bus\
->>>>                                             ^
->>>> drivers/pci/host/pcie-hisi-acpi.c:212:1: note: in expansion of mac=
-ro
->>>> 'DECLARE_ACPI_MCFG_FIXUP'
->>>>
->>>>
->>>> V2 fixup can resolve the redefinition error, but need to use macro=
-=2E
->>>> We can see that the name of macro is not replace with it's value i=
-n
->>>>
->>>> "__mcfg_fixup_EFI_ACPI_HISI_OEM_IDEFI_ACPI_HISI_D03_OEM_TABLE_IDPC=
-I_MCFG_DOMAIN_ANYPCI_MCFG_BUS_ANY".
->>>>
->>>>
->>>> Any good idea is appreciated.
->>>
->>> Hmmm.
->>>
->>> I was testing # op and using min_t to get the min-len when doing
->>> strncmp similar to Chris' suggestion (using min_t avoids type
->>> warnings)
->>>
->>> /* Designate a routine to fix up buggy MCFG */
->>> #define DECLARE_ACPI_MCFG_FIXUP(ops, oem_id, oem_table_id, rev, dom=
-,
->>> bus) \
->>>          static const struct pci_cfg_fixup
->>> __mcfg_fixup##oem_id##oem_table_id##rev##dom##bus\
->>>           __used
->>> __attribute__((__section__(".acpi_fixup_mcfg"),         \
->>>                                  aligned((sizeof(void *)))))
->>> =3D           \
->>
->>
->>>          { ops, #oem_id, #oem_table_id, rev, dom, bus };
->>
->>
->>
->> This should change to { ops, oem_id, oem_table_id, rev, dom, bus };
->> =E2=80=98#=E2=80=99 is not need.
->
->
-> Both solutions are OK.
->
-> 1. This works when we use macros as OEM ID and OEM table ID:
->
-> #define DECLARE_ACPI_MCFG_FIXUP(ops, oem_id, oem_table_id, rev, dom, =
-bus)\
->         static const struct pci_cfg_fixup                            =
-   \
->                 __mcfg_fixup_##oem_id##oem_table_id##dom##bus        =
-   \
->          __used __attribute__((__section__(".acpi_fixup_mcfg"),      =
-   \
->                                 aligned((sizeof(void *))))) =3D      =
-     \
->         { ops, oem_id, oem_table_id, rev, dom, bus };
->
-> #define OEM_ID "XXXXXX"
-> #define OEM_TABLE_ID "YYYYYYYY"
->
-> DECLARE_ACPI_MCFG_FIXUP(&quirk_ops, OEM_ID, OEM_TABLE_ID, 1,
-> PCI_MCFG_DOMAIN_ANY, PCI_MCFG_BUS_ANY);
->
-> 2. This works w/o macro which means we need to define OEM ID and OEM =
-as
-> string w/o quotation marks:
->
-> #define DECLARE_ACPI_MCFG_FIXUP(ops, oem_id, oem_table_id, rev, dom, =
-bus)\
-> static const struct pci_cfg_fixup \
-> __mcfg_fixup_##oem_id##oem_table_id##dom##bus \
-> __used __attribute__((__section__(".acpi_fixup_mcfg"), \
-> aligned((sizeof(void *))))) =3D \
-> { ops, #oem_id, #oem_table_id, rev, dom, bus };
->
-> DECLARE_ACPI_MCFG_FIXUP(&quirk_ops, XXXXXX, YYYYYYYY, 1,
-> PCI_MCFG_DOMAIN_ANY, PCI_MCFG_BUS_ANY);
+On Tue, Jun 07, 2016 at 02:31:04PM +0100, Lorenzo Pieralisi wrote:
+> Current ARM SMMUv3 probe functions intermingle HW and DT probing in the
+> initialization functions to detect and programme the ARM SMMU v3 driver
+> features. In order to allow probing the ARM SMMUv3 with other firmwares
+> than DT, this patch splits the ARM SMMUv3 init functions into DT and HW
+> specific portions so that other FW interfaces (ie ACPI) can reuse the HW
+> probing functions and skip the DT portion accordingly.
+> 
+> This patch implements no functional change, only code reshuffling.
+> 
+> Signed-off-by: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+> Cc: Will Deacon <will.deacon@arm.com>
+> Cc: Hanjun Guo <hanjun.guo@linaro.org>
+> Cc: Robin Murphy <robin.murphy@arm.com>
+> Cc: Joerg Roedel <joro@8bytes.org>
+> ---
+>  drivers/iommu/arm-smmu-v3.c | 63 +++++++++++++++++++++++++++++++++++++--------
+>  1 file changed, 52 insertions(+), 11 deletions(-)
 
-In case of oem_id and oem_table_id have special characters ("HISI-D02"
-as an example), #2 will have problem unless we use macro definitions
-for them.
+This looks sensible to me.
 
->
-> Personally I think that (2) is better, no need for macro definitions.
-> Tomasz
-Regards,
-Duc Dang
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Acked-by: Will Deacon <will.deacon@arm.com>
+
+Will
