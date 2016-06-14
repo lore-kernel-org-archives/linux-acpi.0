@@ -1,46 +1,45 @@
-From: Will Deacon <will.deacon@arm.com>
-Subject: Re: [PATCH v3 5/5] ACPI: ARM64: support for ACPI_TABLE_UPGRADE
-Date: Tue, 14 Jun 2016 17:41:16 +0100
-Message-ID: <20160614164116.GF16531@arm.com>
-References: <20160527171424.GG10909@e104818-lin.cambridge.arm.com>
- <20160602174910.30428-1-aleksey.makarov@linaro.org>
- <02dde480-cc01-6372-5baa-02ecf0037074@linaro.org>
+From: Sudeep Holla <sudeep.holla@arm.com>
+Subject: Re: [PATCH v6 2/5] ACPI / processor_idle: Add support for Low Power
+ Idle(LPI) states
+Date: Tue, 14 Jun 2016 17:47:40 +0100
+Message-ID: <5760352C.3000704@arm.com>
+References: <1465915719-8409-1-git-send-email-sudeep.holla@arm.com>
+ <1465915719-8409-3-git-send-email-sudeep.holla@arm.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from foss.arm.com ([217.140.101.70]:60107 "EHLO foss.arm.com"
+Received: from foss.arm.com ([217.140.101.70]:60159 "EHLO foss.arm.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751371AbcFNQlU (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 14 Jun 2016 12:41:20 -0400
-Content-Disposition: inline
-In-Reply-To: <02dde480-cc01-6372-5baa-02ecf0037074@linaro.org>
+	id S1751356AbcFNQro (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 14 Jun 2016 12:47:44 -0400
+In-Reply-To: <1465915719-8409-3-git-send-email-sudeep.holla@arm.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Aleksey Makarov <aleksey.makarov@linaro.org>
-Cc: Catalin Marinas <catalin.marinas@arm.com>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, Graeme Gregory <graeme.gregory@linaro.org>, Jon Masters <jcm@redhat.com>, "Zheng, Lv" <lv.zheng@intel.com>, Mark Rutland <mark.rutland@arm.com>
+To: "Rafael J . Wysocki" <rjw@rjwysocki.net>, linux-acpi@vger.kernel.org
+Cc: Sudeep Holla <sudeep.holla@arm.com>, Vikas Sajjan <vikas.cha.sajjan@hpe.com>, Sunil <sunil.vl@hpe.com>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Prashanth Prakash <pprakash@codeaurora.org>, Al Stone <al.stone@linaro.org>, Ashwin Chaugule <ashwin.chaugule@linaro.org>, linux-kernel@vger.kernel.org
 
-On Tue, Jun 14, 2016 at 06:51:19PM +0300, Aleksey Makarov wrote:
-> 
-> On 06/02/2016 08:49 PM, Aleksey Makarov wrote:
-> > From: Jon Masters <jcm@redhat.com>
-> > 
-> > This patch adds support for ACPI_TABLE_UPGRADE for ARM64
-> 
-> Hi Catalin, Will,
-> 
-> Can you review this v3 patch please?  I changed PFN_PHYS(max_pfn) to
-> MEMBLOCK_ALLOC_ACCESSIBLE.
 
-I'm inclined to agree with Mark that this is something that should be
-done by the bootloader (e.g. GRUB) if it's needed, rather than something
-we should support in the kernel. Jon pitched the feature as a developer
-aid for triaging problems, so it's not like we're in a state where some
-widely available machine cannot currently boot Linux without this.
 
-Having said that, the patch isn't exactly invasive and I suspect it's
-only a matter of time before we will actually want something like this.
-So I've come full circle on this patch:
+On 14/06/16 15:48, Sudeep Holla wrote:
+> ACPI 6.0 introduced an optional object _LPI that provides an alternate
+> method to describe Low Power Idle states. It defines the local power
+> states for each node in a hierarchical processor topology. The OSPM can
+> use _LPI object to select a local power state for each level of processor
+> hierarchy in the system. They used to produce a composite power state
+> request that is presented to the platform by the OSPM.
+>
+> Since multiple processors affect the idle state for any non-leaf hierarchy
+> node, coordination of idle state requests between the processors is
+> required. ACPI supports two different coordination schemes: Platform
+> coordinated and  OS initiated.
+>
+> This patch adds initial support for Platform coordination scheme of LPI.
+>
 
-Acked-by: Will Deacon <will.deacon@arm.com>
+I seem to have sent a stale version of this patch, will send an updated
+version of this patch alone. Please ignore this one.
 
-Will
+-- 
+Regards,
+Sudeep
