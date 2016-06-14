@@ -1,85 +1,340 @@
-From: Aaron Durbin <adurbin@google.com>
-Subject: Re: ACPI device using sub-resource of PCI device
-Date: Tue, 14 Jun 2016 10:04:33 -0700
-Message-ID: <CAE2855uR=wkxb2xzM4OcG1czffrBXR=1RX8Ms0AfVJ8hzDnUjQ@mail.gmail.com>
-References: <CAE2855tofJV=HV2dYuC+1=pi2mb942zrRF7f0+wqxPPay44RGA@mail.gmail.com>
- <CAJZ5v0hh1ve=w590D4XncheNVsrmr7f6k1msdr+dzT4UoUa+JQ@mail.gmail.com> <CAE2855vrhS7gKGFWEjZy-Hp2S8fNuJskG=WWDSuiBLhq_tDh8A@mail.gmail.com>
+From: Duc Dang <dhdang@apm.com>
+Subject: Re: [RFC PATCH V2 1/2] ACPI/PCI: Match PCI config space accessors
+ against platfrom specific ECAM quirks
+Date: Tue, 14 Jun 2016 10:43:37 -0700
+Message-ID: <CADaLND=q6zLA+Z7sDi5Vjv7-5VnFYbnpdKbxJv0HceCs96ccfQ@mail.gmail.com>
+References: <1465822923-33599-1-git-send-email-liudongdong3@huawei.com>
+ <1465822923-33599-2-git-send-email-liudongdong3@huawei.com>
+ <575ED57F.6050503@codeaurora.org> <CADaLNDkfKxxXWmG3eAawH1H=B+4ia6ZYh41anjTuOdTWGbhfNg@mail.gmail.com>
+ <575F9B4D.8080501@huawei.com> <CADaLND=esW9rwrfdKtAvkyPhCs4F9hMH9LDY4DWTpOv0ZgoT9w@mail.gmail.com>
+ <575FD253.3070508@huawei.com> <575FEFF1.9020105@semihalf.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-io0-f181.google.com ([209.85.223.181]:33774 "EHLO
-	mail-io0-f181.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751153AbcFNREf (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 14 Jun 2016 13:04:35 -0400
-Received: by mail-io0-f181.google.com with SMTP id d2so241202iof.0
-        for <linux-acpi@vger.kernel.org>; Tue, 14 Jun 2016 10:04:35 -0700 (PDT)
-In-Reply-To: <CAE2855vrhS7gKGFWEjZy-Hp2S8fNuJskG=WWDSuiBLhq_tDh8A@mail.gmail.com>
+Received: from mail-vk0-f51.google.com ([209.85.213.51]:34935 "EHLO
+	mail-vk0-f51.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751590AbcFNRoI convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 14 Jun 2016 13:44:08 -0400
+Received: by mail-vk0-f51.google.com with SMTP id j2so55182921vkg.2
+        for <linux-acpi@vger.kernel.org>; Tue, 14 Jun 2016 10:44:08 -0700 (PDT)
+In-Reply-To: <575FEFF1.9020105@semihalf.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rafael@kernel.org>
-Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>
+To: Tomasz Nowicki <tn@semihalf.com>
+Cc: Dongdong Liu <liudongdong3@huawei.com>, Christopher Covington <cov@codeaurora.org>, Bjorn Helgaas <helgaas@kernel.org>, Arnd Bergmann <arnd@arndb.de>, Will Deacon <will.deacon@arm.com>, Catalin Marinas <catalin.marinas@arm.com>, Rafael Wysocki <rafael@kernel.org>, Hanjun Guo <hanjun.guo@linaro.org>, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, okaya@codeaurora.org, Jayachandran C <jchandra@broadcom.com>, robert.richter@caviumnetworks.com, Marcin Wojtas <mw@semihalf.com>, Liviu Dudau <Liviu.Dudau@arm.com>, David Daney <ddaney@caviumnetworks.com>, Yijing Wang <wangyijing@huawei.com>, Suravee Suthikulpanit <Suravee.Suthikulpanit@amd.com>, Mark Salter <msalter@redhat.com>, linux-pci@vger.kernel.org, linux-arm <linux-arm-kernel@lists.infradead.org>, linux-acpi@vger.kernel.org, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linaro-acpi@lists.linaro.org, Jon
 
-On Wed, May 18, 2016 at 3:32 PM, Aaron Durbin <adurbin@google.com> wrote:
-> On Wed, May 18, 2016 at 4:25 PM, Rafael J. Wysocki <rafael@kernel.org> wrote:
->> On Wed, May 18, 2016 at 5:54 PM, Aaron Durbin <adurbin@google.com> wrote:
->>> Hi,
->>>
->>> We're currently running into a problem of resource conflicts with a
->>> PCI device and ACPI devices.
->>>
->>> [    0.243534] pci 0000:00:0d.0: can't claim BAR 0 [mem
->>> 0xd0000000-0xd0ffffff 64bit]: address conflict with INT3452:03 [mem
->>> 0xd0c00000-0xd0c03fff]
->>>
->>> The PCI BAR covers a large amount mmio resources, however, there are
->>> ACPI devices with their own HID (for probing) which uses resources
->>> that are a subset of the PCI BAR.
->>>
->>> Short of re-structuring the linux driver is there anything that can be
->>> done with ASL to properly have the ACPI device use a sub-resource of
->>> the PCI device during the ACPI/PCI probing?
+On Tue, Jun 14, 2016 at 4:52 AM, Tomasz Nowicki <tn@semihalf.com> wrote=
+:
+> On 14.06.2016 11:45, Dongdong Liu wrote:
 >>
->> Do you have an ACPI device object corresponding to the PCI device?
+>> Hi Duc
+>>
+>> =E5=9C=A8 2016/6/14 17:00, Duc Dang =E5=86=99=E9=81=93:
+>>>
+>>> On Mon, Jun 13, 2016 at 10:51 PM, Dongdong Liu
+>>> <liudongdong3@huawei.com> wrote:
+>>>>
+>>>> Hi Duc
+>>>>
+>>>> =E5=9C=A8 2016/6/14 4:57, Duc Dang =E5=86=99=E9=81=93:
+>>>>>
+>>>>>
+>>>>> On Mon, Jun 13, 2016 at 8:47 AM, Christopher Covington
+>>>>> <cov@codeaurora.org> wrote:
+>>>>>>
+>>>>>>
+>>>>>> Hi Dongdong,
+>>>>>>
+>>>>>> On 06/13/2016 09:02 AM, Dongdong Liu wrote:
+>>>>>>>
+>>>>>>>
+>>>>>>> diff --git a/drivers/acpi/pci_mcfg.c b/drivers/acpi/pci_mcfg.c
+>>>>>>> index d3c3e85..49612b3 100644
+>>>>>>> --- a/drivers/acpi/pci_mcfg.c
+>>>>>>> +++ b/drivers/acpi/pci_mcfg.c
+>>>>>>> @@ -22,6 +22,10 @@
+>>>>>>>    #include <linux/kernel.h>
+>>>>>>>    #include <linux/pci.h>
+>>>>>>>    #include <linux/pci-acpi.h>
+>>>>>>> +#include <linux/pci-ecam.h>
+>>>>>>> +
+>>>>>>> +/* Root pointer to the mapped MCFG table */
+>>>>>>> +static struct acpi_table_mcfg *mcfg_table;
+>>>>>>>
+>>>>>>>    /* Structure to hold entries from the MCFG table */
+>>>>>>>    struct mcfg_entry {
+>>>>>>> @@ -35,6 +39,38 @@ struct mcfg_entry {
+>>>>>>>    /* List to save mcfg entries */
+>>>>>>>    static LIST_HEAD(pci_mcfg_list);
+>>>>>>>
+>>>>>>> +extern struct pci_cfg_fixup __start_acpi_mcfg_fixups[];
+>>>>>>> +extern struct pci_cfg_fixup __end_acpi_mcfg_fixups[];
+>>>>>>> +
+>>>>>>> +struct pci_ecam_ops *pci_mcfg_get_ops(struct acpi_pci_root *ro=
+ot)
+>>>>>>> +{
+>>>>>>> +     int bus_num =3D root->secondary.start;
+>>>>>>> +     int domain =3D root->segment;
+>>>>>>> +     struct pci_cfg_fixup *f;
+>>>>>>> +
+>>>>>>> +     if (!mcfg_table)
+>>>>>>> +             return &pci_generic_ecam_ops;
+>>>>>>> +
+>>>>>>> +     /*
+>>>>>>> +      * Match against platform specific quirks and return
+>>>>>>> corresponding
+>>>>>>> +      * CAM ops.
+>>>>>>> +      *
+>>>>>>> +      * First match against PCI topology <domain:bus> then use
+>>>>>>> OEM ID
+>>>>>>> and
+>>>>>>> +      * OEM revision from MCFG table standard header.
+>>>>>>> +      */
+>>>>>>> +     for (f =3D __start_acpi_mcfg_fixups; f < __end_acpi_mcfg_=
+fixups;
+>>>>>>> f++) {
+>>>>>>> +             if ((f->domain =3D=3D domain || f->domain =3D=3D
+>>>>>>> PCI_MCFG_DOMAIN_ANY) &&
+>>>>>>> +                 (f->bus_num =3D=3D bus_num || f->bus_num =3D=3D
+>>>>>>> PCI_MCFG_BUS_ANY) &&
+>>>>>>> +                 (!strncmp(f->oem_id, mcfg_table->header.oem_i=
+d,
+>>>>>>> +                           ACPI_OEM_ID_SIZE)) &&
+>>>>>>> +                 (!strncmp(f->oem_table_id,
+>>>>>>> mcfg_table->header.oem_table_id,
+>>>>>>> +                           ACPI_OEM_TABLE_ID_SIZE)))
+>>>>>>
+>>>>>>
+>>>>>>
+>>>>>> This would just be a small convenience, but if the character cou=
+nt
+>>>>>> used
+>>>>>> here were
+>>>>>>
+>>>>>> min(strlen(f->oem_id), ACPI_OEM_ID_SIZE)
+>>>>>>
+>>>>>> then the parameters to DECLARE_ACPI_MCFG_FIXUP macro could be
+>>>>>> substrings
+>>>>>> and
+>>>>>> wouldn't need to be padded out to the full length.
+>>>>>>
+>>>>>>> +                     return f->ops;
+>>>>>>> +     }
+>>>>>>> +     /* No quirks, use ECAM */
+>>>>>>> +     return &pci_generic_ecam_ops;
+>>>>>>> +}
+>>>>>>
+>>>>>>
+>>>>>>
+>>>>>>> diff --git a/include/linux/pci-acpi.h b/include/linux/pci-acpi.=
+h
+>>>>>>> index 7d63a66..088a1da 100644
+>>>>>>> --- a/include/linux/pci-acpi.h
+>>>>>>> +++ b/include/linux/pci-acpi.h
+>>>>>>> @@ -25,6 +25,7 @@ static inline acpi_status
+>>>>>>> pci_acpi_remove_pm_notifier(struct acpi_device *dev)
+>>>>>>>    extern phys_addr_t acpi_pci_root_get_mcfg_addr(acpi_handle
+>>>>>>> handle);
+>>>>>>>
+>>>>>>>    extern phys_addr_t pci_mcfg_lookup(u16 domain, struct resour=
+ce
+>>>>>>> *bus_res);
+>>>>>>> +extern struct pci_ecam_ops *pci_mcfg_get_ops(struct acpi_pci_r=
+oot
+>>>>>>> *root);
+>>>>>>>
+>>>>>>>    static inline acpi_handle acpi_find_root_bridge_handle(struc=
+t
+>>>>>>> pci_dev
+>>>>>>> *pdev)
+>>>>>>>    {
+>>>>>>> @@ -72,6 +73,25 @@ struct acpi_pci_root_ops {
+>>>>>>>         int (*prepare_resources)(struct acpi_pci_root_info *inf=
+o);
+>>>>>>>    };
+>>>>>>>
+>>>>>>> +struct pci_cfg_fixup {
+>>>>>>> +     struct pci_ecam_ops *ops;
+>>>>>>> +     char *oem_id;
+>>>>>>> +     char *oem_table_id;
+>>>>>>> +     int domain;
+>>>>>>> +     int bus_num;
+>>>>>>> +};
+>>>>>>> +
+>>>>>>> +#define PCI_MCFG_DOMAIN_ANY  -1
+>>>>>>> +#define PCI_MCFG_BUS_ANY     -1
+>>>>>>> +
+>>>>>>> +/* Designate a routine to fix up buggy MCFG */
+>>>>>>> +#define DECLARE_ACPI_MCFG_FIXUP(ops, oem_id, oem_table_id, dom=
+,
+>>>>>>> bus) \
+>>>>>>> +     static const struct
+>>>>>>> pci_cfg_fixup                               \
+>>>>>>> +
+>>>>>>> __mcfg_fixup_##oem_id##oem_table_id##dom##bus                  =
+ \
+>>>>>>
+>>>>>>
+>>>>>>
+>>>>>> I'm not entirely sure that this is the right fix--I'm pretty bli=
+ndly
+>>>>>> following a GCC documentation suggestion [1]--but removing the
+>>>>>> first two
+>>>>>> preprocessor concatenation operators "##" solved the following b=
+uild
+>>>>>> error
+>>>>>> for me.
+>>>>>>
+>>>>>> include/linux/pci-acpi.h:90:2: error: pasting "__mcfg_fixup_" an=
+d
+>>>>>> ""QCOM"" does not give a valid preprocessing token
+>>>>>>     __mcfg_fixup_##oem_id##oem_table_id##dom##bus   \
+>>>>>
+>>>>>
+>>>>>
+>>>>> I think the problem is gcc is not happy with quoted string when
+>>>>> processing these tokens
+>>>>> (""QCOM"", the extra "" are added by gcc). So should we not conca=
+t
+>>>>> string tokens and
+>>>>> use the fixup definition in v1 of this RFC:
+>>>>> /* Designate a routine to fix up buggy MCFG */
+>>>>> #define DECLARE_ACPI_MCFG_FIXUP(ops, oem_id, rev, dom,
+>>>>> bus)             \
+>>>>>           static const struct pci_cfg_fixup
+>>>>> __mcfg_fixup_##system##dom##bus\
+>>>>>            __used
+>>>>> __attribute__((__section__(".acpi_fixup_mcfg"),         \
+>>>>>                                   aligned((sizeof(void *)))))
+>>>>> =3D           \
+>>>>>           { ops, oem_id, rev, dom, bus };
+>>>>
+>>>>
+>>>>
+>>>> V1 fixup exist the redefinition error when compiling mutiple
+>>>> DECLARE_ACPI_MCFG_FIXUP
+>>>> with the same PCI_MCFG_DOMAIN_ANY and PCI_MCFG_BUS_ANY.
+>>>>
+>>>> #define EFI_ACPI_HISI_OEM_ID "HISI"
+>>>> #define EFI_ACPI_HISI_D02_OEM_TABLE_ID "HISI-D02"
+>>>> #define EFI_ACPI_HISI_D03_OEM_TABLE_ID "HISI-D03"
+>>>>
+>>>> DECLARE_ACPI_MCFG_FIXUP(&hisi_pcie_ecam_ops, EFI_ACPI_HISI_OEM_ID,
+>>>>         EFI_ACPI_HISI_D02_OEM_TABLE_ID, PCI_MCFG_DOMAIN_ANY,
+>>>> PCI_MCFG_BUS_ANY);
+>>>>
+>>>> DECLARE_ACPI_MCFG_FIXUP(&hisi_pcie_ecam_ops, EFI_ACPI_HISI_OEM_ID,
+>>>>         EFI_ACPI_HISI_D03_OEM_TABLE_ID, PCI_MCFG_DOMAIN_ANY,
+>>>> PCI_MCFG_BUS_ANY);
+>>>>
+>>>> In file included from drivers/pci/host/pcie-hisi-acpi.c:15:0:
+>>>> include/linux/pci-acpi.h:98:43: error: redefinition of
+>>>> '__mcfg_fixup_systemPCI_MCFG_DOMAIN_ANYPCI_MCFG_BUS_ANY'
+>>>>           static const struct pci_cfg_fixup
+>>>> __mcfg_fixup_##system##dom##bus\
+>>>>                                             ^
+>>>> drivers/pci/host/pcie-hisi-acpi.c:215:1: note: in expansion of mac=
+ro
+>>>> 'DECLARE_ACPI_MCFG_FIXUP'
+>>>>   DECLARE_ACPI_MCFG_FIXUP(&hisi_pcie_ecam_ops, EFI_ACPI_HISI_OEM_I=
+D,
+>>>>   ^
+>>>> include/linux/pci-acpi.h:98:43: note: previous definition of
+>>>> '__mcfg_fixup_systemPCI_MCFG_DOMAIN_ANYPCI_MCFG_BUS_ANY' was here
+>>>>           static const struct pci_cfg_fixup
+>>>> __mcfg_fixup_##system##dom##bus\
+>>>>                                             ^
+>>>> drivers/pci/host/pcie-hisi-acpi.c:212:1: note: in expansion of mac=
+ro
+>>>> 'DECLARE_ACPI_MCFG_FIXUP'
+>>>>
+>>>>
+>>>> V2 fixup can resolve the redefinition error, but need to use macro=
+=2E
+>>>> We can see that the name of macro is not replace with it's value i=
+n
+>>>>
+>>>> "__mcfg_fixup_EFI_ACPI_HISI_OEM_IDEFI_ACPI_HISI_D03_OEM_TABLE_IDPC=
+I_MCFG_DOMAIN_ANYPCI_MCFG_BUS_ANY".
+>>>>
+>>>>
+>>>> Any good idea is appreciated.
+>>>
+>>> Hmmm.
+>>>
+>>> I was testing # op and using min_t to get the min-len when doing
+>>> strncmp similar to Chris' suggestion (using min_t avoids type
+>>> warnings)
+>>>
+>>> /* Designate a routine to fix up buggy MCFG */
+>>> #define DECLARE_ACPI_MCFG_FIXUP(ops, oem_id, oem_table_id, rev, dom=
+,
+>>> bus) \
+>>>          static const struct pci_cfg_fixup
+>>> __mcfg_fixup##oem_id##oem_table_id##rev##dom##bus\
+>>>           __used
+>>> __attribute__((__section__(".acpi_fixup_mcfg"),         \
+>>>                                  aligned((sizeof(void *)))))
+>>> =3D           \
+>>
+>>
+>>>          { ops, #oem_id, #oem_table_id, rev, dom, bus };
+>>
+>>
+>>
+>> This should change to { ops, oem_id, oem_table_id, rev, dom, bus };
+>> =E2=80=98#=E2=80=99 is not need.
 >
-> I've been debugging this by proxy, and I did request that test. The
-> following is the overall structure:
 >
-> scope (\_SB.PCI0) {
+> Both solutions are OK.
 >
-> Device (P2S)
-> {
->         Name (_ADR, 0x000D0000)
->         Device (GPO0)
->         {
->                 Name (_ADR, 0)
->                 Name (_HID, "INT3452")
->                 Name (_CID, "INT3452")
->         }
-> }
-> }
+> 1. This works when we use macros as OEM ID and OEM table ID:
 >
-> There are _STA methods in both Devices. The GP0 device has a _CRS
-> method which just returns a ResourceTemplate which is filled in with
-> static values. The PCI bar is at a fixed address from the firmware
-> which allows the fixed calculations. However there is no specific
-> reference to the P2S device's resources proper -- only the parent
-> child relationship within the ASL. I'm not sure how to directly say "I
-> want this sub-region of this other device's resource for my resource."
-> That seems like the right thing, but it's not clear if that's implied
-> by hierarchy of the devices.
+> #define DECLARE_ACPI_MCFG_FIXUP(ops, oem_id, oem_table_id, rev, dom, =
+bus)\
+>         static const struct pci_cfg_fixup                            =
+   \
+>                 __mcfg_fixup_##oem_id##oem_table_id##dom##bus        =
+   \
+>          __used __attribute__((__section__(".acpi_fixup_mcfg"),      =
+   \
+>                                 aligned((sizeof(void *))))) =3D      =
+     \
+>         { ops, oem_id, oem_table_id, rev, dom, bus };
 >
-> Lastly, if it helps, the kernel being used is based on v4.4 (no core
-> patches on top).
+> #define OEM_ID "XXXXXX"
+> #define OEM_TABLE_ID "YYYYYYYY"
 >
+> DECLARE_ACPI_MCFG_FIXUP(&quirk_ops, OEM_ID, OEM_TABLE_ID, 1,
+> PCI_MCFG_DOMAIN_ANY, PCI_MCFG_BUS_ANY);
+>
+> 2. This works w/o macro which means we need to define OEM ID and OEM =
+as
+> string w/o quotation marks:
+>
+> #define DECLARE_ACPI_MCFG_FIXUP(ops, oem_id, oem_table_id, rev, dom, =
+bus)\
+> static const struct pci_cfg_fixup \
+> __mcfg_fixup_##oem_id##oem_table_id##dom##bus \
+> __used __attribute__((__section__(".acpi_fixup_mcfg"), \
+> aligned((sizeof(void *))))) =3D \
+> { ops, #oem_id, #oem_table_id, rev, dom, bus };
+>
+> DECLARE_ACPI_MCFG_FIXUP(&quirk_ops, XXXXXX, YYYYYYYY, 1,
+> PCI_MCFG_DOMAIN_ANY, PCI_MCFG_BUS_ANY);
 
-Hi Rafael,
+In case of oem_id and oem_table_id have special characters ("HISI-D02"
+as an example), #2 will have problem unless we use macro definitions
+for them.
 
-I haven't tried a newer kernel yet, but are you of the opinion that
-having the Devices as parent-child within the ASL should work? I'm
-wondering if there's already a patch in newer kernels that doesn't
-report the conflict and works as expected once there are child Devices
-under the P2S device.
-
-Thanks for the help.
-
--Aaron
+>
+> Personally I think that (2) is better, no need for macro definitions.
+> Tomasz
+Regards,
+Duc Dang
+--
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
