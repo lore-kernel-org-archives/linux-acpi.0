@@ -1,69 +1,55 @@
-From: "Rafael J. Wysocki" <rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org>
-Subject: Re: [PATCH v3 7/8] acpi: add support for configfs
-Date: Wed, 15 Jun 2016 00:59 +0200
-Message-ID: <3209646.novQQXrKbd@vostro.rjw.lan>
-References: <201606150617.OKhb5WCs%fengguang.wu@intel.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7Bit
-Return-path: <linux-efi-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <201606150617.OKhb5WCs%fengguang.wu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Sender: linux-efi-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Octavian Purdila <octavian.purdila-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: kbuild test robot <lkp-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, kbuild-all-JC7UmRfGjtg@public.gmane.org, Len Brown <lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Matt Fleming <matt-mF/unelCI9GS6iBeEJttW/XRex20P6io@public.gmane.org>, Mark Brown <broonie-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Wolfram Sang <wsa-z923LK4zBo2bacvFa/9K2g@public.gmane.org>, Joel Becker <jlbec-aKy9MeLSZ9dg9hUCZPvPmw@public.gmane.org>, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-efi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-spi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, irina.tirdea-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
+From: Hoan Tran <hotran@apm.com>
+Subject: [PATCH] mailbox: pcc: Add PCC request and free channel declarations
+Date: Tue, 14 Jun 2016 16:12:43 -0700
+Message-ID: <1465945963-22353-1-git-send-email-hotran@apm.com>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-pf0-f181.google.com ([209.85.192.181]:34305 "EHLO
+	mail-pf0-f181.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932200AbcFNXNA (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 14 Jun 2016 19:13:00 -0400
+Received: by mail-pf0-f181.google.com with SMTP id 62so2053117pfd.1
+        for <linux-acpi@vger.kernel.org>; Tue, 14 Jun 2016 16:12:59 -0700 (PDT)
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Ashwin Chaugule <ashwin.chaugule@linaro.org>, Jassi Brar <jassisinghbrar@gmail.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>
+Cc: Robert Moore <robert.moore@intel.com>, Lv Zheng <lv.zheng@intel.com>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, devel@acpica.org, lho@apm.com, Duc Dang <dhdang@apm.com>, Hoan Tran <hotran@apm.com>
 
-Hi Octavian,
+As PCC will be used by other clients not only CPPC.
+This change exports pcc_mbox_request_channel() and pcc_mbox_free_channel()
+declarations
 
-On Wednesday, June 15, 2016 06:43:21 AM kbuild test robot wrote:
-> Hi,
-> 
-> [auto build test ERROR on pm/linux-next]
-> [also build test ERROR on v4.7-rc3]
-> [cannot apply to next-20160614]
-> [if your patch is applied to the wrong git tree, please drop us a note to help improve the system]
-> 
-> url:    https://github.com/0day-ci/linux/commits/Octavian-Purdila/ACPI-overlays/20160614-202312
-> base:   https://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm.git linux-next
-> config: x86_64-allyesconfig (attached as .config)
-> compiler: gcc-6 (Debian 6.1.1-1) 6.1.1 20160430
-> reproduce:
->         # save the attached .config to linux build tree
->         make ARCH=x86_64 
-> 
-> Note: the linux-review/Octavian-Purdila/ACPI-overlays/20160614-202312 HEAD 042f716a165ffa274684c787377acddfc1f34e3f builds fine.
->       It only hurts bisectibility.
-> 
-> All errors (new ones prefixed by >>):
-> 
->    drivers/acpi/configfs.c: In function 'acpi_configfs_init':
-> >> drivers/acpi/configfs.c:19:31: error: 'acpi_configfs' undeclared (first use in this function)
->      struct config_group *root = &acpi_configfs.su_group;
->                                   ^~~~~~~~~~~~~
->    drivers/acpi/configfs.c:19:31: note: each undeclared identifier is reported only once for each function it appears in
->    drivers/acpi/configfs.c: In function 'acpi_configfs_exit':
->    drivers/acpi/configfs.c:33:33: error: 'acpi_configfs' undeclared (first use in this function)
->      configfs_unregister_subsystem(&acpi_configfs);
->                                     ^~~~~~~~~~~~~
-> 
-> vim +/acpi_configfs +19 drivers/acpi/configfs.c
-> 
->     13	#include <linux/configfs.h>
->     14	#include <linux/acpi.h>
->     15	
->     16	static int __init acpi_configfs_init(void)
->     17	{
->     18		int ret;
->   > 19		struct config_group *root = &acpi_configfs.su_group;
->     20	
->     21		config_group_init(root);
->     22	
-> 
-> ---
+Signed-off-by: Hoan Tran <hotran@apm.com>
+---
+ include/acpi/cppc_acpi.h       | 4 ----
+ include/linux/mailbox_client.h | 4 ++++
+ 2 files changed, 4 insertions(+), 4 deletions(-)
 
-Any chance to send an updated patch with this fixed?
+diff --git a/include/acpi/cppc_acpi.h b/include/acpi/cppc_acpi.h
+index dad8af3..819b4b9 100644
+--- a/include/acpi/cppc_acpi.h
++++ b/include/acpi/cppc_acpi.h
+@@ -130,8 +130,4 @@ extern int cppc_set_perf(int cpu, struct cppc_perf_ctrls *perf_ctrls);
+ extern int cppc_get_perf_caps(int cpu, struct cppc_perf_caps *caps);
+ extern int acpi_get_psd_map(struct cpudata **);
+ 
+-/* Methods to interact with the PCC mailbox controller. */
+-extern struct mbox_chan *
+-	pcc_mbox_request_channel(struct mbox_client *, unsigned int);
+-
+ #endif /* _CPPC_ACPI_H*/
+diff --git a/include/linux/mailbox_client.h b/include/linux/mailbox_client.h
+index 41e2af8..2758d18 100644
+--- a/include/linux/mailbox_client.h
++++ b/include/linux/mailbox_client.h
+@@ -50,4 +50,8 @@ void mbox_client_txdone(struct mbox_chan *chan, int r); /* atomic */
+ bool mbox_client_peek_data(struct mbox_chan *chan); /* atomic */
+ void mbox_free_channel(struct mbox_chan *chan); /* may sleep */
+ 
++/* Methods to interact with the PCC mailbox controller. */
++struct mbox_chan *pcc_mbox_request_channel(struct mbox_client *, int);
++void pcc_mbox_free_channel(struct mbox_chan *chan);
++
+ #endif /* __MAILBOX_CLIENT_H */
+-- 
+1.9.1
 
-No need to resend the whole series, just this single patch, please.
-
-Thanks,
-Rafael
