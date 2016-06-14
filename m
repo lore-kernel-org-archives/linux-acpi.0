@@ -1,57 +1,96 @@
-From: Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: [PATCH v3 1/2] device property: Add function to search for named
- child of device
-Date: Tue, 14 Jun 2016 10:49:59 -0500
-Message-ID: <CAL_JsqJ9g7sMALzZs3y2eONf0j=ZrrGvC23Sd7OO+ujcax=5BQ@mail.gmail.com>
-References: <cover.1465908072.git.Adam.Thomson.Opensource@diasemi.com> <866c9edccdd89805f6a0c0aa92f8a78ae616ed61.1465908072.git.Adam.Thomson.Opensource@diasemi.com>
+From: Aleksey Makarov <aleksey.makarov@linaro.org>
+Subject: Re: [PATCH v3 5/5] ACPI: ARM64: support for ACPI_TABLE_UPGRADE
+Date: Tue, 14 Jun 2016 18:51:19 +0300
+Message-ID: <02dde480-cc01-6372-5baa-02ecf0037074@linaro.org>
+References: <20160527171424.GG10909@e104818-lin.cambridge.arm.com>
+ <20160602174910.30428-1-aleksey.makarov@linaro.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <866c9edccdd89805f6a0c0aa92f8a78ae616ed61.1465908072.git.Adam.Thomson.Opensource-WBD+wuPFNBhBDgjK7y7TUQ@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Adam Thomson <Adam.Thomson.Opensource-WBD+wuPFNBhBDgjK7y7TUQ@public.gmane.org>
-Cc: Robert Moore <robert.moore-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Lv Zheng <lv.zheng-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "Rafael J.Wysocki" <rafael.j.wysocki-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Heikki Krogerus <heikki.krogerus-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, Mika Westerberg <mika.westerberg-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, Len Brown <lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Andy Shevchenko <andriy.shevchenko-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, Frank Rowand <frowand.list-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Mark Brown <broonie-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Liam Girdwood <lgirdwood-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Jaroslav Kysela <perex-/Fr2/VpizcU@public.gmane.org>, Takashi Iwai <tiwai-IBi9RG/b67k@public.gmane.org>, Greg Kroah-Hartman <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>, "linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, devel-E0kO6a4B6psdnm+yROfE0A@public.gmane.org, "devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux-ALSA <alsa-devel-K7yf7f+aM1XWsZ/bQMPhNw@public.gmane.org>, "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Support Opensource <support.opensource-WBD+wuPFNBhBDgjK7y7TUQ@public.gmane.org>, Sathyanarayana Nujella <sathyanarayana.nujella-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20160602174910.30428-1-aleksey.makarov@linaro.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Catalin Marinas <catalin.marinas@arm.com>, Will Deacon <will.deacon@arm.com>
+Cc: "Rafael J . Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, Graeme Gregory <graeme.gregory@linaro.org>, Jon Masters <jcm@redhat.com>, "Zheng, Lv" <lv.zheng@intel.com>, Mark Rutland <mark.rutland@arm.com>
 List-Id: linux-acpi@vger.kernel.org
 
-On Tue, Jun 14, 2016 at 8:56 AM, Adam Thomson
-<Adam.Thomson.Opensource-WBD+wuPFNBhBDgjK7y7TUQ@public.gmane.org> wrote:
-> For device nodes in both DT and ACPI, it possible to have named
-> child nodes which contain properties (an existing example being
-> gpio-leds). This adds a function to find a named child node for
-> a device which can be used by drivers for property retrieval.
->
-> For DT data node name matching, of_node_cmp() and similar functions are made
-> available outside of CONFIG_OF block so the new function can reference these
-> for DT and non-DT builds.
->
-> For ACPI data node name matching, a helper function is also added
-> which returns false if CONFIG_ACPI is not set, otherwise it
-> performs a string comparison on the data node name. This avoids
-> using the acpi_data_node struct for non CONFIG_ACPI builds,
-> which would otherwise cause a build failure.
->
-> Signed-off-by: Adam Thomson <Adam.Thomson.Opensource-WBD+wuPFNBhBDgjK7y7TUQ@public.gmane.org>
-> Tested-by: Sathyanarayana Nujella <sathyanarayana.nujella-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-> ---
->
-> Changes in v3:
->  - Move of_*_cmp() functions in of.h outside of CONFIG_OF block so they are
->    available for non-DT builds
->  - In device_get_named_child_node(), use of_node_cmp() helper macro instead of
->    strcasecmp() (node names not alway case insensitive, depending on platform).
->
-> Changes in v2:
->  - Rebase to v4.7-rc1
->
->  drivers/base/property.c  | 28 ++++++++++++++++++++++++++++
->  include/acpi/acpi_bus.h  |  7 +++++++
->  include/linux/acpi.h     |  6 ++++++
->  include/linux/of.h       | 14 +++++++-------
->  include/linux/property.h |  3 +++
->  5 files changed, 51 insertions(+), 7 deletions(-)
 
-Acked-by: Rob Herring <robh-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+On 06/02/2016 08:49 PM, Aleksey Makarov wrote:
+> From: Jon Masters <jcm@redhat.com>
+> 
+> This patch adds support for ACPI_TABLE_UPGRADE for ARM64
+
+Hi Catalin, Will,
+
+Can you review this v3 patch please?  I changed PFN_PHYS(max_pfn) to
+MEMBLOCK_ALLOC_ACCESSIBLE.
+
+Thank you
+Aleksey Makarov
+
+> To access initrd image we need to move initialization
+> of linear mapping a bit earlier.
+> 
+> The implementation of the feature acpi_table_upgrade()
+> (drivers/acpi/tables.c) works with initrd data represented as an array
+> in virtual memory.  It uses some library utility to find the redefined
+> tables in that array and iterates over it to copy the data to new
+> allocated memory.  So to access the initrd data via fixmap
+> we need to rewrite it considerably.
+> 
+> In x86 arch, kernel memory is already mapped by the time when
+> acpi_table_upgrade() and acpi_boot_table_init() are called so I
+> think that we can just move this mapping one function earlier too.
+> 
+> Signed-off-by: Jon Masters <jcm@redhat.com>
+> Signed-off-by: Aleksey Makarov <aleksey.makarov@linaro.org>
+> ---
+>  arch/arm64/Kconfig            | 1 +
+>  arch/arm64/include/asm/acpi.h | 2 ++
+>  arch/arm64/kernel/setup.c     | 6 ++++--
+>  3 files changed, 7 insertions(+), 2 deletions(-)
+> 
+> diff --git a/arch/arm64/Kconfig b/arch/arm64/Kconfig
+> index 87c48ad..baee459 100644
+> --- a/arch/arm64/Kconfig
+> +++ b/arch/arm64/Kconfig
+> @@ -5,6 +5,7 @@ config ARM64
+>  	select ACPI_REDUCED_HARDWARE_ONLY if ACPI
+>  	select ACPI_MCFG if ACPI
+>  	select ARCH_HAS_DEVMEM_IS_ALLOWED
+> +	select ARCH_HAS_ACPI_TABLE_UPGRADE if ACPI
+>  	select ARCH_HAS_ATOMIC64_DEC_IF_POSITIVE
+>  	select ARCH_HAS_ELF_RANDOMIZE
+>  	select ARCH_HAS_GCOV_PROFILE_ALL
+> diff --git a/arch/arm64/include/asm/acpi.h b/arch/arm64/include/asm/acpi.h
+> index aee323b..c7aefc5 100644
+> --- a/arch/arm64/include/asm/acpi.h
+> +++ b/arch/arm64/include/asm/acpi.h
+> @@ -113,4 +113,6 @@ static inline const char *acpi_get_enable_method(int cpu)
+>  pgprot_t arch_apei_get_mem_attribute(phys_addr_t addr);
+>  #endif
+>  
+> +#define ACPI_TABLE_UPGRADE_MAX_PHYS MEMBLOCK_ALLOC_ACCESSIBLE
+> +
+>  #endif /*_ASM_ACPI_H*/
+> diff --git a/arch/arm64/kernel/setup.c b/arch/arm64/kernel/setup.c
+> index feab2ee..4bce811 100644
+> --- a/arch/arm64/kernel/setup.c
+> +++ b/arch/arm64/kernel/setup.c
+> @@ -261,11 +261,13 @@ void __init setup_arch(char **cmdline_p)
+>  	efi_init();
+>  	arm64_memblock_init();
+>  
+> +	paging_init();
+> +
+> +	acpi_table_upgrade();
+> +
+>  	/* Parse the ACPI tables for possible boot-time configuration */
+>  	acpi_boot_table_init();
+>  
+> -	paging_init();
+> -
+>  	if (acpi_disabled)
+>  		unflatten_device_tree();
+>  
+> 
