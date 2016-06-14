@@ -1,96 +1,46 @@
-From: Aleksey Makarov <aleksey.makarov@linaro.org>
+From: Will Deacon <will.deacon@arm.com>
 Subject: Re: [PATCH v3 5/5] ACPI: ARM64: support for ACPI_TABLE_UPGRADE
-Date: Tue, 14 Jun 2016 18:51:19 +0300
-Message-ID: <02dde480-cc01-6372-5baa-02ecf0037074@linaro.org>
+Date: Tue, 14 Jun 2016 17:41:16 +0100
+Message-ID: <20160614164116.GF16531@arm.com>
 References: <20160527171424.GG10909@e104818-lin.cambridge.arm.com>
  <20160602174910.30428-1-aleksey.makarov@linaro.org>
+ <02dde480-cc01-6372-5baa-02ecf0037074@linaro.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20160602174910.30428-1-aleksey.makarov@linaro.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Catalin Marinas <catalin.marinas@arm.com>, Will Deacon <will.deacon@arm.com>
-Cc: "Rafael J . Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, Graeme Gregory <graeme.gregory@linaro.org>, Jon Masters <jcm@redhat.com>, "Zheng, Lv" <lv.zheng@intel.com>, Mark Rutland <mark.rutland@arm.com>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from foss.arm.com ([217.140.101.70]:60107 "EHLO foss.arm.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751371AbcFNQlU (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 14 Jun 2016 12:41:20 -0400
+Content-Disposition: inline
+In-Reply-To: <02dde480-cc01-6372-5baa-02ecf0037074@linaro.org>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Aleksey Makarov <aleksey.makarov@linaro.org>
+Cc: Catalin Marinas <catalin.marinas@arm.com>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, Graeme Gregory <graeme.gregory@linaro.org>, Jon Masters <jcm@redhat.com>, "Zheng, Lv" <lv.zheng@intel.com>, Mark Rutland <mark.rutland@arm.com>
 
+On Tue, Jun 14, 2016 at 06:51:19PM +0300, Aleksey Makarov wrote:
+> 
+> On 06/02/2016 08:49 PM, Aleksey Makarov wrote:
+> > From: Jon Masters <jcm@redhat.com>
+> > 
+> > This patch adds support for ACPI_TABLE_UPGRADE for ARM64
+> 
+> Hi Catalin, Will,
+> 
+> Can you review this v3 patch please?  I changed PFN_PHYS(max_pfn) to
+> MEMBLOCK_ALLOC_ACCESSIBLE.
 
-On 06/02/2016 08:49 PM, Aleksey Makarov wrote:
-> From: Jon Masters <jcm@redhat.com>
-> 
-> This patch adds support for ACPI_TABLE_UPGRADE for ARM64
+I'm inclined to agree with Mark that this is something that should be
+done by the bootloader (e.g. GRUB) if it's needed, rather than something
+we should support in the kernel. Jon pitched the feature as a developer
+aid for triaging problems, so it's not like we're in a state where some
+widely available machine cannot currently boot Linux without this.
 
-Hi Catalin, Will,
+Having said that, the patch isn't exactly invasive and I suspect it's
+only a matter of time before we will actually want something like this.
+So I've come full circle on this patch:
 
-Can you review this v3 patch please?  I changed PFN_PHYS(max_pfn) to
-MEMBLOCK_ALLOC_ACCESSIBLE.
+Acked-by: Will Deacon <will.deacon@arm.com>
 
-Thank you
-Aleksey Makarov
-
-> To access initrd image we need to move initialization
-> of linear mapping a bit earlier.
-> 
-> The implementation of the feature acpi_table_upgrade()
-> (drivers/acpi/tables.c) works with initrd data represented as an array
-> in virtual memory.  It uses some library utility to find the redefined
-> tables in that array and iterates over it to copy the data to new
-> allocated memory.  So to access the initrd data via fixmap
-> we need to rewrite it considerably.
-> 
-> In x86 arch, kernel memory is already mapped by the time when
-> acpi_table_upgrade() and acpi_boot_table_init() are called so I
-> think that we can just move this mapping one function earlier too.
-> 
-> Signed-off-by: Jon Masters <jcm@redhat.com>
-> Signed-off-by: Aleksey Makarov <aleksey.makarov@linaro.org>
-> ---
->  arch/arm64/Kconfig            | 1 +
->  arch/arm64/include/asm/acpi.h | 2 ++
->  arch/arm64/kernel/setup.c     | 6 ++++--
->  3 files changed, 7 insertions(+), 2 deletions(-)
-> 
-> diff --git a/arch/arm64/Kconfig b/arch/arm64/Kconfig
-> index 87c48ad..baee459 100644
-> --- a/arch/arm64/Kconfig
-> +++ b/arch/arm64/Kconfig
-> @@ -5,6 +5,7 @@ config ARM64
->  	select ACPI_REDUCED_HARDWARE_ONLY if ACPI
->  	select ACPI_MCFG if ACPI
->  	select ARCH_HAS_DEVMEM_IS_ALLOWED
-> +	select ARCH_HAS_ACPI_TABLE_UPGRADE if ACPI
->  	select ARCH_HAS_ATOMIC64_DEC_IF_POSITIVE
->  	select ARCH_HAS_ELF_RANDOMIZE
->  	select ARCH_HAS_GCOV_PROFILE_ALL
-> diff --git a/arch/arm64/include/asm/acpi.h b/arch/arm64/include/asm/acpi.h
-> index aee323b..c7aefc5 100644
-> --- a/arch/arm64/include/asm/acpi.h
-> +++ b/arch/arm64/include/asm/acpi.h
-> @@ -113,4 +113,6 @@ static inline const char *acpi_get_enable_method(int cpu)
->  pgprot_t arch_apei_get_mem_attribute(phys_addr_t addr);
->  #endif
->  
-> +#define ACPI_TABLE_UPGRADE_MAX_PHYS MEMBLOCK_ALLOC_ACCESSIBLE
-> +
->  #endif /*_ASM_ACPI_H*/
-> diff --git a/arch/arm64/kernel/setup.c b/arch/arm64/kernel/setup.c
-> index feab2ee..4bce811 100644
-> --- a/arch/arm64/kernel/setup.c
-> +++ b/arch/arm64/kernel/setup.c
-> @@ -261,11 +261,13 @@ void __init setup_arch(char **cmdline_p)
->  	efi_init();
->  	arm64_memblock_init();
->  
-> +	paging_init();
-> +
-> +	acpi_table_upgrade();
-> +
->  	/* Parse the ACPI tables for possible boot-time configuration */
->  	acpi_boot_table_init();
->  
-> -	paging_init();
-> -
->  	if (acpi_disabled)
->  		unflatten_device_tree();
->  
-> 
+Will
