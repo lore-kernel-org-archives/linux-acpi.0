@@ -1,123 +1,105 @@
-From: Will Deacon <will.deacon@arm.com>
-Subject: Re: [PATCH 5/8] arm: arm64: pmu: Assign platform PMU CPU affinity
-Date: Wed, 15 Jun 2016 14:09:50 +0100
-Message-ID: <20160615130950.GK24029@arm.com>
-References: <1465511013-10742-1-git-send-email-jeremy.linton@arm.com>
- <1465511013-10742-6-git-send-email-jeremy.linton@arm.com>
+From: Sinan Kaya <okaya@codeaurora.org>
+Subject: Re: [PATCH V6 1/7] ACPI: I/O Remapping Table (IORT) initial support
+Date: Wed, 15 Jun 2016 09:19:54 -0400
+Message-ID: <576155FA.9080706@codeaurora.org>
+References: <1465828873-23498-1-git-send-email-tn@semihalf.com>
+ <1465828873-23498-2-git-send-email-tn@semihalf.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from foss.arm.com ([217.140.101.70]:37251 "EHLO foss.arm.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752789AbcFONJ4 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 15 Jun 2016 09:09:56 -0400
-Content-Disposition: inline
-In-Reply-To: <1465511013-10742-6-git-send-email-jeremy.linton@arm.com>
+Received: from smtp.codeaurora.org ([198.145.29.96]:45036 "EHLO
+	smtp.codeaurora.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753278AbcFONUB (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 15 Jun 2016 09:20:01 -0400
+In-Reply-To: <1465828873-23498-2-git-send-email-tn@semihalf.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Jeremy Linton <jeremy.linton@arm.com>
-Cc: linux-arm-kernel@lists.infradead.org, linux-acpi@vger.kernel.org, mark.rutland@arm.com, lorenzo.pieralisi@arm.com, catalin.marinas@arm.com, peterz@infradead.org, mingo@redhat.com, acme@kernel.org, alexander.shishkin@linux.intel.com, mlangsdorf@redhat.com
+To: Tomasz Nowicki <tn@semihalf.com>, marc.zyngier@arm.com, tglx@linutronix.de, jason@lakedaemon.net, rjw@rjwysocki.net, bhelgaas@google.com, lorenzo.pieralisi@arm.com, robert.richter@caviumnetworks.com, shijie.huang@arm.com, Suravee.Suthikulpanit@amd.com, hanjun.guo@linaro.org
+Cc: al.stone@linaro.org, mw@semihalf.com, graeme.gregory@linaro.org, Catalin.Marinas@arm.com, will.deacon@arm.com, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org, ddaney.cavm@gmail.com, andrea.gallo@linaro.org, linux-pci@vger.kernel.org, "Abdulhamid, Harb" <harba@codeaurora.org>
 
-On Thu, Jun 09, 2016 at 05:23:30PM -0500, Jeremy Linton wrote:
-> On systems with multiple PMU types the PMU to CPU affinity
-> needs to be detected and set. The CPU to interrupt affinity
-> should also be set.
-> 
-> Signed-off-by: Jeremy Linton <jeremy.linton@arm.com>
-> ---
->  drivers/perf/arm_pmu.c | 52 ++++++++++++++++++++++++++++++++++++++++----------
->  1 file changed, 42 insertions(+), 10 deletions(-)
-> 
-> diff --git a/drivers/perf/arm_pmu.c b/drivers/perf/arm_pmu.c
-> index fee4be0e8..865a9db 100644
-> --- a/drivers/perf/arm_pmu.c
-> +++ b/drivers/perf/arm_pmu.c
-> @@ -11,6 +11,7 @@
->   */
->  #define pr_fmt(fmt) "hw perfevents: " fmt
->  
-> +#include <linux/acpi.h>
->  #include <linux/bitmap.h>
->  #include <linux/cpumask.h>
->  #include <linux/cpu_pm.h>
-> @@ -24,6 +25,7 @@
->  #include <linux/irq.h>
->  #include <linux/irqdesc.h>
->  
-> +#include <asm/cpu.h>
->  #include <asm/cputype.h>
->  #include <asm/irq_regs.h>
->  
-> @@ -872,25 +874,56 @@ static void cpu_pmu_destroy(struct arm_pmu *cpu_pmu)
->  }
->  
->  /*
-> - * CPU PMU identification and probing.
-> + * CPU PMU identification and probing. Its possible to have
-> + * multiple CPU types in an ARM machine. Assure that we are
-> + * picking the right PMU types based on the CPU in question
->   */
-> -static int probe_current_pmu(struct arm_pmu *pmu,
-> -			     const struct pmu_probe_info *info)
-> +static int probe_plat_pmu(struct arm_pmu *pmu,
-> +			     const struct pmu_probe_info *info,
-> +			     unsigned int pmuid)
->  {
-> -	int cpu = get_cpu();
-> -	unsigned int cpuid = read_cpuid_id();
->  	int ret = -ENODEV;
-> +	int cpu;
-> +	int aff_ctr = 0;
-> +	struct platform_device *pdev = pmu->plat_device;
-> +	int irq = platform_get_irq(pdev, 0);
->  
-> -	pr_info("probing PMU on CPU %d\n", cpu);
-> +	if (irq >= 0 && !irq_is_percpu(irq)) {
-> +		pmu->irq_affinity = kcalloc(pdev->num_resources, sizeof(int),
-> +					    GFP_KERNEL);
-> +		if (!pmu->irq_affinity)
-> +			return -ENOMEM;
+Hi Tomasz,
+
+> +static acpi_status
+> +iort_match_node_callback(struct acpi_iort_node *node, void *context)
+> +{
+> +	case ACPI_IORT_NODE_PCI_ROOT_COMPLEX: {
+> +		struct acpi_iort_root_complex *pci_rc;
+> +		struct pci_bus *bus;
+> +
+> +		bus =3D to_pci_bus(dev);
+> +		pci_rc =3D (struct acpi_iort_root_complex *)node->node_data;
+> +
+> +		/*
+> +		 * It is assumed that PCI segment numbers maps one-to-one
+> +		 * with root complexes. Each segment number can represent only
+> +		 * one root complex.
+> +		 */
+> +		if (pci_rc->pci_segment_number =3D=3D pci_domain_nr(bus))
+> +			return AE_OK;
+> +
+
+There is problem with the find_dev_node and callback for PCIe here. It =
+assumes
+a one-to-one relationship between an SMMU and root complex.=20
+
+Just checked with Charles offline to see if there is anything in the IO=
+RT spec that forces
+this. And, the answer was no.=20
+
+Pasting the IORT requirements for you below.
+
+=93The IORT was intended to be flexible enough to define static RID to =
+SID mappings, which should cover=20
+the following configurations:
+-	Dedicated SMMU per RC
+-	Multiple RC=92s per SMMU (as you described)
+-	Multiple SMMU=92s per RC (with static RID:SID range per SMMU)
+
+The SMMU instance must be identified by either a device ID *or* a combi=
+nation of=20
+segment ID *and* Requestor ID. =94
+
+If a root complex has multiple SMMUs, this code is going to return the =
+first SMMU. This needs
+to be corrected.
+
+> +		break;
+> +	}
 > +	}
 > +
-> +	for_each_possible_cpu(cpu) {
-> +		unsigned int cpuid = read_specific_cpuid(cpu);
+> +	return AE_NOT_FOUND;
+> +}
 > +
-> +		if (cpuid == pmuid) {
-> +			cpumask_set_cpu(cpu, &pmu->supported_cpus);
-> +			pr_devel("enable pmu on cpu %d\n", cpu);
 
-Please remove the pr_devels that you've added (similarly elsewhere in
-the patch).
+> +
+> +static struct acpi_iort_node *
+> +iort_find_dev_node(struct device *dev)
+> +{
+> +	struct pci_bus *pbus;
+> +
+> +	if (!dev_is_pci(dev))
+> +		return iort_scan_node(ACPI_IORT_NODE_NAMED_COMPONENT,
+> +				      iort_match_node_callback, dev);
+> +
+> +	/* Find a PCI root bus */
+> +	pbus =3D to_pci_dev(dev)->bus;
+> +	while (!pci_is_root_bus(pbus))
+> +		pbus =3D pbus->parent;
+> +
+> +	return iort_scan_node(ACPI_IORT_NODE_PCI_ROOT_COMPLEX,
+> +			      iort_match_node_callback, &pbus->dev);
+> +}
+> +
 
-> +			if (pmu->irq_affinity) {
-> +				pmu->irq_affinity[aff_ctr] = cpu;
-> +				aff_ctr++;
-> +			}
-> +		}
-> +	}
->  
-> +	pr_debug("probing PMU %X\n", pmuid);
-
-You can also kill this now -- I don't think it's much use.
-
-> +	/* find the type of PMU given the CPU */
->  	for (; info->init != NULL; info++) {
-> -		if ((cpuid & info->mask) != info->cpuid)
-> +		if ((pmuid & info->mask) != info->cpuid)
->  			continue;
-> +		pr_devel("Found PMU\n");
->  		ret = info->init(pmu);
-> +		if (!info->cpuid) {
-> +			pmu->name = kasprintf(GFP_KERNEL, "%s_0x%x",
-> +					    pmu->name, ARM_PARTNUM(pmuid));
-
-Hmm, I'm not so keen on this. I think we should name the first PMU
-"armv8_pmuv3" (i.e. pmu->name) and then any subsequent PMUs should inherit
-an index, e.g. "armv8_pmuv3_1". That follows a similar style to uncore
-PMUs and also keeps this backwards compatible with what's currently done
-with devicetree.
-
-You can create a 'cpumask' file in the sysfs directory that identifies
-the cores for the PMU (again, there is precedent for this elsewhere).
-
-Will
+--=20
+Sinan Kaya
+Qualcomm Technologies, Inc. on behalf of Qualcomm Innovation Center, In=
+c.
+Qualcomm Innovation Center, Inc. is a member of Code Aurora Forum, a Li=
+nux Foundation Collaborative Project
+--
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
