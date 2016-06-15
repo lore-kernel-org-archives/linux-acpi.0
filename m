@@ -1,132 +1,74 @@
-From: "Prakash, Prashanth" <pprakash@codeaurora.org>
-Subject: Re: [PATCH v2] ACPI: Support for platform initiated graceful shutdown
-Date: Wed, 15 Jun 2016 14:05:05 -0600
-Message-ID: <58e509ba-383d-1f9c-9595-d225e8af32a8@codeaurora.org>
-References: <1463430112-8843-1-git-send-email-pprakash@codeaurora.org>
+From: Auger Eric <eric.auger@redhat.com>
+Subject: Re: [PATCH V7 8/9] vfio: platform: check reset call return code
+ during open
+Date: Wed, 15 Jun 2016 22:08:19 +0200
+Message-ID: <f1bc1f2f-d8cb-4879-a716-f67854e47b3b@redhat.com>
+References: <1465792001-27960-1-git-send-email-okaya@codeaurora.org>
+ <1465792001-27960-9-git-send-email-okaya@codeaurora.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=windows-1252
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp.codeaurora.org ([198.145.29.96]:54151 "EHLO
-	smtp.codeaurora.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753055AbcFOUFJ (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 15 Jun 2016 16:05:09 -0400
-In-Reply-To: <1463430112-8843-1-git-send-email-pprakash@codeaurora.org>
-Sender: linux-acpi-owner@vger.kernel.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1465792001-27960-9-git-send-email-okaya@codeaurora.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Sinan Kaya <okaya@codeaurora.org>, kvm@vger.kernel.org, timur@codeaurora.org, cov@codeaurora.org, jcm@redhat.com, alex.williamson@redhat.com, eric.auger@linaro.org
+Cc: linux-acpi@vger.kernel.org, agross@codeaurora.org, linux-arm-msm@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Baptiste Reynal <b.reynal@virtualopensystems.com>, linux-kernel@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
-Cc: rjw@rjwysocki.net, harba@codeaurora.org, ahs3@redhat.com, cov@codeaurora.org
 
-Hi Rafael,
+Hi Sinan,
 
-Any inputs on this patch?
-
-Thanks,
-Prashanth
-
-On 5/16/2016 2:21 PM, Prashanth Prakash wrote:
-> This patch adds support for platform initited graceful shutdown as
-> described in sections 5.6.6(Table-143) and 6.3.5.1 of ACPI 6.1 spec
->
-> The OSPM will get a graceful shutdown request via a Notify operator
-> on \_SB device with a value of 0x81 per section 5.6.6. Following the
-> shutdown request from platform the OSPM needs to follow the
-> processing sequence as described in section 6.2.5.1.
->
-> Signed-off-by: Prashanth Prakash <pprakash@codeaurora.org>
+On 13/06/2016 06:26, Sinan Kaya wrote:
+> Open call is ignoring the return code from reset call and can
+> potentially continue even though reset call failed.
+> 
+> If reset_required module parameter is set, this patch is going
+> to validate the return code and will abort open if reset fails.
+> 
+> Signed-off-by: Sinan Kaya <okaya@codeaurora.org>
 > ---
->  drivers/acpi/bus.c     | 49 +++++++++++++++++++++++++++++++++++++++++++++++++
->  include/acpi/actypes.h |  2 +-
->  2 files changed, 50 insertions(+), 1 deletion(-)
->
-> diff --git a/drivers/acpi/bus.c b/drivers/acpi/bus.c
-> index 31e8da6..25d4806 100644
-> --- a/drivers/acpi/bus.c
-> +++ b/drivers/acpi/bus.c
-> @@ -30,6 +30,8 @@
->  #include <linux/acpi.h>
->  #include <linux/slab.h>
->  #include <linux/regulator/machine.h>
-> +#include <linux/workqueue.h>
-> +#include <linux/reboot.h>
->  #ifdef CONFIG_X86
->  #include <asm/mpspec.h>
->  #endif
-> @@ -475,6 +477,52 @@ static void acpi_device_remove_notify_handler(struct acpi_device *device)
->  					   acpi_device_notify);
->  }
+>  drivers/vfio/platform/vfio_platform_common.c | 11 ++++++++++-
+>  1 file changed, 10 insertions(+), 1 deletion(-)
+> 
+> diff --git a/drivers/vfio/platform/vfio_platform_common.c b/drivers/vfio/platform/vfio_platform_common.c
+> index d84c399..d3141e7 100644
+> --- a/drivers/vfio/platform/vfio_platform_common.c
+> +++ b/drivers/vfio/platform/vfio_platform_common.c
+> @@ -264,6 +264,8 @@ static int vfio_platform_open(void *device_data)
+>  	mutex_lock(&driver_lock);
 >  
-> +/* Handle events targeting \_SB device (at present only graceful shutdown) */
+>  	if (!vdev->refcnt) {
+> +		const char *extra_dbg = NULL;
 > +
-> +#define ACPI_SB_NOTIFY_SHUTDOWN_REQUEST 0x81
-> +#define ACPI_SYBUS_INDICATE_INTERVAL	10000
-> +
-> +static void sybus_evaluate_ost(struct work_struct *dummy);
-> +static DECLARE_DELAYED_WORK(acpi_sybus_work, sybus_evaluate_ost);
-> +
-> +static void sybus_evaluate_ost(struct work_struct *dummy)
-> +{
-> +	acpi_handle sb_handle;
-> +
-> +	if (ACPI_SUCCESS(acpi_get_handle(NULL, "\\_SB", &sb_handle))) {
-> +		acpi_evaluate_ost(sb_handle, ACPI_OST_EC_OSPM_SHUTDOWN,
-> +				ACPI_OST_SC_OS_SHUTDOWN_IN_PROGRESS, NULL);
-> +		schedule_delayed_work(&acpi_sybus_work,
-> +				msecs_to_jiffies(ACPI_SYBUS_INDICATE_INTERVAL));
-> +		pr_info("Graceful shutdown in progress.\n");
-> +	}
-> +}
-> +
-> +static void acpi_sybus_notify(acpi_handle handle, u32 event, void *data)
-> +{
-> +	if (event == ACPI_SB_NOTIFY_SHUTDOWN_REQUEST) {
-> +		if (!delayed_work_pending(&acpi_sybus_work)) {
-> +			sybus_evaluate_ost(NULL);
-> +			orderly_poweroff(true);
+>  		ret = vfio_platform_regions_init(vdev);
+>  		if (ret)
+>  			goto err_reg;
+> @@ -272,7 +274,12 @@ static int vfio_platform_open(void *device_data)
+>  		if (ret)
+>  			goto err_irq;
+>  
+> -		vfio_platform_call_reset(vdev, NULL);
+> +		ret = vfio_platform_call_reset(vdev, &extra_dbg);
+> +		if (ret && vdev->reset_required) {
+> +			dev_warn(vdev->device, "reset driver is required and reset call failed in open (%d) %s\n",
+> +				 ret, extra_dbg ? extra_dbg : "");
+> +			goto err_rst;
 > +		}
-> +	} else
-> +		pr_warn("event %x is not supported by \\_SB device\n", event);
-> +}
-> +
-> +static int __init acpi_setup_sybus_notify_handler(void)
-> +{
-> +	acpi_handle sb_handle;
-> +
-> +	if (ACPI_FAILURE(acpi_get_handle(NULL, "\\_SB", &sb_handle)))
-> +		return -ENXIO;
-> +
-> +	if (ACPI_FAILURE(acpi_install_notify_handler(sb_handle, ACPI_DEVICE_NOTIFY,
-> +						acpi_sybus_notify, NULL)))
-> +		return -EINVAL;
-> +
-> +	return 0;
-> +}
-> +
->  /* --------------------------------------------------------------------------
->                               Device Matching
->     -------------------------------------------------------------------------- */
-> @@ -1124,6 +1172,7 @@ static int __init acpi_init(void)
->  	acpi_sleep_proc_init();
->  	acpi_wakeup_device_init();
->  	acpi_debugger_init();
-> +	acpi_setup_sybus_notify_handler();
+>  	}
+>  
+>  	vdev->refcnt++;
+> @@ -280,6 +287,8 @@ static int vfio_platform_open(void *device_data)
+>  	mutex_unlock(&driver_lock);
 >  	return 0;
->  }
 >  
-> diff --git a/include/acpi/actypes.h b/include/acpi/actypes.h
-> index cb389ef..860b273 100644
-> --- a/include/acpi/actypes.h
-> +++ b/include/acpi/actypes.h
-> @@ -627,7 +627,7 @@ typedef u64 acpi_integer;
->  #define ACPI_NOTIFY_DEVICE_PLD_CHECK    (u8) 0x09
->  #define ACPI_NOTIFY_RESERVED            (u8) 0x0A
->  #define ACPI_NOTIFY_LOCALITY_UPDATE     (u8) 0x0B
-> -#define ACPI_NOTIFY_SHUTDOWN_REQUEST    (u8) 0x0C
-> +#define ACPI_NOTIFY_RESERVED_2          (u8) 0x0C
->  #define ACPI_NOTIFY_AFFINITY_UPDATE     (u8) 0x0D
->  
->  #define ACPI_GENERIC_NOTIFY_MAX         0x0D
+> +err_rst:
+> +	vfio_platform_irq_cleanup(vdev);
+>  err_irq:
+>  	vfio_platform_regions_cleanup(vdev);
+>  err_reg:
+> 
 
-Thanks,
-Prashanth
+Reviewed-by: Eric Auger <eric.auger@redhat.com>
 
+Thanks
+
+Eric
