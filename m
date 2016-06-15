@@ -1,38 +1,30 @@
 From: Marc Zyngier <marc.zyngier@arm.com>
-Subject: Re: [PATCH V6 5/7] irqchip/gicv3-its: Probe ITS in the ACPI way
-Date: Wed, 15 Jun 2016 09:56:58 +0100
-Message-ID: <20160615095658.48b52888@arm.com>
+Subject: Re: [PATCH V6 6/7] irqchip/gicv3-its: Factor out code that might be
+ reused for ACPI
+Date: Wed, 15 Jun 2016 10:00:34 +0100
+Message-ID: <20160615100034.3393b90c@arm.com>
 References: <1465828873-23498-1-git-send-email-tn@semihalf.com>
-	<1465828873-23498-6-git-send-email-tn@semihalf.com>
+	<1465828873-23498-7-git-send-email-tn@semihalf.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from foss.arm.com ([217.140.101.70]:35440 "EHLO foss.arm.com"
+Received: from foss.arm.com ([217.140.101.70]:35474 "EHLO foss.arm.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751429AbcFOI5i (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 15 Jun 2016 04:57:38 -0400
-In-Reply-To: <1465828873-23498-6-git-send-email-tn@semihalf.com>
+	id S1751429AbcFOJBF (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 15 Jun 2016 05:01:05 -0400
+In-Reply-To: <1465828873-23498-7-git-send-email-tn@semihalf.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: Tomasz Nowicki <tn@semihalf.com>
 Cc: tglx@linutronix.de, jason@lakedaemon.net, rjw@rjwysocki.net, bhelgaas@google.com, lorenzo.pieralisi@arm.com, robert.richter@caviumnetworks.com, shijie.huang@arm.com, Suravee.Suthikulpanit@amd.com, hanjun.guo@linaro.org, al.stone@linaro.org, mw@semihalf.com, graeme.gregory@linaro.org, Catalin.Marinas@arm.com, will.deacon@arm.com, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org, ddaney.cavm@gmail.com, okaya@codeaurora.org, andrea.gallo@linaro.org, linux-pci@vger.kernel.org
 
-On Mon, 13 Jun 2016 16:41:11 +0200
+On Mon, 13 Jun 2016 16:41:12 +0200
 Tomasz Nowicki <tn@semihalf.com> wrote:
 
-> ITS is prepared for being initialized different than DT,
-> therefore we can initialize it in ACPI way. We collect register base
-> address from MADT table and pass mandatory info to firmware-agnostic
-> ITS init call.
-> 
-> Use here IORT lib to register ITS domain which then can be found and
-> used on to build another PCI MSI domain in hierarchical stack domain.
-> 
-> NOTE: Waiting for proper ITS and NUMA node relation description in IORT
-> table, we pass around NUMA_NO_NODE to the its_probe_one init call.
-> This means that Cavium ThunderX erratum 23144 (pass1.1 only)
-> is not supported for ACPI boot method yet.
+> Firmware agnostic code lands in common functions which do necessary
+> domain initialization based on unique domain handler. DT specific
+> code goes to DT specific init call.
 > 
 > Signed-off-by: Tomasz Nowicki <tn@semihalf.com>
 
