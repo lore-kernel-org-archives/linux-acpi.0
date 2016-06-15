@@ -1,74 +1,77 @@
-From: Auger Eric <eric.auger@redhat.com>
-Subject: Re: [PATCH V7 8/9] vfio: platform: check reset call return code
- during open
-Date: Wed, 15 Jun 2016 22:08:19 +0200
-Message-ID: <f1bc1f2f-d8cb-4879-a716-f67854e47b3b@redhat.com>
-References: <1465792001-27960-1-git-send-email-okaya@codeaurora.org>
- <1465792001-27960-9-git-send-email-okaya@codeaurora.org>
+From: "Rafael J. Wysocki" <rafael-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Subject: Re: [PATCH v3 7/8] acpi: add support for configfs
+Date: Wed, 15 Jun 2016 23:02:20 +0200
+Message-ID: <CAJZ5v0ip=GuF041dR3m4mMSOqxMU7BDMYC2YTpKtCsjL6pXM+w@mail.gmail.com>
+References: <201606150617.OKhb5WCs%fengguang.wu@intel.com> <3209646.novQQXrKbd@vostro.rjw.lan>
+ <CAE1zotJFg6xWexm0WbxOwU0JFsQ5NJUvo-Tw=hFmqXpNMuwYbA@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1465792001-27960-9-git-send-email-okaya@codeaurora.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Sinan Kaya <okaya@codeaurora.org>, kvm@vger.kernel.org, timur@codeaurora.org, cov@codeaurora.org, jcm@redhat.com, alex.williamson@redhat.com, eric.auger@linaro.org
-Cc: linux-acpi@vger.kernel.org, agross@codeaurora.org, linux-arm-msm@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Baptiste Reynal <b.reynal@virtualopensystems.com>, linux-kernel@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-efi-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <CAE1zotJFg6xWexm0WbxOwU0JFsQ5NJUvo-Tw=hFmqXpNMuwYbA-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+Sender: linux-efi-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Octavian Purdila <octavian.purdila-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: "Rafael J. Wysocki" <rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org>, kbuild test robot <lkp-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, kbuild-all-JC7UmRfGjtg@public.gmane.org, Len Brown <lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Matt Fleming <matt-mF/unelCI9GS6iBeEJttW/XRex20P6io@public.gmane.org>, Mark Brown <broonie-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Wolfram Sang <wsa-z923LK4zBo2bacvFa/9K2g@public.gmane.org>, Joel Becker <jlbec-aKy9MeLSZ9dg9hUCZPvPmw@public.gmane.org>, "linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-efi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-i2c <linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-spi <linux-spi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, lkml <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Irina Tirdea <irina.tirdea-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-Hi Sinan,
+On Wed, Jun 15, 2016 at 12:20 PM, Octavian Purdila
+<octavian.purdila-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org> wrote:
+> On Wed, Jun 15, 2016 at 1:59 AM, Rafael J. Wysocki <rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org> wrote:
+>> Hi Octavian,
+>>
+>> On Wednesday, June 15, 2016 06:43:21 AM kbuild test robot wrote:
+>>> Hi,
+>>>
+>>> [auto build test ERROR on pm/linux-next]
+>>> [also build test ERROR on v4.7-rc3]
+>>> [cannot apply to next-20160614]
+>>> [if your patch is applied to the wrong git tree, please drop us a note to help improve the system]
+>>>
+>>> url:    https://github.com/0day-ci/linux/commits/Octavian-Purdila/ACPI-overlays/20160614-202312
+>>> base:   https://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm.git linux-next
+>>> config: x86_64-allyesconfig (attached as .config)
+>>> compiler: gcc-6 (Debian 6.1.1-1) 6.1.1 20160430
+>>> reproduce:
+>>>         # save the attached .config to linux build tree
+>>>         make ARCH=x86_64
+>>>
+>>> Note: the linux-review/Octavian-Purdila/ACPI-overlays/20160614-202312 HEAD 042f716a165ffa274684c787377acddfc1f34e3f builds fine.
+>>>       It only hurts bisectibility.
+>>>
+>>> All errors (new ones prefixed by >>):
+>>>
+>>>    drivers/acpi/configfs.c: In function 'acpi_configfs_init':
+>>> >> drivers/acpi/configfs.c:19:31: error: 'acpi_configfs' undeclared (first use in this function)
+>>>      struct config_group *root = &acpi_configfs.su_group;
+>>>                                   ^~~~~~~~~~~~~
+>>>    drivers/acpi/configfs.c:19:31: note: each undeclared identifier is reported only once for each function it appears in
+>>>    drivers/acpi/configfs.c: In function 'acpi_configfs_exit':
+>>>    drivers/acpi/configfs.c:33:33: error: 'acpi_configfs' undeclared (first use in this function)
+>>>      configfs_unregister_subsystem(&acpi_configfs);
+>>>                                     ^~~~~~~~~~~~~
+>>>
+>>> vim +/acpi_configfs +19 drivers/acpi/configfs.c
+>>>
+>>>     13        #include <linux/configfs.h>
+>>>     14        #include <linux/acpi.h>
+>>>     15
+>>>     16        static int __init acpi_configfs_init(void)
+>>>     17        {
+>>>     18                int ret;
+>>>   > 19                struct config_group *root = &acpi_configfs.su_group;
+>>>     20
+>>>     21                config_group_init(root);
+>>>     22
+>>>
+>>> ---
+>>
+>> Any chance to send an updated patch with this fixed?
+>>
+>> No need to resend the whole series, just this single patch, please.
+>>
+>
+> Oops, sorry about that. I will have to resend at least the last two
+> patches to fix this issue, but since I have missed to add the
+> Reviewed-by from Mika for another two patches, its probably best to
+> resend the whole series?
 
-On 13/06/2016 06:26, Sinan Kaya wrote:
-> Open call is ignoring the return code from reset call and can
-> potentially continue even though reset call failed.
-> 
-> If reset_required module parameter is set, this patch is going
-> to validate the return code and will abort open if reset fails.
-> 
-> Signed-off-by: Sinan Kaya <okaya@codeaurora.org>
-> ---
->  drivers/vfio/platform/vfio_platform_common.c | 11 ++++++++++-
->  1 file changed, 10 insertions(+), 1 deletion(-)
-> 
-> diff --git a/drivers/vfio/platform/vfio_platform_common.c b/drivers/vfio/platform/vfio_platform_common.c
-> index d84c399..d3141e7 100644
-> --- a/drivers/vfio/platform/vfio_platform_common.c
-> +++ b/drivers/vfio/platform/vfio_platform_common.c
-> @@ -264,6 +264,8 @@ static int vfio_platform_open(void *device_data)
->  	mutex_lock(&driver_lock);
->  
->  	if (!vdev->refcnt) {
-> +		const char *extra_dbg = NULL;
-> +
->  		ret = vfio_platform_regions_init(vdev);
->  		if (ret)
->  			goto err_reg;
-> @@ -272,7 +274,12 @@ static int vfio_platform_open(void *device_data)
->  		if (ret)
->  			goto err_irq;
->  
-> -		vfio_platform_call_reset(vdev, NULL);
-> +		ret = vfio_platform_call_reset(vdev, &extra_dbg);
-> +		if (ret && vdev->reset_required) {
-> +			dev_warn(vdev->device, "reset driver is required and reset call failed in open (%d) %s\n",
-> +				 ret, extra_dbg ? extra_dbg : "");
-> +			goto err_rst;
-> +		}
->  	}
->  
->  	vdev->refcnt++;
-> @@ -280,6 +287,8 @@ static int vfio_platform_open(void *device_data)
->  	mutex_unlock(&driver_lock);
->  	return 0;
->  
-> +err_rst:
-> +	vfio_platform_irq_cleanup(vdev);
->  err_irq:
->  	vfio_platform_regions_cleanup(vdev);
->  err_reg:
-> 
-
-Reviewed-by: Eric Auger <eric.auger@redhat.com>
-
-Thanks
-
-Eric
+Yes, please.
