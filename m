@@ -1,156 +1,123 @@
 From: Will Deacon <will.deacon@arm.com>
-Subject: Re: [PATCH 3/8] arm64: pmu: Add support for probing with ACPI
-Date: Wed, 15 Jun 2016 12:33:33 +0100
-Message-ID: <20160615113333.GI24029@arm.com>
+Subject: Re: [PATCH 5/8] arm: arm64: pmu: Assign platform PMU CPU affinity
+Date: Wed, 15 Jun 2016 14:09:50 +0100
+Message-ID: <20160615130950.GK24029@arm.com>
 References: <1465511013-10742-1-git-send-email-jeremy.linton@arm.com>
- <1465511013-10742-4-git-send-email-jeremy.linton@arm.com>
+ <1465511013-10742-6-git-send-email-jeremy.linton@arm.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from foss.arm.com ([217.140.101.70]:36761 "EHLO foss.arm.com"
+Received: from foss.arm.com ([217.140.101.70]:37251 "EHLO foss.arm.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932095AbcFOLdi (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 15 Jun 2016 07:33:38 -0400
+	id S1752789AbcFONJ4 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 15 Jun 2016 09:09:56 -0400
 Content-Disposition: inline
-In-Reply-To: <1465511013-10742-4-git-send-email-jeremy.linton@arm.com>
+In-Reply-To: <1465511013-10742-6-git-send-email-jeremy.linton@arm.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: Jeremy Linton <jeremy.linton@arm.com>
 Cc: linux-arm-kernel@lists.infradead.org, linux-acpi@vger.kernel.org, mark.rutland@arm.com, lorenzo.pieralisi@arm.com, catalin.marinas@arm.com, peterz@infradead.org, mingo@redhat.com, acme@kernel.org, alexander.shishkin@linux.intel.com, mlangsdorf@redhat.com
 
-On Thu, Jun 09, 2016 at 05:23:28PM -0500, Jeremy Linton wrote:
-> From: Mark Salter <msalter@redhat.com>
+On Thu, Jun 09, 2016 at 05:23:30PM -0500, Jeremy Linton wrote:
+> On systems with multiple PMU types the PMU to CPU affinity
+> needs to be detected and set. The CPU to interrupt affinity
+> should also be set.
 > 
-> In the case of ACPI, the PMU IRQ information is contained in the
-> MADT table. Also, since the PMU does not exist as a device in the
-> ACPI DSDT table, it is necessary to create a platform device so
-> that the appropriate driver probing is triggered.
-> 
-> Signed-off-by: Mark Salter <msalter@redhat.com>
 > Signed-off-by: Jeremy Linton <jeremy.linton@arm.com>
 > ---
+>  drivers/perf/arm_pmu.c | 52 ++++++++++++++++++++++++++++++++++++++++----------
+>  1 file changed, 42 insertions(+), 10 deletions(-)
 > 
->  NOTE: Much of the code in pmu_acpi_init() is replaced in a later version
->        of this patch. The later version of the patch cleans up some of the
->        possible style/error handling issues that have been pointed out with
->        this version.
-> 
->  arch/arm64/kernel/smp.c      |  5 +++
->  drivers/perf/Kconfig         |  4 ++
->  drivers/perf/Makefile        |  1 +
->  drivers/perf/arm_pmu_acpi.c  | 97 ++++++++++++++++++++++++++++++++++++++++++++
->  include/linux/perf/arm_pmu.h |  7 ++++
->  5 files changed, 114 insertions(+)
->  create mode 100644 drivers/perf/arm_pmu_acpi.c
-> 
-> diff --git a/arch/arm64/kernel/smp.c b/arch/arm64/kernel/smp.c
-> index 678e084..5c96d23 100644
-> --- a/arch/arm64/kernel/smp.c
-> +++ b/arch/arm64/kernel/smp.c
-> @@ -37,6 +37,7 @@
->  #include <linux/completion.h>
->  #include <linux/of.h>
->  #include <linux/irq_work.h>
-> +#include <linux/perf/arm_pmu.h>
+> diff --git a/drivers/perf/arm_pmu.c b/drivers/perf/arm_pmu.c
+> index fee4be0e8..865a9db 100644
+> --- a/drivers/perf/arm_pmu.c
+> +++ b/drivers/perf/arm_pmu.c
+> @@ -11,6 +11,7 @@
+>   */
+>  #define pr_fmt(fmt) "hw perfevents: " fmt
 >  
->  #include <asm/alternative.h>
->  #include <asm/atomic.h>
-> @@ -540,6 +541,7 @@ acpi_map_gic_cpu_interface(struct acpi_madt_generic_interrupt *processor)
->  			return;
->  		}
->  		bootcpu_valid = true;
-> +		arm_pmu_parse_acpi(0, processor);
->  		return;
->  	}
->  
-> @@ -560,6 +562,9 @@ acpi_map_gic_cpu_interface(struct acpi_madt_generic_interrupt *processor)
->  	 */
->  	acpi_set_mailbox_entry(cpu_count, processor);
->  
-> +	/* get PMU irq info */
-> +	arm_pmu_parse_acpi(cpu_count, processor);
-> +
-
-Nit: the outer functions are now misnomers, since this has nothing to do
-with the GIC. It feels like acpi_parse_gic_cpu_interface could use some
-slight restructuring so that the MADT parsing looks less confused.
-
-> diff --git a/drivers/perf/Makefile b/drivers/perf/Makefile
-> index acd2397..fd8090d 100644
-> --- a/drivers/perf/Makefile
-> +++ b/drivers/perf/Makefile
-> @@ -1 +1,2 @@
->  obj-$(CONFIG_ARM_PMU) += arm_pmu.o
-> +obj-$(CONFIG_ARM_PMU_ACPI) += arm_pmu_acpi.o
-> diff --git a/drivers/perf/arm_pmu_acpi.c b/drivers/perf/arm_pmu_acpi.c
-> new file mode 100644
-> index 0000000..98c452d
-> --- /dev/null
-> +++ b/drivers/perf/arm_pmu_acpi.c
-> @@ -0,0 +1,97 @@
-> +/*
-> + * PMU support
-> + *
-> + * Copyright (C) 2015 Red Hat Inc.
-> + * Author: Mark Salter <msalter@redhat.com>
-> + *
-> + * This work is licensed under the terms of the GNU GPL, version 2.  See
-> + * the COPYING file in the top-level directory.
-> + *
-> + */
-> +
-> +#include <linux/perf/arm_pmu.h>
-> +#include <linux/platform_device.h>
 > +#include <linux/acpi.h>
-> +#include <linux/irq.h>
-> +#include <linux/irqdesc.h>
+>  #include <linux/bitmap.h>
+>  #include <linux/cpumask.h>
+>  #include <linux/cpu_pm.h>
+> @@ -24,6 +25,7 @@
+>  #include <linux/irq.h>
+>  #include <linux/irqdesc.h>
+>  
+> +#include <asm/cpu.h>
+>  #include <asm/cputype.h>
+>  #include <asm/irq_regs.h>
+>  
+> @@ -872,25 +874,56 @@ static void cpu_pmu_destroy(struct arm_pmu *cpu_pmu)
+>  }
+>  
+>  /*
+> - * CPU PMU identification and probing.
+> + * CPU PMU identification and probing. Its possible to have
+> + * multiple CPU types in an ARM machine. Assure that we are
+> + * picking the right PMU types based on the CPU in question
+>   */
+> -static int probe_current_pmu(struct arm_pmu *pmu,
+> -			     const struct pmu_probe_info *info)
+> +static int probe_plat_pmu(struct arm_pmu *pmu,
+> +			     const struct pmu_probe_info *info,
+> +			     unsigned int pmuid)
+>  {
+> -	int cpu = get_cpu();
+> -	unsigned int cpuid = read_cpuid_id();
+>  	int ret = -ENODEV;
+> +	int cpu;
+> +	int aff_ctr = 0;
+> +	struct platform_device *pdev = pmu->plat_device;
+> +	int irq = platform_get_irq(pdev, 0);
+>  
+> -	pr_info("probing PMU on CPU %d\n", cpu);
+> +	if (irq >= 0 && !irq_is_percpu(irq)) {
+> +		pmu->irq_affinity = kcalloc(pdev->num_resources, sizeof(int),
+> +					    GFP_KERNEL);
+> +		if (!pmu->irq_affinity)
+> +			return -ENOMEM;
+> +	}
 > +
-> +#define PMU_PDEV_NAME "armv8-pmu"
+> +	for_each_possible_cpu(cpu) {
+> +		unsigned int cpuid = read_specific_cpuid(cpu);
+> +
+> +		if (cpuid == pmuid) {
+> +			cpumask_set_cpu(cpu, &pmu->supported_cpus);
+> +			pr_devel("enable pmu on cpu %d\n", cpu);
 
-Stick this in include/linux/perf/arm_pmu.h where we can use it in the driver
-code too?
+Please remove the pr_devels that you've added (similarly elsewhere in
+the patch).
 
-> +
-> +struct pmu_irq {
-> +	int gsi;
-> +	int trigger;
-> +};
-> +
-> +static struct pmu_irq pmu_irqs[NR_CPUS] __initdata;
-> +
-> +void __init arm_pmu_parse_acpi(int cpu, struct acpi_madt_generic_interrupt *gic)
-> +{
-> +	pmu_irqs[cpu].gsi = gic->performance_interrupt;
-> +	if (gic->flags & ACPI_MADT_PERFORMANCE_IRQ_MODE)
-> +		pmu_irqs[cpu].trigger = ACPI_EDGE_SENSITIVE;
-> +	else
-> +		pmu_irqs[cpu].trigger = ACPI_LEVEL_SENSITIVE;
-> +}
-> +
-> +static int __init pmu_acpi_init(void)
-> +{
-> +	struct platform_device *pdev;
-> +	struct pmu_irq *pirq = pmu_irqs;
-> +	struct resource	*res, *r;
-> +	int err = -ENOMEM;
-> +	int i, count, irq;
-> +
-> +	if (acpi_disabled)
-> +		return 0;
-> +
-> +	/* Must have irq for boot boot cpu, at least */
+> +			if (pmu->irq_affinity) {
+> +				pmu->irq_affinity[aff_ctr] = cpu;
+> +				aff_ctr++;
+> +			}
+> +		}
+> +	}
+>  
+> +	pr_debug("probing PMU %X\n", pmuid);
 
-boot boot
+You can also kill this now -- I don't think it's much use.
 
-> +	if (pirq->gsi == 0)
-> +		return -EINVAL;
-> +
-> +	irq = acpi_register_gsi(NULL, pirq->gsi, pirq->trigger,
-> +				ACPI_ACTIVE_HIGH);
+> +	/* find the type of PMU given the CPU */
+>  	for (; info->init != NULL; info++) {
+> -		if ((cpuid & info->mask) != info->cpuid)
+> +		if ((pmuid & info->mask) != info->cpuid)
+>  			continue;
+> +		pr_devel("Found PMU\n");
+>  		ret = info->init(pmu);
+> +		if (!info->cpuid) {
+> +			pmu->name = kasprintf(GFP_KERNEL, "%s_0x%x",
+> +					    pmu->name, ARM_PARTNUM(pmuid));
 
-This is quite tricky to read, thanks to the aliasing of pirq and
-pmu_irqs[0]. Why is it necessary to register the first gsi separately,
-rather than just register it later in the loop with all the other
-interrupts?
+Hmm, I'm not so keen on this. I think we should name the first PMU
+"armv8_pmuv3" (i.e. pmu->name) and then any subsequent PMUs should inherit
+an index, e.g. "armv8_pmuv3_1". That follows a similar style to uncore
+PMUs and also keeps this backwards compatible with what's currently done
+with devicetree.
+
+You can create a 'cpumask' file in the sysfs directory that identifies
+the cores for the PMU (again, there is precedent for this elsewhere).
 
 Will
