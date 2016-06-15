@@ -1,207 +1,169 @@
-From: Sinan Kaya <okaya@codeaurora.org>
-Subject: Re: [PATCH V6 1/7] ACPI: I/O Remapping Table (IORT) initial support
-Date: Wed, 15 Jun 2016 10:44:53 -0400
-Message-ID: <576169E5.2050004@codeaurora.org>
-References: <1465828873-23498-1-git-send-email-tn@semihalf.com>
- <1465828873-23498-2-git-send-email-tn@semihalf.com>
- <576155FA.9080706@codeaurora.org> <20160615133423.GA766@red-moon>
- <57615C35.709@codeaurora.org> <20160615141355.GB766@red-moon>
+From: Jeremy Linton <jeremy.linton@arm.com>
+Subject: Re: [PATCH 3/8] arm64: pmu: Add support for probing with ACPI
+Date: Wed, 15 Jun 2016 10:07:24 -0500
+Message-ID: <57616F2C.4020901@arm.com>
+References: <1465511013-10742-1-git-send-email-jeremy.linton@arm.com>
+ <1465511013-10742-4-git-send-email-jeremy.linton@arm.com>
+ <20160615113333.GI24029@arm.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252
+Content-Type: text/plain; charset=windows-1252; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-pci-owner@vger.kernel.org>
-In-Reply-To: <20160615141355.GB766@red-moon>
-Sender: linux-pci-owner@vger.kernel.org
-To: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
-Cc: Tomasz Nowicki <tn@semihalf.com>, marc.zyngier@arm.com, tglx@linutronix.de, jason@lakedaemon.net, rjw@rjwysocki.net, bhelgaas@google.com, robert.richter@caviumnetworks.com, shijie.huang@arm.com, Suravee.Suthikulpanit@amd.com, hanjun.guo@linaro.org, al.stone@linaro.org, mw@semihalf.com, graeme.gregory@linaro.org, Catalin.Marinas@arm.com, will.deacon@arm.com, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org, ddaney.cavm@gmail.com, andrea.gallo@linaro.org, linux-pci@vger.kernel.org, "Abdulhamid, Harb" <harba@codeaurora.org>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from foss.arm.com ([217.140.101.70]:38177 "EHLO foss.arm.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S932700AbcFOPH3 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 15 Jun 2016 11:07:29 -0400
+In-Reply-To: <20160615113333.GI24029@arm.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Will Deacon <will.deacon@arm.com>
+Cc: linux-arm-kernel@lists.infradead.org, linux-acpi@vger.kernel.org, mark.rutland@arm.com, lorenzo.pieralisi@arm.com, catalin.marinas@arm.com, peterz@infradead.org, mingo@redhat.com, acme@kernel.org, alexander.shishkin@linux.intel.com, mlangsdorf@redhat.com
 
-On 6/15/2016 10:13 AM, Lorenzo Pieralisi wrote:
-> On Wed, Jun 15, 2016 at 09:46:29AM -0400, Sinan Kaya wrote:
->> On 6/15/2016 9:34 AM, Lorenzo Pieralisi wrote:
->>> On Wed, Jun 15, 2016 at 09:19:54AM -0400, Sinan Kaya wrote:
->>>> Hi Tomasz,
->>>>
->>>>> +static acpi_status
->>>>> +iort_match_node_callback(struct acpi_iort_node *node, void *context)
->>>>> +{
->>>>> +	case ACPI_IORT_NODE_PCI_ROOT_COMPLEX: {
->>>>> +		struct acpi_iort_root_complex *pci_rc;
->>>>> +		struct pci_bus *bus;
->>>>> +
->>>>> +		bus = to_pci_bus(dev);
->>>>> +		pci_rc = (struct acpi_iort_root_complex *)node->node_data;
->>>>> +
->>>>> +		/*
->>>>> +		 * It is assumed that PCI segment numbers maps one-to-one
->>>>> +		 * with root complexes. Each segment number can represent only
->>>>> +		 * one root complex.
->>>>> +		 */
->>>>> +		if (pci_rc->pci_segment_number == pci_domain_nr(bus))
->>>>> +			return AE_OK;
->>>>> +
->>>>
->>>> There is problem with the find_dev_node and callback for PCIe here. It assumes
->>>> a one-to-one relationship between an SMMU and root complex. 
->>>>
->>>> Just checked with Charles offline to see if there is anything in the IORT spec that forces
->>>> this. And, the answer was no. 
->>>>
->>>> Pasting the IORT requirements for you below.
->>>>
->>>> ?The IORT was intended to be flexible enough to define static RID to SID mappings, which should cover 
->>>> the following configurations:
->>>> -	Dedicated SMMU per RC
->>>> -	Multiple RC?s per SMMU (as you described)
->>>> -	Multiple SMMU?s per RC (with static RID:SID range per SMMU)
->>>>
->>>> The SMMU instance must be identified by either a device ID *or* a combination of 
->>>> segment ID *and* Requestor ID. ?
->>>>
->>>> If a root complex has multiple SMMUs, this code is going to return the
->>>> first SMMU. This needs to be corrected.
->>>
->>> What you say above is correct, but the problem is not here. This
->>> callback returns either a named component IORT node or a root complex
->>> IORT node corresponding to a device, the problem you are referring to is
->>> related to detecting which SMMU a given named component or root
->>> complex refers too, which is not done here, I will take care of that
->>> on my SMMU series.
->>>
->>> When we look for the SMMU a PCI device is connected to, we must first
->>> retrieve the IORT node of its root complex and walk its list of
->>> mappings and match through RID range instead of picking the first
->>> one, as I assumed, wrongly.
->>>
->>> Lorenzo
->>>
+On 06/15/2016 06:33 AM, Will Deacon wrote:
+> On Thu, Jun 09, 2016 at 05:23:28PM -0500, Jeremy Linton wrote:
+>> From: Mark Salter <msalter@redhat.com>
 >>
->> Thanks for posting. I was trying to be more explicit by a follow up
->> email.  You sent before me. 
+>> In the case of ACPI, the PMU IRQ information is contained in the
+>> MADT table. Also, since the PMU does not exist as a device in the
+>> ACPI DSDT table, it is necessary to create a platform device so
+>> that the appropriate driver probing is triggered.
 >>
->> The summary is that iort_find_dev_node function below will locate the
->> wrong IORT root complex node in a multiple root port inside the same
->> root complex configuration. 
+>> Signed-off-by: Mark Salter <msalter@redhat.com>
+>> Signed-off-by: Jeremy Linton <jeremy.linton@arm.com>
+>> ---
 >>
->> I wish I could share the picture Harb drew here. Let me put it in text.
+>>   NOTE: Much of the code in pmu_acpi_init() is replaced in a later version
+>>         of this patch. The later version of the patch cleans up some of the
+>>         possible style/error handling issues that have been pointed out with
+>>         this version.
 >>
->> You can have a use case where you have two root ports in a single root complex.
+>>   arch/arm64/kernel/smp.c      |  5 +++
+>>   drivers/perf/Kconfig         |  4 ++
+>>   drivers/perf/Makefile        |  1 +
+>>   drivers/perf/arm_pmu_acpi.c  | 97 ++++++++++++++++++++++++++++++++++++++++++++
+>>   include/linux/perf/arm_pmu.h |  7 ++++
+>>   5 files changed, 114 insertions(+)
+>>   create mode 100644 drivers/perf/arm_pmu_acpi.c
 >>
->> Each root port has its own SMMU. Root ports are described in the MCFG
->> table and in the DSDT table as root bridge with their respective bus
->> start and end addresses. They both participate in the same root
->> complex with the same segment number.
+>> diff --git a/arch/arm64/kernel/smp.c b/arch/arm64/kernel/smp.c
+>> index 678e084..5c96d23 100644
+>> --- a/arch/arm64/kernel/smp.c
+>> +++ b/arch/arm64/kernel/smp.c
+>> @@ -37,6 +37,7 @@
+>>   #include <linux/completion.h>
+>>   #include <linux/of.h>
+>>   #include <linux/irq_work.h>
+>> +#include <linux/perf/arm_pmu.h>
 >>
->> First root port requester id range (0x0-0x3ff) and second root port
->> requester id range (0x400-0x7ff).
-> 
-> Ok, so why a single IORT node root complex entry with multiple node
-> mappings (with different RID ranges AND SMMU output references)
-> would not do here ?
-
-Just talked to Harb following your recommendation. Your suggestion makes more sense.
-The mapping is an array. Spec-wise this is doable. 
-
-We assumed that you could only have one mapping under a PCIe RC node. That's why,
-we were thinking of multiple root complex nodes with a single unique mapping.
-It was an oversight from my side.
-
-> 
-> Sorry for being blunt but I would like to understand where the
-> problem is here.
-> 
->> The IORT table has two root complex entries for each root port. The
->> first entry describes the requester id range (0x0-0x3ff) and points to
->> first smmu behind id.
-> 
-> I lost you here. Do you mean the IORT table has one root complex IORT
-> node with two node mappings ?
-
-Two root complex entries with one mapping.
-
-> 
->> The second entry also describes the id range (0x400-0x7ff) and points to second smmu id.
+>>   #include <asm/alternative.h>
+>>   #include <asm/atomic.h>
+>> @@ -540,6 +541,7 @@ acpi_map_gic_cpu_interface(struct acpi_madt_generic_interrupt *processor)
+>>   			return;
+>>   		}
+>>   		bootcpu_valid = true;
+>> +		arm_pmu_parse_acpi(0, processor);
+>>   		return;
+>>   	}
 >>
->> The iort_find_dev_node function tries to locate an IORT node for a given PCIe device id.
+>> @@ -560,6 +562,9 @@ acpi_map_gic_cpu_interface(struct acpi_madt_generic_interrupt *processor)
+>>   	 */
+>>   	acpi_set_mailbox_entry(cpu_count, processor);
 >>
->> If the requester id is 0x400 and segment id is 0, then this function
->> will stop searching as soon as it finds the first node with segment id
->> 0 as it only uses the segment id as a qualifier. 
-> 
-> Well yes. The question is whether we should have two root complexes
-> IORT nodes with the same segment id or a single root complex IORT node
-> with multiple mappings.
-> 
-> If we have one PCI root complex IORT node with multiple node mappings,
-> where is the problem ?
-
-No problem. That works. Let's make sure that the ITS and SMMU implementation allows this
-though. From the spec point of view and ACPI table point of view, multiple node mappings make
-perfect sense.
-
-Thanks
-
-> 
-> Thanks !
-> Lorenzo
-> 
->>
->> It will locate the PCIe root complex node with requester id range (0x0-0x3ff) and use the 
->> wrong smmu to do the ITS device id mapping.
->>
->> "The SMMU instance must be identified by either a device ID *or* a combination of 
->>   segment ID *and* Requestor ID. ?"
->>
->>
->>>>
->>>>> +		break;
->>>>> +	}
->>>>> +	}
->>>>> +
->>>>> +	return AE_NOT_FOUND;
->>>>> +}
->>>>> +
->>>>
->>>>> +
->>>>> +static struct acpi_iort_node *
->>>>> +iort_find_dev_node(struct device *dev)
->>>>> +{
->>>>> +	struct pci_bus *pbus;
->>>>> +
->>>>> +	if (!dev_is_pci(dev))
->>>>> +		return iort_scan_node(ACPI_IORT_NODE_NAMED_COMPONENT,
->>>>> +				      iort_match_node_callback, dev);
->>>>> +
->>>>> +	/* Find a PCI root bus */
->>>>> +	pbus = to_pci_dev(dev)->bus;
->>>>> +	while (!pci_is_root_bus(pbus))
->>>>> +		pbus = pbus->parent;
->>>>> +
->>>>> +	return iort_scan_node(ACPI_IORT_NODE_PCI_ROOT_COMPLEX,
->>>>> +			      iort_match_node_callback, &pbus->dev);
->>>>> +}
->>>>> +
->>>>
->>>> -- 
->>>> Sinan Kaya
->>>> Qualcomm Technologies, Inc. on behalf of Qualcomm Innovation Center, Inc.
->>>> Qualcomm Innovation Center, Inc. is a member of Code Aurora Forum, a Linux Foundation Collaborative Project
->>>>
->>
->>
->> -- 
->> Sinan Kaya
->> Qualcomm Technologies, Inc. on behalf of Qualcomm Innovation Center, Inc.
->> Qualcomm Innovation Center, Inc. is a member of Code Aurora Forum, a Linux Foundation Collaborative Project
->>
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-pci" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
+>> +	/* get PMU irq info */
+>> +	arm_pmu_parse_acpi(cpu_count, processor);
+>> +
+>
+> Nit: the outer functions are now misnomers, since this has nothing to do
+> with the GIC. It feels like acpi_parse_gic_cpu_interface could use some
+> slight restructuring so that the MADT parsing looks less confused.
 
 
--- 
-Sinan Kaya
-Qualcomm Technologies, Inc. on behalf of Qualcomm Innovation Center, Inc.
-Qualcomm Innovation Center, Inc. is a member of Code Aurora Forum, a Linux Foundation Collaborative Project
+Ok, I will clean up the naming a bit.
+
+
+>
+>> diff --git a/drivers/perf/Makefile b/drivers/perf/Makefile
+>> index acd2397..fd8090d 100644
+>> --- a/drivers/perf/Makefile
+>> +++ b/drivers/perf/Makefile
+>> @@ -1 +1,2 @@
+>>   obj-$(CONFIG_ARM_PMU) += arm_pmu.o
+>> +obj-$(CONFIG_ARM_PMU_ACPI) += arm_pmu_acpi.o
+>> diff --git a/drivers/perf/arm_pmu_acpi.c b/drivers/perf/arm_pmu_acpi.c
+>> new file mode 100644
+>> index 0000000..98c452d
+>> --- /dev/null
+>> +++ b/drivers/perf/arm_pmu_acpi.c
+>> @@ -0,0 +1,97 @@
+>> +/*
+>> + * PMU support
+>> + *
+>> + * Copyright (C) 2015 Red Hat Inc.
+>> + * Author: Mark Salter <msalter@redhat.com>
+>> + *
+>> + * This work is licensed under the terms of the GNU GPL, version 2.  See
+>> + * the COPYING file in the top-level directory.
+>> + *
+>> + */
+>> +
+>> +#include <linux/perf/arm_pmu.h>
+>> +#include <linux/platform_device.h>
+>> +#include <linux/acpi.h>
+>> +#include <linux/irq.h>
+>> +#include <linux/irqdesc.h>
+>> +
+>> +#define PMU_PDEV_NAME "armv8-pmu"
+>
+> Stick this in include/linux/perf/arm_pmu.h where we can use it in the driver
+> code too?
+
+Sure..
+
+>
+>> +
+>> +struct pmu_irq {
+>> +	int gsi;
+>> +	int trigger;
+>> +};
+>> +
+>> +static struct pmu_irq pmu_irqs[NR_CPUS] __initdata;
+>> +
+>> +void __init arm_pmu_parse_acpi(int cpu, struct acpi_madt_generic_interrupt *gic)
+>> +{
+>> +	pmu_irqs[cpu].gsi = gic->performance_interrupt;
+>> +	if (gic->flags & ACPI_MADT_PERFORMANCE_IRQ_MODE)
+>> +		pmu_irqs[cpu].trigger = ACPI_EDGE_SENSITIVE;
+>> +	else
+>> +		pmu_irqs[cpu].trigger = ACPI_LEVEL_SENSITIVE;
+>> +}
+>> +
+>> +static int __init pmu_acpi_init(void)
+>> +{
+>> +	struct platform_device *pdev;
+>> +	struct pmu_irq *pirq = pmu_irqs;
+>> +	struct resource	*res, *r;
+>> +	int err = -ENOMEM;
+>> +	int i, count, irq;
+>> +
+>> +	if (acpi_disabled)
+>> +		return 0;
+>> +
+>> +	/* Must have irq for boot boot cpu, at least */
+>
+> boot boot
+>
+>> +	if (pirq->gsi == 0)
+>> +		return -EINVAL;
+>> +
+>> +	irq = acpi_register_gsi(NULL, pirq->gsi, pirq->trigger,
+>> +				ACPI_ACTIVE_HIGH);
+>
+> This is quite tricky to read, thanks to the aliasing of pirq and
+> pmu_irqs[0]. Why is it necessary to register the first gsi separately,
+> rather than just register it later in the loop with all the other
+> interrupts?
+
+	Short answer, no particular reason. If you notice patch 6, 
+arm_pmu_acpi_gsi_res() reworks this to register all the irqs for a 
+particular PMU at the same time.
+
