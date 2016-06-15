@@ -1,114 +1,111 @@
-From: "Rafael J. Wysocki" <rafael@kernel.org>
-Subject: Re: acpi: broken suspend to RAM with v4.7-rc1
-Date: Wed, 15 Jun 2016 02:24:29 +0200
-Message-ID: <CAJZ5v0jw=hvcYSOokPkHK+KgsLee9nc9Aj_33H37-3t7uNxX8w@mail.gmail.com>
+From: "Zheng, Lv" <lv.zheng@intel.com>
+Subject: RE: acpi: broken suspend to RAM with v4.7-rc1
+Date: Wed, 15 Jun 2016 06:05:00 +0000
+Message-ID: <1AE640813FDE7649BE1B193DEA596E883BBE2163@SHSMSX103.ccr.corp.intel.com>
 References: <20160610203210.GA2262@nest> <3027571.8eTQaleASL@vostro.rjw.lan>
  <20160611104922.GA2368@nest> <2544058.dYPSaC0ylY@vostro.rjw.lan>
  <744357E9AAD1214791ACBA4B0B9092633AA54819@SHSMSX101.ccr.corp.intel.com>
- <1AE640813FDE7649BE1B193DEA596E883BBCF836@SHSMSX101.ccr.corp.intel.com> <20160613100707.GA2365@nest>
+ <1AE640813FDE7649BE1B193DEA596E883BBCF836@SHSMSX101.ccr.corp.intel.com>
+ <20160613100707.GA2365@nest>
+ <CAJZ5v0jw=hvcYSOokPkHK+KgsLee9nc9Aj_33H37-3t7uNxX8w@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20160613100707.GA2365@nest>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Andrey Skvortsov <andrej.skvortzov@gmail.com>, "Zheng, Lv" <lv.zheng@intel.com>, "Moore, Robert" <robert.moore@intel.com>, "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "devel@acpica.org" <devel@acpica.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga01.intel.com ([192.55.52.88]:64244 "EHLO mga01.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750798AbcFOGFc (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 15 Jun 2016 02:05:32 -0400
+In-Reply-To: <CAJZ5v0jw=hvcYSOokPkHK+KgsLee9nc9Aj_33H37-3t7uNxX8w@mail.gmail.com>
+Content-Language: en-US
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: "Rafael J. Wysocki" <rafael@kernel.org>, Andrey Skvortsov <andrej.skvortzov@gmail.com>, "Moore, Robert" <robert.moore@intel.com>, "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "devel@acpica.org" <devel@acpica.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
 
-On Mon, Jun 13, 2016 at 12:07 PM, Andrey Skvortsov
-<andrej.skvortzov@gmail.com> wrote:
-> Hi Lv,
->
-> On 13 Jun, Zheng, Lv wrote:
->> > From: linux-acpi-owner@vger.kernel.org [mailto:linux-acpi-
->> > owner@vger.kernel.org] On Behalf Of Rafael J. Wysocki
->> > Subject: Re: acpi: broken suspend to RAM with v4.7-rc1
->> >
->> > On Saturday, June 11, 2016 01:49:22 PM Andrey Skvortsov wrote:
->> > > On 10 Jun, Rafael J. Wysocki wrote:
->> > > > On Friday, June 10, 2016 11:32:10 PM Andrey Skvortsov wrote:
->> > > > > Hi,
->> > > > >
->> > > > > On my laptop (DELL Vostro 1500) in v4.7-rc1 is broken suspend to RAM.
->> > > > > Laptop doesn't finish suspend to RAM process (disks are off, but
->> > > > > WiFi and Power LEDs are still on). The only way to get it out of
->> > > > > this state, is to turn the power off.
->> > > > >
->> > > > > I've bisected the issue to commit 66b1ed5aa8dd25
->> > > > > [ACPICA: ACPI 2.0, Hardware: Add access_width/bit_offset support
->> > > > > for acpi_hw_write()].
->> > > > >
->> > > > > If I revert this commit in v4.7-rc1 (or v4.7-rc2), suspend to RAM
->> > > > > is working again.
->> > > > >
->> > > > > The cause of this problem is that after this commit write to PM1A
->> > > > > Control Block (16-bit register) is done using two 8-bit writes.
->> > > > > If I force this write to be 16-bit, then all is working as before.
->> > > > >
->> > > > > To get it working 'access_width' for PM1A Control Block needs to
->> > > > > be 2 (16-bit), but it's 1 (8-bit).
->> [Lv Zheng]
->> Could you send me the acpidump of the machine?
-> Here it is
-> https://dl.dropboxusercontent.com/u/24023626/dell_vostro_1500.acpidump.bin
->
->> > > > >
->> > > > > The root of the problem seems to be not the commit
->> > 66b1ed5aa8dd25
->> > > > > itself, but the ACPI tables in BIOS where wrong access_width
->> > > > > comes from. I fixed problem in FACP  table, put it in initrd to
->> > > > > override FACP table from BIOS. This fixed the issue, suspend to
->> > > > > RAM is working now again.
->> > > > >
->> > > > > But I'm not sure whether is this proper fix for this problem.
->> > > > > Is there any place in the kernel, where such ACPI quirks are placed?
->> [Lv Zheng]
->> My question would be:
->> Does Windows behave correctly for this table?
-> Yes, suspend to RAM is working under Windows Vista.
-> IIRC it worked under Windows XP too.
->
->> However there is a real case showing that there are real tables need us to correctly support BitWidth/BitOffset.
->> Here is the information for you to refer:
->> http://permalink.gmane.org/gmane.linux.kernel.commits.head/313870
->>
->> > > >
->> > > > Well, if the commit in question caused a problem to happen for you,
->> > > > it also might cause similar problems to happen elsewhere.
->> > > >
->> > > > It looks like we'll need to revert that commit.
->> > > Hi,
->> > >
->> > > or maybe to reset access_width AnyAcc from FACP table only for PM1A
->> > > control register or even for all registers? This will fix the issue too.
->> >
->> > That's a good idea actually.
->> >
->> > > diff --git a/drivers/acpi/acpica/tbfadt.c
->> > > b/drivers/acpi/acpica/tbfadt.c index 6208069..a476e94 100644
->> > > --- a/drivers/acpi/acpica/tbfadt.c
->> > > +++ b/drivers/acpi/acpica/tbfadt.c
->> > > @@ -714,7 +714,14 @@ static void acpi_tb_setup_fadt_registers(void)
->> > >                         }
->> > >                 }
->> > >         }
->> > >
->> > > +       /*
->> > > +        * Reset access_width in the GAS for PM1A control register to
->> > > +        * undefined value. Because in some cases this field contains
->> > > +        * wrong value.
->> > > +        */
->> > > +       acpi_gbl_FADT.xpm1a_control_block.access_width = 0;
->> >
->> > OK, let's see what Bob and Lv think about that.
->> [Lv Zheng]
->> There is a commit in 4.7-rc2:
->> https://git.kernel.org/cgit/linux/kernel/git/torvalds/linux.git/commit/?id=7f9bef9d
->> Have you tried if the problem still exists in 4.7-rc2?
-> I've just tried v4.7-rc3. It contains commit 7f9bef9d and the problem
-> exists there too.
-
-I have decided to revert commit 66b1ed5aa8dd25 as in principle other
-registers may be similarly affected on other systems.
-
-Thanks,
-Rafael
+SGksIFJhZmFlbA0KDQo+IEZyb206IHJqd3lzb2NraUBnbWFpbC5jb20gW21haWx0bzpyand5c29j
+a2lAZ21haWwuY29tXSBPbiBCZWhhbGYgT2YNCj4gUmFmYWVsIEouIFd5c29ja2kNCj4gU3ViamVj
+dDogUmU6IGFjcGk6IGJyb2tlbiBzdXNwZW5kIHRvIFJBTSB3aXRoIHY0LjctcmMxDQo+IA0KPiBP
+biBNb24sIEp1biAxMywgMjAxNiBhdCAxMjowNyBQTSwgQW5kcmV5IFNrdm9ydHNvdg0KPiA8YW5k
+cmVqLnNrdm9ydHpvdkBnbWFpbC5jb20+IHdyb3RlOg0KPiA+IEhpIEx2LA0KPiA+DQo+ID4gT24g
+MTMgSnVuLCBaaGVuZywgTHYgd3JvdGU6DQo+ID4+ID4gRnJvbTogbGludXgtYWNwaS1vd25lckB2
+Z2VyLmtlcm5lbC5vcmcgW21haWx0bzpsaW51eC1hY3BpLQ0KPiA+PiA+IG93bmVyQHZnZXIua2Vy
+bmVsLm9yZ10gT24gQmVoYWxmIE9mIFJhZmFlbCBKLiBXeXNvY2tpDQo+ID4+ID4gU3ViamVjdDog
+UmU6IGFjcGk6IGJyb2tlbiBzdXNwZW5kIHRvIFJBTSB3aXRoIHY0LjctcmMxDQo+ID4+ID4NCj4g
+Pj4gPiBPbiBTYXR1cmRheSwgSnVuZSAxMSwgMjAxNiAwMTo0OToyMiBQTSBBbmRyZXkgU2t2b3J0
+c292IHdyb3RlOg0KPiA+PiA+ID4gT24gMTAgSnVuLCBSYWZhZWwgSi4gV3lzb2NraSB3cm90ZToN
+Cj4gPj4gPiA+ID4gT24gRnJpZGF5LCBKdW5lIDEwLCAyMDE2IDExOjMyOjEwIFBNIEFuZHJleSBT
+a3ZvcnRzb3Ygd3JvdGU6DQo+ID4+ID4gPiA+ID4gSGksDQo+ID4+ID4gPiA+ID4NCj4gPj4gPiA+
+ID4gPiBPbiBteSBsYXB0b3AgKERFTEwgVm9zdHJvIDE1MDApIGluIHY0LjctcmMxIGlzIGJyb2tl
+biBzdXNwZW5kDQo+IHRvIFJBTS4NCj4gPj4gPiA+ID4gPiBMYXB0b3AgZG9lc24ndCBmaW5pc2gg
+c3VzcGVuZCB0byBSQU0gcHJvY2VzcyAoZGlza3MgYXJlIG9mZiwgYnV0DQo+ID4+ID4gPiA+ID4g
+V2lGaSBhbmQgUG93ZXIgTEVEcyBhcmUgc3RpbGwgb24pLiBUaGUgb25seSB3YXkgdG8gZ2V0IGl0
+IG91dCBvZg0KPiA+PiA+ID4gPiA+IHRoaXMgc3RhdGUsIGlzIHRvIHR1cm4gdGhlIHBvd2VyIG9m
+Zi4NCj4gPj4gPiA+ID4gPg0KPiA+PiA+ID4gPiA+IEkndmUgYmlzZWN0ZWQgdGhlIGlzc3VlIHRv
+IGNvbW1pdCA2NmIxZWQ1YWE4ZGQyNQ0KPiA+PiA+ID4gPiA+IFtBQ1BJQ0E6IEFDUEkgMi4wLCBI
+YXJkd2FyZTogQWRkIGFjY2Vzc193aWR0aC9iaXRfb2Zmc2V0DQo+IHN1cHBvcnQNCj4gPj4gPiA+
+ID4gPiBmb3IgYWNwaV9od193cml0ZSgpXS4NCj4gPj4gPiA+ID4gPg0KPiA+PiA+ID4gPiA+IElm
+IEkgcmV2ZXJ0IHRoaXMgY29tbWl0IGluIHY0LjctcmMxIChvciB2NC43LXJjMiksIHN1c3BlbmQg
+dG8gUkFNDQo+ID4+ID4gPiA+ID4gaXMgd29ya2luZyBhZ2Fpbi4NCj4gPj4gPiA+ID4gPg0KPiA+
+PiA+ID4gPiA+IFRoZSBjYXVzZSBvZiB0aGlzIHByb2JsZW0gaXMgdGhhdCBhZnRlciB0aGlzIGNv
+bW1pdCB3cml0ZSB0bw0KPiBQTTFBDQo+ID4+ID4gPiA+ID4gQ29udHJvbCBCbG9jayAoMTYtYml0
+IHJlZ2lzdGVyKSBpcyBkb25lIHVzaW5nIHR3byA4LWJpdCB3cml0ZXMuDQo+ID4+ID4gPiA+ID4g
+SWYgSSBmb3JjZSB0aGlzIHdyaXRlIHRvIGJlIDE2LWJpdCwgdGhlbiBhbGwgaXMgd29ya2luZyBh
+cyBiZWZvcmUuDQo+ID4+ID4gPiA+ID4NCj4gPj4gPiA+ID4gPiBUbyBnZXQgaXQgd29ya2luZyAn
+YWNjZXNzX3dpZHRoJyBmb3IgUE0xQSBDb250cm9sIEJsb2NrIG5lZWRzDQo+IHRvDQo+ID4+ID4g
+PiA+ID4gYmUgMiAoMTYtYml0KSwgYnV0IGl0J3MgMSAoOC1iaXQpLg0KPiA+PiBbTHYgWmhlbmdd
+DQo+ID4+IENvdWxkIHlvdSBzZW5kIG1lIHRoZSBhY3BpZHVtcCBvZiB0aGUgbWFjaGluZT8NCj4g
+PiBIZXJlIGl0IGlzDQo+ID4NCj4gaHR0cHM6Ly9kbC5kcm9wYm94dXNlcmNvbnRlbnQuY29tL3Uv
+MjQwMjM2MjYvZGVsbF92b3N0cm9fMTUwMC5hY3BpZA0KPiB1bXAuYmluDQo+ID4NCj4gPj4gPiA+
+ID4gPg0KPiA+PiA+ID4gPiA+IFRoZSByb290IG9mIHRoZSBwcm9ibGVtIHNlZW1zIHRvIGJlIG5v
+dCB0aGUgY29tbWl0DQo+ID4+ID4gNjZiMWVkNWFhOGRkMjUNCj4gPj4gPiA+ID4gPiBpdHNlbGYs
+IGJ1dCB0aGUgQUNQSSB0YWJsZXMgaW4gQklPUyB3aGVyZSB3cm9uZyBhY2Nlc3Nfd2lkdGgNCj4g
+Pj4gPiA+ID4gPiBjb21lcyBmcm9tLiBJIGZpeGVkIHByb2JsZW0gaW4gRkFDUCAgdGFibGUsIHB1
+dCBpdCBpbiBpbml0cmQgdG8NCj4gPj4gPiA+ID4gPiBvdmVycmlkZSBGQUNQIHRhYmxlIGZyb20g
+QklPUy4gVGhpcyBmaXhlZCB0aGUgaXNzdWUsIHN1c3BlbmQgdG8NCj4gPj4gPiA+ID4gPiBSQU0g
+aXMgd29ya2luZyBub3cgYWdhaW4uDQo+ID4+ID4gPiA+ID4NCj4gPj4gPiA+ID4gPiBCdXQgSSdt
+IG5vdCBzdXJlIHdoZXRoZXIgaXMgdGhpcyBwcm9wZXIgZml4IGZvciB0aGlzIHByb2JsZW0uDQo+
+ID4+ID4gPiA+ID4gSXMgdGhlcmUgYW55IHBsYWNlIGluIHRoZSBrZXJuZWwsIHdoZXJlIHN1Y2gg
+QUNQSSBxdWlya3MgYXJlDQo+IHBsYWNlZD8NCj4gPj4gW0x2IFpoZW5nXQ0KPiA+PiBNeSBxdWVz
+dGlvbiB3b3VsZCBiZToNCj4gPj4gRG9lcyBXaW5kb3dzIGJlaGF2ZSBjb3JyZWN0bHkgZm9yIHRo
+aXMgdGFibGU/DQo+ID4gWWVzLCBzdXNwZW5kIHRvIFJBTSBpcyB3b3JraW5nIHVuZGVyIFdpbmRv
+d3MgVmlzdGEuDQo+ID4gSUlSQyBpdCB3b3JrZWQgdW5kZXIgV2luZG93cyBYUCB0b28uDQo+ID4N
+Cj4gPj4gSG93ZXZlciB0aGVyZSBpcyBhIHJlYWwgY2FzZSBzaG93aW5nIHRoYXQgdGhlcmUgYXJl
+IHJlYWwgdGFibGVzIG5lZWQgdXMNCj4gdG8gY29ycmVjdGx5IHN1cHBvcnQgQml0V2lkdGgvQml0
+T2Zmc2V0Lg0KPiA+PiBIZXJlIGlzIHRoZSBpbmZvcm1hdGlvbiBmb3IgeW91IHRvIHJlZmVyOg0K
+PiA+PiBodHRwOi8vcGVybWFsaW5rLmdtYW5lLm9yZy9nbWFuZS5saW51eC5rZXJuZWwuY29tbWl0
+cy5oZWFkLzMxMzg3MA0KPiA+Pg0KPiA+PiA+ID4gPg0KPiA+PiA+ID4gPiBXZWxsLCBpZiB0aGUg
+Y29tbWl0IGluIHF1ZXN0aW9uIGNhdXNlZCBhIHByb2JsZW0gdG8gaGFwcGVuIGZvcg0KPiB5b3Us
+DQo+ID4+ID4gPiA+IGl0IGFsc28gbWlnaHQgY2F1c2Ugc2ltaWxhciBwcm9ibGVtcyB0byBoYXBw
+ZW4gZWxzZXdoZXJlLg0KPiA+PiA+ID4gPg0KPiA+PiA+ID4gPiBJdCBsb29rcyBsaWtlIHdlJ2xs
+IG5lZWQgdG8gcmV2ZXJ0IHRoYXQgY29tbWl0Lg0KPiA+PiA+ID4gSGksDQo+ID4+ID4gPg0KPiA+
+PiA+ID4gb3IgbWF5YmUgdG8gcmVzZXQgYWNjZXNzX3dpZHRoIEFueUFjYyBmcm9tIEZBQ1AgdGFi
+bGUgb25seSBmb3INCj4gUE0xQQ0KPiA+PiA+ID4gY29udHJvbCByZWdpc3RlciBvciBldmVuIGZv
+ciBhbGwgcmVnaXN0ZXJzPyBUaGlzIHdpbGwgZml4IHRoZSBpc3N1ZSB0b28uDQo+ID4+ID4NCj4g
+Pj4gPiBUaGF0J3MgYSBnb29kIGlkZWEgYWN0dWFsbHkuDQo+ID4+ID4NCj4gPj4gPiA+IGRpZmYg
+LS1naXQgYS9kcml2ZXJzL2FjcGkvYWNwaWNhL3RiZmFkdC5jDQo+ID4+ID4gPiBiL2RyaXZlcnMv
+YWNwaS9hY3BpY2EvdGJmYWR0LmMgaW5kZXggNjIwODA2OS4uYTQ3NmU5NCAxMDA2NDQNCj4gPj4g
+PiA+IC0tLSBhL2RyaXZlcnMvYWNwaS9hY3BpY2EvdGJmYWR0LmMNCj4gPj4gPiA+ICsrKyBiL2Ry
+aXZlcnMvYWNwaS9hY3BpY2EvdGJmYWR0LmMNCj4gPj4gPiA+IEBAIC03MTQsNyArNzE0LDE0IEBA
+IHN0YXRpYyB2b2lkDQo+IGFjcGlfdGJfc2V0dXBfZmFkdF9yZWdpc3RlcnModm9pZCkNCj4gPj4g
+PiA+ICAgICAgICAgICAgICAgICAgICAgICAgIH0NCj4gPj4gPiA+ICAgICAgICAgICAgICAgICB9
+DQo+ID4+ID4gPiAgICAgICAgIH0NCj4gPj4gPiA+DQo+ID4+ID4gPiArICAgICAgIC8qDQo+ID4+
+ID4gPiArICAgICAgICAqIFJlc2V0IGFjY2Vzc193aWR0aCBpbiB0aGUgR0FTIGZvciBQTTFBIGNv
+bnRyb2wgcmVnaXN0ZXIgdG8NCj4gPj4gPiA+ICsgICAgICAgICogdW5kZWZpbmVkIHZhbHVlLiBC
+ZWNhdXNlIGluIHNvbWUgY2FzZXMgdGhpcyBmaWVsZCBjb250YWlucw0KPiA+PiA+ID4gKyAgICAg
+ICAgKiB3cm9uZyB2YWx1ZS4NCj4gPj4gPiA+ICsgICAgICAgICovDQo+ID4+ID4gPiArICAgICAg
+IGFjcGlfZ2JsX0ZBRFQueHBtMWFfY29udHJvbF9ibG9jay5hY2Nlc3Nfd2lkdGggPSAwOw0KPiA+
+PiA+DQo+ID4+ID4gT0ssIGxldCdzIHNlZSB3aGF0IEJvYiBhbmQgTHYgdGhpbmsgYWJvdXQgdGhh
+dC4NCj4gPj4gW0x2IFpoZW5nXQ0KPiA+PiBUaGVyZSBpcyBhIGNvbW1pdCBpbiA0LjctcmMyOg0K
+PiA+Pg0KPiBodHRwczovL2dpdC5rZXJuZWwub3JnL2NnaXQvbGludXgva2VybmVsL2dpdC90b3J2
+YWxkcy9saW51eC5naXQvY29tbWl0Lz9pZD0NCj4gN2Y5YmVmOWQNCj4gPj4gSGF2ZSB5b3UgdHJp
+ZWQgaWYgdGhlIHByb2JsZW0gc3RpbGwgZXhpc3RzIGluIDQuNy1yYzI/DQo+ID4gSSd2ZSBqdXN0
+IHRyaWVkIHY0LjctcmMzLiBJdCBjb250YWlucyBjb21taXQgN2Y5YmVmOWQgYW5kIHRoZSBwcm9i
+bGVtDQo+ID4gZXhpc3RzIHRoZXJlIHRvby4NCj4gDQo+IEkgaGF2ZSBkZWNpZGVkIHRvIHJldmVy
+dCBjb21taXQgNjZiMWVkNWFhOGRkMjUgYXMgaW4gcHJpbmNpcGxlIG90aGVyDQo+IHJlZ2lzdGVy
+cyBtYXkgYmUgc2ltaWxhcmx5IGFmZmVjdGVkIG9uIG90aGVyIHN5c3RlbXMuDQpbTHYgWmhlbmdd
+IA0KWWVzLg0KSSBkaWRuJ3QgcHJlcGFyZSBmYWxsYmFjayBtZWNoYW5pc20gZm9yIHRoaXMgc3Vw
+cG9ydC4NCkl0IHNlZW1zIHdlIGhhdmUgdG8gZG8gdGhlIHJldmVyc2lvbi4NClBsZWFzZSByZXZl
+cnQgaXQuDQpOZXh0IHRpbWUgSSdsbCBwcmVwYXJlIGEgcXVpcmsgbWVjaGFuaXNtIHdoZW4gdGhp
+cyBpcyB1cHN0cmVhbWVkLg0KDQpGb3IgQW5kcmV5Og0KQ291bGQgeW91IHByb3ZpZGUgbWUgdGhl
+IERNSWRlY29kZSBvdXRwdXQgb2YgdGhlIG1hY2hpbmU/DQoNClRoYW5rcw0KLUx2DQoNCj4gDQo+
+IFRoYW5rcywNCj4gUmFmYWVsDQo=
