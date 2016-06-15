@@ -1,35 +1,41 @@
-From: Octavian Purdila <octavian.purdila@intel.com>
-Subject: Re: [PATCH v3 4/8] i2c: add support for ACPI reconfigure notifications
-Date: Wed, 15 Jun 2016 13:30:10 +0300
-Message-ID: <CAE1zotLFtzfOrfmiRaewzdctD4UDPa8pJ6fVC34C8XRrArb5UQ@mail.gmail.com>
-References: <1465917446-14043-1-git-send-email-octavian.purdila@intel.com>
-	<1465917446-14043-5-git-send-email-octavian.purdila@intel.com>
-	<20160615062724.GB1344@tetsubishi>
+From: Will Deacon <will.deacon@arm.com>
+Subject: Re: [PATCH 1/8] arm64: pmu: add fallback probe table
+Date: Wed, 15 Jun 2016 11:59:43 +0100
+Message-ID: <20160615105943.GG24029@arm.com>
+References: <1465511013-10742-1-git-send-email-jeremy.linton@arm.com>
+ <1465511013-10742-2-git-send-email-jeremy.linton@arm.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-wm0-f41.google.com ([74.125.82.41]:38488 "EHLO
-	mail-wm0-f41.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753285AbcFOKaM (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 15 Jun 2016 06:30:12 -0400
-Received: by mail-wm0-f41.google.com with SMTP id m124so29272317wme.1
-        for <linux-acpi@vger.kernel.org>; Wed, 15 Jun 2016 03:30:11 -0700 (PDT)
-In-Reply-To: <20160615062724.GB1344@tetsubishi>
+Received: from foss.arm.com ([217.140.101.70]:36564 "EHLO foss.arm.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753107AbcFOK7s (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 15 Jun 2016 06:59:48 -0400
+Content-Disposition: inline
+In-Reply-To: <1465511013-10742-2-git-send-email-jeremy.linton@arm.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Wolfram Sang <wsa@the-dreams.de>
-Cc: "Rafael J . Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Matt Fleming <matt@codeblueprint.co.uk>, Mark Brown <broonie@kernel.org>, Joel Becker <jlbec@evilplan.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, linux-efi@vger.kernel.org, linux-i2c <linux-i2c@vger.kernel.org>, linux-spi <linux-spi@vger.kernel.org>, lkml <linux-kernel@vger.kernel.org>, Irina Tirdea <irina.tirdea@intel.com>
+To: Jeremy Linton <jeremy.linton@arm.com>
+Cc: linux-arm-kernel@lists.infradead.org, linux-acpi@vger.kernel.org, mark.rutland@arm.com, lorenzo.pieralisi@arm.com, catalin.marinas@arm.com, peterz@infradead.org, mingo@redhat.com, acme@kernel.org, alexander.shishkin@linux.intel.com, mlangsdorf@redhat.com
 
-On Wed, Jun 15, 2016 at 9:27 AM, Wolfram Sang <wsa@the-dreams.de> wrote:
-> On Tue, Jun 14, 2016 at 06:17:22PM +0300, Octavian Purdila wrote:
->> This patch adds supports for I2C device enumeration and removal via
->> ACPI reconfiguration notifications that are send as a result of an
->> ACPI table load or unload operation.
->>
->> Signed-off-by: Octavian Purdila <octavian.purdila@intel.com>
->
-> What happened to Mika's reviewed-by?
->
+On Thu, Jun 09, 2016 at 05:23:26PM -0500, Jeremy Linton wrote:
+> From: Mark Salter <msalter@redhat.com>
+> 
+> In preparation for ACPI support, add a pmu_probe_info table to
+> the arm_pmu_device_probe() call. This table gets used when
+> probing in the absence of a devicetree node for PMU.
+> 
+> Signed-off-by: Mark Salter <msalter@redhat.com>
+> Signed-off-by: Jeremy Linton <jeremy.linton@arm.com>
+> ---
+>  arch/arm64/kernel/perf_event.c | 8 +++++++-
+>  include/linux/perf/arm_pmu.h   | 3 +++
+>  2 files changed, 10 insertions(+), 1 deletion(-)
 
-Missed that, I will send a new series soon to correct a bisectability
-issues reported by kbuild and I'll add with Mika's reviewed-bys.
+This is likely to do the wrong thing for big/little systems, so I'm not
+keen on this for DT. We should mandate that the PMU is described there.
+
+If you need this as a building block for ACPI, please ensure that the
+code is only executed when booting via ACPI.
+
+Will
