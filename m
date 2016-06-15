@@ -1,111 +1,73 @@
-From: Tomasz Nowicki <tn@semihalf.com>
-Subject: Re: [PATCH V6 0/7] Introduce ACPI world to ITS irqchip
-Date: Wed, 15 Jun 2016 11:34:00 +0200
-Message-ID: <57612108.4050407@semihalf.com>
-References: <1465828873-23498-1-git-send-email-tn@semihalf.com>
- <20160615100919.6b507b57@arm.com>
+From: Octavian Purdila <octavian.purdila@intel.com>
+Subject: Re: [PATCH v3 7/8] acpi: add support for configfs
+Date: Wed, 15 Jun 2016 13:20:51 +0300
+Message-ID: <CAE1zotJFg6xWexm0WbxOwU0JFsQ5NJUvo-Tw=hFmqXpNMuwYbA@mail.gmail.com>
+References: <201606150617.OKhb5WCs%fengguang.wu@intel.com>
+	<3209646.novQQXrKbd@vostro.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-wm0-f46.google.com ([74.125.82.46]:36200 "EHLO
-	mail-wm0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932485AbcFOJeE (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 15 Jun 2016 05:34:04 -0400
-Received: by mail-wm0-f46.google.com with SMTP id f126so13353539wma.1
-        for <linux-acpi@vger.kernel.org>; Wed, 15 Jun 2016 02:34:04 -0700 (PDT)
-In-Reply-To: <20160615100919.6b507b57@arm.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <3209646.novQQXrKbd@vostro.rjw.lan>
+Sender: linux-kernel-owner@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: kbuild test robot <lkp@intel.com>, kbuild-all@01.org, Len Brown <lenb@kernel.org>, Matt Fleming <matt@codeblueprint.co.uk>, Mark Brown <broonie@kernel.org>, Wolfram Sang <wsa@the-dreams.de>, Joel Becker <jlbec@evilplan.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, linux-efi@vger.kernel.org, linux-i2c <linux-i2c@vger.kernel.org>, linux-spi <linux-spi@vger.kernel.org>, lkml <linux-kernel@vger.kernel.org>, Irina Tirdea <irina.tirdea@intel.com>
 List-Id: linux-acpi@vger.kernel.org
-To: Marc Zyngier <marc.zyngier@arm.com>, rjw@rjwysocki.net, bhelgaas@google.com, lorenzo.pieralisi@arm.com
-Cc: tglx@linutronix.de, jason@lakedaemon.net, robert.richter@caviumnetworks.com, shijie.huang@arm.com, Suravee.Suthikulpanit@amd.com, hanjun.guo@linaro.org, al.stone@linaro.org, mw@semihalf.com, graeme.gregory@linaro.org, Catalin.Marinas@arm.com, will.deacon@arm.com, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org, ddaney.cavm@gmail.com, okaya@codeaurora.org, andrea.gallo@linaro.org, linux-pci@vger.kernel.org
 
-On 15.06.2016 11:09, Marc Zyngier wrote:
-> On Mon, 13 Jun 2016 16:41:06 +0200
-> Tomasz Nowicki <tn@semihalf.com> wrote:
+On Wed, Jun 15, 2016 at 1:59 AM, Rafael J. Wysocki <rjw@rjwysocki.net> wrote:
+> Hi Octavian,
 >
->> The series builds the PCI/MSI domain stack based on initial IORT driver
->> which is added in first place. As a reference please see IORT spec:
->> http://infocenter.arm.com/help/topic/com.arm.doc.den0049b/DEN0049B_IO_Remapping_Table.pdf
+> On Wednesday, June 15, 2016 06:43:21 AM kbuild test robot wrote:
+>> Hi,
 >>
->> Patches were built on top of accepted ARM64 ACPI PCI support and can be found
->> all together here:
->> https://github.com/semihalf-nowicki-tomasz/linux.git (its-acpi-v6)
+>> [auto build test ERROR on pm/linux-next]
+>> [also build test ERROR on v4.7-rc3]
+>> [cannot apply to next-20160614]
+>> [if your patch is applied to the wrong git tree, please drop us a note to help improve the system]
 >>
->> Tested on Cavium ThunderX server.
+>> url:    https://github.com/0day-ci/linux/commits/Octavian-Purdila/ACPI-overlays/20160614-202312
+>> base:   https://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm.git linux-next
+>> config: x86_64-allyesconfig (attached as .config)
+>> compiler: gcc-6 (Debian 6.1.1-1) 6.1.1 20160430
+>> reproduce:
+>>         # save the attached .config to linux build tree
+>>         make ARCH=x86_64
 >>
->> v5 -> v6
->> - added locking mechanism for IORT list with domain token
->> - IORT function name improvements
->> - extended IORT RID mapping helper
->> - reworked IORT to be more SMMU friendly
->> - IORT functions which map RID and find corresponding domain are not
->>    PCI specific any more (struct pci_dev -> struct device)
->> - bug fixes
+>> Note: the linux-review/Octavian-Purdila/ACPI-overlays/20160614-202312 HEAD 042f716a165ffa274684c787377acddfc1f34e3f builds fine.
+>>       It only hurts bisectibility.
 >>
->> v4 -> v5
->> - rebased against v4.7-rc1
->> - drop generic layer and call IORT functions directly
->> - improve resource abstraction and string formatting
+>> All errors (new ones prefixed by >>):
 >>
->> v3 -> v4
->> - rebased against v4.5
->> - add ACPI support for IRQ domain handling on a per-device basis
->> - reorder domain setup step
->> - improve error handling
->> - code style improvements
+>>    drivers/acpi/configfs.c: In function 'acpi_configfs_init':
+>> >> drivers/acpi/configfs.c:19:31: error: 'acpi_configfs' undeclared (first use in this function)
+>>      struct config_group *root = &acpi_configfs.su_group;
+>>                                   ^~~~~~~~~~~~~
+>>    drivers/acpi/configfs.c:19:31: note: each undeclared identifier is reported only once for each function it appears in
+>>    drivers/acpi/configfs.c: In function 'acpi_configfs_exit':
+>>    drivers/acpi/configfs.c:33:33: error: 'acpi_configfs' undeclared (first use in this function)
+>>      configfs_unregister_subsystem(&acpi_configfs);
+>>                                     ^~~~~~~~~~~~~
 >>
->> v2 -> v3
->> - rebased on top of 4.4
->> - fixes and improvements for redistributor init via GICC structures
->> - fixes as per kbuild reports
+>> vim +/acpi_configfs +19 drivers/acpi/configfs.c
 >>
->> v1 -> v2
->> - rebased on top of 4.4-rc4
->> - use pci_msi_domain_get_msi_rid for requester ID to device ID translation
+>>     13        #include <linux/configfs.h>
+>>     14        #include <linux/acpi.h>
+>>     15
+>>     16        static int __init acpi_configfs_init(void)
+>>     17        {
+>>     18                int ret;
+>>   > 19                struct config_group *root = &acpi_configfs.su_group;
+>>     20
+>>     21                config_group_init(root);
+>>     22
 >>
->> Tomasz Nowicki (7):
->>    ACPI: I/O Remapping Table (IORT) initial support
->>    PCI/MSI: Setup MSI domain on a per-devices basis using IORT ACPI table
->>    irqchip/gicv3-its: Cleanup for ITS domain initialization
->>    irqchip/gicv3-its: Refator ITS DT init code to prepare for ACPI
->>    irqchip/gicv3-its: Probe ITS in the ACPI way
->>    irqchip/gicv3-its: Factor out code that might be reused for ACPI
->>    irqchip/gicv3-its: Use MADT ITS subtable to do PCI/MSI domain
->>      initialization
->>
->>   drivers/acpi/Kconfig                     |   3 +
->>   drivers/acpi/Makefile                    |   1 +
->>   drivers/acpi/iort.c                      | 386 +++++++++++++++++++++++++++++++
->>   drivers/irqchip/Kconfig                  |   1 +
->>   drivers/irqchip/irq-gic-v3-its-pci-msi.c |  88 +++++--
->>   drivers/irqchip/irq-gic-v3-its.c         | 185 ++++++++++-----
->>   drivers/irqchip/irq-gic-v3.c             |   7 +-
->>   drivers/pci/msi.c                        |  11 +-
->>   include/linux/iort.h                     |  38 +++
->>   include/linux/irqchip/arm-gic-v3.h       |   4 +-
->>   10 files changed, 646 insertions(+), 78 deletions(-)
->>   create mode 100644 drivers/acpi/iort.c
->>   create mode 100644 include/linux/iort.h
->>
+>> ---
 >
+> Any chance to send an updated patch with this fixed?
 >
-> Once you've addressed the couple of remarks I had, and unless someone
-> has further objections, this should be in a sane state.
-
-Thanks for having a look !
-
->
-> Of course, the following question would be "who merges this thing". I'm
-> happy to take it (mostly because it makes my life easier on the ITS
-> side), but it needs to be Acked by the usual suspects (Rafael, Bjorn,
-> Lorenzo).
+> No need to resend the whole series, just this single patch, please.
 >
 
-As for me, I am fine you to merge it.
-
-Bjorn, Rafael, Lorenzo,
-
-Can you please check on respective patches? Thanks in advance.
-
-Tomasz
+Oops, sorry about that. I will have to resend at least the last two
+patches to fix this issue, but since I have missed to add the
+Reviewed-by from Mika for another two patches, its probably best to
+resend the whole series?
