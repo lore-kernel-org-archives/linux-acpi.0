@@ -1,77 +1,70 @@
-From: "Rafael J. Wysocki" <rafael-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: [PATCH v3 7/8] acpi: add support for configfs
-Date: Wed, 15 Jun 2016 23:02:20 +0200
-Message-ID: <CAJZ5v0ip=GuF041dR3m4mMSOqxMU7BDMYC2YTpKtCsjL6pXM+w@mail.gmail.com>
-References: <201606150617.OKhb5WCs%fengguang.wu@intel.com> <3209646.novQQXrKbd@vostro.rjw.lan>
- <CAE1zotJFg6xWexm0WbxOwU0JFsQ5NJUvo-Tw=hFmqXpNMuwYbA@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-efi-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <CAE1zotJFg6xWexm0WbxOwU0JFsQ5NJUvo-Tw=hFmqXpNMuwYbA-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
-Sender: linux-efi-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Octavian Purdila <octavian.purdila-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: "Rafael J. Wysocki" <rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org>, kbuild test robot <lkp-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, kbuild-all-JC7UmRfGjtg@public.gmane.org, Len Brown <lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Matt Fleming <matt-mF/unelCI9GS6iBeEJttW/XRex20P6io@public.gmane.org>, Mark Brown <broonie-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Wolfram Sang <wsa-z923LK4zBo2bacvFa/9K2g@public.gmane.org>, Joel Becker <jlbec-aKy9MeLSZ9dg9hUCZPvPmw@public.gmane.org>, "linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-efi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-i2c <linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-spi <linux-spi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, lkml <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Irina Tirdea <irina.tirdea-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+From: Peter Jones <pjones@redhat.com>
+Subject: [PATCH] ACPI: don't show an error when we're not in charge of PCIe hotplug.
+Date: Wed, 15 Jun 2016 18:15:04 -0400
+Message-ID: <1466028904-28328-1-git-send-email-pjones@redhat.com>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mx1.redhat.com ([209.132.183.28]:37780 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S932290AbcFOWPm (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 15 Jun 2016 18:15:42 -0400
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: linux-acpi@vger.kernel.org
+Cc: Mario_Limonciello@dell.com, linux-kernel@vger.kernel.org, Len Brown <lenb@kernel.org>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, Andy Lutomirski <luto@amacapital.net>, Peter Jones <pjones@redhat.com>
 
-On Wed, Jun 15, 2016 at 12:20 PM, Octavian Purdila
-<octavian.purdila-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org> wrote:
-> On Wed, Jun 15, 2016 at 1:59 AM, Rafael J. Wysocki <rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org> wrote:
->> Hi Octavian,
->>
->> On Wednesday, June 15, 2016 06:43:21 AM kbuild test robot wrote:
->>> Hi,
->>>
->>> [auto build test ERROR on pm/linux-next]
->>> [also build test ERROR on v4.7-rc3]
->>> [cannot apply to next-20160614]
->>> [if your patch is applied to the wrong git tree, please drop us a note to help improve the system]
->>>
->>> url:    https://github.com/0day-ci/linux/commits/Octavian-Purdila/ACPI-overlays/20160614-202312
->>> base:   https://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm.git linux-next
->>> config: x86_64-allyesconfig (attached as .config)
->>> compiler: gcc-6 (Debian 6.1.1-1) 6.1.1 20160430
->>> reproduce:
->>>         # save the attached .config to linux build tree
->>>         make ARCH=x86_64
->>>
->>> Note: the linux-review/Octavian-Purdila/ACPI-overlays/20160614-202312 HEAD 042f716a165ffa274684c787377acddfc1f34e3f builds fine.
->>>       It only hurts bisectibility.
->>>
->>> All errors (new ones prefixed by >>):
->>>
->>>    drivers/acpi/configfs.c: In function 'acpi_configfs_init':
->>> >> drivers/acpi/configfs.c:19:31: error: 'acpi_configfs' undeclared (first use in this function)
->>>      struct config_group *root = &acpi_configfs.su_group;
->>>                                   ^~~~~~~~~~~~~
->>>    drivers/acpi/configfs.c:19:31: note: each undeclared identifier is reported only once for each function it appears in
->>>    drivers/acpi/configfs.c: In function 'acpi_configfs_exit':
->>>    drivers/acpi/configfs.c:33:33: error: 'acpi_configfs' undeclared (first use in this function)
->>>      configfs_unregister_subsystem(&acpi_configfs);
->>>                                     ^~~~~~~~~~~~~
->>>
->>> vim +/acpi_configfs +19 drivers/acpi/configfs.c
->>>
->>>     13        #include <linux/configfs.h>
->>>     14        #include <linux/acpi.h>
->>>     15
->>>     16        static int __init acpi_configfs_init(void)
->>>     17        {
->>>     18                int ret;
->>>   > 19                struct config_group *root = &acpi_configfs.su_group;
->>>     20
->>>     21                config_group_init(root);
->>>     22
->>>
->>> ---
->>
->> Any chance to send an updated patch with this fixed?
->>
->> No need to resend the whole series, just this single patch, please.
->>
->
-> Oops, sorry about that. I will have to resend at least the last two
-> patches to fix this issue, but since I have missed to add the
-> Reviewed-by from Mika for another two patches, its probably best to
-> resend the whole series?
+Right now when booting, on many laptops the firmware manages the PCIe
+bus.  As a result, when we call the _OSC ACPI method, it returns an
+error code.  Unfortunately the errors are not very articulate.  As a
+result, we show:
 
-Yes, please.
+ACPI: PCI Root Bridge [PCI0] (domain 0000 [bus 00-fe])
+acpi PNP0A08:00: _OSC: OS supports [ExtendedConfig ASPM ClockPM Segments MSI]
+\_SB_.PCI0 (33DB4D5B-1FF7-401C-9657-7441C03DD766): _OSC invalid UUID
+_OSC request data: 1 1f 0
+acpi PNP0A08:00: _OSC failed (AE_ERROR); disabling ASPM
+
+But we did get the capabilities mask back; the firmware is merely
+managing this itself.  So we really should not be showing the user a
+message that looks like the firmware is broken, since it is working just
+fine.
+
+This patch supresses the error message when we're calling _OSC with the
+PCIe host bridge UUID, and replaces it with a relatively innocuous
+looking message that you can find if you're looking for it.
+---
+ drivers/acpi/bus.c | 12 +++++++++---
+ 1 file changed, 9 insertions(+), 3 deletions(-)
+
+diff --git a/drivers/acpi/bus.c b/drivers/acpi/bus.c
+index 262ca31..be8a91b 100644
+--- a/drivers/acpi/bus.c
++++ b/drivers/acpi/bus.c
+@@ -215,6 +215,8 @@ acpi_status acpi_str_to_uuid(char *str, u8 *uuid)
+ }
+ EXPORT_SYMBOL_GPL(acpi_str_to_uuid);
+ 
++static u8 pci_osc_uuid_str[] = "33DB4D5B-1FF7-401C-9657-7441C03DD766";
++
+ acpi_status acpi_run_osc(acpi_handle handle, struct acpi_osc_context *context)
+ {
+ 	acpi_status status;
+@@ -267,9 +269,13 @@ acpi_status acpi_run_osc(acpi_handle handle, struct acpi_osc_context *context)
+ 		if (errors & OSC_REQUEST_ERROR)
+ 			acpi_print_osc_error(handle, context,
+ 				"_OSC request failed");
+-		if (errors & OSC_INVALID_UUID_ERROR)
+-			acpi_print_osc_error(handle, context,
+-				"_OSC invalid UUID");
++		if (errors & OSC_INVALID_UUID_ERROR) {
++			if (!strcasecmp(context->uuid_str, pci_osc_uuid_str))
++				pr_info("PCI PME managed by ACPI.\n");
++			else
++				acpi_print_osc_error(handle, context,
++						     "_OSC invalid UUID");
++		}
+ 		if (errors & OSC_INVALID_REVISION_ERROR)
+ 			acpi_print_osc_error(handle, context,
+ 				"_OSC invalid revision");
+-- 
+2.7.4
+
