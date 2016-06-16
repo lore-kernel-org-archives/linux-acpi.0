@@ -1,65 +1,228 @@
-From: Mika Westerberg <mika.westerberg-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
-Subject: Re: [PATCH 3/3] acpi spi: Initialize modalias from of_compatible
-Date: Thu, 16 Jun 2016 11:12:57 +0300
-Message-ID: <20160616081257.GV1740@lahna.fi.intel.com>
-References: <cover.1466014238.git.leonard.crestez@intel.com>
- <40e5cbb0aa638c619fc7fe9f1dbfaa50e888c2ac.1466014238.git.leonard.crestez@intel.com>
+From: Auger Eric <eric.auger@redhat.com>
+Subject: Re: [PATCH V7 7/9] vfio, platform: make reset driver a requirement by
+ default
+Date: Thu, 16 Jun 2016 10:15:57 +0200
+Message-ID: <8eaecc6e-aece-e859-281a-b02e2b6eced7@redhat.com>
+References: <1465792001-27960-1-git-send-email-okaya@codeaurora.org>
+ <1465792001-27960-8-git-send-email-okaya@codeaurora.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-spi-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <40e5cbb0aa638c619fc7fe9f1dbfaa50e888c2ac.1466014238.git.leonard.crestez-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Sender: linux-spi-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Crestez Dan Leonard <leonard.crestez-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, "Rafael J. Wysocki" <rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org>, Len Brown <lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Wolfram Sang <wsa-z923LK4zBo2bacvFa/9K2g@public.gmane.org>, linux-spi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Mark Brown <broonie-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Octavian Purdila <octavian.purdila-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Jarkko Nikula <jarkko.nikula-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mx1.redhat.com ([209.132.183.28]:36134 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751563AbcFPIQD (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 16 Jun 2016 04:16:03 -0400
+In-Reply-To: <1465792001-27960-8-git-send-email-okaya@codeaurora.org>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Sinan Kaya <okaya@codeaurora.org>, kvm@vger.kernel.org, timur@codeaurora.org, cov@codeaurora.org, jcm@redhat.com, alex.williamson@redhat.com, eric.auger@linaro.org
+Cc: linux-acpi@vger.kernel.org, agross@codeaurora.org, linux-arm-msm@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Baptiste Reynal <b.reynal@virtualopensystems.com>, linux-kernel@vger.kernel.org
 
-On Wed, Jun 15, 2016 at 09:30:29PM +0300, Crestez Dan Leonard wrote:
-> When using devicetree spi_device.modalias is set to the compatible
-> string with the vendor prefix removed. For SPI devices described via
-> ACPI the i2c_board_info.type string is initialized by acpi_device_hid.
-> When using ACPI and DT ids this string ends up something like "PRP0001".
+Hi Sinan,
+
+On 13/06/2016 06:26, Sinan Kaya wrote:
+> The code was allowing platform devices to be used without a supporting
+> VFIO reset driver. The hardware can be left in some inconsistent state
+> after a guest machine abort.
 > 
-> Change acpi_register_spi_device to use the of_compatible property if
-> present. This makes it easier to instantiate spi drivers through ACPI
-> with DT ids.
+> The reset driver will put the hardware back to safe state and disable
+> interrupts before returning the control back to the host machine.
 > 
-> Signed-off-by: Crestez Dan Leonard <leonard.crestez-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+> Adding a new reset_required kernel module option to AMBA and platform
+> VFIO drivers with a default value of true.
+> 
+> New requirements are:
+> 1. A reset function needs to be implemented by the corresponding driver
+> via DT/ACPI.
+> 2. The reset function needs to be discovered via DT/ACPI.
+> 
+> The probe of the driver will fail if any of the above conditions are
+> not satisfied.
+> 
+> Signed-off-by: Sinan Kaya <okaya@codeaurora.org>
+> Reviewed-by: Eric Auger <eric.auger@redhat.com>
 > ---
->  drivers/spi/spi.c | 10 +++++++++-
->  1 file changed, 9 insertions(+), 1 deletion(-)
+>  drivers/vfio/platform/vfio_amba.c             |  5 +++++
+>  drivers/vfio/platform/vfio_platform.c         |  5 +++++
+>  drivers/vfio/platform/vfio_platform_common.c  | 22 +++++++++++++++-------
+>  drivers/vfio/platform/vfio_platform_private.h |  1 +
+>  4 files changed, 26 insertions(+), 7 deletions(-)
 > 
-> diff --git a/drivers/spi/spi.c b/drivers/spi/spi.c
-> index 77e6e45..eef5ac2 100644
-> --- a/drivers/spi/spi.c
-> +++ b/drivers/spi/spi.c
-> @@ -1680,11 +1680,19 @@ static acpi_status acpi_spi_add_device(acpi_handle handle, u32 level,
->  		return AE_OK;
+> diff --git a/drivers/vfio/platform/vfio_amba.c b/drivers/vfio/platform/vfio_amba.c
+> index a66479b..7585902 100644
+> --- a/drivers/vfio/platform/vfio_amba.c
+> +++ b/drivers/vfio/platform/vfio_amba.c
+> @@ -23,6 +23,10 @@
+>  #define DRIVER_AUTHOR   "Antonios Motakis <a.motakis@virtualopensystems.com>"
+>  #define DRIVER_DESC     "VFIO for AMBA devices - User Level meta-driver"
+>  
+> +static bool reset_required = true;
+> +module_param(reset_required, bool, 0644);
+> +MODULE_PARM_DESC(reset_required, "override reset requirement (default: 1)");
+> +
+>  /* probing devices from the AMBA bus */
+>  
+>  static struct resource *get_amba_resource(struct vfio_platform_device *vdev,
+> @@ -68,6 +72,7 @@ static int vfio_amba_probe(struct amba_device *adev, const struct amba_id *id)
+>  	vdev->get_resource = get_amba_resource;
+>  	vdev->get_irq = get_amba_irq;
+>  	vdev->parent_module = THIS_MODULE;
+> +	vdev->reset_required = reset_required;
+>  
+>  	ret = vfio_platform_probe_common(vdev, &adev->dev);
+>  	if (ret) {
+> diff --git a/drivers/vfio/platform/vfio_platform.c b/drivers/vfio/platform/vfio_platform.c
+> index b1cc3a7..ef89146 100644
+> --- a/drivers/vfio/platform/vfio_platform.c
+> +++ b/drivers/vfio/platform/vfio_platform.c
+> @@ -23,6 +23,10 @@
+>  #define DRIVER_AUTHOR   "Antonios Motakis <a.motakis@virtualopensystems.com>"
+>  #define DRIVER_DESC     "VFIO for platform devices - User Level meta-driver"
+>  
+> +static bool reset_required = true;
+> +module_param(reset_required, bool, 0644);
+> +MODULE_PARM_DESC(reset_required, "override reset requirement (default: 1)");
+> +
+>  /* probing devices from the linux platform bus */
+>  
+>  static struct resource *get_platform_resource(struct vfio_platform_device *vdev,
+> @@ -66,6 +70,7 @@ static int vfio_platform_probe(struct platform_device *pdev)
+>  	vdev->get_resource = get_platform_resource;
+>  	vdev->get_irq = get_platform_irq;
+>  	vdev->parent_module = THIS_MODULE;
+> +	vdev->reset_required = reset_required;
+>  
+>  	ret = vfio_platform_probe_common(vdev, &pdev->dev);
+>  	if (ret)
+> diff --git a/drivers/vfio/platform/vfio_platform_common.c b/drivers/vfio/platform/vfio_platform_common.c
+> index 0ea8c26..d84c399 100644
+> --- a/drivers/vfio/platform/vfio_platform_common.c
+> +++ b/drivers/vfio/platform/vfio_platform_common.c
+> @@ -128,10 +128,10 @@ static bool vfio_platform_has_reset(struct vfio_platform_device *vdev)
+>  	return vdev->of_reset ? true : false;
+>  }
+>  
+> -static void vfio_platform_get_reset(struct vfio_platform_device *vdev)
+> +static int vfio_platform_get_reset(struct vfio_platform_device *vdev)
+>  {
+>  	if (vdev->acpihid)
+> -		return;
+> +		return vfio_platform_acpi_has_reset(vdev) ? 0 : -ENOENT;
+>  
+>  	vdev->of_reset = vfio_platform_lookup_reset(vdev->compat,
+>  						    &vdev->reset_module);
+> @@ -140,6 +140,8 @@ static void vfio_platform_get_reset(struct vfio_platform_device *vdev)
+>  		vdev->of_reset = vfio_platform_lookup_reset(vdev->compat,
+>  							&vdev->reset_module);
+>  	}
+> +
+> +	return vdev->of_reset ? 0 : -ENOENT;
+>  }
+>  
+>  static void vfio_platform_put_reset(struct vfio_platform_device *vdev)
+> @@ -670,16 +672,22 @@ int vfio_platform_probe_common(struct vfio_platform_device *vdev,
 >  	}
 >  
-> +	if (adev->data.of_compatible) {
-> +		ret = acpi_of_modalias(adev, spi->modalias, sizeof(spi->modalias));
-> +		if (ret) {
-> +			spi_dev_put(spi);
-> +			return AE_NOT_FOUND;
-> +		}
-> +	} else
-> +		strlcpy(spi->modalias, acpi_device_hid(adev), sizeof(spi->modalias));
-
-Same here, use {} in the else branch.
-
-> +
->  	if (spi->irq < 0)
->  		spi->irq = acpi_dev_gpio_irq_get(adev, 0);
+>  	ret = vfio_add_group_dev(dev, &vfio_platform_ops, vdev);
+> -	if (ret) {
+> -		iommu_group_put(group);
+> -		return ret;
+> -	}
+> +	if (ret)
+> +		goto out;
 >  
->  	adev->power.flags.ignore_parent = true;
-> -	strlcpy(spi->modalias, acpi_device_hid(adev), sizeof(spi->modalias));
->  	if (spi_add_device(spi)) {
->  		adev->power.flags.ignore_parent = false;
->  		dev_err(&master->dev, "failed to add SPI device %s from ACPI\n",
-> -- 
-> 2.5.5
---
-To unsubscribe from this list: send the line "unsubscribe linux-spi" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> -	vfio_platform_get_reset(vdev);
+> +	ret = vfio_platform_get_reset(vdev);
+> +	if (ret && vdev->reset_required) {
+> +		pr_err("vfio: no reset function found for device %s\n",
+> +		       vdev->name);
+> +		goto out;
+> +	}
+Unfortunately this causes a crash when the reset module is not
+available. You should do the vfio_add_group_dev at the end. Something
+like below.
+
+Best Regards
+
+Eric
+
+---
+ drivers/vfio/platform/vfio_platform_common.c | 26
+++++++++++++--------------
+ 1 file changed, 12 insertions(+), 14 deletions(-)
+
+diff --git a/drivers/vfio/platform/vfio_platform_common.c
+b/drivers/vfio/platform/vfio_platform_common.c
+index d84c399..0928f7d 100644
+--- a/drivers/vfio/platform/vfio_platform_common.c
++++ b/drivers/vfio/platform/vfio_platform_common.c
+@@ -664,6 +664,14 @@ int vfio_platform_probe_common(struct
+vfio_platform_device *vdev,
+                return ret;
+
+        vdev->device = dev;
++       mutex_init(&vdev->igate);
++
++       ret = vfio_platform_get_reset(vdev);
++       if (ret && vdev->reset_required) {
++               pr_err("vfio: no reset function found for device %s\n",
++                      vdev->name);
++               return ret;
++       }
+
+        group = iommu_group_get(dev);
+        if (!group) {
+@@ -672,22 +680,12 @@ int vfio_platform_probe_common(struct
+vfio_platform_device *vdev,
+        }
+
+        ret = vfio_add_group_dev(dev, &vfio_platform_ops, vdev);
+-       if (ret)
+-               goto out;
+-
+-       ret = vfio_platform_get_reset(vdev);
+-       if (ret && vdev->reset_required) {
+-               pr_err("vfio: no reset function found for device %s\n",
+-                      vdev->name);
+-               goto out;
+-       }
+-
+-       mutex_init(&vdev->igate);
++       if (ret) {
++               iommu_group_put(group);
++               return ret;
++       }
+
+        return 0;
+-out:
+-       iommu_group_put(group);
+-       return ret;
+ }
+ EXPORT_SYMBOL_GPL(vfio_platform_probe_common);
+
+
+
+>  
+>  	mutex_init(&vdev->igate);
+>  
+>  	return 0;
+> +out:
+> +	iommu_group_put(group);
+> +	return ret;
+>  }
+>  EXPORT_SYMBOL_GPL(vfio_platform_probe_common);
+>  
+> diff --git a/drivers/vfio/platform/vfio_platform_private.h b/drivers/vfio/platform/vfio_platform_private.h
+> index ba9e4f8..68fbc00 100644
+> --- a/drivers/vfio/platform/vfio_platform_private.h
+> +++ b/drivers/vfio/platform/vfio_platform_private.h
+> @@ -50,6 +50,7 @@ struct vfio_platform_region {
+>  };
+>  
+>  struct vfio_platform_device {
+> +	bool				reset_required;
+>  	struct vfio_platform_region	*regions;
+>  	u32				num_regions;
+>  	struct vfio_platform_irq	*irqs;
+> 
