@@ -1,74 +1,219 @@
-From: Bjorn Helgaas <helgaas@kernel.org>
-Subject: Re: [PATCH V3 1/3] x86/ioapic: Support hot-removal of IOAPICs
- present during boot
-Date: Thu, 16 Jun 2016 12:09:59 -0500
-Message-ID: <20160616170958.GA7250@localhost>
-References: <20160610164304.GJ19309@localhost>
- <1465711569-19406-1-git-send-email-rui.y.wang@intel.com>
+From: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+Subject: Re: [RFC PATCH v3 1/2] ACPI/PCI: Check platform specific ECAM quirks
+Date: Thu, 16 Jun 2016 18:10:41 +0100
+Message-ID: <20160616171041.GA32388@red-moon>
+References: <1466004851-10214-1-git-send-email-cov@codeaurora.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-pci-owner@vger.kernel.org>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from foss.arm.com ([217.140.101.70]:45274 "EHLO foss.arm.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754920AbcFPRKJ (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 16 Jun 2016 13:10:09 -0400
 Content-Disposition: inline
-In-Reply-To: <1465711569-19406-1-git-send-email-rui.y.wang@intel.com>
-Sender: linux-pci-owner@vger.kernel.org
-To: Rui Wang <rui.y.wang@intel.com>
-Cc: tglx@linutronix.de, rjw@rjwysocki.net, tony.luck@intel.com, bhelgaas@google.com, linux-acpi@vger.kernel.org, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org
+In-Reply-To: <1466004851-10214-1-git-send-email-cov@codeaurora.org>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Christopher Covington <cov@codeaurora.org>
+Cc: Tomasz Nowicki <tn@semihalf.com>, Duc Dang <dhdang@apm.com>, Dongdong Liu <liudongdong3@huawei.com>, Sinan Kaya <okaya@codeaurora.org>, Jeff Hugo <jhugo@codeaurora.org>, Gabriele Paoloni <gabriele.paoloni@huawei.com>, Jon Masters <jcm@redhat.com>, Mark Salter <msalter@redhat.com>, Suravee Suthikulpanit <Suravee.Suthikulpanit@amd.com>, Jayachandran C <jchandra@broadcom.com>, David Daney <ddaney@caviumnetworks.com>, Robert Richter <robert.richter@caviumnetworks.com>, Hanjun Guo <hanjun.guo@linaro.org>, linux-arm-kernel@lists.infradead.org, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Arnd Bergmann <arnd@arndb.de>, Bjorn Helgaas <bhelgaas@google.com>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arch@vger.kernel.org, linux-pci@vger.kernel.org
 
-On Sun, Jun 12, 2016 at 02:06:09PM +0800, Rui Wang wrote:
-> On Saturday, June 11, 2016 12:43 AM, Bjorn Helgaas wrote:
-> > On Wed, Jun 08, 2016 at 05:32:44PM +0800, Rui Wang wrote:
-> > > @@ -1779,8 +1780,12 @@ void __init
-> > > pci_assign_unassigned_resources(void)
-> > >  {
-> > >  	struct pci_bus *root_bus;
-> > >
-> > > -	list_for_each_entry(root_bus, &pci_root_buses, node)
-> > > +	list_for_each_entry(root_bus, &pci_root_buses, node) {
-> > >  		pci_assign_unassigned_root_bus_resources(root_bus);
-> > > +#ifdef CONFIG_X86
-> > > +		acpi_ioapic_add(ACPI_HANDLE(root_bus->bridge));
-> > > +#endif
-> > 
-> > This seems like a strange place to call acpi_ioapic_add().  Your object is to call
-> > acpi_ioapic_add() during root bus enumeration.
-> > 
-> > I assume we *can't* call acpi_ioapic_add() from acpi_pci_root_add() at boot
-> > time, for some reason you'll explain.  But is there a reason we have to call it
-> > from pci_assign_unassigned_resources() (where it requires an ifdef) instead
-> > of from pcibios_assign_resources(), which is already x86-specific?
-> > 
-> > In acpi_pci_root_add(), we have this:
-> > 
-> >   acpi_pci_root_add(...)
-> >   {
-> >     ...
-> >     if (hotadd)
-> >       acpi_ioapic_add(root);
-> > 
-> > So the obvious question is why don't we just remove the "if (hotadd)"
-> > and call acpi_ioapic_add() always.
-> > 
-> > I'm sure the reason is some ordering problem, but we need a comment in
-> > acpi_pci_root_add() about why the obvious solution doesn't work.
+On Wed, Jun 15, 2016 at 11:34:10AM -0400, Christopher Covington wrote:
+> From: Tomasz Nowicki <tn@semihalf.com>
 > 
-> Yes it's an ording issue. acpi_ioapic_add() and also ioapic_insert_resources()
-> have to be later than pci initialization in order to deal with IOAPICs mapped
-> on a PCI BAR. There's a comment about this inside pcibios_resource_survey()
-> above ioapic_insert_resources(). We can also add a comment inside
-> acpi_pci_root_add(), though.
->
-> And yes calling acpi_ioapic_add() in pcibios_assign_resources() doesn't require
-> ifdef CONFIG_X86. But it'll require a loop to iterate through the root buses,
-> and call acpi_ioapic_add() within the loop. pci_assign_unassigned_resources()
-> already has that loop. Do you still prefer adding it to
-> pcibios_assign_resources() ?
+> Some platforms may not be fully compliant with the generic PCI config
+> operations. For these cases we implement a way to use custom map and
+> accessor functions. The algorithm traverses the available quirk list,
+> matches against <oem_id, oem_table_id, oem_revision, domain, bus number>
+> tuples and returns corresponding PCI config ops. oem_id, oem_table_id, and
+> oem_revision come from the MCFG table standard header. All quirks can be
+> defined using the DECLARE_ACPI_MCFG_FIXUP() macro and are kept self
+> contained. Example:
+> 
+> /* Custom PCI config ops */
+> static struct pci_generic_ecam_ops foo_pci_ops = {
+> 	.bus_shift	= 24,
+> 	.pci_ops = {
+> 		.map_bus = pci_ecam_map_bus,
+> 		.read = foo_ecam_config_read,
+> 		.write = foo_ecam_config_write,
+> 	}
+> };
+> 
+> DECLARE_ACPI_MCFG_FIXUP(&foo_pci_ops, "OEM", "TABLE-ID", <revision>,
+> 			<domain_nr>, <bus_nr>);
+> 
+> Signed-off-by: Tomasz Nowicki <tn@semihalf.com>
+> Signed-off-by: Dongdong Liu <liudongdong3@huawei.com>
+> Signed-off-by: Christopher Covington <cov@codeaurora.org>
+> 
+> ---
+> 
+> Changes from v2 to v3:
+> * Match against all three of oem_id, oem_table_id, and oem_revision.
+> * Perform substring match, so padding oem_id and oem_table_id isn't
+>   required. (Using min_t() thanks to Duc Dang's suggestion.)
+> * Print when quirk matched.
+> * Use __UNIQUE_ID() macro to generate a valid, unique symbol name even
+>   when OEM and table IDs contain characters such as dash "-".
+> * Move extern declaration to header and fix spelling and formatting to
+>   satisfy checkpatch/coding style.
+> ---
+>  drivers/acpi/pci_mcfg.c           | 49 ++++++++++++++++++++++++++++++++++++---
+>  include/asm-generic/vmlinux.lds.h |  7 ++++++
+>  include/linux/pci-acpi.h          | 24 +++++++++++++++++++
+>  3 files changed, 77 insertions(+), 3 deletions(-)
+> 
+> diff --git a/drivers/acpi/pci_mcfg.c b/drivers/acpi/pci_mcfg.c
+> index b5b376e..2a5d3dd 100644
+> --- a/drivers/acpi/pci_mcfg.c
+> +++ b/drivers/acpi/pci_mcfg.c
+> @@ -22,6 +22,10 @@
+>  #include <linux/kernel.h>
+>  #include <linux/pci.h>
+>  #include <linux/pci-acpi.h>
+> +#include <linux/pci-ecam.h>
+> +
+> +/* Root pointer to the mapped MCFG table */
+> +static struct acpi_table_mcfg *mcfg_table;
 
-ioapic_insert_resources() is x86-specific, but I'm not sure why; it
-seems like it does things that should be applicable to ia64 as well.
+Tomasz had to add an MCFG cache in its final v9 since it is not
+safe to stash a pointer here, which probably means you will have
+to stash oem_id and oem_table_id to carry out the fixup match
+instead of relying on the header retrieved through the stashed
+pointer.
 
-acpi_ioapic_add() is not x86-specific, and it is called from
-acpi_pci_root_add() for the hot-add case.  You're adding an
-x86-xpecific call in pci_assign_unassigned_resources().  Why should
-the hot-add case be for all arches, but the boot-time case only for
-x86?
+Lorenzo
+
+>  /* Structure to hold entries from the MCFG table */
+>  struct mcfg_entry {
+> @@ -35,6 +39,46 @@ struct mcfg_entry {
+>  /* List to save MCFG entries */
+>  static LIST_HEAD(pci_mcfg_list);
+>  
+> +static bool pci_mcfg_fixup_match(struct pci_cfg_fixup *f,
+> +				 struct acpi_table_header *h)
+> +{
+> +	int olen = min_t(u8, strlen(f->oem_id), ACPI_OEM_ID_SIZE);
+> +	int tlen = min_t(u8, strlen(f->oem_table_id), ACPI_OEM_TABLE_ID_SIZE);
+> +
+> +	return (!strncmp(f->oem_id, h->oem_id, olen) &&
+> +		!strncmp(f->oem_table_id, h->oem_table_id, tlen) &&
+> +		f->oem_revision == h->oem_revision);
+> +}
+> +
+> +struct pci_ecam_ops *pci_mcfg_get_ops(struct acpi_pci_root *root)
+> +{
+> +	int bus_num = root->secondary.start;
+> +	int domain = root->segment;
+> +	struct pci_cfg_fixup *f;
+> +
+> +	if (!mcfg_table)
+> +		return &pci_generic_ecam_ops;
+> +
+> +	/*
+> +	 * Match against platform specific quirks and return corresponding CAM
+> +	 * ops.
+> +	 *
+> +	 * First match against PCI topology <domain:bus> then use OEM ID, OEM
+> +	 * table ID, and OEM revision from MCFG table standard header.
+> +	 */
+> +	for (f = __start_acpi_mcfg_fixups; f < __end_acpi_mcfg_fixups; f++) {
+> +		if ((f->domain == domain || f->domain == PCI_MCFG_DOMAIN_ANY) &&
+> +		    (f->bus_num == bus_num || f->bus_num == PCI_MCFG_BUS_ANY) &&
+> +		    pci_mcfg_fixup_match(f, &mcfg_table->header)) {
+> +			pr_info("Handling %s %s r%d PCI MCFG quirks\n",
+> +				f->oem_id, f->oem_table_id, f->oem_revision);
+> +			return f->ops;
+> +		}
+> +	}
+> +	/* No quirks, use ECAM */
+> +	return &pci_generic_ecam_ops;
+> +}
+> +
+>  phys_addr_t pci_mcfg_lookup(u16 seg, struct resource *bus_res)
+>  {
+>  	struct mcfg_entry *e;
+> @@ -54,7 +98,6 @@ phys_addr_t pci_mcfg_lookup(u16 seg, struct resource *bus_res)
+>  
+>  static __init int pci_mcfg_parse(struct acpi_table_header *header)
+>  {
+> -	struct acpi_table_mcfg *mcfg;
+>  	struct acpi_mcfg_allocation *mptr;
+>  	struct mcfg_entry *e, *arr;
+>  	int i, n;
+> @@ -64,8 +107,8 @@ static __init int pci_mcfg_parse(struct acpi_table_header *header)
+>  
+>  	n = (header->length - sizeof(struct acpi_table_mcfg)) /
+>  					sizeof(struct acpi_mcfg_allocation);
+> -	mcfg = (struct acpi_table_mcfg *)header;
+> -	mptr = (struct acpi_mcfg_allocation *) &mcfg[1];
+> +	mcfg_table = (struct acpi_table_mcfg *)header;
+> +	mptr = (struct acpi_mcfg_allocation *) &mcfg_table[1];
+>  
+>  	arr = kcalloc(n, sizeof(*arr), GFP_KERNEL);
+>  	if (!arr)
+> diff --git a/include/asm-generic/vmlinux.lds.h b/include/asm-generic/vmlinux.lds.h
+> index 6a67ab9..43604fc 100644
+> --- a/include/asm-generic/vmlinux.lds.h
+> +++ b/include/asm-generic/vmlinux.lds.h
+> @@ -300,6 +300,13 @@
+>  		VMLINUX_SYMBOL(__end_pci_fixups_suspend_late) = .;	\
+>  	}								\
+>  									\
+> +	/* ACPI MCFG quirks */						\
+> +	.acpi_fixup        : AT(ADDR(.acpi_fixup) - LOAD_OFFSET) {	\
+> +		VMLINUX_SYMBOL(__start_acpi_mcfg_fixups) = .;		\
+> +		*(.acpi_fixup_mcfg)					\
+> +		VMLINUX_SYMBOL(__end_acpi_mcfg_fixups) = .;		\
+> +	}								\
+> +									\
+>  	/* Built-in firmware blobs */					\
+>  	.builtin_fw        : AT(ADDR(.builtin_fw) - LOAD_OFFSET) {	\
+>  		VMLINUX_SYMBOL(__start_builtin_fw) = .;			\
+> diff --git a/include/linux/pci-acpi.h b/include/linux/pci-acpi.h
+> index 7d63a66..dac851b 100644
+> --- a/include/linux/pci-acpi.h
+> +++ b/include/linux/pci-acpi.h
+> @@ -25,6 +25,7 @@ static inline acpi_status pci_acpi_remove_pm_notifier(struct acpi_device *dev)
+>  extern phys_addr_t acpi_pci_root_get_mcfg_addr(acpi_handle handle);
+>  
+>  extern phys_addr_t pci_mcfg_lookup(u16 domain, struct resource *bus_res);
+> +extern struct pci_ecam_ops *pci_mcfg_get_ops(struct acpi_pci_root *root);
+>  
+>  static inline acpi_handle acpi_find_root_bridge_handle(struct pci_dev *pdev)
+>  {
+> @@ -72,6 +73,29 @@ struct acpi_pci_root_ops {
+>  	int (*prepare_resources)(struct acpi_pci_root_info *info);
+>  };
+>  
+> +struct pci_cfg_fixup {
+> +	struct pci_ecam_ops *ops;
+> +	char *oem_id;
+> +	char *oem_table_id;
+> +	u32 oem_revision;
+> +	int domain;
+> +	int bus_num;
+> +};
+> +
+> +extern struct pci_cfg_fixup __start_acpi_mcfg_fixups[];
+> +extern struct pci_cfg_fixup __end_acpi_mcfg_fixups[];
+> +
+> +#define PCI_MCFG_DOMAIN_ANY	-1
+> +#define PCI_MCFG_BUS_ANY	-1
+> +
+> +/* Designate a routine to fix up buggy MCFG */
+> +#define DECLARE_ACPI_MCFG_FIXUP(ops, oem, table, rev, dom, bus)	\
+> +	static const struct pci_cfg_fixup			\
+> +	__UNIQUE_ID(mcfg_fixup_)				\
+> +	__used	__attribute__((__section__(".acpi_fixup_mcfg"),	\
+> +				aligned((sizeof(void *))))) =	\
+> +	{ ops, oem, table, rev, dom, bus }
+> +
+>  extern int acpi_pci_probe_root_resources(struct acpi_pci_root_info *info);
+>  extern struct pci_bus *acpi_pci_root_create(struct acpi_pci_root *root,
+>  					    struct acpi_pci_root_ops *ops,
+> -- 
+> Qualcomm Innovation Center, Inc.
+> Qualcomm Innovation Center, Inc. is a member of Code Aurora Forum,
+> a Linux Foundation Collaborative Project
+> 
