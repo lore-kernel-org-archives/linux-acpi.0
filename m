@@ -1,66 +1,117 @@
-From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: [PATCH] ACPI / bus: Use acpi_handle_debug() in acpi_print_osc_error()
-Date: Thu, 16 Jun 2016 17:23:09 +0200
-Message-ID: <4229085.1etjX1W13n@vostro.rjw.lan>
+From: Sinan Kaya <okaya@codeaurora.org>
+Subject: Re: [PATCH V7 7/9] vfio, platform: make reset driver a requirement by
+ default
+Date: Thu, 16 Jun 2016 13:08:35 -0400
+Message-ID: <5762DD13.8010501@codeaurora.org>
+References: <1465792001-27960-1-git-send-email-okaya@codeaurora.org>
+ <1465792001-27960-8-git-send-email-okaya@codeaurora.org>
+ <8eaecc6e-aece-e859-281a-b02e2b6eced7@redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7Bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cloudserver094114.home.net.pl ([79.96.170.134]:43002 "HELO
-	cloudserver094114.home.net.pl" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with SMTP id S1754400AbcFPPS7 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 16 Jun 2016 11:18:59 -0400
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <8eaecc6e-aece-e859-281a-b02e2b6eced7@redhat.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Auger Eric <eric.auger@redhat.com>, kvm@vger.kernel.org, timur@codeaurora.org, cov@codeaurora.org, jcm@redhat.com, alex.williamson@redhat.com, eric.auger@linaro.org
+Cc: linux-acpi@vger.kernel.org, agross@codeaurora.org, linux-arm-msm@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Baptiste Reynal <b.reynal@virtualopensystems.com>, linux-kernel@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: ACPI Devel Maling List <linux-acpi@vger.kernel.org>
-Cc: Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
 
-From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+On 6/16/2016 4:15 AM, Auger Eric wrote:
 
-acpi_print_osc_error() basically duplicates the functionalit of
-acpi_handle_debug(), so use that one in there.
+> Unfortunately this causes a crash when the reset module is not
+> available. You should do the vfio_add_group_dev at the end. Something
+> like below.
+> 
 
-While at it, convert the explicit KERN_DEBUG prints to pr_debug()
-(and apply it to continuation messages too).
+Thanks for testing. I'll post v8 with this change. 
 
-Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
----
- drivers/acpi/bus.c |   19 +++++++------------
- 1 file changed, 7 insertions(+), 12 deletions(-)
 
-Index: linux-pm/drivers/acpi/bus.c
-===================================================================
---- linux-pm.orig/drivers/acpi/bus.c
-+++ linux-pm/drivers/acpi/bus.c
-@@ -174,22 +174,17 @@ void acpi_bus_detach_private_data(acpi_h
- EXPORT_SYMBOL_GPL(acpi_bus_detach_private_data);
- 
- static void acpi_print_osc_error(acpi_handle handle,
--	struct acpi_osc_context *context, char *error)
-+				 struct acpi_osc_context *context, char *error)
- {
--	struct acpi_buffer buffer = {ACPI_ALLOCATE_BUFFER};
- 	int i;
- 
--	if (ACPI_FAILURE(acpi_get_name(handle, ACPI_FULL_PATHNAME, &buffer)))
--		printk(KERN_DEBUG "%s: %s\n", context->uuid_str, error);
--	else {
--		printk(KERN_DEBUG "%s (%s): %s\n",
--		       (char *)buffer.pointer, context->uuid_str, error);
--		kfree(buffer.pointer);
--	}
--	printk(KERN_DEBUG "_OSC request data:");
-+	acpi_handle_debug(handle, "(%s): %s\n", context->uuid_str, error);
-+
-+	pr_debug("_OSC request data:");
- 	for (i = 0; i < context->cap.length; i += sizeof(u32))
--		printk(" %x", *((u32 *)(context->cap.pointer + i)));
--	printk("\n");
-+		pr_debug(" %x", *((u32 *)(context->cap.pointer + i)));
-+
-+	pr_debug("\n");
- }
- 
- acpi_status acpi_str_to_uuid(char *str, u8 *uuid)
+> Best Regards
+> 
+> Eric
+> 
+> ---
+>  drivers/vfio/platform/vfio_platform_common.c | 26
+> ++++++++++++--------------
+>  1 file changed, 12 insertions(+), 14 deletions(-)
+> 
+> diff --git a/drivers/vfio/platform/vfio_platform_common.c
+> b/drivers/vfio/platform/vfio_platform_common.c
+> index d84c399..0928f7d 100644
+> --- a/drivers/vfio/platform/vfio_platform_common.c
+> +++ b/drivers/vfio/platform/vfio_platform_common.c
+> @@ -664,6 +664,14 @@ int vfio_platform_probe_common(struct
+> vfio_platform_device *vdev,
+>                 return ret;
+> 
+>         vdev->device = dev;
+> +       mutex_init(&vdev->igate);
+> +
+> +       ret = vfio_platform_get_reset(vdev);
+> +       if (ret && vdev->reset_required) {
+> +               pr_err("vfio: no reset function found for device %s\n",
+> +                      vdev->name);
+> +               return ret;
+> +       }
+> 
+>         group = iommu_group_get(dev);
+>         if (!group) {
+> @@ -672,22 +680,12 @@ int vfio_platform_probe_common(struct
+> vfio_platform_device *vdev,
+>         }
+> 
+>         ret = vfio_add_group_dev(dev, &vfio_platform_ops, vdev);
+> -       if (ret)
+> -               goto out;
+> -
+> -       ret = vfio_platform_get_reset(vdev);
+> -       if (ret && vdev->reset_required) {
+> -               pr_err("vfio: no reset function found for device %s\n",
+> -                      vdev->name);
+> -               goto out;
+> -       }
+> -
+> -       mutex_init(&vdev->igate);
+> +       if (ret) {
+> +               iommu_group_put(group);
+> +               return ret;
+> +       }
+> 
+>         return 0;
+> -out:
+> -       iommu_group_put(group);
+> -       return ret;
+>  }
+>  EXPORT_SYMBOL_GPL(vfio_platform_probe_common);
+> 
+> 
+> 
+>>  
+>>  	mutex_init(&vdev->igate);
+>>  
+>>  	return 0;
+>> +out:
+>> +	iommu_group_put(group);
+>> +	return ret;
+>>  }
+>>  EXPORT_SYMBOL_GPL(vfio_platform_probe_common);
+>>  
+>> diff --git a/drivers/vfio/platform/vfio_platform_private.h b/drivers/vfio/platform/vfio_platform_private.h
+>> index ba9e4f8..68fbc00 100644
+>> --- a/drivers/vfio/platform/vfio_platform_private.h
+>> +++ b/drivers/vfio/platform/vfio_platform_private.h
+>> @@ -50,6 +50,7 @@ struct vfio_platform_region {
+>>  };
+>>  
+>>  struct vfio_platform_device {
+>> +	bool				reset_required;
+>>  	struct vfio_platform_region	*regions;
+>>  	u32				num_regions;
+>>  	struct vfio_platform_irq	*irqs;
+>>
 
+
+-- 
+Sinan Kaya
+Qualcomm Technologies, Inc. on behalf of Qualcomm Innovation Center, Inc.
+Qualcomm Innovation Center, Inc. is a member of Code Aurora Forum, a Linux Foundation Collaborative Project
