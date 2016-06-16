@@ -1,228 +1,40 @@
-From: Auger Eric <eric.auger@redhat.com>
-Subject: Re: [PATCH V7 7/9] vfio, platform: make reset driver a requirement by
- default
-Date: Thu, 16 Jun 2016 10:15:57 +0200
-Message-ID: <8eaecc6e-aece-e859-281a-b02e2b6eced7@redhat.com>
-References: <1465792001-27960-1-git-send-email-okaya@codeaurora.org>
- <1465792001-27960-8-git-send-email-okaya@codeaurora.org>
+From: "Rafael J. Wysocki" <rafael@kernel.org>
+Subject: Re: [PATCH] ACPI: don't show an error when we're not in charge of
+ PCIe hotplug.
+Date: Thu, 16 Jun 2016 16:56:57 +0200
+Message-ID: <CAJZ5v0ifNFP5jzPf+zMC3rJ1HKzBmCz1AdhsAsmj75EpndoPTQ@mail.gmail.com>
+References: <1466028904-28328-1-git-send-email-pjones@redhat.com> <CAJZ5v0g5_M=iNLE_P4eOcwJet=jPm_EifAMdDtvG+TR=1AnU2Q@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:36134 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751563AbcFPIQD (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 16 Jun 2016 04:16:03 -0400
-In-Reply-To: <1465792001-27960-8-git-send-email-okaya@codeaurora.org>
+Received: from mail-wm0-f68.google.com ([74.125.82.68]:36506 "EHLO
+	mail-wm0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753866AbcFPO5B (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 16 Jun 2016 10:57:01 -0400
+In-Reply-To: <CAJZ5v0g5_M=iNLE_P4eOcwJet=jPm_EifAMdDtvG+TR=1AnU2Q@mail.gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Sinan Kaya <okaya@codeaurora.org>, kvm@vger.kernel.org, timur@codeaurora.org, cov@codeaurora.org, jcm@redhat.com, alex.williamson@redhat.com, eric.auger@linaro.org
-Cc: linux-acpi@vger.kernel.org, agross@codeaurora.org, linux-arm-msm@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Baptiste Reynal <b.reynal@virtualopensystems.com>, linux-kernel@vger.kernel.org
+To: Peter Jones <pjones@redhat.com>
+Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Mario Limonciello <Mario_Limonciello@dell.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Len Brown <lenb@kernel.org>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, Andy Lutomirski <luto@amacapital.net>
 
-Hi Sinan,
+On Thu, Jun 16, 2016 at 2:12 AM, Rafael J. Wysocki <rafael@kernel.org> wrote:
+> On Thu, Jun 16, 2016 at 12:15 AM, Peter Jones <pjones@redhat.com> wrote:
+>> Right now when booting, on many laptops the firmware manages the PCIe
+>> bus.  As a result, when we call the _OSC ACPI method, it returns an
+>> error code.  Unfortunately the errors are not very articulate.
+>
+> What exactly do you mean here?
+>
+>>  As a result, we show:
+>>
+>> ACPI: PCI Root Bridge [PCI0] (domain 0000 [bus 00-fe])
+>> acpi PNP0A08:00: _OSC: OS supports [ExtendedConfig ASPM ClockPM Segments MSI]
+>> \_SB_.PCI0 (33DB4D5B-1FF7-401C-9657-7441C03DD766): _OSC invalid UUID
+>> _OSC request data: 1 1f 0
+>
+> So _OSC told us that the UUID was invalid, didn't it?
 
-On 13/06/2016 06:26, Sinan Kaya wrote:
-> The code was allowing platform devices to be used without a supporting
-> VFIO reset driver. The hardware can be left in some inconsistent state
-> after a guest machine abort.
-> 
-> The reset driver will put the hardware back to safe state and disable
-> interrupts before returning the control back to the host machine.
-> 
-> Adding a new reset_required kernel module option to AMBA and platform
-> VFIO drivers with a default value of true.
-> 
-> New requirements are:
-> 1. A reset function needs to be implemented by the corresponding driver
-> via DT/ACPI.
-> 2. The reset function needs to be discovered via DT/ACPI.
-> 
-> The probe of the driver will fail if any of the above conditions are
-> not satisfied.
-> 
-> Signed-off-by: Sinan Kaya <okaya@codeaurora.org>
-> Reviewed-by: Eric Auger <eric.auger@redhat.com>
-> ---
->  drivers/vfio/platform/vfio_amba.c             |  5 +++++
->  drivers/vfio/platform/vfio_platform.c         |  5 +++++
->  drivers/vfio/platform/vfio_platform_common.c  | 22 +++++++++++++++-------
->  drivers/vfio/platform/vfio_platform_private.h |  1 +
->  4 files changed, 26 insertions(+), 7 deletions(-)
-> 
-> diff --git a/drivers/vfio/platform/vfio_amba.c b/drivers/vfio/platform/vfio_amba.c
-> index a66479b..7585902 100644
-> --- a/drivers/vfio/platform/vfio_amba.c
-> +++ b/drivers/vfio/platform/vfio_amba.c
-> @@ -23,6 +23,10 @@
->  #define DRIVER_AUTHOR   "Antonios Motakis <a.motakis@virtualopensystems.com>"
->  #define DRIVER_DESC     "VFIO for AMBA devices - User Level meta-driver"
->  
-> +static bool reset_required = true;
-> +module_param(reset_required, bool, 0644);
-> +MODULE_PARM_DESC(reset_required, "override reset requirement (default: 1)");
-> +
->  /* probing devices from the AMBA bus */
->  
->  static struct resource *get_amba_resource(struct vfio_platform_device *vdev,
-> @@ -68,6 +72,7 @@ static int vfio_amba_probe(struct amba_device *adev, const struct amba_id *id)
->  	vdev->get_resource = get_amba_resource;
->  	vdev->get_irq = get_amba_irq;
->  	vdev->parent_module = THIS_MODULE;
-> +	vdev->reset_required = reset_required;
->  
->  	ret = vfio_platform_probe_common(vdev, &adev->dev);
->  	if (ret) {
-> diff --git a/drivers/vfio/platform/vfio_platform.c b/drivers/vfio/platform/vfio_platform.c
-> index b1cc3a7..ef89146 100644
-> --- a/drivers/vfio/platform/vfio_platform.c
-> +++ b/drivers/vfio/platform/vfio_platform.c
-> @@ -23,6 +23,10 @@
->  #define DRIVER_AUTHOR   "Antonios Motakis <a.motakis@virtualopensystems.com>"
->  #define DRIVER_DESC     "VFIO for platform devices - User Level meta-driver"
->  
-> +static bool reset_required = true;
-> +module_param(reset_required, bool, 0644);
-> +MODULE_PARM_DESC(reset_required, "override reset requirement (default: 1)");
-> +
->  /* probing devices from the linux platform bus */
->  
->  static struct resource *get_platform_resource(struct vfio_platform_device *vdev,
-> @@ -66,6 +70,7 @@ static int vfio_platform_probe(struct platform_device *pdev)
->  	vdev->get_resource = get_platform_resource;
->  	vdev->get_irq = get_platform_irq;
->  	vdev->parent_module = THIS_MODULE;
-> +	vdev->reset_required = reset_required;
->  
->  	ret = vfio_platform_probe_common(vdev, &pdev->dev);
->  	if (ret)
-> diff --git a/drivers/vfio/platform/vfio_platform_common.c b/drivers/vfio/platform/vfio_platform_common.c
-> index 0ea8c26..d84c399 100644
-> --- a/drivers/vfio/platform/vfio_platform_common.c
-> +++ b/drivers/vfio/platform/vfio_platform_common.c
-> @@ -128,10 +128,10 @@ static bool vfio_platform_has_reset(struct vfio_platform_device *vdev)
->  	return vdev->of_reset ? true : false;
->  }
->  
-> -static void vfio_platform_get_reset(struct vfio_platform_device *vdev)
-> +static int vfio_platform_get_reset(struct vfio_platform_device *vdev)
->  {
->  	if (vdev->acpihid)
-> -		return;
-> +		return vfio_platform_acpi_has_reset(vdev) ? 0 : -ENOENT;
->  
->  	vdev->of_reset = vfio_platform_lookup_reset(vdev->compat,
->  						    &vdev->reset_module);
-> @@ -140,6 +140,8 @@ static void vfio_platform_get_reset(struct vfio_platform_device *vdev)
->  		vdev->of_reset = vfio_platform_lookup_reset(vdev->compat,
->  							&vdev->reset_module);
->  	}
-> +
-> +	return vdev->of_reset ? 0 : -ENOENT;
->  }
->  
->  static void vfio_platform_put_reset(struct vfio_platform_device *vdev)
-> @@ -670,16 +672,22 @@ int vfio_platform_probe_common(struct vfio_platform_device *vdev,
->  	}
->  
->  	ret = vfio_add_group_dev(dev, &vfio_platform_ops, vdev);
-> -	if (ret) {
-> -		iommu_group_put(group);
-> -		return ret;
-> -	}
-> +	if (ret)
-> +		goto out;
->  
-> -	vfio_platform_get_reset(vdev);
-> +	ret = vfio_platform_get_reset(vdev);
-> +	if (ret && vdev->reset_required) {
-> +		pr_err("vfio: no reset function found for device %s\n",
-> +		       vdev->name);
-> +		goto out;
-> +	}
-Unfortunately this causes a crash when the reset module is not
-available. You should do the vfio_add_group_dev at the end. Something
-like below.
+BTW, the above messages are KERN_DEBUG, so at least in theory they
+shouldn't be visible in production runs.
 
-Best Regards
-
-Eric
-
----
- drivers/vfio/platform/vfio_platform_common.c | 26
-++++++++++++--------------
- 1 file changed, 12 insertions(+), 14 deletions(-)
-
-diff --git a/drivers/vfio/platform/vfio_platform_common.c
-b/drivers/vfio/platform/vfio_platform_common.c
-index d84c399..0928f7d 100644
---- a/drivers/vfio/platform/vfio_platform_common.c
-+++ b/drivers/vfio/platform/vfio_platform_common.c
-@@ -664,6 +664,14 @@ int vfio_platform_probe_common(struct
-vfio_platform_device *vdev,
-                return ret;
-
-        vdev->device = dev;
-+       mutex_init(&vdev->igate);
-+
-+       ret = vfio_platform_get_reset(vdev);
-+       if (ret && vdev->reset_required) {
-+               pr_err("vfio: no reset function found for device %s\n",
-+                      vdev->name);
-+               return ret;
-+       }
-
-        group = iommu_group_get(dev);
-        if (!group) {
-@@ -672,22 +680,12 @@ int vfio_platform_probe_common(struct
-vfio_platform_device *vdev,
-        }
-
-        ret = vfio_add_group_dev(dev, &vfio_platform_ops, vdev);
--       if (ret)
--               goto out;
--
--       ret = vfio_platform_get_reset(vdev);
--       if (ret && vdev->reset_required) {
--               pr_err("vfio: no reset function found for device %s\n",
--                      vdev->name);
--               goto out;
--       }
--
--       mutex_init(&vdev->igate);
-+       if (ret) {
-+               iommu_group_put(group);
-+               return ret;
-+       }
-
-        return 0;
--out:
--       iommu_group_put(group);
--       return ret;
- }
- EXPORT_SYMBOL_GPL(vfio_platform_probe_common);
-
-
-
->  
->  	mutex_init(&vdev->igate);
->  
->  	return 0;
-> +out:
-> +	iommu_group_put(group);
-> +	return ret;
->  }
->  EXPORT_SYMBOL_GPL(vfio_platform_probe_common);
->  
-> diff --git a/drivers/vfio/platform/vfio_platform_private.h b/drivers/vfio/platform/vfio_platform_private.h
-> index ba9e4f8..68fbc00 100644
-> --- a/drivers/vfio/platform/vfio_platform_private.h
-> +++ b/drivers/vfio/platform/vfio_platform_private.h
-> @@ -50,6 +50,7 @@ struct vfio_platform_region {
->  };
->  
->  struct vfio_platform_device {
-> +	bool				reset_required;
->  	struct vfio_platform_region	*regions;
->  	u32				num_regions;
->  	struct vfio_platform_irq	*irqs;
-> 
+Maybe the bug to fix is that they show up when they aren't supposed to?
