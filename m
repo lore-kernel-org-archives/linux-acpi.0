@@ -1,158 +1,85 @@
-From: Hanjun Guo <guohanjun@huawei.com>
-Subject: [PATCH update v7 15/15] acpi, numa: Enable ACPI based NUMA on ARM64
-Date: Fri, 17 Jun 2016 11:53:02 +0800
-Message-ID: <1466135582-37520-1-git-send-email-guohanjun@huawei.com>
+From: Robin Murphy <robin.murphy@arm.com>
+Subject: Re: [RFC PATCH v2 03/15] arm64: mm: change IOMMU notifier action to
+ attach DMA ops
+Date: Fri, 17 Jun 2016 10:27:22 +0100
+Message-ID: <5763C27A.9030306@arm.com>
+References: <1465306270-27076-1-git-send-email-lorenzo.pieralisi@arm.com>
+ <1465306270-27076-4-git-send-email-lorenzo.pieralisi@arm.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: Catalin Marinas <catalin.marinas@arm.com>, Will Deacon <will.deacon@arm.com>, linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, Hanjun Guo <hanjun.guo@linaro.org>, Robert Richter <rrichter@cavium.com>, David Daney <david.daney@cavium.com>
+Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from foss.arm.com ([217.140.101.70]:48633 "EHLO foss.arm.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753967AbcFQJ11 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 17 Jun 2016 05:27:27 -0400
+In-Reply-To: <1465306270-27076-4-git-send-email-lorenzo.pieralisi@arm.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, iommu@lists.linux-foundation.org, Marek Szyprowski <m.szyprowski@samsung.com>
+Cc: linux-arm-kernel@lists.infradead.org, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Marc Zyngier <marc.zyngier@arm.com>, Catalin Marinas <catalin.marinas@arm.com>, Joerg Roedel <joro@8bytes.org>, Will Deacon <will.deacon@arm.com>, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, Sinan Kaya <okaya@codeaurora.org>, linux-acpi@vger.kernel.org, Hanjun Guo <hanjun.guo@linaro.org>, Tomasz Nowicki <tn@semihalf.com>, Jon Masters <jcm@redhat.com>
 
-From: Hanjun Guo <hanjun.guo@linaro.org>
+Hi Lorenzo,
 
-Add function needed for cpu to node mapping, and enable ACPI based
-NUMA for ARM64 in Kconfig
+I think this patch makes sense even independent of the rest of the 
+series, one nit inline notwithstanding.
 
-Signed-off-by: Hanjun Guo <hanjun.guo@linaro.org>
-Signed-off-by: Robert Richter <rrichter@cavium.com>
-[david.daney@cavium.com added ACPI_NUMA default to y for ARM64]
-Signed-off-by: David Daney <david.daney@cavium.com>
-Acked-by: Catalin Marinas <catalin.marinas@arm.com>
----
+Marek; I'm curious as to whether this could make the workaround in 
+722ec35f7 obsolete as well, or are all the drivers also bound 
+super-early in the setup you had there?
 
-update version:
-Address the comment from Matthias which was wrongly set srat_proc[1]
-but should be srat_proc[2].
+On 07/06/16 14:30, Lorenzo Pieralisi wrote:
+> Current bus notifier in ARM64 (__iommu_attach_notifier)
+> attempts to attach dma_ops to a device on BUS_NOTIFY_ADD_DEVICE
+> action notification.
+>
+> This causes issues on ACPI based systems, where PCI devices
+> can be added before the IOMMUs the devices are attached to
+> had a chance to be probed, causing failures on attempts to
+> attach dma_ops in that the domain for the respective IOMMU
+> may not be set-up yet by the time the bus notifier is run.
+>
+> Devices dma_ops do not require to be set-up till the matching
+> device drivers are probed. This means that instead of running
+> the notifier attaching dma_ops to devices (__iommu_attach_notifier)
+> on BUS_NOTIFY_ADD_DEVICE action, it can be run just before the
+> device driver is bound to the device in question (on action
+> BUS_NOTIFY_BIND_DRIVER) so that it is certain that its IOMMU
+> group and domain are set-up accordingly at the time the
+> notifier is triggered.
+>
+> This patch changes the notifier action upon which dma_ops
+> are attached to devices and defer it to driver binding time,
+> so that IOMMU devices have a chance to be probed and to register
+> their bus notifiers before the dma_ops attach sequence for a
+> device is actually carried out.
+>
+> Signed-off-by: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+> Cc: Will Deacon <will.deacon@arm.com>
+> Cc: Catalin Marinas <catalin.marinas@arm.com>
+> Cc: Robin Murphy <robin.murphy@arm.com>
+> ---
+>   arch/arm64/mm/dma-mapping.c | 2 +-
+>   1 file changed, 1 insertion(+), 1 deletion(-)
+>
+> diff --git a/arch/arm64/mm/dma-mapping.c b/arch/arm64/mm/dma-mapping.c
+> index c566ec8..79b0882 100644
+> --- a/arch/arm64/mm/dma-mapping.c
+> +++ b/arch/arm64/mm/dma-mapping.c
+> @@ -848,7 +848,7 @@ static int __iommu_attach_notifier(struct notifier_block *nb,
+>   {
+>   	struct iommu_dma_notifier_data *master, *tmp;
+>
+> -	if (action != BUS_NOTIFY_ADD_DEVICE)
+> +	if (action != BUS_NOTIFY_BIND_DRIVER)
 
-Rafael, this patch is beased on your linux-next branch.
+With this, you can also get rid of the priority setting and big fat 
+explanatory comment in register_iommu_dma_ops_notifier().
 
- drivers/acpi/Kconfig |  4 ++--
- drivers/acpi/numa.c  | 37 ++++++++++++++++++++++++++++++++++++-
- include/linux/acpi.h | 17 ++++++++++++++++-
- 3 files changed, 54 insertions(+), 4 deletions(-)
+Robin.
 
-diff --git a/drivers/acpi/Kconfig b/drivers/acpi/Kconfig
-index b7e2e77..dd76b36 100644
---- a/drivers/acpi/Kconfig
-+++ b/drivers/acpi/Kconfig
-@@ -291,8 +291,8 @@ config ACPI_THERMAL
- config ACPI_NUMA
- 	bool "NUMA support"
- 	depends on NUMA
--	depends on (X86 || IA64)
--	default y if IA64_GENERIC || IA64_SGI_SN2
-+	depends on (X86 || IA64 || ARM64)
-+	default y if IA64_GENERIC || IA64_SGI_SN2 || ARM64
- 
- config ACPI_CUSTOM_DSDT_FILE
- 	string "Custom DSDT Table file to include"
-diff --git a/drivers/acpi/numa.c b/drivers/acpi/numa.c
-index fad6d28..ce3a7a1 100644
---- a/drivers/acpi/numa.c
-+++ b/drivers/acpi/numa.c
-@@ -170,6 +170,18 @@ acpi_table_print_srat_entry(struct acpi_subtable_header *header)
- 		}
- 		break;
- 
-+	case ACPI_SRAT_TYPE_GICC_AFFINITY:
-+		{
-+			struct acpi_srat_gicc_affinity *p =
-+			    (struct acpi_srat_gicc_affinity *)header;
-+			pr_debug("SRAT Processor (acpi id[0x%04x]) in proximity domain %d %s\n",
-+				 p->acpi_processor_uid,
-+				 p->proximity_domain,
-+				 (p->flags & ACPI_SRAT_GICC_ENABLED) ?
-+				 "enabled" : "disabled");
-+		}
-+		break;
-+
- 	default:
- 		pr_warn("Found unsupported SRAT entry (type = 0x%x)\n",
- 			header->type);
-@@ -360,6 +372,24 @@ acpi_parse_processor_affinity(struct acpi_subtable_header *header,
- 	return 0;
- }
- 
-+static int __init
-+acpi_parse_gicc_affinity(struct acpi_subtable_header *header,
-+			 const unsigned long end)
-+{
-+	struct acpi_srat_gicc_affinity *processor_affinity;
-+
-+	processor_affinity = (struct acpi_srat_gicc_affinity *)header;
-+	if (!processor_affinity)
-+		return -EINVAL;
-+
-+	acpi_table_print_srat_entry(header);
-+
-+	/* let architecture-dependent part to do it */
-+	acpi_numa_gicc_affinity_init(processor_affinity);
-+
-+	return 0;
-+}
-+
- static int __initdata parsed_numa_memblks;
- 
- static int __init
-@@ -404,6 +434,9 @@ int __init acpi_numa_init(void)
- {
- 	int cnt = 0;
- 
-+	if (acpi_disabled)
-+		return -EINVAL;
-+
- 	/*
- 	 * Should not limit number with cpu num that is from NR_CPUS or nr_cpus=
- 	 * SRAT cpu entries could have different order with that in MADT.
-@@ -412,13 +445,15 @@ int __init acpi_numa_init(void)
- 
- 	/* SRAT: Static Resource Affinity Table */
- 	if (!acpi_table_parse(ACPI_SIG_SRAT, acpi_parse_srat)) {
--		struct acpi_subtable_proc srat_proc[2];
-+		struct acpi_subtable_proc srat_proc[3];
- 
- 		memset(srat_proc, 0, sizeof(srat_proc));
- 		srat_proc[0].id = ACPI_SRAT_TYPE_CPU_AFFINITY;
- 		srat_proc[0].handler = acpi_parse_processor_affinity;
- 		srat_proc[1].id = ACPI_SRAT_TYPE_X2APIC_CPU_AFFINITY;
- 		srat_proc[1].handler = acpi_parse_x2apic_affinity;
-+		srat_proc[2].id = ACPI_SRAT_TYPE_GICC_AFFINITY;
-+		srat_proc[2].handler = acpi_parse_gicc_affinity;
- 
- 		acpi_table_parse_entries_array(ACPI_SIG_SRAT,
- 					sizeof(struct acpi_table_srat),
-diff --git a/include/linux/acpi.h b/include/linux/acpi.h
-index 8010b26..9515db6 100644
---- a/include/linux/acpi.h
-+++ b/include/linux/acpi.h
-@@ -232,10 +232,25 @@ int acpi_table_parse_madt(enum acpi_madt_type id,
- int acpi_parse_mcfg (struct acpi_table_header *header);
- void acpi_table_print_madt_entry (struct acpi_subtable_header *madt);
- 
--/* the following four functions are architecture-dependent */
-+/* the following numa functions are architecture-dependent */
- void acpi_numa_slit_init (struct acpi_table_slit *slit);
-+
-+#if defined(CONFIG_X86) || defined(CONFIG_IA64)
- void acpi_numa_processor_affinity_init (struct acpi_srat_cpu_affinity *pa);
-+#else
-+static inline void
-+acpi_numa_processor_affinity_init(struct acpi_srat_cpu_affinity *pa) { }
-+#endif
-+
- void acpi_numa_x2apic_affinity_init(struct acpi_srat_x2apic_cpu_affinity *pa);
-+
-+#ifdef CONFIG_ARM64
-+void acpi_numa_gicc_affinity_init(struct acpi_srat_gicc_affinity *pa);
-+#else
-+static inline void
-+acpi_numa_gicc_affinity_init(struct acpi_srat_gicc_affinity *pa) { }
-+#endif
-+
- int acpi_numa_memory_affinity_init (struct acpi_srat_mem_affinity *ma);
- 
- #ifndef PHYS_CPUID_INVALID
--- 
-1.7.12.4
+>   		return 0;
+>
+>   	mutex_lock(&iommu_dma_notifier_lock);
+>
+
