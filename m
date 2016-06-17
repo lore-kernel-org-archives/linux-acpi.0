@@ -1,72 +1,60 @@
-From: Hoan Tran <hotran@apm.com>
-Subject: [PATCH] ACPI: CPPC: Return error if _CPC is invalid on a CPU
-Date: Fri, 17 Jun 2016 15:16:31 -0700
-Message-ID: <1466201791-13351-1-git-send-email-hotran@apm.com>
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-pf0-f169.google.com ([209.85.192.169]:33509 "EHLO
-	mail-pf0-f169.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752478AbcFQWQt (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 17 Jun 2016 18:16:49 -0400
-Received: by mail-pf0-f169.google.com with SMTP id i123so30757434pfg.0
-        for <linux-acpi@vger.kernel.org>; Fri, 17 Jun 2016 15:16:49 -0700 (PDT)
-Sender: linux-acpi-owner@vger.kernel.org
+From: Timur Tabi <timur@codeaurora.org>
+Subject: Re: [PATCH v8 0/4] ACPI: parse the SPCR table
+Date: Fri, 17 Jun 2016 18:24:57 -0500
+Message-ID: <CAOZdJXVMZCFtppMOdruD9sY_EzkATv9XWBqi_NqZ-p2zEo8+2Q@mail.gmail.com>
+References: <1463749405-11640-1-git-send-email-aleksey.makarov@linaro.org>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1463749405-11640-1-git-send-email-aleksey.makarov@linaro.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Aleksey Makarov <aleksey.makarov@linaro.org>
+Cc: "Rafael J . Wysocki" <rjw@rjwysocki.net>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, "Zheng, Lv" <lv.zheng@intel.com>, Kefeng Wang <wangkefeng.wang@huawei.com>, Russell King <linux@arm.linux.org.uk>, Peter Hurley <peter@hurleysoftware.com>, Graeme Gregory <graeme.gregory@linaro.org>, Andy Shevchenko <andy.shevchenko@gmail.com>, lkml <linux-kernel@vger.kernel.org>, Leif Lindholm <leif.lindholm@linaro.org>, linux-acpi@vger.kernel.org, Yury Norov <ynorov@caviumnetworks.com>, Christopher Covington <cov@codeaurora.org>, linux-serial@vger.kernel.org, Mark Salter <msalter@redhat.com>, Al Stone <ahs3@redhat.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Len Brown <lenb@kernel.org>
 List-Id: linux-acpi@vger.kernel.org
-To: Ashwin Chaugule <ashwin.chaugule@linaro.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, pprakash@codeaurora.org
-Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, lho@apm.com, Duc Dang <dhdang@apm.com>, Hoan Tran <hotran@apm.com>
 
-Based on 8.4.7.1 section of ACPI 6.1 specification, if the platform
-supports CPPC, the _CPC object must exist under all processor objects.
-If cpc_desc_ptr pointer is invalid on any CPUs, acpi_get_psd_map()
-should return error and CPPC cpufreq driver can not be registered.
+On Fri, May 20, 2016 at 8:03 AM, Aleksey Makarov
+<aleksey.makarov@linaro.org> wrote:
+> 'ARM Server Base Boot Requirements' [1] mentions SPCR (Serial Port Console
+> Redirection Table) [2] as a mandatory ACPI table that specifies the
+> configuration of serial console.
+>
+> Move "earlycon" early_param handling to earlycon.c to parse this option once
+>
+> Parse SPCR table, setup earlycon and register specified console.
+>
+> Enable parsing this table on ARM64.  Earlycon should be set up as early as
+> possible.  ACPI boot tables are mapped in
+> arch/arm64/kernel/acpi.c:acpi_boot_table_init() called from setup_arch() and
+> that's where we parse spcr.  So it has to be opted-in per-arch. When
+> ACPI_SPCR_TABLE is defined initialization of DT earlycon is deferred until the
+> DT/ACPI decision is done.
+>
+> Implement console_match() for pl011.
+>
+> Based on the work by Leif Lindholm [3]
+> Thanks to Peter Hurley for explaining how this should work.
+>
+> Should be applied to next-20160520
+> Tested on QEMU and ThunderX.
+> SPCR support is included in QEMU's ARM64 mach-virt since 2.4 release.
+>
+> v8:
+> - rebase to next-20160520
+> - remove the patch "ACPICA: Headers: Add new constants for the DBG2 ACPI table"
+>   as it have got to linux-next
+> - add Acked-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Reviewed-by:
+>   Peter Hurley <peter@hurleysoftware.com> (but see below)
+> - fix the patch "serial: pl011: add console matching function".  The patch by
+>   Christopher Covington [4] specifies that SBSA uart does 32-bit access to
+>   registers and this breaks the match function.  In this series the function
+>   was changed to match when SPCR specifies both mmio32 and mmio access.
+>   I removed Acked-by: Greg from this patch because of these changes.
 
-Signed-off-by: Hoan Tran <hotran@apm.com>
----
- drivers/acpi/cppc_acpi.c | 18 ++++++++++++------
- 1 file changed, 12 insertions(+), 6 deletions(-)
+All four patches:
 
-diff --git a/drivers/acpi/cppc_acpi.c b/drivers/acpi/cppc_acpi.c
-index 85fd8f7..2e98173 100644
---- a/drivers/acpi/cppc_acpi.c
-+++ b/drivers/acpi/cppc_acpi.c
-@@ -299,8 +299,10 @@ int acpi_get_psd_map(struct cpudata **all_cpu_data)
- 			continue;
- 
- 		cpc_ptr = per_cpu(cpc_desc_ptr, i);
--		if (!cpc_ptr)
--			continue;
-+		if (!cpc_ptr) {
-+			retval = -EFAULT;
-+			goto err_ret;
-+		}
- 
- 		pdomain = &(cpc_ptr->domain_info);
- 		cpumask_set_cpu(i, pr->shared_cpu_map);
-@@ -322,8 +324,10 @@ int acpi_get_psd_map(struct cpudata **all_cpu_data)
- 				continue;
- 
- 			match_cpc_ptr = per_cpu(cpc_desc_ptr, j);
--			if (!match_cpc_ptr)
--				continue;
-+			if (!match_cpc_ptr) {
-+				retval = -EFAULT;
-+				goto err_ret;
-+			}
- 
- 			match_pdomain = &(match_cpc_ptr->domain_info);
- 			if (match_pdomain->domain != pdomain->domain)
-@@ -353,8 +357,10 @@ int acpi_get_psd_map(struct cpudata **all_cpu_data)
- 				continue;
- 
- 			match_cpc_ptr = per_cpu(cpc_desc_ptr, j);
--			if (!match_cpc_ptr)
--				continue;
-+			if (!match_cpc_ptr) {
-+				retval = -EFAULT;
-+				goto err_ret;
-+			}
- 
- 			match_pdomain = &(match_cpc_ptr->domain_info);
- 			if (match_pdomain->domain != pdomain->domain)
+Tested-by: Timur Tabi <timur@codeaurora.org>
+
 -- 
-1.9.1
-
+Qualcomm Innovation Center, Inc.
+The Qualcomm Innovation Center, Inc. is a member of the Code Aurora Forum,
+a Linux Foundation Collaborative Project.
