@@ -1,60 +1,43 @@
-From: Mika Westerberg <mika.westerberg@linux.intel.com>
-Subject: Re: [PATCH 2/3] acpi i2c: Initialize info.type from of_compatible
-Date: Fri, 17 Jun 2016 15:19:28 +0300
-Message-ID: <20160617121928.GL1739@lahna.fi.intel.com>
-References: <cover.1466014238.git.leonard.crestez@intel.com>
- <13cb5b7766b1b25a2bb61ce0053a38f6f440907b.1466014238.git.leonard.crestez@intel.com>
- <20160616081145.GU1740@lahna.fi.intel.com>
- <2ca8f355-bb28-8b68-7579-e26eaee3550a@intel.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Subject: [PATCH v1 1/1] tools/acpi: use CROSS_COMPILE to define prefix
+Date: Fri, 17 Jun 2016 16:01:08 +0300
+Message-ID: <1466168468-113522-1-git-send-email-andriy.shevchenko@linux.intel.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga02.intel.com ([134.134.136.20]:38944 "EHLO mga02.intel.com"
+Received: from mga14.intel.com ([192.55.52.115]:51775 "EHLO mga14.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752815AbcFQMTd (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 17 Jun 2016 08:19:33 -0400
-Content-Disposition: inline
-In-Reply-To: <2ca8f355-bb28-8b68-7579-e26eaee3550a@intel.com>
+	id S1752988AbcFQNBO (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 17 Jun 2016 09:01:14 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Crestez Dan Leonard <leonard.crestez@intel.com>
-Cc: linux-acpi@vger.kernel.org, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, linux-i2c@vger.kernel.org, Wolfram Sang <wsa@the-dreams.de>, linux-spi@vger.kernel.org, Mark Brown <broonie@kernel.org>, linux-kernel@vger.kernel.org, Octavian Purdila <octavian.purdila@intel.com>, Jarkko Nikula <jarkko.nikula@intel.com>
+To: Lv Zheng <lv.zheng@intel.com>, linux-acpi@vger.kernel.org, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>
+Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
 
-On Fri, Jun 17, 2016 at 03:07:39PM +0300, Crestez Dan Leonard wrote:
-> On 06/16/2016 11:11 AM, Mika Westerberg wrote:
-> > On Wed, Jun 15, 2016 at 09:30:28PM +0300, Crestez Dan Leonard wrote:
-> >> When using devicetree i2c_board_info.type is set to the compatible
-> >> string with the vendor prefix removed. For I2C devices described via
-> >> ACPI the i2c_board_info.type string is set to the ACPI device name. When
-> >> using ACPI and DT ids this string ends up something like "PRP0001:00".
-> >>
-> >> If the of_compatible property is present try to use that instead. This
-> >> makes it easier to instantiate i2c drivers through ACPI with DT ids.
-> > 
-> > Adding Jarkko -- he was the original author of I2C/SPI device naming in
-> > ACPI. Since this only affects devices with PRP0001 in their _HID/_CID,
-> > it should not break anything.
-> 
-> It's possible to have something like this:
-> 
->             Name (_HID, "XXX1234")
->             Name (_CID, "PRP0001")
->             Name (_DSD, Package () {
->                 ToUUID("daffd814-6eba-4d8c-8a91-bc9bbf4aa301"),
->                 Package () {
->                     Package () {"compatible", "vendor,x1234"},
->                 }
->             })
-> 
-> With these patches the i2c device name changes from "XXX1234:00" to
-> "x1234". This would happen even if a driver matches the XXX1234 acpi ID.
-> It's not clear if anyone actually uses that or if this change would be
-> harmful.
+CROSS_COMPILE can be considered as standard definition for toolchain prefix
+when cross-compiling. Use it here.
 
-I have not seen a single machine using _DSD with PRP0001 so I don't
-think it is a problem.
+Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+---
+ tools/power/acpi/Makefile.config | 7 ++++---
+ 1 file changed, 4 insertions(+), 3 deletions(-)
 
-> It theory it would be possible to use of_compatible for naming only if
-> there are no other real IDs. I don't think it's worthwhile.
+diff --git a/tools/power/acpi/Makefile.config b/tools/power/acpi/Makefile.config
+index 552af68..a538ff4 100644
+--- a/tools/power/acpi/Makefile.config
++++ b/tools/power/acpi/Makefile.config
+@@ -54,9 +54,10 @@ INSTALL_SCRIPT = ${INSTALL_PROGRAM}
+ # to something more interesting, like "arm-linux-".  If you want
+ # to compile vs uClibc, that can be done here as well.
+ CROSS = #/usr/i386-linux-uclibc/usr/bin/i386-uclibc-
+-CC = $(CROSS)gcc
+-LD = $(CROSS)gcc
+-STRIP = $(CROSS)strip
++CROSS_COMPILE ?= $(CROSS)
++CC = $(CROSS_COMPILE)gcc
++LD = $(CROSS_COMPILE)gcc
++STRIP = $(CROSS_COMPILE)strip
+ HOSTCC = gcc
+ 
+ # check if compiler option is supported
+-- 
+2.8.1
 
-I agree.
