@@ -1,85 +1,124 @@
-From: Robin Murphy <robin.murphy@arm.com>
-Subject: Re: [RFC PATCH v2 03/15] arm64: mm: change IOMMU notifier action to
- attach DMA ops
-Date: Fri, 17 Jun 2016 10:27:22 +0100
-Message-ID: <5763C27A.9030306@arm.com>
-References: <1465306270-27076-1-git-send-email-lorenzo.pieralisi@arm.com>
- <1465306270-27076-4-git-send-email-lorenzo.pieralisi@arm.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from foss.arm.com ([217.140.101.70]:48633 "EHLO foss.arm.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753967AbcFQJ11 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 17 Jun 2016 05:27:27 -0400
-In-Reply-To: <1465306270-27076-4-git-send-email-lorenzo.pieralisi@arm.com>
-Sender: linux-acpi-owner@vger.kernel.org
+From: Octavian Purdila <octavian.purdila-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: [PATCH v4 0/8]
+Date: Fri, 17 Jun 2016 14:52:08 +0300
+Message-ID: <1466164336-9508-1-git-send-email-octavian.purdila@intel.com>
+Return-path: <linux-efi-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: linux-efi-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: "Rafael J . Wysocki" <rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org>, Len Brown <lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Matt Fleming <matt-mF/unelCI9GS6iBeEJttW/XRex20P6io@public.gmane.org>, Mark Brown <broonie-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Wolfram Sang <wsa-z923LK4zBo2bacvFa/9K2g@public.gmane.org>
+Cc: Joel Becker <jlbec-aKy9MeLSZ9dg9hUCZPvPmw@public.gmane.org>, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-efi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-spi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, irina.tirdea-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, leonard.crestez-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, Octavian Purdila <octavian.purdila-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
-To: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, iommu@lists.linux-foundation.org, Marek Szyprowski <m.szyprowski@samsung.com>
-Cc: linux-arm-kernel@lists.infradead.org, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Marc Zyngier <marc.zyngier@arm.com>, Catalin Marinas <catalin.marinas@arm.com>, Joerg Roedel <joro@8bytes.org>, Will Deacon <will.deacon@arm.com>, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, Sinan Kaya <okaya@codeaurora.org>, linux-acpi@vger.kernel.org, Hanjun Guo <hanjun.guo@linaro.org>, Tomasz Nowicki <tn@semihalf.com>, Jon Masters <jcm@redhat.com>
 
-Hi Lorenzo,
+This patch set enables custom ACPI board configuration by adding
+mechanisms in the Linux kernel for loading user defined SSDTs.
 
-I think this patch makes sense even independent of the rest of the 
-series, one nit inline notwithstanding.
+In order to support ACPI open-ended hardware configurations we need a
+way to augment the ACPI configuration provided by the firmware
+image. A common example is connecting sensors on I2C / SPI buses on
+development boards.
 
-Marek; I'm curious as to whether this could make the workaround in 
-722ec35f7 obsolete as well, or are all the drivers also bound 
-super-early in the setup you had there?
+Although this can be accomplished by creating a kernel platform driver
+or recompiling the firmware image with updated ACPI tables, neither is
+practical: the former proliferates board specific kernel code while
+the latter requires access to firmware tools which are often not
+publicly available.
 
-On 07/06/16 14:30, Lorenzo Pieralisi wrote:
-> Current bus notifier in ARM64 (__iommu_attach_notifier)
-> attempts to attach dma_ops to a device on BUS_NOTIFY_ADD_DEVICE
-> action notification.
->
-> This causes issues on ACPI based systems, where PCI devices
-> can be added before the IOMMUs the devices are attached to
-> had a chance to be probed, causing failures on attempts to
-> attach dma_ops in that the domain for the respective IOMMU
-> may not be set-up yet by the time the bus notifier is run.
->
-> Devices dma_ops do not require to be set-up till the matching
-> device drivers are probed. This means that instead of running
-> the notifier attaching dma_ops to devices (__iommu_attach_notifier)
-> on BUS_NOTIFY_ADD_DEVICE action, it can be run just before the
-> device driver is bound to the device in question (on action
-> BUS_NOTIFY_BIND_DRIVER) so that it is certain that its IOMMU
-> group and domain are set-up accordingly at the time the
-> notifier is triggered.
->
-> This patch changes the notifier action upon which dma_ops
-> are attached to devices and defer it to driver binding time,
-> so that IOMMU devices have a chance to be probed and to register
-> their bus notifiers before the dma_ops attach sequence for a
-> device is actually carried out.
->
-> Signed-off-by: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
-> Cc: Will Deacon <will.deacon@arm.com>
-> Cc: Catalin Marinas <catalin.marinas@arm.com>
-> Cc: Robin Murphy <robin.murphy@arm.com>
-> ---
->   arch/arm64/mm/dma-mapping.c | 2 +-
->   1 file changed, 1 insertion(+), 1 deletion(-)
->
-> diff --git a/arch/arm64/mm/dma-mapping.c b/arch/arm64/mm/dma-mapping.c
-> index c566ec8..79b0882 100644
-> --- a/arch/arm64/mm/dma-mapping.c
-> +++ b/arch/arm64/mm/dma-mapping.c
-> @@ -848,7 +848,7 @@ static int __iommu_attach_notifier(struct notifier_block *nb,
->   {
->   	struct iommu_dma_notifier_data *master, *tmp;
->
-> -	if (action != BUS_NOTIFY_ADD_DEVICE)
-> +	if (action != BUS_NOTIFY_BIND_DRIVER)
+Because ACPI supports external references in AML code a more practical
+way to augment firmware ACPI configuration is by dynamically loading
+user defined SSDT tables that contain the board specific information.
 
-With this, you can also get rid of the priority setting and big fat 
-explanatory comment in register_iommu_dma_ops_notifier().
+Currently it is possible to load SSDT overlays using the upgrade
+initrd mechanism introduced in 4.7. This patch series adds support for
+two more methods:
 
-Robin.
+* From an EFI variable
 
->   		return 0;
->
->   	mutex_lock(&iommu_dma_notifier_lock);
->
+ This is the preferred method, when EFI is supported on the platform,
+ because it allows a persistent, OS independent way of storing and
+ updating the user defined SSDTs. There is also work underway to
+ implement EFI support for loading user defined SSDTs and using this
+ method will make it easier to convert to the EFI loading mechanism
+ when that will arrive.
 
+* From userspace via configfs
+
+ This is useful when we want to defer the operation to userspace for
+ platform detection, loading the SSDTs from a custom partition, etc.
+
+
+Changes from v3:
+
+* fix a bisectability issue reported by kbuild
+
+* rework the enumeration fix to support PRP0001 enumeration; also,
+  introduce acpi_device_set/clear_enumerated() for clarity
+
+* clear the enumerated status for acpi_device when the I2C/SPI clients
+  are removed (for example as a result of an adapter removal) to allow
+  the devices to be re-enumerated later
+
+Changes from v2:
+
+* fix a few issues caught by the kbuild test robot
+
+* add more configfs table attributes
+
+* removed the initrd based loading functionality from this patch set
+  as this can already be accomplished in 4.7 using the ACPI table
+  upgrade mechanism
+
+* rebased to 4.7-rc3
+
+Changes from v1:
+
+* rebased on top of the ACPI install from initrd table functionality;
+  there is significant overlap between the 1st patch in this series
+  and these patch [1] from Lv - I kept it in this series until the
+  discussions around the taint and config option are resolved
+
+* make sure EFI_RUNTIME_SERVICES are available before trying to use
+  EFI variables to load tables
+
+* rework the ACPI reconfiguration notifications to work on device
+  granularity (device added or removed) instead of table granularity
+  (table loaded or unloaded)
+
+* add support for table unloading / device removal
+
+* note that the last patch is just a hack to be able to test the table
+  unload / device remove functionality, if someone wants to try out
+  this patch set
+
+[1] https://patchwork.kernel.org/patch/8795931/
+
+Octavian Purdila (8):
+  Documentation: acpi: add SSDT overlays documentation
+  acpi: fix enumeration (visited) flags for bus rescans
+  acpi: add support for ACPI reconfiguration notifiers
+  i2c: add support for ACPI reconfigure notifications
+  spi: add support for ACPI reconfigure notifications
+  efi: load SSTDs from EFI variables
+  acpi: add support for configfs
+  acpi: add support for loading SSDTs via configfs
+
+ Documentation/ABI/testing/configfs-acpi |  36 +++++
+ Documentation/acpi/ssdt-overlays.txt    | 172 ++++++++++++++++++++
+ Documentation/kernel-parameters.txt     |   7 +
+ MAINTAINERS                             |   1 +
+ drivers/acpi/Kconfig                    |   9 ++
+ drivers/acpi/Makefile                   |   1 +
+ drivers/acpi/bus.c                      |   9 ++
+ drivers/acpi/configfs.c                 | 267 ++++++++++++++++++++++++++++++++
+ drivers/acpi/internal.h                 |   3 +
+ drivers/acpi/scan.c                     |  81 +++++++++-
+ drivers/acpi/sysfs.c                    |   6 +-
+ drivers/firmware/efi/efi.c              | 106 +++++++++++++
+ drivers/i2c/i2c-core.c                  | 172 +++++++++++++++-----
+ drivers/spi/spi.c                       |  96 +++++++++++-
+ include/linux/acpi.h                    |  36 +++++
+ 15 files changed, 946 insertions(+), 56 deletions(-)
+ create mode 100644 Documentation/ABI/testing/configfs-acpi
+ create mode 100644 Documentation/acpi/ssdt-overlays.txt
+ create mode 100644 drivers/acpi/configfs.c
+
+-- 
+2.7.4
