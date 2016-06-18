@@ -1,49 +1,56 @@
-From: "Rafael J. Wysocki" <rafael@kernel.org>
-Subject: [GIT PULL] ACPI fix for v4.7-rc4
-Date: Sat, 18 Jun 2016 02:28:58 +0200
-Message-ID: <CAJZ5v0hgy_fF90FwHHtMiTiM1fcRV_SqMvRXQBjyq4AHe8EmDw@mail.gmail.com>
+From: Amitoj Kaur Chawla <amitoj1606@gmail.com>
+Subject: [PATCH] ACPICA: Use acpi_os_allocate_zeroed
+Date: Sat, 18 Jun 2016 12:20:23 +0530
+Message-ID: <20160618065023.GA1839@amitoj-Inspiron-3542>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-wm0-f65.google.com ([74.125.82.65]:34370 "EHLO
-	mail-wm0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932915AbcFRA3A (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 17 Jun 2016 20:29:00 -0400
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+Sender: linux-kernel-owner@vger.kernel.org
+To: robert.moore@intel.com, lv.zheng@intel.com, rafael.j.wysocki@intel.com, lenb@kernel.org, linux-acpi@vger.kernel.org, devel@acpica.org, linux-kernel@vger.kernel.org
+Cc: julia.lawall@lip6.fr
 List-Id: linux-acpi@vger.kernel.org
-To: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>
 
-Hi Linus,
+acpi_os_allocate_zeroed combines acpi_os_allocate and memset 0.
 
-Please pull from
+The Coccinelle semantic patch used to make this change is as follows:
+@@
+type T;
+T *d;
+expression e;
+statement S;
+@@
 
- git://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm.git \
- acpi-4.7-rc4
+        d =
+-            acpi_os_allocate
++            acpi_os_allocate_zeroed
+             (...);
+        if (!d) S
+-       memset(d, 0, sizeof(T));
 
-to receive an ACPI update for v4.7-rc4 with top-most commit
-46577e6a052ff5add7577ac748fb8628b3c3c7c9
+Signed-off-by: Amitoj Kaur Chawla <amitoj1606@gmail.com>
+---
+ drivers/acpi/acpica/uttrack.c | 4 +---
+ 1 file changed, 1 insertion(+), 3 deletions(-)
 
- Merge branch 'acpica-fixes'
-
-on top of commit 5edb56491d4812c42175980759da53388e5d86f5
-
- Linux 4.7-rc3
-
-Revert a recent ACPICA commit that introduced a suspend-to-RAM
-regression on one system due to incorrect information in its ACPI
-tables that had not been taken into consideration at all before (and
-everything worked), but the commit in question started to use it.
-
-Thanks!
-
----------------
-
-Rafael J. Wysocki (1):
-      Revert "ACPICA: ACPI 2.0, Hardware: Add access_width/bit_offset
-support for acpi_hw_write()"
-
----------------
-
- drivers/acpi/acpica/hwregs.c | 146 +++----------------------------------------
- 1 file changed, 9 insertions(+), 137 deletions(-)
+diff --git a/drivers/acpi/acpica/uttrack.c b/drivers/acpi/acpica/uttrack.c
+index 60c406a..5ad2641 100644
+--- a/drivers/acpi/acpica/uttrack.c
++++ b/drivers/acpi/acpica/uttrack.c
+@@ -95,13 +95,11 @@ acpi_ut_create_list(char *list_name,
+ {
+ 	struct acpi_memory_list *cache;
+ 
+-	cache = acpi_os_allocate(sizeof(struct acpi_memory_list));
++	cache = acpi_os_allocate_zeroed(sizeof(struct acpi_memory_list));
+ 	if (!cache) {
+ 		return (AE_NO_MEMORY);
+ 	}
+ 
+-	memset(cache, 0, sizeof(struct acpi_memory_list));
+-
+ 	cache->list_name = list_name;
+ 	cache->object_size = object_size;
+ 
+-- 
+1.9.1
