@@ -1,248 +1,78 @@
-From: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
-Subject: Re: [RFC PATCH v3 1/2] ACPI/PCI: Check platform specific ECAM quirks
-Date: Mon, 20 Jun 2016 18:16:49 +0100
-Message-ID: <20160620171649.GA30267@red-moon>
-References: <1466004851-10214-1-git-send-email-cov@codeaurora.org>
+From: Dan Williams <dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH] nfit: add Microsoft NVDIMM DSM command set to white list
+Date: Mon, 20 Jun 2016 10:21:15 -0700
+Message-ID: <CAPcyv4i3tDov71YbfumBHHjitG7dgcz0+V6rDzGxPfAJX+Sg-w@mail.gmail.com>
+References: <5cff32b5-7849-4e9d-0ba8-1f12e21814a9@gmail.com>
+ <790a33bd-98e9-89c8-6667-e135ada69f80@gmail.com>
+ <20160619175920.GA12470@xo-6d-61-c0.localdomain>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-Content-Disposition: inline
-In-Reply-To: <1466004851-10214-1-git-send-email-cov@codeaurora.org>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Christopher Covington <cov@codeaurora.org>
-Cc: Gabriele Paoloni <gabriele.paoloni@huawei.com>, linux-pci@vger.kernel.org, Sinan Kaya <okaya@codeaurora.org>, linux-arch@vger.kernel.org, Jeff Hugo <jhugo@codeaurora.org>, Tomasz Nowicki <tn@semihalf.com>, David Daney <ddaney@caviumnetworks.com>, linux-acpi@vger.kernel.org, Robert Richter <robert.richter@caviumnetworks.com>, Dongdong Liu <liudongdong3@huawei.com>, Mark Salter <msalter@redhat.com>, Len Brown <lenb@kernel.org>, Arnd Bergmann <arnd@arndb.de>, Jon Masters <jcm@redhat.com>, Bjorn Helgaas <bhelgaas@google.com>, linux-arm-kernel@lists.infradead.org, Jayachandran C <jchandra@broadcom.com>, ard.biesheuvel@linaro.org, Duc Dang <dhdang@apm.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, linux-kernel@vger.kernel.org, Hanjun Guo <hanjun.guo@linaro.org>, Suravee Suthikulpanit <Suravee.Suthikulpanit@amd.com>
+Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+In-Reply-To: <20160619175920.GA12470-5NIqAleC692hcjWhqY66xCZi+YwRKgec@public.gmane.org>
+List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
+ <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
+List-Post: <mailto:linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+List-Help: <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
+ <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
+Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
+Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+To: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
+Cc: "linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org" <linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>, "Rafael J. Wysocki" <rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org>, "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux ACPI <linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Stuart Hayes <stuart.w.hayes-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-[+ Ard, Arnd]
+On Sun, Jun 19, 2016 at 10:59 AM, Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org> wrote:
+> Hi!
+>
+>> >Add the Microsoft _DSM command set to the white list of NVDIMM command sets.
+>> >
+>> >This command set is documented at https://msdn.microsoft.com/library/windows/hardware/mt604741.
+>> >
+>> >Signed-off-by: Stuart Hayes <stuart.w.hayes-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+>> >---
+>> > drivers/acpi/nfit.c        | 9 ++++++---
+>> > drivers/acpi/nfit.h        | 4 ++++
+>> > include/uapi/linux/ndctl.h | 1 +
+>> > 3 files changed, 11 insertions(+), 3 deletions(-)
+>> >
+>> >diff --git a/drivers/acpi/nfit.c b/drivers/acpi/nfit.c
+>> >index 2215fc8..48fc575 100644
+>> >--- a/drivers/acpi/nfit.c
+>> >+++ b/drivers/acpi/nfit.c
+>> >@@ -1130,11 +1130,11 @@ static int acpi_nfit_add_dimm(struct acpi_nfit_desc *acpi_desc,
+>> >     }
+>> >
+>> >     /*
+>> >-     * Until standardization materializes we need to consider up to 3
+>> >+     * Until standardization materializes we need to consider several
+>> >      * different command sets.  Note, that checking for function0 (bit0)
+>> >      * tells us if any commands are reachable through this uuid.
+>> >      */
+>> >-    for (i = NVDIMM_FAMILY_INTEL; i <= NVDIMM_FAMILY_HPE2; i++)
+>> >+    for (i = NVDIMM_FAMILY_INTEL; i <= NVDIMM_FAMILY_MSFT; i++)
+>> >         if (acpi_check_dsm(adev_dimm->handle, to_nfit_uuid(i), 1, 1))
+>
+> Time to introduce NVDIMM_FAMILY_MAX?
 
-On Wed, Jun 15, 2016 at 11:34:10AM -0400, Christopher Covington wrote:
-> From: Tomasz Nowicki <tn@semihalf.com>
-> 
-> Some platforms may not be fully compliant with the generic PCI config
-> operations. For these cases we implement a way to use custom map and
-> accessor functions. The algorithm traverses the available quirk list,
-> matches against <oem_id, oem_table_id, oem_revision, domain, bus number>
-> tuples and returns corresponding PCI config ops. oem_id, oem_table_id, and
-> oem_revision come from the MCFG table standard header. All quirks can be
-> defined using the DECLARE_ACPI_MCFG_FIXUP() macro and are kept self
-> contained. Example:
-> 
-> /* Custom PCI config ops */
-> static struct pci_generic_ecam_ops foo_pci_ops = {
-> 	.bus_shift	= 24,
-> 	.pci_ops = {
-> 		.map_bus = pci_ecam_map_bus,
-> 		.read = foo_ecam_config_read,
-> 		.write = foo_ecam_config_write,
-> 	}
-> };
-> 
-> DECLARE_ACPI_MCFG_FIXUP(&foo_pci_ops, "OEM", "TABLE-ID", <revision>,
-> 			<domain_nr>, <bus_nr>);
-> 
-> Signed-off-by: Tomasz Nowicki <tn@semihalf.com>
-> Signed-off-by: Dongdong Liu <liudongdong3@huawei.com>
-> Signed-off-by: Christopher Covington <cov@codeaurora.org>
-> 
-> ---
-> 
-> Changes from v2 to v3:
-> * Match against all three of oem_id, oem_table_id, and oem_revision.
-> * Perform substring match, so padding oem_id and oem_table_id isn't
->   required. (Using min_t() thanks to Duc Dang's suggestion.)
-> * Print when quirk matched.
-> * Use __UNIQUE_ID() macro to generate a valid, unique symbol name even
->   when OEM and table IDs contain characters such as dash "-".
-> * Move extern declaration to header and fix spelling and formatting to
->   satisfy checkpatch/coding style.
-> ---
->  drivers/acpi/pci_mcfg.c           | 49 ++++++++++++++++++++++++++++++++++++---
->  include/asm-generic/vmlinux.lds.h |  7 ++++++
->  include/linux/pci-acpi.h          | 24 +++++++++++++++++++
->  3 files changed, 77 insertions(+), 3 deletions(-)
-> 
-> diff --git a/drivers/acpi/pci_mcfg.c b/drivers/acpi/pci_mcfg.c
-> index b5b376e..2a5d3dd 100644
-> --- a/drivers/acpi/pci_mcfg.c
-> +++ b/drivers/acpi/pci_mcfg.c
-> @@ -22,6 +22,10 @@
->  #include <linux/kernel.h>
->  #include <linux/pci.h>
->  #include <linux/pci-acpi.h>
-> +#include <linux/pci-ecam.h>
-> +
-> +/* Root pointer to the mapped MCFG table */
-> +static struct acpi_table_mcfg *mcfg_table;
->  
->  /* Structure to hold entries from the MCFG table */
->  struct mcfg_entry {
-> @@ -35,6 +39,46 @@ struct mcfg_entry {
->  /* List to save MCFG entries */
->  static LIST_HEAD(pci_mcfg_list);
->  
-> +static bool pci_mcfg_fixup_match(struct pci_cfg_fixup *f,
-> +				 struct acpi_table_header *h)
-> +{
-> +	int olen = min_t(u8, strlen(f->oem_id), ACPI_OEM_ID_SIZE);
-> +	int tlen = min_t(u8, strlen(f->oem_table_id), ACPI_OEM_TABLE_ID_SIZE);
-> +
-> +	return (!strncmp(f->oem_id, h->oem_id, olen) &&
-> +		!strncmp(f->oem_table_id, h->oem_table_id, tlen) &&
-> +		f->oem_revision == h->oem_revision);
-> +}
-> +
-> +struct pci_ecam_ops *pci_mcfg_get_ops(struct acpi_pci_root *root)
-> +{
-> +	int bus_num = root->secondary.start;
-> +	int domain = root->segment;
-> +	struct pci_cfg_fixup *f;
-> +
-> +	if (!mcfg_table)
-> +		return &pci_generic_ecam_ops;
-> +
-> +	/*
-> +	 * Match against platform specific quirks and return corresponding CAM
-> +	 * ops.
-> +	 *
-> +	 * First match against PCI topology <domain:bus> then use OEM ID, OEM
-> +	 * table ID, and OEM revision from MCFG table standard header.
-> +	 */
-> +	for (f = __start_acpi_mcfg_fixups; f < __end_acpi_mcfg_fixups; f++) {
-> +		if ((f->domain == domain || f->domain == PCI_MCFG_DOMAIN_ANY) &&
-> +		    (f->bus_num == bus_num || f->bus_num == PCI_MCFG_BUS_ANY) &&
-> +		    pci_mcfg_fixup_match(f, &mcfg_table->header)) {
-> +			pr_info("Handling %s %s r%d PCI MCFG quirks\n",
-> +				f->oem_id, f->oem_table_id, f->oem_revision);
-> +			return f->ops;
-> +		}
-> +	}
-> +	/* No quirks, use ECAM */
-> +	return &pci_generic_ecam_ops;
-> +}
-> +
->  phys_addr_t pci_mcfg_lookup(u16 seg, struct resource *bus_res)
->  {
->  	struct mcfg_entry *e;
-> @@ -54,7 +98,6 @@ phys_addr_t pci_mcfg_lookup(u16 seg, struct resource *bus_res)
->  
->  static __init int pci_mcfg_parse(struct acpi_table_header *header)
->  {
-> -	struct acpi_table_mcfg *mcfg;
->  	struct acpi_mcfg_allocation *mptr;
->  	struct mcfg_entry *e, *arr;
->  	int i, n;
-> @@ -64,8 +107,8 @@ static __init int pci_mcfg_parse(struct acpi_table_header *header)
->  
->  	n = (header->length - sizeof(struct acpi_table_mcfg)) /
->  					sizeof(struct acpi_mcfg_allocation);
-> -	mcfg = (struct acpi_table_mcfg *)header;
-> -	mptr = (struct acpi_mcfg_allocation *) &mcfg[1];
-> +	mcfg_table = (struct acpi_table_mcfg *)header;
-> +	mptr = (struct acpi_mcfg_allocation *) &mcfg_table[1];
->  
->  	arr = kcalloc(n, sizeof(*arr), GFP_KERNEL);
->  	if (!arr)
-> diff --git a/include/asm-generic/vmlinux.lds.h b/include/asm-generic/vmlinux.lds.h
-> index 6a67ab9..43604fc 100644
-> --- a/include/asm-generic/vmlinux.lds.h
-> +++ b/include/asm-generic/vmlinux.lds.h
-> @@ -300,6 +300,13 @@
->  		VMLINUX_SYMBOL(__end_pci_fixups_suspend_late) = .;	\
->  	}								\
->  									\
-> +	/* ACPI MCFG quirks */						\
-> +	.acpi_fixup        : AT(ADDR(.acpi_fixup) - LOAD_OFFSET) {	\
-> +		VMLINUX_SYMBOL(__start_acpi_mcfg_fixups) = .;		\
-> +		*(.acpi_fixup_mcfg)					\
-> +		VMLINUX_SYMBOL(__end_acpi_mcfg_fixups) = .;		\
-> +	}								\
-> +									\
->  	/* Built-in firmware blobs */					\
->  	.builtin_fw        : AT(ADDR(.builtin_fw) - LOAD_OFFSET) {	\
->  		VMLINUX_SYMBOL(__start_builtin_fw) = .;			\
-> diff --git a/include/linux/pci-acpi.h b/include/linux/pci-acpi.h
-> index 7d63a66..dac851b 100644
-> --- a/include/linux/pci-acpi.h
-> +++ b/include/linux/pci-acpi.h
-> @@ -25,6 +25,7 @@ static inline acpi_status pci_acpi_remove_pm_notifier(struct acpi_device *dev)
->  extern phys_addr_t acpi_pci_root_get_mcfg_addr(acpi_handle handle);
->  
->  extern phys_addr_t pci_mcfg_lookup(u16 domain, struct resource *bus_res);
-> +extern struct pci_ecam_ops *pci_mcfg_get_ops(struct acpi_pci_root *root);
->  
->  static inline acpi_handle acpi_find_root_bridge_handle(struct pci_dev *pdev)
->  {
-> @@ -72,6 +73,29 @@ struct acpi_pci_root_ops {
->  	int (*prepare_resources)(struct acpi_pci_root_info *info);
->  };
->  
-> +struct pci_cfg_fixup {
-> +	struct pci_ecam_ops *ops;
-> +	char *oem_id;
-> +	char *oem_table_id;
-> +	u32 oem_revision;
-> +	int domain;
-> +	int bus_num;
-> +};
-> +
-> +extern struct pci_cfg_fixup __start_acpi_mcfg_fixups[];
-> +extern struct pci_cfg_fixup __end_acpi_mcfg_fixups[];
-> +
-> +#define PCI_MCFG_DOMAIN_ANY	-1
-> +#define PCI_MCFG_BUS_ANY	-1
-> +
-> +/* Designate a routine to fix up buggy MCFG */
-> +#define DECLARE_ACPI_MCFG_FIXUP(ops, oem, table, rev, dom, bus)	\
-> +	static const struct pci_cfg_fixup			\
-> +	__UNIQUE_ID(mcfg_fixup_)				\
-> +	__used	__attribute__((__section__(".acpi_fixup_mcfg"),	\
-> +				aligned((sizeof(void *))))) =	\
-> +	{ ops, oem, table, rev, dom, bus }
-> +
+I hope not.  This is the last of what can be considered "first
+generation" DSM support, everything else should wait for
+standardization.  I.e. no ongoing need to keep changing this line.
 
-Ok, a couple of comments on this quirks handling mechanism.
+>
+>> >@@ -1150,7 +1150,9 @@ static int acpi_nfit_add_dimm(struct acpi_nfit_desc *acpi_desc,
+>> >         dsm_mask = 0x1fe;
+>> >         if (disable_vendor_specific)
+>> >             dsm_mask &= ~(1 << 8);
+>> >-    } else {
+>> >+    } else if (nfit_mem->family == NVDIMM_FAMILY_MSFT)
+>> >+        dsm_mask = 0xffffffff;
+>> >+    else {
+>> >         dev_err(dev, "unknown dimm command family\n");
+>> >         nfit_mem->family = -1;
+>> >         return force_enable_dimms ? 0 : -ENODEV;
+>
+> I'd really use {} around the if (), so that it is clear what the else belongs to.
 
-Given that it is supposed to be just a temporary workaround for
-1st generation non-ECAM-compliant platforms, the same mechanism
-can be implemented through a static array of hooks, that, through
-the same MCFG matching mechanism, initialize the pci_ops for
-the given platform.
-
-Furthermore, I suspect we do not even need a way to pass the
-non-ECAM compliant config space resources to the OS (ie we can't
-change FW anymore anyway in some platforms) so the quirks hooks
-are likely to hardcode the required config space addresses for
-the respective MCFG match.
-
-It should be easier to implement (provided we find a place where
-to add this static array of hooks matching MCFG, I suspect it is
-going to be a file in drivers/pci/host but Tomasz and I need
-input on that) and prevent abuse (since it is a static array of
-hooks in a single place, it is easier to manage than section
-entries).
-
-Either that or we keep the section entry linker script approach
-this series implements, which means that the quirks handling hook
-will be added to a specific section instead of a static array,
-I see no other option.
-
-Last but not least, the MCFG table must not contain any region
-that is not ECAM compliant, I understand we need quirks but
-we must not abuse a standard table to provide the OS resources
-that are really not ECAM compliant when they are supposed to be.
-
-Tomasz will post a follow-up patch to this series implementing
-the above, if you have any comments/concerns/questions or you see
-anything wrong with what I say above please do chime in.
-
-Thanks !
-Lorenzo
+Sure, I can fix this up.  Stuart, no need to re-send.
