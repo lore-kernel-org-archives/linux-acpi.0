@@ -1,70 +1,94 @@
-From: Bjorn Helgaas <helgaas@kernel.org>
-Subject: Re: kernel-4.7 bug in Intel sound and/or ACPI
-Date: Mon, 20 Jun 2016 16:25:07 -0500
-Message-ID: <20160620212507.GA24086@localhost>
-References: <20160620003530.GA19571@djo.tudelft.nl>
- <2999417.fp4mqtxYS2@vostro.rjw.lan>
+From: Jeremy Linton <jeremy.linton@arm.com>
+Subject: Re: [PATCH 7/8] arm64: pmu: Enable multiple PMUs in an ACPI system
+Date: Mon, 20 Jun 2016 16:44:31 -0500
+Message-ID: <576863BF.6040800@arm.com>
+References: <1465511013-10742-1-git-send-email-jeremy.linton@arm.com>
+ <1465511013-10742-8-git-send-email-jeremy.linton@arm.com>
+ <87h9cn6ckw.fsf@e105922-lin.cambridge.arm.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.136]:50312 "EHLO mail.kernel.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752833AbcFTV2j (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 20 Jun 2016 17:28:39 -0400
-Content-Disposition: inline
-In-Reply-To: <2999417.fp4mqtxYS2@vostro.rjw.lan>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"; Format="flowed"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <87h9cn6ckw.fsf@e105922-lin.cambridge.arm.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Punit Agrawal <punit.agrawal@arm.com>
+Cc: mark.rutland@arm.com, lorenzo.pieralisi@arm.com, linux-acpi@vger.kernel.org, peterz@infradead.org, catalin.marinas@arm.com, will.deacon@arm.com, acme@kernel.org, mlangsdorf@redhat.com, alexander.shishkin@linux.intel.com, mingo@redhat.com, linux-arm-kernel@lists.infradead.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: wim@djo.tudelft.nl, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, perex@perex.cz, linux-pci@vger.kernel.org, Takashi Iwai <tiwai@suse.com>, Sinan Kaya <okaya@codeaurora.org>
 
-[+cc Sinan]
+Hi Punit,
 
-On Mon, Jun 20, 2016 at 03:02:57AM +0200, Rafael J. Wysocki wrote:
-> You should CC the linux-pci too (done now)
-> 
-> On Monday, June 20, 2016 02:35:30 AM Wim Osterholt wrote:
-> > L.S.
-> > up to vanilla kernel-4.6.2 sound was working fine.
-> > Switching to kernel-4.7.0-rc3 made sound disappear. No /dev/mixer etc.
-> > There appears to be a bug in the Intel sound driver and/or ACPI driver.
-> > Dmesg shows interesting lines like:
-> > [   11.498592] ACPI: PCI Interrupt Link [LNKB] enabled at IRQ 7
-> > [   11.498605] PCI: setting IRQ 7 as level-triggered
-> > [   11.543903] parport0: PC-style at 0x378 (0x778), irq 7 [PCSPP,TRISTATE,EPP]
-> > [   12.757735] genirq: Flags mismatch irq 7. 00000080 (snd_intel8x0m) vs. 00000000 (parport0)
-> > [   12.757751] snd_intel8x0m 0000:00:1f.6: unable to grab IRQ 7
-> > [   12.757875] snd_intel8x0m: probe of 0000:00:1f.6 failed with error -16
-> > [   12.900171] genirq: Flags mismatch irq 7. 00000080 (snd_intel8x0) vs. 00000000 (parport0)
-> > [   12.900189] snd_intel8x0 0000:00:1f.5: unable to grab IRQ 7
-> > [   12.900389] snd_intel8x0: probe of 0000:00:1f.5 failed with error -16
-> > [   12.922554] genirq: Flags mismatch irq 7. 00000080 (ipw2200) vs. 00000000 (parport0)
-> > [   12.922559] ipw2200: Error allocating IRQ 7
-> > 
-> > If I boot kernel-4.7.0-rc3 with acpi=off  then sound is back!
-> > 
-> > If you need the full dmesg outputs then please get them here:
-> > http://webserver.djo.tudelft.nl/dmesg460+ACPI
-> > http://webserver.djo.tudelft.nl/dmesg473+ACPI
-> > http://webserver.djo.tudelft.nl/dmesg473noACPI
-> > (with excuses for the silly hostname which is out of our control)
+On 06/20/2016 11:37 AM, Punit Agrawal wrote:
+> Jeremy Linton <jeremy.linton@arm.com> writes:
+>
+>> Its possible that an ACPI system has multiple CPU types in it
+>> with differing PMU counters. Use the newly provided acpi_pmu routines
+>> to detect that case, and instantiate more than one set of counters.
+>>
+>> Signed-off-by: Jeremy Linton <jeremy.linton@arm.com>
+>> ---
+>>   drivers/perf/arm_pmu.c      |  7 +++-
+>>   drivers/perf/arm_pmu_acpi.c | 98 ++++++++++++++++++++-------------------------
+>>   2 files changed, 50 insertions(+), 55 deletions(-)
+>>
+>
+> [...]
+>
+>> diff --git a/drivers/perf/arm_pmu_acpi.c b/drivers/perf/arm_pmu_acpi.c
+>> index a257fc0..8f9bea3 100644
+>> --- a/drivers/perf/arm_pmu_acpi.c
+>> +++ b/drivers/perf/arm_pmu_acpi.c
+>> @@ -35,6 +35,11 @@ struct pmu_types {
+>>
+>>   static struct pmu_irq pmu_irqs[NR_CPUS] __initdata;
+>>
+>> +/*
+>> + * Called from acpi_map_gic_cpu_interface()'s MADT parsing during boot.
+>> + * This routine saves off the GSI's and their trigger state for use when we are
+>> + * ready to build the PMU platform device.
+>> +*/
+>>   void __init arm_pmu_parse_acpi(int cpu, struct acpi_madt_generic_interrupt *gic)
+>>   {
+>>   	pmu_irqs[cpu].gsi = gic->performance_interrupt;
+>
+>
+> This hunk should be in Patch 3.
 
-I think snd_intel8x0 (00:1f.5) is connected to LNKB, and in v4.6 LNKB
-was set to IRQ 5, while in v4.7 LNKB is connected to IRQ7.  It looks
-like IRQ7 is already in use by parport, which doesn't want to share
-it.
 
-This might be related to Sinan's changes to pci_link.c, which
-were merged for 4.7:
+Ok...
 
-  9e5ed6d1fb87 ACPI,PCI,IRQ: remove SCI penalize function
-  1fcb6a813c4f ACPI,PCI,IRQ: remove redundant code in acpi_irq_penalty_init()
-  5c5087a55390 ACPI,PCI,IRQ: reduce static IRQ array size to 16
-  103544d86976 ACPI,PCI,IRQ: reduce resource requirements
+>
+>> @@ -47,7 +52,7 @@ void __init arm_pmu_parse_acpi(int cpu, struct acpi_madt_generic_interrupt *gic)
+>>   }
+>>
+>>   /* Count number and type of CPU cores in the system. */
+>> -void __init arm_pmu_acpi_determine_cpu_types(struct pmu_types *pmus)
+>> +static void __init arm_pmu_acpi_determine_cpu_types(struct pmu_types *pmus)
+>>   {
+>>   	int i, j;
+>>
+>
+> Please move this and the following two hunks to the previous patch where you
+> introduce the functions.
 
-I don't think we intended to change any behavior with those patches,
-but maybe we did.  Could you confirm/deny that those patches are
-related?  If they're not, bisection might be the quickest way to
-find the problem.
 
-Bjorn
+Oh, I did this on purpose to avoid:
+
+"warning: 'xxx' defined but not used" messages.
+
+
+
+>
+>> @@ -74,7 +79,7 @@ void __init arm_pmu_acpi_determine_cpu_types(struct pmu_types *pmus)
+>>    * Registers the group of PMU interfaces which corrispond to the 'last_cpu_id'.
+>>    * This group utlizes 'count' resources in the 'res'.
+>>    */
+>> -int __init arm_pmu_acpi_register_pmu(int count, struct resource *res,
+>> +static int __init arm_pmu_acpi_register_pmu(int count, struct resource *res,
