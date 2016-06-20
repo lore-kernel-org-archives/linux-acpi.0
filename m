@@ -1,148 +1,182 @@
-From: Tomasz Nowicki <tn@semihalf.com>
-Subject: [PATCH V7 6/8] irqchip/gicv3-its: Probe ITS in the ACPI way
-Date: Mon, 20 Jun 2016 13:02:19 +0200
-Message-ID: <1466420541-20101-7-git-send-email-tn@semihalf.com>
-References: <1466420541-20101-1-git-send-email-tn@semihalf.com>
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-lf0-f48.google.com ([209.85.215.48]:36439 "EHLO
-	mail-lf0-f48.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932408AbcFTLD6 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 20 Jun 2016 07:03:58 -0400
-Received: by mail-lf0-f48.google.com with SMTP id q132so35166647lfe.3
-        for <linux-acpi@vger.kernel.org>; Mon, 20 Jun 2016 04:03:58 -0700 (PDT)
-In-Reply-To: <1466420541-20101-1-git-send-email-tn@semihalf.com>
-Sender: linux-acpi-owner@vger.kernel.org
+From: Adam Thomson <Adam.Thomson.Opensource@diasemi.com>
+Subject: [RESEND PATCH v3 1/2] device property: Add function to
+ search for named child of device
+Date: Mon, 20 Jun 2016 12:38:58 +0100
+Message-ID: <866c9edccdd89805f6a0c0aa92f8a78ae616ed61.1466421714.git.Adam.Thomson.Opensource@diasemi.com>
+References: <cover.1466421714.git.Adam.Thomson.Opensource@diasemi.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <alsa-devel-bounces@alsa-project.org>
+In-Reply-To: <cover.1466421714.git.Adam.Thomson.Opensource@diasemi.com>
+List-Unsubscribe: <http://mailman.alsa-project.org/mailman/options/alsa-devel>,
+ <mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
+List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel/>
+List-Post: <mailto:alsa-devel@alsa-project.org>
+List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
+List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+ <mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
+Errors-To: alsa-devel-bounces@alsa-project.org
+Sender: alsa-devel-bounces@alsa-project.org
+To: Robert Moore <robert.moore@intel.com>, Lv Zheng <lv.zheng@intel.com>, "Rafael J.Wysocki" <rafael.j.wysocki@intel.com>, Heikki Krogerus <heikki.krogerus@linux.intel.com>, Mika Westerberg <mika.westerberg@linux.intel.com>, Len Brown <lenb@kernel.org>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Rob Herring <robh+dt@kernel.org>, Frank Rowand <frowand.list@gmail.com>, Mark Brown <broonie@kernel.org>, Liam Girdwood <lgirdwood@gmail.com>, Jaroslav Kysela <perex@perex.cz>, Takashi Iwai <tiwai@suse.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: devicetree@vger.kernel.org, alsa-devel@alsa-project.org, Support Opensource <support.opensource@diasemi.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Sathyanarayana Nujella <sathyanarayana.nujella@intel.com>
 List-Id: linux-acpi@vger.kernel.org
-To: marc.zyngier@arm.com, tglx@linutronix.de, jason@lakedaemon.net, rjw@rjwysocki.net, bhelgaas@google.com, lorenzo.pieralisi@arm.com, robert.richter@caviumnetworks.com, shijie.huang@arm.com, Suravee.Suthikulpanit@amd.com, hanjun.guo@linaro.org
-Cc: al.stone@linaro.org, mw@semihalf.com, graeme.gregory@linaro.org, Catalin.Marinas@arm.com, will.deacon@arm.com, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org, ddaney.cavm@gmail.com, okaya@codeaurora.org, andrea.gallo@linaro.org, linux-pci@vger.kernel.org, Tomasz Nowicki <tn@semihalf.com>
 
-ITS is prepared for being initialized different than DT,
-therefore we can initialize it in ACPI way. We collect register base
-address from MADT table and pass mandatory info to firmware-agnostic
-ITS init call.
+For device nodes in both DT and ACPI, it possible to have named
+child nodes which contain properties (an existing example being
+gpio-leds). This adds a function to find a named child node for
+a device which can be used by drivers for property retrieval.
 
-Use here IORT lib to register ITS domain which then can be found and
-used on to build another PCI MSI domain in hierarchical stack domain.
+For DT data node name matching, of_node_cmp() and similar functions
+are made available outside of CONFIG_OF block so the new function
+can reference these for DT and non-DT builds.
 
-NOTE: Waiting for proper ITS and NUMA node relation description in IORT
-table, we pass around NUMA_NO_NODE to the its_probe_one init call.
-This means that Cavium ThunderX erratum 23144 (pass1.1 only)
-is not supported for ACPI boot method yet.
+For ACPI data node name matching, a helper function is also added
+which returns false if CONFIG_ACPI is not set, otherwise it
+performs a string comparison on the data node name. This avoids
+using the acpi_data_node struct for non CONFIG_ACPI builds,
+which would otherwise cause a build failure.
 
-Signed-off-by: Tomasz Nowicki <tn@semihalf.com>
-Acked-by: Marc Zyngier <marc.zyngier@arm.com>
+Signed-off-by: Adam Thomson <Adam.Thomson.Opensource@diasemi.com>
+Tested-by: Sathyanarayana Nujella <sathyanarayana.nujella@intel.com>
+Acked-by: Rob Herring <robh@kernel.org>
 ---
- drivers/irqchip/Kconfig          |  1 +
- drivers/irqchip/irq-gic-v3-its.c | 59 +++++++++++++++++++++++++++++++++++++++-
- 2 files changed, 59 insertions(+), 1 deletion(-)
 
-diff --git a/drivers/irqchip/Kconfig b/drivers/irqchip/Kconfig
-index 5495a5b..fd4b8b8 100644
---- a/drivers/irqchip/Kconfig
-+++ b/drivers/irqchip/Kconfig
-@@ -38,6 +38,7 @@ config ARM_GIC_V3
- config ARM_GIC_V3_ITS
- 	bool
- 	select PCI_MSI_IRQ_DOMAIN
-+	select IORT_TABLE if ACPI
- 
- config ARM_NVIC
- 	bool
-diff --git a/drivers/irqchip/irq-gic-v3-its.c b/drivers/irqchip/irq-gic-v3-its.c
-index 1e0888d..c5c8616 100644
---- a/drivers/irqchip/irq-gic-v3-its.c
-+++ b/drivers/irqchip/irq-gic-v3-its.c
-@@ -15,10 +15,13 @@
-  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
-  */
- 
-+#include <linux/acpi.h>
- #include <linux/bitmap.h>
- #include <linux/cpu.h>
- #include <linux/delay.h>
- #include <linux/interrupt.h>
-+#include <linux/irqdomain.h>
-+#include <linux/iort.h>
- #include <linux/log2.h>
- #include <linux/mm.h>
- #include <linux/msi.h>
-@@ -1438,6 +1441,11 @@ static int its_irq_gic_domain_alloc(struct irq_domain *domain,
- 		fwspec.param[0] = GIC_IRQ_TYPE_LPI;
- 		fwspec.param[1] = hwirq;
- 		fwspec.param[2] = IRQ_TYPE_EDGE_RISING;
-+	} else if (is_fwnode_irqchip(domain->parent->fwnode)) {
-+		fwspec.fwnode = domain->parent->fwnode;
-+		fwspec.param_count = 2;
-+		fwspec.param[0] = hwirq;
-+		fwspec.param[1] = IRQ_TYPE_EDGE_RISING;
- 	} else {
- 		return -EINVAL;
- 	}
-@@ -1792,6 +1800,55 @@ static int __init its_of_probe(struct device_node *node)
- 	return 0;
+Changes in v3:
+ - Move of_*_cmp() functions in of.h outside of CONFIG_OF block so they are
+   available for non-DT builds
+ - In device_get_named_child_node(), use of_node_cmp() helper macro instead of
+   strcasecmp() (node names not alway case insensitive, depending on platform).
+
+Changes in v2:
+ - Rebase to v4.7-rc1
+
+ drivers/base/property.c  | 28 ++++++++++++++++++++++++++++
+ include/acpi/acpi_bus.h  |  7 +++++++
+ include/linux/acpi.h     |  6 ++++++
+ include/linux/of.h       | 14 +++++++-------
+ include/linux/property.h |  3 +++
+ 5 files changed, 51 insertions(+), 7 deletions(-)
+
+diff --git a/drivers/base/property.c b/drivers/base/property.c
+index f38c21d..43a36d6 100644
+--- a/drivers/base/property.c
++++ b/drivers/base/property.c
+@@ -888,6 +888,34 @@ struct fwnode_handle *device_get_next_child_node(struct device *dev,
+ EXPORT_SYMBOL_GPL(device_get_next_child_node);
+
+ /**
++ * device_get_named_child_node - Return first matching named child node handle
++ * @dev: Device to find the named child node for.
++ * @childname: String to match child node name against.
++ */
++struct fwnode_handle *device_get_named_child_node(struct device *dev,
++						  const char *childname)
++{
++	struct fwnode_handle *child;
++
++	/*
++	 * Find first matching named child node of this device.
++	 * For ACPI this will be a data only sub-node.
++	 */
++	device_for_each_child_node(dev, child) {
++		if (is_of_node(child)) {
++			if (!of_node_cmp(to_of_node(child)->name, childname))
++				return child;
++		} else if (is_acpi_data_node(child)) {
++			if (acpi_data_node_match(child, childname))
++				return child;
++		}
++	}
++
++	return NULL;
++}
++EXPORT_SYMBOL_GPL(device_get_named_child_node);
++
++/**
+  * fwnode_handle_put - Drop reference to a device node
+  * @fwnode: Pointer to the device node to drop the reference to.
+  *
+diff --git a/include/acpi/acpi_bus.h b/include/acpi/acpi_bus.h
+index 788c6c3..993bdd0 100644
+--- a/include/acpi/acpi_bus.h
++++ b/include/acpi/acpi_bus.h
+@@ -420,6 +420,13 @@ static inline struct acpi_data_node *to_acpi_data_node(struct fwnode_handle *fwn
+ 		container_of(fwnode, struct acpi_data_node, fwnode) : NULL;
  }
- 
-+#ifdef CONFIG_ACPI
-+
-+#define ACPI_GICV3_ITS_MEM_SIZE (SZ_128K)
-+
-+static int __init gic_acpi_parse_madt_its(struct acpi_subtable_header *header,
-+					  const unsigned long end)
+
++static inline bool acpi_data_node_match(struct fwnode_handle *fwnode,
++					const char *name)
 +{
-+	struct acpi_madt_generic_translator *its_entry;
-+	struct fwnode_handle *dom_handle;
-+	struct resource res;
-+	int err;
-+
-+	its_entry = (struct acpi_madt_generic_translator *)header;
-+	res.start = its_entry->base_address;
-+	res.end = its_entry->base_address + ACPI_GICV3_ITS_MEM_SIZE - 1;
-+
-+	dom_handle = irq_domain_alloc_fwnode((void *)its_entry->base_address);
-+	if (!dom_handle) {
-+		pr_err("ITS@%pa: Unable to allocate GICv3 ITS domain token\n",
-+		       &res.start);
-+		return -ENOMEM;
-+	}
-+
-+	err = iort_register_domain_token(its_entry->translation_id, dom_handle);
-+	if (err) {
-+		pr_err("ITS@%pa: Unable to register GICv3 ITS domain token (ITS ID %d) to IORT\n",
-+		       &res.start, its_entry->translation_id);
-+		goto dom_err;
-+	}
-+
-+	err = its_probe_one(&res, dom_handle, NUMA_NO_NODE);
-+	if (!err)
-+		return 0;
-+
-+	iort_deregister_domain_token(its_entry->translation_id);
-+dom_err:
-+	irq_domain_free_fwnode(dom_handle);
-+	return err;
++	return is_acpi_data_node(fwnode) ?
++		(!strcasecmp(to_acpi_data_node(fwnode)->name, name)) : false;
 +}
 +
-+static void __init its_acpi_probe(void)
+ static inline struct fwnode_handle *acpi_fwnode_handle(struct acpi_device *adev)
+ {
+ 	return &adev->fwnode;
+diff --git a/include/linux/acpi.h b/include/linux/acpi.h
+index 288fac5..03039c4 100644
+--- a/include/linux/acpi.h
++++ b/include/linux/acpi.h
+@@ -568,6 +568,12 @@ static inline struct acpi_data_node *to_acpi_data_node(struct fwnode_handle *fwn
+ 	return NULL;
+ }
+
++static inline bool acpi_data_node_match(struct fwnode_handle *fwnode,
++					const char *name)
 +{
-+	acpi_table_parse_madt(ACPI_MADT_TYPE_GENERIC_TRANSLATOR,
-+			      gic_acpi_parse_madt_its, 0);
++	return false;
 +}
-+#else
-+static void __init its_acpi_probe(void) { }
++
+ static inline struct fwnode_handle *acpi_fwnode_handle(struct acpi_device *adev)
+ {
+ 	return NULL;
+diff --git a/include/linux/of.h b/include/linux/of.h
+index 74eb28c..310e32f 100644
+--- a/include/linux/of.h
++++ b/include/linux/of.h
+@@ -238,13 +238,6 @@ static inline unsigned long of_read_ulong(const __be32 *cell, int size)
+ #define OF_ROOT_NODE_SIZE_CELLS_DEFAULT 1
+ #endif
+
+-/* Default string compare functions, Allow arch asm/prom.h to override */
+-#if !defined(of_compat_cmp)
+-#define of_compat_cmp(s1, s2, l)	strcasecmp((s1), (s2))
+-#define of_prop_cmp(s1, s2)		strcmp((s1), (s2))
+-#define of_node_cmp(s1, s2)		strcasecmp((s1), (s2))
+-#endif
+-
+ #define OF_IS_DYNAMIC(x) test_bit(OF_DYNAMIC, &x->_flags)
+ #define OF_MARK_DYNAMIC(x) set_bit(OF_DYNAMIC, &x->_flags)
+
+@@ -726,6 +719,13 @@ static inline void of_property_clear_flag(struct property *p, unsigned long flag
+ #define of_match_node(_matches, _node)	NULL
+ #endif /* CONFIG_OF */
+
++/* Default string compare functions, Allow arch asm/prom.h to override */
++#if !defined(of_compat_cmp)
++#define of_compat_cmp(s1, s2, l)	strcasecmp((s1), (s2))
++#define of_prop_cmp(s1, s2)		strcmp((s1), (s2))
++#define of_node_cmp(s1, s2)		strcasecmp((s1), (s2))
 +#endif
 +
- int __init its_init(struct fwnode_handle *handle, struct rdists *rdists,
- 		    struct irq_domain *parent_domain)
- {
-@@ -1802,7 +1859,7 @@ int __init its_init(struct fwnode_handle *handle, struct rdists *rdists,
- 	if (of_node)
- 		its_of_probe(of_node);
- 	else
--		return -ENODEV;
-+		its_acpi_probe();
- 
- 	if (list_empty(&its_nodes)) {
- 		pr_warn("ITS: No ITS available, not enabling LPIs\n");
--- 
-1.9.1
+ #if defined(CONFIG_OF) && defined(CONFIG_NUMA)
+ extern int of_node_to_nid(struct device_node *np);
+ #else
+diff --git a/include/linux/property.h b/include/linux/property.h
+index ecab11e..3a2f9ae 100644
+--- a/include/linux/property.h
++++ b/include/linux/property.h
+@@ -77,6 +77,9 @@ struct fwnode_handle *device_get_next_child_node(struct device *dev,
+ 	for (child = device_get_next_child_node(dev, NULL); child;	\
+ 	     child = device_get_next_child_node(dev, child))
 
++struct fwnode_handle *device_get_named_child_node(struct device *dev,
++						  const char *childname);
++
+ void fwnode_handle_put(struct fwnode_handle *fwnode);
+
+ unsigned int device_get_child_node_count(struct device *dev);
+--
+1.9.3
