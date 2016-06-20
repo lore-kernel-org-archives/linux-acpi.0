@@ -1,97 +1,165 @@
 From: Sinan Kaya <okaya@codeaurora.org>
-Subject: [PATCH V8 2/9] vfio: platform: move reset call to a common function
-Date: Mon, 20 Jun 2016 11:51:12 -0400
-Message-ID: <1466437879-32182-3-git-send-email-okaya@codeaurora.org>
+Subject: [PATCH V8 7/9] vfio, platform: make reset driver a requirement by default
+Date: Mon, 20 Jun 2016 11:51:17 -0400
+Message-ID: <1466437879-32182-8-git-send-email-okaya@codeaurora.org>
 References: <1466437879-32182-1-git-send-email-okaya@codeaurora.org>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from smtp.codeaurora.org ([198.145.29.96]:35252 "EHLO
+	smtp.codeaurora.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752325AbcFTPvo (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 20 Jun 2016 11:51:44 -0400
 In-Reply-To: <1466437879-32182-1-git-send-email-okaya@codeaurora.org>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: kvm@vger.kernel.org, timur@codeaurora.org, cov@codeaurora.org, jcm@redhat.com, alex.williamson@redhat.com, eric.auger@redhat.com
-Cc: Baptiste Reynal <b.reynal@virtualopensystems.com>, linux-arm-msm@vger.kernel.org, linux-kernel@vger.kernel.org, Sinan Kaya <okaya@codeaurora.org>, linux-acpi@vger.kernel.org, agross@codeaurora.org, linux-arm-kernel@lists.infradead.org
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: kvm@vger.kernel.org, timur@codeaurora.org, cov@codeaurora.org, jcm@redhat.com, alex.williamson@redhat.com, eric.auger@redhat.com
+Cc: linux-acpi@vger.kernel.org, agross@codeaurora.org, linux-arm-msm@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Sinan Kaya <okaya@codeaurora.org>, Baptiste Reynal <b.reynal@virtualopensystems.com>, linux-kernel@vger.kernel.org
 
-The reset call sequence seems to replicate itself multiple times
-across the file. Grouping them together for maintenance reasons.
+The code was allowing platform devices to be used without a supporting
+VFIO reset driver. The hardware can be left in some inconsistent state
+after a guest machine abort.
+
+The reset driver will put the hardware back to safe state and disable
+interrupts before returning the control back to the host machine.
+
+Adding a new reset_required kernel module option to AMBA and platform
+VFIO drivers with a default value of true.
+
+New requirements are:
+1. A reset function needs to be implemented by the corresponding driver
+via DT/ACPI.
+2. The reset function needs to be discovered via DT/ACPI.
+
+The probe of the driver will fail if any of the above conditions are
+not satisfied.
 
 Signed-off-by: Sinan Kaya <okaya@codeaurora.org>
-Reviewed-by: Eric Auger <eric.auger@linaro.org>
-Reviewed-by: Baptiste Reynal <b.reynal@virtualopensystems.com>
 ---
- drivers/vfio/platform/vfio_platform_common.c | 30 +++++++++++++---------------
- 1 file changed, 14 insertions(+), 16 deletions(-)
+ drivers/vfio/platform/vfio_amba.c             |  5 +++++
+ drivers/vfio/platform/vfio_platform.c         |  5 +++++
+ drivers/vfio/platform/vfio_platform_common.c  | 24 ++++++++++++++++--------
+ drivers/vfio/platform/vfio_platform_private.h |  1 +
+ 4 files changed, 27 insertions(+), 8 deletions(-)
 
+diff --git a/drivers/vfio/platform/vfio_amba.c b/drivers/vfio/platform/vfio_amba.c
+index a66479b..7585902 100644
+--- a/drivers/vfio/platform/vfio_amba.c
++++ b/drivers/vfio/platform/vfio_amba.c
+@@ -23,6 +23,10 @@
+ #define DRIVER_AUTHOR   "Antonios Motakis <a.motakis@virtualopensystems.com>"
+ #define DRIVER_DESC     "VFIO for AMBA devices - User Level meta-driver"
+ 
++static bool reset_required = true;
++module_param(reset_required, bool, 0644);
++MODULE_PARM_DESC(reset_required, "override reset requirement (default: 1)");
++
+ /* probing devices from the AMBA bus */
+ 
+ static struct resource *get_amba_resource(struct vfio_platform_device *vdev,
+@@ -68,6 +72,7 @@ static int vfio_amba_probe(struct amba_device *adev, const struct amba_id *id)
+ 	vdev->get_resource = get_amba_resource;
+ 	vdev->get_irq = get_amba_irq;
+ 	vdev->parent_module = THIS_MODULE;
++	vdev->reset_required = reset_required;
+ 
+ 	ret = vfio_platform_probe_common(vdev, &adev->dev);
+ 	if (ret) {
+diff --git a/drivers/vfio/platform/vfio_platform.c b/drivers/vfio/platform/vfio_platform.c
+index b1cc3a7..ef89146 100644
+--- a/drivers/vfio/platform/vfio_platform.c
++++ b/drivers/vfio/platform/vfio_platform.c
+@@ -23,6 +23,10 @@
+ #define DRIVER_AUTHOR   "Antonios Motakis <a.motakis@virtualopensystems.com>"
+ #define DRIVER_DESC     "VFIO for platform devices - User Level meta-driver"
+ 
++static bool reset_required = true;
++module_param(reset_required, bool, 0644);
++MODULE_PARM_DESC(reset_required, "override reset requirement (default: 1)");
++
+ /* probing devices from the linux platform bus */
+ 
+ static struct resource *get_platform_resource(struct vfio_platform_device *vdev,
+@@ -66,6 +70,7 @@ static int vfio_platform_probe(struct platform_device *pdev)
+ 	vdev->get_resource = get_platform_resource;
+ 	vdev->get_irq = get_platform_irq;
+ 	vdev->parent_module = THIS_MODULE;
++	vdev->reset_required = reset_required;
+ 
+ 	ret = vfio_platform_probe_common(vdev, &pdev->dev);
+ 	if (ret)
 diff --git a/drivers/vfio/platform/vfio_platform_common.c b/drivers/vfio/platform/vfio_platform_common.c
-index 08fd7c2..3e2a7c0 100644
+index 1d771a6..b9ffed4 100644
 --- a/drivers/vfio/platform/vfio_platform_common.c
 +++ b/drivers/vfio/platform/vfio_platform_common.c
-@@ -134,6 +134,17 @@ static void vfio_platform_regions_cleanup(struct vfio_platform_device *vdev)
- 	kfree(vdev->regions);
+@@ -128,10 +128,10 @@ static bool vfio_platform_has_reset(struct vfio_platform_device *vdev)
+ 	return vdev->of_reset ? true : false;
  }
  
-+static int vfio_platform_call_reset(struct vfio_platform_device *vdev)
-+{
-+	if (vdev->of_reset) {
-+		dev_info(vdev->device, "reset\n");
-+		return vdev->of_reset(vdev);
+-static void vfio_platform_get_reset(struct vfio_platform_device *vdev)
++static int vfio_platform_get_reset(struct vfio_platform_device *vdev)
+ {
+ 	if (vdev->acpihid)
+-		return;
++		return vfio_platform_acpi_has_reset(vdev) ? 0 : -ENOENT;
+ 
+ 	vdev->of_reset = vfio_platform_lookup_reset(vdev->compat,
+ 						    &vdev->reset_module);
+@@ -140,6 +140,8 @@ static void vfio_platform_get_reset(struct vfio_platform_device *vdev)
+ 		vdev->of_reset = vfio_platform_lookup_reset(vdev->compat,
+ 							&vdev->reset_module);
+ 	}
++
++	return vdev->of_reset ? 0 : -ENOENT;
+ }
+ 
+ static void vfio_platform_put_reset(struct vfio_platform_device *vdev)
+@@ -663,6 +665,13 @@ int vfio_platform_probe_common(struct vfio_platform_device *vdev,
+ 
+ 	vdev->device = dev;
+ 
++	ret = vfio_platform_get_reset(vdev);
++	if (ret && vdev->reset_required) {
++		pr_err("vfio: no reset function found for device %s\n",
++		       vdev->name);
++		return ret;
 +	}
 +
-+	dev_warn(vdev->device, "no reset function found!\n");
-+	return -EINVAL;
-+}
-+
- static void vfio_platform_release(void *device_data)
- {
- 	struct vfio_platform_device *vdev = device_data;
-@@ -141,12 +152,7 @@ static void vfio_platform_release(void *device_data)
- 	mutex_lock(&driver_lock);
- 
- 	if (!(--vdev->refcnt)) {
--		if (vdev->of_reset) {
--			dev_info(vdev->device, "reset\n");
--			vdev->of_reset(vdev);
--		} else {
--			dev_warn(vdev->device, "no reset function found!\n");
--		}
-+		vfio_platform_call_reset(vdev);
- 		vfio_platform_regions_cleanup(vdev);
- 		vfio_platform_irq_cleanup(vdev);
- 	}
-@@ -175,12 +181,7 @@ static int vfio_platform_open(void *device_data)
- 		if (ret)
- 			goto err_irq;
- 
--		if (vdev->of_reset) {
--			dev_info(vdev->device, "reset\n");
--			vdev->of_reset(vdev);
--		} else {
--			dev_warn(vdev->device, "no reset function found!\n");
--		}
-+		vfio_platform_call_reset(vdev);
+ 	group = iommu_group_get(dev);
+ 	if (!group) {
+ 		pr_err("VFIO: No IOMMU group for device %s\n", vdev->name);
+@@ -670,16 +679,15 @@ int vfio_platform_probe_common(struct vfio_platform_device *vdev,
  	}
  
- 	vdev->refcnt++;
-@@ -312,10 +313,7 @@ static long vfio_platform_ioctl(void *device_data,
- 		return ret;
+ 	ret = vfio_add_group_dev(dev, &vfio_platform_ops, vdev);
+-	if (ret) {
+-		iommu_group_put(group);
+-		return ret;
+-	}
+-
+-	vfio_platform_get_reset(vdev);
++	if (ret)
++		goto out;
  
- 	} else if (cmd == VFIO_DEVICE_RESET) {
--		if (vdev->of_reset)
--			return vdev->of_reset(vdev);
--		else
--			return -EINVAL;
-+		return vfio_platform_call_reset(vdev);
- 	}
+ 	mutex_init(&vdev->igate);
  
- 	return -ENOTTY;
+ 	return 0;
++out:
++	iommu_group_put(group);
++	return ret;
+ }
+ EXPORT_SYMBOL_GPL(vfio_platform_probe_common);
+ 
+diff --git a/drivers/vfio/platform/vfio_platform_private.h b/drivers/vfio/platform/vfio_platform_private.h
+index ba9e4f8..68fbc00 100644
+--- a/drivers/vfio/platform/vfio_platform_private.h
++++ b/drivers/vfio/platform/vfio_platform_private.h
+@@ -50,6 +50,7 @@ struct vfio_platform_region {
+ };
+ 
+ struct vfio_platform_device {
++	bool				reset_required;
+ 	struct vfio_platform_region	*regions;
+ 	u32				num_regions;
+ 	struct vfio_platform_irq	*irqs;
 -- 
 1.8.2.1
+
