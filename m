@@ -1,17 +1,11 @@
-From: Russell King - ARM Linux <linux@armlinux.org.uk>
-Subject: Re: [PATCH v8 4/4] serial: pl011: add console matching function
-Date: Mon, 20 Jun 2016 16:19:14 +0100
-Message-ID: <20160620151913.GR1041@n2100.armlinux.org.uk>
-References: <1463749405-11640-1-git-send-email-aleksey.makarov@linaro.org>
- <1463749405-11640-5-git-send-email-aleksey.makarov@linaro.org>
- <c37d62c7-1e1b-0b10-a083-c5207fbbb820@gmail.com>
- <fd9443e7-67f1-93e7-834b-445f9c29d876@linaro.org>
+From: Sinan Kaya <okaya@codeaurora.org>
+Subject: [PATCH V8 0/9] vfio, platform: add ACPI support
+Date: Mon, 20 Jun 2016 11:51:10 -0400
+Message-ID: <1466437879-32182-1-git-send-email-okaya@codeaurora.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-Content-Disposition: inline
-In-Reply-To: <fd9443e7-67f1-93e7-834b-445f9c29d876@linaro.org>
 List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
 List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
@@ -21,73 +15,69 @@ List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
 Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
 Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Aleksey Makarov <aleksey.makarov@linaro.org>
-Cc: "Zheng, Lv" <lv.zheng@intel.com>, Kefeng Wang <wangkefeng.wang@huawei.com>, Peter Hurley <peter@hurleysoftware.com>, Graeme Gregory <graeme.gregory@linaro.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Jiri Slaby <jslaby@suse.com>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, linux-kernel@vger.kernel.org, Leif Lindholm <leif.lindholm@linaro.org>, linux-acpi@vger.kernel.org, Andy Shevchenko <andy.shevchenko@gmail.com>, Yury Norov <ynorov@caviumnetworks.com>, Christopher Covington <cov@codeaurora.org>, linux-serial@vger.kernel.org, Mark Salter <msalter@redhat.com>, Al Stone <ahs3@redhat.com>, linux-arm-kernel@lists.infradead.org, Len Brown <lenb@kernel.org>
+To: kvm@vger.kernel.org, timur@codeaurora.org, cov@codeaurora.org, jcm@redhat.com, alex.williamson@redhat.com, eric.auger@redhat.com
+Cc: Sinan Kaya <okaya@codeaurora.org>, linux-acpi@vger.kernel.org, linux-arm-msm@vger.kernel.org, linux-arm-kernel@lists.infradead.org, agross@codeaurora.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Mon, Jun 20, 2016 at 03:26:39PM +0300, Aleksey Makarov wrote:
-> 
-> On 06/02/2016 09:02 PM, Aleksey Makarov wrote:
-> > 
-> > On 05/20/2016 04:03 PM, Aleksey Makarov wrote:
-> 
-> Hi Russell,
-> 
-> Can you review this patch please?
-> 
-> Thank you
-> Aleksey Makarov
-> 
-> >> This patch adds function pl011_console_match() that implements
-> >> method match of struct console.  It allows to match consoles against
-> >> data specified in a string, for example taken from command line or
-> >> compiled by ACPI SPCR table handler.
-> >>
-> >> Signed-off-by: Aleksey Makarov <aleksey.makarov@linaro.org>
-> >> Reviewed-by: Peter Hurley <peter@hurleysoftware.com>
-> > 
-> > Hi Greg, Russell,
-> > 
-> > Can you review this patch and consider ACKing it please?
-> > It had an ACK from Greg in v7 but since then I changed it a bit.
-> > 
-> > The patch by Christopher Covington [1] specifies that SBSA uart 
-> > does 32-bit access to registers and this breaks the match function.  
-> > In this series the function was changed to match when SPCR specifies
-> > both mmio32 and mmio access.  I removed Acked-by: Greg from this
-> > patch because of these changes.
-> > 
-> > The difference between v7 and v8:
-> > 
-> > diff --git a/drivers/tty/serial/amba-pl011.c b/drivers/tty/serial/amba-pl011.c
-> > index 4139b64..388edc8 100644
-> > --- a/drivers/tty/serial/amba-pl011.c
-> > +++ b/drivers/tty/serial/amba-pl011.c
-> > @@ -2328,10 +2329,10 @@ static int __init pl011_console_match(struct console *co, char *name, int idx,
-> >  
-> >                 port = &amba_ports[i]->port;
-> >  
-> > -               if (port->iotype != iotype)
-> > +               if (iotype != UPIO_MEM && iotype != UPIO_MEM32)
-> >                         continue;
-> > -               if ((iotype == UPIO_MEM || iotype == UPIO_MEM32) &&
-> > -                   (port->mapbase != addr))
-> > +
-> > +               if (port->mapbase != addr)
-> >                         continue;
-> >  
-> >                 co->index = i;
+The current code only supports the device tree based platforms.
+The code checks for the presence of a reset driver and calls the reset
+function pointer by looking up the reset driver as a module.
 
-I'm looking at this change, and I don't know what effect it ultimately
-has.  This is kind of a problem, because I've zero knowledge of ACPI,
-and so I can't say whether this change is appropriate or not.  I have
-no ARM server platforms (yet), nor any access to them, so I can't even
-try it out.
+ACPI defines _RST method to perform device level reset. After the _RST
+method is executed, the OS can resume using the device.
 
-In short, I've no idea.  I guess it's up to those who have come up
-with SBSA to decide whether this is an appropriate change or not.
+The patchset is moving the device tree specific pieces out of the code
+to common functions so that ACPI support is added without impacting the
+rest of the code.
+
+During probe, the ACPI HID of the object will be saved and will be used to
+determine if this is an ACPI capable platform or not. If acpihid is NULL
+then, device tree functions are called.
+
+In addition to plumbing ACPI support, reset functionality is now a
+requirement by default.
+
+The code was allowing platform devices to be used without a supporting
+VFIO reset driver. The hardware can be left in some inconsistent state
+after a guest machine abort.
+
+The reset driver will put the hardware back to safe state and disable
+interrupts before returning the control back to the host machine.
+
+Adding a new reset_required kernel module option to AMBA and platform
+VFIO drivers with a default value of true.
+
+New requirements are:
+1. A reset function needs to be implemented by the corresponding driver
+via DT/ACPI.
+2. The reset function needs to be discovered via DT/ACPI.
+
+The probe of the driver will fail if any of the above conditions are
+not satisfied.
+
+Changes from V7:
+1. Move the reset function test before IOMMU group set up so that we can
+clean up properly when reset function is not found.
+2. Correct the _RST function call. _RST method does not return any value.
+We were calling acpi_evaluate_integer. The correct API needs to be
+acpi_evaluate_object.
+
+Sinan Kaya (9):
+  vfio: platform: rename reset function
+  vfio: platform: move reset call to a common function
+  vfio: platform: determine reset capability
+  vfio: platform: add support for ACPI probe
+  vfio: platform: add extra debug info argument to call reset
+  vfio: platform: call _RST method when using ACPI
+  vfio, platform: make reset driver a requirement by default
+  vfio: platform: check reset call return code during open
+  vfio: platform: check reset call return code during release
+
+ drivers/vfio/platform/vfio_amba.c             |   5 +
+ drivers/vfio/platform/vfio_platform.c         |   5 +
+ drivers/vfio/platform/vfio_platform_common.c  | 197 +++++++++++++++++++++-----
+ drivers/vfio/platform/vfio_platform_private.h |   8 +-
+ 4 files changed, 177 insertions(+), 38 deletions(-)
 
 -- 
-RMK's Patch system: http://www.armlinux.org.uk/developer/patches/
-FTTC broadband for 0.8mile line: currently at 9.6Mbps down 400kbps up
-according to speedtest.net.
+1.8.2.1
