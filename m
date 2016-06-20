@@ -1,91 +1,102 @@
-From: Aleksey Makarov <aleksey.makarov@linaro.org>
-Subject: [PATCH v4 5/5] ACPI: ARM64: support for ACPI_TABLE_UPGRADE
-Date: Mon, 20 Jun 2016 13:56:13 +0300
-Message-ID: <20160620105615.15538-6-aleksey.makarov@linaro.org>
-References: <20160620105615.15538-1-aleksey.makarov@linaro.org>
+From: Mika Westerberg <mika.westerberg@linux.intel.com>
+Subject: Re: [PATCH v3 1/5] ACPICA: Namespace: Fix a regression that MLC
+ support triggers dead lock in dynamic table loading
+Date: Mon, 20 Jun 2016 13:57:01 +0300
+Message-ID: <20160620105701.GI1739@lahna.fi.intel.com>
+References: <0e65135af51d94db0410c7059f3bc3a2300fc3b5>
+ <cover.1466413497.git.lv.zheng@intel.com>
+ <7422eb351c933c167893534ef7a113220d80dc64.1466413497.git.lv.zheng@intel.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-lf0-f47.google.com ([209.85.215.47]:35962 "EHLO
-	mail-lf0-f47.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753817AbcFTK5i (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 20 Jun 2016 06:57:38 -0400
-Received: by mail-lf0-f47.google.com with SMTP id q132so35054144lfe.3
-        for <linux-acpi@vger.kernel.org>; Mon, 20 Jun 2016 03:56:48 -0700 (PDT)
-In-Reply-To: <20160620105615.15538-1-aleksey.makarov@linaro.org>
+Received: from mga03.intel.com ([134.134.136.65]:46027 "EHLO mga03.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753871AbcFTK5i (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 20 Jun 2016 06:57:38 -0400
+Content-Disposition: inline
+In-Reply-To: <7422eb351c933c167893534ef7a113220d80dc64.1466413497.git.lv.zheng@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J . Wysocki" <rjw@rjwysocki.net>
-Cc: Catalin Marinas <catalin.marinas@arm.com>, Will Deacon <will.deacon@arm.com>, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, Aleksey Makarov <aleksey.makarov@linaro.org>, Graeme Gregory <graeme.gregory@linaro.org>, Jon Masters <jcm@redhat.com>, "Zheng, Lv" <lv.zheng@intel.com>, Mark Rutland <mark.rutland@arm.com>
+To: Lv Zheng <lv.zheng@intel.com>
+Cc: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <len.brown@intel.com>, Lv Zheng <zetalog@gmail.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
 
-From: Jon Masters <jcm@redhat.com>
+On Mon, Jun 20, 2016 at 05:07:22PM +0800, Lv Zheng wrote:
+> The new MLC approach invokes MLC per-table basis. But the dynamic loa=
+ding
+> support of this is incorrect because of the lock order:
+>  acpi_ns_evaluate
+>    acpi_ex_enter_intperter
+>      acpi_ns_load_table (triggered by Load opcode)
+>        acpi_ns_exec_module_code_list
+>          acpi_ex_enter_intperter
+> The regression is introduced by the following commit:
+>   Commit: 2785ce8d0da1cac9d8f78615e116cf929e9a9123
+>   ACPICA Commit: 071eff738c59eda1792ac24b3b688b61691d7e7c
+>   Subject: ACPICA: Add per-table execution of module-level code
+> This patch fixes this regression by unlocking the interpreter lock be=
+fore
+> invoking MLC. However the unlocking is done to the acpi_ns_load_table=
+(), in
+> which, the interpreter lock should be locked by acpi_ns_parse_table()=
+ but
+> wasn't. Reported by Mika Westerberg. Fixed by Lv Zheng.
+>=20
+> Fixes: 2785ce8d0da1 ("ACPICA: Add per-table execution of module-level=
+ code")
+> Reported-by: Mika Westerberg <mika.westerberg@linux.intel.com>
+> Signed-off-by: Lv Zheng <lv.zheng@intel.com>
+> ---
+>  drivers/acpi/acpica/exconfig.c |    2 ++
+>  drivers/acpi/acpica/nsparse.c  |    8 ++++++--
+>  2 files changed, 8 insertions(+), 2 deletions(-)
+>=20
+> diff --git a/drivers/acpi/acpica/exconfig.c b/drivers/acpi/acpica/exc=
+onfig.c
+> index a1d177d..21932d6 100644
+> --- a/drivers/acpi/acpica/exconfig.c
+> +++ b/drivers/acpi/acpica/exconfig.c
+> @@ -108,7 +108,9 @@ acpi_ex_add_table(u32 table_index,
+> =20
+>  	/* Add the table to the namespace */
+> =20
+> +	acpi_ex_exit_interpreter();
+>  	status =3D acpi_ns_load_table(table_index, parent_node);
+> +	acpi_ex_enter_interpreter();
+>  	if (ACPI_FAILURE(status)) {
+>  		acpi_ut_remove_reference(obj_desc);
+>  		*ddb_handle =3D NULL;
+> diff --git a/drivers/acpi/acpica/nsparse.c b/drivers/acpi/acpica/nspa=
+rse.c
+> index f631a47..0d29383 100644
+> --- a/drivers/acpi/acpica/nsparse.c
+> +++ b/drivers/acpi/acpica/nsparse.c
+> @@ -170,6 +170,8 @@ acpi_ns_parse_table(u32 table_index, struct acpi_=
+namespace_node *start_node)
+> =20
+>  	ACPI_FUNCTION_TRACE(ns_parse_table);
+> =20
+> +	acpi_ex_enter_interpreter();
 
-This patch adds support for ACPI_TABLE_UPGRADE for ARM64
+I'm getting these:
 
-To access initrd image we need to move initialization
-of linear mapping a bit earlier.
+drivers/acpi/acpica/nsparse.c: In function =E2=80=98acpi_ns_parse_table=
+=E2=80=99:
+drivers/acpi/acpica/nsparse.c:173:2: error: implicit declaration of fun=
+ction =E2=80=98acpi_ex_enter_interpreter=E2=80=99 [-Werror=3Dimplicit-f=
+unction-declaration]
+  acpi_ex_enter_interpreter();
+  ^
+drivers/acpi/acpica/nsparse.c:210:2: error: implicit declaration of fun=
+ction =E2=80=98acpi_ex_exit_interpreter=E2=80=99 [-Werror=3Dimplicit-fu=
+nction-declaration]
+  acpi_ex_exit_interpreter();
+  ^
+cc1: some warnings being treated as errors
 
-The implementation of the feature acpi_table_upgrade()
-(drivers/acpi/tables.c) works with initrd data represented as an array
-in virtual memory.  It uses some library utility to find the redefined
-tables in that array and iterates over it to copy the data to new
-allocated memory.  So to access the initrd data via fixmap
-we need to rewrite it considerably.
-
-In x86 arch, kernel memory is already mapped by the time when
-acpi_table_upgrade() and acpi_boot_table_init() are called so I
-think that we can just move this mapping one function earlier too.
-
-Signed-off-by: Jon Masters <jcm@redhat.com>
-Signed-off-by: Aleksey Makarov <aleksey.makarov@linaro.org>
-Acked-by: Will Deacon <will.deacon@arm.com>
----
- arch/arm64/Kconfig            | 1 +
- arch/arm64/include/asm/acpi.h | 2 ++
- arch/arm64/kernel/setup.c     | 6 ++++--
- 3 files changed, 7 insertions(+), 2 deletions(-)
-
-diff --git a/arch/arm64/Kconfig b/arch/arm64/Kconfig
-index a377a1f..0cf7b43 100644
---- a/arch/arm64/Kconfig
-+++ b/arch/arm64/Kconfig
-@@ -5,6 +5,7 @@ config ARM64
- 	select ACPI_REDUCED_HARDWARE_ONLY if ACPI
- 	select ACPI_MCFG if ACPI
- 	select ARCH_HAS_DEVMEM_IS_ALLOWED
-+	select ARCH_HAS_ACPI_TABLE_UPGRADE if ACPI
- 	select ARCH_HAS_ATOMIC64_DEC_IF_POSITIVE
- 	select ARCH_HAS_ELF_RANDOMIZE
- 	select ARCH_HAS_GCOV_PROFILE_ALL
-diff --git a/arch/arm64/include/asm/acpi.h b/arch/arm64/include/asm/acpi.h
-index 4b13ecd..5420cb0 100644
---- a/arch/arm64/include/asm/acpi.h
-+++ b/arch/arm64/include/asm/acpi.h
-@@ -121,4 +121,6 @@ static inline int arm64_acpi_numa_init(void) { return -ENOSYS; }
- static inline int acpi_numa_get_nid(unsigned int cpu, u64 hwid) { return NUMA_NO_NODE; }
- #endif /* CONFIG_ACPI_NUMA */
- 
-+#define ACPI_TABLE_UPGRADE_MAX_PHYS MEMBLOCK_ALLOC_ACCESSIBLE
-+
- #endif /*_ASM_ACPI_H*/
-diff --git a/arch/arm64/kernel/setup.c b/arch/arm64/kernel/setup.c
-index feab2ee..4bce811 100644
---- a/arch/arm64/kernel/setup.c
-+++ b/arch/arm64/kernel/setup.c
-@@ -261,11 +261,13 @@ void __init setup_arch(char **cmdline_p)
- 	efi_init();
- 	arm64_memblock_init();
- 
-+	paging_init();
-+
-+	acpi_table_upgrade();
-+
- 	/* Parse the ACPI tables for possible boot-time configuration */
- 	acpi_boot_table_init();
- 
--	paging_init();
--
- 	if (acpi_disabled)
- 		unflatten_device_tree();
- 
--- 
-2.8.3
-
+Do I need to have some other patch applied before this?
+--
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
