@@ -1,84 +1,105 @@
-From: Punit Agrawal <punit.agrawal@arm.com>
-Subject: Re: [PATCH 0/8] arm64: pmu: Detect multiple PMU types in an ACPI
- system
-Date: Mon, 20 Jun 2016 17:47:48 +0100
-Message-ID: <87eg7r6c3v.fsf@e105922-lin.cambridge.arm.com>
+From: Jeremy Linton <Jeremy.Linton@arm.com>
+Subject: RE: [PATCH 5/8] arm: arm64: pmu: Assign platform PMU CPU affinity
+Date: Mon, 20 Jun 2016 16:49:11 +0000
+Message-ID: <DB5PR08MB12227A8B98AD708F7C780324F72A0@DB5PR08MB1222.eurprd08.prod.outlook.com>
 References: <1465511013-10742-1-git-send-email-jeremy.linton@arm.com>
+	<1465511013-10742-6-git-send-email-jeremy.linton@arm.com>
+ <87fus76cff.fsf@e105922-lin.cambridge.arm.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <1465511013-10742-1-git-send-email-jeremy.linton@arm.com> (Jeremy
- Linton's message of "Thu, 9 Jun 2016 17:23:25 -0500")
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Jeremy Linton <jeremy.linton@arm.com>
-Cc: mark.rutland@arm.com, lorenzo.pieralisi@arm.com, linux-acpi@vger.kernel.org, peterz@infradead.org, catalin.marinas@arm.com, will.deacon@arm.com, acme@kernel.org, mlangsdorf@redhat.com, alexander.shishkin@linux.intel.com, mingo@redhat.com, linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain; charset=WINDOWS-1252
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from eu-smtp-delivery-143.mimecast.com ([146.101.78.143]:29059 "EHLO
+	eu-smtp-delivery-143.mimecast.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1755231AbcFTQto convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 20 Jun 2016 12:49:44 -0400
+In-Reply-To: <87fus76cff.fsf@e105922-lin.cambridge.arm.com>
+Content-Language: en-US
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Punit Agrawal <Punit.Agrawal@arm.com>
+Cc: "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Mark Rutland <Mark.Rutland@arm.com>, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, "mlangsdorf@redhat.com" <mlangsdorf@redhat.com>, "peterz@infradead.org" <peterz@infradead.org>, Catalin Marinas <Catalin.Marinas@arm.com>, Will Deacon <Will.Deacon@arm.com>, "acme@kernel.org" <acme@kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "alexander.shishkin@linux.intel.com" <alexander.shishkin@linux.intel.com>, "mingo@redhat.com" <mingo@redhat.com>
 
-Jeremy Linton <jeremy.linton@arm.com> writes:
 
-> v5:
-> Remove list of CPU types for ACPI systems. We now match a generic
-> event list, and use the PMCIED[01] to select events which exist on
-> the given PMU. This avoids the need to update the kernel every-time
-> a new CPU is released.
-> Update the maintainers list to include the new file.
->
-> v4:
-> Correct build issues with ARM (!ARM64) kernels.
-> Add ThunderX to list of PMU types.
->
-> v3:
-> Enable ARM performance monitoring units on ACPI/arm64 machines.
->
-> This patch expands and reworks the patches published by Mark Salter
-> in order to clean up a few of the previous review comments, as well as
-> add support for newer CPUs and big/little configurations.
->
 
-Hi Jeremy,
+|-----Original Message-----
+|From: Punit Agrawal [mailto:punit.agrawal@arm.com]
+|Sent: Monday, June 20, 2016 11:41 AM
+|To: Jeremy Linton
+|Cc: linux-arm-kernel@lists.infradead.org; Mark Rutland; Lorenzo Pieralisi;
+|mlangsdorf@redhat.com; peterz@infradead.org; Catalin Marinas; Will
+|Deacon; acme@kernel.org; linux-acpi@vger.kernel.org;
+|alexander.shishkin@linux.intel.com; mingo@redhat.com
+|Subject: Re: [PATCH 5/8] arm: arm64: pmu: Assign platform PMU CPU affinity
+|
+|Jeremy Linton <jeremy.linton@arm.com> writes:
+|
+|> On systems with multiple PMU types the PMU to CPU affinity needs to be
+|> detected and set. The CPU to interrupt affinity should also be set.
+|>
+|
+|One comment below.
+|
+|> Signed-off-by: Jeremy Linton <jeremy.linton@arm.com>
+|> ---
+|>  drivers/perf/arm_pmu.c | 52
+|++++++++++++++++++++++++++++++++++++++++----------
+|>  1 file changed, 42 insertions(+), 10 deletions(-)
+|>
+|> diff --git a/drivers/perf/arm_pmu.c b/drivers/perf/arm_pmu.c
+|> index fee4be0e8..865a9db 100644
+|> --- a/drivers/perf/arm_pmu.c
+|> +++ b/drivers/perf/arm_pmu.c
+|
+|[...]
+|
+|> @@ -872,25 +874,56 @@ static void cpu_pmu_destroy(struct arm_pmu
+|*cpu_pmu)
+|>  }
+|>
+|>  /*
+|> - * CPU PMU identification and probing.
+|> + * CPU PMU identification and probing. Its possible to have
+|> + * multiple CPU types in an ARM machine. Assure that we are
+|> + * picking the right PMU types based on the CPU in question
+|>   */
+|> -static int probe_current_pmu(struct arm_pmu *pmu,
+|> -     const struct pmu_probe_info *info)
+|> +static int probe_plat_pmu(struct arm_pmu *pmu,
+|> +     const struct pmu_probe_info *info,
+|> +     unsigned int pmuid)
+|>  {
+|> -int cpu = get_cpu();
+|> -unsigned int cpuid = read_cpuid_id();
+|>  int ret = -ENODEV;
+|> +int cpu;
+|> +int aff_ctr = 0;
+|> +struct platform_device *pdev = pmu->plat_device;
+|> +int irq = platform_get_irq(pdev, 0);
+|>
+|> -pr_info("probing PMU on CPU %d\n", cpu);
+|> +if (irq >= 0 && !irq_is_percpu(irq)) {
+|> +pmu->irq_affinity = kcalloc(pdev->num_resources,
+|sizeof(int),
+|> +    GFP_KERNEL);
+|> +if (!pmu->irq_affinity)
+|> +return -ENOMEM;
+|> +}
+|> +
+|> +for_each_possible_cpu(cpu) {
+|> +unsigned int cpuid = read_specific_cpuid(cpu);
+|> +
+|> +if (cpuid == pmuid) {
+|> +cpumask_set_cpu(cpu, &pmu->supported_cpus);
+|> +pr_devel("enable pmu on cpu %d\n", cpu);
+|> +if (pmu->irq_affinity) {
+|
+|The check for irq_affinity can be dropped as you already do that earlier.
 
-I have a few comments on the individual patches but overall I found the
-patches a bit confusing due to introduction of functionality and then
-changing them in later patches.
-
-IMHO, some patch re-organisation to make the series better as a whole will
-help in review (even though it may lead to more invasive changes
-to Mark's patches).
+There isn't an irq_affinity structure for machines with PMU's using PPI's, that is why the check is there...
 
 Thanks,
-Punit
 
+IMPORTANT NOTICE: The contents of this email and any attachments are confidential and may also be privileged. If you are not the intended recipient, please notify the sender immediately and do not disclose the contents to any other person, use it for any purpose, or store or copy the information in any medium. Thank you.
 
-> Jeremy Linton (6):
->   arm64: pmu: Probe default hw/cache counters
->   arm: arm64: Add routine to determine cpuid of other cpus
->   arm: arm64: pmu: Assign platform PMU CPU affinity
->   arm64: pmu: Add routines for detecting differing PMU types in the
->   arm64: pmu: Enable multiple PMUs in an ACPI system
->   MAINTAINERS: Tweak ARM PMU maintainers
->
-> Mark Salter (2):
->   arm64: pmu: add fallback probe table
->   arm64: pmu: Add support for probing with ACPI
->
->  MAINTAINERS                      |   3 +-
->  arch/arm/include/asm/cputype.h   |   6 +-
->  arch/arm64/include/asm/cputype.h |   4 +
->  arch/arm64/kernel/perf_event.c   |  51 ++++++++-
->  arch/arm64/kernel/smp.c          |   5 +
->  drivers/perf/Kconfig             |   4 +
->  drivers/perf/Makefile            |   1 +
->  drivers/perf/arm_pmu.c           |  57 +++++++++--
->  drivers/perf/arm_pmu_acpi.c      | 216 +++++++++++++++++++++++++++++++++++++++
->  include/linux/perf/arm_pmu.h     |  10 ++
->  10 files changed, 341 insertions(+), 16 deletions(-)
->  create mode 100644 drivers/perf/arm_pmu_acpi.c
