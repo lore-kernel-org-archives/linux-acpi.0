@@ -1,43 +1,47 @@
-From: Wim Osterholt <wim@djo.tudelft.nl>
-Subject: kernel-4.7 bug in Intel sound and/or ACPI
-Date: Mon, 20 Jun 2016 02:35:30 +0200
-Message-ID: <20160620003530.GA19571@djo.tudelft.nl>
-Reply-To: wim@djo.tudelft.nl
+From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Subject: Re: kernel-4.7 bug in Intel sound and/or ACPI
+Date: Mon, 20 Jun 2016 03:02:57 +0200
+Message-ID: <2999417.fp4mqtxYS2@vostro.rjw.lan>
+References: <20160620003530.GA19571@djo.tudelft.nl>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7Bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
+In-Reply-To: <20160620003530.GA19571@djo.tudelft.nl>
 Sender: linux-kernel-owner@vger.kernel.org
-To: linux-kernel@vger.kernel.org
-Cc: Wim Osterholt <wim@djo.tudelft.nl>, linux-acpi@vger.kernel.org, perex@perex.cz
+To: wim@djo.tudelft.nl
+Cc: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, perex@perex.cz, linux-pci@vger.kernel.org, Takashi Iwai <tiwai@suse.com>
 List-Id: linux-acpi@vger.kernel.org
 
-L.S.
-up to vanilla kernel-4.6.2 sound was working fine.
-Switching to kernel-4.7.0-rc3 made sound disappear. No /dev/mixer etc.
-There appears to be a bug in the Intel sound driver and/or ACPI driver.
-Dmesg shows interesting lines like:
-[   11.498592] ACPI: PCI Interrupt Link [LNKB] enabled at IRQ 7
-[   11.498605] PCI: setting IRQ 7 as level-triggered
-[   11.543903] parport0: PC-style at 0x378 (0x778), irq 7 [PCSPP,TRISTATE,EPP]
-[   12.757735] genirq: Flags mismatch irq 7. 00000080 (snd_intel8x0m) vs. 00000000 (parport0)
-[   12.757751] snd_intel8x0m 0000:00:1f.6: unable to grab IRQ 7
-[   12.757875] snd_intel8x0m: probe of 0000:00:1f.6 failed with error -16
-[   12.900171] genirq: Flags mismatch irq 7. 00000080 (snd_intel8x0) vs. 00000000 (parport0)
-[   12.900189] snd_intel8x0 0000:00:1f.5: unable to grab IRQ 7
-[   12.900389] snd_intel8x0: probe of 0000:00:1f.5 failed with error -16
-[   12.922554] genirq: Flags mismatch irq 7. 00000080 (ipw2200) vs. 00000000 (parport0)
-[   12.922559] ipw2200: Error allocating IRQ 7
+You should CC the linux-pci too (done now)
 
-If I boot kernel-4.7.0-rc3 with acpi=off  then sound is back!
-
-If you need the full dmesg outputs then please get them here:
-http://webserver.djo.tudelft.nl/dmesg460+ACPI
-http://webserver.djo.tudelft.nl/dmesg473+ACPI
-http://webserver.djo.tudelft.nl/dmesg473noACPI
-(with excuses for the silly hostname which is out of our control)
-
-Regards, Wim.
-
-
------ wim@djo.tudelft.nl -----
+On Monday, June 20, 2016 02:35:30 AM Wim Osterholt wrote:
+> L.S.
+> up to vanilla kernel-4.6.2 sound was working fine.
+> Switching to kernel-4.7.0-rc3 made sound disappear. No /dev/mixer etc.
+> There appears to be a bug in the Intel sound driver and/or ACPI driver.
+> Dmesg shows interesting lines like:
+> [   11.498592] ACPI: PCI Interrupt Link [LNKB] enabled at IRQ 7
+> [   11.498605] PCI: setting IRQ 7 as level-triggered
+> [   11.543903] parport0: PC-style at 0x378 (0x778), irq 7 [PCSPP,TRISTATE,EPP]
+> [   12.757735] genirq: Flags mismatch irq 7. 00000080 (snd_intel8x0m) vs. 00000000 (parport0)
+> [   12.757751] snd_intel8x0m 0000:00:1f.6: unable to grab IRQ 7
+> [   12.757875] snd_intel8x0m: probe of 0000:00:1f.6 failed with error -16
+> [   12.900171] genirq: Flags mismatch irq 7. 00000080 (snd_intel8x0) vs. 00000000 (parport0)
+> [   12.900189] snd_intel8x0 0000:00:1f.5: unable to grab IRQ 7
+> [   12.900389] snd_intel8x0: probe of 0000:00:1f.5 failed with error -16
+> [   12.922554] genirq: Flags mismatch irq 7. 00000080 (ipw2200) vs. 00000000 (parport0)
+> [   12.922559] ipw2200: Error allocating IRQ 7
+> 
+> If I boot kernel-4.7.0-rc3 with acpi=off  then sound is back!
+> 
+> If you need the full dmesg outputs then please get them here:
+> http://webserver.djo.tudelft.nl/dmesg460+ACPI
+> http://webserver.djo.tudelft.nl/dmesg473+ACPI
+> http://webserver.djo.tudelft.nl/dmesg473noACPI
+> (with excuses for the silly hostname which is out of our control)
+> 
+> Regards, Wim.
+> 
+> 
+> ----- wim@djo.tudelft.nl -----
