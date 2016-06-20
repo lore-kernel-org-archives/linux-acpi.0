@@ -1,60 +1,91 @@
 From: Aleksey Makarov <aleksey.makarov@linaro.org>
-Subject: [PATCH v4 4/5] ACPI: table upgrade: introduce ARCH_HAS_ACPI_TABLE_UPGRADE
-Date: Mon, 20 Jun 2016 13:56:12 +0300
-Message-ID: <20160620105615.15538-5-aleksey.makarov@linaro.org>
+Subject: [PATCH v4 5/5] ACPI: ARM64: support for ACPI_TABLE_UPGRADE
+Date: Mon, 20 Jun 2016 13:56:13 +0300
+Message-ID: <20160620105615.15538-6-aleksey.makarov@linaro.org>
 References: <20160620105615.15538-1-aleksey.makarov@linaro.org>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-lf0-f41.google.com ([209.85.215.41]:34742 "EHLO
-	mail-lf0-f41.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753311AbcFTK5i (ORCPT
+Received: from mail-lf0-f47.google.com ([209.85.215.47]:35962 "EHLO
+	mail-lf0-f47.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753817AbcFTK5i (ORCPT
 	<rfc822;linux-acpi@vger.kernel.org>); Mon, 20 Jun 2016 06:57:38 -0400
-Received: by mail-lf0-f41.google.com with SMTP id h129so34324520lfh.1
-        for <linux-acpi@vger.kernel.org>; Mon, 20 Jun 2016 03:56:41 -0700 (PDT)
+Received: by mail-lf0-f47.google.com with SMTP id q132so35054144lfe.3
+        for <linux-acpi@vger.kernel.org>; Mon, 20 Jun 2016 03:56:48 -0700 (PDT)
 In-Reply-To: <20160620105615.15538-1-aleksey.makarov@linaro.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: "Rafael J . Wysocki" <rjw@rjwysocki.net>
-Cc: Catalin Marinas <catalin.marinas@arm.com>, Will Deacon <will.deacon@arm.com>, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, Aleksey Makarov <aleksey.makarov@linaro.org>, Graeme Gregory <graeme.gregory@linaro.org>, Jon Masters <jcm@redhat.com>, "Zheng, Lv" <lv.zheng@intel.com>, Mark Rutland <mark.rutland@arm.com>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, x86@kernel.org
+Cc: Catalin Marinas <catalin.marinas@arm.com>, Will Deacon <will.deacon@arm.com>, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, Aleksey Makarov <aleksey.makarov@linaro.org>, Graeme Gregory <graeme.gregory@linaro.org>, Jon Masters <jcm@redhat.com>, "Zheng, Lv" <lv.zheng@intel.com>, Mark Rutland <mark.rutland@arm.com>
 
-We want to use the table upgrade feature in ARM64.
-Introduce a new configuration option that allows that.
+From: Jon Masters <jcm@redhat.com>
 
+This patch adds support for ACPI_TABLE_UPGRADE for ARM64
+
+To access initrd image we need to move initialization
+of linear mapping a bit earlier.
+
+The implementation of the feature acpi_table_upgrade()
+(drivers/acpi/tables.c) works with initrd data represented as an array
+in virtual memory.  It uses some library utility to find the redefined
+tables in that array and iterates over it to copy the data to new
+allocated memory.  So to access the initrd data via fixmap
+we need to rewrite it considerably.
+
+In x86 arch, kernel memory is already mapped by the time when
+acpi_table_upgrade() and acpi_boot_table_init() are called so I
+think that we can just move this mapping one function earlier too.
+
+Signed-off-by: Jon Masters <jcm@redhat.com>
 Signed-off-by: Aleksey Makarov <aleksey.makarov@linaro.org>
+Acked-by: Will Deacon <will.deacon@arm.com>
 ---
- arch/x86/Kconfig     | 1 +
- drivers/acpi/Kconfig | 5 ++++-
- 2 files changed, 5 insertions(+), 1 deletion(-)
+ arch/arm64/Kconfig            | 1 +
+ arch/arm64/include/asm/acpi.h | 2 ++
+ arch/arm64/kernel/setup.c     | 6 ++++--
+ 3 files changed, 7 insertions(+), 2 deletions(-)
 
-diff --git a/arch/x86/Kconfig b/arch/x86/Kconfig
-index 39f8277..bb73293 100644
---- a/arch/x86/Kconfig
-+++ b/arch/x86/Kconfig
-@@ -22,6 +22,7 @@ config X86
- 	select ANON_INODES
- 	select ARCH_CLOCKSOURCE_DATA
- 	select ARCH_DISCARD_MEMBLOCK
+diff --git a/arch/arm64/Kconfig b/arch/arm64/Kconfig
+index a377a1f..0cf7b43 100644
+--- a/arch/arm64/Kconfig
++++ b/arch/arm64/Kconfig
+@@ -5,6 +5,7 @@ config ARM64
+ 	select ACPI_REDUCED_HARDWARE_ONLY if ACPI
+ 	select ACPI_MCFG if ACPI
+ 	select ARCH_HAS_DEVMEM_IS_ALLOWED
 +	select ARCH_HAS_ACPI_TABLE_UPGRADE if ACPI
  	select ARCH_HAS_ATOMIC64_DEC_IF_POSITIVE
- 	select ARCH_HAS_DEBUG_STRICT_USER_COPY_CHECKS
- 	select ARCH_HAS_DEVMEM_IS_ALLOWED
-diff --git a/drivers/acpi/Kconfig b/drivers/acpi/Kconfig
-index f98c328..1cde30b 100644
---- a/drivers/acpi/Kconfig
-+++ b/drivers/acpi/Kconfig
-@@ -314,9 +314,12 @@ config ACPI_CUSTOM_DSDT
- 	bool
- 	default ACPI_CUSTOM_DSDT_FILE != ""
+ 	select ARCH_HAS_ELF_RANDOMIZE
+ 	select ARCH_HAS_GCOV_PROFILE_ALL
+diff --git a/arch/arm64/include/asm/acpi.h b/arch/arm64/include/asm/acpi.h
+index 4b13ecd..5420cb0 100644
+--- a/arch/arm64/include/asm/acpi.h
++++ b/arch/arm64/include/asm/acpi.h
+@@ -121,4 +121,6 @@ static inline int arm64_acpi_numa_init(void) { return -ENOSYS; }
+ static inline int acpi_numa_get_nid(unsigned int cpu, u64 hwid) { return NUMA_NO_NODE; }
+ #endif /* CONFIG_ACPI_NUMA */
  
-+config ARCH_HAS_ACPI_TABLE_UPGRADE
-+	def_bool n
++#define ACPI_TABLE_UPGRADE_MAX_PHYS MEMBLOCK_ALLOC_ACCESSIBLE
 +
- config ACPI_TABLE_UPGRADE
- 	bool "Allow upgrading ACPI tables via initrd"
--	depends on BLK_DEV_INITRD && X86
-+	depends on BLK_DEV_INITRD && ARCH_HAS_ACPI_TABLE_UPGRADE
- 	default y
- 	help
- 	  This option provides functionality to upgrade arbitrary ACPI tables
+ #endif /*_ASM_ACPI_H*/
+diff --git a/arch/arm64/kernel/setup.c b/arch/arm64/kernel/setup.c
+index feab2ee..4bce811 100644
+--- a/arch/arm64/kernel/setup.c
++++ b/arch/arm64/kernel/setup.c
+@@ -261,11 +261,13 @@ void __init setup_arch(char **cmdline_p)
+ 	efi_init();
+ 	arm64_memblock_init();
+ 
++	paging_init();
++
++	acpi_table_upgrade();
++
+ 	/* Parse the ACPI tables for possible boot-time configuration */
+ 	acpi_boot_table_init();
+ 
+-	paging_init();
+-
+ 	if (acpi_disabled)
+ 		unflatten_device_tree();
+ 
 -- 
 2.8.3
 
