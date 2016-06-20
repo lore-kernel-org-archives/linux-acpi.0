@@ -1,78 +1,36 @@
-From: Dan Williams <dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH] nfit: add Microsoft NVDIMM DSM command set to white list
-Date: Mon, 20 Jun 2016 10:21:15 -0700
-Message-ID: <CAPcyv4i3tDov71YbfumBHHjitG7dgcz0+V6rDzGxPfAJX+Sg-w@mail.gmail.com>
-References: <5cff32b5-7849-4e9d-0ba8-1f12e21814a9@gmail.com>
- <790a33bd-98e9-89c8-6667-e135ada69f80@gmail.com>
- <20160619175920.GA12470@xo-6d-61-c0.localdomain>
+From: Shanker Donthineni <shankerd@codeaurora.org>
+Subject: Re: [PATCH V7 0/8] Introduce ACPI world to ITS irqchip
+Date: Mon, 20 Jun 2016 12:31:43 -0500
+Message-ID: <5768287F.4040503@codeaurora.org>
+References: <1466420541-20101-1-git-send-email-tn@semihalf.com>
+Reply-To: shankerd@codeaurora.org
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset=windows-1252; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-In-Reply-To: <20160619175920.GA12470-5NIqAleC692hcjWhqY66xCZi+YwRKgec@public.gmane.org>
-List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
- <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
-List-Post: <mailto:linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-List-Help: <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
- <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
-Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
-Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-To: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
-Cc: "linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org" <linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>, "Rafael J. Wysocki" <rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org>, "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux ACPI <linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Stuart Hayes <stuart.w.hayes-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Return-path: <linux-pci-owner@vger.kernel.org>
+In-Reply-To: <1466420541-20101-1-git-send-email-tn@semihalf.com>
+Sender: linux-pci-owner@vger.kernel.org
+To: Tomasz Nowicki <tn@semihalf.com>, marc.zyngier@arm.com, tglx@linutronix.de, jason@lakedaemon.net, rjw@rjwysocki.net, bhelgaas@google.com, lorenzo.pieralisi@arm.com, robert.richter@caviumnetworks.com, shijie.huang@arm.com, Suravee.Suthikulpanit@amd.com, hanjun.guo@linaro.org
+Cc: al.stone@linaro.org, graeme.gregory@linaro.org, Catalin.Marinas@arm.com, will.deacon@arm.com, linux-kernel@vger.kernel.org, okaya@codeaurora.org, linux-acpi@vger.kernel.org, ddaney.cavm@gmail.com, linux-pci@vger.kernel.org, mw@semihalf.com, andrea.gallo@linaro.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Sun, Jun 19, 2016 at 10:59 AM, Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org> wrote:
-> Hi!
->
->> >Add the Microsoft _DSM command set to the white list of NVDIMM command sets.
->> >
->> >This command set is documented at https://msdn.microsoft.com/library/windows/hardware/mt604741.
->> >
->> >Signed-off-by: Stuart Hayes <stuart.w.hayes-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
->> >---
->> > drivers/acpi/nfit.c        | 9 ++++++---
->> > drivers/acpi/nfit.h        | 4 ++++
->> > include/uapi/linux/ndctl.h | 1 +
->> > 3 files changed, 11 insertions(+), 3 deletions(-)
->> >
->> >diff --git a/drivers/acpi/nfit.c b/drivers/acpi/nfit.c
->> >index 2215fc8..48fc575 100644
->> >--- a/drivers/acpi/nfit.c
->> >+++ b/drivers/acpi/nfit.c
->> >@@ -1130,11 +1130,11 @@ static int acpi_nfit_add_dimm(struct acpi_nfit_desc *acpi_desc,
->> >     }
->> >
->> >     /*
->> >-     * Until standardization materializes we need to consider up to 3
->> >+     * Until standardization materializes we need to consider several
->> >      * different command sets.  Note, that checking for function0 (bit0)
->> >      * tells us if any commands are reachable through this uuid.
->> >      */
->> >-    for (i = NVDIMM_FAMILY_INTEL; i <= NVDIMM_FAMILY_HPE2; i++)
->> >+    for (i = NVDIMM_FAMILY_INTEL; i <= NVDIMM_FAMILY_MSFT; i++)
->> >         if (acpi_check_dsm(adev_dimm->handle, to_nfit_uuid(i), 1, 1))
->
-> Time to introduce NVDIMM_FAMILY_MAX?
+Hi Tomasz,
 
-I hope not.  This is the last of what can be considered "first
-generation" DSM support, everything else should wait for
-standardization.  I.e. no ongoing need to keep changing this line.
-
+On 06/20/2016 06:02 AM, Tomasz Nowicki wrote:
+> The series builds the PCI/MSI domain stack based on initial IORT driver
+> which is added in first place. As a reference please see IORT spec:
+> http://infocenter.arm.com/help/topic/com.arm.doc.den0049b/DEN0049B_IO_Rema
+> pping_Table.pdf
 >
->> >@@ -1150,7 +1150,9 @@ static int acpi_nfit_add_dimm(struct acpi_nfit_desc *acpi_desc,
->> >         dsm_mask = 0x1fe;
->> >         if (disable_vendor_specific)
->> >             dsm_mask &= ~(1 << 8);
->> >-    } else {
->> >+    } else if (nfit_mem->family == NVDIMM_FAMILY_MSFT)
->> >+        dsm_mask = 0xffffffff;
->> >+    else {
->> >         dev_err(dev, "unknown dimm command family\n");
->> >         nfit_mem->family = -1;
->> >         return force_enable_dimms ? 0 : -ENODEV;
+> Tested on Cavium ThunderX server. The patches can be found here:
+> https://github.com/semihalf-nowicki-tomasz/linux.git (its-acpi-v7)
 >
-> I'd really use {} around the if (), so that it is clear what the else belongs to.
+>
 
-Sure, I can fix this up.  Stuart, no need to re-send.
+I have tested this patchset on Qualcomm Technologies server platform 
+QDF2XXX.
+
+-- 
+Shanker Donthineni
+Qualcomm Technologies, Inc. on behalf of Qualcomm Innovation Center, Inc.
+Qualcomm Innovation Center, Inc. is a member of Code Aurora Forum, a Linux Foundation Collaborative Project
