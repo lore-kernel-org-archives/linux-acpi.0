@@ -1,60 +1,158 @@
-From: Adam Thomson <Adam.Thomson.Opensource@diasemi.com>
-Subject: [RESEND PATCH v3 0/2] ASoC: da7219: Convert driver to
-	use generic FW functions
-Date: Mon, 20 Jun 2016 12:38:57 +0100
-Message-ID: <cover.1466421714.git.Adam.Thomson.Opensource@diasemi.com>
+From: Aleksey Makarov <aleksey.makarov@linaro.org>
+Subject: Re: [PATCH v8 4/4] serial: pl011: add console matching function
+Date: Mon, 20 Jun 2016 15:26:39 +0300
+Message-ID: <fd9443e7-67f1-93e7-834b-445f9c29d876@linaro.org>
+References: <1463749405-11640-1-git-send-email-aleksey.makarov@linaro.org>
+ <1463749405-11640-5-git-send-email-aleksey.makarov@linaro.org>
+ <c37d62c7-1e1b-0b10-a083-c5207fbbb820@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <alsa-devel-bounces@alsa-project.org>
-List-Unsubscribe: <http://mailman.alsa-project.org/mailman/options/alsa-devel>,
- <mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
-List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel/>
-List-Post: <mailto:alsa-devel@alsa-project.org>
-List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
-List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
- <mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
-Errors-To: alsa-devel-bounces@alsa-project.org
-Sender: alsa-devel-bounces@alsa-project.org
-To: Robert Moore <robert.moore@intel.com>, Lv Zheng <lv.zheng@intel.com>, "Rafael J.Wysocki" <rafael.j.wysocki@intel.com>, Heikki Krogerus <heikki.krogerus@linux.intel.com>, Mika Westerberg <mika.westerberg@linux.intel.com>, Len Brown <lenb@kernel.org>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Rob Herring <robh+dt@kernel.org>, Frank Rowand <frowand.list@gmail.com>, Mark Brown <broonie@kernel.org>, Liam Girdwood <lgirdwood@gmail.com>, Jaroslav Kysela <perex@perex.cz>, Takashi Iwai <tiwai@suse.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: devicetree@vger.kernel.org, alsa-devel@alsa-project.org, Support Opensource <support.opensource@diasemi.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Sathyanarayana Nujella <sathyanarayana.nujella@intel.com>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 8bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-lf0-f51.google.com ([209.85.215.51]:36321 "EHLO
+	mail-lf0-f51.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752994AbcFTM0p (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 20 Jun 2016 08:26:45 -0400
+Received: by mail-lf0-f51.google.com with SMTP id q132so36504899lfe.3
+        for <linux-acpi@vger.kernel.org>; Mon, 20 Jun 2016 05:26:44 -0700 (PDT)
+In-Reply-To: <c37d62c7-1e1b-0b10-a083-c5207fbbb820@gmail.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Russell King <linux@arm.linux.org.uk>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Aleksey Makarov <aleksey.makarov@linaro.org>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, linux-serial@vger.kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Len Brown <lenb@kernel.org>, Leif Lindholm <leif.lindholm@linaro.org>, Graeme Gregory <graeme.gregory@linaro.org>, Al Stone <ahs3@redhat.com>, Christopher Covington <cov@codeaurora.org>, Yury Norov <ynorov@caviumnetworks.com>, Peter Hurley <peter@hurleysoftware.com>, Andy Shevchenko <andy.shevchenko@gmail.com>, "Zheng, Lv" <lv.zheng@intel.com>, Mark Salter <msalter@redhat.com>, Kefeng Wang <wangkefeng.wang@huawei.com>, Russell King <linux@armlinux.org.uk>, Jiri Slaby <jslaby@suse.com>
 
-This patch set converts the da7219 codec driver to use device/fwnode functions
-to access properties, instead of the DT only of_* functions, allowing ACPI
-to be used as well.
 
-The DT bindings for da7219 have a device node for the main codec properties,
-and a named child node (da7219_aad), which contains all of the accessory
-detection related properties for the device. ACPI also supports this kind of
-FW hierarchy (data only sub-nodes), but some support in the kernel needs to be
-added to take make use of this in driver code.
+On 06/02/2016 09:02 PM, Aleksey Makarov wrote:
+> 
+> On 05/20/2016 04:03 PM, Aleksey Makarov wrote:
 
-The first patch adds functions to allow searching for a named child node of a
-device, for both DT and ACPI, and the second patch updates the codec driver to
-use the standard device/fwnode calls, including this new function.
+Hi Russell,
 
-These changes are based on the v4.7-rc3 kernel.
+Can you review this patch please?
 
-Changes in v3:
- - Use of_node_cmp() in device_get_named_child_node() to match DT node.
+Thank you
+Aleksey Makarov
 
-Changes in v2:
- - Rebase to v4.7-rc1
- - Small updates to codec patch based on previous reviewer comments
-
-Adam Thomson (2):
-  device property: Add function to search for named child of device
-  ASoC: da7219: Convert driver to use generic device/fwnode functions
-
- drivers/base/property.c       |  28 ++++++++++++
- include/acpi/acpi_bus.h       |   7 +++
- include/linux/acpi.h          |   6 +++
- include/linux/of.h            |  14 +++---
- include/linux/property.h      |   3 ++
- sound/soc/codecs/da7219-aad.c | 103 +++++++++++++++++++++---------------------
- sound/soc/codecs/da7219.c     |  34 +++++++-------
- 7 files changed, 119 insertions(+), 76 deletions(-)
-
---
-1.9.3
+>> This patch adds function pl011_console_match() that implements
+>> method match of struct console.  It allows to match consoles against
+>> data specified in a string, for example taken from command line or
+>> compiled by ACPI SPCR table handler.
+>>
+>> Signed-off-by: Aleksey Makarov <aleksey.makarov@linaro.org>
+>> Reviewed-by: Peter Hurley <peter@hurleysoftware.com>
+> 
+> Hi Greg, Russell,
+> 
+> Can you review this patch and consider ACKing it please?
+> It had an ACK from Greg in v7 but since then I changed it a bit.
+> 
+> The patch by Christopher Covington [1] specifies that SBSA uart 
+> does 32-bit access to registers and this breaks the match function.  
+> In this series the function was changed to match when SPCR specifies
+> both mmio32 and mmio access.  I removed Acked-by: Greg from this
+> patch because of these changes.
+> 
+> The difference between v7 and v8:
+> 
+> diff --git a/drivers/tty/serial/amba-pl011.c b/drivers/tty/serial/amba-pl011.c
+> index 4139b64..388edc8 100644
+> --- a/drivers/tty/serial/amba-pl011.c
+> +++ b/drivers/tty/serial/amba-pl011.c
+> @@ -2328,10 +2329,10 @@ static int __init pl011_console_match(struct console *co, char *name, int idx,
+>  
+>                 port = &amba_ports[i]->port;
+>  
+> -               if (port->iotype != iotype)
+> +               if (iotype != UPIO_MEM && iotype != UPIO_MEM32)
+>                         continue;
+> -               if ((iotype == UPIO_MEM || iotype == UPIO_MEM32) &&
+> -                   (port->mapbase != addr))
+> +
+> +               if (port->mapbase != addr)
+>                         continue;
+>  
+>                 co->index = i;
+> 
+> [1] https://lkml.kernel.org/g/1457415800-8799-1-git-send-email-cov@codeaurora.org
+> 
+> Thank you
+> Aleksey Makarov
+> 
+>> ---
+>>  drivers/tty/serial/amba-pl011.c | 56 +++++++++++++++++++++++++++++++++++++++++
+>>  1 file changed, 56 insertions(+)
+>>
+>> diff --git a/drivers/tty/serial/amba-pl011.c b/drivers/tty/serial/amba-pl011.c
+>> index a2aa655..388edc8 100644
+>> --- a/drivers/tty/serial/amba-pl011.c
+>> +++ b/drivers/tty/serial/amba-pl011.c
+>> @@ -2288,12 +2288,68 @@ static int __init pl011_console_setup(struct console *co, char *options)
+>>  	return uart_set_options(&uap->port, co, baud, parity, bits, flow);
+>>  }
+>>  
+>> +/**
+>> + *	pl011_console_match - non-standard console matching
+>> + *	@co:	  registering console
+>> + *	@name:	  name from console command line
+>> + *	@idx:	  index from console command line
+>> + *	@options: ptr to option string from console command line
+>> + *
+>> + *	Only attempts to match console command lines of the form:
+>> + *	    console=pl011,mmio|mmio32,<addr>[,<options>]
+>> + *	    console=pl011,0x<addr>[,<options>]
+>> + *	This form is used to register an initial earlycon boot console and
+>> + *	replace it with the amba_console at pl011 driver init.
+>> + *
+>> + *	Performs console setup for a match (as required by interface)
+>> + *	If no <options> are specified, then assume the h/w is already setup.
+>> + *
+>> + *	Returns 0 if console matches; otherwise non-zero to use default matching
+>> + */
+>> +static int __init pl011_console_match(struct console *co, char *name, int idx,
+>> +				      char *options)
+>> +{
+>> +	char match[] = "pl011";	/* pl011-specific earlycon name */
+>> +	unsigned char iotype;
+>> +	unsigned long addr;
+>> +	int i;
+>> +
+>> +	if (strncmp(name, match, 5) != 0)
+>> +		return -ENODEV;
+>> +
+>> +	if (uart_parse_earlycon(options, &iotype, &addr, &options))
+>> +		return -ENODEV;
+>> +
+>> +	/* try to match the port specified on the command line */
+>> +	for (i = 0; i < ARRAY_SIZE(amba_ports); i++) {
+>> +		struct uart_port *port;
+>> +
+>> +		if (!amba_ports[i])
+>> +			continue;
+>> +
+>> +		port = &amba_ports[i]->port;
+>> +
+>> +		if (iotype != UPIO_MEM && iotype != UPIO_MEM32)
+>> +			continue;
+>> +
+>> +		if (port->mapbase != addr)
+>> +			continue;
+>> +
+>> +		co->index = i;
+>> +		port->cons = co;
+>> +		return pl011_console_setup(co, options);
+>> +	}
+>> +
+>> +	return -ENODEV;
+>> +}
+>> +
+>>  static struct uart_driver amba_reg;
+>>  static struct console amba_console = {
+>>  	.name		= "ttyAMA",
+>>  	.write		= pl011_console_write,
+>>  	.device		= uart_console_device,
+>>  	.setup		= pl011_console_setup,
+>> +	.match		= pl011_console_match,
+>>  	.flags		= CON_PRINTBUFFER,
+>>  	.index		= -1,
+>>  	.data		= &amba_reg,
+>>
