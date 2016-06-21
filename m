@@ -1,13 +1,11 @@
 From: Jeremy Linton <jeremy.linton@arm.com>
-Subject: [PATCH 04/11] arm64: Rename the common MADT parse routine
-Date: Tue, 21 Jun 2016 12:11:42 -0500
-Message-ID: <1466529109-21715-5-git-send-email-jeremy.linton@arm.com>
-References: <1466529109-21715-1-git-send-email-jeremy.linton@arm.com>
+Subject: [PATCH v6 00/11] Enable PMUs in ACPI systems
+Date: Tue, 21 Jun 2016 12:11:38 -0500
+Message-ID: <1466529109-21715-1-git-send-email-jeremy.linton@arm.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <1466529109-21715-1-git-send-email-jeremy.linton@arm.com>
 List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
 List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
@@ -21,64 +19,63 @@ To: linux-arm-kernel@lists.infradead.org
 Cc: mark.rutland@arm.com, Lorenzo.Pieralisi@arm.com, mlangsdorf@redhat.com, alexander.shishkin@linux.intel.com, catalin.marinas@arm.com, punit.agrawal@arm.com, will.deacon@arm.com, acme@kernel.org, linux-acpi@vger.kernel.org, peterz@infradead.org, mingo@redhat.com, Steve.Capper@arm.com
 List-Id: linux-acpi@vger.kernel.org
 
-The MADT parser in smp.c is now being used to parse
-out NUMA, PMU and ACPI parking protocol information as
-well as the GIC information for which it was originally
-created. Rename it to avoid a misleading name.
+v6:
+Added cpu affinity sysfs entry
+Converted pmu_types array, to linked list
+Restrict use of the armv8_pmu_probe_table to ACPI systems
+Rename MADT parsing routines in smp.c
+Convert sysfs PMU name to use index rather than partnum
+Remove pr_devel statements
+Other Minor cleanups
+Add Partial Ack-by Will Deacon
 
-Signed-off-by: Jeremy Linton <jeremy.linton@arm.com>
----
- arch/arm64/kernel/smp.c | 13 +++++++------
- 1 file changed, 7 insertions(+), 6 deletions(-)
+v5:
+Remove list of CPU types for ACPI systems. We now match a generic
+event list, and use the PMCIED[01] to select events which exist on
+the given PMU. This avoids the need to update the kernel every time
+a new CPU is released.
+Update the maintainers list to include the new file.
 
-diff --git a/arch/arm64/kernel/smp.c b/arch/arm64/kernel/smp.c
-index d099306..319f48b 100644
---- a/arch/arm64/kernel/smp.c
-+++ b/arch/arm64/kernel/smp.c
-@@ -507,13 +507,14 @@ static unsigned int cpu_count = 1;
- 
- #ifdef CONFIG_ACPI
- /*
-- * acpi_map_gic_cpu_interface - parse processor MADT entry
-+ * acpi_verify_and_map_madt - parse processor MADT entry
-  *
-  * Carry out sanity checks on MADT processor entry and initialize
-- * cpu_logical_map on success
-+ * cpu_logical_map, the ACPI parking protocol, NUMA mapping
-+ * and the PMU interrupts on success
-  */
- static void __init
--acpi_map_gic_cpu_interface(struct acpi_madt_generic_interrupt *processor)
-+acpi_verify_and_map_madt(struct acpi_madt_generic_interrupt *processor)
- {
- 	u64 hwid = processor->arm_mpidr;
- 
-@@ -566,7 +567,7 @@ acpi_map_gic_cpu_interface(struct acpi_madt_generic_interrupt *processor)
- }
- 
- static int __init
--acpi_parse_gic_cpu_interface(struct acpi_subtable_header *header,
-+acpi_parse_madt_common(struct acpi_subtable_header *header,
- 			     const unsigned long end)
- {
- 	struct acpi_madt_generic_interrupt *processor;
-@@ -577,7 +578,7 @@ acpi_parse_gic_cpu_interface(struct acpi_subtable_header *header,
- 
- 	acpi_table_print_madt_entry(header);
- 
--	acpi_map_gic_cpu_interface(processor);
-+	acpi_verify_and_map_madt(processor);
- 
- 	return 0;
- }
-@@ -660,7 +661,7 @@ void __init smp_init_cpus(void)
- 		 * we need for SMP init
- 		 */
- 		acpi_table_parse_madt(ACPI_MADT_TYPE_GENERIC_INTERRUPT,
--				      acpi_parse_gic_cpu_interface, 0);
-+				      acpi_parse_madt_common, 0);
- 
- 	if (cpu_count > NR_CPUS)
- 		pr_warn("no. of cores (%d) greater than configured maximum of %d - clipping\n",
+v4:
+Correct build issues with ARM (!ARM64) kernels.
+Add ThunderX to list of PMU types.
+
+v3:
+Enable ARM performance monitoring units on ACPI/arm64 machines.
+
+This patch expands and reworks the patches published by Mark Salter
+in order to clean up a few of the previous review comments, as well as
+add support for newer CPUs and big/little configurations.
+
+
+Jeremy Linton (9):
+  arm64: pmu: Probe default hw/cache counters
+  arm64: pmu: Hoist pmu platform device name
+  arm64: Rename the common MADT parse routine
+  arm: arm64: Add routine to determine cpuid of other cpus
+  arm: arm64: pmu: Assign platform PMU CPU affinity
+  arm64: pmu: Provide cpumask attribute for PMU
+  arm64: pmu: Add routines for detecting differing PMU types in the
+    system
+  arm64: pmu: Enable multiple PMUs in an ACPI system
+  MAINTAINERS: Tweak ARM PMU maintainers
+
+Mark Salter (2):
+  arm64: pmu: add fallback probe table
+  arm64: pmu: Add support for probing with ACPI
+
+ MAINTAINERS                      |   3 +-
+ arch/arm/include/asm/cputype.h   |   6 +-
+ arch/arm64/include/asm/cputype.h |   4 +
+ arch/arm64/kernel/perf_event.c   |  79 ++++++++++++++-
+ arch/arm64/kernel/smp.c          |  18 ++--
+ drivers/perf/Kconfig             |   4 +
+ drivers/perf/Makefile            |   1 +
+ drivers/perf/arm_pmu.c           |  60 +++++++++---
+ drivers/perf/arm_pmu_acpi.c      | 207 +++++++++++++++++++++++++++++++++++++++
+ include/linux/perf/arm_pmu.h     |  12 +++
+ 10 files changed, 370 insertions(+), 24 deletions(-)
+ create mode 100644 drivers/perf/arm_pmu_acpi.c
+
 -- 
 2.5.5
