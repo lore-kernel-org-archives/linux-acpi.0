@@ -1,46 +1,98 @@
 From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [PATCH v2] ACPI: Support for platform initiated graceful shutdown
-Date: Wed, 22 Jun 2016 01:50:33 +0200
-Message-ID: <1690297.d25mR60BpH@vostro.rjw.lan>
-References: <1463430112-8843-1-git-send-email-pprakash@codeaurora.org> <58e509ba-383d-1f9c-9595-d225e8af32a8@codeaurora.org>
+Subject: Re: [PATCH] ACPI: Execute the _PTS method when system reboot
+Date: Wed, 22 Jun 2016 01:56:24 +0200
+Message-ID: <2611430.1T9CgX71hW@vostro.rjw.lan>
+References: <1462772495-71113-1-git-send-email-hehy1@lenovo.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7Bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cloudserver094114.home.net.pl ([79.96.170.134]:51030 "HELO
-	cloudserver094114.home.net.pl" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with SMTP id S1750890AbcFUXra (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 21 Jun 2016 19:47:30 -0400
-In-Reply-To: <58e509ba-383d-1f9c-9595-d225e8af32a8@codeaurora.org>
-Sender: linux-acpi-owner@vger.kernel.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1462772495-71113-1-git-send-email-hehy1@lenovo.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Ocean HY1 He <hehy1@lenovo.com>
+Cc: "lenb@kernel.org" <lenb@kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, David Tanaka <dtanaka@lenovo.com>, Nagananda Chumbalkar <nchumbalkar@lenovo.com>
 List-Id: linux-acpi@vger.kernel.org
-To: "Prakash, Prashanth" <pprakash@codeaurora.org>
-Cc: linux-acpi@vger.kernel.org, harba@codeaurora.org, ahs3@redhat.com, cov@codeaurora.org
 
-On Wednesday, June 15, 2016 02:05:05 PM Prakash, Prashanth wrote:
-> Hi Rafael,
+On Monday, May 09, 2016 05:50:11 AM Ocean HY1 He wrote:
+> The _PTS control method is defined in the section 7.4.1 of acpi 6.0
+> spec. The _PTS control method is executed by the OS during the sleep
+> transition process for S1, S2, S3, S4, and for orderly S5 shutdown.
+> The sleeping state value (For example, 1, 2, 3, 4 or 5 for the S5
+> soft-off state) is passed to the _PTS control method. This method
+> is called after OSPM has notified native device drivers of the sleep
+> state transition and before the OSPM has had a chance to fully
+> prepare the system for a sleep state transition.
 > 
-> Any inputs on this patch?
+> The _PTS control method provides the BIOS a mechanism for performing
+> some housekeeping, such as writing the sleep type value to the embedded
+> controller, before entering the system sleeping state.
+> 
+> According to section 7.5 of acpi 6.0 spec, _PTS should run after _TTS.
+> 
+> Thus, a _PTS block notifier is added to the reboot notifier list so that
+> the _PTS object will also be evaluated when the system reboot.
 
-Does it actually work?
+So I understand why it may be necessary to evaluate _PTS before entering S5,
+but I'm totally unsure about reboot.
 
-It looks like sybus_evaluate_ost() schedules itself with a delay in an
-endless loop and the poweroff will happen anyway without waiting.
+What does reboot have to do with S5?
 
-I guess the idea is that acpi_sybus_notify() will schedule a delayed work
-doing the sybus_evaluate_ost() and that will do the orderly_poweroff() thing,
-but that's not what the patch is doing.
+> Signed-off-by: Ocean He <hehy1@lenovo.com>
+> Signed-off-by: Nagananda Chumbalkar <nchumbalkar@lenovo.com>
+> ---
+>  drivers/acpi/sleep.c | 27 +++++++++++++++++++++++++++
+>  1 file changed, 27 insertions(+)
+> 
+> diff --git a/drivers/acpi/sleep.c b/drivers/acpi/sleep.c
+> index 2a8b596..8b290fb 100644
+> --- a/drivers/acpi/sleep.c
+> +++ b/drivers/acpi/sleep.c
+> @@ -55,6 +55,26 @@ static struct notifier_block tts_notifier = {
+>  	.priority	= 0,
+>  };
+>  
+> +static int pts_notify_reboot(struct notifier_block *this,
+> +			unsigned long code, void *x)
+> +{
+> +	acpi_status status;
+> +
+> +	status = acpi_execute_simple_method(NULL, "\\_PTS", ACPI_STATE_S5);
+> +	if (ACPI_FAILURE(status) && status != AE_NOT_FOUND) {
+> +		/* It won't break anything. */
+> +		printk(KERN_NOTICE "Failure in evaluating _PTS object\n");
+> +	}
+> +
+> +	return NOTIFY_DONE;
+> +}
+> +
+> +static struct notifier_block pts_notifier = {
+> +	.notifier_call	= pts_notify_reboot,
+> +	.next		= NULL,
+> +	.priority	= 0,
+> +};
+> +
+>  static int acpi_sleep_prepare(u32 acpi_state)
+>  {
+>  #ifdef CONFIG_ACPI_SLEEP
+> @@ -896,5 +916,12 @@ int __init acpi_sleep_init(void)
+>  	 * object can also be evaluated when the system enters S5.
+>  	 */
+>  	register_reboot_notifier(&tts_notifier);
+> +
+> +	/*
+> +	 * According to section 7.5 of acpi 6.0 spec, _PTS should run after
+> +	 * _TTS when the system enters S5.
+> +	 */
+> +	register_reboot_notifier(&pts_notifier);
 
-That "sybus" naming looks sort of lame BTW.  What's wrong with using "sb"
-instead?
+Why do you have to add a second notifier?
 
-Besides actypes.h is an ACPICA file and patches updating it have to go via
-upstream ACPICA.
+Why can't _TTS and _PTS be evaluated from one notifier?
 
-And one more thing, if you checked acpi_get_handle() for "\\_SB" once,
-it will succeed every time going forward.  No need to check again.
+> +
+>  	return 0;
+>  }
+> 
 
 Thanks,
 Rafael
-
