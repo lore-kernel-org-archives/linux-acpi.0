@@ -1,36 +1,46 @@
-From: "Rafael J. Wysocki" <rafael@kernel.org>
-Subject: Re: [PATCH v4 0/5] ACPI: ARM64: support for ACPI_TABLE_UPGRADE
-Date: Wed, 22 Jun 2016 01:31:58 +0200
-Message-ID: <CAJZ5v0goXsQ2umcDXU0six+QtxcKGZq7mxhgxuvXTH2iZt6YNA@mail.gmail.com>
-References: <20160620105615.15538-1-aleksey.makarov@linaro.org>
+From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Subject: Re: [PATCH v2] ACPI: Support for platform initiated graceful shutdown
+Date: Wed, 22 Jun 2016 01:50:33 +0200
+Message-ID: <1690297.d25mR60BpH@vostro.rjw.lan>
+References: <1463430112-8843-1-git-send-email-pprakash@codeaurora.org> <58e509ba-383d-1f9c-9595-d225e8af32a8@codeaurora.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <20160620105615.15538-1-aleksey.makarov@linaro.org>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Aleksey Makarov <aleksey.makarov@linaro.org>
-Cc: Mark Rutland <mark.rutland@arm.com>, Graeme Gregory <graeme.gregory@linaro.org>, Catalin Marinas <catalin.marinas@arm.com>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Will Deacon <will.deacon@arm.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, "Zheng,
- Lv" <lv.zheng@intel.com>, Jon Masters <jcm@redhat.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Len Brown <lenb@kernel.org>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7Bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from cloudserver094114.home.net.pl ([79.96.170.134]:51030 "HELO
+	cloudserver094114.home.net.pl" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with SMTP id S1750890AbcFUXra (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 21 Jun 2016 19:47:30 -0400
+In-Reply-To: <58e509ba-383d-1f9c-9595-d225e8af32a8@codeaurora.org>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: "Prakash, Prashanth" <pprakash@codeaurora.org>
+Cc: linux-acpi@vger.kernel.org, harba@codeaurora.org, ahs3@redhat.com, cov@codeaurora.org
 
-On Mon, Jun 20, 2016 at 12:56 PM, Aleksey Makarov
-<aleksey.makarov@linaro.org> wrote:
+On Wednesday, June 15, 2016 02:05:05 PM Prakash, Prashanth wrote:
 > Hi Rafael,
->
-> You said you are ok with the ACPI part of the patches [4].
-> The patchset has received ACK from Will [5].  Can you consider pulling it please?
+> 
+> Any inputs on this patch?
 
-I've queued this up for v4.8, but can you please base your patches on
-the Linus' tree next time?
+Does it actually work?
+
+It looks like sybus_evaluate_ost() schedules itself with a delay in an
+endless loop and the poweroff will happen anyway without waiting.
+
+I guess the idea is that acpi_sybus_notify() will schedule a delayed work
+doing the sybus_evaluate_ost() and that will do the orderly_poweroff() thing,
+but that's not what the patch is doing.
+
+That "sybus" naming looks sort of lame BTW.  What's wrong with using "sb"
+instead?
+
+Besides actypes.h is an ACPICA file and patches updating it have to go via
+upstream ACPICA.
+
+And one more thing, if you checked acpi_get_handle() for "\\_SB" once,
+it will succeed every time going forward.  No need to check again.
 
 Thanks,
 Rafael
+
