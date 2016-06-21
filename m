@@ -1,71 +1,47 @@
-From: Hanjun Guo <hanjun.guo@linaro.org>
-Subject: Re: [RFC PATCH v2 00/15] ACPI IORT ARM SMMU v3 support
-Date: Tue, 21 Jun 2016 18:37:17 +0800
-Message-ID: <b00f33ad-be24-21a9-b03b-611756bbc8e9@linaro.org>
-References: <1465306270-27076-1-git-send-email-lorenzo.pieralisi@arm.com>
+From: Wanpeng Li <kernellwp@gmail.com>
+Subject: Re: [LKP] [lkp] [x86 tsc] 19fa5e7364: WARNING: CPU: 0 PID: 0 at
+ arch/x86/mm/extable.c:50 ex_handler_rdmsr_unsafe+0x72/0x80
+Date: Tue, 21 Jun 2016 18:24:18 +0800
+Message-ID: <CANRm+CzS3CKb43ipjoBMwOJ49bmqx=3zMSU7u6-spmt1uk9ULQ@mail.gmail.com>
+References: <CADjb_WQVKRWZs+d2iK17i42_kRHBN=m8xo5i3ydDv1QWbT5MyA@mail.gmail.com>
+ <SG2PR02MB15503CF343A5B5868F11C637802B0@SG2PR02MB1550.apcprd02.prod.outlook.com>
+ <CANRm+Cyu8Vd_BudEPFBnvq4MuA0XY4RTNudfpwbEiM5yCzJpZw@mail.gmail.com> <1e840272-9a0c-1e95-0356-12c031df7458@redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"; Format="flowed"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <1465306270-27076-1-git-send-email-lorenzo.pieralisi@arm.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, iommu@lists.linux-foundation.org
-Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Marc Zyngier <marc.zyngier@arm.com>, Tomasz Nowicki <tn@semihalf.com>, Joerg Roedel <joro@8bytes.org>, Will Deacon <will.deacon@arm.com>, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, linuxarm@huawei.com, Sinan Kaya <okaya@codeaurora.org>, linux-acpi@vger.kernel.org, Jon Masters <jcm@redhat.com>, Robin Murphy <robin.murphy@arm.com>, linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8BIT
+Return-path: <kvm-owner@vger.kernel.org>
+In-Reply-To: <1e840272-9a0c-1e95-0356-12c031df7458@redhat.com>
+Sender: kvm-owner@vger.kernel.org
+To: Paolo Bonzini <pbonzini@redhat.com>
+Cc: Yu Chen <yu.chen.surf@gmail.com>, kernel test robot <xiaolong.ye@intel.com>, Linux PM list <linux-pm@vger.kernel.org>, linux-acpi@vger.kernel.org, Len Brown <len.brown@intel.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, kvm <kvm@vger.kernel.org>, Radim Krcmar <rkrcmar@redhat.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Zhang Rui <rui.zhang@intel.com>, lkp@01.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hi Lorenzo,
-
-On 2016/6/7 21:30, Lorenzo Pieralisi wrote:
-> This RFC patch series is v2 of a previous posting:
+2016-06-21 18:10 GMT+08:00 Paolo Bonzini <pbonzini@redhat.com>:
 >
-> https://lkml.org/lkml/2016/4/14/702
 >
-> v1 -> v2:
-> 	- Rebased on top of dependencies series [1][2][3](v4.7-rc1)
-> 	- Removed IOMMU fwnode generalization
-> 	- Implemented ARM SMMU v3 ACPI probing instead of ARM SMMU v2
-> 	  owing to patch series dependencies [1]
-> 	- Moved platform device creation logic to IORT code to
-> 	  generalize its usage for ARM SMMU v1-v2-v3 components
-> 	- Removed reliance on ACPI early device probing
-> 	- Created IORT specific iommu_xlate() translation hook leaving
-> 	  OF code unchanged according to v1 reviews
+> On 21/06/2016 08:08, Wanpeng Li wrote:
+>> Cc KVM ML, Paolo, Radim,
+>>>> FYI, raw QEMU command line is:
+>>>>
+>>>>         qemu-system-x86_64 -enable-kvm -cpu SandyBridge -kernel /pkg/linux/x86_64-randconfig-w0-06180628/gcc-6/19fa5e73647fde1e6a7038a8f05cddf4c43f08d3/vmlinuz-4.7.0-rc3-00009-g19fa5e7 -append 'root=/dev/ram0 user=lkp job=/lkp/scheduled/vm-kbuild-yocto-x86_64-32/bisect_boot-1-yocto-minimal-x86_64.cgz-x86_64-randconfig-w0-06180628-19fa5e73647fde1e6a7038a8f05cddf4c43f08d3-20160618-25535-h82bax-0.yaml~ ARCH=x86_64 kconfig=x86_64-randconfig-w0-06180628 branch=internal-eywa/master commit=19fa5e73647fde1e6a7038a8f05cddf4c43f08d3 BOOT_IMAGE=/pkg/linux/x86_64-randconfig-w0-06180628/gcc-6/19fa5e73647fde1e6a7038a8f05cddf4c43f08d3/vmlinuz-4.7.0-rc3-00009-g19fa5e7 max_uptime=600 RESULT_ROOT=/result/boot/1/vm-kbuild-yocto-x86_64/yocto-minimal-x86_64.cgz/x86_64-randconfig-w0-06180628/gcc-6/19fa5e73
+ 647fde1e6a7038a8f05cddf4c43f08d3/0 LKP_SERVER=inn earlyprintk=ttyS0,115200 systemd.log_level=err debug apic=debug sysrq_always_enabled rcupdate.rcu_cpu_stall_timeout=100 panic=-1 softlockup_panic=1 nmi_watchdog=panic oops=panic load_ramdisk=2 prompt_ramdisk=0 console=ttyS0,115200 console=tty0 vga=normal rw ip=::::vm-kbuild-yocto-x86_64-32::dhcp drbd.minor_count=8'  -initrd /fs/sdh1/initrd-vm-kbuild-yocto-x86_64-32 -m 320 -smp 1 -device e1000,netdev=net0 -netdev user,id=net0 -boot order=nc -no-reboot -watchdog i6300esb -rtc base=localtime -drive file=/fs/sdh1/disk0-vm-kbuild-yocto-x86_64-32,media=disk,if=virtio -pidfile /dev/shm/kboot/pid-vm-kbuild-yocto-x86_64-32 -serial file:/dev/shm/kboot/serial-vm-kbuild-yocto-x86_64-32 -daemonize -display none -monitor null
+>>>>
+>>> This  problem was caused due to kvm does not support MSR_PLATFORM_INFO(0xce),
+>>> according to Wanpeng's feedback.
+>>>
+>>> Hi Wanpeng, is it possible for kvm to simulate this MSR, otherwise we
+>>> might have to use
+>>> rdmsr_safe instead.
+>>
+>> There is a thread discussed this before
+>> https://patchwork.kernel.org/patch/8833021/, MSR_PLATFORM_INFO can't
+>> be simple emulation.
+>>
+>> Ping Paolo, Radim. :)
 >
-> The ACPI IORT table provides information that allows instantiating
-> ARM SMMU devices and carrying out id mappings between components on
-> ARM based systems (devices, IOMMUs, interrupt controllers).
->
-> http://infocenter.arm.com/help/topic/com.arm.doc.den0049b/DEN0049B_IO_Remapping_Table.pdf
->
-> Building on basic IORT support, available through [2]:
->
-> this patchset enables ARM SMMU v3 support on ACPI systems.
+> rdmsr_safe must be used instead.  I'll prepare a patch.
 
-I'm trying to test your patches on D03 (SMMUv3 based) but ...
+Actually I have such a patch on hand under testing, I will send out soon. :)
 
-[...]
-> [1] R.Murphy "Generic DT bindings for PCI and ARM SMMU v3"
->     http://marc.info/?l=linux-arm-kernel&m=146497432413816&w=2
-
-...This patch set is still in discussion and seems not work
-for non-PCI devices.
-
->
-> [2] T.Nowicki "Introduce ACPI world to ITS irqchip" v5
->     http://marc.info/?l=linux-acpi&m=146469369703684&w=2
-
-Tomasz sent out the v7 and included patches in your series.
-
-I think a updated version before the test makes sense, what
-do you think? Let me know your thoughts.
-
-Thanks
-Hanjun
+Regards,
+Wanpeng Li
