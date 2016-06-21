@@ -1,79 +1,145 @@
-From: Peter Jones <pjones@redhat.com>
-Subject: Re: [PATCH] ACPI: don't show an error when we're not in charge of
- PCIe hotplug.
-Date: Tue, 21 Jun 2016 11:18:55 -0400
-Message-ID: <20160621151853.GE28967@redhat.com>
-References: <1466028904-28328-1-git-send-email-pjones@redhat.com>
- <CAJZ5v0g5_M=iNLE_P4eOcwJet=jPm_EifAMdDtvG+TR=1AnU2Q@mail.gmail.com>
- <CAJZ5v0ifNFP5jzPf+zMC3rJ1HKzBmCz1AdhsAsmj75EpndoPTQ@mail.gmail.com>
+From: Lorenzo Pieralisi <lorenzo.pieralisi-5wv7dgnIgG8@public.gmane.org>
+Subject: Re: [RFC PATCH v2 03/15] arm64: mm: change IOMMU notifier action to
+	attach DMA ops
+Date: Tue, 21 Jun 2016 17:06:47 +0100
+Message-ID: <20160621160637.GA31761@red-moon>
+References: <1465306270-27076-1-git-send-email-lorenzo.pieralisi@arm.com>
+	<1465306270-27076-4-git-send-email-lorenzo.pieralisi@arm.com>
+	<5763C27A.9030306@arm.com>
+	<03c537e7-0acf-edca-d0e0-369490c828df@samsung.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <CAJZ5v0ifNFP5jzPf+zMC3rJ1HKzBmCz1AdhsAsmj75EpndoPTQ@mail.gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: "Rafael J. Wysocki" <rafael@kernel.org>
-Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Mario Limonciello <Mario_Limonciello@dell.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Len Brown <lenb@kernel.org>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, Andy Lutomirski <luto@amacapital.net>
+In-Reply-To: <03c537e7-0acf-edca-d0e0-369490c828df-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org>
+List-Unsubscribe: <https://lists.linuxfoundation.org/mailman/options/iommu>,
+	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.linuxfoundation.org/pipermail/iommu/>
+List-Post: <mailto:iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
+List-Help: <mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.linuxfoundation.org/mailman/listinfo/iommu>,
+	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=subscribe>
+Sender: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
+Errors-To: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
+To: Marek Szyprowski <m.szyprowski-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org>
+Cc: Jon Masters <jcm-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Marc Zyngier <marc.zyngier-5wv7dgnIgG8@public.gmane.org>, Catalin Marinas <catalin.marinas-5wv7dgnIgG8@public.gmane.org>, "Rafael J. Wysocki" <rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org>, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Will Deacon <will.deacon-5wv7dgnIgG8@public.gmane.org>, Sinan Kaya <okaya-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org, Hanjun Guo <hanjun.guo-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Tomasz Nowicki <tn-nYOzD4b6Jr9Wk0Htik3J/w@public.gmane.org>, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-(Sorry for the slow response - it's deadline time over here.)
+Hi Marek,
 
-On Thu, Jun 16, 2016 at 04:56:57PM +0200, Rafael J. Wysocki wrote:
-> On Thu, Jun 16, 2016 at 2:12 AM, Rafael J. Wysocki <rafael@kernel.org> wrote:
-> > On Thu, Jun 16, 2016 at 12:15 AM, Peter Jones <pjones@redhat.com> wrote:
-> >> Right now when booting, on many laptops the firmware manages the PCIe
-> >> bus.  As a result, when we call the _OSC ACPI method, it returns an
-> >> error code.  Unfortunately the errors are not very articulate.
+On Tue, Jun 21, 2016 at 09:53:20AM +0200, Marek Szyprowski wrote:
+> Hi Robin,
+> 
+> 
+> On 2016-06-17 11:27, Robin Murphy wrote:
+> >Hi Lorenzo,
 > >
-> > What exactly do you mean here?
+> >I think this patch makes sense even independent of the rest of the
+> >series, one nit inline notwithstanding.
 > >
-> >>  As a result, we show:
+> >Marek; I'm curious as to whether this could make the workaround in
+> >722ec35f7 obsolete as well, or are all the drivers also bound
+> >super-early in the setup you had there?
+> 
+> Yes, this will solve that problem too. I will also hide some possible
+> deferred probe issues, because the moment at which IOMMU is activated
+> will be postponed. The only drawback with this approach is the fact
+> that is drivers won't be allowed to do any dma-mapping operations on
+> devices, which they don't own. This should not be a big issue, but
+> this was the reason to setup IOMMU on device add instead of driver
+> bind.
+> 
+> While at it, please make sure that the case of failed client driver
+> probe will be handled properly. IOMMU might do some operations while
+> setting up and if the client driver fails to probe (for whatever
+> reason, might be a deferred probe too), those operation has to be
+> undone. However the current code of the driver core won't call any
+> notifier (like BUS_NOTIFY_UNBOUND_DRIVER or whatever else) in such
+> case.
+
+Isn't Andy's commit 14b6257a5f3d enough ? Is that what you had in
+mind ?
+
+> Long time ago I used BUS_NOTIFY_BIND_DRIVER based approach for my
+> Exynos IOMMU patches and had to extend bus core with such patch:
+> https://patchwork.kernel.org/patch/4678181/ to properly cleanup
+> after failed client driver probe and avoid leaking resources. Please
+> read the discussion, because some changes were requested to it.
+
+It looks like commit 14b6257a5f3d ("device core: add
+BUS_NOTIFY_DRIVER_NOT_BOUND notification") does what you
+are requesting, please let me know if that's enough.
+
+I will revert the changes in 722ec35f7 and fold them in the
+new version along with Robin's suggestions.
+
+Thanks,
+Lorenzo
+
+> 
+> 
+> Best regards
+> Marek Szyprowski, PhD
+> Samsung R&D Institute Poland
+> 
+> >
+> >On 07/06/16 14:30, Lorenzo Pieralisi wrote:
+> >>Current bus notifier in ARM64 (__iommu_attach_notifier)
+> >>attempts to attach dma_ops to a device on BUS_NOTIFY_ADD_DEVICE
+> >>action notification.
 > >>
-> >> ACPI: PCI Root Bridge [PCI0] (domain 0000 [bus 00-fe])
-> >> acpi PNP0A08:00: _OSC: OS supports [ExtendedConfig ASPM ClockPM Segments MSI]
-> >> \_SB_.PCI0 (33DB4D5B-1FF7-401C-9657-7441C03DD766): _OSC invalid UUID
-> >> _OSC request data: 1 1f 0
+> >>This causes issues on ACPI based systems, where PCI devices
+> >>can be added before the IOMMUs the devices are attached to
+> >>had a chance to be probed, causing failures on attempts to
+> >>attach dma_ops in that the domain for the respective IOMMU
+> >>may not be set-up yet by the time the bus notifier is run.
+> >>
+> >>Devices dma_ops do not require to be set-up till the matching
+> >>device drivers are probed. This means that instead of running
+> >>the notifier attaching dma_ops to devices (__iommu_attach_notifier)
+> >>on BUS_NOTIFY_ADD_DEVICE action, it can be run just before the
+> >>device driver is bound to the device in question (on action
+> >>BUS_NOTIFY_BIND_DRIVER) so that it is certain that its IOMMU
+> >>group and domain are set-up accordingly at the time the
+> >>notifier is triggered.
+> >>
+> >>This patch changes the notifier action upon which dma_ops
+> >>are attached to devices and defer it to driver binding time,
+> >>so that IOMMU devices have a chance to be probed and to register
+> >>their bus notifiers before the dma_ops attach sequence for a
+> >>device is actually carried out.
+> >>
+> >>Signed-off-by: Lorenzo Pieralisi <lorenzo.pieralisi-5wv7dgnIgG8@public.gmane.org>
+> >>Cc: Will Deacon <will.deacon-5wv7dgnIgG8@public.gmane.org>
+> >>Cc: Catalin Marinas <catalin.marinas-5wv7dgnIgG8@public.gmane.org>
+> >>Cc: Robin Murphy <robin.murphy-5wv7dgnIgG8@public.gmane.org>
+> >>---
+> >>  arch/arm64/mm/dma-mapping.c | 2 +-
+> >>  1 file changed, 1 insertion(+), 1 deletion(-)
+> >>
+> >>diff --git a/arch/arm64/mm/dma-mapping.c b/arch/arm64/mm/dma-mapping.c
+> >>index c566ec8..79b0882 100644
+> >>--- a/arch/arm64/mm/dma-mapping.c
+> >>+++ b/arch/arm64/mm/dma-mapping.c
+> >>@@ -848,7 +848,7 @@ static int __iommu_attach_notifier(struct
+> >>notifier_block *nb,
+> >>  {
+> >>      struct iommu_dma_notifier_data *master, *tmp;
+> >>
+> >>-    if (action != BUS_NOTIFY_ADD_DEVICE)
+> >>+    if (action != BUS_NOTIFY_BIND_DRIVER)
 > >
-> > So _OSC told us that the UUID was invalid, didn't it?
+> >With this, you can also get rid of the priority setting and big
+> >fat explanatory comment in register_iommu_dma_ops_notifier().
+> >
+> >Robin.
+> >
+> >>          return 0;
+> >>
+> >>      mutex_lock(&iommu_dma_notifier_lock);
+> >>
+> >
+> >
+> >
 > 
-> BTW, the above messages are KERN_DEBUG, so at least in theory they
-> shouldn't be visible in production runs.
-> 
-> Maybe the bug to fix is that they show up when they aren't supposed to?
-
-No - the workflow that I am really trying to remedy is this:
-
- 1) S3 resume sometimes isn't working on some laptop you've got.
- 2) start looking at debug messages
- 3) this shows an error, so it looks like it's probably the problem
- 4) go fishing for red herring
- 5) if you happen to know who maintains the DSDT for the platform in
-    question, eventually work out that this is working as intended and
-    the bug is someplace else.
-5b) if you don't know that person, eventually work out that it /might/
-     be someplace else...
-
-So the idea was to make it look more like an indication of status, and
-less like an error that's causing unrelated problems.
-
-When I talked to Mario at Dell (Cc'd), it wasn't clear to us that
-there's a way to distinguish the between the UUID being
-invalid/malformed, being merely unsupported, or being supported in some
-configurations but not the current one.  In this particular DSDT, the
-machine doesn't support the OS controlling any of this if USB-C /
-thunderbolt are enabled.  The DSDT is clearly written with the belief
-that you have to completely disable the handling for that UUID in this
-case, and googling for this looks like it's not the only one written
-with that belief.
-
-Reading the spec (v6.1, sections 6.2.11.3 and 6.2.11.4), it seems
-plausible that you can express this instead by handling the UUID but
-choosing each individual query/status bit in the way that accomplishes
-the OS doing nothing with the response.  So it may well be that that's
-just more code that vendors have thought wasn't necessary (or wasn't
-correct for some reason.)
-
-Mario, want to jump in on your thinking here?
-
--- 
-  Peter
