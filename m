@@ -1,96 +1,124 @@
-From: <Mario_Limonciello@Dell.com>
-Subject: RE: [PATCH] ACPI: don't show an error when we're not in charge of
+From: Andy Lutomirski <luto@amacapital.net>
+Subject: Re: [PATCH] ACPI: don't show an error when we're not in charge of
  PCIe hotplug.
-Date: Tue, 21 Jun 2016 18:01:10 +0000
-Message-ID: <cf3d90a8598241ff9b6e28b8fb037633@ausx13mpc120.AMER.DELL.COM>
+Date: Tue, 21 Jun 2016 11:07:41 -0700
+Message-ID: <CALCETrWYqR22WJDX_CTBFom7Ti_Jc++BRvu3VKJ22QpGe6+6Xg@mail.gmail.com>
 References: <1466028904-28328-1-git-send-email-pjones@redhat.com>
  <CAJZ5v0g5_M=iNLE_P4eOcwJet=jPm_EifAMdDtvG+TR=1AnU2Q@mail.gmail.com>
  <CAJZ5v0ifNFP5jzPf+zMC3rJ1HKzBmCz1AdhsAsmj75EpndoPTQ@mail.gmail.com>
- <20160621151853.GE28967@redhat.com>
+ <20160621151853.GE28967@redhat.com> <cf3d90a8598241ff9b6e28b8fb037633@ausx13mpc120.AMER.DELL.COM>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20160621151853.GE28967@redhat.com>
-Content-Language: en-US
+In-Reply-To: <cf3d90a8598241ff9b6e28b8fb037633@ausx13mpc120.AMER.DELL.COM>
 Sender: linux-kernel-owner@vger.kernel.org
-To: pjones@redhat.com, rafael@kernel.org
-Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, lenb@kernel.org, rjw@rjwysocki.net, luto@amacapital.net
+To: Mario Limonciello <Mario_Limonciello@dell.com>
+Cc: Peter Jones <pjones@redhat.com>, Rafael Wysocki <rafael@kernel.org>, Linux ACPI <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Len Brown <lenb@kernel.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>
 List-Id: linux-acpi@vger.kernel.org
 
-PiAtLS0tLU9yaWdpbmFsIE1lc3NhZ2UtLS0tLQ0KPiBGcm9tOiBQZXRlciBKb25lcyBbbWFpbHRv
-OnBqb25lc0ByZWRoYXQuY29tXQ0KPiBTZW50OiBUdWVzZGF5LCBKdW5lIDIxLCAyMDE2IDEwOjE5
-IEFNDQo+IFRvOiBSYWZhZWwgSi4gV3lzb2NraSA8cmFmYWVsQGtlcm5lbC5vcmc+DQo+IENjOiBB
-Q1BJIERldmVsIE1hbGluZyBMaXN0IDxsaW51eC1hY3BpQHZnZXIua2VybmVsLm9yZz47IExpbW9u
-Y2llbGxvLCBNYXJpbw0KPiA8TWFyaW9fTGltb25jaWVsbG9ARGVsbC5jb20+OyBMaW51eCBLZXJu
-ZWwgTWFpbGluZyBMaXN0IDxsaW51eC0NCj4ga2VybmVsQHZnZXIua2VybmVsLm9yZz47IExlbiBC
-cm93biA8bGVuYkBrZXJuZWwub3JnPjsgUmFmYWVsIEogLiBXeXNvY2tpDQo+IDxyandAcmp3eXNv
-Y2tpLm5ldD47IEFuZHkgTHV0b21pcnNraSA8bHV0b0BhbWFjYXBpdGFsLm5ldD4NCj4gU3ViamVj
-dDogUmU6IFtQQVRDSF0gQUNQSTogZG9uJ3Qgc2hvdyBhbiBlcnJvciB3aGVuIHdlJ3JlIG5vdCBp
-biBjaGFyZ2Ugb2YNCj4gUENJZSBob3RwbHVnLg0KPiANCj4gKFNvcnJ5IGZvciB0aGUgc2xvdyBy
-ZXNwb25zZSAtIGl0J3MgZGVhZGxpbmUgdGltZSBvdmVyIGhlcmUuKQ0KPiANCj4gT24gVGh1LCBK
-dW4gMTYsIDIwMTYgYXQgMDQ6NTY6NTdQTSArMDIwMCwgUmFmYWVsIEouIFd5c29ja2kgd3JvdGU6
-DQo+ID4gT24gVGh1LCBKdW4gMTYsIDIwMTYgYXQgMjoxMiBBTSwgUmFmYWVsIEouIFd5c29ja2kg
-PHJhZmFlbEBrZXJuZWwub3JnPg0KPiB3cm90ZToNCj4gPiA+IE9uIFRodSwgSnVuIDE2LCAyMDE2
-IGF0IDEyOjE1IEFNLCBQZXRlciBKb25lcyA8cGpvbmVzQHJlZGhhdC5jb20+DQo+IHdyb3RlOg0K
-PiA+ID4+IFJpZ2h0IG5vdyB3aGVuIGJvb3RpbmcsIG9uIG1hbnkgbGFwdG9wcyB0aGUgZmlybXdh
-cmUgbWFuYWdlcyB0aGUNCj4gUENJZQ0KPiA+ID4+IGJ1cy4gIEFzIGEgcmVzdWx0LCB3aGVuIHdl
-IGNhbGwgdGhlIF9PU0MgQUNQSSBtZXRob2QsIGl0IHJldHVybnMgYW4NCj4gPiA+PiBlcnJvciBj
-b2RlLiAgVW5mb3J0dW5hdGVseSB0aGUgZXJyb3JzIGFyZSBub3QgdmVyeSBhcnRpY3VsYXRlLg0K
-PiA+ID4NCj4gPiA+IFdoYXQgZXhhY3RseSBkbyB5b3UgbWVhbiBoZXJlPw0KPiA+ID4NCj4gPiA+
-PiAgQXMgYSByZXN1bHQsIHdlIHNob3c6DQo+ID4gPj4NCj4gPiA+PiBBQ1BJOiBQQ0kgUm9vdCBC
-cmlkZ2UgW1BDSTBdIChkb21haW4gMDAwMCBbYnVzIDAwLWZlXSkNCj4gPiA+PiBhY3BpIFBOUDBB
-MDg6MDA6IF9PU0M6IE9TIHN1cHBvcnRzIFtFeHRlbmRlZENvbmZpZyBBU1BNIENsb2NrUE0NCj4g
-U2VnbWVudHMgTVNJXQ0KPiA+ID4+IFxfU0JfLlBDSTAgKDMzREI0RDVCLTFGRjctNDAxQy05NjU3
-LTc0NDFDMDNERDc2Nik6IF9PU0MgaW52YWxpZA0KPiBVVUlEDQo+ID4gPj4gX09TQyByZXF1ZXN0
-IGRhdGE6IDEgMWYgMA0KPiA+ID4NCj4gPiA+IFNvIF9PU0MgdG9sZCB1cyB0aGF0IHRoZSBVVUlE
-IHdhcyBpbnZhbGlkLCBkaWRuJ3QgaXQ/DQo+ID4NCj4gPiBCVFcsIHRoZSBhYm92ZSBtZXNzYWdl
-cyBhcmUgS0VSTl9ERUJVRywgc28gYXQgbGVhc3QgaW4gdGhlb3J5IHRoZXkNCj4gPiBzaG91bGRu
-J3QgYmUgdmlzaWJsZSBpbiBwcm9kdWN0aW9uIHJ1bnMuDQo+ID4NCj4gPiBNYXliZSB0aGUgYnVn
-IHRvIGZpeCBpcyB0aGF0IHRoZXkgc2hvdyB1cCB3aGVuIHRoZXkgYXJlbid0IHN1cHBvc2VkIHRv
-Pw0KPiANCj4gTm8gLSB0aGUgd29ya2Zsb3cgdGhhdCBJIGFtIHJlYWxseSB0cnlpbmcgdG8gcmVt
-ZWR5IGlzIHRoaXM6DQo+IA0KPiAgMSkgUzMgcmVzdW1lIHNvbWV0aW1lcyBpc24ndCB3b3JraW5n
-IG9uIHNvbWUgbGFwdG9wIHlvdSd2ZSBnb3QuDQo+ICAyKSBzdGFydCBsb29raW5nIGF0IGRlYnVn
-IG1lc3NhZ2VzDQo+ICAzKSB0aGlzIHNob3dzIGFuIGVycm9yLCBzbyBpdCBsb29rcyBsaWtlIGl0
-J3MgcHJvYmFibHkgdGhlIHByb2JsZW0NCj4gIDQpIGdvIGZpc2hpbmcgZm9yIHJlZCBoZXJyaW5n
-DQo+ICA1KSBpZiB5b3UgaGFwcGVuIHRvIGtub3cgd2hvIG1haW50YWlucyB0aGUgRFNEVCBmb3Ig
-dGhlIHBsYXRmb3JtIGluDQo+ICAgICBxdWVzdGlvbiwgZXZlbnR1YWxseSB3b3JrIG91dCB0aGF0
-IHRoaXMgaXMgd29ya2luZyBhcyBpbnRlbmRlZCBhbmQNCj4gICAgIHRoZSBidWcgaXMgc29tZXBs
-YWNlIGVsc2UuDQo+IDViKSBpZiB5b3UgZG9uJ3Qga25vdyB0aGF0IHBlcnNvbiwgZXZlbnR1YWxs
-eSB3b3JrIG91dCB0aGF0IGl0IC9taWdodC8NCj4gICAgICBiZSBzb21lcGxhY2UgZWxzZS4uLg0K
-PiANCj4gU28gdGhlIGlkZWEgd2FzIHRvIG1ha2UgaXQgbG9vayBtb3JlIGxpa2UgYW4gaW5kaWNh
-dGlvbiBvZiBzdGF0dXMsIGFuZA0KPiBsZXNzIGxpa2UgYW4gZXJyb3IgdGhhdCdzIGNhdXNpbmcg
-dW5yZWxhdGVkIHByb2JsZW1zLg0KPiANCj4gV2hlbiBJIHRhbGtlZCB0byBNYXJpbyBhdCBEZWxs
-IChDYydkKSwgaXQgd2Fzbid0IGNsZWFyIHRvIHVzIHRoYXQNCj4gdGhlcmUncyBhIHdheSB0byBk
-aXN0aW5ndWlzaCB0aGUgYmV0d2VlbiB0aGUgVVVJRCBiZWluZw0KPiBpbnZhbGlkL21hbGZvcm1l
-ZCwgYmVpbmcgbWVyZWx5IHVuc3VwcG9ydGVkLCBvciBiZWluZyBzdXBwb3J0ZWQgaW4gc29tZQ0K
-PiBjb25maWd1cmF0aW9ucyBidXQgbm90IHRoZSBjdXJyZW50IG9uZS4gIEluIHRoaXMgcGFydGlj
-dWxhciBEU0RULCB0aGUNCj4gbWFjaGluZSBkb2Vzbid0IHN1cHBvcnQgdGhlIE9TIGNvbnRyb2xs
-aW5nIGFueSBvZiB0aGlzIGlmIFVTQi1DIC8NCj4gdGh1bmRlcmJvbHQgYXJlIGVuYWJsZWQuICBU
-aGUgRFNEVCBpcyBjbGVhcmx5IHdyaXR0ZW4gd2l0aCB0aGUgYmVsaWVmDQo+IHRoYXQgeW91IGhh
-dmUgdG8gY29tcGxldGVseSBkaXNhYmxlIHRoZSBoYW5kbGluZyBmb3IgdGhhdCBVVUlEIGluIHRo
-aXMNCj4gY2FzZSwgYW5kIGdvb2dsaW5nIGZvciB0aGlzIGxvb2tzIGxpa2UgaXQncyBub3QgdGhl
-IG9ubHkgb25lIHdyaXR0ZW4NCj4gd2l0aCB0aGF0IGJlbGllZi4NCj4gDQo+IFJlYWRpbmcgdGhl
-IHNwZWMgKHY2LjEsIHNlY3Rpb25zIDYuMi4xMS4zIGFuZCA2LjIuMTEuNCksIGl0IHNlZW1zDQo+
-IHBsYXVzaWJsZSB0aGF0IHlvdSBjYW4gZXhwcmVzcyB0aGlzIGluc3RlYWQgYnkgaGFuZGxpbmcg
-dGhlIFVVSUQgYnV0DQo+IGNob29zaW5nIGVhY2ggaW5kaXZpZHVhbCBxdWVyeS9zdGF0dXMgYml0
-IGluIHRoZSB3YXkgdGhhdCBhY2NvbXBsaXNoZXMNCj4gdGhlIE9TIGRvaW5nIG5vdGhpbmcgd2l0
-aCB0aGUgcmVzcG9uc2UuICBTbyBpdCBtYXkgd2VsbCBiZSB0aGF0IHRoYXQncw0KPiBqdXN0IG1v
-cmUgY29kZSB0aGF0IHZlbmRvcnMgaGF2ZSB0aG91Z2h0IHdhc24ndCBuZWNlc3NhcnkgKG9yIHdh
-c24ndA0KPiBjb3JyZWN0IGZvciBzb21lIHJlYXNvbi4pDQo+IA0KPiBNYXJpbywgd2FudCB0byBq
-dW1wIGluIG9uIHlvdXIgdGhpbmtpbmcgaGVyZT8NCj4gDQo+IC0tDQo+ICAgUGV0ZXINCg0KQWZ0
-ZXIgdGFsa2luZyB0byB0aGUgdGVhbSwgSSB3YXMgdG9sZCB0aGlzIHBhcnRpY3VsYXIgaW1wbGVt
-ZW50YXRpb24gdG8gbm90IGxldA0KT1MgdGFrZSBjb250cm9sIHdoZW4gYWN0aW5nIG9uIHRoYXQg
-c3BlY2lmaWMgVVVJRCBiYXNlZCB1cG9uIGEgdmFyaWFibGUgDQooTkVYUCBpbiB0aGlzIGNhc2Up
-IGNhbWUgZnJvbSBJbnRlbCBSQyBjb2RlLiAgDQoNClRoYXQncyBwcm9iYWJseSB3aHkgdGhpcyBp
-cyBhbGwgYWNyb3NzIGEgbG90IG9mIHBsYXRmb3JtcywgaW5jbHVkaW5nIG5vbi1EZWxsLg0KDQpB
-dCBsZWFzdCBpbiB0aGUgY29udGV4dCBvZiB0aGUgbGFwdG9wIFBldGVyIG5vdGljZWQgdGhpcyBv
-biAoRGVsbCBYUFMgMTMgOTM1MCkNCk5FWFAgaXMgc2V0IGluIEdOVlMgYmFzZWQgdXBvbiBUaHVu
-ZGVyYm9sdCBjYXBhYmlsaXR5Lg0KDQpBcyBmb3Igd2h5IHRoZXkgcmV0dXJuIHVucmVjb2duaXpl
-ZCBVVUlEIGluc3RlYWQgb2YganVzdCBtYXNraW5nIGFsbCB0aGUNCmNhcGFiaWxpdGllcyBiaXRz
-PyAgSXQncyB0aGUgc2FtZSBuZXQgZnVuY3Rpb25hbCByZXN1bHQuICBJZiB0aGUgdmVuZG9yIHBy
-b3ZpZGVkDQpSQyBjb2RlIGRvZXNuJ3QgY2F1c2VkIFdDSEsgcHJvYmxlbXMgb3IgZnVuY3Rpb25h
-bCBwcm9ibGVtcyBpdCdzIGhhcmQgdG8gDQptYWtlIGEgY2FzZSBmb3Igd2h5IGl0IG5lZWRzIHRv
-IGJlIGNoYW5nZWQgYnkgdGhlIE9FTS4NCg0KSSB0aGluayB0aGF0IFBldGVyJ3MgcGF0Y2ggaXMg
-YXBwcm9wcmlhdGUgdG8gbWVzc2FnZSB0aGlzIGlzIHNwZWNpZmljYWxseQ0Kd2hhdCdzIGdvaW5n
-IG9uLg0KDQo=
+On Tue, Jun 21, 2016 at 11:01 AM,  <Mario_Limonciello@dell.com> wrote:
+>> -----Original Message-----
+>> From: Peter Jones [mailto:pjones@redhat.com]
+>> Sent: Tuesday, June 21, 2016 10:19 AM
+>> To: Rafael J. Wysocki <rafael@kernel.org>
+>> Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>; Limonciello, Mario
+>> <Mario_Limonciello@Dell.com>; Linux Kernel Mailing List <linux-
+>> kernel@vger.kernel.org>; Len Brown <lenb@kernel.org>; Rafael J . Wysocki
+>> <rjw@rjwysocki.net>; Andy Lutomirski <luto@amacapital.net>
+>> Subject: Re: [PATCH] ACPI: don't show an error when we're not in charge of
+>> PCIe hotplug.
+>>
+>> (Sorry for the slow response - it's deadline time over here.)
+>>
+>> On Thu, Jun 16, 2016 at 04:56:57PM +0200, Rafael J. Wysocki wrote:
+>> > On Thu, Jun 16, 2016 at 2:12 AM, Rafael J. Wysocki <rafael@kernel.org>
+>> wrote:
+>> > > On Thu, Jun 16, 2016 at 12:15 AM, Peter Jones <pjones@redhat.com>
+>> wrote:
+>> > >> Right now when booting, on many laptops the firmware manages the
+>> PCIe
+>> > >> bus.  As a result, when we call the _OSC ACPI method, it returns an
+>> > >> error code.  Unfortunately the errors are not very articulate.
+>> > >
+>> > > What exactly do you mean here?
+>> > >
+>> > >>  As a result, we show:
+>> > >>
+>> > >> ACPI: PCI Root Bridge [PCI0] (domain 0000 [bus 00-fe])
+>> > >> acpi PNP0A08:00: _OSC: OS supports [ExtendedConfig ASPM ClockPM
+>> Segments MSI]
+>> > >> \_SB_.PCI0 (33DB4D5B-1FF7-401C-9657-7441C03DD766): _OSC invalid
+>> UUID
+>> > >> _OSC request data: 1 1f 0
+>> > >
+>> > > So _OSC told us that the UUID was invalid, didn't it?
+>> >
+>> > BTW, the above messages are KERN_DEBUG, so at least in theory they
+>> > shouldn't be visible in production runs.
+>> >
+>> > Maybe the bug to fix is that they show up when they aren't supposed to?
+>>
+>> No - the workflow that I am really trying to remedy is this:
+>>
+>>  1) S3 resume sometimes isn't working on some laptop you've got.
+>>  2) start looking at debug messages
+>>  3) this shows an error, so it looks like it's probably the problem
+>>  4) go fishing for red herring
+>>  5) if you happen to know who maintains the DSDT for the platform in
+>>     question, eventually work out that this is working as intended and
+>>     the bug is someplace else.
+>> 5b) if you don't know that person, eventually work out that it /might/
+>>      be someplace else...
+>>
+>> So the idea was to make it look more like an indication of status, and
+>> less like an error that's causing unrelated problems.
+>>
+>> When I talked to Mario at Dell (Cc'd), it wasn't clear to us that
+>> there's a way to distinguish the between the UUID being
+>> invalid/malformed, being merely unsupported, or being supported in some
+>> configurations but not the current one.  In this particular DSDT, the
+>> machine doesn't support the OS controlling any of this if USB-C /
+>> thunderbolt are enabled.  The DSDT is clearly written with the belief
+>> that you have to completely disable the handling for that UUID in this
+>> case, and googling for this looks like it's not the only one written
+>> with that belief.
+>>
+>> Reading the spec (v6.1, sections 6.2.11.3 and 6.2.11.4), it seems
+>> plausible that you can express this instead by handling the UUID but
+>> choosing each individual query/status bit in the way that accomplishes
+>> the OS doing nothing with the response.  So it may well be that that's
+>> just more code that vendors have thought wasn't necessary (or wasn't
+>> correct for some reason.)
+>>
+>> Mario, want to jump in on your thinking here?
+>>
+>> --
+>>   Peter
+>
+> After talking to the team, I was told this particular implementation to not let
+> OS take control when acting on that specific UUID based upon a variable
+> (NEXP in this case) came from Intel RC code.
+>
+> That's probably why this is all across a lot of platforms, including non-Dell.
+>
+> At least in the context of the laptop Peter noticed this on (Dell XPS 13 9350)
+> NEXP is set in GNVS based upon Thunderbolt capability.
+>
+> As for why they return unrecognized UUID instead of just masking all the
+> capabilities bits?  It's the same net functional result.  If the vendor provided
+> RC code doesn't caused WCHK problems or functional problems it's hard to
+> make a case for why it needs to be changed by the OEM.
+>
+> I think that Peter's patch is appropriate to message this is specifically
+> what's going on.
+>
+
+In general, it seems that Windows is considerably less inclined to
+throw out errors when the DSDT contains spec violations.  It would be
+great if Microsoft were to tighten up their requirements :)
+
+I wonder if Intel could be persuaded to add an ACPI mechanism to grant
+PCIe native control per device or per bus instead of more-or-less
+globally as it is now.
+
+--Andy
