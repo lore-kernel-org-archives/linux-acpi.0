@@ -1,162 +1,60 @@
-From: Lv Zheng <lv.zheng@intel.com>
-Subject: [PATCH 1/2] ACPI / EC: Cleanup boot EC code using acpi_ec_alloc()
-Date: Tue, 21 Jun 2016 17:42:05 +0800
-Message-ID: <665386f1dc0a3f6cc343b00a0cf241c6b4a143f8.1466502046.git.lv.zheng@intel.com>
+From: "Zheng, Lv" <lv.zheng@intel.com>
+Subject: RE: [PATCH v4 1/5] ACPICA: Namespace: Fix a regression that MLC
+ support triggers dead lock in dynamic table loading
+Date: Tue, 21 Jun 2016 09:55:53 +0000
+Message-ID: <1AE640813FDE7649BE1B193DEA596E883BBF6352@SHSMSX101.ccr.corp.intel.com>
+References: <0e65135af51d94db0410c7059f3bc3a2300fc3b5>
+ <cover.1466479787.git.lv.zheng@intel.com>
+ <6cce63a111c40ca70552b003ef5a70eb239afd6f.1466479787.git.lv.zheng@intel.com>
+ <20160621075833.GU1739@lahna.fi.intel.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20160621075833.GU1739@lahna.fi.intel.com>
+Content-Language: en-US
 Sender: linux-kernel-owner@vger.kernel.org
-To: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <len.brown@intel.com>
-Cc: Lv Zheng <lv.zheng@intel.com>, Lv Zheng <zetalog@gmail.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
+To: Mika Westerberg <mika.westerberg@linux.intel.com>
+Cc: "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, "Brown, Len" <len.brown@intel.com>, Lv Zheng <zetalog@gmail.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-Failure handling of the boot EC code is not tidy. This patch cleans
-them up with acpi_ec_alloc().
-This patch also changes acpi_ec_dsdt_probe(), always switches the boot EC
-from the ECDT one to the DSDT one in this function.
+Hi, Mika
 
-Signed-off-by: Lv Zheng <lv.zheng@intel.com>
----
- drivers/acpi/ec.c |   85 ++++++++++++++++++++++++++++++-----------------------
- 1 file changed, 48 insertions(+), 37 deletions(-)
+> From: Mika Westerberg [mailto:mika.westerberg@linux.intel.com]
+> Subject: Re: [PATCH v4 1/5] ACPICA: Namespace: Fix a regression that MLC
+> support triggers dead lock in dynamic table loading
+> 
+> On Tue, Jun 21, 2016 at 12:34:15PM +0800, Lv Zheng wrote:
+> > The new MLC approach invokes MLC per-table basis. But the dynamic
+> loading
+> > support of this is incorrect because of the lock order:
+> >  acpi_ns_evaluate
+> >    acpi_ex_enter_intperter
+> >      acpi_ns_load_table (triggered by Load opcode)
+> >        acpi_ns_exec_module_code_list
+> >          acpi_ex_enter_intperter
+> > The regression is introduced by the following commit:
+> >   Commit: 2785ce8d0da1cac9d8f78615e116cf929e9a9123
+> >   ACPICA Commit: 071eff738c59eda1792ac24b3b688b61691d7e7c
+> >   Subject: ACPICA: Add per-table execution of module-level code
+> > This patch fixes this regression by unlocking the interpreter lock before
+> > invoking MLC. However the unlocking is done to the
+> acpi_ns_load_table(), in
+> > which, the interpreter lock should be locked by acpi_ns_parse_table()
+> but
+> > wasn't. Reported by Mika Westerberg. Fixed by Lv Zheng.
+> >
+> > Fixes: 2785ce8d0da1 ("ACPICA: Add per-table execution of module-level
+> code")
+> > Cc: Mika Westerberg <mika.westerberg@linux.intel.com>
+> > Reported-by: Mika Westerberg <mika.westerberg@linux.intel.com>
+> 
+> Now builds fine and fixes the hang, thanks :)
+> 
+> Tested-by: Mika Westerberg <mika.westerberg@linux.intel.com>
+[Lv Zheng] 
+Great! :)
+I'll leave the SOB correction for Rafael in order not to bother others by re-sending an update.
 
-diff --git a/drivers/acpi/ec.c b/drivers/acpi/ec.c
-index 73c76d6..f63a43a 100644
---- a/drivers/acpi/ec.c
-+++ b/drivers/acpi/ec.c
-@@ -1348,13 +1348,9 @@ static void ec_remove_handlers(struct acpi_ec *ec)
- 	}
- }
- 
--static int acpi_ec_add(struct acpi_device *device)
-+static struct acpi_ec *acpi_ec_alloc(void)
- {
--	struct acpi_ec *ec = NULL;
--	int ret;
--
--	strcpy(acpi_device_name(device), ACPI_EC_DEVICE_NAME);
--	strcpy(acpi_device_class(device), ACPI_EC_CLASS);
-+	struct acpi_ec *ec;
- 
- 	/* Check for boot EC */
- 	if (boot_ec) {
-@@ -1365,9 +1361,21 @@ static int acpi_ec_add(struct acpi_device *device)
- 			first_ec = NULL;
- 	} else {
- 		ec = make_acpi_ec();
--		if (!ec)
--			return -ENOMEM;
- 	}
-+	return ec;
-+}
-+
-+static int acpi_ec_add(struct acpi_device *device)
-+{
-+	struct acpi_ec *ec = NULL;
-+	int ret;
-+
-+	strcpy(acpi_device_name(device), ACPI_EC_DEVICE_NAME);
-+	strcpy(acpi_device_class(device), ACPI_EC_CLASS);
-+
-+	ec = acpi_ec_alloc();
-+	if (!ec)
-+		return -ENOMEM;
- 	if (ec_parse_device(device->handle, 0, ec, NULL) !=
- 		AE_CTRL_TERMINATE) {
- 			kfree(ec);
-@@ -1454,27 +1462,31 @@ static const struct acpi_device_id ec_device_ids[] = {
- int __init acpi_ec_dsdt_probe(void)
- {
- 	acpi_status status;
-+	struct acpi_ec *ec;
-+	int ret;
- 
--	if (boot_ec)
--		return 0;
--
-+	ec = acpi_ec_alloc();
-+	if (!ec)
-+		return -ENOMEM;
- 	/*
- 	 * Finding EC from DSDT if there is no ECDT EC available. When this
- 	 * function is invoked, ACPI tables have been fully loaded, we can
- 	 * walk namespace now.
- 	 */
--	boot_ec = make_acpi_ec();
--	if (!boot_ec)
--		return -ENOMEM;
- 	status = acpi_get_devices(ec_device_ids[0].id,
--				  ec_parse_device, boot_ec, NULL);
--	if (ACPI_FAILURE(status) || !boot_ec->handle)
--		return -ENODEV;
--	if (!ec_install_handlers(boot_ec)) {
--		first_ec = boot_ec;
--		return 0;
-+				  ec_parse_device, ec, NULL);
-+	if (ACPI_FAILURE(status) || !ec->handle) {
-+		ret = -ENODEV;
-+		goto error;
- 	}
--	return -EFAULT;
-+	ret = ec_install_handlers(ec);
-+
-+error:
-+	if (ret)
-+		kfree(ec);
-+	else
-+		first_ec = boot_ec = ec;
-+	return ret;
- }
- 
- #if 0
-@@ -1548,12 +1560,13 @@ static struct dmi_system_id ec_dmi_table[] __initdata = {
- 
- int __init acpi_ec_ecdt_probe(void)
- {
--	int ret = 0;
-+	int ret;
- 	acpi_status status;
- 	struct acpi_table_ecdt *ecdt_ptr;
-+	struct acpi_ec *ec;
- 
--	boot_ec = make_acpi_ec();
--	if (!boot_ec)
-+	ec = acpi_ec_alloc();
-+	if (!ec)
- 		return -ENOMEM;
- 	/*
- 	 * Generate a boot ec context
-@@ -1583,22 +1596,20 @@ int __init acpi_ec_ecdt_probe(void)
- 		 * MSI MS-171F
- 		 * https://bugzilla.kernel.org/show_bug.cgi?id=12461
- 		 */
--		boot_ec->command_addr = ecdt_ptr->data.address;
--		boot_ec->data_addr = ecdt_ptr->control.address;
-+		ec->command_addr = ecdt_ptr->data.address;
-+		ec->data_addr = ecdt_ptr->control.address;
- 	} else {
--		boot_ec->command_addr = ecdt_ptr->control.address;
--		boot_ec->data_addr = ecdt_ptr->data.address;
-+		ec->command_addr = ecdt_ptr->control.address;
-+		ec->data_addr = ecdt_ptr->data.address;
- 	}
--	boot_ec->gpe = ecdt_ptr->gpe;
--	boot_ec->handle = ACPI_ROOT_OBJECT;
--	ret = ec_install_handlers(boot_ec);
--	if (!ret)
--		first_ec = boot_ec;
-+	ec->gpe = ecdt_ptr->gpe;
-+	ec->handle = ACPI_ROOT_OBJECT;
-+	ret = ec_install_handlers(ec);
- error:
--	if (ret) {
--		kfree(boot_ec);
--		boot_ec = NULL;
--	}
-+	if (ret)
-+		kfree(ec);
-+	else
-+		first_ec = boot_ec = ec;
- 	return ret;
- }
- 
--- 
-1.7.10
+Thanks and best regards
+-Lv
