@@ -1,131 +1,76 @@
-From: "Rafael J. Wysocki" <rafael@kernel.org>
-Subject: Re: [PATCH] ACPI: don't show an error when we're not in charge of
- PCIe hotplug.
-Date: Wed, 22 Jun 2016 00:54:03 +0200
-Message-ID: <CAJZ5v0ipcnC2zP_rGSmvovGVeHWf=xc6N57SnPKHrwCKpynXOw@mail.gmail.com>
-References: <1466028904-28328-1-git-send-email-pjones@redhat.com>
- <CAJZ5v0g5_M=iNLE_P4eOcwJet=jPm_EifAMdDtvG+TR=1AnU2Q@mail.gmail.com>
- <CAJZ5v0ifNFP5jzPf+zMC3rJ1HKzBmCz1AdhsAsmj75EpndoPTQ@mail.gmail.com>
- <20160621151853.GE28967@redhat.com> <cf3d90a8598241ff9b6e28b8fb037633@ausx13mpc120.AMER.DELL.COM>
- <CALCETrWYqR22WJDX_CTBFom7Ti_Jc++BRvu3VKJ22QpGe6+6Xg@mail.gmail.com>
+From: Mark Brown <broonie@kernel.org>
+Subject: Re: [PATCH v4 0/2] ASoC: da7219: Convert driver to use
+ generic FW functions
+Date: Wed, 22 Jun 2016 00:21:16 +0100
+Message-ID: <20160621232116.GG28202@sirena.org.uk>
+References: <cover.1466523027.git.Adam.Thomson.Opensource@diasemi.com>
+ <6274a042-da99-e3e6-20f2-37ce2651645c@intel.com>
+ <2E89032DDAA8B9408CB92943514A0337D4644644@SW-EX-MBX01.diasemi.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <CALCETrWYqR22WJDX_CTBFom7Ti_Jc++BRvu3VKJ22QpGe6+6Xg@mail.gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Andy Lutomirski <luto@amacapital.net>
-Cc: Mario Limonciello <Mario_Limonciello@dell.com>, Peter Jones <pjones@redhat.com>, Rafael Wysocki <rafael@kernel.org>, Linux ACPI <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Len Brown <lenb@kernel.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Content-Type: multipart/mixed; boundary="===============1550405484819894160=="
+Return-path: <alsa-devel-bounces@alsa-project.org>
+In-Reply-To: <2E89032DDAA8B9408CB92943514A0337D4644644@SW-EX-MBX01.diasemi.com>
+List-Unsubscribe: <http://mailman.alsa-project.org/mailman/options/alsa-devel>,
+ <mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
+List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel/>
+List-Post: <mailto:alsa-devel@alsa-project.org>
+List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
+List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+ <mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
+Errors-To: alsa-devel-bounces@alsa-project.org
+Sender: alsa-devel-bounces@alsa-project.org
+To: "Opensource [Adam Thomson]" <Adam.Thomson.Opensource@diasemi.com>
+Cc: Sathyanarayana Nujella <sathyanarayana.nujella@intel.com>, devicetree <devicetree@vger.kernel.org>, alsa-devel <alsa-devel@alsa-project.org>, Heikki Krogerus <heikki.krogerus@linux.intel.com>, Support Opensource <Support.Opensource@diasemi.com>, Frank Rowand <frowand.list@gmail.com>, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Robert Moore <robert.moore@intel.com>, Liam Girdwood <lgirdwood@gmail.com>, linux-acpi <linux-acpi@vger.kernel.org>, Rob Herring <robh+dt@kernel.org>, Lv Zheng <lv.zheng@intel.com>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Mika Westerberg <mika.westerberg@linux.intel.com>, linux-kernel <linux-kernel@vger.kernel.org>, Len Brown <lenb@kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On Tue, Jun 21, 2016 at 8:07 PM, Andy Lutomirski <luto@amacapital.net> wrote:
-> On Tue, Jun 21, 2016 at 11:01 AM,  <Mario_Limonciello@dell.com> wrote:
->>> -----Original Message-----
->>> From: Peter Jones [mailto:pjones@redhat.com]
->>> Sent: Tuesday, June 21, 2016 10:19 AM
->>> To: Rafael J. Wysocki <rafael@kernel.org>
->>> Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>; Limonciello, Mario
->>> <Mario_Limonciello@Dell.com>; Linux Kernel Mailing List <linux-
->>> kernel@vger.kernel.org>; Len Brown <lenb@kernel.org>; Rafael J . Wysocki
->>> <rjw@rjwysocki.net>; Andy Lutomirski <luto@amacapital.net>
->>> Subject: Re: [PATCH] ACPI: don't show an error when we're not in charge of
->>> PCIe hotplug.
->>>
->>> (Sorry for the slow response - it's deadline time over here.)
->>>
->>> On Thu, Jun 16, 2016 at 04:56:57PM +0200, Rafael J. Wysocki wrote:
->>> > On Thu, Jun 16, 2016 at 2:12 AM, Rafael J. Wysocki <rafael@kernel.org>
->>> wrote:
->>> > > On Thu, Jun 16, 2016 at 12:15 AM, Peter Jones <pjones@redhat.com>
->>> wrote:
->>> > >> Right now when booting, on many laptops the firmware manages the
->>> PCIe
->>> > >> bus.  As a result, when we call the _OSC ACPI method, it returns an
->>> > >> error code.  Unfortunately the errors are not very articulate.
->>> > >
->>> > > What exactly do you mean here?
->>> > >
->>> > >>  As a result, we show:
->>> > >>
->>> > >> ACPI: PCI Root Bridge [PCI0] (domain 0000 [bus 00-fe])
->>> > >> acpi PNP0A08:00: _OSC: OS supports [ExtendedConfig ASPM ClockPM
->>> Segments MSI]
->>> > >> \_SB_.PCI0 (33DB4D5B-1FF7-401C-9657-7441C03DD766): _OSC invalid
->>> UUID
->>> > >> _OSC request data: 1 1f 0
->>> > >
->>> > > So _OSC told us that the UUID was invalid, didn't it?
->>> >
->>> > BTW, the above messages are KERN_DEBUG, so at least in theory they
->>> > shouldn't be visible in production runs.
->>> >
->>> > Maybe the bug to fix is that they show up when they aren't supposed to?
->>>
->>> No - the workflow that I am really trying to remedy is this:
->>>
->>>  1) S3 resume sometimes isn't working on some laptop you've got.
->>>  2) start looking at debug messages
->>>  3) this shows an error, so it looks like it's probably the problem
->>>  4) go fishing for red herring
->>>  5) if you happen to know who maintains the DSDT for the platform in
->>>     question, eventually work out that this is working as intended and
->>>     the bug is someplace else.
->>> 5b) if you don't know that person, eventually work out that it /might/
->>>      be someplace else...
->>>
->>> So the idea was to make it look more like an indication of status, and
->>> less like an error that's causing unrelated problems.
->>>
->>> When I talked to Mario at Dell (Cc'd), it wasn't clear to us that
->>> there's a way to distinguish the between the UUID being
->>> invalid/malformed, being merely unsupported, or being supported in some
->>> configurations but not the current one.  In this particular DSDT, the
->>> machine doesn't support the OS controlling any of this if USB-C /
->>> thunderbolt are enabled.  The DSDT is clearly written with the belief
->>> that you have to completely disable the handling for that UUID in this
->>> case, and googling for this looks like it's not the only one written
->>> with that belief.
->>>
->>> Reading the spec (v6.1, sections 6.2.11.3 and 6.2.11.4), it seems
->>> plausible that you can express this instead by handling the UUID but
->>> choosing each individual query/status bit in the way that accomplishes
->>> the OS doing nothing with the response.  So it may well be that that's
->>> just more code that vendors have thought wasn't necessary (or wasn't
->>> correct for some reason.)
->>>
->>> Mario, want to jump in on your thinking here?
->>>
->>> --
->>>   Peter
->>
->> After talking to the team, I was told this particular implementation to not let
->> OS take control when acting on that specific UUID based upon a variable
->> (NEXP in this case) came from Intel RC code.
->>
->> That's probably why this is all across a lot of platforms, including non-Dell.
->>
->> At least in the context of the laptop Peter noticed this on (Dell XPS 13 9350)
->> NEXP is set in GNVS based upon Thunderbolt capability.
->>
->> As for why they return unrecognized UUID instead of just masking all the
->> capabilities bits?  It's the same net functional result.  If the vendor provided
->> RC code doesn't caused WCHK problems or functional problems it's hard to
->> make a case for why it needs to be changed by the OEM.
->>
->> I think that Peter's patch is appropriate to message this is specifically
->> what's going on.
->>
->
-> In general, it seems that Windows is considerably less inclined to
-> throw out errors when the DSDT contains spec violations.  It would be
-> great if Microsoft were to tighten up their requirements :)
 
-Agreed (but I speak for myself only as usual).
+--===============1550405484819894160==
+Content-Type: multipart/signed; micalg=pgp-sha256;
+	protocol="application/pgp-signature"; boundary="XRI2XbIfl/05pQwm"
+Content-Disposition: inline
 
-> I wonder if Intel could be persuaded to add an ACPI mechanism to grant
-> PCIe native control per device or per bus instead of more-or-less
-> globally as it is now.
 
-I guess at least in some cases it just has to be done that way.
+--XRI2XbIfl/05pQwm
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-Thanks,
-Rafael
+On Tue, Jun 21, 2016 at 10:54:39PM +0000, Opensource [Adam Thomson] wrote:
+> On 21 June 2016 23:30, Rafael J. Wysocki wrote:
+
+> > I'm fine with the first patch and the second one carries a couple of
+> > ACKs already, so do you want me to apply them both?
+
+None of whom are from anyone who works on the subsystem at all!  I've
+not looked at the patch yet.
+
+> Thanks Rafael. I think we still need Mark's Ack for the ASoC codec changes
+> though before we can proceed.
+
+Probably the easiest thing would be a tag for the core change that I can
+pull.
+
+--XRI2XbIfl/05pQwm
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2
+
+iQEcBAEBCAAGBQJXacvrAAoJECTWi3JdVIfQJ0gH/1Xq4MRqO/W6mePzXOH4ThPL
+RSfBji5Ji5t+cv1FtWU0f453fDro7QRsQP6FVb65JzNRCKlZOS9FcsJQ631Lzb7S
+LpqrCQfr1jdwGZMknAAcZVl98k8GarBFIfr2YnAcXZ549vYm2z92GozUlE9TO4ur
+AcOVC5hEW5ThjFfImqzzTQGCd+XIELJAOZVb6zHgGc7glES23fmeIfnCRcR/LY/h
+y6dZA+d5WW3+tZa3nTUf2J/TNtKo+vXPV0cexSt8Blpi/QOZDhTJI/oyXUvCVRu4
+htQ4j8nfgB7+/nLwbGExmz78J+S+K2uIIK7eR90Bzm8xcdPoyYiTLttVzdGr/EA=
+=e9EC
+-----END PGP SIGNATURE-----
+
+--XRI2XbIfl/05pQwm--
+
+--===============1550405484819894160==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+
+
+--===============1550405484819894160==--
