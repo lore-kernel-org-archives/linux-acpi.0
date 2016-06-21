@@ -1,266 +1,88 @@
-From: Ard Biesheuvel <ard.biesheuvel@linaro.org>
-Subject: Re: [RFC PATCH v3 1/2] ACPI/PCI: Check platform specific ECAM quirks
-Date: Tue, 21 Jun 2016 10:37:27 +0200
-Message-ID: <CAKv+Gu9epdO_OLt1KnmO2kwCM_hYCx_hCJ7c_c=AwB=OwExrFA@mail.gmail.com>
-References: <1466004851-10214-1-git-send-email-cov@codeaurora.org>
- <20160620171649.GA30267@red-moon>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <20160620171649.GA30267@red-moon>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
-Cc: Gabriele Paoloni <gabriele.paoloni@huawei.com>, linux-pci@vger.kernel.org, Sinan Kaya <okaya@codeaurora.org>, "linux-arch@vger.kernel.org" <linux-arch@vger.kernel.org>, Jeff Hugo <jhugo@codeaurora.org>, Tomasz Nowicki <tn@semihalf.com>, David Daney <ddaney@caviumnetworks.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Robert Richter <robert.richter@caviumnetworks.com>, Dongdong Liu <liudongdong3@huawei.com>, Mark Salter <msalter@redhat.com>, Len Brown <lenb@kernel.org>, Arnd Bergmann <arnd@arndb.de>, Jon Masters <jcm@redhat.com>, Christopher Covington <cov@codeaurora.org>, Bjorn Helgaas <bhelgaas@google.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Jayachandran C <jchandra@broadcom.com>, Duc Dang <dhdang@apm.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
+From: Lv Zheng <lv.zheng@intel.com>
+Subject: [PATCH 2/2] ACPI / EC: Remove wrong ECDT correction quirks
+Date: Tue, 21 Jun 2016 17:42:12 +0800
+Message-ID: <6212e8b667ffbc3dfdbf0500ca908bc1a87cbece.1466502046.git.lv.zheng@intel.com>
+References: <665386f1dc0a3f6cc343b00a0cf241c6b4a143f8.1466502046.git.lv.zheng@intel.com>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <665386f1dc0a3f6cc343b00a0cf241c6b4a143f8.1466502046.git.lv.zheng@intel.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <len.brown@intel.com>
+Cc: Lv Zheng <lv.zheng@intel.com>, Lv Zheng <zetalog@gmail.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-On 20 June 2016 at 19:16, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com> wrote:
-> [+ Ard, Arnd]
->
-> On Wed, Jun 15, 2016 at 11:34:10AM -0400, Christopher Covington wrote:
->> From: Tomasz Nowicki <tn@semihalf.com>
->>
->> Some platforms may not be fully compliant with the generic PCI config
->> operations. For these cases we implement a way to use custom map and
->> accessor functions. The algorithm traverses the available quirk list,
->> matches against <oem_id, oem_table_id, oem_revision, domain, bus number>
->> tuples and returns corresponding PCI config ops. oem_id, oem_table_id, and
->> oem_revision come from the MCFG table standard header. All quirks can be
->> defined using the DECLARE_ACPI_MCFG_FIXUP() macro and are kept self
->> contained. Example:
->>
->> /* Custom PCI config ops */
->> static struct pci_generic_ecam_ops foo_pci_ops = {
->>       .bus_shift      = 24,
->>       .pci_ops = {
->>               .map_bus = pci_ecam_map_bus,
->>               .read = foo_ecam_config_read,
->>               .write = foo_ecam_config_write,
->>       }
->> };
->>
->> DECLARE_ACPI_MCFG_FIXUP(&foo_pci_ops, "OEM", "TABLE-ID", <revision>,
->>                       <domain_nr>, <bus_nr>);
->>
->> Signed-off-by: Tomasz Nowicki <tn@semihalf.com>
->> Signed-off-by: Dongdong Liu <liudongdong3@huawei.com>
->> Signed-off-by: Christopher Covington <cov@codeaurora.org>
->>
->> ---
->>
->> Changes from v2 to v3:
->> * Match against all three of oem_id, oem_table_id, and oem_revision.
->> * Perform substring match, so padding oem_id and oem_table_id isn't
->>   required. (Using min_t() thanks to Duc Dang's suggestion.)
->> * Print when quirk matched.
->> * Use __UNIQUE_ID() macro to generate a valid, unique symbol name even
->>   when OEM and table IDs contain characters such as dash "-".
->> * Move extern declaration to header and fix spelling and formatting to
->>   satisfy checkpatch/coding style.
->> ---
->>  drivers/acpi/pci_mcfg.c           | 49 ++++++++++++++++++++++++++++++++++++---
->>  include/asm-generic/vmlinux.lds.h |  7 ++++++
->>  include/linux/pci-acpi.h          | 24 +++++++++++++++++++
->>  3 files changed, 77 insertions(+), 3 deletions(-)
->>
->> diff --git a/drivers/acpi/pci_mcfg.c b/drivers/acpi/pci_mcfg.c
->> index b5b376e..2a5d3dd 100644
->> --- a/drivers/acpi/pci_mcfg.c
->> +++ b/drivers/acpi/pci_mcfg.c
->> @@ -22,6 +22,10 @@
->>  #include <linux/kernel.h>
->>  #include <linux/pci.h>
->>  #include <linux/pci-acpi.h>
->> +#include <linux/pci-ecam.h>
->> +
->> +/* Root pointer to the mapped MCFG table */
->> +static struct acpi_table_mcfg *mcfg_table;
->>
->>  /* Structure to hold entries from the MCFG table */
->>  struct mcfg_entry {
->> @@ -35,6 +39,46 @@ struct mcfg_entry {
->>  /* List to save MCFG entries */
->>  static LIST_HEAD(pci_mcfg_list);
->>
->> +static bool pci_mcfg_fixup_match(struct pci_cfg_fixup *f,
->> +                              struct acpi_table_header *h)
->> +{
->> +     int olen = min_t(u8, strlen(f->oem_id), ACPI_OEM_ID_SIZE);
->> +     int tlen = min_t(u8, strlen(f->oem_table_id), ACPI_OEM_TABLE_ID_SIZE);
->> +
->> +     return (!strncmp(f->oem_id, h->oem_id, olen) &&
->> +             !strncmp(f->oem_table_id, h->oem_table_id, tlen) &&
->> +             f->oem_revision == h->oem_revision);
->> +}
->> +
->> +struct pci_ecam_ops *pci_mcfg_get_ops(struct acpi_pci_root *root)
->> +{
->> +     int bus_num = root->secondary.start;
->> +     int domain = root->segment;
->> +     struct pci_cfg_fixup *f;
->> +
->> +     if (!mcfg_table)
->> +             return &pci_generic_ecam_ops;
->> +
->> +     /*
->> +      * Match against platform specific quirks and return corresponding CAM
->> +      * ops.
->> +      *
->> +      * First match against PCI topology <domain:bus> then use OEM ID, OEM
->> +      * table ID, and OEM revision from MCFG table standard header.
->> +      */
->> +     for (f = __start_acpi_mcfg_fixups; f < __end_acpi_mcfg_fixups; f++) {
->> +             if ((f->domain == domain || f->domain == PCI_MCFG_DOMAIN_ANY) &&
->> +                 (f->bus_num == bus_num || f->bus_num == PCI_MCFG_BUS_ANY) &&
->> +                 pci_mcfg_fixup_match(f, &mcfg_table->header)) {
->> +                     pr_info("Handling %s %s r%d PCI MCFG quirks\n",
->> +                             f->oem_id, f->oem_table_id, f->oem_revision);
->> +                     return f->ops;
->> +             }
->> +     }
->> +     /* No quirks, use ECAM */
->> +     return &pci_generic_ecam_ops;
->> +}
->> +
->>  phys_addr_t pci_mcfg_lookup(u16 seg, struct resource *bus_res)
->>  {
->>       struct mcfg_entry *e;
->> @@ -54,7 +98,6 @@ phys_addr_t pci_mcfg_lookup(u16 seg, struct resource *bus_res)
->>
->>  static __init int pci_mcfg_parse(struct acpi_table_header *header)
->>  {
->> -     struct acpi_table_mcfg *mcfg;
->>       struct acpi_mcfg_allocation *mptr;
->>       struct mcfg_entry *e, *arr;
->>       int i, n;
->> @@ -64,8 +107,8 @@ static __init int pci_mcfg_parse(struct acpi_table_header *header)
->>
->>       n = (header->length - sizeof(struct acpi_table_mcfg)) /
->>                                       sizeof(struct acpi_mcfg_allocation);
->> -     mcfg = (struct acpi_table_mcfg *)header;
->> -     mptr = (struct acpi_mcfg_allocation *) &mcfg[1];
->> +     mcfg_table = (struct acpi_table_mcfg *)header;
->> +     mptr = (struct acpi_mcfg_allocation *) &mcfg_table[1];
->>
->>       arr = kcalloc(n, sizeof(*arr), GFP_KERNEL);
->>       if (!arr)
->> diff --git a/include/asm-generic/vmlinux.lds.h b/include/asm-generic/vmlinux.lds.h
->> index 6a67ab9..43604fc 100644
->> --- a/include/asm-generic/vmlinux.lds.h
->> +++ b/include/asm-generic/vmlinux.lds.h
->> @@ -300,6 +300,13 @@
->>               VMLINUX_SYMBOL(__end_pci_fixups_suspend_late) = .;      \
->>       }                                                               \
->>                                                                       \
->> +     /* ACPI MCFG quirks */                                          \
->> +     .acpi_fixup        : AT(ADDR(.acpi_fixup) - LOAD_OFFSET) {      \
->> +             VMLINUX_SYMBOL(__start_acpi_mcfg_fixups) = .;           \
->> +             *(.acpi_fixup_mcfg)                                     \
->> +             VMLINUX_SYMBOL(__end_acpi_mcfg_fixups) = .;             \
->> +     }                                                               \
->> +                                                                     \
->>       /* Built-in firmware blobs */                                   \
->>       .builtin_fw        : AT(ADDR(.builtin_fw) - LOAD_OFFSET) {      \
->>               VMLINUX_SYMBOL(__start_builtin_fw) = .;                 \
->> diff --git a/include/linux/pci-acpi.h b/include/linux/pci-acpi.h
->> index 7d63a66..dac851b 100644
->> --- a/include/linux/pci-acpi.h
->> +++ b/include/linux/pci-acpi.h
->> @@ -25,6 +25,7 @@ static inline acpi_status pci_acpi_remove_pm_notifier(struct acpi_device *dev)
->>  extern phys_addr_t acpi_pci_root_get_mcfg_addr(acpi_handle handle);
->>
->>  extern phys_addr_t pci_mcfg_lookup(u16 domain, struct resource *bus_res);
->> +extern struct pci_ecam_ops *pci_mcfg_get_ops(struct acpi_pci_root *root);
->>
->>  static inline acpi_handle acpi_find_root_bridge_handle(struct pci_dev *pdev)
->>  {
->> @@ -72,6 +73,29 @@ struct acpi_pci_root_ops {
->>       int (*prepare_resources)(struct acpi_pci_root_info *info);
->>  };
->>
->> +struct pci_cfg_fixup {
->> +     struct pci_ecam_ops *ops;
->> +     char *oem_id;
->> +     char *oem_table_id;
->> +     u32 oem_revision;
->> +     int domain;
->> +     int bus_num;
->> +};
->> +
->> +extern struct pci_cfg_fixup __start_acpi_mcfg_fixups[];
->> +extern struct pci_cfg_fixup __end_acpi_mcfg_fixups[];
->> +
->> +#define PCI_MCFG_DOMAIN_ANY  -1
->> +#define PCI_MCFG_BUS_ANY     -1
->> +
->> +/* Designate a routine to fix up buggy MCFG */
->> +#define DECLARE_ACPI_MCFG_FIXUP(ops, oem, table, rev, dom, bus)      \
->> +     static const struct pci_cfg_fixup                       \
->> +     __UNIQUE_ID(mcfg_fixup_)                                \
->> +     __used  __attribute__((__section__(".acpi_fixup_mcfg"), \
->> +                             aligned((sizeof(void *))))) =   \
->> +     { ops, oem, table, rev, dom, bus }
->> +
->
-> Ok, a couple of comments on this quirks handling mechanism.
->
-> Given that it is supposed to be just a temporary workaround for
-> 1st generation non-ECAM-compliant platforms, the same mechanism
-> can be implemented through a static array of hooks, that, through
-> the same MCFG matching mechanism, initialize the pci_ops for
-> the given platform.
->
-> Furthermore, I suspect we do not even need a way to pass the
-> non-ECAM compliant config space resources to the OS (ie we can't
-> change FW anymore anyway in some platforms) so the quirks hooks
-> are likely to hardcode the required config space addresses for
-> the respective MCFG match.
->
+Our Windows probe result shows that EC._REG is evaluated after evaluating
+all _INI/_STA control methods.
 
-As discussed off-list, I strongly second the idea to have a static
-quirks array for hardware/firmware combos that are currently in the
-pipeline, and for which we need special handling in software to be
-able to drive them at all. This should be based on exact OEM table/rev
-id matches, and contain all supplementary information required to
-implement the quirk in the kernel source code. Anything that could
-potentially be used to 'cheat', e.g., an OEM id triggering a substring
-match on a platform that we currently don't know about, or things like
-_DSD properties to parametrize the quirks implementation are out of
-the question IMO
+With boot EC always switched in acpi_ec_dsdt_probe(), we can see that as
+long as there is no EC opregion accesses in the MLC (module level code, AML
+code out of any control methods) and in _INI/_STA, there is no need to make
+sure that ECDT must be correct.
 
-> It should be easier to implement (provided we find a place where
-> to add this static array of hooks matching MCFG, I suspect it is
-> going to be a file in drivers/pci/host but Tomasz and I need
-> input on that) and prevent abuse (since it is a static array of
-> hooks in a single place, it is easier to manage than section
-> entries).
->
-> Either that or we keep the section entry linker script approach
-> this series implements, which means that the quirks handling hook
-> will be added to a specific section instead of a static array,
-> I see no other option.
->
+Bugs of 9399/12461 were reported against an order issue that BAT0/1._STA
+evaluations contain EC accesses while the ECDT setting is wrong.
 
-I know __weak functions are unpopular, but in this case, having a
-__weak empty function in the MCFG/ECAM core code, and overriding it in
-arch/arm64/xxx/mcfg-quirks.c does not sound unreasonable to me.
+>From the acpidump output posted on bug 9399, we can see that it is actually
+a different issue. In this table, if EC._REG is not executed, EC accesses
+will be done in a platform specific manner. As we've already ensured not to
+execute EC._REG during the eary stage, we can remove the quirks for bug
+9399.
 
-> Last but not least, the MCFG table must not contain any region
-> that is not ECAM compliant, I understand we need quirks but
-> we must not abuse a standard table to provide the OS resources
-> that are really not ECAM compliant when they are supposed to be.
->
-> Tomasz will post a follow-up patch to this series implementing
-> the above, if you have any comments/concerns/questions or you see
-> anything wrong with what I say above please do chime in.
->
-> Thanks !
-> Lorenzo
+>From the acpidump output posted on bug 12461, we can see that it still
+needs the quirk. In this table, EC._REG flags a named object whose default
+value is One, thus BAT1._STA surely should invoke EC accesses whatever we
+invoke EC._REG or not. We have to keep the quirk for it before we can root
+cause the issue.
+
+Signed-off-by: Lv Zheng <lv.zheng@intel.com>
+---
+ drivers/acpi/ec.c |   21 +++++----------------
+ 1 file changed, 5 insertions(+), 16 deletions(-)
+
+diff --git a/drivers/acpi/ec.c b/drivers/acpi/ec.c
+index f63a43a..b1050a0 100644
+--- a/drivers/acpi/ec.c
++++ b/drivers/acpi/ec.c
+@@ -1530,6 +1530,11 @@ static int ec_clear_on_resume(const struct dmi_system_id *id)
+ 	return 0;
+ }
+ 
++/*
++ * Some ECDTs contain wrong register addresses.
++ * MSI MS-171F
++ * https://bugzilla.kernel.org/show_bug.cgi?id=12461
++ */
+ static int ec_correct_ecdt(const struct dmi_system_id *id)
+ {
+ 	pr_debug("Detected system needing ECDT address correction.\n");
+@@ -1539,16 +1544,6 @@ static int ec_correct_ecdt(const struct dmi_system_id *id)
+ 
+ static struct dmi_system_id ec_dmi_table[] __initdata = {
+ 	{
+-	ec_correct_ecdt, "Asus L4R", {
+-	DMI_MATCH(DMI_BIOS_VERSION, "1008.006"),
+-	DMI_MATCH(DMI_PRODUCT_NAME, "L4R"),
+-	DMI_MATCH(DMI_BOARD_NAME, "L4R") }, NULL},
+-	{
+-	ec_correct_ecdt, "Asus M6R", {
+-	DMI_MATCH(DMI_BIOS_VERSION, "0207"),
+-	DMI_MATCH(DMI_PRODUCT_NAME, "M6R"),
+-	DMI_MATCH(DMI_BOARD_NAME, "M6R") }, NULL},
+-	{
+ 	ec_correct_ecdt, "MSI MS-171F", {
+ 	DMI_MATCH(DMI_SYS_VENDOR, "Micro-Star"),
+ 	DMI_MATCH(DMI_PRODUCT_NAME, "MS-171F"),}, NULL},
+@@ -1590,12 +1585,6 @@ int __init acpi_ec_ecdt_probe(void)
+ 
+ 	pr_info("EC description table is found, configuring boot EC\n");
+ 	if (EC_FLAGS_CORRECT_ECDT) {
+-		/*
+-		 * Asus L4R, Asus M6R
+-		 * https://bugzilla.kernel.org/show_bug.cgi?id=9399
+-		 * MSI MS-171F
+-		 * https://bugzilla.kernel.org/show_bug.cgi?id=12461
+-		 */
+ 		ec->command_addr = ecdt_ptr->data.address;
+ 		ec->data_addr = ecdt_ptr->control.address;
+ 	} else {
+-- 
+1.7.10
