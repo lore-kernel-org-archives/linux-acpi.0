@@ -1,59 +1,205 @@
-From: Paolo Bonzini <pbonzini@redhat.com>
-Subject: Re: [LKP] [lkp] [x86 tsc] 19fa5e7364: WARNING: CPU: 0 PID: 0 at
- arch/x86/mm/extable.c:50 ex_handler_rdmsr_unsafe+0x72/0x80
-Date: Tue, 21 Jun 2016 12:10:11 +0200
-Message-ID: <1e840272-9a0c-1e95-0356-12c031df7458@redhat.com>
-References: <CADjb_WQVKRWZs+d2iK17i42_kRHBN=m8xo5i3ydDv1QWbT5MyA@mail.gmail.com>
- <SG2PR02MB15503CF343A5B5868F11C637802B0@SG2PR02MB1550.apcprd02.prod.outlook.com>
- <CANRm+Cyu8Vd_BudEPFBnvq4MuA0XY4RTNudfpwbEiM5yCzJpZw@mail.gmail.com>
+From: "Opensource [Adam Thomson]" <Adam.Thomson.Opensource@diasemi.com>
+Subject: Re: [RESEND PATCH v3 1/2] device property: Add
+ function to search for named child of device
+Date: Tue, 21 Jun 2016 10:20:15 +0000
+Message-ID: <2E89032DDAA8B9408CB92943514A0337D464422E@SW-EX-MBX01.diasemi.com>
+References: <cover.1466421714.git.Adam.Thomson.Opensource@diasemi.com>
+ <866c9edccdd89805f6a0c0aa92f8a78ae616ed61.1466421714.git.Adam.Thomson.Opensource@diasemi.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: base64
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <CANRm+Cyu8Vd_BudEPFBnvq4MuA0XY4RTNudfpwbEiM5yCzJpZw@mail.gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Wanpeng Li <kernellwp@gmail.com>, Yu Chen <yu.chen.surf@gmail.com>, kernel test robot <xiaolong.ye@intel.com>
-Cc: Linux PM list <linux-pm@vger.kernel.org>, linux-acpi@vger.kernel.org, Len Brown <len.brown@intel.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, kvm <kvm@vger.kernel.org>, Radim Krcmar <rkrcmar@redhat.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Zhang Rui <rui.zhang@intel.com>, lkp@01.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <alsa-devel-bounces@alsa-project.org>
+In-Reply-To: <866c9edccdd89805f6a0c0aa92f8a78ae616ed61.1466421714.git.Adam.Thomson.Opensource@diasemi.com>
+Content-Language: en-US
+List-Unsubscribe: <http://mailman.alsa-project.org/mailman/options/alsa-devel>,
+ <mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
+List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel/>
+List-Post: <mailto:alsa-devel@alsa-project.org>
+List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
+List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+ <mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
+Errors-To: alsa-devel-bounces@alsa-project.org
+Sender: alsa-devel-bounces@alsa-project.org
+To: "Opensource [Adam Thomson]" <Adam.Thomson.Opensource@diasemi.com>, Robert Moore <robert.moore@intel.com>, Lv Zheng <lv.zheng@intel.com>, "Rafael J.Wysocki" <rafael.j.wysocki@intel.com>, Heikki Krogerus <heikki.krogerus@linux.intel.com>, Mika Westerberg <mika.westerberg@linux.intel.com>, Len Brown <lenb@kernel.org>, Andy
+ Shevchenko <andriy.shevchenko@linux.intel.com>, Rob Herring <robh+dt@kernel.org>, Frank Rowand <frowand.list@gmail.com>, Mark Brown <broonie@kernel.org>, Liam Girdwood <lgirdwood@gmail.com>, Jaroslav Kysela <perex@perex.cz>, Takashi Iwai <tiwai@suse.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, "alsa-devel@alsa-project.org" <alsa-devel@alsa-project.org>, Support Opensource <Support.Opensource@diasemi.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Sathyanarayana Nujella <sathyanarayana.nujella@intel.com>
 List-Id: linux-acpi@vger.kernel.org
 
-DQoNCk9uIDIxLzA2LzIwMTYgMDg6MDgsIFdhbnBlbmcgTGkgd3JvdGU6DQo+IENjIEtWTSBN
-TCwgUGFvbG8sIFJhZGltLA0KPj4+IEZZSSwgcmF3IFFFTVUgY29tbWFuZCBsaW5lIGlzOg0K
-Pj4+DQo+Pj4gICAgICAgICBxZW11LXN5c3RlbS14ODZfNjQgLWVuYWJsZS1rdm0gLWNwdSBT
-YW5keUJyaWRnZSAta2VybmVsIC9wa2cvbGludXgveDg2XzY0LXJhbmRjb25maWctdzAtMDYx
-ODA2MjgvZ2NjLTYvMTlmYTVlNzM2NDdmZGUxZTZhNzAzOGE4ZjA1Y2RkZjRjNDNmMDhkMy92
-bWxpbnV6LTQuNy4wLXJjMy0wMDAwOS1nMTlmYTVlNyAtYXBwZW5kICdyb290PS9kZXYvcmFt
-MCB1c2VyPWxrcCBqb2I9L2xrcC9zY2hlZHVsZWQvdm0ta2J1aWxkLXlvY3RvLXg4Nl82NC0z
-Mi9iaXNlY3RfYm9vdC0xLXlvY3RvLW1pbmltYWwteDg2XzY0LmNnei14ODZfNjQtcmFuZGNv
-bmZpZy13MC0wNjE4MDYyOC0xOWZhNWU3MzY0N2ZkZTFlNmE3MDM4YThmMDVjZGRmNGM0M2Yw
-OGQzLTIwMTYwNjE4LTI1NTM1LWg4MmJheC0wLnlhbWx+IEFSQ0g9eDg2XzY0IGtjb25maWc9
-eDg2XzY0LXJhbmRjb25maWctdzAtMDYxODA2MjggYnJhbmNoPWludGVybmFsLWV5d2EvbWFz
-dGVyIGNvbW1pdD0xOWZhNWU3MzY0N2ZkZTFlNmE3MDM4YThmMDVjZGRmNGM0M2YwOGQzIEJP
-T1RfSU1BR0U9L3BrZy9saW51eC94ODZfNjQtcmFuZGNvbmZpZy13MC0wNjE4MDYyOC9nY2Mt
-Ni8xOWZhNWU3MzY0N2ZkZTFlNmE3MDM4YThmMDVjZGRmNGM0M2YwOGQzL3ZtbGludXotNC43
-LjAtcmMzLTAwMDA5LWcxOWZhNWU3IG1heF91cHRpbWU9NjAwIFJFU1VMVF9ST09UPS9yZXN1
-bHQvYm9vdC8xL3ZtLWtidWlsZC15b2N0by14ODZfNjQveW9jdG8tbWluaW1hbC14ODZfNjQu
-Y2d6L3g4Nl82NC1yYW5kY29uZmlnLXcwLTA2MTgwNjI4L2djYy02LzE5ZmE1ZTczNjQ3ZmRl
-MWU2YTcwMzhhOGYwNWNkZGY0YzQzZjA4ZDMvMCBMS1BfU0VSVkVSPWlubiBlYXJseXByaW50
-az10dHlTMCwxMTUyMDAgc3lzdGVtZC5sb2dfbGV2ZWw9ZXJyIGRlYnVnIGFwaWM9ZGVidWcg
-c3lzcnFfYWx3YXlzX2VuYWJsZWQgcmN1cGRhdGUucmN1X2NwdV9zdGFsbF90aW1lb3V0PTEw
-MCBwYW5pYz0tMSBzb2Z0bG9ja3VwX3BhbmljPTEgbm1pX3dhdGNoZG9nPXBhbmljIG9vcHM9
-cGFuaWMgbG9hZF9yYW1kaXNrPTIgcHJvbXB0X3JhbWRpc2s9MCBjb25zb2xlPXR0eVMwLDEx
-NTIwMCBjb25zb2xlPXR0eTAgdmdhPW5vcm1hbCBydyBpcD06Ojo6dm0ta2J1aWxkLXlvY3Rv
-LXg4Nl82NC0zMjo6ZGhjcCBkcmJkLm1pbm9yX2NvdW50PTgnICAtaW5pdHJkIC9mcy9zZGgx
-L2luaXRyZC12bS1rYnVpbGQteW9jdG8teDg2XzY0LTMyIC1tIDMyMCAtc21wIDEgLWRldmlj
-ZSBlMTAwMCxuZXRkZXY9bmV0MCAtbmV0ZGV2IHVzZXIsaWQ9bmV0MCAtYm9vdCBvcmRlcj1u
-YyAtbm8tcmVib290IC13YXRjaGRvZyBpNjMwMGVzYiAtcnRjIGJhc2U9bG9jYWx0aW1lIC1k
-cml2ZSBmaWxlPS9mcy9zZGgxL2Rpc2swLXZtLWtidWlsZC15b2N0by14ODZfNjQtMzIsbWVk
-aWE9ZGlzayxpZj12aXJ0aW8gLXBpZGZpbGUgL2Rldi9zaG0va2Jvb3QvcGlkLXZtLWtidWls
-ZC15b2N0by14ODZfNjQtMzIgLXNlcmlhbCBmaWxlOi9kZXYvc2htL2tib290L3NlcmlhbC12
-bS1rYnVpbGQteW9jdG8teDg2XzY0LTMyIC1kYWVtb25pemUgLWRpc3BsYXkgbm9uZSAtbW9u
-aXRvciBudWxsDQo+Pj4NCj4+IFRoaXMgIHByb2JsZW0gd2FzIGNhdXNlZCBkdWUgdG8ga3Zt
-IGRvZXMgbm90IHN1cHBvcnQgTVNSX1BMQVRGT1JNX0lORk8oMHhjZSksDQo+PiBhY2NvcmRp
-bmcgdG8gV2FucGVuZydzIGZlZWRiYWNrLg0KPj4NCj4+IEhpIFdhbnBlbmcsIGlzIGl0IHBv
-c3NpYmxlIGZvciBrdm0gdG8gc2ltdWxhdGUgdGhpcyBNU1IsIG90aGVyd2lzZSB3ZQ0KPj4g
-bWlnaHQgaGF2ZSB0byB1c2UNCj4+IHJkbXNyX3NhZmUgaW5zdGVhZC4NCj4gDQo+IFRoZXJl
-IGlzIGEgdGhyZWFkIGRpc2N1c3NlZCB0aGlzIGJlZm9yZQ0KPiBodHRwczovL3BhdGNod29y
-ay5rZXJuZWwub3JnL3BhdGNoLzg4MzMwMjEvLCBNU1JfUExBVEZPUk1fSU5GTyBjYW4ndA0K
-PiBiZSBzaW1wbGUgZW11bGF0aW9uLg0KPiANCj4gUGluZyBQYW9sbywgUmFkaW0uIDopDQoN
-CnJkbXNyX3NhZmUgbXVzdCBiZSB1c2VkIGluc3RlYWQuICBJJ2xsIHByZXBhcmUgYSBwYXRj
-aC4NCg0KUGFvbG8NCg==
+On 20 June 2016 12:39, Adam Thomson wrote:
+
+> For device nodes in both DT and ACPI, it possible to have named
+> child nodes which contain properties (an existing example being
+> gpio-leds). This adds a function to find a named child node for
+> a device which can be used by drivers for property retrieval.
+> 
+> For DT data node name matching, of_node_cmp() and similar functions
+> are made available outside of CONFIG_OF block so the new function
+> can reference these for DT and non-DT builds.
+> 
+> For ACPI data node name matching, a helper function is also added
+> which returns false if CONFIG_ACPI is not set, otherwise it
+> performs a string comparison on the data node name. This avoids
+> using the acpi_data_node struct for non CONFIG_ACPI builds,
+> which would otherwise cause a build failure.
+> 
+> Signed-off-by: Adam Thomson <Adam.Thomson.Opensource@diasemi.com>
+> Tested-by: Sathyanarayana Nujella <sathyanarayana.nujella@intel.com>
+> Acked-by: Rob Herring <robh@kernel.org>
+> ---
+> 
+> Changes in v3:
+>  - Move of_*_cmp() functions in of.h outside of CONFIG_OF block so they are
+>    available for non-DT builds
+>  - In device_get_named_child_node(), use of_node_cmp() helper macro instead of
+>    strcasecmp() (node names not alway case insensitive, depending on platform).
+> 
+> Changes in v2:
+>  - Rebase to v4.7-rc1
+> 
+>  drivers/base/property.c  | 28 ++++++++++++++++++++++++++++
+>  include/acpi/acpi_bus.h  |  7 +++++++
+>  include/linux/acpi.h     |  6 ++++++
+>  include/linux/of.h       | 14 +++++++-------
+>  include/linux/property.h |  3 +++
+>  5 files changed, 51 insertions(+), 7 deletions(-)
+> 
+> diff --git a/drivers/base/property.c b/drivers/base/property.c
+> index f38c21d..43a36d6 100644
+> --- a/drivers/base/property.c
+> +++ b/drivers/base/property.c
+> @@ -888,6 +888,34 @@ struct fwnode_handle *device_get_next_child_node(struct
+> device *dev,
+>  EXPORT_SYMBOL_GPL(device_get_next_child_node);
+> 
+>  /**
+> + * device_get_named_child_node - Return first matching named child node handle
+> + * @dev: Device to find the named child node for.
+> + * @childname: String to match child node name against.
+> + */
+> +struct fwnode_handle *device_get_named_child_node(struct device *dev,
+> +						  const char *childname)
+> +{
+> +	struct fwnode_handle *child;
+> +
+> +	/*
+> +	 * Find first matching named child node of this device.
+> +	 * For ACPI this will be a data only sub-node.
+> +	 */
+> +	device_for_each_child_node(dev, child) {
+> +		if (is_of_node(child)) {
+> +			if (!of_node_cmp(to_of_node(child)->name, childname))
+> +				return child;
+> +		} else if (is_acpi_data_node(child)) {
+> +			if (acpi_data_node_match(child, childname))
+> +				return child;
+> +		}
+> +	}
+> +
+> +	return NULL;
+> +}
+> +EXPORT_SYMBOL_GPL(device_get_named_child_node);
+> +
+> +/**
+>   * fwnode_handle_put - Drop reference to a device node
+>   * @fwnode: Pointer to the device node to drop the reference to.
+>   *
+> diff --git a/include/acpi/acpi_bus.h b/include/acpi/acpi_bus.h
+> index 788c6c3..993bdd0 100644
+> --- a/include/acpi/acpi_bus.h
+> +++ b/include/acpi/acpi_bus.h
+> @@ -420,6 +420,13 @@ static inline struct acpi_data_node
+> *to_acpi_data_node(struct fwnode_handle *fwn
+>  		container_of(fwnode, struct acpi_data_node, fwnode) : NULL;
+>  }
+> 
+> +static inline bool acpi_data_node_match(struct fwnode_handle *fwnode,
+> +					const char *name)
+> +{
+> +	return is_acpi_data_node(fwnode) ?
+> +		(!strcasecmp(to_acpi_data_node(fwnode)->name, name)) : false;
+> +}
+> +
+>  static inline struct fwnode_handle *acpi_fwnode_handle(struct acpi_device *adev)
+>  {
+>  	return &adev->fwnode;
+> diff --git a/include/linux/acpi.h b/include/linux/acpi.h
+> index 288fac5..03039c4 100644
+> --- a/include/linux/acpi.h
+> +++ b/include/linux/acpi.h
+> @@ -568,6 +568,12 @@ static inline struct acpi_data_node
+> *to_acpi_data_node(struct fwnode_handle *fwn
+>  	return NULL;
+>  }
+> 
+> +static inline bool acpi_data_node_match(struct fwnode_handle *fwnode,
+> +					const char *name)
+> +{
+> +	return false;
+> +}
+> +
+>  static inline struct fwnode_handle *acpi_fwnode_handle(struct acpi_device *adev)
+>  {
+>  	return NULL;
+> diff --git a/include/linux/of.h b/include/linux/of.h
+> index 74eb28c..310e32f 100644
+> --- a/include/linux/of.h
+> +++ b/include/linux/of.h
+> @@ -238,13 +238,6 @@ static inline unsigned long of_read_ulong(const __be32
+> *cell, int size)
+>  #define OF_ROOT_NODE_SIZE_CELLS_DEFAULT 1
+>  #endif
+> 
+> -/* Default string compare functions, Allow arch asm/prom.h to override */
+> -#if !defined(of_compat_cmp)
+> -#define of_compat_cmp(s1, s2, l)	strcasecmp((s1), (s2))
+> -#define of_prop_cmp(s1, s2)		strcmp((s1), (s2))
+> -#define of_node_cmp(s1, s2)		strcasecmp((s1), (s2))
+> -#endif
+> -
+>  #define OF_IS_DYNAMIC(x) test_bit(OF_DYNAMIC, &x->_flags)
+>  #define OF_MARK_DYNAMIC(x) set_bit(OF_DYNAMIC, &x->_flags)
+> 
+> @@ -726,6 +719,13 @@ static inline void of_property_clear_flag(struct property *p,
+> unsigned long flag
+>  #define of_match_node(_matches, _node)	NULL
+>  #endif /* CONFIG_OF */
+> 
+> +/* Default string compare functions, Allow arch asm/prom.h to override */
+> +#if !defined(of_compat_cmp)
+> +#define of_compat_cmp(s1, s2, l)	strcasecmp((s1), (s2))
+> +#define of_prop_cmp(s1, s2)		strcmp((s1), (s2))
+> +#define of_node_cmp(s1, s2)		strcasecmp((s1), (s2))
+> +#endif
+> +
+>  #if defined(CONFIG_OF) && defined(CONFIG_NUMA)
+>  extern int of_node_to_nid(struct device_node *np);
+>  #else
+> diff --git a/include/linux/property.h b/include/linux/property.h
+> index ecab11e..3a2f9ae 100644
+> --- a/include/linux/property.h
+> +++ b/include/linux/property.h
+> @@ -77,6 +77,9 @@ struct fwnode_handle *device_get_next_child_node(struct
+> device *dev,
+>  	for (child = device_get_next_child_node(dev, NULL); child;	\
+>  	     child = device_get_next_child_node(dev, child))
+> 
+> +struct fwnode_handle *device_get_named_child_node(struct device *dev,
+> +						  const char *childname);
+> +
+>  void fwnode_handle_put(struct fwnode_handle *fwnode);
+> 
+>  unsigned int device_get_child_node_count(struct device *dev);
+> --
+> 1.9.3
+
+There still seems to be an issue with this patch set reaching the
+linux-acpi mailing list (as well as the other vger.kernel.org lists). Have
+spent some time looking into it but so far can't see anything obviously wrong
+with the mail format. Also tried to reduce down the number of people on the
+To/Cc list, and signed up my e-mail address to the linux-acpi list, but still
+not having any joy.
+
+Rafael, Mika, et al. Can you please have a look at this patch set and provide
+any feedback on the ACPI part (assuming you still have it in your inbox)?
+
+Thanks.
