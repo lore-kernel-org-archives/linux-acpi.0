@@ -1,62 +1,60 @@
-From: "Opensource [Adam Thomson]" <Adam.Thomson.Opensource@diasemi.com>
-Subject: Re: [RESEND PATCH v3 1/2] device property: Add
- function to search for named child of device
-Date: Tue, 21 Jun 2016 12:27:28 +0000
-Message-ID: <2E89032DDAA8B9408CB92943514A0337D4644326@SW-EX-MBX01.diasemi.com>
-References: <cover.1466421714.git.Adam.Thomson.Opensource@diasemi.com>
- <866c9edccdd89805f6a0c0aa92f8a78ae616ed61.1466421714.git.Adam.Thomson.Opensource@diasemi.com>
- <20160621111126.GX1739@lahna.fi.intel.com>
- <28758107.YROb1rVtm6@vostro.rjw.lan>
- <2E89032DDAA8B9408CB92943514A0337D46442AB@SW-EX-MBX01.diasemi.com>
- <20160621115947.GZ1739@lahna.fi.intel.com>
+From: Wim Osterholt <wim@djo.tudelft.nl>
+Subject: Re: kernel-4.7 bug in Intel sound and/or ACPI
+Date: Tue, 21 Jun 2016 14:47:15 +0200
+Message-ID: <20160621124715.GB3528@djo.tudelft.nl>
+References: <20160620003530.GA19571@djo.tudelft.nl>
+ <2999417.fp4mqtxYS2@vostro.rjw.lan>
+ <20160620212507.GA24086@localhost>
+ <57686D67.8010201@codeaurora.org>
+Reply-To: wim@djo.tudelft.nl
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <alsa-devel-bounces@alsa-project.org>
-In-Reply-To: <20160621115947.GZ1739@lahna.fi.intel.com>
-Content-Language: en-US
-List-Unsubscribe: <http://mailman.alsa-project.org/mailman/options/alsa-devel>,
- <mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
-List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel/>
-List-Post: <mailto:alsa-devel@alsa-project.org>
-List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
-List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
- <mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
-Errors-To: alsa-devel-bounces@alsa-project.org
-Sender: alsa-devel-bounces@alsa-project.org
-To: Mika Westerberg <mika.westerberg@linux.intel.com>, "Opensource [Adam
- Thomson]" <Adam.Thomson.Opensource@diasemi.com>
-Cc: Sathyanarayana Nujella <sathyanarayana.nujella@intel.com>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, "alsa-devel@alsa-project.org" <alsa-devel@alsa-project.org>, Heikki Krogerus <heikki.krogerus@linux.intel.com>, Support Opensource <Support.Opensource@diasemi.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Mark Brown <broonie@kernel.org>, "Rafael J.Wysocki" <rafael.j.wysocki@intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Robert Moore <robert.moore@intel.com>, Liam Girdwood <lgirdwood@gmail.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Rob Herring <robh+dt@kernel.org>, Lv Zheng <lv.zheng@intel.com>, Takashi Iwai <tiwai@suse.com>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Frank Rowand <frowand.list@gmail.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Len Brown <lenb@kernel.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from x127155.tudelft.net ([131.180.127.155]:58962 "EHLO
+	djo.tudelft.nl" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1751167AbcFUMsK (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 21 Jun 2016 08:48:10 -0400
+Content-Disposition: inline
+In-Reply-To: <57686D67.8010201@codeaurora.org>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Sinan Kaya <okaya@codeaurora.org>
+Cc: Bjorn Helgaas <helgaas@kernel.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, perex@perex.cz, linux-pci@vger.kernel.org, Takashi Iwai <tiwai@suse.com>, Wim Osterholt <wim@djo.tudelft.nl>
 
-21 June 2016 13:00, Mika Westerberg wrote:
-
-> > > > > +static inline bool acpi_data_node_match(struct fwnode_handle *fwnode,
-> > > > > +					const char *name)
-> > > > > +{
-> > > > > +	return is_acpi_data_node(fwnode) ?
-> > > > > +		(!strcasecmp(to_acpi_data_node(fwnode)->name, name)) :
-> false;
-> > > > > +}
-> > > >
-> > > > Looks fine to me.
-> > > >
-> > > > One question - is it expected that matching ACPI data nodes is always
-> > > > case insensitive?
-> > >
-> > > That would not be a correct expectation in theory, although I don't think it
-> > > really matters in practice.
-> >
-> > From my reading of the Hierarchical Data Extension and ACPI Spec, I thought
-> > that was the case (section 19.3.1 ASL Names - ASL names are not case-sensitive
-> > and will be converted to upper case). Am I misreading the documents/missing
-> > something else?
+> Can you try the following and see if it makes any difference?
 > 
-> Those are names in the ASL code itself.
 > 
-> What we are talking here are actually just string values (name of the
-> data node).
+> --- a/drivers/acpi/pci_link.c
+> +++ b/drivers/acpi/pci_link.c
+> @@ -500,7 +500,7 @@ static int acpi_irq_get_penalty(int irq)
+>         int penalty = 0;
+> 
+>         if (irq < ACPI_MAX_ISA_IRQS)
+> -               penalty += acpi_isa_irq_penalty[irq];
+> +               return acpi_isa_irq_penalty[irq];
+> 
+>         /*
+>         * Penalize IRQ used by ACPI SCI. If ACPI SCI pin attributes conflict
+> @@ -586,6 +586,10 @@ static int acpi_pci_link_allocate(struct acpi_pci_link *link)
+>                             acpi_device_bid(link->device));
+>                 return -ENODEV;
+>         } else {
+> +               if (irq < ACPI_MAX_ISA_IRQS)
+> +                       acpi_isa_irq_penalty[irq] = acpi_irq_get_penalty(irq) +
+> +                                                       PIRQ_PENALTY_PCI_USING;
+> +
+> 
+> 
+> 
+> > Bjorn
 
-Understood. For DT they are case insensitive (except for Sparc platforms) so
-having ACPI match seems to make sense. I can add a comment indicating this,
-just for clarity.
+
+I tried this on kernel 4.7.0-rc4, but that didn't help. It still tried to
+grab irq7.
+
+
+Regards, Wim.
+
+
+----- wim@djo.tudelft.nl -----
+
