@@ -1,183 +1,147 @@
-From: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
-Subject: Re: [PATCH v6 4/5] arm64: add support for ACPI Low Power Idle(LPI)
-Date: Wed, 22 Jun 2016 15:17:00 +0100
-Message-ID: <20160622141700.GB2733@red-moon>
-References: <1465915719-8409-1-git-send-email-sudeep.holla@arm.com>
- <1465915719-8409-5-git-send-email-sudeep.holla@arm.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+From: Eduardo Valentin <edubezval@gmail.com>
+Subject: [PATCHv3 1/1] thermal: core: call thermal_zone_device_update() after mode update
+Date: Wed, 22 Jun 2016 07:34:14 -0700
+Message-ID: <1466606054-28867-1-git-send-email-edubezval@gmail.com>
+References: <1466563538.2471.10.camel@intel.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from foss.arm.com ([217.140.101.70]:48118 "EHLO foss.arm.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751505AbcFVOQ3 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 22 Jun 2016 10:16:29 -0400
-Content-Disposition: inline
-In-Reply-To: <1465915719-8409-5-git-send-email-sudeep.holla@arm.com>
+Received: from mail-pa0-f66.google.com ([209.85.220.66]:33941 "EHLO
+	mail-pa0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750799AbcFVOeS (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 22 Jun 2016 10:34:18 -0400
+In-Reply-To: <1466563538.2471.10.camel@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Sudeep Holla <sudeep.holla@arm.com>
-Cc: "Rafael J . Wysocki" <rjw@rjwysocki.net>, linux-acpi@vger.kernel.org, Vikas Sajjan <vikas.cha.sajjan@hpe.com>, Sunil <sunil.vl@hpe.com>, Prashanth Prakash <pprakash@codeaurora.org>, Al Stone <al.stone@linaro.org>, Ashwin Chaugule <ashwin.chaugule@linaro.org>, linux-kernel@vger.kernel.org, Mark Rutland <mark.rutland@arm.com>, Daniel Lezcano <daniel.lezcano@linaro.org>, linux-arm-kernel@lists.infradead.org
+To: Rui Zhang <rui.zhang@intel.com>
+Cc: Eduardo Valentin <edubezval@gmail.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, "Lee, Chun-Yi" <jlee@suse.com>, Darren Hart <dvhart@infradead.org>, Keerthy <j-keerthy@ti.com>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, platform-driver-x86@vger.kernel.org, linux-pm@vger.kernel.org
 
-Hi Sudeep,
+Because several drivers do the following pattern:
+.set_mode()
+   ...
+   local_data->mode = new_mode;
+   thermal_zone_device_update(tz);
 
-On Tue, Jun 14, 2016 at 03:48:38PM +0100, Sudeep Holla wrote:
-> This patch adds appropriate callbacks to support ACPI Low Power Idle
-> (LPI) on ARM64.
-> 
-> Now that arm_enter_idle_state is exactly same in both generic ARM{32,64}
-> CPUIdle driver and ARM64 backend for ACPI processor idle driver, we can
-> unify it and move to cpuidle-arm.h header.
-> 
-> Cc: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
-> Cc: Mark Rutland <mark.rutland@arm.com>
-> Cc: Daniel Lezcano <daniel.lezcano@linaro.org>
-> Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-> Cc: linux-arm-kernel@lists.infradead.org
-> Signed-off-by: Sudeep Holla <sudeep.holla@arm.com>
-> ---
->  arch/arm64/kernel/cpuidle.c   | 17 +++++++++++++
->  drivers/cpuidle/cpuidle-arm.c | 23 ++----------------
->  drivers/firmware/psci.c       | 56 +++++++++++++++++++++++++++++++++++++++++++
->  include/linux/cpuidle-arm.h   | 30 +++++++++++++++++++++++
->  4 files changed, 105 insertions(+), 21 deletions(-)
->  create mode 100644 include/linux/cpuidle-arm.h
+makes sense to simply do the thermal_zone_device_update()
+in thermal core, after setting the new mode.
 
-This patch seems fine by me, it would be good if Daniel can have
-a look too.
+Also, this patch also remove deadlocks on drivers that
+call thermal_zone_device_update() on .set_mode(),
+as .set_mode()  is now called always with tz->lock held.
 
-Some minor comments below.
+Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: Len Brown <lenb@kernel.org>
+Cc: linux-acpi@vger.kernel.org
+Cc: "Lee, Chun-Yi" <jlee@suse.com>
+Cc: Darren Hart <dvhart@infradead.org>
+Cc: Zhang Rui <rui.zhang@intel.com>
+Cc: Keerthy <j-keerthy@ti.com>
+Cc: linux-kernel@vger.kernel.org
+Cc: linux-omap@vger.kernel.org
+Cc: platform-driver-x86@vger.kernel.org
+Cc: linux-pm@vger.kernel.org
+Signed-off-by: Eduardo Valentin <edubezval@gmail.com>
+---
 
-[...]
+Hey,
 
-> diff --git a/drivers/firmware/psci.c b/drivers/firmware/psci.c
-> index 03e04582791c..c6caa863d156 100644
-> --- a/drivers/firmware/psci.c
-> +++ b/drivers/firmware/psci.c
-> @@ -13,6 +13,7 @@
->  
->  #define pr_fmt(fmt) "psci: " fmt
->  
-> +#include <linux/acpi.h>
->  #include <linux/arm-smccc.h>
->  #include <linux/cpuidle.h>
->  #include <linux/errno.h>
-> @@ -310,11 +311,66 @@ static int psci_dt_cpu_init_idle(struct device_node *cpu_node, int cpu)
->  	return ret;
->  }
->  
-> +#ifdef CONFIG_ACPI
-> +#include <acpi/processor.h>
-> +
-> +static int __maybe_unused psci_acpi_cpu_init_idle(unsigned int cpu)
-> +{
-> +	int i, count;
-> +	u32 *psci_states;
-> +	struct acpi_processor *pr;
-> +	struct acpi_lpi_state *lpi;
-> +
-> +	pr = per_cpu(processors, cpu);
-> +	if (unlikely(!pr || !pr->flags.has_lpi))
-> +		return -EINVAL;
-> +
-> +	/*
-> +	 * If the PSCI cpu_suspend function hook has not been initialized
-> +	 * idle states must not be enabled, so bail out
-> +	 */
-> +	if (!psci_ops.cpu_suspend)
-> +		return -EOPNOTSUPP;
-> +
-> +	count = pr->power.count - 1;
-> +	if (count <= 0)
-> +		return -ENODEV;
-> +
-> +	psci_states = kcalloc(count, sizeof(*psci_states), GFP_KERNEL);
-> +	if (!psci_states)
-> +		return -ENOMEM;
-> +
-> +	for (i = 0; i < count; i++) {
-> +		u32 state;
-> +
-> +		lpi = &pr->power.lpi_states[i + 1];
-> +		state = lpi->address & 0xFFFFFFFF;
-> +		if (!psci_power_state_is_valid(state)) {
-> +			pr_warn("Invalid PSCI power state %#x\n", state);
-> +			kfree(psci_states);
-> +			return -EINVAL;
-> +		}
-> +		psci_states[i] = state;
-> +	}
-> +	/* Idle states parsed correctly, initialize per-cpu pointer */
-> +	per_cpu(psci_power_state, cpu) = psci_states;
-> +	return 0;
 
-Most of the code in this function is FW independent, it would be nice
-to factor it out and add the respective ACPI/DT helper functions to
-retrieve idle states count and parameters, we can update it later
-anyway it is fine by me to leave it as it is.
+V2--> V3: Remove locking from OF thermal set mode.
+The locking is done from thermal core already.
 
-> +}
-> +#else
-> +static int __maybe_unused psci_acpi_cpu_init_idle(unsigned int cpu)
-> +{
-> +	return -EINVAL;
-> +}
-> +#endif
-> +
->  int psci_cpu_init_idle(unsigned int cpu)
->  {
->  	struct device_node *cpu_node;
->  	int ret;
->  
-> +	if (!acpi_disabled)
-> +		return psci_acpi_cpu_init_idle(cpu);
-> +
->  	cpu_node = of_get_cpu_node(cpu, NULL);
->  	if (!cpu_node)
->  		return -ENODEV;
-> diff --git a/include/linux/cpuidle-arm.h b/include/linux/cpuidle-arm.h
-> new file mode 100644
-> index 000000000000..b99bcb3f43dd
-> --- /dev/null
-> +++ b/include/linux/cpuidle-arm.h
+BR,
 
-arm-cpuidle.h for consistency with other (ARM) include/linux files ?
+Eduardo
 
-> @@ -0,0 +1,30 @@
-> +#include <linux/cpu_pm.h>
-> +
-> +#include <asm/cpuidle.h>
-> +
-> +/*
-> + * arm_enter_idle_state - Programs CPU to enter the specified state
-> + */
-> +static int arm_generic_enter_idle_state(int idx)
-> +{
-> +	int ret;
-> +
-> +	if (!idx) {
-> +		cpu_do_idle();
-> +		return idx;
-> +	}
-> +
-> +	ret = cpu_pm_enter();
-> +	if (!ret) {
-> +		/*
-> +		 * Pass idle state index to cpu_suspend which in turn will
-> +		 * call the CPU ops suspend protocol with idle index as a
-> +		 * parameter.
-> +		 */
-> +		ret = arm_cpuidle_suspend(idx);
-> +
-> +		cpu_pm_exit();
-> +	}
-> +
-> +	return ret ? -1 : idx;
-> +}
+ drivers/acpi/thermal.c                             | 2 --
+ drivers/platform/x86/acerhdf.c                     | 1 -
+ drivers/thermal/imx_thermal.c                      | 1 -
+ drivers/thermal/of-thermal.c                       | 5 -----
+ drivers/thermal/thermal_sysfs.c                    | 1 +
+ drivers/thermal/ti-soc-thermal/ti-thermal-common.c | 1 -
+ 6 files changed, 1 insertion(+), 10 deletions(-)
 
-Either you do this, or we have to add it somehow somewhere in
-drivers/cpuidle to avoid duplicating it.
+diff --git a/drivers/acpi/thermal.c b/drivers/acpi/thermal.c
+index 82707f9..8582b88 100644
+--- a/drivers/acpi/thermal.c
++++ b/drivers/acpi/thermal.c
+@@ -519,8 +519,6 @@ static void acpi_thermal_check(void *data)
+ 
+ 	if (!tz->tz_enabled)
+ 		return;
+-
+-	thermal_zone_device_update(tz->thermal_zone);
+ }
+ 
+ /* sys I/F for generic thermal sysfs support */
+diff --git a/drivers/platform/x86/acerhdf.c b/drivers/platform/x86/acerhdf.c
+index 460fa67..aee33ba 100644
+--- a/drivers/platform/x86/acerhdf.c
++++ b/drivers/platform/x86/acerhdf.c
+@@ -405,7 +405,6 @@ static inline void acerhdf_enable_kernelmode(void)
+ 	kernelmode = 1;
+ 
+ 	thz_dev->polling_delay = interval*1000;
+-	thermal_zone_device_update(thz_dev);
+ 	pr_notice("kernel mode fan control ON\n");
+ }
+ 
+diff --git a/drivers/thermal/imx_thermal.c b/drivers/thermal/imx_thermal.c
+index c5547bd..a413eb6 100644
+--- a/drivers/thermal/imx_thermal.c
++++ b/drivers/thermal/imx_thermal.c
+@@ -246,7 +246,6 @@ static int imx_set_mode(struct thermal_zone_device *tz,
+ 	}
+ 
+ 	data->mode = mode;
+-	thermal_zone_device_update(tz);
+ 
+ 	return 0;
+ }
+diff --git a/drivers/thermal/of-thermal.c b/drivers/thermal/of-thermal.c
+index b8e509c..95c47da 100644
+--- a/drivers/thermal/of-thermal.c
++++ b/drivers/thermal/of-thermal.c
+@@ -282,17 +282,12 @@ static int of_thermal_set_mode(struct thermal_zone_device *tz,
+ {
+ 	struct __thermal_zone *data = tz->devdata;
+ 
+-	mutex_lock(&tz->lock);
+-
+ 	if (mode == THERMAL_DEVICE_ENABLED)
+ 		tz->polling_delay = data->polling_delay;
+ 	else
+ 		tz->polling_delay = 0;
+ 
+-	mutex_unlock(&tz->lock);
+-
+ 	data->mode = mode;
+-	thermal_zone_device_update(tz);
+ 
+ 	return 0;
+ }
+diff --git a/drivers/thermal/thermal_sysfs.c b/drivers/thermal/thermal_sysfs.c
+index 743df50..3d0dc30 100644
+--- a/drivers/thermal/thermal_sysfs.c
++++ b/drivers/thermal/thermal_sysfs.c
+@@ -100,6 +100,7 @@ mode_store(struct device *dev, struct device_attribute *attr,
+ 	mutex_lock(&tz->lock);
+ 	result = tz->ops->set_mode(tz, mode);
+ 	mutex_unlock(&tz->lock);
++	thermal_zone_device_update(tz);
+ 
+ 	if (result)
+ 		return result;
+diff --git a/drivers/thermal/ti-soc-thermal/ti-thermal-common.c b/drivers/thermal/ti-soc-thermal/ti-thermal-common.c
+index 15c0a9a..9a5a3a3 100644
+--- a/drivers/thermal/ti-soc-thermal/ti-thermal-common.c
++++ b/drivers/thermal/ti-soc-thermal/ti-thermal-common.c
+@@ -205,7 +205,6 @@ static int ti_thermal_set_mode(struct thermal_zone_device *thermal,
+ 	data->mode = mode;
+ 	ti_bandgap_write_update_interval(bgp, data->sensor_id,
+ 					data->ti_thermal->polling_delay);
+-	thermal_zone_device_update(data->ti_thermal);
+ 	dev_dbg(&thermal->device, "thermal polling set for duration=%d msec\n",
+ 		data->ti_thermal->polling_delay);
+ 
+-- 
+2.1.4
 
-@Daniel: do you have an opinion on this please ?
-
-Thanks,
-Lorenzo
