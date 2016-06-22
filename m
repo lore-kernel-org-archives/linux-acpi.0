@@ -1,215 +1,122 @@
-From: Tomasz Nowicki <tn@semihalf.com>
-Subject: Re: [PATCH V7 1/8] ACPI: I/O Remapping Table (IORT) initial support
-Date: Wed, 22 Jun 2016 15:52:36 +0200
-Message-ID: <576A9824.1060400@semihalf.com>
-References: <1466420541-20101-2-git-send-email-tn@semihalf.com>
- <1466598909-27504-1-git-send-email-tn@semihalf.com>
- <576A91CC.3000101@arm.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"; Format="flowed"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <576A91CC.3000101@arm.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Marc Zyngier <marc.zyngier@arm.com>, tglx@linutronix.de, jason@lakedaemon.net, rjw@rjwysocki.net, bhelgaas@google.com, lorenzo.pieralisi@arm.com, robert.richter@caviumnetworks.com, shijie.huang@arm.com, Suravee.Suthikulpanit@amd.com, hanjun.guo@linaro.org
-Cc: al.stone@linaro.org, graeme.gregory@linaro.org, Catalin.Marinas@arm.com, will.deacon@arm.com, linux-kernel@vger.kernel.org, okaya@codeaurora.org, linux-acpi@vger.kernel.org, ddaney.cavm@gmail.com, linux-pci@vger.kernel.org, mw@semihalf.com, andrea.gallo@linaro.org, linux-arm-kernel@lists.infradead.org
+From: Peter Hurley <peter@hurleysoftware.com>
+Subject: Re: [PATCH v8 4/4] serial: pl011: add console matching function
+Date: Wed, 22 Jun 2016 07:08:33 -0700
+Message-ID: <7CC4D455-323E-4B33-A931-2104E2DDDC0D@hurleysoftware.com>
+References: <1463749405-11640-1-git-send-email-aleksey.makarov@linaro.org> <1463749405-11640-5-git-send-email-aleksey.makarov@linaro.org> <20160622121813.GA20023@yury-N73SV>
+Mime-Version: 1.0 (1.0)
+Content-Type: text/plain;
+	charset=us-ascii
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-pa0-f54.google.com ([209.85.220.54]:35700 "EHLO
+	mail-pa0-f54.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752351AbcFVOIh convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 22 Jun 2016 10:08:37 -0400
+Received: by mail-pa0-f54.google.com with SMTP id hl6so17311339pac.2
+        for <linux-acpi@vger.kernel.org>; Wed, 22 Jun 2016 07:08:36 -0700 (PDT)
+In-Reply-To: <20160622121813.GA20023@yury-N73SV>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Yury Norov <ynorov@caviumnetworks.com>
+Cc: Aleksey Makarov <aleksey.makarov@linaro.org>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-serial@vger.kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Russell King <linux@arm.linux.org.uk>, Len Brown <lenb@kernel.org>, Leif Lindholm <leif.lindholm@linaro.org>, Graeme Gregory <graeme.gregory@linaro.org>, Al Stone <ahs3@redhat.com>, Christopher Covington <cov@codeaurora.org>, Andy Shevchenko <andy.shevchenko@gmail.com>, "Zheng, Lv" <lv.zheng@intel.com>, Mark Salter <msalter@redhat.com>, Kefeng Wang <wangkefeng.wang@huawei.com>, Russell King <linux@armlinux.org.uk>, Jiri Slaby <jslaby@suse.com>
 
-On 22.06.2016 15:25, Marc Zyngier wrote:
-> On 22/06/16 13:35, Tomasz Nowicki wrote:
->> IORT shows representation of IO topology for ARM based systems.
->> It describes how various components are connected together on
->> parent-child basis e.g. PCI RC -> SMMU -> ITS. Also see IORT spec.
->> http://infocenter.arm.com/help/topic/com.arm.doc.den0049b/DEN0049B_IO_Remapping_Table.pdf
->>
->> Initial support allows to detect IORT table presence and save its
->> root pointer obtained through acpi_get_table(). The pointer validity
->> depends on acpi_gbl_permanent_mmap because if acpi_gbl_permanent_mmap
->> is not set while using IORT nodes we would dereference unmapped pointers.
->>
->> For the aforementioned reason call iort_table_detect() from acpi_init()
->> which guarantees acpi_gbl_permanent_mmap to be set at that point.
->>
->> Add generic helpers which are helpful for scanning and retrieving
->> information from IORT table content. List of the most important helpers:
->> - iort_find_dev_node() finds IORT node for a given device
->> - iort_node_map_rid() maps device RID and returns IORT node which provides
->>    final translation
->>
->> Signed-off-by: Tomasz Nowicki <tn@semihalf.com>
+
+
+> On Jun 22, 2016, at 5:18 AM, Yury Norov <ynorov@caviumnetworks.com> wrote:
+> 
+>> On Fri, May 20, 2016 at 04:03:23PM +0300, Aleksey Makarov wrote:
+>> This patch adds function pl011_console_match() that implements
+>> method match of struct console.  It allows to match consoles against
+>> data specified in a string, for example taken from command line or
+>> compiled by ACPI SPCR table handler.
+>> 
+>> Signed-off-by: Aleksey Makarov <aleksey.makarov@linaro.org>
+>> Reviewed-by: Peter Hurley <peter@hurleysoftware.com>
 >> ---
->>   drivers/acpi/Kconfig  |   3 +
->>   drivers/acpi/Makefile |   1 +
->>   drivers/acpi/bus.c    |   2 +
->>   drivers/acpi/iort.c   | 217 ++++++++++++++++++++++++++++++++++++++++++++++++++
->>   include/linux/iort.h  |  30 +++++++
->>   5 files changed, 253 insertions(+)
->>   create mode 100644 drivers/acpi/iort.c
->>   create mode 100644 include/linux/iort.h
->>
->> diff --git a/drivers/acpi/Kconfig b/drivers/acpi/Kconfig
->> index b7e2e77..848471f 100644
->> --- a/drivers/acpi/Kconfig
->> +++ b/drivers/acpi/Kconfig
->> @@ -57,6 +57,9 @@ config ACPI_SYSTEM_POWER_STATES_SUPPORT
->>   config ACPI_CCA_REQUIRED
->>   	bool
->>
->> +config IORT_TABLE
->> +	bool
->> +
->>   config ACPI_DEBUGGER
->>   	bool "AML debugger interface"
->>   	select ACPI_DEBUG
->> diff --git a/drivers/acpi/Makefile b/drivers/acpi/Makefile
->> index 251ce85..c7c9b29 100644
->> --- a/drivers/acpi/Makefile
->> +++ b/drivers/acpi/Makefile
->> @@ -82,6 +82,7 @@ obj-$(CONFIG_ACPI_CUSTOM_METHOD)+= custom_method.o
->>   obj-$(CONFIG_ACPI_BGRT)		+= bgrt.o
->>   obj-$(CONFIG_ACPI_CPPC_LIB)	+= cppc_acpi.o
->>   obj-$(CONFIG_ACPI_DEBUGGER_USER) += acpi_dbg.o
->> +obj-$(CONFIG_IORT_TABLE) 	+= iort.o
->>
->>   # processor has its own "processor." module_param namespace
->>   processor-y			:= processor_driver.o
->> diff --git a/drivers/acpi/bus.c b/drivers/acpi/bus.c
->> index 31e8da6..176c17d 100644
->> --- a/drivers/acpi/bus.c
->> +++ b/drivers/acpi/bus.c
->> @@ -33,6 +33,7 @@
->>   #ifdef CONFIG_X86
->>   #include <asm/mpspec.h>
->>   #endif
->> +#include <linux/iort.h>
->>   #include <linux/pci.h>
->>   #include <acpi/apei.h>
->>   #include <linux/dmi.h>
->> @@ -1118,6 +1119,7 @@ static int __init acpi_init(void)
->>   	}
->>
->>   	pci_mmcfg_late_init();
->> +	iort_table_detect();
->>   	acpi_scan_init();
->>   	acpi_ec_init();
->>   	acpi_debugfs_init();
->> diff --git a/drivers/acpi/iort.c b/drivers/acpi/iort.c
->> new file mode 100644
->> index 0000000..fcfa008f
->> --- /dev/null
->> +++ b/drivers/acpi/iort.c
->> @@ -0,0 +1,217 @@
->> +/*
->> + * Copyright (C) 2016, Semihalf
->> + *	Author: Tomasz Nowicki <tn@semihalf.com>
+>> drivers/tty/serial/amba-pl011.c | 56 +++++++++++++++++++++++++++++++++++++++++
+>> 1 file changed, 56 insertions(+)
+>> 
+>> diff --git a/drivers/tty/serial/amba-pl011.c b/drivers/tty/serial/amba-pl011.c
+>> index a2aa655..388edc8 100644
+>> --- a/drivers/tty/serial/amba-pl011.c
+>> +++ b/drivers/tty/serial/amba-pl011.c
+>> @@ -2288,12 +2288,68 @@ static int __init pl011_console_setup(struct console *co, char *options)
+>>    return uart_set_options(&uap->port, co, baud, parity, bits, flow);
+>> }
+>> 
+>> +/**
+>> + *    pl011_console_match - non-standard console matching
+>> + *    @co:      registering console
+>> + *    @name:      name from console command line
+>> + *    @idx:      index from console command line
+>> + *    @options: ptr to option string from console command line
 >> + *
->> + * This program is free software; you can redistribute it and/or modify it
->> + * under the terms and conditions of the GNU General Public License,
->> + * version 2, as published by the Free Software Foundation.
+>> + *    Only attempts to match console command lines of the form:
+>> + *        console=pl011,mmio|mmio32,<addr>[,<options>]
+>> + *        console=pl011,0x<addr>[,<options>]
+>> + *    This form is used to register an initial earlycon boot console and
+>> + *    replace it with the amba_console at pl011 driver init.
 >> + *
->> + * This program is distributed in the hope it will be useful, but WITHOUT
->> + * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
->> + * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
->> + * more details.
+>> + *    Performs console setup for a match (as required by interface)
+>> + *    If no <options> are specified, then assume the h/w is already setup.
 >> + *
->> + * This file implements early detection/parsing of I/O mapping
->> + * reported to OS through firmware via I/O Remapping Table (IORT)
->> + * IORT document number: ARM DEN 0049A
+>> + *    Returns 0 if console matches; otherwise non-zero to use default matching
 >> + */
->> +
->> +#define pr_fmt(fmt)	"ACPI: IORT: " fmt
->> +
->> +#include <linux/iort.h>
->> +#include <linux/kernel.h>
->> +#include <linux/pci.h>
->> +
->> +typedef acpi_status (*iort_find_node_callback)
->> +	(struct acpi_iort_node *node, void *context);
->> +
->> +/* Root pointer to the mapped IORT table */
->> +static struct acpi_table_header *iort_table;
->> +
->> +static struct acpi_iort_node *
->> +iort_scan_node(enum acpi_iort_node_type type,
->> +	       iort_find_node_callback callback, void *context)
+>> +static int __init pl011_console_match(struct console *co, char *name, int idx,
+>> +                      char *options)
 >> +{
->> +	struct acpi_iort_node *iort_node, *iort_end;
->> +	struct acpi_table_iort *iort;
->> +	int i;
+>> +    char match[] = "pl011";    /* pl011-specific earlycon name */
+>> +    unsigned char iotype;
+>> +    unsigned long addr;
+>> +    int i;
 >> +
->> +	/* Get the first IORT node */
->> +	iort = (struct acpi_table_iort *)iort_table;
->> +	iort_node = ACPI_ADD_PTR(struct acpi_iort_node, iort,
->> +				 iort->node_offset);
->> +	iort_end = ACPI_ADD_PTR(struct acpi_iort_node, iort_table,
->> +				iort_table->length);
+>> +    if (strncmp(name, match, 5) != 0)
+>> +        return -ENODEV;
 >> +
->> +	for (i = 0; i < iort->node_count; i++) {
->> +		if (WARN_TAINT(iort_node >= iort_end, TAINT_FIRMWARE_WORKAROUND,
->> +			       "IORT node pointer overflows, bad table!\n"))
->> +			return NULL;
+>> +    if (uart_parse_earlycon(options, &iotype, &addr, &options))
+>> +        return -ENODEV;
 >> +
->> +		if (iort_node->type == type) {
->> +			if (ACPI_SUCCESS(callback(iort_node, context)))
->> +				return iort_node;
->> +		}
+>> +    /* try to match the port specified on the command line */
+>> +    for (i = 0; i < ARRAY_SIZE(amba_ports); i++) {
+>> +        struct uart_port *port;
 >> +
->> +		iort_node = ACPI_ADD_PTR(struct acpi_iort_node, iort_node,
->> +					 iort_node->length);
->> +	}
+>> +        if (!amba_ports[i])
+>> +            continue;
 >> +
->> +	return NULL;
+>> +        port = &amba_ports[i]->port;
+>> +
+>> +        if (iotype != UPIO_MEM && iotype != UPIO_MEM32)
+>> +            continue;
+> 
+> So it looks like iotype is constant inside the loop, and UPIO_MEM
+> and UPIO_MEM32 too, of course. It means you can move this check out of
+> cycle and avoid ports traversing at all in specific case. Am I wrong?
+> 
+
+No you're not wrong but I'd prefer if we don't use assumptions like that in port enumeration.
+
+
+>> +
+>> +        if (port->mapbase != addr)
+>> +            continue;
+>> +
+>> +        co->index = i;
+>> +        port->cons = co;
+>> +        return pl011_console_setup(co, options);
+>> +    }
+>> +
+>> +    return -ENODEV;
 >> +}
 >> +
->> +static acpi_status
->> +iort_match_node_callback(struct acpi_iort_node *node, void *context)
->> +{
->> +	struct device *dev = context;
->> +
->> +	switch (node->type) {
->> +	case ACPI_IORT_NODE_NAMED_COMPONENT: {
->> +		struct acpi_buffer buffer = { ACPI_ALLOCATE_BUFFER, NULL };
->> +		struct acpi_device *adev = to_acpi_device_node(dev->fwnode);
->> +		struct acpi_iort_named_component *ncomp;
->> +
->> +		if (!adev)
->> +			break;
->> +
->> +		ncomp = (struct acpi_iort_named_component *)node->node_data;
->> +
->> +		if (ACPI_FAILURE(acpi_get_name(adev->handle,
->> +					       ACPI_FULL_PATHNAME, &buffer))) {
->> +			dev_warn(dev, "Can't get device full path name\n");
->> +		} else {
->> +			int match;
->> +
->> +			match = !strcmp(ncomp->device_name, buffer.pointer);
->> +			kfree(buffer.pointer);
->
-> Why did you change this to a naked kfree? The ACPI code clearly states:
->
-> /*
->   * Allocate a new buffer. We directectly call acpi_os_allocate here to
->   * purposefully bypass the (optionally enabled) internal allocation
->   * tracking mechanism since we only want to track internal
->   * allocations. Note: The caller should use acpi_os_free to free this
->   * buffer created via ACPI_ALLOCATE_BUFFER.
->   */
-
-Yes we should use symmetric free function to acpi_os_allocate here, 
-which means acpi_os_free should be used here.
-
-My main motivation was to free buffer.pointer instead of &buffer
-
-Would you mind to fix that (s/kfree/acpi_os_free) before merging ?
-
-Thanks,
-Tomasz
+>> static struct uart_driver amba_reg;
+>> static struct console amba_console = {
+>>    .name        = "ttyAMA",
+>>    .write        = pl011_console_write,
+>>    .device        = uart_console_device,
+>>    .setup        = pl011_console_setup,
+>> +    .match        = pl011_console_match,
+>>    .flags        = CON_PRINTBUFFER,
+>>    .index        = -1,
+>>    .data        = &amba_reg,
+>> -- 
+>> 2.8.2
