@@ -1,46 +1,29 @@
-From: Sudeep Holla <sudeep.holla@arm.com>
-Subject: Re: [PATCH v6 0/5] ACPI / processor_idle: Add ACPI v6.0 LPI support
-Date: Wed, 22 Jun 2016 18:45:15 +0100
-Message-ID: <576ACEAB.6050306@arm.com>
-References: <1465915719-8409-1-git-send-email-sudeep.holla@arm.com>
+From: Paolo Bonzini <pbonzini@redhat.com>
+Subject: Re: [PATCH] x86: fix rdmsr MSR_PLATFORM_INFO unsafe warning in kvm
+ guest
+Date: Wed, 22 Jun 2016 19:43:15 +0200
+Message-ID: <aab33eba-e2d7-ff60-6a63-abee2a47cac8@redhat.com>
+References: <1466558908-3524-1-git-send-email-wanpeng.li@hotmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1465915719-8409-1-git-send-email-sudeep.holla@arm.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: "Rafael J . Wysocki" <rjw@rjwysocki.net>
-Cc: linux-acpi@vger.kernel.org, Sudeep Holla <sudeep.holla@arm.com>, Vikas Sajjan <vikas.cha.sajjan@hpe.com>, Sunil <sunil.vl@hpe.com>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Prashanth Prakash <pprakash@codeaurora.org>, Al Stone <al.stone@linaro.org>, Ashwin Chaugule <ashwin.chaugule@linaro.org>, linux-kernel@vger.kernel.org
+Return-path: <linux-pm-owner@vger.kernel.org>
+In-Reply-To: <1466558908-3524-1-git-send-email-wanpeng.li@hotmail.com>
+Sender: linux-pm-owner@vger.kernel.org
+To: Wanpeng Li <kernellwp@gmail.com>, linux-kernel@vger.kernel.org, kvm@vger.kernel.org, Linux PM list <linux-pm@vger.kernel.org>, linux-acpi@vger.kernel.org, lkp@01.org, x86@kernel.org
+Cc: Wanpeng Li <wanpeng.li@hotmail.com>, Len Brown <len.brown@intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Zhang Rui <rui.zhang@intel.com>, Chen Yu <y.c.chen@intel.com>, =?UTF-8?B?UmFkaW0gS3LEjW3DocWZ?= <rkrcmar@redhat.com>, jacob.jun.pan@intel.com, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>
 List-Id: linux-acpi@vger.kernel.org
 
-Hi Rafael,
 
-On 14/06/16 15:48, Sudeep Holla wrote:
-> ACPI 6.0 introduced LPI(Low Power Idle) states that provides an alternate
-> method to describe processor idle states. It extends the specification
-> to allow the expression of idle states like C-states selectable by the
-> OSPM when a processor goes idle, but may affect more than one processor,
-> and may affect other system components.
->
-> LPI extensions leverages the processor container device(again introduced
-> in ACPI 6.0) allowing to express which parts of the system are affected
-> by a given LPI state. It defines the local power states for each node
-> in a hierarchical processor topology. The OSPM can use _LPI object to
-> select a local power state for each level of processor hierarchy in the
-> system. They used to produce a composite power state request that is
-> presented to the platform by the OSPM.
->
-> Since multiple processors affect the idle state for any non-leaf hierarchy
-> node, coordination of idle state requests between the processors is
-> required. ACPI supports two different coordination schemes: Platform
-> coordinated and  OS initiated.
->
-> This series aims at providing basic and initial support for platform
-> coordinated LPI states.
->
 
-Gentle ping, was hoping to target this series for v4.8
+On 22/06/2016 03:28, Wanpeng Li wrote:
+>  
+>  get_ratio:
+> -	rdmsr(MSR_PLATFORM_INFO, lo, hi);
+> -	ratio = (lo >> 8) & 0xff;
+> +	if (!rdmsr_safe(MSR_PLATFORM_INFO, &lo, &hi))
+> +		ratio = (lo >> 8) & 0xff;
 
--- 
-Regards,
-Sudeep
+This looks good, thanks.
+
+Paolo
