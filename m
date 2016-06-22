@@ -1,29 +1,42 @@
-From: Paolo Bonzini <pbonzini@redhat.com>
-Subject: Re: [PATCH] x86: fix rdmsr MSR_PLATFORM_INFO unsafe warning in kvm
- guest
-Date: Wed, 22 Jun 2016 19:43:15 +0200
-Message-ID: <aab33eba-e2d7-ff60-6a63-abee2a47cac8@redhat.com>
-References: <1466558908-3524-1-git-send-email-wanpeng.li@hotmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-pm-owner@vger.kernel.org>
-In-Reply-To: <1466558908-3524-1-git-send-email-wanpeng.li@hotmail.com>
-Sender: linux-pm-owner@vger.kernel.org
-To: Wanpeng Li <kernellwp@gmail.com>, linux-kernel@vger.kernel.org, kvm@vger.kernel.org, Linux PM list <linux-pm@vger.kernel.org>, linux-acpi@vger.kernel.org, lkp@01.org, x86@kernel.org
-Cc: Wanpeng Li <wanpeng.li@hotmail.com>, Len Brown <len.brown@intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Zhang Rui <rui.zhang@intel.com>, Chen Yu <y.c.chen@intel.com>, =?UTF-8?B?UmFkaW0gS3LEjW3DocWZ?= <rkrcmar@redhat.com>, jacob.jun.pan@intel.com, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>
+From: Arvind Yadav <arvind.yadav.cs@gmail.com>
+Subject: [PATCH] ACPI : Dummy acpi_video_register should return error code
+Date: Thu, 23 Jun 2016 00:26:01 +0530
+Message-ID: <1466621761-7283-1-git-send-email-arvind.yadav.cs@gmail.com>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from 51.18-broadband.acttv.in ([106.51.18.144]:48996 "EHLO
+	arvind-ThinkPad-Edge-E431" rhost-flags-OK-FAIL-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1750957AbcFVTEb (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 22 Jun 2016 15:04:31 -0400
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: robert.moore@intel.com
+Cc: lv.zheng@intel.com, rafael.j.wysocki@intel.com, lenb@kernel.org, linux-acpi@vger.kernel.org, devel@acpica.org, linux-kernel@vger.kernel.org, Arvind Yadav <arvind.yadav.cs@gmail.com>
 
+The inline acpi_video_register stub simply allows compilation on systems
+with CONFIG_ACPI_VIDEO disabled. the dummy acpi_video_register does not
+register an acpi_bus_driver at all. The inline acpi_video_register should
+return to indicate lack of support when attempting to register an
+acpi_bus_driver on such a system with CONFIG_ACPI_VIDEO disabled.
 
+Signed-off-by: Arvind Yadav <arvind.yadav.cs@gmail.com>
+---
+ include/acpi/video.h | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-On 22/06/2016 03:28, Wanpeng Li wrote:
->  
->  get_ratio:
-> -	rdmsr(MSR_PLATFORM_INFO, lo, hi);
-> -	ratio = (lo >> 8) & 0xff;
-> +	if (!rdmsr_safe(MSR_PLATFORM_INFO, &lo, &hi))
-> +		ratio = (lo >> 8) & 0xff;
+diff --git a/include/acpi/video.h b/include/acpi/video.h
+index 5731ccb..4536bd3 100644
+--- a/include/acpi/video.h
++++ b/include/acpi/video.h
+@@ -54,7 +54,7 @@ extern int acpi_video_get_levels(struct acpi_device *device,
+ 				 struct acpi_video_device_brightness **dev_br,
+ 				 int *pmax_level);
+ #else
+-static inline int acpi_video_register(void) { return 0; }
++static inline int acpi_video_register(void) { return -ENODEV; }
+ static inline void acpi_video_unregister(void) { return; }
+ static inline int acpi_video_get_edid(struct acpi_device *device, int type,
+ 				      int device_id, void **edid)
+-- 
+1.9.1
 
-This looks good, thanks.
-
-Paolo
