@@ -1,60 +1,65 @@
-From: "Prakash, Prashanth" <pprakash@codeaurora.org>
-Subject: Re: [PATCH v2] ACPI: Support for platform initiated graceful shutdown
-Date: Wed, 22 Jun 2016 09:20:44 -0600
-Message-ID: <36a56658-1bfb-21be-0245-2c757e1fd67d@codeaurora.org>
-References: <1463430112-8843-1-git-send-email-pprakash@codeaurora.org>
- <58e509ba-383d-1f9c-9595-d225e8af32a8@codeaurora.org>
- <1690297.d25mR60BpH@vostro.rjw.lan>
+From: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+Subject: Re: [PATCH v6 3/5] arm64: cpuidle: drop __init section marker to
+ arm_cpuidle_init
+Date: Wed, 22 Jun 2016 17:09:53 +0100
+Message-ID: <20160622160953.GA3976@red-moon>
+References: <1465915719-8409-1-git-send-email-sudeep.holla@arm.com>
+ <1465915719-8409-4-git-send-email-sudeep.holla@arm.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp.codeaurora.org ([198.145.29.96]:51322 "EHLO
-	smtp.codeaurora.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751577AbcFVPVV (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 22 Jun 2016 11:21:21 -0400
-In-Reply-To: <1690297.d25mR60BpH@vostro.rjw.lan>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <1465915719-8409-4-git-send-email-sudeep.holla@arm.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Sudeep Holla <sudeep.holla@arm.com>
+Cc: "Rafael J . Wysocki" <rjw@rjwysocki.net>, linux-acpi@vger.kernel.org, Vikas Sajjan <vikas.cha.sajjan@hpe.com>, Sunil <sunil.vl@hpe.com>, Prashanth Prakash <pprakash@codeaurora.org>, Al Stone <al.stone@linaro.org>, Ashwin Chaugule <ashwin.chaugule@linaro.org>, linux-kernel@vger.kernel.org, Mark Rutland <mark.rutland@arm.com>, linux-arm-kernel@lists.infradead.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: linux-acpi@vger.kernel.org, harba@codeaurora.org, ahs3@redhat.com, cov@codeaurora.org
 
-Hi Rafael,
+On Tue, Jun 14, 2016 at 03:48:37PM +0100, Sudeep Holla wrote:
+> Commit ea389daa7fd9 ("arm64: cpuidle: add __init section marker to
+> arm_cpuidle_init") added the __init annotation to arm_cpuidle_init
+> as it was not needed after booting which was correct at that time.
+> 
+> However with the introduction of ACPI LPI support, this will be used
+> from cpuhotplug path in ACPI processor driver.
+> 
+> This patch drops the __init annotation from arm_cpuidle_init to avoid
+> the following warning:
+> 
+> WARNING: vmlinux.o(.text+0x113c8): Section mismatch in reference from the
+> 	function acpi_processor_ffh_lpi_probe() to the function
+> 	.init.text:arm_cpuidle_init()
+> The function acpi_processor_ffh_lpi_probe() references
+> the function __init arm_cpuidle_init().
+> This is often because acpi_processor_ffh_lpi_probe lacks a __init
+> annotation or the annotation of arm_cpuidle_init is wrong.
+> 
+> Cc: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+> Cc: Mark Rutland <mark.rutland@arm.com>
+> Cc: linux-arm-kernel@lists.infradead.org
+> Signed-off-by: Sudeep Holla <sudeep.holla@arm.com>
 
-On 6/21/2016 5:50 PM, Rafael J. Wysocki wrote:
-> On Wednesday, June 15, 2016 02:05:05 PM Prakash, Prashanth wrote:
->> Hi Rafael,
->>
->> Any inputs on this patch?
-> Does it actually work?
-Yes, it works :)
-> It looks like sybus_evaluate_ost() schedules itself with a delay in an
-> endless loop and the poweroff will happen anyway without waiting.
->
-> I guess the idea is that acpi_sybus_notify() will schedule a delayed work
-> doing the sybus_evaluate_ost() and that will do the orderly_poweroff() thing,
-> but that's not what the patch is doing.
-The specification requires us to start graceful shutdown and then keep evaluating _OST
-method every 10 seconds with a status code of 0x81 to indicate that shutdown is in
-progress.
+Depending on acceptance of other patches in this series:
 
-Since we need not trigger a graceful shutdown every time we evaluate _OST method. I
-am calling orderly_poweroff only when we get the initial request via Notify.
-> That "sybus" naming looks sort of lame BTW.  What's wrong with using "sb"
-> instead?
-Sure, I will change the naming to use sb instead of sybus.
->
-> Besides actypes.h is an ACPICA file and patches updating it have to go via
-> upstream ACPICA.
-I can split this into 2 patches, so that they can be merged independently. Would that work?
->
-> And one more thing, if you checked acpi_get_handle() for "\\_SB" once,
-> it will succeed every time going forward.  No need to check again.
-OK, I will remove the checks from sybus_evaluate_ost().
->
-> Thanks,
-> Rafael
->
+Acked-by: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
 
-Thanks,
-Prashanth
+> ---
+>  arch/arm64/kernel/cpuidle.c | 2 +-
+>  1 file changed, 1 insertion(+), 1 deletion(-)
+> 
+> diff --git a/arch/arm64/kernel/cpuidle.c b/arch/arm64/kernel/cpuidle.c
+> index e11857fce05f..06786fdaadeb 100644
+> --- a/arch/arm64/kernel/cpuidle.c
+> +++ b/arch/arm64/kernel/cpuidle.c
+> @@ -15,7 +15,7 @@
+>  #include <asm/cpuidle.h>
+>  #include <asm/cpu_ops.h>
+>  
+> -int __init arm_cpuidle_init(unsigned int cpu)
+> +int arm_cpuidle_init(unsigned int cpu)
+>  {
+>  	int ret = -EOPNOTSUPP;
+>  
+> -- 
+> 2.7.4
+> 
