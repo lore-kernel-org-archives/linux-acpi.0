@@ -1,152 +1,215 @@
-From: Eduardo Valentin <edubezval@gmail.com>
-Subject: Re: [PATCHv2 1/1] thermal: core: call thermal_zone_device_update()
- after mode update
-Date: Wed, 22 Jun 2016 07:36:11 -0700
-Message-ID: <20160622143609.GA28915@localhost.localdomain>
-References: <1466563538.2471.10.camel@intel.com>
- <1466572546-12944-1-git-send-email-edubezval@gmail.com>
- <576A5B79.7070209@ti.com>
+From: Marc Zyngier <marc.zyngier@arm.com>
+Subject: Re: [PATCH V7 1/8] ACPI: I/O Remapping Table (IORT) initial support
+Date: Wed, 22 Jun 2016 15:51:47 +0100
+Message-ID: <576AA603.3080505@arm.com>
+References: <1466420541-20101-2-git-send-email-tn@semihalf.com>
+ <1466598909-27504-1-git-send-email-tn@semihalf.com>
+ <576A91CC.3000101@arm.com> <576A9824.1060400@semihalf.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <576A5B79.7070209@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Keerthy <a0393675@ti.com>
-Cc: Rui Zhang <rui.zhang@intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, "Lee, Chun-Yi" <jlee@suse.com>, Darren Hart <dvhart@infradead.org>, Keerthy <j-keerthy@ti.com>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, platform-driver-x86@vger.kernel.org, linux-pm@vger.kernel.org
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from foss.arm.com ([217.140.101.70]:48333 "EHLO foss.arm.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751601AbcFVOwG (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 22 Jun 2016 10:52:06 -0400
+In-Reply-To: <576A9824.1060400@semihalf.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Tomasz Nowicki <tn@semihalf.com>, tglx@linutronix.de, jason@lakedaemon.net, rjw@rjwysocki.net, bhelgaas@google.com, lorenzo.pieralisi@arm.com, robert.richter@caviumnetworks.com, shijie.huang@arm.com, Suravee.Suthikulpanit@amd.com, hanjun.guo@linaro.org
+Cc: al.stone@linaro.org, mw@semihalf.com, graeme.gregory@linaro.org, Catalin.Marinas@arm.com, will.deacon@arm.com, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org, ddaney.cavm@gmail.com, okaya@codeaurora.org, andrea.gallo@linaro.org, linux-pci@vger.kernel.org
 
-On Wed, Jun 22, 2016 at 03:03:45PM +0530, Keerthy wrote:
+On 22/06/16 14:52, Tomasz Nowicki wrote:
+> On 22.06.2016 15:25, Marc Zyngier wrote:
+>> On 22/06/16 13:35, Tomasz Nowicki wrote:
+>>> IORT shows representation of IO topology for ARM based systems.
+>>> It describes how various components are connected together on
+>>> parent-child basis e.g. PCI RC -> SMMU -> ITS. Also see IORT spec.
+>>> http://infocenter.arm.com/help/topic/com.arm.doc.den0049b/DEN0049B_IO_Remapping_Table.pdf
+>>>
+>>> Initial support allows to detect IORT table presence and save its
+>>> root pointer obtained through acpi_get_table(). The pointer validity
+>>> depends on acpi_gbl_permanent_mmap because if acpi_gbl_permanent_mmap
+>>> is not set while using IORT nodes we would dereference unmapped pointers.
+>>>
+>>> For the aforementioned reason call iort_table_detect() from acpi_init()
+>>> which guarantees acpi_gbl_permanent_mmap to be set at that point.
+>>>
+>>> Add generic helpers which are helpful for scanning and retrieving
+>>> information from IORT table content. List of the most important helpers:
+>>> - iort_find_dev_node() finds IORT node for a given device
+>>> - iort_node_map_rid() maps device RID and returns IORT node which provides
+>>>    final translation
+>>>
+>>> Signed-off-by: Tomasz Nowicki <tn@semihalf.com>
+>>> ---
+>>>   drivers/acpi/Kconfig  |   3 +
+>>>   drivers/acpi/Makefile |   1 +
+>>>   drivers/acpi/bus.c    |   2 +
+>>>   drivers/acpi/iort.c   | 217 ++++++++++++++++++++++++++++++++++++++++++++++++++
+>>>   include/linux/iort.h  |  30 +++++++
+>>>   5 files changed, 253 insertions(+)
+>>>   create mode 100644 drivers/acpi/iort.c
+>>>   create mode 100644 include/linux/iort.h
+>>>
+>>> diff --git a/drivers/acpi/Kconfig b/drivers/acpi/Kconfig
+>>> index b7e2e77..848471f 100644
+>>> --- a/drivers/acpi/Kconfig
+>>> +++ b/drivers/acpi/Kconfig
+>>> @@ -57,6 +57,9 @@ config ACPI_SYSTEM_POWER_STATES_SUPPORT
+>>>   config ACPI_CCA_REQUIRED
+>>>   	bool
+>>>
+>>> +config IORT_TABLE
+>>> +	bool
+>>> +
+>>>   config ACPI_DEBUGGER
+>>>   	bool "AML debugger interface"
+>>>   	select ACPI_DEBUG
+>>> diff --git a/drivers/acpi/Makefile b/drivers/acpi/Makefile
+>>> index 251ce85..c7c9b29 100644
+>>> --- a/drivers/acpi/Makefile
+>>> +++ b/drivers/acpi/Makefile
+>>> @@ -82,6 +82,7 @@ obj-$(CONFIG_ACPI_CUSTOM_METHOD)+= custom_method.o
+>>>   obj-$(CONFIG_ACPI_BGRT)		+= bgrt.o
+>>>   obj-$(CONFIG_ACPI_CPPC_LIB)	+= cppc_acpi.o
+>>>   obj-$(CONFIG_ACPI_DEBUGGER_USER) += acpi_dbg.o
+>>> +obj-$(CONFIG_IORT_TABLE) 	+= iort.o
+>>>
+>>>   # processor has its own "processor." module_param namespace
+>>>   processor-y			:= processor_driver.o
+>>> diff --git a/drivers/acpi/bus.c b/drivers/acpi/bus.c
+>>> index 31e8da6..176c17d 100644
+>>> --- a/drivers/acpi/bus.c
+>>> +++ b/drivers/acpi/bus.c
+>>> @@ -33,6 +33,7 @@
+>>>   #ifdef CONFIG_X86
+>>>   #include <asm/mpspec.h>
+>>>   #endif
+>>> +#include <linux/iort.h>
+>>>   #include <linux/pci.h>
+>>>   #include <acpi/apei.h>
+>>>   #include <linux/dmi.h>
+>>> @@ -1118,6 +1119,7 @@ static int __init acpi_init(void)
+>>>   	}
+>>>
+>>>   	pci_mmcfg_late_init();
+>>> +	iort_table_detect();
+>>>   	acpi_scan_init();
+>>>   	acpi_ec_init();
+>>>   	acpi_debugfs_init();
+>>> diff --git a/drivers/acpi/iort.c b/drivers/acpi/iort.c
+>>> new file mode 100644
+>>> index 0000000..fcfa008f
+>>> --- /dev/null
+>>> +++ b/drivers/acpi/iort.c
+>>> @@ -0,0 +1,217 @@
+>>> +/*
+>>> + * Copyright (C) 2016, Semihalf
+>>> + *	Author: Tomasz Nowicki <tn@semihalf.com>
+>>> + *
+>>> + * This program is free software; you can redistribute it and/or modify it
+>>> + * under the terms and conditions of the GNU General Public License,
+>>> + * version 2, as published by the Free Software Foundation.
+>>> + *
+>>> + * This program is distributed in the hope it will be useful, but WITHOUT
+>>> + * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+>>> + * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
+>>> + * more details.
+>>> + *
+>>> + * This file implements early detection/parsing of I/O mapping
+>>> + * reported to OS through firmware via I/O Remapping Table (IORT)
+>>> + * IORT document number: ARM DEN 0049A
+>>> + */
+>>> +
+>>> +#define pr_fmt(fmt)	"ACPI: IORT: " fmt
+>>> +
+>>> +#include <linux/iort.h>
+>>> +#include <linux/kernel.h>
+>>> +#include <linux/pci.h>
+>>> +
+>>> +typedef acpi_status (*iort_find_node_callback)
+>>> +	(struct acpi_iort_node *node, void *context);
+>>> +
+>>> +/* Root pointer to the mapped IORT table */
+>>> +static struct acpi_table_header *iort_table;
+>>> +
+>>> +static struct acpi_iort_node *
+>>> +iort_scan_node(enum acpi_iort_node_type type,
+>>> +	       iort_find_node_callback callback, void *context)
+>>> +{
+>>> +	struct acpi_iort_node *iort_node, *iort_end;
+>>> +	struct acpi_table_iort *iort;
+>>> +	int i;
+>>> +
+>>> +	/* Get the first IORT node */
+>>> +	iort = (struct acpi_table_iort *)iort_table;
+>>> +	iort_node = ACPI_ADD_PTR(struct acpi_iort_node, iort,
+>>> +				 iort->node_offset);
+>>> +	iort_end = ACPI_ADD_PTR(struct acpi_iort_node, iort_table,
+>>> +				iort_table->length);
+>>> +
+>>> +	for (i = 0; i < iort->node_count; i++) {
+>>> +		if (WARN_TAINT(iort_node >= iort_end, TAINT_FIRMWARE_WORKAROUND,
+>>> +			       "IORT node pointer overflows, bad table!\n"))
+>>> +			return NULL;
+>>> +
+>>> +		if (iort_node->type == type) {
+>>> +			if (ACPI_SUCCESS(callback(iort_node, context)))
+>>> +				return iort_node;
+>>> +		}
+>>> +
+>>> +		iort_node = ACPI_ADD_PTR(struct acpi_iort_node, iort_node,
+>>> +					 iort_node->length);
+>>> +	}
+>>> +
+>>> +	return NULL;
+>>> +}
+>>> +
+>>> +static acpi_status
+>>> +iort_match_node_callback(struct acpi_iort_node *node, void *context)
+>>> +{
+>>> +	struct device *dev = context;
+>>> +
+>>> +	switch (node->type) {
+>>> +	case ACPI_IORT_NODE_NAMED_COMPONENT: {
+>>> +		struct acpi_buffer buffer = { ACPI_ALLOCATE_BUFFER, NULL };
+>>> +		struct acpi_device *adev = to_acpi_device_node(dev->fwnode);
+>>> +		struct acpi_iort_named_component *ncomp;
+>>> +
+>>> +		if (!adev)
+>>> +			break;
+>>> +
+>>> +		ncomp = (struct acpi_iort_named_component *)node->node_data;
+>>> +
+>>> +		if (ACPI_FAILURE(acpi_get_name(adev->handle,
+>>> +					       ACPI_FULL_PATHNAME, &buffer))) {
+>>> +			dev_warn(dev, "Can't get device full path name\n");
+>>> +		} else {
+>>> +			int match;
+>>> +
+>>> +			match = !strcmp(ncomp->device_name, buffer.pointer);
+>>> +			kfree(buffer.pointer);
+>>
+>> Why did you change this to a naked kfree? The ACPI code clearly states:
+>>
+>> /*
+>>   * Allocate a new buffer. We directectly call acpi_os_allocate here to
+>>   * purposefully bypass the (optionally enabled) internal allocation
+>>   * tracking mechanism since we only want to track internal
+>>   * allocations. Note: The caller should use acpi_os_free to free this
+>>   * buffer created via ACPI_ALLOCATE_BUFFER.
+>>   */
 > 
+> Yes we should use symmetric free function to acpi_os_allocate here, 
+> which means acpi_os_free should be used here.
 > 
-> On Wednesday 22 June 2016 10:45 AM, Eduardo Valentin wrote:
-> >Because several drivers do the following pattern:
-> >.set_mode()
-> >    ...
-> >    local_data->mode = new_mode;
-> >    thermal_zone_device_update(tz);
-> >
-> >makes sense to simply do the thermal_zone_device_update()
-> >in thermal core, after setting the new mode.
+> My main motivation was to free buffer.pointer instead of &buffer
 > 
-> http://pastebin.ubuntu.com/17687601/
-> 
-> linux-next + current v2 of the patch.
-> The back trace still comes.
+> Would you mind to fix that (s/kfree/acpi_os_free) before merging ?
 
-I confirm this. Please check V3 I just sent. On V2 I focused
-on thermal_zone_device_update(), but for OF thermal specifically,
-we also hold the lock for protecting other accesses. Now they
-are removed.
+Sure.
 
-> 
-> Regards,
-> Keerthy
-> 
-> >
-> >Also, this patch also remove deadlocks on drivers that
-> >call thermal_zone_device_update() on .set_mode(),
-> >as .set_mode()  is now called always with tz->lock held.
-> >
-> >Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-> >Cc: Len Brown <lenb@kernel.org>
-> >Cc: linux-acpi@vger.kernel.org
-> >Cc: "Lee, Chun-Yi" <jlee@suse.com>
-> >Cc: Darren Hart <dvhart@infradead.org>
-> >Cc: Zhang Rui <rui.zhang@intel.com>
-> >Cc: Keerthy <j-keerthy@ti.com>
-> >Cc: linux-kernel@vger.kernel.org
-> >Cc: linux-omap@vger.kernel.org
-> >Cc: platform-driver-x86@vger.kernel.org
-> >Cc: linux-pm@vger.kernel.org
-> >Signed-off-by: Eduardo Valentin <edubezval@gmail.com>
-> >---
-> >Please ignore last version.
-> >
-> >V1-> V2:
-> >Cleaned the patch and remove unrelated changes.
-> >---
-> >
-> >  drivers/acpi/thermal.c                             | 2 --
-> >  drivers/platform/x86/acerhdf.c                     | 1 -
-> >  drivers/thermal/imx_thermal.c                      | 1 -
-> >  drivers/thermal/of-thermal.c                       | 1 -
-> >  drivers/thermal/thermal_sysfs.c                    | 1 +
-> >  drivers/thermal/ti-soc-thermal/ti-thermal-common.c | 1 -
-> >  6 files changed, 1 insertion(+), 6 deletions(-)
-> >
-> >diff --git a/drivers/acpi/thermal.c b/drivers/acpi/thermal.c
-> >index 82707f9..8582b88 100644
-> >--- a/drivers/acpi/thermal.c
-> >+++ b/drivers/acpi/thermal.c
-> >@@ -519,8 +519,6 @@ static void acpi_thermal_check(void *data)
-> >
-> >  	if (!tz->tz_enabled)
-> >  		return;
-> >-
-> >-	thermal_zone_device_update(tz->thermal_zone);
-> >  }
-> >
-> >  /* sys I/F for generic thermal sysfs support */
-> >diff --git a/drivers/platform/x86/acerhdf.c b/drivers/platform/x86/acerhdf.c
-> >index 460fa67..aee33ba 100644
-> >--- a/drivers/platform/x86/acerhdf.c
-> >+++ b/drivers/platform/x86/acerhdf.c
-> >@@ -405,7 +405,6 @@ static inline void acerhdf_enable_kernelmode(void)
-> >  	kernelmode = 1;
-> >
-> >  	thz_dev->polling_delay = interval*1000;
-> >-	thermal_zone_device_update(thz_dev);
-> >  	pr_notice("kernel mode fan control ON\n");
-> >  }
-> >
-> >diff --git a/drivers/thermal/imx_thermal.c b/drivers/thermal/imx_thermal.c
-> >index c5547bd..a413eb6 100644
-> >--- a/drivers/thermal/imx_thermal.c
-> >+++ b/drivers/thermal/imx_thermal.c
-> >@@ -246,7 +246,6 @@ static int imx_set_mode(struct thermal_zone_device *tz,
-> >  	}
-> >
-> >  	data->mode = mode;
-> >-	thermal_zone_device_update(tz);
-> >
-> >  	return 0;
-> >  }
-> >diff --git a/drivers/thermal/of-thermal.c b/drivers/thermal/of-thermal.c
-> >index b8e509c..4602e2e 100644
-> >--- a/drivers/thermal/of-thermal.c
-> >+++ b/drivers/thermal/of-thermal.c
-> >@@ -292,7 +292,6 @@ static int of_thermal_set_mode(struct thermal_zone_device *tz,
-> >  	mutex_unlock(&tz->lock);
-> >
-> >  	data->mode = mode;
-> >-	thermal_zone_device_update(tz);
-> >
-> >  	return 0;
-> >  }
-> >diff --git a/drivers/thermal/thermal_sysfs.c b/drivers/thermal/thermal_sysfs.c
-> >index 743df50..3d0dc30 100644
-> >--- a/drivers/thermal/thermal_sysfs.c
-> >+++ b/drivers/thermal/thermal_sysfs.c
-> >@@ -100,6 +100,7 @@ mode_store(struct device *dev, struct device_attribute *attr,
-> >  	mutex_lock(&tz->lock);
-> >  	result = tz->ops->set_mode(tz, mode);
-> >  	mutex_unlock(&tz->lock);
-> >+	thermal_zone_device_update(tz);
-> >
-> >  	if (result)
-> >  		return result;
-> >diff --git a/drivers/thermal/ti-soc-thermal/ti-thermal-common.c b/drivers/thermal/ti-soc-thermal/ti-thermal-common.c
-> >index 15c0a9a..9a5a3a3 100644
-> >--- a/drivers/thermal/ti-soc-thermal/ti-thermal-common.c
-> >+++ b/drivers/thermal/ti-soc-thermal/ti-thermal-common.c
-> >@@ -205,7 +205,6 @@ static int ti_thermal_set_mode(struct thermal_zone_device *thermal,
-> >  	data->mode = mode;
-> >  	ti_bandgap_write_update_interval(bgp, data->sensor_id,
-> >  					data->ti_thermal->polling_delay);
-> >-	thermal_zone_device_update(data->ti_thermal);
-> >  	dev_dbg(&thermal->device, "thermal polling set for duration=%d msec\n",
-> >  		data->ti_thermal->polling_delay);
-> >
-> >
+	M.
+-- 
+Jazz is not dead. It just smells funny...
