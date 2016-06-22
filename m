@@ -1,163 +1,56 @@
-From: Eduardo Valentin <edubezval@gmail.com>
-Subject: Re: [PATCHv2 1/1] thermal: core: call thermal_zone_device_update()
- after mode update
-Date: Wed, 22 Jun 2016 08:05:48 -0700
-Message-ID: <20160622150546.GA30080@localhost.localdomain>
-References: <1466563538.2471.10.camel@intel.com>
- <1466572546-12944-1-git-send-email-edubezval@gmail.com>
- <576A5B79.7070209@ti.com>
- <20160622143609.GA28915@localhost.localdomain>
+From: Bjorn Helgaas <helgaas@kernel.org>
+Subject: Re: [PATCH V3 1/3] x86/ioapic: Support hot-removal of IOAPICs
+ present during boot
+Date: Wed, 22 Jun 2016 09:53:54 -0500
+Message-ID: <20160622145354.GA25485@localhost>
+References: <20160616170958.GA7250@localhost>
+ <1466579612-20417-1-git-send-email-rui.y.wang@intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-pa0-f67.google.com ([209.85.220.67]:35468 "EHLO
-	mail-pa0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751768AbcFVPFy (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 22 Jun 2016 11:05:54 -0400
+Return-path: <linux-pci-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20160622143609.GA28915@localhost.localdomain>
-Sender: linux-acpi-owner@vger.kernel.org
+In-Reply-To: <1466579612-20417-1-git-send-email-rui.y.wang@intel.com>
+Sender: linux-pci-owner@vger.kernel.org
+To: Rui Wang <rui.y.wang@intel.com>
+Cc: tglx@linutronix.de, rjw@rjwysocki.net, tony.luck@intel.com, bhelgaas@google.com, linux-acpi@vger.kernel.org, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Keerthy <a0393675@ti.com>
-Cc: Rui Zhang <rui.zhang@intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, "Lee, Chun-Yi" <jlee@suse.com>, Darren Hart <dvhart@infradead.org>, Keerthy <j-keerthy@ti.com>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, platform-driver-x86@vger.kernel.org, linux-pm@vger.kernel.org
 
-On Wed, Jun 22, 2016 at 07:36:11AM -0700, Eduardo Valentin wrote:
-> On Wed, Jun 22, 2016 at 03:03:45PM +0530, Keerthy wrote:
+On Wed, Jun 22, 2016 at 03:13:32PM +0800, Rui Wang wrote:
+> On Friday, June 17, 2016 1:10 AM, Bjorn Helgaas wrote:
+> > ioapic_insert_resources() is x86-specific, but I'm not sure why; it seems
+> > like it does things that should be applicable to ia64 as well.
 > > 
-> > 
-> > On Wednesday 22 June 2016 10:45 AM, Eduardo Valentin wrote:
-> > >Because several drivers do the following pattern:
-> > >.set_mode()
-> > >    ...
-> > >    local_data->mode = new_mode;
-> > >    thermal_zone_device_update(tz);
-> > >
-> > >makes sense to simply do the thermal_zone_device_update()
-> > >in thermal core, after setting the new mode.
-> > 
-> > http://pastebin.ubuntu.com/17687601/
-> > 
-> > linux-next + current v2 of the patch.
-> > The back trace still comes.
+> > acpi_ioapic_add() is not x86-specific, and it is called from
+> > acpi_pci_root_add() for the hot-add case.  You're adding an x86-xpecific call
+> > in pci_assign_unassigned_resources().  Why should the hot-add case be for
+> > all arches, but the boot-time case only for x86?
 > 
-> I confirm this. Please check V3 I just sent. On V2 I focused
-> on thermal_zone_device_update(), but for OF thermal specifically,
-> we also hold the lock for protecting other accesses. Now they
-> are removed.
-
-Please use v4. I removed extra non needed locking in ti SoC
-driver for case which boots without DT (not sure if this is still used
-though). Also, improved acpi thermal, as it was remove the update
-from other needed cases.
-
+> Hi Bjorn,
 > 
-> > 
-> > Regards,
-> > Keerthy
-> > 
-> > >
-> > >Also, this patch also remove deadlocks on drivers that
-> > >call thermal_zone_device_update() on .set_mode(),
-> > >as .set_mode()  is now called always with tz->lock held.
-> > >
-> > >Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-> > >Cc: Len Brown <lenb@kernel.org>
-> > >Cc: linux-acpi@vger.kernel.org
-> > >Cc: "Lee, Chun-Yi" <jlee@suse.com>
-> > >Cc: Darren Hart <dvhart@infradead.org>
-> > >Cc: Zhang Rui <rui.zhang@intel.com>
-> > >Cc: Keerthy <j-keerthy@ti.com>
-> > >Cc: linux-kernel@vger.kernel.org
-> > >Cc: linux-omap@vger.kernel.org
-> > >Cc: platform-driver-x86@vger.kernel.org
-> > >Cc: linux-pm@vger.kernel.org
-> > >Signed-off-by: Eduardo Valentin <edubezval@gmail.com>
-> > >---
-> > >Please ignore last version.
-> > >
-> > >V1-> V2:
-> > >Cleaned the patch and remove unrelated changes.
-> > >---
-> > >
-> > >  drivers/acpi/thermal.c                             | 2 --
-> > >  drivers/platform/x86/acerhdf.c                     | 1 -
-> > >  drivers/thermal/imx_thermal.c                      | 1 -
-> > >  drivers/thermal/of-thermal.c                       | 1 -
-> > >  drivers/thermal/thermal_sysfs.c                    | 1 +
-> > >  drivers/thermal/ti-soc-thermal/ti-thermal-common.c | 1 -
-> > >  6 files changed, 1 insertion(+), 6 deletions(-)
-> > >
-> > >diff --git a/drivers/acpi/thermal.c b/drivers/acpi/thermal.c
-> > >index 82707f9..8582b88 100644
-> > >--- a/drivers/acpi/thermal.c
-> > >+++ b/drivers/acpi/thermal.c
-> > >@@ -519,8 +519,6 @@ static void acpi_thermal_check(void *data)
-> > >
-> > >  	if (!tz->tz_enabled)
-> > >  		return;
-> > >-
-> > >-	thermal_zone_device_update(tz->thermal_zone);
-> > >  }
-> > >
-> > >  /* sys I/F for generic thermal sysfs support */
-> > >diff --git a/drivers/platform/x86/acerhdf.c b/drivers/platform/x86/acerhdf.c
-> > >index 460fa67..aee33ba 100644
-> > >--- a/drivers/platform/x86/acerhdf.c
-> > >+++ b/drivers/platform/x86/acerhdf.c
-> > >@@ -405,7 +405,6 @@ static inline void acerhdf_enable_kernelmode(void)
-> > >  	kernelmode = 1;
-> > >
-> > >  	thz_dev->polling_delay = interval*1000;
-> > >-	thermal_zone_device_update(thz_dev);
-> > >  	pr_notice("kernel mode fan control ON\n");
-> > >  }
-> > >
-> > >diff --git a/drivers/thermal/imx_thermal.c b/drivers/thermal/imx_thermal.c
-> > >index c5547bd..a413eb6 100644
-> > >--- a/drivers/thermal/imx_thermal.c
-> > >+++ b/drivers/thermal/imx_thermal.c
-> > >@@ -246,7 +246,6 @@ static int imx_set_mode(struct thermal_zone_device *tz,
-> > >  	}
-> > >
-> > >  	data->mode = mode;
-> > >-	thermal_zone_device_update(tz);
-> > >
-> > >  	return 0;
-> > >  }
-> > >diff --git a/drivers/thermal/of-thermal.c b/drivers/thermal/of-thermal.c
-> > >index b8e509c..4602e2e 100644
-> > >--- a/drivers/thermal/of-thermal.c
-> > >+++ b/drivers/thermal/of-thermal.c
-> > >@@ -292,7 +292,6 @@ static int of_thermal_set_mode(struct thermal_zone_device *tz,
-> > >  	mutex_unlock(&tz->lock);
-> > >
-> > >  	data->mode = mode;
-> > >-	thermal_zone_device_update(tz);
-> > >
-> > >  	return 0;
-> > >  }
-> > >diff --git a/drivers/thermal/thermal_sysfs.c b/drivers/thermal/thermal_sysfs.c
-> > >index 743df50..3d0dc30 100644
-> > >--- a/drivers/thermal/thermal_sysfs.c
-> > >+++ b/drivers/thermal/thermal_sysfs.c
-> > >@@ -100,6 +100,7 @@ mode_store(struct device *dev, struct device_attribute *attr,
-> > >  	mutex_lock(&tz->lock);
-> > >  	result = tz->ops->set_mode(tz, mode);
-> > >  	mutex_unlock(&tz->lock);
-> > >+	thermal_zone_device_update(tz);
-> > >
-> > >  	if (result)
-> > >  		return result;
-> > >diff --git a/drivers/thermal/ti-soc-thermal/ti-thermal-common.c b/drivers/thermal/ti-soc-thermal/ti-thermal-common.c
-> > >index 15c0a9a..9a5a3a3 100644
-> > >--- a/drivers/thermal/ti-soc-thermal/ti-thermal-common.c
-> > >+++ b/drivers/thermal/ti-soc-thermal/ti-thermal-common.c
-> > >@@ -205,7 +205,6 @@ static int ti_thermal_set_mode(struct thermal_zone_device *thermal,
-> > >  	data->mode = mode;
-> > >  	ti_bandgap_write_update_interval(bgp, data->sensor_id,
-> > >  					data->ti_thermal->polling_delay);
-> > >-	thermal_zone_device_update(data->ti_thermal);
-> > >  	dev_dbg(&thermal->device, "thermal polling set for duration=%d msec\n",
-> > >  		data->ti_thermal->polling_delay);
-> > >
-> > >
+> It turns out that IOAPIC hotplug has not been pursued on ia64. There were
+> demos showing CPU sockets online/offline on ia64 but the CPUs had no IIO,
+> thus no IOAPIC hotplug.
+
+That doesn't mean we need to write code that's gratuitously x86-specific.
+
+> So to answer the first question:
+> ioapic_insert_resources() is x86-specific because it's inserting what has
+> been setup in io_apic_init_mappings() which, through mpc_ioapic_addr(), is
+> capable of handling both the static case (acpi_parse_ioapic(), etc.) and the
+> hotplug case (acpi_ioapic_add()). But on ia64, there's only the static
+> case through acpi_parse_iosapic(), no need for the hotplug case yet.
+
+ioapic_insert_resources() inserts IOAPIC resources on x86.  Where are
+IOSAPIC resources inserted on ia64?
+
+> To answer the second question:
+> acpi_ioapic_add() is in effect x86-specific, because it's an empty function
+> when CONFIG_ACPI_HOTPLUG_IOAPIC isn't defined. And CONFIG_ACPI_HOTPLUG_IOAPIC
+> depends on CONFIG_X86_IO_APIC (see drivers/acpi/Kconfig). This was introduced
+> in c183619b6 (x86/irq, ACPI: Implement ACPI driver to support IOAPIC hotplug).
+> That commit shows the dependency.
+> 
+> I'll send a newer version with comments explaining these.
+
+I'd rather have code that is not x86-specific than comments explaining why
+the code is x86-specific.
