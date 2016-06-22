@@ -1,113 +1,96 @@
-From: Wanpeng Li <kernellwp@gmail.com>
-Subject: [PATCH] x86: fix rdmsr MSR_PLATFORM_INFO unsafe warning in kvm guest
-Date: Wed, 22 Jun 2016 09:28:28 +0800
-Message-ID: <1466558908-3524-1-git-send-email-wanpeng.li@hotmail.com>
+From: Hanjun Guo <hanjun.guo-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
+Subject: Re: [RFC PATCH v2 00/15] ACPI IORT ARM SMMU v3 support
+Date: Wed, 22 Jun 2016 10:45:05 +0800
+Message-ID: <e9d5d68a-3e1d-4517-7f67-b7941e74eddd@linaro.org>
+References: <1465306270-27076-1-git-send-email-lorenzo.pieralisi@arm.com>
+	<b00f33ad-be24-21a9-b03b-611756bbc8e9@linaro.org>
+	<20160621142704.GA31593@red-moon>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <kvm-owner@vger.kernel.org>
-Sender: kvm-owner@vger.kernel.org
-To: linux-kernel@vger.kernel.org, kvm@vger.kernel.org, Linux PM list <linux-pm@vger.kernel.org>, linux-acpi@vger.kernel.org, lkp@01.org, x86@kernel.org
-Cc: Wanpeng Li <wanpeng.li@hotmail.com>, Len Brown <len.brown@intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Zhang Rui <rui.zhang@intel.com>, Chen Yu <y.c.chen@intel.com>, Paolo Bonzini <pbonzini@redhat.com>, =?UTF-8?q?Radim=20Kr=C4=8Dm=C3=A1=C5=99?= <rkrcmar@redhat.com>, jacob.jun.pan@intel.com, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>
+Content-Type: text/plain; charset="us-ascii"; Format="flowed"
+Content-Transfer-Encoding: 7bit
+Return-path: <iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
+In-Reply-To: <20160621142704.GA31593@red-moon>
+List-Unsubscribe: <https://lists.linuxfoundation.org/mailman/options/iommu>,
+	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.linuxfoundation.org/pipermail/iommu/>
+List-Post: <mailto:iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
+List-Help: <mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.linuxfoundation.org/mailman/listinfo/iommu>,
+	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=subscribe>
+Sender: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
+Errors-To: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
+To: Lorenzo Pieralisi <lorenzo.pieralisi-5wv7dgnIgG8@public.gmane.org>
+Cc: Marc Zyngier <marc.zyngier-5wv7dgnIgG8@public.gmane.org>, "Rafael J. Wysocki" <rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org>, Will Deacon <will.deacon-5wv7dgnIgG8@public.gmane.org>, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linuxarm-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, Sinan Kaya <okaya-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, Tomasz Nowicki <tn-nYOzD4b6Jr9Wk0Htik3J/w@public.gmane.org>, Jon Masters <jcm-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-=46rom: Wanpeng Li <wanpeng.li@hotmail.com>
+On 2016/6/21 22:27, Lorenzo Pieralisi wrote:
+> Hi Hanjun,
+>
+> On Tue, Jun 21, 2016 at 06:37:17PM +0800, Hanjun Guo wrote:
+>> Hi Lorenzo,
+>>
+>> On 2016/6/7 21:30, Lorenzo Pieralisi wrote:
+>>> This RFC patch series is v2 of a previous posting:
+>>>
+>>> https://lkml.org/lkml/2016/4/14/702
+>>>
+>>> v1 -> v2:
+>>> 	- Rebased on top of dependencies series [1][2][3](v4.7-rc1)
+>>> 	- Removed IOMMU fwnode generalization
+>>> 	- Implemented ARM SMMU v3 ACPI probing instead of ARM SMMU v2
+>>> 	  owing to patch series dependencies [1]
+>>> 	- Moved platform device creation logic to IORT code to
+>>> 	  generalize its usage for ARM SMMU v1-v2-v3 components
+>>> 	- Removed reliance on ACPI early device probing
+>>> 	- Created IORT specific iommu_xlate() translation hook leaving
+>>> 	  OF code unchanged according to v1 reviews
+>>>
+>>> The ACPI IORT table provides information that allows instantiating
+>>> ARM SMMU devices and carrying out id mappings between components on
+>>> ARM based systems (devices, IOMMUs, interrupt controllers).
+>>>
+>>> http://infocenter.arm.com/help/topic/com.arm.doc.den0049b/DEN0049B_IO_Remapping_Table.pdf
+>>>
+>>> Building on basic IORT support, available through [2]:
+>>>
+>>> this patchset enables ARM SMMU v3 support on ACPI systems.
+>>
+>> I'm trying to test your patches on D03 (SMMUv3 based) but ...
+>
+> What do you mean by "I am trying.." :), have you actually tested
+> this series ?
 
-------------[ cut here ]------------
-WARNING: CPU: 0 PID: 0 at arch/x86/mm/extable.c:50 ex_handler_rdmsr_uns=
-afe+0x6a/0x70
-unchecked MSR access error: RDMSR from 0xce
-Modules linked in:
-CPU: 0 PID: 0 Comm: swapper/0 Not tainted 4.7.0-rc3+ #1
-Hardware name: QEMU Standard PC (i440FX + PIIX, 1996), BIOS Bochs 01/01=
-/2011
- 0000000000000000 ffffffff81c03ce0 ffffffff813b3eae ffffffff81c03d30
- 0000000000000000 ffffffff81c03d20 ffffffff81067181 0000003200000001
- ffffffff81c03df8 ffffffff8179676c 0000000000000000 ffffffff81fcd2c0
-Call Trace:
- dump_stack+0x67/0x99
- __warn+0xd1/0xf0
- warn_slowpath_fmt+0x4f/0x60
- ex_handler_rdmsr_unsafe+0x6a/0x70
- fixup_exception+0x39/0x50
- do_general_protection+0x93/0x1b0
- general_protection+0x22/0x30
- ? cpu_khz_from_msr+0xd8/0x1c0
- native_calibrate_cpu+0x30/0x5b0
- tsc_init+0x2b/0x297
- x86_late_time_init+0xf/0x11
- start_kernel+0x398/0x451
- ? set_init_arg+0x55/0x55
- x86_64_start_reservations+0x2f/0x31
- x86_64_start_kernel+0xea/0xed
+I was rebasing this series on top of Tomasz's latest ITS patchset,
+and found that patch 1~2,5 are not needed, and also have conflicts
+(expected), so I think it's better to wait for the updated version
+from you :)
 
-After commit (fc141535ad8 : "x86 tsc_msr: Extend to include Intel Core=20
-Architecture"), rdmsr MSR_PLATFORM_INFO is used to get maximum non-turb=
-o=20
-ratio for recent Intel Core Architecture which results in kvm guest rdm=
-sr=20
-unsafe warning.
+>
+>> [...]
+>>> [1] R.Murphy "Generic DT bindings for PCI and ARM SMMU v3"
+>>>    http://marc.info/?l=linux-arm-kernel&m=146497432413816&w=2
+>>
+>> ...This patch set is still in discussion and seems not work
+>> for non-PCI devices.
+>
+> Can you be more specific please ? Yes, both series are work
+> in progress.
+>
+>>> [2] T.Nowicki "Introduce ACPI world to ITS irqchip" v5
+>>>    http://marc.info/?l=linux-acpi&m=146469369703684&w=2
+>>
+>> Tomasz sent out the v7 and included patches in your series.
+>>
+>> I think a updated version before the test makes sense, what
+>> do you think? Let me know your thoughts.
+>
+> I am working with Robin so that the xlate() mechanism works
+> properly and seamlessly for both DT and ACPI, given the
+> dependencies I think it makes more sense to wait for Tomasz
+> and Robin patches to get merged or at least stabilize before
+> doing anything else, I am curently working on a v3.
 
-As Radim pointed out before:
+OK.
 
-| MSR_PLATFORM_INFO: Intel changes it from family to family and there i=
-s
-| no obvious overlap or default.  If we picked 0 (any other fixed value=
-),
-| then the guest would have to know that 0 doesn't mean that
-| MSR_PLATFORM_INFO returned 0, but that KVM doesn't emulate this MSR a=
-nd
-| the value cannot be used.  This is very similar to handling a #GP in =
-the
-| guest, but also has a disadvantage, because KVM cannot say that
-| MSR_PLATFORM_INFO is 0.  Simple emulation is not possible.
-
-This patch fix it by using rdmsr_safe to read MSR_PLATFORM_INFO in kvm=20
-guest in order that #GP can be fixed up, then tsc will be calibrated by=
-=20
-PIT, HPET etc.
-
-Reported-by: kernel test robot <xiaolong.ye@intel.com>
-Cc: Len Brown <len.brown@intel.com>
-Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: Zhang Rui <rui.zhang@intel.com>
-Cc: Chen Yu <y.c.chen@intel.com>
-Cc: Paolo Bonzini <pbonzini@redhat.com>
-Cc: Radim Kr=C4=8Dm=C3=A1=C5=99 <rkrcmar@redhat.com>
-Cc: jacob.jun.pan@intel.com
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Ingo Molnar <mingo@redhat.com>
-Cc: "H. Peter Anvin" <hpa@zytor.com>
-Signed-off-by: Wanpeng Li <wanpeng.li@hotmail.com>
----
- arch/x86/kernel/tsc_msr.c | 6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
-
-diff --git a/arch/x86/kernel/tsc_msr.c b/arch/x86/kernel/tsc_msr.c
-index e0c2b30..e6e465e 100644
---- a/arch/x86/kernel/tsc_msr.c
-+++ b/arch/x86/kernel/tsc_msr.c
-@@ -70,7 +70,7 @@ static int match_cpu(u8 family, u8 model)
-  */
- unsigned long cpu_khz_from_msr(void)
- {
--	u32 lo, hi, ratio, freq_id, freq;
-+	u32 lo, hi, freq_id, freq, ratio =3D 0;
- 	unsigned long res;
- 	int cpu_index;
-=20
-@@ -123,8 +123,8 @@ unsigned long cpu_khz_from_msr(void)
- 	}
-=20
- get_ratio:
--	rdmsr(MSR_PLATFORM_INFO, lo, hi);
--	ratio =3D (lo >> 8) & 0xff;
-+	if (!rdmsr_safe(MSR_PLATFORM_INFO, &lo, &hi))
-+		ratio =3D (lo >> 8) & 0xff;
-=20
- done:
- 	/* TSC frequency =3D maximum resolved freq * maximum resolved bus rat=
-io */
---=20
-1.9.1
-
+Thanks
+Hanjun
