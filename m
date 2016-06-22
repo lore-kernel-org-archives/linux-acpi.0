@@ -1,429 +1,130 @@
-From: Karl-Heinz Schneider <karl-heinz@schneider-inet.de>
-Subject: [PATCH 2/2] power: Adds support for Smart Battery System Manager
-Date: Wed, 22 Jun 2016 21:07:16 +0200
-Message-ID: <1466622436-27963-3-git-send-email-karl-heinz@schneider-inet.de>
-References: <1466622436-27963-1-git-send-email-karl-heinz@schneider-inet.de>
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from schneider-inet.de ([85.214.76.205]:57703 "EHLO
-	h1714509.stratoserver.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751861AbcFVTJI (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 22 Jun 2016 15:09:08 -0400
-In-Reply-To: <1466622436-27963-1-git-send-email-karl-heinz@schneider-inet.de>
-Sender: linux-acpi-owner@vger.kernel.org
+From: <Mario_Limonciello@Dell.com>
+Subject: RE: [PATCH] ACPI: don't show an error when we're not in charge of
+ PCIe hotplug.
+Date: Wed, 22 Jun 2016 19:43:27 +0000
+Message-ID: <c6d927d71f544432a48a38047c8bfb14@ausx13mpc124.AMER.DELL.COM>
+References: <1466028904-28328-1-git-send-email-pjones@redhat.com>
+ <CAJZ5v0g5_M=iNLE_P4eOcwJet=jPm_EifAMdDtvG+TR=1AnU2Q@mail.gmail.com>
+ <CAJZ5v0ifNFP5jzPf+zMC3rJ1HKzBmCz1AdhsAsmj75EpndoPTQ@mail.gmail.com>
+ <20160621151853.GE28967@redhat.com>
+ <cf3d90a8598241ff9b6e28b8fb037633@ausx13mpc120.AMER.DELL.COM>
+ <CAJZ5v0ji0DpVsNbnKQpWTdJS-d9y+dh-BVGGfJ_o5fHGe8qeiA@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <CAJZ5v0ji0DpVsNbnKQpWTdJS-d9y+dh-BVGGfJ_o5fHGe8qeiA@mail.gmail.com>
+Content-Language: en-US
+Sender: linux-kernel-owner@vger.kernel.org
+To: rafael@kernel.org
+Cc: pjones@redhat.com, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, lenb@kernel.org, rjw@rjwysocki.net, luto@amacapital.net
 List-Id: linux-acpi@vger.kernel.org
-To: devicetree@vger.kernel.org, linux-pm@vger.kernel.org, linux-acpi@vger.kernel.org, linux-i2c@vger.kernel.org
-Cc: Rob Herring <robh+dt@kernel.org>, Mark Rutland <mark.rutland@arm.com>, Sebastian Reichel <sre@kernel.org>, Dmitry Eremin-Solenikov <dbaryshkov@gmail.com>, David Woodhouse <dwmw2@infradead.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Peter Rosin <peda@axentia.se>, Phil Reid <preid@electromag.com.au>, Karl-Heinz Schneider <karl-heinz@schneider-inet.de>
 
-This patch adds support for Smart Battery System Manager.
-A SBSM is a device listening at I2C/SMBus address 0x0a and is capable of
-communicating up to four I2C smart battery devices. All smart battery
-devices are listening at address 0x0b, so the SBSM muliplexes between
-them. The driver makes use of the I2C-Mux framework to allow smart
-batteries to be bound via device tree, i.e. the sbs-battery driver.
-
-Via sysfs interface the online state and charge type are presented. If
-the driver is bound as ltc1760 (an implementation of a Dual Smart Battery
-System Manager) the charge type can also be changed from trickle to fast.
-
-Tested-by: Phil Reid <preid@electromag.com.au>
-Reviewed-by: Phil Reid <preid@electromag.com.au>
-Signed-off-by: Karl-Heinz Schneider <karl-heinz@schneider-inet.de>
----
- drivers/power/Kconfig       |  13 ++
- drivers/power/Makefile      |   1 +
- drivers/power/sbs-manager.c | 347 ++++++++++++++++++++++++++++++++++++++++++++
- 3 files changed, 361 insertions(+)
- create mode 100644 drivers/power/sbs-manager.c
-
-diff --git a/drivers/power/Kconfig b/drivers/power/Kconfig
-index 421770d..7c561bf 100644
---- a/drivers/power/Kconfig
-+++ b/drivers/power/Kconfig
-@@ -157,6 +157,19 @@ config BATTERY_WM97XX
- 	help
- 	  Say Y to enable support for battery measured by WM97xx aux port.
- 
-+config MANAGER_SBS
-+	tristate "Smart Battery System Manager"
-+	depends on I2C && I2C_MUX
-+	help
-+	  Say Y here to include support for Smart Battery System Manager
-+	  ICs. The driver reports online and charging status via sysfs.
-+	  It presents itself also as I2C mux which allows to bind
-+	  smart battery driver to its ports.
-+	  Supported is for example LTC1760.
-+
-+	  This driver can also be built as a module. If so, the module will be
-+	  called sbs-manager.
-+
- config BATTERY_SBS
-         tristate "SBS Compliant gas gauge"
-         depends on I2C
-diff --git a/drivers/power/Makefile b/drivers/power/Makefile
-index e46b75d..5378e65 100644
---- a/drivers/power/Makefile
-+++ b/drivers/power/Makefile
-@@ -22,6 +22,7 @@ obj-$(CONFIG_BATTERY_DS2760)	+= ds2760_battery.o
- obj-$(CONFIG_BATTERY_DS2780)	+= ds2780_battery.o
- obj-$(CONFIG_BATTERY_DS2781)	+= ds2781_battery.o
- obj-$(CONFIG_BATTERY_DS2782)	+= ds2782_battery.o
-+obj-$(CONFIG_MANAGER_SBS)	+= sbs-manager.o
- obj-$(CONFIG_BATTERY_GAUGE_LTC2941)	+= ltc2941-battery-gauge.o
- obj-$(CONFIG_BATTERY_GOLDFISH)	+= goldfish_battery.o
- obj-$(CONFIG_BATTERY_PMU)	+= pmu_battery.o
-diff --git a/drivers/power/sbs-manager.c b/drivers/power/sbs-manager.c
-new file mode 100644
-index 0000000..228bab8
---- /dev/null
-+++ b/drivers/power/sbs-manager.c
-@@ -0,0 +1,347 @@
-+/*
-+ * Driver for SBS compliant Smart Battery System Managers
-+ *
-+ * The device communicates via i2c at address 0x0a and multiplexes access to up
-+ * to four smart batteries at address 0x0b.
-+ *
-+ * Via sysfs interface the online state and charge type are presented.
-+ *
-+ * Datasheet SBSM:    http://sbs-forum.org/specs/sbsm100b.pdf
-+ * Datasheet LTC1760: http://cds.linear.com/docs/en/datasheet/1760fb.pdf
-+ *
-+ * Karl-Heinz Schneider <karl-heinz@schneider-inet.de>
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License version 2 as
-+ * published by the Free Software Foundation.
-+ */
-+
-+#include <linux/module.h>
-+#include <linux/i2c.h>
-+#include <linux/i2c-mux.h>
-+#include <linux/power_supply.h>
-+
-+#define SBSM_MAX_BATS 4
-+
-+/* registers addresses */
-+#define SBSM_CMD_BATSYSSTATE     0x01
-+#define SBSM_CMD_BATSYSSTATECONT 0x02
-+#define SBSM_CMD_BATSYSINFO      0x04
-+#define SBSM_CMD_LTC             0x3c
-+
-+struct sbsm_data {
-+	struct i2c_client *client;
-+	struct i2c_mux_core *muxc;
-+
-+	struct power_supply *psy;
-+
-+	int retries;          /* number of i2c transfer retries */
-+	int cur_chan;         /* currently selected channel */
-+	bool is_ltc1760;      /* special capabilities */
-+};
-+
-+static enum power_supply_property sbsm_props[] = {
-+	POWER_SUPPLY_PROP_ONLINE,
-+	POWER_SUPPLY_PROP_CHARGE_TYPE,
-+};
-+
-+static int sbsm_read_word(struct i2c_client *client, u8 address)
-+{
-+	struct sbsm_data *data = i2c_get_clientdata(client);
-+	int reg, retries = max(data->retries + 1, 1);
-+
-+	while (retries > 0) {
-+		reg = i2c_smbus_read_word_data(client, address);
-+		if (reg >= 0)
-+			break;
-+		--retries;
-+	}
-+
-+	if (reg < 0) {
-+		dev_err(&client->dev, "failed to read register %i\n",
-+			(int)address);
-+		return reg;
-+	}
-+
-+	return le16_to_cpu(reg);
-+}
-+
-+static int sbsm_write_word(struct i2c_client *client, u8 address, u16 word)
-+{
-+	struct sbsm_data *data = i2c_get_clientdata(client);
-+	int ret, retries = max(data->retries + 1, 1);
-+
-+	word = cpu_to_le16(word);
-+	while (retries > 0) {
-+		ret = i2c_smbus_write_word_data(client, address, word);
-+		if (ret >= 0)
-+			break;
-+		--retries;
-+	}
-+	if (ret < 0)
-+		dev_err(&client->dev, "failed to write to register %i\n",
-+			(int)address);
-+
-+	return ret;
-+}
-+
-+static int sbsm_get_property(struct power_supply *psy,
-+			     enum power_supply_property psp,
-+			     union power_supply_propval *val)
-+{
-+	struct sbsm_data *data = power_supply_get_drvdata(psy);
-+	int regval = 0;
-+
-+	switch (psp) {
-+	case POWER_SUPPLY_PROP_ONLINE:
-+		regval = sbsm_read_word(data->client, SBSM_CMD_BATSYSSTATECONT);
-+		if (regval < 0)
-+			return regval;
-+		val->intval = !!(regval & 0x1);
-+		break;
-+
-+	case POWER_SUPPLY_PROP_CHARGE_TYPE:
-+		regval = sbsm_read_word(data->client, SBSM_CMD_BATSYSSTATE);
-+		if (regval < 0)
-+			return regval;
-+
-+		if ((regval & 0x00f0) == 0) {
-+			val->intval = POWER_SUPPLY_CHARGE_TYPE_NONE;
-+			return 0;
-+		}
-+		val->intval = POWER_SUPPLY_CHARGE_TYPE_TRICKLE;
-+
-+		if (data->is_ltc1760) {
-+			/* charge mode fast if turbo is active */
-+			regval = sbsm_read_word(data->client, SBSM_CMD_LTC);
-+			if (regval < 0)
-+				return regval;
-+			else if (regval & 0x80)
-+				val->intval = POWER_SUPPLY_CHARGE_TYPE_FAST;
-+		}
-+		break;
-+
-+	default:
-+		return -EINVAL;
-+	}
-+
-+	return 0;
-+}
-+
-+static int sbsm_prop_is_writeable(struct power_supply *psy,
-+				  enum power_supply_property psp)
-+{
-+	struct sbsm_data *data = power_supply_get_drvdata(psy);
-+
-+	return (psp == POWER_SUPPLY_PROP_CHARGE_TYPE) && data->is_ltc1760;
-+}
-+
-+static int sbsm_set_property(struct power_supply *psy,
-+			     enum power_supply_property psp,
-+			     const union power_supply_propval *val)
-+{
-+	struct sbsm_data *data = power_supply_get_drvdata(psy);
-+	int ret = -EINVAL;
-+
-+	switch (psp) {
-+	case POWER_SUPPLY_PROP_CHARGE_TYPE:
-+		/* write 1 to TURBO if type fast is given */
-+		if (data->is_ltc1760) {
-+			u16 regval = val->intval ==
-+			POWER_SUPPLY_CHARGE_TYPE_FAST ? (0x1 << 7) : 0;
-+			ret = sbsm_write_word(data->client, SBSM_CMD_LTC,
-+					      regval);
-+		}
-+		break;
-+
-+	default:
-+		break;
-+	}
-+
-+	return ret;
-+}
-+
-+/*
-+ * Switch to battery
-+ * Parameter chan is directly the content of SMB_BAT* nibble
-+ */
-+static int sbsm_select(struct i2c_mux_core *muxc, u32 chan)
-+{
-+	struct sbsm_data *data = i2c_mux_priv(muxc);
-+	int ret = 0;
-+
-+	if (data->cur_chan == chan)
-+		return ret;
-+
-+	ret = sbsm_write_word(data->client, SBSM_CMD_BATSYSSTATE, chan << 12);
-+	if (ret)
-+		dev_err(&data->client->dev, "Failed to select channel %i\n",
-+			chan);
-+	else
-+		data->cur_chan = chan;
-+
-+	return ret;
-+}
-+
-+#if defined(CONFIG_OF)
-+
-+#include <linux/of_device.h>
-+
-+static const struct of_device_id sbsm_dt_ids[] = {
-+	{ .compatible = "sbs,sbs-manager" },
-+	{ .compatible = "lltc,ltc1760" },
-+	{ }
-+};
-+MODULE_DEVICE_TABLE(of, sbsm_dt_ids);
-+
-+static void sbsm_properties_from_of(struct sbsm_data *data)
-+{
-+	struct device_node *of_node = data->client->dev.of_node;
-+	int rc;
-+	u32 value = 0;
-+
-+	if (!of_node)
-+		return;
-+
-+	rc = of_property_read_u32(of_node, "sbsm,i2c-retry-count", &value);
-+	if (!rc)
-+		data->retries = (int)max(1u, value);
-+}
-+
-+#else
-+
-+static void sbsm_properties_from_of(struct sbsm_data *data)
-+{ }
-+
-+#endif
-+
-+static const struct power_supply_desc sbsm_default_psy_desc = {
-+	.type = POWER_SUPPLY_TYPE_MAINS,
-+	.properties = sbsm_props,
-+	.num_properties = ARRAY_SIZE(sbsm_props),
-+	.get_property = &sbsm_get_property,
-+	.set_property = &sbsm_set_property,
-+	.property_is_writeable = &sbsm_prop_is_writeable,
-+};
-+
-+static int sbsm_probe(struct i2c_client *client,
-+		      const struct i2c_device_id *id)
-+{
-+	struct i2c_adapter *adapter = to_i2c_adapter(client->dev.parent);
-+	struct sbsm_data *data;
-+	struct device *dev = &client->dev;
-+	struct power_supply_desc *psy_desc;
-+	struct power_supply_config psy_cfg = {};
-+	int ret = 0, i, supported_bats;
-+
-+	/* Device listens only at address 0x0a */
-+	if (client->addr != 0x0a)
-+		return -ENODEV;
-+
-+	if (!i2c_check_functionality(adapter, I2C_FUNC_SMBUS_WORD_DATA))
-+		return -EPFNOSUPPORT;
-+
-+	data = devm_kzalloc(dev, sizeof(*data), GFP_KERNEL);
-+	if (!data)
-+		return -ENOMEM;
-+
-+	i2c_set_clientdata(client, data);
-+
-+	data->client = client;
-+	data->retries = 1;
-+	sbsm_properties_from_of(data);
-+	data->is_ltc1760 = !!strstr(id->name, "ltc1760");
-+
-+	ret  = sbsm_read_word(client, SBSM_CMD_BATSYSINFO);
-+	if (ret < 0)
-+		return ret;
-+	supported_bats = le16_to_cpu(ret) & 0xf;
-+
-+	data->muxc = i2c_mux_alloc(adapter, dev, SBSM_MAX_BATS, 0,
-+				   I2C_MUX_LOCKED, &sbsm_select, NULL);
-+	if (!data->muxc) {
-+		dev_err(dev, "failed to alloc i2c mux\n");
-+		ret = -ENOMEM;
-+		goto err_mux_alloc;
-+	}
-+	data->muxc->priv = data;
-+
-+	/* register muxed i2c channels. One for each supported battery */
-+	for (i = 0; i < SBSM_MAX_BATS; ++i) {
-+		uint chan = 1 << i;
-+
-+		if (chan & supported_bats) {
-+			ret = i2c_mux_add_adapter(data->muxc, 0, chan, 0);
-+			if (ret) {
-+				dev_err(dev,
-+					"failed to register i2c mux channel %d\n",
-+					chan);
-+				goto err_mux_register;
-+			}
-+		}
-+	}
-+
-+	psy_desc = devm_kmemdup(dev, &sbsm_default_psy_desc,
-+				sizeof(struct power_supply_desc),
-+				GFP_KERNEL);
-+	if (!psy_desc) {
-+		ret = -ENOMEM;
-+		goto err_psy;
-+	}
-+
-+	psy_desc->name = devm_kasprintf(dev, GFP_KERNEL, "sbsm-%s",
-+					dev_name(&client->dev));
-+	if (!psy_desc->name) {
-+		ret = -ENOMEM;
-+		goto err_psy;
-+	}
-+
-+	psy_cfg.drv_data = data;
-+	data->psy = devm_power_supply_register(dev, psy_desc, &psy_cfg);
-+	if (IS_ERR(data->psy)) {
-+		ret = PTR_ERR(data->psy);
-+		dev_err(dev, "failed to register power supply %s\n",
-+			psy_desc->name);
-+		goto err_psy;
-+	}
-+
-+	dev_info(dev, "sbsm registered\n");
-+	return 0;
-+
-+err_psy:
-+err_mux_register:
-+	i2c_mux_del_adapters(data->muxc);
-+
-+err_mux_alloc:
-+	return ret;
-+}
-+
-+static int sbsm_remove(struct i2c_client *client)
-+{
-+	struct sbsm_data *data = i2c_get_clientdata(client);
-+
-+	i2c_mux_del_adapters(data->muxc);
-+	return 0;
-+}
-+
-+static const struct i2c_device_id sbsm_ids[] = {
-+	{ "sbs-manager", 0 },
-+	{ "ltc1760",     0 },
-+	{ }
-+};
-+MODULE_DEVICE_TABLE(i2c, sbsm_ids);
-+
-+static struct i2c_driver sbsm_driver = {
-+	.driver = {
-+		.name = "sbsm",
-+		.owner = THIS_MODULE,
-+	},
-+	.probe		= sbsm_probe,
-+	.remove		= sbsm_remove,
-+	.id_table	= sbsm_ids
-+};
-+module_i2c_driver(sbsm_driver);
-+
-+MODULE_LICENSE("GPL");
-+MODULE_AUTHOR("Karl-Heinz Schneider <karl-heinz@schneider-inet.de>");
-+MODULE_DESCRIPTION("SBSM Smart Battery System Manager");
--- 
-1.9.1
-
+PiAtLS0tLU9yaWdpbmFsIE1lc3NhZ2UtLS0tLQ0KPiBGcm9tOiByand5c29ja2lAZ21haWwuY29t
+IFttYWlsdG86cmp3eXNvY2tpQGdtYWlsLmNvbV0gT24gQmVoYWxmIE9mDQo+IFJhZmFlbCBKLiBX
+eXNvY2tpDQo+IFNlbnQ6IFR1ZXNkYXksIEp1bmUgMjEsIDIwMTYgNTo1MSBQTQ0KPiBUbzogTGlt
+b25jaWVsbG8sIE1hcmlvIDxNYXJpb19MaW1vbmNpZWxsb0BEZWxsLmNvbT4NCj4gQ2M6IFBldGVy
+IEpvbmVzIDxwam9uZXNAcmVkaGF0LmNvbT47IFJhZmFlbCBKLiBXeXNvY2tpDQo+IDxyYWZhZWxA
+a2VybmVsLm9yZz47IEFDUEkgRGV2ZWwgTWFsaW5nIExpc3QgPGxpbnV4LWFjcGlAdmdlci5rZXJu
+ZWwub3JnPjsNCj4gTGludXggS2VybmVsIE1haWxpbmcgTGlzdCA8bGludXgta2VybmVsQHZnZXIu
+a2VybmVsLm9yZz47IExlbiBCcm93bg0KPiA8bGVuYkBrZXJuZWwub3JnPjsgUmFmYWVsIEouIFd5
+c29ja2kgPHJqd0Byand5c29ja2kubmV0PjsgQW5keSBMdXRvbWlyc2tpDQo+IDxsdXRvQGFtYWNh
+cGl0YWwubmV0Pg0KPiBTdWJqZWN0OiBSZTogW1BBVENIXSBBQ1BJOiBkb24ndCBzaG93IGFuIGVy
+cm9yIHdoZW4gd2UncmUgbm90IGluIGNoYXJnZSBvZg0KPiBQQ0llIGhvdHBsdWcuDQo+IA0KPiBP
+biBUdWUsIEp1biAyMSwgMjAxNiBhdCA4OjAxIFBNLCAgPE1hcmlvX0xpbW9uY2llbGxvQGRlbGwu
+Y29tPiB3cm90ZToNCj4gPj4gLS0tLS1PcmlnaW5hbCBNZXNzYWdlLS0tLS0NCj4gPj4gRnJvbTog
+UGV0ZXIgSm9uZXMgW21haWx0bzpwam9uZXNAcmVkaGF0LmNvbV0NCj4gPj4gU2VudDogVHVlc2Rh
+eSwgSnVuZSAyMSwgMjAxNiAxMDoxOSBBTQ0KPiA+PiBUbzogUmFmYWVsIEouIFd5c29ja2kgPHJh
+ZmFlbEBrZXJuZWwub3JnPg0KPiA+PiBDYzogQUNQSSBEZXZlbCBNYWxpbmcgTGlzdCA8bGludXgt
+YWNwaUB2Z2VyLmtlcm5lbC5vcmc+OyBMaW1vbmNpZWxsbywNCj4gTWFyaW8NCj4gPj4gPE1hcmlv
+X0xpbW9uY2llbGxvQERlbGwuY29tPjsgTGludXggS2VybmVsIE1haWxpbmcgTGlzdCA8bGludXgt
+DQo+ID4+IGtlcm5lbEB2Z2VyLmtlcm5lbC5vcmc+OyBMZW4gQnJvd24gPGxlbmJAa2VybmVsLm9y
+Zz47IFJhZmFlbCBKIC4NCj4gV3lzb2NraQ0KPiA+PiA8cmp3QHJqd3lzb2NraS5uZXQ+OyBBbmR5
+IEx1dG9taXJza2kgPGx1dG9AYW1hY2FwaXRhbC5uZXQ+DQo+ID4+IFN1YmplY3Q6IFJlOiBbUEFU
+Q0hdIEFDUEk6IGRvbid0IHNob3cgYW4gZXJyb3Igd2hlbiB3ZSdyZSBub3QgaW4gY2hhcmdlDQo+
+IG9mDQo+ID4+IFBDSWUgaG90cGx1Zy4NCj4gPj4NCj4gPj4gKFNvcnJ5IGZvciB0aGUgc2xvdyBy
+ZXNwb25zZSAtIGl0J3MgZGVhZGxpbmUgdGltZSBvdmVyIGhlcmUuKQ0KPiA+Pg0KPiA+PiBPbiBU
+aHUsIEp1biAxNiwgMjAxNiBhdCAwNDo1Njo1N1BNICswMjAwLCBSYWZhZWwgSi4gV3lzb2NraSB3
+cm90ZToNCj4gPj4gPiBPbiBUaHUsIEp1biAxNiwgMjAxNiBhdCAyOjEyIEFNLCBSYWZhZWwgSi4g
+V3lzb2NraSA8cmFmYWVsQGtlcm5lbC5vcmc+DQo+ID4+IHdyb3RlOg0KPiA+PiA+ID4gT24gVGh1
+LCBKdW4gMTYsIDIwMTYgYXQgMTI6MTUgQU0sIFBldGVyIEpvbmVzIDxwam9uZXNAcmVkaGF0LmNv
+bT4NCj4gPj4gd3JvdGU6DQo+ID4+ID4gPj4gUmlnaHQgbm93IHdoZW4gYm9vdGluZywgb24gbWFu
+eSBsYXB0b3BzIHRoZSBmaXJtd2FyZSBtYW5hZ2VzDQo+IHRoZQ0KPiA+PiBQQ0llDQo+ID4+ID4g
+Pj4gYnVzLiAgQXMgYSByZXN1bHQsIHdoZW4gd2UgY2FsbCB0aGUgX09TQyBBQ1BJIG1ldGhvZCwg
+aXQgcmV0dXJucyBhbg0KPiA+PiA+ID4+IGVycm9yIGNvZGUuICBVbmZvcnR1bmF0ZWx5IHRoZSBl
+cnJvcnMgYXJlIG5vdCB2ZXJ5IGFydGljdWxhdGUuDQo+ID4+ID4gPg0KPiA+PiA+ID4gV2hhdCBl
+eGFjdGx5IGRvIHlvdSBtZWFuIGhlcmU/DQo+ID4+ID4gPg0KPiA+PiA+ID4+ICBBcyBhIHJlc3Vs
+dCwgd2Ugc2hvdzoNCj4gPj4gPiA+Pg0KPiA+PiA+ID4+IEFDUEk6IFBDSSBSb290IEJyaWRnZSBb
+UENJMF0gKGRvbWFpbiAwMDAwIFtidXMgMDAtZmVdKQ0KPiA+PiA+ID4+IGFjcGkgUE5QMEEwODow
+MDogX09TQzogT1Mgc3VwcG9ydHMgW0V4dGVuZGVkQ29uZmlnIEFTUE0NCj4gQ2xvY2tQTQ0KPiA+
+PiBTZWdtZW50cyBNU0ldDQo+ID4+ID4gPj4gXF9TQl8uUENJMCAoMzNEQjRENUItMUZGNy00MDFD
+LTk2NTctNzQ0MUMwM0RENzY2KTogX09TQyBpbnZhbGlkDQo+ID4+IFVVSUQNCj4gPj4gPiA+PiBf
+T1NDIHJlcXVlc3QgZGF0YTogMSAxZiAwDQo+ID4+ID4gPg0KPiA+PiA+ID4gU28gX09TQyB0b2xk
+IHVzIHRoYXQgdGhlIFVVSUQgd2FzIGludmFsaWQsIGRpZG4ndCBpdD8NCj4gPj4gPg0KPiA+PiA+
+IEJUVywgdGhlIGFib3ZlIG1lc3NhZ2VzIGFyZSBLRVJOX0RFQlVHLCBzbyBhdCBsZWFzdCBpbiB0
+aGVvcnkgdGhleQ0KPiA+PiA+IHNob3VsZG4ndCBiZSB2aXNpYmxlIGluIHByb2R1Y3Rpb24gcnVu
+cy4NCj4gPj4gPg0KPiA+PiA+IE1heWJlIHRoZSBidWcgdG8gZml4IGlzIHRoYXQgdGhleSBzaG93
+IHVwIHdoZW4gdGhleSBhcmVuJ3Qgc3VwcG9zZWQNCj4gdG8/DQo+ID4+DQo+ID4+IE5vIC0gdGhl
+IHdvcmtmbG93IHRoYXQgSSBhbSByZWFsbHkgdHJ5aW5nIHRvIHJlbWVkeSBpcyB0aGlzOg0KPiA+
+Pg0KPiA+PiAgMSkgUzMgcmVzdW1lIHNvbWV0aW1lcyBpc24ndCB3b3JraW5nIG9uIHNvbWUgbGFw
+dG9wIHlvdSd2ZSBnb3QuDQo+ID4+ICAyKSBzdGFydCBsb29raW5nIGF0IGRlYnVnIG1lc3NhZ2Vz
+DQo+ID4+ICAzKSB0aGlzIHNob3dzIGFuIGVycm9yLCBzbyBpdCBsb29rcyBsaWtlIGl0J3MgcHJv
+YmFibHkgdGhlIHByb2JsZW0NCj4gPj4gIDQpIGdvIGZpc2hpbmcgZm9yIHJlZCBoZXJyaW5nDQo+
+ID4+ICA1KSBpZiB5b3UgaGFwcGVuIHRvIGtub3cgd2hvIG1haW50YWlucyB0aGUgRFNEVCBmb3Ig
+dGhlIHBsYXRmb3JtIGluDQo+ID4+ICAgICBxdWVzdGlvbiwgZXZlbnR1YWxseSB3b3JrIG91dCB0
+aGF0IHRoaXMgaXMgd29ya2luZyBhcyBpbnRlbmRlZCBhbmQNCj4gPj4gICAgIHRoZSBidWcgaXMg
+c29tZXBsYWNlIGVsc2UuDQo+ID4+IDViKSBpZiB5b3UgZG9uJ3Qga25vdyB0aGF0IHBlcnNvbiwg
+ZXZlbnR1YWxseSB3b3JrIG91dCB0aGF0IGl0IC9taWdodC8NCj4gPj4gICAgICBiZSBzb21lcGxh
+Y2UgZWxzZS4uLg0KPiA+Pg0KPiA+PiBTbyB0aGUgaWRlYSB3YXMgdG8gbWFrZSBpdCBsb29rIG1v
+cmUgbGlrZSBhbiBpbmRpY2F0aW9uIG9mIHN0YXR1cywgYW5kDQo+ID4+IGxlc3MgbGlrZSBhbiBl
+cnJvciB0aGF0J3MgY2F1c2luZyB1bnJlbGF0ZWQgcHJvYmxlbXMuDQo+ID4+DQo+ID4+IFdoZW4g
+SSB0YWxrZWQgdG8gTWFyaW8gYXQgRGVsbCAoQ2MnZCksIGl0IHdhc24ndCBjbGVhciB0byB1cyB0
+aGF0DQo+ID4+IHRoZXJlJ3MgYSB3YXkgdG8gZGlzdGluZ3Vpc2ggdGhlIGJldHdlZW4gdGhlIFVV
+SUQgYmVpbmcNCj4gPj4gaW52YWxpZC9tYWxmb3JtZWQsIGJlaW5nIG1lcmVseSB1bnN1cHBvcnRl
+ZCwgb3IgYmVpbmcgc3VwcG9ydGVkIGluDQo+IHNvbWUNCj4gPj4gY29uZmlndXJhdGlvbnMgYnV0
+IG5vdCB0aGUgY3VycmVudCBvbmUuICBJbiB0aGlzIHBhcnRpY3VsYXIgRFNEVCwgdGhlDQo+ID4+
+IG1hY2hpbmUgZG9lc24ndCBzdXBwb3J0IHRoZSBPUyBjb250cm9sbGluZyBhbnkgb2YgdGhpcyBp
+ZiBVU0ItQyAvDQo+ID4+IHRodW5kZXJib2x0IGFyZSBlbmFibGVkLiAgVGhlIERTRFQgaXMgY2xl
+YXJseSB3cml0dGVuIHdpdGggdGhlIGJlbGllZg0KPiA+PiB0aGF0IHlvdSBoYXZlIHRvIGNvbXBs
+ZXRlbHkgZGlzYWJsZSB0aGUgaGFuZGxpbmcgZm9yIHRoYXQgVVVJRCBpbiB0aGlzDQo+ID4+IGNh
+c2UsIGFuZCBnb29nbGluZyBmb3IgdGhpcyBsb29rcyBsaWtlIGl0J3Mgbm90IHRoZSBvbmx5IG9u
+ZSB3cml0dGVuDQo+ID4+IHdpdGggdGhhdCBiZWxpZWYuDQo+ID4+DQo+ID4+IFJlYWRpbmcgdGhl
+IHNwZWMgKHY2LjEsIHNlY3Rpb25zIDYuMi4xMS4zIGFuZCA2LjIuMTEuNCksIGl0IHNlZW1zDQo+
+ID4+IHBsYXVzaWJsZSB0aGF0IHlvdSBjYW4gZXhwcmVzcyB0aGlzIGluc3RlYWQgYnkgaGFuZGxp
+bmcgdGhlIFVVSUQgYnV0DQo+ID4+IGNob29zaW5nIGVhY2ggaW5kaXZpZHVhbCBxdWVyeS9zdGF0
+dXMgYml0IGluIHRoZSB3YXkgdGhhdCBhY2NvbXBsaXNoZXMNCj4gPj4gdGhlIE9TIGRvaW5nIG5v
+dGhpbmcgd2l0aCB0aGUgcmVzcG9uc2UuICBTbyBpdCBtYXkgd2VsbCBiZSB0aGF0IHRoYXQncw0K
+PiA+PiBqdXN0IG1vcmUgY29kZSB0aGF0IHZlbmRvcnMgaGF2ZSB0aG91Z2h0IHdhc24ndCBuZWNl
+c3NhcnkgKG9yIHdhc24ndA0KPiA+PiBjb3JyZWN0IGZvciBzb21lIHJlYXNvbi4pDQo+ID4+DQo+
+ID4+IE1hcmlvLCB3YW50IHRvIGp1bXAgaW4gb24geW91ciB0aGlua2luZyBoZXJlPw0KPiA+Pg0K
+PiA+PiAtLQ0KPiA+PiAgIFBldGVyDQo+ID4NCj4gPiBBZnRlciB0YWxraW5nIHRvIHRoZSB0ZWFt
+LCBJIHdhcyB0b2xkIHRoaXMgcGFydGljdWxhciBpbXBsZW1lbnRhdGlvbiB0byBub3QNCj4gbGV0
+DQo+ID4gT1MgdGFrZSBjb250cm9sIHdoZW4gYWN0aW5nIG9uIHRoYXQgc3BlY2lmaWMgVVVJRCBi
+YXNlZCB1cG9uIGEgdmFyaWFibGUNCj4gPiAoTkVYUCBpbiB0aGlzIGNhc2UpIGNhbWUgZnJvbSBJ
+bnRlbCBSQyBjb2RlLg0KPiA+DQo+ID4gVGhhdCdzIHByb2JhYmx5IHdoeSB0aGlzIGlzIGFsbCBh
+Y3Jvc3MgYSBsb3Qgb2YgcGxhdGZvcm1zLCBpbmNsdWRpbmcgbm9uLURlbGwuDQo+ID4NCj4gPiBB
+dCBsZWFzdCBpbiB0aGUgY29udGV4dCBvZiB0aGUgbGFwdG9wIFBldGVyIG5vdGljZWQgdGhpcyBv
+biAoRGVsbCBYUFMgMTMgOTM1MCkNCj4gPiBORVhQIGlzIHNldCBpbiBHTlZTIGJhc2VkIHVwb24g
+VGh1bmRlcmJvbHQgY2FwYWJpbGl0eS4NCj4gPg0KPiA+IEFzIGZvciB3aHkgdGhleSByZXR1cm4g
+dW5yZWNvZ25pemVkIFVVSUQgaW5zdGVhZCBvZiBqdXN0IG1hc2tpbmcgYWxsIHRoZQ0KPiA+IGNh
+cGFiaWxpdGllcyBiaXRzPyAgSXQncyB0aGUgc2FtZSBuZXQgZnVuY3Rpb25hbCByZXN1bHQuICBJ
+ZiB0aGUgdmVuZG9yIHByb3ZpZGVkDQo+ID4gUkMgY29kZSBkb2Vzbid0IGNhdXNlZCBXQ0hLIHBy
+b2JsZW1zIG9yIGZ1bmN0aW9uYWwgcHJvYmxlbXMgaXQncyBoYXJkIHRvDQo+ID4gbWFrZSBhIGNh
+c2UgZm9yIHdoeSBpdCBuZWVkcyB0byBiZSBjaGFuZ2VkIGJ5IHRoZSBPRU0uDQo+ID4NCj4gPiBJ
+IHRoaW5rIHRoYXQgUGV0ZXIncyBwYXRjaCBpcyBhcHByb3ByaWF0ZSB0byBtZXNzYWdlIHRoaXMg
+aXMgc3BlY2lmaWNhbGx5DQo+ID4gd2hhdCdzIGdvaW5nIG9uLg0KPiANCj4gTm8sIGl0IG1heSBo
+aWRlIHJlYWwgKGllLiBub24taW50ZW50aW9uYWwpIGJ1Z3MgaW4gX09TQywgc28gaXQgaXMgbm90
+DQo+IGFwcHJvcHJpYXRlLg0KPiANCj4gRGVidWctbGV2ZWwgbWVzc2FnZXMgcmVhbGx5IHNob3Vs
+ZCBub3QgaHVydCBhbnlvbmUgKGFuZCBzaG91bGQgbmV2ZXINCj4gc2hvdyB1cCBpbiBwcm9kdWN0
+aW9uIGFueXdheSkuDQo+IA0KPiBXZSBjYW4gc2xpZ2h0bHkgdG9uZSBkb3duIHRoZSAiX09TQyBm
+YWlsZWQgKCVzKTsgZGlzYWJsaW5nIEFTUE1cbiINCj4gbWVzc2FnZSBpbiBuZWdvdGlhdGVfb3Nf
+Y29udHJvbCgpIGluIGRyaXZlcnMvYWNwaS9wY2lfcm9vdC5jIGlmIHlvdQ0KPiB0aGluayBpdCdz
+IHRvbyBzdHJvbmcgYW5kIHRoYXQncyBpdC4NCj4gDQo+IFRoYW5rcywNCj4gUmFmYWVsDQoNCkkg
+dGhpbmsgY2hhbmdpbmcgdGhhdCB3b3VsZCBoZWxwIGNvbW11bmljYXRlIHdoYXQncyBnb2luZyBv
+biBoZXJlIGFuZCBhdA0KbGVhc3QgbGV0IHRoZSB1c2VyIGtub3cgdGhlIHJlc3VsdCB3aWxsIGJl
+IHRoYXQgdGhlIGZpcm13YXJlIGlzIHN0aWxsIGNvbnRyb2xsaW5nDQpBU1BNIGR1ZSB0byB0aGUg
+X09TQyBmYWlsdXJlLg0KDQpTb21ldGhpbmcgZWxzZSB0aGF0IEkgdGhpbmsgQW5keSByZWNvbW1l
+bmRlZCBhIHdoaWxlIGJhY2sgd2FzIGF0IHRoYXQNCnRpbWUgdHJ5IHRvIGV2YWx1YXRlIE5FWFAg
+YW5kIGRpc3BsYXkgaXRzIHZhbHVlIGFuZCBhbiBhc3NvY2lhdGVkIG1lc3NhZ2UNCmluIGRlYnVn
+IGxvZ3Mgd2hlbiBfT1NDIGZhaWxzLiAgV291bGQgeW91IGJlIGFtZW5hYmxlIHRvIGEgY2hhbmdl
+IGxpa2UgdGhhdD8NCg==
