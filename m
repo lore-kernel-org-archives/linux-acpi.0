@@ -1,49 +1,62 @@
-From: "Rafael J. Wysocki" <rafael@kernel.org>
-Subject: Re: [PATCH] ACPI: don't show an error when we're not in charge of
- PCIe hotplug.
-Date: Thu, 23 Jun 2016 00:47:49 +0200
-Message-ID: <CAJZ5v0g5E-=ORTQEqjnv-U=7mAwqD-t1-A1nfaFTJsypuT2ueg@mail.gmail.com>
-References: <1466028904-28328-1-git-send-email-pjones@redhat.com>
- <CAJZ5v0g5_M=iNLE_P4eOcwJet=jPm_EifAMdDtvG+TR=1AnU2Q@mail.gmail.com>
- <CAJZ5v0ifNFP5jzPf+zMC3rJ1HKzBmCz1AdhsAsmj75EpndoPTQ@mail.gmail.com>
- <20160621151853.GE28967@redhat.com> <cf3d90a8598241ff9b6e28b8fb037633@ausx13mpc120.AMER.DELL.COM>
- <CAJZ5v0ji0DpVsNbnKQpWTdJS-d9y+dh-BVGGfJ_o5fHGe8qeiA@mail.gmail.com>
- <c6d927d71f544432a48a38047c8bfb14@ausx13mpc124.AMER.DELL.COM> <CALCETrVy5nKGEyGD9XCR8ZJaa+9WaM_x77ipG8sLjTWm=8VoOw@mail.gmail.com>
+From: "Prakash, Prashanth" <pprakash@codeaurora.org>
+Subject: Re: [PATCH v2] ACPI: Support for platform initiated graceful shutdown
+Date: Wed, 22 Jun 2016 17:21:31 -0600
+Message-ID: <c17e6a0e-2a21-d7ff-dc93-5c59dda6c157@codeaurora.org>
+References: <1463430112-8843-1-git-send-email-pprakash@codeaurora.org>
+ <58e509ba-383d-1f9c-9595-d225e8af32a8@codeaurora.org>
+ <1690297.d25mR60BpH@vostro.rjw.lan>
+ <36a56658-1bfb-21be-0245-2c757e1fd67d@codeaurora.org>
+ <CAJZ5v0iCTDHoH5nxDGr7JiLjAu=Wt+Sp2Zr0j-YAtdu0Ye8H3w@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <CALCETrVy5nKGEyGD9XCR8ZJaa+9WaM_x77ipG8sLjTWm=8VoOw@mail.gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Andy Lutomirski <luto@amacapital.net>, Mario Limonciello <Mario_Limonciello@dell.com>
-Cc: Rafael Wysocki <rafael@kernel.org>, Peter Jones <pjones@redhat.com>, Linux ACPI <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Len Brown <lenb@kernel.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from smtp.codeaurora.org ([198.145.29.96]:60574 "EHLO
+	smtp.codeaurora.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752611AbcFVXVe (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 22 Jun 2016 19:21:34 -0400
+In-Reply-To: <CAJZ5v0iCTDHoH5nxDGr7JiLjAu=Wt+Sp2Zr0j-YAtdu0Ye8H3w@mail.gmail.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: "Rafael J. Wysocki" <rafael@kernel.org>
+Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, harba@codeaurora.org, Al Stone <ahs3@redhat.com>, Christopher Covington <cov@codeaurora.org>
 
-On Wed, Jun 22, 2016 at 10:53 PM, Andy Lutomirski <luto@amacapital.net> wrote:
-> On Wed, Jun 22, 2016 at 12:43 PM,  <Mario_Limonciello@dell.com> wrote:
->>> -----Original Message-----
->>> From: rjwysocki@gmail.com [mailto:rjwysocki@gmail.com] On Behalf Of
+Hi Rafael,
 
-[cut]
-
->> I think changing that would help communicate what's going on here and at
->> least let the user know the result will be that the firmware is still controlling
->> ASPM due to the _OSC failure.
-
-You seem to be assuming that all systems returning "unsupported UUID"
-from the PCI host bridge _OSC will always fall into the same category,
-but what if they don't?  What if at least some of them are really
-broken?
-
->> Something else that I think Andy recommended a while back was at that
->> time try to evaluate NEXP and display its value and an associated message
->> in debug logs when _OSC fails.  Would you be amenable to a change like that?
+On 6/22/2016 4:43 PM, Rafael J. Wysocki wrote:
+> On Wed, Jun 22, 2016 at 5:20 PM, Prakash, Prashanth
+> <pprakash@codeaurora.org> wrote:
+>> Hi Rafael,
+>>
+>> On 6/21/2016 5:50 PM, Rafael J. Wysocki wrote:
+>>> On Wednesday, June 15, 2016 02:05:05 PM Prakash, Prashanth wrote:
+>>>> Hi Rafael,
+>>>>
+>>>> Any inputs on this patch?
+>>> Does it actually work?
+>> Yes, it works :)
+>>> It looks like sybus_evaluate_ost() schedules itself with a delay in an
+>>> endless loop and the poweroff will happen anyway without waiting.
+>>>
+>>> I guess the idea is that acpi_sybus_notify() will schedule a delayed work
+>>> doing the sybus_evaluate_ost() and that will do the orderly_poweroff() thing,
+>>> but that's not what the patch is doing.
+>> The specification requires us to start graceful shutdown and then keep evaluating _OST
+>> method every 10 seconds with a status code of 0x81 to indicate that shutdown is in
+>> progress.
+> So add a comment like this, so people don't have to wonder.
+ok.
 >
-> That seems dangerous if NEXP is anything other than a SystemMemory
-> variable.  I don't know if there's a clean way to check that before
-> evaluating it.  (i.e. we don't want to hit some other thing called
-> NEXP that has side effects.)
+> Also I'm not sure if the delayed_work_pending() really does what you
+> expect it to do.
+>
+> And why to you need a delayed work instead of just a work that will do
+> "evaluate _OST; wait" in an endless loop?
+I will change it to a simple work instead of delayed work.
 
-Well, that's generic code and NEXP is not generic really, so agreed.
+Thanks for your feedback! I will update the patch and post v3.
+
 
 Thanks,
-Rafael
+-Prashanth
+
