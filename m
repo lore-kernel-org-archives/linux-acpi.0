@@ -1,98 +1,38 @@
-From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [PATCH] ACPI: Execute the _PTS method when system reboot
-Date: Wed, 22 Jun 2016 01:56:24 +0200
-Message-ID: <2611430.1T9CgX71hW@vostro.rjw.lan>
-References: <1462772495-71113-1-git-send-email-hehy1@lenovo.com>
+From: "Rafael J. Wysocki" <rafael-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Subject: Re: [PATCH v4 0/2] ASoC: da7219: Convert driver to use generic FW functions
+Date: Wed, 22 Jun 2016 03:05:26 +0200
+Message-ID: <CAJZ5v0g47+igo+Z+gZZE9sOix8oCs7Jy+H-i=HcBUB+RVib3+g@mail.gmail.com>
+References: <cover.1466523027.git.Adam.Thomson.Opensource@diasemi.com>
+ <6274a042-da99-e3e6-20f2-37ce2651645c@intel.com> <2E89032DDAA8B9408CB92943514A0337D4644644@SW-EX-MBX01.diasemi.com>
+ <20160621232116.GG28202@sirena.org.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7Bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1462772495-71113-1-git-send-email-hehy1@lenovo.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Ocean HY1 He <hehy1@lenovo.com>
-Cc: "lenb@kernel.org" <lenb@kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, David Tanaka <dtanaka@lenovo.com>, Nagananda Chumbalkar <nchumbalkar@lenovo.com>
+Content-Type: text/plain; charset=UTF-8
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20160621232116.GG28202-GFdadSzt00ze9xe1eoZjHA@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Mark Brown <broonie-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: "Opensource [Adam Thomson]" <Adam.Thomson.Opensource-WBD+wuPFNBhBDgjK7y7TUQ@public.gmane.org>, "Rafael J. Wysocki" <rafael.j.wysocki-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Robert Moore <robert.moore-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Lv Zheng <lv.zheng-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Heikki Krogerus <heikki.krogerus-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, Mika Westerberg <mika.westerberg-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, Len Brown <lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Andy Shevchenko <andriy.shevchenko-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Frank Rowand <frowand.list-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Liam Girdwood <lgirdwood-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, linux-acpi <linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, devicetree <devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, alsa-devel <alsa-devel-K7yf7f+aM1XWsZ/bQMPhNw@public.gmane.org>, linux-kernel <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Support Opensource <Support.Opensource-WBD+wuPFNBhBDgjK7y7TUQ@public.gmane.org>, Sathyanarayana Nujella <sathyanarayana.nujella-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On Monday, May 09, 2016 05:50:11 AM Ocean HY1 He wrote:
-> The _PTS control method is defined in the section 7.4.1 of acpi 6.0
-> spec. The _PTS control method is executed by the OS during the sleep
-> transition process for S1, S2, S3, S4, and for orderly S5 shutdown.
-> The sleeping state value (For example, 1, 2, 3, 4 or 5 for the S5
-> soft-off state) is passed to the _PTS control method. This method
-> is called after OSPM has notified native device drivers of the sleep
-> state transition and before the OSPM has had a chance to fully
-> prepare the system for a sleep state transition.
-> 
-> The _PTS control method provides the BIOS a mechanism for performing
-> some housekeeping, such as writing the sleep type value to the embedded
-> controller, before entering the system sleeping state.
-> 
-> According to section 7.5 of acpi 6.0 spec, _PTS should run after _TTS.
-> 
-> Thus, a _PTS block notifier is added to the reboot notifier list so that
-> the _PTS object will also be evaluated when the system reboot.
+On Wed, Jun 22, 2016 at 1:21 AM, Mark Brown <broonie-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org> wrote:
+> On Tue, Jun 21, 2016 at 10:54:39PM +0000, Opensource [Adam Thomson] wrote:
+>> On 21 June 2016 23:30, Rafael J. Wysocki wrote:
+>
+>> > I'm fine with the first patch and the second one carries a couple of
+>> > ACKs already, so do you want me to apply them both?
+>
+> None of whom are from anyone who works on the subsystem at all!  I've
+> not looked at the patch yet.
+>
+>> Thanks Rafael. I think we still need Mark's Ack for the ASoC codec changes
+>> though before we can proceed.
+>
+> Probably the easiest thing would be a tag for the core change that I can
+> pull.
 
-So I understand why it may be necessary to evaluate _PTS before entering S5,
-but I'm totally unsure about reboot.
-
-What does reboot have to do with S5?
-
-> Signed-off-by: Ocean He <hehy1@lenovo.com>
-> Signed-off-by: Nagananda Chumbalkar <nchumbalkar@lenovo.com>
-> ---
->  drivers/acpi/sleep.c | 27 +++++++++++++++++++++++++++
->  1 file changed, 27 insertions(+)
-> 
-> diff --git a/drivers/acpi/sleep.c b/drivers/acpi/sleep.c
-> index 2a8b596..8b290fb 100644
-> --- a/drivers/acpi/sleep.c
-> +++ b/drivers/acpi/sleep.c
-> @@ -55,6 +55,26 @@ static struct notifier_block tts_notifier = {
->  	.priority	= 0,
->  };
->  
-> +static int pts_notify_reboot(struct notifier_block *this,
-> +			unsigned long code, void *x)
-> +{
-> +	acpi_status status;
-> +
-> +	status = acpi_execute_simple_method(NULL, "\\_PTS", ACPI_STATE_S5);
-> +	if (ACPI_FAILURE(status) && status != AE_NOT_FOUND) {
-> +		/* It won't break anything. */
-> +		printk(KERN_NOTICE "Failure in evaluating _PTS object\n");
-> +	}
-> +
-> +	return NOTIFY_DONE;
-> +}
-> +
-> +static struct notifier_block pts_notifier = {
-> +	.notifier_call	= pts_notify_reboot,
-> +	.next		= NULL,
-> +	.priority	= 0,
-> +};
-> +
->  static int acpi_sleep_prepare(u32 acpi_state)
->  {
->  #ifdef CONFIG_ACPI_SLEEP
-> @@ -896,5 +916,12 @@ int __init acpi_sleep_init(void)
->  	 * object can also be evaluated when the system enters S5.
->  	 */
->  	register_reboot_notifier(&tts_notifier);
-> +
-> +	/*
-> +	 * According to section 7.5 of acpi 6.0 spec, _PTS should run after
-> +	 * _TTS when the system enters S5.
-> +	 */
-> +	register_reboot_notifier(&pts_notifier);
-
-Why do you have to add a second notifier?
-
-Why can't _TTS and _PTS be evaluated from one notifier?
-
-> +
->  	return 0;
->  }
-> 
-
-Thanks,
-Rafael
+Or you can apply them both if that helps (please consider the first
+one as ACKed in that case).
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
