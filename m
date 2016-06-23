@@ -1,52 +1,81 @@
-From: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>
-Subject: Re: [patch] cpufreq/pcc-cpufreq: Fix doorbell.access_width
-Date: Thu, 23 Jun 2016 23:13:39 +0200
-Message-ID: <119a72eb-b691-77cf-9d3a-55b67a50f410@intel.com>
-References: <1466579229.3188.14.camel@gmail.com>
- <1466664342.5839.39.camel@gmail.com>
+From: Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>
+Subject: [PATCH v3 0/3] DPTF Platform power participant driver
+Date: Thu, 23 Jun 2016 14:42:11 -0700
+Message-ID: <1466718134-29921-1-git-send-email-srinivas.pandruvada@linux.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-pm-owner@vger.kernel.org>
-In-Reply-To: <1466664342.5839.39.camel@gmail.com>
-Sender: linux-pm-owner@vger.kernel.org
-To: Mike Galbraith <umgwanakikbuti@gmail.com>
-Cc: Lv Zheng <lv.zheng@intel.com>, Bob Moore <robert.moore@intel.com>, LKML <linux-kernel@vger.kernel.org>, Linux PM <linux-pm@vger.kernel.org>, Linux ACPI <linux-acpi@vger.kernel.org>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga01.intel.com ([192.55.52.88]:20175 "EHLO mga01.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750785AbcFWVkp (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 23 Jun 2016 17:40:45 -0400
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: rjw@rjwysocki.net
+Cc: linux-acpi@vger.kernel.org, Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>
 
-On 6/23/2016 8:45 AM, Mike Galbraith wrote:
-> Commit 920de6ebfab8 apparently exposed a latent bug, doorbell.access_width
-> is initialized to 64, but per Lv Zheng, it should be 4, and indeed, making
-> that change does bring pcc-cpufreq back to life.
->
-> Suggested-by: Lv Zheng <lv.zheng@intel.com>
-> Signed-off-by: Mike Galbraith <umgwanakikbuti@gmail.com>
-> ---
->   drivers/cpufreq/pcc-cpufreq.c |    2 +-
->   1 file changed, 1 insertion(+), 1 deletion(-)
->
-> --- a/drivers/cpufreq/pcc-cpufreq.c
-> +++ b/drivers/cpufreq/pcc-cpufreq.c
-> @@ -487,7 +487,7 @@ static int __init pcc_cpufreq_probe(void
->   	doorbell.space_id = reg_resource->space_id;
->   	doorbell.bit_width = reg_resource->bit_width;
->   	doorbell.bit_offset = reg_resource->bit_offset;
-> -	doorbell.access_width = 64;
-> +	doorbell.access_width = 4;
->   	doorbell.address = reg_resource->address;
->   
->   	pr_debug("probe: doorbell: space_id is %d, bit_width is %d, "
+This series implements DPTF power participant driver. Intel =C2=AE Dyna=
+mic
+Platform and Thermal Framework (Intel =C2=AE DPTF) platform Power Parti=
+cipant
+is responsible for exposing platform telemetry such as
+-Platform Power
+-Battery Information such as State of Charge, estimated maximum
+sustainable power (PMax), SMART battery spec information
+Intel =C2=AE DPTF Power Participant loads as an ACPI Device (INT3407). =
+This
+device utilizes and exposes the platform power and Fuel Gauge informati=
+on
+and capabilities to the framework and for the policies to take control
+action.=20
 
+Implementation wise this is power supply battery driver with additional
+attributes for platform power objects.
+So the first patch splits the battery driver into two parts, a common p=
+art
+and a ACPI battery enumeration part.
+Next two patches add support for dptf power driver which uses common
+battery driver and adds additional attributes for platform power.
 
-OK, I picked this up from the LKML patchwork (will push to Linus 
-tomorrow), but next time please CC patches related to ACPI to linux-acpi 
-and PM patches to linux-pm (so this one should have gone to both, 
-ideally).  They are much easier to handle/review then and more people 
-are likely to look at them too.
+v3:
+Moved dptf_power to drivers/acpi/dptf folder.
 
+v2:
+When both CONFIG_ACPI_BATTERY and CONFIG_DPTF_POWER are defined and
+platform has support for INT3407, then dptf power registration is
+delayed for 100ms. In 100 ms, if there is no ACPI battery is registered
+then dptf power will be registered. Since both can be modules and
+battery driver loads in async thread, there can be race even if we
+specify loading order for initialization.=20
 
-Thanks,
+Srinivas Pandruvada (3):
+  acpi: battery: Split battery driver for reuse by DPTF power
+    participant
+  acpi: dptf_power: Add DPTF power participant
+  acpi: battery_common: battery present status for INT3407
 
-Rafael
+ drivers/acpi/Kconfig           |    7 +-
+ drivers/acpi/Makefile          |    2 +
+ drivers/acpi/battery.c         | 1199 +-------------------------------=
+----
+ drivers/acpi/battery.h         |   31 +
+ drivers/acpi/battery_common.c  | 1299 ++++++++++++++++++++++++++++++++=
+++++++++
+ drivers/acpi/dptf/Kconfig      |   17 +
+ drivers/acpi/dptf/Makefile     |    3 +
+ drivers/acpi/dptf/dptf_power.c |  184 ++++++
+ 8 files changed, 1547 insertions(+), 1195 deletions(-)
+ create mode 100644 drivers/acpi/battery_common.c
+ create mode 100644 drivers/acpi/dptf/Kconfig
+ create mode 100644 drivers/acpi/dptf/Makefile
+ create mode 100644 drivers/acpi/dptf/dptf_power.c
 
+--=20
+2.5.5
 
+--
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
