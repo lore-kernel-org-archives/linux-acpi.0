@@ -1,123 +1,151 @@
-From: Prashanth Prakash <pprakash@codeaurora.org>
-Subject: [PATCH v3] ACPI: Support for platform initiated graceful shutdown
-Date: Thu, 23 Jun 2016 12:24:26 -0600
-Message-ID: <1466706266-25513-1-git-send-email-pprakash@codeaurora.org>
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp.codeaurora.org ([198.145.29.96]:46909 "EHLO
-	smtp.codeaurora.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751255AbcFWSYv (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 23 Jun 2016 14:24:51 -0400
-Sender: linux-acpi-owner@vger.kernel.org
+From: Alex Williamson <alex.williamson@redhat.com>
+Subject: Re: [PATCH V8 4/9] vfio: platform: add support for ACPI probe
+Date: Thu, 23 Jun 2016 12:34:10 -0600
+Message-ID: <20160623123410.647b3be0@t450s.home>
+References: <1466437879-32182-1-git-send-email-okaya@codeaurora.org>
+	<1466437879-32182-5-git-send-email-okaya@codeaurora.org>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1466437879-32182-5-git-send-email-okaya@codeaurora.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Sinan Kaya <okaya@codeaurora.org>
+Cc: kvm@vger.kernel.org, timur@codeaurora.org, cov@codeaurora.org, jcm@redhat.com, eric.auger@redhat.com, linux-acpi@vger.kernel.org, agross@codeaurora.org, linux-arm-msm@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Baptiste Reynal <b.reynal@virtualopensystems.com>, linux-kernel@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
-Cc: rjw@rjwysocki.net, cov@codeaurora.org, ahs3@redhat.com, harba@codeaurora.org, Prashanth Prakash <pprakash@codeaurora.org>
 
-This patch adds support for platform initited graceful shutdown as
-described in sections 5.6.6(Table-143) and 6.3.5.1 of ACPI 6.1 spec
+On Mon, 20 Jun 2016 11:51:14 -0400
+Sinan Kaya <okaya@codeaurora.org> wrote:
 
-The OSPM will get a graceful shutdown request via a Notify operator
-on \_SB device with a value of 0x81 per section 5.6.6. Following the
-shutdown request from platform the OSPM needs to follow the
-processing sequence as described in section 6.2.5.1.
+> The code is using the compatible DT string to associate a reset driver
+> with the actual device itself. The compatible string does not exist on
+> ACPI based systems. HID is the unique identifier for a device driver
+> instead.
+> 
+> Signed-off-by: Sinan Kaya <okaya@codeaurora.org>
+> Reviewed-by: Eric Auger <eric.auger@redhat.com>
+> Reviewed-by: Baptiste Reynal <b.reynal@virtualopensystems.com>
+> ---
+>  drivers/vfio/platform/vfio_platform_common.c  | 57 ++++++++++++++++++++++++---
+>  drivers/vfio/platform/vfio_platform_private.h |  1 +
+>  2 files changed, 53 insertions(+), 5 deletions(-)
+> 
+> diff --git a/drivers/vfio/platform/vfio_platform_common.c b/drivers/vfio/platform/vfio_platform_common.c
+> index 6be92c3..fbf4565 100644
+> --- a/drivers/vfio/platform/vfio_platform_common.c
+> +++ b/drivers/vfio/platform/vfio_platform_common.c
+> @@ -13,6 +13,7 @@
+>   */
+>  
+>  #include <linux/device.h>
+> +#include <linux/acpi.h>
+>  #include <linux/iommu.h>
+>  #include <linux/module.h>
+>  #include <linux/mutex.h>
+> @@ -49,6 +50,37 @@ static vfio_platform_reset_fn_t vfio_platform_lookup_reset(const char *compat,
+>  	return reset_fn;
+>  }
+>  
+> +#ifdef CONFIG_ACPI
+> +static int vfio_platform_acpi_probe(struct vfio_platform_device *vdev,
+> +				    struct device *dev)
+> +{
+> +	struct acpi_device *adev = ACPI_COMPANION(dev);
+> +
+> +	if (acpi_disabled)
+> +		return -ENODEV;
+> +
+> +	if (!adev) {
+> +		pr_err("VFIO: ACPI companion device not found for %s\n",
+> +			vdev->name);
+> +		return -ENODEV;
+> +	}
+> +
+> +	vdev->acpihid = acpi_device_hid(adev);
+> +	if (!vdev->acpihid) {
+> +		pr_err("VFIO: cannot find ACPI HID for %s\n",
+> +		       vdev->name);
+> +		return -ENODEV;
+> +	}
 
-v3
-* Switched to regular work with delays from delayed work
-* Dropped changes to actypes.h
-* Small style changes
+Do you want to try to use different errnos here so you don't rely on
+the pr_err() calls for debugging?  I could imagine -EPERM, -ENODEV,
+-EINVAL respectively, but maybe there are better options.
 
-v2
-* Switched from standalone driver to a simple notify handler
+> +	return 0;
+> +}
+> +#else
+> +static inline int vfio_platform_acpi_probe(struct vfio_platform_device *vdev,
+> +					   struct device *dev)
+> +{
+> +	return -ENOENT;
+> +}
+> +#endif
+> +
+>  static bool vfio_platform_has_reset(struct vfio_platform_device *vdev)
+>  {
+>  	return vdev->of_reset ? true : false;
+> @@ -547,6 +579,20 @@ static const struct vfio_device_ops vfio_platform_ops = {
+>  	.mmap		= vfio_platform_mmap,
+>  };
+>  
+> +int vfio_platform_of_probe(struct vfio_platform_device *vdev,
+> +			   struct device *dev)
+> +{
+> +	int ret;
+> +
+> +	ret = device_property_read_string(dev, "compatible",
+> +					  &vdev->compat);
+> +	if (ret)
+> +		pr_err("VFIO: cannot retrieve compat for %s\n",
+> +			vdev->name);
 
-v1
-* Initial
+Previously there was only one probe method and I imagine this pr_err
+was useful.  Now we have multiple methods of probing for the device.
+Do we really want each one generating pr_err messages or just one at
+the end if none of our probes worked?
 
-Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Signed-off-by: Prashanth Prakash <pprakash@codeaurora.org>
----
- drivers/acpi/bus.c | 54 ++++++++++++++++++++++++++++++++++++++++++++++++++++++
- 1 file changed, 54 insertions(+)
+> +
+> +	return ret;
+> +}
+> +
+>  int vfio_platform_probe_common(struct vfio_platform_device *vdev,
+>  			       struct device *dev)
+>  {
+> @@ -556,11 +602,12 @@ int vfio_platform_probe_common(struct vfio_platform_device *vdev,
+>  	if (!vdev)
+>  		return -EINVAL;
+>  
+> -	ret = device_property_read_string(dev, "compatible", &vdev->compat);
+> -	if (ret) {
+> -		pr_err("VFIO: cannot retrieve compat for %s\n", vdev->name);
+> -		return -EINVAL;
+> -	}
+> +	ret = vfio_platform_acpi_probe(vdev, dev);
+> +	if (ret)
+> +		ret = vfio_platform_of_probe(vdev, dev);
 
-diff --git a/drivers/acpi/bus.c b/drivers/acpi/bus.c
-index 262ca31..51adbae 100644
---- a/drivers/acpi/bus.c
-+++ b/drivers/acpi/bus.c
-@@ -30,6 +30,9 @@
- #include <linux/acpi.h>
- #include <linux/slab.h>
- #include <linux/regulator/machine.h>
-+#include <linux/workqueue.h>
-+#include <linux/reboot.h>
-+#include <linux/delay.h>
- #ifdef CONFIG_X86
- #include <asm/mpspec.h>
- #endif
-@@ -475,6 +478,56 @@ static void acpi_device_remove_notify_handler(struct acpi_device *device)
- 					   acpi_device_notify);
- }
- 
-+/* Handle events targeting \_SB device (at present only graceful shutdown) */
-+
-+#define ACPI_SB_NOTIFY_SHUTDOWN_REQUEST 0x81
-+#define ACPI_SB_INDICATE_INTERVAL	10000
-+
-+static void sb_notify_work(struct work_struct *dummy)
-+{
-+	acpi_handle sb_handle;
-+
-+	orderly_poweroff(true);
-+
-+	/*
-+	 * After initiating graceful shutdown, the ACPI spec requires OSPM
-+	 * to evaluate _OST method once every 10seconds to indicate that
-+	 * the shutdown is in progress
-+	 */
-+	acpi_get_handle(NULL, "\\_SB", &sb_handle);
-+	while (1) {
-+		pr_info("Graceful shutdown in progress.\n");
-+		acpi_evaluate_ost(sb_handle, ACPI_OST_EC_OSPM_SHUTDOWN,
-+				ACPI_OST_SC_OS_SHUTDOWN_IN_PROGRESS, NULL);
-+		msleep(ACPI_SB_INDICATE_INTERVAL);
-+	}
-+}
-+
-+static void acpi_sb_notify(acpi_handle handle, u32 event, void *data)
-+{
-+	static DECLARE_WORK(acpi_sb_work, sb_notify_work);
-+
-+	if (event == ACPI_SB_NOTIFY_SHUTDOWN_REQUEST) {
-+		if (!work_busy(&acpi_sb_work))
-+			schedule_work(&acpi_sb_work);
-+	} else
-+		pr_warn("event %x is not supported by \\_SB device\n", event);
-+}
-+
-+static int __init acpi_setup_sb_notify_handler(void)
-+{
-+	acpi_handle sb_handle;
-+
-+	if (ACPI_FAILURE(acpi_get_handle(NULL, "\\_SB", &sb_handle)))
-+		return -ENXIO;
-+
-+	if (ACPI_FAILURE(acpi_install_notify_handler(sb_handle, ACPI_DEVICE_NOTIFY,
-+						acpi_sb_notify, NULL)))
-+		return -EINVAL;
-+
-+	return 0;
-+}
-+
- /* --------------------------------------------------------------------------
-                              Device Matching
-    -------------------------------------------------------------------------- */
-@@ -1124,6 +1177,7 @@ static int __init acpi_init(void)
- 	acpi_sleep_proc_init();
- 	acpi_wakeup_device_init();
- 	acpi_debugger_init();
-+	acpi_setup_sb_notify_handler();
- 	return 0;
- }
- 
--- 
-Qualcomm Technologies, Inc. on behalf
-of the Qualcomm Innovation Center, Inc.  The Qualcomm Innovation Center, Inc. 
-is a member of the Code Aurora Forum, a Linux Foundation Collaborative Project.
 
+The only out way out of vfio_platform_acpi_probe() without hitting a
+pr_err is one of (!CONFIG_ACPI || acpi_disabled || success).  Doesn't
+that make for some unnecessary warning for a DT user?
+
+
+> +
+> +	if (ret)
+> +		return ret;
+>  
+>  	vdev->device = dev;
+>  
+> diff --git a/drivers/vfio/platform/vfio_platform_private.h b/drivers/vfio/platform/vfio_platform_private.h
+> index 71ed7d1..ba9e4f8 100644
+> --- a/drivers/vfio/platform/vfio_platform_private.h
+> +++ b/drivers/vfio/platform/vfio_platform_private.h
+> @@ -58,6 +58,7 @@ struct vfio_platform_device {
+>  	struct mutex			igate;
+>  	struct module			*parent_module;
+>  	const char			*compat;
+> +	const char			*acpihid;
+>  	struct module			*reset_module;
+>  	struct device			*device;
+>  
