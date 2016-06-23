@@ -1,61 +1,40 @@
-From: Heikki Krogerus <heikki.krogerus@linux.intel.com>
-Subject: Re: [PATCH v3 0/3] acpi/pmic: add opregion driver for Intel BXT
- WhiskeyCove PMIC
-Date: Thu, 23 Jun 2016 16:28:27 +0300
-Message-ID: <20160623132827.GG27263@kuha.fi.intel.com>
-References: <20160623075515.GB239751@worksta>
- <CAJZ5v0j1M2X-ygZgmbO3ebbT3d9RQ2h6DRYjs4NK5vROQDHFqQ@mail.gmail.com>
- <20160623131641.GF27263@kuha.fi.intel.com>
- <CAJZ5v0gYkApQfU-DDtrWQ09cc=RnN3PyW_V4gsMhUafhdHp5rg@mail.gmail.com>
+From: Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>
+Subject: Re: [PATCH v2 2/3] acpi: dptf_power: Add DPTF power participant
+Date: Thu, 23 Jun 2016 07:05:57 -0700
+Message-ID: <1466690757.4272.19.camel@linux.intel.com>
+References: <1466653363-7311-1-git-send-email-srinivas.pandruvada@linux.intel.com>
+	 <1466653363-7311-3-git-send-email-srinivas.pandruvada@linux.intel.com>
+	 <CAJZ5v0g-jZqobJQax-mxBnTnm7ZH2V5=bMLvWTcqVQbraBqxjQ@mail.gmail.com>
+	 <CAJZ5v0j8ybZRF7AYeXaOqf_Oo7Qnpi53ymRoxzYA5gW7tqMCgw@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga03.intel.com ([134.134.136.65]:6138 "EHLO mga03.intel.com"
+Received: from mga02.intel.com ([134.134.136.20]:19127 "EHLO mga02.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751138AbcFWN2s (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 23 Jun 2016 09:28:48 -0400
-Content-Disposition: inline
-In-Reply-To: <CAJZ5v0gYkApQfU-DDtrWQ09cc=RnN3PyW_V4gsMhUafhdHp5rg@mail.gmail.com>
+	id S1750809AbcFWOHo (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 23 Jun 2016 10:07:44 -0400
+In-Reply-To: <CAJZ5v0j8ybZRF7AYeXaOqf_Oo7Qnpi53ymRoxzYA5gW7tqMCgw@mail.gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: "Rafael J. Wysocki" <rafael@kernel.org>
-Cc: Bin Gao <bin.gao@linux.intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Aaron Lu <aaron.lu@intel.com>, Paul Gortmaker <paul.gortmaker@windriver.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, ysiyer <yegnesh.s.iyer@intel.com>, Ajay Thomas <ajay.thomas.david.rajamanickam@intel.com>, Bin Gao <bin.gao@intel.com>, Felipe Balbi <felipe.balbi@linux.intel.com>
+Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Darren Hart <darren.hart@intel.com>
 
-On Thu, Jun 23, 2016 at 03:18:27PM +0200, Rafael J. Wysocki wrote:
-> On Thu, Jun 23, 2016 at 3:16 PM, Heikki Krogerus
-> <heikki.krogerus@linux.intel.com> wrote:
-> > On Thu, Jun 23, 2016 at 03:03:34PM +0200, Rafael J. Wysocki wrote:
-> >> On Thu, Jun 23, 2016 at 9:55 AM, Bin Gao <bin.gao@linux.intel.com> wrote:
-> >> > This series modifies the pen function signature to take bit field
-> >> > and adds a new opregion driver for Intel BXT WhiskeyCove PMIC. It
-> >> > also adds support for PMIC regs operation region.
-> >> >
-> >> > Yegnesh Iyer (1):
-> >> >   acpi: pmic: Modifying the pen function signature to take bit field
-> >> >
-> >> > Ajay Thomas (1):
-> >> >   acpi: pmic: Add opregion driver for Intel BXT WhiskeyCove PMIC
-> >>
-> >> I've just applied the above two patches from the previous series.  Are
-> >> there any changes to them here?
-> >>
-> >> > Chandra Sekhar Anagani (1):
-> >> >  acpi: pmic: Add support for PMIC regs operation region
-> >>
-> >> That's a new one I suppose?
-> >>
-> >> How is this related to http://marc.info/?l=linux-acpi&m=146660742815070&w=2 ?
-> >
-> > Looks the like same to me.. Just ignore the one I send then.
+On Thu, 2016-06-23 at 15:23 +0200, Rafael J. Wysocki wrote:
+> On Thu, Jun 23, 2016 at 1:48 AM, Rafael J. Wysocki <rafael@kernel.org
+> > wrote:
+> > On Thu, Jun 23, 2016 at 5:42 AM, Srinivas Pandruvada
+
+[...]
+
+> > Now that I think about it, maybe it would be better to put that
+> > into
+> > drivers/platform/x86?
 > 
-> I will.
+> Or we can create a dptf directory under drivers/acpi/ if you prefer.
 > 
-> What about the second patch in your series?
-
-True, that is still valid.
-
+Let me do this. We may have more such drivers.
 
 Thanks,
+Srinivas
 
--- 
-heikki
