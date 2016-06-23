@@ -1,61 +1,40 @@
 From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [PATCH] ACPI:video: skip evaluating _DOD when it does not exist
-Date: Thu, 23 Jun 2016 02:32:15 +0200
-Message-ID: <9660665.6YCpfJR9BD@vostro.rjw.lan>
-References: <1464335226-11212-1-git-send-email-alex.hung@canonical.com> <CAJ=jqubsDwA610rLLfMdq6zDrwhBpe5_72T6RU6zh1S__G=zFQ@mail.gmail.com> <41d58f4f-329d-e21b-22b2-67d329adc7b8@intel.com>
+Subject: Re: [PATCH] acpi: pci_slot: Use more common logging style
+Date: Thu, 23 Jun 2016 02:32:57 +0200
+Message-ID: <7494572.5I6HybzNKa@vostro.rjw.lan>
+References: <fdc546e7c5bb8b3d7e37a1721e5158fc2217d6ee.1464364797.git.joe@perches.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7Bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cloudserver094114.home.net.pl ([79.96.170.134]:62831 "HELO
+Received: from cloudserver094114.home.net.pl ([79.96.170.134]:53226 "HELO
 	cloudserver094114.home.net.pl" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with SMTP id S1750809AbcFWA14 (ORCPT
+	by vger.kernel.org with SMTP id S1750777AbcFWA2h (ORCPT
 	<rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 22 Jun 2016 20:27:56 -0400
-In-Reply-To: <41d58f4f-329d-e21b-22b2-67d329adc7b8@intel.com>
+	Wed, 22 Jun 2016 20:28:37 -0400
+In-Reply-To: <fdc546e7c5bb8b3d7e37a1721e5158fc2217d6ee.1464364797.git.joe@perches.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Aaron Lu <aaron.lu@intel.com>, Alex Hung <alex.hung@canonical.com>
-Cc: Zhang Rui <rui.zhang@intel.com>, Len Brown <lenb@kernel.org>, Linux ACPI Mailing List <linux-acpi@vger.kernel.org>
+To: Joe Perches <joe@perches.com>
+Cc: Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
-On Monday, June 06, 2016 09:52:29 AM Aaron Lu wrote:
-> On 06/06/2016 09:36 AM, Alex Hung wrote:
-> > On Fri, Jun 3, 2016 at 2:04 PM, Aaron Lu <aaron.lu@intel.com> wrote:
-> >> On Fri, May 27, 2016 at 03:47:06PM +0800, Alex Hung wrote:
-> >>> Some system supports hybrid graphics and its discrete VGA
-> >>> does not have any connectors and therefore has no _DOD method.
-> >>>
-> >>> Signed-off-by: Alex Hung <alex.hung@canonical.com>
-> >>> ---
-> >>>  drivers/acpi/acpi_video.c |    3 +++
-> >>>  1 file changed, 3 insertions(+)
-> >>>
-> >>> diff --git a/drivers/acpi/acpi_video.c b/drivers/acpi/acpi_video.c
-> >>> index 5fdac39..549cdbe 100644
-> >>> --- a/drivers/acpi/acpi_video.c
-> >>> +++ b/drivers/acpi/acpi_video.c
-> >>> @@ -1211,6 +1211,9 @@ static int acpi_video_device_enumerate(struct acpi_video_bus *video)
-> >>>       union acpi_object *dod = NULL;
-> >>>       union acpi_object *obj;
-> >>>
-> >>> +     if (!video->cap._DOD)
-> >>> +             return AE_NOT_EXIST;
-> >>> +
-> >>>       status = acpi_evaluate_object(video->device->handle, "_DOD", NULL, &buffer);
-> >>>       if (!ACPI_SUCCESS(status)) {
-> >>>               ACPI_EXCEPTION((AE_INFO, status, "Evaluating _DOD"));
-> >>
-> >> Is the patch supposed to avoid the above error message?
-> >> I'm OK with the patch though, it's just not clear to me the point since
-> >> the acpi_evaluate_object should probably also return AE_NOT_EXIST.
-> > 
-> > Yes it is to avoid the error message.  As _DOD is checked and it is
-> > known a specific video device does not have it, the error message can
-> > be confusing.
+On Friday, May 27, 2016 09:00:28 AM Joe Perches wrote:
+> Use generic pr_<level> functions with pr_fmt for info and err.
 > 
-> I see, thanks.
+> This also reduces object size a trivial bit:
 > 
-> Reviewed-by: Aaron Lu <aaron.lu@intel.com>
+> $ size drivers/acpi/pci_slot.o*
+>    text	   data	    bss	    dec	    hex	filename
+>     935	    752	      5	   1692	    69c	drivers/acpi/pci_slot.o.new
+>    1027	    752	      5	   1784	    6f8	drivers/acpi/pci_slot.o.old
+> 
+> Miscellanea:
+> 
+> o Remove unnecessary OOM message as k.alloc functions get a generic
+>   stack dump on OOM
+> o Remove unnecessary embedded prefix from a dbg() message
+> 
+> Signed-off-by: Joe Perches <joe@perches.com>
 
-Patch applied, thanks!
+Applied, thanks!
 
