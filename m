@@ -1,40 +1,52 @@
-From: Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>
-Subject: Re: [PATCH v2 2/3] acpi: dptf_power: Add DPTF power participant
-Date: Thu, 23 Jun 2016 07:05:57 -0700
-Message-ID: <1466690757.4272.19.camel@linux.intel.com>
-References: <1466653363-7311-1-git-send-email-srinivas.pandruvada@linux.intel.com>
-	 <1466653363-7311-3-git-send-email-srinivas.pandruvada@linux.intel.com>
-	 <CAJZ5v0g-jZqobJQax-mxBnTnm7ZH2V5=bMLvWTcqVQbraBqxjQ@mail.gmail.com>
-	 <CAJZ5v0j8ybZRF7AYeXaOqf_Oo7Qnpi53ymRoxzYA5gW7tqMCgw@mail.gmail.com>
+From: Wim Osterholt <wim@djo.tudelft.nl>
+Subject: Re: kernel-4.7 bug in Intel sound and/or ACPI
+Date: Thu, 23 Jun 2016 16:12:35 +0200
+Message-ID: <20160623141234.GA14662@djo.tudelft.nl>
+References: <20160620003530.GA19571@djo.tudelft.nl>
+ <2999417.fp4mqtxYS2@vostro.rjw.lan>
+ <20160620212507.GA24086@localhost>
+ <57686D67.8010201@codeaurora.org>
+ <20160621124715.GB3528@djo.tudelft.nl>
+ <576943BA.1000001@codeaurora.org>
+ <20160621221347.GA28603@djo.tudelft.nl>
+ <72eb7b76d449f906d9b2b1bb15d995bf@codeaurora.org>
+Reply-To: wim@djo.tudelft.nl
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga02.intel.com ([134.134.136.20]:19127 "EHLO mga02.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750809AbcFWOHo (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 23 Jun 2016 10:07:44 -0400
-In-Reply-To: <CAJZ5v0j8ybZRF7AYeXaOqf_Oo7Qnpi53ymRoxzYA5gW7tqMCgw@mail.gmail.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <72eb7b76d449f906d9b2b1bb15d995bf@codeaurora.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: okaya@codeaurora.org
+Cc: Bjorn Helgaas <helgaas@kernel.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, perex@perex.cz, linux-pci@vger.kernel.org, Takashi Iwai <tiwai@suse.com>, linux-pci-owner@vger.kernel.org, Wim Osterholt <wim@djo.tudelft.nl>
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rafael@kernel.org>
-Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Darren Hart <darren.hart@intel.com>
 
-On Thu, 2016-06-23 at 15:23 +0200, Rafael J. Wysocki wrote:
-> On Thu, Jun 23, 2016 at 1:48 AM, Rafael J. Wysocki <rafael@kernel.org
-> > wrote:
-> > On Thu, Jun 23, 2016 at 5:42 AM, Srinivas Pandruvada
-
-[...]
-
-> > Now that I think about it, maybe it would be better to put that
-> > into
-> > drivers/platform/x86?
+On Wed, Jun 22, 2016 at 11:54:39PM -0400, okaya@codeaurora.org wrote:
+> On 2016-06-21 18:13, Wim Osterholt wrote:
+> >> 
+> >> 	pr_info("%s:%d irq = %d penalty = %d\n", __func__, __LINE__, irq,
+> >> 		penalty);
+> >> 
+> > 
+> > This produced some 60 lines extra....
 > 
-> Or we can create a dptf directory under drivers/acpi/ if you prefer.
+> Thanks, let's go back to 4.6 and add a very similar printf to every 
+> single place where the array is modified and also right before the 
+> enabled message.
 > 
-Let me do this. We may have more such drivers.
 
-Thanks,
-Srinivas
+I don't get this right.
+Assuming that you're still talking about the same file, I find a few
+instances of 'enabled', most of them in if-statements and one where it might
+be set, so it looks. However, that's already in a printk statement.
+I don't know about arrays and even less where these are set. Even worse, I
+don't know what to put in a 'similar' line if you don't mean 'exactly the
+same'.
+So please state file and line numbers and the line to be inserted.
 
+
+
+Groeten, Wim.
+
+
+----- wim@djo.tudelft.nl -----
