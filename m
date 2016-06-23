@@ -1,58 +1,189 @@
-From: Mark Brown <broonie@kernel.org>
-Subject: Re: [PATCH v4 0/2] ASoC: da7219: Convert driver to use generic FW
- functions
-Date: Thu, 23 Jun 2016 11:01:48 +0100
-Message-ID: <20160623100148.GV28202@sirena.org.uk>
-References: <cover.1466523027.git.Adam.Thomson.Opensource@diasemi.com>
- <6274a042-da99-e3e6-20f2-37ce2651645c@intel.com>
- <2E89032DDAA8B9408CB92943514A0337D4644644@SW-EX-MBX01.diasemi.com>
- <20160621232116.GG28202@sirena.org.uk>
- <CAJZ5v0g47+igo+Z+gZZE9sOix8oCs7Jy+H-i=HcBUB+RVib3+g@mail.gmail.com>
+From: Dennis Chen <dennis.chen@arm.com>
+Subject: [PATCH 1/2] mm: memblock Add some new functions to address the mem limit issue
+Date: Thu, 23 Jun 2016 19:30:14 +0800
+Message-ID: <1466681415-8058-1-git-send-email-dennis.chen@arm.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
-	protocol="application/pgp-signature"; boundary="e+JRL32uBeeWnrD4"
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mezzanine.sirena.org.uk ([106.187.55.193]:33748 "EHLO
-	mezzanine.sirena.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751480AbcFWKB7 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 23 Jun 2016 06:01:59 -0400
-Content-Disposition: inline
-In-Reply-To: <CAJZ5v0g47+igo+Z+gZZE9sOix8oCs7Jy+H-i=HcBUB+RVib3+g@mail.gmail.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=WINDOWS-1252
+Content-Transfer-Encoding: quoted-printable
+Return-path: <owner-linux-mm@kvack.org>
+Sender: owner-linux-mm@kvack.org
+To: linux-arm-kernel@lists.infradead.org
+Cc: nd@arm.com, Dennis Chen <dennis.chen@arm.com>, Catalin Marinas <catalin.marinas@arm.com>, Steve Capper <steve.capper@arm.com>, Ard
+ Biesheuvel <ard.biesheuvel@linaro.org>, Will Deacon <will.deacon@arm.com>, Mark Rutland <mark.rutland@arm.com>, "Rafael J . Wysocki" <rafael.j.wysocki@intel.com>, Matt Fleming <matt@codeblueprint.co.uk>, linux-mm@kvack.org, linux-acpi@vger.kernel.org, linux-efi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rafael@kernel.org>
-Cc: "Opensource [Adam Thomson]" <Adam.Thomson.Opensource@diasemi.com>, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Robert Moore <robert.moore@intel.com>, Lv Zheng <lv.zheng@intel.com>, Heikki Krogerus <heikki.krogerus@linux.intel.com>, Mika Westerberg <mika.westerberg@linux.intel.com>, Len Brown <lenb@kernel.org>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Rob Herring <robh+dt@kernel.org>, Frank Rowand <frowand.list@gmail.com>, Liam Girdwood <lgirdwood@gmail.com>, linux-acpi <linux-acpi@vger.kernel.org>, devicetree <devicetree@vger.kernel.org>, alsa-devel <alsa-devel@alsa-project.org>, linux-kernel <linux-kernel@vger.kernel.org>, Support Opensource <Support.Opensource@diasemi.com>, Sathyanarayana Nujella <sathyanarayana.nujella@intel.com>
 
+Two major changes in this patch:
+[1] Add memblock_mem_limit_mark_nomap(phys_addr_t limit) function to
+mark memblock regions above the @limit as NOMAP region, which will
+be used to address the observed 'mem=3Dx' kernel parameter issue.
 
---e+JRL32uBeeWnrD4
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+[2] Add 'size' and 'flag' debug output in the memblock debugfs.
+The '/sys/kernel/debug/memblock/memory' output looks like before:
+   0: 0x0000008000000000..0x0000008001e7ffff
+   1: 0x0000008001e80000..0x00000083ff184fff
+   2: 0x00000083ff185000..0x00000083ff1c2fff
+   3: 0x00000083ff1c3000..0x00000083ff222fff
+   4: 0x00000083ff223000..0x00000083ffe42fff
+   5: 0x00000083ffe43000..0x00000083ffffffff
 
-On Wed, Jun 22, 2016 at 03:05:26AM +0200, Rafael J. Wysocki wrote:
-> On Wed, Jun 22, 2016 at 1:21 AM, Mark Brown <broonie@kernel.org> wrote:
+With this patch applied:
+   0: 0x0000008000000000..0x0000008001e7ffff  0x0000000001e80000  0x4
+   1: 0x0000008001e80000..0x00000083ff184fff  0x00000003fd305000  0x0
+   2: 0x00000083ff185000..0x00000083ff1c2fff  0x000000000003e000  0x4
+   3: 0x00000083ff1c3000..0x00000083ff222fff  0x0000000000060000  0x0
+   4: 0x00000083ff223000..0x00000083ffe42fff  0x0000000000c20000  0x4
+   5: 0x00000083ffe43000..0x00000083ffffffff  0x00000000001bd000  0x0
 
-> > Probably the easiest thing would be a tag for the core change that I can
-> > pull.
+Signed-off-by: Dennis Chen <dennis.chen@arm.com>
+Cc: Catalin Marinas <catalin.marinas@arm.com>
+Cc: Steve Capper <steve.capper@arm.com>
+Cc: Ard Biesheuvel <ard.biesheuvel@linaro.org>
+Cc: Will Deacon <will.deacon@arm.com>
+Cc: Mark Rutland <mark.rutland@arm.com>
+Cc: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+Cc: Matt Fleming <matt@codeblueprint.co.uk>
+Cc: linux-mm@kvack.org
+Cc: linux-acpi@vger.kernel.org
+Cc: linux-efi@vger.kernel.org
+---
+ include/linux/memblock.h |  2 ++
+ mm/memblock.c            | 50 ++++++++++++++++++++++++++++++++++++++++----=
+----
+ 2 files changed, 44 insertions(+), 8 deletions(-)
 
-> Or you can apply them both if that helps (please consider the first
-> one as ACKed in that case).
+diff --git a/include/linux/memblock.h b/include/linux/memblock.h
+index 6c14b61..5e069c8 100644
+--- a/include/linux/memblock.h
++++ b/include/linux/memblock.h
+@@ -92,6 +92,7 @@ int memblock_mark_hotplug(phys_addr_t base, phys_addr_t s=
+ize);
+ int memblock_clear_hotplug(phys_addr_t base, phys_addr_t size);
+ int memblock_mark_mirror(phys_addr_t base, phys_addr_t size);
+ int memblock_mark_nomap(phys_addr_t base, phys_addr_t size);
++int memblock_clear_nomap(phys_addr_t base, phys_addr_t size);
+ ulong choose_memblock_flags(void);
+=20
+ /* Low level functions */
+@@ -332,6 +333,7 @@ phys_addr_t memblock_mem_size(unsigned long limit_pfn);
+ phys_addr_t memblock_start_of_DRAM(void);
+ phys_addr_t memblock_end_of_DRAM(void);
+ void memblock_enforce_memory_limit(phys_addr_t memory_limit);
++void memblock_mem_limit_mark_nomap(phys_addr_t limit);
+ bool memblock_is_memory(phys_addr_t addr);
+ int memblock_is_map_memory(phys_addr_t addr);
+ int memblock_is_region_memory(phys_addr_t base, phys_addr_t size);
+diff --git a/mm/memblock.c b/mm/memblock.c
+index ca09915..60930ac 100644
+--- a/mm/memblock.c
++++ b/mm/memblock.c
+@@ -814,6 +814,18 @@ int __init_memblock memblock_mark_nomap(phys_addr_t ba=
+se, phys_addr_t size)
+ }
+=20
+ /**
++ * memblock_clear_nomap - Clear flag MEMBLOCK_NOMAP for a specified region=
+.
++ * @base: the base phys addr of the region
++ * @size: the size of the region
++ *
++ * Return 0 on success, -errno on failure.
++ */
++int __init_memblock memblock_clear_nomap(phys_addr_t base, phys_addr_t siz=
+e)
++{
++=09return memblock_setclr_flag(base, size, 0, MEMBLOCK_NOMAP);
++}
++
++/**
+  * __next_reserved_mem_region - next function for for_each_reserved_region=
+()
+  * @idx: pointer to u64 loop variable
+  * @out_start: ptr to phys_addr_t for start address of the region, can be =
+%NULL
+@@ -1465,14 +1477,11 @@ phys_addr_t __init_memblock memblock_end_of_DRAM(vo=
+id)
+ =09return (memblock.memory.regions[idx].base + memblock.memory.regions[idx=
+].size);
+ }
+=20
+-void __init memblock_enforce_memory_limit(phys_addr_t limit)
++static phys_addr_t __find_max_addr(phys_addr_t limit)
+ {
+ =09phys_addr_t max_addr =3D (phys_addr_t)ULLONG_MAX;
+ =09struct memblock_region *r;
+=20
+-=09if (!limit)
+-=09=09return;
+-
+ =09/* find out max address */
+ =09for_each_memblock(memory, r) {
+ =09=09if (limit <=3D r->size) {
+@@ -1482,6 +1491,18 @@ void __init memblock_enforce_memory_limit(phys_addr_=
+t limit)
+ =09=09limit -=3D r->size;
+ =09}
+=20
++=09return max_addr;
++}
++
++void __init memblock_enforce_memory_limit(phys_addr_t limit)
++{
++=09phys_addr_t max_addr;
++
++=09if (!limit)
++=09=09return;
++
++=09max_addr =3D __find_max_addr(limit);
++
+ =09/* truncate both memory and reserved regions */
+ =09memblock_remove_range(&memblock.memory, max_addr,
+ =09=09=09      (phys_addr_t)ULLONG_MAX);
+@@ -1489,6 +1510,17 @@ void __init memblock_enforce_memory_limit(phys_addr_=
+t limit)
+ =09=09=09      (phys_addr_t)ULLONG_MAX);
+ }
+=20
++void __init memblock_mem_limit_mark_nomap(phys_addr_t limit)
++{
++=09phys_addr_t max_addr;
++
++=09if (!limit)
++=09=09return;
++
++=09max_addr =3D __find_max_addr(limit);
++=09memblock_mark_nomap(max_addr, (phys_addr_t)ULLONG_MAX);
++}
++
+ static int __init_memblock memblock_search(struct memblock_type *type, phy=
+s_addr_t addr)
+ {
+ =09unsigned int left =3D 0, right =3D type->cnt;
+@@ -1677,13 +1709,15 @@ static int memblock_debug_show(struct seq_file *m, =
+void *private)
+ =09=09reg =3D &type->regions[i];
+ =09=09seq_printf(m, "%4d: ", i);
+ =09=09if (sizeof(phys_addr_t) =3D=3D 4)
+-=09=09=09seq_printf(m, "0x%08lx..0x%08lx\n",
++=09=09=09seq_printf(m, "0x%08lx..0x%08lx  0x%08lx  0x%lx\n",
+ =09=09=09=09   (unsigned long)reg->base,
+-=09=09=09=09   (unsigned long)(reg->base + reg->size - 1));
++=09=09=09=09   (unsigned long)(reg->base + reg->size - 1),
++=09=09=09=09   (unsigned long)reg->size, reg->flags);
+ =09=09else
+-=09=09=09seq_printf(m, "0x%016llx..0x%016llx\n",
++=09=09=09seq_printf(m, "0x%016llx..0x%016llx  0x%016llx  0x%lx\n",
+ =09=09=09=09   (unsigned long long)reg->base,
+-=09=09=09=09   (unsigned long long)(reg->base + reg->size - 1));
++=09=09=09=09   (unsigned long long)(reg->base + reg->size - 1),
++=09=09=09=09   (unsigned long long)reg->size, reg->flags);
+=20
+ =09}
+ =09return 0;
+--=20
+1.8.3.1
 
-That works too, if I do that I'll make a tag in case it needs to get
-pulled elsewhere.
-
---e+JRL32uBeeWnrD4
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2
-
-iQEcBAEBCAAGBQJXa7OLAAoJECTWi3JdVIfQEZYH/iBFpV9Hg8cfJAuLwDD+XYpc
-JK0TSiVIhLZTEORKAmOdcgWUijdoZ0bG/X6t9yOPGixlYWRH3TiLeRgaTfPQnJ89
-DxmRhkCv/GZNXo/5CK3y+XH7yuscFITsYjIEGk937whJ/W8k6xqnWyygYENFz+CS
-2aeemxCoNoEFS2V4AcroA86yNfuBOWIGOoQ1fj00scKzplTvzCv0/XA6BOAS1i7k
-91mAxshX3SX413to+pW7TQROI4D76wxkK3bNWUqhE8gfSXY3uBtsMOQau5tx/cS7
-+UXsGmJpBVnL9nvTtZ/oTZX6ZwTsnbiMkldx6q+SgE9hyHzF4Tc9oep0+uuezpc=
-=GcsV
------END PGP SIGNATURE-----
-
---e+JRL32uBeeWnrD4--
+--
+To unsubscribe, send a message with 'unsubscribe linux-mm' in
+the body to majordomo@kvack.org.  For more info on Linux MM,
+see: http://www.linux-mm.org/ .
+Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
