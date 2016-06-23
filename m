@@ -1,66 +1,54 @@
-From: "Zheng, Lv" <lv.zheng@intel.com>
-Subject: RE: [PATCH v3 1/3] ACPI / button: Remove initial lid state
- notification
-Date: Thu, 23 Jun 2016 00:57:20 +0000
-Message-ID: <1AE640813FDE7649BE1B193DEA596E883BBF7A1D@SHSMSX101.ccr.corp.intel.com>
-References: <cbdaec17aba78c61f466efff8883d49067f2dad5.1463472125.git.lv.zheng@intel.com>
- <009785fc9fed68dc2f0496e6d014586d8eaa7cf2.1464775699.git.lv.zheng@intel.com>
- <2071595.qfKer86pIB@vostro.rjw.lan>
+From: Aaron Lu <aaron.lu@intel.com>
+Subject: Re: [PATCH] ACPI : Dummy acpi_video_register should return error code
+Date: Thu, 23 Jun 2016 09:35:01 +0800
+Message-ID: <aad366c0-7531-6820-f378-84020ceb45fc@intel.com>
+References: <1466621761-7283-1-git-send-email-arvind.yadav.cs@gmail.com>
+ <3183729.cNSdjc2YjN@vostro.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga09.intel.com ([134.134.136.24]:11147 "EHLO mga09.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750824AbcFWA5e (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 22 Jun 2016 20:57:34 -0400
-In-Reply-To: <2071595.qfKer86pIB@vostro.rjw.lan>
-Content-Language: en-US
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <3183729.cNSdjc2YjN@vostro.rjw.lan>
+Sender: linux-kernel-owner@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Arvind Yadav <arvind.yadav.cs@gmail.com>
+Cc: robert.moore@intel.com, lv.zheng@intel.com, rafael.j.wysocki@intel.com, lenb@kernel.org, linux-acpi@vger.kernel.org, devel@acpica.org, linux-kernel@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>, "Brown, Len" <len.brown@intel.com>, Lv Zheng <zetalog@gmail.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
 
-SGksIFJhZmFlbA0KDQo+IEZyb206IFJhZmFlbCBKLiBXeXNvY2tpIFttYWlsdG86cmp3QHJqd3lz
-b2NraS5uZXRdDQo+IFN1YmplY3Q6IFJlOiBbUEFUQ0ggdjMgMS8zXSBBQ1BJIC8gYnV0dG9uOiBS
-ZW1vdmUgaW5pdGlhbCBsaWQgc3RhdGUNCj4gbm90aWZpY2F0aW9uDQo+IA0KPiBPbiBXZWRuZXNk
-YXksIEp1bmUgMDEsIDIwMTYgMDY6MTA6MzQgUE0gTHYgWmhlbmcgd3JvdGU6DQo+ID4gVGhlIF9M
-SUQgY29udHJvbCBtZXRob2QncyBpbml0aWFsIHJldHVybmluZyB2YWx1ZSBpcyBub3QgcmVsaWFi
-bGUuDQo+ID4NCj4gPiBUaGUgX0xJRCBjb250cm9sIG1ldGhvZCBpcyBkZXNjcmliZWQgdG8gcmV0
-dXJuIHRoZSAiY3VycmVudCIgbGlkIHN0YXRlLg0KPiA+IEhvd2V2ZXIgdGhlIHdvcmQgb2YgImN1
-cnJlbnQiIGhhcyBhbWJpZ3VpdHksIG1hbnkgQklPU2VuIHJldHVybiB0aGUNCj4gbGlkDQo+ID4g
-c3RhdGUgdXBvbiB0aGUgbGFzdCBsaWQgbm90aWZpY2F0aW9uIGluc3RlYWQgb2YgcmV0dXJuaW5n
-IHRoZSBsaWQgc3RhdGUNCj4gPiB1cG9uIHRoZSBsYXN0IF9MSUQgZXZhbHVhdGlvbi4gVGhlcmUg
-d29uJ3QgYmUgZGlmZmVyZW5jZSB3aGVuIHRoZSBfTElEDQo+ID4gY29udHJvbCBtZXRob2QgaXMg
-ZXZhbHVhdGVkIGR1cmluZyB0aGUgcnVudGltZSwgdGhlIHByb2JsZW0gaXMgaXRzIGluaXRpYWwN
-Cj4gPiByZXR1cm5pbmcgdmFsdWUuIFdoZW4gdGhlIEJJT1NlbiBpbXBsZW1lbnQgdGhpcyBjb250
-cm9sIG1ldGhvZCB3aXRoDQo+IGNhY2hlZA0KPiA+IHZhbHVlLCB0aGUgaW5pdGlhbCByZXR1cm5p
-bmcgdmFsdWUgaXMgbGlrZWx5IG5vdCByZWxpYWJsZS4gVGhlcmUgYXJlIHNpbXBseQ0KPiA+IHNv
-IG1hbnkgZXhhbXBsZXMgcmV0dW5pbmcgImNsb3NlIiBhcyBpbml0aWFsIGxpZCBzdGF0ZSAoTGlu
-ayAxKSwgc2VuZGluZw0KPiA+IHRoaXMgc3RhdGUgdG8gdGhlIHVzZXJzcGFjZSBjYXVzZXMgc3Vz
-cGVuZGluZyByaWdodCBhZnRlcg0KPiBib290aW5nL3Jlc3VtaW5nLg0KPiA+DQo+ID4gU2luY2Ug
-dGhlIGxpZCBzdGF0ZSBpcyBpbXBsZW1lbnRlZCBieSB0aGUgQklPU2VuLCB0aGUga2VybmVsIGxp
-ZCBkcml2ZXIgaGFzDQo+ID4gbm8gaWRlYSBob3cgaXQgY2FuIGJlIGNvcnJlY3QsIHRoaXMgcGF0
-Y2ggc3RvcHMgc2VuZGluZyB0aGUgaW5pdGlhbCBsaWQNCj4gPiBzdGF0ZSB0byB0aGUgdXNlcnNw
-YWNlIHRvIHRyeSB0byBhdm9pZCBzZW5kaW5nIHRoZSB3cm9uZyBsaWQgc3RhdGUgdG8gdGhlDQo+
-ID4gdXNlcnNwYWNlIHRvIHRyaWdnZXIgc3VjaCBraW5kIG9mIHdyb25nIHN1c3BlbmRpbmcuIFRo
-aXMgYWN0dWFsbHkgcmV2ZXJ0cw0KPiA+IHRoZSBmb2xsb3dpbmcgY29tbWl0IGludHJvZHVjZWQg
-Zm9yIGZpeGluZyBhIG5vdmVsbCBidWcgKExpbmsgMik6DQo+ID4gICBDb21taXQ6IDIzZGU1ZDll
-ZjJhNGJiYzRmNzMzZjU4MzExYmNiN2NmNjIzOWM4MTMNCj4gPiAgIFN1YmplY3Q6IEFDUEk6IGJ1
-dHRvbjogc2VuZCBpbml0aWFsIGxpZCBzdGF0ZSBhZnRlciBhZGQgYW5kIHJlc3VtZQ0KPiA+DQo+
-ID4gTGluayAxOiBodHRwczovL2J1Z3ppbGxhLmtlcm5lbC5vcmcvc2hvd19idWcuY2dpP2lkPTg5
-MjExDQo+ID4gICAgICAgICBodHRwczovL2J1Z3ppbGxhLmtlcm5lbC5vcmcvc2hvd19idWcuY2dp
-P2lkPTEwNjE1MQ0KPiA+ICAgICAgICAgaHR0cHM6Ly9idWd6aWxsYS5rZXJuZWwub3JnL3Nob3df
-YnVnLmNnaT9pZD0xMDY5NDENCj4gPiBMaW5rIDI6IGh0dHBzOi8vYnVnemlsbGEubm92ZWxsLmNv
-bS9zaG93X2J1Zy5jZ2k/aWQ9MzI2ODE0DQo+ID4gU2lnbmVkLW9mZi1ieTogTHYgWmhlbmcgPGx2
-LnpoZW5nQGludGVsLmNvbT4NCj4gDQo+IEkndmUgYXBwbGllZCBbMS0zLzNdIGZyb20gdGhpcyBz
-ZXJpZXMsIGJ1dCBJJ20gbm90IHN1cmUgaWYgdGhlIGxhc3QgcGF0Y2gNCj4gaXMgdGhlIGxhdGVz
-dCB2ZXJzaW9uLiAgQ2FuIHlvdSBwbGVhc2UgdmVyaWZ5IGluIGxpbnV4LW5leHQ/DQoNCltMdiBa
-aGVuZ10gDQpJIGNvbmZpcm1lZCwgdGhlIHBhdGNoIGluIGxpbnV4LW5leHQgaXMgdGhlIGxhdGVz
-dCB2ZXJzaW9uLg0KDQpBbmQganVzdCBmb3IgeW91ciBpbmZvcm1hdGlvbi4NCkkgc3RpbGwgaGF2
-ZSB0aGluZ3MgdG8gZG8gd2l0aCB0aGUgbGlkIGRyaXZlciB0byBhZGRyZXNzIEJhc3RpZW4gYW5k
-IEJlbmphbWluJ3MgcmVxdWVzdDoNCjEuIEFCSSBkb2N1bWVudGF0aW9uDQoyLiBuZXcga2V5IGV2
-ZW50IEFCSSBmb3IgYWNwaSBsaWQgY2xvc2UgZXZlbnQgKGZvciBleGFtcGxlLCBQTV9MSUQpDQpU
-aGF0J3Mgbm90IHJlbGF0ZWQgdG8gdGhpcyBxdWlyay4NCkFuZCBJJ2xsIGdvIGJhY2sgdG8gdGhh
-dCBhZnRlciBJIGZpbmlzaCBteSBjdXJyZW50IHBlbmRpbmcgd29yay4NCg0KVGhhbmtzIGFuZCBi
-ZXN0IHJlZ2FyZHMNCi1Mdg0K
+On 06/23/2016 05:05 AM, Rafael J. Wysocki wrote:
+> On Thursday, June 23, 2016 12:26:01 AM Arvind Yadav wrote:
+>> The inline acpi_video_register stub simply allows compilation on systems
+>> with CONFIG_ACPI_VIDEO disabled. the dummy acpi_video_register does not
+>> register an acpi_bus_driver at all. The inline acpi_video_register should
+>> return to indicate lack of support when attempting to register an
+>> acpi_bus_driver on such a system with CONFIG_ACPI_VIDEO disabled.
+>>
+>> Signed-off-by: Arvind Yadav <arvind.yadav.cs@gmail.com>
+>> ---
+>>  include/acpi/video.h | 2 +-
+>>  1 file changed, 1 insertion(+), 1 deletion(-)
+>>
+>> diff --git a/include/acpi/video.h b/include/acpi/video.h
+>> index 5731ccb..4536bd3 100644
+>> --- a/include/acpi/video.h
+>> +++ b/include/acpi/video.h
+>> @@ -54,7 +54,7 @@ extern int acpi_video_get_levels(struct acpi_device *device,
+>>  				 struct acpi_video_device_brightness **dev_br,
+>>  				 int *pmax_level);
+>>  #else
+>> -static inline int acpi_video_register(void) { return 0; }
+>> +static inline int acpi_video_register(void) { return -ENODEV; }
+>>  static inline void acpi_video_unregister(void) { return; }
+>>  static inline int acpi_video_get_edid(struct acpi_device *device, int type,
+>>  				      int device_id, void **edid)
+> 
+> Aaron, what do you think?
+ 
+The only place that cares about the return value of acpi_video_register
+is in acpi_video_init where CONFIG_ACPI_VIDEO must be defined, all other
+places do not care about the return value so this change shouldn't cause
+any problems and returning -ENODEV sounds more reasonable than 0 here.
+
+Reviewed-by: Aaron Lu <aaron.lu@intel.com>
+
+Regards,
+Aaron
