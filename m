@@ -1,130 +1,74 @@
-From: <Mario_Limonciello@Dell.com>
-Subject: RE: [PATCH] ACPI: don't show an error when we're not in charge of
- PCIe hotplug.
-Date: Wed, 22 Jun 2016 19:43:27 +0000
-Message-ID: <c6d927d71f544432a48a38047c8bfb14@ausx13mpc124.AMER.DELL.COM>
-References: <1466028904-28328-1-git-send-email-pjones@redhat.com>
- <CAJZ5v0g5_M=iNLE_P4eOcwJet=jPm_EifAMdDtvG+TR=1AnU2Q@mail.gmail.com>
- <CAJZ5v0ifNFP5jzPf+zMC3rJ1HKzBmCz1AdhsAsmj75EpndoPTQ@mail.gmail.com>
- <20160621151853.GE28967@redhat.com>
- <cf3d90a8598241ff9b6e28b8fb037633@ausx13mpc120.AMER.DELL.COM>
- <CAJZ5v0ji0DpVsNbnKQpWTdJS-d9y+dh-BVGGfJ_o5fHGe8qeiA@mail.gmail.com>
+From: Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>
+Subject: [PATCH v2 0/3] DPTF Platform power participant driver
+Date: Wed, 22 Jun 2016 20:42:40 -0700
+Message-ID: <1466653363-7311-1-git-send-email-srinivas.pandruvada@linux.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <CAJZ5v0ji0DpVsNbnKQpWTdJS-d9y+dh-BVGGfJ_o5fHGe8qeiA@mail.gmail.com>
-Content-Language: en-US
-Sender: linux-kernel-owner@vger.kernel.org
-To: rafael@kernel.org
-Cc: pjones@redhat.com, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, lenb@kernel.org, rjw@rjwysocki.net, luto@amacapital.net
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga14.intel.com ([192.55.52.115]:43498 "EHLO mga14.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751990AbcFVUoB (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 22 Jun 2016 16:44:01 -0400
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: rjw@rjwysocki.net
+Cc: linux-acpi@vger.kernel.org, Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>
 
-PiAtLS0tLU9yaWdpbmFsIE1lc3NhZ2UtLS0tLQ0KPiBGcm9tOiByand5c29ja2lAZ21haWwuY29t
-IFttYWlsdG86cmp3eXNvY2tpQGdtYWlsLmNvbV0gT24gQmVoYWxmIE9mDQo+IFJhZmFlbCBKLiBX
-eXNvY2tpDQo+IFNlbnQ6IFR1ZXNkYXksIEp1bmUgMjEsIDIwMTYgNTo1MSBQTQ0KPiBUbzogTGlt
-b25jaWVsbG8sIE1hcmlvIDxNYXJpb19MaW1vbmNpZWxsb0BEZWxsLmNvbT4NCj4gQ2M6IFBldGVy
-IEpvbmVzIDxwam9uZXNAcmVkaGF0LmNvbT47IFJhZmFlbCBKLiBXeXNvY2tpDQo+IDxyYWZhZWxA
-a2VybmVsLm9yZz47IEFDUEkgRGV2ZWwgTWFsaW5nIExpc3QgPGxpbnV4LWFjcGlAdmdlci5rZXJu
-ZWwub3JnPjsNCj4gTGludXggS2VybmVsIE1haWxpbmcgTGlzdCA8bGludXgta2VybmVsQHZnZXIu
-a2VybmVsLm9yZz47IExlbiBCcm93bg0KPiA8bGVuYkBrZXJuZWwub3JnPjsgUmFmYWVsIEouIFd5
-c29ja2kgPHJqd0Byand5c29ja2kubmV0PjsgQW5keSBMdXRvbWlyc2tpDQo+IDxsdXRvQGFtYWNh
-cGl0YWwubmV0Pg0KPiBTdWJqZWN0OiBSZTogW1BBVENIXSBBQ1BJOiBkb24ndCBzaG93IGFuIGVy
-cm9yIHdoZW4gd2UncmUgbm90IGluIGNoYXJnZSBvZg0KPiBQQ0llIGhvdHBsdWcuDQo+IA0KPiBP
-biBUdWUsIEp1biAyMSwgMjAxNiBhdCA4OjAxIFBNLCAgPE1hcmlvX0xpbW9uY2llbGxvQGRlbGwu
-Y29tPiB3cm90ZToNCj4gPj4gLS0tLS1PcmlnaW5hbCBNZXNzYWdlLS0tLS0NCj4gPj4gRnJvbTog
-UGV0ZXIgSm9uZXMgW21haWx0bzpwam9uZXNAcmVkaGF0LmNvbV0NCj4gPj4gU2VudDogVHVlc2Rh
-eSwgSnVuZSAyMSwgMjAxNiAxMDoxOSBBTQ0KPiA+PiBUbzogUmFmYWVsIEouIFd5c29ja2kgPHJh
-ZmFlbEBrZXJuZWwub3JnPg0KPiA+PiBDYzogQUNQSSBEZXZlbCBNYWxpbmcgTGlzdCA8bGludXgt
-YWNwaUB2Z2VyLmtlcm5lbC5vcmc+OyBMaW1vbmNpZWxsbywNCj4gTWFyaW8NCj4gPj4gPE1hcmlv
-X0xpbW9uY2llbGxvQERlbGwuY29tPjsgTGludXggS2VybmVsIE1haWxpbmcgTGlzdCA8bGludXgt
-DQo+ID4+IGtlcm5lbEB2Z2VyLmtlcm5lbC5vcmc+OyBMZW4gQnJvd24gPGxlbmJAa2VybmVsLm9y
-Zz47IFJhZmFlbCBKIC4NCj4gV3lzb2NraQ0KPiA+PiA8cmp3QHJqd3lzb2NraS5uZXQ+OyBBbmR5
-IEx1dG9taXJza2kgPGx1dG9AYW1hY2FwaXRhbC5uZXQ+DQo+ID4+IFN1YmplY3Q6IFJlOiBbUEFU
-Q0hdIEFDUEk6IGRvbid0IHNob3cgYW4gZXJyb3Igd2hlbiB3ZSdyZSBub3QgaW4gY2hhcmdlDQo+
-IG9mDQo+ID4+IFBDSWUgaG90cGx1Zy4NCj4gPj4NCj4gPj4gKFNvcnJ5IGZvciB0aGUgc2xvdyBy
-ZXNwb25zZSAtIGl0J3MgZGVhZGxpbmUgdGltZSBvdmVyIGhlcmUuKQ0KPiA+Pg0KPiA+PiBPbiBU
-aHUsIEp1biAxNiwgMjAxNiBhdCAwNDo1Njo1N1BNICswMjAwLCBSYWZhZWwgSi4gV3lzb2NraSB3
-cm90ZToNCj4gPj4gPiBPbiBUaHUsIEp1biAxNiwgMjAxNiBhdCAyOjEyIEFNLCBSYWZhZWwgSi4g
-V3lzb2NraSA8cmFmYWVsQGtlcm5lbC5vcmc+DQo+ID4+IHdyb3RlOg0KPiA+PiA+ID4gT24gVGh1
-LCBKdW4gMTYsIDIwMTYgYXQgMTI6MTUgQU0sIFBldGVyIEpvbmVzIDxwam9uZXNAcmVkaGF0LmNv
-bT4NCj4gPj4gd3JvdGU6DQo+ID4+ID4gPj4gUmlnaHQgbm93IHdoZW4gYm9vdGluZywgb24gbWFu
-eSBsYXB0b3BzIHRoZSBmaXJtd2FyZSBtYW5hZ2VzDQo+IHRoZQ0KPiA+PiBQQ0llDQo+ID4+ID4g
-Pj4gYnVzLiAgQXMgYSByZXN1bHQsIHdoZW4gd2UgY2FsbCB0aGUgX09TQyBBQ1BJIG1ldGhvZCwg
-aXQgcmV0dXJucyBhbg0KPiA+PiA+ID4+IGVycm9yIGNvZGUuICBVbmZvcnR1bmF0ZWx5IHRoZSBl
-cnJvcnMgYXJlIG5vdCB2ZXJ5IGFydGljdWxhdGUuDQo+ID4+ID4gPg0KPiA+PiA+ID4gV2hhdCBl
-eGFjdGx5IGRvIHlvdSBtZWFuIGhlcmU/DQo+ID4+ID4gPg0KPiA+PiA+ID4+ICBBcyBhIHJlc3Vs
-dCwgd2Ugc2hvdzoNCj4gPj4gPiA+Pg0KPiA+PiA+ID4+IEFDUEk6IFBDSSBSb290IEJyaWRnZSBb
-UENJMF0gKGRvbWFpbiAwMDAwIFtidXMgMDAtZmVdKQ0KPiA+PiA+ID4+IGFjcGkgUE5QMEEwODow
-MDogX09TQzogT1Mgc3VwcG9ydHMgW0V4dGVuZGVkQ29uZmlnIEFTUE0NCj4gQ2xvY2tQTQ0KPiA+
-PiBTZWdtZW50cyBNU0ldDQo+ID4+ID4gPj4gXF9TQl8uUENJMCAoMzNEQjRENUItMUZGNy00MDFD
-LTk2NTctNzQ0MUMwM0RENzY2KTogX09TQyBpbnZhbGlkDQo+ID4+IFVVSUQNCj4gPj4gPiA+PiBf
-T1NDIHJlcXVlc3QgZGF0YTogMSAxZiAwDQo+ID4+ID4gPg0KPiA+PiA+ID4gU28gX09TQyB0b2xk
-IHVzIHRoYXQgdGhlIFVVSUQgd2FzIGludmFsaWQsIGRpZG4ndCBpdD8NCj4gPj4gPg0KPiA+PiA+
-IEJUVywgdGhlIGFib3ZlIG1lc3NhZ2VzIGFyZSBLRVJOX0RFQlVHLCBzbyBhdCBsZWFzdCBpbiB0
-aGVvcnkgdGhleQ0KPiA+PiA+IHNob3VsZG4ndCBiZSB2aXNpYmxlIGluIHByb2R1Y3Rpb24gcnVu
-cy4NCj4gPj4gPg0KPiA+PiA+IE1heWJlIHRoZSBidWcgdG8gZml4IGlzIHRoYXQgdGhleSBzaG93
-IHVwIHdoZW4gdGhleSBhcmVuJ3Qgc3VwcG9zZWQNCj4gdG8/DQo+ID4+DQo+ID4+IE5vIC0gdGhl
-IHdvcmtmbG93IHRoYXQgSSBhbSByZWFsbHkgdHJ5aW5nIHRvIHJlbWVkeSBpcyB0aGlzOg0KPiA+
-Pg0KPiA+PiAgMSkgUzMgcmVzdW1lIHNvbWV0aW1lcyBpc24ndCB3b3JraW5nIG9uIHNvbWUgbGFw
-dG9wIHlvdSd2ZSBnb3QuDQo+ID4+ICAyKSBzdGFydCBsb29raW5nIGF0IGRlYnVnIG1lc3NhZ2Vz
-DQo+ID4+ICAzKSB0aGlzIHNob3dzIGFuIGVycm9yLCBzbyBpdCBsb29rcyBsaWtlIGl0J3MgcHJv
-YmFibHkgdGhlIHByb2JsZW0NCj4gPj4gIDQpIGdvIGZpc2hpbmcgZm9yIHJlZCBoZXJyaW5nDQo+
-ID4+ICA1KSBpZiB5b3UgaGFwcGVuIHRvIGtub3cgd2hvIG1haW50YWlucyB0aGUgRFNEVCBmb3Ig
-dGhlIHBsYXRmb3JtIGluDQo+ID4+ICAgICBxdWVzdGlvbiwgZXZlbnR1YWxseSB3b3JrIG91dCB0
-aGF0IHRoaXMgaXMgd29ya2luZyBhcyBpbnRlbmRlZCBhbmQNCj4gPj4gICAgIHRoZSBidWcgaXMg
-c29tZXBsYWNlIGVsc2UuDQo+ID4+IDViKSBpZiB5b3UgZG9uJ3Qga25vdyB0aGF0IHBlcnNvbiwg
-ZXZlbnR1YWxseSB3b3JrIG91dCB0aGF0IGl0IC9taWdodC8NCj4gPj4gICAgICBiZSBzb21lcGxh
-Y2UgZWxzZS4uLg0KPiA+Pg0KPiA+PiBTbyB0aGUgaWRlYSB3YXMgdG8gbWFrZSBpdCBsb29rIG1v
-cmUgbGlrZSBhbiBpbmRpY2F0aW9uIG9mIHN0YXR1cywgYW5kDQo+ID4+IGxlc3MgbGlrZSBhbiBl
-cnJvciB0aGF0J3MgY2F1c2luZyB1bnJlbGF0ZWQgcHJvYmxlbXMuDQo+ID4+DQo+ID4+IFdoZW4g
-SSB0YWxrZWQgdG8gTWFyaW8gYXQgRGVsbCAoQ2MnZCksIGl0IHdhc24ndCBjbGVhciB0byB1cyB0
-aGF0DQo+ID4+IHRoZXJlJ3MgYSB3YXkgdG8gZGlzdGluZ3Vpc2ggdGhlIGJldHdlZW4gdGhlIFVV
-SUQgYmVpbmcNCj4gPj4gaW52YWxpZC9tYWxmb3JtZWQsIGJlaW5nIG1lcmVseSB1bnN1cHBvcnRl
-ZCwgb3IgYmVpbmcgc3VwcG9ydGVkIGluDQo+IHNvbWUNCj4gPj4gY29uZmlndXJhdGlvbnMgYnV0
-IG5vdCB0aGUgY3VycmVudCBvbmUuICBJbiB0aGlzIHBhcnRpY3VsYXIgRFNEVCwgdGhlDQo+ID4+
-IG1hY2hpbmUgZG9lc24ndCBzdXBwb3J0IHRoZSBPUyBjb250cm9sbGluZyBhbnkgb2YgdGhpcyBp
-ZiBVU0ItQyAvDQo+ID4+IHRodW5kZXJib2x0IGFyZSBlbmFibGVkLiAgVGhlIERTRFQgaXMgY2xl
-YXJseSB3cml0dGVuIHdpdGggdGhlIGJlbGllZg0KPiA+PiB0aGF0IHlvdSBoYXZlIHRvIGNvbXBs
-ZXRlbHkgZGlzYWJsZSB0aGUgaGFuZGxpbmcgZm9yIHRoYXQgVVVJRCBpbiB0aGlzDQo+ID4+IGNh
-c2UsIGFuZCBnb29nbGluZyBmb3IgdGhpcyBsb29rcyBsaWtlIGl0J3Mgbm90IHRoZSBvbmx5IG9u
-ZSB3cml0dGVuDQo+ID4+IHdpdGggdGhhdCBiZWxpZWYuDQo+ID4+DQo+ID4+IFJlYWRpbmcgdGhl
-IHNwZWMgKHY2LjEsIHNlY3Rpb25zIDYuMi4xMS4zIGFuZCA2LjIuMTEuNCksIGl0IHNlZW1zDQo+
-ID4+IHBsYXVzaWJsZSB0aGF0IHlvdSBjYW4gZXhwcmVzcyB0aGlzIGluc3RlYWQgYnkgaGFuZGxp
-bmcgdGhlIFVVSUQgYnV0DQo+ID4+IGNob29zaW5nIGVhY2ggaW5kaXZpZHVhbCBxdWVyeS9zdGF0
-dXMgYml0IGluIHRoZSB3YXkgdGhhdCBhY2NvbXBsaXNoZXMNCj4gPj4gdGhlIE9TIGRvaW5nIG5v
-dGhpbmcgd2l0aCB0aGUgcmVzcG9uc2UuICBTbyBpdCBtYXkgd2VsbCBiZSB0aGF0IHRoYXQncw0K
-PiA+PiBqdXN0IG1vcmUgY29kZSB0aGF0IHZlbmRvcnMgaGF2ZSB0aG91Z2h0IHdhc24ndCBuZWNl
-c3NhcnkgKG9yIHdhc24ndA0KPiA+PiBjb3JyZWN0IGZvciBzb21lIHJlYXNvbi4pDQo+ID4+DQo+
-ID4+IE1hcmlvLCB3YW50IHRvIGp1bXAgaW4gb24geW91ciB0aGlua2luZyBoZXJlPw0KPiA+Pg0K
-PiA+PiAtLQ0KPiA+PiAgIFBldGVyDQo+ID4NCj4gPiBBZnRlciB0YWxraW5nIHRvIHRoZSB0ZWFt
-LCBJIHdhcyB0b2xkIHRoaXMgcGFydGljdWxhciBpbXBsZW1lbnRhdGlvbiB0byBub3QNCj4gbGV0
-DQo+ID4gT1MgdGFrZSBjb250cm9sIHdoZW4gYWN0aW5nIG9uIHRoYXQgc3BlY2lmaWMgVVVJRCBi
-YXNlZCB1cG9uIGEgdmFyaWFibGUNCj4gPiAoTkVYUCBpbiB0aGlzIGNhc2UpIGNhbWUgZnJvbSBJ
-bnRlbCBSQyBjb2RlLg0KPiA+DQo+ID4gVGhhdCdzIHByb2JhYmx5IHdoeSB0aGlzIGlzIGFsbCBh
-Y3Jvc3MgYSBsb3Qgb2YgcGxhdGZvcm1zLCBpbmNsdWRpbmcgbm9uLURlbGwuDQo+ID4NCj4gPiBB
-dCBsZWFzdCBpbiB0aGUgY29udGV4dCBvZiB0aGUgbGFwdG9wIFBldGVyIG5vdGljZWQgdGhpcyBv
-biAoRGVsbCBYUFMgMTMgOTM1MCkNCj4gPiBORVhQIGlzIHNldCBpbiBHTlZTIGJhc2VkIHVwb24g
-VGh1bmRlcmJvbHQgY2FwYWJpbGl0eS4NCj4gPg0KPiA+IEFzIGZvciB3aHkgdGhleSByZXR1cm4g
-dW5yZWNvZ25pemVkIFVVSUQgaW5zdGVhZCBvZiBqdXN0IG1hc2tpbmcgYWxsIHRoZQ0KPiA+IGNh
-cGFiaWxpdGllcyBiaXRzPyAgSXQncyB0aGUgc2FtZSBuZXQgZnVuY3Rpb25hbCByZXN1bHQuICBJ
-ZiB0aGUgdmVuZG9yIHByb3ZpZGVkDQo+ID4gUkMgY29kZSBkb2Vzbid0IGNhdXNlZCBXQ0hLIHBy
-b2JsZW1zIG9yIGZ1bmN0aW9uYWwgcHJvYmxlbXMgaXQncyBoYXJkIHRvDQo+ID4gbWFrZSBhIGNh
-c2UgZm9yIHdoeSBpdCBuZWVkcyB0byBiZSBjaGFuZ2VkIGJ5IHRoZSBPRU0uDQo+ID4NCj4gPiBJ
-IHRoaW5rIHRoYXQgUGV0ZXIncyBwYXRjaCBpcyBhcHByb3ByaWF0ZSB0byBtZXNzYWdlIHRoaXMg
-aXMgc3BlY2lmaWNhbGx5DQo+ID4gd2hhdCdzIGdvaW5nIG9uLg0KPiANCj4gTm8sIGl0IG1heSBo
-aWRlIHJlYWwgKGllLiBub24taW50ZW50aW9uYWwpIGJ1Z3MgaW4gX09TQywgc28gaXQgaXMgbm90
-DQo+IGFwcHJvcHJpYXRlLg0KPiANCj4gRGVidWctbGV2ZWwgbWVzc2FnZXMgcmVhbGx5IHNob3Vs
-ZCBub3QgaHVydCBhbnlvbmUgKGFuZCBzaG91bGQgbmV2ZXINCj4gc2hvdyB1cCBpbiBwcm9kdWN0
-aW9uIGFueXdheSkuDQo+IA0KPiBXZSBjYW4gc2xpZ2h0bHkgdG9uZSBkb3duIHRoZSAiX09TQyBm
-YWlsZWQgKCVzKTsgZGlzYWJsaW5nIEFTUE1cbiINCj4gbWVzc2FnZSBpbiBuZWdvdGlhdGVfb3Nf
-Y29udHJvbCgpIGluIGRyaXZlcnMvYWNwaS9wY2lfcm9vdC5jIGlmIHlvdQ0KPiB0aGluayBpdCdz
-IHRvbyBzdHJvbmcgYW5kIHRoYXQncyBpdC4NCj4gDQo+IFRoYW5rcywNCj4gUmFmYWVsDQoNCkkg
-dGhpbmsgY2hhbmdpbmcgdGhhdCB3b3VsZCBoZWxwIGNvbW11bmljYXRlIHdoYXQncyBnb2luZyBv
-biBoZXJlIGFuZCBhdA0KbGVhc3QgbGV0IHRoZSB1c2VyIGtub3cgdGhlIHJlc3VsdCB3aWxsIGJl
-IHRoYXQgdGhlIGZpcm13YXJlIGlzIHN0aWxsIGNvbnRyb2xsaW5nDQpBU1BNIGR1ZSB0byB0aGUg
-X09TQyBmYWlsdXJlLg0KDQpTb21ldGhpbmcgZWxzZSB0aGF0IEkgdGhpbmsgQW5keSByZWNvbW1l
-bmRlZCBhIHdoaWxlIGJhY2sgd2FzIGF0IHRoYXQNCnRpbWUgdHJ5IHRvIGV2YWx1YXRlIE5FWFAg
-YW5kIGRpc3BsYXkgaXRzIHZhbHVlIGFuZCBhbiBhc3NvY2lhdGVkIG1lc3NhZ2UNCmluIGRlYnVn
-IGxvZ3Mgd2hlbiBfT1NDIGZhaWxzLiAgV291bGQgeW91IGJlIGFtZW5hYmxlIHRvIGEgY2hhbmdl
-IGxpa2UgdGhhdD8NCg==
+This series implements DPTF power participant driver. Intel =C2=AE Dyna=
+mic
+Platform and Thermal Framework (Intel =C2=AE DPTF) platform Power Parti=
+cipant
+is responsible for exposing platform telemetry such as
+-Platform Power
+-Battery Information such as State of Charge, estimated maximum
+sustainable power (PMax), SMART battery spec information
+Intel =C2=AE DPTF Power Participant loads as an ACPI Device (INT3407). =
+This
+device utilizes and exposes the platform power and Fuel Gauge informati=
+on
+and capabilities to the framework and for the policies to take control
+action.=20
+
+Implementation wise this is power supply battery driver with additional
+attributes for platform power objects.
+So the first patch splits the battery driver into two parts, a common p=
+art
+and a ACPI battery enumeration part.
+Next two patches add support for dptf power driver which uses common
+battery driver and adds additional attributes for platform power.
+
+v2:
+When both CONFIG_ACPI_BATTERY and CONFIG_DPTF_POWER are defined and
+platform has support for INT3407, then dptf power registration is
+delayed for 100ms. In 100 ms, if there is no ACPI battery is registered
+then dptf power will be registered. Since both can be modules and
+battery driver loads in async thread, there can be race even if we
+specify loading order for initialization.=20
+
+Srinivas Pandruvada (3):
+  acpi: battery: Split battery driver for reuse by DPTF power
+    participant
+  acpi: dptf_power: Add DPTF power participant
+  acpi: battery_common: battery present status for INT3407
+
+ drivers/acpi/Kconfig          |   22 +
+ drivers/acpi/Makefile         |    2 +
+ drivers/acpi/battery.c        | 1199 +--------------------------------=
+----
+ drivers/acpi/battery.h        |   31 +
+ drivers/acpi/battery_common.c | 1299 +++++++++++++++++++++++++++++++++=
+++++++++
+ drivers/acpi/dptf_power.c     |  184 ++++++
+ 6 files changed, 1543 insertions(+), 1194 deletions(-)
+ create mode 100644 drivers/acpi/battery_common.c
+ create mode 100644 drivers/acpi/dptf_power.c
+
+--=20
+2.5.0
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
