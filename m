@@ -1,98 +1,35 @@
-From: Ocean HY1 He <hehy1@lenovo.com>
-Subject: RE: [PATCH] ACPI: Execute the _PTS method when system reboot
-Date: Thu, 23 Jun 2016 12:55:54 +0000
-Message-ID: <BCBE834BAC19744BA2C3AC4D68DBF2198D8AC790@CNMAILEX03.lenovo.com>
-References: <1462772495-71113-1-git-send-email-hehy1@lenovo.com>
- <2611430.1T9CgX71hW@vostro.rjw.lan>
+From: "Rafael J. Wysocki" <rafael@kernel.org>
+Subject: Re: [PATCH v4 0/2] ASoC: da7219: Convert driver to use generic FW functions
+Date: Thu, 23 Jun 2016 14:57:35 +0200
+Message-ID: <CAJZ5v0hjQ=j+KOV8PMR47vx+=LLZMHqGdrVBZtDsF6WhFGkcQw@mail.gmail.com>
+References: <cover.1466523027.git.Adam.Thomson.Opensource@diasemi.com>
+ <6274a042-da99-e3e6-20f2-37ce2651645c@intel.com> <2E89032DDAA8B9408CB92943514A0337D4644644@SW-EX-MBX01.diasemi.com>
+ <20160621232116.GG28202@sirena.org.uk> <CAJZ5v0g47+igo+Z+gZZE9sOix8oCs7Jy+H-i=HcBUB+RVib3+g@mail.gmail.com>
+ <20160623100148.GV28202@sirena.org.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail1.bemta12.messagelabs.com ([216.82.251.8]:46574 "EHLO
-	mail1.bemta12.messagelabs.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752018AbcFWM4u (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 23 Jun 2016 08:56:50 -0400
-In-Reply-To: <2611430.1T9CgX71hW@vostro.rjw.lan>
-Content-Language: zh-CN
+Received: from mail-wm0-f68.google.com ([74.125.82.68]:33734 "EHLO
+	mail-wm0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752007AbcFWM5h (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 23 Jun 2016 08:57:37 -0400
+In-Reply-To: <20160623100148.GV28202@sirena.org.uk>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: "lenb@kernel.org" <lenb@kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, David Tanaka <dtanaka@lenovo.com>, Nagananda Chumbalkar <nchumbalkar@lenovo.com>
+To: Mark Brown <broonie@kernel.org>
+Cc: "Rafael J. Wysocki" <rafael@kernel.org>, "Opensource [Adam Thomson]" <Adam.Thomson.Opensource@diasemi.com>, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Robert Moore <robert.moore@intel.com>, Lv Zheng <lv.zheng@intel.com>, Heikki Krogerus <heikki.krogerus@linux.intel.com>, Mika Westerberg <mika.westerberg@linux.intel.com>, Len Brown <lenb@kernel.org>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Rob Herring <robh+dt@kernel.org>, Frank Rowand <frowand.list@gmail.com>, Liam Girdwood <lgirdwood@gmail.com>, linux-acpi <linux-acpi@vger.kernel.org>, devicetree <devicetree@vger.kernel.org>, alsa-devel <alsa-devel@alsa-project.org>, linux-kernel <linux-kernel@vger.kernel.org>, Support Opensource <Support.Opensource@diasemi.com>, Sathyanarayana Nujella <sathyanarayana.nujella@intel.com>
 
-SGkgUmFmYWVsLA0KUGxlYXNlIHNlZSBteSByZXBseSBpbiBiZWxvdy4NCg0KUmVnYXJkcywNCk9j
-ZWFuIEhlDQpTVyBEZXZlbG9wbWVudCBEZXB0LiANCkJlaWppbmcgRGVzaWduIENlbnRlcg0KRW50
-ZXJwcmlzZSBQcm9kdWN0IEdyb3VwDQpNb2JpbGU6IDE4OTExNzc4OTI2DQpFLW1haWw6IGhlaHkx
-QGxlbm92by5jb20NCk5vLjYgQ2h1YW5nIFllIFJvYWQsIEhhaWRpYW4gRGlzdHJpY3QsIEJlaWpp
-bmcsIENoaW5hIDEwMDA4NQ0KDQo+IC0tLS0tT3JpZ2luYWwgTWVzc2FnZS0tLS0tDQo+IEZyb206
-IFJhZmFlbCBKLiBXeXNvY2tpIFttYWlsdG86cmp3QHJqd3lzb2NraS5uZXRdDQo+IFNlbnQ6IFdl
-ZG5lc2RheSwgSnVuZSAyMiwgMjAxNiA3OjU2IEFNDQo+IFRvOiBPY2VhbiBIWTEgSGUNCj4gQ2M6
-IGxlbmJAa2VybmVsLm9yZzsgbGludXgtYWNwaUB2Z2VyLmtlcm5lbC5vcmc7DQo+IGxpbnV4LWtl
-cm5lbEB2Z2VyLmtlcm5lbC5vcmc7IERhdmlkIFRhbmFrYTsgTmFnYW5hbmRhIENodW1iYWxrYXIN
-Cj4gU3ViamVjdDogUmU6IFtQQVRDSF0gQUNQSTogRXhlY3V0ZSB0aGUgX1BUUyBtZXRob2Qgd2hl
-biBzeXN0ZW0gcmVib290DQo+IA0KPiBPbiBNb25kYXksIE1heSAwOSwgMjAxNiAwNTo1MDoxMSBB
-TSBPY2VhbiBIWTEgSGUgd3JvdGU6DQo+ID4gVGhlIF9QVFMgY29udHJvbCBtZXRob2QgaXMgZGVm
-aW5lZCBpbiB0aGUgc2VjdGlvbiA3LjQuMSBvZiBhY3BpIDYuMA0KPiA+IHNwZWMuIFRoZSBfUFRT
-IGNvbnRyb2wgbWV0aG9kIGlzIGV4ZWN1dGVkIGJ5IHRoZSBPUyBkdXJpbmcgdGhlIHNsZWVwDQo+
-ID4gdHJhbnNpdGlvbiBwcm9jZXNzIGZvciBTMSwgUzIsIFMzLCBTNCwgYW5kIGZvciBvcmRlcmx5
-IFM1IHNodXRkb3duLg0KPiA+IFRoZSBzbGVlcGluZyBzdGF0ZSB2YWx1ZSAoRm9yIGV4YW1wbGUs
-IDEsIDIsIDMsIDQgb3IgNSBmb3IgdGhlIFM1DQo+ID4gc29mdC1vZmYgc3RhdGUpIGlzIHBhc3Nl
-ZCB0byB0aGUgX1BUUyBjb250cm9sIG1ldGhvZC4gVGhpcyBtZXRob2QNCj4gPiBpcyBjYWxsZWQg
-YWZ0ZXIgT1NQTSBoYXMgbm90aWZpZWQgbmF0aXZlIGRldmljZSBkcml2ZXJzIG9mIHRoZSBzbGVl
-cA0KPiA+IHN0YXRlIHRyYW5zaXRpb24gYW5kIGJlZm9yZSB0aGUgT1NQTSBoYXMgaGFkIGEgY2hh
-bmNlIHRvIGZ1bGx5DQo+ID4gcHJlcGFyZSB0aGUgc3lzdGVtIGZvciBhIHNsZWVwIHN0YXRlIHRy
-YW5zaXRpb24uDQo+ID4NCj4gPiBUaGUgX1BUUyBjb250cm9sIG1ldGhvZCBwcm92aWRlcyB0aGUg
-QklPUyBhIG1lY2hhbmlzbSBmb3IgcGVyZm9ybWluZw0KPiA+IHNvbWUgaG91c2VrZWVwaW5nLCBz
-dWNoIGFzIHdyaXRpbmcgdGhlIHNsZWVwIHR5cGUgdmFsdWUgdG8gdGhlDQo+IGVtYmVkZGVkDQo+
-ID4gY29udHJvbGxlciwgYmVmb3JlIGVudGVyaW5nIHRoZSBzeXN0ZW0gc2xlZXBpbmcgc3RhdGUu
-DQo+ID4NCj4gPiBBY2NvcmRpbmcgdG8gc2VjdGlvbiA3LjUgb2YgYWNwaSA2LjAgc3BlYywgX1BU
-UyBzaG91bGQgcnVuIGFmdGVyIF9UVFMuDQo+ID4NCj4gPiBUaHVzLCBhIF9QVFMgYmxvY2sgbm90
-aWZpZXIgaXMgYWRkZWQgdG8gdGhlIHJlYm9vdCBub3RpZmllciBsaXN0IHNvIHRoYXQNCj4gPiB0
-aGUgX1BUUyBvYmplY3Qgd2lsbCBhbHNvIGJlIGV2YWx1YXRlZCB3aGVuIHRoZSBzeXN0ZW0gcmVi
-b290Lg0KPiANCj4gU28gSSB1bmRlcnN0YW5kIHdoeSBpdCBtYXkgYmUgbmVjZXNzYXJ5IHRvIGV2
-YWx1YXRlIF9QVFMgYmVmb3JlIGVudGVyaW5nDQo+IFM1LA0KPiBidXQgSSdtIHRvdGFsbHkgdW5z
-dXJlIGFib3V0IHJlYm9vdC4NCj4gDQo+IFdoYXQgZG9lcyByZWJvb3QgaGF2ZSB0byBkbyB3aXRo
-IFM1Pw0KPiANCkluIEFDUEkgc3BlYywgdGhlcmUgaXMgbm8gZXhwbGljaXQgd29yZHMgc2F5aW5n
-IF9QVFMgc2hvdWxkIGJlIA0KZXhlY3V0ZWQgd2hlbiByZWJvb3QuIEJ1dCByZWJvb3QgY291bGQg
-YmUgZXF1YWwgdG8gdGhlIA0KcHJvY2VzcyBTMC0+UzUtPlMwLiBUaHVzIF9QVFMgc2hvdWxkIGJl
-IGV4ZWN1dGVkIHdoZW4gcmVib290Lg0KDQpJIGFtIHRoaW5raW5nIHRoaXMgaXMgdGhlIHNhbWUg
-YXMgX1RUUy4gSW4gQUNQSSBzcGVjLCB0aGVyZSBpcyBhbHNvDQpubyBleHBsaWNpdCB3b3JkcyBz
-YXlpbmcgX1RUUyBzaG91bGQgYmUgZXhlY3V0ZWQgd2hlbiByZWJvb3QuDQpCdXQga2VybmVsIGV4
-ZWN1dGVzIF9UVFMgd2hlbiByZWJvb3QgaW5kZWVkLg0KDQo+ID4gU2lnbmVkLW9mZi1ieTogT2Nl
-YW4gSGUgPGhlaHkxQGxlbm92by5jb20+DQo+ID4gU2lnbmVkLW9mZi1ieTogTmFnYW5hbmRhIENo
-dW1iYWxrYXIgPG5jaHVtYmFsa2FyQGxlbm92by5jb20+DQo+ID4gLS0tDQo+ID4gIGRyaXZlcnMv
-YWNwaS9zbGVlcC5jIHwgMjcgKysrKysrKysrKysrKysrKysrKysrKysrKysrDQo+ID4gIDEgZmls
-ZSBjaGFuZ2VkLCAyNyBpbnNlcnRpb25zKCspDQo+ID4NCj4gPiBkaWZmIC0tZ2l0IGEvZHJpdmVy
-cy9hY3BpL3NsZWVwLmMgYi9kcml2ZXJzL2FjcGkvc2xlZXAuYw0KPiA+IGluZGV4IDJhOGI1OTYu
-LjhiMjkwZmIgMTAwNjQ0DQo+ID4gLS0tIGEvZHJpdmVycy9hY3BpL3NsZWVwLmMNCj4gPiArKysg
-Yi9kcml2ZXJzL2FjcGkvc2xlZXAuYw0KPiA+IEBAIC01NSw2ICs1NSwyNiBAQCBzdGF0aWMgc3Ry
-dWN0IG5vdGlmaWVyX2Jsb2NrIHR0c19ub3RpZmllciA9IHsNCj4gPiAgCS5wcmlvcml0eQk9IDAs
-DQo+ID4gIH07DQo+ID4NCj4gPiArc3RhdGljIGludCBwdHNfbm90aWZ5X3JlYm9vdChzdHJ1Y3Qg
-bm90aWZpZXJfYmxvY2sgKnRoaXMsDQo+ID4gKwkJCXVuc2lnbmVkIGxvbmcgY29kZSwgdm9pZCAq
-eCkNCj4gPiArew0KPiA+ICsJYWNwaV9zdGF0dXMgc3RhdHVzOw0KPiA+ICsNCj4gPiArCXN0YXR1
-cyA9IGFjcGlfZXhlY3V0ZV9zaW1wbGVfbWV0aG9kKE5VTEwsICJcXF9QVFMiLA0KPiBBQ1BJX1NU
-QVRFX1M1KTsNCj4gPiArCWlmIChBQ1BJX0ZBSUxVUkUoc3RhdHVzKSAmJiBzdGF0dXMgIT0gQUVf
-Tk9UX0ZPVU5EKSB7DQo+ID4gKwkJLyogSXQgd29uJ3QgYnJlYWsgYW55dGhpbmcuICovDQo+ID4g
-KwkJcHJpbnRrKEtFUk5fTk9USUNFICJGYWlsdXJlIGluIGV2YWx1YXRpbmcgX1BUUyBvYmplY3Rc
-biIpOw0KPiA+ICsJfQ0KPiA+ICsNCj4gPiArCXJldHVybiBOT1RJRllfRE9ORTsNCj4gPiArfQ0K
-PiA+ICsNCj4gPiArc3RhdGljIHN0cnVjdCBub3RpZmllcl9ibG9jayBwdHNfbm90aWZpZXIgPSB7
-DQo+ID4gKwkubm90aWZpZXJfY2FsbAk9IHB0c19ub3RpZnlfcmVib290LA0KPiA+ICsJLm5leHQJ
-CT0gTlVMTCwNCj4gPiArCS5wcmlvcml0eQk9IDAsDQo+ID4gK307DQo+ID4gKw0KPiA+ICBzdGF0
-aWMgaW50IGFjcGlfc2xlZXBfcHJlcGFyZSh1MzIgYWNwaV9zdGF0ZSkNCj4gPiAgew0KPiA+ICAj
-aWZkZWYgQ09ORklHX0FDUElfU0xFRVANCj4gPiBAQCAtODk2LDUgKzkxNiwxMiBAQCBpbnQgX19p
-bml0IGFjcGlfc2xlZXBfaW5pdCh2b2lkKQ0KPiA+ICAJICogb2JqZWN0IGNhbiBhbHNvIGJlIGV2
-YWx1YXRlZCB3aGVuIHRoZSBzeXN0ZW0gZW50ZXJzIFM1Lg0KPiA+ICAJICovDQo+ID4gIAlyZWdp
-c3Rlcl9yZWJvb3Rfbm90aWZpZXIoJnR0c19ub3RpZmllcik7DQo+ID4gKw0KPiA+ICsJLyoNCj4g
-PiArCSAqIEFjY29yZGluZyB0byBzZWN0aW9uIDcuNSBvZiBhY3BpIDYuMCBzcGVjLCBfUFRTIHNo
-b3VsZCBydW4gYWZ0ZXINCj4gPiArCSAqIF9UVFMgd2hlbiB0aGUgc3lzdGVtIGVudGVycyBTNS4N
-Cj4gPiArCSAqLw0KPiA+ICsJcmVnaXN0ZXJfcmVib290X25vdGlmaWVyKCZwdHNfbm90aWZpZXIp
-Ow0KPiANCj4gV2h5IGRvIHlvdSBoYXZlIHRvIGFkZCBhIHNlY29uZCBub3RpZmllcj8NCj4gDQo+
-IFdoeSBjYW4ndCBfVFRTIGFuZCBfUFRTIGJlIGV2YWx1YXRlZCBmcm9tIG9uZSBub3RpZmllcj8N
-Cj4gDQpJZiBleGVjdXRlIF9QVFMgbWV0aG9kIGluIHR0c19ub3RpZnlfcmVib290KCksIHRoZW4g
-aXQgd291bGQgYnJlYWsNCmRlZmluaXRpb24gb2YgdHRzX25vdGlmeV9yZWJvb3QoKS4gTXkgaW50
-ZW50aW9uIGlzIHRvIGtlZXAgbmV3IGNvZGVzIA0KaGFzIGxpbWl0ZWQgaW1wYWN0IG9uIGV4aXN0
-ZWQgY29kZXMuDQpPZiBjb3Vyc2UsIGl0J3MgcG9zc2libGUgdG8gbWVyZ2UgX1RUUyBhbmQgX1BU
-UyBpbnRvIG9uZSB1bmlmaWVkIG5vdGlmaWVyLg0KVGhlIGFkdmFudGFnZSBpcyBtb3JlIGFjdGlv
-bnMgY291bGQgYmUgYWRkZWQgaW50byB0aGUgdW5pZmllZCBub3RpZmllciBpbiBmdXR1cmUuDQpX
-aGljaCB3YXkgeW91IHByZWZlcj8NCj4gPiArDQo+ID4gIAlyZXR1cm4gMDsNCj4gPiAgfQ0KPiA+
-DQo+IA0KPiBUaGFua3MsDQo+IFJhZmFlbA0KDQo=
+On Thu, Jun 23, 2016 at 12:01 PM, Mark Brown <broonie@kernel.org> wrote:
+> On Wed, Jun 22, 2016 at 03:05:26AM +0200, Rafael J. Wysocki wrote:
+>> On Wed, Jun 22, 2016 at 1:21 AM, Mark Brown <broonie@kernel.org> wrote:
+>
+>> > Probably the easiest thing would be a tag for the core change that I can
+>> > pull.
+>
+>> Or you can apply them both if that helps (please consider the first
+>> one as ACKed in that case).
+>
+> That works too, if I do that I'll make a tag in case it needs to get
+> pulled elsewhere.
+
+Sounds good, thanks!
