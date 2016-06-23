@@ -1,373 +1,150 @@
 From: Lv Zheng <lv.zheng@intel.com>
-Subject: [PATCH v2 1/3] ACPICA: Events: Introduce acpi_mask_gpe()/acpi_unmask_gpe() to implement GPE masking mechanism
-Date: Thu, 23 Jun 2016 14:20:17 +0800
-Message-ID: <29ae6c9cdef0aa91f3461707c65ebcdee0ff7142.1466662469.git.lv.zheng@intel.com>
+Subject: [PATCH v2 3/3] ACPI / sysfs: Provide quirk mechanism to prevent GPE flooding
+Date: Thu, 23 Jun 2016 14:20:30 +0800
+Message-ID: <d1685f10f7fd135f984e4d08bfa5faedf47c9a23.1466662469.git.lv.zheng@intel.com>
 References: <cover.1463389639.git.lv.zheng@intel.com> <cover.1466662469.git.lv.zheng@intel.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga09.intel.com ([134.134.136.24]:5629 "EHLO mga09.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751109AbcFWGUe (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 23 Jun 2016 02:20:34 -0400
 In-Reply-To: <cover.1466662469.git.lv.zheng@intel.com>
-Sender: linux-kernel-owner@vger.kernel.org
+Sender: linux-acpi-owner@vger.kernel.org
+List-Id: linux-acpi@vger.kernel.org
 To: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <len.brown@intel.com>
 Cc: Lv Zheng <lv.zheng@intel.com>, Lv Zheng <zetalog@gmail.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
-List-Id: linux-acpi@vger.kernel.org
 
-There is a facility in Linux, developers can control the enabling/disabling
-of a GPE via /sys/firmware/acpi/interrupts/gpexx. This is mainly for
-debugging purposes.
+Sometimes, the users may require a quirk to be provided from ACPI subsystem
+core to prevent a GPE from flooding. Normally, if a GPE cannot be
+dispatched, ACPICA core automatically prevents the GPE from firing. But
+there are cases the GPE is dispatched by _Lxx/_Exx provided via AML table,
+and OSPM is lacking of the knowledge to get _Lxx/_Exx correctly executed to
+handle the GPE, thus the GPE flooding may still occur.
 
-But many users expect to use this facility to implement quirks to mask a
-specific GPE when there is a gap in Linux causing this GPE to flood. This
-is not working correctly because currently this facility invokes
-enabling/disabling counting based GPE driver APIs:
- acpi_enable_gpe()/acpi_disable_gpe()
-and the GPE drivers can still affect the count to mess up the GPE
-masking purposes.
+This patch provides a quirk mechanism to stop this kind of GPE flooding.
 
-However, most of the IRQ chip designs allow masking/unmasking IRQs via a
-masking bit which is different from the enabled bit to achieve the same
-purpose. But the GPE hardware doesn't contain such a feature, this brings
-the trouble.
-
-In this patch, we introduce a software mechanism to implement the GPE
-masking feature, and acpi_mask_gpe()/acpi_unmask_gpe() are provided to the
-OSPMs to mask/unmask GPEs in the above mentioned situation instead of
-acpi_enable_gpe()/acpi_disable_gpe(). ACPICA BZ 1102. Lv Zheng.
-
-Link: https://bugs.acpica.org/show_bug.cgi?id=1102
+Link: https://bugzilla.kernel.org/show_bug.cgi?id=53071
+Link: https://bugs.launchpad.net/ubuntu/+source/linux/+bug/887793
 Signed-off-by: Lv Zheng <lv.zheng@intel.com>
 ---
- drivers/acpi/acpica/acevents.h |    3 +++
- drivers/acpi/acpica/aclocal.h  |    2 ++
- drivers/acpi/acpica/evgpe.c    |   57 ++++++++++++++++++++++++++++++++++++++++
- drivers/acpi/acpica/evxfgpe.c  |   43 ++++++++++++++++++++++++++++++
- drivers/acpi/acpica/hwgpe.c    |   23 ++++++++++++----
- include/acpi/acpixf.h          |    4 +++
- include/acpi/actypes.h         |   39 ++++++++++++++-------------
- 7 files changed, 148 insertions(+), 23 deletions(-)
+ Documentation/kernel-parameters.txt |   10 +++++++
+ drivers/acpi/internal.h             |    1 +
+ drivers/acpi/scan.c                 |    1 +
+ drivers/acpi/sysfs.c                |   56 +++++++++++++++++++++++++++++++++++
+ 4 files changed, 68 insertions(+)
 
-diff --git a/drivers/acpi/acpica/acevents.h b/drivers/acpi/acpica/acevents.h
-index 77af91c..92fa47c 100644
---- a/drivers/acpi/acpica/acevents.h
-+++ b/drivers/acpi/acpica/acevents.h
-@@ -86,6 +86,9 @@ acpi_ev_update_gpe_enable_mask(struct acpi_gpe_event_info *gpe_event_info);
- acpi_status acpi_ev_enable_gpe(struct acpi_gpe_event_info *gpe_event_info);
+diff --git a/Documentation/kernel-parameters.txt b/Documentation/kernel-parameters.txt
+index 82b42c9..2079b9a 100644
+--- a/Documentation/kernel-parameters.txt
++++ b/Documentation/kernel-parameters.txt
+@@ -274,6 +274,16 @@ bytes respectively. Such letter suffixes can also be entirely omitted.
+ 			use by PCI
+ 			Format: <irq>,<irq>...
  
- acpi_status
-+acpi_ev_mask_gpe(struct acpi_gpe_event_info *gpe_event_info, u8 is_masked);
++	acpi_mask_gpe=  [HW,ACPI]
++			Due to the existence of _Lxx/_Exx, some GPEs triggered
++			by unsupported hardware/firmware features can result in
++                        GPE floodings that cannot be automatically disabled by
++                        the GPE dispatcher.
++			This facility can be used to prevent such uncontrolled
++			GPE floodings.
++			Format: <int>
++			Support masking of GPEs numbered from 0x00 to 0x63.
 +
-+acpi_status
- acpi_ev_add_gpe_reference(struct acpi_gpe_event_info *gpe_event_info);
- 
- acpi_status
-diff --git a/drivers/acpi/acpica/aclocal.h b/drivers/acpi/acpica/aclocal.h
-index 13331d7..dff1207 100644
---- a/drivers/acpi/acpica/aclocal.h
-+++ b/drivers/acpi/acpica/aclocal.h
-@@ -484,6 +484,7 @@ struct acpi_gpe_event_info {
- 	u8 flags;		/* Misc info about this GPE */
- 	u8 gpe_number;		/* This GPE */
- 	u8 runtime_count;	/* References to a run GPE */
-+	u8 disable_for_dispatch;	/* Masked during dispatching */
- };
- 
- /* Information about a GPE register pair, one per each status/enable pair in an array */
-@@ -494,6 +495,7 @@ struct acpi_gpe_register_info {
- 	u16 base_gpe_number;	/* Base GPE number for this register */
- 	u8 enable_for_wake;	/* GPEs to keep enabled when sleeping */
- 	u8 enable_for_run;	/* GPEs to keep enabled when running */
-+	u8 mask_for_run;	/* GPEs to keep masked when running */
- 	u8 enable_mask;		/* Current mask of enabled GPEs */
- };
- 
-diff --git a/drivers/acpi/acpica/evgpe.c b/drivers/acpi/acpica/evgpe.c
-index 4b4949c..bdb10be 100644
---- a/drivers/acpi/acpica/evgpe.c
-+++ b/drivers/acpi/acpica/evgpe.c
-@@ -130,6 +130,60 @@ acpi_status acpi_ev_enable_gpe(struct acpi_gpe_event_info *gpe_event_info)
- 
- /*******************************************************************************
-  *
-+ * FUNCTION:    acpi_ev_mask_gpe
-+ *
-+ * PARAMETERS:  gpe_event_info          - GPE to be blocked/unblocked
-+ *              is_masked               - Whether the GPE is masked or not
-+ *
-+ * RETURN:      Status
-+ *
-+ * DESCRIPTION: Unconditionally mask/unmask a GPE during runtime.
-+ *
-+ ******************************************************************************/
-+
-+acpi_status
-+acpi_ev_mask_gpe(struct acpi_gpe_event_info *gpe_event_info, u8 is_masked)
-+{
-+	struct acpi_gpe_register_info *gpe_register_info;
-+	u32 register_bit;
-+
-+	ACPI_FUNCTION_TRACE(ev_mask_gpe);
-+
-+	gpe_register_info = gpe_event_info->register_info;
-+	if (!gpe_register_info) {
-+		return_ACPI_STATUS(AE_NOT_EXIST);
-+	}
-+
-+	register_bit = acpi_hw_get_gpe_register_bit(gpe_event_info);
-+
-+	/* Perform the action */
-+
-+	if (is_masked) {
-+		if (register_bit & gpe_register_info->mask_for_run) {
-+			return_ACPI_STATUS(AE_BAD_PARAMETER);
-+		}
-+
-+		(void)acpi_hw_low_set_gpe(gpe_event_info, ACPI_GPE_DISABLE);
-+		ACPI_SET_BIT(gpe_register_info->mask_for_run, (u8)register_bit);
-+	} else {
-+		if (!(register_bit & gpe_register_info->mask_for_run)) {
-+			return_ACPI_STATUS(AE_BAD_PARAMETER);
-+		}
-+
-+		ACPI_CLEAR_BIT(gpe_register_info->mask_for_run,
-+			       (u8)register_bit);
-+		if (gpe_event_info->runtime_count
-+		    && !gpe_event_info->disable_for_dispatch) {
-+			(void)acpi_hw_low_set_gpe(gpe_event_info,
-+						  ACPI_GPE_ENABLE);
-+		}
-+	}
-+
-+	return_ACPI_STATUS(AE_OK);
-+}
-+
-+/*******************************************************************************
-+ *
-  * FUNCTION:    acpi_ev_add_gpe_reference
-  *
-  * PARAMETERS:  gpe_event_info          - Add a reference to this GPE
-@@ -674,6 +728,7 @@ acpi_status acpi_ev_finish_gpe(struct acpi_gpe_event_info *gpe_event_info)
- 	 * in the event_info.
- 	 */
- 	(void)acpi_hw_low_set_gpe(gpe_event_info, ACPI_GPE_CONDITIONAL_ENABLE);
-+	gpe_event_info->disable_for_dispatch = FALSE;
- 	return (AE_OK);
- }
- 
-@@ -737,6 +792,8 @@ acpi_ev_gpe_dispatch(struct acpi_namespace_node *gpe_device,
+ 	acpi_no_auto_serialize	[HW,ACPI]
+ 			Disable auto-serialization of AML methods
+ 			AML control methods that contain the opcodes to create
+diff --git a/drivers/acpi/internal.h b/drivers/acpi/internal.h
+index 27cc7fe..370e184 100644
+--- a/drivers/acpi/internal.h
++++ b/drivers/acpi/internal.h
+@@ -37,6 +37,7 @@ void acpi_amba_init(void);
+ static inline void acpi_amba_init(void) {}
+ #endif
+ int acpi_sysfs_init(void);
++void acpi_gpe_apply_masked_gpes(void);
+ void acpi_container_init(void);
+ void acpi_memory_hotplug_init(void);
+ #ifdef	CONFIG_ACPI_HOTPLUG_IOAPIC
+diff --git a/drivers/acpi/scan.c b/drivers/acpi/scan.c
+index 5f28cf7..ea70d20 100644
+--- a/drivers/acpi/scan.c
++++ b/drivers/acpi/scan.c
+@@ -1958,6 +1958,7 @@ int __init acpi_scan_init(void)
  		}
  	}
  
-+	gpe_event_info->disable_for_dispatch = TRUE;
++	acpi_gpe_apply_masked_gpes();
+ 	acpi_update_all_gpes();
+ 
+  out:
+diff --git a/drivers/acpi/sysfs.c b/drivers/acpi/sysfs.c
+index 0303c99..6fabbcf 100644
+--- a/drivers/acpi/sysfs.c
++++ b/drivers/acpi/sysfs.c
+@@ -704,6 +704,62 @@ end:
+ 	return result ? result : size;
+ }
+ 
++/*
++ * A Quirk Mechanism for GPE Flooding Prevention:
++ *
++ * Quirks may be needed to prevent GPE flooding on a specific GPE. The
++ * flooding typically cannot be detected and automatically prevented by
++ * ACPI_GPE_DISPATCH_NONE check because there is a _Lxx/_Exx prepared in
++ * the AML tables. This normally indicates a feature gap in Linux, thus
++ * instead of providing endless quirk tables, we provide a boot parameter
++ * for those who want this quirk. For example, if the users want to prevent
++ * the GPE flooding for GPE 00, they need to specify the following boot
++ * parameter:
++ *   acpi_mask_gpe=0x00
++ * The masking status can be modified by the following runtime controlling
++ * interface:
++ *   echo unmask > /sys/firmware/acpi/interrupts/gpe00
++ */
 +
- 	/*
- 	 * Dispatch the GPE to either an installed handler or the control
- 	 * method associated with this GPE (_Lxx or _Exx). If a handler
-diff --git a/drivers/acpi/acpica/evxfgpe.c b/drivers/acpi/acpica/evxfgpe.c
-index 17cfef7..d7a3b27 100644
---- a/drivers/acpi/acpica/evxfgpe.c
-+++ b/drivers/acpi/acpica/evxfgpe.c
-@@ -235,11 +235,13 @@ acpi_status acpi_set_gpe(acpi_handle gpe_device, u32 gpe_number, u8 action)
- 	case ACPI_GPE_ENABLE:
- 
- 		status = acpi_hw_low_set_gpe(gpe_event_info, ACPI_GPE_ENABLE);
-+		gpe_event_info->disable_for_dispatch = FALSE;
- 		break;
- 
- 	case ACPI_GPE_DISABLE:
- 
- 		status = acpi_hw_low_set_gpe(gpe_event_info, ACPI_GPE_DISABLE);
-+		gpe_event_info->disable_for_dispatch = TRUE;
- 		break;
- 
- 	default:
-@@ -257,6 +259,47 @@ ACPI_EXPORT_SYMBOL(acpi_set_gpe)
- 
- /*******************************************************************************
-  *
-+ * FUNCTION:    acpi_mask_gpe
-+ *
-+ * PARAMETERS:  gpe_device          - Parent GPE Device. NULL for GPE0/GPE1
-+ *              gpe_number          - GPE level within the GPE block
-+ *              is_masked           - Whether the GPE is masked or not
-+ *
-+ * RETURN:      Status
-+ *
-+ * DESCRIPTION: Unconditionally mask/unmask the an individual GPE, ex., to
-+ *              prevent a GPE flooding.
-+ *
-+ ******************************************************************************/
-+acpi_status acpi_mask_gpe(acpi_handle gpe_device, u32 gpe_number, u8 is_masked)
++/*
++ * Currently, the GPE flooding prevention only supports to mask the GPEs
++ * numbered from 00 to 63.
++ */
++#define ACPI_MASKABLE_GPE_MAX	64
++
++static u64 acpi_masked_gpes;
++
++static int __init acpi_gpe_set_masked_gpes(char *val)
 +{
-+	struct acpi_gpe_event_info *gpe_event_info;
++	u8 gpe;
++
++	if (kstrtou8(val, 0, &gpe) || gpe > ACPI_MASKABLE_GPE_MAX)
++		return -EINVAL;
++	acpi_masked_gpes |= ((u64)1<<gpe);
++
++	return 1;
++}
++__setup("acpi_mask_gpe=", acpi_gpe_set_masked_gpes);
++
++void acpi_gpe_apply_masked_gpes(void)
++{
++	acpi_handle handle;
 +	acpi_status status;
-+	acpi_cpu_flags flags;
++	u8 gpe;
 +
-+	ACPI_FUNCTION_TRACE(acpi_mask_gpe);
-+
-+	flags = acpi_os_acquire_lock(acpi_gbl_gpe_lock);
-+
-+	/* Ensure that we have a valid GPE number */
-+
-+	gpe_event_info = acpi_ev_get_gpe_event_info(gpe_device, gpe_number);
-+	if (!gpe_event_info) {
-+		status = AE_BAD_PARAMETER;
-+		goto unlock_and_exit;
++	for (gpe = 0;
++	     gpe < min_t(u8, ACPI_MASKABLE_GPE_MAX, acpi_current_gpe_count);
++	     gpe++) {
++		if (acpi_masked_gpes & ((u64)1<<gpe)) {
++			status = acpi_get_gpe_device(gpe, &handle);
++			if (ACPI_SUCCESS(status)) {
++				pr_info("Masking GPE 0x%x.\n", gpe);
++				(void)acpi_mask_gpe(handle, gpe, TRUE);
++			}
++		}
 +	}
-+
-+	status = acpi_ev_mask_gpe(gpe_event_info, is_masked);
-+
-+unlock_and_exit:
-+	acpi_os_release_lock(acpi_gbl_gpe_lock, flags);
-+	return_ACPI_STATUS(status);
 +}
 +
-+ACPI_EXPORT_SYMBOL(acpi_mask_gpe)
-+
-+/*******************************************************************************
-+ *
-  * FUNCTION:    acpi_mark_gpe_for_wake
-  *
-  * PARAMETERS:  gpe_device          - Parent GPE Device. NULL for GPE0/GPE1
-diff --git a/drivers/acpi/acpica/hwgpe.c b/drivers/acpi/acpica/hwgpe.c
-index bdecd5e..ccea12a 100644
---- a/drivers/acpi/acpica/hwgpe.c
-+++ b/drivers/acpi/acpica/hwgpe.c
-@@ -98,7 +98,7 @@ acpi_status
- acpi_hw_low_set_gpe(struct acpi_gpe_event_info *gpe_event_info, u32 action)
+ void acpi_irq_stats_init(void)
  {
- 	struct acpi_gpe_register_info *gpe_register_info;
--	acpi_status status;
-+	acpi_status status = AE_OK;
- 	u32 enable_mask;
- 	u32 register_bit;
- 
-@@ -148,9 +148,14 @@ acpi_hw_low_set_gpe(struct acpi_gpe_event_info *gpe_event_info, u32 action)
- 		return (AE_BAD_PARAMETER);
- 	}
- 
--	/* Write the updated enable mask */
-+	if (!(register_bit & gpe_register_info->mask_for_run)) {
- 
--	status = acpi_hw_write(enable_mask, &gpe_register_info->enable_address);
-+		/* Write the updated enable mask */
-+
-+		status =
-+		    acpi_hw_write(enable_mask,
-+				  &gpe_register_info->enable_address);
-+	}
- 	return (status);
- }
- 
-@@ -242,6 +247,12 @@ acpi_hw_get_gpe_status(struct acpi_gpe_event_info *gpe_event_info,
- 		local_event_status |= ACPI_EVENT_FLAG_ENABLED;
- 	}
- 
-+	/* GPE currently masked? (masked for runtime?) */
-+
-+	if (register_bit & gpe_register_info->mask_for_run) {
-+		local_event_status |= ACPI_EVENT_FLAG_MASKED;
-+	}
-+
- 	/* GPE enabled for wake? */
- 
- 	if (register_bit & gpe_register_info->enable_for_wake) {
-@@ -397,6 +408,7 @@ acpi_hw_enable_runtime_gpe_block(struct acpi_gpe_xrupt_info *gpe_xrupt_info,
- 	u32 i;
  	acpi_status status;
- 	struct acpi_gpe_register_info *gpe_register_info;
-+	u32 enable_mask;
- 
- 	/* NOTE: assumes that all GPEs are currently disabled */
- 
-@@ -410,9 +422,10 @@ acpi_hw_enable_runtime_gpe_block(struct acpi_gpe_xrupt_info *gpe_xrupt_info,
- 
- 		/* Enable all "runtime" GPEs in this register */
- 
-+		enable_mask = gpe_register_info->enable_for_run &
-+		    ~gpe_register_info->mask_for_run;
- 		status =
--		    acpi_hw_gpe_enable_write(gpe_register_info->enable_for_run,
--					     gpe_register_info);
-+		    acpi_hw_gpe_enable_write(enable_mask, gpe_register_info);
- 		if (ACPI_FAILURE(status)) {
- 			return (status);
- 		}
-diff --git a/include/acpi/acpixf.h b/include/acpi/acpixf.h
-index 4e4c214..7aff081 100644
---- a/include/acpi/acpixf.h
-+++ b/include/acpi/acpixf.h
-@@ -732,6 +732,10 @@ ACPI_HW_DEPENDENT_RETURN_STATUS(acpi_status
- 						u32 gpe_number))
- 
- ACPI_HW_DEPENDENT_RETURN_STATUS(acpi_status
-+				acpi_mask_gpe(acpi_handle gpe_device,
-+					      u32 gpe_number, u8 is_masked))
-+
-+ACPI_HW_DEPENDENT_RETURN_STATUS(acpi_status
- 				acpi_mark_gpe_for_wake(acpi_handle gpe_device,
- 						       u32 gpe_number))
- 
-diff --git a/include/acpi/actypes.h b/include/acpi/actypes.h
-index cb389ef..fa4bd6a 100644
---- a/include/acpi/actypes.h
-+++ b/include/acpi/actypes.h
-@@ -732,16 +732,17 @@ typedef u32 acpi_event_type;
-  * The encoding of acpi_event_status is illustrated below.
-  * Note that a set bit (1) indicates the property is TRUE
-  * (e.g. if bit 0 is set then the event is enabled).
-- * +-------------+-+-+-+-+-+
-- * |   Bits 31:5 |4|3|2|1|0|
-- * +-------------+-+-+-+-+-+
-- *          |     | | | | |
-- *          |     | | | | +- Enabled?
-- *          |     | | | +--- Enabled for wake?
-- *          |     | | +----- Status bit set?
-- *          |     | +------- Enable bit set?
-- *          |     +--------- Has a handler?
-- *          +--------------- <Reserved>
-+ * +-------------+-+-+-+-+-+-+
-+ * |   Bits 31:6 |5|4|3|2|1|0|
-+ * +-------------+-+-+-+-+-+-+
-+ *          |     | | | | | |
-+ *          |     | | | | | +- Enabled?
-+ *          |     | | | | +--- Enabled for wake?
-+ *          |     | | | +----- Status bit set?
-+ *          |     | | +------- Enable bit set?
-+ *          |     | +--------- Has a handler?
-+ *          |     +----------- Masked?
-+ *          +----------------- <Reserved>
-  */
- typedef u32 acpi_event_status;
- 
-@@ -751,6 +752,7 @@ typedef u32 acpi_event_status;
- #define ACPI_EVENT_FLAG_STATUS_SET      (acpi_event_status) 0x04
- #define ACPI_EVENT_FLAG_ENABLE_SET      (acpi_event_status) 0x08
- #define ACPI_EVENT_FLAG_HAS_HANDLER     (acpi_event_status) 0x10
-+#define ACPI_EVENT_FLAG_MASKED          (acpi_event_status) 0x20
- #define ACPI_EVENT_FLAG_SET             ACPI_EVENT_FLAG_STATUS_SET
- 
- /* Actions for acpi_set_gpe, acpi_gpe_wakeup, acpi_hw_low_set_gpe */
-@@ -761,14 +763,15 @@ typedef u32 acpi_event_status;
- 
- /*
-  * GPE info flags - Per GPE
-- * +-------+-+-+---+
-- * |  7:5  |4|3|2:0|
-- * +-------+-+-+---+
-- *     |    | |  |
-- *     |    | |  +-- Type of dispatch:to method, handler, notify, or none
-- *     |    | +----- Interrupt type: edge or level triggered
-- *     |    +------- Is a Wake GPE
-- *     +------------ <Reserved>
-+ * +---+-+-+-+---+
-+ * |7:6|5|4|3|2:0|
-+ * +---+-+-+-+---+
-+ *   |  | | |  |
-+ *   |  | | |  +-- Type of dispatch:to method, handler, notify, or none
-+ *   |  | | +----- Interrupt type: edge or level triggered
-+ *   |  | +------- Is a Wake GPE
-+ *   |  +--------- Is GPE masked by the software GPE masking machanism
-+ *   +------------ <Reserved>
-  */
- #define ACPI_GPE_DISPATCH_NONE          (u8) 0x00
- #define ACPI_GPE_DISPATCH_METHOD        (u8) 0x01
 -- 
 1.7.10
+
