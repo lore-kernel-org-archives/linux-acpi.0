@@ -1,169 +1,119 @@
-From: Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>
-Subject: [PATCH] acpi: move int340x_thermal.c to dptf folder
-Date: Thu, 23 Jun 2016 14:56:33 -0700
-Message-ID: <1466718993-18096-1-git-send-email-srinivas.pandruvada@linux.intel.com>
+From: "Rafael J. Wysocki" <rafael@kernel.org>
+Subject: Re: [PATCH v3 2/3] acpi: dptf_power: Add DPTF power participant
+Date: Fri, 24 Jun 2016 00:31:28 +0200
+Message-ID: <CAJZ5v0hRVDMgsBzEMufwHurA8aRBmd7p_MvnMg1cdNYgDrPDaA@mail.gmail.com>
+References: <1466718134-29921-1-git-send-email-srinivas.pandruvada@linux.intel.com>
+ <1466718134-29921-3-git-send-email-srinivas.pandruvada@linux.intel.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga01.intel.com ([192.55.52.88]:22073 "EHLO mga01.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750980AbcFWVzI (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 23 Jun 2016 17:55:08 -0400
+Received: from mail-wm0-f47.google.com ([74.125.82.47]:37201 "EHLO
+	mail-wm0-f47.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750953AbcFWWba convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 23 Jun 2016 18:31:30 -0400
+Received: by mail-wm0-f47.google.com with SMTP id a66so2373827wme.0
+        for <linux-acpi@vger.kernel.org>; Thu, 23 Jun 2016 15:31:29 -0700 (PDT)
+In-Reply-To: <1466718134-29921-3-git-send-email-srinivas.pandruvada@linux.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: rjw@rjwysocki.net, rui.zhang@intel.com
-Cc: linux-acpi@vger.kernel.org, Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>
+To: Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>
+Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>
 
-Since dptf has its own folder under ACPI, move this file also
-there.
+On Thu, Jun 23, 2016 at 11:42 PM, Srinivas Pandruvada
+<srinivas.pandruvada@linux.intel.com> wrote:
+> This driver adds support for Dynamic Platform and Thermal Framework
+> (DPTF) Platform Power Participant device support.
+> This participant is responsible for exposing platform telemetry such =
+as
+> platform Power, battery Information such as state of Charge, estimate=
+d
+> maximum sustainable power (PMax), SMART battery spec information.
+>
+> This driver is implemented as a platform driver for INT3407 and prese=
+nted
+> as power_supply device. Since this has common features with the ACPI
+> battery, existing interface provide by battery_common driver are reus=
+ed
+> to present as a battery power supply device.
+>
+> When both CONFIG_ACPI_BATTERY and CONFIG_DPTF_POWER are defined and
+> platform has support for INT3407, then dptf power registration is
+> delayed for 100ms. In 100 ms, if there is no ACPI battery is register=
+ed
+> then dptf power will be registered. Since both can be modules and
+> battery driver loads in async thread, there can be race even if we
+> specify loading order for initialization.
 
-Signed-off-by: Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>
----
- drivers/acpi/Makefile               |  1 -
- drivers/acpi/dptf/Makefile          |  1 +
- drivers/acpi/dptf/int340x_thermal.c | 53 +++++++++++++++++++++++++++++++++++++
- drivers/acpi/int340x_thermal.c      | 53 -------------------------------------
- 4 files changed, 54 insertions(+), 54 deletions(-)
- create mode 100644 drivers/acpi/dptf/int340x_thermal.c
- delete mode 100644 drivers/acpi/int340x_thermal.c
+=46irst, does the waiting actually help, though?
 
-diff --git a/drivers/acpi/Makefile b/drivers/acpi/Makefile
-index 8555c14..f739b43 100644
---- a/drivers/acpi/Makefile
-+++ b/drivers/acpi/Makefile
-@@ -44,7 +44,6 @@ acpi-y				+= acpi_lpss.o acpi_apd.o
- acpi-y				+= acpi_platform.o
- acpi-y				+= acpi_pnp.o
- acpi-$(CONFIG_ARM_AMBA)	+= acpi_amba.o
--acpi-y				+= int340x_thermal.o
- acpi-y				+= power.o
- acpi-y				+= event.o
- acpi-$(CONFIG_ACPI_REDUCED_HARDWARE_ONLY) += evged.o
-diff --git a/drivers/acpi/dptf/Makefile b/drivers/acpi/dptf/Makefile
-index 1b6d8bd..471d1af 100644
---- a/drivers/acpi/dptf/Makefile
-+++ b/drivers/acpi/dptf/Makefile
-@@ -1,3 +1,4 @@
-+obj-$(CONFIG_ACPI)		+= int340x_thermal.o
- obj-$(CONFIG_DPTF_POWER)	+= dptf_power.o
- 
- ccflags-y += -Idrivers/acpi
-diff --git a/drivers/acpi/dptf/int340x_thermal.c b/drivers/acpi/dptf/int340x_thermal.c
-new file mode 100644
-index 0000000..33505c6
---- /dev/null
-+++ b/drivers/acpi/dptf/int340x_thermal.c
-@@ -0,0 +1,53 @@
-+/*
-+ * ACPI support for int340x thermal drivers
-+ *
-+ * Copyright (C) 2014, Intel Corporation
-+ * Authors: Zhang Rui <rui.zhang@intel.com>
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License version 2 as
-+ * published by the Free Software Foundation.
-+ */
-+
-+#include <linux/acpi.h>
-+#include <linux/module.h>
-+
-+#include "internal.h"
-+
-+#define INT3401_DEVICE 0X01
-+static const struct acpi_device_id int340x_thermal_device_ids[] = {
-+	{"INT3400"},
-+	{"INT3401", INT3401_DEVICE},
-+	{"INT3402"},
-+	{"INT3403"},
-+	{"INT3404"},
-+	{"INT3406"},
-+	{"INT3407"},
-+	{"INT3408"},
-+	{"INT3409"},
-+	{"INT340A"},
-+	{"INT340B"},
-+	{""},
-+};
-+
-+static int int340x_thermal_handler_attach(struct acpi_device *adev,
-+					const struct acpi_device_id *id)
-+{
-+	if (IS_ENABLED(CONFIG_INT340X_THERMAL))
-+		acpi_create_platform_device(adev);
-+	/* Intel SoC DTS thermal driver needs INT3401 to set IRQ descriptor */
-+	else if (IS_ENABLED(CONFIG_INTEL_SOC_DTS_THERMAL) &&
-+		 id->driver_data == INT3401_DEVICE)
-+		acpi_create_platform_device(adev);
-+	return 1;
-+}
-+
-+static struct acpi_scan_handler int340x_thermal_handler = {
-+	.ids = int340x_thermal_device_ids,
-+	.attach = int340x_thermal_handler_attach,
-+};
-+
-+void __init acpi_int340x_thermal_init(void)
-+{
-+	acpi_scan_add_handler(&int340x_thermal_handler);
-+}
-diff --git a/drivers/acpi/int340x_thermal.c b/drivers/acpi/int340x_thermal.c
-deleted file mode 100644
-index 33505c6..0000000
---- a/drivers/acpi/int340x_thermal.c
-+++ /dev/null
-@@ -1,53 +0,0 @@
--/*
-- * ACPI support for int340x thermal drivers
-- *
-- * Copyright (C) 2014, Intel Corporation
-- * Authors: Zhang Rui <rui.zhang@intel.com>
-- *
-- * This program is free software; you can redistribute it and/or modify
-- * it under the terms of the GNU General Public License version 2 as
-- * published by the Free Software Foundation.
-- */
--
--#include <linux/acpi.h>
--#include <linux/module.h>
--
--#include "internal.h"
--
--#define INT3401_DEVICE 0X01
--static const struct acpi_device_id int340x_thermal_device_ids[] = {
--	{"INT3400"},
--	{"INT3401", INT3401_DEVICE},
--	{"INT3402"},
--	{"INT3403"},
--	{"INT3404"},
--	{"INT3406"},
--	{"INT3407"},
--	{"INT3408"},
--	{"INT3409"},
--	{"INT340A"},
--	{"INT340B"},
--	{""},
--};
--
--static int int340x_thermal_handler_attach(struct acpi_device *adev,
--					const struct acpi_device_id *id)
--{
--	if (IS_ENABLED(CONFIG_INT340X_THERMAL))
--		acpi_create_platform_device(adev);
--	/* Intel SoC DTS thermal driver needs INT3401 to set IRQ descriptor */
--	else if (IS_ENABLED(CONFIG_INTEL_SOC_DTS_THERMAL) &&
--		 id->driver_data == INT3401_DEVICE)
--		acpi_create_platform_device(adev);
--	return 1;
--}
--
--static struct acpi_scan_handler int340x_thermal_handler = {
--	.ids = int340x_thermal_device_ids,
--	.attach = int340x_thermal_handler_attach,
--};
--
--void __init acpi_int340x_thermal_init(void)
--{
--	acpi_scan_add_handler(&int340x_thermal_handler);
--}
--- 
-2.5.5
+Second, to my eyes, even if acpi_battery load first, the dptf_power
+thing will still bind to the same device, but via the platform bus
+instead of the ACPI bus type.  I don't see anything preventing that
+from happening in the patch, but maybe I missed something?
 
+Also please put the part of the changelog below into a comment in
+dptf_power.c (if you don't want to add a separate doc for that).
+
+> There are two types of objects in INT3407:
+> - Same as ACPI Battery objects: _BST and _BIX. These are exposed as
+> standard power supply attributes.
+> - Specific to INT3407, which are related to platform power
+> There are some objects, for which it doesn't make sense to enhance
+> power_supply class and add attributes there. They are represented as
+> sysfs attribute under acpi device. Here the bid for INT3407 is TPWR
+> in the following example.
+> /sys/class/power_supply/TPWR
+> =E2=94=9C=E2=94=80=E2=94=80 alarm
+> =E2=94=9C=E2=94=80=E2=94=80 capacity
+> =E2=94=9C=E2=94=80=E2=94=80 capacity_level
+> =E2=94=9C=E2=94=80=E2=94=80 cycle_count
+> =E2=94=9C=E2=94=80=E2=94=80 device -> ../../../INT3407:00
+> =E2=94=82   =E2=94=9C=E2=94=80=E2=94=80 dptf_power
+> =E2=94=82   =E2=94=82   =E2=94=9C=E2=94=80=E2=94=80 adapter_rating
+> =E2=94=82   =E2=94=82   =E2=94=9C=E2=94=80=E2=94=80 battery_steady_po=
+wer
+> =E2=94=82   =E2=94=82   =E2=94=9C=E2=94=80=E2=94=80 charger_type
+> =E2=94=82   =E2=94=82   =E2=94=9C=E2=94=80=E2=94=80 max_platform_powe=
+r
+> =E2=94=82   =E2=94=82   =E2=94=9C=E2=94=80=E2=94=80 platform_power_so=
+urce
+> =E2=94=82   =E2=94=82   =E2=94=9C=E2=94=80=E2=94=80 power_sampling_pe=
+riod
+>
+> For example representing AC/adapter properties as a power_supply
+> properties will not make sense for a battery device. In some case
+> when there is an existing property, the meaning is different.
+> For example charger_type has a equivalent power_supply property,
+> which has different symantics than INT3407.
+>
+> ACPI methods description used in this driver:
+> PSOC: Platform Battery State Of Charge as a percentage.
+> PMAX: Maximum platform power that can be supported by the battery in =
+mW.
+> PSRC: System charge source,
+>         0x00 =3D DC
+>         0x01 =3D AC
+>         0x02 =3D USB
+>         0x03 =3D Wireless Charger
+> ARTG: Adapter rating in mW (Maximum Adapter power) Must be 0 if no AC
+>         Adaptor is plugged in.
+> CTYP: Charger Type,
+>         Traditional : 0x01
+>         Hybrid: 0x02
+>         NVDC: 0x03
+> PBSS: Returns max sustained power for battery in milliWatts.
+> DPSP: Sets the polling interval in 10ths of seconds. A value of 0 tel=
+ls
+>         the driver to use event notification for PMAX and PBSS
+>
+> Signed-off-by: Srinivas Pandruvada <srinivas.pandruvada@linux.intel.c=
+om>
+
+Thanks,
+Rafael
+--
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
