@@ -1,136 +1,98 @@
-From: Mark Rutland <mark.rutland@arm.com>
-Subject: Re: [PATCH] drivers: firmware: psci: Add support for cpu suspend
- mode as per psci v1.0 spec
-Date: Thu, 23 Jun 2016 13:50:08 +0100
-Message-ID: <20160623125008.GE8836@leverpostej>
-References: <1466684053-26966-1-git-send-email-vikas.cha.sajjan@hpe.com>
+From: Ocean HY1 He <hehy1@lenovo.com>
+Subject: RE: [PATCH] ACPI: Execute the _PTS method when system reboot
+Date: Thu, 23 Jun 2016 12:55:54 +0000
+Message-ID: <BCBE834BAC19744BA2C3AC4D68DBF2198D8AC790@CNMAILEX03.lenovo.com>
+References: <1462772495-71113-1-git-send-email-hehy1@lenovo.com>
+ <2611430.1T9CgX71hW@vostro.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from foss.arm.com ([217.140.101.70]:53466 "EHLO foss.arm.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751325AbcFWMuN (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 23 Jun 2016 08:50:13 -0400
-Content-Disposition: inline
-In-Reply-To: <1466684053-26966-1-git-send-email-vikas.cha.sajjan@hpe.com>
+Received: from mail1.bemta12.messagelabs.com ([216.82.251.8]:46574 "EHLO
+	mail1.bemta12.messagelabs.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752018AbcFWM4u (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 23 Jun 2016 08:56:50 -0400
+In-Reply-To: <2611430.1T9CgX71hW@vostro.rjw.lan>
+Content-Language: zh-CN
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Vikas C Sajjan <vikas.cha.sajjan@hpe.com>
-Cc: lorenzo.pieralisi@arm.com, rafael.j.wysocki@intel.com, linux-acpi@vger.kernel.org, sudeep.holla@arm.com, linux-arm-kernel@lists.infradead.org
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: "lenb@kernel.org" <lenb@kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, David Tanaka <dtanaka@lenovo.com>, Nagananda Chumbalkar <nchumbalkar@lenovo.com>
 
-On Thu, Jun 23, 2016 at 05:44:13PM +0530, Vikas C Sajjan wrote:
-> According to section 5.1.16 of PSCI spec,
-> an optional feature called PSCI_SET_SUSPEND_MODE was added in v1.0.
-> This patch adds the support for the same.
-
-This alone is not sufficient to use OS Initiated mode.
-
-Lina Iyer has been looking into more comprehensive support. Please see
-[1,2]
-
-[1] http://lists.infradead.org/pipermail/linux-arm-kernel/2016-June/438625.html
-[2] http://lists.infradead.org/pipermail/linux-arm-kernel/2016-June/438642.html
-
-Thanks,
-Mark.
-
-> 
-> Signed-off-by: Vikas C Sajjan <vikas.cha.sajjan@hpe.com>
-> ---
->  drivers/firmware/psci.c   | 20 +++++++++++++++++++-
->  include/linux/psci.h      |  1 +
->  include/uapi/linux/psci.h |  6 +++++-
->  3 files changed, 25 insertions(+), 2 deletions(-)
-> 
-> diff --git a/drivers/firmware/psci.c b/drivers/firmware/psci.c
-> index 03e0458..c318972 100644
-> --- a/drivers/firmware/psci.c
-> +++ b/drivers/firmware/psci.c
-> @@ -91,6 +91,12 @@ static inline bool psci_has_ext_power_state(void)
->  				PSCI_1_0_FEATURES_CPU_SUSPEND_PF_MASK;
->  }
->  
-> +static inline bool psci_has_OS_initiated_mode_support(void)
-> +{
-> +	return psci_cpu_suspend_feature &
-> +			PSCI_1_0_FEATURES_CPU_SUSPEND_OS_INITIATED_MODE_MASK;
-> +}
-> +
->  static inline bool psci_power_state_loses_context(u32 state)
->  {
->  	const u32 mask = psci_has_ext_power_state() ?
-> @@ -145,6 +151,14 @@ static int psci_to_linux_errno(int errno)
->  
->  	return -EINVAL;
->  }
-> +static int psci_set_cpu_suspend_mode(bool suspend_mode)
-> +{
-> +	int err;
-> +
-> +	err = invoke_psci_fn(PSCI_FN_NATIVE(1_0, SUSPEND_MODE),
-> +						suspend_mode, 0, 0);
-> +	return psci_to_linux_errno(err);
-> +}
->  
->  static u32 psci_get_version(void)
->  {
-> @@ -397,8 +411,12 @@ static void __init psci_init_cpu_suspend(void)
->  {
->  	int feature = psci_features(psci_function_id[PSCI_FN_CPU_SUSPEND]);
->  
-> -	if (feature != PSCI_RET_NOT_SUPPORTED)
-> +	if (feature != PSCI_RET_NOT_SUPPORTED) {
->  		psci_cpu_suspend_feature = feature;
-> +		if (psci_has_OS_initiated_mode_support())
-> +			psci_ops.set_cpu_suspend_mode =
-> +						psci_set_cpu_suspend_mode;
-> +	}
->  }
->  
->  /*
-> diff --git a/include/linux/psci.h b/include/linux/psci.h
-> index bdea1cb..c040502 100644
-> --- a/include/linux/psci.h
-> +++ b/include/linux/psci.h
-> @@ -33,6 +33,7 @@ struct psci_operations {
->  	int (*affinity_info)(unsigned long target_affinity,
->  			unsigned long lowest_affinity_level);
->  	int (*migrate_info_type)(void);
-> +	int (*set_cpu_suspend_mode)(bool);
->  };
->  
->  extern struct psci_operations psci_ops;
-> diff --git a/include/uapi/linux/psci.h b/include/uapi/linux/psci.h
-> index 3d7a0fc..097c95e 100644
-> --- a/include/uapi/linux/psci.h
-> +++ b/include/uapi/linux/psci.h
-> @@ -50,6 +50,8 @@
->  #define PSCI_1_0_FN_SYSTEM_SUSPEND		PSCI_0_2_FN(14)
->  
->  #define PSCI_1_0_FN64_SYSTEM_SUSPEND		PSCI_0_2_FN64(14)
-> +#define PSCI_1_0_FN_SUSPEND_MODE		PSCI_0_2_FN(0xF)
-> +#define PSCI_1_0_FN64_SUSPEND_MODE		PSCI_0_2_FN64(0xF)
->  
->  /* PSCI v0.2 power state encoding for CPU_SUSPEND function */
->  #define PSCI_0_2_POWER_STATE_ID_MASK		0xffff
-> @@ -90,8 +92,10 @@
->  
->  /* PSCI features decoding (>=1.0) */
->  #define PSCI_1_0_FEATURES_CPU_SUSPEND_PF_SHIFT	1
-> +#define PSCI_1_0_FEATURES_CPU_SUSPEND_OS_INITIATED_MODE_MASK 1
->  #define PSCI_1_0_FEATURES_CPU_SUSPEND_PF_MASK	\
-> -			(0x1 << PSCI_1_0_FEATURES_CPU_SUSPEND_PF_SHIFT)
-> +			((0x1 << PSCI_1_0_FEATURES_CPU_SUSPEND_PF_SHIFT)| \
-> +			PSCI_1_0_FEATURES_CPU_SUSPEND_OS_INITIATED_MODE_MASK)
->  
->  /* PSCI return values (inclusive of all PSCI versions) */
->  #define PSCI_RET_SUCCESS			0
-> -- 
-> 1.9.1
-> 
-> 
-> _______________________________________________
-> linux-arm-kernel mailing list
-> linux-arm-kernel@lists.infradead.org
-> http://lists.infradead.org/mailman/listinfo/linux-arm-kernel
-> 
+SGkgUmFmYWVsLA0KUGxlYXNlIHNlZSBteSByZXBseSBpbiBiZWxvdy4NCg0KUmVnYXJkcywNCk9j
+ZWFuIEhlDQpTVyBEZXZlbG9wbWVudCBEZXB0LiANCkJlaWppbmcgRGVzaWduIENlbnRlcg0KRW50
+ZXJwcmlzZSBQcm9kdWN0IEdyb3VwDQpNb2JpbGU6IDE4OTExNzc4OTI2DQpFLW1haWw6IGhlaHkx
+QGxlbm92by5jb20NCk5vLjYgQ2h1YW5nIFllIFJvYWQsIEhhaWRpYW4gRGlzdHJpY3QsIEJlaWpp
+bmcsIENoaW5hIDEwMDA4NQ0KDQo+IC0tLS0tT3JpZ2luYWwgTWVzc2FnZS0tLS0tDQo+IEZyb206
+IFJhZmFlbCBKLiBXeXNvY2tpIFttYWlsdG86cmp3QHJqd3lzb2NraS5uZXRdDQo+IFNlbnQ6IFdl
+ZG5lc2RheSwgSnVuZSAyMiwgMjAxNiA3OjU2IEFNDQo+IFRvOiBPY2VhbiBIWTEgSGUNCj4gQ2M6
+IGxlbmJAa2VybmVsLm9yZzsgbGludXgtYWNwaUB2Z2VyLmtlcm5lbC5vcmc7DQo+IGxpbnV4LWtl
+cm5lbEB2Z2VyLmtlcm5lbC5vcmc7IERhdmlkIFRhbmFrYTsgTmFnYW5hbmRhIENodW1iYWxrYXIN
+Cj4gU3ViamVjdDogUmU6IFtQQVRDSF0gQUNQSTogRXhlY3V0ZSB0aGUgX1BUUyBtZXRob2Qgd2hl
+biBzeXN0ZW0gcmVib290DQo+IA0KPiBPbiBNb25kYXksIE1heSAwOSwgMjAxNiAwNTo1MDoxMSBB
+TSBPY2VhbiBIWTEgSGUgd3JvdGU6DQo+ID4gVGhlIF9QVFMgY29udHJvbCBtZXRob2QgaXMgZGVm
+aW5lZCBpbiB0aGUgc2VjdGlvbiA3LjQuMSBvZiBhY3BpIDYuMA0KPiA+IHNwZWMuIFRoZSBfUFRT
+IGNvbnRyb2wgbWV0aG9kIGlzIGV4ZWN1dGVkIGJ5IHRoZSBPUyBkdXJpbmcgdGhlIHNsZWVwDQo+
+ID4gdHJhbnNpdGlvbiBwcm9jZXNzIGZvciBTMSwgUzIsIFMzLCBTNCwgYW5kIGZvciBvcmRlcmx5
+IFM1IHNodXRkb3duLg0KPiA+IFRoZSBzbGVlcGluZyBzdGF0ZSB2YWx1ZSAoRm9yIGV4YW1wbGUs
+IDEsIDIsIDMsIDQgb3IgNSBmb3IgdGhlIFM1DQo+ID4gc29mdC1vZmYgc3RhdGUpIGlzIHBhc3Nl
+ZCB0byB0aGUgX1BUUyBjb250cm9sIG1ldGhvZC4gVGhpcyBtZXRob2QNCj4gPiBpcyBjYWxsZWQg
+YWZ0ZXIgT1NQTSBoYXMgbm90aWZpZWQgbmF0aXZlIGRldmljZSBkcml2ZXJzIG9mIHRoZSBzbGVl
+cA0KPiA+IHN0YXRlIHRyYW5zaXRpb24gYW5kIGJlZm9yZSB0aGUgT1NQTSBoYXMgaGFkIGEgY2hh
+bmNlIHRvIGZ1bGx5DQo+ID4gcHJlcGFyZSB0aGUgc3lzdGVtIGZvciBhIHNsZWVwIHN0YXRlIHRy
+YW5zaXRpb24uDQo+ID4NCj4gPiBUaGUgX1BUUyBjb250cm9sIG1ldGhvZCBwcm92aWRlcyB0aGUg
+QklPUyBhIG1lY2hhbmlzbSBmb3IgcGVyZm9ybWluZw0KPiA+IHNvbWUgaG91c2VrZWVwaW5nLCBz
+dWNoIGFzIHdyaXRpbmcgdGhlIHNsZWVwIHR5cGUgdmFsdWUgdG8gdGhlDQo+IGVtYmVkZGVkDQo+
+ID4gY29udHJvbGxlciwgYmVmb3JlIGVudGVyaW5nIHRoZSBzeXN0ZW0gc2xlZXBpbmcgc3RhdGUu
+DQo+ID4NCj4gPiBBY2NvcmRpbmcgdG8gc2VjdGlvbiA3LjUgb2YgYWNwaSA2LjAgc3BlYywgX1BU
+UyBzaG91bGQgcnVuIGFmdGVyIF9UVFMuDQo+ID4NCj4gPiBUaHVzLCBhIF9QVFMgYmxvY2sgbm90
+aWZpZXIgaXMgYWRkZWQgdG8gdGhlIHJlYm9vdCBub3RpZmllciBsaXN0IHNvIHRoYXQNCj4gPiB0
+aGUgX1BUUyBvYmplY3Qgd2lsbCBhbHNvIGJlIGV2YWx1YXRlZCB3aGVuIHRoZSBzeXN0ZW0gcmVi
+b290Lg0KPiANCj4gU28gSSB1bmRlcnN0YW5kIHdoeSBpdCBtYXkgYmUgbmVjZXNzYXJ5IHRvIGV2
+YWx1YXRlIF9QVFMgYmVmb3JlIGVudGVyaW5nDQo+IFM1LA0KPiBidXQgSSdtIHRvdGFsbHkgdW5z
+dXJlIGFib3V0IHJlYm9vdC4NCj4gDQo+IFdoYXQgZG9lcyByZWJvb3QgaGF2ZSB0byBkbyB3aXRo
+IFM1Pw0KPiANCkluIEFDUEkgc3BlYywgdGhlcmUgaXMgbm8gZXhwbGljaXQgd29yZHMgc2F5aW5n
+IF9QVFMgc2hvdWxkIGJlIA0KZXhlY3V0ZWQgd2hlbiByZWJvb3QuIEJ1dCByZWJvb3QgY291bGQg
+YmUgZXF1YWwgdG8gdGhlIA0KcHJvY2VzcyBTMC0+UzUtPlMwLiBUaHVzIF9QVFMgc2hvdWxkIGJl
+IGV4ZWN1dGVkIHdoZW4gcmVib290Lg0KDQpJIGFtIHRoaW5raW5nIHRoaXMgaXMgdGhlIHNhbWUg
+YXMgX1RUUy4gSW4gQUNQSSBzcGVjLCB0aGVyZSBpcyBhbHNvDQpubyBleHBsaWNpdCB3b3JkcyBz
+YXlpbmcgX1RUUyBzaG91bGQgYmUgZXhlY3V0ZWQgd2hlbiByZWJvb3QuDQpCdXQga2VybmVsIGV4
+ZWN1dGVzIF9UVFMgd2hlbiByZWJvb3QgaW5kZWVkLg0KDQo+ID4gU2lnbmVkLW9mZi1ieTogT2Nl
+YW4gSGUgPGhlaHkxQGxlbm92by5jb20+DQo+ID4gU2lnbmVkLW9mZi1ieTogTmFnYW5hbmRhIENo
+dW1iYWxrYXIgPG5jaHVtYmFsa2FyQGxlbm92by5jb20+DQo+ID4gLS0tDQo+ID4gIGRyaXZlcnMv
+YWNwaS9zbGVlcC5jIHwgMjcgKysrKysrKysrKysrKysrKysrKysrKysrKysrDQo+ID4gIDEgZmls
+ZSBjaGFuZ2VkLCAyNyBpbnNlcnRpb25zKCspDQo+ID4NCj4gPiBkaWZmIC0tZ2l0IGEvZHJpdmVy
+cy9hY3BpL3NsZWVwLmMgYi9kcml2ZXJzL2FjcGkvc2xlZXAuYw0KPiA+IGluZGV4IDJhOGI1OTYu
+LjhiMjkwZmIgMTAwNjQ0DQo+ID4gLS0tIGEvZHJpdmVycy9hY3BpL3NsZWVwLmMNCj4gPiArKysg
+Yi9kcml2ZXJzL2FjcGkvc2xlZXAuYw0KPiA+IEBAIC01NSw2ICs1NSwyNiBAQCBzdGF0aWMgc3Ry
+dWN0IG5vdGlmaWVyX2Jsb2NrIHR0c19ub3RpZmllciA9IHsNCj4gPiAgCS5wcmlvcml0eQk9IDAs
+DQo+ID4gIH07DQo+ID4NCj4gPiArc3RhdGljIGludCBwdHNfbm90aWZ5X3JlYm9vdChzdHJ1Y3Qg
+bm90aWZpZXJfYmxvY2sgKnRoaXMsDQo+ID4gKwkJCXVuc2lnbmVkIGxvbmcgY29kZSwgdm9pZCAq
+eCkNCj4gPiArew0KPiA+ICsJYWNwaV9zdGF0dXMgc3RhdHVzOw0KPiA+ICsNCj4gPiArCXN0YXR1
+cyA9IGFjcGlfZXhlY3V0ZV9zaW1wbGVfbWV0aG9kKE5VTEwsICJcXF9QVFMiLA0KPiBBQ1BJX1NU
+QVRFX1M1KTsNCj4gPiArCWlmIChBQ1BJX0ZBSUxVUkUoc3RhdHVzKSAmJiBzdGF0dXMgIT0gQUVf
+Tk9UX0ZPVU5EKSB7DQo+ID4gKwkJLyogSXQgd29uJ3QgYnJlYWsgYW55dGhpbmcuICovDQo+ID4g
+KwkJcHJpbnRrKEtFUk5fTk9USUNFICJGYWlsdXJlIGluIGV2YWx1YXRpbmcgX1BUUyBvYmplY3Rc
+biIpOw0KPiA+ICsJfQ0KPiA+ICsNCj4gPiArCXJldHVybiBOT1RJRllfRE9ORTsNCj4gPiArfQ0K
+PiA+ICsNCj4gPiArc3RhdGljIHN0cnVjdCBub3RpZmllcl9ibG9jayBwdHNfbm90aWZpZXIgPSB7
+DQo+ID4gKwkubm90aWZpZXJfY2FsbAk9IHB0c19ub3RpZnlfcmVib290LA0KPiA+ICsJLm5leHQJ
+CT0gTlVMTCwNCj4gPiArCS5wcmlvcml0eQk9IDAsDQo+ID4gK307DQo+ID4gKw0KPiA+ICBzdGF0
+aWMgaW50IGFjcGlfc2xlZXBfcHJlcGFyZSh1MzIgYWNwaV9zdGF0ZSkNCj4gPiAgew0KPiA+ICAj
+aWZkZWYgQ09ORklHX0FDUElfU0xFRVANCj4gPiBAQCAtODk2LDUgKzkxNiwxMiBAQCBpbnQgX19p
+bml0IGFjcGlfc2xlZXBfaW5pdCh2b2lkKQ0KPiA+ICAJICogb2JqZWN0IGNhbiBhbHNvIGJlIGV2
+YWx1YXRlZCB3aGVuIHRoZSBzeXN0ZW0gZW50ZXJzIFM1Lg0KPiA+ICAJICovDQo+ID4gIAlyZWdp
+c3Rlcl9yZWJvb3Rfbm90aWZpZXIoJnR0c19ub3RpZmllcik7DQo+ID4gKw0KPiA+ICsJLyoNCj4g
+PiArCSAqIEFjY29yZGluZyB0byBzZWN0aW9uIDcuNSBvZiBhY3BpIDYuMCBzcGVjLCBfUFRTIHNo
+b3VsZCBydW4gYWZ0ZXINCj4gPiArCSAqIF9UVFMgd2hlbiB0aGUgc3lzdGVtIGVudGVycyBTNS4N
+Cj4gPiArCSAqLw0KPiA+ICsJcmVnaXN0ZXJfcmVib290X25vdGlmaWVyKCZwdHNfbm90aWZpZXIp
+Ow0KPiANCj4gV2h5IGRvIHlvdSBoYXZlIHRvIGFkZCBhIHNlY29uZCBub3RpZmllcj8NCj4gDQo+
+IFdoeSBjYW4ndCBfVFRTIGFuZCBfUFRTIGJlIGV2YWx1YXRlZCBmcm9tIG9uZSBub3RpZmllcj8N
+Cj4gDQpJZiBleGVjdXRlIF9QVFMgbWV0aG9kIGluIHR0c19ub3RpZnlfcmVib290KCksIHRoZW4g
+aXQgd291bGQgYnJlYWsNCmRlZmluaXRpb24gb2YgdHRzX25vdGlmeV9yZWJvb3QoKS4gTXkgaW50
+ZW50aW9uIGlzIHRvIGtlZXAgbmV3IGNvZGVzIA0KaGFzIGxpbWl0ZWQgaW1wYWN0IG9uIGV4aXN0
+ZWQgY29kZXMuDQpPZiBjb3Vyc2UsIGl0J3MgcG9zc2libGUgdG8gbWVyZ2UgX1RUUyBhbmQgX1BU
+UyBpbnRvIG9uZSB1bmlmaWVkIG5vdGlmaWVyLg0KVGhlIGFkdmFudGFnZSBpcyBtb3JlIGFjdGlv
+bnMgY291bGQgYmUgYWRkZWQgaW50byB0aGUgdW5pZmllZCBub3RpZmllciBpbiBmdXR1cmUuDQpX
+aGljaCB3YXkgeW91IHByZWZlcj8NCj4gPiArDQo+ID4gIAlyZXR1cm4gMDsNCj4gPiAgfQ0KPiA+
+DQo+IA0KPiBUaGFua3MsDQo+IFJhZmFlbA0KDQo=
