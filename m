@@ -1,77 +1,42 @@
-From: Marek Szyprowski <m.szyprowski@samsung.com>
-Subject: Re: [RFC PATCH v2 03/15] arm64: mm: change IOMMU notifier action to
- attach DMA ops
-Date: Thu, 23 Jun 2016 08:13:30 +0200
-Message-ID: <76c43b76-518c-a2d3-c200-d02aa9125e1d@samsung.com>
-References: <1465306270-27076-1-git-send-email-lorenzo.pieralisi@arm.com>
- <1465306270-27076-4-git-send-email-lorenzo.pieralisi@arm.com>
- <5763C27A.9030306@arm.com> <03c537e7-0acf-edca-d0e0-369490c828df@samsung.com>
- <20160621160637.GA31761@red-moon>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-pci-owner@vger.kernel.org>
-In-reply-to: <20160621160637.GA31761@red-moon>
-Sender: linux-pci-owner@vger.kernel.org
-To: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
-Cc: Robin Murphy <robin.murphy@arm.com>, iommu@lists.linux-foundation.org, linux-arm-kernel@lists.infradead.org, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Marc Zyngier <marc.zyngier@arm.com>, Catalin Marinas <catalin.marinas@arm.com>, Joerg Roedel <joro@8bytes.org>, Will Deacon <will.deacon@arm.com>, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, Sinan Kaya <okaya@codeaurora.org>, linux-acpi@vger.kernel.org, Hanjun Guo <hanjun.guo@linaro.org>, Tomasz Nowicki <tn@semihalf.com>, Jon Masters <jcm@redhat.com>
+From: Lv Zheng <lv.zheng@intel.com>
+Subject: [PATCH v2 0/3] ACPI / gpe: Add GPE masking/unmasking mechanism
+Date: Thu, 23 Jun 2016 14:20:10 +0800
+Message-ID: <cover.1466662469.git.lv.zheng@intel.com>
+References: <cover.1463389639.git.lv.zheng@intel.com>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga02.intel.com ([134.134.136.20]:50674 "EHLO mga02.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750839AbcFWGUP (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 23 Jun 2016 02:20:15 -0400
+In-Reply-To: <cover.1463389639.git.lv.zheng@intel.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <len.brown@intel.com>
+Cc: Lv Zheng <lv.zheng@intel.com>, Lv Zheng <zetalog@gmail.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
 
-Hi Lorenzo,
+This patchset adds a new mechanism that can be used to mask/unmask GPEs.
 
+Lv Zheng (3):
+  ACPICA: Events: Introduce acpi_mask_gpe()/acpi_unmask_gpe() to
+    implement GPE masking mechanism
+  ACPI / sys: Update /sys/firmware/acpi/interrupts/gpexx using new GPE
+    masking mechanism
+  ACPI / sysfs: Provide quirk mechanism to prevent GPE flooding
 
-On 2016-06-21 18:06, Lorenzo Pieralisi wrote:
-> Hi Marek,
->
-> On Tue, Jun 21, 2016 at 09:53:20AM +0200, Marek Szyprowski wrote:
->> Hi Robin,
->>
->>
->> On 2016-06-17 11:27, Robin Murphy wrote:
->>> Hi Lorenzo,
->>>
->>> I think this patch makes sense even independent of the rest of the
->>> series, one nit inline notwithstanding.
->>>
->>> Marek; I'm curious as to whether this could make the workaround in
->>> 722ec35f7 obsolete as well, or are all the drivers also bound
->>> super-early in the setup you had there?
->> Yes, this will solve that problem too. I will also hide some possible
->> deferred probe issues, because the moment at which IOMMU is activated
->> will be postponed. The only drawback with this approach is the fact
->> that is drivers won't be allowed to do any dma-mapping operations on
->> devices, which they don't own. This should not be a big issue, but
->> this was the reason to setup IOMMU on device add instead of driver
->> bind.
->>
->> While at it, please make sure that the case of failed client driver
->> probe will be handled properly. IOMMU might do some operations while
->> setting up and if the client driver fails to probe (for whatever
->> reason, might be a deferred probe too), those operation has to be
->> undone. However the current code of the driver core won't call any
->> notifier (like BUS_NOTIFY_UNBOUND_DRIVER or whatever else) in such
->> case.
-> Isn't Andy's commit 14b6257a5f3d enough ? Is that what you had in
-> mind ?
->
->> Long time ago I used BUS_NOTIFY_BIND_DRIVER based approach for my
->> Exynos IOMMU patches and had to extend bus core with such patch:
->> https://patchwork.kernel.org/patch/4678181/ to properly cleanup
->> after failed client driver probe and avoid leaking resources. Please
->> read the discussion, because some changes were requested to it.
-> It looks like commit 14b6257a5f3d ("device core: add
-> BUS_NOTIFY_DRIVER_NOT_BOUND notification") does what you
-> are requesting, please let me know if that's enough.
+ Documentation/kernel-parameters.txt |   10 ++++
+ drivers/acpi/acpica/acevents.h      |    3 ++
+ drivers/acpi/acpica/aclocal.h       |    2 +
+ drivers/acpi/acpica/evgpe.c         |   57 ++++++++++++++++++++++
+ drivers/acpi/acpica/evxfgpe.c       |   43 +++++++++++++++++
+ drivers/acpi/acpica/hwgpe.c         |   23 +++++++--
+ drivers/acpi/internal.h             |    1 +
+ drivers/acpi/scan.c                 |    1 +
+ drivers/acpi/sleep.c                |    2 +-
+ drivers/acpi/sysfs.c                |   89 +++++++++++++++++++++++++++++++----
+ include/acpi/acpixf.h               |    4 ++
+ include/acpi/actypes.h              |   39 ++++++++-------
+ 12 files changed, 242 insertions(+), 32 deletions(-)
 
-Yes, that's exactly the change I needed that time. Nice to see that it
-finally landed in mainline.
-
-> I will revert the changes in 722ec35f7 and fold them in the
-> new version along with Robin's suggestions.
-
-Okay.
-
-Best regards
 -- 
-Marek Szyprowski, PhD
-Samsung R&D Institute Poland
+1.7.10
+
