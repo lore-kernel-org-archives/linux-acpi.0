@@ -1,166 +1,61 @@
-From: "Rafael J. Wysocki" <rafael@kernel.org>
-Subject: Re: [PATCH v2 2/3] acpi: dptf_power: Add DPTF power participant
-Date: Thu, 23 Jun 2016 15:23:47 +0200
-Message-ID: <CAJZ5v0j8ybZRF7AYeXaOqf_Oo7Qnpi53ymRoxzYA5gW7tqMCgw@mail.gmail.com>
-References: <1466653363-7311-1-git-send-email-srinivas.pandruvada@linux.intel.com>
- <1466653363-7311-3-git-send-email-srinivas.pandruvada@linux.intel.com> <CAJZ5v0g-jZqobJQax-mxBnTnm7ZH2V5=bMLvWTcqVQbraBqxjQ@mail.gmail.com>
+From: Heikki Krogerus <heikki.krogerus@linux.intel.com>
+Subject: Re: [PATCH v3 0/3] acpi/pmic: add opregion driver for Intel BXT
+ WhiskeyCove PMIC
+Date: Thu, 23 Jun 2016 16:28:27 +0300
+Message-ID: <20160623132827.GG27263@kuha.fi.intel.com>
+References: <20160623075515.GB239751@worksta>
+ <CAJZ5v0j1M2X-ygZgmbO3ebbT3d9RQ2h6DRYjs4NK5vROQDHFqQ@mail.gmail.com>
+ <20160623131641.GF27263@kuha.fi.intel.com>
+ <CAJZ5v0gYkApQfU-DDtrWQ09cc=RnN3PyW_V4gsMhUafhdHp5rg@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-wm0-f66.google.com ([74.125.82.66]:36590 "EHLO
-	mail-wm0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750885AbcFWNXu convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 23 Jun 2016 09:23:50 -0400
-Received: by mail-wm0-f66.google.com with SMTP id c82so10973351wme.3
-        for <linux-acpi@vger.kernel.org>; Thu, 23 Jun 2016 06:23:49 -0700 (PDT)
-In-Reply-To: <CAJZ5v0g-jZqobJQax-mxBnTnm7ZH2V5=bMLvWTcqVQbraBqxjQ@mail.gmail.com>
+Received: from mga03.intel.com ([134.134.136.65]:6138 "EHLO mga03.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751138AbcFWN2s (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 23 Jun 2016 09:28:48 -0400
+Content-Disposition: inline
+In-Reply-To: <CAJZ5v0gYkApQfU-DDtrWQ09cc=RnN3PyW_V4gsMhUafhdHp5rg@mail.gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: "Rafael J. Wysocki" <rafael@kernel.org>
-Cc: Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Darren Hart <darren.hart@intel.com>
+Cc: Bin Gao <bin.gao@linux.intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Aaron Lu <aaron.lu@intel.com>, Paul Gortmaker <paul.gortmaker@windriver.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, ysiyer <yegnesh.s.iyer@intel.com>, Ajay Thomas <ajay.thomas.david.rajamanickam@intel.com>, Bin Gao <bin.gao@intel.com>, Felipe Balbi <felipe.balbi@linux.intel.com>
 
-On Thu, Jun 23, 2016 at 1:48 AM, Rafael J. Wysocki <rafael@kernel.org> =
-wrote:
-> On Thu, Jun 23, 2016 at 5:42 AM, Srinivas Pandruvada
-> <srinivas.pandruvada@linux.intel.com> wrote:
->> This driver adds support for Dynamic Platform and Thermal Framework
->> (DPTF) Platform Power Participant device support.
->> This participant is responsible for exposing platform telemetry such=
- as
->> platform Power, battery Information such as state of Charge, estimat=
-ed
->> maximum sustainable power (PMax), SMART battery spec information.
->>
->> This driver is implemented as a platform driver for INT3407 and pres=
-ented
->> as power_supply device. Since this has common features with the ACPI
->> battery, existing interface provide by battery_common driver are reu=
-sed
->> to present as a battery power supply device.
->>
->> Since this driver will also register a battery power supply device,t=
-his
->> driver will exit if CONFIG_ACPI_BATTERY is defined.
->>
->> There are two types of objects in INT3407:
->> - Same as ACPI Battery objects: _BST and _BIX. These are exposed as
->> standard power supply attributes.
->> - Specific to INT3407, which are related to platform power
->> There are some objects, for which it doesn't make sense to enhance
->> power_supply class and add attributes there. They are represented as
->> sysfs attribute under acpi device.
->
-> The below part of the changelog should really go to a doc under Docum=
-entation/.
->
->> Here the bid for INT3407 is TPWR
->> in the following example.
->> /sys/class/power_supply/TPWR
->> =E2=94=9C=E2=94=80=E2=94=80 alarm
->> =E2=94=9C=E2=94=80=E2=94=80 capacity
->> =E2=94=9C=E2=94=80=E2=94=80 capacity_level
->> =E2=94=9C=E2=94=80=E2=94=80 cycle_count
->> =E2=94=9C=E2=94=80=E2=94=80 device -> ../../../INT3407:00
->> =E2=94=82   =E2=94=9C=E2=94=80=E2=94=80 dptf_power
->> =E2=94=82   =E2=94=82   =E2=94=9C=E2=94=80=E2=94=80 adapter_rating
->> =E2=94=82   =E2=94=82   =E2=94=9C=E2=94=80=E2=94=80 battery_steady_p=
-ower
->> =E2=94=82   =E2=94=82   =E2=94=9C=E2=94=80=E2=94=80 charger_type
->> =E2=94=82   =E2=94=82   =E2=94=9C=E2=94=80=E2=94=80 max_platform_pow=
-er
->> =E2=94=82   =E2=94=82   =E2=94=9C=E2=94=80=E2=94=80 platform_power_s=
-ource
->> =E2=94=82   =E2=94=82   =E2=94=9C=E2=94=80=E2=94=80 power_sampling_p=
-eriod
->>
->> For example representing AC/adapter properties as a power_supply
->> properties will not make sense for a battery device. In some case
->> when there is an existing property, the meaning is different.
->> For example charger_type has a equivalent power_supply property,
->> which has different symantics than INT3407.
->>
->> ACPI methods description used in this driver:
->> PSOC: Platform Battery State Of Charge as a percentage.
->> PMAX: Maximum platform power that can be supported by the battery in=
- mW.
->> PSRC: System charge source,
->>         0x00 =3D DC
->>         0x01 =3D AC
->>         0x02 =3D USB
->>         0x03 =3D Wireless Charger
->> ARTG: Adapter rating in mW (Maximum Adapter power) Must be 0 if no A=
-C
->>         Adaptor is plugged in.
->> CTYP: Charger Type,
->>         Traditional : 0x01
->>         Hybrid: 0x02
->>         NVDC: 0x03
->> PBSS: Returns max sustained power for battery in milliWatts.
->> DPSP: Sets the polling interval in 10ths of seconds. A value of 0 te=
-lls
->>         the driver to use event notification for PMAX and PBSS
->>
->> Signed-off-by: Srinivas Pandruvada <srinivas.pandruvada@linux.intel.=
-com>
->> ---
->>  drivers/acpi/Kconfig      |  17 +++++
->>  drivers/acpi/Makefile     |   1 +
->>  drivers/acpi/dptf_power.c | 184 +++++++++++++++++++++++++++++++++++=
-+++++++++++
->>  3 files changed, 202 insertions(+)
->>  create mode 100644 drivers/acpi/dptf_power.c
->>
->> diff --git a/drivers/acpi/Kconfig b/drivers/acpi/Kconfig
->> index 27ae351..03a34b4 100644
->> --- a/drivers/acpi/Kconfig
->> +++ b/drivers/acpi/Kconfig
->> @@ -526,4 +526,21 @@ config XPOWER_PMIC_OPREGION
->>
->>  endif
->>
->> +config DPTF_POWER
->> +       tristate "DPTF Platform Power Participant"
->> +       depends on X86
->> +       select ACPI_BATTERY_COMMON
->> +       select POWER_SUPPLY
->> +       default y
->> +       help
->> +         This driver adds support for Dynamic Platform and Thermal =
-=46ramework
->> +         (DPTF) Platform Power Participant device support.
->> +         This participant is responsible for exposing platform tele=
-metry such
->> +         as platform Power, battery Information such as state of Ch=
-arge,
->> +         estimated maximum sustainable power (PMax), SMART battery =
-spec
->> +         information.
->> +
->> +         To compile this driver as a module, choose M here:
->> +         the module will be called dptf_power.
->> +
->>  endif  # ACPI
->> diff --git a/drivers/acpi/Makefile b/drivers/acpi/Makefile
->> index 950bf8e..1c76715 100644
->> --- a/drivers/acpi/Makefile
->> +++ b/drivers/acpi/Makefile
->> @@ -75,6 +75,7 @@ obj-$(CONFIG_ACPI)            +=3D acpi_memhotplug=
-=2Eo
->>  obj-$(CONFIG_ACPI_HOTPLUG_IOAPIC) +=3D ioapic.o
->>  obj-$(CONFIG_ACPI_BATTERY_COMMON) +=3D battery_common.o
->>  obj-$(CONFIG_ACPI_BATTERY)     +=3D battery.o
->> +obj-$(CONFIG_DPTF_POWER)       +=3D dptf_power.o
->
-> Now that I think about it, maybe it would be better to put that into
-> drivers/platform/x86?
+On Thu, Jun 23, 2016 at 03:18:27PM +0200, Rafael J. Wysocki wrote:
+> On Thu, Jun 23, 2016 at 3:16 PM, Heikki Krogerus
+> <heikki.krogerus@linux.intel.com> wrote:
+> > On Thu, Jun 23, 2016 at 03:03:34PM +0200, Rafael J. Wysocki wrote:
+> >> On Thu, Jun 23, 2016 at 9:55 AM, Bin Gao <bin.gao@linux.intel.com> wrote:
+> >> > This series modifies the pen function signature to take bit field
+> >> > and adds a new opregion driver for Intel BXT WhiskeyCove PMIC. It
+> >> > also adds support for PMIC regs operation region.
+> >> >
+> >> > Yegnesh Iyer (1):
+> >> >   acpi: pmic: Modifying the pen function signature to take bit field
+> >> >
+> >> > Ajay Thomas (1):
+> >> >   acpi: pmic: Add opregion driver for Intel BXT WhiskeyCove PMIC
+> >>
+> >> I've just applied the above two patches from the previous series.  Are
+> >> there any changes to them here?
+> >>
+> >> > Chandra Sekhar Anagani (1):
+> >> >  acpi: pmic: Add support for PMIC regs operation region
+> >>
+> >> That's a new one I suppose?
+> >>
+> >> How is this related to http://marc.info/?l=linux-acpi&m=146660742815070&w=2 ?
+> >
+> > Looks the like same to me.. Just ignore the one I send then.
+> 
+> I will.
+> 
+> What about the second patch in your series?
 
-Or we can create a dptf directory under drivers/acpi/ if you prefer.
+True, that is still valid.
 
-I'd rather avoid mixing the DPTF stuff with generic ACPI code in any ca=
-se.
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
+Thanks,
+
+-- 
+heikki
