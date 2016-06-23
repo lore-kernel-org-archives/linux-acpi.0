@@ -1,81 +1,48 @@
 From: Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>
-Subject: [PATCH v3 0/3] DPTF Platform power participant driver
-Date: Thu, 23 Jun 2016 14:42:11 -0700
-Message-ID: <1466718134-29921-1-git-send-email-srinivas.pandruvada@linux.intel.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Subject: [PATCH v3 3/3] acpi: battery_common: battery present status for INT3407
+Date: Thu, 23 Jun 2016 14:42:14 -0700
+Message-ID: <1466718134-29921-4-git-send-email-srinivas.pandruvada@linux.intel.com>
+References: <1466718134-29921-1-git-send-email-srinivas.pandruvada@linux.intel.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
 Received: from mga01.intel.com ([192.55.52.88]:20175 "EHLO mga01.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750785AbcFWVkp (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 23 Jun 2016 17:40:45 -0400
+	id S1751476AbcFWVku (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 23 Jun 2016 17:40:50 -0400
+In-Reply-To: <1466718134-29921-1-git-send-email-srinivas.pandruvada@linux.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: rjw@rjwysocki.net
 Cc: linux-acpi@vger.kernel.org, Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>
 
-This series implements DPTF power participant driver. Intel =C2=AE Dyna=
-mic
-Platform and Thermal Framework (Intel =C2=AE DPTF) platform Power Parti=
-cipant
-is responsible for exposing platform telemetry such as
--Platform Power
--Battery Information such as State of Charge, estimated maximum
-sustainable power (PMax), SMART battery spec information
-Intel =C2=AE DPTF Power Participant loads as an ACPI Device (INT3407). =
-This
-device utilizes and exposes the platform power and Fuel Gauge informati=
-on
-and capabilities to the framework and for the policies to take control
-action.=20
+acpi_battery_get_status() will be called often to check if the battery is
+present. This call sets status.battery_present field to return the status.
+But When enumerated via DPTF power (INT3407), since this field will not be
+set as this is not a battery but it will still set the status.present
+field. So a check is added when hid is INT3407 check for the presence and
+set the status.battery_present flag, so that the rest of the driver calls
+don't fail looking for status.battery_present flag.
 
-Implementation wise this is power supply battery driver with additional
-attributes for platform power objects.
-So the first patch splits the battery driver into two parts, a common p=
-art
-and a ACPI battery enumeration part.
-Next two patches add support for dptf power driver which uses common
-battery driver and adds additional attributes for platform power.
+Signed-off-by: Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>
+---
+ drivers/acpi/battery_common.c | 5 +++++
+ 1 file changed, 5 insertions(+)
 
-v3:
-Moved dptf_power to drivers/acpi/dptf folder.
-
-v2:
-When both CONFIG_ACPI_BATTERY and CONFIG_DPTF_POWER are defined and
-platform has support for INT3407, then dptf power registration is
-delayed for 100ms. In 100 ms, if there is no ACPI battery is registered
-then dptf power will be registered. Since both can be modules and
-battery driver loads in async thread, there can be race even if we
-specify loading order for initialization.=20
-
-Srinivas Pandruvada (3):
-  acpi: battery: Split battery driver for reuse by DPTF power
-    participant
-  acpi: dptf_power: Add DPTF power participant
-  acpi: battery_common: battery present status for INT3407
-
- drivers/acpi/Kconfig           |    7 +-
- drivers/acpi/Makefile          |    2 +
- drivers/acpi/battery.c         | 1199 +-------------------------------=
-----
- drivers/acpi/battery.h         |   31 +
- drivers/acpi/battery_common.c  | 1299 ++++++++++++++++++++++++++++++++=
-++++++++
- drivers/acpi/dptf/Kconfig      |   17 +
- drivers/acpi/dptf/Makefile     |    3 +
- drivers/acpi/dptf/dptf_power.c |  184 ++++++
- 8 files changed, 1547 insertions(+), 1195 deletions(-)
- create mode 100644 drivers/acpi/battery_common.c
- create mode 100644 drivers/acpi/dptf/Kconfig
- create mode 100644 drivers/acpi/dptf/Makefile
- create mode 100644 drivers/acpi/dptf/dptf_power.c
-
---=20
+diff --git a/drivers/acpi/battery_common.c b/drivers/acpi/battery_common.c
+index 01f221a..c3db6a2 100644
+--- a/drivers/acpi/battery_common.c
++++ b/drivers/acpi/battery_common.c
+@@ -429,6 +429,11 @@ static int acpi_battery_get_status(struct acpi_battery *battery)
+ 		return -ENODEV;
+ 	}
+ 
++	if (!strcmp(acpi_device_hid(battery->device), "INT3407")) {
++		if (battery->device->status.present)
++			battery->device->status.battery_present = 1;
++	}
++
+ 	return 0;
+ }
+ 
+-- 
 2.5.5
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
