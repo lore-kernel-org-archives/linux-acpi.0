@@ -1,50 +1,42 @@
-From: Wanpeng Li <kernellwp@gmail.com>
-Subject: Re: [LKP] [PATCH] x86: fix rdmsr MSR_PLATFORM_INFO unsafe warning in
- kvm guest
-Date: Thu, 23 Jun 2016 15:41:10 +0800
-Message-ID: <CANRm+Cwgr27rDiakOhtLcK=PB50BAU-dXLcGpa4uWO-YXqhOBg@mail.gmail.com>
-References: <1466558908-3524-1-git-send-email-wanpeng.li@hotmail.com>
- <alpine.DEB.2.11.1606230908140.5839@nanos> <CADjb_WRQDYKoYqmfpfhHN_5rui_90rS0DD2JxRh6d5Wp5TMsgQ@mail.gmail.com>
+From: Bin Gao <bin.gao@linux.intel.com>
+Subject: [PATCH v3 0/3] acpi/pmic: add opregion driver for Intel BXT
+ WhiskeyCove PMIC
+Date: Thu, 23 Jun 2016 00:55:15 -0700
+Message-ID: <20160623075515.GB239751@worksta>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-oi0-f67.google.com ([209.85.218.67]:33946 "EHLO
-	mail-oi0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751355AbcFWHlL convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 23 Jun 2016 03:41:11 -0400
-In-Reply-To: <CADjb_WRQDYKoYqmfpfhHN_5rui_90rS0DD2JxRh6d5Wp5TMsgQ@mail.gmail.com>
+Received: from mga14.intel.com ([192.55.52.115]:13479 "EHLO mga14.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750839AbcFWHvV (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 23 Jun 2016 03:51:21 -0400
+Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Yu Chen <yu.chen.surf@gmail.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>, =?UTF-8?B?UmFkaW0gS3LEjW3DocWZ?= <rkrcmar@redhat.com>, kvm <kvm@vger.kernel.org>, Linux PM list <linux-pm@vger.kernel.org>, the arch/x86 maintainers <x86@kernel.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-acpi@vger.kernel.org, Ingo Molnar <mingo@redhat.com>, Jacob Pan <jacob.jun.pan@intel.com>, "H. Peter Anvin" <hpa@zytor.com>, Paolo Bonzini <pbonzini@redhat.com>, Zhang Rui <rui.zhang@intel.com>, lkp@01.org, Wanpeng Li <wanpeng.li@hotmail.com>
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Aaron Lu <aaron.lu@intel.com>, Paul Gortmaker <paul.gortmaker@windriver.com>, linux-acpi@vger.kernel.org
+Cc: linux-kernel@vger.kernel.org, ysiyer <yegnesh.s.iyer@intel.com>, Ajay Thomas <ajay.thomas.david.rajamanickam@intel.com>, Bin Gao <bin.gao@intel.com>
 
-Hi Yu=EF=BC=8C
-2016-06-23 15:37 GMT+08:00 Yu Chen <yu.chen.surf@gmail.com>:
-> On Thu, Jun 23, 2016 at 3:09 PM, Thomas Gleixner <tglx@linutronix.de>=
- wrote:
->> On Wed, 22 Jun 2016, Wanpeng Li wrote:
->>> After commit (fc141535ad8 : "x86 tsc_msr: Extend to include Intel C=
-ore
->>
->> Where did you find that commit? It's neither in Linus tree nor in ti=
-p.
->>
-> It is in Len's tree, we are planing to resend the patchset with Wanpe=
-ng's fix
-> merged with a credit to him in commit msg, thanks for Wanpeng's effor=
-t.
-> thanks all.
+This series modifies the pen function signature to take bit field
+and adds a new opregion driver for Intel BXT WhiskeyCove PMIC. It
+also adds support for PMIC regs operation region.
 
-I prefer this patch can be applied separately instead of fold into the
-bad commit since it shows the issue when access MSR_PLATFORM_INFO in
-kvm guest and other guys who want to access MSR_PLATFORM_INFO later
-can find the changelog and make better decisions.
+Yegnesh Iyer (1):
+  acpi: pmic: Modifying the pen function signature to take bit field
 
-Regards,
-Wanpeng Li
+Ajay Thomas (1):
+  acpi: pmic: Add opregion driver for Intel BXT WhiskeyCove PMIC
+
+Chandra Sekhar Anagani (1):
+ acpi: pmic: Add support for PMIC regs operation region
+
+ drivers/acpi/pmic/intel_pmic.c       | 87  +++++++------
+ drivers/acpi/pmic/intel_pmic.h       | 11  ++--
+ drivers/acpi/pmic/intel_pmic_crc.c   |  5  +++--
+ drivers/acpi/Kconfig                 |  6  +
+ drivers/acpi/Makefile                |  1  +
+ drivers/acpi/pmic/intel_pmic_bxtwc.c |449  +++++++++++++++++++++++++++++++++++
+ 6 files changed, 559 insertions(+), 10 deletions(-)
+ create mode 100644 drivers/acpi/pmic/intel_pmic_bxtwc.c
 --
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+1.9.1
+
