@@ -1,67 +1,42 @@
-From: <Mario_Limonciello@Dell.com>
-Subject: RE: [PATCH] ACPI: don't show an error when we're not in charge of
- PCIe hotplug.
-Date: Thu, 23 Jun 2016 15:38:04 +0000
-Message-ID: <d117d2c7b63446d098aa93f88a2b5686@ausx13mpc124.AMER.DELL.COM>
-References: <1466028904-28328-1-git-send-email-pjones@redhat.com>
- <CAJZ5v0g5_M=iNLE_P4eOcwJet=jPm_EifAMdDtvG+TR=1AnU2Q@mail.gmail.com>
- <CAJZ5v0ifNFP5jzPf+zMC3rJ1HKzBmCz1AdhsAsmj75EpndoPTQ@mail.gmail.com>
- <20160621151853.GE28967@redhat.com>
- <cf3d90a8598241ff9b6e28b8fb037633@ausx13mpc120.AMER.DELL.COM>
- <CAJZ5v0ji0DpVsNbnKQpWTdJS-d9y+dh-BVGGfJ_o5fHGe8qeiA@mail.gmail.com>
- <c6d927d71f544432a48a38047c8bfb14@ausx13mpc124.AMER.DELL.COM>
- <CALCETrVy5nKGEyGD9XCR8ZJaa+9WaM_x77ipG8sLjTWm=8VoOw@mail.gmail.com>
- <CAJZ5v0g5E-=ORTQEqjnv-U=7mAwqD-t1-A1nfaFTJsypuT2ueg@mail.gmail.com>
+From: "Prakash, Prashanth" <pprakash@codeaurora.org>
+Subject: Re: [PATCH v2] mailbox: pcc: Add PCC request and free channel
+ declarations
+Date: Thu, 23 Jun 2016 09:39:28 -0600
+Message-ID: <0f854204-e561-8d88-baaa-fe697a53c1fe@codeaurora.org>
+References: <1466111378-4390-1-git-send-email-hotran@apm.com>
+ <2673488.DmxRkxKR3W@vostro.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ausxippc101.us.dell.com ([143.166.85.207]:5167 "EHLO
-	ausxippc101.us.dell.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751481AbcFWPiV (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 23 Jun 2016 11:38:21 -0400
-In-Reply-To: <CAJZ5v0g5E-=ORTQEqjnv-U=7mAwqD-t1-A1nfaFTJsypuT2ueg@mail.gmail.com>
-Content-Language: en-US
+Received: from smtp.codeaurora.org ([198.145.29.96]:60028 "EHLO
+	smtp.codeaurora.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750799AbcFWPjc (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 23 Jun 2016 11:39:32 -0400
+In-Reply-To: <2673488.DmxRkxKR3W@vostro.rjw.lan>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: rafael@kernel.org, luto@amacapital.net
-Cc: pjones@redhat.com, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, lenb@kernel.org, rjw@rjwysocki.net
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Hoan Tran <hotran@apm.com>, Ashwin Chaugule <ashwin.chaugule@linaro.org>
+Cc: Jassi Brar <jassisinghbrar@gmail.com>, Len Brown <lenb@kernel.org>, Robert Moore <robert.moore@intel.com>, Lv Zheng <lv.zheng@intel.com>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, devel@acpica.org, lho@apm.com, Duc Dang <dhdang@apm.com>
 
-PiAtLS0tLU9yaWdpbmFsIE1lc3NhZ2UtLS0tLQ0KPiBGcm9tOiByand5c29ja2lAZ21haWwuY29t
-IFttYWlsdG86cmp3eXNvY2tpQGdtYWlsLmNvbV0gT24gQmVoYWxmIE9mDQo+IFJhZmFlbCBKLiBX
-eXNvY2tpDQo+IFNlbnQ6IFdlZG5lc2RheSwgSnVuZSAyMiwgMjAxNiA1OjQ4IFBNDQo+IFRvOiBB
-bmR5IEx1dG9taXJza2kgPGx1dG9AYW1hY2FwaXRhbC5uZXQ+OyBMaW1vbmNpZWxsbywgTWFyaW8N
-Cj4gPE1hcmlvX0xpbW9uY2llbGxvQERlbGwuY29tPg0KPiBDYzogUmFmYWVsIFd5c29ja2kgPHJh
-ZmFlbEBrZXJuZWwub3JnPjsgUGV0ZXIgSm9uZXMgPHBqb25lc0ByZWRoYXQuY29tPjsNCj4gTGlu
-dXggQUNQSSA8bGludXgtYWNwaUB2Z2VyLmtlcm5lbC5vcmc+OyBsaW51eC1rZXJuZWxAdmdlci5r
-ZXJuZWwub3JnOyBMZW4NCj4gQnJvd24gPGxlbmJAa2VybmVsLm9yZz47IFJhZmFlbCBKLiBXeXNv
-Y2tpIDxyandAcmp3eXNvY2tpLm5ldD4NCj4gU3ViamVjdDogUmU6IFtQQVRDSF0gQUNQSTogZG9u
-J3Qgc2hvdyBhbiBlcnJvciB3aGVuIHdlJ3JlIG5vdCBpbiBjaGFyZ2Ugb2YNCj4gUENJZSBob3Rw
-bHVnLg0KPiANCj4gT24gV2VkLCBKdW4gMjIsIDIwMTYgYXQgMTA6NTMgUE0sIEFuZHkgTHV0b21p
-cnNraSA8bHV0b0BhbWFjYXBpdGFsLm5ldD4NCj4gd3JvdGU6DQo+ID4gT24gV2VkLCBKdW4gMjIs
-IDIwMTYgYXQgMTI6NDMgUE0sICA8TWFyaW9fTGltb25jaWVsbG9AZGVsbC5jb20+IHdyb3RlOg0K
-PiA+Pj4gLS0tLS1PcmlnaW5hbCBNZXNzYWdlLS0tLS0NCj4gPj4+IEZyb206IHJqd3lzb2NraUBn
-bWFpbC5jb20gW21haWx0bzpyand5c29ja2lAZ21haWwuY29tXSBPbiBCZWhhbGYgT2YNCj4gDQo+
-IFtjdXRdDQo+IA0KPiA+PiBJIHRoaW5rIGNoYW5naW5nIHRoYXQgd291bGQgaGVscCBjb21tdW5p
-Y2F0ZSB3aGF0J3MgZ29pbmcgb24gaGVyZSBhbmQgYXQNCj4gPj4gbGVhc3QgbGV0IHRoZSB1c2Vy
-IGtub3cgdGhlIHJlc3VsdCB3aWxsIGJlIHRoYXQgdGhlIGZpcm13YXJlIGlzIHN0aWxsDQo+IGNv
-bnRyb2xsaW5nDQo+ID4+IEFTUE0gZHVlIHRvIHRoZSBfT1NDIGZhaWx1cmUuDQo+IA0KPiBZb3Ug
-c2VlbSB0byBiZSBhc3N1bWluZyB0aGF0IGFsbCBzeXN0ZW1zIHJldHVybmluZyAidW5zdXBwb3J0
-ZWQgVVVJRCINCj4gZnJvbSB0aGUgUENJIGhvc3QgYnJpZGdlIF9PU0Mgd2lsbCBhbHdheXMgZmFs
-bCBpbnRvIHRoZSBzYW1lIGNhdGVnb3J5LA0KPiBidXQgd2hhdCBpZiB0aGV5IGRvbid0PyAgV2hh
-dCBpZiBhdCBsZWFzdCBzb21lIG9mIHRoZW0gYXJlIHJlYWxseQ0KPiBicm9rZW4/DQo+IA0KDQpF
-dmVuIGlmIHRoZXkgYXJlIGJyb2tlbiwgdGhlIG5ldCByZXN1bHQgd2lsbCBiZSB0aGUgZmlybXdh
-cmUgaXMgaW4gY29udHJvbA0Kb2YgQVNQTSwgd29uJ3QgaXQ/ICBBdCBsZWFzdCBvdXRzaWRlIG9m
-IHRoZSBncm91cCBvbiB0aGlzIG1haWxpbmcgbGlzdCB0aGF0DQptaWdodCBub3QgYmUgdmVyeSBh
-cHBhcmVudCBmcm9tIHRoZSBjdXJyZW50IHNldCBvZiBlcnJvcnMgb3V0cHV0IGludG8NCmxvZ3Mu
-DQoNCj4gPj4gU29tZXRoaW5nIGVsc2UgdGhhdCBJIHRoaW5rIEFuZHkgcmVjb21tZW5kZWQgYSB3
-aGlsZSBiYWNrIHdhcyBhdCB0aGF0DQo+ID4+IHRpbWUgdHJ5IHRvIGV2YWx1YXRlIE5FWFAgYW5k
-IGRpc3BsYXkgaXRzIHZhbHVlIGFuZCBhbiBhc3NvY2lhdGVkIG1lc3NhZ2UNCj4gPj4gaW4gZGVi
-dWcgbG9ncyB3aGVuIF9PU0MgZmFpbHMuICBXb3VsZCB5b3UgYmUgYW1lbmFibGUgdG8gYSBjaGFu
-Z2UgbGlrZQ0KPiB0aGF0Pw0KPiA+DQo+ID4gVGhhdCBzZWVtcyBkYW5nZXJvdXMgaWYgTkVYUCBp
-cyBhbnl0aGluZyBvdGhlciB0aGFuIGEgU3lzdGVtTWVtb3J5DQo+ID4gdmFyaWFibGUuICBJIGRv
-bid0IGtub3cgaWYgdGhlcmUncyBhIGNsZWFuIHdheSB0byBjaGVjayB0aGF0IGJlZm9yZQ0KPiA+
-IGV2YWx1YXRpbmcgaXQuICAoaS5lLiB3ZSBkb24ndCB3YW50IHRvIGhpdCBzb21lIG90aGVyIHRo
-aW5nIGNhbGxlZA0KPiA+IE5FWFAgdGhhdCBoYXMgc2lkZSBlZmZlY3RzLikNCj4gDQo+IFdlbGws
-IHRoYXQncyBnZW5lcmljIGNvZGUgYW5kIE5FWFAgaXMgbm90IGdlbmVyaWMgcmVhbGx5LCBzbyBh
-Z3JlZWQuDQoNCk9LLiANCg==
+Hi Rafael,
+
+On 6/22/2016 6:49 PM, Rafael J. Wysocki wrote:
+> On Thursday, June 16, 2016 02:09:38 PM Hoan Tran wrote:
+>> Exports pcc_mbox_request_channel() and pcc_mbox_free_channel()
+>> declarations into a pcc.h header file.
+>>
+>> v2
+>>  * Introduce pcc.h header file for pcc client methods
+>>
+>> v1
+>>  * Initial
+>>
+>> Signed-off-by: Hoan Tran <hotran@apm.com>
+> Ashwin, Prakash, any comments anyone?
+
+This change looks good.
+
+Thanks,
+Prashanth
+
