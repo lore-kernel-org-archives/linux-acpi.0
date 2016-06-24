@@ -1,52 +1,57 @@
-From: Jean Delvare <jdelvare@suse.de>
-Subject: Re: [v5] i2c: i801: Allow ACPI SystemIO OpRegion to conflict with
- PCI BAR
-Date: Fri, 24 Jun 2016 16:12:38 +0200
-Message-ID: <20160624161238.0fc748ad@endymion>
-References: <1463990658-53854-1-git-send-email-mika.westerberg@linux.intel.com>
-	<20160608162913.GA24234@mail.corp.redhat.com>
-	<20160613111946.54779d0d@endymion>
-	<20160613094500.GY29844@pali>
-	<20160613094618.GG1791@lahna.fi.intel.com>
-	<20160613094830.GZ29844@pali>
-	<20160613095404.GH1791@lahna.fi.intel.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-i2c-owner@vger.kernel.org>
-In-Reply-To: <20160613095404.GH1791@lahna.fi.intel.com>
-Sender: linux-i2c-owner@vger.kernel.org
-To: Mika Westerberg <mika.westerberg@linux.intel.com>
-Cc: Pali =?UTF-8?B?Um9ow6Fy?= <pali.rohar@gmail.com>, Benjamin Tissoires <benjamin.tissoires@redhat.com>, Wolfram Sang <wsa@the-dreams.de>, Jarkko Nikula <jarkko.nikula@linux.intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Andy Lutomirski <luto@kernel.org>, Mario Limonciello <mario_limonciello@dell.com>, Matt Fleming <matt@codeblueprint.co.uk>, linux-i2c@vger.kernel.org, linux-acpi@vger.kernel.org
+From: Rui Wang <rui.y.wang@intel.com>
+Subject: Re: [PATCH V3 1/3] x86/ioapic: Support hot-removal of IOAPICs present during boot
+Date: Fri, 24 Jun 2016 23:18:56 +0800
+Message-ID: <1466781536-29902-1-git-send-email-rui.y.wang@intel.com>
+References: <20160622145354.GA25485@localhost>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga01.intel.com ([192.55.52.88]:15103 "EHLO mga01.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751175AbcFXPe2 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 24 Jun 2016 11:34:28 -0400
+In-Reply-To: <20160622145354.GA25485@localhost>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: helgaas@kernel.org
+Cc: tglx@linutronix.de, rjw@rjwysocki.net, tony.luck@intel.com, bhelgaas@google.com, linux-acpi@vger.kernel.org, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, rui.y.wang@intel.com
 
-Hi Mika,
+On Wed, June 22, 2016 10:54 PM Bjorn Helgaas wrote:
+> On Wed, Jun 22, 2016 at 03:13:32PM +0800, Rui Wang wrote:
+> > On Friday, June 17, 2016 1:10 AM, Bjorn Helgaas wrote:
+> > > ioapic_insert_resources() is x86-specific, but I'm not sure why; it
+> > > seems like it does things that should be applicable to ia64 as well.
+> > >
+> > > acpi_ioapic_add() is not x86-specific, and it is called from
+> > > acpi_pci_root_add() for the hot-add case.  You're adding an
+> > > x86-xpecific call in pci_assign_unassigned_resources().  Why should
+> > > the hot-add case be for all arches, but the boot-time case only for x86?
+> >
+> > Hi Bjorn,
+> >
+> > It turns out that IOAPIC hotplug has not been pursued on ia64. There
+> > were demos showing CPU sockets online/offline on ia64 but the CPUs had
+> > no IIO, thus no IOAPIC hotplug.
+> 
+> That doesn't mean we need to write code that's gratuitously x86-specific.
+> 
+> > So to answer the first question:
+> > ioapic_insert_resources() is x86-specific because it's inserting what
+> > has been setup in io_apic_init_mappings() which, through
+> > mpc_ioapic_addr(), is capable of handling both the static case
+> > (acpi_parse_ioapic(), etc.) and the hotplug case (acpi_ioapic_add()).
+> > But on ia64, there's only the static case through acpi_parse_iosapic(), no
+> need for the hotplug case yet.
+> 
+> ioapic_insert_resources() inserts IOAPIC resources on x86.  Where are
+> IOSAPIC resources inserted on ia64?
+> 
+I'm not sure. Its physical address from MADT is parsed in acpi_parse_iosapic()
+and ioremap()'d in iosapic_init(). Only the virtual address is recorded.
+The physical address doesn't seem to be recorded and inserted explicitly. But
+it could be in a "_CRS" and gets inserted implicitly. The iosapic on ia64 uses
+its own data structures very different from the ioapic on x86. I think it's
+hard to unify them using a common set of functions, without rewriting the whole
+framework.
 
-On Mon, 13 Jun 2016 12:54:04 +0300, Mika Westerberg wrote:
-> On Mon, Jun 13, 2016 at 11:48:30AM +0200, Pali Roh=C3=A1r wrote:
-> > I mean to call acpi_remove_address_space_handler() in
-> > i801_acpi_io_handler() after acpi_reserved is properly set.
-> >=20
-> > As once acpi_reserved is set address space handler is not needed
-> > anymore.
->=20
-> It is still needed as we handle all AML OpRegion access in this drive=
-r
-> from that point forward. Unless I'm missing something.
+Thanks
+Rui
 
-I think Pali is correct. The only purpose of handling the region is to
-detect that it is being accessed so we can set priv->acpi_reserved.
-Once it is set, i801_acpi_io_handler becomes transparent: it forwards
-the requests without doing anything with them. The very same would
-happen if we would unregister the handler at that point, but without th=
-e
-extra overhead.
-
-So while the current code does work fine, unregistering the handler
-when we set priv->acpi_reserved would be more optimal.
-
-Unless both Pali and myself are missing something, that is.
-
---=20
-Jean Delvare
-SUSE L3 Support
