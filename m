@@ -1,110 +1,110 @@
-From: "Rafael J. Wysocki" <rafael@kernel.org>
-Subject: Re: [PATCH v3 2/3] acpi: dptf_power: Add DPTF power participant
-Date: Fri, 24 Jun 2016 02:26:39 +0200
-Message-ID: <CAJZ5v0ithpoZfHJQwfyLdrsLyU1-M8psrJz12eaOTR9ffCTPOQ@mail.gmail.com>
-References: <1466718134-29921-1-git-send-email-srinivas.pandruvada@linux.intel.com>
- <1466718134-29921-3-git-send-email-srinivas.pandruvada@linux.intel.com>
- <CAJZ5v0hRVDMgsBzEMufwHurA8aRBmd7p_MvnMg1cdNYgDrPDaA@mail.gmail.com> <1466723970.8970.69.camel@linux.intel.com>
+From: "Zheng, Lv" <lv.zheng@intel.com>
+Subject: RE: [PATCH] ACPI: Execute the _PTS method when system reboot
+Date: Fri, 24 Jun 2016 00:30:21 +0000
+Message-ID: <1AE640813FDE7649BE1B193DEA596E883BBF7E2B@SHSMSX101.ccr.corp.intel.com>
+References: <1462772495-71113-1-git-send-email-hehy1@lenovo.com>
+ <2611430.1T9CgX71hW@vostro.rjw.lan>
+ <BCBE834BAC19744BA2C3AC4D68DBF2198D8AC790@CNMAILEX03.lenovo.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-wm0-f65.google.com ([74.125.82.65]:34808 "EHLO
-	mail-wm0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751084AbcFXA0l (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 23 Jun 2016 20:26:41 -0400
-Received: by mail-wm0-f65.google.com with SMTP id 187so980607wmz.1
-        for <linux-acpi@vger.kernel.org>; Thu, 23 Jun 2016 17:26:41 -0700 (PDT)
-In-Reply-To: <1466723970.8970.69.camel@linux.intel.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <BCBE834BAC19744BA2C3AC4D68DBF2198D8AC790@CNMAILEX03.lenovo.com>
+Content-Language: en-US
+Sender: linux-kernel-owner@vger.kernel.org
+To: Ocean HY1 He <hehy1@lenovo.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: "lenb@kernel.org" <lenb@kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, David Tanaka <dtanaka@lenovo.com>, Nagananda Chumbalkar <nchumbalkar@lenovo.com>
 List-Id: linux-acpi@vger.kernel.org
-To: Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>
-Cc: "Rafael J. Wysocki" <rafael@kernel.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>
 
-On Fri, Jun 24, 2016 at 1:19 AM, Srinivas Pandruvada
-<srinivas.pandruvada@linux.intel.com> wrote:
-> On Fri, 2016-06-24 at 00:31 +0200, Rafael J. Wysocki wrote:
->> On Thu, Jun 23, 2016 at 11:42 PM, Srinivas Pandruvada
->> <srinivas.pandruvada@linux.intel.com> wrote:
->> >
->> > This driver adds support for Dynamic Platform and Thermal Framework
->> > (DPTF) Platform Power Participant device support.
->> > This participant is responsible for exposing platform telemetry
->> > such as
->> > platform Power, battery Information such as state of Charge,
->> > estimated
->> > maximum sustainable power (PMax), SMART battery spec information.
->> >
->> > This driver is implemented as a platform driver for INT3407 and
->> > presented
->> > as power_supply device. Since this has common features with the
->> > ACPI
->> > battery, existing interface provide by battery_common driver are
->> > reused
->> > to present as a battery power supply device.
->> >
->> > When both CONFIG_ACPI_BATTERY and CONFIG_DPTF_POWER are defined and
->> > platform has support for INT3407, then dptf power registration is
->> > delayed for 100ms. In 100 ms, if there is no ACPI battery is
->> > registered
->> > then dptf power will be registered. Since both can be modules and
->> > battery driver loads in async thread, there can be race even if we
->> > specify loading order for initialization.
->>
->> First, does the waiting actually help, though?
->
-> Yes, if the acpi_battery registered then
-> if (!battery_registered) will be false.
->
-
-Ah, so [1/3] adds battery_registered while moving code around and the
-changelog in there doesn't mention that.  It is added there, but not
-really used, only set and reset.
-
-I wouldn't do it that way.  Just add it in a separate patch or in
-[2/3] itself, because it is the real user of it.
-
-Also this is racy to my eyes, because acpi_battery can register after
-you've checked battery_registered in dptf_power_init_work_fn() and
-before calling dptf_power_init().  It actually can register just fine
-at any time after that AFAICS.
-
->>
->> Second, to my eyes, even if acpi_battery load first, the dptf_power
->> thing will still bind to the same device, but via the platform bus
->> instead of the ACPI bus type.  I don't see anything preventing that
->> from happening in the patch, but maybe I missed something?
->>
-> The INT3407 object also has battery _BST and _BIX, so driver will bind
-> to this device not with PNP0C0A battery device. Either of them should
-> be able to register and provide battery information. But the names are
-> different (BAT vs TPWR on my platform)
-> The check if (!battery_registered) will fail, so dptf_power will not
-> register. So we will not see two batteries registered with power supply
-> class (and hence no two batteries in desktop UI).
-
-Ah OK.  I thought that the DPTF device had a _CID("PNP0C0A").  If
-that's not the case, then the battery driver will not bind to it, so I
-misunderstood the problem you wanted to address.
-
-I think what you need is that if acpi_battery is bound to at least one
-device, you don't want to bind dptf_power to anything.  Conversely, if
-dptf_power has been bound to at least one device, you don't want to
-bind acpi_battery to anything.
-
-That may be achieved with a lock and two counters, one (A) incremented
-only by acpi_battery and the other (B) incremented only by dptf_power
-and such that you can't increment A if B is different from 0 and you
-can't increment B if A is different from 0.  Of course, each driver
-would need to specify which counter it wants to use (A or B), so that
-would take an additional argument to acpi_battery_common_add() and an
-additional field in struct acpi_battery (for the remove operation).
-
-With that, I think it should only be possible to build both
-acpi_battery and dptf_power if they are both modules.  IOW, DPTF_POWER
-should depend on (!ACPI_BATTERY || ACPI_BATTERY=m) or similar.  And if
-they are both modules, let user space manage that.
-
-And the waiting itself doesn't add any value then IMO.
-
-Thanks,
-Rafael
+SGksDQoNCj4gRnJvbTogbGludXgtYWNwaS1vd25lckB2Z2VyLmtlcm5lbC5vcmcgW21haWx0bzps
+aW51eC1hY3BpLQ0KPiBvd25lckB2Z2VyLmtlcm5lbC5vcmddIE9uIEJlaGFsZiBPZiBPY2VhbiBI
+WTEgSGUNCj4gU3ViamVjdDogUkU6IFtQQVRDSF0gQUNQSTogRXhlY3V0ZSB0aGUgX1BUUyBtZXRo
+b2Qgd2hlbiBzeXN0ZW0gcmVib290DQo+IA0KPiBIaSBSYWZhZWwsDQo+IFBsZWFzZSBzZWUgbXkg
+cmVwbHkgaW4gYmVsb3cuDQo+IA0KPiBSZWdhcmRzLA0KPiBPY2VhbiBIZQ0KPiBTVyBEZXZlbG9w
+bWVudCBEZXB0Lg0KPiBCZWlqaW5nIERlc2lnbiBDZW50ZXINCj4gRW50ZXJwcmlzZSBQcm9kdWN0
+IEdyb3VwDQo+IE1vYmlsZTogMTg5MTE3Nzg5MjYNCj4gRS1tYWlsOiBoZWh5MUBsZW5vdm8uY29t
+DQo+IE5vLjYgQ2h1YW5nIFllIFJvYWQsIEhhaWRpYW4gRGlzdHJpY3QsIEJlaWppbmcsIENoaW5h
+IDEwMDA4NQ0KPiANCj4gPiAtLS0tLU9yaWdpbmFsIE1lc3NhZ2UtLS0tLQ0KPiA+IEZyb206IFJh
+ZmFlbCBKLiBXeXNvY2tpIFttYWlsdG86cmp3QHJqd3lzb2NraS5uZXRdDQo+ID4gU2VudDogV2Vk
+bmVzZGF5LCBKdW5lIDIyLCAyMDE2IDc6NTYgQU0NCj4gPiBUbzogT2NlYW4gSFkxIEhlDQo+ID4g
+Q2M6IGxlbmJAa2VybmVsLm9yZzsgbGludXgtYWNwaUB2Z2VyLmtlcm5lbC5vcmc7DQo+ID4gbGlu
+dXgta2VybmVsQHZnZXIua2VybmVsLm9yZzsgRGF2aWQgVGFuYWthOyBOYWdhbmFuZGEgQ2h1bWJh
+bGthcg0KPiA+IFN1YmplY3Q6IFJlOiBbUEFUQ0hdIEFDUEk6IEV4ZWN1dGUgdGhlIF9QVFMgbWV0
+aG9kIHdoZW4gc3lzdGVtDQo+IHJlYm9vdA0KPiA+DQo+ID4gT24gTW9uZGF5LCBNYXkgMDksIDIw
+MTYgMDU6NTA6MTEgQU0gT2NlYW4gSFkxIEhlIHdyb3RlOg0KPiA+ID4gVGhlIF9QVFMgY29udHJv
+bCBtZXRob2QgaXMgZGVmaW5lZCBpbiB0aGUgc2VjdGlvbiA3LjQuMSBvZiBhY3BpIDYuMA0KPiA+
+ID4gc3BlYy4gVGhlIF9QVFMgY29udHJvbCBtZXRob2QgaXMgZXhlY3V0ZWQgYnkgdGhlIE9TIGR1
+cmluZyB0aGUgc2xlZXANCj4gPiA+IHRyYW5zaXRpb24gcHJvY2VzcyBmb3IgUzEsIFMyLCBTMywg
+UzQsIGFuZCBmb3Igb3JkZXJseSBTNSBzaHV0ZG93bi4NCj4gPiA+IFRoZSBzbGVlcGluZyBzdGF0
+ZSB2YWx1ZSAoRm9yIGV4YW1wbGUsIDEsIDIsIDMsIDQgb3IgNSBmb3IgdGhlIFM1DQo+ID4gPiBz
+b2Z0LW9mZiBzdGF0ZSkgaXMgcGFzc2VkIHRvIHRoZSBfUFRTIGNvbnRyb2wgbWV0aG9kLiBUaGlz
+IG1ldGhvZA0KPiA+ID4gaXMgY2FsbGVkIGFmdGVyIE9TUE0gaGFzIG5vdGlmaWVkIG5hdGl2ZSBk
+ZXZpY2UgZHJpdmVycyBvZiB0aGUgc2xlZXANCj4gPiA+IHN0YXRlIHRyYW5zaXRpb24gYW5kIGJl
+Zm9yZSB0aGUgT1NQTSBoYXMgaGFkIGEgY2hhbmNlIHRvIGZ1bGx5DQo+ID4gPiBwcmVwYXJlIHRo
+ZSBzeXN0ZW0gZm9yIGEgc2xlZXAgc3RhdGUgdHJhbnNpdGlvbi4NCj4gPiA+DQo+ID4gPiBUaGUg
+X1BUUyBjb250cm9sIG1ldGhvZCBwcm92aWRlcyB0aGUgQklPUyBhIG1lY2hhbmlzbSBmb3INCj4g
+cGVyZm9ybWluZw0KPiA+ID4gc29tZSBob3VzZWtlZXBpbmcsIHN1Y2ggYXMgd3JpdGluZyB0aGUg
+c2xlZXAgdHlwZSB2YWx1ZSB0byB0aGUNCj4gPiBlbWJlZGRlZA0KPiA+ID4gY29udHJvbGxlciwg
+YmVmb3JlIGVudGVyaW5nIHRoZSBzeXN0ZW0gc2xlZXBpbmcgc3RhdGUuDQo+ID4gPg0KPiA+ID4g
+QWNjb3JkaW5nIHRvIHNlY3Rpb24gNy41IG9mIGFjcGkgNi4wIHNwZWMsIF9QVFMgc2hvdWxkIHJ1
+biBhZnRlciBfVFRTLg0KPiA+ID4NCj4gPiA+IFRodXMsIGEgX1BUUyBibG9jayBub3RpZmllciBp
+cyBhZGRlZCB0byB0aGUgcmVib290IG5vdGlmaWVyIGxpc3Qgc28gdGhhdA0KPiA+ID4gdGhlIF9Q
+VFMgb2JqZWN0IHdpbGwgYWxzbyBiZSBldmFsdWF0ZWQgd2hlbiB0aGUgc3lzdGVtIHJlYm9vdC4N
+Cj4gPg0KPiA+IFNvIEkgdW5kZXJzdGFuZCB3aHkgaXQgbWF5IGJlIG5lY2Vzc2FyeSB0byBldmFs
+dWF0ZSBfUFRTIGJlZm9yZQ0KPiBlbnRlcmluZw0KPiA+IFM1LA0KPiA+IGJ1dCBJJ20gdG90YWxs
+eSB1bnN1cmUgYWJvdXQgcmVib290Lg0KPiA+DQo+ID4gV2hhdCBkb2VzIHJlYm9vdCBoYXZlIHRv
+IGRvIHdpdGggUzU/DQo+ID4NCj4gSW4gQUNQSSBzcGVjLCB0aGVyZSBpcyBubyBleHBsaWNpdCB3
+b3JkcyBzYXlpbmcgX1BUUyBzaG91bGQgYmUNCj4gZXhlY3V0ZWQgd2hlbiByZWJvb3QuIEJ1dCBy
+ZWJvb3QgY291bGQgYmUgZXF1YWwgdG8gdGhlDQo+IHByb2Nlc3MgUzAtPlM1LT5TMC4gVGh1cyBf
+UFRTIHNob3VsZCBiZSBleGVjdXRlZCB3aGVuIHJlYm9vdC4NCj4gDQo+IEkgYW0gdGhpbmtpbmcg
+dGhpcyBpcyB0aGUgc2FtZSBhcyBfVFRTLiBJbiBBQ1BJIHNwZWMsIHRoZXJlIGlzIGFsc28NCj4g
+bm8gZXhwbGljaXQgd29yZHMgc2F5aW5nIF9UVFMgc2hvdWxkIGJlIGV4ZWN1dGVkIHdoZW4gcmVi
+b290Lg0KPiBCdXQga2VybmVsIGV4ZWN1dGVzIF9UVFMgd2hlbiByZWJvb3QgaW5kZWVkLg0KW0x2
+IFpoZW5nXSANCldoYXQncyB0aGUgZGUtZmFjdG8gc3RhbmRhcmQgYmVoYXZpb3IgaGVyZT8NCkxl
+bm92byBzaG91bGQgYmUgYWJsZSB0byBtb2RpZnkgQklPUywgc2hvdWxkIHlvdSB0cnkgdG8gYm9v
+dCBkaWZmZXJlbnQgV2luZG93cyBjbG9uZXMgdG8gY29uZmlybSB0aGUgbmVjZXNzaXR5IG9mIGRv
+aW5nIHRoaXM/DQoNClRoYW5rcyBhbmQgYmVzdCByZWdhcmRzDQotTHYNCg0KPiANCj4gPiA+IFNp
+Z25lZC1vZmYtYnk6IE9jZWFuIEhlIDxoZWh5MUBsZW5vdm8uY29tPg0KPiA+ID4gU2lnbmVkLW9m
+Zi1ieTogTmFnYW5hbmRhIENodW1iYWxrYXIgPG5jaHVtYmFsa2FyQGxlbm92by5jb20+DQo+ID4g
+PiAtLS0NCj4gPiA+ICBkcml2ZXJzL2FjcGkvc2xlZXAuYyB8IDI3ICsrKysrKysrKysrKysrKysr
+KysrKysrKysrKw0KPiA+ID4gIDEgZmlsZSBjaGFuZ2VkLCAyNyBpbnNlcnRpb25zKCspDQo+ID4g
+Pg0KPiA+ID4gZGlmZiAtLWdpdCBhL2RyaXZlcnMvYWNwaS9zbGVlcC5jIGIvZHJpdmVycy9hY3Bp
+L3NsZWVwLmMNCj4gPiA+IGluZGV4IDJhOGI1OTYuLjhiMjkwZmIgMTAwNjQ0DQo+ID4gPiAtLS0g
+YS9kcml2ZXJzL2FjcGkvc2xlZXAuYw0KPiA+ID4gKysrIGIvZHJpdmVycy9hY3BpL3NsZWVwLmMN
+Cj4gPiA+IEBAIC01NSw2ICs1NSwyNiBAQCBzdGF0aWMgc3RydWN0IG5vdGlmaWVyX2Jsb2NrIHR0
+c19ub3RpZmllciA9IHsNCj4gPiA+ICAJLnByaW9yaXR5CT0gMCwNCj4gPiA+ICB9Ow0KPiA+ID4N
+Cj4gPiA+ICtzdGF0aWMgaW50IHB0c19ub3RpZnlfcmVib290KHN0cnVjdCBub3RpZmllcl9ibG9j
+ayAqdGhpcywNCj4gPiA+ICsJCQl1bnNpZ25lZCBsb25nIGNvZGUsIHZvaWQgKngpDQo+ID4gPiAr
+ew0KPiA+ID4gKwlhY3BpX3N0YXR1cyBzdGF0dXM7DQo+ID4gPiArDQo+ID4gPiArCXN0YXR1cyA9
+IGFjcGlfZXhlY3V0ZV9zaW1wbGVfbWV0aG9kKE5VTEwsICJcXF9QVFMiLA0KPiA+IEFDUElfU1RB
+VEVfUzUpOw0KPiA+ID4gKwlpZiAoQUNQSV9GQUlMVVJFKHN0YXR1cykgJiYgc3RhdHVzICE9IEFF
+X05PVF9GT1VORCkgew0KPiA+ID4gKwkJLyogSXQgd29uJ3QgYnJlYWsgYW55dGhpbmcuICovDQo+
+ID4gPiArCQlwcmludGsoS0VSTl9OT1RJQ0UgIkZhaWx1cmUgaW4gZXZhbHVhdGluZyBfUFRTIG9i
+amVjdFxuIik7DQo+ID4gPiArCX0NCj4gPiA+ICsNCj4gPiA+ICsJcmV0dXJuIE5PVElGWV9ET05F
+Ow0KPiA+ID4gK30NCj4gPiA+ICsNCj4gPiA+ICtzdGF0aWMgc3RydWN0IG5vdGlmaWVyX2Jsb2Nr
+IHB0c19ub3RpZmllciA9IHsNCj4gPiA+ICsJLm5vdGlmaWVyX2NhbGwJPSBwdHNfbm90aWZ5X3Jl
+Ym9vdCwNCj4gPiA+ICsJLm5leHQJCT0gTlVMTCwNCj4gPiA+ICsJLnByaW9yaXR5CT0gMCwNCj4g
+PiA+ICt9Ow0KPiA+ID4gKw0KPiA+ID4gIHN0YXRpYyBpbnQgYWNwaV9zbGVlcF9wcmVwYXJlKHUz
+MiBhY3BpX3N0YXRlKQ0KPiA+ID4gIHsNCj4gPiA+ICAjaWZkZWYgQ09ORklHX0FDUElfU0xFRVAN
+Cj4gPiA+IEBAIC04OTYsNSArOTE2LDEyIEBAIGludCBfX2luaXQgYWNwaV9zbGVlcF9pbml0KHZv
+aWQpDQo+ID4gPiAgCSAqIG9iamVjdCBjYW4gYWxzbyBiZSBldmFsdWF0ZWQgd2hlbiB0aGUgc3lz
+dGVtIGVudGVycyBTNS4NCj4gPiA+ICAJICovDQo+ID4gPiAgCXJlZ2lzdGVyX3JlYm9vdF9ub3Rp
+ZmllcigmdHRzX25vdGlmaWVyKTsNCj4gPiA+ICsNCj4gPiA+ICsJLyoNCj4gPiA+ICsJICogQWNj
+b3JkaW5nIHRvIHNlY3Rpb24gNy41IG9mIGFjcGkgNi4wIHNwZWMsIF9QVFMgc2hvdWxkIHJ1biBh
+ZnRlcg0KPiA+ID4gKwkgKiBfVFRTIHdoZW4gdGhlIHN5c3RlbSBlbnRlcnMgUzUuDQo+ID4gPiAr
+CSAqLw0KPiA+ID4gKwlyZWdpc3Rlcl9yZWJvb3Rfbm90aWZpZXIoJnB0c19ub3RpZmllcik7DQo+
+ID4NCj4gPiBXaHkgZG8geW91IGhhdmUgdG8gYWRkIGEgc2Vjb25kIG5vdGlmaWVyPw0KPiA+DQo+
+ID4gV2h5IGNhbid0IF9UVFMgYW5kIF9QVFMgYmUgZXZhbHVhdGVkIGZyb20gb25lIG5vdGlmaWVy
+Pw0KPiA+DQo+IElmIGV4ZWN1dGUgX1BUUyBtZXRob2QgaW4gdHRzX25vdGlmeV9yZWJvb3QoKSwg
+dGhlbiBpdCB3b3VsZCBicmVhaw0KPiBkZWZpbml0aW9uIG9mIHR0c19ub3RpZnlfcmVib290KCku
+IE15IGludGVudGlvbiBpcyB0byBrZWVwIG5ldyBjb2Rlcw0KPiBoYXMgbGltaXRlZCBpbXBhY3Qg
+b24gZXhpc3RlZCBjb2Rlcy4NCj4gT2YgY291cnNlLCBpdCdzIHBvc3NpYmxlIHRvIG1lcmdlIF9U
+VFMgYW5kIF9QVFMgaW50byBvbmUgdW5pZmllZCBub3RpZmllci4NCj4gVGhlIGFkdmFudGFnZSBp
+cyBtb3JlIGFjdGlvbnMgY291bGQgYmUgYWRkZWQgaW50byB0aGUgdW5pZmllZCBub3RpZmllciBp
+bg0KPiBmdXR1cmUuDQo+IFdoaWNoIHdheSB5b3UgcHJlZmVyPw0KPiA+ID4gKw0KPiA+ID4gIAly
+ZXR1cm4gMDsNCj4gPiA+ICB9DQo+ID4gPg0KPiA+DQo+ID4gVGhhbmtzLA0KPiA+IFJhZmFlbA0K
+PiANCj4gE++/ve+/vey5uxzvv70m77+9fu+/vSbvv70Y77+977+9Ky0NCj4g77+977+93bYX77+9
+77+9d++/ve+/vcub77+977+977+9be+/vWLvv73vv71acu+/ve+/ve+/ve+/vV5u77+9cu+/ve+/
+ve+/vXrvv70a77+977+9aO+/ve+/ve+/ve+/vSbvv73vv70e77+9R++/ve+/ve+/vWjvv70DKO+/
+vemajg0KPiDvv73domoi77+977+9Gu+/vRtt77+977+977+977+977+9eu+/vd6W77+977+977+9
+Zu+/ve+/ve+/vWjvv73vv73vv71+77+9be+/vQ0K
