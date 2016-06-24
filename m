@@ -1,43 +1,93 @@
-From: Rui Wang <rui.y.wang@intel.com>
-Subject: Re: [PATCH V4 1/3] x86/ioapic: Support hot-removal of IOAPICs present during boot
-Date: Fri, 24 Jun 2016 23:30:44 +0800
-Message-ID: <1466782244-30029-1-git-send-email-rui.y.wang@intel.com>
-References: <20160623173445.GF17987@localhost>
-Return-path: <linux-pci-owner@vger.kernel.org>
-In-Reply-To: <20160623173445.GF17987@localhost>
-Sender: linux-pci-owner@vger.kernel.org
-To: helgaas@kernel.org
-Cc: tglx@linutronix.de, rjw@rjwysocki.net, tony.luck@intel.com, bhelgaas@google.com, linux-acpi@vger.kernel.org, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, rui.y.wang@intel.com
+From: Hoan Tran <hotran@apm.com>
+Subject: Re: [PATCH] acpi: cppc: Prevent cpc_desc_ptr points to the invalid data
+Date: Fri, 24 Jun 2016 09:35:32 -0700
+Message-ID: <CAFHUOYz3smsXg0qFcjtzVV1Chk946k+Uw4eFQL-=xoYQToigLQ@mail.gmail.com>
+References: <1464203363-20599-1-git-send-email-hotran@apm.com>
+ <CAJ5Y-ebkd6rbQkegdYUREn775Nu5jZqB3TBex5Rj1JsQ6Sjs-Q@mail.gmail.com>
+ <CAFHUOYw3vB9ZDZ-E=WsyceZEFnZKPe0D8zFCDr0qyjdqUKBL5g@mail.gmail.com> <CAJ5Y-eYnC7og+06+WJHEWHWtVyT-frw68MaQNcfisb-nELrBig@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <CAJ5Y-eYnC7og+06+WJHEWHWtVyT-frw68MaQNcfisb-nELrBig@mail.gmail.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Ashwin Chaugule <ashwin.chaugule@linaro.org>
+Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, linux acpi <linux-acpi@vger.kernel.org>, lkml <linux-kernel@vger.kernel.org>, Duc Dang <dhdang@apm.com>, Loc Ho <lho@apm.com>
 List-Id: linux-acpi@vger.kernel.org
 
-On Fri, Jun 24, 2016 1:35 AM Bjorn Helgaas wrote:
-> On Thu, Jun 23, 2016 at 01:11:41PM +0800, Rui Wang wrote:
-> > On Wed, June 22, 2016 11:15 PM Bjorn Helgaas wrote:
-> > > [...]
-> > > > @@ -1779,8 +1780,12 @@ void __init
-> > > > pci_assign_unassigned_resources(void)
-> > > >  {
-> > > >  	struct pci_bus *root_bus;
-> > > >
-> > > > -	list_for_each_entry(root_bus, &pci_root_buses, node)
-> > > > +	list_for_each_entry(root_bus, &pci_root_buses, node) {
-> > > >  		pci_assign_unassigned_root_bus_resources(root_bus);
-> > > > +#ifdef CONFIG_X86
-> > > > +		acpi_ioapic_add(ACPI_HANDLE(root_bus->bridge));
-> > > > +#endif
-> > >
-> > > Doesn't this do the right thing even if you omit the #ifdefs, since
-> > > you define a stub function below?
-> > >
+On Tue, May 31, 2016 at 12:29 PM, Ashwin Chaugule
+<ashwin.chaugule@linaro.org> wrote:
+>
+> On 27 May 2016 at 12:41, Hoan Tran <hotran@apm.com> wrote:
+> > Hi Ashwin,
+>
+> Hi,
+>
 > >
-> > No. Without the '#ifdef CONFIG_X86' it breaks MIPS arch. The stub
-> > function is within 'ifdef CONFIG_ACPI'. On archs without ACPI it
-> > doesn't compile due to 'undefined reference to acpi_ioapic_add'.
-> 
-> But this *could* be made to work by defining a stub for the non-
-> CONFIG_ACPI case.  That's what we generally do to avoid ifdefs in the code.
+> > Yes, I saw kernel crash.
+> > As cpc_desc_ptr is not NULL, cppc_cpufreq_init() still can pass then
+> > crash during cppc_get_perf_caps() access CPPC shared memory.
+> >
+> > It's not only "PCC channel request fail" can create this issue but
+> > "acpi_get_psd() fail" also creates it
+> >
+> > Thanks
+> > Hoan
+>
+>
+> Just for future reference. :)
+>
+> https://web.archive.org/web/20080722025748/http://www.zip.com.au/~akpm/linux/patches/stuff/top-posting.txt
+>
+>
+> >
+> > On Fri, May 27, 2016 at 9:10 AM, Ashwin Chaugule
+> > <ashwin.chaugule@linaro.org> wrote:
+> >> On 25 May 2016 at 15:09, Hoan Tran <hotran@apm.com> wrote:
+> >>> When CPPC fails to request PCC channel, the CPC data is freed
+> >>> and cpc_desc_ptr points to the invalid data. This change prevents
+> >>> this issue by moving cpc_desc_ptr assignment after PCC channel
+> >>> request.
+> >>>
+> >>> Signed-off-by: Hoan Tran <hotran@apm.com>
+> >>> ---
+> >>>  drivers/acpi/cppc_acpi.c | 6 +++---
+> >>>  1 file changed, 3 insertions(+), 3 deletions(-)
+> >>>
+> >>> diff --git a/drivers/acpi/cppc_acpi.c b/drivers/acpi/cppc_acpi.c
+> >>> index 8adac69..85fd8f7 100644
+> >>> --- a/drivers/acpi/cppc_acpi.c
+> >>> +++ b/drivers/acpi/cppc_acpi.c
+> >>> @@ -595,9 +595,6 @@ int acpi_cppc_processor_probe(struct acpi_processor *pr)
+> >>>         /* Store CPU Logical ID */
+> >>>         cpc_ptr->cpu_id = pr->id;
+> >>>
+> >>> -       /* Plug it into this CPUs CPC descriptor. */
+> >>> -       per_cpu(cpc_desc_ptr, pr->id) = cpc_ptr;
+> >>> -
+> >>>         /* Parse PSD data for this CPU */
+> >>>         ret = acpi_get_psd(cpc_ptr, handle);
+> >>>         if (ret)
+> >>> @@ -610,6 +607,9 @@ int acpi_cppc_processor_probe(struct acpi_processor *pr)
+> >>>                         goto out_free;
+> >>>         }
+> >>>
+> >>> +       /* Plug PSD data into this CPUs CPC descriptor. */
+> >>> +       per_cpu(cpc_desc_ptr, pr->id) = cpc_ptr;
+> >>> +
+> >>
+> >> Are you seeing a real problem without this change? I'm missing where
+> >> this pointer is dereferenced if the PCC channel request fails.
+> >>
+>
+> So, after freeing the cpc_ptr, we need to NULL the per-cpu pointer as
+> well. Alternately, not assign it until everything passes and rely on
+> the static declaration, which is the path you've taken here.
+>
+> Acked-by: Ashwin Chaugule <ashwin.chaugule@linaro.org>
 
-That can be done. I'll make the change and do some cross-compiling tests first.
+Hi Rafael,
+
+Do you have plan to apply this patch ?
 
 Thanks
-Rui
+Hoan
