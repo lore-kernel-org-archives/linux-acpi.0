@@ -1,497 +1,167 @@
 From: Bin Gao <bin.gao@linux.intel.com>
-Subject: [PATCH v4 2/3] acpi/pmic: Add opregion driver for Intel BXT
- WhiskeyCove PMIC
-Date: Thu, 23 Jun 2016 17:48:51 -0700
-Message-ID: <20160624004851.GE83592@worksta>
+Subject: [PATCH v4 3/3] acpi/pmic: Add support for PMIC regs operation region
+Date: Thu, 23 Jun 2016 17:52:53 -0700
+Message-ID: <20160624005253.GF83592@worksta>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga11.intel.com ([192.55.52.93]:22515 "EHLO mga11.intel.com"
+Received: from mga09.intel.com ([134.134.136.24]:42791 "EHLO mga09.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750811AbcFXAo4 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 23 Jun 2016 20:44:56 -0400
+	id S1750811AbcFXAs7 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 23 Jun 2016 20:48:59 -0400
 Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Aaron Lu <aaron.lu@intel.com>, Paul Gortmaker <paul.gortmaker@windriver.com>, linux-acpi@vger.kernel.org
 Cc: linux-kernel@vger.kernel.org, ysiyer <yegnesh.s.iyer@intel.com>, Ajay Thomas <ajay.thomas.david.rajamanickam@intel.com>, Bin Gao <bin.gao@intel.com>
 
-This patch adds operation region driver for Intel BXT WhiskeyCove
-PMIC. The register mapping is done as per the BXT WC data sheet.
+Broxton platform firmware has defined new customized operation regions
+called regs for PMIC chip - regs op region is used to handle the
+PMIC gpio mainly intended for the TYPE-C VBUS and Orientation.
 
-Signed-off-by: Ajay Thomas <ajay.thomas.david.rajamanickam@intel.com>
+The intel_gpio_ctx  structure is created for the purpose of handling
+the PMIC gpio register read and write.
+
+Signed-off-by: Felipe Balbi <felipe.balbi@linux.intel.com>
+Signed-off-by: Chandra Sekhar Anagani <chandra.sekhar.anagani@intel.com>
 Signed-off-by: Bin Gao <bin.gao@intel.com>
 ---
 Changes in v4:
- - Reverted(removed) regs_read() and regs_write() methods
-Changes in v3:
- - Added regs_read() and regs_write() methods
-Changes in v2:
- - replaced module_init() with device_initcall()
- drivers/acpi/Kconfig                 |   6 +
- drivers/acpi/Makefile                |   1 +
- drivers/acpi/pmic/intel_pmic_bxtwc.c | 424 +++++++++++++++++++++++++++++++++++
- 3 files changed, 431 insertions(+)
- create mode 100644 drivers/acpi/pmic/intel_pmic_bxtwc.c
+ - various fixes to address Aaron's comments.
+Changes in v3: none
+Changes in v2: none
+ drivers/acpi/pmic/intel_pmic.c | 74 ++++++++++++++++++++++++++++++++++++++++--
+ drivers/acpi/pmic/intel_pmic.h |  5 +++
+ 2 files changed, 76 insertions(+), 3 deletions(-)
 
-diff --git a/drivers/acpi/Kconfig b/drivers/acpi/Kconfig
-index b7e2e77..47cb6f6 100644
---- a/drivers/acpi/Kconfig
-+++ b/drivers/acpi/Kconfig
-@@ -519,6 +519,12 @@ config XPOWER_PMIC_OPREGION
- 	help
- 	  This config adds ACPI operation region support for XPower AXP288 PMIC.
+diff --git a/drivers/acpi/pmic/intel_pmic.c b/drivers/acpi/pmic/intel_pmic.c
+index 410e96f..e11d1e0 100644
+--- a/drivers/acpi/pmic/intel_pmic.c
++++ b/drivers/acpi/pmic/intel_pmic.c
+@@ -21,12 +21,14 @@
  
-+config BXT_WC_PMIC_OPREGION
-+	bool "ACPI operation region support for BXT WhiskeyCove PMIC"
-+	depends on INTEL_SOC_PMIC
-+	help
-+	  This config adds ACPI operation region support for BXT WhiskeyCove PMIC.
-+
- endif
+ #define PMIC_POWER_OPREGION_ID		0x8d
+ #define PMIC_THERMAL_OPREGION_ID	0x8c
++#define PMIC_REGS_OPREGION_ID		0x8f
  
- endif	# ACPI
-diff --git a/drivers/acpi/Makefile b/drivers/acpi/Makefile
-index 251ce85..5da9d4b 100644
---- a/drivers/acpi/Makefile
-+++ b/drivers/acpi/Makefile
-@@ -99,5 +99,6 @@ obj-$(CONFIG_ACPI_EXTLOG)	+= acpi_extlog.o
- obj-$(CONFIG_PMIC_OPREGION)	+= pmic/intel_pmic.o
- obj-$(CONFIG_CRC_PMIC_OPREGION) += pmic/intel_pmic_crc.o
- obj-$(CONFIG_XPOWER_PMIC_OPREGION) += pmic/intel_pmic_xpower.o
-+obj-$(CONFIG_BXT_WC_PMIC_OPREGION) += pmic/intel_pmic_bxtwc.o
+ struct intel_pmic_opregion {
+ 	struct mutex lock;
+ 	struct acpi_lpat_conversion_table *lpat_table;
+ 	struct regmap *regmap;
+ 	struct intel_pmic_opregion_data *data;
++	struct pmic_gpio_ctx	ctx;
+ };
  
- video-objs			+= acpi_video.o video_detect.o
-diff --git a/drivers/acpi/pmic/intel_pmic_bxtwc.c b/drivers/acpi/pmic/intel_pmic_bxtwc.c
-new file mode 100644
-index 0000000..ab2c2fd
---- /dev/null
-+++ b/drivers/acpi/pmic/intel_pmic_bxtwc.c
-@@ -0,0 +1,424 @@
-+/*
-+ * intel_pmic_bxtwc.c - Intel BXT WhiskeyCove PMIC operation region driver
-+ *
-+ * Copyright (C) 2015 Intel Corporation. All rights reserved.
-+ *
-+ * This program is free software; you can redistribute it and/or
-+ * modify it under the terms of the GNU General Public License version
-+ * 2 as published by the Free Software Foundation.
-+ *
-+ * This program is distributed in the hope that it will be useful,
-+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
-+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-+ * GNU General Public License for more details.
-+ */
+ static int pmic_get_reg_bit(int address, struct pmic_table *table,
+@@ -204,6 +206,56 @@ static acpi_status intel_pmic_thermal_handler(u32 function,
+ 	return AE_OK;
+ }
+ 
++static acpi_status intel_pmic_gpio_handler(u32 function,
++	acpi_physical_address address, u32 bits, u64 *value64,
++		void *handler_context, void *region_context)
++{
++	struct intel_pmic_opregion *opregion = region_context;
++	int result;
 +
-+#include <linux/module.h>
-+#include <linux/acpi.h>
-+#include <linux/mfd/intel_soc_pmic.h>
-+#include <linux/regmap.h>
-+#include <linux/platform_device.h>
-+#include "intel_pmic.h"
++	switch (address) {
++	case 0:
++		return AE_OK;
++	case 1:
++		opregion->ctx.address |= (*value64 & 0xff) << 8;
++		return AE_OK;
++	case 2:
++		opregion->ctx.address |= *value64 & 0xff;
++		return AE_OK;
++	case 3:
++		opregion->ctx.value = *value64 & 0xff;
++		return AE_OK;
++	case 4:
++		if (*value64) {
++			result = regmap_write(opregion->regmap,
++					 opregion->ctx.address,
++					opregion->ctx.value);
++		} else {
++			result = regmap_read(opregion->regmap,
++					opregion->ctx.address,
++					&opregion->ctx.value);
++			if (result == 0)
++				*value64 = opregion->ctx.value;
++		}
++		memset(&opregion->ctx, 0x00, sizeof(opregion->ctx));
++		break;
++	default:
++		pr_err("%s(): Inavlid address %llu, please check the BIOS\n",
++							 __func__, address);
++		return AE_ERROR;
++	}
 +
-+#define WHISKEY_COVE_ALRT_HIGH_BIT_MASK 0x0F
-+#define WHISKEY_COVE_ADC_HIGH_BIT(x)	(((x & 0x0F) << 8))
-+#define WHISKEY_COVE_ADC_CURSRC(x)	(((x & 0xF0) >> 4))
-+#define VR_MODE_DISABLED        0
-+#define VR_MODE_AUTO            BIT(0)
-+#define VR_MODE_NORMAL          BIT(1)
-+#define VR_MODE_SWITCH          BIT(2)
-+#define VR_MODE_ECO             (BIT(0)|BIT(1))
-+#define VSWITCH2_OUTPUT         BIT(5)
-+#define VSWITCH1_OUTPUT         BIT(4)
-+#define VUSBPHY_CHARGE          BIT(1)
++	if (result < 0) {
++		if (result == -EINVAL)
++			return AE_BAD_PARAMETER;
++		else
++			return AE_ERROR;
++	}
 +
-+static struct pmic_table power_table[] = {
-+	{
-+		.address = 0x0,
-+		.reg = 0x63,
-+		.bit = VR_MODE_AUTO,
-+	}, /* VDD1 -> VDD1CNT */
-+	{
-+		.address = 0x04,
-+		.reg = 0x65,
-+		.bit = VR_MODE_AUTO,
-+	}, /* VDD2 -> VDD2CNT */
-+	{
-+		.address = 0x08,
-+		.reg = 0x67,
-+		.bit = VR_MODE_AUTO,
-+	}, /* VDD3 -> VDD3CNT */
-+	{
-+		.address = 0x0c,
-+		.reg = 0x6d,
-+		.bit = VR_MODE_AUTO,
-+	}, /* VLFX -> VFLEXCNT */
-+	{
-+		.address = 0x10,
-+		.reg = 0x6f,
-+		.bit = VR_MODE_NORMAL,
-+	}, /* VP1A -> VPROG1ACNT */
-+	{
-+		.address = 0x14,
-+		.reg = 0x70,
-+		.bit = VR_MODE_NORMAL,
-+	}, /* VP1B -> VPROG1BCNT */
-+	{
-+		.address = 0x18,
-+		.reg = 0x71,
-+		.bit = VR_MODE_NORMAL,
-+	}, /* VP1C -> VPROG1CCNT */
-+	{
-+		.address = 0x1c,
-+		.reg = 0x72,
-+		.bit = VR_MODE_NORMAL,
-+	}, /* VP1D -> VPROG1DCNT */
-+	{
-+		.address = 0x20,
-+		.reg = 0x73,
-+		.bit = VR_MODE_NORMAL,
-+	}, /* VP2A -> VPROG2ACNT */
-+	{
-+		.address = 0x24,
-+		.reg = 0x74,
-+		.bit = VR_MODE_NORMAL,
-+	}, /* VP2B -> VPROG2BCNT */
-+	{
-+		.address = 0x28,
-+		.reg = 0x75,
-+		.bit = VR_MODE_NORMAL,
-+	}, /* VP2C -> VPROG2CCNT */
-+	{
-+		.address = 0x2c,
-+		.reg = 0x76,
-+		.bit = VR_MODE_NORMAL,
-+	}, /* VP3A -> VPROG3ACNT */
-+	{
-+		.address = 0x30,
-+		.reg = 0x77,
-+		.bit = VR_MODE_NORMAL,
-+	}, /* VP3B -> VPROG3BCNT */
-+	{
-+		.address = 0x34,
-+		.reg = 0x78,
-+		.bit = VSWITCH2_OUTPUT,
-+	}, /* VSW2 -> VLD0CNT Bit 5*/
-+	{
-+		.address = 0x38,
-+		.reg = 0x78,
-+		.bit = VSWITCH1_OUTPUT,
-+	}, /* VSW1 -> VLD0CNT Bit 4 */
-+	{
-+		.address = 0x3c,
-+		.reg = 0x78,
-+		.bit = VUSBPHY_CHARGE,
-+	}, /* VUPY -> VLDOCNT Bit 1 */
-+	{
-+		.address = 0x40,
-+		.reg = 0x7b,
-+		.bit = VR_MODE_NORMAL,
-+	}, /* VRSO -> VREFSOCCNT*/
-+	{
-+		.address = 0x44,
-+		.reg = 0xA0,
-+		.bit = VR_MODE_NORMAL,
-+	}, /* VP1E -> VPROG1ECNT */
-+	{
-+		.address = 0x48,
-+		.reg = 0xA1,
-+		.bit = VR_MODE_NORMAL,
-+	}, /* VP1F -> VPROG1FCNT */
-+	{
-+		.address = 0x4c,
-+		.reg = 0xA2,
-+		.bit = VR_MODE_NORMAL,
-+	}, /* VP2D -> VPROG2DCNT */
-+	{
-+		.address = 0x50,
-+		.reg = 0xA3,
-+		.bit = VR_MODE_NORMAL,
-+	}, /* VP4A -> VPROG4ACNT */
-+	{
-+		.address = 0x54,
-+		.reg = 0xA4,
-+		.bit = VR_MODE_NORMAL,
-+	}, /* VP4B -> VPROG4BCNT */
-+	{
-+		.address = 0x58,
-+		.reg = 0xA5,
-+		.bit = VR_MODE_NORMAL,
-+	}, /* VP4C -> VPROG4CCNT */
-+	{
-+		.address = 0x5c,
-+		.reg = 0xA6,
-+		.bit = VR_MODE_NORMAL,
-+	}, /* VP4D -> VPROG4DCNT */
-+	{
-+		.address = 0x60,
-+		.reg = 0xA7,
-+		.bit = VR_MODE_NORMAL,
-+	}, /* VP5A -> VPROG5ACNT */
-+	{
-+		.address = 0x64,
-+		.reg = 0xA8,
-+		.bit = VR_MODE_NORMAL,
-+	}, /* VP5B -> VPROG5BCNT */
-+	{
-+		.address = 0x68,
-+		.reg = 0xA9,
-+		.bit = VR_MODE_NORMAL,
-+	}, /* VP6A -> VPROG6ACNT */
-+	{
-+		.address = 0x6c,
-+		.reg = 0xAA,
-+		.bit = VR_MODE_NORMAL,
-+	}, /* VP6B -> VPROG6BCNT */
-+	{
-+		.address = 0x70,
-+		.reg = 0x36,
-+		.bit = BIT(2),
-+	}, /* SDWN_N -> MODEMCTRL Bit 2 */
-+	{
-+		.address = 0x74,
-+		.reg = 0x36,
-+		.bit = BIT(0),
-+	} /* MOFF -> MODEMCTRL Bit 0 */
++	return AE_OK;
++}
++
++
+ int intel_pmic_install_opregion_handler(struct device *dev, acpi_handle handle,
+ 					struct regmap *regmap,
+ 					struct intel_pmic_opregion_data *d)
+@@ -240,15 +292,31 @@ int intel_pmic_install_opregion_handler(struct device *dev, acpi_handle handle,
+ 						    intel_pmic_thermal_handler,
+ 						    NULL, opregion);
+ 	if (ACPI_FAILURE(status)) {
+-		acpi_remove_address_space_handler(handle, PMIC_POWER_OPREGION_ID,
+-						  intel_pmic_power_handler);
+ 		ret = -ENODEV;
+-		goto out_error;
++		goto remove_pmic_power_handler;
++	}
++
++	status = acpi_install_address_space_handler(handle,
++						    PMIC_REGS_OPREGION_ID,
++						    intel_pmic_gpio_handler,
++						    NULL, opregion);
++	if (ACPI_FAILURE(status)) {
++		ret = -ENODEV;
++		goto remove_pmic_thermal_handler;
+ 	}
+ 
+ 	opregion->data = d;
+ 	return 0;
+ 
++remove_pmic_thermal_handler:
++		acpi_remove_address_space_handler(handle,
++						PMIC_POWER_OPREGION_ID,
++						intel_pmic_thermal_handler);
++remove_pmic_power_handler:
++		acpi_remove_address_space_handler(handle,
++						PMIC_POWER_OPREGION_ID,
++						intel_pmic_power_handler);
++
+ out_error:
+ 	acpi_lpat_free_conversion_table(opregion->lpat_table);
+ 	return ret;
+diff --git a/drivers/acpi/pmic/intel_pmic.h b/drivers/acpi/pmic/intel_pmic.h
+index e8bfa7b..c87c2ef 100644
+--- a/drivers/acpi/pmic/intel_pmic.h
++++ b/drivers/acpi/pmic/intel_pmic.h
+@@ -7,6 +7,11 @@ struct pmic_table {
+ 	int bit;	/* control bit for power */
+ };
+ 
++struct pmic_gpio_ctx {
++	u16 address;		/* pmic regs address */
++	unsigned int value;	/* value to write @regs address */
 +};
 +
-+static struct pmic_table thermal_table[] = {
-+	{
-+		.address = 0x00,
-+		.reg = 0x4F39
-+	},
-+	{
-+		.address = 0x04,
-+		.reg = 0x4F24
-+	},
-+	{
-+		.address = 0x08,
-+		.reg = 0x4F26
-+	},
-+	{
-+		.address = 0x0c,
-+		.reg = 0x4F3B
-+	},
-+	{
-+		.address = 0x10,
-+		.reg = 0x4F28
-+	},
-+	{
-+		.address = 0x14,
-+		.reg = 0x4F2A
-+	},
-+	{
-+		.address = 0x18,
-+		.reg = 0x4F3D
-+	},
-+	{
-+		.address = 0x1c,
-+		.reg = 0x4F2C
-+	},
-+	{
-+		.address = 0x20,
-+		.reg = 0x4F2E
-+	},
-+	{
-+		.address = 0x24,
-+		.reg = 0x4F3F
-+	},
-+	{
-+		.address = 0x28,
-+		.reg = 0x4F30
-+	},
-+	{
-+		.address = 0x30,
-+		.reg = 0x4F41
-+	},
-+	{
-+		.address = 0x34,
-+		.reg = 0x4F32
-+	},
-+	{
-+		.address = 0x3c,
-+		.reg = 0x4F43
-+	},
-+	{
-+		.address = 0x40,
-+		.reg = 0x4F34
-+	},
-+	{
-+		.address = 0x48,
-+		.reg = 0x4F6A,
-+		.bit = 0,
-+	},
-+	{
-+		.address = 0x4C,
-+		.reg = 0x4F6A,
-+		.bit = 1
-+	},
-+	{
-+		.address = 0x50,
-+		.reg = 0x4F6A,
-+		.bit = 2
-+	},
-+	{
-+		.address = 0x54,
-+		.reg = 0x4F6A,
-+		.bit = 4
-+	},
-+	{
-+		.address = 0x58,
-+		.reg = 0x4F6A,
-+		.bit = 5
-+	},
-+	{
-+		.address = 0x5C,
-+		.reg = 0x4F6A,
-+		.bit = 3
-+	},
-+};
-+
-+static int intel_bxtwc_pmic_get_power(struct regmap *regmap, int reg,
-+		int bit, u64 *value)
-+{
-+	int data;
-+
-+	if (regmap_read(regmap, reg, &data))
-+		return -EIO;
-+
-+	*value = (data & bit) ? 1 : 0;
-+	return 0;
-+}
-+
-+static int intel_bxtwc_pmic_update_power(struct regmap *regmap, int reg,
-+		int bit, bool on)
-+{
-+	u8 val, mask = bit;
-+
-+	if (on)
-+		val = 0xFF;
-+	else
-+		val = 0x0;
-+
-+	return regmap_update_bits(regmap, reg, mask, val);
-+}
-+
-+static int intel_bxtwc_pmic_get_raw_temp(struct regmap *regmap, int reg)
-+{
-+	unsigned int val, adc_val, reg_val;
-+	u8 temp_l, temp_h, cursrc;
-+	unsigned long rlsb;
-+	static const unsigned long rlsb_array[] = {
-+		0, 260420, 130210, 65100, 32550, 16280,
-+		8140, 4070, 2030, 0, 260420, 130210 };
-+
-+	if (regmap_read(regmap, reg, &val))
-+		return -EIO;
-+	temp_l = (u8) val;
-+
-+	if (regmap_read(regmap, (reg - 1), &val))
-+		return -EIO;
-+	temp_h = (u8) val;
-+
-+	reg_val = temp_l | WHISKEY_COVE_ADC_HIGH_BIT(temp_h);
-+	cursrc = WHISKEY_COVE_ADC_CURSRC(temp_h);
-+	rlsb = rlsb_array[cursrc];
-+	adc_val = reg_val * rlsb / 1000;
-+
-+	return adc_val;
-+}
-+
-+static int
-+intel_bxtwc_pmic_update_aux(struct regmap *regmap, int reg, int raw)
-+{
-+	u32 bsr_num;
-+	u16 resi_val, count = 0, thrsh = 0;
-+	u8 alrt_h, alrt_l, cursel = 0;
-+
-+	bsr_num = raw;
-+	bsr_num /= (1 << 5);
-+
-+	count = fls(bsr_num) - 1;
-+
-+	cursel = clamp_t(s8, (count - 7), 0, 7);
-+	thrsh = raw / (1 << (4 + cursel));
-+
-+	resi_val = (cursel << 9) | thrsh;
-+	alrt_h = (resi_val >> 8) & WHISKEY_COVE_ALRT_HIGH_BIT_MASK;
-+	if (regmap_update_bits(regmap,
-+				reg - 1,
-+				WHISKEY_COVE_ALRT_HIGH_BIT_MASK,
-+				alrt_h))
-+		return -EIO;
-+
-+	alrt_l = (u8)resi_val;
-+	return regmap_write(regmap, reg, alrt_l);
-+}
-+
-+static int
-+intel_bxtwc_pmic_get_policy(struct regmap *regmap, int reg, int bit, u64 *value)
-+{
-+	u8 mask = BIT(bit);
-+	unsigned int val;
-+
-+	if (regmap_read(regmap, reg, &val))
-+		return -EIO;
-+
-+	*value = (val & mask) >> bit;
-+	return 0;
-+}
-+
-+static int
-+intel_bxtwc_pmic_update_policy(struct regmap *regmap,
-+				int reg, int bit, int enable)
-+{
-+	u8 mask = BIT(bit), val = enable << bit;
-+
-+	return regmap_update_bits(regmap, reg, mask, val);
-+}
-+
-+static struct intel_pmic_opregion_data intel_bxtwc_pmic_opregion_data = {
-+	.get_power      = intel_bxtwc_pmic_get_power,
-+	.update_power   = intel_bxtwc_pmic_update_power,
-+	.get_raw_temp   = intel_bxtwc_pmic_get_raw_temp,
-+	.update_aux     = intel_bxtwc_pmic_update_aux,
-+	.get_policy     = intel_bxtwc_pmic_get_policy,
-+	.update_policy  = intel_bxtwc_pmic_update_policy,
-+	.power_table      = power_table,
-+	.power_table_count = ARRAY_SIZE(power_table),
-+	.thermal_table     = thermal_table,
-+	.thermal_table_count = ARRAY_SIZE(thermal_table),
-+};
-+
-+static int intel_bxtwc_pmic_opregion_probe(struct platform_device *pdev)
-+{
-+	struct intel_soc_pmic *pmic = dev_get_drvdata(pdev->dev.parent);
-+
-+	return intel_pmic_install_opregion_handler(&pdev->dev,
-+			ACPI_HANDLE(pdev->dev.parent),
-+			pmic->regmap,
-+			&intel_bxtwc_pmic_opregion_data);
-+}
-+
-+static struct platform_device_id bxt_wc_opregion_id_table[] = {
-+	{ .name = "bxt_wcove_region" },
-+	{},
-+};
-+
-+static struct platform_driver intel_bxtwc_pmic_opregion_driver = {
-+	.probe = intel_bxtwc_pmic_opregion_probe,
-+	.driver = {
-+		.name = "bxt_whiskey_cove_pmic",
-+	},
-+	.id_table = bxt_wc_opregion_id_table,
-+};
-+
-+static int __init intel_bxtwc_pmic_opregion_driver_init(void)
-+{
-+	return platform_driver_register(&intel_bxtwc_pmic_opregion_driver);
-+}
-+
-+device_initcall(intel_bxtwc_pmic_opregion_driver_init);
-+
-+MODULE_DESCRIPTION("BXT WhiskeyCove ACPI opregion driver");
-+MODULE_LICENSE("GPL");
+ struct intel_pmic_opregion_data {
+ 	int (*get_power)(struct regmap *r, int reg, int bit, u64 *value);
+ 	int (*update_power)(struct regmap *r, int reg, int bit, bool on);
 -- 
 1.9.1
+
 
