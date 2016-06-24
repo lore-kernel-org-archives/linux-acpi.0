@@ -1,126 +1,153 @@
-From: Dennis Chen <dennis.chen-5wv7dgnIgG8@public.gmane.org>
-Subject: [PATCH v2 2/2] arm64:acpi Fix the acpi alignment exeception when 'mem=' specified
-Date: Fri, 24 Jun 2016 11:13:47 +0800
-Message-ID: <1466738027-15066-2-git-send-email-dennis.chen@arm.com>
-References: <1466738027-15066-1-git-send-email-dennis.chen@arm.com>
+From: "Sajjan, Vikas C" <vikas.cha.sajjan@hpe.com>
+Subject: RE: [PATCH] drivers: firmware: psci: Add support for cpu suspend mode
+ as per psci v1.0 spec
+Date: Fri, 24 Jun 2016 03:57:53 +0000
+Message-ID: <DF4PR84MB0041ED3B18FB74C886B3F31BD92E0@DF4PR84MB0041.NAMPRD84.PROD.OUTLOOK.COM>
+References: <1466684053-26966-1-git-send-email-vikas.cha.sajjan@hpe.com>
+ <20160623125008.GE8836@leverpostej>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=WINDOWS-1252
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-efi-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1466738027-15066-1-git-send-email-dennis.chen-5wv7dgnIgG8@public.gmane.org>
-Sender: linux-efi-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
-Cc: nd-5wv7dgnIgG8@public.gmane.org, Dennis Chen <dennis.chen-5wv7dgnIgG8@public.gmane.org>, Catalin Marinas <catalin.marinas-5wv7dgnIgG8@public.gmane.org>, Steve Capper <steve.capper-5wv7dgnIgG8@public.gmane.org>, Ard Biesheuvel <ard.biesheuvel-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Will Deacon <will.deacon-5wv7dgnIgG8@public.gmane.org>, Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>, "Rafael J . Wysocki" <rafael.j.wysocki-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Matt Fleming <matt-mF/unelCI9GS6iBeEJttW/XRex20P6io@public.gmane.org>, linux-mm-Bw31MaZKKs3YtjvyW6yDsg@public.gmane.org, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-efi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <20160623125008.GE8836@leverpostej>
+Content-Language: en-US
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Mark Rutland <mark.rutland@arm.com>
+Cc: "lorenzo.pieralisi@arm.com" <lorenzo.pieralisi@arm.com>, "rafael.j.wysocki@intel.com" <rafael.j.wysocki@intel.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "sudeep.holla@arm.com" <sudeep.holla@arm.com>, "lina.iyer@linaro.org" <lina.iyer@linaro.org>
 List-Id: linux-acpi@vger.kernel.org
 
-When booting an ACPI enabled kernel with 'mem=', probably the ACPI data
-regions loaded by firmware will beyond the limit of the memory, in this
-case we need to nomap the region above the limit while not removing
-it from memblock, because once region removed from memblock, the ACPI
-will think that region is not a normal memory and map it as device type
-memory accordingly. Since the ACPI core will produce non-alignment access
-when paring AML data stream, hence result in alignment fault upon the io
-mapped memory space.
 
-For example, below is an alignment exception observed on softIron board
-when booting the kernel with 'acpi=force mem=8G':
-...
-[    0.542475] Unable to handle kernel paging request at virtual address ffff0000080521e7
-[    0.550457] pgd = ffff000008aa0000
-[    0.553880] [ffff0000080521e7] *pgd=000000801fffe003, *pud=000000801fffd003, *pmd=000000801fffc003, *pte=00e80083ff1c1707
-[    0.564939] Internal error: Oops: 96000021 [#1] PREEMPT SMP
-[    0.570553] Modules linked in:
-[    0.573626] CPU: 1 PID: 1 Comm: swapper/0 Not tainted 4.7.0-rc3-next-20160616+ #172
-[    0.581344] Hardware name: AMD Overdrive/Supercharger/Default string, BIOS ROD1001A 02/09/2016
-[    0.590025] task: ffff800001ef0000 ti: ffff800001ef8000 task.ti: ffff800001ef8000
-[    0.597571] PC is at acpi_ns_lookup+0x520/0x734
-[    0.602134] LR is at acpi_ns_lookup+0x4a4/0x734
-[    0.606693] pc : [<ffff0000083b8b10>] lr : [<ffff0000083b8a94>] pstate: 60000045
-[    0.614145] sp : ffff800001efb8b0
-[    0.617478] x29: ffff800001efb8c0 x28: 000000000000001b
-[    0.622829] x27: 0000000000000001 x26: 0000000000000000
-[    0.628181] x25: ffff800001efb9e8 x24: ffff000008a10000
-[    0.633531] x23: 0000000000000001 x22: 0000000000000001
-[    0.638881] x21: ffff000008724000 x20: 000000000000001b
-[    0.644230] x19: ffff0000080521e7 x18: 000000000000000d
-[    0.649580] x17: 00000000000038ff x16: 0000000000000002
-[    0.654929] x15: 0000000000000007 x14: 0000000000007fff
-[    0.660278] x13: ffffff0000000000 x12: 0000000000000018
-[    0.665627] x11: 000000001fffd200 x10: 00000000ffffff76
-[    0.670978] x9 : 000000000000005f x8 : ffff000008725fa8
-[    0.676328] x7 : ffff000008a8df70 x6 : ffff000008a8df70
-[    0.681679] x5 : ffff000008a8d000 x4 : 0000000000000010
-[    0.687027] x3 : 0000000000000010 x2 : 000000000000000c
-[    0.692378] x1 : 0000000000000006 x0 : 0000000000000000
-...
-[    1.262235] [<ffff0000083b8b10>] acpi_ns_lookup+0x520/0x734
-[    1.267845] [<ffff0000083a7160>] acpi_ds_load1_begin_op+0x174/0x4fc
-[    1.274156] [<ffff0000083c1f4c>] acpi_ps_build_named_op+0xf8/0x220
-[    1.280380] [<ffff0000083c227c>] acpi_ps_create_op+0x208/0x33c
-[    1.286254] [<ffff0000083c1820>] acpi_ps_parse_loop+0x204/0x838
-[    1.292215] [<ffff0000083c2fd4>] acpi_ps_parse_aml+0x1bc/0x42c
-[    1.298090] [<ffff0000083bc6e8>] acpi_ns_one_complete_parse+0x1e8/0x22c
-[    1.304753] [<ffff0000083bc7b8>] acpi_ns_parse_table+0x8c/0x128
-[    1.310716] [<ffff0000083bb8fc>] acpi_ns_load_table+0xc0/0x1e8
-[    1.316591] [<ffff0000083c9068>] acpi_tb_load_namespace+0xf8/0x2e8
-[    1.322818] [<ffff000008984128>] acpi_load_tables+0x7c/0x110
-[    1.328516] [<ffff000008982ea4>] acpi_init+0x90/0x2c0
-[    1.333603] [<ffff0000080819fc>] do_one_initcall+0x38/0x12c
-[    1.339215] [<ffff000008960cd4>] kernel_init_freeable+0x148/0x1ec
-[    1.345353] [<ffff0000086b7d30>] kernel_init+0x10/0xec
-[    1.350529] [<ffff000008084e10>] ret_from_fork+0x10/0x40
-[    1.355878] Code: b9009fbc 2a00037b 36380057 3219037b (b9400260)
-[    1.362035] ---[ end trace 03381e5eb0a24de4 ]---
-[    1.366691] Kernel panic - not syncing: Attempted to kill init! exitcode=0x0000000b
 
-With 'efi=debug', we can see those ACPI regions loaded by firmware on
-that board as:
-[    0.000000] efi:   0x0083ff1b5000-0x0083ff1c2fff [ACPI Reclaim Memory|   |  |  |  |  |  |  |   |WB|WT|WC|UC]*
-[    0.000000] efi:   0x0083ff223000-0x0083ff224fff [ACPI Memory NVS    |   |  |  |  |  |  |  |   |WB|WT|WC|UC]*
+-----Original Message-----
+From: Mark Rutland [mailto:mark.rutland@arm.com] 
+Sent: Thursday, June 23, 2016 6:20 PM
+To: Sajjan, Vikas C <vikas.cha.sajjan@hpe.com>
+Cc: lorenzo.pieralisi@arm.com; rafael.j.wysocki@intel.com; linux-acpi@vger.kernel.org; sudeep.holla@arm.com; linux-arm-kernel@lists.infradead.org
+Subject: Re: [PATCH] drivers: firmware: psci: Add support for cpu suspend mode as per psci v1.0 spec
 
-This patch is trying to address the above issues by nomaping the region
-instead of removing it.
+On Thu, Jun 23, 2016 at 05:44:13PM +0530, Vikas C Sajjan wrote:
+> According to section 5.1.16 of PSCI spec, an optional feature called 
+> PSCI_SET_SUSPEND_MODE was added in v1.0.
+> This patch adds the support for the same.
 
-Signed-off-by: Dennis Chen <dennis.chen-5wv7dgnIgG8@public.gmane.org>
-Cc: Catalin Marinas <catalin.marinas-5wv7dgnIgG8@public.gmane.org>
-Cc: Steve Capper <steve.capper-5wv7dgnIgG8@public.gmane.org>
-Cc: Ard Biesheuvel <ard.biesheuvel-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
-Cc: Will Deacon <will.deacon-5wv7dgnIgG8@public.gmane.org>
-Cc: Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>
-Cc: Rafael J. Wysocki <rafael.j.wysocki-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: Matt Fleming <matt-mF/unelCI9GS6iBeEJttW/XRex20P6io@public.gmane.org>
-Cc: linux-mm-Bw31MaZKKs3YtjvyW6yDsg@public.gmane.org
-Cc: linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: linux-efi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
----
-Changes in v2:
-Update the commit message and remove the memblock_is_map_memory() check
-according to the suggestion from Mark Rutland.
+This alone is not sufficient to use OS Initiated mode.
 
- arch/arm64/mm/init.c | 9 +++++----
- 1 file changed, 5 insertions(+), 4 deletions(-)
+Lina Iyer has been looking into more comprehensive support. Please see [1,2]
 
-diff --git a/arch/arm64/mm/init.c b/arch/arm64/mm/init.c
-index d45f862..6af2456 100644
---- a/arch/arm64/mm/init.c
-+++ b/arch/arm64/mm/init.c
-@@ -222,12 +222,13 @@ void __init arm64_memblock_init(void)
- 
- 	/*
- 	 * Apply the memory limit if it was set. Since the kernel may be loaded
--	 * high up in memory, add back the kernel region that must be accessible
--	 * via the linear mapping.
-+	 * in the memory regions above the limit, so we need to clear the
-+	 * MEMBLOCK_NOMAP flag of this region to make it can be accessible via
-+	 * the linear mapping.
- 	 */
- 	if (memory_limit != (phys_addr_t)ULLONG_MAX) {
--		memblock_enforce_memory_limit(memory_limit);
--		memblock_add(__pa(_text), (u64)(_end - _text));
-+		memblock_mem_limit_mark_nomap(memory_limit);
-+		memblock_clear_nomap(__pa(_text), (u64)(_end - _text));
- 	}
- 
- 	if (IS_ENABLED(CONFIG_BLK_DEV_INITRD) && initrd_start) {
--- 
-1.8.3.1
+Sure Mark, will see lina's patchset. I somehow missed this series, thank you.
+
+
+[1] http://lists.infradead.org/pipermail/linux-arm-kernel/2016-June/438625.html
+[2] http://lists.infradead.org/pipermail/linux-arm-kernel/2016-June/438642.html
+
+Thanks,
+Mark.
+
+Thanks and Regards
+Vikas Sajjan
+
+> 
+> Signed-off-by: Vikas C Sajjan <vikas.cha.sajjan@hpe.com>
+> ---
+>  drivers/firmware/psci.c   | 20 +++++++++++++++++++-
+>  include/linux/psci.h      |  1 +
+>  include/uapi/linux/psci.h |  6 +++++-
+>  3 files changed, 25 insertions(+), 2 deletions(-)
+> 
+> diff --git a/drivers/firmware/psci.c b/drivers/firmware/psci.c index 
+> 03e0458..c318972 100644
+> --- a/drivers/firmware/psci.c
+> +++ b/drivers/firmware/psci.c
+> @@ -91,6 +91,12 @@ static inline bool psci_has_ext_power_state(void)
+>  				PSCI_1_0_FEATURES_CPU_SUSPEND_PF_MASK;
+>  }
+>  
+> +static inline bool psci_has_OS_initiated_mode_support(void)
+> +{
+> +	return psci_cpu_suspend_feature &
+> +			PSCI_1_0_FEATURES_CPU_SUSPEND_OS_INITIATED_MODE_MASK;
+> +}
+> +
+>  static inline bool psci_power_state_loses_context(u32 state)  {
+>  	const u32 mask = psci_has_ext_power_state() ?
+> @@ -145,6 +151,14 @@ static int psci_to_linux_errno(int errno)
+>  
+>  	return -EINVAL;
+>  }
+> +static int psci_set_cpu_suspend_mode(bool suspend_mode) {
+> +	int err;
+> +
+> +	err = invoke_psci_fn(PSCI_FN_NATIVE(1_0, SUSPEND_MODE),
+> +						suspend_mode, 0, 0);
+> +	return psci_to_linux_errno(err);
+> +}
+>  
+>  static u32 psci_get_version(void)
+>  {
+> @@ -397,8 +411,12 @@ static void __init psci_init_cpu_suspend(void)  {
+>  	int feature = psci_features(psci_function_id[PSCI_FN_CPU_SUSPEND]);
+>  
+> -	if (feature != PSCI_RET_NOT_SUPPORTED)
+> +	if (feature != PSCI_RET_NOT_SUPPORTED) {
+>  		psci_cpu_suspend_feature = feature;
+> +		if (psci_has_OS_initiated_mode_support())
+> +			psci_ops.set_cpu_suspend_mode =
+> +						psci_set_cpu_suspend_mode;
+> +	}
+>  }
+>  
+>  /*
+> diff --git a/include/linux/psci.h b/include/linux/psci.h index 
+> bdea1cb..c040502 100644
+> --- a/include/linux/psci.h
+> +++ b/include/linux/psci.h
+> @@ -33,6 +33,7 @@ struct psci_operations {
+>  	int (*affinity_info)(unsigned long target_affinity,
+>  			unsigned long lowest_affinity_level);
+>  	int (*migrate_info_type)(void);
+> +	int (*set_cpu_suspend_mode)(bool);
+>  };
+>  
+>  extern struct psci_operations psci_ops; diff --git 
+> a/include/uapi/linux/psci.h b/include/uapi/linux/psci.h index 
+> 3d7a0fc..097c95e 100644
+> --- a/include/uapi/linux/psci.h
+> +++ b/include/uapi/linux/psci.h
+> @@ -50,6 +50,8 @@
+>  #define PSCI_1_0_FN_SYSTEM_SUSPEND		PSCI_0_2_FN(14)
+>  
+>  #define PSCI_1_0_FN64_SYSTEM_SUSPEND		PSCI_0_2_FN64(14)
+> +#define PSCI_1_0_FN_SUSPEND_MODE		PSCI_0_2_FN(0xF)
+> +#define PSCI_1_0_FN64_SUSPEND_MODE		PSCI_0_2_FN64(0xF)
+>  
+>  /* PSCI v0.2 power state encoding for CPU_SUSPEND function */
+>  #define PSCI_0_2_POWER_STATE_ID_MASK		0xffff
+> @@ -90,8 +92,10 @@
+>  
+>  /* PSCI features decoding (>=1.0) */
+>  #define PSCI_1_0_FEATURES_CPU_SUSPEND_PF_SHIFT	1
+> +#define PSCI_1_0_FEATURES_CPU_SUSPEND_OS_INITIATED_MODE_MASK 1
+>  #define PSCI_1_0_FEATURES_CPU_SUSPEND_PF_MASK	\
+> -			(0x1 << PSCI_1_0_FEATURES_CPU_SUSPEND_PF_SHIFT)
+> +			((0x1 << PSCI_1_0_FEATURES_CPU_SUSPEND_PF_SHIFT)| \
+> +			PSCI_1_0_FEATURES_CPU_SUSPEND_OS_INITIATED_MODE_MASK)
+>  
+>  /* PSCI return values (inclusive of all PSCI versions) */
+>  #define PSCI_RET_SUCCESS			0
+> --
+> 1.9.1
+> 
+> 
+> _______________________________________________
+> linux-arm-kernel mailing list
+> linux-arm-kernel@lists.infradead.org
+> http://lists.infradead.org/mailman/listinfo/linux-arm-kernel
+> 
