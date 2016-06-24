@@ -1,110 +1,42 @@
-From: "Zheng, Lv" <lv.zheng@intel.com>
-Subject: RE: [PATCH] ACPI: Execute the _PTS method when system reboot
-Date: Fri, 24 Jun 2016 00:30:21 +0000
-Message-ID: <1AE640813FDE7649BE1B193DEA596E883BBF7E2B@SHSMSX101.ccr.corp.intel.com>
-References: <1462772495-71113-1-git-send-email-hehy1@lenovo.com>
- <2611430.1T9CgX71hW@vostro.rjw.lan>
- <BCBE834BAC19744BA2C3AC4D68DBF2198D8AC790@CNMAILEX03.lenovo.com>
+From: Bin Gao <bin.gao@linux.intel.com>
+Subject: [PATCH v4 0/3] acpi/pmic: add opregion driver for Intel BXT
+ WhiskeyCove PMIC
+Date: Thu, 23 Jun 2016 17:43:06 -0700
+Message-ID: <20160624004305.GC83592@worksta>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <BCBE834BAC19744BA2C3AC4D68DBF2198D8AC790@CNMAILEX03.lenovo.com>
-Content-Language: en-US
-Sender: linux-kernel-owner@vger.kernel.org
-To: Ocean HY1 He <hehy1@lenovo.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: "lenb@kernel.org" <lenb@kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, David Tanaka <dtanaka@lenovo.com>, Nagananda Chumbalkar <nchumbalkar@lenovo.com>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga02.intel.com ([134.134.136.20]:4810 "EHLO mga02.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750874AbcFXAjL (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 23 Jun 2016 20:39:11 -0400
+Content-Disposition: inline
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Aaron Lu <aaron.lu@intel.com>, Paul Gortmaker <paul.gortmaker@windriver.com>, linux-acpi@vger.kernel.org
+Cc: linux-kernel@vger.kernel.org, ysiyer <yegnesh.s.iyer@intel.com>, Ajay Thomas <ajay.thomas.david.rajamanickam@intel.com>, Bin Gao <bin.gao@intel.com>
 
-SGksDQoNCj4gRnJvbTogbGludXgtYWNwaS1vd25lckB2Z2VyLmtlcm5lbC5vcmcgW21haWx0bzps
-aW51eC1hY3BpLQ0KPiBvd25lckB2Z2VyLmtlcm5lbC5vcmddIE9uIEJlaGFsZiBPZiBPY2VhbiBI
-WTEgSGUNCj4gU3ViamVjdDogUkU6IFtQQVRDSF0gQUNQSTogRXhlY3V0ZSB0aGUgX1BUUyBtZXRo
-b2Qgd2hlbiBzeXN0ZW0gcmVib290DQo+IA0KPiBIaSBSYWZhZWwsDQo+IFBsZWFzZSBzZWUgbXkg
-cmVwbHkgaW4gYmVsb3cuDQo+IA0KPiBSZWdhcmRzLA0KPiBPY2VhbiBIZQ0KPiBTVyBEZXZlbG9w
-bWVudCBEZXB0Lg0KPiBCZWlqaW5nIERlc2lnbiBDZW50ZXINCj4gRW50ZXJwcmlzZSBQcm9kdWN0
-IEdyb3VwDQo+IE1vYmlsZTogMTg5MTE3Nzg5MjYNCj4gRS1tYWlsOiBoZWh5MUBsZW5vdm8uY29t
-DQo+IE5vLjYgQ2h1YW5nIFllIFJvYWQsIEhhaWRpYW4gRGlzdHJpY3QsIEJlaWppbmcsIENoaW5h
-IDEwMDA4NQ0KPiANCj4gPiAtLS0tLU9yaWdpbmFsIE1lc3NhZ2UtLS0tLQ0KPiA+IEZyb206IFJh
-ZmFlbCBKLiBXeXNvY2tpIFttYWlsdG86cmp3QHJqd3lzb2NraS5uZXRdDQo+ID4gU2VudDogV2Vk
-bmVzZGF5LCBKdW5lIDIyLCAyMDE2IDc6NTYgQU0NCj4gPiBUbzogT2NlYW4gSFkxIEhlDQo+ID4g
-Q2M6IGxlbmJAa2VybmVsLm9yZzsgbGludXgtYWNwaUB2Z2VyLmtlcm5lbC5vcmc7DQo+ID4gbGlu
-dXgta2VybmVsQHZnZXIua2VybmVsLm9yZzsgRGF2aWQgVGFuYWthOyBOYWdhbmFuZGEgQ2h1bWJh
-bGthcg0KPiA+IFN1YmplY3Q6IFJlOiBbUEFUQ0hdIEFDUEk6IEV4ZWN1dGUgdGhlIF9QVFMgbWV0
-aG9kIHdoZW4gc3lzdGVtDQo+IHJlYm9vdA0KPiA+DQo+ID4gT24gTW9uZGF5LCBNYXkgMDksIDIw
-MTYgMDU6NTA6MTEgQU0gT2NlYW4gSFkxIEhlIHdyb3RlOg0KPiA+ID4gVGhlIF9QVFMgY29udHJv
-bCBtZXRob2QgaXMgZGVmaW5lZCBpbiB0aGUgc2VjdGlvbiA3LjQuMSBvZiBhY3BpIDYuMA0KPiA+
-ID4gc3BlYy4gVGhlIF9QVFMgY29udHJvbCBtZXRob2QgaXMgZXhlY3V0ZWQgYnkgdGhlIE9TIGR1
-cmluZyB0aGUgc2xlZXANCj4gPiA+IHRyYW5zaXRpb24gcHJvY2VzcyBmb3IgUzEsIFMyLCBTMywg
-UzQsIGFuZCBmb3Igb3JkZXJseSBTNSBzaHV0ZG93bi4NCj4gPiA+IFRoZSBzbGVlcGluZyBzdGF0
-ZSB2YWx1ZSAoRm9yIGV4YW1wbGUsIDEsIDIsIDMsIDQgb3IgNSBmb3IgdGhlIFM1DQo+ID4gPiBz
-b2Z0LW9mZiBzdGF0ZSkgaXMgcGFzc2VkIHRvIHRoZSBfUFRTIGNvbnRyb2wgbWV0aG9kLiBUaGlz
-IG1ldGhvZA0KPiA+ID4gaXMgY2FsbGVkIGFmdGVyIE9TUE0gaGFzIG5vdGlmaWVkIG5hdGl2ZSBk
-ZXZpY2UgZHJpdmVycyBvZiB0aGUgc2xlZXANCj4gPiA+IHN0YXRlIHRyYW5zaXRpb24gYW5kIGJl
-Zm9yZSB0aGUgT1NQTSBoYXMgaGFkIGEgY2hhbmNlIHRvIGZ1bGx5DQo+ID4gPiBwcmVwYXJlIHRo
-ZSBzeXN0ZW0gZm9yIGEgc2xlZXAgc3RhdGUgdHJhbnNpdGlvbi4NCj4gPiA+DQo+ID4gPiBUaGUg
-X1BUUyBjb250cm9sIG1ldGhvZCBwcm92aWRlcyB0aGUgQklPUyBhIG1lY2hhbmlzbSBmb3INCj4g
-cGVyZm9ybWluZw0KPiA+ID4gc29tZSBob3VzZWtlZXBpbmcsIHN1Y2ggYXMgd3JpdGluZyB0aGUg
-c2xlZXAgdHlwZSB2YWx1ZSB0byB0aGUNCj4gPiBlbWJlZGRlZA0KPiA+ID4gY29udHJvbGxlciwg
-YmVmb3JlIGVudGVyaW5nIHRoZSBzeXN0ZW0gc2xlZXBpbmcgc3RhdGUuDQo+ID4gPg0KPiA+ID4g
-QWNjb3JkaW5nIHRvIHNlY3Rpb24gNy41IG9mIGFjcGkgNi4wIHNwZWMsIF9QVFMgc2hvdWxkIHJ1
-biBhZnRlciBfVFRTLg0KPiA+ID4NCj4gPiA+IFRodXMsIGEgX1BUUyBibG9jayBub3RpZmllciBp
-cyBhZGRlZCB0byB0aGUgcmVib290IG5vdGlmaWVyIGxpc3Qgc28gdGhhdA0KPiA+ID4gdGhlIF9Q
-VFMgb2JqZWN0IHdpbGwgYWxzbyBiZSBldmFsdWF0ZWQgd2hlbiB0aGUgc3lzdGVtIHJlYm9vdC4N
-Cj4gPg0KPiA+IFNvIEkgdW5kZXJzdGFuZCB3aHkgaXQgbWF5IGJlIG5lY2Vzc2FyeSB0byBldmFs
-dWF0ZSBfUFRTIGJlZm9yZQ0KPiBlbnRlcmluZw0KPiA+IFM1LA0KPiA+IGJ1dCBJJ20gdG90YWxs
-eSB1bnN1cmUgYWJvdXQgcmVib290Lg0KPiA+DQo+ID4gV2hhdCBkb2VzIHJlYm9vdCBoYXZlIHRv
-IGRvIHdpdGggUzU/DQo+ID4NCj4gSW4gQUNQSSBzcGVjLCB0aGVyZSBpcyBubyBleHBsaWNpdCB3
-b3JkcyBzYXlpbmcgX1BUUyBzaG91bGQgYmUNCj4gZXhlY3V0ZWQgd2hlbiByZWJvb3QuIEJ1dCBy
-ZWJvb3QgY291bGQgYmUgZXF1YWwgdG8gdGhlDQo+IHByb2Nlc3MgUzAtPlM1LT5TMC4gVGh1cyBf
-UFRTIHNob3VsZCBiZSBleGVjdXRlZCB3aGVuIHJlYm9vdC4NCj4gDQo+IEkgYW0gdGhpbmtpbmcg
-dGhpcyBpcyB0aGUgc2FtZSBhcyBfVFRTLiBJbiBBQ1BJIHNwZWMsIHRoZXJlIGlzIGFsc28NCj4g
-bm8gZXhwbGljaXQgd29yZHMgc2F5aW5nIF9UVFMgc2hvdWxkIGJlIGV4ZWN1dGVkIHdoZW4gcmVi
-b290Lg0KPiBCdXQga2VybmVsIGV4ZWN1dGVzIF9UVFMgd2hlbiByZWJvb3QgaW5kZWVkLg0KW0x2
-IFpoZW5nXSANCldoYXQncyB0aGUgZGUtZmFjdG8gc3RhbmRhcmQgYmVoYXZpb3IgaGVyZT8NCkxl
-bm92byBzaG91bGQgYmUgYWJsZSB0byBtb2RpZnkgQklPUywgc2hvdWxkIHlvdSB0cnkgdG8gYm9v
-dCBkaWZmZXJlbnQgV2luZG93cyBjbG9uZXMgdG8gY29uZmlybSB0aGUgbmVjZXNzaXR5IG9mIGRv
-aW5nIHRoaXM/DQoNClRoYW5rcyBhbmQgYmVzdCByZWdhcmRzDQotTHYNCg0KPiANCj4gPiA+IFNp
-Z25lZC1vZmYtYnk6IE9jZWFuIEhlIDxoZWh5MUBsZW5vdm8uY29tPg0KPiA+ID4gU2lnbmVkLW9m
-Zi1ieTogTmFnYW5hbmRhIENodW1iYWxrYXIgPG5jaHVtYmFsa2FyQGxlbm92by5jb20+DQo+ID4g
-PiAtLS0NCj4gPiA+ICBkcml2ZXJzL2FjcGkvc2xlZXAuYyB8IDI3ICsrKysrKysrKysrKysrKysr
-KysrKysrKysrKw0KPiA+ID4gIDEgZmlsZSBjaGFuZ2VkLCAyNyBpbnNlcnRpb25zKCspDQo+ID4g
-Pg0KPiA+ID4gZGlmZiAtLWdpdCBhL2RyaXZlcnMvYWNwaS9zbGVlcC5jIGIvZHJpdmVycy9hY3Bp
-L3NsZWVwLmMNCj4gPiA+IGluZGV4IDJhOGI1OTYuLjhiMjkwZmIgMTAwNjQ0DQo+ID4gPiAtLS0g
-YS9kcml2ZXJzL2FjcGkvc2xlZXAuYw0KPiA+ID4gKysrIGIvZHJpdmVycy9hY3BpL3NsZWVwLmMN
-Cj4gPiA+IEBAIC01NSw2ICs1NSwyNiBAQCBzdGF0aWMgc3RydWN0IG5vdGlmaWVyX2Jsb2NrIHR0
-c19ub3RpZmllciA9IHsNCj4gPiA+ICAJLnByaW9yaXR5CT0gMCwNCj4gPiA+ICB9Ow0KPiA+ID4N
-Cj4gPiA+ICtzdGF0aWMgaW50IHB0c19ub3RpZnlfcmVib290KHN0cnVjdCBub3RpZmllcl9ibG9j
-ayAqdGhpcywNCj4gPiA+ICsJCQl1bnNpZ25lZCBsb25nIGNvZGUsIHZvaWQgKngpDQo+ID4gPiAr
-ew0KPiA+ID4gKwlhY3BpX3N0YXR1cyBzdGF0dXM7DQo+ID4gPiArDQo+ID4gPiArCXN0YXR1cyA9
-IGFjcGlfZXhlY3V0ZV9zaW1wbGVfbWV0aG9kKE5VTEwsICJcXF9QVFMiLA0KPiA+IEFDUElfU1RB
-VEVfUzUpOw0KPiA+ID4gKwlpZiAoQUNQSV9GQUlMVVJFKHN0YXR1cykgJiYgc3RhdHVzICE9IEFF
-X05PVF9GT1VORCkgew0KPiA+ID4gKwkJLyogSXQgd29uJ3QgYnJlYWsgYW55dGhpbmcuICovDQo+
-ID4gPiArCQlwcmludGsoS0VSTl9OT1RJQ0UgIkZhaWx1cmUgaW4gZXZhbHVhdGluZyBfUFRTIG9i
-amVjdFxuIik7DQo+ID4gPiArCX0NCj4gPiA+ICsNCj4gPiA+ICsJcmV0dXJuIE5PVElGWV9ET05F
-Ow0KPiA+ID4gK30NCj4gPiA+ICsNCj4gPiA+ICtzdGF0aWMgc3RydWN0IG5vdGlmaWVyX2Jsb2Nr
-IHB0c19ub3RpZmllciA9IHsNCj4gPiA+ICsJLm5vdGlmaWVyX2NhbGwJPSBwdHNfbm90aWZ5X3Jl
-Ym9vdCwNCj4gPiA+ICsJLm5leHQJCT0gTlVMTCwNCj4gPiA+ICsJLnByaW9yaXR5CT0gMCwNCj4g
-PiA+ICt9Ow0KPiA+ID4gKw0KPiA+ID4gIHN0YXRpYyBpbnQgYWNwaV9zbGVlcF9wcmVwYXJlKHUz
-MiBhY3BpX3N0YXRlKQ0KPiA+ID4gIHsNCj4gPiA+ICAjaWZkZWYgQ09ORklHX0FDUElfU0xFRVAN
-Cj4gPiA+IEBAIC04OTYsNSArOTE2LDEyIEBAIGludCBfX2luaXQgYWNwaV9zbGVlcF9pbml0KHZv
-aWQpDQo+ID4gPiAgCSAqIG9iamVjdCBjYW4gYWxzbyBiZSBldmFsdWF0ZWQgd2hlbiB0aGUgc3lz
-dGVtIGVudGVycyBTNS4NCj4gPiA+ICAJICovDQo+ID4gPiAgCXJlZ2lzdGVyX3JlYm9vdF9ub3Rp
-ZmllcigmdHRzX25vdGlmaWVyKTsNCj4gPiA+ICsNCj4gPiA+ICsJLyoNCj4gPiA+ICsJICogQWNj
-b3JkaW5nIHRvIHNlY3Rpb24gNy41IG9mIGFjcGkgNi4wIHNwZWMsIF9QVFMgc2hvdWxkIHJ1biBh
-ZnRlcg0KPiA+ID4gKwkgKiBfVFRTIHdoZW4gdGhlIHN5c3RlbSBlbnRlcnMgUzUuDQo+ID4gPiAr
-CSAqLw0KPiA+ID4gKwlyZWdpc3Rlcl9yZWJvb3Rfbm90aWZpZXIoJnB0c19ub3RpZmllcik7DQo+
-ID4NCj4gPiBXaHkgZG8geW91IGhhdmUgdG8gYWRkIGEgc2Vjb25kIG5vdGlmaWVyPw0KPiA+DQo+
-ID4gV2h5IGNhbid0IF9UVFMgYW5kIF9QVFMgYmUgZXZhbHVhdGVkIGZyb20gb25lIG5vdGlmaWVy
-Pw0KPiA+DQo+IElmIGV4ZWN1dGUgX1BUUyBtZXRob2QgaW4gdHRzX25vdGlmeV9yZWJvb3QoKSwg
-dGhlbiBpdCB3b3VsZCBicmVhaw0KPiBkZWZpbml0aW9uIG9mIHR0c19ub3RpZnlfcmVib290KCku
-IE15IGludGVudGlvbiBpcyB0byBrZWVwIG5ldyBjb2Rlcw0KPiBoYXMgbGltaXRlZCBpbXBhY3Qg
-b24gZXhpc3RlZCBjb2Rlcy4NCj4gT2YgY291cnNlLCBpdCdzIHBvc3NpYmxlIHRvIG1lcmdlIF9U
-VFMgYW5kIF9QVFMgaW50byBvbmUgdW5pZmllZCBub3RpZmllci4NCj4gVGhlIGFkdmFudGFnZSBp
-cyBtb3JlIGFjdGlvbnMgY291bGQgYmUgYWRkZWQgaW50byB0aGUgdW5pZmllZCBub3RpZmllciBp
-bg0KPiBmdXR1cmUuDQo+IFdoaWNoIHdheSB5b3UgcHJlZmVyPw0KPiA+ID4gKw0KPiA+ID4gIAly
-ZXR1cm4gMDsNCj4gPiA+ICB9DQo+ID4gPg0KPiA+DQo+ID4gVGhhbmtzLA0KPiA+IFJhZmFlbA0K
-PiANCj4gE++/ve+/vey5uxzvv70m77+9fu+/vSbvv70Y77+977+9Ky0NCj4g77+977+93bYX77+9
-77+9d++/ve+/vcub77+977+977+9be+/vWLvv73vv71acu+/ve+/ve+/ve+/vV5u77+9cu+/ve+/
-ve+/vXrvv70a77+977+9aO+/ve+/ve+/ve+/vSbvv73vv70e77+9R++/ve+/ve+/vWjvv70DKO+/
-vemajg0KPiDvv73domoi77+977+9Gu+/vRtt77+977+977+977+977+9eu+/vd6W77+977+977+9
-Zu+/ve+/ve+/vWjvv73vv73vv71+77+9be+/vQ0K
+This series modifies the pen function signature to take bit field
+and adds a new opregion driver for Intel BXT WhiskeyCove PMIC. It
+also adds support for PMIC regs operation region.
+
+Yegnesh Iyer (1):
+  acpi: pmic: Modifying the pen function signature to take bit field
+
+Ajay Thomas (1):
+  acpi: pmic: Add opregion driver for Intel BXT WhiskeyCove PMIC
+
+Chandra Sekhar Anagani (1):
+ acpi: pmic: Add support for Intel BXT PMIC regs operation region
+
+ drivers/acpi/pmic/intel_pmic.c       | 87  +++++++------
+ drivers/acpi/pmic/intel_pmic.h       | 11  ++--
+ drivers/acpi/pmic/intel_pmic_crc.c   |  5  +++--
+ drivers/acpi/Kconfig                 |  6  +
+ drivers/acpi/Makefile                |  1  +
+ drivers/acpi/pmic/intel_pmic_bxtwc.c |449  +++++++++++++++++++++++++++++++++++
+ 6 files changed, 559 insertions(+), 10 deletions(-)
+ create mode 100644 drivers/acpi/pmic/intel_pmic_bxtwc.c
+--
+1.9.1
+
