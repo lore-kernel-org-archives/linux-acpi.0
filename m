@@ -1,93 +1,97 @@
-From: Hoan Tran <hotran@apm.com>
-Subject: Re: [PATCH] acpi: cppc: Prevent cpc_desc_ptr points to the invalid data
-Date: Fri, 24 Jun 2016 09:35:32 -0700
-Message-ID: <CAFHUOYz3smsXg0qFcjtzVV1Chk946k+Uw4eFQL-=xoYQToigLQ@mail.gmail.com>
-References: <1464203363-20599-1-git-send-email-hotran@apm.com>
- <CAJ5Y-ebkd6rbQkegdYUREn775Nu5jZqB3TBex5Rj1JsQ6Sjs-Q@mail.gmail.com>
- <CAFHUOYw3vB9ZDZ-E=WsyceZEFnZKPe0D8zFCDr0qyjdqUKBL5g@mail.gmail.com> <CAJ5Y-eYnC7og+06+WJHEWHWtVyT-frw68MaQNcfisb-nELrBig@mail.gmail.com>
+From: Dan Williams <dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: [PATCH] acpi, nfit: fix acpi_check_dsm() vs zero functions implemented
+Date: Fri, 24 Jun 2016 10:44:25 -0700
+Message-ID: <146679026571.24395.11569929364936343871.stgit@dwillia2-desk3.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <CAJ5Y-eYnC7og+06+WJHEWHWtVyT-frw68MaQNcfisb-nELrBig@mail.gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Ashwin Chaugule <ashwin.chaugule@linaro.org>
-Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, linux acpi <linux-acpi@vger.kernel.org>, lkml <linux-kernel@vger.kernel.org>, Duc Dang <dhdang@apm.com>, Loc Ho <lho@apm.com>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
+ <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
+List-Post: <mailto:linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+List-Help: <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
+ <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
+Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
+Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+To: linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
+Cc: Xiao Guangrong <guangrong.xiao-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, "Rafael J. Wysocki" <rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org>, Len Brown <lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On Tue, May 31, 2016 at 12:29 PM, Ashwin Chaugule
-<ashwin.chaugule@linaro.org> wrote:
->
-> On 27 May 2016 at 12:41, Hoan Tran <hotran@apm.com> wrote:
-> > Hi Ashwin,
->
-> Hi,
->
-> >
-> > Yes, I saw kernel crash.
-> > As cpc_desc_ptr is not NULL, cppc_cpufreq_init() still can pass then
-> > crash during cppc_get_perf_caps() access CPPC shared memory.
-> >
-> > It's not only "PCC channel request fail" can create this issue but
-> > "acpi_get_psd() fail" also creates it
-> >
-> > Thanks
-> > Hoan
->
->
-> Just for future reference. :)
->
-> https://web.archive.org/web/20080722025748/http://www.zip.com.au/~akpm/linux/patches/stuff/top-posting.txt
->
->
-> >
-> > On Fri, May 27, 2016 at 9:10 AM, Ashwin Chaugule
-> > <ashwin.chaugule@linaro.org> wrote:
-> >> On 25 May 2016 at 15:09, Hoan Tran <hotran@apm.com> wrote:
-> >>> When CPPC fails to request PCC channel, the CPC data is freed
-> >>> and cpc_desc_ptr points to the invalid data. This change prevents
-> >>> this issue by moving cpc_desc_ptr assignment after PCC channel
-> >>> request.
-> >>>
-> >>> Signed-off-by: Hoan Tran <hotran@apm.com>
-> >>> ---
-> >>>  drivers/acpi/cppc_acpi.c | 6 +++---
-> >>>  1 file changed, 3 insertions(+), 3 deletions(-)
-> >>>
-> >>> diff --git a/drivers/acpi/cppc_acpi.c b/drivers/acpi/cppc_acpi.c
-> >>> index 8adac69..85fd8f7 100644
-> >>> --- a/drivers/acpi/cppc_acpi.c
-> >>> +++ b/drivers/acpi/cppc_acpi.c
-> >>> @@ -595,9 +595,6 @@ int acpi_cppc_processor_probe(struct acpi_processor *pr)
-> >>>         /* Store CPU Logical ID */
-> >>>         cpc_ptr->cpu_id = pr->id;
-> >>>
-> >>> -       /* Plug it into this CPUs CPC descriptor. */
-> >>> -       per_cpu(cpc_desc_ptr, pr->id) = cpc_ptr;
-> >>> -
-> >>>         /* Parse PSD data for this CPU */
-> >>>         ret = acpi_get_psd(cpc_ptr, handle);
-> >>>         if (ret)
-> >>> @@ -610,6 +607,9 @@ int acpi_cppc_processor_probe(struct acpi_processor *pr)
-> >>>                         goto out_free;
-> >>>         }
-> >>>
-> >>> +       /* Plug PSD data into this CPUs CPC descriptor. */
-> >>> +       per_cpu(cpc_desc_ptr, pr->id) = cpc_ptr;
-> >>> +
-> >>
-> >> Are you seeing a real problem without this change? I'm missing where
-> >> this pointer is dereferenced if the PCC channel request fails.
-> >>
->
-> So, after freeing the cpc_ptr, we need to NULL the per-cpu pointer as
-> well. Alternately, not assign it until everything passes and rely on
-> the static declaration, which is the path you've taken here.
->
-> Acked-by: Ashwin Chaugule <ashwin.chaugule@linaro.org>
+QEMU 2.6 implements nascent support for nvdimm DSMs. Depending on
+configuration it may only implement the function0 dsm to indicate that
+no other DSMs are available. Commit 31eca76ba2fc "nfit, libnvdimm:
+limited/whitelisted dimm command marshaling mechanism" breaks QEMU, but
+QEMU is spec compliant.  Per the spec the way to indicate that no
+functions are supported is:
 
-Hi Rafael,
+    If Function Index is zero, the return is a buffer containing one bit
+    for each function index, starting with zero. Bit 0 indicates whether
+    there is support for any functions other than function 0 for the
+    specified UUID and Revision ID. If set to zero, no functions are
+    supported (other than function zero) for the specified UUID and
+    Revision ID.
 
-Do you have plan to apply this patch ?
+Update the nfit driver to determine the family (interface UUID) without
+requiring the implementation to define any other functions, i.e.
+short-circuit acpi_check_dsm() to succeed per the spec.  The nfit driver
+appears to be the only user passing funcs==0 to acpi_check_dsm(), so
+this behavior change of the common routine should be limited to the
+probing done by the nfit driver.
 
-Thanks
-Hoan
+Cc: "Rafael J. Wysocki" <rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org>
+Cc: Len Brown <lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: Jerry Hoemann <jerry.hoemann-ZPxbGqLxI0U@public.gmane.org>
+Fixes: 31eca76ba2fc ("nfit, libnvdimm: limited/whitelisted dimm command marshaling mechanism")
+Reported-by: Xiao Guangrong <guangrong.xiao-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
+Tested-by: Xiao Guangrong <guangrong.xiao-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
+Signed-off-by: Dan Williams <dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+---
+ drivers/acpi/nfit.c  |    6 +++---
+ drivers/acpi/utils.c |    6 +++---
+ 2 files changed, 6 insertions(+), 6 deletions(-)
+
+diff --git a/drivers/acpi/nfit.c b/drivers/acpi/nfit.c
+index 2215fc847fa9..32579a7b71d5 100644
+--- a/drivers/acpi/nfit.c
++++ b/drivers/acpi/nfit.c
+@@ -1131,11 +1131,11 @@ static int acpi_nfit_add_dimm(struct acpi_nfit_desc *acpi_desc,
+ 
+ 	/*
+ 	 * Until standardization materializes we need to consider up to 3
+-	 * different command sets.  Note, that checking for function0 (bit0)
+-	 * tells us if any commands are reachable through this uuid.
++	 * different command sets.  Note, that checking for zero functions
++	 * tells us if any commands might be reachable through this uuid.
+ 	 */
+ 	for (i = NVDIMM_FAMILY_INTEL; i <= NVDIMM_FAMILY_HPE2; i++)
+-		if (acpi_check_dsm(adev_dimm->handle, to_nfit_uuid(i), 1, 1))
++		if (acpi_check_dsm(adev_dimm->handle, to_nfit_uuid(i), 1, 0))
+ 			break;
+ 
+ 	/* limit the supported commands to those that are publicly documented */
+diff --git a/drivers/acpi/utils.c b/drivers/acpi/utils.c
+index 22c09952e177..b4de130f2d57 100644
+--- a/drivers/acpi/utils.c
++++ b/drivers/acpi/utils.c
+@@ -680,9 +680,6 @@ bool acpi_check_dsm(acpi_handle handle, const u8 *uuid, u64 rev, u64 funcs)
+ 	u64 mask = 0;
+ 	union acpi_object *obj;
+ 
+-	if (funcs == 0)
+-		return false;
+-
+ 	obj = acpi_evaluate_dsm(handle, uuid, rev, 0, NULL);
+ 	if (!obj)
+ 		return false;
+@@ -695,6 +692,9 @@ bool acpi_check_dsm(acpi_handle handle, const u8 *uuid, u64 rev, u64 funcs)
+ 			mask |= (((u64)obj->buffer.pointer[i]) << (i * 8));
+ 	ACPI_FREE(obj);
+ 
++	if (funcs == 0)
++		return true;
++
+ 	/*
+ 	 * Bit 0 indicates whether there's support for any functions other than
+ 	 * function 0 for the specified UUID and revision.
