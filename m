@@ -1,118 +1,116 @@
-From: Rob Herring <robh@kernel.org>
-Subject: Re: [PATCH 1/2] Documentation: Add sbs-manager device tree node
- documentation
-Date: Fri, 24 Jun 2016 12:50:14 -0500
-Message-ID: <20160624175014.GA29990@rob-hp-laptop>
-References: <1466622436-27963-1-git-send-email-karl-heinz@schneider-inet.de>
- <1466622436-27963-2-git-send-email-karl-heinz@schneider-inet.de>
+From: Dan Williams <dan.j.williams@intel.com>
+Subject: Re: [PATCH v2] libnvdimm, nfit: treat volatile virtual CD region as pmem
+Date: Fri, 24 Jun 2016 10:59:56 -0700
+Message-ID: <CAPcyv4iFNP8Dj40-i_w_5fiE=zj3SLrkm-2MbxAO6JbKu14i2Q@mail.gmail.com>
+References: <1466754710-5948-1-git-send-email-jlee@suse.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-oi0-f67.google.com ([209.85.218.67]:33327 "EHLO
-	mail-oi0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751522AbcFXRuQ (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 24 Jun 2016 13:50:16 -0400
-Content-Disposition: inline
-In-Reply-To: <1466622436-27963-2-git-send-email-karl-heinz@schneider-inet.de>
+Received: from mail-oi0-f50.google.com ([209.85.218.50]:32788 "EHLO
+	mail-oi0-f50.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751394AbcFXR75 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 24 Jun 2016 13:59:57 -0400
+Received: by mail-oi0-f50.google.com with SMTP id u201so125320112oie.0
+        for <linux-acpi@vger.kernel.org>; Fri, 24 Jun 2016 10:59:57 -0700 (PDT)
+In-Reply-To: <1466754710-5948-1-git-send-email-jlee@suse.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Karl-Heinz Schneider <karl-heinz@schneider-inet.de>
-Cc: devicetree@vger.kernel.org, linux-pm@vger.kernel.org, linux-acpi@vger.kernel.org, linux-i2c@vger.kernel.org, Mark Rutland <mark.rutland@arm.com>, Sebastian Reichel <sre@kernel.org>, Dmitry Eremin-Solenikov <dbaryshkov@gmail.com>, David Woodhouse <dwmw2@infradead.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Peter Rosin <peda@axentia.se>, Phil Reid <preid@electromag.com.au>
+To: "Lee, Chun-Yi" <joeyli.kernel@gmail.com>
+Cc: Ross Zwisler <ross.zwisler@linux.intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Linda Knippers <linda.knippers@hpe.com>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, Linux ACPI <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "Lee, Chun-Yi" <jlee@suse.com>, Gary Lin <GLin@suse.com>
 
-On Wed, Jun 22, 2016 at 09:07:15PM +0200, Karl-Heinz Schneider wrote:
-> This patch adds device tree documentation for the sbs-manager
-> 
-> Reviewed-by: Phil Reid <preid@electromag.com.au>
-> Signed-off-by: Karl-Heinz Schneider <karl-heinz@schneider-inet.de>
+On Fri, Jun 24, 2016 at 12:51 AM, Lee, Chun-Yi <joeyli.kernel@gmail.com> wrote:
+> This patch adds logic to treat volatile virtual CD region as pmem
+> region, then /dev/pmem* device can be mounted with iso9660.
+>
+> It's useful to work with the httpboot in EFI firmware to pull a remote
+> ISO file to the local memory region for booting and installation.
+>
+> Wiki page of UEFI HTTPBoot with OVMF:
+>         https://en.opensuse.org/UEFI_HTTPBoot_with_OVMF
+>
+> The ramdisk function in EDK2/OVMF generates a ACPI0012 root device that
+> it contains empty _STA but without _DSM:
+>
+> DefinitionBlock ("ssdt2.aml", "SSDT", 2, "INTEL ", "RamDisk ", 0x00001000)
+> {
+>     Scope (\_SB)
+>     {
+>         Device (NVDR)
+>         {
+>             Name (_HID, "ACPI0012")  // _HID: Hardware ID
+>             Name (_STR, Unicode ("NVDIMM Root Device"))  // _STR: Description String
+>             Method (_STA, 0, NotSerialized)  // _STA: Status
+>             {
+>                 Return (0x0F)
+>             }
+>         }
+>     }
+> }
+>
+> In section 5.2.25.2 of ACPI 6.1 spec, it mentions that the "SPA Range
+> Structure Index" of VCD SPA shall be set to zero. That means VCD SPA
+> will not be associated by any NVDIMM region mapping.
+>
+> The VCD's SPA Range Structure in NFIT is similar to virtual disk region
+> as following:
+>
+> [028h 0040   2]                Subtable Type : 0000 [System Physical Address Range]
+> [02Ah 0042   2]                       Length : 0038
+>
+> [02Ch 0044   2]                  Range Index : 0000
+> [02Eh 0046   2]        Flags (decoded below) : 0000
+>                    Add/Online Operation Only : 0
+>                       Proximity Domain Valid : 0
+> [030h 0048   4]                     Reserved : 00000000
+> [034h 0052   4]             Proximity Domain : 00000000
+> [038h 0056  16]           Address Range GUID : 77AB535A-45FC-624B-5560-F7B281D1F96E
+> [048h 0072   8]           Address Range Base : 00000000B6ABD018
+> [050h 0080   8]         Address Range Length : 0000000005500000
+> [058h 0088   8]         Memory Map Attribute : 0000000000000000
+>
+> The range index set to zero that means the VCD region not associated by
+> any NVDIMM region mapping, and it will not assoicate to "flush hint",
+> "interleave" or "control region".
+
+No, per the spec zero is a reserved value and we should ignore such
+SPA tables.  The way to not associate a SPA range is to never
+reference it from a "flush hint", "interleave", or "control region"
+table.
+
+>
+> After testing on OVMF, pmem driver can support the region that it doesn't
+> assoicate to any NVDIMM mapping. So, treat VCD as pmem is a idea to get
+> a pmem block device that it containts iso.
+>
+> v2
+> Removed the code for setting VCD to a read-only region.
+>
+> Cc: Gary Lin <GLin@suse.com>
+> Cc: Dan Williams <dan.j.williams@intel.com>
+> Cc: Ross Zwisler <ross.zwisler@linux.intel.com>
+> Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+> Cc: Linda Knippers <linda.knippers@hpe.com>
+> Signed-off-by: Lee, Chun-Yi <jlee@suse.com>
 > ---
->  .../devicetree/bindings/power/sbs,sbs-manager.txt  | 58 ++++++++++++++++++++++
->  1 file changed, 58 insertions(+)
->  create mode 100644 Documentation/devicetree/bindings/power/sbs,sbs-manager.txt
-> 
-> diff --git a/Documentation/devicetree/bindings/power/sbs,sbs-manager.txt b/Documentation/devicetree/bindings/power/sbs,sbs-manager.txt
-> new file mode 100644
-> index 0000000..d52b466
-> --- /dev/null
-> +++ b/Documentation/devicetree/bindings/power/sbs,sbs-manager.txt
-> @@ -0,0 +1,58 @@
-> +Binding for sbs-manager
-> +
-> +Required properties:
-> +- compatible: should be "sbs,sbs-manager" or "lltc,ltc1760" if device is a
-> +    ltc1760.
+>  drivers/acpi/nfit.c          |  8 +++++++-
+>  drivers/nvdimm/region_devs.c | 26 +++++++++++++++++++++++++-
+>  include/linux/libnvdimm.h    |  2 ++
+>  3 files changed, 34 insertions(+), 2 deletions(-)
+>
 
-sbs is not a vendor. What chip is sbs-manager? I suspect you should drop 
-it and only list specific chips.
+I don't think we need "nd_vcd_device_type".  I think this patch can
+just be reduced to:
 
-> +- reg: integer, i2c address of the device. Should be <0xa>.
-> +
-> +Optional properties:
-> +- sbsm,i2c-retry-count: integer, number of retries for trying to read or write
-> +    to registers. Default: 1
-
-Seems like a driver setting. Is having a retry in the driver a problem 
-if the h/w works and never actually needs it?
-
-> +
-> +From OS view the device is basically an i2c-mux used to communicate with up to
-> +four smart battery devices at address 0xb. The driver actually implements this
-> +behaviour. So standard i2c-mux nodes can be used to register up to four slave
-> +batteries. Channels will be numerated as 1, 2, 4 and 8.
-> +
-> +Example:
-> +
-> +batman@0a {
-> +    compatible = "sbs,sbs-manager";
-> +    reg = <0x0a>;
-> +    sbsm,i2c-retry-count = <3>;
-> +    #address-cells = <1>;
-> +    #size-cells = <0>;
-> +
-> +    channel1@1 {
-
-channel@1
-
-Do we have a standard node name for mux nodes? If not, we should.
-
-> +        #address-cells = <1>;
-> +        #size-cells = <0>;
-> +        reg = <1>;
-> +
-> +        battery1@0b {
-
-battery@b
-
-> +            compatible = "sbs-battery";
-
-This should be an actual battery model. Or all this information is 
-generic, you don't really need it in DT.
-
-> +            reg = <0x0b>;
-> +        };
-> +    };
-> +
-> +    channel2@2 {
-> +        #address-cells = <1>;
-> +        #size-cells = <0>;
-> +        reg = <2>;
-> +
-> +        battery2@0b {
-> +            compatible = "sbs-battery";
-> +            reg = <0x0b>;
-> +        };
-> +    };
-> +
-> +    channel3@4 {
-> +        #address-cells = <1>;
-> +        #size-cells = <0>;
-> +        reg = <4>;
-> +
-> +        battery3@0b {
-> +            compatible = "sbs-battery";
-> +            reg = <0x0b>;
-> +        };
-> +    };
-> +};
-> -- 
-> 1.9.1
-> 
+diff --git a/drivers/acpi/nfit.c b/drivers/acpi/nfit.c
+index 32579a7b71d5..d289e772c20a 100644
+--- a/drivers/acpi/nfit.c
++++ b/drivers/acpi/nfit.c
+@@ -1948,6 +1948,7 @@ static int acpi_nfit_init_mapping(struct
+acpi_nfit_desc *acpi_desc,
+        nd_mapping->nvdimm = nvdimm;
+        switch (nfit_spa_type(spa)) {
+        case NFIT_SPA_PM:
++       case NFIT_SPA_VCD:
+        case NFIT_SPA_VOLATILE:
+                nd_mapping->start = memdev->address;
+                nd_mapping->size = memdev->region_size;
