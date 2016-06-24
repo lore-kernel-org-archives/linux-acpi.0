@@ -1,116 +1,128 @@
-From: Dan Williams <dan.j.williams@intel.com>
-Subject: Re: [PATCH v2] libnvdimm, nfit: treat volatile virtual CD region as pmem
-Date: Fri, 24 Jun 2016 10:59:56 -0700
-Message-ID: <CAPcyv4iFNP8Dj40-i_w_5fiE=zj3SLrkm-2MbxAO6JbKu14i2Q@mail.gmail.com>
-References: <1466754710-5948-1-git-send-email-jlee@suse.com>
+From: Aaron Durbin <adurbin@google.com>
+Subject: Re: ACPI device using sub-resource of PCI device
+Date: Fri, 24 Jun 2016 14:34:31 -0500
+Message-ID: <CAE2855vfhaCVGg-6mBWcU0tQ8akyiAhjv5SrD6xoaj1SbwETDA@mail.gmail.com>
+References: <CAE2855tofJV=HV2dYuC+1=pi2mb942zrRF7f0+wqxPPay44RGA@mail.gmail.com>
+ <CAJZ5v0hh1ve=w590D4XncheNVsrmr7f6k1msdr+dzT4UoUa+JQ@mail.gmail.com>
+ <CAE2855vrhS7gKGFWEjZy-Hp2S8fNuJskG=WWDSuiBLhq_tDh8A@mail.gmail.com> <CAE2855uR=wkxb2xzM4OcG1czffrBXR=1RX8Ms0AfVJ8hzDnUjQ@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-oi0-f50.google.com ([209.85.218.50]:32788 "EHLO
-	mail-oi0-f50.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751394AbcFXR75 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 24 Jun 2016 13:59:57 -0400
-Received: by mail-oi0-f50.google.com with SMTP id u201so125320112oie.0
-        for <linux-acpi@vger.kernel.org>; Fri, 24 Jun 2016 10:59:57 -0700 (PDT)
-In-Reply-To: <1466754710-5948-1-git-send-email-jlee@suse.com>
+Received: from mail-io0-f178.google.com ([209.85.223.178]:33120 "EHLO
+	mail-io0-f178.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750876AbcFXTed (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 24 Jun 2016 15:34:33 -0400
+Received: by mail-io0-f178.google.com with SMTP id t74so107751549ioi.0
+        for <linux-acpi@vger.kernel.org>; Fri, 24 Jun 2016 12:34:32 -0700 (PDT)
+In-Reply-To: <CAE2855uR=wkxb2xzM4OcG1czffrBXR=1RX8Ms0AfVJ8hzDnUjQ@mail.gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Lee, Chun-Yi" <joeyli.kernel@gmail.com>
-Cc: Ross Zwisler <ross.zwisler@linux.intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Linda Knippers <linda.knippers@hpe.com>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, Linux ACPI <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "Lee, Chun-Yi" <jlee@suse.com>, Gary Lin <GLin@suse.com>
+To: "Rafael J. Wysocki" <rafael@kernel.org>
+Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>
 
-On Fri, Jun 24, 2016 at 12:51 AM, Lee, Chun-Yi <joeyli.kernel@gmail.com> wrote:
-> This patch adds logic to treat volatile virtual CD region as pmem
-> region, then /dev/pmem* device can be mounted with iso9660.
+On Tue, Jun 14, 2016 at 12:04 PM, Aaron Durbin <adurbin@google.com> wrote:
+> On Wed, May 18, 2016 at 3:32 PM, Aaron Durbin <adurbin@google.com> wrote:
+>> On Wed, May 18, 2016 at 4:25 PM, Rafael J. Wysocki <rafael@kernel.org> wrote:
+>>> On Wed, May 18, 2016 at 5:54 PM, Aaron Durbin <adurbin@google.com> wrote:
+>>>> Hi,
+>>>>
+>>>> We're currently running into a problem of resource conflicts with a
+>>>> PCI device and ACPI devices.
+>>>>
+>>>> [    0.243534] pci 0000:00:0d.0: can't claim BAR 0 [mem
+>>>> 0xd0000000-0xd0ffffff 64bit]: address conflict with INT3452:03 [mem
+>>>> 0xd0c00000-0xd0c03fff]
+>>>>
+>>>> The PCI BAR covers a large amount mmio resources, however, there are
+>>>> ACPI devices with their own HID (for probing) which uses resources
+>>>> that are a subset of the PCI BAR.
+>>>>
+>>>> Short of re-structuring the linux driver is there anything that can be
+>>>> done with ASL to properly have the ACPI device use a sub-resource of
+>>>> the PCI device during the ACPI/PCI probing?
+>>>
+>>> Do you have an ACPI device object corresponding to the PCI device?
+>>
+>> I've been debugging this by proxy, and I did request that test. The
+>> following is the overall structure:
+>>
+>> scope (\_SB.PCI0) {
+>>
+>> Device (P2S)
+>> {
+>>         Name (_ADR, 0x000D0000)
+>>         Device (GPO0)
+>>         {
+>>                 Name (_ADR, 0)
+>>                 Name (_HID, "INT3452")
+>>                 Name (_CID, "INT3452")
+>>         }
+>> }
+>> }
+>>
+>> There are _STA methods in both Devices. The GP0 device has a _CRS
+>> method which just returns a ResourceTemplate which is filled in with
+>> static values. The PCI bar is at a fixed address from the firmware
+>> which allows the fixed calculations. However there is no specific
+>> reference to the P2S device's resources proper -- only the parent
+>> child relationship within the ASL. I'm not sure how to directly say "I
+>> want this sub-region of this other device's resource for my resource."
+>> That seems like the right thing, but it's not clear if that's implied
+>> by hierarchy of the devices.
+>>
+>> Lastly, if it helps, the kernel being used is based on v4.4 (no core
+>> patches on top).
+>>
 >
-> It's useful to work with the httpboot in EFI firmware to pull a remote
-> ISO file to the local memory region for booting and installation.
+> Hi Rafael,
 >
-> Wiki page of UEFI HTTPBoot with OVMF:
->         https://en.opensuse.org/UEFI_HTTPBoot_with_OVMF
->
-> The ramdisk function in EDK2/OVMF generates a ACPI0012 root device that
-> it contains empty _STA but without _DSM:
->
-> DefinitionBlock ("ssdt2.aml", "SSDT", 2, "INTEL ", "RamDisk ", 0x00001000)
-> {
->     Scope (\_SB)
->     {
->         Device (NVDR)
->         {
->             Name (_HID, "ACPI0012")  // _HID: Hardware ID
->             Name (_STR, Unicode ("NVDIMM Root Device"))  // _STR: Description String
->             Method (_STA, 0, NotSerialized)  // _STA: Status
->             {
->                 Return (0x0F)
->             }
->         }
->     }
-> }
->
-> In section 5.2.25.2 of ACPI 6.1 spec, it mentions that the "SPA Range
-> Structure Index" of VCD SPA shall be set to zero. That means VCD SPA
-> will not be associated by any NVDIMM region mapping.
->
-> The VCD's SPA Range Structure in NFIT is similar to virtual disk region
-> as following:
->
-> [028h 0040   2]                Subtable Type : 0000 [System Physical Address Range]
-> [02Ah 0042   2]                       Length : 0038
->
-> [02Ch 0044   2]                  Range Index : 0000
-> [02Eh 0046   2]        Flags (decoded below) : 0000
->                    Add/Online Operation Only : 0
->                       Proximity Domain Valid : 0
-> [030h 0048   4]                     Reserved : 00000000
-> [034h 0052   4]             Proximity Domain : 00000000
-> [038h 0056  16]           Address Range GUID : 77AB535A-45FC-624B-5560-F7B281D1F96E
-> [048h 0072   8]           Address Range Base : 00000000B6ABD018
-> [050h 0080   8]         Address Range Length : 0000000005500000
-> [058h 0088   8]         Memory Map Attribute : 0000000000000000
->
-> The range index set to zero that means the VCD region not associated by
-> any NVDIMM region mapping, and it will not assoicate to "flush hint",
-> "interleave" or "control region".
-
-No, per the spec zero is a reserved value and we should ignore such
-SPA tables.  The way to not associate a SPA range is to never
-reference it from a "flush hint", "interleave", or "control region"
-table.
-
->
-> After testing on OVMF, pmem driver can support the region that it doesn't
-> assoicate to any NVDIMM mapping. So, treat VCD as pmem is a idea to get
-> a pmem block device that it containts iso.
->
-> v2
-> Removed the code for setting VCD to a read-only region.
->
-> Cc: Gary Lin <GLin@suse.com>
-> Cc: Dan Williams <dan.j.williams@intel.com>
-> Cc: Ross Zwisler <ross.zwisler@linux.intel.com>
-> Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-> Cc: Linda Knippers <linda.knippers@hpe.com>
-> Signed-off-by: Lee, Chun-Yi <jlee@suse.com>
-> ---
->  drivers/acpi/nfit.c          |  8 +++++++-
->  drivers/nvdimm/region_devs.c | 26 +++++++++++++++++++++++++-
->  include/linux/libnvdimm.h    |  2 ++
->  3 files changed, 34 insertions(+), 2 deletions(-)
+> I haven't tried a newer kernel yet, but are you of the opinion that
+> having the Devices as parent-child within the ASL should work? I'm
+> wondering if there's already a patch in newer kernels that doesn't
+> report the conflict and works as expected once there are child Devices
+> under the P2S device.
 >
 
-I don't think we need "nd_vcd_device_type".  I think this patch can
-just be reduced to:
+I've been looking at this more closely. A child ACPI device under a
+ACPI PCI device doesn't change the resource conflict even when a _CRS
+method is added to the ACPI PCI device.  Below is my sleuthing which
+is probably not a surprise to anyone here, but please correct me where
+I am wrong.
 
-diff --git a/drivers/acpi/nfit.c b/drivers/acpi/nfit.c
-index 32579a7b71d5..d289e772c20a 100644
---- a/drivers/acpi/nfit.c
-+++ b/drivers/acpi/nfit.c
-@@ -1948,6 +1948,7 @@ static int acpi_nfit_init_mapping(struct
-acpi_nfit_desc *acpi_desc,
-        nd_mapping->nvdimm = nvdimm;
-        switch (nfit_spa_type(spa)) {
-        case NFIT_SPA_PM:
-+       case NFIT_SPA_VCD:
-        case NFIT_SPA_VOLATILE:
-                nd_mapping->start = memdev->address;
-                nd_mapping->size = memdev->region_size;
+acpi_init() and pci_subsys_init() are both subsys_initcalls during
+boot up. I'm not sure if the ordering is dumb luck or not, but
+acpi_init() is called prior to pci_subsys_init(). The conflict error
+is spit out from pcibios_resource_survey() by way of pci_subsys_init()
+ subsys_initcall. However, the PCI device scanning is kicked off prior
+to this through acpi_scan_init() by way of acpi_init()
+subsys_initcall.  The conflict error occurs because there's already
+the child ACPI device in the resource tree. I'm not sure when/where
+those ACPI devices' resources are added, but clearly they are sitting
+in there since the conflict was found.
+
+Somewhere along the way a PCI device from a scan is linked with the
+ACPI device for that same PCI device in sysfs.  This is with me
+putting a _HID and _CID in the PCI ACPI device.
+# readlink -f /sys/devices/LNXSYSTM:00/LNXSYBUS:00/PNP0A08:00/INT5A92:00/physical_node
+/sys/devices/pci0000:00/0000:00:0d.0
+# readlink -f /sys/devices/pci0000\:00/0000\:00\:0d.0/firmware_node/
+/sys/devices/LNXSYSTM:00/LNXSYBUS:00/PNP0A08:00/INT5A92:00
+
+So the hierarchy is known eventually, but it's clearly not honored
+when adding resources. The current ACPI support doesn't handle
+PciBarTarget which initially sounds (from ACPI spec) like the way to
+go for referencing a resource in a PCI device from an ACPI device. So
+that's out of the question currently, but maybe someone has a patch
+for that? I don't think reordering the acpi_init() and
+pci_subsys_init() would do anything different except change which
+device discovers the conflict.
+
+Is there a way to honor the ACPI device hierarchy during resource
+addition for the PCI devices? The conflict is found because of the
+presence of a child device claiming resources through _CRS.
+Alternatively, is there a good way to defer the probing of an ACPI
+device until one knows PCI resources have been added?
+
+Any insights would be very helpful. Thank you.
+
+-Aaron
