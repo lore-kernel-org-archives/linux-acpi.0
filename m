@@ -1,136 +1,52 @@
-From: Ocean HY1 He <hehy1@lenovo.com>
-Subject: RE: [PATCH] ACPI: Execute the _PTS method when system reboot
-Date: Fri, 24 Jun 2016 02:06:43 +0000
-Message-ID: <BCBE834BAC19744BA2C3AC4D68DBF2198D8ACD77@CNMAILEX03.lenovo.com>
-References: <1462772495-71113-1-git-send-email-hehy1@lenovo.com>
- <2611430.1T9CgX71hW@vostro.rjw.lan>
- <BCBE834BAC19744BA2C3AC4D68DBF2198D8AC790@CNMAILEX03.lenovo.com>
- <1AE640813FDE7649BE1B193DEA596E883BBF7E2B@SHSMSX101.ccr.corp.intel.com>
+From: Aaron Lu <aaron.lu@intel.com>
+Subject: Re: [PATCH v4 0/3] acpi/pmic: add opregion driver for Intel BXT
+ WhiskeyCove PMIC
+Date: Fri, 24 Jun 2016 10:25:21 +0800
+Message-ID: <6e25fae9-99a8-bc6b-258d-6cfd08f2b0e1@intel.com>
+References: <20160624004305.GC83592@worksta>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1AE640813FDE7649BE1B193DEA596E883BBF7E2B@SHSMSX101.ccr.corp.intel.com>
-Content-Language: zh-CN
-Sender: linux-kernel-owner@vger.kernel.org
-To: "Zheng, Lv" <lv.zheng@intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: "lenb@kernel.org" <lenb@kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, David Tanaka <dtanaka@lenovo.com>, Nagananda Chumbalkar <nchumbalkar@lenovo.com>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga01.intel.com ([192.55.52.88]:29683 "EHLO mga01.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751133AbcFXCZY (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 23 Jun 2016 22:25:24 -0400
+In-Reply-To: <20160624004305.GC83592@worksta>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Bin Gao <bin.gao@linux.intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Paul Gortmaker <paul.gortmaker@windriver.com>, linux-acpi@vger.kernel.org
+Cc: linux-kernel@vger.kernel.org, ysiyer <yegnesh.s.iyer@intel.com>, Ajay Thomas <ajay.thomas.david.rajamanickam@intel.com>, Bin Gao <bin.gao@intel.com>
 
-DQoNClJlZ2FyZHMsDQpPY2VhbiBIZQ0KU1cgRGV2ZWxvcG1lbnQgRGVwdC4gDQpCZWlqaW5nIERl
-c2lnbiBDZW50ZXINCkVudGVycHJpc2UgUHJvZHVjdCBHcm91cA0KTW9iaWxlOiAxODkxMTc3ODky
-Ng0KRS1tYWlsOiBoZWh5MUBsZW5vdm8uY29tDQpOby42IENodWFuZyBZZSBSb2FkLCBIYWlkaWFu
-IERpc3RyaWN0LCBCZWlqaW5nLCBDaGluYSAxMDAwODUNCg0KPiAtLS0tLU9yaWdpbmFsIE1lc3Nh
-Z2UtLS0tLQ0KPiBGcm9tOiBaaGVuZywgTHYgW21haWx0bzpsdi56aGVuZ0BpbnRlbC5jb21dDQo+
-IFNlbnQ6IEZyaWRheSwgSnVuZSAyNCwgMjAxNiA4OjMwIEFNDQo+IFRvOiBPY2VhbiBIWTEgSGU7
-IFJhZmFlbCBKLiBXeXNvY2tpDQo+IENjOiBsZW5iQGtlcm5lbC5vcmc7IGxpbnV4LWFjcGlAdmdl
-ci5rZXJuZWwub3JnOw0KPiBsaW51eC1rZXJuZWxAdmdlci5rZXJuZWwub3JnOyBEYXZpZCBUYW5h
-a2E7IE5hZ2FuYW5kYSBDaHVtYmFsa2FyDQo+IFN1YmplY3Q6IFJFOiBbUEFUQ0hdIEFDUEk6IEV4
-ZWN1dGUgdGhlIF9QVFMgbWV0aG9kIHdoZW4gc3lzdGVtIHJlYm9vdA0KPiANCj4gSGksDQo+IA0K
-PiA+IEZyb206IGxpbnV4LWFjcGktb3duZXJAdmdlci5rZXJuZWwub3JnIFttYWlsdG86bGludXgt
-YWNwaS0NCj4gPiBvd25lckB2Z2VyLmtlcm5lbC5vcmddIE9uIEJlaGFsZiBPZiBPY2VhbiBIWTEg
-SGUNCj4gPiBTdWJqZWN0OiBSRTogW1BBVENIXSBBQ1BJOiBFeGVjdXRlIHRoZSBfUFRTIG1ldGhv
-ZCB3aGVuIHN5c3RlbQ0KPiByZWJvb3QNCj4gPg0KPiA+IEhpIFJhZmFlbCwNCj4gPiBQbGVhc2Ug
-c2VlIG15IHJlcGx5IGluIGJlbG93Lg0KPiA+DQo+ID4gUmVnYXJkcywNCj4gPiBPY2VhbiBIZQ0K
-PiA+IFNXIERldmVsb3BtZW50IERlcHQuDQo+ID4gQmVpamluZyBEZXNpZ24gQ2VudGVyDQo+ID4g
-RW50ZXJwcmlzZSBQcm9kdWN0IEdyb3VwDQo+ID4gTW9iaWxlOiAxODkxMTc3ODkyNg0KPiA+IEUt
-bWFpbDogaGVoeTFAbGVub3ZvLmNvbQ0KPiA+IE5vLjYgQ2h1YW5nIFllIFJvYWQsIEhhaWRpYW4g
-RGlzdHJpY3QsIEJlaWppbmcsIENoaW5hIDEwMDA4NQ0KPiA+DQo+ID4gPiAtLS0tLU9yaWdpbmFs
-IE1lc3NhZ2UtLS0tLQ0KPiA+ID4gRnJvbTogUmFmYWVsIEouIFd5c29ja2kgW21haWx0bzpyandA
-cmp3eXNvY2tpLm5ldF0NCj4gPiA+IFNlbnQ6IFdlZG5lc2RheSwgSnVuZSAyMiwgMjAxNiA3OjU2
-IEFNDQo+ID4gPiBUbzogT2NlYW4gSFkxIEhlDQo+ID4gPiBDYzogbGVuYkBrZXJuZWwub3JnOyBs
-aW51eC1hY3BpQHZnZXIua2VybmVsLm9yZzsNCj4gPiA+IGxpbnV4LWtlcm5lbEB2Z2VyLmtlcm5l
-bC5vcmc7IERhdmlkIFRhbmFrYTsgTmFnYW5hbmRhIENodW1iYWxrYXINCj4gPiA+IFN1YmplY3Q6
-IFJlOiBbUEFUQ0hdIEFDUEk6IEV4ZWN1dGUgdGhlIF9QVFMgbWV0aG9kIHdoZW4gc3lzdGVtDQo+
-ID4gcmVib290DQo+ID4gPg0KPiA+ID4gT24gTW9uZGF5LCBNYXkgMDksIDIwMTYgMDU6NTA6MTEg
-QU0gT2NlYW4gSFkxIEhlIHdyb3RlOg0KPiA+ID4gPiBUaGUgX1BUUyBjb250cm9sIG1ldGhvZCBp
-cyBkZWZpbmVkIGluIHRoZSBzZWN0aW9uIDcuNC4xIG9mIGFjcGkgNi4wDQo+ID4gPiA+IHNwZWMu
-IFRoZSBfUFRTIGNvbnRyb2wgbWV0aG9kIGlzIGV4ZWN1dGVkIGJ5IHRoZSBPUyBkdXJpbmcgdGhl
-DQo+IHNsZWVwDQo+ID4gPiA+IHRyYW5zaXRpb24gcHJvY2VzcyBmb3IgUzEsIFMyLCBTMywgUzQs
-IGFuZCBmb3Igb3JkZXJseSBTNSBzaHV0ZG93bi4NCj4gPiA+ID4gVGhlIHNsZWVwaW5nIHN0YXRl
-IHZhbHVlIChGb3IgZXhhbXBsZSwgMSwgMiwgMywgNCBvciA1IGZvciB0aGUgUzUNCj4gPiA+ID4g
-c29mdC1vZmYgc3RhdGUpIGlzIHBhc3NlZCB0byB0aGUgX1BUUyBjb250cm9sIG1ldGhvZC4gVGhp
-cyBtZXRob2QNCj4gPiA+ID4gaXMgY2FsbGVkIGFmdGVyIE9TUE0gaGFzIG5vdGlmaWVkIG5hdGl2
-ZSBkZXZpY2UgZHJpdmVycyBvZiB0aGUgc2xlZXANCj4gPiA+ID4gc3RhdGUgdHJhbnNpdGlvbiBh
-bmQgYmVmb3JlIHRoZSBPU1BNIGhhcyBoYWQgYSBjaGFuY2UgdG8gZnVsbHkNCj4gPiA+ID4gcHJl
-cGFyZSB0aGUgc3lzdGVtIGZvciBhIHNsZWVwIHN0YXRlIHRyYW5zaXRpb24uDQo+ID4gPiA+DQo+
-ID4gPiA+IFRoZSBfUFRTIGNvbnRyb2wgbWV0aG9kIHByb3ZpZGVzIHRoZSBCSU9TIGEgbWVjaGFu
-aXNtIGZvcg0KPiA+IHBlcmZvcm1pbmcNCj4gPiA+ID4gc29tZSBob3VzZWtlZXBpbmcsIHN1Y2gg
-YXMgd3JpdGluZyB0aGUgc2xlZXAgdHlwZSB2YWx1ZSB0byB0aGUNCj4gPiA+IGVtYmVkZGVkDQo+
-ID4gPiA+IGNvbnRyb2xsZXIsIGJlZm9yZSBlbnRlcmluZyB0aGUgc3lzdGVtIHNsZWVwaW5nIHN0
-YXRlLg0KPiA+ID4gPg0KPiA+ID4gPiBBY2NvcmRpbmcgdG8gc2VjdGlvbiA3LjUgb2YgYWNwaSA2
-LjAgc3BlYywgX1BUUyBzaG91bGQgcnVuIGFmdGVyIF9UVFMuDQo+ID4gPiA+DQo+ID4gPiA+IFRo
-dXMsIGEgX1BUUyBibG9jayBub3RpZmllciBpcyBhZGRlZCB0byB0aGUgcmVib290IG5vdGlmaWVy
-IGxpc3Qgc28gdGhhdA0KPiA+ID4gPiB0aGUgX1BUUyBvYmplY3Qgd2lsbCBhbHNvIGJlIGV2YWx1
-YXRlZCB3aGVuIHRoZSBzeXN0ZW0gcmVib290Lg0KPiA+ID4NCj4gPiA+IFNvIEkgdW5kZXJzdGFu
-ZCB3aHkgaXQgbWF5IGJlIG5lY2Vzc2FyeSB0byBldmFsdWF0ZSBfUFRTIGJlZm9yZQ0KPiA+IGVu
-dGVyaW5nDQo+ID4gPiBTNSwNCj4gPiA+IGJ1dCBJJ20gdG90YWxseSB1bnN1cmUgYWJvdXQgcmVi
-b290Lg0KPiA+ID4NCj4gPiA+IFdoYXQgZG9lcyByZWJvb3QgaGF2ZSB0byBkbyB3aXRoIFM1Pw0K
-PiA+ID4NCj4gPiBJbiBBQ1BJIHNwZWMsIHRoZXJlIGlzIG5vIGV4cGxpY2l0IHdvcmRzIHNheWlu
-ZyBfUFRTIHNob3VsZCBiZQ0KPiA+IGV4ZWN1dGVkIHdoZW4gcmVib290LiBCdXQgcmVib290IGNv
-dWxkIGJlIGVxdWFsIHRvIHRoZQ0KPiA+IHByb2Nlc3MgUzAtPlM1LT5TMC4gVGh1cyBfUFRTIHNo
-b3VsZCBiZSBleGVjdXRlZCB3aGVuIHJlYm9vdC4NCj4gPg0KPiA+IEkgYW0gdGhpbmtpbmcgdGhp
-cyBpcyB0aGUgc2FtZSBhcyBfVFRTLiBJbiBBQ1BJIHNwZWMsIHRoZXJlIGlzIGFsc28NCj4gPiBu
-byBleHBsaWNpdCB3b3JkcyBzYXlpbmcgX1RUUyBzaG91bGQgYmUgZXhlY3V0ZWQgd2hlbiByZWJv
-b3QuDQo+ID4gQnV0IGtlcm5lbCBleGVjdXRlcyBfVFRTIHdoZW4gcmVib290IGluZGVlZC4NCj4g
-W0x2IFpoZW5nXQ0KPiBXaGF0J3MgdGhlIGRlLWZhY3RvIHN0YW5kYXJkIGJlaGF2aW9yIGhlcmU/
-DQo+IExlbm92byBzaG91bGQgYmUgYWJsZSB0byBtb2RpZnkgQklPUywgc2hvdWxkIHlvdSB0cnkg
-dG8gYm9vdCBkaWZmZXJlbnQNCj4gV2luZG93cyBjbG9uZXMgdG8gY29uZmlybSB0aGUgbmVjZXNz
-aXR5IG9mIGRvaW5nIHRoaXM/DQo+IA0KPiBUaGFua3MgYW5kIGJlc3QgcmVnYXJkcw0KPiAtTHYN
-Cj4gDQpJIGhhdmUgY29uc3VsdGVkIExlbm92byBVRUZJL0JJT1MgYXJjaHRlY3QsIERhdmlkIFRh
-bmFrYS4gSGUgc2F5cw0KdGhlIGRlLWZhY3RvIHN0YW5kYXJkIGJlaGF2aW9yIGlzIHRoYXQgX1BU
-UyBzaG91bGQgYmUgZXhlY3V0ZWQgd2hlbiByZWJvb3QsDQphdCBsZWFzdCBmb3IgV2luZG93cy4g
-V2luZG93cyBkb2VzIG5vdCBkaWZmZXJlbnRpYXRlIE9TIHJlYm9vdCBhbmQgc2h1dGRvd24uDQoN
-CkFuZCwgb3VyIHRlc3Qgb24gV2luZG93cyBzaG93cyBfUFRTIGlzIGV4ZWN1dGVkIHdoZW4gcmVi
-b290IGFjdHVhbGx5Lg0KDQpJIHRyeSB0byBmaW5kIHRoZSBkaWZmZXJlbmNlIGJldHdlZW4gT1Mg
-cmVib290IGFuZCBzaHV0ZG93bihTNSkgaW4gQUNQSSBzcGVjLA0KYnV0IEkgY2Fubid0IGZpbmQg
-dGhlIGFuc3dlci4gU28sIGluIG15IG1pbmQgSSBjb25zaWRlciByZWJvb3QgZXF1YWxzIFMwLT5T
-NS0+UzAuDQpNYXliZSB5b3UgaGF2ZSBldmlkZW5jZSBzaG93cyB0aGV5IGFyZSBkaWZmZXJlbnQs
-IHBsZWFzZSBsZXQgbWUga25vdy4gSXQgd291bGQNCmhlbHAgbWUgYSBsb3QuIFRoYW5rcy4NCg0K
-T2NlYW4uDQo+ID4NCj4gPiA+ID4gU2lnbmVkLW9mZi1ieTogT2NlYW4gSGUgPGhlaHkxQGxlbm92
-by5jb20+DQo+ID4gPiA+IFNpZ25lZC1vZmYtYnk6IE5hZ2FuYW5kYSBDaHVtYmFsa2FyIDxuY2h1
-bWJhbGthckBsZW5vdm8uY29tPg0KPiA+ID4gPiAtLS0NCj4gPiA+ID4gIGRyaXZlcnMvYWNwaS9z
-bGVlcC5jIHwgMjcgKysrKysrKysrKysrKysrKysrKysrKysrKysrDQo+ID4gPiA+ICAxIGZpbGUg
-Y2hhbmdlZCwgMjcgaW5zZXJ0aW9ucygrKQ0KPiA+ID4gPg0KPiA+ID4gPiBkaWZmIC0tZ2l0IGEv
-ZHJpdmVycy9hY3BpL3NsZWVwLmMgYi9kcml2ZXJzL2FjcGkvc2xlZXAuYw0KPiA+ID4gPiBpbmRl
-eCAyYThiNTk2Li44YjI5MGZiIDEwMDY0NA0KPiA+ID4gPiAtLS0gYS9kcml2ZXJzL2FjcGkvc2xl
-ZXAuYw0KPiA+ID4gPiArKysgYi9kcml2ZXJzL2FjcGkvc2xlZXAuYw0KPiA+ID4gPiBAQCAtNTUs
-NiArNTUsMjYgQEAgc3RhdGljIHN0cnVjdCBub3RpZmllcl9ibG9jayB0dHNfbm90aWZpZXIgPSB7
-DQo+ID4gPiA+ICAJLnByaW9yaXR5CT0gMCwNCj4gPiA+ID4gIH07DQo+ID4gPiA+DQo+ID4gPiA+
-ICtzdGF0aWMgaW50IHB0c19ub3RpZnlfcmVib290KHN0cnVjdCBub3RpZmllcl9ibG9jayAqdGhp
-cywNCj4gPiA+ID4gKwkJCXVuc2lnbmVkIGxvbmcgY29kZSwgdm9pZCAqeCkNCj4gPiA+ID4gK3sN
-Cj4gPiA+ID4gKwlhY3BpX3N0YXR1cyBzdGF0dXM7DQo+ID4gPiA+ICsNCj4gPiA+ID4gKwlzdGF0
-dXMgPSBhY3BpX2V4ZWN1dGVfc2ltcGxlX21ldGhvZChOVUxMLCAiXFxfUFRTIiwNCj4gPiA+IEFD
-UElfU1RBVEVfUzUpOw0KPiA+ID4gPiArCWlmIChBQ1BJX0ZBSUxVUkUoc3RhdHVzKSAmJiBzdGF0
-dXMgIT0gQUVfTk9UX0ZPVU5EKSB7DQo+ID4gPiA+ICsJCS8qIEl0IHdvbid0IGJyZWFrIGFueXRo
-aW5nLiAqLw0KPiA+ID4gPiArCQlwcmludGsoS0VSTl9OT1RJQ0UgIkZhaWx1cmUgaW4gZXZhbHVh
-dGluZyBfUFRTIG9iamVjdFxuIik7DQo+ID4gPiA+ICsJfQ0KPiA+ID4gPiArDQo+ID4gPiA+ICsJ
-cmV0dXJuIE5PVElGWV9ET05FOw0KPiA+ID4gPiArfQ0KPiA+ID4gPiArDQo+ID4gPiA+ICtzdGF0
-aWMgc3RydWN0IG5vdGlmaWVyX2Jsb2NrIHB0c19ub3RpZmllciA9IHsNCj4gPiA+ID4gKwkubm90
-aWZpZXJfY2FsbAk9IHB0c19ub3RpZnlfcmVib290LA0KPiA+ID4gPiArCS5uZXh0CQk9IE5VTEws
-DQo+ID4gPiA+ICsJLnByaW9yaXR5CT0gMCwNCj4gPiA+ID4gK307DQo+ID4gPiA+ICsNCj4gPiA+
-ID4gIHN0YXRpYyBpbnQgYWNwaV9zbGVlcF9wcmVwYXJlKHUzMiBhY3BpX3N0YXRlKQ0KPiA+ID4g
-PiAgew0KPiA+ID4gPiAgI2lmZGVmIENPTkZJR19BQ1BJX1NMRUVQDQo+ID4gPiA+IEBAIC04OTYs
-NSArOTE2LDEyIEBAIGludCBfX2luaXQgYWNwaV9zbGVlcF9pbml0KHZvaWQpDQo+ID4gPiA+ICAJ
-ICogb2JqZWN0IGNhbiBhbHNvIGJlIGV2YWx1YXRlZCB3aGVuIHRoZSBzeXN0ZW0gZW50ZXJzIFM1
-Lg0KPiA+ID4gPiAgCSAqLw0KPiA+ID4gPiAgCXJlZ2lzdGVyX3JlYm9vdF9ub3RpZmllcigmdHRz
-X25vdGlmaWVyKTsNCj4gPiA+ID4gKw0KPiA+ID4gPiArCS8qDQo+ID4gPiA+ICsJICogQWNjb3Jk
-aW5nIHRvIHNlY3Rpb24gNy41IG9mIGFjcGkgNi4wIHNwZWMsIF9QVFMgc2hvdWxkIHJ1biBhZnRl
-cg0KPiA+ID4gPiArCSAqIF9UVFMgd2hlbiB0aGUgc3lzdGVtIGVudGVycyBTNS4NCj4gPiA+ID4g
-KwkgKi8NCj4gPiA+ID4gKwlyZWdpc3Rlcl9yZWJvb3Rfbm90aWZpZXIoJnB0c19ub3RpZmllcik7
-DQo+ID4gPg0KPiA+ID4gV2h5IGRvIHlvdSBoYXZlIHRvIGFkZCBhIHNlY29uZCBub3RpZmllcj8N
-Cj4gPiA+DQo+ID4gPiBXaHkgY2FuJ3QgX1RUUyBhbmQgX1BUUyBiZSBldmFsdWF0ZWQgZnJvbSBv
-bmUgbm90aWZpZXI/DQo+ID4gPg0KPiA+IElmIGV4ZWN1dGUgX1BUUyBtZXRob2QgaW4gdHRzX25v
-dGlmeV9yZWJvb3QoKSwgdGhlbiBpdCB3b3VsZCBicmVhaw0KPiA+IGRlZmluaXRpb24gb2YgdHRz
-X25vdGlmeV9yZWJvb3QoKS4gTXkgaW50ZW50aW9uIGlzIHRvIGtlZXAgbmV3IGNvZGVzDQo+ID4g
-aGFzIGxpbWl0ZWQgaW1wYWN0IG9uIGV4aXN0ZWQgY29kZXMuDQo+ID4gT2YgY291cnNlLCBpdCdz
-IHBvc3NpYmxlIHRvIG1lcmdlIF9UVFMgYW5kIF9QVFMgaW50byBvbmUgdW5pZmllZCBub3RpZmll
-ci4NCj4gPiBUaGUgYWR2YW50YWdlIGlzIG1vcmUgYWN0aW9ucyBjb3VsZCBiZSBhZGRlZCBpbnRv
-IHRoZSB1bmlmaWVkIG5vdGlmaWVyDQo+IGluDQo+ID4gZnV0dXJlLg0KPiA+IFdoaWNoIHdheSB5
-b3UgcHJlZmVyPw0KPiA+ID4gPiArDQo+ID4gPiA+ICAJcmV0dXJuIDA7DQo+ID4gPiA+ICB9DQo+
-ID4gPiA+DQo+ID4gPg0KPiA+ID4gVGhhbmtzLA0KPiA+ID4gUmFmYWVsDQo+ID4NCj4gPiAT77+9
-77+97Lm7HO+/vSbvv71+77+9Ju+/vRjvv73vv70rLQ0KPiA+DQo+IO+/ve+/vd22F++/ve+/vXfv
-v73vv73Lm++/ve+/ve+/vW3vv71i77+977+9WnLvv73vv73vv73vv71ebu+/vXLvv73vv73vv716
-77+9Gu+/ve+/vWjvv73vv73vv73vv70m77+977+9Hu+/vUfvv73vv73vv71o77+9Ayjvv70NCj4g
-6ZqODQo+ID4g77+93aJqIu+/ve+/vRrvv70bbe+/ve+/ve+/ve+/ve+/vXrvv73elu+/ve+/ve+/
-vWbvv73vv73vv71o77+977+977+9fu+/vW3vv70NCg==
+On 06/24/2016 08:43 AM, Bin Gao wrote:
+> This series modifies the pen function signature to take bit field
+> and adds a new opregion driver for Intel BXT WhiskeyCove PMIC. It
+> also adds support for PMIC regs operation region.
+
+Reviewed-by: Aaron Lu <aaron.lu@intel.com>
+
+Thanks,
+Aaron
+
+> 
+> Yegnesh Iyer (1):
+>   acpi: pmic: Modifying the pen function signature to take bit field
+> 
+> Ajay Thomas (1):
+>   acpi: pmic: Add opregion driver for Intel BXT WhiskeyCove PMIC
+> 
+> Chandra Sekhar Anagani (1):
+>  acpi: pmic: Add support for Intel BXT PMIC regs operation region
+> 
+>  drivers/acpi/pmic/intel_pmic.c       | 87  +++++++------
+>  drivers/acpi/pmic/intel_pmic.h       | 11  ++--
+>  drivers/acpi/pmic/intel_pmic_crc.c   |  5  +++--
+>  drivers/acpi/Kconfig                 |  6  +
+>  drivers/acpi/Makefile                |  1  +
+>  drivers/acpi/pmic/intel_pmic_bxtwc.c |449  +++++++++++++++++++++++++++++++++++
+>  6 files changed, 559 insertions(+), 10 deletions(-)
+>  create mode 100644 drivers/acpi/pmic/intel_pmic_bxtwc.c
+> --
+> 1.9.1
+> 
+
