@@ -1,128 +1,216 @@
-From: Aaron Durbin <adurbin@google.com>
-Subject: Re: ACPI device using sub-resource of PCI device
-Date: Fri, 24 Jun 2016 14:34:31 -0500
-Message-ID: <CAE2855vfhaCVGg-6mBWcU0tQ8akyiAhjv5SrD6xoaj1SbwETDA@mail.gmail.com>
-References: <CAE2855tofJV=HV2dYuC+1=pi2mb942zrRF7f0+wqxPPay44RGA@mail.gmail.com>
- <CAJZ5v0hh1ve=w590D4XncheNVsrmr7f6k1msdr+dzT4UoUa+JQ@mail.gmail.com>
- <CAE2855vrhS7gKGFWEjZy-Hp2S8fNuJskG=WWDSuiBLhq_tDh8A@mail.gmail.com> <CAE2855uR=wkxb2xzM4OcG1czffrBXR=1RX8Ms0AfVJ8hzDnUjQ@mail.gmail.com>
+From: Daniel Lezcano <daniel.lezcano@linaro.org>
+Subject: Re: [PATCH v6 4/5] arm64: add support for ACPI Low Power Idle(LPI)
+Date: Fri, 24 Jun 2016 23:04:07 +0200
+Message-ID: <576DA047.7080808@linaro.org>
+References: <1465915719-8409-1-git-send-email-sudeep.holla@arm.com>
+ <1465915719-8409-5-git-send-email-sudeep.holla@arm.com>
+ <20160622141700.GB2733@red-moon>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset=UTF-8;
+	format=flowed
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-io0-f178.google.com ([209.85.223.178]:33120 "EHLO
-	mail-io0-f178.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750876AbcFXTed (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 24 Jun 2016 15:34:33 -0400
-Received: by mail-io0-f178.google.com with SMTP id t74so107751549ioi.0
-        for <linux-acpi@vger.kernel.org>; Fri, 24 Jun 2016 12:34:32 -0700 (PDT)
-In-Reply-To: <CAE2855uR=wkxb2xzM4OcG1czffrBXR=1RX8Ms0AfVJ8hzDnUjQ@mail.gmail.com>
+Received: from mail-wm0-f44.google.com ([74.125.82.44]:38559 "EHLO
+	mail-wm0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751185AbcFXVEK (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 24 Jun 2016 17:04:10 -0400
+Received: by mail-wm0-f44.google.com with SMTP id r201so40173952wme.1
+        for <linux-acpi@vger.kernel.org>; Fri, 24 Jun 2016 14:04:09 -0700 (PDT)
+In-Reply-To: <20160622141700.GB2733@red-moon>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rafael@kernel.org>
-Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>
+To: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Sudeep Holla <sudeep.holla@arm.com>
+Cc: "Rafael J . Wysocki" <rjw@rjwysocki.net>, linux-acpi@vger.kernel.org, Vikas Sajjan <vikas.cha.sajjan@hpe.com>, Sunil <sunil.vl@hpe.com>, Prashanth Prakash <pprakash@codeaurora.org>, Al Stone <al.stone@linaro.org>, Ashwin Chaugule <ashwin.chaugule@linaro.org>, linux-kernel@vger.kernel.org, Mark Rutland <mark.rutland@arm.com>, linux-arm-kernel@lists.infradead.org
 
-On Tue, Jun 14, 2016 at 12:04 PM, Aaron Durbin <adurbin@google.com> wrote:
-> On Wed, May 18, 2016 at 3:32 PM, Aaron Durbin <adurbin@google.com> wrote:
->> On Wed, May 18, 2016 at 4:25 PM, Rafael J. Wysocki <rafael@kernel.org> wrote:
->>> On Wed, May 18, 2016 at 5:54 PM, Aaron Durbin <adurbin@google.com> wrote:
->>>> Hi,
->>>>
->>>> We're currently running into a problem of resource conflicts with a
->>>> PCI device and ACPI devices.
->>>>
->>>> [    0.243534] pci 0000:00:0d.0: can't claim BAR 0 [mem
->>>> 0xd0000000-0xd0ffffff 64bit]: address conflict with INT3452:03 [mem
->>>> 0xd0c00000-0xd0c03fff]
->>>>
->>>> The PCI BAR covers a large amount mmio resources, however, there are
->>>> ACPI devices with their own HID (for probing) which uses resources
->>>> that are a subset of the PCI BAR.
->>>>
->>>> Short of re-structuring the linux driver is there anything that can be
->>>> done with ASL to properly have the ACPI device use a sub-resource of
->>>> the PCI device during the ACPI/PCI probing?
->>>
->>> Do you have an ACPI device object corresponding to the PCI device?
->>
->> I've been debugging this by proxy, and I did request that test. The
->> following is the overall structure:
->>
->> scope (\_SB.PCI0) {
->>
->> Device (P2S)
->> {
->>         Name (_ADR, 0x000D0000)
->>         Device (GPO0)
->>         {
->>                 Name (_ADR, 0)
->>                 Name (_HID, "INT3452")
->>                 Name (_CID, "INT3452")
->>         }
->> }
->> }
->>
->> There are _STA methods in both Devices. The GP0 device has a _CRS
->> method which just returns a ResourceTemplate which is filled in with
->> static values. The PCI bar is at a fixed address from the firmware
->> which allows the fixed calculations. However there is no specific
->> reference to the P2S device's resources proper -- only the parent
->> child relationship within the ASL. I'm not sure how to directly say "I
->> want this sub-region of this other device's resource for my resource."
->> That seems like the right thing, but it's not clear if that's implied
->> by hierarchy of the devices.
->>
->> Lastly, if it helps, the kernel being used is based on v4.4 (no core
->> patches on top).
->>
+On 06/22/2016 04:17 PM, Lorenzo Pieralisi wrote:
+> Hi Sudeep,
 >
-> Hi Rafael,
+> On Tue, Jun 14, 2016 at 03:48:38PM +0100, Sudeep Holla wrote:
+>> This patch adds appropriate callbacks to support ACPI Low Power Idle
+>> (LPI) on ARM64.
+>>
+>> Now that arm_enter_idle_state is exactly same in both generic ARM{32=
+,64}
+>> CPUIdle driver and ARM64 backend for ACPI processor idle driver, we =
+can
+>> unify it and move to cpuidle-arm.h header.
+>>
+>> Cc: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+>> Cc: Mark Rutland <mark.rutland@arm.com>
+>> Cc: Daniel Lezcano <daniel.lezcano@linaro.org>
+>> Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+>> Cc: linux-arm-kernel@lists.infradead.org
+>> Signed-off-by: Sudeep Holla <sudeep.holla@arm.com>
+>> ---
+>>   arch/arm64/kernel/cpuidle.c   | 17 +++++++++++++
+>>   drivers/cpuidle/cpuidle-arm.c | 23 ++----------------
+>>   drivers/firmware/psci.c       | 56 +++++++++++++++++++++++++++++++=
+++++++++++++
+>>   include/linux/cpuidle-arm.h   | 30 +++++++++++++++++++++++
+>>   4 files changed, 105 insertions(+), 21 deletions(-)
+>>   create mode 100644 include/linux/cpuidle-arm.h
 >
-> I haven't tried a newer kernel yet, but are you of the opinion that
-> having the Devices as parent-child within the ASL should work? I'm
-> wondering if there's already a patch in newer kernels that doesn't
-> report the conflict and works as expected once there are child Devices
-> under the P2S device.
+> This patch seems fine by me, it would be good if Daniel can have
+> a look too.
 >
+> Some minor comments below.
+>
+> [...]
+>
+>> diff --git a/drivers/firmware/psci.c b/drivers/firmware/psci.c
+>> index 03e04582791c..c6caa863d156 100644
+>> --- a/drivers/firmware/psci.c
+>> +++ b/drivers/firmware/psci.c
+>> @@ -13,6 +13,7 @@
+>>
+>>   #define pr_fmt(fmt) "psci: " fmt
+>>
+>> +#include <linux/acpi.h>
+>>   #include <linux/arm-smccc.h>
+>>   #include <linux/cpuidle.h>
+>>   #include <linux/errno.h>
+>> @@ -310,11 +311,66 @@ static int psci_dt_cpu_init_idle(struct device=
+_node *cpu_node, int cpu)
+>>   	return ret;
+>>   }
+>>
+>> +#ifdef CONFIG_ACPI
+>> +#include <acpi/processor.h>
+>> +
+>> +static int __maybe_unused psci_acpi_cpu_init_idle(unsigned int cpu)
+>> +{
+>> +	int i, count;
+>> +	u32 *psci_states;
+>> +	struct acpi_processor *pr;
+>> +	struct acpi_lpi_state *lpi;
+>> +
+>> +	pr =3D per_cpu(processors, cpu);
+>> +	if (unlikely(!pr || !pr->flags.has_lpi))
+>> +		return -EINVAL;
+>> +
+>> +	/*
+>> +	 * If the PSCI cpu_suspend function hook has not been initialized
+>> +	 * idle states must not be enabled, so bail out
+>> +	 */
+>> +	if (!psci_ops.cpu_suspend)
+>> +		return -EOPNOTSUPP;
+>> +
+>> +	count =3D pr->power.count - 1;
+>> +	if (count <=3D 0)
+>> +		return -ENODEV;
+>> +
+>> +	psci_states =3D kcalloc(count, sizeof(*psci_states), GFP_KERNEL);
+>> +	if (!psci_states)
+>> +		return -ENOMEM;
+>> +
+>> +	for (i =3D 0; i < count; i++) {
+>> +		u32 state;
+>> +
+>> +		lpi =3D &pr->power.lpi_states[i + 1];
+>> +		state =3D lpi->address & 0xFFFFFFFF;
 
-I've been looking at this more closely. A child ACPI device under a
-ACPI PCI device doesn't change the resource conflict even when a _CRS
-method is added to the ACPI PCI device.  Below is my sleuthing which
-is probably not a surprise to anyone here, but please correct me where
-I am wrong.
+Why is needed to mask 'address' ?
 
-acpi_init() and pci_subsys_init() are both subsys_initcalls during
-boot up. I'm not sure if the ordering is dumb luck or not, but
-acpi_init() is called prior to pci_subsys_init(). The conflict error
-is spit out from pcibios_resource_survey() by way of pci_subsys_init()
- subsys_initcall. However, the PCI device scanning is kicked off prior
-to this through acpi_scan_init() by way of acpi_init()
-subsys_initcall.  The conflict error occurs because there's already
-the child ACPI device in the resource tree. I'm not sure when/where
-those ACPI devices' resources are added, but clearly they are sitting
-in there since the conflict was found.
+>> +		if (!psci_power_state_is_valid(state)) {
+>> +			pr_warn("Invalid PSCI power state %#x\n", state);
+>> +			kfree(psci_states);
+>> +			return -EINVAL;
+>> +		}
+>> +		psci_states[i] =3D state;
+>> +	}
+>> +	/* Idle states parsed correctly, initialize per-cpu pointer */
+>> +	per_cpu(psci_power_state, cpu) =3D psci_states;
+>> +	return 0;
+>
+> Most of the code in this function is FW independent, it would be nice
+> to factor it out and add the respective ACPI/DT helper functions to
+> retrieve idle states count and parameters, we can update it later
+> anyway it is fine by me to leave it as it is.
+>
+>> +}
+>> +#else
+>> +static int __maybe_unused psci_acpi_cpu_init_idle(unsigned int cpu)
+>> +{
+>> +	return -EINVAL;
+>> +}
+>> +#endif
+>> +
+>>   int psci_cpu_init_idle(unsigned int cpu)
+>>   {
+>>   	struct device_node *cpu_node;
+>>   	int ret;
+>>
+>> +	if (!acpi_disabled)
+>> +		return psci_acpi_cpu_init_idle(cpu);
 
-Somewhere along the way a PCI device from a scan is linked with the
-ACPI device for that same PCI device in sysfs.  This is with me
-putting a _HID and _CID in the PCI ACPI device.
-# readlink -f /sys/devices/LNXSYSTM:00/LNXSYBUS:00/PNP0A08:00/INT5A92:00/physical_node
-/sys/devices/pci0000:00/0000:00:0d.0
-# readlink -f /sys/devices/pci0000\:00/0000\:00\:0d.0/firmware_node/
-/sys/devices/LNXSYSTM:00/LNXSYBUS:00/PNP0A08:00/INT5A92:00
+Is it possible the case where there is information in both the DT and i=
+n=20
+ACPI ? So ACPI is enabled without idle information which is in the DT ?
 
-So the hierarchy is known eventually, but it's clearly not honored
-when adding resources. The current ACPI support doesn't handle
-PciBarTarget which initially sounds (from ACPI spec) like the way to
-go for referencing a resource in a PCI device from an ACPI device. So
-that's out of the question currently, but maybe someone has a patch
-for that? I don't think reordering the acpi_init() and
-pci_subsys_init() would do anything different except change which
-device discovers the conflict.
+>>   	cpu_node =3D of_get_cpu_node(cpu, NULL);
+>>   	if (!cpu_node)
+>>   		return -ENODEV;
+>> diff --git a/include/linux/cpuidle-arm.h b/include/linux/cpuidle-arm=
+=2Eh
+>> new file mode 100644
+>> index 000000000000..b99bcb3f43dd
+>> --- /dev/null
+>> +++ b/include/linux/cpuidle-arm.h
+>
+> arm-cpuidle.h for consistency with other (ARM) include/linux files ?
+>
+>> @@ -0,0 +1,30 @@
+>> +#include <linux/cpu_pm.h>
+>> +
+>> +#include <asm/cpuidle.h>
+>> +
+>> +/*
+>> + * arm_enter_idle_state - Programs CPU to enter the specified state
+>> + */
+>> +static int arm_generic_enter_idle_state(int idx)
+>> +{
+>> +	int ret;
+>> +
+>> +	if (!idx) {
+>> +		cpu_do_idle();
+>> +		return idx;
+>> +	}
+>> +
+>> +	ret =3D cpu_pm_enter();
+>> +	if (!ret) {
+>> +		/*
+>> +		 * Pass idle state index to cpu_suspend which in turn will
+>> +		 * call the CPU ops suspend protocol with idle index as a
+>> +		 * parameter.
+>> +		 */
+>> +		ret =3D arm_cpuidle_suspend(idx);
+>> +
+>> +		cpu_pm_exit();
+>> +	}
+>> +
+>> +	return ret ? -1 : idx;
+>> +}
+>
+> Either you do this, or we have to add it somehow somewhere in
+> drivers/cpuidle to avoid duplicating it.
+>
+> @Daniel: do you have an opinion on this please ?
 
-Is there a way to honor the ACPI device hierarchy during resource
-addition for the PCI devices? The conflict is found because of the
-presence of a child device claiming resources through _CRS.
-Alternatively, is there a good way to defer the probing of an ACPI
-device until one knows PCI resources have been added?
+Yes, this function should be added to avoid duplication.
 
-Any insights would be very helpful. Thank you.
+  -- Daniel
 
--Aaron
+
+--=20
+  <http://www.linaro.org/> Linaro.org =E2=94=82 Open source software fo=
+r ARM SoCs
+
+=46ollow Linaro:  <http://www.facebook.com/pages/Linaro> Facebook |
+<http://twitter.com/#!/linaroorg> Twitter |
+<http://www.linaro.org/linaro-blog/> Blog
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
