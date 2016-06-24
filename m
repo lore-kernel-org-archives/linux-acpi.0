@@ -1,107 +1,139 @@
-From: Dennis Chen <dennis.chen@arm.com>
-Subject: Re: [PATCH 2/2] arm64:acpi Fix the acpi alignment exeception when
- 'mem=' specified
-Date: Fri, 24 Jun 2016 10:31:48 +0800
-Message-ID: <20160624023147.GB12969@arm.com>
-References: <1466681415-8058-1-git-send-email-dennis.chen@arm.com>
- <1466681415-8058-2-git-send-email-dennis.chen@arm.com>
- <20160623124229.GD8836@leverpostej>
+From: Ocean HY1 He <hehy1@lenovo.com>
+Subject: RE: [PATCH] ACPI: Execute the _PTS method when system reboot
+Date: Fri, 24 Jun 2016 02:59:24 +0000
+Message-ID: <BCBE834BAC19744BA2C3AC4D68DBF2198D8ACDFB@CNMAILEX03.lenovo.com>
+References: <1462772495-71113-1-git-send-email-hehy1@lenovo.com>
+ <2611430.1T9CgX71hW@vostro.rjw.lan>
+ <BCBE834BAC19744BA2C3AC4D68DBF2198D8AC790@CNMAILEX03.lenovo.com>
+ <CAJZ5v0iR6KU+Oy3iP5Ungw2cpqpmRBPw6fy26OL+cjFUnMJCUg@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=WINDOWS-1252
-Content-Transfer-Encoding: quoted-printable
-Return-path: <owner-linux-mm@kvack.org>
-In-Reply-To: <20160623124229.GD8836@leverpostej>
-Content-Disposition: inline
-Sender: owner-linux-mm@kvack.org
-To: Mark Rutland <mark.rutland@arm.com>
-Cc: linux-arm-kernel@lists.infradead.org, nd@arm.com, Catalin Marinas <catalin.marinas@arm.com>, Steve Capper <steve.capper@arm.com>, Ard
- Biesheuvel <ard.biesheuvel@linaro.org>, Will Deacon <will.deacon@arm.com>, "Rafael J . Wysocki" <rafael.j.wysocki@intel.com>, Matt Fleming <matt@codeblueprint.co.uk>, linux-mm@kvack.org, linux-acpi@vger.kernel.org, linux-efi@vger.kernel.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail1.bemta8.messagelabs.com ([216.82.243.200]:7822 "EHLO
+	mail1.bemta8.messagelabs.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751211AbcFXDHI (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 23 Jun 2016 23:07:08 -0400
+In-Reply-To: <CAJZ5v0iR6KU+Oy3iP5Ungw2cpqpmRBPw6fy26OL+cjFUnMJCUg@mail.gmail.com>
+Content-Language: zh-CN
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: "Rafael J. Wysocki" <rafael@kernel.org>
+Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, "lenb@kernel.org" <lenb@kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, David Tanaka <dtanaka@lenovo.com>, Nagananda Chumbalkar <nchumbalkar@lenovo.com>, "Zheng, Lv" <lv.zheng@intel.com>, Sumeet Kochar <skochar@lenovo.com>
 
-On Thu, Jun 23, 2016 at 01:42:30PM +0100, Mark Rutland wrote:
-> On Thu, Jun 23, 2016 at 07:30:15PM +0800, Dennis Chen wrote:
-> > This is a rework patch based on [1]. According to the proposal from
-> > Mark Rutland, when applying the system memory limit through 'mem=3Dx'
-> > kernel command line, don't remove the rest memory regions above the
-> > limit from the memblock, instead marking them as MEMBLOCK_NOMAP region,
-> > which will preserve the ability to identify regions as normal memory
-> > while not using them for allocation and the linear map.
-> >=20
-> > Without this patch, the ACPI core will map those acpi data regions(if
-> > they are above the limit) as device type memory, which will result in
-> > the alignment exception when ACPI core parses the AML data stream=20
-> > since the parsing will produce some non-alignment accesses.
-> >
-> > [1]:http://lists.infradead.org/pipermail/linux-arm-kernel/2016-June/438=
-443.html
->=20
-> Please rewrite the message to be standalone (i.e. so peopel can read
-> this without having to folow the link).
->=20
-> Explain why using mem=3D makes ACPI think regions should be mapped as
-> Device memory, the problems this causes for ACPICA, then cover why we
-> want to nomap the region.
->=20
-> > Signed-off-by: Dennis Chen <dennis.chen@arm.com>
-> > Cc: Catalin Marinas <catalin.marinas@arm.com>
-> > Cc: Steve Capper <steve.capper@arm.com>
-> > Cc: Ard Biesheuvel <ard.biesheuvel@linaro.org>
-> > Cc: Will Deacon <will.deacon@arm.com>
-> > Cc: Mark Rutland <mark.rutland@arm.com>
-> > Cc: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-> > Cc: Matt Fleming <matt@codeblueprint.co.uk>
-> > Cc: linux-mm@kvack.org
-> > Cc: linux-acpi@vger.kernel.org
-> > Cc: linux-efi@vger.kernel.org
-> > ---
-> >  arch/arm64/mm/init.c | 10 ++++++----
-> >  1 file changed, 6 insertions(+), 4 deletions(-)
-> >=20
-> > diff --git a/arch/arm64/mm/init.c b/arch/arm64/mm/init.c
-> > index d45f862..e509e24 100644
-> > --- a/arch/arm64/mm/init.c
-> > +++ b/arch/arm64/mm/init.c
-> > @@ -222,12 +222,14 @@ void __init arm64_memblock_init(void)
-> > =20
-> >  =09/*
-> >  =09 * Apply the memory limit if it was set. Since the kernel may be lo=
-aded
-> > -=09 * high up in memory, add back the kernel region that must be acces=
-sible
-> > -=09 * via the linear mapping.
-> > +=09 * in the memory regions above the limit, so we need to clear the
-> > +=09 * MEMBLOCK_NOMAP flag of this region to make it can be accessible =
-via
-> > +=09 * the linear mapping.
-> >  =09 */
-> >  =09if (memory_limit !=3D (phys_addr_t)ULLONG_MAX) {
-> > -=09=09memblock_enforce_memory_limit(memory_limit);
-> > -=09=09memblock_add(__pa(_text), (u64)(_end - _text));
-> > +=09=09memblock_mem_limit_mark_nomap(memory_limit);
-> > +=09=09if (!memblock_is_map_memory(__pa(_text)))
-> > +=09=09=09memblock_clear_nomap(__pa(_text), (u64)(_end - _text));
->=20
-> I think that the memblock_is_map_memory() check should go. Just because
-> a page of the kernel image is mapped doesn't mean that the rest is. That
-> will make this a 1-1 change.
->
-Good catch! Will be applied, thanks!
->=20
-> Other than that, this looks right to me.
->=20
-> Thanks,
-> Mark.
->=20
-> >  =09}
-> > =20
-> >  =09if (IS_ENABLED(CONFIG_BLK_DEV_INITRD) && initrd_start) {
-> > --=20
-> > 1.8.3.1
-> >=20
->=20
-
---
-To unsubscribe, send a message with 'unsubscribe linux-mm' in
-the body to majordomo@kvack.org.  For more info on Linux MM,
-see: http://www.linux-mm.org/ .
-Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
+DQoNClJlZ2FyZHMsDQpPY2VhbiBIZQ0KU1cgRGV2ZWxvcG1lbnQgRGVwdC4gDQpCZWlqaW5nIERl
+c2lnbiBDZW50ZXINCkVudGVycHJpc2UgUHJvZHVjdCBHcm91cA0KTW9iaWxlOiAxODkxMTc3ODky
+Ng0KRS1tYWlsOiBoZWh5MUBsZW5vdm8uY29tDQpOby42IENodWFuZyBZZSBSb2FkLCBIYWlkaWFu
+IERpc3RyaWN0LCBCZWlqaW5nLCBDaGluYSAxMDAwODUNCg0KDQo+IC0tLS0tT3JpZ2luYWwgTWVz
+c2FnZS0tLS0tDQo+IEZyb206IHJqd3lzb2NraUBnbWFpbC5jb20gW21haWx0bzpyand5c29ja2lA
+Z21haWwuY29tXSBPbiBCZWhhbGYgT2YNCj4gUmFmYWVsIEouIFd5c29ja2kNCj4gU2VudDogVGh1
+cnNkYXksIEp1bmUgMjMsIDIwMTYgOToxMyBQTQ0KPiBUbzogT2NlYW4gSFkxIEhlDQo+IENjOiBS
+YWZhZWwgSi4gV3lzb2NraTsgbGVuYkBrZXJuZWwub3JnOyBsaW51eC1hY3BpQHZnZXIua2VybmVs
+Lm9yZzsNCj4gbGludXgta2VybmVsQHZnZXIua2VybmVsLm9yZzsgRGF2aWQgVGFuYWthOyBOYWdh
+bmFuZGEgQ2h1bWJhbGthcg0KPiBTdWJqZWN0OiBSZTogW1BBVENIXSBBQ1BJOiBFeGVjdXRlIHRo
+ZSBfUFRTIG1ldGhvZCB3aGVuIHN5c3RlbSByZWJvb3QNCj4gDQo+IE9uIFRodSwgSnVuIDIzLCAy
+MDE2IGF0IDI6NTUgUE0sIE9jZWFuIEhZMSBIZSA8aGVoeTFAbGVub3ZvLmNvbT4NCj4gd3JvdGU6
+DQo+ID4gSGkgUmFmYWVsLA0KPiA+IFBsZWFzZSBzZWUgbXkgcmVwbHkgaW4gYmVsb3cuDQo+ID4N
+Cj4gPiBSZWdhcmRzLA0KPiA+IE9jZWFuIEhlDQo+ID4gU1cgRGV2ZWxvcG1lbnQgRGVwdC4NCj4g
+PiBCZWlqaW5nIERlc2lnbiBDZW50ZXINCj4gPiBFbnRlcnByaXNlIFByb2R1Y3QgR3JvdXANCj4g
+PiBNb2JpbGU6IDE4OTExNzc4OTI2DQo+ID4gRS1tYWlsOiBoZWh5MUBsZW5vdm8uY29tDQo+ID4g
+Tm8uNiBDaHVhbmcgWWUgUm9hZCwgSGFpZGlhbiBEaXN0cmljdCwgQmVpamluZywgQ2hpbmEgMTAw
+MDg1DQo+ID4NCj4gPj4gLS0tLS1PcmlnaW5hbCBNZXNzYWdlLS0tLS0NCj4gPj4gRnJvbTogUmFm
+YWVsIEouIFd5c29ja2kgW21haWx0bzpyandAcmp3eXNvY2tpLm5ldF0NCj4gPj4gU2VudDogV2Vk
+bmVzZGF5LCBKdW5lIDIyLCAyMDE2IDc6NTYgQU0NCj4gPj4gVG86IE9jZWFuIEhZMSBIZQ0KPiA+
+PiBDYzogbGVuYkBrZXJuZWwub3JnOyBsaW51eC1hY3BpQHZnZXIua2VybmVsLm9yZzsNCj4gPj4g
+bGludXgta2VybmVsQHZnZXIua2VybmVsLm9yZzsgRGF2aWQgVGFuYWthOyBOYWdhbmFuZGEgQ2h1
+bWJhbGthcg0KPiA+PiBTdWJqZWN0OiBSZTogW1BBVENIXSBBQ1BJOiBFeGVjdXRlIHRoZSBfUFRT
+IG1ldGhvZCB3aGVuIHN5c3RlbQ0KPiByZWJvb3QNCj4gPj4NCj4gPj4gT24gTW9uZGF5LCBNYXkg
+MDksIDIwMTYgMDU6NTA6MTEgQU0gT2NlYW4gSFkxIEhlIHdyb3RlOg0KPiA+PiA+IFRoZSBfUFRT
+IGNvbnRyb2wgbWV0aG9kIGlzIGRlZmluZWQgaW4gdGhlIHNlY3Rpb24gNy40LjEgb2YgYWNwaSA2
+LjANCj4gPj4gPiBzcGVjLiBUaGUgX1BUUyBjb250cm9sIG1ldGhvZCBpcyBleGVjdXRlZCBieSB0
+aGUgT1MgZHVyaW5nIHRoZSBzbGVlcA0KPiA+PiA+IHRyYW5zaXRpb24gcHJvY2VzcyBmb3IgUzEs
+IFMyLCBTMywgUzQsIGFuZCBmb3Igb3JkZXJseSBTNSBzaHV0ZG93bi4NCj4gPj4gPiBUaGUgc2xl
+ZXBpbmcgc3RhdGUgdmFsdWUgKEZvciBleGFtcGxlLCAxLCAyLCAzLCA0IG9yIDUgZm9yIHRoZSBT
+NQ0KPiA+PiA+IHNvZnQtb2ZmIHN0YXRlKSBpcyBwYXNzZWQgdG8gdGhlIF9QVFMgY29udHJvbCBt
+ZXRob2QuIFRoaXMgbWV0aG9kDQo+ID4+ID4gaXMgY2FsbGVkIGFmdGVyIE9TUE0gaGFzIG5vdGlm
+aWVkIG5hdGl2ZSBkZXZpY2UgZHJpdmVycyBvZiB0aGUgc2xlZXANCj4gPj4gPiBzdGF0ZSB0cmFu
+c2l0aW9uIGFuZCBiZWZvcmUgdGhlIE9TUE0gaGFzIGhhZCBhIGNoYW5jZSB0byBmdWxseQ0KPiA+
+PiA+IHByZXBhcmUgdGhlIHN5c3RlbSBmb3IgYSBzbGVlcCBzdGF0ZSB0cmFuc2l0aW9uLg0KPiA+
+PiA+DQo+ID4+ID4gVGhlIF9QVFMgY29udHJvbCBtZXRob2QgcHJvdmlkZXMgdGhlIEJJT1MgYSBt
+ZWNoYW5pc20gZm9yDQo+IHBlcmZvcm1pbmcNCj4gPj4gPiBzb21lIGhvdXNla2VlcGluZywgc3Vj
+aCBhcyB3cml0aW5nIHRoZSBzbGVlcCB0eXBlIHZhbHVlIHRvIHRoZQ0KPiA+PiBlbWJlZGRlZA0K
+PiA+PiA+IGNvbnRyb2xsZXIsIGJlZm9yZSBlbnRlcmluZyB0aGUgc3lzdGVtIHNsZWVwaW5nIHN0
+YXRlLg0KPiA+PiA+DQo+ID4+ID4gQWNjb3JkaW5nIHRvIHNlY3Rpb24gNy41IG9mIGFjcGkgNi4w
+IHNwZWMsIF9QVFMgc2hvdWxkIHJ1biBhZnRlciBfVFRTLg0KPiA+PiA+DQo+ID4+ID4gVGh1cywg
+YSBfUFRTIGJsb2NrIG5vdGlmaWVyIGlzIGFkZGVkIHRvIHRoZSByZWJvb3Qgbm90aWZpZXIgbGlz
+dCBzbyB0aGF0DQo+ID4+ID4gdGhlIF9QVFMgb2JqZWN0IHdpbGwgYWxzbyBiZSBldmFsdWF0ZWQg
+d2hlbiB0aGUgc3lzdGVtIHJlYm9vdC4NCj4gPj4NCj4gPj4gU28gSSB1bmRlcnN0YW5kIHdoeSBp
+dCBtYXkgYmUgbmVjZXNzYXJ5IHRvIGV2YWx1YXRlIF9QVFMgYmVmb3JlDQo+IGVudGVyaW5nDQo+
+ID4+IFM1LA0KPiA+PiBidXQgSSdtIHRvdGFsbHkgdW5zdXJlIGFib3V0IHJlYm9vdC4NCj4gPj4N
+Cj4gPj4gV2hhdCBkb2VzIHJlYm9vdCBoYXZlIHRvIGRvIHdpdGggUzU/DQo+ID4+DQo+ID4gSW4g
+QUNQSSBzcGVjLCB0aGVyZSBpcyBubyBleHBsaWNpdCB3b3JkcyBzYXlpbmcgX1BUUyBzaG91bGQg
+YmUNCj4gPiBleGVjdXRlZCB3aGVuIHJlYm9vdC4gQnV0IHJlYm9vdCBjb3VsZCBiZSBlcXVhbCB0
+byB0aGUNCj4gPiBwcm9jZXNzIFMwLT5TNS0+UzAuDQo+IA0KPiBOb3QgaW4gZ2VuZXJhbC4NCj4g
+DQo+IEluIHBhcnRpY3VsYXIsIHdha2V1cCBkZXZpY2VzIHRoYXQgd291bGQgYmUgc2V0IHVwIGZv
+ciBTNSBuZWVkIG5vdCBiZQ0KPiBzZXQgdXAgZm9yIHRoYXQuICBBbHNvIHRoZSBtZWNoYW5pc20g
+Ynkgd2hpY2ggdHJhbnNpdGlvbnMgdG8gUzUgYXJlDQo+IGVudGVyZWQgaXMgZGlmZmVyZW50IGZy
+b20gdGhlIHJlYm9vdCBvbmUsIGF0IGxlYXN0IGZyb20gdGhlIE9TDQo+IHBlcnNwZWN0aXZlLg0K
+PiANCj4gPiBUaHVzIF9QVFMgc2hvdWxkIGJlIGV4ZWN1dGVkIHdoZW4gcmVib290Lg0KPiANCj4g
+Tm8sIGl0IGRvZXNuJ3QgZm9sbG93Lg0KPiANCj4gPiBJIGFtIHRoaW5raW5nIHRoaXMgaXMgdGhl
+IHNhbWUgYXMgX1RUUy4gSW4gQUNQSSBzcGVjLCB0aGVyZSBpcyBhbHNvDQo+ID4gbm8gZXhwbGlj
+aXQgd29yZHMgc2F5aW5nIF9UVFMgc2hvdWxkIGJlIGV4ZWN1dGVkIHdoZW4gcmVib290Lg0KPiA+
+IEJ1dCBrZXJuZWwgZXhlY3V0ZXMgX1RUUyB3aGVuIHJlYm9vdCBpbmRlZWQuDQo+IA0KPiBZZXMs
+IGl0IGRvZXMuICBNYXliZSBpdCBzaG91bGRuJ3Q/DQo+IA0KPiBJdCBtYXkgbm90IGh1cnQgdG8g
+Y2FsbCBfUFRTIGJlZm9yZSByZWJvb3QgdG9vLCBidXQgaXMgaXQgZ3VhcmFudGVlZA0KPiB0byB3
+b3JrIGFjcm9zcyB0aGUgYm9hcmQgb24gYWxsIHN5c3RlbXMgZXZlcnl3aGVyZT8NCj4gDQpJIHRy
+eSB0byBjbGFyaWZ5IHRoZSBrZXkgcG9pbnQgb2YgdGhpcyBjYXNlOiBkb2VzIGRldmljZXMgc2hv
+dWxkIGdvIHRvIFM1KHNodXRkb3duKSB3aGVuIHJlYm9vdD8NCg0KSSB0aGluayB0aGUgYW5zd2Vy
+IGlzIHllcy4gDQpBbmQgSXQgaGFzIG5vIGh1cnQgdG8gbGV0IGRldmljZXMgZ28gdG8gUzUgYmVm
+b3JlIHJlYm9vdCBpcyBpbnZva2VkLCBoZXJlIGlzIHRoZSByZWFzb25zOg0KIzEgVGhlIG5ldyBf
+UFRTIGNvZGVzIGJsb2NrIG5vdGhpbmcgdGh1cyByZWJvb3QgY2FuIGJlIGd1YXJhbnRlZWQgdG8g
+YmUgaW52b2tlZCBldmVudHVhbGx5Lg0KIzIuIERldmljZXMgYXJlIG1hbmRhdG9yeSB0byBzdXBw
+b3J0IFM1IHN0YXRlLCB0aGlzIG1lYW5zIGdvIHRvIFM1IGNvdWxkIGJlIGEgc2FmZSB0cmlwLg0K
+IzMgUmVib290IHdvdWxkIGNhdXNlIGRldmljZXMgcmUtaW5pdGlhbGl6YXRpb24gZnJvbSB0aGUg
+c2NyYXRjaC4NCg0KV2hhdCdzIHlvdXIgZGVjaXNpb24gdGhlbj8gOy0pDQoNClJlZ2FyZHMsDQpP
+Y2Vhbi4NCg0KPiA+PiA+IFNpZ25lZC1vZmYtYnk6IE9jZWFuIEhlIDxoZWh5MUBsZW5vdm8uY29t
+Pg0KPiA+PiA+IFNpZ25lZC1vZmYtYnk6IE5hZ2FuYW5kYSBDaHVtYmFsa2FyIDxuY2h1bWJhbGth
+ckBsZW5vdm8uY29tPg0KPiA+PiA+IC0tLQ0KPiA+PiA+ICBkcml2ZXJzL2FjcGkvc2xlZXAuYyB8
+IDI3ICsrKysrKysrKysrKysrKysrKysrKysrKysrKw0KPiA+PiA+ICAxIGZpbGUgY2hhbmdlZCwg
+MjcgaW5zZXJ0aW9ucygrKQ0KPiA+PiA+DQo+ID4+ID4gZGlmZiAtLWdpdCBhL2RyaXZlcnMvYWNw
+aS9zbGVlcC5jIGIvZHJpdmVycy9hY3BpL3NsZWVwLmMNCj4gPj4gPiBpbmRleCAyYThiNTk2Li44
+YjI5MGZiIDEwMDY0NA0KPiA+PiA+IC0tLSBhL2RyaXZlcnMvYWNwaS9zbGVlcC5jDQo+ID4+ID4g
+KysrIGIvZHJpdmVycy9hY3BpL3NsZWVwLmMNCj4gPj4gPiBAQCAtNTUsNiArNTUsMjYgQEAgc3Rh
+dGljIHN0cnVjdCBub3RpZmllcl9ibG9jayB0dHNfbm90aWZpZXIgPSB7DQo+ID4+ID4gICAgIC5w
+cmlvcml0eSAgICAgICA9IDAsDQo+ID4+ID4gIH07DQo+ID4+ID4NCj4gPj4gPiArc3RhdGljIGlu
+dCBwdHNfbm90aWZ5X3JlYm9vdChzdHJ1Y3Qgbm90aWZpZXJfYmxvY2sgKnRoaXMsDQo+ID4+ID4g
+KyAgICAgICAgICAgICAgICAgICB1bnNpZ25lZCBsb25nIGNvZGUsIHZvaWQgKngpDQo+ID4+ID4g
+K3sNCj4gPj4gPiArICAgYWNwaV9zdGF0dXMgc3RhdHVzOw0KPiA+PiA+ICsNCj4gPj4gPiArICAg
+c3RhdHVzID0gYWNwaV9leGVjdXRlX3NpbXBsZV9tZXRob2QoTlVMTCwgIlxcX1BUUyIsDQo+ID4+
+IEFDUElfU1RBVEVfUzUpOw0KPiA+PiA+ICsgICBpZiAoQUNQSV9GQUlMVVJFKHN0YXR1cykgJiYg
+c3RhdHVzICE9IEFFX05PVF9GT1VORCkgew0KPiA+PiA+ICsgICAgICAgICAgIC8qIEl0IHdvbid0
+IGJyZWFrIGFueXRoaW5nLiAqLw0KPiA+PiA+ICsgICAgICAgICAgIHByaW50ayhLRVJOX05PVElD
+RSAiRmFpbHVyZSBpbiBldmFsdWF0aW5nIF9QVFMNCj4gb2JqZWN0XG4iKTsNCj4gPj4gPiArICAg
+fQ0KPiA+PiA+ICsNCj4gPj4gPiArICAgcmV0dXJuIE5PVElGWV9ET05FOw0KPiA+PiA+ICt9DQo+
+ID4+ID4gKw0KPiA+PiA+ICtzdGF0aWMgc3RydWN0IG5vdGlmaWVyX2Jsb2NrIHB0c19ub3RpZmll
+ciA9IHsNCj4gPj4gPiArICAgLm5vdGlmaWVyX2NhbGwgID0gcHRzX25vdGlmeV9yZWJvb3QsDQo+
+ID4+ID4gKyAgIC5uZXh0ICAgICAgICAgICA9IE5VTEwsDQo+ID4+ID4gKyAgIC5wcmlvcml0eSAg
+ICAgICA9IDAsDQo+ID4+ID4gK307DQo+ID4+ID4gKw0KPiA+PiA+ICBzdGF0aWMgaW50IGFjcGlf
+c2xlZXBfcHJlcGFyZSh1MzIgYWNwaV9zdGF0ZSkNCj4gPj4gPiAgew0KPiA+PiA+ICAjaWZkZWYg
+Q09ORklHX0FDUElfU0xFRVANCj4gPj4gPiBAQCAtODk2LDUgKzkxNiwxMiBAQCBpbnQgX19pbml0
+IGFjcGlfc2xlZXBfaW5pdCh2b2lkKQ0KPiA+PiA+ICAgICAgKiBvYmplY3QgY2FuIGFsc28gYmUg
+ZXZhbHVhdGVkIHdoZW4gdGhlIHN5c3RlbSBlbnRlcnMgUzUuDQo+ID4+ID4gICAgICAqLw0KPiA+
+PiA+ICAgICByZWdpc3Rlcl9yZWJvb3Rfbm90aWZpZXIoJnR0c19ub3RpZmllcik7DQo+ID4+ID4g
+Kw0KPiA+PiA+ICsgICAvKg0KPiA+PiA+ICsgICAgKiBBY2NvcmRpbmcgdG8gc2VjdGlvbiA3LjUg
+b2YgYWNwaSA2LjAgc3BlYywgX1BUUyBzaG91bGQgcnVuDQo+IGFmdGVyDQo+ID4+ID4gKyAgICAq
+IF9UVFMgd2hlbiB0aGUgc3lzdGVtIGVudGVycyBTNS4NCj4gPj4gPiArICAgICovDQo+ID4+ID4g
+KyAgIHJlZ2lzdGVyX3JlYm9vdF9ub3RpZmllcigmcHRzX25vdGlmaWVyKTsNCj4gPj4NCj4gPj4g
+V2h5IGRvIHlvdSBoYXZlIHRvIGFkZCBhIHNlY29uZCBub3RpZmllcj8NCj4gPj4NCj4gPj4gV2h5
+IGNhbid0IF9UVFMgYW5kIF9QVFMgYmUgZXZhbHVhdGVkIGZyb20gb25lIG5vdGlmaWVyPw0KPiA+
+Pg0KPiA+IElmIGV4ZWN1dGUgX1BUUyBtZXRob2QgaW4gdHRzX25vdGlmeV9yZWJvb3QoKSwgdGhl
+biBpdCB3b3VsZCBicmVhaw0KPiA+IGRlZmluaXRpb24gb2YgdHRzX25vdGlmeV9yZWJvb3QoKS4N
+Cj4gDQo+IFdoYXQgZXhhY3RseSB3b3VsZCBpdCBicmVhaz8NCj4gDQo+ID4gTXkgaW50ZW50aW9u
+IGlzIHRvIGtlZXAgbmV3IGNvZGVzDQo+ID4gaGFzIGxpbWl0ZWQgaW1wYWN0IG9uIGV4aXN0ZWQg
+Y29kZXMuDQo+IA0KPiBFdmVuIGlmIHRoYXQgbWFrZXMgYSBsaXR0bGUgc2Vuc2U/DQo+IA0KPiA+
+IE9mIGNvdXJzZSwgaXQncyBwb3NzaWJsZSB0byBtZXJnZSBfVFRTIGFuZCBfUFRTIGludG8gb25l
+IHVuaWZpZWQgbm90aWZpZXIuDQo+ID4gVGhlIGFkdmFudGFnZSBpcyBtb3JlIGFjdGlvbnMgY291
+bGQgYmUgYWRkZWQgaW50byB0aGUgdW5pZmllZCBub3RpZmllcg0KPiBpbiBmdXR1cmUuDQo+ID4g
+V2hpY2ggd2F5IHlvdSBwcmVmZXI/DQo+IA0KPiBJIHdvdWxkIGp1c3QgdXNlIG9uZSBub3RpZmll
+ci4NCkkgZm9sbG93IHlvdS4NCj4gDQo+IFRoYW5rcywNCj4gUmFmYWVsDQo=
