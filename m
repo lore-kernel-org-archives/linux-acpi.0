@@ -1,167 +1,104 @@
-From: Bin Gao <bin.gao@linux.intel.com>
-Subject: [PATCH v4 3/3] acpi/pmic: Add support for PMIC regs operation region
-Date: Thu, 23 Jun 2016 17:52:53 -0700
-Message-ID: <20160624005253.GF83592@worksta>
+From: "Zheng, Lv" <lv.zheng@intel.com>
+Subject: RE: acpi: broken suspend to RAM with v4.7-rc1
+Date: Fri, 24 Jun 2016 01:02:23 +0000
+Message-ID: <1AE640813FDE7649BE1B193DEA596E883BBF7E94@SHSMSX101.ccr.corp.intel.com>
+References: <20160610203210.GA2262@nest> <3027571.8eTQaleASL@vostro.rjw.lan>
+ <20160611104922.GA2368@nest> <2544058.dYPSaC0ylY@vostro.rjw.lan>
+ <744357E9AAD1214791ACBA4B0B9092633AA54819@SHSMSX101.ccr.corp.intel.com>
+ <1AE640813FDE7649BE1B193DEA596E883BBCF836@SHSMSX101.ccr.corp.intel.com>
+ <20160613100707.GA2365@nest>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga09.intel.com ([134.134.136.24]:42791 "EHLO mga09.intel.com"
+Received: from mga02.intel.com ([134.134.136.20]:5254 "EHLO mga02.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750811AbcFXAs7 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 23 Jun 2016 20:48:59 -0400
-Content-Disposition: inline
+	id S1750829AbcFXBC6 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 23 Jun 2016 21:02:58 -0400
+In-Reply-To: <20160613100707.GA2365@nest>
+Content-Language: en-US
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Aaron Lu <aaron.lu@intel.com>, Paul Gortmaker <paul.gortmaker@windriver.com>, linux-acpi@vger.kernel.org
-Cc: linux-kernel@vger.kernel.org, ysiyer <yegnesh.s.iyer@intel.com>, Ajay Thomas <ajay.thomas.david.rajamanickam@intel.com>, Bin Gao <bin.gao@intel.com>
+To: Andrey Skvortsov <andrej.skvortzov@gmail.com>
+Cc: "Moore, Robert" <robert.moore@intel.com>, "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "devel@acpica.org" <devel@acpica.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
 
-Broxton platform firmware has defined new customized operation regions
-called regs for PMIC chip - regs op region is used to handle the
-PMIC gpio mainly intended for the TYPE-C VBUS and Orientation.
-
-The intel_gpio_ctx  structure is created for the purpose of handling
-the PMIC gpio register read and write.
-
-Signed-off-by: Felipe Balbi <felipe.balbi@linux.intel.com>
-Signed-off-by: Chandra Sekhar Anagani <chandra.sekhar.anagani@intel.com>
-Signed-off-by: Bin Gao <bin.gao@intel.com>
----
-Changes in v4:
- - various fixes to address Aaron's comments.
-Changes in v3: none
-Changes in v2: none
- drivers/acpi/pmic/intel_pmic.c | 74 ++++++++++++++++++++++++++++++++++++++++--
- drivers/acpi/pmic/intel_pmic.h |  5 +++
- 2 files changed, 76 insertions(+), 3 deletions(-)
-
-diff --git a/drivers/acpi/pmic/intel_pmic.c b/drivers/acpi/pmic/intel_pmic.c
-index 410e96f..e11d1e0 100644
---- a/drivers/acpi/pmic/intel_pmic.c
-+++ b/drivers/acpi/pmic/intel_pmic.c
-@@ -21,12 +21,14 @@
- 
- #define PMIC_POWER_OPREGION_ID		0x8d
- #define PMIC_THERMAL_OPREGION_ID	0x8c
-+#define PMIC_REGS_OPREGION_ID		0x8f
- 
- struct intel_pmic_opregion {
- 	struct mutex lock;
- 	struct acpi_lpat_conversion_table *lpat_table;
- 	struct regmap *regmap;
- 	struct intel_pmic_opregion_data *data;
-+	struct pmic_gpio_ctx	ctx;
- };
- 
- static int pmic_get_reg_bit(int address, struct pmic_table *table,
-@@ -204,6 +206,56 @@ static acpi_status intel_pmic_thermal_handler(u32 function,
- 	return AE_OK;
- }
- 
-+static acpi_status intel_pmic_gpio_handler(u32 function,
-+	acpi_physical_address address, u32 bits, u64 *value64,
-+		void *handler_context, void *region_context)
-+{
-+	struct intel_pmic_opregion *opregion = region_context;
-+	int result;
-+
-+	switch (address) {
-+	case 0:
-+		return AE_OK;
-+	case 1:
-+		opregion->ctx.address |= (*value64 & 0xff) << 8;
-+		return AE_OK;
-+	case 2:
-+		opregion->ctx.address |= *value64 & 0xff;
-+		return AE_OK;
-+	case 3:
-+		opregion->ctx.value = *value64 & 0xff;
-+		return AE_OK;
-+	case 4:
-+		if (*value64) {
-+			result = regmap_write(opregion->regmap,
-+					 opregion->ctx.address,
-+					opregion->ctx.value);
-+		} else {
-+			result = regmap_read(opregion->regmap,
-+					opregion->ctx.address,
-+					&opregion->ctx.value);
-+			if (result == 0)
-+				*value64 = opregion->ctx.value;
-+		}
-+		memset(&opregion->ctx, 0x00, sizeof(opregion->ctx));
-+		break;
-+	default:
-+		pr_err("%s(): Inavlid address %llu, please check the BIOS\n",
-+							 __func__, address);
-+		return AE_ERROR;
-+	}
-+
-+	if (result < 0) {
-+		if (result == -EINVAL)
-+			return AE_BAD_PARAMETER;
-+		else
-+			return AE_ERROR;
-+	}
-+
-+	return AE_OK;
-+}
-+
-+
- int intel_pmic_install_opregion_handler(struct device *dev, acpi_handle handle,
- 					struct regmap *regmap,
- 					struct intel_pmic_opregion_data *d)
-@@ -240,15 +292,31 @@ int intel_pmic_install_opregion_handler(struct device *dev, acpi_handle handle,
- 						    intel_pmic_thermal_handler,
- 						    NULL, opregion);
- 	if (ACPI_FAILURE(status)) {
--		acpi_remove_address_space_handler(handle, PMIC_POWER_OPREGION_ID,
--						  intel_pmic_power_handler);
- 		ret = -ENODEV;
--		goto out_error;
-+		goto remove_pmic_power_handler;
-+	}
-+
-+	status = acpi_install_address_space_handler(handle,
-+						    PMIC_REGS_OPREGION_ID,
-+						    intel_pmic_gpio_handler,
-+						    NULL, opregion);
-+	if (ACPI_FAILURE(status)) {
-+		ret = -ENODEV;
-+		goto remove_pmic_thermal_handler;
- 	}
- 
- 	opregion->data = d;
- 	return 0;
- 
-+remove_pmic_thermal_handler:
-+		acpi_remove_address_space_handler(handle,
-+						PMIC_POWER_OPREGION_ID,
-+						intel_pmic_thermal_handler);
-+remove_pmic_power_handler:
-+		acpi_remove_address_space_handler(handle,
-+						PMIC_POWER_OPREGION_ID,
-+						intel_pmic_power_handler);
-+
- out_error:
- 	acpi_lpat_free_conversion_table(opregion->lpat_table);
- 	return ret;
-diff --git a/drivers/acpi/pmic/intel_pmic.h b/drivers/acpi/pmic/intel_pmic.h
-index e8bfa7b..c87c2ef 100644
---- a/drivers/acpi/pmic/intel_pmic.h
-+++ b/drivers/acpi/pmic/intel_pmic.h
-@@ -7,6 +7,11 @@ struct pmic_table {
- 	int bit;	/* control bit for power */
- };
- 
-+struct pmic_gpio_ctx {
-+	u16 address;		/* pmic regs address */
-+	unsigned int value;	/* value to write @regs address */
-+};
-+
- struct intel_pmic_opregion_data {
- 	int (*get_power)(struct regmap *r, int reg, int bit, u64 *value);
- 	int (*update_power)(struct regmap *r, int reg, int bit, bool on);
--- 
-1.9.1
-
-
+SGksDQoNCj4gRnJvbTogQW5kcmV5IFNrdm9ydHNvdiBbbWFpbHRvOmFuZHJlai5za3ZvcnR6b3ZA
+Z21haWwuY29tXQ0KPiBTdWJqZWN0OiBSZTogYWNwaTogYnJva2VuIHN1c3BlbmQgdG8gUkFNIHdp
+dGggdjQuNy1yYzENCj4gDQo+IEhpIEx2LA0KPiANCj4gT24gMTMgSnVuLCBaaGVuZywgTHYgd3Jv
+dGU6DQo+ID4gPiBGcm9tOiBsaW51eC1hY3BpLW93bmVyQHZnZXIua2VybmVsLm9yZyBbbWFpbHRv
+OmxpbnV4LWFjcGktDQo+ID4gPiBvd25lckB2Z2VyLmtlcm5lbC5vcmddIE9uIEJlaGFsZiBPZiBS
+YWZhZWwgSi4gV3lzb2NraQ0KPiA+ID4gU3ViamVjdDogUmU6IGFjcGk6IGJyb2tlbiBzdXNwZW5k
+IHRvIFJBTSB3aXRoIHY0LjctcmMxDQo+ID4gPg0KPiA+ID4gT24gU2F0dXJkYXksIEp1bmUgMTEs
+IDIwMTYgMDE6NDk6MjIgUE0gQW5kcmV5IFNrdm9ydHNvdiB3cm90ZToNCj4gPiA+ID4gT24gMTAg
+SnVuLCBSYWZhZWwgSi4gV3lzb2NraSB3cm90ZToNCj4gPiA+ID4gPiBPbiBGcmlkYXksIEp1bmUg
+MTAsIDIwMTYgMTE6MzI6MTAgUE0gQW5kcmV5IFNrdm9ydHNvdiB3cm90ZToNCj4gPiA+ID4gPiA+
+IEhpLA0KPiA+ID4gPiA+ID4NCj4gPiA+ID4gPiA+IE9uIG15IGxhcHRvcCAoREVMTCBWb3N0cm8g
+MTUwMCkgaW4gdjQuNy1yYzEgaXMgYnJva2VuIHN1c3BlbmQNCj4gdG8gUkFNLg0KPiA+ID4gPiA+
+ID4gTGFwdG9wIGRvZXNuJ3QgZmluaXNoIHN1c3BlbmQgdG8gUkFNIHByb2Nlc3MgKGRpc2tzIGFy
+ZSBvZmYsIGJ1dA0KPiA+ID4gPiA+ID4gV2lGaSBhbmQgUG93ZXIgTEVEcyBhcmUgc3RpbGwgb24p
+LiBUaGUgb25seSB3YXkgdG8gZ2V0IGl0IG91dCBvZg0KPiA+ID4gPiA+ID4gdGhpcyBzdGF0ZSwg
+aXMgdG8gdHVybiB0aGUgcG93ZXIgb2ZmLg0KPiA+ID4gPiA+ID4NCj4gPiA+ID4gPiA+IEkndmUg
+YmlzZWN0ZWQgdGhlIGlzc3VlIHRvIGNvbW1pdCA2NmIxZWQ1YWE4ZGQyNQ0KPiA+ID4gPiA+ID4g
+W0FDUElDQTogQUNQSSAyLjAsIEhhcmR3YXJlOiBBZGQgYWNjZXNzX3dpZHRoL2JpdF9vZmZzZXQN
+Cj4gc3VwcG9ydA0KPiA+ID4gPiA+ID4gZm9yIGFjcGlfaHdfd3JpdGUoKV0uDQo+ID4gPiA+ID4g
+Pg0KPiA+ID4gPiA+ID4gSWYgSSByZXZlcnQgdGhpcyBjb21taXQgaW4gdjQuNy1yYzEgKG9yIHY0
+LjctcmMyKSwgc3VzcGVuZCB0byBSQU0NCj4gPiA+ID4gPiA+IGlzIHdvcmtpbmcgYWdhaW4uDQo+
+ID4gPiA+ID4gPg0KPiA+ID4gPiA+ID4gVGhlIGNhdXNlIG9mIHRoaXMgcHJvYmxlbSBpcyB0aGF0
+IGFmdGVyIHRoaXMgY29tbWl0IHdyaXRlIHRvDQo+IFBNMUENCj4gPiA+ID4gPiA+IENvbnRyb2wg
+QmxvY2sgKDE2LWJpdCByZWdpc3RlcikgaXMgZG9uZSB1c2luZyB0d28gOC1iaXQgd3JpdGVzLg0K
+PiA+ID4gPiA+ID4gSWYgSSBmb3JjZSB0aGlzIHdyaXRlIHRvIGJlIDE2LWJpdCwgdGhlbiBhbGwg
+aXMgd29ya2luZyBhcyBiZWZvcmUuDQo+ID4gPiA+ID4gPg0KPiA+ID4gPiA+ID4gVG8gZ2V0IGl0
+IHdvcmtpbmcgJ2FjY2Vzc193aWR0aCcgZm9yIFBNMUEgQ29udHJvbCBCbG9jayBuZWVkcyB0bw0K
+PiA+ID4gPiA+ID4gYmUgMiAoMTYtYml0KSwgYnV0IGl0J3MgMSAoOC1iaXQpLg0KPiA+IFtMdiBa
+aGVuZ10NCj4gPiBDb3VsZCB5b3Ugc2VuZCBtZSB0aGUgYWNwaWR1bXAgb2YgdGhlIG1hY2hpbmU/
+DQo+IEhlcmUgaXQgaXMNCj4gaHR0cHM6Ly9kbC5kcm9wYm94dXNlcmNvbnRlbnQuY29tL3UvMjQw
+MjM2MjYvZGVsbF92b3N0cm9fMTUwMC5hY3BpZA0KPiB1bXAuYmluDQpbTHYgWmhlbmddIA0KSSd2
+ZSBiZWVuIHRyeWluZyB0byBkb3dubG9hZCBpdCB0aGVzZSBkYXlzIGJ1dCBhbGwgZmFpbGVkLg0K
+Q291bGQgeW91IHNlbmQgYW4gb2ZmLWxpc3QgZW1haWwgdG8gbWUgd2l0aCB0aGlzIGF0dGFjaGVk
+Pw0KDQo+IA0KPiA+ID4gPiA+ID4NCj4gPiA+ID4gPiA+IFRoZSByb290IG9mIHRoZSBwcm9ibGVt
+IHNlZW1zIHRvIGJlIG5vdCB0aGUgY29tbWl0DQo+ID4gPiA2NmIxZWQ1YWE4ZGQyNQ0KPiA+ID4g
+PiA+ID4gaXRzZWxmLCBidXQgdGhlIEFDUEkgdGFibGVzIGluIEJJT1Mgd2hlcmUgd3JvbmcgYWNj
+ZXNzX3dpZHRoDQo+ID4gPiA+ID4gPiBjb21lcyBmcm9tLiBJIGZpeGVkIHByb2JsZW0gaW4gRkFD
+UCAgdGFibGUsIHB1dCBpdCBpbiBpbml0cmQgdG8NCj4gPiA+ID4gPiA+IG92ZXJyaWRlIEZBQ1Ag
+dGFibGUgZnJvbSBCSU9TLiBUaGlzIGZpeGVkIHRoZSBpc3N1ZSwgc3VzcGVuZCB0bw0KPiA+ID4g
+PiA+ID4gUkFNIGlzIHdvcmtpbmcgbm93IGFnYWluLg0KPiA+ID4gPiA+ID4NCj4gPiA+ID4gPiA+
+IEJ1dCBJJ20gbm90IHN1cmUgd2hldGhlciBpcyB0aGlzIHByb3BlciBmaXggZm9yIHRoaXMgcHJv
+YmxlbS4NCj4gPiA+ID4gPiA+IElzIHRoZXJlIGFueSBwbGFjZSBpbiB0aGUga2VybmVsLCB3aGVy
+ZSBzdWNoIEFDUEkgcXVpcmtzIGFyZSBwbGFjZWQ/DQo+ID4gW0x2IFpoZW5nXQ0KPiA+IE15IHF1
+ZXN0aW9uIHdvdWxkIGJlOg0KPiA+IERvZXMgV2luZG93cyBiZWhhdmUgY29ycmVjdGx5IGZvciB0
+aGlzIHRhYmxlPw0KPiBZZXMsIHN1c3BlbmQgdG8gUkFNIGlzIHdvcmtpbmcgdW5kZXIgV2luZG93
+cyBWaXN0YS4NCj4gSUlSQyBpdCB3b3JrZWQgdW5kZXIgV2luZG93cyBYUCB0b28uDQo+IA0KPiA+
+IEhvd2V2ZXIgdGhlcmUgaXMgYSByZWFsIGNhc2Ugc2hvd2luZyB0aGF0IHRoZXJlIGFyZSByZWFs
+IHRhYmxlcyBuZWVkIHVzIHRvDQo+IGNvcnJlY3RseSBzdXBwb3J0IEJpdFdpZHRoL0JpdE9mZnNl
+dC4NCj4gPiBIZXJlIGlzIHRoZSBpbmZvcm1hdGlvbiBmb3IgeW91IHRvIHJlZmVyOg0KPiA+IGh0
+dHA6Ly9wZXJtYWxpbmsuZ21hbmUub3JnL2dtYW5lLmxpbnV4Lmtlcm5lbC5jb21taXRzLmhlYWQv
+MzEzODcwDQo+ID4NCj4gPiA+ID4gPg0KPiA+ID4gPiA+IFdlbGwsIGlmIHRoZSBjb21taXQgaW4g
+cXVlc3Rpb24gY2F1c2VkIGEgcHJvYmxlbSB0byBoYXBwZW4gZm9yDQo+IHlvdSwNCj4gPiA+ID4g
+PiBpdCBhbHNvIG1pZ2h0IGNhdXNlIHNpbWlsYXIgcHJvYmxlbXMgdG8gaGFwcGVuIGVsc2V3aGVy
+ZS4NCj4gPiA+ID4gPg0KPiA+ID4gPiA+IEl0IGxvb2tzIGxpa2Ugd2UnbGwgbmVlZCB0byByZXZl
+cnQgdGhhdCBjb21taXQuDQo+ID4gPiA+IEhpLA0KPiA+ID4gPg0KPiA+ID4gPiBvciBtYXliZSB0
+byByZXNldCBhY2Nlc3Nfd2lkdGggQW55QWNjIGZyb20gRkFDUCB0YWJsZSBvbmx5IGZvcg0KPiBQ
+TTFBDQo+ID4gPiA+IGNvbnRyb2wgcmVnaXN0ZXIgb3IgZXZlbiBmb3IgYWxsIHJlZ2lzdGVycz8g
+VGhpcyB3aWxsIGZpeCB0aGUgaXNzdWUgdG9vLg0KPiA+ID4NCj4gPiA+IFRoYXQncyBhIGdvb2Qg
+aWRlYSBhY3R1YWxseS4NCj4gPiA+DQo+ID4gPiA+IGRpZmYgLS1naXQgYS9kcml2ZXJzL2FjcGkv
+YWNwaWNhL3RiZmFkdC5jDQo+ID4gPiA+IGIvZHJpdmVycy9hY3BpL2FjcGljYS90YmZhZHQuYyBp
+bmRleCA2MjA4MDY5Li5hNDc2ZTk0IDEwMDY0NA0KPiA+ID4gPiAtLS0gYS9kcml2ZXJzL2FjcGkv
+YWNwaWNhL3RiZmFkdC5jDQo+ID4gPiA+ICsrKyBiL2RyaXZlcnMvYWNwaS9hY3BpY2EvdGJmYWR0
+LmMNCj4gPiA+ID4gQEAgLTcxNCw3ICs3MTQsMTQgQEAgc3RhdGljIHZvaWQNCj4gYWNwaV90Yl9z
+ZXR1cF9mYWR0X3JlZ2lzdGVycyh2b2lkKQ0KPiA+ID4gPiAgICAgICAgICAgICAgICAgICAgICAg
+ICB9DQo+ID4gPiA+ICAgICAgICAgICAgICAgICB9DQo+ID4gPiA+ICAgICAgICAgfQ0KPiA+ID4g
+Pg0KPiA+ID4gPiArICAgICAgIC8qDQo+ID4gPiA+ICsgICAgICAgICogUmVzZXQgYWNjZXNzX3dp
+ZHRoIGluIHRoZSBHQVMgZm9yIFBNMUEgY29udHJvbCByZWdpc3RlciB0bw0KPiA+ID4gPiArICAg
+ICAgICAqIHVuZGVmaW5lZCB2YWx1ZS4gQmVjYXVzZSBpbiBzb21lIGNhc2VzIHRoaXMgZmllbGQg
+Y29udGFpbnMNCj4gPiA+ID4gKyAgICAgICAgKiB3cm9uZyB2YWx1ZS4NCj4gPiA+ID4gKyAgICAg
+ICAgKi8NCj4gPiA+ID4gKyAgICAgICBhY3BpX2dibF9GQURULnhwbTFhX2NvbnRyb2xfYmxvY2su
+YWNjZXNzX3dpZHRoID0gMDsNCj4gPiA+DQo+ID4gPiBPSywgbGV0J3Mgc2VlIHdoYXQgQm9iIGFu
+ZCBMdiB0aGluayBhYm91dCB0aGF0Lg0KPiA+IFtMdiBaaGVuZ10NCj4gPiBUaGVyZSBpcyBhIGNv
+bW1pdCBpbiA0LjctcmMyOg0KPiA+DQo+IGh0dHBzOi8vZ2l0Lmtlcm5lbC5vcmcvY2dpdC9saW51
+eC9rZXJuZWwvZ2l0L3RvcnZhbGRzL2xpbnV4LmdpdC9jb21taXQvP2lkPQ0KPiA3ZjliZWY5ZA0K
+PiA+IEhhdmUgeW91IHRyaWVkIGlmIHRoZSBwcm9ibGVtIHN0aWxsIGV4aXN0cyBpbiA0LjctcmMy
+Pw0KPiBJJ3ZlIGp1c3QgdHJpZWQgdjQuNy1yYzMuIEl0IGNvbnRhaW5zIGNvbW1pdCA3ZjliZWY5
+ZCBhbmQgdGhlIHByb2JsZW0NCj4gZXhpc3RzIHRoZXJlIHRvby4NCltMdiBaaGVuZ10gDQpJTU8s
+IGZvciB0aGUgdGltZSBiZWluZywgeW91IGNhbiB1c2UgcXVpcmtzLg0KQm9vdGluZyB5b3VyIGtl
+cm5lbCB3aXRoIHRoZSBmb2xsb3dpbmcgcGFyYW1ldGVyczoNCg0KYWNwaT1yc2R0DQpPcg0KYWNw
+aV9mb3JjZV8zMmJpdF9mYWR0X2FkZHINCk9yDQpCb3RoDQoNClRoYW5rcw0KLUx2DQoNCg==
