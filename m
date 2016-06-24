@@ -1,210 +1,105 @@
-From: Andrey Skvortsov <andrej.skvortzov@gmail.com>
-Subject: Re: acpi: broken suspend to RAM with v4.7-rc1
-Date: Sat, 25 Jun 2016 00:32:35 +0300
-Message-ID: <20160624213235.GA8304@nest>
-References: <20160610203210.GA2262@nest>
- <3027571.8eTQaleASL@vostro.rjw.lan>
- <20160611104922.GA2368@nest>
- <2544058.dYPSaC0ylY@vostro.rjw.lan>
- <744357E9AAD1214791ACBA4B0B9092633AA54819@SHSMSX101.ccr.corp.intel.com>
- <1AE640813FDE7649BE1B193DEA596E883BBCF836@SHSMSX101.ccr.corp.intel.com>
- <20160613100707.GA2365@nest>
- <1AE640813FDE7649BE1B193DEA596E883BBF7E94@SHSMSX101.ccr.corp.intel.com>
+From: "Rafael J. Wysocki" <rafael@kernel.org>
+Subject: Re: [PATCH] acpi, nfit: fix acpi_check_dsm() vs zero functions implemented
+Date: Sat, 25 Jun 2016 00:15:52 +0200
+Message-ID: <CAJZ5v0guP+CQfw3MVi883SggyFFN=tO=y5r-ODttAOP6ZrXYDw@mail.gmail.com>
+References: <146679026571.24395.11569929364936343871.stgit@dwillia2-desk3.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha512;
-	protocol="application/pgp-signature"; boundary="Qxx1br4bt0+wmkIi"
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-lf0-f42.google.com ([209.85.215.42]:33935 "EHLO
-	mail-lf0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751188AbcFXVck (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 24 Jun 2016 17:32:40 -0400
-Content-Disposition: inline
-In-Reply-To: <1AE640813FDE7649BE1B193DEA596E883BBF7E94@SHSMSX101.ccr.corp.intel.com>
+Received: from mail-wm0-f65.google.com ([74.125.82.65]:35806 "EHLO
+	mail-wm0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751452AbcFXWPy (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 24 Jun 2016 18:15:54 -0400
+Received: by mail-wm0-f65.google.com with SMTP id a66so8528338wme.2
+        for <linux-acpi@vger.kernel.org>; Fri, 24 Jun 2016 15:15:54 -0700 (PDT)
+In-Reply-To: <146679026571.24395.11569929364936343871.stgit@dwillia2-desk3.amr.corp.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Zheng, Lv" <lv.zheng@intel.com>
-Cc: "Moore, Robert" <robert.moore@intel.com>, "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "devel@acpica.org" <devel@acpica.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
+To: Dan Williams <dan.j.williams@intel.com>
+Cc: linux-nvdimm@lists.01.org, "Rafael J. Wysocki" <rjw@rjwysocki.net>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Xiao Guangrong <guangrong.xiao@linux.intel.com>, Jerry Hoemann <jerry.hoemann@hpe.com>, Len Brown <lenb@kernel.org>
 
+On Fri, Jun 24, 2016 at 7:44 PM, Dan Williams <dan.j.williams@intel.com> wrote:
+> QEMU 2.6 implements nascent support for nvdimm DSMs. Depending on
+> configuration it may only implement the function0 dsm to indicate that
+> no other DSMs are available. Commit 31eca76ba2fc "nfit, libnvdimm:
+> limited/whitelisted dimm command marshaling mechanism" breaks QEMU, but
+> QEMU is spec compliant.  Per the spec the way to indicate that no
+> functions are supported is:
+>
+>     If Function Index is zero, the return is a buffer containing one bit
+>     for each function index, starting with zero. Bit 0 indicates whether
+>     there is support for any functions other than function 0 for the
+>     specified UUID and Revision ID. If set to zero, no functions are
+>     supported (other than function zero) for the specified UUID and
+>     Revision ID.
+>
+> Update the nfit driver to determine the family (interface UUID) without
+> requiring the implementation to define any other functions, i.e.
+> short-circuit acpi_check_dsm() to succeed per the spec.  The nfit driver
+> appears to be the only user passing funcs==0 to acpi_check_dsm(), so
+> this behavior change of the common routine should be limited to the
+> probing done by the nfit driver.
+>
+> Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+> Cc: Len Brown <lenb@kernel.org>
+> Cc: Jerry Hoemann <jerry.hoemann@hpe.com>
+> Fixes: 31eca76ba2fc ("nfit, libnvdimm: limited/whitelisted dimm command marshaling mechanism")
+> Reported-by: Xiao Guangrong <guangrong.xiao@linux.intel.com>
+> Tested-by: Xiao Guangrong <guangrong.xiao@linux.intel.com>
+> Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 
---Qxx1br4bt0+wmkIi
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+ACK
 
-On 24 Jun, Zheng, Lv wrote:
-> Hi,
->=20
-> > From: Andrey Skvortsov [mailto:andrej.skvortzov@gmail.com]
-> > Subject: Re: acpi: broken suspend to RAM with v4.7-rc1
-> >=20
-> > Hi Lv,
-> >=20
-> > On 13 Jun, Zheng, Lv wrote:
-> > > > From: linux-acpi-owner@vger.kernel.org [mailto:linux-acpi-
-> > > > owner@vger.kernel.org] On Behalf Of Rafael J. Wysocki
-> > > > Subject: Re: acpi: broken suspend to RAM with v4.7-rc1
-> > > >
-> > > > On Saturday, June 11, 2016 01:49:22 PM Andrey Skvortsov wrote:
-> > > > > On 10 Jun, Rafael J. Wysocki wrote:
-> > > > > > On Friday, June 10, 2016 11:32:10 PM Andrey Skvortsov wrote:
-> > > > > > > Hi,
-> > > > > > >
-> > > > > > > On my laptop (DELL Vostro 1500) in v4.7-rc1 is broken suspend
-> > to RAM.
-> > > > > > > Laptop doesn't finish suspend to RAM process (disks are off, =
-but
-> > > > > > > WiFi and Power LEDs are still on). The only way to get it out=
- of
-> > > > > > > this state, is to turn the power off.
-> > > > > > >
-> > > > > > > I've bisected the issue to commit 66b1ed5aa8dd25
-> > > > > > > [ACPICA: ACPI 2.0, Hardware: Add access_width/bit_offset
-> > support
-> > > > > > > for acpi_hw_write()].
-> > > > > > >
-> > > > > > > If I revert this commit in v4.7-rc1 (or v4.7-rc2), suspend to=
- RAM
-> > > > > > > is working again.
-> > > > > > >
-> > > > > > > The cause of this problem is that after this commit write to
-> > PM1A
-> > > > > > > Control Block (16-bit register) is done using two 8-bit write=
-s.
-> > > > > > > If I force this write to be 16-bit, then all is working as be=
-fore.
-> > > > > > >
-> > > > > > > To get it working 'access_width' for PM1A Control Block needs=
- to
-> > > > > > > be 2 (16-bit), but it's 1 (8-bit).
-> > > [Lv Zheng]
-> > > Could you send me the acpidump of the machine?
-> > Here it is
-> > https://dl.dropboxusercontent.com/u/24023626/dell_vostro_1500.acpid
-> > ump.bin
-> [Lv Zheng]=20
-> I've been trying to download it these days but all failed.
-> Could you send an off-list email to me with this attached?
-Strange. I've check now. The link above is working, but I see that
-part of the link above is moved to the next line.
-Anyway I resend you all files off-list.
-
-
-> > > > > > > The root of the problem seems to be not the commit
-> > > > 66b1ed5aa8dd25
-> > > > > > > itself, but the ACPI tables in BIOS where wrong access_width
-> > > > > > > comes from. I fixed problem in FACP  table, put it in initrd =
-to
-> > > > > > > override FACP table from BIOS. This fixed the issue, suspend =
-to
-> > > > > > > RAM is working now again.
-> > > > > > >
-> > > > > > > But I'm not sure whether is this proper fix for this problem.
-> > > > > > > Is there any place in the kernel, where such ACPI quirks are =
-placed?
-> > > [Lv Zheng]
-> > > My question would be:
-> > > Does Windows behave correctly for this table?
-> > Yes, suspend to RAM is working under Windows Vista.
-> > IIRC it worked under Windows XP too.
-> >=20
-> > > However there is a real case showing that there are real tables need =
-us to
-> > correctly support BitWidth/BitOffset.
-> > > Here is the information for you to refer:
-> > > http://permalink.gmane.org/gmane.linux.kernel.commits.head/313870
-> > >
-> > > > > >
-> > > > > > Well, if the commit in question caused a problem to happen for
-> > you,
-> > > > > > it also might cause similar problems to happen elsewhere.
-> > > > > >
-> > > > > > It looks like we'll need to revert that commit.
-> > > > > Hi,
-> > > > >
-> > > > > or maybe to reset access_width AnyAcc from FACP table only for
-> > PM1A
-> > > > > control register or even for all registers? This will fix the iss=
-ue too.
-> > > >
-> > > > That's a good idea actually.
-> > > >
-> > > > > diff --git a/drivers/acpi/acpica/tbfadt.c
-> > > > > b/drivers/acpi/acpica/tbfadt.c index 6208069..a476e94 100644
-> > > > > --- a/drivers/acpi/acpica/tbfadt.c
-> > > > > +++ b/drivers/acpi/acpica/tbfadt.c
-> > > > > @@ -714,7 +714,14 @@ static void
-> > acpi_tb_setup_fadt_registers(void)
-> > > > >                         }
-> > > > >                 }
-> > > > >         }
-> > > > >
-> > > > > +       /*
-> > > > > +        * Reset access_width in the GAS for PM1A control registe=
-r to
-> > > > > +        * undefined value. Because in some cases this field cont=
-ains
-> > > > > +        * wrong value.
-> > > > > +        */
-> > > > > +       acpi_gbl_FADT.xpm1a_control_block.access_width =3D 0;
-> > > >
-> > > > OK, let's see what Bob and Lv think about that.
-> > > [Lv Zheng]
-> > > There is a commit in 4.7-rc2:
-> > >
-> > https://git.kernel.org/cgit/linux/kernel/git/torvalds/linux.git/commit/=
-?id=3D
-> > 7f9bef9d
-> > > Have you tried if the problem still exists in 4.7-rc2?
-> > I've just tried v4.7-rc3. It contains commit 7f9bef9d and the problem
-> > exists there too.
-> [Lv Zheng]=20
-> IMO, for the time being, you can use quirks.
-> Booting your kernel with the following parameters:
->=20
-> acpi=3Drsdt
-> Or
-> acpi_force_32bit_fadt_addr
-> Or
-> Both
-
-Rafael reverted commit, so I'm ok now.
-
-Actually acpi_force_32bit_fadt_addr will not help here, because it's take
-effect only if address64 !=3D address32. But here these addresses are
-the same, therefore access_width is taken from extended address.
-
-http://lxr.free-electrons.com/source/drivers/acpi/acpica/tbfadt.c#L576
-
-
-acpi=3Drsdt helps. Thanks for the information about this option. I
-missed it, when I read documentation.
-
-
-
---=20
-Best regards,
-Andrey Skvortsov
-
-
-
---Qxx1br4bt0+wmkIi
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-
-iQIcBAEBCgAGBQJXbabzAAoJEAF8y6L1SLCtccoQAMd07cXcwDjcbW3RYszbWsw6
-96MZUMkiXfKkI/Nyp3gXkaQKSx6rLHcZmfXOUMCVJU4GKEIS76yxCK29+1RvvpHt
-kO/0o53VGjlBV/KB3jFb77x60RkA/h6xWf89+sTz+3T9lJBkEQE/rpEgrwKrua4F
-2rdDtibOSzQpNKpeEpu0ZCxWwp/PNyCZxvZcPA7fIog41HrxQ+2nXHDRW1m002Nj
-UZS2IUFflAskKyswNsfVKzO5qnWx+aYVkWcIK48aT0sgQWSnsjIDgWIhblJh4ZQr
-PiljAJkLOJ4+ZDbZsVVpLbFLUR6dSYp+nHoAjQVcn4MSkcgxnHFAqNnyZZiQNBTQ
-1bgh0Mcp2Qh6S8GsUSa6e1JhENj0JwqrSouXYFRXQ9iZrFZQr2PzydQDr0KXQjgg
-l72eMo6smzgA9lhIlrUx1imHiIWIP4kY2qCv5uYoEzZGO55dzH99cwdOovswldmE
-Ai9U1AEQmquyHBSd6HbTFYmp1YzVd8KqbaULimhWhccdtP9Z4+kl8tFgK07R4vhj
-XfEipQlJ8Rm9wvXxpXPPky3vKh+DPd/jw99RDwE0SZwuqFEy3NTWP7DeH86rQOya
-qjKnzziDrScjWF4+rSEFvIuiWByEujK35lyKzRhAMZRm8MJluKmt+SK+LTAl+HSN
-VId8scJYzRsGOEPij88/
-=+eNb
------END PGP SIGNATURE-----
-
---Qxx1br4bt0+wmkIi--
+> ---
+>  drivers/acpi/nfit.c  |    6 +++---
+>  drivers/acpi/utils.c |    6 +++---
+>  2 files changed, 6 insertions(+), 6 deletions(-)
+>
+> diff --git a/drivers/acpi/nfit.c b/drivers/acpi/nfit.c
+> index 2215fc847fa9..32579a7b71d5 100644
+> --- a/drivers/acpi/nfit.c
+> +++ b/drivers/acpi/nfit.c
+> @@ -1131,11 +1131,11 @@ static int acpi_nfit_add_dimm(struct acpi_nfit_desc *acpi_desc,
+>
+>         /*
+>          * Until standardization materializes we need to consider up to 3
+> -        * different command sets.  Note, that checking for function0 (bit0)
+> -        * tells us if any commands are reachable through this uuid.
+> +        * different command sets.  Note, that checking for zero functions
+> +        * tells us if any commands might be reachable through this uuid.
+>          */
+>         for (i = NVDIMM_FAMILY_INTEL; i <= NVDIMM_FAMILY_HPE2; i++)
+> -               if (acpi_check_dsm(adev_dimm->handle, to_nfit_uuid(i), 1, 1))
+> +               if (acpi_check_dsm(adev_dimm->handle, to_nfit_uuid(i), 1, 0))
+>                         break;
+>
+>         /* limit the supported commands to those that are publicly documented */
+> diff --git a/drivers/acpi/utils.c b/drivers/acpi/utils.c
+> index 22c09952e177..b4de130f2d57 100644
+> --- a/drivers/acpi/utils.c
+> +++ b/drivers/acpi/utils.c
+> @@ -680,9 +680,6 @@ bool acpi_check_dsm(acpi_handle handle, const u8 *uuid, u64 rev, u64 funcs)
+>         u64 mask = 0;
+>         union acpi_object *obj;
+>
+> -       if (funcs == 0)
+> -               return false;
+> -
+>         obj = acpi_evaluate_dsm(handle, uuid, rev, 0, NULL);
+>         if (!obj)
+>                 return false;
+> @@ -695,6 +692,9 @@ bool acpi_check_dsm(acpi_handle handle, const u8 *uuid, u64 rev, u64 funcs)
+>                         mask |= (((u64)obj->buffer.pointer[i]) << (i * 8));
+>         ACPI_FREE(obj);
+>
+> +       if (funcs == 0)
+> +               return true;
+> +
+>         /*
+>          * Bit 0 indicates whether there's support for any functions other than
+>          * function 0 for the specified UUID and revision.
+>
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
