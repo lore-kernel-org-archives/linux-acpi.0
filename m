@@ -1,50 +1,37 @@
 From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [PATCH v1 1/1] tools/acpi: use CROSS_COMPILE to define prefix
-Date: Fri, 24 Jun 2016 15:36:02 +0200
-Message-ID: <4575816.Ep49DkAQqv@vostro.rjw.lan>
-References: <1466168468-113522-1-git-send-email-andriy.shevchenko@linux.intel.com>
+Subject: Re: [PATCH 2/2] acpi/einj: Make error paths more talkative
+Date: Fri, 24 Jun 2016 15:36:51 +0200
+Message-ID: <6106819.SzZRkndaQf@vostro.rjw.lan>
+References: <1463992084-10012-1-git-send-email-bp@alien8.de> <1463992084-10012-2-git-send-email-bp@alien8.de> <3908561D78D1C84285E8C5FCA982C28F3A0D3F79@ORSMSX114.amr.corp.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7Bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cloudserver094114.home.net.pl ([79.96.170.134]:56356 "HELO
+Received: from cloudserver094114.home.net.pl ([79.96.170.134]:59898 "HELO
 	cloudserver094114.home.net.pl" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with SMTP id S1751784AbcFXNbr (ORCPT
+	by vger.kernel.org with SMTP id S1751317AbcFXNca (ORCPT
 	<rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 24 Jun 2016 09:31:47 -0400
-In-Reply-To: <1466168468-113522-1-git-send-email-andriy.shevchenko@linux.intel.com>
+	Fri, 24 Jun 2016 09:32:30 -0400
+In-Reply-To: <3908561D78D1C84285E8C5FCA982C28F3A0D3F79@ORSMSX114.amr.corp.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Cc: Lv Zheng <lv.zheng@intel.com>, linux-acpi@vger.kernel.org, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>
+To: "Luck, Tony" <tony.luck@intel.com>, Borislav Petkov <bp@alien8.de>
+Cc: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
 
-On Friday, June 17, 2016 04:01:08 PM Andy Shevchenko wrote:
-> CROSS_COMPILE can be considered as standard definition for toolchain prefix
-> when cross-compiling. Use it here.
+On Monday, May 23, 2016 04:01:00 PM Luck, Tony wrote:
+> > It is absolutely unfriendly when one sees this:
+> >
+> >   # modprobe einj
+> >   modprobe: ERROR: could not insert 'einj': No such device
+> >
+> > without anything in dmesg to tell one why the load failed.
+> >
+> > Beef up the error handling of the init function to be more user-friendly
+> > when the load fails.
 > 
-> Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-> ---
->  tools/power/acpi/Makefile.config | 7 ++++---
->  1 file changed, 4 insertions(+), 3 deletions(-)
+> Yes, yes. 1000 times yes.
 > 
-> diff --git a/tools/power/acpi/Makefile.config b/tools/power/acpi/Makefile.config
-> index 552af68..a538ff4 100644
-> --- a/tools/power/acpi/Makefile.config
-> +++ b/tools/power/acpi/Makefile.config
-> @@ -54,9 +54,10 @@ INSTALL_SCRIPT = ${INSTALL_PROGRAM}
->  # to something more interesting, like "arm-linux-".  If you want
->  # to compile vs uClibc, that can be done here as well.
->  CROSS = #/usr/i386-linux-uclibc/usr/bin/i386-uclibc-
-> -CC = $(CROSS)gcc
-> -LD = $(CROSS)gcc
-> -STRIP = $(CROSS)strip
-> +CROSS_COMPILE ?= $(CROSS)
-> +CC = $(CROSS_COMPILE)gcc
-> +LD = $(CROSS_COMPILE)gcc
-> +STRIP = $(CROSS_COMPILE)strip
->  HOSTCC = gcc
->  
->  # check if compiler option is supported
+> Acked-by: Tony Luck <tony.luck@intel.com>
 
-Applied, thanks!
+Both [1-2/2] applied, thanks!
 
