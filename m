@@ -1,59 +1,45 @@
-From: Wim Osterholt <wim@djo.tudelft.nl>
-Subject: Re: kernel-4.7 bug in Intel sound and/or ACPI
-Date: Sat, 25 Jun 2016 03:39:20 +0200
-Message-ID: <20160625013920.GA26737@djo.tudelft.nl>
-References: <57686D67.8010201@codeaurora.org>
- <20160621124715.GB3528@djo.tudelft.nl>
- <576943BA.1000001@codeaurora.org>
- <20160621221347.GA28603@djo.tudelft.nl>
- <72eb7b76d449f906d9b2b1bb15d995bf@codeaurora.org>
- <20160623141234.GA14662@djo.tudelft.nl>
- <576BF86E.8060302@codeaurora.org>
- <576C042B.20507@codeaurora.org>
- <20160623232533.GA14984@djo.tudelft.nl>
- <f85fb7c7-53aa-3a1e-0635-bb245d08e804@codeaurora.org>
-Reply-To: wim@djo.tudelft.nl
+From: Daniel Lezcano <daniel.lezcano@linaro.org>
+Subject: Re: [PATCH v6 4/5] arm64: add support for ACPI Low Power Idle(LPI)
+Date: Sat, 25 Jun 2016 10:05:58 +0200
+Message-ID: <576E3B66.2020600@linaro.org>
+References: <1465915719-8409-1-git-send-email-sudeep.holla@arm.com>
+ <20160622141700.GB2733@red-moon> <576DA047.7080808@linaro.org>
+ <15462807.mkANpcI9rV@vostro.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from x127155.tudelft.net ([131.180.127.155]:38010 "EHLO
-	djo.tudelft.nl" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1751896AbcFYBjX (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 24 Jun 2016 21:39:23 -0400
-Content-Disposition: inline
-In-Reply-To: <f85fb7c7-53aa-3a1e-0635-bb245d08e804@codeaurora.org>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=utf-8;
+	format=flowed
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <15462807.mkANpcI9rV@vostro.rjw.lan>
+Sender: linux-kernel-owner@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Sudeep Holla <sudeep.holla@arm.com>, linux-acpi@vger.kernel.org, Vikas Sajjan <vikas.cha.sajjan@hpe.com>, Sunil <sunil.vl@hpe.com>, Prashanth Prakash <pprakash@codeaurora.org>, Al Stone <al.stone@linaro.org>, Ashwin Chaugule <ashwin.chaugule@linaro.org>, linux-kernel@vger.kernel.org, Mark Rutland <mark.rutland@arm.com>, linux-arm-kernel@lists.infradead.org
 List-Id: linux-acpi@vger.kernel.org
-To: Sinan Kaya <okaya@codeaurora.org>
-Cc: Bjorn Helgaas <helgaas@kernel.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, perex@perex.cz, linux-pci@vger.kernel.org, Takashi Iwai <tiwai@suse.com>, linux-pci-owner@vger.kernel.org, Alex Williamson <alex.williamson@redhat.com>, Wim Osterholt <wim@djo.tudelft.nl>
 
-On Fri, Jun 24, 2016 at 02:09:15AM -0400, Sinan Kaya wrote:
-> 
-> Can you give it a try?
+On 06/25/2016 12:47 AM, Rafael J. Wysocki wrote:
 
-Whell, I tried to no avail.
+[ ... ]
 
-Wether it is on 4.6 or 4.7, with or without your previous patch,
-I keep getting rejected hunks.
-For example, here the line to be deleted is nowhere to be found:
+>>>> +	if (!acpi_disabled)
+>>>> +		return psci_acpi_cpu_init_idle(cpu);
+>>
+>> Is it possible the case where there is information in both the DT an=
+d in
+>> ACPI ?
+>
+> No, it isn't.
+>
+> It is either-or, never both at the same time.
 
-> diff --git a/drivers/acpi/pci_link.c b/drivers/acpi/pci_link.c
-> index 714ba4d..c2f22c9 100644
-> --- a/drivers/acpi/pci_link.c
-> +++ b/drivers/acpi/pci_link.c
-> @@ -497,7 +497,7 @@ static int acpi_irq_get_penalty(int irq)
->  	int penalty = 0;
->  
->  	if (irq < ACPI_MAX_ISA_IRQS)
-> -		penalty += acpi_isa_irq_penalty[irq];
-> +		return acpi_isa_irq_penalty[irq];
->  
->  	/*
->  	* Penalize IRQ used by ACPI SCI. If ACPI SCI pin attributes conflict
+Ok, thanks for the clarification.
+
+   -- Daniel
 
 
-Regards, Wim.
+--=20
+  <http://www.linaro.org/> Linaro.org =E2=94=82 Open source software fo=
+r ARM SoCs
 
-
------ wim@djo.tudelft.nl -----
-
+=46ollow Linaro:  <http://www.facebook.com/pages/Linaro> Facebook |
+<http://twitter.com/#!/linaroorg> Twitter |
+<http://www.linaro.org/linaro-blog/> Blog
