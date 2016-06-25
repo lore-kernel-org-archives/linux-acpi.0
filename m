@@ -1,59 +1,146 @@
-From: okaya@codeaurora.org
-Subject: Re: kernel-4.7 bug in Intel sound and/or ACPI
-Date: Sat, 25 Jun 2016 04:51:03 -0400
-Message-ID: <3bf1261bc7a931cb5e1e93ea0d66b265@codeaurora.org>
-References: <57686D67.8010201@codeaurora.org>
- <20160621124715.GB3528@djo.tudelft.nl> <576943BA.1000001@codeaurora.org>
- <20160621221347.GA28603@djo.tudelft.nl>
- <72eb7b76d449f906d9b2b1bb15d995bf@codeaurora.org>
- <20160623141234.GA14662@djo.tudelft.nl> <576BF86E.8060302@codeaurora.org>
- <576C042B.20507@codeaurora.org> <20160623232533.GA14984@djo.tudelft.nl>
- <f85fb7c7-53aa-3a1e-0635-bb245d08e804@codeaurora.org>
- <20160625013920.GA26737@djo.tudelft.nl>
+From: joeyli <jlee@suse.com>
+Subject: Re: [PATCH v2] libnvdimm, nfit: treat volatile virtual CD region as
+ pmem
+Date: Sat, 25 Jun 2016 20:21:54 +0800
+Message-ID: <20160625122154.GJ3573@linux-rxt1.site>
+References: <1466754710-5948-1-git-send-email-jlee@suse.com>
+ <CAPcyv4iFNP8Dj40-i_w_5fiE=zj3SLrkm-2MbxAO6JbKu14i2Q@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII;
- format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-pci-owner@vger.kernel.org>
-In-Reply-To: <20160625013920.GA26737@djo.tudelft.nl>
-Sender: linux-pci-owner@vger.kernel.org
-To: wim@djo.tudelft.nl
-Cc: Bjorn Helgaas <helgaas@kernel.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, perex@perex.cz, linux-pci@vger.kernel.org, Takashi Iwai <tiwai@suse.com>, linux-pci-owner@vger.kernel.org, Alex Williamson <alex.williamson@redhat.com>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from smtp.nue.novell.com ([195.135.221.5]:43377 "EHLO
+	smtp.nue.novell.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751132AbcFYMWX (ORCPT
+	<rfc822;groupwise-linux-acpi@vger.kernel.org:0:0>);
+	Sat, 25 Jun 2016 08:22:23 -0400
+Content-Disposition: inline
+In-Reply-To: <CAPcyv4iFNP8Dj40-i_w_5fiE=zj3SLrkm-2MbxAO6JbKu14i2Q@mail.gmail.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Dan Williams <dan.j.williams@intel.com>
+Cc: "Lee, Chun-Yi" <joeyli.kernel@gmail.com>, Ross Zwisler <ross.zwisler@linux.intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Linda Knippers <linda.knippers@hpe.com>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, Linux ACPI <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Gary Lin <GLin@suse.com>
 
-On 2016-06-24 21:39, Wim Osterholt wrote:
-> On Fri, Jun 24, 2016 at 02:09:15AM -0400, Sinan Kaya wrote:
->> 
->> Can you give it a try?
+iOn Fri, Jun 24, 2016 at 10:59:56AM -0700, Dan Williams wrote:
+> On Fri, Jun 24, 2016 at 12:51 AM, Lee, Chun-Yi <joeyli.kernel@gmail.com> wrote:
+> > This patch adds logic to treat volatile virtual CD region as pmem
+> > region, then /dev/pmem* device can be mounted with iso9660.
+> >
+> > It's useful to work with the httpboot in EFI firmware to pull a remote
+> > ISO file to the local memory region for booting and installation.
+> >
+> > Wiki page of UEFI HTTPBoot with OVMF:
+> >         https://en.opensuse.org/UEFI_HTTPBoot_with_OVMF
+> >
+> > The ramdisk function in EDK2/OVMF generates a ACPI0012 root device that
+> > it contains empty _STA but without _DSM:
+> >
+> > DefinitionBlock ("ssdt2.aml", "SSDT", 2, "INTEL ", "RamDisk ", 0x00001000)
+> > {
+> >     Scope (\_SB)
+> >     {
+> >         Device (NVDR)
+> >         {
+> >             Name (_HID, "ACPI0012")  // _HID: Hardware ID
+> >             Name (_STR, Unicode ("NVDIMM Root Device"))  // _STR: Description String
+> >             Method (_STA, 0, NotSerialized)  // _STA: Status
+> >             {
+> >                 Return (0x0F)
+> >             }
+> >         }
+> >     }
+> > }
+> >
+> > In section 5.2.25.2 of ACPI 6.1 spec, it mentions that the "SPA Range
+> > Structure Index" of VCD SPA shall be set to zero. That means VCD SPA
+> > will not be associated by any NVDIMM region mapping.
+> >
+> > The VCD's SPA Range Structure in NFIT is similar to virtual disk region
+> > as following:
+> >
+> > [028h 0040   2]                Subtable Type : 0000 [System Physical Address Range]
+> > [02Ah 0042   2]                       Length : 0038
+> >
+> > [02Ch 0044   2]                  Range Index : 0000
+> > [02Eh 0046   2]        Flags (decoded below) : 0000
+> >                    Add/Online Operation Only : 0
+> >                       Proximity Domain Valid : 0
+> > [030h 0048   4]                     Reserved : 00000000
+> > [034h 0052   4]             Proximity Domain : 00000000
+> > [038h 0056  16]           Address Range GUID : 77AB535A-45FC-624B-5560-F7B281D1F96E
+> > [048h 0072   8]           Address Range Base : 00000000B6ABD018
+> > [050h 0080   8]         Address Range Length : 0000000005500000
+> > [058h 0088   8]         Memory Map Attribute : 0000000000000000
+> >
+> > The range index set to zero that means the VCD region not associated by
+> > any NVDIMM region mapping, and it will not assoicate to "flush hint",
+> > "interleave" or "control region".
 > 
-> Whell, I tried to no avail.
-> 
-> Wether it is on 4.6 or 4.7, with or without your previous patch,
-> I keep getting rejected hunks.
-> For example, here the line to be deleted is nowhere to be found:
-> 
->> diff --git a/drivers/acpi/pci_link.c b/drivers/acpi/pci_link.c
->> index 714ba4d..c2f22c9 100644
->> --- a/drivers/acpi/pci_link.c
->> +++ b/drivers/acpi/pci_link.c
->> @@ -497,7 +497,7 @@ static int acpi_irq_get_penalty(int irq)
->>  	int penalty = 0;
->> 
->>  	if (irq < ACPI_MAX_ISA_IRQS)
->> -		penalty += acpi_isa_irq_penalty[irq];
->> +		return acpi_isa_irq_penalty[irq];
->> 
->>  	/*
->>  	* Penalize IRQ used by ACPI SCI. If ACPI SCI pin attributes conflict
-> 
-> 
-> Regards, Wim.
-> 
-> 
-> ----- wim@djo.tudelft.nl -----
+> No, per the spec zero is a reserved value and we should ignore such
+> SPA tables.  The way to not associate a SPA range is to never
+> reference it from a "flush hint", "interleave", or "control region"
+> table.
+>
 
-Please apply the patches on top of clean 4.7-rc4 tree and apply them in 
-order with
+In 5.2.25.2 section of ACPI 6.1 spec, it mentions:
 
-git am 0001...
-git am 0002...
+Platform is allowed to implement this structure just to describe system
+physical address ranges that describe Virtual CD and Virtual Disk. For
+Virtual CD Region and Virtual Disk Region (both volatile and persistent),
+the following fields - Proximity Domain, SPA Range Structure Index, Flags, and
+                                        ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Address Range Memory Mapping Attribute, are not relevant and shall be set to 0.
+                                                            ^^^^^^^^^^^^^^^^^^^
+
+The above sentences conflict with the "SPA Range Structure Index" description
+in Table 5-128 because the SPA index _shall_ be set to zero for virtual CD and
+virtual Disk. Looks the "SPA index" is not really _reserved_.
+
+> >
+> > After testing on OVMF, pmem driver can support the region that it doesn't
+> > assoicate to any NVDIMM mapping. So, treat VCD as pmem is a idea to get
+> > a pmem block device that it containts iso.
+> >
+> > v2
+> > Removed the code for setting VCD to a read-only region.
+> >
+> > Cc: Gary Lin <GLin@suse.com>
+> > Cc: Dan Williams <dan.j.williams@intel.com>
+> > Cc: Ross Zwisler <ross.zwisler@linux.intel.com>
+> > Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+> > Cc: Linda Knippers <linda.knippers@hpe.com>
+> > Signed-off-by: Lee, Chun-Yi <jlee@suse.com>
+> > ---
+> >  drivers/acpi/nfit.c          |  8 +++++++-
+> >  drivers/nvdimm/region_devs.c | 26 +++++++++++++++++++++++++-
+> >  include/linux/libnvdimm.h    |  2 ++
+> >  3 files changed, 34 insertions(+), 2 deletions(-)
+> >
+> 
+> I don't think we need "nd_vcd_device_type".  I think this patch can
+> just be reduced to:
+> 
+> diff --git a/drivers/acpi/nfit.c b/drivers/acpi/nfit.c
+> index 32579a7b71d5..d289e772c20a 100644
+> --- a/drivers/acpi/nfit.c
+> +++ b/drivers/acpi/nfit.c
+> @@ -1948,6 +1948,7 @@ static int acpi_nfit_init_mapping(struct
+> acpi_nfit_desc *acpi_desc,
+>         nd_mapping->nvdimm = nvdimm;
+>         switch (nfit_spa_type(spa)) {
+>         case NFIT_SPA_PM:
+> +       case NFIT_SPA_VCD:
+>         case NFIT_SPA_VOLATILE:
+>                 nd_mapping->start = memdev->address;
+>                 nd_mapping->size = memdev->region_size;
+
+It does not work.
+
+Actually I removed the above code in version two because it useless.
+
+VCD SPA should not be referenced by any "NVDIMM Region Mapping Structure",
+so it does not have any memdev in memdevs list for mapping. That means
+acpi_nfit_init_mapping() never be called in acpi_nfit_register_region().
+
+
+Thanks a lot!
+Joey Lee
