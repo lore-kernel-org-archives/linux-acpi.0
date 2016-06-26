@@ -1,81 +1,154 @@
-From: Mark Brown <broonie@kernel.org>
-Subject: Re: [PATCH v4 0/2] ASoC: da7219: Convert driver to use generic FW
- functions
-Date: Sun, 26 Jun 2016 12:42:06 +0100
-Message-ID: <20160626114206.GM28202@sirena.org.uk>
-References: <cover.1466523027.git.Adam.Thomson.Opensource@diasemi.com>
- <6274a042-da99-e3e6-20f2-37ce2651645c@intel.com>
- <2E89032DDAA8B9408CB92943514A0337D4644644@SW-EX-MBX01.diasemi.com>
- <20160621232116.GG28202@sirena.org.uk>
- <CAJZ5v0g47+igo+Z+gZZE9sOix8oCs7Jy+H-i=HcBUB+RVib3+g@mail.gmail.com>
- <20160623100148.GV28202@sirena.org.uk>
- <CAJZ5v0hjQ=j+KOV8PMR47vx+=LLZMHqGdrVBZtDsF6WhFGkcQw@mail.gmail.com>
+From: Rob Herring <robh@kernel.org>
+Subject: Re: [PATCH 1/2] Documentation: Add sbs-manager device tree node documentation
+Date: Sun, 26 Jun 2016 09:05:01 -0500
+Message-ID: <CAL_JsqL38hnQpchy8q+yk1rZQ1ngF4JUwFgN0V=mGyAyAq1GVg@mail.gmail.com>
+References: <1466622436-27963-1-git-send-email-karl-heinz@schneider-inet.de>
+ <1466622436-27963-2-git-send-email-karl-heinz@schneider-inet.de>
+ <20160624175014.GA29990@rob-hp-laptop> <9ccbeeb9-3612-fe07-3396-48da7c832bc6@electromag.com.au>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
-	protocol="application/pgp-signature"; boundary="PoUpPrJlcBv0qM6G"
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <CAJZ5v0hjQ=j+KOV8PMR47vx+=LLZMHqGdrVBZtDsF6WhFGkcQw@mail.gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: "Rafael J. Wysocki" <rafael@kernel.org>
-Cc: "Opensource [Adam Thomson]" <Adam.Thomson.Opensource@diasemi.com>, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Robert Moore <robert.moore@intel.com>, Lv Zheng <lv.zheng@intel.com>, Heikki Krogerus <heikki.krogerus@linux.intel.com>, Mika Westerberg <mika.westerberg@linux.intel.com>, Len Brown <lenb@kernel.org>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Rob Herring <robh+dt@kernel.org>, Frank Rowand <frowand.list@gmail.com>, Liam Girdwood <lgirdwood@gmail.com>, linux-acpi <linux-acpi@vger.kernel.org>, devicetree <devicetree@vger.kernel.org>, alsa-devel <alsa-devel@alsa-project.org>, linux-kernel <linux-kernel@vger.kernel.org>, Support Opensource <Support.Opensource@diasemi.com>, Sathyanarayana Nujella <sathyanarayana.nujella@intel.com>
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-i2c-owner@vger.kernel.org>
+In-Reply-To: <9ccbeeb9-3612-fe07-3396-48da7c832bc6@electromag.com.au>
+Sender: linux-i2c-owner@vger.kernel.org
+To: Phil Reid <preid@electromag.com.au>
+Cc: Karl-Heinz Schneider <karl-heinz@schneider-inet.de>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, "linux-pm@vger.kernel.org" <linux-pm@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-i2c@vger.kernel.org" <linux-i2c@vger.kernel.org>, Mark Rutland <mark.rutland@arm.com>, Sebastian Reichel <sre@kernel.org>, Dmitry Eremin-Solenikov <dbaryshkov@gmail.com>, David Woodhouse <dwmw2@infradead.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Peter Rosin <peda@axentia.se>
 List-Id: linux-acpi@vger.kernel.org
 
+On Sun, Jun 26, 2016 at 12:21 AM, Phil Reid <preid@electromag.com.au> wrote:
+> G'day Rob
+>
+> Couple of thoughts / question below.
+>
+> On 25/06/2016 01:50, Rob Herring wrote:
+>>
+>> On Wed, Jun 22, 2016 at 09:07:15PM +0200, Karl-Heinz Schneider wrote:
+>>>
+>>> This patch adds device tree documentation for the sbs-manager
+>>>
+>>> Reviewed-by: Phil Reid <preid@electromag.com.au>
+>>> Signed-off-by: Karl-Heinz Schneider <karl-heinz@schneider-inet.de>
+>>> ---
+>>>  .../devicetree/bindings/power/sbs,sbs-manager.txt  | 58
+>>> ++++++++++++++++++++++
+>>>  1 file changed, 58 insertions(+)
+>>>  create mode 100644
+>>> Documentation/devicetree/bindings/power/sbs,sbs-manager.txt
+>>>
+>>> diff --git a/Documentation/devicetree/bindings/power/sbs,sbs-manager.txt
+>>> b/Documentation/devicetree/bindings/power/sbs,sbs-manager.txt
+>>> new file mode 100644
+>>> index 0000000..d52b466
+>>> --- /dev/null
+>>> +++ b/Documentation/devicetree/bindings/power/sbs,sbs-manager.txt
+>>> @@ -0,0 +1,58 @@
+>>> +Binding for sbs-manager
+>>> +
+>>> +Required properties:
+>>> +- compatible: should be "sbs,sbs-manager" or "lltc,ltc1760" if device is
+>>> a
+>>> +    ltc1760.
+>>
+>>
+>> sbs is not a vendor. What chip is sbs-manager? I suspect you should drop
+>> it and only list specific chips.
+>
+> This follows the interface to the existing paired sbs,sbs-battery driver
+> defined in power/sbs-battery.c
+> It implements a generic driver for the Smart Battery System Manager
+> Specification.
+> Spec available here: http://sbs-forum.org/specs/sbsm100b.pdf
+>
+> In addition the ltc1760 extends the spec.
 
---PoUpPrJlcBv0qM6G
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+Chips will always vary from specs in some way either on purpose or by
+accident. sbs,sbs-manager is fine as a fallback string, but there
+should always be a chip specific string first.
 
-On Thu, Jun 23, 2016 at 02:57:35PM +0200, Rafael J. Wysocki wrote:
-> On Thu, Jun 23, 2016 at 12:01 PM, Mark Brown <broonie@kernel.org> wrote:
+>>> +- reg: integer, i2c address of the device. Should be <0xa>.
+>>> +
+>>> +Optional properties:
+>>> +- sbsm,i2c-retry-count: integer, number of retries for trying to read or
+>>> write
+>>> +    to registers. Default: 1
+>>
+>>
+>> Seems like a driver setting. Is having a retry in the driver a problem
+>> if the h/w works and never actually needs it?
+>
+> Similarly the sbs-battery driver specifies the same same retry behaviour.
+> And is a model for this implementation.
+>
+> I've found the ltc1760 and sbs batteries to be problematic when
+> communicating to them.
+> A lot of drivers (and the associated hardware) don't handle multiple bus
+> masters well.
+> The bus arbitation doesn't seem to work correctly.
+> Retries where the only thing I could do to to get things to work reliably.
+> Mostly means the driver needs fixing, but in one case the designware core
+> hardware seemed to be the problem for me.
 
-> > That works too, if I do that I'll make a tag in case it needs to get
-> > pulled elsewhere.
+I'm not questioning the need for a retry. I'm questioning the need to
+limit the retries and tune per platform. What would be the issue if
+the driver hardcodes the number of retries to 10? This will work for
+any h/w that needs 0, 1, 2, ..., or 10 retries. The only issue would
+be how long until it errors out.
 
-> Sounds good, thanks!
+And yes, I can confirm DW i2c h/w is a POS at least for some versions.
 
-The following changes since commit 1a695a905c18548062509178b98bc91e67510864:
+>>> +From OS view the device is basically an i2c-mux used to communicate with
+>>> up to
+>>> +four smart battery devices at address 0xb. The driver actually
+>>> implements this
+>>> +behaviour. So standard i2c-mux nodes can be used to register up to four
+>>> slave
+>>> +batteries. Channels will be numerated as 1, 2, 4 and 8.
+>>> +
+>>> +Example:
+>>> +
+>>> +batman@0a {
+>>> +    compatible = "sbs,sbs-manager";
+>>> +    reg = <0x0a>;
+>>> +    sbsm,i2c-retry-count = <3>;
+>>> +    #address-cells = <1>;
+>>> +    #size-cells = <0>;
+>>> +
+>>> +    channel1@1 {
+>>
+>>
+>> channel@1
+>>
+>> Do we have a standard node name for mux nodes? If not, we should.
+>>
+>>> +        #address-cells = <1>;
+>>> +        #size-cells = <0>;
+>>> +        reg = <1>;
+>>> +
+>>> +        battery1@0b {
+>>
+>>
+>> battery@b
+>>
+>>> +            compatible = "sbs-battery";
+>>
+>>
+>> This should be an actual battery model. Or all this information is
+>> generic, you don't really need it in DT.
+>
+> Do we really want to restrict to battery model?
 
-  Linux 4.7-rc1 (2016-05-29 09:29:24 -0700)
+You're not. It is just being explicit in case some battery needs
+special handling and you only find that out after writing the binding.
+The DT model is such that the kernel can be updated with fixes without
+updating the DT. Specific compatible strings are needed for that to
+work.
 
-are available in the git repository at:
+> I have hardware where complete different sbs compliant batteries can be
+> plugged in.
+> Without the compatible flag here how do you get the sbs-battery driver to
+> load and manage the battery itself?
+> Or are you suggesting the manager should do this somehow?
+> I'm still learning...
 
-  git://git.kernel.org/pub/scm/linux/kernel/git/broonie/sound.git tags/dev-prop-named-child
+sbs,sbs-battery can still be a fall-back compatible string.
 
-for you to fetch changes up to 613e97218ccbd7f33895cad4525d861810a9d5d5:
-
-  device property: Add function to search for named child of device (2016-06-26 12:39:03 +0100)
-
-----------------------------------------------------------------
-device property: Add function to search for named child of device
-
-This adds a function to the device property API allowing us to look up
-the named child of a device.
-
-----------------------------------------------------------------
-Adam Thomson (1):
-      device property: Add function to search for named child of device
-
- drivers/base/property.c  | 28 ++++++++++++++++++++++++++++
- include/acpi/acpi_bus.h  |  7 +++++++
- include/linux/acpi.h     |  6 ++++++
- include/linux/of.h       | 14 +++++++-------
- include/linux/property.h |  3 +++
- 5 files changed, 51 insertions(+), 7 deletions(-)
-
---PoUpPrJlcBv0qM6G
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2
-
-iQEcBAEBCAAGBQJXb7+LAAoJECTWi3JdVIfQGOwH/irmsQV2M9wEm6hToXlbABV4
-ViP4eMVAOo3ltNWL+y0vmwQoy1JNUR5HhO2sLE3ybO2LpScK8F0oYybg4izaNoEV
-z7pFB1Cdiv1szC9UG+upXRwgoSG0Z3gnItzNc8u9vtxX0n+UHQ2AYTYqaqjkGDrE
-gwcrzUo066eOr3fY90c/Pgyqe8Fv6pTYEG9JxjuZjvltc9AHWhKqtyeBdHvd9hML
-BUVntyH6Bk+Ld2vORS129hESSonAypkQSB9kr5fn+3BCAIXa/qUOfPS2afjLFUUl
-JkmomWgRVoaeFgpETtIqYGD2OF+SVA/fKWebdE+OGdaEliXpglGkCw8BskUoE0o=
-=Slty
------END PGP SIGNATURE-----
-
---PoUpPrJlcBv0qM6G--
+Rob
