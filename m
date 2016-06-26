@@ -1,136 +1,149 @@
-From: Rui Wang <rui.y.wang@intel.com>
-Subject: [PATCH V5 1/3] x86/ioapic: Support hot-removal of IOAPICs present during boot
-Date: Sun, 26 Jun 2016 11:44:57 +0800
-Message-ID: <1466912697-3498-1-git-send-email-rui.y.wang@intel.com>
-References: <20160623173445.GF17987@localhost>
-Return-path: <linux-pci-owner@vger.kernel.org>
-In-Reply-To: <20160623173445.GF17987@localhost>
-Sender: linux-pci-owner@vger.kernel.org
-To: helgaas@kernel.org
-Cc: tglx@linutronix.de, rjw@rjwysocki.net, tony.luck@intel.com, bhelgaas@google.com, linux-acpi@vger.kernel.org, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, rui.y.wang@intel.com
+From: Phil Reid <preid@electromag.com.au>
+Subject: Re: [PATCH 1/2] Documentation: Add sbs-manager device tree node
+ documentation
+Date: Sun, 26 Jun 2016 13:21:00 +0800
+Message-ID: <9ccbeeb9-3612-fe07-3396-48da7c832bc6@electromag.com.au>
+References: <1466622436-27963-1-git-send-email-karl-heinz@schneider-inet.de>
+ <1466622436-27963-2-git-send-email-karl-heinz@schneider-inet.de>
+ <20160624175014.GA29990@rob-hp-laptop>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-pm-owner@vger.kernel.org>
+In-Reply-To: <20160624175014.GA29990@rob-hp-laptop>
+Sender: linux-pm-owner@vger.kernel.org
+To: Rob Herring <robh@kernel.org>, Karl-Heinz Schneider <karl-heinz@schneider-inet.de>
+Cc: devicetree@vger.kernel.org, linux-pm@vger.kernel.org, linux-acpi@vger.kernel.org, linux-i2c@vger.kernel.org, Mark Rutland <mark.rutland@arm.com>, Sebastian Reichel <sre@kernel.org>, Dmitry Eremin-Solenikov <dbaryshkov@gmail.com>, David Woodhouse <dwmw2@infradead.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Peter Rosin <peda@axentia.se>
 List-Id: linux-acpi@vger.kernel.org
 
-v5: Remove #ifdef CONFIG_X86 from setup-bus.c, making it neutral to archs.
-v4: Add comments explaining when to call acpi_ioapic_add().
-v3: Previous versions break mips. This version fixes it.
+G'day Rob
 
-IOAPICs present during system boot aren't added to ioapic_list,
-thus are unable to be hot-removed. Fix it by calling
-acpi_ioapic_add() during root bus enumeration.
+Couple of thoughts / question below.
 
-Signed-off-by: Rui Wang <rui.y.wang@intel.com>
----
- drivers/acpi/internal.h |  2 --
- drivers/acpi/ioapic.c   |  7 ++++---
- drivers/acpi/pci_root.c | 13 ++++++++++++-
- drivers/pci/setup-bus.c |  5 ++++-
- include/linux/acpi.h    |  6 ++++++
- 5 files changed, 26 insertions(+), 7 deletions(-)
+On 25/06/2016 01:50, Rob Herring wrote:
+> On Wed, Jun 22, 2016 at 09:07:15PM +0200, Karl-Heinz Schneider wrote:
+>> This patch adds device tree documentation for the sbs-manager
+>>
+>> Reviewed-by: Phil Reid <preid@electromag.com.au>
+>> Signed-off-by: Karl-Heinz Schneider <karl-heinz@schneider-inet.de>
+>> ---
+>>  .../devicetree/bindings/power/sbs,sbs-manager.txt  | 58 ++++++++++++++++++++++
+>>  1 file changed, 58 insertions(+)
+>>  create mode 100644 Documentation/devicetree/bindings/power/sbs,sbs-manager.txt
+>>
+>> diff --git a/Documentation/devicetree/bindings/power/sbs,sbs-manager.txt b/Documentation/devicetree/bindings/power/sbs,sbs-manager.txt
+>> new file mode 100644
+>> index 0000000..d52b466
+>> --- /dev/null
+>> +++ b/Documentation/devicetree/bindings/power/sbs,sbs-manager.txt
+>> @@ -0,0 +1,58 @@
+>> +Binding for sbs-manager
+>> +
+>> +Required properties:
+>> +- compatible: should be "sbs,sbs-manager" or "lltc,ltc1760" if device is a
+>> +    ltc1760.
+>
+> sbs is not a vendor. What chip is sbs-manager? I suspect you should drop
+> it and only list specific chips.
+This follows the interface to the existing paired sbs,sbs-battery driver defined in power/sbs-battery.c
+It implements a generic driver for the Smart Battery System Manager Specification.
+Spec available here: http://sbs-forum.org/specs/sbsm100b.pdf
 
-diff --git a/drivers/acpi/internal.h b/drivers/acpi/internal.h
-index 27cc7fe..6d8e67e 100644
---- a/drivers/acpi/internal.h
-+++ b/drivers/acpi/internal.h
-@@ -40,10 +40,8 @@ int acpi_sysfs_init(void);
- void acpi_container_init(void);
- void acpi_memory_hotplug_init(void);
- #ifdef	CONFIG_ACPI_HOTPLUG_IOAPIC
--int acpi_ioapic_add(struct acpi_pci_root *root);
- int acpi_ioapic_remove(struct acpi_pci_root *root);
- #else
--static inline int acpi_ioapic_add(struct acpi_pci_root *root) { return 0; }
- static inline int acpi_ioapic_remove(struct acpi_pci_root *root) { return 0; }
- #endif
- #ifdef CONFIG_ACPI_DOCK
-diff --git a/drivers/acpi/ioapic.c b/drivers/acpi/ioapic.c
-index ccdc8db..0f272e2 100644
---- a/drivers/acpi/ioapic.c
-+++ b/drivers/acpi/ioapic.c
-@@ -189,16 +189,17 @@ exit:
- 	return AE_OK;
- }
- 
--int acpi_ioapic_add(struct acpi_pci_root *root)
-+int acpi_ioapic_add(acpi_handle root_handle)
- {
- 	acpi_status status, retval = AE_OK;
- 
--	status = acpi_walk_namespace(ACPI_TYPE_DEVICE, root->device->handle,
-+	status = acpi_walk_namespace(ACPI_TYPE_DEVICE, root_handle,
- 				     UINT_MAX, handle_ioapic_add, NULL,
--				     root->device->handle, (void **)&retval);
-+				     root_handle, (void **)&retval);
- 
- 	return ACPI_SUCCESS(status) && ACPI_SUCCESS(retval) ? 0 : -ENODEV;
- }
-+EXPORT_SYMBOL_GPL(acpi_ioapic_add);
- 
- int acpi_ioapic_remove(struct acpi_pci_root *root)
- {
-diff --git a/drivers/acpi/pci_root.c b/drivers/acpi/pci_root.c
-index ae3fe4e..31e4440 100644
---- a/drivers/acpi/pci_root.c
-+++ b/drivers/acpi/pci_root.c
-@@ -614,7 +614,18 @@ static int acpi_pci_root_add(struct acpi_device *device,
- 	if (hotadd) {
- 		pcibios_resource_survey_bus(root->bus);
- 		pci_assign_unassigned_root_bus_resources(root->bus);
--		acpi_ioapic_add(root);
-+
-+		/*
-+ 		 * This is only called for the hotadd case. For the boot-time
-+ 		 * case, we need to wait until after PCI initialization in
-+ 		 * order to deal with IOAPICs mapped in on a PCI BAR.
-+ 		 *
-+ 		 * This is currently x86-specific, because acpi_ioapic_add()
-+ 		 * is an empty function without CONFIG_ACPI_HOTPLUG_IOAPIC.
-+ 		 * And CONFIG_ACPI_HOTPLUG_IOAPIC depends on CONFIG_X86_IO_APIC
-+ 		 * (see drivers/acpi/Kconfig).
-+ 		 */
-+		acpi_ioapic_add(root->device->handle);
- 	}
- 
- 	pci_lock_rescan_remove();
-diff --git a/drivers/pci/setup-bus.c b/drivers/pci/setup-bus.c
-index 55641a3..e32c356 100644
---- a/drivers/pci/setup-bus.c
-+++ b/drivers/pci/setup-bus.c
-@@ -25,6 +25,7 @@
- #include <linux/ioport.h>
- #include <linux/cache.h>
- #include <linux/slab.h>
-+#include <linux/acpi.h>
- #include "pci.h"
- 
- unsigned int pci_flags;
-@@ -1779,8 +1780,10 @@ void __init pci_assign_unassigned_resources(void)
- {
- 	struct pci_bus *root_bus;
- 
--	list_for_each_entry(root_bus, &pci_root_buses, node)
-+	list_for_each_entry(root_bus, &pci_root_buses, node) {
- 		pci_assign_unassigned_root_bus_resources(root_bus);
-+		acpi_ioapic_add(ACPI_HANDLE(root_bus->bridge));
-+	}
- }
- 
- void pci_assign_unassigned_bridge_resources(struct pci_dev *bridge)
-diff --git a/include/linux/acpi.h b/include/linux/acpi.h
-index 288fac5..f5114dc 100644
---- a/include/linux/acpi.h
-+++ b/include/linux/acpi.h
-@@ -680,6 +680,12 @@ static inline enum dev_dma_attr acpi_get_dma_attr(struct acpi_device *adev)
- 
- #endif	/* !CONFIG_ACPI */
- 
-+#ifdef CONFIG_ACPI_HOTPLUG_IOAPIC
-+int acpi_ioapic_add(acpi_handle root);
-+#else
-+static inline int acpi_ioapic_add(acpi_handle root) { return 0; }
-+#endif
-+
- #ifdef CONFIG_ACPI
- void acpi_os_set_prepare_sleep(int (*func)(u8 sleep_state,
- 			       u32 pm1a_ctrl,  u32 pm1b_ctrl));
+In addition the ltc1760 extends the spec.
+
+
+>
+>> +- reg: integer, i2c address of the device. Should be <0xa>.
+>> +
+>> +Optional properties:
+>> +- sbsm,i2c-retry-count: integer, number of retries for trying to read or write
+>> +    to registers. Default: 1
+>
+> Seems like a driver setting. Is having a retry in the driver a problem
+> if the h/w works and never actually needs it?
+Similarly the sbs-battery driver specifies the same same retry behaviour. And is a model for this implementation.
+
+I've found the ltc1760 and sbs batteries to be problematic when communicating to them.
+A lot of drivers (and the associated hardware) don't handle multiple bus masters well.
+The bus arbitation doesn't seem to work correctly.
+Retries where the only thing I could do to to get things to work reliably.
+Mostly means the driver needs fixing, but in one case the designware core hardware seemed to be the problem for me.
+
+
+>
+>> +
+>> +From OS view the device is basically an i2c-mux used to communicate with up to
+>> +four smart battery devices at address 0xb. The driver actually implements this
+>> +behaviour. So standard i2c-mux nodes can be used to register up to four slave
+>> +batteries. Channels will be numerated as 1, 2, 4 and 8.
+>> +
+>> +Example:
+>> +
+>> +batman@0a {
+>> +    compatible = "sbs,sbs-manager";
+>> +    reg = <0x0a>;
+>> +    sbsm,i2c-retry-count = <3>;
+>> +    #address-cells = <1>;
+>> +    #size-cells = <0>;
+>> +
+>> +    channel1@1 {
+>
+> channel@1
+>
+> Do we have a standard node name for mux nodes? If not, we should.
+>
+>> +        #address-cells = <1>;
+>> +        #size-cells = <0>;
+>> +        reg = <1>;
+>> +
+>> +        battery1@0b {
+>
+> battery@b
+>
+>> +            compatible = "sbs-battery";
+>
+> This should be an actual battery model. Or all this information is
+> generic, you don't really need it in DT.
+Do we really want to restrict to battery model?
+I have hardware where complete different sbs compliant batteries can be plugged in.
+Without the compatible flag here how do you get the sbs-battery driver to load and manage the battery itself?
+Or are you suggesting the manager should do this somehow?
+I'm still learning...
+
+
+>
+>> +            reg = <0x0b>;
+>> +        };
+>> +    };
+>> +
+>> +    channel2@2 {
+>> +        #address-cells = <1>;
+>> +        #size-cells = <0>;
+>> +        reg = <2>;
+>> +
+>> +        battery2@0b {
+>> +            compatible = "sbs-battery";
+>> +            reg = <0x0b>;
+>> +        };
+>> +    };
+>> +
+>> +    channel3@4 {
+>> +        #address-cells = <1>;
+>> +        #size-cells = <0>;
+>> +        reg = <4>;
+>> +
+>> +        battery3@0b {
+>> +            compatible = "sbs-battery";
+>> +            reg = <0x0b>;
+>> +        };
+>> +    };
+>> +};
+>> --
+>> 1.9.1
+>>
+
+
 -- 
-1.8.3.1
+Regards
+Phil Reid
+
