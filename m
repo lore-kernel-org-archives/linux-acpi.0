@@ -1,165 +1,81 @@
-From: Karl-Heinz Schneider <karl-heinz@schneider-inet.de>
-Subject: Re: [PATCH 1/2] Documentation: Add sbs-manager device tree node
- documentation
-Date: Sun, 26 Jun 2016 09:10:24 +0200
-Message-ID: <1466925024.9121.3.camel@amnesix>
-References: <1466622436-27963-1-git-send-email-karl-heinz@schneider-inet.de>
-	 <1466622436-27963-2-git-send-email-karl-heinz@schneider-inet.de>
-	 <20160624175014.GA29990@rob-hp-laptop>
+From: Mark Brown <broonie@kernel.org>
+Subject: Re: [PATCH v4 0/2] ASoC: da7219: Convert driver to use generic FW
+ functions
+Date: Sun, 26 Jun 2016 12:42:06 +0100
+Message-ID: <20160626114206.GM28202@sirena.org.uk>
+References: <cover.1466523027.git.Adam.Thomson.Opensource@diasemi.com>
+ <6274a042-da99-e3e6-20f2-37ce2651645c@intel.com>
+ <2E89032DDAA8B9408CB92943514A0337D4644644@SW-EX-MBX01.diasemi.com>
+ <20160621232116.GG28202@sirena.org.uk>
+ <CAJZ5v0g47+igo+Z+gZZE9sOix8oCs7Jy+H-i=HcBUB+RVib3+g@mail.gmail.com>
+ <20160623100148.GV28202@sirena.org.uk>
+ <CAJZ5v0hjQ=j+KOV8PMR47vx+=LLZMHqGdrVBZtDsF6WhFGkcQw@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-i2c-owner@vger.kernel.org>
-In-Reply-To: <20160624175014.GA29990@rob-hp-laptop>
-Sender: linux-i2c-owner@vger.kernel.org
-To: Rob Herring <robh@kernel.org>
-Cc: devicetree@vger.kernel.org, linux-pm@vger.kernel.org, linux-acpi@vger.kernel.org, linux-i2c@vger.kernel.org, Mark Rutland <mark.rutland@arm.com>, Sebastian Reichel <sre@kernel.org>, Dmitry Eremin-Solenikov <dbaryshkov@gmail.com>, David Woodhouse <dwmw2@infradead.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Peter Rosin <peda@axentia.se>, Phil Reid <preid@electromag.com.au>
+Content-Type: multipart/signed; micalg=pgp-sha256;
+	protocol="application/pgp-signature"; boundary="PoUpPrJlcBv0qM6G"
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <CAJZ5v0hjQ=j+KOV8PMR47vx+=LLZMHqGdrVBZtDsF6WhFGkcQw@mail.gmail.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: "Rafael J. Wysocki" <rafael@kernel.org>
+Cc: "Opensource [Adam Thomson]" <Adam.Thomson.Opensource@diasemi.com>, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Robert Moore <robert.moore@intel.com>, Lv Zheng <lv.zheng@intel.com>, Heikki Krogerus <heikki.krogerus@linux.intel.com>, Mika Westerberg <mika.westerberg@linux.intel.com>, Len Brown <lenb@kernel.org>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Rob Herring <robh+dt@kernel.org>, Frank Rowand <frowand.list@gmail.com>, Liam Girdwood <lgirdwood@gmail.com>, linux-acpi <linux-acpi@vger.kernel.org>, devicetree <devicetree@vger.kernel.org>, alsa-devel <alsa-devel@alsa-project.org>, linux-kernel <linux-kernel@vger.kernel.org>, Support Opensource <Support.Opensource@diasemi.com>, Sathyanarayana Nujella <sathyanarayana.nujella@intel.com>
 List-Id: linux-acpi@vger.kernel.org
 
-Hi Rob,
 
-sorry for resending, forgot the Cc.
+--PoUpPrJlcBv0qM6G
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-Am Freitag, den 24.06.2016, 12:50 -0500 schrieb Rob Herring:
-> On Wed, Jun 22, 2016 at 09:07:15PM +0200, Karl-Heinz Schneider wrote:
-> > This patch adds device tree documentation for the sbs-manager
-> > 
-> > Reviewed-by: Phil Reid <preid@electromag.com.au>
-> > Signed-off-by: Karl-Heinz Schneider <karl-heinz@schneider-inet.de>
-> > ---
-> >  .../devicetree/bindings/power/sbs,sbs-manager.txt  | 58
-++++++++++++++++++++++
-> >  1 file changed, 58 insertions(+)
-> >  create mode 100644
-Documentation/devicetree/bindings/power/sbs,sbs-manager.txt
-> > 
-> > diff --git
-a/Documentation/devicetree/bindings/power/sbs,sbs-manager.txt
-b/Documentation/devicetree/bindings/power/sbs,sbs-manager.txt
-> > new file mode 100644
-> > index 0000000..d52b466
-> > --- /dev/null
-> > +++ b/Documentation/devicetree/bindings/power/sbs,sbs-manager.txt
-> > @@ -0,0 +1,58 @@
-> > +Binding for sbs-manager
-> > +
-> > +Required properties:
-> > +- compatible: should be "sbs,sbs-manager" or "lltc,ltc1760" if
-device is a
-> > +    ltc1760.
-> 
-> sbs is not a vendor. What chip is sbs-manager? I suspect you should
-drop 
-> it and only list specific chips.
-Yes it's not a specific chip. But it's the specification of the
-interface. See http://sbs-forum.org/specs/sbsm100b.pdf. One
-implementation (with special features) is the LTC1760.
+On Thu, Jun 23, 2016 at 02:57:35PM +0200, Rafael J. Wysocki wrote:
+> On Thu, Jun 23, 2016 at 12:01 PM, Mark Brown <broonie@kernel.org> wrote:
 
-I choose this because the sbs-battery-driver did it the same way. You
-can find this in sbs-battery.c:
+> > That works too, if I do that I'll make a tag in case it needs to get
+> > pulled elsewhere.
 
-static const struct of_device_id sbs_dt_ids[] = {
-        { .compatible = "sbs,sbs-battery" },
-        { .compatible = "ti,bq20z75" },
-        { }
-};
+> Sounds good, thanks!
 
-Why not keep a generic compatibility string?
+The following changes since commit 1a695a905c18548062509178b98bc91e67510864:
 
-> 
-> > +- reg: integer, i2c address of the device. Should be <0xa>.
-> > +
-> > +Optional properties:
-> > +- sbsm,i2c-retry-count: integer, number of retries for trying to
-read or write
-> > +    to registers. Default: 1
-> 
-> Seems like a driver setting. Is having a retry in the driver a
-problem 
-> if the h/w works and never actually needs it?
-It could also be passed as a module parameter. But again the sbs-battery
-driver did it the same way, it just acted as template in this case...
+  Linux 4.7-rc1 (2016-05-29 09:29:24 -0700)
 
-The retry problematic arises because the SBSM is itself an i2c master.
-And (at least the LTC) stretches hosts i2c clock if it does communicate
-with the connected batteries. This will likely disturb the hosts
-communication to any i2c chip connected on this bus sooner or later,
-including to the SBSM.
-> 
-> > +
-> > +From OS view the device is basically an i2c-mux used to communicate
-with up to
-> > +four smart battery devices at address 0xb. The driver actually
-implements this
-> > +behaviour. So standard i2c-mux nodes can be used to register up to
-four slave
-> > +batteries. Channels will be numerated as 1, 2, 4 and 8.
-> > +
-> > +Example:
-> > +
-> > +batman@0a {
-> > +    compatible = "sbs,sbs-manager";
-> > +    reg = <0x0a>;
-> > +    sbsm,i2c-retry-count = <3>;
-> > +    #address-cells = <1>;
-> > +    #size-cells = <0>;
-> > +
-> > +    channel1@1 {
-> 
-> channel@1
-> 
-> Do we have a standard node name for mux nodes? If not, we should.
-I don't know. Other mux binding docs name the cannels just "i2c" or
-"port". Spec names them (the battery) "Smart Battery [A,B..]".
-Can at least drop the number in front of the @.
-> 
-> > +        #address-cells = <1>;
-> > +        #size-cells = <0>;
-> > +        reg = <1>;
-> > +
-> > +        battery1@0b {
-> 
-> battery@b
+are available in the git repository at:
 
-> 
-> > +            compatible = "sbs-battery";
-> 
-> This should be an actual battery model. Or all this information is 
-> generic, you don't really need it in DT.
-A solution could be to bind the sbs-battery driver within the
-sbs-manager driver for all detected channels per default, if not
-otherwise state in device tree? Current implementation doesn't bind
-anything by itself. Don't know what is the preferred behaviour?
-> 
-> > +            reg = <0x0b>;
-> > +        };
-> > +    };
-> > +
-> > +    channel2@2 {
-> > +        #address-cells = <1>;
-> > +        #size-cells = <0>;
-> > +        reg = <2>;
-> > +
-> > +        battery2@0b {
-> > +            compatible = "sbs-battery";
-> > +            reg = <0x0b>;
-> > +        };
-> > +    };
-> > +
-> > +    channel3@4 {
-> > +        #address-cells = <1>;
-> > +        #size-cells = <0>;
-> > +        reg = <4>;
-> > +
-> > +        battery3@0b {
-> > +            compatible = "sbs-battery";
-> > +            reg = <0x0b>;
-> > +        };
-> > +    };
-> > +};
-> > -- 
-> > 1.9.1
-> > 
-Tanks for review.
--- 
-Greetings
+  git://git.kernel.org/pub/scm/linux/kernel/git/broonie/sound.git tags/dev-prop-named-child
+
+for you to fetch changes up to 613e97218ccbd7f33895cad4525d861810a9d5d5:
+
+  device property: Add function to search for named child of device (2016-06-26 12:39:03 +0100)
+
+----------------------------------------------------------------
+device property: Add function to search for named child of device
+
+This adds a function to the device property API allowing us to look up
+the named child of a device.
+
+----------------------------------------------------------------
+Adam Thomson (1):
+      device property: Add function to search for named child of device
+
+ drivers/base/property.c  | 28 ++++++++++++++++++++++++++++
+ include/acpi/acpi_bus.h  |  7 +++++++
+ include/linux/acpi.h     |  6 ++++++
+ include/linux/of.h       | 14 +++++++-------
+ include/linux/property.h |  3 +++
+ 5 files changed, 51 insertions(+), 7 deletions(-)
+
+--PoUpPrJlcBv0qM6G
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2
+
+iQEcBAEBCAAGBQJXb7+LAAoJECTWi3JdVIfQGOwH/irmsQV2M9wEm6hToXlbABV4
+ViP4eMVAOo3ltNWL+y0vmwQoy1JNUR5HhO2sLE3ybO2LpScK8F0oYybg4izaNoEV
+z7pFB1Cdiv1szC9UG+upXRwgoSG0Z3gnItzNc8u9vtxX0n+UHQ2AYTYqaqjkGDrE
+gwcrzUo066eOr3fY90c/Pgyqe8Fv6pTYEG9JxjuZjvltc9AHWhKqtyeBdHvd9hML
+BUVntyH6Bk+Ld2vORS129hESSonAypkQSB9kr5fn+3BCAIXa/qUOfPS2afjLFUUl
+JkmomWgRVoaeFgpETtIqYGD2OF+SVA/fKWebdE+OGdaEliXpglGkCw8BskUoE0o=
+=Slty
+-----END PGP SIGNATURE-----
+
+--PoUpPrJlcBv0qM6G--
