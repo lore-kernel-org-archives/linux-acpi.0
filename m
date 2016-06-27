@@ -1,263 +1,116 @@
-From: Sudeep Holla <sudeep.holla@arm.com>
-Subject: Re: [PATCH v6 4/5] arm64: add support for ACPI Low Power Idle(LPI)
-Date: Mon, 27 Jun 2016 18:07:59 +0100
-Message-ID: <57715D6F.3060608@arm.com>
-References: <1465915719-8409-1-git-send-email-sudeep.holla@arm.com>
- <1465915719-8409-5-git-send-email-sudeep.holla@arm.com>
- <20160622141700.GB2733@red-moon> <57715463.5040305@linaro.org>
+From: Dan Williams <dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH v3] acpi, nfit: treat volatile virtual CD region as pmem
+Date: Mon, 27 Jun 2016 10:34:32 -0700
+Message-ID: <CAPcyv4hknQyYAT3PjsLTuPEwd=+ZbkF6ndsVJaG28TUPwJVxzQ@mail.gmail.com>
+References: <1467009960-20580-1-git-send-email-jlee@suse.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from foss.arm.com ([217.140.101.70]:41460 "EHLO foss.arm.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751639AbcF0RIF (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 27 Jun 2016 13:08:05 -0400
-In-Reply-To: <57715463.5040305@linaro.org>
-Sender: linux-acpi-owner@vger.kernel.org
+Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+In-Reply-To: <1467009960-20580-1-git-send-email-jlee-IBi9RG/b67k@public.gmane.org>
+List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
+ <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
+List-Post: <mailto:linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+List-Help: <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
+ <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
+Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
+Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+To: "Lee, Chun-Yi" <joeyli.kernel-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Cc: "linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org" <linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>, "Rafael J. Wysocki" <rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org>, "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "Lee,
+ Chun-Yi" <jlee-IBi9RG/b67k@public.gmane.org>, Linux ACPI <linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Gary Lin <GLin-IBi9RG/b67k@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
-To: Daniel Lezcano <daniel.lezcano@linaro.org>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
-Cc: Sudeep Holla <sudeep.holla@arm.com>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, linux-acpi@vger.kernel.org, Vikas Sajjan <vikas.cha.sajjan@hpe.com>, Sunil <sunil.vl@hpe.com>, Prashanth Prakash <pprakash@codeaurora.org>, Al Stone <al.stone@linaro.org>, Ashwin Chaugule <ashwin.chaugule@linaro.org>, linux-kernel@vger.kernel.org, Mark Rutland <mark.rutland@arm.com>, linux-arm-kernel@lists.infradead.org
 
+On Sun, Jun 26, 2016 at 11:46 PM, Lee, Chun-Yi <joeyli.kernel-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org> wrote:
+> This patch adds logic to treat volatile virtual CD region as pmem
+> region, then /dev/pmem* device can be mounted with iso9660.
+>
+> It's useful to work with the httpboot in EFI firmware to pull a remote
+> ISO file to the local memory region for booting and installation.
+>
+> Wiki page of UEFI HTTPBoot with OVMF:
+>         https://en.opensuse.org/UEFI_HTTPBoot_with_OVMF
+>
+> The ramdisk function in EDK2/OVMF generates a ACPI0012 root device that
+> it contains empty _STA but without _DSM:
+>
+> DefinitionBlock ("ssdt2.aml", "SSDT", 2, "INTEL ", "RamDisk ", 0x00001000)
+> {
+>     Scope (\_SB)
+>     {
+>         Device (NVDR)
+>         {
+>             Name (_HID, "ACPI0012")  // _HID: Hardware ID
+>             Name (_STR, Unicode ("NVDIMM Root Device"))  // _STR: Description String
+>             Method (_STA, 0, NotSerialized)  // _STA: Status
+>             {
+>                 Return (0x0F)
+>             }
+>         }
+>     }
+> }
+>
+> In section 5.2.25.2 of ACPI 6.1 spec, it mentions that the "SPA Range
+> Structure Index" of VCD SPA shall be set to zero. That means VCD SPA
+> will not be associated by any NVDIMM region mapping.
+>
+> The VCD's SPA Range Structure in NFIT is similar to virtual disk region
+> as following:
+>
+> [028h 0040   2]                Subtable Type : 0000 [System Physical Address Range]
+> [02Ah 0042   2]                       Length : 0038
+>
+> [02Ch 0044   2]                  Range Index : 0000
+> [02Eh 0046   2]        Flags (decoded below) : 0000
+>                    Add/Online Operation Only : 0
+>                       Proximity Domain Valid : 0
+> [030h 0048   4]                     Reserved : 00000000
+> [034h 0052   4]             Proximity Domain : 00000000
+> [038h 0056  16]           Address Range GUID : 77AB535A-45FC-624B-5560-F7B281D1F96E
+> [048h 0072   8]           Address Range Base : 00000000B6ABD018
+> [050h 0080   8]         Address Range Length : 0000000005500000
+> [058h 0088   8]         Memory Map Attribute : 0000000000000000
+>
+> The way to not associate a SPA range is to never reference it from a "flush hint",
+> "interleave", or "control region" table.
+>
+> After testing on OVMF, pmem driver can support the region that it doesn't
+> assoicate to any NVDIMM mapping. So, treat VCD like pmem is a idea to get
+> a pmem block device that it contains iso.
+>
+> v3:
+> To simplify patch, removed VCD region in libnvdimm.
+>
+> v2:
+> Removed the code for setting VCD to a read-only region.
+>
+> Cc: Gary Lin <GLin-IBi9RG/b67k@public.gmane.org>
+> Cc: Dan Williams <dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+> Cc: Ross Zwisler <ross.zwisler-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
+> Cc: "Rafael J. Wysocki" <rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org>
+> Cc: Linda Knippers <linda.knippers-ZPxbGqLxI0U@public.gmane.org>
+> Signed-off-by: Lee, Chun-Yi <jlee-IBi9RG/b67k@public.gmane.org>
+> ---
+>  drivers/acpi/nfit.c          |  8 +++++++-
+>  drivers/nvdimm/region_devs.c | 26 +++++++++++++++++++++++++-
+>  include/linux/libnvdimm.h    |  2 ++
+>  3 files changed, 34 insertions(+), 2 deletions(-)
+>
+> Index: linux/drivers/acpi/nfit.c
+> ===================================================================
+> --- linux.orig/drivers/acpi/nfit.c
+> +++ linux/drivers/acpi/nfit.c
+> @@ -1995,7 +1995,7 @@ static int acpi_nfit_register_region(str
+>         if (nfit_spa->nd_region)
+>                 return 0;
+>
+> -       if (spa->range_index == 0) {
+> +       if (spa->range_index == 0 && nfit_spa_type(spa) != NFIT_SPA_VCD) {
+>                 dev_dbg(acpi_desc->dev, "%s: detected invalid spa index\n",
+>                                 __func__);
 
-
-On 27/06/16 17:29, Daniel Lezcano wrote:
-> On 06/22/2016 04:17 PM, Lorenzo Pieralisi wrote:
->> Hi Sudeep,
->>
->> On Tue, Jun 14, 2016 at 03:48:38PM +0100, Sudeep Holla wrote:
->>> This patch adds appropriate callbacks to support ACPI Low Power Idle
->>> (LPI) on ARM64.
->>>
->>> Now that arm_enter_idle_state is exactly same in both generic ARM{32,64}
->>> CPUIdle driver and ARM64 backend for ACPI processor idle driver, we can
->>> unify it and move to cpuidle-arm.h header.
->>>
->>> Cc: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
->>> Cc: Mark Rutland <mark.rutland@arm.com>
->>> Cc: Daniel Lezcano <daniel.lezcano@linaro.org>
->>> Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>
->>> Cc: linux-arm-kernel@lists.infradead.org
->>> Signed-off-by: Sudeep Holla <sudeep.holla@arm.com>
->>> ---
->>>   arch/arm64/kernel/cpuidle.c   | 17 +++++++++++++
->>>   drivers/cpuidle/cpuidle-arm.c | 23 ++----------------
->>>   drivers/firmware/psci.c       | 56
->>> +++++++++++++++++++++++++++++++++++++++++++
->>>   include/linux/cpuidle-arm.h   | 30 +++++++++++++++++++++++
->>>   4 files changed, 105 insertions(+), 21 deletions(-)
->>>   create mode 100644 include/linux/cpuidle-arm.h
->>
->> This patch seems fine by me, it would be good if Daniel can have
->> a look too.
->>
->> Some minor comments below.
->>
->> [...]
->>
->>> diff --git a/drivers/firmware/psci.c b/drivers/firmware/psci.c
->>> index 03e04582791c..c6caa863d156 100644
->>> --- a/drivers/firmware/psci.c
->>> +++ b/drivers/firmware/psci.c
->>> @@ -13,6 +13,7 @@
->>>
->>>   #define pr_fmt(fmt) "psci: " fmt
->>>
->>> +#include <linux/acpi.h>
->>>   #include <linux/arm-smccc.h>
->>>   #include <linux/cpuidle.h>
->>>   #include <linux/errno.h>
->>> @@ -310,11 +311,66 @@ static int psci_dt_cpu_init_idle(struct
->>> device_node *cpu_node, int cpu)
->>>       return ret;
->>>   }
->>>
->>> +#ifdef CONFIG_ACPI
->>> +#include <acpi/processor.h>
->>> +
->>> +static int __maybe_unused psci_acpi_cpu_init_idle(unsigned int cpu)
->>> +{
->>> +    int i, count;
->>> +    u32 *psci_states;
->>> +    struct acpi_processor *pr;
->>> +    struct acpi_lpi_state *lpi;
->>> +
->>> +    pr = per_cpu(processors, cpu);
->>> +    if (unlikely(!pr || !pr->flags.has_lpi))
->>> +        return -EINVAL;
->>> +
->>> +    /*
->>> +     * If the PSCI cpu_suspend function hook has not been initialized
->>> +     * idle states must not be enabled, so bail out
->>> +     */
->>> +    if (!psci_ops.cpu_suspend)
->>> +        return -EOPNOTSUPP;
->>> +
->>> +    count = pr->power.count - 1;
->>> +    if (count <= 0)
->>> +        return -ENODEV;
->>> +
->>> +    psci_states = kcalloc(count, sizeof(*psci_states), GFP_KERNEL);
->>> +    if (!psci_states)
->>> +        return -ENOMEM;
->>> +
->>> +    for (i = 0; i < count; i++) {
->>> +        u32 state;
->>> +
->>> +        lpi = &pr->power.lpi_states[i + 1];
->>> +        state = lpi->address & 0xFFFFFFFF;
->
-> Why mask 'address' if 'state' is u32 ?
->
-
-Agreed, I overlooked it.
-
->>> +        if (!psci_power_state_is_valid(state)) {
->>> +            pr_warn("Invalid PSCI power state %#x\n", state);
->>> +            kfree(psci_states);
->>> +            return -EINVAL;
->>> +        }
->>> +        psci_states[i] = state;
->>> +    }
->>> +    /* Idle states parsed correctly, initialize per-cpu pointer */
->>> +    per_cpu(psci_power_state, cpu) = psci_states;
->>> +    return 0;
->
-> The ACPI and the PSCI code are not self contained here.
->
-> It would be nice to move this function to the ACPI code.
->
->>> +}
->>> +#else
->>> +static int __maybe_unused psci_acpi_cpu_init_idle(unsigned int cpu)
->>> +{
->>> +    return -EINVAL;
->>> +}
->>> +#endif
->>> +
->>>   int psci_cpu_init_idle(unsigned int cpu)
->>>   {
->>>       struct device_node *cpu_node;
->>>       int ret;
->>>
->>> +    if (!acpi_disabled)
->>> +        return psci_acpi_cpu_init_idle(cpu);
->>> +
->
-> acpi_disabled - acpi_disabled - acpi_disabled everywhere :/
->
-> The enable-method approach is not straightforward and now it is polluted
-> by acpi-disabled.
->
-> So IIUC,
->
-> smp_init_cpus (contains acpi_disabled)
->    smp_cpu_setup
->      cpu_read_ops
->        cpu_read_enable_method (contains acpi_disabled)
->          acpi_get_enable_method (returns 'psci' after checking
-> psci_is_present)
->
-> Then psci_cpu_init_idle is called... and check again acpi_disabled.
->
-> IMO, the circumlocution with the psci vs acpi vs acpi_disabled is
-> getting unnecessary too complex, is prone to error and will lead to
-> unmaintainable code very soon.
->
-> I suggest to sort out encapsulation and self-contained code before
-> adding more feature in this area.
->
-
-I understand your concern but I have no idea on how to clean up. Lorenzo
-asked to factor our common code between psci_{dt,acpi}_cpu_init_idle and
-I think you might not like the refactoring[1]. I didn't want to change
-cpuidle_ops and hence psci_dt_cpu_init_idle parameters. I will see if
-changing that simplifies things.
-
->>>       cpu_node = of_get_cpu_node(cpu, NULL);
->>>       if (!cpu_node)
->>>           return -ENODEV;
->>> diff --git a/include/linux/cpuidle-arm.h b/include/linux/cpuidle-arm.h
->>> new file mode 100644
->>> index 000000000000..b99bcb3f43dd
->>> --- /dev/null
->>> +++ b/include/linux/cpuidle-arm.h
->>
->> arm-cpuidle.h for consistency with other (ARM) include/linux files ?
->>
->>> @@ -0,0 +1,30 @@
->>> +#include <linux/cpu_pm.h>
->>> +
->>> +#include <asm/cpuidle.h>
->>> +
->>> +/*
->>> + * arm_enter_idle_state - Programs CPU to enter the specified state
->>> + */
->>> +static int arm_generic_enter_idle_state(int idx)
->>> +{
->>> +    int ret;
->>> +
->>> +    if (!idx) {
->>> +        cpu_do_idle();
->>> +        return idx;
->>> +    }
->>> +
->>> +    ret = cpu_pm_enter();
->>> +    if (!ret) {
->>> +        /*
->>> +         * Pass idle state index to cpu_suspend which in turn will
->>> +         * call the CPU ops suspend protocol with idle index as a
->>> +         * parameter.
->>> +         */
->>> +        ret = arm_cpuidle_suspend(idx);
->>> +
->>> +        cpu_pm_exit();
->>> +    }
->>> +
->>> +    return ret ? -1 : idx;
->>> +}
->>
->> Either you do this, or we have to add it somehow somewhere in
->> drivers/cpuidle to avoid duplicating it.
->>
->> @Daniel: do you have an opinion on this please ?
->
-> I don't like the idea to add an ARM arch specific header in
-> include/linux. I thought this directory was supposed to contain as much
-> as possible arch agnostic headers.
->
-
-While I agree, but what we have is ARM specific code here and calling it
-generic might not make it any usable on other architecture unless they 
-have the same semantics. I am fine if you and Rafael are OK with that.
-
-> May be the name can be changed to something more generic:
->
-> eg.
->
-> int cpuidle_generic_enter(int idx);
->
-> and then add an option:
->
-> HAVE_CPUIDLE_GENERIC_ENTER
->
-> , then in the generic header:
->
-> #ifdef HAVE_CPUIDLE_GENERIC_ENTER
-> int cpuidle_generic_enter(int idx);
-> #endif
->
-> , change the function name in cpuidle-arm .c
->
-> and finally add in the ARM and ARM64 Kconfig's option
-> HAVE_CPUIDLE_GENERIC_ENTER.
->
->
->    -- Daniel
->
-
-[1] 
-http://git.kernel.org/cgit/linux/kernel/git/sudeep.holla/linux.git/commit/?h=for_review/arm64_lpi&id=9b516ad4442b4168e962ba4ca87bd568d605053b
--- 
-Regards,
-Sudeep
+If we're adding the special casing might as well add it for all
+"virtual spa" tables.  I.e. introduce nfit_spa_is_virtual() and have
+it check for: NFIT_SPA_VDISK, NFIT_SPA_VCD, NFIT_SPA_PDISK, and
+NFIT_SPA_PCD.
