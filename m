@@ -1,71 +1,156 @@
-From: Dan Williams <dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH] acpi,
- nfit: fix acpi_check_dsm() vs zero functions implemented
-Date: Mon, 27 Jun 2016 11:06:19 -0700
-Message-ID: <CAPcyv4iELmJ9vDD7-juYOP4a6P51UFd49OUwreeofsXX7eHzCg@mail.gmail.com>
-References: <146679026571.24395.11569929364936343871.stgit@dwillia2-desk3.amr.corp.intel.com>
- <bd2353c0-0d84-3c0a-8117-3f24b823f469@hpe.com>
+From: Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>
+Subject: Re: [PATCH v3 2/3] acpi: dptf_power: Add DPTF power participant
+Date: Mon, 27 Jun 2016 11:09:05 -0700
+Message-ID: <1467050945.8970.86.camel@linux.intel.com>
+References: <1466718134-29921-1-git-send-email-srinivas.pandruvada@linux.intel.com>
+	 <1466718134-29921-3-git-send-email-srinivas.pandruvada@linux.intel.com>
+	 <CAJZ5v0hRVDMgsBzEMufwHurA8aRBmd7p_MvnMg1cdNYgDrPDaA@mail.gmail.com>
+	 <1466723970.8970.69.camel@linux.intel.com>
+	 <CAJZ5v0ithpoZfHJQwfyLdrsLyU1-M8psrJz12eaOTR9ffCTPOQ@mail.gmail.com>
+	 <1466991116.5580.11.camel@linux.intel.com>
+	 <CAJZ5v0hR9E-pLkkvbSLwLG8A1ECCVa=+45YJ1+L1cjXHaPaLtg@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-In-Reply-To: <bd2353c0-0d84-3c0a-8117-3f24b823f469-ZPxbGqLxI0U@public.gmane.org>
-List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
- <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
-List-Post: <mailto:linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-List-Help: <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
- <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
-Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
-Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-To: Linda Knippers <linda.knippers-ZPxbGqLxI0U@public.gmane.org>
-Cc: "Rafael J. Wysocki" <rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org>, Linux ACPI <linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Len Brown <lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Xiao Guangrong <guangrong.xiao-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, "linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org" <linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga01.intel.com ([192.55.52.88]:32074 "EHLO mga01.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751673AbcF0SHl (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 27 Jun 2016 14:07:41 -0400
+In-Reply-To: <CAJZ5v0hR9E-pLkkvbSLwLG8A1ECCVa=+45YJ1+L1cjXHaPaLtg@mail.gmail.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: "Rafael J. Wysocki" <rafael@kernel.org>
+Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>
 
-On Mon, Jun 27, 2016 at 10:40 AM, Linda Knippers <linda.knippers-ZPxbGqLxI0U@public.gmane.org> wrote:
->
-> On 6/24/2016 1:44 PM, Dan Williams wrote:
->> QEMU 2.6 implements nascent support for nvdimm DSMs. Depending on
->> configuration it may only implement the function0 dsm to indicate that
->> no other DSMs are available. Commit 31eca76ba2fc "nfit, libnvdimm:
->> limited/whitelisted dimm command marshaling mechanism" breaks QEMU, but
->> QEMU is spec compliant.  Per the spec the way to indicate that no
->> functions are supported is:
->>
->>     If Function Index is zero, the return is a buffer containing one bit
->>     for each function index, starting with zero. Bit 0 indicates whether
->>     there is support for any functions other than function 0 for the
->>     specified UUID and Revision ID. If set to zero, no functions are
->>     supported (other than function zero) for the specified UUID and
->>     Revision ID.
->
-> The rest of that paragraph is:
->
-> If set to one, at least one additional function is supported. For all other bits
-> in the buffer, a bit is set to zero to indicate if that function index is not
-> supported for the specific UUID and Revision ID. (For example, bit 1 set to 0
-> indicates that function index 1 is not supported for the specific UUID and
-> Revision ID.)
->
->>
->> Update the nfit driver to determine the family (interface UUID) without
->> requiring the implementation to define any other functions, i.e.
->> short-circuit acpi_check_dsm() to succeed per the spec.  The nfit driver
->> appears to be the only user passing funcs==0 to acpi_check_dsm(), so
->> this behavior change of the common routine should be limited to the
->> probing done by the nfit driver.
->
-> I don't understand why we're special casing this to support QEMU only when
-> there are no DSM functions supported.  If we want to implement the
-> spec and support function zero, I think we should support it correctly.
-> That means returning the correct value for all spec compliant callers,
-> even when there are functions that are supported.
+On Mon, 2016-06-27 at 03:45 +0200, Rafael J. Wysocki wrote:
+> On Mon, Jun 27, 2016 at 3:31 AM, Srinivas Pandruvada
+> <srinivas.pandruvada@linux.intel.com> wrote:
+> >=20
+> > On Fri, 2016-06-24 at 02:26 +0200, Rafael J. Wysocki wrote:
+> > >=20
+> > > >=20
+> > > > >=20
+> > > > > >=20
+> > > > > >=20
+> > > On Fri, Jun 24, 2016 at 1:19 AM, Srinivas Pandruvada
+> > > <srinivas.pandruvada@linux.intel.com> wrote:
+> > > >=20
+> > > > On Fri, 2016-06-24 at 00:31 +0200, Rafael J. Wysocki wrote:
+> > > > >=20
+> > > > > On Thu, Jun 23, 2016 at 11:42 PM, Srinivas Pandruvada
+> > > > > <srinivas.pandruvada@linux.intel.com> wrote:
+> > [...]
+> >=20
+> > >=20
+> > > I think what you need is that if acpi_battery is bound to at
+> > > least
+> > > one
+> > > device, you don't want to bind dptf_power to
+> > > anything.=C2=A0=C2=A0Conversely,
+> > > if
+> > > dptf_power has been bound to at least one device, you don't want
+> > > to
+> > > bind acpi_battery to anything.
+> > >=20
+> > > That may be achieved with a lock and two counters, one (A)
+> > > incremented
+> > > only by acpi_battery and the other (B) incremented only by
+> > > dptf_power
+> > > and such that you can't increment A if B is different from 0 and
+> > > you
+> > > can't increment B if A is different from 0.=C2=A0=C2=A0Of course,=
+ each
+> > > driver
+> > > would need to specify which counter it wants to use (A or B), so
+> > > that
+> > > would take an additional argument to acpi_battery_common_add()
+> > > and an
+> > > additional field in struct acpi_battery (for the remove
+> > > operation).
+> > >=20
+> > > With that, I think it should only be possible to build both
+> > > acpi_battery and dptf_power if they are both modules.=C2=A0=C2=A0=
+IOW,
+> > > DPTF_POWER
+> > > should depend on (!ACPI_BATTERY || ACPI_BATTERY=3Dm) or
+> > > similar.=C2=A0=C2=A0And
+> > > if
+> > > they are both modules, let user space manage that.
+> > >=20
+> > > And the waiting itself doesn't add any value then IMO.
+> > Yes. I think the best solution is not to let define DPTF_POWER when
+> > the
+> > ACPI_BATTERY is defined same as my first version of the patch or
+> > let
+> > both add as there is no harm as they will show same levels. The
+> > reason
+> > is:
+> > We have some devices with two ACPI_BATTERIES (primary and
+> > secondary/backup) and they must be presented as two power supply
+> > devices to user space. In those devices DPTF_POWER may be
+> > equivalent to
+> > only one of the ACPI_BATTERY (Will point to same battery for
+> > Battery
+> > levels). So we can't simply refuse to add ACPI_BATTERY device
+> > addition
+> > because DPTF_POWER device is registered before.
+> OK
+>=20
+> Say dptf_power points to the same battery device as acpi_battery.=C2=A0=
+=C2=A0Is
+> there any way to tell when that happens?
+May be we can memcmp the output of _BIX (Battery Information Extended).
+If they are same it belongs to same battery.
+If there are two ACPI batteries, hope atleast they have difference in
+one element in the following package.
 
-QEMU 2.6 already shipped, so whatever we do we should not regress
-those binaries.  The QEMU behavior could be argued as not spec
-compliant, but they've implemented enough of function0 to answer the
-"which family" probe. Yes, if an implementation supports function0 it
-should say so in the returned bitmask, but by the time we've
-determined that function0 is "not supported" we've already
-successfully executed a function0 request.
+Package {
+// ASCIIZ is ASCII character string terminated with a 0x00.
+Revision
+//Integer
+Power Unit
+//Integer (DWORD)
+Design Capacity
+//Integer (DWORD)
+Last Full Charge Capacity
+//Integer (DWORD)
+Battery Technology
+//Integer (DWORD)
+Design Voltage
+//Integer (DWORD)
+Design Capacity of Warning
+//Integer (DWORD)
+Design Capacity of Low
+//Integer (DWORD)
+Cycle Count
+//Integer (DWORD)
+Measurement Accuracy
+Max Sampling Time
+Min Sampling Time
+Max Averaging Interval
+Min Averaging Interval //Integer
+//Integer
+//Integer
+//Integer
+//Integer
+(DWORD)
+(DWORD)
+(DWORD)
+(DWORD)
+(DWORD)
+Battery Capacity Granularity 1
+Battery Capacity Granularity 2
+Model Number
+Serial Number
+Battery Type
+OEM Information
+}
+
+Thanks,
+Srinivas
+--
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
