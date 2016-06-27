@@ -1,37 +1,77 @@
-From: "Rafael J. Wysocki" <rafael@kernel.org>
-Subject: Re: [PATCH v4 5/8] spi: add support for ACPI reconfigure notifications
-Date: Mon, 27 Jun 2016 23:13:56 +0200
-Message-ID: <CAJZ5v0gzw4oWicOE8yKPZCKR8r9MxpnaBUBgZXOTzkz8hc_BQw@mail.gmail.com>
-References: <1466164336-9508-1-git-send-email-octavian.purdila@intel.com>
- <1466164336-9508-6-git-send-email-octavian.purdila@intel.com> <20160627141713.GW28202@sirena.org.uk>
+From: "Gao, Bin" <bin.gao@intel.com>
+Subject: RE: [PATCH v4 3/3] acpi/pmic: Add support for PMIC regs operation
+ region
+Date: Mon, 27 Jun 2016 21:25:06 +0000
+Message-ID: <4460FA1017EA3844B646E90DA4E984057E2A5FED@ORSMSX112.amr.corp.intel.com>
+References: <20160624005253.GF83592@worksta>
+ <CAJZ5v0hTvQL1ZdcNtMC24uRtbpavVFq4aqgoPtuEknjo+1QoPw@mail.gmail.com>
+ <20160627143735.GC21398@kuha.fi.intel.com>
+ <2243573.eblG6iu6if@vostro.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-wm0-f67.google.com ([74.125.82.67]:36602 "EHLO
-	mail-wm0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751869AbcF0VN7 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 27 Jun 2016 17:13:59 -0400
-In-Reply-To: <20160627141713.GW28202@sirena.org.uk>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <2243573.eblG6iu6if@vostro.rjw.lan>
+Content-Language: en-US
+Sender: linux-kernel-owner@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Heikki Krogerus <heikki.krogerus@linux.intel.com>
+Cc: "Rafael J. Wysocki" <rafael@kernel.org>, Bin Gao <bin.gao@linux.intel.com>, "Lu, Aaron" <aaron.lu@intel.com>, "Gortmaker, Paul (Wind River)" <paul.gortmaker@windriver.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, "Iyer, Yegnesh S" <yegnesh.s.iyer@intel.com>, "David Rajamanickam, Ajay Thomas" <ajay.thomas.david.rajamanickam@intel.com>
 List-Id: linux-acpi@vger.kernel.org
-To: Mark Brown <broonie@kernel.org>, Octavian Purdila <octavian.purdila@intel.com>
-Cc: "Rafael J . Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Matt Fleming <matt@codeblueprint.co.uk>, Wolfram Sang <wsa@the-dreams.de>, Joel Becker <jlbec@evilplan.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, linux-efi@vger.kernel.org, linux-i2c <linux-i2c@vger.kernel.org>, linux-spi <linux-spi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, "Tirdea, Irina" <irina.tirdea@intel.com>, leonard.crestez@intel.com
 
-On Mon, Jun 27, 2016 at 4:17 PM, Mark Brown <broonie@kernel.org> wrote:
-> On Fri, Jun 17, 2016 at 02:52:13PM +0300, Octavian Purdila wrote:
->
->> This patch adds supports for SPI device enumeration and removal via
->> ACPI reconfiguration notifications that are send as a result of an
->> ACPI table load or unload operation.
->
-> I still have the same concern I've had all the way through here: this is
-> very similar to the equivalent DT code but not quite, especially in
-> regard to the OF_POPULATED flag which has no ACPI equivalent.  This
-> gives us ACPI code which just looks like it's missing something.  I'd
-> like to see the comparison at least covered in the changelog so people
-> have something to refer to in future when trying to understand why
-> things are done this way.
-
-I agree here.
-
-Tavi, please extend the changelog as requested by Mark.
+SSdtIGZpbmUgd2l0aCB0aGF0LiBUaGFua3MgUmFmYWVsLg0KDQotQmluDQoNCi0tLS0tT3JpZ2lu
+YWwgTWVzc2FnZS0tLS0tDQpGcm9tOiBSYWZhZWwgSi4gV3lzb2NraSBbbWFpbHRvOnJqd0Byand5
+c29ja2kubmV0XSANClNlbnQ6IE1vbmRheSwgSnVuZSAyNywgMjAxNiAxOjI5IFBNDQpUbzogSGVp
+a2tpIEtyb2dlcnVzDQpDYzogUmFmYWVsIEouIFd5c29ja2k7IEJpbiBHYW87IEx1LCBBYXJvbjsg
+R29ydG1ha2VyLCBQYXVsIChXaW5kIFJpdmVyKTsgQUNQSSBEZXZlbCBNYWxpbmcgTGlzdDsgTGlu
+dXggS2VybmVsIE1haWxpbmcgTGlzdDsgSXllciwgWWVnbmVzaCBTOyBEYXZpZCBSYWphbWFuaWNr
+YW0sIEFqYXkgVGhvbWFzOyBHYW8sIEJpbg0KU3ViamVjdDogUmU6IFtQQVRDSCB2NCAzLzNdIGFj
+cGkvcG1pYzogQWRkIHN1cHBvcnQgZm9yIFBNSUMgcmVncyBvcGVyYXRpb24gcmVnaW9uDQoNCk9u
+IE1vbmRheSwgSnVuZSAyNywgMjAxNiAwNTozNzozNSBQTSBIZWlra2kgS3JvZ2VydXMgd3JvdGU6
+DQo+IE9uIE1vbiwgSnVuIDI3LCAyMDE2IGF0IDAzOjI1OjExUE0gKzAyMDAsIFJhZmFlbCBKLiBX
+eXNvY2tpIHdyb3RlOg0KPiA+IE9uIE1vbiwgSnVuIDI3LCAyMDE2IGF0IDExOjI2IEFNLCBIZWlr
+a2kgS3JvZ2VydXMgDQo+ID4gPGhlaWtraS5rcm9nZXJ1c0BsaW51eC5pbnRlbC5jb20+IHdyb3Rl
+Og0KPiA+ID4gV2hvYSEgSG9sZCBvbiENCj4gPiA+DQo+ID4gPiBPbiBUaHUsIEp1biAyMywgMjAx
+NiBhdCAwNTo1Mjo1M1BNIC0wNzAwLCBCaW4gR2FvIHdyb3RlOg0KPiA+ID4+IEJyb3h0b24gcGxh
+dGZvcm0gZmlybXdhcmUgaGFzIGRlZmluZWQgbmV3IGN1c3RvbWl6ZWQgb3BlcmF0aW9uIA0KPiA+
+ID4+IHJlZ2lvbnMgY2FsbGVkIHJlZ3MgZm9yIFBNSUMgY2hpcCAtIHJlZ3Mgb3AgcmVnaW9uIGlz
+IHVzZWQgdG8gDQo+ID4gPj4gaGFuZGxlIHRoZSBQTUlDIGdwaW8gbWFpbmx5IGludGVuZGVkIGZv
+ciB0aGUgVFlQRS1DIFZCVVMgYW5kIE9yaWVudGF0aW9uLg0KPiA+ID4+DQo+ID4gPj4gVGhlIGlu
+dGVsX2dwaW9fY3R4ICBzdHJ1Y3R1cmUgaXMgY3JlYXRlZCBmb3IgdGhlIHB1cnBvc2Ugb2YgDQo+
+ID4gPj4gaGFuZGxpbmcgdGhlIFBNSUMgZ3BpbyByZWdpc3RlciByZWFkIGFuZCB3cml0ZS4NCj4g
+PiA+Pg0KPiA+ID4+IFNpZ25lZC1vZmYtYnk6IEZlbGlwZSBCYWxiaSA8ZmVsaXBlLmJhbGJpQGxp
+bnV4LmludGVsLmNvbT4NCj4gPiA+PiBTaWduZWQtb2ZmLWJ5OiBDaGFuZHJhIFNla2hhciBBbmFn
+YW5pIA0KPiA+ID4+IDxjaGFuZHJhLnNla2hhci5hbmFnYW5pQGludGVsLmNvbT4NCj4gPiA+PiBT
+aWduZWQtb2ZmLWJ5OiBCaW4gR2FvIDxiaW4uZ2FvQGludGVsLmNvbT4NCj4gPiA+PiAtLS0NCj4g
+PiA+PiBDaGFuZ2VzIGluIHY0Og0KPiA+ID4+ICAtIHZhcmlvdXMgZml4ZXMgdG8gYWRkcmVzcyBB
+YXJvbidzIGNvbW1lbnRzLg0KPiA+ID4+IENoYW5nZXMgaW4gdjM6IG5vbmUNCj4gPiA+PiBDaGFu
+Z2VzIGluIHYyOiBub25lDQo+ID4gPj4gIGRyaXZlcnMvYWNwaS9wbWljL2ludGVsX3BtaWMuYyB8
+IDc0IA0KPiA+ID4+ICsrKysrKysrKysrKysrKysrKysrKysrKysrKysrKysrKysrKysrKystLQ0K
+PiA+ID4+ICBkcml2ZXJzL2FjcGkvcG1pYy9pbnRlbF9wbWljLmggfCAgNSArKysNCj4gPiA+PiAg
+MiBmaWxlcyBjaGFuZ2VkLCA3NiBpbnNlcnRpb25zKCspLCAzIGRlbGV0aW9ucygtKQ0KPiA+ID4+
+DQo+ID4gPj4gZGlmZiAtLWdpdCBhL2RyaXZlcnMvYWNwaS9wbWljL2ludGVsX3BtaWMuYyANCj4g
+PiA+PiBiL2RyaXZlcnMvYWNwaS9wbWljL2ludGVsX3BtaWMuYyBpbmRleCA0MTBlOTZmLi5lMTFk
+MWUwIDEwMDY0NA0KPiA+ID4+IC0tLSBhL2RyaXZlcnMvYWNwaS9wbWljL2ludGVsX3BtaWMuYw0K
+PiA+ID4+ICsrKyBiL2RyaXZlcnMvYWNwaS9wbWljL2ludGVsX3BtaWMuYw0KPiA+ID4+IEBAIC0y
+MSwxMiArMjEsMTQgQEANCj4gPiA+Pg0KPiA+ID4+ICAjZGVmaW5lIFBNSUNfUE9XRVJfT1BSRUdJ
+T05fSUQgICAgICAgICAgICAgICAweDhkDQo+ID4gPj4gICNkZWZpbmUgUE1JQ19USEVSTUFMX09Q
+UkVHSU9OX0lEICAgICAweDhjDQo+ID4gPj4gKyNkZWZpbmUgUE1JQ19SRUdTX09QUkVHSU9OX0lE
+ICAgICAgICAgICAgICAgIDB4OGYNCj4gPiA+Pg0KPiA+ID4+ICBzdHJ1Y3QgaW50ZWxfcG1pY19v
+cHJlZ2lvbiB7DQo+ID4gPj4gICAgICAgc3RydWN0IG11dGV4IGxvY2s7DQo+ID4gPj4gICAgICAg
+c3RydWN0IGFjcGlfbHBhdF9jb252ZXJzaW9uX3RhYmxlICpscGF0X3RhYmxlOw0KPiA+ID4+ICAg
+ICAgIHN0cnVjdCByZWdtYXAgKnJlZ21hcDsNCj4gPiA+PiAgICAgICBzdHJ1Y3QgaW50ZWxfcG1p
+Y19vcHJlZ2lvbl9kYXRhICpkYXRhOw0KPiA+ID4+ICsgICAgIHN0cnVjdCBwbWljX2dwaW9fY3R4
+ICAgIGN0eDsNCj4gPiA+DQo+ID4gPiBXaGF0IGdwaW8/DQo+ID4gPg0KPiA+ID4+ICB9Ow0KPiA+
+ID4+DQo+ID4gPj4gIHN0YXRpYyBpbnQgcG1pY19nZXRfcmVnX2JpdChpbnQgYWRkcmVzcywgc3Ry
+dWN0IHBtaWNfdGFibGUgDQo+ID4gPj4gKnRhYmxlLCBAQCAtMjA0LDYgKzIwNiw1NiBAQCBzdGF0
+aWMgYWNwaV9zdGF0dXMgaW50ZWxfcG1pY190aGVybWFsX2hhbmRsZXIodTMyIGZ1bmN0aW9uLA0K
+PiA+ID4+ICAgICAgIHJldHVybiBBRV9PSzsNCj4gPiA+PiAgfQ0KPiA+ID4+DQo+ID4gPj4gK3N0
+YXRpYyBhY3BpX3N0YXR1cyBpbnRlbF9wbWljX2dwaW9faGFuZGxlcih1MzIgZnVuY3Rpb24sDQo+
+ID4gPj4gKyAgICAgYWNwaV9waHlzaWNhbF9hZGRyZXNzIGFkZHJlc3MsIHUzMiBiaXRzLCB1NjQg
+KnZhbHVlNjQsDQo+ID4gPj4gKyAgICAgICAgICAgICB2b2lkICpoYW5kbGVyX2NvbnRleHQsIHZv
+aWQgKnJlZ2lvbl9jb250ZXh0KQ0KPiA+ID4NCj4gPiA+IFdoYXQgdGhlIGhlY2sgaXMgdGhpcz8g
+V2h5IGlzIHRoaXMgc3VkZGVubHkgYSBncGlvIGhhbmRsZXI/DQo+ID4gPg0KPiA+ID4gVGhpcyBp
+cyBoYW5kbGVyIGZvciBhbiBvcGVyYXRpb24gcmVnaW9uLCBub3Qgc29tZSBncGlvIQ0KPiA+IA0K
+PiA+IE9LDQo+ID4gDQo+ID4gV2hhdCBhYm91dCBpZiBJIHJlcGxhY2VkIHRoaXMgb25lIHdpdGgg
+dGhlIG9yaWdpbmFsIG9uZSBmcm9tIEZlbGlwZSB5b3Ugc2VudD8NCj4gDQo+IFRoYXQgd29ya3Mg
+Zm9yIG1lLg0KDQpPSywgbGV0J3MgZG8gdGhhdCwgdGhlbi4NCg0KVGhhbmtzLA0KUmFmYWVsDQoN
+Cg==
