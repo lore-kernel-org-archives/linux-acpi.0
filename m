@@ -1,77 +1,108 @@
-From: "Gao, Bin" <bin.gao@intel.com>
-Subject: RE: [PATCH v4 3/3] acpi/pmic: Add support for PMIC regs operation
- region
-Date: Mon, 27 Jun 2016 21:25:06 +0000
-Message-ID: <4460FA1017EA3844B646E90DA4E984057E2A5FED@ORSMSX112.amr.corp.intel.com>
-References: <20160624005253.GF83592@worksta>
- <CAJZ5v0hTvQL1ZdcNtMC24uRtbpavVFq4aqgoPtuEknjo+1QoPw@mail.gmail.com>
- <20160627143735.GC21398@kuha.fi.intel.com>
- <2243573.eblG6iu6if@vostro.rjw.lan>
+From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Subject: Re: [PATCH v3] mailbox: pcc: Support HW-Reduced Communication Subspace type 2
+Date: Mon, 27 Jun 2016 23:32 +0200
+Message-ID: <4302600.LGpaGycv0T@vostro.rjw.lan>
+References: <1463704347-22550-1-git-send-email-hotran@apm.com> <b498099e-4ffe-21da-f97b-4899c59201bf@codeaurora.org> <CAFHUOYzpeSw-6Tvj=ffwX7L+jgMDTd_2mVm5nOuormw7hmq9OA@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <2243573.eblG6iu6if@vostro.rjw.lan>
-Content-Language: en-US
-Sender: linux-kernel-owner@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Heikki Krogerus <heikki.krogerus@linux.intel.com>
-Cc: "Rafael J. Wysocki" <rafael@kernel.org>, Bin Gao <bin.gao@linux.intel.com>, "Lu, Aaron" <aaron.lu@intel.com>, "Gortmaker, Paul (Wind River)" <paul.gortmaker@windriver.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, "Iyer, Yegnesh S" <yegnesh.s.iyer@intel.com>, "David Rajamanickam, Ajay Thomas" <ajay.thomas.david.rajamanickam@intel.com>
+Content-Transfer-Encoding: 7Bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from cloudserver094114.home.net.pl ([79.96.170.134]:63854 "HELO
+	cloudserver094114.home.net.pl" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with SMTP id S1751673AbcF0V1g (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 27 Jun 2016 17:27:36 -0400
+In-Reply-To: <CAFHUOYzpeSw-6Tvj=ffwX7L+jgMDTd_2mVm5nOuormw7hmq9OA@mail.gmail.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Hoan Tran <hotran@apm.com>
+Cc: Jassi Brar <jassisinghbrar@gmail.com>, Ashwin Chaugule <ashwin.chaugule@linaro.org>, Robert Moore <robert.moore@intel.com>, Alexey Klimov <alexey.klimov@arm.com>, lkml <linux-kernel@vger.kernel.org>, linux acpi <linux-acpi@vger.kernel.org>, Loc Ho <lho@apm.com>, Duc Dang <dhdang@apm.com>, "Prakash, Prashanth" <pprakash@codeaurora.org>
 
-SSdtIGZpbmUgd2l0aCB0aGF0LiBUaGFua3MgUmFmYWVsLg0KDQotQmluDQoNCi0tLS0tT3JpZ2lu
-YWwgTWVzc2FnZS0tLS0tDQpGcm9tOiBSYWZhZWwgSi4gV3lzb2NraSBbbWFpbHRvOnJqd0Byand5
-c29ja2kubmV0XSANClNlbnQ6IE1vbmRheSwgSnVuZSAyNywgMjAxNiAxOjI5IFBNDQpUbzogSGVp
-a2tpIEtyb2dlcnVzDQpDYzogUmFmYWVsIEouIFd5c29ja2k7IEJpbiBHYW87IEx1LCBBYXJvbjsg
-R29ydG1ha2VyLCBQYXVsIChXaW5kIFJpdmVyKTsgQUNQSSBEZXZlbCBNYWxpbmcgTGlzdDsgTGlu
-dXggS2VybmVsIE1haWxpbmcgTGlzdDsgSXllciwgWWVnbmVzaCBTOyBEYXZpZCBSYWphbWFuaWNr
-YW0sIEFqYXkgVGhvbWFzOyBHYW8sIEJpbg0KU3ViamVjdDogUmU6IFtQQVRDSCB2NCAzLzNdIGFj
-cGkvcG1pYzogQWRkIHN1cHBvcnQgZm9yIFBNSUMgcmVncyBvcGVyYXRpb24gcmVnaW9uDQoNCk9u
-IE1vbmRheSwgSnVuZSAyNywgMjAxNiAwNTozNzozNSBQTSBIZWlra2kgS3JvZ2VydXMgd3JvdGU6
-DQo+IE9uIE1vbiwgSnVuIDI3LCAyMDE2IGF0IDAzOjI1OjExUE0gKzAyMDAsIFJhZmFlbCBKLiBX
-eXNvY2tpIHdyb3RlOg0KPiA+IE9uIE1vbiwgSnVuIDI3LCAyMDE2IGF0IDExOjI2IEFNLCBIZWlr
-a2kgS3JvZ2VydXMgDQo+ID4gPGhlaWtraS5rcm9nZXJ1c0BsaW51eC5pbnRlbC5jb20+IHdyb3Rl
-Og0KPiA+ID4gV2hvYSEgSG9sZCBvbiENCj4gPiA+DQo+ID4gPiBPbiBUaHUsIEp1biAyMywgMjAx
-NiBhdCAwNTo1Mjo1M1BNIC0wNzAwLCBCaW4gR2FvIHdyb3RlOg0KPiA+ID4+IEJyb3h0b24gcGxh
-dGZvcm0gZmlybXdhcmUgaGFzIGRlZmluZWQgbmV3IGN1c3RvbWl6ZWQgb3BlcmF0aW9uIA0KPiA+
-ID4+IHJlZ2lvbnMgY2FsbGVkIHJlZ3MgZm9yIFBNSUMgY2hpcCAtIHJlZ3Mgb3AgcmVnaW9uIGlz
-IHVzZWQgdG8gDQo+ID4gPj4gaGFuZGxlIHRoZSBQTUlDIGdwaW8gbWFpbmx5IGludGVuZGVkIGZv
-ciB0aGUgVFlQRS1DIFZCVVMgYW5kIE9yaWVudGF0aW9uLg0KPiA+ID4+DQo+ID4gPj4gVGhlIGlu
-dGVsX2dwaW9fY3R4ICBzdHJ1Y3R1cmUgaXMgY3JlYXRlZCBmb3IgdGhlIHB1cnBvc2Ugb2YgDQo+
-ID4gPj4gaGFuZGxpbmcgdGhlIFBNSUMgZ3BpbyByZWdpc3RlciByZWFkIGFuZCB3cml0ZS4NCj4g
-PiA+Pg0KPiA+ID4+IFNpZ25lZC1vZmYtYnk6IEZlbGlwZSBCYWxiaSA8ZmVsaXBlLmJhbGJpQGxp
-bnV4LmludGVsLmNvbT4NCj4gPiA+PiBTaWduZWQtb2ZmLWJ5OiBDaGFuZHJhIFNla2hhciBBbmFn
-YW5pIA0KPiA+ID4+IDxjaGFuZHJhLnNla2hhci5hbmFnYW5pQGludGVsLmNvbT4NCj4gPiA+PiBT
-aWduZWQtb2ZmLWJ5OiBCaW4gR2FvIDxiaW4uZ2FvQGludGVsLmNvbT4NCj4gPiA+PiAtLS0NCj4g
-PiA+PiBDaGFuZ2VzIGluIHY0Og0KPiA+ID4+ICAtIHZhcmlvdXMgZml4ZXMgdG8gYWRkcmVzcyBB
-YXJvbidzIGNvbW1lbnRzLg0KPiA+ID4+IENoYW5nZXMgaW4gdjM6IG5vbmUNCj4gPiA+PiBDaGFu
-Z2VzIGluIHYyOiBub25lDQo+ID4gPj4gIGRyaXZlcnMvYWNwaS9wbWljL2ludGVsX3BtaWMuYyB8
-IDc0IA0KPiA+ID4+ICsrKysrKysrKysrKysrKysrKysrKysrKysrKysrKysrKysrKysrKystLQ0K
-PiA+ID4+ICBkcml2ZXJzL2FjcGkvcG1pYy9pbnRlbF9wbWljLmggfCAgNSArKysNCj4gPiA+PiAg
-MiBmaWxlcyBjaGFuZ2VkLCA3NiBpbnNlcnRpb25zKCspLCAzIGRlbGV0aW9ucygtKQ0KPiA+ID4+
-DQo+ID4gPj4gZGlmZiAtLWdpdCBhL2RyaXZlcnMvYWNwaS9wbWljL2ludGVsX3BtaWMuYyANCj4g
-PiA+PiBiL2RyaXZlcnMvYWNwaS9wbWljL2ludGVsX3BtaWMuYyBpbmRleCA0MTBlOTZmLi5lMTFk
-MWUwIDEwMDY0NA0KPiA+ID4+IC0tLSBhL2RyaXZlcnMvYWNwaS9wbWljL2ludGVsX3BtaWMuYw0K
-PiA+ID4+ICsrKyBiL2RyaXZlcnMvYWNwaS9wbWljL2ludGVsX3BtaWMuYw0KPiA+ID4+IEBAIC0y
-MSwxMiArMjEsMTQgQEANCj4gPiA+Pg0KPiA+ID4+ICAjZGVmaW5lIFBNSUNfUE9XRVJfT1BSRUdJ
-T05fSUQgICAgICAgICAgICAgICAweDhkDQo+ID4gPj4gICNkZWZpbmUgUE1JQ19USEVSTUFMX09Q
-UkVHSU9OX0lEICAgICAweDhjDQo+ID4gPj4gKyNkZWZpbmUgUE1JQ19SRUdTX09QUkVHSU9OX0lE
-ICAgICAgICAgICAgICAgIDB4OGYNCj4gPiA+Pg0KPiA+ID4+ICBzdHJ1Y3QgaW50ZWxfcG1pY19v
-cHJlZ2lvbiB7DQo+ID4gPj4gICAgICAgc3RydWN0IG11dGV4IGxvY2s7DQo+ID4gPj4gICAgICAg
-c3RydWN0IGFjcGlfbHBhdF9jb252ZXJzaW9uX3RhYmxlICpscGF0X3RhYmxlOw0KPiA+ID4+ICAg
-ICAgIHN0cnVjdCByZWdtYXAgKnJlZ21hcDsNCj4gPiA+PiAgICAgICBzdHJ1Y3QgaW50ZWxfcG1p
-Y19vcHJlZ2lvbl9kYXRhICpkYXRhOw0KPiA+ID4+ICsgICAgIHN0cnVjdCBwbWljX2dwaW9fY3R4
-ICAgIGN0eDsNCj4gPiA+DQo+ID4gPiBXaGF0IGdwaW8/DQo+ID4gPg0KPiA+ID4+ICB9Ow0KPiA+
-ID4+DQo+ID4gPj4gIHN0YXRpYyBpbnQgcG1pY19nZXRfcmVnX2JpdChpbnQgYWRkcmVzcywgc3Ry
-dWN0IHBtaWNfdGFibGUgDQo+ID4gPj4gKnRhYmxlLCBAQCAtMjA0LDYgKzIwNiw1NiBAQCBzdGF0
-aWMgYWNwaV9zdGF0dXMgaW50ZWxfcG1pY190aGVybWFsX2hhbmRsZXIodTMyIGZ1bmN0aW9uLA0K
-PiA+ID4+ICAgICAgIHJldHVybiBBRV9PSzsNCj4gPiA+PiAgfQ0KPiA+ID4+DQo+ID4gPj4gK3N0
-YXRpYyBhY3BpX3N0YXR1cyBpbnRlbF9wbWljX2dwaW9faGFuZGxlcih1MzIgZnVuY3Rpb24sDQo+
-ID4gPj4gKyAgICAgYWNwaV9waHlzaWNhbF9hZGRyZXNzIGFkZHJlc3MsIHUzMiBiaXRzLCB1NjQg
-KnZhbHVlNjQsDQo+ID4gPj4gKyAgICAgICAgICAgICB2b2lkICpoYW5kbGVyX2NvbnRleHQsIHZv
-aWQgKnJlZ2lvbl9jb250ZXh0KQ0KPiA+ID4NCj4gPiA+IFdoYXQgdGhlIGhlY2sgaXMgdGhpcz8g
-V2h5IGlzIHRoaXMgc3VkZGVubHkgYSBncGlvIGhhbmRsZXI/DQo+ID4gPg0KPiA+ID4gVGhpcyBp
-cyBoYW5kbGVyIGZvciBhbiBvcGVyYXRpb24gcmVnaW9uLCBub3Qgc29tZSBncGlvIQ0KPiA+IA0K
-PiA+IE9LDQo+ID4gDQo+ID4gV2hhdCBhYm91dCBpZiBJIHJlcGxhY2VkIHRoaXMgb25lIHdpdGgg
-dGhlIG9yaWdpbmFsIG9uZSBmcm9tIEZlbGlwZSB5b3Ugc2VudD8NCj4gDQo+IFRoYXQgd29ya3Mg
-Zm9yIG1lLg0KDQpPSywgbGV0J3MgZG8gdGhhdCwgdGhlbi4NCg0KVGhhbmtzLA0KUmFmYWVsDQoN
-Cg==
+On Monday, June 27, 2016 11:27:42 AM Hoan Tran wrote:
+> Hi Jassi and Rafael,
+> 
+> On Wed, Jun 15, 2016 at 9:19 AM, Prakash, Prashanth
+> <pprakash@codeaurora.org> wrote:
+> >
+> >
+> > On 6/9/2016 4:43 PM, Hoan Tran wrote:
+> >> Hi Prashanth,
+> >>
+> >> On Thu, Jun 9, 2016 at 3:25 PM, Prakash, Prashanth
+> >> <pprakash@codeaurora.org> wrote:
+> >>>
+> >>> On 6/9/2016 2:47 PM, Hoan Tran wrote:
+> >>>> Hi Ashwin and Prashanth,
+> >>>>
+> >>>> On Wed, Jun 8, 2016 at 5:41 PM, Hoan Tran <hotran@apm.com> wrote:
+> >>>>> Hi Prashanth,
+> >>>>>
+> >>>>>
+> >>>>> On Wed, Jun 8, 2016 at 5:32 PM, Prakash, Prashanth
+> >>>>> <pprakash@codeaurora.org> wrote:
+> >>>>>> On 6/8/2016 10:24 AM, Hoan Tran wrote:
+> >>>>>>> Hi Ashwin,
+> >>>>>>>
+> >>>>>>> On Wed, Jun 8, 2016 at 5:18 AM, Ashwin Chaugule
+> >>>>>>> <ashwin.chaugule@linaro.org> wrote:
+> >>>>>>>> + Prashanth (Can you please have a look as well?)
+> >>>>>>>>
+> >>>>>>>> On 31 May 2016 at 15:35, Hoan Tran <hotran@apm.com> wrote:
+> >>>>>>>>> Hi Ashwin,
+> >>>>>>>> Hi,
+> >>>>>>>>
+> >>>>>>>> Sorry about the delay. I'm in the middle of switching jobs and
+> >>>>>>>> locations, so its been a bit crazy lately.
+> >>>>>>> It's ok and hope you're doing well.
+> >>>>>>>
+> >>>>>>>> I dont have any major
+> >>>>>>>> concerns with this code, although there could be subtle issues with
+> >>>>>>>> this IRQ thing. In this patchset, your intent is to add support for
+> >>>>>>>> PCC subspace type 2. But you're also adding support for tx command
+> >>>>>>>> completion which is not specific to Type 2. We could support that even
+> >>>>>>>> in Type 1. Hence I wanted to separate the two, not just for review,
+> >>>>>>>> but also the async IRQ completion has subtle issues esp. in the case
+> >>>>>>>> of async platform notification, where you could have a PCC client in
+> >>>>>>>> the OS writing to the cmd bit and the platform sending an async
+> >>>>>>>> notification by writing to some bits in the same 8byte address as the
+> >>>>>>>> cmd bit. So we need some mutual exclusivity there, otherwise the OS
+> >>>>>>>> and platform could step on each other. Perhaps Prashanth has better
+> >>>>>>>> insight into this.
+> >>>>>>> I think, this mutual exclusivity could be in another patch.
+> >>>>>> Ashwin,
+> >>>>>> Sorry, I am not sure how we can prevent platform and OSPM from stepping on
+> >>>>>> each other.  There is a line is spec that says "all operations on status field
+> >>>>>> must be made using interlocked operations", but not sure what these
+> >>>>>> interlocked operation translates to.
+> >>>>> Yes, I had the same question about how to prevent it.
+> >>>> For platform notification, if the hardware doesn't support interlocked
+> >>>> operations. I think we can use a workaround that, platform triggers
+> >>>> interrupt to OSPM without touching status field. The OSPM PCC client
+> >>>> will decide what to do with this interrupt. For example, OSPM sends a
+> >>>> consumer command to check it.
+> >>> How do we decide which platform can support this interlocked operation?
+> >>> and how do we decide between a completion notification and platform
+> >>> notification?
+> >> Truly, we should follow the specification. But I don't know if there's
+> >> any hardware support this interlocked operation.
+> >> For the decide between a completion notification and platform notification
+> >>  - Completion notification: Bit "Command Complete" is set.
+> >>  - Platform notification: Bit "Command Complete" is not set.
+> >>
+> >>> I think the ACPI spec on platform notification is quite ambiguous and it is
+> >>> best to get the necessary clarification and/or correction before implementing
+> >>> anything related to platform notification.
+> >> Agreed, a clarification inside ACPI Specification is needed
+> > This patch look good to me, as it doesn't deal with platform notification.
+> > We can try to get some clarification from spec side before handling the platform
+> > notification pieces.
+> >
+> > Reviewed-by: Prashanth Prakash <pprakash@codeaurora.org>
+> 
+> Do you have plan to apply this patch ?
+
+Yes.
+
+Thanks,
+Rafael
+
