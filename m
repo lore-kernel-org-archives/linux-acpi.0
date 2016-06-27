@@ -1,121 +1,88 @@
-From: Hoan Tran <hotran@apm.com>
-Subject: Re: [PATCH v3] mailbox: pcc: Support HW-Reduced Communication
- Subspace type 2
-Date: Mon, 27 Jun 2016 11:27:42 -0700
-Message-ID: <CAFHUOYzpeSw-6Tvj=ffwX7L+jgMDTd_2mVm5nOuormw7hmq9OA@mail.gmail.com>
-References: <1463704347-22550-1-git-send-email-hotran@apm.com>
- <CAJ5Y-eZaaK_pbfgPxDfqJgtUOpxrCvHngM4_VT9p-fzFaPz28Q@mail.gmail.com>
- <CAFHUOYy0TEqdHzwXCTNtK+UVF_PhMHfr-gPTOkUwRks=MgTaVg@mail.gmail.com>
- <CAJ5Y-eYV+vf_GDCX6iX53Q5jLtOTzRktRHBfmZzW-yd5ffu2jg@mail.gmail.com>
- <CAFHUOYxV8Jj_wUXqA7jqj3SZ4uqCSSgKuYmsC2k1MxvVyX3EfQ@mail.gmail.com>
- <0f07c6dc-76b7-ab28-541b-090f6a2432a6@codeaurora.org> <CAFHUOYyzQiUtpDL_oULCdbvMXxoXK5_bAvkW8SZV0BcrvPqa-Q@mail.gmail.com>
- <CAFHUOYyMpRgLzXN0XtFKG08Z9dLuhC7WNbJi8+nNTNET=m2qEA@mail.gmail.com>
- <4652800c-b518-6b9a-967f-bb31e6a496b0@codeaurora.org> <CAFHUOYwQhyjnmQyP2Vf2FctOoXRkB39yJujN09VQbBbpRtB43Q@mail.gmail.com>
- <b498099e-4ffe-21da-f97b-4899c59201bf@codeaurora.org>
+From: Linda Knippers <linda.knippers-ZPxbGqLxI0U@public.gmane.org>
+Subject: Re: [PATCH] acpi, nfit: fix acpi_check_dsm() vs zero functions
+ implemented
+Date: Mon, 27 Jun 2016 14:47:25 -0400
+Message-ID: <b877a201-6b62-43c6-17f8-dcaf5961cbb0@hpe.com>
+References: <146679026571.24395.11569929364936343871.stgit@dwillia2-desk3.amr.corp.intel.com>
+ <bd2353c0-0d84-3c0a-8117-3f24b823f469@hpe.com>
+ <CAPcyv4iELmJ9vDD7-juYOP4a6P51UFd49OUwreeofsXX7eHzCg@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-vk0-f51.google.com ([209.85.213.51]:33531 "EHLO
-	mail-vk0-f51.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751644AbcF0S14 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 27 Jun 2016 14:27:56 -0400
-Received: by mail-vk0-f51.google.com with SMTP id j3so30625380vkb.0
-        for <linux-acpi@vger.kernel.org>; Mon, 27 Jun 2016 11:27:43 -0700 (PDT)
-In-Reply-To: <b498099e-4ffe-21da-f97b-4899c59201bf@codeaurora.org>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+In-Reply-To: <CAPcyv4iELmJ9vDD7-juYOP4a6P51UFd49OUwreeofsXX7eHzCg-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
+ <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
+List-Post: <mailto:linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+List-Help: <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
+ <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
+Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
+Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+To: Dan Williams <dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: "Rafael J. Wysocki" <rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org>, Linux ACPI <linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Len Brown <lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Xiao Guangrong <guangrong.xiao-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, "linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org" <linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
-To: Jassi Brar <jassisinghbrar@gmail.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: Ashwin Chaugule <ashwin.chaugule@linaro.org>, Robert Moore <robert.moore@intel.com>, Alexey Klimov <alexey.klimov@arm.com>, lkml <linux-kernel@vger.kernel.org>, linux acpi <linux-acpi@vger.kernel.org>, Loc Ho <lho@apm.com>, Duc Dang <dhdang@apm.com>, "Prakash, Prashanth" <pprakash@codeaurora.org>
 
-Hi Jassi and Rafael,
 
-On Wed, Jun 15, 2016 at 9:19 AM, Prakash, Prashanth
-<pprakash@codeaurora.org> wrote:
->
->
-> On 6/9/2016 4:43 PM, Hoan Tran wrote:
->> Hi Prashanth,
+
+On 6/27/2016 2:06 PM, Dan Williams wrote:
+> On Mon, Jun 27, 2016 at 10:40 AM, Linda Knippers <linda.knippers-ZPxbGqLxI0U@public.gmane.org> wrote:
 >>
->> On Thu, Jun 9, 2016 at 3:25 PM, Prakash, Prashanth
->> <pprakash@codeaurora.org> wrote:
+>> On 6/24/2016 1:44 PM, Dan Williams wrote:
+>>> QEMU 2.6 implements nascent support for nvdimm DSMs. Depending on
+>>> configuration it may only implement the function0 dsm to indicate that
+>>> no other DSMs are available. Commit 31eca76ba2fc "nfit, libnvdimm:
+>>> limited/whitelisted dimm command marshaling mechanism" breaks QEMU, but
+>>> QEMU is spec compliant.  Per the spec the way to indicate that no
+>>> functions are supported is:
 >>>
->>> On 6/9/2016 2:47 PM, Hoan Tran wrote:
->>>> Hi Ashwin and Prashanth,
->>>>
->>>> On Wed, Jun 8, 2016 at 5:41 PM, Hoan Tran <hotran@apm.com> wrote:
->>>>> Hi Prashanth,
->>>>>
->>>>>
->>>>> On Wed, Jun 8, 2016 at 5:32 PM, Prakash, Prashanth
->>>>> <pprakash@codeaurora.org> wrote:
->>>>>> On 6/8/2016 10:24 AM, Hoan Tran wrote:
->>>>>>> Hi Ashwin,
->>>>>>>
->>>>>>> On Wed, Jun 8, 2016 at 5:18 AM, Ashwin Chaugule
->>>>>>> <ashwin.chaugule@linaro.org> wrote:
->>>>>>>> + Prashanth (Can you please have a look as well?)
->>>>>>>>
->>>>>>>> On 31 May 2016 at 15:35, Hoan Tran <hotran@apm.com> wrote:
->>>>>>>>> Hi Ashwin,
->>>>>>>> Hi,
->>>>>>>>
->>>>>>>> Sorry about the delay. I'm in the middle of switching jobs and
->>>>>>>> locations, so its been a bit crazy lately.
->>>>>>> It's ok and hope you're doing well.
->>>>>>>
->>>>>>>> I dont have any major
->>>>>>>> concerns with this code, although there could be subtle issues with
->>>>>>>> this IRQ thing. In this patchset, your intent is to add support for
->>>>>>>> PCC subspace type 2. But you're also adding support for tx command
->>>>>>>> completion which is not specific to Type 2. We could support that even
->>>>>>>> in Type 1. Hence I wanted to separate the two, not just for review,
->>>>>>>> but also the async IRQ completion has subtle issues esp. in the case
->>>>>>>> of async platform notification, where you could have a PCC client in
->>>>>>>> the OS writing to the cmd bit and the platform sending an async
->>>>>>>> notification by writing to some bits in the same 8byte address as the
->>>>>>>> cmd bit. So we need some mutual exclusivity there, otherwise the OS
->>>>>>>> and platform could step on each other. Perhaps Prashanth has better
->>>>>>>> insight into this.
->>>>>>> I think, this mutual exclusivity could be in another patch.
->>>>>> Ashwin,
->>>>>> Sorry, I am not sure how we can prevent platform and OSPM from stepping on
->>>>>> each other.  There is a line is spec that says "all operations on status field
->>>>>> must be made using interlocked operations", but not sure what these
->>>>>> interlocked operation translates to.
->>>>> Yes, I had the same question about how to prevent it.
->>>> For platform notification, if the hardware doesn't support interlocked
->>>> operations. I think we can use a workaround that, platform triggers
->>>> interrupt to OSPM without touching status field. The OSPM PCC client
->>>> will decide what to do with this interrupt. For example, OSPM sends a
->>>> consumer command to check it.
->>> How do we decide which platform can support this interlocked operation?
->>> and how do we decide between a completion notification and platform
->>> notification?
->> Truly, we should follow the specification. But I don't know if there's
->> any hardware support this interlocked operation.
->> For the decide between a completion notification and platform notification
->>  - Completion notification: Bit "Command Complete" is set.
->>  - Platform notification: Bit "Command Complete" is not set.
+>>>     If Function Index is zero, the return is a buffer containing one bit
+>>>     for each function index, starting with zero. Bit 0 indicates whether
+>>>     there is support for any functions other than function 0 for the
+>>>     specified UUID and Revision ID. If set to zero, no functions are
+>>>     supported (other than function zero) for the specified UUID and
+>>>     Revision ID.
 >>
->>> I think the ACPI spec on platform notification is quite ambiguous and it is
->>> best to get the necessary clarification and/or correction before implementing
->>> anything related to platform notification.
->> Agreed, a clarification inside ACPI Specification is needed
-> This patch look good to me, as it doesn't deal with platform notification.
-> We can try to get some clarification from spec side before handling the platform
-> notification pieces.
->
-> Reviewed-by: Prashanth Prakash <pprakash@codeaurora.org>
+>> The rest of that paragraph is:
+>>
+>> If set to one, at least one additional function is supported. For all other bits
+>> in the buffer, a bit is set to zero to indicate if that function index is not
+>> supported for the specific UUID and Revision ID. (For example, bit 1 set to 0
+>> indicates that function index 1 is not supported for the specific UUID and
+>> Revision ID.)
+>>
+>>>
+>>> Update the nfit driver to determine the family (interface UUID) without
+>>> requiring the implementation to define any other functions, i.e.
+>>> short-circuit acpi_check_dsm() to succeed per the spec.  The nfit driver
+>>> appears to be the only user passing funcs==0 to acpi_check_dsm(), so
+>>> this behavior change of the common routine should be limited to the
+>>> probing done by the nfit driver.
+>>
+>> I don't understand why we're special casing this to support QEMU only when
+>> there are no DSM functions supported.  If we want to implement the
+>> spec and support function zero, I think we should support it correctly.
+>> That means returning the correct value for all spec compliant callers,
+>> even when there are functions that are supported.
+> 
+> QEMU 2.6 already shipped, so whatever we do we should not regress
+> those binaries.  The QEMU behavior could be argued as not spec
+> compliant, but they've implemented enough of function0 to answer the
+> "which family" probe. 
 
-Do you have plan to apply this patch ?
+How would you argue that?
 
-Thanks
-Hoan
+> Yes, if an implementation supports function0 it
+> should say so in the returned bitmask, 
 
->
-> Thanks,
-> Prashanth
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+But in other places you explicitly prevent function 0 from
+being executed.
+
+> but by the time we've
+> determined that function0 is "not supported" we've already
+> successfully executed a function0 request.
+
+If they advertise a _DSM, I think they have to support function 0.
+
+-- ljk
