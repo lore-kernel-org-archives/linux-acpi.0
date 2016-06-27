@@ -1,80 +1,77 @@
-From: Heikki Krogerus <heikki.krogerus@linux.intel.com>
-Subject: Re: [PATCH v4 3/3] acpi/pmic: Add support for PMIC regs operation
- region
-Date: Mon, 27 Jun 2016 12:26:57 +0300
-Message-ID: <20160627092657.GA20801@kuha.fi.intel.com>
-References: <20160624005253.GF83592@worksta>
+From: Sudeep Holla <sudeep.holla@arm.com>
+Subject: Re: [PATCH v6 4/5] arm64: add support for ACPI Low Power Idle(LPI)
+Date: Mon, 27 Jun 2016 10:50:39 +0100
+Message-ID: <5770F6EF.3080902@arm.com>
+References: <1465915719-8409-1-git-send-email-sudeep.holla@arm.com>
+ <1465915719-8409-5-git-send-email-sudeep.holla@arm.com>
+ <20160622141700.GB2733@red-moon> <576DA047.7080808@linaro.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga02.intel.com ([134.134.136.20]:12334 "EHLO mga02.intel.com"
+Received: from foss.arm.com ([217.140.101.70]:38983 "EHLO foss.arm.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751845AbcF0J1C (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 27 Jun 2016 05:27:02 -0400
-Content-Disposition: inline
-In-Reply-To: <20160624005253.GF83592@worksta>
+	id S1751634AbcF0Juo (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 27 Jun 2016 05:50:44 -0400
+In-Reply-To: <576DA047.7080808@linaro.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Bin Gao <bin.gao@linux.intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: Aaron Lu <aaron.lu@intel.com>, Paul Gortmaker <paul.gortmaker@windriver.com>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, ysiyer <yegnesh.s.iyer@intel.com>, Ajay Thomas <ajay.thomas.david.rajamanickam@intel.com>, Bin Gao <bin.gao@intel.com>
+To: Daniel Lezcano <daniel.lezcano@linaro.org>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+Cc: Sudeep Holla <sudeep.holla@arm.com>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, linux-acpi@vger.kernel.org, Vikas Sajjan <vikas.cha.sajjan@hpe.com>, Sunil <sunil.vl@hpe.com>, Prashanth Prakash <pprakash@codeaurora.org>, Al Stone <al.stone@linaro.org>, Ashwin Chaugule <ashwin.chaugule@linaro.org>, linux-kernel@vger.kernel.org, Mark Rutland <mark.rutland@arm.com>, linux-arm-kernel@lists.infradead.org
 
-Whoa! Hold on!
+Hi, Daniel,
 
-On Thu, Jun 23, 2016 at 05:52:53PM -0700, Bin Gao wrote:
-> Broxton platform firmware has defined new customized operation regions
-> called regs for PMIC chip - regs op region is used to handle the
-> PMIC gpio mainly intended for the TYPE-C VBUS and Orientation.
-> 
-> The intel_gpio_ctx  structure is created for the purpose of handling
-> the PMIC gpio register read and write.
-> 
-> Signed-off-by: Felipe Balbi <felipe.balbi@linux.intel.com>
-> Signed-off-by: Chandra Sekhar Anagani <chandra.sekhar.anagani@intel.com>
-> Signed-off-by: Bin Gao <bin.gao@intel.com>
-> ---
-> Changes in v4:
->  - various fixes to address Aaron's comments.
-> Changes in v3: none
-> Changes in v2: none
->  drivers/acpi/pmic/intel_pmic.c | 74 ++++++++++++++++++++++++++++++++++++++++--
->  drivers/acpi/pmic/intel_pmic.h |  5 +++
->  2 files changed, 76 insertions(+), 3 deletions(-)
-> 
-> diff --git a/drivers/acpi/pmic/intel_pmic.c b/drivers/acpi/pmic/intel_pmic.c
-> index 410e96f..e11d1e0 100644
-> --- a/drivers/acpi/pmic/intel_pmic.c
-> +++ b/drivers/acpi/pmic/intel_pmic.c
-> @@ -21,12 +21,14 @@
->  
->  #define PMIC_POWER_OPREGION_ID		0x8d
->  #define PMIC_THERMAL_OPREGION_ID	0x8c
-> +#define PMIC_REGS_OPREGION_ID		0x8f
->  
->  struct intel_pmic_opregion {
->  	struct mutex lock;
->  	struct acpi_lpat_conversion_table *lpat_table;
->  	struct regmap *regmap;
->  	struct intel_pmic_opregion_data *data;
-> +	struct pmic_gpio_ctx	ctx;
+On 24/06/16 22:04, Daniel Lezcano wrote:
 
-What gpio?
+[...]
 
->  };
->  
->  static int pmic_get_reg_bit(int address, struct pmic_table *table,
-> @@ -204,6 +206,56 @@ static acpi_status intel_pmic_thermal_handler(u32 function,
->  	return AE_OK;
->  }
->  
-> +static acpi_status intel_pmic_gpio_handler(u32 function,
-> +	acpi_physical_address address, u32 bits, u64 *value64,
-> +		void *handler_context, void *region_context)
+>>> +
+>>> +    psci_states = kcalloc(count, sizeof(*psci_states), GFP_KERNEL);
+>>> +    if (!psci_states)
+>>> +        return -ENOMEM;
+>>> +
+>>> +    for (i = 0; i < count; i++) {
+>>> +        u32 state;
+>>> +
+>>> +        lpi = &pr->power.lpi_states[i + 1];
+>>> +        state = lpi->address & 0xFFFFFFFF;
+>
+> Why is needed to mask 'address' ?
+>
 
-What the heck is this? Why is this suddenly a gpio handler?
+This is as per Section 3.1.1 FFH Usage in LPI state entry methods in [1]
 
-This is handler for an operation region, not some gpio!
+[...]
 
+>>>   int psci_cpu_init_idle(unsigned int cpu)
+>>>   {
+>>>       struct device_node *cpu_node;
+>>>       int ret;
+>>>
+>>> +    if (!acpi_disabled)
+>>> +        return psci_acpi_cpu_init_idle(cpu);
+>
+> Is it possible the case where there is information in both the DT and in
+> ACPI ? So ACPI is enabled without idle information which is in the DT ?
+>
 
+No, as Rafael mentioned aready.
+
+>>
+>> Either you do this, or we have to add it somehow somewhere in
+>> drivers/cpuidle to avoid duplicating it.
+>>
+>> @Daniel: do you have an opinion on this please ?
+>
+> Yes, this function should be added to avoid duplication.
+>
+
+So, I assume you are happy with the way it's handled in this patch ?
+(I will rename the file as suggested by Lorenzo)
 
 -- 
-heikki
+Regards,
+Sudeep
+
+[1] 
+http://infocenter.arm.com/help/topic/com.arm.doc.den0048a/DEN0048A_ARM_FFH_Specification.pdf
