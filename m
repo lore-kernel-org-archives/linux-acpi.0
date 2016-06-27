@@ -1,202 +1,85 @@
-From: Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>
-Subject: Re: [PATCH v3 1/2] mm: memblock Add some new functions to address
- the mem limit issue
-Date: Mon, 27 Jun 2016 15:28:19 +0100
-Message-ID: <20160627142818.GI1113@leverpostej>
-References: <1466994431-6214-1-git-send-email-dennis.chen@arm.com>
+From: Daniel Lezcano <daniel.lezcano@linaro.org>
+Subject: Re: [PATCH v6 5/5] ACPI : enable ACPI_PROCESSOR_IDLE on ARM64
+Date: Mon, 27 Jun 2016 16:33:15 +0200
+Message-ID: <5771392B.3080002@linaro.org>
+References: <1465915719-8409-1-git-send-email-sudeep.holla@arm.com>
+ <1465915719-8409-6-git-send-email-sudeep.holla@arm.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-efi-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <1466994431-6214-1-git-send-email-dennis.chen-5wv7dgnIgG8@public.gmane.org>
-Sender: linux-efi-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Dennis Chen <dennis.chen-5wv7dgnIgG8@public.gmane.org>
-Cc: linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, nd-5wv7dgnIgG8@public.gmane.org, Catalin Marinas <catalin.marinas-5wv7dgnIgG8@public.gmane.org>, Steve Capper <steve.capper-5wv7dgnIgG8@public.gmane.org>, Ard Biesheuvel <ard.biesheuvel-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Will Deacon <will.deacon-5wv7dgnIgG8@public.gmane.org>, "Rafael J . Wysocki" <rafael.j.wysocki-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Matt Fleming <matt-mF/unelCI9GS6iBeEJttW/XRex20P6io@public.gmane.org>, linux-mm-Bw31MaZKKs3YtjvyW6yDsg@public.gmane.org, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-efi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Content-Type: text/plain; charset=UTF-8;
+	format=flowed
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-wm0-f52.google.com ([74.125.82.52]:35982 "EHLO
+	mail-wm0-f52.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751706AbcF0OdR (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 27 Jun 2016 10:33:17 -0400
+Received: by mail-wm0-f52.google.com with SMTP id f126so103101573wma.1
+        for <linux-acpi@vger.kernel.org>; Mon, 27 Jun 2016 07:33:16 -0700 (PDT)
+In-Reply-To: <1465915719-8409-6-git-send-email-sudeep.holla@arm.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Sudeep Holla <sudeep.holla@arm.com>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, linux-acpi@vger.kernel.org
+Cc: Vikas Sajjan <vikas.cha.sajjan@hpe.com>, Sunil <sunil.vl@hpe.com>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Prashanth Prakash <pprakash@codeaurora.org>, Al Stone <al.stone@linaro.org>, Ashwin Chaugule <ashwin.chaugule@linaro.org>, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-On Mon, Jun 27, 2016 at 10:27:10AM +0800, Dennis Chen wrote:
-> In some cases, memblock is queried to determine whether a physical
-> address corresponds to memory present in a system even if unused by
-> the OS for the linear mapping, highmem, etc. For example, the ACPI
-> core needs this information to determine which attributes to use when
-> mapping ACPI regions. Use of incorrect memory types can result in
-> faults, data corruption, or other issues.
-> 
-> Removing memory with memblock_enforce_memory_limit throws away this
-> information, and so a kernel booted with 'mem=' may suffers from the
-> issues described above. To avoid this, we need to keep those NOMAP
-> regions instead of removing all above limit, which preserves the
-> information we need while preventing other use of the regions.
-> 
-> This patch adds new insfrastructure to retain all NOMAP memblock regions
-> while removing others, to cater for this.
-> 
-> At last, we add 'size' and 'flag' debug output in the memblock debugfs
-> for ease of the memblock debug.
-> The '/sys/kernel/debug/memblock/memory' output looks like before:
->    0: 0x0000008000000000..0x0000008001e7ffff
->    1: 0x0000008001e80000..0x00000083ff184fff
->    2: 0x00000083ff185000..0x00000083ff1c2fff
->    3: 0x00000083ff1c3000..0x00000083ff222fff
->    4: 0x00000083ff223000..0x00000083ffe42fff
->    5: 0x00000083ffe43000..0x00000083ffffffff
-> 
-> After applied:
->    0: 0x0000008000000000..0x0000008001e7ffff  0x0000000001e80000  0x4
->    1: 0x0000008001e80000..0x00000083ff184fff  0x00000003fd305000  0x0
->    2: 0x00000083ff185000..0x00000083ff1c2fff  0x000000000003e000  0x4
->    3: 0x00000083ff1c3000..0x00000083ff222fff  0x0000000000060000  0x0
->    4: 0x00000083ff223000..0x00000083ffe42fff  0x0000000000c20000  0x4
->    5: 0x00000083ffe43000..0x00000083ffffffff  0x00000000001bd000  0x0
-
-The debugfs changes should be a separate patch. Even if they're useful
-for debugging this patch, they're logically independent.
-
-> Signed-off-by: Dennis Chen <dennis.chen-5wv7dgnIgG8@public.gmane.org>
-> Cc: Catalin Marinas <catalin.marinas-5wv7dgnIgG8@public.gmane.org>
-> Cc: Steve Capper <steve.capper-5wv7dgnIgG8@public.gmane.org>
-> Cc: Ard Biesheuvel <ard.biesheuvel-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
-> Cc: Will Deacon <will.deacon-5wv7dgnIgG8@public.gmane.org>
-> Cc: Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>
-> Cc: Rafael J. Wysocki <rafael.j.wysocki-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-> Cc: Matt Fleming <matt-mF/unelCI9GS6iBeEJttW/XRex20P6io@public.gmane.org>
-> Cc: linux-mm-Bw31MaZKKs3YtjvyW6yDsg@public.gmane.org
-> Cc: linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> Cc: linux-efi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+On 06/14/2016 04:48 PM, Sudeep Holla wrote:
+> Now that ACPI processor idle driver supports LPI(Low Power Idle), let=
+s
+> enable ACPI_PROCESSOR_IDLE for ARM64 too.
+>
+> This patch just removes the IA64 and X86 dependency on ACPI_PROCESSOR=
+_IDLE
+>
+> Cc: linux-arm-kernel@lists.infradead.org
+> Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+> Signed-off-by: Sudeep Holla <sudeep.holla@arm.com>
 > ---
->  include/linux/memblock.h |  1 +
->  mm/memblock.c            | 55 +++++++++++++++++++++++++++++++++++++++++-------
->  2 files changed, 48 insertions(+), 8 deletions(-)
-> 
-> diff --git a/include/linux/memblock.h b/include/linux/memblock.h
-> index 6c14b61..2925da2 100644
-> --- a/include/linux/memblock.h
-> +++ b/include/linux/memblock.h
-> @@ -332,6 +332,7 @@ phys_addr_t memblock_mem_size(unsigned long limit_pfn);
->  phys_addr_t memblock_start_of_DRAM(void);
->  phys_addr_t memblock_end_of_DRAM(void);
->  void memblock_enforce_memory_limit(phys_addr_t memory_limit);
-> +void memblock_mem_limit_remove_map(phys_addr_t limit);
->  bool memblock_is_memory(phys_addr_t addr);
->  int memblock_is_map_memory(phys_addr_t addr);
->  int memblock_is_region_memory(phys_addr_t base, phys_addr_t size);
-> diff --git a/mm/memblock.c b/mm/memblock.c
-> index ca09915..8099f1a 100644
-> --- a/mm/memblock.c
-> +++ b/mm/memblock.c
-> @@ -1465,14 +1465,11 @@ phys_addr_t __init_memblock memblock_end_of_DRAM(void)
->  	return (memblock.memory.regions[idx].base + memblock.memory.regions[idx].size);
->  }
->  
-> -void __init memblock_enforce_memory_limit(phys_addr_t limit)
-> +static phys_addr_t __init_memblock __find_max_addr(phys_addr_t limit)
->  {
->  	phys_addr_t max_addr = (phys_addr_t)ULLONG_MAX;
->  	struct memblock_region *r;
->  
-> -	if (!limit)
-> -		return;
-> -
->  	/* find out max address */
->  	for_each_memblock(memory, r) {
->  		if (limit <= r->size) {
-> @@ -1482,6 +1479,20 @@ void __init memblock_enforce_memory_limit(phys_addr_t limit)
->  		limit -= r->size;
->  	}
->  
-> +	return max_addr;
-> +}
-> +
-> +void __init memblock_enforce_memory_limit(phys_addr_t limit)
-> +{
-> +	phys_addr_t max_addr;
-> +
-> +	if (!limit)
-> +		return;
-> +
-> +	max_addr = __find_max_addr(limit);
-> +	if (max_addr == (phys_addr_t)ULLONG_MAX)
-> +		return;
 
-We didn't previously return early, so do we actually need this check?
+Hi Sudeep,
 
-> +
->  	/* truncate both memory and reserved regions */
->  	memblock_remove_range(&memblock.memory, max_addr,
->  			      (phys_addr_t)ULLONG_MAX);
-> @@ -1489,6 +1500,32 @@ void __init memblock_enforce_memory_limit(phys_addr_t limit)
->  			      (phys_addr_t)ULLONG_MAX);
->  }
->  
-> +void __init memblock_mem_limit_remove_map(phys_addr_t limit)
-> +{
-> +	struct memblock_type *type = &memblock.memory;
-> +	phys_addr_t max_addr;
-> +	int i, ret, start_rgn, end_rgn;
-> +
-> +	if (!limit)
-> +		return;
-> +
-> +	max_addr = __find_max_addr(limit);
-> +	if (max_addr == (phys_addr_t)ULLONG_MAX)
-> +		return;
+now that ACPI processor supports ARM64 did you check the=20
+CPUIDLE_DRIVER_STATE_START trick in the code and its derivative ?
 
-Likewise?
+I deleted the patch 2/5 but there is a place where:
 
-> +
-> +	ret = memblock_isolate_range(type, max_addr, (phys_addr_t)ULLONG_MAX,
-> +					&start_rgn, &end_rgn);
-> +	if (ret) {
-> +		WARN_ONCE(1, "Mem limit failed, will not be applied!\n");
-> +		return;
-> +	}
+if (max_cstate=3D0)
+	max_cstate=3D1;
 
-We don't have a similar warning in memblock_enforce_memory_limit, where
-memblock_remove_range() might return an error code from an internal call
-to memblock_isolate_range.
+Probably this is because the POLL state is inserted, so there is always=
+=20
+an idle state. But for ARM, that is not the case.
 
-The two should be consistent, either both with a message or both
-without.
+Also, there are some places where the idle state index begins to 1. I=20
+think it should be 0 for ARM.
 
-> +
-> +	for (i = end_rgn - 1; i >= start_rgn; i--) {
-> +		if (!memblock_is_nomap(&type->regions[i]))
-> +			memblock_remove_region(type, i);
-> +	}
-> +}
+>   drivers/acpi/Kconfig | 2 +-
+>   1 file changed, 1 insertion(+), 1 deletion(-)
+>
+> diff --git a/drivers/acpi/Kconfig b/drivers/acpi/Kconfig
+> index 1358fb7d7a68..d74275c0f374 100644
+> --- a/drivers/acpi/Kconfig
+> +++ b/drivers/acpi/Kconfig
+> @@ -238,7 +238,7 @@ config ACPI_CPPC_LIB
+>   config ACPI_PROCESSOR
+>   	tristate "Processor"
+>   	depends on X86 || IA64 || ARM64
+> -	select ACPI_PROCESSOR_IDLE if X86 || IA64
+> +	select ACPI_PROCESSOR_IDLE
+>   	select ACPI_CPU_FREQ_PSS if X86 || IA64
+>   	default y
+>   	help
+>
 
-This will preserve nomap regions, but it does mean that we may preserve
-less memory that the user asked for, since __find_max_addr counted nomap
-(and reserved) regions. Given we've always counted the latter, maybe
-that's ok.
 
-We should clarify what __find_max_addr is intended to determine, with a
-comment, so as to avoid future ambiguity there.
+--=20
+  <http://www.linaro.org/> Linaro.org =E2=94=82 Open source software fo=
+r ARM SoCs
 
-> +
->  static int __init_memblock memblock_search(struct memblock_type *type, phys_addr_t addr)
->  {
->  	unsigned int left = 0, right = type->cnt;
-> @@ -1677,13 +1714,15 @@ static int memblock_debug_show(struct seq_file *m, void *private)
->  		reg = &type->regions[i];
->  		seq_printf(m, "%4d: ", i);
->  		if (sizeof(phys_addr_t) == 4)
-> -			seq_printf(m, "0x%08lx..0x%08lx\n",
-> +			seq_printf(m, "0x%08lx..0x%08lx  0x%08lx  0x%lx\n",
->  				   (unsigned long)reg->base,
-> -				   (unsigned long)(reg->base + reg->size - 1));
-> +				   (unsigned long)(reg->base + reg->size - 1),
-> +				   (unsigned long)reg->size, reg->flags);
->  		else
-> -			seq_printf(m, "0x%016llx..0x%016llx\n",
-> +			seq_printf(m, "0x%016llx..0x%016llx  0x%016llx  0x%lx\n",
->  				   (unsigned long long)reg->base,
-> -				   (unsigned long long)(reg->base + reg->size - 1));
-> +				   (unsigned long long)(reg->base + reg->size - 1),
-> +				   (unsigned long long)reg->size, reg->flags);
+=46ollow Linaro:  <http://www.facebook.com/pages/Linaro> Facebook |
+<http://twitter.com/#!/linaroorg> Twitter |
+<http://www.linaro.org/linaro-blog/> Blog
 
-As mentioned above, this should be a separate patch. I have no strong
-feelings either way about the logic itself.
-
-Thanks,
-Mark.
+--
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
