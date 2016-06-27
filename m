@@ -1,156 +1,121 @@
-From: Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>
-Subject: Re: [PATCH v3 2/3] acpi: dptf_power: Add DPTF power participant
-Date: Mon, 27 Jun 2016 11:09:05 -0700
-Message-ID: <1467050945.8970.86.camel@linux.intel.com>
-References: <1466718134-29921-1-git-send-email-srinivas.pandruvada@linux.intel.com>
-	 <1466718134-29921-3-git-send-email-srinivas.pandruvada@linux.intel.com>
-	 <CAJZ5v0hRVDMgsBzEMufwHurA8aRBmd7p_MvnMg1cdNYgDrPDaA@mail.gmail.com>
-	 <1466723970.8970.69.camel@linux.intel.com>
-	 <CAJZ5v0ithpoZfHJQwfyLdrsLyU1-M8psrJz12eaOTR9ffCTPOQ@mail.gmail.com>
-	 <1466991116.5580.11.camel@linux.intel.com>
-	 <CAJZ5v0hR9E-pLkkvbSLwLG8A1ECCVa=+45YJ1+L1cjXHaPaLtg@mail.gmail.com>
+From: Hoan Tran <hotran@apm.com>
+Subject: Re: [PATCH v3] mailbox: pcc: Support HW-Reduced Communication
+ Subspace type 2
+Date: Mon, 27 Jun 2016 11:27:42 -0700
+Message-ID: <CAFHUOYzpeSw-6Tvj=ffwX7L+jgMDTd_2mVm5nOuormw7hmq9OA@mail.gmail.com>
+References: <1463704347-22550-1-git-send-email-hotran@apm.com>
+ <CAJ5Y-eZaaK_pbfgPxDfqJgtUOpxrCvHngM4_VT9p-fzFaPz28Q@mail.gmail.com>
+ <CAFHUOYy0TEqdHzwXCTNtK+UVF_PhMHfr-gPTOkUwRks=MgTaVg@mail.gmail.com>
+ <CAJ5Y-eYV+vf_GDCX6iX53Q5jLtOTzRktRHBfmZzW-yd5ffu2jg@mail.gmail.com>
+ <CAFHUOYxV8Jj_wUXqA7jqj3SZ4uqCSSgKuYmsC2k1MxvVyX3EfQ@mail.gmail.com>
+ <0f07c6dc-76b7-ab28-541b-090f6a2432a6@codeaurora.org> <CAFHUOYyzQiUtpDL_oULCdbvMXxoXK5_bAvkW8SZV0BcrvPqa-Q@mail.gmail.com>
+ <CAFHUOYyMpRgLzXN0XtFKG08Z9dLuhC7WNbJi8+nNTNET=m2qEA@mail.gmail.com>
+ <4652800c-b518-6b9a-967f-bb31e6a496b0@codeaurora.org> <CAFHUOYwQhyjnmQyP2Vf2FctOoXRkB39yJujN09VQbBbpRtB43Q@mail.gmail.com>
+ <b498099e-4ffe-21da-f97b-4899c59201bf@codeaurora.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga01.intel.com ([192.55.52.88]:32074 "EHLO mga01.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751673AbcF0SHl (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 27 Jun 2016 14:07:41 -0400
-In-Reply-To: <CAJZ5v0hR9E-pLkkvbSLwLG8A1ECCVa=+45YJ1+L1cjXHaPaLtg@mail.gmail.com>
+Received: from mail-vk0-f51.google.com ([209.85.213.51]:33531 "EHLO
+	mail-vk0-f51.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751644AbcF0S14 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 27 Jun 2016 14:27:56 -0400
+Received: by mail-vk0-f51.google.com with SMTP id j3so30625380vkb.0
+        for <linux-acpi@vger.kernel.org>; Mon, 27 Jun 2016 11:27:43 -0700 (PDT)
+In-Reply-To: <b498099e-4ffe-21da-f97b-4899c59201bf@codeaurora.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rafael@kernel.org>
-Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>
+To: Jassi Brar <jassisinghbrar@gmail.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: Ashwin Chaugule <ashwin.chaugule@linaro.org>, Robert Moore <robert.moore@intel.com>, Alexey Klimov <alexey.klimov@arm.com>, lkml <linux-kernel@vger.kernel.org>, linux acpi <linux-acpi@vger.kernel.org>, Loc Ho <lho@apm.com>, Duc Dang <dhdang@apm.com>, "Prakash, Prashanth" <pprakash@codeaurora.org>
 
-On Mon, 2016-06-27 at 03:45 +0200, Rafael J. Wysocki wrote:
-> On Mon, Jun 27, 2016 at 3:31 AM, Srinivas Pandruvada
-> <srinivas.pandruvada@linux.intel.com> wrote:
-> >=20
-> > On Fri, 2016-06-24 at 02:26 +0200, Rafael J. Wysocki wrote:
-> > >=20
-> > > >=20
-> > > > >=20
-> > > > > >=20
-> > > > > >=20
-> > > On Fri, Jun 24, 2016 at 1:19 AM, Srinivas Pandruvada
-> > > <srinivas.pandruvada@linux.intel.com> wrote:
-> > > >=20
-> > > > On Fri, 2016-06-24 at 00:31 +0200, Rafael J. Wysocki wrote:
-> > > > >=20
-> > > > > On Thu, Jun 23, 2016 at 11:42 PM, Srinivas Pandruvada
-> > > > > <srinivas.pandruvada@linux.intel.com> wrote:
-> > [...]
-> >=20
-> > >=20
-> > > I think what you need is that if acpi_battery is bound to at
-> > > least
-> > > one
-> > > device, you don't want to bind dptf_power to
-> > > anything.=C2=A0=C2=A0Conversely,
-> > > if
-> > > dptf_power has been bound to at least one device, you don't want
-> > > to
-> > > bind acpi_battery to anything.
-> > >=20
-> > > That may be achieved with a lock and two counters, one (A)
-> > > incremented
-> > > only by acpi_battery and the other (B) incremented only by
-> > > dptf_power
-> > > and such that you can't increment A if B is different from 0 and
-> > > you
-> > > can't increment B if A is different from 0.=C2=A0=C2=A0Of course,=
- each
-> > > driver
-> > > would need to specify which counter it wants to use (A or B), so
-> > > that
-> > > would take an additional argument to acpi_battery_common_add()
-> > > and an
-> > > additional field in struct acpi_battery (for the remove
-> > > operation).
-> > >=20
-> > > With that, I think it should only be possible to build both
-> > > acpi_battery and dptf_power if they are both modules.=C2=A0=C2=A0=
-IOW,
-> > > DPTF_POWER
-> > > should depend on (!ACPI_BATTERY || ACPI_BATTERY=3Dm) or
-> > > similar.=C2=A0=C2=A0And
-> > > if
-> > > they are both modules, let user space manage that.
-> > >=20
-> > > And the waiting itself doesn't add any value then IMO.
-> > Yes. I think the best solution is not to let define DPTF_POWER when
-> > the
-> > ACPI_BATTERY is defined same as my first version of the patch or
-> > let
-> > both add as there is no harm as they will show same levels. The
-> > reason
-> > is:
-> > We have some devices with two ACPI_BATTERIES (primary and
-> > secondary/backup) and they must be presented as two power supply
-> > devices to user space. In those devices DPTF_POWER may be
-> > equivalent to
-> > only one of the ACPI_BATTERY (Will point to same battery for
-> > Battery
-> > levels). So we can't simply refuse to add ACPI_BATTERY device
-> > addition
-> > because DPTF_POWER device is registered before.
-> OK
->=20
-> Say dptf_power points to the same battery device as acpi_battery.=C2=A0=
-=C2=A0Is
-> there any way to tell when that happens?
-May be we can memcmp the output of _BIX (Battery Information Extended).
-If they are same it belongs to same battery.
-If there are two ACPI batteries, hope atleast they have difference in
-one element in the following package.
+Hi Jassi and Rafael,
 
-Package {
-// ASCIIZ is ASCII character string terminated with a 0x00.
-Revision
-//Integer
-Power Unit
-//Integer (DWORD)
-Design Capacity
-//Integer (DWORD)
-Last Full Charge Capacity
-//Integer (DWORD)
-Battery Technology
-//Integer (DWORD)
-Design Voltage
-//Integer (DWORD)
-Design Capacity of Warning
-//Integer (DWORD)
-Design Capacity of Low
-//Integer (DWORD)
-Cycle Count
-//Integer (DWORD)
-Measurement Accuracy
-Max Sampling Time
-Min Sampling Time
-Max Averaging Interval
-Min Averaging Interval //Integer
-//Integer
-//Integer
-//Integer
-//Integer
-(DWORD)
-(DWORD)
-(DWORD)
-(DWORD)
-(DWORD)
-Battery Capacity Granularity 1
-Battery Capacity Granularity 2
-Model Number
-Serial Number
-Battery Type
-OEM Information
-}
+On Wed, Jun 15, 2016 at 9:19 AM, Prakash, Prashanth
+<pprakash@codeaurora.org> wrote:
+>
+>
+> On 6/9/2016 4:43 PM, Hoan Tran wrote:
+>> Hi Prashanth,
+>>
+>> On Thu, Jun 9, 2016 at 3:25 PM, Prakash, Prashanth
+>> <pprakash@codeaurora.org> wrote:
+>>>
+>>> On 6/9/2016 2:47 PM, Hoan Tran wrote:
+>>>> Hi Ashwin and Prashanth,
+>>>>
+>>>> On Wed, Jun 8, 2016 at 5:41 PM, Hoan Tran <hotran@apm.com> wrote:
+>>>>> Hi Prashanth,
+>>>>>
+>>>>>
+>>>>> On Wed, Jun 8, 2016 at 5:32 PM, Prakash, Prashanth
+>>>>> <pprakash@codeaurora.org> wrote:
+>>>>>> On 6/8/2016 10:24 AM, Hoan Tran wrote:
+>>>>>>> Hi Ashwin,
+>>>>>>>
+>>>>>>> On Wed, Jun 8, 2016 at 5:18 AM, Ashwin Chaugule
+>>>>>>> <ashwin.chaugule@linaro.org> wrote:
+>>>>>>>> + Prashanth (Can you please have a look as well?)
+>>>>>>>>
+>>>>>>>> On 31 May 2016 at 15:35, Hoan Tran <hotran@apm.com> wrote:
+>>>>>>>>> Hi Ashwin,
+>>>>>>>> Hi,
+>>>>>>>>
+>>>>>>>> Sorry about the delay. I'm in the middle of switching jobs and
+>>>>>>>> locations, so its been a bit crazy lately.
+>>>>>>> It's ok and hope you're doing well.
+>>>>>>>
+>>>>>>>> I dont have any major
+>>>>>>>> concerns with this code, although there could be subtle issues with
+>>>>>>>> this IRQ thing. In this patchset, your intent is to add support for
+>>>>>>>> PCC subspace type 2. But you're also adding support for tx command
+>>>>>>>> completion which is not specific to Type 2. We could support that even
+>>>>>>>> in Type 1. Hence I wanted to separate the two, not just for review,
+>>>>>>>> but also the async IRQ completion has subtle issues esp. in the case
+>>>>>>>> of async platform notification, where you could have a PCC client in
+>>>>>>>> the OS writing to the cmd bit and the platform sending an async
+>>>>>>>> notification by writing to some bits in the same 8byte address as the
+>>>>>>>> cmd bit. So we need some mutual exclusivity there, otherwise the OS
+>>>>>>>> and platform could step on each other. Perhaps Prashanth has better
+>>>>>>>> insight into this.
+>>>>>>> I think, this mutual exclusivity could be in another patch.
+>>>>>> Ashwin,
+>>>>>> Sorry, I am not sure how we can prevent platform and OSPM from stepping on
+>>>>>> each other.  There is a line is spec that says "all operations on status field
+>>>>>> must be made using interlocked operations", but not sure what these
+>>>>>> interlocked operation translates to.
+>>>>> Yes, I had the same question about how to prevent it.
+>>>> For platform notification, if the hardware doesn't support interlocked
+>>>> operations. I think we can use a workaround that, platform triggers
+>>>> interrupt to OSPM without touching status field. The OSPM PCC client
+>>>> will decide what to do with this interrupt. For example, OSPM sends a
+>>>> consumer command to check it.
+>>> How do we decide which platform can support this interlocked operation?
+>>> and how do we decide between a completion notification and platform
+>>> notification?
+>> Truly, we should follow the specification. But I don't know if there's
+>> any hardware support this interlocked operation.
+>> For the decide between a completion notification and platform notification
+>>  - Completion notification: Bit "Command Complete" is set.
+>>  - Platform notification: Bit "Command Complete" is not set.
+>>
+>>> I think the ACPI spec on platform notification is quite ambiguous and it is
+>>> best to get the necessary clarification and/or correction before implementing
+>>> anything related to platform notification.
+>> Agreed, a clarification inside ACPI Specification is needed
+> This patch look good to me, as it doesn't deal with platform notification.
+> We can try to get some clarification from spec side before handling the platform
+> notification pieces.
+>
+> Reviewed-by: Prashanth Prakash <pprakash@codeaurora.org>
 
-Thanks,
-Srinivas
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Do you have plan to apply this patch ?
+
+Thanks
+Hoan
+
+>
+> Thanks,
+> Prashanth
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
