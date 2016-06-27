@@ -1,42 +1,42 @@
-From: Tony <tony.makkiel@daqri.com>
-Subject: Any acpi_device_id naming conventions to follow?
-Date: Mon, 27 Jun 2016 12:36:47 +0100
-Message-ID: <57710FCF.3090908@daqri.com>
+From: Wim Osterholt <wim@djo.tudelft.nl>
+Subject: Re: kernel-4.7 bug in Intel sound and/or ACPI
+Date: Mon, 27 Jun 2016 15:04:17 +0200
+Message-ID: <20160627130417.GA8184@djo.tudelft.nl>
+References: <72eb7b76d449f906d9b2b1bb15d995bf@codeaurora.org>
+ <20160623141234.GA14662@djo.tudelft.nl>
+ <576BF86E.8060302@codeaurora.org>
+ <576C042B.20507@codeaurora.org>
+ <20160623232533.GA14984@djo.tudelft.nl>
+ <f85fb7c7-53aa-3a1e-0635-bb245d08e804@codeaurora.org>
+ <20160625013920.GA26737@djo.tudelft.nl>
+ <3bf1261bc7a931cb5e1e93ea0d66b265@codeaurora.org>
+ <20160627062724.GA6713@djo.tudelft.nl>
+ <9ad14db03ecb39a098d588b25c7b54a0@codeaurora.org>
+Reply-To: wim@djo.tudelft.nl
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-wm0-f53.google.com ([74.125.82.53]:35552 "EHLO
-	mail-wm0-f53.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751748AbcF0Lgu (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 27 Jun 2016 07:36:50 -0400
-Received: by mail-wm0-f53.google.com with SMTP id v199so96333075wmv.0
-        for <linux-acpi@vger.kernel.org>; Mon, 27 Jun 2016 04:36:49 -0700 (PDT)
-Received: from [192.168.1.25] ([81.139.40.162])
-        by smtp.gmail.com with ESMTPSA id yr4sm4215563wjc.18.2016.06.27.04.36.47
-        for <linux-acpi@vger.kernel.org>
-        (version=TLS1_2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
-        Mon, 27 Jun 2016 04:36:48 -0700 (PDT)
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-pci-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <9ad14db03ecb39a098d588b25c7b54a0@codeaurora.org>
+Sender: linux-pci-owner@vger.kernel.org
+To: okaya@codeaurora.org
+Cc: Bjorn Helgaas <helgaas@kernel.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, perex@perex.cz, linux-pci@vger.kernel.org, Takashi Iwai <tiwai@suse.com>, linux-pci-owner@vger.kernel.org, Alex Williamson <alex.williamson@redhat.com>, Wim Osterholt <wim@djo.tudelft.nl>
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
 
-Hi all,
-         Is there a naming convention to follow on ACPI device names 
-(acpi_device_id) for device drivers?
+On Mon, Jun 27, 2016 at 04:22:18AM -0400, okaya@codeaurora.org wrote:
+> > However, an earlier try on my Inspiron 510m did not work.
+> > I'll do a clean retry later today, just to make sure.
+> 
+> 
+> Ok, let me know. I can post a clean patch series. I was trying to get 
+> you something to test before posting the official version.
 
-For TI led lp3952, I would otherwise name it as "lp3952". But in order 
-to follow  ACPI/PNP device ID convention, it has to be 7 or 8 char long. 
-So is "TLP3952" a valid name?
+The 510m just finished compiling and now it works fine too.
+Thanks.
 
-Should the name be registered before it can be used? If it has to be 
-registered, is there a subset of characters which can be used without 
-registration?
 
- From a little bit of googling, I found there is an ACPI ID 'TXNW' for TI,
-http://www.uefi.org/ACPI_ID_List?search=texas
 
-So should the device name be "TXNW3952"?
+Regards, Wim.
 
-Many Thanks,
-Tony
+
+----- wim@djo.tudelft.nl -----
