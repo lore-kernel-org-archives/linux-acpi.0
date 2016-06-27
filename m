@@ -1,74 +1,185 @@
-From: "Rafael J. Wysocki" <rafael@kernel.org>
-Subject: Re: [PATCH v3 2/3] acpi: dptf_power: Add DPTF power participant
-Date: Mon, 27 Jun 2016 03:45:10 +0200
-Message-ID: <CAJZ5v0hR9E-pLkkvbSLwLG8A1ECCVa=+45YJ1+L1cjXHaPaLtg@mail.gmail.com>
-References: <1466718134-29921-1-git-send-email-srinivas.pandruvada@linux.intel.com>
- <1466718134-29921-3-git-send-email-srinivas.pandruvada@linux.intel.com>
- <CAJZ5v0hRVDMgsBzEMufwHurA8aRBmd7p_MvnMg1cdNYgDrPDaA@mail.gmail.com>
- <1466723970.8970.69.camel@linux.intel.com> <CAJZ5v0ithpoZfHJQwfyLdrsLyU1-M8psrJz12eaOTR9ffCTPOQ@mail.gmail.com>
- <1466991116.5580.11.camel@linux.intel.com>
+From: Dennis Chen <dennis.chen@arm.com>
+Subject: [PATCH v3 1/2] mm: memblock Add some new functions to address the mem limit issue
+Date: Mon, 27 Jun 2016 10:27:10 +0800
+Message-ID: <1466994431-6214-1-git-send-email-dennis.chen@arm.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-wm0-f50.google.com ([74.125.82.50]:36094 "EHLO
-	mail-wm0-f50.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751555AbcF0BpN (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sun, 26 Jun 2016 21:45:13 -0400
-Received: by mail-wm0-f50.google.com with SMTP id f126so81751618wma.1
-        for <linux-acpi@vger.kernel.org>; Sun, 26 Jun 2016 18:45:12 -0700 (PDT)
-In-Reply-To: <1466991116.5580.11.camel@linux.intel.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=WINDOWS-1252
+Content-Transfer-Encoding: quoted-printable
+Return-path: <owner-linux-mm@kvack.org>
+Sender: owner-linux-mm@kvack.org
+To: linux-arm-kernel@lists.infradead.org
+Cc: nd@arm.com, Dennis Chen <dennis.chen@arm.com>, Catalin Marinas <catalin.marinas@arm.com>, Steve Capper <steve.capper@arm.com>, Ard
+ Biesheuvel <ard.biesheuvel@linaro.org>, Will Deacon <will.deacon@arm.com>, Mark Rutland <mark.rutland@arm.com>, "Rafael J . Wysocki" <rafael.j.wysocki@intel.com>, Matt Fleming <matt@codeblueprint.co.uk>, linux-mm@kvack.org, linux-acpi@vger.kernel.org, linux-efi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>
-Cc: "Rafael J. Wysocki" <rafael@kernel.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>
 
-On Mon, Jun 27, 2016 at 3:31 AM, Srinivas Pandruvada
-<srinivas.pandruvada@linux.intel.com> wrote:
-> On Fri, 2016-06-24 at 02:26 +0200, Rafael J. Wysocki wrote:
->> > > >
->> On Fri, Jun 24, 2016 at 1:19 AM, Srinivas Pandruvada
->> <srinivas.pandruvada@linux.intel.com> wrote:
->> > On Fri, 2016-06-24 at 00:31 +0200, Rafael J. Wysocki wrote:
->> > > On Thu, Jun 23, 2016 at 11:42 PM, Srinivas Pandruvada
->> > > <srinivas.pandruvada@linux.intel.com> wrote:
-> [...]
->
->> I think what you need is that if acpi_battery is bound to at least
->> one
->> device, you don't want to bind dptf_power to anything.  Conversely,
->> if
->> dptf_power has been bound to at least one device, you don't want to
->> bind acpi_battery to anything.
->>
->> That may be achieved with a lock and two counters, one (A)
->> incremented
->> only by acpi_battery and the other (B) incremented only by dptf_power
->> and such that you can't increment A if B is different from 0 and you
->> can't increment B if A is different from 0.  Of course, each driver
->> would need to specify which counter it wants to use (A or B), so that
->> would take an additional argument to acpi_battery_common_add() and an
->> additional field in struct acpi_battery (for the remove operation).
->>
->> With that, I think it should only be possible to build both
->> acpi_battery and dptf_power if they are both modules.  IOW,
->> DPTF_POWER
->> should depend on (!ACPI_BATTERY || ACPI_BATTERY=m) or similar.  And
->> if
->> they are both modules, let user space manage that.
->>
->> And the waiting itself doesn't add any value then IMO.
-> Yes. I think the best solution is not to let define DPTF_POWER when the
-> ACPI_BATTERY is defined same as my first version of the patch or let
-> both add as there is no harm as they will show same levels. The reason
-> is:
-> We have some devices with two ACPI_BATTERIES (primary and
-> secondary/backup) and they must be presented as two power supply
-> devices to user space. In those devices DPTF_POWER may be equivalent to
-> only one of the ACPI_BATTERY (Will point to same battery for Battery
-> levels). So we can't simply refuse to add ACPI_BATTERY device addition
-> because DPTF_POWER device is registered before.
+In some cases, memblock is queried to determine whether a physical
+address corresponds to memory present in a system even if unused by
+the OS for the linear mapping, highmem, etc. For example, the ACPI
+core needs this information to determine which attributes to use when
+mapping ACPI regions. Use of incorrect memory types can result in
+faults, data corruption, or other issues.
 
-OK
+Removing memory with memblock_enforce_memory_limit throws away this
+information, and so a kernel booted with 'mem=3D' may suffers from the
+issues described above. To avoid this, we need to keep those NOMAP
+regions instead of removing all above limit, which preserves the
+information we need while preventing other use of the regions.
 
-Say dptf_power points to the same battery device as acpi_battery.  Is
-there any way to tell when that happens?
+This patch adds new insfrastructure to retain all NOMAP memblock regions
+while removing others, to cater for this.
+
+At last, we add 'size' and 'flag' debug output in the memblock debugfs
+for ease of the memblock debug.
+The '/sys/kernel/debug/memblock/memory' output looks like before:
+   0: 0x0000008000000000..0x0000008001e7ffff
+   1: 0x0000008001e80000..0x00000083ff184fff
+   2: 0x00000083ff185000..0x00000083ff1c2fff
+   3: 0x00000083ff1c3000..0x00000083ff222fff
+   4: 0x00000083ff223000..0x00000083ffe42fff
+   5: 0x00000083ffe43000..0x00000083ffffffff
+
+After applied:
+   0: 0x0000008000000000..0x0000008001e7ffff  0x0000000001e80000  0x4
+   1: 0x0000008001e80000..0x00000083ff184fff  0x00000003fd305000  0x0
+   2: 0x00000083ff185000..0x00000083ff1c2fff  0x000000000003e000  0x4
+   3: 0x00000083ff1c3000..0x00000083ff222fff  0x0000000000060000  0x0
+   4: 0x00000083ff223000..0x00000083ffe42fff  0x0000000000c20000  0x4
+   5: 0x00000083ffe43000..0x00000083ffffffff  0x00000000001bd000  0x0
+
+Signed-off-by: Dennis Chen <dennis.chen@arm.com>
+Cc: Catalin Marinas <catalin.marinas@arm.com>
+Cc: Steve Capper <steve.capper@arm.com>
+Cc: Ard Biesheuvel <ard.biesheuvel@linaro.org>
+Cc: Will Deacon <will.deacon@arm.com>
+Cc: Mark Rutland <mark.rutland@arm.com>
+Cc: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+Cc: Matt Fleming <matt@codeblueprint.co.uk>
+Cc: linux-mm@kvack.org
+Cc: linux-acpi@vger.kernel.org
+Cc: linux-efi@vger.kernel.org
+---
+ include/linux/memblock.h |  1 +
+ mm/memblock.c            | 55 +++++++++++++++++++++++++++++++++++++++++---=
+----
+ 2 files changed, 48 insertions(+), 8 deletions(-)
+
+diff --git a/include/linux/memblock.h b/include/linux/memblock.h
+index 6c14b61..2925da2 100644
+--- a/include/linux/memblock.h
++++ b/include/linux/memblock.h
+@@ -332,6 +332,7 @@ phys_addr_t memblock_mem_size(unsigned long limit_pfn);
+ phys_addr_t memblock_start_of_DRAM(void);
+ phys_addr_t memblock_end_of_DRAM(void);
+ void memblock_enforce_memory_limit(phys_addr_t memory_limit);
++void memblock_mem_limit_remove_map(phys_addr_t limit);
+ bool memblock_is_memory(phys_addr_t addr);
+ int memblock_is_map_memory(phys_addr_t addr);
+ int memblock_is_region_memory(phys_addr_t base, phys_addr_t size);
+diff --git a/mm/memblock.c b/mm/memblock.c
+index ca09915..8099f1a 100644
+--- a/mm/memblock.c
++++ b/mm/memblock.c
+@@ -1465,14 +1465,11 @@ phys_addr_t __init_memblock memblock_end_of_DRAM(vo=
+id)
+ =09return (memblock.memory.regions[idx].base + memblock.memory.regions[idx=
+].size);
+ }
+=20
+-void __init memblock_enforce_memory_limit(phys_addr_t limit)
++static phys_addr_t __init_memblock __find_max_addr(phys_addr_t limit)
+ {
+ =09phys_addr_t max_addr =3D (phys_addr_t)ULLONG_MAX;
+ =09struct memblock_region *r;
+=20
+-=09if (!limit)
+-=09=09return;
+-
+ =09/* find out max address */
+ =09for_each_memblock(memory, r) {
+ =09=09if (limit <=3D r->size) {
+@@ -1482,6 +1479,20 @@ void __init memblock_enforce_memory_limit(phys_addr_=
+t limit)
+ =09=09limit -=3D r->size;
+ =09}
+=20
++=09return max_addr;
++}
++
++void __init memblock_enforce_memory_limit(phys_addr_t limit)
++{
++=09phys_addr_t max_addr;
++
++=09if (!limit)
++=09=09return;
++
++=09max_addr =3D __find_max_addr(limit);
++=09if (max_addr =3D=3D (phys_addr_t)ULLONG_MAX)
++=09=09return;
++
+ =09/* truncate both memory and reserved regions */
+ =09memblock_remove_range(&memblock.memory, max_addr,
+ =09=09=09      (phys_addr_t)ULLONG_MAX);
+@@ -1489,6 +1500,32 @@ void __init memblock_enforce_memory_limit(phys_addr_=
+t limit)
+ =09=09=09      (phys_addr_t)ULLONG_MAX);
+ }
+=20
++void __init memblock_mem_limit_remove_map(phys_addr_t limit)
++{
++=09struct memblock_type *type =3D &memblock.memory;
++=09phys_addr_t max_addr;
++=09int i, ret, start_rgn, end_rgn;
++
++=09if (!limit)
++=09=09return;
++
++=09max_addr =3D __find_max_addr(limit);
++=09if (max_addr =3D=3D (phys_addr_t)ULLONG_MAX)
++=09=09return;
++
++=09ret =3D memblock_isolate_range(type, max_addr, (phys_addr_t)ULLONG_MAX,
++=09=09=09=09=09&start_rgn, &end_rgn);
++=09if (ret) {
++=09=09WARN_ONCE(1, "Mem limit failed, will not be applied!\n");
++=09=09return;
++=09}
++
++=09for (i =3D end_rgn - 1; i >=3D start_rgn; i--) {
++=09=09if (!memblock_is_nomap(&type->regions[i]))
++=09=09=09memblock_remove_region(type, i);
++=09}
++}
++
+ static int __init_memblock memblock_search(struct memblock_type *type, phy=
+s_addr_t addr)
+ {
+ =09unsigned int left =3D 0, right =3D type->cnt;
+@@ -1677,13 +1714,15 @@ static int memblock_debug_show(struct seq_file *m, =
+void *private)
+ =09=09reg =3D &type->regions[i];
+ =09=09seq_printf(m, "%4d: ", i);
+ =09=09if (sizeof(phys_addr_t) =3D=3D 4)
+-=09=09=09seq_printf(m, "0x%08lx..0x%08lx\n",
++=09=09=09seq_printf(m, "0x%08lx..0x%08lx  0x%08lx  0x%lx\n",
+ =09=09=09=09   (unsigned long)reg->base,
+-=09=09=09=09   (unsigned long)(reg->base + reg->size - 1));
++=09=09=09=09   (unsigned long)(reg->base + reg->size - 1),
++=09=09=09=09   (unsigned long)reg->size, reg->flags);
+ =09=09else
+-=09=09=09seq_printf(m, "0x%016llx..0x%016llx\n",
++=09=09=09seq_printf(m, "0x%016llx..0x%016llx  0x%016llx  0x%lx\n",
+ =09=09=09=09   (unsigned long long)reg->base,
+-=09=09=09=09   (unsigned long long)(reg->base + reg->size - 1));
++=09=09=09=09   (unsigned long long)(reg->base + reg->size - 1),
++=09=09=09=09   (unsigned long long)reg->size, reg->flags);
+=20
+ =09}
+ =09return 0;
+--=20
+1.8.3.1
+
+--
+To unsubscribe, send a message with 'unsubscribe linux-mm' in
+the body to majordomo@kvack.org.  For more info on Linux MM,
+see: http://www.linux-mm.org/ .
+Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
