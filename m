@@ -1,132 +1,120 @@
-From: Dennis Chen <dennis.chen@arm.com>
-Subject: [PATCH v3 2/2] arm64:acpi Fix the acpi alignment exeception when 'mem=' specified
-Date: Mon, 27 Jun 2016 10:27:11 +0800
-Message-ID: <1466994431-6214-2-git-send-email-dennis.chen@arm.com>
-References: <1466994431-6214-1-git-send-email-dennis.chen@arm.com>
+From: "Lee, Chun-Yi" <joeyli.kernel-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: [PATCH v3] acpi, nfit: treat volatile virtual CD region as pmem
+Date: Mon, 27 Jun 2016 14:46:00 +0800
+Message-ID: <1467009960-20580-1-git-send-email-jlee@suse.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=WINDOWS-1252
-Content-Transfer-Encoding: quoted-printable
-Return-path: <owner-linux-mm@kvack.org>
-In-Reply-To: <1466994431-6214-1-git-send-email-dennis.chen@arm.com>
-Sender: owner-linux-mm@kvack.org
-To: linux-arm-kernel@lists.infradead.org
-Cc: nd@arm.com, Dennis Chen <dennis.chen@arm.com>, Catalin Marinas <catalin.marinas@arm.com>, Steve Capper <steve.capper@arm.com>, Ard
- Biesheuvel <ard.biesheuvel@linaro.org>, Will Deacon <will.deacon@arm.com>, Mark Rutland <mark.rutland@arm.com>, "Rafael J . Wysocki" <rafael.j.wysocki@intel.com>, Matt Fleming <matt@codeblueprint.co.uk>, linux-mm@kvack.org, linux-acpi@vger.kernel.org, linux-efi@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
+ <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
+List-Post: <mailto:linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+List-Help: <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
+ <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
+Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
+Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+To: Ross Zwisler <ross.zwisler-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, Dan Williams <dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "Rafael J. Wysocki" <rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org>, Linda Knippers <linda.knippers-ZPxbGqLxI0U@public.gmane.org>
+Cc: "Lee, Chun-Yi" <jlee-IBi9RG/b67k@public.gmane.org>, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Gary Lin <GLin-IBi9RG/b67k@public.gmane.org>, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-When booting an ACPI enabled kernel with 'mem=3Dx', probably the ACPI data
-regions loaded by firmware will beyond the limit of the memory, in this
-case we need to keep those NOMAP regions above the limit while not removing
-them from memblock, because once a region removed from memblock, the ACPI
-will think that region is not normal memory and map it as device type
-memory accordingly. Since the ACPI core will produce non-alignment access
-when paring AML data stream, hence result in alignment fault upon the IO
-mapped memory space.
+This patch adds logic to treat volatile virtual CD region as pmem
+region, then /dev/pmem* device can be mounted with iso9660.
 
-For example, below is an alignment exception observed on ARM platform when
-booting the kernel with 'acpi=3Don mem=3D8G':
+It's useful to work with the httpboot in EFI firmware to pull a remote
+ISO file to the local memory region for booting and installation.
 
-...
-[    0.542475] Unable to handle kernel paging request at virtual address ff=
-ff0000080521e7
-[    0.550457] pgd =3D ffff000008aa0000
-[    0.553880] [ffff0000080521e7] *pgd=3D000000801fffe003, *pud=3D000000801=
-fffd003, *pmd=3D000000801fffc003, *pte=3D00e80083ff1c1707
-[    0.564939] Internal error: Oops: 96000021 [#1] PREEMPT SMP
-[    0.570553] Modules linked in:
-[    0.573626] CPU: 1 PID: 1 Comm: swapper/0 Not tainted 4.7.0-rc3-next-201=
-60616+ #172
-[    0.581344] Hardware name: AMD Overdrive/Supercharger/Default string, BI=
-OS ROD1001A 02/09/2016
-[    0.590025] task: ffff800001ef0000 ti: ffff800001ef8000 task.ti: ffff800=
-001ef8000
-[    0.597571] PC is at acpi_ns_lookup+0x520/0x734
-[    0.602134] LR is at acpi_ns_lookup+0x4a4/0x734
-[    0.606693] pc : [<ffff0000083b8b10>] lr : [<ffff0000083b8a94>] pstate: =
-60000045
-[    0.614145] sp : ffff800001efb8b0
-[    0.617478] x29: ffff800001efb8c0 x28: 000000000000001b
-[    0.622829] x27: 0000000000000001 x26: 0000000000000000
-[    0.628181] x25: ffff800001efb9e8 x24: ffff000008a10000
-[    0.633531] x23: 0000000000000001 x22: 0000000000000001
-[    0.638881] x21: ffff000008724000 x20: 000000000000001b
-[    0.644230] x19: ffff0000080521e7 x18: 000000000000000d
-[    0.649580] x17: 00000000000038ff x16: 0000000000000002
-[    0.654929] x15: 0000000000000007 x14: 0000000000007fff
-[    0.660278] x13: ffffff0000000000 x12: 0000000000000018
-[    0.665627] x11: 000000001fffd200 x10: 00000000ffffff76
-[    0.670978] x9 : 000000000000005f x8 : ffff000008725fa8
-[    0.676328] x7 : ffff000008a8df70 x6 : ffff000008a8df70
-[    0.681679] x5 : ffff000008a8d000 x4 : 0000000000000010
-[    0.687027] x3 : 0000000000000010 x2 : 000000000000000c
-[    0.692378] x1 : 0000000000000006 x0 : 0000000000000000
-...
-[    1.262235] [<ffff0000083b8b10>] acpi_ns_lookup+0x520/0x734
-[    1.267845] [<ffff0000083a7160>] acpi_ds_load1_begin_op+0x174/0x4fc
-[    1.274156] [<ffff0000083c1f4c>] acpi_ps_build_named_op+0xf8/0x220
-[    1.280380] [<ffff0000083c227c>] acpi_ps_create_op+0x208/0x33c
-[    1.286254] [<ffff0000083c1820>] acpi_ps_parse_loop+0x204/0x838
-[    1.292215] [<ffff0000083c2fd4>] acpi_ps_parse_aml+0x1bc/0x42c
-[    1.298090] [<ffff0000083bc6e8>] acpi_ns_one_complete_parse+0x1e8/0x22c
-[    1.304753] [<ffff0000083bc7b8>] acpi_ns_parse_table+0x8c/0x128
-[    1.310716] [<ffff0000083bb8fc>] acpi_ns_load_table+0xc0/0x1e8
-[    1.316591] [<ffff0000083c9068>] acpi_tb_load_namespace+0xf8/0x2e8
-[    1.322818] [<ffff000008984128>] acpi_load_tables+0x7c/0x110
-[    1.328516] [<ffff000008982ea4>] acpi_init+0x90/0x2c0
-[    1.333603] [<ffff0000080819fc>] do_one_initcall+0x38/0x12c
-[    1.339215] [<ffff000008960cd4>] kernel_init_freeable+0x148/0x1ec
-[    1.345353] [<ffff0000086b7d30>] kernel_init+0x10/0xec
-[    1.350529] [<ffff000008084e10>] ret_from_fork+0x10/0x40
-[    1.355878] Code: b9009fbc 2a00037b 36380057 3219037b (b9400260)
-[    1.362035] ---[ end trace 03381e5eb0a24de4 ]---
-[    1.366691] Kernel panic - not syncing: Attempted to kill init! exitcode=
-=3D0x0000000b
+Wiki page of UEFI HTTPBoot with OVMF:
+	https://en.opensuse.org/UEFI_HTTPBoot_with_OVMF
 
-With 'efi=3Ddebug', we can see those ACPI regions loaded by firmware on
-that board as:
-[    0.000000] efi:   0x0083ff185000-0x0083ff1b4fff [Reserved           |  =
- |  |  |  |  |  |  |   |WB|WT|WC|UC]*
-[    0.000000] efi:   0x0083ff1b5000-0x0083ff1c2fff [ACPI Reclaim Memory|  =
- |  |  |  |  |  |  |   |WB|WT|WC|UC]*
-[    0.000000] efi:   0x0083ff223000-0x0083ff224fff [ACPI Memory NVS    |  =
- |  |  |  |  |  |  |   |WB|WT|WC|UC]*
+The ramdisk function in EDK2/OVMF generates a ACPI0012 root device that
+it contains empty _STA but without _DSM:
 
-This patch is trying to address the above issue by only keeping those
-NOMAP regions instead of removing all above limit from memory memblock.
+DefinitionBlock ("ssdt2.aml", "SSDT", 2, "INTEL ", "RamDisk ", 0x00001000)
+{
+    Scope (\_SB)
+    {
+        Device (NVDR)
+        {
+            Name (_HID, "ACPI0012")  // _HID: Hardware ID
+            Name (_STR, Unicode ("NVDIMM Root Device"))  // _STR: Description String
+            Method (_STA, 0, NotSerialized)  // _STA: Status
+            {
+                Return (0x0F)
+            }
+        }
+    }
+}
 
-Signed-off-by: Dennis Chen <dennis.chen@arm.com>
-Cc: Catalin Marinas <catalin.marinas@arm.com>
-Cc: Steve Capper <steve.capper@arm.com>
-Cc: Ard Biesheuvel <ard.biesheuvel@linaro.org>
-Cc: Will Deacon <will.deacon@arm.com>
-Cc: Mark Rutland <mark.rutland@arm.com>
-Cc: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-Cc: Matt Fleming <matt@codeblueprint.co.uk>
-Cc: linux-mm@kvack.org
-Cc: linux-acpi@vger.kernel.org
-Cc: linux-efi@vger.kernel.org
+In section 5.2.25.2 of ACPI 6.1 spec, it mentions that the "SPA Range
+Structure Index" of VCD SPA shall be set to zero. That means VCD SPA
+will not be associated by any NVDIMM region mapping.
+
+The VCD's SPA Range Structure in NFIT is similar to virtual disk region
+as following:
+
+[028h 0040   2]                Subtable Type : 0000 [System Physical Address Range]
+[02Ah 0042   2]                       Length : 0038
+
+[02Ch 0044   2]                  Range Index : 0000
+[02Eh 0046   2]        Flags (decoded below) : 0000
+                   Add/Online Operation Only : 0
+                      Proximity Domain Valid : 0
+[030h 0048   4]                     Reserved : 00000000
+[034h 0052   4]             Proximity Domain : 00000000
+[038h 0056  16]           Address Range GUID : 77AB535A-45FC-624B-5560-F7B281D1F96E
+[048h 0072   8]           Address Range Base : 00000000B6ABD018
+[050h 0080   8]         Address Range Length : 0000000005500000
+[058h 0088   8]         Memory Map Attribute : 0000000000000000
+
+The way to not associate a SPA range is to never reference it from a "flush hint",
+"interleave", or "control region" table.
+
+After testing on OVMF, pmem driver can support the region that it doesn't
+assoicate to any NVDIMM mapping. So, treat VCD like pmem is a idea to get
+a pmem block device that it contains iso. 
+
+v3:
+To simplify patch, removed VCD region in libnvdimm.
+ 
+v2:
+Removed the code for setting VCD to a read-only region.
+
+Cc: Gary Lin <GLin-IBi9RG/b67k@public.gmane.org>
+Cc: Dan Williams <dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: Ross Zwisler <ross.zwisler-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
+Cc: "Rafael J. Wysocki" <rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org>
+Cc: Linda Knippers <linda.knippers-ZPxbGqLxI0U@public.gmane.org>
+Signed-off-by: Lee, Chun-Yi <jlee-IBi9RG/b67k@public.gmane.org>
 ---
- arch/arm64/mm/init.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/acpi/nfit.c          |  8 +++++++-
+ drivers/nvdimm/region_devs.c | 26 +++++++++++++++++++++++++-
+ include/linux/libnvdimm.h    |  2 ++
+ 3 files changed, 34 insertions(+), 2 deletions(-)
 
-diff --git a/arch/arm64/mm/init.c b/arch/arm64/mm/init.c
-index d45f862..46edcef 100644
---- a/arch/arm64/mm/init.c
-+++ b/arch/arm64/mm/init.c
-@@ -226,7 +226,7 @@ void __init arm64_memblock_init(void)
- =09 * via the linear mapping.
- =09 */
- =09if (memory_limit !=3D (phys_addr_t)ULLONG_MAX) {
--=09=09memblock_enforce_memory_limit(memory_limit);
-+=09=09memblock_mem_limit_remove_map(memory_limit);
- =09=09memblock_add(__pa(_text), (u64)(_end - _text));
- =09}
-=20
---=20
-1.8.3.1
-
---
-To unsubscribe, send a message with 'unsubscribe linux-mm' in
-the body to majordomo@kvack.org.  For more info on Linux MM,
-see: http://www.linux-mm.org/ .
-Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
+Index: linux/drivers/acpi/nfit.c
+===================================================================
+--- linux.orig/drivers/acpi/nfit.c
++++ linux/drivers/acpi/nfit.c
+@@ -1995,7 +1995,7 @@ static int acpi_nfit_register_region(str
+ 	if (nfit_spa->nd_region)
+ 		return 0;
+ 
+-	if (spa->range_index == 0) {
++	if (spa->range_index == 0 && nfit_spa_type(spa) != NFIT_SPA_VCD) {
+ 		dev_dbg(acpi_desc->dev, "%s: detected invalid spa index\n",
+ 				__func__);
+ 		return 0;
+@@ -2059,6 +2059,11 @@ static int acpi_nfit_register_region(str
+ 				ndr_desc);
+ 		if (!nfit_spa->nd_region)
+ 			rc = -ENOMEM;
++	} else if (nfit_spa_type(spa) == NFIT_SPA_VCD) {
++		nfit_spa->nd_region = nvdimm_pmem_region_create(nvdimm_bus,
++				ndr_desc);
++		if (!nfit_spa->nd_region)
++			rc = -ENOMEM;
+ 	}
+ 
+  out:
