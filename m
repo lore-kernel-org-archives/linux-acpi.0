@@ -1,105 +1,85 @@
-From: Linda Knippers <linda.knippers-ZPxbGqLxI0U@public.gmane.org>
-Subject: Re: [PATCH] acpi, nfit: fix acpi_check_dsm() vs zero functions
- implemented
-Date: Mon, 27 Jun 2016 15:03:14 -0400
-Message-ID: <9a95e65b-30ad-5175-db24-28d7603e513d@hpe.com>
-References: <146679026571.24395.11569929364936343871.stgit@dwillia2-desk3.amr.corp.intel.com>
- <bd2353c0-0d84-3c0a-8117-3f24b823f469@hpe.com>
- <CAPcyv4iELmJ9vDD7-juYOP4a6P51UFd49OUwreeofsXX7eHzCg@mail.gmail.com>
- <b877a201-6b62-43c6-17f8-dcaf5961cbb0@hpe.com>
- <CAPcyv4gWC4cND_+DUi_gjMpy2NLhNdhEfhwHjQ7x0AhKR0K7Vg@mail.gmail.com>
+From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Subject: Re: [PATCH v4 3/3] acpi/pmic: Add support for PMIC regs operation region
+Date: Mon, 27 Jun 2016 22:29:17 +0200
+Message-ID: <2243573.eblG6iu6if@vostro.rjw.lan>
+References: <20160624005253.GF83592@worksta> <CAJZ5v0hTvQL1ZdcNtMC24uRtbpavVFq4aqgoPtuEknjo+1QoPw@mail.gmail.com> <20160627143735.GC21398@kuha.fi.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-In-Reply-To: <CAPcyv4gWC4cND_+DUi_gjMpy2NLhNdhEfhwHjQ7x0AhKR0K7Vg-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
-List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
- <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
-List-Post: <mailto:linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-List-Help: <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
- <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
-Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
-Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-To: Dan Williams <dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: "Rafael J. Wysocki" <rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org>, Linux ACPI <linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Len Brown <lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Xiao Guangrong <guangrong.xiao-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, "linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org" <linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7Bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20160627143735.GC21398@kuha.fi.intel.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Heikki Krogerus <heikki.krogerus@linux.intel.com>
+Cc: "Rafael J. Wysocki" <rafael@kernel.org>, Bin Gao <bin.gao@linux.intel.com>, Aaron Lu <aaron.lu@intel.com>, Paul Gortmaker <paul.gortmaker@windriver.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, ysiyer <yegnesh.s.iyer@intel.com>, Ajay Thomas <ajay.thomas.david.rajamanickam@intel.com>, Bin Gao <bin.gao@intel.com>
 List-Id: linux-acpi@vger.kernel.org
 
+On Monday, June 27, 2016 05:37:35 PM Heikki Krogerus wrote:
+> On Mon, Jun 27, 2016 at 03:25:11PM +0200, Rafael J. Wysocki wrote:
+> > On Mon, Jun 27, 2016 at 11:26 AM, Heikki Krogerus
+> > <heikki.krogerus@linux.intel.com> wrote:
+> > > Whoa! Hold on!
+> > >
+> > > On Thu, Jun 23, 2016 at 05:52:53PM -0700, Bin Gao wrote:
+> > >> Broxton platform firmware has defined new customized operation regions
+> > >> called regs for PMIC chip - regs op region is used to handle the
+> > >> PMIC gpio mainly intended for the TYPE-C VBUS and Orientation.
+> > >>
+> > >> The intel_gpio_ctx  structure is created for the purpose of handling
+> > >> the PMIC gpio register read and write.
+> > >>
+> > >> Signed-off-by: Felipe Balbi <felipe.balbi@linux.intel.com>
+> > >> Signed-off-by: Chandra Sekhar Anagani <chandra.sekhar.anagani@intel.com>
+> > >> Signed-off-by: Bin Gao <bin.gao@intel.com>
+> > >> ---
+> > >> Changes in v4:
+> > >>  - various fixes to address Aaron's comments.
+> > >> Changes in v3: none
+> > >> Changes in v2: none
+> > >>  drivers/acpi/pmic/intel_pmic.c | 74 ++++++++++++++++++++++++++++++++++++++++--
+> > >>  drivers/acpi/pmic/intel_pmic.h |  5 +++
+> > >>  2 files changed, 76 insertions(+), 3 deletions(-)
+> > >>
+> > >> diff --git a/drivers/acpi/pmic/intel_pmic.c b/drivers/acpi/pmic/intel_pmic.c
+> > >> index 410e96f..e11d1e0 100644
+> > >> --- a/drivers/acpi/pmic/intel_pmic.c
+> > >> +++ b/drivers/acpi/pmic/intel_pmic.c
+> > >> @@ -21,12 +21,14 @@
+> > >>
+> > >>  #define PMIC_POWER_OPREGION_ID               0x8d
+> > >>  #define PMIC_THERMAL_OPREGION_ID     0x8c
+> > >> +#define PMIC_REGS_OPREGION_ID                0x8f
+> > >>
+> > >>  struct intel_pmic_opregion {
+> > >>       struct mutex lock;
+> > >>       struct acpi_lpat_conversion_table *lpat_table;
+> > >>       struct regmap *regmap;
+> > >>       struct intel_pmic_opregion_data *data;
+> > >> +     struct pmic_gpio_ctx    ctx;
+> > >
+> > > What gpio?
+> > >
+> > >>  };
+> > >>
+> > >>  static int pmic_get_reg_bit(int address, struct pmic_table *table,
+> > >> @@ -204,6 +206,56 @@ static acpi_status intel_pmic_thermal_handler(u32 function,
+> > >>       return AE_OK;
+> > >>  }
+> > >>
+> > >> +static acpi_status intel_pmic_gpio_handler(u32 function,
+> > >> +     acpi_physical_address address, u32 bits, u64 *value64,
+> > >> +             void *handler_context, void *region_context)
+> > >
+> > > What the heck is this? Why is this suddenly a gpio handler?
+> > >
+> > > This is handler for an operation region, not some gpio!
+> > 
+> > OK
+> > 
+> > What about if I replaced this one with the original one from Felipe you sent?
+> 
+> That works for me.
 
+OK, let's do that, then.
 
-On 6/27/2016 2:58 PM, Dan Williams wrote:
-> On Mon, Jun 27, 2016 at 11:47 AM, Linda Knippers <linda.knippers-ZPxbGqLxI0U@public.gmane.org> wrote:
->>
->>
->> On 6/27/2016 2:06 PM, Dan Williams wrote:
->>> On Mon, Jun 27, 2016 at 10:40 AM, Linda Knippers <linda.knippers-ZPxbGqLxI0U@public.gmane.org> wrote:
->>>>
->>>> On 6/24/2016 1:44 PM, Dan Williams wrote:
->>>>> QEMU 2.6 implements nascent support for nvdimm DSMs. Depending on
->>>>> configuration it may only implement the function0 dsm to indicate that
->>>>> no other DSMs are available. Commit 31eca76ba2fc "nfit, libnvdimm:
->>>>> limited/whitelisted dimm command marshaling mechanism" breaks QEMU, but
->>>>> QEMU is spec compliant.  Per the spec the way to indicate that no
->>>>> functions are supported is:
->>>>>
->>>>>     If Function Index is zero, the return is a buffer containing one bit
->>>>>     for each function index, starting with zero. Bit 0 indicates whether
->>>>>     there is support for any functions other than function 0 for the
->>>>>     specified UUID and Revision ID. If set to zero, no functions are
->>>>>     supported (other than function zero) for the specified UUID and
->>>>>     Revision ID.
->>>>
->>>> The rest of that paragraph is:
->>>>
->>>> If set to one, at least one additional function is supported. For all other bits
->>>> in the buffer, a bit is set to zero to indicate if that function index is not
->>>> supported for the specific UUID and Revision ID. (For example, bit 1 set to 0
->>>> indicates that function index 1 is not supported for the specific UUID and
->>>> Revision ID.)
->>>>
->>>>>
->>>>> Update the nfit driver to determine the family (interface UUID) without
->>>>> requiring the implementation to define any other functions, i.e.
->>>>> short-circuit acpi_check_dsm() to succeed per the spec.  The nfit driver
->>>>> appears to be the only user passing funcs==0 to acpi_check_dsm(), so
->>>>> this behavior change of the common routine should be limited to the
->>>>> probing done by the nfit driver.
->>>>
->>>> I don't understand why we're special casing this to support QEMU only when
->>>> there are no DSM functions supported.  If we want to implement the
->>>> spec and support function zero, I think we should support it correctly.
->>>> That means returning the correct value for all spec compliant callers,
->>>> even when there are functions that are supported.
->>>
->>> QEMU 2.6 already shipped, so whatever we do we should not regress
->>> those binaries.  The QEMU behavior could be argued as not spec
->>> compliant, but they've implemented enough of function0 to answer the
->>> "which family" probe.
->>
->> How would you argue that?
-> 
-> acpi_evaluate_dsm() returns data instead of an error.
-> 
->>> Yes, if an implementation supports function0 it
->>> should say so in the returned bitmask,
->>
->> But in other places you explicitly prevent function 0 from
->> being executed.
-> 
-> Right, for the whitelist-filtered result to userspace, but this patch
-> is about the initial kernel probe.
-> 
->>> but by the time we've
->>> determined that function0 is "not supported" we've already
->>> successfully executed a function0 request.
->>
->> If they advertise a _DSM, I think they have to support function 0.
-> 
-> They should, but didn't.  Kernel v4.6 works with qemu 2.6, kernel v4.7
-> does not, so the kernel needs to be fixed.
-
-I'm not actually arguing against this fix.  I'm arguing that we should
-support function 0 more generally.
-
--- ljk
+Thanks,
+Rafael
