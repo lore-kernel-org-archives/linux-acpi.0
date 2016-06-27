@@ -1,50 +1,53 @@
-From: Peter Rosin <peda@axentia.se>
-Subject: Re: [PATCH 1/2] Documentation: Add sbs-manager device tree node
- documentation
-Date: Mon, 27 Jun 2016 00:35:17 +0200
-Message-ID: <83b7648c-43d6-7a32-29bb-65f2606399fd@axentia.se>
-References: <1466622436-27963-1-git-send-email-karl-heinz@schneider-inet.de>
- <1466622436-27963-2-git-send-email-karl-heinz@schneider-inet.de>
- <20160624175014.GA29990@rob-hp-laptop>
+From: Wim Osterholt <wim@djo.tudelft.nl>
+Subject: Re: kernel-4.7 bug in Intel sound and/or ACPI
+Date: Mon, 27 Jun 2016 08:27:24 +0200
+Message-ID: <20160627062724.GA6713@djo.tudelft.nl>
+References: <576943BA.1000001@codeaurora.org>
+ <20160621221347.GA28603@djo.tudelft.nl>
+ <72eb7b76d449f906d9b2b1bb15d995bf@codeaurora.org>
+ <20160623141234.GA14662@djo.tudelft.nl>
+ <576BF86E.8060302@codeaurora.org>
+ <576C042B.20507@codeaurora.org>
+ <20160623232533.GA14984@djo.tudelft.nl>
+ <f85fb7c7-53aa-3a1e-0635-bb245d08e804@codeaurora.org>
+ <20160625013920.GA26737@djo.tudelft.nl>
+ <3bf1261bc7a931cb5e1e93ea0d66b265@codeaurora.org>
+Reply-To: wim@djo.tudelft.nl
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-i2c-owner@vger.kernel.org>
-In-Reply-To: <20160624175014.GA29990@rob-hp-laptop>
-Sender: linux-i2c-owner@vger.kernel.org
-To: Rob Herring <robh@kernel.org>, Karl-Heinz Schneider <karl-heinz@schneider-inet.de>
-Cc: devicetree@vger.kernel.org, linux-pm@vger.kernel.org, linux-acpi@vger.kernel.org, linux-i2c@vger.kernel.org, Mark Rutland <mark.rutland@arm.com>, Sebastian Reichel <sre@kernel.org>, Dmitry Eremin-Solenikov <dbaryshkov@gmail.com>, David Woodhouse <dwmw2@infradead.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Phil Reid <preid@electromag.com.au>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-pci-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <3bf1261bc7a931cb5e1e93ea0d66b265@codeaurora.org>
+Sender: linux-pci-owner@vger.kernel.org
+To: okaya@codeaurora.org
+Cc: Bjorn Helgaas <helgaas@kernel.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, perex@perex.cz, linux-pci@vger.kernel.org, Takashi Iwai <tiwai@suse.com>, linux-pci-owner@vger.kernel.org, Alex Williamson <alex.williamson@redhat.com>, Wim Osterholt <wim@djo.tudelft.nl>
 List-Id: linux-acpi@vger.kernel.org
 
-On 2016-06-24 19:50, Rob Herring wrote:
-> On Wed, Jun 22, 2016 at 09:07:15PM +0200, Karl-Heinz Schneider wrote:
->> This patch adds device tree documentation for the sbs-manager
-
-*snip*
-
->> +
->> +From OS view the device is basically an i2c-mux used to communicate with up to
->> +four smart battery devices at address 0xb. The driver actually implements this
->> +behaviour. So standard i2c-mux nodes can be used to register up to four slave
->> +batteries. Channels will be numerated as 1, 2, 4 and 8.
->> +
->> +Example:
->> +
->> +batman@0a {
->> +    compatible = "sbs,sbs-manager";
->> +    reg = <0x0a>;
->> +    sbsm,i2c-retry-count = <3>;
->> +    #address-cells = <1>;
->> +    #size-cells = <0>;
->> +
->> +    channel1@1 {
+On Sat, Jun 25, 2016 at 04:51:03AM -0400, okaya@codeaurora.org wrote:
+> On 2016-06-24 21:39, Wim Osterholt wrote:
 > 
-> channel@1
+> Please apply the patches on top of clean 4.7-rc4 tree and apply them in 
+> order with
 > 
-> Do we have a standard node name for mux nodes? If not, we should.
+> git am 0001...
+> git am 0002...
 
-No name is enforced by the i2c mux support code, but I think "i2c"
-dominates, and quite possibly it is the only documented name?
+It doesn't work that way.
+Beginners problems with git.
+Tried all kinds of things, including a new git clone to no avail.
+Took a long time to discover that in the above example these were the names
+of the 'attachments'.
+It didn't work. Error 'could not find out the kind of patch' or some such.
+Took much longer to find out that in that mail and in the saved attachments
+there were lines beginning with '>From' that were the culprit.
 
-Cheers,
-Peter
+Still not found out how to make patch work without errors.
+Anyway, by doing it with more manual intervention om a stock kernel-4.7-rc4
+on my (very slow) Inspiron 4100 it seems to work like before. Hooray.
+However, an earlier try on my Inspiron 510m did not work.
+I'll do a clean retry later today, just to make sure.
+
+regards, Wim.
+
+
+----- wim@djo.tudelft.nl -----
