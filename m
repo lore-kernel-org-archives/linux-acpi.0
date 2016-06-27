@@ -1,64 +1,55 @@
-From: Daniel Lezcano <daniel.lezcano@linaro.org>
-Subject: Re: [PATCH v6 5/5] ACPI : enable ACPI_PROCESSOR_IDLE on ARM64
-Date: Mon, 27 Jun 2016 17:12:50 +0200
-Message-ID: <57714272.7030303@linaro.org>
-References: <1465915719-8409-1-git-send-email-sudeep.holla@arm.com>
- <1465915719-8409-6-git-send-email-sudeep.holla@arm.com>
- <5771392B.3080002@linaro.org> <57714043.5020207@arm.com>
- <577140A7.60904@linaro.org> <57714106.2040200@arm.com>
- <5771416E.1040000@linaro.org> <5771423A.1030708@arm.com>
+From: Rob Herring <robh@kernel.org>
+Subject: Re: [PATCH 1/2] Documentation: Add sbs-manager device tree node documentation
+Date: Mon, 27 Jun 2016 10:28:35 -0500
+Message-ID: <CAL_JsqKTQLD72Vx-PaFRiUegNhY30pmD7ewEXtoLNj4mj8=phA@mail.gmail.com>
+References: <1466622436-27963-1-git-send-email-karl-heinz@schneider-inet.de>
+ <1466622436-27963-2-git-send-email-karl-heinz@schneider-inet.de>
+ <20160624175014.GA29990@rob-hp-laptop> <83b7648c-43d6-7a32-29bb-65f2606399fd@axentia.se>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8;
-	format=flowed
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-wm0-f45.google.com ([74.125.82.45]:36374 "EHLO
-	mail-wm0-f45.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751644AbcF0PMw (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 27 Jun 2016 11:12:52 -0400
-Received: by mail-wm0-f45.google.com with SMTP id f126so104688096wma.1
-        for <linux-acpi@vger.kernel.org>; Mon, 27 Jun 2016 08:12:51 -0700 (PDT)
-In-Reply-To: <5771423A.1030708@arm.com>
+Received: from mail.kernel.org ([198.145.29.136]:45888 "EHLO mail.kernel.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751696AbcF0P3A (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 27 Jun 2016 11:29:00 -0400
+In-Reply-To: <83b7648c-43d6-7a32-29bb-65f2606399fd@axentia.se>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Sudeep Holla <sudeep.holla@arm.com>
-Cc: "Rafael J . Wysocki" <rjw@rjwysocki.net>, linux-acpi@vger.kernel.org, Vikas Sajjan <vikas.cha.sajjan@hpe.com>, Sunil <sunil.vl@hpe.com>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Prashanth Prakash <pprakash@codeaurora.org>, Al Stone <al.stone@linaro.org>, Ashwin Chaugule <ashwin.chaugule@linaro.org>, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: Peter Rosin <peda@axentia.se>
+Cc: Karl-Heinz Schneider <karl-heinz@schneider-inet.de>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, "linux-pm@vger.kernel.org" <linux-pm@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-i2c@vger.kernel.org" <linux-i2c@vger.kernel.org>, Mark Rutland <mark.rutland@arm.com>, Sebastian Reichel <sre@kernel.org>, Dmitry Eremin-Solenikov <dbaryshkov@gmail.com>, David Woodhouse <dwmw2@infradead.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Phil Reid <preid@electromag.com.au>
 
-On 06/27/2016 05:11 PM, Sudeep Holla wrote:
+On Sun, Jun 26, 2016 at 5:35 PM, Peter Rosin <peda@axentia.se> wrote:
+> On 2016-06-24 19:50, Rob Herring wrote:
+>> On Wed, Jun 22, 2016 at 09:07:15PM +0200, Karl-Heinz Schneider wrote:
+>>> This patch adds device tree documentation for the sbs-manager
 >
+> *snip*
 >
-> On 27/06/16 16:08, Daniel Lezcano wrote:
->> On 06/27/2016 05:06 PM, Sudeep Holla wrote:
->
-> [...]
->
->>> Ah ok, anyways LPI always starts from index 0. IIUC that was your m=
-ain
->>> concern.
+>>> +
+>>> +From OS view the device is basically an i2c-mux used to communicate with up to
+>>> +four smart battery devices at address 0xb. The driver actually implements this
+>>> +behaviour. So standard i2c-mux nodes can be used to register up to four slave
+>>> +batteries. Channels will be numerated as 1, 2, 4 and 8.
+>>> +
+>>> +Example:
+>>> +
+>>> +batman@0a {
+>>> +    compatible = "sbs,sbs-manager";
+>>> +    reg = <0x0a>;
+>>> +    sbsm,i2c-retry-count = <3>;
+>>> +    #address-cells = <1>;
+>>> +    #size-cells = <0>;
+>>> +
+>>> +    channel1@1 {
 >>
->> Do you have a repo where I can see the code ?
+>> channel@1
 >>
+>> Do we have a standard node name for mux nodes? If not, we should.
 >
-> Yes, you can get it from [1]
+> No name is enforced by the i2c mux support code, but I think "i2c"
+> dominates, and quite possibly it is the only documented name?
 
-Great. Thanks Sudeep !
+The kernel generally doesn't care what node names are, but standard
+naming is convention. If "i2c" is most common, then go with that.
 
-> Regards,
-> Sudeep
->
-> [1] http://git.kernel.org/sudeep.holla/linux/h/for_review/arm64_lpi
-
-
---=20
-  <http://www.linaro.org/> Linaro.org =E2=94=82 Open source software fo=
-r ARM SoCs
-
-=46ollow Linaro:  <http://www.facebook.com/pages/Linaro> Facebook |
-<http://twitter.com/#!/linaroorg> Twitter |
-<http://www.linaro.org/linaro-blog/> Blog
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Rob
