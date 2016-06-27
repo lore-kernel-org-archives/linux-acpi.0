@@ -1,118 +1,135 @@
-From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [PATCH][RFC] cpufreq: Avoid warning during resume by return EAGAIN if cpufreq is unavailable
-Date: Mon, 27 Jun 2016 03:12:21 +0200
-Message-ID: <2394728.0JDBHijQ6J@vostro.rjw.lan>
-References: <1466872128-14566-1-git-send-email-yu.c.chen@intel.com>
+From: "Zheng, Lv" <lv.zheng@intel.com>
+Subject: RE: acpi: broken suspend to RAM with v4.7-rc1
+Date: Mon, 27 Jun 2016 01:17:22 +0000
+Message-ID: <1AE640813FDE7649BE1B193DEA596E883BBFA365@SHSMSX101.ccr.corp.intel.com>
+References: <20160610203210.GA2262@nest> <3027571.8eTQaleASL@vostro.rjw.lan>
+ <20160611104922.GA2368@nest> <2544058.dYPSaC0ylY@vostro.rjw.lan>
+ <744357E9AAD1214791ACBA4B0B9092633AA54819@SHSMSX101.ccr.corp.intel.com>
+ <1AE640813FDE7649BE1B193DEA596E883BBCF836@SHSMSX101.ccr.corp.intel.com>
+ <20160613100707.GA2365@nest>
+ <1AE640813FDE7649BE1B193DEA596E883BBF7E94@SHSMSX101.ccr.corp.intel.com>
+ <20160624213235.GA8304@nest>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7Bit
+Content-Transfer-Encoding: base64
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cloudserver094114.home.net.pl ([79.96.170.134]:57645 "HELO
-	cloudserver094114.home.net.pl" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with SMTP id S1751554AbcF0BH6 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>);
-	Sun, 26 Jun 2016 21:07:58 -0400
-In-Reply-To: <1466872128-14566-1-git-send-email-yu.c.chen@intel.com>
+Received: from mga14.intel.com ([192.55.52.115]:34952 "EHLO mga14.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751555AbcF0BR2 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sun, 26 Jun 2016 21:17:28 -0400
+In-Reply-To: <20160624213235.GA8304@nest>
+Content-Language: en-US
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Chen Yu <yu.c.chen@intel.com>
-Cc: linux-pm@vger.kernel.org, Viresh Kumar <viresh.kumar@linaro.org>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
+To: Andrey Skvortsov <andrej.skvortzov@gmail.com>
+Cc: "Moore, Robert" <robert.moore@intel.com>, "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "devel@acpica.org" <devel@acpica.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
 
-On Sunday, June 26, 2016 12:28:48 AM Chen Yu wrote:
-> Previously we saw warning during resume on some platforms,
-> which use acpi-cpufreq:
-> 
-> smpboot: Booting Node 0 Processor 3 APIC 0x5
-> cache: parent cpu3 should not be sleeping
-> CPU3 is up
-> ACPI: Waking up from system sleep state S3
-> WARNING: CPU: 0 PID: 12546 at drivers/cpufreq/cpufreq.c:2173
-> Call Trace:
-> [<ffffffff81311d95>] dump_stack+0x5c/0x77
-> [<ffffffff8107aef4>] __warn+0xc4/0xe0
-> [<ffffffff8148c13e>] cpufreq_update_policy+0xfe/0x150
-> [<ffffffff8148c190>] cpufreq_update_policy+0x150/0x150
-> [<ffffffffc03e42ef>] acpi_processor_notify+0x51/0xdc [processor]
-> [<ffffffff813b0d24>] acpi_ev_notify_dispatch+0x3c/0x55
-> [<ffffffff81399613>] acpi_os_execute_deferred+0x10/0x1a
-> [<ffffffff81093ffb>] process_one_work+0x14b/0x400
-> [<ffffffff81094aa5>] worker_thread+0x65/0x4a0
-> [<ffffffff81094a40>] rescuer_thread+0x340/0x340
-> [<ffffffff81099dbf>] kthread+0xdf/0x100
-> [<ffffffff815c7ee2>] ret_from_fork+0x22/0x40
-> [<ffffffff81099ce0>] kthread_park+0x50/0x50
-> 
-> This is because this platforms tries to notify
-> the processor to reevaluate the _PPC object in _WAK,
-> however at that time the cpufreq driver's resume has
-> not been invoked yet, thus cpufreq_update_current_freq
-> returns zero because of cpufreq_suspended = true, which
-> caused the warning.
-> 
-> Actually it should be unnecessary to care the update request
-> at that moment, so remove the warning and change the return
-> value to -EAGAIN for invokers.
-> 
-> Reported-and-tested-by: BzukTuk <darlor@seznam.cz>
-> Signed-off-by: Chen Yu <yu.c.chen@intel.com>
-> ---
->  drivers/cpufreq/cpufreq.c | 7 +++++--
->  1 file changed, 5 insertions(+), 2 deletions(-)
-> 
-> diff --git a/drivers/cpufreq/cpufreq.c b/drivers/cpufreq/cpufreq.c
-> index 9009295..67a3aa1 100644
-> --- a/drivers/cpufreq/cpufreq.c
-> +++ b/drivers/cpufreq/cpufreq.c
-> @@ -2262,8 +2262,11 @@ int cpufreq_update_policy(unsigned int cpu)
->  	 */
->  	if (cpufreq_driver->get && !cpufreq_driver->setpolicy) {
->  		new_policy.cur = cpufreq_update_current_freq(policy);
-> -		if (WARN_ON(!new_policy.cur)) {
-> -			ret = -EIO;
-> +		if (!new_policy.cur) {
-> +			if (WARN_ON(!cpufreq_suspended))
-
-If we know that cpufreq is suspended, there's no reason to call
-cpufreq_update_current_freq() at all here.
-
-> +				ret = -EIO;
-> +			else
-> +				ret = -EAGAIN;
->  			goto unlock;
->  		}
->  	}
-
-Moreover, cpufreq_update_current_freq() has only two callers and the other
-one already checks cpufreq_suspended before invoking it, so what about the
-patch below instead?
-
----
- drivers/cpufreq/cpufreq.c |    7 ++++---
- 1 file changed, 4 insertions(+), 3 deletions(-)
-
-Index: linux-pm/drivers/cpufreq/cpufreq.c
-===================================================================
---- linux-pm.orig/drivers/cpufreq/cpufreq.c
-+++ linux-pm/drivers/cpufreq/cpufreq.c
-@@ -1544,9 +1544,6 @@ static unsigned int cpufreq_update_curre
- {
- 	unsigned int new_freq;
- 
--	if (cpufreq_suspended)
--		return 0;
--
- 	new_freq = cpufreq_driver->get(policy->cpu);
- 	if (!new_freq)
- 		return 0;
-@@ -2280,6 +2277,10 @@ int cpufreq_update_policy(unsigned int c
- 	 * -> ask driver for current freq and notify governors about a change
- 	 */
- 	if (cpufreq_driver->get && !cpufreq_driver->setpolicy) {
-+		if (cpufreq_suspended) {
-+			ret = -EAGAIN;
-+			goto unlock;
-+		}
- 		new_policy.cur = cpufreq_update_current_freq(policy);
- 		if (WARN_ON(!new_policy.cur)) {
- 			ret = -EIO;
-
+SGksDQoNCj4gRnJvbTogQW5kcmV5IFNrdm9ydHNvdiBbbWFpbHRvOmFuZHJlai5za3ZvcnR6b3ZA
+Z21haWwuY29tXQ0KPiBTdWJqZWN0OiBSZTogYWNwaTogYnJva2VuIHN1c3BlbmQgdG8gUkFNIHdp
+dGggdjQuNy1yYzENCj4gDQo+IE9uIDI0IEp1biwgWmhlbmcsIEx2IHdyb3RlOg0KPiA+IEhpLA0K
+PiA+DQo+ID4gPiBGcm9tOiBBbmRyZXkgU2t2b3J0c292IFttYWlsdG86YW5kcmVqLnNrdm9ydHpv
+dkBnbWFpbC5jb21dDQo+ID4gPiBTdWJqZWN0OiBSZTogYWNwaTogYnJva2VuIHN1c3BlbmQgdG8g
+UkFNIHdpdGggdjQuNy1yYzENCj4gPiA+DQo+ID4gPiBIaSBMdiwNCj4gPiA+DQo+ID4gPiBPbiAx
+MyBKdW4sIFpoZW5nLCBMdiB3cm90ZToNCj4gPiA+ID4gPiBGcm9tOiBsaW51eC1hY3BpLW93bmVy
+QHZnZXIua2VybmVsLm9yZyBbbWFpbHRvOmxpbnV4LWFjcGktDQo+ID4gPiA+ID4gb3duZXJAdmdl
+ci5rZXJuZWwub3JnXSBPbiBCZWhhbGYgT2YgUmFmYWVsIEouIFd5c29ja2kNCj4gPiA+ID4gPiBT
+dWJqZWN0OiBSZTogYWNwaTogYnJva2VuIHN1c3BlbmQgdG8gUkFNIHdpdGggdjQuNy1yYzENCj4g
+PiA+ID4gPg0KPiA+ID4gPiA+IE9uIFNhdHVyZGF5LCBKdW5lIDExLCAyMDE2IDAxOjQ5OjIyIFBN
+IEFuZHJleSBTa3ZvcnRzb3Ygd3JvdGU6DQo+ID4gPiA+ID4gPiBPbiAxMCBKdW4sIFJhZmFlbCBK
+LiBXeXNvY2tpIHdyb3RlOg0KPiA+ID4gPiA+ID4gPiBPbiBGcmlkYXksIEp1bmUgMTAsIDIwMTYg
+MTE6MzI6MTAgUE0gQW5kcmV5IFNrdm9ydHNvdiB3cm90ZToNCj4gPiA+ID4gPiA+ID4gPiBIaSwN
+Cj4gPiA+ID4gPiA+ID4gPg0KPiA+ID4gPiA+ID4gPiA+IE9uIG15IGxhcHRvcCAoREVMTCBWb3N0
+cm8gMTUwMCkgaW4gdjQuNy1yYzEgaXMgYnJva2VuDQo+IHN1c3BlbmQNCj4gPiA+IHRvIFJBTS4N
+Cj4gPiA+ID4gPiA+ID4gPiBMYXB0b3AgZG9lc24ndCBmaW5pc2ggc3VzcGVuZCB0byBSQU0gcHJv
+Y2VzcyAoZGlza3MgYXJlIG9mZiwNCj4gYnV0DQo+ID4gPiA+ID4gPiA+ID4gV2lGaSBhbmQgUG93
+ZXIgTEVEcyBhcmUgc3RpbGwgb24pLiBUaGUgb25seSB3YXkgdG8gZ2V0IGl0IG91dCBvZg0KPiA+
+ID4gPiA+ID4gPiA+IHRoaXMgc3RhdGUsIGlzIHRvIHR1cm4gdGhlIHBvd2VyIG9mZi4NCj4gPiA+
+ID4gPiA+ID4gPg0KPiA+ID4gPiA+ID4gPiA+IEkndmUgYmlzZWN0ZWQgdGhlIGlzc3VlIHRvIGNv
+bW1pdCA2NmIxZWQ1YWE4ZGQyNQ0KPiA+ID4gPiA+ID4gPiA+IFtBQ1BJQ0E6IEFDUEkgMi4wLCBI
+YXJkd2FyZTogQWRkIGFjY2Vzc193aWR0aC9iaXRfb2Zmc2V0DQo+ID4gPiBzdXBwb3J0DQo+ID4g
+PiA+ID4gPiA+ID4gZm9yIGFjcGlfaHdfd3JpdGUoKV0uDQo+ID4gPiA+ID4gPiA+ID4NCj4gPiA+
+ID4gPiA+ID4gPiBJZiBJIHJldmVydCB0aGlzIGNvbW1pdCBpbiB2NC43LXJjMSAob3IgdjQuNy1y
+YzIpLCBzdXNwZW5kIHRvDQo+IFJBTQ0KPiA+ID4gPiA+ID4gPiA+IGlzIHdvcmtpbmcgYWdhaW4u
+DQo+ID4gPiA+ID4gPiA+ID4NCj4gPiA+ID4gPiA+ID4gPiBUaGUgY2F1c2Ugb2YgdGhpcyBwcm9i
+bGVtIGlzIHRoYXQgYWZ0ZXIgdGhpcyBjb21taXQgd3JpdGUgdG8NCj4gPiA+IFBNMUENCj4gPiA+
+ID4gPiA+ID4gPiBDb250cm9sIEJsb2NrICgxNi1iaXQgcmVnaXN0ZXIpIGlzIGRvbmUgdXNpbmcg
+dHdvIDgtYml0IHdyaXRlcy4NCj4gPiA+ID4gPiA+ID4gPiBJZiBJIGZvcmNlIHRoaXMgd3JpdGUg
+dG8gYmUgMTYtYml0LCB0aGVuIGFsbCBpcyB3b3JraW5nIGFzIGJlZm9yZS4NCj4gPiA+ID4gPiA+
+ID4gPg0KPiA+ID4gPiA+ID4gPiA+IFRvIGdldCBpdCB3b3JraW5nICdhY2Nlc3Nfd2lkdGgnIGZv
+ciBQTTFBIENvbnRyb2wgQmxvY2sNCj4gbmVlZHMgdG8NCj4gPiA+ID4gPiA+ID4gPiBiZSAyICgx
+Ni1iaXQpLCBidXQgaXQncyAxICg4LWJpdCkuDQo+ID4gPiA+IFtMdiBaaGVuZ10NCj4gPiA+ID4g
+Q291bGQgeW91IHNlbmQgbWUgdGhlIGFjcGlkdW1wIG9mIHRoZSBtYWNoaW5lPw0KPiA+ID4gSGVy
+ZSBpdCBpcw0KPiA+ID4NCj4gaHR0cHM6Ly9kbC5kcm9wYm94dXNlcmNvbnRlbnQuY29tL3UvMjQw
+MjM2MjYvZGVsbF92b3N0cm9fMTUwMC5hY3BpZA0KPiA+ID4gdW1wLmJpbg0KPiA+IFtMdiBaaGVu
+Z10NCj4gPiBJJ3ZlIGJlZW4gdHJ5aW5nIHRvIGRvd25sb2FkIGl0IHRoZXNlIGRheXMgYnV0IGFs
+bCBmYWlsZWQuDQo+ID4gQ291bGQgeW91IHNlbmQgYW4gb2ZmLWxpc3QgZW1haWwgdG8gbWUgd2l0
+aCB0aGlzIGF0dGFjaGVkPw0KPiBTdHJhbmdlLiBJJ3ZlIGNoZWNrIG5vdy4gVGhlIGxpbmsgYWJv
+dmUgaXMgd29ya2luZywgYnV0IEkgc2VlIHRoYXQNCj4gcGFydCBvZiB0aGUgbGluayBhYm92ZSBp
+cyBtb3ZlZCB0byB0aGUgbmV4dCBsaW5lLg0KW0x2IFpoZW5nXSANCk1heWJlIHRoaXMgaXMganVz
+dCBiZWNhdXNlIG9mIElTUCBmaXJld2FsbC4NCg0KPiBBbnl3YXkgSSByZXNlbmQgeW91IGFsbCBm
+aWxlcyBvZmYtbGlzdC4NCltMdiBaaGVuZ10gDQpHcmVhdCENCg0KPiANCj4gDQo+ID4gPiA+ID4g
+PiA+ID4gVGhlIHJvb3Qgb2YgdGhlIHByb2JsZW0gc2VlbXMgdG8gYmUgbm90IHRoZSBjb21taXQN
+Cj4gPiA+ID4gPiA2NmIxZWQ1YWE4ZGQyNQ0KPiA+ID4gPiA+ID4gPiA+IGl0c2VsZiwgYnV0IHRo
+ZSBBQ1BJIHRhYmxlcyBpbiBCSU9TIHdoZXJlIHdyb25nIGFjY2Vzc193aWR0aA0KPiA+ID4gPiA+
+ID4gPiA+IGNvbWVzIGZyb20uIEkgZml4ZWQgcHJvYmxlbSBpbiBGQUNQICB0YWJsZSwgcHV0IGl0
+IGluIGluaXRyZCB0bw0KPiA+ID4gPiA+ID4gPiA+IG92ZXJyaWRlIEZBQ1AgdGFibGUgZnJvbSBC
+SU9TLiBUaGlzIGZpeGVkIHRoZSBpc3N1ZSwgc3VzcGVuZA0KPiB0bw0KPiA+ID4gPiA+ID4gPiA+
+IFJBTSBpcyB3b3JraW5nIG5vdyBhZ2Fpbi4NCj4gPiA+ID4gPiA+ID4gPg0KPiA+ID4gPiA+ID4g
+PiA+IEJ1dCBJJ20gbm90IHN1cmUgd2hldGhlciBpcyB0aGlzIHByb3BlciBmaXggZm9yIHRoaXMg
+cHJvYmxlbS4NCj4gPiA+ID4gPiA+ID4gPiBJcyB0aGVyZSBhbnkgcGxhY2UgaW4gdGhlIGtlcm5l
+bCwgd2hlcmUgc3VjaCBBQ1BJIHF1aXJrcyBhcmUNCj4gcGxhY2VkPw0KPiA+ID4gPiBbTHYgWmhl
+bmddDQo+ID4gPiA+IE15IHF1ZXN0aW9uIHdvdWxkIGJlOg0KPiA+ID4gPiBEb2VzIFdpbmRvd3Mg
+YmVoYXZlIGNvcnJlY3RseSBmb3IgdGhpcyB0YWJsZT8NCj4gPiA+IFllcywgc3VzcGVuZCB0byBS
+QU0gaXMgd29ya2luZyB1bmRlciBXaW5kb3dzIFZpc3RhLg0KPiA+ID4gSUlSQyBpdCB3b3JrZWQg
+dW5kZXIgV2luZG93cyBYUCB0b28uDQo+ID4gPg0KPiA+ID4gPiBIb3dldmVyIHRoZXJlIGlzIGEg
+cmVhbCBjYXNlIHNob3dpbmcgdGhhdCB0aGVyZSBhcmUgcmVhbCB0YWJsZXMgbmVlZA0KPiB1cyB0
+bw0KPiA+ID4gY29ycmVjdGx5IHN1cHBvcnQgQml0V2lkdGgvQml0T2Zmc2V0Lg0KPiA+ID4gPiBI
+ZXJlIGlzIHRoZSBpbmZvcm1hdGlvbiBmb3IgeW91IHRvIHJlZmVyOg0KPiA+ID4gPg0KPiBodHRw
+Oi8vcGVybWFsaW5rLmdtYW5lLm9yZy9nbWFuZS5saW51eC5rZXJuZWwuY29tbWl0cy5oZWFkLzMx
+Mzg3MA0KPiA+ID4gPg0KPiA+ID4gPiA+ID4gPg0KPiA+ID4gPiA+ID4gPiBXZWxsLCBpZiB0aGUg
+Y29tbWl0IGluIHF1ZXN0aW9uIGNhdXNlZCBhIHByb2JsZW0gdG8gaGFwcGVuIGZvcg0KPiA+ID4g
+eW91LA0KPiA+ID4gPiA+ID4gPiBpdCBhbHNvIG1pZ2h0IGNhdXNlIHNpbWlsYXIgcHJvYmxlbXMg
+dG8gaGFwcGVuIGVsc2V3aGVyZS4NCj4gPiA+ID4gPiA+ID4NCj4gPiA+ID4gPiA+ID4gSXQgbG9v
+a3MgbGlrZSB3ZSdsbCBuZWVkIHRvIHJldmVydCB0aGF0IGNvbW1pdC4NCj4gPiA+ID4gPiA+IEhp
+LA0KPiA+ID4gPiA+ID4NCj4gPiA+ID4gPiA+IG9yIG1heWJlIHRvIHJlc2V0IGFjY2Vzc193aWR0
+aCBBbnlBY2MgZnJvbSBGQUNQIHRhYmxlIG9ubHkgZm9yDQo+ID4gPiBQTTFBDQo+ID4gPiA+ID4g
+PiBjb250cm9sIHJlZ2lzdGVyIG9yIGV2ZW4gZm9yIGFsbCByZWdpc3RlcnM/IFRoaXMgd2lsbCBm
+aXggdGhlIGlzc3VlIHRvby4NCj4gPiA+ID4gPg0KPiA+ID4gPiA+IFRoYXQncyBhIGdvb2QgaWRl
+YSBhY3R1YWxseS4NCj4gPiA+ID4gPg0KPiA+ID4gPiA+ID4gZGlmZiAtLWdpdCBhL2RyaXZlcnMv
+YWNwaS9hY3BpY2EvdGJmYWR0LmMNCj4gPiA+ID4gPiA+IGIvZHJpdmVycy9hY3BpL2FjcGljYS90
+YmZhZHQuYyBpbmRleCA2MjA4MDY5Li5hNDc2ZTk0IDEwMDY0NA0KPiA+ID4gPiA+ID4gLS0tIGEv
+ZHJpdmVycy9hY3BpL2FjcGljYS90YmZhZHQuYw0KPiA+ID4gPiA+ID4gKysrIGIvZHJpdmVycy9h
+Y3BpL2FjcGljYS90YmZhZHQuYw0KPiA+ID4gPiA+ID4gQEAgLTcxNCw3ICs3MTQsMTQgQEAgc3Rh
+dGljIHZvaWQNCj4gPiA+IGFjcGlfdGJfc2V0dXBfZmFkdF9yZWdpc3RlcnModm9pZCkNCj4gPiA+
+ID4gPiA+ICAgICAgICAgICAgICAgICAgICAgICAgIH0NCj4gPiA+ID4gPiA+ICAgICAgICAgICAg
+ICAgICB9DQo+ID4gPiA+ID4gPiAgICAgICAgIH0NCj4gPiA+ID4gPiA+DQo+ID4gPiA+ID4gPiAr
+ICAgICAgIC8qDQo+ID4gPiA+ID4gPiArICAgICAgICAqIFJlc2V0IGFjY2Vzc193aWR0aCBpbiB0
+aGUgR0FTIGZvciBQTTFBIGNvbnRyb2wgcmVnaXN0ZXINCj4gdG8NCj4gPiA+ID4gPiA+ICsgICAg
+ICAgICogdW5kZWZpbmVkIHZhbHVlLiBCZWNhdXNlIGluIHNvbWUgY2FzZXMgdGhpcyBmaWVsZCBj
+b250YWlucw0KPiA+ID4gPiA+ID4gKyAgICAgICAgKiB3cm9uZyB2YWx1ZS4NCj4gPiA+ID4gPiA+
+ICsgICAgICAgICovDQo+ID4gPiA+ID4gPiArICAgICAgIGFjcGlfZ2JsX0ZBRFQueHBtMWFfY29u
+dHJvbF9ibG9jay5hY2Nlc3Nfd2lkdGggPSAwOw0KPiA+ID4gPiA+DQo+ID4gPiA+ID4gT0ssIGxl
+dCdzIHNlZSB3aGF0IEJvYiBhbmQgTHYgdGhpbmsgYWJvdXQgdGhhdC4NCj4gPiA+ID4gW0x2IFpo
+ZW5nXQ0KPiA+ID4gPiBUaGVyZSBpcyBhIGNvbW1pdCBpbiA0LjctcmMyOg0KPiA+ID4gPg0KPiA+
+ID4NCj4gaHR0cHM6Ly9naXQua2VybmVsLm9yZy9jZ2l0L2xpbnV4L2tlcm5lbC9naXQvdG9ydmFs
+ZHMvbGludXguZ2l0L2NvbW1pdC8/aWQ9DQo+ID4gPiA3ZjliZWY5ZA0KPiA+ID4gPiBIYXZlIHlv
+dSB0cmllZCBpZiB0aGUgcHJvYmxlbSBzdGlsbCBleGlzdHMgaW4gNC43LXJjMj8NCj4gPiA+IEkn
+dmUganVzdCB0cmllZCB2NC43LXJjMy4gSXQgY29udGFpbnMgY29tbWl0IDdmOWJlZjlkIGFuZCB0
+aGUgcHJvYmxlbQ0KPiA+ID4gZXhpc3RzIHRoZXJlIHRvby4NCj4gPiBbTHYgWmhlbmddDQo+ID4g
+SU1PLCBmb3IgdGhlIHRpbWUgYmVpbmcsIHlvdSBjYW4gdXNlIHF1aXJrcy4NCj4gPiBCb290aW5n
+IHlvdXIga2VybmVsIHdpdGggdGhlIGZvbGxvd2luZyBwYXJhbWV0ZXJzOg0KPiA+DQo+ID4gYWNw
+aT1yc2R0DQo+ID4gT3INCj4gPiBhY3BpX2ZvcmNlXzMyYml0X2ZhZHRfYWRkcg0KPiA+IE9yDQo+
+ID4gQm90aA0KPiANCj4gUmFmYWVsIHJldmVydGVkIGNvbW1pdCwgc28gSSdtIG9rIG5vdy4NCj4g
+DQo+IEFjdHVhbGx5IGFjcGlfZm9yY2VfMzJiaXRfZmFkdF9hZGRyIHdpbGwgbm90IGhlbHAgaGVy
+ZSwgYmVjYXVzZSBpdCdzIHRha2UNCj4gZWZmZWN0IG9ubHkgaWYgYWRkcmVzczY0ICE9IGFkZHJl
+c3MzMi4gQnV0IGhlcmUgdGhlc2UgYWRkcmVzc2VzIGFyZQ0KPiB0aGUgc2FtZSwgdGhlcmVmb3Jl
+IGFjY2Vzc193aWR0aCBpcyB0YWtlbiBmcm9tIGV4dGVuZGVkIGFkZHJlc3MuDQo+IA0KPiBodHRw
+Oi8vbHhyLmZyZWUtZWxlY3Ryb25zLmNvbS9zb3VyY2UvZHJpdmVycy9hY3BpL2FjcGljYS90YmZh
+ZHQuYyNMNTc2DQpbTHYgWmhlbmddIA0KSW4gYWRkaXRpb24gdG8gdGhlIGFkZHJlc3MgY2hlY2ss
+IHdlIG1heSBhZGQgYWNjZXNzIHdpZHRoIGNoZWNrIGhlcmUuDQpJIG5lZWQgdG8gY2hlY2sgdGhp
+cyB3aXRoIHRoZSBkZWNpc2lvbiBtYWtlcnMuDQoNCj4gDQo+IA0KPiBhY3BpPXJzZHQgaGVscHMu
+IFRoYW5rcyBmb3IgdGhlIGluZm9ybWF0aW9uIGFib3V0IHRoaXMgb3B0aW9uLiBJDQo+IG1pc3Nl
+ZCBpdCwgd2hlbiBJIHJlYWQgZG9jdW1lbnRhdGlvbi4NCltMdiBaaGVuZ10gDQpHcmVhdCB0byBr
+bm93IHRoYXQgYXQgbGVhc3QgMSBxdWlyayB3b3Jrcy4NCkJhY2sgdG8gdGhpcyBidWcsIGl0IHNl
+ZW1zIHdlIHNob3VsZCB1c2UgZml4ZWQgYWNjZXNzX3dpZHRoIGZvciBzb21lIHByZS1kZWZpbmVk
+IFBNIHJlZ2lzdGVycy4NCg0KVGhhbmtzIGFuZCBiZXN0IHJlZ2FyZHMNCi1Mdg0K
