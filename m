@@ -1,85 +1,92 @@
-From: Daniel Lezcano <daniel.lezcano@linaro.org>
-Subject: Re: [PATCH v6 5/5] ACPI : enable ACPI_PROCESSOR_IDLE on ARM64
-Date: Mon, 27 Jun 2016 16:33:15 +0200
-Message-ID: <5771392B.3080002@linaro.org>
-References: <1465915719-8409-1-git-send-email-sudeep.holla@arm.com>
- <1465915719-8409-6-git-send-email-sudeep.holla@arm.com>
+From: Heikki Krogerus <heikki.krogerus@linux.intel.com>
+Subject: Re: [PATCH v4 3/3] acpi/pmic: Add support for PMIC regs operation
+ region
+Date: Mon, 27 Jun 2016 17:37:35 +0300
+Message-ID: <20160627143735.GC21398@kuha.fi.intel.com>
+References: <20160624005253.GF83592@worksta>
+ <20160627092657.GA20801@kuha.fi.intel.com>
+ <CAJZ5v0hTvQL1ZdcNtMC24uRtbpavVFq4aqgoPtuEknjo+1QoPw@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8;
-	format=flowed
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-wm0-f52.google.com ([74.125.82.52]:35982 "EHLO
-	mail-wm0-f52.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751706AbcF0OdR (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 27 Jun 2016 10:33:17 -0400
-Received: by mail-wm0-f52.google.com with SMTP id f126so103101573wma.1
-        for <linux-acpi@vger.kernel.org>; Mon, 27 Jun 2016 07:33:16 -0700 (PDT)
-In-Reply-To: <1465915719-8409-6-git-send-email-sudeep.holla@arm.com>
+Received: from mga02.intel.com ([134.134.136.20]:9313 "EHLO mga02.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751832AbcF0Ohl (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 27 Jun 2016 10:37:41 -0400
+Content-Disposition: inline
+In-Reply-To: <CAJZ5v0hTvQL1ZdcNtMC24uRtbpavVFq4aqgoPtuEknjo+1QoPw@mail.gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Sudeep Holla <sudeep.holla@arm.com>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, linux-acpi@vger.kernel.org
-Cc: Vikas Sajjan <vikas.cha.sajjan@hpe.com>, Sunil <sunil.vl@hpe.com>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Prashanth Prakash <pprakash@codeaurora.org>, Al Stone <al.stone@linaro.org>, Ashwin Chaugule <ashwin.chaugule@linaro.org>, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: "Rafael J. Wysocki" <rafael@kernel.org>
+Cc: Bin Gao <bin.gao@linux.intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Aaron Lu <aaron.lu@intel.com>, Paul Gortmaker <paul.gortmaker@windriver.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, ysiyer <yegnesh.s.iyer@intel.com>, Ajay Thomas <ajay.thomas.david.rajamanickam@intel.com>, Bin Gao <bin.gao@intel.com>
 
-On 06/14/2016 04:48 PM, Sudeep Holla wrote:
-> Now that ACPI processor idle driver supports LPI(Low Power Idle), let=
-s
-> enable ACPI_PROCESSOR_IDLE for ARM64 too.
->
-> This patch just removes the IA64 and X86 dependency on ACPI_PROCESSOR=
-_IDLE
->
-> Cc: linux-arm-kernel@lists.infradead.org
-> Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-> Signed-off-by: Sudeep Holla <sudeep.holla@arm.com>
-> ---
+On Mon, Jun 27, 2016 at 03:25:11PM +0200, Rafael J. Wysocki wrote:
+> On Mon, Jun 27, 2016 at 11:26 AM, Heikki Krogerus
+> <heikki.krogerus@linux.intel.com> wrote:
+> > Whoa! Hold on!
+> >
+> > On Thu, Jun 23, 2016 at 05:52:53PM -0700, Bin Gao wrote:
+> >> Broxton platform firmware has defined new customized operation regions
+> >> called regs for PMIC chip - regs op region is used to handle the
+> >> PMIC gpio mainly intended for the TYPE-C VBUS and Orientation.
+> >>
+> >> The intel_gpio_ctx  structure is created for the purpose of handling
+> >> the PMIC gpio register read and write.
+> >>
+> >> Signed-off-by: Felipe Balbi <felipe.balbi@linux.intel.com>
+> >> Signed-off-by: Chandra Sekhar Anagani <chandra.sekhar.anagani@intel.com>
+> >> Signed-off-by: Bin Gao <bin.gao@intel.com>
+> >> ---
+> >> Changes in v4:
+> >>  - various fixes to address Aaron's comments.
+> >> Changes in v3: none
+> >> Changes in v2: none
+> >>  drivers/acpi/pmic/intel_pmic.c | 74 ++++++++++++++++++++++++++++++++++++++++--
+> >>  drivers/acpi/pmic/intel_pmic.h |  5 +++
+> >>  2 files changed, 76 insertions(+), 3 deletions(-)
+> >>
+> >> diff --git a/drivers/acpi/pmic/intel_pmic.c b/drivers/acpi/pmic/intel_pmic.c
+> >> index 410e96f..e11d1e0 100644
+> >> --- a/drivers/acpi/pmic/intel_pmic.c
+> >> +++ b/drivers/acpi/pmic/intel_pmic.c
+> >> @@ -21,12 +21,14 @@
+> >>
+> >>  #define PMIC_POWER_OPREGION_ID               0x8d
+> >>  #define PMIC_THERMAL_OPREGION_ID     0x8c
+> >> +#define PMIC_REGS_OPREGION_ID                0x8f
+> >>
+> >>  struct intel_pmic_opregion {
+> >>       struct mutex lock;
+> >>       struct acpi_lpat_conversion_table *lpat_table;
+> >>       struct regmap *regmap;
+> >>       struct intel_pmic_opregion_data *data;
+> >> +     struct pmic_gpio_ctx    ctx;
+> >
+> > What gpio?
+> >
+> >>  };
+> >>
+> >>  static int pmic_get_reg_bit(int address, struct pmic_table *table,
+> >> @@ -204,6 +206,56 @@ static acpi_status intel_pmic_thermal_handler(u32 function,
+> >>       return AE_OK;
+> >>  }
+> >>
+> >> +static acpi_status intel_pmic_gpio_handler(u32 function,
+> >> +     acpi_physical_address address, u32 bits, u64 *value64,
+> >> +             void *handler_context, void *region_context)
+> >
+> > What the heck is this? Why is this suddenly a gpio handler?
+> >
+> > This is handler for an operation region, not some gpio!
+> 
+> OK
+> 
+> What about if I replaced this one with the original one from Felipe you sent?
 
-Hi Sudeep,
-
-now that ACPI processor supports ARM64 did you check the=20
-CPUIDLE_DRIVER_STATE_START trick in the code and its derivative ?
-
-I deleted the patch 2/5 but there is a place where:
-
-if (max_cstate=3D0)
-	max_cstate=3D1;
-
-Probably this is because the POLL state is inserted, so there is always=
-=20
-an idle state. But for ARM, that is not the case.
-
-Also, there are some places where the idle state index begins to 1. I=20
-think it should be 0 for ARM.
-
->   drivers/acpi/Kconfig | 2 +-
->   1 file changed, 1 insertion(+), 1 deletion(-)
->
-> diff --git a/drivers/acpi/Kconfig b/drivers/acpi/Kconfig
-> index 1358fb7d7a68..d74275c0f374 100644
-> --- a/drivers/acpi/Kconfig
-> +++ b/drivers/acpi/Kconfig
-> @@ -238,7 +238,7 @@ config ACPI_CPPC_LIB
->   config ACPI_PROCESSOR
->   	tristate "Processor"
->   	depends on X86 || IA64 || ARM64
-> -	select ACPI_PROCESSOR_IDLE if X86 || IA64
-> +	select ACPI_PROCESSOR_IDLE
->   	select ACPI_CPU_FREQ_PSS if X86 || IA64
->   	default y
->   	help
->
+That works for me.
 
 
---=20
-  <http://www.linaro.org/> Linaro.org =E2=94=82 Open source software fo=
-r ARM SoCs
+Thanks,
 
-=46ollow Linaro:  <http://www.facebook.com/pages/Linaro> Facebook |
-<http://twitter.com/#!/linaroorg> Twitter |
-<http://www.linaro.org/linaro-blog/> Blog
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+-- 
+heikki
