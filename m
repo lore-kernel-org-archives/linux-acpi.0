@@ -1,72 +1,88 @@
-From: okaya@codeaurora.org
-Subject: Re: kernel-4.7 bug in Intel sound and/or ACPI
-Date: Mon, 27 Jun 2016 04:22:18 -0400
-Message-ID: <9ad14db03ecb39a098d588b25c7b54a0@codeaurora.org>
-References: <576943BA.1000001@codeaurora.org>
- <20160621221347.GA28603@djo.tudelft.nl>
- <72eb7b76d449f906d9b2b1bb15d995bf@codeaurora.org>
- <20160623141234.GA14662@djo.tudelft.nl> <576BF86E.8060302@codeaurora.org>
- <576C042B.20507@codeaurora.org> <20160623232533.GA14984@djo.tudelft.nl>
- <f85fb7c7-53aa-3a1e-0635-bb245d08e804@codeaurora.org>
- <20160625013920.GA26737@djo.tudelft.nl>
- <3bf1261bc7a931cb5e1e93ea0d66b265@codeaurora.org>
- <20160627062724.GA6713@djo.tudelft.nl>
+From: "Zheng, Lv" <lv.zheng@intel.com>
+Subject: RE: [PATCH v3 2/3] acpi: dptf_power: Add DPTF power participant
+Date: Mon, 27 Jun 2016 08:42:34 +0000
+Message-ID: <1AE640813FDE7649BE1B193DEA596E883BBFA569@SHSMSX101.ccr.corp.intel.com>
+References: <1466718134-29921-1-git-send-email-srinivas.pandruvada@linux.intel.com>
+ <1466718134-29921-3-git-send-email-srinivas.pandruvada@linux.intel.com>
+ <CAJZ5v0hRVDMgsBzEMufwHurA8aRBmd7p_MvnMg1cdNYgDrPDaA@mail.gmail.com>
+ <1466723970.8970.69.camel@linux.intel.com>
+ <CAJZ5v0ithpoZfHJQwfyLdrsLyU1-M8psrJz12eaOTR9ffCTPOQ@mail.gmail.com>
+ <1466991116.5580.11.camel@linux.intel.com>
+ <CAJZ5v0hR9E-pLkkvbSLwLG8A1ECCVa=+45YJ1+L1cjXHaPaLtg@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII;
- format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp.codeaurora.org ([198.145.29.96]:55135 "EHLO
-	smtp.codeaurora.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751709AbcF0IWU (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 27 Jun 2016 04:22:20 -0400
-In-Reply-To: <20160627062724.GA6713@djo.tudelft.nl>
+Received: from mga02.intel.com ([134.134.136.20]:6489 "EHLO mga02.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751248AbcF0Ipw (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 27 Jun 2016 04:45:52 -0400
+In-Reply-To: <CAJZ5v0hR9E-pLkkvbSLwLG8A1ECCVa=+45YJ1+L1cjXHaPaLtg@mail.gmail.com>
+Content-Language: en-US
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: wim@djo.tudelft.nl
-Cc: Bjorn Helgaas <helgaas@kernel.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, perex@perex.cz, linux-pci@vger.kernel.org, Takashi Iwai <tiwai@suse.com>, linux-pci-owner@vger.kernel.org, Alex Williamson <alex.williamson@redhat.com>
+To: "Rafael J. Wysocki" <rafael@kernel.org>, Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>
+Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>
 
-On 2016-06-27 02:27, Wim Osterholt wrote:
-> On Sat, Jun 25, 2016 at 04:51:03AM -0400, okaya@codeaurora.org wrote:
->> On 2016-06-24 21:39, Wim Osterholt wrote:
->> 
->> Please apply the patches on top of clean 4.7-rc4 tree and apply them 
->> in
->> order with
->> 
->> git am 0001...
->> git am 0002...
-> 
-> It doesn't work that way.
-> Beginners problems with git.
-> Tried all kinds of things, including a new git clone to no avail.
-> Took a long time to discover that in the above example these were the 
-> names
-> of the 'attachments'.
-> It didn't work. Error 'could not find out the kind of patch' or some 
-> such.
-> Took much longer to find out that in that mail and in the saved 
-> attachments
-> there were lines beginning with '>From' that were the culprit.
-> 
-> Still not found out how to make patch work without errors.
-> Anyway, by doing it with more manual intervention om a stock 
-> kernel-4.7-rc4
-> on my (very slow) Inspiron 4100 it seems to work like before. Hooray.
-> However, an earlier try on my Inspiron 510m did not work.
-> I'll do a clean retry later today, just to make sure.
-
-
-Ok, let me know. I can post a clean patch series. I was trying to get 
-you something to test before posting the official version.
-
-> 
-> regards, Wim.
-> 
-> 
-> ----- wim@djo.tudelft.nl -----
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-pci" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+SGksIFJhZmFlbA0KDQpKdXN0IGFuIGlkZWEgdGhhdC4NCg0KQWNjb3JkaW5nIHRvIHRoZSBBQ1BJ
+IHNwZWMsIF9XQUsgbXVzdCBiZSBldmFsdWF0ZWQgYmVmb3JlIHJlc3VtaW5nIHRoZSBkZXZpY2Vz
+Lg0KU28gaXQgaXMgc3VwcG9zZWQgdGhhdCB0aGUgZGV2aWNlIGRyaXZlcnMgc2hvdWxkIGJlIHJl
+YWR5IHRvIGhhbmRsZSBub3RpZnkoKSBkdXJpbmcgdGhlIHN1c3BlbmQvcmVzdW1lIHBlcmlvZCwg
+aW4gdGhlIHNhbWUgd2F5cyBhcyBoYW5kbGluZyBhbiBJUlEgZHVyaW5nIHRoaXMgcGVyaW9kLg0K
+SWYgdGhlIGRyaXZlciBpcyBub3QgYWJsZSB0byBkbyB0aGF0IChoYW5kbGluZyBub3RpZnkgZHVy
+aW5nIHN1c3BlbmQvcmVzdW1lIGN5Y2xlKSwgc2hvdWxkIGl0IGJlIGRvbmUgYnkgdGhlIGRyaXZl
+ciBpbiB0aGUgd2F5IG9mIGV4cGxpY2l0bHkgImRpc2FibGluZyBub3RpZnkiLCBsaWtlIHdoYXQg
+dGhlIGRpc2FibGVfaXJxKCkgZG9lcz8NCk1heWJlIGRvIHRoaXMgdmlhIGEgbmV3IHNldCBvZiBB
+UHMgZnJvbSB0aGUgQUNQSSBzdWJzeXN0ZW06IGFjcGlfZGlzYWJsZV9ub3RpZnkoKS9hY3BpX2Vu
+YWJsZV9ub3RpZnkoKS4NCg0KVGhhbmtzIGFuZCBiZXN0IHJlZ2FyZHMNCi1Mdg0KDQo+IEZyb206
+IGxpbnV4LWFjcGktb3duZXJAdmdlci5rZXJuZWwub3JnIFttYWlsdG86bGludXgtYWNwaS0NCj4g
+b3duZXJAdmdlci5rZXJuZWwub3JnXSBPbiBCZWhhbGYgT2YgUmFmYWVsIEouIFd5c29ja2kNCj4g
+U3ViamVjdDogUmU6IFtQQVRDSCB2MyAyLzNdIGFjcGk6IGRwdGZfcG93ZXI6IEFkZCBEUFRGIHBv
+d2VyIHBhcnRpY2lwYW50DQo+IA0KPiBPbiBNb24sIEp1biAyNywgMjAxNiBhdCAzOjMxIEFNLCBT
+cmluaXZhcyBQYW5kcnV2YWRhDQo+IDxzcmluaXZhcy5wYW5kcnV2YWRhQGxpbnV4LmludGVsLmNv
+bT4gd3JvdGU6DQo+ID4gT24gRnJpLCAyMDE2LTA2LTI0IGF0IDAyOjI2ICswMjAwLCBSYWZhZWwg
+Si4gV3lzb2NraSB3cm90ZToNCj4gPj4gPiA+ID4NCj4gPj4gT24gRnJpLCBKdW4gMjQsIDIwMTYg
+YXQgMToxOSBBTSwgU3Jpbml2YXMgUGFuZHJ1dmFkYQ0KPiA+PiA8c3Jpbml2YXMucGFuZHJ1dmFk
+YUBsaW51eC5pbnRlbC5jb20+IHdyb3RlOg0KPiA+PiA+IE9uIEZyaSwgMjAxNi0wNi0yNCBhdCAw
+MDozMSArMDIwMCwgUmFmYWVsIEouIFd5c29ja2kgd3JvdGU6DQo+ID4+ID4gPiBPbiBUaHUsIEp1
+biAyMywgMjAxNiBhdCAxMTo0MiBQTSwgU3Jpbml2YXMgUGFuZHJ1dmFkYQ0KPiA+PiA+ID4gPHNy
+aW5pdmFzLnBhbmRydXZhZGFAbGludXguaW50ZWwuY29tPiB3cm90ZToNCj4gPiBbLi4uXQ0KPiA+
+DQo+ID4+IEkgdGhpbmsgd2hhdCB5b3UgbmVlZCBpcyB0aGF0IGlmIGFjcGlfYmF0dGVyeSBpcyBi
+b3VuZCB0byBhdCBsZWFzdA0KPiA+PiBvbmUNCj4gPj4gZGV2aWNlLCB5b3UgZG9uJ3Qgd2FudCB0
+byBiaW5kIGRwdGZfcG93ZXIgdG8gYW55dGhpbmcuICBDb252ZXJzZWx5LA0KPiA+PiBpZg0KPiA+
+PiBkcHRmX3Bvd2VyIGhhcyBiZWVuIGJvdW5kIHRvIGF0IGxlYXN0IG9uZSBkZXZpY2UsIHlvdSBk
+b24ndCB3YW50IHRvDQo+ID4+IGJpbmQgYWNwaV9iYXR0ZXJ5IHRvIGFueXRoaW5nLg0KPiA+Pg0K
+PiA+PiBUaGF0IG1heSBiZSBhY2hpZXZlZCB3aXRoIGEgbG9jayBhbmQgdHdvIGNvdW50ZXJzLCBv
+bmUgKEEpDQo+ID4+IGluY3JlbWVudGVkDQo+ID4+IG9ubHkgYnkgYWNwaV9iYXR0ZXJ5IGFuZCB0
+aGUgb3RoZXIgKEIpIGluY3JlbWVudGVkIG9ubHkgYnkgZHB0Zl9wb3dlcg0KPiA+PiBhbmQgc3Vj
+aCB0aGF0IHlvdSBjYW4ndCBpbmNyZW1lbnQgQSBpZiBCIGlzIGRpZmZlcmVudCBmcm9tIDAgYW5k
+IHlvdQ0KPiA+PiBjYW4ndCBpbmNyZW1lbnQgQiBpZiBBIGlzIGRpZmZlcmVudCBmcm9tIDAuICBP
+ZiBjb3Vyc2UsIGVhY2ggZHJpdmVyDQo+ID4+IHdvdWxkIG5lZWQgdG8gc3BlY2lmeSB3aGljaCBj
+b3VudGVyIGl0IHdhbnRzIHRvIHVzZSAoQSBvciBCKSwgc28gdGhhdA0KPiA+PiB3b3VsZCB0YWtl
+IGFuIGFkZGl0aW9uYWwgYXJndW1lbnQgdG8gYWNwaV9iYXR0ZXJ5X2NvbW1vbl9hZGQoKQ0KPiBh
+bmQgYW4NCj4gPj4gYWRkaXRpb25hbCBmaWVsZCBpbiBzdHJ1Y3QgYWNwaV9iYXR0ZXJ5IChmb3Ig
+dGhlIHJlbW92ZSBvcGVyYXRpb24pLg0KPiA+Pg0KPiA+PiBXaXRoIHRoYXQsIEkgdGhpbmsgaXQg
+c2hvdWxkIG9ubHkgYmUgcG9zc2libGUgdG8gYnVpbGQgYm90aA0KPiA+PiBhY3BpX2JhdHRlcnkg
+YW5kIGRwdGZfcG93ZXIgaWYgdGhleSBhcmUgYm90aCBtb2R1bGVzLiAgSU9XLA0KPiA+PiBEUFRG
+X1BPV0VSDQo+ID4+IHNob3VsZCBkZXBlbmQgb24gKCFBQ1BJX0JBVFRFUlkgfHwgQUNQSV9CQVRU
+RVJZPW0pIG9yIHNpbWlsYXIuDQo+IEFuZA0KPiA+PiBpZg0KPiA+PiB0aGV5IGFyZSBib3RoIG1v
+ZHVsZXMsIGxldCB1c2VyIHNwYWNlIG1hbmFnZSB0aGF0Lg0KPiA+Pg0KPiA+PiBBbmQgdGhlIHdh
+aXRpbmcgaXRzZWxmIGRvZXNuJ3QgYWRkIGFueSB2YWx1ZSB0aGVuIElNTy4NCj4gPiBZZXMuIEkg
+dGhpbmsgdGhlIGJlc3Qgc29sdXRpb24gaXMgbm90IHRvIGxldCBkZWZpbmUgRFBURl9QT1dFUiB3
+aGVuIHRoZQ0KPiA+IEFDUElfQkFUVEVSWSBpcyBkZWZpbmVkIHNhbWUgYXMgbXkgZmlyc3QgdmVy
+c2lvbiBvZiB0aGUgcGF0Y2ggb3IgbGV0DQo+ID4gYm90aCBhZGQgYXMgdGhlcmUgaXMgbm8gaGFy
+bSBhcyB0aGV5IHdpbGwgc2hvdyBzYW1lIGxldmVscy4gVGhlIHJlYXNvbg0KPiA+IGlzOg0KPiA+
+IFdlIGhhdmUgc29tZSBkZXZpY2VzIHdpdGggdHdvIEFDUElfQkFUVEVSSUVTIChwcmltYXJ5IGFu
+ZA0KPiA+IHNlY29uZGFyeS9iYWNrdXApIGFuZCB0aGV5IG11c3QgYmUgcHJlc2VudGVkIGFzIHR3
+byBwb3dlciBzdXBwbHkNCj4gPiBkZXZpY2VzIHRvIHVzZXIgc3BhY2UuIEluIHRob3NlIGRldmlj
+ZXMgRFBURl9QT1dFUiBtYXkgYmUgZXF1aXZhbGVudA0KPiB0bw0KPiA+IG9ubHkgb25lIG9mIHRo
+ZSBBQ1BJX0JBVFRFUlkgKFdpbGwgcG9pbnQgdG8gc2FtZSBiYXR0ZXJ5IGZvciBCYXR0ZXJ5DQo+
+ID4gbGV2ZWxzKS4gU28gd2UgY2FuJ3Qgc2ltcGx5IHJlZnVzZSB0byBhZGQgQUNQSV9CQVRURVJZ
+IGRldmljZSBhZGRpdGlvbg0KPiA+IGJlY2F1c2UgRFBURl9QT1dFUiBkZXZpY2UgaXMgcmVnaXN0
+ZXJlZCBiZWZvcmUuDQo+IA0KPiBPSw0KPiANCj4gU2F5IGRwdGZfcG93ZXIgcG9pbnRzIHRvIHRo
+ZSBzYW1lIGJhdHRlcnkgZGV2aWNlIGFzIGFjcGlfYmF0dGVyeS4gIElzDQo+IHRoZXJlIGFueSB3
+YXkgdG8gdGVsbCB3aGVuIHRoYXQgaGFwcGVucz8NCj4gLS0NCj4gVG8gdW5zdWJzY3JpYmUgZnJv
+bSB0aGlzIGxpc3Q6IHNlbmQgdGhlIGxpbmUgInVuc3Vic2NyaWJlIGxpbnV4LWFjcGkiIGluDQo+
+IHRoZSBib2R5IG9mIGEgbWVzc2FnZSB0byBtYWpvcmRvbW9Admdlci5rZXJuZWwub3JnDQo+IE1v
+cmUgbWFqb3Jkb21vIGluZm8gYXQgIGh0dHA6Ly92Z2VyLmtlcm5lbC5vcmcvbWFqb3Jkb21vLWlu
+Zm8uaHRtbA0K
