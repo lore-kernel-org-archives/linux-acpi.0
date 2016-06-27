@@ -1,92 +1,100 @@
-From: Heikki Krogerus <heikki.krogerus@linux.intel.com>
-Subject: Re: [PATCH v4 3/3] acpi/pmic: Add support for PMIC regs operation
- region
-Date: Mon, 27 Jun 2016 17:37:35 +0300
-Message-ID: <20160627143735.GC21398@kuha.fi.intel.com>
-References: <20160624005253.GF83592@worksta>
- <20160627092657.GA20801@kuha.fi.intel.com>
- <CAJZ5v0hTvQL1ZdcNtMC24uRtbpavVFq4aqgoPtuEknjo+1QoPw@mail.gmail.com>
+From: Ocean HY1 He <hehy1@lenovo.com>
+Subject: [PATCH v2] ACPI: Execute the _PTS method when system reboot
+Date: Mon, 27 Jun 2016 14:50:16 +0000
+Message-ID: <1467038724-13455-1-git-send-email-hehy1@lenovo.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga02.intel.com ([134.134.136.20]:9313 "EHLO mga02.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751832AbcF0Ohl (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 27 Jun 2016 10:37:41 -0400
-Content-Disposition: inline
-In-Reply-To: <CAJZ5v0hTvQL1ZdcNtMC24uRtbpavVFq4aqgoPtuEknjo+1QoPw@mail.gmail.com>
+Received: from mail1.bemta12.messagelabs.com ([216.82.251.12]:31777 "EHLO
+	mail1.bemta12.messagelabs.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751869AbcF0Oub convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 27 Jun 2016 10:50:31 -0400
+Content-Language: en-US
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rafael@kernel.org>
-Cc: Bin Gao <bin.gao@linux.intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Aaron Lu <aaron.lu@intel.com>, Paul Gortmaker <paul.gortmaker@windriver.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, ysiyer <yegnesh.s.iyer@intel.com>, Ajay Thomas <ajay.thomas.david.rajamanickam@intel.com>, Bin Gao <bin.gao@intel.com>
+To: "rjw@rjwysocki.net" <rjw@rjwysocki.net>, "lenb@kernel.org" <lenb@kernel.org>
+Cc: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, David Tanaka <dtanaka@lenovo.com>, "lv.zheng@intel.com" <lv.zheng@intel.com>, Sumeet Kochar <skochar@lenovo.com>, Ocean HY1 He <hehy1@lenovo.com>, Nagananda Chumbalkar <nchumbalkar@lenovo.com>
 
-On Mon, Jun 27, 2016 at 03:25:11PM +0200, Rafael J. Wysocki wrote:
-> On Mon, Jun 27, 2016 at 11:26 AM, Heikki Krogerus
-> <heikki.krogerus@linux.intel.com> wrote:
-> > Whoa! Hold on!
-> >
-> > On Thu, Jun 23, 2016 at 05:52:53PM -0700, Bin Gao wrote:
-> >> Broxton platform firmware has defined new customized operation regions
-> >> called regs for PMIC chip - regs op region is used to handle the
-> >> PMIC gpio mainly intended for the TYPE-C VBUS and Orientation.
-> >>
-> >> The intel_gpio_ctx  structure is created for the purpose of handling
-> >> the PMIC gpio register read and write.
-> >>
-> >> Signed-off-by: Felipe Balbi <felipe.balbi@linux.intel.com>
-> >> Signed-off-by: Chandra Sekhar Anagani <chandra.sekhar.anagani@intel.com>
-> >> Signed-off-by: Bin Gao <bin.gao@intel.com>
-> >> ---
-> >> Changes in v4:
-> >>  - various fixes to address Aaron's comments.
-> >> Changes in v3: none
-> >> Changes in v2: none
-> >>  drivers/acpi/pmic/intel_pmic.c | 74 ++++++++++++++++++++++++++++++++++++++++--
-> >>  drivers/acpi/pmic/intel_pmic.h |  5 +++
-> >>  2 files changed, 76 insertions(+), 3 deletions(-)
-> >>
-> >> diff --git a/drivers/acpi/pmic/intel_pmic.c b/drivers/acpi/pmic/intel_pmic.c
-> >> index 410e96f..e11d1e0 100644
-> >> --- a/drivers/acpi/pmic/intel_pmic.c
-> >> +++ b/drivers/acpi/pmic/intel_pmic.c
-> >> @@ -21,12 +21,14 @@
-> >>
-> >>  #define PMIC_POWER_OPREGION_ID               0x8d
-> >>  #define PMIC_THERMAL_OPREGION_ID     0x8c
-> >> +#define PMIC_REGS_OPREGION_ID                0x8f
-> >>
-> >>  struct intel_pmic_opregion {
-> >>       struct mutex lock;
-> >>       struct acpi_lpat_conversion_table *lpat_table;
-> >>       struct regmap *regmap;
-> >>       struct intel_pmic_opregion_data *data;
-> >> +     struct pmic_gpio_ctx    ctx;
-> >
-> > What gpio?
-> >
-> >>  };
-> >>
-> >>  static int pmic_get_reg_bit(int address, struct pmic_table *table,
-> >> @@ -204,6 +206,56 @@ static acpi_status intel_pmic_thermal_handler(u32 function,
-> >>       return AE_OK;
-> >>  }
-> >>
-> >> +static acpi_status intel_pmic_gpio_handler(u32 function,
-> >> +     acpi_physical_address address, u32 bits, u64 *value64,
-> >> +             void *handler_context, void *region_context)
-> >
-> > What the heck is this? Why is this suddenly a gpio handler?
-> >
-> > This is handler for an operation region, not some gpio!
-> 
-> OK
-> 
-> What about if I replaced this one with the original one from Felipe you sent?
+The _PTS control method is defined in the section 7.4.1 of acpi 6.0
+spec. The _PTS control method is executed by the OS during the sleep
+transition process for S1, S2, S3, S4, and for orderly S5 shutdown.
 
-That works for me.
+The _PTS control method provides the BIOS a mechanism for performing
+some housekeeping, such as writing the sleep type value to the embedded
+controller, before entering the system sleeping state. Note that some
+Lenovo Server BIOS use this mechanism to detect reboot event and
+prompt user by popped dialog box.
 
+According to section 7.5 of acpi 6.0 spec, _PTS should run after _TTS.
+Add a _PTS evaulation to the existing _TTS reboot notifier and change
+the notifier name to reflect the fact that it's not for _TTS only any
+more.
 
-Thanks,
+Signed-off-by: Ocean He <hehy1@lenovo.com>
+Signed-off-by: Nagananda Chumbalkar <nchumbalkar@lenovo.com>
+---
+Patch changelogs
+v2:
+To simplify patch, move _PTS evaulation to the existing _TTS notifier
+https://lkml.org/lkml/2016/5/9/31
 
+ drivers/acpi/sleep.c | 29 +++++++++++++++++++++++------
+ 1 file changed, 23 insertions(+), 6 deletions(-)
+
+diff --git a/drivers/acpi/sleep.c b/drivers/acpi/sleep.c
+index 7a2e4d4..2b38c1b 100644
+--- a/drivers/acpi/sleep.c
++++ b/drivers/acpi/sleep.c
+@@ -47,15 +47,32 @@ static void acpi_sleep_tts_switch(u32 acpi_state)
+ 	}
+ }
+ 
+-static int tts_notify_reboot(struct notifier_block *this,
++static void acpi_sleep_pts_switch(u32 acpi_state)
++{
++	acpi_status status;
++
++	status = acpi_execute_simple_method(NULL, "\\_PTS", acpi_state);
++	if (ACPI_FAILURE(status) && status != AE_NOT_FOUND) {
++		/*
++		 * OS can't evaluate the _PTS object correctly. Some warning
++		 * message will be printed. But it won't break anything.
++		 */
++		printk(KERN_NOTICE "Failure in evaluating _PTS object\n");
++	}
++}
++
++static int sleep_notify_reboot(struct notifier_block *this,
+ 			unsigned long code, void *x)
+ {
+ 	acpi_sleep_tts_switch(ACPI_STATE_S5);
++
++	acpi_sleep_pts_switch(ACPI_STATE_S5);
++
+ 	return NOTIFY_DONE;
+ }
+ 
+-static struct notifier_block tts_notifier = {
+-	.notifier_call	= tts_notify_reboot,
++static struct notifier_block sleep_notifier = {
++	.notifier_call	= sleep_notify_reboot,
+ 	.next		= NULL,
+ 	.priority	= 0,
+ };
+@@ -899,9 +916,9 @@ int __init acpi_sleep_init(void)
+ 	pr_info(PREFIX "(supports%s)\n", supported);
+ 
+ 	/*
+-	 * Register the tts_notifier to reboot notifier list so that the _TTS
+-	 * object can also be evaluated when the system enters S5.
++	 * Register the sleep_notifier to reboot notifier list so that the _TTS
++	 * and _PTS object can also be evaluated when the system enters S5.
+ 	 */
+-	register_reboot_notifier(&tts_notifier);
++	register_reboot_notifier(&sleep_notifier);
+ 	return 0;
+ }
 -- 
-heikki
+1.8.3.1
