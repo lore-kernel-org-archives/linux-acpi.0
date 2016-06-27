@@ -1,85 +1,68 @@
-From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [PATCH v4 3/3] acpi/pmic: Add support for PMIC regs operation region
-Date: Mon, 27 Jun 2016 22:29:17 +0200
-Message-ID: <2243573.eblG6iu6if@vostro.rjw.lan>
-References: <20160624005253.GF83592@worksta> <CAJZ5v0hTvQL1ZdcNtMC24uRtbpavVFq4aqgoPtuEknjo+1QoPw@mail.gmail.com> <20160627143735.GC21398@kuha.fi.intel.com>
+From: Karl-Heinz Schneider <karl-heinz@schneider-inet.de>
+Subject: Re: [PATCH 1/2] Documentation: Add sbs-manager device tree node
+ documentation
+Date: Mon, 27 Jun 2016 22:37:51 +0200
+Message-ID: <1467059871.9121.7.camel@amnesix>
+References: <1466622436-27963-1-git-send-email-karl-heinz@schneider-inet.de>
+	 <1466622436-27963-2-git-send-email-karl-heinz@schneider-inet.de>
+	 <20160624175014.GA29990@rob-hp-laptop>
+	 <83b7648c-43d6-7a32-29bb-65f2606399fd@axentia.se>
+	 <CAL_JsqKTQLD72Vx-PaFRiUegNhY30pmD7ewEXtoLNj4mj8=phA@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7Bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20160627143735.GC21398@kuha.fi.intel.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Heikki Krogerus <heikki.krogerus@linux.intel.com>
-Cc: "Rafael J. Wysocki" <rafael@kernel.org>, Bin Gao <bin.gao@linux.intel.com>, Aaron Lu <aaron.lu@intel.com>, Paul Gortmaker <paul.gortmaker@windriver.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, ysiyer <yegnesh.s.iyer@intel.com>, Ajay Thomas <ajay.thomas.david.rajamanickam@intel.com>, Bin Gao <bin.gao@intel.com>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from schneider-inet.de ([85.214.76.205]:33333 "EHLO
+	h1714509.stratoserver.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751874AbcF0UiG (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 27 Jun 2016 16:38:06 -0400
+In-Reply-To: <CAL_JsqKTQLD72Vx-PaFRiUegNhY30pmD7ewEXtoLNj4mj8=phA@mail.gmail.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Rob Herring <robh@kernel.org>
+Cc: Peter Rosin <peda@axentia.se>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, "linux-pm@vger.kernel.org" <linux-pm@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-i2c@vger.kernel.org" <linux-i2c@vger.kernel.org>, Mark Rutland <mark.rutland@arm.com>, Sebastian Reichel <sre@kernel.org>, Dmitry Eremin-Solenikov <dbaryshkov@gmail.com>, David Woodhouse <dwmw2@infradead.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Phil Reid <preid@electromag.com.au>
 
-On Monday, June 27, 2016 05:37:35 PM Heikki Krogerus wrote:
-> On Mon, Jun 27, 2016 at 03:25:11PM +0200, Rafael J. Wysocki wrote:
-> > On Mon, Jun 27, 2016 at 11:26 AM, Heikki Krogerus
-> > <heikki.krogerus@linux.intel.com> wrote:
-> > > Whoa! Hold on!
-> > >
-> > > On Thu, Jun 23, 2016 at 05:52:53PM -0700, Bin Gao wrote:
-> > >> Broxton platform firmware has defined new customized operation regions
-> > >> called regs for PMIC chip - regs op region is used to handle the
-> > >> PMIC gpio mainly intended for the TYPE-C VBUS and Orientation.
-> > >>
-> > >> The intel_gpio_ctx  structure is created for the purpose of handling
-> > >> the PMIC gpio register read and write.
-> > >>
-> > >> Signed-off-by: Felipe Balbi <felipe.balbi@linux.intel.com>
-> > >> Signed-off-by: Chandra Sekhar Anagani <chandra.sekhar.anagani@intel.com>
-> > >> Signed-off-by: Bin Gao <bin.gao@intel.com>
-> > >> ---
-> > >> Changes in v4:
-> > >>  - various fixes to address Aaron's comments.
-> > >> Changes in v3: none
-> > >> Changes in v2: none
-> > >>  drivers/acpi/pmic/intel_pmic.c | 74 ++++++++++++++++++++++++++++++++++++++++--
-> > >>  drivers/acpi/pmic/intel_pmic.h |  5 +++
-> > >>  2 files changed, 76 insertions(+), 3 deletions(-)
-> > >>
-> > >> diff --git a/drivers/acpi/pmic/intel_pmic.c b/drivers/acpi/pmic/intel_pmic.c
-> > >> index 410e96f..e11d1e0 100644
-> > >> --- a/drivers/acpi/pmic/intel_pmic.c
-> > >> +++ b/drivers/acpi/pmic/intel_pmic.c
-> > >> @@ -21,12 +21,14 @@
-> > >>
-> > >>  #define PMIC_POWER_OPREGION_ID               0x8d
-> > >>  #define PMIC_THERMAL_OPREGION_ID     0x8c
-> > >> +#define PMIC_REGS_OPREGION_ID                0x8f
-> > >>
-> > >>  struct intel_pmic_opregion {
-> > >>       struct mutex lock;
-> > >>       struct acpi_lpat_conversion_table *lpat_table;
-> > >>       struct regmap *regmap;
-> > >>       struct intel_pmic_opregion_data *data;
-> > >> +     struct pmic_gpio_ctx    ctx;
-> > >
-> > > What gpio?
-> > >
-> > >>  };
-> > >>
-> > >>  static int pmic_get_reg_bit(int address, struct pmic_table *table,
-> > >> @@ -204,6 +206,56 @@ static acpi_status intel_pmic_thermal_handler(u32 function,
-> > >>       return AE_OK;
-> > >>  }
-> > >>
-> > >> +static acpi_status intel_pmic_gpio_handler(u32 function,
-> > >> +     acpi_physical_address address, u32 bits, u64 *value64,
-> > >> +             void *handler_context, void *region_context)
-> > >
-> > > What the heck is this? Why is this suddenly a gpio handler?
-> > >
-> > > This is handler for an operation region, not some gpio!
-> > 
-> > OK
-> > 
-> > What about if I replaced this one with the original one from Felipe you sent?
+Am Montag, den 27.06.2016, 10:28 -0500 schrieb Rob Herring:
+> On Sun, Jun 26, 2016 at 5:35 PM, Peter Rosin <peda@axentia.se> wrote:
+> > On 2016-06-24 19:50, Rob Herring wrote:
+> >> On Wed, Jun 22, 2016 at 09:07:15PM +0200, Karl-Heinz Schneider wrote:
+> >>> This patch adds device tree documentation for the sbs-manager
+> >
+> > *snip*
+> >
+> >>> +
+> >>> +From OS view the device is basically an i2c-mux used to communicate with up to
+> >>> +four smart battery devices at address 0xb. The driver actually implements this
+> >>> +behaviour. So standard i2c-mux nodes can be used to register up to four slave
+> >>> +batteries. Channels will be numerated as 1, 2, 4 and 8.
+> >>> +
+> >>> +Example:
+> >>> +
+> >>> +batman@0a {
+> >>> +    compatible = "sbs,sbs-manager";
+> >>> +    reg = <0x0a>;
+> >>> +    sbsm,i2c-retry-count = <3>;
+> >>> +    #address-cells = <1>;
+> >>> +    #size-cells = <0>;
+> >>> +
+> >>> +    channel1@1 {
+> >>
+> >> channel@1
+> >>
+> >> Do we have a standard node name for mux nodes? If not, we should.
+> >
+> > No name is enforced by the i2c mux support code, but I think "i2c"
+> > dominates, and quite possibly it is the only documented name?
 > 
-> That works for me.
+> The kernel generally doesn't care what node names are, but standard
+> naming is convention. If "i2c" is most common, then go with that.
+Will do so. 
 
-OK, let's do that, then.
+"channelx" will go "i2c"
+"batteryx" will go "battery"
+> 
+> Rob
 
-Thanks,
-Rafael
+Karl-Heinz
+
+
