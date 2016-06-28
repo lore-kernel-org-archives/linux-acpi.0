@@ -1,123 +1,81 @@
-From: joeyli <jlee-IBi9RG/b67k@public.gmane.org>
-Subject: Re: [PATCH v3] acpi, nfit: treat volatile virtual CD region as pmem
-Date: Tue, 28 Jun 2016 07:09:26 +0800
-Message-ID: <20160627230926.GL3573@linux-rxt1.site>
-References: <1467009960-20580-1-git-send-email-jlee@suse.com>
- <CAPcyv4hknQyYAT3PjsLTuPEwd=+ZbkF6ndsVJaG28TUPwJVxzQ@mail.gmail.com>
+From: Phil Reid <preid@electromag.com.au>
+Subject: Re: [PATCH 1/2] Documentation: Add sbs-manager device tree node
+ documentation
+Date: Tue, 28 Jun 2016 09:13:21 +0800
+Message-ID: <a91f060f-15bf-9506-067e-7e96cb726458@electromag.com.au>
+References: <1466622436-27963-1-git-send-email-karl-heinz@schneider-inet.de>
+ <1466622436-27963-2-git-send-email-karl-heinz@schneider-inet.de>
+ <20160624175014.GA29990@rob-hp-laptop>
+ <9ccbeeb9-3612-fe07-3396-48da7c832bc6@electromag.com.au>
+ <CAL_JsqL38hnQpchy8q+yk1rZQ1ngF4JUwFgN0V=mGyAyAq1GVg@mail.gmail.com>
+ <1467061824.9121.33.camel@amnesix>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset=utf-8; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <CAPcyv4hknQyYAT3PjsLTuPEwd=+ZbkF6ndsVJaG28TUPwJVxzQ-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
-List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
- <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
-List-Post: <mailto:linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-List-Help: <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
- <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
-Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
-Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-To: Dan Williams <dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: "linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org" <linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>, "Rafael J. Wysocki" <rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org>, "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux ACPI <linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "Lee,
- Chun-Yi" <joeyli.kernel-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Gary Lin <GLin-IBi9RG/b67k@public.gmane.org>
+Return-path: <linux-i2c-owner@vger.kernel.org>
+In-Reply-To: <1467061824.9121.33.camel@amnesix>
+Sender: linux-i2c-owner@vger.kernel.org
+To: Karl-Heinz Schneider <karl-heinz@schneider-inet.de>, Rob Herring <robh@kernel.org>
+Cc: "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, "linux-pm@vger.kernel.org" <linux-pm@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-i2c@vger.kernel.org" <linux-i2c@vger.kernel.org>, Mark Rutland <mark.rutland@arm.com>, Sebastian Reichel <sre@kernel.org>, Dmitry Eremin-Solenikov <dbaryshkov@gmail.com>, David Woodhouse <dwmw2@infradead.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Peter Rosin <peda@axentia.se>
 List-Id: linux-acpi@vger.kernel.org
 
-On Mon, Jun 27, 2016 at 10:34:32AM -0700, Dan Williams wrote:
-> On Sun, Jun 26, 2016 at 11:46 PM, Lee, Chun-Yi <joeyli.kernel-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org> wrote:
-> > This patch adds logic to treat volatile virtual CD region as pmem
-> > region, then /dev/pmem* device can be mounted with iso9660.
-> >
-> > It's useful to work with the httpboot in EFI firmware to pull a remote
-> > ISO file to the local memory region for booting and installation.
-> >
-> > Wiki page of UEFI HTTPBoot with OVMF:
-> >         https://en.opensuse.org/UEFI_HTTPBoot_with_OVMF
-> >
-> > The ramdisk function in EDK2/OVMF generates a ACPI0012 root device that
-> > it contains empty _STA but without _DSM:
-> >
-> > DefinitionBlock ("ssdt2.aml", "SSDT", 2, "INTEL ", "RamDisk ", 0x00001000)
-> > {
-> >     Scope (\_SB)
-> >     {
-> >         Device (NVDR)
-> >         {
-> >             Name (_HID, "ACPI0012")  // _HID: Hardware ID
-> >             Name (_STR, Unicode ("NVDIMM Root Device"))  // _STR: Description String
-> >             Method (_STA, 0, NotSerialized)  // _STA: Status
-> >             {
-> >                 Return (0x0F)
-> >             }
-> >         }
-> >     }
-> > }
-> >
-> > In section 5.2.25.2 of ACPI 6.1 spec, it mentions that the "SPA Range
-> > Structure Index" of VCD SPA shall be set to zero. That means VCD SPA
-> > will not be associated by any NVDIMM region mapping.
-> >
-> > The VCD's SPA Range Structure in NFIT is similar to virtual disk region
-> > as following:
-> >
-> > [028h 0040   2]                Subtable Type : 0000 [System Physical Address Range]
-> > [02Ah 0042   2]                       Length : 0038
-> >
-> > [02Ch 0044   2]                  Range Index : 0000
-> > [02Eh 0046   2]        Flags (decoded below) : 0000
-> >                    Add/Online Operation Only : 0
-> >                       Proximity Domain Valid : 0
-> > [030h 0048   4]                     Reserved : 00000000
-> > [034h 0052   4]             Proximity Domain : 00000000
-> > [038h 0056  16]           Address Range GUID : 77AB535A-45FC-624B-5560-F7B281D1F96E
-> > [048h 0072   8]           Address Range Base : 00000000B6ABD018
-> > [050h 0080   8]         Address Range Length : 0000000005500000
-> > [058h 0088   8]         Memory Map Attribute : 0000000000000000
-> >
-> > The way to not associate a SPA range is to never reference it from a "flush hint",
-> > "interleave", or "control region" table.
-> >
-> > After testing on OVMF, pmem driver can support the region that it doesn't
-> > assoicate to any NVDIMM mapping. So, treat VCD like pmem is a idea to get
-> > a pmem block device that it contains iso.
-> >
-> > v3:
-> > To simplify patch, removed VCD region in libnvdimm.
-> >
-> > v2:
-> > Removed the code for setting VCD to a read-only region.
-> >
-> > Cc: Gary Lin <GLin-IBi9RG/b67k@public.gmane.org>
-> > Cc: Dan Williams <dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-> > Cc: Ross Zwisler <ross.zwisler-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
-> > Cc: "Rafael J. Wysocki" <rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org>
-> > Cc: Linda Knippers <linda.knippers-ZPxbGqLxI0U@public.gmane.org>
-> > Signed-off-by: Lee, Chun-Yi <jlee-IBi9RG/b67k@public.gmane.org>
-> > ---
-> >  drivers/acpi/nfit.c          |  8 +++++++-
-> >  drivers/nvdimm/region_devs.c | 26 +++++++++++++++++++++++++-
-> >  include/linux/libnvdimm.h    |  2 ++
-> >  3 files changed, 34 insertions(+), 2 deletions(-)
-> >
-> > Index: linux/drivers/acpi/nfit.c
-> > ===================================================================
-> > --- linux.orig/drivers/acpi/nfit.c
-> > +++ linux/drivers/acpi/nfit.c
-> > @@ -1995,7 +1995,7 @@ static int acpi_nfit_register_region(str
-> >         if (nfit_spa->nd_region)
-> >                 return 0;
-> >
-> > -       if (spa->range_index == 0) {
-> > +       if (spa->range_index == 0 && nfit_spa_type(spa) != NFIT_SPA_VCD) {
-> >                 dev_dbg(acpi_desc->dev, "%s: detected invalid spa index\n",
-> >                                 __func__);
-> 
-> If we're adding the special casing might as well add it for all
-> "virtual spa" tables.  I.e. introduce nfit_spa_is_virtual() and have
-> it check for: NFIT_SPA_VDISK, NFIT_SPA_VCD, NFIT_SPA_PDISK, and
-> NFIT_SPA_PCD.
+G'day Rob,
 
-Thanks for your suggestion. I will update and send version four.
+On 28/06/2016 05:10, Karl-Heinz Schneider wrote:
+> Am Sonntag, den 26.06.2016, 09:05 -0500 schrieb Rob Herring:
+>> On Sun, Jun 26, 2016 at 12:21 AM, Phil Reid <preid@electromag.com.au> wrote:
 
-Joey Lee
+*Snip*
+
+
+>>>>> +- reg: integer, i2c address of the device. Should be <0xa>.
+>>>>> +
+>>>>> +Optional properties:
+>>>>> +- sbsm,i2c-retry-count: integer, number of retries for trying to read or
+>>>>> write
+>>>>> +    to registers. Default: 1
+>>>>
+>>>>
+>>>> Seems like a driver setting. Is having a retry in the driver a problem
+>>>> if the h/w works and never actually needs it?
+>>>
+>>> Similarly the sbs-battery driver specifies the same same retry behaviour.
+>>> And is a model for this implementation.
+>>>
+>>> I've found the ltc1760 and sbs batteries to be problematic when
+>>> communicating to them.
+>>> A lot of drivers (and the associated hardware) don't handle multiple bus
+>>> masters well.
+>>> The bus arbitation doesn't seem to work correctly.
+>>> Retries where the only thing I could do to to get things to work reliably.
+>>> Mostly means the driver needs fixing, but in one case the designware core
+>>> hardware seemed to be the problem for me.
+>>
+>> I'm not questioning the need for a retry. I'm questioning the need to
+>> limit the retries and tune per platform. What would be the issue if
+>> the driver hardcodes the number of retries to 10? This will work for
+>> any h/w that needs 0, 1, 2, ..., or 10 retries. The only issue would
+>> be how long until it errors out.
+>>
+>> And yes, I can confirm DW i2c h/w is a POS at least for some versions.
+>>
+
+So your suggesting we hardcode the retry value in the driver and not provide a
+configuration option in the binding?
+My only thought with allowing a dt setitng to customise the value is it allows the
+integrator to select how many retires they want to try before failing, which kind of
+limits the elapse time until a failure is reported.
+
+
+-- 
+Regards
+Phil Reid
+
+ElectroMagnetic Imaging Technology Pty Ltd
+Development of Geophysical Instrumentation & Software
+www.electromag.com.au
+
+3 The Avenue, Midland WA 6056, AUSTRALIA
+Ph: +61 8 9250 8100
+Fax: +61 8 9250 7100
+Email: preid@electromag.com.au
