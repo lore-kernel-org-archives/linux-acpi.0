@@ -1,42 +1,39 @@
 From: Tomasz Nowicki <tn@semihalf.com>
-Subject: [RFC PATCH v4 0/5] ECAM quirks handling for ARM64 platforms
-Date: Tue, 28 Jun 2016 09:53:57 +0200
-Message-ID: <1467100442-28078-1-git-send-email-tn@semihalf.com>
-Return-path: <linux-pci-owner@vger.kernel.org>
-Sender: linux-pci-owner@vger.kernel.org
+Subject: [RFC PATCH v4 4/5] ARM64/PCI: Start using quirks handling for ACPI based PCI host controller
+Date: Tue, 28 Jun 2016 09:54:01 +0200
+Message-ID: <1467100442-28078-5-git-send-email-tn@semihalf.com>
+References: <1467100442-28078-1-git-send-email-tn@semihalf.com>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1467100442-28078-1-git-send-email-tn@semihalf.com>
+Sender: linux-kernel-owner@vger.kernel.org
 To: helgaas@kernel.org, arnd@arndb.de, will.deacon@arm.com, catalin.marinas@arm.com, rafael@kernel.org, hanjun.guo@linaro.org, Lorenzo.Pieralisi@arm.com, okaya@codeaurora.org, jchandra@broadcom.com
 Cc: robert.richter@caviumnetworks.com, mw@semihalf.com, Liviu.Dudau@arm.com, ddaney@caviumnetworks.com, wangyijing@huawei.com, msalter@redhat.com, linux-pci@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linaro-acpi@lists.linaro.org, jcm@redhat.com, andrea.gallo@linaro.org, dhdang@apm.com, jeremy.linton@arm.com, liudongdong3@huawei.com, cov@codeaurora.org, gabriele.paoloni@huawei.com, jhugo@codeaurora.org, Tomasz Nowicki <tn@semihalf.com>
 List-Id: linux-acpi@vger.kernel.org
 
-Quirk handling relies on an idea of matching MCFG OEM ID, TABLE ID and
-revision (the ones from standard header of MCFG table).
+Since there are platforms which have non-compliant ECAM space we need to
+override these accessors prior to PCI buses enumeration. In order to do
+that we call pci_mcfg_match_quirks() to retrieve custom
+pci_config_window structure. If no correlated quirk on list, use
+fully ECAM compliant generic PCI config accessors.
 
-Static array is used to keep quirk entries. Each entry consist of
-metioned MCFG IDs along with custom pci_ops structure and initialization call.
+Signed-off-by: Tomasz Nowicki <tn@semihalf.com>
+---
+ arch/arm64/kernel/pci.c | 3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
-As an example, last patch presents quirk handling mechanism usage for
-ThunderX PEM driver.
-
-Tomasz Nowicki (5):
-  PCI: Embed pci_ecam_ops in pci_config_window structure
-  PCI/ACPI: Move ACPI ECAM mapping to generic MCFG driver
-  PCI: Check platform specific ECAM quirks
-  ARM64/PCI: Start using quirks handling for ACPI based PCI host
-    controller
-  PCI: thunder: Add ThunderX PEM MCFG quirk to the list
-
- arch/arm64/kernel/pci.c            | 42 +----------------
- drivers/acpi/pci_mcfg.c            | 40 ++++++++++++++++
- drivers/pci/ecam.c                 |  6 +--
- drivers/pci/host/Makefile          |  1 +
- drivers/pci/host/mcfg-quirks.c     | 95 +++++++++++++++++++++++++++++++++++++
- drivers/pci/host/mcfg-quirks.h     | 24 ++++++++++
- drivers/pci/host/pci-thunder-pem.c | 96 ++++++++++++++++++++++++++++++++------
- include/linux/pci-acpi.h           |  5 ++
- include/linux/pci-ecam.h           |  2 +-
- 9 files changed, 254 insertions(+), 57 deletions(-)
- create mode 100644 drivers/pci/host/mcfg-quirks.c
- create mode 100644 drivers/pci/host/mcfg-quirks.h
-
+diff --git a/arch/arm64/kernel/pci.c b/arch/arm64/kernel/pci.c
+index addf00c..ef142b8 100644
+--- a/arch/arm64/kernel/pci.c
++++ b/arch/arm64/kernel/pci.c
+@@ -152,8 +152,7 @@ struct pci_bus *pci_acpi_scan_root(struct acpi_pci_root *root)
+ 	if (!ri)
+ 		return NULL;
+ 
+-	ri->cfg = pci_acpi_setup_ecam_mapping(root,
+-					      &pci_generic_ecam_ops.pci_ops);
++	ri->cfg = pci_mcfg_match_quirks(root);
+ 	if (!ri->cfg) {
+ 		kfree(ri);
+ 		return NULL;
 -- 
 1.9.1
