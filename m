@@ -1,82 +1,64 @@
-From: Rob Herring <robh@kernel.org>
-Subject: Re: [PATCH 1/2] Documentation: Add sbs-manager device tree node
- documentation
-Date: Tue, 28 Jun 2016 15:54:56 -0500
-Message-ID: <20160628205456.GB3737@rob-hp-laptop>
-References: <1466622436-27963-1-git-send-email-karl-heinz@schneider-inet.de>
- <1466622436-27963-2-git-send-email-karl-heinz@schneider-inet.de>
- <20160624175014.GA29990@rob-hp-laptop>
- <9ccbeeb9-3612-fe07-3396-48da7c832bc6@electromag.com.au>
- <CAL_JsqL38hnQpchy8q+yk1rZQ1ngF4JUwFgN0V=mGyAyAq1GVg@mail.gmail.com>
- <1467061824.9121.33.camel@amnesix>
- <a91f060f-15bf-9506-067e-7e96cb726458@electromag.com.au>
+From: "Hart, Darren" <darren.hart@intel.com>
+Subject: Re: [RFC DSD 01/03] _DSD Property Registration Ruleset
+Date: Tue, 28 Jun 2016 23:08:15 +0000
+Message-ID: <6720ED6D-9AE9-4D1A-AED1-0741B528F235@intel.com>
+References: <63241a35-9b6b-f0ea-8de7-f278b7bdfe8a@redhat.com>
+ <5702848a-c97a-503a-eacb-a755f1089262@redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-qk0-f195.google.com ([209.85.220.195]:34995 "EHLO
-	mail-qk0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752466AbcF1UzF (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 28 Jun 2016 16:55:05 -0400
-Content-Disposition: inline
-In-Reply-To: <a91f060f-15bf-9506-067e-7e96cb726458@electromag.com.au>
+Received: from mga09.intel.com ([134.134.136.24]:32409 "EHLO mga09.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752449AbcF1XIT (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 28 Jun 2016 19:08:19 -0400
+In-Reply-To: <5702848a-c97a-503a-eacb-a755f1089262@redhat.com>
+Content-Language: en-US
+Content-ID: <66FC5BB4C15C8B438CA52B41C4A5C4A9@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Phil Reid <preid@electromag.com.au>
-Cc: Karl-Heinz Schneider <karl-heinz@schneider-inet.de>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, "linux-pm@vger.kernel.org" <linux-pm@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-i2c@vger.kernel.org" <linux-i2c@vger.kernel.org>, Mark Rutland <mark.rutland@arm.com>, Sebastian Reichel <sre@kernel.org>, Dmitry Eremin-Solenikov <dbaryshkov@gmail.com>, David Woodhouse <dwmw2@infradead.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Peter Rosin <peda@axentia.se>
+To: "ahs3@redhat.com" <ahs3@redhat.com>, ACPI Devel Mailing List <linux-acpi@vger.kernel.org>
+Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Charles Garcia-Tobin <Charles.Garcia-Tobin@arm.com>
 
-On Tue, Jun 28, 2016 at 09:13:21AM +0800, Phil Reid wrote:
-> G'day Rob,
-> 
-> On 28/06/2016 05:10, Karl-Heinz Schneider wrote:
-> >Am Sonntag, den 26.06.2016, 09:05 -0500 schrieb Rob Herring:
-> >>On Sun, Jun 26, 2016 at 12:21 AM, Phil Reid <preid@electromag.com.au> wrote:
-> 
-> *Snip*
-> 
-> 
-> >>>>>+- reg: integer, i2c address of the device. Should be <0xa>.
-> >>>>>+
-> >>>>>+Optional properties:
-> >>>>>+- sbsm,i2c-retry-count: integer, number of retries for trying to read or
-> >>>>>write
-> >>>>>+    to registers. Default: 1
-> >>>>
-> >>>>
-> >>>>Seems like a driver setting. Is having a retry in the driver a problem
-> >>>>if the h/w works and never actually needs it?
-> >>>
-> >>>Similarly the sbs-battery driver specifies the same same retry behaviour.
-> >>>And is a model for this implementation.
-> >>>
-> >>>I've found the ltc1760 and sbs batteries to be problematic when
-> >>>communicating to them.
-> >>>A lot of drivers (and the associated hardware) don't handle multiple bus
-> >>>masters well.
-> >>>The bus arbitation doesn't seem to work correctly.
-> >>>Retries where the only thing I could do to to get things to work reliably.
-> >>>Mostly means the driver needs fixing, but in one case the designware core
-> >>>hardware seemed to be the problem for me.
-> >>
-> >>I'm not questioning the need for a retry. I'm questioning the need to
-> >>limit the retries and tune per platform. What would be the issue if
-> >>the driver hardcodes the number of retries to 10? This will work for
-> >>any h/w that needs 0, 1, 2, ..., or 10 retries. The only issue would
-> >>be how long until it errors out.
-> >>
-> >>And yes, I can confirm DW i2c h/w is a POS at least for some versions.
-> >>
-> 
-> So your suggesting we hardcode the retry value in the driver and not provide a
-> configuration option in the binding?
-
-Yes.
-
-> My only thought with allowing a dt setitng to customise the value is it allows the
-> integrator to select how many retires they want to try before failing, which kind of
-> limits the elapse time until a failure is reported.
-
-It is easier to add later and can't be removed later. If we do want 
-something like this, then it should be a common property for i2c 
-devices/buses.
-
-Rob
+VGhhbmtzIEFsLA0KDQpPbiA2LzI4LzE2LCAxOjA3IFBNLCAiQWwgU3RvbmUiIDxhaHMzQHJlZGhh
+dC5jb20+IHdyb3RlOg0KDQrigKYNCg0KPjguIEltbXV0YWJpbGl0eSBvZiBSZWdpc3RlcmVkIFBy
+b3BlcnR5IFNldCBEZWZpbml0aW9ucw0KPi0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
+LS0tLS0tLS0tLS0tLS0tLS0tLS0tLQ0KPkFsbCBwcm9wZXJ0eSBzZXQgZGVmaW5pdGlvbnMsIG9u
+Y2UgcmVnaXN0ZXJlZCBhbmQgaW4gdGhlIGRhdGFiYXNlIFsyXSwNCj5hcmUgaW1tdXRhYmxlLiBJ
+dCBpcyBub3QgcG9zc2libGUgdG8gcmVtb3ZlIGV4aXN0aW5nIGNvbnRlbnQgZnJvbSB0aGUNCj5k
+YXRhYmFzZSBvciB0byBtb2RpZnkgYW55IG9mIGl0IGluIHBsYWNlLiAgSXQgb25seSBpcyBwb3Nz
+aWJsZSB0byBhZGQNCj5uZXcgY29udGVudC4NCj4NCj5UaGUgb25seSB3YXkgaW4gd2hpY2ggb25l
+IHByb3BlcnR5IHNldCBjYW4gYmUgc3VwZXJzZWRlZCBieSBhbm90aGVyIG9uZQ0KPmlzIHRvIHJl
+Z2lzdGVyIGEgbmV3IHJldmlzaW9uIG9mIHRoZSBwcm9wZXJ0eSBzZXQgaW4gcXVlc3Rpb24uDQo+
+DQo+TW9yZW92ZXIsIHdoZW4gY3JlYXRpbmcgYSBuZXcgcmV2aXNpb24gb2YgYSBwcm9wZXJ0eSBz
+ZXQsIGl0IGlzIGludmFsaWQNCj50byByZWRlZmluZSBwcm9wZXJ0eSBrZXlzICh0aGF0IGlzLCBh
+c3NvY2lhdGUgdGhlbSB3aXRoIGRpZmZlcmVudCBkYXRhDQo+dHlwZXMgb3IgZ2l2ZSB0aGVtIGRp
+ZmZlcmVudCBtZWFuaW5nKS4gIE5ldyByZXZpc2lvbnMgY2FuIG9ubHkgYWRkDQo+cHJvcGVydGll
+cyB0byB0aGUgc2V0IG9yIHJlbW92ZSB0aGVtIGZyb20gaXQuICBJZiBvbmUgb2YgdGhlIHByb3Bl
+cnRpZXMNCj5pbiB0aGUgY3VycmVudCAobW9zdCByZWNlbnQpIHJldmlzaW9uIG9mIGEgcHJvcGVy
+dHkgc2V0IGlzIHRvIGJlDQo+ZGVwcmVjYXRlZCBpbiB0aGUgbmV4dCByZXZpc2lvbiwgdGhlIGNv
+cnJlY3Qgd2F5IHRvIGRvIHRoYXQgaXMgdG8gcmVtb3ZlDQo+aXQgZnJvbSB0aGUgc2V0IGVudGly
+ZWx5IGFuZCBkZWZpbmUgYSBuZXcgcHJvcGVydHkgd2l0aCBhIG5ldyBrZXkgYXMgYQ0KPnJlcGxh
+Y2VtZW50IGZvciBpdC4NCj4NCj5JZiB0aGVyZSBhcmUgbXVsdGlwbGUgcmV2aXNpb25zIG9mIGEg
+cHJvcGVydHkgc2V0IHJlZ2lzdGVyZWQsIHBsYXRmb3JtDQo+ZmlybXdhcmUgaXMgcmVxdWlyZWQg
+dG8gcHJvdmlkZSBwcm9wZXJ0aWVzIGZyb20gdGhlIG1vc3QgcmVjZW50IG9uZS4NCj5Ib3dldmVy
+LCBmb3IgdGhlIHNha2Ugb2YgYmFja3dhcmRzIGNvbXBhdGliaWxpdHkgd2l0aCBleGlzdGluZyBP
+cGVyYXRpbmcNCj5TeXN0ZW1zLCBpdCBtYXkgYWxzbyBwcm92aWRlIHByb3BlcnRpZXMgdGhhdCBh
+cmUgbm90IHByZXNlbnQgaW4gdGhlIG1vc3QNCj5yZWNlbnQgcmV2aXNpb24gb2YgdGhlIHNldCwg
+YnV0IHdlcmUgcHJlc2VudCBpbiB0aGUgcHJldmlvdXMgcmV2aXNpb25zDQo+b2YgaXQuDQo+DQo+
+T3BlcmF0aW5nIFN5c3RlbXMgYXJlIHJlcXVpcmVkIHRvIHVzZSBwcm9wZXJ0aWVzIGZyb20gdGhl
+IG1vc3QgcmVjZW50DQo+cmV2aXNpb24gb2YgYSBwcm9wZXJ0eSBzZXQgdGhleSBhcmUgYXdhcmUg
+b2YuICBIb3dldmVyLCBpZiB0aG9zZQ0KPnByb3BlcnRpZXMgYXJlIG5vdCBwcm92aWRlZCBieSBw
+bGF0Zm9ybSBmaXJtd2FyZSwgdGhlIE9TIG1heSBmYWxsIGJhY2sNCj50byB1c2luZyBwcm9wZXJ0
+aWVzIGZyb20gdGhlIHByZXZpb3VzIHJldmlzaW9ucyBvZiB0aGUgcHJvcGVydHkgc2V0IHRoYXQN
+Cj5hcmUgbm90IHByZXNlbnQgaW4gdGhlIG1vc3QgcmVjZW50IG9uZS4NCg0KVGhlIHdvcmRpbmcg
+4oCc4oCmb3IgcmVtb3ZlIHRoZW0gZnJvbSBpdOKAnSBpcyBwcm9ibGVtYXRpYy4gSW4gb3JkZXIg
+dG8gZW5zdXJlIGJhY2t3YXJkIGNvbXBhdGliaWxpdHksIHdlIG5lZWQgdG8gZW5zdXJlIHRoYXQg
+bmV3IHJldmlzaW9ucyBkbyBub3QgcmVtb3ZlIHJlcXVpcmVkIHByb3BlcnRpZXMgZnJvbSBwcmV2
+aW91cyByZXZpc2lvbnMuDQoNClRoZSBnb2FsIGlzIGZvciBhbiBvbGRlciBPUy9kcml2ZXIgdGhh
+dCBvbmx5IGtub3dzIGFib3V0IHJldmlzaW9uIDEgdG8gY29udGludWUgdG8gZnVuY3Rpb24gd2l0
+aCByZXZpc2lvbiAyIGJ5IHVzaW5nIGFsbCB0aGUgcmVxdWlyZWQgZmllbGRzLCBhbmQgaWdub3Jp
+bmcgdGhlIGFkZGl0aW9uYWwgZmllbGRzIGFkZGVkIGJ5IGxhdGVyIHJldmlzaW9ucy4NCg0KSeKA
+mWQgcmVjb21tZW5kIHdlIHN0cmlrZSDigJwgb3IgcmVtb3ZlIHRoZW0gZnJvbSBpdOKAnSBmcm9t
+IHNlY3Rpb24gOC4NCg0KLS0gDQpEYXJyZW4gSGFydA0KSW50ZWwgT3BlbiBTb3VyY2UgVGVjaG5v
+bG9neSBDZW50ZXINCg0K
