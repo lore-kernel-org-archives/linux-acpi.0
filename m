@@ -1,132 +1,42 @@
-From: "Lee, Chun-Yi" <joeyli.kernel@gmail.com>
-Subject: [PATCH v4] acpi, nfit: treat virtual ramdisk SPA as pmem region
-Date: Tue, 28 Jun 2016 14:39:50 +0800
-Message-ID: <1467095990-6093-1-git-send-email-jlee@suse.com>
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-pa0-f68.google.com ([209.85.220.68]:34872 "EHLO
-	mail-pa0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750704AbcF1Gm6 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 28 Jun 2016 02:42:58 -0400
-Sender: linux-acpi-owner@vger.kernel.org
+From: Tomasz Nowicki <tn@semihalf.com>
+Subject: [RFC PATCH v4 0/5] ECAM quirks handling for ARM64 platforms
+Date: Tue, 28 Jun 2016 09:53:57 +0200
+Message-ID: <1467100442-28078-1-git-send-email-tn@semihalf.com>
+Return-path: <linux-pci-owner@vger.kernel.org>
+Sender: linux-pci-owner@vger.kernel.org
+To: helgaas@kernel.org, arnd@arndb.de, will.deacon@arm.com, catalin.marinas@arm.com, rafael@kernel.org, hanjun.guo@linaro.org, Lorenzo.Pieralisi@arm.com, okaya@codeaurora.org, jchandra@broadcom.com
+Cc: robert.richter@caviumnetworks.com, mw@semihalf.com, Liviu.Dudau@arm.com, ddaney@caviumnetworks.com, wangyijing@huawei.com, msalter@redhat.com, linux-pci@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linaro-acpi@lists.linaro.org, jcm@redhat.com, andrea.gallo@linaro.org, dhdang@apm.com, jeremy.linton@arm.com, liudongdong3@huawei.com, cov@codeaurora.org, gabriele.paoloni@huawei.com, jhugo@codeaurora.org, Tomasz Nowicki <tn@semihalf.com>
 List-Id: linux-acpi@vger.kernel.org
-To: Ross Zwisler <ross.zwisler@linux.intel.com>, Dan Williams <dan.j.williams@intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Linda Knippers <linda.knippers@hpe.com>
-Cc: linux-nvdimm@lists.01.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, "Lee, Chun-Yi" <jlee@suse.com>, Gary Lin <GLin@suse.com>
 
-This patch adds logic to treat virtual ramdisk SPA as pmem region, then
-ramdisk's /dev/pmem* device can be mounted with iso9660.
+Quirk handling relies on an idea of matching MCFG OEM ID, TABLE ID and
+revision (the ones from standard header of MCFG table).
 
-It's useful to work with the httpboot in EFI firmware to pull a remote
-ISO file to the local memory region for booting and installation.
+Static array is used to keep quirk entries. Each entry consist of
+metioned MCFG IDs along with custom pci_ops structure and initialization call.
 
-Wiki page of UEFI HTTPBoot with OVMF:
-	https://en.opensuse.org/UEFI_HTTPBoot_with_OVMF
+As an example, last patch presents quirk handling mechanism usage for
+ThunderX PEM driver.
 
-The ramdisk function in EDK2/OVMF generates a ACPI0012 root device that
-it contains empty _STA but without _DSM:
+Tomasz Nowicki (5):
+  PCI: Embed pci_ecam_ops in pci_config_window structure
+  PCI/ACPI: Move ACPI ECAM mapping to generic MCFG driver
+  PCI: Check platform specific ECAM quirks
+  ARM64/PCI: Start using quirks handling for ACPI based PCI host
+    controller
+  PCI: thunder: Add ThunderX PEM MCFG quirk to the list
 
-DefinitionBlock ("ssdt2.aml", "SSDT", 2, "INTEL ", "RamDisk ", 0x00001000)
-{
-    Scope (\_SB)
-    {
-        Device (NVDR)
-        {
-            Name (_HID, "ACPI0012")  // _HID: Hardware ID
-            Name (_STR, Unicode ("NVDIMM Root Device"))  // _STR: Description String
-            Method (_STA, 0, NotSerialized)  // _STA: Status
-            {
-                Return (0x0F)
-            }
-        }
-    }
-}
+ arch/arm64/kernel/pci.c            | 42 +----------------
+ drivers/acpi/pci_mcfg.c            | 40 ++++++++++++++++
+ drivers/pci/ecam.c                 |  6 +--
+ drivers/pci/host/Makefile          |  1 +
+ drivers/pci/host/mcfg-quirks.c     | 95 +++++++++++++++++++++++++++++++++++++
+ drivers/pci/host/mcfg-quirks.h     | 24 ++++++++++
+ drivers/pci/host/pci-thunder-pem.c | 96 ++++++++++++++++++++++++++++++++------
+ include/linux/pci-acpi.h           |  5 ++
+ include/linux/pci-ecam.h           |  2 +-
+ 9 files changed, 254 insertions(+), 57 deletions(-)
+ create mode 100644 drivers/pci/host/mcfg-quirks.c
+ create mode 100644 drivers/pci/host/mcfg-quirks.h
 
-In section 5.2.25.2 of ACPI 6.1 spec, it mentions that the "SPA Range
-Structure Index" of virtual SPA shall be set to zero. That means virtual SPA
-will not be associated by any NVDIMM region mapping.
-
-The VCD's SPA Range Structure in NFIT is similar to virtual disk region
-as following:
-
-[028h 0040   2]                Subtable Type : 0000 [System Physical Address Range]
-[02Ah 0042   2]                       Length : 0038
-
-[02Ch 0044   2]                  Range Index : 0000
-[02Eh 0046   2]        Flags (decoded below) : 0000
-                   Add/Online Operation Only : 0
-                      Proximity Domain Valid : 0
-[030h 0048   4]                     Reserved : 00000000
-[034h 0052   4]             Proximity Domain : 00000000
-[038h 0056  16]           Address Range GUID : 77AB535A-45FC-624B-5560-F7B281D1F96E
-[048h 0072   8]           Address Range Base : 00000000B6ABD018
-[050h 0080   8]         Address Range Length : 0000000005500000
-[058h 0088   8]         Memory Map Attribute : 0000000000000000
-
-The way to not associate a SPA range is to never reference it from a "flush hint",
-"interleave", or "control region" table.
-
-After testing on OVMF, pmem driver can support the region that it doesn't
-assoicate to any NVDIMM mapping. So, treat VCD like pmem is a idea to get
-a pmem block device that it contains iso. 
-
-v4:
-Instoduce nfit_spa_is_virtual() to check virtual ramdisk SPA and create
-pmem region.
-
-v3:
-To simplify patch, removed useless VCD region in libnvdimm.
- 
-v2:
-Removed the code for setting VCD to a read-only region.
-
-Cc: Gary Lin <GLin@suse.com>
-Cc: Dan Williams <dan.j.williams@intel.com>
-Cc: Ross Zwisler <ross.zwisler@linux.intel.com>
-Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: Linda Knippers <linda.knippers@hpe.com>
-Signed-off-by: Lee, Chun-Yi <jlee@suse.com>
----
- drivers/acpi/nfit.c          |  8 +++++++-
- drivers/nvdimm/region_devs.c | 26 +++++++++++++++++++++++++-
- include/linux/libnvdimm.h    |  2 ++
- 3 files changed, 34 insertions(+), 2 deletions(-)
-
-Index: linux/drivers/acpi/nfit.c
-===================================================================
---- linux.orig/drivers/acpi/nfit.c
-+++ linux/drivers/acpi/nfit.c
-@@ -1980,6 +1980,14 @@ static int acpi_nfit_init_mapping(struct
- 	return 0;
- }
- 
-+static bool nfit_spa_is_virtual(struct acpi_nfit_system_address *spa)
-+{
-+	return (nfit_spa_type(spa) == NFIT_SPA_VDISK ||
-+		nfit_spa_type(spa) == NFIT_SPA_VCD   ||
-+		nfit_spa_type(spa) == NFIT_SPA_PDISK ||
-+		nfit_spa_type(spa) == NFIT_SPA_PCD);
-+}
-+
- static int acpi_nfit_register_region(struct acpi_nfit_desc *acpi_desc,
- 		struct nfit_spa *nfit_spa)
- {
-@@ -1995,7 +2003,7 @@ static int acpi_nfit_register_region(str
- 	if (nfit_spa->nd_region)
- 		return 0;
- 
--	if (spa->range_index == 0) {
-+	if (spa->range_index == 0 && !nfit_spa_is_virtual(spa)) {
- 		dev_dbg(acpi_desc->dev, "%s: detected invalid spa index\n",
- 				__func__);
- 		return 0;
-@@ -2059,6 +2067,11 @@ static int acpi_nfit_register_region(str
- 				ndr_desc);
- 		if (!nfit_spa->nd_region)
- 			rc = -ENOMEM;
-+	} else if (nfit_spa_is_virtual(spa)) {
-+		nfit_spa->nd_region = nvdimm_pmem_region_create(nvdimm_bus,
-+				ndr_desc);
-+		if (!nfit_spa->nd_region)
-+			rc = -ENOMEM;
- 	}
- 
-  out:
+-- 
+1.9.1
