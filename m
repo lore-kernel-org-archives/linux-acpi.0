@@ -1,147 +1,196 @@
-From: Jerry Hoemann <jerry.hoemann-ZPxbGqLxI0U@public.gmane.org>
-Subject: Re: [PATCH] acpi, nfit: fix acpi_check_dsm() vs zero functions
- implemented
-Date: Tue, 28 Jun 2016 09:31:24 -0600
-Message-ID: <20160628153124.GB82133@tevye.fc.hp.com>
-References: <146679026571.24395.11569929364936343871.stgit@dwillia2-desk3.amr.corp.intel.com>
- <bd2353c0-0d84-3c0a-8117-3f24b823f469@hpe.com>
- <CAPcyv4iELmJ9vDD7-juYOP4a6P51UFd49OUwreeofsXX7eHzCg@mail.gmail.com>
- <b877a201-6b62-43c6-17f8-dcaf5961cbb0@hpe.com>
- <CAPcyv4gWC4cND_+DUi_gjMpy2NLhNdhEfhwHjQ7x0AhKR0K7Vg@mail.gmail.com>
- <57724569.6020609@linux.intel.com>
-Reply-To: Jerry.Hoemann-ZPxbGqLxI0U@public.gmane.org
+From: "Prakash, Prashanth" <pprakash@codeaurora.org>
+Subject: Re: [PATCH] ACPI/CPPC: Support for batching CPPC requests
+Date: Tue, 28 Jun 2016 09:53:08 -0600
+Message-ID: <6f15a12a-f4f5-e8e9-4652-962b79291a46@codeaurora.org>
+References: <1463441951-13207-1-git-send-email-pprakash@codeaurora.org>
+ <20160526220234.GA26524@arm.com>
+ <CAFHUOYyi4k5JuP5unxKyYH=tdxBE1BNm7zW9cjQchcnrmFNg9A@mail.gmail.com>
+ <aee2936a-a9ec-d594-3f62-19de3ab1a38a@codeaurora.org>
+ <CAFHUOYztBoB=_AbD3GVnbeZGqTn1y3rbHMxUzSdcbdHVo=-jxA@mail.gmail.com>
+ <1b3e7901-845d-0652-cc03-8ef6c35ec8fc@codeaurora.org>
+ <CAFHUOYyP4AdmdCiXMaJDeBaiA7qdT6V2kF_oGvvuwOix1uoebA@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <57724569.6020609-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
-List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
- <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
-List-Post: <mailto:linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-List-Help: <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
- <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
-Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
-Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-To: Xiao Guangrong <guangrong.xiao-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
-Cc: "linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org" <linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>, "Rafael J. Wysocki" <rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org>, Linux ACPI <linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Len Brown <lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from smtp.codeaurora.org ([198.145.29.96]:57532 "EHLO
+	smtp.codeaurora.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751944AbcF1PxM (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 28 Jun 2016 11:53:12 -0400
+In-Reply-To: <CAFHUOYyP4AdmdCiXMaJDeBaiA7qdT6V2kF_oGvvuwOix1uoebA@mail.gmail.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Hoan Tran <hotran@apm.com>
+Cc: Alexey Klimov <alexey.klimov@arm.com>, linux acpi <linux-acpi@vger.kernel.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Ashwin Chaugule <ashwin.chaugule@linaro.org>
 
-On Tue, Jun 28, 2016 at 05:37:45PM +0800, Xiao Guangrong wrote:
-> 
-> 
-> On 06/28/2016 02:58 AM, Dan Williams wrote:
-> > On Mon, Jun 27, 2016 at 11:47 AM, Linda Knippers <linda.knippers-ZPxbGqLxI0U@public.gmane.org> wrote:
-> > > 
-> > > 
-> > > On 6/27/2016 2:06 PM, Dan Williams wrote:
-> > > > On Mon, Jun 27, 2016 at 10:40 AM, Linda Knippers <linda.knippers-ZPxbGqLxI0U@public.gmane.org> wrote:
-> > > > > 
-> > > > > On 6/24/2016 1:44 PM, Dan Williams wrote:
-> > > > > > QEMU 2.6 implements nascent support for nvdimm DSMs. Depending on
-> > > > > > configuration it may only implement the function0 dsm to indicate that
-> > > > > > no other DSMs are available. Commit 31eca76ba2fc "nfit, libnvdimm:
-> > > > > > limited/whitelisted dimm command marshaling mechanism" breaks QEMU, but
-> > > > > > QEMU is spec compliant.  Per the spec the way to indicate that no
-> > > > > > functions are supported is:
-> > > > > > 
-> > > > > >      If Function Index is zero, the return is a buffer containing one bit
-> > > > > >      for each function index, starting with zero. Bit 0 indicates whether
-> > > > > >      there is support for any functions other than function 0 for the
-> > > > > >      specified UUID and Revision ID. If set to zero, no functions are
-> > > > > >      supported (other than function zero) for the specified UUID and
-> > > > > >      Revision ID.
-> > > > > 
-> > > > > The rest of that paragraph is:
-> > > > > 
-> > > > > If set to one, at least one additional function is supported. For all other bits
-> > > > > in the buffer, a bit is set to zero to indicate if that function index is not
-> > > > > supported for the specific UUID and Revision ID. (For example, bit 1 set to 0
-> > > > > indicates that function index 1 is not supported for the specific UUID and
-> > > > > Revision ID.)
-> > > > > 
-> > > > > > 
-> > > > > > Update the nfit driver to determine the family (interface UUID) without
-> > > > > > requiring the implementation to define any other functions, i.e.
-> > > > > > short-circuit acpi_check_dsm() to succeed per the spec.  The nfit driver
-> > > > > > appears to be the only user passing funcs==0 to acpi_check_dsm(), so
-> > > > > > this behavior change of the common routine should be limited to the
-> > > > > > probing done by the nfit driver.
-> > > > > 
-> > > > > I don't understand why we're special casing this to support QEMU only when
-> > > > > there are no DSM functions supported.  If we want to implement the
-> > > > > spec and support function zero, I think we should support it correctly.
-> > > > > That means returning the correct value for all spec compliant callers,
-> > > > > even when there are functions that are supported.
-> > > > 
-> > > > QEMU 2.6 already shipped, so whatever we do we should not regress
-> > > > those binaries.  The QEMU behavior could be argued as not spec
-> > > > compliant, but they've implemented enough of function0 to answer the
-> > > > "which family" probe.
-> > > 
-> > > How would you argue that?
-> > 
-> > acpi_evaluate_dsm() returns data instead of an error.
-> > 
-> > > > Yes, if an implementation supports function0 it
-> > > > should say so in the returned bitmask,
-> > > 
-> > > But in other places you explicitly prevent function 0 from
-> > > being executed.
-> > 
-> > Right, for the whitelist-filtered result to userspace, but this patch
-> > is about the initial kernel probe.
-> > 
-> > > > but by the time we've
-> > > > determined that function0 is "not supported" we've already
-> > > > successfully executed a function0 request.
-> > > 
-> > > If they advertise a _DSM, I think they have to support function 0.
-> > 
-> > They should, but didn't.  Kernel v4.6 works with qemu 2.6, kernel v4.7
-> > does not, so the kernel needs to be fixed.
-> > 
-> 
-> Sorry.
-> 
-> I do not know why you guys think QEMU does not support function 0. It
-> already returns 0 to indicates "no functions are supported
-> (other than function zero)".
-> 
+Hi Hoan/Alexey,
 
-  The currently upstream version of acpi_check_dsm doesn't handle this
-  case,  it assumes at least one function other than zero is also being
-  returned (as it assumes bit 0 is set.)
+Based on your inputs, I have updated the patch to use a rw_semaphore and
+introduced a wait_q for the threads whose request gets batched. The thread that
+rings the doorbell will wake up all other threads. That way we can make sure the
+POSTCHANGE notification happens only after triggering the doorbell, while allowing
+us to support batching with or without completion interrupts.
 
-  Instead of the proposed change we should have something like:
+I have few other cppc related patches, so I am planning to pull this one into
+that patch set and post it.
 
-index 22c0995..3ecf462 100644
---- a/drivers/acpi/utils.c
-+++ b/drivers/acpi/utils.c
-@@ -702,6 +702,9 @@ bool acpi_check_dsm(acpi_handle handle, const u8 *uuid, u64 rev, u64 funcs)
-        if ((mask & 0x1) && (mask & funcs) == funcs)
-                return true;
- 
-+       if ((mask == 0) && (funcs == 1))
-+               return true;
-+
-        return false;
- }
- EXPORT_SYMBOL(acpi_check_dsm);
+Thanks,
+Prashanth
 
-
-> 
-> 
-> 
+On 6/10/2016 3:45 PM, Hoan Tran wrote:
+> Hi Prashanth,
+>
+> On Fri, Jun 10, 2016 at 2:22 PM, Prakash, Prashanth
+> <pprakash@codeaurora.org> wrote:
+>> Hi Hoan,
+>>
+>> On 6/9/2016 8:25 PM, Hoan Tran wrote:
+>>> Hi Prashanth,
+>>>
+>>> On Thu, Jun 9, 2016 at 3:46 PM, Prakash, Prashanth
+>>> <pprakash@codeaurora.org> wrote:
+>>>> Hi Hoan,
+>>>>
+>>>>
+>>>> On 6/9/2016 11:22 AM, Hoan Tran wrote:
+>>>>> Hi Prashanth,
+>>>>>
+>>>>> On Thu, May 26, 2016 at 3:02 PM, Alexey Klimov <alexey.klimov@arm.com> wrote:
+>>>>>> On Tue, May 17, 2016 at 12:39 AM, Prashanth Prakash <pprakash@codeaurora.org> wrote:
+>>>>>>> CPPC defined in section 8.4.7 of ACPI 6.1 specification suggests
+>>>>>>> "To amortize the cost of PCC transactions, OSPM should read or write
+>>>>>>> all PCC registers via a single read or write command when possible"
+>>>>>>> This patch enables opportunistic batching of frequency transition
+>>>>>>> requests whenever the request happen to overlap in time.
+>>>>>>>
+>>>>>>> Currently the access to pcc is serialized by a spin lock which does
+>>>>>>> not scale well as we increase the number of cores in the system. This
+>>>>>>> patch improves the scalability by allowing the differnt CPU cores to
+>>>>>>> update PCC subspace in parallel and by batching requests which will
+>>>>>>> reduce certain types of operation(checking command completion bit,
+>>>>>>> ringing doorbell) by a significant margin.
+>>>>>>>
+>>>>>>> Profiling shows significant improvement in the time to service freq.
+>>>>>>> transition request. Using a workload which includes multiple iteration
+>>>>>>> of configure+make of vim (with -j24 option):
+>>>>>>> Without batching requests(without this patch),
+>>>>>>>         6 domains: Avg=20us/request; 24 domains: Avg=52us/request
+>>>>>>> With batching requests(with this patch),
+>>>>>>>         6 domains: Avg=16us/request; 24 domains: Avg=19us/request
+>>>>>>> domain: An individual cpu or a set of related CPUs whose frequency can
+>>>>>>> be scaled independently
+>>>>>> With this approach sometimes you will send POSTCHANGE notifications about
+>>>>>> frequency change for some random CPUs before actual request to change
+>>>>>> frequency was sent (and received?) through PCC channel.
+>>>>>> Depending on platform/firmware/configuration this time difference might be high.
+>>>>>>
+>>>>>> How vital or important is to have POSTCHANGE notification in correct time
+>>>>>> order?
+>>>>>>
+>>>>>> Best regards,
+>>>>>> Alexey.
+>>>>>>
+>>>>>>
+>>>>>>
+>>>>>>> Signed-off-by: Prashanth Prakash <pprakash@codeaurora.org>
+>>>>>>> ---
+>>>>>>>  drivers/acpi/cppc_acpi.c | 166 ++++++++++++++++++++++++++++++++++++++++-------
+>>>>>>>  1 file changed, 141 insertions(+), 25 deletions(-)
+>>>>>>>
+>>>>>>> diff --git a/drivers/acpi/cppc_acpi.c b/drivers/acpi/cppc_acpi.c
+>>>>>>> index 8adac69..3edfd50 100644
+>>>>>>> --- a/drivers/acpi/cppc_acpi.c
+>>>>>>> +++ b/drivers/acpi/cppc_acpi.c
+>>>>>>> @@ -43,12 +43,34 @@
+>>>>>>>
+>>>>>>>  #include <acpi/cppc_acpi.h>
+>>>>>>>  /*
+>>>>>>> - * Lock to provide mutually exclusive access to the PCC
+>>>>>>> - * channel. e.g. When the remote updates the shared region
+>>>>>>> - * with new data, the reader needs to be protected from
+>>>>>>> - * other CPUs activity on the same channel.
+>>>>>>> + * Lock to provide controlled access to the PCC channel.
+>>>>>>> + *
+>>>>>>> + * For performance critical usecases(currently cppc_set_perf)
+>>>>>>> + *     We need to take read_lock and check if channel belongs to OSPM before
+>>>>>>> + * reading or writing to PCC subspace
+>>>>>>> + *     We need to take write_lock before transferring the channel ownership to
+>>>>>>> + * the platform via a Doorbell
+>>>>>>> + *
+>>>>>>> + * For non-performance critical usecases(init)
+>>>>>>> + *     Take write_lock for all purposes which gives exclusive access
+>>>>>>> + *
+>>>>>>> + * Why not use spin lock?
+>>>>>>> + *     One of the advantages of CPPC is that we can batch/group a large number
+>>>>>>> + * of requests from differnt CPUs and send one request to the platform. Using a
+>>>>>>> + * read-write spinlock allows us to do this in a effecient manner.
+>>>>>>> + *     On larger multicore systems, if we get a large group of cppc_set_perf
+>>>>>>> + * calls they all serialize behind a spin lock, but using a rwlock we can
+>>>>>>> + * execute the requests in a much more scalable manner.
+>>>>>>> + *     See cppc_set_perf() for more details
+>>>>>>> + */
+>>>>>>> +static DEFINE_RWLOCK(pcc_lock);
+>>>>> Any chance to use mutex instead of spinlock ?
+>>>>> In some cases such as (cmd = CMD_READ || pcc_mrtt), because of waiting
+>>>>> for command completion,this spinlock is kept for a while before
+>>>>> unlock. It could waste CPU time to acquire the spinlock.
+>>>>>
+>>>>> Thanks
+>>>>> Hoan
+>>>> The CMD_READ is primarily used during the init, so the returns on optimizing
+>>>> that path is very limited. Since the CPPC protocol requires only an ack for
+>>>> delivery of request from the platform and the platform can take its own time
+>>>> to do actual Freq. and Voltage transition, the time we are holding the lock
+>>>> should be very limited.  At least, in the profiling I have done, I haven't noticed
+>>>> any issues.
+>>> When pcc_mrtt is not zero, CPPC still have to wait for the command completion.
+>>> For CMD_READ, if we support to read performance feedback from CPPC
+>>> counters, it's not only used during init.
+>> Looks like there was some discussion on why spinlocks earlier as well:
+>> https://lists.linaro.org/pipermail/linaro-acpi/2015-September/005797.html
+>>
+>> One could make an argument that pcc_mrtt and nominal command latency are
+>> typically quite low(in very low us) as platform only acks or provides some info.
+> With CMD_READ, firmware updates a full CPPC table. I don't think it's
+> fast enough.
+>
+>> Since the spec doesn't put any restriction on pcc_mrtt, theoretically one could
+>> design a platform with high pcc_mrtt, then the current implementation will be
+>> sub-optimal on those.
+>>
+>> My hesitation for changing this to mutex/semaphore is primarily due to lack
+>> profiling.
+> You can profile the opensource version, simply change spinlock to mutex.
+> I think it's good if we can use mutex/semaphore.
+>
+> Thanks
+> Hoan
+>
+>> How about we do this,  I will post v2 of this patch fixing the issue
+>> Alexey pointed out about POSTCHANGE notification.
+>> Following that, I can change this read-write spinlock into a read-write semaphore,
+>> profile it and  if it looks good I can submit another patch.
+>>
+>> If you have any profiling data from a different platform that suggest one way
+>> is better than the other, please share it as well.
+>>
+>> Thanks,
+>> Prashanth
+>>> Thanks
+>>> Hoan
+>>>
+>>>> Having said that, I haven't done profiling to compare spinlocks vs. mutex for
+>>>> this scenario. Ashwin might have some background on why spinlocks were
+>>>> used initially.
+>>>>
+>>>> Thanks,
+>>>> Prashanth
+>>> --
+>>> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
+>>> the body of a message to majordomo@vger.kernel.org
+>>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 > --
 > To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
-> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> the body of a message to majordomo@vger.kernel.org
 > More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
--- 
-
------------------------------------------------------------------------------
-Jerry Hoemann                  Software Engineer   Hewlett Packard Enterprise
------------------------------------------------------------------------------
