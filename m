@@ -1,81 +1,131 @@
-From: Phil Reid <preid@electromag.com.au>
-Subject: Re: [PATCH 1/2] Documentation: Add sbs-manager device tree node
- documentation
-Date: Tue, 28 Jun 2016 09:13:21 +0800
-Message-ID: <a91f060f-15bf-9506-067e-7e96cb726458@electromag.com.au>
-References: <1466622436-27963-1-git-send-email-karl-heinz@schneider-inet.de>
- <1466622436-27963-2-git-send-email-karl-heinz@schneider-inet.de>
- <20160624175014.GA29990@rob-hp-laptop>
- <9ccbeeb9-3612-fe07-3396-48da7c832bc6@electromag.com.au>
- <CAL_JsqL38hnQpchy8q+yk1rZQ1ngF4JUwFgN0V=mGyAyAq1GVg@mail.gmail.com>
- <1467061824.9121.33.camel@amnesix>
+From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Subject: Re: [PATCH 2/2] x86/acpi: Remove the repeated lapic address override entry parsing
+Date: Tue, 28 Jun 2016 03:25:57 +0200
+Message-ID: <13220110.pDtUHjvoJt@vostro.rjw.lan>
+References: <1467070896-4186-1-git-send-email-bhe@redhat.com> <1467070896-4186-2-git-send-email-bhe@redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-i2c-owner@vger.kernel.org>
-In-Reply-To: <1467061824.9121.33.camel@amnesix>
-Sender: linux-i2c-owner@vger.kernel.org
-To: Karl-Heinz Schneider <karl-heinz@schneider-inet.de>, Rob Herring <robh@kernel.org>
-Cc: "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, "linux-pm@vger.kernel.org" <linux-pm@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-i2c@vger.kernel.org" <linux-i2c@vger.kernel.org>, Mark Rutland <mark.rutland@arm.com>, Sebastian Reichel <sre@kernel.org>, Dmitry Eremin-Solenikov <dbaryshkov@gmail.com>, David Woodhouse <dwmw2@infradead.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Peter Rosin <peda@axentia.se>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7Bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1467070896-4186-2-git-send-email-bhe@redhat.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Baoquan He <bhe@redhat.com>
+Cc: linux-kernel@vger.kernel.org, x86@kernel.org, Len Brown <len.brown@intel.com>, Pavel Machek <pavel@ucw.cz>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, Borislav Petkov <bp@suse.de>, Andy Lutomirski <luto@kernel.org>, Shaohua Li <shli@fb.com>, Hidehiro Kawai <hidehiro.kawai.ez@hitachi.com>, Juergen Gross <jgross@suse.com>, Joerg Roedel <jroedel@suse.de>, Dave Young <dyoung@redhat.com>, Lv Zheng <lv.zheng@intel.com>, Toshi Kani <toshi.kani@hpe.com>, Mark Salter <msalter@redhat.com>, Dave Hansen <dave.hansen@linux.intel.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-G'day Rob,
+On Tuesday, June 28, 2016 07:41:36 AM Baoquan He wrote:
+> ACPI MADT has a 32-bit field providing lapic address at which
+> each processor can access its lapic information. MADT also contains
+> an optional entry to provide a 64-bit address to override the 32-bit
+> one. However the current code does the lapic address override entry
+> parsing twice. One is in early_acpi_boot_init() because AMD NUMA need
+> get boot_cpu_id earlier. The other is in acpi_boot_init() which parses
+> all MADT entries. The relevant log will be printed out twice too and
+> this may confuse people.
+> 
+> So in this patch remove the repeated code in the 2nd part. Meanwhile
+> add code comment above early_acpi_boot_init() to explain why its
+> calling need be earlier, and print lapic override inforamtion like
+> other MADT entry.
+> 
+> Signed-off-by: Baoquan He <bhe@redhat.com>
+> Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+> Cc: Len Brown <len.brown@intel.com>
+> Cc: Pavel Machek <pavel@ucw.cz>
+> Cc: Thomas Gleixner <tglx@linutronix.de> 
+> Cc: Ingo Molnar <mingo@redhat.com>
+> Cc: "H. Peter Anvin" <hpa@zytor.com>
+> Cc: Borislav Petkov <bp@suse.de>
+> Cc: Andy Lutomirski <luto@kernel.org>
+> Cc: Shaohua Li <shli@fb.com>
+> Cc: Viresh Kumar <viresh.kumar@linaro.org>
+> Cc: Hidehiro Kawai <hidehiro.kawai.ez@hitachi.com>
+> Cc: Juergen Gross <jgross@suse.com>
+> Cc: Joerg Roedel <jroedel@suse.de>
+> Cc: Dave Young <dyoung@redhat.com>
+> Cc: Lv Zheng <lv.zheng@intel.com>
+> Cc: Toshi Kani <toshi.kani@hpe.com>
+> Cc: Mark Salter <msalter@redhat.com>
+> Cc: Dave Hansen <dave.hansen@linux.intel.com>
+> ---
+>  arch/x86/kernel/acpi/boot.c | 17 ++---------------
+>  arch/x86/kernel/apic/apic.c |  2 +-
+>  arch/x86/kernel/setup.c     |  3 +++
+>  3 files changed, 6 insertions(+), 16 deletions(-)
+> 
+> diff --git a/arch/x86/kernel/acpi/boot.c b/arch/x86/kernel/acpi/boot.c
+> index 9414f84..6ef3694 100644
+> --- a/arch/x86/kernel/acpi/boot.c
+> +++ b/arch/x86/kernel/acpi/boot.c
+> @@ -274,6 +274,8 @@ acpi_parse_lapic_addr_ovr(struct acpi_subtable_header * header,
+>  	if (BAD_MADT_ENTRY(lapic_addr_ovr, end))
+>  		return -EINVAL;
+>  
+> +	acpi_table_print_madt_entry(header);
+> +
+>  	acpi_lapic_addr = lapic_addr_ovr->address;
+>  
+>  	return 0;
+> @@ -990,21 +992,6 @@ static int __init acpi_parse_madt_lapic_entries(void)
+>  	if (!boot_cpu_has(X86_FEATURE_APIC))
+>  		return -ENODEV;
+>  
+> -	/*
+> -	 * Note that the LAPIC address is obtained from the MADT (32-bit value)
+> -	 * and (optionally) overridden by a LAPIC_ADDR_OVR entry (64-bit value).
+> -	 */
+> -
+> -	count = acpi_table_parse_madt(ACPI_MADT_TYPE_LOCAL_APIC_OVERRIDE,
+> -				      acpi_parse_lapic_addr_ovr, 0);
+> -	if (count < 0) {
+> -		printk(KERN_ERR PREFIX
+> -		       "Error parsing LAPIC address override entry\n");
+> -		return count;
+> -	}
+> -
+> -	register_lapic_address(acpi_lapic_addr);
+> -
 
-On 28/06/2016 05:10, Karl-Heinz Schneider wrote:
-> Am Sonntag, den 26.06.2016, 09:05 -0500 schrieb Rob Herring:
->> On Sun, Jun 26, 2016 at 12:21 AM, Phil Reid <preid@electromag.com.au> wrote:
+I'm not really sure if this change is correct.
 
-*Snip*
+Does it only deal with the override?
 
+>  	count = acpi_table_parse_madt(ACPI_MADT_TYPE_LOCAL_SAPIC,
+>  				      acpi_parse_sapic, MAX_LOCAL_APIC);
+>  
+> diff --git a/arch/x86/kernel/apic/apic.c b/arch/x86/kernel/apic/apic.c
+> index 60078a6..504311c 100644
+> --- a/arch/x86/kernel/apic/apic.c
+> +++ b/arch/x86/kernel/apic/apic.c
+> @@ -1799,7 +1799,7 @@ void __init register_lapic_address(unsigned long address)
+>  	if (!x2apic_mode) {
+>  		set_fixmap_nocache(FIX_APIC_BASE, address);
+>  		apic_printk(APIC_VERBOSE, "mapped APIC to %16lx (%16lx)\n",
+> -			    APIC_BASE, mp_lapic_addr);
+> +			    APIC_BASE, address);
+>  	}
+>  	if (boot_cpu_physical_apicid == -1U) {
+>  		boot_cpu_physical_apicid  = read_apic_id();
+> diff --git a/arch/x86/kernel/setup.c b/arch/x86/kernel/setup.c
+> index c4e7b39..059680d 100644
+> --- a/arch/x86/kernel/setup.c
+> +++ b/arch/x86/kernel/setup.c
+> @@ -1157,6 +1157,9 @@ void __init setup_arch(char **cmdline_p)
+>  	 */
+>  	acpi_boot_table_init();
+>  
+> +	/*
+> +	 * AMD NUMA support need get boot_cpu_id earlier.
+> +	 */
 
->>>>> +- reg: integer, i2c address of the device. Should be <0xa>.
->>>>> +
->>>>> +Optional properties:
->>>>> +- sbsm,i2c-retry-count: integer, number of retries for trying to read or
->>>>> write
->>>>> +    to registers. Default: 1
->>>>
->>>>
->>>> Seems like a driver setting. Is having a retry in the driver a problem
->>>> if the h/w works and never actually needs it?
->>>
->>> Similarly the sbs-battery driver specifies the same same retry behaviour.
->>> And is a model for this implementation.
->>>
->>> I've found the ltc1760 and sbs batteries to be problematic when
->>> communicating to them.
->>> A lot of drivers (and the associated hardware) don't handle multiple bus
->>> masters well.
->>> The bus arbitation doesn't seem to work correctly.
->>> Retries where the only thing I could do to to get things to work reliably.
->>> Mostly means the driver needs fixing, but in one case the designware core
->>> hardware seemed to be the problem for me.
->>
->> I'm not questioning the need for a retry. I'm questioning the need to
->> limit the retries and tune per platform. What would be the issue if
->> the driver hardcodes the number of retries to 10? This will work for
->> any h/w that needs 0, 1, 2, ..., or 10 retries. The only issue would
->> be how long until it errors out.
->>
->> And yes, I can confirm DW i2c h/w is a POS at least for some versions.
->>
+Surely that's not the only goal of early_acpi_boot_init(), is it?
 
-So your suggesting we hardcode the retry value in the driver and not provide a
-configuration option in the binding?
-My only thought with allowing a dt setitng to customise the value is it allows the
-integrator to select how many retires they want to try before failing, which kind of
-limits the elapse time until a failure is reported.
+>  	early_acpi_boot_init();
+>  
+>  	initmem_init();
+> 
 
+Please CC ACPI-related patches to linux-acpi@vger.kernel.org.
 
--- 
-Regards
-Phil Reid
-
-ElectroMagnetic Imaging Technology Pty Ltd
-Development of Geophysical Instrumentation & Software
-www.electromag.com.au
-
-3 The Avenue, Midland WA 6056, AUSTRALIA
-Ph: +61 8 9250 8100
-Fax: +61 8 9250 7100
-Email: preid@electromag.com.au
+Thanks,
+Rafael
