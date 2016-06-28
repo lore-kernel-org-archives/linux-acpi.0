@@ -1,367 +1,82 @@
-From: Al Stone <ahs3@redhat.com>
-Subject: [RFC DSD 03/03] _DSD Formal Language Ruleset
-Date: Tue, 28 Jun 2016 14:09:41 -0600
-Message-ID: <5024b870-cf23-a0eb-2459-8344e74b228e@redhat.com>
-References: <63241a35-9b6b-f0ea-8de7-f278b7bdfe8a@redhat.com>
-Reply-To: ahs3@redhat.com
+From: Rob Herring <robh@kernel.org>
+Subject: Re: [PATCH 1/2] Documentation: Add sbs-manager device tree node
+ documentation
+Date: Tue, 28 Jun 2016 15:54:56 -0500
+Message-ID: <20160628205456.GB3737@rob-hp-laptop>
+References: <1466622436-27963-1-git-send-email-karl-heinz@schneider-inet.de>
+ <1466622436-27963-2-git-send-email-karl-heinz@schneider-inet.de>
+ <20160624175014.GA29990@rob-hp-laptop>
+ <9ccbeeb9-3612-fe07-3396-48da7c832bc6@electromag.com.au>
+ <CAL_JsqL38hnQpchy8q+yk1rZQ1ngF4JUwFgN0V=mGyAyAq1GVg@mail.gmail.com>
+ <1467061824.9121.33.camel@amnesix>
+ <a91f060f-15bf-9506-067e-7e96cb726458@electromag.com.au>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-io0-f177.google.com ([209.85.223.177]:36666 "EHLO
-	mail-io0-f177.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751673AbcF1URw (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 28 Jun 2016 16:17:52 -0400
-Received: by mail-io0-f177.google.com with SMTP id s63so27345038ioi.3
-        for <linux-acpi@vger.kernel.org>; Tue, 28 Jun 2016 13:17:52 -0700 (PDT)
-In-Reply-To: <63241a35-9b6b-f0ea-8de7-f278b7bdfe8a@redhat.com>
+Received: from mail-qk0-f195.google.com ([209.85.220.195]:34995 "EHLO
+	mail-qk0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752466AbcF1UzF (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 28 Jun 2016 16:55:05 -0400
+Content-Disposition: inline
+In-Reply-To: <a91f060f-15bf-9506-067e-7e96cb726458@electromag.com.au>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: ACPI Devel Mailing List <linux-acpi@vger.kernel.org>
-Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Charles Garcia-Tobin <Charles.Garcia-Tobin@arm.com>, "Hart, Darren" <darren.hart@intel.com>
-
-_DSD Formal Language Ruleset
-============================
-Dated:	2016-06-14
-Status:	DRAFT
-
-
-Contents
---------
-1. Purpose
-2. Formalisms for Describing Property Sets
-    2.1 Notes on Database Structure
-    2.2 Formal Language for Property Sets
-        2.2.1 Set Definition
-        2.2.2 Preamble Definition
-        2.2.3 Set Location
-        2.2.4 Property Definitions
-        2.2.5 Additional Syntactical and Semantic Rules
-        2.2.6 A Brief and Incomplete Example
-3. References
-4. Contributors
-
-
-
-1. Purpose
-----------
-This document specifies the formal language to be used for describing
-property sets to be registered in the common database of device
-properties [1].  This common database is to be used with the ACPI _DSD
-(Device Specific Data) device configuration object along with the Device
-Properties UUID, daffd814-6eba-4d8c-8a91-bc9bbf4aa301 [2].
-
-Definitions of the terms "device properties", "property sets", "property
-subsets", and the process for requesting they be included in the common
-database of device properties are documented independently [3].
-
-
-2. Formalisms for Describing Property Sets
-------------------------------------------
-
-2.1. Notes on Database Structure
---------------------------------
-Given the database structure described in [1], the directory tree for
-a database might look something like the following:
-
---- Path ----------------------------------            -- Entries --
-
-+-- root						1
-     |
-     +-- vendor directory ("Yoyodyne, Inc.")		1..n
-          |
-	  + bus ("acpi"|"pci"|"common")			1..n
-             |
-	     + Device ID ("ACPI0007"|...)		1..n
-	        |
-		+ revision ("0"|"1"|...)		1..n
-                   |
-		   + property attributes file		1..n
-		   |
-		   + property subset tree		1..n
-		      |
-		      + property attributes file	1..n
-		      |
-		      + property subset tree		1..n
-
-
-This is just a quick overview of the possible internal structure.  There
-will be only one root, but there are can be one to n subdirectories or
-files of each and every flavor.  In parentheses, we can see what some of
-the values might be, so that we might have a path that looks like this:
-
-/Yoyodyne, Inc./acpi/ACPI0007/0/instruction-cycles-per-fortnight
-
-Again, this is just an example, provided to be more concrete about the
-database and its content, and to show how a formal language can be
-geared towards describing that content.
-
-
-2.2. Formal Language for Property Sets
---------------------------------------
-When someone asks to register a property set, what information must they
-provide?  Informally, we need enough information to be able to place a
-file in the database directory, and then stash a bit more information in
-that file to describe a property and its possible values.
-
-
-2.2.1. Set Definition
----------------------
-On a more formal basis, we can use BNF to describe what we need:
-
-    <set-definition> ::= <set-preamble> <set-location> <set-properties>
-
-That is, each property set definition consists of a preamble, some
-location information, and property definitions.
-
-
-2.2.2. Preamble Definition
---------------------------
-The preamble provides an identifying name for the set, defines what type
-of set we have, lists any other sets this one may be derived from, and
-who approved the registration; optionally, we can include who submitted
-it, and who reviewed it, solely for historical records:
-
-    <set-preamble> ::= <set-name> <set-type> [ <parent-sets> ]
-		       <acks> [ <submitters> ] [ <reviewers> ]
-
-    <set-name> ::= "property-set" ":" <name> <EOL>
-
-    <set-type> ::= "set-type" ":" <type-name> <EOL>
-    <type-name> ::= "abstract" | "subset" | "definition"
-
-    <parent-sets> ::= "derived-from" ":" <set-list>
-    <set-list> ::= <full-path-to-parent> { <EOL> <full-path-to-parent> } <EOL>
-
-    <acks> ::= <acked-by> | <acked-by> <acks>
-    <acked-by> ::= "acked-by" ":" <person> <EOL>
-
-    <person> ::= <first-name> <last-name> "<" <email-address> ">"
-
-    <submitters> ::= <submitted-by> | <submitted-by> <submitters>
-    <submitted-by> ::= "submitted-by" ":" <person> <EOL>
-
-    <reviewers> ::= <reviewed-by> | <reviewed-by> <reviewers>
-    <reviewed-by> ::= "reviewed-by" ":" <person> <EOL>
-
-A <name> may not include an <EOL>, commas (",") or slashes ("/").
-
-A property set can be "abstract", a "subset", or a "definition."  A
-definition has no ambiguity: we know precisely where to put the
-information in the database, what the property is, and what type it is.
-A subset is a collection of property definitions for a single device.
-An abstract set could be located in any number of places in the database
-directory tree and is only present in order to provide properties other
-definitions can re-use.
-
-The <submitters>, if not provided, will be gleaned from the email the
-property set was sent in (the From: header, see [3] for details on the
-submission process).  The <reviewers> will be gleaned from emails sent
-in response to a submission on the dsd@acpica.org mailing list; the line
-"Reviewed-by: Name <email@address>" will be the indicator to add such a
-line to the property set definition.  The <acks> are similar in that (1)
-there must be an email on the mailing list with "Acked-by: Name
-<email@address>", but (2) the name used will be checked againt the list
-of database maintainers and must be present there before it is
-considered valid.
-
-There may be multiple <derived-from> lines; <acks>, <submitters> and
-<reviewers> can be multiple lines as well.
-
-
-2.2.3. Set Location
--------------------
-Location information tells us where in the database we need to place the
-device properties being defined in this set:
-
-    <set-location> ::= <abstract-set-location> | <full-set-location>
-    <abstract-set-location> ::= <vendor> [ <bus> ] [ <device-id> ] <revision>
-    <full-set-location> ::= <vendor> <bus> <device-id> <revision>
-
-    <vendor> ::= "vendor" ":" <name> <EOL>
-
-    <bus> ::= "bus" ":" <name> [ "," "shared" ] <EOL>
-
-    <device-id> ::= "device-id" ":" <identifier> <EOL>
-
-    <revision> ::= "revision" ":" <integer> <EOL>
-
-These can be assembled into a path in the database:
-
-    /vendor-name/bus-name/device-id-identifier/revision-number
-
-Unless this is an abstract property set for other sets to inherit from,
-all parts of the path must be provided.  For an abstract set, vendor and
-revision are the only required parts.
-
-An <identifier> is the string used by the OS reading a property set to
-connect a device to a device driver (e.g., PNP0010, or ACPI0007).
-
-
-2.2.4. Property Definitions
----------------------------
-A stanza must be provided to describe each individual property that is
-an element of a property set:
-
-    <set-properties> ::= <property-definition> |
-			 <property-definition> <set-properties>
-
-    <property-definition> ::= <property-name> <property-type>
-			      [ <property-usage> ]
-			      [ <property-values> ]
-			      [ <property-description> ]
-			      [ <property-example> ]
-			      [ <property-dependency> ]
-
-    <property-name> ::= "property" ":" <name> <EOL>
-
-    <property-type> ::= "type" ":" <type-name> <EOL>
-    <type-name> ::= "integer" | "string" | "reference" | "package"
-
-    <property-usage> ::= "usage" ":" "required" | "optional" <EOL>
-
-    <property-values> ::= "values" ":" <value-list>
-    <value-list> ::= <value-constraint> | <value-constraint> <value-list>
-    <value-constraint> ::= <string-value> | <integer-value> |
-			   <reference-value> | <subpackage-value>
-    <string-value> ::= "token" ":" <string> <EOL>
-                       "description" ":" <string> <EOL>
-    <integer-value> ::= "integer" ":" <range-list> <EOL>
-                        "description" ":" <string> <EOL>
-    <range-list> ::= <range> { "," <range> }
-    <range> ::= <integer> ".." <integer> | <integer>
-    <reference-value> ::= "reference" ":" <ACPI-name> <EOL>
-                          "description" ":" <string> <EOL>
-    <subpackage-value> ::= "subpackage" ":" <subpackage-definition> <EOL>
-                           "description" ":" <string> <EOL>
-    <subpackage-definition> ::= "{" <field-type> { "," <field-type> } "}"
-    <field-type> ::= "integer" | "reference" | "string" |
-		     <subpackage-definition>
-
-    <property-description> ::= "description" ":" <free-form-text>
-
-    <property-example> ::= "example" ":" <free-form-text>
-
-    <free-form-text> ::= <any-text> <EOL> { " " <any-text> <EOL> } <EOL>
-
-    <property-dependency> ::= "requires" ":" <property-name-list>
-    <property-name-list> ::= <name> { "," <name> }
-
-A <string> starts with the first non-blank character and continues to
-the <EOL>; any white space between the last non-blank and the <EOL> will
-be removed.
-
-
-2.2.5. Additional Syntactical and Semantic Rules
-------------------------------------------------
-Comments start anywhere in a line of text, using the "#", and continue
-to the end of the line ("<EOL>").
-
-Most lines consist of a keyword, followed by a ":", followed by text
-providing a value, followed by an <EOL>.  The only exceptions are
-descriptions and examples that may have several lines of text, with each
-continuation line starting with a " ".  The first line that is either an
-empty line or starts with something other than a " " terminates the
-block of text.
-
-Lines may generally appear in almost any order, within some constraints:
-
-    -- A <set-name> marks the beginning of a property set and all lines
-       after it, until the next <set-name>, will be part of that set.
-       So, a <set-type> will always define the type of the prior
-       <set-name> in the file.
-
-    -- Similarly, a <property-name> marks the beginning of a property
-       definition and all lines after it until the next <property-name>,
-       will be part of that definition.  So, a <property-type> will
-       always define the type of the prior <property-name> in the file.
-
-    -- Set location information always defines the location of the
-       previous <set-name> in the file, and applies identically to all
-       property definitions provided in the set.
-
-    -- Property values, if given, must follow the order given in the
-       BNF: "values:<EOL>" followed by one or more sets of "token:
-       <string><EOL> description: <string><EOL>", or the equivalent
-       "integer: <range><EOL> description: <string> <EOL>".  This is the
-       only rigorous ordering defined.
-
-In general, white space and blank lines are ignored and irrelevant.  The
-text for descriptions and examples is the only time it is relevant, and
-then only to indicate the continuation of the text.
-
-If a property has a <property-dependency>, each <property-name> must be
-a name being defined in the current property set, or a parent set the
-property set is derived from.
-
-If a property does not have a <property-usage> explicitly stated, it is
-assumed to be "optional."  However, if <property-usage> indicates the
-property is "required," and the property also has a
-<property-dependency>, any dependencies also become "required."
-
-If a property set is derived from other sets, the full path to the
-parent sets must be provided.
-
-
-2.2.6. A Brief and Incomplete Example
--------------------------------------
-property-set:	NIC Device Properties
-set-type:	definition
-vendor:		Yoyodyne Inc.
-bus:		pci
-device-id:	YYDN1001
-revision:	0
-derived-from:	/Yoyodyne Inc./pci/YYDN1000/25
-
-property:	phy-mode
-type:		string
-description:
-	Defines the PHY mode to be used for this device.
-values:
-	token:		na
-	description:	none available
-	token:		mii
-	description	media independent interface (MII)
-	token:		gmii
-	description	gigabit MII
-	token:		sgmii
-	description	serial gigabit MII
-example:
-	Package (2) { "phy-mode", "gmii" }
-
-property:	phy-channel
-type:		integer
-values:
-	integer:	0..255
-	description:	hex value of the PHY channel number
-description:
-	If present, defines the PHY channel number (in hex) to be used
-	by this device.
-example:
-	Package (2) { "phy-channel", 3 }
-
-submitted-by:	N. Bonaparte <nb@waterloo.be>
-acked-by:	A. Wellesley <duke@wellington.co.uk>
-
-
-3. References
--------------
-[1] See document entitled "_DSD Property Database Ruleset"
-
-[2]
-http://www.uefi.org/sites/default/files/resources/_DSD-device-properties-UUID.pdf
-
-[3] See document entitled "_DSD Property Registration Ruleset"
-
-
-4. Contributors
----------------
-In alphabetical order, by first name:
-
-Al Stone <ahs3@redhat.com>
-Charles Garcia-Tobin <charles.garcia-tobin@arm.com>
-Darren Hart <darren.hart@intel.com>
-David Woodhouse <david.woodhouse@intel.com>
-Rafael Wysocki <rjw.rjwysocki.net>
-
-
+To: Phil Reid <preid@electromag.com.au>
+Cc: Karl-Heinz Schneider <karl-heinz@schneider-inet.de>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, "linux-pm@vger.kernel.org" <linux-pm@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-i2c@vger.kernel.org" <linux-i2c@vger.kernel.org>, Mark Rutland <mark.rutland@arm.com>, Sebastian Reichel <sre@kernel.org>, Dmitry Eremin-Solenikov <dbaryshkov@gmail.com>, David Woodhouse <dwmw2@infradead.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Peter Rosin <peda@axentia.se>
+
+On Tue, Jun 28, 2016 at 09:13:21AM +0800, Phil Reid wrote:
+> G'day Rob,
+> 
+> On 28/06/2016 05:10, Karl-Heinz Schneider wrote:
+> >Am Sonntag, den 26.06.2016, 09:05 -0500 schrieb Rob Herring:
+> >>On Sun, Jun 26, 2016 at 12:21 AM, Phil Reid <preid@electromag.com.au> wrote:
+> 
+> *Snip*
+> 
+> 
+> >>>>>+- reg: integer, i2c address of the device. Should be <0xa>.
+> >>>>>+
+> >>>>>+Optional properties:
+> >>>>>+- sbsm,i2c-retry-count: integer, number of retries for trying to read or
+> >>>>>write
+> >>>>>+    to registers. Default: 1
+> >>>>
+> >>>>
+> >>>>Seems like a driver setting. Is having a retry in the driver a problem
+> >>>>if the h/w works and never actually needs it?
+> >>>
+> >>>Similarly the sbs-battery driver specifies the same same retry behaviour.
+> >>>And is a model for this implementation.
+> >>>
+> >>>I've found the ltc1760 and sbs batteries to be problematic when
+> >>>communicating to them.
+> >>>A lot of drivers (and the associated hardware) don't handle multiple bus
+> >>>masters well.
+> >>>The bus arbitation doesn't seem to work correctly.
+> >>>Retries where the only thing I could do to to get things to work reliably.
+> >>>Mostly means the driver needs fixing, but in one case the designware core
+> >>>hardware seemed to be the problem for me.
+> >>
+> >>I'm not questioning the need for a retry. I'm questioning the need to
+> >>limit the retries and tune per platform. What would be the issue if
+> >>the driver hardcodes the number of retries to 10? This will work for
+> >>any h/w that needs 0, 1, 2, ..., or 10 retries. The only issue would
+> >>be how long until it errors out.
+> >>
+> >>And yes, I can confirm DW i2c h/w is a POS at least for some versions.
+> >>
+> 
+> So your suggesting we hardcode the retry value in the driver and not provide a
+> configuration option in the binding?
+
+Yes.
+
+> My only thought with allowing a dt setitng to customise the value is it allows the
+> integrator to select how many retires they want to try before failing, which kind of
+> limits the elapse time until a failure is reported.
+
+It is easier to add later and can't be removed later. If we do want 
+something like this, then it should be a common property for i2c 
+devices/buses.
+
+Rob
