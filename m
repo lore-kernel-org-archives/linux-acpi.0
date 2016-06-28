@@ -1,70 +1,109 @@
-From: Duc Dang <dhdang@apm.com>
-Subject: Re: [RFC PATCH v4 3/5] PCI: Check platform specific ECAM quirks
-Date: Tue, 28 Jun 2016 09:12:55 -0700
-Message-ID: <CADaLNDkhPZuG7UJ4SK_j5v_nXbd782Q17LAcXduG0uEObaFF=g@mail.gmail.com>
-References: <1467100442-28078-1-git-send-email-tn@semihalf.com>
- <1467100442-28078-4-git-send-email-tn@semihalf.com> <577275EA.7010002@codeaurora.org>
+From: Al Stone <ahs3@redhat.com>
+Subject: [RFC DSD 00/03] How to Use the ACPI _DSD Device Properties UUIDs
+Date: Tue, 28 Jun 2016 14:05:32 -0600
+Message-ID: <63241a35-9b6b-f0ea-8de7-f278b7bdfe8a@redhat.com>
+Reply-To: ahs3@redhat.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-pci-owner@vger.kernel.org>
-In-Reply-To: <577275EA.7010002@codeaurora.org>
-Sender: linux-pci-owner@vger.kernel.org
-To: Christopher Covington <cov@codeaurora.org>
-Cc: Tomasz Nowicki <tn@semihalf.com>, Bjorn Helgaas <helgaas@kernel.org>, Arnd Bergmann <arnd@arndb.de>, Will Deacon <will.deacon@arm.com>, Catalin Marinas <catalin.marinas@arm.com>, Rafael Wysocki <rafael@kernel.org>, Hanjun Guo <hanjun.guo@linaro.org>, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, Sinan Kaya <okaya@codeaurora.org>, Jayachandran C <jchandra@broadcom.com>, Robert Richter <robert.richter@caviumnetworks.com>, Marcin Wojtas <mw@semihalf.com>, Liviu Dudau <Liviu.Dudau@arm.com>, David Daney <ddaney@caviumnetworks.com>, Yijing Wang <wangyijing@huawei.com>, Mark Salter <msalter@redhat.com>, linux-pci@vger.kernel.org, linux-arm <linux-arm-kernel@lists.infradead.org>, linux-acpi@vger.kernel.org, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linaro-acpi@lists.linaro.org, Jon Masters <jcm@redhat.com>, Andrea Gallo <andrea.gallo@linaro.org>, jeremy.l
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-io0-f172.google.com ([209.85.223.172]:33717 "EHLO
+	mail-io0-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750871AbcF1UFe (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 28 Jun 2016 16:05:34 -0400
+Received: by mail-io0-f172.google.com with SMTP id t74so27201235ioi.0
+        for <linux-acpi@vger.kernel.org>; Tue, 28 Jun 2016 13:05:33 -0700 (PDT)
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: ACPI Devel Mailing List <linux-acpi@vger.kernel.org>
+Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Charles Garcia-Tobin <Charles.Garcia-Tobin@arm.com>, "Hart, Darren" <darren.hart@intel.com>, Al Stone <ahs3@redhat.com>
 
-On Tue, Jun 28, 2016 at 6:04 AM, Christopher Covington
-<cov@codeaurora.org> wrote:
-> Hi Tomasz,
->
-> On 06/28/2016 03:54 AM, Tomasz Nowicki wrote:
->
->> diff --git a/drivers/pci/host/mcfg-quirks.c b/drivers/pci/host/mcfg-quirks.c
->> new file mode 100644
->> index 0000000..fb2b184
->> --- /dev/null
->> +++ b/drivers/pci/host/mcfg-quirks.c
->> @@ -0,0 +1,88 @@
->
->> +static bool pci_mcfg_fixup_match(struct pci_cfg_fixup *f,
->> +                              struct acpi_table_header *mcfg_header)
->> +{
->> +     int olen = min_t(u8, strlen(f->oem_id), ACPI_OEM_ID_SIZE);
->> +     int tlen = min_t(u8, strlen(f->oem_table_id), ACPI_OEM_TABLE_ID_SIZE);
->> +
->> +     return (!strncmp(f->oem_id, mcfg_header->oem_id, olen) &&
->> +             !strncmp(f->oem_table_id, mcfg_header->oem_table_id, tlen) &&
->> +             f->oem_revision == mcfg_header->oem_revision);
->> +}
->
-> Ard's comments on v3 included:
->
-> "... exact OEM table/rev id matches ..."
-> "... substring match ... out of the question ..."
->
-> I originally advocated the substring match approach because
-> space-padding the input strings was unfamiliar. But given that some
-> vendors have a "PLAT    " then "PLAT2   " naming scheme, where the
-> former needs quirks and the latter (hopefully) doesn't, I agree with Ard
-> and think space-padded inputs is the better way to go. Sorry for the
-> lack of foresight.
+In the three documents that follow, we lay out a process for defining
+the use cases of device properties returned by the ACPI _DSD (Device
+Specific Data) object in Data Structures associated with the Device
+Properties UUID [0] and the Hierarchical Properties Extension UUID [1].
+The term "_DSD device properties" below refers to the data formats
+associated with those two UUIDs only.  All other UUIDs used with _DSD
+are outside the scope of what is described here.
 
-I think having OEM Table ID as "PLAT   " and then "PLAT2  " (the the
-next version of the SoC)
-is common. So yes, matching full string is better as we can use "PLAT2  "
-in MCFG table and not worry about the "PLAT" sub-string match causes the quirk
-to be applied unintentionally.
+The goal of these documents is to: (1) make clear to OS vendors which of
+the use cases of _DSD device properties need to be supported; (2) be
+clear on what those use cases should mean to the OS; and, (3) have all
+OSs use the same definitions for those use cases.
 
->
-> (I'm happy to rip it out, test, and communicate the delta however you'd
-> prefer--just let me know.)
->
-> Regards,
-> Cov
->
-> --
-> Qualcomm Innovation Center, Inc.
-> Qualcomm Innovation Center, Inc. is a member of Code Aurora Forum,
-> a Linux Foundation Collaborative Project
-Regards,
-Duc Dang.
+The first document describes basic context and essential terminology for
+the process of submitting a use case for the _DSD device properties to a
+central location so that it can be reviewed and tracked.
+
+The next document describes a database for storing the use cases of _DSD
+device properties that have been reviewed and agreed upon.  The idea is
+to make this database publicly available so that OS developers and
+firmware creators can easily see what is already defined, what is in
+use, and what is not defined.
+
+The final document provides a formal language for describing the use
+cases of _DSD device properties.  The goal is to make it relatively easy
+to define new use cases of the _DSD device properties, by stating
+clearly what those definitions must look like.  This also makes building
+automated tools easier, allowing us to keep the process simpler, permit
+validation of the content, assist with documentation, and perform basic
+record keeping.
+
+Why should you care?
+
+If you write ACPI firmware, you may need to provide a _DSD object; if
+you decide to create your own UUID, you will need to clearly document
+the content returned by your _DSD UUID so that an OS can use it
+properly.  However, if you need to use _DSD device properties, the
+documents here are intended to make it clear what needs to be done so
+that use cases are documented and consistent for all OSs.
+
+If you work with OS drivers using ACPI, you may need to consult one of
+the use cases of the _DSD device properties.  What these documents lay
+out is a standard mechanism for describing these use cases, independent
+of OS, with a uniform way to determine what is available, and what their
+values are.  Ideally, there would be no need to reverse engineer, or
+worse, guess at, the device properties available for a specific device.
+
+Finally, we hope to arrive at a time when OS changes requiring use cases
+in the _DSD device properties do not get accepted unless they have been
+registered and documented as described here.  We want to get to the
+point where use cases of _DSD device properties are unambiguous, well
+documented, visible to all who need them, and usable across any number
+of OSs.
+
+If you have any comments, improvements or suggestions, let us know.  We
+believe the basic content is sound, but more eyes are always better.  We
+would also like to have this process up and running in July or August;
+it has been postponed far too long as it is.
+
+Comment here, or if you would rather, you can find the documents on
+github and suggest patches there:
+
+	https://github.com/ahs3/dsd/tree/master/documentation
+
+Thanks.
+
+Contributors:
+    Al Stone <ahs3@redhat.com>
+    Charles Garcia-Tobin <charles.garcia-tobin@arm.com>
+    Darren Hart <darren.hart@intel.com>
+    David Woodhouse <david.woodhouse@intel.com>
+    Rafael Wysocki <rjw.rjwysocki.net>
+    (apologies if we're missing someone that should be on this list...)
+
+References:
+[0]
+http://www.uefi.org/sites/default/files/resources/_DSD-device-properties-UUID.pdf
+[1]
+http://www.uefi.org/sites/default/files/resources/_DSD-hierarchical-data-extension-UUID-v1.pdf
+
+-- 
+ciao,
+al
+-----------------------------------
+Al Stone
+Software Engineer
+Red Hat, Inc.
+ahs3@redhat.com
+-----------------------------------
