@@ -1,60 +1,111 @@
-From: Christopher Covington <cov@codeaurora.org>
-Subject: Re: [RFC PATCH v4 3/5] PCI: Check platform specific ECAM quirks
-Date: Tue, 28 Jun 2016 09:04:42 -0400
-Message-ID: <577275EA.7010002@codeaurora.org>
-References: <1467100442-28078-1-git-send-email-tn@semihalf.com>
- <1467100442-28078-4-git-send-email-tn@semihalf.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-pci-owner@vger.kernel.org>
-In-Reply-To: <1467100442-28078-4-git-send-email-tn@semihalf.com>
-Sender: linux-pci-owner@vger.kernel.org
-To: Tomasz Nowicki <tn@semihalf.com>, helgaas@kernel.org, arnd@arndb.de, will.deacon@arm.com, catalin.marinas@arm.com, rafael@kernel.org, hanjun.guo@linaro.org, Lorenzo.Pieralisi@arm.com, okaya@codeaurora.org, jchandra@broadcom.com
-Cc: robert.richter@caviumnetworks.com, mw@semihalf.com, Liviu.Dudau@arm.com, ddaney@caviumnetworks.com, wangyijing@huawei.com, msalter@redhat.com, linux-pci@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linaro-acpi@lists.linaro.org, jcm@redhat.com, andrea.gallo@linaro.org, dhdang@apm.com, jeremy.linton@arm.com, liudongdong3@huawei.com, gabriele.paoloni@huawei.com, jhugo@codeaurora.org, Ard Biesheuvel <ard.biesheuvel@linaro.org>
+From: Sudeep Holla <sudeep.holla@arm.com>
+Subject: [PATCH v7 0/6] ACPI / processor_idle: Add ACPI v6.0 LPI support
+Date: Tue, 28 Jun 2016 14:55:46 +0100
+Message-ID: <1467122152-5604-1-git-send-email-sudeep.holla@arm.com>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from foss.arm.com ([217.140.101.70]:47583 "EHLO foss.arm.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751949AbcF1N4B (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 28 Jun 2016 09:56:01 -0400
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: linux-acpi@vger.kernel.org, "Rafael J . Wysocki" <rjw@rjwysocki.net>
+Cc: Sudeep Holla <sudeep.holla@arm.com>, Vikas Sajjan <vikas.cha.sajjan@hpe.com>, Sunil <sunil.vl@hpe.com>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, PrashanthPrakash <pprakash@codeaurora.org>, Al Stone <al.stone@linaro.org>, Ashwin Chaugule <ashwin.chaugule@linaro.org>, Daniel Lezcano <daniel.lezcano@linaro.org>, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-Hi Tomasz,
+ACPI 6.0 introduced LPI(Low Power Idle) states that provides an alternate
+method to describe processor idle states. It extends the specification
+to allow the expression of idle states like C-states selectable by the
+OSPM when a processor goes idle, but may affect more than one processor,
+and may affect other system components.
 
-On 06/28/2016 03:54 AM, Tomasz Nowicki wrote:
+LPI extensions leverages the processor container device(again introduced
+in ACPI 6.0) allowing to express which parts of the system are affected
+by a given LPI state. It defines the local power states for each node
+in a hierarchical processor topology. The OSPM can use _LPI object to
+select a local power state for each level of processor hierarchy in the
+system. They used to produce a composite power state request that is
+presented to the platform by the OSPM.
 
-> diff --git a/drivers/pci/host/mcfg-quirks.c b/drivers/pci/host/mcfg-quirks.c
-> new file mode 100644
-> index 0000000..fb2b184
-> --- /dev/null
-> +++ b/drivers/pci/host/mcfg-quirks.c
-> @@ -0,0 +1,88 @@
+Since multiple processors affect the idle state for any non-leaf hierarchy
+node, coordination of idle state requests between the processors is
+required. ACPI supports two different coordination schemes: Platform
+coordinated and  OS initiated.
 
-> +static bool pci_mcfg_fixup_match(struct pci_cfg_fixup *f,
-> +				 struct acpi_table_header *mcfg_header)
-> +{
-> +	int olen = min_t(u8, strlen(f->oem_id), ACPI_OEM_ID_SIZE);
-> +	int tlen = min_t(u8, strlen(f->oem_table_id), ACPI_OEM_TABLE_ID_SIZE);
-> +
-> +	return (!strncmp(f->oem_id, mcfg_header->oem_id, olen) &&
-> +		!strncmp(f->oem_table_id, mcfg_header->oem_table_id, tlen) &&
-> +		f->oem_revision == mcfg_header->oem_revision);
-> +}
+This series aims at providing basic and initial support for platform
+coordinated LPI states.
 
-Ard's comments on v3 included:
+v6[6]->v7:
+	- Removed cpuidle-arm.h and introduced HAVE_GENERIC_CPUIDLE_ENTER
+	  and move the common code to cpuidle_generic_enter{,_state}
+	- Factored out common code between psci_{dt,acpi}_cpu_init_idle
 
-"... exact OEM table/rev id matches ..."
-"... substring match ... out of the question ..."
+v5[5]->v6:
+	- Added support for autopromotable state by not flattening them
+	- Moved arm_enter_idle_state to cpuidle-arm.h as it can be reused
+	  in ARM64 backend for ACPI LPI
+	- Other review comments(mainly for ARM64 from Lorenzo)
+	- Dropped support for skipping PM notifier as it needs to be fixed
+	  in GICv3 code(will be done separately)
 
-I originally advocated the substring match approach because
-space-padding the input strings was unfamiliar. But given that some
-vendors have a "PLAT    " then "PLAT2   " naming scheme, where the
-former needs quirks and the latter (hopefully) doesn't, I agree with Ard
-and think space-padded inputs is the better way to go. Sorry for the
-lack of foresight.
+v4[4]->v5:
+	- Addressed all the comments from Rafael
+	- Added support for retention mode(Prashant)
+	- Handled acpi_processor_get_power_info return value correctly(Vikas)
+	- Dropped __init from arm_cpuidle_init
+	- Merged psci prepartory patch into arm64 lpi support
 
-(I'm happy to rip it out, test, and communicate the delta however you'd
-prefer--just let me know.)
+v3[3]->v4:
+	- Dropped the preparatory patches that are merged already
+	- Added ARM64 arch specific callback implementations
+	- Addressed most of the review comments from Rafael
+
+v2[2]->v3:
+        - rebased against v4.4-rc3
+        - fixed couple of issues reported by Prashanth and review comments
+          from Ashwin
+
+v1[1]->v2[2]:
+        - Fixed support for ACPI0010 processor container
+        - moved sleep state code out of processor_idle
+
+Code is also available @[7]
 
 Regards,
-Cov
+Sudeep
+
+[1] http://marc.info/?l=linux-acpi&m=143871041601132&w=2
+[2] http://marc.info/?l=linux-acpi&m=144241209800788&w=2
+[3] http://marc.info/?l=linux-acpi&m=144906557814813&w=2
+[4] http://marc.info/?l=linux-acpi&m=146106902731359&w=2
+[5] http://marc.info/?l=linux-acpi&m=146298107608349&w=2
+[6] http://marc.info/?l=linux-acpi&m=146661754618838&w=2
+[7] git://git.kernel.org/pub/scm/linux/kernel/git/sudeep.holla/linux.git for_review/arm64_lpi
+
+Sudeep Holla (6):
+  ACPI / processor_idle: introduce ACPI_PROCESSOR_CSTATE
+  ACPI / processor_idle: Add support for Low Power Idle(LPI) states
+  arm64: cpuidle: drop __init section marker to arm_cpuidle_init
+  cpuidle: introduce HAVE_GENERIC_CPUIDLE_ENTER for ARM{32,64} platforms
+  arm64: add support for ACPI Low Power Idle(LPI)
+  ACPI : enable ACPI_PROCESSOR_IDLE on ARM64
+
+ arch/arm/Kconfig                |   1 +
+ arch/arm/kernel/cpuidle.c       |   4 +-
+ arch/arm64/Kconfig              |   1 +
+ arch/arm64/kernel/cpuidle.c     |  24 +-
+ drivers/acpi/Kconfig            |   6 +-
+ drivers/acpi/bus.c              |  14 +-
+ drivers/acpi/processor_driver.c |   2 +-
+ drivers/acpi/processor_idle.c   | 544 ++++++++++++++++++++++++++++++++++------
+ drivers/cpuidle/Kconfig         |   3 +
+ drivers/cpuidle/cpuidle-arm.c   |  21 +-
+ drivers/cpuidle/cpuidle.c       |  35 +++
+ drivers/firmware/psci.c         | 122 +++++++--
+ include/acpi/processor.h        |  26 +-
+ include/linux/acpi.h            |   4 +
+ include/linux/cpuidle.h         |   8 +
+ 15 files changed, 680 insertions(+), 135 deletions(-)
 
 -- 
-Qualcomm Innovation Center, Inc.
-Qualcomm Innovation Center, Inc. is a member of Code Aurora Forum,
-a Linux Foundation Collaborative Project
+2.7.4
+
