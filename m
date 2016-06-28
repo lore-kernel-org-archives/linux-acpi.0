@@ -1,40 +1,107 @@
-From: Lv Zheng <lv.zheng@intel.com>
-Subject: [RFC PATCH 3/3] ACPI / PM: Fix EC polling issue by implementing prepare_late/finish_early suspend_ops callbacks
-Date: Tue, 28 Jun 2016 16:04:46 +0800
-Message-ID: <48245fbc4b0510a7af281986ccc1a2a583766f73.1467100803.git.lv.zheng@intel.com>
-References: <cover.1467100803.git.lv.zheng@intel.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <cover.1467100803.git.lv.zheng@intel.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <len.brown@intel.com>
-Cc: Lv Zheng <lv.zheng@intel.com>, Lv Zheng <zetalog@gmail.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
+From: Xiao Guangrong <guangrong.xiao-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
+Subject: Re: [PATCH] acpi, nfit: fix acpi_check_dsm() vs zero functions
+ implemented
+Date: Tue, 28 Jun 2016 17:37:45 +0800
+Message-ID: <57724569.6020609@linux.intel.com>
+References: <146679026571.24395.11569929364936343871.stgit@dwillia2-desk3.amr.corp.intel.com>
+ <bd2353c0-0d84-3c0a-8117-3f24b823f469@hpe.com>
+ <CAPcyv4iELmJ9vDD7-juYOP4a6P51UFd49OUwreeofsXX7eHzCg@mail.gmail.com>
+ <b877a201-6b62-43c6-17f8-dcaf5961cbb0@hpe.com>
+ <CAPcyv4gWC4cND_+DUi_gjMpy2NLhNdhEfhwHjQ7x0AhKR0K7Vg@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"; Format="flowed"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+In-Reply-To: <CAPcyv4gWC4cND_+DUi_gjMpy2NLhNdhEfhwHjQ7x0AhKR0K7Vg-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
+ <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
+List-Post: <mailto:linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+List-Help: <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
+ <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
+Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
+Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+To: Dan Williams <dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Linda Knippers <linda.knippers-ZPxbGqLxI0U@public.gmane.org>
+Cc: Linux ACPI <linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Len Brown <lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, "Rafael J. Wysocki" <rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org>, "linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org" <linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-_PTS/_WAK may contain EC transactions, it is better to have them handled
-with IRQ enabled. This patch moves the 2 suspend PM ops from noirq stage
-to late/early stage.
 
-Signed-off-by: Lv Zheng <lv.zheng@intel.com>
----
- drivers/acpi/sleep.c |    5 +++--
- 1 file changed, 3 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/acpi/sleep.c b/drivers/acpi/sleep.c
-index d30fce7f..c5c374c9 100644
---- a/drivers/acpi/sleep.c
-+++ b/drivers/acpi/sleep.c
-@@ -595,9 +595,10 @@ static int acpi_suspend_state_valid(suspend_state_t pm_state)
- static const struct platform_suspend_ops acpi_suspend_ops = {
- 	.valid = acpi_suspend_state_valid,
- 	.begin = acpi_suspend_begin,
--	.prepare_noirq = acpi_pm_prepare,
-+	.prepare_late = __acpi_pm_prepare,
-+	.prepare_noirq = acpi_pm_pre_suspend,
- 	.enter = acpi_suspend_enter,
--	.finish_noirq = acpi_pm_finish,
-+	.finish_early = acpi_pm_finish,
- 	.end = acpi_pm_end,
- };
- 
--- 
-1.7.10
+On 06/28/2016 02:58 AM, Dan Williams wrote:
+> On Mon, Jun 27, 2016 at 11:47 AM, Linda Knippers <linda.knippers-ZPxbGqLxI0U@public.gmane.org> wrote:
+>>
+>>
+>> On 6/27/2016 2:06 PM, Dan Williams wrote:
+>>> On Mon, Jun 27, 2016 at 10:40 AM, Linda Knippers <linda.knippers-ZPxbGqLxI0U@public.gmane.org> wrote:
+>>>>
+>>>> On 6/24/2016 1:44 PM, Dan Williams wrote:
+>>>>> QEMU 2.6 implements nascent support for nvdimm DSMs. Depending on
+>>>>> configuration it may only implement the function0 dsm to indicate that
+>>>>> no other DSMs are available. Commit 31eca76ba2fc "nfit, libnvdimm:
+>>>>> limited/whitelisted dimm command marshaling mechanism" breaks QEMU, but
+>>>>> QEMU is spec compliant.  Per the spec the way to indicate that no
+>>>>> functions are supported is:
+>>>>>
+>>>>>      If Function Index is zero, the return is a buffer containing one bit
+>>>>>      for each function index, starting with zero. Bit 0 indicates whether
+>>>>>      there is support for any functions other than function 0 for the
+>>>>>      specified UUID and Revision ID. If set to zero, no functions are
+>>>>>      supported (other than function zero) for the specified UUID and
+>>>>>      Revision ID.
+>>>>
+>>>> The rest of that paragraph is:
+>>>>
+>>>> If set to one, at least one additional function is supported. For all other bits
+>>>> in the buffer, a bit is set to zero to indicate if that function index is not
+>>>> supported for the specific UUID and Revision ID. (For example, bit 1 set to 0
+>>>> indicates that function index 1 is not supported for the specific UUID and
+>>>> Revision ID.)
+>>>>
+>>>>>
+>>>>> Update the nfit driver to determine the family (interface UUID) without
+>>>>> requiring the implementation to define any other functions, i.e.
+>>>>> short-circuit acpi_check_dsm() to succeed per the spec.  The nfit driver
+>>>>> appears to be the only user passing funcs==0 to acpi_check_dsm(), so
+>>>>> this behavior change of the common routine should be limited to the
+>>>>> probing done by the nfit driver.
+>>>>
+>>>> I don't understand why we're special casing this to support QEMU only when
+>>>> there are no DSM functions supported.  If we want to implement the
+>>>> spec and support function zero, I think we should support it correctly.
+>>>> That means returning the correct value for all spec compliant callers,
+>>>> even when there are functions that are supported.
+>>>
+>>> QEMU 2.6 already shipped, so whatever we do we should not regress
+>>> those binaries.  The QEMU behavior could be argued as not spec
+>>> compliant, but they've implemented enough of function0 to answer the
+>>> "which family" probe.
+>>
+>> How would you argue that?
+>
+> acpi_evaluate_dsm() returns data instead of an error.
+>
+>>> Yes, if an implementation supports function0 it
+>>> should say so in the returned bitmask,
+>>
+>> But in other places you explicitly prevent function 0 from
+>> being executed.
+>
+> Right, for the whitelist-filtered result to userspace, but this patch
+> is about the initial kernel probe.
+>
+>>> but by the time we've
+>>> determined that function0 is "not supported" we've already
+>>> successfully executed a function0 request.
+>>
+>> If they advertise a _DSM, I think they have to support function 0.
+>
+> They should, but didn't.  Kernel v4.6 works with qemu 2.6, kernel v4.7
+> does not, so the kernel needs to be fixed.
+>
+
+Sorry.
+
+I do not know why you guys think QEMU does not support function 0. It
+already returns 0 to indicates "no functions are supported
+(other than function zero)".
