@@ -1,7 +1,7 @@
 From: Sudeep Holla <sudeep.holla@arm.com>
-Subject: [PATCH v7 4/6] cpuidle: introduce HAVE_GENERIC_CPUIDLE_ENTER for ARM{32,64} platforms
-Date: Tue, 28 Jun 2016 14:55:50 +0100
-Message-ID: <1467122152-5604-5-git-send-email-sudeep.holla@arm.com>
+Subject: [PATCH v7 1/6] ACPI / processor_idle: introduce ACPI_PROCESSOR_CSTATE
+Date: Tue, 28 Jun 2016 14:55:47 +0100
+Message-ID: <1467122152-5604-2-git-send-email-sudeep.holla@arm.com>
 References: <1467122152-5604-1-git-send-email-sudeep.holla@arm.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1467122152-5604-1-git-send-email-sudeep.holla@arm.com>
@@ -10,237 +10,168 @@ To: linux-acpi@vger.kernel.org, "Rafael J . Wysocki" <rjw@rjwysocki.net>
 Cc: Sudeep Holla <sudeep.holla@arm.com>, Vikas Sajjan <vikas.cha.sajjan@hpe.com>, Sunil <sunil.vl@hpe.com>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, PrashanthPrakash <pprakash@codeaurora.org>, Al Stone <al.stone@linaro.org>, Ashwin Chaugule <ashwin.chaugule@linaro.org>, Daniel Lezcano <daniel.lezcano@linaro.org>, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-acpi@vger.kernel.org
 
-The function arm_enter_idle_state is exactly the same in both generic
-ARM{32,64} CPUIdle driver and will be the same even on ARM64 backend
-for ACPI processor idle driver. So we can unify it and move it as
-generic_cpuidle_enter by introducing HAVE_GENERIC_CPUIDLE_ENTER and
-enabling the same on both ARM{32,64}.
+ACPI 6.0 adds a new method to specify the CPU idle states(C-states)
+called Low Power Idle(LPI) states. Since new architectures like ARM64
+use only LPIs, introduce ACPI_PROCESSOR_CSTATE to encapsulate all the
+code supporting the old style C-states(_CST).
 
-This is in preparation of reuse of the generic cpuidle entry function
-for ACPI LPI support on ARM64.
+This patch will help to extend the processor_idle module to support
+LPI.
 
 Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: Daniel Lezcano <daniel.lezcano@linaro.org>
-Cc: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
 Signed-off-by: Sudeep Holla <sudeep.holla@arm.com>
 ---
- arch/arm/Kconfig              |  1 +
- arch/arm/kernel/cpuidle.c     |  4 ++--
- arch/arm64/Kconfig            |  1 +
- arch/arm64/kernel/cpuidle.c   |  6 +++---
- drivers/cpuidle/Kconfig       |  3 +++
- drivers/cpuidle/cpuidle-arm.c | 21 +--------------------
- drivers/cpuidle/cpuidle.c     | 35 +++++++++++++++++++++++++++++++++++
- include/linux/cpuidle.h       |  8 ++++++++
- 8 files changed, 54 insertions(+), 25 deletions(-)
+ drivers/acpi/Kconfig          |  4 +++
+ drivers/acpi/processor_idle.c | 80 ++++++++++++++++++++++++++++---------------
+ include/acpi/processor.h      |  2 +-
+ 3 files changed, 58 insertions(+), 28 deletions(-)
 
-diff --git a/arch/arm/Kconfig b/arch/arm/Kconfig
-index 90542db1220d..52b3dca0381c 100644
---- a/arch/arm/Kconfig
-+++ b/arch/arm/Kconfig
-@@ -54,6 +54,7 @@ config ARM
- 	select HAVE_FTRACE_MCOUNT_RECORD if (!XIP_KERNEL)
- 	select HAVE_FUNCTION_GRAPH_TRACER if (!THUMB2_KERNEL)
- 	select HAVE_FUNCTION_TRACER if (!XIP_KERNEL)
-+	select HAVE_GENERIC_CPUIDLE_ENTER
- 	select HAVE_GENERIC_DMA_COHERENT
- 	select HAVE_HW_BREAKPOINT if (PERF_EVENTS && (CPU_V6 || CPU_V6K || CPU_V7))
- 	select HAVE_IDE if PCI || ISA || PCMCIA
-diff --git a/arch/arm/kernel/cpuidle.c b/arch/arm/kernel/cpuidle.c
-index a44b268e12e1..49704e333bfc 100644
---- a/arch/arm/kernel/cpuidle.c
-+++ b/arch/arm/kernel/cpuidle.c
-@@ -41,7 +41,7 @@ int arm_cpuidle_simple_enter(struct cpuidle_device *dev,
- }
+diff --git a/drivers/acpi/Kconfig b/drivers/acpi/Kconfig
+index b7e2e776397d..1358fb7d7a68 100644
+--- a/drivers/acpi/Kconfig
++++ b/drivers/acpi/Kconfig
+@@ -213,6 +213,10 @@ config ACPI_CPU_FREQ_PSS
+ 	bool
+ 	select THERMAL
  
- /**
-- * arm_cpuidle_suspend() - function to enter low power idle states
-+ * cpuidle_generic_enter() - function to enter low power idle states
-  * @index: an integer used as an identifier for the low level PM callbacks
-  *
-  * This function calls the underlying arch specific low level PM code as
-@@ -50,7 +50,7 @@ int arm_cpuidle_simple_enter(struct cpuidle_device *dev,
-  * Returns -EOPNOTSUPP if no suspend callback is defined, the result of the
-  * callback otherwise.
-  */
--int arm_cpuidle_suspend(int index)
-+int cpuidle_generic_enter(int index)
- {
- 	int ret = -EOPNOTSUPP;
- 	int cpu = smp_processor_id();
-diff --git a/arch/arm64/Kconfig b/arch/arm64/Kconfig
-index 5a0a691d4220..0916b6e6c8ef 100644
---- a/arch/arm64/Kconfig
-+++ b/arch/arm64/Kconfig
-@@ -76,6 +76,7 @@ config ARM64
- 	select HAVE_FTRACE_MCOUNT_RECORD
- 	select HAVE_FUNCTION_TRACER
- 	select HAVE_FUNCTION_GRAPH_TRACER
-+	select HAVE_GENERIC_CPUIDLE_ENTER
- 	select HAVE_GENERIC_DMA_COHERENT
- 	select HAVE_HW_BREAKPOINT if PERF_EVENTS
- 	select HAVE_IRQ_TIME_ACCOUNTING
-diff --git a/arch/arm64/kernel/cpuidle.c b/arch/arm64/kernel/cpuidle.c
-index 06786fdaadeb..bade1b04ff12 100644
---- a/arch/arm64/kernel/cpuidle.c
-+++ b/arch/arm64/kernel/cpuidle.c
-@@ -9,10 +9,10 @@
-  * published by the Free Software Foundation.
-  */
- 
-+#include <linux/cpuidle.h>
- #include <linux/of.h>
- #include <linux/of_device.h>
- 
--#include <asm/cpuidle.h>
- #include <asm/cpu_ops.h>
- 
- int arm_cpuidle_init(unsigned int cpu)
-@@ -27,13 +27,13 @@ int arm_cpuidle_init(unsigned int cpu)
- }
- 
- /**
-- * cpu_suspend() - function to enter a low-power idle state
-+ * cpuidle_generic_enter() - function to enter a low-power idle state
-  * @arg: argument to pass to CPU suspend operations
-  *
-  * Return: 0 on success, -EOPNOTSUPP if CPU suspend hook not initialized, CPU
-  * operations back-end error code otherwise.
-  */
--int arm_cpuidle_suspend(int index)
-+int cpuidle_generic_enter(int index)
- {
- 	int cpu = smp_processor_id();
- 
-diff --git a/drivers/cpuidle/Kconfig b/drivers/cpuidle/Kconfig
-index 7e48eb5bf0a7..e557289cff90 100644
---- a/drivers/cpuidle/Kconfig
-+++ b/drivers/cpuidle/Kconfig
-@@ -45,4 +45,7 @@ endif
- 
- config ARCH_NEEDS_CPU_IDLE_COUPLED
- 	def_bool n
++config ACPI_PROCESSOR_CSTATE
++	def_bool y
++	depends on IA64 || X86
 +
-+config HAVE_GENERIC_CPUIDLE_ENTER
-+	def_bool n
- endmenu
-diff --git a/drivers/cpuidle/cpuidle-arm.c b/drivers/cpuidle/cpuidle-arm.c
-index e342565e8715..13012d8eba53 100644
---- a/drivers/cpuidle/cpuidle-arm.c
-+++ b/drivers/cpuidle/cpuidle-arm.c
-@@ -36,26 +36,7 @@
- static int arm_enter_idle_state(struct cpuidle_device *dev,
- 				struct cpuidle_driver *drv, int idx)
- {
--	int ret;
--
--	if (!idx) {
--		cpu_do_idle();
--		return idx;
--	}
--
--	ret = cpu_pm_enter();
--	if (!ret) {
--		/*
--		 * Pass idle state index to cpu_suspend which in turn will
--		 * call the CPU ops suspend protocol with idle index as a
--		 * parameter.
--		 */
--		ret = arm_cpuidle_suspend(idx);
--
--		cpu_pm_exit();
--	}
--
--	return ret ? -1 : idx;
-+	return cpuidle_generic_enter_state(idx);
+ config ACPI_PROCESSOR_IDLE
+ 	bool
+ 	select CPU_IDLE
+diff --git a/drivers/acpi/processor_idle.c b/drivers/acpi/processor_idle.c
+index 444e3745c8b3..ca0de35d1c3a 100644
+--- a/drivers/acpi/processor_idle.c
++++ b/drivers/acpi/processor_idle.c
+@@ -59,6 +59,12 @@ module_param(latency_factor, uint, 0644);
+ 
+ static DEFINE_PER_CPU(struct cpuidle_device *, acpi_cpuidle_device);
+ 
++struct cpuidle_driver acpi_idle_driver = {
++	.name =		"acpi_idle",
++	.owner =	THIS_MODULE,
++};
++
++#ifdef CONFIG_ACPI_PROCESSOR_CSTATE
+ static
+ DEFINE_PER_CPU(struct acpi_processor_cx * [CPUIDLE_STATE_MAX], acpi_cstate);
+ 
+@@ -804,11 +810,6 @@ static void acpi_idle_enter_freeze(struct cpuidle_device *dev,
+ 	acpi_idle_do_entry(cx);
  }
  
- static struct cpuidle_driver arm_idle_driver = {
-diff --git a/drivers/cpuidle/cpuidle.c b/drivers/cpuidle/cpuidle.c
-index a4d0059e232c..e490dea98b89 100644
---- a/drivers/cpuidle/cpuidle.c
-+++ b/drivers/cpuidle/cpuidle.c
-@@ -16,6 +16,7 @@
- #include <linux/pm_qos.h>
- #include <linux/cpu.h>
- #include <linux/cpuidle.h>
-+#include <linux/cpu_pm.h>
- #include <linux/ktime.h>
- #include <linux/hrtimer.h>
- #include <linux/module.h>
-@@ -255,6 +256,40 @@ int cpuidle_select(struct cpuidle_driver *drv, struct cpuidle_device *dev)
- }
- 
+-struct cpuidle_driver acpi_idle_driver = {
+-	.name =		"acpi_idle",
+-	.owner =	THIS_MODULE,
+-};
+-
  /**
-+ * cpuidle_generic_enter_state - enter into the specified idle state using the
-+ *				 generic callback if implemented
-+ *
-+ * @index: the index in the idle state table
-+ *
-+ * Returns the index in the idle state, -1 in case of error.
-+ */
-+int cpuidle_generic_enter_state(int idx)
+  * acpi_processor_setup_cpuidle_cx - prepares and configures CPUIDLE
+  * device i.e. per-cpu data
+@@ -925,6 +926,50 @@ static int acpi_processor_setup_cpuidle_states(struct acpi_processor *pr)
+ 	return 0;
+ }
+ 
++static inline void acpi_processor_cstate_first_run_checks(void)
 +{
-+	int ret;
++	acpi_status status;
++	static int first_run;
 +
-+	if (!idx) {
-+		cpu_do_idle();
-+		return idx;
++	if (first_run)
++		return;
++	dmi_check_system(processor_power_dmi_table);
++	max_cstate = acpi_processor_cstate_check(max_cstate);
++	if (max_cstate < ACPI_C_STATES_MAX)
++		pr_notice("ACPI: processor limited to max C-state %d\n",
++			  max_cstate);
++	first_run++;
++
++	if (acpi_gbl_FADT.cst_control && !nocst) {
++		status = acpi_os_write_port(acpi_gbl_FADT.smi_command,
++					    acpi_gbl_FADT.cst_control, 8);
++		if (ACPI_FAILURE(status))
++			ACPI_EXCEPTION((AE_INFO, status,
++					"Notifying BIOS of _CST ability failed"));
 +	}
++}
++#else
 +
-+	ret = cpu_pm_enter();
-+	if (!ret) {
-+		/*
-+		 * Pass idle state index to cpu_suspend which in turn will
-+		 * call the CPU ops suspend protocol with idle index as a
-+		 * parameter.
-+		 */
-+		ret = cpuidle_generic_enter(idx);
-+
-+		cpu_pm_exit();
-+	}
-+
-+	return ret ? -1 : idx;
++static inline int disabled_by_idle_boot_param(void) { return 0; }
++static inline void acpi_processor_cstate_first_run_checks(void) { }
++static int acpi_processor_get_power_info(struct acpi_processor *pr)
++{
++	return -ENODEV;
 +}
 +
-+EXPORT_SYMBOL_GPL(cpuidle_generic_enter_state);
++static int acpi_processor_setup_cpuidle_cx(struct acpi_processor *pr,
++					   struct cpuidle_device *dev)
++{
++	return -EINVAL;
++}
 +
-+/**
-  * cpuidle_enter - enter into the specified idle state
-  *
-  * @drv:   the cpuidle driver tied with the cpu
-diff --git a/include/linux/cpuidle.h b/include/linux/cpuidle.h
-index 07b83d32f66c..9fd3c10166fa 100644
---- a/include/linux/cpuidle.h
-+++ b/include/linux/cpuidle.h
-@@ -154,6 +154,7 @@ extern int cpuidle_play_dead(void);
- extern struct cpuidle_driver *cpuidle_get_cpu_driver(struct cpuidle_device *dev);
- static inline struct cpuidle_device *cpuidle_get_device(void)
- {return __this_cpu_read(cpuidle_devices); }
-+extern int cpuidle_generic_enter_state(int idx);
- #else
- static inline void disable_cpuidle(void) { }
- static inline bool cpuidle_not_available(struct cpuidle_driver *drv,
-@@ -190,6 +191,7 @@ static inline int cpuidle_play_dead(void) {return -ENODEV; }
- static inline struct cpuidle_driver *cpuidle_get_cpu_driver(
- 	struct cpuidle_device *dev) {return NULL; }
- static inline struct cpuidle_device *cpuidle_get_device(void) {return NULL; }
-+static inline int cpuidle_generic_enter_state(int idx) { return -1; }
- #endif
- 
- #if defined(CONFIG_CPU_IDLE) && defined(CONFIG_SUSPEND)
-@@ -246,6 +248,12 @@ static inline int cpuidle_register_governor(struct cpuidle_governor *gov)
- {return 0;}
- #endif
- 
-+#ifdef CONFIG_HAVE_GENERIC_CPUIDLE_ENTER
-+extern int cpuidle_generic_enter(int idx);
-+#else
-+static inline int cpuidle_generic_enter(int idx) { return -1; }
-+#endif
++static int acpi_processor_setup_cpuidle_states(struct acpi_processor *pr)
++{
++	return -EINVAL;
++}
 +
- #ifdef CONFIG_ARCH_HAS_CPU_RELAX
- #define CPUIDLE_DRIVER_STATE_START	1
- #else
++#endif /* CONFIG_ACPI_PROCESSOR_CSTATE */
++
+ int acpi_processor_hotplug(struct acpi_processor *pr)
+ {
+ 	int ret = 0;
+@@ -1015,35 +1060,16 @@ static int acpi_processor_registered;
+ 
+ int acpi_processor_power_init(struct acpi_processor *pr)
+ {
+-	acpi_status status;
+ 	int retval;
+ 	struct cpuidle_device *dev;
+-	static int first_run;
+ 
+ 	if (disabled_by_idle_boot_param())
+ 		return 0;
+ 
+-	if (!first_run) {
+-		dmi_check_system(processor_power_dmi_table);
+-		max_cstate = acpi_processor_cstate_check(max_cstate);
+-		if (max_cstate < ACPI_C_STATES_MAX)
+-			printk(KERN_NOTICE
+-			       "ACPI: processor limited to max C-state %d\n",
+-			       max_cstate);
+-		first_run++;
+-	}
++	acpi_processor_cstate_first_run_checks();
+ 
+-	if (acpi_gbl_FADT.cst_control && !nocst) {
+-		status =
+-		    acpi_os_write_port(acpi_gbl_FADT.smi_command, acpi_gbl_FADT.cst_control, 8);
+-		if (ACPI_FAILURE(status)) {
+-			ACPI_EXCEPTION((AE_INFO, status,
+-					"Notifying BIOS of _CST ability failed"));
+-		}
+-	}
+-
+-	acpi_processor_get_power_info(pr);
+-	pr->flags.power_setup_done = 1;
++	if (!acpi_processor_get_power_info(pr))
++		pr->flags.power_setup_done = 1;
+ 
+ 	/*
+ 	 * Install the idle handler if processor power management is supported.
+diff --git a/include/acpi/processor.h b/include/acpi/processor.h
+index 6f1805dd5d3c..48779d678122 100644
+--- a/include/acpi/processor.h
++++ b/include/acpi/processor.h
+@@ -242,7 +242,7 @@ extern int acpi_processor_get_performance_info(struct acpi_processor *pr);
+ DECLARE_PER_CPU(struct acpi_processor *, processors);
+ extern struct acpi_processor_errata errata;
+ 
+-#ifdef ARCH_HAS_POWER_INIT
++#if defined(ARCH_HAS_POWER_INIT) && defined(CONFIG_ACPI_PROCESSOR_CSTATE)
+ void acpi_processor_power_init_bm_check(struct acpi_processor_flags *flags,
+ 					unsigned int cpu);
+ int acpi_processor_ffh_cstate_probe(unsigned int cpu,
 -- 
 2.7.4
