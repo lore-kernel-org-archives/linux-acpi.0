@@ -1,107 +1,81 @@
-From: Xiao Guangrong <guangrong.xiao-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
-Subject: Re: [PATCH] acpi, nfit: fix acpi_check_dsm() vs zero functions
- implemented
-Date: Tue, 28 Jun 2016 17:37:45 +0800
-Message-ID: <57724569.6020609@linux.intel.com>
-References: <146679026571.24395.11569929364936343871.stgit@dwillia2-desk3.amr.corp.intel.com>
- <bd2353c0-0d84-3c0a-8117-3f24b823f469@hpe.com>
- <CAPcyv4iELmJ9vDD7-juYOP4a6P51UFd49OUwreeofsXX7eHzCg@mail.gmail.com>
- <b877a201-6b62-43c6-17f8-dcaf5961cbb0@hpe.com>
- <CAPcyv4gWC4cND_+DUi_gjMpy2NLhNdhEfhwHjQ7x0AhKR0K7Vg@mail.gmail.com>
+From: Dennis Chen <dennis.chen-5wv7dgnIgG8@public.gmane.org>
+Subject: [PATCH v4 1/3] mm: memblock enhence the memblock debugfs output
+Date: Tue, 28 Jun 2016 17:45:35 +0800
+Message-ID: <1467107137-29631-1-git-send-email-dennis.chen@arm.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"; Format="flowed"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-In-Reply-To: <CAPcyv4gWC4cND_+DUi_gjMpy2NLhNdhEfhwHjQ7x0AhKR0K7Vg-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
-List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
- <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
-List-Post: <mailto:linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-List-Help: <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
- <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
-Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
-Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-To: Dan Williams <dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Linda Knippers <linda.knippers-ZPxbGqLxI0U@public.gmane.org>
-Cc: Linux ACPI <linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Len Brown <lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, "Rafael J. Wysocki" <rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org>, "linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org" <linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+Content-Type: text/plain; charset=WINDOWS-1252
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-efi-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: linux-efi-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
+Cc: nd-5wv7dgnIgG8@public.gmane.org, Dennis Chen <dennis.chen-5wv7dgnIgG8@public.gmane.org>, Catalin Marinas <catalin.marinas-5wv7dgnIgG8@public.gmane.org>, Steve Capper <steve.capper-5wv7dgnIgG8@public.gmane.org>, Ard Biesheuvel <ard.biesheuvel-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Will Deacon <will.deacon-5wv7dgnIgG8@public.gmane.org>, Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>, "Rafael J . Wysocki" <rafael.j.wysocki-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Matt Fleming <matt-mF/unelCI9GS6iBeEJttW/XRex20P6io@public.gmane.org>, linux-mm-Bw31MaZKKs3YtjvyW6yDsg@public.gmane.org, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-efi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
+Current memblock debugfs output doesn't make the debug convenient
+enough, for example, lack of the 'flag' of the corresponding memblock
+region result in it's difficult to known whether the region has been
+mapped to the kernel linear map zone or not. This patch is trying to
+ease the dubug effort by adding 'size' and 'flag' output.
 
+The '/sys/kernel/debug/memblock/memory' output looks like before:
+   0: 0x0000008000000000..0x0000008001e7ffff
+   1: 0x0000008001e80000..0x00000083ff184fff
+   2: 0x00000083ff185000..0x00000083ff1c2fff
+   3: 0x00000083ff1c3000..0x00000083ff222fff
+   4: 0x00000083ff223000..0x00000083ffe42fff
+   5: 0x00000083ffe43000..0x00000083ffffffff
 
-On 06/28/2016 02:58 AM, Dan Williams wrote:
-> On Mon, Jun 27, 2016 at 11:47 AM, Linda Knippers <linda.knippers-ZPxbGqLxI0U@public.gmane.org> wrote:
->>
->>
->> On 6/27/2016 2:06 PM, Dan Williams wrote:
->>> On Mon, Jun 27, 2016 at 10:40 AM, Linda Knippers <linda.knippers-ZPxbGqLxI0U@public.gmane.org> wrote:
->>>>
->>>> On 6/24/2016 1:44 PM, Dan Williams wrote:
->>>>> QEMU 2.6 implements nascent support for nvdimm DSMs. Depending on
->>>>> configuration it may only implement the function0 dsm to indicate that
->>>>> no other DSMs are available. Commit 31eca76ba2fc "nfit, libnvdimm:
->>>>> limited/whitelisted dimm command marshaling mechanism" breaks QEMU, but
->>>>> QEMU is spec compliant.  Per the spec the way to indicate that no
->>>>> functions are supported is:
->>>>>
->>>>>      If Function Index is zero, the return is a buffer containing one bit
->>>>>      for each function index, starting with zero. Bit 0 indicates whether
->>>>>      there is support for any functions other than function 0 for the
->>>>>      specified UUID and Revision ID. If set to zero, no functions are
->>>>>      supported (other than function zero) for the specified UUID and
->>>>>      Revision ID.
->>>>
->>>> The rest of that paragraph is:
->>>>
->>>> If set to one, at least one additional function is supported. For all other bits
->>>> in the buffer, a bit is set to zero to indicate if that function index is not
->>>> supported for the specific UUID and Revision ID. (For example, bit 1 set to 0
->>>> indicates that function index 1 is not supported for the specific UUID and
->>>> Revision ID.)
->>>>
->>>>>
->>>>> Update the nfit driver to determine the family (interface UUID) without
->>>>> requiring the implementation to define any other functions, i.e.
->>>>> short-circuit acpi_check_dsm() to succeed per the spec.  The nfit driver
->>>>> appears to be the only user passing funcs==0 to acpi_check_dsm(), so
->>>>> this behavior change of the common routine should be limited to the
->>>>> probing done by the nfit driver.
->>>>
->>>> I don't understand why we're special casing this to support QEMU only when
->>>> there are no DSM functions supported.  If we want to implement the
->>>> spec and support function zero, I think we should support it correctly.
->>>> That means returning the correct value for all spec compliant callers,
->>>> even when there are functions that are supported.
->>>
->>> QEMU 2.6 already shipped, so whatever we do we should not regress
->>> those binaries.  The QEMU behavior could be argued as not spec
->>> compliant, but they've implemented enough of function0 to answer the
->>> "which family" probe.
->>
->> How would you argue that?
->
-> acpi_evaluate_dsm() returns data instead of an error.
->
->>> Yes, if an implementation supports function0 it
->>> should say so in the returned bitmask,
->>
->> But in other places you explicitly prevent function 0 from
->> being executed.
->
-> Right, for the whitelist-filtered result to userspace, but this patch
-> is about the initial kernel probe.
->
->>> but by the time we've
->>> determined that function0 is "not supported" we've already
->>> successfully executed a function0 request.
->>
->> If they advertise a _DSM, I think they have to support function 0.
->
-> They should, but didn't.  Kernel v4.6 works with qemu 2.6, kernel v4.7
-> does not, so the kernel needs to be fixed.
->
+After applied:
+   0: 0x0000008000000000..0x0000008001e7ffff  0x0000000001e80000  0x4
+   1: 0x0000008001e80000..0x00000083ff184fff  0x00000003fd305000  0x0
+   2: 0x00000083ff185000..0x00000083ff1c2fff  0x000000000003e000  0x4
+   3: 0x00000083ff1c3000..0x00000083ff222fff  0x0000000000060000  0x0
+   4: 0x00000083ff223000..0x00000083ffe42fff  0x0000000000c20000  0x4
+   5: 0x00000083ffe43000..0x00000083ffffffff  0x00000000001bd000  0x0
 
-Sorry.
+Signed-off-by: Dennis Chen <dennis.chen-5wv7dgnIgG8@public.gmane.org>
+Cc: Catalin Marinas <catalin.marinas-5wv7dgnIgG8@public.gmane.org>
+Cc: Steve Capper <steve.capper-5wv7dgnIgG8@public.gmane.org>
+Cc: Ard Biesheuvel <ard.biesheuvel-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
+Cc: Will Deacon <will.deacon-5wv7dgnIgG8@public.gmane.org>
+Cc: Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>
+Cc: Rafael J. Wysocki <rafael.j.wysocki-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: Matt Fleming <matt-mF/unelCI9GS6iBeEJttW/XRex20P6io@public.gmane.org>
+Cc: linux-mm-Bw31MaZKKs3YtjvyW6yDsg@public.gmane.org
+Cc: linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: linux-efi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+---
+Change history:
+v3->v4: 
+According to suggestion from Mark Rutland, make the memblock debugfs
+part as an individual patch since logically it's independent from others
 
-I do not know why you guys think QEMU does not support function 0. It
-already returns 0 to indicates "no functions are supported
-(other than function zero)".
+ mm/memblock.c | 10 ++++++----
+ 1 file changed, 6 insertions(+), 4 deletions(-)
+
+diff --git a/mm/memblock.c b/mm/memblock.c
+index ca09915..0fc0fa1 100644
+--- a/mm/memblock.c
++++ b/mm/memblock.c
+@@ -1677,13 +1677,15 @@ static int memblock_debug_show(struct seq_file *m, void *private)
+ 		reg = &type->regions[i];
+ 		seq_printf(m, "%4d: ", i);
+ 		if (sizeof(phys_addr_t) == 4)
+-			seq_printf(m, "0x%08lx..0x%08lx\n",
++			seq_printf(m, "0x%08lx..0x%08lx  0x%08lx  0x%lx\n",
+ 				   (unsigned long)reg->base,
+-				   (unsigned long)(reg->base + reg->size - 1));
++				   (unsigned long)(reg->base + reg->size - 1),
++				   (unsigned long)reg->size, reg->flags);
+ 		else
+-			seq_printf(m, "0x%016llx..0x%016llx\n",
++			seq_printf(m, "0x%016llx..0x%016llx  0x%016llx  0x%lx\n",
+ 				   (unsigned long long)reg->base,
+-				   (unsigned long long)(reg->base + reg->size - 1));
++				   (unsigned long long)(reg->base + reg->size - 1),
++				   (unsigned long long)reg->size, reg->flags);
+ 
+ 	}
+ 	return 0;
+-- 
+2.7.4
