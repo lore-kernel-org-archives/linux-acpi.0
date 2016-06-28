@@ -1,240 +1,115 @@
-From: Dennis Chen <dennis.chen-5wv7dgnIgG8@public.gmane.org>
-Subject: Re: [PATCH v3 1/2] mm: memblock Add some new functions to address
- the mem limit issue
-Date: Tue, 28 Jun 2016 10:55:41 +0800
-Message-ID: <20160628025539.GB9594@arm.com>
-References: <1466994431-6214-1-git-send-email-dennis.chen@arm.com>
- <20160627142818.GI1113@leverpostej>
+From: Baoquan He <bhe@redhat.com>
+Subject: Re: [PATCH 2/2] x86/acpi: Remove the repeated lapic address override
+ entry parsing
+Date: Tue, 28 Jun 2016 11:30:50 +0800
+Message-ID: <20160628033050.GA2732@x1.redhat.com>
+References: <1467070896-4186-1-git-send-email-bhe@redhat.com>
+ <1467070896-4186-2-git-send-email-bhe@redhat.com>
+ <13220110.pDtUHjvoJt@vostro.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=WINDOWS-1252
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-efi-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20160627142818.GI1113@leverpostej>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mx1.redhat.com ([209.132.183.28]:60647 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751749AbcF1DbB (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 27 Jun 2016 23:31:01 -0400
 Content-Disposition: inline
-Sender: linux-efi-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>
-Cc: linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, nd-5wv7dgnIgG8@public.gmane.org, Catalin Marinas <catalin.marinas-5wv7dgnIgG8@public.gmane.org>, Steve Capper <steve.capper-5wv7dgnIgG8@public.gmane.org>, Ard Biesheuvel <ard.biesheuvel-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Will Deacon <will.deacon-5wv7dgnIgG8@public.gmane.org>, "Rafael J . Wysocki" <rafael.j.wysocki-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Matt Fleming <matt-mF/unelCI9GS6iBeEJttW/XRex20P6io@public.gmane.org>, linux-mm-Bw31MaZKKs3YtjvyW6yDsg@public.gmane.org, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-efi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+In-Reply-To: <13220110.pDtUHjvoJt@vostro.rjw.lan>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: linux-kernel@vger.kernel.org, x86@kernel.org, Len Brown <len.brown@intel.com>, Pavel Machek <pavel@ucw.cz>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, Borislav Petkov <bp@suse.de>, Andy Lutomirski <luto@kernel.org>, Shaohua Li <shli@fb.com>, Hidehiro Kawai <hidehiro.kawai.ez@hitachi.com>, Juergen Gross <jgross@suse.com>, Joerg Roedel <jroedel@suse.de>, Dave Young <dyoung@redhat.com>, Lv Zheng <lv.zheng@intel.com>, Toshi Kani <toshi.kani@hpe.com>, Mark Salter <msalter@redhat.com>, Dave Hansen <dave.hansen@linux.intel.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>
 
-On Mon, Jun 27, 2016 at 03:28:19PM +0100, Mark Rutland wrote:
-> On Mon, Jun 27, 2016 at 10:27:10AM +0800, Dennis Chen wrote:
-> > In some cases, memblock is queried to determine whether a physical
-> > address corresponds to memory present in a system even if unused by
-> > the OS for the linear mapping, highmem, etc. For example, the ACPI
-> > core needs this information to determine which attributes to use when
-> > mapping ACPI regions. Use of incorrect memory types can result in
-> > faults, data corruption, or other issues.
-> > 
-> > Removing memory with memblock_enforce_memory_limit throws away this
-> > information, and so a kernel booted with 'mem=' may suffers from the
-> > issues described above. To avoid this, we need to keep those NOMAP
-> > regions instead of removing all above limit, which preserves the
-> > information we need while preventing other use of the regions.
-> > 
-> > This patch adds new insfrastructure to retain all NOMAP memblock regions
-> > while removing others, to cater for this.
-> > 
-> > At last, we add 'size' and 'flag' debug output in the memblock debugfs
-> > for ease of the memblock debug.
-> > The '/sys/kernel/debug/memblock/memory' output looks like before:
-> >    0: 0x0000008000000000..0x0000008001e7ffff
-> >    1: 0x0000008001e80000..0x00000083ff184fff
-> >    2: 0x00000083ff185000..0x00000083ff1c2fff
-> >    3: 0x00000083ff1c3000..0x00000083ff222fff
-> >    4: 0x00000083ff223000..0x00000083ffe42fff
-> >    5: 0x00000083ffe43000..0x00000083ffffffff
-> > 
-> > After applied:
-> >    0: 0x0000008000000000..0x0000008001e7ffff  0x0000000001e80000  0x4
-> >    1: 0x0000008001e80000..0x00000083ff184fff  0x00000003fd305000  0x0
-> >    2: 0x00000083ff185000..0x00000083ff1c2fff  0x000000000003e000  0x4
-> >    3: 0x00000083ff1c3000..0x00000083ff222fff  0x0000000000060000  0x0
-> >    4: 0x00000083ff223000..0x00000083ffe42fff  0x0000000000c20000  0x4
-> >    5: 0x00000083ffe43000..0x00000083ffffffff  0x00000000001bd000  0x0
-> 
-> The debugfs changes should be a separate patch. Even if they're useful
-> for debugging this patch, they're logically independent.
->
-Indeed. Will isolate it as an individual patch for this set.
-> 
-> > Signed-off-by: Dennis Chen <dennis.chen-5wv7dgnIgG8@public.gmane.org>
-> > Cc: Catalin Marinas <catalin.marinas-5wv7dgnIgG8@public.gmane.org>
-> > Cc: Steve Capper <steve.capper-5wv7dgnIgG8@public.gmane.org>
-> > Cc: Ard Biesheuvel <ard.biesheuvel-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
-> > Cc: Will Deacon <will.deacon-5wv7dgnIgG8@public.gmane.org>
-> > Cc: Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>
-> > Cc: Rafael J. Wysocki <rafael.j.wysocki-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-> > Cc: Matt Fleming <matt-mF/unelCI9GS6iBeEJttW/XRex20P6io@public.gmane.org>
-> > Cc: linux-mm-Bw31MaZKKs3YtjvyW6yDsg@public.gmane.org
-> > Cc: linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> > Cc: linux-efi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> > ---
-> >  include/linux/memblock.h |  1 +
-> >  mm/memblock.c            | 55 +++++++++++++++++++++++++++++++++++++++++-------
-> >  2 files changed, 48 insertions(+), 8 deletions(-)
-> > 
-> > diff --git a/include/linux/memblock.h b/include/linux/memblock.h
-> > index 6c14b61..2925da2 100644
-> > --- a/include/linux/memblock.h
-> > +++ b/include/linux/memblock.h
-> > @@ -332,6 +332,7 @@ phys_addr_t memblock_mem_size(unsigned long limit_pfn);
-> >  phys_addr_t memblock_start_of_DRAM(void);
-> >  phys_addr_t memblock_end_of_DRAM(void);
-> >  void memblock_enforce_memory_limit(phys_addr_t memory_limit);
-> > +void memblock_mem_limit_remove_map(phys_addr_t limit);
-> >  bool memblock_is_memory(phys_addr_t addr);
-> >  int memblock_is_map_memory(phys_addr_t addr);
-> >  int memblock_is_region_memory(phys_addr_t base, phys_addr_t size);
-> > diff --git a/mm/memblock.c b/mm/memblock.c
-> > index ca09915..8099f1a 100644
-> > --- a/mm/memblock.c
-> > +++ b/mm/memblock.c
-> > @@ -1465,14 +1465,11 @@ phys_addr_t __init_memblock memblock_end_of_DRAM(void)
-> >  	return (memblock.memory.regions[idx].base + memblock.memory.regions[idx].size);
-> >  }
+On 06/28/16 at 03:25am, Rafael J. Wysocki wrote:
+ 
+> > diff --git a/arch/x86/kernel/acpi/boot.c b/arch/x86/kernel/acpi/boot.c
+> > index 9414f84..6ef3694 100644
+> > --- a/arch/x86/kernel/acpi/boot.c
+> > +++ b/arch/x86/kernel/acpi/boot.c
+> > @@ -990,21 +992,6 @@ static int __init acpi_parse_madt_lapic_entries(void)
+> >  	if (!boot_cpu_has(X86_FEATURE_APIC))
+> >  		return -ENODEV;
 > >  
-> > -void __init memblock_enforce_memory_limit(phys_addr_t limit)
-> > +static phys_addr_t __init_memblock __find_max_addr(phys_addr_t limit)
-> >  {
-> >  	phys_addr_t max_addr = (phys_addr_t)ULLONG_MAX;
-> >  	struct memblock_region *r;
-> >  
-> > -	if (!limit)
-> > -		return;
+> > -	/*
+> > -	 * Note that the LAPIC address is obtained from the MADT (32-bit value)
+> > -	 * and (optionally) overridden by a LAPIC_ADDR_OVR entry (64-bit value).
+> > -	 */
 > > -
-> >  	/* find out max address */
-> >  	for_each_memblock(memory, r) {
-> >  		if (limit <= r->size) {
-> > @@ -1482,6 +1479,20 @@ void __init memblock_enforce_memory_limit(phys_addr_t limit)
-> >  		limit -= r->size;
+> > -	count = acpi_table_parse_madt(ACPI_MADT_TYPE_LOCAL_APIC_OVERRIDE,
+> > -				      acpi_parse_lapic_addr_ovr, 0);
+> > -	if (count < 0) {
+> > -		printk(KERN_ERR PREFIX
+> > -		       "Error parsing LAPIC address override entry\n");
+> > -		return count;
+> > -	}
+> > -
+> > -	register_lapic_address(acpi_lapic_addr);
+> > -
+> 
+> I'm not really sure if this change is correct.
+> 
+> Does it only deal with the override?
+
+Hi Rafael,
+
+Thanks for your comments.
+
+Yes, it only deals with the override and it will call
+register_lapic_address to set fixed mapping for lapic and get value for
+boot_cpu_physical_apicid. Since this has heen done in
+early_acpi_boot_init() there's no need to do it again in
+acpi_boot_init().
+
+
+> 
+> >  	count = acpi_table_parse_madt(ACPI_MADT_TYPE_LOCAL_SAPIC,
+> >  				      acpi_parse_sapic, MAX_LOCAL_APIC);
+> >  
+> > diff --git a/arch/x86/kernel/apic/apic.c b/arch/x86/kernel/apic/apic.c
+> > index 60078a6..504311c 100644
+> > --- a/arch/x86/kernel/apic/apic.c
+> > +++ b/arch/x86/kernel/apic/apic.c
+> > @@ -1799,7 +1799,7 @@ void __init register_lapic_address(unsigned long address)
+> >  	if (!x2apic_mode) {
+> >  		set_fixmap_nocache(FIX_APIC_BASE, address);
+> >  		apic_printk(APIC_VERBOSE, "mapped APIC to %16lx (%16lx)\n",
+> > -			    APIC_BASE, mp_lapic_addr);
+> > +			    APIC_BASE, address);
 > >  	}
+> >  	if (boot_cpu_physical_apicid == -1U) {
+> >  		boot_cpu_physical_apicid  = read_apic_id();
+> > diff --git a/arch/x86/kernel/setup.c b/arch/x86/kernel/setup.c
+> > index c4e7b39..059680d 100644
+> > --- a/arch/x86/kernel/setup.c
+> > +++ b/arch/x86/kernel/setup.c
+> > @@ -1157,6 +1157,9 @@ void __init setup_arch(char **cmdline_p)
+> >  	 */
+> >  	acpi_boot_table_init();
 > >  
-> > +	return max_addr;
-> > +}
-> > +
-> > +void __init memblock_enforce_memory_limit(phys_addr_t limit)
-> > +{
-> > +	phys_addr_t max_addr;
-> > +
-> > +	if (!limit)
-> > +		return;
-> > +
-> > +	max_addr = __find_max_addr(limit);
-> > +	if (max_addr == (phys_addr_t)ULLONG_MAX)
-> > +		return;
+> > +	/*
+> > +	 * AMD NUMA support need get boot_cpu_id earlier.
+> > +	 */
 > 
-> We didn't previously return early, so do we actually need this check?
->
-If we assign a mem limit count exceeds the actual physical RAM size in the system,
-then we will fall into this case, return directly here will avoid a function call
-followed though it will step out quickly. 
-> 
-> > +
-> >  	/* truncate both memory and reserved regions */
-> >  	memblock_remove_range(&memblock.memory, max_addr,
-> >  			      (phys_addr_t)ULLONG_MAX);
-> > @@ -1489,6 +1500,32 @@ void __init memblock_enforce_memory_limit(phys_addr_t limit)
-> >  			      (phys_addr_t)ULLONG_MAX);
-> >  }
-> >  
-> > +void __init memblock_mem_limit_remove_map(phys_addr_t limit)
-> > +{
-> > +	struct memblock_type *type = &memblock.memory;
-> > +	phys_addr_t max_addr;
-> > +	int i, ret, start_rgn, end_rgn;
-> > +
-> > +	if (!limit)
-> > +		return;
-> > +
-> > +	max_addr = __find_max_addr(limit);
-> > +	if (max_addr == (phys_addr_t)ULLONG_MAX)
-> > +		return;
-> 
-> Likewise?
->
-ditto
-> 
-> > +
-> > +	ret = memblock_isolate_range(type, max_addr, (phys_addr_t)ULLONG_MAX,
-> > +					&start_rgn, &end_rgn);
-> > +	if (ret) {
-> > +		WARN_ONCE(1, "Mem limit failed, will not be applied!\n");
-> > +		return;
-> > +	}
-> 
-> We don't have a similar warning in memblock_enforce_memory_limit, where
-> memblock_remove_range() might return an error code from an internal call
-> to memblock_isolate_range.
->
-Somehow cosmetic here for the warning, given it's extremely rare case to return
-an error value, it doesn't hurt significantly to ignore the return value. But
-WARN_ONCE at least makes me comfortable though :)
-> 
-> The two should be consistent, either both with a message or both
-> without.
-> 
-> > +
-> > +	for (i = end_rgn - 1; i >= start_rgn; i--) {
-> > +		if (!memblock_is_nomap(&type->regions[i]))
-> > +			memblock_remove_region(type, i);
-> > +	}
-> > +}
-> 
-> This will preserve nomap regions, but it does mean that we may preserve
-> less memory that the user asked for, since __find_max_addr counted nomap
-> (and reserved) regions. Given we've always counted the latter, maybe
-> that's ok.
->
-As far as the user here, I think we have two: the firmware and the kernel.
-All the memory reserved by firmware will be NOMAP marked, so it doesn't matter here.
-For kernel user, we need to avoid allocate memory(e.g, memblock_alloc) before
-the limit is applied, otherwise probably we may discard the user's allocated
-memory once limit is applied. Fortunately, I don't find that kind of use before
-using the limit. Technically, as a hack method to fake the less memory available
-to the kernel than it actually is, mem limit should be applied as early as possible. 
-But given some limitation there, for instance, the early parameter parsing and the
-possible effort, maybe a little bit fussy to do that.
+> Surely that's not the only goal of early_acpi_boot_init(), is it?
+
+In commit cbf9bd60(acpi: get boot_cpu_id as early for k8_scan_nodes)
+Yinghai added early_acpi_boot_init() and called it in amd numa code.
+Then commit 2e42060c(x86, uv: add early detection of UV system types)
+put it in arch/x86/kernel/setup.c to discover the apic type earlier.
+
+So, you are right. This command adding is not correct.
 
 > 
-> We should clarify what __find_max_addr is intended to determine, with a
-> comment, so as to avoid future ambiguity there.
->
-__find_max_addr is used to translate the limit(size) into the final limited address
-within one of the memblocks, for example, in our juno board, we have two separate
-physical memory block: 2G- (0x8000_0000, ...) and 6G- (0x8_8000_0000, ...), mem=4G
-will hit the limited memory address as 0x8_8000_0000 + 2G in the 2nd block. 
-I will add some comments to clarify. 
+> >  	early_acpi_boot_init();
+> >  
+> >  	initmem_init();
+> > 
 > 
-> > +
-> >  static int __init_memblock memblock_search(struct memblock_type *type, phys_addr_t addr)
-> >  {
-> >  	unsigned int left = 0, right = type->cnt;
-> > @@ -1677,13 +1714,15 @@ static int memblock_debug_show(struct seq_file *m, void *private)
-> >  		reg = &type->regions[i];
-> >  		seq_printf(m, "%4d: ", i);
-> >  		if (sizeof(phys_addr_t) == 4)
-> > -			seq_printf(m, "0x%08lx..0x%08lx\n",
-> > +			seq_printf(m, "0x%08lx..0x%08lx  0x%08lx  0x%lx\n",
-> >  				   (unsigned long)reg->base,
-> > -				   (unsigned long)(reg->base + reg->size - 1));
-> > +				   (unsigned long)(reg->base + reg->size - 1),
-> > +				   (unsigned long)reg->size, reg->flags);
-> >  		else
-> > -			seq_printf(m, "0x%016llx..0x%016llx\n",
-> > +			seq_printf(m, "0x%016llx..0x%016llx  0x%016llx  0x%lx\n",
-> >  				   (unsigned long long)reg->base,
-> > -				   (unsigned long long)(reg->base + reg->size - 1));
-> > +				   (unsigned long long)(reg->base + reg->size - 1),
-> > +				   (unsigned long long)reg->size, reg->flags);
-> 
-> As mentioned above, this should be a separate patch. I have no strong
-> feelings either way about the logic itself.
->
-Hi Mark, thanks for the review!I plan to post updated version later on...
+> Please CC ACPI-related patches to linux-acpi@vger.kernel.org.
 
-Thanks,
-Dennis
+Will do when repost.
+
 > 
 > Thanks,
-> Mark.
+> Rafael
 > 
