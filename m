@@ -1,196 +1,99 @@
 From: Tomasz Nowicki <tn@semihalf.com>
-Subject: [RFC PATCH v4 5/5] PCI: thunder: Add ThunderX PEM MCFG quirk to the list
-Date: Tue, 28 Jun 2016 09:54:02 +0200
-Message-ID: <1467100442-28078-6-git-send-email-tn@semihalf.com>
+Subject: [RFC PATCH v4 1/5] PCI: Embed pci_ecam_ops in pci_config_window
+ structure
+Date: Tue, 28 Jun 2016 09:53:58 +0200
+Message-ID: <1467100442-28078-2-git-send-email-tn@semihalf.com>
 References: <1467100442-28078-1-git-send-email-tn@semihalf.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
 In-Reply-To: <1467100442-28078-1-git-send-email-tn@semihalf.com>
-Sender: linux-kernel-owner@vger.kernel.org
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
 To: helgaas@kernel.org, arnd@arndb.de, will.deacon@arm.com, catalin.marinas@arm.com, rafael@kernel.org, hanjun.guo@linaro.org, Lorenzo.Pieralisi@arm.com, okaya@codeaurora.org, jchandra@broadcom.com
-Cc: robert.richter@caviumnetworks.com, mw@semihalf.com, Liviu.Dudau@arm.com, ddaney@caviumnetworks.com, wangyijing@huawei.com, msalter@redhat.com, linux-pci@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linaro-acpi@lists.linaro.org, jcm@redhat.com, andrea.gallo@linaro.org, dhdang@apm.com, jeremy.linton@arm.com, liudongdong3@huawei.com, cov@codeaurora.org, gabriele.paoloni@huawei.com, jhugo@codeaurora.org, Tomasz Nowicki <tn@semihalf.com>
+Cc: jcm@redhat.com, gabriele.paoloni@huawei.com, linaro-acpi@lists.linaro.org, jhugo@codeaurora.org, linux-pci@vger.kernel.org, dhdang@apm.com, Liviu.Dudau@arm.com, ddaney@caviumnetworks.com, jeremy.linton@arm.com, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, robert.richter@caviumnetworks.com, cov@codeaurora.org, liudongdong3@huawei.com, msalter@redhat.com, wangyijing@huawei.com, Tomasz Nowicki <tn@semihalf.com>, mw@semihalf.com, andrea.gallo@linaro.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-acpi@vger.kernel.org
 
-Add ThunderX PEM specific infrastructure to support configuration
-access for ACPI based PCI host controller. This involves:
-1. New initialization call thunder_pem_cfg_init() to create configuration
-space mapping with hardcoded range address
-2. thunder_pem_init() ACPI extension to get hardcoded address for
-PEM specific register range
-3. New entry in common quirk array.
+pci_config_window keeps pointer to pci_ecam_ops and every time
+we want to deallocate pci_config_window (pci_ecam_free()) we need to make
+sure to free pci_ecam_ops in case it was dynamically allocated prior to
+pci_ecam_create() call.
+
+To avoid that extra effort, embed pci_ecam_ops in pci_config_window,
+instead of just a pointer.
 
 Signed-off-by: Tomasz Nowicki <tn@semihalf.com>
+To: Jayachandran C <jchandra@broadcom.com>
 ---
- drivers/pci/host/mcfg-quirks.c     |  7 +++
- drivers/pci/host/mcfg-quirks.h     |  4 ++
- drivers/pci/host/pci-thunder-pem.c | 96 ++++++++++++++++++++++++++++++++------
- 3 files changed, 94 insertions(+), 13 deletions(-)
+ arch/arm64/kernel/pci.c  | 2 +-
+ drivers/pci/ecam.c       | 6 +++---
+ include/linux/pci-ecam.h | 2 +-
+ 3 files changed, 5 insertions(+), 5 deletions(-)
 
-diff --git a/drivers/pci/host/mcfg-quirks.c b/drivers/pci/host/mcfg-quirks.c
-index fb2b184..a4bb76a 100644
---- a/drivers/pci/host/mcfg-quirks.c
-+++ b/drivers/pci/host/mcfg-quirks.c
-@@ -44,6 +44,13 @@ struct pci_cfg_fixup {
- 
- static struct pci_cfg_fixup mcfg_qurks[] __initconst = {
- /*	{ OEM_ID, OEM_TABLE_ID, REV, DOMAIN, BUS_RANGE, pci_ops, init_hook }, */
-+#ifdef CONFIG_PCI_HOST_THUNDER_PEM
-+	/* Pass2.0 */
-+	{ "CAVIUM", "THUNDERX", 1, MCFG_DOM_RANGE(4, 9), MCFG_BUS_ANY,
-+	  NULL, thunder_pem_cfg_init},
-+	{ "CAVIUM", "THUNDERX", 1, MCFG_DOM_RANGE(14, 19), MCFG_BUS_ANY,
-+	  NULL, thunder_pem_cfg_init},
-+#endif
- };
- 
- static bool pci_mcfg_fixup_match(struct pci_cfg_fixup *f,
-diff --git a/drivers/pci/host/mcfg-quirks.h b/drivers/pci/host/mcfg-quirks.h
-index 45cbd16..411c667 100644
---- a/drivers/pci/host/mcfg-quirks.h
-+++ b/drivers/pci/host/mcfg-quirks.h
-@@ -16,5 +16,9 @@
- #define __MCFG_QUIRKS_H__
- 
- /* MCFG quirks initialize call list */
-+#ifdef CONFIG_PCI_HOST_THUNDER_PEM
-+struct pci_config_window *
-+thunder_pem_cfg_init(struct acpi_pci_root *root, struct pci_ops *ops);
-+#endif
- 
- #endif /* __MCFG_QUIRKS_H__ */
-diff --git a/drivers/pci/host/pci-thunder-pem.c b/drivers/pci/host/pci-thunder-pem.c
-index 91f6fc6..73ac537 100644
---- a/drivers/pci/host/pci-thunder-pem.c
-+++ b/drivers/pci/host/pci-thunder-pem.c
-@@ -18,9 +18,12 @@
- #include <linux/module.h>
- #include <linux/of_address.h>
- #include <linux/of_pci.h>
-+#include <linux/pci-acpi.h>
- #include <linux/pci-ecam.h>
- #include <linux/platform_device.h>
- 
-+#include "mcfg-quirks.h"
-+
- #define PEM_CFG_WR 0x28
- #define PEM_CFG_RD 0x30
- 
-@@ -284,6 +287,37 @@ static int thunder_pem_config_write(struct pci_bus *bus, unsigned int devfn,
- 	return pci_generic_config_write(bus, devfn, where, size, val);
- }
- 
-+#ifdef CONFIG_ACPI
-+
-+static struct resource thunder_pem_reg_res[] = {
-+	[4] = DEFINE_RES_MEM(0x87e0c0000000UL, SZ_16M),
-+	[5] = DEFINE_RES_MEM(0x87e0c1000000UL, SZ_16M),
-+	[6] = DEFINE_RES_MEM(0x87e0c2000000UL, SZ_16M),
-+	[7] = DEFINE_RES_MEM(0x87e0c3000000UL, SZ_16M),
-+	[8] = DEFINE_RES_MEM(0x87e0c4000000UL, SZ_16M),
-+	[9] = DEFINE_RES_MEM(0x87e0c5000000UL, SZ_16M),
-+	[14] = DEFINE_RES_MEM(0x97e0c0000000UL, SZ_16M),
-+	[15] = DEFINE_RES_MEM(0x97e0c1000000UL, SZ_16M),
-+	[16] = DEFINE_RES_MEM(0x97e0c2000000UL, SZ_16M),
-+	[17] = DEFINE_RES_MEM(0x97e0c3000000UL, SZ_16M),
-+	[18] = DEFINE_RES_MEM(0x97e0c4000000UL, SZ_16M),
-+	[19] = DEFINE_RES_MEM(0x97e0c5000000UL, SZ_16M),
-+};
-+
-+static struct resource *thunder_pem_acpi_res(struct pci_config_window *cfg)
-+{
-+	struct acpi_device *adev = to_acpi_device(cfg->parent);
-+	struct acpi_pci_root *root = acpi_driver_data(adev);
-+
-+	return &thunder_pem_reg_res[root->segment];
-+}
-+#else
-+static struct resource *thunder_pem_acpi_res(struct pci_config_window *cfg)
-+{
-+	return NULL;
-+}
-+#endif
-+
- static int thunder_pem_init(struct pci_config_window *cfg)
- {
- 	struct device *dev = cfg->parent;
-@@ -292,24 +326,24 @@ static int thunder_pem_init(struct pci_config_window *cfg)
- 	struct thunder_pem_pci *pem_pci;
- 	struct platform_device *pdev;
- 
--	/* Only OF support for now */
--	if (!dev->of_node)
--		return -EINVAL;
--
- 	pem_pci = devm_kzalloc(dev, sizeof(*pem_pci), GFP_KERNEL);
- 	if (!pem_pci)
- 		return -ENOMEM;
- 
--	pdev = to_platform_device(dev);
--
--	/*
--	 * The second register range is the PEM bridge to the PCIe
--	 * bus.  It has a different config access method than those
--	 * devices behind the bridge.
--	 */
--	res_pem = platform_get_resource(pdev, IORESOURCE_MEM, 1);
-+	if (acpi_disabled) {
-+		pdev = to_platform_device(dev);
-+
-+		/*
-+		 * The second register range is the PEM bridge to the PCIe
-+		 * bus.  It has a different config access method than those
-+		 * devices behind the bridge.
-+		 */
-+		res_pem = platform_get_resource(pdev, IORESOURCE_MEM, 1);
-+	} else {
-+		res_pem = thunder_pem_acpi_res(cfg);
-+	}
- 	if (!res_pem) {
--		dev_err(dev, "missing \"reg[1]\"property\n");
-+		dev_err(dev, "missing configuration region\n");
- 		return -EINVAL;
+diff --git a/arch/arm64/kernel/pci.c b/arch/arm64/kernel/pci.c
+index 94cd43c..cb4dee7 100644
+--- a/arch/arm64/kernel/pci.c
++++ b/arch/arm64/kernel/pci.c
+@@ -196,7 +196,7 @@ struct pci_bus *pci_acpi_scan_root(struct acpi_pci_root *root)
+ 		return NULL;
  	}
  
-@@ -362,5 +396,41 @@ static struct platform_driver thunder_pem_driver = {
- };
- module_platform_driver(thunder_pem_driver);
+-	acpi_pci_root_ops.pci_ops = &ri->cfg->ops->pci_ops;
++	acpi_pci_root_ops.pci_ops = &ri->cfg->ops.pci_ops;
+ 	bus = acpi_pci_root_create(root, &acpi_pci_root_ops, &ri->common,
+ 				   ri->cfg);
+ 	if (!bus)
+diff --git a/drivers/pci/ecam.c b/drivers/pci/ecam.c
+index 43ed08d..24242f0 100644
+--- a/drivers/pci/ecam.c
++++ b/drivers/pci/ecam.c
+@@ -52,7 +52,7 @@ struct pci_config_window *pci_ecam_create(struct device *dev,
+ 		return ERR_PTR(-ENOMEM);
  
-+#ifdef CONFIG_ACPI
-+
-+static struct resource thunder_pem_cfg_res[] = {
-+	[4] = DEFINE_RES_MEM(0x88001f000000UL, 0x39 * SZ_16M),
-+	[5] = DEFINE_RES_MEM(0x884057000000UL, 0x39 * SZ_16M),
-+	[6] = DEFINE_RES_MEM(0x88808f000000UL, 0x39 * SZ_16M),
-+	[7] = DEFINE_RES_MEM(0x89001f000000UL, 0x39 * SZ_16M),
-+	[8] = DEFINE_RES_MEM(0x894057000000UL, 0x39 * SZ_16M),
-+	[9] = DEFINE_RES_MEM(0x89808f000000UL, 0x39 * SZ_16M),
-+	[14] = DEFINE_RES_MEM(0x98001f000000UL, 0x39 * SZ_16M),
-+	[15] = DEFINE_RES_MEM(0x984057000000UL, 0x39 * SZ_16M),
-+	[16] = DEFINE_RES_MEM(0x98808f000000UL, 0x39 * SZ_16M),
-+	[17] = DEFINE_RES_MEM(0x99001f000000UL, 0x39 * SZ_16M),
-+	[18] = DEFINE_RES_MEM(0x994057000000UL, 0x39 * SZ_16M),
-+	[19] = DEFINE_RES_MEM(0x99808f000000UL, 0x39 * SZ_16M),
-+};
-+
-+struct pci_config_window *
-+thunder_pem_cfg_init(struct acpi_pci_root *root, struct pci_ops *ops)
-+{
-+	struct resource *bus_res = &root->secondary;
-+	u16 seg = root->segment;
-+	struct pci_config_window *cfg;
-+
-+	cfg = pci_ecam_create(&root->device->dev, &thunder_pem_cfg_res[seg],
-+			      bus_res, &pci_thunder_pem_ops);
-+	if (IS_ERR(cfg)) {
-+		dev_err(&root->device->dev, "%04x:%pR error %ld mapping ECAM\n",
-+			seg, bus_res, PTR_ERR(cfg));
-+		return NULL;
-+	}
-+
-+	return cfg;
-+}
-+#endif
-+
- MODULE_DESCRIPTION("Thunder PEM PCIe host driver");
- MODULE_LICENSE("GPL v2");
+ 	cfg->parent = dev;
+-	cfg->ops = ops;
++	cfg->ops = *ops;
+ 	cfg->busr.start = busr->start;
+ 	cfg->busr.end = busr->end;
+ 	cfg->busr.flags = IORESOURCE_BUS;
+@@ -138,7 +138,7 @@ void __iomem *pci_ecam_map_bus(struct pci_bus *bus, unsigned int devfn,
+ 			       int where)
+ {
+ 	struct pci_config_window *cfg = bus->sysdata;
+-	unsigned int devfn_shift = cfg->ops->bus_shift - 8;
++	unsigned int devfn_shift = cfg->ops.bus_shift - 8;
+ 	unsigned int busn = bus->number;
+ 	void __iomem *base;
+ 
+@@ -149,7 +149,7 @@ void __iomem *pci_ecam_map_bus(struct pci_bus *bus, unsigned int devfn,
+ 	if (per_bus_mapping)
+ 		base = cfg->winp[busn];
+ 	else
+-		base = cfg->win + (busn << cfg->ops->bus_shift);
++		base = cfg->win + (busn << cfg->ops.bus_shift);
+ 	return base + (devfn << devfn_shift) + where;
+ }
+ 
+diff --git a/include/linux/pci-ecam.h b/include/linux/pci-ecam.h
+index 7adad20..0ce2920 100644
+--- a/include/linux/pci-ecam.h
++++ b/include/linux/pci-ecam.h
+@@ -39,7 +39,7 @@ struct pci_config_window {
+ 	struct resource			res;
+ 	struct resource			busr;
+ 	void				*priv;
+-	struct pci_ecam_ops		*ops;
++	struct pci_ecam_ops		ops;
+ 	union {
+ 		void __iomem		*win;	/* 64-bit single mapping */
+ 		void __iomem		**winp; /* 32-bit per-bus mapping */
 -- 
 1.9.1
