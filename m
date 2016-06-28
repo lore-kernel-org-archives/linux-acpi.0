@@ -1,181 +1,132 @@
-From: "Zheng, Lv" <lv.zheng@intel.com>
-Subject: RE: acpi: broken suspend to RAM with v4.7-rc1
-Date: Tue, 28 Jun 2016 05:10:33 +0000
-Message-ID: <1AE640813FDE7649BE1B193DEA596E883BBFC7D3@SHSMSX101.ccr.corp.intel.com>
-References: <20160610203210.GA2262@nest> <3027571.8eTQaleASL@vostro.rjw.lan>
- <20160611104922.GA2368@nest> <2544058.dYPSaC0ylY@vostro.rjw.lan>
- <744357E9AAD1214791ACBA4B0B9092633AA54819@SHSMSX101.ccr.corp.intel.com>
- <1AE640813FDE7649BE1B193DEA596E883BBCF836@SHSMSX101.ccr.corp.intel.com>
- <20160613100707.GA2365@nest>
- <1AE640813FDE7649BE1B193DEA596E883BBF7E94@SHSMSX101.ccr.corp.intel.com>
- <20160624213235.GA8304@nest>
- <1AE640813FDE7649BE1B193DEA596E883BBFA365@SHSMSX101.ccr.corp.intel.com>
- <20160627084911.GN13845@localhost.localdomain>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+From: "Lee, Chun-Yi" <joeyli.kernel@gmail.com>
+Subject: [PATCH v4] acpi, nfit: treat virtual ramdisk SPA as pmem region
+Date: Tue, 28 Jun 2016 14:39:50 +0800
+Message-ID: <1467095990-6093-1-git-send-email-jlee@suse.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga11.intel.com ([192.55.52.93]:19771 "EHLO mga11.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750710AbcF1FKi (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 28 Jun 2016 01:10:38 -0400
-In-Reply-To: <20160627084911.GN13845@localhost.localdomain>
-Content-Language: en-US
+Received: from mail-pa0-f68.google.com ([209.85.220.68]:34872 "EHLO
+	mail-pa0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750704AbcF1Gm6 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 28 Jun 2016 02:42:58 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Andrey Skvortsov <andrej.skvortzov@gmail.com>
-Cc: "Moore, Robert" <robert.moore@intel.com>, "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "devel@acpica.org" <devel@acpica.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
+To: Ross Zwisler <ross.zwisler@linux.intel.com>, Dan Williams <dan.j.williams@intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Linda Knippers <linda.knippers@hpe.com>
+Cc: linux-nvdimm@lists.01.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, "Lee, Chun-Yi" <jlee@suse.com>, Gary Lin <GLin@suse.com>
 
-SGksDQoNCj4gRnJvbTogQW5kcmV5IFNrdm9ydHNvdiBbbWFpbHRvOmFuZHJlai5za3ZvcnR6b3ZA
-Z21haWwuY29tXQ0KPiBTdWJqZWN0OiBSZTogYWNwaTogYnJva2VuIHN1c3BlbmQgdG8gUkFNIHdp
-dGggdjQuNy1yYzENCj4gDQo+IE9uIDI3IEp1biwgWmhlbmcsIEx2IHdyb3RlOg0KPiA+IEhpLA0K
-PiA+DQo+ID4gPiBGcm9tOiBBbmRyZXkgU2t2b3J0c292IFttYWlsdG86YW5kcmVqLnNrdm9ydHpv
-dkBnbWFpbC5jb21dDQo+ID4gPiBTdWJqZWN0OiBSZTogYWNwaTogYnJva2VuIHN1c3BlbmQgdG8g
-UkFNIHdpdGggdjQuNy1yYzENCj4gPiA+DQo+ID4gPiBPbiAyNCBKdW4sIFpoZW5nLCBMdiB3cm90
-ZToNCj4gPiA+ID4gSGksDQo+ID4gPiA+DQo+ID4gPiA+ID4gRnJvbTogQW5kcmV5IFNrdm9ydHNv
-diBbbWFpbHRvOmFuZHJlai5za3ZvcnR6b3ZAZ21haWwuY29tXQ0KPiA+ID4gPiA+IFN1YmplY3Q6
-IFJlOiBhY3BpOiBicm9rZW4gc3VzcGVuZCB0byBSQU0gd2l0aCB2NC43LXJjMQ0KPiA+ID4gPiA+
-DQo+ID4gPiA+ID4gSGkgTHYsDQo+ID4gPiA+ID4NCj4gPiA+ID4gPiBPbiAxMyBKdW4sIFpoZW5n
-LCBMdiB3cm90ZToNCj4gPiA+ID4gPiA+ID4gRnJvbTogbGludXgtYWNwaS1vd25lckB2Z2VyLmtl
-cm5lbC5vcmcgW21haWx0bzpsaW51eC1hY3BpLQ0KPiA+ID4gPiA+ID4gPiBvd25lckB2Z2VyLmtl
-cm5lbC5vcmddIE9uIEJlaGFsZiBPZiBSYWZhZWwgSi4gV3lzb2NraQ0KPiA+ID4gPiA+ID4gPiBT
-dWJqZWN0OiBSZTogYWNwaTogYnJva2VuIHN1c3BlbmQgdG8gUkFNIHdpdGggdjQuNy1yYzENCj4g
-PiA+ID4gPiA+ID4NCj4gPiA+ID4gPiA+ID4gT24gU2F0dXJkYXksIEp1bmUgMTEsIDIwMTYgMDE6
-NDk6MjIgUE0gQW5kcmV5IFNrdm9ydHNvdg0KPiB3cm90ZToNCj4gPiA+ID4gPiA+ID4gPiBPbiAx
-MCBKdW4sIFJhZmFlbCBKLiBXeXNvY2tpIHdyb3RlOg0KPiA+ID4gPiA+ID4gPiA+ID4gT24gRnJp
-ZGF5LCBKdW5lIDEwLCAyMDE2IDExOjMyOjEwIFBNIEFuZHJleSBTa3ZvcnRzb3YNCj4gd3JvdGU6
-DQo+ID4gPiA+ID4gPiA+ID4gPiA+IEhpLA0KPiA+ID4gPiA+ID4gPiA+ID4gPg0KPiA+ID4gPiA+
-ID4gPiA+ID4gPiBPbiBteSBsYXB0b3AgKERFTEwgVm9zdHJvIDE1MDApIGluIHY0LjctcmMxIGlz
-IGJyb2tlbg0KPiA+ID4gc3VzcGVuZA0KPiA+ID4gPiA+IHRvIFJBTS4NCj4gPiA+ID4gPiA+ID4g
-PiA+ID4gTGFwdG9wIGRvZXNuJ3QgZmluaXNoIHN1c3BlbmQgdG8gUkFNIHByb2Nlc3MgKGRpc2tz
-IGFyZQ0KPiBvZmYsDQo+ID4gPiBidXQNCj4gPiA+ID4gPiA+ID4gPiA+ID4gV2lGaSBhbmQgUG93
-ZXIgTEVEcyBhcmUgc3RpbGwgb24pLiBUaGUgb25seSB3YXkgdG8gZ2V0IGl0DQo+IG91dCBvZg0K
-PiA+ID4gPiA+ID4gPiA+ID4gPiB0aGlzIHN0YXRlLCBpcyB0byB0dXJuIHRoZSBwb3dlciBvZmYu
-DQo+ID4gPiA+ID4gPiA+ID4gPiA+DQo+ID4gPiA+ID4gPiA+ID4gPiA+IEkndmUgYmlzZWN0ZWQg
-dGhlIGlzc3VlIHRvIGNvbW1pdCA2NmIxZWQ1YWE4ZGQyNQ0KPiA+ID4gPiA+ID4gPiA+ID4gPiBb
-QUNQSUNBOiBBQ1BJIDIuMCwgSGFyZHdhcmU6IEFkZA0KPiBhY2Nlc3Nfd2lkdGgvYml0X29mZnNl
-dA0KPiA+ID4gPiA+IHN1cHBvcnQNCj4gPiA+ID4gPiA+ID4gPiA+ID4gZm9yIGFjcGlfaHdfd3Jp
-dGUoKV0uDQo+ID4gPiA+ID4gPiA+ID4gPiA+DQo+ID4gPiA+ID4gPiA+ID4gPiA+IElmIEkgcmV2
-ZXJ0IHRoaXMgY29tbWl0IGluIHY0LjctcmMxIChvciB2NC43LXJjMiksIHN1c3BlbmQgdG8NCj4g
-PiA+IFJBTQ0KPiA+ID4gPiA+ID4gPiA+ID4gPiBpcyB3b3JraW5nIGFnYWluLg0KPiA+ID4gPiA+
-ID4gPiA+ID4gPg0KPiA+ID4gPiA+ID4gPiA+ID4gPiBUaGUgY2F1c2Ugb2YgdGhpcyBwcm9ibGVt
-IGlzIHRoYXQgYWZ0ZXIgdGhpcyBjb21taXQgd3JpdGUNCj4gdG8NCj4gPiA+ID4gPiBQTTFBDQo+
-ID4gPiA+ID4gPiA+ID4gPiA+IENvbnRyb2wgQmxvY2sgKDE2LWJpdCByZWdpc3RlcikgaXMgZG9u
-ZSB1c2luZyB0d28gOC1iaXQNCj4gd3JpdGVzLg0KPiA+ID4gPiA+ID4gPiA+ID4gPiBJZiBJIGZv
-cmNlIHRoaXMgd3JpdGUgdG8gYmUgMTYtYml0LCB0aGVuIGFsbCBpcyB3b3JraW5nIGFzDQo+IGJl
-Zm9yZS4NCj4gPiA+ID4gPiA+ID4gPiA+ID4NCj4gPiA+ID4gPiA+ID4gPiA+ID4gVG8gZ2V0IGl0
-IHdvcmtpbmcgJ2FjY2Vzc193aWR0aCcgZm9yIFBNMUEgQ29udHJvbCBCbG9jaw0KPiA+ID4gbmVl
-ZHMgdG8NCj4gPiA+ID4gPiA+ID4gPiA+ID4gYmUgMiAoMTYtYml0KSwgYnV0IGl0J3MgMSAoOC1i
-aXQpLg0KPiA+ID4gPiA+ID4gW0x2IFpoZW5nXQ0KPiA+ID4gPiA+ID4gQ291bGQgeW91IHNlbmQg
-bWUgdGhlIGFjcGlkdW1wIG9mIHRoZSBtYWNoaW5lPw0KPiA+ID4gPiA+IEhlcmUgaXQgaXMNCj4g
-PiA+ID4gPg0KPiA+ID4NCj4gaHR0cHM6Ly9kbC5kcm9wYm94dXNlcmNvbnRlbnQuY29tL3UvMjQw
-MjM2MjYvZGVsbF92b3N0cm9fMTUwMC5hY3BpZA0KPiA+ID4gPiA+IHVtcC5iaW4NCj4gPiA+ID4g
-W0x2IFpoZW5nXQ0KPiA+ID4gPiBJJ3ZlIGJlZW4gdHJ5aW5nIHRvIGRvd25sb2FkIGl0IHRoZXNl
-IGRheXMgYnV0IGFsbCBmYWlsZWQuDQo+ID4gPiA+IENvdWxkIHlvdSBzZW5kIGFuIG9mZi1saXN0
-IGVtYWlsIHRvIG1lIHdpdGggdGhpcyBhdHRhY2hlZD8NCj4gPiA+IFN0cmFuZ2UuIEkndmUgY2hl
-Y2sgbm93LiBUaGUgbGluayBhYm92ZSBpcyB3b3JraW5nLCBidXQgSSBzZWUgdGhhdA0KPiA+ID4g
-cGFydCBvZiB0aGUgbGluayBhYm92ZSBpcyBtb3ZlZCB0byB0aGUgbmV4dCBsaW5lLg0KPiA+IFtM
-diBaaGVuZ10NCj4gPiBNYXliZSB0aGlzIGlzIGp1c3QgYmVjYXVzZSBvZiBJU1AgZmlyZXdhbGwu
-DQo+ID4NCj4gPiA+IEFueXdheSBJIHJlc2VuZCB5b3UgYWxsIGZpbGVzIG9mZi1saXN0Lg0KPiA+
-IFtMdiBaaGVuZ10NCj4gPiBHcmVhdCENCj4gPg0KPiA+ID4NCj4gPiA+DQo+ID4gPiA+ID4gPiA+
-ID4gPiA+IFRoZSByb290IG9mIHRoZSBwcm9ibGVtIHNlZW1zIHRvIGJlIG5vdCB0aGUgY29tbWl0
-DQo+ID4gPiA+ID4gPiA+IDY2YjFlZDVhYThkZDI1DQo+ID4gPiA+ID4gPiA+ID4gPiA+IGl0c2Vs
-ZiwgYnV0IHRoZSBBQ1BJIHRhYmxlcyBpbiBCSU9TIHdoZXJlIHdyb25nDQo+IGFjY2Vzc193aWR0
-aA0KPiA+ID4gPiA+ID4gPiA+ID4gPiBjb21lcyBmcm9tLiBJIGZpeGVkIHByb2JsZW0gaW4gRkFD
-UCAgdGFibGUsIHB1dCBpdCBpbiBpbml0cmQNCj4gdG8NCj4gPiA+ID4gPiA+ID4gPiA+ID4gb3Zl
-cnJpZGUgRkFDUCB0YWJsZSBmcm9tIEJJT1MuIFRoaXMgZml4ZWQgdGhlIGlzc3VlLA0KPiBzdXNw
-ZW5kDQo+ID4gPiB0bw0KPiA+ID4gPiA+ID4gPiA+ID4gPiBSQU0gaXMgd29ya2luZyBub3cgYWdh
-aW4uDQo+ID4gPiA+ID4gPiA+ID4gPiA+DQo+ID4gPiA+ID4gPiA+ID4gPiA+IEJ1dCBJJ20gbm90
-IHN1cmUgd2hldGhlciBpcyB0aGlzIHByb3BlciBmaXggZm9yIHRoaXMNCj4gcHJvYmxlbS4NCj4g
-PiA+ID4gPiA+ID4gPiA+ID4gSXMgdGhlcmUgYW55IHBsYWNlIGluIHRoZSBrZXJuZWwsIHdoZXJl
-IHN1Y2ggQUNQSSBxdWlya3MNCj4gYXJlDQo+ID4gPiBwbGFjZWQ/DQo+ID4gPiA+ID4gPiBbTHYg
-WmhlbmddDQo+ID4gPiA+ID4gPiBNeSBxdWVzdGlvbiB3b3VsZCBiZToNCj4gPiA+ID4gPiA+IERv
-ZXMgV2luZG93cyBiZWhhdmUgY29ycmVjdGx5IGZvciB0aGlzIHRhYmxlPw0KPiA+ID4gPiA+IFll
-cywgc3VzcGVuZCB0byBSQU0gaXMgd29ya2luZyB1bmRlciBXaW5kb3dzIFZpc3RhLg0KPiA+ID4g
-PiA+IElJUkMgaXQgd29ya2VkIHVuZGVyIFdpbmRvd3MgWFAgdG9vLg0KPiA+ID4gPiA+DQo+ID4g
-PiA+ID4gPiBIb3dldmVyIHRoZXJlIGlzIGEgcmVhbCBjYXNlIHNob3dpbmcgdGhhdCB0aGVyZSBh
-cmUgcmVhbCB0YWJsZXMNCj4gbmVlZA0KPiA+ID4gdXMgdG8NCj4gPiA+ID4gPiBjb3JyZWN0bHkg
-c3VwcG9ydCBCaXRXaWR0aC9CaXRPZmZzZXQuDQo+ID4gPiA+ID4gPiBIZXJlIGlzIHRoZSBpbmZv
-cm1hdGlvbiBmb3IgeW91IHRvIHJlZmVyOg0KPiA+ID4gPiA+ID4NCj4gPiA+DQo+IGh0dHA6Ly9w
-ZXJtYWxpbmsuZ21hbmUub3JnL2dtYW5lLmxpbnV4Lmtlcm5lbC5jb21taXRzLmhlYWQvMzEzODcw
-DQo+ID4gPiA+ID4gPg0KPiA+ID4gPiA+ID4gPiA+ID4NCj4gPiA+ID4gPiA+ID4gPiA+IFdlbGws
-IGlmIHRoZSBjb21taXQgaW4gcXVlc3Rpb24gY2F1c2VkIGEgcHJvYmxlbSB0byBoYXBwZW4NCj4g
-Zm9yDQo+ID4gPiA+ID4geW91LA0KPiA+ID4gPiA+ID4gPiA+ID4gaXQgYWxzbyBtaWdodCBjYXVz
-ZSBzaW1pbGFyIHByb2JsZW1zIHRvIGhhcHBlbiBlbHNld2hlcmUuDQo+ID4gPiA+ID4gPiA+ID4g
-Pg0KPiA+ID4gPiA+ID4gPiA+ID4gSXQgbG9va3MgbGlrZSB3ZSdsbCBuZWVkIHRvIHJldmVydCB0
-aGF0IGNvbW1pdC4NCj4gPiA+ID4gPiA+ID4gPiBIaSwNCj4gPiA+ID4gPiA+ID4gPg0KPiA+ID4g
-PiA+ID4gPiA+IG9yIG1heWJlIHRvIHJlc2V0IGFjY2Vzc193aWR0aCBBbnlBY2MgZnJvbSBGQUNQ
-IHRhYmxlIG9ubHkNCj4gZm9yDQo+ID4gPiA+ID4gUE0xQQ0KPiA+ID4gPiA+ID4gPiA+IGNvbnRy
-b2wgcmVnaXN0ZXIgb3IgZXZlbiBmb3IgYWxsIHJlZ2lzdGVycz8gVGhpcyB3aWxsIGZpeCB0aGUg
-aXNzdWUNCj4gdG9vLg0KPiA+ID4gPiA+ID4gPg0KPiA+ID4gPiA+ID4gPiBUaGF0J3MgYSBnb29k
-IGlkZWEgYWN0dWFsbHkuDQo+ID4gPiA+ID4gPiA+DQo+ID4gPiA+ID4gPiA+ID4gZGlmZiAtLWdp
-dCBhL2RyaXZlcnMvYWNwaS9hY3BpY2EvdGJmYWR0LmMNCj4gPiA+ID4gPiA+ID4gPiBiL2RyaXZl
-cnMvYWNwaS9hY3BpY2EvdGJmYWR0LmMgaW5kZXggNjIwODA2OS4uYTQ3NmU5NA0KPiAxMDA2NDQN
-Cj4gPiA+ID4gPiA+ID4gPiAtLS0gYS9kcml2ZXJzL2FjcGkvYWNwaWNhL3RiZmFkdC5jDQo+ID4g
-PiA+ID4gPiA+ID4gKysrIGIvZHJpdmVycy9hY3BpL2FjcGljYS90YmZhZHQuYw0KPiA+ID4gPiA+
-ID4gPiA+IEBAIC03MTQsNyArNzE0LDE0IEBAIHN0YXRpYyB2b2lkDQo+ID4gPiA+ID4gYWNwaV90
-Yl9zZXR1cF9mYWR0X3JlZ2lzdGVycyh2b2lkKQ0KPiA+ID4gPiA+ID4gPiA+ICAgICAgICAgICAg
-ICAgICAgICAgICAgIH0NCj4gPiA+ID4gPiA+ID4gPiAgICAgICAgICAgICAgICAgfQ0KPiA+ID4g
-PiA+ID4gPiA+ICAgICAgICAgfQ0KPiA+ID4gPiA+ID4gPiA+DQo+ID4gPiA+ID4gPiA+ID4gKyAg
-ICAgICAvKg0KPiA+ID4gPiA+ID4gPiA+ICsgICAgICAgICogUmVzZXQgYWNjZXNzX3dpZHRoIGlu
-IHRoZSBHQVMgZm9yIFBNMUEgY29udHJvbA0KPiByZWdpc3Rlcg0KPiA+ID4gdG8NCj4gPiA+ID4g
-PiA+ID4gPiArICAgICAgICAqIHVuZGVmaW5lZCB2YWx1ZS4gQmVjYXVzZSBpbiBzb21lIGNhc2Vz
-IHRoaXMgZmllbGQNCj4gY29udGFpbnMNCj4gPiA+ID4gPiA+ID4gPiArICAgICAgICAqIHdyb25n
-IHZhbHVlLg0KPiA+ID4gPiA+ID4gPiA+ICsgICAgICAgICovDQo+ID4gPiA+ID4gPiA+ID4gKyAg
-ICAgICBhY3BpX2dibF9GQURULnhwbTFhX2NvbnRyb2xfYmxvY2suYWNjZXNzX3dpZHRoID0gMDsN
-Cj4gPiA+ID4gPiA+ID4NCj4gPiA+ID4gPiA+ID4gT0ssIGxldCdzIHNlZSB3aGF0IEJvYiBhbmQg
-THYgdGhpbmsgYWJvdXQgdGhhdC4NCj4gPiA+ID4gPiA+IFtMdiBaaGVuZ10NCj4gPiA+ID4gPiA+
-IFRoZXJlIGlzIGEgY29tbWl0IGluIDQuNy1yYzI6DQo+ID4gPiA+ID4gPg0KPiA+ID4gPiA+DQo+
-ID4gPg0KPiBodHRwczovL2dpdC5rZXJuZWwub3JnL2NnaXQvbGludXgva2VybmVsL2dpdC90b3J2
-YWxkcy9saW51eC5naXQvY29tbWl0Lz9pZD0NCj4gPiA+ID4gPiA3ZjliZWY5ZA0KPiA+ID4gPiA+
-ID4gSGF2ZSB5b3UgdHJpZWQgaWYgdGhlIHByb2JsZW0gc3RpbGwgZXhpc3RzIGluIDQuNy1yYzI/
-DQo+ID4gPiA+ID4gSSd2ZSBqdXN0IHRyaWVkIHY0LjctcmMzLiBJdCBjb250YWlucyBjb21taXQg
-N2Y5YmVmOWQgYW5kIHRoZQ0KPiBwcm9ibGVtDQo+ID4gPiA+ID4gZXhpc3RzIHRoZXJlIHRvby4N
-Cj4gPiA+ID4gW0x2IFpoZW5nXQ0KPiA+ID4gPiBJTU8sIGZvciB0aGUgdGltZSBiZWluZywgeW91
-IGNhbiB1c2UgcXVpcmtzLg0KPiA+ID4gPiBCb290aW5nIHlvdXIga2VybmVsIHdpdGggdGhlIGZv
-bGxvd2luZyBwYXJhbWV0ZXJzOg0KPiA+ID4gPg0KPiA+ID4gPiBhY3BpPXJzZHQNCj4gPiA+ID4g
-T3INCj4gPiA+ID4gYWNwaV9mb3JjZV8zMmJpdF9mYWR0X2FkZHINCj4gPiA+ID4gT3INCj4gPiA+
-ID4gQm90aA0KPiA+ID4NCj4gPiA+IFJhZmFlbCByZXZlcnRlZCBjb21taXQsIHNvIEknbSBvayBu
-b3cuDQo+ID4gPg0KPiA+ID4gQWN0dWFsbHkgYWNwaV9mb3JjZV8zMmJpdF9mYWR0X2FkZHIgd2ls
-bCBub3QgaGVscCBoZXJlLCBiZWNhdXNlIGl0J3MNCj4gdGFrZQ0KPiA+ID4gZWZmZWN0IG9ubHkg
-aWYgYWRkcmVzczY0ICE9IGFkZHJlc3MzMi4gQnV0IGhlcmUgdGhlc2UgYWRkcmVzc2VzIGFyZQ0K
-PiA+ID4gdGhlIHNhbWUsIHRoZXJlZm9yZSBhY2Nlc3Nfd2lkdGggaXMgdGFrZW4gZnJvbSBleHRl
-bmRlZCBhZGRyZXNzLg0KPiA+ID4NCj4gPiA+IGh0dHA6Ly9seHIuZnJlZS0NCj4gZWxlY3Ryb25z
-LmNvbS9zb3VyY2UvZHJpdmVycy9hY3BpL2FjcGljYS90YmZhZHQuYyNMNTc2DQo+ID4gW0x2IFpo
-ZW5nXQ0KPiA+IEluIGFkZGl0aW9uIHRvIHRoZSBhZGRyZXNzIGNoZWNrLCB3ZSBtYXkgYWRkIGFj
-Y2VzcyB3aWR0aCBjaGVjayBoZXJlLg0KPiA+IEkgbmVlZCB0byBjaGVjayB0aGlzIHdpdGggdGhl
-IGRlY2lzaW9uIG1ha2Vycy4NCj4gTWFrZSBzZW5zZS4gQnV0IHRoZW4gaXQncyBuZWNlc3Nhcnkg
-dG8gc2V0IGRlZmF1bHQgYWNjZXNzIHdpZHRoIGZvcg0KPiByZWdpc3RlcnMgZnJvbQ0KPiBGQURU
-IGZvciB0aGlzIGNoZWNrLiBCZWNhdXNlIGluIHRoZSBvbGQgMzItYml0IHBhcnQgb2YgRkFEVCBv
-bmx5IGFkZHJlc3MNCj4gYW5kDQo+IGxlbmd0aCBhcmUgZGVmaW5lZCwgYnV0IG5vdCBhY2Nlc3Mg
-d2lkdGguDQo+IA0KPiANCj4gPiA+IGFjcGk9cnNkdCBoZWxwcy4gVGhhbmtzIGZvciB0aGUgaW5m
-b3JtYXRpb24gYWJvdXQgdGhpcyBvcHRpb24uIEkNCj4gPiA+IG1pc3NlZCBpdCwgd2hlbiBJIHJl
-YWQgZG9jdW1lbnRhdGlvbi4NCj4gPiBbTHYgWmhlbmddDQo+ID4gR3JlYXQgdG8ga25vdyB0aGF0
-IGF0IGxlYXN0IDEgcXVpcmsgd29ya3MuDQo+ID4gQmFjayB0byB0aGlzIGJ1ZywgaXQgc2VlbXMg
-d2Ugc2hvdWxkIHVzZSBmaXhlZCBhY2Nlc3Nfd2lkdGggZm9yIHNvbWUNCj4gcHJlLWRlZmluZWQg
-UE0gcmVnaXN0ZXJzLg0KPiBUaGlzIGlzIHdoYXQgSSBtZWFudCBieSBzdWdnZXN0aW5nIHRvIHJl
-c2V0IHhwbTFhJ3MNCj4gYWNjZXNzX3dpZHRoIHRvIHplcm8gKG9yIG1heWJlIGFub3RoZXIgcmVn
-aXN0ZXJzIGZyb20gRkFEVCB0b28pIGluDQo+IGFjcGlfdGJfc2V0dXBfZmFkdF9yZWdpc3RlcnMg
-KHNlZSBxdW90ZWQgZGlmZiBhYm92ZSBmcm9tIG15IHByZXZpb3VzDQo+IGFuc3dlcikuDQo+IElm
-IGFjY2Vzc193aWR0aCBpcyB6ZXJvLCB0aGVuIGNvZGUgd29ya3MgYXMgYmVmb3JlIGFuZCBhY2Nl
-c3Nfd2lkdGggaXMNCj4gY2FsY3VsYXRlZCBieSBhY3BpX2h3X2dldF9hY2Nlc3NfYml0X3dpZHRo
-ICh3aWxsIHJldHVybiByZWctPmJpdF93aWR0aCBvcg0KPiBtYXhfYml0X3dpZHRoKDMyKSBpbiBv
-dXIgY2FzZSkuDQo+IA0KPiBTZXR0aW5nIGFjY2Vzc193aWR0aCB0byBzb21lIHByZS1kZWZpbmVk
-IHZhbHVlIGlzIGFuIG9wdGlvbi4NCj4gQnV0IGl0J3Mgbm90IGFzIGZsZXhpYmxlLCBiZWNhdXNl
-IEFDUEkgc3BlY2lmaWNhdGlvbiBkb2Vzbid0IGRlZmluZQ0KPiBhY2Nlc3Mgd2lkdGggYW5kIHNv
-bWUgcHJlLWRlZmluZWQgUE0gcmVnaXN0ZXJzIGhhdmUgdmFyaWFibGUgbGVuZ3RoDQo+IGFuZCBv
-bmx5IHRoZSBtaW5pbWFsIHJlZ2lzdGVyIGxlbmd0aCBpcyBkZWZpbmVkIChQTTFBIENvbnRyb2wg
-UmVnLCBQTTFCDQo+IENvbnRyb2wNCj4gUmVnLCBQTTFBIGV2ZW50IGJsb2NrLCBQTTFCIGV2ZW50
-IGJsb2NrKS4NCj4gDQo+IFByZXZpb3VzbHkgeW91IHBvaW50ZWQgdG8gY29tbWl0IHRoYXQgcmVx
-dWlyZXMgdXNhZ2Ugb2YgYWNjZXNzDQo+IHdpZHRoIGZpZWxkLg0KPiBodHRwOi8vcGVybWFsaW5r
-LmdtYW5lLm9yZy9nbWFuZS5saW51eC5rZXJuZWwuY29tbWl0cy5oZWFkLzMxMzg3MA0KPiBJIHNl
-ZSBpdCdzIHJlbGF0ZWQgdG8gQVBFSSwgdGhlcmVmb3JlIHNldHRpbmcgYWNjZXNzX3dpZHRoIGZv
-cg0KPiByZWdpc3RlcnMgaW4gRkFEVCB3aWxsIG5vdCBhZmZlY3QgaXQuDQoNCltMdiBaaGVuZ10g
-DQpZZXMsIEkgY2FuIHNlZSB5b3VyIHBvaW50IGFuZCBpdCBsb29rcyByZWFzb25hYmxlLg0KRm9y
-IG5vdywgSSdtIGdvaW5nIHRvIHByb2JlIFdpbmRvd3MgYmVoYXZpb3IgdXNpbmcgcWVtdS4NCg0K
-SXQgbG9va3MgSSBjYW4gYWNoaWV2ZSB0aGlzIGJ5IG1vZGlmeWluZzoNCmh3L2kzODYvYWNwaS1i
-dWlsZC5jOiBodHRwOi8vZ2l0LnFlbXUub3JnLz9wPXFlbXUuZ2l0O2E9YmxvYjtmPWh3L2kzODYv
-YWNwaS1idWlsZC5jDQpody9hY3BpL2ljaDkuYzogaHR0cDovL2dpdC5xZW11Lm9yZy8/cD1xZW11
-LmdpdDthPWJsb2I7Zj1ody9hY3BpL2ljaDkuYw0KDQpUaGUgcmVzdWx0IG1heSBoZWxwIHVzIHRv
-IG1ha2UgbW9yZSBhY2N1cmF0ZSBkZWNpc2lvbi4NCg0KVGhhbmtzIGFuZCBiZXN0IHJlZ2FyZHMN
-Ci1Mdg0K
+This patch adds logic to treat virtual ramdisk SPA as pmem region, then
+ramdisk's /dev/pmem* device can be mounted with iso9660.
+
+It's useful to work with the httpboot in EFI firmware to pull a remote
+ISO file to the local memory region for booting and installation.
+
+Wiki page of UEFI HTTPBoot with OVMF:
+	https://en.opensuse.org/UEFI_HTTPBoot_with_OVMF
+
+The ramdisk function in EDK2/OVMF generates a ACPI0012 root device that
+it contains empty _STA but without _DSM:
+
+DefinitionBlock ("ssdt2.aml", "SSDT", 2, "INTEL ", "RamDisk ", 0x00001000)
+{
+    Scope (\_SB)
+    {
+        Device (NVDR)
+        {
+            Name (_HID, "ACPI0012")  // _HID: Hardware ID
+            Name (_STR, Unicode ("NVDIMM Root Device"))  // _STR: Description String
+            Method (_STA, 0, NotSerialized)  // _STA: Status
+            {
+                Return (0x0F)
+            }
+        }
+    }
+}
+
+In section 5.2.25.2 of ACPI 6.1 spec, it mentions that the "SPA Range
+Structure Index" of virtual SPA shall be set to zero. That means virtual SPA
+will not be associated by any NVDIMM region mapping.
+
+The VCD's SPA Range Structure in NFIT is similar to virtual disk region
+as following:
+
+[028h 0040   2]                Subtable Type : 0000 [System Physical Address Range]
+[02Ah 0042   2]                       Length : 0038
+
+[02Ch 0044   2]                  Range Index : 0000
+[02Eh 0046   2]        Flags (decoded below) : 0000
+                   Add/Online Operation Only : 0
+                      Proximity Domain Valid : 0
+[030h 0048   4]                     Reserved : 00000000
+[034h 0052   4]             Proximity Domain : 00000000
+[038h 0056  16]           Address Range GUID : 77AB535A-45FC-624B-5560-F7B281D1F96E
+[048h 0072   8]           Address Range Base : 00000000B6ABD018
+[050h 0080   8]         Address Range Length : 0000000005500000
+[058h 0088   8]         Memory Map Attribute : 0000000000000000
+
+The way to not associate a SPA range is to never reference it from a "flush hint",
+"interleave", or "control region" table.
+
+After testing on OVMF, pmem driver can support the region that it doesn't
+assoicate to any NVDIMM mapping. So, treat VCD like pmem is a idea to get
+a pmem block device that it contains iso. 
+
+v4:
+Instoduce nfit_spa_is_virtual() to check virtual ramdisk SPA and create
+pmem region.
+
+v3:
+To simplify patch, removed useless VCD region in libnvdimm.
+ 
+v2:
+Removed the code for setting VCD to a read-only region.
+
+Cc: Gary Lin <GLin@suse.com>
+Cc: Dan Williams <dan.j.williams@intel.com>
+Cc: Ross Zwisler <ross.zwisler@linux.intel.com>
+Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: Linda Knippers <linda.knippers@hpe.com>
+Signed-off-by: Lee, Chun-Yi <jlee@suse.com>
+---
+ drivers/acpi/nfit.c          |  8 +++++++-
+ drivers/nvdimm/region_devs.c | 26 +++++++++++++++++++++++++-
+ include/linux/libnvdimm.h    |  2 ++
+ 3 files changed, 34 insertions(+), 2 deletions(-)
+
+Index: linux/drivers/acpi/nfit.c
+===================================================================
+--- linux.orig/drivers/acpi/nfit.c
++++ linux/drivers/acpi/nfit.c
+@@ -1980,6 +1980,14 @@ static int acpi_nfit_init_mapping(struct
+ 	return 0;
+ }
+ 
++static bool nfit_spa_is_virtual(struct acpi_nfit_system_address *spa)
++{
++	return (nfit_spa_type(spa) == NFIT_SPA_VDISK ||
++		nfit_spa_type(spa) == NFIT_SPA_VCD   ||
++		nfit_spa_type(spa) == NFIT_SPA_PDISK ||
++		nfit_spa_type(spa) == NFIT_SPA_PCD);
++}
++
+ static int acpi_nfit_register_region(struct acpi_nfit_desc *acpi_desc,
+ 		struct nfit_spa *nfit_spa)
+ {
+@@ -1995,7 +2003,7 @@ static int acpi_nfit_register_region(str
+ 	if (nfit_spa->nd_region)
+ 		return 0;
+ 
+-	if (spa->range_index == 0) {
++	if (spa->range_index == 0 && !nfit_spa_is_virtual(spa)) {
+ 		dev_dbg(acpi_desc->dev, "%s: detected invalid spa index\n",
+ 				__func__);
+ 		return 0;
+@@ -2059,6 +2067,11 @@ static int acpi_nfit_register_region(str
+ 				ndr_desc);
+ 		if (!nfit_spa->nd_region)
+ 			rc = -ENOMEM;
++	} else if (nfit_spa_is_virtual(spa)) {
++		nfit_spa->nd_region = nvdimm_pmem_region_create(nvdimm_bus,
++				ndr_desc);
++		if (!nfit_spa->nd_region)
++			rc = -ENOMEM;
+ 	}
+ 
+  out:
