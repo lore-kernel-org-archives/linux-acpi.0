@@ -1,99 +1,76 @@
-From: Jeffrey Hugo <jhugo@codeaurora.org>
-Subject: Re: [RFC PATCH v4 3/5] PCI: Check platform specific ECAM quirks
-Date: Wed, 29 Jun 2016 09:38:50 -0600
-Message-ID: <a083360c-9b75-30f9-fe3c-ba968928fd92@codeaurora.org>
-References: <1467100442-28078-1-git-send-email-tn@semihalf.com>
- <1467100442-28078-4-git-send-email-tn@semihalf.com>
- <577275EA.7010002@codeaurora.org>
- <CADaLNDkhPZuG7UJ4SK_j5v_nXbd782Q17LAcXduG0uEObaFF=g@mail.gmail.com>
- <5773A773.8040700@semihalf.com> <5773CE49.1050802@codeaurora.org>
- <5773D284.8060404@semihalf.com>
+From: Al Stone <ahs3@redhat.com>
+Subject: Re: [RFC DSD 01/03] _DSD Property Registration Ruleset
+Date: Wed, 29 Jun 2016 10:21:17 -0600
+Message-ID: <5f1a88e2-923d-14d8-b3b4-0b87244a59b7@redhat.com>
+References: <63241a35-9b6b-f0ea-8de7-f278b7bdfe8a@redhat.com>
+ <5702848a-c97a-503a-eacb-a755f1089262@redhat.com>
+ <6720ED6D-9AE9-4D1A-AED1-0741B528F235@intel.com>
+ <D39957D0.86D92%charles.garcia-tobin@arm.com>
+Reply-To: ahs3@redhat.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp.codeaurora.org ([198.145.29.96]:38805 "EHLO
-	smtp.codeaurora.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752950AbcF2Piy (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 29 Jun 2016 11:38:54 -0400
-In-Reply-To: <5773D284.8060404@semihalf.com>
+Received: from mail-it0-f46.google.com ([209.85.214.46]:37868 "EHLO
+	mail-it0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751230AbcF2Q2R (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 29 Jun 2016 12:28:17 -0400
+Received: by mail-it0-f46.google.com with SMTP id f6so45306849ith.0
+        for <linux-acpi@vger.kernel.org>; Wed, 29 Jun 2016 09:27:20 -0700 (PDT)
+In-Reply-To: <D39957D0.86D92%charles.garcia-tobin@arm.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Tomasz Nowicki <tn@semihalf.com>, Christopher Covington <cov@codeaurora.org>, Duc Dang <dhdang@apm.com>
-Cc: Gabriele Paoloni <gabriele.paoloni@huawei.com>, Rafael Wysocki <rafael@kernel.org>, linux-pci@vger.kernel.org, Will Deacon <will.deacon@arm.com>, Sinan Kaya <okaya@codeaurora.org>, Yijing Wang <wangyijing@huawei.com>, Andrea Gallo <andrea.gallo@linaro.org>, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, linaro-acpi@lists.linaro.org, David Daney <ddaney@caviumnetworks.com>, linux-acpi@vger.kernel.org, Robert Richter <robert.richter@caviumnetworks.com>, Bjorn Helgaas <helgaas@kernel.org>, Dongdong Liu <liudongdong3@huawei.com>, Catalin Marinas <catalin.marinas@arm.com>, Liviu Dudau <Liviu.Dudau@arm.com>, Arnd Bergmann <arnd@arndb.de>, Jon Masters <jcm@redhat.com>, Mark Salter <msalter@redhat.com>, Marcin Wojtas <mw@semihalf.com>, linux-arm <linux-arm-kernel@lists.infradead.org>, Jayachandran C <jchandra@broadcom.com>, Ard Biesheuvel <ard.biesheuvel@linaro.org>, Lin
+To: Charles Garcia-Tobin <charles.garcia-tobin@arm.com>, "Hart, Darren" <darren.hart@intel.com>, ACPI Devel Mailing List <linux-acpi@vger.kernel.org>
+Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>
 
-On 6/29/2016 7:52 AM, Tomasz Nowicki wrote:
-> On 29.06.2016 15:34, Christopher Covington wrote:
->> I'm confused by this statement. OEMID is defined as 6 bytes long and OEM
->> Table ID as 8 bytes long in the ACPI specification. As far as I can
->> tell, if your string isn't exactly that long, padding up to that length
->> is required.
->
-> Well, I cannot find that requirement in ACPI spec. but I might missed
-> something.
+On 06/29/2016 03:53 AM, Charles Garcia-Tobin wrote:
+> Hi Al
+>=20
+> Thanks for posting this! One other minor comment is that given sectio=
+n 8
+> repeats and expands the content of "_DSD Property Database Ruleset"
+> section 4, maybe to make life easier, you should strike the latter an=
+d put
+> a reference in there to this section?
 
-Have a look at table 5-29 in Section 5.2.6 which starts on page 114 of 
-ACPI 6.1
+Ah.  Good point.  No sense in duplicating code, so to speak.
 
->
-> I dumped my x86 machine ACPI tables and here is an example of MCFG:
->
-> $ cat mcfg.dsl
-> /*
->  * Intel ACPI Component Architecture
->  * AML/ASL+ Disassembler version 20160108-64
->  * Copyright (c) 2000 - 2016 Intel Corporation
->  *
->  * Disassembly of mcfg.dat, Wed Jun 29 15:48:16 2016
->  *
->  * ACPI Data Table [MCFG]
->  *
->  * Format: [HexOffset DecimalOffset ByteLength]  FieldName : FieldValue
->  */
->
-> [000h 0000   4]                    Signature : "MCFG"    [Memory Mapped
-> Configuration table]
-> [004h 0004   4]                 Table Length : 0000003C
-> [008h 0008   1]                     Revision : 01
-> [009h 0009   1]                     Checksum : A9
-> [00Ah 0010   6]                       Oem ID : "ALASKA"
-> [010h 0016   8]                 Oem Table ID : "A M I"
-> [018h 0024   4]                 Oem Revision : 01072009
-> [01Ch 0028   4]              Asl Compiler ID : "MSFT"
-> [020h 0032   4]        Asl Compiler Revision : 00000097
->
-> [024h 0036   8]                     Reserved : 0000000000000000
->
-> [02Ch 0044   8]                 Base Address : 00000000F8000000
-> [034h 0052   2]         Segment Group Number : 0000
-> [036h 0054   1]             Start Bus Number : 00
-> [037h 0055   1]               End Bus Number : 3F
-> [038h 0056   4]                     Reserved : 00000000
->
-> Raw Table Data: Length 60 (0x3C)
->
-> 00000000  4d 43 46 47 3c 00 00 00  01 a9 41 4c 41 53 4b 41
-> |MCFG<.....ALASKA|
-> 00000010  41 20 4d 20 49 00 00 00  09 20 07 01 4d 53 46 54  |A M I....
-> ..MSFT|
-> 00000020  97 00 00 00 00 00 00 00  00 00 00 00 00 00 00 f8
-> |................|
-> 00000030  00 00 00 00 00 00 00 3f  00 00 00 00              |.......?....|
->
-> So in this example I have OEM table ID "A M I" 6 character long and 0
-> padding.
->
-> Tomasz
->
->
-> _______________________________________________
-> linux-arm-kernel mailing list
-> linux-arm-kernel@lists.infradead.org
-> http://lists.infradead.org/mailman/listinfo/linux-arm-kernel
+> Cheers
+>=20
+> Charles
+>=20
+>=20
+> On 29/06/2016 00:08, "Hart, Darren" <darren.hart@intel.com> wrote:
+>=20
+>> Thanks Al,
+>>
+>> On 6/28/16, 1:07 PM, "Al Stone" <ahs3@redhat.com> wrote:
+>>
+>> =E2=80=A6
+>>
+>>> 8. Immutability of Registered Property Set Definitions
+>>> ------------------------------------------------------
+>>> All property set definitions, once registered and in the database [=
+2],
+>>> are immutable. It is not possible to remove existing content from t=
+he
+>>> database or to modify any of it in place.  It only is possible to a=
+dd
+>>> new content.
+>>>
+[snip...]
 
-
--- 
-Jeffrey Hugo
-Qualcomm Innovation Center, Inc.
-Qualcomm Innovation Center, Inc. is a member of Code Aurora Forum, a 
-Linux Foundation Collaborative Project
+--=20
+ciao,
+al
+-----------------------------------
+Al Stone
+Software Engineer
+Red Hat, Inc.
+ahs3@redhat.com
+-----------------------------------
+--
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
