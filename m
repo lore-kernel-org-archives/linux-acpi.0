@@ -1,11 +1,12 @@
 From: fu.wei@linaro.org
-Subject: [PATCH v6 08/10] acpi: Add memory-mapped timer support in GTDT driver
-Date: Thu, 30 Jun 2016 02:15:51 +0800
-Message-ID: <1467224153-22873-9-git-send-email-fu.wei@linaro.org>
+Subject: [PATCH v6 10/10] acpi: Add SBSA Generic Watchdog support in GTDT
+ driver
+Date: Thu, 30 Jun 2016 02:15:53 +0800
+Message-ID: <1467224153-22873-11-git-send-email-fu.wei@linaro.org>
 References: <1467224153-22873-1-git-send-email-fu.wei@linaro.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
 In-Reply-To: <1467224153-22873-1-git-send-email-fu.wei@linaro.org>
 List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
@@ -21,165 +22,72 @@ To: rjw@rjwysocki.net, lenb@kernel.org, daniel.lezcano@linaro.org, tglx@linutron
 Cc: wei@redhat.com, harba@codeaurora.org, Fu Wei <fu.wei@linaro.org>, al.stone@linaro.org, graeme.gregory@linaro.org, linaro-acpi@lists.linaro.org, jcm@redhat.com, timur@codeaurora.org, will.deacon@arm.com, rruigrok@codeaurora.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, wim@iguana.be, arnd@arndb.de, cov@codeaurora.org, Suravee.Suthikulpanit@amd.com, catalin.marinas@arm.com, leo.duran@amd.com, linux-arm-kernel@lists.infradead.org
 List-Id: linux-acpi@vger.kernel.org
 
-From: Fu Wei <fu.wei@linaro.org>
-
-This driver adds support for parsing memory-mapped timer in GTDT:
-provide a kernel APIs to parse GT Block Structure in GTDT,
-export all the info by filling the struct which provided
-by parameter(pointer of the struct).
-
-By this driver, we can add ACPI support for memory-mapped timer in
-arm_arch_timer drivers, and separate the ACPI GTDT knowledge from it.
-
-Signed-off-by: Fu Wei <fu.wei@linaro.org>
-Signed-off-by: Hanjun Guo <hanjun.guo@linaro.org>
----
- drivers/acpi/acpi_gtdt.c             | 89 ++++++++++++++++++++++++++++++++++++
- include/clocksource/arm_arch_timer.h | 15 ++++++
- include/linux/acpi.h                 |  1 +
- 3 files changed, 105 insertions(+)
-
-diff --git a/drivers/acpi/acpi_gtdt.c b/drivers/acpi/acpi_gtdt.c
-index edb5a8c..4592dba 100644
---- a/drivers/acpi/acpi_gtdt.c
-+++ b/drivers/acpi/acpi_gtdt.c
-@@ -153,3 +153,92 @@ int __init gtdt_arch_timer_init(struct acpi_table_header *table)
- 
- 	return -EINVAL;
- }
-+
-+/*
-+ * Helper function for getting the pointer of a timer frame in GT block.
-+ */
-+static void __init *gtdt_gt_timer_frame(struct acpi_gtdt_timer_block *gt_block,
-+					int index)
-+{
-+	void *timer_frame = (void *)gt_block + gt_block->timer_offset +
-+			    sizeof(struct acpi_gtdt_timer_entry) * index;
-+
-+	if (timer_frame <= (void *)gt_block + gt_block->header.length -
-+			   sizeof(struct acpi_gtdt_timer_entry))
-+		return timer_frame;
-+
-+	return NULL;
-+}
-+
-+static int __init gtdt_parse_gt_block(void *platform_timer, int index,
-+				      void *data)
-+{
-+	struct acpi_gtdt_timer_block *block;
-+	struct acpi_gtdt_timer_entry *frame;
-+	struct gt_block_data *block_data;
-+	int i, j;
-+
-+	if (!platform_timer || !data)
-+		return -EINVAL;
-+
-+	block = platform_timer;
-+	block_data = data + sizeof(struct gt_block_data) * index;
-+
-+	if (!block->block_address || !block->timer_count) {
-+		pr_err(FW_BUG "invalid GT Block data.\n");
-+		return -EINVAL;
-+	}
-+	block_data->cntctlbase_phy = (phys_addr_t)block->block_address;
-+	block_data->timer_count = block->timer_count;
-+
-+	/*
-+	 * Get the GT timer Frame data for every GT Block Timer
-+	 */
-+	for (i = 0, j = 0; i < block->timer_count; i++) {
-+		frame = gtdt_gt_timer_frame(block, i);
-+		if (!frame || !frame->base_address || !frame->timer_interrupt) {
-+			pr_err(FW_BUG "invalid GT Block Timer data.\n");
-+			return -EINVAL;
-+		}
-+		block_data->timer[j].frame_nr = frame->frame_number;
-+		block_data->timer[j].cntbase_phy = frame->base_address;
-+		block_data->timer[j].irq = map_generic_timer_interrupt(
-+						   frame->timer_interrupt,
-+						   frame->timer_flags);
-+		if (frame->virtual_timer_interrupt)
-+			block_data->timer[j].virt_irq =
-+				map_generic_timer_interrupt(
-+					frame->virtual_timer_interrupt,
-+					frame->virtual_timer_flags);
-+		j++;
-+	}
-+
-+	if (j)
-+		return 0;
-+
-+	block_data->cntctlbase_phy = (phys_addr_t)NULL;
-+	block_data->timer_count = 0;
-+
-+	return -EINVAL;
-+}
-+
-+/*
-+ * Get the GT block info for memory-mapped timer from GTDT table.
-+ * Please make sure we have called gtdt_arch_timer_init, because it helps to
-+ * init the global variables.
-+ */
-+int __init gtdt_arch_timer_mem_init(struct gt_block_data *data)
-+{
-+	void *platform_timer;
-+	int index = 0;
-+
-+	for_each_gtdt_timer(platform_timer) {
-+		if (!gtdt_parse_gt_block(platform_timer, index, data))
-+			index++;
-+	}
-+
-+	if (index)
-+		pr_info("found %d memory-mapped timer block.\n", index);
-+
-+	return index;
-+}
-diff --git a/include/clocksource/arm_arch_timer.h b/include/clocksource/arm_arch_timer.h
-index 16dcd10..ece6b3b 100644
---- a/include/clocksource/arm_arch_timer.h
-+++ b/include/clocksource/arm_arch_timer.h
-@@ -56,6 +56,8 @@ enum spi_nr {
- #define ARCH_TIMER_MEM_PHYS_ACCESS	2
- #define ARCH_TIMER_MEM_VIRT_ACCESS	3
- 
-+#define ARCH_TIMER_MEM_MAX_FRAME	8
-+
- #define ARCH_TIMER_USR_PCT_ACCESS_EN	(1 << 0) /* physical counter */
- #define ARCH_TIMER_USR_VCT_ACCESS_EN	(1 << 1) /* virtual counter */
- #define ARCH_TIMER_VIRT_EVT_EN		(1 << 2)
-@@ -71,6 +73,19 @@ struct arch_timer_kvm_info {
- 	int virtual_irq;
- };
- 
-+struct gt_timer_data {
-+	int frame_nr;
-+	phys_addr_t cntbase_phy;
-+	int irq;
-+	int virt_irq;
-+};
-+
-+struct gt_block_data {
-+	phys_addr_t cntctlbase_phy;
-+	int timer_count;
-+	struct gt_timer_data timer[ARCH_TIMER_MEM_MAX_FRAME];
-+};
-+
- #ifdef CONFIG_ARM_ARCH_TIMER
- 
- extern u32 arch_timer_get_rate(void);
-diff --git a/include/linux/acpi.h b/include/linux/acpi.h
-index 8439579..b1cacbc 100644
---- a/include/linux/acpi.h
-+++ b/include/linux/acpi.h
-@@ -536,6 +536,7 @@ struct platform_device *acpi_create_platform_device(struct acpi_device *);
- int __init gtdt_arch_timer_init(struct acpi_table_header *table);
- int __init acpi_gtdt_map_ppi(int type);
- int __init acpi_gtdt_c3stop(void);
-+int __init gtdt_arch_timer_mem_init(struct gt_block_data *data);
- #endif
- 
- #else	/* !CONFIG_ACPI */
--- 
-2.5.5
+RnJvbTogRnUgV2VpIDxmdS53ZWlAbGluYXJvLm9yZz4KClRoaXMgZHJpdmVyIGFkZHMgc3VwcG9y
+dCBmb3IgcGFyc2luZyBTQlNBIEdlbmVyaWMgV2F0Y2hkb2cgdGltZXIKaW4gR1REVCwgcGFyc2Ug
+YWxsIGluZm8gaW4gU0JTQSBHZW5lcmljIFdhdGNoZG9nIFN0cnVjdHVyZSBpbiBHVERULAphbmQg
+Y3JlYXRpbmcgYSBwbGF0Zm9ybSBkZXZpY2Ugd2l0aCB0aGF0IGluZm9ybWF0aW9uLgoKVGhpcyBh
+bGxvd3MgdGhlIG9wZXJhdGluZyBzeXN0ZW0gdG8gb2J0YWluIGRldmljZSBkYXRhIGZyb20gdGhl
+CnJlc291cmNlIG9mIHBsYXRmb3JtIGRldmljZS4gVGhlIHBsYXRmb3JtIGRldmljZSBuYW1lZCAi
+c2JzYS1nd2R0IgpjYW4gYmUgdXNlZCBieSB0aGUgQVJNIFNCU0EgR2VuZXJpYyBXYXRjaGRvZyBk
+cml2ZXIuCgpTaWduZWQtb2ZmLWJ5OiBGdSBXZWkgPGZ1LndlaUBsaW5hcm8ub3JnPgpTaWduZWQt
+b2ZmLWJ5OiBIYW5qdW4gR3VvIDxoYW5qdW4uZ3VvQGxpbmFyby5vcmc+Ci0tLQogZHJpdmVycy9h
+Y3BpL2FjcGlfZ3RkdC5jIHwgODIgKysrKysrKysrKysrKysrKysrKysrKysrKysrKysrKysrKysr
+KysrKysrKysrKysrCiBkcml2ZXJzL3dhdGNoZG9nL0tjb25maWcgfCAgMSArCiAyIGZpbGVzIGNo
+YW5nZWQsIDgzIGluc2VydGlvbnMoKykKCmRpZmYgLS1naXQgYS9kcml2ZXJzL2FjcGkvYWNwaV9n
+dGR0LmMgYi9kcml2ZXJzL2FjcGkvYWNwaV9ndGR0LmMKaW5kZXggNDU5MmRiYS4uYWI4YTgyMiAx
+MDA2NDQKLS0tIGEvZHJpdmVycy9hY3BpL2FjcGlfZ3RkdC5jCisrKyBiL2RyaXZlcnMvYWNwaS9h
+Y3BpX2d0ZHQuYwpAQCAtMTUsNiArMTUsNyBAQAogI2luY2x1ZGUgPGxpbnV4L2luaXQuaD4KICNp
+bmNsdWRlIDxsaW51eC9rZXJuZWwuaD4KICNpbmNsdWRlIDxsaW51eC9tb2R1bGUuaD4KKyNpbmNs
+dWRlIDxsaW51eC9wbGF0Zm9ybV9kZXZpY2UuaD4KIAogI2luY2x1ZGUgPGNsb2Nrc291cmNlL2Fy
+bV9hcmNoX3RpbWVyLmg+CiAKQEAgLTI0MiwzICsyNDMsODQgQEAgaW50IF9faW5pdCBndGR0X2Fy
+Y2hfdGltZXJfbWVtX2luaXQoc3RydWN0IGd0X2Jsb2NrX2RhdGEgKmRhdGEpCiAKIAlyZXR1cm4g
+aW5kZXg7CiB9CisKKy8qCisgKiBJbml0aWFsaXplIGEgU0JTQSBnZW5lcmljIFdhdGNoZG9nIHBs
+YXRmb3JtIGRldmljZSBpbmZvIGZyb20gR1REVAorICovCitzdGF0aWMgaW50IF9faW5pdCBndGR0
+X2ltcG9ydF9zYnNhX2d3ZHQodm9pZCAqcGxhdGZvcm1fdGltZXIsIGludCBpbmRleCkKK3sKKwlz
+dHJ1Y3QgcGxhdGZvcm1fZGV2aWNlICpwZGV2OworCXN0cnVjdCBhY3BpX2d0ZHRfd2F0Y2hkb2cg
+KndkID0gcGxhdGZvcm1fdGltZXI7CisJaW50IGlycSA9IG1hcF9nZW5lcmljX3RpbWVyX2ludGVy
+cnVwdCh3ZC0+dGltZXJfaW50ZXJydXB0LAorCQkJCQkgICAgICB3ZC0+dGltZXJfZmxhZ3MpOwor
+CWludCBub19pcnEgPSAxOworCisJLyoKKwkgKiBBY2NvcmRpbmcgdG8gU0JTQSBzcGVjaWZpY2F0
+aW9uIHRoZSBzaXplIG9mIHJlZnJlc2ggYW5kIGNvbnRyb2wKKwkgKiBmcmFtZXMgb2YgU0JTQSBH
+ZW5lcmljIFdhdGNoZG9nIGlzIFNaXzRLKE9mZnNldCAweDAwMCDigJMgMHhGRkYpLgorCSAqLwor
+CXN0cnVjdCByZXNvdXJjZSByZXNbXSA9IHsKKwkJREVGSU5FX1JFU19NRU0od2QtPmNvbnRyb2xf
+ZnJhbWVfYWRkcmVzcywgU1pfNEspLAorCQlERUZJTkVfUkVTX01FTSh3ZC0+cmVmcmVzaF9mcmFt
+ZV9hZGRyZXNzLCBTWl80SyksCisJCURFRklORV9SRVNfSVJRKGlycSksCisJfTsKKworCXByX2Rl
+YnVnKCJhIFdhdGNoZG9nIEdUKDB4JWxseC8weCVsbHggZ3NpOiV1IGZsYWdzOjB4JXgpLlxuIiwK
+KwkJIHdkLT5yZWZyZXNoX2ZyYW1lX2FkZHJlc3MsIHdkLT5jb250cm9sX2ZyYW1lX2FkZHJlc3Ms
+CisJCSB3ZC0+dGltZXJfaW50ZXJydXB0LCB3ZC0+dGltZXJfZmxhZ3MpOworCisJaWYgKCEod2Qt
+PnJlZnJlc2hfZnJhbWVfYWRkcmVzcyAmJiB3ZC0+Y29udHJvbF9mcmFtZV9hZGRyZXNzKSkgewor
+CQlwcl9lcnIoRldfQlVHICJmYWlsZWQgZ2V0dGluZyB0aGUgV2F0Y2hkb2cgR1QgZnJhbWUgYWRk
+ci5cbiIpOworCQlyZXR1cm4gLUVJTlZBTDsKKwl9CisKKwlpZiAoIXdkLT50aW1lcl9pbnRlcnJ1
+cHQpCisJCXByX3dhcm4oRldfQlVHICJmYWlsZWQgZ2V0dGluZyB0aGUgV2F0Y2hkb2cgR1QgR1NJ
+Vi5cbiIpOworCWVsc2UgaWYgKGlycSA8PSAwKQorCQlwcl93YXJuKCJmYWlsZWQgdG8gbWFwIHRo
+ZSBXYXRjaGRvZyBHVCBHU0lWLlxuIik7CisJZWxzZQorCQlub19pcnEgPSAwOworCisJLyoKKwkg
+KiBBZGQgYSBwbGF0Zm9ybSBkZXZpY2UgbmFtZWQgInNic2EtZ3dkdCIgdG8gbWF0Y2ggdGhlIHBs
+YXRmb3JtIGRyaXZlci4KKwkgKiAic2JzYS1nd2R0IjogU0JTQShTZXJ2ZXIgQmFzZSBTeXN0ZW0g
+QXJjaGl0ZWN0dXJlKSBHZW5lcmljIFdhdGNoZG9nCisJICogVGhlIHBsYXRmb3JtIGRyaXZlciAo
+bGlrZSBkcml2ZXJzL3dhdGNoZG9nL3Nic2FfZ3dkdC5jKWNhbiBnZXQgZGV2aWNlCisJICogaW5m
+byBiZWxvdyBieSBtYXRjaGluZyB0aGlzIG5hbWUuCisJICovCisJcGRldiA9IHBsYXRmb3JtX2Rl
+dmljZV9yZWdpc3Rlcl9zaW1wbGUoInNic2EtZ3dkdCIsIGluZGV4LCByZXMsCisJCQkJCSAgICAg
+ICBBUlJBWV9TSVpFKHJlcykgLSBub19pcnEpOworCWlmIChJU19FUlIocGRldikpIHsKKwkJYWNw
+aV91bnJlZ2lzdGVyX2dzaSh3ZC0+dGltZXJfaW50ZXJydXB0KTsKKwkJcmV0dXJuIFBUUl9FUlIo
+cGRldik7CisJfQorCisJcmV0dXJuIDA7Cit9CisKK3N0YXRpYyBpbnQgX19pbml0IGd0ZHRfc2Jz
+YV9nd2R0X2luaXQodm9pZCkKK3sKKwlzdHJ1Y3QgYWNwaV90YWJsZV9oZWFkZXIgKnRhYmxlOwor
+CXZvaWQgKnBsYXRmb3JtX3RpbWVyOworCWludCBpbmRleCA9IDA7CisKKwlpZiAoYWNwaV9kaXNh
+YmxlZCkKKwkJcmV0dXJuIDA7CisKKwlpZiAoQUNQSV9GQUlMVVJFKGFjcGlfZ2V0X3RhYmxlKEFD
+UElfU0lHX0dURFQsIDAsICZ0YWJsZSkpKQorCQlyZXR1cm4gLUVJTlZBTDsKKworCWlmIChhY3Bp
+X2d0ZHRfZGVzY19pbml0KHRhYmxlKSA8IDApCisJCXJldHVybiAtRUlOVkFMOworCisJZm9yX2Vh
+Y2hfZ3RkdF93YXRjaGRvZyhwbGF0Zm9ybV90aW1lcikgeworCQlpZiAoIWd0ZHRfaW1wb3J0X3Ni
+c2FfZ3dkdChwbGF0Zm9ybV90aW1lciwgaW5kZXgpKQorCQkJaW5kZXgrKzsKKwl9CisKKwlpZiAo
+aW5kZXgpCisJCXByX2luZm8oImZvdW5kICVkIFNCU0EgZ2VuZXJpYyBXYXRjaGRvZy5cbiIsIGlu
+ZGV4KTsKKworCXJldHVybiAwOworfQorCitkZXZpY2VfaW5pdGNhbGwoZ3RkdF9zYnNhX2d3ZHRf
+aW5pdCk7CmRpZmYgLS1naXQgYS9kcml2ZXJzL3dhdGNoZG9nL0tjb25maWcgYi9kcml2ZXJzL3dh
+dGNoZG9nL0tjb25maWcKaW5kZXggYjRiM2UyNS4uMTA1ZjA1OSAxMDA2NDQKLS0tIGEvZHJpdmVy
+cy93YXRjaGRvZy9LY29uZmlnCisrKyBiL2RyaXZlcnMvd2F0Y2hkb2cvS2NvbmZpZwpAQCAtMjA3
+LDYgKzIwNyw3IEBAIGNvbmZpZyBBUk1fU0JTQV9XQVRDSERPRwogCWRlcGVuZHMgb24gQVJNNjQK
+IAlkZXBlbmRzIG9uIEFSTV9BUkNIX1RJTUVSCiAJc2VsZWN0IFdBVENIRE9HX0NPUkUKKwlzZWxl
+Y3QgQUNQSV9HVERUIGlmIEFDUEkKIAloZWxwCiAJICBBUk0gU0JTQSBHZW5lcmljIFdhdGNoZG9n
+IGhhcyB0d28gc3RhZ2UgdGltZW91dHM6CiAJICB0aGUgZmlyc3Qgc2lnbmFsIChXUzApIGlzIGZv
+ciBhbGVydGluZyB0aGUgc3lzdGVtIGJ5IGludGVycnVwdCwKLS0gCjIuNS41CgoKX19fX19fX19f
+X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX18KbGludXgtYXJtLWtlcm5lbCBt
+YWlsaW5nIGxpc3QKbGludXgtYXJtLWtlcm5lbEBsaXN0cy5pbmZyYWRlYWQub3JnCmh0dHA6Ly9s
+aXN0cy5pbmZyYWRlYWQub3JnL21haWxtYW4vbGlzdGluZm8vbGludXgtYXJtLWtlcm5lbAo=
