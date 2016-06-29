@@ -1,81 +1,29 @@
-From: Jacek Anaszewski <j.anaszewski@samsung.com>
-Subject: Re: [PATCH v7 1/1] leds: LED driver for TI LP3952 6-Channel Color LED
-Date: Wed, 29 Jun 2016 12:54:07 +0200
-Message-ID: <5773A8CF.10508@samsung.com>
-References: <1467129919-27641-1-git-send-email-tony.makkiel@daqri.com>
- <3435169.nmqvdouPPq@vostro.rjw.lan> <57737021.1010603@samsung.com>
- <57739DCE.3030303@daqri.com>
+From: "Rafael J. Wysocki" <rafael@kernel.org>
+Subject: Re: [PATCH V2 1/4] ACPI,PCI,IRQ: factor in PCI possible
+Date: Wed, 29 Jun 2016 15:13:08 +0200
+Message-ID: <CAJZ5v0j1m4oGJfdOC8uerKc-3ksq6k2e9RdjEnk0sWmsq4RHRQ@mail.gmail.com>
+References: <1467188859-28188-1-git-send-email-okaya@codeaurora.org> <1467188859-28188-2-git-send-email-okaya@codeaurora.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-leds-owner@vger.kernel.org>
-In-reply-to: <57739DCE.3030303@daqri.com>
-Sender: linux-leds-owner@vger.kernel.org
-To: Tony <tony.makkiel@daqri.com>
-Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, linux-leds@vger.kernel.org, rpurdie@rpsys.net, lenb@kernel.org, mika.westerberg@linux.intel.com, linux-acpi@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-pci-owner@vger.kernel.org>
+In-Reply-To: <1467188859-28188-2-git-send-email-okaya@codeaurora.org>
+Sender: linux-pci-owner@vger.kernel.org
+To: Sinan Kaya <okaya@codeaurora.org>
+Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Timur Tabi <timur@codeaurora.org>, Christopher Covington <cov@codeaurora.org>, Jon Masters <jcm@redhat.com>, Alex Williamson <alex.williamson@redhat.com>, eric.auger@redhat.com, Linux PCI <linux-pci@vger.kernel.org>, Andy Gross <agross@codeaurora.org>, linux-arm-msm@vger.kernel.org, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, wim@djo.tudelft.nl, perex@perex.cz, tiwai@suse.com, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On 06/29/2016 12:07 PM, Tony wrote:
+On Wed, Jun 29, 2016 at 10:27 AM, Sinan Kaya <okaya@codeaurora.org> wrote:
+> The change introduced in commit 103544d86976 ("ACPI,PCI,IRQ: reduce
+> resource requirements") omitted the initially assigned POSSIBLE penalty
+> when the IRQ is active.
+
+It would be good to say what can go wrong with that here.
+
+> The original code would assign the POSSIBLE value divided by the number
+> of possible IRQs during initialization.
 >
-> On 29/06/16 07:52, Jacek Anaszewski wrote:
->> Hi Rafael,
->
->>>> +#ifdef CONFIG_ACPI
->>>> +static const struct acpi_device_id lp3952_acpi_match[] = {
->>>> +    {LP3952_ACPI_NAME, 0},
->>>
->>> No, you can't use "PRP0001" in this list.
->>>
->>>> +    {}
->>>> +};
->>>> +
->>>> +MODULE_DEVICE_TABLE(acpi, lp3952_acpi_match);
->>>
->>> And you don't need this for the "PRP0001" thing to work.  The core will
->>> take care of it for you then.
->>>
->>>> +#endif
->>>
->>> So the entire ACPI block can be dropped for now.
->>>
->>> And the driver doesn't have to depend on CONFIG_ACPI any more, does it?
->>
->> The driver currently supports probing only with ACPI.
->> I have one question BTW: isn't there anything similar to the device tree
->> bindings documentation required for ACPI overlays?
->> Pointer to the discussion which led us to this solution:
->>
->> http://www.spinics.net/lists/linux-leds/msg06230.html
->>
-> _DSD is working now. I managed to get "PRP0001" working as suggested by
-> Rafael in
-> http://marc.info/?l=linux-acpi&m=146711623115228&w=2
-> with _DSD
+> Later, if the IRQ is chosen as the active IRQ or if the IRQ is in use
+> by ISA; additional penalties get added.
 
-Thanks for the link.
-
-Rafael, "Package" entries seem to mimic Device Tree properties defined
-in the common leds bindings. Would it be possible to make it even
-more compatible and define every LED connected to the LED controller
-in the form of a child node, similarly as in case of LED DT bindings?
-
-See Documentation/devicetree/bindings/leds/common.txt and other
-bindings in Documentation/devicetree/bindings/leds.
-
->   I will try adding names using _DSD. I am not sure why DSD didn't work
-> earlier. The only reason I could think of is, upgrading my OS recently
-> following a raid failure.
->
->>
->>>>
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->
->
-
-
--- 
-Best regards,
-Jacek Anaszewski
+Thanks,
+Rafael
