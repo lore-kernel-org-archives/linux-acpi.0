@@ -1,69 +1,275 @@
-From: Sinan Kaya <okaya@codeaurora.org>
-Subject: Re: [PATCH V2 1/4] ACPI,PCI,IRQ: factor in PCI possible
-Date: Wed, 29 Jun 2016 14:47:02 -0400
-Message-ID: <8a40e242-fca4-5681-e480-e29ec05354ac@codeaurora.org>
-References: <1467188859-28188-1-git-send-email-okaya@codeaurora.org>
- <1467188859-28188-2-git-send-email-okaya@codeaurora.org>
- <CAJZ5v0j1m4oGJfdOC8uerKc-3ksq6k2e9RdjEnk0sWmsq4RHRQ@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <CAJZ5v0j1m4oGJfdOC8uerKc-3ksq6k2e9RdjEnk0sWmsq4RHRQ@mail.gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: "Rafael J. Wysocki" <rafael@kernel.org>
-Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Timur Tabi <timur@codeaurora.org>, Christopher Covington <cov@codeaurora.org>, Jon Masters <jcm@redhat.com>, Alex Williamson <alex.williamson@redhat.com>, eric.auger@redhat.com, Linux PCI <linux-pci@vger.kernel.org>, Andy Gross <agross@codeaurora.org>, linux-arm-msm@vger.kernel.org, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, wim@djo.tudelft.nl, perex@perex.cz, tiwai@suse.com, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+From: "Luck, Tony" <tony.luck@intel.com>
+Subject: [PATCH] acpi, apei: Add Boot Error Record Table (BERT) support
+Date: Wed, 29 Jun 2016 13:04:29 -0700
+Message-ID: <13e567e22ba4776893cf074117d32e3c3276acb5.1467225769.git.tony.luck@intel.com>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga01.intel.com ([192.55.52.88]:41589 "EHLO mga01.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750921AbcF2UE5 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 29 Jun 2016 16:04:57 -0400
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Borislav Petkov <bp@alien8.de>, Huang Ying <ying.huang@intel.com>, Tomasz Nowicki <tomasz.nowicki@linaro.org>, "Jonathan Zhang (Zhixiong)" <zjzhang@codeaurora.org>, Fu Wei <fu.wei@linaro.org>, Tyler Baicar <tbaicar@codeaurora.org>, Borislav Petkov <bp@suse.de>
 
-On 6/29/2016 9:13 AM, Rafael J. Wysocki wrote:
-> On Wed, Jun 29, 2016 at 10:27 AM, Sinan Kaya <okaya@codeaurora.org> wrote:
->> The change introduced in commit 103544d86976 ("ACPI,PCI,IRQ: reduce
->> resource requirements") omitted the initially assigned POSSIBLE penalty
->> when the IRQ is active.
-> 
-> It would be good to say what can go wrong with that here.
-> 
+From: Huang Ying <ying.huang@intel.com>
 
-I can add more description. Here is a first attempt.
+ACPI/APEI is designed to verifiy/report H/W errors, like Corrected
+Error(CE) and Uncorrected Error(UC). It contains four tables: HEST,
+ERST, EINJ and BERT. The first three tables have been merged for
+a long time, but because of lacking BIOS support for BERT, the
+support for BERT is pending until now. Recently on ARM 64 platform
+it is has been supported. So here we come.
 
-Incorrect calculation of penalty leads to ACPI code assigning the wrong
-interrupt number to PCI INTx interrupts.
+Under normal circumstances, when a hardware error occurs, kernel will
+be notified via NMI, MCE or some other method, then kernel will
+process the error condition, report it, and recover it if possible.
+But sometime, the situation is so bad, so that firmware may choose to
+reset directly without notifying Linux kernel.
 
-This would not be as bad as it sounds in theory. You would just cause the
-interrupts to be shared and observe performance penalty.
+Linux kernel can use the Boot Error Record Table (BERT) to get the
+un-notified hardware errors that occurred in a previous boot. In this
+patch, the error information is reported via printk.
 
-However, some drivers like parallel port driver doesn't like interrupt
-sharing as in this example and causes all other PCI drivers sharing the interrupt
-to malfunction.
+For more information about BERT, please refer to ACPI Specification
+version 6.0, section 18.3.1:
+  http://www.uefi.org/sites/default/files/resources/ACPI_6.0.pdf
 
-The issue has not been caught because the behavior is platform specific
-and depends on the peripheral drivers sharing the IRQ. 
+The following log is a BERT record after system reboot because of hitting
+a fatal memory error:
+BERT: Error records from previous boot:
+[Hardware Error]: It has been corrected by h/w and requires no further action
+[Hardware Error]: event severity: corrected
+[Hardware Error]:  Error 0, type: recoverable
+[Hardware Error]:   section_type: memory error
+[Hardware Error]:   error_status: 0x0000000000000400
+[Hardware Error]:   physical_address: 0xffffffffffffffff
+[Hardware Error]:   card: 1 module: 2 bank: 3 row: 1 column: 2 bit_position: 5
+[Hardware Error]:   error_type: 2, single-bit ECC
 
-I can claim that this could be a BIOS bug. if interrupt 7 is not good for PCI,
-it shouldn't have been listed in the possible PCI interrupts to begin with. 
-Given this is an existing platform, I don't think we have the luxury to request
-all BIOS to be updated. This bugfix is needed to support existing platforms.
+[Tomasz Nowicki: Clear error status at the end of error handling]
+[Tony: Applied some cleanups suggested by Fu Wei]
+[Fu Wei: delete EXPORT_SYMBOL_GPL(bert_disable), improve the code]
 
+Signed-off-by: Huang Ying <ying.huang@intel.com>
+Signed-off-by: Tomasz Nowicki <tomasz.nowicki@linaro.org>
+Signed-off-by: Chen, Gong <gong.chen@linux.intel.com>
+Tested-by: Jonathan (Zhixiong) Zhang <zjzhang@codeaurora.org>
+Signed-off-by: Fu Wei <fu.wei@linaro.org>
+Tested-by: Tyler Baicar <tbaicar@codeaurora.org>
+Reviewed-by: Borislav Petkov <bp@suse.de>
+Signed-off-by: Tony Luck <tony.luck@intel.com>
+---
 
-Feel free to request more information if the above description is not clear.
+This seems to be the patch that is doomed to be forgotten. The
+original by Huang Ying was written so long ago that I don't want
+to search that deep into the archives in case I disturb a balrog.
+Fu Wei posted it back in January this year and got the Tested-by
+and Reviewed-by sign-offs:
 
+ https://lkml.kernel.org/r/1453196042-12273-1-git-send-email-fu.wei@linaro.org
 
->> The original code would assign the POSSIBLE value divided by the number
->> of possible IRQs during initialization.
->>
->> Later, if the IRQ is chosen as the active IRQ or if the IRQ is in use
->> by ISA; additional penalties get added.
-> 
-> Thanks,
-> Rafael
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-pci" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
+but then it looks like it was forgotten again :-(
 
+ Documentation/kernel-parameters.txt |   3 +
+ drivers/acpi/apei/Makefile          |   2 +-
+ drivers/acpi/apei/apei-internal.h   |   2 +-
+ drivers/acpi/apei/bert.c            | 150 ++++++++++++++++++++++++++++++++++++
+ 4 files changed, 155 insertions(+), 2 deletions(-)
+ create mode 100644 drivers/acpi/apei/bert.c
 
+diff --git a/Documentation/kernel-parameters.txt b/Documentation/kernel-parameters.txt
+index 82b42c958d1c..f565259167d7 100644
+--- a/Documentation/kernel-parameters.txt
++++ b/Documentation/kernel-parameters.txt
+@@ -582,6 +582,9 @@ bytes respectively. Such letter suffixes can also be entirely omitted.
+ 
+ 	bootmem_debug	[KNL] Enable bootmem allocator debug messages.
+ 
++	bert_disable	[ACPI]
++			Disable BERT OS support on buggy BIOSes.
++
+ 	bttv.card=	[HW,V4L] bttv (bt848 + bt878 based grabber cards)
+ 	bttv.radio=	Most important insmod options are available as
+ 			kernel args too.
+diff --git a/drivers/acpi/apei/Makefile b/drivers/acpi/apei/Makefile
+index 5d575a955940..e50573de25f1 100644
+--- a/drivers/acpi/apei/Makefile
++++ b/drivers/acpi/apei/Makefile
+@@ -3,4 +3,4 @@ obj-$(CONFIG_ACPI_APEI_GHES)	+= ghes.o
+ obj-$(CONFIG_ACPI_APEI_EINJ)	+= einj.o
+ obj-$(CONFIG_ACPI_APEI_ERST_DEBUG) += erst-dbg.o
+ 
+-apei-y := apei-base.o hest.o erst.o
++apei-y := apei-base.o hest.o erst.o bert.o
+diff --git a/drivers/acpi/apei/apei-internal.h b/drivers/acpi/apei/apei-internal.h
+index 16129c78b489..6e9f14c0a71b 100644
+--- a/drivers/acpi/apei/apei-internal.h
++++ b/drivers/acpi/apei/apei-internal.h
+@@ -1,6 +1,6 @@
+ /*
+  * apei-internal.h - ACPI Platform Error Interface internal
+- * definations.
++ * definitions.
+  */
+ 
+ #ifndef APEI_INTERNAL_H
+diff --git a/drivers/acpi/apei/bert.c b/drivers/acpi/apei/bert.c
+new file mode 100644
+index 000000000000..a05b5c0cf181
+--- /dev/null
++++ b/drivers/acpi/apei/bert.c
+@@ -0,0 +1,150 @@
++/*
++ * APEI Boot Error Record Table (BERT) support
++ *
++ * Copyright 2011 Intel Corp.
++ *   Author: Huang Ying <ying.huang@intel.com>
++ *
++ * Under normal circumstances, when a hardware error occurs, the error
++ * handler receives control and processes the error. This gives OSPM a
++ * chance to process the error condition, report it, and optionally attempt
++ * recovery. In some cases, the system is unable to process an error.
++ * For example, system firmware or a management controller may choose to
++ * reset the system or the system might experience an uncontrolled crash
++ * or reset.The boot error source is used to report unhandled errors that
++ * occurred in a previous boot. This mechanism is described in the BERT
++ * table.
++ *
++ * For more information about BERT, please refer to ACPI Specification
++ * version 4.0, section 17.3.1
++ *
++ * This file is licensed under GPLv2.
++ *
++ */
++
++#include <linux/kernel.h>
++#include <linux/module.h>
++#include <linux/init.h>
++#include <linux/acpi.h>
++#include <linux/io.h>
++
++#include "apei-internal.h"
++
++#undef pr_fmt
++#define pr_fmt(fmt) "BERT: " fmt
++
++static int bert_disable;
++
++static void __init bert_print_all(struct acpi_bert_region *region,
++				  unsigned int region_len)
++{
++	struct acpi_hest_generic_status *estatus =
++		(struct acpi_hest_generic_status *)region;
++	int remain = region_len;
++	u32 estatus_len;
++
++	if (!estatus->block_status)
++		return;
++
++	while (remain > sizeof(struct acpi_bert_region)) {
++		if (cper_estatus_check(estatus)) {
++			pr_err(FW_BUG "Invalid error record.\n");
++			return;
++		}
++
++		estatus_len = cper_estatus_len(estatus);
++		if (remain < estatus_len) {
++			pr_err(FW_BUG "Truncated status block (length: %u).\n",
++			       estatus_len);
++			return;
++		}
++
++		pr_info_once("Error records from previous boot:\n");
++
++		cper_estatus_print(KERN_INFO HW_ERR, estatus);
++
++		/*
++		 * Because the boot error source is "one-time polled" type,
++		 * clear Block Status of current Generic Error Status Block,
++		 * once it's printed.
++		 */
++		estatus->block_status = 0;
++
++		estatus = (void *)estatus + estatus_len;
++		/* No more error records. */
++		if (!estatus->block_status)
++			return;
++
++		remain -= estatus_len;
++	}
++}
++
++static int __init setup_bert_disable(char *str)
++{
++	bert_disable = 1;
++
++	return 0;
++}
++__setup("bert_disable", setup_bert_disable);
++
++static int __init bert_check_table(struct acpi_table_bert *bert_tab)
++{
++	if (bert_tab->header.length < sizeof(struct acpi_table_bert) ||
++	    bert_tab->region_length < sizeof(struct acpi_bert_region))
++		return -EINVAL;
++
++	return 0;
++}
++
++static int __init bert_init(void)
++{
++	struct acpi_bert_region *boot_error_region;
++	struct acpi_table_bert *bert_tab;
++	unsigned int region_len;
++	acpi_status status;
++	int rc = 0;
++
++	if (acpi_disabled)
++		return 0;
++
++	if (bert_disable) {
++		pr_info("Boot Error Record Table support is disabled.\n");
++		return 0;
++	}
++
++	status = acpi_get_table(ACPI_SIG_BERT, 0, (struct acpi_table_header **)&bert_tab);
++	if (status == AE_NOT_FOUND)
++		return 0;
++
++	if (ACPI_FAILURE(status)) {
++		pr_err("get table failed, %s.\n", acpi_format_exception(status));
++		return -EINVAL;
++	}
++
++	rc = bert_check_table(bert_tab);
++	if (rc) {
++		pr_err(FW_BUG "table invalid.\n");
++		return rc;
++	}
++
++	region_len = bert_tab->region_length;
++	if (!request_mem_region(bert_tab->address, region_len, "APEI BERT")) {
++		pr_err("Can't request iomem region <%016llx-%016llx>.\n",
++		       (unsigned long long)bert_tab->address,
++		       (unsigned long long)bert_tab->address + region_len - 1);
++		return -EIO;
++	}
++
++	boot_error_region = ioremap_cache(bert_tab->address, region_len);
++	if (boot_error_region) {
++		bert_print_all(boot_error_region, region_len);
++		iounmap(boot_error_region);
++	} else {
++		rc = -ENOMEM;
++	}
++
++	release_mem_region(bert_tab->address, region_len);
++
++	return rc;
++}
++
++late_initcall(bert_init);
 -- 
-Sinan Kaya
-Qualcomm Technologies, Inc. on behalf of Qualcomm Innovation Center, Inc.
-Qualcomm Innovation Center, Inc. is a member of Code Aurora Forum, a Linux Foundation Collaborative Project
+2.5.0
+
