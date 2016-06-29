@@ -1,71 +1,63 @@
-From: Sinan Kaya <okaya@codeaurora.org>
-Subject: Re: kernel-4.7 bug in Intel sound and/or ACPI
-Date: Wed, 29 Jun 2016 04:34:14 -0400
-Message-ID: <8602f0b7-e052-913f-d633-294dff6cd3b2@codeaurora.org>
-References: <72eb7b76d449f906d9b2b1bb15d995bf@codeaurora.org>
- <20160623141234.GA14662@djo.tudelft.nl> <576BF86E.8060302@codeaurora.org>
- <576C042B.20507@codeaurora.org> <20160623232533.GA14984@djo.tudelft.nl>
- <f85fb7c7-53aa-3a1e-0635-bb245d08e804@codeaurora.org>
- <20160625013920.GA26737@djo.tudelft.nl>
- <3bf1261bc7a931cb5e1e93ea0d66b265@codeaurora.org>
- <20160627062724.GA6713@djo.tudelft.nl>
- <9ad14db03ecb39a098d588b25c7b54a0@codeaurora.org>
- <20160627130417.GA8184@djo.tudelft.nl>
- <a8b7406eb12fc43246af4d78fc7e2278@codeaurora.org>
+From: Kefeng Wang <wangkefeng.wang@huawei.com>
+Subject: Re: [PATCH 2/2] serial: 8250_dw: add ACPI support for uart on
+ Hisilicon Hip05 soc
+Date: Wed, 29 Jun 2016 16:51:22 +0800
+Message-ID: <0e7153a4-9743-5a26-3212-42004fbf6930@huawei.com>
+References: <1467083835-37750-1-git-send-email-wangkefeng.wang@huawei.com>
+ <1467083835-37750-3-git-send-email-wangkefeng.wang@huawei.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252
+Content-Type: text/plain; charset="windows-1252"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <a8b7406eb12fc43246af4d78fc7e2278@codeaurora.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: wim@djo.tudelft.nl
-Cc: Bjorn Helgaas <helgaas@kernel.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, perex@perex.cz, linux-pci@vger.kernel.org, Takashi Iwai <tiwai@suse.com>, linux-pci-owner@vger.kernel.org, Alex Williamson <alex.williamson@redhat.com>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from szxga03-in.huawei.com ([119.145.14.66]:57718 "EHLO
+	szxga03-in.huawei.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751248AbcF2IwY (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 29 Jun 2016 04:52:24 -0400
+In-Reply-To: <1467083835-37750-3-git-send-email-wangkefeng.wang@huawei.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: Jiri Slaby <jslaby@suse.com>, linux-serial@vger.kernel.org, linux-kernel@vger.kernel.org, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, z.liuxinliang@hisilicon.com, guohanjun@huawei.com, linux-acpi@vger.kernel.org
 
-On 6/27/2016 5:05 PM, okaya@codeaurora.org wrote:
-> On 2016-06-27 16:04, Wim Osterholt wrote:
->> On Mon, Jun 27, 2016 at 04:22:18AM -0400, okaya@codeaurora.org wrote:
->>> > However, an earlier try on my Inspiron 510m did not work.
->>> > I'll do a clean retry later today, just to make sure.
->>>
->>>
->>> Ok, let me know. I can post a clean patch series. I was trying to get
->>> you something to test before posting the official version.
->>
->> The 510m just finished compiling and now it works fine too.
->> Thanks.
->>
++cc linux-acpi@vger.kernel.org
+
+On 2016/6/28 11:17, Kefeng Wang wrote:
+> Add ACPI identifier for UART on Hisilicon Hip05 soc, be careful
+> that it is not 16550 compatibal.
 > 
-> Nice, I will post the official version and let you know.
+> Meanwhile, set dw8250_serial_out32 to keep consistent between serial_out
+> and serial_in in ACPI.
+> 
+> Signed-off-by: Kefeng Wang <wangkefeng.wang@huawei.com>
+> ---
+>  drivers/tty/serial/8250/8250_dw.c | 8 ++++++--
+>  1 file changed, 6 insertions(+), 2 deletions(-)
+> 
+> diff --git a/drivers/tty/serial/8250/8250_dw.c b/drivers/tty/serial/8250/8250_dw.c
+> index 65f3da7..7571b0f 100644
+> --- a/drivers/tty/serial/8250/8250_dw.c
+> +++ b/drivers/tty/serial/8250/8250_dw.c
+> @@ -301,8 +301,11 @@ static void dw8250_quirks(struct uart_port *p, struct dw8250_data *data)
+>  		p->iotype = UPIO_MEM32;
+>  		p->regshift = 2;
+>  		p->serial_in = dw8250_serial_in32;
+> -		/* So far none of there implement the Busy Functionality */
+> -		data->uart_16550_compatible = true;
+> +		p->serial_out = dw8250_serial_out32;
+> +
+> +		/* Hisilicon 8250 dw uart is not 16550 compatible */
+> +		if (!acpi_dev_found("HISI0031"))
+> +			data->uart_16550_compatible = true;
+>  	}
+>  
+>  	/* Platforms with iDMA */
+> @@ -618,6 +621,7 @@ static const struct acpi_device_id dw8250_acpi_match[] = {
+>  	{ "APMC0D08", 0},
+>  	{ "AMD0020", 0 },
+>  	{ "AMDI0020", 0 },
+> +	{ "HISI0031", 0 },
+>  	{ },
+>  };
+>  MODULE_DEVICE_TABLE(acpi, dw8250_acpi_match);
 > 
 
-I posted this [PATCH V2 0/4] ACPI,PCI,IRQ: correct ISA penalty calculation
-
-Can you test this and give me a tested-by?
-
-Alex,
-If you could also review this, it would be great.
-
-Sinan
-
->>
->>
->> Regards, Wim.
->>
->>
->> ----- wim@djo.tudelft.nl -----
->>
->> -- 
->> To unsubscribe from this list: send the line "unsubscribe linux-pci" in
->> the body of a message to majordomo@vger.kernel.org
->> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> -- 
-> To unsubscribe from this list: send the line "unsubscribe linux-pci" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-
-
--- 
-Sinan Kaya
-Qualcomm Technologies, Inc. on behalf of Qualcomm Innovation Center, Inc.
-Qualcomm Innovation Center, Inc. is a member of Code Aurora Forum, a Linux Foundation Collaborative Project
