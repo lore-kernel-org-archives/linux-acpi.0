@@ -1,46 +1,71 @@
 From: Sinan Kaya <okaya@codeaurora.org>
-Subject: [PATCH V2 4/4] ACPI,PCI,IRQ: correct operator precedence
-Date: Wed, 29 Jun 2016 04:27:38 -0400
-Message-ID: <1467188859-28188-5-git-send-email-okaya@codeaurora.org>
-References: <1467188859-28188-1-git-send-email-okaya@codeaurora.org>
+Subject: Re: kernel-4.7 bug in Intel sound and/or ACPI
+Date: Wed, 29 Jun 2016 04:34:14 -0400
+Message-ID: <8602f0b7-e052-913f-d633-294dff6cd3b2@codeaurora.org>
+References: <72eb7b76d449f906d9b2b1bb15d995bf@codeaurora.org>
+ <20160623141234.GA14662@djo.tudelft.nl> <576BF86E.8060302@codeaurora.org>
+ <576C042B.20507@codeaurora.org> <20160623232533.GA14984@djo.tudelft.nl>
+ <f85fb7c7-53aa-3a1e-0635-bb245d08e804@codeaurora.org>
+ <20160625013920.GA26737@djo.tudelft.nl>
+ <3bf1261bc7a931cb5e1e93ea0d66b265@codeaurora.org>
+ <20160627062724.GA6713@djo.tudelft.nl>
+ <9ad14db03ecb39a098d588b25c7b54a0@codeaurora.org>
+ <20160627130417.GA8184@djo.tudelft.nl>
+ <a8b7406eb12fc43246af4d78fc7e2278@codeaurora.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset=windows-1252
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <1467188859-28188-1-git-send-email-okaya@codeaurora.org>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: linux-acpi@vger.kernel.org, timur@codeaurora.org, cov@codeaurora.org, jcm@redhat.com, alex.williamson@redhat.com, eric.auger@redhat.com
-Cc: linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, agross@codeaurora.org, "Rafael J. Wysocki" <rjw@rjwysocki.net>, tiwai@suse.com, perex@perex.cz, Sinan Kaya <okaya@codeaurora.org>, linux-arm-msm@vger.kernel.org, wim@djo.tudelft.nl, linux-arm-kernel@lists.infradead.org, Len Brown <lenb@kernel.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <a8b7406eb12fc43246af4d78fc7e2278@codeaurora.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: wim@djo.tudelft.nl
+Cc: Bjorn Helgaas <helgaas@kernel.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, perex@perex.cz, linux-pci@vger.kernel.org, Takashi Iwai <tiwai@suse.com>, linux-pci-owner@vger.kernel.org, Alex Williamson <alex.williamson@redhat.com>
 List-Id: linux-acpi@vger.kernel.org
 
-The omitted parenthesis prevents the addition operation when
-acpi_penalize_isa_irq function is called.
+On 6/27/2016 5:05 PM, okaya@codeaurora.org wrote:
+> On 2016-06-27 16:04, Wim Osterholt wrote:
+>> On Mon, Jun 27, 2016 at 04:22:18AM -0400, okaya@codeaurora.org wrote:
+>>> > However, an earlier try on my Inspiron 510m did not work.
+>>> > I'll do a clean retry later today, just to make sure.
+>>>
+>>>
+>>> Ok, let me know. I can post a clean patch series. I was trying to get
+>>> you something to test before posting the official version.
+>>
+>> The 510m just finished compiling and now it works fine too.
+>> Thanks.
+>>
+> 
+> Nice, I will post the official version and let you know.
+> 
 
-Signed-off-by: Sinan Kaya <okaya@codeaurora.org>
----
- drivers/acpi/pci_link.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+I posted this [PATCH V2 0/4] ACPI,PCI,IRQ: correct ISA penalty calculation
 
-diff --git a/drivers/acpi/pci_link.c b/drivers/acpi/pci_link.c
-index 8c08971..c983bf7 100644
---- a/drivers/acpi/pci_link.c
-+++ b/drivers/acpi/pci_link.c
-@@ -872,7 +872,7 @@ void acpi_penalize_isa_irq(int irq, int active)
- {
- 	if ((irq >= 0) && (irq < ARRAY_SIZE(acpi_isa_irq_penalty)))
- 		acpi_isa_irq_penalty[irq] = acpi_irq_get_penalty(irq) +
--			active ? PIRQ_PENALTY_ISA_USED : PIRQ_PENALTY_PCI_USING;
-+		  (active ? PIRQ_PENALTY_ISA_USED : PIRQ_PENALTY_PCI_USING);
- }
- 
- bool acpi_isa_irq_available(int irq)
+Can you test this and give me a tested-by?
+
+Alex,
+If you could also review this, it would be great.
+
+Sinan
+
+>>
+>>
+>> Regards, Wim.
+>>
+>>
+>> ----- wim@djo.tudelft.nl -----
+>>
+>> -- 
+>> To unsubscribe from this list: send the line "unsubscribe linux-pci" in
+>> the body of a message to majordomo@vger.kernel.org
+>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> -- 
+> To unsubscribe from this list: send the line "unsubscribe linux-pci" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
+
 -- 
-1.8.2.1
+Sinan Kaya
+Qualcomm Technologies, Inc. on behalf of Qualcomm Innovation Center, Inc.
+Qualcomm Innovation Center, Inc. is a member of Code Aurora Forum, a Linux Foundation Collaborative Project
