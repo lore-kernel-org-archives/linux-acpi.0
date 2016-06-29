@@ -1,93 +1,30 @@
-From: fu.wei@linaro.org
-Subject: [PATCH v6 10/10] acpi: Add SBSA Generic Watchdog support in GTDT
- driver
-Date: Thu, 30 Jun 2016 02:15:53 +0800
-Message-ID: <1467224153-22873-11-git-send-email-fu.wei@linaro.org>
-References: <1467224153-22873-1-git-send-email-fu.wei@linaro.org>
+From: Sinan Kaya <okaya@codeaurora.org>
+Subject: Re: [PATCH V2 4/4] ACPI,PCI,IRQ: correct operator precedence
+Date: Wed, 29 Jun 2016 14:29:51 -0400
+Message-ID: <d22fd8f7-7028-b4b7-6677-6903685034aa@codeaurora.org>
+References: <1467188859-28188-1-git-send-email-okaya@codeaurora.org>
+ <1467188859-28188-5-git-send-email-okaya@codeaurora.org>
+ <CAJZ5v0j+CJ3qWTdvm6Sk3DqFYVnkuEmaR1EPZM6DDVMC8rsK+g@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <1467224153-22873-1-git-send-email-fu.wei@linaro.org>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: rjw@rjwysocki.net, lenb@kernel.org, daniel.lezcano@linaro.org, tglx@linutronix.de, marc.zyngier@arm.com, hanjun.guo@linaro.org
-Cc: wei@redhat.com, harba@codeaurora.org, Fu Wei <fu.wei@linaro.org>, al.stone@linaro.org, graeme.gregory@linaro.org, linaro-acpi@lists.linaro.org, jcm@redhat.com, timur@codeaurora.org, will.deacon@arm.com, rruigrok@codeaurora.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, wim@iguana.be, arnd@arndb.de, cov@codeaurora.org, Suravee.Suthikulpanit@amd.com, catalin.marinas@arm.com, leo.duran@amd.com, linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <CAJZ5v0j+CJ3qWTdvm6Sk3DqFYVnkuEmaR1EPZM6DDVMC8rsK+g@mail.gmail.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: "Rafael J. Wysocki" <rafael@kernel.org>
+Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Timur Tabi <timur@codeaurora.org>, Christopher Covington <cov@codeaurora.org>, Jon Masters <jcm@redhat.com>, Alex Williamson <alex.williamson@redhat.com>, eric.auger@redhat.com, Linux PCI <linux-pci@vger.kernel.org>, Andy Gross <agross@codeaurora.org>, linux-arm-msm@vger.kernel.org, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, wim@djo.tudelft.nl, perex@perex.cz, tiwai@suse.com, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-RnJvbTogRnUgV2VpIDxmdS53ZWlAbGluYXJvLm9yZz4KClRoaXMgZHJpdmVyIGFkZHMgc3VwcG9y
-dCBmb3IgcGFyc2luZyBTQlNBIEdlbmVyaWMgV2F0Y2hkb2cgdGltZXIKaW4gR1REVCwgcGFyc2Ug
-YWxsIGluZm8gaW4gU0JTQSBHZW5lcmljIFdhdGNoZG9nIFN0cnVjdHVyZSBpbiBHVERULAphbmQg
-Y3JlYXRpbmcgYSBwbGF0Zm9ybSBkZXZpY2Ugd2l0aCB0aGF0IGluZm9ybWF0aW9uLgoKVGhpcyBh
-bGxvd3MgdGhlIG9wZXJhdGluZyBzeXN0ZW0gdG8gb2J0YWluIGRldmljZSBkYXRhIGZyb20gdGhl
-CnJlc291cmNlIG9mIHBsYXRmb3JtIGRldmljZS4gVGhlIHBsYXRmb3JtIGRldmljZSBuYW1lZCAi
-c2JzYS1nd2R0IgpjYW4gYmUgdXNlZCBieSB0aGUgQVJNIFNCU0EgR2VuZXJpYyBXYXRjaGRvZyBk
-cml2ZXIuCgpTaWduZWQtb2ZmLWJ5OiBGdSBXZWkgPGZ1LndlaUBsaW5hcm8ub3JnPgpTaWduZWQt
-b2ZmLWJ5OiBIYW5qdW4gR3VvIDxoYW5qdW4uZ3VvQGxpbmFyby5vcmc+Ci0tLQogZHJpdmVycy9h
-Y3BpL2FjcGlfZ3RkdC5jIHwgODIgKysrKysrKysrKysrKysrKysrKysrKysrKysrKysrKysrKysr
-KysrKysrKysrKysrCiBkcml2ZXJzL3dhdGNoZG9nL0tjb25maWcgfCAgMSArCiAyIGZpbGVzIGNo
-YW5nZWQsIDgzIGluc2VydGlvbnMoKykKCmRpZmYgLS1naXQgYS9kcml2ZXJzL2FjcGkvYWNwaV9n
-dGR0LmMgYi9kcml2ZXJzL2FjcGkvYWNwaV9ndGR0LmMKaW5kZXggNDU5MmRiYS4uYWI4YTgyMiAx
-MDA2NDQKLS0tIGEvZHJpdmVycy9hY3BpL2FjcGlfZ3RkdC5jCisrKyBiL2RyaXZlcnMvYWNwaS9h
-Y3BpX2d0ZHQuYwpAQCAtMTUsNiArMTUsNyBAQAogI2luY2x1ZGUgPGxpbnV4L2luaXQuaD4KICNp
-bmNsdWRlIDxsaW51eC9rZXJuZWwuaD4KICNpbmNsdWRlIDxsaW51eC9tb2R1bGUuaD4KKyNpbmNs
-dWRlIDxsaW51eC9wbGF0Zm9ybV9kZXZpY2UuaD4KIAogI2luY2x1ZGUgPGNsb2Nrc291cmNlL2Fy
-bV9hcmNoX3RpbWVyLmg+CiAKQEAgLTI0MiwzICsyNDMsODQgQEAgaW50IF9faW5pdCBndGR0X2Fy
-Y2hfdGltZXJfbWVtX2luaXQoc3RydWN0IGd0X2Jsb2NrX2RhdGEgKmRhdGEpCiAKIAlyZXR1cm4g
-aW5kZXg7CiB9CisKKy8qCisgKiBJbml0aWFsaXplIGEgU0JTQSBnZW5lcmljIFdhdGNoZG9nIHBs
-YXRmb3JtIGRldmljZSBpbmZvIGZyb20gR1REVAorICovCitzdGF0aWMgaW50IF9faW5pdCBndGR0
-X2ltcG9ydF9zYnNhX2d3ZHQodm9pZCAqcGxhdGZvcm1fdGltZXIsIGludCBpbmRleCkKK3sKKwlz
-dHJ1Y3QgcGxhdGZvcm1fZGV2aWNlICpwZGV2OworCXN0cnVjdCBhY3BpX2d0ZHRfd2F0Y2hkb2cg
-KndkID0gcGxhdGZvcm1fdGltZXI7CisJaW50IGlycSA9IG1hcF9nZW5lcmljX3RpbWVyX2ludGVy
-cnVwdCh3ZC0+dGltZXJfaW50ZXJydXB0LAorCQkJCQkgICAgICB3ZC0+dGltZXJfZmxhZ3MpOwor
-CWludCBub19pcnEgPSAxOworCisJLyoKKwkgKiBBY2NvcmRpbmcgdG8gU0JTQSBzcGVjaWZpY2F0
-aW9uIHRoZSBzaXplIG9mIHJlZnJlc2ggYW5kIGNvbnRyb2wKKwkgKiBmcmFtZXMgb2YgU0JTQSBH
-ZW5lcmljIFdhdGNoZG9nIGlzIFNaXzRLKE9mZnNldCAweDAwMCDigJMgMHhGRkYpLgorCSAqLwor
-CXN0cnVjdCByZXNvdXJjZSByZXNbXSA9IHsKKwkJREVGSU5FX1JFU19NRU0od2QtPmNvbnRyb2xf
-ZnJhbWVfYWRkcmVzcywgU1pfNEspLAorCQlERUZJTkVfUkVTX01FTSh3ZC0+cmVmcmVzaF9mcmFt
-ZV9hZGRyZXNzLCBTWl80SyksCisJCURFRklORV9SRVNfSVJRKGlycSksCisJfTsKKworCXByX2Rl
-YnVnKCJhIFdhdGNoZG9nIEdUKDB4JWxseC8weCVsbHggZ3NpOiV1IGZsYWdzOjB4JXgpLlxuIiwK
-KwkJIHdkLT5yZWZyZXNoX2ZyYW1lX2FkZHJlc3MsIHdkLT5jb250cm9sX2ZyYW1lX2FkZHJlc3Ms
-CisJCSB3ZC0+dGltZXJfaW50ZXJydXB0LCB3ZC0+dGltZXJfZmxhZ3MpOworCisJaWYgKCEod2Qt
-PnJlZnJlc2hfZnJhbWVfYWRkcmVzcyAmJiB3ZC0+Y29udHJvbF9mcmFtZV9hZGRyZXNzKSkgewor
-CQlwcl9lcnIoRldfQlVHICJmYWlsZWQgZ2V0dGluZyB0aGUgV2F0Y2hkb2cgR1QgZnJhbWUgYWRk
-ci5cbiIpOworCQlyZXR1cm4gLUVJTlZBTDsKKwl9CisKKwlpZiAoIXdkLT50aW1lcl9pbnRlcnJ1
-cHQpCisJCXByX3dhcm4oRldfQlVHICJmYWlsZWQgZ2V0dGluZyB0aGUgV2F0Y2hkb2cgR1QgR1NJ
-Vi5cbiIpOworCWVsc2UgaWYgKGlycSA8PSAwKQorCQlwcl93YXJuKCJmYWlsZWQgdG8gbWFwIHRo
-ZSBXYXRjaGRvZyBHVCBHU0lWLlxuIik7CisJZWxzZQorCQlub19pcnEgPSAwOworCisJLyoKKwkg
-KiBBZGQgYSBwbGF0Zm9ybSBkZXZpY2UgbmFtZWQgInNic2EtZ3dkdCIgdG8gbWF0Y2ggdGhlIHBs
-YXRmb3JtIGRyaXZlci4KKwkgKiAic2JzYS1nd2R0IjogU0JTQShTZXJ2ZXIgQmFzZSBTeXN0ZW0g
-QXJjaGl0ZWN0dXJlKSBHZW5lcmljIFdhdGNoZG9nCisJICogVGhlIHBsYXRmb3JtIGRyaXZlciAo
-bGlrZSBkcml2ZXJzL3dhdGNoZG9nL3Nic2FfZ3dkdC5jKWNhbiBnZXQgZGV2aWNlCisJICogaW5m
-byBiZWxvdyBieSBtYXRjaGluZyB0aGlzIG5hbWUuCisJICovCisJcGRldiA9IHBsYXRmb3JtX2Rl
-dmljZV9yZWdpc3Rlcl9zaW1wbGUoInNic2EtZ3dkdCIsIGluZGV4LCByZXMsCisJCQkJCSAgICAg
-ICBBUlJBWV9TSVpFKHJlcykgLSBub19pcnEpOworCWlmIChJU19FUlIocGRldikpIHsKKwkJYWNw
-aV91bnJlZ2lzdGVyX2dzaSh3ZC0+dGltZXJfaW50ZXJydXB0KTsKKwkJcmV0dXJuIFBUUl9FUlIo
-cGRldik7CisJfQorCisJcmV0dXJuIDA7Cit9CisKK3N0YXRpYyBpbnQgX19pbml0IGd0ZHRfc2Jz
-YV9nd2R0X2luaXQodm9pZCkKK3sKKwlzdHJ1Y3QgYWNwaV90YWJsZV9oZWFkZXIgKnRhYmxlOwor
-CXZvaWQgKnBsYXRmb3JtX3RpbWVyOworCWludCBpbmRleCA9IDA7CisKKwlpZiAoYWNwaV9kaXNh
-YmxlZCkKKwkJcmV0dXJuIDA7CisKKwlpZiAoQUNQSV9GQUlMVVJFKGFjcGlfZ2V0X3RhYmxlKEFD
-UElfU0lHX0dURFQsIDAsICZ0YWJsZSkpKQorCQlyZXR1cm4gLUVJTlZBTDsKKworCWlmIChhY3Bp
-X2d0ZHRfZGVzY19pbml0KHRhYmxlKSA8IDApCisJCXJldHVybiAtRUlOVkFMOworCisJZm9yX2Vh
-Y2hfZ3RkdF93YXRjaGRvZyhwbGF0Zm9ybV90aW1lcikgeworCQlpZiAoIWd0ZHRfaW1wb3J0X3Ni
-c2FfZ3dkdChwbGF0Zm9ybV90aW1lciwgaW5kZXgpKQorCQkJaW5kZXgrKzsKKwl9CisKKwlpZiAo
-aW5kZXgpCisJCXByX2luZm8oImZvdW5kICVkIFNCU0EgZ2VuZXJpYyBXYXRjaGRvZy5cbiIsIGlu
-ZGV4KTsKKworCXJldHVybiAwOworfQorCitkZXZpY2VfaW5pdGNhbGwoZ3RkdF9zYnNhX2d3ZHRf
-aW5pdCk7CmRpZmYgLS1naXQgYS9kcml2ZXJzL3dhdGNoZG9nL0tjb25maWcgYi9kcml2ZXJzL3dh
-dGNoZG9nL0tjb25maWcKaW5kZXggYjRiM2UyNS4uMTA1ZjA1OSAxMDA2NDQKLS0tIGEvZHJpdmVy
-cy93YXRjaGRvZy9LY29uZmlnCisrKyBiL2RyaXZlcnMvd2F0Y2hkb2cvS2NvbmZpZwpAQCAtMjA3
-LDYgKzIwNyw3IEBAIGNvbmZpZyBBUk1fU0JTQV9XQVRDSERPRwogCWRlcGVuZHMgb24gQVJNNjQK
-IAlkZXBlbmRzIG9uIEFSTV9BUkNIX1RJTUVSCiAJc2VsZWN0IFdBVENIRE9HX0NPUkUKKwlzZWxl
-Y3QgQUNQSV9HVERUIGlmIEFDUEkKIAloZWxwCiAJICBBUk0gU0JTQSBHZW5lcmljIFdhdGNoZG9n
-IGhhcyB0d28gc3RhZ2UgdGltZW91dHM6CiAJICB0aGUgZmlyc3Qgc2lnbmFsIChXUzApIGlzIGZv
-ciBhbGVydGluZyB0aGUgc3lzdGVtIGJ5IGludGVycnVwdCwKLS0gCjIuNS41CgoKX19fX19fX19f
-X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX18KbGludXgtYXJtLWtlcm5lbCBt
-YWlsaW5nIGxpc3QKbGludXgtYXJtLWtlcm5lbEBsaXN0cy5pbmZyYWRlYWQub3JnCmh0dHA6Ly9s
-aXN0cy5pbmZyYWRlYWQub3JnL21haWxtYW4vbGlzdGluZm8vbGludXgtYXJtLWtlcm5lbAo=
+On 6/29/2016 9:16 AM, Rafael J. Wysocki wrote:
+>> Signed-off-by: Sinan Kaya <okaya@codeaurora.org>
+> Well, this is a rather obvious one, so I'm wondering why it is the
+> last one in the series?
+> 
+
+The first three are more relevant to each other. It makes easy to
+correlate the changes.
+
+-- 
+Sinan Kaya
+Qualcomm Technologies, Inc. on behalf of Qualcomm Innovation Center, Inc.
+Qualcomm Innovation Center, Inc. is a member of Code Aurora Forum, a Linux Foundation Collaborative Project
