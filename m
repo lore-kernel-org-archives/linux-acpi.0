@@ -1,7 +1,7 @@
-From: Ard Biesheuvel <ard.biesheuvel@linaro.org>
+From: Jeffrey Hugo <jhugo@codeaurora.org>
 Subject: Re: [RFC PATCH v4 3/5] PCI: Check platform specific ECAM quirks
-Date: Wed, 29 Jun 2016 15:57:47 +0200
-Message-ID: <CAKv+Gu8t994-HEJ+Cyiw6a8Bf_Ka=5amOAw44+UgnJZ90WrpnQ@mail.gmail.com>
+Date: Wed, 29 Jun 2016 09:38:50 -0600
+Message-ID: <a083360c-9b75-30f9-fe3c-ba968928fd92@codeaurora.org>
 References: <1467100442-28078-1-git-send-email-tn@semihalf.com>
  <1467100442-28078-4-git-send-email-tn@semihalf.com>
  <577275EA.7010002@codeaurora.org>
@@ -9,57 +9,33 @@ References: <1467100442-28078-1-git-send-email-tn@semihalf.com>
  <5773A773.8040700@semihalf.com> <5773CE49.1050802@codeaurora.org>
  <5773D284.8060404@semihalf.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset=windows-1252; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from smtp.codeaurora.org ([198.145.29.96]:38805 "EHLO
+	smtp.codeaurora.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752950AbcF2Piy (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 29 Jun 2016 11:38:54 -0400
 In-Reply-To: <5773D284.8060404@semihalf.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Tomasz Nowicki <tn@semihalf.com>
-Cc: Gabriele Paoloni <gabriele.paoloni@huawei.com>, Linaro ACPI Mailman List <linaro-acpi@lists.linaro.org>, linux-pci@vger.kernel.org, Will Deacon <will.deacon@arm.com>, Sinan Kaya <okaya@codeaurora.org>, Yijing Wang <wangyijing@huawei.com>, Andrea Gallo <andrea.gallo@linaro.org>, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, Jeffrey Hugo <jhugo@codeaurora.org>, Rafael Wysocki <rafael@kernel.org>, David Daney <ddaney@caviumnetworks.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Robert Richter <robert.richter@caviumnetworks.com>, Bjorn Helgaas <helgaas@kernel.org>, Dongdong Liu <liudongdong3@huawei.com>, Catalin Marinas <catalin.marinas@arm.com>, Jon Masters <jcm@redhat.com>, Arnd Bergmann <arnd@arndb.de>, Liviu Dudau <Liviu.Dudau@arm.com>, Mark Salter <msalter@redhat.com>, Christopher Covington <cov@codeaurora.org>, Marcin Wojtas <mw@semihalf.com>linu
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Tomasz Nowicki <tn@semihalf.com>, Christopher Covington <cov@codeaurora.org>, Duc Dang <dhdang@apm.com>
+Cc: Gabriele Paoloni <gabriele.paoloni@huawei.com>, Rafael Wysocki <rafael@kernel.org>, linux-pci@vger.kernel.org, Will Deacon <will.deacon@arm.com>, Sinan Kaya <okaya@codeaurora.org>, Yijing Wang <wangyijing@huawei.com>, Andrea Gallo <andrea.gallo@linaro.org>, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, linaro-acpi@lists.linaro.org, David Daney <ddaney@caviumnetworks.com>, linux-acpi@vger.kernel.org, Robert Richter <robert.richter@caviumnetworks.com>, Bjorn Helgaas <helgaas@kernel.org>, Dongdong Liu <liudongdong3@huawei.com>, Catalin Marinas <catalin.marinas@arm.com>, Liviu Dudau <Liviu.Dudau@arm.com>, Arnd Bergmann <arnd@arndb.de>, Jon Masters <jcm@redhat.com>, Mark Salter <msalter@redhat.com>, Marcin Wojtas <mw@semihalf.com>, linux-arm <linux-arm-kernel@lists.infradead.org>, Jayachandran C <jchandra@broadcom.com>, Ard Biesheuvel <ard.biesheuvel@linaro.org>, Lin
 
-On 29 June 2016 at 15:52, Tomasz Nowicki <tn@semihalf.com> wrote:
+On 6/29/2016 7:52 AM, Tomasz Nowicki wrote:
 > On 29.06.2016 15:34, Christopher Covington wrote:
->>
 >> I'm confused by this statement. OEMID is defined as 6 bytes long and OEM
 >> Table ID as 8 bytes long in the ACPI specification. As far as I can
 >> tell, if your string isn't exactly that long, padding up to that length
 >> is required.
 >
->
 > Well, I cannot find that requirement in ACPI spec. but I might missed
 > something.
+
+Have a look at table 5-29 in Section 5.2.6 which starts on page 114 of 
+ACPI 6.1
+
 >
-
-This has *nothing* to do with the ACPI spec.
-
-There exist a couple of machines that have known quirks. Those
-machines have certain 6 or 8 byte long strings in their MCFG tables
-that we can match against. If any of those fields contains spaces,
-whether you call that padding or not is totally irrelevant. The same
-applies to NUL bytes.
-
-So for a 6 byte field, our table contains the six characters that we
-know is in the quirky hardware's table.
-The same for an 8 byte field.
-
-That means there is no need for strnlen, strncmp() with variable size
-etc. Each match can be implemented using memcmp() [since the table
-fields are not NUL terminated] with a constant argument for the length
-parameter.
-
-Regards,
-Ard.
-
-
 > I dumped my x86 machine ACPI tables and here is an example of MCFG:
 >
 > $ cat mcfg.dsl
@@ -109,3 +85,15 @@ Ard.
 >
 > Tomasz
 >
+>
+> _______________________________________________
+> linux-arm-kernel mailing list
+> linux-arm-kernel@lists.infradead.org
+> http://lists.infradead.org/mailman/listinfo/linux-arm-kernel
+
+
+-- 
+Jeffrey Hugo
+Qualcomm Innovation Center, Inc.
+Qualcomm Innovation Center, Inc. is a member of Code Aurora Forum, a 
+Linux Foundation Collaborative Project
