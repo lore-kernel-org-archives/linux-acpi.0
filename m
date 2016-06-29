@@ -1,67 +1,68 @@
-From: Pali =?utf-8?B?Um9ow6Fy?= <pali.rohar@gmail.com>
-Subject: Re: [v5] i2c: i801: Allow ACPI SystemIO OpRegion to conflict with
- PCI BAR
-Date: Wed, 29 Jun 2016 09:56:33 +0200
-Message-ID: <20160629075633.GZ29844@pali>
-References: <1463990658-53854-1-git-send-email-mika.westerberg@linux.intel.com>
- <20160608162913.GA24234@mail.corp.redhat.com>
- <20160613111946.54779d0d@endymion>
- <20160613094500.GY29844@pali>
- <20160613094618.GG1791@lahna.fi.intel.com>
- <20160613094830.GZ29844@pali>
- <20160613095404.GH1791@lahna.fi.intel.com>
- <20160624161238.0fc748ad@endymion>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-wm0-f43.google.com ([74.125.82.43]:38824 "EHLO
-	mail-wm0-f43.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751486AbcF2H4h (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 29 Jun 2016 03:56:37 -0400
-Content-Disposition: inline
-In-Reply-To: <20160624161238.0fc748ad@endymion>
-Sender: linux-acpi-owner@vger.kernel.org
+From: Sinan Kaya <okaya@codeaurora.org>
+Subject: [PATCH V2 1/4] ACPI,PCI,IRQ: factor in PCI possible
+Date: Wed, 29 Jun 2016 04:27:35 -0400
+Message-ID: <1467188859-28188-2-git-send-email-okaya@codeaurora.org>
+References: <1467188859-28188-1-git-send-email-okaya@codeaurora.org>
+Return-path: <linux-pci-owner@vger.kernel.org>
+In-Reply-To: <1467188859-28188-1-git-send-email-okaya@codeaurora.org>
+Sender: linux-pci-owner@vger.kernel.org
+To: linux-acpi@vger.kernel.org, timur@codeaurora.org, cov@codeaurora.org, jcm@redhat.com, alex.williamson@redhat.com, eric.auger@redhat.com
+Cc: linux-pci@vger.kernel.org, agross@codeaurora.org, linux-arm-msm@vger.kernel.org, linux-arm-kernel@lists.infradead.org, wim@djo.tudelft.nl, perex@perex.cz, tiwai@suse.com, Sinan Kaya <okaya@codeaurora.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, linux-kernel@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Jean Delvare <jdelvare@suse.de>
-Cc: Mika Westerberg <mika.westerberg@linux.intel.com>, Benjamin Tissoires <benjamin.tissoires@redhat.com>, Wolfram Sang <wsa@the-dreams.de>, Jarkko Nikula <jarkko.nikula@linux.intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Andy Lutomirski <luto@kernel.org>, Mario Limonciello <mario_limonciello@dell.com>, Matt Fleming <matt@codeblueprint.co.uk>, linux-i2c@vger.kernel.org, linux-acpi@vger.kernel.org
 
-On Friday 24 June 2016 16:12:38 Jean Delvare wrote:
-> Hi Mika,
->=20
-> On Mon, 13 Jun 2016 12:54:04 +0300, Mika Westerberg wrote:
-> > On Mon, Jun 13, 2016 at 11:48:30AM +0200, Pali Roh=C3=A1r wrote:
-> > > I mean to call acpi_remove_address_space_handler() in
-> > > i801_acpi_io_handler() after acpi_reserved is properly set.
-> > >=20
-> > > As once acpi_reserved is set address space handler is not needed
-> > > anymore.
-> >=20
-> > It is still needed as we handle all AML OpRegion access in this dri=
-ver
-> > from that point forward. Unless I'm missing something.
->=20
-> I think Pali is correct. The only purpose of handling the region is t=
-o
-> detect that it is being accessed so we can set priv->acpi_reserved.
-> Once it is set, i801_acpi_io_handler becomes transparent: it forwards
-> the requests without doing anything with them. The very same would
-> happen if we would unregister the handler at that point, but without =
-the
-> extra overhead.
->=20
-> So while the current code does work fine, unregistering the handler
-> when we set priv->acpi_reserved would be more optimal.
->=20
-> Unless both Pali and myself are missing something, that is.
+The change introduced in commit 103544d86976 ("ACPI,PCI,IRQ: reduce
+resource requirements") omitted the initially assigned POSSIBLE penalty
+when the IRQ is active.
 
-Yes, this is what I mean...
+The original code would assign the POSSIBLE value divided by the number
+of possible IRQs during initialization.
 
---=20
-Pali Roh=C3=A1r
-pali.rohar@gmail.com
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Later, if the IRQ is chosen as the active IRQ or if the IRQ is in use
+by ISA; additional penalties get added.
+
+Signed-off-by: Sinan Kaya <okaya@codeaurora.org>
+---
+ drivers/acpi/pci_link.c | 21 +++++++++------------
+ 1 file changed, 9 insertions(+), 12 deletions(-)
+
+diff --git a/drivers/acpi/pci_link.c b/drivers/acpi/pci_link.c
+index 8fc7323..f2b69e3 100644
+--- a/drivers/acpi/pci_link.c
++++ b/drivers/acpi/pci_link.c
+@@ -470,6 +470,7 @@ static int acpi_irq_pci_sharing_penalty(int irq)
+ {
+ 	struct acpi_pci_link *link;
+ 	int penalty = 0;
++	int i;
+ 
+ 	list_for_each_entry(link, &acpi_link_list, list) {
+ 		/*
+@@ -478,18 +479,14 @@ static int acpi_irq_pci_sharing_penalty(int irq)
+ 		 */
+ 		if (link->irq.active && link->irq.active == irq)
+ 			penalty += PIRQ_PENALTY_PCI_USING;
+-		else {
+-			int i;
+-
+-			/*
+-			 * If a link is inactive, penalize the IRQs it
+-			 * might use, but not as severely.
+-			 */
+-			for (i = 0; i < link->irq.possible_count; i++)
+-				if (link->irq.possible[i] == irq)
+-					penalty += PIRQ_PENALTY_PCI_POSSIBLE /
+-						link->irq.possible_count;
+-		}
++
++		/*
++		 * penalize the IRQs PCI might use, but not as severely.
++		 */
++		for (i = 0; i < link->irq.possible_count; i++)
++			if (link->irq.possible[i] == irq)
++				penalty += PIRQ_PENALTY_PCI_POSSIBLE /
++					link->irq.possible_count;
+ 	}
+ 
+ 	return penalty;
+-- 
+1.8.2.1
