@@ -1,23 +1,46 @@
-From: "Luck, Tony" <tony.luck@intel.com>
-Subject: RE: [PATCH] acpi, apei: Add Boot Error Record Table (BERT) support
-Date: Wed, 29 Jun 2016 21:17:38 +0000
-Message-ID: <3908561D78D1C84285E8C5FCA982C28F3A14C0A7@ORSMSX114.amr.corp.intel.com>
-References: <13e567e22ba4776893cf074117d32e3c3276acb5.1467225769.git.tony.luck@intel.com>
- <CAJZ5v0gcptmCgpmsCN3-pSo97JcRFvAWX4X01jZuF4uX=tByyQ@mail.gmail.com>
+From: Sinan Kaya <okaya@codeaurora.org>
+Subject: Re: [PATCH V2 4/4] ACPI,PCI,IRQ: correct operator precedence
+Date: Wed, 29 Jun 2016 17:19:13 -0400
+Message-ID: <96388f6b-f8b1-5720-4725-3f0ec0f5d1c3@codeaurora.org>
+References: <1467188859-28188-1-git-send-email-okaya@codeaurora.org>
+ <1467188859-28188-5-git-send-email-okaya@codeaurora.org>
+ <CAJZ5v0j+CJ3qWTdvm6Sk3DqFYVnkuEmaR1EPZM6DDVMC8rsK+g@mail.gmail.com>
+ <d22fd8f7-7028-b4b7-6677-6903685034aa@codeaurora.org>
+ <CAJZ5v0h1o5C8t+QJuFo93uZt0XuPNwtXFs5XSBkhm-fARWqi2g@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga02.intel.com ([134.134.136.20]:51316 "EHLO mga02.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751491AbcF2VRm (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 29 Jun 2016 17:17:42 -0400
-In-Reply-To: <CAJZ5v0gcptmCgpmsCN3-pSo97JcRFvAWX4X01jZuF4uX=tByyQ@mail.gmail.com>
-Content-Language: en-US
-Sender: linux-acpi-owner@vger.kernel.org
-List-Id: linux-acpi@vger.kernel.org
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-pci-owner@vger.kernel.org>
+In-Reply-To: <CAJZ5v0h1o5C8t+QJuFo93uZt0XuPNwtXFs5XSBkhm-fARWqi2g@mail.gmail.com>
+Sender: linux-pci-owner@vger.kernel.org
 To: "Rafael J. Wysocki" <rafael@kernel.org>
-Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Borislav Petkov <bp@alien8.de>, "Huang, Ying" <ying.huang@intel.com>, Tomasz Nowicki <tomasz.nowicki@linaro.org>, Jonathan Zhang <zjzhang@codeaurora.org>, Fu Wei <fu.wei@linaro.org>, Tyler Baicar <tbaicar@codeaurora.org>, Borislav Petkov <bp@suse.de>
+Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Timur Tabi <timur@codeaurora.org>, Christopher Covington <cov@codeaurora.org>, Jon Masters <jcm@redhat.com>, Alex Williamson <alex.williamson@redhat.com>, eric.auger@redhat.com, Linux PCI <linux-pci@vger.kernel.org>, Andy Gross <agross@codeaurora.org>, linux-arm-msm@vger.kernel.org, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, wim@djo.tudelft.nl, perex@perex.cz, tiwai@suse.com, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+List-Id: linux-acpi@vger.kernel.org
 
-Pj4gYnV0IHRoZW4gaXQgbG9va3MgbGlrZSBpdCB3YXMgZm9yZ290dGVuIGFnYWluIDotKA0KPg0K
-PiBEbyB5b3Ugd2FudCBtZSB0byB0YWtlIGl0Pw0KDQpZZXMgcGxlYXNlLg0KDQotVG9ueQ0K
+On 6/29/2016 5:14 PM, Rafael J. Wysocki wrote:
+> On Wed, Jun 29, 2016 at 8:29 PM, Sinan Kaya <okaya@codeaurora.org> wrote:
+>> On 6/29/2016 9:16 AM, Rafael J. Wysocki wrote:
+>>>> Signed-off-by: Sinan Kaya <okaya@codeaurora.org>
+>>> Well, this is a rather obvious one, so I'm wondering why it is the
+>>> last one in the series?
+>>>
+>>
+>> The first three are more relevant to each other. It makes easy to
+>> correlate the changes.
+> 
+> But this one doesn't seem to depend on them and it could be applied
+> without them, right?
+> 
+
+Sure. It has no dependency. 
+
+
+> Thanks,
+> Rafael
+> 
+
+
+-- 
+Sinan Kaya
+Qualcomm Technologies, Inc. on behalf of Qualcomm Innovation Center, Inc.
+Qualcomm Innovation Center, Inc. is a member of Code Aurora Forum, a Linux Foundation Collaborative Project
