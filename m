@@ -1,115 +1,151 @@
-From: Dennis Chen <dennis.chen-5wv7dgnIgG8@public.gmane.org>
-Subject: [PATCH v5 3/3] arm64:acpi Fix the acpi alignment exeception when 'mem=' specified
-Date: Wed, 29 Jun 2016 08:57:35 +0800
-Message-ID: <1467161855-10010-3-git-send-email-dennis.chen@arm.com>
-References: <1467161855-10010-1-git-send-email-dennis.chen@arm.com>
+From: Aaron Durbin <adurbin@google.com>
+Subject: Re: ACPI device using sub-resource of PCI device
+Date: Tue, 28 Jun 2016 21:41:19 -0700
+Message-ID: <CAE2855t5M2=OVXTBfosdNjqg6jUpM-PK02eP6KHC82eKk71-4w@mail.gmail.com>
+References: <CAE2855tofJV=HV2dYuC+1=pi2mb942zrRF7f0+wqxPPay44RGA@mail.gmail.com>
+ <CAJZ5v0hh1ve=w590D4XncheNVsrmr7f6k1msdr+dzT4UoUa+JQ@mail.gmail.com>
+ <CAE2855vrhS7gKGFWEjZy-Hp2S8fNuJskG=WWDSuiBLhq_tDh8A@mail.gmail.com>
+ <CAE2855uR=wkxb2xzM4OcG1czffrBXR=1RX8Ms0AfVJ8hzDnUjQ@mail.gmail.com> <CAE2855vfhaCVGg-6mBWcU0tQ8akyiAhjv5SrD6xoaj1SbwETDA@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=WINDOWS-1252
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-efi-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1467161855-10010-1-git-send-email-dennis.chen-5wv7dgnIgG8@public.gmane.org>
-Sender: linux-efi-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
-Cc: nd-5wv7dgnIgG8@public.gmane.org, Dennis Chen <dennis.chen-5wv7dgnIgG8@public.gmane.org>, Catalin Marinas <catalin.marinas-5wv7dgnIgG8@public.gmane.org>, Steve Capper <steve.capper-5wv7dgnIgG8@public.gmane.org>, Ard Biesheuvel <ard.biesheuvel-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Will Deacon <will.deacon-5wv7dgnIgG8@public.gmane.org>, Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>, "Rafael J . Wysocki" <rafael.j.wysocki-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Matt Fleming <matt-mF/unelCI9GS6iBeEJttW/XRex20P6io@public.gmane.org>, linux-mm-Bw31MaZKKs3YtjvyW6yDsg@public.gmane.org, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-efi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-io0-f173.google.com ([209.85.223.173]:35441 "EHLO
+	mail-io0-f173.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750860AbcF2ErJ (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 29 Jun 2016 00:47:09 -0400
+Received: by mail-io0-f173.google.com with SMTP id f30so35910741ioj.2
+        for <linux-acpi@vger.kernel.org>; Tue, 28 Jun 2016 21:47:09 -0700 (PDT)
+In-Reply-To: <CAE2855vfhaCVGg-6mBWcU0tQ8akyiAhjv5SrD6xoaj1SbwETDA@mail.gmail.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: "Rafael J. Wysocki" <rafael@kernel.org>
+Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>
 
-When booting an ACPI enabled kernel with 'mem=x', probably the ACPI data
-regions loaded by firmware will beyond the limit of the memory, in this
-case we need to keep those NOMAP regions above the limit while not removing
-them from memblock, because once a region removed from memblock, the ACPI
-will think that region is not normal memory and map it as device type
-memory accordingly. Since the ACPI core will produce non-alignment access
-when paring AML data stream, hence result in alignment fault upon the IO
-mapped memory space.
+On Fri, Jun 24, 2016 at 12:34 PM, Aaron Durbin <adurbin@google.com> wrote:
+> On Tue, Jun 14, 2016 at 12:04 PM, Aaron Durbin <adurbin@google.com> wrote:
+>> On Wed, May 18, 2016 at 3:32 PM, Aaron Durbin <adurbin@google.com> wrote:
+>>> On Wed, May 18, 2016 at 4:25 PM, Rafael J. Wysocki <rafael@kernel.org> wrote:
+>>>> On Wed, May 18, 2016 at 5:54 PM, Aaron Durbin <adurbin@google.com> wrote:
+>>>>> Hi,
+>>>>>
+>>>>> We're currently running into a problem of resource conflicts with a
+>>>>> PCI device and ACPI devices.
+>>>>>
+>>>>> [    0.243534] pci 0000:00:0d.0: can't claim BAR 0 [mem
+>>>>> 0xd0000000-0xd0ffffff 64bit]: address conflict with INT3452:03 [mem
+>>>>> 0xd0c00000-0xd0c03fff]
+>>>>>
+>>>>> The PCI BAR covers a large amount mmio resources, however, there are
+>>>>> ACPI devices with their own HID (for probing) which uses resources
+>>>>> that are a subset of the PCI BAR.
+>>>>>
+>>>>> Short of re-structuring the linux driver is there anything that can be
+>>>>> done with ASL to properly have the ACPI device use a sub-resource of
+>>>>> the PCI device during the ACPI/PCI probing?
+>>>>
+>>>> Do you have an ACPI device object corresponding to the PCI device?
+>>>
+>>> I've been debugging this by proxy, and I did request that test. The
+>>> following is the overall structure:
+>>>
+>>> scope (\_SB.PCI0) {
+>>>
+>>> Device (P2S)
+>>> {
+>>>         Name (_ADR, 0x000D0000)
+>>>         Device (GPO0)
+>>>         {
+>>>                 Name (_ADR, 0)
+>>>                 Name (_HID, "INT3452")
+>>>                 Name (_CID, "INT3452")
+>>>         }
+>>> }
+>>> }
+>>>
+>>> There are _STA methods in both Devices. The GP0 device has a _CRS
+>>> method which just returns a ResourceTemplate which is filled in with
+>>> static values. The PCI bar is at a fixed address from the firmware
+>>> which allows the fixed calculations. However there is no specific
+>>> reference to the P2S device's resources proper -- only the parent
+>>> child relationship within the ASL. I'm not sure how to directly say "I
+>>> want this sub-region of this other device's resource for my resource."
+>>> That seems like the right thing, but it's not clear if that's implied
+>>> by hierarchy of the devices.
+>>>
+>>> Lastly, if it helps, the kernel being used is based on v4.4 (no core
+>>> patches on top).
+>>>
+>>
+>> Hi Rafael,
+>>
+>> I haven't tried a newer kernel yet, but are you of the opinion that
+>> having the Devices as parent-child within the ASL should work? I'm
+>> wondering if there's already a patch in newer kernels that doesn't
+>> report the conflict and works as expected once there are child Devices
+>> under the P2S device.
+>>
+>
+> I've been looking at this more closely. A child ACPI device under a
+> ACPI PCI device doesn't change the resource conflict even when a _CRS
+> method is added to the ACPI PCI device.  Below is my sleuthing which
+> is probably not a surprise to anyone here, but please correct me where
+> I am wrong.
+>
+> acpi_init() and pci_subsys_init() are both subsys_initcalls during
+> boot up. I'm not sure if the ordering is dumb luck or not, but
+> acpi_init() is called prior to pci_subsys_init(). The conflict error
+> is spit out from pcibios_resource_survey() by way of pci_subsys_init()
+>  subsys_initcall. However, the PCI device scanning is kicked off prior
+> to this through acpi_scan_init() by way of acpi_init()
+> subsys_initcall.  The conflict error occurs because there's already
+> the child ACPI device in the resource tree. I'm not sure when/where
+> those ACPI devices' resources are added, but clearly they are sitting
+> in there since the conflict was found.
+>
+> Somewhere along the way a PCI device from a scan is linked with the
+> ACPI device for that same PCI device in sysfs.  This is with me
+> putting a _HID and _CID in the PCI ACPI device.
+> # readlink -f /sys/devices/LNXSYSTM:00/LNXSYBUS:00/PNP0A08:00/INT5A92:00/physical_node
+> /sys/devices/pci0000:00/0000:00:0d.0
+> # readlink -f /sys/devices/pci0000\:00/0000\:00\:0d.0/firmware_node/
+> /sys/devices/LNXSYSTM:00/LNXSYBUS:00/PNP0A08:00/INT5A92:00
+>
+> So the hierarchy is known eventually, but it's clearly not honored
+> when adding resources. The current ACPI support doesn't handle
+> PciBarTarget which initially sounds (from ACPI spec) like the way to
+> go for referencing a resource in a PCI device from an ACPI device. So
+> that's out of the question currently, but maybe someone has a patch
+> for that? I don't think reordering the acpi_init() and
+> pci_subsys_init() would do anything different except change which
+> device discovers the conflict.
+>
+> Is there a way to honor the ACPI device hierarchy during resource
+> addition for the PCI devices? The conflict is found because of the
+> presence of a child device claiming resources through _CRS.
+> Alternatively, is there a good way to defer the probing of an ACPI
+> device until one knows PCI resources have been added?
+>
+> Any insights would be very helpful. Thank you.
 
-For example, below is an alignment exception observed on ARM platform when
-booting the kernel with 'acpi=on mem=8G':
+I stumbled upon the hierarchy connection. That's all handled with the
+platform_notify() end of things when device_add() is done on the pci
+device. I was thinking we could take advantage of this when adding
+resources, but a struct resource has no struct device. It's just a
+name description for the resource at hand. However, platform devices
+are added when the ACPI tree is parsed along with adding the resources
+associated with them (PciBarTarget would be helpful here) so those
+resources are sitting in the resource tree when PCI BARs are added.
 
-...
-[    0.542475] Unable to handle kernel paging request at virtual address ffff0000080521e7
-[    0.550457] pgd = ffff000008aa0000
-[    0.553880] [ffff0000080521e7] *pgd=000000801fffe003, *pud=000000801fffd003, *pmd=000000801fffc003, *pte=00e80083ff1c1707
-[    0.564939] Internal error: Oops: 96000021 [#1] PREEMPT SMP
-[    0.570553] Modules linked in:
-[    0.573626] CPU: 1 PID: 1 Comm: swapper/0 Not tainted 4.7.0-rc3-next-20160616+ #172
-[    0.581344] Hardware name: AMD Overdrive/Supercharger/Default string, BIOS ROD1001A 02/09/2016
-[    0.590025] task: ffff800001ef0000 ti: ffff800001ef8000 task.ti: ffff800001ef8000
-[    0.597571] PC is at acpi_ns_lookup+0x520/0x734
-[    0.602134] LR is at acpi_ns_lookup+0x4a4/0x734
-[    0.606693] pc : [<ffff0000083b8b10>] lr : [<ffff0000083b8a94>] pstate: 60000045
-[    0.614145] sp : ffff800001efb8b0
-[    0.617478] x29: ffff800001efb8c0 x28: 000000000000001b
-[    0.622829] x27: 0000000000000001 x26: 0000000000000000
-[    0.628181] x25: ffff800001efb9e8 x24: ffff000008a10000
-[    0.633531] x23: 0000000000000001 x22: 0000000000000001
-[    0.638881] x21: ffff000008724000 x20: 000000000000001b
-[    0.644230] x19: ffff0000080521e7 x18: 000000000000000d
-[    0.649580] x17: 00000000000038ff x16: 0000000000000002
-[    0.654929] x15: 0000000000000007 x14: 0000000000007fff
-[    0.660278] x13: ffffff0000000000 x12: 0000000000000018
-[    0.665627] x11: 000000001fffd200 x10: 00000000ffffff76
-[    0.670978] x9 : 000000000000005f x8 : ffff000008725fa8
-[    0.676328] x7 : ffff000008a8df70 x6 : ffff000008a8df70
-[    0.681679] x5 : ffff000008a8d000 x4 : 0000000000000010
-[    0.687027] x3 : 0000000000000010 x2 : 000000000000000c
-[    0.692378] x1 : 0000000000000006 x0 : 0000000000000000
-...
-[    1.262235] [<ffff0000083b8b10>] acpi_ns_lookup+0x520/0x734
-[    1.267845] [<ffff0000083a7160>] acpi_ds_load1_begin_op+0x174/0x4fc
-[    1.274156] [<ffff0000083c1f4c>] acpi_ps_build_named_op+0xf8/0x220
-[    1.280380] [<ffff0000083c227c>] acpi_ps_create_op+0x208/0x33c
-[    1.286254] [<ffff0000083c1820>] acpi_ps_parse_loop+0x204/0x838
-[    1.292215] [<ffff0000083c2fd4>] acpi_ps_parse_aml+0x1bc/0x42c
-[    1.298090] [<ffff0000083bc6e8>] acpi_ns_one_complete_parse+0x1e8/0x22c
-[    1.304753] [<ffff0000083bc7b8>] acpi_ns_parse_table+0x8c/0x128
-[    1.310716] [<ffff0000083bb8fc>] acpi_ns_load_table+0xc0/0x1e8
-[    1.316591] [<ffff0000083c9068>] acpi_tb_load_namespace+0xf8/0x2e8
-[    1.322818] [<ffff000008984128>] acpi_load_tables+0x7c/0x110
-[    1.328516] [<ffff000008982ea4>] acpi_init+0x90/0x2c0
-[    1.333603] [<ffff0000080819fc>] do_one_initcall+0x38/0x12c
-[    1.339215] [<ffff000008960cd4>] kernel_init_freeable+0x148/0x1ec
-[    1.345353] [<ffff0000086b7d30>] kernel_init+0x10/0xec
-[    1.350529] [<ffff000008084e10>] ret_from_fork+0x10/0x40
-[    1.355878] Code: b9009fbc 2a00037b 36380057 3219037b (b9400260)
-[    1.362035] ---[ end trace 03381e5eb0a24de4 ]---
-[    1.366691] Kernel panic - not syncing: Attempted to kill init! exitcode=0x0000000b
+The following suggestion is sort of hacky, but it's the best I could
+come up with provided the currently supported infrastructure. In
+pci_claim_resource() do request_resource_conflict() as before. If it
+fails do the following: 1. check if the device has an ACPI companion.
+2. For any children hanging off the ACPI companion device. check if
+that device's name matches the conflict resource's name. 3. If so,
+insert_resource_conflict() to place the BAR within the tree itself.
 
-With 'efi=debug', we can see those ACPI regions loaded by firmware on
-that board as:
-[    0.000000] efi:   0x0083ff185000-0x0083ff1b4fff [Reserved           |   |  |  |  |  |  |  |   |WB|WT|WC|UC]*
-[    0.000000] efi:   0x0083ff1b5000-0x0083ff1c2fff [ACPI Reclaim Memory|   |  |  |  |  |  |  |   |WB|WT|WC|UC]*
-[    0.000000] efi:   0x0083ff223000-0x0083ff224fff [ACPI Memory NVS    |   |  |  |  |  |  |  |   |WB|WT|WC|UC]*
+Thoughts or suggestions are welcomed.
 
-This patch is trying to address the above issue by only keep those
-NOMAP regions instead of removing all above limit from memory memblock.
+Thank you.
 
-Signed-off-by: Dennis Chen <dennis.chen-5wv7dgnIgG8@public.gmane.org>
-Cc: Catalin Marinas <catalin.marinas-5wv7dgnIgG8@public.gmane.org>
-Cc: Steve Capper <steve.capper-5wv7dgnIgG8@public.gmane.org>
-Cc: Ard Biesheuvel <ard.biesheuvel-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
-Cc: Will Deacon <will.deacon-5wv7dgnIgG8@public.gmane.org>
-Cc: Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>
-Cc: Rafael J. Wysocki <rafael.j.wysocki-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: Matt Fleming <matt-mF/unelCI9GS6iBeEJttW/XRex20P6io@public.gmane.org>
-Cc: linux-mm-Bw31MaZKKs3YtjvyW6yDsg@public.gmane.org
-Cc: linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: linux-efi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
----
- arch/arm64/mm/init.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
-
-diff --git a/arch/arm64/mm/init.c b/arch/arm64/mm/init.c
-index 7d25b4d..9482b45 100644
---- a/arch/arm64/mm/init.c
-+++ b/arch/arm64/mm/init.c
-@@ -226,7 +226,7 @@ void __init arm64_memblock_init(void)
- 	 * via the linear mapping.
- 	 */
- 	if (memory_limit != (phys_addr_t)ULLONG_MAX) {
--		memblock_enforce_memory_limit(memory_limit);
-+		memblock_mem_limit_remove_map(memory_limit);
- 		memblock_add(__pa(_text), (u64)(_end - _text));
- 	}
- 
--- 
-2.7.4
+-Aaron
