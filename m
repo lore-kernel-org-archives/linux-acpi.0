@@ -1,70 +1,193 @@
 From: fu.wei@linaro.org
-Subject: [PATCH v6 02/10] clocksource/drivers/arm_arch_timer: Add a new enum
- for spi type
-Date: Thu, 30 Jun 2016 02:15:45 +0800
-Message-ID: <1467224153-22873-3-git-send-email-fu.wei@linaro.org>
+Subject: [PATCH v6 09/10] clocksource/drivers/arm_arch_timer: Add GTDT support for memory-mapped timer
+Date: Thu, 30 Jun 2016 02:15:52 +0800
+Message-ID: <1467224153-22873-10-git-send-email-fu.wei@linaro.org>
 References: <1467224153-22873-1-git-send-email-fu.wei@linaro.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mx1.redhat.com ([209.132.183.28]:48123 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752053AbcF2SRb (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 29 Jun 2016 14:17:31 -0400
 In-Reply-To: <1467224153-22873-1-git-send-email-fu.wei@linaro.org>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: rjw@rjwysocki.net, lenb@kernel.org, daniel.lezcano@linaro.org, tglx@linutronix.de, marc.zyngier@arm.com, hanjun.guo@linaro.org
-Cc: wei@redhat.com, harba@codeaurora.org, Fu Wei <fu.wei@linaro.org>, al.stone@linaro.org, graeme.gregory@linaro.org, linaro-acpi@lists.linaro.org, jcm@redhat.com, timur@codeaurora.org, will.deacon@arm.com, rruigrok@codeaurora.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, wim@iguana.be, arnd@arndb.de, cov@codeaurora.org, Suravee.Suthikulpanit@amd.com, catalin.marinas@arm.com, leo.duran@amd.com, linux-arm-kernel@lists.infradead.org
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: rjw@rjwysocki.net, lenb@kernel.org, daniel.lezcano@linaro.org, tglx@linutronix.de, marc.zyngier@arm.com, hanjun.guo@linaro.org
+Cc: linux-arm-kernel@lists.infradead.org, linaro-acpi@lists.linaro.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, rruigrok@codeaurora.org, harba@codeaurora.org, cov@codeaurora.org, timur@codeaurora.org, graeme.gregory@linaro.org, al.stone@linaro.org, jcm@redhat.com, wei@redhat.com, arnd@arndb.de, wim@iguana.be, catalin.marinas@arm.com, will.deacon@arm.com, Suravee.Suthikulpanit@amd.com, leo.duran@amd.com, Fu Wei <fu.wei@linaro.org>
 
-From: Fu Wei <fu.wei@linaro.org>
+=46rom: Fu Wei <fu.wei@linaro.org>
 
-This patch add a new enum "spi_nr" and use it in the driver.
-Just for code's readability, no functional change.
+The patch add memory-mapped timer register support by using the informa=
+tion
+provided by the new GTDT driver of ACPI.
 
 Signed-off-by: Fu Wei <fu.wei@linaro.org>
 ---
- drivers/clocksource/arm_arch_timer.c | 4 ++--
- include/clocksource/arm_arch_timer.h | 6 ++++++
- 2 files changed, 8 insertions(+), 2 deletions(-)
+ drivers/clocksource/arm_arch_timer.c | 131 +++++++++++++++++++++++++++=
++++++++-
+ 1 file changed, 130 insertions(+), 1 deletion(-)
 
-diff --git a/drivers/clocksource/arm_arch_timer.c b/drivers/clocksource/arm_arch_timer.c
-index 5d7272e..966c574 100644
+diff --git a/drivers/clocksource/arm_arch_timer.c b/drivers/clocksource=
+/arm_arch_timer.c
+index 1382a49..683d691 100644
 --- a/drivers/clocksource/arm_arch_timer.c
 +++ b/drivers/clocksource/arm_arch_timer.c
-@@ -826,9 +826,9 @@ static void __init arch_timer_mem_init(struct device_node *np)
- 	}
- 
- 	if (arch_timer_mem_use_virtual)
--		irq = irq_of_parse_and_map(best_frame, 1);
-+		irq = irq_of_parse_and_map(best_frame, VIRT_SPI);
- 	else
--		irq = irq_of_parse_and_map(best_frame, 0);
-+		irq = irq_of_parse_and_map(best_frame, PHYS_SPI);
- 
- 	if (!irq) {
- 		pr_err("arch_timer: Frame missing %s irq",
-diff --git a/include/clocksource/arm_arch_timer.h b/include/clocksource/arm_arch_timer.h
-index 6f06481..16dcd10 100644
---- a/include/clocksource/arm_arch_timer.h
-+++ b/include/clocksource/arm_arch_timer.h
-@@ -45,6 +45,12 @@ enum ppi_nr {
- 	MAX_TIMER_PPI
- };
- 
-+enum spi_nr {
-+	PHYS_SPI,
-+	VIRT_SPI,
-+	MAX_TIMER_SPI
-+};
+@@ -849,7 +849,132 @@ CLOCKSOURCE_OF_DECLARE(armv7_arch_timer_mem, "arm=
+,armv7-timer-mem",
+ 		       arch_timer_mem_init);
+=20
+ #ifdef CONFIG_ACPI_GTDT
+-/* Initialize per-processor generic timer */
++static struct gt_timer_data __init *arch_timer_mem_get_timer(
++						struct gt_block_data *gt_blocks)
++{
++	struct gt_block_data *gt_block =3D gt_blocks;
++	struct gt_timer_data *best_frame =3D NULL;
++	void __iomem *cntctlbase;
++	u32 cnttidr;
++	int i;
 +
- #define ARCH_TIMER_PHYS_ACCESS		0
- #define ARCH_TIMER_VIRT_ACCESS		1
- #define ARCH_TIMER_MEM_PHYS_ACCESS	2
--- 
++	/*
++	 * According to ARMv8 Architecture Reference Manual(ARM),
++	 * the size of CNTCTLBase frame of memory-mapped timer
++	 * is SZ_4K(Offset 0x000 =E2=80=93 0xFFF).
++	 */
++	cntctlbase =3D ioremap(gt_block->cntctlbase_phy, SZ_4K);
++	if (!cntctlbase) {
++		pr_err("Can't map CNTCTLBase\n");
++		return NULL;
++	}
++	cnttidr =3D readl_relaxed(cntctlbase + CNTTIDR);
++
++	/*
++	 * Try to find a virtual capable frame. Otherwise fall back to a
++	 * physical capable frame.
++	 */
++	for (i =3D 0; i < gt_block->timer_count; i++) {
++		int n;
++		u32 cntacr;
++
++		n =3D gt_block->timer[i].frame_nr;
++
++		/* Try enabling everything, and see what sticks */
++		cntacr =3D CNTACR_RFRQ | CNTACR_RWPT | CNTACR_RPCT |
++			 CNTACR_RWVT | CNTACR_RVOFF | CNTACR_RVCT;
++		writel_relaxed(cntacr, cntctlbase + CNTACR(n));
++		cntacr =3D readl_relaxed(cntctlbase + CNTACR(n));
++
++		if ((cnttidr & CNTTIDR_VIRT(n)) &&
++		    !(~cntacr & (CNTACR_RWVT | CNTACR_RVCT))) {
++			best_frame =3D &gt_block->timer[i];
++			arch_timer_mem_use_virtual =3D true;
++			break;
++		}
++
++		if (~cntacr & (CNTACR_RWPT | CNTACR_RPCT))
++			continue;
++
++		best_frame =3D &gt_block->timer[i];
++	}
++	iounmap(cntctlbase);
++
++	return best_frame;
++}
++
++static int __init arch_timer_mem_acpi_init(u32 timer_count)
++{
++	struct gt_block_data *gt_blocks;
++	struct gt_timer_data *gt_timer;
++	void __iomem *timer_cntbase;
++	int ret =3D -EINVAL;
++	int timer_irq;
++
++	/*
++	 * If we have some Platform Timer Structures,
++	 * try to find and register a memory-mapped timer.
++	 * If not, just return.
++	 */
++	if (!timer_count)
++		return 0;
++
++	if (arch_timers_present & ARCH_MEM_TIMER) {
++		pr_warn("memory-mapped timer already initialized, skipping\n");
++		return 0;
++	}
++	arch_timers_present |=3D ARCH_MEM_TIMER;
++	/*
++	 * before really check all the Platform Timer Structures,
++	 * we assume they are GT block, and allocate memory for them.
++	 * We will free these memory once we finish the initialization.
++	 */
++	gt_blocks =3D kcalloc(timer_count, sizeof(*gt_blocks), GFP_KERNEL);
++	if (!gt_blocks)
++		return -ENOMEM;
++
++	if (gtdt_arch_timer_mem_init(gt_blocks)) {
++		gt_timer =3D arch_timer_mem_get_timer(gt_blocks);
++		if (!gt_timer) {
++			pr_err("Failed to get mem timer info.\n");
++			goto error;
++		}
++
++		if (arch_timer_mem_use_virtual)
++			timer_irq =3D gt_timer->virt_irq;
++		else
++			timer_irq =3D gt_timer->irq;
++		if (!timer_irq) {
++			pr_err("Frame missing %s irq",
++			       arch_timer_mem_use_virtual ? "virt" : "phys");
++			goto error;
++		}
++
++		/*
++		 * According to ARMv8 Architecture Reference Manual(ARM),
++		 * the size of CNTBaseN frames of memory-mapped timer
++		 * is SZ_4K(Offset 0x000 =E2=80=93 0xFFF).
++		 */
++		timer_cntbase =3D ioremap(gt_timer->cntbase_phy, SZ_4K);
++		if (!timer_cntbase) {
++			pr_err("Can't map CntBase.\n");
++			goto error;
++		}
++		arch_counter_base =3D timer_cntbase;
++		ret =3D arch_timer_mem_register(timer_cntbase, timer_irq);
++		if (ret) {
++			iounmap(timer_cntbase);
++			arch_counter_base =3D NULL;
++			pr_err("Failed to register mem timer.\n");
++		}
++	}
++
++error:
++	kfree(gt_blocks);
++	return ret;
++}
++
++/* Initialize per-processor generic timer and memory-mapped timer(if p=
+resent) */
+ static int __init arch_timer_acpi_init(struct acpi_table_header *table=
+)
+ {
+ 	int timer_count;
+@@ -875,6 +1000,10 @@ static int __init arch_timer_acpi_init(struct acp=
+i_table_header *table)
+=20
+ 	/* Get the frequency from CNTFRQ */
+ 	arch_timer_detect_rate(NULL, NULL);
++
++	if (arch_timer_mem_acpi_init(timer_count))
++		pr_err("Failed to initialize memory-mapped timer, skipping\n");
++
+ 	arch_timer_init();
+=20
+ 	return 0;
+--=20
 2.5.5
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
