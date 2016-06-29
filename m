@@ -1,44 +1,82 @@
-From: "Rafael J. Wysocki" <rafael@kernel.org>
-Subject: Re: [PATCH V2 4/4] ACPI,PCI,IRQ: correct operator precedence
-Date: Wed, 29 Jun 2016 15:16:11 +0200
-Message-ID: <CAJZ5v0j+CJ3qWTdvm6Sk3DqFYVnkuEmaR1EPZM6DDVMC8rsK+g@mail.gmail.com>
-References: <1467188859-28188-1-git-send-email-okaya@codeaurora.org> <1467188859-28188-5-git-send-email-okaya@codeaurora.org>
+From: Christopher Covington <cov@codeaurora.org>
+Subject: Re: [RFC PATCH v4 3/5] PCI: Check platform specific ECAM quirks
+Date: Wed, 29 Jun 2016 09:34:01 -0400
+Message-ID: <5773CE49.1050802@codeaurora.org>
+References: <1467100442-28078-1-git-send-email-tn@semihalf.com>
+ <1467100442-28078-4-git-send-email-tn@semihalf.com>
+ <577275EA.7010002@codeaurora.org>
+ <CADaLNDkhPZuG7UJ4SK_j5v_nXbd782Q17LAcXduG0uEObaFF=g@mail.gmail.com>
+ <5773A773.8040700@semihalf.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-arm-msm-owner@vger.kernel.org>
-In-Reply-To: <1467188859-28188-5-git-send-email-okaya@codeaurora.org>
-Sender: linux-arm-msm-owner@vger.kernel.org
-To: Sinan Kaya <okaya@codeaurora.org>
-Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Timur Tabi <timur@codeaurora.org>, Christopher Covington <cov@codeaurora.org>, Jon Masters <jcm@redhat.com>, Alex Williamson <alex.williamson@redhat.com>, eric.auger@redhat.com, Linux PCI <linux-pci@vger.kernel.org>, Andy Gross <agross@codeaurora.org>, linux-arm-msm@vger.kernel.org, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, wim@djo.tudelft.nl, perex@perex.cz, tiwai@suse.com, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-pci-owner@vger.kernel.org>
+In-Reply-To: <5773A773.8040700@semihalf.com>
+Sender: linux-pci-owner@vger.kernel.org
+To: Tomasz Nowicki <tn@semihalf.com>, Duc Dang <dhdang@apm.com>
+Cc: Bjorn Helgaas <helgaas@kernel.org>, Arnd Bergmann <arnd@arndb.de>, Will Deacon <will.deacon@arm.com>, Catalin Marinas <catalin.marinas@arm.com>, Rafael Wysocki <rafael@kernel.org>, Hanjun Guo <hanjun.guo@linaro.org>, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, Sinan Kaya <okaya@codeaurora.org>, Jayachandran C <jchandra@broadcom.com>, Robert Richter <robert.richter@caviumnetworks.com>, Marcin Wojtas <mw@semihalf.com>, Liviu Dudau <Liviu.Dudau@arm.com>, David Daney <ddaney@caviumnetworks.com>, Yijing Wang <wangyijing@huawei.com>, Mark Salter <msalter@redhat.com>, linux-pci@vger.kernel.org, linux-arm <linux-arm-kernel@lists.infradead.org>, linux-acpi@vger.kernel.org, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linaro-acpi@lists.linaro.org, Jon Masters <jcm@redhat.com>, Andrea Gallo <andrea.gallo@linaro.org>, jeremy.linton@arm.com, Dongdong Liu <liudon>
 List-Id: linux-acpi@vger.kernel.org
 
-On Wed, Jun 29, 2016 at 10:27 AM, Sinan Kaya <okaya@codeaurora.org> wrote:
-> The omitted parenthesis prevents the addition operation when
-> acpi_penalize_isa_irq function is called.
->
-> Signed-off-by: Sinan Kaya <okaya@codeaurora.org>
+Hi Tomasz,
 
-Well, this is a rather obvious one, so I'm wondering why it is the
-last one in the series?
+On 06/29/2016 06:48 AM, Tomasz Nowicki wrote:
+> On 28.06.2016 18:12, Duc Dang wrote:
+>> On Tue, Jun 28, 2016 at 6:04 AM, Christopher Covington
+>> <cov@codeaurora.org> wrote:
+>>> Hi Tomasz,
 
-> ---
->  drivers/acpi/pci_link.c | 2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
->
-> diff --git a/drivers/acpi/pci_link.c b/drivers/acpi/pci_link.c
-> index 8c08971..c983bf7 100644
-> --- a/drivers/acpi/pci_link.c
-> +++ b/drivers/acpi/pci_link.c
-> @@ -872,7 +872,7 @@ void acpi_penalize_isa_irq(int irq, int active)
->  {
->         if ((irq >= 0) && (irq < ARRAY_SIZE(acpi_isa_irq_penalty)))
->                 acpi_isa_irq_penalty[irq] = acpi_irq_get_penalty(irq) +
-> -                       active ? PIRQ_PENALTY_ISA_USED : PIRQ_PENALTY_PCI_USING;
-> +                 (active ? PIRQ_PENALTY_ISA_USED : PIRQ_PENALTY_PCI_USING);
->  }
->
->  bool acpi_isa_irq_available(int irq)
-> --
+>>> Ard's comments on v3 included:
+>>>
+>>> "... exact OEM table/rev id matches ..."
+>>> "... substring match ... out of the question ..."
+
+Digging through the archives I see Jon Master commented earlier to "be
+careful with substring match".
+
+>> I think having OEM Table ID as "PLAT " and then "PLAT2 " (the the 
+>> next version of the SoC) is common. So yes, matching full string is
+>> better as we can use "PLAT2 " in MCFG table and not worry about the
+>> "PLAT" sub-string match causes the quirk to be applied
+>> unintentionally.
+
+> Note that platforms already shipped where OEM string has no padding will
+
+I'm confused by this statement. OEMID is defined as 6 bytes long and OEM
+Table ID as 8 bytes long in the ACPI specification. As far as I can
+tell, if your string isn't exactly that long, padding up to that length
+is required.
+
+> have change the firmware or add 0 padding to our quirk array IDs.
+
+The fixed 6 or 8 character string compare, as used v2 of this patchset,
+will be compatible with existing firmware as best I can tell. Adding
+padding to the quirk array IDs is exactly what I'm suggesting, although
+all the strings I've seen are space padded rather than null padded.
+
+Matches:
+{"APM   ", "XGENE   ", 1}
+{"CAVIUM", "THUNDERX", 1}
+{"HISI  ", "HISI-D02", 1}
+{"HISI  ", "HISI-D03", 1}
+{"QCOM  ", "QDF2432 ", 1}
+
+Given the above tuples, won't accidentally match:
+(guessing at possible future ids)
+{"APM   ", "XGENEi  ", 1}
+{"CAVIUM", "THUNDERX", i} i != 1
+{"CAVIUM", "THUNDERi", 1}
+{"CAVIUM", "THUNDRXi", 1}
+{"HISI  ", "HISI-D0i", 1} i != 2 && i != 3
+{"QCOM  ", "QDF24ij ", 1} i != 3 && j != 2
+
+References for APM, HiSilicon IDs:
+https://lists.linaro.org/pipermail/linaro-acpi/2016-June/007108.html
+https://lists.linaro.org/pipermail/linaro-acpi/2016-June/007043.html
 
 Thanks,
-Rafael
+Cov
+
+-- 
+Qualcomm Innovation Center, Inc.
+Qualcomm Innovation Center, Inc. is a member of Code Aurora Forum,
+a Linux Foundation Collaborative Project
