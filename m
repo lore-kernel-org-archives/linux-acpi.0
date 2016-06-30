@@ -1,116 +1,294 @@
-From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Subject: Re: [PATCH v2 2/2] serial: 8250_dw: add ACPI support for uart on
- Hisilicon Hip05 soc
-Date: Thu, 30 Jun 2016 17:39:46 +0300
-Message-ID: <1467297586.30123.358.camel@linux.intel.com>
-References: <1467250062-61583-1-git-send-email-wangkefeng.wang@huawei.com>
- <1467250062-61583-3-git-send-email-wangkefeng.wang@huawei.com>
- <1467279517.30123.346.camel@linux.intel.com>
- <1467280468.30123.350.camel@linux.intel.com>
-	 <4ba5d9fb-580d-0e32-0ae7-85ab3b68742e@huawei.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+From: Prashanth Prakash <pprakash@codeaurora.org>
+Subject: [PATCH 1/5] ACPI/CPPC: restructure read/writes for efficient sys mapped reg ops
+Date: Thu, 30 Jun 2016 12:02:34 -0600
+Message-ID: <1467309758-26536-2-git-send-email-pprakash@codeaurora.org>
+References: <1467309758-26536-1-git-send-email-pprakash@codeaurora.org>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga01.intel.com ([192.55.52.88]:19058 "EHLO mga01.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751845AbcF3OkB (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 30 Jun 2016 10:40:01 -0400
-In-Reply-To: <4ba5d9fb-580d-0e32-0ae7-85ab3b68742e@huawei.com>
+Received: from smtp.codeaurora.org ([198.145.29.96]:52793 "EHLO
+	smtp.codeaurora.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932124AbcF3SCv (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 30 Jun 2016 14:02:51 -0400
+In-Reply-To: <1467309758-26536-1-git-send-email-pprakash@codeaurora.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Kefeng Wang <wangkefeng.wang@huawei.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: Jiri Slaby <jslaby@suse.com>, linux-serial@vger.kernel.org, linux-kernel@vger.kernel.org, z.liuxinliang@hisilicon.com, guohanjun@huawei.com, linux-acpi@vger.kernel.org, xuwei5@hisilicon.com, graeme.gregory@linaro.org
+To: linux-acpi@vger.kernel.org
+Cc: rjw@rjwysocki.net, alexey.klimov@arm.com, hotran@apm.com, cov@codeaurora.org, pprakash@codeaurora.org, Ashwin Chaugule <ashwin.chaugule@linaro.org>
 
-On Thu, 2016-06-30 at 22:26 +0800, Kefeng Wang wrote:
->=20
-> On 2016/6/30 17:54, Andy Shevchenko wrote:
-> > On Thu, 2016-06-30 at 12:38 +0300, Andy Shevchenko wrote:
-> > > On Thu, 2016-06-30 at 09:27 +0800, Kefeng Wang wrote:
-> > > > Add ACPI identifier for UART on Hisilicon Hip05 soc, be careful
-> > > > that it is not 16550 compatibal.
-> > > >=20
-> > > > Meanwhile, set dw8250_serial_out32 to keep consistent between
-> > > > serial_out
-> > > > and serial_in in ACPI.
-> > > >=20
-> > > > Signed-off-by: Kefeng Wang <wangkefeng.wang@huawei.com>
-> > > > ---
-> > > > =C2=A0drivers/tty/serial/8250/8250_dw.c | 13 +++++++++++--
-> > > > =C2=A01 file changed, 11 insertions(+), 2 deletions(-)
-> > > >=20
-> > > > diff --git a/drivers/tty/serial/8250/8250_dw.c
-> > > > b/drivers/tty/serial/8250/8250_dw.c
-> > > > index 65f3da7..096431b 100644
-> > > > --- a/drivers/tty/serial/8250/8250_dw.c
-> > > > +++ b/drivers/tty/serial/8250/8250_dw.c
-> > > > @@ -272,6 +272,12 @@ static bool dw8250_idma_filter(struct
-> > > > dma_chan
-> > > > *chan, void *param)
-> > > > =C2=A0	return param =3D=3D chan->device->dev->parent;
-> > > > =C2=A0}
-> > > > =C2=A0
-> > > > +/* non 16550 compatible id list*/
-> > > > +static const struct acpi_device_id non_16550_id_list[] =3D {
-> > > > +	{ "HISI0031", 0 },
-> > > > +	{ },
-> > > > +};
-> > > > +
-> > >=20
-> > > On first glance it looks redundant, see below.
-> >=20
-> > Oh, wait, this is still valid, but the better solution is to use
-> > device
-> > properties for the rest except yours!
->=20
-> Do you mean using something like
->=20
-> static struct property_entry dw8250_properties[] =3D {
-> =C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0PROPERTY_ENTRY_U32("r=
-eg-io-width", 4),
-> =C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0PROPERTY_ENTRY_U32("r=
-eg-shift", 2),
-> =C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0PROPERTY_ENTRY_BOOL("=
-snps,uart-16550-compatible"),
-> =C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0{ },
-> };
->=20
-> then use platform_device_add_properties to add it to the device(16500
-> compatible),
+From: Ashwin Chaugule <ashwin.chaugule@linaro.org>
 
-Correct for the existing devices.
+For cases where sys mapped CPC registers need to be accessed
+frequently, it helps immensly to pre-map them rather than map
+and unmap for each operation. e.g. case where feedback counters
+are sys mem map registers.
 
->=20
-> but for hisi, use another property_entry without
-> PROPERTY_ENTRY_BOOL("snps,uart-16550-compatible")?
+Restructure cpc_read/write and the cpc_regs structure to allow
+pre-mapping the system addresses and unmap them when the CPU exits.
 
-=46or HISI in case of alternate configuration you have to tweak _DSD in
-ACPI.
+Signed-off-by: Ashwin Chaugule <ashwin.chaugule@linaro.org>
+Signed-off-by: Prashanth Prakash <pprakash@codeaurora.org>
+---
+ drivers/acpi/cppc_acpi.c | 106 ++++++++++++++++++++++++++++++-----------------
+ include/acpi/cppc_acpi.h |   1 +
+ 2 files changed, 70 insertions(+), 37 deletions(-)
 
->=20
-> Not clear about using device properties.
+diff --git a/drivers/acpi/cppc_acpi.c b/drivers/acpi/cppc_acpi.c
+index 2e98173..28170c2 100644
+--- a/drivers/acpi/cppc_acpi.c
++++ b/drivers/acpi/cppc_acpi.c
+@@ -62,7 +62,6 @@ static DEFINE_PER_CPU(struct cpc_desc *, cpc_desc_ptr);
+ /* This layer handles all the PCC specifics for CPPC. */
+ static struct mbox_chan *pcc_channel;
+ static void __iomem *pcc_comm_addr;
+-static u64 comm_base_addr;
+ static int pcc_subspace_idx = -1;
+ static bool pcc_channel_acquired;
+ static ktime_t deadline;
+@@ -394,7 +393,6 @@ EXPORT_SYMBOL_GPL(acpi_get_psd_map);
+ static int register_pcc_channel(int pcc_subspace_idx)
+ {
+ 	struct acpi_pcct_hw_reduced *cppc_ss;
+-	unsigned int len;
+ 	u64 usecs_lat;
+ 
+ 	if (pcc_subspace_idx >= 0) {
+@@ -419,12 +417,6 @@ static int register_pcc_channel(int pcc_subspace_idx)
+ 			return -ENODEV;
+ 		}
+ 
+-		/*
+-		 * This is the shared communication region
+-		 * for the OS and Platform to communicate over.
+-		 */
+-		comm_base_addr = cppc_ss->base_address;
+-		len = cppc_ss->length;
+ 
+ 		/*
+ 		 * cppc_ss->latency is just a Nominal value. In reality
+@@ -436,7 +428,7 @@ static int register_pcc_channel(int pcc_subspace_idx)
+ 		pcc_mrtt = cppc_ss->min_turnaround_time;
+ 		pcc_mpar = cppc_ss->max_access_rate;
+ 
+-		pcc_comm_addr = acpi_os_ioremap(comm_base_addr, len);
++		pcc_comm_addr = acpi_os_ioremap(cppc_ss->base_address, cppc_ss->length);
+ 		if (!pcc_comm_addr) {
+ 			pr_err("Failed to ioremap PCC comm region mem\n");
+ 			return -ENOMEM;
+@@ -545,6 +537,8 @@ int acpi_cppc_processor_probe(struct acpi_processor *pr)
+ 		goto out_free;
+ 	}
+ 
++	cpc_ptr->num_entries = num_ent;
++
+ 	/* Second entry should be revision. */
+ 	cpc_obj = &out_obj->package.elements[1];
+ 	if (cpc_obj->type == ACPI_TYPE_INTEGER)	{
+@@ -585,7 +579,15 @@ int acpi_cppc_processor_probe(struct acpi_processor *pr)
+ 					pr_debug("Mismatched PCC ids.\n");
+ 					goto out_free;
+ 				}
+-			} else if (gas_t->space_id != ACPI_ADR_SPACE_SYSTEM_MEMORY) {
++			} else if (gas_t->space_id == ACPI_ADR_SPACE_SYSTEM_MEMORY) {
++				if (gas_t->address) {
++					void __iomem *addr;
++					addr = ioremap(gas_t->address, gas_t->bit_width/8);
++					if (!addr)
++						goto out_free;
++					cpc_ptr->cpc_regs[i-2].sys_mem_vaddr = addr;
++				}
++			} else {
+ 				/* Support only PCC and SYS MEM type regs */
+ 				pr_debug("Unsupported register type: %d\n", gas_t->space_id);
+ 				goto out_free;
+@@ -623,6 +625,12 @@ int acpi_cppc_processor_probe(struct acpi_processor *pr)
+ 	return 0;
+ 
+ out_free:
++	/* Free all the mapped sys mem areas for this CPU */
++	for (i = 2; i < cpc_ptr->num_entries; i++) {
++		void __iomem *addr = cpc_ptr->cpc_regs[i-2].sys_mem_vaddr;
++		if (addr)
++			iounmap(addr);
++	}
+ 	kfree(cpc_ptr);
+ 
+ out_buf_free:
+@@ -640,7 +648,17 @@ EXPORT_SYMBOL_GPL(acpi_cppc_processor_probe);
+ void acpi_cppc_processor_exit(struct acpi_processor *pr)
+ {
+ 	struct cpc_desc *cpc_ptr;
++	unsigned int i;
++	void __iomem *addr;
+ 	cpc_ptr = per_cpu(cpc_desc_ptr, pr->id);
++
++	/* Free all the mapped sys mem areas for this CPU */
++	for (i = 2; i < cpc_ptr->num_entries; i++) {
++		addr = cpc_ptr->cpc_regs[i-2].sys_mem_vaddr;
++		if (addr)
++			iounmap(addr);
++	}
++
+ 	kfree(cpc_ptr);
+ }
+ EXPORT_SYMBOL_GPL(acpi_cppc_processor_exit);
+@@ -651,15 +669,27 @@ EXPORT_SYMBOL_GPL(acpi_cppc_processor_exit);
+  * we can directly write to it.
+  */
+ 
+-static int cpc_read(struct cpc_reg *reg, u64 *val)
++static int cpc_read(struct cpc_register_resource *reg_res, u64 *val)
+ {
+ 	int ret_val = 0;
++	void __iomem *vaddr = 0;
++	struct cpc_reg *reg = &reg_res->cpc_entry.reg;
++
++	if (reg_res->type == ACPI_TYPE_INTEGER) {
++		*val = reg_res->int_value;
++		return ret_val;
++	}
+ 
+ 	*val = 0;
+-	if (reg->space_id == ACPI_ADR_SPACE_PLATFORM_COMM) {
+-		void __iomem *vaddr = GET_PCC_VADDR(reg->address);
++	if (reg->space_id == ACPI_ADR_SPACE_PLATFORM_COMM)
++		vaddr = GET_PCC_VADDR(reg->address);
++	else if (reg->space_id == ACPI_ADR_SPACE_SYSTEM_MEMORY)
++		vaddr = reg_res->sys_mem_vaddr;
++	else
++		return acpi_os_read_memory((acpi_physical_address)reg->address,
++				val, reg->bit_width);
+ 
+-		switch (reg->bit_width) {
++	switch (reg->bit_width) {
+ 		case 8:
+ 			*val = readb_relaxed(vaddr);
+ 			break;
+@@ -674,23 +704,28 @@ static int cpc_read(struct cpc_reg *reg, u64 *val)
+ 			break;
+ 		default:
+ 			pr_debug("Error: Cannot read %u bit width from PCC\n",
+-				reg->bit_width);
++					reg->bit_width);
+ 			ret_val = -EFAULT;
+-		}
+-	} else
+-		ret_val = acpi_os_read_memory((acpi_physical_address)reg->address,
+-					val, reg->bit_width);
++	}
++
+ 	return ret_val;
+ }
+ 
+-static int cpc_write(struct cpc_reg *reg, u64 val)
++static int cpc_write(struct cpc_register_resource *reg_res, u64 val)
+ {
+ 	int ret_val = 0;
++	void __iomem *vaddr = 0;
++	struct cpc_reg *reg = &reg_res->cpc_entry.reg;
+ 
+-	if (reg->space_id == ACPI_ADR_SPACE_PLATFORM_COMM) {
+-		void __iomem *vaddr = GET_PCC_VADDR(reg->address);
++	if (reg->space_id == ACPI_ADR_SPACE_PLATFORM_COMM)
++		vaddr = GET_PCC_VADDR(reg->address);
++	else if (reg->space_id == ACPI_ADR_SPACE_SYSTEM_MEMORY)
++		vaddr = reg_res->sys_mem_vaddr;
++	else
++		return acpi_os_write_memory((acpi_physical_address)reg->address,
++				val, reg->bit_width);
+ 
+-		switch (reg->bit_width) {
++	switch (reg->bit_width) {
+ 		case 8:
+ 			writeb_relaxed(val, vaddr);
+ 			break;
+@@ -705,13 +740,11 @@ static int cpc_write(struct cpc_reg *reg, u64 val)
+ 			break;
+ 		default:
+ 			pr_debug("Error: Cannot write %u bit width to PCC\n",
+-				reg->bit_width);
++					reg->bit_width);
+ 			ret_val = -EFAULT;
+ 			break;
+-		}
+-	} else
+-		ret_val = acpi_os_write_memory((acpi_physical_address)reg->address,
+-				val, reg->bit_width);
++	}
++
+ 	return ret_val;
+ }
+ 
+@@ -754,16 +787,16 @@ int cppc_get_perf_caps(int cpunum, struct cppc_perf_caps *perf_caps)
+ 		}
+ 	}
+ 
+-	cpc_read(&highest_reg->cpc_entry.reg, &high);
++	cpc_read(highest_reg, &high);
+ 	perf_caps->highest_perf = high;
+ 
+-	cpc_read(&lowest_reg->cpc_entry.reg, &low);
++	cpc_read(lowest_reg, &low);
+ 	perf_caps->lowest_perf = low;
+ 
+-	cpc_read(&ref_perf->cpc_entry.reg, &ref);
++	cpc_read(ref_perf, &ref);
+ 	perf_caps->reference_perf = ref;
+ 
+-	cpc_read(&nom_perf->cpc_entry.reg, &nom);
++	cpc_read(nom_perf, &nom);
+ 	perf_caps->nominal_perf = nom;
+ 
+ 	if (!ref)
+@@ -804,7 +837,7 @@ int cppc_get_perf_ctrs(int cpunum, struct cppc_perf_fb_ctrs *perf_fb_ctrs)
+ 
+ 	/* Are any of the regs PCC ?*/
+ 	if ((delivered_reg->cpc_entry.reg.space_id == ACPI_ADR_SPACE_PLATFORM_COMM) ||
+-			(reference_reg->cpc_entry.reg.space_id == ACPI_ADR_SPACE_PLATFORM_COMM)) {
++		(reference_reg->cpc_entry.reg.space_id == ACPI_ADR_SPACE_PLATFORM_COMM)) {
+ 		/* Ring doorbell once to update PCC subspace */
+ 		if (send_pcc_cmd(CMD_READ) < 0) {
+ 			ret = -EIO;
+@@ -812,8 +845,8 @@ int cppc_get_perf_ctrs(int cpunum, struct cppc_perf_fb_ctrs *perf_fb_ctrs)
+ 		}
+ 	}
+ 
+-	cpc_read(&delivered_reg->cpc_entry.reg, &delivered);
+-	cpc_read(&reference_reg->cpc_entry.reg, &reference);
++	cpc_read(delivered_reg, &delivered);
++	cpc_read(reference_reg, &reference);
+ 
+ 	if (!delivered || !reference) {
+ 		ret = -EFAULT;
+@@ -868,7 +901,7 @@ int cppc_set_perf(int cpu, struct cppc_perf_ctrls *perf_ctrls)
+ 	 * Skip writing MIN/MAX until Linux knows how to come up with
+ 	 * useful values.
+ 	 */
+-	cpc_write(&desired_reg->cpc_entry.reg, perf_ctrls->desired_perf);
++	cpc_write(desired_reg, perf_ctrls->desired_perf);
+ 
+ 	/* Is this a PCC reg ?*/
+ 	if (desired_reg->cpc_entry.reg.space_id == ACPI_ADR_SPACE_PLATFORM_COMM) {
+@@ -878,7 +911,6 @@ int cppc_set_perf(int cpu, struct cppc_perf_ctrls *perf_ctrls)
+ 	}
+ busy_channel:
+ 	spin_unlock(&pcc_lock);
+-
+ 	return ret;
+ }
+ EXPORT_SYMBOL_GPL(cppc_set_perf);
+diff --git a/include/acpi/cppc_acpi.h b/include/acpi/cppc_acpi.h
+index 284965c..36ff5c6 100644
+--- a/include/acpi/cppc_acpi.h
++++ b/include/acpi/cppc_acpi.h
+@@ -49,6 +49,7 @@ struct cpc_reg {
+  */
+ struct cpc_register_resource {
+ 	acpi_object_type type;
++	u64 __iomem *sys_mem_vaddr;
+ 	union {
+ 		struct cpc_reg reg;
+ 		u64 int_value;
+-- 
+Qualcomm Technologies, Inc. on behalf
+of the Qualcomm Innovation Center, Inc.  The Qualcomm Innovation Center, Inc. 
+is a member of the Code Aurora Forum, a Linux Foundation Collaborative Project.
 
-Built-in device properties only for non-DT, non-ACPI devices. You may
-consider it as a successor of platform data.
-
->=20
-> >=20
-> > I will prepare patch later this week or at the beginning of next
-> > week if
-> > you are in hurry, otherwise I would postpone this a bit (anyway it
-> > will
-> > not make v4.8 cycle).
-> >=20
->=20
-> Thanks, hope that it will come out soon.
->=C2=A0
-
---=20
-
-Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Intel Finland Oy
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
