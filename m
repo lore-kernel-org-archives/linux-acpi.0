@@ -1,33 +1,60 @@
-From: Kefeng Wang <wangkefeng.wang@huawei.com>
-Subject: [PATCH v2 0/2] serial: 8250_dw: Add ACPI support for uart on Hisilicon Hip05 soc
-Date: Thu, 30 Jun 2016 09:27:40 +0800
-Message-ID: <1467250062-61583-1-git-send-email-wangkefeng.wang@huawei.com>
+From: Fu Wei <fu.wei@linaro.org>
+Subject: Re: [PATCH v6 00/10] acpi, clocksource: add GTDT driver and GTDT
+ support in arm_arch_timer
+Date: Thu, 30 Jun 2016 09:29:59 +0800
+Message-ID: <CADyBb7vmS=oJ9EOzs-v-O4_h5Kd_PCMQytjqEHdRNQkqz4WHcQ@mail.gmail.com>
+References: <1467224153-22873-1-git-send-email-fu.wei@linaro.org> <CAJZ5v0iD5OYjp7ozmzoQ3zK-3+eMpdwzDxYgD=saLPjNeoq0Qg@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <CAJZ5v0iD5OYjp7ozmzoQ3zK-3+eMpdwzDxYgD=saLPjNeoq0Qg@mail.gmail.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: Jiri Slaby <jslaby@suse.com>, linux-serial@vger.kernel.org, linux-kernel@vger.kernel.org, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, z.liuxinliang@hisilicon.com, guohanjun@huawei.com, linux-acpi@vger.kernel.org, xuwei5@hisilicon.com, graeme.gregory@linaro.org, Kefeng Wang <wangkefeng.wang@huawei.com>
+To: "Rafael J. Wysocki" <rafael@kernel.org>
+Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Daniel Lezcano <daniel.lezcano@linaro.org>, Thomas Gleixner <tglx@linutronix.de>, Marc Zyngier <marc.zyngier@arm.com>, Hanjun Guo <hanjun.guo@linaro.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linaro-acpi@lists.linaro.org" <linaro-acpi@lists.linaro.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, rruigrok@codeaurora.org, harba@codeaurora.org, Christopher Covington <cov@codeaurora.org>, Timur Tabi <timur@codeaurora.org>, G Gregory <graeme.gregory@linaro.org>, Al Stone <al.stone@linaro.org>, Jon Masters <jcm@redhat.com>, wei@redhat.com, Arnd Bergmann <arnd@arndb.de>, Wim Van Sebroeck <wim@iguana.be>, Catalin Marinas <catalin.marinas@arm.com>, Will Deacon <will.deacon@arm.com>, Suravee
 List-Id: linux-acpi@vger.kernel.org
 
-Make dw8250_set_termios() as the default set_termios callback for 8250 dw uart, correct me
-if I am wrong.
+Hi Rafael,
 
-Then add ACPI support for uart on Hisilicon Hip05 soc, be careful that it is not 16500
-compatible. Meanwhile, set dw8250_serial_out32 to keep consistent between serial_out
-and serial_in in ACPI.
+On 30 June 2016 at 05:32, Rafael J. Wysocki <rafael@kernel.org> wrote:
+> On Wed, Jun 29, 2016 at 8:15 PM,  <fu.wei@linaro.org> wrote:
+>> From: Fu Wei <fu.wei@linaro.org>
+>>
+>> This patchset:
+>>     (1)Preparation for adding GTDT support in arm_arch_timer
+>>         1. Move some enums and marcos to header file
+>>         2. Add a new enum for spi type.
+>>         3. Improve printk relevant code
+>>
+>>     (2)Introduce ACPI GTDT parser: drivers/acpi/gtdt.c
+>>     Parse all kinds of timer in GTDT table of ACPI:arch timer,
+>>     memory-mapped timer and SBSA Generic Watchdog timer.
+>>     This driver can help to simplify all the relevant timer drivers,
+>>     and separate all the ACPI GTDT knowledge from them.
+>>
+>>     (3)Simplify ACPI code for arm_arch_timer
+>>
+>>     (4)Add GTDT support for ARM memory-mapped timer
+>
+> GTDT is ARM-specific AFAICS.
 
-Change since v1:
-- Use acpi_match_device() instead of acpi_dev_found(), limit the check to the device
-  being probed and not a global search for whole DSDT (pointed by graeme.gregory@linaro.org)
+yes, you are right, it is.
 
-Kefeng Wang (2):
-  serial: 8250_dw: make dw8250_set_termios as default set_termios
-    callback
-  serial: 8250_dw: add ACPI support for uart on Hisilicon Hip05 soc
+>
+> If so, why do we need that code to reside in drivers/acpi/ ?
 
- drivers/tty/serial/8250/8250_dw.c | 16 ++++++++++++----
- 1 file changed, 12 insertions(+), 4 deletions(-)
+Although  the GTDT is just for ARM64, but this driver is parsing one
+of ACPI table,
+I think that could be treated as ACPI driver.  Do I miss something? :-)
+
+>
+> Thanks,
+> Rafael
+
+
 
 -- 
-1.7.12.4
+Best regards,
+
+Fu Wei
+Software Engineer
+Red Hat
