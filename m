@@ -1,47 +1,40 @@
 From: Markus Mayer <mmayer@broadcom.com>
-Subject: [PATCH 0/6] lib: string: add function strtolower()
-Date: Thu, 30 Jun 2016 16:50:06 -0700
-Message-ID: <1467330612-26242-1-git-send-email-mmayer@broadcom.com>
-Return-path: <target-devel-owner@vger.kernel.org>
-Sender: target-devel-owner@vger.kernel.org
-To: Andrew Morton <akpm@linux-foundation.org>, Al Viro <viro@zeniv.linux.org.uk>, Rasmus Villemoes <linux@rasmusvillemoes.dk>, Chris Metcalf <cmetcalf@ezchip.com>, Kees Cook <keescook@chromium.org>
-Cc: Markus Mayer <mmayer@broadcom.com>, dri-devel@lists.freedesktop.org, nouveau@lists.freedesktop.org, linux-acpi@vger.kernel.org, devel@acpica.org, speakup@linux-speakup.org, devel@driverdev.osuosl.org, linux-scsi@vger.kernel.org, target-devel@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: [PATCH 4/6] ACPI / device_sysfs: make use of new strtolower() function
+Date: Thu, 30 Jun 2016 16:50:10 -0700
+Message-ID: <1467330612-26242-5-git-send-email-mmayer@broadcom.com>
+References: <1467330612-26242-1-git-send-email-mmayer@broadcom.com>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1467330612-26242-1-git-send-email-mmayer@broadcom.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Rafael Wysocki <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>
+Cc: Markus Mayer <mmayer@broadcom.com>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-This series introduces a new generic function strtolower(), which
-converts strings to lowercase in-place, overwriting the original
-string. This kind of functionality is needed in several places in the
-kernel. Right now, everybody seems to be implementing their own copy of
-this function. So, we replace several custom "strtolower"
-implementations with this new library function.
+Call strtolower() rather than walking the string explicitly to convert
+it to lowercase.
 
-Another driver that also makes use of this function will be submitted
-upstream shortly, which prompted this whole exercise.
+Signed-off-by: Markus Mayer <mmayer@broadcom.com>
+---
+ drivers/acpi/device_sysfs.c | 4 +---
+ 1 file changed, 1 insertion(+), 3 deletions(-)
 
-The changes made here have been compile-tested, but not tried out, due
-to lack of required hardware.
-
-This series is based on v4.7-rc5.
-
-Markus Mayer (6):
-  lib: string: add function strtolower()
-  drm/nouveau/core: make use of new strtolower() function
-  ACPICA: make use of new strtolower() function
-  ACPI / device_sysfs: make use of new strtolower() function
-  staging: speakup: replace spk_strlwr() with strtolower()
-  iscsi-target: replace iscsi_initiatorname_tolower() with strtolower()
-
- drivers/acpi/acpica/utnonansi.c              | 13 +------------
- drivers/acpi/device_sysfs.c                  |  4 +---
- drivers/gpu/drm/nouveau/nvkm/core/firmware.c |  7 +------
- drivers/staging/speakup/kobjects.c           |  2 +-
- drivers/staging/speakup/main.c               |  2 +-
- drivers/staging/speakup/speakup.h            |  1 -
- drivers/staging/speakup/varhandlers.c        | 12 ------------
- drivers/target/iscsi/iscsi_target_nego.c     | 17 +----------------
- include/linux/string.h                       |  1 +
- lib/string.c                                 | 14 ++++++++++++++
- 10 files changed, 21 insertions(+), 52 deletions(-)
-
+diff --git a/drivers/acpi/device_sysfs.c b/drivers/acpi/device_sysfs.c
+index 7b2c48f..1db38c7 100644
+--- a/drivers/acpi/device_sysfs.c
++++ b/drivers/acpi/device_sysfs.c
+@@ -200,12 +200,10 @@ static int create_of_modalias(struct acpi_device *acpi_dev, char *modalias,
+ 	const union acpi_object *of_compatible, *obj;
+ 	int len, count;
+ 	int i, nval;
+-	char *c;
+ 
+ 	acpi_get_name(acpi_dev->handle, ACPI_SINGLE_NAME, &buf);
+ 	/* DT strings are all in lower case */
+-	for (c = buf.pointer; *c != '\0'; c++)
+-		*c = tolower(*c);
++	strtolower(buf.pointer);
+ 
+ 	len = snprintf(modalias, size, "of:N%sT", (char *)buf.pointer);
+ 	ACPI_FREE(buf.pointer);
 -- 
 2.7.4
