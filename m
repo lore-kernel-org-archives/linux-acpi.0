@@ -1,43 +1,70 @@
-From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [PATCH v6 04/10] acpi: Add some basic struct and functions in
- GTDT driver
-Date: Thu, 30 Jun 2016 03:26:23 +0200
-Message-ID: <3079554.3ECV4uzklN@vostro.rjw.lan>
-References: <1467224153-22873-1-git-send-email-fu.wei@linaro.org>
- <CAJZ5v0gw7E6DnGhpACAws2WdF3j=eUkjKBhfo2RKmyKnpoLUbQ@mail.gmail.com>
- <CADyBb7v70YVL4yM_U335eQfa+NEd+jXDEaMN3iAhgnyL9Dk=WA@mail.gmail.com>
+From: Kefeng Wang <wangkefeng.wang@huawei.com>
+Subject: [PATCH v2 2/2] serial: 8250_dw: add ACPI support for uart on Hisilicon Hip05 soc
+Date: Thu, 30 Jun 2016 09:27:42 +0800
+Message-ID: <1467250062-61583-3-git-send-email-wangkefeng.wang@huawei.com>
+References: <1467250062-61583-1-git-send-email-wangkefeng.wang@huawei.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <CADyBb7v70YVL4yM_U335eQfa+NEd+jXDEaMN3iAhgnyL9Dk=WA@mail.gmail.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Fu Wei <fu.wei@linaro.org>
-Cc: "Rafael J. Wysocki" <rafael@kernel.org>, Catalin Marinas <catalin.marinas@arm.com>, Will Deacon <will.deacon@arm.com>, rruigrok@codeaurora.org, Wim Van Sebroeck <wim@iguana.be>, wei@redhat.com, Al Stone <al.stone@linaro.org>, Timur Tabi <timur@codeaurora.org>, Daniel Lezcano <daniel.lezcano@linaro.org>, "linaro-acpi@lists.linaro.org" <linaro-acpi@lists.linaro.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Len Brown <lenb@kernel.org>, harba@codeaurora.org, Arnd Bergmann <arnd@arndb.de>, Marc Zyngier <marc.zyngier@arm.com>, Jon Masters <jcm@redhat.com>, Christopher Covington <cov@codeaurora.org>, Thomas Gleixner <tglx@linutronix.de>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, G Gregory <graeme.gregory@linaro.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Leo Duran <leo.duran@amd.com>, Hanjun Guo <hanjun.guo@>
+Content-Type: text/plain
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from szxga03-in.huawei.com ([119.145.14.66]:35745 "EHLO
+	szxga03-in.huawei.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751483AbcF3B3P (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 29 Jun 2016 21:29:15 -0400
+In-Reply-To: <1467250062-61583-1-git-send-email-wangkefeng.wang@huawei.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: Jiri Slaby <jslaby@suse.com>, linux-serial@vger.kernel.org, linux-kernel@vger.kernel.org, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, z.liuxinliang@hisilicon.com, guohanjun@huawei.com, linux-acpi@vger.kernel.org, xuwei5@hisilicon.com, graeme.gregory@linaro.org, Kefeng Wang <wangkefeng.wang@huawei.com>
 
-On Thursday, June 30, 2016 09:17:56 AM Fu Wei wrote:
-> Hi Rafael,
-> 
-> Great thanks for your review :-)
-> 
-> On 30 June 2016 at 05:24, Rafael J. Wysocki <rafael@kernel.org> wrote:
-> > On Wed, Jun 29, 2016 at 8:15 PM,  <fu.wei@linaro.org> wrote:
-> >> From: Fu Wei <fu.wei@linaro.org>
-> >
-> > No changelog?
-> 
-> it's on [0/10]
+Add ACPI identifier for UART on Hisilicon Hip05 soc, be careful
+that it is not 16550 compatibal.
 
-That's not enough.  The [0/10] will not go into the git log, mind you.
+Meanwhile, set dw8250_serial_out32 to keep consistent between serial_out
+and serial_in in ACPI.
 
-Thanks,
-Rafael
+Signed-off-by: Kefeng Wang <wangkefeng.wang@huawei.com>
+---
+ drivers/tty/serial/8250/8250_dw.c | 13 +++++++++++--
+ 1 file changed, 11 insertions(+), 2 deletions(-)
+
+diff --git a/drivers/tty/serial/8250/8250_dw.c b/drivers/tty/serial/8250/8250_dw.c
+index 65f3da7..096431b 100644
+--- a/drivers/tty/serial/8250/8250_dw.c
++++ b/drivers/tty/serial/8250/8250_dw.c
+@@ -272,6 +272,12 @@ static bool dw8250_idma_filter(struct dma_chan *chan, void *param)
+ 	return param == chan->device->dev->parent;
+ }
+ 
++/* non 16550 compatible id list*/
++static const struct acpi_device_id non_16550_id_list[] = {
++	{ "HISI0031", 0 },
++	{ },
++};
++
+ static void dw8250_quirks(struct uart_port *p, struct dw8250_data *data)
+ {
+ 	if (p->dev->of_node) {
+@@ -301,8 +307,10 @@ static void dw8250_quirks(struct uart_port *p, struct dw8250_data *data)
+ 		p->iotype = UPIO_MEM32;
+ 		p->regshift = 2;
+ 		p->serial_in = dw8250_serial_in32;
+-		/* So far none of there implement the Busy Functionality */
+-		data->uart_16550_compatible = true;
++		p->serial_out = dw8250_serial_out32;
++
++		if (!acpi_match_device(non_16550_id_list, p->dev))
++			data->uart_16550_compatible = true;
+ 	}
+ 
+ 	/* Platforms with iDMA */
+@@ -618,6 +626,7 @@ static const struct acpi_device_id dw8250_acpi_match[] = {
+ 	{ "APMC0D08", 0},
+ 	{ "AMD0020", 0 },
+ 	{ "AMDI0020", 0 },
++	{ "HISI0031", 0 },
+ 	{ },
+ };
+ MODULE_DEVICE_TABLE(acpi, dw8250_acpi_match);
+-- 
+1.7.12.4
+
