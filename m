@@ -1,185 +1,58 @@
-From: Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>
-Subject: [PATCH v4 3/5] acpi: battery: allow externel access of battery information
-Date: Wed, 29 Jun 2016 17:00:17 -0700
-Message-ID: <1467244819-19046-4-git-send-email-srinivas.pandruvada@linux.intel.com>
-References: <1467244819-19046-1-git-send-email-srinivas.pandruvada@linux.intel.com>
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga02.intel.com ([134.134.136.20]:28023 "EHLO mga02.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751589AbcF2X65 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 29 Jun 2016 19:58:57 -0400
-In-Reply-To: <1467244819-19046-1-git-send-email-srinivas.pandruvada@linux.intel.com>
-Sender: linux-acpi-owner@vger.kernel.org
+From: Fu Wei <fu.wei@linaro.org>
+Subject: Re: [PATCH v6 04/10] acpi: Add some basic struct and functions in
+ GTDT driver
+Date: Thu, 30 Jun 2016 09:17:56 +0800
+Message-ID: <CADyBb7v70YVL4yM_U335eQfa+NEd+jXDEaMN3iAhgnyL9Dk=WA@mail.gmail.com>
+References: <1467224153-22873-1-git-send-email-fu.wei@linaro.org>
+ <1467224153-22873-5-git-send-email-fu.wei@linaro.org>
+ <CAJZ5v0gw7E6DnGhpACAws2WdF3j=eUkjKBhfo2RKmyKnpoLUbQ@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <CAJZ5v0gw7E6DnGhpACAws2WdF3j=eUkjKBhfo2RKmyKnpoLUbQ@mail.gmail.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: "Rafael J. Wysocki" <rafael@kernel.org>
+Cc: "linaro-acpi@lists.linaro.org" <linaro-acpi@lists.linaro.org>, Catalin Marinas <catalin.marinas@arm.com>, Will Deacon <will.deacon@arm.com>, rruigrok@codeaurora.org, Wim Van Sebroeck <wim@iguana.be>, wei@redhat.com, Al Stone <al.stone@linaro.org>, Timur Tabi <timur@codeaurora.org>, Daniel Lezcano <daniel.lezcano@linaro.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Len Brown <lenb@kernel.org>, harba@codeaurora.org, Arnd Bergmann <arnd@arndb.de>, Marc Zyngier <marc.zyngier@arm.com>, Jon Masters <jcm@redhat.com>, Christopher Covington <cov@codeaurora.org>, Thomas Gleixner <tglx@linutronix.de>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, G Gregory <graeme.gregory@linaro.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Leo Duran <leo.duran@amd.com>, Hanjun Guo <hanjun.guo@l>
 List-Id: linux-acpi@vger.kernel.org
-To: rjw@rjwysocki.net
-Cc: linux-acpi@vger.kernel.org, Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>
 
-Moved acpi_battery structure to battery.h, so that fields can be
-accessed from other modules using battery_common. Also export
-acpi_battery_update(), to read the latest battery information from
-ACPI.
-Removed include for battery.h from drivers/acpi/sbs, where it was not
-used but has the same structure name for acpi_battery.
+Hi Rafael,
 
-Signed-off-by: Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>
----
- drivers/acpi/battery.h        | 41 +++++++++++++++++++++++++++++++++++++++++
- drivers/acpi/battery_common.c | 43 ++-----------------------------------------
- drivers/acpi/sbs.c            |  1 -
- 3 files changed, 43 insertions(+), 42 deletions(-)
+Great thanks for your review :-)
 
-diff --git a/drivers/acpi/battery.h b/drivers/acpi/battery.h
-index 626093c..fd2586a 100644
---- a/drivers/acpi/battery.h
-+++ b/drivers/acpi/battery.h
-@@ -16,12 +16,52 @@
- #ifndef __ACPI_BATTERY_H
- #define __ACPI_BATTERY_H
- 
-+#include <linux/acpi.h>
-+#include <linux/power_supply.h>
-+
- #define ACPI_BATTERY_CLASS "battery"
- 
- #define ACPI_BATTERY_NOTIFY_STATUS	0x80
- #define ACPI_BATTERY_NOTIFY_INFO	0x81
- #define ACPI_BATTERY_NOTIFY_THRESHOLD   0x82
- 
-+struct acpi_battery {
-+	struct mutex lock;
-+	struct mutex sysfs_lock;
-+	struct power_supply *bat;
-+	struct power_supply_desc bat_desc;
-+	struct acpi_device *device;
-+	struct notifier_block pm_nb;
-+	unsigned long update_time;
-+	int revision;
-+	int rate_now;
-+	int capacity_now;
-+	int voltage_now;
-+	int design_capacity;
-+	int full_charge_capacity;
-+	int technology;
-+	int design_voltage;
-+	int design_capacity_warning;
-+	int design_capacity_low;
-+	int cycle_count;
-+	int measurement_accuracy;
-+	int max_sampling_time;
-+	int min_sampling_time;
-+	int max_averaging_interval;
-+	int min_averaging_interval;
-+	int capacity_granularity_1;
-+	int capacity_granularity_2;
-+	int alarm;
-+	char model_number[32];
-+	char serial_number[32];
-+	char type[32];
-+	char oem_info[32];
-+	int state;
-+	int power_unit;
-+	unsigned long flags;
-+	bool power_supply_register;
-+};
-+
- extern int battery_bix_broken_package;
- extern int battery_notification_delay_ms;
- extern struct proc_dir_entry *acpi_battery_dir;
-@@ -30,6 +70,7 @@ int acpi_battery_common_add(struct acpi_device *device, bool power_supply_regist
- int acpi_battery_common_remove(struct acpi_device *device);
- int acpi_battery_common_resume(struct device *dev);
- void acpi_battery_common_notify(struct acpi_device *device, u32 event);
-+int acpi_battery_update(struct acpi_battery *battery, bool resume);
- 
- /* Defined in cm_sbs.c */
- #ifdef CONFIG_ACPI_PROCFS_POWER
-diff --git a/drivers/acpi/battery_common.c b/drivers/acpi/battery_common.c
-index 873b104..aaf32ab 100644
---- a/drivers/acpi/battery_common.c
-+++ b/drivers/acpi/battery_common.c
-@@ -39,9 +39,6 @@
- #include <linux/uaccess.h>
- #endif
- 
--#include <linux/acpi.h>
--#include <linux/power_supply.h>
--
- #include "battery.h"
- 
- #define PREFIX "ACPI: "
-@@ -107,43 +104,6 @@ enum {
- 	ACPI_BATTERY_QUIRK_THINKPAD_MAH,
- };
- 
--struct acpi_battery {
--	struct mutex lock;
--	struct mutex sysfs_lock;
--	struct power_supply *bat;
--	struct power_supply_desc bat_desc;
--	struct acpi_device *device;
--	struct notifier_block pm_nb;
--	unsigned long update_time;
--	int revision;
--	int rate_now;
--	int capacity_now;
--	int voltage_now;
--	int design_capacity;
--	int full_charge_capacity;
--	int technology;
--	int design_voltage;
--	int design_capacity_warning;
--	int design_capacity_low;
--	int cycle_count;
--	int measurement_accuracy;
--	int max_sampling_time;
--	int min_sampling_time;
--	int max_averaging_interval;
--	int min_averaging_interval;
--	int capacity_granularity_1;
--	int capacity_granularity_2;
--	int alarm;
--	char model_number[32];
--	char serial_number[32];
--	char type[32];
--	char oem_info[32];
--	int state;
--	int power_unit;
--	unsigned long flags;
--	bool power_supply_register;
--};
--
- #define to_acpi_battery(x) power_supply_get_drvdata(x)
- 
- static inline int acpi_battery_present(struct acpi_battery *battery)
-@@ -723,7 +683,7 @@ static void acpi_battery_quirks(struct acpi_battery *battery)
- 	}
- }
- 
--static int acpi_battery_update(struct acpi_battery *battery, bool resume)
-+int acpi_battery_update(struct acpi_battery *battery, bool resume)
- {
- 	int result, old_present = acpi_battery_present(battery);
- 
-@@ -768,6 +728,7 @@ static int acpi_battery_update(struct acpi_battery *battery, bool resume)
- 
- 	return result;
- }
-+EXPORT_SYMBOL_GPL(acpi_battery_update);
- 
- static void acpi_battery_refresh(struct acpi_battery *battery)
- {
-diff --git a/drivers/acpi/sbs.c b/drivers/acpi/sbs.c
-index ad0b13a..5fbeff2 100644
---- a/drivers/acpi/sbs.c
-+++ b/drivers/acpi/sbs.c
-@@ -34,7 +34,6 @@
- #include <linux/dmi.h>
- 
- #include "sbshc.h"
--#include "battery.h"
- 
- #define PREFIX "ACPI: "
- 
+On 30 June 2016 at 05:24, Rafael J. Wysocki <rafael@kernel.org> wrote:
+> On Wed, Jun 29, 2016 at 8:15 PM,  <fu.wei@linaro.org> wrote:
+>> From: Fu Wei <fu.wei@linaro.org>
+>
+> No changelog?
+
+it's on [0/10]
+
+>
+>> Signed-off-by: Fu Wei <fu.wei@linaro.org>
+>
+> Please combine this one with the [5-6/10].  Splitting them the way you
+> did it is not very useful.
+
+OK , NP, will do , thanks :-)
+
+>
+> Thanks,
+> Rafael
+
+
+
 -- 
-2.5.0
+Best regards,
 
+Fu Wei
+Software Engineer
+Red Hat
