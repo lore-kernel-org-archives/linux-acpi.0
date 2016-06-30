@@ -1,101 +1,51 @@
-From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Subject: Re: [PATCH v2 2/2] serial: 8250_dw: add ACPI support for uart on
- Hisilicon Hip05 soc
-Date: Thu, 30 Jun 2016 12:38:37 +0300
-Message-ID: <1467279517.30123.346.camel@linux.intel.com>
-References: <1467250062-61583-1-git-send-email-wangkefeng.wang@huawei.com>
-	 <1467250062-61583-3-git-send-email-wangkefeng.wang@huawei.com>
+From: okaya@codeaurora.org
+Subject: Re: kernel-4.7 bug in Intel sound and/or ACPI
+Date: Thu, 30 Jun 2016 12:43:57 +0300
+Message-ID: <f5946f98d202472e9c1b2327e75ffd93@codeaurora.org>
+References: <576C042B.20507@codeaurora.org>
+ <20160623232533.GA14984@djo.tudelft.nl>
+ <f85fb7c7-53aa-3a1e-0635-bb245d08e804@codeaurora.org>
+ <20160625013920.GA26737@djo.tudelft.nl>
+ <3bf1261bc7a931cb5e1e93ea0d66b265@codeaurora.org>
+ <20160627062724.GA6713@djo.tudelft.nl>
+ <9ad14db03ecb39a098d588b25c7b54a0@codeaurora.org>
+ <20160627130417.GA8184@djo.tudelft.nl>
+ <a8b7406eb12fc43246af4d78fc7e2278@codeaurora.org>
+ <8602f0b7-e052-913f-d633-294dff6cd3b2@codeaurora.org>
+ <20160630023041.GA5407@djo.tudelft.nl>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=US-ASCII;
+ format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1467250062-61583-3-git-send-email-wangkefeng.wang@huawei.com>
+In-Reply-To: <20160630023041.GA5407@djo.tudelft.nl>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Kefeng Wang <wangkefeng.wang@huawei.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: Jiri Slaby <jslaby@suse.com>, linux-serial@vger.kernel.org, linux-kernel@vger.kernel.org, z.liuxinliang@hisilicon.com, guohanjun@huawei.com, linux-acpi@vger.kernel.org, xuwei5@hisilicon.com, graeme.gregory@linaro.org
+To: wim@djo.tudelft.nl
+Cc: Bjorn Helgaas <helgaas@kernel.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, perex@perex.cz, linux-pci@vger.kernel.org, Takashi Iwai <tiwai@suse.com>, linux-pci-owner@vger.kernel.org, Alex Williamson <alex.williamson@redhat.com>
 List-Id: linux-acpi@vger.kernel.org
 
-On Thu, 2016-06-30 at 09:27 +0800, Kefeng Wang wrote:
-> Add ACPI identifier for UART on Hisilicon Hip05 soc, be careful
-> that it is not 16550 compatibal.
->=20
-> Meanwhile, set dw8250_serial_out32 to keep consistent between
-> serial_out
-> and serial_in in ACPI.
->=20
-> Signed-off-by: Kefeng Wang <wangkefeng.wang@huawei.com>
-> ---
-> =C2=A0drivers/tty/serial/8250/8250_dw.c | 13 +++++++++++--
-> =C2=A01 file changed, 11 insertions(+), 2 deletions(-)
->=20
-> diff --git a/drivers/tty/serial/8250/8250_dw.c
-> b/drivers/tty/serial/8250/8250_dw.c
-> index 65f3da7..096431b 100644
-> --- a/drivers/tty/serial/8250/8250_dw.c
-> +++ b/drivers/tty/serial/8250/8250_dw.c
-> @@ -272,6 +272,12 @@ static bool dw8250_idma_filter(struct dma_chan
-> *chan, void *param)
-> =C2=A0	return param =3D=3D chan->device->dev->parent;
-> =C2=A0}
-> =C2=A0
-> +/* non 16550 compatible id list*/
-> +static const struct acpi_device_id non_16550_id_list[] =3D {
-> +	{ "HISI0031", 0 },
-> +	{ },
-> +};
-> +
+On 2016-06-30 05:30, Wim Osterholt wrote:
+> On Wed, Jun 29, 2016 at 04:34:14AM -0400, Sinan Kaya wrote:
+>> >
+>> 
+>> I posted this [PATCH V2 0/4] ACPI,PCI,IRQ: correct ISA penalty 
+>> calculation
+>> 
+>> Can you test this and give me a tested-by?
+> 
+> 
+> Kernel-4.7-rc5 plus this patch works like a charm on my Inspiron 4100.
+> Dmesg output is quite similar to the one from kernel-4.6 .
+> 
+> Tested-by: Wim Osterholt. <wim@djo.tudelft.nl>
+> 
 
-On first glance it looks redundant, see below.
+Thank you.
 
-> =C2=A0static void dw8250_quirks(struct uart_port *p, struct dw8250_da=
-ta
-> *data)
-> =C2=A0{
-> =C2=A0	if (p->dev->of_node) {
-> @@ -301,8 +307,10 @@ static void dw8250_quirks(struct uart_port *p,
-> struct dw8250_data *data)
-> =C2=A0		p->iotype =3D UPIO_MEM32;
-> =C2=A0		p->regshift =3D 2;
-> =C2=A0		p->serial_in =3D dw8250_serial_in32;
-> -		/* So far none of there implement the Busy
-> Functionality */
-> -		data->uart_16550_compatible =3D true;
-> +		p->serial_out =3D dw8250_serial_out32;
-> +
-> +		if (!acpi_match_device(non_16550_id_list, p->dev))
-> +			data->uart_16550_compatible =3D true;
-> =C2=A0	}
-> =C2=A0
-> =C2=A0	/* Platforms with iDMA */
-> @@ -618,6 +626,7 @@ static const struct acpi_device_id
-> dw8250_acpi_match[] =3D {
-> =C2=A0	{ "APMC0D08", 0},
-> =C2=A0	{ "AMD0020", 0 },
-> =C2=A0	{ "AMDI0020", 0 },
-> +	{ "HISI0031", 0 },
 
-So, we may put something instead of 0 here and consider it as a set of
-special quirks / setup instructions / etc.
-
-struct dw8250_dev_info {
-=C2=A0 unsigned int =C2=A0uart_16550_compatible:1;
-};
-
-static const struct dw8250_dev_info hisi_dev_info =3D {
-=C2=A0 .uart_16550_compatible =3D 1,
-}
-
-=2E..
-=C2=A0{ "HISI0031", (kernel_ulong_t)&hisi_dev_info },
-=2E..
-
-And so on.
-
-> =C2=A0	{ },
-> =C2=A0};
-> =C2=A0MODULE_DEVICE_TABLE(acpi, dw8250_acpi_match);
-
---=20
-
-Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Intel Finland Oy
+> 
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-pci" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
