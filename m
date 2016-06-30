@@ -1,131 +1,44 @@
-From: Prashanth Prakash <pprakash@codeaurora.org>
-Subject: [PATCH 4/5] ACPI/CPPC: set a non-zero value for transition_latency
-Date: Thu, 30 Jun 2016 12:02:37 -0600
-Message-ID: <1467309758-26536-5-git-send-email-pprakash@codeaurora.org>
-References: <1467309758-26536-1-git-send-email-pprakash@codeaurora.org>
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp.codeaurora.org ([198.145.29.96]:52817 "EHLO
-	smtp.codeaurora.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752178AbcF3SDd (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 30 Jun 2016 14:03:33 -0400
-In-Reply-To: <1467309758-26536-1-git-send-email-pprakash@codeaurora.org>
-Sender: linux-acpi-owner@vger.kernel.org
+From: Karl-Heinz Schneider <karl-heinz@schneider-inet.de>
+Subject: [PATCH v2 0/2] Add support for Smart Battery System Manager
+Date: Thu, 30 Jun 2016 22:05:40 +0200
+Message-ID: <1467317142-14063-1-git-send-email-karl-heinz@schneider-inet.de>
+References: <1bFnWI-0000MX-9R>
+Return-path: <linux-pm-owner@vger.kernel.org>
+In-Reply-To: <1bFnWI-0000MX-9R>
+Sender: linux-pm-owner@vger.kernel.org
+To: devicetree@vger.kernel.org, linux-pm@vger.kernel.org, linux-acpi@vger.kernel.org, linux-i2c@vger.kernel.org
+Cc: Rob Herring <robh+dt@kernel.org>, Mark Rutland <mark.rutland@arm.com>, Sebastian Reichel <sre@kernel.org>, Dmitry Eremin-Solenikov <dbaryshkov@gmail.com>, David Woodhouse <dwmw2@infradead.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Peter Rosin <peda@axentia.se>, Phil Reid <preid@electromag.com.au>, Karl-Heinz Schneider <karl-heinz@schneider-inet.de>
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
-Cc: rjw@rjwysocki.net, alexey.klimov@arm.com, hotran@apm.com, cov@codeaurora.org, pprakash@codeaurora.org
 
-Compute the expected transition latency for frequency transitions
-using the values from the PCCT tables when the desired perf
-register is in PCC.
+This patch series adds support for Smart Battery System Manager.
+A SBSM is a device listening at I2C/SMBus address 0x0a and is capable of
+communicating up to four I2C smart battery devices. All smart battery
+devices are listening at address 0x0b, so the SBSM muliplexes between
+them. The driver makes use of the I2C-Mux framework to allow smart
+batteries to be bound via device tree, i.e. the sbs-battery driver.
 
-Signed-off-by: Prashanth Prakash <pprakash@codeaurora.org>
----
- drivers/acpi/cppc_acpi.c       | 47 ++++++++++++++++++++++++++++++++++++++++--
- drivers/cpufreq/cppc_cpufreq.c |  1 +
- include/acpi/cppc_acpi.h       |  1 +
- 3 files changed, 47 insertions(+), 2 deletions(-)
+Via sysfs interface the online state and charge type are presented. If
+the driver is bound as ltc1760 (a Dual Smart Battery System Manager)
+the charge type can also be changed from trickle to fast.
 
-diff --git a/drivers/acpi/cppc_acpi.c b/drivers/acpi/cppc_acpi.c
-index 8dee6d5..7844e4c 100644
---- a/drivers/acpi/cppc_acpi.c
-+++ b/drivers/acpi/cppc_acpi.c
-@@ -85,7 +85,7 @@ static void __iomem *pcc_comm_addr;
- static int pcc_subspace_idx = -1;
- static bool pcc_channel_acquired;
- static ktime_t deadline;
--static unsigned int pcc_mpar, pcc_mrtt;
-+static unsigned int pcc_mpar, pcc_mrtt, pcc_nominal;
- 
- /* pcc mapped address + header size + offset within PCC subspace */
- #define GET_PCC_VADDR(offs) (pcc_comm_addr + 0x8 + (offs))
-@@ -462,7 +462,6 @@ static int register_pcc_channel(int pcc_subspace_idx)
- 			return -ENODEV;
- 		}
- 
--
- 		/*
- 		 * cppc_ss->latency is just a Nominal value. In reality
- 		 * the remote processor could be much slower to reply.
-@@ -472,6 +471,7 @@ static int register_pcc_channel(int pcc_subspace_idx)
- 		deadline = ns_to_ktime(usecs_lat * NSEC_PER_USEC);
- 		pcc_mrtt = cppc_ss->min_turnaround_time;
- 		pcc_mpar = cppc_ss->max_access_rate;
-+		pcc_nominal = cppc_ss->latency;
- 
- 		pcc_comm_addr = acpi_os_ioremap(cppc_ss->base_address, cppc_ss->length);
- 		if (!pcc_comm_addr) {
-@@ -1034,3 +1034,46 @@ int cppc_set_perf(int cpu, struct cppc_perf_ctrls *perf_ctrls)
- 	return ret;
- }
- EXPORT_SYMBOL_GPL(cppc_set_perf);
-+
-+/**
-+ * cppc_get_transition_latency - returns frequency transition latency in ns
-+ *
-+ * ACPI CPPC does not explicitly specifiy how a platform can specify the
-+ * transition latency for perfromance change requests. The closest we have
-+ * is the timing information from the PCCT tables which provides the info
-+ * on the number and frequency of PCC commands the platform can handle.
-+ */
-+unsigned int cppc_get_transition_latency(int cpu_num)
-+{
-+	/*
-+	 * Expected transition latency is based on the PCCT timing values
-+	 * Below are definition from ACPI spec:
-+	 * pcc_nominal- Expected latency to process a command, in microseconds
-+	 * pcc_mpar   - The maximum number of periodic requests that the subspace
-+	 *              channel can support, reported in commands per minute. 0
-+	 *              indicates no limitation.
-+	 * pcc_mrtt   - The minimum amount of time that OSPM must wait after the
-+	 *              completion of a command before issuing the next command,
-+	 *              in microseconds.
-+	 */
-+	unsigned int latency_ns = 0;
-+	struct cpc_desc *cpc_desc;
-+	struct cpc_register_resource *desired_reg;
-+
-+	cpc_desc = per_cpu(cpc_desc_ptr, cpu_num);
-+	if (!cpc_desc)
-+		return CPUFREQ_ETERNAL;
-+
-+	desired_reg = &cpc_desc->cpc_regs[DESIRED_PERF];
-+	if (!CPC_IN_PCC(desired_reg))
-+		return CPUFREQ_ETERNAL;
-+
-+	if (pcc_mpar)
-+		latency_ns = 60 * (1000 * 1000 * 1000 / pcc_mpar);
-+
-+	latency_ns = max(latency_ns, pcc_nominal * 1000);
-+	latency_ns = max(latency_ns, pcc_mrtt * 1000);
-+
-+	return latency_ns;
-+}
-+EXPORT_SYMBOL_GPL(cppc_get_transition_latency);
-diff --git a/drivers/cpufreq/cppc_cpufreq.c b/drivers/cpufreq/cppc_cpufreq.c
-index 8882b8e..e6a3359 100644
---- a/drivers/cpufreq/cppc_cpufreq.c
-+++ b/drivers/cpufreq/cppc_cpufreq.c
-@@ -98,6 +98,7 @@ static int cppc_cpufreq_cpu_init(struct cpufreq_policy *policy)
- 	policy->max = cpu->perf_caps.highest_perf;
- 	policy->cpuinfo.min_freq = policy->min;
- 	policy->cpuinfo.max_freq = policy->max;
-+	policy->cpuinfo.transition_latency = cppc_get_transition_latency(cpu_num);
- 	policy->shared_type = cpu->shared_type;
- 
- 	if (policy->shared_type == CPUFREQ_SHARED_TYPE_ANY)
-diff --git a/include/acpi/cppc_acpi.h b/include/acpi/cppc_acpi.h
-index 36ff5c6..7b7e2e1 100644
---- a/include/acpi/cppc_acpi.h
-+++ b/include/acpi/cppc_acpi.h
-@@ -129,5 +129,6 @@ extern int cppc_get_perf_ctrs(int cpu, struct cppc_perf_fb_ctrs *perf_fb_ctrs);
- extern int cppc_set_perf(int cpu, struct cppc_perf_ctrls *perf_ctrls);
- extern int cppc_get_perf_caps(int cpu, struct cppc_perf_caps *caps);
- extern int acpi_get_psd_map(struct cpudata **);
-+extern unsigned int cppc_get_transition_latency(int cpu);
- 
- #endif /* _CPPC_ACPI_H*/
--- 
-Qualcomm Technologies, Inc. on behalf
-of the Qualcomm Innovation Center, Inc.  The Qualcomm Innovation Center, Inc. 
-is a member of the Code Aurora Forum, a Linux Foundation Collaborative Project.
+Changes:
+V2:
+* Fixed sample node names and compatible strings in binding documentaton.
+* Removed optional property "sbsm,i2c-retry-count"
+* Retry count hardcoded. Removed no longer needed OF readout function
+* Rebased onto v4.7rc-5
 
+Karl-Heinz Schneider (2):
+  Documentation: Add sbs-manager device tree node documentation
+  power: Adds support for Smart Battery System Manager
+
+ .../devicetree/bindings/power/sbs,sbs-manager.txt  |  57 ++++
+ drivers/power/Kconfig                              |  13 +
+ drivers/power/Makefile                             |   1 +
+ drivers/power/sbs-manager.c                        | 346 +++++++++++++++++++++
+ 4 files changed, 417 insertions(+)
+ create mode 100644 Documentation/devicetree/bindings/power/sbs,sbs-manager.txt
+ create mode 100644 drivers/power/sbs-manager.c
+
+--
+1.9.1
