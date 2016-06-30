@@ -1,86 +1,83 @@
-From: Hanjun Guo <hanjun.guo@linaro.org>
-Subject: Re: [PATCH v6 00/10] acpi, clocksource: add GTDT driver and GTDT
- support in arm_arch_timer
-Date: Thu, 30 Jun 2016 21:48:02 +0800
-Message-ID: <57714bed-3f9c-90c2-ac30-2d462d8a06d4@linaro.org>
-References: <1467224153-22873-1-git-send-email-fu.wei@linaro.org>
- <5351858.jEb0qfTvrF@vostro.rjw.lan>
- <2f0e60e1-f429-2bd3-5f26-fd6199e64f34@linaro.org>
- <2435381.sM3CFAEXNR@vostro.rjw.lan>
+From: Kefeng Wang <wangkefeng.wang@huawei.com>
+Subject: Re: [PATCH v2 2/2] serial: 8250_dw: add ACPI support for uart on
+ Hisilicon Hip05 soc
+Date: Thu, 30 Jun 2016 22:26:00 +0800
+Message-ID: <4ba5d9fb-580d-0e32-0ae7-85ab3b68742e@huawei.com>
+References: <1467250062-61583-1-git-send-email-wangkefeng.wang@huawei.com>
+ <1467250062-61583-3-git-send-email-wangkefeng.wang@huawei.com>
+ <1467279517.30123.346.camel@linux.intel.com>
+ <1467280468.30123.350.camel@linux.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"; Format="flowed"
+Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <2435381.sM3CFAEXNR@vostro.rjw.lan>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Catalin Marinas <catalin.marinas@arm.com>, Will Deacon <will.deacon@arm.com>
-Cc: "Rafael J. Wysocki" <rafael@kernel.org>, rruigrok@codeaurora.org, Wim Van Sebroeck <wim@iguana.be>, Fu Wei <fu.wei@linaro.org>, wei@redhat.com, Al Stone <al.stone@linaro.org>, Timur Tabi <timur@codeaurora.org>, Daniel Lezcano <daniel.lezcano@linaro.org>, "linaro-acpi@lists.linaro.org" <linaro-acpi@lists.linaro.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Len Brown <lenb@kernel.org>, harba@codeaurora.org, Arnd Bergmann <arnd@arndb.de>, Marc Zyngier <marc.zyngier@arm.com>, Jon Masters <jcm@redhat.com>, Christopher Covington <cov@codeaurora.org>, Thomas Gleixner <tglx@linutronix.de>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, G Gregory <graeme.gregory@linaro.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Leo Duran <leo.duran@amd.com>, Suravee Suthikulanit <Suravee.Suthikulpanit@amd.com>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1467280468.30123.350.camel@linux.intel.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: Jiri Slaby <jslaby@suse.com>, linux-serial@vger.kernel.org, linux-kernel@vger.kernel.org, z.liuxinliang@hisilicon.com, guohanjun@huawei.com, linux-acpi@vger.kernel.org, xuwei5@hisilicon.com, graeme.gregory@linaro.org
 List-Id: linux-acpi@vger.kernel.org
 
-On 2016/6/30 21:27, Rafael J. Wysocki wrote:
-> On Thursday, June 30, 2016 10:10:02 AM Hanjun Guo wrote:
->> Hi Rafael,
->>
->> On 2016/6/30 9:37, Rafael J. Wysocki wrote:
->>> On Thursday, June 30, 2016 09:29:59 AM Fu Wei wrote:
->>>> Hi Rafael,
->>>>
->>>> On 30 June 2016 at 05:32, Rafael J. Wysocki <rafael@kernel.org> wrote:
->>>>> On Wed, Jun 29, 2016 at 8:15 PM,  <fu.wei@linaro.org> wrote:
->>>>>> From: Fu Wei <fu.wei@linaro.org>
->>>>>>
->>>>>> This patchset:
->>>>>>     (1)Preparation for adding GTDT support in arm_arch_timer
->>>>>>         1. Move some enums and marcos to header file
->>>>>>         2. Add a new enum for spi type.
->>>>>>         3. Improve printk relevant code
->>>>>>
->>>>>>     (2)Introduce ACPI GTDT parser: drivers/acpi/gtdt.c
->>>>>>     Parse all kinds of timer in GTDT table of ACPI:arch timer,
->>>>>>     memory-mapped timer and SBSA Generic Watchdog timer.
->>>>>>     This driver can help to simplify all the relevant timer drivers,
->>>>>>     and separate all the ACPI GTDT knowledge from them.
->>>>>>
->>>>>>     (3)Simplify ACPI code for arm_arch_timer
->>>>>>
->>>>>>     (4)Add GTDT support for ARM memory-mapped timer
->>>>>
->>>>> GTDT is ARM-specific AFAICS.
->>>>
->>>> yes, you are right, it is.
->>>>
->>>>>
->>>>> If so, why do we need that code to reside in drivers/acpi/ ?
->>>>
->>>> Although  the GTDT is just for ARM64, but this driver is parsing one
->>>> of ACPI table,
->>>> I think that could be treated as ACPI driver.  Do I miss something? :-)
+
+
+On 2016/6/30 17:54, Andy Shevchenko wrote:
+> On Thu, 2016-06-30 at 12:38 +0300, Andy Shevchenko wrote:
+>> On Thu, 2016-06-30 at 09:27 +0800, Kefeng Wang wrote:
+>>> Add ACPI identifier for UART on Hisilicon Hip05 soc, be careful
+>>> that it is not 16550 compatibal.
 >>>
->>> Yes, you are.  Nobody except for ARM64 will ever need it.
+>>> Meanwhile, set dw8250_serial_out32 to keep consistent between
+>>> serial_out
+>>> and serial_in in ACPI.
+>>>
+>>> Signed-off-by: Kefeng Wang <wangkefeng.wang@huawei.com>
+>>> ---
+>>>  drivers/tty/serial/8250/8250_dw.c | 13 +++++++++++--
+>>>  1 file changed, 11 insertions(+), 2 deletions(-)
+>>>
+>>> diff --git a/drivers/tty/serial/8250/8250_dw.c
+>>> b/drivers/tty/serial/8250/8250_dw.c
+>>> index 65f3da7..096431b 100644
+>>> --- a/drivers/tty/serial/8250/8250_dw.c
+>>> +++ b/drivers/tty/serial/8250/8250_dw.c
+>>> @@ -272,6 +272,12 @@ static bool dw8250_idma_filter(struct dma_chan
+>>> *chan, void *param)
+>>>  	return param == chan->device->dev->parent;
+>>>  }
+>>>  
+>>> +/* non 16550 compatible id list*/
+>>> +static const struct acpi_device_id non_16550_id_list[] = {
+>>> +	{ "HISI0031", 0 },
+>>> +	{ },
+>>> +};
+>>> +
 >>
->> GTDT is part of ACPI spec, drivers/acpi/ is for driver code of
->> ACPI spec, I think it can stay in drivers/acpi/ from this point
->> of view, am I right?
->
-> The question is not "Can it?", but "Does it need to?".
->
-> It is in the spec, but still there's only one architecture needing it.
->
-> There is no way to test it on any other architecture and no reason to build it
-> for any other architecture, so why does it need to be located in drivers/acpi/ ?
+>> On first glance it looks redundant, see below.
+> 
+> Oh, wait, this is still valid, but the better solution is to use device
+> properties for the rest except yours!
 
-I'm fine to move it to other places such as arch/arm64/kernel/, but I
-would like to ask ARM64 maintainer's suggestion for this.
+Do you mean using something like
 
-Will, Catalin, what's your opinion on this?
+static struct property_entry dw8250_properties[] = {
+        PROPERTY_ENTRY_U32("reg-io-width", 4),
+        PROPERTY_ENTRY_U32("reg-shift", 2),
+        PROPERTY_ENTRY_BOOL("snps,uart-16550-compatible"),
+        { },
+};
 
-Thanks
-Hanjun
+then use platform_device_add_properties to add it to the device(16500 compatible),
+
+but for hisi, use another property_entry without PROPERTY_ENTRY_BOOL("snps,uart-16550-compatible")?
+
+Not clear about using device properties.
+
+> 
+> I will prepare patch later this week or at the beginning of next week if
+> you are in hurry, otherwise I would postpone this a bit (anyway it will
+> not make v4.8 cycle).
+> 
+
+Thanks, hope that it will come out soon.
+
+BRs,
+Kefeng
