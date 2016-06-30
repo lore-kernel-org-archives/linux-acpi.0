@@ -1,51 +1,72 @@
-From: okaya@codeaurora.org
-Subject: Re: kernel-4.7 bug in Intel sound and/or ACPI
-Date: Thu, 30 Jun 2016 12:43:57 +0300
-Message-ID: <f5946f98d202472e9c1b2327e75ffd93@codeaurora.org>
-References: <576C042B.20507@codeaurora.org>
- <20160623232533.GA14984@djo.tudelft.nl>
- <f85fb7c7-53aa-3a1e-0635-bb245d08e804@codeaurora.org>
- <20160625013920.GA26737@djo.tudelft.nl>
- <3bf1261bc7a931cb5e1e93ea0d66b265@codeaurora.org>
- <20160627062724.GA6713@djo.tudelft.nl>
- <9ad14db03ecb39a098d588b25c7b54a0@codeaurora.org>
- <20160627130417.GA8184@djo.tudelft.nl>
- <a8b7406eb12fc43246af4d78fc7e2278@codeaurora.org>
- <8602f0b7-e052-913f-d633-294dff6cd3b2@codeaurora.org>
- <20160630023041.GA5407@djo.tudelft.nl>
+From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Subject: Re: [PATCH v2 2/2] serial: 8250_dw: add ACPI support for uart on
+ Hisilicon Hip05 soc
+Date: Thu, 30 Jun 2016 12:54:28 +0300
+Message-ID: <1467280468.30123.350.camel@linux.intel.com>
+References: <1467250062-61583-1-git-send-email-wangkefeng.wang@huawei.com>
+	 <1467250062-61583-3-git-send-email-wangkefeng.wang@huawei.com>
+	 <1467279517.30123.346.camel@linux.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII;
- format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20160630023041.GA5407@djo.tudelft.nl>
-Sender: linux-kernel-owner@vger.kernel.org
-To: wim@djo.tudelft.nl
-Cc: Bjorn Helgaas <helgaas@kernel.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, perex@perex.cz, linux-pci@vger.kernel.org, Takashi Iwai <tiwai@suse.com>, linux-pci-owner@vger.kernel.org, Alex Williamson <alex.williamson@redhat.com>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga01.intel.com ([192.55.52.88]:61505 "EHLO mga01.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751223AbcF3Jye (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 30 Jun 2016 05:54:34 -0400
+In-Reply-To: <1467279517.30123.346.camel@linux.intel.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Kefeng Wang <wangkefeng.wang@huawei.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: Jiri Slaby <jslaby@suse.com>, linux-serial@vger.kernel.org, linux-kernel@vger.kernel.org, z.liuxinliang@hisilicon.com, guohanjun@huawei.com, linux-acpi@vger.kernel.org, xuwei5@hisilicon.com, graeme.gregory@linaro.org
 
-On 2016-06-30 05:30, Wim Osterholt wrote:
-> On Wed, Jun 29, 2016 at 04:34:14AM -0400, Sinan Kaya wrote:
->> >
->> 
->> I posted this [PATCH V2 0/4] ACPI,PCI,IRQ: correct ISA penalty 
->> calculation
->> 
->> Can you test this and give me a tested-by?
-> 
-> 
-> Kernel-4.7-rc5 plus this patch works like a charm on my Inspiron 4100.
-> Dmesg output is quite similar to the one from kernel-4.6 .
-> 
-> Tested-by: Wim Osterholt. <wim@djo.tudelft.nl>
-> 
+On Thu, 2016-06-30 at 12:38 +0300, Andy Shevchenko wrote:
+> On Thu, 2016-06-30 at 09:27 +0800, Kefeng Wang wrote:
+> > Add ACPI identifier for UART on Hisilicon Hip05 soc, be careful
+> > that it is not 16550 compatibal.
+> >=20
+> > Meanwhile, set dw8250_serial_out32 to keep consistent between
+> > serial_out
+> > and serial_in in ACPI.
+> >=20
+> > Signed-off-by: Kefeng Wang <wangkefeng.wang@huawei.com>
+> > ---
+> > =C2=A0drivers/tty/serial/8250/8250_dw.c | 13 +++++++++++--
+> > =C2=A01 file changed, 11 insertions(+), 2 deletions(-)
+> >=20
+> > diff --git a/drivers/tty/serial/8250/8250_dw.c
+> > b/drivers/tty/serial/8250/8250_dw.c
+> > index 65f3da7..096431b 100644
+> > --- a/drivers/tty/serial/8250/8250_dw.c
+> > +++ b/drivers/tty/serial/8250/8250_dw.c
+> > @@ -272,6 +272,12 @@ static bool dw8250_idma_filter(struct dma_chan
+> > *chan, void *param)
+> > =C2=A0	return param =3D=3D chan->device->dev->parent;
+> > =C2=A0}
+> > =C2=A0
+> > +/* non 16550 compatible id list*/
+> > +static const struct acpi_device_id non_16550_id_list[] =3D {
+> > +	{ "HISI0031", 0 },
+> > +	{ },
+> > +};
+> > +
+>=20
+> On first glance it looks redundant, see below.
 
-Thank you.
+Oh, wait, this is still valid, but the better solution is to use device
+properties for the rest except yours!
 
+I will prepare patch later this week or at the beginning of next week i=
+f
+you are in hurry, otherwise I would postpone this a bit (anyway it will
+not make v4.8 cycle).
 
-> 
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-pci" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+--=20
+
+Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Intel Finland Oy
+--
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
