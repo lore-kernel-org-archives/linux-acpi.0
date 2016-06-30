@@ -1,82 +1,54 @@
-From: Karl-Heinz Schneider <karl-heinz@schneider-inet.de>
-Subject: [PATCH v2 1/2] Documentation: Add sbs-manager device tree node documentation
-Date: Thu, 30 Jun 2016 22:05:41 +0200
-Message-ID: <1467317142-14063-2-git-send-email-karl-heinz@schneider-inet.de>
-References: <1bFnWI-0000MX-9R>
- <1467317142-14063-1-git-send-email-karl-heinz@schneider-inet.de>
-Return-path: <linux-pm-owner@vger.kernel.org>
-In-Reply-To: <1467317142-14063-1-git-send-email-karl-heinz@schneider-inet.de>
-Sender: linux-pm-owner@vger.kernel.org
-To: devicetree@vger.kernel.org, linux-pm@vger.kernel.org, linux-acpi@vger.kernel.org, linux-i2c@vger.kernel.org
-Cc: Rob Herring <robh+dt@kernel.org>, Mark Rutland <mark.rutland@arm.com>, Sebastian Reichel <sre@kernel.org>, Dmitry Eremin-Solenikov <dbaryshkov@gmail.com>, David Woodhouse <dwmw2@infradead.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Peter Rosin <peda@axentia.se>, Phil Reid <preid@electromag.com.au>, Karl-Heinz Schneider <karl-heinz@schneider-inet.de>
+From: "Rafael J. Wysocki" <rafael@kernel.org>
+Subject: Re: [PATCH v4 1/5] acpi: battery: Split battery driver for reuse by
+ DPTF power participant
+Date: Fri, 1 Jul 2016 00:08:06 +0200
+Message-ID: <CAJZ5v0geNqtMi99JE4NTVByxUB-JECKPpVGRnO8=YKQMZCAoGA@mail.gmail.com>
+References: <1467244819-19046-1-git-send-email-srinivas.pandruvada@linux.intel.com>
+ <1467244819-19046-2-git-send-email-srinivas.pandruvada@linux.intel.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-wm0-f50.google.com ([74.125.82.50]:35187 "EHLO
+	mail-wm0-f50.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751487AbcF3WIV (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 30 Jun 2016 18:08:21 -0400
+Received: by mail-wm0-f50.google.com with SMTP id v199so4252010wmv.0
+        for <linux-acpi@vger.kernel.org>; Thu, 30 Jun 2016 15:08:08 -0700 (PDT)
+In-Reply-To: <1467244819-19046-2-git-send-email-srinivas.pandruvada@linux.intel.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>
+Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>
 
-This patch adds device tree documentation for the sbs-manager
+On Thu, Jun 30, 2016 at 2:00 AM, Srinivas Pandruvada
+<srinivas.pandruvada@linux.intel.com> wrote:
+> DPTF power participant device have common objects with ACPI battery device
+> "PNP0C0A". For example the main battery objects:
+> _BST: returns dynamic battery information
+> _BIX: The static battery properties and control method
+> Also both can register with power_supply class to present properties
+> of a typical battery device.
+>
+> To avoid code duplication, the existing battery driver is split into two
+> parts:
+> - A common part
+> - ACPI battery driver
+>
+> battery_common
+> Most of the existing battery driver source, except ACPI enumeration part
+> moved a separate file. It exposes an interface, which can be used by ACPI
+> battery driver and DPTF power participant driver.
+> Also the current battery driver code had lots of check_patch errors.
+> These check_patch errors are addressed in this battery_common. These are
+> the main interface functions:
+> acpi_battery_common_add
+> acpi_battery_common_remove
+> acpi_battery_common_resume
+> acpi_battery_common_notify
+>
+> battery: This is ACPI battery driver, which just enumerate on PNP0C0A
+> device and use interface functions offered by battery common part.
+>
+> Signed-off-by: Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>
 
-Reviewed-by: Phil Reid <preid@electromag.com.au>
-Signed-off-by: Karl-Heinz Schneider <karl-heinz@schneider-inet.de>
----
- .../devicetree/bindings/power/sbs,sbs-manager.txt  | 52 ++++++++++++++++++++++
- 1 file changed, 52 insertions(+)
- create mode 100644 Documentation/devicetree/bindings/power/sbs,sbs-manager.txt
-
-diff --git a/Documentation/devicetree/bindings/power/sbs,sbs-manager.txt b/Documentation/devicetree/bindings/power/sbs,sbs-manager.txt
-new file mode 100644
-index 0000000..1d7e5ee
---- /dev/null
-+++ b/Documentation/devicetree/bindings/power/sbs,sbs-manager.txt
-@@ -0,0 +1,52 @@
-+Binding for sbs-manager
-+
-+Required properties:
-+- compatible: should be "lltc,ltc1760" or use "sbs,sbs-manager" as fallback.
-+- reg: integer, i2c address of the device. Should be <0xa>.
-+
-+From OS view the device is basically an i2c-mux used to communicate with up to
-+four smart battery devices at address 0xb. The driver actually implements this
-+behaviour. So standard i2c-mux nodes can be used to register up to four slave
-+batteries. Channels will be numerated as 1, 2, 4 and 8.
-+
-+Example:
-+
-+batman@0a {
-+    compatible = "lltc,ltc1760";
-+    reg = <0x0a>;
-+    #address-cells = <1>;
-+    #size-cells = <0>;
-+
-+    i2c@1 {
-+        #address-cells = <1>;
-+        #size-cells = <0>;
-+        reg = <1>;
-+
-+        battery@0b {
-+            compatible = "ti,bq2060", "sbs,sbs-battery";
-+            reg = <0x0b>;
-+        };
-+    };
-+
-+    i2c@2 {
-+        #address-cells = <1>;
-+        #size-cells = <0>;
-+        reg = <2>;
-+
-+        battery@0b {
-+            compatible = "ti,bq2060", "sbs,sbs-battery";
-+            reg = <0x0b>;
-+        };
-+    };
-+
-+    i2c@4 {
-+        #address-cells = <1>;
-+        #size-cells = <0>;
-+        reg = <4>;
-+
-+        battery@0b {
-+            compatible = "ti,bq2060", "sbs,sbs-battery";
-+            reg = <0x0b>;
-+        };
-+    };
-+};
---
-1.9.1
+Are there any functional changes in this patch?
