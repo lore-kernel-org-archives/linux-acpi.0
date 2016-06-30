@@ -1,70 +1,44 @@
-From: Hanjun Guo <hanjun.guo@linaro.org>
-Subject: Re: [PATCH v6 00/10] acpi, clocksource: add GTDT driver and GTDT
- support in arm_arch_timer
-Date: Thu, 30 Jun 2016 10:10:02 +0800
-Message-ID: <2f0e60e1-f429-2bd3-5f26-fd6199e64f34@linaro.org>
-References: <1467224153-22873-1-git-send-email-fu.wei@linaro.org>
- <CAJZ5v0iD5OYjp7ozmzoQ3zK-3+eMpdwzDxYgD=saLPjNeoq0Qg@mail.gmail.com>
- <CADyBb7vmS=oJ9EOzs-v-O4_h5Kd_PCMQytjqEHdRNQkqz4WHcQ@mail.gmail.com>
- <5351858.jEb0qfTvrF@vostro.rjw.lan>
+From: Wim Osterholt <wim@djo.tudelft.nl>
+Subject: Re: kernel-4.7 bug in Intel sound and/or ACPI
+Date: Thu, 30 Jun 2016 04:30:41 +0200
+Message-ID: <20160630023041.GA5407@djo.tudelft.nl>
+References: <576C042B.20507@codeaurora.org>
+ <20160623232533.GA14984@djo.tudelft.nl>
+ <f85fb7c7-53aa-3a1e-0635-bb245d08e804@codeaurora.org>
+ <20160625013920.GA26737@djo.tudelft.nl>
+ <3bf1261bc7a931cb5e1e93ea0d66b265@codeaurora.org>
+ <20160627062724.GA6713@djo.tudelft.nl>
+ <9ad14db03ecb39a098d588b25c7b54a0@codeaurora.org>
+ <20160627130417.GA8184@djo.tudelft.nl>
+ <a8b7406eb12fc43246af4d78fc7e2278@codeaurora.org>
+ <8602f0b7-e052-913f-d633-294dff6cd3b2@codeaurora.org>
+Reply-To: wim@djo.tudelft.nl
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-pf0-f182.google.com ([209.85.192.182]:33893 "EHLO
-	mail-pf0-f182.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751376AbcF3CKP (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 29 Jun 2016 22:10:15 -0400
-Received: by mail-pf0-f182.google.com with SMTP id h14so23889573pfe.1
-        for <linux-acpi@vger.kernel.org>; Wed, 29 Jun 2016 19:10:14 -0700 (PDT)
-In-Reply-To: <5351858.jEb0qfTvrF@vostro.rjw.lan>
+Received: from x127155.tudelft.net ([131.180.127.155]:44928 "EHLO
+	djo.tudelft.nl" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1751499AbcF3Cao (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 29 Jun 2016 22:30:44 -0400
+Content-Disposition: inline
+In-Reply-To: <8602f0b7-e052-913f-d633-294dff6cd3b2@codeaurora.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Fu Wei <fu.wei@linaro.org>, Catalin Marinas <catalin.marinas@arm.com>, Will Deacon <will.deacon@arm.com>
-Cc: "Rafael J. Wysocki" <rafael@kernel.org>, Len Brown <lenb@kernel.org>, Daniel Lezcano <daniel.lezcano@linaro.org>, Thomas Gleixner <tglx@linutronix.de>, Marc Zyngier <marc.zyngier@arm.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linaro-acpi@lists.linaro.org" <linaro-acpi@lists.linaro.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, rruigrok@codeaurora.org, harba@codeaurora.org, Christopher Covington <cov@codeaurora.org>, Timur Tabi <timur@codeaurora.org>, G Gregory <graeme.gregory@linaro.org>, Al Stone <al.stone@linaro.org>, Jon Masters <jcm@redhat.com>, wei@redhat.com, Arnd Bergmann <arnd@arndb.de>, Wim Van Sebroeck <wim@iguana.be>, Suravee Suthikulanit <Suravee.Suthikulpanit@amd.com>, Leo Duran <leo.duran@amd.com>
+To: Sinan Kaya <okaya@codeaurora.org>
+Cc: Bjorn Helgaas <helgaas@kernel.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, perex@perex.cz, linux-pci@vger.kernel.org, Takashi Iwai <tiwai@suse.com>, linux-pci-owner@vger.kernel.org, Alex Williamson <alex.williamson@redhat.com>, Wim Osterholt <wim@djo.tudelft.nl>
 
-Hi Rafael,
+On Wed, Jun 29, 2016 at 04:34:14AM -0400, Sinan Kaya wrote:
+> > 
+> 
+> I posted this [PATCH V2 0/4] ACPI,PCI,IRQ: correct ISA penalty calculation
+> 
+> Can you test this and give me a tested-by?
 
-On 2016/6/30 9:37, Rafael J. Wysocki wrote:
-> On Thursday, June 30, 2016 09:29:59 AM Fu Wei wrote:
->> Hi Rafael,
->>
->> On 30 June 2016 at 05:32, Rafael J. Wysocki <rafael@kernel.org> wrote:
->>> On Wed, Jun 29, 2016 at 8:15 PM,  <fu.wei@linaro.org> wrote:
->>>> From: Fu Wei <fu.wei@linaro.org>
->>>>
->>>> This patchset:
->>>>     (1)Preparation for adding GTDT support in arm_arch_timer
->>>>         1. Move some enums and marcos to header file
->>>>         2. Add a new enum for spi type.
->>>>         3. Improve printk relevant code
->>>>
->>>>     (2)Introduce ACPI GTDT parser: drivers/acpi/gtdt.c
->>>>     Parse all kinds of timer in GTDT table of ACPI:arch timer,
->>>>     memory-mapped timer and SBSA Generic Watchdog timer.
->>>>     This driver can help to simplify all the relevant timer drivers,
->>>>     and separate all the ACPI GTDT knowledge from them.
->>>>
->>>>     (3)Simplify ACPI code for arm_arch_timer
->>>>
->>>>     (4)Add GTDT support for ARM memory-mapped timer
->>>
->>> GTDT is ARM-specific AFAICS.
->>
->> yes, you are right, it is.
->>
->>>
->>> If so, why do we need that code to reside in drivers/acpi/ ?
->>
->> Although  the GTDT is just for ARM64, but this driver is parsing one
->> of ACPI table,
->> I think that could be treated as ACPI driver.  Do I miss something? :-)
->
-> Yes, you are.  Nobody except for ARM64 will ever need it.
 
-GTDT is part of ACPI spec, drivers/acpi/ is for driver code of
-ACPI spec, I think it can stay in drivers/acpi/ from this point
-of view, am I right?
+Kernel-4.7-rc5 plus this patch works like a charm on my Inspiron 4100.
+Dmesg output is quite similar to the one from kernel-4.6 .
 
-Thanks
-Hanjun
+Tested-by: Wim Osterholt. <wim@djo.tudelft.nl>
+
+
+
