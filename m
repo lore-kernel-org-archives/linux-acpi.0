@@ -1,74 +1,58 @@
-From: Al Stone <ahs3@redhat.com>
-Subject: Re: [PATCH 1/3] ACPI: fix incorrect counts returned by
- acpi_parse_entries_array()
-Date: Fri, 1 Jul 2016 15:50:53 -0600
-Message-ID: <343f1fce-2699-2449-2965-7f00fd96ed94@redhat.com>
+From: "Rafael J. Wysocki" <rafael@kernel.org>
+Subject: Re: [PATCH 3/3] ACPI: fix acpi_parse_entries_array() so it reports
+ overflow correctly
+Date: Fri, 1 Jul 2016 23:54:22 +0200
+Message-ID: <CAJZ5v0i0sXTPP9S4ZAFNPRkatOkHUhYoFwuJS8-Tn8a3iT=-=A@mail.gmail.com>
 References: <1467408081-7418-1-git-send-email-ahs3@redhat.com>
- <1467408081-7418-2-git-send-email-ahs3@redhat.com>
- <CAJZ5v0h2_uRYNC-+naQuycNUS86fNy0zO_vAXarfM006sMWEwQ@mail.gmail.com>
- <719ba3ec-4a05-6ddc-3fbc-8b6d8eab9807@redhat.com>
- <CAJZ5v0gPn=fRNOdbbNYesWm=MArE4xRuu_tPDjCRq8ZEq9o_TA@mail.gmail.com>
-Reply-To: ahs3@redhat.com
+ <1467408081-7418-4-git-send-email-ahs3@redhat.com> <CAJZ5v0hmfnARBC1+ZaGoJtQoHJ-Pp2mwz7HRR5EVybX0o--cxg@mail.gmail.com>
+ <707a387c-43a0-daf4-a2c5-98e1d016f2b4@redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-it0-f50.google.com ([209.85.214.50]:35091 "EHLO
-	mail-it0-f50.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751900AbcGAVvP (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 1 Jul 2016 17:51:15 -0400
-Received: by mail-it0-f50.google.com with SMTP id g127so27998766ith.0
-        for <linux-acpi@vger.kernel.org>; Fri, 01 Jul 2016 14:50:55 -0700 (PDT)
-In-Reply-To: <CAJZ5v0gPn=fRNOdbbNYesWm=MArE4xRuu_tPDjCRq8ZEq9o_TA@mail.gmail.com>
+Received: from mail-wm0-f47.google.com ([74.125.82.47]:38860 "EHLO
+	mail-wm0-f47.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752118AbcGAVyZ (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 1 Jul 2016 17:54:25 -0400
+In-Reply-To: <707a387c-43a0-daf4-a2c5-98e1d016f2b4@redhat.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rafael@kernel.org>
-Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>
+To: Al Stone <ahs3@redhat.com>
+Cc: "Rafael J. Wysocki" <rafael@kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>
 
-On 07/01/2016 03:44 PM, Rafael J. Wysocki wrote:
-> On Fri, Jul 1, 2016 at 11:36 PM, Al Stone <ahs3@redhat.com> wrote:
->> On 07/01/2016 03:25 PM, Rafael J. Wysocki wrote:
->>> On Fri, Jul 1, 2016 at 11:21 PM, Al Stone <ahs3@redhat.com> wrote:
->>>> The static function acpi_parse_entries_array() is provided an array of
->>>> type struct acpi_subtable_proc that has a callback function and a count.
->>>> The count should reflect how many times the callback has been successfully
->>>> called.  However, the current code only increments the 0th element of the
->>>> array, regardless of the number of entries in the array, or which callback
->>>> has been invoked.  The fix is to use the index into the array, instead of
->>>> a pointer to the beginning of the array.
->>>
->>> OK, so it would be good to say what the consequences of the problem are too.
->>>
+On Fri, Jul 1, 2016 at 11:44 PM, Al Stone <ahs3@redhat.com> wrote:
+> On 07/01/2016 03:40 PM, Rafael J. Wysocki wrote:
+>> On Fri, Jul 1, 2016 at 11:21 PM, Al Stone <ahs3@redhat.com> wrote:
+>>> The function acpi_parse_entries_array() has a limiting parameter,
+>>> max_entries, which tells the function to stop looking at subtables
+>>> once that limit has been reached.  Further, if the limit is reached,
+>>> it is reported.  However, the logic is incorrect in that the loop
+>>> to examine all subtables will always stop when exactly max_entries
+>>> have been found, regardless of whether or not there are still subtables
+>>> to examine, and it will always report that zero subtables have been
+>>> ignored.  This change allows the loop to continue to look at all
+>>> subtables and count all the ones of interest; if we have already
+>>> reached the number of max_entries, though, we will not invoke the
+>>> callback functions.  If the max_entries limit has been exceeded,
+>>> report on that, as before, but more accurately, listing how many
+>>> subtables of interest there are in total (as was meant), and how
+>>> many entries each subtable type occupied.
 >>
->> Hrm.  So replace the last sentence with something like:
+>> The problem appears to be that, if max_entries has been reached, it
+>> prints "ignored 0", although it should count all of the entries in
+>> that case too in principle.  Do I think correctly?
 >>
->>    The fix is to use the index into the array, instead of
->>    a pointer to the beginning of the array, so that the count
->>    for each element in the array in incremented by the
->>    corresponding callback.
->>
->> That feels a little clunky but is it closer to what you were
->> thinking?
-> 
-> Well, not really.
-> 
-> The code is arguably incorrect, but is there anything that does not
-> work as expected as a result?  Any functional breakage?  Any
-> misleading messages printed?
-> 
+>
+> Exactly.  That's how I interpreted the comments.  And it fit what I
+> needed it to do if the comments were correct.
+>
+> Of course, it could be the code was correct and the comments were
+> wrong :).  I preferred not to think that.
 
-That's the odd thing; there is no breakage.  Of any sort.
+I guess whoever implemented this function thought that the overhead
+for counting stuff was not useful in case max_entries had been
+reached.  I'm not really sure I disagree with that. :-)
 
-But, no one relies on those values for anything at this point.  I've got a
-couple of ideas I'm working on that are easier if it does work right, however.
-
-
--- 
-ciao,
-al
------------------------------------
-Al Stone
-Software Engineer
-Red Hat, Inc.
-ahs3@redhat.com
------------------------------------
+I agree that printing "ignored 0" in that case is misleading, but the
+fix might be to simply avoid printing how many entries have been
+ignored then.  Maybe it will suffice to print how many entries have
+been found and what the limit was?
