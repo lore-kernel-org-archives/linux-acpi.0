@@ -1,43 +1,39 @@
-From: Will Deacon <will.deacon@arm.com>
-Subject: Re: [PATCH v6 00/10] acpi, clocksource: add GTDT driver and GTDT
- support in arm_arch_timer
-Date: Fri, 1 Jul 2016 16:23:40 +0100
-Message-ID: <20160701152340.GO12735@arm.com>
-References: <1467224153-22873-1-git-send-email-fu.wei@linaro.org>
- <5351858.jEb0qfTvrF@vostro.rjw.lan>
- <2f0e60e1-f429-2bd3-5f26-fd6199e64f34@linaro.org>
- <2435381.sM3CFAEXNR@vostro.rjw.lan>
- <57714bed-3f9c-90c2-ac30-2d462d8a06d4@linaro.org>
+From: Jeremy Linton <jeremy.linton@arm.com>
+Subject: Re: [PATCH 09/11] arm64: pmu: Add routines for detecting differing
+ PMU types in the system
+Date: Fri, 1 Jul 2016 10:28:05 -0500
+Message-ID: <57768C05.1050509@arm.com>
+References: <1466529109-21715-1-git-send-email-jeremy.linton@arm.com>
+ <1466529109-21715-10-git-send-email-jeremy.linton@arm.com>
+ <87mvm1e9ye.fsf@e105922-lin.cambridge.arm.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <57714bed-3f9c-90c2-ac30-2d462d8a06d4@linaro.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Hanjun Guo <hanjun.guo@linaro.org>
-Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Catalin Marinas <catalin.marinas@arm.com>, Fu Wei <fu.wei@linaro.org>, "Rafael J. Wysocki" <rafael@kernel.org>, Len Brown <lenb@kernel.org>, Daniel Lezcano <daniel.lezcano@linaro.org>, Thomas Gleixner <tglx@linutronix.de>, Marc Zyngier <marc.zyngier@arm.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linaro-acpi@lists.linaro.org" <linaro-acpi@lists.linaro.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, rruigrok@codeaurora.org, harba@codeaurora.org, Christopher Covington <cov@codeaurora.org>, Timur Tabi <timur@codeaurora.org>, G Gregory <graeme.gregory@linaro.org>, Al Stone <al.stone@linaro.org>, Jon Masters <jcm@redhat.com>, wei@redhat.com, Arnd Bergmann <arnd@arndb.de>, Wim Van Sebroeck <wim@iguana.be>, Suravee
+Content-Type: text/plain; charset="us-ascii"; Format="flowed"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <87mvm1e9ye.fsf@e105922-lin.cambridge.arm.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Punit Agrawal <punit.agrawal@arm.com>
+Cc: mark.rutland@arm.com, Lorenzo.Pieralisi@arm.com, linux-acpi@vger.kernel.org, alexander.shishkin@linux.intel.com, catalin.marinas@arm.com, Steve.Capper@arm.com, will.deacon@arm.com, acme@kernel.org, mlangsdorf@redhat.com, peterz@infradead.org, mingo@redhat.com, linux-arm-kernel@lists.infradead.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Thu, Jun 30, 2016 at 09:48:02PM +0800, Hanjun Guo wrote:
-> On 2016/6/30 21:27, Rafael J. Wysocki wrote:
-> >On Thursday, June 30, 2016 10:10:02 AM Hanjun Guo wrote:
-> >>GTDT is part of ACPI spec, drivers/acpi/ is for driver code of
-> >>ACPI spec, I think it can stay in drivers/acpi/ from this point
-> >>of view, am I right?
-> >
-> >The question is not "Can it?", but "Does it need to?".
-> >
-> >It is in the spec, but still there's only one architecture needing it.
-> >
-> >There is no way to test it on any other architecture and no reason to build it
-> >for any other architecture, so why does it need to be located in drivers/acpi/ ?
-> 
-> I'm fine to move it to other places such as arch/arm64/kernel/, but I
-> would like to ask ARM64 maintainer's suggestion for this.
-> 
-> Will, Catalin, what's your opinion on this?
+On 07/01/2016 08:58 AM, Punit Agrawal wrote:
+(trimming)
+>> +			if (!pmu) {
+>> +				pr_warn("Unable to allocate pmu_types\n");
+>
+> Bail out with error if the memory can't be allocated. Otherwise, we risk
+> silently failing to register a PMU type.
 
-We don't have any device-tree code for the architected timer under
-arch/arm64, so I don't see why we should need anything for ACPI either.
+Reading this again, I think I misunderstood what you were saying.. Aka, 
+this should be pr_error() not that the error handing is failing to catch 
+the failure.
 
-Will
+Anyway, I will promote this.
