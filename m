@@ -1,7 +1,7 @@
 From: Al Stone <ahs3@redhat.com>
-Subject: [PATCH 3/3] ACPI: fix acpi_parse_entries_array() so it reports overflow correctly
-Date: Fri,  1 Jul 2016 15:21:21 -0600
-Message-ID: <1467408081-7418-4-git-send-email-ahs3@redhat.com>
+Subject: [PATCH 2/3] ACPI: fix acpi_parse_entries_array() so it traverses all subtables
+Date: Fri,  1 Jul 2016 15:21:20 -0600
+Message-ID: <1467408081-7418-3-git-send-email-ahs3@redhat.com>
 References: <1467408081-7418-1-git-send-email-ahs3@redhat.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1467408081-7418-1-git-send-email-ahs3@redhat.com>
@@ -10,60 +10,56 @@ To: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 Cc: ahs3@redhat.com, "Rafael J . Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-The function acpi_parse_entries_array() has a limiting parameter,
-max_entries, which tells the function to stop looking at subtables
-once that limit has been reached.  Further, if the limit is reached,
-it is reported.  However, the logic is incorrect in that the loop
-to examine all subtables will always stop when exactly max_entries
-have been found, regardless of whether or not there are still subtables
-to examine, and it will always report that zero subtables have been
-ignored.  This change allows the loop to continue to look at all
-subtables and count all the ones of interest; if we have already
-reached the number of max_entries, though, we will not invoke the
-callback functions.  If the max_entries limit has been exceeded,
-report on that, as before, but more accurately, listing how many
-subtables of interest there are in total (as was meant), and how
-many entries each subtable type occupied.
+Without this patch, the acpi_parse_entries_array() function will return
+the very first time there is any error found in either the array of
+callback functions or if one of the callbacks returns an non-zero value.
+However, the array of callbacks could still have valid entries further
+on in the array, or the callbacks may be able to process subsequent
+subtables without error.  The change here makes the function consistent
+with its description so that it will properly return the sum of all
+matching entries for all proc handlers, instead of stopping abruptly
+as it does today.
 
 Signed-off-by: Al Stone <ahs3@redhat.com>
 Cc: Rafael J. Wysocki <rjw@rjwysocki.net>
 Cc: Len Brown <lenb@kernel.org>
 ---
- drivers/acpi/tables.c | 12 +++++++-----
- 1 file changed, 7 insertions(+), 5 deletions(-)
+ drivers/acpi/tables.c | 9 ++++++---
+ 1 file changed, 6 insertions(+), 3 deletions(-)
 
 diff --git a/drivers/acpi/tables.c b/drivers/acpi/tables.c
-index 76c07ed..227312d 100644
+index 3e167b4..76c07ed 100644
 --- a/drivers/acpi/tables.c
 +++ b/drivers/acpi/tables.c
-@@ -272,12 +272,11 @@ acpi_parse_entries_array(char *id, unsigned long table_size,
+@@ -246,6 +246,7 @@ acpi_parse_entries_array(char *id, unsigned long table_size,
+ 	struct acpi_subtable_header *entry;
+ 	unsigned long table_end;
+ 	int count = 0;
++	int errs_found = 0;
+ 	int i;
  
- 	while (((unsigned long)entry) + sizeof(struct acpi_subtable_header) <
- 	       table_end) {
--		if (max_entries && count >= max_entries)
--			break;
--
- 		for (i = 0; i < proc_num; i++) {
+ 	if (acpi_disabled)
+@@ -278,8 +279,10 @@ acpi_parse_entries_array(char *id, unsigned long table_size,
  			if (entry->type != proc[i].id)
  				continue;
-+			if (max_entries && count >= max_entries)
-+				break;
  			if (!proc[i].handler ||
- 			     proc[i].handler(entry, table_end)) {
- 				errs_found++;
-@@ -304,8 +303,11 @@ acpi_parse_entries_array(char *id, unsigned long table_size,
+-			     proc[i].handler(entry, table_end))
+-				return -EINVAL;
++			     proc[i].handler(entry, table_end)) {
++				errs_found++;
++				continue;
++			}
+ 
+ 			proc[i].count++;
+ 			break;
+@@ -305,7 +308,7 @@ acpi_parse_entries_array(char *id, unsigned long table_size,
+ 			id, proc->id, count - max_entries, count);
  	}
  
- 	if (max_entries && count > max_entries) {
--		pr_warn("[%4.4s:0x%02x] ignored %i entries of %i found\n",
--			id, proc->id, count - max_entries, count);
-+		pr_warn("[%4.4s] ignored %i entries of %i found\n",
-+			id, count - max_entries, count);
-+		for (i = 0; i < proc_num; i++)
-+			pr_warn("[%4.4s] subtable 0x%02x used %i entries\n",
-+				id, proc[i].id, proc[i].count);
- 	}
+-	return count;
++	return (errs_found) ? -EINVAL : count;
+ }
  
- 	return (errs_found) ? -EINVAL: count;
+ int __init
 -- 
 2.7.4
