@@ -1,95 +1,79 @@
-From: Markus Mayer <markus.mayer@broadcom.com>
-Subject: Re: [PATCH 3/6] ACPICA: make use of new strtolower() function
-Date: Thu, 30 Jun 2016 21:13:26 -0700
-Message-ID: <CAGt4E5tRhiFtx-JsB2unQ2JMMZRv9Td_5jXcU9N4wG_Taedqng@mail.gmail.com>
+From: "Moore, Robert" <robert.moore@intel.com>
+Subject: RE: [PATCH 3/6] ACPICA: make use of new strtolower() function
+Date: Fri, 1 Jul 2016 04:32:12 +0000
+Message-ID: <94F2FBAB4432B54E8AACC7DFDE6C92E37E4C388A@ORSMSX110.amr.corp.intel.com>
 References: <1467330612-26242-1-git-send-email-mmayer@broadcom.com>
- <1467330612-26242-4-git-send-email-mmayer@broadcom.com> <94F2FBAB4432B54E8AACC7DFDE6C92E37E4C3731@ORSMSX110.amr.corp.intel.com>
- <CAGt4E5uqbjaubPWE4rq-T7MvqAmwpUhvakM+jv+Sen8est9U5g@mail.gmail.com> <94F2FBAB4432B54E8AACC7DFDE6C92E37E4C381C@ORSMSX110.amr.corp.intel.com>
+ <1467330612-26242-4-git-send-email-mmayer@broadcom.com>
+ <94F2FBAB4432B54E8AACC7DFDE6C92E37E4C3731@ORSMSX110.amr.corp.intel.com>
+ <CAGt4E5uqbjaubPWE4rq-T7MvqAmwpUhvakM+jv+Sen8est9U5g@mail.gmail.com>
+ <94F2FBAB4432B54E8AACC7DFDE6C92E37E4C381C@ORSMSX110.amr.corp.intel.com>
+ <CAGt4E5tRhiFtx-JsB2unQ2JMMZRv9Td_5jXcU9N4wG_Taedqng@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-vk0-f43.google.com ([209.85.213.43]:32982 "EHLO
-	mail-vk0-f43.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751924AbcGAEN3 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 1 Jul 2016 00:13:29 -0400
-Received: by mail-vk0-f43.google.com with SMTP id k68so51526543vkb.0
-        for <linux-acpi@vger.kernel.org>; Thu, 30 Jun 2016 21:13:28 -0700 (PDT)
-In-Reply-To: <94F2FBAB4432B54E8AACC7DFDE6C92E37E4C381C@ORSMSX110.amr.corp.intel.com>
+Received: from mga01.intel.com ([192.55.52.88]:4936 "EHLO mga01.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751953AbcGAEcO (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 1 Jul 2016 00:32:14 -0400
+In-Reply-To: <CAGt4E5tRhiFtx-JsB2unQ2JMMZRv9Td_5jXcU9N4wG_Taedqng@mail.gmail.com>
+Content-Language: en-US
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Moore, Robert" <robert.moore@intel.com>
+To: Markus Mayer <markus.mayer@broadcom.com>
 Cc: "Zheng, Lv" <lv.zheng@intel.com>, "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>, Len Brown <lenb@kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "devel@acpica.org" <devel@acpica.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "Box, David E" <david.e.box@intel.com>
 
-On 30 June 2016 at 19:59, Moore, Robert <robert.moore@intel.com> wrote:
-> This is linux-specific code, ACPICA is os-independent. So we cannot accept
-> such patch.
-
-Understood. I wasn't aware that this was shared code.
-
-> From: Markus Mayer [mailto:markus.mayer@broadcom.com]
-> Sent: Thursday, June 30, 2016 7:50 PM
-> To: Moore, Robert
-> Cc: Zheng, Lv; Wysocki, Rafael J; Len Brown; linux-acpi@vger.kernel.org;
-> devel@acpica.org; linux-kernel@vger.kernel.org; Box, David E
-> Subject: Re: [PATCH 3/6] ACPICA: make use of new strtolower() function
->
-> On Thursday, 30 June 2016, Moore, Robert <robert.moore@intel.com> wrote:
->
-> Where is "strtolower" implemented?
->
-> First patch of the series:
->
-> https://lkml.org/lkml/2016/6/30/733
->
->> -----Original Message-----
->> From: Markus Mayer [mailto:mmayer@broadcom.com]
->> Sent: Thursday, June 30, 2016 4:50 PM
->> To: Moore, Robert; Zheng, Lv; Wysocki, Rafael J; Len Brown
->> Cc: Markus Mayer; linux-acpi@vger.kernel.org; devel@acpica.org; linux-
->> kernel@vger.kernel.org
->> Subject: [PATCH 3/6] ACPICA: make use of new strtolower() function
->>
->> Call strtolower() rather than walking the string explicitly to convert it
->> to lowercase.
->>
->> Signed-off-by: Markus Mayer <mmayer@broadcom.com>
->> ---
->>
->> *** Please note that there don't seem to be any callers of
->> acpi_ut_strlwr().
->> *** It may be possible to remove the function altogether.
->>
->>  drivers/acpi/acpica/utnonansi.c | 13 +------------
->>  1 file changed, 1 insertion(+), 12 deletions(-)
->>
->> diff --git a/drivers/acpi/acpica/utnonansi.c
->> b/drivers/acpi/acpica/utnonansi.c index 3465fe2..b6e11dc 100644
->> --- a/drivers/acpi/acpica/utnonansi.c
->> +++ b/drivers/acpi/acpica/utnonansi.c
->> @@ -64,19 +64,8 @@ ACPI_MODULE_NAME("utnonansi")
->>
->> **************************************************************************
->> ****/
->>  void acpi_ut_strlwr(char *src_string)
->>  {
->> -     char *string;
->> -
->>       ACPI_FUNCTION_ENTRY();
->> -
->> -     if (!src_string) {
->> -             return;
->> -     }
->> -
->> -     /* Walk entire string, lowercasing the letters */
->> -
->> -     for (string = src_string; *string; string++) {
->> -             *string = (char)tolower((int)*string);
->> -     }
->> +     strtolower(src_string);
->>  }
->>
->>
->> /*************************************************************************
->> ******
->> --
->> 2.7.4
+DQoNCj4gLS0tLS1PcmlnaW5hbCBNZXNzYWdlLS0tLS0NCj4gRnJvbTogTWFya3VzIE1heWVyIFtt
+YWlsdG86bWFya3VzLm1heWVyQGJyb2FkY29tLmNvbV0NCj4gU2VudDogVGh1cnNkYXksIEp1bmUg
+MzAsIDIwMTYgOToxMyBQTQ0KPiBUbzogTW9vcmUsIFJvYmVydA0KPiBDYzogWmhlbmcsIEx2OyBX
+eXNvY2tpLCBSYWZhZWwgSjsgTGVuIEJyb3duOyBsaW51eC1hY3BpQHZnZXIua2VybmVsLm9yZzsN
+Cj4gZGV2ZWxAYWNwaWNhLm9yZzsgbGludXgta2VybmVsQHZnZXIua2VybmVsLm9yZzsgQm94LCBE
+YXZpZCBFDQo+IFN1YmplY3Q6IFJlOiBbUEFUQ0ggMy82XSBBQ1BJQ0E6IG1ha2UgdXNlIG9mIG5l
+dyBzdHJ0b2xvd2VyKCkgZnVuY3Rpb24NCj4gDQo+IE9uIDMwIEp1bmUgMjAxNiBhdCAxOTo1OSwg
+TW9vcmUsIFJvYmVydCA8cm9iZXJ0Lm1vb3JlQGludGVsLmNvbT4gd3JvdGU6DQo+ID4gVGhpcyBp
+cyBsaW51eC1zcGVjaWZpYyBjb2RlLCBBQ1BJQ0EgaXMgb3MtaW5kZXBlbmRlbnQuIFNvIHdlIGNh
+bm5vdA0KPiA+IGFjY2VwdCBzdWNoIHBhdGNoLg0KPiANCj4gVW5kZXJzdG9vZC4gSSB3YXNuJ3Qg
+YXdhcmUgdGhhdCB0aGlzIHdhcyBzaGFyZWQgY29kZS4NCg0KT2suIEdsYWQgdG8gdGFrZSBmaXhl
+cyBhbmQgb3B0aW1pemF0aW9ucywgaG93ZXZlci4NCkJvYg0KDQoNCg0KPiANCj4gPiBGcm9tOiBN
+YXJrdXMgTWF5ZXIgW21haWx0bzptYXJrdXMubWF5ZXJAYnJvYWRjb20uY29tXQ0KPiA+IFNlbnQ6
+IFRodXJzZGF5LCBKdW5lIDMwLCAyMDE2IDc6NTAgUE0NCj4gPiBUbzogTW9vcmUsIFJvYmVydA0K
+PiA+IENjOiBaaGVuZywgTHY7IFd5c29ja2ksIFJhZmFlbCBKOyBMZW4gQnJvd247DQo+ID4gbGlu
+dXgtYWNwaUB2Z2VyLmtlcm5lbC5vcmc7IGRldmVsQGFjcGljYS5vcmc7DQo+ID4gbGludXgta2Vy
+bmVsQHZnZXIua2VybmVsLm9yZzsgQm94LCBEYXZpZCBFDQo+ID4gU3ViamVjdDogUmU6IFtQQVRD
+SCAzLzZdIEFDUElDQTogbWFrZSB1c2Ugb2YgbmV3IHN0cnRvbG93ZXIoKSBmdW5jdGlvbg0KPiA+
+DQo+ID4gT24gVGh1cnNkYXksIDMwIEp1bmUgMjAxNiwgTW9vcmUsIFJvYmVydCA8cm9iZXJ0Lm1v
+b3JlQGludGVsLmNvbT4gd3JvdGU6DQo+ID4NCj4gPiBXaGVyZSBpcyAic3RydG9sb3dlciIgaW1w
+bGVtZW50ZWQ/DQo+ID4NCj4gPiBGaXJzdCBwYXRjaCBvZiB0aGUgc2VyaWVzOg0KPiA+DQo+ID4g
+aHR0cHM6Ly9sa21sLm9yZy9sa21sLzIwMTYvNi8zMC83MzMNCj4gPg0KPiA+PiAtLS0tLU9yaWdp
+bmFsIE1lc3NhZ2UtLS0tLQ0KPiA+PiBGcm9tOiBNYXJrdXMgTWF5ZXIgW21haWx0bzptbWF5ZXJA
+YnJvYWRjb20uY29tXQ0KPiA+PiBTZW50OiBUaHVyc2RheSwgSnVuZSAzMCwgMjAxNiA0OjUwIFBN
+DQo+ID4+IFRvOiBNb29yZSwgUm9iZXJ0OyBaaGVuZywgTHY7IFd5c29ja2ksIFJhZmFlbCBKOyBM
+ZW4gQnJvd24NCj4gPj4gQ2M6IE1hcmt1cyBNYXllcjsgbGludXgtYWNwaUB2Z2VyLmtlcm5lbC5v
+cmc7IGRldmVsQGFjcGljYS5vcmc7DQo+ID4+IGxpbnV4LSBrZXJuZWxAdmdlci5rZXJuZWwub3Jn
+DQo+ID4+IFN1YmplY3Q6IFtQQVRDSCAzLzZdIEFDUElDQTogbWFrZSB1c2Ugb2YgbmV3IHN0cnRv
+bG93ZXIoKSBmdW5jdGlvbg0KPiA+Pg0KPiA+PiBDYWxsIHN0cnRvbG93ZXIoKSByYXRoZXIgdGhh
+biB3YWxraW5nIHRoZSBzdHJpbmcgZXhwbGljaXRseSB0bw0KPiA+PiBjb252ZXJ0IGl0IHRvIGxv
+d2VyY2FzZS4NCj4gPj4NCj4gPj4gU2lnbmVkLW9mZi1ieTogTWFya3VzIE1heWVyIDxtbWF5ZXJA
+YnJvYWRjb20uY29tPg0KPiA+PiAtLS0NCj4gPj4NCj4gPj4gKioqIFBsZWFzZSBub3RlIHRoYXQg
+dGhlcmUgZG9uJ3Qgc2VlbSB0byBiZSBhbnkgY2FsbGVycyBvZg0KPiA+PiBhY3BpX3V0X3N0cmx3
+cigpLg0KPiA+PiAqKiogSXQgbWF5IGJlIHBvc3NpYmxlIHRvIHJlbW92ZSB0aGUgZnVuY3Rpb24g
+YWx0b2dldGhlci4NCj4gPj4NCj4gPj4gIGRyaXZlcnMvYWNwaS9hY3BpY2EvdXRub25hbnNpLmMg
+fCAxMyArLS0tLS0tLS0tLS0tDQo+ID4+ICAxIGZpbGUgY2hhbmdlZCwgMSBpbnNlcnRpb24oKyks
+IDEyIGRlbGV0aW9ucygtKQ0KPiA+Pg0KPiA+PiBkaWZmIC0tZ2l0IGEvZHJpdmVycy9hY3BpL2Fj
+cGljYS91dG5vbmFuc2kuYw0KPiA+PiBiL2RyaXZlcnMvYWNwaS9hY3BpY2EvdXRub25hbnNpLmMg
+aW5kZXggMzQ2NWZlMi4uYjZlMTFkYyAxMDA2NDQNCj4gPj4gLS0tIGEvZHJpdmVycy9hY3BpL2Fj
+cGljYS91dG5vbmFuc2kuYw0KPiA+PiArKysgYi9kcml2ZXJzL2FjcGkvYWNwaWNhL3V0bm9uYW5z
+aS5jDQo+ID4+IEBAIC02NCwxOSArNjQsOCBAQCBBQ1BJX01PRFVMRV9OQU1FKCJ1dG5vbmFuc2ki
+KQ0KPiA+Pg0KPiA+PiAqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioq
+KioqKioqKioqKioqKioqKioqKioqKioqKioNCj4gPj4gKioqKioNCj4gPj4gKioqKi8NCj4gPj4g
+IHZvaWQgYWNwaV91dF9zdHJsd3IoY2hhciAqc3JjX3N0cmluZykgIHsNCj4gPj4gLSAgICAgY2hh
+ciAqc3RyaW5nOw0KPiA+PiAtDQo+ID4+ICAgICAgIEFDUElfRlVOQ1RJT05fRU5UUlkoKTsNCj4g
+Pj4gLQ0KPiA+PiAtICAgICBpZiAoIXNyY19zdHJpbmcpIHsNCj4gPj4gLSAgICAgICAgICAgICBy
+ZXR1cm47DQo+ID4+IC0gICAgIH0NCj4gPj4gLQ0KPiA+PiAtICAgICAvKiBXYWxrIGVudGlyZSBz
+dHJpbmcsIGxvd2VyY2FzaW5nIHRoZSBsZXR0ZXJzICovDQo+ID4+IC0NCj4gPj4gLSAgICAgZm9y
+IChzdHJpbmcgPSBzcmNfc3RyaW5nOyAqc3RyaW5nOyBzdHJpbmcrKykgew0KPiA+PiAtICAgICAg
+ICAgICAgICpzdHJpbmcgPSAoY2hhcil0b2xvd2VyKChpbnQpKnN0cmluZyk7DQo+ID4+IC0gICAg
+IH0NCj4gPj4gKyAgICAgc3RydG9sb3dlcihzcmNfc3RyaW5nKTsNCj4gPj4gIH0NCj4gPj4NCj4g
+Pj4NCj4gPj4gLyoqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioq
+KioqKioqKioqKioqKioqKioqKioqDQo+ID4+ICoqKioqDQo+ID4+ICoqKioqKg0KPiA+PiAtLQ0K
+PiA+PiAyLjcuNA0K
