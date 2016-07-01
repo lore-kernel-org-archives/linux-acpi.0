@@ -1,52 +1,70 @@
-From: Eduardo Valentin <edubezval@gmail.com>
-Subject: Re: [PATCH 1/1] thermal: core: call thermal_zone_device_update()
- after mode update
-Date: Fri, 1 Jul 2016 13:53:31 -0700
-Message-ID: <20160701205329.GB7814@localhost.localdomain>
-References: <1466563538.2471.10.camel@intel.com>
- <1466571990-12346-1-git-send-email-edubezval@gmail.com>
- <CAJZ5v0hRosrpW50Jx3p6-yHmNFLEaHpf9htfevtunEa10Jo7Dg@mail.gmail.com>
+From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Subject: Re: [PATCH v6 00/10] acpi, clocksource: add GTDT driver and GTDT support in arm_arch_timer
+Date: Fri, 01 Jul 2016 23:01:57 +0200
+Message-ID: <1643662.QIDsTbCMZg@vostro.rjw.lan>
+References: <1467224153-22873-1-git-send-email-fu.wei@linaro.org> <2435381.sM3CFAEXNR@vostro.rjw.lan> <57767782.6020509@linaro.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-pm-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <CAJZ5v0hRosrpW50Jx3p6-yHmNFLEaHpf9htfevtunEa10Jo7Dg@mail.gmail.com>
-Sender: linux-pm-owner@vger.kernel.org
-To: "Rafael J. Wysocki" <rafael@kernel.org>
-Cc: Rui Zhang <rui.zhang@intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, "Lee, Chun-Yi" <jlee@suse.com>, Darren Hart <dvhart@infradead.org>, Keerthy <j-keerthy@ti.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, platform-driver-x86@vger.kernel.org, "linux-pm@vger.kernel.org" <linux-pm@vger.kernel.org>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7Bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from cloudserver094114.home.net.pl ([79.96.170.134]:63177 "HELO
+	cloudserver094114.home.net.pl" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with SMTP id S1751911AbcGAU51 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 1 Jul 2016 16:57:27 -0400
+In-Reply-To: <57767782.6020509@linaro.org>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Daniel Lezcano <daniel.lezcano@linaro.org>
+Cc: Hanjun Guo <hanjun.guo@linaro.org>, Fu Wei <fu.wei@linaro.org>, Catalin Marinas <catalin.marinas@arm.com>, Will Deacon <will.deacon@arm.com>, "Rafael J. Wysocki" <rafael@kernel.org>, Len Brown <lenb@kernel.org>, Thomas Gleixner <tglx@linutronix.de>, Marc Zyngier <marc.zyngier@arm.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linaro-acpi@lists.linaro.org" <linaro-acpi@lists.linaro.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, rruigrok@codeaurora.org, harba@codeaurora.org, Christopher Covington <cov@codeaurora.org>, Timur Tabi <timur@codeaurora.org>, G Gregory <graeme.gregory@linaro.org>, Al Stone <al.stone@linaro.org>, Jon Masters <jcm@redhat.com>, wei@redhat.com, Arnd Bergmann <arnd@arndb.de>, Wim Van Sebroeck <wim@iguana.be>, Suravee Suthikulanit <Surave>
 
-On Thu, Jun 23, 2016 at 02:27:12PM +0200, Rafael J. Wysocki wrote:
-> On Wed, Jun 22, 2016 at 7:06 AM, Eduardo Valentin <edubezval@gmail.com> wrote:
-> > Because several drivers do the following pattern:
-> > .set_mode()
-> >    ...
-> >    local_data->mode = new_mode;
-> >    thermal_zone_device_update(tz);
+On Friday, July 01, 2016 04:00:34 PM Daniel Lezcano wrote:
+> On 06/30/2016 03:27 PM, Rafael J. Wysocki wrote:
+> 
+> [ ... ]
+> 
+> >> GTDT is part of ACPI spec, drivers/acpi/ is for driver code of
+> >> ACPI spec, I think it can stay in drivers/acpi/ from this point
+> >> of view, am I right?
 > >
-> > makes sense to simply do the thermal_zone_device_update()
-> > in thermal core, after setting the new mode.
+> > The question is not "Can it?", but "Does it need to?".
 > >
-> > Also, this patch also remove deadlocks on drivers that
-> > call thermal_zone_device_update() on .set_mode(),
-> > as .set_mode()  is now called always with tz->lock held.
+> > It is in the spec, but still there's only one architecture needing it.
+> >
+> > There is no way to test it on any other architecture and no reason to build it
+> > for any other architecture, so why does it need to be located in drivers/acpi/ ?
 > 
-> To me, this part of the patch is way more important than the
-> optimization mentioned before.
+> Hi Rafael,
 > 
-> Apparently, the problem is that drivers deadlock, because the
-> thermal_zone_device_update() invoked from ->set_mode() is called under
-> tz->lock.
-> 
-> So to address that problem you make the core call
-> thermal_zone_device_update() after ->set_mode() outside of tz->lock
-> and the drivers don't have to do it any more.
-> 
-> Is that correct?
+> what is the problem of having it in drivers/acpi ?
 
-Yes this is correct. The optimization is simply a consequence of the bug
-fix, as reported by Keerthy.
+There's no reason for it to be there.
 
+> There are cpufreq-dt, speedstep*, tegra124-* in drivers/cpufreq.
+
+Yes, they are, but for a reason.  Having them in there makes it easier to
+rework and clean up the core.
+
+> clocksource-probe which is DT based with different drivers using it in 
+> drivers/clocksource with a pletore of different archs.
+
+So maybe the GTDT code should be there too?
+
+> Cstate code which is only used by x86 is in drivers/acpi, it is only 
+> used by x86/ia64 and it isn't a problem.
+
+It is a problem.  drivers/acpi/ is not the right place for arch-specific code.
+
+> There is a small chunk in arch/x86/kernel/acpi and it doesn't facilitate the
+> comprehension of the code.
 > 
-> Thanks,
-> Rafael
+> IMHO, having all ACPI code in the same directory will encourage the 
+> consolidation.
+
+The consolidation of what exactly?
+
+In particular, how does the GTDT code in drivers/acpi/ help to consolidate
+anything?
+
+Thanks,
+Rafael
+
