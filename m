@@ -1,66 +1,65 @@
 From: "Rafael J. Wysocki" <rafael@kernel.org>
-Subject: Re: [PATCH 2/3] ACPI: fix acpi_parse_entries_array() so it traverses
- all subtables
-Date: Sat, 2 Jul 2016 00:01:26 +0200
-Message-ID: <CAJZ5v0j8LWL-hNm=6tLTzjyqDRu+MFpibzjWjipy9dLUYJwvrA@mail.gmail.com>
+Subject: Re: [PATCH 1/3] ACPI: fix incorrect counts returned by acpi_parse_entries_array()
+Date: Fri, 1 Jul 2016 23:56:30 +0200
+Message-ID: <CAJZ5v0jtxbTmVxi4y-aHpuD6m095047kknfJtkN+rCtJGXWtxQ@mail.gmail.com>
 References: <1467408081-7418-1-git-send-email-ahs3@redhat.com>
- <1467408081-7418-3-git-send-email-ahs3@redhat.com> <CAJZ5v0ig+E33Bb+eMuQpQQV4_RfX9MVbDf=WRTM6WDg=2LFGyQ@mail.gmail.com>
- <3b06c1f7-d1d1-f86a-ba3c-ef566af2f6db@redhat.com> <CAJZ5v0htLm0r0gk+t=_acBfeVA5ErW-bDRDEXHtKKQsAapEC5g@mail.gmail.com>
- <00e1e2ec-b7e1-606d-3faa-271560864d0e@redhat.com>
+ <1467408081-7418-2-git-send-email-ahs3@redhat.com> <CAJZ5v0h2_uRYNC-+naQuycNUS86fNy0zO_vAXarfM006sMWEwQ@mail.gmail.com>
+ <719ba3ec-4a05-6ddc-3fbc-8b6d8eab9807@redhat.com> <CAJZ5v0gPn=fRNOdbbNYesWm=MArE4xRuu_tPDjCRq8ZEq9o_TA@mail.gmail.com>
+ <343f1fce-2699-2449-2965-7f00fd96ed94@redhat.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-wm0-f41.google.com ([74.125.82.41]:35635 "EHLO
-	mail-wm0-f41.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751900AbcGAWB2 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 1 Jul 2016 18:01:28 -0400
-In-Reply-To: <00e1e2ec-b7e1-606d-3faa-271560864d0e@redhat.com>
+Received: from mail-wm0-f44.google.com ([74.125.82.44]:37095 "EHLO
+	mail-wm0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752220AbcGAWCV (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 1 Jul 2016 18:02:21 -0400
+In-Reply-To: <343f1fce-2699-2449-2965-7f00fd96ed94@redhat.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: Al Stone <ahs3@redhat.com>
 Cc: "Rafael J. Wysocki" <rafael@kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>
 
-On Fri, Jul 1, 2016 at 11:55 PM, Al Stone <ahs3@redhat.com> wrote:
-> On 07/01/2016 03:46 PM, Rafael J. Wysocki wrote:
->> On Fri, Jul 1, 2016 at 11:41 PM, Al Stone <ahs3@redhat.com> wrote:
->>> On 07/01/2016 03:32 PM, Rafael J. Wysocki wrote:
+On Fri, Jul 1, 2016 at 11:50 PM, Al Stone <ahs3@redhat.com> wrote:
+> On 07/01/2016 03:44 PM, Rafael J. Wysocki wrote:
+>> On Fri, Jul 1, 2016 at 11:36 PM, Al Stone <ahs3@redhat.com> wrote:
+>>> On 07/01/2016 03:25 PM, Rafael J. Wysocki wrote:
 >>>> On Fri, Jul 1, 2016 at 11:21 PM, Al Stone <ahs3@redhat.com> wrote:
->>>>> Without this patch, the acpi_parse_entries_array() function will return
->>>>> the very first time there is any error found in either the array of
->>>>> callback functions or if one of the callbacks returns an non-zero value.
->>>>> However, the array of callbacks could still have valid entries further
->>>>> on in the array, or the callbacks may be able to process subsequent
->>>>> subtables without error.  The change here makes the function consistent
->>>>> with its description so that it will properly return the sum of all
->>>>> matching entries for all proc handlers, instead of stopping abruptly
->>>>> as it does today.
+>>>>> The static function acpi_parse_entries_array() is provided an array of
+>>>>> type struct acpi_subtable_proc that has a callback function and a count.
+>>>>> The count should reflect how many times the callback has been successfully
+>>>>> called.  However, the current code only increments the 0th element of the
+>>>>> array, regardless of the number of entries in the array, or which callback
+>>>>> has been invoked.  The fix is to use the index into the array, instead of
+>>>>> a pointer to the beginning of the array.
 >>>>
->>>> I'm not sure I follow.
+>>>> OK, so it would be good to say what the consequences of the problem are too.
 >>>>
->>>> You seem to be saying that the function should process all of the
->>>> subtables etc even though errors have been found for some of them, but
->>>> it still will return an error in the end if there are any errors.  How
->>>> exactly does it help to continue processing in case of an error, then?
 >>>
->>> The use case I have in mind is to simply count all of the subtables of
->>> a certain type.  If for some reason, the callback -- or any other callback
->>> -- fails, the traversal of all the subtables stops immediately.  So, I
->>> could have two callbacks, and if the first one fails on the first subtable
->>> of its type, traversal stops.  The count for the second callback will be
->>> zero which may or may not be correct.
+>>> Hrm.  So replace the last sentence with something like:
+>>>
+>>>    The fix is to use the index into the array, instead of
+>>>    a pointer to the beginning of the array, so that the count
+>>>    for each element in the array in incremented by the
+>>>    corresponding callback.
+>>>
+>>> That feels a little clunky but is it closer to what you were
+>>> thinking?
 >>
->> It will be zero, because the callback has not been invoked at all.
->> Why is this incorrect?
+>> Well, not really.
+>>
+>> The code is arguably incorrect, but is there anything that does not
+>> work as expected as a result?  Any functional breakage?  Any
+>> misleading messages printed?
 >>
 >
-> Because there could be additional subtables after the one causing a failure
-> that the second callback could have counted; e.g., if the failure is on the
-> first subtable of 20 in the MADT, the following 19 would be ignored, even if
-> they were all the right subtype for the second callback.
+> That's the odd thing; there is no breakage.  Of any sort.
+>
+> But, no one relies on those values for anything at this point.  I've got a
+> couple of ideas I'm working on that are easier if it does work right, however.
 
-Let me rephrase: Is there any practical value of invoking any more
-callbacks if one of them has failed?  If so, what is it?
+That's information that should go into the changelog too.
 
-You are changing semantics from "abort on the first failure" to
-"process everything and count errors".  That's quite a bit different
-and I'm trying to understand why the latter is better.
+"There are no functional consequences of the issue, but fixing it is
+necessary for future work."
+
+Or similar.
