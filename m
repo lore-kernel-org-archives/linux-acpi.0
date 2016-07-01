@@ -1,63 +1,175 @@
-From: Daniel Lezcano <daniel.lezcano@linaro.org>
-Subject: Re: [PATCH v7 2/6] ACPI / processor_idle: Add support for Low Power
- Idle(LPI) states
-Date: Fri, 1 Jul 2016 15:07:33 +0200
-Message-ID: <57766B15.4090407@linaro.org>
-References: <1467122152-5604-1-git-send-email-sudeep.holla@arm.com>
- <1467122152-5604-3-git-send-email-sudeep.holla@arm.com>
+From: Punit Agrawal <punit.agrawal@arm.com>
+Subject: Re: [PATCH 10/11] arm64: pmu: Enable multiple PMUs in an ACPI system
+Date: Fri, 01 Jul 2016 14:57:38 +0100
+Message-ID: <87twg9ea0d.fsf@e105922-lin.cambridge.arm.com>
+References: <1466529109-21715-1-git-send-email-jeremy.linton@arm.com>
+	<1466529109-21715-11-git-send-email-jeremy.linton@arm.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"; Format="flowed"
-Content-Transfer-Encoding: base64
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <1467122152-5604-3-git-send-email-sudeep.holla@arm.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Sudeep Holla <sudeep.holla@arm.com>, linux-acpi@vger.kernel.org, "Rafael J . Wysocki" <rjw@rjwysocki.net>
-Cc: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Vincent Guittot <vincent.guittot@linaro.org>, PrashanthPrakash <pprakash@codeaurora.org>, Al Stone <al.stone@linaro.org>, Vikas Sajjan <vikas.cha.sajjan@hpe.com>, linux-kernel@vger.kernel.org, Ashwin Chaugule <ashwin.chaugule@linaro.org>, linux-arm-kernel@lists.infradead.org, Sunil <sunil.vl@hpe.com>
+Content-Type: text/plain
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from fw-tnat.cambridge.arm.com ([217.140.96.140]:58726 "EHLO
+	cam-smtp0.cambridge.arm.com" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1751193AbcGAN6k (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 1 Jul 2016 09:58:40 -0400
+In-Reply-To: <1466529109-21715-11-git-send-email-jeremy.linton@arm.com>
+	(Jeremy Linton's message of "Tue, 21 Jun 2016 12:11:48 -0500")
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Jeremy Linton <jeremy.linton@arm.com>
+Cc: linux-arm-kernel@lists.infradead.org, mark.rutland@arm.com, Lorenzo.Pieralisi@arm.com, mlangsdorf@redhat.com, alexander.shishkin@linux.intel.com, catalin.marinas@arm.com, will.deacon@arm.com, acme@kernel.org, linux-acpi@vger.kernel.org, peterz@infradead.org, mingo@redhat.com, Steve.Capper@arm.com
 
-T24gMDYvMjgvMjAxNiAwMzo1NSBQTSwgU3VkZWVwIEhvbGxhIHdyb3RlOgo+IEFDUEkgNi4wIGlu
-dHJvZHVjZWQgYW4gb3B0aW9uYWwgb2JqZWN0IF9MUEkgdGhhdCBwcm92aWRlcyBhbiBhbHRlcm5h
-dGUKPiBtZXRob2QgdG8gZGVzY3JpYmUgTG93IFBvd2VyIElkbGUgc3RhdGVzLiBJdCBkZWZpbmVz
-IHRoZSBsb2NhbCBwb3dlcgo+IHN0YXRlcyBmb3IgZWFjaCBub2RlIGluIGEgaGllcmFyY2hpY2Fs
-IHByb2Nlc3NvciB0b3BvbG9neS4gVGhlIE9TUE0gY2FuCj4gdXNlIF9MUEkgb2JqZWN0IHRvIHNl
-bGVjdCBhIGxvY2FsIHBvd2VyIHN0YXRlIGZvciBlYWNoIGxldmVsIG9mIHByb2Nlc3Nvcgo+IGhp
-ZXJhcmNoeSBpbiB0aGUgc3lzdGVtLiBUaGV5IHVzZWQgdG8gcHJvZHVjZSBhIGNvbXBvc2l0ZSBw
-b3dlciBzdGF0ZQo+IHJlcXVlc3QgdGhhdCBpcyBwcmVzZW50ZWQgdG8gdGhlIHBsYXRmb3JtIGJ5
-IHRoZSBPU1BNLgo+Cj4gU2luY2UgbXVsdGlwbGUgcHJvY2Vzc29ycyBhZmZlY3QgdGhlIGlkbGUg
-c3RhdGUgZm9yIGFueSBub24tbGVhZiBoaWVyYXJjaHkKPiBub2RlLCBjb29yZGluYXRpb24gb2Yg
-aWRsZSBzdGF0ZSByZXF1ZXN0cyBiZXR3ZWVuIHRoZSBwcm9jZXNzb3JzIGlzCj4gcmVxdWlyZWQu
-IEFDUEkgc3VwcG9ydHMgdHdvIGRpZmZlcmVudCBjb29yZGluYXRpb24gc2NoZW1lczogUGxhdGZv
-cm0KPiBjb29yZGluYXRlZCBhbmQgIE9TIGluaXRpYXRlZC4KPgo+IFRoaXMgcGF0Y2ggYWRkcyBp
-bml0aWFsIHN1cHBvcnQgZm9yIFBsYXRmb3JtIGNvb3JkaW5hdGlvbiBzY2hlbWUgb2YgTFBJLgo+
-Cj4gQ2M6ICJSYWZhZWwgSi4gV3lzb2NraSIgPHJqd0Byand5c29ja2kubmV0Pgo+IFNpZ25lZC1v
-ZmYtYnk6IFN1ZGVlcCBIb2xsYSA8c3VkZWVwLmhvbGxhQGFybS5jb20+Cj4gLS0tCgpIaSBTdWRl
-ZXAsCgpJIGxvb2tlZCBhdCB0aGUgYWNwaSBwcm9jZXNzb3IgaWRsZSBjb2RlIHNvbWV0aW1lIGFn
-byBhbmQgZnJvbSBteSBQT1YsIAppdCB3YXMgYXdmdWwsIHVubmVjZXNzYXJ5IGNvbXBsZXggYW5k
-IHZlcnkgZGlmZmljdWx0IHRvIG1haW50YWluLiBUaGUgCnVzYWdlIG9mIGZsYWdzIGFsbCBvdmVy
-IHRoZSBwbGFjZXMgaXMgc2lnbmlmaWNhbnQgb2YgdGhlIGxhY2sgb2YgY29udHJvbCAKb2YgdGhl
-IHdyaXR0ZW4gY29kZS4KCkV2ZW4gaWYgeW91IGFyZSBub3QgcmVzcG9uc2libGUgb2YgdGhpcyBp
-bXBsZW1lbnRhdGlvbiwgdGhlIGN1cnJlbnQgCnNpdHVhdGlvbiBmb3JjZXMgeW91IHRvIGFkZCBt
-b3JlIGF3ZnVsIGNvZGUgb24gdG9wIG9mIHRoYXQsIHdoaWNoIGlzIApjbGVhcmx5IGFnYWluc3Qg
-Im1ha2luZyBMaW51eCBiZXR0ZXIiLgoKSU1PLCB0aGUgY3VycmVudCBjb2RlIGRlc2VydmVzIGEg
-aHVnZSBjbGVhbnVwIGJlZm9yZSBhcHBseWluZyBhbnl0aGluZyAKbmV3IDogY3N0YXRlIGFuZCBs
-cGkgc2hvdWxkIGJlIGludmVzdGlnYXRlZCB0byBiZSBzZWxmLWNvbnRhaW5lZCBpbiAKdGhlaXIg
-cmVzcGVjdGl2ZSBmaWxlIGFuZCBjb25zb2xpZGF0ZWQsIHRoZSBnbG9iYWwgdmFyaWFibGUgdXNh
-Z2Ugc2hvdWxkIApiZSBraWxsZWQsIHJlZHVuZGFudCBmbGFnIGNoZWNraW5nIHJlbW92ZWQgYnkg
-cmVjYXB0dXJpbmcgdGhlIGNvZGUgZmxvdywgCmV0YyAuLi4gSSBiZWxpZXZlIHRoZSB1c2FnZSBv
-ZiBhY3BpIHByb2JlIHRhYmxlIGNvdWxkIGJlIG9uZSBlbnRyeSBwb2ludCAKdG8gYmVnaW4gdGhp
-cyBjbGVhbnVwLgoKCgoKLS0gCiAgPGh0dHA6Ly93d3cubGluYXJvLm9yZy8+IExpbmFyby5vcmcg
-4pSCIE9wZW4gc291cmNlIHNvZnR3YXJlIGZvciBBUk0gU29DcwoKRm9sbG93IExpbmFybzogIDxo
-dHRwOi8vd3d3LmZhY2Vib29rLmNvbS9wYWdlcy9MaW5hcm8+IEZhY2Vib29rIHwKPGh0dHA6Ly90
-d2l0dGVyLmNvbS8jIS9saW5hcm9vcmc+IFR3aXR0ZXIgfAo8aHR0cDovL3d3dy5saW5hcm8ub3Jn
-L2xpbmFyby1ibG9nLz4gQmxvZwoKCl9fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fX19fX19fCmxpbnV4LWFybS1rZXJuZWwgbWFpbGluZyBsaXN0CmxpbnV4LWFybS1rZXJu
-ZWxAbGlzdHMuaW5mcmFkZWFkLm9yZwpodHRwOi8vbGlzdHMuaW5mcmFkZWFkLm9yZy9tYWlsbWFu
-L2xpc3RpbmZvL2xpbnV4LWFybS1rZXJuZWwK
+Jeremy Linton <jeremy.linton@arm.com> writes:
+
+> Its possible that an ACPI system has multiple CPU types in it
+> with differing PMU counters. Use the newly provided acpi_pmu routines
+> to detect that case, and instantiate more than one set of counters.
+>
+> Signed-off-by: Jeremy Linton <jeremy.linton@arm.com>
+> ---
+>  drivers/perf/arm_pmu.c      |  7 +++-
+>  drivers/perf/arm_pmu_acpi.c | 82 ++++++++++++++++-----------------------------
+>  2 files changed, 35 insertions(+), 54 deletions(-)
+>
+> diff --git a/drivers/perf/arm_pmu.c b/drivers/perf/arm_pmu.c
+> index 28cac3a..f94d279 100644
+> --- a/drivers/perf/arm_pmu.c
+> +++ b/drivers/perf/arm_pmu.c
+> @@ -1044,7 +1044,12 @@ int arm_pmu_device_probe(struct platform_device *pdev,
+>  		if (!ret)
+>  			ret = init_fn(pmu);
+>  	} else if (probe_table) {
+> -		ret = probe_plat_pmu(pmu, probe_table, read_cpuid_id());
+> +		if (acpi_disabled) {
+> +			/* use the current cpu. */
+> +			ret = probe_plat_pmu(pmu, probe_table,
+> +					     read_cpuid_id());
+> +		} else
+> +			ret = probe_plat_pmu(pmu, probe_table, pdev->id);
+>  	}
+>  
+>  	if (ret) {
+> diff --git a/drivers/perf/arm_pmu_acpi.c b/drivers/perf/arm_pmu_acpi.c
+> index 482a54d..6f5df1a 100644
+> --- a/drivers/perf/arm_pmu_acpi.c
+> +++ b/drivers/perf/arm_pmu_acpi.c
+> @@ -50,7 +50,7 @@ void __init arm_pmu_parse_acpi(int cpu, struct acpi_madt_generic_interrupt *gic)
+>  }
+>  
+>  /* Count number and type of CPU cores in the system. */
+> -void __init arm_pmu_acpi_determine_cpu_types(struct list_head *pmus)
+> +static void __init arm_pmu_acpi_determine_cpu_types(struct list_head *pmus)
+>  {
+>  	int i;
+>  
+> @@ -84,7 +84,7 @@ void __init arm_pmu_acpi_determine_cpu_types(struct list_head *pmus)
+>   * Registers the group of PMU interfaces which correspond to the 'last_cpu_id'.
+>   * This group utilizes 'count' resources in the 'res'.
+>   */
+> -int __init arm_pmu_acpi_register_pmu(int count, struct resource *res,
+> +static int __init arm_pmu_acpi_register_pmu(int count, struct resource *res,
+>  					    int last_cpu_id)
+>  {
+>  	int i;
+> @@ -130,7 +130,7 @@ int __init arm_pmu_acpi_register_pmu(int count, struct resource *res,
+>   * them to the resource structure. Return the number of GSI's contained
+>   * in the res structure, and the id of the last CPU/PMU we added.
+>   */
+> -int __init arm_pmu_acpi_gsi_res(struct pmu_types *pmus,
+> +static int __init arm_pmu_acpi_gsi_res(struct pmu_types *pmus,
+>  				       struct resource *res, int *last_cpu_id)
+>  {
+>  	int i, count;
+> @@ -169,63 +169,39 @@ int __init arm_pmu_acpi_gsi_res(struct pmu_types *pmus,
+>  
+>  static int __init pmu_acpi_init(void)
+>  {
+> -	struct platform_device *pdev;
+> -	struct pmu_irq *pirq = pmu_irqs;
+> -	struct resource	*res, *r;
+> +	struct resource	*res;
+>  	int err = -ENOMEM;
+> -	int i, count, irq;
+> +	int count, cpu_id;
+> +	struct pmu_types *pmu, *safe_temp;
+> +	LIST_HEAD(pmus);
+>  
+>  	if (acpi_disabled)
+>  		return 0;
+>  
+> -	/* Must have irq for boot cpu, at least */
+> -	if (pirq->gsi == 0)
+> -		return -EINVAL;
+> -
+> -	irq = acpi_register_gsi(NULL, pirq->gsi, pirq->trigger,
+> -				ACPI_ACTIVE_HIGH);
+> -
+> -	if (irq_is_percpu(irq))
+> -		count = 1;
+> -	else
+> -		for (i = 1, count = 1; i < NR_CPUS; i++)
+> -			if (pmu_irqs[i].gsi)
+> -				++count;
+> -
+> -	pdev = platform_device_alloc(ARMV8_PMU_PDEV_NAME, -1);
+> -	if (!pdev)
+> -		goto err_free_gsi;
+> -
+> -	res = kcalloc(count, sizeof(*res), GFP_KERNEL);
+> -	if (!res)
+> -		goto err_free_device;
+> -
+> -	for (i = 0, r = res; i < count; i++, pirq++, r++) {
+> -		if (i)
+> -			irq = acpi_register_gsi(NULL, pirq->gsi, pirq->trigger,
+> -						ACPI_ACTIVE_HIGH);
+> -		r->start = r->end = irq;
+> -		r->flags = IORESOURCE_IRQ;
+> -		if (pirq->trigger == ACPI_EDGE_SENSITIVE)
+> -			r->flags |= IORESOURCE_IRQ_HIGHEDGE;
+> -		else
+> -			r->flags |= IORESOURCE_IRQ_HIGHLEVEL;
+> +	arm_pmu_acpi_determine_cpu_types(&pmus);
+> +
+> +	list_for_each_entry_safe(pmu, safe_temp, &pmus, list) {
+> +		res = kcalloc(pmu->cpu_count,
+> +			      sizeof(struct resource), GFP_KERNEL);
+> +
+> +		/* for a given PMU type collect all the GSIs. */
+> +		if (res) {
+> +			count = arm_pmu_acpi_gsi_res(pmu, res,
+> +						     &cpu_id);
+> +			/*
+> +			 * register this set of interrupts
+> +			 * with a new PMU device
+> +			 */
+> +			err = arm_pmu_acpi_register_pmu(count, res, cpu_id);
+> +			kfree(res);
+> +		} else
+> +			pr_warn("PMU unable to allocate interrupt resource space\n");
+> +
+> +		list_del(&pmu->list);
+> +		kfree(pmu);
+>  	}
+>  
+> -	err = platform_device_add_resources(pdev, res, count);
+> -	if (!err)
+> -		err = platform_device_add(pdev);
+> -	kfree(res);
+> -	if (!err)
+> -		return 0;
+> -
+> -err_free_device:
+> -	platform_device_put(pdev);
+> -
+> -err_free_gsi:
+> -	for (i = 0; i < count; i++)
+> -		acpi_unregister_gsi(pmu_irqs[i].gsi);
+> -
+>  	return err;
+>  }
+> +
+>  arch_initcall(pmu_acpi_init);
+
+The changes to arm_acpi_pmu.c should be moved to the previous
+patch. It'll help see introduction of functionality and it's use in one
+patch - aiding review.
