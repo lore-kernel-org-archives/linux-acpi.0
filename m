@@ -1,51 +1,93 @@
-From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [PATCH v6 00/10] acpi, clocksource: add GTDT driver and GTDT support in arm_arch_timer
-Date: Fri, 01 Jul 2016 23:04:15 +0200
-Message-ID: <2183745.J7YpvxXQ47@vostro.rjw.lan>
-References: <1467224153-22873-1-git-send-email-fu.wei@linaro.org> <57714bed-3f9c-90c2-ac30-2d462d8a06d4@linaro.org> <20160701152340.GO12735@arm.com>
+From: Rasmus Villemoes <linux@rasmusvillemoes.dk>
+Subject: Re: [PATCH 1/6] lib: string: add function strtolower()
+Date: Fri, 01 Jul 2016 23:08:35 +0200
+Message-ID: <8737nt83sc.fsf@rasmusvillemoes.dk>
+References: <1467330612-26242-1-git-send-email-mmayer@broadcom.com>
+	<1467330612-26242-2-git-send-email-mmayer@broadcom.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7Bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cloudserver094114.home.net.pl ([79.96.170.134]:45291 "HELO
-	cloudserver094114.home.net.pl" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with SMTP id S1751966AbcGAU7p (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 1 Jul 2016 16:59:45 -0400
-In-Reply-To: <20160701152340.GO12735@arm.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain
+Return-path: <linux-scsi-owner@vger.kernel.org>
+In-Reply-To: <1467330612-26242-2-git-send-email-mmayer@broadcom.com> (Markus
+	Mayer's message of "Thu, 30 Jun 2016 16:50:07 -0700")
+Sender: linux-scsi-owner@vger.kernel.org
+To: Markus Mayer <mmayer@broadcom.com>
+Cc: Andrew Morton <akpm@linux-foundation.org>, Al Viro <viro@zeniv.linux.org.uk>, Chris Metcalf <cmetcalf@ezchip.com>, Kees Cook <keescook@chromium.org>, dri-devel@lists.freedesktop.org, nouveau@lists.freedesktop.org, linux-acpi@vger.kernel.org, devel@acpica.org, speakup@linux-speakup.org, devel@driverdev.osuosl.org, linux-scsi@vger.kernel.org, target-devel@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Will Deacon <will.deacon@arm.com>
-Cc: Hanjun Guo <hanjun.guo@linaro.org>, Catalin Marinas <catalin.marinas@arm.com>, Fu Wei <fu.wei@linaro.org>, "Rafael J. Wysocki" <rafael@kernel.org>, Len Brown <lenb@kernel.org>, Daniel Lezcano <daniel.lezcano@linaro.org>, Thomas Gleixner <tglx@linutronix.de>, Marc Zyngier <marc.zyngier@arm.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linaro-acpi@lists.linaro.org" <linaro-acpi@lists.linaro.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, rruigrok@codeaurora.org, harba@codeaurora.org, Christopher Covington <cov@codeaurora.org>, Timur Tabi <timur@codeaurora.org>, G Gregory <graeme.gregory@linaro.org>, Al Stone <al.stone@linaro.org>, Jon Masters <jcm@redhat.com>, wei@redhat.com, Arnd Bergmann <arnd@arndb.de>, Wim Van Sebroeck <wim@iguana.be>, Suravee
 
-On Friday, July 01, 2016 04:23:40 PM Will Deacon wrote:
-> On Thu, Jun 30, 2016 at 09:48:02PM +0800, Hanjun Guo wrote:
-> > On 2016/6/30 21:27, Rafael J. Wysocki wrote:
-> > >On Thursday, June 30, 2016 10:10:02 AM Hanjun Guo wrote:
-> > >>GTDT is part of ACPI spec, drivers/acpi/ is for driver code of
-> > >>ACPI spec, I think it can stay in drivers/acpi/ from this point
-> > >>of view, am I right?
-> > >
-> > >The question is not "Can it?", but "Does it need to?".
-> > >
-> > >It is in the spec, but still there's only one architecture needing it.
-> > >
-> > >There is no way to test it on any other architecture and no reason to build it
-> > >for any other architecture, so why does it need to be located in drivers/acpi/ ?
-> > 
-> > I'm fine to move it to other places such as arch/arm64/kernel/, but I
-> > would like to ask ARM64 maintainer's suggestion for this.
-> > 
-> > Will, Catalin, what's your opinion on this?
-> 
-> We don't have any device-tree code for the architected timer under
-> arch/arm64, so I don't see why we should need anything for ACPI either.
+On Fri, Jul 01 2016, Markus Mayer <mmayer@broadcom.com> wrote:
 
-And I don't see a reason for the GTDT code to be there in drivers/acpi/.
+> Add a function called strtolower() to convert strings to lower case
+> in-place, overwriting the original string.
+>
+> This seems to be a recurring requirement in the kernel that is
+> currently being solved by several duplicated implementations doing the
+> same thing.
+>
+> Signed-off-by: Markus Mayer <mmayer@broadcom.com>
+> ---
+>  include/linux/string.h |  1 +
+>  lib/string.c           | 14 ++++++++++++++
+>  2 files changed, 15 insertions(+)
+>
+> diff --git a/include/linux/string.h b/include/linux/string.h
+> index 26b6f6a..aad605e 100644
+> --- a/include/linux/string.h
+> +++ b/include/linux/string.h
+> @@ -116,6 +116,7 @@ extern void * memchr(const void *,int,__kernel_size_t);
+>  #endif
+>  void *memchr_inv(const void *s, int c, size_t n);
+>  char *strreplace(char *s, char old, char new);
+> +char *strtolower(char *s);
+>  
+>  extern void kfree_const(const void *x);
+>  
+> diff --git a/lib/string.c b/lib/string.c
+> index ed83562..6e3b560 100644
+> --- a/lib/string.c
+> +++ b/lib/string.c
+> @@ -952,3 +952,17 @@ char *strreplace(char *s, char old, char new)
+>  	return s;
+>  }
+>  EXPORT_SYMBOL(strreplace);
+> +
+> +char *strtolower(char *s)
+> +{
+> +	char *p;
+> +
+> +        if (unlikely(!s))
+> +                return NULL;
+> +
+> +	for (p = s; *p; p++)
+> +		*p = tolower(*p);
+> +
+> +	return s;
+> +}
+> +EXPORT_SYMBOL(strtolower);
 
-What gives?
+A few suggestions: 
 
-Maybe it should go to the same place as the analogus DT code, then?
+- Make the function take separate src and dst parameters, making it explicitly
+  allowed to pass the same value (but not other kinds of overlap, of
+  course). That way one can avoid "strcpy(dst, src); strtolower(dst);".
 
-Thanks,
-Rafael
+- Drop the NULL check. If someone does "foo->bar = something;
+  strtolower(foo->bar); put foo in a global data structure...", the
+  dereference of foo->bar may happen much later. Doing the NULL deref
+  sooner means it's much easier to find and fix the bug. (Also, other
+  str* and mem* functions don't usually check for NULL).
 
+- While it's true that strcpy and memcpy by definition return dst, that's
+  mostly useless. If you want it to return anything, please make it
+  something that might be used - for example, having stpcpy semantics
+  (returning a pointer to dst's terminating \0) means a caller might avoid
+  a strlen call.
+
+- Maybe do strtoupper while you're at it. Quick grepping didn't find any
+  use for the copy-while-lowercasing, but copy-while-uppercasing can at
+  least be used in drivers/acpi/acpica/nsrepair2.c,
+  drivers/gpu/drm/nouveau/nvkm/engine/fifo/gk104.c,
+  drivers/power/power_supply_sysfs.c along with a bunch of inplace
+  uppercasing.
+
+
+Rasmus
