@@ -1,79 +1,59 @@
-From: "Rafael J. Wysocki" <rafael@kernel.org>
-Subject: Re: [PATCH 2/3] ACPI: fix acpi_parse_entries_array() so it traverses
- all subtables
-Date: Fri, 1 Jul 2016 23:32:11 +0200
-Message-ID: <CAJZ5v0ig+E33Bb+eMuQpQQV4_RfX9MVbDf=WRTM6WDg=2LFGyQ@mail.gmail.com>
-References: <1467408081-7418-1-git-send-email-ahs3@redhat.com> <1467408081-7418-3-git-send-email-ahs3@redhat.com>
+From: Al Stone <ahs3@redhat.com>
+Subject: Re: [PATCH 1/3] ACPI: fix incorrect counts returned by
+ acpi_parse_entries_array()
+Date: Fri, 1 Jul 2016 15:36:44 -0600
+Message-ID: <719ba3ec-4a05-6ddc-3fbc-8b6d8eab9807@redhat.com>
+References: <1467408081-7418-1-git-send-email-ahs3@redhat.com>
+ <1467408081-7418-2-git-send-email-ahs3@redhat.com>
+ <CAJZ5v0h2_uRYNC-+naQuycNUS86fNy0zO_vAXarfM006sMWEwQ@mail.gmail.com>
+Reply-To: ahs3@redhat.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-wm0-f67.google.com ([74.125.82.67]:33372 "EHLO
-	mail-wm0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751948AbcGAVcN (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 1 Jul 2016 17:32:13 -0400
-In-Reply-To: <1467408081-7418-3-git-send-email-ahs3@redhat.com>
+Received: from mail-it0-f48.google.com ([209.85.214.48]:38243 "EHLO
+	mail-it0-f48.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751959AbcGAVgr (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 1 Jul 2016 17:36:47 -0400
+Received: by mail-it0-f48.google.com with SMTP id h190so26655749ith.1
+        for <linux-acpi@vger.kernel.org>; Fri, 01 Jul 2016 14:36:46 -0700 (PDT)
+In-Reply-To: <CAJZ5v0h2_uRYNC-+naQuycNUS86fNy0zO_vAXarfM006sMWEwQ@mail.gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Al Stone <ahs3@redhat.com>
+To: "Rafael J. Wysocki" <rafael@kernel.org>
 Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>
 
-On Fri, Jul 1, 2016 at 11:21 PM, Al Stone <ahs3@redhat.com> wrote:
-> Without this patch, the acpi_parse_entries_array() function will return
-> the very first time there is any error found in either the array of
-> callback functions or if one of the callbacks returns an non-zero value.
-> However, the array of callbacks could still have valid entries further
-> on in the array, or the callbacks may be able to process subsequent
-> subtables without error.  The change here makes the function consistent
-> with its description so that it will properly return the sum of all
-> matching entries for all proc handlers, instead of stopping abruptly
-> as it does today.
+On 07/01/2016 03:25 PM, Rafael J. Wysocki wrote:
+> On Fri, Jul 1, 2016 at 11:21 PM, Al Stone <ahs3@redhat.com> wrote:
+>> The static function acpi_parse_entries_array() is provided an array of
+>> type struct acpi_subtable_proc that has a callback function and a count.
+>> The count should reflect how many times the callback has been successfully
+>> called.  However, the current code only increments the 0th element of the
+>> array, regardless of the number of entries in the array, or which callback
+>> has been invoked.  The fix is to use the index into the array, instead of
+>> a pointer to the beginning of the array.
+> 
+> OK, so it would be good to say what the consequences of the problem are too.
+> 
 
-I'm not sure I follow.
+Hrm.  So replace the last sentence with something like:
 
-You seem to be saying that the function should process all of the
-subtables etc even though errors have been found for some of them, but
-it still will return an error in the end if there are any errors.  How
-exactly does it help to continue processing in case of an error, then?
+   The fix is to use the index into the array, instead of
+   a pointer to the beginning of the array, so that the count
+   for each element in the array in incremented by the
+   corresponding callback.
 
-> Signed-off-by: Al Stone <ahs3@redhat.com>
-> Cc: Rafael J. Wysocki <rjw@rjwysocki.net>
-> Cc: Len Brown <lenb@kernel.org>
-> ---
->  drivers/acpi/tables.c | 9 ++++++---
->  1 file changed, 6 insertions(+), 3 deletions(-)
->
-> diff --git a/drivers/acpi/tables.c b/drivers/acpi/tables.c
-> index 3e167b4..76c07ed 100644
-> --- a/drivers/acpi/tables.c
-> +++ b/drivers/acpi/tables.c
-> @@ -246,6 +246,7 @@ acpi_parse_entries_array(char *id, unsigned long table_size,
->         struct acpi_subtable_header *entry;
->         unsigned long table_end;
->         int count = 0;
-> +       int errs_found = 0;
->         int i;
->
->         if (acpi_disabled)
-> @@ -278,8 +279,10 @@ acpi_parse_entries_array(char *id, unsigned long table_size,
->                         if (entry->type != proc[i].id)
->                                 continue;
->                         if (!proc[i].handler ||
-> -                            proc[i].handler(entry, table_end))
-> -                               return -EINVAL;
-> +                            proc[i].handler(entry, table_end)) {
-> +                               errs_found++;
-> +                               continue;
-> +                       }
->
->                         proc[i].count++;
->                         break;
-> @@ -305,7 +308,7 @@ acpi_parse_entries_array(char *id, unsigned long table_size,
->                         id, proc->id, count - max_entries, count);
->         }
->
-> -       return count;
-> +       return (errs_found) ? -EINVAL : count;
->  }
->
->  int __init
-> --
+That feels a little clunky but is it closer to what you were
+thinking?
+
+Thanks for the review!
+
+-- 
+ciao,
+al
+-----------------------------------
+Al Stone
+Software Engineer
+Red Hat, Inc.
+ahs3@redhat.com
+-----------------------------------
