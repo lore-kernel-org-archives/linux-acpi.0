@@ -1,17 +1,21 @@
 From: "Williams, Dan J" <dan.j.williams@intel.com>
 Subject: [GIT PULL] libnvdimm fixes for 4.7-rc6
 Date: Fri, 1 Jul 2016 01:01:35 +0000
-Message-ID: <1467334896.11105.19.camel__30486.3700330772$1467334962$gmane$org@intel.com>
+Message-ID: <1467334896.11105.19.camel__17779.1260918186$1467334985$gmane$org@intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-7"
 Content-Transfer-Encoding: 8BIT
-Return-path: <linux-fsdevel-owner@vger.kernel.org>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga01.intel.com ([192.55.52.88]:57498 "EHLO mga01.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751865AbcGABBp convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 30 Jun 2016 21:01:45 -0400
 Content-Language: en-US
 Content-ID: <E9234A9C728CC14C86DE8F2E0E189082@intel.com>
-Sender: linux-fsdevel-owner@vger.kernel.org
+Sender: linux-acpi-owner@vger.kernel.org
+List-Id: linux-acpi@vger.kernel.org
 To: "torvalds@linux-foundation.org" <torvalds@linux-foundation.org>
 Cc: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-fsdevel@vger.kernel.org" <linux-fsdevel@vger.kernel.org>
-List-Id: linux-acpi@vger.kernel.org
 
 Hi Linus, please pull from:
 
