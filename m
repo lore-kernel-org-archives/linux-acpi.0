@@ -1,82 +1,95 @@
-From: "Rafael J. Wysocki" <rafael@kernel.org>
-Subject: Re: [PATCH 3/3] ACPI: fix acpi_parse_entries_array() so it reports
- overflow correctly
-Date: Sat, 2 Jul 2016 00:45:50 +0200
-Message-ID: <CAJZ5v0gHw+Pf1CQBkG7gTHsc+t78T34VP1-0H9eRt+hCVmJRog@mail.gmail.com>
+From: Al Stone <ahs3@redhat.com>
+Subject: Re: [PATCH 2/3] ACPI: fix acpi_parse_entries_array() so it traverses
+ all subtables
+Date: Fri, 1 Jul 2016 17:07:37 -0600
+Message-ID: <17ed6d8d-e8f7-ec0a-4e98-e1a251edd320@redhat.com>
 References: <1467408081-7418-1-git-send-email-ahs3@redhat.com>
- <1467408081-7418-4-git-send-email-ahs3@redhat.com> <CAJZ5v0hmfnARBC1+ZaGoJtQoHJ-Pp2mwz7HRR5EVybX0o--cxg@mail.gmail.com>
- <707a387c-43a0-daf4-a2c5-98e1d016f2b4@redhat.com> <CAJZ5v0i0sXTPP9S4ZAFNPRkatOkHUhYoFwuJS8-Tn8a3iT=-=A@mail.gmail.com>
- <203614ca-e846-4eac-fd6a-eb389b37fa08@redhat.com>
+ <1467408081-7418-3-git-send-email-ahs3@redhat.com>
+ <CAJZ5v0ig+E33Bb+eMuQpQQV4_RfX9MVbDf=WRTM6WDg=2LFGyQ@mail.gmail.com>
+ <3b06c1f7-d1d1-f86a-ba3c-ef566af2f6db@redhat.com>
+ <CAJZ5v0htLm0r0gk+t=_acBfeVA5ErW-bDRDEXHtKKQsAapEC5g@mail.gmail.com>
+ <00e1e2ec-b7e1-606d-3faa-271560864d0e@redhat.com>
+ <CAJZ5v0j8LWL-hNm=6tLTzjyqDRu+MFpibzjWjipy9dLUYJwvrA@mail.gmail.com>
+Reply-To: ahs3@redhat.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-wm0-f48.google.com ([74.125.82.48]:36341 "EHLO
-	mail-wm0-f48.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752115AbcGAWpx (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 1 Jul 2016 18:45:53 -0400
-In-Reply-To: <203614ca-e846-4eac-fd6a-eb389b37fa08@redhat.com>
+Received: from mail-it0-f51.google.com ([209.85.214.51]:36033 "EHLO
+	mail-it0-f51.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932081AbcGAXHj (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 1 Jul 2016 19:07:39 -0400
+Received: by mail-it0-f51.google.com with SMTP id a5so29689370ita.1
+        for <linux-acpi@vger.kernel.org>; Fri, 01 Jul 2016 16:07:39 -0700 (PDT)
+In-Reply-To: <CAJZ5v0j8LWL-hNm=6tLTzjyqDRu+MFpibzjWjipy9dLUYJwvrA@mail.gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Al Stone <ahs3@redhat.com>
-Cc: "Rafael J. Wysocki" <rafael@kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>
+To: "Rafael J. Wysocki" <rafael@kernel.org>
+Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>
 
-On Sat, Jul 2, 2016 at 12:38 AM, Al Stone <ahs3@redhat.com> wrote:
-> On 07/01/2016 03:54 PM, Rafael J. Wysocki wrote:
->> On Fri, Jul 1, 2016 at 11:44 PM, Al Stone <ahs3@redhat.com> wrote:
->>> On 07/01/2016 03:40 PM, Rafael J. Wysocki wrote:
->>>> On Fri, Jul 1, 2016 at 11:21 PM, Al Stone <ahs3@redhat.com> wrote:
->>>>> The function acpi_parse_entries_array() has a limiting parameter,
->>>>> max_entries, which tells the function to stop looking at subtables
->>>>> once that limit has been reached.  Further, if the limit is reached,
->>>>> it is reported.  However, the logic is incorrect in that the loop
->>>>> to examine all subtables will always stop when exactly max_entries
->>>>> have been found, regardless of whether or not there are still subtables
->>>>> to examine, and it will always report that zero subtables have been
->>>>> ignored.  This change allows the loop to continue to look at all
->>>>> subtables and count all the ones of interest; if we have already
->>>>> reached the number of max_entries, though, we will not invoke the
->>>>> callback functions.  If the max_entries limit has been exceeded,
->>>>> report on that, as before, but more accurately, listing how many
->>>>> subtables of interest there are in total (as was meant), and how
->>>>> many entries each subtable type occupied.
+On 07/01/2016 04:01 PM, Rafael J. Wysocki wrote:
+> On Fri, Jul 1, 2016 at 11:55 PM, Al Stone <ahs3@redhat.com> wrote:
+>> On 07/01/2016 03:46 PM, Rafael J. Wysocki wrote:
+>>> On Fri, Jul 1, 2016 at 11:41 PM, Al Stone <ahs3@redhat.com> wrote:
+>>>> On 07/01/2016 03:32 PM, Rafael J. Wysocki wrote:
+>>>>> On Fri, Jul 1, 2016 at 11:21 PM, Al Stone <ahs3@redhat.com> wrote:
+>>>>>> Without this patch, the acpi_parse_entries_array() function will return
+>>>>>> the very first time there is any error found in either the array of
+>>>>>> callback functions or if one of the callbacks returns an non-zero value.
+>>>>>> However, the array of callbacks could still have valid entries further
+>>>>>> on in the array, or the callbacks may be able to process subsequent
+>>>>>> subtables without error.  The change here makes the function consistent
+>>>>>> with its description so that it will properly return the sum of all
+>>>>>> matching entries for all proc handlers, instead of stopping abruptly
+>>>>>> as it does today.
+>>>>>
+>>>>> I'm not sure I follow.
+>>>>>
+>>>>> You seem to be saying that the function should process all of the
+>>>>> subtables etc even though errors have been found for some of them, but
+>>>>> it still will return an error in the end if there are any errors.  How
+>>>>> exactly does it help to continue processing in case of an error, then?
 >>>>
->>>> The problem appears to be that, if max_entries has been reached, it
->>>> prints "ignored 0", although it should count all of the entries in
->>>> that case too in principle.  Do I think correctly?
->>>>
+>>>> The use case I have in mind is to simply count all of the subtables of
+>>>> a certain type.  If for some reason, the callback -- or any other callback
+>>>> -- fails, the traversal of all the subtables stops immediately.  So, I
+>>>> could have two callbacks, and if the first one fails on the first subtable
+>>>> of its type, traversal stops.  The count for the second callback will be
+>>>> zero which may or may not be correct.
 >>>
->>> Exactly.  That's how I interpreted the comments.  And it fit what I
->>> needed it to do if the comments were correct.
+>>> It will be zero, because the callback has not been invoked at all.
+>>> Why is this incorrect?
 >>>
->>> Of course, it could be the code was correct and the comments were
->>> wrong :).  I preferred not to think that.
 >>
->> I guess whoever implemented this function thought that the overhead
->> for counting stuff was not useful in case max_entries had been
->> reached.  I'm not really sure I disagree with that. :-)
->
-> I'm not sure I disagree, either :).
->
->> I agree that printing "ignored 0" in that case is misleading, but the
->> fix might be to simply avoid printing how many entries have been
->> ignored then.  Maybe it will suffice to print how many entries have
->> been found and what the limit was?
->
-> That could work.
->
-> Unless I've misunderstood the code, though, the situation that seemed likely
-> to me is, for example, to suppose that the first five subtables out of 20 are
-> of a single type and cause my max_entries limit to be reached.  If I have three
-> callbacks, I'd end up with two other callback functions that would never get
-> called, even if some of the remaining 15 subtables are pertinent and could help
-> get the boot process further along.
+>> Because there could be additional subtables after the one causing a failure
+>> that the second callback could have counted; e.g., if the failure is on the
+>> first subtable of 20 in the MADT, the following 19 would be ignored, even if
+>> they were all the right subtype for the second callback.
+> 
+> Let me rephrase: Is there any practical value of invoking any more
+> callbacks if one of them has failed?  If so, what is it?
+> 
+> You are changing semantics from "abort on the first failure" to
+> "process everything and count errors".  That's quite a bit different
+> and I'm trying to understand why the latter is better.
+> 
 
-That depends on what max_entries is used for which I don't recall ATM.
+Agreed, it is a shift in semantics.
 
-So before making changes here, I'd recommend looking for code that
-uses max_entries in non-trivial ways and finding the reasons why it is
-used.
+The practical value to me is being able to use acpi_parse_entries_array() to
+solve a broader range of problems.  The situation I have is that I need to
+count three different subtable types in the MADT.  I could call
+acpi_table_parse_madt() three different times, or I could call
+acpi_parse_entries_array() once -- it seemed to me the second makes for cleaner
+code and will be slightly more efficient (one map/unmap of the table, vs
+three), but that only works if all of the subtables are traversed.
 
-Maybe it is just not really needed or maybe it should just be replaced
-with something else.  In any case, without any research in that
-direction, I'd rather do the simplest fix possible.
+-- 
+ciao,
+al
+-----------------------------------
+Al Stone
+Software Engineer
+Red Hat, Inc.
+ahs3@redhat.com
+-----------------------------------
