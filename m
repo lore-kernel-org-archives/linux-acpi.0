@@ -1,14 +1,14 @@
 From: "Williams, Dan J" <dan.j.williams@intel.com>
 Subject: [GIT PULL] libnvdimm fixes for 4.7-rc6
 Date: Fri, 1 Jul 2016 01:01:35 +0000
-Message-ID: <1467334896.11105.19.camel__203.868040307675$1467334948$gmane$org@intel.com>
+Message-ID: <1467334896.11105.19.camel__30486.3700330772$1467334962$gmane$org@intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-7"
 Content-Transfer-Encoding: 8BIT
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Return-path: <linux-fsdevel-owner@vger.kernel.org>
 Content-Language: en-US
 Content-ID: <E9234A9C728CC14C86DE8F2E0E189082@intel.com>
-Sender: linux-kernel-owner@vger.kernel.org
+Sender: linux-fsdevel-owner@vger.kernel.org
 To: "torvalds@linux-foundation.org" <torvalds@linux-foundation.org>
 Cc: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-fsdevel@vger.kernel.org" <linux-fsdevel@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
@@ -192,4 +192,4 @@ Date:+AKAAoACg-Wed Jun 29 11:19:32 2016 -0700
 +AKAAoACgAKA-Fixes: 30ec5fd464d5 (+ACI-nfit: fix format interface code byte order per ACPI6.1+ACI-)
 +AKAAoACgAKA-Fixes: 5ad9a7fde07a (+ACI-acpi/nfit: Update nfit driver to comply with ACPI 6.1+ACI-)
 +AKAAoACgAKA-Reported-by: Kristin Jacque +ADw-kristin.jacque+AEA-intel.com+AD4-
-+AKAAoACgAKA-Signed-off-by: Dan Williams +ADw-dan.j.williams+AEA-intel.com+AD4-
++AKAAoACgAKA-Signed-off-by: Dan Williams +ADw-dan.j.williams+AEA-intel.com+AD4
