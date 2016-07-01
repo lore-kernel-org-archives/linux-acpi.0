@@ -1,58 +1,73 @@
-From: "Rafael J. Wysocki" <rafael@kernel.org>
-Subject: Re: [PATCH 3/3] ACPI: fix acpi_parse_entries_array() so it reports
- overflow correctly
-Date: Fri, 1 Jul 2016 23:54:22 +0200
-Message-ID: <CAJZ5v0i0sXTPP9S4ZAFNPRkatOkHUhYoFwuJS8-Tn8a3iT=-=A@mail.gmail.com>
+From: Al Stone <ahs3@redhat.com>
+Subject: Re: [PATCH 2/3] ACPI: fix acpi_parse_entries_array() so it traverses
+ all subtables
+Date: Fri, 1 Jul 2016 15:55:43 -0600
+Message-ID: <00e1e2ec-b7e1-606d-3faa-271560864d0e@redhat.com>
 References: <1467408081-7418-1-git-send-email-ahs3@redhat.com>
- <1467408081-7418-4-git-send-email-ahs3@redhat.com> <CAJZ5v0hmfnARBC1+ZaGoJtQoHJ-Pp2mwz7HRR5EVybX0o--cxg@mail.gmail.com>
- <707a387c-43a0-daf4-a2c5-98e1d016f2b4@redhat.com>
+ <1467408081-7418-3-git-send-email-ahs3@redhat.com>
+ <CAJZ5v0ig+E33Bb+eMuQpQQV4_RfX9MVbDf=WRTM6WDg=2LFGyQ@mail.gmail.com>
+ <3b06c1f7-d1d1-f86a-ba3c-ef566af2f6db@redhat.com>
+ <CAJZ5v0htLm0r0gk+t=_acBfeVA5ErW-bDRDEXHtKKQsAapEC5g@mail.gmail.com>
+Reply-To: ahs3@redhat.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-wm0-f47.google.com ([74.125.82.47]:38860 "EHLO
-	mail-wm0-f47.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752118AbcGAVyZ (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 1 Jul 2016 17:54:25 -0400
-In-Reply-To: <707a387c-43a0-daf4-a2c5-98e1d016f2b4@redhat.com>
+Received: from mail-it0-f48.google.com ([209.85.214.48]:35302 "EHLO
+	mail-it0-f48.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751900AbcGAVzp (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 1 Jul 2016 17:55:45 -0400
+Received: by mail-it0-f48.google.com with SMTP id g127so28067426ith.0
+        for <linux-acpi@vger.kernel.org>; Fri, 01 Jul 2016 14:55:44 -0700 (PDT)
+In-Reply-To: <CAJZ5v0htLm0r0gk+t=_acBfeVA5ErW-bDRDEXHtKKQsAapEC5g@mail.gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Al Stone <ahs3@redhat.com>
-Cc: "Rafael J. Wysocki" <rafael@kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>
+To: "Rafael J. Wysocki" <rafael@kernel.org>
+Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>
 
-On Fri, Jul 1, 2016 at 11:44 PM, Al Stone <ahs3@redhat.com> wrote:
-> On 07/01/2016 03:40 PM, Rafael J. Wysocki wrote:
->> On Fri, Jul 1, 2016 at 11:21 PM, Al Stone <ahs3@redhat.com> wrote:
->>> The function acpi_parse_entries_array() has a limiting parameter,
->>> max_entries, which tells the function to stop looking at subtables
->>> once that limit has been reached.  Further, if the limit is reached,
->>> it is reported.  However, the logic is incorrect in that the loop
->>> to examine all subtables will always stop when exactly max_entries
->>> have been found, regardless of whether or not there are still subtables
->>> to examine, and it will always report that zero subtables have been
->>> ignored.  This change allows the loop to continue to look at all
->>> subtables and count all the ones of interest; if we have already
->>> reached the number of max_entries, though, we will not invoke the
->>> callback functions.  If the max_entries limit has been exceeded,
->>> report on that, as before, but more accurately, listing how many
->>> subtables of interest there are in total (as was meant), and how
->>> many entries each subtable type occupied.
+On 07/01/2016 03:46 PM, Rafael J. Wysocki wrote:
+> On Fri, Jul 1, 2016 at 11:41 PM, Al Stone <ahs3@redhat.com> wrote:
+>> On 07/01/2016 03:32 PM, Rafael J. Wysocki wrote:
+>>> On Fri, Jul 1, 2016 at 11:21 PM, Al Stone <ahs3@redhat.com> wrote:
+>>>> Without this patch, the acpi_parse_entries_array() function will return
+>>>> the very first time there is any error found in either the array of
+>>>> callback functions or if one of the callbacks returns an non-zero value.
+>>>> However, the array of callbacks could still have valid entries further
+>>>> on in the array, or the callbacks may be able to process subsequent
+>>>> subtables without error.  The change here makes the function consistent
+>>>> with its description so that it will properly return the sum of all
+>>>> matching entries for all proc handlers, instead of stopping abruptly
+>>>> as it does today.
+>>>
+>>> I'm not sure I follow.
+>>>
+>>> You seem to be saying that the function should process all of the
+>>> subtables etc even though errors have been found for some of them, but
+>>> it still will return an error in the end if there are any errors.  How
+>>> exactly does it help to continue processing in case of an error, then?
 >>
->> The problem appears to be that, if max_entries has been reached, it
->> prints "ignored 0", although it should count all of the entries in
->> that case too in principle.  Do I think correctly?
->>
->
-> Exactly.  That's how I interpreted the comments.  And it fit what I
-> needed it to do if the comments were correct.
->
-> Of course, it could be the code was correct and the comments were
-> wrong :).  I preferred not to think that.
+>> The use case I have in mind is to simply count all of the subtables of
+>> a certain type.  If for some reason, the callback -- or any other callback
+>> -- fails, the traversal of all the subtables stops immediately.  So, I
+>> could have two callbacks, and if the first one fails on the first subtable
+>> of its type, traversal stops.  The count for the second callback will be
+>> zero which may or may not be correct.
+> 
+> It will be zero, because the callback has not been invoked at all.
+> Why is this incorrect?
+> 
 
-I guess whoever implemented this function thought that the overhead
-for counting stuff was not useful in case max_entries had been
-reached.  I'm not really sure I disagree with that. :-)
+Because there could be additional subtables after the one causing a failure
+that the second callback could have counted; e.g., if the failure is on the
+first subtable of 20 in the MADT, the following 19 would be ignored, even if
+they were all the right subtype for the second callback.
 
-I agree that printing "ignored 0" in that case is misleading, but the
-fix might be to simply avoid printing how many entries have been
-ignored then.  Maybe it will suffice to print how many entries have
-been found and what the limit was?
+-- 
+ciao,
+al
+-----------------------------------
+Al Stone
+Software Engineer
+Red Hat, Inc.
+ahs3@redhat.com
+-----------------------------------
