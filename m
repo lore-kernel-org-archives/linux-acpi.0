@@ -1,51 +1,52 @@
-From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [PATCH 4/6] ACPI / device_sysfs: make use of new strtolower() function
-Date: Fri, 01 Jul 2016 22:44:33 +0200
-Message-ID: <9679780.CKS7jhtgO8@vostro.rjw.lan>
-References: <1467330612-26242-1-git-send-email-mmayer@broadcom.com> <1467330612-26242-5-git-send-email-mmayer@broadcom.com>
+From: Eduardo Valentin <edubezval@gmail.com>
+Subject: Re: [PATCH 1/1] thermal: core: call thermal_zone_device_update()
+ after mode update
+Date: Fri, 1 Jul 2016 13:53:31 -0700
+Message-ID: <20160701205329.GB7814@localhost.localdomain>
+References: <1466563538.2471.10.camel@intel.com>
+ <1466571990-12346-1-git-send-email-edubezval@gmail.com>
+ <CAJZ5v0hRosrpW50Jx3p6-yHmNFLEaHpf9htfevtunEa10Jo7Dg@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7Bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cloudserver094114.home.net.pl ([79.96.170.134]:50345 "HELO
-	cloudserver094114.home.net.pl" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with SMTP id S1751911AbcGAUkG (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 1 Jul 2016 16:40:06 -0400
-In-Reply-To: <1467330612-26242-5-git-send-email-mmayer@broadcom.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-pm-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <CAJZ5v0hRosrpW50Jx3p6-yHmNFLEaHpf9htfevtunEa10Jo7Dg@mail.gmail.com>
+Sender: linux-pm-owner@vger.kernel.org
+To: "Rafael J. Wysocki" <rafael@kernel.org>
+Cc: Rui Zhang <rui.zhang@intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, "Lee, Chun-Yi" <jlee@suse.com>, Darren Hart <dvhart@infradead.org>, Keerthy <j-keerthy@ti.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, platform-driver-x86@vger.kernel.org, "linux-pm@vger.kernel.org" <linux-pm@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
-To: Markus Mayer <mmayer@broadcom.com>
-Cc: Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
-On Thursday, June 30, 2016 04:50:10 PM Markus Mayer wrote:
-> Call strtolower() rather than walking the string explicitly to convert
-> it to lowercase.
+On Thu, Jun 23, 2016 at 02:27:12PM +0200, Rafael J. Wysocki wrote:
+> On Wed, Jun 22, 2016 at 7:06 AM, Eduardo Valentin <edubezval@gmail.com> wrote:
+> > Because several drivers do the following pattern:
+> > .set_mode()
+> >    ...
+> >    local_data->mode = new_mode;
+> >    thermal_zone_device_update(tz);
+> >
+> > makes sense to simply do the thermal_zone_device_update()
+> > in thermal core, after setting the new mode.
+> >
+> > Also, this patch also remove deadlocks on drivers that
+> > call thermal_zone_device_update() on .set_mode(),
+> > as .set_mode()  is now called always with tz->lock held.
 > 
-> Signed-off-by: Markus Mayer <mmayer@broadcom.com>
-
-ACK
-
-> ---
->  drivers/acpi/device_sysfs.c | 4 +---
->  1 file changed, 1 insertion(+), 3 deletions(-)
+> To me, this part of the patch is way more important than the
+> optimization mentioned before.
 > 
-> diff --git a/drivers/acpi/device_sysfs.c b/drivers/acpi/device_sysfs.c
-> index 7b2c48f..1db38c7 100644
-> --- a/drivers/acpi/device_sysfs.c
-> +++ b/drivers/acpi/device_sysfs.c
-> @@ -200,12 +200,10 @@ static int create_of_modalias(struct acpi_device *acpi_dev, char *modalias,
->  	const union acpi_object *of_compatible, *obj;
->  	int len, count;
->  	int i, nval;
-> -	char *c;
->  
->  	acpi_get_name(acpi_dev->handle, ACPI_SINGLE_NAME, &buf);
->  	/* DT strings are all in lower case */
-> -	for (c = buf.pointer; *c != '\0'; c++)
-> -		*c = tolower(*c);
-> +	strtolower(buf.pointer);
->  
->  	len = snprintf(modalias, size, "of:N%sT", (char *)buf.pointer);
->  	ACPI_FREE(buf.pointer);
+> Apparently, the problem is that drivers deadlock, because the
+> thermal_zone_device_update() invoked from ->set_mode() is called under
+> tz->lock.
 > 
+> So to address that problem you make the core call
+> thermal_zone_device_update() after ->set_mode() outside of tz->lock
+> and the drivers don't have to do it any more.
+> 
+> Is that correct?
 
+Yes this is correct. The optimization is simply a consequence of the bug
+fix, as reported by Keerthy.
+
+> 
+> Thanks,
+> Rafael
