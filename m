@@ -1,7 +1,7 @@
 From: Al Stone <ahs3@redhat.com>
-Subject: [PATCH 2/3] ACPI: fix acpi_parse_entries_array() so it traverses all subtables
-Date: Fri,  1 Jul 2016 15:21:20 -0600
-Message-ID: <1467408081-7418-3-git-send-email-ahs3@redhat.com>
+Subject: [PATCH 1/3] ACPI: fix incorrect counts returned by acpi_parse_entries_array()
+Date: Fri,  1 Jul 2016 15:21:19 -0600
+Message-ID: <1467408081-7418-2-git-send-email-ahs3@redhat.com>
 References: <1467408081-7418-1-git-send-email-ahs3@redhat.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1467408081-7418-1-git-send-email-ahs3@redhat.com>
@@ -10,56 +10,42 @@ To: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 Cc: ahs3@redhat.com, "Rafael J . Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-Without this patch, the acpi_parse_entries_array() function will return
-the very first time there is any error found in either the array of
-callback functions or if one of the callbacks returns an non-zero value.
-However, the array of callbacks could still have valid entries further
-on in the array, or the callbacks may be able to process subsequent
-subtables without error.  The change here makes the function consistent
-with its description so that it will properly return the sum of all
-matching entries for all proc handlers, instead of stopping abruptly
-as it does today.
+The static function acpi_parse_entries_array() is provided an array of
+type struct acpi_subtable_proc that has a callback function and a count.
+The count should reflect how many times the callback has been successfully
+called.  However, the current code only increments the 0th element of the
+array, regardless of the number of entries in the array, or which callback
+has been invoked.  The fix is to use the index into the array, instead of
+a pointer to the beginning of the array.
 
 Signed-off-by: Al Stone <ahs3@redhat.com>
 Cc: Rafael J. Wysocki <rjw@rjwysocki.net>
 Cc: Len Brown <lenb@kernel.org>
 ---
- drivers/acpi/tables.c | 9 ++++++---
- 1 file changed, 6 insertions(+), 3 deletions(-)
+ drivers/acpi/tables.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
 diff --git a/drivers/acpi/tables.c b/drivers/acpi/tables.c
-index 3e167b4..76c07ed 100644
+index 9f0ad6e..3e167b4 100644
 --- a/drivers/acpi/tables.c
 +++ b/drivers/acpi/tables.c
-@@ -246,6 +246,7 @@ acpi_parse_entries_array(char *id, unsigned long table_size,
- 	struct acpi_subtable_header *entry;
- 	unsigned long table_end;
- 	int count = 0;
-+	int errs_found = 0;
- 	int i;
+@@ -281,7 +281,7 @@ acpi_parse_entries_array(char *id, unsigned long table_size,
+ 			     proc[i].handler(entry, table_end))
+ 				return -EINVAL;
  
- 	if (acpi_disabled)
-@@ -278,8 +279,10 @@ acpi_parse_entries_array(char *id, unsigned long table_size,
- 			if (entry->type != proc[i].id)
- 				continue;
- 			if (!proc[i].handler ||
--			     proc[i].handler(entry, table_end))
--				return -EINVAL;
-+			     proc[i].handler(entry, table_end)) {
-+				errs_found++;
-+				continue;
-+			}
- 
- 			proc[i].count++;
+-			proc->count++;
++			proc[i].count++;
  			break;
-@@ -305,7 +308,7 @@ acpi_parse_entries_array(char *id, unsigned long table_size,
- 			id, proc->id, count - max_entries, count);
- 	}
- 
--	return count;
-+	return (errs_found) ? -EINVAL : count;
+ 		}
+ 		if (i != proc_num)
+@@ -416,7 +416,7 @@ int __init acpi_table_parse(char *id, acpi_tbl_table_handler handler)
+ 		return -ENODEV;
  }
  
- int __init
+-/* 
++/*
+  * The BIOS is supposed to supply a single APIC/MADT,
+  * but some report two.  Provide a knob to use either.
+  * (don't you wish instance 0 and 1 were not the same?)
 -- 
 2.7.4
