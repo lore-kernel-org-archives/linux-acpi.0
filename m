@@ -1,61 +1,69 @@
 From: Al Stone <ahs3@redhat.com>
-Subject: [PATCH 0/3] Correct errors in acpi_parse_entries_array()
-Date: Fri,  1 Jul 2016 15:21:18 -0600
-Message-ID: <1467408081-7418-1-git-send-email-ahs3@redhat.com>
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:55140 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751961AbcGAVWP (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 1 Jul 2016 17:22:15 -0400
-Sender: linux-acpi-owner@vger.kernel.org
-List-Id: linux-acpi@vger.kernel.org
+Subject: [PATCH 3/3] ACPI: fix acpi_parse_entries_array() so it reports overflow correctly
+Date: Fri,  1 Jul 2016 15:21:21 -0600
+Message-ID: <1467408081-7418-4-git-send-email-ahs3@redhat.com>
+References: <1467408081-7418-1-git-send-email-ahs3@redhat.com>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1467408081-7418-1-git-send-email-ahs3@redhat.com>
+Sender: linux-kernel-owner@vger.kernel.org
 To: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
-Cc: ahs3@redhat.com
+Cc: ahs3@redhat.com, "Rafael J . Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>
+List-Id: linux-acpi@vger.kernel.org
 
-In examining the function acpi_parse_entries_array() for use in another
-patch series, I realized the commentary and the code do not agree.
-Assuming the commentary is correct, this function will do as I need;
-that is not, however, what it does.
+The function acpi_parse_entries_array() has a limiting parameter,
+max_entries, which tells the function to stop looking at subtables
+once that limit has been reached.  Further, if the limit is reached,
+it is reported.  However, the logic is incorrect in that the loop
+to examine all subtables will always stop when exactly max_entries
+have been found, regardless of whether or not there are still subtables
+to examine, and it will always report that zero subtables have been
+ignored.  This change allows the loop to continue to look at all
+subtables and count all the ones of interest; if we have already
+reached the number of max_entries, though, we will not invoke the
+callback functions.  If the max_entries limit has been exceeded,
+report on that, as before, but more accurately, listing how many
+subtables of interest there are in total (as was meant), and how
+many entries each subtable type occupied.
 
-The first patch fixes an error where only the very first count element
-of a struct in an array of structs gets incremented.  My understanding
-of the comments is that the count element for each struct in the array
-should be incremented instead.  With the patch, it will.
+Signed-off-by: Al Stone <ahs3@redhat.com>
+Cc: Rafael J. Wysocki <rjw@rjwysocki.net>
+Cc: Len Brown <lenb@kernel.org>
+---
+ drivers/acpi/tables.c | 12 +++++++-----
+ 1 file changed, 7 insertions(+), 5 deletions(-)
 
-The second patch causes the function to actually traverse all subtables
-just like the comments indicate.  Previously, on any sort of error the
-loop would terminate completely, but I really do want to visit all of
-the entries even if some need to be ignored.
-
-The final patch corrects the printout when more entries are found than
-can actually be handled.  The original code would incorrectly count the
-number of entries ignored since it would alway stop the traversal when
-the limit on entries was reached, regardless of whether there were
-additional entries that still had not been examined.
-
-Looking at the direct and indirect users of acpi_parse_entries_array(),
-they all appear to depend on the return value from the function being
-either > 0 or < 0, and not a specific value.  Hence, the changes here
-have no effect on them.
-
-However, the use case I have in mind traverses the MADT in order to
-count not only subtables of a specific type, but also subtables of a
-specific type that contain specific values.  With these fixes, I can
-make one call to acpi_parse_entries_array() using very small callback
-functions and do what I need, and get the correct results.
-
-Tested on arm64 and x86_64, with simple booting, comparison of boot
-logs, and daily use over the last couple of days.
-
-
-Al Stone (3):
-  ACPI: fix incorrect counts returned by acpi_parse_entries_array()
-  ACPI: fix acpi_parse_entries_array() so it traverses all subtables
-  ACPI: fix acpi_parse_entries_array() so it reports overflow correctly
-
- drivers/acpi/tables.c | 25 +++++++++++++++----------
- 1 file changed, 15 insertions(+), 10 deletions(-)
-
+diff --git a/drivers/acpi/tables.c b/drivers/acpi/tables.c
+index 76c07ed..227312d 100644
+--- a/drivers/acpi/tables.c
++++ b/drivers/acpi/tables.c
+@@ -272,12 +272,11 @@ acpi_parse_entries_array(char *id, unsigned long table_size,
+ 
+ 	while (((unsigned long)entry) + sizeof(struct acpi_subtable_header) <
+ 	       table_end) {
+-		if (max_entries && count >= max_entries)
+-			break;
+-
+ 		for (i = 0; i < proc_num; i++) {
+ 			if (entry->type != proc[i].id)
+ 				continue;
++			if (max_entries && count >= max_entries)
++				break;
+ 			if (!proc[i].handler ||
+ 			     proc[i].handler(entry, table_end)) {
+ 				errs_found++;
+@@ -304,8 +303,11 @@ acpi_parse_entries_array(char *id, unsigned long table_size,
+ 	}
+ 
+ 	if (max_entries && count > max_entries) {
+-		pr_warn("[%4.4s:0x%02x] ignored %i entries of %i found\n",
+-			id, proc->id, count - max_entries, count);
++		pr_warn("[%4.4s] ignored %i entries of %i found\n",
++			id, count - max_entries, count);
++		for (i = 0; i < proc_num; i++)
++			pr_warn("[%4.4s] subtable 0x%02x used %i entries\n",
++				id, proc[i].id, proc[i].count);
+ 	}
+ 
+ 	return (errs_found) ? -EINVAL: count;
 -- 
 2.7.4
-
