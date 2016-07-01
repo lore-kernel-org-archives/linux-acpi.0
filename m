@@ -1,134 +1,51 @@
-From: Octavian Purdila <octavian.purdila@intel.com>
-Subject: [PATCH v5 2/8] acpi: fix enumeration (visited) flags for bus rescans
-Date: Fri,  1 Jul 2016 23:19:06 +0300
-Message-ID: <1467404352-27101-3-git-send-email-octavian.purdila@intel.com>
-References: <1467404352-27101-1-git-send-email-octavian.purdila@intel.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1467404352-27101-1-git-send-email-octavian.purdila@intel.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: "Rafael J . Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Matt Fleming <matt@codeblueprint.co.uk>, Mark Brown <broonie@kernel.org>, Wolfram Sang <wsa@the-dreams.de>
-Cc: Joel Becker <jlbec@evilplan.org>, linux-acpi@vger.kernel.org, linux-efi@vger.kernel.org, linux-i2c@vger.kernel.org, linux-spi@vger.kernel.org, linux-kernel@vger.kernel.org, irina.tirdea@intel.com, leonard.crestez@intel.com, Octavian Purdila <octavian.purdila@intel.com>
+From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Subject: Re: [PATCH 4/6] ACPI / device_sysfs: make use of new strtolower() function
+Date: Fri, 01 Jul 2016 22:44:33 +0200
+Message-ID: <9679780.CKS7jhtgO8@vostro.rjw.lan>
+References: <1467330612-26242-1-git-send-email-mmayer@broadcom.com> <1467330612-26242-5-git-send-email-mmayer@broadcom.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7Bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from cloudserver094114.home.net.pl ([79.96.170.134]:50345 "HELO
+	cloudserver094114.home.net.pl" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with SMTP id S1751911AbcGAUkG (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 1 Jul 2016 16:40:06 -0400
+In-Reply-To: <1467330612-26242-5-git-send-email-mmayer@broadcom.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Markus Mayer <mmayer@broadcom.com>
+Cc: Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
-If the ACPI tables changes as a result of a dinamically loaded table and
-a bus rescan is required the enumeration/visited flag are not
-consistent.
+On Thursday, June 30, 2016 04:50:10 PM Markus Mayer wrote:
+> Call strtolower() rather than walking the string explicitly to convert
+> it to lowercase.
+> 
+> Signed-off-by: Markus Mayer <mmayer@broadcom.com>
 
-I2C/SPI are not directly enumerated in acpi_bus_attach(), however the
-visited flag is set. This makes it impossible to check if an ACPI device
-has already been enumerated by the I2C and SPI subsystems. To fix this
-issue we only set the visited flags if the device is not I2C or SPI.
+ACK
 
-With this change we also need to remove setting visited to false from
-acpi_bus_attach(), otherwise if we rescan already enumerated I2C/SPI
-devices we try to re-enumerate them.
+> ---
+>  drivers/acpi/device_sysfs.c | 4 +---
+>  1 file changed, 1 insertion(+), 3 deletions(-)
+> 
+> diff --git a/drivers/acpi/device_sysfs.c b/drivers/acpi/device_sysfs.c
+> index 7b2c48f..1db38c7 100644
+> --- a/drivers/acpi/device_sysfs.c
+> +++ b/drivers/acpi/device_sysfs.c
+> @@ -200,12 +200,10 @@ static int create_of_modalias(struct acpi_device *acpi_dev, char *modalias,
+>  	const union acpi_object *of_compatible, *obj;
+>  	int len, count;
+>  	int i, nval;
+> -	char *c;
+>  
+>  	acpi_get_name(acpi_dev->handle, ACPI_SINGLE_NAME, &buf);
+>  	/* DT strings are all in lower case */
+> -	for (c = buf.pointer; *c != '\0'; c++)
+> -		*c = tolower(*c);
+> +	strtolower(buf.pointer);
+>  
+>  	len = snprintf(modalias, size, "of:N%sT", (char *)buf.pointer);
+>  	ACPI_FREE(buf.pointer);
+> 
 
-Note that I2C/SPI devices can be enumerated either via a scan handler
-(when using PRP0001) or via regular device_attach(). In either case
-the flow goes through acpi_default_enumeration() which makes it the
-ideal place to mark the ACPI device as enumerated.
-
-Signed-off-by: Octavian Purdila <octavian.purdila@intel.com>
----
- drivers/acpi/scan.c  | 13 +++++++------
- include/linux/acpi.h | 18 ++++++++++++++++++
- 2 files changed, 25 insertions(+), 6 deletions(-)
-
-diff --git a/drivers/acpi/scan.c b/drivers/acpi/scan.c
-index 5f28cf7..f80f8a7 100644
---- a/drivers/acpi/scan.c
-+++ b/drivers/acpi/scan.c
-@@ -1406,7 +1406,7 @@ void acpi_init_device_object(struct acpi_device *device, acpi_handle handle,
- 	acpi_bus_get_flags(device);
- 	device->flags.match_driver = false;
- 	device->flags.initialized = true;
--	device->flags.visited = false;
-+	acpi_device_clear_enumerated(device);
- 	device_initialize(&device->dev);
- 	dev_set_uevent_suppress(&device->dev, true);
- 	acpi_init_coherency(device);
-@@ -1683,8 +1683,10 @@ static void acpi_default_enumeration(struct acpi_device *device)
- 	acpi_dev_get_resources(device, &resource_list, acpi_check_spi_i2c_slave,
- 			       &is_spi_i2c_slave);
- 	acpi_dev_free_resource_list(&resource_list);
--	if (!is_spi_i2c_slave)
-+	if (!is_spi_i2c_slave) {
- 		acpi_create_platform_device(device);
-+		acpi_device_set_enumerated(device);
-+	}
- }
- 
- static const struct acpi_device_id generic_device_ids[] = {
-@@ -1751,7 +1753,7 @@ static void acpi_bus_attach(struct acpi_device *device)
- 	acpi_bus_get_status(device);
- 	/* Skip devices that are not present. */
- 	if (!acpi_device_is_present(device)) {
--		device->flags.visited = false;
-+		acpi_device_clear_enumerated(device);
- 		device->flags.power_manageable = 0;
- 		return;
- 	}
-@@ -1766,7 +1768,7 @@ static void acpi_bus_attach(struct acpi_device *device)
- 
- 		device->flags.initialized = true;
- 	}
--	device->flags.visited = false;
-+
- 	ret = acpi_scan_attach_handler(device);
- 	if (ret < 0)
- 		return;
-@@ -1780,7 +1782,6 @@ static void acpi_bus_attach(struct acpi_device *device)
- 		if (!ret && device->pnp.type.platform_id)
- 			acpi_default_enumeration(device);
- 	}
--	device->flags.visited = true;
- 
-  ok:
- 	list_for_each_entry(child, &device->children, node)
-@@ -1872,7 +1873,7 @@ void acpi_bus_trim(struct acpi_device *adev)
- 	 */
- 	acpi_device_set_power(adev, ACPI_STATE_D3_COLD);
- 	adev->flags.initialized = false;
--	adev->flags.visited = false;
-+	acpi_device_clear_enumerated(adev);
- }
- EXPORT_SYMBOL_GPL(acpi_bus_trim);
- 
-diff --git a/include/linux/acpi.h b/include/linux/acpi.h
-index 288fac5..7089e99 100644
---- a/include/linux/acpi.h
-+++ b/include/linux/acpi.h
-@@ -532,6 +532,16 @@ void acpi_walk_dep_device_list(acpi_handle handle);
- struct platform_device *acpi_create_platform_device(struct acpi_device *);
- #define ACPI_PTR(_ptr)	(_ptr)
- 
-+static inline void acpi_device_set_enumerated(struct acpi_device *adev)
-+{
-+	adev->flags.visited = true;
-+}
-+
-+static inline void acpi_device_clear_enumerated(struct acpi_device *adev)
-+{
-+	adev->flags.visited = false;
-+}
-+
- #else	/* !CONFIG_ACPI */
- 
- #define acpi_disabled 1
-@@ -678,6 +688,14 @@ static inline enum dev_dma_attr acpi_get_dma_attr(struct acpi_device *adev)
- 
- #define ACPI_PTR(_ptr)	(NULL)
- 
-+static inline void acpi_device_set_enumerated(struct acpi_device *adev)
-+{
-+}
-+
-+static inline void acpi_device_clear_enumerated(struct acpi_device *adev)
-+{
-+}
-+
- #endif	/* !CONFIG_ACPI */
- 
- #ifdef CONFIG_ACPI
--- 
-2.7.4
