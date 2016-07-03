@@ -1,46 +1,26 @@
-From: Mark Brown <broonie@kernel.org>
-Subject: Re: [PATCH v5 5/8] spi: add support for ACPI reconfigure
- notifications
-Date: Sun, 3 Jul 2016 14:10:49 +0200
-Message-ID: <20160703121049.GM6247@sirena.org.uk>
-References: <1467404352-27101-1-git-send-email-octavian.purdila@intel.com>
- <1467404352-27101-6-git-send-email-octavian.purdila@intel.com>
+From: =?UTF-8?Q?Toralf_F=c3=b6rster?= <toralf.foerster@gmx.de>
+Subject: external monitor of a docked ThinkPad needs "chvt1; chvt7" after
+ s2ram
+Date: Sun, 3 Jul 2016 21:10:16 +0200
+Message-ID: <57796318.3010805@gmx.de>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
-	protocol="application/pgp-signature"; boundary="N/EvDld9rH7KvG42"
-Return-path: <linux-i2c-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <1467404352-27101-6-git-send-email-octavian.purdila@intel.com>
-Sender: linux-i2c-owner@vger.kernel.org
-To: Octavian Purdila <octavian.purdila@intel.com>
-Cc: "Rafael J . Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Matt Fleming <matt@codeblueprint.co.uk>, Wolfram Sang <wsa@the-dreams.de>, Joel Becker <jlbec@evilplan.org>, linux-acpi@vger.kernel.org, linux-efi@vger.kernel.org, linux-i2c@vger.kernel.org, linux-spi@vger.kernel.org, linux-kernel@vger.kernel.org, irina.tirdea@intel.com, leonard.crestez@intel.com
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mout.gmx.net ([212.227.17.20]:58342 "EHLO mout.gmx.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752835AbcGCTKX (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sun, 3 Jul 2016 15:10:23 -0400
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: linux-acpi@vger.kernel.org
+Cc: Linux Kernel <linux-kernel@vger.kernel.org>
 
+otherwise the monitor is just black, although the docked ThinkPad T440s wakes up fine iand is up and running.
+(system: i5, i915, current kernel and older kernel versions of a 64 bit hardened Gentoo linux).
 
---N/EvDld9rH7KvG42
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+Just to help to improve the kernel (if it is a kernel issue).
 
-On Fri, Jul 01, 2016 at 11:19:09PM +0300, Octavian Purdila wrote:
-> This patch adds supports for SPI device enumeration and removal via
-> ACPI reconfiguration notifications that are send as a result of an
-> ACPI table load or unload operation.
-
-Acked-by: Mark Brown <broonie@kernel.org>
-
---N/EvDld9rH7KvG42
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2
-
-iQEcBAEBCAAGBQJXeQDCAAoJECTWi3JdVIfQCogH/iI53CIKhH7n1rZmVFEhPqXL
-1I1PeKA1D9kcDMCgQKE3TJ1xw2+PxwQAtrb1HrBual7vkKFcq+idl5dh3T+mZnFT
-qPFdiPiZYBwaVQ+7mBD5pG/DcutRs2bFA89bvqBRtSjrTgQfZO/GI4LpVLFsAukg
-KSLdl4OnS9RbZHiaaoeAe/pSmTKz8V3vv+SrQbsXz9ZPMusLkQ/RhqS6+CBJYdlt
-TvQPTXjjzqhgVMxcJxAbO9Vj4jjLkEeF3/ShtNdl6nWJm5+bmOfafIIBxm99WAC1
-V/UVA3Ul2lHrR0rQjrxCaTq+6cTxpOzjtJI42IDD6GM+CZ5AcN9AZ1GgHChEwYY=
-=mWKT
------END PGP SIGNATURE-----
-
---N/EvDld9rH7KvG42--
+-- 
+Toralf
+PGP: C4EACDDE 0076E94E, OTR: 420E74C8 30246EE7
