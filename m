@@ -1,85 +1,44 @@
-From: Wolfram Sang <wsa@the-dreams.de>
-Subject: Re: [PATCH v5 4/8] i2c: add support for ACPI reconfigure
- notifications
-Date: Mon, 4 Jul 2016 09:34:15 +0900
-Message-ID: <20160704003414.GB1381@tetsubishi>
-References: <1467404352-27101-1-git-send-email-octavian.purdila@intel.com>
- <1467404352-27101-5-git-send-email-octavian.purdila@intel.com>
-Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="LyciRD1jyfeSSjG0"
+From: Baoquan He <bhe@redhat.com>
+Subject: [PATCH] ACPI/init: Correct the comments about acpi_subsystem_init
+Date: Mon,  4 Jul 2016 11:13:59 +0800
+Message-ID: <1467602039-13186-1-git-send-email-bhe@redhat.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from sauhun.de ([89.238.76.85]:42631 "EHLO pokefinder.org"
+Received: from mx1.redhat.com ([209.132.183.28]:50903 "EHLO mx1.redhat.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932182AbcGDAeb (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sun, 3 Jul 2016 20:34:31 -0400
-Content-Disposition: inline
-In-Reply-To: <1467404352-27101-5-git-send-email-octavian.purdila@intel.com>
+	id S932249AbcGDDOG (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sun, 3 Jul 2016 23:14:06 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Octavian Purdila <octavian.purdila@intel.com>
-Cc: "Rafael J . Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Matt Fleming <matt@codeblueprint.co.uk>, Mark Brown <broonie@kernel.org>, Joel Becker <jlbec@evilplan.org>, linux-acpi@vger.kernel.org, linux-efi@vger.kernel.org, linux-i2c@vger.kernel.org, linux-spi@vger.kernel.org, linux-kernel@vger.kernel.org, irina.tirdea@intel.com, leonard.crestez@intel.com
+To: rjw@rjwysocki.net, lenb@kernel.org
+Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Baoquan He <bhe@redhat.com>
 
+In acpi_subsystem_init, function acpi_enable_subsystem is called to do
+the real job. However with different flags passed to acpi_enable_subsystem,
+different code is executed. In acpi_subsystem_init with "~ACPI_NO_ACPI_ENABLE"
+passed in it will only switch over the platform to the ACPI mode. The rest
+part of acpi_enable_subsystem is done when acpi_bus_init is called.
 
---LyciRD1jyfeSSjG0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+So the comments above acpi_subsystem_init is not exact, change it here.
 
-On Fri, Jul 01, 2016 at 11:19:08PM +0300, Octavian Purdila wrote:
-> This patch adds supports for I2C device enumeration and removal via
-> ACPI reconfiguration notifications that are send as a result of an
-> ACPI table load or unload operation.
->=20
-> The code is very similar with the device tree reconfiguration code
-> with only small differences in the way we test and set the enumerated
-> state of the device:
->=20
->  * the equivalent of device tree's OF_POPULATED flag is the
->    flags.visited field in the ACPI device and the following
->    wrappers are used to manipulate it: acpi_device_enumerated(),
->    acpi_device_set_enumerated() and acpi_device_clear_enumerated()
->=20
->  * the device tree code checks of status of the OF_POPULATED flag to
->    avoid trying to create duplicate Linux devices in two places: once
->    when the controller is probed, and once when the reconfigure event
->    is received; in the ACPI code the check is performed only once when
->    the ACPI namespace is searched because this code path is invoked in
->    both of the two mentioned cases
->=20
-> The rest of the enumeration handling is similar with device tree: when
-> the Linux device is unregistered the ACPI device is marked as not
-> enumerated; also, when a device remove notification is received we
-> check that the device is in the enumerated state before continuing
-> with the removal of the Linux device.
->=20
-> Signed-off-by: Octavian Purdila <octavian.purdila@intel.com>
-> Reviewed-by: Mika Westerberg <mika.westerberg@linux.intel.com>
+Signed-off-by: Baoquan He <bhe@redhat.com>
+---
+ drivers/acpi/bus.c | 3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
-It has Mika's ack already, but to make sure:
+diff --git a/drivers/acpi/bus.c b/drivers/acpi/bus.c
+index 262ca31..eef468d 100644
+--- a/drivers/acpi/bus.c
++++ b/drivers/acpi/bus.c
+@@ -961,8 +961,7 @@ void __init acpi_early_init(void)
+ /**
+  * acpi_subsystem_init - Finalize the early initialization of ACPI.
+  *
+- * Switch over the platform to the ACPI mode (if possible), initialize the
+- * handling of ACPI events, install the interrupt and global lock handlers.
++ * Switch over the platform to the ACPI mode (if possible).
+  *
+  * Doing this too early is generally unsafe, but at the same time it needs to be
+  * done before all things that really depend on ACPI.  The right spot appears to
+-- 
+2.5.5
 
-Acked-by: Wolfram Sang <wsa@the-dreams.de>
-
-
---LyciRD1jyfeSSjG0
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iQIcBAEBAgAGBQJXea8FAAoJEBQN5MwUoCm2gsYP/ifulwtMHVRioaK+UNuc2jDz
-S/swdbsc1HJYOy59m6SjOQOnG+qxJX1JSIfNFsKeUnNvyoeGki8sddKwZpuzv0qY
-t0HZkgTNuNfv7oxmL3/GmTQHHZyfqEuIkn41DQXHDaShFzzWohAndHIWVUaLdfBC
-BGHOwCJkeouke+/I13/Ro3DhyEKkx4NqKz5tbw0Va+o60ntR6mcDv0DNnNHa7qdA
-gtG6M/rhGmDKEbF72LgAITonEycKtdJrjL/BxyBEDxlhxDDPWl2dkMNQgbwKDuBa
-9ofYKT5Vze5TyYAHnEHwvAoyBDUvK8UyECH3f/Fd5sUAE5IIuSatXcUFJIcHoRJa
-9Z7oRvrp3q/Fcm71n4+z5YJHH9yKuVpJ1QzpnwmpxKNOxh081ifAqn0WCtbnWj9d
-Ds4P0SMdLU7MGr62T8tOkC8jJwsbpzzdZrJvk6+ppR+Iruq6/JjYBcFhmzeCqKt9
-8cWpLBJUUYyTuMxZR6oSP4OFKoTVPsxK1K8aSDZHBI1lQGK4jNxRySFrUNCksKCk
-dxyFFDgFXY/5MZrbp/54d1w15ncuvjUyyFkkVc/+1DcG/LAfe2thKl//RngIbvR7
-wQIQzffZN+EX/epKzvb/4TH2G9PIPgqFow8sqoQnTqynNzaYWH4jBtQycBjqrCtU
-oTIYNMfU88Lrhhz/AuMA
-=WWwN
------END PGP SIGNATURE-----
-
---LyciRD1jyfeSSjG0--
