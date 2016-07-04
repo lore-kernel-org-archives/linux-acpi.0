@@ -1,90 +1,99 @@
-From: Daniel Lezcano <daniel.lezcano@linaro.org>
-Subject: Re: [PATCH v6 00/10] acpi, clocksource: add GTDT driver and GTDT
- support in arm_arch_timer
-Date: Mon, 4 Jul 2016 15:43:50 +0200
-Message-ID: <577A6816.3050709@linaro.org>
-References: <1467224153-22873-1-git-send-email-fu.wei@linaro.org>
- <2435381.sM3CFAEXNR@vostro.rjw.lan> <57767782.6020509@linaro.org>
- <1643662.QIDsTbCMZg@vostro.rjw.lan>
+From: Sudeep Holla <sudeep.holla@arm.com>
+Subject: Re: [PATCH v7 2/6] ACPI / processor_idle: Add support for Low Power
+ Idle(LPI) states
+Date: Mon, 4 Jul 2016 14:42:18 +0100
+Message-ID: <577A67BA.8060709@arm.com>
+References: <1467122152-5604-1-git-send-email-sudeep.holla@arm.com>
+ <57766B15.4090407@linaro.org> <577A5DD3.4050901@arm.com>
+ <6955030.D47pi9uhTn@vostro.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1643662.QIDsTbCMZg@vostro.rjw.lan>
-Sender: linux-kernel-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"; Format="flowed"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <6955030.D47pi9uhTn@vostro.rjw.lan>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
 To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: Hanjun Guo <hanjun.guo@linaro.org>, Fu Wei <fu.wei@linaro.org>, Catalin Marinas <catalin.marinas@arm.com>, Will Deacon <will.deacon@arm.com>, "Rafael J. Wysocki" <rafael@kernel.org>, Len Brown <lenb@kernel.org>, Thomas Gleixner <tglx@linutronix.de>, Marc Zyngier <marc.zyngier@arm.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linaro-acpi@lists.linaro.org" <linaro-acpi@lists.linaro.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, rruigrok@codeaurora.org, harba@codeaurora.org, Christopher Covington <cov@codeaurora.org>, Timur Tabi <timur@codeaurora.org>, G Gregory <graeme.gregory@linaro.org>, Al Stone <al.stone@linaro.org>, Jon Masters <jcm@redhat.com>, wei@redhat.com, Arnd Bergmann <arnd@arndb.de>, Wim Van Sebroeck <wim@iguana.be>, Suravee Suthikulanit <Surave>
+Cc: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Vincent Guittot <vincent.guittot@linaro.org>, Al Stone <al.stone@linaro.org>, PrashanthPrakash <pprakash@codeaurora.org>, Vikas Sajjan <vikas.cha.sajjan@hpe.com>, Daniel Lezcano <daniel.lezcano@linaro.org>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Ashwin Chaugule <ashwin.chaugule@linaro.org>, Sudeep Holla <sudeep.holla@arm.com>, linux-arm-kernel@lists.infradead.org, Sunil <sunil.vl@hpe.com>
 List-Id: linux-acpi@vger.kernel.org
 
-On 07/01/2016 11:01 PM, Rafael J. Wysocki wrote:
-> On Friday, July 01, 2016 04:00:34 PM Daniel Lezcano wrote:
->> On 06/30/2016 03:27 PM, Rafael J. Wysocki wrote:
+
+
+On 04/07/16 14:17, Rafael J. Wysocki wrote:
+> On Monday, July 04, 2016 02:00:03 PM Sudeep Holla wrote:
 >>
-
-[ ... ]
-
->> clocksource-probe which is DT based with different drivers using it =
-in=20
->> drivers/clocksource with a pletore of different archs.
->=20
-> So maybe the GTDT code should be there too?
-
-*maybe*
-
->> Cstate code which is only used by x86 is in drivers/acpi, it is only=
-=20
->> used by x86/ia64 and it isn't a problem.
->=20
-> It is a problem. =20
-
-Can you explain why it is a problem ?
-
-> drivers/acpi/ is not the right place for arch-specific code.
-
-I do not understand this assertion regarding what happened during the
-last years with different subsystems where the drivers were moved from
-their arch specific directories to the drivers directory (cpufreq,
-cpuidle, clockevent, clk, etc ...) and resulted at the end to a code
-refactoring and consolidation.
-
-Why ACPI should follow the opposite rule ?
-
->> There is a small chunk in arch/x86/kernel/acpi and it doesn't facili=
-tate the
->> comprehension of the code.
+>> On 01/07/16 14:07, Daniel Lezcano wrote:
+>>> On 06/28/2016 03:55 PM, Sudeep Holla wrote:
+>>>> ACPI 6.0 introduced an optional object _LPI that provides an alternate
+>>>> method to describe Low Power Idle states. It defines the local power
+>>>> states for each node in a hierarchical processor topology. The OSPM can
+>>>> use _LPI object to select a local power state for each level of processor
+>>>> hierarchy in the system. They used to produce a composite power state
+>>>> request that is presented to the platform by the OSPM.
+>>>>
+>>>> Since multiple processors affect the idle state for any non-leaf
+>>>> hierarchy
+>>>> node, coordination of idle state requests between the processors is
+>>>> required. ACPI supports two different coordination schemes: Platform
+>>>> coordinated and  OS initiated.
+>>>>
+>>>> This patch adds initial support for Platform coordination scheme of LPI.
+>>>>
+>>>> Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+>>>> Signed-off-by: Sudeep Holla <sudeep.holla@arm.com>
+>>>> ---
+>>>
+>>> Hi Sudeep,
+>>>
+>>> I looked at the acpi processor idle code sometime ago and from my POV,
+>>> it was awful, unnecessary complex and very difficult to maintain. The
+>>> usage of flags all over the places is significant of the lack of control
+>>> of the written code.
+>>>
 >>
->> IMHO, having all ACPI code in the same directory will encourage the=20
->> consolidation.
->=20
-> The consolidation of what exactly?
+>> So you have any specific things in mind ? That's too broad and I know
+>> it's not so clean, but it's so for legacy reasons. I would leave that
+>> to Rafael to decide as it takes lots of testing to clean up these code.
+>
+> The cleanup needs to be done at one point.
+>
+> Question is when to do it, before adding LPI support or after doing that
+> (and each option has its pros and cons IMO).
+>
+>>> Even if you are not responsible of this implementation, the current
+>>> situation forces you to add more awful code on top of that, which is
+>>> clearly against "making Linux better".
+>>>
+>>
+>> OK
+>
+> So if there are cases in which you need to make the code more complex
+> because of the legacy stuff in there, I'd say it's better to clean it up
+> first.
+>
 
-The consolidation of the ACPI code in general which is the
-counter-example of self-contained code.
+I am not sure if Daniel was referring to anything specific. I have
+cleaned up in patch 1/6 for cstate. More cleanups can be done there but
+needs better understanding and reasoning for the current code which I
+don't have as they are mostly x86 related.
 
-> In particular, how does the GTDT code in drivers/acpi/ help to consol=
-idate
-> anything?
+Unless someone points me what they would like to change and how, I don't
+have much in my mind to do here. Yes it may not look as clean as other
+code in the kernel relatively, but without complete understanding of the
+history/reasoning for the current state of code I wouldn't touch
+anything I don't understand.
 
-If I imagine we group all ACPI code under a common directory, the first
-example coming in my mind is the sharing of private headers, reducing
-the scope of exported functions and global variables (eg. acpi_disabled=
-).
+I am open to make changes if there's something specific. Sorry I can't
+go ahead making changes the way I think based on some vague idea that
+the current code is not clean.
 
-That say, I can understand grouping all the ACPI into a single director=
-y
-will make it fall under a single umbrella's maintainer and that could b=
-e
-a nightmare to maintain as it covers a lot of different features.
-However, I believe that could be solved by clearly identifying who take=
-s
-care of what.
-
-
-
---=20
- <http://www.linaro.org/> Linaro.org =E2=94=82 Open source software for=
- ARM SoCs
-
-=46ollow Linaro:  <http://www.facebook.com/pages/Linaro> Facebook |
-<http://twitter.com/#!/linaroorg> Twitter |
-<http://www.linaro.org/linaro-blog/> Blog
+-- 
+Regards,
+Sudeep
