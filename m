@@ -1,40 +1,58 @@
 From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [PATCH v2] ACPI: Execute the _PTS method when system reboot
-Date: Mon, 04 Jul 2016 15:00:40 +0200
-Message-ID: <9816457.z8EnLU3BXB@vostro.rjw.lan>
-References: <1467038724-13455-1-git-send-email-hehy1@lenovo.com>
+Subject: Re: [PATCH] ACPI : Dummy acpi_video_register should return error code
+Date: Mon, 04 Jul 2016 15:01:18 +0200
+Message-ID: <13496771.R4ZFavZ3pc@vostro.rjw.lan>
+References: <1466621761-7283-1-git-send-email-arvind.yadav.cs@gmail.com> <3183729.cNSdjc2YjN@vostro.rjw.lan> <aad366c0-7531-6820-f378-84020ceb45fc@intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7Bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cloudserver094114.home.net.pl ([79.96.170.134]:58363 "HELO
+Received: from cloudserver094114.home.net.pl ([79.96.170.134]:60247 "HELO
 	cloudserver094114.home.net.pl" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with SMTP id S1753500AbcGDM4H (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 4 Jul 2016 08:56:07 -0400
-In-Reply-To: <1467038724-13455-1-git-send-email-hehy1@lenovo.com>
+	by vger.kernel.org with SMTP id S1753555AbcGDM4p (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 4 Jul 2016 08:56:45 -0400
+In-Reply-To: <aad366c0-7531-6820-f378-84020ceb45fc@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Ocean HY1 He <hehy1@lenovo.com>
-Cc: "lenb@kernel.org" <lenb@kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, David Tanaka <dtanaka@lenovo.com>, "lv.zheng@intel.com" <lv.zheng@intel.com>, Sumeet Kochar <skochar@lenovo.com>, Nagananda Chumbalkar <nchumbalkar@lenovo.com>
+To: Aaron Lu <aaron.lu@intel.com>, Arvind Yadav <arvind.yadav.cs@gmail.com>
+Cc: robert.moore@intel.com, lv.zheng@intel.com, rafael.j.wysocki@intel.com, lenb@kernel.org, linux-acpi@vger.kernel.org, devel@acpica.org, linux-kernel@vger.kernel.org
 
-On Monday, June 27, 2016 02:50:16 PM Ocean HY1 He wrote:
-> The _PTS control method is defined in the section 7.4.1 of acpi 6.0
-> spec. The _PTS control method is executed by the OS during the sleep
-> transition process for S1, S2, S3, S4, and for orderly S5 shutdown.
+On Thursday, June 23, 2016 09:35:01 AM Aaron Lu wrote:
+> On 06/23/2016 05:05 AM, Rafael J. Wysocki wrote:
+> > On Thursday, June 23, 2016 12:26:01 AM Arvind Yadav wrote:
+> >> The inline acpi_video_register stub simply allows compilation on systems
+> >> with CONFIG_ACPI_VIDEO disabled. the dummy acpi_video_register does not
+> >> register an acpi_bus_driver at all. The inline acpi_video_register should
+> >> return to indicate lack of support when attempting to register an
+> >> acpi_bus_driver on such a system with CONFIG_ACPI_VIDEO disabled.
+> >>
+> >> Signed-off-by: Arvind Yadav <arvind.yadav.cs@gmail.com>
+> >> ---
+> >>  include/acpi/video.h | 2 +-
+> >>  1 file changed, 1 insertion(+), 1 deletion(-)
+> >>
+> >> diff --git a/include/acpi/video.h b/include/acpi/video.h
+> >> index 5731ccb..4536bd3 100644
+> >> --- a/include/acpi/video.h
+> >> +++ b/include/acpi/video.h
+> >> @@ -54,7 +54,7 @@ extern int acpi_video_get_levels(struct acpi_device *device,
+> >>  				 struct acpi_video_device_brightness **dev_br,
+> >>  				 int *pmax_level);
+> >>  #else
+> >> -static inline int acpi_video_register(void) { return 0; }
+> >> +static inline int acpi_video_register(void) { return -ENODEV; }
+> >>  static inline void acpi_video_unregister(void) { return; }
+> >>  static inline int acpi_video_get_edid(struct acpi_device *device, int type,
+> >>  				      int device_id, void **edid)
+> > 
+> > Aaron, what do you think?
+>  
+> The only place that cares about the return value of acpi_video_register
+> is in acpi_video_init where CONFIG_ACPI_VIDEO must be defined, all other
+> places do not care about the return value so this change shouldn't cause
+> any problems and returning -ENODEV sounds more reasonable than 0 here.
 > 
-> The _PTS control method provides the BIOS a mechanism for performing
-> some housekeeping, such as writing the sleep type value to the embedded
-> controller, before entering the system sleeping state. Note that some
-> Lenovo Server BIOS use this mechanism to detect reboot event and
-> prompt user by popped dialog box.
-> 
-> According to section 7.5 of acpi 6.0 spec, _PTS should run after _TTS.
-> Add a _PTS evaulation to the existing _TTS reboot notifier and change
-> the notifier name to reflect the fact that it's not for _TTS only any
-> more.
-> 
-> Signed-off-by: Ocean He <hehy1@lenovo.com>
-> Signed-off-by: Nagananda Chumbalkar <nchumbalkar@lenovo.com>
+> Reviewed-by: Aaron Lu <aaron.lu@intel.com>
 
-Applied, thanks!
+Patch applied, thanks!
 
