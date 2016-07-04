@@ -1,44 +1,52 @@
-From: Baoquan He <bhe@redhat.com>
-Subject: [PATCH] ACPI/init: Correct the comments about acpi_subsystem_init
-Date: Mon,  4 Jul 2016 11:13:59 +0800
-Message-ID: <1467602039-13186-1-git-send-email-bhe@redhat.com>
+From: Vikas C Sajjan <vikas.cha.sajjan@hpe.com>
+Subject: [PATCH] nfit: use devm_add_action_or_reset()
+Date: Mon,  4 Jul 2016 10:02:51 +0530
+Message-ID: <1467606771-21704-1-git-send-email-vikas.cha.sajjan@hpe.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:50903 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932249AbcGDDOG (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sun, 3 Jul 2016 23:14:06 -0400
+Received: from g9t1613g.houston.hpe.com ([15.241.32.99]:46599 "EHLO
+	g9t1613g.houston.hpe.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750984AbcGDEih (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 4 Jul 2016 00:38:37 -0400
+Received: from g4t3426.houston.hpe.com (g4t3426.houston.hpe.com [15.241.140.75])
+	(using TLSv1.2 with cipher AECDH-AES256-SHA (256/256 bits))
+	(No client certificate requested)
+	by g9t1613g.houston.hpe.com (Postfix) with ESMTPS id 2190661A83
+	for <linux-acpi@vger.kernel.org>; Mon,  4 Jul 2016 04:38:36 +0000 (UTC)
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: rjw@rjwysocki.net, lenb@kernel.org
-Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Baoquan He <bhe@redhat.com>
+To: dan.j.williams@intel.com
+Cc: ross.zwisler@linux.intel.com, linux-nvdimm@lists.01.org, linux-acpi@vger.kernel.org, linda.knippers@hpe.com, Vikas C Sajjan <vikas.cha.sajjan@hpe.com>
 
-In acpi_subsystem_init, function acpi_enable_subsystem is called to do
-the real job. However with different flags passed to acpi_enable_subsystem,
-different code is executed. In acpi_subsystem_init with "~ACPI_NO_ACPI_ENABLE"
-passed in it will only switch over the platform to the ACPI mode. The rest
-part of acpi_enable_subsystem is done when acpi_bus_init is called.
+If devm_add_action() fails, we are explicitly calling the cleanup to free
+the resources allocated. Lets use the helper devm_add_action_or_reset()
+and return directly in case of error, since the cleanup function
+has been already called by the helper if there was any error.
 
-So the comments above acpi_subsystem_init is not exact, change it here.
-
-Signed-off-by: Baoquan He <bhe@redhat.com>
+Signed-off-by: Vikas C Sajjan <vikas.cha.sajjan@hpe.com>
 ---
- drivers/acpi/bus.c | 3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+ drivers/acpi/nfit.c | 8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
-diff --git a/drivers/acpi/bus.c b/drivers/acpi/bus.c
-index 262ca31..eef468d 100644
---- a/drivers/acpi/bus.c
-+++ b/drivers/acpi/bus.c
-@@ -961,8 +961,7 @@ void __init acpi_early_init(void)
- /**
-  * acpi_subsystem_init - Finalize the early initialization of ACPI.
-  *
-- * Switch over the platform to the ACPI mode (if possible), initialize the
-- * handling of ACPI events, install the interrupt and global lock handlers.
-+ * Switch over the platform to the ACPI mode (if possible).
-  *
-  * Doing this too early is generally unsafe, but at the same time it needs to be
-  * done before all things that really depend on ACPI.  The right spot appears to
+diff --git a/drivers/acpi/nfit.c b/drivers/acpi/nfit.c
+index c2ad967..44ebe1e 100644
+--- a/drivers/acpi/nfit.c
++++ b/drivers/acpi/nfit.c
+@@ -1920,11 +1920,11 @@ static int acpi_nfit_insert_resource(struct acpi_nfit_desc *acpi_desc,
+ 	if (ret)
+ 		return ret;
+ 
+-	ret = devm_add_action(acpi_desc->dev, acpi_nfit_remove_resource, res);
+-	if (ret) {
+-		remove_resource(res);
++	ret = devm_add_action_or_reset(acpi_desc->dev,
++					acpi_nfit_remove_resource,
++					res);
++	if (ret)
+ 		return ret;
+-	}
+ 
+ 	return 0;
+ }
 -- 
-2.5.5
+1.9.1
 
