@@ -1,102 +1,109 @@
-From: Joe Perches <joe@perches.com>
-Subject: Re: [PATCH v2 0/7] lib: string: add functions to case-convert
- strings
-Date: Tue, 05 Jul 2016 15:56:17 -0700
-Message-ID: <1467759377.8360.12.camel@perches.com>
-References: <1467751631-22878-1-git-send-email-mmayer@broadcom.com>
-	 <1467756874.16342.11.camel@perches.com>
-	 <CAGt4E5vqiUOVmgqY8OvRPNpoS54hZMOHid6ND4CRyb5p9y5ndw@mail.gmail.com>
+From: "Rafael J. Wysocki" <rafael@kernel.org>
+Subject: Re: [PATCH 2/2] ACPICA: Namespace: Fix lock order issue for namespace/interpreter
+Date: Wed, 6 Jul 2016 01:39:11 +0200
+Message-ID: <CAJZ5v0gxYO77DegHFDyqYm48P_v=zR0yPov79nrRkayUSXGWRg@mail.gmail.com>
+References: <7ab2c9a68c936a6dadfdbf96dbdcfc924722c93a.1467697822.git.lv.zheng@intel.com>
+ <ab9f5511168df30d374e9e6426ae1cb81832f99f.1467697822.git.lv.zheng@intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtprelay0237.hostedemail.com ([216.40.44.237]:44570 "EHLO
-	smtprelay.hostedemail.com" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1751095AbcGEW4W (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 5 Jul 2016 18:56:22 -0400
-In-Reply-To: <CAGt4E5vqiUOVmgqY8OvRPNpoS54hZMOHid6ND4CRyb5p9y5ndw@mail.gmail.com>
+Received: from mail-wm0-f41.google.com ([74.125.82.41]:35975 "EHLO
+	mail-wm0-f41.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750828AbcGEXjO (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 5 Jul 2016 19:39:14 -0400
+In-Reply-To: <ab9f5511168df30d374e9e6426ae1cb81832f99f.1467697822.git.lv.zheng@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Markus Mayer <markus.mayer@broadcom.com>
-Cc: Andrew Morton <akpm@linux-foundation.org>, Al Viro <viro@zeniv.linux.org.uk>, Rasmus Villemoes <linux@rasmusvillemoes.dk>, Chris Metcalf <cmetcalf@ezchip.com>, Kees Cook <keescook@chromium.org>, dri-devel@lists.freedesktop.org, nouveau@lists.freedesktop.org, linux-acpi@vger.kernel.org, speakup@linux-speakup.org, devel@driverdev.osuosl.org, linux-scsi@vger.kernel.org, target-devel@vger.kernel.org, linux-pm@vger.kernel.org, Linux Kernel <linux-kernel@vger.kernel.org>
+To: Lv Zheng <lv.zheng@intel.com>
+Cc: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <len.brown@intel.com>, Lv Zheng <zetalog@gmail.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>
 
-On Tue, 2016-07-05 at 15:36 -0700, Markus Mayer wrote:
-> On 5 July 2016 at 15:14, Joe Perches <joe@perches.com> wrote:
-> > On Tue, 2016-07-05 at 13:47 -0700, Markus Mayer wrote:
-> > > This series introduces a family of generic string case conversion
-> > > functions. This kind of functionality is needed in several places=
- in
-> > > the kernel. Right now, everybody seems to be implementing their o=
-wn
-> > > copy of this functionality.
-> > >=20
-> > > Based on the discussion of the previous version of this series[1]=
- and
-> > > the use cases found in the kernel, it does look like having sever=
-al
-> > > flavours of case conversion functions is beneficial. The use case=
-s fall
-> > > into three categories:
-> > > =A0=A0=A0=A0- copying a string and converting the case while spec=
-ifying a
-> > > =A0=A0=A0=A0=A0=A0maximum length to mimic strncpy()
-> > > =A0=A0=A0=A0- copying a string and converting the case without sp=
-ecifying a
-> > > =A0=A0=A0=A0=A0=A0length to mimic strcpy()
-> > > =A0=A0=A0=A0- converting the case of a string in-place (i.e. modi=
-fying the
-> > > =A0=A0=A0=A0=A0=A0string that was passed in)
-> > >=20
-> > > Consequently, I am proposing these new functions:
-> > > =A0=A0=A0=A0char *strncpytoupper(char *dst, const char *src, size=
-_t len);
-> > > =A0=A0=A0=A0char *strncpytolower(char *dst, const char *src, size=
-_t len);
-> > > =A0=A0=A0=A0char *strcpytoupper(char *dst, const char *src);
-> > > =A0=A0=A0=A0char *strcpytolower(char *dst, const char *src);
-> > > =A0=A0=A0=A0char *strtoupper(char *s);
-> > > =A0=A0=A0=A0char *strtolower(char *s);
-> > I think there isn't much value in anything other
-> > than strto.
-> >=20
-> > Using str[n]cpy followed by strto is
-> > pretty obvious and rarely used anyway.
-> First time around, folks were proposing the "copy" variants when I
-> submitted just strtolower() by itself[1]. They just asked for source
-> and destination parameters to strtolower(), but looking at the use
-> cases that wouldn't have worked so well. Hence it evolved into these =
-6
-> functions.
->=20
-> Here's a breakdown of how the functions are being used (patches 2-7),
-> see also [2]:
->=20
-> Patch 2: strncpytolower()
-> Patch 3: strtolower()
-> Patch 4: strncpytolower() and strtolower()
-> Patch 5: strtolower()
-> Patch 6: strcpytoupper()
-> Patch 7: strcpytoupper()
->=20
-> So it does look like the copy + change case variant is more frequentl=
-y
-> used than just strto.
+On Tue, Jul 5, 2016 at 7:53 AM, Lv Zheng <lv.zheng@intel.com> wrote:
+> There is a lock order issue in acpi_load_tables(). The namespace lock is held
+> before holding the interpreter lock.
+> With ACPI_MUTEX_DEBUG enabled in kernel, we can reproduce this during boot:
+>   [    0.885699] ACPI Error: Invalid acquire order: Thread 405884224 owns [ACPI_MTX_Namespace], wants [ACPI_MTX_Interpreter] (20160422/utmutex-263)
+>   [    0.885881] ACPI Error: Could not acquire AML Interpreter mutex (20160422/exutils-95)
+>   [    0.893846] ACPI Error: Mutex [0x0] is not acquired, cannot release (20160422/utmutex-326)
+>   [    0.894019] ACPI Error: Could not release AML Interpreter mutex (20160422/exutils-133)
+>
+> The issue is introduced by the following commit:
+>   Commit: 2f38b1b16d9280689e5cfa47a4c50956bf437f0d
+>   ACPICA Commit: bfe03ffcde8ed56a7eae38ea0b188aeb12f9c52e
+>   Subject: ACPICA: Namespace: Fix a regression that MLC support triggers
+>            dead lock in dynamic table loading
+> Which fixes a dead lock issue for acpi_ns_load_table() in
+> acpi_ex_add_table() but doesn't take care of the lock order in
+> acpi_ns_load_table().
+>
+> Originally (before applying the wrong fix), ACPICA uses the
+> namespace/interpreter locks in the following 2 key code paths:
+> 1. Table loading (before applying 2f38b1b):
+> acpi_ns_load_table
+>         L(Namespace)
+>                 acpi_ns_parse_table
+>                         acpi_ns_one_complete_parse
+>         U(Namespace)
+> 2. Object evaluation:
+> acpi_ns_evaluate
+>         L(Interpreter)
+>         acpi_ps_execute_method
+>                 U(Interpreter)
+>                 acpi_ns_load_table
+>                         L(Namespace)
+>                         U(Namespace)
+>                 acpi_ev_initialize_region
+>                         L(Namespace)
+>                         U(Namespace)
+>                 address_space.setup
+>                         L(Namespace)
+>                         U(Namespace)
+>                 address_space.handler
+>                         L(Namespace)
+>                         U(Namespace)
+>                 acpi_os_wait_semaphore
+>                 acpi_os_acquire_mutex
+>                 acpi_os_sleep
+>                 L(Interpreter)
+>         U(Interpreter)
+> During runtime, while acpi_ns_evaluate is called, lock order is always
+> Interpreter -> Namespace.
+>
+> While the wrong fix holds the lock in the following order:
+> 3. Table loading (after applying 2f38b1b):
+> acpi_ns_load_table
+>         L(Namespace)
+>                 acpi_ns_parse_table
+>                 L(Interpreter)
+>                         acpi_ns_one_complete_parse
+>                 U(Interpreter)
+>         U(Namespace)
+>
+> This patch further fixes the lock order issue by moving interpreter lock
+> to acpi_ns_load_table() to ensure the lock order correctness:
+> 4. Table loading:
+> acpi_ns_load_table
+>         L(Interpreter)
+>         L(Namespace)
+>                 acpi_ns_parse_table
+>                         acpi_ns_one_complete_parse
+>         U(Namespace)
+>         U(Interpreter)
+>
+> However, this fix is just a workaround which is compliant to the current
+> design but doesn't fix the current design issues related to the namespace
+> lock. For example, we can notice that in acpi_ns_evaluate(), outside of
+> acpi_ns_load_table(), the namespace objects may be created by the named
+> object creation control methods. And the creations of the method owned
+> namespace objects are not locked by the namespace lock. This patch doesn't
+> try to fix such kind of existing issues. Lv Zheng.
+>
+> Fixes: 2f38b1b16d92 ("ACPICA: Namespace: Fix a regression that MLC support triggers dead lock in dynamic table loading")
+> Signed-off-by: Lv Zheng <lv.zheng@intel.com>
 
-Are these functions useful? =A0<shrug> Not to me, not so much.
+So this one is a fix and it does not really depend on the [1/2] if I'm
+not mistaken.
 
-None of the functions would have the strcpy performance of
-the arch / asm
-versions of strcpy and the savings in overall
-code isn't significant (or
-measured?).
+Accordingly, I've queued up the [2/2] as a fix for 4.7 and the [1/2] for 4.8.
 
-Of course none of the uses are runtime performance important.
-
-This patch also adds always compiled functions that aren't used
-in many .configs.
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Thanks,
+Rafael
