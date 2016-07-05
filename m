@@ -1,63 +1,280 @@
 From: Lv Zheng <lv.zheng@intel.com>
-Subject: [PATCH 5/5] ACPI: Add configuration item to configure ACPICA error logs out
-Date: Tue,  5 Jul 2016 19:18:28 +0800
-Message-ID: <cf654fead3c862ed1d9991a78d08d33f63f474aa.1467717305.git.lv.zheng@intel.com>
+Subject: [PATCH 1/5] ACPI: Add documentation describing ACPICA release automation
+Date: Tue,  5 Jul 2016 19:17:59 +0800
+Message-ID: <8a4adf7460e68270a428f07a339355b6760885dd.1467717305.git.lv.zheng@intel.com>
 References: <cover.1467717304.git.lv.zheng@intel.com>
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga09.intel.com ([134.134.136.24]:50875 "EHLO mga09.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755004AbcGELSl (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 5 Jul 2016 07:18:41 -0400
+Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <cover.1467717304.git.lv.zheng@intel.com>
-Sender: linux-acpi-owner@vger.kernel.org
-List-Id: linux-acpi@vger.kernel.org
+Sender: linux-kernel-owner@vger.kernel.org
 To: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <len.brown@intel.com>
 Cc: Lv Zheng <lv.zheng@intel.com>, Lv Zheng <zetalog@gmail.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
+List-Id: linux-acpi@vger.kernel.org
 
-Sometimes, we need to disable ACPICA error logs to leave only ACPICA
-debug logs enabled for debugging purpose. This is useful when ACPICA error
-logs become a flood.
+This patch adds documentation on ACPICA release automation into the kernel
+Documentation/acpi folder.
 
-Reference: https://bugzilla.kernel.org/show_bug.cgi?id=114201
 Signed-off-by: Lv Zheng <lv.zheng@intel.com>
 ---
- drivers/acpi/Kconfig            |    7 +++++++
- include/acpi/platform/aclinux.h |    4 ++++
- 2 files changed, 11 insertions(+)
+ Documentation/acpi/linuxized-acpica.txt |  251 +++++++++++++++++++++++++++++++
+ 1 file changed, 251 insertions(+)
+ create mode 100644 Documentation/acpi/linuxized-acpica.txt
 
-diff --git a/drivers/acpi/Kconfig b/drivers/acpi/Kconfig
-index 04af18f..939d235 100644
---- a/drivers/acpi/Kconfig
-+++ b/drivers/acpi/Kconfig
-@@ -324,6 +324,13 @@ config ACPI_TABLE_UPGRADE
- 	  initrd, therefore it's safe to say Y.
- 	  See Documentation/acpi/initrd_table_override.txt for details
- 
-+config ACPI_NO_ERROR_MESSAGES
-+	bool "Disable error messages"
-+	default n
-+	help
-+	  The ACPI subsystem can produce error messages. Saying Y disables
-+	  this output.
+diff --git a/Documentation/acpi/linuxized-acpica.txt b/Documentation/acpi/linuxized-acpica.txt
+new file mode 100644
+index 0000000..aec60c2
+--- /dev/null
++++ b/Documentation/acpi/linuxized-acpica.txt
+@@ -0,0 +1,251 @@
++Linuxized ACPICA - Introduction of ACPICA Release Automation
 +
- config ACPI_DEBUG
- 	bool "Debug Statements"
- 	default n
-diff --git a/include/acpi/platform/aclinux.h b/include/acpi/platform/aclinux.h
-index 93b61b1..ed27b52 100644
---- a/include/acpi/platform/aclinux.h
-+++ b/include/acpi/platform/aclinux.h
-@@ -77,6 +77,10 @@
- #define ACPI_MUTEX_DEBUG
- #endif
- 
-+#ifdef CONFIG_ACPI_NO_ERROR_MESSAGES
-+#define ACPI_NO_ERROR_MESSAGES
-+#endif
++Copyright (C) 2013-2016, Intel Corporation
++Author: Lv Zheng <lv.zheng@intel.com>
 +
- #include <linux/string.h>
- #include <linux/kernel.h>
- #include <linux/ctype.h>
++
++Abstract:
++
++This document describes the ACPICA project and the relationship between
++ACPICA and Linux.  It also includes the descriptions on how ACPICA code is
++automatically released to the following Linux subdirectories:
++drivers/acpi/acpica, include/acpi and tools/power/acpi.
++
++
++1. ACPICA Project
++
++   The ACPI Component Architecture (ACPICA) project provides an operating
++   system (OS)-independent reference implementation of the Advanced
++   Configuration and Power Interface Specification (ACPI).  It has been
++   adapted by various host OSes.  By directly integrating ACPICA, Linux can
++   also benefit from the application experiences of ACPICA from other host
++   OSes.
++
++   The homepage of ACPICA project is: www.acpica.org, it is maintained and
++   supported by Intel Corporation.
++
++   The following figure dipicts the Linux ACPI subystem where the ACPICA
++   adaption is included:
++
++      +---------------------------------------------------------+
++      |                                                         |
++      |   +---------------------------------------------------+ |
++      |   | +------------------+                              | |
++      |   | | Table Management |                              | |
++      |   | +------------------+                              | |
++      |   | +----------------------+                          | |
++      |   | | Namespace Management |                          | |
++      |   | +----------------------+                          | |
++      |   | +------------------+       ACPICA Components      | |
++      |   | | Event Management |                              | |
++      |   | +------------------+                              | |
++      |   | +---------------------+                           | |
++      |   | | Resource Management |                           | |
++      |   | +---------------------+                           | |
++      |   | +---------------------+                           | |
++      |   | | Hardware Management |                           | |
++      |   | +---------------------+                           | |
++      | +---------------------------------------------------+ | |
++      | | |                            +------------------+ | | |
++      | | |                            | OS Service Layer | | | |
++      | | |                            +------------------+ | | |
++      | | +-------------------------------------------------|-+ |
++      | |   +--------------------+                          |   |
++      | |   | Device Enumeration |                          |   |
++      | |   +--------------------+                          |   |
++      | |   +------------------+                            |   |
++      | |   | Power Management |                            |   |
++      | |   +------------------+     Linux/ACPI Components  |   |
++      | |   +--------------------+                          |   |
++      | |   | Thermal Management |                          |   |
++      | |   +--------------------+                          |   |
++      | |   +--------------------------+                    |   |
++      | |   | Drivers for ACPI Devices |                    |   |
++      | |   +--------------------------+                    |   |
++      | |   +--------+                                      |   |
++      | |   | ...... |                                      |   |
++      | |   +--------+                                      |   |
++      | +---------------------------------------------------+   |
++      |                                                         |
++      +---------------------------------------------------------+
++
++                 Figure 1. Linux ACPI Software Components
++
++   NOTE:
++    A. OS Service Layer - Provided by Linux to offer OS dependent
++       implementation of predefined ACPICA interfaces (acpi_os_*).
++         include/acpi/acpiosxf.h
++         drivers/acpi/osl.c
++         include/acpi/platform
++    B. ACPICA Functionalities - Released from ACPICA code base to offer
++       OS independent implementation of ACPICA interfaces (acpi_*).
++         drivers/acpi/acpica
++         include/acpi/ac*.h
++         tools/power/acpi
++    C. Linux/ACPI Functionalities - Providing Linux specific ACPI
++       functionalities to other Linux kernel subsystems and user space
++       programs.
++         drivers/acpi
++         include/linux/acpi.h
++         include/linux/acpi*.h
++         include/acpi
++         tools/power/acpi
++    D. Architecture Specific ACPICA/ACPI Functionalities - Provided by
++       ACPI subsystem to offer architecture specific implementation of ACPI
++       interfaces.  They are Linux specific components, and is out of the
++       scope of this document.
++         include/asm/acpi.h
++         include/asm/acpi*.h
++         arch/*/acpi
++
++2. ACPICA Release
++
++   ACPICA project maintains a code base at the following repository URL:
++   https://github.com/acpica/acpica.git.  It is released once a month.
++
++   As the coding style adopted by the ACPICA project is not acceptable by
++   Linux, there is a release process to convert the ACPICA GIT commits into
++   the Linux acceptable patches.  The patches generated by this process are
++   known as "Linuxized ACPICA Patches".  The release process is performed
++   against a local copy of the ACPICA git repository.  Each commit in the
++   monthly release is converted into the linuxized ACPICA patch.  They form
++   a montly ACPICA release patchset for Linux ACPI community.  The
++   following figure dipicts the Linux upstream process of the ACPICA
++   commits:
++
++    +-----------------------------+
++    | acpica / master (-) commits |
++    +-----------------------------+
++       /|\         |
++        |         \|/
++        |  /---------------------\    +----------------------+
++        | < Linuxize repo Utility >-->| old linuxized acpica |--+
++        |  \---------------------/    +----------------------+  |
++        |                                                       |
++     /---------\                                                |
++    < git reset >                                                \
++     \---------/                                                  \
++       /|\                                                        /+-+
++        |                                                        /   |
++    +-----------------------------+                             |    |
++    | acpica / master (+) commits |                             |    |
++    +-----------------------------+                             |    |
++                   |                                            |    |
++                  \|/                                           |    |
++         /-----------------------\    +----------------------+  |    |
++        < Linuxize repo Utilities >-->| new linuxized acpica |--+    |
++         \-----------------------/    +----------------------+       |
++                                                                    \|/
++    +--------------------------+                  /----------------------\
++    | Linuxized ACPICA Patches |<----------------< Linuxize patch Utility >
++    +--------------------------+                  \----------------------/
++                   |
++                  \|/
++     /---------------------------\
++    < Linux ACPI Community Review >
++     \---------------------------/
++                   |
++                  \|/
++    +-----------------------+   /------------------\    +----------------+
++    | linux-pm / linux-next |--< Linux Merge Window >-->| linux / master |
++    +-----------------------+   \------------------/    +----------------+
++
++                Figure 2. ACPICA -> Linux Upstream Process
++
++   NOTE:
++    A. Linuxize Utilities - Provided by ACPICA repository, including a
++       utility located in source/tools/acpisrc folder and a bunch of
++       scripts located in generate/linux folder.
++    B. acpica / master - "master" branch of the git repository at
++       <https://github.com/acpica/acpica.git>.
++    C. linux-pm / linux-next - "linux-next" branch of the git repository at
++       <http://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm.git>.
++    D. linux / master - "master" branch of the git repository at
++       <http://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git>.
++    E. Linux ACPI Community - Reached at
++       <mailto:linux-acpi@vger.kernel.org>.
++
++   Before the linuxized ACPICA patches are sent to the Linux ACPI community
++   for review, there is a quality ensurance build test process performed to
++   reduce porting issues. Currently this build process only cares about the
++   following kernel configurations:
++   CONFIG_ACPI/CONFIG_ACPI_DEBUG/CONFIG_ACPI_DEBUGGER
++
++3. ACPICA Divergence
++
++   It's ideal that if all of the ACPICA commits are upstreamed
++   automatically without modifications, the "linux / master" tree should
++   contain the ACPICA code that is exactly same as the ACPICA code
++   contained in "new linuxized acpica" tree and the release process thus
++   could be performed automatically.
++
++   But the facts are there are always source code differences between
++   Linux and ACPICA, such differences are known as "ACPICA Divergences".
++
++   The various sources of the ACPICA divergences include:
++   1. The existing divergences - Before the ACPICA release cycle is
++      fully running, there has already been divergences between Linux and
++      ACPICA. Over the past several years, the divergences are greatly
++      reduced, but there are still several ones and it takes time to figure
++      out the root cause of these old divergences.
++   2. Manual modifications - Any manual modification (ex., coding style
++      fixes) done directly in the Linux side obviously hurts the ACPICA
++      release automation.  Thus it is recommended to fix issues in the
++      ACPICA upstream and generate the linuxized fix using ACPICA release
++      utilities (please refer to the Chapter 4 for the details).
++   3. Linux specific features - Sometime, it's impossible to use the
++      current ACPICA APIs to implement the features required by the Linux
++      kernel, the Linux developers have to hack ACPICA code directly.  Such
++      hacks may not be acceptable from ACPICA's point of view, then they
++      are left as committed ACPICA divergences unless ACPICA side can
++      implement new mechanisms as replacements to cleanup these hacks.
++   4. ACPICA release fixups - ACPICA only tests commits using a set of the
++      user space simulation utilies, thus the linuxized ACPICA patches may
++      break the Linux kernel, leaving us build/boot failures.  In order not
++      to break the Linux bisection process, fixes are done directly to the
++      linuxized ACPICA patches during the release process.  When the
++      release fixups are back ported to the ACPICA upstream, they must
++      follow the ACPICA upstream rules and thus risk further modifications.
++      These can all result in the new divergences.
++   5. Quick path of ACPICA commits - Some ACPICA commits are good stable
++      materials, they are upstreamed prior than the ACPICA release process.
++      If such commits are reverted or rebased in ACPICA side in order to
++      offer better solutions, new ACPICA divergences are generated.
++
++4. ACPICA Development
++
++   This paragraph guides the Linux developers to use the ACPICA upstream
++   release utilities to obtain the ACPICA upstream commits before they
++   are released by the ACPICA release process.
++
++   1. Cherry-pick an ACPICA commit:
++   First you need to git clone the ACPICA repository and the ACPICA changes
++   you want to cherry pick must be committed into the local repository.
++   Then the gen-patch.sh command can help to cherry-pick an ACPICA commit
++   from the ACPICA upstream.
++   # git clone https://github.com/acpica/acpica
++   # cd acpica
++   # generate/linux/gen-patch.sh -u [commit ID]
++   Here the commit ID is the ACPICA upstream commit ID you want to cherry
++   pick.  It can be omitted if the commit is "HEAD".
++
++   2. Cherry-pick the recent ACPICA commits:
++   Sometimes you need to rebase your code on top of the recent ACPICA
++   changes that haven't been upstreamed to Linux yet.  You can generate
++   the ACPICA release series on your own and rebase your code on top of
++   the generated ACPICA release patches.
++   # git clone https://github.com/acpica/acpica
++   # cd acpica
++   # generate/linux/make-patches.sh -u [commit ID]
++   The commit ID should be the last ACPICA commit accepted by Linux.
++   Normally it is a commit modifying ACPI_CA_VERSION.  The modification can
++   be achieved by executing "git log source/include/acpixf.h" in the local
++   copy of the ACPICA repository.
++
++   3. Confirm the current divergences:
++   If you have local copies of both Linux and ACPICA, you can generate a
++   diff file indicating the state of the current divergences:
++   # git clone https://github.com/acpica/acpica
++   # git clone http://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git
++   # cd acpica
++   # generate/linux/divergences.sh -s ../linux
 -- 
 1.7.10
-
