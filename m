@@ -1,71 +1,86 @@
-From: Mika Westerberg <mika.westerberg@linux.intel.com>
-Subject: Re: [v5] i2c: i801: Allow ACPI SystemIO OpRegion to conflict with
- PCI BAR
-Date: Tue, 5 Jul 2016 13:14:55 +0300
-Message-ID: <20160705101455.GM23527@lahna.fi.intel.com>
-References: <1463990658-53854-1-git-send-email-mika.westerberg@linux.intel.com>
- <20160608162913.GA24234@mail.corp.redhat.com>
- <20160613111946.54779d0d@endymion>
- <20160613094500.GY29844@pali>
- <20160613094618.GG1791@lahna.fi.intel.com>
- <20160613094830.GZ29844@pali>
- <20160613095404.GH1791@lahna.fi.intel.com>
- <20160624161238.0fc748ad@endymion>
- <20160629103951.GX1711@lahna.fi.intel.com>
- <20160704102212.319cfd8e@endymion>
+From: Jacek Anaszewski <j.anaszewski@samsung.com>
+Subject: Re: [PATCH v7 1/1] leds: LED driver for TI LP3952 6-Channel Color LED
+Date: Tue, 05 Jul 2016 12:47:20 +0200
+Message-ID: <577B9038.1040304@samsung.com>
+References: <1467129919-27641-1-git-send-email-tony.makkiel@daqri.com>
+ <3435169.nmqvdouPPq@vostro.rjw.lan> <57737021.1010603@samsung.com>
+ <57739DCE.3030303@daqri.com> <5773A8CF.10508@samsung.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-i2c-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20160704102212.319cfd8e@endymion>
-Sender: linux-i2c-owner@vger.kernel.org
-To: Jean Delvare <jdelvare@suse.de>
-Cc: Pali =?iso-8859-1?Q?Roh=E1r?= <pali.rohar@gmail.com>, Benjamin Tissoires <benjamin.tissoires@redhat.com>, Wolfram Sang <wsa@the-dreams.de>, Jarkko Nikula <jarkko.nikula@linux.intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Andy Lutomirski <luto@kernel.org>, Mario Limonciello <mario_limonciello@dell.com>, Matt Fleming <matt@codeblueprint.co.uk>, linux-i2c@vger.kernel.org, linux-acpi@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-leds-owner@vger.kernel.org>
+In-reply-to: <5773A8CF.10508@samsung.com>
+Sender: linux-leds-owner@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: Tony <tony.makkiel@daqri.com>, linux-leds@vger.kernel.org, rpurdie@rpsys.net, lenb@kernel.org, mika.westerberg@linux.intel.com, linux-acpi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Mon, Jul 04, 2016 at 10:22:12AM +0200, Jean Delvare wrote:
-> Hi Mika,
-> 
-> On Wed, 29 Jun 2016 13:39:51 +0300, Mika Westerberg wrote:
-> > On Fri, Jun 24, 2016 at 04:12:38PM +0200, Jean Delvare wrote:
-> > > I think Pali is correct. The only purpose of handling the region is to
-> > > detect that it is being accessed so we can set priv->acpi_reserved.
-> > > Once it is set, i801_acpi_io_handler becomes transparent: it forwards
-> > > the requests without doing anything with them. The very same would
-> > > happen if we would unregister the handler at that point, but without the
-> > > extra overhead.
-> > > 
-> > > So while the current code does work fine, unregistering the handler
-> > > when we set priv->acpi_reserved would be more optimal.
-> > > 
-> > > Unless both Pali and myself are missing something, that is.
-> > 
-> > I'm not sure unregistering the handler actually resets back to the
-> > default handler.
-> 
-> I'm no ACPI expert. I read the code of
-> acpi_remove_address_space_handler() and a few other related ACPI
-> functions and can't claim I understood it all. But indeed it doesn't
-> look like it restores the original behavior. Probably
-> acpi_install_address_space_handler(..., ACPI_ADR_SPACE_SYSTEM_IO,
-> ACPI_DEFAULT_HANDLER, ...) should be used instead.
-> 
-> This raises another question though: if
-> acpi_remove_address_space_handler() doesn't restore the previous
-> behavior then we shouldn't be calling it when the driver is being
-> unloaded either. As I understand it, it breaks the ACPI handling of the
-> device.
-> 
-> However I can't test it, as the installed handler is never called
-> on my system. Can anyone test unloading the i2c-i801 driver on a system
-> where ACPI actually accesses the device?
+PING
 
-The whole point of this patch is that we expect that nobody never uses
-that OpRegion. I'm 99% sure you don't find a single machine where it is
-actually in use.
+On 06/29/2016 12:54 PM, Jacek Anaszewski wrote:
+> On 06/29/2016 12:07 PM, Tony wrote:
+>>
+>> On 29/06/16 07:52, Jacek Anaszewski wrote:
+>>> Hi Rafael,
+>>
+>>>>> +#ifdef CONFIG_ACPI
+>>>>> +static const struct acpi_device_id lp3952_acpi_match[] = {
+>>>>> +    {LP3952_ACPI_NAME, 0},
+>>>>
+>>>> No, you can't use "PRP0001" in this list.
+>>>>
+>>>>> +    {}
+>>>>> +};
+>>>>> +
+>>>>> +MODULE_DEVICE_TABLE(acpi, lp3952_acpi_match);
+>>>>
+>>>> And you don't need this for the "PRP0001" thing to work.  The core will
+>>>> take care of it for you then.
+>>>>
+>>>>> +#endif
+>>>>
+>>>> So the entire ACPI block can be dropped for now.
+>>>>
+>>>> And the driver doesn't have to depend on CONFIG_ACPI any more, does it?
+>>>
+>>> The driver currently supports probing only with ACPI.
+>>> I have one question BTW: isn't there anything similar to the device tree
+>>> bindings documentation required for ACPI overlays?
+>>> Pointer to the discussion which led us to this solution:
+>>>
+>>> http://www.spinics.net/lists/linux-leds/msg06230.html
+>>>
+>> _DSD is working now. I managed to get "PRP0001" working as suggested by
+>> Rafael in
+>> http://marc.info/?l=linux-acpi&m=146711623115228&w=2
+>> with _DSD
+>
+> Thanks for the link.
+>
+> Rafael, "Package" entries seem to mimic Device Tree properties defined
+> in the common leds bindings. Would it be possible to make it even
+> more compatible and define every LED connected to the LED controller
+> in the form of a child node, similarly as in case of LED DT bindings?
+>
+> See Documentation/devicetree/bindings/leds/common.txt and other
+> bindings in Documentation/devicetree/bindings/leds.
+>
+>>   I will try adding names using _DSD. I am not sure why DSD didn't work
+>> earlier. The only reason I could think of is, upgrading my OS recently
+>> following a raid failure.
+>>
+>>>
+>>>>>
+>> --
+>> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
+>> the body of a message to majordomo@vger.kernel.org
+>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>>
+>>
+>
+>
 
-The fallback code is there just to be sure we do not blow things up if
-it turns out some machine is using that.
 
-I think the best we can do is to lock down the module (prevent it from
-unloading) if we notice that the OpRegion is used.
+-- 
+Best regards,
+Jacek Anaszewski
