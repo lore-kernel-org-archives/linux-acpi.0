@@ -1,50 +1,91 @@
-From: Pali =?utf-8?q?Roh=C3=A1r?= <pali.rohar@gmail.com>
-Subject: Re: [v5] i2c: i801: Allow ACPI SystemIO OpRegion to conflict with PCI BAR
-Date: Tue, 5 Jul 2016 14:00:58 +0200
-Message-ID: <201607051400.58881@pali>
-References: <1463990658-53854-1-git-send-email-mika.westerberg@linux.intel.com> <20160705115142.GO23527@lahna.fi.intel.com> <201607051356.58794@pali>
+From: "Rafael J. Wysocki" <rafael@kernel.org>
+Subject: Re: [PATCH v7 1/1] leds: LED driver for TI LP3952 6-Channel Color LED
+Date: Tue, 5 Jul 2016 14:12:28 +0200
+Message-ID: <CAJZ5v0iDD4WbnrENEdO+4qjOe2_db1-8W0yJePUmeVB57bCkzg@mail.gmail.com>
+References: <1467129919-27641-1-git-send-email-tony.makkiel@daqri.com>
+ <3435169.nmqvdouPPq@vostro.rjw.lan> <57737021.1010603@samsung.com>
+ <57739DCE.3030303@daqri.com> <5773A8CF.10508@samsung.com> <577B9038.1040304@samsung.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed;
-  boundary="nextPart1909955.LTGQxUU7rS";
-  protocol="application/pgp-signature";
-  micalg=pgp-sha1
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-i2c-owner@vger.kernel.org>
-In-Reply-To: <201607051356.58794@pali>
-Sender: linux-i2c-owner@vger.kernel.org
-To: Mika Westerberg <mika.westerberg@linux.intel.com>
-Cc: Jean Delvare <jdelvare@suse.de>, Benjamin Tissoires <benjamin.tissoires@redhat.com>, Wolfram Sang <wsa@the-dreams.de>, Jarkko Nikula <jarkko.nikula@linux.intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Andy Lutomirski <luto@kernel.org>, Mario Limonciello <mario_limonciello@dell.com>, Matt Fleming <matt@codeblueprint.co.uk>, linux-i2c@vger.kernel.org, linux-acpi@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-wm0-f68.google.com ([74.125.82.68]:36311 "EHLO
+	mail-wm0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751168AbcGEMMb (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 5 Jul 2016 08:12:31 -0400
+In-Reply-To: <577B9038.1040304@samsung.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Jacek Anaszewski <j.anaszewski@samsung.com>
+Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Tony <tony.makkiel@daqri.com>, linux-leds@vger.kernel.org, rpurdie@rpsys.net, Len Brown <lenb@kernel.org>, Mika Westerberg <mika.westerberg@linux.intel.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>
 
---nextPart1909955.LTGQxUU7rS
-Content-Type: Text/Plain;
-  charset="utf-8"
-Content-Transfer-Encoding: quoted-printable
+On Tue, Jul 5, 2016 at 12:47 PM, Jacek Anaszewski
+<j.anaszewski@samsung.com> wrote:
+> PING
+>
+>
+> On 06/29/2016 12:54 PM, Jacek Anaszewski wrote:
+>>
+>> On 06/29/2016 12:07 PM, Tony wrote:
+>>>
+>>>
+>>> On 29/06/16 07:52, Jacek Anaszewski wrote:
+>>>>
+>>>> Hi Rafael,
+>>>
+>>>
+>>>>>> +#ifdef CONFIG_ACPI
+>>>>>> +static const struct acpi_device_id lp3952_acpi_match[] = {
+>>>>>> +    {LP3952_ACPI_NAME, 0},
+>>>>>
+>>>>>
+>>>>> No, you can't use "PRP0001" in this list.
+>>>>>
+>>>>>> +    {}
+>>>>>> +};
+>>>>>> +
+>>>>>> +MODULE_DEVICE_TABLE(acpi, lp3952_acpi_match);
+>>>>>
+>>>>>
+>>>>> And you don't need this for the "PRP0001" thing to work.  The core will
+>>>>> take care of it for you then.
+>>>>>
+>>>>>> +#endif
+>>>>>
+>>>>>
+>>>>> So the entire ACPI block can be dropped for now.
+>>>>>
+>>>>> And the driver doesn't have to depend on CONFIG_ACPI any more, does it?
+>>>>
+>>>>
+>>>> The driver currently supports probing only with ACPI.
+>>>> I have one question BTW: isn't there anything similar to the device tree
+>>>> bindings documentation required for ACPI overlays?
+>>>> Pointer to the discussion which led us to this solution:
+>>>>
+>>>> http://www.spinics.net/lists/linux-leds/msg06230.html
+>>>>
+>>> _DSD is working now. I managed to get "PRP0001" working as suggested by
+>>> Rafael in
+>>> http://marc.info/?l=linux-acpi&m=146711623115228&w=2
+>>> with _DSD
+>>
+>>
+>> Thanks for the link.
+>>
+>> Rafael, "Package" entries seem to mimic Device Tree properties defined
+>> in the common leds bindings. Would it be possible to make it even
+>> more compatible and define every LED connected to the LED controller
+>> in the form of a child node, similarly as in case of LED DT bindings?
+>>
+>> See Documentation/devicetree/bindings/leds/common.txt and other
+>> bindings in Documentation/devicetree/bindings/leds.
 
-On Tuesday 05 July 2016 13:56:58 Pali Roh=C3=A1r wrote:
-> On Tuesday 05 July 2016 13:51:42 Mika Westerberg wrote:
-> > So are you able to test what happens when you unload the driver?
->=20
-> As I wrote in previous email, I do not own these EliteBooks anymore,
-> so cannot test it. Just have DSDT dump...
+I'm not sure what you mean.
 
-What about contacting last contributors to hp_accel.c driver? They=20
-probably could test i801 changes if accelerometer still works.
+If somebody decides to arrange the data in their ACPI tables to follow
+that scheme, it will just work IMO.
 
-=2D-=20
-Pali Roh=C3=A1r
-pali.rohar@gmail.com
+Is there anything more that needs to be done in the kernel here?
 
---nextPart1909955.LTGQxUU7rS
-Content-Type: application/pgp-signature; name=signature.asc 
-Content-Description: This is a digitally signed message part.
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.11 (GNU/Linux)
-
-iEYEABECAAYFAld7oXoACgkQi/DJPQPkQ1I5PgCfSoSZe3Wvpxghss8D5v8UBUnf
-k0kAoImwocIdWeKWmi0/spLXVDB+nUAJ
-=lDIV
------END PGP SIGNATURE-----
-
---nextPart1909955.LTGQxUU7rS--
+Thanks,
+Rafael
