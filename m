@@ -1,122 +1,76 @@
-From: Tony <tony.makkiel@daqri.com>
-Subject: Re: [PATCH v7 1/1] leds: LED driver for TI LP3952 6-Channel Color LED
-Date: Tue, 5 Jul 2016 14:14:40 +0100
-Message-ID: <577BB2C0.3010001@daqri.com>
-References: <1467129919-27641-1-git-send-email-tony.makkiel@daqri.com>
- <3435169.nmqvdouPPq@vostro.rjw.lan> <57737021.1010603@samsung.com>
- <57739DCE.3030303@daqri.com> <5773A8CF.10508@samsung.com>
- <577B9038.1040304@samsung.com>
- <CAJZ5v0iDD4WbnrENEdO+4qjOe2_db1-8W0yJePUmeVB57bCkzg@mail.gmail.com>
- <577BA931.5070403@samsung.com>
+From: Graeme Gregory <gg@slimlogic.co.uk>
+Subject: Re: [PATCH v6 00/10] acpi, clocksource: add GTDT driver and GTDT
+ support in arm_arch_timer
+Date: Tue, 5 Jul 2016 15:18:58 +0100
+Message-ID: <20160705141858.GD18338@xora-haswell.xora.org.uk>
+References: <1467224153-22873-1-git-send-email-fu.wei@linaro.org>
+ <57714bed-3f9c-90c2-ac30-2d462d8a06d4@linaro.org>
+ <20160701152340.GO12735@arm.com>
+ <2183745.J7YpvxXQ47@vostro.rjw.lan>
+ <CAJZ5v0iFcjxQV9YV2KaXGAPRBM8M2xxPm5e2b4uhwYAZZtndPg@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-wm0-f47.google.com ([74.125.82.47]:33797 "EHLO
-	mail-wm0-f47.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755283AbcGENOn (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 5 Jul 2016 09:14:43 -0400
-Received: by mail-wm0-f47.google.com with SMTP id 187so26925402wmz.1
-        for <linux-acpi@vger.kernel.org>; Tue, 05 Jul 2016 06:14:42 -0700 (PDT)
-In-Reply-To: <577BA931.5070403@samsung.com>
+Received: from out3-smtp.messagingengine.com ([66.111.4.27]:50794 "EHLO
+	out3-smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752088AbcGEOTD (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 5 Jul 2016 10:19:03 -0400
+Content-Disposition: inline
+In-Reply-To: <CAJZ5v0iFcjxQV9YV2KaXGAPRBM8M2xxPm5e2b4uhwYAZZtndPg@mail.gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Jacek Anaszewski <j.anaszewski@samsung.com>, "Rafael J. Wysocki" <rafael@kernel.org>
-Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, linux-leds@vger.kernel.org, rpurdie@rpsys.net, Len Brown <lenb@kernel.org>, Mika Westerberg <mika.westerberg@linux.intel.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>
+To: "Rafael J. Wysocki" <rafael@kernel.org>
+Cc: Will Deacon <will.deacon@arm.com>, Hanjun Guo <hanjun.guo@linaro.org>, Catalin Marinas <catalin.marinas@arm.com>, Fu Wei <fu.wei@linaro.org>, Len Brown <lenb@kernel.org>, Daniel Lezcano <daniel.lezcano@linaro.org>, Thomas Gleixner <tglx@linutronix.de>, Marc Zyngier <marc.zyngier@arm.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linaro-acpi@lists.linaro.org" <linaro-acpi@lists.linaro.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, rruigrok@codeaurora.org, harba@codeaurora.org, Christopher Covington <cov@codeaurora.org>, Timur Tabi <timur@codeaurora.org>, G Gregory <graeme.gregory@linaro.org>, Al Stone <al.stone@linaro.org>, Jon Masters <jcm@redhat.com>, wei@redhat.com, Arnd Bergmann <arnd@arndb.de>, Wim Van Sebroeck <wim@iguana.be>, Suravee Suthikulanit <Sur>
 
+On Mon, Jul 04, 2016 at 02:53:20PM +0200, Rafael J. Wysocki wrote:
+> On Fri, Jul 1, 2016 at 11:04 PM, Rafael J. Wysocki <rjw@rjwysocki.net> wrote:
+> > On Friday, July 01, 2016 04:23:40 PM Will Deacon wrote:
+> >> On Thu, Jun 30, 2016 at 09:48:02PM +0800, Hanjun Guo wrote:
+> >> > On 2016/6/30 21:27, Rafael J. Wysocki wrote:
+> >> > >On Thursday, June 30, 2016 10:10:02 AM Hanjun Guo wrote:
+> >> > >>GTDT is part of ACPI spec, drivers/acpi/ is for driver code of
+> >> > >>ACPI spec, I think it can stay in drivers/acpi/ from this point
+> >> > >>of view, am I right?
+> >> > >
+> >> > >The question is not "Can it?", but "Does it need to?".
+> >> > >
+> >> > >It is in the spec, but still there's only one architecture needing it.
+> >> > >
+> >> > >There is no way to test it on any other architecture and no reason to build it
+> >> > >for any other architecture, so why does it need to be located in drivers/acpi/ ?
+> >> >
+> >> > I'm fine to move it to other places such as arch/arm64/kernel/, but I
+> >> > would like to ask ARM64 maintainer's suggestion for this.
+> >> >
+> >> > Will, Catalin, what's your opinion on this?
+> >>
+> >> We don't have any device-tree code for the architected timer under
+> >> arch/arm64, so I don't see why we should need anything for ACPI either.
+> >
+> > And I don't see a reason for the GTDT code to be there in drivers/acpi/.
+> >
+> > What gives?
+> 
+> Well, since there are things like acpi_lpss in there, my position here
+> is kind of weak. :-)
+> 
+> That said I'm not particularly happy with having them in
+> drivers/acpi/, so I definitely won't object against attempts to moving
+> them somewhere else.
+> 
+> > Maybe it should go to the same place as the analogus DT code, then?
+> 
+> I'm mostly concerned about how (and by whom) that code is going to be
+> maintained going forward, though.  I also think it should be made
+> clear that it is ARM64-only.
+> 
 
+So is this a documentation issue in which case Fu Wei can add that to
+the file to explain its limited to ARM64. Or we could even rename the
+file acpi_arm64_gtdt.c
 
-On 05/07/16 13:33, Jacek Anaszewski wrote:
-> On 07/05/2016 02:12 PM, Rafael J. Wysocki wrote:
->> On Tue, Jul 5, 2016 at 12:47 PM, Jacek Anaszewski
->> <j.anaszewski@samsung.com> wrote:
->>> PING
->>>
->>>
->>> On 06/29/2016 12:54 PM, Jacek Anaszewski wrote:
->>>>
->>>> On 06/29/2016 12:07 PM, Tony wrote:
->>>>>
->>>>>
->>>>> On 29/06/16 07:52, Jacek Anaszewski wrote:
->>>>>>
->>>>>> Hi Rafael,
->>>>>
->>>>>
->>>>>>>> +#ifdef CONFIG_ACPI
->>>>>>>> +static const struct acpi_device_id lp3952_acpi_match[] = {
->>>>>>>> +    {LP3952_ACPI_NAME, 0},
->>>>>>>
->>>>>>>
->>>>>>> No, you can't use "PRP0001" in this list.
->>>>>>>
->>>>>>>> +    {}
->>>>>>>> +};
->>>>>>>> +
->>>>>>>> +MODULE_DEVICE_TABLE(acpi, lp3952_acpi_match);
->>>>>>>
->>>>>>>
->>>>>>> And you don't need this for the "PRP0001" thing to work.  The
->>>>>>> core will
->>>>>>> take care of it for you then.
->>>>>>>
->>>>>>>> +#endif
->>>>>>>
->>>>>>>
->>>>>>> So the entire ACPI block can be dropped for now.
->>>>>>>
->>>>>>> And the driver doesn't have to depend on CONFIG_ACPI any more,
->>>>>>> does it?
->>>>>>
->>>>>>
->>>>>> The driver currently supports probing only with ACPI.
->>>>>> I have one question BTW: isn't there anything similar to the
->>>>>> device tree
->>>>>> bindings documentation required for ACPI overlays?
->>>>>> Pointer to the discussion which led us to this solution:
->>>>>>
->>>>>> http://www.spinics.net/lists/linux-leds/msg06230.html
->>>>>>
->>>>> _DSD is working now. I managed to get "PRP0001" working as
->>>>> suggested by
->>>>> Rafael in
->>>>> http://marc.info/?l=linux-acpi&m=146711623115228&w=2
->>>>> with _DSD
->>>>
->>>>
->>>> Thanks for the link.
->>>>
->>>> Rafael, "Package" entries seem to mimic Device Tree properties defined
->>>> in the common leds bindings. Would it be possible to make it even
->>>> more compatible and define every LED connected to the LED controller
->>>> in the form of a child node, similarly as in case of LED DT bindings?
->>>>
->>>> See Documentation/devicetree/bindings/leds/common.txt and other
->>>> bindings in Documentation/devicetree/bindings/leds.
->>
->> I'm not sure what you mean.
->>
->> If somebody decides to arrange the data in their ACPI tables to follow
->> that scheme, it will just work IMO.
->>
->> Is there anything more that needs to be done in the kernel here?
->
-> In case of Device Tree based platforms it is customary to define each
-> LED as a child node of the LED controller node. LED names can then
-> be obtained from the 'label' property or DT node name.
-> Tony has encountered some issues [1] while trying to follow this
-> pattern. Tony, could you please double check that?
->
-> [1] http://www.spinics.net/lists/linux-leds/msg06230.html
+It seems a pity as the comment on this series were minors to block
+things on a filename/location.
 
-Sorry, I was quite for a while. I have been trying to get the driver 
-probed using "compatible" property, with PRP0001. But has not worked yet.
+Graeme
 
-  I am told by TI to use TXNW3952 as ACPI id (waiting for final 
-confirmation). So hopefully won't have to use PRP0001.
-
-I have managed to read one of the led names from ACPI table using the _DSD.
-
-Will implement the same for other leds, and send another patch soon.
-
->
