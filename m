@@ -1,86 +1,45 @@
-From: Jacek Anaszewski <j.anaszewski@samsung.com>
-Subject: Re: [PATCH v7 1/1] leds: LED driver for TI LP3952 6-Channel Color LED
-Date: Tue, 05 Jul 2016 12:47:20 +0200
-Message-ID: <577B9038.1040304@samsung.com>
-References: <1467129919-27641-1-git-send-email-tony.makkiel@daqri.com>
- <3435169.nmqvdouPPq@vostro.rjw.lan> <57737021.1010603@samsung.com>
- <57739DCE.3030303@daqri.com> <5773A8CF.10508@samsung.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-leds-owner@vger.kernel.org>
-In-reply-to: <5773A8CF.10508@samsung.com>
-Sender: linux-leds-owner@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: Tony <tony.makkiel@daqri.com>, linux-leds@vger.kernel.org, rpurdie@rpsys.net, lenb@kernel.org, mika.westerberg@linux.intel.com, linux-acpi@vger.kernel.org
+From: Lv Zheng <lv.zheng@intel.com>
+Subject: [PATCH 0/5] ACPI: ACPI documentations and trivial fixes
+Date: Tue,  5 Jul 2016 19:17:39 +0800
+Message-ID: <cover.1467717304.git.lv.zheng@intel.com>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga11.intel.com ([192.55.52.93]:46347 "EHLO mga11.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754095AbcGELSA (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 5 Jul 2016 07:18:00 -0400
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <len.brown@intel.com>
+Cc: Lv Zheng <lv.zheng@intel.com>, Lv Zheng <zetalog@gmail.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
 
-PING
+This patch adds ACPI documentations related to:
+1. AML debugger
+2. Control method LID device
+3. ACPICA release process
+This patch also contains several trivial fixes detected during the
+documentation work.
 
-On 06/29/2016 12:54 PM, Jacek Anaszewski wrote:
-> On 06/29/2016 12:07 PM, Tony wrote:
->>
->> On 29/06/16 07:52, Jacek Anaszewski wrote:
->>> Hi Rafael,
->>
->>>>> +#ifdef CONFIG_ACPI
->>>>> +static const struct acpi_device_id lp3952_acpi_match[] = {
->>>>> +    {LP3952_ACPI_NAME, 0},
->>>>
->>>> No, you can't use "PRP0001" in this list.
->>>>
->>>>> +    {}
->>>>> +};
->>>>> +
->>>>> +MODULE_DEVICE_TABLE(acpi, lp3952_acpi_match);
->>>>
->>>> And you don't need this for the "PRP0001" thing to work.  The core will
->>>> take care of it for you then.
->>>>
->>>>> +#endif
->>>>
->>>> So the entire ACPI block can be dropped for now.
->>>>
->>>> And the driver doesn't have to depend on CONFIG_ACPI any more, does it?
->>>
->>> The driver currently supports probing only with ACPI.
->>> I have one question BTW: isn't there anything similar to the device tree
->>> bindings documentation required for ACPI overlays?
->>> Pointer to the discussion which led us to this solution:
->>>
->>> http://www.spinics.net/lists/linux-leds/msg06230.html
->>>
->> _DSD is working now. I managed to get "PRP0001" working as suggested by
->> Rafael in
->> http://marc.info/?l=linux-acpi&m=146711623115228&w=2
->> with _DSD
->
-> Thanks for the link.
->
-> Rafael, "Package" entries seem to mimic Device Tree properties defined
-> in the common leds bindings. Would it be possible to make it even
-> more compatible and define every LED connected to the LED controller
-> in the form of a child node, similarly as in case of LED DT bindings?
->
-> See Documentation/devicetree/bindings/leds/common.txt and other
-> bindings in Documentation/devicetree/bindings/leds.
->
->>   I will try adding names using _DSD. I am not sure why DSD didn't work
->> earlier. The only reason I could think of is, upgrading my OS recently
->> following a raid failure.
->>
->>>
->>>>>
->> --
->> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
->> the body of a message to majordomo@vger.kernel.org
->> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->>
->>
->
->
+Lv Zheng (5):
+  ACPI: Add documentation describing ACPICA release automation
+  ACPI / debugger: Fix regressions that AML debugger stops working
+  ACPI / debugger: Add AML debugger documentation
+  ACPI / button: Add SW_ACPI_LID for new usage model
+  ACPI: Add configuration item to configure ACPICA error logs out
 
+ Documentation/acpi/acpi-lid.txt         |   42 ++++++
+ Documentation/acpi/aml-debugger.txt     |   56 +++++++
+ Documentation/acpi/linuxized-acpica.txt |  251 +++++++++++++++++++++++++++++++
+ drivers/acpi/Kconfig                    |    7 +
+ drivers/acpi/acpi_dbg.c                 |    6 +-
+ drivers/acpi/button.c                   |   20 ++-
+ include/acpi/platform/aclinux.h         |    4 +
+ include/linux/mod_devicetable.h         |    2 +-
+ include/uapi/linux/input-event-codes.h  |    3 +-
+ 9 files changed, 381 insertions(+), 10 deletions(-)
+ create mode 100644 Documentation/acpi/acpi-lid.txt
+ create mode 100644 Documentation/acpi/aml-debugger.txt
+ create mode 100644 Documentation/acpi/linuxized-acpica.txt
 
 -- 
-Best regards,
-Jacek Anaszewski
+1.7.10
+
