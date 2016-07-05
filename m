@@ -1,44 +1,52 @@
-From: Johannes Thumshirn <jthumshirn@suse.de>
-Subject: Re: [PATCH] dax: use devm_add_action_or_reset()
-Date: Tue, 5 Jul 2016 08:59:04 +0200
-Message-ID: <20160705065904.ek4ltpveavadqdqt@c203.arch.suse.de>
-References: <1467697807-27067-1-git-send-email-vikas.cha.sajjan@hpe.com>
+From: Lukas Wunner <lukas@wunner.de>
+Subject: Re: kmem_cache_alloc fail with unable to handle paging request after
+ pci hotplug remove.
+Date: Tue, 5 Jul 2016 09:53:46 +0200
+Message-ID: <20160705075346.GA2918@wunner.de>
+References: <577A7203.9010305@linux.intel.com>
+ <CAJZ5v0ji9pVgAZZJT+RG83RNE4-GgJAp88Mw2ddVt3H6eHG72g@mail.gmail.com>
+ <577A7B0A.4090107@linux.intel.com>
+ <20160704152131.GA2766@wunner.de>
+ <577A84B4.8020505@linux.intel.com>
+ <CAMz9Wg9wEhjH9izB_11xoNe954urJcRhrjbbyk9b45+42Vx6bg@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mx2.suse.de ([195.135.220.15]:50972 "EHLO mx2.suse.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754680AbcGEG7R (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 5 Jul 2016 02:59:17 -0400
+Received: from mailout1.hostsharing.net ([83.223.95.204]:60107 "EHLO
+	mailout1.hostsharing.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751052AbcGEHtX (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 5 Jul 2016 03:49:23 -0400
 Content-Disposition: inline
-In-Reply-To: <1467697807-27067-1-git-send-email-vikas.cha.sajjan@hpe.com>
+In-Reply-To: <CAMz9Wg9wEhjH9izB_11xoNe954urJcRhrjbbyk9b45+42Vx6bg@mail.gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Vikas C Sajjan <vikas.cha.sajjan@hpe.com>
-Cc: dan.j.williams@intel.com, ross.zwisler@linux.intel.com, linux-nvdimm@lists.01.org, linux-acpi@vger.kernel.org, linda.knippers@hpe.com
+To: AceLan Kao <acelan@gmail.com>
+Cc: Mathias Nyman <mathias.nyman@linux.intel.com>, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Bjorn Helgaas <bhelgaas@google.com>, Andrew Morton <akpm@linux-foundation.org>, Linux Memory Management List <linux-mm@kvack.org>, LKML <linux-kernel@vger.kernel.org>, Linux PCI <linux-pci@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>, USB <linux-usb@vger.kernel.org>
 
-On Tue, Jul 05, 2016 at 11:20:07AM +0530, Vikas C Sajjan wrote:
-> If devm_add_action() fails, we are explicitly calling the cleanup to =
-free
-> the resources allocated. Use the helper devm_add_action_or_reset()
-> and return directly in case of error, since the cleanup function
-> has been already called by the helper if there was any error.
->=20
-> Reported-by: Sudip Mukherjee <sudipm.mukherjee@gmail.com>
-> Signed-off-by: Vikas C Sajjan <vikas.cha.sajjan@hpe.com>
+On Tue, Jul 05, 2016 at 11:00:21AM +0800, AceLan Kao wrote:
+> These are logs from my machine.
+> 
+> *** Before plug-in the USB key
+> 
+> u@u-XPS-13-9xxx:~$ sudo lspci -vvvv -s 00:1c.0
+> 00:1c.0 PCI bridge: Intel Corporation Device 9d10 (rev f1) (prog-if 00
+> [Normal decode])
+[...]
+>                 LnkSta: Speed 2.5GT/s, Width x0, TrErr- Train- SlotClk+ DLActive- BWMgmt- ABWMgmt-
+>                 SltCap: AttnBtn- PwrCtrl- MRL- AttnInd- PwrInd- HotPlug+ Surprise+
 
-Reviewed-by: Johannes Thumshirn <jthumshirn@suse.de>
+The link is down (DLActive-), but the root port is a hotplug port,
+so apparently with Alpine Ridge the controller is powered down if
+nothing is plugged in and this results in the controller being
+"unplugged" from the root port.
 
---=20
-Johannes Thumshirn                                          Storage
-jthumshirn@suse.de                                +49 911 74053 689
-SUSE LINUX GmbH, Maxfeldstr. 5, 90409 N=FCrnberg
-GF: Felix Imend=F6rffer, Jane Smithard, Graham Norton
-HRB 21284 (AG N=FCrnberg)
-Key fingerprint =3D EC38 9CAB C2C4 F25D 8600 D0D0 0393 969D 2D76 0850
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+This looks less fishy than I originally thought, it's just very
+different from the power management of pre Alpine Ridge controllers
+on Macs (which is the only thing I'm really familiar with), where
+the root port is not a hotplug port and the controller does not
+disappear from the system when powered down. (It's config space
+just becomes inaccessible.)
+
+Best regards,
+
+Lukas
