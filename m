@@ -1,46 +1,54 @@
-From: Octavian Purdila <octavian.purdila@intel.com>
-Subject: Re: [PATCH v5 2/8] acpi: fix enumeration (visited) flags for bus rescans
-Date: Wed, 6 Jul 2016 18:37:46 +0300
-Message-ID: <CAE1zotJg+bCUD+q_cbiO1=abx1PJbUdWVr03uutwR081iG4G1g@mail.gmail.com>
-References: <1467404352-27101-1-git-send-email-octavian.purdila@intel.com>
- <1467404352-27101-3-git-send-email-octavian.purdila@intel.com> <20160706150317.GH23527@lahna.fi.intel.com>
+From: Will Deacon <will.deacon@arm.com>
+Subject: Re: [PATCH 06/11] arm: arm64: Add routine to determine cpuid of
+ other cpus
+Date: Wed, 6 Jul 2016 17:30:02 +0100
+Message-ID: <20160706163001.GC31910@arm.com>
+References: <1466529109-21715-1-git-send-email-jeremy.linton@arm.com>
+ <1466529109-21715-7-git-send-email-jeremy.linton@arm.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-i2c-owner@vger.kernel.org>
-In-Reply-To: <20160706150317.GH23527@lahna.fi.intel.com>
-Sender: linux-i2c-owner@vger.kernel.org
-To: Mika Westerberg <mika.westerberg@linux.intel.com>
-Cc: "Rafael J . Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Matt Fleming <matt@codeblueprint.co.uk>, Mark Brown <broonie@kernel.org>, Wolfram Sang <wsa@the-dreams.de>, Joel Becker <jlbec@evilplan.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, linux-efi@vger.kernel.org, linux-i2c <linux-i2c@vger.kernel.org>, linux-spi <linux-spi@vger.kernel.org>, lkml <linux-kernel@vger.kernel.org>, Irina Tirdea <irina.tirdea@intel.com>, Leonard Crestez <leonard.crestez@intel.com>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from foss.arm.com ([217.140.101.70]:59099 "EHLO foss.arm.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754490AbcGFQaD (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 6 Jul 2016 12:30:03 -0400
+Content-Disposition: inline
+In-Reply-To: <1466529109-21715-7-git-send-email-jeremy.linton@arm.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Jeremy Linton <jeremy.linton@arm.com>
+Cc: linux-arm-kernel@lists.infradead.org, linux-acpi@vger.kernel.org, mark.rutland@arm.com, catalin.marinas@arm.com, Lorenzo.Pieralisi@arm.com, alexander.shishkin@linux.intel.com, acme@kernel.org, mingo@redhat.com, peterz@infradead.org, mlangsdorf@redhat.com, punit.agrawal@arm.com, Steve.Capper@arm.com
 
-On Wed, Jul 6, 2016 at 6:03 PM, Mika Westerberg
-<mika.westerberg@linux.intel.com> wrote:
-> On Fri, Jul 01, 2016 at 11:19:06PM +0300, Octavian Purdila wrote:
->> If the ACPI tables changes as a result of a dinamically loaded table and
->> a bus rescan is required the enumeration/visited flag are not
->> consistent.
->>
->> I2C/SPI are not directly enumerated in acpi_bus_attach(), however the
->> visited flag is set. This makes it impossible to check if an ACPI device
->> has already been enumerated by the I2C and SPI subsystems. To fix this
->> issue we only set the visited flags if the device is not I2C or SPI.
->>
->> With this change we also need to remove setting visited to false from
->> acpi_bus_attach(), otherwise if we rescan already enumerated I2C/SPI
->> devices we try to re-enumerate them.
->>
->> Note that I2C/SPI devices can be enumerated either via a scan handler
->> (when using PRP0001) or via regular device_attach(). In either case
->> the flow goes through acpi_default_enumeration() which makes it the
->> ideal place to mark the ACPI device as enumerated.
->
-> Hmm, this somehow fails to enumerate PRP0001 devices.
->
-> I'm adding following SSDT to my initrd and the resulting device is never
-> enumerated on SPI bus (it exists in /sys/bus/acpi/devices). If I use
-> normal ACPI IDs (non-PRP0001) then it works fine.
->
+On Tue, Jun 21, 2016 at 12:11:44PM -0500, Jeremy Linton wrote:
+> It is helpful if we can read the cpuid/midr of other CPUs
+> in the system independent of arm/arm64.
+> 
+> Signed-off-by: Jeremy Linton <jeremy.linton@arm.com>
+> ---
+>  arch/arm/include/asm/cputype.h   | 6 +++++-
+>  arch/arm64/include/asm/cputype.h | 4 ++++
+>  2 files changed, 9 insertions(+), 1 deletion(-)
+> 
+> diff --git a/arch/arm/include/asm/cputype.h b/arch/arm/include/asm/cputype.h
+> index 1ee94c7..e391b67 100644
+> --- a/arch/arm/include/asm/cputype.h
+> +++ b/arch/arm/include/asm/cputype.h
+> @@ -81,6 +81,8 @@
+>  #define ARM_CPU_XSCALE_ARCH_V2		0x4000
+>  #define ARM_CPU_XSCALE_ARCH_V3		0x6000
+>  
+> +#define ARM_PARTNUM(cpuid_id) (cpuid_id & ARM_CPU_PART_MASK)
+> +
+>  extern unsigned int processor_id;
+>  
+>  #ifdef CONFIG_CPU_CP15
+> @@ -180,7 +182,7 @@ static inline unsigned int __attribute_const__ read_cpuid_implementor(void)
+>   */
+>  static inline unsigned int __attribute_const__ read_cpuid_part(void)
+>  {
+> -	return read_cpuid_id() & ARM_CPU_PART_MASK;
+> +	return ARM_PARTNUM(read_cpuid_id());
 
-I specifically tested with PRP0001 via initrd with I2C, I am not sure
-why it does not work on SPI. I'll give it a try tomorrow when I have
-access to my setup.
+I don't understand why you need to make this change.
+
+Will
