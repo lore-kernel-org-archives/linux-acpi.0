@@ -1,55 +1,113 @@
-From: "Zheng, Lv" <lv.zheng@intel.com>
-Subject: RE: [PATCH 2/5] ACPI / debugger: Fix regressions that AML debugger
- stops working
-Date: Wed, 6 Jul 2016 02:08:22 +0000
-Message-ID: <1AE640813FDE7649BE1B193DEA596E883BC004B2@SHSMSX101.ccr.corp.intel.com>
-References: <cover.1467717304.git.lv.zheng@intel.com>
- <c42921c3de9a94fcff97a2de7ac5599cc38ec41f.1467717305.git.lv.zheng@intel.com>
- <CAJZ5v0gjN_bKyf+mph3qzRXMm0K+YOFDuucYa3rxoup99mYAQg@mail.gmail.com>
+From: Markus Mayer <markus.mayer@broadcom.com>
+Subject: Re: [PATCH v2 0/7] lib: string: add functions to case-convert strings
+Date: Tue, 5 Jul 2016 21:32:16 -0700
+Message-ID: <CAGt4E5u_C9TVgJh5NUCSb6zM_UTazJPTPrsBO9K0atzXAopR8w@mail.gmail.com>
+References: <1467751631-22878-1-git-send-email-mmayer@broadcom.com>
+ <1467756874.16342.11.camel@perches.com> <CAGt4E5vqiUOVmgqY8OvRPNpoS54hZMOHid6ND4CRyb5p9y5ndw@mail.gmail.com>
+ <1467759377.8360.12.camel@perches.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga09.intel.com ([134.134.136.24]:1747 "EHLO mga09.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751271AbcGFCI3 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 5 Jul 2016 22:08:29 -0400
-In-Reply-To: <CAJZ5v0gjN_bKyf+mph3qzRXMm0K+YOFDuucYa3rxoup99mYAQg@mail.gmail.com>
-Content-Language: en-US
+Received: from mail-vk0-f53.google.com ([209.85.213.53]:33254 "EHLO
+	mail-vk0-f53.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750750AbcGFEcS (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 6 Jul 2016 00:32:18 -0400
+Received: by mail-vk0-f53.google.com with SMTP id k68so203840525vkb.0
+        for <linux-acpi@vger.kernel.org>; Tue, 05 Jul 2016 21:32:17 -0700 (PDT)
+In-Reply-To: <1467759377.8360.12.camel@perches.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rafael@kernel.org>
-Cc: "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, "Brown, Len" <len.brown@intel.com>, Lv Zheng <zetalog@gmail.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Arnd Bergmann <arnd@arndb.de>
+To: Joe Perches <joe@perches.com>
+Cc: Andrew Morton <akpm@linux-foundation.org>, Al Viro <viro@zeniv.linux.org.uk>, Rasmus Villemoes <linux@rasmusvillemoes.dk>, Chris Metcalf <cmetcalf@ezchip.com>, Kees Cook <keescook@chromium.org>, dri-devel@lists.freedesktop.org, nouveau@lists.freedesktop.org, linux-acpi@vger.kernel.org, speakup@linux-speakup.org, devel@driverdev.osuosl.org, linux-scsi@vger.kernel.org, target-devel@vger.kernel.org, linux-pm@vger.kernel.org, Linux Kernel <linux-kernel@vger.kernel.org>
 
-SGksIFJhZmFlbA0KDQo+IEZyb206IHJqd3lzb2NraUBnbWFpbC5jb20gW21haWx0bzpyand5c29j
-a2lAZ21haWwuY29tXSBPbiBCZWhhbGYgT2YNCj4gUmFmYWVsIEouIFd5c29ja2kNCj4gU3ViamVj
-dDogUmU6IFtQQVRDSCAyLzVdIEFDUEkgLyBkZWJ1Z2dlcjogRml4IHJlZ3Jlc3Npb25zIHRoYXQg
-QU1MDQo+IGRlYnVnZ2VyIHN0b3BzIHdvcmtpbmcNCj4gDQo+IE9uIFR1ZSwgSnVsIDUsIDIwMTYg
-YXQgMToxOCBQTSwgTHYgWmhlbmcgPGx2LnpoZW5nQGludGVsLmNvbT4gd3JvdGU6DQo+ID4gVGhl
-IEZJRk8gdW5sb2NraW5nIG1lY2hhbmlzbSBpbiBhY3BpX2RiZyBoYXMgYmVlbiBtZXNzZWQgdXAg
-YnkgdGhlDQo+ID4gZm9sbG93aW5nIGNvbW1pdDoNCj4gPiAgIENvbW1pdDogMjg3OTgwZTQ5ZmZj
-MGY2ZDkxMTYwMWU3ZTM1MmE4MTJlZDI3NzY4ZQ0KPiA+ICAgU3ViamVjdDogcmVtb3ZlIGxvdHMg
-b2YgSVNfRVJSX1ZBTFVFIGFidXNlcw0KPiA+IEl0IGNvbnZlcnRzICFJU19FUlJfVkFMVUUocmV0
-KSBpbnRvICFyZXQuIFRoaXMgcGF0Y2ggZml4ZXMgdGhlDQo+ID4gcmVncmVzc2lvbi4NCj4gPg0K
-PiA+IEZpeGVzOiAyODc5ODBlNDlmZmMgKCJyZW1vdmUgbG90cyBvZiBJU19FUlJfVkFMVUUgYWJ1
-c2VzIikNCj4gPiBTaWduZWQtb2ZmLWJ5OiBMdiBaaGVuZyA8bHYuemhlbmdAaW50ZWwuY29tPg0K
-PiA+IENjOiBBcm5kIEJlcmdtYW5uIDxhcm5kQGFybmRiLmRlPg0KPiANCj4gT0ssIGJ1dCAtPg0K
-PiANCj4gPiAtLS0NCj4gPiAgZHJpdmVycy9hY3BpL2FjcGlfZGJnLmMgfCAgICA2ICsrKystLQ0K
-PiA+ICAxIGZpbGUgY2hhbmdlZCwgNCBpbnNlcnRpb25zKCspLCAyIGRlbGV0aW9ucygtKQ0KPiA+
-DQo+ID4gZGlmZiAtLWdpdCBhL2RyaXZlcnMvYWNwaS9hY3BpX2RiZy5jIGIvZHJpdmVycy9hY3Bp
-L2FjcGlfZGJnLmMNCj4gPiBpbmRleCAxZjQxMjg0Li5lYmM4ZDE4IDEwMDY0NA0KPiA+IC0tLSBh
-L2RyaXZlcnMvYWNwaS9hY3BpX2RiZy5jDQo+ID4gKysrIGIvZHJpdmVycy9hY3BpL2FjcGlfZGJn
-LmMNCj4gPiBAQCAtNjAyLDcgKzYwMiw4IEBAIHN0YXRpYyBpbnQgYWNwaV9hbWxfcmVhZF91c2Vy
-KGNoYXIgX191c2VyICpidWYsDQo+IGludCBsZW4pDQo+ID4gICAgICAgICBjcmMtPnRhaWwgPSAo
-Y3JjLT50YWlsICsgbikgJiAoQUNQSV9BTUxfQlVGX1NJWkUgLSAxKTsNCj4gPiAgICAgICAgIHJl
-dCA9IG47DQo+ID4gIG91dDoNCj4gPiAtICAgICAgIGFjcGlfYW1sX3VubG9ja19maWZvKEFDUElf
-QU1MX09VVF9VU0VSLCAhcmV0KTsNCj4gPiArICAgICAgIGFjcGlfYW1sX3VubG9ja19maWZvKEFD
-UElfQU1MX09VVF9VU0VSLA0KPiA+ICsgICAgICAgICAgICAgICAgICAgICAgICAgICAgcmV0IDwg
-MCA/IGZhbHNlIDogdHJ1ZSk7DQo+IA0KPiAtPiBUaGUgdGVybmFyeSBvcGVyYXRpb24gaXMgbm90
-IG5lY2Vzc2FyeSBoZXJlLCBiZWNhdXNlIHRoZSByZXN1bHQgb2YNCj4gKHJldCA8IDApIGlzIGFs
-cmVhZHkgYm9vbGVhbi4gIFNvIHRoaXMgY2FuIGJlIHdyaXR0ZW4gYXMNCj4gDQo+IGFjcGlfYW1s
-X3VubG9ja19maWZvKEFDUElfQU1MX09VVF9VU0VSLCByZXQgPj0gMCk7DQo+IA0KPiBhbmQgYW5h
-bG9nb3VzbHkgYmVsb3cuDQo+IA0KPiBJJ3ZlIG1hZGUgdGhhdCBjaGFuZ2UsIHBsZWFzZSBjaGVj
-ayB0aGUgcmVzdWx0IGluIGJsZWVkaW5nLWVkZ2UuDQoNCltMdiBaaGVuZ10gDQpDb25maXJtZWQg
-dG8gYmUgd29ya2luZy4NClRoYW5rcyBmb3IgdGhlIHNpbXBsaWZpY2F0aW9uLg0KDQpUaGFua3Mg
-YW5kIGJlc3QgcmVnYXJkcw0KLUx2DQo=
+On 5 July 2016 at 15:56, Joe Perches <joe@perches.com> wrote:
+> On Tue, 2016-07-05 at 15:36 -0700, Markus Mayer wrote:
+>> On 5 July 2016 at 15:14, Joe Perches <joe@perches.com> wrote:
+>> > On Tue, 2016-07-05 at 13:47 -0700, Markus Mayer wrote:
+>> > > This series introduces a family of generic string case conversion
+>> > > functions. This kind of functionality is needed in several places in
+>> > > the kernel. Right now, everybody seems to be implementing their own
+>> > > copy of this functionality.
+>> > >
+>> > > Based on the discussion of the previous version of this series[1] and
+>> > > the use cases found in the kernel, it does look like having several
+>> > > flavours of case conversion functions is beneficial. The use cases fall
+>> > > into three categories:
+>> > >     - copying a string and converting the case while specifying a
+>> > >       maximum length to mimic strncpy()
+>> > >     - copying a string and converting the case without specifying a
+>> > >       length to mimic strcpy()
+>> > >     - converting the case of a string in-place (i.e. modifying the
+>> > >       string that was passed in)
+>> > >
+>> > > Consequently, I am proposing these new functions:
+>> > >     char *strncpytoupper(char *dst, const char *src, size_t len);
+>> > >     char *strncpytolower(char *dst, const char *src, size_t len);
+>> > >     char *strcpytoupper(char *dst, const char *src);
+>> > >     char *strcpytolower(char *dst, const char *src);
+>> > >     char *strtoupper(char *s);
+>> > >     char *strtolower(char *s);
+>> > I think there isn't much value in anything other
+>> > than strto.
+>> >
+>> > Using str[n]cpy followed by strto is
+>> > pretty obvious and rarely used anyway.
+>> First time around, folks were proposing the "copy" variants when I
+>> submitted just strtolower() by itself[1]. They just asked for source
+>> and destination parameters to strtolower(), but looking at the use
+>> cases that wouldn't have worked so well. Hence it evolved into these 6
+>> functions.
+>>
+>> Here's a breakdown of how the functions are being used (patches 2-7),
+>> see also [2]:
+>>
+>> Patch 2: strncpytolower()
+>> Patch 3: strtolower()
+>> Patch 4: strncpytolower() and strtolower()
+>> Patch 5: strtolower()
+>> Patch 6: strcpytoupper()
+>> Patch 7: strcpytoupper()
+>>
+>> So it does look like the copy + change case variant is more frequently
+>> used than just strto.
+>
+> Are these functions useful?  <shrug> Not to me, not so much.
+
+The use cases do exist. I'll leave it up to the maintainers to decide
+whether duplicate implementations or potentially unused generic
+functions are to be preferred.
+
+What I do know is that I have a driver in the wings that also needs a
+strolower() implementation. If this ends up not being accepted, I'll
+have to add yet another driver-local strtolower() implementation to
+the kernel. But if that's the decision then so be it.
+
+> None of the functions would have the strcpy performance of
+> the arch / asm
+> versions of strcpy and the savings in overall
+> code isn't significant (or
+> measured?).
+
+100% agreed. These functions won't set any speed records. Keep in mind
+also that in 4 out of the 6 cases where I replaced local
+implementations of "strcpytoXXX", the code was doing essentially the
+same I am proposing here (no assembly code). Only 2 of the 6 called
+strncpy() before, benefiting from optimized assembly implementations.
+But they still had to walk the string explicitly afterwards to convert
+the case, which probably means the overall speed won't change that
+much using the functions proposed here.
+
+> Of course none of the uses are runtime performance important.
+
+That is also very true.
+
+> This patch also adds always compiled functions that aren't used
+> in many .configs.
+
+It adds 2 functions (strncpytolower() and strncpytoupper()). The other
+4 are static inline one-liners and won't show up anywhere if not used
+(and if used the compiler will insert calls to strncpyto<lower|upper>
+instead).
+
+Regards,
+-Markus
