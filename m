@@ -1,42 +1,52 @@
-From: Will Deacon <will.deacon@arm.com>
-Subject: Re: [PATCH 05/11] arm64: pmu: Add support for probing with ACPI
-Date: Wed, 6 Jul 2016 17:45:09 +0100
-Message-ID: <20160706164509.GD31910@arm.com>
-References: <1466529109-21715-1-git-send-email-jeremy.linton@arm.com>
- <1466529109-21715-6-git-send-email-jeremy.linton@arm.com>
+From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Subject: Re: [PATCH v5 2/8] acpi: fix enumeration (visited) flags for bus rescans
+Date: Wed, 06 Jul 2016 23:09:44 +0200
+Message-ID: <31239967.dEXrvihxAE@vostro.rjw.lan>
+References: <1467404352-27101-1-git-send-email-octavian.purdila@intel.com> <20160706150317.GH23527@lahna.fi.intel.com> <CAE1zotJg+bCUD+q_cbiO1=abx1PJbUdWVr03uutwR081iG4G1g@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from foss.arm.com ([217.140.101.70]:59168 "EHLO foss.arm.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753813AbcGFQpK (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 6 Jul 2016 12:45:10 -0400
-Content-Disposition: inline
-In-Reply-To: <1466529109-21715-6-git-send-email-jeremy.linton@arm.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7Bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <CAE1zotJg+bCUD+q_cbiO1=abx1PJbUdWVr03uutwR081iG4G1g@mail.gmail.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Octavian Purdila <octavian.purdila@intel.com>
+Cc: Mika Westerberg <mika.westerberg@linux.intel.com>, Len Brown <lenb@kernel.org>, Matt Fleming <matt@codeblueprint.co.uk>, Mark Brown <broonie@kernel.org>, Wolfram Sang <wsa@the-dreams.de>, Joel Becker <jlbec@evilplan.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, linux-efi@vger.kernel.org, linux-i2c <linux-i2c@vger.kernel.org>, linux-spi <linux-spi@vger.kernel.org>, lkml <linux-kernel@vger.kernel.org>, Irina Tirdea <irina.tirdea@intel.com>, Leonard Crestez <leonard.crestez@intel.com>
 List-Id: linux-acpi@vger.kernel.org
-To: Jeremy Linton <jeremy.linton@arm.com>
-Cc: linux-arm-kernel@lists.infradead.org, linux-acpi@vger.kernel.org, mark.rutland@arm.com, catalin.marinas@arm.com, Lorenzo.Pieralisi@arm.com, alexander.shishkin@linux.intel.com, acme@kernel.org, mingo@redhat.com, peterz@infradead.org, mlangsdorf@redhat.com, punit.agrawal@arm.com, Steve.Capper@arm.com
 
-On Tue, Jun 21, 2016 at 12:11:43PM -0500, Jeremy Linton wrote:
-> From: Mark Salter <msalter@redhat.com>
+On Wednesday, July 06, 2016 06:37:46 PM Octavian Purdila wrote:
+> On Wed, Jul 6, 2016 at 6:03 PM, Mika Westerberg
+> <mika.westerberg@linux.intel.com> wrote:
+> > On Fri, Jul 01, 2016 at 11:19:06PM +0300, Octavian Purdila wrote:
+> >> If the ACPI tables changes as a result of a dinamically loaded table and
+> >> a bus rescan is required the enumeration/visited flag are not
+> >> consistent.
+> >>
+> >> I2C/SPI are not directly enumerated in acpi_bus_attach(), however the
+> >> visited flag is set. This makes it impossible to check if an ACPI device
+> >> has already been enumerated by the I2C and SPI subsystems. To fix this
+> >> issue we only set the visited flags if the device is not I2C or SPI.
+> >>
+> >> With this change we also need to remove setting visited to false from
+> >> acpi_bus_attach(), otherwise if we rescan already enumerated I2C/SPI
+> >> devices we try to re-enumerate them.
+> >>
+> >> Note that I2C/SPI devices can be enumerated either via a scan handler
+> >> (when using PRP0001) or via regular device_attach(). In either case
+> >> the flow goes through acpi_default_enumeration() which makes it the
+> >> ideal place to mark the ACPI device as enumerated.
+> >
+> > Hmm, this somehow fails to enumerate PRP0001 devices.
+> >
+> > I'm adding following SSDT to my initrd and the resulting device is never
+> > enumerated on SPI bus (it exists in /sys/bus/acpi/devices). If I use
+> > normal ACPI IDs (non-PRP0001) then it works fine.
+> >
 > 
-> In the case of ACPI, the PMU IRQ information is contained in the
-> MADT table. Also, since the PMU does not exist as a device in the
-> ACPI DSDT table, it is necessary to create a platform device so
-> that the appropriate driver probing is triggered.
-> 
-> Signed-off-by: Mark Salter <msalter@redhat.com>
-> Signed-off-by: Jeremy Linton <jeremy.linton@arm.com>
-> ---
-> 
-> NOTE: Much of the code in pmu_acpi_init() is replaced in patches 0009 and
->       0010 this set. The later version of the patch cleans up most of the
->       possible style/error handling issues that have been pointed out with
->       this version.
+> I specifically tested with PRP0001 via initrd with I2C, I am not sure
+> why it does not work on SPI. I'll give it a try tomorrow when I have
+> access to my setup.
 
-I agree with Punit that it would be a lot easier to review this series
-if you could fold in the changes to pmu_acpi_init so the sum of the
-changes can be viewed in one patch.
+OK, I'll wait for this test to conclude before applying the series, then. :-)
 
-Will
+Thanks,
+Rafael
