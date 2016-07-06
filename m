@@ -1,94 +1,146 @@
-From: Mika Westerberg <mika.westerberg@linux.intel.com>
-Subject: Re: [PATCH v5 2/8] acpi: fix enumeration (visited) flags for bus
- rescans
-Date: Wed, 6 Jul 2016 18:03:17 +0300
-Message-ID: <20160706150317.GH23527@lahna.fi.intel.com>
-References: <1467404352-27101-1-git-send-email-octavian.purdila@intel.com>
- <1467404352-27101-3-git-send-email-octavian.purdila@intel.com>
+From: Tony <tony.makkiel@daqri.com>
+Subject: Re: [PATCH v8 1/1] leds: LED driver for TI LP3952 6-Channel Color LED
+Date: Wed, 6 Jul 2016 16:05:22 +0100
+Message-ID: <577D1E32.50809@daqri.com>
+References: <1467732628-2025-1-git-send-email-tony.makkiel@daqri.com>
+ <577D08C7.5000802@samsung.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga11.intel.com ([192.55.52.93]:58802 "EHLO mga11.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754138AbcGFPEL (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 6 Jul 2016 11:04:11 -0400
-Content-Disposition: inline
-In-Reply-To: <1467404352-27101-3-git-send-email-octavian.purdila@intel.com>
+Received: from mail-wm0-f44.google.com ([74.125.82.44]:36631 "EHLO
+	mail-wm0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754174AbcGFPFZ (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 6 Jul 2016 11:05:25 -0400
+Received: by mail-wm0-f44.google.com with SMTP id f126so177347830wma.1
+        for <linux-acpi@vger.kernel.org>; Wed, 06 Jul 2016 08:05:25 -0700 (PDT)
+In-Reply-To: <577D08C7.5000802@samsung.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Octavian Purdila <octavian.purdila@intel.com>
-Cc: "Rafael J . Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Matt Fleming <matt@codeblueprint.co.uk>, Mark Brown <broonie@kernel.org>, Wolfram Sang <wsa@the-dreams.de>, Joel Becker <jlbec@evilplan.org>, linux-acpi@vger.kernel.org, linux-efi@vger.kernel.org, linux-i2c@vger.kernel.org, linux-spi@vger.kernel.org, linux-kernel@vger.kernel.org, irina.tirdea@intel.com, leonard.crestez@intel.com
+To: Jacek Anaszewski <j.anaszewski@samsung.com>
+Cc: linux-leds@vger.kernel.org, linux-acpi@vger.kernel.org, rpurdie@rpsys.net, rjw@rjwysocki.net, lenb@kernel.org, mika.westerberg@linux.intel.com
 
-On Fri, Jul 01, 2016 at 11:19:06PM +0300, Octavian Purdila wrote:
-> If the ACPI tables changes as a result of a dinamically loaded table and
-> a bus rescan is required the enumeration/visited flag are not
-> consistent.
-> 
-> I2C/SPI are not directly enumerated in acpi_bus_attach(), however the
-> visited flag is set. This makes it impossible to check if an ACPI device
-> has already been enumerated by the I2C and SPI subsystems. To fix this
-> issue we only set the visited flags if the device is not I2C or SPI.
-> 
-> With this change we also need to remove setting visited to false from
-> acpi_bus_attach(), otherwise if we rescan already enumerated I2C/SPI
-> devices we try to re-enumerate them.
-> 
-> Note that I2C/SPI devices can be enumerated either via a scan handler
-> (when using PRP0001) or via regular device_attach(). In either case
-> the flow goes through acpi_default_enumeration() which makes it the
-> ideal place to mark the ACPI device as enumerated.
+Thank you for the comments Jacek and Mika.
 
-Hmm, this somehow fails to enumerate PRP0001 devices.
+On 06/07/16 14:33, Jacek Anaszewski wrote:
 
-I'm adding following SSDT to my initrd and the resulting device is never
-enumerated on SPI bus (it exists in /sys/bus/acpi/devices). If I use
-normal ACPI IDs (non-PRP0001) then it works fine.
 
-/*
- * Minnowboard MAX
- *
- * http://wiki.minnowboard.org/MinnowBoard_MAX
- *
- * This adds Atmel AT25 compatible serial EEPROM to the SPI host controller
- * available on Minnowboard MAX low speed connector.
- */
-DefinitionBlock ("at25.aml", "SSDT", 5, "INTEL", "AT25", 1)
-{
-    External (_SB_.SPI1, DeviceObj)
+>> +static int lp3952_set_brightness(struct led_classdev *cdev,
+>> +                 enum led_brightness value)
+>> +{
+>> +    unsigned int reg, shift_val;
+>> +    struct lp3952_ctrl_hdl *led = container_of(cdev,
+>> +                           struct lp3952_ctrl_hdl,
+>> +                           cdev);
+>> +    struct lp3952_led_array *priv = (struct lp3952_led_array
+>> *)led->priv;
+>> +
+>> +    dev_dbg(cdev->dev, "Brightness request: %d on %d\n", value,
+>> +        led->channel);
+>> +
+>> +    if (value == LED_OFF) {
+>> +        lp3952_on_off(priv, led->channel, LED_OFF);
+>> +        return 0;
+>> +    }
+>> +
+>> +    if (led->channel > LP3952_RED_1) {
+>> +        dev_err(cdev->dev, " %s Invalid LED requested", __func__);
+>> +        return -EINVAL;
+>> +    }
+>> +
+>> +    if (led->channel >= LP3952_BLUE_1) {
+>> +        reg = LP3952_REG_RGB1_MAX_I_CTRL;
+>> +        shift_val = (led->channel - LP3952_BLUE_1) * 2;
+>> +    } else {
+>> +        reg = LP3952_REG_RGB2_MAX_I_CTRL;
+>> +        shift_val = led->channel * 2;
+>> +    }
+>> +
+>> +    /* Enable the LED in case it is not enabled already */
+>> +    lp3952_on_off(priv, led->channel, 1);
+>> +
+>> +    return regmap_update_bits(priv->regmap, reg, 3 << shift_val,
+>> +                  --value << shift_val);
+>
+> Here you have two separate calls that change the device state.
+> I think that mutex protection is required here to assure that
+> the device will not be left in an inconsistent state, due to
+> the concurrent calls from other processes.
 
-    Scope (\_SB.SPI1)
-    {
-        Device (EEP0) {
-            Name (_HID, "PRP0001")
-            Name (_DDN, "Atmel AT25 compatible EEPROM")
-            Name (_CRS, ResourceTemplate () {
-                SpiSerialBus (
-                    1,                      // Chip select
-                    PolarityLow,            // Chip select is active low
-                    FourWireMode,           // Full duplex
-                    8,                      // Bits per word is 8 (byte)
-                    ControllerInitiated,    // Don't care
-                    1000000,                // Initial bus speed is 1MHz
-                    ClockPolarityLow,       // SPI mode 0
-                    ClockPhaseFirst,        // SPI mode 0
-                    "\\_SB.SPI1",           // SPI host controller
-                    0                       // Must be 0
-                )
-            })
+Sorry, I did not quite understand.
 
-            /*
-             * See Documentation/devicetree/bindings/eeprom/at25.txt for
-             * more information about these bindings.
-             */
-            Name (_DSD, Package () {
-                ToUUID("daffd814-6eba-4d8c-8a91-bc9bbf4aa301"),
-                Package () {
-                    Package () {"compatible", Package () {"atmel,at25"}},
-                    Package () {"size", 1024},
-                    Package () {"pagesize", 32},
-                    Package () {"address-width", 16},
-                }
-            })
-        }
-    }
-}
+Did you mean 'regmap_update_bits' here and the one within
+'lp3952_on_off'? If there isn't a lock assigned by driver, a mutex or
+spinlock is assigned based on fast_io support by regmap during init.
+
+>
+>> +}
+>> +
+>> +static int lp3952_get_label(char *dest, const char *label, struct
+>> device *dev)
+>> +{
+>> +    int ret;
+>> +    const union acpi_object *obj;
+>> +    struct acpi_device *adev = ACPI_COMPANION(dev);
+>> +
+>> +    ret = acpi_dev_get_property(adev, label, ACPI_TYPE_STRING, &obj);
+>> +    if (!ret)
+>> +        strncpy(dest, obj->string.pointer, obj->string.length + 1);
+>> +
+>> +    return ret;
+>> +}
+>> +
+>> +static int lp3952_register_led_classdev(struct lp3952_led_array *priv)
+>> +{
+>> +    int i, ret = -ENODEV;
+>> +    static const char *led_name_hdl[LP3952_LED_ALL] = {
+>> +        "blue2",
+>> +        "green2",
+>> +        "red2",
+>> +        "blue1",
+>> +        "green1",
+>> +        "red1"
+>> +    };
+>> +
+>> +    for (i = 0; i < LP3952_LED_ALL; i++) {
+>> +        priv->leds[i].cdev.brightness = LED_OFF;
+>> +        priv->leds[i].cdev.max_brightness = LP3952_BRIGHT_MAX;
+>> +        priv->leds[i].cdev.brightness_set_blocking =
+>> +                lp3952_set_brightness;
+>> +        priv->leds[i].channel = i;
+>> +        priv->leds[i].priv = priv;
+>> +
+>> +        ret = lp3952_get_label(priv->leds[i].name, led_name_hdl[i],
+>> +                       &priv->client->dev);
+>> +        if (ret)
+>> +            break;
+>
+> You're assuming here that all LEDs will always be present, which
+> doesn't necessarily have to be true. How about just skipping
+> the LED and moving to the next one if given label was not found?
+> You could move this check to the beginning of the loop then.
+
+If we skip leds, there could be problem, if all the leds were
+skipped(For example, no ACPI name data present).
+
+At present, if a label is not present, the probe will fail.
+How about reverting to a default name (eg: "lp3952:blue2") if led name
+read fails? This would also cover cases in which none of the led names
+were read properly.
+
+>
+>> +
+>> +        priv->leds[i].cdev.name = priv->leds[i].name;
+>> +
+>> +        ret = devm_led_classdev_register(&priv->client->dev,
+>> +                         &priv->leds[i].cdev);
+>> +        if (ret < 0) {
+>> +            dev_err(&priv->client->dev,
+>> +                "couldn't register LED %s\n",
+>> +                priv->leds[i].cdev.name);
+>> +            break;
+>> +        }
+>> +    }
+>> +    return ret;
+>> +}
+>> +
