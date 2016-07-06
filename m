@@ -1,69 +1,94 @@
-From: Wolfram Sang <wsa@the-dreams.de>
-Subject: Regression between rc2 and rc6: ACPI EC problems
-Date: Wed, 6 Jul 2016 23:14:11 +0900
-Message-ID: <20160706141410.GA1430@tetsubishi>
+From: Mika Westerberg <mika.westerberg@linux.intel.com>
+Subject: Re: [PATCH v5 2/8] acpi: fix enumeration (visited) flags for bus
+ rescans
+Date: Wed, 6 Jul 2016 18:03:17 +0300
+Message-ID: <20160706150317.GH23527@lahna.fi.intel.com>
+References: <1467404352-27101-1-git-send-email-octavian.purdila@intel.com>
+ <1467404352-27101-3-git-send-email-octavian.purdila@intel.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="ew6BAiZeqk4r7MaW"
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-Sender: linux-kernel-owner@vger.kernel.org
-To: linux-acpi@vger.kernel.org
-Cc: linux-kernel@vger.kernel.org
-List-Id: linux-acpi@vger.kernel.org
-
-
---ew6BAiZeqk4r7MaW
 Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga11.intel.com ([192.55.52.93]:58802 "EHLO mga11.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754138AbcGFPEL (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 6 Jul 2016 11:04:11 -0400
 Content-Disposition: inline
+In-Reply-To: <1467404352-27101-3-git-send-email-octavian.purdila@intel.com>
+Sender: linux-acpi-owner@vger.kernel.org
+List-Id: linux-acpi@vger.kernel.org
+To: Octavian Purdila <octavian.purdila@intel.com>
+Cc: "Rafael J . Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Matt Fleming <matt@codeblueprint.co.uk>, Mark Brown <broonie@kernel.org>, Wolfram Sang <wsa@the-dreams.de>, Joel Becker <jlbec@evilplan.org>, linux-acpi@vger.kernel.org, linux-efi@vger.kernel.org, linux-i2c@vger.kernel.org, linux-spi@vger.kernel.org, linux-kernel@vger.kernel.org, irina.tirdea@intel.com, leonard.crestez@intel.com
 
-Hi,
+On Fri, Jul 01, 2016 at 11:19:06PM +0300, Octavian Purdila wrote:
+> If the ACPI tables changes as a result of a dinamically loaded table and
+> a bus rescan is required the enumeration/visited flag are not
+> consistent.
+> 
+> I2C/SPI are not directly enumerated in acpi_bus_attach(), however the
+> visited flag is set. This makes it impossible to check if an ACPI device
+> has already been enumerated by the I2C and SPI subsystems. To fix this
+> issue we only set the visited flags if the device is not I2C or SPI.
+> 
+> With this change we also need to remove setting visited to false from
+> acpi_bus_attach(), otherwise if we rescan already enumerated I2C/SPI
+> devices we try to re-enumerate them.
+> 
+> Note that I2C/SPI devices can be enumerated either via a scan handler
+> (when using PRP0001) or via regular device_attach(). In either case
+> the flow goes through acpi_default_enumeration() which makes it the
+> ideal place to mark the ACPI device as enumerated.
 
-when upgrading from v4.7-rc2 to rc6 on my Dell Mini 9, battery and
-temperature status info got bogus. Here is the major change between the
-boot logs:
+Hmm, this somehow fails to enumerate PRP0001 devices.
 
-ACPI : EC: EC stopped
-ACPI Exception: AE_BAD_PARAMETER, Returned by Handler for [EmbeddedControl] (20160422/evregion-300)
-ACPI Error: Method parse/execution failed [\_SB.PCI0.LPCB.EC0._REG] (Node f5d09870), AE_BAD_PARAMETER (20160422/psparse-542)
-ACPI Exception: AE_BAD_PARAMETER, from region _REG, [EmbeddedControl] (20160422/evregion-397)
-ACPI Exception: AE_BAD_PARAMETER, Returned by Handler for [EmbeddedControl] (20160422/evregion-300)
-ACPI Error: Method parse/execution failed [\_SB.PCI0.LPCB.EC0._REG] (Node f5d09870), AE_BAD_PARAMETER (20160422/psparse-542)
-ACPI Exception: AE_BAD_PARAMETER, from region _REG, [EmbeddedControl] (20160422/evregion-397)
-ACPI : EC: GPE = 0x19, I/O: command/status = 0x66, data = 0x62
-ACPI : EC: EC started
+I'm adding following SSDT to my initrd and the resulting device is never
+enumerated on SPI bus (it exists in /sys/bus/acpi/devices). If I use
+normal ACPI IDs (non-PRP0001) then it works fine.
 
-The only config changes between the kernels were enabling MMC block
-devices and DM_CRYPT. Not likely to cause the above, I'd think.
+/*
+ * Minnowboard MAX
+ *
+ * http://wiki.minnowboard.org/MinnowBoard_MAX
+ *
+ * This adds Atmel AT25 compatible serial EEPROM to the SPI host controller
+ * available on Minnowboard MAX low speed connector.
+ */
+DefinitionBlock ("at25.aml", "SSDT", 5, "INTEL", "AT25", 1)
+{
+    External (_SB_.SPI1, DeviceObj)
 
-Does that ring a bell for someone? This little machine has only an SSD
-without TRIM, so bisecting is not really an option. I can provide more
-info and test patches, though.
+    Scope (\_SB.SPI1)
+    {
+        Device (EEP0) {
+            Name (_HID, "PRP0001")
+            Name (_DDN, "Atmel AT25 compatible EEPROM")
+            Name (_CRS, ResourceTemplate () {
+                SpiSerialBus (
+                    1,                      // Chip select
+                    PolarityLow,            // Chip select is active low
+                    FourWireMode,           // Full duplex
+                    8,                      // Bits per word is 8 (byte)
+                    ControllerInitiated,    // Don't care
+                    1000000,                // Initial bus speed is 1MHz
+                    ClockPolarityLow,       // SPI mode 0
+                    ClockPhaseFirst,        // SPI mode 0
+                    "\\_SB.SPI1",           // SPI host controller
+                    0                       // Must be 0
+                )
+            })
 
-Thanks,
-
-   Wolfram
-
-
---ew6BAiZeqk4r7MaW
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iQIcBAEBAgAGBQJXfRIxAAoJEBQN5MwUoCm2Y0oP/3/HS20QA43C8sWKknIFEX0D
-jbgibeaCgzaf3vUADiN5/ZyJWjo+WP+ZlRgki75TboqAHueT3KDK/C/XMEuKXPi0
-JvT9QtTAw/RfV+0NnTxHcsVloix5pDMGp6mOj0n7toHz2b+WVLcowfe207ll7rQY
-Mq+bx20x2b7BRUQDXJA5gtNwBA+PCpghQBHrb+qddfaQPl2H8IxLlVYNe0MhcbDa
-owcKtA5Z2j0yiEm4fJauKYQt+ZGDV2FHAQqYSR05K44/+5fwPHqSFv/TEQuGKboz
-AxqNXjZShqJRcPO8S9hLh013nhr4XsTIq6sCsTNl+28yJtONJFyaypKpVw9Jw1q4
-3yDO76twUr+PLhrKuj+9X7ub/CZTJa0iJasM7ZZ5O6nTqliSjGqvKxZf2Toxxppa
-lZ4b9YIRQrQB1yaei1dkN03fBrcGchuAHIbqYPrw0lPlFSGBEi7pK+rKv3HoTG4f
-OBsXAUP23SF7jAtpwVOEUdUkpAQN+b04Ml9QXSfBdM8udBdXnxlpmc7WjdrnFfQJ
-QJIXYszW2iAEOgzoXLyeffeJ7h38AeXYTkW3BWACu4cX3FbUpu5PRpQKJvKci+bp
-werTJ82Sr5CeKxdv6Va8l6Wgu0iAImCTQt9w9KSjVKr/wr7Y5lMlzhdd0sMSukgW
-BpTv6ycOofENv0qrz8cA
-=zlT3
------END PGP SIGNATURE-----
-
---ew6BAiZeqk4r7MaW--
+            /*
+             * See Documentation/devicetree/bindings/eeprom/at25.txt for
+             * more information about these bindings.
+             */
+            Name (_DSD, Package () {
+                ToUUID("daffd814-6eba-4d8c-8a91-bc9bbf4aa301"),
+                Package () {
+                    Package () {"compatible", Package () {"atmel,at25"}},
+                    Package () {"size", 1024},
+                    Package () {"pagesize", 32},
+                    Package () {"address-width", 16},
+                }
+            })
+        }
+    }
+}
