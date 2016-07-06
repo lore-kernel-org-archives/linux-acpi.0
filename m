@@ -1,113 +1,150 @@
-From: Markus Mayer <markus.mayer@broadcom.com>
-Subject: Re: [PATCH v2 0/7] lib: string: add functions to case-convert strings
-Date: Tue, 5 Jul 2016 21:32:16 -0700
-Message-ID: <CAGt4E5u_C9TVgJh5NUCSb6zM_UTazJPTPrsBO9K0atzXAopR8w@mail.gmail.com>
-References: <1467751631-22878-1-git-send-email-mmayer@broadcom.com>
- <1467756874.16342.11.camel@perches.com> <CAGt4E5vqiUOVmgqY8OvRPNpoS54hZMOHid6ND4CRyb5p9y5ndw@mail.gmail.com>
- <1467759377.8360.12.camel@perches.com>
+From: Octavian Purdila <octavian.purdila@intel.com>
+Subject: Re: [PATCH v5 0/8] ACPI overlays
+Date: Wed, 6 Jul 2016 09:29:34 +0300
+Message-ID: <CAE1zotJjxZn7kL5CUbK4YocHeycEL2Q74FHYQtx8DRuttXi5iw@mail.gmail.com>
+References: <1467404352-27101-1-git-send-email-octavian.purdila@intel.com> <9539226.hSY6jyYgKd@vostro.rjw.lan>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-vk0-f53.google.com ([209.85.213.53]:33254 "EHLO
-	mail-vk0-f53.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750750AbcGFEcS (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 6 Jul 2016 00:32:18 -0400
-Received: by mail-vk0-f53.google.com with SMTP id k68so203840525vkb.0
-        for <linux-acpi@vger.kernel.org>; Tue, 05 Jul 2016 21:32:17 -0700 (PDT)
-In-Reply-To: <1467759377.8360.12.camel@perches.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Return-path: <linux-i2c-owner@vger.kernel.org>
+In-Reply-To: <9539226.hSY6jyYgKd@vostro.rjw.lan>
+Sender: linux-i2c-owner@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: Len Brown <lenb@kernel.org>, Matt Fleming <matt@codeblueprint.co.uk>, Mark Brown <broonie@kernel.org>, Wolfram Sang <wsa@the-dreams.de>, Joel Becker <jlbec@evilplan.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, linux-efi@vger.kernel.org, linux-i2c <linux-i2c@vger.kernel.org>, linux-spi <linux-spi@vger.kernel.org>, lkml <linux-kernel@vger.kernel.org>, Irina Tirdea <irina.tirdea@intel.com>, Leonard Crestez <leonard.crestez@intel.com>
 List-Id: linux-acpi@vger.kernel.org
-To: Joe Perches <joe@perches.com>
-Cc: Andrew Morton <akpm@linux-foundation.org>, Al Viro <viro@zeniv.linux.org.uk>, Rasmus Villemoes <linux@rasmusvillemoes.dk>, Chris Metcalf <cmetcalf@ezchip.com>, Kees Cook <keescook@chromium.org>, dri-devel@lists.freedesktop.org, nouveau@lists.freedesktop.org, linux-acpi@vger.kernel.org, speakup@linux-speakup.org, devel@driverdev.osuosl.org, linux-scsi@vger.kernel.org, target-devel@vger.kernel.org, linux-pm@vger.kernel.org, Linux Kernel <linux-kernel@vger.kernel.org>
 
-On 5 July 2016 at 15:56, Joe Perches <joe@perches.com> wrote:
-> On Tue, 2016-07-05 at 15:36 -0700, Markus Mayer wrote:
->> On 5 July 2016 at 15:14, Joe Perches <joe@perches.com> wrote:
->> > On Tue, 2016-07-05 at 13:47 -0700, Markus Mayer wrote:
->> > > This series introduces a family of generic string case conversion
->> > > functions. This kind of functionality is needed in several places in
->> > > the kernel. Right now, everybody seems to be implementing their own
->> > > copy of this functionality.
->> > >
->> > > Based on the discussion of the previous version of this series[1] and
->> > > the use cases found in the kernel, it does look like having several
->> > > flavours of case conversion functions is beneficial. The use cases fall
->> > > into three categories:
->> > >     - copying a string and converting the case while specifying a
->> > >       maximum length to mimic strncpy()
->> > >     - copying a string and converting the case without specifying a
->> > >       length to mimic strcpy()
->> > >     - converting the case of a string in-place (i.e. modifying the
->> > >       string that was passed in)
->> > >
->> > > Consequently, I am proposing these new functions:
->> > >     char *strncpytoupper(char *dst, const char *src, size_t len);
->> > >     char *strncpytolower(char *dst, const char *src, size_t len);
->> > >     char *strcpytoupper(char *dst, const char *src);
->> > >     char *strcpytolower(char *dst, const char *src);
->> > >     char *strtoupper(char *s);
->> > >     char *strtolower(char *s);
->> > I think there isn't much value in anything other
->> > than strto.
->> >
->> > Using str[n]cpy followed by strto is
->> > pretty obvious and rarely used anyway.
->> First time around, folks were proposing the "copy" variants when I
->> submitted just strtolower() by itself[1]. They just asked for source
->> and destination parameters to strtolower(), but looking at the use
->> cases that wouldn't have worked so well. Hence it evolved into these 6
->> functions.
+On Wed, Jul 6, 2016 at 3:34 AM, Rafael J. Wysocki <rjw@rjwysocki.net> wrote:
+> On Friday, July 01, 2016 11:19:04 PM Octavian Purdila wrote:
+>> This patch set enables custom ACPI board configuration by adding
+>> mechanisms in the Linux kernel for loading user defined SSDTs.
 >>
->> Here's a breakdown of how the functions are being used (patches 2-7),
->> see also [2]:
+>> In order to support ACPI open-ended hardware configurations we need a
+>> way to augment the ACPI configuration provided by the firmware
+>> image. A common example is connecting sensors on I2C / SPI buses on
+>> development boards.
 >>
->> Patch 2: strncpytolower()
->> Patch 3: strtolower()
->> Patch 4: strncpytolower() and strtolower()
->> Patch 5: strtolower()
->> Patch 6: strcpytoupper()
->> Patch 7: strcpytoupper()
+>> Although this can be accomplished by creating a kernel platform driver
+>> or recompiling the firmware image with updated ACPI tables, neither is
+>> practical: the former proliferates board specific kernel code while
+>> the latter requires access to firmware tools which are often not
+>> publicly available.
 >>
->> So it does look like the copy + change case variant is more frequently
->> used than just strto.
+>> Because ACPI supports external references in AML code a more practical
+>> way to augment firmware ACPI configuration is by dynamically loading
+>> user defined SSDT tables that contain the board specific information.
+>>
+>> Currently it is possible to load SSDT overlays using the upgrade
+>> initrd mechanism introduced in 4.7. This patch series adds support for
+>> two more methods:
+>>
+>> * From an EFI variable
+>>
+>>  This is the preferred method, when EFI is supported on the platform,
+>>  because it allows a persistent, OS independent way of storing and
+>>  updating the user defined SSDTs. There is also work underway to
+>>  implement EFI support for loading user defined SSDTs and using this
+>>  method will make it easier to convert to the EFI loading mechanism
+>>  when that will arrive.
+>>
+>> * From userspace via configfs
+>>
+>>  This is useful when we want to defer the operation to userspace for
+>>  platform detection, loading the SSDTs from a custom partition, etc.
+>>
+>>
+>> Changes from v4:
+>>
+>> * EFI: use ucs2_as_utf8 and memcmp to check if the variable name
+>>   matches the kernel command line parameter; fold the EFI ACPI table
+>>   load code in the iterator function
+>>
+>> * I2C/SPI: add more information in the commit logs about how the
+>>   enumeration status is set and checked; also add a new check of the
+>>   enumerated status for the ACPI device remove reconfiguration
+>>   notification
+>>
+>> Changes from v3:
+>>
+>> * fix a bisectability issue reported by kbuild
+>>
+>> * rework the enumeration fix to support PRP0001 enumeration; also,
+>>   introduce acpi_device_set/clear_enumerated() for clarity
+>>
+>> * clear the enumerated status for acpi_device when the I2C/SPI clients
+>>   are removed (for example as a result of an adapter removal) to allow
+>>   the devices to be re-enumerated later
+>>
+>> Changes from v2:
+>>
+>> * fix a few issues caught by the kbuild test robot
+>>
+>> * add more configfs table attributes
+>>
+>> * removed the initrd based loading functionality from this patch set
+>>   as this can already be accomplished in 4.7 using the ACPI table
+>>   upgrade mechanism
+>>
+>> * rebased to 4.7-rc3
+>>
+>> Changes from v1:
+>>
+>> * rebased on top of the ACPI install from initrd table functionality;
+>>   there is significant overlap between the 1st patch in this series
+>>   and these patch [1] from Lv - I kept it in this series until the
+>>   discussions around the taint and config option are resolved
+>>
+>> * make sure EFI_RUNTIME_SERVICES are available before trying to use
+>>   EFI variables to load tables
+>>
+>> * rework the ACPI reconfiguration notifications to work on device
+>>   granularity (device added or removed) instead of table granularity
+>>   (table loaded or unloaded)
+>>
+>> * add support for table unloading / device removal
+>>
+>> * note that the last patch is just a hack to be able to test the table
+>>   unload / device remove functionality, if someone wants to try out
+>>   this patch set
+>>
+>> [1] https://patchwork.kernel.org/patch/8795931/
+>>
+>> Octavian Purdila (8):
+>>   Documentation: acpi: add SSDT overlays documentation
+>>   acpi: fix enumeration (visited) flags for bus rescans
+>>   acpi: add support for ACPI reconfiguration notifiers
+>>   i2c: add support for ACPI reconfigure notifications
+>>   spi: add support for ACPI reconfigure notifications
+>>   efi: load SSTDs from EFI variables
+>>   acpi: add support for configfs
+>>   acpi: add support for loading SSDTs via configfs
+>>
+>>  Documentation/ABI/testing/configfs-acpi |  36 +++++
+>>  Documentation/acpi/ssdt-overlays.txt    | 172 ++++++++++++++++++++
+>>  Documentation/kernel-parameters.txt     |   7 +
+>>  MAINTAINERS                             |   1 +
+>>  drivers/acpi/Kconfig                    |   9 ++
+>>  drivers/acpi/Makefile                   |   1 +
+>>  drivers/acpi/bus.c                      |   9 ++
+>>  drivers/acpi/configfs.c                 | 267 ++++++++++++++++++++++++++++++++
+>>  drivers/acpi/internal.h                 |   3 +
+>>  drivers/acpi/scan.c                     |  81 +++++++++-
+>>  drivers/acpi/sysfs.c                    |   6 +-
+>>  drivers/firmware/efi/efi.c              |  85 ++++++++++
+>>  drivers/i2c/i2c-core.c                  | 175 ++++++++++++++++-----
+>>  drivers/spi/spi.c                       | 100 +++++++++++-
+>>  include/linux/acpi.h                    |  36 +++++
+>>  15 files changed, 932 insertions(+), 56 deletions(-)
+>>  create mode 100644 Documentation/ABI/testing/configfs-acpi
+>>  create mode 100644 Documentation/acpi/ssdt-overlays.txt
+>>  create mode 100644 drivers/acpi/configfs.c
 >
-> Are these functions useful?  <shrug> Not to me, not so much.
+> It looks like all patches in this series except for the [6/8] are good to go.
+>
+> Do any of them depend on the [6/8]?
+>
 
-The use cases do exist. I'll leave it up to the maintainers to decide
-whether duplicate implementations or potentially unused generic
-functions are to be preferred.
+Yes, 6/8 and 8/8 both touch Documentation/acpi/ssdt-overlays.txt, but
+it should be trivial to fix 8/8 if we pull out 6/8.
 
-What I do know is that I have a driver in the wings that also needs a
-strolower() implementation. If this ends up not being accepted, I'll
-have to add yet another driver-local strtolower() implementation to
-the kernel. But if that's the decision then so be it.
-
-> None of the functions would have the strcpy performance of
-> the arch / asm
-> versions of strcpy and the savings in overall
-> code isn't significant (or
-> measured?).
-
-100% agreed. These functions won't set any speed records. Keep in mind
-also that in 4 out of the 6 cases where I replaced local
-implementations of "strcpytoXXX", the code was doing essentially the
-same I am proposing here (no assembly code). Only 2 of the 6 called
-strncpy() before, benefiting from optimized assembly implementations.
-But they still had to walk the string explicitly afterwards to convert
-the case, which probably means the overall speed won't change that
-much using the functions proposed here.
-
-> Of course none of the uses are runtime performance important.
-
-That is also very true.
-
-> This patch also adds always compiled functions that aren't used
-> in many .configs.
-
-It adds 2 functions (strncpytolower() and strncpytoupper()). The other
-4 are static inline one-liners and won't show up anywhere if not used
-(and if used the compiler will insert calls to strncpyto<lower|upper>
-instead).
-
-Regards,
--Markus
+I've send an updated v6 for 6/8 only that fixes the issue Matt and
+Geert noticed, so maybe its worth waiting for a couple of days for
+Matt's review.
