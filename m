@@ -1,54 +1,42 @@
 From: Will Deacon <will.deacon@arm.com>
-Subject: Re: [PATCH 06/11] arm: arm64: Add routine to determine cpuid of
- other cpus
-Date: Wed, 6 Jul 2016 17:30:02 +0100
-Message-ID: <20160706163001.GC31910@arm.com>
+Subject: Re: [PATCH 05/11] arm64: pmu: Add support for probing with ACPI
+Date: Wed, 6 Jul 2016 17:45:09 +0100
+Message-ID: <20160706164509.GD31910@arm.com>
 References: <1466529109-21715-1-git-send-email-jeremy.linton@arm.com>
- <1466529109-21715-7-git-send-email-jeremy.linton@arm.com>
+ <1466529109-21715-6-git-send-email-jeremy.linton@arm.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from foss.arm.com ([217.140.101.70]:59099 "EHLO foss.arm.com"
+Received: from foss.arm.com ([217.140.101.70]:59168 "EHLO foss.arm.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754490AbcGFQaD (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 6 Jul 2016 12:30:03 -0400
+	id S1753813AbcGFQpK (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 6 Jul 2016 12:45:10 -0400
 Content-Disposition: inline
-In-Reply-To: <1466529109-21715-7-git-send-email-jeremy.linton@arm.com>
+In-Reply-To: <1466529109-21715-6-git-send-email-jeremy.linton@arm.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: Jeremy Linton <jeremy.linton@arm.com>
 Cc: linux-arm-kernel@lists.infradead.org, linux-acpi@vger.kernel.org, mark.rutland@arm.com, catalin.marinas@arm.com, Lorenzo.Pieralisi@arm.com, alexander.shishkin@linux.intel.com, acme@kernel.org, mingo@redhat.com, peterz@infradead.org, mlangsdorf@redhat.com, punit.agrawal@arm.com, Steve.Capper@arm.com
 
-On Tue, Jun 21, 2016 at 12:11:44PM -0500, Jeremy Linton wrote:
-> It is helpful if we can read the cpuid/midr of other CPUs
-> in the system independent of arm/arm64.
+On Tue, Jun 21, 2016 at 12:11:43PM -0500, Jeremy Linton wrote:
+> From: Mark Salter <msalter@redhat.com>
 > 
+> In the case of ACPI, the PMU IRQ information is contained in the
+> MADT table. Also, since the PMU does not exist as a device in the
+> ACPI DSDT table, it is necessary to create a platform device so
+> that the appropriate driver probing is triggered.
+> 
+> Signed-off-by: Mark Salter <msalter@redhat.com>
 > Signed-off-by: Jeremy Linton <jeremy.linton@arm.com>
 > ---
->  arch/arm/include/asm/cputype.h   | 6 +++++-
->  arch/arm64/include/asm/cputype.h | 4 ++++
->  2 files changed, 9 insertions(+), 1 deletion(-)
 > 
-> diff --git a/arch/arm/include/asm/cputype.h b/arch/arm/include/asm/cputype.h
-> index 1ee94c7..e391b67 100644
-> --- a/arch/arm/include/asm/cputype.h
-> +++ b/arch/arm/include/asm/cputype.h
-> @@ -81,6 +81,8 @@
->  #define ARM_CPU_XSCALE_ARCH_V2		0x4000
->  #define ARM_CPU_XSCALE_ARCH_V3		0x6000
->  
-> +#define ARM_PARTNUM(cpuid_id) (cpuid_id & ARM_CPU_PART_MASK)
-> +
->  extern unsigned int processor_id;
->  
->  #ifdef CONFIG_CPU_CP15
-> @@ -180,7 +182,7 @@ static inline unsigned int __attribute_const__ read_cpuid_implementor(void)
->   */
->  static inline unsigned int __attribute_const__ read_cpuid_part(void)
->  {
-> -	return read_cpuid_id() & ARM_CPU_PART_MASK;
-> +	return ARM_PARTNUM(read_cpuid_id());
+> NOTE: Much of the code in pmu_acpi_init() is replaced in patches 0009 and
+>       0010 this set. The later version of the patch cleans up most of the
+>       possible style/error handling issues that have been pointed out with
+>       this version.
 
-I don't understand why you need to make this change.
+I agree with Punit that it would be a lot easier to review this series
+if you could fold in the changes to pmu_acpi_init so the sum of the
+changes can be viewed in one patch.
 
 Will
