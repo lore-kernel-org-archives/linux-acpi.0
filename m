@@ -1,52 +1,124 @@
 From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [PATCH v5 2/8] acpi: fix enumeration (visited) flags for bus rescans
-Date: Wed, 06 Jul 2016 23:09:44 +0200
-Message-ID: <31239967.dEXrvihxAE@vostro.rjw.lan>
-References: <1467404352-27101-1-git-send-email-octavian.purdila@intel.com> <20160706150317.GH23527@lahna.fi.intel.com> <CAE1zotJg+bCUD+q_cbiO1=abx1PJbUdWVr03uutwR081iG4G1g@mail.gmail.com>
+Subject: Re: [PATCH v7 1/1] leds: LED driver for TI LP3952 6-Channel Color LED
+Date: Wed, 06 Jul 2016 23:15:53 +0200
+Message-ID: <2752967.IJ5pkPUWjW@vostro.rjw.lan>
+References: <1467129919-27641-1-git-send-email-tony.makkiel@daqri.com> <577BA931.5070403@samsung.com> <577D0869.7090806@samsung.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7Bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <CAE1zotJg+bCUD+q_cbiO1=abx1PJbUdWVr03uutwR081iG4G1g@mail.gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Octavian Purdila <octavian.purdila@intel.com>
-Cc: Mika Westerberg <mika.westerberg@linux.intel.com>, Len Brown <lenb@kernel.org>, Matt Fleming <matt@codeblueprint.co.uk>, Mark Brown <broonie@kernel.org>, Wolfram Sang <wsa@the-dreams.de>, Joel Becker <jlbec@evilplan.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, linux-efi@vger.kernel.org, linux-i2c <linux-i2c@vger.kernel.org>, linux-spi <linux-spi@vger.kernel.org>, lkml <linux-kernel@vger.kernel.org>, Irina Tirdea <irina.tirdea@intel.com>, Leonard Crestez <leonard.crestez@intel.com>
+Return-path: <linux-leds-owner@vger.kernel.org>
+In-Reply-To: <577D0869.7090806@samsung.com>
+Sender: linux-leds-owner@vger.kernel.org
+To: Jacek Anaszewski <j.anaszewski@samsung.com>
+Cc: "Rafael J. Wysocki" <rafael@kernel.org>, Tony <tony.makkiel@daqri.com>, linux-leds@vger.kernel.org, rpurdie@rpsys.net, Len Brown <lenb@kernel.org>, Mika Westerberg <mika.westerberg@linux.intel.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Al Stone <ahs3@redhat.com>
 List-Id: linux-acpi@vger.kernel.org
 
-On Wednesday, July 06, 2016 06:37:46 PM Octavian Purdila wrote:
-> On Wed, Jul 6, 2016 at 6:03 PM, Mika Westerberg
-> <mika.westerberg@linux.intel.com> wrote:
-> > On Fri, Jul 01, 2016 at 11:19:06PM +0300, Octavian Purdila wrote:
-> >> If the ACPI tables changes as a result of a dinamically loaded table and
-> >> a bus rescan is required the enumeration/visited flag are not
-> >> consistent.
+On Wednesday, July 06, 2016 03:32:25 PM Jacek Anaszewski wrote:
+> On 07/05/2016 02:33 PM, Jacek Anaszewski wrote:
+> > On 07/05/2016 02:12 PM, Rafael J. Wysocki wrote:
+> >> On Tue, Jul 5, 2016 at 12:47 PM, Jacek Anaszewski
+> >> <j.anaszewski@samsung.com> wrote:
+> >>> PING
+> >>>
+> >>>
+> >>> On 06/29/2016 12:54 PM, Jacek Anaszewski wrote:
+> >>>>
+> >>>> On 06/29/2016 12:07 PM, Tony wrote:
+> >>>>>
+> >>>>>
+> >>>>> On 29/06/16 07:52, Jacek Anaszewski wrote:
+> >>>>>>
+> >>>>>> Hi Rafael,
+> >>>>>
+> >>>>>
+> >>>>>>>> +#ifdef CONFIG_ACPI
+> >>>>>>>> +static const struct acpi_device_id lp3952_acpi_match[] = {
+> >>>>>>>> +    {LP3952_ACPI_NAME, 0},
+> >>>>>>>
+> >>>>>>>
+> >>>>>>> No, you can't use "PRP0001" in this list.
+> >>>>>>>
+> >>>>>>>> +    {}
+> >>>>>>>> +};
+> >>>>>>>> +
+> >>>>>>>> +MODULE_DEVICE_TABLE(acpi, lp3952_acpi_match);
+> >>>>>>>
+> >>>>>>>
+> >>>>>>> And you don't need this for the "PRP0001" thing to work.  The
+> >>>>>>> core will
+> >>>>>>> take care of it for you then.
+> >>>>>>>
+> >>>>>>>> +#endif
+> >>>>>>>
+> >>>>>>>
+> >>>>>>> So the entire ACPI block can be dropped for now.
+> >>>>>>>
+> >>>>>>> And the driver doesn't have to depend on CONFIG_ACPI any more,
+> >>>>>>> does it?
+> >>>>>>
+> >>>>>>
+> >>>>>> The driver currently supports probing only with ACPI.
+> >>>>>> I have one question BTW: isn't there anything similar to the
+> >>>>>> device tree
+> >>>>>> bindings documentation required for ACPI overlays?
+> >>>>>> Pointer to the discussion which led us to this solution:
+> >>>>>>
+> >>>>>> http://www.spinics.net/lists/linux-leds/msg06230.html
+> >>>>>>
+> >>>>> _DSD is working now. I managed to get "PRP0001" working as
+> >>>>> suggested by
+> >>>>> Rafael in
+> >>>>> http://marc.info/?l=linux-acpi&m=146711623115228&w=2
+> >>>>> with _DSD
+> >>>>
+> >>>>
+> >>>> Thanks for the link.
+> >>>>
+> >>>> Rafael, "Package" entries seem to mimic Device Tree properties defined
+> >>>> in the common leds bindings. Would it be possible to make it even
+> >>>> more compatible and define every LED connected to the LED controller
+> >>>> in the form of a child node, similarly as in case of LED DT bindings?
+> >>>>
+> >>>> See Documentation/devicetree/bindings/leds/common.txt and other
+> >>>> bindings in Documentation/devicetree/bindings/leds.
 > >>
-> >> I2C/SPI are not directly enumerated in acpi_bus_attach(), however the
-> >> visited flag is set. This makes it impossible to check if an ACPI device
-> >> has already been enumerated by the I2C and SPI subsystems. To fix this
-> >> issue we only set the visited flags if the device is not I2C or SPI.
+> >> I'm not sure what you mean.
 > >>
-> >> With this change we also need to remove setting visited to false from
-> >> acpi_bus_attach(), otherwise if we rescan already enumerated I2C/SPI
-> >> devices we try to re-enumerate them.
+> >> If somebody decides to arrange the data in their ACPI tables to follow
+> >> that scheme, it will just work IMO.
 > >>
-> >> Note that I2C/SPI devices can be enumerated either via a scan handler
-> >> (when using PRP0001) or via regular device_attach(). In either case
-> >> the flow goes through acpi_default_enumeration() which makes it the
-> >> ideal place to mark the ACPI device as enumerated.
+> >> Is there anything more that needs to be done in the kernel here?
 > >
-> > Hmm, this somehow fails to enumerate PRP0001 devices.
+> > In case of Device Tree based platforms it is customary to define each
+> > LED as a child node of the LED controller node. LED names can then
+> > be obtained from the 'label' property or DT node name.
+> > Tony has encountered some issues [1] while trying to follow this
+> > pattern. Tony, could you please double check that?
 > >
-> > I'm adding following SSDT to my initrd and the resulting device is never
-> > enumerated on SPI bus (it exists in /sys/bus/acpi/devices). If I use
-> > normal ACPI IDs (non-PRP0001) then it works fine.
-> >
+> > [1] http://www.spinics.net/lists/linux-leds/msg06230.html
 > 
-> I specifically tested with PRP0001 via initrd with I2C, I am not sure
-> why it does not work on SPI. I'll give it a try tomorrow when I have
-> access to my setup.
+> One more question: now anyone wanting to use the driver would have
+> to investigate the code to infer what DSD properties need to be
+> provided for it. Isn't there anything similar to
+> Documentation/devicetree/bindings/* documentation required in case of
+> DSD?
 
-OK, I'll wait for this test to conclude before applying the series, then. :-)
+There is a plan to set up a database for these, but that's still
+under discussion (Al Stone has posted some related documentation for
+comments recently).
+
+> I've also come across your presentation [1], which describes the
+> device_property* API for parsing unified DT/ACPI device properties.
+> IMO it would be good solution for this driver as the device seems not
+> to be tightly coupled with only ACPI platforms.
+> 
+> 
+> [1] 
+> http://events.linuxfoundation.org/sites/events/files/slides/ACPI_vs_DT.pdf
+
+The device_property* API should be used everywhere where (a) properties are
+used and (b) the code has no specific need to use a particular platform
+firmware interface (ACPI or DT), so I agree.
 
 Thanks,
 Rafael
