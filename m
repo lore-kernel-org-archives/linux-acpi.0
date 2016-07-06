@@ -1,150 +1,66 @@
-From: "Rafael J. Wysocki" <rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org>
-Subject: Re: [PATCH v5 0/8]  ACPI overlays
-Date: Wed, 06 Jul 2016 02:34:50 +0200
-Message-ID: <9539226.hSY6jyYgKd@vostro.rjw.lan>
-References: <1467404352-27101-1-git-send-email-octavian.purdila@intel.com>
+From: "Zheng, Lv" <lv.zheng@intel.com>
+Subject: RE: [PATCH 5/5] ACPI: Add configuration item to configure ACPICA
+ error logs out
+Date: Wed, 6 Jul 2016 01:46:22 +0000
+Message-ID: <1AE640813FDE7649BE1B193DEA596E883BC00475@SHSMSX101.ccr.corp.intel.com>
+References: <cover.1467717304.git.lv.zheng@intel.com>
+ <cf654fead3c862ed1d9991a78d08d33f63f474aa.1467717305.git.lv.zheng@intel.com>
+ <CAJZ5v0gS+hdnuLfGNzf-TJDvvtboaN3yD3QnxU-SMt_Zbm=gAA@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7Bit
-Return-path: <linux-spi-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1467404352-27101-1-git-send-email-octavian.purdila-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Sender: linux-spi-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Octavian Purdila <octavian.purdila-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: Len Brown <lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Matt Fleming <matt-mF/unelCI9GS6iBeEJttW/XRex20P6io@public.gmane.org>, Mark Brown <broonie-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Wolfram Sang <wsa-z923LK4zBo2bacvFa/9K2g@public.gmane.org>, Joel Becker <jlbec-aKy9MeLSZ9dg9hUCZPvPmw@public.gmane.org>, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-efi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-spi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, irina.tirdea-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, leonard.crestez-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
+Content-Transfer-Encoding: base64
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga04.intel.com ([192.55.52.120]:35315 "EHLO mga04.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751076AbcGFBq1 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 5 Jul 2016 21:46:27 -0400
+In-Reply-To: <CAJZ5v0gS+hdnuLfGNzf-TJDvvtboaN3yD3QnxU-SMt_Zbm=gAA@mail.gmail.com>
+Content-Language: en-US
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: "Rafael J. Wysocki" <rafael@kernel.org>
+Cc: "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, "Brown, Len" <len.brown@intel.com>, Lv Zheng <zetalog@gmail.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>
 
-On Friday, July 01, 2016 11:19:04 PM Octavian Purdila wrote:
-> This patch set enables custom ACPI board configuration by adding
-> mechanisms in the Linux kernel for loading user defined SSDTs.
-> 
-> In order to support ACPI open-ended hardware configurations we need a
-> way to augment the ACPI configuration provided by the firmware
-> image. A common example is connecting sensors on I2C / SPI buses on
-> development boards.
-> 
-> Although this can be accomplished by creating a kernel platform driver
-> or recompiling the firmware image with updated ACPI tables, neither is
-> practical: the former proliferates board specific kernel code while
-> the latter requires access to firmware tools which are often not
-> publicly available.
-> 
-> Because ACPI supports external references in AML code a more practical
-> way to augment firmware ACPI configuration is by dynamically loading
-> user defined SSDT tables that contain the board specific information.
-> 
-> Currently it is possible to load SSDT overlays using the upgrade
-> initrd mechanism introduced in 4.7. This patch series adds support for
-> two more methods:
-> 
-> * From an EFI variable
-> 
->  This is the preferred method, when EFI is supported on the platform,
->  because it allows a persistent, OS independent way of storing and
->  updating the user defined SSDTs. There is also work underway to
->  implement EFI support for loading user defined SSDTs and using this
->  method will make it easier to convert to the EFI loading mechanism
->  when that will arrive.
-> 
-> * From userspace via configfs
-> 
->  This is useful when we want to defer the operation to userspace for
->  platform detection, loading the SSDTs from a custom partition, etc.
-> 
-> 
-> Changes from v4:
-> 
-> * EFI: use ucs2_as_utf8 and memcmp to check if the variable name
->   matches the kernel command line parameter; fold the EFI ACPI table
->   load code in the iterator function
-> 
-> * I2C/SPI: add more information in the commit logs about how the
->   enumeration status is set and checked; also add a new check of the
->   enumerated status for the ACPI device remove reconfiguration
->   notification
-> 
-> Changes from v3:
-> 
-> * fix a bisectability issue reported by kbuild
-> 
-> * rework the enumeration fix to support PRP0001 enumeration; also,
->   introduce acpi_device_set/clear_enumerated() for clarity
-> 
-> * clear the enumerated status for acpi_device when the I2C/SPI clients
->   are removed (for example as a result of an adapter removal) to allow
->   the devices to be re-enumerated later
-> 
-> Changes from v2:
-> 
-> * fix a few issues caught by the kbuild test robot
-> 
-> * add more configfs table attributes
-> 
-> * removed the initrd based loading functionality from this patch set
->   as this can already be accomplished in 4.7 using the ACPI table
->   upgrade mechanism
-> 
-> * rebased to 4.7-rc3
-> 
-> Changes from v1:
-> 
-> * rebased on top of the ACPI install from initrd table functionality;
->   there is significant overlap between the 1st patch in this series
->   and these patch [1] from Lv - I kept it in this series until the
->   discussions around the taint and config option are resolved
-> 
-> * make sure EFI_RUNTIME_SERVICES are available before trying to use
->   EFI variables to load tables
-> 
-> * rework the ACPI reconfiguration notifications to work on device
->   granularity (device added or removed) instead of table granularity
->   (table loaded or unloaded)
-> 
-> * add support for table unloading / device removal
-> 
-> * note that the last patch is just a hack to be able to test the table
->   unload / device remove functionality, if someone wants to try out
->   this patch set
-> 
-> [1] https://patchwork.kernel.org/patch/8795931/
-> 
-> Octavian Purdila (8):
->   Documentation: acpi: add SSDT overlays documentation
->   acpi: fix enumeration (visited) flags for bus rescans
->   acpi: add support for ACPI reconfiguration notifiers
->   i2c: add support for ACPI reconfigure notifications
->   spi: add support for ACPI reconfigure notifications
->   efi: load SSTDs from EFI variables
->   acpi: add support for configfs
->   acpi: add support for loading SSDTs via configfs
-> 
->  Documentation/ABI/testing/configfs-acpi |  36 +++++
->  Documentation/acpi/ssdt-overlays.txt    | 172 ++++++++++++++++++++
->  Documentation/kernel-parameters.txt     |   7 +
->  MAINTAINERS                             |   1 +
->  drivers/acpi/Kconfig                    |   9 ++
->  drivers/acpi/Makefile                   |   1 +
->  drivers/acpi/bus.c                      |   9 ++
->  drivers/acpi/configfs.c                 | 267 ++++++++++++++++++++++++++++++++
->  drivers/acpi/internal.h                 |   3 +
->  drivers/acpi/scan.c                     |  81 +++++++++-
->  drivers/acpi/sysfs.c                    |   6 +-
->  drivers/firmware/efi/efi.c              |  85 ++++++++++
->  drivers/i2c/i2c-core.c                  | 175 ++++++++++++++++-----
->  drivers/spi/spi.c                       | 100 +++++++++++-
->  include/linux/acpi.h                    |  36 +++++
->  15 files changed, 932 insertions(+), 56 deletions(-)
->  create mode 100644 Documentation/ABI/testing/configfs-acpi
->  create mode 100644 Documentation/acpi/ssdt-overlays.txt
->  create mode 100644 drivers/acpi/configfs.c
-
-It looks like all patches in this series except for the [6/8] are good to go.
-
-Do any of them depend on the [6/8]?
-
-Thanks,
-Rafael
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-spi" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+SGksIFJhZmFlbA0KDQo+IEZyb206IGxpbnV4LWFjcGktb3duZXJAdmdlci5rZXJuZWwub3JnIFtt
+YWlsdG86bGludXgtYWNwaS0NCj4gb3duZXJAdmdlci5rZXJuZWwub3JnXSBPbiBCZWhhbGYgT2Yg
+UmFmYWVsIEouIFd5c29ja2kNCj4gU3ViamVjdDogUmU6IFtQQVRDSCA1LzVdIEFDUEk6IEFkZCBj
+b25maWd1cmF0aW9uIGl0ZW0gdG8gY29uZmlndXJlIEFDUElDQQ0KPiBlcnJvciBsb2dzIG91dA0K
+PiANCj4gT24gVHVlLCBKdWwgNSwgMjAxNiBhdCAxOjE4IFBNLCBMdiBaaGVuZyA8bHYuemhlbmdA
+aW50ZWwuY29tPiB3cm90ZToNCj4gPiBTb21ldGltZXMsIHdlIG5lZWQgdG8gZGlzYWJsZSBBQ1BJ
+Q0EgZXJyb3IgbG9ncyB0byBsZWF2ZSBvbmx5IEFDUElDQQ0KPiA+IGRlYnVnIGxvZ3MgZW5hYmxl
+ZCBmb3IgZGVidWdnaW5nIHB1cnBvc2UuIFRoaXMgaXMgdXNlZnVsIHdoZW4gQUNQSUNBDQo+IGVy
+cm9yDQo+ID4gbG9ncyBiZWNvbWUgYSBmbG9vZC4NCj4gPg0KPiA+IFJlZmVyZW5jZTogaHR0cHM6
+Ly9idWd6aWxsYS5rZXJuZWwub3JnL3Nob3dfYnVnLmNnaT9pZD0xMTQyMDENCj4gPiBTaWduZWQt
+b2ZmLWJ5OiBMdiBaaGVuZyA8bHYuemhlbmdAaW50ZWwuY29tPg0KPiANCj4gSSBzZWVtIHRvIHJl
+bWVtYmVyIHNlZWluZyB0aGlzIGNoYW5nZSBvbmNlIGJlZm9yZSBhbmQgSVNUUiBJIHNhaWQgSQ0K
+PiB3b3VsZG4ndCBhcHBseSBpdCB0aGVuLg0KPiANCj4gV2h5IHdvdWxkIEkgc2F5IHNvbWV0aGlu
+ZyBkaWZmZXJlbnQgdGhpcyB0aW1lPw0KW0x2IFpoZW5nXSANCkkgbWlzc2VkIHRoYXQuDQpOb3cg
+dGhhdCBJIGRlbGV0ZWQgdGhpcyBwYXRjaCBmcm9tIG15IGxvY2FsIHF1ZXVlLg0KDQpUaGFua3Mg
+YW5kIGJlc3QgcmVnYXJkcw0KLUx2DQoNCj4gDQo+ID4gLS0tDQo+ID4gIGRyaXZlcnMvYWNwaS9L
+Y29uZmlnICAgICAgICAgICAgfCAgICA3ICsrKysrKysNCj4gPiAgaW5jbHVkZS9hY3BpL3BsYXRm
+b3JtL2FjbGludXguaCB8ICAgIDQgKysrKw0KPiA+ICAyIGZpbGVzIGNoYW5nZWQsIDExIGluc2Vy
+dGlvbnMoKykNCj4gPg0KPiA+IGRpZmYgLS1naXQgYS9kcml2ZXJzL2FjcGkvS2NvbmZpZyBiL2Ry
+aXZlcnMvYWNwaS9LY29uZmlnDQo+ID4gaW5kZXggMDRhZjE4Zi4uOTM5ZDIzNSAxMDA2NDQNCj4g
+PiAtLS0gYS9kcml2ZXJzL2FjcGkvS2NvbmZpZw0KPiA+ICsrKyBiL2RyaXZlcnMvYWNwaS9LY29u
+ZmlnDQo+ID4gQEAgLTMyNCw2ICszMjQsMTMgQEAgY29uZmlnIEFDUElfVEFCTEVfVVBHUkFERQ0K
+PiA+ICAgICAgICAgICBpbml0cmQsIHRoZXJlZm9yZSBpdCdzIHNhZmUgdG8gc2F5IFkuDQo+ID4g
+ICAgICAgICAgIFNlZSBEb2N1bWVudGF0aW9uL2FjcGkvaW5pdHJkX3RhYmxlX292ZXJyaWRlLnR4
+dCBmb3IgZGV0YWlscw0KPiA+DQo+ID4gK2NvbmZpZyBBQ1BJX05PX0VSUk9SX01FU1NBR0VTDQo+
+ID4gKyAgICAgICBib29sICJEaXNhYmxlIGVycm9yIG1lc3NhZ2VzIg0KPiA+ICsgICAgICAgZGVm
+YXVsdCBuDQo+ID4gKyAgICAgICBoZWxwDQo+ID4gKyAgICAgICAgIFRoZSBBQ1BJIHN1YnN5c3Rl
+bSBjYW4gcHJvZHVjZSBlcnJvciBtZXNzYWdlcy4gU2F5aW5nIFkgZGlzYWJsZXMNCj4gPiArICAg
+ICAgICAgdGhpcyBvdXRwdXQuDQo+ID4gKw0KPiA+ICBjb25maWcgQUNQSV9ERUJVRw0KPiA+ICAg
+ICAgICAgYm9vbCAiRGVidWcgU3RhdGVtZW50cyINCj4gPiAgICAgICAgIGRlZmF1bHQgbg0KPiA+
+IGRpZmYgLS1naXQgYS9pbmNsdWRlL2FjcGkvcGxhdGZvcm0vYWNsaW51eC5oDQo+IGIvaW5jbHVk
+ZS9hY3BpL3BsYXRmb3JtL2FjbGludXguaA0KPiA+IGluZGV4IDkzYjYxYjEuLmVkMjdiNTIgMTAw
+NjQ0DQo+ID4gLS0tIGEvaW5jbHVkZS9hY3BpL3BsYXRmb3JtL2FjbGludXguaA0KPiA+ICsrKyBi
+L2luY2x1ZGUvYWNwaS9wbGF0Zm9ybS9hY2xpbnV4LmgNCj4gPiBAQCAtNzcsNiArNzcsMTAgQEAN
+Cj4gPiAgI2RlZmluZSBBQ1BJX01VVEVYX0RFQlVHDQo+ID4gICNlbmRpZg0KPiA+DQo+ID4gKyNp
+ZmRlZiBDT05GSUdfQUNQSV9OT19FUlJPUl9NRVNTQUdFUw0KPiA+ICsjZGVmaW5lIEFDUElfTk9f
+RVJST1JfTUVTU0FHRVMNCj4gPiArI2VuZGlmDQo+ID4gKw0KPiA+ICAjaW5jbHVkZSA8bGludXgv
+c3RyaW5nLmg+DQo+ID4gICNpbmNsdWRlIDxsaW51eC9rZXJuZWwuaD4NCj4gPiAgI2luY2x1ZGUg
+PGxpbnV4L2N0eXBlLmg+DQo+ID4gLS0NCj4gLS0NCj4gVG8gdW5zdWJzY3JpYmUgZnJvbSB0aGlz
+IGxpc3Q6IHNlbmQgdGhlIGxpbmUgInVuc3Vic2NyaWJlIGxpbnV4LWFjcGkiIGluDQo+IHRoZSBi
+b2R5IG9mIGEgbWVzc2FnZSB0byBtYWpvcmRvbW9Admdlci5rZXJuZWwub3JnDQo+IE1vcmUgbWFq
+b3Jkb21vIGluZm8gYXQgIGh0dHA6Ly92Z2VyLmtlcm5lbC5vcmcvbWFqb3Jkb21vLWluZm8uaHRt
+bA0K
