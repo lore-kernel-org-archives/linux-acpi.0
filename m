@@ -1,208 +1,79 @@
-From: Tony <tony.makkiel@daqri.com>
-Subject: Re: [PATCH v8 1/1] leds: LED driver for TI LP3952 6-Channel Color LED
-Date: Thu, 7 Jul 2016 12:44:10 +0100
-Message-ID: <577E408A.5010905@daqri.com>
-References: <1467732628-2025-1-git-send-email-tony.makkiel@daqri.com>
- <577D08C7.5000802@samsung.com> <577D1E32.50809@daqri.com>
- <577E0130.1010806@samsung.com>
+From: Wolfram Sang <wsa@the-dreams.de>
+Subject: Re: [UPDATE RFC PATCH v2] ACPI / EC: Fix an order issue in
+ ec_remove_handlers()
+Date: Thu, 7 Jul 2016 20:46:55 +0900
+Message-ID: <20160707114654.GA2915@tetsubishi>
+References: <20160706141410.GA1430@tetsubishi>
+ <e48b77b7af1e8269b0ff3fac6cbf37eb480ab722.1467866123.git.lv.zheng@intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-leds-owner@vger.kernel.org>
-In-Reply-To: <577E0130.1010806@samsung.com>
-Sender: linux-leds-owner@vger.kernel.org
-To: Jacek Anaszewski <j.anaszewski@samsung.com>
-Cc: linux-leds@vger.kernel.org, linux-acpi@vger.kernel.org, rpurdie@rpsys.net, rjw@rjwysocki.net, lenb@kernel.org, mika.westerberg@linux.intel.com
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="EVF5PPMfhYS0aIcm"
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from sauhun.de ([89.238.76.85]:58382 "EHLO pokefinder.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751332AbcGGLrQ (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 7 Jul 2016 07:47:16 -0400
+Content-Disposition: inline
+In-Reply-To: <e48b77b7af1e8269b0ff3fac6cbf37eb480ab722.1467866123.git.lv.zheng@intel.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Lv Zheng <lv.zheng@intel.com>
+Cc: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <len.brown@intel.com>, Lv Zheng <zetalog@gmail.com>, linux-acpi@vger.kernel.org, Nicholas <nkudriavtsev@gmail.com>
 
-Hi Jacek,
-	Thank you for the comments.
 
-On 07/07/16 08:13, Jacek Anaszewski wrote:
-> Hi Tony,
->
-> On 07/06/2016 05:05 PM, Tony wrote:
->> Thank you for the comments Jacek and Mika.
->>
->> On 06/07/16 14:33, Jacek Anaszewski wrote:
->>
->>
->>>> +static int lp3952_set_brightness(struct led_classdev *cdev,
->>>> +                 enum led_brightness value)
->>>> +{
->>>> +    unsigned int reg, shift_val;
->>>> +    struct lp3952_ctrl_hdl *led = container_of(cdev,
->>>> +                           struct lp3952_ctrl_hdl,
->>>> +                           cdev);
->>>> +    struct lp3952_led_array *priv = (struct lp3952_led_array
->>>> *)led->priv;
->>>> +
->>>> +    dev_dbg(cdev->dev, "Brightness request: %d on %d\n", value,
->>>> +        led->channel);
->>>> +
->>>> +    if (value == LED_OFF) {
->>>> +        lp3952_on_off(priv, led->channel, LED_OFF);
->>>> +        return 0;
->>>> +    }
->>>> +
->>>> +    if (led->channel > LP3952_RED_1) {
->>>> +        dev_err(cdev->dev, " %s Invalid LED requested", __func__);
->>>> +        return -EINVAL;
->>>> +    }
->>>> +
->>>> +    if (led->channel >= LP3952_BLUE_1) {
->>>> +        reg = LP3952_REG_RGB1_MAX_I_CTRL;
->>>> +        shift_val = (led->channel - LP3952_BLUE_1) * 2;
->>>> +    } else {
->>>> +        reg = LP3952_REG_RGB2_MAX_I_CTRL;
->>>> +        shift_val = led->channel * 2;
->>>> +    }
->>>> +
->>>> +    /* Enable the LED in case it is not enabled already */
->>>> +    lp3952_on_off(priv, led->channel, 1);
->>>> +
->>>> +    return regmap_update_bits(priv->regmap, reg, 3 << shift_val,
->>>> +                  --value << shift_val);
->>>
->>> Here you have two separate calls that change the device state.
->>> I think that mutex protection is required here to assure that
->>> the device will not be left in an inconsistent state, due to
->>> the concurrent calls from other processes.
->>
->> Sorry, I did not quite understand.
->>
->> Did you mean 'regmap_update_bits' here and the one within
->> 'lp3952_on_off'? If there isn't a lock assigned by driver, a mutex or
->> spinlock is assigned based on fast_io support by regmap during init.
->
-> The lock protects an access to the I2C bus for a single transmission.
-> When there are two registers to set then current process can be
-> preempted after first write by the second process which overwrites
-> the register with a new value. The first one after being woken up
-> performs second register write, being unaware that the instruction it
-> completed in the previous step has been just overwritten.
->
-> It applies to the situations where there is a common register
-> setting affecting all LEDs, e.g. power down mode or so, but after
-> consulting the documentation I figured out that this is not the
-> case.
->
->>>
->>>> +}
->>>> +
->>>> +static int lp3952_get_label(char *dest, const char *label, struct
->>>> device *dev)
->>>> +{
->>>> +    int ret;
->>>> +    const union acpi_object *obj;
->>>> +    struct acpi_device *adev = ACPI_COMPANION(dev);
->>>> +
->>>> +    ret = acpi_dev_get_property(adev, label, ACPI_TYPE_STRING, &obj);
->>>> +    if (!ret)
->>>> +        strncpy(dest, obj->string.pointer, obj->string.length + 1);
->>>> +
->>>> +    return ret;
->>>> +}
->>>> +
->>>> +static int lp3952_register_led_classdev(struct lp3952_led_array *priv)
->>>> +{
->>>> +    int i, ret = -ENODEV;
->>>> +    static const char *led_name_hdl[LP3952_LED_ALL] = {
->>>> +        "blue2",
->>>> +        "green2",
->>>> +        "red2",
->>>> +        "blue1",
->>>> +        "green1",
->>>> +        "red1"
->>>> +    };
->
-> Why actually do you need this array? Couldn't you provide the LED
-> identifier in the DSD entry corresponding to a LED? You can follow
-> the scheme used in Device Tree by introducing "reg" property.
+--EVF5PPMfhYS0aIcm
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-The names in the array are the 6 identifiers in the DSD entry. For example
-the DSD property for blue2 led used is
+On Thu, Jul 07, 2016 at 12:37:10PM +0800, Lv Zheng wrote:
+> (Updated to add v2 indicator)
+>=20
+> There is an order issue in ec_remove_handlers() that the functions invoked
+> in it are not invoked in the reversed order of their appearance in
+> ec_install_handlers(). This existing issue has been triggered by the
+> following commit:
+>   Commit: dcf15cbded656a12335bc4151f3f75f10080a375
+>   Subject: ACPI / EC: Fix a boot EC regresion by restoring boot EC
+> The commit invokes ec_remove_handlers() during runtime, thus uncovers this
+> issue. This patch fixes this regression.
+>=20
+> Fixes: dcf15cbded65 ("ACPI / EC: Fix a boot EC regresion by restoring boo=
+t EC")
+> Link: https://bugzilla.kernel.org/show_bug.cgi?id=3D102421
+> Reported-by: Wolfram Sang <wsa@the-dreams.de>
+> Reported-by: Nicholas <nkudriavtsev@gmail.com>
+> Cc: Wolfram Sang <wsa@the-dreams.de>
+> Cc: Nicholas <nkudriavtsev@gmail.com>
+> Signed-off-by: Lv Zheng <lv.zheng@intel.com>
 
-"Package ()
-{
-         Package (2) {"blue2", "led_blue2"},
-"
-acpi_dev_get_property will return "led_blue2" in obj->string.pointer.
+Tested-by: Wolfram Sang <wsa@the-dreams.de>
 
-There isn't separate DSD for individual leds. There is only 1 DSD for
-the led controller identified by "Name (_HID, "TXNW3952")". The
-individual led names are separate properties withing th DSD (eg:
-led_blue2 identified by blue2).
+The status infos are back to normal and the EC error reports are gone
+=66rom the log. Looks good! Thanks for the quick fix.
 
->
->>>> +    for (i = 0; i < LP3952_LED_ALL; i++) {
->>>> +        priv->leds[i].cdev.brightness = LED_OFF;
->>>> +        priv->leds[i].cdev.max_brightness = LP3952_BRIGHT_MAX;
->>>> +        priv->leds[i].cdev.brightness_set_blocking =
->>>> +                lp3952_set_brightness;
->>>> +        priv->leds[i].channel = i;
->>>> +        priv->leds[i].priv = priv;
->>>> +
->>>> +        ret = lp3952_get_label(priv->leds[i].name, led_name_hdl[i],
->>>> +                       &priv->client->dev);
->>>> +        if (ret)
->>>> +            break;
->>>
->>> You're assuming here that all LEDs will always be present, which
->>> doesn't necessarily have to be true. How about just skipping
->>> the LED and moving to the next one if given label was not found?
->>> You could move this check to the beginning of the loop then.
->>
->> If we skip leds, there could be problem, if all the leds were
->> skipped(For example, no ACPI name data present).
->
-> If all the LEDs were skipped, then no LED class device would be
-> registered. In such a case you could return an error from
-> lp3952_probe().
->
->>
->> At present, if a label is not present, the probe will fail.
->> How about reverting to a default name (eg: "lp3952:blue2") if led name
->> read fails?
->
-> There is no point in registering the LED if its DSD entry is not
-> valid. In case of Device Tree we fail LED registration in such
-> cases.
+   Wolfram
 
-Sorry, I thought we were skipping LEDs due to invalid DSD. If that is
-not the case, isn't the assumption all LEDS will be present true?
-I am guessing leds might be missing, if some of the leds are not
-physically connected to controller output. But the controller would
-have 6 led controls all the time.
 
->
->> This would also cover cases in which none of the led names
->> were read properly.
->
-> Whole driver probing should fail then.
->
->>
->>>
->>>> +
->>>> +        priv->leds[i].cdev.name = priv->leds[i].name;
->>>> +
->>>> +        ret = devm_led_classdev_register(&priv->client->dev,
->>>> +                         &priv->leds[i].cdev);
->>>> +        if (ret < 0) {
->>>> +            dev_err(&priv->client->dev,
->>>> +                "couldn't register LED %s\n",
->>>> +                priv->leds[i].cdev.name);
->>>> +            break;
->>>> +        }
->>>> +    }
->>>> +    return ret;
->>>> +}
->>>> +
->> --
->> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
->> the body of a message to majordomo@vger.kernel.org
->> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->>
->>
->
->
+--EVF5PPMfhYS0aIcm
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iQIcBAEBAgAGBQJXfkEuAAoJEBQN5MwUoCm2qtgP/iIqam3gD6dr/rlA7zfTDQjB
+Dl4Y8U7jlEorQbY4SnQReBOs6hMnfJ9vGLrM8TYcyc+BsbYREP+yO27MOQ7hI/jN
+DE/TYLffec6hNWuzr6ABoLAxULafsW8cAxWX/Bw/6up+a8bHdbJcT9F18T3WWNpg
+JHyhuUBDvnzxamNWVt814dd/O6IjKzbnsOXevTec7smFacytfkQtHZci7qW6ql99
+ZB7JRSqU8a1cTix7jV/K+8u0HnhAdtQXYw8i7c3m88/n4WL1EFaJv2j4OjZMNGHn
+O3IbBMt+2WHp9rRdKNxZaQto3vcfCzZujg4Mz2r/ovtXuZGt9jgS8xnbHn1v/KB8
+6zdXAZp3fBZhHKWRmcy26YiySPPHZrbQyRS4qZbaWAwyZFILt2Ydpg4zXmQLb9ua
+jkkQme5P5v5ktOz+SNoSbwtyAy/b6YYfc0ugeaeKp7WOJC5RS/IMRqlHfdIwIyC7
+J2+j3V91CheAYjO+vGArTPCZJ5uMr6QqFVyfzwvyIC/zjE4QWg1MCRzGMvcXRsP8
+DJ7hhbakK2g+rbUOjdJkyrbhlzgUJKiuKMJmLQkgU3MUhuKDVfrdfWhMEnVCqVVZ
+JWnZILCY+0pqB/ZsZtYWCSitRDkxd80Jh+X9A8iEHoj3vosxo7BNjEc86Jz0HbeA
+gstT+j7ydOrMAuVnC/ji
+=XdsF
+-----END PGP SIGNATURE-----
+
+--EVF5PPMfhYS0aIcm--
