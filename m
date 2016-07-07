@@ -1,76 +1,62 @@
 From: "Zheng, Lv" <lv.zheng@intel.com>
 Subject: RE: Regression between rc2 and rc6: ACPI EC problems
-Date: Thu, 7 Jul 2016 00:26:49 +0000
-Message-ID: <1AE640813FDE7649BE1B193DEA596E883BC007B3@SHSMSX101.ccr.corp.intel.com>
+Date: Thu, 7 Jul 2016 00:30:05 +0000
+Message-ID: <1AE640813FDE7649BE1B193DEA596E883BC007CE@SHSMSX101.ccr.corp.intel.com>
 References: <20160706141410.GA1430@tetsubishi>
- <2028379.c7e6Pd4oDW@vostro.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga14.intel.com ([192.55.52.115]:61207 "EHLO mga14.intel.com"
+Received: from mga09.intel.com ([134.134.136.24]:57271 "EHLO mga09.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755880AbcGGA1e (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 6 Jul 2016 20:27:34 -0400
-In-Reply-To: <2028379.c7e6Pd4oDW@vostro.rjw.lan>
+	id S1755811AbcGGAaK convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 6 Jul 2016 20:30:10 -0400
+In-Reply-To: <20160706141410.GA1430@tetsubishi>
 Content-Language: en-US
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Wolfram Sang <wsa@the-dreams.de>
-Cc: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
+To: Wolfram Sang <wsa@the-dreams.de>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
+Cc: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
 
-SGksIFJhZmFlbA0KDQo+IEZyb206IFJhZmFlbCBKLiBXeXNvY2tpIFttYWlsdG86cmp3QHJqd3lz
-b2NraS5uZXRdDQo+IFNlbnQ6IFRodXJzZGF5LCBKdWx5IDcsIDIwMTYgNToyOSBBTQ0KPiBTdWJq
-ZWN0OiBSZTogUmVncmVzc2lvbiBiZXR3ZWVuIHJjMiBhbmQgcmM2OiBBQ1BJIEVDIHByb2JsZW1z
-DQo+IA0KPiBPbiBXZWRuZXNkYXksIEp1bHkgMDYsIDIwMTYgMTE6MTQ6MTEgUE0gV29sZnJhbSBT
-YW5nIHdyb3RlOg0KPiA+IEhpLA0KPiA+DQo+ID4gd2hlbiB1cGdyYWRpbmcgZnJvbSB2NC43LXJj
-MiB0byByYzYgb24gbXkgRGVsbCBNaW5pIDksIGJhdHRlcnkgYW5kDQo+ID4gdGVtcGVyYXR1cmUg
-c3RhdHVzIGluZm8gZ290IGJvZ3VzLiBIZXJlIGlzIHRoZSBtYWpvciBjaGFuZ2UgYmV0d2Vlbg0K
-PiB0aGUNCj4gPiBib290IGxvZ3M6DQo+ID4NCj4gPiBBQ1BJIDogRUM6IEVDIHN0b3BwZWQNCj4g
-PiBBQ1BJIEV4Y2VwdGlvbjogQUVfQkFEX1BBUkFNRVRFUiwgUmV0dXJuZWQgYnkgSGFuZGxlciBm
-b3INCj4gW0VtYmVkZGVkQ29udHJvbF0gKDIwMTYwNDIyL2V2cmVnaW9uLTMwMCkNCj4gPiBBQ1BJ
-IEVycm9yOiBNZXRob2QgcGFyc2UvZXhlY3V0aW9uIGZhaWxlZCBbXF9TQi5QQ0kwLkxQQ0IuRUMw
-Ll9SRUddDQo+IChOb2RlIGY1ZDA5ODcwKSwgQUVfQkFEX1BBUkFNRVRFUiAoMjAxNjA0MjIvcHNw
-YXJzZS01NDIpDQo+ID4gQUNQSSBFeGNlcHRpb246IEFFX0JBRF9QQVJBTUVURVIsIGZyb20gcmVn
-aW9uIF9SRUcsDQo+IFtFbWJlZGRlZENvbnRyb2xdICgyMDE2MDQyMi9ldnJlZ2lvbi0zOTcpDQo+
-ID4gQUNQSSBFeGNlcHRpb246IEFFX0JBRF9QQVJBTUVURVIsIFJldHVybmVkIGJ5IEhhbmRsZXIg
-Zm9yDQo+IFtFbWJlZGRlZENvbnRyb2xdICgyMDE2MDQyMi9ldnJlZ2lvbi0zMDApDQo+ID4gQUNQ
-SSBFcnJvcjogTWV0aG9kIHBhcnNlL2V4ZWN1dGlvbiBmYWlsZWQgW1xfU0IuUENJMC5MUENCLkVD
-MC5fUkVHXQ0KPiAoTm9kZSBmNWQwOTg3MCksIEFFX0JBRF9QQVJBTUVURVIgKDIwMTYwNDIyL3Bz
-cGFyc2UtNTQyKQ0KPiA+IEFDUEkgRXhjZXB0aW9uOiBBRV9CQURfUEFSQU1FVEVSLCBmcm9tIHJl
-Z2lvbiBfUkVHLA0KPiBbRW1iZWRkZWRDb250cm9sXSAoMjAxNjA0MjIvZXZyZWdpb24tMzk3KQ0K
-PiA+IEFDUEkgOiBFQzogR1BFID0gMHgxOSwgSS9POiBjb21tYW5kL3N0YXR1cyA9IDB4NjYsIGRh
-dGEgPSAweDYyDQo+ID4gQUNQSSA6IEVDOiBFQyBzdGFydGVkDQpbTHYgWmhlbmddIA0KVGhpcyBp
-cyBhIGtub3duIG9yZGVyIGlzc3VlIHRoYXQgQUNQSUNBIGV4ZWN1dGVzIF9SRUcoRElTQ09ORU5D
-VCkgYWZ0ZXIgcmVtb3ZpbmcgdGhlIG9wcmVnaW9uIGhhbmRsZXIuDQpCdXQgdGhpcyBpc3N1ZSBp
-cyBub3QgYSBmdW5jdGlvbiBmYWlsdXJlLCBpdCBvbmx5IGdlbmVyYXRlcyBlcnJvciBnYXJiYWdl
-IGluIHRoZSBrZXJuZWwgbG9nLg0KU28gd2UgZGlkbid0IGZpeCBpdCBpbiBhIGh1cnJ5Lg0KDQpU
-aGVyZSBpcyBhbm90aGVyIG9yZGVyIGlzc3VlIGRldGVjdGVkIGluIHRoZSBzYW1lIEJ1Z3ppbGxh
-IGVudHJ5IHRoYXQ6DQpfUkVHKENPTk5FQ1QvRElTQ09OTkVDVCkgc2hvdWxkbid0IGJlIGludm9r
-ZWQgZm9yIFN5c3RlbU1lbW9yeS9TeXN0ZW1JbyBhbmQgUENJX0NvbmZpZyB0aGF0IHVuZGVyIGEg
-UENJIHJvb3QgYnVzIGNvbnRhaW5pbmcgX0JCTiBtZXRob2QuDQpXaGljaCBpcyBhbHNvIHByb3Zl
-biBieSB0aGUgV2luZG93cyBiZWhhdmlvciBhbmQgc3BlYyBkZWZpbml0aW9ucy4NCg0KSSB3YXMg
-cGxhbm5pbmcgdG8gZml4IHRoZSBib3RoIGlzc3VlcyBpbiB0aGUgQUNQSUNBIHVwc3RyZWFtLg0K
-VGhlIGJ1ZyBpcyBoZXJlIGZvciB5b3VyIHJlZmVyZW5jZToNCmh0dHBzOi8vYnVnemlsbGEua2Vy
-bmVsLm9yZy9zaG93X2J1Zy5jZ2k/aWQ9MTAyNDIxDQoNCkZvciBub3csIHNpbmNlIHRoaXMgaXMg
-anVzdCBhIG5vbi1mdW5jdGlvbi1mYWlsdXJlIGVycm9yIHJlcG9ydCwgd2UgY2FuIGlnbm9yZSBp
-dC4NCkJlY2F1c2Ugc29tZXRpbWVzLCB3aGVuIHRoZXJlIGFyZSBzZXZlcmFsIHByb2JsZW1zIHJl
-bGF0ZWQsIHdlIGhhdmUgdG8gbWFrZSBhIGNob2ljZSB0byBmaXggb25lIG9mIHRoZW0gZmlyc3Qu
-DQoNClRoYW5rcyBhbmQgYmVzdCByZWdhcmRzDQotTHYNCg0KDQo+ID4NCj4gPiBUaGUgb25seSBj
-b25maWcgY2hhbmdlcyBiZXR3ZWVuIHRoZSBrZXJuZWxzIHdlcmUgZW5hYmxpbmcgTU1DIGJsb2Nr
-DQo+ID4gZGV2aWNlcyBhbmQgRE1fQ1JZUFQuIE5vdCBsaWtlbHkgdG8gY2F1c2UgdGhlIGFib3Zl
-LCBJJ2QgdGhpbmsuDQo+ID4NCj4gPiBEb2VzIHRoYXQgcmluZyBhIGJlbGwgZm9yIHNvbWVvbmU/
-IFRoaXMgbGl0dGxlIG1hY2hpbmUgaGFzIG9ubHkgYW4gU1NEDQo+ID4gd2l0aG91dCBUUklNLCBz
-byBiaXNlY3RpbmcgaXMgbm90IHJlYWxseSBhbiBvcHRpb24uIEkgY2FuIHByb3ZpZGUgbW9yZQ0K
-PiA+IGluZm8gYW5kIHRlc3QgcGF0Y2hlcywgdGhvdWdoLg0KPiANCj4gVGhlcmUgaXMgb25lIGNv
-bW1pdCByZWxhdGVkIGRpcmVjdGx5IHRvIEVDIGJldHdlZW4gLXJjMiBhbmQgLXJjNjoNCj4gDQo+
-IGRjZjE1Y2JkZWQ2NSBBQ1BJIC8gRUM6IEZpeCBhIGJvb3QgRUMgcmVncmVzaW9uIGJ5IHJlc3Rv
-cmluZyBib290IEVDDQo+IHN1cHBvcnQgZm9yIHRoZSBEU0RUIEVDDQo+IA0KPiBUaGVyZSBhbHNv
-IGFyZSB0d28gQUNQSUNBIGNvbW1pdHMgaW4gdGhhdCBmcmFtZSB0aGF0IG1heSBiZSByZWxhdGVk
-IHRvIGl0DQo+IA0KPiAyZjM4YjFiMTZkOTIgQUNQSUNBOiBOYW1lc3BhY2U6IEZpeCBkZWFkbG9j
-ayB0cmlnZ2VyZWQgYnkgTUxDDQo+IHN1cHBvcnQgaW4gZHluYW1pYyB0YWJsZSBsb2FkaW5nDQo+
-IGRhNGU3OTI1NTBhOCBSZXZlcnQgIkFDUElDQTogQUNQSSAyLjAsIEhhcmR3YXJlOiBBZGQNCj4g
-YWNjZXNzX3dpZHRoL2JpdF9vZmZzZXQgc3VwcG9ydCBmb3IgYWNwaV9od193cml0ZSgpIg0KPiAN
-Cj4gYnV0IG9uZSBvZiB0aGVtIGlzIGEgcmV2ZXJ0LCBzbyBjYW4geW91IHBsZWFzZSBjaGVjayBk
-Y2YxNWNiZGVkNjUgYW5kDQo+IDJmMzhiMWIxNmQ5Mj8NCj4gDQo+IFRoYW5rcywNCj4gUmFmYWVs
-DQo=
+Hi, Wolfram
+
+> From: linux-acpi-owner@vger.kernel.org [mailto:linux-acpi-
+> owner@vger.kernel.org] On Behalf Of Wolfram Sang
+> Subject: Regression between rc2 and rc6: ACPI EC problems
+> 
+> Hi,
+> 
+> when upgrading from v4.7-rc2 to rc6 on my Dell Mini 9, battery and
+> temperature status info got bogus. Here is the major change between the
+> boot logs:
+> 
+> ACPI : EC: EC stopped
+> ACPI Exception: AE_BAD_PARAMETER, Returned by Handler for
+> [EmbeddedControl] (20160422/evregion-300)
+> ACPI Error: Method parse/execution failed [\_SB.PCI0.LPCB.EC0._REG]
+> (Node f5d09870), AE_BAD_PARAMETER (20160422/psparse-542)
+> ACPI Exception: AE_BAD_PARAMETER, from region _REG,
+> [EmbeddedControl] (20160422/evregion-397)
+> ACPI Exception: AE_BAD_PARAMETER, Returned by Handler for
+> [EmbeddedControl] (20160422/evregion-300)
+> ACPI Error: Method parse/execution failed [\_SB.PCI0.LPCB.EC0._REG]
+> (Node f5d09870), AE_BAD_PARAMETER (20160422/psparse-542)
+> ACPI Exception: AE_BAD_PARAMETER, from region _REG,
+> [EmbeddedControl] (20160422/evregion-397)
+> ACPI : EC: GPE = 0x19, I/O: command/status = 0x66, data = 0x62
+> ACPI : EC: EC started
+> 
+> The only config changes between the kernels were enabling MMC block
+> devices and DM_CRYPT. Not likely to cause the above, I'd think.
+> 
+> Does that ring a bell for someone? This little machine has only an SSD
+> without TRIM, so bisecting is not really an option. I can provide more
+> info and test patches, though.
+[Lv Zheng] 
+Please just ignore this for several release cycles.
+We need strategy to fix the ACPI initialization order issues.
+This is already a noted non-function-failure issue.
+We just need to fix the functional ones prior than this.
+
+Thanks and best regards
+-Lv
