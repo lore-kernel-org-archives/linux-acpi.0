@@ -1,131 +1,139 @@
-From: Sudeep Holla <sudeep.holla@arm.com>
-Subject: Re: [PATCH v7 4/6] cpuidle: introduce HAVE_GENERIC_CPUIDLE_ENTER for
- ARM{32,64} platforms
-Date: Thu, 7 Jul 2016 16:48:10 +0100
-Message-ID: <577E79BA.6000706@arm.com>
-References: <1467122152-5604-1-git-send-email-sudeep.holla@arm.com>
- <1675585.udvKUofiJK@vostro.rjw.lan> <577E5A6C.9020007@arm.com>
- <3343646.556h6ef0ix@vostro.rjw.lan>
+From: Fu Wei <fu.wei@linaro.org>
+Subject: Re: [PATCH v6 03/10] clocksource/drivers/arm_arch_timer: Improve
+ printk relevant code
+Date: Fri, 8 Jul 2016 00:12:26 +0800
+Message-ID: <CADyBb7tOfpnaaOvq-tVeW=VjTReoBzi8Xsthjq_ZR_y57kHcog@mail.gmail.com>
+References: <1467224153-22873-1-git-send-email-fu.wei@linaro.org>
+ <1467224153-22873-4-git-send-email-fu.wei@linaro.org> <c347a9d9-82b4-b469-4e64-6446e6282a19@linaro.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from foss.arm.com ([217.140.101.70]:37239 "EHLO foss.arm.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752240AbcGGPsO (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 7 Jul 2016 11:48:14 -0400
-In-Reply-To: <3343646.556h6ef0ix@vostro.rjw.lan>
+Received: from mail-oi0-f47.google.com ([209.85.218.47]:34553 "EHLO
+	mail-oi0-f47.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751344AbcGGQM1 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 7 Jul 2016 12:12:27 -0400
+Received: by mail-oi0-f47.google.com with SMTP id s66so29615583oif.1
+        for <linux-acpi@vger.kernel.org>; Thu, 07 Jul 2016 09:12:27 -0700 (PDT)
+In-Reply-To: <c347a9d9-82b4-b469-4e64-6446e6282a19@linaro.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: Sudeep Holla <sudeep.holla@arm.com>, linux-acpi@vger.kernel.org, Vikas Sajjan <vikas.cha.sajjan@hpe.com>, Sunil <sunil.vl@hpe.com>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, PrashanthPrakash <pprakash@codeaurora.org>, Al Stone <al.stone@linaro.org>, Ashwin Chaugule <ashwin.chaugule@linaro.org>, Daniel Lezcano <daniel.lezcano@linaro.org>, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: Hanjun Guo <hanjun.guo@linaro.org>
+Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Daniel Lezcano <daniel.lezcano@linaro.org>, Thomas Gleixner <tglx@linutronix.de>, Marc Zyngier <marc.zyngier@arm.com>, linux-arm-kernel@lists.infradead.org, Linaro ACPI Mailman List <linaro-acpi@lists.linaro.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, rruigrok@codeaurora.org, harba@codeaurora.org, Christopher Covington <cov@codeaurora.org>, Timur Tabi <timur@codeaurora.org>, G Gregory <graeme.gregory@linaro.org>, Al Stone <al.stone@linaro.org>, Jon Masters <jcm@redhat.com>, wei@redhat.com, Arnd Bergmann <arnd@arndb.de>, Wim Van Sebroeck <wim@iguana.be>, Catalin Marinas <catalin.marinas@arm.com>, Will Deacon <will.deacon@arm.com>, Suravee Suthikulpanit <Suravee.Suthikulpanit@amd.com>, Leo Duran <leo.duran@amd.com>
 
+Hi Hanjun
 
-
-On 07/07/16 15:49, Rafael J. Wysocki wrote:
-> On Thursday, July 07, 2016 02:34:36 PM Sudeep Holla wrote:
+On 30 June 2016 at 10:54, Hanjun Guo <hanjun.guo@linaro.org> wrote:
+> On 2016/6/30 2:15, fu.wei@linaro.org wrote:
 >>
->> On 07/07/16 14:21, Rafael J. Wysocki wrote:
->>> On Tuesday, June 28, 2016 02:55:50 PM Sudeep Holla wrote:
->>>> The function arm_enter_idle_state is exactly the same in both generic
->>>> ARM{32,64} CPUIdle driver and will be the same even on ARM64 backend
->>>> for ACPI processor idle driver. So we can unify it and move it as
->>>> generic_cpuidle_enter by introducing HAVE_GENERIC_CPUIDLE_ENTER and
->>>> enabling the same on both ARM{32,64}.
->>>>
->>>> This is in preparation of reuse of the generic cpuidle entry function
->>>> for ACPI LPI support on ARM64.
->>>>
->>>> Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>
->>>> Cc: Daniel Lezcano <daniel.lezcano@linaro.org>
->>>> Cc: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
->>>> Signed-off-by: Sudeep Holla <sudeep.holla@arm.com>
->>>> ---
->>>>    arch/arm/Kconfig              |  1 +
->>>>    arch/arm/kernel/cpuidle.c     |  4 ++--
->>>>    arch/arm64/Kconfig            |  1 +
->>>>    arch/arm64/kernel/cpuidle.c   |  6 +++---
->>>>    drivers/cpuidle/Kconfig       |  3 +++
->>>>    drivers/cpuidle/cpuidle-arm.c | 21 +--------------------
->>>>    drivers/cpuidle/cpuidle.c     | 35 +++++++++++++++++++++++++++++++++++
->>>>    include/linux/cpuidle.h       |  8 ++++++++
->>>>    8 files changed, 54 insertions(+), 25 deletions(-)
->>>>
->>>> diff --git a/arch/arm/Kconfig b/arch/arm/Kconfig
->>>> index 90542db1220d..52b3dca0381c 100644
->>>> --- a/arch/arm/Kconfig
->>>> +++ b/arch/arm/Kconfig
->>>> @@ -54,6 +54,7 @@ config ARM
->>>>    	select HAVE_FTRACE_MCOUNT_RECORD if (!XIP_KERNEL)
->>>>    	select HAVE_FUNCTION_GRAPH_TRACER if (!THUMB2_KERNEL)
->>>>    	select HAVE_FUNCTION_TRACER if (!XIP_KERNEL)
->>>> +	select HAVE_GENERIC_CPUIDLE_ENTER
->>>
->>> That "generic" part in the name concerns me a bit, because the thing is not
->>> really generic.  It is "common on ARM" rather.
->>>
+>> From: Fu Wei <fu.wei@linaro.org>
 >>
->> I agree and that's exactly what I told Daniel. It's rather just
->> *ARM Generic*. Any preference on the name ? I had it header file under
->> include/linu/cpuidle-arm.h in the previous version. Do you prefer that ?
+>> This patch defines pr_fmt(fmt) for all pr_* functions,
+>> then the pr_* don't need to add "arch_timer:" everytime.
+>>
+>> Also delete some Blank Spaces in arch_timer_banner,
+>> according to the suggestion from checkpatch.pl.
+>>
+>> No functional change.
+>>
+>> Signed-off-by: Fu Wei <fu.wei@linaro.org>
+>> ---
+>>  drivers/clocksource/arm_arch_timer.c | 52
+>> +++++++++++++++++++-----------------
+>>  1 file changed, 27 insertions(+), 25 deletions(-)
+>>
+>> diff --git a/drivers/clocksource/arm_arch_timer.c
+>> b/drivers/clocksource/arm_arch_timer.c
+>> index 966c574..9540e9d 100644
+>> --- a/drivers/clocksource/arm_arch_timer.c
+>> +++ b/drivers/clocksource/arm_arch_timer.c
+>> @@ -29,6 +29,9 @@
+>>
+>>  #include <clocksource/arm_arch_timer.h>
+>>
+>> +#undef pr_fmt
+>> +#define pr_fmt(fmt) "arch_timer: " fmt
+>> +
+>>  #define CNTTIDR                0x08
+>>  #define CNTTIDR_VIRT(n)        (BIT(1) << ((n) * 4))
+>>
+>> @@ -388,24 +391,24 @@ arch_timer_detect_rate(void __iomem *cntbase, struct
+>> device_node *np)
+>>
+>>         /* Check the timer frequency. */
+>>         if (arch_timer_rate == 0)
+>> -               pr_warn("Architected timer frequency not available\n");
+>> +               pr_warn("frequency not available\n");
+>>  }
+>>
+>>  static void arch_timer_banner(unsigned type)
+>>  {
+>> -       pr_info("Architected %s%s%s timer(s) running at %lu.%02luMHz
+>> (%s%s%s).\n",
+>> -                    type & ARCH_CP15_TIMER ? "cp15" : "",
+>> -                    type == (ARCH_CP15_TIMER | ARCH_MEM_TIMER) ?  " and "
+>> : "",
+>> -                    type & ARCH_MEM_TIMER ? "mmio" : "",
+>> -                    (unsigned long)arch_timer_rate / 1000000,
+>> -                    (unsigned long)(arch_timer_rate / 10000) % 100,
+>> -                    type & ARCH_CP15_TIMER ?
+>> -                    (arch_timer_uses_ppi == VIRT_PPI) ? "virt" : "phys" :
+>> -                       "",
+>> -                    type == (ARCH_CP15_TIMER | ARCH_MEM_TIMER) ?  "/" :
+>> "",
+>> -                    type & ARCH_MEM_TIMER ?
+>> -                       arch_timer_mem_use_virtual ? "virt" : "phys" :
+>> -                       "");
+>> +       pr_info("%s%s%s timer(s) running at %lu.%02luMHz (%s%s%s).\n",
+>> +               type & ARCH_CP15_TIMER ? "cp15" : "",
+>> +               type == (ARCH_CP15_TIMER | ARCH_MEM_TIMER) ?  " and " :
+>> "",
+>> +               type & ARCH_MEM_TIMER ? "mmio" : "",
+>> +               (unsigned long)arch_timer_rate / 1000000,
+>> +               (unsigned long)(arch_timer_rate / 10000) % 100,
+>> +               type & ARCH_CP15_TIMER ?
+>> +               (arch_timer_uses_ppi == VIRT_PPI) ? "virt" : "phys" :
+>> +               "",
+>> +               type == (ARCH_CP15_TIMER | ARCH_MEM_TIMER) ?  "/" : "",
+>> +               type & ARCH_MEM_TIMER ?
+>> +               arch_timer_mem_use_virtual ? "virt" : "phys" :
+>> +               "");
+>>  }
+>>
+>>  u32 arch_timer_get_rate(void)
+>> @@ -498,7 +501,7 @@ static void __init arch_counter_register(unsigned
+>> type)
+>>
+>>  static void arch_timer_stop(struct clock_event_device *clk)
+>>  {
+>> -       pr_debug("arch_timer_teardown disable IRQ%d cpu #%d\n",
+>> +       pr_debug("teardown, disable IRQ%d cpu #%d\n",
 >
-> Well, I got confused by these names which probably means that they really
-> are confusing. :-)
 >
+> Not a problem of this patch, but arch_timer_teardown is a function
+> name? I can't find where it's defined...
+>
+> I think we can leave arch_timer as it but update it to:
+>
+> pr_debug("arch_timer_stop disable IRQ%d cpu #%d\n",
 
-I know and I am all for getting rid of that.
+If so, you will see "arch_timer: arch_timer_stop disable IRQ%d cpu #%d\n "
 
-> So the underlying observation is that ->enter() callbacks in some ARM code
-> tend to do the same thing, ie. wrap the cpu_pm_enter()/exit() pair around
-> the actual "low-level enter" routine, so the idea is to move the wrapping
-> to the core and add the symbol plus standard header for the "low-level enter"
-> thing.
->
-> But then ->enter has to point to the wrapper and that just invokes a static
-> function defined somewhere.
->
-> So in fact what you want is to avoid code duplication in the source, but not
-> in the binary.
->
-> For that, I'd use a macro like this:
->
-> #define CPU_IDLE_ENTER_WRAPPED(low_level_idle_enter, idx)	\
-> ({								\
-> 	int __ret;						\
-> 								\
-> 	if (!idx) {						\
-> 		cpu_do_idle();					\
-> 		return idx;					\
-> 	}							\
-> 								\
-> 	__ret = cpu_pm_enter();					\
-> 	if (!__ret) {						\
-> 		__ret = low_level_idle_enter(idx);		\
-> 		cpu_pm_exit();					\
-> 	}							\
-> 								\
-> 	__ret ? -1 : idx;					\
-> })
->
-> and then, whoever want's to generate a "wrapped" callback, will need to
-> define the low_level_idle_enter thing, say my_low_level_idle_enter() and
-> then do
->
-> int idle_enter(int idx)
-> {
-> 	return CPU_IDLE_ENTER_WRAPPED(my_low_level_idle_enter, idx);
-> }
->
-> and point the ->enter callback to idle_enter().
->
-> No need for extra symbols, confusing function names and similar.
->
-> And the macro can go into cpuidle.h if you want.
->
+I think we can do :
 
-Sounds good. Thanks for the suggestion. I will respin the series with
-this change then.
+pr_debug(" disable IRQ%d cpu #%d\n",
+
+
+>
+> Others are look good to me.
+>
+> Thanks
+> Hanjun
+
+
 
 -- 
-Regards,
-Sudeep
+Best regards,
+
+Fu Wei
+Software Engineer
+Red Hat
