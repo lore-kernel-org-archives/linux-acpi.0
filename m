@@ -1,112 +1,100 @@
 From: Sudeep Holla <sudeep.holla@arm.com>
-Subject: [PATCH v8 0/6] ACPI / processor_idle: Add ACPI v6.0 LPI support
-Date: Thu,  7 Jul 2016 18:10:45 +0100
-Message-ID: <1467911451-24731-1-git-send-email-sudeep.holla@arm.com>
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from foss.arm.com ([217.140.101.70]:37864 "EHLO foss.arm.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751617AbcGGRLA (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 7 Jul 2016 13:11:00 -0400
-Sender: linux-acpi-owner@vger.kernel.org
-List-Id: linux-acpi@vger.kernel.org
+Subject: [PATCH v8 4/6] cpuidle: introduce CPU_IDLE_ENTER_WRAPPED macro for ARM{32,64}
+Date: Thu,  7 Jul 2016 18:10:49 +0100
+Message-ID: <1467911451-24731-5-git-send-email-sudeep.holla@arm.com>
+References: <1467911451-24731-1-git-send-email-sudeep.holla@arm.com>
+ <1467911451-24731-2-git-send-email-sudeep.holla@arm.com>
+ <1467911451-24731-3-git-send-email-sudeep.holla@arm.com>
+ <1467911451-24731-4-git-send-email-sudeep.holla@arm.com>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1467911451-24731-4-git-send-email-sudeep.holla@arm.com>
+Sender: linux-kernel-owner@vger.kernel.org
 To: ACPI List <linux-acpi@vger.kernel.org>, "Rafael J . Wysocki" <rjw@rjwysocki.net>
 Cc: Sudeep Holla <sudeep.holla@arm.com>, Vikas Sajjan <vikas.cha.sajjan@hpe.com>, Sunil <sunil.vl@hpe.com>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, PrashanthPrakash <pprakash@codeaurora.org>, Al Stone <al.stone@linaro.org>, Ashwin Chaugule <ashwin.chaugule@linaro.org>, Daniel Lezcano <daniel.lezcano@linaro.org>, LKML <linux-kernel@vger.kernel.org>, ALKML <linux-arm-kernel@lists.infradead.org>
+List-Id: linux-acpi@vger.kernel.org
 
-ACPI 6.0 introduced LPI(Low Power Idle) states that provides an alternate
-method to describe processor idle states. It extends the specification
-to allow the expression of idle states like C-states selectable by the
-OSPM when a processor goes idle, but may affect more than one processor,
-and may affect other system components.
+The function arm_enter_idle_state is exactly the same in both generic
+ARM{32,64} CPUIdle driver and will be the same even on ARM64 backend
+for ACPI processor idle driver. So we can unify it and move it to a
+common place by introducing CPU_IDLE_ENTER_WRAPPED macro that can be
+used in all places avoiding duplication.
 
-LPI extensions leverages the processor container device(again introduced
-in ACPI 6.0) allowing to express which parts of the system are affected
-by a given LPI state. It defines the local power states for each node
-in a hierarchical processor topology. The OSPM can use _LPI object to
-select a local power state for each level of processor hierarchy in the
-system. They used to produce a composite power state request that is
-presented to the platform by the OSPM.
+This is in preparation of reuse of the generic cpuidle entry function
+for ACPI LPI support on ARM64.
 
-Since multiple processors affect the idle state for any non-leaf hierarchy
-node, coordination of idle state requests between the processors is
-required. ACPI supports two different coordination schemes: Platform
-coordinated and  OS initiated.
+Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: Daniel Lezcano <daniel.lezcano@linaro.org>
+Cc: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+Suggested-by: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Signed-off-by: Sudeep Holla <sudeep.holla@arm.com>
+---
+ drivers/cpuidle/cpuidle-arm.c | 26 ++++++--------------------
+ include/linux/cpuidle.h       | 18 ++++++++++++++++++
+ 2 files changed, 24 insertions(+), 20 deletions(-)
 
-This series aims at providing basic and initial support for platform
-coordinated LPI states.
-
-v7[7]->v8:
-	- Replaced HAVE_GENERIC_CPUIDLE_ENTER with CPU_IDLE_ENTER_WRAPPED
-	  macro, which is more cleaner and definately less confusing :)
-	  (Thanks to Rafael for the suggestion)
-
-v6[6]->v7:
-	- Removed cpuidle-arm.h and introduced HAVE_GENERIC_CPUIDLE_ENTER
-	  and move the common code to cpuidle_generic_enter{,_state}
-	- Factored out common code between psci_{dt,acpi}_cpu_init_idle
-
-v5[5]->v6:
-	- Added support for autopromotable state by not flattening them
-	- Moved arm_enter_idle_state to cpuidle-arm.h as it can be reused
-	  in ARM64 backend for ACPI LPI
-	- Other review comments(mainly for ARM64 from Lorenzo)
-	- Dropped support for skipping PM notifier as it needs to be fixed
-	  in GICv3 code(will be done separately)
-
-v4[4]->v5:
-	- Addressed all the comments from Rafael
-	- Added support for retention mode(Prashant)
-	- Handled acpi_processor_get_power_info return value correctly(Vikas)
-	- Dropped __init from arm_cpuidle_init
-	- Merged psci prepartory patch into arm64 lpi support
-
-v3[3]->v4:
-	- Dropped the preparatory patches that are merged already
-	- Added ARM64 arch specific callback implementations
-	- Addressed most of the review comments from Rafael
-
-v2[2]->v3:
-        - rebased against v4.4-rc3
-        - fixed couple of issues reported by Prashanth and review comments
-          from Ashwin
-
-v1[1]->v2[2]:
-        - Fixed support for ACPI0010 processor container
-        - moved sleep state code out of processor_idle
-
-Code is also available @[8]
-
-Regards,
-Sudeep
-
-[1] http://marc.info/?l=linux-acpi&m=143871041601132&w=2
-[2] http://marc.info/?l=linux-acpi&m=144241209800788&w=2
-[3] http://marc.info/?l=linux-acpi&m=144906557814813&w=2
-[4] http://marc.info/?l=linux-acpi&m=146106902731359&w=2
-[5] http://marc.info/?l=linux-acpi&m=146298107608349&w=2
-[6] http://marc.info/?l=linux-acpi&m=146591573516602&w=2
-[7] http://marc.info/?l=linux-acpi&m=146712226917361&w=2
-[8] git://git.kernel.org/pub/scm/linux/kernel/git/sudeep.holla/linux.git for_review/arm64_lpi
-
-Sudeep Holla (6):
-  ACPI / processor_idle: introduce ACPI_PROCESSOR_CSTATE
-  ACPI / processor_idle: Add support for Low Power Idle(LPI) states
-  arm64: cpuidle: drop __init section marker to arm_cpuidle_init
-  cpuidle: introduce CPU_IDLE_ENTER_WRAPPED macro for ARM{32,64}
-  arm64: add support for ACPI Low Power Idle(LPI)
-  ACPI : enable ACPI_PROCESSOR_IDLE on ARM64
-
- arch/arm64/kernel/cpuidle.c     |  20 +-
- drivers/acpi/Kconfig            |   6 +-
- drivers/acpi/bus.c              |  14 +-
- drivers/acpi/processor_driver.c |   2 +-
- drivers/acpi/processor_idle.c   | 544 ++++++++++++++++++++++++++++++++++------
- drivers/cpuidle/cpuidle-arm.c   |  26 +-
- drivers/firmware/psci.c         | 122 +++++++--
- include/acpi/processor.h        |  26 +-
- include/linux/acpi.h            |   4 +
- include/linux/cpuidle.h         |  18 ++
- 10 files changed, 652 insertions(+), 130 deletions(-)
-
---
+diff --git a/drivers/cpuidle/cpuidle-arm.c b/drivers/cpuidle/cpuidle-arm.c
+index e342565e8715..1714d4103623 100644
+--- a/drivers/cpuidle/cpuidle-arm.c
++++ b/drivers/cpuidle/cpuidle-arm.c
+@@ -36,26 +36,12 @@
+ static int arm_enter_idle_state(struct cpuidle_device *dev,
+ 				struct cpuidle_driver *drv, int idx)
+ {
+-	int ret;
+-
+-	if (!idx) {
+-		cpu_do_idle();
+-		return idx;
+-	}
+-
+-	ret = cpu_pm_enter();
+-	if (!ret) {
+-		/*
+-		 * Pass idle state index to cpu_suspend which in turn will
+-		 * call the CPU ops suspend protocol with idle index as a
+-		 * parameter.
+-		 */
+-		ret = arm_cpuidle_suspend(idx);
+-
+-		cpu_pm_exit();
+-	}
+-
+-	return ret ? -1 : idx;
++	/*
++	 * Pass idle state index to arm_cpuidle_suspend which in turn
++	 * will call the CPU ops suspend protocol with idle index as a
++	 * parameter.
++	 */
++	return CPU_IDLE_ENTER_WRAPPED(arm_cpuidle_suspend, idx);
+ }
+ 
+ static struct cpuidle_driver arm_idle_driver = {
+diff --git a/include/linux/cpuidle.h b/include/linux/cpuidle.h
+index 07b83d32f66c..5c432c8a9fdd 100644
+--- a/include/linux/cpuidle.h
++++ b/include/linux/cpuidle.h
+@@ -252,4 +252,22 @@ static inline int cpuidle_register_governor(struct cpuidle_governor *gov)
+ #define CPUIDLE_DRIVER_STATE_START	0
+ #endif
+ 
++#define CPU_IDLE_ENTER_WRAPPED(low_level_idle_enter, idx)	\
++({								\
++	int __ret;						\
++								\
++	if (!idx) {						\
++		cpu_do_idle();					\
++		return idx;					\
++	}							\
++								\
++	__ret = cpu_pm_enter();					\
++	if (!__ret) {						\
++		__ret = low_level_idle_enter(idx);		\
++		cpu_pm_exit();					\
++	}							\
++								\
++	__ret ? -1 : idx;					\
++})
++
+ #endif /* _LINUX_CPUIDLE_H */
+-- 
 2.7.4
-
