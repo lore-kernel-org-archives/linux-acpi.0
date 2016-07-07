@@ -1,83 +1,226 @@
-From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [PATCH v6 00/10] acpi, clocksource: add GTDT driver and GTDT support in arm_arch_timer
-Date: Thu, 07 Jul 2016 15:58:04 +0200
-Message-ID: <1603704.EGiVTcCxLR@vostro.rjw.lan>
-References: <1467224153-22873-1-git-send-email-fu.wei@linaro.org> <1890708.ZTyM2PUGdP@vostro.rjw.lan> <20160707134023.GA655@red-moon>
+From: Jacek Anaszewski <j.anaszewski@samsung.com>
+Subject: Re: [PATCH v8 1/1] leds: LED driver for TI LP3952 6-Channel Color LED
+Date: Thu, 07 Jul 2016 16:34:52 +0200
+Message-ID: <577E688C.9080409@samsung.com>
+References: <1467732628-2025-1-git-send-email-tony.makkiel@daqri.com>
+ <577D08C7.5000802@samsung.com> <577D1E32.50809@daqri.com>
+ <577E0130.1010806@samsung.com> <577E408A.5010905@daqri.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7Bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cloudserver094114.home.net.pl ([79.96.170.134]:63899 "HELO
-	cloudserver094114.home.net.pl" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with SMTP id S1751854AbcGGNx1 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 7 Jul 2016 09:53:27 -0400
-In-Reply-To: <20160707134023.GA655@red-moon>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-leds-owner@vger.kernel.org>
+In-reply-to: <577E408A.5010905@daqri.com>
+Sender: linux-leds-owner@vger.kernel.org
+To: Tony <tony.makkiel@daqri.com>
+Cc: linux-leds@vger.kernel.org, linux-acpi@vger.kernel.org, rpurdie@rpsys.net, rjw@rjwysocki.net, lenb@kernel.org, mika.westerberg@linux.intel.com
 List-Id: linux-acpi@vger.kernel.org
-To: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
-Cc: Hanjun Guo <hanjun.guo@linaro.org>, "Rafael J. Wysocki" <rafael@kernel.org>, Graeme Gregory <gg@slimlogic.co.uk>, Will Deacon <will.deacon@arm.com>, Catalin Marinas <catalin.marinas@arm.com>, Fu Wei <fu.wei@linaro.org>, Len Brown <lenb@kernel.org>, Daniel Lezcano <daniel.lezcano@linaro.org>, Thomas Gleixner <tglx@linutronix.de>, Marc Zyngier <marc.zyngier@arm.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linaro-acpi@lists.linaro.org" <linaro-acpi@lists.linaro.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, rruigrok@codeaurora.org, harba@codeaurora.org, Christopher Covington <cov@codeaurora.org>, Timur Tabi <timur@codeaurora.org>, G Gregory <graeme.gregory@linaro.org>, Al Stone <al.stone@linaro.org>, Jon Masters <jcm@redhat.com>, wei@redhat.com, Arnd
 
-On Thursday, July 07, 2016 02:40:23 PM Lorenzo Pieralisi wrote:
-> [+Sudeep]
-> 
-> On Thu, Jul 07, 2016 at 02:03:17PM +0200, Rafael J. Wysocki wrote:
-> 
-> [...]
-> 
-> > > >> So is this a documentation issue in which case Fu Wei can add that to
-> > > >> the file to explain its limited to ARM64. Or we could even rename the
-> > > >> file acpi_arm64_gtdt.c
-> > > >>
-> > > >> It seems a pity as the comment on this series were minors to block
-> > > >> things on a filename/location.
-> > > >
-> > > > Let me repeat what I said above:
-> > > >
-> > > > I'm mostly concerned about how (and by whom) that code is going to be
-> > > > maintained going forward.
-> > > >
-> > > > This is not about documentation, it is about responsibility.
-> > > >
-> > > > Honestly, I don't think I'm the right maintainer to apply the patch
-> > > > introducing this code and then handle bug reports regarding it and so
-> > > > on.  That has to be done by somebody else.
-> > > 
-> > > I'm working on ACPI for years and upstreamed the ARM64 ACPI core
-> > > support (with lots of people's help), I'm willing to maintain the ARM64
-> > > ACPI code under drivers/acpi/ if no objections.
-> > 
-> > OK
-> 
-> I would ask you please to add Sudeep and myself for the ARM64 specific
-> ACPI code maintainership too.
+On 07/07/2016 01:44 PM, Tony wrote:
+> Hi Jacek,
+>      Thank you for the comments.
 
-OK
+You're welcome.
 
-> > Can the ARM64-specific code go under drivers/acpi/arm64/ then, for clarity?
-> 
-> It can, but I do not understand why x86 should not have a separate
-> directory for all x86 specific stuff too then.
+> On 07/07/16 08:13, Jacek Anaszewski wrote:
+>> Hi Tony,
+>>
+>> On 07/06/2016 05:05 PM, Tony wrote:
+>>> Thank you for the comments Jacek and Mika.
+>>>
+>>> On 06/07/16 14:33, Jacek Anaszewski wrote:
+>>>
+>>>
+>>>>> +static int lp3952_set_brightness(struct led_classdev *cdev,
+>>>>> +                 enum led_brightness value)
+>>>>> +{
+>>>>> +    unsigned int reg, shift_val;
+>>>>> +    struct lp3952_ctrl_hdl *led = container_of(cdev,
+>>>>> +                           struct lp3952_ctrl_hdl,
+>>>>> +                           cdev);
+>>>>> +    struct lp3952_led_array *priv = (struct lp3952_led_array
+>>>>> *)led->priv;
+>>>>> +
+>>>>> +    dev_dbg(cdev->dev, "Brightness request: %d on %d\n", value,
+>>>>> +        led->channel);
+>>>>> +
+>>>>> +    if (value == LED_OFF) {
+>>>>> +        lp3952_on_off(priv, led->channel, LED_OFF);
+>>>>> +        return 0;
+>>>>> +    }
+>>>>> +
+>>>>> +    if (led->channel > LP3952_RED_1) {
+>>>>> +        dev_err(cdev->dev, " %s Invalid LED requested", __func__);
+>>>>> +        return -EINVAL;
+>>>>> +    }
+>>>>> +
+>>>>> +    if (led->channel >= LP3952_BLUE_1) {
+>>>>> +        reg = LP3952_REG_RGB1_MAX_I_CTRL;
+>>>>> +        shift_val = (led->channel - LP3952_BLUE_1) * 2;
+>>>>> +    } else {
+>>>>> +        reg = LP3952_REG_RGB2_MAX_I_CTRL;
+>>>>> +        shift_val = led->channel * 2;
+>>>>> +    }
+>>>>> +
+>>>>> +    /* Enable the LED in case it is not enabled already */
+>>>>> +    lp3952_on_off(priv, led->channel, 1);
+>>>>> +
+>>>>> +    return regmap_update_bits(priv->regmap, reg, 3 << shift_val,
+>>>>> +                  --value << shift_val);
+>>>>
+>>>> Here you have two separate calls that change the device state.
+>>>> I think that mutex protection is required here to assure that
+>>>> the device will not be left in an inconsistent state, due to
+>>>> the concurrent calls from other processes.
+>>>
+>>> Sorry, I did not quite understand.
+>>>
+>>> Did you mean 'regmap_update_bits' here and the one within
+>>> 'lp3952_on_off'? If there isn't a lock assigned by driver, a mutex or
+>>> spinlock is assigned based on fast_io support by regmap during init.
+>>
+>> The lock protects an access to the I2C bus for a single transmission.
+>> When there are two registers to set then current process can be
+>> preempted after first write by the second process which overwrites
+>> the register with a new value. The first one after being woken up
+>> performs second register write, being unaware that the instruction it
+>> completed in the previous step has been just overwritten.
+>>
+>> It applies to the situations where there is a common register
+>> setting affecting all LEDs, e.g. power down mode or so, but after
+>> consulting the documentation I figured out that this is not the
+>> case.
+>>
+>>>>
+>>>>> +}
+>>>>> +
+>>>>> +static int lp3952_get_label(char *dest, const char *label, struct
+>>>>> device *dev)
+>>>>> +{
+>>>>> +    int ret;
+>>>>> +    const union acpi_object *obj;
+>>>>> +    struct acpi_device *adev = ACPI_COMPANION(dev);
+>>>>> +
+>>>>> +    ret = acpi_dev_get_property(adev, label, ACPI_TYPE_STRING, &obj);
+>>>>> +    if (!ret)
+>>>>> +        strncpy(dest, obj->string.pointer, obj->string.length + 1);
+>>>>> +
+>>>>> +    return ret;
+>>>>> +}
+>>>>> +
+>>>>> +static int lp3952_register_led_classdev(struct lp3952_led_array
+>>>>> *priv)
+>>>>> +{
+>>>>> +    int i, ret = -ENODEV;
+>>>>> +    static const char *led_name_hdl[LP3952_LED_ALL] = {
+>>>>> +        "blue2",
+>>>>> +        "green2",
+>>>>> +        "red2",
+>>>>> +        "blue1",
+>>>>> +        "green1",
+>>>>> +        "red1"
+>>>>> +    };
+>>
+>> Why actually do you need this array? Couldn't you provide the LED
+>> identifier in the DSD entry corresponding to a LED? You can follow
+>> the scheme used in Device Tree by introducing "reg" property.
+>
+> The names in the array are the 6 identifiers in the DSD entry. For example
+> the DSD property for blue2 led used is
+>
+> "Package ()
+> {
+>          Package (2) {"blue2", "led_blue2"},
+> "
+> acpi_dev_get_property will return "led_blue2" in obj->string.pointer.
+>
+> There isn't separate DSD for individual leds. There is only 1 DSD for
+> the led controller identified by "Name (_HID, "TXNW3952")". The
+> individual led names are separate properties withing th DSD (eg:
+> led_blue2 identified by blue2).
 
-It should. :-)
+OK, thanks for the explanation. BTW LED name pattern is
+devicename:colour:function.
 
-It doesn't have it ATM, but that doesn't mean it's all OK.
+>>
+>>>>> +    for (i = 0; i < LP3952_LED_ALL; i++) {
+>>>>> +        priv->leds[i].cdev.brightness = LED_OFF;
+>>>>> +        priv->leds[i].cdev.max_brightness = LP3952_BRIGHT_MAX;
+>>>>> +        priv->leds[i].cdev.brightness_set_blocking =
+>>>>> +                lp3952_set_brightness;
+>>>>> +        priv->leds[i].channel = i;
+>>>>> +        priv->leds[i].priv = priv;
+>>>>> +
+>>>>> +        ret = lp3952_get_label(priv->leds[i].name, led_name_hdl[i],
+>>>>> +                       &priv->client->dev);
+>>>>> +        if (ret)
+>>>>> +            break;
+>>>>
+>>>> You're assuming here that all LEDs will always be present, which
+>>>> doesn't necessarily have to be true. How about just skipping
+>>>> the LED and moving to the next one if given label was not found?
+>>>> You could move this check to the beginning of the loop then.
+>>>
+>>> If we skip leds, there could be problem, if all the leds were
+>>> skipped(For example, no ACPI name data present).
+>>
+>> If all the LEDs were skipped, then no LED class device would be
+>> registered. In such a case you could return an error from
+>> lp3952_probe().
+>>
+>>>
+>>> At present, if a label is not present, the probe will fail.
+>>> How about reverting to a default name (eg: "lp3952:blue2") if led name
+>>> read fails?
+>>
+>> There is no point in registering the LED if its DSD entry is not
+>> valid. In case of Device Tree we fail LED registration in such
+>> cases.
+>
+> Sorry, I thought we were skipping LEDs due to invalid DSD. If that is
+> not the case, isn't the assumption all LEDS will be present true?
+> I am guessing leds might be missing, if some of the leds are not
+> physically connected to controller output. But the controller would
+> have 6 led controls all the time.
 
-Well, some of the x86-specific stuff goes into arch/x86/kernel/acpi/, so it
-has something at least.
+Right, but there is no point in exposing corresponding
+LED class devices to user space if the user will be unable
+to notice any effect because the LED is not connected.
 
-In any case, IMO, if some code is only used by one architecture, it should be
-clear that this is the case, and moving that code into a separate directory
-helps to achieve that.
+>>
+>>> This would also cover cases in which none of the led names
+>>> were read properly.
+>>
+>> Whole driver probing should fail then.
+>>
+>>>
+>>>>
+>>>>> +
+>>>>> +        priv->leds[i].cdev.name = priv->leds[i].name;
+>>>>> +
+>>>>> +        ret = devm_led_classdev_register(&priv->client->dev,
+>>>>> +                         &priv->leds[i].cdev);
+>>>>> +        if (ret < 0) {
+>>>>> +            dev_err(&priv->client->dev,
+>>>>> +                "couldn't register LED %s\n",
+>>>>> +                priv->leds[i].cdev.name);
+>>>>> +            break;
+>>>>> +        }
+>>>>> +    }
+>>>>> +    return ret;
+>>>>> +}
+>>>>> +
+>>> --
+>>> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
+>>> the body of a message to majordomo@vger.kernel.org
+>>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>>>
+>>>
+>>
+>>
+>
+>
 
-> Anyway let's avoid these petty arguments, I agree there must be some
-> sort of ARM64 ACPI maintainership for the reasons you mentioned above.
 
-To avoid confusion on who's going to push stuff to Linus, I can do that,
-but it must be clear whose ACKs are needed for that to happen.  That may be
-one person or all of you, whatever you decide.
-
-I can take pull requests too if that's more convenient.
-
-Thanks,
-Rafael
-
+-- 
+Best regards,
+Jacek Anaszewski
