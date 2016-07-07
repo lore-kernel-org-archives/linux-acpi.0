@@ -1,105 +1,131 @@
-From: Fu Wei <fu.wei@linaro.org>
-Subject: Re: [PATCH v6 00/10] acpi, clocksource: add GTDT driver and GTDT
- support in arm_arch_timer
-Date: Thu, 7 Jul 2016 23:21:17 +0800
-Message-ID: <CADyBb7uaTzwH3RB31K5ALNy=U9UkfStXqtFYXKgm1N_2TA2xnA@mail.gmail.com>
-References: <1467224153-22873-1-git-send-email-fu.wei@linaro.org>
- <1890708.ZTyM2PUGdP@vostro.rjw.lan> <20160707134023.GA655@red-moon> <1603704.EGiVTcCxLR@vostro.rjw.lan>
+From: Sudeep Holla <sudeep.holla@arm.com>
+Subject: Re: [PATCH v7 4/6] cpuidle: introduce HAVE_GENERIC_CPUIDLE_ENTER for
+ ARM{32,64} platforms
+Date: Thu, 7 Jul 2016 16:48:10 +0100
+Message-ID: <577E79BA.6000706@arm.com>
+References: <1467122152-5604-1-git-send-email-sudeep.holla@arm.com>
+ <1675585.udvKUofiJK@vostro.rjw.lan> <577E5A6C.9020007@arm.com>
+ <3343646.556h6ef0ix@vostro.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-oi0-f53.google.com ([209.85.218.53]:34640 "EHLO
-	mail-oi0-f53.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752543AbcGGPVU (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 7 Jul 2016 11:21:20 -0400
-Received: by mail-oi0-f53.google.com with SMTP id s66so27480224oif.1
-        for <linux-acpi@vger.kernel.org>; Thu, 07 Jul 2016 08:21:19 -0700 (PDT)
-In-Reply-To: <1603704.EGiVTcCxLR@vostro.rjw.lan>
+Received: from foss.arm.com ([217.140.101.70]:37239 "EHLO foss.arm.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752240AbcGGPsO (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 7 Jul 2016 11:48:14 -0400
+In-Reply-To: <3343646.556h6ef0ix@vostro.rjw.lan>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Hanjun Guo <hanjun.guo@linaro.org>, "Rafael J. Wysocki" <rafael@kernel.org>, Graeme Gregory <gg@slimlogic.co.uk>, Will Deacon <will.deacon@arm.com>, Catalin Marinas <catalin.marinas@arm.com>, Len Brown <lenb@kernel.org>, Daniel Lezcano <daniel.lezcano@linaro.org>, Thomas Gleixner <tglx@linutronix.de>, Marc Zyngier <marc.zyngier@arm.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linaro-acpi@lists.linaro.org" <linaro-acpi@lists.linaro.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, rruigrok@codeaurora.org, harba@codeaurora.org, Christopher Covington <cov@codeaurora.org>, Timur Tabi <timur@codeaurora.org>, G Gregory <graeme.gregory@linaro.org>, Al Stone <al.stone@linaro.org>, Jon Masters <jcm@redhat.com>, wei@redh
+Cc: Sudeep Holla <sudeep.holla@arm.com>, linux-acpi@vger.kernel.org, Vikas Sajjan <vikas.cha.sajjan@hpe.com>, Sunil <sunil.vl@hpe.com>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, PrashanthPrakash <pprakash@codeaurora.org>, Al Stone <al.stone@linaro.org>, Ashwin Chaugule <ashwin.chaugule@linaro.org>, Daniel Lezcano <daniel.lezcano@linaro.org>, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-Hi Rafael,
 
-On 7 July 2016 at 21:58, Rafael J. Wysocki <rjw@rjwysocki.net> wrote:
-> On Thursday, July 07, 2016 02:40:23 PM Lorenzo Pieralisi wrote:
->> [+Sudeep]
+
+On 07/07/16 15:49, Rafael J. Wysocki wrote:
+> On Thursday, July 07, 2016 02:34:36 PM Sudeep Holla wrote:
 >>
->> On Thu, Jul 07, 2016 at 02:03:17PM +0200, Rafael J. Wysocki wrote:
+>> On 07/07/16 14:21, Rafael J. Wysocki wrote:
+>>> On Tuesday, June 28, 2016 02:55:50 PM Sudeep Holla wrote:
+>>>> The function arm_enter_idle_state is exactly the same in both generic
+>>>> ARM{32,64} CPUIdle driver and will be the same even on ARM64 backend
+>>>> for ACPI processor idle driver. So we can unify it and move it as
+>>>> generic_cpuidle_enter by introducing HAVE_GENERIC_CPUIDLE_ENTER and
+>>>> enabling the same on both ARM{32,64}.
+>>>>
+>>>> This is in preparation of reuse of the generic cpuidle entry function
+>>>> for ACPI LPI support on ARM64.
+>>>>
+>>>> Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+>>>> Cc: Daniel Lezcano <daniel.lezcano@linaro.org>
+>>>> Cc: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+>>>> Signed-off-by: Sudeep Holla <sudeep.holla@arm.com>
+>>>> ---
+>>>>    arch/arm/Kconfig              |  1 +
+>>>>    arch/arm/kernel/cpuidle.c     |  4 ++--
+>>>>    arch/arm64/Kconfig            |  1 +
+>>>>    arch/arm64/kernel/cpuidle.c   |  6 +++---
+>>>>    drivers/cpuidle/Kconfig       |  3 +++
+>>>>    drivers/cpuidle/cpuidle-arm.c | 21 +--------------------
+>>>>    drivers/cpuidle/cpuidle.c     | 35 +++++++++++++++++++++++++++++++++++
+>>>>    include/linux/cpuidle.h       |  8 ++++++++
+>>>>    8 files changed, 54 insertions(+), 25 deletions(-)
+>>>>
+>>>> diff --git a/arch/arm/Kconfig b/arch/arm/Kconfig
+>>>> index 90542db1220d..52b3dca0381c 100644
+>>>> --- a/arch/arm/Kconfig
+>>>> +++ b/arch/arm/Kconfig
+>>>> @@ -54,6 +54,7 @@ config ARM
+>>>>    	select HAVE_FTRACE_MCOUNT_RECORD if (!XIP_KERNEL)
+>>>>    	select HAVE_FUNCTION_GRAPH_TRACER if (!THUMB2_KERNEL)
+>>>>    	select HAVE_FUNCTION_TRACER if (!XIP_KERNEL)
+>>>> +	select HAVE_GENERIC_CPUIDLE_ENTER
+>>>
+>>> That "generic" part in the name concerns me a bit, because the thing is not
+>>> really generic.  It is "common on ARM" rather.
+>>>
 >>
->> [...]
->>
->> > > >> So is this a documentation issue in which case Fu Wei can add that to
->> > > >> the file to explain its limited to ARM64. Or we could even rename the
->> > > >> file acpi_arm64_gtdt.c
->> > > >>
->> > > >> It seems a pity as the comment on this series were minors to block
->> > > >> things on a filename/location.
->> > > >
->> > > > Let me repeat what I said above:
->> > > >
->> > > > I'm mostly concerned about how (and by whom) that code is going to be
->> > > > maintained going forward.
->> > > >
->> > > > This is not about documentation, it is about responsibility.
->> > > >
->> > > > Honestly, I don't think I'm the right maintainer to apply the patch
->> > > > introducing this code and then handle bug reports regarding it and so
->> > > > on.  That has to be done by somebody else.
->> > >
->> > > I'm working on ACPI for years and upstreamed the ARM64 ACPI core
->> > > support (with lots of people's help), I'm willing to maintain the ARM64
->> > > ACPI code under drivers/acpi/ if no objections.
->> >
->> > OK
->>
->> I would ask you please to add Sudeep and myself for the ARM64 specific
->> ACPI code maintainership too.
+>> I agree and that's exactly what I told Daniel. It's rather just
+>> *ARM Generic*. Any preference on the name ? I had it header file under
+>> include/linu/cpuidle-arm.h in the previous version. Do you prefer that ?
 >
-> OK
-
-For this, it seems we have a decision now, so I will post  v7 tomorrow
-following this decision:
-drivers/acpi/arm64/acpi_gtdt.c
-
-I think that is a very good idea, I also believe Hanjun can maintain it well.
-
->
->> > Can the ARM64-specific code go under drivers/acpi/arm64/ then, for clarity?
->>
->> It can, but I do not understand why x86 should not have a separate
->> directory for all x86 specific stuff too then.
->
-> It should. :-)
->
-> It doesn't have it ATM, but that doesn't mean it's all OK.
->
-> Well, some of the x86-specific stuff goes into arch/x86/kernel/acpi/, so it
-> has something at least.
->
-> In any case, IMO, if some code is only used by one architecture, it should be
-> clear that this is the case, and moving that code into a separate directory
-> helps to achieve that.
->
->> Anyway let's avoid these petty arguments, I agree there must be some
->> sort of ARM64 ACPI maintainership for the reasons you mentioned above.
->
-> To avoid confusion on who's going to push stuff to Linus, I can do that,
-> but it must be clear whose ACKs are needed for that to happen.  That may be
-> one person or all of you, whatever you decide.
->
-> I can take pull requests too if that's more convenient.
->
-> Thanks,
-> Rafael
+> Well, I got confused by these names which probably means that they really
+> are confusing. :-)
 >
 
+I know and I am all for getting rid of that.
 
+> So the underlying observation is that ->enter() callbacks in some ARM code
+> tend to do the same thing, ie. wrap the cpu_pm_enter()/exit() pair around
+> the actual "low-level enter" routine, so the idea is to move the wrapping
+> to the core and add the symbol plus standard header for the "low-level enter"
+> thing.
+>
+> But then ->enter has to point to the wrapper and that just invokes a static
+> function defined somewhere.
+>
+> So in fact what you want is to avoid code duplication in the source, but not
+> in the binary.
+>
+> For that, I'd use a macro like this:
+>
+> #define CPU_IDLE_ENTER_WRAPPED(low_level_idle_enter, idx)	\
+> ({								\
+> 	int __ret;						\
+> 								\
+> 	if (!idx) {						\
+> 		cpu_do_idle();					\
+> 		return idx;					\
+> 	}							\
+> 								\
+> 	__ret = cpu_pm_enter();					\
+> 	if (!__ret) {						\
+> 		__ret = low_level_idle_enter(idx);		\
+> 		cpu_pm_exit();					\
+> 	}							\
+> 								\
+> 	__ret ? -1 : idx;					\
+> })
+>
+> and then, whoever want's to generate a "wrapped" callback, will need to
+> define the low_level_idle_enter thing, say my_low_level_idle_enter() and
+> then do
+>
+> int idle_enter(int idx)
+> {
+> 	return CPU_IDLE_ENTER_WRAPPED(my_low_level_idle_enter, idx);
+> }
+>
+> and point the ->enter callback to idle_enter().
+>
+> No need for extra symbols, confusing function names and similar.
+>
+> And the macro can go into cpuidle.h if you want.
+>
+
+Sounds good. Thanks for the suggestion. I will respin the series with
+this change then.
 
 -- 
-Best regards,
-
-Fu Wei
-Software Engineer
-Red Hat
+Regards,
+Sudeep
