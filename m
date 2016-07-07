@@ -1,75 +1,65 @@
-From: "Zheng, Lv" <lv.zheng@intel.com>
-Subject: RE: Regression between rc2 and rc6: ACPI EC problems
-Date: Thu, 7 Jul 2016 00:34:23 +0000
-Message-ID: <1AE640813FDE7649BE1B193DEA596E883BC00809@SHSMSX101.ccr.corp.intel.com>
-References: <20160706141410.GA1430@tetsubishi>
- <2028379.c7e6Pd4oDW@vostro.rjw.lan>
- <1AE640813FDE7649BE1B193DEA596E883BC007B3@SHSMSX101.ccr.corp.intel.com>
- <6839089.st9D67iqtO@vostro.rjw.lan>
+From: Jeremy Linton <jeremy.linton@arm.com>
+Subject: Re: [PATCH 06/11] arm: arm64: Add routine to determine cpuid of other
+ cpus
+Date: Wed, 6 Jul 2016 19:34:23 -0500
+Message-ID: <577DA38F.1000709@arm.com>
+References: <1466529109-21715-1-git-send-email-jeremy.linton@arm.com>
+ <1466529109-21715-7-git-send-email-jeremy.linton@arm.com>
+ <20160706163001.GC31910@arm.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga04.intel.com ([192.55.52.120]:21845 "EHLO mga04.intel.com"
+Received: from foss.arm.com ([217.140.101.70]:60827 "EHLO foss.arm.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932235AbcGGAe1 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 6 Jul 2016 20:34:27 -0400
-In-Reply-To: <6839089.st9D67iqtO@vostro.rjw.lan>
-Content-Language: en-US
+	id S932235AbcGGAe0 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 6 Jul 2016 20:34:26 -0400
+In-Reply-To: <20160706163001.GC31910@arm.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: Wolfram Sang <wsa@the-dreams.de>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
+To: Will Deacon <will.deacon@arm.com>
+Cc: linux-arm-kernel@lists.infradead.org, linux-acpi@vger.kernel.org, mark.rutland@arm.com, catalin.marinas@arm.com, Lorenzo.Pieralisi@arm.com, alexander.shishkin@linux.intel.com, acme@kernel.org, mingo@redhat.com, peterz@infradead.org, mlangsdorf@redhat.com, punit.agrawal@arm.com, Steve.Capper@arm.com
 
-SGksIFJhZmFlbA0KDQo+IEZyb206IGxpbnV4LWFjcGktb3duZXJAdmdlci5rZXJuZWwub3JnIFtt
-YWlsdG86bGludXgtYWNwaS0NCj4gb3duZXJAdmdlci5rZXJuZWwub3JnXSBPbiBCZWhhbGYgT2Yg
-UmFmYWVsIEouIFd5c29ja2kNCj4gU3ViamVjdDogUmU6IFJlZ3Jlc3Npb24gYmV0d2VlbiByYzIg
-YW5kIHJjNjogQUNQSSBFQyBwcm9ibGVtcw0KPiANCj4gT24gVGh1cnNkYXksIEp1bHkgMDcsIDIw
-MTYgMTI6MjY6NDkgQU0gWmhlbmcsIEx2IHdyb3RlOg0KPiA+IEhpLCBSYWZhZWwNCj4gPg0KPiA+
-ID4gRnJvbTogUmFmYWVsIEouIFd5c29ja2kgW21haWx0bzpyandAcmp3eXNvY2tpLm5ldF0NCj4g
-PiA+IFNlbnQ6IFRodXJzZGF5LCBKdWx5IDcsIDIwMTYgNToyOSBBTQ0KPiA+ID4gU3ViamVjdDog
-UmU6IFJlZ3Jlc3Npb24gYmV0d2VlbiByYzIgYW5kIHJjNjogQUNQSSBFQyBwcm9ibGVtcw0KPiA+
-ID4NCj4gPiA+IE9uIFdlZG5lc2RheSwgSnVseSAwNiwgMjAxNiAxMToxNDoxMSBQTSBXb2xmcmFt
-IFNhbmcgd3JvdGU6DQo+ID4gPiA+IEhpLA0KPiA+ID4gPg0KPiA+ID4gPiB3aGVuIHVwZ3JhZGlu
-ZyBmcm9tIHY0LjctcmMyIHRvIHJjNiBvbiBteSBEZWxsIE1pbmkgOSwgYmF0dGVyeSBhbmQNCj4g
-PiA+ID4gdGVtcGVyYXR1cmUgc3RhdHVzIGluZm8gZ290IGJvZ3VzLiBIZXJlIGlzIHRoZSBtYWpv
-ciBjaGFuZ2UNCj4gYmV0d2Vlbg0KPiA+ID4gdGhlDQo+ID4gPiA+IGJvb3QgbG9nczoNCj4gPiA+
-ID4NCj4gPiA+ID4gQUNQSSA6IEVDOiBFQyBzdG9wcGVkDQo+ID4gPiA+IEFDUEkgRXhjZXB0aW9u
-OiBBRV9CQURfUEFSQU1FVEVSLCBSZXR1cm5lZCBieSBIYW5kbGVyIGZvcg0KPiA+ID4gW0VtYmVk
-ZGVkQ29udHJvbF0gKDIwMTYwNDIyL2V2cmVnaW9uLTMwMCkNCj4gPiA+ID4gQUNQSSBFcnJvcjog
-TWV0aG9kIHBhcnNlL2V4ZWN1dGlvbiBmYWlsZWQgW1xfU0IuUENJMC5MUENCLkVDMC5fUkVHXQ0K
-PiA+ID4gKE5vZGUgZjVkMDk4NzApLCBBRV9CQURfUEFSQU1FVEVSICgyMDE2MDQyMi9wc3BhcnNl
-LTU0MikNCj4gPiA+ID4gQUNQSSBFeGNlcHRpb246IEFFX0JBRF9QQVJBTUVURVIsIGZyb20gcmVn
-aW9uIF9SRUcsDQo+ID4gPiBbRW1iZWRkZWRDb250cm9sXSAoMjAxNjA0MjIvZXZyZWdpb24tMzk3
-KQ0KPiA+ID4gPiBBQ1BJIEV4Y2VwdGlvbjogQUVfQkFEX1BBUkFNRVRFUiwgUmV0dXJuZWQgYnkg
-SGFuZGxlciBmb3INCj4gPiA+IFtFbWJlZGRlZENvbnRyb2xdICgyMDE2MDQyMi9ldnJlZ2lvbi0z
-MDApDQo+ID4gPiA+IEFDUEkgRXJyb3I6IE1ldGhvZCBwYXJzZS9leGVjdXRpb24gZmFpbGVkIFtc
-X1NCLlBDSTAuTFBDQi5FQzAuX1JFR10NCj4gPiA+IChOb2RlIGY1ZDA5ODcwKSwgQUVfQkFEX1BB
-UkFNRVRFUiAoMjAxNjA0MjIvcHNwYXJzZS01NDIpDQo+ID4gPiA+IEFDUEkgRXhjZXB0aW9uOiBB
-RV9CQURfUEFSQU1FVEVSLCBmcm9tIHJlZ2lvbiBfUkVHLA0KPiA+ID4gW0VtYmVkZGVkQ29udHJv
-bF0gKDIwMTYwNDIyL2V2cmVnaW9uLTM5NykNCj4gPiA+ID4gQUNQSSA6IEVDOiBHUEUgPSAweDE5
-LCBJL086IGNvbW1hbmQvc3RhdHVzID0gMHg2NiwgZGF0YSA9IDB4NjINCj4gPiA+ID4gQUNQSSA6
-IEVDOiBFQyBzdGFydGVkDQo+ID4gW0x2IFpoZW5nXQ0KPiA+IFRoaXMgaXMgYSBrbm93biBvcmRl
-ciBpc3N1ZSB0aGF0IEFDUElDQSBleGVjdXRlcyBfUkVHKERJU0NPTkVOQ1QpDQo+IGFmdGVyIHJl
-bW92aW5nIHRoZSBvcHJlZ2lvbiBoYW5kbGVyLg0KPiA+IEJ1dCB0aGlzIGlzc3VlIGlzIG5vdCBh
-IGZ1bmN0aW9uIGZhaWx1cmUsIGl0IG9ubHkgZ2VuZXJhdGVzIGVycm9yIGdhcmJhZ2UgaW4NCj4g
-dGhlIGtlcm5lbCBsb2cuDQo+ID4gU28gd2UgZGlkbid0IGZpeCBpdCBpbiBhIGh1cnJ5Lg0KPiA+
-DQo+ID4gVGhlcmUgaXMgYW5vdGhlciBvcmRlciBpc3N1ZSBkZXRlY3RlZCBpbiB0aGUgc2FtZSBC
-dWd6aWxsYSBlbnRyeSB0aGF0Og0KPiA+IF9SRUcoQ09OTkVDVC9ESVNDT05ORUNUKSBzaG91bGRu
-J3QgYmUgaW52b2tlZCBmb3INCj4gU3lzdGVtTWVtb3J5L1N5c3RlbUlvIGFuZCBQQ0lfQ29uZmln
-IHRoYXQgdW5kZXIgYSBQQ0kgcm9vdCBidXMNCj4gY29udGFpbmluZyBfQkJOIG1ldGhvZC4NCj4g
-PiBXaGljaCBpcyBhbHNvIHByb3ZlbiBieSB0aGUgV2luZG93cyBiZWhhdmlvciBhbmQgc3BlYyBk
-ZWZpbml0aW9ucy4NCj4gPg0KPiA+IEkgd2FzIHBsYW5uaW5nIHRvIGZpeCB0aGUgYm90aCBpc3N1
-ZXMgaW4gdGhlIEFDUElDQSB1cHN0cmVhbS4NCj4gPiBUaGUgYnVnIGlzIGhlcmUgZm9yIHlvdXIg
-cmVmZXJlbmNlOg0KPiA+IGh0dHBzOi8vYnVnemlsbGEua2VybmVsLm9yZy9zaG93X2J1Zy5jZ2k/
-aWQ9MTAyNDIxDQo+ID4NCj4gPiBGb3Igbm93LCBzaW5jZSB0aGlzIGlzIGp1c3QgYSBub24tZnVu
-Y3Rpb24tZmFpbHVyZSBlcnJvciByZXBvcnQsIHdlIGNhbg0KPiBpZ25vcmUgaXQuDQo+ID4gQmVj
-YXVzZSBzb21ldGltZXMsIHdoZW4gdGhlcmUgYXJlIHNldmVyYWwgcHJvYmxlbXMgcmVsYXRlZCwg
-d2UgaGF2ZQ0KPiB0byBtYWtlIGEgY2hvaWNlIHRvIGZpeCBvbmUgb2YgdGhlbSBmaXJzdC4NCj4g
-DQo+IFdlbGwsIHBsZWFzZSBsb29rIGF0IHRoZSByZXBvcnQgYWdhaW4uICBJdCBzYXlzOg0KPiAN
-Cj4gIndoZW4gdXBncmFkaW5nIGZyb20gdjQuNy1yYzIgdG8gcmM2IG9uIG15IERlbGwgTWluaSA5
-LCBiYXR0ZXJ5IGFuZA0KPiB0ZW1wZXJhdHVyZSBzdGF0dXMgaW5mbyBnb3QgYm9ndXMiLg0KPiAN
-Cj4gU28sIGl0IHZlcnkgbXVjaCAqaXMqIGEgZnVuY3Rpb25hbCBpc3N1ZSBhbmQgSSdtIG5vdCBn
-b2luZyB0byBpZ25vcmUgaXQuDQpbTHYgWmhlbmddIA0KV2hhdCBkb2VzIHRoZSBib2d1cyBtZWFu
-IGhlcmU/DQpBbnl3YXksIEknbGwgcG9zdCBhIGZpeCBmb3IgdGhpcyBmaXJzdC4NCkknbGwgZG8g
-dGhpcyByaWdodCBub3cuDQoNClRoYW5rcyBhbmQgYmVzdCByZWdhcmRzDQotTHYNCg==
+On 07/06/2016 11:30 AM, Will Deacon wrote:
+> On Tue, Jun 21, 2016 at 12:11:44PM -0500, Jeremy Linton wrote:
+>> It is helpful if we can read the cpuid/midr of other CPUs
+>> in the system independent of arm/arm64.
+>>
+>> Signed-off-by: Jeremy Linton <jeremy.linton@arm.com>
+>> ---
+>>   arch/arm/include/asm/cputype.h   | 6 +++++-
+>>   arch/arm64/include/asm/cputype.h | 4 ++++
+>>   2 files changed, 9 insertions(+), 1 deletion(-)
+>>
+>> diff --git a/arch/arm/include/asm/cputype.h b/arch/arm/include/asm/cputype.h
+>> index 1ee94c7..e391b67 100644
+>> --- a/arch/arm/include/asm/cputype.h
+>> +++ b/arch/arm/include/asm/cputype.h
+>> @@ -81,6 +81,8 @@
+>>   #define ARM_CPU_XSCALE_ARCH_V2		0x4000
+>>   #define ARM_CPU_XSCALE_ARCH_V3		0x6000
+>>
+>> +#define ARM_PARTNUM(cpuid_id) (cpuid_id & ARM_CPU_PART_MASK)
+>> +
+>>   extern unsigned int processor_id;
+>>
+>>   #ifdef CONFIG_CPU_CP15
+>> @@ -180,7 +182,7 @@ static inline unsigned int __attribute_const__ read_cpuid_implementor(void)
+>>    */
+>>   static inline unsigned int __attribute_const__ read_cpuid_part(void)
+>>   {
+>> -	return read_cpuid_id() & ARM_CPU_PART_MASK;
+>> +	return ARM_PARTNUM(read_cpuid_id());
+>
+> I don't understand why you need to make this change.
+
+The short answer is that the ARM_PARTNUM stuff is left over from v4 (?) 
+of the patch, where it seemed a good idea to create a macro that was 
+arm/arm64 independent for use in arm_pmu.c. Somewhere along there I 
+reverted the ARM_PARTNUM to MIDR_PARTNUM in the arm_pmu_acpi.c but 
+didn't drop that portion from this patch. Partially because it seems 
+like a good idea. OTOH, your right probably doesn't belong here without 
+the large cleanup which would form their own patch set.
+
+
+
