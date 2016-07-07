@@ -1,226 +1,118 @@
-From: Jacek Anaszewski <j.anaszewski@samsung.com>
-Subject: Re: [PATCH v8 1/1] leds: LED driver for TI LP3952 6-Channel Color LED
-Date: Thu, 07 Jul 2016 16:34:52 +0200
-Message-ID: <577E688C.9080409@samsung.com>
-References: <1467732628-2025-1-git-send-email-tony.makkiel@daqri.com>
- <577D08C7.5000802@samsung.com> <577D1E32.50809@daqri.com>
- <577E0130.1010806@samsung.com> <577E408A.5010905@daqri.com>
+From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Subject: Re: [PATCH v7 4/6] cpuidle: introduce HAVE_GENERIC_CPUIDLE_ENTER for ARM{32,64} platforms
+Date: Thu, 07 Jul 2016 16:49:22 +0200
+Message-ID: <3343646.556h6ef0ix@vostro.rjw.lan>
+References: <1467122152-5604-1-git-send-email-sudeep.holla@arm.com> <1675585.udvKUofiJK@vostro.rjw.lan> <577E5A6C.9020007@arm.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-leds-owner@vger.kernel.org>
-In-reply-to: <577E408A.5010905@daqri.com>
-Sender: linux-leds-owner@vger.kernel.org
-To: Tony <tony.makkiel@daqri.com>
-Cc: linux-leds@vger.kernel.org, linux-acpi@vger.kernel.org, rpurdie@rpsys.net, rjw@rjwysocki.net, lenb@kernel.org, mika.westerberg@linux.intel.com
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7Bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from cloudserver094114.home.net.pl ([79.96.170.134]:46446 "HELO
+	cloudserver094114.home.net.pl" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with SMTP id S1751635AbcGGOor (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 7 Jul 2016 10:44:47 -0400
+In-Reply-To: <577E5A6C.9020007@arm.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Sudeep Holla <sudeep.holla@arm.com>
+Cc: linux-acpi@vger.kernel.org, Vikas Sajjan <vikas.cha.sajjan@hpe.com>, Sunil <sunil.vl@hpe.com>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, PrashanthPrakash <pprakash@codeaurora.org>, Al Stone <al.stone@linaro.org>, Ashwin Chaugule <ashwin.chaugule@linaro.org>, Daniel Lezcano <daniel.lezcano@linaro.org>, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-On 07/07/2016 01:44 PM, Tony wrote:
-> Hi Jacek,
->      Thank you for the comments.
+On Thursday, July 07, 2016 02:34:36 PM Sudeep Holla wrote:
+> 
+> On 07/07/16 14:21, Rafael J. Wysocki wrote:
+> > On Tuesday, June 28, 2016 02:55:50 PM Sudeep Holla wrote:
+> >> The function arm_enter_idle_state is exactly the same in both generic
+> >> ARM{32,64} CPUIdle driver and will be the same even on ARM64 backend
+> >> for ACPI processor idle driver. So we can unify it and move it as
+> >> generic_cpuidle_enter by introducing HAVE_GENERIC_CPUIDLE_ENTER and
+> >> enabling the same on both ARM{32,64}.
+> >>
+> >> This is in preparation of reuse of the generic cpuidle entry function
+> >> for ACPI LPI support on ARM64.
+> >>
+> >> Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+> >> Cc: Daniel Lezcano <daniel.lezcano@linaro.org>
+> >> Cc: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+> >> Signed-off-by: Sudeep Holla <sudeep.holla@arm.com>
+> >> ---
+> >>   arch/arm/Kconfig              |  1 +
+> >>   arch/arm/kernel/cpuidle.c     |  4 ++--
+> >>   arch/arm64/Kconfig            |  1 +
+> >>   arch/arm64/kernel/cpuidle.c   |  6 +++---
+> >>   drivers/cpuidle/Kconfig       |  3 +++
+> >>   drivers/cpuidle/cpuidle-arm.c | 21 +--------------------
+> >>   drivers/cpuidle/cpuidle.c     | 35 +++++++++++++++++++++++++++++++++++
+> >>   include/linux/cpuidle.h       |  8 ++++++++
+> >>   8 files changed, 54 insertions(+), 25 deletions(-)
+> >>
+> >> diff --git a/arch/arm/Kconfig b/arch/arm/Kconfig
+> >> index 90542db1220d..52b3dca0381c 100644
+> >> --- a/arch/arm/Kconfig
+> >> +++ b/arch/arm/Kconfig
+> >> @@ -54,6 +54,7 @@ config ARM
+> >>   	select HAVE_FTRACE_MCOUNT_RECORD if (!XIP_KERNEL)
+> >>   	select HAVE_FUNCTION_GRAPH_TRACER if (!THUMB2_KERNEL)
+> >>   	select HAVE_FUNCTION_TRACER if (!XIP_KERNEL)
+> >> +	select HAVE_GENERIC_CPUIDLE_ENTER
+> >
+> > That "generic" part in the name concerns me a bit, because the thing is not
+> > really generic.  It is "common on ARM" rather.
+> >
+> 
+> I agree and that's exactly what I told Daniel. It's rather just
+> *ARM Generic*. Any preference on the name ? I had it header file under
+> include/linu/cpuidle-arm.h in the previous version. Do you prefer that ?
 
-You're welcome.
+Well, I got confused by these names which probably means that they really
+are confusing. :-)
 
-> On 07/07/16 08:13, Jacek Anaszewski wrote:
->> Hi Tony,
->>
->> On 07/06/2016 05:05 PM, Tony wrote:
->>> Thank you for the comments Jacek and Mika.
->>>
->>> On 06/07/16 14:33, Jacek Anaszewski wrote:
->>>
->>>
->>>>> +static int lp3952_set_brightness(struct led_classdev *cdev,
->>>>> +                 enum led_brightness value)
->>>>> +{
->>>>> +    unsigned int reg, shift_val;
->>>>> +    struct lp3952_ctrl_hdl *led = container_of(cdev,
->>>>> +                           struct lp3952_ctrl_hdl,
->>>>> +                           cdev);
->>>>> +    struct lp3952_led_array *priv = (struct lp3952_led_array
->>>>> *)led->priv;
->>>>> +
->>>>> +    dev_dbg(cdev->dev, "Brightness request: %d on %d\n", value,
->>>>> +        led->channel);
->>>>> +
->>>>> +    if (value == LED_OFF) {
->>>>> +        lp3952_on_off(priv, led->channel, LED_OFF);
->>>>> +        return 0;
->>>>> +    }
->>>>> +
->>>>> +    if (led->channel > LP3952_RED_1) {
->>>>> +        dev_err(cdev->dev, " %s Invalid LED requested", __func__);
->>>>> +        return -EINVAL;
->>>>> +    }
->>>>> +
->>>>> +    if (led->channel >= LP3952_BLUE_1) {
->>>>> +        reg = LP3952_REG_RGB1_MAX_I_CTRL;
->>>>> +        shift_val = (led->channel - LP3952_BLUE_1) * 2;
->>>>> +    } else {
->>>>> +        reg = LP3952_REG_RGB2_MAX_I_CTRL;
->>>>> +        shift_val = led->channel * 2;
->>>>> +    }
->>>>> +
->>>>> +    /* Enable the LED in case it is not enabled already */
->>>>> +    lp3952_on_off(priv, led->channel, 1);
->>>>> +
->>>>> +    return regmap_update_bits(priv->regmap, reg, 3 << shift_val,
->>>>> +                  --value << shift_val);
->>>>
->>>> Here you have two separate calls that change the device state.
->>>> I think that mutex protection is required here to assure that
->>>> the device will not be left in an inconsistent state, due to
->>>> the concurrent calls from other processes.
->>>
->>> Sorry, I did not quite understand.
->>>
->>> Did you mean 'regmap_update_bits' here and the one within
->>> 'lp3952_on_off'? If there isn't a lock assigned by driver, a mutex or
->>> spinlock is assigned based on fast_io support by regmap during init.
->>
->> The lock protects an access to the I2C bus for a single transmission.
->> When there are two registers to set then current process can be
->> preempted after first write by the second process which overwrites
->> the register with a new value. The first one after being woken up
->> performs second register write, being unaware that the instruction it
->> completed in the previous step has been just overwritten.
->>
->> It applies to the situations where there is a common register
->> setting affecting all LEDs, e.g. power down mode or so, but after
->> consulting the documentation I figured out that this is not the
->> case.
->>
->>>>
->>>>> +}
->>>>> +
->>>>> +static int lp3952_get_label(char *dest, const char *label, struct
->>>>> device *dev)
->>>>> +{
->>>>> +    int ret;
->>>>> +    const union acpi_object *obj;
->>>>> +    struct acpi_device *adev = ACPI_COMPANION(dev);
->>>>> +
->>>>> +    ret = acpi_dev_get_property(adev, label, ACPI_TYPE_STRING, &obj);
->>>>> +    if (!ret)
->>>>> +        strncpy(dest, obj->string.pointer, obj->string.length + 1);
->>>>> +
->>>>> +    return ret;
->>>>> +}
->>>>> +
->>>>> +static int lp3952_register_led_classdev(struct lp3952_led_array
->>>>> *priv)
->>>>> +{
->>>>> +    int i, ret = -ENODEV;
->>>>> +    static const char *led_name_hdl[LP3952_LED_ALL] = {
->>>>> +        "blue2",
->>>>> +        "green2",
->>>>> +        "red2",
->>>>> +        "blue1",
->>>>> +        "green1",
->>>>> +        "red1"
->>>>> +    };
->>
->> Why actually do you need this array? Couldn't you provide the LED
->> identifier in the DSD entry corresponding to a LED? You can follow
->> the scheme used in Device Tree by introducing "reg" property.
->
-> The names in the array are the 6 identifiers in the DSD entry. For example
-> the DSD property for blue2 led used is
->
-> "Package ()
-> {
->          Package (2) {"blue2", "led_blue2"},
-> "
-> acpi_dev_get_property will return "led_blue2" in obj->string.pointer.
->
-> There isn't separate DSD for individual leds. There is only 1 DSD for
-> the led controller identified by "Name (_HID, "TXNW3952")". The
-> individual led names are separate properties withing th DSD (eg:
-> led_blue2 identified by blue2).
+So the underlying observation is that ->enter() callbacks in some ARM code
+tend to do the same thing, ie. wrap the cpu_pm_enter()/exit() pair around
+the actual "low-level enter" routine, so the idea is to move the wrapping
+to the core and add the symbol plus standard header for the "low-level enter"
+thing.
 
-OK, thanks for the explanation. BTW LED name pattern is
-devicename:colour:function.
+But then ->enter has to point to the wrapper and that just invokes a static
+function defined somewhere.
 
->>
->>>>> +    for (i = 0; i < LP3952_LED_ALL; i++) {
->>>>> +        priv->leds[i].cdev.brightness = LED_OFF;
->>>>> +        priv->leds[i].cdev.max_brightness = LP3952_BRIGHT_MAX;
->>>>> +        priv->leds[i].cdev.brightness_set_blocking =
->>>>> +                lp3952_set_brightness;
->>>>> +        priv->leds[i].channel = i;
->>>>> +        priv->leds[i].priv = priv;
->>>>> +
->>>>> +        ret = lp3952_get_label(priv->leds[i].name, led_name_hdl[i],
->>>>> +                       &priv->client->dev);
->>>>> +        if (ret)
->>>>> +            break;
->>>>
->>>> You're assuming here that all LEDs will always be present, which
->>>> doesn't necessarily have to be true. How about just skipping
->>>> the LED and moving to the next one if given label was not found?
->>>> You could move this check to the beginning of the loop then.
->>>
->>> If we skip leds, there could be problem, if all the leds were
->>> skipped(For example, no ACPI name data present).
->>
->> If all the LEDs were skipped, then no LED class device would be
->> registered. In such a case you could return an error from
->> lp3952_probe().
->>
->>>
->>> At present, if a label is not present, the probe will fail.
->>> How about reverting to a default name (eg: "lp3952:blue2") if led name
->>> read fails?
->>
->> There is no point in registering the LED if its DSD entry is not
->> valid. In case of Device Tree we fail LED registration in such
->> cases.
->
-> Sorry, I thought we were skipping LEDs due to invalid DSD. If that is
-> not the case, isn't the assumption all LEDS will be present true?
-> I am guessing leds might be missing, if some of the leds are not
-> physically connected to controller output. But the controller would
-> have 6 led controls all the time.
+So in fact what you want is to avoid code duplication in the source, but not
+in the binary.
 
-Right, but there is no point in exposing corresponding
-LED class devices to user space if the user will be unable
-to notice any effect because the LED is not connected.
+For that, I'd use a macro like this:
 
->>
->>> This would also cover cases in which none of the led names
->>> were read properly.
->>
->> Whole driver probing should fail then.
->>
->>>
->>>>
->>>>> +
->>>>> +        priv->leds[i].cdev.name = priv->leds[i].name;
->>>>> +
->>>>> +        ret = devm_led_classdev_register(&priv->client->dev,
->>>>> +                         &priv->leds[i].cdev);
->>>>> +        if (ret < 0) {
->>>>> +            dev_err(&priv->client->dev,
->>>>> +                "couldn't register LED %s\n",
->>>>> +                priv->leds[i].cdev.name);
->>>>> +            break;
->>>>> +        }
->>>>> +    }
->>>>> +    return ret;
->>>>> +}
->>>>> +
->>> --
->>> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
->>> the body of a message to majordomo@vger.kernel.org
->>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->>>
->>>
->>
->>
->
->
+#define CPU_IDLE_ENTER_WRAPPED(low_level_idle_enter, idx)	\
+({								\
+	int __ret;						\
+								\
+	if (!idx) {						\
+		cpu_do_idle();					\
+		return idx;					\
+	}							\
+								\
+	__ret = cpu_pm_enter();					\
+	if (!__ret) {						\
+		__ret = low_level_idle_enter(idx);		\
+		cpu_pm_exit();					\
+	}							\
+								\
+	__ret ? -1 : idx;					\
+})
 
+and then, whoever want's to generate a "wrapped" callback, will need to
+define the low_level_idle_enter thing, say my_low_level_idle_enter() and
+then do
 
--- 
-Best regards,
-Jacek Anaszewski
+int idle_enter(int idx)
+{
+	return CPU_IDLE_ENTER_WRAPPED(my_low_level_idle_enter, idx);
+}
+
+and point the ->enter callback to idle_enter().
+
+No need for extra symbols, confusing function names and similar.
+
+And the macro can go into cpuidle.h if you want.
+
+Thanks,
+Rafael
+
