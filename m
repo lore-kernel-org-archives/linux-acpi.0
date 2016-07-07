@@ -1,79 +1,113 @@
-From: Wolfram Sang <wsa@the-dreams.de>
-Subject: Re: [UPDATE RFC PATCH v2] ACPI / EC: Fix an order issue in
- ec_remove_handlers()
-Date: Thu, 7 Jul 2016 20:46:55 +0900
-Message-ID: <20160707114654.GA2915@tetsubishi>
-References: <20160706141410.GA1430@tetsubishi>
- <e48b77b7af1e8269b0ff3fac6cbf37eb480ab722.1467866123.git.lv.zheng@intel.com>
+From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Subject: Re: [PATCH v6 00/10] acpi, clocksource: add GTDT driver and GTDT support in arm_arch_timer
+Date: Thu, 07 Jul 2016 14:03:17 +0200
+Message-ID: <1890708.ZTyM2PUGdP@vostro.rjw.lan>
+References: <1467224153-22873-1-git-send-email-fu.wei@linaro.org> <CAJZ5v0iFUH3CgN2d1t8V13aRYdibiZSy+26sNLz3E-8mNvsn6Q@mail.gmail.com> <baf8e09d-0249-9da2-1a78-aac3bc35b8b5@linaro.org>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="EVF5PPMfhYS0aIcm"
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7Bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from sauhun.de ([89.238.76.85]:58382 "EHLO pokefinder.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751332AbcGGLrQ (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 7 Jul 2016 07:47:16 -0400
-Content-Disposition: inline
-In-Reply-To: <e48b77b7af1e8269b0ff3fac6cbf37eb480ab722.1467866123.git.lv.zheng@intel.com>
+Received: from cloudserver094114.home.net.pl ([79.96.170.134]:63492 "HELO
+	cloudserver094114.home.net.pl" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with SMTP id S1750734AbcGGL6m (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 7 Jul 2016 07:58:42 -0400
+In-Reply-To: <baf8e09d-0249-9da2-1a78-aac3bc35b8b5@linaro.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Lv Zheng <lv.zheng@intel.com>
-Cc: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <len.brown@intel.com>, Lv Zheng <zetalog@gmail.com>, linux-acpi@vger.kernel.org, Nicholas <nkudriavtsev@gmail.com>
+To: Hanjun Guo <hanjun.guo@linaro.org>
+Cc: "Rafael J. Wysocki" <rafael@kernel.org>, Graeme Gregory <gg@slimlogic.co.uk>, Will Deacon <will.deacon@arm.com>, Catalin Marinas <catalin.marinas@arm.com>, Fu Wei <fu.wei@linaro.org>, Len Brown <lenb@kernel.org>, Daniel Lezcano <daniel.lezcano@linaro.org>, Thomas Gleixner <tglx@linutronix.de>, Marc Zyngier <marc.zyngier@arm.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linaro-acpi@lists.linaro.org" <linaro-acpi@lists.linaro.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, rruigrok@codeaurora.org, harba@codeaurora.org, Christopher Covington <cov@codeaurora.org>, Timur Tabi <timur@codeaurora.org>, G Gregory <graeme.gregory@linaro.org>, Al Stone <al.stone@linaro.org>, Jon Masters <jcm@redhat.com>, wei@redhat.com, Arnd Bergmann <arnd@arndb.de>, Wim
 
+On Thursday, July 07, 2016 07:12:38 PM Hanjun Guo wrote:
+> On 2016/7/6 8:00, Rafael J. Wysocki wrote:
+> > On Tue, Jul 5, 2016 at 4:18 PM, Graeme Gregory <gg@slimlogic.co.uk> wrote:
+> >> On Mon, Jul 04, 2016 at 02:53:20PM +0200, Rafael J. Wysocki wrote:
+> >>> On Fri, Jul 1, 2016 at 11:04 PM, Rafael J. Wysocki <rjw@rjwysocki.net> wrote:
+> >>>> On Friday, July 01, 2016 04:23:40 PM Will Deacon wrote:
+> >>>>> On Thu, Jun 30, 2016 at 09:48:02PM +0800, Hanjun Guo wrote:
+> >>>>>> On 2016/6/30 21:27, Rafael J. Wysocki wrote:
+> >>>>>>> On Thursday, June 30, 2016 10:10:02 AM Hanjun Guo wrote:
+> >>>>>>>> GTDT is part of ACPI spec, drivers/acpi/ is for driver code of
+> >>>>>>>> ACPI spec, I think it can stay in drivers/acpi/ from this point
+> >>>>>>>> of view, am I right?
+> >>>>>>>
+> >>>>>>> The question is not "Can it?", but "Does it need to?".
+> >>>>>>>
+> >>>>>>> It is in the spec, but still there's only one architecture needing it.
+> >>>>>>>
+> >>>>>>> There is no way to test it on any other architecture and no reason to build it
+> >>>>>>> for any other architecture, so why does it need to be located in drivers/acpi/ ?
+> >>>>>>
+> >>>>>> I'm fine to move it to other places such as arch/arm64/kernel/, but I
+> >>>>>> would like to ask ARM64 maintainer's suggestion for this.
+> >>>>>>
+> >>>>>> Will, Catalin, what's your opinion on this?
+> >>>>>
+> >>>>> We don't have any device-tree code for the architected timer under
+> >>>>> arch/arm64, so I don't see why we should need anything for ACPI either.
+> >>>>
+> >>>> And I don't see a reason for the GTDT code to be there in drivers/acpi/.
+> >>>>
+> >>>> What gives?
+> >>>
+> >>> Well, since there are things like acpi_lpss in there, my position here
+> >>> is kind of weak. :-)
+> >>>
+> >>> That said I'm not particularly happy with having them in
+> >>> drivers/acpi/, so I definitely won't object against attempts to moving
+> >>> them somewhere else.
+> >>>
+> >>>> Maybe it should go to the same place as the analogus DT code, then?
+> >>>
+> >>> I'm mostly concerned about how (and by whom) that code is going to be
+> >>> maintained going forward, though.  I also think it should be made
+> >>> clear that it is ARM64-only.
+> >>>
+> >>
+> >> So is this a documentation issue in which case Fu Wei can add that to
+> >> the file to explain its limited to ARM64. Or we could even rename the
+> >> file acpi_arm64_gtdt.c
+> >>
+> >> It seems a pity as the comment on this series were minors to block
+> >> things on a filename/location.
+> >
+> > Let me repeat what I said above:
+> >
+> > I'm mostly concerned about how (and by whom) that code is going to be
+> > maintained going forward.
+> >
+> > This is not about documentation, it is about responsibility.
+> >
+> > Honestly, I don't think I'm the right maintainer to apply the patch
+> > introducing this code and then handle bug reports regarding it and so
+> > on.  That has to be done by somebody else.
+> 
+> I'm working on ACPI for years and upstreamed the ARM64 ACPI core
+> support (with lots of people's help), I'm willing to maintain the ARM64
+> ACPI code under drivers/acpi/ if no objections.
 
---EVF5PPMfhYS0aIcm
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+OK
 
-On Thu, Jul 07, 2016 at 12:37:10PM +0800, Lv Zheng wrote:
-> (Updated to add v2 indicator)
->=20
-> There is an order issue in ec_remove_handlers() that the functions invoked
-> in it are not invoked in the reversed order of their appearance in
-> ec_install_handlers(). This existing issue has been triggered by the
-> following commit:
->   Commit: dcf15cbded656a12335bc4151f3f75f10080a375
->   Subject: ACPI / EC: Fix a boot EC regresion by restoring boot EC
-> The commit invokes ec_remove_handlers() during runtime, thus uncovers this
-> issue. This patch fixes this regression.
->=20
-> Fixes: dcf15cbded65 ("ACPI / EC: Fix a boot EC regresion by restoring boo=
-t EC")
-> Link: https://bugzilla.kernel.org/show_bug.cgi?id=3D102421
-> Reported-by: Wolfram Sang <wsa@the-dreams.de>
-> Reported-by: Nicholas <nkudriavtsev@gmail.com>
-> Cc: Wolfram Sang <wsa@the-dreams.de>
-> Cc: Nicholas <nkudriavtsev@gmail.com>
-> Signed-off-by: Lv Zheng <lv.zheng@intel.com>
+Can the ARM64-specific code go under drivers/acpi/arm64/ then, for clarity?
 
-Tested-by: Wolfram Sang <wsa@the-dreams.de>
+> >
+> > That's one thing.
+> >
+> > Another one is the question I asked a few messages ago: Why having the
+> > GTDT code in drivers/acpi/ is actually useful to anyone?  It
+> > definitely would not be useful to me as the maintainer of
+> > drivers/acpi/, but maybe it would be useful to somebody for a specific
+> > practical reason.  Or is it just "let's put this into drivers/acpi/
+> > for the lack of a better place"?
+> 
+> Having GTDT code in drivers/acpi/ is useful as it is code that is used
+> by two different subsystems, clocksource and watchdog,and where people
+> look by default for utility ACPI code.
+> 
+> If the mostly concerned thing (maintainer ship) is settled down, the
+> second question would be easily solved.
 
-The status infos are back to normal and the EC error reports are gone
-=66rom the log. Looks good! Thanks for the quick fix.
+Fair enough.
 
-   Wolfram
+Thanks,
+Rafael
 
-
---EVF5PPMfhYS0aIcm
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iQIcBAEBAgAGBQJXfkEuAAoJEBQN5MwUoCm2qtgP/iIqam3gD6dr/rlA7zfTDQjB
-Dl4Y8U7jlEorQbY4SnQReBOs6hMnfJ9vGLrM8TYcyc+BsbYREP+yO27MOQ7hI/jN
-DE/TYLffec6hNWuzr6ABoLAxULafsW8cAxWX/Bw/6up+a8bHdbJcT9F18T3WWNpg
-JHyhuUBDvnzxamNWVt814dd/O6IjKzbnsOXevTec7smFacytfkQtHZci7qW6ql99
-ZB7JRSqU8a1cTix7jV/K+8u0HnhAdtQXYw8i7c3m88/n4WL1EFaJv2j4OjZMNGHn
-O3IbBMt+2WHp9rRdKNxZaQto3vcfCzZujg4Mz2r/ovtXuZGt9jgS8xnbHn1v/KB8
-6zdXAZp3fBZhHKWRmcy26YiySPPHZrbQyRS4qZbaWAwyZFILt2Ydpg4zXmQLb9ua
-jkkQme5P5v5ktOz+SNoSbwtyAy/b6YYfc0ugeaeKp7WOJC5RS/IMRqlHfdIwIyC7
-J2+j3V91CheAYjO+vGArTPCZJ5uMr6QqFVyfzwvyIC/zjE4QWg1MCRzGMvcXRsP8
-DJ7hhbakK2g+rbUOjdJkyrbhlzgUJKiuKMJmLQkgU3MUhuKDVfrdfWhMEnVCqVVZ
-JWnZILCY+0pqB/ZsZtYWCSitRDkxd80Jh+X9A8iEHoj3vosxo7BNjEc86Jz0HbeA
-gstT+j7ydOrMAuVnC/ji
-=XdsF
------END PGP SIGNATURE-----
-
---EVF5PPMfhYS0aIcm--
