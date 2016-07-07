@@ -1,50 +1,70 @@
 From: "Rafael J. Wysocki" <rafael@kernel.org>
-Subject: Re: [PATCH v8 0/6] ACPI / processor_idle: Add ACPI v6.0 LPI support
-Date: Thu, 7 Jul 2016 23:02:48 +0200
-Message-ID: <CAJZ5v0jhhXHVJi3Se0udcpfgQaqSANZgkKrM9REBxRT7p-3ggA@mail.gmail.com>
-References: <1467911451-24731-1-git-send-email-sudeep.holla@arm.com>
+Subject: [GIT PULL] ACPI fixes for v4.7-rc7
+Date: Fri, 8 Jul 2016 01:43:50 +0200
+Message-ID: <CAJZ5v0hDSZGX90hxkACwC0DktD-_Baq=+DDkR7_zv8464iHG-Q@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1467911451-24731-1-git-send-email-sudeep.holla@arm.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Sudeep Holla <sudeep.holla@arm.com>
-Cc: ACPI List <linux-acpi@vger.kernel.org>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, Vikas Sajjan <vikas.cha.sajjan@hpe.com>, Sunil <sunil.vl@hpe.com>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, PrashanthPrakash <pprakash@codeaurora.org>, Al Stone <al.stone@linaro.org>, Ashwin Chaugule <ashwin.chaugule@linaro.org>, Daniel Lezcano <daniel.lezcano@linaro.org>, LKML <linux-kernel@vger.kernel.org>, ALKML <linux-arm-kernel@lists.infradead.org>
+Return-path: <linux-pci-owner@vger.kernel.org>
+Sender: linux-pci-owner@vger.kernel.org
+To: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux PCI <linux-pci@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On Thu, Jul 7, 2016 at 7:10 PM, Sudeep Holla <sudeep.holla@arm.com> wrote:
-> ACPI 6.0 introduced LPI(Low Power Idle) states that provides an alternate
-> method to describe processor idle states. It extends the specification
-> to allow the expression of idle states like C-states selectable by the
-> OSPM when a processor goes idle, but may affect more than one processor,
-> and may affect other system components.
->
-> LPI extensions leverages the processor container device(again introduced
-> in ACPI 6.0) allowing to express which parts of the system are affected
-> by a given LPI state. It defines the local power states for each node
-> in a hierarchical processor topology. The OSPM can use _LPI object to
-> select a local power state for each level of processor hierarchy in the
-> system. They used to produce a composite power state request that is
-> presented to the platform by the OSPM.
->
-> Since multiple processors affect the idle state for any non-leaf hierarchy
-> node, coordination of idle state requests between the processors is
-> required. ACPI supports two different coordination schemes: Platform
-> coordinated and  OS initiated.
->
-> This series aims at providing basic and initial support for platform
-> coordinated LPI states.
->
-> v7[7]->v8:
->         - Replaced HAVE_GENERIC_CPUIDLE_ENTER with CPU_IDLE_ENTER_WRAPPED
->           macro, which is more cleaner and definately less confusing :)
->           (Thanks to Rafael for the suggestion)
+Hi Linus,
 
-Patches [3-6/6] definitely look a lot cleaner to me now. :-)
+Please pull from
 
-That said, the name of the macro I suggested was just an example, so
-if people don't like this one, it'd be fine to change it as far as I'm
-concerned.
+ git://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm.git \
+ acpi-4.7-rc7
 
-Thanks,
-Rafael
+to receive ACPI fixes for v4.7-rc7 with top-most commit
+b6d90158c935d4a22e56f41647b479ab5ea449d4
+
+ Merge branches 'acpica-fixes', 'acpi-pci-fixes' and 'acpi-debug-fixes'
+
+on top of commit a99cde438de0c4c0cecc1d1af1a55a75b10bfdef
+
+ Linux 4.7-rc6
+
+All of these fix recent regressions in ACPICA, in the ACPI PCI IRQ
+management code and in the ACPI AML debugger.
+
+Specifics:
+
+ - Fix a lock ordering issue in ACPICA introduced by a recent commit
+   that attempted to fix a deadlock in the dynamic table loading code
+   which in turn appeared after changes related to the handling of
+   module-level AML also made in this cycle (Lv Zheng).
+
+ - Fix a recent regression in the ACPI IRQ management code that may
+   cause PCI drivers to be unable to register an IRQ if that IRQ
+   happens to be shared with a device on the ISA bus, like the
+   parallel port, by reverting one commit entirely and restoring the
+   previous behavior in two other places (Sinan Kaya).
+
+ - Fix a recent regression in the ACPI AML debugger introduced by
+   the commit that removed incorrect usage of IS_ERR_VALUE() from
+   multiple places (Lv Zheng).
+
+Thanks!
+
+---------------
+
+Lv Zheng (2):
+      ACPICA: Namespace: Fix namespace/interpreter lock ordering
+      ACPI / debugger: Fix regression introduced by IS_ERR_VALUE() removal
+
+Sinan Kaya (3):
+      ACPI,PCI,IRQ: factor in PCI possible
+      Revert "ACPI, PCI, IRQ: remove redundant code in acpi_irq_penalty_init()"
+      ACPI,PCI,IRQ: separate ISA penalty calculation
+
+---------------
+
+ arch/x86/pci/acpi.c           |  1 +
+ drivers/acpi/acpi_dbg.c       |  4 +--
+ drivers/acpi/acpica/nsload.c  |  7 ++++-
+ drivers/acpi/acpica/nsparse.c |  9 ++-----
+ drivers/acpi/pci_link.c       | 63 ++++++++++++++++++++++++++++++++-----------
+ include/acpi/acpi_drivers.h   |  1 +
+ 6 files changed, 60 insertions(+), 25 deletions(-)
