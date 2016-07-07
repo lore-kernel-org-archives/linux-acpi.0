@@ -1,159 +1,113 @@
-From: Jacek Anaszewski <j.anaszewski@samsung.com>
-Subject: Re: [PATCH v7 1/1] leds: LED driver for TI LP3952 6-Channel Color LED
-Date: Thu, 07 Jul 2016 13:09:13 +0200
-Message-ID: <577E3859.1010008@samsung.com>
-References: <1467129919-27641-1-git-send-email-tony.makkiel@daqri.com>
- <577BA931.5070403@samsung.com> <577D0869.7090806@samsung.com>
- <2752967.IJ5pkPUWjW@vostro.rjw.lan> <577E011D.4030503@samsung.com>
- <577E3062.7050101@daqri.com>
+From: Hanjun Guo <hanjun.guo@linaro.org>
+Subject: Re: [PATCH v6 00/10] acpi, clocksource: add GTDT driver and GTDT
+ support in arm_arch_timer
+Date: Thu, 7 Jul 2016 19:12:38 +0800
+Message-ID: <baf8e09d-0249-9da2-1a78-aac3bc35b8b5@linaro.org>
+References: <1467224153-22873-1-git-send-email-fu.wei@linaro.org>
+ <57714bed-3f9c-90c2-ac30-2d462d8a06d4@linaro.org>
+ <20160701152340.GO12735@arm.com> <2183745.J7YpvxXQ47@vostro.rjw.lan>
+ <CAJZ5v0iFcjxQV9YV2KaXGAPRBM8M2xxPm5e2b4uhwYAZZtndPg@mail.gmail.com>
+ <20160705141858.GD18338@xora-haswell.xora.org.uk>
+ <CAJZ5v0iFUH3CgN2d1t8V13aRYdibiZSy+26sNLz3E-8mNvsn6Q@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Type: text/plain; charset=utf-8; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-leds-owner@vger.kernel.org>
-In-reply-to: <577E3062.7050101@daqri.com>
-Sender: linux-leds-owner@vger.kernel.org
-To: Tony <tony.makkiel@daqri.com>
-Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, "Rafael J. Wysocki" <rafael@kernel.org>, linux-leds@vger.kernel.org, rpurdie@rpsys.net, Len Brown <lenb@kernel.org>, Mika Westerberg <mika.westerberg@linux.intel.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Al Stone <ahs3@redhat.com>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-pa0-f48.google.com ([209.85.220.48]:33399 "EHLO
+	mail-pa0-f48.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751691AbcGGLNH (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 7 Jul 2016 07:13:07 -0400
+Received: by mail-pa0-f48.google.com with SMTP id b13so5469054pat.0
+        for <linux-acpi@vger.kernel.org>; Thu, 07 Jul 2016 04:13:06 -0700 (PDT)
+In-Reply-To: <CAJZ5v0iFUH3CgN2d1t8V13aRYdibiZSy+26sNLz3E-8mNvsn6Q@mail.gmail.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: "Rafael J. Wysocki" <rafael@kernel.org>, Graeme Gregory <gg@slimlogic.co.uk>
+Cc: Will Deacon <will.deacon@arm.com>, Catalin Marinas <catalin.marinas@arm.com>, Fu Wei <fu.wei@linaro.org>, Len Brown <lenb@kernel.org>, Daniel Lezcano <daniel.lezcano@linaro.org>, Thomas Gleixner <tglx@linutronix.de>, Marc Zyngier <marc.zyngier@arm.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linaro-acpi@lists.linaro.org" <linaro-acpi@lists.linaro.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, rruigrok@codeaurora.org, harba@codeaurora.org, Christopher Covington <cov@codeaurora.org>, Timur Tabi <timur@codeaurora.org>, G Gregory <graeme.gregory@linaro.org>, Al Stone <al.stone@linaro.org>, Jon Masters <jcm@redhat.com>, wei@redhat.com, Arnd Bergmann <arnd@arndb.de>, Wim Van Sebroeck <wim@iguana.be>, Suravee Suthikulanit <Suravee.Suthikulpanit@amd.com>, Leo
 
-On 07/07/2016 12:35 PM, Tony wrote:
->
->
-> On 07/07/16 08:13, Jacek Anaszewski wrote:
->> On 07/06/2016 11:15 PM, Rafael J. Wysocki wrote:
->>> On Wednesday, July 06, 2016 03:32:25 PM Jacek Anaszewski wrote:
->>>> On 07/05/2016 02:33 PM, Jacek Anaszewski wrote:
->>>>> On 07/05/2016 02:12 PM, Rafael J. Wysocki wrote:
->>>>>> On Tue, Jul 5, 2016 at 12:47 PM, Jacek Anaszewski
->>>>>> <j.anaszewski@samsung.com> wrote:
->>>>>>> PING
+On 2016/7/6 8:00, Rafael J. Wysocki wrote:
+> On Tue, Jul 5, 2016 at 4:18 PM, Graeme Gregory <gg@slimlogic.co.uk> wrote:
+>> On Mon, Jul 04, 2016 at 02:53:20PM +0200, Rafael J. Wysocki wrote:
+>>> On Fri, Jul 1, 2016 at 11:04 PM, Rafael J. Wysocki <rjw@rjwysocki.net> wrote:
+>>>> On Friday, July 01, 2016 04:23:40 PM Will Deacon wrote:
+>>>>> On Thu, Jun 30, 2016 at 09:48:02PM +0800, Hanjun Guo wrote:
+>>>>>> On 2016/6/30 21:27, Rafael J. Wysocki wrote:
+>>>>>>> On Thursday, June 30, 2016 10:10:02 AM Hanjun Guo wrote:
+>>>>>>>> GTDT is part of ACPI spec, drivers/acpi/ is for driver code of
+>>>>>>>> ACPI spec, I think it can stay in drivers/acpi/ from this point
+>>>>>>>> of view, am I right?
 >>>>>>>
+>>>>>>> The question is not "Can it?", but "Does it need to?".
 >>>>>>>
->>>>>>> On 06/29/2016 12:54 PM, Jacek Anaszewski wrote:
->>>>>>>>
->>>>>>>> On 06/29/2016 12:07 PM, Tony wrote:
->>>>>>>>>
->>>>>>>>>
->>>>>>>>> On 29/06/16 07:52, Jacek Anaszewski wrote:
->>>>>>>>>>
->>>>>>>>>> Hi Rafael,
->>>>>>>>>
->>>>>>>>>
->>>>>>>>>>>> +#ifdef CONFIG_ACPI
->>>>>>>>>>>> +static const struct acpi_device_id lp3952_acpi_match[] = {
->>>>>>>>>>>> +    {LP3952_ACPI_NAME, 0},
->>>>>>>>>>>
->>>>>>>>>>>
->>>>>>>>>>> No, you can't use "PRP0001" in this list.
->>>>>>>>>>>
->>>>>>>>>>>> +    {}
->>>>>>>>>>>> +};
->>>>>>>>>>>> +
->>>>>>>>>>>> +MODULE_DEVICE_TABLE(acpi, lp3952_acpi_match);
->>>>>>>>>>>
->>>>>>>>>>>
->>>>>>>>>>> And you don't need this for the "PRP0001" thing to work.  The
->>>>>>>>>>> core will
->>>>>>>>>>> take care of it for you then.
->>>>>>>>>>>
->>>>>>>>>>>> +#endif
->>>>>>>>>>>
->>>>>>>>>>>
->>>>>>>>>>> So the entire ACPI block can be dropped for now.
->>>>>>>>>>>
->>>>>>>>>>> And the driver doesn't have to depend on CONFIG_ACPI any more,
->>>>>>>>>>> does it?
->>>>>>>>>>
->>>>>>>>>>
->>>>>>>>>> The driver currently supports probing only with ACPI.
->>>>>>>>>> I have one question BTW: isn't there anything similar to the
->>>>>>>>>> device tree
->>>>>>>>>> bindings documentation required for ACPI overlays?
->>>>>>>>>> Pointer to the discussion which led us to this solution:
->>>>>>>>>>
->>>>>>>>>> http://www.spinics.net/lists/linux-leds/msg06230.html
->>>>>>>>>>
->>>>>>>>> _DSD is working now. I managed to get "PRP0001" working as
->>>>>>>>> suggested by
->>>>>>>>> Rafael in
->>>>>>>>> http://marc.info/?l=linux-acpi&m=146711623115228&w=2
->>>>>>>>> with _DSD
->>>>>>>>
->>>>>>>>
->>>>>>>> Thanks for the link.
->>>>>>>>
->>>>>>>> Rafael, "Package" entries seem to mimic Device Tree properties
->>>>>>>> defined
->>>>>>>> in the common leds bindings. Would it be possible to make it even
->>>>>>>> more compatible and define every LED connected to the LED
->>>>>>>> controller
->>>>>>>> in the form of a child node, similarly as in case of LED DT
->>>>>>>> bindings?
->>>>>>>>
->>>>>>>> See Documentation/devicetree/bindings/leds/common.txt and other
->>>>>>>> bindings in Documentation/devicetree/bindings/leds.
+>>>>>>> It is in the spec, but still there's only one architecture needing it.
+>>>>>>>
+>>>>>>> There is no way to test it on any other architecture and no reason to build it
+>>>>>>> for any other architecture, so why does it need to be located in drivers/acpi/ ?
 >>>>>>
->>>>>> I'm not sure what you mean.
+>>>>>> I'm fine to move it to other places such as arch/arm64/kernel/, but I
+>>>>>> would like to ask ARM64 maintainer's suggestion for this.
 >>>>>>
->>>>>> If somebody decides to arrange the data in their ACPI tables to
->>>>>> follow
->>>>>> that scheme, it will just work IMO.
->>>>>>
->>>>>> Is there anything more that needs to be done in the kernel here?
+>>>>>> Will, Catalin, what's your opinion on this?
 >>>>>
->>>>> In case of Device Tree based platforms it is customary to define each
->>>>> LED as a child node of the LED controller node. LED names can then
->>>>> be obtained from the 'label' property or DT node name.
->>>>> Tony has encountered some issues [1] while trying to follow this
->>>>> pattern. Tony, could you please double check that?
->>>>>
->>>>> [1] http://www.spinics.net/lists/linux-leds/msg06230.html
+>>>>> We don't have any device-tree code for the architected timer under
+>>>>> arch/arm64, so I don't see why we should need anything for ACPI either.
 >>>>
->>>> One more question: now anyone wanting to use the driver would have
->>>> to investigate the code to infer what DSD properties need to be
->>>> provided for it. Isn't there anything similar to
->>>> Documentation/devicetree/bindings/* documentation required in case of
->>>> DSD?
+>>>> And I don't see a reason for the GTDT code to be there in drivers/acpi/.
+>>>>
+>>>> What gives?
 >>>
->>> There is a plan to set up a database for these, but that's still
->>> under discussion (Al Stone has posted some related documentation for
->>> comments recently).
+>>> Well, since there are things like acpi_lpss in there, my position here
+>>> is kind of weak. :-)
 >>>
->>>> I've also come across your presentation [1], which describes the
->>>> device_property* API for parsing unified DT/ACPI device properties.
->>>> IMO it would be good solution for this driver as the device seems not
->>>> to be tightly coupled with only ACPI platforms.
->>>>
->>>>
->>>> [1]
->>>> http://events.linuxfoundation.org/sites/events/files/slides/ACPI_vs_DT.pdf
->>>>
->>>>
+>>> That said I'm not particularly happy with having them in
+>>> drivers/acpi/, so I definitely won't object against attempts to moving
+>>> them somewhere else.
 >>>
->>> The device_property* API should be used everywhere where (a)
->>> properties are
->>> used and (b) the code has no specific need to use a particular platform
->>> firmware interface (ACPI or DT), so I agree.
+>>>> Maybe it should go to the same place as the analogus DT code, then?
+>>>
+>>> I'm mostly concerned about how (and by whom) that code is going to be
+>>> maintained going forward, though.  I also think it should be made
+>>> clear that it is ARM64-only.
+>>>
 >>
->> Tony, could you try switching to device_property* API and make
->> the DSD properties as much compatible with Device Tree ones as possible?
+>> So is this a documentation issue in which case Fu Wei can add that to
+>> the file to explain its limited to ARM64. Or we could even rename the
+>> file acpi_arm64_gtdt.c
 >>
-> Sure will replace 'acpi_dev_get_property' with
-> 'device_property_read_string'.
+>> It seems a pity as the comment on this series were minors to block
+>> things on a filename/location.
 >
-> I am new to both ACPI and Device Tree. So not sure whether there is any
-> naming convention to follow for led name handles in device tree.
+> Let me repeat what I said above:
+>
+> I'm mostly concerned about how (and by whom) that code is going to be
+> maintained going forward.
+>
+> This is not about documentation, it is about responsibility.
+>
+> Honestly, I don't think I'm the right maintainer to apply the patch
+> introducing this code and then handle bug reports regarding it and so
+> on.  That has to be done by somebody else.
 
-You can follow existing bindings in Documentation/devicetree/bindings
-/leds.
+I'm working on ACPI for years and upstreamed the ARM64 ACPI core
+support (with lots of people's help), I'm willing to maintain the ARM64
+ACPI code under drivers/acpi/ if no objections.
 
-> review comments for v8 patch, it was suggested to use "reg" property.
-> We shall continue the discussion on led name handles, on that
-> thread to avoid duplication.
+>
+> That's one thing.
+>
+> Another one is the question I asked a few messages ago: Why having the
+> GTDT code in drivers/acpi/ is actually useful to anyone?  It
+> definitely would not be useful to me as the maintainer of
+> drivers/acpi/, but maybe it would be useful to somebody for a specific
+> practical reason.  Or is it just "let's put this into drivers/acpi/
+> for the lack of a better place"?
 
+Having GTDT code in drivers/acpi/ is useful as it is code that is used
+by two different subsystems, clocksource and watchdog,and where people
+look by default for utility ACPI code.
 
+If the mostly concerned thing (maintainer ship) is settled down, the
+second question would be easily solved.
 
-
--- 
-Best regards,
-Jacek Anaszewski
+Thanks
+Hanjun
