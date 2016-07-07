@@ -1,113 +1,208 @@
-From: Hanjun Guo <hanjun.guo@linaro.org>
-Subject: Re: [PATCH v6 00/10] acpi, clocksource: add GTDT driver and GTDT
- support in arm_arch_timer
-Date: Thu, 7 Jul 2016 19:12:38 +0800
-Message-ID: <baf8e09d-0249-9da2-1a78-aac3bc35b8b5@linaro.org>
-References: <1467224153-22873-1-git-send-email-fu.wei@linaro.org>
- <57714bed-3f9c-90c2-ac30-2d462d8a06d4@linaro.org>
- <20160701152340.GO12735@arm.com> <2183745.J7YpvxXQ47@vostro.rjw.lan>
- <CAJZ5v0iFcjxQV9YV2KaXGAPRBM8M2xxPm5e2b4uhwYAZZtndPg@mail.gmail.com>
- <20160705141858.GD18338@xora-haswell.xora.org.uk>
- <CAJZ5v0iFUH3CgN2d1t8V13aRYdibiZSy+26sNLz3E-8mNvsn6Q@mail.gmail.com>
+From: Tony <tony.makkiel@daqri.com>
+Subject: Re: [PATCH v8 1/1] leds: LED driver for TI LP3952 6-Channel Color LED
+Date: Thu, 7 Jul 2016 12:44:10 +0100
+Message-ID: <577E408A.5010905@daqri.com>
+References: <1467732628-2025-1-git-send-email-tony.makkiel@daqri.com>
+ <577D08C7.5000802@samsung.com> <577D1E32.50809@daqri.com>
+ <577E0130.1010806@samsung.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Type: text/plain; charset=windows-1252; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-pa0-f48.google.com ([209.85.220.48]:33399 "EHLO
-	mail-pa0-f48.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751691AbcGGLNH (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 7 Jul 2016 07:13:07 -0400
-Received: by mail-pa0-f48.google.com with SMTP id b13so5469054pat.0
-        for <linux-acpi@vger.kernel.org>; Thu, 07 Jul 2016 04:13:06 -0700 (PDT)
-In-Reply-To: <CAJZ5v0iFUH3CgN2d1t8V13aRYdibiZSy+26sNLz3E-8mNvsn6Q@mail.gmail.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Return-path: <linux-leds-owner@vger.kernel.org>
+In-Reply-To: <577E0130.1010806@samsung.com>
+Sender: linux-leds-owner@vger.kernel.org
+To: Jacek Anaszewski <j.anaszewski@samsung.com>
+Cc: linux-leds@vger.kernel.org, linux-acpi@vger.kernel.org, rpurdie@rpsys.net, rjw@rjwysocki.net, lenb@kernel.org, mika.westerberg@linux.intel.com
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rafael@kernel.org>, Graeme Gregory <gg@slimlogic.co.uk>
-Cc: Will Deacon <will.deacon@arm.com>, Catalin Marinas <catalin.marinas@arm.com>, Fu Wei <fu.wei@linaro.org>, Len Brown <lenb@kernel.org>, Daniel Lezcano <daniel.lezcano@linaro.org>, Thomas Gleixner <tglx@linutronix.de>, Marc Zyngier <marc.zyngier@arm.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linaro-acpi@lists.linaro.org" <linaro-acpi@lists.linaro.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, rruigrok@codeaurora.org, harba@codeaurora.org, Christopher Covington <cov@codeaurora.org>, Timur Tabi <timur@codeaurora.org>, G Gregory <graeme.gregory@linaro.org>, Al Stone <al.stone@linaro.org>, Jon Masters <jcm@redhat.com>, wei@redhat.com, Arnd Bergmann <arnd@arndb.de>, Wim Van Sebroeck <wim@iguana.be>, Suravee Suthikulanit <Suravee.Suthikulpanit@amd.com>, Leo
 
-On 2016/7/6 8:00, Rafael J. Wysocki wrote:
-> On Tue, Jul 5, 2016 at 4:18 PM, Graeme Gregory <gg@slimlogic.co.uk> wrote:
->> On Mon, Jul 04, 2016 at 02:53:20PM +0200, Rafael J. Wysocki wrote:
->>> On Fri, Jul 1, 2016 at 11:04 PM, Rafael J. Wysocki <rjw@rjwysocki.net> wrote:
->>>> On Friday, July 01, 2016 04:23:40 PM Will Deacon wrote:
->>>>> On Thu, Jun 30, 2016 at 09:48:02PM +0800, Hanjun Guo wrote:
->>>>>> On 2016/6/30 21:27, Rafael J. Wysocki wrote:
->>>>>>> On Thursday, June 30, 2016 10:10:02 AM Hanjun Guo wrote:
->>>>>>>> GTDT is part of ACPI spec, drivers/acpi/ is for driver code of
->>>>>>>> ACPI spec, I think it can stay in drivers/acpi/ from this point
->>>>>>>> of view, am I right?
->>>>>>>
->>>>>>> The question is not "Can it?", but "Does it need to?".
->>>>>>>
->>>>>>> It is in the spec, but still there's only one architecture needing it.
->>>>>>>
->>>>>>> There is no way to test it on any other architecture and no reason to build it
->>>>>>> for any other architecture, so why does it need to be located in drivers/acpi/ ?
->>>>>>
->>>>>> I'm fine to move it to other places such as arch/arm64/kernel/, but I
->>>>>> would like to ask ARM64 maintainer's suggestion for this.
->>>>>>
->>>>>> Will, Catalin, what's your opinion on this?
->>>>>
->>>>> We don't have any device-tree code for the architected timer under
->>>>> arch/arm64, so I don't see why we should need anything for ACPI either.
->>>>
->>>> And I don't see a reason for the GTDT code to be there in drivers/acpi/.
->>>>
->>>> What gives?
->>>
->>> Well, since there are things like acpi_lpss in there, my position here
->>> is kind of weak. :-)
->>>
->>> That said I'm not particularly happy with having them in
->>> drivers/acpi/, so I definitely won't object against attempts to moving
->>> them somewhere else.
->>>
->>>> Maybe it should go to the same place as the analogus DT code, then?
->>>
->>> I'm mostly concerned about how (and by whom) that code is going to be
->>> maintained going forward, though.  I also think it should be made
->>> clear that it is ARM64-only.
->>>
+Hi Jacek,
+	Thank you for the comments.
+
+On 07/07/16 08:13, Jacek Anaszewski wrote:
+> Hi Tony,
+>
+> On 07/06/2016 05:05 PM, Tony wrote:
+>> Thank you for the comments Jacek and Mika.
 >>
->> So is this a documentation issue in which case Fu Wei can add that to
->> the file to explain its limited to ARM64. Or we could even rename the
->> file acpi_arm64_gtdt.c
+>> On 06/07/16 14:33, Jacek Anaszewski wrote:
 >>
->> It seems a pity as the comment on this series were minors to block
->> things on a filename/location.
+>>
+>>>> +static int lp3952_set_brightness(struct led_classdev *cdev,
+>>>> +                 enum led_brightness value)
+>>>> +{
+>>>> +    unsigned int reg, shift_val;
+>>>> +    struct lp3952_ctrl_hdl *led = container_of(cdev,
+>>>> +                           struct lp3952_ctrl_hdl,
+>>>> +                           cdev);
+>>>> +    struct lp3952_led_array *priv = (struct lp3952_led_array
+>>>> *)led->priv;
+>>>> +
+>>>> +    dev_dbg(cdev->dev, "Brightness request: %d on %d\n", value,
+>>>> +        led->channel);
+>>>> +
+>>>> +    if (value == LED_OFF) {
+>>>> +        lp3952_on_off(priv, led->channel, LED_OFF);
+>>>> +        return 0;
+>>>> +    }
+>>>> +
+>>>> +    if (led->channel > LP3952_RED_1) {
+>>>> +        dev_err(cdev->dev, " %s Invalid LED requested", __func__);
+>>>> +        return -EINVAL;
+>>>> +    }
+>>>> +
+>>>> +    if (led->channel >= LP3952_BLUE_1) {
+>>>> +        reg = LP3952_REG_RGB1_MAX_I_CTRL;
+>>>> +        shift_val = (led->channel - LP3952_BLUE_1) * 2;
+>>>> +    } else {
+>>>> +        reg = LP3952_REG_RGB2_MAX_I_CTRL;
+>>>> +        shift_val = led->channel * 2;
+>>>> +    }
+>>>> +
+>>>> +    /* Enable the LED in case it is not enabled already */
+>>>> +    lp3952_on_off(priv, led->channel, 1);
+>>>> +
+>>>> +    return regmap_update_bits(priv->regmap, reg, 3 << shift_val,
+>>>> +                  --value << shift_val);
+>>>
+>>> Here you have two separate calls that change the device state.
+>>> I think that mutex protection is required here to assure that
+>>> the device will not be left in an inconsistent state, due to
+>>> the concurrent calls from other processes.
+>>
+>> Sorry, I did not quite understand.
+>>
+>> Did you mean 'regmap_update_bits' here and the one within
+>> 'lp3952_on_off'? If there isn't a lock assigned by driver, a mutex or
+>> spinlock is assigned based on fast_io support by regmap during init.
 >
-> Let me repeat what I said above:
+> The lock protects an access to the I2C bus for a single transmission.
+> When there are two registers to set then current process can be
+> preempted after first write by the second process which overwrites
+> the register with a new value. The first one after being woken up
+> performs second register write, being unaware that the instruction it
+> completed in the previous step has been just overwritten.
 >
-> I'm mostly concerned about how (and by whom) that code is going to be
-> maintained going forward.
+> It applies to the situations where there is a common register
+> setting affecting all LEDs, e.g. power down mode or so, but after
+> consulting the documentation I figured out that this is not the
+> case.
 >
-> This is not about documentation, it is about responsibility.
+>>>
+>>>> +}
+>>>> +
+>>>> +static int lp3952_get_label(char *dest, const char *label, struct
+>>>> device *dev)
+>>>> +{
+>>>> +    int ret;
+>>>> +    const union acpi_object *obj;
+>>>> +    struct acpi_device *adev = ACPI_COMPANION(dev);
+>>>> +
+>>>> +    ret = acpi_dev_get_property(adev, label, ACPI_TYPE_STRING, &obj);
+>>>> +    if (!ret)
+>>>> +        strncpy(dest, obj->string.pointer, obj->string.length + 1);
+>>>> +
+>>>> +    return ret;
+>>>> +}
+>>>> +
+>>>> +static int lp3952_register_led_classdev(struct lp3952_led_array *priv)
+>>>> +{
+>>>> +    int i, ret = -ENODEV;
+>>>> +    static const char *led_name_hdl[LP3952_LED_ALL] = {
+>>>> +        "blue2",
+>>>> +        "green2",
+>>>> +        "red2",
+>>>> +        "blue1",
+>>>> +        "green1",
+>>>> +        "red1"
+>>>> +    };
 >
-> Honestly, I don't think I'm the right maintainer to apply the patch
-> introducing this code and then handle bug reports regarding it and so
-> on.  That has to be done by somebody else.
+> Why actually do you need this array? Couldn't you provide the LED
+> identifier in the DSD entry corresponding to a LED? You can follow
+> the scheme used in Device Tree by introducing "reg" property.
 
-I'm working on ACPI for years and upstreamed the ARM64 ACPI core
-support (with lots of people's help), I'm willing to maintain the ARM64
-ACPI code under drivers/acpi/ if no objections.
+The names in the array are the 6 identifiers in the DSD entry. For example
+the DSD property for blue2 led used is
+
+"Package ()
+{
+         Package (2) {"blue2", "led_blue2"},
+"
+acpi_dev_get_property will return "led_blue2" in obj->string.pointer.
+
+There isn't separate DSD for individual leds. There is only 1 DSD for
+the led controller identified by "Name (_HID, "TXNW3952")". The
+individual led names are separate properties withing th DSD (eg:
+led_blue2 identified by blue2).
 
 >
-> That's one thing.
+>>>> +    for (i = 0; i < LP3952_LED_ALL; i++) {
+>>>> +        priv->leds[i].cdev.brightness = LED_OFF;
+>>>> +        priv->leds[i].cdev.max_brightness = LP3952_BRIGHT_MAX;
+>>>> +        priv->leds[i].cdev.brightness_set_blocking =
+>>>> +                lp3952_set_brightness;
+>>>> +        priv->leds[i].channel = i;
+>>>> +        priv->leds[i].priv = priv;
+>>>> +
+>>>> +        ret = lp3952_get_label(priv->leds[i].name, led_name_hdl[i],
+>>>> +                       &priv->client->dev);
+>>>> +        if (ret)
+>>>> +            break;
+>>>
+>>> You're assuming here that all LEDs will always be present, which
+>>> doesn't necessarily have to be true. How about just skipping
+>>> the LED and moving to the next one if given label was not found?
+>>> You could move this check to the beginning of the loop then.
+>>
+>> If we skip leds, there could be problem, if all the leds were
+>> skipped(For example, no ACPI name data present).
 >
-> Another one is the question I asked a few messages ago: Why having the
-> GTDT code in drivers/acpi/ is actually useful to anyone?  It
-> definitely would not be useful to me as the maintainer of
-> drivers/acpi/, but maybe it would be useful to somebody for a specific
-> practical reason.  Or is it just "let's put this into drivers/acpi/
-> for the lack of a better place"?
+> If all the LEDs were skipped, then no LED class device would be
+> registered. In such a case you could return an error from
+> lp3952_probe().
+>
+>>
+>> At present, if a label is not present, the probe will fail.
+>> How about reverting to a default name (eg: "lp3952:blue2") if led name
+>> read fails?
+>
+> There is no point in registering the LED if its DSD entry is not
+> valid. In case of Device Tree we fail LED registration in such
+> cases.
 
-Having GTDT code in drivers/acpi/ is useful as it is code that is used
-by two different subsystems, clocksource and watchdog,and where people
-look by default for utility ACPI code.
+Sorry, I thought we were skipping LEDs due to invalid DSD. If that is
+not the case, isn't the assumption all LEDS will be present true?
+I am guessing leds might be missing, if some of the leds are not
+physically connected to controller output. But the controller would
+have 6 led controls all the time.
 
-If the mostly concerned thing (maintainer ship) is settled down, the
-second question would be easily solved.
-
-Thanks
-Hanjun
+>
+>> This would also cover cases in which none of the led names
+>> were read properly.
+>
+> Whole driver probing should fail then.
+>
+>>
+>>>
+>>>> +
+>>>> +        priv->leds[i].cdev.name = priv->leds[i].name;
+>>>> +
+>>>> +        ret = devm_led_classdev_register(&priv->client->dev,
+>>>> +                         &priv->leds[i].cdev);
+>>>> +        if (ret < 0) {
+>>>> +            dev_err(&priv->client->dev,
+>>>> +                "couldn't register LED %s\n",
+>>>> +                priv->leds[i].cdev.name);
+>>>> +            break;
+>>>> +        }
+>>>> +    }
+>>>> +    return ret;
+>>>> +}
+>>>> +
+>> --
+>> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
+>> the body of a message to majordomo@vger.kernel.org
+>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>>
+>>
+>
+>
