@@ -1,153 +1,40 @@
-From: Tony <tony.makkiel@daqri.com>
-Subject: Re: [PATCH v7 1/1] leds: LED driver for TI LP3952 6-Channel Color LED
-Date: Thu, 7 Jul 2016 11:35:14 +0100
-Message-ID: <577E3062.7050101@daqri.com>
-References: <1467129919-27641-1-git-send-email-tony.makkiel@daqri.com>
- <577BA931.5070403@samsung.com> <577D0869.7090806@samsung.com>
- <2752967.IJ5pkPUWjW@vostro.rjw.lan> <577E011D.4030503@samsung.com>
+From: Eric Engestrom <eric.engestrom@imgtec.com>
+Subject: Re: [PATCH v2 1/7] lib: string: add functions to case-convert strings
+Date: Thu, 7 Jul 2016 12:04:53 +0100
+Message-ID: <20160707110453.GC3417@imgtec.com>
+References: <1467751631-22878-1-git-send-email-mmayer@broadcom.com>
+ <1467751631-22878-2-git-send-email-mmayer@broadcom.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-wm0-f49.google.com ([74.125.82.49]:38293 "EHLO
-	mail-wm0-f49.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751092AbcGGKfR (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 7 Jul 2016 06:35:17 -0400
-Received: by mail-wm0-f49.google.com with SMTP id n127so10763605wme.1
-        for <linux-acpi@vger.kernel.org>; Thu, 07 Jul 2016 03:35:16 -0700 (PDT)
-In-Reply-To: <577E011D.4030503@samsung.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <dri-devel-bounces@lists.freedesktop.org>
+Content-Disposition: inline
+In-Reply-To: <1467751631-22878-2-git-send-email-mmayer@broadcom.com>
+List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/dri-devel>,
+ <mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
+List-Archive: <https://lists.freedesktop.org/archives/dri-devel>
+List-Post: <mailto:dri-devel@lists.freedesktop.org>
+List-Help: <mailto:dri-devel-request@lists.freedesktop.org?subject=help>
+List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/dri-devel>,
+ <mailto:dri-devel-request@lists.freedesktop.org?subject=subscribe>
+Errors-To: dri-devel-bounces@lists.freedesktop.org
+Sender: "dri-devel" <dri-devel-bounces@lists.freedesktop.org>
+To: Markus Mayer <mmayer@broadcom.com>
+Cc: devel@driverdev.osuosl.org, Kees Cook <keescook@chromium.org>, linux-scsi@vger.kernel.org, linux-pm@vger.kernel.org, nouveau@lists.freedesktop.org, Rasmus Villemoes <linux@rasmusvillemoes.dk>, linux-kernel@vger.kernel.org, dri-devel@lists.freedesktop.org, speakup@linux-speakup.org, Chris Metcalf <cmetcalf@ezchip.com>, target-devel@vger.kernel.org, Al Viro <viro@zeniv.linux.org.uk>, Andrew Morton <akpm@linux-foundation.org>, linux-acpi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Jacek Anaszewski <j.anaszewski@samsung.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: "Rafael J. Wysocki" <rafael@kernel.org>, linux-leds@vger.kernel.org, rpurdie@rpsys.net, Len Brown <lenb@kernel.org>, Mika Westerberg <mika.westerberg@linux.intel.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Al Stone <ahs3@redhat.com>
 
-
-
-On 07/07/16 08:13, Jacek Anaszewski wrote:
-> On 07/06/2016 11:15 PM, Rafael J. Wysocki wrote:
->> On Wednesday, July 06, 2016 03:32:25 PM Jacek Anaszewski wrote:
->>> On 07/05/2016 02:33 PM, Jacek Anaszewski wrote:
->>>> On 07/05/2016 02:12 PM, Rafael J. Wysocki wrote:
->>>>> On Tue, Jul 5, 2016 at 12:47 PM, Jacek Anaszewski
->>>>> <j.anaszewski@samsung.com> wrote:
->>>>>> PING
->>>>>>
->>>>>>
->>>>>> On 06/29/2016 12:54 PM, Jacek Anaszewski wrote:
->>>>>>>
->>>>>>> On 06/29/2016 12:07 PM, Tony wrote:
->>>>>>>>
->>>>>>>>
->>>>>>>> On 29/06/16 07:52, Jacek Anaszewski wrote:
->>>>>>>>>
->>>>>>>>> Hi Rafael,
->>>>>>>>
->>>>>>>>
->>>>>>>>>>> +#ifdef CONFIG_ACPI
->>>>>>>>>>> +static const struct acpi_device_id lp3952_acpi_match[] = {
->>>>>>>>>>> +    {LP3952_ACPI_NAME, 0},
->>>>>>>>>>
->>>>>>>>>>
->>>>>>>>>> No, you can't use "PRP0001" in this list.
->>>>>>>>>>
->>>>>>>>>>> +    {}
->>>>>>>>>>> +};
->>>>>>>>>>> +
->>>>>>>>>>> +MODULE_DEVICE_TABLE(acpi, lp3952_acpi_match);
->>>>>>>>>>
->>>>>>>>>>
->>>>>>>>>> And you don't need this for the "PRP0001" thing to work.  The
->>>>>>>>>> core will
->>>>>>>>>> take care of it for you then.
->>>>>>>>>>
->>>>>>>>>>> +#endif
->>>>>>>>>>
->>>>>>>>>>
->>>>>>>>>> So the entire ACPI block can be dropped for now.
->>>>>>>>>>
->>>>>>>>>> And the driver doesn't have to depend on CONFIG_ACPI any more,
->>>>>>>>>> does it?
->>>>>>>>>
->>>>>>>>>
->>>>>>>>> The driver currently supports probing only with ACPI.
->>>>>>>>> I have one question BTW: isn't there anything similar to the
->>>>>>>>> device tree
->>>>>>>>> bindings documentation required for ACPI overlays?
->>>>>>>>> Pointer to the discussion which led us to this solution:
->>>>>>>>>
->>>>>>>>> http://www.spinics.net/lists/linux-leds/msg06230.html
->>>>>>>>>
->>>>>>>> _DSD is working now. I managed to get "PRP0001" working as
->>>>>>>> suggested by
->>>>>>>> Rafael in
->>>>>>>> http://marc.info/?l=linux-acpi&m=146711623115228&w=2
->>>>>>>> with _DSD
->>>>>>>
->>>>>>>
->>>>>>> Thanks for the link.
->>>>>>>
->>>>>>> Rafael, "Package" entries seem to mimic Device Tree properties
->>>>>>> defined
->>>>>>> in the common leds bindings. Would it be possible to make it even
->>>>>>> more compatible and define every LED connected to the LED controller
->>>>>>> in the form of a child node, similarly as in case of LED DT
->>>>>>> bindings?
->>>>>>>
->>>>>>> See Documentation/devicetree/bindings/leds/common.txt and other
->>>>>>> bindings in Documentation/devicetree/bindings/leds.
->>>>>
->>>>> I'm not sure what you mean.
->>>>>
->>>>> If somebody decides to arrange the data in their ACPI tables to follow
->>>>> that scheme, it will just work IMO.
->>>>>
->>>>> Is there anything more that needs to be done in the kernel here?
->>>>
->>>> In case of Device Tree based platforms it is customary to define each
->>>> LED as a child node of the LED controller node. LED names can then
->>>> be obtained from the 'label' property or DT node name.
->>>> Tony has encountered some issues [1] while trying to follow this
->>>> pattern. Tony, could you please double check that?
->>>>
->>>> [1] http://www.spinics.net/lists/linux-leds/msg06230.html
->>>
->>> One more question: now anyone wanting to use the driver would have
->>> to investigate the code to infer what DSD properties need to be
->>> provided for it. Isn't there anything similar to
->>> Documentation/devicetree/bindings/* documentation required in case of
->>> DSD?
->>
->> There is a plan to set up a database for these, but that's still
->> under discussion (Al Stone has posted some related documentation for
->> comments recently).
->>
->>> I've also come across your presentation [1], which describes the
->>> device_property* API for parsing unified DT/ACPI device properties.
->>> IMO it would be good solution for this driver as the device seems not
->>> to be tightly coupled with only ACPI platforms.
->>>
->>>
->>> [1]
->>> http://events.linuxfoundation.org/sites/events/files/slides/ACPI_vs_DT.pdf
->>>
->>
->> The device_property* API should be used everywhere where (a)
->> properties are
->> used and (b) the code has no specific need to use a particular platform
->> firmware interface (ACPI or DT), so I agree.
->
-> Tony, could you try switching to device_property* API and make
-> the DSD properties as much compatible with Device Tree ones as possible?
->
-Sure will replace 'acpi_dev_get_property' with
-'device_property_read_string'.
-
-I am new to both ACPI and Device Tree. So not sure whether there is any
-naming convention to follow for led name handles in device tree.
-review comments for v8 patch, it was suggested to use "reg" property.
-We shall continue the discussion on led name handles, on that
-thread to avoid duplication.
-
-> We haven't tried it in the LED subsystem so far but it is a good
-> occasion to do so.
->
+T24gVHVlLCBKdWwgMDUsIDIwMTYgYXQgMDE6NDc6MDVQTSAtMDcwMCwgTWFya3VzIE1heWVyIHdy
+b3RlOgo+IEFsbCBmdW5jdGlvbnMgcmV0dXJuIGEgcG9pbnRlciB0byB0aGUgdGVybWluYXRpbmcg
+J1wwJyBjaGFyYWN0ZXIgaW4gdGhlCj4gbW9kaWZpZWQgc3RyaW5nICgiZHN0IiBvciAicyIsIHJl
+c3BlY3RpdmVseSkuCgpJIHRoaW5rIHRoaXMgaXMgZ29pbmcgdG8gYmUgY29uZnVzaW5nLiBGcm9t
+IHRoZSBtYW46CgoJVGhlIHN0cmNweSgpIGFuZCBzdHJuY3B5KCkgZnVuY3Rpb25zIHJldHVybiBh
+IHBvaW50ZXIgdG8gdGhlCglkZXN0aW5hdGlvbiBzdHJpbmcgZGVzdC4KCkkgdGhpbmsgaXQgd291
+bGQgYmUgYmV0dGVyIHRvIGtlZXAgdGhlIHNhbWUgYmVoYXZpb3VyLCBlc3BlY2lhbGx5IHNpbmNl
+CnlvdSB1c2VkIHRoZSBzYW1lIG5hbWUgZm9yIHlvdXIgZnVuY3Rpb25zICh3aGljaCBJIHRoaW5r
+IGlzIHNlbnNpYmxlKSwKbm90IHRvIG1lbnRpb24geW91IGRvbid0IHVzZSB0aGlzIHJldHVybiB2
+YWx1ZSBpbiBhbnkgb2YgeW91ciBjYWxscy4KKElNSE8gc3RyY3B5KCkgc2hvdWxkbid0IGhhdmUg
+aGFkIGEgcmV0dXJuIHZhbHVlIGFuZCBuZWl0aGVyIHNob3VsZCB5b3VyCmZ1bmN0aW9ucywgYnV0
+IHNpbmNlIGl0IGRvZXMsIHlvdXJzIHNob3VsZCBtYXRjaC4pCgpDaGVlcnMsCiAgRXJpYwpfX19f
+X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fXwpkcmktZGV2ZWwgbWFp
+bGluZyBsaXN0CmRyaS1kZXZlbEBsaXN0cy5mcmVlZGVza3RvcC5vcmcKaHR0cHM6Ly9saXN0cy5m
+cmVlZGVza3RvcC5vcmcvbWFpbG1hbi9saXN0aW5mby9kcmktZGV2ZWwK
