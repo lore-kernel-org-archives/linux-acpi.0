@@ -1,122 +1,87 @@
-From: Sudeep Holla <sudeep.holla@arm.com>
-Subject: Re: [PATCH v7 4/6] cpuidle: introduce HAVE_GENERIC_CPUIDLE_ENTER for
- ARM{32,64} platforms
-Date: Thu, 7 Jul 2016 14:34:36 +0100
-Message-ID: <577E5A6C.9020007@arm.com>
-References: <1467122152-5604-1-git-send-email-sudeep.holla@arm.com>
- <1467122152-5604-5-git-send-email-sudeep.holla@arm.com>
- <1675585.udvKUofiJK@vostro.rjw.lan>
+From: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+Subject: Re: [PATCH v6 00/10] acpi, clocksource: add GTDT driver and GTDT
+ support in arm_arch_timer
+Date: Thu, 7 Jul 2016 14:40:23 +0100
+Message-ID: <20160707134023.GA655@red-moon>
+References: <1467224153-22873-1-git-send-email-fu.wei@linaro.org>
+ <CAJZ5v0iFUH3CgN2d1t8V13aRYdibiZSy+26sNLz3E-8mNvsn6Q@mail.gmail.com>
+ <baf8e09d-0249-9da2-1a78-aac3bc35b8b5@linaro.org>
+ <1890708.ZTyM2PUGdP@vostro.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"; Format="flowed"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <1675585.udvKUofiJK@vostro.rjw.lan>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Al Stone <al.stone@linaro.org>, PrashanthPrakash <pprakash@codeaurora.org>, Vikas Sajjan <vikas.cha.sajjan@hpe.com>, Daniel Lezcano <daniel.lezcano@linaro.org>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Ashwin Chaugule <ashwin.chaugule@linaro.org>, Sudeep Holla <sudeep.holla@arm.com>, linux-arm-kernel@lists.infradead.org, Sunil <sunil.vl@hpe.com>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from foss.arm.com ([217.140.101.70]:36543 "EHLO foss.arm.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751400AbcGGNji (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 7 Jul 2016 09:39:38 -0400
+Content-Disposition: inline
+In-Reply-To: <1890708.ZTyM2PUGdP@vostro.rjw.lan>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: Hanjun Guo <hanjun.guo@linaro.org>, "Rafael J. Wysocki" <rafael@kernel.org>, Graeme Gregory <gg@slimlogic.co.uk>, Will Deacon <will.deacon@arm.com>, Catalin Marinas <catalin.marinas@arm.com>, Fu Wei <fu.wei@linaro.org>, Len Brown <lenb@kernel.org>, Daniel Lezcano <daniel.lezcano@linaro.org>, Thomas Gleixner <tglx@linutronix.de>, Marc Zyngier <marc.zyngier@arm.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linaro-acpi@lists.linaro.org" <linaro-acpi@lists.linaro.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, rruigrok@codeaurora.org, harba@codeaurora.org, Christopher Covington <cov@codeaurora.org>, Timur Tabi <timur@codeaurora.org>, G Gregory <graeme.gregory@linaro.org>, Al Stone <al.stone@linaro.org>, Jon Masters <jcm@redhat.com>, wei@redhat.com, Arnd
 
+[+Sudeep]
 
-
-On 07/07/16 14:21, Rafael J. Wysocki wrote:
-> On Tuesday, June 28, 2016 02:55:50 PM Sudeep Holla wrote:
->> The function arm_enter_idle_state is exactly the same in both generic
->> ARM{32,64} CPUIdle driver and will be the same even on ARM64 backend
->> for ACPI processor idle driver. So we can unify it and move it as
->> generic_cpuidle_enter by introducing HAVE_GENERIC_CPUIDLE_ENTER and
->> enabling the same on both ARM{32,64}.
->>
->> This is in preparation of reuse of the generic cpuidle entry function
->> for ACPI LPI support on ARM64.
->>
->> Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>
->> Cc: Daniel Lezcano <daniel.lezcano@linaro.org>
->> Cc: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
->> Signed-off-by: Sudeep Holla <sudeep.holla@arm.com>
->> ---
->>   arch/arm/Kconfig              |  1 +
->>   arch/arm/kernel/cpuidle.c     |  4 ++--
->>   arch/arm64/Kconfig            |  1 +
->>   arch/arm64/kernel/cpuidle.c   |  6 +++---
->>   drivers/cpuidle/Kconfig       |  3 +++
->>   drivers/cpuidle/cpuidle-arm.c | 21 +--------------------
->>   drivers/cpuidle/cpuidle.c     | 35 +++++++++++++++++++++++++++++++++++
->>   include/linux/cpuidle.h       |  8 ++++++++
->>   8 files changed, 54 insertions(+), 25 deletions(-)
->>
->> diff --git a/arch/arm/Kconfig b/arch/arm/Kconfig
->> index 90542db1220d..52b3dca0381c 100644
->> --- a/arch/arm/Kconfig
->> +++ b/arch/arm/Kconfig
->> @@ -54,6 +54,7 @@ config ARM
->>   	select HAVE_FTRACE_MCOUNT_RECORD if (!XIP_KERNEL)
->>   	select HAVE_FUNCTION_GRAPH_TRACER if (!THUMB2_KERNEL)
->>   	select HAVE_FUNCTION_TRACER if (!XIP_KERNEL)
->> +	select HAVE_GENERIC_CPUIDLE_ENTER
->
-> That "generic" part in the name concerns me a bit, because the thing is not
-> really generic.  It is "common on ARM" rather.
->
-
-I agree and that's exactly what I told Daniel. It's rather just
-*ARM Generic*. Any preference on the name ? I had it header file under
-include/linu/cpuidle-arm.h in the previous version. Do you prefer that ?
-
-[..]
-
->> @@ -255,6 +256,40 @@ int cpuidle_select(struct cpuidle_driver *drv, struct cpuidle_device *dev)
->>   }
->>
->>   /**
->> + * cpuidle_generic_enter_state - enter into the specified idle state using the
->> + *				 generic callback if implemented
->> + *
->> + * @index: the index in the idle state table
->> + *
->> + * Returns the index in the idle state, -1 in case of error.
->> + */
->> +int cpuidle_generic_enter_state(int idx)
->> +{
->> +	int ret;
->> +
->> +	if (!idx) {
->> +		cpu_do_idle();
->> +		return idx;
->> +	}
->> +
->> +	ret = cpu_pm_enter();
->
-> If you look at the users of cpu_pm_enter(), they are all ARM.  Nobody else uses
-> it, so at least please put cpuidle_generic_enter_state() under a #ifdef to avoid
-> building it in vain on non-ARM.
->
-
-Agreed, that should be taken care once I do the changes you are
-suggesting below.
+On Thu, Jul 07, 2016 at 02:03:17PM +0200, Rafael J. Wysocki wrote:
 
 [...]
 
->> @@ -246,6 +248,12 @@ static inline int cpuidle_register_governor(struct cpuidle_governor *gov)
->>   {return 0;}
->>   #endif
->>
->> +#ifdef CONFIG_HAVE_GENERIC_CPUIDLE_ENTER
->> +extern int cpuidle_generic_enter(int idx);
->
-> And if you put it under the #ifdef here, its definition also should go under
-> the same #ifdef.
->
+> > >> So is this a documentation issue in which case Fu Wei can add that to
+> > >> the file to explain its limited to ARM64. Or we could even rename the
+> > >> file acpi_arm64_gtdt.c
+> > >>
+> > >> It seems a pity as the comment on this series were minors to block
+> > >> things on a filename/location.
+> > >
+> > > Let me repeat what I said above:
+> > >
+> > > I'm mostly concerned about how (and by whom) that code is going to be
+> > > maintained going forward.
+> > >
+> > > This is not about documentation, it is about responsibility.
+> > >
+> > > Honestly, I don't think I'm the right maintainer to apply the patch
+> > > introducing this code and then handle bug reports regarding it and so
+> > > on.  That has to be done by somebody else.
+> > 
+> > I'm working on ACPI for years and upstreamed the ARM64 ACPI core
+> > support (with lots of people's help), I'm willing to maintain the ARM64
+> > ACPI code under drivers/acpi/ if no objections.
+> 
+> OK
 
-Yes I will do that.
+I would ask you please to add Sudeep and myself for the ARM64 specific
+ACPI code maintainership too.
 
--- 
-Regards,
-Sudeep
+> Can the ARM64-specific code go under drivers/acpi/arm64/ then, for clarity?
+
+It can, but I do not understand why x86 should not have a separate
+directory for all x86 specific stuff too then.
+
+Anyway let's avoid these petty arguments, I agree there must be some
+sort of ARM64 ACPI maintainership for the reasons you mentioned above.
+
+> > > That's one thing.
+> > >
+> > > Another one is the question I asked a few messages ago: Why having the
+> > > GTDT code in drivers/acpi/ is actually useful to anyone?  It
+> > > definitely would not be useful to me as the maintainer of
+> > > drivers/acpi/, but maybe it would be useful to somebody for a specific
+> > > practical reason.  Or is it just "let's put this into drivers/acpi/
+> > > for the lack of a better place"?
+
+The same logic applies to eg ioapic.c but anyway, see above, if it
+can help having a separate subdirectory let's do it.
+
+> > Having GTDT code in drivers/acpi/ is useful as it is code that is used
+> > by two different subsystems, clocksource and watchdog,and where people
+> > look by default for utility ACPI code.
+> > 
+> > If the mostly concerned thing (maintainer ship) is settled down, the
+> > second question would be easily solved.
+
+See above.
+
+Thanks,
+Lorenzo
