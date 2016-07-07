@@ -1,140 +1,84 @@
 From: Lv Zheng <lv.zheng@intel.com>
-Subject: [PATCH v2 3/4] ACPI / button: Add SW_ACPI_LID for new usage model
-Date: Thu,  7 Jul 2016 15:10:52 +0800
-Message-ID: <916d5a5b0df5dbe14283ddb31f1128efefbfd1e2.1467875143.git.lv.zheng@intel.com>
+Subject: [PATCH v2 2/4] ACPI / debugger: Add AML debugger documentation
+Date: Thu,  7 Jul 2016 15:10:45 +0800
+Message-ID: <543ee2a667fb3b18529dabc198c7c0c79d843c76.1467875143.git.lv.zheng@intel.com>
 References: <cover.1467717304.git.lv.zheng@intel.com> <cover.1467875142.git.lv.zheng@intel.com>
-Return-path: <linux-input-owner@vger.kernel.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <cover.1467875142.git.lv.zheng@intel.com>
-Sender: linux-input-owner@vger.kernel.org
+Sender: linux-kernel-owner@vger.kernel.org
 To: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <len.brown@intel.com>
-Cc: Lv Zheng <lv.zheng@intel.com>, Lv Zheng <zetalog@gmail.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, "Bastien Nocera:" <hadess@hadess.net>, Benjamin Tissoires <benjamin.tissoires@gmail.com>, linux-input@vger.kernel.org
+Cc: Lv Zheng <lv.zheng@intel.com>, Lv Zheng <zetalog@gmail.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-There are many AML tables reporting wrong initial lid state, and some of
-them never reports lid state. As a proxy layer acting between, ACPI button
-driver is not able to handle all such cases, but need to re-define the
-usage model of the ACPI lid. That is:
-1. It's initial state is not reliable;
-2. There may not be open event;
-3. Userspace should only take action against the close event which is
-   reliable, always sent after a real lid close.
-This patch adds a new input key event so that new userspace programs can
-use it to handle this usage model correctly. And in the meanwhile, no old
-programs will be broken by the userspace changes.
+This patch adds AML debugger documentation.
 
-Link: https://lkml.org/2016/3/7/460
-Link: https://github.com/systemd/systemd/issues/2087
 Signed-off-by: Lv Zheng <lv.zheng@intel.com>
-Cc: Bastien Nocera: <hadess@hadess.net>
-Cc: Benjamin Tissoires <benjamin.tissoires@gmail.com>
-Cc: linux-input@vger.kernel.org
 ---
- drivers/acpi/button.c                  |   20 ++++++++++++++------
- include/linux/mod_devicetable.h        |    2 +-
- include/uapi/linux/input-event-codes.h |    3 ++-
- 3 files changed, 17 insertions(+), 8 deletions(-)
+ Documentation/acpi/aml-debugger.txt |   56 +++++++++++++++++++++++++++++++++++
+ 1 file changed, 56 insertions(+)
+ create mode 100644 Documentation/acpi/aml-debugger.txt
 
-diff --git a/drivers/acpi/button.c b/drivers/acpi/button.c
-index 148f4e5..4ef94d2 100644
---- a/drivers/acpi/button.c
-+++ b/drivers/acpi/button.c
-@@ -130,7 +130,8 @@ static int acpi_lid_evaluate_state(struct acpi_device *device)
- 	return lid_state ? 1 : 0;
- }
- 
--static int acpi_lid_notify_state(struct acpi_device *device, int state)
-+static int acpi_lid_notify_state(struct acpi_device *device,
-+				 int state, bool notify_acpi)
- {
- 	struct acpi_button *button = acpi_driver_data(device);
- 	int ret;
-@@ -138,6 +139,11 @@ static int acpi_lid_notify_state(struct acpi_device *device, int state)
- 	/* input layer checks if event is redundant */
- 	input_report_switch(button->input, SW_LID, !state);
- 	input_sync(button->input);
-+	if (notify_acpi) {
-+		input_report_switch(button->input,
-+				    SW_ACPI_LID, !state);
-+		input_sync(button->input);
-+	}
- 
- 	if (state)
- 		pm_wakeup_event(&device->dev, 0);
-@@ -279,7 +285,8 @@ int acpi_lid_open(void)
- }
- EXPORT_SYMBOL(acpi_lid_open);
- 
--static int acpi_lid_update_state(struct acpi_device *device)
-+static int acpi_lid_update_state(struct acpi_device *device,
-+				 bool notify_acpi)
- {
- 	int state;
- 
-@@ -287,17 +294,17 @@ static int acpi_lid_update_state(struct acpi_device *device)
- 	if (state < 0)
- 		return state;
- 
--	return acpi_lid_notify_state(device, state);
-+	return acpi_lid_notify_state(device, state, notify_acpi);
- }
- 
- static void acpi_lid_initialize_state(struct acpi_device *device)
- {
- 	switch (lid_init_state) {
- 	case ACPI_BUTTON_LID_INIT_OPEN:
--		(void)acpi_lid_notify_state(device, 1);
-+		(void)acpi_lid_notify_state(device, 1, false);
- 		break;
- 	case ACPI_BUTTON_LID_INIT_METHOD:
--		(void)acpi_lid_update_state(device);
-+		(void)acpi_lid_update_state(device, false);
- 		break;
- 	case ACPI_BUTTON_LID_INIT_IGNORE:
- 	default:
-@@ -317,7 +324,7 @@ static void acpi_button_notify(struct acpi_device *device, u32 event)
- 	case ACPI_BUTTON_NOTIFY_STATUS:
- 		input = button->input;
- 		if (button->type == ACPI_BUTTON_TYPE_LID) {
--			acpi_lid_update_state(device);
-+			acpi_lid_update_state(device, true);
- 		} else {
- 			int keycode;
- 
-@@ -436,6 +443,7 @@ static int acpi_button_add(struct acpi_device *device)
- 
- 	case ACPI_BUTTON_TYPE_LID:
- 		input_set_capability(input, EV_SW, SW_LID);
-+		input_set_capability(input, EV_SW, SW_ACPI_LID);
- 		break;
- 	}
- 
-diff --git a/include/linux/mod_devicetable.h b/include/linux/mod_devicetable.h
-index 6e4c645..1014968 100644
---- a/include/linux/mod_devicetable.h
-+++ b/include/linux/mod_devicetable.h
-@@ -291,7 +291,7 @@ struct pcmcia_device_id {
- #define INPUT_DEVICE_ID_LED_MAX		0x0f
- #define INPUT_DEVICE_ID_SND_MAX		0x07
- #define INPUT_DEVICE_ID_FF_MAX		0x7f
--#define INPUT_DEVICE_ID_SW_MAX		0x0f
-+#define INPUT_DEVICE_ID_SW_MAX		0x10
- 
- #define INPUT_DEVICE_ID_MATCH_BUS	1
- #define INPUT_DEVICE_ID_MATCH_VENDOR	2
-diff --git a/include/uapi/linux/input-event-codes.h b/include/uapi/linux/input-event-codes.h
-index 737fa32..81c344c 100644
---- a/include/uapi/linux/input-event-codes.h
-+++ b/include/uapi/linux/input-event-codes.h
-@@ -780,7 +780,8 @@
- #define SW_ROTATE_LOCK		0x0c  /* set = rotate locked/disabled */
- #define SW_LINEIN_INSERT	0x0d  /* set = inserted */
- #define SW_MUTE_DEVICE		0x0e  /* set = device disabled */
--#define SW_MAX			0x0f
-+#define SW_ACPI_LID		0x0f  /* set = lid shut */
-+#define SW_MAX			0x10
- #define SW_CNT			(SW_MAX+1)
- 
- /*
+diff --git a/Documentation/acpi/aml-debugger.txt b/Documentation/acpi/aml-debugger.txt
+new file mode 100644
+index 0000000..2f1c184
+--- /dev/null
++++ b/Documentation/acpi/aml-debugger.txt
+@@ -0,0 +1,56 @@
++The AML Debugger
++
++Copyright (C) 2016, Intel Corporation
++Author: Lv Zheng <lv.zheng@intel.com>
++
++
++Abstract:
++
++This document describes the usage of the AML debugger embedded in the Linux
++kernel.
++
++1. Build the debugger
++
++   The following kernel configuration items are required to enable the AML
++   debugger interface from the Linux kernel:
++   CONFIG_ACPI_DEBUGGER=y
++   CONFIG_ACPI_DEBUGGER_USER=m
++   The userspace utlities can be built from the kernel source tree using
++   the following commands:
++   # cd tools
++   # make acpi
++   The built userspace tool can be found at:
++     tools/acpi/power/acpi/acpidbg/acpidbg
++   You can install it to the system directories using the following
++   command:
++   # make install
++
++2. Start the userspace debugger interface
++
++   After booting the kernel with the debugger built-in, developers can
++   start the debugger with the following commands:
++   # mount -t debugfs none /sys/kernel/debug
++   # modprobe acpi_dbg
++   # tools/acpi/power/acpi/acpidbg/acpidbg
++   Now you have entered the interactive AML debugger environment, where
++   you can execute the debugger functionalities by typing the debugger
++   commands.
++   You can start to use it from typing "help" command and can download
++   <ACPICA Overview and Programmer Reference> from the following site:
++     https://acpica.org/documentation
++   And find detailed command reference in "Chapter 12. ACPICA Debugger
++   Reference".
++
++3. Stop the userspace debugger interface
++
++   You can type the Ctrl+C, quit, exit to end the interactive debugger
++   interface. And unload the module with the following commands:
++   # rmmod acpi_dbg
++   The module unloading may fail if there is an acpidbg instance running.
++
++4. Run the debugger in a script
++
++   It will be very useful to have the ability to run the AML debugger in
++   a test script. "acpidbg" supports this in a special "batch" mode. For
++   example, the following command outputs the entire ACPI namespace:
++   # acpidbg -b "namespace"
 -- 
 1.7.10
-
