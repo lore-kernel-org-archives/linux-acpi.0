@@ -1,16 +1,16 @@
 From: "Zheng, Lv" <lv.zheng@intel.com>
 Subject: RE: Regression between rc2 and rc6: ACPI EC problems
-Date: Thu, 7 Jul 2016 00:30:05 +0000
-Message-ID: <1AE640813FDE7649BE1B193DEA596E883BC007CE@SHSMSX101.ccr.corp.intel.com>
+Date: Thu, 7 Jul 2016 00:31:02 +0000
+Message-ID: <1AE640813FDE7649BE1B193DEA596E883BC007E1@SHSMSX101.ccr.corp.intel.com>
 References: <20160706141410.GA1430@tetsubishi>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 8BIT
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga09.intel.com ([134.134.136.24]:57271 "EHLO mga09.intel.com"
+Received: from mga01.intel.com ([192.55.52.88]:30428 "EHLO mga01.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755811AbcGGAaK convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 6 Jul 2016 20:30:10 -0400
+	id S1755888AbcGGAbI convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 6 Jul 2016 20:31:08 -0400
 In-Reply-To: <20160706141410.GA1430@tetsubishi>
 Content-Language: en-US
 Sender: linux-acpi-owner@vger.kernel.org
@@ -18,7 +18,13 @@ List-Id: linux-acpi@vger.kernel.org
 To: Wolfram Sang <wsa@the-dreams.de>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
 Cc: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
 
-Hi, Wolfram
+Hi, Walfram
+
+You can register onto the kernel Bugzilla and monitor this bug for further updates:
+https://bugzilla.kernel.org/show_bug.cgi?id=102421
+
+Thanks and best regards
+-Lv
 
 > From: linux-acpi-owner@vger.kernel.org [mailto:linux-acpi-
 > owner@vger.kernel.org] On Behalf Of Wolfram Sang
@@ -52,11 +58,8 @@ Hi, Wolfram
 > Does that ring a bell for someone? This little machine has only an SSD
 > without TRIM, so bisecting is not really an option. I can provide more
 > info and test patches, though.
-[Lv Zheng] 
-Please just ignore this for several release cycles.
-We need strategy to fix the ACPI initialization order issues.
-This is already a noted non-function-failure issue.
-We just need to fix the functional ones prior than this.
+> 
+> Thanks,
+> 
+>    Wolfram
 
-Thanks and best regards
--Lv
