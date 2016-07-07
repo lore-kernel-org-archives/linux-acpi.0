@@ -1,84 +1,287 @@
 From: Lv Zheng <lv.zheng@intel.com>
-Subject: [PATCH v2 2/4] ACPI / debugger: Add AML debugger documentation
-Date: Thu,  7 Jul 2016 15:10:45 +0800
-Message-ID: <543ee2a667fb3b18529dabc198c7c0c79d843c76.1467875143.git.lv.zheng@intel.com>
+Subject: [PATCH v2 1/4] ACPI: Add documentation describing ACPICA release automation
+Date: Thu,  7 Jul 2016 15:10:36 +0800
+Message-ID: <a9b9bdf43837bee8cbcf7726aea757b461fc61c0.1467875143.git.lv.zheng@intel.com>
 References: <cover.1467717304.git.lv.zheng@intel.com> <cover.1467875142.git.lv.zheng@intel.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga04.intel.com ([192.55.52.120]:29839 "EHLO mga04.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756211AbcGGHLr (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 7 Jul 2016 03:11:47 -0400
 In-Reply-To: <cover.1467875142.git.lv.zheng@intel.com>
-Sender: linux-kernel-owner@vger.kernel.org
+Sender: linux-acpi-owner@vger.kernel.org
+List-Id: linux-acpi@vger.kernel.org
 To: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <len.brown@intel.com>
 Cc: Lv Zheng <lv.zheng@intel.com>, Lv Zheng <zetalog@gmail.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
-List-Id: linux-acpi@vger.kernel.org
 
-This patch adds AML debugger documentation.
+This patch adds documentation on ACPICA release automation into the kernel
+Documentation/acpi folder.
 
 Signed-off-by: Lv Zheng <lv.zheng@intel.com>
 ---
- Documentation/acpi/aml-debugger.txt |   56 +++++++++++++++++++++++++++++++++++
- 1 file changed, 56 insertions(+)
- create mode 100644 Documentation/acpi/aml-debugger.txt
+ Documentation/acpi/linuxized-acpica.txt |  253 +++++++++++++++++++++++++++++++
+ 1 file changed, 253 insertions(+)
+ create mode 100644 Documentation/acpi/linuxized-acpica.txt
 
-diff --git a/Documentation/acpi/aml-debugger.txt b/Documentation/acpi/aml-debugger.txt
+diff --git a/Documentation/acpi/linuxized-acpica.txt b/Documentation/acpi/linuxized-acpica.txt
 new file mode 100644
-index 0000000..2f1c184
+index 0000000..74103c1
 --- /dev/null
-+++ b/Documentation/acpi/aml-debugger.txt
-@@ -0,0 +1,56 @@
-+The AML Debugger
++++ b/Documentation/acpi/linuxized-acpica.txt
+@@ -0,0 +1,253 @@
++Linuxized ACPICA - Introduction of ACPICA Release Automation
 +
-+Copyright (C) 2016, Intel Corporation
++Copyright (C) 2013-2016, Intel Corporation
 +Author: Lv Zheng <lv.zheng@intel.com>
 +
 +
 +Abstract:
 +
-+This document describes the usage of the AML debugger embedded in the Linux
-+kernel.
++This document describes the ACPICA project and the relationship between
++ACPICA and Linux.  It also includes the descriptions on how ACPICA code is
++automatically released to the following Linux subdirectories:
++drivers/acpi/acpica, include/acpi and tools/power/acpi.
 +
-+1. Build the debugger
 +
-+   The following kernel configuration items are required to enable the AML
-+   debugger interface from the Linux kernel:
-+   CONFIG_ACPI_DEBUGGER=y
-+   CONFIG_ACPI_DEBUGGER_USER=m
-+   The userspace utlities can be built from the kernel source tree using
-+   the following commands:
-+   # cd tools
-+   # make acpi
-+   The built userspace tool can be found at:
-+     tools/acpi/power/acpi/acpidbg/acpidbg
-+   You can install it to the system directories using the following
-+   command:
-+   # make install
++1. ACPICA Project
 +
-+2. Start the userspace debugger interface
++   The ACPI Component Architecture (ACPICA) project provides an operating
++   system (OS)-independent reference implementation of the Advanced
++   Configuration and Power Interface Specification (ACPI).  It has been
++   adapted by various host OSes.  By directly integrating ACPICA, Linux can
++   also benefit from the application experiences of ACPICA from other host
++   OSes.
 +
-+   After booting the kernel with the debugger built-in, developers can
-+   start the debugger with the following commands:
-+   # mount -t debugfs none /sys/kernel/debug
-+   # modprobe acpi_dbg
-+   # tools/acpi/power/acpi/acpidbg/acpidbg
-+   Now you have entered the interactive AML debugger environment, where
-+   you can execute the debugger functionalities by typing the debugger
-+   commands.
-+   You can start to use it from typing "help" command and can download
-+   <ACPICA Overview and Programmer Reference> from the following site:
-+     https://acpica.org/documentation
-+   And find detailed command reference in "Chapter 12. ACPICA Debugger
-+   Reference".
++   The homepage of ACPICA project is: www.acpica.org, it is maintained and
++   supported by Intel Corporation.
 +
-+3. Stop the userspace debugger interface
++   The following figure dipicts the Linux ACPI subystem where the ACPICA
++   adaption is included:
 +
-+   You can type the Ctrl+C, quit, exit to end the interactive debugger
-+   interface. And unload the module with the following commands:
-+   # rmmod acpi_dbg
-+   The module unloading may fail if there is an acpidbg instance running.
++      +---------------------------------------------------------+
++      |                                                         |
++      |   +---------------------------------------------------+ |
++      |   | +------------------+                              | |
++      |   | | Table Management |                              | |
++      |   | +------------------+                              | |
++      |   | +----------------------+                          | |
++      |   | | Namespace Management |                          | |
++      |   | +----------------------+                          | |
++      |   | +------------------+       ACPICA Components      | |
++      |   | | Event Management |                              | |
++      |   | +------------------+                              | |
++      |   | +---------------------+                           | |
++      |   | | Resource Management |                           | |
++      |   | +---------------------+                           | |
++      |   | +---------------------+                           | |
++      |   | | Hardware Management |                           | |
++      |   | +---------------------+                           | |
++      | +---------------------------------------------------+ | |
++      | | |                            +------------------+ | | |
++      | | |                            | OS Service Layer | | | |
++      | | |                            +------------------+ | | |
++      | | +-------------------------------------------------|-+ |
++      | |   +--------------------+                          |   |
++      | |   | Device Enumeration |                          |   |
++      | |   +--------------------+                          |   |
++      | |   +------------------+                            |   |
++      | |   | Power Management |                            |   |
++      | |   +------------------+     Linux/ACPI Components  |   |
++      | |   +--------------------+                          |   |
++      | |   | Thermal Management |                          |   |
++      | |   +--------------------+                          |   |
++      | |   +--------------------------+                    |   |
++      | |   | Drivers for ACPI Devices |                    |   |
++      | |   +--------------------------+                    |   |
++      | |   +--------+                                      |   |
++      | |   | ...... |                                      |   |
++      | |   +--------+                                      |   |
++      | +---------------------------------------------------+   |
++      |                                                         |
++      +---------------------------------------------------------+
 +
-+4. Run the debugger in a script
++                 Figure 1. Linux ACPI Software Components
 +
-+   It will be very useful to have the ability to run the AML debugger in
-+   a test script. "acpidbg" supports this in a special "batch" mode. For
-+   example, the following command outputs the entire ACPI namespace:
-+   # acpidbg -b "namespace"
++   NOTE:
++    A. OS Service Layer - Provided by Linux to offer OS dependent
++       implementation of the predefined ACPICA interfaces (acpi_os_*).
++         include/acpi/acpiosxf.h
++         drivers/acpi/osl.c
++         include/acpi/platform
++         include/asm/acenv.h
++    B. ACPICA Functionalities - Released from ACPICA code base to offer
++       OS independent implementation of the ACPICA interfaces (acpi_*).
++         drivers/acpi/acpica
++         include/acpi/ac*.h
++         tools/power/acpi
++    C. Linux/ACPI Functionalities - Providing Linux specific ACPI
++       functionalities to the other Linux kernel subsystems and the user
++       space programs.
++         drivers/acpi
++         include/linux/acpi.h
++         include/linux/acpi*.h
++         include/acpi
++         tools/power/acpi
++    D. Architecture Specific ACPICA/ACPI Functionalities - Provided by the
++       ACPI subsystem to offer architecture specific implementation of the
++       ACPI interfaces.  They are Linux specific components, and is out of
++       the scope of this document.
++         include/asm/acpi.h
++         include/asm/acpi*.h
++         arch/*/acpi
++
++2. ACPICA Release
++
++   ACPICA project maintains a code base at the following repository URL:
++   https://github.com/acpica/acpica.git.  It is released once a month.
++
++   As the coding style adopted by the ACPICA project is not acceptable by
++   Linux, there is a release process to convert the ACPICA GIT commits into
++   the Linux acceptable patches.  The patches generated by this process are
++   known as "Linuxized ACPICA Patches".  The release process is performed
++   against a local copy of the ACPICA git repository.  Each commit in the
++   monthly release is converted into the linuxized ACPICA patch.  They form
++   a montly ACPICA release patchset for Linux ACPI community.  The
++   following figure dipicts the Linux upstream process of the ACPICA
++   commits:
++
++    +-----------------------------+
++    | acpica / master (-) commits |
++    +-----------------------------+
++       /|\         |
++        |         \|/
++        |  /---------------------\    +----------------------+
++        | < Linuxize repo Utility >-->| old linuxized acpica |--+
++        |  \---------------------/    +----------------------+  |
++        |                                                       |
++     /---------\                                                |
++    < git reset >                                                \
++     \---------/                                                  \
++       /|\                                                        /+-+
++        |                                                        /   |
++    +-----------------------------+                             |    |
++    | acpica / master (+) commits |                             |    |
++    +-----------------------------+                             |    |
++                   |                                            |    |
++                  \|/                                           |    |
++         /-----------------------\    +----------------------+  |    |
++        < Linuxize repo Utilities >-->| new linuxized acpica |--+    |
++         \-----------------------/    +----------------------+       |
++                                                                    \|/
++    +--------------------------+                  /----------------------\
++    | Linuxized ACPICA Patches |<----------------< Linuxize patch Utility >
++    +--------------------------+                  \----------------------/
++                   |
++                  \|/
++     /---------------------------\
++    < Linux ACPI Community Review >
++     \---------------------------/
++                   |
++                  \|/
++    +-----------------------+   /------------------\    +----------------+
++    | linux-pm / linux-next |--< Linux Merge Window >-->| linux / master |
++    +-----------------------+   \------------------/    +----------------+
++
++                Figure 2. ACPICA -> Linux Upstream Process
++
++   NOTE:
++    A. Linuxize Utilities - Provided by the ACPICA repository, including a
++       utility located in source/tools/acpisrc folder and a bunch of
++       scripts located in generate/linux folder.
++    B. acpica / master - "master" branch of the git repository at
++       <https://github.com/acpica/acpica.git>.
++    C. linux-pm / linux-next - "linux-next" branch of the git repository at
++       <http://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm.git>.
++    D. linux / master - "master" branch of the git repository at
++       <http://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git>.
++    E. Linux ACPI Community - Reached at
++       <mailto:linux-acpi@vger.kernel.org>.
++
++   Before the linuxized ACPICA patches are sent to the Linux ACPI community
++   for review, there is a quality ensurance build test process performed to
++   reduce porting issues.  Currently this build process only cares about
++   the following kernel configurations:
++   CONFIG_ACPI/CONFIG_ACPI_DEBUG/CONFIG_ACPI_DEBUGGER
++
++3. ACPICA Divergence
++
++   It's ideal that if all of the ACPICA commits are upstreamed
++   automatically without modifications, the "linux / master" tree should
++   contain the ACPICA code that is exactly same as the ACPICA code
++   contained in "new linuxized acpica" tree and the release process thus
++   could be performed automatically.
++
++   But the facts are there are always source code differences between
++   Linux and ACPICA, such differences are known as "ACPICA Divergences".
++
++   The various sources of the ACPICA divergences include:
++   1. The existing divergences - Before the ACPICA release cycle is
++      fully running, there has already been divergences between Linux and
++      ACPICA. Over the past several years, the divergences are greatly
++      reduced, but there are still several ones and it takes time to figure
++      out the root cause of these old divergences.
++   2. Manual modifications - Any manual modification (ex., coding style
++      fixes) done directly in the Linux side obviously hurts the ACPICA
++      release automation.  Thus it is recommended to fix such issues in the
++      ACPICA upstream and generate the linuxized fix using the ACPICA
++      release utilities (please refer to the Chapter 4 for the details).
++   3. Linux specific features - Sometime, it's impossible to use the
++      current ACPICA APIs to implement the features required by the Linux
++      kernel, the Linux developers have to hack ACPICA code directly.  Such
++      hacks may not be acceptable from ACPICA's point of view, then they
++      are left as committed ACPICA divergences unless ACPICA side can
++      implement new mechanisms as replacements to clean these hacks up.
++   4. ACPICA release fixups - ACPICA only tests commits using a set of the
++      user space simulation utilies, thus the linuxized ACPICA patches may
++      break the Linux kernel, leaving us build/boot failures.  In order not
++      to break the Linux bisection process, fixes are done directly to the
++      linuxized ACPICA patches during the release process.  When the
++      release fixups are back ported to the ACPICA upstream, they must
++      follow the ACPICA upstream rules and thus risk further modifications.
++      These can all result in the new divergences.
++   5. Quick path of the ACPICA commits - Some ACPICA commits are good
++      stable materials, they are upstreamed prior than the ACPICA release
++      process.  If such commits are reverted or rebased in the ACPICA side
++      in order to offer better solutions, new ACPICA divergences are
++      generated.
++
++4. ACPICA Development
++
++   This paragraph guides the Linux developers to use the ACPICA upstream
++   release utilities to obtain the ACPICA upstream commits before they
++   are released by the ACPICA release process.
++
++   1. Cherry-pick an ACPICA commit:
++   First you need to git clone the ACPICA repository and the ACPICA changes
++   you want to cherry pick must be committed into the local repository.
++   Then the gen-patch.sh command can help to cherry-pick an ACPICA commit
++   from the ACPICA local repository.
++   # git clone https://github.com/acpica/acpica
++   # cd acpica
++   # generate/linux/gen-patch.sh -u [commit ID]
++   Here the commit ID is the ACPICA local repository commit ID you want to
++   cherry pick.  It can be omitted if the commit is "HEAD".
++
++   2. Cherry-pick the recent ACPICA commits:
++   Sometimes you need to rebase your code on top of the recent ACPICA
++   changes that haven't been upstreamed to Linux yet.  You can generate
++   the ACPICA release series on your own and rebase your code on top of
++   the generated ACPICA release patches.
++   # git clone https://github.com/acpica/acpica
++   # cd acpica
++   # generate/linux/make-patches.sh -u [commit ID]
++   The commit ID should be the last ACPICA commit accepted by Linux.
++   Normally it is a commit modifying ACPI_CA_VERSION.  The modification can
++   be achieved by executing "git blame source/include/acpixf.h" and
++   referencing line that contains "ACPI_CA_VERSION".
++
++   3. Confirm the current divergences:
++   If you have local copies of both Linux and ACPICA, you can generate a
++   diff file indicating the state of the current divergences:
++   # git clone https://github.com/acpica/acpica
++   # git clone http://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git
++   # cd acpica
++   # generate/linux/divergences.sh -s ../linux
 -- 
 1.7.10
+
