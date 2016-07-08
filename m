@@ -1,65 +1,38 @@
-From: Sudeep Holla <sudeep.holla@arm.com>
-Subject: Re: [PATCH v8 0/6] ACPI / processor_idle: Add ACPI v6.0 LPI support
-Date: Fri, 8 Jul 2016 12:04:40 +0100
-Message-ID: <577F88C8.8010209@arm.com>
-References: <1467911451-24731-1-git-send-email-sudeep.holla@arm.com>
- <CAJZ5v0jhhXHVJi3Se0udcpfgQaqSANZgkKrM9REBxRT7p-3ggA@mail.gmail.com>
+From: Ingo Molnar <mingo@kernel.org>
+Subject: Re: [PATCH v2 2/2] x86/acpi: Remove the repeated lapic address
+ override entry parsing
+Date: Fri, 8 Jul 2016 14:27:56 +0200
+Message-ID: <20160708122755.GA12413@gmail.com>
+References: <1467070896-4186-1-git-send-email-bhe@redhat.com>
+ <1467070896-4186-2-git-send-email-bhe@redhat.com>
+ <20160630080118.GD7175@x1.redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from foss.arm.com ([217.140.101.70]:41809 "EHLO foss.arm.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754074AbcGHLEp (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 8 Jul 2016 07:04:45 -0400
-In-Reply-To: <CAJZ5v0jhhXHVJi3Se0udcpfgQaqSANZgkKrM9REBxRT7p-3ggA@mail.gmail.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20160630080118.GD7175@x1.redhat.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Baoquan He <bhe@redhat.com>
+Cc: linux-kernel@vger.kernel.org, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Pavel Machek <pavel@ucw.cz>, linux-acpi@vger.kernel.org, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, Borislav Petkov <bp@suse.de>, Andy Lutomirski <luto@kernel.org>, Shaohua Li <shli@fb.com>, Viresh Kumar <viresh.kumar@linaro.org>, Hidehiro Kawai <hidehiro.kawai.ez@hitachi.com>, Juergen Gross <jgross@suse.com>, Joerg Roedel <jroedel@suse.de>, Dave Young <dyoung@redhat.com>, Lv Zheng <lv.zheng@intel.com>, Toshi Kani <toshi.kani@hpe.com>, Mark Salter <msalter@redhat.com>, Dave Hansen <dave.hansen@linux.intel.com>, x86@kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rafael@kernel.org>
-Cc: Sudeep Holla <sudeep.holla@arm.com>, ACPI List <linux-acpi@vger.kernel.org>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, Vikas Sajjan <vikas.cha.sajjan@hpe.com>, Sunil <sunil.vl@hpe.com>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, PrashanthPrakash <pprakash@codeaurora.org>, Al Stone <al.stone@linaro.org>, Ashwin Chaugule <ashwin.chaugule@linaro.org>, Daniel Lezcano <daniel.lezcano@linaro.org>, LKML <linux-kernel@vger.kernel.org>, ALKML <linux-arm-kernel@lists.infradead.org>
 
 
+* Baoquan He <bhe@redhat.com> wrote:
 
-On 07/07/16 22:02, Rafael J. Wysocki wrote:
-> On Thu, Jul 7, 2016 at 7:10 PM, Sudeep Holla <sudeep.holla@arm.com> wrote:
->> ACPI 6.0 introduced LPI(Low Power Idle) states that provides an alternate
->> method to describe processor idle states. It extends the specification
->> to allow the expression of idle states like C-states selectable by the
->> OSPM when a processor goes idle, but may affect more than one processor,
->> and may affect other system components.
->>
->> LPI extensions leverages the processor container device(again introduced
->> in ACPI 6.0) allowing to express which parts of the system are affected
->> by a given LPI state. It defines the local power states for each node
->> in a hierarchical processor topology. The OSPM can use _LPI object to
->> select a local power state for each level of processor hierarchy in the
->> system. They used to produce a composite power state request that is
->> presented to the platform by the OSPM.
->>
->> Since multiple processors affect the idle state for any non-leaf hierarchy
->> node, coordination of idle state requests between the processors is
->> required. ACPI supports two different coordination schemes: Platform
->> coordinated and  OS initiated.
->>
->> This series aims at providing basic and initial support for platform
->> coordinated LPI states.
->>
->> v7[7]->v8:
->>          - Replaced HAVE_GENERIC_CPUIDLE_ENTER with CPU_IDLE_ENTER_WRAPPED
->>            macro, which is more cleaner and definately less confusing :)
->>            (Thanks to Rafael for the suggestion)
->
-> Patches [3-6/6] definitely look a lot cleaner to me now. :-)
->
-> That said, the name of the macro I suggested was just an example, so
-> if people don't like this one, it'd be fine to change it as far as I'm
-> concerned.
->
+> ACPI MADT has a 32-bit field providing lapic address at which
+> each processor can access its lapic information. MADT also contains
+> an optional entry to provide a 64-bit address to override the 32-bit
+> one. However the current code does the lapic address override entry
+> parsing twice. One is in early_acpi_boot_init() because AMD NUMA need
+> get boot_cpu_id earlier. The other is in acpi_boot_init() which parses
+> all MADT entries.
+> 
+> So in this patch remove the repeated code in the 2nd part. Meanwhile
+> print lapic override entry information like other MADT entry.
 
-I can think of addition to indicate it's pm notifiers wrapper.
-i.e. CPU_IDLE_ENTER_PM_NOTIFIERS_WRAPPED. Is it too long ? I am happy
-with the way it is too.
+So this patch is not supposed to change behavior (modulo kernel messages), right? 
+If so it would make sense to spell that out explicitly in the changelog.
 
--- 
-Regards,
-Sudeep
+Thanks,
+
+	Ingo
