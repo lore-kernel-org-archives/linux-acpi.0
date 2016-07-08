@@ -1,119 +1,127 @@
 From: Sudeep Holla <sudeep.holla@arm.com>
-Subject: [PATCH v9 0/7] ACPI / processor_idle: Add ACPI v6.0 LPI support
-Date: Fri,  8 Jul 2016 18:07:51 +0100
-Message-ID: <1467997678-7107-1-git-send-email-sudeep.holla@arm.com>
+Subject: [PATCH v9 5/7] drivers: firmware: psci: initialise idle states using ACPI LPI
+Date: Fri,  8 Jul 2016 18:07:56 +0100
+Message-ID: <1467997678-7107-6-git-send-email-sudeep.holla@arm.com>
+References: <1467997678-7107-1-git-send-email-sudeep.holla@arm.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from foss.arm.com ([217.140.101.70]:44559 "EHLO foss.arm.com"
+Received: from foss.arm.com ([217.140.101.70]:44599 "EHLO foss.arm.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932898AbcGHRIN (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 8 Jul 2016 13:08:13 -0400
+	id S932902AbcGHRIT (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 8 Jul 2016 13:08:19 -0400
+In-Reply-To: <1467997678-7107-1-git-send-email-sudeep.holla@arm.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: ACPI List <linux-acpi@vger.kernel.org>, "Rafael J . Wysocki" <rjw@rjwysocki.net>
-Cc: Sudeep Holla <sudeep.holla@arm.com>, Vikas Sajjan <vikas.cha.sajjan@hpe.com>, Sunil <sunil.vl@hpe.com>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Prashanth Prakash <pprakash@codeaurora.org>, Al Stone <al.stone@linaro.org>, Ashwin Chaugule <ashwin.chaugule@linaro.org>, Daniel Lezcano <daniel.lezcano@linaro.org>, LKML <linux-kernel@vger.kernel.org>, ALKML <linux-arm-kernel@lists.infradead.org>
+Cc: Sudeep Holla <sudeep.holla@arm.com>, Vikas Sajjan <vikas.cha.sajjan@hpe.com>, Sunil <sunil.vl@hpe.com>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Prashanth Prakash <pprakash@codeaurora.org>, Al Stone <al.stone@linaro.org>, Ashwin Chaugule <ashwin.chaugule@linaro.org>, Daniel Lezcano <daniel.lezcano@linaro.org>, LKML <linux-kernel@vger.kernel.org>, ALKML <linux-arm-kernel@lists.infradead.org>, Mark Rutland <mark.rutland@arm.com>
 
-ACPI 6.0 introduced LPI(Low Power Idle) states that provides an alternate
-method to describe processor idle states. It extends the specification
-to allow the expression of idle states like C-states selectable by the
-OSPM when a processor goes idle, but may affect more than one processor,
-and may affect other system components.
+This patch adds support for initialisation of PSCI CPUIdle states
+from Low Power Idle(_LPI) entries in the ACPI tables when acpi is
+enabled.
 
-LPI extensions leverages the processor container device(again introduced
-in ACPI 6.0) allowing to express which parts of the system are affected
-by a given LPI state. It defines the local power states for each node
-in a hierarchical processor topology. The OSPM can use _LPI object to
-select a local power state for each level of processor hierarchy in the
-system. They used to produce a composite power state request that is
-presented to the platform by the OSPM.
+Cc: Mark Rutland <mark.rutland@arm.com>
+Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Acked-by: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+Signed-off-by: Sudeep Holla <sudeep.holla@arm.com>
+---
+ drivers/firmware/psci.c | 66 +++++++++++++++++++++++++++++++++++++++++++------
+ 1 file changed, 59 insertions(+), 7 deletions(-)
 
-Since multiple processors affect the idle state for any non-leaf hierarchy
-node, coordination of idle state requests between the processors is
-required. ACPI supports two different coordination schemes: Platform
-coordinated and  OS initiated.
-
-This series aims at providing basic and initial support for platform
-coordinated LPI states.
-
-v8[8]->v9:
-	- Split the psci and arm64 changes into separate patches as
-	  suggested by Lorenzo and added his ACKs
-	- Renamed CPU_IDLE_ENTER_WRAPPED to CPU_PM_CPU_IDLE_ENTER
-
-v7[7]->v8:
-	- Replaced HAVE_GENERIC_CPUIDLE_ENTER with CPU_IDLE_ENTER_WRAPPED
-	  macro, which is more cleaner and definately less confusing :)
-	  (Thanks to Rafael for the suggestion)
-
-v6[6]->v7:
-	- Removed cpuidle-arm.h and introduced HAVE_GENERIC_CPUIDLE_ENTER
-	  and move the common code to cpuidle_generic_enter{,_state}
-	- Factored out common code between psci_{dt,acpi}_cpu_init_idle
-
-v5[5]->v6:
-	- Added support for autopromotable state by not flattening them
-	- Moved arm_enter_idle_state to cpuidle-arm.h as it can be reused
-	  in ARM64 backend for ACPI LPI
-	- Other review comments(mainly for ARM64 from Lorenzo)
-	- Dropped support for skipping PM notifier as it needs to be fixed
-	  in GICv3 code(will be done separately)
-
-v4[4]->v5:
-	- Addressed all the comments from Rafael
-	- Added support for retention mode(Prashant)
-	- Handled acpi_processor_get_power_info return value correctly(Vikas)
-	- Dropped __init from arm_cpuidle_init
-	- Merged psci prepartory patch into arm64 lpi support
-
-v3[3]->v4:
-	- Dropped the preparatory patches that are merged already
-	- Added ARM64 arch specific callback implementations
-	- Addressed most of the review comments from Rafael
-
-v2[2]->v3:
-        - rebased against v4.4-rc3
-        - fixed couple of issues reported by Prashanth and review comments
-          from Ashwin
-
-v1[1]->v2[2]:
-        - Fixed support for ACPI0010 processor container
-        - moved sleep state code out of processor_idle
-
-Code is also available @[9]
-
-Regards,
-Sudeep
-
-[1] http://marc.info/?l=linux-acpi&m=143871041601132&w=2
-[2] http://marc.info/?l=linux-acpi&m=144241209800788&w=2
-[3] http://marc.info/?l=linux-acpi&m=144906557814813&w=2
-[4] http://marc.info/?l=linux-acpi&m=146106902731359&w=2
-[5] http://marc.info/?l=linux-acpi&m=146298107608349&w=2
-[6] http://marc.info/?l=linux-acpi&m=146591573516602&w=2
-[7] http://marc.info/?l=linux-acpi&m=146712226917361&w=2
-[8] http://marc.info/?l=linux-acpi&m=146791146605094&w=2
-[9] git://git.kernel.org/pub/scm/linux/kernel/git/sudeep.holla/linux.git for_review/arm64_lpi
-
-Sudeep Holla (7):
-  ACPI / processor_idle: introduce ACPI_PROCESSOR_CSTATE
-  ACPI / processor_idle: Add support for Low Power Idle(LPI) states
-  arm64: cpuidle: drop __init section marker to arm_cpuidle_init
-  cpuidle: introduce CPU_PM_CPU_IDLE_ENTER macro for ARM{32,64}
-  drivers: firmware: psci: initialise idle states using ACPI LPI
-  arm64: add support for ACPI Low Power Idle(LPI)
-  ACPI : enable ACPI_PROCESSOR_IDLE on ARM64
-
- arch/arm64/kernel/cpuidle.c     |  20 +-
- drivers/acpi/Kconfig            |   6 +-
- drivers/acpi/bus.c              |  14 +-
- drivers/acpi/processor_driver.c |   2 +-
- drivers/acpi/processor_idle.c   | 544 ++++++++++++++++++++++++++++++++++------
- drivers/cpuidle/cpuidle-arm.c   |  26 +-
- drivers/firmware/psci.c         |  66 ++++-
- include/acpi/processor.h        |  26 +-
- include/linux/acpi.h            |   4 +
- include/linux/cpuidle.h         |  18 ++
- 10 files changed, 611 insertions(+), 115 deletions(-)
-
+diff --git a/drivers/firmware/psci.c b/drivers/firmware/psci.c
+index 03e04582791c..8263429e21b8 100644
+--- a/drivers/firmware/psci.c
++++ b/drivers/firmware/psci.c
+@@ -13,6 +13,7 @@
+ 
+ #define pr_fmt(fmt) "psci: " fmt
+ 
++#include <linux/acpi.h>
+ #include <linux/arm-smccc.h>
+ #include <linux/cpuidle.h>
+ #include <linux/errno.h>
+@@ -256,13 +257,6 @@ static int psci_dt_cpu_init_idle(struct device_node *cpu_node, int cpu)
+ 	u32 *psci_states;
+ 	struct device_node *state_node;
+ 
+-	/*
+-	 * If the PSCI cpu_suspend function hook has not been initialized
+-	 * idle states must not be enabled, so bail out
+-	 */
+-	if (!psci_ops.cpu_suspend)
+-		return -EOPNOTSUPP;
+-
+ 	/* Count idle states */
+ 	while ((state_node = of_parse_phandle(cpu_node, "cpu-idle-states",
+ 					      count))) {
+@@ -310,11 +304,69 @@ static int psci_dt_cpu_init_idle(struct device_node *cpu_node, int cpu)
+ 	return ret;
+ }
+ 
++#ifdef CONFIG_ACPI
++#include <acpi/processor.h>
++
++static int __maybe_unused psci_acpi_cpu_init_idle(unsigned int cpu)
++{
++	int i, count;
++	u32 *psci_states;
++	struct acpi_lpi_state *lpi;
++	struct acpi_processor *pr = per_cpu(processors, cpu);
++
++	if (unlikely(!pr || !pr->flags.has_lpi))
++		return -EINVAL;
++
++	count = pr->power.count - 1;
++	if (count <= 0)
++		return -ENODEV;
++
++	psci_states = kcalloc(count, sizeof(*psci_states), GFP_KERNEL);
++	if (!psci_states)
++		return -ENOMEM;
++
++	for (i = 0; i < count; i++) {
++		u32 state;
++
++		lpi = &pr->power.lpi_states[i + 1];
++		/*
++		 * Only bits[31:0] represent a PSCI power_state while
++		 * bits[63:32] must be 0x0 as per ARM ACPI FFH Specification
++		 */
++		state = lpi->address;
++		if (!psci_power_state_is_valid(state)) {
++			pr_warn("Invalid PSCI power state %#x\n", state);
++			kfree(psci_states);
++			return -EINVAL;
++		}
++		psci_states[i] = state;
++	}
++	/* Idle states parsed correctly, initialize per-cpu pointer */
++	per_cpu(psci_power_state, cpu) = psci_states;
++	return 0;
++}
++#else
++static int __maybe_unused psci_acpi_cpu_init_idle(unsigned int cpu)
++{
++	return -EINVAL;
++}
++#endif
++
+ int psci_cpu_init_idle(unsigned int cpu)
+ {
+ 	struct device_node *cpu_node;
+ 	int ret;
+ 
++	/*
++	 * If the PSCI cpu_suspend function hook has not been initialized
++	 * idle states must not be enabled, so bail out
++	 */
++	if (!psci_ops.cpu_suspend)
++		return -EOPNOTSUPP;
++
++	if (!acpi_disabled)
++		return psci_acpi_cpu_init_idle(cpu);
++
+ 	cpu_node = of_get_cpu_node(cpu, NULL);
+ 	if (!cpu_node)
+ 		return -ENODEV;
 -- 
 2.7.4
 
