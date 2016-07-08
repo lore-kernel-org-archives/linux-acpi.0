@@ -1,182 +1,62 @@
-From: Dmitry Torokhov <dmitry.torokhov@gmail.com>
-Subject: Re: [PATCH v2 3/4] ACPI / button: Add SW_ACPI_LID for new usage model
-Date: Fri, 8 Jul 2016 10:55:58 -0700
-Message-ID: <20160708175558.GB28589@dtor-ws>
-References: <cover.1467717304.git.lv.zheng@intel.com>
- <cover.1467875142.git.lv.zheng@intel.com>
- <916d5a5b0df5dbe14283ddb31f1128efefbfd1e2.1467875143.git.lv.zheng@intel.com>
- <CAN+gG=EoXd=J13Ky1tBn-bDAgVQWV=4-hQ8eMktBdgPXCu5+TQ@mail.gmail.com>
+From: Markus Mayer <markus.mayer-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
+Subject: Re: [PATCH v2 1/7] lib: string: add functions to
+	case-convert strings
+Date: Fri, 8 Jul 2016 11:04:49 -0700
+Message-ID: <CAGt4E5uKzs01nL7OJPscQby5bm70Ud18hutdYEhiEsQjU9W8pg@mail.gmail.com>
+References: <1467751631-22878-1-git-send-email-mmayer@broadcom.com>
+ <1467751631-22878-2-git-send-email-mmayer@broadcom.com>
+ <87oa692d8e.fsf@rasmusvillemoes.dk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-pf0-f195.google.com ([209.85.192.195]:36077 "EHLO
-	mail-pf0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755163AbcGHR4C (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 8 Jul 2016 13:56:02 -0400
-Content-Disposition: inline
-In-Reply-To: <CAN+gG=EoXd=J13Ky1tBn-bDAgVQWV=4-hQ8eMktBdgPXCu5+TQ@mail.gmail.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <nouveau-bounces-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org>
+In-Reply-To: <87oa692d8e.fsf-qQsb+v5E8BnlAoU/VqSP6n9LOBIZ5rWg@public.gmane.org>
+List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/nouveau>,
+ <mailto:nouveau-request-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org?subject=unsubscribe>
+List-Archive: <https://lists.freedesktop.org/archives/nouveau>
+List-Post: <mailto:nouveau-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org>
+List-Help: <mailto:nouveau-request-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/nouveau>,
+ <mailto:nouveau-request-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org?subject=subscribe>
+Errors-To: nouveau-bounces-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org
+Sender: "Nouveau" <nouveau-bounces-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org>
+To: Rasmus Villemoes <linux-qQsb+v5E8BnlAoU/VqSP6n9LOBIZ5rWg@public.gmane.org>
+Cc: devel-gWbeCf7V1WCQmaza687I9mD2FQJk+8+b@public.gmane.org, Kees Cook <keescook-F7+t8E8rja9g9hUCZPvPmw@public.gmane.org>, linux-scsi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-pm-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, nouveau-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org, speakup-UPO/6gOIxNZglr+F8WMZYdi2O/JbrIOy@public.gmane.org, Linux Kernel <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, dri-devel-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Chris Metcalf <cmetcalf-d5a29ZRxExrQT0dZR+AlfA@public.gmane.org>, target-devel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Al Viro <viro-RmSDqhL/yNMiFSDQTTA3OLVCufUGDwFn@public.gmane.org>, Andrew Morton <akpm-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
-To: Benjamin Tissoires <benjamin.tissoires@gmail.com>
-Cc: Lv Zheng <lv.zheng@intel.com>, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <len.brown@intel.com>, Lv Zheng <zetalog@gmail.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, "Bastien Nocera:" <hadess@hadess.net>, linux-input <linux-input@vger.kernel.org>
 
-On Fri, Jul 08, 2016 at 11:27:23AM +0200, Benjamin Tissoires wrote:
-> On Thu, Jul 7, 2016 at 9:10 AM, Lv Zheng <lv.zheng@intel.com> wrote:
-> > There are many AML tables reporting wrong initial lid state, and some of
-> > them never reports lid state. As a proxy layer acting between, ACPI button
-> > driver is not able to handle all such cases, but need to re-define the
-> > usage model of the ACPI lid. That is:
-> > 1. It's initial state is not reliable;
-> > 2. There may not be open event;
-> > 3. Userspace should only take action against the close event which is
-> >    reliable, always sent after a real lid close.
-> > This patch adds a new input key event so that new userspace programs can
-> > use it to handle this usage model correctly. And in the meanwhile, no old
-> > programs will be broken by the userspace changes.
-> >
-> > Link: https://lkml.org/2016/3/7/460
-
-Does not work for me.
-
-> > Link: https://github.com/systemd/systemd/issues/2087
-
-Gives me info about pull "Basic DNSSEC support, and unrelated fixes"
-
-> > Signed-off-by: Lv Zheng <lv.zheng@intel.com>
-> > Cc: Bastien Nocera: <hadess@hadess.net>
-> > Cc: Benjamin Tissoires <benjamin.tissoires@gmail.com>
-> > Cc: linux-input@vger.kernel.org
-> > ---
-> >  drivers/acpi/button.c                  |   20 ++++++++++++++------
-> >  include/linux/mod_devicetable.h        |    2 +-
-> >  include/uapi/linux/input-event-codes.h |    3 ++-
-> >  3 files changed, 17 insertions(+), 8 deletions(-)
-> >
-> > diff --git a/drivers/acpi/button.c b/drivers/acpi/button.c
-> > index 148f4e5..4ef94d2 100644
-> > --- a/drivers/acpi/button.c
-> > +++ b/drivers/acpi/button.c
-> > @@ -130,7 +130,8 @@ static int acpi_lid_evaluate_state(struct acpi_device *device)
-> >         return lid_state ? 1 : 0;
-> >  }
-> >
-> > -static int acpi_lid_notify_state(struct acpi_device *device, int state)
-> > +static int acpi_lid_notify_state(struct acpi_device *device,
-> > +                                int state, bool notify_acpi)
-> >  {
-> >         struct acpi_button *button = acpi_driver_data(device);
-> >         int ret;
-> > @@ -138,6 +139,11 @@ static int acpi_lid_notify_state(struct acpi_device *device, int state)
-> >         /* input layer checks if event is redundant */
-> >         input_report_switch(button->input, SW_LID, !state);
-> >         input_sync(button->input);
-> > +       if (notify_acpi) {
-> > +               input_report_switch(button->input,
-> > +                                   SW_ACPI_LID, !state);
-> > +               input_sync(button->input);
-> 
-> If you use a switch, you'll never send subsequent open state if you
-> doesn't close it yourself.
-> See my comments in 5/5 and please use a KEY event instead.
-> 
-> > +       }
-> >
-> >         if (state)
-> >                 pm_wakeup_event(&device->dev, 0);
-> > @@ -279,7 +285,8 @@ int acpi_lid_open(void)
-> >  }
-> >  EXPORT_SYMBOL(acpi_lid_open);
-> >
-> > -static int acpi_lid_update_state(struct acpi_device *device)
-> > +static int acpi_lid_update_state(struct acpi_device *device,
-> > +                                bool notify_acpi)
-> >  {
-> >         int state;
-> >
-> > @@ -287,17 +294,17 @@ static int acpi_lid_update_state(struct acpi_device *device)
-> >         if (state < 0)
-> >                 return state;
-> >
-> > -       return acpi_lid_notify_state(device, state);
-> > +       return acpi_lid_notify_state(device, state, notify_acpi);
-> >  }
-> >
-> >  static void acpi_lid_initialize_state(struct acpi_device *device)
-> >  {
-> >         switch (lid_init_state) {
-> >         case ACPI_BUTTON_LID_INIT_OPEN:
-> > -               (void)acpi_lid_notify_state(device, 1);
-> > +               (void)acpi_lid_notify_state(device, 1, false);
-> >                 break;
-> >         case ACPI_BUTTON_LID_INIT_METHOD:
-> > -               (void)acpi_lid_update_state(device);
-> > +               (void)acpi_lid_update_state(device, false);
-> >                 break;
-> >         case ACPI_BUTTON_LID_INIT_IGNORE:
-> >         default:
-> > @@ -317,7 +324,7 @@ static void acpi_button_notify(struct acpi_device *device, u32 event)
-> >         case ACPI_BUTTON_NOTIFY_STATUS:
-> >                 input = button->input;
-> >                 if (button->type == ACPI_BUTTON_TYPE_LID) {
-> > -                       acpi_lid_update_state(device);
-> > +                       acpi_lid_update_state(device, true);
-> >                 } else {
-> >                         int keycode;
-> >
-> > @@ -436,6 +443,7 @@ static int acpi_button_add(struct acpi_device *device)
-> >
-> >         case ACPI_BUTTON_TYPE_LID:
-> >                 input_set_capability(input, EV_SW, SW_LID);
-> > +               input_set_capability(input, EV_SW, SW_ACPI_LID);
-> 
-> Can't we export this new event only if the _LID function is not
-> reliable? This could check for the module parameter lid_init_state and
-> only enable it for ACPI_BUTTON_LID_INIT_OPEN.
-> 
-> I really hope we will be able to find a reliable way to determine
-> whether or not the platform support reliable LID state. If not, there
-> might be a need to have a db of reliable switch platforms. This can be
-> set in the kernel or with a hwdb entry in userspace.
-> 
-> Cheers,
-> Benjamin
-> 
-> >                 break;
-> >         }
-> >
-> > diff --git a/include/linux/mod_devicetable.h b/include/linux/mod_devicetable.h
-> > index 6e4c645..1014968 100644
-> > --- a/include/linux/mod_devicetable.h
-> > +++ b/include/linux/mod_devicetable.h
-> > @@ -291,7 +291,7 @@ struct pcmcia_device_id {
-> >  #define INPUT_DEVICE_ID_LED_MAX                0x0f
-> >  #define INPUT_DEVICE_ID_SND_MAX                0x07
-> >  #define INPUT_DEVICE_ID_FF_MAX         0x7f
-> > -#define INPUT_DEVICE_ID_SW_MAX         0x0f
-> > +#define INPUT_DEVICE_ID_SW_MAX         0x10
-> >
-> >  #define INPUT_DEVICE_ID_MATCH_BUS      1
-> >  #define INPUT_DEVICE_ID_MATCH_VENDOR   2
-> > diff --git a/include/uapi/linux/input-event-codes.h b/include/uapi/linux/input-event-codes.h
-> > index 737fa32..81c344c 100644
-> > --- a/include/uapi/linux/input-event-codes.h
-> > +++ b/include/uapi/linux/input-event-codes.h
-> > @@ -780,7 +780,8 @@
-> >  #define SW_ROTATE_LOCK         0x0c  /* set = rotate locked/disabled */
-> >  #define SW_LINEIN_INSERT       0x0d  /* set = inserted */
-> >  #define SW_MUTE_DEVICE         0x0e  /* set = device disabled */
-> > -#define SW_MAX                 0x0f
-> > +#define SW_ACPI_LID            0x0f  /* set = lid shut */
-
-0x0f is busy already.
-
-> > +#define SW_MAX                 0x10
-> >  #define SW_CNT                 (SW_MAX+1)
-> >
-> >  /*
-> > --
-> > 1.7.10
-> >
-
--- 
-Dmitry
+T24gNyBKdWx5IDIwMTYgYXQgMTc6MTksIFJhc211cyBWaWxsZW1vZXMgPGxpbnV4QHJhc211c3Zp
+bGxlbW9lcy5kaz4gd3JvdGU6Cj4gT24gVHVlLCBKdWwgMDUgMjAxNiwgTWFya3VzIE1heWVyIDxt
+bWF5ZXJAYnJvYWRjb20uY29tPiB3cm90ZToKPgo+PiArLyoqCj4+ICsgKiBzdHJuY3B5dG91cHBl
+ciAtIENvcHkgYSBsZW5ndGgtbGltaXRlZCBzdHJpbmcgYW5kIGNvbnZlcnQgdG8gdXBwZXJjYXNl
+Lgo+PiArICogQGRzdDogVGhlIGJ1ZmZlciB0byBzdG9yZSB0aGUgcmVzdWx0Lgo+PiArICogQHNy
+YzogVGhlIHN0cmluZyB0byBjb252ZXJ0IHRvIHVwcGVyY2FzZS4KPj4gKyAqIEBsZW46IE1heGlt
+dW0gc3RyaW5nIGxlbmd0aC4gTWF5IGJlIDAgdG8gc2V0IG5vIGxpbWl0Lgo+PiArICoKPj4gKyAq
+IFJldHVybnMgcG9pbnRlciB0byB0ZXJtaW5hdGluZyAnXDAnIGluIEBkc3QuCj4+ICsgKi8KPj4g
+K2NoYXIgKnN0cm5jcHl0b3VwcGVyKGNoYXIgKmRzdCwgY29uc3QgY2hhciAqc3JjLCBzaXplX3Qg
+bGVuKQo+PiArewo+PiArICAgICBzaXplX3QgaTsKPj4gKwo+PiArICAgICBmb3IgKGkgPSAwOyBz
+cmNbaV0gIT0gJ1wwJyAmJiAoaSA8IGxlbiB8fCAhbGVuKTsgaSsrKQo+PiArICAgICAgICAgICAg
+IGRzdFtpXSA9IHRvdXBwZXIoc3JjW2ldKTsKPj4gKyAgICAgaWYgKGkgPCBsZW4gfHwgIWxlbikK
+Pj4gKyAgICAgICAgICAgICBkc3RbaV0gPSAnXDAnOwo+PiArCj4+ICsgICAgIHJldHVybiBkc3Qg
+KyBpOwo+PiArfQo+Cj4gSG0sIHRoaXMgc2VlbXMgdG8gY29weSB0aGUgaW5zYW5lIHNlbWFudGlj
+cyBmcm9tIHN0cm5jcHkgb2Ygbm90Cj4gZ3VhcmFudGVlaW5nICdcMCctdGVybWluYXRpb24uCgpZ
+ZWFoLiBJJ3ZlIGJlZW4gdG9zc2luZyB0aGF0IG9uZSBhcm91bmQgYSBiaXQuIFRoZSByZWFzb24g
+SSBkaWQgaXQKdGhpcyB3YXkgaW4gdGhlIGVuZCBpcyBkdWUgdG8gdGhlIHVzZSBjYXNlcyBJIGZv
+dW5kLiBzdHJuY3B5KCkgaXMKYmVpbmcgdXNlZCB0aGVyZSBhbmQgSSB3YXMgYSBsaXR0bGUgd2Fy
+eSB0byBtYWtlIHRvbyBtYW55IGNoYW5nZXMgYWxsCmF0IG9uY2UuCgpCdXQgSSB1bmRlcnN0YW5k
+IHlvdXIgcG9pbnQuIEknbGwgbG9vayBhdCBpdCBhZ2FpbiBhbmQgc2VlIHdoYXQKY2hhbmdlcyBt
+aWdodCBiZSByZXF1aXJlZCBpbiB0aGUgY29kZSB0aGF0IHVzZWQgc3RybmNweSgpIGJlZm9yZS4K
+Cj4gV2h5IHVzZSAwIGFzIGEgc2VudGluZWwsIHdoZW4gKHNpemVfdCktMSA9PSBTSVpFX01BWCB3
+b3VsZCB3b3JrIGp1c3QgYXMKPiB3ZWxsIGFuZCByZXF1aXJlIGEgbGl0dGxlIGxlc3MgY29kZSAo
+bm8gfHwgIWxlbik/CgpJJ2xsIGNoYW5nZSB0aGF0LgoKPiBJIHJlZ3JldCBzdWdnZXN0aW5nIHRo
+aXMgcmV0dXJuIHNlbWFudGljcyBhbmQgbm93IGFncmVlIHRoYXQgdm9pZCB3b3VsZAo+IGJlIGJl
+dHRlciwgZXNwZWNpYWxseSBzaW5jZSB0aGVyZSBkb2Vzbid0IHNlZW0gdG8gYmUgYW55b25lIHdo
+byBjYW4KPiB1c2UgdGhpcyAob3IgYW55IG90aGVyKSByZXR1cm4gdmFsdWUuIEhvdyBhYm91dAo+
+Cj4gaWYgKCFsZW4pCj4gICAgcmV0dXJuOwo+Cj4gZm9yIChpID0gMDsgaSA8IGxlbiAmJiBzcmNb
+aV07ICsraSkKPiAgIGRzdFtpXSA9IHRvdXBwZXIoc3JjW2ldKTsKPiBkc3RbaSA8IGxlbiA/IGkg
+OiBpLTFdID0gJ1wwJzsKClRoaXMgbWFrZXMgc2Vuc2UuCgo+IChJIHRoaW5rIHlvdSBtdXN0IGRv
+IGkgPCBsZW4gYmVmb3JlIHRlc3Rpbmcgc3JjW2ldLCBzaW5jZSB0aGUgbGVuCj4gcGFyYW1ldGVy
+IHNob3VsZCBiZSBhbiB1cHBlciBib3VuZCBvbiB0aGUgbnVtYmVyIG9mIGJ5dGVzIHRvIGFjY2Vz
+cyBpbgo+IGJvdGggc3JjIGFuZCBkc3QpLgo+Cj4gUmFzbXVzCgpUaGFua3MsCi1NYXJrdXMKX19f
+X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX18KTm91dmVhdSBtYWls
+aW5nIGxpc3QKTm91dmVhdUBsaXN0cy5mcmVlZGVza3RvcC5vcmcKaHR0cHM6Ly9saXN0cy5mcmVl
+ZGVza3RvcC5vcmcvbWFpbG1hbi9saXN0aW5mby9ub3V2ZWF1Cg==
