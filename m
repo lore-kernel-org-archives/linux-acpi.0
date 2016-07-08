@@ -1,62 +1,33 @@
-From: Markus Mayer <markus.mayer-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
-Subject: Re: [PATCH v2 1/7] lib: string: add functions to
-	case-convert strings
-Date: Fri, 8 Jul 2016 11:04:49 -0700
-Message-ID: <CAGt4E5uKzs01nL7OJPscQby5bm70Ud18hutdYEhiEsQjU9W8pg@mail.gmail.com>
-References: <1467751631-22878-1-git-send-email-mmayer@broadcom.com>
- <1467751631-22878-2-git-send-email-mmayer@broadcom.com>
- <87oa692d8e.fsf@rasmusvillemoes.dk>
+From: "Rafael J. Wysocki" <rafael@kernel.org>
+Subject: Re: [PATCH v9 1/1] leds: LED driver for TI LP3952 6-Channel Color LED
+Date: Fri, 8 Jul 2016 21:28:06 +0200
+Message-ID: <CAJZ5v0i0QV3GEXsww5AAer4zkDEW30kd9HOm0QV2xYE0xhc5qQ@mail.gmail.com>
+References: <1467974244-3161-1-git-send-email-tony.makkiel@daqri.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <nouveau-bounces-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org>
-In-Reply-To: <87oa692d8e.fsf-qQsb+v5E8BnlAoU/VqSP6n9LOBIZ5rWg@public.gmane.org>
-List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/nouveau>,
- <mailto:nouveau-request-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org?subject=unsubscribe>
-List-Archive: <https://lists.freedesktop.org/archives/nouveau>
-List-Post: <mailto:nouveau-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org>
-List-Help: <mailto:nouveau-request-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/nouveau>,
- <mailto:nouveau-request-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org?subject=subscribe>
-Errors-To: nouveau-bounces-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org
-Sender: "Nouveau" <nouveau-bounces-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org>
-To: Rasmus Villemoes <linux-qQsb+v5E8BnlAoU/VqSP6n9LOBIZ5rWg@public.gmane.org>
-Cc: devel-gWbeCf7V1WCQmaza687I9mD2FQJk+8+b@public.gmane.org, Kees Cook <keescook-F7+t8E8rja9g9hUCZPvPmw@public.gmane.org>, linux-scsi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-pm-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, nouveau-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org, speakup-UPO/6gOIxNZglr+F8WMZYdi2O/JbrIOy@public.gmane.org, Linux Kernel <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, dri-devel-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Chris Metcalf <cmetcalf-d5a29ZRxExrQT0dZR+AlfA@public.gmane.org>, target-devel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Al Viro <viro-RmSDqhL/yNMiFSDQTTA3OLVCufUGDwFn@public.gmane.org>, Andrew Morton <akpm-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org>
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-wm0-f41.google.com ([74.125.82.41]:37857 "EHLO
+	mail-wm0-f41.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932137AbcGHT2J (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 8 Jul 2016 15:28:09 -0400
+In-Reply-To: <1467974244-3161-1-git-send-email-tony.makkiel@daqri.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Tony Makkiel <tony.makkiel@daqri.com>, Mika Westerberg <mika.westerberg@linux.intel.com>
+Cc: linux-leds@vger.kernel.org, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Jacek Anaszewski <j.anaszewski@samsung.com>, rpurdie@rpsys.net, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>
 
-T24gNyBKdWx5IDIwMTYgYXQgMTc6MTksIFJhc211cyBWaWxsZW1vZXMgPGxpbnV4QHJhc211c3Zp
-bGxlbW9lcy5kaz4gd3JvdGU6Cj4gT24gVHVlLCBKdWwgMDUgMjAxNiwgTWFya3VzIE1heWVyIDxt
-bWF5ZXJAYnJvYWRjb20uY29tPiB3cm90ZToKPgo+PiArLyoqCj4+ICsgKiBzdHJuY3B5dG91cHBl
-ciAtIENvcHkgYSBsZW5ndGgtbGltaXRlZCBzdHJpbmcgYW5kIGNvbnZlcnQgdG8gdXBwZXJjYXNl
-Lgo+PiArICogQGRzdDogVGhlIGJ1ZmZlciB0byBzdG9yZSB0aGUgcmVzdWx0Lgo+PiArICogQHNy
-YzogVGhlIHN0cmluZyB0byBjb252ZXJ0IHRvIHVwcGVyY2FzZS4KPj4gKyAqIEBsZW46IE1heGlt
-dW0gc3RyaW5nIGxlbmd0aC4gTWF5IGJlIDAgdG8gc2V0IG5vIGxpbWl0Lgo+PiArICoKPj4gKyAq
-IFJldHVybnMgcG9pbnRlciB0byB0ZXJtaW5hdGluZyAnXDAnIGluIEBkc3QuCj4+ICsgKi8KPj4g
-K2NoYXIgKnN0cm5jcHl0b3VwcGVyKGNoYXIgKmRzdCwgY29uc3QgY2hhciAqc3JjLCBzaXplX3Qg
-bGVuKQo+PiArewo+PiArICAgICBzaXplX3QgaTsKPj4gKwo+PiArICAgICBmb3IgKGkgPSAwOyBz
-cmNbaV0gIT0gJ1wwJyAmJiAoaSA8IGxlbiB8fCAhbGVuKTsgaSsrKQo+PiArICAgICAgICAgICAg
-IGRzdFtpXSA9IHRvdXBwZXIoc3JjW2ldKTsKPj4gKyAgICAgaWYgKGkgPCBsZW4gfHwgIWxlbikK
-Pj4gKyAgICAgICAgICAgICBkc3RbaV0gPSAnXDAnOwo+PiArCj4+ICsgICAgIHJldHVybiBkc3Qg
-KyBpOwo+PiArfQo+Cj4gSG0sIHRoaXMgc2VlbXMgdG8gY29weSB0aGUgaW5zYW5lIHNlbWFudGlj
-cyBmcm9tIHN0cm5jcHkgb2Ygbm90Cj4gZ3VhcmFudGVlaW5nICdcMCctdGVybWluYXRpb24uCgpZ
-ZWFoLiBJJ3ZlIGJlZW4gdG9zc2luZyB0aGF0IG9uZSBhcm91bmQgYSBiaXQuIFRoZSByZWFzb24g
-SSBkaWQgaXQKdGhpcyB3YXkgaW4gdGhlIGVuZCBpcyBkdWUgdG8gdGhlIHVzZSBjYXNlcyBJIGZv
-dW5kLiBzdHJuY3B5KCkgaXMKYmVpbmcgdXNlZCB0aGVyZSBhbmQgSSB3YXMgYSBsaXR0bGUgd2Fy
-eSB0byBtYWtlIHRvbyBtYW55IGNoYW5nZXMgYWxsCmF0IG9uY2UuCgpCdXQgSSB1bmRlcnN0YW5k
-IHlvdXIgcG9pbnQuIEknbGwgbG9vayBhdCBpdCBhZ2FpbiBhbmQgc2VlIHdoYXQKY2hhbmdlcyBt
-aWdodCBiZSByZXF1aXJlZCBpbiB0aGUgY29kZSB0aGF0IHVzZWQgc3RybmNweSgpIGJlZm9yZS4K
-Cj4gV2h5IHVzZSAwIGFzIGEgc2VudGluZWwsIHdoZW4gKHNpemVfdCktMSA9PSBTSVpFX01BWCB3
-b3VsZCB3b3JrIGp1c3QgYXMKPiB3ZWxsIGFuZCByZXF1aXJlIGEgbGl0dGxlIGxlc3MgY29kZSAo
-bm8gfHwgIWxlbik/CgpJJ2xsIGNoYW5nZSB0aGF0LgoKPiBJIHJlZ3JldCBzdWdnZXN0aW5nIHRo
-aXMgcmV0dXJuIHNlbWFudGljcyBhbmQgbm93IGFncmVlIHRoYXQgdm9pZCB3b3VsZAo+IGJlIGJl
-dHRlciwgZXNwZWNpYWxseSBzaW5jZSB0aGVyZSBkb2Vzbid0IHNlZW0gdG8gYmUgYW55b25lIHdo
-byBjYW4KPiB1c2UgdGhpcyAob3IgYW55IG90aGVyKSByZXR1cm4gdmFsdWUuIEhvdyBhYm91dAo+
-Cj4gaWYgKCFsZW4pCj4gICAgcmV0dXJuOwo+Cj4gZm9yIChpID0gMDsgaSA8IGxlbiAmJiBzcmNb
-aV07ICsraSkKPiAgIGRzdFtpXSA9IHRvdXBwZXIoc3JjW2ldKTsKPiBkc3RbaSA8IGxlbiA/IGkg
-OiBpLTFdID0gJ1wwJzsKClRoaXMgbWFrZXMgc2Vuc2UuCgo+IChJIHRoaW5rIHlvdSBtdXN0IGRv
-IGkgPCBsZW4gYmVmb3JlIHRlc3Rpbmcgc3JjW2ldLCBzaW5jZSB0aGUgbGVuCj4gcGFyYW1ldGVy
-IHNob3VsZCBiZSBhbiB1cHBlciBib3VuZCBvbiB0aGUgbnVtYmVyIG9mIGJ5dGVzIHRvIGFjY2Vz
-cyBpbgo+IGJvdGggc3JjIGFuZCBkc3QpLgo+Cj4gUmFzbXVzCgpUaGFua3MsCi1NYXJrdXMKX19f
-X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX18KTm91dmVhdSBtYWls
-aW5nIGxpc3QKTm91dmVhdUBsaXN0cy5mcmVlZGVza3RvcC5vcmcKaHR0cHM6Ly9saXN0cy5mcmVl
-ZGVza3RvcC5vcmcvbWFpbG1hbi9saXN0aW5mby9ub3V2ZWF1Cg==
+On Fri, Jul 8, 2016 at 12:37 PM, Tony Makkiel <tony.makkiel@daqri.com> wrote:
+> The chip can drive 2 sets of RGB leds. Controller can
+> be controlled via PWM, I2C and audio synchronisation.
+> This driver uses I2C to communicate with the chip.
+>
+> Datasheet: http://www.ti.com/lit/gpn/lp3952
+>
+> Signed-off-by: Tony Makkiel <tony.makkiel@daqri.com>
+
+>From the ACPI perspective, I don't see anything objectionable here.
+
+Mika, do you agree?
+
+Thanks,
+Rafael
