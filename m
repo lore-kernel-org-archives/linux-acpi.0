@@ -1,42 +1,50 @@
-From: Baoquan He <bhe@redhat.com>
-Subject: Re: [PATCH v2 2/2] x86/acpi: Remove the repeated lapic address
- override entry parsing
-Date: Fri, 8 Jul 2016 20:56:11 +0800
-Message-ID: <20160708125611.GC3125@x1.redhat.com>
-References: <1467070896-4186-1-git-send-email-bhe@redhat.com>
- <1467070896-4186-2-git-send-email-bhe@redhat.com>
- <20160630080118.GD7175@x1.redhat.com>
- <20160708122755.GA12413@gmail.com>
+From: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+Subject: Re: [PATCH v6 00/10] acpi, clocksource: add GTDT driver and GTDT
+ support in arm_arch_timer
+Date: Fri, 8 Jul 2016 14:22:01 +0100
+Message-ID: <20160708132201.GD3784@red-moon>
+References: <1467224153-22873-1-git-send-email-fu.wei@linaro.org>
+ <1890708.ZTyM2PUGdP@vostro.rjw.lan>
+ <20160707134023.GA655@red-moon>
+ <1603704.EGiVTcCxLR@vostro.rjw.lan>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from foss.arm.com ([217.140.101.70]:42763 "EHLO foss.arm.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754746AbcGHNVN (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 8 Jul 2016 09:21:13 -0400
 Content-Disposition: inline
-In-Reply-To: <20160708122755.GA12413@gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Ingo Molnar <mingo@kernel.org>
-Cc: linux-kernel@vger.kernel.org, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Pavel Machek <pavel@ucw.cz>, linux-acpi@vger.kernel.org, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, Borislav Petkov <bp@suse.de>, Andy Lutomirski <luto@kernel.org>, Shaohua Li <shli@fb.com>, Viresh Kumar <viresh.kumar@linaro.org>, Hidehiro Kawai <hidehiro.kawai.ez@hitachi.com>, Juergen Gross <jgross@suse.com>, Joerg Roedel <jroedel@suse.de>, Dave Young <dyoung@redhat.com>, Lv Zheng <lv.zheng@intel.com>, Toshi Kani <toshi.kani@hpe.com>, Mark Salter <msalter@redhat.com>, Dave Hansen <dave.hansen@linux.intel.com>, x86@kernel.org
+In-Reply-To: <1603704.EGiVTcCxLR@vostro.rjw.lan>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: Hanjun Guo <hanjun.guo@linaro.org>, "Rafael J. Wysocki" <rafael@kernel.org>, Graeme Gregory <gg@slimlogic.co.uk>, Will Deacon <will.deacon@arm.com>, Catalin Marinas <catalin.marinas@arm.com>, Fu Wei <fu.wei@linaro.org>, Len Brown <lenb@kernel.org>, Daniel Lezcano <daniel.lezcano@linaro.org>, Thomas Gleixner <tglx@linutronix.de>, Marc Zyngier <marc.zyngier@arm.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linaro-acpi@lists.linaro.org" <linaro-acpi@lists.linaro.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, rruigrok@codeaurora.org, harba@codeaurora.org, Christopher Covington <cov@codeaurora.org>, Timur Tabi <timur@codeaurora.org>, G Gregory <graeme.gregory@linaro.org>, Al Stone <al.stone@linaro.org>, Jon Masters <jcm@redhat.com>, wei@redhat.com, Arnd
 
-On 07/08/16 at 02:27pm, Ingo Molnar wrote:
-> 
-> * Baoquan He <bhe@redhat.com> wrote:
-> 
-> > ACPI MADT has a 32-bit field providing lapic address at which
-> > each processor can access its lapic information. MADT also contains
-> > an optional entry to provide a 64-bit address to override the 32-bit
-> > one. However the current code does the lapic address override entry
-> > parsing twice. One is in early_acpi_boot_init() because AMD NUMA need
-> > get boot_cpu_id earlier. The other is in acpi_boot_init() which parses
-> > all MADT entries.
-> > 
-> > So in this patch remove the repeated code in the 2nd part. Meanwhile
-> > print lapic override entry information like other MADT entry.
-> 
-> So this patch is not supposed to change behavior (modulo kernel messages), right? 
-> If so it would make sense to spell that out explicitly in the changelog.
+On Thu, Jul 07, 2016 at 03:58:04PM +0200, Rafael J. Wysocki wrote:
 
-Yes, it won't. I will mention it in changelog and repost. Thanks for
-your reviewing.
+[...]
 
-Thanks
-Baoquan
+> > Anyway let's avoid these petty arguments, I agree there must be some
+> > sort of ARM64 ACPI maintainership for the reasons you mentioned above.
+> 
+> To avoid confusion on who's going to push stuff to Linus, I can do
+> that, but it must be clear whose ACKs are needed for that to happen.
+> That may be one person or all of you, whatever you decide.
+
+I think the reasoning is the same, to avoid confusion and avoid stepping
+on each other toes it is best to have a single gatekeeper (still
+multiple maintainer entries to keep patches reviewed correctly), if no
+one complains I will do that and a) provide ACKs (I will definitely
+require and request Hanjun and Sudeep ones too appropriately on a per
+patch basis) and b) send you pull requests.
+
+Having a maintainer per file would be farcical, I really do not
+expect that amount of traffic for drivers/acpi/arm64 therefore I
+really doubt there is any risk of me slowing things down.
+
+Does this sound reasonable ? Comments/complaints welcome, please
+manifest yourselves.
+
+Thanks,
+Lorenzo
