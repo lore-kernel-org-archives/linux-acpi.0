@@ -1,118 +1,57 @@
-From: Octavian Purdila <octavian.purdila@intel.com>
-Subject: [PATCH v7 1/8] Documentation: acpi: add SSDT overlays documentation
-Date: Fri,  8 Jul 2016 19:13:07 +0300
-Message-ID: <1467994394-23983-2-git-send-email-octavian.purdila@intel.com>
-References: <1467994394-23983-1-git-send-email-octavian.purdila@intel.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1467994394-23983-1-git-send-email-octavian.purdila@intel.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: "Rafael J . Wysocki" <rjw@rjwysocki.net>
-Cc: linux-acpi@vger.kernel.org, linux-efi@vger.kernel.org, linux-i2c@vger.kernel.org, linux-spi@vger.kernel.org, linux-kernel@vger.kernel.org, leonard.crestez@intel.com, Octavian Purdila <octavian.purdila@intel.com>
+From: Sudeep Holla <sudeep.holla@arm.com>
+Subject: [PATCH v9 3/7] arm64: cpuidle: drop __init section marker to arm_cpuidle_init
+Date: Fri,  8 Jul 2016 18:07:54 +0100
+Message-ID: <1467997678-7107-4-git-send-email-sudeep.holla@arm.com>
+References: <1467997678-7107-1-git-send-email-sudeep.holla@arm.com>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from foss.arm.com ([217.140.101.70]:44587 "EHLO foss.arm.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S932899AbcGHRIO (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 8 Jul 2016 13:08:14 -0400
+In-Reply-To: <1467997678-7107-1-git-send-email-sudeep.holla@arm.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: ACPI List <linux-acpi@vger.kernel.org>, "Rafael J . Wysocki" <rjw@rjwysocki.net>
+Cc: Sudeep Holla <sudeep.holla@arm.com>, Vikas Sajjan <vikas.cha.sajjan@hpe.com>, Sunil <sunil.vl@hpe.com>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Prashanth Prakash <pprakash@codeaurora.org>, Al Stone <al.stone@linaro.org>, Ashwin Chaugule <ashwin.chaugule@linaro.org>, Daniel Lezcano <daniel.lezcano@linaro.org>, LKML <linux-kernel@vger.kernel.org>, ALKML <linux-arm-kernel@lists.infradead.org>, Mark Rutland <mark.rutland@arm.com>
 
-Signed-off-by: Octavian Purdila <octavian.purdila@intel.com>
-Reviewed-by: Mika Westerberg <mika.westerberg@linux.intel.com>
+Commit ea389daa7fd9 ("arm64: cpuidle: add __init section marker to
+arm_cpuidle_init") added the __init annotation to arm_cpuidle_init
+as it was not needed after booting which was correct at that time.
+
+However with the introduction of ACPI LPI support, this will be used
+from cpuhotplug path in ACPI processor driver.
+
+This patch drops the __init annotation from arm_cpuidle_init to avoid
+the following warning:
+
+WARNING: vmlinux.o(.text+0x113c8): Section mismatch in reference from the
+	function acpi_processor_ffh_lpi_probe() to the function
+	.init.text:arm_cpuidle_init()
+The function acpi_processor_ffh_lpi_probe() references
+the function __init arm_cpuidle_init().
+This is often because acpi_processor_ffh_lpi_probe lacks a __init
+annotation or the annotation of arm_cpuidle_init is wrong.
+
+Cc: Mark Rutland <mark.rutland@arm.com>
+Acked-by: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+Signed-off-by: Sudeep Holla <sudeep.holla@arm.com>
 ---
- Documentation/acpi/ssdt-overlays.txt | 91 ++++++++++++++++++++++++++++++++++++
- 1 file changed, 91 insertions(+)
- create mode 100644 Documentation/acpi/ssdt-overlays.txt
+ arch/arm64/kernel/cpuidle.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/Documentation/acpi/ssdt-overlays.txt b/Documentation/acpi/ssdt-overlays.txt
-new file mode 100644
-index 0000000..8050259
---- /dev/null
-+++ b/Documentation/acpi/ssdt-overlays.txt
-@@ -0,0 +1,91 @@
-+
-+In order to support ACPI open-ended hardware configurations (e.g. development
-+boards) we need a way to augment the ACPI configuration provided by the firmware
-+image. A common example is connecting sensors on I2C / SPI buses on development
-+boards.
-+
-+Although this can be accomplished by creating a kernel platform driver or
-+recompiling the firmware image with updated ACPI tables, neither is practical:
-+the former proliferates board specific kernel code while the latter requires
-+access to firmware tools which are often not publicly available.
-+
-+Because ACPI supports external references in AML code a more practical
-+way to augment firmware ACPI configuration is by dynamically loading
-+user defined SSDT tables that contain the board specific information.
-+
-+For example, to enumerate a Bosch BMA222E accelerometer on the I2C bus of the
-+Minnowboard MAX development board exposed via the LSE connector [1], the
-+following ASL code can be used:
-+
-+DefinitionBlock ("minnowmax.aml", "SSDT", 1, "Vendor", "Accel", 0x00000003)
-+{
-+    External (\_SB.I2C6, DeviceObj)
-+
-+    Scope (\_SB.I2C6)
-+    {
-+        Device (STAC)
-+        {
-+            Name (_ADR, Zero)
-+            Name (_HID, "BMA222E")
-+
-+            Method (_CRS, 0, Serialized)
-+            {
-+                Name (RBUF, ResourceTemplate ()
-+                {
-+                    I2cSerialBus (0x0018, ControllerInitiated, 0x00061A80,
-+                                  AddressingMode7Bit, "\\_SB.I2C6", 0x00,
-+                                  ResourceConsumer, ,)
-+                    GpioInt (Edge, ActiveHigh, Exclusive, PullDown, 0x0000,
-+                             "\\_SB.GPO2", 0x00, ResourceConsumer, , )
-+                    { // Pin list
-+                        0
-+                    }
-+                })
-+                Return (RBUF)
-+            }
-+        }
-+    }
-+}
-+
-+which can then be compiled to AML binary format:
-+
-+$ iasl minnowmax.asl
-+
-+Intel ACPI Component Architecture
-+ASL Optimizing Compiler version 20140214-64 [Mar 29 2014]
-+Copyright (c) 2000 - 2014 Intel Corporation
-+
-+ASL Input:     minnomax.asl - 30 lines, 614 bytes, 7 keywords
-+AML Output:    minnowmax.aml - 165 bytes, 6 named objects, 1 executable opcodes
-+
-+[1] http://wiki.minnowboard.org/MinnowBoard_MAX#Low_Speed_Expansion_Connector_.28Top.29
-+
-+The resulting AML code can then be loaded by the kernel using one of the methods
-+below.
-+
-+== Loading ACPI SSDTs from initrd ==
-+
-+This option allows loading of user defined SSDTs from initrd and it is useful
-+when the system does not support EFI or when there is not enough EFI storage.
-+
-+It works in a similar way with initrd based ACPI tables override/upgrade: SSDT
-+aml code must be placed in the first, uncompressed, initrd under the
-+"kernel/firmware/acpi" path. Multiple files can be used and this will translate
-+in loading multiple tables. Only SSDT and OEM tables are allowed. See
-+initrd_table_override.txt for more details.
-+
-+Here is an example:
-+
-+# Add the raw ACPI tables to an uncompressed cpio archive.
-+# They must be put into a /kernel/firmware/acpi directory inside the
-+# cpio archive.
-+# The uncompressed cpio archive must be the first.
-+# Other, typically compressed cpio archives, must be
-+# concatenated on top of the uncompressed one.
-+mkdir -p kernel/firmware/acpi
-+cp ssdt.aml kernel/firmware/acpi
-+
-+# Create the uncompressed cpio archive and concatenate the original initrd
-+# on top:
-+find kernel | cpio -H newc --create > /boot/instrumented_initrd
-+cat /boot/initrd >>/boot/instrumented_initrd
+diff --git a/arch/arm64/kernel/cpuidle.c b/arch/arm64/kernel/cpuidle.c
+index e11857fce05f..06786fdaadeb 100644
+--- a/arch/arm64/kernel/cpuidle.c
++++ b/arch/arm64/kernel/cpuidle.c
+@@ -15,7 +15,7 @@
+ #include <asm/cpuidle.h>
+ #include <asm/cpu_ops.h>
+ 
+-int __init arm_cpuidle_init(unsigned int cpu)
++int arm_cpuidle_init(unsigned int cpu)
+ {
+ 	int ret = -EOPNOTSUPP;
+ 
 -- 
 2.7.4
+
