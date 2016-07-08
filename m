@@ -1,70 +1,58 @@
-From: "Rafael J. Wysocki" <rafael@kernel.org>
-Subject: [GIT PULL] ACPI fixes for v4.7-rc7
-Date: Fri, 8 Jul 2016 01:43:50 +0200
-Message-ID: <CAJZ5v0hDSZGX90hxkACwC0DktD-_Baq=+DDkR7_zv8464iHG-Q@mail.gmail.com>
+From: Rasmus Villemoes <linux-qQsb+v5E8BnlAoU/VqSP6n9LOBIZ5rWg@public.gmane.org>
+Subject: Re: [PATCH v2 1/7] lib: string: add functions to
+	case-convert strings
+Date: Fri, 08 Jul 2016 02:19:13 +0200
+Message-ID: <87oa692d8e.fsf@rasmusvillemoes.dk>
+References: <1467751631-22878-1-git-send-email-mmayer@broadcom.com>
+ <1467751631-22878-2-git-send-email-mmayer@broadcom.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-pci-owner@vger.kernel.org>
-Sender: linux-pci-owner@vger.kernel.org
-To: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux PCI <linux-pci@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <nouveau-bounces-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org>
+In-Reply-To: <1467751631-22878-2-git-send-email-mmayer-dY08KVG/lbpWk0Htik3J/w@public.gmane.org> (Markus
+ Mayer's message of "Tue, 5 Jul 2016 13:47:05 -0700")
+List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/nouveau>,
+ <mailto:nouveau-request-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org?subject=unsubscribe>
+List-Archive: <https://lists.freedesktop.org/archives/nouveau>
+List-Post: <mailto:nouveau-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org>
+List-Help: <mailto:nouveau-request-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/nouveau>,
+ <mailto:nouveau-request-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org?subject=subscribe>
+Errors-To: nouveau-bounces-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org
+Sender: "Nouveau" <nouveau-bounces-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org>
+To: Markus Mayer <mmayer-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
+Cc: devel-gWbeCf7V1WCQmaza687I9mD2FQJk+8+b@public.gmane.org, Kees Cook <keescook-F7+t8E8rja9g9hUCZPvPmw@public.gmane.org>, linux-scsi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-pm-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, nouveau-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org, speakup-UPO/6gOIxNZglr+F8WMZYdi2O/JbrIOy@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, dri-devel-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Chris Metcalf <cmetcalf-d5a29ZRxExrQT0dZR+AlfA@public.gmane.org>, target-devel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Al Viro <viro-RmSDqhL/yNMiFSDQTTA3OLVCufUGDwFn@public.gmane.org>, Andrew Morton <akpm-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-Hi Linus,
-
-Please pull from
-
- git://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm.git \
- acpi-4.7-rc7
-
-to receive ACPI fixes for v4.7-rc7 with top-most commit
-b6d90158c935d4a22e56f41647b479ab5ea449d4
-
- Merge branches 'acpica-fixes', 'acpi-pci-fixes' and 'acpi-debug-fixes'
-
-on top of commit a99cde438de0c4c0cecc1d1af1a55a75b10bfdef
-
- Linux 4.7-rc6
-
-All of these fix recent regressions in ACPICA, in the ACPI PCI IRQ
-management code and in the ACPI AML debugger.
-
-Specifics:
-
- - Fix a lock ordering issue in ACPICA introduced by a recent commit
-   that attempted to fix a deadlock in the dynamic table loading code
-   which in turn appeared after changes related to the handling of
-   module-level AML also made in this cycle (Lv Zheng).
-
- - Fix a recent regression in the ACPI IRQ management code that may
-   cause PCI drivers to be unable to register an IRQ if that IRQ
-   happens to be shared with a device on the ISA bus, like the
-   parallel port, by reverting one commit entirely and restoring the
-   previous behavior in two other places (Sinan Kaya).
-
- - Fix a recent regression in the ACPI AML debugger introduced by
-   the commit that removed incorrect usage of IS_ERR_VALUE() from
-   multiple places (Lv Zheng).
-
-Thanks!
-
----------------
-
-Lv Zheng (2):
-      ACPICA: Namespace: Fix namespace/interpreter lock ordering
-      ACPI / debugger: Fix regression introduced by IS_ERR_VALUE() removal
-
-Sinan Kaya (3):
-      ACPI,PCI,IRQ: factor in PCI possible
-      Revert "ACPI, PCI, IRQ: remove redundant code in acpi_irq_penalty_init()"
-      ACPI,PCI,IRQ: separate ISA penalty calculation
-
----------------
-
- arch/x86/pci/acpi.c           |  1 +
- drivers/acpi/acpi_dbg.c       |  4 +--
- drivers/acpi/acpica/nsload.c  |  7 ++++-
- drivers/acpi/acpica/nsparse.c |  9 ++-----
- drivers/acpi/pci_link.c       | 63 ++++++++++++++++++++++++++++++++-----------
- include/acpi/acpi_drivers.h   |  1 +
- 6 files changed, 60 insertions(+), 25 deletions(-)
+T24gVHVlLCBKdWwgMDUgMjAxNiwgTWFya3VzIE1heWVyIDxtbWF5ZXJAYnJvYWRjb20uY29tPiB3
+cm90ZToKCj4gQWRkIGEgY29sbGVjdGlvbiBvZiBnZW5lcmljIGZ1bmN0aW9ucyB0byBjb252ZXJ0
+IHN0cmluZ3MgdG8gbG93ZXJjYXNlCj4gb3IgdXBwZXJjYXNlLgo+Cj4gQ2hhbmdpbmcgdGhlIGNh
+c2Ugb2YgYSBzdHJpbmcgKHdpdGggb3Igd2l0aG91dCBjb3B5aW5nIGl0IGZpcnN0KSBzZWVtcwo+
+IHRvIGJlIGEgcmVjdXJyaW5nIHJlcXVpcmVtZW50IGluIHRoZSBrZXJuZWwgdGhhdCBpcyBjdXJy
+ZW50bHkgYmVpbmcKPiBzb2x2ZWQgYnkgc2V2ZXJhbCBkdXBsaWNhdGVkIGltcGxlbWVudGF0aW9u
+cyBkb2luZyB0aGUgc2FtZSB0aGluZy4gVGhpcwo+IGNoYW5nZSBhaW1zIGF0IHJlZHVjaW5nIHRo
+aXMgY29kZSBkdXBsaWNhdGlvbi4KPgo+ICsvKioKPiArICogc3RybmNweXRvdXBwZXIgLSBDb3B5
+IGEgbGVuZ3RoLWxpbWl0ZWQgc3RyaW5nIGFuZCBjb252ZXJ0IHRvIHVwcGVyY2FzZS4KPiArICog
+QGRzdDogVGhlIGJ1ZmZlciB0byBzdG9yZSB0aGUgcmVzdWx0Lgo+ICsgKiBAc3JjOiBUaGUgc3Ry
+aW5nIHRvIGNvbnZlcnQgdG8gdXBwZXJjYXNlLgo+ICsgKiBAbGVuOiBNYXhpbXVtIHN0cmluZyBs
+ZW5ndGguIE1heSBiZSAwIHRvIHNldCBubyBsaW1pdC4KPiArICoKPiArICogUmV0dXJucyBwb2lu
+dGVyIHRvIHRlcm1pbmF0aW5nICdcMCcgaW4gQGRzdC4KPiArICovCj4gK2NoYXIgKnN0cm5jcHl0
+b3VwcGVyKGNoYXIgKmRzdCwgY29uc3QgY2hhciAqc3JjLCBzaXplX3QgbGVuKQo+ICt7Cj4gKwlz
+aXplX3QgaTsKPiArCj4gKwlmb3IgKGkgPSAwOyBzcmNbaV0gIT0gJ1wwJyAmJiAoaSA8IGxlbiB8
+fCAhbGVuKTsgaSsrKQo+ICsJCWRzdFtpXSA9IHRvdXBwZXIoc3JjW2ldKTsKPiArCWlmIChpIDwg
+bGVuIHx8ICFsZW4pCj4gKwkJZHN0W2ldID0gJ1wwJzsKPiArCj4gKwlyZXR1cm4gZHN0ICsgaTsK
+PiArfQoKSG0sIHRoaXMgc2VlbXMgdG8gY29weSB0aGUgaW5zYW5lIHNlbWFudGljcyBmcm9tIHN0
+cm5jcHkgb2Ygbm90Cmd1YXJhbnRlZWluZyAnXDAnLXRlcm1pbmF0aW9uLgoKV2h5IHVzZSAwIGFz
+IGEgc2VudGluZWwsIHdoZW4gKHNpemVfdCktMSA9PSBTSVpFX01BWCB3b3VsZCB3b3JrIGp1c3Qg
+YXMKd2VsbCBhbmQgcmVxdWlyZSBhIGxpdHRsZSBsZXNzIGNvZGUgKG5vIHx8ICFsZW4pPwoKSSBy
+ZWdyZXQgc3VnZ2VzdGluZyB0aGlzIHJldHVybiBzZW1hbnRpY3MgYW5kIG5vdyBhZ3JlZSB0aGF0
+IHZvaWQgd291bGQKYmUgYmV0dGVyLCBlc3BlY2lhbGx5IHNpbmNlIHRoZXJlIGRvZXNuJ3Qgc2Vl
+bSB0byBiZSBhbnlvbmUgd2hvIGNhbgp1c2UgdGhpcyAob3IgYW55IG90aGVyKSByZXR1cm4gdmFs
+dWUuIEhvdyBhYm91dAoKaWYgKCFsZW4pCiAgIHJldHVybjsKCmZvciAoaSA9IDA7IGkgPCBsZW4g
+JiYgc3JjW2ldOyArK2kpCiAgZHN0W2ldID0gdG91cHBlcihzcmNbaV0pOwpkc3RbaSA8IGxlbiA/
+IGkgOiBpLTFdID0gJ1wwJzsKCihJIHRoaW5rIHlvdSBtdXN0IGRvIGkgPCBsZW4gYmVmb3JlIHRl
+c3Rpbmcgc3JjW2ldLCBzaW5jZSB0aGUgbGVuCnBhcmFtZXRlciBzaG91bGQgYmUgYW4gdXBwZXIg
+Ym91bmQgb24gdGhlIG51bWJlciBvZiBieXRlcyB0byBhY2Nlc3MgaW4KYm90aCBzcmMgYW5kIGRz
+dCkuCgpSYXNtdXMKX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
+X18KTm91dmVhdSBtYWlsaW5nIGxpc3QKTm91dmVhdUBsaXN0cy5mcmVlZGVza3RvcC5vcmcKaHR0
+cHM6Ly9saXN0cy5mcmVlZGVza3RvcC5vcmcvbWFpbG1hbi9saXN0aW5mby9ub3V2ZWF1Cg==
