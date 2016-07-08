@@ -1,67 +1,76 @@
-From: Sudeep Holla <sudeep.holla@arm.com>
-Subject: Re: [PATCH v8 5/6] arm64: add support for ACPI Low Power Idle(LPI)
-Date: Fri, 8 Jul 2016 16:21:51 +0100
-Message-ID: <577FC50F.7010205@arm.com>
-References: <1467911451-24731-1-git-send-email-sudeep.holla@arm.com>
- <1467911451-24731-2-git-send-email-sudeep.holla@arm.com>
- <1467911451-24731-3-git-send-email-sudeep.holla@arm.com>
- <1467911451-24731-4-git-send-email-sudeep.holla@arm.com>
- <1467911451-24731-5-git-send-email-sudeep.holla@arm.com>
- <1467911451-24731-6-git-send-email-sudeep.holla@arm.com>
- <20160708144719.GI3784@red-moon>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from foss.arm.com ([217.140.101.70]:43661 "EHLO foss.arm.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932371AbcGHPVz (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 8 Jul 2016 11:21:55 -0400
-In-Reply-To: <20160708144719.GI3784@red-moon>
-Sender: linux-acpi-owner@vger.kernel.org
+From: Octavian Purdila <octavian.purdila@intel.com>
+Subject: [PATCH v7 0/8] ACPI overlays
+Date: Fri,  8 Jul 2016 19:13:06 +0300
+Message-ID: <1467994394-23983-1-git-send-email-octavian.purdila@intel.com>
+Return-path: <linux-i2c-owner@vger.kernel.org>
+Sender: linux-i2c-owner@vger.kernel.org
+To: "Rafael J . Wysocki" <rjw@rjwysocki.net>
+Cc: linux-acpi@vger.kernel.org, linux-efi@vger.kernel.org, linux-i2c@vger.kernel.org, linux-spi@vger.kernel.org, linux-kernel@vger.kernel.org, leonard.crestez@intel.com, Octavian Purdila <octavian.purdila@intel.com>
 List-Id: linux-acpi@vger.kernel.org
-To: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
-Cc: Sudeep Holla <sudeep.holla@arm.com>, ACPI List <linux-acpi@vger.kernel.org>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, Vikas Sajjan <vikas.cha.sajjan@hpe.com>, Sunil <sunil.vl@hpe.com>, PrashanthPrakash <pprakash@codeaurora.org>, Al Stone <al.stone@linaro.org>, Ashwin Chaugule <ashwin.chaugule@linaro.org>, Daniel Lezcano <daniel.lezcano@linaro.org>, LKML <linux-kernel@vger.kernel.org>, ALKML <linux-arm-kernel@lists.infradead.org>, Mark Rutland <mark.rutland@arm.com>
 
+This patch set enables custom ACPI board configuration by adding
+mechanisms in the Linux kernel for loading user defined SSDTs.
 
+Currently it is possible to load SSDT overlays using the upgrade
+initrd mechanism introduced in 4.7. This patch series adds support for
+two more methods:
 
-On 08/07/16 15:47, Lorenzo Pieralisi wrote:
-> On Thu, Jul 07, 2016 at 06:10:50PM +0100, Sudeep Holla wrote:
->> This patch adds appropriate callbacks to support ACPI Low Power Idle
->> (LPI) on ARM64.
->>
->> Cc: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
->> Cc: Mark Rutland <mark.rutland@arm.com>
->> Cc: Daniel Lezcano <daniel.lezcano@linaro.org>
->> Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>
->> Signed-off-by: Sudeep Holla <sudeep.holla@arm.com>
->> ---
->>   arch/arm64/kernel/cpuidle.c |  18 +++++++
->>   drivers/firmware/psci.c     | 122 ++++++++++++++++++++++++++++++++++++--------
->
-> I would split this patch in two (ARM64 cpuidle and PSCI)
+* From an EFI variable
 
-Agreed, I combined it to get it functional in one go, but until we have
-6/6, it won't work. So better to split that changes.
+ This is the preferred method, when EFI is supported on the platform,
+ because it allows a persistent, OS independent way of storing and
+ updating the user defined SSDTs. There is also work underway to
+ implement EFI support for loading user defined SSDTs and using this
+ method will make it easier to convert to the EFI loading mechanism
+ when that will arrive.
 
-> and for
-> the PSCI code (apologies, blame taken, it is entirely my fault) I
-> think that the code in v6 was better, I asked you to factor out
-> DT/ACPI idle states count and parameter retrieval but the end result
-> is much more complicated than what it was in v6, so for PSCI ACPI
-> idle states parsing I would revert to v6, apologies.
->
+* From userspace via configfs
 
-Yes I agree it got bit complicated. I will revert back to v6 for that part.
+ This is useful when we want to defer the operation to userspace for
+ platform detection, loading the SSDTs from a custom partition, etc.
 
+Changes from v6:
 
-> With changes above:
->
-> Acked-by: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
->
+ * make acpi_table_events_fn static, fix (c) year and fix a typo
 
-Thanks
+Changes from v5:
+
+* EFI: enable duplicate detection to avoid firmware bugs that returns the
+same variable over and over again; this requires pushing the entry
+allocation back into efivar_ssdt_iter() and creating a temporary list
+that is iterated over in efivar_ssdt_load()
+
+* EFI: marked efivar_ssdt with __initdata
+
+Octavian Purdila (8):
+  Documentation: acpi: add SSDT overlays documentation
+  acpi: fix enumeration (visited) flags for bus rescans
+  acpi: add support for ACPI reconfiguration notifiers
+  i2c: add support for ACPI reconfigure notifications
+  spi: add support for ACPI reconfigure notifications
+  efi: load SSTDs from EFI variables
+  acpi: add support for configfs
+  acpi: add support for loading SSDTs via configfs
+
+ Documentation/ABI/testing/configfs-acpi |  36 +++++
+ Documentation/acpi/ssdt-overlays.txt    | 172 ++++++++++++++++++++
+ Documentation/kernel-parameters.txt     |   7 +
+ MAINTAINERS                             |   1 +
+ drivers/acpi/Kconfig                    |   8 +
+ drivers/acpi/Makefile                   |   1 +
+ drivers/acpi/bus.c                      |   9 ++
+ drivers/acpi/configfs.c                 | 267 ++++++++++++++++++++++++++++++++
+ drivers/acpi/internal.h                 |   3 +
+ drivers/acpi/scan.c                     |  81 +++++++++-
+ drivers/acpi/sysfs.c                    |   6 +-
+ drivers/firmware/efi/efi.c              |  96 ++++++++++++
+ drivers/i2c/i2c-core.c                  | 175 ++++++++++++++++-----
+ drivers/spi/spi.c                       | 100 +++++++++++-
+ include/linux/acpi.h                    |  36 +++++
+ 15 files changed, 942 insertions(+), 56 deletions(-)
+ create mode 100644 Documentation/ABI/testing/configfs-acpi
+ create mode 100644 Documentation/acpi/ssdt-overlays.txt
+ create mode 100644 drivers/acpi/configfs.c
 
 -- 
-Regards,
-Sudeep
+2.7.4
