@@ -1,43 +1,65 @@
 From: Sudeep Holla <sudeep.holla@arm.com>
-Subject: [PATCH v9 7/7] ACPI : enable ACPI_PROCESSOR_IDLE on ARM64
-Date: Fri,  8 Jul 2016 18:07:58 +0100
-Message-ID: <1467997678-7107-8-git-send-email-sudeep.holla@arm.com>
+Subject: [PATCH v9 6/7] arm64: add support for ACPI Low Power Idle(LPI)
+Date: Fri,  8 Jul 2016 18:07:57 +0100
+Message-ID: <1467997678-7107-7-git-send-email-sudeep.holla@arm.com>
 References: <1467997678-7107-1-git-send-email-sudeep.holla@arm.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from foss.arm.com ([217.140.101.70]:44610 "EHLO foss.arm.com"
+Received: from foss.arm.com ([217.140.101.70]:44599 "EHLO foss.arm.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932927AbcGHRI3 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 8 Jul 2016 13:08:29 -0400
+	id S932909AbcGHRIW (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 8 Jul 2016 13:08:22 -0400
 In-Reply-To: <1467997678-7107-1-git-send-email-sudeep.holla@arm.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: ACPI List <linux-acpi@vger.kernel.org>, "Rafael J . Wysocki" <rjw@rjwysocki.net>
-Cc: Sudeep Holla <sudeep.holla@arm.com>, Vikas Sajjan <vikas.cha.sajjan@hpe.com>, Sunil <sunil.vl@hpe.com>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Prashanth Prakash <pprakash@codeaurora.org>, Al Stone <al.stone@linaro.org>, Ashwin Chaugule <ashwin.chaugule@linaro.org>, Daniel Lezcano <daniel.lezcano@linaro.org>, LKML <linux-kernel@vger.kernel.org>, ALKML <linux-arm-kernel@lists.infradead.org>
+Cc: Sudeep Holla <sudeep.holla@arm.com>, Vikas Sajjan <vikas.cha.sajjan@hpe.com>, Sunil <sunil.vl@hpe.com>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Prashanth Prakash <pprakash@codeaurora.org>, Al Stone <al.stone@linaro.org>, Ashwin Chaugule <ashwin.chaugule@linaro.org>, Daniel Lezcano <daniel.lezcano@linaro.org>, LKML <linux-kernel@vger.kernel.org>, ALKML <linux-arm-kernel@lists.infradead.org>, Catalin Marinas <catalin.marinas@arm.com>, Will Deacon <will.deacon@arm.com>, Mark Rutland <mark.rutland@arm.com>
 
-Now that ACPI processor idle driver supports LPI(Low Power Idle), lets
-enable ACPI_PROCESSOR_IDLE for ARM64 too.
+This patch adds appropriate callbacks to support ACPI Low Power Idle
+(LPI) on ARM64.
 
-This patch just removes the IA64 and X86 dependency on ACPI_PROCESSOR_IDLE
-
+Cc: Catalin Marinas <catalin.marinas@arm.com>
+Cc: Will Deacon <will.deacon@arm.com>
+Cc: Mark Rutland <mark.rutland@arm.com>
 Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Acked-by: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
 Signed-off-by: Sudeep Holla <sudeep.holla@arm.com>
 ---
- drivers/acpi/Kconfig | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ arch/arm64/kernel/cpuidle.c | 18 ++++++++++++++++++
+ 1 file changed, 18 insertions(+)
 
-diff --git a/drivers/acpi/Kconfig b/drivers/acpi/Kconfig
-index 1358fb7d7a68..d74275c0f374 100644
---- a/drivers/acpi/Kconfig
-+++ b/drivers/acpi/Kconfig
-@@ -238,7 +238,7 @@ config ACPI_CPPC_LIB
- config ACPI_PROCESSOR
- 	tristate "Processor"
- 	depends on X86 || IA64 || ARM64
--	select ACPI_PROCESSOR_IDLE if X86 || IA64
-+	select ACPI_PROCESSOR_IDLE
- 	select ACPI_CPU_FREQ_PSS if X86 || IA64
- 	default y
- 	help
+diff --git a/arch/arm64/kernel/cpuidle.c b/arch/arm64/kernel/cpuidle.c
+index 06786fdaadeb..75a0f8acef66 100644
+--- a/arch/arm64/kernel/cpuidle.c
++++ b/arch/arm64/kernel/cpuidle.c
+@@ -9,6 +9,9 @@
+  * published by the Free Software Foundation.
+  */
+ 
++#include <linux/acpi.h>
++#include <linux/cpuidle.h>
++#include <linux/cpu_pm.h>
+ #include <linux/of.h>
+ #include <linux/of_device.h>
+ 
+@@ -39,3 +42,18 @@ int arm_cpuidle_suspend(int index)
+ 
+ 	return cpu_ops[cpu]->cpu_suspend(index);
+ }
++
++#ifdef CONFIG_ACPI
++
++#include <acpi/processor.h>
++
++int acpi_processor_ffh_lpi_probe(unsigned int cpu)
++{
++	return arm_cpuidle_init(cpu);
++}
++
++int acpi_processor_ffh_lpi_enter(struct acpi_lpi_state *lpi)
++{
++	return CPU_PM_CPU_IDLE_ENTER(arm_cpuidle_suspend, lpi->index);
++}
++#endif
 -- 
 2.7.4
 
