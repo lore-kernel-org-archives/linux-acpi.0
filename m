@@ -1,58 +1,62 @@
-From: Rasmus Villemoes <linux-qQsb+v5E8BnlAoU/VqSP6n9LOBIZ5rWg@public.gmane.org>
-Subject: Re: [PATCH v2 1/7] lib: string: add functions to
-	case-convert strings
-Date: Fri, 08 Jul 2016 02:19:13 +0200
-Message-ID: <87oa692d8e.fsf@rasmusvillemoes.dk>
-References: <1467751631-22878-1-git-send-email-mmayer@broadcom.com>
- <1467751631-22878-2-git-send-email-mmayer@broadcom.com>
+From: "Zheng, Lv" <lv.zheng@intel.com>
+Subject: RE: [UPDATE RFC PATCH v2] ACPI / EC: Fix an order issue in
+ ec_remove_handlers()
+Date: Fri, 8 Jul 2016 00:38:04 +0000
+Message-ID: <1AE640813FDE7649BE1B193DEA596E883BC01BAE@SHSMSX101.ccr.corp.intel.com>
+References: <20160706141410.GA1430@tetsubishi>
+ <e48b77b7af1e8269b0ff3fac6cbf37eb480ab722.1467866123.git.lv.zheng@intel.com>
+ <20160707114654.GA2915@tetsubishi>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <nouveau-bounces-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org>
-In-Reply-To: <1467751631-22878-2-git-send-email-mmayer-dY08KVG/lbpWk0Htik3J/w@public.gmane.org> (Markus
- Mayer's message of "Tue, 5 Jul 2016 13:47:05 -0700")
-List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/nouveau>,
- <mailto:nouveau-request-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org?subject=unsubscribe>
-List-Archive: <https://lists.freedesktop.org/archives/nouveau>
-List-Post: <mailto:nouveau-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org>
-List-Help: <mailto:nouveau-request-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/nouveau>,
- <mailto:nouveau-request-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org?subject=subscribe>
-Errors-To: nouveau-bounces-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org
-Sender: "Nouveau" <nouveau-bounces-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org>
-To: Markus Mayer <mmayer-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
-Cc: devel-gWbeCf7V1WCQmaza687I9mD2FQJk+8+b@public.gmane.org, Kees Cook <keescook-F7+t8E8rja9g9hUCZPvPmw@public.gmane.org>, linux-scsi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-pm-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, nouveau-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org, speakup-UPO/6gOIxNZglr+F8WMZYdi2O/JbrIOy@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, dri-devel-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Chris Metcalf <cmetcalf-d5a29ZRxExrQT0dZR+AlfA@public.gmane.org>, target-devel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Al Viro <viro-RmSDqhL/yNMiFSDQTTA3OLVCufUGDwFn@public.gmane.org>, Andrew Morton <akpm-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga04.intel.com ([192.55.52.120]:55701 "EHLO mga04.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753473AbcGHAiJ convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 7 Jul 2016 20:38:09 -0400
+In-Reply-To: <20160707114654.GA2915@tetsubishi>
+Content-Language: en-US
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Wolfram Sang <wsa@the-dreams.de>
+Cc: "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, "Brown, Len" <len.brown@intel.com>, Lv Zheng <zetalog@gmail.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Nicholas <nkudriavtsev@gmail.com>
 
-T24gVHVlLCBKdWwgMDUgMjAxNiwgTWFya3VzIE1heWVyIDxtbWF5ZXJAYnJvYWRjb20uY29tPiB3
-cm90ZToKCj4gQWRkIGEgY29sbGVjdGlvbiBvZiBnZW5lcmljIGZ1bmN0aW9ucyB0byBjb252ZXJ0
-IHN0cmluZ3MgdG8gbG93ZXJjYXNlCj4gb3IgdXBwZXJjYXNlLgo+Cj4gQ2hhbmdpbmcgdGhlIGNh
-c2Ugb2YgYSBzdHJpbmcgKHdpdGggb3Igd2l0aG91dCBjb3B5aW5nIGl0IGZpcnN0KSBzZWVtcwo+
-IHRvIGJlIGEgcmVjdXJyaW5nIHJlcXVpcmVtZW50IGluIHRoZSBrZXJuZWwgdGhhdCBpcyBjdXJy
-ZW50bHkgYmVpbmcKPiBzb2x2ZWQgYnkgc2V2ZXJhbCBkdXBsaWNhdGVkIGltcGxlbWVudGF0aW9u
-cyBkb2luZyB0aGUgc2FtZSB0aGluZy4gVGhpcwo+IGNoYW5nZSBhaW1zIGF0IHJlZHVjaW5nIHRo
-aXMgY29kZSBkdXBsaWNhdGlvbi4KPgo+ICsvKioKPiArICogc3RybmNweXRvdXBwZXIgLSBDb3B5
-IGEgbGVuZ3RoLWxpbWl0ZWQgc3RyaW5nIGFuZCBjb252ZXJ0IHRvIHVwcGVyY2FzZS4KPiArICog
-QGRzdDogVGhlIGJ1ZmZlciB0byBzdG9yZSB0aGUgcmVzdWx0Lgo+ICsgKiBAc3JjOiBUaGUgc3Ry
-aW5nIHRvIGNvbnZlcnQgdG8gdXBwZXJjYXNlLgo+ICsgKiBAbGVuOiBNYXhpbXVtIHN0cmluZyBs
-ZW5ndGguIE1heSBiZSAwIHRvIHNldCBubyBsaW1pdC4KPiArICoKPiArICogUmV0dXJucyBwb2lu
-dGVyIHRvIHRlcm1pbmF0aW5nICdcMCcgaW4gQGRzdC4KPiArICovCj4gK2NoYXIgKnN0cm5jcHl0
-b3VwcGVyKGNoYXIgKmRzdCwgY29uc3QgY2hhciAqc3JjLCBzaXplX3QgbGVuKQo+ICt7Cj4gKwlz
-aXplX3QgaTsKPiArCj4gKwlmb3IgKGkgPSAwOyBzcmNbaV0gIT0gJ1wwJyAmJiAoaSA8IGxlbiB8
-fCAhbGVuKTsgaSsrKQo+ICsJCWRzdFtpXSA9IHRvdXBwZXIoc3JjW2ldKTsKPiArCWlmIChpIDwg
-bGVuIHx8ICFsZW4pCj4gKwkJZHN0W2ldID0gJ1wwJzsKPiArCj4gKwlyZXR1cm4gZHN0ICsgaTsK
-PiArfQoKSG0sIHRoaXMgc2VlbXMgdG8gY29weSB0aGUgaW5zYW5lIHNlbWFudGljcyBmcm9tIHN0
-cm5jcHkgb2Ygbm90Cmd1YXJhbnRlZWluZyAnXDAnLXRlcm1pbmF0aW9uLgoKV2h5IHVzZSAwIGFz
-IGEgc2VudGluZWwsIHdoZW4gKHNpemVfdCktMSA9PSBTSVpFX01BWCB3b3VsZCB3b3JrIGp1c3Qg
-YXMKd2VsbCBhbmQgcmVxdWlyZSBhIGxpdHRsZSBsZXNzIGNvZGUgKG5vIHx8ICFsZW4pPwoKSSBy
-ZWdyZXQgc3VnZ2VzdGluZyB0aGlzIHJldHVybiBzZW1hbnRpY3MgYW5kIG5vdyBhZ3JlZSB0aGF0
-IHZvaWQgd291bGQKYmUgYmV0dGVyLCBlc3BlY2lhbGx5IHNpbmNlIHRoZXJlIGRvZXNuJ3Qgc2Vl
-bSB0byBiZSBhbnlvbmUgd2hvIGNhbgp1c2UgdGhpcyAob3IgYW55IG90aGVyKSByZXR1cm4gdmFs
-dWUuIEhvdyBhYm91dAoKaWYgKCFsZW4pCiAgIHJldHVybjsKCmZvciAoaSA9IDA7IGkgPCBsZW4g
-JiYgc3JjW2ldOyArK2kpCiAgZHN0W2ldID0gdG91cHBlcihzcmNbaV0pOwpkc3RbaSA8IGxlbiA/
-IGkgOiBpLTFdID0gJ1wwJzsKCihJIHRoaW5rIHlvdSBtdXN0IGRvIGkgPCBsZW4gYmVmb3JlIHRl
-c3Rpbmcgc3JjW2ldLCBzaW5jZSB0aGUgbGVuCnBhcmFtZXRlciBzaG91bGQgYmUgYW4gdXBwZXIg
-Ym91bmQgb24gdGhlIG51bWJlciBvZiBieXRlcyB0byBhY2Nlc3MgaW4KYm90aCBzcmMgYW5kIGRz
-dCkuCgpSYXNtdXMKX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X18KTm91dmVhdSBtYWlsaW5nIGxpc3QKTm91dmVhdUBsaXN0cy5mcmVlZGVza3RvcC5vcmcKaHR0
-cHM6Ly9saXN0cy5mcmVlZGVza3RvcC5vcmcvbWFpbG1hbi9saXN0aW5mby9ub3V2ZWF1Cg==
+Hi,
+
+> From: Wolfram Sang [mailto:wsa@the-dreams.de]
+> Subject: Re: [UPDATE RFC PATCH v2] ACPI / EC: Fix an order issue in
+> ec_remove_handlers()
+> 
+> On Thu, Jul 07, 2016 at 12:37:10PM +0800, Lv Zheng wrote:
+> > (Updated to add v2 indicator)
+> >
+> > There is an order issue in ec_remove_handlers() that the functions
+> invoked
+> > in it are not invoked in the reversed order of their appearance in
+> > ec_install_handlers(). This existing issue has been triggered by the
+> > following commit:
+> >   Commit: dcf15cbded656a12335bc4151f3f75f10080a375
+> >   Subject: ACPI / EC: Fix a boot EC regresion by restoring boot EC
+> > The commit invokes ec_remove_handlers() during runtime, thus
+> uncovers this
+> > issue. This patch fixes this regression.
+> >
+> > Fixes: dcf15cbded65 ("ACPI / EC: Fix a boot EC regresion by restoring
+> boot EC")
+> > Link: https://bugzilla.kernel.org/show_bug.cgi?id=102421
+> > Reported-by: Wolfram Sang <wsa@the-dreams.de>
+> > Reported-by: Nicholas <nkudriavtsev@gmail.com>
+> > Cc: Wolfram Sang <wsa@the-dreams.de>
+> > Cc: Nicholas <nkudriavtsev@gmail.com>
+> > Signed-off-by: Lv Zheng <lv.zheng@intel.com>
+> 
+> Tested-by: Wolfram Sang <wsa@the-dreams.de>
+> 
+> The status infos are back to normal and the EC error reports are gone
+> from the log. Looks good! Thanks for the quick fix.
+
+[Lv Zheng] 
+Thanks for the test, I'll refresh the patch with your tested-by added and RFC removed.
+
+Best regards
+-Lv
