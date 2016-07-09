@@ -1,58 +1,66 @@
-From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [PATCH v3 3/7] ACPI / device_sysfs: make use of new strtolower() function
-Date: Sat, 09 Jul 2016 01:22:53 +0200
-Message-ID: <5102225.yjc3cGTUHE@vostro.rjw.lan>
-References: <1468017794-4818-1-git-send-email-mmayer@broadcom.com> <1468017794-4818-4-git-send-email-mmayer@broadcom.com>
+From: Baoquan He <bhe@redhat.com>
+Subject: Re: [PATCH v2 2/2] x86/acpi: Remove the repeated lapic address
+ override entry parsing
+Date: Sat, 9 Jul 2016 10:04:21 +0800
+Message-ID: <20160709020421.GA6185@x1.redhat.com>
+References: <1467070896-4186-1-git-send-email-bhe@redhat.com>
+ <1467070896-4186-2-git-send-email-bhe@redhat.com>
+ <20160630080118.GD7175@x1.redhat.com>
+ <20160708122755.GA12413@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cloudserver094114.home.net.pl ([79.96.170.134]:45416 "HELO
-	cloudserver094114.home.net.pl" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with SMTP id S1751658AbcGHXSP (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 8 Jul 2016 19:18:15 -0400
-In-Reply-To: <1468017794-4818-4-git-send-email-mmayer@broadcom.com>
+Received: from mx1.redhat.com ([209.132.183.28]:46511 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S932486AbcGICE1 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 8 Jul 2016 22:04:27 -0400
+Content-Disposition: inline
+In-Reply-To: <20160708122755.GA12413@gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Markus Mayer <mmayer@broadcom.com>
-Cc: Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+To: Ingo Molnar <mingo@kernel.org>
+Cc: linux-kernel@vger.kernel.org, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Pavel Machek <pavel@ucw.cz>, linux-acpi@vger.kernel.org, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, Borislav Petkov <bp@suse.de>, Andy Lutomirski <luto@kernel.org>, Shaohua Li <shli@fb.com>, Viresh Kumar <viresh.kumar@linaro.org>, Hidehiro Kawai <hidehiro.kawai.ez@hitachi.com>, Juergen Gross <jgross@suse.com>, Joerg Roedel <jroedel@suse.de>, Dave Young <dyoung@redhat.com>, Lv Zheng <lv.zheng@intel.com>, Toshi Kani <toshi.kani@hpe.com>, Mark Salter <msalter@redhat.com>, Dave Hansen <dave.hansen@linux.intel.com>, x86@kernel.org
 
-On Friday, July 08, 2016 03:43:10 PM Markus Mayer wrote:
-> Call strtolower() rather than walking the string explicitly to convert
-> it to lowercase.
+Hi Ingo,
+
+On 07/08/16 at 02:27pm, Ingo Molnar wrote:
 > 
-> Signed-off-by: Markus Mayer <mmayer@broadcom.com>
-> ---
+> * Baoquan He <bhe@redhat.com> wrote:
 > 
-> Rafael, I left off your ACK, since the implementation of my function
-> changed somewhat (doesn't check the argument NULL, doesn't return
-> anything). Please let me know if you are still okay with this.
-
-I am, as long as it doesn't change the result, which seems to be the case.
-
->  drivers/acpi/device_sysfs.c | 4 +---
->  1 file changed, 1 insertion(+), 3 deletions(-)
+> > ACPI MADT has a 32-bit field providing lapic address at which
+> > each processor can access its lapic information. MADT also contains
+> > an optional entry to provide a 64-bit address to override the 32-bit
+> > one. However the current code does the lapic address override entry
+> > parsing twice. One is in early_acpi_boot_init() because AMD NUMA need
+> > get boot_cpu_id earlier. The other is in acpi_boot_init() which parses
+> > all MADT entries.
+> > 
+> > So in this patch remove the repeated code in the 2nd part. Meanwhile
+> > print lapic override entry information like other MADT entry.
 > 
-> diff --git a/drivers/acpi/device_sysfs.c b/drivers/acpi/device_sysfs.c
-> index 7b2c48f..1db38c7 100644
-> --- a/drivers/acpi/device_sysfs.c
-> +++ b/drivers/acpi/device_sysfs.c
-> @@ -200,12 +200,10 @@ static int create_of_modalias(struct acpi_device *acpi_dev, char *modalias,
->  	const union acpi_object *of_compatible, *obj;
->  	int len, count;
->  	int i, nval;
-> -	char *c;
->  
->  	acpi_get_name(acpi_dev->handle, ACPI_SINGLE_NAME, &buf);
->  	/* DT strings are all in lower case */
-> -	for (c = buf.pointer; *c != '\0'; c++)
-> -		*c = tolower(*c);
-> +	strtolower(buf.pointer);
->  
->  	len = snprintf(modalias, size, "of:N%sT", (char *)buf.pointer);
->  	ACPI_FREE(buf.pointer);
-> 
+> So this patch is not supposed to change behavior (modulo kernel messages), right? 
+> If so it would make sense to spell that out explicitly in the changelog.
 
-Thanks,
-Rafael
+I am not sure if I understand your question correctly. In this patch I
+added the calling of acpi_table_print_madt_entry(header) in
+acpi_parse_lapic_addr_ovr, it will print information related if a lapic
+address override entry is provided as below:
 
+	case ACPI_MADT_TYPE_LOCAL_APIC_OVERRIDE:                                                                  
+                {                                                                                                 
+                        struct acpi_madt_local_apic_override *p =                                                 
+                            (struct acpi_madt_local_apic_override*)header;                                       
+                        pr_info("LAPIC_ADDR_OVR (address[%p])\n",                                                 
+                                (void *)(unsigned long)p->address);                                               
+                }                                                                                                 
+                break;
+
+This will add one line of message to boot log if lapic addr override
+entry provided:
+"LAPIC_ADDR_OVR (address[0xXXXXXXXX])"
+
+I don't know if this is the behaviour change (modulo kernel messages)
+you mentioned.
+
+Thanks
+Baoquan
