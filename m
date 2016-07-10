@@ -1,196 +1,60 @@
-From: Dan Williams <dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH v2 16/17] x86/insn: remove pcommit
-Date: Sat, 09 Jul 2016 20:25:54 -0700
-Message-ID: <146812115425.32932.3314855641604340233.stgit@dwillia2-desk3.amr.corp.intel.com>
-References: <146812106839.32932.2870621200867047059.stgit@dwillia2-desk3.amr.corp.intel.com>
+From: Markus Mayer <markus.mayer-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
+Subject: Re: [PATCH v3 0/7] lib: string: add functions to
+	case-convert strings
+Date: Sat, 9 Jul 2016 21:11:05 -0700
+Message-ID: <CAGt4E5t0TGMxiUfV5Mx+EGyAYAmTOCEJe4QxjpjujvZfPwvYuQ@mail.gmail.com>
+References: <1468017794-4818-1-git-send-email-mmayer@broadcom.com>
+ <9b88baed-a067-fcfd-d087-66e36f3060d7@mellanox.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-In-Reply-To: <146812106839.32932.2870621200867047059.stgit-p8uTFz9XbKj2zm6wflaqv1nYeNYlB/vhral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
- <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
-List-Post: <mailto:linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-List-Help: <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
- <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
-Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
-Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-To: linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
-Cc: Xiao Guangrong <guangrong.xiao-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, Peter Zijlstra <peterz-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, x86-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Arnaldo Carvalho de Melo <acme-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Adrian Hunter <adrian.hunter-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Alexander Shishkin <alexander.shishkin-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, Ingo Molnar <mingo-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Andy Lutomirski <luto-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Josh Poimboeuf <jpoimboe-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-fsdevel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Thomas Gleixner <tglx-hfZtesqFncYOwBW4kG4KsQ@public.gmane.org>, Borislav Petkov <bp-l3A5Bk7waGM@public.gmane.org>, "H. Peter Anvin" <hpa-YMNOUZJC4hwAvxtiuMwx3w@public.gmane.org>, hch-jcswGhMUV9g@public.gmane.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <nouveau-bounces-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org>
+In-Reply-To: <9b88baed-a067-fcfd-d087-66e36f3060d7-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/nouveau>,
+ <mailto:nouveau-request-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org?subject=unsubscribe>
+List-Archive: <https://lists.freedesktop.org/archives/nouveau>
+List-Post: <mailto:nouveau-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org>
+List-Help: <mailto:nouveau-request-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/nouveau>,
+ <mailto:nouveau-request-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org?subject=subscribe>
+Errors-To: nouveau-bounces-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org
+Sender: "Nouveau" <nouveau-bounces-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org>
+To: Chris Metcalf <cmetcalf-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: devel-gWbeCf7V1WCQmaza687I9mD2FQJk+8+b@public.gmane.org, Kees Cook <keescook-F7+t8E8rja9g9hUCZPvPmw@public.gmane.org>, linux-scsi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-pm-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, nouveau-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org, Rasmus Villemoes <linux-qQsb+v5E8BnlAoU/VqSP6n9LOBIZ5rWg@public.gmane.org>, Linux Kernel <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, dri-devel-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, speakup-UPO/6gOIxNZglr+F8WMZYdi2O/JbrIOy@public.gmane.org, target-devel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Al Viro <viro-RmSDqhL/yNMiFSDQTTA3OLVCufUGDwFn@public.gmane.org>, Andrew Morton <akpm-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-The pcommit instruction is being deprecated in favor of either ADR
-(asynchronous DRAM refresh: flush-on-power-fail) at the platform level, or
-posted-write-queue flush addresses as defined by the ACPI 6.x NFIT (NVDIMM
-Firmware Interface Table).
-
-Cc: Thomas Gleixner <tglx-hfZtesqFncYOwBW4kG4KsQ@public.gmane.org>
-Cc: Ingo Molnar <mingo-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: "H. Peter Anvin" <hpa-YMNOUZJC4hwAvxtiuMwx3w@public.gmane.org>
-Cc: x86-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
-Cc: Josh Poimboeuf <jpoimboe-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: Peter Zijlstra <peterz-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>
-Cc: Arnaldo Carvalho de Melo <acme-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: Alexander Shishkin <alexander.shishkin-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
-Cc: Borislav Petkov <bp-l3A5Bk7waGM@public.gmane.org>
-Cc: Andy Lutomirski <luto-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: Xiao Guangrong <guangrong.xiao-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
-Cc: Adrian Hunter <adrian.hunter-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: Ross Zwisler <ross.zwisler-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
-Signed-off-by: Dan Williams <dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
----
- arch/x86/include/asm/cpufeatures.h                 |    1 
- arch/x86/include/asm/special_insns.h               |   46 --------------------
- arch/x86/lib/x86-opcode-map.txt                    |    2 -
- tools/objtool/arch/x86/insn/x86-opcode-map.txt     |    2 -
- tools/perf/arch/x86/tests/insn-x86-dat-32.c        |    2 -
- tools/perf/arch/x86/tests/insn-x86-dat-64.c        |    2 -
- tools/perf/arch/x86/tests/insn-x86-dat-src.c       |    4 --
- .../perf/util/intel-pt-decoder/x86-opcode-map.txt  |    2 -
- 8 files changed, 3 insertions(+), 58 deletions(-)
-
-diff --git a/arch/x86/include/asm/cpufeatures.h b/arch/x86/include/asm/cpufeatures.h
-index 4a413485f9eb..700d97df7d28 100644
---- a/arch/x86/include/asm/cpufeatures.h
-+++ b/arch/x86/include/asm/cpufeatures.h
-@@ -225,7 +225,6 @@
- #define X86_FEATURE_RDSEED	( 9*32+18) /* The RDSEED instruction */
- #define X86_FEATURE_ADX		( 9*32+19) /* The ADCX and ADOX instructions */
- #define X86_FEATURE_SMAP	( 9*32+20) /* Supervisor Mode Access Prevention */
--#define X86_FEATURE_PCOMMIT	( 9*32+22) /* PCOMMIT instruction */
- #define X86_FEATURE_CLFLUSHOPT	( 9*32+23) /* CLFLUSHOPT instruction */
- #define X86_FEATURE_CLWB	( 9*32+24) /* CLWB instruction */
- #define X86_FEATURE_AVX512PF	( 9*32+26) /* AVX-512 Prefetch */
-diff --git a/arch/x86/include/asm/special_insns.h b/arch/x86/include/asm/special_insns.h
-index d96d04377765..587d7914ea4b 100644
---- a/arch/x86/include/asm/special_insns.h
-+++ b/arch/x86/include/asm/special_insns.h
-@@ -253,52 +253,6 @@ static inline void clwb(volatile void *__p)
- 		: [pax] "a" (p));
- }
- 
--/**
-- * pcommit_sfence() - persistent commit and fence
-- *
-- * The PCOMMIT instruction ensures that data that has been flushed from the
-- * processor's cache hierarchy with CLWB, CLFLUSHOPT or CLFLUSH is accepted to
-- * memory and is durable on the DIMM.  The primary use case for this is
-- * persistent memory.
-- *
-- * This function shows how to properly use CLWB/CLFLUSHOPT/CLFLUSH and PCOMMIT
-- * with appropriate fencing.
-- *
-- * Example:
-- * void flush_and_commit_buffer(void *vaddr, unsigned int size)
-- * {
-- *         unsigned long clflush_mask = boot_cpu_data.x86_clflush_size - 1;
-- *         void *vend = vaddr + size;
-- *         void *p;
-- *
-- *         for (p = (void *)((unsigned long)vaddr & ~clflush_mask);
-- *              p < vend; p += boot_cpu_data.x86_clflush_size)
-- *                 clwb(p);
-- *
-- *         // SFENCE to order CLWB/CLFLUSHOPT/CLFLUSH cache flushes
-- *         // MFENCE via mb() also works
-- *         wmb();
-- *
-- *         // PCOMMIT and the required SFENCE for ordering
-- *         pcommit_sfence();
-- * }
-- *
-- * After this function completes the data pointed to by 'vaddr' has been
-- * accepted to memory and will be durable if the 'vaddr' points to persistent
-- * memory.
-- *
-- * PCOMMIT must always be ordered by an MFENCE or SFENCE, so to help simplify
-- * things we include both the PCOMMIT and the required SFENCE in the
-- * alternatives generated by pcommit_sfence().
-- */
--static inline void pcommit_sfence(void)
--{
--	alternative(ASM_NOP7,
--		    ".byte 0x66, 0x0f, 0xae, 0xf8\n\t" /* pcommit */
--		    "sfence",
--		    X86_FEATURE_PCOMMIT);
--}
--
- #define nop() asm volatile ("nop")
- 
- 
-diff --git a/arch/x86/lib/x86-opcode-map.txt b/arch/x86/lib/x86-opcode-map.txt
-index d388de72eaca..28632ee68377 100644
---- a/arch/x86/lib/x86-opcode-map.txt
-+++ b/arch/x86/lib/x86-opcode-map.txt
-@@ -947,7 +947,7 @@ GrpTable: Grp15
- 4: XSAVE
- 5: XRSTOR | lfence (11B)
- 6: XSAVEOPT | clwb (66) | mfence (11B)
--7: clflush | clflushopt (66) | sfence (11B) | pcommit (66),(11B)
-+7: clflush | clflushopt (66) | sfence (11B)
- EndTable
- 
- GrpTable: Grp16
-diff --git a/tools/objtool/arch/x86/insn/x86-opcode-map.txt b/tools/objtool/arch/x86/insn/x86-opcode-map.txt
-index d388de72eaca..28632ee68377 100644
---- a/tools/objtool/arch/x86/insn/x86-opcode-map.txt
-+++ b/tools/objtool/arch/x86/insn/x86-opcode-map.txt
-@@ -947,7 +947,7 @@ GrpTable: Grp15
- 4: XSAVE
- 5: XRSTOR | lfence (11B)
- 6: XSAVEOPT | clwb (66) | mfence (11B)
--7: clflush | clflushopt (66) | sfence (11B) | pcommit (66),(11B)
-+7: clflush | clflushopt (66) | sfence (11B)
- EndTable
- 
- GrpTable: Grp16
-diff --git a/tools/perf/arch/x86/tests/insn-x86-dat-32.c b/tools/perf/arch/x86/tests/insn-x86-dat-32.c
-index 3b491cfe204e..38a48daed154 100644
---- a/tools/perf/arch/x86/tests/insn-x86-dat-32.c
-+++ b/tools/perf/arch/x86/tests/insn-x86-dat-32.c
-@@ -654,5 +654,3 @@
- "0f c7 1d 78 56 34 12 \txrstors 0x12345678",},
- {{0x0f, 0xc7, 0x9c, 0xc8, 0x78, 0x56, 0x34, 0x12, }, 8, 0, "", "",
- "0f c7 9c c8 78 56 34 12 \txrstors 0x12345678(%eax,%ecx,8)",},
--{{0x66, 0x0f, 0xae, 0xf8, }, 4, 0, "", "",
--"66 0f ae f8          \tpcommit ",},
-diff --git a/tools/perf/arch/x86/tests/insn-x86-dat-64.c b/tools/perf/arch/x86/tests/insn-x86-dat-64.c
-index 4fe7cce179c4..1f11ea85b60f 100644
---- a/tools/perf/arch/x86/tests/insn-x86-dat-64.c
-+++ b/tools/perf/arch/x86/tests/insn-x86-dat-64.c
-@@ -764,5 +764,3 @@
- "0f c7 9c c8 78 56 34 12 \txrstors 0x12345678(%rax,%rcx,8)",},
- {{0x41, 0x0f, 0xc7, 0x9c, 0xc8, 0x78, 0x56, 0x34, 0x12, }, 9, 0, "", "",
- "41 0f c7 9c c8 78 56 34 12 \txrstors 0x12345678(%r8,%rcx,8)",},
--{{0x66, 0x0f, 0xae, 0xf8, }, 4, 0, "", "",
--"66 0f ae f8          \tpcommit ",},
-diff --git a/tools/perf/arch/x86/tests/insn-x86-dat-src.c b/tools/perf/arch/x86/tests/insn-x86-dat-src.c
-index 41b1b1c62660..033b8a6fdab9 100644
---- a/tools/perf/arch/x86/tests/insn-x86-dat-src.c
-+++ b/tools/perf/arch/x86/tests/insn-x86-dat-src.c
-@@ -866,10 +866,6 @@ int main(void)
- 
- #endif /* #ifndef __x86_64__ */
- 
--	/* pcommit */
--
--	asm volatile("pcommit");
--
- 	/* Following line is a marker for the awk script - do not change */
- 	asm volatile("rdtsc"); /* Stop here */
- 
-diff --git a/tools/perf/util/intel-pt-decoder/x86-opcode-map.txt b/tools/perf/util/intel-pt-decoder/x86-opcode-map.txt
-index d388de72eaca..28632ee68377 100644
---- a/tools/perf/util/intel-pt-decoder/x86-opcode-map.txt
-+++ b/tools/perf/util/intel-pt-decoder/x86-opcode-map.txt
-@@ -947,7 +947,7 @@ GrpTable: Grp15
- 4: XSAVE
- 5: XRSTOR | lfence (11B)
- 6: XSAVEOPT | clwb (66) | mfence (11B)
--7: clflush | clflushopt (66) | sfence (11B) | pcommit (66),(11B)
-+7: clflush | clflushopt (66) | sfence (11B)
- EndTable
- 
- GrpTable: Grp16
+T24gOSBKdWx5IDIwMTYgYXQgMjA6MTMsIENocmlzIE1ldGNhbGYgPGNtZXRjYWxmQG1lbGxhbm94
+LmNvbT4gd3JvdGU6Cj4gT24gNy84LzIwMTYgNjo0MyBQTSwgTWFya3VzIE1heWVyIHdyb3RlOgo+
+Pgo+PiBUaGlzIHNlcmllcyBpbnRyb2R1Y2VzIGEgZmFtaWx5IG9mIGdlbmVyaWMgc3RyaW5nIGNh
+c2UgY29udmVyc2lvbgo+PiBmdW5jdGlvbnMuIFRoaXMga2luZCBvZiBmdW5jdGlvbmFsaXR5IGlz
+IG5lZWRlZCBpbiBzZXZlcmFsIHBsYWNlcyBpbgo+PiB0aGUga2VybmVsLiBSaWdodCBub3csIGV2
+ZXJ5Ym9keSBzZWVtcyB0byBiZSBpbXBsZW1lbnRpbmcgdGhlaXIgb3duCj4+IGNvcHkgb2YgdGhp
+cyBmdW5jdGlvbmFsaXR5Lgo+Pgo+PiBCYXNlZCBvbiB0aGUgZGlzY3Vzc2lvbiBvZiB0aGUgcHJl
+dmlvdXMgdmVyc2lvbiBvZiB0aGlzIHNlcmllc1sxXSBhbmQKPj4gdGhlIHVzZSBjYXNlcyBmb3Vu
+ZCBpbiB0aGUga2VybmVsLCBpdCBkb2VzIGxvb2sgbGlrZSBoYXZpbmcgc2V2ZXJhbAo+PiBmbGF2
+b3VycyBvZiBjYXNlIGNvbnZlcnNpb24gZnVuY3Rpb25zIGlzIGJlbmVmaWNpYWwuIFRoZSB1c2Ug
+Y2FzZXMgZmFsbAo+PiBpbnRvIHRocmVlIGNhdGVnb3JpZXM6Cj4+ICAgICAgLSBjb3B5aW5nIGEg
+c3RyaW5nIGFuZCBjb252ZXJ0aW5nIHRoZSBjYXNlIHdoaWxlIHNwZWNpZnlpbmcgYQo+PiAgICAg
+ICAgbWF4aW11bSBsZW5ndGggdG8gbWltaWMgc3RybGNweSgpCj4+ICAgICAgLSBjb3B5aW5nIGEg
+c3RyaW5nIGFuZCBjb252ZXJ0aW5nIHRoZSBjYXNlIHdpdGhvdXQgc3BlY2lmeWluZyBhCj4+ICAg
+ICAgICBsZW5ndGggdG8gbWltaWMgc3RyY3B5KCkKPj4gICAgICAtIGNvbnZlcnRpbmcgdGhlIGNh
+c2Ugb2YgYSBzdHJpbmcgaW4tcGxhY2UgKGkuZS4gbW9kaWZ5aW5nIHRoZQo+PiAgICAgICAgc3Ry
+aW5nIHRoYXQgd2FzIHBhc3NlZCBpbikKPj4KPj4gQ29uc2VxdWVudGx5LCBJIGFtIHByb3Bvc2lu
+ZyB0aGVzZSBuZXcgZnVuY3Rpb25zOgo+PiAgICAgIHZvaWQgc3RybGNweXRvdXBwZXIoY2hhciAq
+ZHN0LCBjb25zdCBjaGFyICpzcmMsIHNpemVfdCBsZW4pOwo+PiAgICAgIHZvaWQgc3RybGNweXRv
+bG93ZXIoY2hhciAqZHN0LCBjb25zdCBjaGFyICpzcmMsIHNpemVfdCBsZW4pOwo+PiAgICAgIHZv
+aWQgc3RyY3B5dG91cHBlcihjaGFyICpkc3QsIGNvbnN0IGNoYXIgKnNyYyk7Cj4+ICAgICAgdm9p
+ZCBzdHJjcHl0b2xvd2VyKGNoYXIgKmRzdCwgY29uc3QgY2hhciAqc3JjKTsKPj4gICAgICB2b2lk
+IHN0cnRvdXBwZXIoY2hhciAqcyk7Cj4+ICAgICAgdm9pZCBzdHJ0b2xvd2VyKGNoYXIgKnMpOwo+
+Cj4KPiBZb3UgbWF5IHdhbnQgdG8gcmVhZCB0aGUgYXJ0aWNsZSBoZXJlOgo+Cj4gaHR0cHM6Ly9s
+d24ubmV0L0FydGljbGVzLzY1OTIxNC8KCkknbGwgcmVhZCB0aGF0LiBUaGFua3MuCgo+IGFuZCBm
+b2xsb3cgdXAgc29tZSBvZiB0aGUgZGlzY3Vzc2lvbiB0aHJlYWRzIG9uIExLTUwgYWJvdXQgdGhl
+IGJlc3QKPiBzZW1hbnRpY3MgdG8gYWR2ZXJ0aXNlIGZvciB0aGUgc3RybGNweS9zdHJzY3B5IHZh
+cmlhbnRzLiAgSXQgbWlnaHQgYmUKPiBoZWxwZnVsIHRvIHJldHVybiBzb21lIGtpbmQgb2Ygb3Zl
+cmZsb3cvdHJ1bmNhdGlvbiBlcnJvciBmcm9tIHlvdXIKPiBjb3B5IGZ1bmN0aW9ucyBzbyBwZW9w
+bGUgY2FuIGVycm9yLWNoZWNrIHRoZSByZXN1bHQuCgpJIGFtIGluY2xpbmVkIHRvIGFncmVlLiBI
+b3dldmVyLCBldmVyeWJvZHkgaGFzIGJlZW4gdGVsbGluZyBtZSB0aGF0CnRoZXNlIGZ1bmN0aW9u
+cyBzaG91bGQgYmUgdm9pZC4gT3JpZ2luYWxseSB0aGV5IHdlcmVuJ3QuCgpSZWdhcmRzLAotTWFy
+a3VzCl9fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fCk5vdXZl
+YXUgbWFpbGluZyBsaXN0Ck5vdXZlYXVAbGlzdHMuZnJlZWRlc2t0b3Aub3JnCmh0dHBzOi8vbGlz
+dHMuZnJlZWRlc2t0b3Aub3JnL21haWxtYW4vbGlzdGluZm8vbm91dmVhdQo=
