@@ -1,14 +1,11 @@
 From: Dan Williams <dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH v2 03/17] libnvdimm: introduce devm_nvdimm_memremap(),
- convert nfit_spa_map() users
-Date: Sat, 09 Jul 2016 20:24:45 -0700
-Message-ID: <146812108537.32932.4793673688677479548.stgit@dwillia2-desk3.amr.corp.intel.com>
-References: <146812106839.32932.2870621200867047059.stgit@dwillia2-desk3.amr.corp.intel.com>
+Subject: [PATCH v2 00/17] replace pcommit with ADR or directed flushing
+Date: Sat, 09 Jul 2016 20:24:29 -0700
+Message-ID: <146812106839.32932.2870621200867047059.stgit@dwillia2-desk3.amr.corp.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-In-Reply-To: <146812106839.32932.2870621200867047059.stgit-p8uTFz9XbKj2zm6wflaqv1nYeNYlB/vhral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -19,252 +16,100 @@ List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
 Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
 To: linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
-Cc: linux-fsdevel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, hch-jcswGhMUV9g@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: Xiao Guangrong <guangrong.xiao-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, Peter Zijlstra <peterz-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, x86-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Arnaldo Carvalho de Melo <acme-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Adrian Hunter <adrian.hunter-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Alexander Shishkin <alexander.shishkin-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, Ingo Molnar <mingo-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Andy Lutomirski <luto-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Josh Poimboeuf <jpoimboe-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-fsdevel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Paolo Bonzini <pbonzini-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Thomas Gleixner <tglx-hfZtesqFncYOwBW4kG4KsQ@public.gmane.org>, Borislav Petkov <bp-l3A5Bk7waGM@public.gmane.org>, "H. Peter Anvin" <hpa-YMNOUZJC4hwAvxtiuMwx3w@public.gmane.org>, hch-jcswGhMUV9g@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-In preparation for generically mapping flush hint addresses for both the
-BLK and PMEM use case, provide a generic / reference counted mapping
-api.  Given the fact that a dimm may belong to multiple regions (PMEM
-and BLK), the flush hint addresses need to be held valid as long as any
-region associated with the dimm is active.  This is similar to the
-existing BLK-region case where multiple BLK-regions may share an
-aperture mapping.  Up-level this shared / reference-counted mapping
-capability from the nfit driver to a core nvdimm capability.
+Changes since v1 [1]:
 
-This eliminates the need for the nd_blk_region.disable() callback.  Note
-that the removal of nfit_spa_map() and related infrastructure is
-deferred to a later patch.
+1/ Move flush address data from nvdimm_drvdata to nd_region_data (Greg,
+   Toshi)
 
-Signed-off-by: Dan Williams <dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+2/ Add more detail to cover letter and patch descriptions (Linda, Jeff)
+
+3/ Account for s/REQ_FLUSH/REQ_PREFLUSH/ rename pending in -next.
+
+4/ Add a directed flush at pmem ->remove() and ->shutdown() time.
+
+[1]: https://lists.01.org/pipermail/linux-nvdimm/2016-June/005897.html
+
 ---
- drivers/acpi/nfit.c       |   14 +++--
- drivers/nvdimm/core.c     |  122 +++++++++++++++++++++++++++++++++++++++++++++
- drivers/nvdimm/nd-core.h  |    1 
- include/linux/libnvdimm.h |    9 +++
- 4 files changed, 139 insertions(+), 7 deletions(-)
 
-diff --git a/drivers/acpi/nfit.c b/drivers/acpi/nfit.c
-index f8c1a850effc..b047dbe13bed 100644
---- a/drivers/acpi/nfit.c
-+++ b/drivers/acpi/nfit.c
-@@ -1616,7 +1616,8 @@ static void __iomem *__nfit_spa_map(struct acpi_nfit_desc *acpi_desc,
-  * when all region devices referencing the same mapping are disabled /
-  * unbound.
-  */
--static void __iomem *nfit_spa_map(struct acpi_nfit_desc *acpi_desc,
-+static __maybe_unused void __iomem *nfit_spa_map(
-+		struct acpi_nfit_desc *acpi_desc,
- 		struct acpi_nfit_system_address *spa, enum spa_map_type type)
- {
- 	void __iomem *iomem;
-@@ -1669,7 +1670,6 @@ static int acpi_nfit_blk_region_enable(struct nvdimm_bus *nvdimm_bus,
- 		struct device *dev)
- {
- 	struct nvdimm_bus_descriptor *nd_desc = to_nd_desc(nvdimm_bus);
--	struct acpi_nfit_desc *acpi_desc = to_acpi_desc(nd_desc);
- 	struct nd_blk_region *ndbr = to_nd_blk_region(dev);
- 	struct nfit_flush *nfit_flush;
- 	struct nfit_blk_mmio *mmio;
-@@ -1697,8 +1697,8 @@ static int acpi_nfit_blk_region_enable(struct nvdimm_bus *nvdimm_bus,
- 	/* map block aperture memory */
- 	nfit_blk->bdw_offset = nfit_mem->bdw->offset;
- 	mmio = &nfit_blk->mmio[BDW];
--	mmio->addr.base = nfit_spa_map(acpi_desc, nfit_mem->spa_bdw,
--			SPA_MAP_APERTURE);
-+	mmio->addr.base = devm_nvdimm_memremap(dev, nfit_mem->spa_bdw->address,
-+                        nfit_mem->spa_bdw->length, ARCH_MEMREMAP_PMEM);
- 	if (!mmio->addr.base) {
- 		dev_dbg(dev, "%s: %s failed to map bdw\n", __func__,
- 				nvdimm_name(nvdimm));
-@@ -1720,8 +1720,8 @@ static int acpi_nfit_blk_region_enable(struct nvdimm_bus *nvdimm_bus,
- 	nfit_blk->cmd_offset = nfit_mem->dcr->command_offset;
- 	nfit_blk->stat_offset = nfit_mem->dcr->status_offset;
- 	mmio = &nfit_blk->mmio[DCR];
--	mmio->addr.base = nfit_spa_map(acpi_desc, nfit_mem->spa_dcr,
--			SPA_MAP_CONTROL);
-+	mmio->addr.base = devm_nvdimm_ioremap(dev, nfit_mem->spa_dcr->address,
-+			nfit_mem->spa_dcr->length);
- 	if (!mmio->addr.base) {
- 		dev_dbg(dev, "%s: %s failed to map dcr\n", __func__,
- 				nvdimm_name(nvdimm));
-@@ -1748,7 +1748,7 @@ static int acpi_nfit_blk_region_enable(struct nvdimm_bus *nvdimm_bus,
- 
- 	nfit_flush = nfit_mem->nfit_flush;
- 	if (nfit_flush && nfit_flush->flush->hint_count != 0) {
--		nfit_blk->nvdimm_flush = devm_ioremap_nocache(dev,
-+		nfit_blk->nvdimm_flush = devm_nvdimm_ioremap(dev,
- 				nfit_flush->flush->hint_address[0], 8);
- 		if (!nfit_blk->nvdimm_flush)
- 			return -ENOMEM;
-diff --git a/drivers/nvdimm/core.c b/drivers/nvdimm/core.c
-index 32e4fe2f6274..f9686297ff79 100644
---- a/drivers/nvdimm/core.c
-+++ b/drivers/nvdimm/core.c
-@@ -57,6 +57,127 @@ bool is_nvdimm_bus_locked(struct device *dev)
- }
- EXPORT_SYMBOL(is_nvdimm_bus_locked);
- 
-+struct nvdimm_map {
-+	struct nvdimm_bus *nvdimm_bus;
-+	struct list_head list;
-+	resource_size_t offset;
-+	unsigned long flags;
-+	size_t size;
-+	union {
-+		void *mem;
-+		void __iomem *iomem;
-+	};
-+	struct kref kref;
-+};
-+
-+static struct nvdimm_map *find_nvdimm_map(struct device *dev,
-+		resource_size_t offset)
-+{
-+	struct nvdimm_bus *nvdimm_bus = walk_to_nvdimm_bus(dev);
-+	struct nvdimm_map *nvdimm_map;
-+
-+	list_for_each_entry(nvdimm_map, &nvdimm_bus->mapping_list, list)
-+		if (nvdimm_map->offset == offset)
-+			return nvdimm_map;
-+	return NULL;
-+}
-+
-+static struct nvdimm_map *alloc_nvdimm_map(struct device *dev,
-+		resource_size_t offset, size_t size, unsigned long flags)
-+{
-+	struct nvdimm_bus *nvdimm_bus = walk_to_nvdimm_bus(dev);
-+	struct nvdimm_map *nvdimm_map;
-+
-+	nvdimm_map = kzalloc(sizeof(*nvdimm_map), GFP_KERNEL);
-+	if (!nvdimm_map)
-+		return NULL;
-+
-+	INIT_LIST_HEAD(&nvdimm_map->list);
-+	nvdimm_map->nvdimm_bus = nvdimm_bus;
-+	nvdimm_map->offset = offset;
-+	nvdimm_map->flags = flags;
-+	nvdimm_map->size = size;
-+	kref_init(&nvdimm_map->kref);
-+
-+	if (!request_mem_region(offset, size, dev_name(&nvdimm_bus->dev)))
-+		goto err_request_region;
-+
-+	if (flags)
-+		nvdimm_map->mem = memremap(offset, size, flags);
-+	else
-+		nvdimm_map->iomem = ioremap(offset, size);
-+
-+	if (!nvdimm_map->mem)
-+		goto err_map;
-+
-+	dev_WARN_ONCE(dev, !is_nvdimm_bus_locked(dev), "%s: bus unlocked!",
-+			__func__);
-+	list_add(&nvdimm_map->list, &nvdimm_bus->mapping_list);
-+
-+	return nvdimm_map;
-+
-+ err_map:
-+	release_mem_region(offset, size);
-+ err_request_region:
-+	kfree(nvdimm_map);
-+	return NULL;
-+}
-+
-+static void nvdimm_map_release(struct kref *kref)
-+{
-+	struct nvdimm_bus *nvdimm_bus;
-+	struct nvdimm_map *nvdimm_map;
-+
-+	nvdimm_map = container_of(kref, struct nvdimm_map, kref);
-+	nvdimm_bus = nvdimm_map->nvdimm_bus;
-+
-+	dev_dbg(&nvdimm_bus->dev, "%s: %pa\n", __func__, &nvdimm_map->offset);
-+	list_del(&nvdimm_map->list);
-+	if (nvdimm_map->flags)
-+		memunmap(nvdimm_map->mem);
-+	else
-+		iounmap(nvdimm_map->iomem);
-+	release_mem_region(nvdimm_map->offset, nvdimm_map->size);
-+	kfree(nvdimm_map);
-+}
-+
-+static void nvdimm_map_put(void *data)
-+{
-+	struct nvdimm_map *nvdimm_map = data;
-+	struct nvdimm_bus *nvdimm_bus = nvdimm_map->nvdimm_bus;
-+
-+	nvdimm_bus_lock(&nvdimm_bus->dev);
-+	kref_put(&nvdimm_map->kref, nvdimm_map_release);
-+	nvdimm_bus_unlock(&nvdimm_bus->dev);
-+}
-+
-+/**
-+ * devm_nvdimm_memremap - map a resource that is shared across regions
-+ * @dev: device that will own a reference to the shared mapping
-+ * @offset: physical base address of the mapping
-+ * @size: mapping size
-+ * @flags: memremap flags, or, if zero, perform an ioremap instead
-+ */
-+void *devm_nvdimm_memremap(struct device *dev, resource_size_t offset,
-+		size_t size, unsigned long flags)
-+{
-+	struct nvdimm_map *nvdimm_map;
-+
-+	nvdimm_bus_lock(dev);
-+	nvdimm_map = find_nvdimm_map(dev, offset);
-+	if (!nvdimm_map)
-+		nvdimm_map = alloc_nvdimm_map(dev, offset, size, flags);
-+	else
-+		kref_get(&nvdimm_map->kref);
-+	nvdimm_bus_unlock(dev);
-+
-+	if (devm_add_action_or_reset(dev, nvdimm_map_put, nvdimm_map))
-+		return NULL;
-+
-+	return nvdimm_map->mem;
-+}
-+EXPORT_SYMBOL_GPL(devm_nvdimm_memremap);
-+
- u64 nd_fletcher64(void *addr, size_t len, bool le)
- {
- 	u32 *buf = addr;
-@@ -335,6 +456,7 @@ struct nvdimm_bus *__nvdimm_bus_register(struct device *parent,
- 	if (!nvdimm_bus)
- 		return NULL;
- 	INIT_LIST_HEAD(&nvdimm_bus->list);
-+	INIT_LIST_HEAD(&nvdimm_bus->mapping_list);
- 	INIT_LIST_HEAD(&nvdimm_bus->poison_list);
- 	init_waitqueue_head(&nvdimm_bus->probe_wait);
- 	nvdimm_bus->id = ida_simple_get(&nd_ida, 0, 0, GFP_KERNEL);
-diff --git a/drivers/nvdimm/nd-core.h b/drivers/nvdimm/nd-core.h
-index 284cdaa268cf..790b62cc81ed 100644
---- a/drivers/nvdimm/nd-core.h
-+++ b/drivers/nvdimm/nd-core.h
-@@ -31,6 +31,7 @@ struct nvdimm_bus {
- 	struct device dev;
- 	int id, probe_active;
- 	struct list_head poison_list;
-+	struct list_head mapping_list;
- 	struct mutex reconfig_mutex;
- };
- 
-diff --git a/include/linux/libnvdimm.h b/include/linux/libnvdimm.h
-index 0c3c30cbbea5..18c3cc48a970 100644
---- a/include/linux/libnvdimm.h
-+++ b/include/linux/libnvdimm.h
-@@ -99,6 +99,15 @@ struct nd_region_desc {
- 	unsigned long flags;
- };
- 
-+struct device;
-+void *devm_nvdimm_memremap(struct device *dev, resource_size_t offset,
-+		size_t size, unsigned long flags);
-+static inline void __iomem *devm_nvdimm_ioremap(struct device *dev,
-+		resource_size_t offset, size_t size)
-+{
-+	return (void __iomem *) devm_nvdimm_memremap(dev, offset, size, 0);
-+}
-+
- struct nvdimm_bus;
- struct module;
- struct device;
+The pcommit instruction, which has not shipped on any product, is
+deprecated. Instead, the expectation is that platforms implement either
+ADR, or provide one or more flush addresses per nvdimm. ADR
+(Asynchronous DRAM Refresh) flushes data in posted write buffers to the
+memory controller on a power-fail event. Flush addresses are defined in
+ACPI 6.x as an NVDIMM Firmware Interface Table (NFIT) sub-structure:
+"Flush Hint Address Structure". A flush hint is an mmio address that
+when written and fenced assures that all previous posted writes
+targeting a given dimm have been flushed to media.
+
+Code paths that previously called wmb_pmem() instead must arrange for a
+flush request to be sent to the pmem driver. Towards this end, the pmem
+driver is converted to advertise itself as having a write cache to
+indicate to a filesystem that a flush request must occur before writes
+are guaranteed to be on media.  See "[PATCH v2 08/17] libnvdimm:
+introduce nvdimm_flush() and nvdimm_has_flush()" for details.
+
+---
+
+Dan Williams (17):
+      nfit: always associate flush hints
+      nfit: don't override return value of nfit_mem_init
+      libnvdimm: introduce devm_nvdimm_memremap(), convert nfit_spa_map() users
+      libnvdimm, nfit: remove nfit_spa_map() infrastructure
+      libnvdimm, nfit: move flush hint mapping to region-device driver-data
+      tools/testing/nvdimm: simulate multiple flush hints per-dimm
+      libnvdimm: keep region data alive over namespace removal
+      libnvdimm: introduce nvdimm_flush() and nvdimm_has_flush()
+      libnvdimm: cycle flush hints
+      libnvdimm, pmem: use REQ_FUA, REQ_FLUSH for nvdimm_flush()
+      libnvdimm, pmem: flush posted-write queues on shutdown
+      fs/dax: remove wmb_pmem()
+      libnvdimm, pmem: use nvdimm_flush() for namespace I/O writes
+      pmem: kill wmb_pmem()
+      Revert "KVM: x86: add pcommit support"
+      x86/insn: remove pcommit
+      pmem: kill __pmem address space
+
+
+ Documentation/filesystems/Locking                  |    2 
+ arch/powerpc/sysdev/axonram.c                      |    4 
+ arch/x86/include/asm/cpufeatures.h                 |    1 
+ arch/x86/include/asm/pmem.h                        |   77 ++-----
+ arch/x86/include/asm/special_insns.h               |   46 ----
+ arch/x86/include/asm/vmx.h                         |    1 
+ arch/x86/include/uapi/asm/vmx.h                    |    4 
+ arch/x86/kvm/cpuid.c                               |    2 
+ arch/x86/kvm/cpuid.h                               |    8 -
+ arch/x86/kvm/vmx.c                                 |   32 ---
+ arch/x86/lib/x86-opcode-map.txt                    |    2 
+ drivers/acpi/nfit.c                                |  230 +++-----------------
+ drivers/acpi/nfit.h                                |   25 --
+ drivers/block/brd.c                                |    4 
+ drivers/nvdimm/bus.c                               |   16 +
+ drivers/nvdimm/claim.c                             |    2 
+ drivers/nvdimm/core.c                              |  122 +++++++++++
+ drivers/nvdimm/dimm_devs.c                         |    5 
+ drivers/nvdimm/nd-core.h                           |    4 
+ drivers/nvdimm/nd.h                                |   10 +
+ drivers/nvdimm/pmem.c                              |   59 ++++-
+ drivers/nvdimm/pmem.h                              |    4 
+ drivers/nvdimm/region.c                            |   19 +-
+ drivers/nvdimm/region_devs.c                       |  148 ++++++++++++-
+ drivers/s390/block/dcssblk.c                       |    6 -
+ fs/dax.c                                           |   13 -
+ include/linux/blkdev.h                             |    6 -
+ include/linux/compiler.h                           |    2 
+ include/linux/libnvdimm.h                          |   16 +
+ include/linux/nd.h                                 |    3 
+ include/linux/pmem.h                               |  117 ++--------
+ scripts/checkpatch.pl                              |    1 
+ tools/objtool/arch/x86/insn/x86-opcode-map.txt     |    2 
+ tools/perf/arch/x86/tests/insn-x86-dat-32.c        |    2 
+ tools/perf/arch/x86/tests/insn-x86-dat-64.c        |    2 
+ tools/perf/arch/x86/tests/insn-x86-dat-src.c       |    4 
+ .../perf/util/intel-pt-decoder/x86-opcode-map.txt  |    2 
+ tools/testing/nvdimm/pmem-dax.c                    |    2 
+ tools/testing/nvdimm/test/nfit.c                   |   55 +++--
+ 39 files changed, 505 insertions(+), 555 deletions(-)
