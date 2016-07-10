@@ -1,11 +1,13 @@
 From: Dan Williams <dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH v2 00/17] replace pcommit with ADR or directed flushing
-Date: Sat, 09 Jul 2016 20:24:29 -0700
-Message-ID: <146812106839.32932.2870621200867047059.stgit@dwillia2-desk3.amr.corp.intel.com>
+Subject: [PATCH v2 04/17] libnvdimm, nfit: remove nfit_spa_map() infrastructure
+Date: Sat, 09 Jul 2016 20:24:50 -0700
+Message-ID: <146812109076.32932.17697397436811104559.stgit@dwillia2-desk3.amr.corp.intel.com>
+References: <146812106839.32932.2870621200867047059.stgit@dwillia2-desk3.amr.corp.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+In-Reply-To: <146812106839.32932.2870621200867047059.stgit-p8uTFz9XbKj2zm6wflaqv1nYeNYlB/vhral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -16,100 +18,289 @@ List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
 Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
 To: linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
-Cc: Xiao Guangrong <guangrong.xiao-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, Peter Zijlstra <peterz-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, x86-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Arnaldo Carvalho de Melo <acme-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Adrian Hunter <adrian.hunter-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Alexander Shishkin <alexander.shishkin-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, Ingo Molnar <mingo-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Andy Lutomirski <luto-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Josh Poimboeuf <jpoimboe-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-fsdevel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Paolo Bonzini <pbonzini-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Thomas Gleixner <tglx-hfZtesqFncYOwBW4kG4KsQ@public.gmane.org>, Borislav Petkov <bp-l3A5Bk7waGM@public.gmane.org>, "H. Peter Anvin" <hpa-YMNOUZJC4hwAvxtiuMwx3w@public.gmane.org>, hch-jcswGhMUV9g@public.gmane.org
+Cc: linux-fsdevel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, hch-jcswGhMUV9g@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Changes since v1 [1]:
+Now that all shared mappings are handled by devm_nvdimm_memremap() we no
+longer need nfit_spa_map() nor do we need to trigger a callback to the
+bus provider at region disable time.
 
-1/ Move flush address data from nvdimm_drvdata to nd_region_data (Greg,
-   Toshi)
-
-2/ Add more detail to cover letter and patch descriptions (Linda, Jeff)
-
-3/ Account for s/REQ_FLUSH/REQ_PREFLUSH/ rename pending in -next.
-
-4/ Add a directed flush at pmem ->remove() and ->shutdown() time.
-
-[1]: https://lists.01.org/pipermail/linux-nvdimm/2016-June/005897.html
-
+Signed-off-by: Dan Williams <dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 ---
+ drivers/acpi/nfit.c          |  146 ------------------------------------------
+ drivers/acpi/nfit.h          |   21 ------
+ drivers/nvdimm/nd.h          |    1 
+ drivers/nvdimm/region_devs.c |    3 -
+ include/linux/libnvdimm.h    |    1 
+ 5 files changed, 172 deletions(-)
 
-The pcommit instruction, which has not shipped on any product, is
-deprecated. Instead, the expectation is that platforms implement either
-ADR, or provide one or more flush addresses per nvdimm. ADR
-(Asynchronous DRAM Refresh) flushes data in posted write buffers to the
-memory controller on a power-fail event. Flush addresses are defined in
-ACPI 6.x as an NVDIMM Firmware Interface Table (NFIT) sub-structure:
-"Flush Hint Address Structure". A flush hint is an mmio address that
-when written and fenced assures that all previous posted writes
-targeting a given dimm have been flushed to media.
-
-Code paths that previously called wmb_pmem() instead must arrange for a
-flush request to be sent to the pmem driver. Towards this end, the pmem
-driver is converted to advertise itself as having a write cache to
-indicate to a filesystem that a flush request must occur before writes
-are guaranteed to be on media.  See "[PATCH v2 08/17] libnvdimm:
-introduce nvdimm_flush() and nvdimm_has_flush()" for details.
-
----
-
-Dan Williams (17):
-      nfit: always associate flush hints
-      nfit: don't override return value of nfit_mem_init
-      libnvdimm: introduce devm_nvdimm_memremap(), convert nfit_spa_map() users
-      libnvdimm, nfit: remove nfit_spa_map() infrastructure
-      libnvdimm, nfit: move flush hint mapping to region-device driver-data
-      tools/testing/nvdimm: simulate multiple flush hints per-dimm
-      libnvdimm: keep region data alive over namespace removal
-      libnvdimm: introduce nvdimm_flush() and nvdimm_has_flush()
-      libnvdimm: cycle flush hints
-      libnvdimm, pmem: use REQ_FUA, REQ_FLUSH for nvdimm_flush()
-      libnvdimm, pmem: flush posted-write queues on shutdown
-      fs/dax: remove wmb_pmem()
-      libnvdimm, pmem: use nvdimm_flush() for namespace I/O writes
-      pmem: kill wmb_pmem()
-      Revert "KVM: x86: add pcommit support"
-      x86/insn: remove pcommit
-      pmem: kill __pmem address space
-
-
- Documentation/filesystems/Locking                  |    2 
- arch/powerpc/sysdev/axonram.c                      |    4 
- arch/x86/include/asm/cpufeatures.h                 |    1 
- arch/x86/include/asm/pmem.h                        |   77 ++-----
- arch/x86/include/asm/special_insns.h               |   46 ----
- arch/x86/include/asm/vmx.h                         |    1 
- arch/x86/include/uapi/asm/vmx.h                    |    4 
- arch/x86/kvm/cpuid.c                               |    2 
- arch/x86/kvm/cpuid.h                               |    8 -
- arch/x86/kvm/vmx.c                                 |   32 ---
- arch/x86/lib/x86-opcode-map.txt                    |    2 
- drivers/acpi/nfit.c                                |  230 +++-----------------
- drivers/acpi/nfit.h                                |   25 --
- drivers/block/brd.c                                |    4 
- drivers/nvdimm/bus.c                               |   16 +
- drivers/nvdimm/claim.c                             |    2 
- drivers/nvdimm/core.c                              |  122 +++++++++++
- drivers/nvdimm/dimm_devs.c                         |    5 
- drivers/nvdimm/nd-core.h                           |    4 
- drivers/nvdimm/nd.h                                |   10 +
- drivers/nvdimm/pmem.c                              |   59 ++++-
- drivers/nvdimm/pmem.h                              |    4 
- drivers/nvdimm/region.c                            |   19 +-
- drivers/nvdimm/region_devs.c                       |  148 ++++++++++++-
- drivers/s390/block/dcssblk.c                       |    6 -
- fs/dax.c                                           |   13 -
- include/linux/blkdev.h                             |    6 -
- include/linux/compiler.h                           |    2 
- include/linux/libnvdimm.h                          |   16 +
- include/linux/nd.h                                 |    3 
- include/linux/pmem.h                               |  117 ++--------
- scripts/checkpatch.pl                              |    1 
- tools/objtool/arch/x86/insn/x86-opcode-map.txt     |    2 
- tools/perf/arch/x86/tests/insn-x86-dat-32.c        |    2 
- tools/perf/arch/x86/tests/insn-x86-dat-64.c        |    2 
- tools/perf/arch/x86/tests/insn-x86-dat-src.c       |    4 
- .../perf/util/intel-pt-decoder/x86-opcode-map.txt  |    2 
- tools/testing/nvdimm/pmem-dax.c                    |    2 
- tools/testing/nvdimm/test/nfit.c                   |   55 +++--
- 39 files changed, 505 insertions(+), 555 deletions(-)
+diff --git a/drivers/acpi/nfit.c b/drivers/acpi/nfit.c
+index b047dbe13bed..b76c95981547 100644
+--- a/drivers/acpi/nfit.c
++++ b/drivers/acpi/nfit.c
+@@ -1509,126 +1509,6 @@ static int acpi_nfit_blk_region_do_io(struct nd_blk_region *ndbr,
+ 	return rc;
+ }
+ 
+-static void nfit_spa_mapping_release(struct kref *kref)
+-{
+-	struct nfit_spa_mapping *spa_map = to_spa_map(kref);
+-	struct acpi_nfit_system_address *spa = spa_map->spa;
+-	struct acpi_nfit_desc *acpi_desc = spa_map->acpi_desc;
+-
+-	WARN_ON(!mutex_is_locked(&acpi_desc->spa_map_mutex));
+-	dev_dbg(acpi_desc->dev, "%s: SPA%d\n", __func__, spa->range_index);
+-	if (spa_map->type == SPA_MAP_APERTURE)
+-		memunmap((void __force *)spa_map->addr.aperture);
+-	else
+-		iounmap(spa_map->addr.base);
+-	release_mem_region(spa->address, spa->length);
+-	list_del(&spa_map->list);
+-	kfree(spa_map);
+-}
+-
+-static struct nfit_spa_mapping *find_spa_mapping(
+-		struct acpi_nfit_desc *acpi_desc,
+-		struct acpi_nfit_system_address *spa)
+-{
+-	struct nfit_spa_mapping *spa_map;
+-
+-	WARN_ON(!mutex_is_locked(&acpi_desc->spa_map_mutex));
+-	list_for_each_entry(spa_map, &acpi_desc->spa_maps, list)
+-		if (spa_map->spa == spa)
+-			return spa_map;
+-
+-	return NULL;
+-}
+-
+-static void nfit_spa_unmap(struct acpi_nfit_desc *acpi_desc,
+-		struct acpi_nfit_system_address *spa)
+-{
+-	struct nfit_spa_mapping *spa_map;
+-
+-	mutex_lock(&acpi_desc->spa_map_mutex);
+-	spa_map = find_spa_mapping(acpi_desc, spa);
+-
+-	if (spa_map)
+-		kref_put(&spa_map->kref, nfit_spa_mapping_release);
+-	mutex_unlock(&acpi_desc->spa_map_mutex);
+-}
+-
+-static void __iomem *__nfit_spa_map(struct acpi_nfit_desc *acpi_desc,
+-		struct acpi_nfit_system_address *spa, enum spa_map_type type)
+-{
+-	resource_size_t start = spa->address;
+-	resource_size_t n = spa->length;
+-	struct nfit_spa_mapping *spa_map;
+-	struct resource *res;
+-
+-	WARN_ON(!mutex_is_locked(&acpi_desc->spa_map_mutex));
+-
+-	spa_map = find_spa_mapping(acpi_desc, spa);
+-	if (spa_map) {
+-		kref_get(&spa_map->kref);
+-		return spa_map->addr.base;
+-	}
+-
+-	spa_map = kzalloc(sizeof(*spa_map), GFP_KERNEL);
+-	if (!spa_map)
+-		return NULL;
+-
+-	INIT_LIST_HEAD(&spa_map->list);
+-	spa_map->spa = spa;
+-	kref_init(&spa_map->kref);
+-	spa_map->acpi_desc = acpi_desc;
+-
+-	res = request_mem_region(start, n, dev_name(acpi_desc->dev));
+-	if (!res)
+-		goto err_mem;
+-
+-	spa_map->type = type;
+-	if (type == SPA_MAP_APERTURE)
+-		spa_map->addr.aperture = (void __pmem *)memremap(start, n,
+-							ARCH_MEMREMAP_PMEM);
+-	else
+-		spa_map->addr.base = ioremap_nocache(start, n);
+-
+-
+-	if (!spa_map->addr.base)
+-		goto err_map;
+-
+-	list_add_tail(&spa_map->list, &acpi_desc->spa_maps);
+-	return spa_map->addr.base;
+-
+- err_map:
+-	release_mem_region(start, n);
+- err_mem:
+-	kfree(spa_map);
+-	return NULL;
+-}
+-
+-/**
+- * nfit_spa_map - interleave-aware managed-mappings of acpi_nfit_system_address ranges
+- * @nvdimm_bus: NFIT-bus that provided the spa table entry
+- * @nfit_spa: spa table to map
+- * @type: aperture or control region
+- *
+- * In the case where block-data-window apertures and
+- * dimm-control-regions are interleaved they will end up sharing a
+- * single request_mem_region() + ioremap() for the address range.  In
+- * the style of devm nfit_spa_map() mappings are automatically dropped
+- * when all region devices referencing the same mapping are disabled /
+- * unbound.
+- */
+-static __maybe_unused void __iomem *nfit_spa_map(
+-		struct acpi_nfit_desc *acpi_desc,
+-		struct acpi_nfit_system_address *spa, enum spa_map_type type)
+-{
+-	void __iomem *iomem;
+-
+-	mutex_lock(&acpi_desc->spa_map_mutex);
+-	iomem = __nfit_spa_map(acpi_desc, spa, type);
+-	mutex_unlock(&acpi_desc->spa_map_mutex);
+-
+-	return iomem;
+-}
+-
+ static int nfit_blk_init_interleave(struct nfit_blk_mmio *mmio,
+ 		struct acpi_nfit_interleave *idt, u16 interleave_ways)
+ {
+@@ -1773,29 +1653,6 @@ static int acpi_nfit_blk_region_enable(struct nvdimm_bus *nvdimm_bus,
+ 	return 0;
+ }
+ 
+-static void acpi_nfit_blk_region_disable(struct nvdimm_bus *nvdimm_bus,
+-		struct device *dev)
+-{
+-	struct nvdimm_bus_descriptor *nd_desc = to_nd_desc(nvdimm_bus);
+-	struct acpi_nfit_desc *acpi_desc = to_acpi_desc(nd_desc);
+-	struct nd_blk_region *ndbr = to_nd_blk_region(dev);
+-	struct nfit_blk *nfit_blk = nd_blk_region_provider_data(ndbr);
+-	int i;
+-
+-	if (!nfit_blk)
+-		return; /* never enabled */
+-
+-	/* auto-free BLK spa mappings */
+-	for (i = 0; i < 2; i++) {
+-		struct nfit_blk_mmio *mmio = &nfit_blk->mmio[i];
+-
+-		if (mmio->addr.base)
+-			nfit_spa_unmap(acpi_desc, mmio->spa);
+-	}
+-	nd_blk_region_set_provider_data(ndbr, NULL);
+-	/* devm will free nfit_blk */
+-}
+-
+ static int ars_get_cap(struct acpi_nfit_desc *acpi_desc,
+ 		struct nd_cmd_ars_cap *cmd, struct nfit_spa *nfit_spa)
+ {
+@@ -1969,7 +1826,6 @@ static int acpi_nfit_init_mapping(struct acpi_nfit_desc *acpi_desc,
+ 		ndr_desc->num_mappings = blk_valid;
+ 		ndbr_desc = to_blk_region_desc(ndr_desc);
+ 		ndbr_desc->enable = acpi_nfit_blk_region_enable;
+-		ndbr_desc->disable = acpi_nfit_blk_region_disable;
+ 		ndbr_desc->do_io = acpi_desc->blk_do_io;
+ 		nfit_spa->nd_region = nvdimm_blk_region_create(acpi_desc->nvdimm_bus,
+ 				ndr_desc);
+@@ -2509,7 +2365,6 @@ void acpi_nfit_desc_init(struct acpi_nfit_desc *acpi_desc, struct device *dev)
+ 	nd_desc->clear_to_send = acpi_nfit_clear_to_send;
+ 	nd_desc->attr_groups = acpi_nfit_attribute_groups;
+ 
+-	INIT_LIST_HEAD(&acpi_desc->spa_maps);
+ 	INIT_LIST_HEAD(&acpi_desc->spas);
+ 	INIT_LIST_HEAD(&acpi_desc->dcrs);
+ 	INIT_LIST_HEAD(&acpi_desc->bdws);
+@@ -2517,7 +2372,6 @@ void acpi_nfit_desc_init(struct acpi_nfit_desc *acpi_desc, struct device *dev)
+ 	INIT_LIST_HEAD(&acpi_desc->flushes);
+ 	INIT_LIST_HEAD(&acpi_desc->memdevs);
+ 	INIT_LIST_HEAD(&acpi_desc->dimms);
+-	mutex_init(&acpi_desc->spa_map_mutex);
+ 	mutex_init(&acpi_desc->init_mutex);
+ 	INIT_WORK(&acpi_desc->work, acpi_nfit_scrub);
+ }
+diff --git a/drivers/acpi/nfit.h b/drivers/acpi/nfit.h
+index f06fa91c5abf..52078475d969 100644
+--- a/drivers/acpi/nfit.h
++++ b/drivers/acpi/nfit.h
+@@ -135,9 +135,7 @@ struct acpi_nfit_desc {
+ 	struct nvdimm_bus_descriptor nd_desc;
+ 	struct acpi_table_header acpi_header;
+ 	struct acpi_nfit_header *nfit;
+-	struct mutex spa_map_mutex;
+ 	struct mutex init_mutex;
+-	struct list_head spa_maps;
+ 	struct list_head memdevs;
+ 	struct list_head flushes;
+ 	struct list_head dimms;
+@@ -188,25 +186,6 @@ struct nfit_blk {
+ 	u32 dimm_flags;
+ };
+ 
+-enum spa_map_type {
+-	SPA_MAP_CONTROL,
+-	SPA_MAP_APERTURE,
+-};
+-
+-struct nfit_spa_mapping {
+-	struct acpi_nfit_desc *acpi_desc;
+-	struct acpi_nfit_system_address *spa;
+-	struct list_head list;
+-	struct kref kref;
+-	enum spa_map_type type;
+-	struct nd_blk_addr addr;
+-};
+-
+-static inline struct nfit_spa_mapping *to_spa_map(struct kref *kref)
+-{
+-	return container_of(kref, struct nfit_spa_mapping, kref);
+-}
+-
+ static inline struct acpi_nfit_memory_map *__to_nfit_memdev(
+ 		struct nfit_mem *nfit_mem)
+ {
+diff --git a/drivers/nvdimm/nd.h b/drivers/nvdimm/nd.h
+index d0ac93c31dda..2819e886dfd2 100644
+--- a/drivers/nvdimm/nd.h
++++ b/drivers/nvdimm/nd.h
+@@ -119,7 +119,6 @@ struct nd_region {
+ 
+ struct nd_blk_region {
+ 	int (*enable)(struct nvdimm_bus *nvdimm_bus, struct device *dev);
+-	void (*disable)(struct nvdimm_bus *nvdimm_bus, struct device *dev);
+ 	int (*do_io)(struct nd_blk_region *ndbr, resource_size_t dpa,
+ 			void *iobuf, u64 len, int rw);
+ 	void *blk_provider_data;
+diff --git a/drivers/nvdimm/region_devs.c b/drivers/nvdimm/region_devs.c
+index 40fcfea26fbb..694b21024871 100644
+--- a/drivers/nvdimm/region_devs.c
++++ b/drivers/nvdimm/region_devs.c
+@@ -433,8 +433,6 @@ static void nd_region_notify_driver_action(struct nvdimm_bus *nvdimm_bus,
+ 
+ 		if (is_nd_pmem(dev))
+ 			return;
+-
+-		to_nd_blk_region(dev)->disable(nvdimm_bus, dev);
+ 	}
+ 	if (dev->parent && is_nd_blk(dev->parent) && probe) {
+ 		nd_region = to_nd_region(dev->parent);
+@@ -698,7 +696,6 @@ static struct nd_region *nd_region_create(struct nvdimm_bus *nvdimm_bus,
+ 		if (ndbr) {
+ 			nd_region = &ndbr->nd_region;
+ 			ndbr->enable = ndbr_desc->enable;
+-			ndbr->disable = ndbr_desc->disable;
+ 			ndbr->do_io = ndbr_desc->do_io;
+ 		}
+ 		region_buf = ndbr;
+diff --git a/include/linux/libnvdimm.h b/include/linux/libnvdimm.h
+index 18c3cc48a970..1050f9aa3a3e 100644
+--- a/include/linux/libnvdimm.h
++++ b/include/linux/libnvdimm.h
+@@ -114,7 +114,6 @@ struct device;
+ struct nd_blk_region;
+ struct nd_blk_region_desc {
+ 	int (*enable)(struct nvdimm_bus *nvdimm_bus, struct device *dev);
+-	void (*disable)(struct nvdimm_bus *nvdimm_bus, struct device *dev);
+ 	int (*do_io)(struct nd_blk_region *ndbr, resource_size_t dpa,
+ 			void *iobuf, u64 len, int rw);
+ 	struct nd_region_desc ndr_desc;
