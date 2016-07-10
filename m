@@ -1,112 +1,67 @@
-From: Markus Mayer <markus.mayer-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
-Subject: Re: [PATCH v3 1/7] lib: string: add functions to
-	case-convert strings
-Date: Sat, 9 Jul 2016 08:30:19 -0700
-Message-ID: <CAGt4E5vYzkqgiiQXXjnX7az-KzCVSYthEW5Df03U=Y1qhEJdRQ@mail.gmail.com>
-References: <1468017794-4818-1-git-send-email-mmayer@broadcom.com>
- <1468017794-4818-2-git-send-email-mmayer@broadcom.com>
- <5780E866.8000001@osg.samsung.com>
+From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Subject: Re: [PATCH v6 00/10] acpi, clocksource: add GTDT driver and GTDT support in arm_arch_timer
+Date: Sun, 10 Jul 2016 03:26:49 +0200
+Message-ID: <3119857.QuQfKUSRGs@vostro.rjw.lan>
+References: <1467224153-22873-1-git-send-email-fu.wei@linaro.org> <20160708132201.GD3784@red-moon> <21ec2b0d-cde9-f86a-c39a-0fba5d02fd03@linaro.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <nouveau-bounces-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org>
-In-Reply-To: <5780E866.8000001-JPH+aEBZ4P+UEJcrhfAQsw@public.gmane.org>
-List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/nouveau>,
- <mailto:nouveau-request-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org?subject=unsubscribe>
-List-Archive: <https://lists.freedesktop.org/archives/nouveau>
-List-Post: <mailto:nouveau-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org>
-List-Help: <mailto:nouveau-request-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/nouveau>,
- <mailto:nouveau-request-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org?subject=subscribe>
-Errors-To: nouveau-bounces-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org
-Sender: "Nouveau" <nouveau-bounces-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org>
-To: Luis de Bethencourt <luisbg-JPH+aEBZ4P+UEJcrhfAQsw@public.gmane.org>
-Cc: devel-gWbeCf7V1WCQmaza687I9mD2FQJk+8+b@public.gmane.org, Kees Cook <keescook-F7+t8E8rja9g9hUCZPvPmw@public.gmane.org>, linux-scsi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-pm-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, nouveau-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org, Rasmus Villemoes <linux-qQsb+v5E8BnlAoU/VqSP6n9LOBIZ5rWg@public.gmane.org>, Linux Kernel <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, dri-devel-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org, speakup-UPO/6gOIxNZglr+F8WMZYdi2O/JbrIOy@public.gmane.org, Chris Metcalf <cmetcalf-d5a29ZRxExrQT0dZR+AlfA@public.gmane.org>, target-devel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Al Viro <viro-RmSDqhL/yNMiFSDQTTA3OLVCufUGDwFn@public.gmane.org>, Andrew Morton <akpm-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org>, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Content-Transfer-Encoding: 7Bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from cloudserver094114.home.net.pl ([79.96.170.134]:44887 "HELO
+	cloudserver094114.home.net.pl" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with SMTP id S1756809AbcGJBWK (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sat, 9 Jul 2016 21:22:10 -0400
+In-Reply-To: <21ec2b0d-cde9-f86a-c39a-0fba5d02fd03@linaro.org>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Hanjun Guo <hanjun.guo@linaro.org>
+Cc: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, "Rafael J. Wysocki" <rafael@kernel.org>, Graeme Gregory <gg@slimlogic.co.uk>, Will Deacon <will.deacon@arm.com>, Catalin Marinas <catalin.marinas@arm.com>, Fu Wei <fu.wei@linaro.org>, Len Brown <lenb@kernel.org>, Daniel Lezcano <daniel.lezcano@linaro.org>, Thomas Gleixner <tglx@linutronix.de>, Marc Zyngier <marc.zyngier@arm.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linaro-acpi@lists.linaro.org" <linaro-acpi@lists.linaro.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, rruigrok@codeaurora.org, harba@codeaurora.org, Christopher Covington <cov@codeaurora.org>, Timur Tabi <timur@codeaurora.org>, G Gregory <graeme.gregory@linaro.org>, Al Stone <al.stone@linaro.org>, Jon Masters <jcm@redhat.com>, wei@redhat.comA
 
-T24gOSBKdWx5IDIwMTYgYXQgMDU6MDQsIEx1aXMgZGUgQmV0aGVuY291cnQgPGx1aXNiZ0Bvc2cu
-c2Ftc3VuZy5jb20+IHdyb3RlOgo+IE9uIDA4LzA3LzE2IDIzOjQzLCBNYXJrdXMgTWF5ZXIgd3Jv
-dGU6Cj4+IEFkZCBhIGNvbGxlY3Rpb24gb2YgZ2VuZXJpYyBmdW5jdGlvbnMgdG8gY29udmVydCBz
-dHJpbmdzIHRvIGxvd2VyY2FzZQo+PiBvciB1cHBlcmNhc2UuCj4+Cj4+IENoYW5naW5nIHRoZSBj
-YXNlIG9mIGEgc3RyaW5nICh3aXRoIG9yIHdpdGhvdXQgY29weWluZyBpdCBmaXJzdCkgc2VlbXMK
-Pj4gdG8gYmUgYSByZWN1cnJpbmcgcmVxdWlyZW1lbnQgaW4gdGhlIGtlcm5lbCB0aGF0IGlzIGN1
-cnJlbnRseSBiZWluZwo+PiBzb2x2ZWQgYnkgc2V2ZXJhbCBkdXBsaWNhdGVkIGltcGxlbWVudGF0
-aW9ucyBkb2luZyB0aGUgc2FtZSB0aGluZy4gVGhpcwo+PiBjaGFuZ2UgYWltcyBhdCByZWR1Y2lu
-ZyB0aGlzIGNvZGUgZHVwbGljYXRpb24uCj4+Cj4+IFRoZSBuZXcgZnVuY3Rpb25zIGFyZQo+PiAg
-ICAgdm9pZCBzdHJsY3B5dG91cHBlcihjaGFyICpkc3QsIGNvbnN0IGNoYXIgKnNyYywgc2l6ZV90
-IGxlbik7Cj4+ICAgICB2b2lkIHN0cmxjcHl0b2xvd2VyKGNoYXIgKmRzdCwgY29uc3QgY2hhciAq
-c3JjLCBzaXplX3QgbGVuKTsKPj4gICAgIHZvaWQgc3RyY3B5dG91cHBlcihjaGFyICpkc3QsIGNv
-bnN0IGNoYXIgKnNyYyk7Cj4+ICAgICB2b2lkIHN0cmNweXRvbG93ZXIoY2hhciAqZHN0LCBjb25z
-dCBjaGFyICpzcmMpOwo+PiAgICAgdm9pZCBzdHJ0b3VwcGVyKGNoYXIgKnMpOwo+PiAgICAgdm9p
-ZCBzdHJ0b2xvd2VyKGNoYXIgKnMpOwo+Pgo+PiBUaGUgInN0cltsXWNweXRvKiIgdmVyc2lvbnMg
-b2YgdGhlIGZ1bmN0aW9uIHRha2UgYSBkZXN0aW5hdGlvbiBzdHJpbmcKPj4gYW5kIGEgc291cmNl
-IHN0cmluZyBhcyBhcmd1bWVudHMuIFRoZSAic3RybGNweXRvKiIgdmVyc2lvbnMgYWRkaXRpb25h
-bGx5Cj4+IHRha2UgYSBsZW5ndGggYXJndW1lbnQgbGlrZSBzdHJsY3B5KCkgaXRzZWxmLiBMYXN0
-bHksIHRoZSBzdHJ0byoKPj4gZnVuY3Rpb25zIHRha2UgYSBzaW5nbGUgc3RyaW5nIGFyZ3VtZW50
-IGFuZCBtb2RpZnkgdGhlIHBhc3NlZC1pbiBzdHJpbmcuCj4+Cj4+IExpa2Ugc3RybGNweSgpLCBh
-bmQgdW5saWtlIHN0cm5jcHkoKSwgdGhlIGZ1bmN0aW9ucyBndWFyYW50ZWUgTlVMTAo+PiB0ZXJt
-aW5hdGlvbiBvZiB0aGUgZGVzdGluYXRpb24gc3RyaW5nLgo+Pgo+PiBTaWduZWQtb2ZmLWJ5OiBN
-YXJrdXMgTWF5ZXIgPG1tYXllckBicm9hZGNvbS5jb20+Cj4+IC0tLQo+PiAgaW5jbHVkZS9saW51
-eC9zdHJpbmcuaCB8IDQwICsrKysrKysrKysrKysrKysrKysrKysrKysrKysrKysrKysrKysrKysK
-Pj4gIGxpYi9zdHJpbmcuYyAgICAgICAgICAgfCAzOCArKysrKysrKysrKysrKysrKysrKysrKysr
-KysrKysrKysrKysrKwo+PiAgMiBmaWxlcyBjaGFuZ2VkLCA3OCBpbnNlcnRpb25zKCspCj4+Cj4+
-IGRpZmYgLS1naXQgYS9pbmNsdWRlL2xpbnV4L3N0cmluZy5oIGIvaW5jbHVkZS9saW51eC9zdHJp
-bmcuaAo+PiBpbmRleCAyNmI2ZjZhLi4zNmM5ZDE0IDEwMDY0NAo+PiAtLS0gYS9pbmNsdWRlL2xp
-bnV4L3N0cmluZy5oCj4+ICsrKyBiL2luY2x1ZGUvbGludXgvc3RyaW5nLmgKPj4gQEAgLTExNiw2
-ICsxMTYsOCBAQCBleHRlcm4gdm9pZCAqIG1lbWNocihjb25zdCB2b2lkICosaW50LF9fa2VybmVs
-X3NpemVfdCk7Cj4+ICAjZW5kaWYKPj4gIHZvaWQgKm1lbWNocl9pbnYoY29uc3Qgdm9pZCAqcywg
-aW50IGMsIHNpemVfdCBuKTsKPj4gIGNoYXIgKnN0cnJlcGxhY2UoY2hhciAqcywgY2hhciBvbGQs
-IGNoYXIgbmV3KTsKPj4gK2V4dGVybiB2b2lkIHN0cmxjcHl0b3VwcGVyKGNoYXIgKmRzdCwgY29u
-c3QgY2hhciAqc3JjLCBzaXplX3QgbGVuKTsKPj4gK2V4dGVybiB2b2lkIHN0cmxjcHl0b2xvd2Vy
-KGNoYXIgKmRzdCwgY29uc3QgY2hhciAqc3JjLCBzaXplX3QgbGVuKTsKPj4KPj4gIGV4dGVybiB2
-b2lkIGtmcmVlX2NvbnN0KGNvbnN0IHZvaWQgKngpOwo+Pgo+PiBAQCAtMTY5LDQgKzE3MSw0MiBA
-QCBzdGF0aWMgaW5saW5lIGNvbnN0IGNoYXIgKmtiYXNlbmFtZShjb25zdCBjaGFyICpwYXRoKQo+
-PiAgICAgICByZXR1cm4gdGFpbCA/IHRhaWwgKyAxIDogcGF0aDsKPj4gIH0KPj4KPj4gKy8qKgo+
-PiArICogc3RyY3B5dG91cHBlciAtIENvcHkgc3RyaW5nIGFuZCBjb252ZXJ0IHRvIHVwcGVyY2Fz
-ZS4KPj4gKyAqIEBkc3Q6IFRoZSBidWZmZXIgdG8gc3RvcmUgdGhlIHJlc3VsdC4KPj4gKyAqIEBz
-cmM6IFRoZSBzdHJpbmcgdG8gY29udmVydCB0byB1cHBlcmNhc2UuCj4+ICsgKi8KPj4gK3N0YXRp
-YyBpbmxpbmUgdm9pZCBzdHJjcHl0b3VwcGVyKGNoYXIgKmRzdCwgY29uc3QgY2hhciAqc3JjKQo+
-PiArewo+PiArICAgICBzdHJsY3B5dG91cHBlcihkc3QsIHNyYywgLTEpOwo+PiArfQo+PiArCj4K
-PiBXaHkgbm90IHVzZSBTSVpFX01BWCBpbnN0ZWFkIG9mIC0xPwoKU3VyZS4gSSdsbCBjaGFuZ2Ug
-YWxsIGZvdXIgb2YgdGhlbS4gVGhhbmtzLgoKPj4gKy8qKgo+PiArICogc3RyY3B5dG9sb3dlciAt
-IENvcHkgc3RyaW5nIGFuZCBjb252ZXJ0IHRvIGxvd2VyY2FzZS4KPj4gKyAqIEBkc3Q6IFRoZSBi
-dWZmZXIgdG8gc3RvcmUgdGhlIHJlc3VsdC4KPj4gKyAqIEBzcmM6IFRoZSBzdHJpbmcgdG8gY29u
-dmVydCB0byBsb3dlcmNhc2UuCj4+ICsgKi8KPj4gK3N0YXRpYyBpbmxpbmUgdm9pZCBzdHJjcHl0
-b2xvd2VyKGNoYXIgKmRzdCwgY29uc3QgY2hhciAqc3JjKQo+PiArewo+PiArICAgICBzdHJsY3B5
-dG9sb3dlcihkc3QsIHNyYywgLTEpOwo+PiArfQo+PiArCj4KPiBTYW1lIGhlcmUsIGFuZCB0aGUg
-MiBiZWxvdyA6KQo+Cj4gVGhhbmtzIE1hcmt1cywKPiBMdWlzCj4KPj4gKy8qKgo+PiArICogc3Ry
-dG91cHBlciAtIENvbnZlcnQgc3RyaW5nIHRvIHVwcGVyY2FzZS4KPj4gKyAqIEBzOiBUaGUgc3Ry
-aW5nIHRvIG9wZXJhdGUgb24uCj4+ICsgKi8KPj4gK3N0YXRpYyBpbmxpbmUgdm9pZCBzdHJ0b3Vw
-cGVyKGNoYXIgKnMpCj4+ICt7Cj4+ICsgICAgIHN0cmxjcHl0b3VwcGVyKHMsIHMsIC0xKTsKPj4g
-K30KPj4gKwo+PiArLyoqCj4+ICsgKiBzdHJ0b2xvd2VyIC0gQ29udmVydCBzdHJpbmcgdG8gbG93
-ZXJjYXNlLgo+PiArICogQHM6IFRoZSBzdHJpbmcgdG8gb3BlcmF0ZSBvbi4KPj4gKyAqLwo+PiAr
-c3RhdGljIGlubGluZSB2b2lkIHN0cnRvbG93ZXIoY2hhciAqcykKPj4gK3sKPj4gKyAgICAgc3Ry
-bGNweXRvbG93ZXIocywgcywgLTEpOwo+PiArfQo+PiArCj4+ICAjZW5kaWYgLyogX0xJTlVYX1NU
-UklOR19IXyAqLwo+PiBkaWZmIC0tZ2l0IGEvbGliL3N0cmluZy5jIGIvbGliL3N0cmluZy5jCj4+
-IGluZGV4IGVkODM1NjIuLmZkOGM0MjcgMTAwNjQ0Cj4+IC0tLSBhL2xpYi9zdHJpbmcuYwo+PiAr
-KysgYi9saWIvc3RyaW5nLmMKPj4gQEAgLTk1MiwzICs5NTIsNDEgQEAgY2hhciAqc3RycmVwbGFj
-ZShjaGFyICpzLCBjaGFyIG9sZCwgY2hhciBuZXcpCj4+ICAgICAgIHJldHVybiBzOwo+PiAgfQo+
-PiAgRVhQT1JUX1NZTUJPTChzdHJyZXBsYWNlKTsKPj4gKwo+PiArLyoqCj4+ICsgKiBzdHJsY3B5
-dG91cHBlciAtIENvcHkgYSBsZW5ndGgtbGltaXRlZCBzdHJpbmcgYW5kIGNvbnZlcnQgdG8gdXBw
-ZXJjYXNlLgo+PiArICogQGRzdDogVGhlIGJ1ZmZlciB0byBzdG9yZSB0aGUgcmVzdWx0Lgo+PiAr
-ICogQHNyYzogVGhlIHN0cmluZyB0byBjb252ZXJ0IHRvIHVwcGVyY2FzZS4KPj4gKyAqIEBsZW46
-IE1heGltdW0gc3RyaW5nIGxlbmd0aC4gTWF5IGJlIFNJWkVfTUFYICgtMSkgdG8gc2V0IG5vIGxp
-bWl0Lgo+PiArICovCj4+ICt2b2lkIHN0cmxjcHl0b3VwcGVyKGNoYXIgKmRzdCwgY29uc3QgY2hh
-ciAqc3JjLCBzaXplX3QgbGVuKQo+PiArewo+PiArICAgICBzaXplX3QgaTsKPj4gKwo+PiArICAg
-ICBpZiAoIWxlbikKPj4gKyAgICAgICAgICAgICByZXR1cm47Cj4+ICsKPj4gKyAgICAgZm9yIChp
-ID0gMDsgaSA8IGxlbiAmJiBzcmNbaV07ICsraSkKPj4gKyAgICAgICAgICAgICBkc3RbaV0gPSB0
-b3VwcGVyKHNyY1tpXSk7Cj4+ICsgICAgIGRzdFtpIDwgbGVuID8gaSA6IGkgLSAxXSA9ICdcMCc7
-Cj4+ICt9Cj4+ICtFWFBPUlRfU1lNQk9MKHN0cmxjcHl0b3VwcGVyKTsKPj4gKwo+PiArLyoqCj4+
-ICsgKiBzdHJsY3B5dG9sb3dlciAtIENvcHkgYSBsZW5ndGgtbGltaXRlZCBzdHJpbmcgYW5kIGNv
-bnZlcnQgdG8gbG93ZXJjYXNlLgo+PiArICogQGRzdDogVGhlIGJ1ZmZlciB0byBzdG9yZSB0aGUg
-cmVzdWx0Lgo+PiArICogQHNyYzogVGhlIHN0cmluZyB0byBjb252ZXJ0IHRvIGxvd2VyY2FzZS4K
-Pj4gKyAqIEBsZW46IE1heGltdW0gc3RyaW5nIGxlbmd0aC4gTWF5IGJlIFNJWkVfTUFYICgtMSkg
-dG8gc2V0IG5vIGxpbWl0Lgo+PiArICovCj4+ICt2b2lkIHN0cmxjcHl0b2xvd2VyKGNoYXIgKmRz
-dCwgY29uc3QgY2hhciAqc3JjLCBzaXplX3QgbGVuKQo+PiArewo+PiArICAgICBzaXplX3QgaTsK
-Pj4gKwo+PiArICAgICBpZiAoIWxlbikKPj4gKyAgICAgICAgICAgICByZXR1cm47Cj4+ICsKPj4g
-KyAgICAgZm9yIChpID0gMDsgaSA8IGxlbiAmJiBzcmNbaV07ICsraSkKPj4gKyAgICAgICAgICAg
-ICBkc3RbaV0gPSB0b2xvd2VyKHNyY1tpXSk7Cj4+ICsgICAgIGRzdFtpIDwgbGVuID8gaSA6IGkg
-LSAxXSA9ICdcMCc7Cj4+ICt9Cj4+ICtFWFBPUlRfU1lNQk9MKHN0cmxjcHl0b2xvd2VyKTsKPj4K
-PgpfX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fXwpOb3V2ZWF1
-IG1haWxpbmcgbGlzdApOb3V2ZWF1QGxpc3RzLmZyZWVkZXNrdG9wLm9yZwpodHRwczovL2xpc3Rz
-LmZyZWVkZXNrdG9wLm9yZy9tYWlsbWFuL2xpc3RpbmZvL25vdXZlYXUK
+On Saturday, July 09, 2016 11:44:47 AM Hanjun Guo wrote:
+> On 2016/7/8 21:22, Lorenzo Pieralisi wrote:
+> > On Thu, Jul 07, 2016 at 03:58:04PM +0200, Rafael J. Wysocki wrote:
+> >
+> > [...]
+> >
+> >>> Anyway let's avoid these petty arguments, I agree there must be some
+> >>> sort of ARM64 ACPI maintainership for the reasons you mentioned above.
+> >>
+> >> To avoid confusion on who's going to push stuff to Linus, I can do
+> >> that, but it must be clear whose ACKs are needed for that to happen.
+> >> That may be one person or all of you, whatever you decide.
+> >
+> > I think the reasoning is the same, to avoid confusion and avoid stepping
+> > on each other toes it is best to have a single gatekeeper (still
+> > multiple maintainer entries to keep patches reviewed correctly), if no
+> > one complains I will do that and a) provide ACKs (I will definitely
+> > require and request Hanjun and Sudeep ones too appropriately on a per
+> > patch basis) and b) send you pull requests.
+> 
+> Fine to me.
+> 
+> >
+> > Having a maintainer per file would be farcical, I really do not
+> 
+> Agree, but having three of us in maintainer entries in MAINTAINERS
+> file will help the patches be reviewed correctly with more eyes.
+> 
+> > expect that amount of traffic for drivers/acpi/arm64 therefore I
+> > really doubt there is any risk of me slowing things down.
+> >
+> > Does this sound reasonable ? Comments/complaints welcome, please
+> > manifest yourselves.
+> 
+> Fair enough. What I'm concern most is land ACPI on ARM64 soundly,
+> let's do that :)
+> 
+> OK, let's back to this patch set, Fuwei already prepared a new version
+> of patches [1] (moving acpi_gtdt.c to drivers/acpi/arm64/ and add a
+> maintainer entries patch), shall we review and comment on this patch
+> set for now, or just let Fuwei send out the new version?
+
+Frankly, I don't see a point in discussing the old version only if a new
+one is available already.  Post it, please.
+
+Thanks,
+Rafael
+
