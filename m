@@ -1,60 +1,64 @@
-From: Markus Mayer <markus.mayer-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
-Subject: Re: [PATCH v3 0/7] lib: string: add functions to
-	case-convert strings
-Date: Sat, 9 Jul 2016 21:11:05 -0700
-Message-ID: <CAGt4E5t0TGMxiUfV5Mx+EGyAYAmTOCEJe4QxjpjujvZfPwvYuQ@mail.gmail.com>
-References: <1468017794-4818-1-git-send-email-mmayer@broadcom.com>
- <9b88baed-a067-fcfd-d087-66e36f3060d7@mellanox.com>
+From: kbuild test robot <lkp-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH v2 08/17] libnvdimm: introduce nvdimm_flush() and
+ nvdimm_has_flush()
+Date: Sun, 10 Jul 2016 12:47:10 +0800
+Message-ID: <201607101237.dmgprEIr%fengguang.wu@intel.com>
+References: <146812111205.32932.3785207412939078453.stgit@dwillia2-desk3.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <nouveau-bounces-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org>
-In-Reply-To: <9b88baed-a067-fcfd-d087-66e36f3060d7-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/nouveau>,
- <mailto:nouveau-request-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org?subject=unsubscribe>
-List-Archive: <https://lists.freedesktop.org/archives/nouveau>
-List-Post: <mailto:nouveau-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org>
-List-Help: <mailto:nouveau-request-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/nouveau>,
- <mailto:nouveau-request-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org?subject=subscribe>
-Errors-To: nouveau-bounces-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org
-Sender: "Nouveau" <nouveau-bounces-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org>
-To: Chris Metcalf <cmetcalf-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Cc: devel-gWbeCf7V1WCQmaza687I9mD2FQJk+8+b@public.gmane.org, Kees Cook <keescook-F7+t8E8rja9g9hUCZPvPmw@public.gmane.org>, linux-scsi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-pm-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, nouveau-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org, Rasmus Villemoes <linux-qQsb+v5E8BnlAoU/VqSP6n9LOBIZ5rWg@public.gmane.org>, Linux Kernel <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, dri-devel-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, speakup-UPO/6gOIxNZglr+F8WMZYdi2O/JbrIOy@public.gmane.org, target-devel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Al Viro <viro-RmSDqhL/yNMiFSDQTTA3OLVCufUGDwFn@public.gmane.org>, Andrew Morton <akpm-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+In-Reply-To: <146812111205.32932.3785207412939078453.stgit-p8uTFz9XbKj2zm6wflaqv1nYeNYlB/vhral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Content-Disposition: inline
+List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
+ <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
+List-Post: <mailto:linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+List-Help: <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
+ <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
+Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
+Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+To: Dan Williams <dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, kbuild-all-JC7UmRfGjtg@public.gmane.org, linux-fsdevel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, hch-jcswGhMUV9g@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-T24gOSBKdWx5IDIwMTYgYXQgMjA6MTMsIENocmlzIE1ldGNhbGYgPGNtZXRjYWxmQG1lbGxhbm94
-LmNvbT4gd3JvdGU6Cj4gT24gNy84LzIwMTYgNjo0MyBQTSwgTWFya3VzIE1heWVyIHdyb3RlOgo+
-Pgo+PiBUaGlzIHNlcmllcyBpbnRyb2R1Y2VzIGEgZmFtaWx5IG9mIGdlbmVyaWMgc3RyaW5nIGNh
-c2UgY29udmVyc2lvbgo+PiBmdW5jdGlvbnMuIFRoaXMga2luZCBvZiBmdW5jdGlvbmFsaXR5IGlz
-IG5lZWRlZCBpbiBzZXZlcmFsIHBsYWNlcyBpbgo+PiB0aGUga2VybmVsLiBSaWdodCBub3csIGV2
-ZXJ5Ym9keSBzZWVtcyB0byBiZSBpbXBsZW1lbnRpbmcgdGhlaXIgb3duCj4+IGNvcHkgb2YgdGhp
-cyBmdW5jdGlvbmFsaXR5Lgo+Pgo+PiBCYXNlZCBvbiB0aGUgZGlzY3Vzc2lvbiBvZiB0aGUgcHJl
-dmlvdXMgdmVyc2lvbiBvZiB0aGlzIHNlcmllc1sxXSBhbmQKPj4gdGhlIHVzZSBjYXNlcyBmb3Vu
-ZCBpbiB0aGUga2VybmVsLCBpdCBkb2VzIGxvb2sgbGlrZSBoYXZpbmcgc2V2ZXJhbAo+PiBmbGF2
-b3VycyBvZiBjYXNlIGNvbnZlcnNpb24gZnVuY3Rpb25zIGlzIGJlbmVmaWNpYWwuIFRoZSB1c2Ug
-Y2FzZXMgZmFsbAo+PiBpbnRvIHRocmVlIGNhdGVnb3JpZXM6Cj4+ICAgICAgLSBjb3B5aW5nIGEg
-c3RyaW5nIGFuZCBjb252ZXJ0aW5nIHRoZSBjYXNlIHdoaWxlIHNwZWNpZnlpbmcgYQo+PiAgICAg
-ICAgbWF4aW11bSBsZW5ndGggdG8gbWltaWMgc3RybGNweSgpCj4+ICAgICAgLSBjb3B5aW5nIGEg
-c3RyaW5nIGFuZCBjb252ZXJ0aW5nIHRoZSBjYXNlIHdpdGhvdXQgc3BlY2lmeWluZyBhCj4+ICAg
-ICAgICBsZW5ndGggdG8gbWltaWMgc3RyY3B5KCkKPj4gICAgICAtIGNvbnZlcnRpbmcgdGhlIGNh
-c2Ugb2YgYSBzdHJpbmcgaW4tcGxhY2UgKGkuZS4gbW9kaWZ5aW5nIHRoZQo+PiAgICAgICAgc3Ry
-aW5nIHRoYXQgd2FzIHBhc3NlZCBpbikKPj4KPj4gQ29uc2VxdWVudGx5LCBJIGFtIHByb3Bvc2lu
-ZyB0aGVzZSBuZXcgZnVuY3Rpb25zOgo+PiAgICAgIHZvaWQgc3RybGNweXRvdXBwZXIoY2hhciAq
-ZHN0LCBjb25zdCBjaGFyICpzcmMsIHNpemVfdCBsZW4pOwo+PiAgICAgIHZvaWQgc3RybGNweXRv
-bG93ZXIoY2hhciAqZHN0LCBjb25zdCBjaGFyICpzcmMsIHNpemVfdCBsZW4pOwo+PiAgICAgIHZv
-aWQgc3RyY3B5dG91cHBlcihjaGFyICpkc3QsIGNvbnN0IGNoYXIgKnNyYyk7Cj4+ICAgICAgdm9p
-ZCBzdHJjcHl0b2xvd2VyKGNoYXIgKmRzdCwgY29uc3QgY2hhciAqc3JjKTsKPj4gICAgICB2b2lk
-IHN0cnRvdXBwZXIoY2hhciAqcyk7Cj4+ICAgICAgdm9pZCBzdHJ0b2xvd2VyKGNoYXIgKnMpOwo+
-Cj4KPiBZb3UgbWF5IHdhbnQgdG8gcmVhZCB0aGUgYXJ0aWNsZSBoZXJlOgo+Cj4gaHR0cHM6Ly9s
-d24ubmV0L0FydGljbGVzLzY1OTIxNC8KCkknbGwgcmVhZCB0aGF0LiBUaGFua3MuCgo+IGFuZCBm
-b2xsb3cgdXAgc29tZSBvZiB0aGUgZGlzY3Vzc2lvbiB0aHJlYWRzIG9uIExLTUwgYWJvdXQgdGhl
-IGJlc3QKPiBzZW1hbnRpY3MgdG8gYWR2ZXJ0aXNlIGZvciB0aGUgc3RybGNweS9zdHJzY3B5IHZh
-cmlhbnRzLiAgSXQgbWlnaHQgYmUKPiBoZWxwZnVsIHRvIHJldHVybiBzb21lIGtpbmQgb2Ygb3Zl
-cmZsb3cvdHJ1bmNhdGlvbiBlcnJvciBmcm9tIHlvdXIKPiBjb3B5IGZ1bmN0aW9ucyBzbyBwZW9w
-bGUgY2FuIGVycm9yLWNoZWNrIHRoZSByZXN1bHQuCgpJIGFtIGluY2xpbmVkIHRvIGFncmVlLiBI
-b3dldmVyLCBldmVyeWJvZHkgaGFzIGJlZW4gdGVsbGluZyBtZSB0aGF0CnRoZXNlIGZ1bmN0aW9u
-cyBzaG91bGQgYmUgdm9pZC4gT3JpZ2luYWxseSB0aGV5IHdlcmVuJ3QuCgpSZWdhcmRzLAotTWFy
-a3VzCl9fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fCk5vdXZl
-YXUgbWFpbGluZyBsaXN0Ck5vdXZlYXVAbGlzdHMuZnJlZWRlc2t0b3Aub3JnCmh0dHBzOi8vbGlz
-dHMuZnJlZWRlc2t0b3Aub3JnL21haWxtYW4vbGlzdGluZm8vbm91dmVhdQo=
+Hi,
+
+[auto build test ERROR on linux-nvdimm/libnvdimm-for-next]
+[also build test ERROR on next-20160708]
+[cannot apply to v4.7-rc6]
+[if your patch is applied to the wrong git tree, please drop us a note to help improve the system]
+
+url:    https://github.com/0day-ci/linux/commits/Dan-Williams/replace-pcommit-with-ADR-or-directed-flushing/20160710-113558
+base:   https://git.kernel.org/pub/scm/linux/kernel/git/nvdimm/nvdimm.git libnvdimm-for-next
+config: i386-randconfig-r0-201628 (attached as .config)
+compiler: gcc-6 (Debian 6.1.1-1) 6.1.1 20160430
+reproduce:
+        # save the attached .config to linux build tree
+        make ARCH=i386 
+
+All errors (new ones prefixed by >>):
+
+   drivers/nvdimm/region_devs.c: In function 'nvdimm_flush':
+>> drivers/nvdimm/region_devs.c:887:4: error: implicit declaration of function 'writeq' [-Werror=implicit-function-declaration]
+       writeq(1, ndrd->flush_wpq[i][0]);
+       ^~~~~~
+   cc1: some warnings being treated as errors
+
+vim +/writeq +887 drivers/nvdimm/region_devs.c
+
+   881		 * writes to avoid the cache via arch_memcpy_to_pmem().  The
+   882		 * final wmb() ensures ordering for the NVDIMM flush write.
+   883		 */
+   884		wmb();
+   885		for (i = 0; i < nd_region->ndr_mappings; i++)
+   886			if (ndrd->flush_wpq[i][0])
+ > 887				writeq(1, ndrd->flush_wpq[i][0]);
+   888		wmb();
+   889	}
+   890	EXPORT_SYMBOL_GPL(nvdimm_flush);
+
+---
+0-DAY kernel test infrastructure                Open Source Technology Center
+https://lists.01.org/pipermail/kbuild-all                   Intel Corporation
