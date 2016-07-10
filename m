@@ -1,7 +1,7 @@
 From: Dan Williams <dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH v2 01/17] nfit: always associate flush hints
-Date: Sat, 09 Jul 2016 20:24:34 -0700
-Message-ID: <146812107483.32932.3652950504167218008.stgit@dwillia2-desk3.amr.corp.intel.com>
+Subject: [PATCH v2 02/17] nfit: don't override return value of nfit_mem_init
+Date: Sat, 09 Jul 2016 20:24:40 -0700
+Message-ID: <146812108024.32932.16714919837475352619.stgit@dwillia2-desk3.amr.corp.intel.com>
 References: <146812106839.32932.2870621200867047059.stgit@dwillia2-desk3.amr.corp.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -21,62 +21,26 @@ To: linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
 Cc: linux-fsdevel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, hch-jcswGhMUV9g@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Before enabling use of flush hints for pmem regions, we need to make
-sure they are always associated.  Move the initialization of nfit_flush
-out of the block-window specific init path to the general init path.
+We were needlessly converting nfit_mem_init() errors to -ENOMEM.
 
-Cc: Ross Zwisler <ross.zwisler-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
 Signed-off-by: Dan Williams <dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 ---
- drivers/acpi/nfit.c |   17 ++++++++---------
- 1 file changed, 8 insertions(+), 9 deletions(-)
+ drivers/acpi/nfit.c |    5 ++---
+ 1 file changed, 2 insertions(+), 3 deletions(-)
 
 diff --git a/drivers/acpi/nfit.c b/drivers/acpi/nfit.c
-index 3e54157f02cc..d79837b9d07e 100644
+index d79837b9d07e..f8c1a850effc 100644
 --- a/drivers/acpi/nfit.c
 +++ b/drivers/acpi/nfit.c
-@@ -614,7 +614,6 @@ static void nfit_mem_init_bdw(struct acpi_nfit_desc *acpi_desc,
- {
- 	u16 dcr = __to_nfit_memdev(nfit_mem)->region_index;
- 	struct nfit_memdev *nfit_memdev;
--	struct nfit_flush *nfit_flush;
- 	struct nfit_bdw *nfit_bdw;
- 	struct nfit_idt *nfit_idt;
- 	u16 idt_idx, range_index;
-@@ -647,14 +646,6 @@ static void nfit_mem_init_bdw(struct acpi_nfit_desc *acpi_desc,
- 			nfit_mem->idt_bdw = nfit_idt->idt;
- 			break;
- 		}
--
--		list_for_each_entry(nfit_flush, &acpi_desc->flushes, list) {
--			if (nfit_flush->flush->device_handle !=
--					nfit_memdev->memdev->device_handle)
--				continue;
--			nfit_mem->nfit_flush = nfit_flush;
--			break;
--		}
- 		break;
- 	}
- }
-@@ -675,6 +666,7 @@ static int nfit_mem_dcr_init(struct acpi_nfit_desc *acpi_desc,
- 	}
+@@ -2422,10 +2422,9 @@ int acpi_nfit_init(struct acpi_nfit_desc *acpi_desc, acpi_size sz)
+ 	if (rc)
+ 		goto out_unlock;
  
- 	list_for_each_entry(nfit_memdev, &acpi_desc->memdevs, list) {
-+		struct nfit_flush *nfit_flush;
- 		struct nfit_dcr *nfit_dcr;
- 		u32 device_handle;
- 		u16 dcr;
-@@ -721,6 +713,13 @@ static int nfit_mem_dcr_init(struct acpi_nfit_desc *acpi_desc,
- 			break;
- 		}
+-	if (nfit_mem_init(acpi_desc) != 0) {
+-		rc = -ENOMEM;
++	rc = nfit_mem_init(acpi_desc);
++	if (rc)
+ 		goto out_unlock;
+-	}
  
-+		list_for_each_entry(nfit_flush, &acpi_desc->flushes, list) {
-+			if (nfit_flush->flush->device_handle != device_handle)
-+				continue;
-+			nfit_mem->nfit_flush = nfit_flush;
-+			break;
-+		}
-+
- 		if (dcr && !nfit_mem->dcr) {
- 			dev_err(acpi_desc->dev, "SPA %d missing DCR %d\n",
- 					spa->range_index, dcr);
+ 	acpi_nfit_init_dsms(acpi_desc);
