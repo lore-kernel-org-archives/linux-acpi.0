@@ -1,8 +1,7 @@
 From: Dan Williams <dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH v2 13/17] libnvdimm,
- pmem: use nvdimm_flush() for namespace I/O writes
-Date: Sat, 09 Jul 2016 20:25:38 -0700
-Message-ID: <146812113854.32932.4086784403471595345.stgit@dwillia2-desk3.amr.corp.intel.com>
+Subject: [PATCH v2 12/17] fs/dax: remove wmb_pmem()
+Date: Sat, 09 Jul 2016 20:25:33 -0700
+Message-ID: <146812113311.32932.15565626805360250237.stgit@dwillia2-desk3.amr.corp.intel.com>
 References: <146812106839.32932.2870621200867047059.stgit@dwillia2-desk3.amr.corp.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -22,26 +21,58 @@ To: linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
 Cc: linux-fsdevel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, hch-jcswGhMUV9g@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-nsio_rw_bytes() is used to write info block metadata to the namespace,
-so it should trigger a flush after every write.  Replace wmb_pmem() with
-nvdimm_flush() in this path.
+Flushing posted-write queues is now deferred to REQ_FLUSH context, or
+otherwise handled by an ADR event at the platform level.
 
 Cc: Ross Zwisler <ross.zwisler-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
 Signed-off-by: Dan Williams <dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 ---
- drivers/nvdimm/claim.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ fs/dax.c |    7 +------
+ 1 file changed, 1 insertion(+), 6 deletions(-)
 
-diff --git a/drivers/nvdimm/claim.c b/drivers/nvdimm/claim.c
-index 9997ff94a132..d5dc80c48b4c 100644
---- a/drivers/nvdimm/claim.c
-+++ b/drivers/nvdimm/claim.c
-@@ -240,7 +240,7 @@ static int nsio_rw_bytes(struct nd_namespace_common *ndns,
- 		return memcpy_from_pmem(buf, nsio->addr + offset, size);
- 	} else {
- 		memcpy_to_pmem(nsio->addr + offset, buf, size);
--		wmb_pmem();
-+		nvdimm_flush(to_nd_region(ndns->dev.parent));
+diff --git a/fs/dax.c b/fs/dax.c
+index 761495bf5eb9..434f421da660 100644
+--- a/fs/dax.c
++++ b/fs/dax.c
+@@ -147,7 +147,7 @@ static ssize_t dax_io(struct inode *inode, struct iov_iter *iter,
+ 		      struct buffer_head *bh)
+ {
+ 	loff_t pos = start, max = start, bh_max = start;
+-	bool hole = false, need_wmb = false;
++	bool hole = false;
+ 	struct block_device *bdev = NULL;
+ 	int rw = iov_iter_rw(iter), rc;
+ 	long map_len = 0;
+@@ -213,7 +213,6 @@ static ssize_t dax_io(struct inode *inode, struct iov_iter *iter,
+ 
+ 		if (iov_iter_rw(iter) == WRITE) {
+ 			len = copy_from_iter_pmem(dax.addr, max - pos, iter);
+-			need_wmb = true;
+ 		} else if (!hole)
+ 			len = copy_to_iter((void __force *) dax.addr, max - pos,
+ 					iter);
+@@ -230,8 +229,6 @@ static ssize_t dax_io(struct inode *inode, struct iov_iter *iter,
+ 			dax.addr += len;
  	}
  
+-	if (need_wmb)
+-		wmb_pmem();
+ 	dax_unmap_atomic(bdev, &dax);
+ 
+ 	return (pos == start) ? rc : pos - start;
+@@ -783,7 +780,6 @@ int dax_writeback_mapping_range(struct address_space *mapping,
+ 				return ret;
+ 		}
+ 	}
+-	wmb_pmem();
+ 	return 0;
+ }
+ EXPORT_SYMBOL_GPL(dax_writeback_mapping_range);
+@@ -1227,7 +1223,6 @@ int __dax_zero_page_range(struct block_device *bdev, sector_t sector,
+ 		if (dax_map_atomic(bdev, &dax) < 0)
+ 			return PTR_ERR(dax.addr);
+ 		clear_pmem(dax.addr + offset, length);
+-		wmb_pmem();
+ 		dax_unmap_atomic(bdev, &dax);
+ 	}
  	return 0;
