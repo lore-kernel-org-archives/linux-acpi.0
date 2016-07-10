@@ -1,101 +1,52 @@
-From: kbuild test robot <lkp-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH v2 03/17] libnvdimm: introduce devm_nvdimm_memremap(),
- convert nfit_spa_map() users
-Date: Sun, 10 Jul 2016 13:30:02 +0800
-Message-ID: <201607101312.WRFiJKWz%fengguang.wu@intel.com>
-References: <146812108537.32932.4793673688677479548.stgit@dwillia2-desk3.amr.corp.intel.com>
+From: Thorsten Leemhuis <regressions@leemhuis.info>
+Subject: Re: [GIT PULL] ACPI fixes for v4.7-rc7
+Date: Sun, 10 Jul 2016 13:00:09 +0200
+Message-ID: <d3bc7758-2f97-474e-bd48-19457bda8b1d@leemhuis.info>
+References: <CAJZ5v0hDSZGX90hxkACwC0DktD-_Baq=+DDkR7_zv8464iHG-Q@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-In-Reply-To: <146812108537.32932.4793673688677479548.stgit-p8uTFz9XbKj2zm6wflaqv1nYeNYlB/vhral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Content-Disposition: inline
-List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
- <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
-List-Post: <mailto:linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-List-Help: <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
- <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
-Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
-Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-To: Dan Williams <dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, kbuild-all-JC7UmRfGjtg@public.gmane.org, linux-fsdevel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, hch-jcswGhMUV9g@public.gmane.org
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from basicbox7.server-home.net ([195.137.212.29]:60173 "EHLO
+	basicbox7.server-home.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750822AbcGJLAN (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sun, 10 Jul 2016 07:00:13 -0400
+In-Reply-To: <CAJZ5v0hDSZGX90hxkACwC0DktD-_Baq=+DDkR7_zv8464iHG-Q@mail.gmail.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: "Rafael J. Wysocki" <rafael@kernel.org>, Linus Torvalds <torvalds@linux-foundation.org>
+Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux PCI <linux-pci@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
 
-Hi,
+Hi Rafael!
 
-[auto build test ERROR on linux-nvdimm/libnvdimm-for-next]
-[also build test ERROR on v4.7-rc6 next-20160708]
-[if your patch is applied to the wrong git tree, please drop us a note to help improve the system]
+On 08.07.2016 01:43, Rafael J. Wysocki wrote:
+>
+> Please pull from
+>=20
+>  git://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm.git \
+>  acpi-4.7-rc7
+>=20
+> to receive ACPI fixes for v4.7-rc7 with top-most commit
+> [=E2=80=A6]
+> All of these fix recent regressions in ACPICA, in the ACPI PCI IRQ
+> management code and in the ACPI AML debugger.
 
-url:    https://github.com/0day-ci/linux/commits/Dan-Williams/replace-pcommit-with-ADR-or-directed-flushing/20160710-113558
-base:   https://git.kernel.org/pub/scm/linux/kernel/git/nvdimm/nvdimm.git libnvdimm-for-next
-config: um-allmodconfig (attached as .config)
-compiler: gcc-6 (Debian 6.1.1-1) 6.1.1 20160430
-reproduce:
-        # save the attached .config to linux build tree
-        make ARCH=um 
+=46YI, it seems these changes lead to a new regression. Quoting
+https://bugzilla.kernel.org/show_bug.cgi?id=3D121701
 
-All error/warnings (new ones prefixed by >>):
+"""
+> Kernel fails to boot with this commit. With the commit reverted,
+> everything is fine. I cannot bisect any further - git is failing with
+> "you are trying to use to much memory"(?!)
+>=20
+> This is a Dell Precision 5510 with the latest (1.2.10) BIOS applied.
+>=20
+> Let me know what additional information I can provide."""
+"""
 
-   drivers/nvdimm/core.c: In function 'alloc_nvdimm_map':
->> drivers/nvdimm/core.c:108:23: error: implicit declaration of function 'ioremap' [-Werror=implicit-function-declaration]
-      nvdimm_map->iomem = ioremap(offset, size);
-                          ^~~~~~~
->> drivers/nvdimm/core.c:108:21: warning: assignment makes pointer from integer without a cast [-Wint-conversion]
-      nvdimm_map->iomem = ioremap(offset, size);
-                        ^
-   drivers/nvdimm/core.c: In function 'nvdimm_map_release':
->> drivers/nvdimm/core.c:139:3: error: implicit declaration of function 'iounmap' [-Werror=implicit-function-declaration]
-      iounmap(nvdimm_map->iomem);
-      ^~~~~~~
-   cc1: some warnings being treated as errors
-
-vim +/ioremap +108 drivers/nvdimm/core.c
-
-   102		if (!request_mem_region(offset, size, dev_name(&nvdimm_bus->dev)))
-   103			goto err_request_region;
-   104	
-   105		if (flags)
-   106			nvdimm_map->mem = memremap(offset, size, flags);
-   107		else
- > 108			nvdimm_map->iomem = ioremap(offset, size);
-   109	
-   110		if (!nvdimm_map->mem)
-   111			goto err_map;
-   112	
-   113		dev_WARN_ONCE(dev, !is_nvdimm_bus_locked(dev), "%s: bus unlocked!",
-   114				__func__);
-   115		list_add(&nvdimm_map->list, &nvdimm_bus->mapping_list);
-   116	
-   117		return nvdimm_map;
-   118	
-   119	 err_map:
-   120		release_mem_region(offset, size);
-   121	 err_request_region:
-   122		kfree(nvdimm_map);
-   123		return NULL;
-   124	}
-   125	
-   126	static void nvdimm_map_release(struct kref *kref)
-   127	{
-   128		struct nvdimm_bus *nvdimm_bus;
-   129		struct nvdimm_map *nvdimm_map;
-   130	
-   131		nvdimm_map = container_of(kref, struct nvdimm_map, kref);
-   132		nvdimm_bus = nvdimm_map->nvdimm_bus;
-   133	
-   134		dev_dbg(&nvdimm_bus->dev, "%s: %pa\n", __func__, &nvdimm_map->offset);
-   135		list_del(&nvdimm_map->list);
-   136		if (nvdimm_map->flags)
-   137			memunmap(nvdimm_map->mem);
-   138		else
- > 139			iounmap(nvdimm_map->iomem);
-   140		release_mem_region(nvdimm_map->offset, nvdimm_map->size);
-   141		kfree(nvdimm_map);
-   142	}
-
----
-0-DAY kernel test infrastructure                Open Source Technology Center
-https://lists.01.org/pipermail/kbuild-all                   Intel Corporation
+Cheers, Thorsten
+--
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
