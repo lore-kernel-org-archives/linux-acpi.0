@@ -1,31 +1,60 @@
-From: Linus Torvalds <torvalds@linux-foundation.org>
+From: okaya@codeaurora.org
 Subject: Re: [GIT PULL] ACPI fixes for v4.7-rc7
-Date: Sun, 10 Jul 2016 08:50:05 -0700
-Message-ID: <CA+55aFwFxDdHggMJMUPF2D9TEDm6ii+TkDqnbLn4KhOWk6zBLA@mail.gmail.com>
+Date: Sun, 10 Jul 2016 22:16:03 +0300
+Message-ID: <b8b6998677cec3e26a903c2194181888@codeaurora.org>
 References: <CAJZ5v0hDSZGX90hxkACwC0DktD-_Baq=+DDkR7_zv8464iHG-Q@mail.gmail.com>
  <d3bc7758-2f97-474e-bd48-19457bda8b1d@leemhuis.info>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-oi0-f66.google.com ([209.85.218.66]:33977 "EHLO
-	mail-oi0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755170AbcGJPuI (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sun, 10 Jul 2016 11:50:08 -0400
+Content-Type: text/plain; charset=UTF-8;
+	format=flowed
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-pci-owner@vger.kernel.org>
 In-Reply-To: <d3bc7758-2f97-474e-bd48-19457bda8b1d@leemhuis.info>
-Sender: linux-acpi-owner@vger.kernel.org
-List-Id: linux-acpi@vger.kernel.org
+Sender: linux-pci-owner@vger.kernel.org
 To: Thorsten Leemhuis <regressions@leemhuis.info>
-Cc: "Rafael J. Wysocki" <rafael@kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux PCI <linux-pci@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+Cc: "Rafael J. Wysocki" <rafael@kernel.org>, Linus Torvalds <torvalds@linux-foundation.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux PCI <linux-pci@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-pci-owner@vger.kernel.org
+List-Id: linux-acpi@vger.kernel.org
 
-On Sun, Jul 10, 2016 at 4:00 AM, Thorsten Leemhuis
-<regressions@leemhuis.info> wrote:
->
+On 2016-07-10 14:00, Thorsten Leemhuis wrote:
+> Hi Rafael!
+>=20
+> On 08.07.2016 01:43, Rafael J. Wysocki wrote:
+>>=20
+>> Please pull from
+>>=20
+>>  git://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm.git \
+>>  acpi-4.7-rc7
+>>=20
+>> to receive ACPI fixes for v4.7-rc7 with top-most commit
+>> [=E2=80=A6]
+>> All of these fix recent regressions in ACPICA, in the ACPI PCI IRQ
+>> management code and in the ACPI AML debugger.
+>=20
 > FYI, it seems these changes lead to a new regression. Quoting
-> https://bugzilla.kernel.org/show_bug.cgi?id=121701
+> https://bugzilla.kernel.org/show_bug.cgi?id=3D121701
+>=20
+> """
+>> Kernel fails to boot with this commit. With the commit reverted,
+>> everything is fine. I cannot bisect any further - git is failing wit=
+h
+>> "you are trying to use to much memory"(?!)
+>>=20
+>> This is a Dell Precision 5510 with the latest (1.2.10) BIOS applied.
+>>=20
+>> Let me know what additional information I can provide."""
+> """
 
-I wrote a comment on that, to see if the git issue that kept things
-from bisecting into the merge can be worked around. That's a very
-surprising error (but it's also not an exact quote of the error, so
-who knows..)
+Can you attach the boot log to the bugzilla?
 
-             Linus
+Unfortunately, this code turned out to be the most fragile code. I fixe=
+d=20
+one issue and it looks like it broke yours.
+
+
+>=20
+> Cheers, Thorsten
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-pci" =
+in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
