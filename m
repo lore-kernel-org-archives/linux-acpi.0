@@ -1,64 +1,52 @@
-From: kbuild test robot <lkp-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH v2 08/17] libnvdimm: introduce nvdimm_flush() and
- nvdimm_has_flush()
-Date: Sun, 10 Jul 2016 12:47:10 +0800
-Message-ID: <201607101237.dmgprEIr%fengguang.wu@intel.com>
-References: <146812111205.32932.3785207412939078453.stgit@dwillia2-desk3.amr.corp.intel.com>
+From: Chris Metcalf <cmetcalf@mellanox.com>
+Subject: Re: [PATCH v3 0/7] lib: string: add functions to case-convert strings
+Date: Sat, 9 Jul 2016 23:13:33 -0400
+Message-ID: <9b88baed-a067-fcfd-d087-66e36f3060d7@mellanox.com>
+References: <1468017794-4818-1-git-send-email-mmayer@broadcom.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset="windows-1252"; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-In-Reply-To: <146812111205.32932.3785207412939078453.stgit-p8uTFz9XbKj2zm6wflaqv1nYeNYlB/vhral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Content-Disposition: inline
-List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
- <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
-List-Post: <mailto:linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-List-Help: <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
- <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
-Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
-Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-To: Dan Williams <dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, kbuild-all-JC7UmRfGjtg@public.gmane.org, linux-fsdevel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, hch-jcswGhMUV9g@public.gmane.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1468017794-4818-1-git-send-email-mmayer@broadcom.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Markus Mayer <mmayer@broadcom.com>, Andrew Morton <akpm@linux-foundation.org>, Al Viro <viro@zeniv.linux.org.uk>, Rasmus Villemoes <linux@rasmusvillemoes.dk>, Kees Cook <keescook@chromium.org>
+Cc: dri-devel@lists.freedesktop.org, nouveau@lists.freedesktop.org, linux-acpi@vger.kernel.org, speakup@linux-speakup.org, devel@driverdev.osuosl.org, linux-scsi@vger.kernel.org, target-devel@vger.kernel.org, linux-pm@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hi,
+On 7/8/2016 6:43 PM, Markus Mayer wrote:
+> This series introduces a family of generic string case conversion
+> functions. This kind of functionality is needed in several places in
+> the kernel. Right now, everybody seems to be implementing their own
+> copy of this functionality.
+>
+> Based on the discussion of the previous version of this series[1] and
+> the use cases found in the kernel, it does look like having several
+> flavours of case conversion functions is beneficial. The use cases fall
+> into three categories:
+>      - copying a string and converting the case while specifying a
+>        maximum length to mimic strlcpy()
+>      - copying a string and converting the case without specifying a
+>        length to mimic strcpy()
+>      - converting the case of a string in-place (i.e. modifying the
+>        string that was passed in)
+>
+> Consequently, I am proposing these new functions:
+>      void strlcpytoupper(char *dst, const char *src, size_t len);
+>      void strlcpytolower(char *dst, const char *src, size_t len);
+>      void strcpytoupper(char *dst, const char *src);
+>      void strcpytolower(char *dst, const char *src);
+>      void strtoupper(char *s);
+>      void strtolower(char *s);
 
-[auto build test ERROR on linux-nvdimm/libnvdimm-for-next]
-[also build test ERROR on next-20160708]
-[cannot apply to v4.7-rc6]
-[if your patch is applied to the wrong git tree, please drop us a note to help improve the system]
+You may want to read the article here:
 
-url:    https://github.com/0day-ci/linux/commits/Dan-Williams/replace-pcommit-with-ADR-or-directed-flushing/20160710-113558
-base:   https://git.kernel.org/pub/scm/linux/kernel/git/nvdimm/nvdimm.git libnvdimm-for-next
-config: i386-randconfig-r0-201628 (attached as .config)
-compiler: gcc-6 (Debian 6.1.1-1) 6.1.1 20160430
-reproduce:
-        # save the attached .config to linux build tree
-        make ARCH=i386 
+https://lwn.net/Articles/659214/
 
-All errors (new ones prefixed by >>):
+and follow up some of the discussion threads on LKML about the best
+semantics to advertise for the strlcpy/strscpy variants.  It might be
+helpful to return some kind of overflow/truncation error from your
+copy functions so people can error-check the result.
 
-   drivers/nvdimm/region_devs.c: In function 'nvdimm_flush':
->> drivers/nvdimm/region_devs.c:887:4: error: implicit declaration of function 'writeq' [-Werror=implicit-function-declaration]
-       writeq(1, ndrd->flush_wpq[i][0]);
-       ^~~~~~
-   cc1: some warnings being treated as errors
-
-vim +/writeq +887 drivers/nvdimm/region_devs.c
-
-   881		 * writes to avoid the cache via arch_memcpy_to_pmem().  The
-   882		 * final wmb() ensures ordering for the NVDIMM flush write.
-   883		 */
-   884		wmb();
-   885		for (i = 0; i < nd_region->ndr_mappings; i++)
-   886			if (ndrd->flush_wpq[i][0])
- > 887				writeq(1, ndrd->flush_wpq[i][0]);
-   888		wmb();
-   889	}
-   890	EXPORT_SYMBOL_GPL(nvdimm_flush);
-
----
-0-DAY kernel test infrastructure                Open Source Technology Center
-https://lists.01.org/pipermail/kbuild-all                   Intel Corporation
+-- 
+Chris Metcalf, Mellanox Technologies
+http://www.mellanox.com
