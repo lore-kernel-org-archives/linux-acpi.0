@@ -1,60 +1,93 @@
-From: Anna-Maria Gleixner <anna-maria@linutronix.de>
-Subject: [patch 36/66] ACPI/processor: avoid STARTING/DYING actions in a more
- logical way
-Date: Mon, 11 Jul 2016 12:28:47 -0000
-Message-ID: <20160711122533.663727276@linutronix.de>
-References: <20160711122450.923603742@linutronix.de>
+From: Jacek Anaszewski <j.anaszewski@samsung.com>
+Subject: Re: [PATCH v10 1/1] leds: LED driver for TI LP3952 6-Channel Color LED
+Date: Mon, 11 Jul 2016 15:10:07 +0200
+Message-ID: <57839AAF.6070805@samsung.com>
+References: <1468234129-26890-1-git-send-email-tony.makkiel@daqri.com>
+ <57838227.7070401@samsung.com> <5783857B.1030208@daqri.com>
+ <57838C2D.4060607@samsung.com> <57838F26.9050100@daqri.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline;
- filename=0030-ACPI-processor-avoid-STARTING-DYING-actions-in-a-mor.patch
-Sender: linux-kernel-owner@vger.kernel.org
-To: LKML <linux-kernel@vger.kernel.org>
-Cc: Peter Zijlstra <peterz@infradead.org>, Ingo Molnar <mingo@kernel.org>, Richard Cochran <rcochran@linutronix.de>, Sebastian Andrzej Siewior <bigeasy@linutronix.de>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, Anna-Maria Gleixner <anna-maria@linutronix.de>
+Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-leds-owner@vger.kernel.org>
+In-reply-to: <57838F26.9050100@daqri.com>
+Sender: linux-leds-owner@vger.kernel.org
+To: Tony <tony.makkiel@daqri.com>
+Cc: linux-leds@vger.kernel.org, linux-acpi@vger.kernel.org, rpurdie@rpsys.net, rjw@rjwysocki.net, lenb@kernel.org, mika.westerberg@linux.intel.com
 List-Id: linux-acpi@vger.kernel.org
 
-From: Richard Cochran <rcochran@linutronix.de>
+On 07/11/2016 02:20 PM, Tony wrote:
+>
+> Thank you for the comments Jacek.
+[...]
+>>>>> +static int lp3952_set_pattern_gen_cmd(struct lp3952_led_array *priv,
+>>>>> +                      u8 cmd_index, u8 r, u8 g, u8 b,
+>>>>> +                      enum lp3952_tt tt, enum lp3952_cet cet)
+>>>>> +{
+>>>>> +    int ret;
+>>>>> +    struct ptrn_gen_cmd line = {
+>>>>> +        .r = r,
+>>>>> +        .g = g,
+>>>>> +        .b = b,
+>>>>> +        .cet = cet,
+>>>>> +        .tt = tt
+>>>>> +    };
+>>>>> +
+>>>>> +    if (cmd_index >= LP3952_CMD_REG_COUNT)
+>>>>> +        return -EINVAL;
+>>>>> +
+>>>>> +    ret = lp3952_register_write(priv->client,
+>>>>> +                    LP3952_REG_CMD_0 + cmd_index * 2,
+>>>>> +                    line.bytes.msb);
+>>>>> +    if (ret)
+>>>>> +        return ret;
+>>>>> +
+>>>>> +    return (lp3952_register_write(priv->client,
+>>>>> +                      LP3952_REG_CMD_0 + cmd_index * 2 + 1,
+>>>>> +                      line.bytes.lsb));
+>>
+>> These brackets are redundant.
+>>
+>>>>> +}
+>>>>> +
+>>>>> +static int lp3952_configure(struct lp3952_led_array *priv)
+>>>>> +{
+>>>>> +    int ret;
+>>>>> +
+>>>>> +    /* Disable any LEDs on from any previous conf. */
+>>>>> +    ret = lp3952_register_write(priv->client, LP3952_REG_LED_CTRL,
+>>>>> 0);
+>>>>> +    if (ret)
+>>>>> +        return ret;
+>>>>> +
+>>>>> +    /* enable rgb patter, loop */
+>>>>> +    ret = lp3952_register_write(priv->client,
+>>>>> LP3952_REG_PAT_GEN_CTRL,
+>>>>> +                    LP3952_PATRN_LOOP | LP3952_PATRN_GEN_EN);
+>>>>> +    if (ret)
+>>>>> +        return ret;
+>>>>> +
+>>>>> +    /* Update Bit 6 (Active mode), Select both Led sets, Bit [1:0] */
+>>>>> +    ret = lp3952_register_write(priv->client, LP3952_REG_ENABLES,
+>>>>> +                    LP3952_ACTIVE_MODE | LP3952_INT_B00ST_LDR);
+>>>>> +    if (ret)
+>>>>> +        return ret;
+>>>>> +
+>>>>> +    /* Set Cmd1 for RGB intensity,cmd and transition time */
+>>>>> +    return (lp3952_set_pattern_gen_cmd(priv, 0, I46, I71, I100, TT0,
+>>>>> +                       CET197));
+>>
+>> Ditto.
+>>
+>> If you agree I can remove them and take the patch.
+>
+> Yes please :). Thank you for your help.
 
-As part of the hotplug cleanup, the CPU_STARTING/DYING actions are going
-away soon.  This driver needlessly uses those two macro, and so this patch
-replaces that code with something more sensible.
 
-Commit 8da8373447d6a57a5a9f55233d35beb15d92d0d2  ("ACPI / processor: Fix
-STARTING/DYING action in acpi_cpu_soft_notify()") added checks for those
-two actions, because the notification callback can sleep, causing a hung
-CPU. This patch instead checks for the ONLINE/DEAD actions, which are the
-ones that are handled by the driver in the first place.
+Patch applied to the for-next branch of linux-leds.git.
 
-Signed-off-by: Richard Cochran <rcochran@linutronix.de>
-Reviewed-by: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
-Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: Len Brown <lenb@kernel.org>
-Cc: linux-acpi@vger.kernel.org
-Signed-off-by: Anna-Maria Gleixner <anna-maria@linutronix.de>
+Thank you for your effort and determination in submitting
+subsequent versions.
 
----
- drivers/acpi/processor_driver.c |   11 ++++++-----
- 1 file changed, 6 insertions(+), 5 deletions(-)
-
---- a/drivers/acpi/processor_driver.c
-+++ b/drivers/acpi/processor_driver.c
-@@ -118,12 +118,13 @@ static int acpi_cpu_soft_notify(struct n
- 	struct acpi_device *device;
- 	action &= ~CPU_TASKS_FROZEN;
- 
--	/*
--	 * CPU_STARTING and CPU_DYING must not sleep. Return here since
--	 * acpi_bus_get_device() may sleep.
--	 */
--	if (action == CPU_STARTING || action == CPU_DYING)
-+	switch (action) {
-+	case CPU_ONLINE:
-+	case CPU_DEAD:
-+		break;
-+	default:
- 		return NOTIFY_DONE;
-+	}
- 
- 	if (!pr || acpi_bus_get_device(pr->handle, &device))
- 		return NOTIFY_DONE;
+-- 
+Best regards,
+Jacek Anaszewski
