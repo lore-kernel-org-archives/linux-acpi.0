@@ -1,119 +1,67 @@
 From: Paul Gortmaker <paul.gortmaker@windriver.com>
-Subject: [PATCH] ACPI / PMIC: remove modular references from non-modular code
-Date: Mon, 11 Jul 2016 18:05:16 -0400
-Message-ID: <20160711220516.3371-1-paul.gortmaker@windriver.com>
+Subject: [PATCH] ACPI / PCI: make pci_slot explicitly non-modular
+Date: Mon, 11 Jul 2016 18:17:23 -0400
+Message-ID: <20160711221723.5072-1-paul.gortmaker@windriver.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail5.windriver.com ([192.103.53.11]:60919 "EHLO mail5.wrs.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932252AbcGKWFk (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 11 Jul 2016 18:05:40 -0400
+Received: from mail1.windriver.com ([147.11.146.13]:56714 "EHLO
+	mail1.windriver.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751931AbcGKWRt (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 11 Jul 2016 18:17:49 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: linux-kernel@vger.kernel.org
 Cc: Paul Gortmaker <paul.gortmaker@windriver.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org
 
-The Kconfig currently controlling compilation of these files are:
+The Kconfig for this file is:
 
-drivers/acpi/Kconfig:menuconfig PMIC_OPREGION
-drivers/acpi/Kconfig:   bool "PMIC (Power Management Integrated Circuit) operation region support"
+drivers/acpi/Kconfig:config ACPI_PCI_SLOT
+drivers/acpi/Kconfig:   bool "PCI slot detection driver"
 
-drivers/acpi/Kconfig:config BXT_WC_PMIC_OPREGION
-drivers/acpi/Kconfig:   bool "ACPI operation region support for BXT WhiskeyCove PMIC"
+...and so it is not built as a module.  Hence including module.h
+and everything that comes with it just for the no-op MODULE_LICENSE
+and friends is rather heavy handed.
 
-drivers/acpi/Kconfig:config XPOWER_PMIC_OPREGION
-drivers/acpi/Kconfig:   bool "ACPI operation region support for XPower AXP288 PMIC"
+The license/author info is found at the top of the file, so we
+just remove the MODULE_LICENSE etc and the include of module.h
 
-...meaning they currently are not being built as a module by anyone.
-
-Lets remove the couple traces of modular infrastructure use, so that
-when reading the code there is no doubt it is builtin-only.
-
-We delete the MODULE_LICENSE tag etc. since all that information
-is already contained at the top of the file in the comments.
-
-One file was using module_init.  Since module_init translates to
-device_initcall in the non-modular case, the init ordering remains
-unchanged with this commit.
-
-In one case we replace the module.h with export.h since that file
-is exporting some symbols, but does not use __init.  The other two
-are using __init and so module.h gets replaced with init.h there.
+We delete the DRIVER_VERSION macro as well since it is unused.
 
 Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>
 Cc: Len Brown <lenb@kernel.org>
 Cc: linux-acpi@vger.kernel.org
 Signed-off-by: Paul Gortmaker <paul.gortmaker@windriver.com>
 ---
- drivers/acpi/pmic/intel_pmic.c        | 4 +---
- drivers/acpi/pmic/intel_pmic_bxtwc.c  | 6 +-----
- drivers/acpi/pmic/intel_pmic_xpower.c | 7 ++-----
- 3 files changed, 4 insertions(+), 13 deletions(-)
+ drivers/acpi/pci_slot.c | 8 --------
+ 1 file changed, 8 deletions(-)
 
-diff --git a/drivers/acpi/pmic/intel_pmic.c b/drivers/acpi/pmic/intel_pmic.c
-index 6585affc3e26..ca18e0d23df9 100644
---- a/drivers/acpi/pmic/intel_pmic.c
-+++ b/drivers/acpi/pmic/intel_pmic.c
-@@ -13,7 +13,7 @@
-  * GNU General Public License for more details.
-  */
+diff --git a/drivers/acpi/pci_slot.c b/drivers/acpi/pci_slot.c
+index 1236fb04a708..f62c68e24317 100644
+--- a/drivers/acpi/pci_slot.c
++++ b/drivers/acpi/pci_slot.c
+@@ -25,7 +25,6 @@
+ #define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
  
+ #include <linux/kernel.h>
 -#include <linux/module.h>
-+#include <linux/export.h>
- #include <linux/acpi.h>
- #include <linux/regmap.h>
- #include <acpi/acpi_lpat.h>
-@@ -319,5 +319,3 @@ out_error:
- 	return ret;
- }
- EXPORT_SYMBOL_GPL(intel_pmic_install_opregion_handler);
--
--MODULE_LICENSE("GPL");
-diff --git a/drivers/acpi/pmic/intel_pmic_bxtwc.c b/drivers/acpi/pmic/intel_pmic_bxtwc.c
-index ebe6f09e6910..90011aad4d20 100644
---- a/drivers/acpi/pmic/intel_pmic_bxtwc.c
-+++ b/drivers/acpi/pmic/intel_pmic_bxtwc.c
-@@ -13,7 +13,7 @@
-  * GNU General Public License for more details.
-  */
+ #include <linux/init.h>
+ #include <linux/slab.h>
+ #include <linux/types.h>
+@@ -37,13 +36,6 @@
  
--#include <linux/module.h>
-+#include <linux/init.h>
- #include <linux/acpi.h>
- #include <linux/mfd/intel_soc_pmic.h>
- #include <linux/regmap.h>
-@@ -417,8 +417,4 @@ static int __init intel_bxtwc_pmic_opregion_driver_init(void)
- {
- 	return platform_driver_register(&intel_bxtwc_pmic_opregion_driver);
- }
--
- device_initcall(intel_bxtwc_pmic_opregion_driver_init);
--
--MODULE_DESCRIPTION("BXT WhiskeyCove ACPI opregion driver");
--MODULE_LICENSE("GPL");
-diff --git a/drivers/acpi/pmic/intel_pmic_xpower.c b/drivers/acpi/pmic/intel_pmic_xpower.c
-index 6a082d4de12c..e6e991ac20f3 100644
---- a/drivers/acpi/pmic/intel_pmic_xpower.c
-+++ b/drivers/acpi/pmic/intel_pmic_xpower.c
-@@ -13,7 +13,7 @@
-  * GNU General Public License for more details.
-  */
+ static int check_sta_before_sun;
  
--#include <linux/module.h>
-+#include <linux/init.h>
- #include <linux/acpi.h>
- #include <linux/mfd/axp20x.h>
- #include <linux/regmap.h>
-@@ -262,7 +262,4 @@ static int __init intel_xpower_pmic_opregion_driver_init(void)
- {
- 	return platform_driver_register(&intel_xpower_pmic_opregion_driver);
- }
--module_init(intel_xpower_pmic_opregion_driver_init);
--
--MODULE_DESCRIPTION("XPower AXP288 ACPI operation region driver");
+-#define DRIVER_VERSION 	"0.1"
+-#define DRIVER_AUTHOR	"Alex Chiang <achiang@hp.com>"
+-#define DRIVER_DESC	"ACPI PCI Slot Detection Driver"
+-MODULE_AUTHOR(DRIVER_AUTHOR);
+-MODULE_DESCRIPTION(DRIVER_DESC);
 -MODULE_LICENSE("GPL");
-+device_initcall(intel_xpower_pmic_opregion_driver_init);
+-
+ #define _COMPONENT		ACPI_PCI_COMPONENT
+ ACPI_MODULE_NAME("pci_slot");
+ 
 -- 
 2.8.4
 
