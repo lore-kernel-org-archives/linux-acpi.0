@@ -1,66 +1,68 @@
-From: Will Deacon <will.deacon@arm.com>
-Subject: Re: [PATCH 08/11] arm64: pmu: Provide cpumask attribute for PMU
-Date: Mon, 11 Jul 2016 17:14:02 +0100
-Message-ID: <20160711161401.GC27013@arm.com>
-References: <1466529109-21715-1-git-send-email-jeremy.linton@arm.com>
- <1466529109-21715-9-git-send-email-jeremy.linton@arm.com>
- <20160707162103.GD9270@leverpostej>
- <5783B5C3.8090000@arm.com>
- <20160711155834.GC7691@leverpostej>
+From: Paul Gortmaker <paul.gortmaker@windriver.com>
+Subject: [PATCH] acpi: make dock explicitly non-modular
+Date: Mon, 11 Jul 2016 16:23:26 -0400
+Message-ID: <20160711202326.13285-1-paul.gortmaker@windriver.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from foss.arm.com ([217.140.101.70]:54038 "EHLO foss.arm.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1030843AbcGKQOB (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 11 Jul 2016 12:14:01 -0400
-Content-Disposition: inline
-In-Reply-To: <20160711155834.GC7691@leverpostej>
+Received: from mail1.windriver.com ([147.11.146.13]:55002 "EHLO
+	mail1.windriver.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752761AbcGKUYg (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 11 Jul 2016 16:24:36 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Mark Rutland <mark.rutland@arm.com>
-Cc: Jeremy Linton <jeremy.linton@arm.com>, linux-arm-kernel@lists.infradead.org, linux-acpi@vger.kernel.org, catalin.marinas@arm.com, Lorenzo.Pieralisi@arm.com, alexander.shishkin@linux.intel.com, acme@kernel.org, mingo@redhat.com, peterz@infradead.org, mlangsdorf@redhat.com, punit.agrawal@arm.com, Steve.Capper@arm.com
+To: linux-kernel@vger.kernel.org
+Cc: Paul Gortmaker <paul.gortmaker@windriver.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org
 
-On Mon, Jul 11, 2016 at 04:58:35PM +0100, Mark Rutland wrote:
-> On Mon, Jul 11, 2016 at 10:05:39AM -0500, Jeremy Linton wrote:
-> > On 07/07/2016 11:21 AM, Mark Rutland wrote:
-> > >Have you tested trying to stat on a particular PMU? e.g.
-> > >
-> > >$ perf stat -e armv8_cortex_a53/cpu_cycles/ ls
-> > >
-> > >I found that the presence of a cpumask file would cause (at least some
-> > >versions) of perf-stat to hang, and was holding off adding a cpumask
-> > >until we had a solution to that.
-> > 
-> > I guess that is more proof that any tiny change can break things..
-> > Another "fix" is to make the cpumap_print_to_pagebuf's first
-> > parameter false which apparently keeps perf from understanding the
-> > cpu mask and forces the user to use numactl, which is ugly because
-> > numactrl doesn't understand the mask in that format either.
-> 
-> If we have a cpumask, it should be in keeping with the usual style.
-> 
-> > I guess fixing perf is probably the best bet here...
-> 
-> Indeed.
-> 
-> The major issue is that it's not clear to me how to avoid breaking
-> existing binaries when adding the cpumask. I suspect that we have to
-> expose it under a different name. :/
+The Kconfig for this file is:
 
-Well, we need to understand exactly why the cpumask breaks those older
-perf builds before we do that. Is it expecting some behaviour that we
-don't honour, or does it break on other architectures providing a
-cpumask too?
+drivers/acpi/Kconfig:config ACPI_DOCK
+drivers/acpi/Kconfig:   bool "Dock"
 
-> > >See [1,2] for more details on that.
+...and so it is not built as a module.  Hence including module.h
+and everything that comes with it just for the no-op MODULE_LICENSE
+and friends is rather heavy handed.
 
-That makes it sound specific to big/little. Did perf used to work on
-those systems without a cpumask? I understand that it might not have
-hung, but did it actually provide meaningful data?
+The license/author info is found at the top of the file, so we
+just remove the MODULE_LICENSE etc and the include of module.h
 
-I'm not against renaming the cpumask if that's our only option, but I'd
-like to understand (and document) how we arrive at that, if we actually
-do.
+The file does still have some module_param() so we add the right
+include for that infrastructure.
 
-Will
+Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: Len Brown <lenb@kernel.org>
+Cc: linux-acpi@vger.kernel.org
+Signed-off-by: Paul Gortmaker <paul.gortmaker@windriver.com>
+---
+ drivers/acpi/dock.c | 7 +------
+ 1 file changed, 1 insertion(+), 6 deletions(-)
+
+diff --git a/drivers/acpi/dock.c b/drivers/acpi/dock.c
+index e8e128dede29..0c00208b423e 100644
+--- a/drivers/acpi/dock.c
++++ b/drivers/acpi/dock.c
+@@ -21,7 +21,7 @@
+  */
+ 
+ #include <linux/kernel.h>
+-#include <linux/module.h>
++#include <linux/moduleparam.h>
+ #include <linux/slab.h>
+ #include <linux/init.h>
+ #include <linux/types.h>
+@@ -33,12 +33,7 @@
+ 
+ #include "internal.h"
+ 
+-#define ACPI_DOCK_DRIVER_DESCRIPTION "ACPI Dock Station Driver"
+-
+ ACPI_MODULE_NAME("dock");
+-MODULE_AUTHOR("Kristen Carlson Accardi");
+-MODULE_DESCRIPTION(ACPI_DOCK_DRIVER_DESCRIPTION);
+-MODULE_LICENSE("GPL");
+ 
+ static bool immediate_undock = 1;
+ module_param(immediate_undock, bool, 0644);
+-- 
+2.8.4
+
