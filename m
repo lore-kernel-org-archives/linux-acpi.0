@@ -1,44 +1,30 @@
-From: Peter Zijlstra <peterz-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>
-Subject: Re: [PATCH v2 16/17] x86/insn: remove pcommit
-Date: Tue, 12 Jul 2016 16:57:57 +0200
-Message-ID: <20160712145757.GV30909@twins.programming.kicks-ass.net>
-References: <146812106839.32932.2870621200867047059.stgit@dwillia2-desk3.amr.corp.intel.com>
- <146812115425.32932.3314855641604340233.stgit@dwillia2-desk3.amr.corp.intel.com>
+From: Catalin Marinas <catalin.marinas@arm.com>
+Subject: Re: [PATCH v9 6/7] arm64: add support for ACPI Low Power Idle(LPI)
+Date: Tue, 12 Jul 2016 16:22:55 +0100
+Message-ID: <20160712152255.GF22183@e104818-lin.cambridge.arm.com>
+References: <1467997678-7107-1-git-send-email-sudeep.holla@arm.com>
+ <1467997678-7107-7-git-send-email-sudeep.holla@arm.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <146812115425.32932.3314855641604340233.stgit-p8uTFz9XbKj2zm6wflaqv1nYeNYlB/vhral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
- <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
-List-Post: <mailto:linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-List-Help: <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
- <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
-Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
-Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-To: Dan Williams <dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: Xiao Guangrong <guangrong.xiao-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, Alexander Shishkin <alexander.shishkin-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, linux-nvdimm-y27Ovi1pjclAfugRpC6u6w@public.gmane.org, x86-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Arnaldo Carvalho de Melo <acme-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Adrian Hunter <adrian.hunter-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Ingo Molnar <mingo-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Andy Lutomirski <luto-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Josh Poimboeuf <jpoimboe-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-fsdevel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Thomas Gleixner <tglx-hfZtesqFncYOwBW4kG4KsQ@public.gmane.org>, Borislav Petkov <bp-l3A5Bk7waGM@public.gmane.org>, "H. Peter Anvin" <hpa-YMNOUZJC4hwAvxtiuMwx3w@public.gmane.org>, hch-jcswGhMUV9g@public.gmane.org
+In-Reply-To: <1467997678-7107-7-git-send-email-sudeep.holla@arm.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Sudeep Holla <sudeep.holla@arm.com>
+Cc: ACPI List <linux-acpi@vger.kernel.org>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, Mark Rutland <mark.rutland@arm.com>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Prashanth Prakash <pprakash@codeaurora.org>, Al Stone <al.stone@linaro.org>, Vikas Sajjan <vikas.cha.sajjan@hpe.com>, Daniel Lezcano <daniel.lezcano@linaro.org>, Will Deacon <will.deacon@arm.com>, LKML <linux-kernel@vger.kernel.org>, Ashwin Chaugule <ashwin.chaugule@linaro.org>, ALKML <linux-arm-kernel@lists.infradead.org>, Sunil <sunil.vl@hpe.com>
 List-Id: linux-acpi@vger.kernel.org
 
-On Sat, Jul 09, 2016 at 08:25:54PM -0700, Dan Williams wrote:
-> The pcommit instruction is being deprecated in favor of either ADR
-> (asynchronous DRAM refresh: flush-on-power-fail) at the platform level, or
-> posted-write-queue flush addresses as defined by the ACPI 6.x NFIT (NVDIMM
-> Firmware Interface Table).
+On Fri, Jul 08, 2016 at 06:07:57PM +0100, Sudeep Holla wrote:
+> This patch adds appropriate callbacks to support ACPI Low Power Idle
+> (LPI) on ARM64.
+> 
+> Cc: Catalin Marinas <catalin.marinas@arm.com>
+> Cc: Will Deacon <will.deacon@arm.com>
+> Cc: Mark Rutland <mark.rutland@arm.com>
+> Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+> Acked-by: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+> Signed-off-by: Sudeep Holla <sudeep.holla@arm.com>
 
->  arch/x86/include/asm/cpufeatures.h                 |    1 
->  arch/x86/include/asm/special_insns.h               |   46 --------------------
->  arch/x86/lib/x86-opcode-map.txt                    |    2 -
->  tools/objtool/arch/x86/insn/x86-opcode-map.txt     |    2 -
->  tools/perf/arch/x86/tests/insn-x86-dat-32.c        |    2 -
->  tools/perf/arch/x86/tests/insn-x86-dat-64.c        |    2 -
->  tools/perf/arch/x86/tests/insn-x86-dat-src.c       |    4 --
+Acked-by: Catalin Marinas <catalin.marinas@arm.com>
 
-Just deprecated, or is it completely eradicated, removed from history,
-will never ever happen and we'll reissue the opcode for something else?
-
-Because if its only deprecated then removing it from the instruction
-decoders seems wrong, old binaries might still contain the opcode.
+(in case Rafael needs it)
