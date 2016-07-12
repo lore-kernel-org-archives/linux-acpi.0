@@ -1,54 +1,44 @@
-From: Sudeep Holla <sudeep.holla@arm.com>
-Subject: Re: [PATCH v9 0/7] ACPI / processor_idle: Add ACPI v6.0 LPI support
-Date: Tue, 12 Jul 2016 13:59:23 +0100
-Message-ID: <5784E9AB.1070507@arm.com>
-References: <1467997678-7107-1-git-send-email-sudeep.holla@arm.com>
- <5784D78E.7010409@arm.com> <2164074.OnkmXO2GSJ@vostro.rjw.lan>
+From: Peter Zijlstra <peterz-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>
+Subject: Re: [PATCH v2 16/17] x86/insn: remove pcommit
+Date: Tue, 12 Jul 2016 16:57:57 +0200
+Message-ID: <20160712145757.GV30909@twins.programming.kicks-ass.net>
+References: <146812106839.32932.2870621200867047059.stgit@dwillia2-desk3.amr.corp.intel.com>
+ <146812115425.32932.3314855641604340233.stgit@dwillia2-desk3.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <2164074.OnkmXO2GSJ@vostro.rjw.lan>
-Sender: linux-kernel-owner@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: Sudeep Holla <sudeep.holla@arm.com>, ACPI List <linux-acpi@vger.kernel.org>, Vikas Sajjan <vikas.cha.sajjan@hpe.com>, Sunil <sunil.vl@hpe.com>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Prashanth Prakash <pprakash@codeaurora.org>, Al Stone <al.stone@linaro.org>, Ashwin Chaugule <ashwin.chaugule@linaro.org>, Daniel Lezcano <daniel.lezcano@linaro.org>, LKML <linux-kernel@vger.kernel.org>, ALKML <linux-arm-kernel@lists.infradead.org>
+Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <146812115425.32932.3314855641604340233.stgit-p8uTFz9XbKj2zm6wflaqv1nYeNYlB/vhral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
+ <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
+List-Post: <mailto:linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+List-Help: <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
+ <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
+Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
+Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+To: Dan Williams <dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: Xiao Guangrong <guangrong.xiao-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, Alexander Shishkin <alexander.shishkin-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, linux-nvdimm-y27Ovi1pjclAfugRpC6u6w@public.gmane.org, x86-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Arnaldo Carvalho de Melo <acme-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Adrian Hunter <adrian.hunter-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Ingo Molnar <mingo-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Andy Lutomirski <luto-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Josh Poimboeuf <jpoimboe-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-fsdevel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Thomas Gleixner <tglx-hfZtesqFncYOwBW4kG4KsQ@public.gmane.org>, Borislav Petkov <bp-l3A5Bk7waGM@public.gmane.org>, "H. Peter Anvin" <hpa-YMNOUZJC4hwAvxtiuMwx3w@public.gmane.org>, hch-jcswGhMUV9g@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
+On Sat, Jul 09, 2016 at 08:25:54PM -0700, Dan Williams wrote:
+> The pcommit instruction is being deprecated in favor of either ADR
+> (asynchronous DRAM refresh: flush-on-power-fail) at the platform level, or
+> posted-write-queue flush addresses as defined by the ACPI 6.x NFIT (NVDIMM
+> Firmware Interface Table).
 
+>  arch/x86/include/asm/cpufeatures.h                 |    1 
+>  arch/x86/include/asm/special_insns.h               |   46 --------------------
+>  arch/x86/lib/x86-opcode-map.txt                    |    2 -
+>  tools/objtool/arch/x86/insn/x86-opcode-map.txt     |    2 -
+>  tools/perf/arch/x86/tests/insn-x86-dat-32.c        |    2 -
+>  tools/perf/arch/x86/tests/insn-x86-dat-64.c        |    2 -
+>  tools/perf/arch/x86/tests/insn-x86-dat-src.c       |    4 --
 
-On 12/07/16 13:09, Rafael J. Wysocki wrote:
-> On Tuesday, July 12, 2016 12:42:06 PM Sudeep Holla wrote:
->>
->> On 08/07/16 18:07, Sudeep Holla wrote:
->>> ACPI 6.0 introduced LPI(Low Power Idle) states that provides an alternate
->>> method to describe processor idle states. It extends the specification
->>> to allow the expression of idle states like C-states selectable by the
->>> OSPM when a processor goes idle, but may affect more than one processor,
->>> and may affect other system components.
->>>
->>> LPI extensions leverages the processor container device(again introduced
->>> in ACPI 6.0) allowing to express which parts of the system are affected
->>> by a given LPI state. It defines the local power states for each node
->>> in a hierarchical processor topology. The OSPM can use _LPI object to
->>> select a local power state for each level of processor hierarchy in the
->>> system. They used to produce a composite power state request that is
->>> presented to the platform by the OSPM.
->>>
->>> Since multiple processors affect the idle state for any non-leaf hierarchy
->>> node, coordination of idle state requests between the processors is
->>> required. ACPI supports two different coordination schemes: Platform
->>> coordinated and  OS initiated.
->>>
->>
->> I was hoping to get this in v4.8 now that merge window is
->> delayed/extended if you have no further comments on this series.
->
-> I'll get to it in the next couple of days.  If it looks all good and there are
-> no comments, I'll queue it up.
->
+Just deprecated, or is it completely eradicated, removed from history,
+will never ever happen and we'll reissue the opcode for something else?
 
-Thanks for the update.
-
--- 
-Regards,
-Sudeep
+Because if its only deprecated then removing it from the instruction
+decoders seems wrong, old binaries might still contain the opcode.
