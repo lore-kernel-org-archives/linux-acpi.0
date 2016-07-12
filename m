@@ -1,145 +1,172 @@
-From: Markus Mayer <markus.mayer-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
-Subject: Re: [PATCH v3 1/7] lib: string: add functions to
-	case-convert strings
-Date: Mon, 11 Jul 2016 15:46:10 -0700
-Message-ID: <CAGt4E5tpw0sa1PQmgJzKbPuzSbFG9_CUWjjO1z93OSc0KkjUXw@mail.gmail.com>
-References: <1468017794-4818-1-git-send-email-mmayer@broadcom.com>
- <1468017794-4818-2-git-send-email-mmayer@broadcom.com>
- <5780E866.8000001@osg.samsung.com>
- <CAGt4E5vYzkqgiiQXXjnX7az-KzCVSYthEW5Df03U=Y1qhEJdRQ@mail.gmail.com>
+From: Dmitry Torokhov <dmitry.torokhov@gmail.com>
+Subject: Re: [PATCH v2 4/4] ACPI / button: Add document for ACPI control
+ method lid device restrictions
+Date: Mon, 11 Jul 2016 17:41:09 -0700
+Message-ID: <20160712004109.GA819@dtor-ws>
+References: <cover.1467717304.git.lv.zheng@intel.com>
+ <cover.1467875142.git.lv.zheng@intel.com>
+ <3f24a00df89f06661a64af6b4679a99bfff09aa7.1467875143.git.lv.zheng@intel.com>
+ <CAN+gG=G5p6ztJODQBBAF7MY0kBNGVpexY-+a8RQY9JKuY1AB1Q@mail.gmail.com>
+ <20160708175146.GA28589@dtor-ws>
+ <CAN+gG=Fjt3BFp5UPhTKfz93SrYzj_3BgA8EWQ+wV7fGxyXrTWA@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <nouveau-bounces-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org>
-In-Reply-To: <CAGt4E5vYzkqgiiQXXjnX7az-KzCVSYthEW5Df03U=Y1qhEJdRQ-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
-List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/nouveau>,
- <mailto:nouveau-request-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org?subject=unsubscribe>
-List-Archive: <https://lists.freedesktop.org/archives/nouveau>
-List-Post: <mailto:nouveau-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org>
-List-Help: <mailto:nouveau-request-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/nouveau>,
- <mailto:nouveau-request-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org?subject=subscribe>
-Errors-To: nouveau-bounces-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org
-Sender: "Nouveau" <nouveau-bounces-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org>
-To: Luis de Bethencourt <luisbg-JPH+aEBZ4P+UEJcrhfAQsw@public.gmane.org>
-Cc: devel-gWbeCf7V1WCQmaza687I9mD2FQJk+8+b@public.gmane.org, Kees Cook <keescook-F7+t8E8rja9g9hUCZPvPmw@public.gmane.org>, linux-scsi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-pm-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, nouveau-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org, Rasmus Villemoes <linux-qQsb+v5E8BnlAoU/VqSP6n9LOBIZ5rWg@public.gmane.org>, Linux Kernel <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, dri-devel-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org, speakup-UPO/6gOIxNZglr+F8WMZYdi2O/JbrIOy@public.gmane.org, Chris Metcalf <cmetcalf-d5a29ZRxExrQT0dZR+AlfA@public.gmane.org>, target-devel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Al Viro <viro-RmSDqhL/yNMiFSDQTTA3OLVCufUGDwFn@public.gmane.org>, Andrew Morton <akpm-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org>, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-pf0-f195.google.com ([209.85.192.195]:32799 "EHLO
+	mail-pf0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751887AbcGLAlN (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 11 Jul 2016 20:41:13 -0400
+Content-Disposition: inline
+In-Reply-To: <CAN+gG=Fjt3BFp5UPhTKfz93SrYzj_3BgA8EWQ+wV7fGxyXrTWA@mail.gmail.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Benjamin Tissoires <benjamin.tissoires@gmail.com>
+Cc: Lv Zheng <lv.zheng@intel.com>, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <len.brown@intel.com>, Lv Zheng <zetalog@gmail.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, "Bastien Nocera:" <hadess@hadess.net>, linux-input <linux-input@vger.kernel.org>
 
-T24gOSBKdWx5IDIwMTYgYXQgMDg6MzAsIE1hcmt1cyBNYXllciA8bWFya3VzLm1heWVyQGJyb2Fk
-Y29tLmNvbT4gd3JvdGU6Cj4gT24gOSBKdWx5IDIwMTYgYXQgMDU6MDQsIEx1aXMgZGUgQmV0aGVu
-Y291cnQgPGx1aXNiZ0Bvc2cuc2Ftc3VuZy5jb20+IHdyb3RlOgo+PiBPbiAwOC8wNy8xNiAyMzo0
-MywgTWFya3VzIE1heWVyIHdyb3RlOgo+Pj4gQWRkIGEgY29sbGVjdGlvbiBvZiBnZW5lcmljIGZ1
-bmN0aW9ucyB0byBjb252ZXJ0IHN0cmluZ3MgdG8gbG93ZXJjYXNlCj4+PiBvciB1cHBlcmNhc2Uu
-Cj4+Pgo+Pj4gQ2hhbmdpbmcgdGhlIGNhc2Ugb2YgYSBzdHJpbmcgKHdpdGggb3Igd2l0aG91dCBj
-b3B5aW5nIGl0IGZpcnN0KSBzZWVtcwo+Pj4gdG8gYmUgYSByZWN1cnJpbmcgcmVxdWlyZW1lbnQg
-aW4gdGhlIGtlcm5lbCB0aGF0IGlzIGN1cnJlbnRseSBiZWluZwo+Pj4gc29sdmVkIGJ5IHNldmVy
-YWwgZHVwbGljYXRlZCBpbXBsZW1lbnRhdGlvbnMgZG9pbmcgdGhlIHNhbWUgdGhpbmcuIFRoaXMK
-Pj4+IGNoYW5nZSBhaW1zIGF0IHJlZHVjaW5nIHRoaXMgY29kZSBkdXBsaWNhdGlvbi4KPj4+Cj4+
-PiBUaGUgbmV3IGZ1bmN0aW9ucyBhcmUKPj4+ICAgICB2b2lkIHN0cmxjcHl0b3VwcGVyKGNoYXIg
-KmRzdCwgY29uc3QgY2hhciAqc3JjLCBzaXplX3QgbGVuKTsKPj4+ICAgICB2b2lkIHN0cmxjcHl0
-b2xvd2VyKGNoYXIgKmRzdCwgY29uc3QgY2hhciAqc3JjLCBzaXplX3QgbGVuKTsKPj4+ICAgICB2
-b2lkIHN0cmNweXRvdXBwZXIoY2hhciAqZHN0LCBjb25zdCBjaGFyICpzcmMpOwo+Pj4gICAgIHZv
-aWQgc3RyY3B5dG9sb3dlcihjaGFyICpkc3QsIGNvbnN0IGNoYXIgKnNyYyk7Cj4+PiAgICAgdm9p
-ZCBzdHJ0b3VwcGVyKGNoYXIgKnMpOwo+Pj4gICAgIHZvaWQgc3RydG9sb3dlcihjaGFyICpzKTsK
-Pj4+Cj4+PiBUaGUgInN0cltsXWNweXRvKiIgdmVyc2lvbnMgb2YgdGhlIGZ1bmN0aW9uIHRha2Ug
-YSBkZXN0aW5hdGlvbiBzdHJpbmcKPj4+IGFuZCBhIHNvdXJjZSBzdHJpbmcgYXMgYXJndW1lbnRz
-LiBUaGUgInN0cmxjcHl0byoiIHZlcnNpb25zIGFkZGl0aW9uYWxseQo+Pj4gdGFrZSBhIGxlbmd0
-aCBhcmd1bWVudCBsaWtlIHN0cmxjcHkoKSBpdHNlbGYuIExhc3RseSwgdGhlIHN0cnRvKgo+Pj4g
-ZnVuY3Rpb25zIHRha2UgYSBzaW5nbGUgc3RyaW5nIGFyZ3VtZW50IGFuZCBtb2RpZnkgdGhlIHBh
-c3NlZC1pbiBzdHJpbmcuCj4+Pgo+Pj4gTGlrZSBzdHJsY3B5KCksIGFuZCB1bmxpa2Ugc3RybmNw
-eSgpLCB0aGUgZnVuY3Rpb25zIGd1YXJhbnRlZSBOVUxMCj4+PiB0ZXJtaW5hdGlvbiBvZiB0aGUg
-ZGVzdGluYXRpb24gc3RyaW5nLgo+Pj4KPj4+IFNpZ25lZC1vZmYtYnk6IE1hcmt1cyBNYXllciA8
-bW1heWVyQGJyb2FkY29tLmNvbT4KPj4+IC0tLQo+Pj4gIGluY2x1ZGUvbGludXgvc3RyaW5nLmgg
-fCA0MCArKysrKysrKysrKysrKysrKysrKysrKysrKysrKysrKysrKysrKysrCj4+PiAgbGliL3N0
-cmluZy5jICAgICAgICAgICB8IDM4ICsrKysrKysrKysrKysrKysrKysrKysrKysrKysrKysrKysr
-KysrCj4+PiAgMiBmaWxlcyBjaGFuZ2VkLCA3OCBpbnNlcnRpb25zKCspCj4+Pgo+Pj4gZGlmZiAt
-LWdpdCBhL2luY2x1ZGUvbGludXgvc3RyaW5nLmggYi9pbmNsdWRlL2xpbnV4L3N0cmluZy5oCj4+
-PiBpbmRleCAyNmI2ZjZhLi4zNmM5ZDE0IDEwMDY0NAo+Pj4gLS0tIGEvaW5jbHVkZS9saW51eC9z
-dHJpbmcuaAo+Pj4gKysrIGIvaW5jbHVkZS9saW51eC9zdHJpbmcuaAo+Pj4gQEAgLTExNiw2ICsx
-MTYsOCBAQCBleHRlcm4gdm9pZCAqIG1lbWNocihjb25zdCB2b2lkICosaW50LF9fa2VybmVsX3Np
-emVfdCk7Cj4+PiAgI2VuZGlmCj4+PiAgdm9pZCAqbWVtY2hyX2ludihjb25zdCB2b2lkICpzLCBp
-bnQgYywgc2l6ZV90IG4pOwo+Pj4gIGNoYXIgKnN0cnJlcGxhY2UoY2hhciAqcywgY2hhciBvbGQs
-IGNoYXIgbmV3KTsKPj4+ICtleHRlcm4gdm9pZCBzdHJsY3B5dG91cHBlcihjaGFyICpkc3QsIGNv
-bnN0IGNoYXIgKnNyYywgc2l6ZV90IGxlbik7Cj4+PiArZXh0ZXJuIHZvaWQgc3RybGNweXRvbG93
-ZXIoY2hhciAqZHN0LCBjb25zdCBjaGFyICpzcmMsIHNpemVfdCBsZW4pOwo+Pj4KPj4+ICBleHRl
-cm4gdm9pZCBrZnJlZV9jb25zdChjb25zdCB2b2lkICp4KTsKPj4+Cj4+PiBAQCAtMTY5LDQgKzE3
-MSw0MiBAQCBzdGF0aWMgaW5saW5lIGNvbnN0IGNoYXIgKmtiYXNlbmFtZShjb25zdCBjaGFyICpw
-YXRoKQo+Pj4gICAgICAgcmV0dXJuIHRhaWwgPyB0YWlsICsgMSA6IHBhdGg7Cj4+PiAgfQo+Pj4K
-Pj4+ICsvKioKPj4+ICsgKiBzdHJjcHl0b3VwcGVyIC0gQ29weSBzdHJpbmcgYW5kIGNvbnZlcnQg
-dG8gdXBwZXJjYXNlLgo+Pj4gKyAqIEBkc3Q6IFRoZSBidWZmZXIgdG8gc3RvcmUgdGhlIHJlc3Vs
-dC4KPj4+ICsgKiBAc3JjOiBUaGUgc3RyaW5nIHRvIGNvbnZlcnQgdG8gdXBwZXJjYXNlLgo+Pj4g
-KyAqLwo+Pj4gK3N0YXRpYyBpbmxpbmUgdm9pZCBzdHJjcHl0b3VwcGVyKGNoYXIgKmRzdCwgY29u
-c3QgY2hhciAqc3JjKQo+Pj4gK3sKPj4+ICsgICAgIHN0cmxjcHl0b3VwcGVyKGRzdCwgc3JjLCAt
-MSk7Cj4+PiArfQo+Pj4gKwo+Pgo+PiBXaHkgbm90IHVzZSBTSVpFX01BWCBpbnN0ZWFkIG9mIC0x
-Pwo+Cj4gU3VyZS4gSSdsbCBjaGFuZ2UgYWxsIGZvdXIgb2YgdGhlbS4gVGhhbmtzLgoKVHVybnMg
-b3V0IHRoZXJlJ3MgYWN0dWFsbHkgYSBjaXJjdWxhciBkZXBlbmRlbmN5IGhlcmUuIFNJWkVfTUFY
-IGlzCmRlZmluZWQgaW4gbGludXgva2VybmVsLmguIFNvLCBzdHJpbmcuaCB3b3VsZCBuZWVkIHRv
-IGluY2x1ZGUKa2VybmVsLmguIEJ1dCBrZXJuZWwuaCwgYnkgd2F5IG9mIHNldmVyYWwgb3RoZXIg
-aGVhZGVycywgaW5jbHVkZXMKc3RyaW5nLmguCgpBdHRlbXB0aW5nIHRvIGluY2x1ZGUga2VybmVs
-LmggaW4gc3RyaW5nLmggdGhlbiBsZWFkcyB0byBzb21ldGhpbmcgbGlrZSB0aGlzOgoKICBDSEsg
-ICAgIGluY2x1ZGUvY29uZmlnL2tlcm5lbC5yZWxlYXNlCiAgQ0hLICAgICBpbmNsdWRlL2dlbmVy
-YXRlZC91YXBpL2xpbnV4L3ZlcnNpb24uaAogIENISyAgICAgaW5jbHVkZS9nZW5lcmF0ZWQvdXRz
-cmVsZWFzZS5oCiAgQ0MgICAgICBzY3JpcHRzL21vZC9kZXZpY2V0YWJsZS1vZmZzZXRzLnMKICBD
-SEsgICAgIGluY2x1ZGUvZ2VuZXJhdGVkL3RpbWVjb25zdC5oCkluIGZpbGUgaW5jbHVkZWQgZnJv
-bSBpbmNsdWRlL2xpbnV4L3ByaW50ay5oOjI4OTowLAogICAgICAgICAgICAgICAgIGZyb20gaW5j
-bHVkZS9saW51eC9rZXJuZWwuaDoxMywKICAgICAgICAgICAgICAgICBmcm9tIGluY2x1ZGUvbGlu
-dXgvc3RyaW5nLmg6MTEsCiAgICAgICAgICAgICAgICAgZnJvbSBpbmNsdWRlL3VhcGkvbGludXgv
-dXVpZC5oOjIxLAogICAgICAgICAgICAgICAgIGZyb20gaW5jbHVkZS9saW51eC91dWlkLmg6MTks
-CiAgICAgICAgICAgICAgICAgZnJvbSBpbmNsdWRlL2xpbnV4L21vZF9kZXZpY2V0YWJsZS5oOjEy
-LAogICAgICAgICAgICAgICAgIGZyb20gc2NyaXB0cy9tb2QvZGV2aWNldGFibGUtb2Zmc2V0cy5j
-OjI6CmluY2x1ZGUvbGludXgvZHluYW1pY19kZWJ1Zy5oOiBJbiBmdW5jdGlvbiDigJhkZGVidWdf
-ZHluZGJnX21vZHVsZV9wYXJhbV9jYuKAmToKaW5jbHVkZS9saW51eC9keW5hbWljX2RlYnVnLmg6
-MTIyOjI6IGVycm9yOiBpbXBsaWNpdCBkZWNsYXJhdGlvbiBvZgpmdW5jdGlvbiDigJhzdHJzdHLi
-gJkgWy1XZXJyb3I9aW1wbGljaXQtZnVuY3Rpb24tZGVjbGFyYXRpb25dCiAgaWYgKHN0cnN0cihw
-YXJhbSwgImR5bmRiZyIpKSB7CiAgXgppbmNsdWRlL2xpbnV4L2R5bmFtaWNfZGVidWcuaDoxMjI6
-Njogd2FybmluZzogaW5jb21wYXRpYmxlIGltcGxpY2l0CmRlY2xhcmF0aW9uIG9mIGJ1aWx0LWlu
-IGZ1bmN0aW9uIOKAmHN0cnN0cuKAmSBbZW5hYmxlZCBieSBkZWZhdWx0XQogIGlmIChzdHJzdHIo
-cGFyYW0sICJkeW5kYmciKSkgewogICAgICBeClNpbmNlIGtlcm5lbC5oIGlzIHJlZmVyZW5jaW5n
-IHN0cmluZy5oICh3aGljaCBpcyBuZWVkZWQsIGJ1dCBub3QKaW5jbHVkZWQgYSBzZWNvbmQgdGlt
-ZSBkdWUgdG8gdGhlIGluY2x1ZGUgZ3VhcmRzKSwgdGhpcyBsZWFkcyB0bwp1bmRlY2xhcmVkIHN0
-cmluZyBmdW5jdGlvbnMsIGJlY2F1c2Ugd2UgYXJlIHN0aWxsIGluIHRoZSBlYXJseSBzdGFnZXMK
-b2YgaW5jbHVkaW5nIHN0cmluZy5oIGl0c2VsZiBhbmQgaGF2ZW4ndCBnb3R0ZW4gdG8gdGhlIGZ1
-bmN0aW9uCmRlY2xhcmF0aW9ucyB5ZXQuCgo+Pj4gKy8qKgo+Pj4gKyAqIHN0cmNweXRvbG93ZXIg
-LSBDb3B5IHN0cmluZyBhbmQgY29udmVydCB0byBsb3dlcmNhc2UuCj4+PiArICogQGRzdDogVGhl
-IGJ1ZmZlciB0byBzdG9yZSB0aGUgcmVzdWx0Lgo+Pj4gKyAqIEBzcmM6IFRoZSBzdHJpbmcgdG8g
-Y29udmVydCB0byBsb3dlcmNhc2UuCj4+PiArICovCj4+PiArc3RhdGljIGlubGluZSB2b2lkIHN0
-cmNweXRvbG93ZXIoY2hhciAqZHN0LCBjb25zdCBjaGFyICpzcmMpCj4+PiArewo+Pj4gKyAgICAg
-c3RybGNweXRvbG93ZXIoZHN0LCBzcmMsIC0xKTsKPj4+ICt9Cj4+PiArCj4+Cj4+IFNhbWUgaGVy
-ZSwgYW5kIHRoZSAyIGJlbG93IDopCj4+Cj4+IFRoYW5rcyBNYXJrdXMsCj4+IEx1aXMKPj4KPj4+
-ICsvKioKPj4+ICsgKiBzdHJ0b3VwcGVyIC0gQ29udmVydCBzdHJpbmcgdG8gdXBwZXJjYXNlLgo+
-Pj4gKyAqIEBzOiBUaGUgc3RyaW5nIHRvIG9wZXJhdGUgb24uCj4+PiArICovCj4+PiArc3RhdGlj
-IGlubGluZSB2b2lkIHN0cnRvdXBwZXIoY2hhciAqcykKPj4+ICt7Cj4+PiArICAgICBzdHJsY3B5
-dG91cHBlcihzLCBzLCAtMSk7Cj4+PiArfQo+Pj4gKwo+Pj4gKy8qKgo+Pj4gKyAqIHN0cnRvbG93
-ZXIgLSBDb252ZXJ0IHN0cmluZyB0byBsb3dlcmNhc2UuCj4+PiArICogQHM6IFRoZSBzdHJpbmcg
-dG8gb3BlcmF0ZSBvbi4KPj4+ICsgKi8KPj4+ICtzdGF0aWMgaW5saW5lIHZvaWQgc3RydG9sb3dl
-cihjaGFyICpzKQo+Pj4gK3sKPj4+ICsgICAgIHN0cmxjcHl0b2xvd2VyKHMsIHMsIC0xKTsKPj4+
-ICt9Cj4+PiArCj4+PiAgI2VuZGlmIC8qIF9MSU5VWF9TVFJJTkdfSF8gKi8KPj4+IGRpZmYgLS1n
-aXQgYS9saWIvc3RyaW5nLmMgYi9saWIvc3RyaW5nLmMKPj4+IGluZGV4IGVkODM1NjIuLmZkOGM0
-MjcgMTAwNjQ0Cj4+PiAtLS0gYS9saWIvc3RyaW5nLmMKPj4+ICsrKyBiL2xpYi9zdHJpbmcuYwo+
-Pj4gQEAgLTk1MiwzICs5NTIsNDEgQEAgY2hhciAqc3RycmVwbGFjZShjaGFyICpzLCBjaGFyIG9s
-ZCwgY2hhciBuZXcpCj4+PiAgICAgICByZXR1cm4gczsKPj4+ICB9Cj4+PiAgRVhQT1JUX1NZTUJP
-TChzdHJyZXBsYWNlKTsKPj4+ICsKPj4+ICsvKioKPj4+ICsgKiBzdHJsY3B5dG91cHBlciAtIENv
-cHkgYSBsZW5ndGgtbGltaXRlZCBzdHJpbmcgYW5kIGNvbnZlcnQgdG8gdXBwZXJjYXNlLgo+Pj4g
-KyAqIEBkc3Q6IFRoZSBidWZmZXIgdG8gc3RvcmUgdGhlIHJlc3VsdC4KPj4+ICsgKiBAc3JjOiBU
-aGUgc3RyaW5nIHRvIGNvbnZlcnQgdG8gdXBwZXJjYXNlLgo+Pj4gKyAqIEBsZW46IE1heGltdW0g
-c3RyaW5nIGxlbmd0aC4gTWF5IGJlIFNJWkVfTUFYICgtMSkgdG8gc2V0IG5vIGxpbWl0Lgo+Pj4g
-KyAqLwo+Pj4gK3ZvaWQgc3RybGNweXRvdXBwZXIoY2hhciAqZHN0LCBjb25zdCBjaGFyICpzcmMs
-IHNpemVfdCBsZW4pCj4+PiArewo+Pj4gKyAgICAgc2l6ZV90IGk7Cj4+PiArCj4+PiArICAgICBp
-ZiAoIWxlbikKPj4+ICsgICAgICAgICAgICAgcmV0dXJuOwo+Pj4gKwo+Pj4gKyAgICAgZm9yIChp
-ID0gMDsgaSA8IGxlbiAmJiBzcmNbaV07ICsraSkKPj4+ICsgICAgICAgICAgICAgZHN0W2ldID0g
-dG91cHBlcihzcmNbaV0pOwo+Pj4gKyAgICAgZHN0W2kgPCBsZW4gPyBpIDogaSAtIDFdID0gJ1ww
-JzsKPj4+ICt9Cj4+PiArRVhQT1JUX1NZTUJPTChzdHJsY3B5dG91cHBlcik7Cj4+PiArCj4+PiAr
-LyoqCj4+PiArICogc3RybGNweXRvbG93ZXIgLSBDb3B5IGEgbGVuZ3RoLWxpbWl0ZWQgc3RyaW5n
-IGFuZCBjb252ZXJ0IHRvIGxvd2VyY2FzZS4KPj4+ICsgKiBAZHN0OiBUaGUgYnVmZmVyIHRvIHN0
-b3JlIHRoZSByZXN1bHQuCj4+PiArICogQHNyYzogVGhlIHN0cmluZyB0byBjb252ZXJ0IHRvIGxv
-d2VyY2FzZS4KPj4+ICsgKiBAbGVuOiBNYXhpbXVtIHN0cmluZyBsZW5ndGguIE1heSBiZSBTSVpF
-X01BWCAoLTEpIHRvIHNldCBubyBsaW1pdC4KPj4+ICsgKi8KPj4+ICt2b2lkIHN0cmxjcHl0b2xv
-d2VyKGNoYXIgKmRzdCwgY29uc3QgY2hhciAqc3JjLCBzaXplX3QgbGVuKQo+Pj4gK3sKPj4+ICsg
-ICAgIHNpemVfdCBpOwo+Pj4gKwo+Pj4gKyAgICAgaWYgKCFsZW4pCj4+PiArICAgICAgICAgICAg
-IHJldHVybjsKPj4+ICsKPj4+ICsgICAgIGZvciAoaSA9IDA7IGkgPCBsZW4gJiYgc3JjW2ldOyAr
-K2kpCj4+PiArICAgICAgICAgICAgIGRzdFtpXSA9IHRvbG93ZXIoc3JjW2ldKTsKPj4+ICsgICAg
-IGRzdFtpIDwgbGVuID8gaSA6IGkgLSAxXSA9ICdcMCc7Cj4+PiArfQo+Pj4gK0VYUE9SVF9TWU1C
-T0woc3RybGNweXRvbG93ZXIpOwo+Pj4KPj4KX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fX19fX19fX19fX18KTm91dmVhdSBtYWlsaW5nIGxpc3QKTm91dmVhdUBsaXN0cy5mcmVl
-ZGVza3RvcC5vcmcKaHR0cHM6Ly9saXN0cy5mcmVlZGVza3RvcC5vcmcvbWFpbG1hbi9saXN0aW5m
-by9ub3V2ZWF1Cg==
+On Mon, Jul 11, 2016 at 01:34:08PM +0200, Benjamin Tissoires wrote:
+> On Fri, Jul 8, 2016 at 7:51 PM, Dmitry Torokhov
+> <dmitry.torokhov@gmail.com> wrote:
+> > On Fri, Jul 08, 2016 at 11:17:39AM +0200, Benjamin Tissoires wrote:
+> >> Hi,
+> >>
+> >> On Thu, Jul 7, 2016 at 9:11 AM, Lv Zheng <lv.zheng@intel.com> wrote:
+> >> > There are many AML tables reporting wrong initial lid state, and some of
+> >> > them never reports lid state. As a proxy layer acting between, ACPI button
+> >> > driver is not able to handle all such cases, but need to re-define the
+> >> > usage model of the ACPI lid. That is:
+> >> > 1. It's initial state is not reliable;
+> >> > 2. There may not be open event;
+> >> > 3. Userspace should only take action against the close event which is
+> >> >    reliable, always sent after a real lid close.
+> >> > This patch adds documentation of the usage model.
+> >> >
+> >> > Link: https://lkml.org/2016/3/7/460
+> >> > Link: https://github.com/systemd/systemd/issues/2087
+> >> > Signed-off-by: Lv Zheng <lv.zheng@intel.com>
+> >> > Cc: Bastien Nocera: <hadess@hadess.net>
+> >> > Cc: Benjamin Tissoires <benjamin.tissoires@gmail.com>
+> >> > Cc: linux-input@vger.kernel.org
+> >> > ---
+> >> >  Documentation/acpi/acpi-lid.txt |   62 +++++++++++++++++++++++++++++++++++++++
+> >> >  1 file changed, 62 insertions(+)
+> >> >  create mode 100644 Documentation/acpi/acpi-lid.txt
+> >> >
+> >> > diff --git a/Documentation/acpi/acpi-lid.txt b/Documentation/acpi/acpi-lid.txt
+> >> > new file mode 100644
+> >> > index 0000000..7e4f7ed
+> >> > --- /dev/null
+> >> > +++ b/Documentation/acpi/acpi-lid.txt
+> >> > @@ -0,0 +1,62 @@
+> >> > +Usage Model of the ACPI Control Method Lid Device
+> >> > +
+> >> > +Copyright (C) 2016, Intel Corporation
+> >> > +Author: Lv Zheng <lv.zheng@intel.com>
+> >> > +
+> >> > +
+> >> > +Abstract:
+> >> > +
+> >> > +Platforms containing lids convey lid state (open/close) to OSPMs using a
+> >> > +control method lid device. To implement this, the AML tables issue
+> >> > +Notify(lid_device, 0x80) to notify the OSPMs whenever the lid state has
+> >> > +changed. The _LID control method for the lid device must be implemented to
+> >> > +report the "current" state of the lid as either "opened" or "closed".
+> >> > +
+> >> > +This document describes the restrictions and the expections of the Linux
+> >> > +ACPI lid device driver.
+> >> > +
+> >> > +
+> >> > +1. Restrictions of the returning value of the _LID control method
+> >> > +
+> >> > +The _LID control method is described to return the "current" lid state.
+> >> > +However the word of "current" has ambiguity, many AML tables return the lid
+> >> > +state upon the last lid notification instead of returning the lid state
+> >> > +upon the last _LID evaluation. There won't be difference when the _LID
+> >> > +control method is evaluated during the runtime, the problem is its initial
+> >> > +returning value. When the AML tables implement this control method with
+> >> > +cached value, the initial returning value is likely not reliable. There are
+> >> > +simply so many examples always retuning "closed" as initial lid state.
+> >> > +
+> >> > +2. Restrictions of the lid state change notifications
+> >> > +
+> >> > +There are many AML tables never notifying when the lid device state is
+> >> > +changed to "opened". But it is ensured that the AML tables always notify
+> >> > +"closed" when the lid state is changed to "closed". This is normally used
+> >> > +to trigger some system power saving operations on Windows. Since it is
+> >> > +fully tested, this notification is reliable for all AML tables.
+> >> > +
+> >> > +3. Expections for the userspace users of the ACPI lid device driver
+> >> > +
+> >> > +The userspace programs should stop relying on
+> >> > +/proc/acpi/button/lid/LID0/state to obtain the lid state. This file is only
+> >> > +used for the validation purpose.
+> >>
+> >> I'd say: this file actually calls the _LID method described above. And
+> >> given the previous explanation, it is not reliable enough on some
+> >> platforms. So it is strongly advised for user-space program to not
+> >> solely rely on this file to determine the actual lid state.
+> >>
+> >> > +
+> >> > +New userspace programs should rely on the lid "closed" notification to
+> >> > +trigger some power saving operations and may stop taking actions according
+> >> > +to the lid "opened" notification. A new input switch event - SW_ACPI_LID is
+> >> > +prepared for the new userspace to implement this ACPI control method lid
+> >> > +device specific logics.
+> >>
+> >> That's not entirely what we discussed before (to prevent regressions):
+> >> - if the device doesn't have reliable LID switch state, then there
+> >> would be the new input event, and so userspace should only rely on
+> >> opened notifications.
+> >> - if the device has reliable switch information, the new input event
+> >> should not be exported and userspace knows that the current input
+> >> switch event is reliable.
+> >>
+> >> Also, using a new "switch" event is a terrible idea. Switches have a
+> >> state (open/close) and you are using this to forward a single open
+> >> event. So using a switch just allows you to say to userspace you are
+> >> using the "new" LID meaning, but you'll still have to manually reset
+> >> the switch and you will have to document how this event is not a
+> >> switch.
+> >>
+> >> Please use a simple KEY_LID_OPEN event you will send through
+> >> [input_key_event(KEY_LID_OPEN, 1), input_sync(),
+> >> input_key_event(KEY_LID_OPEN, 0), input_sync()], which userspace knows
+> >> how to handle.
+> >>
+> >> > +
+> >> > +During the period the userspace hasn't been switched to use the new
+> >> > +SW_ACPI_LID event, Linux users can use the following boot parameter to
+> >> > +handle possible issues:
+> >> > +  button.lid_init_state=method:
+> >> > +   This is the default behavior of the Linux ACPI lid driver, Linux kernel
+> >> > +   reports the initial lid state using the returning value of the _LID
+> >> > +   control method.
+> >> > +   This can be used to fix some platforms if the _LID control method's
+> >> > +   returning value is reliable.
+> >> > +  button.lid_init_state=open:
+> >> > +   Linux kernel always reports the initial lid state as "opened".
+> >> > +   This may fix some platforms if the returning value of the _LID control
+> >> > +   method is not reliable.
+> >>
+> >> This worries me as there is no plan after "During the period the
+> >> userspace hasn't been switched to use the new event".
+> >>
+> >> I really hope you'll keep sending SW_LID for reliable LID platforms,
+> >> and not remove it entirely as you will break platforms.
+> >
+> > How about we leave the kernel alone and userspace (which would have to
+> > cope with the new KEY_LID_OPEN anyway) would just have to know that if
+> > switch's parent is PNP0C0D:00 (or phys is PNP0C0D/button/input0) then it
+> > can't trust the events and it needs additional heuristics.
+> >
+> 
+> I really wished we could leave the kernel alone, but some platform
+> need fixes: we are using an EV_SW, and on those platform, we only get
+> the close event, which means it gets ignored by the input layer.
+
+OK. Can we then emit missing "open" if we get "close" and the state is
+already closed?
+
+Thanks.
+
+-- 
+Dmitry
