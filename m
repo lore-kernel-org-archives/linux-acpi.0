@@ -1,107 +1,48 @@
-From: Gabriele Paoloni <gabriele.paoloni@huawei.com>
-Subject: RE: [RFC PATCH 3/3] PCI/ACPI: hisi: Add ACPI support for HiSilicon
-	SoCs Host Controllers
-Date: Tue, 12 Jul 2016 10:32:33 +0000
-Message-ID: <EE11001F9E5DDD47B7634E2F8A612F2E1F7D730E@lhreml507-mbx>
-References: <1468291344-122909-1-git-send-email-liudongdong3@huawei.com>
-	<1468291344-122909-4-git-send-email-liudongdong3@huawei.com>
-	<3580311.QdyhSxNzVU@wuerfel>
- <EE11001F9E5DDD47B7634E2F8A612F2E1F7D72BF@lhreml507-mbx>
+From: Sudeep Holla <sudeep.holla@arm.com>
+Subject: Re: [PATCH v9 0/7] ACPI / processor_idle: Add ACPI v6.0 LPI support
+Date: Tue, 12 Jul 2016 12:42:06 +0100
+Message-ID: <5784D78E.7010409@arm.com>
+References: <1467997678-7107-1-git-send-email-sudeep.holla@arm.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="Windows-1252"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-pci-owner@vger.kernel.org>
-In-Reply-To: <EE11001F9E5DDD47B7634E2F8A612F2E1F7D72BF@lhreml507-mbx>
-Content-Language: en-US
-Sender: linux-pci-owner@vger.kernel.org
-To: Gabriele Paoloni <gabriele.paoloni@huawei.com>, Arnd Bergmann <arnd@arndb.de>, "liudongdong (C)" <liudongdong3@huawei.com>
-Cc: "Lorenzo.Pieralisi@arm.com" <Lorenzo.Pieralisi@arm.com>, "Chenxin (Charles)" <charles.chenxin@huawei.com>, "rafael@kernel.org" <rafael@kernel.org>, "tn@semihalf.com" <tn@semihalf.com>, "pratyush.anand@gmail.com" <pratyush.anand@gmail.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Linuxarm <linuxarm@huawei.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "helgaas@kernel.org" <helgaas@kernel.org>, "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>, "jcm@redhat.com" <jcm@redhat.com>
+Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from foss.arm.com ([217.140.101.70]:58622 "EHLO foss.arm.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S932878AbcGLLmN (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 12 Jul 2016 07:42:13 -0400
+In-Reply-To: <1467997678-7107-1-git-send-email-sudeep.holla@arm.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: ACPI List <linux-acpi@vger.kernel.org>, "Rafael J . Wysocki" <rjw@rjwysocki.net>
+Cc: Sudeep Holla <sudeep.holla@arm.com>, Vikas Sajjan <vikas.cha.sajjan@hpe.com>, Sunil <sunil.vl@hpe.com>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Prashanth Prakash <pprakash@codeaurora.org>, Al Stone <al.stone@linaro.org>, Ashwin Chaugule <ashwin.chaugule@linaro.org>, Daniel Lezcano <daniel.lezcano@linaro.org>, LKML <linux-kernel@vger.kernel.org>, ALKML <linux-arm-kernel@lists.infradead.org>
 
 
 
-> -----Original Message-----
-> From: linuxarm-bounces@huawei.com [mailto:linuxarm-bounces@huawei.com]
-> On Behalf Of Gabriele Paoloni
-> Sent: 12 July 2016 18:22
-> To: Arnd Bergmann; liudongdong (C)
-> Cc: Lorenzo.Pieralisi@arm.com; Chenxin (Charles); rafael@kernel.org;
-> tn@semihalf.com; pratyush.anand@gmail.com; linux-kernel@vger.kernel.org;
-> Linuxarm; linux-acpi@vger.kernel.org; helgaas@kernel.org; linux-
-> pci@vger.kernel.org; jcm@redhat.com
-> Subject: RE: [RFC PATCH 3/3] PCI/ACPI: hisi: Add ACPI support for
-> HiSilicon SoCs Host Controllers
-> 
-> > -----Original Message-----
-> > From: Arnd Bergmann [mailto:arnd@arndb.de]
-> > Sent: 12 July 2016 16:35
-> > To: liudongdong (C)
-> > Cc: helgaas@kernel.org; rafael@kernel.org; Lorenzo.Pieralisi@arm.com;
-> > tn@semihalf.com; Wangzhou (B); pratyush.anand@gmail.com; linux-
-> > pci@vger.kernel.org; linux-acpi@vger.kernel.org; linux-
-> > kernel@vger.kernel.org; jcm@redhat.com; Gabriele Paoloni; Chenxin
-> > (Charles); Linuxarm
-> > Subject: Re: [RFC PATCH 3/3] PCI/ACPI: hisi: Add ACPI support for
-> > HiSilicon SoCs Host Controllers
-> >
-> > On Tuesday, July 12, 2016 10:42:24 AM CEST Dongdong Liu wrote:
-> > >  MAINTAINERS                       |   1 +
-> > >  drivers/pci/host/Kconfig          |   7 ++
-> > >  drivers/pci/host/Makefile         |   1 +
-> > >  drivers/pci/host/mcfg-quirks.c    |   8 ++
-> > >  drivers/pci/host/mcfg-quirks.h    |   8 ++
-> > >  drivers/pci/host/pcie-hisi-acpi.c | 151
-> > ++++++++++++++++++++++++++++++++++++++
-> > >  drivers/pci/host/pcie-hisi.c      |   2 -
-> > >  drivers/pci/host/pcie-hisi.h      |   2 +
-> > >  8 files changed, 178 insertions(+), 2 deletions(-)
-> > >  create mode 100644 drivers/pci/host/pcie-hisi-acpi.c
-> > >
-> > >
-> >
-> > Please keep the quirks separate from the PCI host drivers.
-> >
-> > The ACPI code includes its own host driver and the only thing
-> > you need to override here is the config space access, so just put
-> that
-> > into drivers/acpi/
-> 
-> Hi Arnd, thanks for replying.
-> 
-> Basically we just followed what Tomasz has done in
-> "[RFC PATCH v4 0/5] ECAM quirks handling for ARM64 platforms"
-> 
-> In this case the ThunderX quirks have been defined in
-> "drivers/pci/host/pci-thunder-pem.c".
-> 
+On 08/07/16 18:07, Sudeep Holla wrote:
+> ACPI 6.0 introduced LPI(Low Power Idle) states that provides an alternate
+> method to describe processor idle states. It extends the specification
+> to allow the expression of idle states like C-states selectable by the
+> OSPM when a processor goes idle, but may affect more than one processor,
+> and may affect other system components.
+>
+> LPI extensions leverages the processor container device(again introduced
+> in ACPI 6.0) allowing to express which parts of the system are affected
+> by a given LPI state. It defines the local power states for each node
+> in a hierarchical processor topology. The OSPM can use _LPI object to
+> select a local power state for each level of processor hierarchy in the
+> system. They used to produce a composite power state request that is
+> presented to the platform by the OSPM.
+>
+> Since multiple processors affect the idle state for any non-leaf hierarchy
+> node, coordination of idle state requests between the processors is
+> required. ACPI supports two different coordination schemes: Platform
+> coordinated and  OS initiated.
+>
 
-Also on top of this I think that from
-"Re: [RFC PATCH v3 1/2] ACPI/PCI: Check platform specific ECAM quirks"
+I was hoping to get this in v4.8 now that merge window is
+delayed/extended if you have no further comments on this series.
 
-Lorenzo suggested to add the static array of quirks (and therefore the
-respective quirk mechanisms in "drivers/pci/host").
-
-See:
-[...]
-It should be easier to implement (provided we find a place where
-to add this static array of hooks matching MCFG, I suspect it is
-going to be a file in drivers/pci/host but Tomasz and I need
-input on that) and prevent abuse (since it is a static array of
-hooks in a single place, it is easier to manage than section
-entries).
-[...]
-	
-Thanks
-
-Gab
-
-> Cheers
-> Gab
-> 
-> >
-> > 	Arnd
-> 
-> _______________________________________________
-> linuxarm mailing list
-> linuxarm@huawei.com
-> http://rnd-openeuler.huawei.com/mailman/listinfo/linuxarm
+-- 
+Regards,
+Sudeep
