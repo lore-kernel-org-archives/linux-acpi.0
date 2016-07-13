@@ -1,226 +1,78 @@
-From: Ville =?iso-8859-1?Q?Syrj=E4l=E4?= <ville.syrjala@linux.intel.com>
-Subject: Re: S3 resume regression [1cf4f629d9d2 ("cpu/hotplug: Move online
- calls to hotplugged cpu")]
-Date: Wed, 13 Jul 2016 17:54:25 +0300
-Message-ID: <20160713145425.GB4329@intel.com>
-References: <57332171.8070403@linutronix.de>
- <20160511122116.GA4329@intel.com>
- <20160511084445.00030b49@gandalf.local.home>
- <20160511133406.GC4329@intel.com>
- <20160516193910.GL4329@intel.com>
- <573BA5E2.5040506@intel.com>
- <20160518072424.GU4329@intel.com>
- <20160526183207.GX4329@intel.com>
- <CAJZ5v0in8YwMBgLd6=KgGVc-f2yVvutOJG_u05OKLK7_EzN0yQ@mail.gmail.com>
- <20160531072650.GP4329@intel.com>
+From: Lucas Levrel <lucas.levrel@u-pec.fr>
+Subject: Customizing fan behaviour (temperatures)
+Date: Wed, 13 Jul 2016 16:47:35 +0200 (CEST)
+Message-ID: <alpine.LSU.2.20.13.1607131543390.7774@coulomb.u-pec.fr>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
+Content-Type: text/plain; charset=ISO-8859-15;
+	format=flowed
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga14.intel.com ([192.55.52.115]:63644 "EHLO mga14.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751684AbcGMOzb (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 13 Jul 2016 10:55:31 -0400
-Content-Disposition: inline
-In-Reply-To: <20160531072650.GP4329@intel.com>
+Received: from gulliver.u-pec.fr ([193.48.143.11]:35095 "EHLO
+	gulliver.u-pec.fr" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750854AbcGMPUO (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 13 Jul 2016 11:20:14 -0400
+Received: from gulliver.u-pec.fr (localhost [127.0.0.1])
+	by gulliver.u-pec.fr (Postfix) with ESMTP id 46A74C1C06
+	for <linux-acpi@vger.kernel.org>; Wed, 13 Jul 2016 16:47:35 +0200 (CEST)
+Received: from [10.12.3.100] (unknown [10.12.3.100])
+	by gulliver.u-pec.fr (Postfix) with ESMTP id 356CAC1BFC
+	for <linux-acpi@vger.kernel.org>; Wed, 13 Jul 2016 16:47:35 +0200 (CEST)
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rafael@kernel.org>
-Cc: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Steven Rostedt <rostedt@goodmis.org>, Sebastian Andrzej Siewior <bigeasy@linutronix.de>, Thomas Gleixner <tglx@linutronix.de>, linux-arch@vger.kernel.org, Rik van Riel <riel@redhat.com>, "Srivatsa S. Bhat" <srivatsa@mit.edu>, Peter Zijlstra <peterz@infradead.org>, Arjan van de Ven <arjan@linux.intel.com>, Rusty Russell <rusty@rustcorp.com.au>, Oleg Nesterov <oleg@redhat.com>, Tejun Heo <tj@kernel.org>, Andrew Morton <akpm@linux-foundation.org>, Paul McKenney <paulmck@linux.vnet.ibm.com>, Linus Torvalds <torvalds@linux-foundation.org>, Paul Turner <pjt@google.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, "Zhang, Rui" <rui.zhang@intel.com>, Len Brown <len.brown@intel.com>, Linux PM <linux-pm@vger.kernel.org>, Linux ACPI <linux-acpi@vger.kernel.org>
+To: linux-acpi@vger.kernel.org
 
-On Tue, May 31, 2016 at 10:26:50AM +0300, Ville Syrj=E4l=E4 wrote:
-> On Mon, May 30, 2016 at 10:43:51PM +0200, Rafael J. Wysocki wrote:
-> > On Thu, May 26, 2016 at 8:32 PM, Ville Syrj=E4l=E4
-> > <ville.syrjala@linux.intel.com> wrote:
-> > > On Wed, May 18, 2016 at 10:24:24AM +0300, Ville Syrj=E4l=E4 wrote=
-:
-> > >> On Wed, May 18, 2016 at 01:14:42AM +0200, Rafael J. Wysocki wrot=
-e:
-> > >> > On 5/16/2016 9:39 PM, Ville Syrj=E4l=E4 wrote:
-> > >> > > On Wed, May 11, 2016 at 04:34:06PM +0300, Ville Syrj=E4l=E4 =
-wrote:
-> > >> > >> On Wed, May 11, 2016 at 08:44:45AM -0400, Steven Rostedt wr=
-ote:
-> > >> > >>> On Wed, 11 May 2016 15:21:16 +0300
-> > >> > >>> Ville Syrj=E4l=E4 <ville.syrjala@linux.intel.com> wrote:
-> > >> > >>>
-> > >> > >>>> Yeah can't get anything from the machine at that point. n=
-etconsole
-> > >> > >>>> didn't help either, and no serial on this machine. And II=
-RC I've
-> > >> > >>>> tried ramoops on this thing in the past but unfortunately=
- the memory
-> > >> > >>>> got cleared on reboot.
-> > >> > >>>>
-> > >> > >>> Can you look at the documentation in the kernel code at
-> > >> > >>>
-> > >> > >>> Documentation/power/basic-pm-debugging.txt And follow the =
-procedures
-> > >> > >>> for testing suspend to RAM (although it requires mostly ru=
-nning the
-> > >> > >>> same tests as for hibernation suspending).
-> > >> > >>>
-> > >> > >>> You can also use the tool s2ram for this as well.
-> > >> > >>>
-> > >> > >>> See Documentation/power/s2ram.txt
-> > >> > >>>
-> > >> > >>> Perhaps this can give us a bit more light onto the problem=
-=2E
-> > >> > >>>
-> > >> > >>> Basically the above does partial suspend and resume, and c=
-an pinpoint
-> > >> > >>> problem areas down to a more select location.
-> > >> > >> All the pm_test modes work fine. The only difference betwee=
-n them was
-> > >> > >> that 'platform' required me to manually wake up the machine=
- (hitting a
-> > >> > >> key was sufficient), whereas the others woke up without hel=
-p.
-> > >> > >>
-> > >> > >> pm_trace gave me
-> > >> > >> [    1.306633]   Magic number: 0:185:178
-> > >> > >> [    1.322880]   hash matches ../drivers/base/power/main.c:=
-1070
-> > >> > >> [    1.339270] acpi device:0e: hash matches
-> > >> > >> [    1.355414]  platform: hash matches
-> > >> > >>
-> > >> > >> which is the TRACE_SUSPEND in __device_suspend_noirq(), so =
-no help
-> > >> > >> there.
-> > >> > >>
-> > >> > >> I guess I could try to sprinkle more TRACE_RESUMEs around i=
-nto some
-> > >> > >> early resume code. If anyone has good ideas where to put th=
-em it
-> > >> > >> might speed things up a bit.
-> > >> > > So I did a bunch of that and found that it gets stuck somewh=
-ere
-> > >> > > around executing the _WAK method:
-> > >> > > platform_resume_noirq
-> > >> > >   acpi_pm_finish
-> > >> > >    acpi_leave_sleep_state
-> > >> > >     acpi_hw_sleep_dispatch
-> > >> > >      acpi_hw_legacy_wake
-> > >> > >       acpi_hw_execute_sleep_method
-> > >> > >        acpi_evaluate_object
-> > >> > >         acpi_ns_evaluate
-> > >> > >          acpi_ps_execute_method
-> > >> > >           acpi_ps_parse_aml
-> > >> > >
-> > >> > > It also seesm that adding a few TRACE_RESUME()s or an msleep=
-() right
-> > >> > > after enable_nonboot_cpus() can avoid the hang, sometimes.
-> > >> > >
-> > >> > > I've attached the DSDT in case anyone is interested in looki=
-ng at it.
-> > >> > >
-> > >> >
-> > >> > What if you comment out the execution of _WAK (line 318 of
-> > >> > drivers/acpi/acpica/hwsleep.c in 4.6)?  Does that make any dif=
-ference?
-> > >>
-> > >> Indeed it does. Tried with acpi_idle and intel_idle, and both ap=
-pear to
-> > >> resume just fine with that hack.
-> > >>
-> > >> -       acpi_hw_execute_sleep_method(METHOD_PATHNAME__WAK, sleep=
-_state);
-> > >> +       //acpi_hw_execute_sleep_method(METHOD_PATHNAME__WAK, sle=
-ep_state);
-> > >> +       printk(KERN_CRIT "skipping _WAK\n");
-> > >
-> > > Continuing with my detective work a bit, I decided to hack the DS=
-DT a
-> > > bit to see if I can narrow the it down further, and looks like I =
-found
-> > > it on the first guess. The following change stops it from hanging=
-=2E
-> > >
-> > > @ -5056,7 +5056,7 @@
-> > >          If (LEqual (Arg0, 0x03))
-> > >          {
-> > >              Store (0x01, \SPNF)
-> > > -           TRAP (0x46)
-> > > +           //TRAP (0x46)
-> > >              P8XH (0x00, 0x03)
-> > >          }
-> > >
-> > > So what does that do? Let's see:
-> > >
-> > >     OperationRegion (IO_T, SystemIO, 0x0800, 0x10)
-> > >     Field (IO_T, ByteAcc, NoLock, Preserve)
-> > >     {
-> > >         Offset (0x08),
-> > >         TRP0,   8
-> > >     }
-> > >
-> > >     OperationRegion (GNVS, SystemMemory, 0x3F5E0C7C, 0x0200)
-> > >     Field (GNVS, AnyAcc, Lock, Preserve)
-> > >     {
-> > >         OSYS,   16,
-> > >         SMIF,   8,
-> > >     ...
-> > >
-> > >     Method (TRAP, 1, Serialized)
-> > >     {
-> > >         Store (Arg0, SMIF) /* \SMIF */
-> > >         Store (0x00, TRP0) /* \TRP0 */
-> > >         Return (SMIF) /* \SMIF */
-> > >     }
-> > >
-> > > and a dump of the IOTR registers shows:
-> > >
-> > > 0x1e80: 0x0000fe01
-> > > 0x1e84: 0x00020001
-> > > 0x1e98: 0x000c0801
-> > > 0x1e9c: 0x000200f0
-> > >
-> > > which seems to be telling me that ports 0x800-0x80f and
-> > > 0xfe00-0xfe03 would trigger an SMI.
-> >=20
-> > Well, the name of the method kind of suggests that it triggers an S=
-MM trap. :-)
->=20
-> Which is why I wanted confirm that by looking at the IOTR regs ;)
->=20
-> >=20
-> > > So the next question is how do the idle drivers and cpu hotplug
-> > > fit into this picture. Do we need to force the second HT into
-> > > a specific C state before the SMI or something?
-> >=20
-> > Or you can ask why exactly someone put that SMM trap into _WAK.
-> >=20
-> > Apparently, it was regarded as necessary or no one would have
-> > bothered.  The only reason I can see why it might be regarded as
-> > necessary was that Windows did something Linux doesn't do on that
-> > platform, or, which to me is far more interesting, that Windows did=
-n't
-> > do something actually done by Linux.
-> >=20
-> > My theory would be that Windows didn't reinitialize the second HT
-> > properly during resume and the trap was added to let SMM do that.  =
-If
-> > that's the case, the trap may trigger by the time the second HT
-> > already executes code in Linux and then it will mess up with it and
-> > crash.
-> >=20
-> > Now, what do idles states have to do with that?  IIRC, Windows puts
-> > nonboot CPUs into idle states before suspend, so the SMM code
-> > triggered by the trap may make assumptions about the CPU being in s=
-uch
-> > a state or similar.
->=20
-> BTW I also tried to move the enable_nonboot_cpus() after _WAK, and I
-> tried to boot with nosmp, but neither trick helped. If someone could
-> throw some patches my way to force things into a specific state
-> before suspend/_WAK I'd be happy to test them out.
+Hi,
 
-Ping. Anyone have any ideas what to try here? Would be nice to get this
-machine working again...
+I would like to adjust the temperature at which the fan starts, because=
+ as=20
+it is now it runs continuously, at low speed but this continuous noise=20
+bothers me. I'd rather have it spin faster and intermittently. This is =
+an=20
+HP laptop.
+
+I've read much (mostly Q&A pages and list threads, regular documentatio=
+n=20
+seems to be scarce), and investigated the behaviour of files in=20
+/sys/devices/virtual/thermal . From what I understand there's no bug, j=
+ust=20
+the temperature thresholds are not to my taste.
+
+More specifically, there are 7 cooling_device's (4 of type Fan, 2=20
+Processor, 1 LCD) and 5 thermal_zone's (the first 4 really are=20
+temperatures, the last is the fan speed). thermal_zone0 controls the fa=
+n.=20
+The lowest trip_point_?_temp (?=3D=3D4) is 45000, which is very low.=20
+Basically, after a few minutes of idle operation temp reaches 50000 or=20
+55000 (looks like there is 5 =B0C granularity) and never gets lower: I'=
+ve=20
+tried and manually set the fan to speed 2 (echo 1 >=20
+cooling_device2/cur_state), even then temp doesn't decrease below 50000=
+=2E
+
+trip_point_?_temp are not writable. I've set thermal.act=3D60000 in the=
+=20
+kernel command line, to no avail; is this supposed to be reflected in t=
+he=20
+trip_point_?_temp files? (Note: trip_point_[1-4]_type is "active".) Thi=
+s=20
+is kernel 3.2.71 .
+
+What can you advise me to do now?
+
+And by the way, for my education:
+- how are the trip_point values determined?
+- how is hysteresis implemented? I mean, you don't want your fan speed =
+to=20
+change every other second, so the "speed up" threshold has to be higher=
+=20
+than the "speed down" one. In fact, I've found no explanation of how th=
+e=20
+trip_point values are used.
+
+Thanks.
 
 --=20
-Ville Syrj=E4l=E4
-Intel OTC
+Lucas Levrel
 --
 To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
 n
