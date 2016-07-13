@@ -1,73 +1,67 @@
-From: Sinan Kaya <okaya@codeaurora.org>
-Subject: Re: [PATCH V8 7/9] vfio, platform: make reset driver a requirement by
- default
-Date: Wed, 13 Jul 2016 16:12:35 -0400
-Message-ID: <4d95e48a-b5a1-c3eb-8aed-ddd307e1b028@codeaurora.org>
-References: <1466437879-32182-1-git-send-email-okaya@codeaurora.org>
- <1466437879-32182-8-git-send-email-okaya@codeaurora.org>
- <20160623125955.647008cb@t450s.home>
+From: "Rafael J. Wysocki" <rafael@kernel.org>
+Subject: Re: [PATCH v7 5/9] MAINTAINERS / ACPI: add the ARM64-specific ACPI
+ Support maintainers
+Date: Wed, 13 Jul 2016 22:16:51 +0200
+Message-ID: <CAJZ5v0gut2uCFHa7hr8iKY4ioP4q17yo=gBxJEeZf5WvVNM7pQ@mail.gmail.com>
+References: <1468432402-4872-1-git-send-email-fu.wei@linaro.org> <1468432402-4872-6-git-send-email-fu.wei@linaro.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
-Return-path: <kvm-owner@vger.kernel.org>
-In-Reply-To: <20160623125955.647008cb@t450s.home>
-Sender: kvm-owner@vger.kernel.org
-To: Alex Williamson <alex.williamson@redhat.com>
-Cc: kvm@vger.kernel.org, timur@codeaurora.org, cov@codeaurora.org, jcm@redhat.com, eric.auger@redhat.com, linux-acpi@vger.kernel.org, agross@codeaurora.org, linux-arm-msm@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Baptiste Reynal <b.reynal@virtualopensystems.com>, linux-kernel@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-wm0-f66.google.com ([74.125.82.66]:33682 "EHLO
+	mail-wm0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750872AbcGMUQ7 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 13 Jul 2016 16:16:59 -0400
+In-Reply-To: <1468432402-4872-6-git-send-email-fu.wei@linaro.org>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Hanjun Guo <hanjun.guo@linaro.org>, Fu Wei <fu.wei@linaro.org>
+Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Daniel Lezcano <daniel.lezcano@linaro.org>, Thomas Gleixner <tglx@linutronix.de>, Marc Zyngier <marc.zyngier@arm.com>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Sudeep Holla <sudeep.holla@arm.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linaro-acpi@lists.linaro.org" <linaro-acpi@lists.linaro.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, rruigrok@codeaurora.org, harba@codeaurora.org, Christopher Covington <cov@codeaurora.org>, Timur Tabi <timur@codeaurora.org>, G Gregory <graeme.gregory@linaro.org>, Al Stone <al.stone@linaro.org>, Jon Masters <jcm@redhat.com>, wei@redhat.com, Arnd Bergmann <arnd@arndb.de>, Wim Van Sebroeck <wim@iguana.be>, Catalin Marinas <catalin.marinas@arm.com>
 
-On 6/23/2016 2:59 PM, Alex Williamson wrote:
->> >  static struct resource *get_platform_resource(struct vfio_platform_device *vdev,
->> > @@ -66,6 +70,7 @@ static int vfio_platform_probe(struct platform_device *pdev)
->> >  	vdev->get_resource = get_platform_resource;
->> >  	vdev->get_irq = get_platform_irq;
->> >  	vdev->parent_module = THIS_MODULE;
->> > +	vdev->reset_required = reset_required;
-> 
-> Do you see value in making the global reset_required changeable, with
-> the behavior of any given device dependent on the setting of this
-> variable at the time of probe?  It seems like a bit of a support issue
-> to me.  Also, we're breaking existing users if there are any with this
-> change.  Should we introduce a CONFIG option to set the default?  I
-> think we can get away with changing the default that way, but I'm not
-> so sure otherwise.
-> 
+On Wed, Jul 13, 2016 at 7:53 PM,  <fu.wei@linaro.org> wrote:
+> From: Fu Wei <fu.wei@linaro.org>
+>
+> This patch add the ARM64-specific ACPI Support maintainers in
+> MAINTAINERS, according to the discussion on mailing list:
+> https://lkml.org/lkml/2016/6/29/580
+> Lorenzo Pieralisi will submit the pull requsts.
+>
+> The maintainers are listed by the alphabet order of
+> their name.
+>
+> Signed-off-by: Fu Wei <fu.wei@linaro.org>
+> Signed-off-by: Hanjun Guo <hanjun.guo@linaro.org>
+> ---
+>  MAINTAINERS | 8 ++++++++
+>  1 file changed, 8 insertions(+)
+>
+> diff --git a/MAINTAINERS b/MAINTAINERS
+> index 1209323..1e03463 100644
+> --- a/MAINTAINERS
+> +++ b/MAINTAINERS
+> @@ -315,6 +315,14 @@ W: https://01.org/linux-acpi
+>  S:     Supported
+>  F:     drivers/acpi/fan.c
+>
+> +ACPI FOR ARM64 (ACPI/arm64)
+> +M:     Hanjun Guo <hanjun.guo@linaro.org>
+> +M:     Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+> +M:     Sudeep Holla <sudeep.holla@arm.com>
+> +L:     linux-acpi@vger.kernel.org
+> +S:     Supported
+> +F:     drivers/acpi/arm64
+> +
+>  ACPI THERMAL DRIVER
+>  M:     Zhang Rui <rui.zhang@intel.com>
+>  L:     linux-acpi@vger.kernel.org
+> --
 
-We have two groups of existing users.
+This patch should not be part of your series.
 
-1. AMBA based drivers
-2. DT based drivers
+I would prefer it if  Hanjun, Lorenzo or Sudeep sent it.
 
-and now we are trying to add the ACPI based drivers in this series.
+Of course, it doesn't make much sense to send it before creating
+drivers/acpi/arm64/ and putting something in there, so it should be
+sent separately after the series has been merged.
 
-The AMBA based drivers do not have reset function implemented. Based on
-previous conversation with Eric, these devices were mostly used for
-bringing up the VFIO framework and were not intended for production. 
-If we want to maintain existing functionality, I can change reset_required to
-false by default for the AMBA based drivers.
-
-The DT based drivers all have reset functions implemented. They shouldn't be
-impacted by the reset_required flag. 
-
-The reset_required flag is again useful for testing purposes when the reset
-driver is broken or the ACPI _RST method is missing.
-
-The previously agreed approach was to force the reset required by default
-for production environment and be able to clear it for testing purposes.
-When I was implementing HIDMA, I never realized that I needed a reset driver
-until Arnd told me during the review. We want to avoid this for the long
-term for DT and ACPI based implementations.
-
-The reset_required command line parameter would be useful if somebody suspects
-that the ACPI _RST implementation is broken or the DT based reset driver is
-broken or you quickly want to test the virtualization without having a reset
-driver ready yet.
-
-Let us know which way you want to go. I can also add a Kconfig option and
-set it by default. But then I have to recompile the kernel when I want to
-test without the reset stuff.
-
--- 
-Sinan Kaya
-Qualcomm Datacenter Technologies, Inc. as an affiliate of Qualcomm Technologies, Inc.
-Qualcomm Technologies, Inc. is a member of the Code Aurora Forum, a Linux Foundation Collaborative Project.
+Thanks,
+Rafael
