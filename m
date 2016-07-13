@@ -1,76 +1,104 @@
-From: Anna-Maria Gleixner <anna-maria@linutronix.de>
-Subject: [patch V2 37/67] ACPI/processor: Avoid STARTING/DYING actions in a
- more logical way
-Date: Wed, 13 Jul 2016 17:16:38 -0000
-Message-ID: <20160713153335.964962885@linutronix.de>
-References: <20160713153219.128052238@linutronix.de>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15
+From: fu.wei@linaro.org
+Subject: [PATCH v7 0/9] acpi, clocksource: add GTDT driver and GTDT support in arm_arch_timer
+Date: Thu, 14 Jul 2016 01:53:13 +0800
+Message-ID: <1468432402-4872-1-git-send-email-fu.wei@linaro.org>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from www.linutronix.de ([62.245.132.108]:40197 "EHLO
-	Galois.linutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752046AbcGMRS7 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 13 Jul 2016 13:18:59 -0400
-Content-Disposition: inline;
- filename=0036-ACPI-processor-Avoid-STARTING-DYING-actions-in-a-mor.patch
+Received: from mx1.redhat.com ([209.132.183.28]:51545 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751251AbcGMRy1 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 13 Jul 2016 13:54:27 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: LKML <linux-kernel@vger.kernel.org>
-Cc: Peter Zijlstra <peterz@infradead.org>, Ingo Molnar <mingo@kernel.org>, Thomas Gleixner <tglx@linutronix.de>, rt@linutronix.de, Richard Cochran <rcochran@linutronix.de>, Sebastian Andrzej Siewior <bigeasy@linutronix.de>, Len Brown <lenb@kernel.org>, Linus Torvalds <torvalds@linux-foundation.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, linux-acpi@vger.kernel.org, Anna-Maria Gleixner <anna-maria@linutronix.de>
+To: rjw@rjwysocki.net, lenb@kernel.org, daniel.lezcano@linaro.org, tglx@linutronix.de, marc.zyngier@arm.com, lorenzo.pieralisi@arm.com, sudeep.holla@arm.com, hanjun.guo@linaro.org
+Cc: linux-arm-kernel@lists.infradead.org, linaro-acpi@lists.linaro.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, rruigrok@codeaurora.org, harba@codeaurora.org, cov@codeaurora.org, timur@codeaurora.org, graeme.gregory@linaro.org, al.stone@linaro.org, jcm@redhat.com, wei@redhat.com, arnd@arndb.de, wim@iguana.be, catalin.marinas@arm.com, will.deacon@arm.com, Suravee.Suthikulpanit@amd.com, leo.duran@amd.com, linux@roeck-us.net, linux-watchdog@vger.kernel.org, davem@davemloft.net, akpm@linux-foundation.org, gregkh@linuxfoundation.org, kvalo@codeaurora.org, mchehab@kernel.org, jslaby@suse.cz, christoffer.dall@linaro.org, julien.grall@arm.com, Fu Wei <fu.wei@linaro.org>
 
-From: Richard Cochran <rcochran@linutronix.de>
+From: Fu Wei <fu.wei@linaro.org>
 
-As part of the hotplug cleanup, the CPU_STARTING/DYING actions are going
-away soon.  This driver needlessly uses those two macro, and so this patch
-replaces that code with something more sensible.
+This patchset:
+    (1)Preparation for adding GTDT support in arm_arch_timer
+        1. Move some enums and marcos to header file
+        2. Add a new enum for spi type.
+        3. Improve printk relevant code
 
-Commit:
+    (2)Introduce ACPI GTDT parser: drivers/acpi/gtdt.c
+    Parse all kinds of timer in GTDT table of ACPI:arch timer,
+    memory-mapped timer and SBSA Generic Watchdog timer.
+    This driver can help to simplify all the relevant timer drivers,
+    and separate all the ACPI GTDT knowledge from them.
+    Also add add the ARM64-specific ACPI Support maintainers in MAINTAINERS.
 
-  8da8373447d6a57a5a9f55233d35beb15d92d0d2 ("ACPI / processor: Fix STARTING/DYING action in acpi_cpu_soft_notify()")
+    (3)Simplify ACPI code for arm_arch_timer
 
-added checks for those two actions, because the notification callback can
-sleep, causing a hung CPU. This patch instead checks for the ONLINE/DEAD
-actions, which are the ones that are handled by the driver in the first
-place.
+    (4)Add GTDT support for ARM memory-mapped timer
 
-Signed-off-by: Richard Cochran <rcochran@linutronix.de>
-Reviewed-by: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
-Cc: Len Brown <lenb@kernel.org>
-Cc: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: Peter Zijlstra <peterz@infradead.org>
-Cc: Rafael J. Wysocki <rjw@rjwysocki.net>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: linux-acpi@vger.kernel.org
-Signed-off-by: Anna-Maria Gleixner <anna-maria@linutronix.de>
----
- drivers/acpi/processor_driver.c | 11 ++++++-----
- 1 file changed, 6 insertions(+), 5 deletions(-)
+This patchset has been tested on the following platforms:
+    (1)ARM Foundation v8 model
 
-diff --git a/drivers/acpi/processor_driver.c b/drivers/acpi/processor_driver.c
-index d2fa8cb..eecdb19 100644
---- a/drivers/acpi/processor_driver.c
-+++ b/drivers/acpi/processor_driver.c
-@@ -118,12 +118,13 @@ static int acpi_cpu_soft_notify(struct notifier_block *nfb,
- 	struct acpi_device *device;
- 	action &= ~CPU_TASKS_FROZEN;
- 
--	/*
--	 * CPU_STARTING and CPU_DYING must not sleep. Return here since
--	 * acpi_bus_get_device() may sleep.
--	 */
--	if (action == CPU_STARTING || action == CPU_DYING)
-+	switch (action) {
-+	case CPU_ONLINE:
-+	case CPU_DEAD:
-+		break;
-+	default:
- 		return NOTIFY_DONE;
-+	}
- 
- 	if (!pr || acpi_bus_get_device(pr->handle, &device))
- 		return NOTIFY_DONE;
+Changelog:
+v7: Move the GTDT driver to drivers/acpi/arm64
+    Add add the ARM64-specific ACPI Support maintainers in MAINTAINERS
+    Merge 3 patches of GTDT parser driver.
+    Fix the for_each_platform_timer bug.
+
+v6: https://lkml.org/lkml/2016/6/29/580
+    split the GTDT driver to 4 parts: basic, arch_timer, memory-mapped timer,
+    and SBSA Generic Watchdog timer
+    Improve driver by suggestions and example code from Daniel Lezcano
+
+v5: https://lkml.org/lkml/2016/5/24/356
+    Sorting out all patches, simplify the API of GTDT driver:
+    GTDT driver just fills the data struct for arm_arch_timer driver.
+
+v4: https://lists.linaro.org/pipermail/linaro-acpi/2016-March/006667.html
+    Delete the kvm relevant patches
+    Separate two patches for sorting out the code for arm_arch_timer.
+    Improve irq info export code to allow missing irq info in GTDT table.
+
+v3: https://lkml.org/lkml/2016/2/1/658
+    Improve GTDT driver code:
+      (1)improve pr_* by defining pr_fmt(fmt)
+      (2)simplify gtdt_sbsa_gwdt_init
+      (3)improve gtdt_arch_timer_data_init, if table is NULL, it will try
+      to get GTDT table.
+    Move enum ppi_nr to arm_arch_timer.h, and add enum spi_nr.
+    Add arm_arch_timer get ppi from DT and GTDT support for kvm.
+
+v2: https://lkml.org/lkml/2015/12/2/10
+    Rebase to latest kernel version(4.4-rc3).
+    Fix the bug about the config problem,
+    use CONFIG_ACPI_GTDT instead of CONFIG_ACPI in arm_arch_timer.c
+
+v1: The first upstreaming version: https://lkml.org/lkml/2015/10/28/553
+
+Fu Wei (9):
+  clocksource/drivers/arm_arch_timer: Move enums and defines to header
+    file
+  clocksource/drivers/arm_arch_timer: Add a new enum for spi type
+  clocksource/drivers/arm_arch_timer: Improve printk relevant code
+  acpi/arm64: Add GTDT table parse driver
+  MAINTAINERS / ACPI: add the ARM64-specific ACPI Support maintainers
+  clocksource/drivers/arm_arch_timer: Simplify ACPI support code.
+  acpi/arm64: Add memory-mapped timer support in GTDT driver
+  clocksource/drivers/arm_arch_timer: Add GTDT support for memory-mapped
+    timer
+  acpi/arm64: Add SBSA Generic Watchdog support in GTDT driver
+
+ MAINTAINERS                          |   8 +
+ drivers/acpi/Kconfig                 |   5 +
+ drivers/acpi/Makefile                |   1 +
+ drivers/acpi/arm64/Kconfig           |  15 ++
+ drivers/acpi/arm64/Makefile          |   1 +
+ drivers/acpi/arm64/acpi_gtdt.c       | 343 +++++++++++++++++++++++++++++++++++
+ drivers/clocksource/Kconfig          |   1 +
+ drivers/clocksource/arm_arch_timer.c | 228 ++++++++++++++++-------
+ drivers/watchdog/Kconfig             |   1 +
+ include/clocksource/arm_arch_timer.h |  32 ++++
+ include/linux/acpi.h                 |   7 +
+ 11 files changed, 575 insertions(+), 67 deletions(-)
+ create mode 100644 drivers/acpi/arm64/Kconfig
+ create mode 100644 drivers/acpi/arm64/Makefile
+ create mode 100644 drivers/acpi/arm64/acpi_gtdt.c
+
 -- 
-2.8.1
-
-
+2.5.5
 
