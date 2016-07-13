@@ -1,108 +1,325 @@
-From: Lucas Levrel <lucas.levrel@u-pec.fr>
-Subject: Re: Customizing fan behaviour (temperatures)
-Date: Wed, 13 Jul 2016 22:16:57 +0200 (CEST)
-Message-ID: <alpine.LNX.2.20.13.1607132207120.2512@localhost>
-References: <alpine.LSU.2.20.13.1607131543390.7774@coulomb.u-pec.fr>
+From: "Rafael J. Wysocki" <rafael-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Subject: Re: [PATCH v7 4/9] acpi/arm64: Add GTDT table parse driver
+Date: Wed, 13 Jul 2016 22:30:37 +0200
+Message-ID: <CAJZ5v0i-1NysCiDFX4ST_uBBeYF2YNzWztgDP=u9a4S1OdpWuw@mail.gmail.com>
+References: <1468432402-4872-1-git-send-email-fu.wei@linaro.org> <1468432402-4872-5-git-send-email-fu.wei@linaro.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15;
-	format=flowed
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtpfb2-g21.free.fr ([212.27.42.10]:49801 "EHLO
-	smtpfb2-g21.free.fr" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750829AbcGMUXw (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 13 Jul 2016 16:23:52 -0400
-Received: from smtp6-g21.free.fr (smtp6-g21.free.fr [212.27.42.6])
-	by smtpfb2-g21.free.fr (Postfix) with ESMTP id 60DAACAA0BE
-	for <linux-acpi@vger.kernel.org>; Wed, 13 Jul 2016 22:17:01 +0200 (CEST)
-Received: from [192.168.1.10] (unknown [82.233.253.129])
-	by smtp6-g21.free.fr (Postfix) with ESMTPS id 54ED4780304
-	for <linux-acpi@vger.kernel.org>; Wed, 13 Jul 2016 18:36:50 +0200 (CEST)
-In-Reply-To: <alpine.LSU.2.20.13.1607131543390.7774@coulomb.u-pec.fr>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-watchdog-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1468432402-4872-5-git-send-email-fu.wei-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
+Sender: linux-watchdog-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Fu Wei <fu.wei-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
+Cc: "Rafael J. Wysocki" <rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org>, Len Brown <lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Daniel Lezcano <daniel.lezcano-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Thomas Gleixner <tglx-hfZtesqFncYOwBW4kG4KsQ@public.gmane.org>, Marc Zyngier <marc.zyngier-5wv7dgnIgG8@public.gmane.org>, Lorenzo Pieralisi <lorenzo.pieralisi-5wv7dgnIgG8@public.gmane.org>, Sudeep Holla <sudeep.holla-5wv7dgnIgG8@public.gmane.org>, Hanjun Guo <hanjun.guo-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, "linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org" <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>, "linaro-acpi-cunTk1MwBs8s++Sfvej+rw@public.gmane.org" <linaro-acpi-cunTk1MwBs8s++Sfvej+rw@public.gmane.org>, Linux Kernel Mailing List <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, ACPI Devel Maling List <linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, rruigrok-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org, harba-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org, Christopher Covington <cov-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, Timur Tabi <timur-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, G Gregory <graeme.gregory-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Al Stone <al.stone-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Jon Masters <jcm-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, wei-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>, Wim Van Sebroeck <wim-IQzOog9fTRqzQB+pC5nmwQ@public.gmane.org>, Catal
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
 
-Le 13 juillet 2016, Lucas Levrel a =E9crit :
-
-> Hi,
+On Wed, Jul 13, 2016 at 7:53 PM,  <fu.wei-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org> wrote:
+> From: Fu Wei <fu.wei-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
 >
-> I would like to adjust the temperature at which the fan starts, becau=
-se as it=20
-> is now it runs continuously, at low speed but this continuous noise b=
-others=20
-> me. I'd rather have it spin faster and intermittently. This is an HP =
-laptop.
+> This patch adds support for parsing arch timer in GTDT,
+> provides some kernel APIs to parse all the PPIs and
+> always-on info in GTDT and export them.
 >
-> I've read much (mostly Q&A pages and list threads, regular documentat=
-ion=20
-> seems to be scarce), and investigated the behaviour of files in=20
-> /sys/devices/virtual/thermal . From what I understand there's no bug,=
- just=20
-> the temperature thresholds are not to my taste.
+> By this driver, we can simplify arm_arch_timer drivers, and
+> separate the ACPI GTDT knowledge from it.
 >
-> More specifically, there are 7 cooling_device's (4 of type Fan, 2 Pro=
-cessor,=20
-> 1 LCD) and 5 thermal_zone's (the first 4 really are temperatures, the=
- last is=20
-> the fan speed). thermal_zone0 controls the fan. The lowest trip_point=
-_?_temp=20
-> (?=3D=3D4) is 45000, which is very low. Basically, after a few minute=
-s of idle=20
-> operation temp reaches 50000 or 55000 (looks like there is 5 =B0C gra=
-nularity)=20
-> and never gets lower: I've tried and manually set the fan to speed 2 =
-(echo 1=20
->> cooling_device2/cur_state), even then temp doesn't decrease below 50=
-000.
+> Signed-off-by: Fu Wei <fu.wei-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
+> Signed-off-by: Hanjun Guo <hanjun.guo-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
+> ---
+>  drivers/acpi/Kconfig           |   5 ++
+>  drivers/acpi/Makefile          |   1 +
+>  drivers/acpi/arm64/Kconfig     |  15 ++++
+>  drivers/acpi/arm64/Makefile    |   1 +
+>  drivers/acpi/arm64/acpi_gtdt.c | 170 +++++++++++++++++++++++++++++++++++++++++
+>  include/linux/acpi.h           |   6 ++
+>  6 files changed, 198 insertions(+)
 >
-> trip_point_?_temp are not writable. I've set thermal.act=3D60000 in t=
-he kernel=20
-> command line, to no avail; is this supposed to be reflected in the=20
-> trip_point_?_temp files? (Note: trip_point_[1-4]_type is "active".) T=
-his is=20
-> kernel 3.2.71 .
+> diff --git a/drivers/acpi/Kconfig b/drivers/acpi/Kconfig
+> index b7e2e77..1cdc7d2 100644
+> --- a/drivers/acpi/Kconfig
+> +++ b/drivers/acpi/Kconfig
+> @@ -521,4 +521,9 @@ config XPOWER_PMIC_OPREGION
 >
-> What can you advise me to do now?
+>  endif
 >
-> And by the way, for my education:
-> - how are the trip_point values determined?
-> - how is hysteresis implemented? I mean, you don't want your fan spee=
-d to=20
-> change every other second, so the "speed up" threshold has to be high=
-er than=20
-> the "speed down" one. In fact, I've found no explanation of how the=20
-> trip_point values are used.
+> +if ARM64
+> +source "drivers/acpi/arm64/Kconfig"
+> +
+> +endif
+> +
+>  endif  # ACPI
+> diff --git a/drivers/acpi/Makefile b/drivers/acpi/Makefile
+> index 251ce85..1a94ff7 100644
+> --- a/drivers/acpi/Makefile
+> +++ b/drivers/acpi/Makefile
+> @@ -99,5 +99,6 @@ obj-$(CONFIG_ACPI_EXTLOG)     += acpi_extlog.o
+>  obj-$(CONFIG_PMIC_OPREGION)    += pmic/intel_pmic.o
+>  obj-$(CONFIG_CRC_PMIC_OPREGION) += pmic/intel_pmic_crc.o
+>  obj-$(CONFIG_XPOWER_PMIC_OPREGION) += pmic/intel_pmic_xpower.o
+> +obj-$(CONFIG_ARM64)    += arm64/
 >
-> Thanks.
+>  video-objs                     += acpi_video.o video_detect.o
+> diff --git a/drivers/acpi/arm64/Kconfig b/drivers/acpi/arm64/Kconfig
+> new file mode 100644
+> index 0000000..ff5c253
+> --- /dev/null
+> +++ b/drivers/acpi/arm64/Kconfig
+> @@ -0,0 +1,15 @@
+> +#
+> +# ACPI Configuration for ARM64
+> +#
+> +
+> +menu "The ARM64-specific ACPI Support"
+> +
+> +config ACPI_GTDT
+> +       bool "ACPI GTDT table Support"
 
-Hi again,
+This should depend on ARM64.
 
-After investigating some more, I found how hysteresis works: the=20
-trip_point_?_temp changes when it is crossed. In my case,=20
-trip_point_4_temp is 50000 at first (by default), and goes down to 4500=
-0=20
-when the fan starts.
+Also I wonder if it needs to be user-selectable?  Wouldn't it be
+better to enable it by default when building for ARM64 with ACPI?
 
-This is also why I saw no effect of thermal.act=3D60000 last time I tes=
-ted:=20
-during boot the temperature reaches this threshold, and trip_point_4_te=
-mp=20
-is set to 45000.
+> +       help
+> +         GTDT (Generic Timer Description Table) provides information
+> +         for per-processor timers and Platform (memory-mapped) timers
+> +         for ARM platforms. Select this option to provide information
+> +         needed for the timers init.
+> +
+> +endmenu
+> diff --git a/drivers/acpi/arm64/Makefile b/drivers/acpi/arm64/Makefile
+> new file mode 100644
+> index 0000000..466de6b
+> --- /dev/null
+> +++ b/drivers/acpi/arm64/Makefile
+> @@ -0,0 +1 @@
+> +obj-$(CONFIG_ACPI_GTDT)                += acpi_gtdt.o
+> diff --git a/drivers/acpi/arm64/acpi_gtdt.c b/drivers/acpi/arm64/acpi_gtdt.c
+> new file mode 100644
+> index 0000000..9ee977d
+> --- /dev/null
+> +++ b/drivers/acpi/arm64/acpi_gtdt.c
+> @@ -0,0 +1,170 @@
+> +/*
+> + * ARM Specific GTDT table Support
+> + *
+> + * Copyright (C) 2016, Linaro Ltd.
+> + * Author: Daniel Lezcano <daniel.lezcano-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
+> + *         Fu Wei <fu.wei-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
+> + *         Hanjun Guo <hanjun.guo-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
+> + *
+> + * This program is free software; you can redistribute it and/or modify
+> + * it under the terms of the GNU General Public License version 2 as
+> + * published by the Free Software Foundation.
+> + */
+> +
+> +#include <linux/acpi.h>
+> +#include <linux/init.h>
+> +#include <linux/kernel.h>
+> +#include <linux/module.h>
+> +
+> +#include <clocksource/arm_arch_timer.h>
+> +
+> +#undef pr_fmt
+> +#define pr_fmt(fmt) "GTDT: " fmt
 
-I remain with the following questions:
-- how are the trip_point values determined?
-- is there a way to set them to taste? More specifically, I would like =
-to=20
-rise the "fan stop" trigger temp; thermal.act=3D visibly didn't change=20
-this...
+I would add "ACPI" to the prefix too if I were you, but that's me.
 
-Thanks again.
+> +
+> +typedef struct {
+> +       struct acpi_table_gtdt *gtdt;
+> +       void *platform_timer_start;
+> +       void *gtdt_end;
+> +} acpi_gtdt_desc_t;
+> +
+> +static acpi_gtdt_desc_t acpi_gtdt_desc __initdata;
+> +
+> +static inline void *next_platform_timer(void *platform_timer)
+> +{
+> +       struct acpi_gtdt_header *gh = platform_timer;
+> +
+> +       platform_timer += gh->length;
+> +       if (platform_timer < acpi_gtdt_desc.gtdt_end)
+> +               return platform_timer;
+> +
+> +       return NULL;
+> +}
+> +
+> +#define for_each_platform_timer(_g)                            \
+> +       for (_g = acpi_gtdt_desc.platform_timer_start; _g;      \
+> +            _g = next_platform_timer(_g))
+> +
+> +static inline bool is_timer_block(void *platform_timer)
+> +{
+> +       struct acpi_gtdt_header *gh = platform_timer;
+> +
+> +       if (gh->type == ACPI_GTDT_TYPE_TIMER_BLOCK)
+> +               return true;
+> +
+> +       return false;
 
---=20
-Lucas Levrel
+This is just too much code.  It would suffice to do
+
+    return gh->type == ACPI_GTDT_TYPE_TIMER_BLOCK;
+
+> +}
+> +
+> +static inline bool is_watchdog(void *platform_timer)
+> +{
+> +       struct acpi_gtdt_header *gh = platform_timer;
+> +
+> +       if (gh->type == ACPI_GTDT_TYPE_WATCHDOG)
+> +               return true;
+> +
+> +       return false;
+
+Just like above.
+
+> +}
+> +
+> +/*
+> + * Get some basic info from GTDT table, and init the global variables above
+> + * for all timers initialization of Generic Timer.
+> + * This function does some validation on GTDT table.
+> + */
+> +static int __init acpi_gtdt_desc_init(struct acpi_table_header *table)
+> +{
+> +       struct acpi_table_gtdt *gtdt = container_of(table,
+> +                                                   struct acpi_table_gtdt,
+> +                                                   header);
+> +
+> +       acpi_gtdt_desc.gtdt = gtdt;
+> +       acpi_gtdt_desc.gtdt_end = (void *)table + table->length;
+> +
+> +       if (table->revision < 2) {
+> +               pr_info("Revision:%d doesn't support Platform Timers.\n",
+> +                       table->revision);
+
+Is it really useful to print this message (and the one below) at the
+"info" level?  What about changing them to pr_debug()?
+
+> +               return 0;
+> +       }
+> +
+> +       if (!gtdt->platform_timer_count) {
+> +               pr_info("No Platform Timer.\n");
+> +               return 0;
+> +       }
+> +
+> +       acpi_gtdt_desc.platform_timer_start = (void *)gtdt +
+> +                                             gtdt->platform_timer_offset;
+> +       if (acpi_gtdt_desc.platform_timer_start <
+> +           (void *)table + sizeof(struct acpi_table_gtdt)) {
+> +               pr_err(FW_BUG "Platform Timer pointer error.\n");
+
+Why pr_err()?
+
+> +               acpi_gtdt_desc.platform_timer_start = NULL;
+> +               return -EINVAL;
+> +       }
+> +
+> +       return gtdt->platform_timer_count;
+> +}
+> +
+> +static int __init map_generic_timer_interrupt(u32 interrupt, u32 flags)
+> +{
+> +       int trigger, polarity;
+> +
+> +       if (!interrupt)
+> +               return 0;
+> +
+> +       trigger = (flags & ACPI_GTDT_INTERRUPT_MODE) ? ACPI_EDGE_SENSITIVE
+> +                       : ACPI_LEVEL_SENSITIVE;
+> +
+> +       polarity = (flags & ACPI_GTDT_INTERRUPT_POLARITY) ? ACPI_ACTIVE_LOW
+> +                       : ACPI_ACTIVE_HIGH;
+> +
+> +       return acpi_register_gsi(NULL, interrupt, trigger, polarity);
+> +}
+> +
+> +/*
+> + * Map the PPIs of per-cpu arch_timer.
+> + * @type: the type of PPI
+> + * Returns 0 if error.
+> + */
+> +int __init acpi_gtdt_map_ppi(int type)
+> +{
+> +       struct acpi_table_gtdt *gtdt = acpi_gtdt_desc.gtdt;
+> +
+> +       switch (type) {
+> +       case PHYS_SECURE_PPI:
+> +               return map_generic_timer_interrupt(gtdt->secure_el1_interrupt,
+> +                                                  gtdt->secure_el1_flags);
+> +       case PHYS_NONSECURE_PPI:
+> +               return map_generic_timer_interrupt(gtdt->non_secure_el1_interrupt,
+> +                                                  gtdt->non_secure_el1_flags);
+> +       case VIRT_PPI:
+> +               return map_generic_timer_interrupt(gtdt->virtual_timer_interrupt,
+> +                                                  gtdt->virtual_timer_flags);
+> +
+> +       case HYP_PPI:
+> +               return map_generic_timer_interrupt(gtdt->non_secure_el2_interrupt,
+> +                                                  gtdt->non_secure_el2_flags);
+> +       default:
+> +               pr_err("ppi type error.\n");
+> +       }
+> +
+> +       return 0;
+> +}
+> +
+> +/*
+> + * acpi_gtdt_c3stop - got c3stop info from GTDT
+> + *
+> + * Returns 1 if the timer is powered in deep idle state, 0 otherwise.
+> + */
+> +int __init acpi_gtdt_c3stop(void)
+
+Why not bool?
+
+> +{
+> +       struct acpi_table_gtdt *gtdt = acpi_gtdt_desc.gtdt;
+> +
+> +       return !(gtdt->non_secure_el1_flags & ACPI_GTDT_ALWAYS_ON);
+> +}
+> +
+> +int __init gtdt_arch_timer_init(struct acpi_table_header *table)
+> +{
+> +       if (table)
+> +               return acpi_gtdt_desc_init(table);
+> +
+> +       pr_err("table pointer error.\n");
+
+This message is totally unuseful.
+
+> +
+> +       return -EINVAL;
+> +}
+
+What is supposed to be calling this function?
+
+> diff --git a/include/linux/acpi.h b/include/linux/acpi.h
+> index 288fac5..8439579 100644
+> --- a/include/linux/acpi.h
+> +++ b/include/linux/acpi.h
+> @@ -532,6 +532,12 @@ void acpi_walk_dep_device_list(acpi_handle handle);
+>  struct platform_device *acpi_create_platform_device(struct acpi_device *);
+>  #define ACPI_PTR(_ptr) (_ptr)
+>
+> +#ifdef CONFIG_ACPI_GTDT
+> +int __init gtdt_arch_timer_init(struct acpi_table_header *table);
+> +int __init acpi_gtdt_map_ppi(int type);
+> +int __init acpi_gtdt_c3stop(void);
+
+The __init thing is not necessary here.
+
+> +#endif
+> +
+>  #else  /* !CONFIG_ACPI */
+>
+>  #define acpi_disabled 1
+> --
+
+Thanks,
+Rafael
 --
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
+To unsubscribe from this list: send the line "unsubscribe linux-watchdog" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
