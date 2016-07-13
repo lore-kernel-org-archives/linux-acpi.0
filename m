@@ -1,101 +1,120 @@
-From: "Rafael J. Wysocki" <rafael-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: [PATCH v7 4/9] acpi/arm64: Add GTDT table parse driver
-Date: Wed, 13 Jul 2016 23:43:39 +0200
-Message-ID: <CAJZ5v0jnNqjpcY1CGkHxbJFwX1MuRi-U=jTCKWavMdEH4bKR3g@mail.gmail.com>
-References: <1468432402-4872-1-git-send-email-fu.wei@linaro.org>
- <1468432402-4872-5-git-send-email-fu.wei@linaro.org> <CAJZ5v0i-1NysCiDFX4ST_uBBeYF2YNzWztgDP=u9a4S1OdpWuw@mail.gmail.com>
- <20160713210857.GA9500@roeck-us.net>
+From: Hoan Tran <hotran@apm.com>
+Subject: Re: [PATCH v3] mailbox: pcc: Support HW-Reduced Communication
+ Subspace type 2
+Date: Wed, 13 Jul 2016 15:00:01 -0700
+Message-ID: <CAFHUOYwk1XdrcQ-=demL3oU32aaVB4biHb36C0-y7ePF3=GcBQ@mail.gmail.com>
+References: <1463704347-22550-1-git-send-email-hotran@apm.com>
+ <b498099e-4ffe-21da-f97b-4899c59201bf@codeaurora.org> <CAFHUOYzpeSw-6Tvj=ffwX7L+jgMDTd_2mVm5nOuormw7hmq9OA@mail.gmail.com>
+ <4302600.LGpaGycv0T@vostro.rjw.lan>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-watchdog-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20160713210857.GA9500-0h96xk9xTtrk1uMJSBkQmQ@public.gmane.org>
-Sender: linux-watchdog-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Guenter Roeck <linux-0h96xk9xTtrk1uMJSBkQmQ@public.gmane.org>
-Cc: "Rafael J. Wysocki" <rafael-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Fu Wei <fu.wei-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, "Rafael J. Wysocki" <rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org>, Len Brown <lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Daniel Lezcano <daniel.lezcano-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Thomas Gleixner <tglx-hfZtesqFncYOwBW4kG4KsQ@public.gmane.org>, Marc Zyngier <marc.zyngier-5wv7dgnIgG8@public.gmane.org>, Lorenzo Pieralisi <lorenzo.pieralisi-5wv7dgnIgG8@public.gmane.org>, Sudeep Holla <sudeep.holla-5wv7dgnIgG8@public.gmane.org>, Hanjun Guo <hanjun.guo-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, "linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org" <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>, "linaro-acpi-cunTk1MwBs8s++Sfvej+rw@public.gmane.org" <linaro-acpi-cunTk1MwBs8s++Sfvej+rw@public.gmane.org>, Linux Kernel Mailing List <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, ACPI Devel Maling List <linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, rruigrok-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org, harba-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org, Christopher Covington <cov-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, Timur Tabi <timur-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, G Gregory <graeme.gregory-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Al Stone <al.stone-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Jon Masters <jcm-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, wei-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.orgA
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-vk0-f45.google.com ([209.85.213.45]:34126 "EHLO
+	mail-vk0-f45.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751302AbcGMWAD (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 13 Jul 2016 18:00:03 -0400
+Received: by mail-vk0-f45.google.com with SMTP id o63so85220581vkg.1
+        for <linux-acpi@vger.kernel.org>; Wed, 13 Jul 2016 15:00:03 -0700 (PDT)
+In-Reply-To: <4302600.LGpaGycv0T@vostro.rjw.lan>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: Jassi Brar <jassisinghbrar@gmail.com>, Ashwin Chaugule <ashwin.chaugule@linaro.org>, Robert Moore <robert.moore@intel.com>, Alexey Klimov <alexey.klimov@arm.com>, lkml <linux-kernel@vger.kernel.org>, linux acpi <linux-acpi@vger.kernel.org>, Loc Ho <lho@apm.com>, Duc Dang <dhdang@apm.com>, "Prakash, Prashanth" <pprakash@codeaurora.org>
 
-On Wed, Jul 13, 2016 at 11:08 PM, Guenter Roeck <linux-0h96xk9xTtrk1uMJSBkQmQ@public.gmane.org> wrote:
-> On Wed, Jul 13, 2016 at 10:30:37PM +0200, Rafael J. Wysocki wrote:
->> On Wed, Jul 13, 2016 at 7:53 PM,  <fu.wei-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org> wrote:
->> > From: Fu Wei <fu.wei-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
->> >
->> > This patch adds support for parsing arch timer in GTDT,
->> > provides some kernel APIs to parse all the PPIs and
->> > always-on info in GTDT and export them.
->> >
->> > By this driver, we can simplify arm_arch_timer drivers, and
->> > separate the ACPI GTDT knowledge from it.
->> >
->> > Signed-off-by: Fu Wei <fu.wei-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
->> > Signed-off-by: Hanjun Guo <hanjun.guo-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
->> > ---
->> >  drivers/acpi/Kconfig           |   5 ++
->> >  drivers/acpi/Makefile          |   1 +
->> >  drivers/acpi/arm64/Kconfig     |  15 ++++
->> >  drivers/acpi/arm64/Makefile    |   1 +
->> >  drivers/acpi/arm64/acpi_gtdt.c | 170 +++++++++++++++++++++++++++++++++++++++++
->> >  include/linux/acpi.h           |   6 ++
->> >  6 files changed, 198 insertions(+)
->> >
->> > diff --git a/drivers/acpi/Kconfig b/drivers/acpi/Kconfig
->> > index b7e2e77..1cdc7d2 100644
->> > --- a/drivers/acpi/Kconfig
->> > +++ b/drivers/acpi/Kconfig
->> > @@ -521,4 +521,9 @@ config XPOWER_PMIC_OPREGION
->> >
->> >  endif
->> >
->> > +if ARM64
->> > +source "drivers/acpi/arm64/Kconfig"
->> > +
->> > +endif
->> > +
->> >  endif  # ACPI
->> > diff --git a/drivers/acpi/Makefile b/drivers/acpi/Makefile
->> > index 251ce85..1a94ff7 100644
->> > --- a/drivers/acpi/Makefile
->> > +++ b/drivers/acpi/Makefile
->> > @@ -99,5 +99,6 @@ obj-$(CONFIG_ACPI_EXTLOG)     += acpi_extlog.o
->> >  obj-$(CONFIG_PMIC_OPREGION)    += pmic/intel_pmic.o
->> >  obj-$(CONFIG_CRC_PMIC_OPREGION) += pmic/intel_pmic_crc.o
->> >  obj-$(CONFIG_XPOWER_PMIC_OPREGION) += pmic/intel_pmic_xpower.o
->> > +obj-$(CONFIG_ARM64)    += arm64/
->> >
->> >  video-objs                     += acpi_video.o video_detect.o
->> > diff --git a/drivers/acpi/arm64/Kconfig b/drivers/acpi/arm64/Kconfig
->> > new file mode 100644
->> > index 0000000..ff5c253
->> > --- /dev/null
->> > +++ b/drivers/acpi/arm64/Kconfig
->> > @@ -0,0 +1,15 @@
->> > +#
->> > +# ACPI Configuration for ARM64
->> > +#
->> > +
->> > +menu "The ARM64-specific ACPI Support"
->> > +
->> > +config ACPI_GTDT
->> > +       bool "ACPI GTDT table Support"
+Hi Rafael,
+
+On Mon, Jun 27, 2016 at 2:32 PM, Rafael J. Wysocki <rjw@rjwysocki.net> wrote:
+> On Monday, June 27, 2016 11:27:42 AM Hoan Tran wrote:
+>> Hi Jassi and Rafael,
 >>
->> This should depend on ARM64.
+>> On Wed, Jun 15, 2016 at 9:19 AM, Prakash, Prashanth
+>> <pprakash@codeaurora.org> wrote:
+>> >
+>> >
+>> > On 6/9/2016 4:43 PM, Hoan Tran wrote:
+>> >> Hi Prashanth,
+>> >>
+>> >> On Thu, Jun 9, 2016 at 3:25 PM, Prakash, Prashanth
+>> >> <pprakash@codeaurora.org> wrote:
+>> >>>
+>> >>> On 6/9/2016 2:47 PM, Hoan Tran wrote:
+>> >>>> Hi Ashwin and Prashanth,
+>> >>>>
+>> >>>> On Wed, Jun 8, 2016 at 5:41 PM, Hoan Tran <hotran@apm.com> wrote:
+>> >>>>> Hi Prashanth,
+>> >>>>>
+>> >>>>>
+>> >>>>> On Wed, Jun 8, 2016 at 5:32 PM, Prakash, Prashanth
+>> >>>>> <pprakash@codeaurora.org> wrote:
+>> >>>>>> On 6/8/2016 10:24 AM, Hoan Tran wrote:
+>> >>>>>>> Hi Ashwin,
+>> >>>>>>>
+>> >>>>>>> On Wed, Jun 8, 2016 at 5:18 AM, Ashwin Chaugule
+>> >>>>>>> <ashwin.chaugule@linaro.org> wrote:
+>> >>>>>>>> + Prashanth (Can you please have a look as well?)
+>> >>>>>>>>
+>> >>>>>>>> On 31 May 2016 at 15:35, Hoan Tran <hotran@apm.com> wrote:
+>> >>>>>>>>> Hi Ashwin,
+>> >>>>>>>> Hi,
+>> >>>>>>>>
+>> >>>>>>>> Sorry about the delay. I'm in the middle of switching jobs and
+>> >>>>>>>> locations, so its been a bit crazy lately.
+>> >>>>>>> It's ok and hope you're doing well.
+>> >>>>>>>
+>> >>>>>>>> I dont have any major
+>> >>>>>>>> concerns with this code, although there could be subtle issues with
+>> >>>>>>>> this IRQ thing. In this patchset, your intent is to add support for
+>> >>>>>>>> PCC subspace type 2. But you're also adding support for tx command
+>> >>>>>>>> completion which is not specific to Type 2. We could support that even
+>> >>>>>>>> in Type 1. Hence I wanted to separate the two, not just for review,
+>> >>>>>>>> but also the async IRQ completion has subtle issues esp. in the case
+>> >>>>>>>> of async platform notification, where you could have a PCC client in
+>> >>>>>>>> the OS writing to the cmd bit and the platform sending an async
+>> >>>>>>>> notification by writing to some bits in the same 8byte address as the
+>> >>>>>>>> cmd bit. So we need some mutual exclusivity there, otherwise the OS
+>> >>>>>>>> and platform could step on each other. Perhaps Prashanth has better
+>> >>>>>>>> insight into this.
+>> >>>>>>> I think, this mutual exclusivity could be in another patch.
+>> >>>>>> Ashwin,
+>> >>>>>> Sorry, I am not sure how we can prevent platform and OSPM from stepping on
+>> >>>>>> each other.  There is a line is spec that says "all operations on status field
+>> >>>>>> must be made using interlocked operations", but not sure what these
+>> >>>>>> interlocked operation translates to.
+>> >>>>> Yes, I had the same question about how to prevent it.
+>> >>>> For platform notification, if the hardware doesn't support interlocked
+>> >>>> operations. I think we can use a workaround that, platform triggers
+>> >>>> interrupt to OSPM without touching status field. The OSPM PCC client
+>> >>>> will decide what to do with this interrupt. For example, OSPM sends a
+>> >>>> consumer command to check it.
+>> >>> How do we decide which platform can support this interlocked operation?
+>> >>> and how do we decide between a completion notification and platform
+>> >>> notification?
+>> >> Truly, we should follow the specification. But I don't know if there's
+>> >> any hardware support this interlocked operation.
+>> >> For the decide between a completion notification and platform notification
+>> >>  - Completion notification: Bit "Command Complete" is set.
+>> >>  - Platform notification: Bit "Command Complete" is not set.
+>> >>
+>> >>> I think the ACPI spec on platform notification is quite ambiguous and it is
+>> >>> best to get the necessary clarification and/or correction before implementing
+>> >>> anything related to platform notification.
+>> >> Agreed, a clarification inside ACPI Specification is needed
+>> > This patch look good to me, as it doesn't deal with platform notification.
+>> > We can try to get some clarification from spec side before handling the platform
+>> > notification pieces.
+>> >
+>> > Reviewed-by: Prashanth Prakash <pprakash@codeaurora.org>
 >>
->> Also I wonder if it needs to be user-selectable?  Wouldn't it be
->> better to enable it by default when building for ARM64 with ACPI?
->>
-> It is currently selected in patch 9, in the watchdog driver's Kconfig
-> entry.
+>> Do you have plan to apply this patch ?
+>
+> Yes.
 
-Well, it still doesn't have to be user-selectable for that. :-)
+Thanks and hope it'll be in 4.8.
 
-> Not sure if I like that; maybe the watchdog driver should depend
-> on it instead ?
+Thanks
+Hoan
 
-If the watchdog is not the only user of it (and I don't think it is),
-it would be better to arrange things this way.
-
-Thanks,
-Rafael
---
-To unsubscribe from this list: send the line "unsubscribe linux-watchdog" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>
+> Thanks,
+> Rafael
+>
