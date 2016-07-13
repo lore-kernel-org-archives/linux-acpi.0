@@ -1,152 +1,191 @@
-From: fu.wei@linaro.org
-Subject: [PATCH v7 9/9] acpi/arm64: Add SBSA Generic Watchdog support in GTDT driver
-Date: Thu, 14 Jul 2016 01:53:22 +0800
-Message-ID: <1468432402-4872-10-git-send-email-fu.wei@linaro.org>
-References: <1468432402-4872-1-git-send-email-fu.wei@linaro.org>
+From: Sinan Kaya <okaya@codeaurora.org>
+Subject: Re: [PATCH V8 4/9] vfio: platform: add support for ACPI probe
+Date: Wed, 13 Jul 2016 15:36:48 -0400
+Message-ID: <604722bb-5e82-851f-c1a1-cb34b55bf77d@codeaurora.org>
+References: <1466437879-32182-1-git-send-email-okaya@codeaurora.org>
+ <1466437879-32182-5-git-send-email-okaya@codeaurora.org>
+ <20160623123410.647b3be0@t450s.home>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1468432402-4872-1-git-send-email-fu.wei@linaro.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: rjw@rjwysocki.net, lenb@kernel.org, daniel.lezcano@linaro.org, tglx@linutronix.de, marc.zyngier@arm.com, lorenzo.pieralisi@arm.com, sudeep.holla@arm.com, hanjun.guo@linaro.org
-Cc: linux-arm-kernel@lists.infradead.org, linaro-acpi@lists.linaro.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, rruigrok@codeaurora.org, harba@codeaurora.org, cov@codeaurora.org, timur@codeaurora.org, graeme.gregory@linaro.org, al.stone@linaro.org, jcm@redhat.com, wei@redhat.com, arnd@arndb.de, wim@iguana.be, catalin.marinas@arm.com, will.deacon@arm.com, Suravee.Suthikulpanit@amd.com, leo.duran@amd.com, linux@roeck-us.net, linux-watchdog@vger.kernel.org, davem@davemloft.net, akpm@linux-foundation.org, gregkh@linuxfoundation.org, kvalo@codeaurora.org, mchehab@kernel.org, jslaby@suse.cz, christoffer.dall@linaro.org, julien.grall@arm.com, Fu Wei <fu.wei@linaro.org>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-msm-owner@vger.kernel.org>
+In-Reply-To: <20160623123410.647b3be0@t450s.home>
+Sender: linux-arm-msm-owner@vger.kernel.org
+To: Alex Williamson <alex.williamson@redhat.com>
+Cc: kvm@vger.kernel.org, timur@codeaurora.org, cov@codeaurora.org, jcm@redhat.com, eric.auger@redhat.com, linux-acpi@vger.kernel.org, agross@codeaurora.org, linux-arm-msm@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Baptiste Reynal <b.reynal@virtualopensystems.com>, linux-kernel@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-=46rom: Fu Wei <fu.wei@linaro.org>
+Hi Alex,
 
-This driver adds support for parsing SBSA Generic Watchdog timer
-in GTDT, parse all info in SBSA Generic Watchdog Structure in GTDT,
-and creating a platform device with that information.
+On 6/23/2016 2:34 PM, Alex Williamson wrote:
+> On Mon, 20 Jun 2016 11:51:14 -0400
+> Sinan Kaya <okaya@codeaurora.org> wrote:
+> 
+>> The code is using the compatible DT string to associate a reset driver
+>> with the actual device itself. The compatible string does not exist on
+>> ACPI based systems. HID is the unique identifier for a device driver
+>> instead.
+>>
+>> Signed-off-by: Sinan Kaya <okaya@codeaurora.org>
+>> Reviewed-by: Eric Auger <eric.auger@redhat.com>
+>> Reviewed-by: Baptiste Reynal <b.reynal@virtualopensystems.com>
+>> ---
+>>  drivers/vfio/platform/vfio_platform_common.c  | 57 ++++++++++++++++++++++++---
+>>  drivers/vfio/platform/vfio_platform_private.h |  1 +
+>>  2 files changed, 53 insertions(+), 5 deletions(-)
+>>
+>> diff --git a/drivers/vfio/platform/vfio_platform_common.c b/drivers/vfio/platform/vfio_platform_common.c
+>> index 6be92c3..fbf4565 100644
+>> --- a/drivers/vfio/platform/vfio_platform_common.c
+>> +++ b/drivers/vfio/platform/vfio_platform_common.c
+>> @@ -13,6 +13,7 @@
+>>   */
+>>  
+>>  #include <linux/device.h>
+>> +#include <linux/acpi.h>
+>>  #include <linux/iommu.h>
+>>  #include <linux/module.h>
+>>  #include <linux/mutex.h>
+>> @@ -49,6 +50,37 @@ static vfio_platform_reset_fn_t vfio_platform_lookup_reset(const char *compat,
+>>  	return reset_fn;
+>>  }
+>>  
+>> +#ifdef CONFIG_ACPI
+>> +static int vfio_platform_acpi_probe(struct vfio_platform_device *vdev,
+>> +				    struct device *dev)
+>> +{
+>> +	struct acpi_device *adev = ACPI_COMPANION(dev);
+>> +
+>> +	if (acpi_disabled)
+>> +		return -ENODEV;
+>> +
+>> +	if (!adev) {
+>> +		pr_err("VFIO: ACPI companion device not found for %s\n",
+>> +			vdev->name);
+>> +		return -ENODEV;
+>> +	}
+>> +
+>> +	vdev->acpihid = acpi_device_hid(adev);
+>> +	if (!vdev->acpihid) {
+>> +		pr_err("VFIO: cannot find ACPI HID for %s\n",
+>> +		       vdev->name);
+>> +		return -ENODEV;
+>> +	}
+> 
+> Do you want to try to use different errnos here so you don't rely on
+> the pr_err() calls for debugging?  I could imagine -EPERM, -ENODEV,
+> -EINVAL respectively, but maybe there are better options.
+> 
 
-This allows the operating system to obtain device data from the
-resource of platform device. The platform device named "sbsa-gwdt"
-can be used by the ARM SBSA Generic Watchdog driver.
+will do.
 
-Signed-off-by: Fu Wei <fu.wei@linaro.org>
-Signed-off-by: Hanjun Guo <hanjun.guo@linaro.org>
----
- drivers/acpi/arm64/acpi_gtdt.c | 83 ++++++++++++++++++++++++++++++++++=
-++++++++
- drivers/watchdog/Kconfig       |  1 +
- 2 files changed, 84 insertions(+)
+>> +	return 0;
+>> +}
+>> +#else
+>> +static inline int vfio_platform_acpi_probe(struct vfio_platform_device *vdev,
+>> +					   struct device *dev)
+>> +{
+>> +	return -ENOENT;
+>> +}
+>> +#endif
+>> +
+>>  static bool vfio_platform_has_reset(struct vfio_platform_device *vdev)
+>>  {
+>>  	return vdev->of_reset ? true : false;
+>> @@ -547,6 +579,20 @@ static const struct vfio_device_ops vfio_platform_ops = {
+>>  	.mmap		= vfio_platform_mmap,
+>>  };
+>>  
+>> +int vfio_platform_of_probe(struct vfio_platform_device *vdev,
+>> +			   struct device *dev)
+>> +{
+>> +	int ret;
+>> +
+>> +	ret = device_property_read_string(dev, "compatible",
+>> +					  &vdev->compat);
+>> +	if (ret)
+>> +		pr_err("VFIO: cannot retrieve compat for %s\n",
+>> +			vdev->name);
+> 
+> Previously there was only one probe method and I imagine this pr_err
+> was useful.  Now we have multiple methods of probing for the device.
+> Do we really want each one generating pr_err messages or just one at
+> the end if none of our probes worked?
 
-diff --git a/drivers/acpi/arm64/acpi_gtdt.c b/drivers/acpi/arm64/acpi_g=
-tdt.c
-index ff62953..eb3edac 100644
---- a/drivers/acpi/arm64/acpi_gtdt.c
-+++ b/drivers/acpi/arm64/acpi_gtdt.c
-@@ -15,6 +15,7 @@
- #include <linux/init.h>
- #include <linux/kernel.h>
- #include <linux/module.h>
-+#include <linux/platform_device.h>
-=20
- #include <clocksource/arm_arch_timer.h>
-=20
-@@ -258,3 +259,85 @@ int __init gtdt_arch_timer_mem_init(struct gt_bloc=
-k_data *data)
-=20
- 	return index;
- }
-+
-+/*
-+ * Initialize a SBSA generic Watchdog platform device info from GTDT
-+ */
-+static int __init gtdt_import_sbsa_gwdt(void *platform_timer, int inde=
-x)
-+{
-+	struct platform_device *pdev;
-+	struct acpi_gtdt_watchdog *wd =3D platform_timer;
-+	int irq =3D map_generic_timer_interrupt(wd->timer_interrupt,
-+					      wd->timer_flags);
-+	int no_irq =3D 1;
-+
-+	/*
-+	 * According to SBSA specification the size of refresh and control
-+	 * frames of SBSA Generic Watchdog is SZ_4K(Offset 0x000 =E2=80=93 0x=
-=46FF).
-+	 */
-+	struct resource res[] =3D {
-+		DEFINE_RES_MEM(wd->control_frame_address, SZ_4K),
-+		DEFINE_RES_MEM(wd->refresh_frame_address, SZ_4K),
-+		DEFINE_RES_IRQ(irq),
-+	};
-+
-+	pr_debug("a Watchdog GT(0x%llx/0x%llx gsi:%u flags:0x%x).\n",
-+		 wd->refresh_frame_address, wd->control_frame_address,
-+		 wd->timer_interrupt, wd->timer_flags);
-+
-+	if (!(wd->refresh_frame_address && wd->control_frame_address)) {
-+		pr_err(FW_BUG "failed getting the Watchdog GT frame addr.\n");
-+		return -EINVAL;
-+	}
-+
-+	if (!wd->timer_interrupt)
-+		pr_warn(FW_BUG "failed getting the Watchdog GT GSIV.\n");
-+	else if (irq <=3D 0)
-+		pr_warn("failed to map the Watchdog GT GSIV.\n");
-+	else
-+		no_irq =3D 0;
-+
-+	/*
-+	 * Add a platform device named "sbsa-gwdt" to match the platform driv=
-er.
-+	 * "sbsa-gwdt": SBSA(Server Base System Architecture) Generic Watchdo=
-g
-+	 * The platform driver (like drivers/watchdog/sbsa_gwdt.c)can get dev=
-ice
-+	 * info below by matching this name.
-+	 */
-+	pdev =3D platform_device_register_simple("sbsa-gwdt", index, res,
-+					       ARRAY_SIZE(res) - no_irq);
-+	if (IS_ERR(pdev)) {
-+		acpi_unregister_gsi(wd->timer_interrupt);
-+		return PTR_ERR(pdev);
-+	}
-+
-+	return 0;
-+}
-+
-+static int __init gtdt_sbsa_gwdt_init(void)
-+{
-+	struct acpi_table_header *table;
-+	void *platform_timer;
-+	int index =3D 0;
-+
-+	if (acpi_disabled)
-+		return 0;
-+
-+	if (ACPI_FAILURE(acpi_get_table(ACPI_SIG_GTDT, 0, &table)))
-+		return -EINVAL;
-+
-+	if (acpi_gtdt_desc_init(table) < 0)
-+		return -EINVAL;
-+
-+	for_each_platform_timer(platform_timer) {
-+		if (is_watchdog(platform_timer) &&
-+		    !gtdt_import_sbsa_gwdt(platform_timer, index))
-+			index++;
-+	}
-+
-+	if (index)
-+		pr_info("found %d SBSA generic Watchdog.\n", index);
-+
-+	return 0;
-+}
-+
-+device_initcall(gtdt_sbsa_gwdt_init);
-diff --git a/drivers/watchdog/Kconfig b/drivers/watchdog/Kconfig
-index b4b3e25..105f059 100644
---- a/drivers/watchdog/Kconfig
-+++ b/drivers/watchdog/Kconfig
-@@ -207,6 +207,7 @@ config ARM_SBSA_WATCHDOG
- 	depends on ARM64
- 	depends on ARM_ARCH_TIMER
- 	select WATCHDOG_CORE
-+	select ACPI_GTDT if ACPI
- 	help
- 	  ARM SBSA Generic Watchdog has two stage timeouts:
- 	  the first signal (WS0) is for alerting the system by interrupt,
---=20
-2.5.5
+IMO, the new approach is better and is more specific. The error messages
+are firmware specific. The previous message included missing compat string
+for instance doesn't exist on ACPI firmware and ACPI HID also doesn't exist
+on DT firmware. 
+
+I'd rather be verbose rather than a simple probe failed message.
+
+> 
+>> +
+>> +	return ret;
+>> +}
+>> +
+>>  int vfio_platform_probe_common(struct vfio_platform_device *vdev,
+>>  			       struct device *dev)
+>>  {
+>> @@ -556,11 +602,12 @@ int vfio_platform_probe_common(struct vfio_platform_device *vdev,
+>>  	if (!vdev)
+>>  		return -EINVAL;
+>>  
+>> -	ret = device_property_read_string(dev, "compatible", &vdev->compat);
+>> -	if (ret) {
+>> -		pr_err("VFIO: cannot retrieve compat for %s\n", vdev->name);
+>> -		return -EINVAL;
+>> -	}
+>> +	ret = vfio_platform_acpi_probe(vdev, dev);
+>> +	if (ret)
+>> +		ret = vfio_platform_of_probe(vdev, dev);
+> 
+> 
+> The only out way out of vfio_platform_acpi_probe() without hitting a
+> pr_err is one of (!CONFIG_ACPI || acpi_disabled || success).  Doesn't
+> that make for some unnecessary warning for a DT user?
+
+Let me explain the rationale.
+
+As you know, there can be two kernel build combinations. One build where 
+ACPI is not selected in Kconfig and another one with the ACPI Kconfig.
+
+In the first case, CONFIG_ACPI is stubbed out in this file and DT user
+will not see any kind of messages from ACPI. 
+
+In the second case, both DT and ACPI is compiled in but the system is booting with
+any of these combinations. 
+
+If the firmware is DT type, then acpi_disabled is 1. The ACPI probe routine
+terminates immediately without any messages. 
+
+If the firmware is ACPI type, then acpi_disabled is 0. All other checks are valid
+checks. We cannot claim that this system is DT.
+
+> 
+> 
+>> +
+>> +	if (ret)
+>> +		return ret;
+>>  
+>>  	vdev->device = dev;
+>>  
+>> diff --git a/drivers/vfio/platform/vfio_platform_private.h b/drivers/vfio/platform/vfio_platform_private.h
+>> index 71ed7d1..ba9e4f8 100644
+>> --- a/drivers/vfio/platform/vfio_platform_private.h
+>> +++ b/drivers/vfio/platform/vfio_platform_private.h
+>> @@ -58,6 +58,7 @@ struct vfio_platform_device {
+>>  	struct mutex			igate;
+>>  	struct module			*parent_module;
+>>  	const char			*compat;
+>> +	const char			*acpihid;
+>>  	struct module			*reset_module;
+>>  	struct device			*device;
+>>  
+> 
+
+
+-- 
+Sinan Kaya
+Qualcomm Datacenter Technologies, Inc. as an affiliate of Qualcomm Technologies, Inc.
+Qualcomm Technologies, Inc. is a member of the Code Aurora Forum, a Linux Foundation Collaborative Project.
