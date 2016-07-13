@@ -1,67 +1,108 @@
-From: "Rafael J. Wysocki" <rafael@kernel.org>
-Subject: Re: [PATCH v7 5/9] MAINTAINERS / ACPI: add the ARM64-specific ACPI
- Support maintainers
-Date: Wed, 13 Jul 2016 22:16:51 +0200
-Message-ID: <CAJZ5v0gut2uCFHa7hr8iKY4ioP4q17yo=gBxJEeZf5WvVNM7pQ@mail.gmail.com>
-References: <1468432402-4872-1-git-send-email-fu.wei@linaro.org> <1468432402-4872-6-git-send-email-fu.wei@linaro.org>
+From: Lucas Levrel <lucas.levrel@u-pec.fr>
+Subject: Re: Customizing fan behaviour (temperatures)
+Date: Wed, 13 Jul 2016 22:16:57 +0200 (CEST)
+Message-ID: <alpine.LNX.2.20.13.1607132207120.2512@localhost>
+References: <alpine.LSU.2.20.13.1607131543390.7774@coulomb.u-pec.fr>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset=ISO-8859-15;
+	format=flowed
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-wm0-f66.google.com ([74.125.82.66]:33682 "EHLO
-	mail-wm0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750872AbcGMUQ7 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 13 Jul 2016 16:16:59 -0400
-In-Reply-To: <1468432402-4872-6-git-send-email-fu.wei@linaro.org>
+Received: from smtpfb2-g21.free.fr ([212.27.42.10]:49801 "EHLO
+	smtpfb2-g21.free.fr" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750829AbcGMUXw (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 13 Jul 2016 16:23:52 -0400
+Received: from smtp6-g21.free.fr (smtp6-g21.free.fr [212.27.42.6])
+	by smtpfb2-g21.free.fr (Postfix) with ESMTP id 60DAACAA0BE
+	for <linux-acpi@vger.kernel.org>; Wed, 13 Jul 2016 22:17:01 +0200 (CEST)
+Received: from [192.168.1.10] (unknown [82.233.253.129])
+	by smtp6-g21.free.fr (Postfix) with ESMTPS id 54ED4780304
+	for <linux-acpi@vger.kernel.org>; Wed, 13 Jul 2016 18:36:50 +0200 (CEST)
+In-Reply-To: <alpine.LSU.2.20.13.1607131543390.7774@coulomb.u-pec.fr>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Hanjun Guo <hanjun.guo@linaro.org>, Fu Wei <fu.wei@linaro.org>
-Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Daniel Lezcano <daniel.lezcano@linaro.org>, Thomas Gleixner <tglx@linutronix.de>, Marc Zyngier <marc.zyngier@arm.com>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Sudeep Holla <sudeep.holla@arm.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linaro-acpi@lists.linaro.org" <linaro-acpi@lists.linaro.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, rruigrok@codeaurora.org, harba@codeaurora.org, Christopher Covington <cov@codeaurora.org>, Timur Tabi <timur@codeaurora.org>, G Gregory <graeme.gregory@linaro.org>, Al Stone <al.stone@linaro.org>, Jon Masters <jcm@redhat.com>, wei@redhat.com, Arnd Bergmann <arnd@arndb.de>, Wim Van Sebroeck <wim@iguana.be>, Catalin Marinas <catalin.marinas@arm.com>
+To: linux-acpi@vger.kernel.org
 
-On Wed, Jul 13, 2016 at 7:53 PM,  <fu.wei@linaro.org> wrote:
-> From: Fu Wei <fu.wei@linaro.org>
->
-> This patch add the ARM64-specific ACPI Support maintainers in
-> MAINTAINERS, according to the discussion on mailing list:
-> https://lkml.org/lkml/2016/6/29/580
-> Lorenzo Pieralisi will submit the pull requsts.
->
-> The maintainers are listed by the alphabet order of
-> their name.
->
-> Signed-off-by: Fu Wei <fu.wei@linaro.org>
-> Signed-off-by: Hanjun Guo <hanjun.guo@linaro.org>
-> ---
->  MAINTAINERS | 8 ++++++++
->  1 file changed, 8 insertions(+)
->
-> diff --git a/MAINTAINERS b/MAINTAINERS
-> index 1209323..1e03463 100644
-> --- a/MAINTAINERS
-> +++ b/MAINTAINERS
-> @@ -315,6 +315,14 @@ W: https://01.org/linux-acpi
->  S:     Supported
->  F:     drivers/acpi/fan.c
->
-> +ACPI FOR ARM64 (ACPI/arm64)
-> +M:     Hanjun Guo <hanjun.guo@linaro.org>
-> +M:     Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
-> +M:     Sudeep Holla <sudeep.holla@arm.com>
-> +L:     linux-acpi@vger.kernel.org
-> +S:     Supported
-> +F:     drivers/acpi/arm64
-> +
->  ACPI THERMAL DRIVER
->  M:     Zhang Rui <rui.zhang@intel.com>
->  L:     linux-acpi@vger.kernel.org
-> --
+Le 13 juillet 2016, Lucas Levrel a =E9crit :
 
-This patch should not be part of your series.
+> Hi,
+>
+> I would like to adjust the temperature at which the fan starts, becau=
+se as it=20
+> is now it runs continuously, at low speed but this continuous noise b=
+others=20
+> me. I'd rather have it spin faster and intermittently. This is an HP =
+laptop.
+>
+> I've read much (mostly Q&A pages and list threads, regular documentat=
+ion=20
+> seems to be scarce), and investigated the behaviour of files in=20
+> /sys/devices/virtual/thermal . From what I understand there's no bug,=
+ just=20
+> the temperature thresholds are not to my taste.
+>
+> More specifically, there are 7 cooling_device's (4 of type Fan, 2 Pro=
+cessor,=20
+> 1 LCD) and 5 thermal_zone's (the first 4 really are temperatures, the=
+ last is=20
+> the fan speed). thermal_zone0 controls the fan. The lowest trip_point=
+_?_temp=20
+> (?=3D=3D4) is 45000, which is very low. Basically, after a few minute=
+s of idle=20
+> operation temp reaches 50000 or 55000 (looks like there is 5 =B0C gra=
+nularity)=20
+> and never gets lower: I've tried and manually set the fan to speed 2 =
+(echo 1=20
+>> cooling_device2/cur_state), even then temp doesn't decrease below 50=
+000.
+>
+> trip_point_?_temp are not writable. I've set thermal.act=3D60000 in t=
+he kernel=20
+> command line, to no avail; is this supposed to be reflected in the=20
+> trip_point_?_temp files? (Note: trip_point_[1-4]_type is "active".) T=
+his is=20
+> kernel 3.2.71 .
+>
+> What can you advise me to do now?
+>
+> And by the way, for my education:
+> - how are the trip_point values determined?
+> - how is hysteresis implemented? I mean, you don't want your fan spee=
+d to=20
+> change every other second, so the "speed up" threshold has to be high=
+er than=20
+> the "speed down" one. In fact, I've found no explanation of how the=20
+> trip_point values are used.
+>
+> Thanks.
 
-I would prefer it if  Hanjun, Lorenzo or Sudeep sent it.
+Hi again,
 
-Of course, it doesn't make much sense to send it before creating
-drivers/acpi/arm64/ and putting something in there, so it should be
-sent separately after the series has been merged.
+After investigating some more, I found how hysteresis works: the=20
+trip_point_?_temp changes when it is crossed. In my case,=20
+trip_point_4_temp is 50000 at first (by default), and goes down to 4500=
+0=20
+when the fan starts.
 
-Thanks,
-Rafael
+This is also why I saw no effect of thermal.act=3D60000 last time I tes=
+ted:=20
+during boot the temperature reaches this threshold, and trip_point_4_te=
+mp=20
+is set to 45000.
+
+I remain with the following questions:
+- how are the trip_point values determined?
+- is there a way to set them to taste? More specifically, I would like =
+to=20
+rise the "fan stop" trigger temp; thermal.act=3D visibly didn't change=20
+this...
+
+Thanks again.
+
+--=20
+Lucas Levrel
+--
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
