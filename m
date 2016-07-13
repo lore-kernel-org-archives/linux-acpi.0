@@ -1,107 +1,152 @@
 From: fu.wei@linaro.org
-Subject: [PATCH v7 8/9] clocksource/drivers/arm_arch_timer: Add GTDT support
- for memory-mapped timer
-Date: Thu, 14 Jul 2016 01:53:21 +0800
-Message-ID: <1468432402-4872-9-git-send-email-fu.wei@linaro.org>
+Subject: [PATCH v7 9/9] acpi/arm64: Add SBSA Generic Watchdog support in GTDT driver
+Date: Thu, 14 Jul 2016 01:53:22 +0800
+Message-ID: <1468432402-4872-10-git-send-email-fu.wei@linaro.org>
 References: <1468432402-4872-1-git-send-email-fu.wei@linaro.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1468432402-4872-1-git-send-email-fu.wei@linaro.org>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+Sender: linux-kernel-owner@vger.kernel.org
 To: rjw@rjwysocki.net, lenb@kernel.org, daniel.lezcano@linaro.org, tglx@linutronix.de, marc.zyngier@arm.com, lorenzo.pieralisi@arm.com, sudeep.holla@arm.com, hanjun.guo@linaro.org
-Cc: linaro-acpi@lists.linaro.org, catalin.marinas@arm.com, will.deacon@arm.com, linux-kernel@vger.kernel.org, wim@iguana.be, jslaby@suse.cz, Fu Wei <fu.wei@linaro.org>, wei@redhat.com, al.stone@linaro.org, timur@codeaurora.org, linux-acpi@vger.kernel.org, kvalo@codeaurora.org, linux@roeck-us.net, harba@codeaurora.org, julien.grall@arm.com, linux-watchdog@vger.kernel.org, arnd@arndb.de, jcm@redhat.com, cov@codeaurora.org, mchehab@kernel.org, linux-arm-kernel@lists.infradead.org, graeme.gregory@linaro.org, gregkh@linuxfoundation.org, rruigrok@codeaurora.org, leo.duran@amd.com, Suravee.Suthikulpanit@amd.com, akpm@linux-foundation.org, davem@davemloft.net, christoffer.dall@linaro.org
+Cc: linux-arm-kernel@lists.infradead.org, linaro-acpi@lists.linaro.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, rruigrok@codeaurora.org, harba@codeaurora.org, cov@codeaurora.org, timur@codeaurora.org, graeme.gregory@linaro.org, al.stone@linaro.org, jcm@redhat.com, wei@redhat.com, arnd@arndb.de, wim@iguana.be, catalin.marinas@arm.com, will.deacon@arm.com, Suravee.Suthikulpanit@amd.com, leo.duran@amd.com, linux@roeck-us.net, linux-watchdog@vger.kernel.org, davem@davemloft.net, akpm@linux-foundation.org, gregkh@linuxfoundation.org, kvalo@codeaurora.org, mchehab@kernel.org, jslaby@suse.cz, christoffer.dall@linaro.org, julien.grall@arm.com, Fu Wei <fu.wei@linaro.org>
 List-Id: linux-acpi@vger.kernel.org
 
-RnJvbTogRnUgV2VpIDxmdS53ZWlAbGluYXJvLm9yZz4KClRoZSBwYXRjaCBhZGQgbWVtb3J5LW1h
-cHBlZCB0aW1lciByZWdpc3RlciBzdXBwb3J0IGJ5IHVzaW5nIHRoZSBpbmZvcm1hdGlvbgpwcm92
-aWRlZCBieSB0aGUgbmV3IEdURFQgZHJpdmVyIG9mIEFDUEkuCgpTaWduZWQtb2ZmLWJ5OiBGdSBX
-ZWkgPGZ1LndlaUBsaW5hcm8ub3JnPgotLS0KIGRyaXZlcnMvY2xvY2tzb3VyY2UvYXJtX2FyY2hf
-dGltZXIuYyB8IDEzMSArKysrKysrKysrKysrKysrKysrKysrKysrKysrKysrKysrLQogMSBmaWxl
-IGNoYW5nZWQsIDEzMCBpbnNlcnRpb25zKCspLCAxIGRlbGV0aW9uKC0pCgpkaWZmIC0tZ2l0IGEv
-ZHJpdmVycy9jbG9ja3NvdXJjZS9hcm1fYXJjaF90aW1lci5jIGIvZHJpdmVycy9jbG9ja3NvdXJj
-ZS9hcm1fYXJjaF90aW1lci5jCmluZGV4IGY2YWI4NTcuLjBkM2FiMmIgMTAwNjQ0Ci0tLSBhL2Ry
-aXZlcnMvY2xvY2tzb3VyY2UvYXJtX2FyY2hfdGltZXIuYworKysgYi9kcml2ZXJzL2Nsb2Nrc291
-cmNlL2FybV9hcmNoX3RpbWVyLmMKQEAgLTg0OCw3ICs4NDgsMTMyIEBAIENMT0NLU09VUkNFX09G
-X0RFQ0xBUkUoYXJtdjdfYXJjaF90aW1lcl9tZW0sICJhcm0sYXJtdjctdGltZXItbWVtIiwKIAkJ
-ICAgICAgIGFyY2hfdGltZXJfbWVtX2luaXQpOwogCiAjaWZkZWYgQ09ORklHX0FDUElfR1REVAot
-LyogSW5pdGlhbGl6ZSBwZXItcHJvY2Vzc29yIGdlbmVyaWMgdGltZXIgKi8KK3N0YXRpYyBzdHJ1
-Y3QgZ3RfdGltZXJfZGF0YSBfX2luaXQgKmFyY2hfdGltZXJfbWVtX2dldF90aW1lcigKKwkJCQkJ
-CXN0cnVjdCBndF9ibG9ja19kYXRhICpndF9ibG9ja3MpCit7CisJc3RydWN0IGd0X2Jsb2NrX2Rh
-dGEgKmd0X2Jsb2NrID0gZ3RfYmxvY2tzOworCXN0cnVjdCBndF90aW1lcl9kYXRhICpiZXN0X2Zy
-YW1lID0gTlVMTDsKKwl2b2lkIF9faW9tZW0gKmNudGN0bGJhc2U7CisJdTMyIGNudHRpZHI7CisJ
-aW50IGk7CisKKwkvKgorCSAqIEFjY29yZGluZyB0byBBUk12OCBBcmNoaXRlY3R1cmUgUmVmZXJl
-bmNlIE1hbnVhbChBUk0pLAorCSAqIHRoZSBzaXplIG9mIENOVENUTEJhc2UgZnJhbWUgb2YgbWVt
-b3J5LW1hcHBlZCB0aW1lcgorCSAqIGlzIFNaXzRLKE9mZnNldCAweDAwMCDigJMgMHhGRkYpLgor
-CSAqLworCWNudGN0bGJhc2UgPSBpb3JlbWFwKGd0X2Jsb2NrLT5jbnRjdGxiYXNlX3BoeSwgU1pf
-NEspOworCWlmICghY250Y3RsYmFzZSkgeworCQlwcl9lcnIoIkNhbid0IG1hcCBDTlRDVExCYXNl
-XG4iKTsKKwkJcmV0dXJuIE5VTEw7CisJfQorCWNudHRpZHIgPSByZWFkbF9yZWxheGVkKGNudGN0
-bGJhc2UgKyBDTlRUSURSKTsKKworCS8qCisJICogVHJ5IHRvIGZpbmQgYSB2aXJ0dWFsIGNhcGFi
-bGUgZnJhbWUuIE90aGVyd2lzZSBmYWxsIGJhY2sgdG8gYQorCSAqIHBoeXNpY2FsIGNhcGFibGUg
-ZnJhbWUuCisJICovCisJZm9yIChpID0gMDsgaSA8IGd0X2Jsb2NrLT50aW1lcl9jb3VudDsgaSsr
-KSB7CisJCWludCBuOworCQl1MzIgY250YWNyOworCisJCW4gPSBndF9ibG9jay0+dGltZXJbaV0u
-ZnJhbWVfbnI7CisKKwkJLyogVHJ5IGVuYWJsaW5nIGV2ZXJ5dGhpbmcsIGFuZCBzZWUgd2hhdCBz
-dGlja3MgKi8KKwkJY250YWNyID0gQ05UQUNSX1JGUlEgfCBDTlRBQ1JfUldQVCB8IENOVEFDUl9S
-UENUIHwKKwkJCSBDTlRBQ1JfUldWVCB8IENOVEFDUl9SVk9GRiB8IENOVEFDUl9SVkNUOworCQl3
-cml0ZWxfcmVsYXhlZChjbnRhY3IsIGNudGN0bGJhc2UgKyBDTlRBQ1IobikpOworCQljbnRhY3Ig
-PSByZWFkbF9yZWxheGVkKGNudGN0bGJhc2UgKyBDTlRBQ1IobikpOworCisJCWlmICgoY250dGlk
-ciAmIENOVFRJRFJfVklSVChuKSkgJiYKKwkJICAgICEofmNudGFjciAmIChDTlRBQ1JfUldWVCB8
-IENOVEFDUl9SVkNUKSkpIHsKKwkJCWJlc3RfZnJhbWUgPSAmZ3RfYmxvY2stPnRpbWVyW2ldOwor
-CQkJYXJjaF90aW1lcl9tZW1fdXNlX3ZpcnR1YWwgPSB0cnVlOworCQkJYnJlYWs7CisJCX0KKwor
-CQlpZiAofmNudGFjciAmIChDTlRBQ1JfUldQVCB8IENOVEFDUl9SUENUKSkKKwkJCWNvbnRpbnVl
-OworCisJCWJlc3RfZnJhbWUgPSAmZ3RfYmxvY2stPnRpbWVyW2ldOworCX0KKwlpb3VubWFwKGNu
-dGN0bGJhc2UpOworCisJcmV0dXJuIGJlc3RfZnJhbWU7Cit9CisKK3N0YXRpYyBpbnQgX19pbml0
-IGFyY2hfdGltZXJfbWVtX2FjcGlfaW5pdCh1MzIgdGltZXJfY291bnQpCit7CisJc3RydWN0IGd0
-X2Jsb2NrX2RhdGEgKmd0X2Jsb2NrczsKKwlzdHJ1Y3QgZ3RfdGltZXJfZGF0YSAqZ3RfdGltZXI7
-CisJdm9pZCBfX2lvbWVtICp0aW1lcl9jbnRiYXNlOworCWludCByZXQgPSAtRUlOVkFMOworCWlu
-dCB0aW1lcl9pcnE7CisKKwkvKgorCSAqIElmIHdlIGhhdmUgc29tZSBQbGF0Zm9ybSBUaW1lciBT
-dHJ1Y3R1cmVzLAorCSAqIHRyeSB0byBmaW5kIGFuZCByZWdpc3RlciBhIG1lbW9yeS1tYXBwZWQg
-dGltZXIuCisJICogSWYgbm90LCBqdXN0IHJldHVybi4KKwkgKi8KKwlpZiAoIXRpbWVyX2NvdW50
-KQorCQlyZXR1cm4gMDsKKworCWlmIChhcmNoX3RpbWVyc19wcmVzZW50ICYgQVJDSF9NRU1fVElN
-RVIpIHsKKwkJcHJfd2FybigibWVtb3J5LW1hcHBlZCB0aW1lciBhbHJlYWR5IGluaXRpYWxpemVk
-LCBza2lwcGluZ1xuIik7CisJCXJldHVybiAwOworCX0KKwlhcmNoX3RpbWVyc19wcmVzZW50IHw9
-IEFSQ0hfTUVNX1RJTUVSOworCS8qCisJICogYmVmb3JlIHJlYWxseSBjaGVjayBhbGwgdGhlIFBs
-YXRmb3JtIFRpbWVyIFN0cnVjdHVyZXMsCisJICogd2UgYXNzdW1lIHRoZXkgYXJlIEdUIGJsb2Nr
-LCBhbmQgYWxsb2NhdGUgbWVtb3J5IGZvciB0aGVtLgorCSAqIFdlIHdpbGwgZnJlZSB0aGVzZSBt
-ZW1vcnkgb25jZSB3ZSBmaW5pc2ggdGhlIGluaXRpYWxpemF0aW9uLgorCSAqLworCWd0X2Jsb2Nr
-cyA9IGtjYWxsb2ModGltZXJfY291bnQsIHNpemVvZigqZ3RfYmxvY2tzKSwgR0ZQX0tFUk5FTCk7
-CisJaWYgKCFndF9ibG9ja3MpCisJCXJldHVybiAtRU5PTUVNOworCisJaWYgKGd0ZHRfYXJjaF90
-aW1lcl9tZW1faW5pdChndF9ibG9ja3MpKSB7CisJCWd0X3RpbWVyID0gYXJjaF90aW1lcl9tZW1f
-Z2V0X3RpbWVyKGd0X2Jsb2Nrcyk7CisJCWlmICghZ3RfdGltZXIpIHsKKwkJCXByX2VycigiRmFp
-bGVkIHRvIGdldCBtZW0gdGltZXIgaW5mby5cbiIpOworCQkJZ290byBlcnJvcjsKKwkJfQorCisJ
-CWlmIChhcmNoX3RpbWVyX21lbV91c2VfdmlydHVhbCkKKwkJCXRpbWVyX2lycSA9IGd0X3RpbWVy
-LT52aXJ0X2lycTsKKwkJZWxzZQorCQkJdGltZXJfaXJxID0gZ3RfdGltZXItPmlycTsKKwkJaWYg
-KCF0aW1lcl9pcnEpIHsKKwkJCXByX2VycigiRnJhbWUgbWlzc2luZyAlcyBpcnEiLAorCQkJICAg
-ICAgIGFyY2hfdGltZXJfbWVtX3VzZV92aXJ0dWFsID8gInZpcnQiIDogInBoeXMiKTsKKwkJCWdv
-dG8gZXJyb3I7CisJCX0KKworCQkvKgorCQkgKiBBY2NvcmRpbmcgdG8gQVJNdjggQXJjaGl0ZWN0
-dXJlIFJlZmVyZW5jZSBNYW51YWwoQVJNKSwKKwkJICogdGhlIHNpemUgb2YgQ05UQmFzZU4gZnJh
-bWVzIG9mIG1lbW9yeS1tYXBwZWQgdGltZXIKKwkJICogaXMgU1pfNEsoT2Zmc2V0IDB4MDAwIOKA
-kyAweEZGRikuCisJCSAqLworCQl0aW1lcl9jbnRiYXNlID0gaW9yZW1hcChndF90aW1lci0+Y250
-YmFzZV9waHksIFNaXzRLKTsKKwkJaWYgKCF0aW1lcl9jbnRiYXNlKSB7CisJCQlwcl9lcnIoIkNh
-bid0IG1hcCBDbnRCYXNlLlxuIik7CisJCQlnb3RvIGVycm9yOworCQl9CisJCWFyY2hfY291bnRl
-cl9iYXNlID0gdGltZXJfY250YmFzZTsKKwkJcmV0ID0gYXJjaF90aW1lcl9tZW1fcmVnaXN0ZXIo
-dGltZXJfY250YmFzZSwgdGltZXJfaXJxKTsKKwkJaWYgKHJldCkgeworCQkJaW91bm1hcCh0aW1l
-cl9jbnRiYXNlKTsKKwkJCWFyY2hfY291bnRlcl9iYXNlID0gTlVMTDsKKwkJCXByX2VycigiRmFp
-bGVkIHRvIHJlZ2lzdGVyIG1lbSB0aW1lci5cbiIpOworCQl9CisJfQorCitlcnJvcjoKKwlrZnJl
-ZShndF9ibG9ja3MpOworCXJldHVybiByZXQ7Cit9CisKKy8qIEluaXRpYWxpemUgcGVyLXByb2Nl
-c3NvciBnZW5lcmljIHRpbWVyIGFuZCBtZW1vcnktbWFwcGVkIHRpbWVyKGlmIHByZXNlbnQpICov
-CiBzdGF0aWMgaW50IF9faW5pdCBhcmNoX3RpbWVyX2FjcGlfaW5pdChzdHJ1Y3QgYWNwaV90YWJs
-ZV9oZWFkZXIgKnRhYmxlKQogewogCWludCB0aW1lcl9jb3VudDsKQEAgLTg3NCw2ICs5OTksMTAg
-QEAgc3RhdGljIGludCBfX2luaXQgYXJjaF90aW1lcl9hY3BpX2luaXQoc3RydWN0IGFjcGlfdGFi
-bGVfaGVhZGVyICp0YWJsZSkKIAogCS8qIEdldCB0aGUgZnJlcXVlbmN5IGZyb20gQ05URlJRICov
-CiAJYXJjaF90aW1lcl9kZXRlY3RfcmF0ZShOVUxMLCBOVUxMKTsKKworCWlmIChhcmNoX3RpbWVy
-X21lbV9hY3BpX2luaXQodGltZXJfY291bnQpKQorCQlwcl9lcnIoIkZhaWxlZCB0byBpbml0aWFs
-aXplIG1lbW9yeS1tYXBwZWQgdGltZXIsIHNraXBwaW5nXG4iKTsKKwogCWFyY2hfdGltZXJfaW5p
-dCgpOwogCiAJcmV0dXJuIDA7Ci0tIAoyLjUuNQoKCl9fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fX19fX19fX19fX19fX19fCmxpbnV4LWFybS1rZXJuZWwgbWFpbGluZyBsaXN0CmxpbnV4
-LWFybS1rZXJuZWxAbGlzdHMuaW5mcmFkZWFkLm9yZwpodHRwOi8vbGlzdHMuaW5mcmFkZWFkLm9y
-Zy9tYWlsbWFuL2xpc3RpbmZvL2xpbnV4LWFybS1rZXJuZWwK
+=46rom: Fu Wei <fu.wei@linaro.org>
+
+This driver adds support for parsing SBSA Generic Watchdog timer
+in GTDT, parse all info in SBSA Generic Watchdog Structure in GTDT,
+and creating a platform device with that information.
+
+This allows the operating system to obtain device data from the
+resource of platform device. The platform device named "sbsa-gwdt"
+can be used by the ARM SBSA Generic Watchdog driver.
+
+Signed-off-by: Fu Wei <fu.wei@linaro.org>
+Signed-off-by: Hanjun Guo <hanjun.guo@linaro.org>
+---
+ drivers/acpi/arm64/acpi_gtdt.c | 83 ++++++++++++++++++++++++++++++++++=
+++++++++
+ drivers/watchdog/Kconfig       |  1 +
+ 2 files changed, 84 insertions(+)
+
+diff --git a/drivers/acpi/arm64/acpi_gtdt.c b/drivers/acpi/arm64/acpi_g=
+tdt.c
+index ff62953..eb3edac 100644
+--- a/drivers/acpi/arm64/acpi_gtdt.c
++++ b/drivers/acpi/arm64/acpi_gtdt.c
+@@ -15,6 +15,7 @@
+ #include <linux/init.h>
+ #include <linux/kernel.h>
+ #include <linux/module.h>
++#include <linux/platform_device.h>
+=20
+ #include <clocksource/arm_arch_timer.h>
+=20
+@@ -258,3 +259,85 @@ int __init gtdt_arch_timer_mem_init(struct gt_bloc=
+k_data *data)
+=20
+ 	return index;
+ }
++
++/*
++ * Initialize a SBSA generic Watchdog platform device info from GTDT
++ */
++static int __init gtdt_import_sbsa_gwdt(void *platform_timer, int inde=
+x)
++{
++	struct platform_device *pdev;
++	struct acpi_gtdt_watchdog *wd =3D platform_timer;
++	int irq =3D map_generic_timer_interrupt(wd->timer_interrupt,
++					      wd->timer_flags);
++	int no_irq =3D 1;
++
++	/*
++	 * According to SBSA specification the size of refresh and control
++	 * frames of SBSA Generic Watchdog is SZ_4K(Offset 0x000 =E2=80=93 0x=
+=46FF).
++	 */
++	struct resource res[] =3D {
++		DEFINE_RES_MEM(wd->control_frame_address, SZ_4K),
++		DEFINE_RES_MEM(wd->refresh_frame_address, SZ_4K),
++		DEFINE_RES_IRQ(irq),
++	};
++
++	pr_debug("a Watchdog GT(0x%llx/0x%llx gsi:%u flags:0x%x).\n",
++		 wd->refresh_frame_address, wd->control_frame_address,
++		 wd->timer_interrupt, wd->timer_flags);
++
++	if (!(wd->refresh_frame_address && wd->control_frame_address)) {
++		pr_err(FW_BUG "failed getting the Watchdog GT frame addr.\n");
++		return -EINVAL;
++	}
++
++	if (!wd->timer_interrupt)
++		pr_warn(FW_BUG "failed getting the Watchdog GT GSIV.\n");
++	else if (irq <=3D 0)
++		pr_warn("failed to map the Watchdog GT GSIV.\n");
++	else
++		no_irq =3D 0;
++
++	/*
++	 * Add a platform device named "sbsa-gwdt" to match the platform driv=
+er.
++	 * "sbsa-gwdt": SBSA(Server Base System Architecture) Generic Watchdo=
+g
++	 * The platform driver (like drivers/watchdog/sbsa_gwdt.c)can get dev=
+ice
++	 * info below by matching this name.
++	 */
++	pdev =3D platform_device_register_simple("sbsa-gwdt", index, res,
++					       ARRAY_SIZE(res) - no_irq);
++	if (IS_ERR(pdev)) {
++		acpi_unregister_gsi(wd->timer_interrupt);
++		return PTR_ERR(pdev);
++	}
++
++	return 0;
++}
++
++static int __init gtdt_sbsa_gwdt_init(void)
++{
++	struct acpi_table_header *table;
++	void *platform_timer;
++	int index =3D 0;
++
++	if (acpi_disabled)
++		return 0;
++
++	if (ACPI_FAILURE(acpi_get_table(ACPI_SIG_GTDT, 0, &table)))
++		return -EINVAL;
++
++	if (acpi_gtdt_desc_init(table) < 0)
++		return -EINVAL;
++
++	for_each_platform_timer(platform_timer) {
++		if (is_watchdog(platform_timer) &&
++		    !gtdt_import_sbsa_gwdt(platform_timer, index))
++			index++;
++	}
++
++	if (index)
++		pr_info("found %d SBSA generic Watchdog.\n", index);
++
++	return 0;
++}
++
++device_initcall(gtdt_sbsa_gwdt_init);
+diff --git a/drivers/watchdog/Kconfig b/drivers/watchdog/Kconfig
+index b4b3e25..105f059 100644
+--- a/drivers/watchdog/Kconfig
++++ b/drivers/watchdog/Kconfig
+@@ -207,6 +207,7 @@ config ARM_SBSA_WATCHDOG
+ 	depends on ARM64
+ 	depends on ARM_ARCH_TIMER
+ 	select WATCHDOG_CORE
++	select ACPI_GTDT if ACPI
+ 	help
+ 	  ARM SBSA Generic Watchdog has two stage timeouts:
+ 	  the first signal (WS0) is for alerting the system by interrupt,
+--=20
+2.5.5
