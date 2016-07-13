@@ -1,201 +1,199 @@
-From: Luis de Bethencourt <luisbg-JPH+aEBZ4P+UEJcrhfAQsw@public.gmane.org>
-Subject: Re: [PATCH v3 1/7] lib: string: add functions to
-	case-convert strings
-Date: Wed, 13 Jul 2016 18:19:15 +0100
-Message-ID: <57867813.8010608@osg.samsung.com>
-References: <1468017794-4818-1-git-send-email-mmayer@broadcom.com>
- <1468017794-4818-2-git-send-email-mmayer@broadcom.com>
- <5780E866.8000001@osg.samsung.com>
- <CAGt4E5vYzkqgiiQXXjnX7az-KzCVSYthEW5Df03U=Y1qhEJdRQ@mail.gmail.com>
- <CAGt4E5tpw0sa1PQmgJzKbPuzSbFG9_CUWjjO1z93OSc0KkjUXw@mail.gmail.com>
+From: Tejun Heo <tj@kernel.org>
+Subject: Re: Lenovo A740 gave up waiting for root device with kernels >= 4.3
+Date: Wed, 13 Jul 2016 13:24:16 -0400
+Message-ID: <20160713172416.GH4065@mtj.duckdns.org>
+References: <87vb1mwz73.fsf@fsfe.org>
+ <CAA=40861-zFKancJ3w5Zia2v9bpaN4TY3bw7Hi8G=97z_30qVA@mail.gmail.com>
+ <87oa6de87q.fsf@mm.st>
+ <CAA=4087zcySKFWkYWDUdb+Hfmg2i9QtJ631u9Fp8Uco5U4Y2XQ@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <nouveau-bounces-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org>
-In-Reply-To: <CAGt4E5tpw0sa1PQmgJzKbPuzSbFG9_CUWjjO1z93OSc0KkjUXw-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
-List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/nouveau>,
- <mailto:nouveau-request-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org?subject=unsubscribe>
-List-Archive: <https://lists.freedesktop.org/archives/nouveau>
-List-Post: <mailto:nouveau-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org>
-List-Help: <mailto:nouveau-request-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/nouveau>,
- <mailto:nouveau-request-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org?subject=subscribe>
-Errors-To: nouveau-bounces-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org
-Sender: "Nouveau" <nouveau-bounces-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org>
-To: Markus Mayer <markus.mayer-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
-Cc: devel-gWbeCf7V1WCQmaza687I9mD2FQJk+8+b@public.gmane.org, Kees Cook <keescook-F7+t8E8rja9g9hUCZPvPmw@public.gmane.org>, linux-scsi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-pm-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, nouveau-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org, Rasmus Villemoes <linux-qQsb+v5E8BnlAoU/VqSP6n9LOBIZ5rWg@public.gmane.org>, Linux Kernel <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, dri-devel-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org, speakup-UPO/6gOIxNZglr+F8WMZYdi2O/JbrIOy@public.gmane.org, Chris Metcalf <cmetcalf-d5a29ZRxExrQT0dZR+AlfA@public.gmane.org>, target-devel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Al Viro <viro-RmSDqhL/yNMiFSDQTTA3OLVCufUGDwFn@public.gmane.org>, Andrew Morton <akpm-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org>, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-ide-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <CAA=4087zcySKFWkYWDUdb+Hfmg2i9QtJ631u9Fp8Uco5U4Y2XQ@mail.gmail.com>
+Sender: linux-ide-owner@vger.kernel.org
+To: "Navin P.S" <navinp1912@gmail.com>
+Cc: linux-ide@vger.kernel.org, Kevin Brubeck Unhammer <unhammer@fsfe.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-T24gMTEvMDcvMTYgMjM6NDYsIE1hcmt1cyBNYXllciB3cm90ZToKPiBPbiA5IEp1bHkgMjAxNiBh
-dCAwODozMCwgTWFya3VzIE1heWVyIDxtYXJrdXMubWF5ZXJAYnJvYWRjb20uY29tPiB3cm90ZToK
-Pj4gT24gOSBKdWx5IDIwMTYgYXQgMDU6MDQsIEx1aXMgZGUgQmV0aGVuY291cnQgPGx1aXNiZ0Bv
-c2cuc2Ftc3VuZy5jb20+IHdyb3RlOgo+Pj4gT24gMDgvMDcvMTYgMjM6NDMsIE1hcmt1cyBNYXll
-ciB3cm90ZToKPj4+PiBBZGQgYSBjb2xsZWN0aW9uIG9mIGdlbmVyaWMgZnVuY3Rpb25zIHRvIGNv
-bnZlcnQgc3RyaW5ncyB0byBsb3dlcmNhc2UKPj4+PiBvciB1cHBlcmNhc2UuCj4+Pj4KPj4+PiBD
-aGFuZ2luZyB0aGUgY2FzZSBvZiBhIHN0cmluZyAod2l0aCBvciB3aXRob3V0IGNvcHlpbmcgaXQg
-Zmlyc3QpIHNlZW1zCj4+Pj4gdG8gYmUgYSByZWN1cnJpbmcgcmVxdWlyZW1lbnQgaW4gdGhlIGtl
-cm5lbCB0aGF0IGlzIGN1cnJlbnRseSBiZWluZwo+Pj4+IHNvbHZlZCBieSBzZXZlcmFsIGR1cGxp
-Y2F0ZWQgaW1wbGVtZW50YXRpb25zIGRvaW5nIHRoZSBzYW1lIHRoaW5nLiBUaGlzCj4+Pj4gY2hh
-bmdlIGFpbXMgYXQgcmVkdWNpbmcgdGhpcyBjb2RlIGR1cGxpY2F0aW9uLgo+Pj4+Cj4+Pj4gVGhl
-IG5ldyBmdW5jdGlvbnMgYXJlCj4+Pj4gICAgIHZvaWQgc3RybGNweXRvdXBwZXIoY2hhciAqZHN0
-LCBjb25zdCBjaGFyICpzcmMsIHNpemVfdCBsZW4pOwo+Pj4+ICAgICB2b2lkIHN0cmxjcHl0b2xv
-d2VyKGNoYXIgKmRzdCwgY29uc3QgY2hhciAqc3JjLCBzaXplX3QgbGVuKTsKPj4+PiAgICAgdm9p
-ZCBzdHJjcHl0b3VwcGVyKGNoYXIgKmRzdCwgY29uc3QgY2hhciAqc3JjKTsKPj4+PiAgICAgdm9p
-ZCBzdHJjcHl0b2xvd2VyKGNoYXIgKmRzdCwgY29uc3QgY2hhciAqc3JjKTsKPj4+PiAgICAgdm9p
-ZCBzdHJ0b3VwcGVyKGNoYXIgKnMpOwo+Pj4+ICAgICB2b2lkIHN0cnRvbG93ZXIoY2hhciAqcyk7
-Cj4+Pj4KPj4+PiBUaGUgInN0cltsXWNweXRvKiIgdmVyc2lvbnMgb2YgdGhlIGZ1bmN0aW9uIHRh
-a2UgYSBkZXN0aW5hdGlvbiBzdHJpbmcKPj4+PiBhbmQgYSBzb3VyY2Ugc3RyaW5nIGFzIGFyZ3Vt
-ZW50cy4gVGhlICJzdHJsY3B5dG8qIiB2ZXJzaW9ucyBhZGRpdGlvbmFsbHkKPj4+PiB0YWtlIGEg
-bGVuZ3RoIGFyZ3VtZW50IGxpa2Ugc3RybGNweSgpIGl0c2VsZi4gTGFzdGx5LCB0aGUgc3RydG8q
-Cj4+Pj4gZnVuY3Rpb25zIHRha2UgYSBzaW5nbGUgc3RyaW5nIGFyZ3VtZW50IGFuZCBtb2RpZnkg
-dGhlIHBhc3NlZC1pbiBzdHJpbmcuCj4+Pj4KPj4+PiBMaWtlIHN0cmxjcHkoKSwgYW5kIHVubGlr
-ZSBzdHJuY3B5KCksIHRoZSBmdW5jdGlvbnMgZ3VhcmFudGVlIE5VTEwKPj4+PiB0ZXJtaW5hdGlv
-biBvZiB0aGUgZGVzdGluYXRpb24gc3RyaW5nLgo+Pj4+Cj4+Pj4gU2lnbmVkLW9mZi1ieTogTWFy
-a3VzIE1heWVyIDxtbWF5ZXJAYnJvYWRjb20uY29tPgo+Pj4+IC0tLQo+Pj4+ICBpbmNsdWRlL2xp
-bnV4L3N0cmluZy5oIHwgNDAgKysrKysrKysrKysrKysrKysrKysrKysrKysrKysrKysrKysrKysr
-Kwo+Pj4+ICBsaWIvc3RyaW5nLmMgICAgICAgICAgIHwgMzggKysrKysrKysrKysrKysrKysrKysr
-KysrKysrKysrKysrKysrKysKPj4+PiAgMiBmaWxlcyBjaGFuZ2VkLCA3OCBpbnNlcnRpb25zKCsp
-Cj4+Pj4KPj4+PiBkaWZmIC0tZ2l0IGEvaW5jbHVkZS9saW51eC9zdHJpbmcuaCBiL2luY2x1ZGUv
-bGludXgvc3RyaW5nLmgKPj4+PiBpbmRleCAyNmI2ZjZhLi4zNmM5ZDE0IDEwMDY0NAo+Pj4+IC0t
-LSBhL2luY2x1ZGUvbGludXgvc3RyaW5nLmgKPj4+PiArKysgYi9pbmNsdWRlL2xpbnV4L3N0cmlu
-Zy5oCj4+Pj4gQEAgLTExNiw2ICsxMTYsOCBAQCBleHRlcm4gdm9pZCAqIG1lbWNocihjb25zdCB2
-b2lkICosaW50LF9fa2VybmVsX3NpemVfdCk7Cj4+Pj4gICNlbmRpZgo+Pj4+ICB2b2lkICptZW1j
-aHJfaW52KGNvbnN0IHZvaWQgKnMsIGludCBjLCBzaXplX3Qgbik7Cj4+Pj4gIGNoYXIgKnN0cnJl
-cGxhY2UoY2hhciAqcywgY2hhciBvbGQsIGNoYXIgbmV3KTsKPj4+PiArZXh0ZXJuIHZvaWQgc3Ry
-bGNweXRvdXBwZXIoY2hhciAqZHN0LCBjb25zdCBjaGFyICpzcmMsIHNpemVfdCBsZW4pOwo+Pj4+
-ICtleHRlcm4gdm9pZCBzdHJsY3B5dG9sb3dlcihjaGFyICpkc3QsIGNvbnN0IGNoYXIgKnNyYywg
-c2l6ZV90IGxlbik7Cj4+Pj4KPj4+PiAgZXh0ZXJuIHZvaWQga2ZyZWVfY29uc3QoY29uc3Qgdm9p
-ZCAqeCk7Cj4+Pj4KPj4+PiBAQCAtMTY5LDQgKzE3MSw0MiBAQCBzdGF0aWMgaW5saW5lIGNvbnN0
-IGNoYXIgKmtiYXNlbmFtZShjb25zdCBjaGFyICpwYXRoKQo+Pj4+ICAgICAgIHJldHVybiB0YWls
-ID8gdGFpbCArIDEgOiBwYXRoOwo+Pj4+ICB9Cj4+Pj4KPj4+PiArLyoqCj4+Pj4gKyAqIHN0cmNw
-eXRvdXBwZXIgLSBDb3B5IHN0cmluZyBhbmQgY29udmVydCB0byB1cHBlcmNhc2UuCj4+Pj4gKyAq
-IEBkc3Q6IFRoZSBidWZmZXIgdG8gc3RvcmUgdGhlIHJlc3VsdC4KPj4+PiArICogQHNyYzogVGhl
-IHN0cmluZyB0byBjb252ZXJ0IHRvIHVwcGVyY2FzZS4KPj4+PiArICovCj4+Pj4gK3N0YXRpYyBp
-bmxpbmUgdm9pZCBzdHJjcHl0b3VwcGVyKGNoYXIgKmRzdCwgY29uc3QgY2hhciAqc3JjKQo+Pj4+
-ICt7Cj4+Pj4gKyAgICAgc3RybGNweXRvdXBwZXIoZHN0LCBzcmMsIC0xKTsKPj4+PiArfQo+Pj4+
-ICsKPj4+Cj4+PiBXaHkgbm90IHVzZSBTSVpFX01BWCBpbnN0ZWFkIG9mIC0xPwo+Pgo+PiBTdXJl
-LiBJJ2xsIGNoYW5nZSBhbGwgZm91ciBvZiB0aGVtLiBUaGFua3MuCj4gCj4gVHVybnMgb3V0IHRo
-ZXJlJ3MgYWN0dWFsbHkgYSBjaXJjdWxhciBkZXBlbmRlbmN5IGhlcmUuIFNJWkVfTUFYIGlzCj4g
-ZGVmaW5lZCBpbiBsaW51eC9rZXJuZWwuaC4gU28sIHN0cmluZy5oIHdvdWxkIG5lZWQgdG8gaW5j
-bHVkZQo+IGtlcm5lbC5oLiBCdXQga2VybmVsLmgsIGJ5IHdheSBvZiBzZXZlcmFsIG90aGVyIGhl
-YWRlcnMsIGluY2x1ZGVzCj4gc3RyaW5nLmguCj4gCj4gQXR0ZW1wdGluZyB0byBpbmNsdWRlIGtl
-cm5lbC5oIGluIHN0cmluZy5oIHRoZW4gbGVhZHMgdG8gc29tZXRoaW5nIGxpa2UgdGhpczoKPiAK
-PiAgIENISyAgICAgaW5jbHVkZS9jb25maWcva2VybmVsLnJlbGVhc2UKPiAgIENISyAgICAgaW5j
-bHVkZS9nZW5lcmF0ZWQvdWFwaS9saW51eC92ZXJzaW9uLmgKPiAgIENISyAgICAgaW5jbHVkZS9n
-ZW5lcmF0ZWQvdXRzcmVsZWFzZS5oCj4gICBDQyAgICAgIHNjcmlwdHMvbW9kL2RldmljZXRhYmxl
-LW9mZnNldHMucwo+ICAgQ0hLICAgICBpbmNsdWRlL2dlbmVyYXRlZC90aW1lY29uc3QuaAo+IElu
-IGZpbGUgaW5jbHVkZWQgZnJvbSBpbmNsdWRlL2xpbnV4L3ByaW50ay5oOjI4OTowLAo+ICAgICAg
-ICAgICAgICAgICAgZnJvbSBpbmNsdWRlL2xpbnV4L2tlcm5lbC5oOjEzLAo+ICAgICAgICAgICAg
-ICAgICAgZnJvbSBpbmNsdWRlL2xpbnV4L3N0cmluZy5oOjExLAo+ICAgICAgICAgICAgICAgICAg
-ZnJvbSBpbmNsdWRlL3VhcGkvbGludXgvdXVpZC5oOjIxLAo+ICAgICAgICAgICAgICAgICAgZnJv
-bSBpbmNsdWRlL2xpbnV4L3V1aWQuaDoxOSwKPiAgICAgICAgICAgICAgICAgIGZyb20gaW5jbHVk
-ZS9saW51eC9tb2RfZGV2aWNldGFibGUuaDoxMiwKPiAgICAgICAgICAgICAgICAgIGZyb20gc2Ny
-aXB0cy9tb2QvZGV2aWNldGFibGUtb2Zmc2V0cy5jOjI6Cj4gaW5jbHVkZS9saW51eC9keW5hbWlj
-X2RlYnVnLmg6IEluIGZ1bmN0aW9uIOKAmGRkZWJ1Z19keW5kYmdfbW9kdWxlX3BhcmFtX2Ni4oCZ
-Ogo+IGluY2x1ZGUvbGludXgvZHluYW1pY19kZWJ1Zy5oOjEyMjoyOiBlcnJvcjogaW1wbGljaXQg
-ZGVjbGFyYXRpb24gb2YKPiBmdW5jdGlvbiDigJhzdHJzdHLigJkgWy1XZXJyb3I9aW1wbGljaXQt
-ZnVuY3Rpb24tZGVjbGFyYXRpb25dCj4gICBpZiAoc3Ryc3RyKHBhcmFtLCAiZHluZGJnIikpIHsK
-PiAgIF4KPiBpbmNsdWRlL2xpbnV4L2R5bmFtaWNfZGVidWcuaDoxMjI6Njogd2FybmluZzogaW5j
-b21wYXRpYmxlIGltcGxpY2l0Cj4gZGVjbGFyYXRpb24gb2YgYnVpbHQtaW4gZnVuY3Rpb24g4oCY
-c3Ryc3Ry4oCZIFtlbmFibGVkIGJ5IGRlZmF1bHRdCj4gICBpZiAoc3Ryc3RyKHBhcmFtLCAiZHlu
-ZGJnIikpIHsKPiAgICAgICBeCj4gU2luY2Uga2VybmVsLmggaXMgcmVmZXJlbmNpbmcgc3RyaW5n
-LmggKHdoaWNoIGlzIG5lZWRlZCwgYnV0IG5vdAo+IGluY2x1ZGVkIGEgc2Vjb25kIHRpbWUgZHVl
-IHRvIHRoZSBpbmNsdWRlIGd1YXJkcyksIHRoaXMgbGVhZHMgdG8KPiB1bmRlY2xhcmVkIHN0cmlu
-ZyBmdW5jdGlvbnMsIGJlY2F1c2Ugd2UgYXJlIHN0aWxsIGluIHRoZSBlYXJseSBzdGFnZXMKPiBv
-ZiBpbmNsdWRpbmcgc3RyaW5nLmggaXRzZWxmIGFuZCBoYXZlbid0IGdvdHRlbiB0byB0aGUgZnVu
-Y3Rpb24KPiBkZWNsYXJhdGlvbnMgeWV0Lgo+IAoKSGkgTWFya3VzLAoKQW1hemluZy4gSSBzZWUg
-dGhpcyBoYXBwZW5pbmcgYXMgd2VsbCwgYnV0IEkga25vdyBpdCBzaG91bGRuJ3QuCgpUaGUgcmVh
-c29uIHRoZSAjaWZuZGVmIGd1YXJkcyBpbiBoZWFkZXJzIGFyZSB0aGVyZSBpcyBwcmVjaXNlbHkg
-dG8gYWxsb3cKY2lyY3VsYXIgZGVwZW5kZW5jaWVzLgoKVGhlIHByb2JsZW0gaW4geW91ciBvdXRw
-dXQgcmVhZHMgYXM6CnN0cnN0cigpIGlzIGluIHN0cmluZy5oCiNpbmNsdWRlIHN0cmluZy5oIC0+
-IHRoYXQgaW5jbHVkZXMga2VybmVsLmggLT4gdGhhdCBpbmNsdWRlcyBzdHJpbmcuaAoKVGhlIHRo
-aXJkIHNob3VsZCBkbyBub3RoaW5nIGJhc2VkIG9uIF9MSU5VWF9TVFJJTkdfSF8gYmVpbmcgZGVm
-aW5lZCBhbHJlYWR5CmFuZCBhbGwgY29kZSBpbnNpZGUgdGhlICNpZm5kZWYgaW4gc3RyaW5nLmgg
-bm90IGJlaW5nIGV4ZWN1dGVkLgpZZXQgaXQgc2hvdWxkbid0IGJsb2NrIHRoZSBmaXJzdCBpbmNs
-dWRlIGFib3ZlIHNpbmNlIHRoYXQgbWFjcm8gaXNuJ3QgZGVmaW5lZCwKd2hpY2ggaXMgd2hhdCB0
-aGUgZXJyb3Igc3VnZ2VzdHMgc2luY2UgaXQgZG9lc24ndCBoYXZlIHN0cnN0cigpCklmIF9MSU5V
-WF9TVFJJTkdfSCBpcyBkZWZpbmVkLCBzdHJzdHIoKSBzaG91bGQgYmUgYXZhaWxhYmxlLgoKSW52
-ZXN0aWdhdGluZyB0aGlzIGlzc3VlLCBpdCBvbmx5IGhhcHBlbnMgd2hlbiBDT05GSUdfRFlOQU1J
-Q19ERUJVRyBpcyBub3QKc2V0IGFuZCBsaW5lIDE3MCBvZiBkeW5hbWljX2RlYnVnLmggcnVucywg
-YnV0IGp1c3QgYWJvdmUgd2UgaGF2ZSBhbgppbmNsdWRlIG9mIHN0cmluZy5oLgoKVmVyeSBzdHJh
-bmdlIHRoYXQgI2luY2x1ZGUgPGxpbnV4L3N0cmluZy5oPiBpc24ndCBkb2luZyBpdHMgam9iLgoK
-VGhlIGZpcnN0IHRoaW5nIEkgdHJpZWQgaXMgdG8gdW5kZXJzdGFuZCB3aGVyZSBkeW5hbWljX2Rl
-YnVnLmggaXMgdXNlZCBhbmQKcmVtb3ZlZCB0aGUgdW5uZWVkZWQgb25lczoKLS0tLS0tLS0tLS0t
-LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
-LS0tLS0KZGlmZiAtLWdpdCBhL2luY2x1ZGUvbGludXgva2VybmVsLmggYi9pbmNsdWRlL2xpbnV4
-L2tlcm5lbC5oCi0tLSBhL2luY2x1ZGUvbGludXgva2VybmVsLmgKKysrIGIvaW5jbHVkZS9saW51
-eC9rZXJuZWwuaApAQCAtMTEsNyArMTEsNiBAQAogI2luY2x1ZGUgPGxpbnV4L2xvZzIuaD4KICNp
-bmNsdWRlIDxsaW51eC90eXBlY2hlY2suaD4KICNpbmNsdWRlIDxsaW51eC9wcmludGsuaD4KLSNp
-bmNsdWRlIDxsaW51eC9keW5hbWljX2RlYnVnLmg+CiAjaW5jbHVkZSA8YXNtL2J5dGVvcmRlci5o
-PgogI2luY2x1ZGUgPHVhcGkvbGludXgva2VybmVsLmg+CgpkaWZmIC0tZ2l0IGEvaW5jbHVkZS9s
-aW51eC9wcmludGsuaCBiL2luY2x1ZGUvbGludXgvcHJpbnRrLmgKLS0tIGEvaW5jbHVkZS9saW51
-eC9wcmludGsuaAorKysgYi9pbmNsdWRlL2xpbnV4L3ByaW50ay5oCkBAIC0zMDcsMTAgKzMwNywx
-MSBAQCBhc21saW5rYWdlIF9fcHJpbnRmKDEsIDIpIF9fY29sZCB2b2lkIF9fcHJfaW5mbyhjb25z
-dCBjaGFyICpmbXQsIC4uLik7CiAgICAgICAgbm9fcHJpbnRrKEtFUk5fREVCVUcgcHJfZm10KGZt
-dCksICMjX19WQV9BUkdTX18pCiAjZW5kaWYKCi0jaW5jbHVkZSA8bGludXgvZHluYW1pY19kZWJ1
-Zy5oPgoKIC8qIElmIHlvdSBhcmUgd3JpdGluZyBhIGRyaXZlciwgcGxlYXNlIHVzZSBkZXZfZGJn
-IGluc3RlYWQgKi8KICNpZiBkZWZpbmVkKENPTkZJR19EWU5BTUlDX0RFQlVHKQorI2luY2x1ZGUg
-PGxpbnV4L2R5bmFtaWNfZGVidWcuaD4KKwogLyogZHluYW1pY19wcl9kZWJ1ZygpIHVzZXMgcHJf
-Zm10KCkgaW50ZXJuYWxseSBzbyB3ZSBkb24ndCBuZWVkIGl0IGhlcmUgKi8KICNkZWZpbmUgcHJf
-ZGVidWcoZm10LCAuLi4pIFwKICAgICAgICBkeW5hbWljX3ByX2RlYnVnKGZtdCwgIyNfX1ZBX0FS
-R1NfXykKZGlmZiAtLWdpdCBhL2tlcm5lbC9tb2R1bGUuYyBiL2tlcm5lbC9tb2R1bGUuYwppbmRl
-eCBiZWFlYmVhLi5lNzBhMmZhIDEwMDY0NAotLS0gYS9rZXJuZWwvbW9kdWxlLmMKKysrIGIva2Vy
-bmVsL21vZHVsZS5jCkBAIC02MCw2ICs2MCw3IEBACiAjaW5jbHVkZSA8bGludXgvanVtcF9sYWJl
-bC5oPgogI2luY2x1ZGUgPGxpbnV4L3Bmbi5oPgogI2luY2x1ZGUgPGxpbnV4L2JzZWFyY2guaD4K
-KyNpbmNsdWRlIDxsaW51eC9keW5hbWljX2RlYnVnLmg+CiAjaW5jbHVkZSA8dWFwaS9saW51eC9t
-b2R1bGUuaD4KICNpbmNsdWRlICJtb2R1bGUtaW50ZXJuYWwuaCIKLS0tLS0tLS0tLS0tLS0tLS0t
-LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0K
-ClRoaXMgZGlmZiBbMF0gZml4ZXMgdGhlIGlzc3VlIGJ1dCBpdCBpcyBhIHdvcmthcm91bmQgZm9y
-IHRoZSBvcmlnaW5hbAppc3N1ZSBhYm91dCBzdHJpbmcuaCBub3QgYmVpbmcgcHJvcGVybHkgaW5j
-bHVkZWQgaW4gZHluYW1pY19kZWJ1Zy5oCgpQdXp6bGVkIGJ5IHRoaXMgYW5kIGNhbid0IGZpZ3Vy
-ZSBvdXQgd2hhdCBpcyBoYXBwZW5pbmcgd3JvbmcuCgpUaGUgc2Vjb25kIHRoaW5nIEkgdHJpZWQg
-d2FzIGFkZGluZwojd2FybmluZyAiTGlua2luZyB0byBzdHJpbmcgaGVhZGVyIgppbiBpbmNsdWRl
-L2xpbnV4L3N0cmluZy5oLCBhbmQgSSBkb24ndCBzZWUgYW55IGluY2x1ZGUgcGF0aCBtZW50aW9u
-aW5nCmtlcm5lbC5oLCB3aGVyZSBkbyB5b3Ugc2VlIHRoZSBjaXJjdWxhciBkZXBlbmRlbmN5PyBJ
-IG1pZ2h0IGJlIG1pc3NpbmcKc29tZXRoaW5nLgoKVGhhbmtzLApMdWlzCgoKClswXSBTZW50IGZv
-ciBjb21tZW50czoKaHR0cHM6Ly9sa21sLm9yZy9sa21sLzIwMTYvNy8xMy82ODYKCj4+Pj4gKy8q
-Kgo+Pj4+ICsgKiBzdHJjcHl0b2xvd2VyIC0gQ29weSBzdHJpbmcgYW5kIGNvbnZlcnQgdG8gbG93
-ZXJjYXNlLgo+Pj4+ICsgKiBAZHN0OiBUaGUgYnVmZmVyIHRvIHN0b3JlIHRoZSByZXN1bHQuCj4+
-Pj4gKyAqIEBzcmM6IFRoZSBzdHJpbmcgdG8gY29udmVydCB0byBsb3dlcmNhc2UuCj4+Pj4gKyAq
-Lwo+Pj4+ICtzdGF0aWMgaW5saW5lIHZvaWQgc3RyY3B5dG9sb3dlcihjaGFyICpkc3QsIGNvbnN0
-IGNoYXIgKnNyYykKPj4+PiArewo+Pj4+ICsgICAgIHN0cmxjcHl0b2xvd2VyKGRzdCwgc3JjLCAt
-MSk7Cj4+Pj4gK30KPj4+PiArCj4+Pgo+Pj4gU2FtZSBoZXJlLCBhbmQgdGhlIDIgYmVsb3cgOikK
-Pj4+Cj4+PiBUaGFua3MgTWFya3VzLAo+Pj4gTHVpcwo+Pj4KPj4+PiArLyoqCj4+Pj4gKyAqIHN0
-cnRvdXBwZXIgLSBDb252ZXJ0IHN0cmluZyB0byB1cHBlcmNhc2UuCj4+Pj4gKyAqIEBzOiBUaGUg
-c3RyaW5nIHRvIG9wZXJhdGUgb24uCj4+Pj4gKyAqLwo+Pj4+ICtzdGF0aWMgaW5saW5lIHZvaWQg
-c3RydG91cHBlcihjaGFyICpzKQo+Pj4+ICt7Cj4+Pj4gKyAgICAgc3RybGNweXRvdXBwZXIocywg
-cywgLTEpOwo+Pj4+ICt9Cj4+Pj4gKwo+Pj4+ICsvKioKPj4+PiArICogc3RydG9sb3dlciAtIENv
-bnZlcnQgc3RyaW5nIHRvIGxvd2VyY2FzZS4KPj4+PiArICogQHM6IFRoZSBzdHJpbmcgdG8gb3Bl
-cmF0ZSBvbi4KPj4+PiArICovCj4+Pj4gK3N0YXRpYyBpbmxpbmUgdm9pZCBzdHJ0b2xvd2VyKGNo
-YXIgKnMpCj4+Pj4gK3sKPj4+PiArICAgICBzdHJsY3B5dG9sb3dlcihzLCBzLCAtMSk7Cj4+Pj4g
-K30KPj4+PiArCj4+Pj4gICNlbmRpZiAvKiBfTElOVVhfU1RSSU5HX0hfICovCj4+Pj4gZGlmZiAt
-LWdpdCBhL2xpYi9zdHJpbmcuYyBiL2xpYi9zdHJpbmcuYwo+Pj4+IGluZGV4IGVkODM1NjIuLmZk
-OGM0MjcgMTAwNjQ0Cj4+Pj4gLS0tIGEvbGliL3N0cmluZy5jCj4+Pj4gKysrIGIvbGliL3N0cmlu
-Zy5jCj4+Pj4gQEAgLTk1MiwzICs5NTIsNDEgQEAgY2hhciAqc3RycmVwbGFjZShjaGFyICpzLCBj
-aGFyIG9sZCwgY2hhciBuZXcpCj4+Pj4gICAgICAgcmV0dXJuIHM7Cj4+Pj4gIH0KPj4+PiAgRVhQ
-T1JUX1NZTUJPTChzdHJyZXBsYWNlKTsKPj4+PiArCj4+Pj4gKy8qKgo+Pj4+ICsgKiBzdHJsY3B5
-dG91cHBlciAtIENvcHkgYSBsZW5ndGgtbGltaXRlZCBzdHJpbmcgYW5kIGNvbnZlcnQgdG8gdXBw
-ZXJjYXNlLgo+Pj4+ICsgKiBAZHN0OiBUaGUgYnVmZmVyIHRvIHN0b3JlIHRoZSByZXN1bHQuCj4+
-Pj4gKyAqIEBzcmM6IFRoZSBzdHJpbmcgdG8gY29udmVydCB0byB1cHBlcmNhc2UuCj4+Pj4gKyAq
-IEBsZW46IE1heGltdW0gc3RyaW5nIGxlbmd0aC4gTWF5IGJlIFNJWkVfTUFYICgtMSkgdG8gc2V0
-IG5vIGxpbWl0Lgo+Pj4+ICsgKi8KPj4+PiArdm9pZCBzdHJsY3B5dG91cHBlcihjaGFyICpkc3Qs
-IGNvbnN0IGNoYXIgKnNyYywgc2l6ZV90IGxlbikKPj4+PiArewo+Pj4+ICsgICAgIHNpemVfdCBp
-Owo+Pj4+ICsKPj4+PiArICAgICBpZiAoIWxlbikKPj4+PiArICAgICAgICAgICAgIHJldHVybjsK
-Pj4+PiArCj4+Pj4gKyAgICAgZm9yIChpID0gMDsgaSA8IGxlbiAmJiBzcmNbaV07ICsraSkKPj4+
-PiArICAgICAgICAgICAgIGRzdFtpXSA9IHRvdXBwZXIoc3JjW2ldKTsKPj4+PiArICAgICBkc3Rb
-aSA8IGxlbiA/IGkgOiBpIC0gMV0gPSAnXDAnOwo+Pj4+ICt9Cj4+Pj4gK0VYUE9SVF9TWU1CT0wo
-c3RybGNweXRvdXBwZXIpOwo+Pj4+ICsKPj4+PiArLyoqCj4+Pj4gKyAqIHN0cmxjcHl0b2xvd2Vy
-IC0gQ29weSBhIGxlbmd0aC1saW1pdGVkIHN0cmluZyBhbmQgY29udmVydCB0byBsb3dlcmNhc2Uu
-Cj4+Pj4gKyAqIEBkc3Q6IFRoZSBidWZmZXIgdG8gc3RvcmUgdGhlIHJlc3VsdC4KPj4+PiArICog
-QHNyYzogVGhlIHN0cmluZyB0byBjb252ZXJ0IHRvIGxvd2VyY2FzZS4KPj4+PiArICogQGxlbjog
-TWF4aW11bSBzdHJpbmcgbGVuZ3RoLiBNYXkgYmUgU0laRV9NQVggKC0xKSB0byBzZXQgbm8gbGlt
-aXQuCj4+Pj4gKyAqLwo+Pj4+ICt2b2lkIHN0cmxjcHl0b2xvd2VyKGNoYXIgKmRzdCwgY29uc3Qg
-Y2hhciAqc3JjLCBzaXplX3QgbGVuKQo+Pj4+ICt7Cj4+Pj4gKyAgICAgc2l6ZV90IGk7Cj4+Pj4g
-Kwo+Pj4+ICsgICAgIGlmICghbGVuKQo+Pj4+ICsgICAgICAgICAgICAgcmV0dXJuOwo+Pj4+ICsK
-Pj4+PiArICAgICBmb3IgKGkgPSAwOyBpIDwgbGVuICYmIHNyY1tpXTsgKytpKQo+Pj4+ICsgICAg
-ICAgICAgICAgZHN0W2ldID0gdG9sb3dlcihzcmNbaV0pOwo+Pj4+ICsgICAgIGRzdFtpIDwgbGVu
-ID8gaSA6IGkgLSAxXSA9ICdcMCc7Cj4+Pj4gK30KPj4+PiArRVhQT1JUX1NZTUJPTChzdHJsY3B5
-dG9sb3dlcik7Cj4+Pj4KPj4+CgpfX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fX19fXwpOb3V2ZWF1IG1haWxpbmcgbGlzdApOb3V2ZWF1QGxpc3RzLmZyZWVkZXNrdG9w
-Lm9yZwpodHRwczovL2xpc3RzLmZyZWVkZXNrdG9wLm9yZy9tYWlsbWFuL2xpc3RpbmZvL25vdXZl
-YXUK
+(cc'ing ACPI folks and retaining message body for context)
+
+On Tue, Jul 05, 2016 at 11:01:53AM +0530, Navin P.S wrote:
+> On Mon, Jul 4, 2016 at 8:55 PM, Kevin Brubeck Unhammer
+> <unhammer@fsfe.org> wrote:
+> >
+> > Hi again,
+> >
+> > Navin found a workaround: acpi=3Dnoirq (and pci=3Dnoacpi) lets me b=
+oot with
+> > the newer kernels.
+> >
+> > Attached are dmesg's from 4.7rc2 and 4.7rc5 from
+> > http://kernel.ubuntu.com/~kernel-ppa/mainline/ (rc5 complained abou=
+t
+> > missing noveau firmware; I haven't tried the newest linux-firmware
+> > package yet, but haven't yet seen anything *not* working in rc5 tha=
+t was
+> > working in rc2).
+> >
+> >
+> > Other changes when using acpi=3Dnoirq that may or may not be releva=
+nt:
+> > The computer will now poweroff when I do a shutdown, and restarts
+> > correctly (it used to just "hang" at the end of the shutdown sequen=
+ce),
+> > and a bluetooth device shows up that I didn't know I had. However,
+> > although I seem to be able to suspend, I can't resume (no response =
+when
+> > hitting power button). All in all an improvement though =E2=80=A6
+> >
+> >
+> >
+> > best regards,
+> > Kevin Brubeck Unhammer
+> >
+> >
+> >
+> > "Navin P.S" <navinp1912@gmail.com> =C4=8D=C3=A1lii:
+> >
+> > > On Mon, Jun 6, 2016 at 1:01 PM, Kevin Brubeck Unhammer
+> > > <unhammer@fsfe.org> wrote:
+> > >> Hi,
+> > >>
+> > >> I have a Lenovo A740 (running Xubuntu 16.04) which, with kernel
+> > >> versions >=3D 4.3.0, tested up until 4.7.0, gives this on trying=
+ to boot:
+> > >>
+> > >>   Begin: Waiting for root file system ... Begin: Running
+> > >>   /scripts/local-block ... done.
+> > >>   Begin: Running /scripts/local-block ... done.
+> > >>   Begin: Running /scripts/local-block ... done.
+> > >>   [=E2=80=A6]
+> > >>   done.
+> > >>   Gave up waiting for root device.
+> > >>
+> > >> and drops me into an (initramfs) shell, where my keyboard is
+> > >> unresponsive. The last kernel I tried which booted fine was 4.2.=
+8.
+> > >>
+> > >> I reported this at https://bugzilla.kernel.org/show_bug.cgi?id=3D=
+118401
+> > >> and, after some investigation, was asked to contact ahci.c - AHC=
+I SATA
+> > >> support. The attachments in that report show some output from in=
+itramfs
+> > >> (using a script in /etc/initramfs-tools/scripts/init-premount du=
+e to the
+> > >> keyboard not working).
+> > >>
+> > >> What should I do to keep debugging this issue?
+> > >>
+> > >
+> > > I have been working with Kevin on the bug 118401 .
+> > >
+> > > I'll post the summary.
+> > > The kernel 4.2 works and he is able to boot the system.
+> > > Kernel 4.4 and 4.6, 4.7  drops into initramfs shell for the same =
+uuid.
+> > > Upon further investigation cat /proc/devices showed no block devi=
+ces
+> > > other than zram and loop.The command /sbin/blkid on 4.6 and later
+> > > didn't give any output whereas on 4.2 it does.
+> > >
+> > > Kernel 4.2 shows the ahci used count is 3
+> > > ahci 36864 3 - Live 0x0000000000000000
+> > > libahci 32768 1 ahci, Live 0x0000000000000000
+> > >
+> > > Where kernel 4.7 doesn't load the ahci module upon boot and upon
+> > > modprobe ahci from the initramfs shell it shows the ahci count as=
+ 0.
+> > > So it is not detecting the drive. Not sure why ?
+> > >
+> > > Some more things to note from 4.2 dmesg it prints not sure if it =
+is relevant.
+> > >
+> > > [    0.716610] ahci 0000:00:1f.2: version 3.0
+> > > [    0.716620] ahci 0000:00:1f.2: can't find IRQ for PCI INT B;
+> > > probably buggy MP table
+> > >
+> > > [    0.735267] ahci 0000:00:1f.2: AHCI 0001.0300 32 slots 4 ports=
+ 6
+> > > Gbps 0x1 impl SATA mode
+> > >
+> > > [    0.746033] ata1: SATA max UDMA/133 abar m2048@0xb5618000 port
+> > > 0xb5618100 irq 44
+> > >
+> > > [    1.068001] ata1: SATA link up 6.0 Gbps (SStatus 133 SControl =
+300)
+> > >
+> > > [    1.134029] ata1.00: ATA-8: ST1000LM014-1EJ164-SSHD-8GB, LIV6,=
+ max UDMA/133
+> > > [    1.134030] ata1.00: 1953525168 sectors, multi 0: LBA48 NCQ (d=
+epth 31/32), AA
+> > > [    1.178470] ata1.00: configured for UDMA/133
+> > > [    1.178620] scsi 0:0:0:0: Direct-Access     ATA
+> > > ST1000LM014-1EJ1 LIV6 PQ: 0 ANSI: 5
+> > > [    1.178853] sd 0:0:0:0: [sda] 1953525168 512-byte logical bloc=
+ks:
+> > > (1.00 TB/931 GiB)
+> > > [    1.178855] sd 0:0:0:0: [sda] 4096-byte physical blocks
+> > > [    1.178879] sd 0:0:0:0: [sda] Write Protect is off
+> > > [    1.178881] sd 0:0:0:0: [sda] Mode Sense: 00 3a 00 00
+> > >
+> > >
+> > > where as 4.6 and later doesn't print these messages.dmesg | grep
+> > > ata[0-4] gives no output.
+> > >
+> > > lspci on 4.2 gives this
+> > >
+> > > 00:1f.2 SATA controller: Intel Corporation 8 Series SATA Controll=
+er 1
+> > > [AHCI mode] (rev 04) (prog-if 01 [AHCI 1.0])
+> > > Subsystem: Lenovo 8 Series SATA Controller 1 [AHCI mode]
+> > > Control: I/O+ Mem+ BusMaster+ SpecCycle- MemWINV- VGASnoop- ParEr=
+r-
+> > > Stepping- SERR- FastB2B- DisINTx+
+> > > Status: Cap+ 66MHz+ UDF- FastB2B+ ParErr- DEVSEL=3Dmedium >TAbort=
+-
+> > > <TAbort- <MAbort- >SERR- <PERR- INTx-
+> > > Latency: 0
+> > > Interrupt: pin B routed to IRQ 44
+> > > Region 0: I/O ports at 6088 [size=3D8]
+> > > Region 1: I/O ports at 6094 [size=3D4]
+> > > Region 2: I/O ports at 6080 [size=3D8]
+> > > Region 3: I/O ports at 6090 [size=3D4]
+> > > Region 4: I/O ports at 6060 [size=3D32]
+> > > Region 5: Memory at b5618000 (32-bit, non-prefetchable) [size=3D2=
+K]
+> > > Capabilities: [80] MSI: Enable+ Count=3D1/1 Maskable- 64bit-
+> > > Address: fee0400c  Data: 4181
+> > > Capabilities: [70] Power Management version 3
+> > > Flags: PMEClk- DSI- D1- D2- AuxCurrent=3D0mA PME(D0-,D1-,D2-,D3ho=
+t+,D3cold-)
+> > > Status: D0 NoSoftRst+ PME-Enable- DSel=3D0 DScale=3D0 PME-
+> > > Capabilities: [a8] SATA HBA v1.0 BAR4 Offset=3D00000004
+> > > Kernel driver in use: ahci
+> > > Kernel modules: ahci
+>=20
+>=20
+> Hi,
+>=20
+>    The default kernel parametes doesn't detect disk whereas when you
+> pass kernel command line (acpi=3Dnoirq or pci=3Dnoacpi) the disk is
+> detected and the machine is usable.
+> Should this be forwarded to linux-acpi list ?
+>=20
+> This machine was usuable without any arguments like acpi=3Dnoirq and
+> pci=3Dnoacpi in 4.2 .
+>=20
+> What does this usually indicate buggy bios ?
+>=20
+> I can see some parse execution error in dmesg attached.
+
+Yeah, looks like an IRQ routing problem.  cc'd ACPI folks.
+
+Thanks.
+
+--=20
+tejun
