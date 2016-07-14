@@ -1,68 +1,74 @@
-From: Markus Mayer <markus.mayer-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
-Subject: Re: [PATCH v3 1/7] lib: string: add functions to
-	case-convert strings
-Date: Wed, 13 Jul 2016 16:04:10 -0700
-Message-ID: <CAGt4E5uqxTkQHtaczim2BRijte3z5CVMoG172JaofL7Tf9HdbQ@mail.gmail.com>
-References: <1468017794-4818-1-git-send-email-mmayer@broadcom.com>
- <1468017794-4818-2-git-send-email-mmayer@broadcom.com>
- <5780E866.8000001@osg.samsung.com>
- <CAGt4E5vYzkqgiiQXXjnX7az-KzCVSYthEW5Df03U=Y1qhEJdRQ@mail.gmail.com>
- <CAGt4E5tpw0sa1PQmgJzKbPuzSbFG9_CUWjjO1z93OSc0KkjUXw@mail.gmail.com>
- <57867813.8010608@osg.samsung.com>
- <CAGt4E5tRcYQeWdTLvABjpd2WgAPLmdrdEUVK33pS0J3a06wJ5w@mail.gmail.com>
- <5786C665.6020307@osg.samsung.com>
+From: "Rafael J. Wysocki" <rafael@kernel.org>
+Subject: Re: [PATCH v9 0/7] ACPI / processor_idle: Add ACPI v6.0 LPI support
+Date: Thu, 14 Jul 2016 03:15:27 +0200
+Message-ID: <CAJZ5v0jpfgVupHcoKR+vnjGYu=a5SRZEwAybH1JoCqidGXqdXQ@mail.gmail.com>
+References: <1467997678-7107-1-git-send-email-sudeep.holla@arm.com>
+ <5784D78E.7010409@arm.com> <2164074.OnkmXO2GSJ@vostro.rjw.lan> <5784E9AB.1070507@arm.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <nouveau-bounces-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org>
-In-Reply-To: <5786C665.6020307-JPH+aEBZ4P+UEJcrhfAQsw@public.gmane.org>
-List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/nouveau>,
- <mailto:nouveau-request-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org?subject=unsubscribe>
-List-Archive: <https://lists.freedesktop.org/archives/nouveau>
-List-Post: <mailto:nouveau-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org>
-List-Help: <mailto:nouveau-request-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/nouveau>,
- <mailto:nouveau-request-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org?subject=subscribe>
-Errors-To: nouveau-bounces-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org
-Sender: "Nouveau" <nouveau-bounces-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org>
-To: Luis de Bethencourt <luisbg-JPH+aEBZ4P+UEJcrhfAQsw@public.gmane.org>
-Cc: devel-gWbeCf7V1WCQmaza687I9mD2FQJk+8+b@public.gmane.org, Kees Cook <keescook-F7+t8E8rja9g9hUCZPvPmw@public.gmane.org>, linux-scsi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-pm-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, nouveau-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org, Rasmus Villemoes <linux-qQsb+v5E8BnlAoU/VqSP6n9LOBIZ5rWg@public.gmane.org>, Linux Kernel <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, dri-devel-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org, speakup-UPO/6gOIxNZglr+F8WMZYdi2O/JbrIOy@public.gmane.org, Chris Metcalf <cmetcalf-d5a29ZRxExrQT0dZR+AlfA@public.gmane.org>, target-devel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Al Viro <viro-RmSDqhL/yNMiFSDQTTA3OLVCufUGDwFn@public.gmane.org>, Andrew Morton <akpm-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org>, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-wm0-f65.google.com ([74.125.82.65]:35852 "EHLO
+	mail-wm0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751866AbcGNBPa (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 13 Jul 2016 21:15:30 -0400
+In-Reply-To: <5784E9AB.1070507@arm.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Sudeep Holla <sudeep.holla@arm.com>
+Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, ACPI List <linux-acpi@vger.kernel.org>, Vikas Sajjan <vikas.cha.sajjan@hpe.com>, Sunil <sunil.vl@hpe.com>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Prashanth Prakash <pprakash@codeaurora.org>, Al Stone <al.stone@linaro.org>, Ashwin Chaugule <ashwin.chaugule@linaro.org>, Daniel Lezcano <daniel.lezcano@linaro.org>, LKML <linux-kernel@vger.kernel.org>, ALKML <linux-arm-kernel@lists.infradead.org>
 
-T24gMTMgSnVseSAyMDE2IGF0IDE1OjUzLCBMdWlzIGRlIEJldGhlbmNvdXJ0IDxsdWlzYmdAb3Nn
-LnNhbXN1bmcuY29tPiB3cm90ZToKPgo+IEhpIE1hcmt1cywKPgo+IFRoYW5rIHlvdSB2ZXJ5IG11
-Y2ggZm9yIHRoZSB0aG9yb3VnaCB0ZXN0aW5nIGFuZCBzb2x1dGlvbiBzZWFyY2hpbmcuCj4KPiBF
-YXJsaWVyIHRvZGF5IEkgc2VudCBhIHBhdGNoIHRoYXQgcmVtb3ZlcyBkeW5hbWljX2RlYnVnLmgg
-ZnJvbQo+IGluY2x1ZGUvbGludXgva2VybmVsLmgsIHNpbmNlIGl0IGlzbid0IHJlYWxseSBuZWVk
-ZWQuIFNvcnJ5IGFib3V0IHRoaXMKPiBzaW5jZSBpdCBjaGFuZ2VzIHdoYXQgeW91IHdlcmUgdGVz
-dGluZyBqdXN0IGEgZmV3IGhvdXJzIGxhdGVyLgoKSSBkaWQgc2VlIGF0IGxlYXN0IHNvbWUgb2Yg
-dGhlIGNoYW5nZXMgeW91IHBvc3RlZC4gSSB3YXMgbW9zdGx5CmN1cmlvdXMgdG8gc2VlIHdoZXJl
-IHRoZSBwcm9ibGVtIHdhcyBjb21pbmcgZnJvbSBpbiB0aGUgZmlyc3QgcGxhY2UuCgo+IEkgYW0g
-c3RhcnRpbmcgdG8gdGhpbmsgdGhhdCBnZXR0aW5nIGFjY2VzcyB0byBTSVpFX01BWCBpc24ndCB3
-b3J0aCB0aGUKPiB0cm91YmxlLCBzcGVjaWFsbHkgY29uc2lkZXJpbmcgdGhhdCBtb3ZpbmcgYW4g
-aW5jbHVkZSBvdXQgb2YgdGhlIHRvcAo+IG9mIHRoZSBmaWxlIG1ha2VzIHRoZSBjb2RlIGxlc3Mg
-cmVhZGFibGUuIFRoZSBMaW51eCBrZXJuZWwgaXMgZ3Jvd2luZwo+IGluIGNvbXBsZXhpdHkgYW5k
-IHRyeWluZyB0byBrZWVwIGl0IHJlYWRhYmxlIGZvciBuZXdjb21lcnMgaXMgdmVyeQo+IGltcG9y
-dGFudCBJTUhPLgoKSSd2ZSBiZWVuIHRoaW5raW5nIHRoZSBzYW1lIHRoaW5nLiBJdCBzZWVtcyB0
-byBiZSB0dXJuaW5nIGludG8gYSBodWdlCmVmZm9ydCB0byBtYWtlIHRoaXMgc2ltcGxlIGNvbnN0
-YW50IGF2YWlsYWJsZS4KCj4gVGhlIG1haW50YWluZXJzIGhhdmUgdGhlIGxhc3Qgd29yZCBvbiB0
-aGlzLCBidXQgZm9yIG5vdyBJIHJlbW92ZSBteQo+IHF1ZXN0aW9uIGFib3V0IHdoeSB1c2UgLTEg
-aW5zdGVhZCBvZiBTSVpFX01BWC4KPgo+IEFwb2xvZ2llcyBmb3IgdGhhdCwgdGhlIHNpbHZlciBs
-aW5pbmcgd2FzIHRoYXQgYXQgbGVhc3QgZm9yIG1lIGl0IHdhcwo+IGludGVyZXN0aW5nIHRvIGV4
-cGxvcmUgdGhpcyBhcmVhIG9mIHRoZSBjb2RlIGFuZCBpdHMgaW5jbHVzaW9ucy4gSSBob3BlCj4g
-aXQgd2FzIGZvciB5b3UgYXMgd2VsbC4KCk5vIG5lZWQgdG8gYXBvbG9naXplLiBJdCBzZWVtZWQg
-bGlrZSBhIG5vLWJyYWluZXIgdG8gdXNlIFNJWkVfTUFYLiA6LSkKQW5kIEkgYW0gc3VyZSBhbGwg
-dGhlIGRpZ2dpbmcgd2lsbCBjb21lIGhhbmR5IGluIHNvbWUgd2F5LgoKPiBQRDoganVzdCBhIHNt
-YWxsIGNvbW1lbnQsIGluIGNhc2UgeW91IGVuZCB1cCBzZW5kaW5nIGEgbmV3IHZlcnNpb24gb2YK
-PiB5b3VyIHBhdGNoZXMuIEluIHRoZSBmb2xsb3dpbmcgZG9jdW1lbnRhdGlvbiBvZiB5b3VyIGZ1
-bmN0aW9ucy4KPiAqIEBsZW46IE1heGltdW0gc3RyaW5nIGxlbmd0aC4gTWF5IGJlIFNJWkVfTUFY
-ICgtMSkgdG8gc2V0IG5vIGxpbWl0Lgo+Cj4gV2hhdCBkbyB5b3UgdGhpbmsgYWJvdXQgIlNJWkVf
-TUFYIG9yIC0xIiBpbnN0ZWFkIG9mICJTSVpFX01BWCAoLTEpIiB0bwo+IGF2b2lkIGNvbmZ1c2lu
-ZyBhbnkgcmVhZGVycyB3aG8gbWlnaHQgdGhpbmsgU0laRV9NQVggaXMgYSBmdW5jdGlvbj8gQXMK
-PiBJIHRoaW5rIHlvdSBpbnRlbmQgdG8gbWVhbiB5b3VyIGNvZGUgYWNjZXB0cyBib3RoIC0xIG9y
-IFNJWkVfTUFYLCB3aGljaAo+IGlzIH4wLgo+Cj4gSnVzdCBhbiBpZGVhLCBmZWVsIGZyZWUgdG8g
-aWdub3JlIGl0IDopCgpJIHRoaW5rIEkgbWlnaHQgdXNlIH4oc2l6ZV90KTAgZGlyZWN0bHkgaW5z
-dGVhZCBvZiAtMSAob3IgU0laRV9NQVgpLgoKVGhhbmtzLAotTWFya3VzCl9fX19fX19fX19fX19f
-X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fCk5vdXZlYXUgbWFpbGluZyBsaXN0Ck5v
-dXZlYXVAbGlzdHMuZnJlZWRlc2t0b3Aub3JnCmh0dHBzOi8vbGlzdHMuZnJlZWRlc2t0b3Aub3Jn
-L21haWxtYW4vbGlzdGluZm8vbm91dmVhdQo=
+On Tue, Jul 12, 2016 at 2:59 PM, Sudeep Holla <sudeep.holla@arm.com> wrote:
+>
+>
+> On 12/07/16 13:09, Rafael J. Wysocki wrote:
+>>
+>> On Tuesday, July 12, 2016 12:42:06 PM Sudeep Holla wrote:
+>>>
+>>>
+>>> On 08/07/16 18:07, Sudeep Holla wrote:
+>>>>
+>>>> ACPI 6.0 introduced LPI(Low Power Idle) states that provides an
+>>>> alternate
+>>>> method to describe processor idle states. It extends the specification
+>>>> to allow the expression of idle states like C-states selectable by the
+>>>> OSPM when a processor goes idle, but may affect more than one processor,
+>>>> and may affect other system components.
+>>>>
+>>>> LPI extensions leverages the processor container device(again introduced
+>>>> in ACPI 6.0) allowing to express which parts of the system are affected
+>>>> by a given LPI state. It defines the local power states for each node
+>>>> in a hierarchical processor topology. The OSPM can use _LPI object to
+>>>> select a local power state for each level of processor hierarchy in the
+>>>> system. They used to produce a composite power state request that is
+>>>> presented to the platform by the OSPM.
+>>>>
+>>>> Since multiple processors affect the idle state for any non-leaf
+>>>> hierarchy
+>>>> node, coordination of idle state requests between the processors is
+>>>> required. ACPI supports two different coordination schemes: Platform
+>>>> coordinated and  OS initiated.
+>>>>
+>>>
+>>> I was hoping to get this in v4.8 now that merge window is
+>>> delayed/extended if you have no further comments on this series.
+>>
+>>
+>> I'll get to it in the next couple of days.  If it looks all good and there
+>> are
+>> no comments, I'll queue it up.
+>>
+>
+> Thanks for the update.
+
+I've just looked at patch [2/7] and there still are things I'm not
+particularly liking in it.
+
+Apart from a bunch of minor stuff, acpi_processor_get_lpi_info() is
+not my favorite.  The way it creates all of those temporary data
+structures and then walks them recursively seems a bit excessive.
+
+I need to think about it a bit more, so I'll send my comments on that
+patch later this week.
+
+Thanks,
+Rafael
