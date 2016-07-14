@@ -1,138 +1,246 @@
-From: Dennis Chen <dennis.chen@arm.com>
-Subject: [PATCH v6 2/2] arm64:acpi Fix the acpi alignment exception when 'mem=' specified
-Date: Thu, 14 Jul 2016 13:43:56 +0800
-Message-ID: <1468475036-5852-3-git-send-email-dennis.chen@arm.com>
-References: <1468475036-5852-1-git-send-email-dennis.chen@arm.com>
+From: Feng Tang <feng.79.tang@gmail.com>
+Subject: Re: S3 resume regression [1cf4f629d9d2 ("cpu/hotplug: Move online
+ calls to hotplugged cpu")]
+Date: Thu, 14 Jul 2016 16:29:42 +0800
+Message-ID: <CA++bM2sLMDLdeyLd_gpknTj+Y5xMk261SvivU5YxTnL0jRZovA@mail.gmail.com>
+References: <57332171.8070403@linutronix.de> <20160511122116.GA4329@intel.com>
+ <20160511084445.00030b49@gandalf.local.home> <20160511133406.GC4329@intel.com>
+ <20160516193910.GL4329@intel.com> <573BA5E2.5040506@intel.com>
+ <20160518072424.GU4329@intel.com> <20160526183207.GX4329@intel.com>
+ <CAJZ5v0in8YwMBgLd6=KgGVc-f2yVvutOJG_u05OKLK7_EzN0yQ@mail.gmail.com>
+ <20160531072650.GP4329@intel.com> <20160713145425.GB4329@intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=WINDOWS-1252
-Content-Transfer-Encoding: quoted-printable
-Return-path: <owner-linux-mm@kvack.org>
-In-Reply-To: <1468475036-5852-1-git-send-email-dennis.chen@arm.com>
-Sender: owner-linux-mm@kvack.org
-To: linux-arm-kernel@lists.infradead.org
-Cc: nd@arm.com, steve.capper@arm.com, dennis.chen@arm.com, catalin.marinas@arm.com, ard.biesheuvel@linaro.org, akpm@linux-foundation.org, penberg@kernel.org, mgorman@techsingularity.net, tangchen@cn.fujitsu.com, tony.luck@intel.com, mingo@kernel.org, rafael@kernel.org, will.deacon@arm.com, mark.rutland@arm.com, matt@codeblueprint.co.uk, kaly.xin@arm.com, linux-mm@kvack.org, linux-acpi@vger.kernel.org, linux-efi@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-io0-f178.google.com ([209.85.223.178]:33877 "EHLO
+	mail-io0-f178.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750947AbcGNI3o convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 14 Jul 2016 04:29:44 -0400
+In-Reply-To: <20160713145425.GB4329@intel.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: =?UTF-8?B?VmlsbGUgU3lyasOkbMOk?= <ville.syrjala@linux.intel.com>, feng.tang@intel.com
+Cc: "Rafael J. Wysocki" <rafael@kernel.org>, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Steven Rostedt <rostedt@goodmis.org>, Sebastian Andrzej Siewior <bigeasy@linutronix.de>, Thomas Gleixner <tglx@linutronix.de>, linux-arch@vger.kernel.org, Rik van Riel <riel@redhat.com>, "Srivatsa S. Bhat" <srivatsa@mit.edu>, Peter Zijlstra <peterz@infradead.org>, Arjan van de Ven <arjan@linux.intel.com>, Rusty Russell <rusty@rustcorp.com.au>, Oleg Nesterov <oleg@redhat.com>, Tejun Heo <tj@kernel.org>, Andrew Morton <akpm@linux-foundation.org>, Paul McKenney <paulmck@linux.vnet.ibm.com>, Linus Torvalds <torvalds@linux-foundation.org>, Paul Turner <pjt@google.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, "Zhang, Rui" <rui.zhang@intel.com>, Len Brown <len.brown@intel.com>, Linux PM <linux-pm@vger.kernel.org>, Linux ACPI <linux-acpi@vger.kernel.org>
 
-When booting an ACPI enabled kernel with 'mem=3Dx', there is the possibilit=
-y
-that ACPI data regions from the firmware will lie above the memory limit.
-Ordinarily these will be removed by memblock_enforce_memory_limit(.).
+if you only want it to work, you can try an old patch
+https://bugzilla.kernel.org/attachment.cgi?id=3D76071 from a similar bu=
+g
+https://bugzilla.kernel.org/show_bug.cgi?id=3D41932
 
-Unfortunately, this means that these regions will then be mapped by
-acpi_os_ioremap(.) as device memory (instead of normal) thus un-aligned
-accessess will then provoke alignment faults.=20
+Alistair Buxton confirmed it work for 3.18 at least
+https://bugzilla.kernel.org/show_bug.cgi?id=3D107151#c16
 
-In this patch we adopt memblock_mem_limit_remove_map instead, and this
-preserves these ACPI data regions (marked NOMAP) thus ensuring that these
-regions are not mapped as device memory.
+Thanks,
+=46eng
 
-For example, below is an alignment exception observed on ARM platform
-when booting the kernel with 'acpi=3Don mem=3D8G':
-...
-[    0.542475] Unable to handle kernel paging request at virtual address ff=
-ff0000080521e7
-[    0.550457] pgd =3D ffff000008aa0000
-[    0.553880] [ffff0000080521e7] *pgd=3D000000801fffe003, *pud=3D000000801=
-fffd003, *pmd=3D000000801fffc003, *pte=3D00e80083ff1c1707
-[    0.564939] Internal error: Oops: 96000021 [#1] PREEMPT SMP
-[    0.570553] Modules linked in:
-[    0.573626] CPU: 1 PID: 1 Comm: swapper/0 Not tainted 4.7.0-rc3-next-201=
-60616+ #172
-[    0.581344] Hardware name: AMD Overdrive/Supercharger/Default string, BI=
-OS ROD1001A 02/09/2016
-[    0.590025] task: ffff800001ef0000 ti: ffff800001ef8000 task.ti: ffff800=
-001ef8000
-[    0.597571] PC is at acpi_ns_lookup+0x520/0x734
-[    0.602134] LR is at acpi_ns_lookup+0x4a4/0x734
-[    0.606693] pc : [<ffff0000083b8b10>] lr : [<ffff0000083b8a94>] pstate: =
-60000045
-[    0.614145] sp : ffff800001efb8b0
-[    0.617478] x29: ffff800001efb8c0 x28: 000000000000001b
-[    0.622829] x27: 0000000000000001 x26: 0000000000000000
-[    0.628181] x25: ffff800001efb9e8 x24: ffff000008a10000
-[    0.633531] x23: 0000000000000001 x22: 0000000000000001
-[    0.638881] x21: ffff000008724000 x20: 000000000000001b
-[    0.644230] x19: ffff0000080521e7 x18: 000000000000000d
-[    0.649580] x17: 00000000000038ff x16: 0000000000000002
-[    0.654929] x15: 0000000000000007 x14: 0000000000007fff
-[    0.660278] x13: ffffff0000000000 x12: 0000000000000018
-[    0.665627] x11: 000000001fffd200 x10: 00000000ffffff76
-[    0.670978] x9 : 000000000000005f x8 : ffff000008725fa8
-[    0.676328] x7 : ffff000008a8df70 x6 : ffff000008a8df70
-[    0.681679] x5 : ffff000008a8d000 x4 : 0000000000000010
-[    0.687027] x3 : 0000000000000010 x2 : 000000000000000c
-[    0.692378] x1 : 0000000000000006 x0 : 0000000000000000
-...
-[    1.262235] [<ffff0000083b8b10>] acpi_ns_lookup+0x520/0x734
-[    1.267845] [<ffff0000083a7160>] acpi_ds_load1_begin_op+0x174/0x4fc
-[    1.274156] [<ffff0000083c1f4c>] acpi_ps_build_named_op+0xf8/0x220
-[    1.280380] [<ffff0000083c227c>] acpi_ps_create_op+0x208/0x33c
-[    1.286254] [<ffff0000083c1820>] acpi_ps_parse_loop+0x204/0x838
-[    1.292215] [<ffff0000083c2fd4>] acpi_ps_parse_aml+0x1bc/0x42c
-[    1.298090] [<ffff0000083bc6e8>] acpi_ns_one_complete_parse+0x1e8/0x22c
-[    1.304753] [<ffff0000083bc7b8>] acpi_ns_parse_table+0x8c/0x128
-[    1.310716] [<ffff0000083bb8fc>] acpi_ns_load_table+0xc0/0x1e8
-[    1.316591] [<ffff0000083c9068>] acpi_tb_load_namespace+0xf8/0x2e8
-[    1.322818] [<ffff000008984128>] acpi_load_tables+0x7c/0x110
-[    1.328516] [<ffff000008982ea4>] acpi_init+0x90/0x2c0
-[    1.333603] [<ffff0000080819fc>] do_one_initcall+0x38/0x12c
-[    1.339215] [<ffff000008960cd4>] kernel_init_freeable+0x148/0x1ec
-[    1.345353] [<ffff0000086b7d30>] kernel_init+0x10/0xec
-[    1.350529] [<ffff000008084e10>] ret_from_fork+0x10/0x40
-[    1.355878] Code: b9009fbc 2a00037b 36380057 3219037b (b9400260)
-[    1.362035] ---[ end trace 03381e5eb0a24de4 ]---
-[    1.366691] Kernel panic - not syncing: Attempted to kill init! exitcode=
-=3D0x0000000b
-
-With 'efi=3Ddebug', we can see those ACPI regions loaded by firmware on
-that board as:
-[    0.000000] efi:   0x0083ff185000-0x0083ff1b4fff [Reserved           |  =
- |  |  |  |  |  |  |   |WB|WT|WC|UC]*
-[    0.000000] efi:   0x0083ff1b5000-0x0083ff1c2fff [ACPI Reclaim Memory|  =
- |  |  |  |  |  |  |   |WB|WT|WC|UC]*
-[    0.000000] efi:   0x0083ff223000-0x0083ff224fff [ACPI Memory NVS    |  =
- |  |  |  |  |  |  |   |WB|WT|WC|UC]*
-
-Acked-by: Steve Capper <steve.capper@arm.com>
-Signed-off-by: Dennis Chen <dennis.chen@arm.com>
-Cc: Catalin Marinas <catalin.marinas@arm.com>
-Cc: Ard Biesheuvel <ard.biesheuvel@linaro.org>
-Cc: Andrew Morton <akpm@linux-foundation.org>
-Cc: Pekka Enberg <penberg@kernel.org>
-Cc: Mel Gorman <mgorman@techsingularity.net>
-Cc: Tang Chen <tangchen@cn.fujitsu.com>
-Cc: Tony Luck <tony.luck@intel.com>
-Cc: Ingo Molnar <mingo@kernel.org>
-Cc: Rafael J. Wysocki <rafael@kernel.org>
-Cc: Will Deacon <will.deacon@arm.com>
-Cc: Mark Rutland <mark.rutland@arm.com>
-Cc: Matt Fleming <matt@codeblueprint.co.uk>
-Cc: Kaly Xin <kaly.xin@arm.com>
-Cc: linux-mm@kvack.org
-Cc: linux-acpi@vger.kernel.org
-Cc: linux-efi@vger.kernel.org
----
- arch/arm64/mm/init.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
-
-diff --git a/arch/arm64/mm/init.c b/arch/arm64/mm/init.c
-index 7d25b4d..9482b45 100644
---- a/arch/arm64/mm/init.c
-+++ b/arch/arm64/mm/init.c
-@@ -226,7 +226,7 @@ void __init arm64_memblock_init(void)
- =09 * via the linear mapping.
- =09 */
- =09if (memory_limit !=3D (phys_addr_t)ULLONG_MAX) {
--=09=09memblock_enforce_memory_limit(memory_limit);
-+=09=09memblock_mem_limit_remove_map(memory_limit);
- =09=09memblock_add(__pa(_text), (u64)(_end - _text));
- =09}
-=20
---=20
-2.7.4
-
+On Wed, Jul 13, 2016 at 10:54 PM, Ville Syrj=C3=A4l=C3=A4
+<ville.syrjala@linux.intel.com> wrote:
+> On Tue, May 31, 2016 at 10:26:50AM +0300, Ville Syrj=C3=A4l=C3=A4 wro=
+te:
+>> On Mon, May 30, 2016 at 10:43:51PM +0200, Rafael J. Wysocki wrote:
+>> > On Thu, May 26, 2016 at 8:32 PM, Ville Syrj=C3=A4l=C3=A4
+>> > <ville.syrjala@linux.intel.com> wrote:
+>> > > On Wed, May 18, 2016 at 10:24:24AM +0300, Ville Syrj=C3=A4l=C3=A4=
+ wrote:
+>> > >> On Wed, May 18, 2016 at 01:14:42AM +0200, Rafael J. Wysocki wro=
+te:
+>> > >> > On 5/16/2016 9:39 PM, Ville Syrj=C3=A4l=C3=A4 wrote:
+>> > >> > > On Wed, May 11, 2016 at 04:34:06PM +0300, Ville Syrj=C3=A4l=
+=C3=A4 wrote:
+>> > >> > >> On Wed, May 11, 2016 at 08:44:45AM -0400, Steven Rostedt w=
+rote:
+>> > >> > >>> On Wed, 11 May 2016 15:21:16 +0300
+>> > >> > >>> Ville Syrj=C3=A4l=C3=A4 <ville.syrjala@linux.intel.com> w=
+rote:
+>> > >> > >>>
+>> > >> > >>>> Yeah can't get anything from the machine at that point. =
+netconsole
+>> > >> > >>>> didn't help either, and no serial on this machine. And I=
+IRC I've
+>> > >> > >>>> tried ramoops on this thing in the past but unfortunatel=
+y the memory
+>> > >> > >>>> got cleared on reboot.
+>> > >> > >>>>
+>> > >> > >>> Can you look at the documentation in the kernel code at
+>> > >> > >>>
+>> > >> > >>> Documentation/power/basic-pm-debugging.txt And follow the=
+ procedures
+>> > >> > >>> for testing suspend to RAM (although it requires mostly r=
+unning the
+>> > >> > >>> same tests as for hibernation suspending).
+>> > >> > >>>
+>> > >> > >>> You can also use the tool s2ram for this as well.
+>> > >> > >>>
+>> > >> > >>> See Documentation/power/s2ram.txt
+>> > >> > >>>
+>> > >> > >>> Perhaps this can give us a bit more light onto the proble=
+m.
+>> > >> > >>>
+>> > >> > >>> Basically the above does partial suspend and resume, and =
+can pinpoint
+>> > >> > >>> problem areas down to a more select location.
+>> > >> > >> All the pm_test modes work fine. The only difference betwe=
+en them was
+>> > >> > >> that 'platform' required me to manually wake up the machin=
+e (hitting a
+>> > >> > >> key was sufficient), whereas the others woke up without he=
+lp.
+>> > >> > >>
+>> > >> > >> pm_trace gave me
+>> > >> > >> [    1.306633]   Magic number: 0:185:178
+>> > >> > >> [    1.322880]   hash matches ../drivers/base/power/main.c=
+:1070
+>> > >> > >> [    1.339270] acpi device:0e: hash matches
+>> > >> > >> [    1.355414]  platform: hash matches
+>> > >> > >>
+>> > >> > >> which is the TRACE_SUSPEND in __device_suspend_noirq(), so=
+ no help
+>> > >> > >> there.
+>> > >> > >>
+>> > >> > >> I guess I could try to sprinkle more TRACE_RESUMEs around =
+into some
+>> > >> > >> early resume code. If anyone has good ideas where to put t=
+hem it
+>> > >> > >> might speed things up a bit.
+>> > >> > > So I did a bunch of that and found that it gets stuck somew=
+here
+>> > >> > > around executing the _WAK method:
+>> > >> > > platform_resume_noirq
+>> > >> > >   acpi_pm_finish
+>> > >> > >    acpi_leave_sleep_state
+>> > >> > >     acpi_hw_sleep_dispatch
+>> > >> > >      acpi_hw_legacy_wake
+>> > >> > >       acpi_hw_execute_sleep_method
+>> > >> > >        acpi_evaluate_object
+>> > >> > >         acpi_ns_evaluate
+>> > >> > >          acpi_ps_execute_method
+>> > >> > >           acpi_ps_parse_aml
+>> > >> > >
+>> > >> > > It also seesm that adding a few TRACE_RESUME()s or an mslee=
+p() right
+>> > >> > > after enable_nonboot_cpus() can avoid the hang, sometimes.
+>> > >> > >
+>> > >> > > I've attached the DSDT in case anyone is interested in look=
+ing at it.
+>> > >> > >
+>> > >> >
+>> > >> > What if you comment out the execution of _WAK (line 318 of
+>> > >> > drivers/acpi/acpica/hwsleep.c in 4.6)?  Does that make any di=
+fference?
+>> > >>
+>> > >> Indeed it does. Tried with acpi_idle and intel_idle, and both a=
+ppear to
+>> > >> resume just fine with that hack.
+>> > >>
+>> > >> -       acpi_hw_execute_sleep_method(METHOD_PATHNAME__WAK, slee=
+p_state);
+>> > >> +       //acpi_hw_execute_sleep_method(METHOD_PATHNAME__WAK, sl=
+eep_state);
+>> > >> +       printk(KERN_CRIT "skipping _WAK\n");
+>> > >
+>> > > Continuing with my detective work a bit, I decided to hack the D=
+SDT a
+>> > > bit to see if I can narrow the it down further, and looks like I=
+ found
+>> > > it on the first guess. The following change stops it from hangin=
+g.
+>> > >
+>> > > @ -5056,7 +5056,7 @@
+>> > >          If (LEqual (Arg0, 0x03))
+>> > >          {
+>> > >              Store (0x01, \SPNF)
+>> > > -           TRAP (0x46)
+>> > > +           //TRAP (0x46)
+>> > >              P8XH (0x00, 0x03)
+>> > >          }
+>> > >
+>> > > So what does that do? Let's see:
+>> > >
+>> > >     OperationRegion (IO_T, SystemIO, 0x0800, 0x10)
+>> > >     Field (IO_T, ByteAcc, NoLock, Preserve)
+>> > >     {
+>> > >         Offset (0x08),
+>> > >         TRP0,   8
+>> > >     }
+>> > >
+>> > >     OperationRegion (GNVS, SystemMemory, 0x3F5E0C7C, 0x0200)
+>> > >     Field (GNVS, AnyAcc, Lock, Preserve)
+>> > >     {
+>> > >         OSYS,   16,
+>> > >         SMIF,   8,
+>> > >     ...
+>> > >
+>> > >     Method (TRAP, 1, Serialized)
+>> > >     {
+>> > >         Store (Arg0, SMIF) /* \SMIF */
+>> > >         Store (0x00, TRP0) /* \TRP0 */
+>> > >         Return (SMIF) /* \SMIF */
+>> > >     }
+>> > >
+>> > > and a dump of the IOTR registers shows:
+>> > >
+>> > > 0x1e80: 0x0000fe01
+>> > > 0x1e84: 0x00020001
+>> > > 0x1e98: 0x000c0801
+>> > > 0x1e9c: 0x000200f0
+>> > >
+>> > > which seems to be telling me that ports 0x800-0x80f and
+>> > > 0xfe00-0xfe03 would trigger an SMI.
+>> >
+>> > Well, the name of the method kind of suggests that it triggers an =
+SMM trap. :-)
+>>
+>> Which is why I wanted confirm that by looking at the IOTR regs ;)
+>>
+>> >
+>> > > So the next question is how do the idle drivers and cpu hotplug
+>> > > fit into this picture. Do we need to force the second HT into
+>> > > a specific C state before the SMI or something?
+>> >
+>> > Or you can ask why exactly someone put that SMM trap into _WAK.
+>> >
+>> > Apparently, it was regarded as necessary or no one would have
+>> > bothered.  The only reason I can see why it might be regarded as
+>> > necessary was that Windows did something Linux doesn't do on that
+>> > platform, or, which to me is far more interesting, that Windows di=
+dn't
+>> > do something actually done by Linux.
+>> >
+>> > My theory would be that Windows didn't reinitialize the second HT
+>> > properly during resume and the trap was added to let SMM do that. =
+ If
+>> > that's the case, the trap may trigger by the time the second HT
+>> > already executes code in Linux and then it will mess up with it an=
+d
+>> > crash.
+>> >
+>> > Now, what do idles states have to do with that?  IIRC, Windows put=
+s
+>> > nonboot CPUs into idle states before suspend, so the SMM code
+>> > triggered by the trap may make assumptions about the CPU being in =
+such
+>> > a state or similar.
+>>
+>> BTW I also tried to move the enable_nonboot_cpus() after _WAK, and I
+>> tried to boot with nosmp, but neither trick helped. If someone could
+>> throw some patches my way to force things into a specific state
+>> before suspend/_WAK I'd be happy to test them out.
+>
+> Ping. Anyone have any ideas what to try here? Would be nice to get th=
+is
+> machine working again...
+>
+> --
+> Ville Syrj=C3=A4l=C3=A4
+> Intel OTC
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-acpi"=
+ in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 --
-To unsubscribe, send a message with 'unsubscribe linux-mm' in
-the body to majordomo@kvack.org.  For more info on Linux MM,
-see: http://www.linux-mm.org/ .
-Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
