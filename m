@@ -1,74 +1,83 @@
-From: "Rafael J. Wysocki" <rafael@kernel.org>
-Subject: Re: [PATCH v9 0/7] ACPI / processor_idle: Add ACPI v6.0 LPI support
-Date: Thu, 14 Jul 2016 03:15:27 +0200
-Message-ID: <CAJZ5v0jpfgVupHcoKR+vnjGYu=a5SRZEwAybH1JoCqidGXqdXQ@mail.gmail.com>
-References: <1467997678-7107-1-git-send-email-sudeep.holla@arm.com>
- <5784D78E.7010409@arm.com> <2164074.OnkmXO2GSJ@vostro.rjw.lan> <5784E9AB.1070507@arm.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+From: Sinan Kaya <okaya@codeaurora.org>
+Subject: [PATCH V9 0/9] vfio, platform: add ACPI support
+Date: Wed, 13 Jul 2016 22:06:26 -0400
+Message-ID: <1468461995-32676-1-git-send-email-okaya@codeaurora.org>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-wm0-f65.google.com ([74.125.82.65]:35852 "EHLO
-	mail-wm0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751866AbcGNBPa (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 13 Jul 2016 21:15:30 -0400
-In-Reply-To: <5784E9AB.1070507@arm.com>
+Received: from smtp.codeaurora.org ([198.145.29.96]:53272 "EHLO
+	smtp.codeaurora.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750990AbcGNCGo (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 13 Jul 2016 22:06:44 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Sudeep Holla <sudeep.holla@arm.com>
-Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, ACPI List <linux-acpi@vger.kernel.org>, Vikas Sajjan <vikas.cha.sajjan@hpe.com>, Sunil <sunil.vl@hpe.com>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Prashanth Prakash <pprakash@codeaurora.org>, Al Stone <al.stone@linaro.org>, Ashwin Chaugule <ashwin.chaugule@linaro.org>, Daniel Lezcano <daniel.lezcano@linaro.org>, LKML <linux-kernel@vger.kernel.org>, ALKML <linux-arm-kernel@lists.infradead.org>
+To: kvm@vger.kernel.org, timur@codeaurora.org, cov@codeaurora.org, jcm@redhat.com, alex.williamson@redhat.com, eric.auger@redhat.com
+Cc: linux-acpi@vger.kernel.org, agross@codeaurora.org, linux-arm-msm@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Sinan Kaya <okaya@codeaurora.org>
 
-On Tue, Jul 12, 2016 at 2:59 PM, Sudeep Holla <sudeep.holla@arm.com> wrote:
->
->
-> On 12/07/16 13:09, Rafael J. Wysocki wrote:
->>
->> On Tuesday, July 12, 2016 12:42:06 PM Sudeep Holla wrote:
->>>
->>>
->>> On 08/07/16 18:07, Sudeep Holla wrote:
->>>>
->>>> ACPI 6.0 introduced LPI(Low Power Idle) states that provides an
->>>> alternate
->>>> method to describe processor idle states. It extends the specification
->>>> to allow the expression of idle states like C-states selectable by the
->>>> OSPM when a processor goes idle, but may affect more than one processor,
->>>> and may affect other system components.
->>>>
->>>> LPI extensions leverages the processor container device(again introduced
->>>> in ACPI 6.0) allowing to express which parts of the system are affected
->>>> by a given LPI state. It defines the local power states for each node
->>>> in a hierarchical processor topology. The OSPM can use _LPI object to
->>>> select a local power state for each level of processor hierarchy in the
->>>> system. They used to produce a composite power state request that is
->>>> presented to the platform by the OSPM.
->>>>
->>>> Since multiple processors affect the idle state for any non-leaf
->>>> hierarchy
->>>> node, coordination of idle state requests between the processors is
->>>> required. ACPI supports two different coordination schemes: Platform
->>>> coordinated and  OS initiated.
->>>>
->>>
->>> I was hoping to get this in v4.8 now that merge window is
->>> delayed/extended if you have no further comments on this series.
->>
->>
->> I'll get to it in the next couple of days.  If it looks all good and there
->> are
->> no comments, I'll queue it up.
->>
->
-> Thanks for the update.
+The current code only supports the device tree based platforms.
+The code checks for the presence of a reset driver and calls the reset
+function pointer by looking up the reset driver as a module.
 
-I've just looked at patch [2/7] and there still are things I'm not
-particularly liking in it.
+ACPI defines _RST method to perform device level reset. After the _RST
+method is executed, the OS can resume using the device.
 
-Apart from a bunch of minor stuff, acpi_processor_get_lpi_info() is
-not my favorite.  The way it creates all of those temporary data
-structures and then walks them recursively seems a bit excessive.
+The patchset is moving the device tree specific pieces out of the code
+to common functions so that ACPI support is added without impacting the
+rest
+of the code.
 
-I need to think about it a bit more, so I'll send my comments on that
-patch later this week.
+During probe, the ACPI HID of the object will be saved and will be used to
+determine if this is an ACPI capable platform or not. If acpihid is NULL
+then, device tree functions are called.
 
-Thanks,
-Rafael
+In addition to plumbing ACPI support, reset functionality is now a
+requirement by default.
+
+The code was allowing platform devices to be used without a supporting
+VFIO reset driver. The hardware can be left in some inconsistent state
+after a guest machine abort.
+
+The reset driver will put the hardware back to safe state and disable
+interrupts before returning the control back to the host machine.
+
+Adding a new reset_required kernel module option to platform
+VFIO drivers with a default value of true.
+
+New requirements are:
+1. A reset function needs to be implemented by the corresponding driver
+via DT/ACPI.
+2. The reset function needs to be discovered via DT/ACPI.
+
+The probe of the driver will fail if any of the above conditions are
+not satisfied.
+
+Changes from V8:
+1. Return different error codes for the ACPI probe failures.
+2. Document the CONFIG_ACPI and when/why error messages are printed along
+with assumptions.
+3. Reorder the reset call in vfio_platform_call_reset for consistency.
+4. Introduce VFIO_PLATFORM_IS_ACPI to make the code more readable
+5. Get rid of the ACPI stub functions and inline the CONFIG_ACPI for code
+sharing.
+6. Remove the reset_required kernel option from AMBA.
+7. Change the permission to 444 for the reset_required kernel command line
+parameter.
+
+Sinan Kaya (9):
+  vfio: platform: rename reset function
+  vfio: platform: move reset call to a common function
+  vfio: platform: determine reset capability
+  vfio: platform: add support for ACPI probe
+  vfio: platform: add extra debug info argument to call reset
+  vfio: platform: call _RST method when using ACPI
+  vfio, platform: make reset driver a requirement by default
+  vfio: platform: check reset call return code during open
+  vfio: platform: check reset call return code during release
+
+ drivers/vfio/platform/vfio_amba.c             |   1 +
+ drivers/vfio/platform/vfio_platform.c         |   5 +
+ drivers/vfio/platform/vfio_platform_common.c  | 200 ++++++++++++++++++++++----
+ drivers/vfio/platform/vfio_platform_private.h |   8 +-
+ 4 files changed, 180 insertions(+), 34 deletions(-)
+
+-- 
+1.8.2.1
+
