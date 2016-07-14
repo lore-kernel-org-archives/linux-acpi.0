@@ -1,152 +1,309 @@
-From: Alex Williamson <alex.williamson@redhat.com>
-Subject: Re: [PATCH V9 7/9] vfio, platform: make reset driver a requirement
- by default
-Date: Thu, 14 Jul 2016 16:24:54 -0600
-Message-ID: <20160714162454.4b05813c@t450s.home>
-References: <1468461995-32676-1-git-send-email-okaya@codeaurora.org>
-	<1468461995-32676-8-git-send-email-okaya@codeaurora.org>
+From: Hoan Tran <hotran@apm.com>
+Subject: Re: [PATCH 1/5] ACPI/CPPC: restructure read/writes for efficient sys
+ mapped reg ops
+Date: Thu, 14 Jul 2016 16:54:47 -0700
+Message-ID: <CAFHUOYw77rXXtRNviMiuRock638Zjjs1o-DtZZv_vtodWzeyUw@mail.gmail.com>
+References: <1467309758-26536-1-git-send-email-pprakash@codeaurora.org> <1467309758-26536-2-git-send-email-pprakash@codeaurora.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-msm-owner@vger.kernel.org>
-In-Reply-To: <1468461995-32676-8-git-send-email-okaya@codeaurora.org>
-Sender: linux-arm-msm-owner@vger.kernel.org
-To: Sinan Kaya <okaya@codeaurora.org>
-Cc: kvm@vger.kernel.org, timur@codeaurora.org, cov@codeaurora.org, jcm@redhat.com, eric.auger@redhat.com, linux-acpi@vger.kernel.org, agross@codeaurora.org, linux-arm-msm@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Baptiste Reynal <b.reynal@virtualopensystems.com>, linux-kernel@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-vk0-f43.google.com ([209.85.213.43]:34859 "EHLO
+	mail-vk0-f43.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751224AbcGNXyt (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 14 Jul 2016 19:54:49 -0400
+Received: by mail-vk0-f43.google.com with SMTP id w127so75332858vkh.2
+        for <linux-acpi@vger.kernel.org>; Thu, 14 Jul 2016 16:54:49 -0700 (PDT)
+In-Reply-To: <1467309758-26536-2-git-send-email-pprakash@codeaurora.org>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Prashanth Prakash <pprakash@codeaurora.org>
+Cc: linux acpi <linux-acpi@vger.kernel.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Alexey Klimov <alexey.klimov@arm.com>, cov@codeaurora.org, Ashwin Chaugule <ashwin.chaugule@linaro.org>
 
-On Wed, 13 Jul 2016 22:06:33 -0400
-Sinan Kaya <okaya@codeaurora.org> wrote:
+Hi Prashanth,
 
-> The code was allowing platform devices to be used without a supporting
-> VFIO reset driver. The hardware can be left in some inconsistent state
-> after a guest machine abort.
-> 
-> The reset driver will put the hardware back to safe state and disable
-> interrupts before returning the control back to the host machine.
-> 
-> Adding a new reset_required kernel module option to platform VFIO drivers.
-> The default value is true for the DT and ACPI based drivers.
-> The reset requirement value for AMBA drivers is set to false and is
-> unchangeable to maintain the existing functionality.
-> 
-> New requirements are:
-> 1. A reset function needs to be implemented by the corresponding driver
-> via DT/ACPI.
-> 2. The reset function needs to be discovered via DT/ACPI.
-> 
-> The probe of the driver will fail if any of the above conditions are
-> not satisfied.
-> 
-> Signed-off-by: Sinan Kaya <okaya@codeaurora.org>
+On Thu, Jun 30, 2016 at 11:02 AM, Prashanth Prakash
+<pprakash@codeaurora.org> wrote:
+> From: Ashwin Chaugule <ashwin.chaugule@linaro.org>
+>
+> For cases where sys mapped CPC registers need to be accessed
+> frequently, it helps immensly to pre-map them rather than map
+> and unmap for each operation. e.g. case where feedback counters
+> are sys mem map registers.
+>
+> Restructure cpc_read/write and the cpc_regs structure to allow
+> pre-mapping the system addresses and unmap them when the CPU exits.
+>
+> Signed-off-by: Ashwin Chaugule <ashwin.chaugule@linaro.org>
+> Signed-off-by: Prashanth Prakash <pprakash@codeaurora.org>
 > ---
->  drivers/vfio/platform/vfio_amba.c             |  1 +
->  drivers/vfio/platform/vfio_platform.c         |  5 +++++
->  drivers/vfio/platform/vfio_platform_common.c  | 15 +++++++++++----
->  drivers/vfio/platform/vfio_platform_private.h |  1 +
->  4 files changed, 18 insertions(+), 4 deletions(-)
-> 
-> diff --git a/drivers/vfio/platform/vfio_amba.c b/drivers/vfio/platform/vfio_amba.c
-> index a66479b..31372fb 100644
-> --- a/drivers/vfio/platform/vfio_amba.c
-> +++ b/drivers/vfio/platform/vfio_amba.c
-> @@ -68,6 +68,7 @@ static int vfio_amba_probe(struct amba_device *adev, const struct amba_id *id)
->  	vdev->get_resource = get_amba_resource;
->  	vdev->get_irq = get_amba_irq;
->  	vdev->parent_module = THIS_MODULE;
-> +	vdev->reset_required = false;
->  
->  	ret = vfio_platform_probe_common(vdev, &adev->dev);
->  	if (ret) {
-> diff --git a/drivers/vfio/platform/vfio_platform.c b/drivers/vfio/platform/vfio_platform.c
-> index b1cc3a7..6561751 100644
-> --- a/drivers/vfio/platform/vfio_platform.c
-> +++ b/drivers/vfio/platform/vfio_platform.c
-> @@ -23,6 +23,10 @@
->  #define DRIVER_AUTHOR   "Antonios Motakis <a.motakis@virtualopensystems.com>"
->  #define DRIVER_DESC     "VFIO for platform devices - User Level meta-driver"
->  
-> +static bool reset_required = true;
-> +module_param(reset_required, bool, 0444);
-> +MODULE_PARM_DESC(reset_required, "override reset requirement (default: 1)");
-> +
->  /* probing devices from the linux platform bus */
->  
->  static struct resource *get_platform_resource(struct vfio_platform_device *vdev,
-> @@ -66,6 +70,7 @@ static int vfio_platform_probe(struct platform_device *pdev)
->  	vdev->get_resource = get_platform_resource;
->  	vdev->get_irq = get_platform_irq;
->  	vdev->parent_module = THIS_MODULE;
-> +	vdev->reset_required = reset_required;
->  
->  	ret = vfio_platform_probe_common(vdev, &pdev->dev);
->  	if (ret)
-> diff --git a/drivers/vfio/platform/vfio_platform_common.c b/drivers/vfio/platform/vfio_platform_common.c
-> index 2d9c905..71248a9 100644
-> --- a/drivers/vfio/platform/vfio_platform_common.c
-> +++ b/drivers/vfio/platform/vfio_platform_common.c
-> @@ -123,10 +123,10 @@ static bool vfio_platform_has_reset(struct vfio_platform_device *vdev)
->  	return vdev->of_reset ? true : false;
->  }
->  
-> -static void vfio_platform_get_reset(struct vfio_platform_device *vdev)
-> +static int vfio_platform_get_reset(struct vfio_platform_device *vdev)
+>  drivers/acpi/cppc_acpi.c | 106 ++++++++++++++++++++++++++++++-----------------
+>  include/acpi/cppc_acpi.h |   1 +
+>  2 files changed, 70 insertions(+), 37 deletions(-)
+>
+> diff --git a/drivers/acpi/cppc_acpi.c b/drivers/acpi/cppc_acpi.c
+> index 2e98173..28170c2 100644
+> --- a/drivers/acpi/cppc_acpi.c
+> +++ b/drivers/acpi/cppc_acpi.c
+> @@ -62,7 +62,6 @@ static DEFINE_PER_CPU(struct cpc_desc *, cpc_desc_ptr);
+>  /* This layer handles all the PCC specifics for CPPC. */
+>  static struct mbox_chan *pcc_channel;
+>  static void __iomem *pcc_comm_addr;
+> -static u64 comm_base_addr;
+>  static int pcc_subspace_idx = -1;
+>  static bool pcc_channel_acquired;
+>  static ktime_t deadline;
+> @@ -394,7 +393,6 @@ EXPORT_SYMBOL_GPL(acpi_get_psd_map);
+>  static int register_pcc_channel(int pcc_subspace_idx)
 >  {
->  	if (VFIO_PLATFORM_IS_ACPI(vdev))
-> -		return;
-> +		return vfio_platform_acpi_has_reset(vdev) ? 0 : -ENOENT;
->  
->  	vdev->of_reset = vfio_platform_lookup_reset(vdev->compat,
->  						    &vdev->reset_module);
-> @@ -135,6 +135,8 @@ static void vfio_platform_get_reset(struct vfio_platform_device *vdev)
->  		vdev->of_reset = vfio_platform_lookup_reset(vdev->compat,
->  							&vdev->reset_module);
->  	}
+>         struct acpi_pcct_hw_reduced *cppc_ss;
+> -       unsigned int len;
+>         u64 usecs_lat;
+>
+>         if (pcc_subspace_idx >= 0) {
+> @@ -419,12 +417,6 @@ static int register_pcc_channel(int pcc_subspace_idx)
+>                         return -ENODEV;
+>                 }
+>
+> -               /*
+> -                * This is the shared communication region
+> -                * for the OS and Platform to communicate over.
+> -                */
+> -               comm_base_addr = cppc_ss->base_address;
+> -               len = cppc_ss->length;
+>
+>                 /*
+>                  * cppc_ss->latency is just a Nominal value. In reality
+> @@ -436,7 +428,7 @@ static int register_pcc_channel(int pcc_subspace_idx)
+>                 pcc_mrtt = cppc_ss->min_turnaround_time;
+>                 pcc_mpar = cppc_ss->max_access_rate;
+>
+> -               pcc_comm_addr = acpi_os_ioremap(comm_base_addr, len);
+> +               pcc_comm_addr = acpi_os_ioremap(cppc_ss->base_address, cppc_ss->length);
+>                 if (!pcc_comm_addr) {
+>                         pr_err("Failed to ioremap PCC comm region mem\n");
+>                         return -ENOMEM;
+> @@ -545,6 +537,8 @@ int acpi_cppc_processor_probe(struct acpi_processor *pr)
+>                 goto out_free;
+>         }
+>
+> +       cpc_ptr->num_entries = num_ent;
 > +
-> +	return vdev->of_reset ? 0 : -ENOENT;
+>         /* Second entry should be revision. */
+>         cpc_obj = &out_obj->package.elements[1];
+>         if (cpc_obj->type == ACPI_TYPE_INTEGER) {
+> @@ -585,7 +579,15 @@ int acpi_cppc_processor_probe(struct acpi_processor *pr)
+>                                         pr_debug("Mismatched PCC ids.\n");
+>                                         goto out_free;
+>                                 }
+> -                       } else if (gas_t->space_id != ACPI_ADR_SPACE_SYSTEM_MEMORY) {
+> +                       } else if (gas_t->space_id == ACPI_ADR_SPACE_SYSTEM_MEMORY) {
+> +                               if (gas_t->address) {
+> +                                       void __iomem *addr;
+> +                                       addr = ioremap(gas_t->address, gas_t->bit_width/8);
+> +                                       if (!addr)
+> +                                               goto out_free;
+> +                                       cpc_ptr->cpc_regs[i-2].sys_mem_vaddr = addr;
+> +                               }
+> +                       } else {
+>                                 /* Support only PCC and SYS MEM type regs */
+>                                 pr_debug("Unsupported register type: %d\n", gas_t->space_id);
+>                                 goto out_free;
+> @@ -623,6 +625,12 @@ int acpi_cppc_processor_probe(struct acpi_processor *pr)
+>         return 0;
+>
+>  out_free:
+> +       /* Free all the mapped sys mem areas for this CPU */
+> +       for (i = 2; i < cpc_ptr->num_entries; i++) {
+> +               void __iomem *addr = cpc_ptr->cpc_regs[i-2].sys_mem_vaddr;
+> +               if (addr)
+> +                       iounmap(addr);
+> +       }
+>         kfree(cpc_ptr);
+>
+>  out_buf_free:
+> @@ -640,7 +648,17 @@ EXPORT_SYMBOL_GPL(acpi_cppc_processor_probe);
+>  void acpi_cppc_processor_exit(struct acpi_processor *pr)
+>  {
+>         struct cpc_desc *cpc_ptr;
+> +       unsigned int i;
+> +       void __iomem *addr;
+>         cpc_ptr = per_cpu(cpc_desc_ptr, pr->id);
+> +
+> +       /* Free all the mapped sys mem areas for this CPU */
+> +       for (i = 2; i < cpc_ptr->num_entries; i++) {
+> +               addr = cpc_ptr->cpc_regs[i-2].sys_mem_vaddr;
+> +               if (addr)
+> +                       iounmap(addr);
+> +       }
+> +
+>         kfree(cpc_ptr);
 >  }
->  
->  static void vfio_platform_put_reset(struct vfio_platform_device *vdev)
-> @@ -675,6 +677,13 @@ int vfio_platform_probe_common(struct vfio_platform_device *vdev,
->  
->  	vdev->device = dev;
->  
-> +	ret = vfio_platform_get_reset(vdev);
-> +	if (ret && vdev->reset_required) {
-> +		pr_err("vfio: no reset function found for device %s\n",
-> +		       vdev->name);
-> +		return ret;
-> +	}
+>  EXPORT_SYMBOL_GPL(acpi_cppc_processor_exit);
+> @@ -651,15 +669,27 @@ EXPORT_SYMBOL_GPL(acpi_cppc_processor_exit);
+>   * we can directly write to it.
+>   */
+>
+> -static int cpc_read(struct cpc_reg *reg, u64 *val)
+> +static int cpc_read(struct cpc_register_resource *reg_res, u64 *val)
+>  {
+>         int ret_val = 0;
+> +       void __iomem *vaddr = 0;
+> +       struct cpc_reg *reg = &reg_res->cpc_entry.reg;
 > +
->  	group = iommu_group_get(dev);
->  	if (!group) {
->  		pr_err("VFIO: No IOMMU group for device %s\n", vdev->name);
-> @@ -687,8 +696,6 @@ int vfio_platform_probe_common(struct vfio_platform_device *vdev,
->  		return ret;
->  	}
->  
-> -	vfio_platform_get_reset(vdev);
+> +       if (reg_res->type == ACPI_TYPE_INTEGER) {
+> +               *val = reg_res->int_value;
+
+It should be "*val = reg_res->cpc_entry.int_value;", isn't it ?
+
+Thanks
+Hoan
+
+> +               return ret_val;
+> +       }
+>
+>         *val = 0;
+> -       if (reg->space_id == ACPI_ADR_SPACE_PLATFORM_COMM) {
+> -               void __iomem *vaddr = GET_PCC_VADDR(reg->address);
+> +       if (reg->space_id == ACPI_ADR_SPACE_PLATFORM_COMM)
+> +               vaddr = GET_PCC_VADDR(reg->address);
+> +       else if (reg->space_id == ACPI_ADR_SPACE_SYSTEM_MEMORY)
+> +               vaddr = reg_res->sys_mem_vaddr;
+> +       else
+> +               return acpi_os_read_memory((acpi_physical_address)reg->address,
+> +                               val, reg->bit_width);
+>
+> -               switch (reg->bit_width) {
+> +       switch (reg->bit_width) {
+>                 case 8:
+>                         *val = readb_relaxed(vaddr);
+>                         break;
+> @@ -674,23 +704,28 @@ static int cpc_read(struct cpc_reg *reg, u64 *val)
+>                         break;
+>                 default:
+>                         pr_debug("Error: Cannot read %u bit width from PCC\n",
+> -                               reg->bit_width);
+> +                                       reg->bit_width);
+>                         ret_val = -EFAULT;
+> -               }
+> -       } else
+> -               ret_val = acpi_os_read_memory((acpi_physical_address)reg->address,
+> -                                       val, reg->bit_width);
+> +       }
+> +
+>         return ret_val;
+>  }
+>
+> -static int cpc_write(struct cpc_reg *reg, u64 val)
+> +static int cpc_write(struct cpc_register_resource *reg_res, u64 val)
+>  {
+>         int ret_val = 0;
+> +       void __iomem *vaddr = 0;
+> +       struct cpc_reg *reg = &reg_res->cpc_entry.reg;
+>
+> -       if (reg->space_id == ACPI_ADR_SPACE_PLATFORM_COMM) {
+> -               void __iomem *vaddr = GET_PCC_VADDR(reg->address);
+> +       if (reg->space_id == ACPI_ADR_SPACE_PLATFORM_COMM)
+> +               vaddr = GET_PCC_VADDR(reg->address);
+> +       else if (reg->space_id == ACPI_ADR_SPACE_SYSTEM_MEMORY)
+> +               vaddr = reg_res->sys_mem_vaddr;
+> +       else
+> +               return acpi_os_write_memory((acpi_physical_address)reg->address,
+> +                               val, reg->bit_width);
+>
+> -               switch (reg->bit_width) {
+> +       switch (reg->bit_width) {
+>                 case 8:
+>                         writeb_relaxed(val, vaddr);
+>                         break;
+> @@ -705,13 +740,11 @@ static int cpc_write(struct cpc_reg *reg, u64 val)
+>                         break;
+>                 default:
+>                         pr_debug("Error: Cannot write %u bit width to PCC\n",
+> -                               reg->bit_width);
+> +                                       reg->bit_width);
+>                         ret_val = -EFAULT;
+>                         break;
+> -               }
+> -       } else
+> -               ret_val = acpi_os_write_memory((acpi_physical_address)reg->address,
+> -                               val, reg->bit_width);
+> +       }
+> +
+>         return ret_val;
+>  }
+>
+> @@ -754,16 +787,16 @@ int cppc_get_perf_caps(int cpunum, struct cppc_perf_caps *perf_caps)
+>                 }
+>         }
+>
+> -       cpc_read(&highest_reg->cpc_entry.reg, &high);
+> +       cpc_read(highest_reg, &high);
+>         perf_caps->highest_perf = high;
+>
+> -       cpc_read(&lowest_reg->cpc_entry.reg, &low);
+> +       cpc_read(lowest_reg, &low);
+>         perf_caps->lowest_perf = low;
+>
+> -       cpc_read(&ref_perf->cpc_entry.reg, &ref);
+> +       cpc_read(ref_perf, &ref);
+>         perf_caps->reference_perf = ref;
+>
+> -       cpc_read(&nom_perf->cpc_entry.reg, &nom);
+> +       cpc_read(nom_perf, &nom);
+>         perf_caps->nominal_perf = nom;
+>
+>         if (!ref)
+> @@ -804,7 +837,7 @@ int cppc_get_perf_ctrs(int cpunum, struct cppc_perf_fb_ctrs *perf_fb_ctrs)
+>
+>         /* Are any of the regs PCC ?*/
+>         if ((delivered_reg->cpc_entry.reg.space_id == ACPI_ADR_SPACE_PLATFORM_COMM) ||
+> -                       (reference_reg->cpc_entry.reg.space_id == ACPI_ADR_SPACE_PLATFORM_COMM)) {
+> +               (reference_reg->cpc_entry.reg.space_id == ACPI_ADR_SPACE_PLATFORM_COMM)) {
+>                 /* Ring doorbell once to update PCC subspace */
+>                 if (send_pcc_cmd(CMD_READ) < 0) {
+>                         ret = -EIO;
+> @@ -812,8 +845,8 @@ int cppc_get_perf_ctrs(int cpunum, struct cppc_perf_fb_ctrs *perf_fb_ctrs)
+>                 }
+>         }
+>
+> -       cpc_read(&delivered_reg->cpc_entry.reg, &delivered);
+> -       cpc_read(&reference_reg->cpc_entry.reg, &reference);
+> +       cpc_read(delivered_reg, &delivered);
+> +       cpc_read(reference_reg, &reference);
+>
+>         if (!delivered || !reference) {
+>                 ret = -EFAULT;
+> @@ -868,7 +901,7 @@ int cppc_set_perf(int cpu, struct cppc_perf_ctrls *perf_ctrls)
+>          * Skip writing MIN/MAX until Linux knows how to come up with
+>          * useful values.
+>          */
+> -       cpc_write(&desired_reg->cpc_entry.reg, perf_ctrls->desired_perf);
+> +       cpc_write(desired_reg, perf_ctrls->desired_perf);
+>
+>         /* Is this a PCC reg ?*/
+>         if (desired_reg->cpc_entry.reg.space_id == ACPI_ADR_SPACE_PLATFORM_COMM) {
+> @@ -878,7 +911,6 @@ int cppc_set_perf(int cpu, struct cppc_perf_ctrls *perf_ctrls)
+>         }
+>  busy_channel:
+>         spin_unlock(&pcc_lock);
 > -
->  	mutex_init(&vdev->igate);
->  
->  	return 0;
-> diff --git a/drivers/vfio/platform/vfio_platform_private.h b/drivers/vfio/platform/vfio_platform_private.h
-> index ba9e4f8..68fbc00 100644
-> --- a/drivers/vfio/platform/vfio_platform_private.h
-> +++ b/drivers/vfio/platform/vfio_platform_private.h
-> @@ -50,6 +50,7 @@ struct vfio_platform_region {
->  };
->  
->  struct vfio_platform_device {
-> +	bool				reset_required;
->  	struct vfio_platform_region	*regions;
->  	u32				num_regions;
->  	struct vfio_platform_irq	*irqs;
-
-Either you have 64bit bools or you're not paying any attention to
-to the alignment of this structure.  If we only care about 64bit
-systems we could tuck this into the gap after num_regions, otherwise
-append it to the end of the structure, we certainly don't care about
-keeping a reset flag within cache line boundaries.  Thanks,
-
-Alex
+>         return ret;
+>  }
+>  EXPORT_SYMBOL_GPL(cppc_set_perf);
+> diff --git a/include/acpi/cppc_acpi.h b/include/acpi/cppc_acpi.h
+> index 284965c..36ff5c6 100644
+> --- a/include/acpi/cppc_acpi.h
+> +++ b/include/acpi/cppc_acpi.h
+> @@ -49,6 +49,7 @@ struct cpc_reg {
+>   */
+>  struct cpc_register_resource {
+>         acpi_object_type type;
+> +       u64 __iomem *sys_mem_vaddr;
+>         union {
+>                 struct cpc_reg reg;
+>                 u64 int_value;
+> --
+> Qualcomm Technologies, Inc. on behalf
+> of the Qualcomm Innovation Center, Inc.  The Qualcomm Innovation Center, Inc.
+> is a member of the Code Aurora Forum, a Linux Foundation Collaborative Project.
+>
