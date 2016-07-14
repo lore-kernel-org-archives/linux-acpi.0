@@ -1,52 +1,51 @@
-From: Lv Zheng <lv.zheng@intel.com>
-Subject: [PATCH 1/3] debugfs: Add .fsync() callback proxy support
-Date: Thu, 14 Jul 2016 10:52:25 +0800
-Message-ID: <66cf2476a5b8c421055b8ccc07d6114b0a131d3e.1468464391.git.lv.zheng@intel.com>
-References: <cover.1468464391.git.lv.zheng@intel.com>
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga04.intel.com ([192.55.52.120]:51422 "EHLO mga04.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751172AbcGNCwh (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 13 Jul 2016 22:52:37 -0400
-In-Reply-To: <cover.1468464391.git.lv.zheng@intel.com>
-Sender: linux-acpi-owner@vger.kernel.org
+From: Dennis Chen <dennis.chen-5wv7dgnIgG8@public.gmane.org>
+Subject: [PATCH v6 0/2] Fix acpi alignment fault with 'mem='
+Date: Thu, 14 Jul 2016 13:43:54 +0800
+Message-ID: <1468475036-5852-1-git-send-email-dennis.chen@arm.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=WINDOWS-1252
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-efi-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: linux-efi-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
+Cc: nd-5wv7dgnIgG8@public.gmane.org, steve.capper-5wv7dgnIgG8@public.gmane.org, dennis.chen-5wv7dgnIgG8@public.gmane.org, catalin.marinas-5wv7dgnIgG8@public.gmane.org, ard.biesheuvel-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org, akpm-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org, penberg-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, mgorman-3eNAlZScCAx27rWaFMvyedHuzzzSOjJt@public.gmane.org, tangchen-BthXqXjhjHXQFUHtdCDX3A@public.gmane.org, tony.luck-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, mingo-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, rafael-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, will.deacon-5wv7dgnIgG8@public.gmane.org, mark.rutland-5wv7dgnIgG8@public.gmane.org, matt-mF/unelCI9GS6iBeEJttW/XRex20P6io@public.gmane.org, kaly.xin-5wv7dgnIgG8@public.gmane.org, linux-mm-Bw31MaZKKs3YtjvyW6yDsg@public.gmane.org, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-efi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <len.brown@intel.com>
-Cc: Lv Zheng <lv.zheng@intel.com>, Lv Zheng <zetalog@gmail.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 
-This patch adds .fsync() callback for debugfs files.
-ACPI AML debugger needs to implement this to flush cmds/logs.
+An ACPI alignment access fault has been observed on ARM platforms if one 
+boots an ACPI enabled kernel with 'mem=' specificed. This was due to
+memblock_enforce_memory_limit(.) throwing away NOMAP regions thus causing
+acpi_os_ioremap(.) to map them as device memory (rather than normal memory).
 
-Signed-off-by: Lv Zheng <lv.zheng@intel.com>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
----
- fs/debugfs/file.c |    6 ++++++
- 1 file changed, 6 insertions(+)
+This patch series fixes this issue by: 
+ 1) Introducing memblock_mem_limit_remove_map(.), which retains the NOMAP
+    regions.
+ 2) Calling this function in arm64.
 
-diff --git a/fs/debugfs/file.c b/fs/debugfs/file.c
-index 592059f..f863a0c 100644
---- a/fs/debugfs/file.c
-+++ b/fs/debugfs/file.c
-@@ -172,6 +172,10 @@ FULL_PROXY_FUNC(unlocked_ioctl, long, filp,
- 		PROTO(struct file *filp, unsigned int cmd, unsigned long arg),
- 		ARGS(filp, cmd, arg));
- 
-+FULL_PROXY_FUNC(fsync, int, filp,
-+		PROTO(struct file *filp, loff_t start, loff_t end, int datasync),
-+		ARGS(filp, start, end, datasync));
-+
- static unsigned int full_proxy_poll(struct file *filp,
- 				struct poll_table_struct *wait)
- {
-@@ -226,6 +230,8 @@ static void __full_proxy_fops_init(struct file_operations *proxy_fops,
- 		proxy_fops->poll = full_proxy_poll;
- 	if (real_fops->unlocked_ioctl)
- 		proxy_fops->unlocked_ioctl = full_proxy_unlocked_ioctl;
-+	if (real_fops->fsync)
-+		proxy_fops->fsync = full_proxy_fsync;
- }
- 
- static int full_proxy_open(struct inode *inode, struct file *filp)
+ChangeLog:
+v5->v6: 
+	- Truncate the reserved regions above the limit as suggested by
+	  Steve Capper.
+        - Drop the memblock debug fs related patch from this series since
+	  it's independent logically. 
+	- CC more relevant persons.
+v4->v5:
+        Fix a build warning.
+v3->v4:
+        Address some review comments from Mark Rutland.
+v2->v3:
+        Only keep the NOMAP regions above the limit while removing all other
+        memblocks as suggested by Ard Biesheuvel.
+v1->v2:
+        Flag all regions above the limit as NOMAP as suggested by Mark Rutland.
+
+Dennis Chen (2):
+  mm:memblock Add new infrastructure to address the mem limit issue
+  arm64:acpi Fix the acpi alignment exeception when 'mem=' specified
+
+ arch/arm64/mm/init.c     |  2 +-
+ include/linux/memblock.h |  1 +
+ mm/memblock.c            | 57 +++++++++++++++++++++++++++++++++++++++++++-----
+ 3 files changed, 54 insertions(+), 6 deletions(-)
+
 -- 
-1.7.10
-
+2.7.4
