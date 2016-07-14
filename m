@@ -1,49 +1,47 @@
-From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [v5] i2c: i801: Allow ACPI SystemIO OpRegion to conflict with PCI BAR
-Date: Thu, 14 Jul 2016 16:20:36 +0200
-Message-ID: <4200975.LdYuAt9PZR@vostro.rjw.lan>
-References: <1463990658-53854-1-git-send-email-mika.westerberg@linux.intel.com> <201607051400.58881@pali> <20160714115218.GC29844@pali>
+From: "Prakash, Prashanth" <pprakash@codeaurora.org>
+Subject: Re: [PATCH 5/5] ACPI/CPPC: add sysfs support to compute delivered
+ performance
+Date: Thu, 14 Jul 2016 09:44:48 -0600
+Message-ID: <294c6b84-75b6-60b6-63b9-c4eec3d7ad87@codeaurora.org>
+References: <1467309758-26536-1-git-send-email-pprakash@codeaurora.org>
+ <1467309758-26536-6-git-send-email-pprakash@codeaurora.org>
+ <20160714132535.GA5796@arm.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-i2c-owner@vger.kernel.org>
-In-Reply-To: <20160714115218.GC29844@pali>
-Sender: linux-i2c-owner@vger.kernel.org
-To: Pali =?ISO-8859-1?Q?Roh=E1r?= <pali.rohar@gmail.com>
-Cc: Mika Westerberg <mika.westerberg@linux.intel.com>, Jean Delvare <jdelvare@suse.de>, Benjamin Tissoires <benjamin.tissoires@redhat.com>, Wolfram Sang <wsa@the-dreams.de>, Jarkko Nikula <jarkko.nikula@linux.intel.com>, Andy Lutomirski <luto@kernel.org>, Mario Limonciello <mario_limonciello@dell.com>, Matt Fleming <matt@codeblueprint.co.uk>, linux-i2c@vger.kernel.org, linux-acpi@vger.kernel.org
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from smtp.codeaurora.org ([198.145.29.96]:42782 "EHLO
+	smtp.codeaurora.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751149AbcGNPov (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 14 Jul 2016 11:44:51 -0400
+In-Reply-To: <20160714132535.GA5796@arm.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Alexey Klimov <alexey.klimov@arm.com>
+Cc: linux-acpi@vger.kernel.org, rjw@rjwysocki.net, hotran@apm.com, cov@codeaurora.org, Ashwin Chaugule <ashwin.chaugule@linaro.org>
 
-On Thursday, July 14, 2016 01:52:18 PM Pali Roh=C3=A1r wrote:
-> On Tuesday 05 July 2016 14:00:58 Pali Roh=C3=A1r wrote:
-> > On Tuesday 05 July 2016 13:56:58 Pali Roh=C3=A1r wrote:
-> > > On Tuesday 05 July 2016 13:51:42 Mika Westerberg wrote:
-> > > > So are you able to test what happens when you unload the driver=
-?
-> > >=20
-> > > As I wrote in previous email, I do not own these EliteBooks anymo=
-re,
-> > > so cannot test it. Just have DSDT dump...
-> >=20
-> > What about contacting last contributors to hp_accel.c driver? They=20
-> > probably could test i801 changes if accelerometer still works.
->=20
-> Or another option how to test this: Use acpi_call module which export=
-s
-> file /proc/acpi/call which can be used to issue ACPI method call from
-> userspace.
->=20
-> If there are problems, there will be errors in dmesg or return value
-> from /proc/acpi/call is some error...
+Hi Alexey,
+>> +
+>> +static ssize_t show_reference_perf(struct kobject *kobj,
+>> +		struct attribute *attr, char *buf)
+>> +{
+>> +	struct cpc_desc *cpc_ptr = to_cpc_desc(kobj);
+>> +	struct cppc_perf_caps perf_caps;
+>> +
+>> +	cppc_get_perf_caps(cpc_ptr->cpu_id, &perf_caps);
+>> +
+>> +	if (perf_caps.reference_perf)
+>> +		return scnprintf(buf, PAGE_SIZE, "%u\n",
+>> +				perf_caps.reference_perf);
+>> +
+>> +	return scnprintf(buf, PAGE_SIZE, "%u\n",
+>> +			perf_caps.nominal_perf);
+>> +}
+> What do you think about exporting Counter Wraparound Time register
+> as well if it's present?
 
-That is plain dangerous, because some objects may not be evaulated with=
-out
-preparation.
-
-We had something like that before and dropped it.
-
-We have an AML debugger in the kernel now, though, which in principle m=
-ay
-be used for such diagnostics I think.
+Yes, that's a good point. I will add it in the next version.
 
 Thanks,
-Rafael
+Prashanth
+
