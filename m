@@ -1,121 +1,172 @@
-From: Paul Gortmaker <paul.gortmaker-CWA4WttNNZF54TAoqtyWWQ@public.gmane.org>
-Subject: Re: [PATCH v7 4/9] acpi/arm64: Add GTDT table parse driver
-Date: Thu, 14 Jul 2016 16:33:35 -0400
-Message-ID: <CAP=VYLp0tfVehQkPquvDHx+GVUYPZw29u7w9HCaHKy+ND5Bj-Q@mail.gmail.com>
-References: <1468432402-4872-1-git-send-email-fu.wei@linaro.org> <1468432402-4872-5-git-send-email-fu.wei@linaro.org>
+From: Alex Williamson <alex.williamson@redhat.com>
+Subject: Re: [PATCH V9 4/9] vfio: platform: add support for ACPI probe
+Date: Thu, 14 Jul 2016 15:41:46 -0600
+Message-ID: <20160714154146.38e37d84@t450s.home>
+References: <1468461995-32676-1-git-send-email-okaya@codeaurora.org>
+	<1468461995-32676-5-git-send-email-okaya@codeaurora.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-watchdog-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1468432402-4872-5-git-send-email-fu.wei-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
-Sender: linux-watchdog-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: fu.wei-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org
-Cc: rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org, lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, daniel.lezcano-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org, "tglx-hfZtesqFncYOwBW4kG4KsQ@public.gmane.org" <tglx-hfZtesqFncYOwBW4kG4KsQ@public.gmane.org>, marc.zyngier-5wv7dgnIgG8@public.gmane.org, lorenzo.pieralisi-5wv7dgnIgG8@public.gmane.org, sudeep.holla-5wv7dgnIgG8@public.gmane.org, hanjun.guo-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org, "linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org" <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>, linaro-acpi-cunTk1MwBs8s++Sfvej+rw@public.gmane.org, LKML <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, rruigrok-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org, harba-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org, cov-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org, timur-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org, graeme.gregory-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org, al.stone-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org, jcm-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, wei-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>, wim-IQzOog9fTRqzQB+pC5nmwQ@public.gmane.org, catalin.marinas-5wv7dgnIgG8@public.gmane.org, will.deacon-5wv7dgnIgG8@public.gmane.org, Suravee.Suthikulpanit-5C7GfCeVMHo@public.gmane.org, leo.duran-5C7GfCeVMHo@public.gmane.org, linux-0h96xk9xTtrk1uMJSBkQmQ@public.gmane.org, linux-watchdog-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, David Miller <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>, Andrew Morton <akpm-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org>, "gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org" <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>, kva
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1468461995-32676-5-git-send-email-okaya@codeaurora.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Sinan Kaya <okaya@codeaurora.org>
+Cc: kvm@vger.kernel.org, timur@codeaurora.org, cov@codeaurora.org, jcm@redhat.com, eric.auger@redhat.com, linux-acpi@vger.kernel.org, agross@codeaurora.org, linux-arm-msm@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Baptiste Reynal <b.reynal@virtualopensystems.com>, linux-kernel@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Wed, Jul 13, 2016 at 1:53 PM,  <fu.wei-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org> wrote:
-> From: Fu Wei <fu.wei-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
->
-> This patch adds support for parsing arch timer in GTDT,
-> provides some kernel APIs to parse all the PPIs and
-> always-on info in GTDT and export them.
->
-> By this driver, we can simplify arm_arch_timer drivers, and
-> separate the ACPI GTDT knowledge from it.
->
-> Signed-off-by: Fu Wei <fu.wei-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
-> Signed-off-by: Hanjun Guo <hanjun.guo-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
+On Wed, 13 Jul 2016 22:06:30 -0400
+Sinan Kaya <okaya@codeaurora.org> wrote:
+
+> The code is using the compatible DT string to associate a reset driver
+> with the actual device itself. The compatible string does not exist on
+> ACPI based systems. HID is the unique identifier for a device driver
+> instead.
+> 
+> Signed-off-by: Sinan Kaya <okaya@codeaurora.org>
+> Reviewed-by: Eric Auger <eric.auger@redhat.com>
+> Reviewed-by: Baptiste Reynal <b.reynal@virtualopensystems.com>
 > ---
->  drivers/acpi/Kconfig           |   5 ++
->  drivers/acpi/Makefile          |   1 +
->  drivers/acpi/arm64/Kconfig     |  15 ++++
->  drivers/acpi/arm64/Makefile    |   1 +
->  drivers/acpi/arm64/acpi_gtdt.c | 170 +++++++++++++++++++++++++++++++++++++++++
->  include/linux/acpi.h           |   6 ++
->  6 files changed, 198 insertions(+)
->
-> diff --git a/drivers/acpi/Kconfig b/drivers/acpi/Kconfig
-> index b7e2e77..1cdc7d2 100644
-> --- a/drivers/acpi/Kconfig
-> +++ b/drivers/acpi/Kconfig
-> @@ -521,4 +521,9 @@ config XPOWER_PMIC_OPREGION
->
->  endif
->
-> +if ARM64
-> +source "drivers/acpi/arm64/Kconfig"
-> +
-> +endif
-> +
->  endif  # ACPI
-> diff --git a/drivers/acpi/Makefile b/drivers/acpi/Makefile
-> index 251ce85..1a94ff7 100644
-> --- a/drivers/acpi/Makefile
-> +++ b/drivers/acpi/Makefile
-> @@ -99,5 +99,6 @@ obj-$(CONFIG_ACPI_EXTLOG)     += acpi_extlog.o
->  obj-$(CONFIG_PMIC_OPREGION)    += pmic/intel_pmic.o
->  obj-$(CONFIG_CRC_PMIC_OPREGION) += pmic/intel_pmic_crc.o
->  obj-$(CONFIG_XPOWER_PMIC_OPREGION) += pmic/intel_pmic_xpower.o
-> +obj-$(CONFIG_ARM64)    += arm64/
->
->  video-objs                     += acpi_video.o video_detect.o
-> diff --git a/drivers/acpi/arm64/Kconfig b/drivers/acpi/arm64/Kconfig
-> new file mode 100644
-> index 0000000..ff5c253
-> --- /dev/null
-> +++ b/drivers/acpi/arm64/Kconfig
-> @@ -0,0 +1,15 @@
-> +#
-> +# ACPI Configuration for ARM64
-> +#
-> +
-> +menu "The ARM64-specific ACPI Support"
-> +
-> +config ACPI_GTDT
-> +       bool "ACPI GTDT table Support"
-> +       help
-> +         GTDT (Generic Timer Description Table) provides information
-> +         for per-processor timers and Platform (memory-mapped) timers
-> +         for ARM platforms. Select this option to provide information
-> +         needed for the timers init.
-> +
-> +endmenu
-> diff --git a/drivers/acpi/arm64/Makefile b/drivers/acpi/arm64/Makefile
-> new file mode 100644
-> index 0000000..466de6b
-> --- /dev/null
-> +++ b/drivers/acpi/arm64/Makefile
-> @@ -0,0 +1 @@
-> +obj-$(CONFIG_ACPI_GTDT)                += acpi_gtdt.o
-> diff --git a/drivers/acpi/arm64/acpi_gtdt.c b/drivers/acpi/arm64/acpi_gtdt.c
-> new file mode 100644
-> index 0000000..9ee977d
-> --- /dev/null
-> +++ b/drivers/acpi/arm64/acpi_gtdt.c
-> @@ -0,0 +1,170 @@
-> +/*
-> + * ARM Specific GTDT table Support
-> + *
-> + * Copyright (C) 2016, Linaro Ltd.
-> + * Author: Daniel Lezcano <daniel.lezcano-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
-> + *         Fu Wei <fu.wei-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
-> + *         Hanjun Guo <hanjun.guo-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
-> + *
-> + * This program is free software; you can redistribute it and/or modify
-> + * it under the terms of the GNU General Public License version 2 as
-> + * published by the Free Software Foundation.
-> + */
-> +
+>  drivers/vfio/platform/vfio_platform_common.c  | 70 +++++++++++++++++++++++++--
+>  drivers/vfio/platform/vfio_platform_private.h |  1 +
+>  2 files changed, 66 insertions(+), 5 deletions(-)
+> 
+> diff --git a/drivers/vfio/platform/vfio_platform_common.c b/drivers/vfio/platform/vfio_platform_common.c
+> index 6be92c3..ff148764 100644
+> --- a/drivers/vfio/platform/vfio_platform_common.c
+> +++ b/drivers/vfio/platform/vfio_platform_common.c
+> @@ -13,6 +13,7 @@
+>   */
+>  
+>  #include <linux/device.h>
 > +#include <linux/acpi.h>
-> +#include <linux/init.h>
-> +#include <linux/kernel.h>
-> +#include <linux/module.h>
+>  #include <linux/iommu.h>
+>  #include <linux/module.h>
+>  #include <linux/mutex.h>
+> @@ -49,6 +50,33 @@ static vfio_platform_reset_fn_t vfio_platform_lookup_reset(const char *compat,
+>  	return reset_fn;
+>  }
+>
 
-Please do not use module.h in drivers that are using a
-bool Kconfig setting.
+This function still feels a bit sloppy
+  
+> +static int vfio_platform_acpi_probe(struct vfio_platform_device *vdev,
+> +				    struct device *dev)
+> +{
+> +	struct acpi_device *adev = ACPI_COMPANION(dev);
 
-Thanks,
-Paul.
---
-To unsubscribe from this list: send the line "unsubscribe linux-watchdog" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+When !CONFIG_ACPI, this returns NULL
+
+> +
+> +	if (acpi_disabled)
+
+When !CONFIG_ACPI, this is defined as 1, so we'll always exit here.
+
+> +		return -EPERM;
+> +
+> +	if (!adev) {
+
+This is really the only (ACPI_CONFIG && !acpi_disabled) error exit,
+because...
+
+> +		pr_err("VFIO: ACPI companion device not found for %s\n",
+> +			vdev->name);
+> +		return -ENODEV;
+> +	}
+> +
+> +#ifdef CONFIG_ACPI
+> +	vdev->acpihid = acpi_device_hid(adev);
+
+This can't actually return NULL.  So the test below is unreached.
+Maybe we should just conclude this function here with:
+
+#endif
+
+return vdev->acpihid ? 0 : -ENOENT;
+
+which is even still a bit paranoid since it can't actually happen.
+
+> +	if (!vdev->acpihid) {
+> +		pr_err("VFIO: cannot find ACPI HID for %s\n",
+> +		       vdev->name);
+> +		return -EINVAL;
+> +	}
+> +	return 0;
+> +#else
+> +	return -ENOENT;
+> +#endif
+> +}
+> +
+>  static bool vfio_platform_has_reset(struct vfio_platform_device *vdev)
+>  {
+>  	return vdev->of_reset ? true : false;
+> @@ -547,6 +575,37 @@ static const struct vfio_device_ops vfio_platform_ops = {
+>  	.mmap		= vfio_platform_mmap,
+>  };
+>  
+> +int vfio_platform_of_probe(struct vfio_platform_device *vdev,
+> +			   struct device *dev)
+> +{
+> +	int ret;
+> +
+> +	ret = device_property_read_string(dev, "compatible",
+> +					  &vdev->compat);
+> +	if (ret)
+> +		pr_err("VFIO: cannot retrieve compat for %s\n",
+> +			vdev->name);
+> +
+> +	return ret;
+> +}
+> +
+> +/*
+> + * There can be two kernel build combinations. One build where
+> + * ACPI is not selected in Kconfig and another one with the ACPI Kconfig.
+> + *
+> + * In the first case, vfio_platform_acpi_probe will return since
+> + * acpi_disabled  * is 1. DT user will not see any kind of messages from
+
+                    ^^ Previous editing cruft?
+
+> + * ACPI.
+> + *
+> + * In the second case, both DT and ACPI is compiled in but the system is
+> + * booting with any of these combinations.
+> + *
+> + * If the firmware is DT type, then acpi_disabled is 1. The ACPI probe routine
+> + * terminates immediately without any messages.
+> + *
+> + * If the firmware is ACPI type, then acpi_disabled is 0. All other checks are
+> + * valid checks. We cannot claim that this system is DT.
+> + */
+>  int vfio_platform_probe_common(struct vfio_platform_device *vdev,
+>  			       struct device *dev)
+>  {
+> @@ -556,11 +615,12 @@ int vfio_platform_probe_common(struct vfio_platform_device *vdev,
+>  	if (!vdev)
+>  		return -EINVAL;
+>  
+> -	ret = device_property_read_string(dev, "compatible", &vdev->compat);
+> -	if (ret) {
+> -		pr_err("VFIO: cannot retrieve compat for %s\n", vdev->name);
+> -		return -EINVAL;
+> -	}
+> +	ret = vfio_platform_acpi_probe(vdev, dev);
+> +	if (ret)
+> +		ret = vfio_platform_of_probe(vdev, dev);
+> +
+> +	if (ret)
+> +		return ret;
+>  
+>  	vdev->device = dev;
+>  
+> diff --git a/drivers/vfio/platform/vfio_platform_private.h b/drivers/vfio/platform/vfio_platform_private.h
+> index 71ed7d1..ba9e4f8 100644
+> --- a/drivers/vfio/platform/vfio_platform_private.h
+> +++ b/drivers/vfio/platform/vfio_platform_private.h
+> @@ -58,6 +58,7 @@ struct vfio_platform_device {
+>  	struct mutex			igate;
+>  	struct module			*parent_module;
+>  	const char			*compat;
+> +	const char			*acpihid;
+>  	struct module			*reset_module;
+>  	struct device			*device;
+>  
