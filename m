@@ -1,246 +1,224 @@
-From: Alexey Klimov <alexey.klimov@arm.com>
-Subject: Re: [PATCH 5/5] ACPI/CPPC: add sysfs support to compute delivered
- performance
-Date: Thu, 14 Jul 2016 14:25:35 +0100
-Message-ID: <20160714132535.GA5796@arm.com>
-References: <1467309758-26536-1-git-send-email-pprakash@codeaurora.org>
- <1467309758-26536-6-git-send-email-pprakash@codeaurora.org>
+From: Lorenzo Pieralisi <lorenzo.pieralisi-5wv7dgnIgG8@public.gmane.org>
+Subject: Re: [PATCH v7 7/9] acpi/arm64: Add memory-mapped timer support in
+ GTDT driver
+Date: Thu, 14 Jul 2016 14:42:52 +0100
+Message-ID: <20160714134251.GA30657@red-moon>
+References: <1468432402-4872-1-git-send-email-fu.wei@linaro.org>
+ <1468432402-4872-8-git-send-email-fu.wei@linaro.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from foss.arm.com ([217.140.101.70]:42883 "EHLO foss.arm.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750967AbcGNNZp (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 14 Jul 2016 09:25:45 -0400
+Return-path: <linux-watchdog-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <1467309758-26536-6-git-send-email-pprakash@codeaurora.org>
-Sender: linux-acpi-owner@vger.kernel.org
+In-Reply-To: <1468432402-4872-8-git-send-email-fu.wei-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
+Sender: linux-watchdog-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: fu.wei-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org
+Cc: rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org, lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, daniel.lezcano-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org, tglx-hfZtesqFncYOwBW4kG4KsQ@public.gmane.org, marc.zyngier-5wv7dgnIgG8@public.gmane.org, sudeep.holla-5wv7dgnIgG8@public.gmane.org, hanjun.guo-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linaro-acpi-cunTk1MwBs8s++Sfvej+rw@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, rruigrok-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org, harba-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org, cov-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org, timur-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org, graeme.gregory-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org, al.stone-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org, jcm-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, wei-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, arnd-r2nGTMty4D4@public.gmane.org, wim-IQzOog9fTRqzQB+pC5nmwQ@public.gmane.org, catalin.marinas-5wv7dgnIgG8@public.gmane.org, will.deacon-5wv7dgnIgG8@public.gmane.org, Suravee.Suthikulpanit-5C7GfCeVMHo@public.gmane.org, leo.duran-5C7GfCeVMHo@public.gmane.org, linux-0h96xk9xTtrk1uMJSBkQmQ@public.gmane.org, linux-watchdog-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org, akpm-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org, gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org, kvalo-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org, mchehab-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, jslaby-AlSwsSmVLrQ@public.gmane.org, christoffer.dall-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org, julien.grall-5wv7dgnIgG8@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
-To: Prashanth Prakash <pprakash@codeaurora.org>
-Cc: linux-acpi@vger.kernel.org, rjw@rjwysocki.net, hotran@apm.com, cov@codeaurora.org, Ashwin Chaugule <ashwin.chaugule@linaro.org>
 
-Hi Prashanth and Ashwin,
-
-On Thu, Jun 30, 2016 at 12:02:38PM -0600, Prashanth Prakash wrote:
-> From: Ashwin Chaugule <ashwin.chaugule@linaro.org>
+On Thu, Jul 14, 2016 at 01:53:20AM +0800, fu.wei-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org wrote:
+> From: Fu Wei <fu.wei-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
 > 
-> The CPPC tables contain entries for per CPU feedback counters which
-> allows us to compute the delivered performance over a given interval
-> of time.
+> This driver adds support for parsing memory-mapped timer in GTDT:
+> provide a kernel APIs to parse GT Block Structure in GTDT,
+> export all the info by filling the struct which provided
+> by parameter(pointer of the struct).
 > 
-> The math for delivered performance per the CPPCv5.0+ spec is:
->   reference perf * delta(delivered perf ctr)/delta(ref perf ctr)
+> By this driver, we can add ACPI support for memory-mapped timer in
+> arm_arch_timer drivers, and separate the ACPI GTDT knowledge from it.
 > 
-> Maintaining deltas of the counters in the kernel is messy, as it
-> depends on when the reads are triggered. (e.g. via the cpufreq
-> ->get() interface). Also the ->get() interace only returns one
-> value, so cant return raw values. So instead, leave it to userspace
-> to keep track of raw values and do its math for CPUs it cares about.
-> 
-> delivered and reference perf counters are exposed via the same
-> sysfs file to avoid the potential "skid", if these values are read
-> individually from userspace.
-> 
-> Signed-off-by: Prashanth Prakash <pprakash@codeaurora.org>
-> Signed-off-by: Ashwin Chaugule <ashwin.chaugule@linaro.org>
+> Signed-off-by: Fu Wei <fu.wei-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
+> Signed-off-by: Hanjun Guo <hanjun.guo-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
 > ---
->  drivers/acpi/cppc_acpi.c | 94 +++++++++++++++++++++++++++++++++++++++++++-----
->  include/acpi/cppc_acpi.h |  3 +-
->  2 files changed, 86 insertions(+), 11 deletions(-)
+>  drivers/acpi/arm64/acpi_gtdt.c       | 90 ++++++++++++++++++++++++++++++++++++
+>  include/clocksource/arm_arch_timer.h | 15 ++++++
+>  include/linux/acpi.h                 |  1 +
+>  3 files changed, 106 insertions(+)
 > 
-> diff --git a/drivers/acpi/cppc_acpi.c b/drivers/acpi/cppc_acpi.c
-> index 7844e4c..8bd501f 100644
-> --- a/drivers/acpi/cppc_acpi.c
-> +++ b/drivers/acpi/cppc_acpi.c
-> @@ -95,6 +95,17 @@ static unsigned int pcc_mpar, pcc_mrtt, pcc_nominal;
->  				(cpc)->cpc_entry.reg.space_id ==	\
->  				ACPI_ADR_SPACE_PLATFORM_COMM)
+> diff --git a/drivers/acpi/arm64/acpi_gtdt.c b/drivers/acpi/arm64/acpi_gtdt.c
+> index 9ee977d..ff62953 100644
+> --- a/drivers/acpi/arm64/acpi_gtdt.c
+> +++ b/drivers/acpi/arm64/acpi_gtdt.c
+> @@ -168,3 +168,93 @@ int __init gtdt_arch_timer_init(struct acpi_table_header *table)
 >  
-> +/* Evalutes to True if reg is a NULL register descriptor */
-> +#define IS_NULL_REG(reg) ((reg)->space_id ==  ACPI_ADR_SPACE_SYSTEM_MEMORY && \
-> +				(reg)->address == 0 &&			\
-> +				(reg)->bit_width == 0 &&		\
-> +				(reg)->bit_offset == 0 &&		\
-> +				(reg)->access_width == 0)
-> +
-> +/* Evalutes to True if an optional cpc field is supported */
-> +#define CPC_SUPPORTED(cpc) ((cpc)->type == ACPI_TYPE_INTEGER ?		\
-> +				!!(cpc)->cpc_entry.int_value :			\
-> +				!IS_NULL_REG(&(cpc)->cpc_entry.reg))
->  /*
->   * Arbitrary Retries in case the remote processor is slow to respond
->   * to PCC commands. Keeping it high enough to cover emulators where
-> @@ -102,6 +113,61 @@ static unsigned int pcc_mpar, pcc_mrtt, pcc_nominal;
->   */
->  #define NUM_RETRIES 500
->  
-> +struct cppc_attr {
-> +	struct attribute attr;
-> +	ssize_t (*show)(struct kobject *kobj,
-> +			struct attribute *attr, char *buf);
-> +	ssize_t (*store)(struct kobject *kobj,
-> +			struct attribute *attr, const char *c, ssize_t count);
-> +};
-> +
-> +#define define_one_cppc_ro(_name)		\
-> +static struct cppc_attr _name =			\
-> +__ATTR(_name, 0444, show_##_name, NULL)
-> +
-> +#define to_cpc_desc(a) container_of(a, struct cpc_desc, kobj)
-> +
-> +static ssize_t show_feedback_ctrs(struct kobject *kobj,
-> +		struct attribute *attr, char *buf)
-> +{
-> +	struct cpc_desc *cpc_ptr = to_cpc_desc(kobj);
-> +	struct cppc_perf_fb_ctrs fb_ctrs = {0};
-> +
-> +	cppc_get_perf_ctrs(cpc_ptr->cpu_id, &fb_ctrs);
-> +
-> +	return scnprintf(buf, PAGE_SIZE, "ref:%lld del:%lld\n",
-> +			fb_ctrs.reference, fb_ctrs.delivered);
-> +}
-> +define_one_cppc_ro(feedback_ctrs);
-> +
-> +static ssize_t show_reference_perf(struct kobject *kobj,
-> +		struct attribute *attr, char *buf)
-> +{
-> +	struct cpc_desc *cpc_ptr = to_cpc_desc(kobj);
-> +	struct cppc_perf_caps perf_caps;
-> +
-> +	cppc_get_perf_caps(cpc_ptr->cpu_id, &perf_caps);
-> +
-> +	if (perf_caps.reference_perf)
-> +		return scnprintf(buf, PAGE_SIZE, "%u\n",
-> +				perf_caps.reference_perf);
-> +
-> +	return scnprintf(buf, PAGE_SIZE, "%u\n",
-> +			perf_caps.nominal_perf);
-> +}
-
-What do you think about exporting Counter Wraparound Time register
-as well if it's present?
-
-Best regards,
-Alexey Klimov
-
-
-> +define_one_cppc_ro(reference_perf);
-> +
-> +static struct attribute *cppc_attrs[] = {
-> +	&feedback_ctrs.attr,
-> +	&reference_perf.attr,
-> +	NULL
-> +};
-> +
-> +static struct kobj_type cppc_ktype = {
-> +	.sysfs_ops = &kobj_sysfs_ops,
-> +	.default_attrs = cppc_attrs,
-> +};
-> +
->  static int check_pcc_chan(void)
->  {
->  	int ret = -EIO;
-> @@ -544,6 +610,7 @@ int acpi_cppc_processor_probe(struct acpi_processor *pr)
->  	union acpi_object *out_obj, *cpc_obj;
->  	struct cpc_desc *cpc_ptr;
->  	struct cpc_reg *gas_t;
-> +	struct device *cpu_dev;
->  	acpi_handle handle = pr->handle;
->  	unsigned int num_ent, i, cpc_rev;
->  	acpi_status status;
-> @@ -666,6 +733,16 @@ int acpi_cppc_processor_probe(struct acpi_processor *pr)
->  	/* Everything looks okay */
->  	pr_debug("Parsed CPC struct for CPU: %d\n", pr->id);
->  
-> +	/* Add per logical CPU nodes for reading its feedback counters. */
-> +	cpu_dev = get_cpu_device(pr->id);
-> +	if (!cpu_dev)
-> +		goto out_free;
-> +
-> +	ret = kobject_init_and_add(&cpc_ptr->kobj, &cppc_ktype, &cpu_dev->kobj,
-> +			"acpi_cppc");
-> +	if (ret)
-> +		goto out_free;
-> +
->  	kfree(output.pointer);
->  	return 0;
->  
-> @@ -695,6 +772,7 @@ void acpi_cppc_processor_exit(struct acpi_processor *pr)
->  	struct cpc_desc *cpc_ptr;
->  	unsigned int i;
->  	void __iomem *addr;
-> +
->  	cpc_ptr = per_cpu(cpc_desc_ptr, pr->id);
->  
->  	/* Free all the mapped sys mem areas for this CPU */
-> @@ -704,6 +782,7 @@ void acpi_cppc_processor_exit(struct acpi_processor *pr)
->  			iounmap(addr);
->  	}
->  
-> +	kobject_put(&cpc_ptr->kobj);
->  	kfree(cpc_ptr);
+>  	return -EINVAL;
 >  }
->  EXPORT_SYMBOL_GPL(acpi_cppc_processor_exit);
-> @@ -721,7 +800,7 @@ static int cpc_read(struct cpc_register_resource *reg_res, u64 *val)
->  	struct cpc_reg *reg = &reg_res->cpc_entry.reg;
->  
->  	if (reg_res->type == ACPI_TYPE_INTEGER) {
-> -		*val = reg_res->int_value;
-> +		*val = reg_res->cpc_entry.int_value;
->  		return ret_val;
->  	}
->  
-> @@ -836,8 +915,11 @@ int cppc_get_perf_caps(int cpunum, struct cppc_perf_caps *perf_caps)
->  	cpc_read(lowest_reg, &low);
->  	perf_caps->lowest_perf = low;
->  
-> -	cpc_read(ref_perf, &ref);
-> -	perf_caps->reference_perf = ref;
-> +	perf_caps->reference_perf = 0;
-> +	if (CPC_SUPPORTED(ref_perf)) {
-> +		cpc_read(ref_perf, &ref);
-> +		perf_caps->reference_perf = ref;
+> +
+> +/*
+> + * Helper function for getting the pointer of a timer frame in GT block.
+> + */
+> +static void __init *gtdt_gt_timer_frame(struct acpi_gtdt_timer_block *gt_block,
+> +					int index)
+> +{
+> +	void *timer_frame = (void *)gt_block + gt_block->timer_offset +
+> +			    sizeof(struct acpi_gtdt_timer_entry) * index;
+> +
+> +	if (timer_frame <= (void *)gt_block + gt_block->header.length -
+> +			   sizeof(struct acpi_gtdt_timer_entry))
+> +		return timer_frame;
+
+Nit: gt_block is an array, right ? I think it would be much simpler
+if you treat is as such, so that indexing into it would be done
+automatically by the compiler. Actually, I do not even think you
+would need this function at all if you treat gt_block as an array,
+the length check could be done in gtdt_parse_gt_block() straight
+away.
+
+> +
+> +	return NULL;
+> +}
+> +
+> +static int __init gtdt_parse_gt_block(void *platform_timer, int index,
+> +				      void *data)
+> +{
+> +	struct acpi_gtdt_timer_block *block;
+> +	struct acpi_gtdt_timer_entry *frame;
+> +	struct gt_block_data *block_data;
+> +	int i, j;
+> +
+> +	if (!platform_timer || !data)
+> +		return -EINVAL;
+> +
+> +	block = platform_timer;
+> +	block_data = data + sizeof(struct gt_block_data) * index;
+
+Nit: See above, data is a struct gt_block_data[] right ? These void
+pointers parameters are not really great, the caller context
+knows what they are and it can pass them as pointer to typed
+array elements anyway unless I am missing something.
+
+> +	if (!block->block_address || !block->timer_count) {
+> +		pr_err(FW_BUG "invalid GT Block data.\n");
+> +		return -EINVAL;
 > +	}
+> +	block_data->cntctlbase_phy = (phys_addr_t)block->block_address;
+> +	block_data->timer_count = block->timer_count;
+> +
+> +	/*
+> +	 * Get the GT timer Frame data for every GT Block Timer
+> +	 */
+> +	for (i = 0, j = 0; i < block->timer_count; i++) {
+
+What's j needed for (ie can't you use just i instead ?) ?
+
+> +		frame = gtdt_gt_timer_frame(block, i);
+> +		if (!frame || !frame->base_address || !frame->timer_interrupt) {
+> +			pr_err(FW_BUG "invalid GT Block Timer data.\n");
+> +			return -EINVAL;
+> +		}
+> +		block_data->timer[j].frame_nr = frame->frame_number;
+> +		block_data->timer[j].cntbase_phy = frame->base_address;
+> +		block_data->timer[j].irq = map_generic_timer_interrupt(
+> +						   frame->timer_interrupt,
+> +						   frame->timer_flags);
+> +		if (frame->virtual_timer_interrupt)
+> +			block_data->timer[j].virt_irq =
+> +				map_generic_timer_interrupt(
+> +					frame->virtual_timer_interrupt,
+> +					frame->virtual_timer_flags);
+> +		j++;
+> +	}
+> +
+> +	if (j)
+> +		return 0;
+> +
+> +	block_data->cntctlbase_phy = (phys_addr_t)NULL;
+
+This is wrong. NULL is not meant to be used as a physical address,
+you must not do that. Is not zeroeing timer_count enough ? I have
+to understand why you need this because casting NULL into it is
+not safe, at all.
+
+> +	block_data->timer_count = 0;
+> +
+> +	return -EINVAL;
+> +}
+> +
+> +/*
+> + * Get the GT block info for memory-mapped timer from GTDT table.
+> + * Please make sure we have called gtdt_arch_timer_init, because it helps to
+> + * init the global variables.
+
+It is a helper function that you call once at boot, you easily
+determine when it is called, it is not meant to be used in different
+contexts from different subsystems; I think that this comment
+is not clear so either you make it clearer or you remove it.
+
+> + */
+> +int __init gtdt_arch_timer_mem_init(struct gt_block_data *data)
+> +{
+> +	void *platform_timer;
+> +	int index = 0;
+> +
+> +	for_each_platform_timer(platform_timer) {
+> +		if (is_timer_block(platform_timer) &&
+> +		    !gtdt_parse_gt_block(platform_timer, index, data))
+
+Passing around these opaque void* is a tad ugly, see my comments
+above about this.
+
+Apart from the NULL pointer assignment, everything else is just code
+clean-up.
+
+Thanks,
+Lorenzo
+
+> +			index++;
+> +	}
+> +
+> +	if (index)
+> +		pr_info("found %d memory-mapped timer block.\n", index);
+> +
+> +	return index;
+> +}
+> diff --git a/include/clocksource/arm_arch_timer.h b/include/clocksource/arm_arch_timer.h
+> index 16dcd10..ece6b3b 100644
+> --- a/include/clocksource/arm_arch_timer.h
+> +++ b/include/clocksource/arm_arch_timer.h
+> @@ -56,6 +56,8 @@ enum spi_nr {
+>  #define ARCH_TIMER_MEM_PHYS_ACCESS	2
+>  #define ARCH_TIMER_MEM_VIRT_ACCESS	3
 >  
->  	cpc_read(nom_perf, &nom);
->  	perf_caps->nominal_perf = nom;
-> @@ -899,12 +981,6 @@ int cppc_get_perf_ctrs(int cpunum, struct cppc_perf_fb_ctrs *perf_fb_ctrs)
->  	perf_fb_ctrs->delivered = delivered;
->  	perf_fb_ctrs->reference = reference;
->  
-> -	perf_fb_ctrs->delivered -= perf_fb_ctrs->prev_delivered;
-> -	perf_fb_ctrs->reference -= perf_fb_ctrs->prev_reference;
-> -
-> -	perf_fb_ctrs->prev_delivered = delivered;
-> -	perf_fb_ctrs->prev_reference = reference;
-> -
->  out_err:
->  	if (regs_in_pcc)
->  		up_write(&pcc_lock);
-> diff --git a/include/acpi/cppc_acpi.h b/include/acpi/cppc_acpi.h
-> index 7b7e2e1..2bf9db1 100644
-> --- a/include/acpi/cppc_acpi.h
-> +++ b/include/acpi/cppc_acpi.h
-> @@ -63,6 +63,7 @@ struct cpc_desc {
->  	int cpu_id;
->  	struct cpc_register_resource cpc_regs[MAX_CPC_REG_ENT];
->  	struct acpi_psd_package domain_info;
-> +	struct kobject kobj;
+> +#define ARCH_TIMER_MEM_MAX_FRAME	8
+> +
+>  #define ARCH_TIMER_USR_PCT_ACCESS_EN	(1 << 0) /* physical counter */
+>  #define ARCH_TIMER_USR_VCT_ACCESS_EN	(1 << 1) /* virtual counter */
+>  #define ARCH_TIMER_VIRT_EVT_EN		(1 << 2)
+> @@ -71,6 +73,19 @@ struct arch_timer_kvm_info {
+>  	int virtual_irq;
 >  };
 >  
->  /* These are indexes into the per-cpu cpc_regs[]. Order is important. */
-> @@ -109,9 +110,7 @@ struct cppc_perf_ctrls {
+> +struct gt_timer_data {
+> +	int frame_nr;
+> +	phys_addr_t cntbase_phy;
+> +	int irq;
+> +	int virt_irq;
+> +};
+> +
+> +struct gt_block_data {
+> +	phys_addr_t cntctlbase_phy;
+> +	int timer_count;
+> +	struct gt_timer_data timer[ARCH_TIMER_MEM_MAX_FRAME];
+> +};
+> +
+>  #ifdef CONFIG_ARM_ARCH_TIMER
 >  
->  struct cppc_perf_fb_ctrs {
->  	u64 reference;
-> -	u64 prev_reference;
->  	u64 delivered;
-> -	u64 prev_delivered;
->  };
+>  extern u32 arch_timer_get_rate(void);
+> diff --git a/include/linux/acpi.h b/include/linux/acpi.h
+> index 8439579..b1cacbc 100644
+> --- a/include/linux/acpi.h
+> +++ b/include/linux/acpi.h
+> @@ -536,6 +536,7 @@ struct platform_device *acpi_create_platform_device(struct acpi_device *);
+>  int __init gtdt_arch_timer_init(struct acpi_table_header *table);
+>  int __init acpi_gtdt_map_ppi(int type);
+>  int __init acpi_gtdt_c3stop(void);
+> +int __init gtdt_arch_timer_mem_init(struct gt_block_data *data);
+>  #endif
 >  
->  /* Per CPU container for runtime CPPC management. */
+>  #else	/* !CONFIG_ACPI */
 > -- 
-> Qualcomm Technologies, Inc. on behalf
-> of the Qualcomm Innovation Center, Inc.  The Qualcomm Innovation Center, Inc. 
-> is a member of the Code Aurora Forum, a Linux Foundation Collaborative Project.
+> 2.5.5
 > 
+--
+To unsubscribe from this list: send the line "unsubscribe linux-watchdog" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
