@@ -1,84 +1,50 @@
-From: Fu Wei <fu.wei@linaro.org>
-Subject: Re: [PATCH v7 4/9] acpi/arm64: Add GTDT table parse driver
-Date: Sat, 16 Jul 2016 00:32:14 +0800
-Message-ID: <CADyBb7sXxY_a+tJQoH01eUk5-xvg9jRZtzyhB-tDstWoBAWfLg@mail.gmail.com>
-References: <1468432402-4872-1-git-send-email-fu.wei@linaro.org>
- <CADyBb7tkk5DhG_1_87+BQKQfF-CSC+LgP7LE=9SmztvaFLxNyQ@mail.gmail.com>
- <1809117.TV1VJp2Xpr@vostro.rjw.lan> <5101961.eCg7ixLQWc@vostro.rjw.lan>
+From: Dan Williams <dan.j.williams@intel.com>
+Subject: Re: [PATCH 1/2] nfit: fix _FIT evaluation memory leak
+Date: Fri, 15 Jul 2016 10:10:43 -0700
+Message-ID: <CAPcyv4gYwLUjvPekJMKsHQyzy=eU0tuEyQ-1VkW+pHgqhfb0ZA@mail.gmail.com>
+References: <146855333714.573.13934675433503265133.stgit@dwillia2-desk3.amr.corp.intel.com>
+ <20160715075515.ufwwvwngteqyovsk@hz-desktop> <20160715081212.l3rfkk2wvh7bjdo5@hz-desktop>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <5101961.eCg7ixLQWc@vostro.rjw.lan>
-Sender: linux-kernel-owner@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: "Rafael J. Wysocki" <rafael@kernel.org>, Len Brown <lenb@kernel.org>, Daniel Lezcano <daniel.lezcano@linaro.org>, Thomas Gleixner <tglx@linutronix.de>, Marc Zyngier <marc.zyngier@arm.com>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Sudeep Holla <sudeep.holla@arm.com>, Hanjun Guo <hanjun.guo@linaro.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linaro-acpi@lists.linaro.org" <linaro-acpi@lists.linaro.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, rruigrok@codeaurora.org, harba@codeaurora.org, Christopher Covington <cov@codeaurora.org>, Timur Tabi <timur@codeaurora.org>, G Gregory <graeme.gregory@linaro.org>, Al Stone <al.stone@linaro.org>, Jon Masters <jcm@redhat.com>, wei@redhat.com, Arnd Bergmann <arnd@arndb.de>, Wim Van Sebroeck <wim@iguana.be>, Catal
+Return-path: <stable-owner@vger.kernel.org>
+In-Reply-To: <20160715081212.l3rfkk2wvh7bjdo5@hz-desktop>
+Sender: stable-owner@vger.kernel.org
+To: Dan Williams <dan.j.williams@intel.com>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, Vishal Verma <vishal.l.verma@intel.com>, Linux ACPI <linux-acpi@vger.kernel.org>, "stable@vger.kernel.org" <stable@vger.kernel.org>, Xiao Guangrong <guangrong.xiao@intel.com>
 List-Id: linux-acpi@vger.kernel.org
 
-Hi Rafael,
-
-On 15 July 2016 at 21:07, Rafael J. Wysocki <rjw@rjwysocki.net> wrote:
-> On Friday, July 15, 2016 02:15:27 PM Rafael J. Wysocki wrote:
->> On Friday, July 15, 2016 03:32:35 PM Fu Wei wrote:
->> > Hi Rafael,
+On Fri, Jul 15, 2016 at 1:12 AM, Haozhong Zhang
+<haozhong.zhang@intel.com> wrote:
+> On 07/15/16 15:55, Haozhong Zhang wrote:
+>> On 07/14/16 20:28, Dan Williams wrote:
+>> > acpi_evaluate_object() allocates memory. Free the buffer allocated
+>> > during acpi_nfit_add().
 >> >
->
-> [cut]
->
->> > >
->> > >> +               return 0;
->> > >> +       }
->> > >> +
->> > >> +       if (!gtdt->platform_timer_count) {
->> > >> +               pr_info("No Platform Timer.\n");
->> > >> +               return 0;
->> > >> +       }
->> > >> +
->> > >> +       acpi_gtdt_desc.platform_timer_start = (void *)gtdt +
->> > >> +                                             gtdt->platform_timer_offset;
->> > >> +       if (acpi_gtdt_desc.platform_timer_start <
->> > >> +           (void *)table + sizeof(struct acpi_table_gtdt)) {
->> > >> +               pr_err(FW_BUG "Platform Timer pointer error.\n");
->> > >
->> > > Why pr_err()?
+>> > Cc: <stable@vger.kernel.org>
+>> > Cc: Vishal Verma <vishal.l.verma@intel.com>
+>> > Reported-by: Xiao Guangrong <guangrong.xiao@intel.com>
+>> > Reported-by: Haozhong Zhang <haozhong.zhang@intel.com>
+>> > Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+>> > ---
+>> >  drivers/acpi/nfit.c |    7 +++++--
+>> >  1 file changed, 5 insertions(+), 2 deletions(-)
 >> >
->> > if (true), that means the GTDT table has bugs.
->> >
+>> > diff --git a/drivers/acpi/nfit.c b/drivers/acpi/nfit.c
+>> > index 0497175ee6cb..008dbaaa2b75 100644
+>> > --- a/drivers/acpi/nfit.c
+>> > +++ b/drivers/acpi/nfit.c
+>> > @@ -2414,12 +2414,15 @@ static int acpi_nfit_add(struct acpi_device *adev)
+>> >                     acpi_desc->nfit =
+>> >                             (struct acpi_nfit_header *)obj->buffer.pointer;
+>> >                     sz = obj->buffer.length;
+>> > +                   rc = acpi_nfit_init(acpi_desc, sz);
+>> >             } else
+>> >                     dev_dbg(dev, "%s invalid type %d, ignoring _FIT\n",
+>> >                              __func__, (int) obj->type);
 >>
->> And that's not a very useful piece of information unless you're debugging the
->> platform, is it?
+>> 'rc' is not set in this path, so it maybe used uninitialized by 'if (rc)' below.
+>> Should we set it to a non-zero value in this path?
 >
-> FWIW, I'm not a big fan of printing "your firmware is buggy" type of messages
-> (especially at the "error" log level or higher) unless they can be clearly
-> connected to a specific type of functional failure.
->
-> So if you want to pring an error-level message, something like "I cannot do X
-> because of the firmware bug Y" would be better IMO.
+> 'rc' should be set to 0 here, as what patch 2 does. Sorry for my mistake.
 
-So can I do this:
-pr_err(FW_BUG "Can NOT init platform_timer pointer, because of the
-GTDT table bug\n");
-
-or pr_debug(FW_BUG "Can NOT init platform_timer_start, because of
-platform_timer_offset bug in GTDT\n");
-
-or just delete it?
-
-which one do you prefer?  I think maybe should provide some clue for
-users to fix the problem  :-)
-
-any thought ?
-
-
->
-> Thanks,
-> Rafael
->
-
-
-
--- 
-Best regards,
-
-Fu Wei
-Software Engineer
-Red Hat
+No, this is good feedback because patch1 is targeted for -stable. Will
+fix, thanks!
