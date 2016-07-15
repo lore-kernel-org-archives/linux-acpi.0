@@ -1,60 +1,40 @@
-From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [PATCH v7 4/9] acpi/arm64: Add GTDT table parse driver
-Date: Fri, 15 Jul 2016 15:07:08 +0200
-Message-ID: <5101961.eCg7ixLQWc@vostro.rjw.lan>
-References: <1468432402-4872-1-git-send-email-fu.wei@linaro.org> <CADyBb7tkk5DhG_1_87+BQKQfF-CSC+LgP7LE=9SmztvaFLxNyQ@mail.gmail.com> <1809117.TV1VJp2Xpr@vostro.rjw.lan>
+From: Dan Williams <dan.j.williams@intel.com>
+Subject: Re: [PATCH 1/2] nfit: fix _FIT evaluation memory leak
+Date: Fri, 15 Jul 2016 07:57:40 -0700
+Message-ID: <CAPcyv4ja17tfRA218R40eOtVRAk2WJ2oSp=a2G-LYwFB+G0abw@mail.gmail.com>
+References: <146855333714.573.13934675433503265133.stgit@dwillia2-desk3.amr.corp.intel.com>
+ <578878E7.9060504@intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7Bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cloudserver094114.home.net.pl ([79.96.170.134]:57288 "HELO
-	cloudserver094114.home.net.pl" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with SMTP id S1751040AbcGONCW (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 15 Jul 2016 09:02:22 -0400
-In-Reply-To: <1809117.TV1VJp2Xpr@vostro.rjw.lan>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
+Return-path: <stable-owner@vger.kernel.org>
+In-Reply-To: <578878E7.9060504@intel.com>
+Sender: stable-owner@vger.kernel.org
+To: Xiao Guangrong <guangrong.xiao@intel.com>
+Cc: "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, Vishal Verma <vishal.l.verma@intel.com>, Linux ACPI <linux-acpi@vger.kernel.org>, "stable@vger.kernel.org" <stable@vger.kernel.org>, Haozhong Zhang <haozhong.zhang@intel.com>
 List-Id: linux-acpi@vger.kernel.org
-To: Fu Wei <fu.wei@linaro.org>
-Cc: "Rafael J. Wysocki" <rafael@kernel.org>, Len Brown <lenb@kernel.org>, Daniel Lezcano <daniel.lezcano@linaro.org>, Thomas Gleixner <tglx@linutronix.de>, Marc Zyngier <marc.zyngier@arm.com>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Sudeep Holla <sudeep.holla@arm.com>, Hanjun Guo <hanjun.guo@linaro.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linaro-acpi@lists.linaro.org" <linaro-acpi@lists.linaro.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, rruigrok@codeaurora.org, harba@codeaurora.org, Christopher Covington <cov@codeaurora.org>, Timur Tabi <timur@codeaurora.org>, G Gregory <graeme.gregory@linaro.org>, Al Stone <al.stone@linaro.org>, Jon Masters <jcm@redhat.com>, wei@redhat.com, Arnd Bergmann <arnd@arndb.de>, Wim Van Sebroeck <wim@iguana.be>, Catal
 
-On Friday, July 15, 2016 02:15:27 PM Rafael J. Wysocki wrote:
-> On Friday, July 15, 2016 03:32:35 PM Fu Wei wrote:
-> > Hi Rafael,
-> > 
+On Thu, Jul 14, 2016 at 10:47 PM, Xiao Guangrong
+<guangrong.xiao@intel.com> wrote:
+>
+>
+> On 07/15/2016 11:28 AM, Dan Williams wrote:
+>>
+>> acpi_evaluate_object() allocates memory. Free the buffer allocated
+>> during acpi_nfit_add().
+>>
+>
+> Dan, thanks for your fix.
+>
+> Another one is the use-after-free issue in acpi_nfit_notify():
+>
+>         /* Evaluate _FIT */
+>         status = acpi_evaluate_object(adev->handle, "_FIT", NULL, &buf);
+>         ...
+>                 acpi_desc->nfit =
+>                         (struct acpi_nfit_header *)obj->buffer.pointer;
+>         ...
+>         kfree(buf.pointer);
 
-[cut]
-
-> > >
-> > >> +               return 0;
-> > >> +       }
-> > >> +
-> > >> +       if (!gtdt->platform_timer_count) {
-> > >> +               pr_info("No Platform Timer.\n");
-> > >> +               return 0;
-> > >> +       }
-> > >> +
-> > >> +       acpi_gtdt_desc.platform_timer_start = (void *)gtdt +
-> > >> +                                             gtdt->platform_timer_offset;
-> > >> +       if (acpi_gtdt_desc.platform_timer_start <
-> > >> +           (void *)table + sizeof(struct acpi_table_gtdt)) {
-> > >> +               pr_err(FW_BUG "Platform Timer pointer error.\n");
-> > >
-> > > Why pr_err()?
-> > 
-> > if (true), that means the GTDT table has bugs.
-> > 
-> 
-> And that's not a very useful piece of information unless you're debugging the
-> platform, is it?
-
-FWIW, I'm not a big fan of printing "your firmware is buggy" type of messages
-(especially at the "error" log level or higher) unless they can be clearly
-connected to a specific type of functional failure.
-
-So if you want to pring an error-level message, something like "I cannot do X
-because of the firmware bug Y" would be better IMO.
-
-Thanks,
-Rafael
-
+grep for acpi_desc->nfit usages, there are no usages after
+acpi_nfit_init(). We go through the hassle of setting up nfit_saved
+for no reason.
