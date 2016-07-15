@@ -1,82 +1,96 @@
 From: Dan Williams <dan.j.williams@intel.com>
-Subject: [PATCH v2] tools/testing/nvdimm: add virtual ramdisk range
-Date: Fri, 15 Jul 2016 12:35:58 -0700
-Message-ID: <146861130048.16896.9105590813517990661.stgit@dwillia2-desk3.amr.corp.intel.com>
+Subject: [PATCH v2 1/2] nfit: fix _FIT evaluation memory leak
+Date: Fri, 15 Jul 2016 12:32:43 -0700
+Message-ID: <146861106687.16732.18123746119721100494.stgit@dwillia2-desk3.amr.corp.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga09.intel.com ([134.134.136.24]:2591 "EHLO mga09.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751548AbcGOTiK (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 15 Jul 2016 15:38:10 -0400
-Sender: linux-acpi-owner@vger.kernel.org
-List-Id: linux-acpi@vger.kernel.org
+Return-path: <stable-owner@vger.kernel.org>
+Sender: stable-owner@vger.kernel.org
 To: linux-nvdimm@lists.01.org
-Cc: "Lee, Chun-Yi" <jlee@suse.com>, linux-acpi@vger.kernel.org
+Cc: Vishal Verma <vishal.l.verma@intel.com>, linux-acpi@vger.kernel.org, stable@vger.kernel.org, Xiao Guangrong <guangrong.xiao@intel.com>, Haozhong Zhang <haozhong.zhang@intel.com>
+List-Id: linux-acpi@vger.kernel.org
 
-Test the virtual disk ranges that platform firmware like EDK2/OVMF might
-emit.
+acpi_evaluate_object() allocates memory. Free the buffer allocated
+during acpi_nfit_add().  Also, make it clear that ->nfit is not used
+outside of acpi_nfit_init() context.
 
-Cc: "Lee, Chun-Yi" <jlee@suse.com>
+Cc: <stable@vger.kernel.org>
+Cc: Vishal Verma <vishal.l.verma@intel.com>
+Reported-by: Xiao Guangrong <guangrong.xiao@intel.com>
+Reported-by: Haozhong Zhang <haozhong.zhang@intel.com>
 Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 ---
-Changes since v1:
+Change since v1:
 
-* Move this test range to nfit_test.1 to not break the spa ordering
-  expected by the nfit_test.0 tests.
+* Fix unitialized use of 'rc' (Haozhong)
+* Clarify that their is no use-after-free problem in acpi_nfit_notify()
+  (Xiao)
 
- tools/testing/nvdimm/test/nfit.c |   18 ++++++++++++++++--
- 1 file changed, 16 insertions(+), 2 deletions(-)
+ drivers/acpi/nfit.c |   21 +++++++++------------
+ 1 file changed, 9 insertions(+), 12 deletions(-)
 
-diff --git a/tools/testing/nvdimm/test/nfit.c b/tools/testing/nvdimm/test/nfit.c
-index 52df3c20231d..d4a4635c1186 100644
---- a/tools/testing/nvdimm/test/nfit.c
-+++ b/tools/testing/nvdimm/test/nfit.c
-@@ -104,6 +104,7 @@ enum {
- 	NUM_MEM = NUM_DCR + NUM_BDW + 2 /* spa0 iset */ + 4 /* spa1 iset */,
- 	DIMM_SIZE = SZ_32M,
- 	LABEL_SIZE = SZ_128K,
-+	SPA_VCD_SIZE = SZ_4M,
- 	SPA0_SIZE = DIMM_SIZE,
- 	SPA1_SIZE = DIMM_SIZE*2,
- 	SPA2_SIZE = DIMM_SIZE,
-@@ -618,7 +619,7 @@ static int nfit_test0_alloc(struct nfit_test *t)
+diff --git a/drivers/acpi/nfit.c b/drivers/acpi/nfit.c
+index d89a02d9ed10..cbdbe13bdbe8 100644
+--- a/drivers/acpi/nfit.c
++++ b/drivers/acpi/nfit.c
+@@ -2390,7 +2390,7 @@ static int acpi_nfit_add(struct acpi_device *adev)
+ 	struct acpi_table_header *tbl;
+ 	acpi_status status = AE_OK;
+ 	acpi_size sz;
+-	int rc;
++	int rc = 0;
  
- static int nfit_test1_alloc(struct nfit_test *t)
+ 	status = acpi_get_table_with_size(ACPI_SIG_NFIT, 0, &tbl, &sz);
+ 	if (ACPI_FAILURE(status)) {
+@@ -2427,12 +2427,15 @@ static int acpi_nfit_add(struct acpi_device *adev)
+ 			acpi_desc->nfit =
+ 				(struct acpi_nfit_header *)obj->buffer.pointer;
+ 			sz = obj->buffer.length;
++			rc = acpi_nfit_init(acpi_desc, sz);
+ 		} else
+ 			dev_dbg(dev, "%s invalid type %d, ignoring _FIT\n",
+ 				 __func__, (int) obj->type);
+-	}
++		acpi_desc->nfit = NULL;
++		kfree(buf.pointer);
++	} else
++		rc = acpi_nfit_init(acpi_desc, sz);
+ 
+-	rc = acpi_nfit_init(acpi_desc, sz);
+ 	if (rc) {
+ 		nvdimm_bus_unregister(acpi_desc->nvdimm_bus);
+ 		return rc;
+@@ -2454,7 +2457,6 @@ static void acpi_nfit_notify(struct acpi_device *adev, u32 event)
  {
--	size_t nfit_size = sizeof(struct acpi_nfit_system_address)
-+	size_t nfit_size = sizeof(struct acpi_nfit_system_address) * 2
- 		+ sizeof(struct acpi_nfit_memory_map)
- 		+ offsetof(struct acpi_nfit_control_region, window_size);
+ 	struct acpi_nfit_desc *acpi_desc = dev_get_drvdata(&adev->dev);
+ 	struct acpi_buffer buf = { ACPI_ALLOCATE_BUFFER, NULL };
+-	struct acpi_nfit_header *nfit_saved;
+ 	union acpi_object *obj;
+ 	struct device *dev = &adev->dev;
+ 	acpi_status status;
+@@ -2492,21 +2494,16 @@ static void acpi_nfit_notify(struct acpi_device *adev, u32 event)
+ 		goto out_unlock;
+ 	}
  
-@@ -631,6 +632,10 @@ static int nfit_test1_alloc(struct nfit_test *t)
- 	if (!t->spa_set[0])
- 		return -ENOMEM;
+-	nfit_saved = acpi_desc->nfit;
+ 	obj = buf.pointer;
+ 	if (obj->type == ACPI_TYPE_BUFFER) {
+ 		acpi_desc->nfit =
+ 			(struct acpi_nfit_header *)obj->buffer.pointer;
+ 		ret = acpi_nfit_init(acpi_desc, obj->buffer.length);
+-		if (ret) {
+-			/* Merge failed, restore old nfit, and exit */
+-			acpi_desc->nfit = nfit_saved;
++		if (ret)
+ 			dev_err(dev, "failed to merge updated NFIT\n");
+-		}
+-	} else {
+-		/* Bad _FIT, restore old nfit */
++	} else
+ 		dev_err(dev, "Invalid _FIT\n");
+-	}
++	acpi_desc->nfit = NULL;
+ 	kfree(buf.pointer);
  
-+	t->spa_set[1] = test_alloc(t, SPA_VCD_SIZE, &t->spa_set_dma[1]);
-+	if (!t->spa_set[1])
-+		return -ENOMEM;
-+
- 	return ars_state_init(&t->pdev.dev, &t->ars_state);
- }
- 
-@@ -1335,7 +1340,16 @@ static void nfit_test1_setup(struct nfit_test *t)
- 	spa->address = t->spa_set_dma[0];
- 	spa->length = SPA2_SIZE;
- 
--	offset += sizeof(*spa);
-+	/* virtual cd region */
-+	spa = nfit_buf + sizeof(*spa);
-+	spa->header.type = ACPI_NFIT_TYPE_SYSTEM_ADDRESS;
-+	spa->header.length = sizeof(*spa);
-+	memcpy(spa->range_guid, to_nfit_uuid(NFIT_SPA_VCD), 16);
-+	spa->range_index = 0;
-+	spa->address = t->spa_set_dma[1];
-+	spa->length = SPA_VCD_SIZE;
-+
-+	offset += sizeof(*spa) * 2;
- 	/* mem-region0 (spa0, dimm0) */
- 	memdev = nfit_buf + offset;
- 	memdev->header.type = ACPI_NFIT_TYPE_MEMORY_MAP;
-
+  out_unlock:
