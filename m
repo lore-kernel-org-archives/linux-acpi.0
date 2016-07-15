@@ -1,221 +1,45 @@
-From: joeyli <jlee-IBi9RG/b67k@public.gmane.org>
-Subject: Re: [PATCH 2/2] nfit: cleanup acpi_nfit_init calling convention
-Date: Fri, 15 Jul 2016 16:40:23 +0800
-Message-ID: <20160715084023.GF27155@linux-rxt1.site>
-References: <146855333714.573.13934675433503265133.stgit@dwillia2-desk3.amr.corp.intel.com>
- <146855334233.573.9365432658382592535.stgit@dwillia2-desk3.amr.corp.intel.com>
+From: Kefeng Wang <wangkefeng.wang@huawei.com>
+Subject: [PATCH v3 0/3]
+Date: Fri, 15 Jul 2016 19:01:22 +0800
+Message-ID: <1468580485-28567-1-git-send-email-wangkefeng.wang@huawei.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <146855334233.573.9365432658382592535.stgit-p8uTFz9XbKj2zm6wflaqv1nYeNYlB/vhral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
- <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
-List-Post: <mailto:linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-List-Help: <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
- <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
-Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
-Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-To: Dan Williams <dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
+Content-Type: text/plain
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from szxga01-in.huawei.com ([58.251.152.64]:65403 "EHLO
+	szxga01-in.huawei.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932505AbcGOLDF (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 15 Jul 2016 07:03:05 -0400
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: gregkh@linuxfoundation.org, jslaby@suse.com, linux-serial@vger.kernel.org, andriy.shevchenko@linux.intel.com
+Cc: linux-acpi@vger.kernel.org, guohanjun@huawei.com, z.liuxinliang@hisilicon.com, xuwei5@hisilicon.com, graeme.gregory@linaro.org, Kefeng Wang <wangkefeng.wang@huawei.com>
 
-On Thu, Jul 14, 2016 at 08:29:02PM -0700, Dan Williams wrote:
-> Pass the nfit buffer as a parameter rather than hanging it off of
-> acpi_desc.
-> 
-> Signed-off-by: Dan Williams <dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Make dw8250_set_termios() as the default set_termios callback for 8250 dw uart, correct me
+if I am wrong.
 
-Reviewed-by: Lee, Chun-Yi <jlee-IBi9RG/b67k@public.gmane.org>
+Then add ACPI support for uart on Hisilicon Hip05 soc, be careful that it is not 16500
+compatible. Meanwhile, set dw8250_serial_out32 to keep consistent between serial_out
+and serial_in in ACPI.
+
+Change since v2:
+- Add a new patch to use new var dev in probe
+- Use built-in device properties to set device parameters for existing device probed by acpi,
+  suggested by Andy Shevchenko 
 
 
-Thanks a lot!
-Joey Lee
+Change since v1:
+- Use acpi_match_device() instead of acpi_dev_found(), limit the check to the device
+  being probed and not a global search for whole DSDT (pointed by graeme.gregory@linaro.org)
 
-> ---
->  drivers/acpi/nfit.c              |   56 +++++++++++++-------------------------
->  drivers/acpi/nfit.h              |    3 +-
->  tools/testing/nvdimm/test/nfit.c |    7 +++--
->  3 files changed, 24 insertions(+), 42 deletions(-)
-> 
-> diff --git a/drivers/acpi/nfit.c b/drivers/acpi/nfit.c
-> index 008dbaaa2b75..a04f2486e1ca 100644
-> --- a/drivers/acpi/nfit.c
-> +++ b/drivers/acpi/nfit.c
-> @@ -2224,12 +2224,11 @@ static int acpi_nfit_check_deletions(struct acpi_nfit_desc *acpi_desc,
->  	return 0;
->  }
->  
-> -int acpi_nfit_init(struct acpi_nfit_desc *acpi_desc, acpi_size sz)
-> +int acpi_nfit_init(struct acpi_nfit_desc *acpi_desc, void *data, acpi_size sz)
->  {
->  	struct device *dev = acpi_desc->dev;
->  	struct nfit_table_prev prev;
->  	const void *end;
-> -	u8 *data;
->  	int rc;
->  
->  	mutex_lock(&acpi_desc->init_mutex);
-> @@ -2254,7 +2253,6 @@ int acpi_nfit_init(struct acpi_nfit_desc *acpi_desc, acpi_size sz)
->  	list_cut_position(&prev.flushes, &acpi_desc->flushes,
->  				acpi_desc->flushes.prev);
->  
-> -	data = (u8 *) acpi_desc->nfit;
->  	end = data + sz;
->  	while (!IS_ERR_OR_NULL(data))
->  		data = add_table(acpi_desc, &prev, data, end);
-> @@ -2377,7 +2375,7 @@ static int acpi_nfit_add(struct acpi_device *adev)
->  	struct acpi_table_header *tbl;
->  	acpi_status status = AE_OK;
->  	acpi_size sz;
-> -	int rc;
-> +	int rc = 0;
->  
->  	status = acpi_get_table_with_size(ACPI_SIG_NFIT, 0, &tbl, &sz);
->  	if (ACPI_FAILURE(status)) {
-> @@ -2394,40 +2392,30 @@ static int acpi_nfit_add(struct acpi_device *adev)
->  	if (!acpi_desc->nvdimm_bus)
->  		return -ENOMEM;
->  
-> -	/*
-> -	 * Save the acpi header for later and then skip it,
-> -	 * making nfit point to the first nfit table header.
-> -	 */
-> +	/* Save the acpi header for exporting the revision via sysfs */
->  	acpi_desc->acpi_header = *tbl;
-> -	acpi_desc->nfit = (void *) tbl + sizeof(struct acpi_table_nfit);
-> -	sz -= sizeof(struct acpi_table_nfit);
->  
->  	/* Evaluate _FIT and override with that if present */
->  	status = acpi_evaluate_object(adev->handle, "_FIT", NULL, &buf);
->  	if (ACPI_SUCCESS(status) && buf.length > 0) {
-> -		union acpi_object *obj;
-> -		/*
-> -		 * Adjust for the acpi_object header of the _FIT
-> -		 */
-> -		obj = buf.pointer;
-> -		if (obj->type == ACPI_TYPE_BUFFER) {
-> -			acpi_desc->nfit =
-> -				(struct acpi_nfit_header *)obj->buffer.pointer;
-> -			sz = obj->buffer.length;
-> -			rc = acpi_nfit_init(acpi_desc, sz);
-> -		} else
-> +		union acpi_object *obj = buf.pointer;
-> +
-> +		if (obj->type == ACPI_TYPE_BUFFER)
-> +			rc = acpi_nfit_init(acpi_desc, obj->buffer.pointer,
-> +					obj->buffer.length);
-> +		else
->  			dev_dbg(dev, "%s invalid type %d, ignoring _FIT\n",
->  				 __func__, (int) obj->type);
->  		kfree(buf.pointer);
-> -		acpi_desc->nfit = NULL;
->  	} else
-> -		rc = acpi_nfit_init(acpi_desc, sz);
-> +		/* skip over the lead-in header table */
-> +		rc = acpi_nfit_init(acpi_desc, (void *) tbl
-> +				+ sizeof(struct acpi_table_nfit),
-> +				sz - sizeof(struct acpi_table_nfit));
->  
-> -	if (rc) {
-> +	if (rc)
->  		nvdimm_bus_unregister(acpi_desc->nvdimm_bus);
-> -		return rc;
-> -	}
-> -	return 0;
-> +	return rc;
->  }
->  
->  static int acpi_nfit_remove(struct acpi_device *adev)
-> @@ -2444,9 +2432,8 @@ static void acpi_nfit_notify(struct acpi_device *adev, u32 event)
->  {
->  	struct acpi_nfit_desc *acpi_desc = dev_get_drvdata(&adev->dev);
->  	struct acpi_buffer buf = { ACPI_ALLOCATE_BUFFER, NULL };
-> -	struct acpi_nfit_header *nfit_saved;
-> -	union acpi_object *obj;
->  	struct device *dev = &adev->dev;
-> +	union acpi_object *obj;
->  	acpi_status status;
->  	int ret;
->  
-> @@ -2482,17 +2469,12 @@ static void acpi_nfit_notify(struct acpi_device *adev, u32 event)
->  		goto out_unlock;
->  	}
->  
-> -	nfit_saved = acpi_desc->nfit;
->  	obj = buf.pointer;
->  	if (obj->type == ACPI_TYPE_BUFFER) {
-> -		acpi_desc->nfit =
-> -			(struct acpi_nfit_header *)obj->buffer.pointer;
-> -		ret = acpi_nfit_init(acpi_desc, obj->buffer.length);
-> -		if (ret) {
-> -			/* Merge failed, restore old nfit, and exit */
-> -			acpi_desc->nfit = nfit_saved;
-> +		ret = acpi_nfit_init(acpi_desc, obj->buffer.pointer,
-> +				obj->buffer.length);
-> +		if (ret)
->  			dev_err(dev, "failed to merge updated NFIT\n");
-> -		}
->  	} else {
->  		/* Bad _FIT, restore old nfit */
->  		dev_err(dev, "Invalid _FIT\n");
-> diff --git a/drivers/acpi/nfit.h b/drivers/acpi/nfit.h
-> index 80fb2c0ac8bf..5179eba97a47 100644
-> --- a/drivers/acpi/nfit.h
-> +++ b/drivers/acpi/nfit.h
-> @@ -135,7 +135,6 @@ struct nfit_mem {
->  struct acpi_nfit_desc {
->  	struct nvdimm_bus_descriptor nd_desc;
->  	struct acpi_table_header acpi_header;
-> -	struct acpi_nfit_header *nfit;
->  	struct mutex init_mutex;
->  	struct list_head memdevs;
->  	struct list_head flushes;
-> @@ -201,6 +200,6 @@ static inline struct acpi_nfit_desc *to_acpi_desc(
->  }
->  
->  const u8 *to_nfit_uuid(enum nfit_uuids id);
-> -int acpi_nfit_init(struct acpi_nfit_desc *nfit, acpi_size sz);
-> +int acpi_nfit_init(struct acpi_nfit_desc *acpi_desc, void *nfit, acpi_size sz);
->  void acpi_nfit_desc_init(struct acpi_nfit_desc *acpi_desc, struct device *dev);
->  #endif /* __NFIT_H__ */
-> diff --git a/tools/testing/nvdimm/test/nfit.c b/tools/testing/nvdimm/test/nfit.c
-> index ff09a28890ed..52df3c20231d 100644
-> --- a/tools/testing/nvdimm/test/nfit.c
-> +++ b/tools/testing/nvdimm/test/nfit.c
-> @@ -1458,7 +1458,6 @@ static int nfit_test_probe(struct platform_device *pdev)
->  	nfit_test->setup(nfit_test);
->  	acpi_desc = &nfit_test->acpi_desc;
->  	acpi_nfit_desc_init(acpi_desc, &pdev->dev);
-> -	acpi_desc->nfit = nfit_test->nfit_buf;
->  	acpi_desc->blk_do_io = nfit_test_blk_do_io;
->  	nd_desc = &acpi_desc->nd_desc;
->  	nd_desc->provider_name = NULL;
-> @@ -1467,7 +1466,8 @@ static int nfit_test_probe(struct platform_device *pdev)
->  	if (!acpi_desc->nvdimm_bus)
->  		return -ENXIO;
->  
-> -	rc = acpi_nfit_init(acpi_desc, nfit_test->nfit_size);
-> +	rc = acpi_nfit_init(acpi_desc, nfit_test->nfit_buf,
-> +			nfit_test->nfit_size);
->  	if (rc) {
->  		nvdimm_bus_unregister(acpi_desc->nvdimm_bus);
->  		return rc;
-> @@ -1479,7 +1479,8 @@ static int nfit_test_probe(struct platform_device *pdev)
->  	nfit_test->setup_hotplug = 1;
->  	nfit_test->setup(nfit_test);
->  
-> -	rc = acpi_nfit_init(acpi_desc, nfit_test->nfit_size);
-> +	rc = acpi_nfit_init(acpi_desc, nfit_test->nfit_buf,
-> +			nfit_test->nfit_size);
->  	if (rc) {
->  		nvdimm_bus_unregister(acpi_desc->nvdimm_bus);
->  		return rc;
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
-> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Kefeng Wang (3):
+  serial: 8250_dw: make dw8250_set_termios as default set_termios
+    callback
+  serial: 8250_dw: Use new dev variable in probe
+  serial: 8250_dw: add ACPI support for uart on Hisilicon Hip05 soc
+
+ drivers/tty/serial/8250/8250_dw.c | 71 ++++++++++++++++++++++-----------------
+ 1 file changed, 41 insertions(+), 30 deletions(-)
+
+-- 
+1.7.12.4
+
