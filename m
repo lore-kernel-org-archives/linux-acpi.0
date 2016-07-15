@@ -1,50 +1,170 @@
 From: Dan Williams <dan.j.williams@intel.com>
-Subject: Re: [PATCH 1/2] nfit: fix _FIT evaluation memory leak
-Date: Fri, 15 Jul 2016 10:10:43 -0700
-Message-ID: <CAPcyv4gYwLUjvPekJMKsHQyzy=eU0tuEyQ-1VkW+pHgqhfb0ZA@mail.gmail.com>
-References: <146855333714.573.13934675433503265133.stgit@dwillia2-desk3.amr.corp.intel.com>
- <20160715075515.ufwwvwngteqyovsk@hz-desktop> <20160715081212.l3rfkk2wvh7bjdo5@hz-desktop>
+Subject: [PATCH] tools/testing/nvdimm: add manufacturing_{date|location}
+ dimm properties
+Date: Fri, 15 Jul 2016 12:37:19 -0700
+Message-ID: <146861143970.17001.5728377300713176227.stgit@dwillia2-desk3.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <stable-owner@vger.kernel.org>
-In-Reply-To: <20160715081212.l3rfkk2wvh7bjdo5@hz-desktop>
-Sender: stable-owner@vger.kernel.org
-To: Dan Williams <dan.j.williams@intel.com>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, Vishal Verma <vishal.l.verma@intel.com>, Linux ACPI <linux-acpi@vger.kernel.org>, "stable@vger.kernel.org" <stable@vger.kernel.org>, Xiao Guangrong <guangrong.xiao@intel.com>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga09.intel.com ([134.134.136.24]:41551 "EHLO mga09.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751662AbcGOTjc (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 15 Jul 2016 15:39:32 -0400
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: linux-nvdimm@lists.01.org
+Cc: linux-acpi@vger.kernel.org
 
-On Fri, Jul 15, 2016 at 1:12 AM, Haozhong Zhang
-<haozhong.zhang@intel.com> wrote:
-> On 07/15/16 15:55, Haozhong Zhang wrote:
->> On 07/14/16 20:28, Dan Williams wrote:
->> > acpi_evaluate_object() allocates memory. Free the buffer allocated
->> > during acpi_nfit_add().
->> >
->> > Cc: <stable@vger.kernel.org>
->> > Cc: Vishal Verma <vishal.l.verma@intel.com>
->> > Reported-by: Xiao Guangrong <guangrong.xiao@intel.com>
->> > Reported-by: Haozhong Zhang <haozhong.zhang@intel.com>
->> > Signed-off-by: Dan Williams <dan.j.williams@intel.com>
->> > ---
->> >  drivers/acpi/nfit.c |    7 +++++--
->> >  1 file changed, 5 insertions(+), 2 deletions(-)
->> >
->> > diff --git a/drivers/acpi/nfit.c b/drivers/acpi/nfit.c
->> > index 0497175ee6cb..008dbaaa2b75 100644
->> > --- a/drivers/acpi/nfit.c
->> > +++ b/drivers/acpi/nfit.c
->> > @@ -2414,12 +2414,15 @@ static int acpi_nfit_add(struct acpi_device *adev)
->> >                     acpi_desc->nfit =
->> >                             (struct acpi_nfit_header *)obj->buffer.pointer;
->> >                     sz = obj->buffer.length;
->> > +                   rc = acpi_nfit_init(acpi_desc, sz);
->> >             } else
->> >                     dev_dbg(dev, "%s invalid type %d, ignoring _FIT\n",
->> >                              __func__, (int) obj->type);
->>
->> 'rc' is not set in this path, so it maybe used uninitialized by 'if (rc)' below.
->> Should we set it to a non-zero value in this path?
->
-> 'rc' should be set to 0 here, as what patch 2 does. Sorry for my mistake.
+New for ACPI 6.1, these fields are used in the common dimm
+representation format defined by section 5.2.25.9 "NVDIMM representation
+format".
 
-No, this is good feedback because patch1 is targeted for -stable. Will
-fix, thanks!
+Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+---
+ tools/testing/nvdimm/test/nfit.c |   54 +++++++++++++++-----------------------
+ 1 file changed, 21 insertions(+), 33 deletions(-)
+
+diff --git a/tools/testing/nvdimm/test/nfit.c b/tools/testing/nvdimm/test/nfit.c
+index d4a4635c1186..78cba1e3b1da 100644
+--- a/tools/testing/nvdimm/test/nfit.c
++++ b/tools/testing/nvdimm/test/nfit.c
+@@ -639,6 +639,16 @@ static int nfit_test1_alloc(struct nfit_test *t)
+ 	return ars_state_init(&t->pdev.dev, &t->ars_state);
+ }
+ 
++static void dcr_common_init(struct acpi_nfit_control_region *dcr)
++{
++	dcr->vendor_id = 0xabcd;
++	dcr->device_id = 0;
++	dcr->revision_id = 1;
++	dcr->valid_fields = 1;
++	dcr->manufacturing_location = 0xa;
++	dcr->manufacturing_date = cpu_to_be16(2016);
++}
++
+ static void nfit_test0_setup(struct nfit_test *t)
+ {
+ 	const int flush_hint_size = sizeof(struct acpi_nfit_flush_address)
+@@ -967,9 +977,7 @@ static void nfit_test0_setup(struct nfit_test *t)
+ 	dcr->header.type = ACPI_NFIT_TYPE_CONTROL_REGION;
+ 	dcr->header.length = sizeof(struct acpi_nfit_control_region);
+ 	dcr->region_index = 0+1;
+-	dcr->vendor_id = 0xabcd;
+-	dcr->device_id = 0;
+-	dcr->revision_id = 1;
++	dcr_common_init(dcr);
+ 	dcr->serial_number = ~handle[0];
+ 	dcr->code = NFIT_FIC_BLK;
+ 	dcr->windows = 1;
+@@ -984,9 +992,7 @@ static void nfit_test0_setup(struct nfit_test *t)
+ 	dcr->header.type = ACPI_NFIT_TYPE_CONTROL_REGION;
+ 	dcr->header.length = sizeof(struct acpi_nfit_control_region);
+ 	dcr->region_index = 1+1;
+-	dcr->vendor_id = 0xabcd;
+-	dcr->device_id = 0;
+-	dcr->revision_id = 1;
++	dcr_common_init(dcr);
+ 	dcr->serial_number = ~handle[1];
+ 	dcr->code = NFIT_FIC_BLK;
+ 	dcr->windows = 1;
+@@ -1001,9 +1007,7 @@ static void nfit_test0_setup(struct nfit_test *t)
+ 	dcr->header.type = ACPI_NFIT_TYPE_CONTROL_REGION;
+ 	dcr->header.length = sizeof(struct acpi_nfit_control_region);
+ 	dcr->region_index = 2+1;
+-	dcr->vendor_id = 0xabcd;
+-	dcr->device_id = 0;
+-	dcr->revision_id = 1;
++	dcr_common_init(dcr);
+ 	dcr->serial_number = ~handle[2];
+ 	dcr->code = NFIT_FIC_BLK;
+ 	dcr->windows = 1;
+@@ -1018,9 +1022,7 @@ static void nfit_test0_setup(struct nfit_test *t)
+ 	dcr->header.type = ACPI_NFIT_TYPE_CONTROL_REGION;
+ 	dcr->header.length = sizeof(struct acpi_nfit_control_region);
+ 	dcr->region_index = 3+1;
+-	dcr->vendor_id = 0xabcd;
+-	dcr->device_id = 0;
+-	dcr->revision_id = 1;
++	dcr_common_init(dcr);
+ 	dcr->serial_number = ~handle[3];
+ 	dcr->code = NFIT_FIC_BLK;
+ 	dcr->windows = 1;
+@@ -1037,9 +1039,7 @@ static void nfit_test0_setup(struct nfit_test *t)
+ 	dcr->header.length = offsetof(struct acpi_nfit_control_region,
+ 			window_size);
+ 	dcr->region_index = 4+1;
+-	dcr->vendor_id = 0xabcd;
+-	dcr->device_id = 0;
+-	dcr->revision_id = 1;
++	dcr_common_init(dcr);
+ 	dcr->serial_number = ~handle[0];
+ 	dcr->code = NFIT_FIC_BYTEN;
+ 	dcr->windows = 0;
+@@ -1051,9 +1051,7 @@ static void nfit_test0_setup(struct nfit_test *t)
+ 	dcr->header.length = offsetof(struct acpi_nfit_control_region,
+ 			window_size);
+ 	dcr->region_index = 5+1;
+-	dcr->vendor_id = 0xabcd;
+-	dcr->device_id = 0;
+-	dcr->revision_id = 1;
++	dcr_common_init(dcr);
+ 	dcr->serial_number = ~handle[1];
+ 	dcr->code = NFIT_FIC_BYTEN;
+ 	dcr->windows = 0;
+@@ -1065,9 +1063,7 @@ static void nfit_test0_setup(struct nfit_test *t)
+ 	dcr->header.length = offsetof(struct acpi_nfit_control_region,
+ 			window_size);
+ 	dcr->region_index = 6+1;
+-	dcr->vendor_id = 0xabcd;
+-	dcr->device_id = 0;
+-	dcr->revision_id = 1;
++	dcr_common_init(dcr);
+ 	dcr->serial_number = ~handle[2];
+ 	dcr->code = NFIT_FIC_BYTEN;
+ 	dcr->windows = 0;
+@@ -1079,9 +1075,7 @@ static void nfit_test0_setup(struct nfit_test *t)
+ 	dcr->header.length = offsetof(struct acpi_nfit_control_region,
+ 			window_size);
+ 	dcr->region_index = 7+1;
+-	dcr->vendor_id = 0xabcd;
+-	dcr->device_id = 0;
+-	dcr->revision_id = 1;
++	dcr_common_init(dcr);
+ 	dcr->serial_number = ~handle[3];
+ 	dcr->code = NFIT_FIC_BYTEN;
+ 	dcr->windows = 0;
+@@ -1176,9 +1170,7 @@ static void nfit_test0_setup(struct nfit_test *t)
+ 		dcr->header.type = ACPI_NFIT_TYPE_CONTROL_REGION;
+ 		dcr->header.length = sizeof(struct acpi_nfit_control_region);
+ 		dcr->region_index = 8+1;
+-		dcr->vendor_id = 0xabcd;
+-		dcr->device_id = 0;
+-		dcr->revision_id = 1;
++		dcr_common_init(dcr);
+ 		dcr->serial_number = ~handle[4];
+ 		dcr->code = NFIT_FIC_BLK;
+ 		dcr->windows = 1;
+@@ -1195,9 +1187,7 @@ static void nfit_test0_setup(struct nfit_test *t)
+ 		dcr->header.length = offsetof(struct acpi_nfit_control_region,
+ 				window_size);
+ 		dcr->region_index = 9+1;
+-		dcr->vendor_id = 0xabcd;
+-		dcr->device_id = 0;
+-		dcr->revision_id = 1;
++		dcr_common_init(dcr);
+ 		dcr->serial_number = ~handle[4];
+ 		dcr->code = NFIT_FIC_BYTEN;
+ 		dcr->windows = 0;
+@@ -1375,9 +1365,7 @@ static void nfit_test1_setup(struct nfit_test *t)
+ 	dcr->header.length = offsetof(struct acpi_nfit_control_region,
+ 			window_size);
+ 	dcr->region_index = 0+1;
+-	dcr->vendor_id = 0xabcd;
+-	dcr->device_id = 0;
+-	dcr->revision_id = 1;
++	dcr_common_init(dcr);
+ 	dcr->serial_number = ~0;
+ 	dcr->code = NFIT_FIC_BYTE;
+ 	dcr->windows = 0;
+
