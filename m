@@ -1,203 +1,128 @@
-From: Dan Williams <dan.j.williams@intel.com>
-Subject: [PATCH 2/2] nfit: cleanup acpi_nfit_init calling convention
-Date: Thu, 14 Jul 2016 20:29:02 -0700
-Message-ID: <146855334233.573.9365432658382592535.stgit@dwillia2-desk3.amr.corp.intel.com>
-References: <146855333714.573.13934675433503265133.stgit@dwillia2-desk3.amr.corp.intel.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga09.intel.com ([134.134.136.24]:17869 "EHLO mga09.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752183AbcGODbP (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 14 Jul 2016 23:31:15 -0400
-In-Reply-To: <146855333714.573.13934675433503265133.stgit@dwillia2-desk3.amr.corp.intel.com>
-Sender: linux-acpi-owner@vger.kernel.org
+From: "Lee, Chun-Yi" <joeyli.kernel@gmail.com>
+Subject: [PATCH v4] acpi, nfit: treat virtual ramdisk SPA as pmem region
+Date: Fri, 15 Jul 2016 12:05:35 +0800
+Message-ID: <1468555535-30902-1-git-send-email-jlee@suse.com>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Ross Zwisler <ross.zwisler@linux.intel.com>, Dan Williams <dan.j.williams@intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Linda Knippers <linda.knippers@hpe.com>
+Cc: linux-nvdimm@lists.01.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, "Lee, Chun-Yi" <jlee@suse.com>, Gary Lin <GLin@suse.com>
 List-Id: linux-acpi@vger.kernel.org
-To: linux-nvdimm@lists.01.org
-Cc: linux-acpi@vger.kernel.org
 
-Pass the nfit buffer as a parameter rather than hanging it off of
-acpi_desc.
+This patch adds logic to treat virtual ramdisk SPA as pmem region, then
+ramdisk's /dev/pmem* device can be mounted with iso9660.
 
-Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+It's useful to work with the httpboot in EFI firmware to pull a remote
+ISO file to the local memory region for booting and installation.
+
+Wiki page of UEFI HTTPBoot with OVMF:
+	https://en.opensuse.org/UEFI_HTTPBoot_with_OVMF
+
+The ramdisk function in EDK2/OVMF generates a ACPI0012 root device that
+it contains empty _STA but without _DSM:
+
+DefinitionBlock ("ssdt2.aml", "SSDT", 2, "INTEL ", "RamDisk ", 0x00001000)
+{
+    Scope (\_SB)
+    {
+        Device (NVDR)
+        {
+            Name (_HID, "ACPI0012")  // _HID: Hardware ID
+            Name (_STR, Unicode ("NVDIMM Root Device"))  // _STR: Description String
+            Method (_STA, 0, NotSerialized)  // _STA: Status
+            {
+                Return (0x0F)
+            }
+        }
+    }
+}
+
+In section 5.2.25.2 of ACPI 6.1 spec, it mentions that the "SPA Range
+Structure Index" of virtual SPA shall be set to zero. That means virtual SPA
+will not be associated by any NVDIMM region mapping.
+
+The VCD's SPA Range Structure in NFIT is similar to virtual disk region
+as following:
+
+[028h 0040   2]                Subtable Type : 0000 [System Physical Address Range]
+[02Ah 0042   2]                       Length : 0038
+
+[02Ch 0044   2]                  Range Index : 0000
+[02Eh 0046   2]        Flags (decoded below) : 0000
+                   Add/Online Operation Only : 0
+                      Proximity Domain Valid : 0
+[030h 0048   4]                     Reserved : 00000000
+[034h 0052   4]             Proximity Domain : 00000000
+[038h 0056  16]           Address Range GUID : 77AB535A-45FC-624B-5560-F7B281D1F96E
+[048h 0072   8]           Address Range Base : 00000000B6ABD018
+[050h 0080   8]         Address Range Length : 0000000005500000
+[058h 0088   8]         Memory Map Attribute : 0000000000000000
+
+The way to not associate a SPA range is to never reference it from a "flush hint",
+"interleave", or "control region" table.
+
+After testing on OVMF, pmem driver can support the region that it doesn't
+assoicate to any NVDIMM mapping. So, treat VCD like pmem is a idea to get
+a pmem block device that it contains iso. 
+
+v4:
+Instoduce nfit_spa_is_virtual() to check virtual ramdisk SPA and create
+pmem region.
+
+v3:
+To simplify patch, removed useless VCD region in libnvdimm.
+ 
+v2:
+Removed the code for setting VCD to a read-only region.
+
+Cc: Gary Lin <GLin@suse.com>
+Cc: Dan Williams <dan.j.williams@intel.com>
+Cc: Ross Zwisler <ross.zwisler@linux.intel.com>
+Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: Linda Knippers <linda.knippers@hpe.com>
+Signed-off-by: Lee, Chun-Yi <jlee@suse.com>
 ---
- drivers/acpi/nfit.c              |   56 +++++++++++++-------------------------
- drivers/acpi/nfit.h              |    3 +-
- tools/testing/nvdimm/test/nfit.c |    7 +++--
- 3 files changed, 24 insertions(+), 42 deletions(-)
+ drivers/acpi/nfit.c          |  8 +++++++-
+ drivers/nvdimm/region_devs.c | 26 +++++++++++++++++++++++++-
+ include/linux/libnvdimm.h    |  2 ++
+ 3 files changed, 34 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/acpi/nfit.c b/drivers/acpi/nfit.c
-index 008dbaaa2b75..a04f2486e1ca 100644
---- a/drivers/acpi/nfit.c
-+++ b/drivers/acpi/nfit.c
-@@ -2224,12 +2224,11 @@ static int acpi_nfit_check_deletions(struct acpi_nfit_desc *acpi_desc,
+Index: linux/drivers/acpi/nfit.c
+===================================================================
+--- linux.orig/drivers/acpi/nfit.c
++++ linux/drivers/acpi/nfit.c
+@@ -1980,6 +1980,14 @@ static int acpi_nfit_init_mapping(struct
  	return 0;
  }
  
--int acpi_nfit_init(struct acpi_nfit_desc *acpi_desc, acpi_size sz)
-+int acpi_nfit_init(struct acpi_nfit_desc *acpi_desc, void *data, acpi_size sz)
- {
- 	struct device *dev = acpi_desc->dev;
- 	struct nfit_table_prev prev;
- 	const void *end;
--	u8 *data;
- 	int rc;
- 
- 	mutex_lock(&acpi_desc->init_mutex);
-@@ -2254,7 +2253,6 @@ int acpi_nfit_init(struct acpi_nfit_desc *acpi_desc, acpi_size sz)
- 	list_cut_position(&prev.flushes, &acpi_desc->flushes,
- 				acpi_desc->flushes.prev);
- 
--	data = (u8 *) acpi_desc->nfit;
- 	end = data + sz;
- 	while (!IS_ERR_OR_NULL(data))
- 		data = add_table(acpi_desc, &prev, data, end);
-@@ -2377,7 +2375,7 @@ static int acpi_nfit_add(struct acpi_device *adev)
- 	struct acpi_table_header *tbl;
- 	acpi_status status = AE_OK;
- 	acpi_size sz;
--	int rc;
-+	int rc = 0;
- 
- 	status = acpi_get_table_with_size(ACPI_SIG_NFIT, 0, &tbl, &sz);
- 	if (ACPI_FAILURE(status)) {
-@@ -2394,40 +2392,30 @@ static int acpi_nfit_add(struct acpi_device *adev)
- 	if (!acpi_desc->nvdimm_bus)
- 		return -ENOMEM;
- 
--	/*
--	 * Save the acpi header for later and then skip it,
--	 * making nfit point to the first nfit table header.
--	 */
-+	/* Save the acpi header for exporting the revision via sysfs */
- 	acpi_desc->acpi_header = *tbl;
--	acpi_desc->nfit = (void *) tbl + sizeof(struct acpi_table_nfit);
--	sz -= sizeof(struct acpi_table_nfit);
- 
- 	/* Evaluate _FIT and override with that if present */
- 	status = acpi_evaluate_object(adev->handle, "_FIT", NULL, &buf);
- 	if (ACPI_SUCCESS(status) && buf.length > 0) {
--		union acpi_object *obj;
--		/*
--		 * Adjust for the acpi_object header of the _FIT
--		 */
--		obj = buf.pointer;
--		if (obj->type == ACPI_TYPE_BUFFER) {
--			acpi_desc->nfit =
--				(struct acpi_nfit_header *)obj->buffer.pointer;
--			sz = obj->buffer.length;
--			rc = acpi_nfit_init(acpi_desc, sz);
--		} else
-+		union acpi_object *obj = buf.pointer;
++static bool nfit_spa_is_virtual(struct acpi_nfit_system_address *spa)
++{
++	return (nfit_spa_type(spa) == NFIT_SPA_VDISK ||
++		nfit_spa_type(spa) == NFIT_SPA_VCD   ||
++		nfit_spa_type(spa) == NFIT_SPA_PDISK ||
++		nfit_spa_type(spa) == NFIT_SPA_PCD);
++}
 +
-+		if (obj->type == ACPI_TYPE_BUFFER)
-+			rc = acpi_nfit_init(acpi_desc, obj->buffer.pointer,
-+					obj->buffer.length);
-+		else
- 			dev_dbg(dev, "%s invalid type %d, ignoring _FIT\n",
- 				 __func__, (int) obj->type);
- 		kfree(buf.pointer);
--		acpi_desc->nfit = NULL;
- 	} else
--		rc = acpi_nfit_init(acpi_desc, sz);
-+		/* skip over the lead-in header table */
-+		rc = acpi_nfit_init(acpi_desc, (void *) tbl
-+				+ sizeof(struct acpi_table_nfit),
-+				sz - sizeof(struct acpi_table_nfit));
- 
--	if (rc) {
-+	if (rc)
- 		nvdimm_bus_unregister(acpi_desc->nvdimm_bus);
--		return rc;
--	}
--	return 0;
-+	return rc;
- }
- 
- static int acpi_nfit_remove(struct acpi_device *adev)
-@@ -2444,9 +2432,8 @@ static void acpi_nfit_notify(struct acpi_device *adev, u32 event)
+ static int acpi_nfit_register_region(struct acpi_nfit_desc *acpi_desc,
+ 		struct nfit_spa *nfit_spa)
  {
- 	struct acpi_nfit_desc *acpi_desc = dev_get_drvdata(&adev->dev);
- 	struct acpi_buffer buf = { ACPI_ALLOCATE_BUFFER, NULL };
--	struct acpi_nfit_header *nfit_saved;
--	union acpi_object *obj;
- 	struct device *dev = &adev->dev;
-+	union acpi_object *obj;
- 	acpi_status status;
- 	int ret;
+@@ -1995,7 +2003,7 @@ static int acpi_nfit_register_region(str
+ 	if (nfit_spa->nd_region)
+ 		return 0;
  
-@@ -2482,17 +2469,12 @@ static void acpi_nfit_notify(struct acpi_device *adev, u32 event)
- 		goto out_unlock;
+-	if (spa->range_index == 0) {
++	if (spa->range_index == 0 && !nfit_spa_is_virtual(spa)) {
+ 		dev_dbg(acpi_desc->dev, "%s: detected invalid spa index\n",
+ 				__func__);
+ 		return 0;
+@@ -2059,6 +2067,11 @@ static int acpi_nfit_register_region(str
+ 				ndr_desc);
+ 		if (!nfit_spa->nd_region)
+ 			rc = -ENOMEM;
++	} else if (nfit_spa_is_virtual(spa)) {
++		nfit_spa->nd_region = nvdimm_pmem_region_create(nvdimm_bus,
++				ndr_desc);
++		if (!nfit_spa->nd_region)
++			rc = -ENOMEM;
  	}
  
--	nfit_saved = acpi_desc->nfit;
- 	obj = buf.pointer;
- 	if (obj->type == ACPI_TYPE_BUFFER) {
--		acpi_desc->nfit =
--			(struct acpi_nfit_header *)obj->buffer.pointer;
--		ret = acpi_nfit_init(acpi_desc, obj->buffer.length);
--		if (ret) {
--			/* Merge failed, restore old nfit, and exit */
--			acpi_desc->nfit = nfit_saved;
-+		ret = acpi_nfit_init(acpi_desc, obj->buffer.pointer,
-+				obj->buffer.length);
-+		if (ret)
- 			dev_err(dev, "failed to merge updated NFIT\n");
--		}
- 	} else {
- 		/* Bad _FIT, restore old nfit */
- 		dev_err(dev, "Invalid _FIT\n");
-diff --git a/drivers/acpi/nfit.h b/drivers/acpi/nfit.h
-index 80fb2c0ac8bf..5179eba97a47 100644
---- a/drivers/acpi/nfit.h
-+++ b/drivers/acpi/nfit.h
-@@ -135,7 +135,6 @@ struct nfit_mem {
- struct acpi_nfit_desc {
- 	struct nvdimm_bus_descriptor nd_desc;
- 	struct acpi_table_header acpi_header;
--	struct acpi_nfit_header *nfit;
- 	struct mutex init_mutex;
- 	struct list_head memdevs;
- 	struct list_head flushes;
-@@ -201,6 +200,6 @@ static inline struct acpi_nfit_desc *to_acpi_desc(
- }
- 
- const u8 *to_nfit_uuid(enum nfit_uuids id);
--int acpi_nfit_init(struct acpi_nfit_desc *nfit, acpi_size sz);
-+int acpi_nfit_init(struct acpi_nfit_desc *acpi_desc, void *nfit, acpi_size sz);
- void acpi_nfit_desc_init(struct acpi_nfit_desc *acpi_desc, struct device *dev);
- #endif /* __NFIT_H__ */
-diff --git a/tools/testing/nvdimm/test/nfit.c b/tools/testing/nvdimm/test/nfit.c
-index ff09a28890ed..52df3c20231d 100644
---- a/tools/testing/nvdimm/test/nfit.c
-+++ b/tools/testing/nvdimm/test/nfit.c
-@@ -1458,7 +1458,6 @@ static int nfit_test_probe(struct platform_device *pdev)
- 	nfit_test->setup(nfit_test);
- 	acpi_desc = &nfit_test->acpi_desc;
- 	acpi_nfit_desc_init(acpi_desc, &pdev->dev);
--	acpi_desc->nfit = nfit_test->nfit_buf;
- 	acpi_desc->blk_do_io = nfit_test_blk_do_io;
- 	nd_desc = &acpi_desc->nd_desc;
- 	nd_desc->provider_name = NULL;
-@@ -1467,7 +1466,8 @@ static int nfit_test_probe(struct platform_device *pdev)
- 	if (!acpi_desc->nvdimm_bus)
- 		return -ENXIO;
- 
--	rc = acpi_nfit_init(acpi_desc, nfit_test->nfit_size);
-+	rc = acpi_nfit_init(acpi_desc, nfit_test->nfit_buf,
-+			nfit_test->nfit_size);
- 	if (rc) {
- 		nvdimm_bus_unregister(acpi_desc->nvdimm_bus);
- 		return rc;
-@@ -1479,7 +1479,8 @@ static int nfit_test_probe(struct platform_device *pdev)
- 	nfit_test->setup_hotplug = 1;
- 	nfit_test->setup(nfit_test);
- 
--	rc = acpi_nfit_init(acpi_desc, nfit_test->nfit_size);
-+	rc = acpi_nfit_init(acpi_desc, nfit_test->nfit_buf,
-+			nfit_test->nfit_size);
- 	if (rc) {
- 		nvdimm_bus_unregister(acpi_desc->nvdimm_bus);
- 		return rc;
-
+  out:
