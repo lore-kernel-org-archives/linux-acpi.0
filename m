@@ -1,88 +1,145 @@
-From: Kefeng Wang <wangkefeng.wang@huawei.com>
-Subject: [PATCH v3 3/3] serial: 8250_dw: add ACPI support for uart on Hisilicon Hip05 soc
-Date: Fri, 15 Jul 2016 19:01:25 +0800
-Message-ID: <1468580485-28567-4-git-send-email-wangkefeng.wang@huawei.com>
-References: <1468580485-28567-1-git-send-email-wangkefeng.wang@huawei.com>
+From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Subject: Re: [PATCH v7 4/9] acpi/arm64: Add GTDT table parse driver
+Date: Fri, 15 Jul 2016 14:11:15 +0200
+Message-ID: <4581163.sAHfC1UEjl@vostro.rjw.lan>
+References: <1468432402-4872-1-git-send-email-fu.wei@linaro.org> <CAJZ5v0jnNqjpcY1CGkHxbJFwX1MuRi-U=jTCKWavMdEH4bKR3g@mail.gmail.com> <CADyBb7sGWizLDy3LtpGpJ9jkchyWHZ2oPfsg6fE1ZE54gn05FA@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from szxga01-in.huawei.com ([58.251.152.64]:65406 "EHLO
-	szxga01-in.huawei.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932537AbcGOLDF (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 15 Jul 2016 07:03:05 -0400
-In-Reply-To: <1468580485-28567-1-git-send-email-wangkefeng.wang@huawei.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7Bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <CADyBb7sGWizLDy3LtpGpJ9jkchyWHZ2oPfsg6fE1ZE54gn05FA@mail.gmail.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Fu Wei <fu.wei@linaro.org>
+Cc: "Rafael J. Wysocki" <rafael@kernel.org>, Guenter Roeck <linux@roeck-us.net>, Len Brown <lenb@kernel.org>, Daniel Lezcano <daniel.lezcano@linaro.org>, Thomas Gleixner <tglx@linutronix.de>, Marc Zyngier <marc.zyngier@arm.com>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Sudeep Holla <sudeep.holla@arm.com>, Hanjun Guo <hanjun.guo@linaro.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linaro-acpi@lists.linaro.org" <linaro-acpi@lists.linaro.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, rruigrok@codeaurora.org, harba@codeaurora.org, Christopher Covington <cov@codeaurora.org>, Timur Tabi <timur@codeaurora.org>, G Gregory <graeme.gregory@linaro.org>, Al Stone <al.stone@linaro.org>, Jon Masters <jcm@redhat.com>, wei@redhat.com, Arnd Bergmann <arnd@arndb.de>, Wim
 List-Id: linux-acpi@vger.kernel.org
-To: gregkh@linuxfoundation.org, jslaby@suse.com, linux-serial@vger.kernel.org, andriy.shevchenko@linux.intel.com
-Cc: linux-acpi@vger.kernel.org, guohanjun@huawei.com, z.liuxinliang@hisilicon.com, xuwei5@hisilicon.com, graeme.gregory@linaro.org, Kefeng Wang <wangkefeng.wang@huawei.com>
 
-Use built-in device properties to set device parameters for the
-existing device probed by acpi.
+On Friday, July 15, 2016 03:45:05 PM Fu Wei wrote:
+> Hi Rafael,
+> 
+> 
+> On 14 July 2016 at 05:43, Rafael J. Wysocki <rafael@kernel.org> wrote:
+> > On Wed, Jul 13, 2016 at 11:08 PM, Guenter Roeck <linux@roeck-us.net> wrote:
+> >> On Wed, Jul 13, 2016 at 10:30:37PM +0200, Rafael J. Wysocki wrote:
+> >>> On Wed, Jul 13, 2016 at 7:53 PM,  <fu.wei@linaro.org> wrote:
+> >>> > From: Fu Wei <fu.wei@linaro.org>
+> >>> >
+> >>> > This patch adds support for parsing arch timer in GTDT,
+> >>> > provides some kernel APIs to parse all the PPIs and
+> >>> > always-on info in GTDT and export them.
+> >>> >
+> >>> > By this driver, we can simplify arm_arch_timer drivers, and
+> >>> > separate the ACPI GTDT knowledge from it.
+> >>> >
+> >>> > Signed-off-by: Fu Wei <fu.wei@linaro.org>
+> >>> > Signed-off-by: Hanjun Guo <hanjun.guo@linaro.org>
+> >>> > ---
+> >>> >  drivers/acpi/Kconfig           |   5 ++
+> >>> >  drivers/acpi/Makefile          |   1 +
+> >>> >  drivers/acpi/arm64/Kconfig     |  15 ++++
+> >>> >  drivers/acpi/arm64/Makefile    |   1 +
+> >>> >  drivers/acpi/arm64/acpi_gtdt.c | 170 +++++++++++++++++++++++++++++++++++++++++
+> >>> >  include/linux/acpi.h           |   6 ++
+> >>> >  6 files changed, 198 insertions(+)
+> >>> >
+> >>> > diff --git a/drivers/acpi/Kconfig b/drivers/acpi/Kconfig
+> >>> > index b7e2e77..1cdc7d2 100644
+> >>> > --- a/drivers/acpi/Kconfig
+> >>> > +++ b/drivers/acpi/Kconfig
+> >>> > @@ -521,4 +521,9 @@ config XPOWER_PMIC_OPREGION
+> >>> >
+> >>> >  endif
+> >>> >
+> >>> > +if ARM64
+> >>> > +source "drivers/acpi/arm64/Kconfig"
+> >>> > +
+> >>> > +endif
+> >>> > +
+> >>> >  endif  # ACPI
+> >>> > diff --git a/drivers/acpi/Makefile b/drivers/acpi/Makefile
+> >>> > index 251ce85..1a94ff7 100644
+> >>> > --- a/drivers/acpi/Makefile
+> >>> > +++ b/drivers/acpi/Makefile
+> >>> > @@ -99,5 +99,6 @@ obj-$(CONFIG_ACPI_EXTLOG)     += acpi_extlog.o
+> >>> >  obj-$(CONFIG_PMIC_OPREGION)    += pmic/intel_pmic.o
+> >>> >  obj-$(CONFIG_CRC_PMIC_OPREGION) += pmic/intel_pmic_crc.o
+> >>> >  obj-$(CONFIG_XPOWER_PMIC_OPREGION) += pmic/intel_pmic_xpower.o
+> >>> > +obj-$(CONFIG_ARM64)    += arm64/
+> >>> >
+> >>> >  video-objs                     += acpi_video.o video_detect.o
+> >>> > diff --git a/drivers/acpi/arm64/Kconfig b/drivers/acpi/arm64/Kconfig
+> >>> > new file mode 100644
+> >>> > index 0000000..ff5c253
+> >>> > --- /dev/null
+> >>> > +++ b/drivers/acpi/arm64/Kconfig
+> >>> > @@ -0,0 +1,15 @@
+> >>> > +#
+> >>> > +# ACPI Configuration for ARM64
+> >>> > +#
+> >>> > +
+> >>> > +menu "The ARM64-specific ACPI Support"
+> >>> > +
+> >>> > +config ACPI_GTDT
+> >>> > +       bool "ACPI GTDT table Support"
+> >>>
+> >>> This should depend on ARM64.
+> >>>
+> >>> Also I wonder if it needs to be user-selectable?  Wouldn't it be
+> >>> better to enable it by default when building for ARM64 with ACPI?
+> >>>
+> >> It is currently selected in patch 9, in the watchdog driver's Kconfig
+> >> entry.
+> >
+> > Well, it still doesn't have to be user-selectable for that. :-)
+> 
+> Actually it is also automatically selected by [PATCH v7 6/9]:
 
-Add ACPI identifier for UART on Hisilicon Hip05 soc, be careful
-that it is not 16550 compatibal, so we need set "reg-io-width"
-and "reg-shift" by _DSD method in DSDT.
+Right.
 
-Signed-off-by: Kefeng Wang <wangkefeng.wang@huawei.com>
----
- drivers/tty/serial/8250/8250_dw.c | 23 +++++++++++++++++------
- 1 file changed, 17 insertions(+), 6 deletions(-)
+By user-selectable I mean "showing up in a Kconfig configurator tool".
 
-diff --git a/drivers/tty/serial/8250/8250_dw.c b/drivers/tty/serial/8250/8250_dw.c
-index d6934310..5ab9cfe 100644
---- a/drivers/tty/serial/8250/8250_dw.c
-+++ b/drivers/tty/serial/8250/8250_dw.c
-@@ -297,12 +297,6 @@ static void dw8250_quirks(struct uart_port *p, struct dw8250_data *data)
- 			p->serial_in = dw8250_serial_in32be;
- 			p->serial_out = dw8250_serial_out32be;
- 		}
--	} else if (has_acpi_companion(p->dev)) {
--		p->iotype = UPIO_MEM32;
--		p->regshift = 2;
--		p->serial_in = dw8250_serial_in32;
--		/* So far none of there implement the Busy Functionality */
--		data->uart_16550_compatible = true;
- 	}
- 
- 	/* Platforms with iDMA */
-@@ -352,6 +346,19 @@ static void dw8250_setup_port(struct uart_port *p)
- 		up->capabilities |= UART_CAP_AFE;
- }
- 
-+static struct property_entry dw8250_properties[] = {
-+	PROPERTY_ENTRY_U32("reg-io-width", 4),
-+	PROPERTY_ENTRY_U32("reg-shift", 2),
-+	PROPERTY_ENTRY_BOOL("snps,uart-16550-compatible"),
-+	{ },
-+};
-+
-+/* non 16550 compatible id list*/
-+static const struct acpi_device_id non_16550_ids[] = {
-+	{ "HISI0031", 0 },
-+	{ },
-+};
-+
- static int dw8250_probe(struct platform_device *pdev)
- {
- 	struct uart_8250_port uart = {};
-@@ -395,6 +402,9 @@ static int dw8250_probe(struct platform_device *pdev)
- 	if (!data)
- 		return -ENOMEM;
- 
-+	if (has_acpi_companion(dev) && !acpi_match_device(non_16550_ids, dev))
-+		platform_device_add_properties(pdev, dw8250_properties);
-+
- 	data->dma.fn = dw8250_fallback_dma_filter;
- 	data->usr_reg = DW_UART_USR;
- 	p->private_data = data;
-@@ -619,6 +629,7 @@ static const struct acpi_device_id dw8250_acpi_match[] = {
- 	{ "APMC0D08", 0},
- 	{ "AMD0020", 0 },
- 	{ "AMDI0020", 0 },
-+	{ "HISI0031", 0 },
- 	{ },
- };
- MODULE_DEVICE_TABLE(acpi, dw8250_acpi_match);
--- 
-1.7.12.4
+It just need not be visible in the configurator IMO.
 
+> diff --git a/drivers/clocksource/Kconfig b/drivers/clocksource/Kconfig
+> index 47352d2..71d5b30 100644
+> --- a/drivers/clocksource/Kconfig
+> +++ b/drivers/clocksource/Kconfig
+> @@ -8,6 +8,7 @@ config CLKSRC_OF
+>  config CLKSRC_ACPI
+>   bool
+>   select CLKSRC_PROBE
+> + select ACPI_GTDT if ARM64
+> 
+>  config CLKSRC_PROBE
+>   bool
+> 
+> 
+> >
+> >> Not sure if I like that; maybe the watchdog driver should depend
+> >> on it instead ?
+> >
+> > If the watchdog is not the only user of it (and I don't think it is),
+> > it would be better to arrange things this way.
+> >
+> 
+> There are two user:
+> (1) arm_arch_timer(which will select CLKSRC_ACPI if ACPI, then
+> CLKSRC_ACPI will select ACPI_GTDT if ARM64)
+> So arm_arch_timer will automatically selecte ACPI_GTDT if ARM64 && ACPI
+> 
+> (2) sbsa_gwdt (which will select ACPI_GTDT if ACPI in [PATCH v7 9/9])
+> So sbsa_gwdt will automatically selecte ACPI_GTDT if ARM64 && ACPI &&
+> ARM_ARCH_TIMER
+> 
+> So ACPI_GTDT is automatically selected by both of two users.
+> 
+> 
+> But like Timur said before:
+> 
+> maybe we just "selecte ACPI_GTDT if ACPI" for ARM64, because ARM64
+> require GTDT if we use ACPI.
+
+Right.  That's the way to do it then and make sbsa_gwdt depend on it instead
+of selecting it.
+
+Thanks,
+Rafael
