@@ -1,309 +1,86 @@
-From: Hoan Tran <hotran@apm.com>
-Subject: Re: [PATCH 1/5] ACPI/CPPC: restructure read/writes for efficient sys
- mapped reg ops
-Date: Thu, 14 Jul 2016 16:54:47 -0700
-Message-ID: <CAFHUOYw77rXXtRNviMiuRock638Zjjs1o-DtZZv_vtodWzeyUw@mail.gmail.com>
-References: <1467309758-26536-1-git-send-email-pprakash@codeaurora.org> <1467309758-26536-2-git-send-email-pprakash@codeaurora.org>
+From: Fu Wei <fu.wei-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
+Subject: Re: [PATCH v7 5/9] MAINTAINERS / ACPI: add the ARM64-specific ACPI
+ Support maintainers
+Date: Fri, 15 Jul 2016 09:02:48 +0800
+Message-ID: <CADyBb7sU738DmTrEA-xgpqcWbMJ+ebkzJnPQJH22a7TF9pRJTw@mail.gmail.com>
+References: <1468432402-4872-1-git-send-email-fu.wei@linaro.org>
+ <1468432402-4872-6-git-send-email-fu.wei@linaro.org> <CAJZ5v0gut2uCFHa7hr8iKY4ioP4q17yo=gBxJEeZf5WvVNM7pQ@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-vk0-f43.google.com ([209.85.213.43]:34859 "EHLO
-	mail-vk0-f43.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751224AbcGNXyt (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 14 Jul 2016 19:54:49 -0400
-Received: by mail-vk0-f43.google.com with SMTP id w127so75332858vkh.2
-        for <linux-acpi@vger.kernel.org>; Thu, 14 Jul 2016 16:54:49 -0700 (PDT)
-In-Reply-To: <1467309758-26536-2-git-send-email-pprakash@codeaurora.org>
-Sender: linux-acpi-owner@vger.kernel.org
+Return-path: <linux-watchdog-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <CAJZ5v0gut2uCFHa7hr8iKY4ioP4q17yo=gBxJEeZf5WvVNM7pQ-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+Sender: linux-watchdog-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: "Rafael J. Wysocki" <rafael-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: Hanjun Guo <hanjun.guo-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, "Rafael J. Wysocki" <rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org>, Len Brown <lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Daniel Lezcano <daniel.lezcano-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Thomas Gleixner <tglx-hfZtesqFncYOwBW4kG4KsQ@public.gmane.org>, Marc Zyngier <marc.zyngier-5wv7dgnIgG8@public.gmane.org>, Lorenzo Pieralisi <lorenzo.pieralisi-5wv7dgnIgG8@public.gmane.org>, Sudeep Holla <sudeep.holla-5wv7dgnIgG8@public.gmane.org>, "linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org" <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>, "linaro-acpi-cunTk1MwBs8s++Sfvej+rw@public.gmane.org" <linaro-acpi-cunTk1MwBs8s++Sfvej+rw@public.gmane.org>, Linux Kernel Mailing List <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, ACPI Devel Maling List <linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, rruigrok-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org, harba-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org, Christopher Covington <cov-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, Timur Tabi <timur-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, G Gregory <graeme.gregory-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Al Stone <al.stone-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Jon Masters <jcm-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, wei-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>, Wim Van Sebroeck <wim-IQzOog9fTRqzQB+pC5nmwQ@public.gmane.org>, Catal
 List-Id: linux-acpi@vger.kernel.org
-To: Prashanth Prakash <pprakash@codeaurora.org>
-Cc: linux acpi <linux-acpi@vger.kernel.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Alexey Klimov <alexey.klimov@arm.com>, cov@codeaurora.org, Ashwin Chaugule <ashwin.chaugule@linaro.org>
 
-Hi Prashanth,
+Hi Rafael,
 
-On Thu, Jun 30, 2016 at 11:02 AM, Prashanth Prakash
-<pprakash@codeaurora.org> wrote:
-> From: Ashwin Chaugule <ashwin.chaugule@linaro.org>
+On 14 July 2016 at 04:16, Rafael J. Wysocki <rafael-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org> wrote:
+> On Wed, Jul 13, 2016 at 7:53 PM,  <fu.wei-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org> wrote:
+>> From: Fu Wei <fu.wei-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
+>>
+>> This patch add the ARM64-specific ACPI Support maintainers in
+>> MAINTAINERS, according to the discussion on mailing list:
+>> https://lkml.org/lkml/2016/6/29/580
+>> Lorenzo Pieralisi will submit the pull requsts.
+>>
+>> The maintainers are listed by the alphabet order of
+>> their name.
+>>
+>> Signed-off-by: Fu Wei <fu.wei-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
+>> Signed-off-by: Hanjun Guo <hanjun.guo-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
+>> ---
+>>  MAINTAINERS | 8 ++++++++
+>>  1 file changed, 8 insertions(+)
+>>
+>> diff --git a/MAINTAINERS b/MAINTAINERS
+>> index 1209323..1e03463 100644
+>> --- a/MAINTAINERS
+>> +++ b/MAINTAINERS
+>> @@ -315,6 +315,14 @@ W: https://01.org/linux-acpi
+>>  S:     Supported
+>>  F:     drivers/acpi/fan.c
+>>
+>> +ACPI FOR ARM64 (ACPI/arm64)
+>> +M:     Hanjun Guo <hanjun.guo-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
+>> +M:     Lorenzo Pieralisi <lorenzo.pieralisi-5wv7dgnIgG8@public.gmane.org>
+>> +M:     Sudeep Holla <sudeep.holla-5wv7dgnIgG8@public.gmane.org>
+>> +L:     linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+>> +S:     Supported
+>> +F:     drivers/acpi/arm64
+>> +
+>>  ACPI THERMAL DRIVER
+>>  M:     Zhang Rui <rui.zhang-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+>>  L:     linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+>> --
 >
-> For cases where sys mapped CPC registers need to be accessed
-> frequently, it helps immensly to pre-map them rather than map
-> and unmap for each operation. e.g. case where feedback counters
-> are sys mem map registers.
+> This patch should not be part of your series.
 >
-> Restructure cpc_read/write and the cpc_regs structure to allow
-> pre-mapping the system addresses and unmap them when the CPU exits.
->
-> Signed-off-by: Ashwin Chaugule <ashwin.chaugule@linaro.org>
-> Signed-off-by: Prashanth Prakash <pprakash@codeaurora.org>
-> ---
->  drivers/acpi/cppc_acpi.c | 106 ++++++++++++++++++++++++++++++-----------------
->  include/acpi/cppc_acpi.h |   1 +
->  2 files changed, 70 insertions(+), 37 deletions(-)
->
-> diff --git a/drivers/acpi/cppc_acpi.c b/drivers/acpi/cppc_acpi.c
-> index 2e98173..28170c2 100644
-> --- a/drivers/acpi/cppc_acpi.c
-> +++ b/drivers/acpi/cppc_acpi.c
-> @@ -62,7 +62,6 @@ static DEFINE_PER_CPU(struct cpc_desc *, cpc_desc_ptr);
->  /* This layer handles all the PCC specifics for CPPC. */
->  static struct mbox_chan *pcc_channel;
->  static void __iomem *pcc_comm_addr;
-> -static u64 comm_base_addr;
->  static int pcc_subspace_idx = -1;
->  static bool pcc_channel_acquired;
->  static ktime_t deadline;
-> @@ -394,7 +393,6 @@ EXPORT_SYMBOL_GPL(acpi_get_psd_map);
->  static int register_pcc_channel(int pcc_subspace_idx)
->  {
->         struct acpi_pcct_hw_reduced *cppc_ss;
-> -       unsigned int len;
->         u64 usecs_lat;
->
->         if (pcc_subspace_idx >= 0) {
-> @@ -419,12 +417,6 @@ static int register_pcc_channel(int pcc_subspace_idx)
->                         return -ENODEV;
->                 }
->
-> -               /*
-> -                * This is the shared communication region
-> -                * for the OS and Platform to communicate over.
-> -                */
-> -               comm_base_addr = cppc_ss->base_address;
-> -               len = cppc_ss->length;
->
->                 /*
->                  * cppc_ss->latency is just a Nominal value. In reality
-> @@ -436,7 +428,7 @@ static int register_pcc_channel(int pcc_subspace_idx)
->                 pcc_mrtt = cppc_ss->min_turnaround_time;
->                 pcc_mpar = cppc_ss->max_access_rate;
->
-> -               pcc_comm_addr = acpi_os_ioremap(comm_base_addr, len);
-> +               pcc_comm_addr = acpi_os_ioremap(cppc_ss->base_address, cppc_ss->length);
->                 if (!pcc_comm_addr) {
->                         pr_err("Failed to ioremap PCC comm region mem\n");
->                         return -ENOMEM;
-> @@ -545,6 +537,8 @@ int acpi_cppc_processor_probe(struct acpi_processor *pr)
->                 goto out_free;
->         }
->
-> +       cpc_ptr->num_entries = num_ent;
-> +
->         /* Second entry should be revision. */
->         cpc_obj = &out_obj->package.elements[1];
->         if (cpc_obj->type == ACPI_TYPE_INTEGER) {
-> @@ -585,7 +579,15 @@ int acpi_cppc_processor_probe(struct acpi_processor *pr)
->                                         pr_debug("Mismatched PCC ids.\n");
->                                         goto out_free;
->                                 }
-> -                       } else if (gas_t->space_id != ACPI_ADR_SPACE_SYSTEM_MEMORY) {
-> +                       } else if (gas_t->space_id == ACPI_ADR_SPACE_SYSTEM_MEMORY) {
-> +                               if (gas_t->address) {
-> +                                       void __iomem *addr;
-> +                                       addr = ioremap(gas_t->address, gas_t->bit_width/8);
-> +                                       if (!addr)
-> +                                               goto out_free;
-> +                                       cpc_ptr->cpc_regs[i-2].sys_mem_vaddr = addr;
-> +                               }
-> +                       } else {
->                                 /* Support only PCC and SYS MEM type regs */
->                                 pr_debug("Unsupported register type: %d\n", gas_t->space_id);
->                                 goto out_free;
-> @@ -623,6 +625,12 @@ int acpi_cppc_processor_probe(struct acpi_processor *pr)
->         return 0;
->
->  out_free:
-> +       /* Free all the mapped sys mem areas for this CPU */
-> +       for (i = 2; i < cpc_ptr->num_entries; i++) {
-> +               void __iomem *addr = cpc_ptr->cpc_regs[i-2].sys_mem_vaddr;
-> +               if (addr)
-> +                       iounmap(addr);
-> +       }
->         kfree(cpc_ptr);
->
->  out_buf_free:
-> @@ -640,7 +648,17 @@ EXPORT_SYMBOL_GPL(acpi_cppc_processor_probe);
->  void acpi_cppc_processor_exit(struct acpi_processor *pr)
->  {
->         struct cpc_desc *cpc_ptr;
-> +       unsigned int i;
-> +       void __iomem *addr;
->         cpc_ptr = per_cpu(cpc_desc_ptr, pr->id);
-> +
-> +       /* Free all the mapped sys mem areas for this CPU */
-> +       for (i = 2; i < cpc_ptr->num_entries; i++) {
-> +               addr = cpc_ptr->cpc_regs[i-2].sys_mem_vaddr;
-> +               if (addr)
-> +                       iounmap(addr);
-> +       }
-> +
->         kfree(cpc_ptr);
->  }
->  EXPORT_SYMBOL_GPL(acpi_cppc_processor_exit);
-> @@ -651,15 +669,27 @@ EXPORT_SYMBOL_GPL(acpi_cppc_processor_exit);
->   * we can directly write to it.
->   */
->
-> -static int cpc_read(struct cpc_reg *reg, u64 *val)
-> +static int cpc_read(struct cpc_register_resource *reg_res, u64 *val)
->  {
->         int ret_val = 0;
-> +       void __iomem *vaddr = 0;
-> +       struct cpc_reg *reg = &reg_res->cpc_entry.reg;
-> +
-> +       if (reg_res->type == ACPI_TYPE_INTEGER) {
-> +               *val = reg_res->int_value;
+> I would prefer it if  Hanjun, Lorenzo or Sudeep sent it.
 
-It should be "*val = reg_res->cpc_entry.int_value;", isn't it ?
+Sorry for that, This won't be in my patchset next time.
 
-Thanks
-Hoan
+>
+> Of course, it doesn't make much sense to send it before creating
+> drivers/acpi/arm64/ and putting something in there, so it should be
+> sent separately after the series has been merged.
 
-> +               return ret_val;
-> +       }
+yes, you are right , got it , thanks  :-)
+
 >
->         *val = 0;
-> -       if (reg->space_id == ACPI_ADR_SPACE_PLATFORM_COMM) {
-> -               void __iomem *vaddr = GET_PCC_VADDR(reg->address);
-> +       if (reg->space_id == ACPI_ADR_SPACE_PLATFORM_COMM)
-> +               vaddr = GET_PCC_VADDR(reg->address);
-> +       else if (reg->space_id == ACPI_ADR_SPACE_SYSTEM_MEMORY)
-> +               vaddr = reg_res->sys_mem_vaddr;
-> +       else
-> +               return acpi_os_read_memory((acpi_physical_address)reg->address,
-> +                               val, reg->bit_width);
->
-> -               switch (reg->bit_width) {
-> +       switch (reg->bit_width) {
->                 case 8:
->                         *val = readb_relaxed(vaddr);
->                         break;
-> @@ -674,23 +704,28 @@ static int cpc_read(struct cpc_reg *reg, u64 *val)
->                         break;
->                 default:
->                         pr_debug("Error: Cannot read %u bit width from PCC\n",
-> -                               reg->bit_width);
-> +                                       reg->bit_width);
->                         ret_val = -EFAULT;
-> -               }
-> -       } else
-> -               ret_val = acpi_os_read_memory((acpi_physical_address)reg->address,
-> -                                       val, reg->bit_width);
-> +       }
-> +
->         return ret_val;
->  }
->
-> -static int cpc_write(struct cpc_reg *reg, u64 val)
-> +static int cpc_write(struct cpc_register_resource *reg_res, u64 val)
->  {
->         int ret_val = 0;
-> +       void __iomem *vaddr = 0;
-> +       struct cpc_reg *reg = &reg_res->cpc_entry.reg;
->
-> -       if (reg->space_id == ACPI_ADR_SPACE_PLATFORM_COMM) {
-> -               void __iomem *vaddr = GET_PCC_VADDR(reg->address);
-> +       if (reg->space_id == ACPI_ADR_SPACE_PLATFORM_COMM)
-> +               vaddr = GET_PCC_VADDR(reg->address);
-> +       else if (reg->space_id == ACPI_ADR_SPACE_SYSTEM_MEMORY)
-> +               vaddr = reg_res->sys_mem_vaddr;
-> +       else
-> +               return acpi_os_write_memory((acpi_physical_address)reg->address,
-> +                               val, reg->bit_width);
->
-> -               switch (reg->bit_width) {
-> +       switch (reg->bit_width) {
->                 case 8:
->                         writeb_relaxed(val, vaddr);
->                         break;
-> @@ -705,13 +740,11 @@ static int cpc_write(struct cpc_reg *reg, u64 val)
->                         break;
->                 default:
->                         pr_debug("Error: Cannot write %u bit width to PCC\n",
-> -                               reg->bit_width);
-> +                                       reg->bit_width);
->                         ret_val = -EFAULT;
->                         break;
-> -               }
-> -       } else
-> -               ret_val = acpi_os_write_memory((acpi_physical_address)reg->address,
-> -                               val, reg->bit_width);
-> +       }
-> +
->         return ret_val;
->  }
->
-> @@ -754,16 +787,16 @@ int cppc_get_perf_caps(int cpunum, struct cppc_perf_caps *perf_caps)
->                 }
->         }
->
-> -       cpc_read(&highest_reg->cpc_entry.reg, &high);
-> +       cpc_read(highest_reg, &high);
->         perf_caps->highest_perf = high;
->
-> -       cpc_read(&lowest_reg->cpc_entry.reg, &low);
-> +       cpc_read(lowest_reg, &low);
->         perf_caps->lowest_perf = low;
->
-> -       cpc_read(&ref_perf->cpc_entry.reg, &ref);
-> +       cpc_read(ref_perf, &ref);
->         perf_caps->reference_perf = ref;
->
-> -       cpc_read(&nom_perf->cpc_entry.reg, &nom);
-> +       cpc_read(nom_perf, &nom);
->         perf_caps->nominal_perf = nom;
->
->         if (!ref)
-> @@ -804,7 +837,7 @@ int cppc_get_perf_ctrs(int cpunum, struct cppc_perf_fb_ctrs *perf_fb_ctrs)
->
->         /* Are any of the regs PCC ?*/
->         if ((delivered_reg->cpc_entry.reg.space_id == ACPI_ADR_SPACE_PLATFORM_COMM) ||
-> -                       (reference_reg->cpc_entry.reg.space_id == ACPI_ADR_SPACE_PLATFORM_COMM)) {
-> +               (reference_reg->cpc_entry.reg.space_id == ACPI_ADR_SPACE_PLATFORM_COMM)) {
->                 /* Ring doorbell once to update PCC subspace */
->                 if (send_pcc_cmd(CMD_READ) < 0) {
->                         ret = -EIO;
-> @@ -812,8 +845,8 @@ int cppc_get_perf_ctrs(int cpunum, struct cppc_perf_fb_ctrs *perf_fb_ctrs)
->                 }
->         }
->
-> -       cpc_read(&delivered_reg->cpc_entry.reg, &delivered);
-> -       cpc_read(&reference_reg->cpc_entry.reg, &reference);
-> +       cpc_read(delivered_reg, &delivered);
-> +       cpc_read(reference_reg, &reference);
->
->         if (!delivered || !reference) {
->                 ret = -EFAULT;
-> @@ -868,7 +901,7 @@ int cppc_set_perf(int cpu, struct cppc_perf_ctrls *perf_ctrls)
->          * Skip writing MIN/MAX until Linux knows how to come up with
->          * useful values.
->          */
-> -       cpc_write(&desired_reg->cpc_entry.reg, perf_ctrls->desired_perf);
-> +       cpc_write(desired_reg, perf_ctrls->desired_perf);
->
->         /* Is this a PCC reg ?*/
->         if (desired_reg->cpc_entry.reg.space_id == ACPI_ADR_SPACE_PLATFORM_COMM) {
-> @@ -878,7 +911,6 @@ int cppc_set_perf(int cpu, struct cppc_perf_ctrls *perf_ctrls)
->         }
->  busy_channel:
->         spin_unlock(&pcc_lock);
-> -
->         return ret;
->  }
->  EXPORT_SYMBOL_GPL(cppc_set_perf);
-> diff --git a/include/acpi/cppc_acpi.h b/include/acpi/cppc_acpi.h
-> index 284965c..36ff5c6 100644
-> --- a/include/acpi/cppc_acpi.h
-> +++ b/include/acpi/cppc_acpi.h
-> @@ -49,6 +49,7 @@ struct cpc_reg {
->   */
->  struct cpc_register_resource {
->         acpi_object_type type;
-> +       u64 __iomem *sys_mem_vaddr;
->         union {
->                 struct cpc_reg reg;
->                 u64 int_value;
-> --
-> Qualcomm Technologies, Inc. on behalf
-> of the Qualcomm Innovation Center, Inc.  The Qualcomm Innovation Center, Inc.
-> is a member of the Code Aurora Forum, a Linux Foundation Collaborative Project.
->
+> Thanks,
+> Rafael
+
+
+
+-- 
+Best regards,
+
+Fu Wei
+Software Engineer
+Red Hat
+--
+To unsubscribe from this list: send the line "unsubscribe linux-watchdog" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
