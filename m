@@ -1,128 +1,72 @@
-From: "Lee, Chun-Yi" <joeyli.kernel@gmail.com>
-Subject: [PATCH v4] acpi, nfit: treat virtual ramdisk SPA as pmem region
-Date: Fri, 15 Jul 2016 12:05:35 +0800
-Message-ID: <1468555535-30902-1-git-send-email-jlee@suse.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Ross Zwisler <ross.zwisler@linux.intel.com>, Dan Williams <dan.j.williams@intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Linda Knippers <linda.knippers@hpe.com>
-Cc: linux-nvdimm@lists.01.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, "Lee, Chun-Yi" <jlee@suse.com>, Gary Lin <GLin@suse.com>
+From: joeyli <jlee-IBi9RG/b67k@public.gmane.org>
+Subject: Re: [PATCH 1/2] nfit: fix _FIT evaluation memory leak
+Date: Fri, 15 Jul 2016 13:15:53 +0800
+Message-ID: <20160715051553.GE27155@linux-rxt1.site>
+References: <146855333714.573.13934675433503265133.stgit@dwillia2-desk3.amr.corp.intel.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <146855333714.573.13934675433503265133.stgit-p8uTFz9XbKj2zm6wflaqv1nYeNYlB/vhral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
+ <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
+List-Post: <mailto:linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+List-Help: <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
+ <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
+Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
+Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+To: Dan Williams <dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: Xiao Guangrong <guangrong.xiao-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org, stable-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-This patch adds logic to treat virtual ramdisk SPA as pmem region, then
-ramdisk's /dev/pmem* device can be mounted with iso9660.
+Hi Dan,
 
-It's useful to work with the httpboot in EFI firmware to pull a remote
-ISO file to the local memory region for booting and installation.
+On Thu, Jul 14, 2016 at 08:28:57PM -0700, Dan Williams wrote:
+> acpi_evaluate_object() allocates memory. Free the buffer allocated
+> during acpi_nfit_add().
+> 
+> Cc: <stable-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+> Cc: Vishal Verma <vishal.l.verma-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+> Reported-by: Xiao Guangrong <guangrong.xiao-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+> Reported-by: Haozhong Zhang <haozhong.zhang-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+> Signed-off-by: Dan Williams <dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+> ---
+>  drivers/acpi/nfit.c |    7 +++++--
+>  1 file changed, 5 insertions(+), 2 deletions(-)
+> 
+> diff --git a/drivers/acpi/nfit.c b/drivers/acpi/nfit.c
+> index 0497175ee6cb..008dbaaa2b75 100644
+> --- a/drivers/acpi/nfit.c
+> +++ b/drivers/acpi/nfit.c
+> @@ -2414,12 +2414,15 @@ static int acpi_nfit_add(struct acpi_device *adev)
+>  			acpi_desc->nfit =
+>  				(struct acpi_nfit_header *)obj->buffer.pointer;
+>  			sz = obj->buffer.length;
+> +			rc = acpi_nfit_init(acpi_desc, sz);
+>  		} else
+>  			dev_dbg(dev, "%s invalid type %d, ignoring _FIT\n",
+>  				 __func__, (int) obj->type);
+> -	}
+> +		kfree(buf.pointer);
+> +		acpi_desc->nfit = NULL;
 
-Wiki page of UEFI HTTPBoot with OVMF:
-	https://en.opensuse.org/UEFI_HTTPBoot_with_OVMF
+Looks "acpi_desc->nfit = NULL" statement will be removed in [PATCH 2/2]
+immediately. Why add it in PATCH 1?
 
-The ramdisk function in EDK2/OVMF generates a ACPI0012 root device that
-it contains empty _STA but without _DSM:
+> +	} else
+> +		rc = acpi_nfit_init(acpi_desc, sz);
+>  
+> -	rc = acpi_nfit_init(acpi_desc, sz);
+>  	if (rc) {
+>  		nvdimm_bus_unregister(acpi_desc->nvdimm_bus);
+>  		return rc;
+>
 
-DefinitionBlock ("ssdt2.aml", "SSDT", 2, "INTEL ", "RamDisk ", 0x00001000)
-{
-    Scope (\_SB)
-    {
-        Device (NVDR)
-        {
-            Name (_HID, "ACPI0012")  // _HID: Hardware ID
-            Name (_STR, Unicode ("NVDIMM Root Device"))  // _STR: Description String
-            Method (_STA, 0, NotSerialized)  // _STA: Status
-            {
-                Return (0x0F)
-            }
-        }
-    }
-}
+Other parts are no problem to me.
 
-In section 5.2.25.2 of ACPI 6.1 spec, it mentions that the "SPA Range
-Structure Index" of virtual SPA shall be set to zero. That means virtual SPA
-will not be associated by any NVDIMM region mapping.
 
-The VCD's SPA Range Structure in NFIT is similar to virtual disk region
-as following:
-
-[028h 0040   2]                Subtable Type : 0000 [System Physical Address Range]
-[02Ah 0042   2]                       Length : 0038
-
-[02Ch 0044   2]                  Range Index : 0000
-[02Eh 0046   2]        Flags (decoded below) : 0000
-                   Add/Online Operation Only : 0
-                      Proximity Domain Valid : 0
-[030h 0048   4]                     Reserved : 00000000
-[034h 0052   4]             Proximity Domain : 00000000
-[038h 0056  16]           Address Range GUID : 77AB535A-45FC-624B-5560-F7B281D1F96E
-[048h 0072   8]           Address Range Base : 00000000B6ABD018
-[050h 0080   8]         Address Range Length : 0000000005500000
-[058h 0088   8]         Memory Map Attribute : 0000000000000000
-
-The way to not associate a SPA range is to never reference it from a "flush hint",
-"interleave", or "control region" table.
-
-After testing on OVMF, pmem driver can support the region that it doesn't
-assoicate to any NVDIMM mapping. So, treat VCD like pmem is a idea to get
-a pmem block device that it contains iso. 
-
-v4:
-Instoduce nfit_spa_is_virtual() to check virtual ramdisk SPA and create
-pmem region.
-
-v3:
-To simplify patch, removed useless VCD region in libnvdimm.
- 
-v2:
-Removed the code for setting VCD to a read-only region.
-
-Cc: Gary Lin <GLin@suse.com>
-Cc: Dan Williams <dan.j.williams@intel.com>
-Cc: Ross Zwisler <ross.zwisler@linux.intel.com>
-Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: Linda Knippers <linda.knippers@hpe.com>
-Signed-off-by: Lee, Chun-Yi <jlee@suse.com>
----
- drivers/acpi/nfit.c          |  8 +++++++-
- drivers/nvdimm/region_devs.c | 26 +++++++++++++++++++++++++-
- include/linux/libnvdimm.h    |  2 ++
- 3 files changed, 34 insertions(+), 2 deletions(-)
-
-Index: linux/drivers/acpi/nfit.c
-===================================================================
---- linux.orig/drivers/acpi/nfit.c
-+++ linux/drivers/acpi/nfit.c
-@@ -1980,6 +1980,14 @@ static int acpi_nfit_init_mapping(struct
- 	return 0;
- }
- 
-+static bool nfit_spa_is_virtual(struct acpi_nfit_system_address *spa)
-+{
-+	return (nfit_spa_type(spa) == NFIT_SPA_VDISK ||
-+		nfit_spa_type(spa) == NFIT_SPA_VCD   ||
-+		nfit_spa_type(spa) == NFIT_SPA_PDISK ||
-+		nfit_spa_type(spa) == NFIT_SPA_PCD);
-+}
-+
- static int acpi_nfit_register_region(struct acpi_nfit_desc *acpi_desc,
- 		struct nfit_spa *nfit_spa)
- {
-@@ -1995,7 +2003,7 @@ static int acpi_nfit_register_region(str
- 	if (nfit_spa->nd_region)
- 		return 0;
- 
--	if (spa->range_index == 0) {
-+	if (spa->range_index == 0 && !nfit_spa_is_virtual(spa)) {
- 		dev_dbg(acpi_desc->dev, "%s: detected invalid spa index\n",
- 				__func__);
- 		return 0;
-@@ -2059,6 +2067,11 @@ static int acpi_nfit_register_region(str
- 				ndr_desc);
- 		if (!nfit_spa->nd_region)
- 			rc = -ENOMEM;
-+	} else if (nfit_spa_is_virtual(spa)) {
-+		nfit_spa->nd_region = nvdimm_pmem_region_create(nvdimm_bus,
-+				ndr_desc);
-+		if (!nfit_spa->nd_region)
-+			rc = -ENOMEM;
- 	}
- 
-  out:
+Thanks a lot! 
+Joey Lee
