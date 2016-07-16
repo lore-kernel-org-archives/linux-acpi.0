@@ -1,60 +1,50 @@
 From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [UPDATE PATCH v2 1/3] ACPICA: Events: Introduce acpi_mask_gpe() to implement GPE masking mechanism
-Date: Sat, 16 Jul 2016 02:55:06 +0200
-Message-ID: <2122687.2llPIh43ST@vostro.rjw.lan>
-References: <cover.1463389639.git.lv.zheng@intel.com> <29ae6c9cdef0aa91f3461707c65ebcdee0ff7142.1466662469.git.lv.zheng@intel.com> <3293670.WgkPNILEVA@vostro.rjw.lan>
+Subject: Re: [RFC PATCH 3/3] ACPI / PM: Fix EC polling issue by implementing prepare_late/finish_early suspend_ops callbacks
+Date: Sat, 16 Jul 2016 02:51:34 +0200
+Message-ID: <1607219.k0v9zRxBvM@vostro.rjw.lan>
+References: <cover.1467100803.git.lv.zheng@intel.com> <48245fbc4b0510a7af281986ccc1a2a583766f73.1467100803.git.lv.zheng@intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7Bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cloudserver094114.home.net.pl ([79.96.170.134]:54258 "HELO
-	cloudserver094114.home.net.pl" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with SMTP id S1751054AbcGPAuS (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 15 Jul 2016 20:50:18 -0400
-In-Reply-To: <3293670.WgkPNILEVA@vostro.rjw.lan>
-Sender: linux-acpi-owner@vger.kernel.org
-List-Id: linux-acpi@vger.kernel.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <48245fbc4b0510a7af281986ccc1a2a583766f73.1467100803.git.lv.zheng@intel.com>
+Sender: linux-kernel-owner@vger.kernel.org
 To: Lv Zheng <lv.zheng@intel.com>
 Cc: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Len Brown <len.brown@intel.com>, Lv Zheng <zetalog@gmail.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
+List-Id: linux-acpi@vger.kernel.org
 
-On Monday, July 04, 2016 03:59:07 PM Rafael J. Wysocki wrote:
-> On Thursday, June 23, 2016 03:05:47 PM Lv Zheng wrote:
-> > (remove acpi_unmask_gpe() from the patch description)
-> > 
-> > There is a facility in Linux, developers can control the enabling/disabling
-> > of a GPE via /sys/firmware/acpi/interrupts/gpexx. This is mainly for
-> > debugging purposes.
-> > 
-> > But many users expect to use this facility to implement quirks to mask a
-> > specific GPE when there is a gap in Linux causing this GPE to flood. This
-> > is not working correctly because currently this facility invokes
-> > enabling/disabling counting based GPE driver APIs:
-> >  acpi_enable_gpe()/acpi_disable_gpe()
-> > and the GPE drivers can still affect the count to mess up the GPE
-> > masking purposes.
-> > 
-> > However, most of the IRQ chip designs allow masking/unmasking IRQs via a
-> > masking bit which is different from the enabled bit to achieve the same
-> > purpose. But the GPE hardware doesn't contain such a feature, this brings
-> > the trouble.
-> > 
-> > In this patch, we introduce a software mechanism to implement the GPE
-> > masking feature, and acpi_mask_gpe() are provided to the OSPMs to
-> > mask/unmask GPEs in the above mentioned situation instead of
-> > acpi_enable_gpe()/acpi_disable_gpe(). ACPICA BZ 1102. Lv Zheng.
-> > 
-> > Link: https://bugs.acpica.org/show_bug.cgi?id=1102
-> > Signed-off-by: Lv Zheng <lv.zheng@intel.com>
+On Tuesday, June 28, 2016 04:04:46 PM Lv Zheng wrote:
+> _PTS/_WAK may contain EC transactions, it is better to have them handled
+> with IRQ enabled. This patch moves the 2 suspend PM ops from noirq stage
+> to late/early stage.
 > 
-> I've queued up this one and the [2/3] and please see my comments on the [3/3].
+> Signed-off-by: Lv Zheng <lv.zheng@intel.com>
 
-I've decided that it's better if this goes in via upstream ACPICA, so it's not
-in the queue any more.
+There are systems that won't work with this patch applied, so I don't
+see a point in applying the other two.
 
-For the time being, I'd like all changes in the ACPICA code to go in via the
-upstream.
+> ---
+>  drivers/acpi/sleep.c |    5 +++--
+>  1 file changed, 3 insertions(+), 2 deletions(-)
+> 
+> diff --git a/drivers/acpi/sleep.c b/drivers/acpi/sleep.c
+> index d30fce7f..c5c374c9 100644
+> --- a/drivers/acpi/sleep.c
+> +++ b/drivers/acpi/sleep.c
+> @@ -595,9 +595,10 @@ static int acpi_suspend_state_valid(suspend_state_t pm_state)
+>  static const struct platform_suspend_ops acpi_suspend_ops = {
+>  	.valid = acpi_suspend_state_valid,
+>  	.begin = acpi_suspend_begin,
+> -	.prepare_noirq = acpi_pm_prepare,
+> +	.prepare_late = __acpi_pm_prepare,
+> +	.prepare_noirq = acpi_pm_pre_suspend,
+>  	.enter = acpi_suspend_enter,
+> -	.finish_noirq = acpi_pm_finish,
+> +	.finish_early = acpi_pm_finish,
+>  	.end = acpi_pm_end,
+>  };
+>  
+> 
 
 Thanks,
 Rafael
-
