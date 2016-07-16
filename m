@@ -1,110 +1,29 @@
-From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [PATCH v7 4/9] acpi/arm64: Add GTDT table parse driver
-Date: Sat, 16 Jul 2016 14:35:16 +0200
-Message-ID: <16716612.zdLA2RMyjn@vostro.rjw.lan>
-References: <1468432402-4872-1-git-send-email-fu.wei@linaro.org> <1580087.dlcVOb6fx1@vostro.rjw.lan> <CADyBb7tLyABzWFEW_8A3bK9XeWiHJjh7TqWQc=vDn5O_WUJX5w@mail.gmail.com>
+From: Rob Herring <robh@kernel.org>
+Subject: Re: [PATCH v3 1/2] Documentation: Add sbs-manager device tree node
+ documentation
+Date: Sat, 16 Jul 2016 17:05:02 -0500
+Message-ID: <20160716220502.GA19340@rob-hp-laptop>
+References: <1bIiDr-0004G1-0P>
+ <1468349295-4935-1-git-send-email-karl-heinz@schneider-inet.de>
+ <1468349295-4935-2-git-send-email-karl-heinz@schneider-inet.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7Bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cloudserver094114.home.net.pl ([79.96.170.134]:62447 "HELO
-	cloudserver094114.home.net.pl" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with SMTP id S1751471AbcGPMa2 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>);
-	Sat, 16 Jul 2016 08:30:28 -0400
-In-Reply-To: <CADyBb7tLyABzWFEW_8A3bK9XeWiHJjh7TqWQc=vDn5O_WUJX5w@mail.gmail.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-pm-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <1468349295-4935-2-git-send-email-karl-heinz@schneider-inet.de>
+Sender: linux-pm-owner@vger.kernel.org
+To: Karl-Heinz Schneider <karl-heinz@schneider-inet.de>
+Cc: devicetree@vger.kernel.org, linux-pm@vger.kernel.org, linux-acpi@vger.kernel.org, linux-i2c@vger.kernel.org, Mark Rutland <mark.rutland@arm.com>, Sebastian Reichel <sre@kernel.org>, Dmitry Eremin-Solenikov <dbaryshkov@gmail.com>, David Woodhouse <dwmw2@infradead.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Peter Rosin <peda@axentia.se>, Phil Reid <preid@electromag.com.au>
 List-Id: linux-acpi@vger.kernel.org
-To: Fu Wei <fu.wei@linaro.org>
-Cc: "Rafael J. Wysocki" <rafael@kernel.org>, Len Brown <lenb@kernel.org>, Daniel Lezcano <daniel.lezcano@linaro.org>, Thomas Gleixner <tglx@linutronix.de>, Marc Zyngier <marc.zyngier@arm.com>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Sudeep Holla <sudeep.holla@arm.com>, Hanjun Guo <hanjun.guo@linaro.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linaro-acpi@lists.linaro.org" <linaro-acpi@lists.linaro.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, rruigrok@codeaurora.org, harba@codeaurora.org, Christopher Covington <cov@codeaurora.org>, Timur Tabi <timur@codeaurora.org>, G Gregory <graeme.gregory@linaro.org>, Al Stone <al.stone@linaro.org>, Jon Masters <jcm@redhat.com>, wei@redhat.com, Arnd Bergmann <arnd@arndb.de>, Wim Van Sebroeck <wim@iguana.be>, Catal
 
-On Saturday, July 16, 2016 10:24:35 AM Fu Wei wrote:
-> Hi Rafeal,
+On Tue, Jul 12, 2016 at 08:48:14PM +0200, Karl-Heinz Schneider wrote:
+> This patch adds device tree documentation for the sbs-manager
 > 
-> On 16 July 2016 at 05:22, Rafael J. Wysocki <rjw@rjwysocki.net> wrote:
-> > On Saturday, July 16, 2016 12:32:14 AM Fu Wei wrote:
-> >> Hi Rafael,
-> >>
-> >> On 15 July 2016 at 21:07, Rafael J. Wysocki <rjw@rjwysocki.net> wrote:
-> >> > On Friday, July 15, 2016 02:15:27 PM Rafael J. Wysocki wrote:
-> >> >> On Friday, July 15, 2016 03:32:35 PM Fu Wei wrote:
-> >> >> > Hi Rafael,
-> >> >> >
-> >> >
-> >> > [cut]
-> >> >
-> >> >> > >
-> >> >> > >> +               return 0;
-> >> >> > >> +       }
-> >> >> > >> +
-> >> >> > >> +       if (!gtdt->platform_timer_count) {
-> >> >> > >> +               pr_info("No Platform Timer.\n");
-> >> >> > >> +               return 0;
-> >> >> > >> +       }
-> >> >> > >> +
-> >> >> > >> +       acpi_gtdt_desc.platform_timer_start = (void *)gtdt +
-> >> >> > >> +                                             gtdt->platform_timer_offset;
-> >> >> > >> +       if (acpi_gtdt_desc.platform_timer_start <
-> >> >> > >> +           (void *)table + sizeof(struct acpi_table_gtdt)) {
-> >> >> > >> +               pr_err(FW_BUG "Platform Timer pointer error.\n");
-> >> >> > >
-> >> >> > > Why pr_err()?
-> >> >> >
-> >> >> > if (true), that means the GTDT table has bugs.
-> >> >> >
-> >> >>
-> >> >> And that's not a very useful piece of information unless you're debugging the
-> >> >> platform, is it?
-> >> >
-> >> > FWIW, I'm not a big fan of printing "your firmware is buggy" type of messages
-> >> > (especially at the "error" log level or higher) unless they can be clearly
-> >> > connected to a specific type of functional failure.
-> >> >
-> >> > So if you want to pring an error-level message, something like "I cannot do X
-> >> > because of the firmware bug Y" would be better IMO.
-> >>
-> >> So can I do this:
-> >> pr_err(FW_BUG "Can NOT init platform_timer pointer, because of the
-> >> GTDT table bug\n");
-> >>
-> >> or pr_debug(FW_BUG "Can NOT init platform_timer_start, because of
-> >> platform_timer_offset bug in GTDT\n");
-> >>
-> >> or just delete it?
-> >>
-> >> which one do you prefer?  I think maybe should provide some clue for
-> >> users to fix the problem  :-)
-> >
-> > And how exactly would they fix it then?
-> >
-> >>
-> >> any thought ?
-> >
-> > If you print variable or function names and the like, the message should be
-> > a debug one, because that's information that can only be understood by
-> > developers (some developers are users too, but they are a minority).
-> >
-> > If you want to report an error, say what is not working (or not available
-> > etc) and why (if you know the reason at the time the message is printed).
-> 
-> Great thanks, I guess I got you point.
-> 
-> maybe just a very simple message like:
-> pr_err(FW_BUG "Failed to init table: GTDT table is buggy.\n");
+> Reviewed-by: Phil Reid <preid@electromag.com.au>
+> Signed-off-by: Karl-Heinz Schneider <karl-heinz@schneider-inet.de>
+> ---
+>  .../devicetree/bindings/power/sbs,sbs-manager.txt  | 52 ++++++++++++++++++++++
+>  1 file changed, 52 insertions(+)
+>  create mode 100644 Documentation/devicetree/bindings/power/sbs,sbs-manager.txt
 
-To understand this message one needs to know what "table" means here
-and what "GTDT" is.  Also the prefix already will be something like
-"ACPI: GTDT:", so repeating part of it is not really useful IMO.
-
-Can you tell me please what's not going to work when that message is printed?
-
-Will the system boot at all then?  If so, the functionality will be limited
-somehow I suppose.  How is it going to be limited?
-
-> I will also check other pr_* , if I can update them
-
-OK, great!
-
-Thanks,
-Rafael
-
+Acked-by: Rob Herring <robh@kernel.org>
