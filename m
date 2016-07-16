@@ -1,132 +1,115 @@
-From: Sinan Kaya <okaya@codeaurora.org>
-Subject: Re: [PATCH V9 4/9] vfio: platform: add support for ACPI probe
-Date: Fri, 15 Jul 2016 21:27:24 -0400
-Message-ID: <bd8dacde-da6c-2353-7488-58b2f050699c@codeaurora.org>
-References: <1468461995-32676-1-git-send-email-okaya@codeaurora.org>
- <1468461995-32676-5-git-send-email-okaya@codeaurora.org>
- <20160714154146.38e37d84@t450s.home>
+From: Fu Wei <fu.wei@linaro.org>
+Subject: Re: [PATCH v7 4/9] acpi/arm64: Add GTDT table parse driver
+Date: Sat, 16 Jul 2016 10:24:35 +0800
+Message-ID: <CADyBb7tLyABzWFEW_8A3bK9XeWiHJjh7TqWQc=vDn5O_WUJX5w@mail.gmail.com>
+References: <1468432402-4872-1-git-send-email-fu.wei@linaro.org>
+ <5101961.eCg7ixLQWc@vostro.rjw.lan>
+ <CADyBb7sXxY_a+tJQoH01eUk5-xvg9jRZtzyhB-tDstWoBAWfLg@mail.gmail.com>
+ <1580087.dlcVOb6fx1@vostro.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20160714154146.38e37d84@t450s.home>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Alex Williamson <alex.williamson@redhat.com>
-Cc: kvm@vger.kernel.org, timur@codeaurora.org, cov@codeaurora.org, jcm@redhat.com, eric.auger@redhat.com, linux-acpi@vger.kernel.org, agross@codeaurora.org, linux-arm-msm@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Baptiste Reynal <b.reynal@virtualopensystems.com>, linux-kernel@vger.kernel.org
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <1580087.dlcVOb6fx1@vostro.rjw.lan>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: "Rafael J. Wysocki" <rafael@kernel.org>, Catalin Marinas <catalin.marinas@arm.com>, Will Deacon <will.deacon@arm.com>, rruigrok@codeaurora.org, Wim Van Sebroeck <wim@iguana.be>, Jiri Slaby <jslaby@suse.cz>, wei@redhat.com, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Al Stone <al.stone@linaro.org>, Timur Tabi <timur@codeaurora.org>, Daniel Lezcano <daniel.lezcano@linaro.org>, "linaro-acpi@lists.linaro.org" <linaro-acpi@lists.linaro.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, kvalo@codeaurora.org, Guenter Roeck <linux@roeck-us.net>, Len Brown <lenb@kernel.org>, harba@codeaurora.org, Julien Grall <julien.grall@arm.com>, "linux-watchdog@vger.kernel.org" <linux-watchdog@vger.kernel.org>, Arnd Bergmann <arnd@arndb.de>, Marc Zyngier <marc.zyngier@arm.com>, Jon Masters <jcm@redhat.com>, Christopher Covington <cov@codeaurora.org>, Thomas Gleixner <tglx@linutroni>
 List-Id: linux-acpi@vger.kernel.org
 
-On 7/14/2016 5:41 PM, Alex Williamson wrote:
-> On Wed, 13 Jul 2016 22:06:30 -0400
-> Sinan Kaya <okaya@codeaurora.org> wrote:
-> 
->> The code is using the compatible DT string to associate a reset driver
->> with the actual device itself. The compatible string does not exist on
->> ACPI based systems. HID is the unique identifier for a device driver
->> instead.
+Hi Rafeal,
+
+On 16 July 2016 at 05:22, Rafael J. Wysocki <rjw@rjwysocki.net> wrote:
+> On Saturday, July 16, 2016 12:32:14 AM Fu Wei wrote:
+>> Hi Rafael,
 >>
->> Signed-off-by: Sinan Kaya <okaya@codeaurora.org>
->> Reviewed-by: Eric Auger <eric.auger@redhat.com>
->> Reviewed-by: Baptiste Reynal <b.reynal@virtualopensystems.com>
->> ---
->>  drivers/vfio/platform/vfio_platform_common.c  | 70 +++++++++++++++++++++++++--
->>  drivers/vfio/platform/vfio_platform_private.h |  1 +
->>  2 files changed, 66 insertions(+), 5 deletions(-)
+>> On 15 July 2016 at 21:07, Rafael J. Wysocki <rjw@rjwysocki.net> wrote:
+>> > On Friday, July 15, 2016 02:15:27 PM Rafael J. Wysocki wrote:
+>> >> On Friday, July 15, 2016 03:32:35 PM Fu Wei wrote:
+>> >> > Hi Rafael,
+>> >> >
+>> >
+>> > [cut]
+>> >
+>> >> > >
+>> >> > >> +               return 0;
+>> >> > >> +       }
+>> >> > >> +
+>> >> > >> +       if (!gtdt->platform_timer_count) {
+>> >> > >> +               pr_info("No Platform Timer.\n");
+>> >> > >> +               return 0;
+>> >> > >> +       }
+>> >> > >> +
+>> >> > >> +       acpi_gtdt_desc.platform_timer_start = (void *)gtdt +
+>> >> > >> +                                             gtdt->platform_timer_offset;
+>> >> > >> +       if (acpi_gtdt_desc.platform_timer_start <
+>> >> > >> +           (void *)table + sizeof(struct acpi_table_gtdt)) {
+>> >> > >> +               pr_err(FW_BUG "Platform Timer pointer error.\n");
+>> >> > >
+>> >> > > Why pr_err()?
+>> >> >
+>> >> > if (true), that means the GTDT table has bugs.
+>> >> >
+>> >>
+>> >> And that's not a very useful piece of information unless you're debugging the
+>> >> platform, is it?
+>> >
+>> > FWIW, I'm not a big fan of printing "your firmware is buggy" type of messages
+>> > (especially at the "error" log level or higher) unless they can be clearly
+>> > connected to a specific type of functional failure.
+>> >
+>> > So if you want to pring an error-level message, something like "I cannot do X
+>> > because of the firmware bug Y" would be better IMO.
 >>
->> diff --git a/drivers/vfio/platform/vfio_platform_common.c b/drivers/vfio/platform/vfio_platform_common.c
->> index 6be92c3..ff148764 100644
->> --- a/drivers/vfio/platform/vfio_platform_common.c
->> +++ b/drivers/vfio/platform/vfio_platform_common.c
->> @@ -13,6 +13,7 @@
->>   */
->>  
->>  #include <linux/device.h>
->> +#include <linux/acpi.h>
->>  #include <linux/iommu.h>
->>  #include <linux/module.h>
->>  #include <linux/mutex.h>
->> @@ -49,6 +50,33 @@ static vfio_platform_reset_fn_t vfio_platform_lookup_reset(const char *compat,
->>  	return reset_fn;
->>  }
+>> So can I do this:
+>> pr_err(FW_BUG "Can NOT init platform_timer pointer, because of the
+>> GTDT table bug\n");
 >>
-> 
-> This function still feels a bit sloppy
->   
->> +static int vfio_platform_acpi_probe(struct vfio_platform_device *vdev,
->> +				    struct device *dev)
->> +{
->> +	struct acpi_device *adev = ACPI_COMPANION(dev);
-> 
-> When !CONFIG_ACPI, this returns NULL
-> 
->> +
->> +	if (acpi_disabled)
-> 
-> When !CONFIG_ACPI, this is defined as 1, so we'll always exit here.
-> 
->> +		return -EPERM;
->> +
+>> or pr_debug(FW_BUG "Can NOT init platform_timer_start, because of
+>> platform_timer_offset bug in GTDT\n");
+>>
+>> or just delete it?
+>>
+>> which one do you prefer?  I think maybe should provide some clue for
+>> users to fix the problem  :-)
+>
+> And how exactly would they fix it then?
+>
+>>
+>> any thought ?
+>
+> If you print variable or function names and the like, the message should be
+> a debug one, because that's information that can only be understood by
+> developers (some developers are users too, but they are a minority).
+>
+> If you want to report an error, say what is not working (or not available
+> etc) and why (if you know the reason at the time the message is printed).
 
-I'll move this here and leave the variable definition above only.
+Great thanks, I guess I got you point.
 
-	adev = ACPI_COMPANION(dev);
+maybe just a very simple message like:
+pr_err(FW_BUG "Failed to init table: GTDT table is buggy.\n");
 
->> +	if (!adev) {
-> 
-> This is really the only (ACPI_CONFIG && !acpi_disabled) error exit,
-> because...
-> 
->> +		pr_err("VFIO: ACPI companion device not found for %s\n",
->> +			vdev->name);
->> +		return -ENODEV;
->> +	}
->> +
->> +#ifdef CONFIG_ACPI
->> +	vdev->acpihid = acpi_device_hid(adev);
-> 
-
-Based on the current implementation of acpi_device_hid, the function wlll 
-return a name of "device" when the pnp device id list is empty. 
-
-Do you want to rely on the current implementation behavior rather than be
-safe?
-
-> This can't actually return NULL.  So the test below is unreached.
-> Maybe we should just conclude this function here with:
-> 
-> #endif
-> 
-> return vdev->acpihid ? 0 : -ENOENT;
-> 
-> which is even still a bit paranoid since it can't actually happen.
-> 
->> +	if (!vdev->acpihid) {
->> +		pr_err("VFIO: cannot find ACPI HID for %s\n",
->> +		       vdev->name);
->> +		return -EINVAL;
->> +	}
->> +	return 0;
->> +#else
->> +	return -ENOENT;
->> +#endif
->> +}
->> +
+I will also check other pr_* , if I can update them
 
 
->> +
->> +/*
->> + * There can be two kernel build combinations. One build where
->> + * ACPI is not selected in Kconfig and another one with the ACPI Kconfig.
->> + *
->> + * In the first case, vfio_platform_acpi_probe will return since
->> + * acpi_disabled  * is 1. DT user will not see any kind of messages from
-> 
->                     ^^ Previous editing cruft?
-
-Yep, good catch. Got warned by checkpatch for 80 characters. 
+>
+> Thanks,
+> Rafael
+>
 
 
 
 -- 
-Sinan Kaya
-Qualcomm Datacenter Technologies, Inc. as an affiliate of Qualcomm Technologies, Inc.
-Qualcomm Technologies, Inc. is a member of the Code Aurora Forum, a Linux Foundation Collaborative Project.
+Best regards,
+
+Fu Wei
+Software Engineer
+Red Hat
