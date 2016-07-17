@@ -1,147 +1,80 @@
-From: H Buus <ubuntu@hbuus.com>
-Subject: PROBLEM: acpi regression first bad commit
- 02b771b64b73226052d6e731a0987db3b47281e9
-Date: Sun, 17 Jul 2016 02:33:56 -0400
-Message-ID: <e44d5b48-b7ea-263b-76ae-77bc6b34302b@hbuus.com>
+From: joeyli <jlee@suse.com>
+Subject: Re: [PATCH v2] tools/testing/nvdimm: add virtual ramdisk range
+Date: Sun, 17 Jul 2016 17:36:14 +0800
+Message-ID: <20160717093614.GM27155@linux-rxt1.site>
+References: <146861130048.16896.9105590813517990661.stgit@dwillia2-desk3.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp.knology.net ([64.8.71.112]:46010 "EHLO smtp.knology.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750921AbcGQGyI (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sun, 17 Jul 2016 02:54:08 -0400
+Received: from smtp.nue.novell.com ([195.135.221.5]:45711 "EHLO
+	smtp.nue.novell.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750814AbcGQJg0 (ORCPT
+	<rfc822;groupwise-linux-acpi@vger.kernel.org:0:0>);
+	Sun, 17 Jul 2016 05:36:26 -0400
+Content-Disposition: inline
+In-Reply-To: <146861130048.16896.9105590813517990661.stgit@dwillia2-desk3.amr.corp.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: lv.zheng@intel.com, rafael.j.wysocki@intel.com, len.brown@intel.com
-Cc: linux-acpi@vger.kernel.org
+To: Dan Williams <dan.j.williams@intel.com>
+Cc: linux-nvdimm@lists.01.org, linux-acpi@vger.kernel.org
 
-WzEuXSBPbmUgbGluZSBzdW1tYXJ5IG9mIHRoZSBwcm9ibGVtOiANCg0KYWNwaSByZWdyZXNz
-aW9uIGZpcnN0IGJhZCBjb21taXQgMDJiNzcxYjY0YjczMjI2MDUyZDZlNzMxYTA5ODdkYjNi
-NDcyODFlOQ0KDQpbMi5dIEZ1bGwgZGVzY3JpcHRpb24gb2YgdGhlIHByb2JsZW0vcmVwb3J0
-OiANCg0KSSBmb3VuZCB3aGF0IEkgYmVsaWV2ZSBpcyBhIHJlZ3Jlc3Npb24gb24gbXkgR2F0
-ZXdheSBuZTU3MCBsYXB0b3AuIFRoZSBwcm9ibGVtIGlzIHJlcHJvZHVjaWJsZSB3aXRoIGtl
-cm5lbHMgdjQuNy1yYzcsIHY0LjQuMTMgYW5kIHY0LjMuIEkgZm91bmQgZG1lc2cgYW5kIGtl
-cm4ubG9nIHdlcmUgZmlsbGluZyB3aXRoIG1lc3NhZ2VzIGxpa2UgdGhpczoNCkp1bCAxMCAx
-NzowMToxMCBidXVzLW5lNTcwIGtlcm5lbDogWyA1Ny43NDE2MzBdIEFDUEkgRXJyb3I6IE1l
-dGhvZCByZWFjaGVkIG1heGltdW0gcmVlbnRyYW5jeSBsaW1pdCAoMjU1KSAoMjAxNTA4MTgv
-ZHNtZXRob2QtMzQxKQ0KSnVsIDEwIDE3OjAxOjEwIGJ1dXMtbmU1NzAga2VybmVsOiBbIDU3
-LjgwMzc3NV0gQUNQSSBFcnJvcjogTWV0aG9kIHJlYWNoZWQgbWF4aW11bSByZWVudHJhbmN5
-IGxpbWl0ICgyNTUpICgyMDE1MDgxOC9kc21ldGhvZC0zNDEpDQpKdWwgMTAgMTc6MDE6MTAg
-YnV1cy1uZTU3MCBrZXJuZWw6IFsgNTcuODY2Mjk0XSBBQ1BJIEVycm9yOiBNZXRob2QgcmVh
-Y2hlZCBtYXhpbXVtIHJlZW50cmFuY3kgbGltaXQgKDI1NSkgKDIwMTUwODE4L2RzbWV0aG9k
-LTM0MSkNCkp1bCAxMCAxNzowMToxMCBidXVzLW5lNTcwIGtlcm5lbDogWyA1Ny45Mjg0MDNd
-IEFDUEkgRXJyb3I6IE1ldGhvZCByZWFjaGVkIG1heGltdW0gcmVlbnRyYW5jeSBsaW1pdCAo
-MjU1KSAoMjAxNTA4MTgvZHNtZXRob2QtMzQxKQ0KDQpXaXRoIHRoZSBsYXRlc3Qgc3RhYmxl
-IGtlcm5lbCwgNC43LXJjNywgdGhlIEFDUEkgZXJyb3IgbWVzc2FnZXMgaGF2ZSBjaGFuZ2Vk
-IHRvIHJlZmxlY3QgYSBuZXdlciB2ZXJzaW9uLCBzcGVjaWZpY2FsbHk6DQpKdWwgMTYgMTI6
-NTk6MTggYnV1cy1uZTU3MCBrZXJuZWw6IFsgICA3OC44NjI5NDJdIEFDUEkgRXJyb3I6IE1l
-dGhvZCByZWFjaGVkIG1heGltdW0gcmVlbnRyYW5jeSBsaW1pdCAoMjU1KSAoMjAxNjA0MjIv
-ZHNtZXRob2QtMzQwKQ0KDQpUaGVzZSBtZXNzYWdlcyBhcmUgcmVwZWF0ZWQgc2V2ZXJhbCB0
-aW1lcyBhIHNlY29uZCwgYW5kIHRoZW4gcGF1c2UgZm9yIHNldmVyYWwgc2Vjb25kcywgdGhl
-biBzdGFydCBhZ2Fpbi4gSSBiZWxpZXZlIHRoZXkgYXJlIHRoZSBjYXVzZSBvZiBtb3JlIHNs
-dWdnaXNoIGJlaGF2aW9yIHRoYW4gd2l0aCB0aGUgb2xkZXIga2VybmVscy4gSSBoYXZlIGFs
-c28gZm91bmQgdGhhdCBpZiB0aGUgbWFjaGluZSBpcyBpZGxlLCB0aGVyZSdzIGEgcGF1c2Ug
-aW4gdGhlICJBQ1BJIEVycm9yIiBtZXNzYWdlcy4gSSB0aGluayBpdCBkZXBlbmRzIG9uIGhv
-dyBtdWNoIHdyaXRpbmcgdG8gZGlzayBpcyBnb2luZyBvbiwgYnV0IHRoYXQncyBqdXN0IGEg
-Z3V0IGZlZWxpbmcuIEknbSBub3QgcXVpdGUgc3VyZSBob3cgdG8gdmVyaWZ5IHRoYXQgYXNz
-dW1wdGlvbiwgb3IgaWYgaXQgd291bGQgaGVscCBkaWFnbm9zZSB0aGUgcHJvYmxlbS4NCg0K
-SSBiZWxpZXZlIHRoZSBwcm9ibGVtIGlzIGEgcmVncmVzc2lvbiwgYmVjYXVzZSBpdCBkaWQg
-bm90IG9jY3VyIHdpdGgga2VybmVscyB2My4xNi43LCB2My4xOS44LCBvciB2NC4yLjguDQoN
-CmdpdCBiaXNlY3RpbmcgdGhlIGxpbnV4LXN0YWJsZSBrZXJuZWwgbGVkIG1lIHRvIHRoaXMg
-Y29tbWl0Og0KDQojIGZpcnN0IGJhZCBjb21taXQ6IFswMmI3NzFiNjRiNzMyMjYwNTJkNmU3
-MzFhMDk4N2RiM2I0NzI4MWU5XSBBQ1BJIC8gRUM6IEZpeCBhbiBpc3N1ZSBjYXVzZWQgYnkg
-dGhlIHNlcmlhbGl6ZWQgX1F4eCBldmFsdWF0aW9ucw0KDQpjb21taXQgMDJiNzcxYjY0Yjcz
-MjI2MDUyZDZlNzMxYTA5ODdkYjNiNDcyODFlOQ0KQXV0aG9yOiBMdiBaaGVuZyA8bHYuemhl
-bmdAaW50ZWwuY29tPg0KRGF0ZTogV2VkIEF1ZyAxMiAxMToxMjowMiAyMDE1ICswODAwDQoN
-CiAgICBBQ1BJIC8gRUM6IEZpeCBhbiBpc3N1ZSBjYXVzZWQgYnkgdGhlIHNlcmlhbGl6ZWQg
-X1F4eCBldmFsdWF0aW9ucw0KDQogICAgSXQgaXMgcHJvdmVuIHRoYXQgV2luZG93cyBldmFs
-dWF0ZXMgX1F4eCBoYW5kbGVycyBpbiBhIHBhcmFsbGVsIHdheS4gVGhpcw0KICAgIHBhdGNo
-IGZvbGxvd3MgdGhpcyBmYWN0LCBzcGxpdHMgX1F4eCBldmFsdWF0aW9ucyBmcm9tIHRoZSBO
-T1RJRlkgcXVldWUgdG8NCiAgICBmb3JtIGEgc2VwYXJhdGUgcXVldWUsIHNvIHRoYXQgX1F4
-eCBldmFsdWF0aW9ucyBjYW4gYmUgcXVldWVkIHVwIG9uDQogICAgZGlmZmVyZW50IENQVXMg
-cmF0aGVyIHRoYW4gYmVpbmcgcXVldWVkIHVwIG9uIGEgQ1BVMCBib3VuZCBxdWV1ZS4NCiAg
-ICBFdmVudCBoYW5kbGluZyByZWxhdGVkIGNhbGxiYWNrcyBhcmUgYWxzbyByZW5hbWVkIGFu
-ZCBzb3J0ZWQgaW4gdGhpcyBwYXRjaC4NCg0KICAgIExpbms6IGh0dHBzOi8vYnVnemlsbGEu
-a2VybmVsLm9yZy9zaG93X2J1Zy5jZ2k/aWQ9OTQ0MTENCiAgICBSZXBvcnRlZC1hbmQtdGVz
-dGVkLWJ5OiBHYWJyaWVsZSBNYXp6b3R0YSA8Z2FicmllbGUubXp0QGdtYWlsLmNvbT4NCiAg
-ICBTaWduZWQtb2ZmLWJ5OiBMdiBaaGVuZyA8bHYuemhlbmdAaW50ZWwuY29tPg0KICAgIFNp
-Z25lZC1vZmYtYnk6IFJhZmFlbCBKLiBXeXNvY2tpIDxyYWZhZWwuai53eXNvY2tpQGludGVs
-LmNvbT4NCg0KSSBjYW4gcHJvdmlkZSBhbiBhbm5vdGF0ZWQgImdpdCBiaXNlY3QgbG9nIiBh
-c3NvY2lhdGluZyBjb21taXRzIGZyb20gdGhlIGxpbnV4LXN0YWJsZSB0cmVlIHdpdGggdGhl
-IGRlYiBwYWNrYWdlcyBJIGJ1aWx0LCBpbnN0YWxsZWQsIGFuZCB0ZXN0ZWQgdG8gYXJyaXZl
-IGF0IHRoZSAiZmlyc3QgYmFkIGNvbW1pdCIuDQoNClszLl0gS2V5d29yZHMgKGkuZS4sIG1v
-ZHVsZXMsIG5ldHdvcmtpbmcsIGtlcm5lbCk6DQoNCls0Ll0gS2VybmVsIHZlcnNpb24gKGZy
-b20gL3Byb2MvdmVyc2lvbik6IA0KTGludXggdmVyc2lvbiA0LjcuMC0wNDA3MDByYzctZ2Vu
-ZXJpYyAoa2VybmVsQGdsb2luKSAoZ2NjIHZlcnNpb24gNS40LjAgMjAxNjA2MDkgKFVidW50
-dSA1LjQuMC02dWJ1bnR1MSkgKSAjMjAxNjA3MTEwMDMyIFNNUCBNb24gSnVsIDExIDA0OjM0
-OjI1IFVUQyAyMDE2DQoNCls1Ll0gT3V0cHV0IG9mIE9vcHMuLiBtZXNzYWdlIChpZiBhcHBs
-aWNhYmxlKSB3aXRoIHN5bWJvbGljIGluZm9ybWF0aW9uIHJlc29sdmVkIChzZWUgRG9jdW1l
-bnRhdGlvbi9vb3BzLXRyYWNpbmcudHh0KSANCk5vdCBhcHBsaWNhYmxlDQoNCls2Ll0gQSBz
-bWFsbCBzaGVsbCBzY3JpcHQgb3IgZXhhbXBsZSBwcm9ncmFtIHdoaWNoIHRyaWdnZXJzIHRo
-ZSBwcm9ibGVtIChpZiBwb3NzaWJsZSkNCk5vdCBhcHBsaWNhYmxlDQogDQpbNy5dIEVudmly
-b25tZW50DQpbNy4xLl0gU29mdHdhcmUgKGFkZCB0aGUgb3V0cHV0IG9mIHRoZSB2ZXJfbGlu
-dXggc2NyaXB0IGhlcmUpDQoNCkxpbnV4IGJ1dXMtbmU1NzAgNC43LjAtMDQwNzAwcmM3LWdl
-bmVyaWMgIzIwMTYwNzExMDAzMiBTTVAgTW9uIEp1bCAxMSAwNDozNDoyNSBVVEMgMjAxNiB4
-ODZfNjQgeDg2XzY0IHg4Nl82NCBHTlUvTGludXgNCg0KR05VIEMgICAgICAgICAgICAgICAg
-ICAgNS40LjANCkdOVSBNYWtlICAgICAgICAgICAgICAgIDQuMQ0KQmludXRpbHMgICAgICAg
-ICAgICAgICAgMi4yNi4xDQpVdGlsLWxpbnV4ICAgICAgICAgICAgICAyLjI3LjENCk1vdW50
-ICAgICAgICAgICAgICAgICAgIDIuMjcuMQ0KTW9kdWxlLWluaXQtdG9vbHMgICAgICAgMjIN
-CkUyZnNwcm9ncyAgICAgICAgICAgICAgIDEuNDIuMTMNCkpmc3V0aWxzICAgICAgICAgICAg
-ICAgIDEuMS4xNQ0KUGNtY2lhdXRpbHMgICAgICAgICAgICAgMDE4DQpQUFAgICAgICAgICAg
-ICAgICAgICAgICAyLjQuNw0KTGludXggQyBMaWJyYXJ5ICAgICAgICAgMi4yMw0KRHluYW1p
-YyBsaW5rZXIgKGxkZCkgICAgMi4yMw0KTGludXggQysrIExpYnJhcnkgICAgICAgNi4wLjIx
-DQpQcm9jcHMgICAgICAgICAgICAgICAgICAzLjMuMTANCk5ldC10b29scyAgICAgICAgICAg
-ICAgIDEuNjANCktiZCAgICAgICAgICAgICAgICAgICAgIDEuMTUuNQ0KQ29uc29sZS10b29s
-cyAgICAgICAgICAgMS4xNS41DQpTaC11dGlscyAgICAgICAgICAgICAgICA4LjI1DQpVZGV2
-ICAgICAgICAgICAgICAgICAgICAyMjkNCldpcmVsZXNzLXRvb2xzICAgICAgICAgIDMwDQpN
-b2R1bGVzIExvYWRlZCAgICAgICAgICBhYyBhY2VyX3dtaSBhaGNpIGFuc2lfY3BybmcgYXJj
-NCBhdGggYXRoM2sgYXRoOWsgYXRoOWtfY29tbW9uIGF0aDlrX2h3IGF1dG9mczQgYmF0dGVy
-eSBibHVldG9vdGggYm5lcCBidGJjbSBidGludGVsIGJ0cnRsIGJ0dXNiIGJ1dHRvbiBjY20g
-Y2Ryb20gY2ZnODAyMTEgY29yZXRlbXAgY3JjMTYgY3JjMzJjX2ludGVsIGNyYzMyX3BjbG11
-bCBjcmN0MTBkaWZfcGNsbXVsIGNyeXB0ZCBjdHIgZG1fbW9kIGRyYmcgZHJtIGRybV9rbXNf
-aGVscGVyIGVmaV9wc3RvcmUgZWZpdmFyZnMgZWZpdmFycyBlaGNpX2hjZCBlaGNpX3BjaSBl
-dmRldiBleHQ0IGZhdCBmamVzIGZ1c2UgZ2hhc2hfY2xtdWxuaV9pbnRlbCBoaWQgaGlkX2dl
-bmVyaWMgaGlkcCBobWFjIGkyY19hbGdvX2JpdCBpOTE1IGludGVsX2NzdGF0ZSBpbnRlbF9w
-b3dlcmNsYW1wIGludGVsX3JhcGwgaW50ZWxfcmFwbF9wZXJmIGlycWJ5cGFzcyBqYmQyIGpm
-cyBqb3lkZXYga3ZtIGt2bV9pbnRlbCBsaWJhaGNpIGxpYmF0YSBsaWJwaHkgbHAgbHBjX2lj
-aCBtYWM4MDIxMSBtYmNhY2hlIG1lZGlhIG1laSBtZWlfbWUgbWZkX2NvcmUgbW1jX2NvcmUg
-bmxzX2NwNDM3IG5sc191dGY4IHBhcnBvcnQgcGFycG9ydF9wYyBwcGRldiBwcHNfY29yZSBw
-c21vdXNlIHB0cCByZmNvbW0gcmZraWxsIHNjc2lfbW9kIHNkaGNpIHNkaGNpX3BjaSBzZF9t
-b2Qgc2VyaW9fcmF3IHNnIHNocGNocCBzbmQgc25kX2hkYV9jb2RlYyBzbmRfaGRhX2NvZGVj
-X2dlbmVyaWMgc25kX2hkYV9jb2RlY19oZG1pIHNuZF9oZGFfY29kZWNfcmVhbHRlayBzbmRf
-aGRhX2NvcmUgc25kX2hkYV9pbnRlbCBzbmRfaHdkZXAgc25kX3BjbSBzbmRfcmF3bWlkaSBz
-bmRfc2VxIHNuZF9zZXFfZGV2aWNlIHNuZF9zZXFfbWlkaSBzbmRfc2VxX21pZGlfZXZlbnQg
-c25kX3RpbWVyIHNvdW5kY29yZSBzcGFyc2Vfa2V5bWFwIHNyX21vZCB0ZzMgdHBtIHRwbV90
-aXMgdXNiX2NvbW1vbiB1c2Jjb3JlIHV2Y3ZpZGVvIHZmYXQgdmlkZW8gdmlkZW9idWYyX2Nv
-cmUgdmlkZW9idWYyX21lbW9wcyB2aWRlb2J1ZjJfdjRsMiB2aWRlb2J1ZjJfdm1hbGxvYyB2
-aWRlb2RldiB3bWkgeDg2X3BrZ190ZW1wX3RoZXJtYWwgeGhjaV9oY2QgeGhjaV9wY2kNCg0K
-WzcuMi5dIFByb2Nlc3NvciBpbmZvcm1hdGlvbiAoZnJvbSAvcHJvYy9jcHVpbmZvKToNCklu
-dGVsKFIpIENvcmUoVE0pIGkzLTMyMTdVIENQVSBAIDEuODBHSHoNCkknbGwgcHJvdmlkZSB0
-aGUgZnVsbCBvdXRwdXQgaWYgeW91IHdhbnQgaXQuDQoNCls3LjMuXSBNb2R1bGUgaW5mb3Jt
-YXRpb24gKGZyb20gL3Byb2MvbW9kdWxlcyk6DQpJIGNhbiBwcm92aWRlIHRoaXMgaWYgeW91
-IHdhbnQgaXQuDQoNCls3LjQuXSBMb2FkZWQgZHJpdmVyIGFuZCBoYXJkd2FyZSBpbmZvcm1h
-dGlvbiAoL3Byb2MvaW9wb3J0cywgL3Byb2MvaW9tZW0pDQpJIGNhbiBwcm92aWRlIHRoaXMg
-aWYgeW91IHdhbnQgaXQuDQoNCls3LjUuXSBQQ0kgaW5mb3JtYXRpb24gKCdsc3BjaSAtdnZ2
-JyBhcyByb290KQ0KSSBjYW4gcHJvdmlkZSB0aGlzIGlmIHlvdSB3YW50IGl0Lg0KDQpbNy42
-Ll0gU0NTSSBpbmZvcm1hdGlvbiAoZnJvbSAvcHJvYy9zY3NpL3Njc2kpDQpEb2Vzbid0IGV4
-aXN0Lg0KDQpbNy43Ll0gT3RoZXIgaW5mb3JtYXRpb24gdGhhdCBtaWdodCBiZSByZWxldmFu
-dCB0byB0aGUgcHJvYmxlbQ0KICAgICAgIChwbGVhc2UgbG9vayBpbiAvcHJvYyBhbmQgaW5j
-bHVkZSBhbGwgaW5mb3JtYXRpb24gdGhhdCB5b3UNCiAgICAgICB0aGluayB0byBiZSByZWxl
-dmFudCk6DQoNCkkgY2FuIHByb3ZpZGUgYWNwaWR1bXAgb3V0cHV0LCBub3Qgc3VyZSBpZiBJ
-IGNhbiBhdHRhY2ggZW1haWxzIHNlbnQgdG8gbGludXgtYWNwaSBsaXN0LCBzbyBJJ20gbm90
-IGF0dGFjaGluZyBpdCBub3cuDQoNCmRtaS5iaW9zLmRhdGU6IDEwLzA4LzIwMTMNCmRtaS5i
-aW9zLnZlbmRvcjogSW5zeWRlIENvcnAuDQpkbWkuYmlvcy52ZXJzaW9uOiBWMi4wNg0KZG1p
-LmJvYXJkLmFzc2V0LnRhZzogVHlwZTIgLSBCb2FyZCBBc3NldCBUYWcNCmRtaS5ib2FyZC5u
-YW1lOiBFQTUwX0NYDQpkbWkuYm9hcmQudmVuZG9yOiBHYXRld2F5DQpkbWkuYm9hcmQudmVy
-c2lvbjogVjIuMDYNCmRtaS5jaGFzc2lzLmFzc2V0LnRhZzogQWNlciBBc3NldCBUYWcgU3Ry
-aW5nDQpkbWkuY2hhc3Npcy50eXBlOiAxMA0KZG1pLmNoYXNzaXMudmVuZG9yOiBJbnN5ZGUg
-Q29ycC4NCmRtaS5jaGFzc2lzLnZlcnNpb246IFYyLjA2DQpkbWkubW9kYWxpYXM6IGRtaTpi
-dm5JbnN5ZGVDb3JwLjpidnJWMi4wNjpiZDEwLzA4LzIwMTM6c3ZuR2F0ZXdheTpwbk5FNTcw
-OnB2clYyLjA2OnJ2bkdhdGV3YXk6cm5FQTUwX0NYOnJ2clYyLjA2OmN2bkluc3lkZUNvcnAu
-OmN0MTA6Y3ZyVjIuMDY6DQpkbWkucHJvZHVjdC5uYW1lOiBORTU3MA0KZG1pLnByb2R1Y3Qu
-dmVyc2lvbjogVjIuMDYNCmRtaS5zeXMudmVuZG9yOiBHYXRld2F5DQoNCltYLl0gT3RoZXIg
-bm90ZXMsIHBhdGNoZXMsIGZpeGVzLCB3b3JrYXJvdW5kczoNCg0KVGhpcyBtYWNoaW5lIGhh
-cyB0aGUgbGF0ZXN0IFVFRkkgZmlybXdhcmUgYXZhaWxhYmxlIGZyb20gdGhlIG1hbnVmYWN0
-dXJlciwgSW5zeWRlIHYyLjA2LiBGV0lXLCBJIGJlbGlldmUgdGhlIEdhdGV3YXkgTkU1NzAg
-aXMgYSByZS1icmFuZGVkIEFjZXIgQXNwaXJlIEUxLTU3MC4NCg==
+Hi Dan, 
+
+On Fri, Jul 15, 2016 at 12:35:58PM -0700, Dan Williams wrote:
+> Test the virtual disk ranges that platform firmware like EDK2/OVMF might
+> emit.
+> 
+> Cc: "Lee, Chun-Yi" <jlee@suse.com>
+> Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+> ---
+> Changes since v1:
+> 
+> * Move this test range to nfit_test.1 to not break the spa ordering
+>   expected by the nfit_test.0 tests.
+>
+
+I reviewed and tested this patch by nvdimm testing driver.
+Please feel free to add
+	Reviewed-by: Lee, Chun-Yi <jlee@suse.com> 
+
+But I have a question to run nfit testing driver on OVMF. I always got
+"coherent allocation failed" as below:	
+
+[   86.530950] platform nfit_test.0: swiotlb buffer is full (sz: 134217728 bytes)
+[   86.530954] swiotlb: coherent allocation failed for device nfit_test.0 size=134217728
+[   86.530956] CPU: 0 PID: 1291 Comm: insmod Tainted: G           OE   4.7.0-rc7-default+ #323
+[   86.530958] Hardware name: QEMU Standard PC (i440FX + PIIX, 1996), BIOS 0.0.0 02/06/2015
+[   86.530959]  0000000000000000 ffff880234e63bb0 ffffffff81334e5c 0000000008000000
+[   86.530961]  ffff880232fa5998 ffff880234e63bf0 ffffffff8135eb79 ffff88020000000f
+[   86.530963]  00000000024002c0 ffff880232fa5998 0000000008000000 ffff880234e63c68
+[   86.530965] Call Trace:
+[   86.530971]  [<ffffffff81334e5c>] dump_stack+0x63/0x87
+[   86.530975]  [<ffffffff8135eb79>] swiotlb_alloc_coherent+0x149/0x160
+[   86.530978]  [<ffffffff810611d3>] x86_swiotlb_alloc_coherent+0x43/0x50
+[   86.530981]  [<ffffffffa054db3a>] dma_alloc_attrs.constprop.10+0x5a/0x80 [nfit_test]
+[   86.530984]  [<ffffffffa00d618c>] nfit_test_init+0x18c/0x1000 [nfit_test]
+[   86.530985]  [<ffffffffa00d6000>] ? 0xffffffffa00d6000
+[   86.530988]  [<ffffffff81002190>] do_one_initcall+0x50/0x190
+[   86.530992]  [<ffffffff811eef00>] ? kmem_cache_alloc_trace+0x170/0x220
+[   86.530995]  [<ffffffff8118dbfc>] ? do_init_module+0x27/0x1e2
+[   86.530997]  [<ffffffff8118dc35>] do_init_module+0x60/0x1e2
+[   86.531000]  [<ffffffff81108fb1>] load_module+0x1411/0x1c20
+[   86.531002]  [<ffffffff81105cb0>] ? __symbol_put+0x40/0x40
+[   86.531006]  [<ffffffff812dfbbd>] ? ima_post_read_file+0x3d/0x80
+[   86.531009]  [<ffffffff811099c9>] SYSC_finit_module+0xa9/0xd0
+[   86.531011]  [<ffffffff81109a0e>] SyS_finit_module+0xe/0x10
+[   86.531013]  [<ffffffff81003a62>] do_syscall_64+0x62/0x110
+[   86.531016]  [<ffffffff81630a61>] entry_SYSCALL64_slow_path+0x25/0x25
+[   86.531018] platform nfit_test.0: need 128M of free cma
+
+I tried to add "swiotlb=65536" and "cma=128M" or "cma=256M", even "cma=2G" kernel
+parameters, but nfit-test.ko still can NOT allocate DMA success.
+
+So, I always add a patch to change the DIMM_SIZE to SZ_1M, that means test0
+only uses 4M. Then the nfit-test.ko works for testing.
+ 
+Did I miss anything before running the nfit testing driver?
+
+
+Thanks a lot!
+Joey Lee 
