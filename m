@@ -1,80 +1,86 @@
-From: joeyli <jlee@suse.com>
+From: Dan Williams <dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Subject: Re: [PATCH v2] tools/testing/nvdimm: add virtual ramdisk range
-Date: Sun, 17 Jul 2016 17:36:14 +0800
-Message-ID: <20160717093614.GM27155@linux-rxt1.site>
+Date: Sun, 17 Jul 2016 09:05:19 -0700
+Message-ID: <CAA9_cmenwSpW51J8tF-4hDQ9fNt1hjUZ+jdACzVNvWivuUa8tg@mail.gmail.com>
 References: <146861130048.16896.9105590813517990661.stgit@dwillia2-desk3.amr.corp.intel.com>
+ <20160717093614.GM27155@linux-rxt1.site>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp.nue.novell.com ([195.135.221.5]:45711 "EHLO
-	smtp.nue.novell.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750814AbcGQJg0 (ORCPT
-	<rfc822;groupwise-linux-acpi@vger.kernel.org:0:0>);
-	Sun, 17 Jul 2016 05:36:26 -0400
-Content-Disposition: inline
-In-Reply-To: <146861130048.16896.9105590813517990661.stgit@dwillia2-desk3.amr.corp.intel.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+In-Reply-To: <20160717093614.GM27155-empE8CJ7fzk2xCFIczX1Fw@public.gmane.org>
+List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
+ <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
+List-Post: <mailto:linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+List-Help: <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
+ <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
+Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
+Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+To: joeyli <jlee-IBi9RG/b67k@public.gmane.org>
+Cc: Linux ACPI <linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org" <linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
-To: Dan Williams <dan.j.williams@intel.com>
-Cc: linux-nvdimm@lists.01.org, linux-acpi@vger.kernel.org
 
-Hi Dan, 
-
-On Fri, Jul 15, 2016 at 12:35:58PM -0700, Dan Williams wrote:
-> Test the virtual disk ranges that platform firmware like EDK2/OVMF might
-> emit.
-> 
-> Cc: "Lee, Chun-Yi" <jlee@suse.com>
-> Signed-off-by: Dan Williams <dan.j.williams@intel.com>
-> ---
-> Changes since v1:
-> 
-> * Move this test range to nfit_test.1 to not break the spa ordering
->   expected by the nfit_test.0 tests.
+On Sun, Jul 17, 2016 at 2:36 AM, joeyli <jlee-IBi9RG/b67k@public.gmane.org> wrote:
+> Hi Dan,
 >
+> On Fri, Jul 15, 2016 at 12:35:58PM -0700, Dan Williams wrote:
+>> Test the virtual disk ranges that platform firmware like EDK2/OVMF might
+>> emit.
+>>
+>> Cc: "Lee, Chun-Yi" <jlee-IBi9RG/b67k@public.gmane.org>
+>> Signed-off-by: Dan Williams <dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+>> ---
+>> Changes since v1:
+>>
+>> * Move this test range to nfit_test.1 to not break the spa ordering
+>>   expected by the nfit_test.0 tests.
+>>
+>
+> I reviewed and tested this patch by nvdimm testing driver.
+> Please feel free to add
+>         Reviewed-by: Lee, Chun-Yi <jlee-IBi9RG/b67k@public.gmane.org>
+>
+> But I have a question to run nfit testing driver on OVMF. I always got
+> "coherent allocation failed" as below:
+>
+> [   86.530950] platform nfit_test.0: swiotlb buffer is full (sz: 134217728 bytes)
+> [   86.530954] swiotlb: coherent allocation failed for device nfit_test.0 size=134217728
+> [   86.530956] CPU: 0 PID: 1291 Comm: insmod Tainted: G           OE   4.7.0-rc7-default+ #323
+> [   86.530958] Hardware name: QEMU Standard PC (i440FX + PIIX, 1996), BIOS 0.0.0 02/06/2015
+> [   86.530959]  0000000000000000 ffff880234e63bb0 ffffffff81334e5c 0000000008000000
+> [   86.530961]  ffff880232fa5998 ffff880234e63bf0 ffffffff8135eb79 ffff88020000000f
+> [   86.530963]  00000000024002c0 ffff880232fa5998 0000000008000000 ffff880234e63c68
+> [   86.530965] Call Trace:
+> [   86.530971]  [<ffffffff81334e5c>] dump_stack+0x63/0x87
+> [   86.530975]  [<ffffffff8135eb79>] swiotlb_alloc_coherent+0x149/0x160
+> [   86.530978]  [<ffffffff810611d3>] x86_swiotlb_alloc_coherent+0x43/0x50
+> [   86.530981]  [<ffffffffa054db3a>] dma_alloc_attrs.constprop.10+0x5a/0x80 [nfit_test]
+> [   86.530984]  [<ffffffffa00d618c>] nfit_test_init+0x18c/0x1000 [nfit_test]
+> [   86.530985]  [<ffffffffa00d6000>] ? 0xffffffffa00d6000
+> [   86.530988]  [<ffffffff81002190>] do_one_initcall+0x50/0x190
+> [   86.530992]  [<ffffffff811eef00>] ? kmem_cache_alloc_trace+0x170/0x220
+> [   86.530995]  [<ffffffff8118dbfc>] ? do_init_module+0x27/0x1e2
+> [   86.530997]  [<ffffffff8118dc35>] do_init_module+0x60/0x1e2
+> [   86.531000]  [<ffffffff81108fb1>] load_module+0x1411/0x1c20
+> [   86.531002]  [<ffffffff81105cb0>] ? __symbol_put+0x40/0x40
+> [   86.531006]  [<ffffffff812dfbbd>] ? ima_post_read_file+0x3d/0x80
+> [   86.531009]  [<ffffffff811099c9>] SYSC_finit_module+0xa9/0xd0
+> [   86.531011]  [<ffffffff81109a0e>] SyS_finit_module+0xe/0x10
+> [   86.531013]  [<ffffffff81003a62>] do_syscall_64+0x62/0x110
+> [   86.531016]  [<ffffffff81630a61>] entry_SYSCALL64_slow_path+0x25/0x25
+> [   86.531018] platform nfit_test.0: need 128M of free cma
+>
+> I tried to add "swiotlb=65536" and "cma=128M" or "cma=256M", even "cma=2G" kernel
+> parameters, but nfit-test.ko still can NOT allocate DMA success.
+>
+> So, I always add a patch to change the DIMM_SIZE to SZ_1M, that means test0
+> only uses 4M. Then the nfit-test.ko works for testing.
+>
+> Did I miss anything before running the nfit testing driver?
 
-I reviewed and tested this patch by nvdimm testing driver.
-Please feel free to add
-	Reviewed-by: Lee, Chun-Yi <jlee@suse.com> 
+The CMA dependency is a hassle, so for v4.8 I'm replacing it with vmalloc:
 
-But I have a question to run nfit testing driver on OVMF. I always got
-"coherent allocation failed" as below:	
-
-[   86.530950] platform nfit_test.0: swiotlb buffer is full (sz: 134217728 bytes)
-[   86.530954] swiotlb: coherent allocation failed for device nfit_test.0 size=134217728
-[   86.530956] CPU: 0 PID: 1291 Comm: insmod Tainted: G           OE   4.7.0-rc7-default+ #323
-[   86.530958] Hardware name: QEMU Standard PC (i440FX + PIIX, 1996), BIOS 0.0.0 02/06/2015
-[   86.530959]  0000000000000000 ffff880234e63bb0 ffffffff81334e5c 0000000008000000
-[   86.530961]  ffff880232fa5998 ffff880234e63bf0 ffffffff8135eb79 ffff88020000000f
-[   86.530963]  00000000024002c0 ffff880232fa5998 0000000008000000 ffff880234e63c68
-[   86.530965] Call Trace:
-[   86.530971]  [<ffffffff81334e5c>] dump_stack+0x63/0x87
-[   86.530975]  [<ffffffff8135eb79>] swiotlb_alloc_coherent+0x149/0x160
-[   86.530978]  [<ffffffff810611d3>] x86_swiotlb_alloc_coherent+0x43/0x50
-[   86.530981]  [<ffffffffa054db3a>] dma_alloc_attrs.constprop.10+0x5a/0x80 [nfit_test]
-[   86.530984]  [<ffffffffa00d618c>] nfit_test_init+0x18c/0x1000 [nfit_test]
-[   86.530985]  [<ffffffffa00d6000>] ? 0xffffffffa00d6000
-[   86.530988]  [<ffffffff81002190>] do_one_initcall+0x50/0x190
-[   86.530992]  [<ffffffff811eef00>] ? kmem_cache_alloc_trace+0x170/0x220
-[   86.530995]  [<ffffffff8118dbfc>] ? do_init_module+0x27/0x1e2
-[   86.530997]  [<ffffffff8118dc35>] do_init_module+0x60/0x1e2
-[   86.531000]  [<ffffffff81108fb1>] load_module+0x1411/0x1c20
-[   86.531002]  [<ffffffff81105cb0>] ? __symbol_put+0x40/0x40
-[   86.531006]  [<ffffffff812dfbbd>] ? ima_post_read_file+0x3d/0x80
-[   86.531009]  [<ffffffff811099c9>] SYSC_finit_module+0xa9/0xd0
-[   86.531011]  [<ffffffff81109a0e>] SyS_finit_module+0xe/0x10
-[   86.531013]  [<ffffffff81003a62>] do_syscall_64+0x62/0x110
-[   86.531016]  [<ffffffff81630a61>] entry_SYSCALL64_slow_path+0x25/0x25
-[   86.531018] platform nfit_test.0: need 128M of free cma
-
-I tried to add "swiotlb=65536" and "cma=128M" or "cma=256M", even "cma=2G" kernel
-parameters, but nfit-test.ko still can NOT allocate DMA success.
-
-So, I always add a patch to change the DIMM_SIZE to SZ_1M, that means test0
-only uses 4M. Then the nfit-test.ko works for testing.
- 
-Did I miss anything before running the nfit testing driver?
-
-
-Thanks a lot!
-Joey Lee 
+https://patchwork.kernel.org/patch/9199761/
+https://patchwork.kernel.org/patch/9199763/
