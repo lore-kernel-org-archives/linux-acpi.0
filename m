@@ -1,275 +1,154 @@
-From: Benjamin Tissoires <benjamin.tissoires@gmail.com>
-Subject: Re: [PATCH v3 1/2] ACPI / button: Add KEY_LID_CLOSE for new usage model
-Date: Mon, 18 Jul 2016 09:53:02 +0200
-Message-ID: <CAN+gG=EcUjnDZqRZC8QfMnxyOX-sNSzBhyfgLfeAmRABiiG8+w@mail.gmail.com>
-References: <cover.1467717304.git.lv.zheng@intel.com> <4537c34e4685658b0a12830499f971c7fc3c0426.1468318558.git.lv.zheng@intel.com>
+From: "Zheng, Lv" <lv.zheng@intel.com>
+Subject: RE: PROBLEM: acpi regression first bad commit
+ 02b771b64b73226052d6e731a0987db3b47281e9
+Date: Mon, 18 Jul 2016 09:57:29 +0000
+Message-ID: <1AE640813FDE7649BE1B193DEA596E883BC04B56@SHSMSX101.ccr.corp.intel.com>
+References: <e44d5b48-b7ea-263b-76ae-77bc6b34302b@hbuus.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-vk0-f65.google.com ([209.85.213.65]:34807 "EHLO
-	mail-vk0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751419AbcGRHxF (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 18 Jul 2016 03:53:05 -0400
-In-Reply-To: <4537c34e4685658b0a12830499f971c7fc3c0426.1468318558.git.lv.zheng@intel.com>
+Received: from mga14.intel.com ([192.55.52.115]:50662 "EHLO mga14.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751952AbcGRJ5f (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 18 Jul 2016 05:57:35 -0400
+In-Reply-To: <e44d5b48-b7ea-263b-76ae-77bc6b34302b@hbuus.com>
+Content-Language: en-US
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Lv Zheng <lv.zheng@intel.com>
-Cc: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <len.brown@intel.com>, Lv Zheng <zetalog@gmail.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Dmitry Torokhov <dmitry.torokhov@gmail.com>, "Bastien Nocera:" <hadess@hadess.net>, linux-input <linux-input@vger.kernel.org>
+To: H Buus <ubuntu@hbuus.com>, "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>, "Brown, Len" <len.brown@intel.com>
+Cc: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
 
-Hi,
-
-On Tue, Jul 12, 2016 at 12:17 PM, Lv Zheng <lv.zheng@intel.com> wrote:
-> There are many AML tables reporting wrong initial lid state, and some of
-> them never reports lid open state. As a proxy layer acting between, ACPI
-> button driver is not able to handle all such cases, but need to re-define
-> the usage model of the ACPI lid. That is:
-> 1. It's initial state is not reliable;
-> 2. There may not be an open event;
-> 3. Userspace should only take action against the close event which is
->    reliable, always sent after a real lid close.
-> This patch adds a new input key event so that the new userspace programs
-> can use it to handle this usage model correctly. And in the meanwhile, no
-> old programs will be broken by the userspace changes.
-> This patch also adds a button.lid_event_type parameter to allow the users
-> to switch between the 2 event types.
-
-I think we are getting closer to what would be acceptable for
-user-space, but I still have a few comments:
-
->
-> Signed-off-by: Lv Zheng <lv.zheng@intel.com>
-> Cc: Dmitry Torokhov <dmitry.torokhov@gmail.com>
-> Cc: Benjamin Tissoires <benjamin.tissoires@gmail.com>
-> Cc: Bastien Nocera: <hadess@hadess.net>
-> Cc: linux-input@vger.kernel.org
-> ---
->  drivers/acpi/button.c                  |  109 +++++++++++++++++++++++++-------
->  include/uapi/linux/input-event-codes.h |    6 ++
->  2 files changed, 91 insertions(+), 24 deletions(-)
->
-> diff --git a/drivers/acpi/button.c b/drivers/acpi/button.c
-> index 148f4e5..1298ef8 100644
-> --- a/drivers/acpi/button.c
-> +++ b/drivers/acpi/button.c
-> @@ -57,6 +57,9 @@
->  #define ACPI_BUTTON_LID_INIT_OPEN      0x01
->  #define ACPI_BUTTON_LID_INIT_METHOD    0x02
->
-> +#define ACPI_BUTTON_LID_EVENT_KEY      0x00
-> +#define ACPI_BUTTON_LID_EVENT_SWITCH   0x01
-> +
->  #define _COMPONENT             ACPI_BUTTON_COMPONENT
->  ACPI_MODULE_NAME("button");
->
-> @@ -110,6 +113,7 @@ struct acpi_button {
->  static BLOCKING_NOTIFIER_HEAD(acpi_lid_notifier);
->  static struct acpi_device *lid_device;
->  static u8 lid_init_state = ACPI_BUTTON_LID_INIT_METHOD;
-> +static u8 lid_event_type = ACPI_BUTTON_LID_EVENT_SWITCH;
->
->  /* --------------------------------------------------------------------------
->                                FS Interface (/proc)
-> @@ -136,8 +140,17 @@ static int acpi_lid_notify_state(struct acpi_device *device, int state)
->         int ret;
->
->         /* input layer checks if event is redundant */
-> -       input_report_switch(button->input, SW_LID, !state);
-> -       input_sync(button->input);
-> +       if (lid_event_type == ACPI_BUTTON_LID_EVENT_SWITCH) {
-> +               input_report_switch(button->input, SW_LID, !state);
-> +               input_sync(button->input);
-> +       }
-> +       if (lid_event_type == ACPI_BUTTON_LID_EVENT_KEY &&
-> +          !state) {
-> +               input_report_key(button->input, KEY_LID_CLOSE, 1);
-> +               input_sync(button->input);
-> +               input_report_key(button->input, KEY_LID_CLOSE, 0);
-> +               input_sync(button->input);
-> +       }
->
->         if (state)
->                 pm_wakeup_event(&device->dev, 0);
-> @@ -292,6 +305,9 @@ static int acpi_lid_update_state(struct acpi_device *device)
->
->  static void acpi_lid_initialize_state(struct acpi_device *device)
->  {
-> +       if (lid_event_type == ACPI_BUTTON_LID_EVENT_KEY)
-> +               return;
-> +
->         switch (lid_init_state) {
->         case ACPI_BUTTON_LID_INIT_OPEN:
->                 (void)acpi_lid_notify_state(device, 1);
-> @@ -436,6 +452,7 @@ static int acpi_button_add(struct acpi_device *device)
->
->         case ACPI_BUTTON_TYPE_LID:
->                 input_set_capability(input, EV_SW, SW_LID);
-> +               input_set_capability(input, EV_KEY, KEY_LID_CLOSE);
-
-Here you are basically exporting the 2 input events but only update
-one of the 2. It will confuse userspace and it is generally better not
-to export unused input codes.
-
-However, as I'll say below, I think we should keep the code that way here.
-
-
->                 break;
->         }
->
-> @@ -475,35 +492,49 @@ static int acpi_button_remove(struct acpi_device *device)
->
->  static int param_set_lid_init_state(const char *val, struct kernel_param *kp)
->  {
-> -       int result = 0;
-> -
-> -       if (!strncmp(val, "open", sizeof("open") - 1)) {
-> -               lid_init_state = ACPI_BUTTON_LID_INIT_OPEN;
-> -               pr_info("Notify initial lid state as open\n");
-> -       } else if (!strncmp(val, "method", sizeof("method") - 1)) {
-> -               lid_init_state = ACPI_BUTTON_LID_INIT_METHOD;
-> -               pr_info("Notify initial lid state with _LID return value\n");
-> -       } else if (!strncmp(val, "ignore", sizeof("ignore") - 1)) {
-> -               lid_init_state = ACPI_BUTTON_LID_INIT_IGNORE;
-> -               pr_info("Do not notify initial lid state\n");
-> -       } else
-> -               result = -EINVAL;
-> +       int result = -EINVAL;
-> +
-> +       switch (lid_event_type) {
-> +       case ACPI_BUTTON_LID_EVENT_KEY:
-> +               if (!strncmp(val, "ignore", sizeof("ignore") - 1)) {
-> +                       lid_init_state = ACPI_BUTTON_LID_INIT_IGNORE;
-> +                       pr_info("Do not notify initial lid state\n");
-> +               }
-> +               break;
-> +       case ACPI_BUTTON_LID_EVENT_SWITCH:
-> +               if (!strncmp(val, "open", sizeof("open") - 1)) {
-> +                       lid_init_state = ACPI_BUTTON_LID_INIT_OPEN;
-> +                       pr_info("Notify initial lid state as open\n");
-> +               } else if (!strncmp(val, "method", sizeof("method") - 1)) {
-> +                       lid_init_state = ACPI_BUTTON_LID_INIT_METHOD;
-> +                       pr_info("Notify initial lid state"
-> +                               " with _LID return value\n");
-> +               } else if (!strncmp(val, "ignore", sizeof("ignore") - 1)) {
-> +                       lid_init_state = ACPI_BUTTON_LID_INIT_IGNORE;
-> +                       pr_info("Do not notify initial lid state\n");
-> +               }
-> +               break;
-> +       }
->         return result;
->  }
->
->  static int param_get_lid_init_state(char *buffer, struct kernel_param *kp)
->  {
-> -       switch (lid_init_state) {
-> -       case ACPI_BUTTON_LID_INIT_OPEN:
-> -               return sprintf(buffer, "open");
-> -       case ACPI_BUTTON_LID_INIT_METHOD:
-> -               return sprintf(buffer, "method");
-> -       case ACPI_BUTTON_LID_INIT_IGNORE:
-> +       switch (lid_event_type) {
-> +       case ACPI_BUTTON_LID_EVENT_KEY:
->                 return sprintf(buffer, "ignore");
-> -       default:
-> -               return sprintf(buffer, "invalid");
-> +       case ACPI_BUTTON_LID_EVENT_SWITCH:
-> +               switch (lid_init_state) {
-> +               case ACPI_BUTTON_LID_INIT_OPEN:
-> +                       return sprintf(buffer, "open");
-> +               case ACPI_BUTTON_LID_INIT_METHOD:
-> +                       return sprintf(buffer, "method");
-> +               case ACPI_BUTTON_LID_INIT_IGNORE:
-> +                       return sprintf(buffer, "ignore");
-> +               }
-> +               break;
->         }
-> -       return 0;
-> +       return sprintf(buffer, "invalid");
->  }
->
->  module_param_call(lid_init_state,
-> @@ -511,4 +542,34 @@ module_param_call(lid_init_state,
->                   NULL, 0644);
->  MODULE_PARM_DESC(lid_init_state, "Behavior for reporting LID initial state");
->
-> +static int param_set_lid_event_type(const char *val, struct kernel_param *kp)
-> +{
-> +       int result = -EINVAL;
-> +
-> +       if (!strncmp(val, "key", sizeof("key") - 1)) {
-> +               lid_event_type = ACPI_BUTTON_LID_EVENT_KEY;
-> +               pr_info("Notify lid state using key event\n");
-> +       } else if (!strncmp(val, "switch", sizeof("switch") - 1)) {
-> +               lid_event_type = ACPI_BUTTON_LID_EVENT_SWITCH;
-> +               pr_info("Notify lid state using switch event\n");
-> +       }
-> +       return result;
-> +}
-> +
-> +static int param_get_lid_event_type(char *buffer, struct kernel_param *kp)
-> +{
-> +       switch (lid_event_type) {
-> +       case ACPI_BUTTON_LID_EVENT_KEY:
-> +               return sprintf(buffer, "key");
-> +       case ACPI_BUTTON_LID_EVENT_SWITCH:
-> +               return sprintf(buffer, "switch");
-> +       }
-> +       return sprintf(buffer, "invalid");
-> +}
-> +
-> +module_param_call(lid_event_type,
-> +                 param_set_lid_event_type, param_get_lid_event_type,
-> +                 NULL, 0644);
-> +MODULE_PARM_DESC(lid_event_type, "Event type for reporting LID state");
-
-I don't think this is a good solution to have a kernel parameter. I
-thought the final decision were to have userspace decide which event
-was valid, and so we just need to export and emit both of events.
-
-_If_ you export a kernel parameter, it makes sense to have a dmi
-blacklist to have a good default experience, which is what you wanted
-to avoid.
-So if you just export and use both events at the same time, you will have:
-- correct ACPI machines will just have an extra KEY_LID_CLOSE event
-emitted, which will not harm logind
-- wrong ACPI machines will not have their SW_LID input event updated
-because it will be kept closed. But given that logind will ignore it,
-there is no harm either
-
-As Dmitry said, we could also have a KEY_LID_OPEN emitted for
-symmetrical purposes, but I am not entirely sure if this will confuse
-userspace or not. On the other hand, there are few users of these
-states, and we can teach them how to properly use them.
-
-So in the end, I think you should just get rid of the kernel
-parameter, export SW_LID, KEY_LID_CLOSE, KEY_LID_OPEN in the event
-node, and only add the KEY_LID_CLOSE|OPEN events on an actual acpi
-notification.
-
-Then a small hwdb entry set will teach logind/powerd if they need to
-ignore the SW_LID event or not.
-
-Cheers,
-Benjamin
-
-> +
->  module_acpi_driver(acpi_button_driver);
-> diff --git a/include/uapi/linux/input-event-codes.h b/include/uapi/linux/input-event-codes.h
-> index 737fa32..df7c0c0 100644
-> --- a/include/uapi/linux/input-event-codes.h
-> +++ b/include/uapi/linux/input-event-codes.h
-> @@ -641,6 +641,12 @@
->   * e.g. teletext or data broadcast application (MHEG, MHP, HbbTV, etc.)
->   */
->  #define KEY_DATA                       0x275
-> +/*
-> + * Special event sent by the lid drivers. The drivers may not be able to
-> + * issue "open" event, in which case, they send KEY_LID_CLOSE instead of
-> + * SW_LID.
-> + */
-> +#define KEY_LID_CLOSE                  0x278
->
->  #define BTN_TRIGGER_HAPPY              0x2c0
->  #define BTN_TRIGGER_HAPPY1             0x2c0
-> --
-> 1.7.10
->
+SGksDQoNClBsZWFzZSBzZW5kIG1lIGFjcGlkdW1wL2RtaWRlY29kZSBvZiB5b3VyIG1hY2hpbmUu
+DQpBcyBsb25nIGFzIHRoZSBib290IGxvZy4NCg0KVGhhbmtzDQotTHYNCg0KPiBGcm9tOiBIIEJ1
+dXMgW21haWx0bzp1YnVudHVAaGJ1dXMuY29tXQ0KPiBTdWJqZWN0OiBQUk9CTEVNOiBhY3BpIHJl
+Z3Jlc3Npb24gZmlyc3QgYmFkIGNvbW1pdA0KPiAwMmI3NzFiNjRiNzMyMjYwNTJkNmU3MzFhMDk4
+N2RiM2I0NzI4MWU5DQo+IA0KPiBbMS5dIE9uZSBsaW5lIHN1bW1hcnkgb2YgdGhlIHByb2JsZW06
+DQo+IA0KPiBhY3BpIHJlZ3Jlc3Npb24gZmlyc3QgYmFkIGNvbW1pdA0KPiAwMmI3NzFiNjRiNzMy
+MjYwNTJkNmU3MzFhMDk4N2RiM2I0NzI4MWU5DQo+IA0KPiBbMi5dIEZ1bGwgZGVzY3JpcHRpb24g
+b2YgdGhlIHByb2JsZW0vcmVwb3J0Og0KPiANCj4gSSBmb3VuZCB3aGF0IEkgYmVsaWV2ZSBpcyBh
+IHJlZ3Jlc3Npb24gb24gbXkgR2F0ZXdheSBuZTU3MCBsYXB0b3AuIFRoZQ0KPiBwcm9ibGVtIGlz
+IHJlcHJvZHVjaWJsZSB3aXRoIGtlcm5lbHMgdjQuNy1yYzcsIHY0LjQuMTMgYW5kIHY0LjMuIEkg
+Zm91bmQNCj4gZG1lc2cgYW5kIGtlcm4ubG9nIHdlcmUgZmlsbGluZyB3aXRoIG1lc3NhZ2VzIGxp
+a2UgdGhpczoNCj4gSnVsIDEwIDE3OjAxOjEwIGJ1dXMtbmU1NzAga2VybmVsOiBbIDU3Ljc0MTYz
+MF0gQUNQSSBFcnJvcjogTWV0aG9kDQo+IHJlYWNoZWQgbWF4aW11bSByZWVudHJhbmN5IGxpbWl0
+ICgyNTUpICgyMDE1MDgxOC9kc21ldGhvZC0zNDEpDQo+IEp1bCAxMCAxNzowMToxMCBidXVzLW5l
+NTcwIGtlcm5lbDogWyA1Ny44MDM3NzVdIEFDUEkgRXJyb3I6IE1ldGhvZA0KPiByZWFjaGVkIG1h
+eGltdW0gcmVlbnRyYW5jeSBsaW1pdCAoMjU1KSAoMjAxNTA4MTgvZHNtZXRob2QtMzQxKQ0KPiBK
+dWwgMTAgMTc6MDE6MTAgYnV1cy1uZTU3MCBrZXJuZWw6IFsgNTcuODY2Mjk0XSBBQ1BJIEVycm9y
+OiBNZXRob2QNCj4gcmVhY2hlZCBtYXhpbXVtIHJlZW50cmFuY3kgbGltaXQgKDI1NSkgKDIwMTUw
+ODE4L2RzbWV0aG9kLTM0MSkNCj4gSnVsIDEwIDE3OjAxOjEwIGJ1dXMtbmU1NzAga2VybmVsOiBb
+IDU3LjkyODQwM10gQUNQSSBFcnJvcjogTWV0aG9kDQo+IHJlYWNoZWQgbWF4aW11bSByZWVudHJh
+bmN5IGxpbWl0ICgyNTUpICgyMDE1MDgxOC9kc21ldGhvZC0zNDEpDQo+IA0KPiBXaXRoIHRoZSBs
+YXRlc3Qgc3RhYmxlIGtlcm5lbCwgNC43LXJjNywgdGhlIEFDUEkgZXJyb3IgbWVzc2FnZXMgaGF2
+ZQ0KPiBjaGFuZ2VkIHRvIHJlZmxlY3QgYSBuZXdlciB2ZXJzaW9uLCBzcGVjaWZpY2FsbHk6DQo+
+IEp1bCAxNiAxMjo1OToxOCBidXVzLW5lNTcwIGtlcm5lbDogWyAgIDc4Ljg2Mjk0Ml0gQUNQSSBF
+cnJvcjogTWV0aG9kDQo+IHJlYWNoZWQgbWF4aW11bSByZWVudHJhbmN5IGxpbWl0ICgyNTUpICgy
+MDE2MDQyMi9kc21ldGhvZC0zNDApDQo+IA0KPiBUaGVzZSBtZXNzYWdlcyBhcmUgcmVwZWF0ZWQg
+c2V2ZXJhbCB0aW1lcyBhIHNlY29uZCwgYW5kIHRoZW4gcGF1c2UgZm9yDQo+IHNldmVyYWwgc2Vj
+b25kcywgdGhlbiBzdGFydCBhZ2Fpbi4gSSBiZWxpZXZlIHRoZXkgYXJlIHRoZSBjYXVzZSBvZiBt
+b3JlDQo+IHNsdWdnaXNoIGJlaGF2aW9yIHRoYW4gd2l0aCB0aGUgb2xkZXIga2VybmVscy4gSSBo
+YXZlIGFsc28gZm91bmQgdGhhdCBpZiB0aGUNCj4gbWFjaGluZSBpcyBpZGxlLCB0aGVyZSdzIGEg
+cGF1c2UgaW4gdGhlICJBQ1BJIEVycm9yIiBtZXNzYWdlcy4gSSB0aGluayBpdA0KPiBkZXBlbmRz
+IG9uIGhvdyBtdWNoIHdyaXRpbmcgdG8gZGlzayBpcyBnb2luZyBvbiwgYnV0IHRoYXQncyBqdXN0
+IGEgZ3V0DQo+IGZlZWxpbmcuIEknbSBub3QgcXVpdGUgc3VyZSBob3cgdG8gdmVyaWZ5IHRoYXQg
+YXNzdW1wdGlvbiwgb3IgaWYgaXQgd291bGQNCj4gaGVscCBkaWFnbm9zZSB0aGUgcHJvYmxlbS4N
+Cj4gDQo+IEkgYmVsaWV2ZSB0aGUgcHJvYmxlbSBpcyBhIHJlZ3Jlc3Npb24sIGJlY2F1c2UgaXQg
+ZGlkIG5vdCBvY2N1ciB3aXRoIGtlcm5lbHMNCj4gdjMuMTYuNywgdjMuMTkuOCwgb3IgdjQuMi44
+Lg0KPiANCj4gZ2l0IGJpc2VjdGluZyB0aGUgbGludXgtc3RhYmxlIGtlcm5lbCBsZWQgbWUgdG8g
+dGhpcyBjb21taXQ6DQo+IA0KPiAjIGZpcnN0IGJhZCBjb21taXQ6IFswMmI3NzFiNjRiNzMyMjYw
+NTJkNmU3MzFhMDk4N2RiM2I0NzI4MWU5XQ0KPiBBQ1BJIC8gRUM6IEZpeCBhbiBpc3N1ZSBjYXVz
+ZWQgYnkgdGhlIHNlcmlhbGl6ZWQgX1F4eCBldmFsdWF0aW9ucw0KPiANCj4gY29tbWl0IDAyYjc3
+MWI2NGI3MzIyNjA1MmQ2ZTczMWEwOTg3ZGIzYjQ3MjgxZTkNCj4gQXV0aG9yOiBMdiBaaGVuZyA8
+bHYuemhlbmdAaW50ZWwuY29tPg0KPiBEYXRlOiBXZWQgQXVnIDEyIDExOjEyOjAyIDIwMTUgKzA4
+MDANCj4gDQo+ICAgICBBQ1BJIC8gRUM6IEZpeCBhbiBpc3N1ZSBjYXVzZWQgYnkgdGhlIHNlcmlh
+bGl6ZWQgX1F4eCBldmFsdWF0aW9ucw0KPiANCj4gICAgIEl0IGlzIHByb3ZlbiB0aGF0IFdpbmRv
+d3MgZXZhbHVhdGVzIF9ReHggaGFuZGxlcnMgaW4gYSBwYXJhbGxlbCB3YXkuIFRoaXMNCj4gICAg
+IHBhdGNoIGZvbGxvd3MgdGhpcyBmYWN0LCBzcGxpdHMgX1F4eCBldmFsdWF0aW9ucyBmcm9tIHRo
+ZSBOT1RJRlkgcXVldWUgdG8NCj4gICAgIGZvcm0gYSBzZXBhcmF0ZSBxdWV1ZSwgc28gdGhhdCBf
+UXh4IGV2YWx1YXRpb25zIGNhbiBiZSBxdWV1ZWQgdXAgb24NCj4gICAgIGRpZmZlcmVudCBDUFVz
+IHJhdGhlciB0aGFuIGJlaW5nIHF1ZXVlZCB1cCBvbiBhIENQVTAgYm91bmQgcXVldWUuDQo+ICAg
+ICBFdmVudCBoYW5kbGluZyByZWxhdGVkIGNhbGxiYWNrcyBhcmUgYWxzbyByZW5hbWVkIGFuZCBz
+b3J0ZWQgaW4gdGhpcw0KPiBwYXRjaC4NCj4gDQo+ICAgICBMaW5rOiBodHRwczovL2J1Z3ppbGxh
+Lmtlcm5lbC5vcmcvc2hvd19idWcuY2dpP2lkPTk0NDExDQo+ICAgICBSZXBvcnRlZC1hbmQtdGVz
+dGVkLWJ5OiBHYWJyaWVsZSBNYXp6b3R0YSA8Z2FicmllbGUubXp0QGdtYWlsLmNvbT4NCj4gICAg
+IFNpZ25lZC1vZmYtYnk6IEx2IFpoZW5nIDxsdi56aGVuZ0BpbnRlbC5jb20+DQo+ICAgICBTaWdu
+ZWQtb2ZmLWJ5OiBSYWZhZWwgSi4gV3lzb2NraSA8cmFmYWVsLmoud3lzb2NraUBpbnRlbC5jb20+
+DQo+IA0KPiBJIGNhbiBwcm92aWRlIGFuIGFubm90YXRlZCAiZ2l0IGJpc2VjdCBsb2ciIGFzc29j
+aWF0aW5nIGNvbW1pdHMgZnJvbSB0aGUNCj4gbGludXgtc3RhYmxlIHRyZWUgd2l0aCB0aGUgZGVi
+IHBhY2thZ2VzIEkgYnVpbHQsIGluc3RhbGxlZCwgYW5kIHRlc3RlZCB0bw0KPiBhcnJpdmUgYXQg
+dGhlICJmaXJzdCBiYWQgY29tbWl0Ii4NCj4gDQo+IFszLl0gS2V5d29yZHMgKGkuZS4sIG1vZHVs
+ZXMsIG5ldHdvcmtpbmcsIGtlcm5lbCk6DQo+IA0KPiBbNC5dIEtlcm5lbCB2ZXJzaW9uIChmcm9t
+IC9wcm9jL3ZlcnNpb24pOg0KPiBMaW51eCB2ZXJzaW9uIDQuNy4wLTA0MDcwMHJjNy1nZW5lcmlj
+IChrZXJuZWxAZ2xvaW4pIChnY2MgdmVyc2lvbiA1LjQuMA0KPiAyMDE2MDYwOSAoVWJ1bnR1IDUu
+NC4wLTZ1YnVudHUxKSApICMyMDE2MDcxMTAwMzIgU01QIE1vbiBKdWwgMTENCj4gMDQ6MzQ6MjUg
+VVRDIDIwMTYNCj4gDQo+IFs1Ll0gT3V0cHV0IG9mIE9vcHMuLiBtZXNzYWdlIChpZiBhcHBsaWNh
+YmxlKSB3aXRoIHN5bWJvbGljIGluZm9ybWF0aW9uDQo+IHJlc29sdmVkIChzZWUgRG9jdW1lbnRh
+dGlvbi9vb3BzLXRyYWNpbmcudHh0KQ0KPiBOb3QgYXBwbGljYWJsZQ0KPiANCj4gWzYuXSBBIHNt
+YWxsIHNoZWxsIHNjcmlwdCBvciBleGFtcGxlIHByb2dyYW0gd2hpY2ggdHJpZ2dlcnMgdGhlIHBy
+b2JsZW0gKGlmDQo+IHBvc3NpYmxlKQ0KPiBOb3QgYXBwbGljYWJsZQ0KPiANCj4gWzcuXSBFbnZp
+cm9ubWVudA0KPiBbNy4xLl0gU29mdHdhcmUgKGFkZCB0aGUgb3V0cHV0IG9mIHRoZSB2ZXJfbGlu
+dXggc2NyaXB0IGhlcmUpDQo+IA0KPiBMaW51eCBidXVzLW5lNTcwIDQuNy4wLTA0MDcwMHJjNy1n
+ZW5lcmljICMyMDE2MDcxMTAwMzIgU01QIE1vbiBKdWwNCj4gMTEgMDQ6MzQ6MjUgVVRDIDIwMTYg
+eDg2XzY0IHg4Nl82NCB4ODZfNjQgR05VL0xpbnV4DQo+IA0KPiBHTlUgQyAgICAgICAgICAgICAg
+ICAgICA1LjQuMA0KPiBHTlUgTWFrZSAgICAgICAgICAgICAgICA0LjENCj4gQmludXRpbHMgICAg
+ICAgICAgICAgICAgMi4yNi4xDQo+IFV0aWwtbGludXggICAgICAgICAgICAgIDIuMjcuMQ0KPiBN
+b3VudCAgICAgICAgICAgICAgICAgICAyLjI3LjENCj4gTW9kdWxlLWluaXQtdG9vbHMgICAgICAg
+MjINCj4gRTJmc3Byb2dzICAgICAgICAgICAgICAgMS40Mi4xMw0KPiBKZnN1dGlscyAgICAgICAg
+ICAgICAgICAxLjEuMTUNCj4gUGNtY2lhdXRpbHMgICAgICAgICAgICAgMDE4DQo+IFBQUCAgICAg
+ICAgICAgICAgICAgICAgIDIuNC43DQo+IExpbnV4IEMgTGlicmFyeSAgICAgICAgIDIuMjMNCj4g
+RHluYW1pYyBsaW5rZXIgKGxkZCkgICAgMi4yMw0KPiBMaW51eCBDKysgTGlicmFyeSAgICAgICA2
+LjAuMjENCj4gUHJvY3BzICAgICAgICAgICAgICAgICAgMy4zLjEwDQo+IE5ldC10b29scyAgICAg
+ICAgICAgICAgIDEuNjANCj4gS2JkICAgICAgICAgICAgICAgICAgICAgMS4xNS41DQo+IENvbnNv
+bGUtdG9vbHMgICAgICAgICAgIDEuMTUuNQ0KPiBTaC11dGlscyAgICAgICAgICAgICAgICA4LjI1
+DQo+IFVkZXYgICAgICAgICAgICAgICAgICAgIDIyOQ0KPiBXaXJlbGVzcy10b29scyAgICAgICAg
+ICAzMA0KPiBNb2R1bGVzIExvYWRlZCAgICAgICAgICBhYyBhY2VyX3dtaSBhaGNpIGFuc2lfY3By
+bmcgYXJjNCBhdGggYXRoM2sgYXRoOWsNCj4gYXRoOWtfY29tbW9uIGF0aDlrX2h3IGF1dG9mczQg
+YmF0dGVyeSBibHVldG9vdGggYm5lcCBidGJjbSBidGludGVsDQo+IGJ0cnRsIGJ0dXNiIGJ1dHRv
+biBjY20gY2Ryb20gY2ZnODAyMTEgY29yZXRlbXAgY3JjMTYgY3JjMzJjX2ludGVsDQo+IGNyYzMy
+X3BjbG11bCBjcmN0MTBkaWZfcGNsbXVsIGNyeXB0ZCBjdHIgZG1fbW9kIGRyYmcgZHJtDQo+IGRy
+bV9rbXNfaGVscGVyIGVmaV9wc3RvcmUgZWZpdmFyZnMgZWZpdmFycyBlaGNpX2hjZCBlaGNpX3Bj
+aSBldmRldiBleHQ0DQo+IGZhdCBmamVzIGZ1c2UgZ2hhc2hfY2xtdWxuaV9pbnRlbCBoaWQgaGlk
+X2dlbmVyaWMgaGlkcCBobWFjIGkyY19hbGdvX2JpdA0KPiBpOTE1IGludGVsX2NzdGF0ZSBpbnRl
+bF9wb3dlcmNsYW1wIGludGVsX3JhcGwgaW50ZWxfcmFwbF9wZXJmIGlycWJ5cGFzcw0KPiBqYmQy
+IGpmcyBqb3lkZXYga3ZtIGt2bV9pbnRlbCBsaWJhaGNpIGxpYmF0YSBsaWJwaHkgbHAgbHBjX2lj
+aCBtYWM4MDIxMQ0KPiBtYmNhY2hlIG1lZGlhIG1laSBtZWlfbWUgbWZkX2NvcmUgbW1jX2NvcmUg
+bmxzX2NwNDM3IG5sc191dGY4DQo+IHBhcnBvcnQgcGFycG9ydF9wYyBwcGRldiBwcHNfY29yZSBw
+c21vdXNlIHB0cCByZmNvbW0gcmZraWxsIHNjc2lfbW9kDQo+IHNkaGNpIHNkaGNpX3BjaSBzZF9t
+b2Qgc2VyaW9fcmF3IHNnIHNocGNocCBzbmQgc25kX2hkYV9jb2RlYw0KPiBzbmRfaGRhX2NvZGVj
+X2dlbmVyaWMgc25kX2hkYV9jb2RlY19oZG1pIHNuZF9oZGFfY29kZWNfcmVhbHRlaw0KPiBzbmRf
+aGRhX2NvcmUgc25kX2hkYV9pbnRlbCBzbmRfaHdkZXAgc25kX3BjbSBzbmRfcmF3bWlkaSBzbmRf
+c2VxDQo+IHNuZF9zZXFfZGV2aWNlIHNuZF9zZXFfbWlkaSBzbmRfc2VxX21pZGlfZXZlbnQgc25k
+X3RpbWVyIHNvdW5kY29yZQ0KPiBzcGFyc2Vfa2V5bWFwIHNyX21vZCB0ZzMgdHBtIHRwbV90aXMg
+dXNiX2NvbW1vbiB1c2Jjb3JlIHV2Y3ZpZGVvDQo+IHZmYXQgdmlkZW8gdmlkZW9idWYyX2NvcmUg
+dmlkZW9idWYyX21lbW9wcyB2aWRlb2J1ZjJfdjRsMg0KPiB2aWRlb2J1ZjJfdm1hbGxvYyB2aWRl
+b2RldiB3bWkgeDg2X3BrZ190ZW1wX3RoZXJtYWwgeGhjaV9oY2QNCj4geGhjaV9wY2kNCj4gDQo+
+IFs3LjIuXSBQcm9jZXNzb3IgaW5mb3JtYXRpb24gKGZyb20gL3Byb2MvY3B1aW5mbyk6DQo+IElu
+dGVsKFIpIENvcmUoVE0pIGkzLTMyMTdVIENQVSBAIDEuODBHSHoNCj4gSSdsbCBwcm92aWRlIHRo
+ZSBmdWxsIG91dHB1dCBpZiB5b3Ugd2FudCBpdC4NCj4gDQo+IFs3LjMuXSBNb2R1bGUgaW5mb3Jt
+YXRpb24gKGZyb20gL3Byb2MvbW9kdWxlcyk6DQo+IEkgY2FuIHByb3ZpZGUgdGhpcyBpZiB5b3Ug
+d2FudCBpdC4NCj4gDQo+IFs3LjQuXSBMb2FkZWQgZHJpdmVyIGFuZCBoYXJkd2FyZSBpbmZvcm1h
+dGlvbiAoL3Byb2MvaW9wb3J0cywNCj4gL3Byb2MvaW9tZW0pDQo+IEkgY2FuIHByb3ZpZGUgdGhp
+cyBpZiB5b3Ugd2FudCBpdC4NCj4gDQo+IFs3LjUuXSBQQ0kgaW5mb3JtYXRpb24gKCdsc3BjaSAt
+dnZ2JyBhcyByb290KQ0KPiBJIGNhbiBwcm92aWRlIHRoaXMgaWYgeW91IHdhbnQgaXQuDQo+IA0K
+PiBbNy42Ll0gU0NTSSBpbmZvcm1hdGlvbiAoZnJvbSAvcHJvYy9zY3NpL3Njc2kpDQo+IERvZXNu
+J3QgZXhpc3QuDQo+IA0KPiBbNy43Ll0gT3RoZXIgaW5mb3JtYXRpb24gdGhhdCBtaWdodCBiZSBy
+ZWxldmFudCB0byB0aGUgcHJvYmxlbQ0KPiAgICAgICAgKHBsZWFzZSBsb29rIGluIC9wcm9jIGFu
+ZCBpbmNsdWRlIGFsbCBpbmZvcm1hdGlvbiB0aGF0IHlvdQ0KPiAgICAgICAgdGhpbmsgdG8gYmUg
+cmVsZXZhbnQpOg0KPiANCj4gSSBjYW4gcHJvdmlkZSBhY3BpZHVtcCBvdXRwdXQsIG5vdCBzdXJl
+IGlmIEkgY2FuIGF0dGFjaCBlbWFpbHMgc2VudCB0byBsaW51eC0NCj4gYWNwaSBsaXN0LCBzbyBJ
+J20gbm90IGF0dGFjaGluZyBpdCBub3cuDQo+IA0KPiBkbWkuYmlvcy5kYXRlOiAxMC8wOC8yMDEz
+DQo+IGRtaS5iaW9zLnZlbmRvcjogSW5zeWRlIENvcnAuDQo+IGRtaS5iaW9zLnZlcnNpb246IFYy
+LjA2DQo+IGRtaS5ib2FyZC5hc3NldC50YWc6IFR5cGUyIC0gQm9hcmQgQXNzZXQgVGFnDQo+IGRt
+aS5ib2FyZC5uYW1lOiBFQTUwX0NYDQo+IGRtaS5ib2FyZC52ZW5kb3I6IEdhdGV3YXkNCj4gZG1p
+LmJvYXJkLnZlcnNpb246IFYyLjA2DQo+IGRtaS5jaGFzc2lzLmFzc2V0LnRhZzogQWNlciBBc3Nl
+dCBUYWcgU3RyaW5nDQo+IGRtaS5jaGFzc2lzLnR5cGU6IDEwDQo+IGRtaS5jaGFzc2lzLnZlbmRv
+cjogSW5zeWRlIENvcnAuDQo+IGRtaS5jaGFzc2lzLnZlcnNpb246IFYyLjA2DQo+IGRtaS5tb2Rh
+bGlhczoNCj4gZG1pOmJ2bkluc3lkZUNvcnAuOmJ2clYyLjA2OmJkMTAvMDgvMjAxMzpzdm5HYXRl
+d2F5OnBuTkU1NzA6cHZyVg0KPiAyLjA2OnJ2bkdhdGV3YXk6cm5FQTUwX0NYOnJ2clYyLjA2OmN2
+bkluc3lkZUNvcnAuOmN0MTA6Y3ZyVjIuMDY6DQo+IGRtaS5wcm9kdWN0Lm5hbWU6IE5FNTcwDQo+
+IGRtaS5wcm9kdWN0LnZlcnNpb246IFYyLjA2DQo+IGRtaS5zeXMudmVuZG9yOiBHYXRld2F5DQo+
+IA0KPiBbWC5dIE90aGVyIG5vdGVzLCBwYXRjaGVzLCBmaXhlcywgd29ya2Fyb3VuZHM6DQo+IA0K
+PiBUaGlzIG1hY2hpbmUgaGFzIHRoZSBsYXRlc3QgVUVGSSBmaXJtd2FyZSBhdmFpbGFibGUgZnJv
+bSB0aGUgbWFudWZhY3R1cmVyLA0KPiBJbnN5ZGUgdjIuMDYuIEZXSVcsIEkgYmVsaWV2ZSB0aGUg
+R2F0ZXdheSBORTU3MCBpcyBhIHJlLWJyYW5kZWQgQWNlcg0KPiBBc3BpcmUgRTEtNTcwLg0K
