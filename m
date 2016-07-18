@@ -1,59 +1,131 @@
-From: "Zheng, Lv" <lv.zheng@intel.com>
-Subject: RE: [UPDATE PATCH v2 1/3] ACPICA: Events: Introduce acpi_mask_gpe()
- to implement GPE masking mechanism
-Date: Mon, 18 Jul 2016 10:34:27 +0000
-Message-ID: <1AE640813FDE7649BE1B193DEA596E883BC04B78@SHSMSX101.ccr.corp.intel.com>
-References: <cover.1463389639.git.lv.zheng@intel.com>
- <29ae6c9cdef0aa91f3461707c65ebcdee0ff7142.1466662469.git.lv.zheng@intel.com>
- <3293670.WgkPNILEVA@vostro.rjw.lan> <2122687.2llPIh43ST@vostro.rjw.lan>
+From: Sudeep Holla <sudeep.holla@arm.com>
+Subject: Re: [PATCH v9 2/7] ACPI / processor_idle: Add support for Low Power
+ Idle(LPI) states
+Date: Mon, 18 Jul 2016 16:48:40 +0100
+Message-ID: <578CFA58.404@arm.com>
+References: <1467997678-7107-1-git-send-email-sudeep.holla@arm.com>
+ <1467997678-7107-3-git-send-email-sudeep.holla@arm.com>
+ <1500653.yRCxZC8x7Y@vostro.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <2122687.2llPIh43ST@vostro.rjw.lan>
-Content-Language: en-US
-Sender: linux-kernel-owner@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>, "Brown, Len" <len.brown@intel.com>, Lv Zheng <zetalog@gmail.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from foss.arm.com ([217.140.101.70]:58970 "EHLO foss.arm.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751487AbcGRPsr (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 18 Jul 2016 11:48:47 -0400
+In-Reply-To: <1500653.yRCxZC8x7Y@vostro.rjw.lan>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: Sudeep Holla <sudeep.holla@arm.com>, ACPI List <linux-acpi@vger.kernel.org>, Vikas Sajjan <vikas.cha.sajjan@hpe.com>, Sunil <sunil.vl@hpe.com>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Prashanth Prakash <pprakash@codeaurora.org>, Al Stone <al.stone@linaro.org>, Ashwin Chaugule <ashwin.chaugule@linaro.org>, Daniel Lezcano <daniel.lezcano@linaro.org>, LKML <linux-kernel@vger.kernel.org>, ALKML <linux-arm-kernel@lists.infradead.org>
 
-SGksIFJhZmFlbA0KDQo+IEZyb206IFJhZmFlbCBKLiBXeXNvY2tpIFttYWlsdG86cmp3QHJqd3lz
-b2NraS5uZXRdDQo+IFN1YmplY3Q6IFJlOiBbVVBEQVRFIFBBVENIIHYyIDEvM10gQUNQSUNBOiBF
-dmVudHM6IEludHJvZHVjZQ0KPiBhY3BpX21hc2tfZ3BlKCkgdG8gaW1wbGVtZW50IEdQRSBtYXNr
-aW5nIG1lY2hhbmlzbQ0KPiANCj4gT24gTW9uZGF5LCBKdWx5IDA0LCAyMDE2IDAzOjU5OjA3IFBN
-IFJhZmFlbCBKLiBXeXNvY2tpIHdyb3RlOg0KPiA+IE9uIFRodXJzZGF5LCBKdW5lIDIzLCAyMDE2
-IDAzOjA1OjQ3IFBNIEx2IFpoZW5nIHdyb3RlOg0KPiA+ID4gKHJlbW92ZSBhY3BpX3VubWFza19n
-cGUoKSBmcm9tIHRoZSBwYXRjaCBkZXNjcmlwdGlvbikNCj4gPiA+DQo+ID4gPiBUaGVyZSBpcyBh
-IGZhY2lsaXR5IGluIExpbnV4LCBkZXZlbG9wZXJzIGNhbiBjb250cm9sIHRoZQ0KPiBlbmFibGlu
-Zy9kaXNhYmxpbmcNCj4gPiA+IG9mIGEgR1BFIHZpYSAvc3lzL2Zpcm13YXJlL2FjcGkvaW50ZXJy
-dXB0cy9ncGV4eC4gVGhpcyBpcyBtYWlubHkgZm9yDQo+ID4gPiBkZWJ1Z2dpbmcgcHVycG9zZXMu
-DQo+ID4gPg0KPiA+ID4gQnV0IG1hbnkgdXNlcnMgZXhwZWN0IHRvIHVzZSB0aGlzIGZhY2lsaXR5
-IHRvIGltcGxlbWVudCBxdWlya3MgdG8gbWFzaw0KPiBhDQo+ID4gPiBzcGVjaWZpYyBHUEUgd2hl
-biB0aGVyZSBpcyBhIGdhcCBpbiBMaW51eCBjYXVzaW5nIHRoaXMgR1BFIHRvIGZsb29kLiBUaGlz
-DQo+ID4gPiBpcyBub3Qgd29ya2luZyBjb3JyZWN0bHkgYmVjYXVzZSBjdXJyZW50bHkgdGhpcyBm
-YWNpbGl0eSBpbnZva2VzDQo+ID4gPiBlbmFibGluZy9kaXNhYmxpbmcgY291bnRpbmcgYmFzZWQg
-R1BFIGRyaXZlciBBUElzOg0KPiA+ID4gIGFjcGlfZW5hYmxlX2dwZSgpL2FjcGlfZGlzYWJsZV9n
-cGUoKQ0KPiA+ID4gYW5kIHRoZSBHUEUgZHJpdmVycyBjYW4gc3RpbGwgYWZmZWN0IHRoZSBjb3Vu
-dCB0byBtZXNzIHVwIHRoZSBHUEUNCj4gPiA+IG1hc2tpbmcgcHVycG9zZXMuDQo+ID4gPg0KPiA+
-ID4gSG93ZXZlciwgbW9zdCBvZiB0aGUgSVJRIGNoaXAgZGVzaWducyBhbGxvdyBtYXNraW5nL3Vu
-bWFza2luZyBJUlFzDQo+IHZpYSBhDQo+ID4gPiBtYXNraW5nIGJpdCB3aGljaCBpcyBkaWZmZXJl
-bnQgZnJvbSB0aGUgZW5hYmxlZCBiaXQgdG8gYWNoaWV2ZSB0aGUgc2FtZQ0KPiA+ID4gcHVycG9z
-ZS4gQnV0IHRoZSBHUEUgaGFyZHdhcmUgZG9lc24ndCBjb250YWluIHN1Y2ggYSBmZWF0dXJlLCB0
-aGlzDQo+IGJyaW5ncw0KPiA+ID4gdGhlIHRyb3VibGUuDQo+ID4gPg0KPiA+ID4gSW4gdGhpcyBw
-YXRjaCwgd2UgaW50cm9kdWNlIGEgc29mdHdhcmUgbWVjaGFuaXNtIHRvIGltcGxlbWVudCB0aGUN
-Cj4gR1BFDQo+ID4gPiBtYXNraW5nIGZlYXR1cmUsIGFuZCBhY3BpX21hc2tfZ3BlKCkgYXJlIHBy
-b3ZpZGVkIHRvIHRoZSBPU1BNcyB0bw0KPiA+ID4gbWFzay91bm1hc2sgR1BFcyBpbiB0aGUgYWJv
-dmUgbWVudGlvbmVkIHNpdHVhdGlvbiBpbnN0ZWFkIG9mDQo+ID4gPiBhY3BpX2VuYWJsZV9ncGUo
-KS9hY3BpX2Rpc2FibGVfZ3BlKCkuIEFDUElDQSBCWiAxMTAyLiBMdiBaaGVuZy4NCj4gPiA+DQo+
-ID4gPiBMaW5rOiBodHRwczovL2J1Z3MuYWNwaWNhLm9yZy9zaG93X2J1Zy5jZ2k/aWQ9MTEwMg0K
-PiA+ID4gU2lnbmVkLW9mZi1ieTogTHYgWmhlbmcgPGx2LnpoZW5nQGludGVsLmNvbT4NCj4gPg0K
-PiA+IEkndmUgcXVldWVkIHVwIHRoaXMgb25lIGFuZCB0aGUgWzIvM10gYW5kIHBsZWFzZSBzZWUg
-bXkgY29tbWVudHMgb24NCj4gdGhlIFszLzNdLg0KPiANCj4gSSd2ZSBkZWNpZGVkIHRoYXQgaXQn
-cyBiZXR0ZXIgaWYgdGhpcyBnb2VzIGluIHZpYSB1cHN0cmVhbSBBQ1BJQ0EsIHNvIGl0J3Mgbm90
-DQo+IGluIHRoZSBxdWV1ZSBhbnkgbW9yZS4NCj4gDQo+IEZvciB0aGUgdGltZSBiZWluZywgSSdk
-IGxpa2UgYWxsIGNoYW5nZXMgaW4gdGhlIEFDUElDQSBjb2RlIHRvIGdvIGluIHZpYSB0aGUNCj4g
-dXBzdHJlYW0uDQoNCltMdiBaaGVuZ10gDQpPSy4NClVubGlrZSBzZXZlcmFsIG90aGVycywgdGhp
-cyBpcyBub3QgYW4gdXJnZW50IGZlYXR1cmUgb3IgYSBmZWF0dXJlIHRoYXQgQUNQSUNBIHVwc3Ry
-ZWFtIGRvZXNuJ3QgaGF2ZSBlbnZpcm9ubWVudCB0byB0ZXN0Lg0KU28gd2UgbmVlZG4ndCB0byBt
-YWtlIGluIHRoZSB1cHN0cmVhbSBMaW51eCBmaXJzdC4NCg0KVGhhbmtzIGFuZCBiZXN0IHJlZ2Fy
-ZHMNCi1Mdg0K
+
+
+On 16/07/16 01:32, Rafael J. Wysocki wrote:
+> On Friday, July 08, 2016 06:07:53 PM Sudeep Holla wrote:
+>> ACPI 6.0 introduced an optional object _LPI that provides an alternate
+>> method to describe Low Power Idle states. It defines the local power
+>> states for each node in a hierarchical processor topology. The OSPM can
+>> use _LPI object to select a local power state for each level of processor
+>> hierarchy in the system. They used to produce a composite power state
+>> request that is presented to the platform by the OSPM.
+>>
+>> Since multiple processors affect the idle state for any non-leaf hierarchy
+>> node, coordination of idle state requests between the processors is
+>> required. ACPI supports two different coordination schemes: Platform
+>> coordinated and  OS initiated.
+>>
+>> This patch adds initial support for Platform coordination scheme of LPI.
+>>
+>> Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+>> Signed-off-by: Sudeep Holla <sudeep.holla@arm.com>
+>> ---
+>>   drivers/acpi/bus.c              |  14 +-
+>>   drivers/acpi/processor_driver.c |   2 +-
+>>   drivers/acpi/processor_idle.c   | 468 +++++++++++++++++++++++++++++++++++-----
+>>   include/acpi/processor.h        |  24 ++-
+>>   include/linux/acpi.h            |   4 +
+>>   5 files changed, 452 insertions(+), 60 deletions(-)
+>>
+
+[...]
+
+>> diff --git a/drivers/acpi/processor_idle.c b/drivers/acpi/processor_idle.c
+>> index ca0de35d1c3a..98e8c62a961c 100644
+>> --- a/drivers/acpi/processor_idle.c
+>> +++ b/drivers/acpi/processor_idle.c
+
+[....]
+
+>> +static int acpi_processor_get_lpi_info(struct acpi_processor *pr)
+>> +{
+>> +	int ret, i;
+>> +	struct acpi_lpi_states_array *info;
+>> +	struct acpi_device *d = NULL;
+>> +	acpi_handle handle = pr->handle, pr_ahandle;
+>> +	acpi_status status;
+>> +
+>> +	if (!osc_pc_lpi_support_confirmed)
+>> +		return -EOPNOTSUPP;
+>> +
+>> +	max_leaf_depth = 0;
+>> +	if (!acpi_has_method(handle, "_LPI"))
+>> +		return -EINVAL;
+>> +	flat_state_cnt = 0;
+>> +
+>> +	while (ACPI_SUCCESS(status = acpi_get_parent(handle, &pr_ahandle))) {
+>> +		acpi_bus_get_device(pr_ahandle, &d);
+>> +		handle = pr_ahandle;
+>> +
+>> +		if (strcmp(acpi_device_hid(d), ACPI_PROCESSOR_CONTAINER_HID))
+>> +			break;
+>> +
+>> +		if (!acpi_has_method(pr_ahandle, "_LPI"))
+>> +			break;
+>> +
+>> +		max_leaf_depth++;
+>> +	}
+>> +
+>> +	info = kcalloc(max_leaf_depth + 1, sizeof(*info), GFP_KERNEL);
+>> +	if (!info)
+>> +		return -ENOMEM;
+>> +
+>> +	pr_ahandle = pr->handle;
+>> +	for (i = max_leaf_depth; i >= 0 && ACPI_SUCCESS(status); i--) {
+>> +		handle = pr_ahandle;
+>> +		ret = acpi_processor_evaluate_lpi(handle, info + i);
+>> +		if (ret)
+>> +			break;
+>> +
+>> +		status = acpi_get_parent(handle, &pr_ahandle);
+>> +	}
+>> +
+>> +	/* flatten all the LPI states in the entire hierarchy */
+>> +	flatten_lpi_states(pr, info, NULL, max_leaf_depth);
+>> +
+>
+> The above code doesn't look particularly straightforward and it seems to be
+> using more memory than necessary.
+>
+> For instance, you don't need to store the acpi_processor_evaluate_lpi() data
+> for all levels at the same time.  It only needs to be stored for the current
+> level and you need a list of states enabling the ones at the current from
+> the previous one.  Plus the current list of effective states available to the
+> CPU.
+>
+
+Agreed with all the comments and fixed locally except this one. This
+approach considered one leaf node and searched till the root each time.
+To save memory we need to complete one level at a time. I am making
+changes for this now but make require more testing with all combinations.
+
+> It also should check the upper bound of pr->power.lpi_states[] somewhere which
+> it doesn't do AFAICS.
+>
+
+Fixed now
+
+-- 
+Regards,
+Sudeep
