@@ -1,131 +1,53 @@
-From: Sudeep Holla <sudeep.holla@arm.com>
-Subject: Re: [PATCH v9 2/7] ACPI / processor_idle: Add support for Low Power
- Idle(LPI) states
-Date: Mon, 18 Jul 2016 16:48:40 +0100
-Message-ID: <578CFA58.404@arm.com>
-References: <1467997678-7107-1-git-send-email-sudeep.holla@arm.com>
- <1467997678-7107-3-git-send-email-sudeep.holla@arm.com>
- <1500653.yRCxZC8x7Y@vostro.rjw.lan>
+From: Bastien Nocera <hadess@hadess.net>
+Subject: Re: [PATCH v3 1/2] ACPI / button: Add KEY_LID_CLOSE for new usage
+ model
+Date: Mon, 18 Jul 2016 17:51:33 +0200
+Message-ID: <1468857093.6761.23.camel@hadess.net>
+References: <cover.1467717304.git.lv.zheng@intel.com>
+	 <4537c34e4685658b0a12830499f971c7fc3c0426.1468318558.git.lv.zheng@intel.com>
+	 <CAN+gG=EcUjnDZqRZC8QfMnxyOX-sNSzBhyfgLfeAmRABiiG8+w@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from foss.arm.com ([217.140.101.70]:58970 "EHLO foss.arm.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751487AbcGRPsr (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 18 Jul 2016 11:48:47 -0400
-In-Reply-To: <1500653.yRCxZC8x7Y@vostro.rjw.lan>
-Sender: linux-acpi-owner@vger.kernel.org
+Return-path: <linux-input-owner@vger.kernel.org>
+In-Reply-To: <CAN+gG=EcUjnDZqRZC8QfMnxyOX-sNSzBhyfgLfeAmRABiiG8+w@mail.gmail.com>
+Sender: linux-input-owner@vger.kernel.org
+To: Benjamin Tissoires <benjamin.tissoires@gmail.com>, Lv Zheng <lv.zheng@intel.com>
+Cc: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <len.brown@intel.com>, Lv Zheng <zetalog@gmail.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Dmitry Torokhov <dmitry.torokhov@gmail.com>, linux-input <linux-input@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: Sudeep Holla <sudeep.holla@arm.com>, ACPI List <linux-acpi@vger.kernel.org>, Vikas Sajjan <vikas.cha.sajjan@hpe.com>, Sunil <sunil.vl@hpe.com>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Prashanth Prakash <pprakash@codeaurora.org>, Al Stone <al.stone@linaro.org>, Ashwin Chaugule <ashwin.chaugule@linaro.org>, Daniel Lezcano <daniel.lezcano@linaro.org>, LKML <linux-kernel@vger.kernel.org>, ALKML <linux-arm-kernel@lists.infradead.org>
 
+On Mon, 2016-07-18 at 09:53 +0200, Benjamin Tissoires wrote:
+> 
+<snip>
+> I don't think this is a good solution to have a kernel parameter. I
+> thought the final decision were to have userspace decide which event
+> was valid, and so we just need to export and emit both of events.
+> 
+> _If_ you export a kernel parameter, it makes sense to have a dmi
+> blacklist to have a good default experience, which is what you wanted
+> to avoid.
+> So if you just export and use both events at the same time, you will
+> have:
+> - correct ACPI machines will just have an extra KEY_LID_CLOSE event
+> emitted, which will not harm logind
+> - wrong ACPI machines will not have their SW_LID input event updated
+> because it will be kept closed. But given that logind will ignore it,
+> there is no harm either
+> 
+> As Dmitry said, we could also have a KEY_LID_OPEN emitted for
+> symmetrical purposes, but I am not entirely sure if this will confuse
+> userspace or not. On the other hand, there are few users of these
+> states, and we can teach them how to properly use them.
+> 
+> So in the end, I think you should just get rid of the kernel
+> parameter, export SW_LID, KEY_LID_CLOSE, KEY_LID_OPEN in the event
+> node, and only add the KEY_LID_CLOSE|OPEN events on an actual acpi
+> notification.
+> 
+> Then a small hwdb entry set will teach logind/powerd if they need to
+> ignore the SW_LID event or not.
 
-
-On 16/07/16 01:32, Rafael J. Wysocki wrote:
-> On Friday, July 08, 2016 06:07:53 PM Sudeep Holla wrote:
->> ACPI 6.0 introduced an optional object _LPI that provides an alternate
->> method to describe Low Power Idle states. It defines the local power
->> states for each node in a hierarchical processor topology. The OSPM can
->> use _LPI object to select a local power state for each level of processor
->> hierarchy in the system. They used to produce a composite power state
->> request that is presented to the platform by the OSPM.
->>
->> Since multiple processors affect the idle state for any non-leaf hierarchy
->> node, coordination of idle state requests between the processors is
->> required. ACPI supports two different coordination schemes: Platform
->> coordinated and  OS initiated.
->>
->> This patch adds initial support for Platform coordination scheme of LPI.
->>
->> Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>
->> Signed-off-by: Sudeep Holla <sudeep.holla@arm.com>
->> ---
->>   drivers/acpi/bus.c              |  14 +-
->>   drivers/acpi/processor_driver.c |   2 +-
->>   drivers/acpi/processor_idle.c   | 468 +++++++++++++++++++++++++++++++++++-----
->>   include/acpi/processor.h        |  24 ++-
->>   include/linux/acpi.h            |   4 +
->>   5 files changed, 452 insertions(+), 60 deletions(-)
->>
-
-[...]
-
->> diff --git a/drivers/acpi/processor_idle.c b/drivers/acpi/processor_idle.c
->> index ca0de35d1c3a..98e8c62a961c 100644
->> --- a/drivers/acpi/processor_idle.c
->> +++ b/drivers/acpi/processor_idle.c
-
-[....]
-
->> +static int acpi_processor_get_lpi_info(struct acpi_processor *pr)
->> +{
->> +	int ret, i;
->> +	struct acpi_lpi_states_array *info;
->> +	struct acpi_device *d = NULL;
->> +	acpi_handle handle = pr->handle, pr_ahandle;
->> +	acpi_status status;
->> +
->> +	if (!osc_pc_lpi_support_confirmed)
->> +		return -EOPNOTSUPP;
->> +
->> +	max_leaf_depth = 0;
->> +	if (!acpi_has_method(handle, "_LPI"))
->> +		return -EINVAL;
->> +	flat_state_cnt = 0;
->> +
->> +	while (ACPI_SUCCESS(status = acpi_get_parent(handle, &pr_ahandle))) {
->> +		acpi_bus_get_device(pr_ahandle, &d);
->> +		handle = pr_ahandle;
->> +
->> +		if (strcmp(acpi_device_hid(d), ACPI_PROCESSOR_CONTAINER_HID))
->> +			break;
->> +
->> +		if (!acpi_has_method(pr_ahandle, "_LPI"))
->> +			break;
->> +
->> +		max_leaf_depth++;
->> +	}
->> +
->> +	info = kcalloc(max_leaf_depth + 1, sizeof(*info), GFP_KERNEL);
->> +	if (!info)
->> +		return -ENOMEM;
->> +
->> +	pr_ahandle = pr->handle;
->> +	for (i = max_leaf_depth; i >= 0 && ACPI_SUCCESS(status); i--) {
->> +		handle = pr_ahandle;
->> +		ret = acpi_processor_evaluate_lpi(handle, info + i);
->> +		if (ret)
->> +			break;
->> +
->> +		status = acpi_get_parent(handle, &pr_ahandle);
->> +	}
->> +
->> +	/* flatten all the LPI states in the entire hierarchy */
->> +	flatten_lpi_states(pr, info, NULL, max_leaf_depth);
->> +
->
-> The above code doesn't look particularly straightforward and it seems to be
-> using more memory than necessary.
->
-> For instance, you don't need to store the acpi_processor_evaluate_lpi() data
-> for all levels at the same time.  It only needs to be stored for the current
-> level and you need a list of states enabling the ones at the current from
-> the previous one.  Plus the current list of effective states available to the
-> CPU.
->
-
-Agreed with all the comments and fixed locally except this one. This
-approach considered one leaf node and searched till the root each time.
-To save memory we need to complete one level at a time. I am making
-changes for this now but make require more testing with all combinations.
-
-> It also should check the upper bound of pr->power.lpi_states[] somewhere which
-> it doesn't do AFAICS.
->
-
-Fixed now
-
--- 
-Regards,
-Sudeep
+So user-space would have its own blacklist (likely in udev through an
+hwdb), instead of having it in the kernel? That seems like a fine idea
+to me, and one of the first consumers, logind, would have all the
+necessary data straight away.
