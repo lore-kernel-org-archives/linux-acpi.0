@@ -1,141 +1,149 @@
-From: Dan Williams <dan.j.williams@intel.com>
-Subject: Re: [PATCH v2 1/2] nfit: fix _FIT evaluation memory leak
-Date: Mon, 18 Jul 2016 10:28:45 -0700
-Message-ID: <CAPcyv4iYZorHdm4Dc7GqEcqoijiAEDGJnx9pHYsaPsM1CsFG3Q@mail.gmail.com>
-References: <146861106687.16732.18123746119721100494.stgit@dwillia2-desk3.amr.corp.intel.com>
- <578C6FDC.4050803@intel.com>
+From: Alex Williamson <alex.williamson@redhat.com>
+Subject: Re: [PATCH V9 4/9] vfio: platform: add support for ACPI probe
+Date: Mon, 18 Jul 2016 11:32:08 -0600
+Message-ID: <20160718113208.5afb26c2@t450s.home>
+References: <1468461995-32676-1-git-send-email-okaya@codeaurora.org>
+	<1468461995-32676-5-git-send-email-okaya@codeaurora.org>
+	<20160714154146.38e37d84@t450s.home>
+	<bd8dacde-da6c-2353-7488-58b2f050699c@codeaurora.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-oi0-f42.google.com ([209.85.218.42]:36631 "EHLO
-	mail-oi0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750732AbcGRR2r (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 18 Jul 2016 13:28:47 -0400
-Received: by mail-oi0-f42.google.com with SMTP id w18so262340372oiw.3
-        for <linux-acpi@vger.kernel.org>; Mon, 18 Jul 2016 10:28:47 -0700 (PDT)
-In-Reply-To: <578C6FDC.4050803@intel.com>
+Received: from mx1.redhat.com ([209.132.183.28]:52246 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750998AbcGRRcR (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 18 Jul 2016 13:32:17 -0400
+In-Reply-To: <bd8dacde-da6c-2353-7488-58b2f050699c@codeaurora.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Xiao Guangrong <guangrong.xiao@intel.com>
-Cc: "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, Vishal Verma <vishal.l.verma@intel.com>, Linux ACPI <linux-acpi@vger.kernel.org>, "stable@vger.kernel.org" <stable@vger.kernel.org>, Haozhong Zhang <haozhong.zhang@intel.com>
+To: Sinan Kaya <okaya@codeaurora.org>
+Cc: kvm@vger.kernel.org, timur@codeaurora.org, cov@codeaurora.org, jcm@redhat.com, eric.auger@redhat.com, linux-acpi@vger.kernel.org, agross@codeaurora.org, linux-arm-msm@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Baptiste Reynal <b.reynal@virtualopensystems.com>, linux-kernel@vger.kernel.org
 
-On Sun, Jul 17, 2016 at 10:57 PM, Xiao Guangrong
-<guangrong.xiao@intel.com> wrote:
->
->
-> On 07/16/2016 03:32 AM, Dan Williams wrote:
->>
->> acpi_evaluate_object() allocates memory. Free the buffer allocated
->> during acpi_nfit_add().  Also, make it clear that ->nfit is not used
->> outside of acpi_nfit_init() context.
->>
->> Cc: <stable@vger.kernel.org>
->> Cc: Vishal Verma <vishal.l.verma@intel.com>
->> Reported-by: Xiao Guangrong <guangrong.xiao@intel.com>
->> Reported-by: Haozhong Zhang <haozhong.zhang@intel.com>
->> Signed-off-by: Dan Williams <dan.j.williams@intel.com>
->> ---
->> Change since v1:
->>
->> * Fix unitialized use of 'rc' (Haozhong)
->> * Clarify that their is no use-after-free problem in acpi_nfit_notify()
->>    (Xiao)
->>
->
-> No... This is a real problem, please seem below.
->
->
->>   drivers/acpi/nfit.c |   21 +++++++++------------
->>   1 file changed, 9 insertions(+), 12 deletions(-)
->>
->> diff --git a/drivers/acpi/nfit.c b/drivers/acpi/nfit.c
->> index d89a02d9ed10..cbdbe13bdbe8 100644
->> --- a/drivers/acpi/nfit.c
->> +++ b/drivers/acpi/nfit.c
->> @@ -2390,7 +2390,7 @@ static int acpi_nfit_add(struct acpi_device *adev)
->>         struct acpi_table_header *tbl;
->>         acpi_status status = AE_OK;
->>         acpi_size sz;
->> -       int rc;
->> +       int rc = 0;
->>
->>         status = acpi_get_table_with_size(ACPI_SIG_NFIT, 0, &tbl, &sz);
->>         if (ACPI_FAILURE(status)) {
->> @@ -2427,12 +2427,15 @@ static int acpi_nfit_add(struct acpi_device *adev)
->>                         acpi_desc->nfit =
->>                                 (struct acpi_nfit_header
->> *)obj->buffer.pointer;
->>                         sz = obj->buffer.length;
->> +                       rc = acpi_nfit_init(acpi_desc, sz);
->>                 } else
->>                         dev_dbg(dev, "%s invalid type %d, ignoring
->> _FIT\n",
->>                                  __func__, (int) obj->type);
->> -       }
->> +               acpi_desc->nfit = NULL;
->> +               kfree(buf.pointer);
->> +       } else
->> +               rc = acpi_nfit_init(acpi_desc, sz);
->>
->> -       rc = acpi_nfit_init(acpi_desc, sz);
->>         if (rc) {
->>                 nvdimm_bus_unregister(acpi_desc->nvdimm_bus);
->>                 return rc;
->> @@ -2454,7 +2457,6 @@ static void acpi_nfit_notify(struct acpi_device
->> *adev, u32 event)
->>   {
->>         struct acpi_nfit_desc *acpi_desc = dev_get_drvdata(&adev->dev);
->>         struct acpi_buffer buf = { ACPI_ALLOCATE_BUFFER, NULL };
->> -       struct acpi_nfit_header *nfit_saved;
->>         union acpi_object *obj;
->>         struct device *dev = &adev->dev;
->>         acpi_status status;
->> @@ -2492,21 +2494,16 @@ static void acpi_nfit_notify(struct acpi_device
->> *adev, u32 event)
->>                 goto out_unlock;
->>         }
->>
->> -       nfit_saved = acpi_desc->nfit;
->>         obj = buf.pointer;
->>         if (obj->type == ACPI_TYPE_BUFFER) {
->>                 acpi_desc->nfit =
->>                         (struct acpi_nfit_header *)obj->buffer.pointer;
->>                 ret = acpi_nfit_init(acpi_desc, obj->buffer.length);
->
->
-> The issue is in acpi_nfit_init(), there are some info constructing nfit_spa
-> is directly from acpi_desc->nfit, for example:
-> acpi_nfit_init() -> add_table() -> add_spa():
->
-> static bool add_spa(struct acpi_nfit_desc *acpi_desc,
->                 struct nfit_table_prev *prev,
->                 struct acpi_nfit_system_address *spa)
-> {
->    ...
->         list_for_each_entry(nfit_spa, &prev->spas, list) {
->                 if (memcmp(nfit_spa->spa, spa, length) == 0) {      // A
->                         list_move_tail(&nfit_spa->list, &acpi_desc->spas);
->                         return true;
->                 }
->         }
->    ...
->                 return false;
->         INIT_LIST_HEAD(&nfit_spa->list);
->         nfit_spa->spa = spa;                // B
->         list_add_tail(&nfit_spa->list, &acpi_desc->spas);
->   ...
-> }
->
-> Note at point B, @spa is from acpi_desc->nfit. At point A, this @spa will be
-> used
-> to check if it has already existed if hotplug event happens later.
->
+On Fri, 15 Jul 2016 21:27:24 -0400
+Sinan Kaya <okaya@codeaurora.org> wrote:
 
+> On 7/14/2016 5:41 PM, Alex Williamson wrote:
+> > On Wed, 13 Jul 2016 22:06:30 -0400
+> > Sinan Kaya <okaya@codeaurora.org> wrote:
+> >   
+> >> The code is using the compatible DT string to associate a reset driver
+> >> with the actual device itself. The compatible string does not exist on
+> >> ACPI based systems. HID is the unique identifier for a device driver
+> >> instead.
+> >>
+> >> Signed-off-by: Sinan Kaya <okaya@codeaurora.org>
+> >> Reviewed-by: Eric Auger <eric.auger@redhat.com>
+> >> Reviewed-by: Baptiste Reynal <b.reynal@virtualopensystems.com>
+> >> ---
+> >>  drivers/vfio/platform/vfio_platform_common.c  | 70 +++++++++++++++++++++++++--
+> >>  drivers/vfio/platform/vfio_platform_private.h |  1 +
+> >>  2 files changed, 66 insertions(+), 5 deletions(-)
+> >>
+> >> diff --git a/drivers/vfio/platform/vfio_platform_common.c b/drivers/vfio/platform/vfio_platform_common.c
+> >> index 6be92c3..ff148764 100644
+> >> --- a/drivers/vfio/platform/vfio_platform_common.c
+> >> +++ b/drivers/vfio/platform/vfio_platform_common.c
+> >> @@ -13,6 +13,7 @@
+> >>   */
+> >>  
+> >>  #include <linux/device.h>
+> >> +#include <linux/acpi.h>
+> >>  #include <linux/iommu.h>
+> >>  #include <linux/module.h>
+> >>  #include <linux/mutex.h>
+> >> @@ -49,6 +50,33 @@ static vfio_platform_reset_fn_t vfio_platform_lookup_reset(const char *compat,
+> >>  	return reset_fn;
+> >>  }
+> >>  
+> > 
+> > This function still feels a bit sloppy
+> >     
+> >> +static int vfio_platform_acpi_probe(struct vfio_platform_device *vdev,
+> >> +				    struct device *dev)
+> >> +{
+> >> +	struct acpi_device *adev = ACPI_COMPANION(dev);  
+> > 
+> > When !CONFIG_ACPI, this returns NULL
+> >   
+> >> +
+> >> +	if (acpi_disabled)  
+> > 
+> > When !CONFIG_ACPI, this is defined as 1, so we'll always exit here.
+> >   
+> >> +		return -EPERM;
+> >> +  
+> 
+> I'll move this here and leave the variable definition above only.
+> 
+> 	adev = ACPI_COMPANION(dev);
+> 
+> >> +	if (!adev) {  
+> > 
+> > This is really the only (ACPI_CONFIG && !acpi_disabled) error exit,
+> > because...
+> >   
+> >> +		pr_err("VFIO: ACPI companion device not found for %s\n",
+> >> +			vdev->name);
+> >> +		return -ENODEV;
+> >> +	}
+> >> +
+> >> +#ifdef CONFIG_ACPI
+> >> +	vdev->acpihid = acpi_device_hid(adev);  
+> >   
+> 
+> Based on the current implementation of acpi_device_hid, the function wlll 
+> return a name of "device" when the pnp device id list is empty. 
+> 
+> Do you want to rely on the current implementation behavior rather than be
+> safe?
 
-Argh, yes!  We need a unit test for this case.
+The implementation looks pretty fixed, it seems like a lot would break
+if that were changed, so the callers of the function would need to be
+updated, including this one.  The ternary below is already paranoid
+enough to handle an API change, but if you want to add one more level
+of paranoia, you could use WARN_ON(!vdev->acpihid) to make it user
+visible.  It could still be done as:
 
-Another problem is that the old and new nfit entries have different
-lifetimes, especially if we ever want to support delete.  Another
-problem looking at this code is that the sizing of the idt and flush
-entries is wrong.  We should not allow those entries to change size
-during hotplug.
+return WARN_ON(!vdev->acpihid) ? -ENOENT : 0;
+
+Thanks,
+Alex
+ 
+> > This can't actually return NULL.  So the test below is unreached.
+> > Maybe we should just conclude this function here with:
+> > 
+> > #endif
+> > 
+> > return vdev->acpihid ? 0 : -ENOENT;
+> > 
+> > which is even still a bit paranoid since it can't actually happen.
+> >   
+> >> +	if (!vdev->acpihid) {
+> >> +		pr_err("VFIO: cannot find ACPI HID for %s\n",
+> >> +		       vdev->name);
+> >> +		return -EINVAL;
+> >> +	}
+> >> +	return 0;
+> >> +#else
+> >> +	return -ENOENT;
+> >> +#endif
+> >> +}
+> >> +  
+> 
+> 
+> >> +
+> >> +/*
+> >> + * There can be two kernel build combinations. One build where
+> >> + * ACPI is not selected in Kconfig and another one with the ACPI Kconfig.
+> >> + *
+> >> + * In the first case, vfio_platform_acpi_probe will return since
+> >> + * acpi_disabled  * is 1. DT user will not see any kind of messages from  
+> > 
+> >                     ^^ Previous editing cruft?  
+> 
+> Yep, good catch. Got warned by checkpatch for 80 characters. 
+> 
+> 
+> 
+
