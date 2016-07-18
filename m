@@ -1,53 +1,141 @@
-From: Bastien Nocera <hadess@hadess.net>
-Subject: Re: [PATCH v3 1/2] ACPI / button: Add KEY_LID_CLOSE for new usage
- model
-Date: Mon, 18 Jul 2016 17:51:33 +0200
-Message-ID: <1468857093.6761.23.camel@hadess.net>
-References: <cover.1467717304.git.lv.zheng@intel.com>
-	 <4537c34e4685658b0a12830499f971c7fc3c0426.1468318558.git.lv.zheng@intel.com>
-	 <CAN+gG=EcUjnDZqRZC8QfMnxyOX-sNSzBhyfgLfeAmRABiiG8+w@mail.gmail.com>
+From: Dan Williams <dan.j.williams@intel.com>
+Subject: Re: [PATCH v2 1/2] nfit: fix _FIT evaluation memory leak
+Date: Mon, 18 Jul 2016 10:28:45 -0700
+Message-ID: <CAPcyv4iYZorHdm4Dc7GqEcqoijiAEDGJnx9pHYsaPsM1CsFG3Q@mail.gmail.com>
+References: <146861106687.16732.18123746119721100494.stgit@dwillia2-desk3.amr.corp.intel.com>
+ <578C6FDC.4050803@intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-input-owner@vger.kernel.org>
-In-Reply-To: <CAN+gG=EcUjnDZqRZC8QfMnxyOX-sNSzBhyfgLfeAmRABiiG8+w@mail.gmail.com>
-Sender: linux-input-owner@vger.kernel.org
-To: Benjamin Tissoires <benjamin.tissoires@gmail.com>, Lv Zheng <lv.zheng@intel.com>
-Cc: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <len.brown@intel.com>, Lv Zheng <zetalog@gmail.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Dmitry Torokhov <dmitry.torokhov@gmail.com>, linux-input <linux-input@vger.kernel.org>
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-oi0-f42.google.com ([209.85.218.42]:36631 "EHLO
+	mail-oi0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750732AbcGRR2r (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 18 Jul 2016 13:28:47 -0400
+Received: by mail-oi0-f42.google.com with SMTP id w18so262340372oiw.3
+        for <linux-acpi@vger.kernel.org>; Mon, 18 Jul 2016 10:28:47 -0700 (PDT)
+In-Reply-To: <578C6FDC.4050803@intel.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Xiao Guangrong <guangrong.xiao@intel.com>
+Cc: "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, Vishal Verma <vishal.l.verma@intel.com>, Linux ACPI <linux-acpi@vger.kernel.org>, "stable@vger.kernel.org" <stable@vger.kernel.org>, Haozhong Zhang <haozhong.zhang@intel.com>
 
-On Mon, 2016-07-18 at 09:53 +0200, Benjamin Tissoires wrote:
-> 
-<snip>
-> I don't think this is a good solution to have a kernel parameter. I
-> thought the final decision were to have userspace decide which event
-> was valid, and so we just need to export and emit both of events.
-> 
-> _If_ you export a kernel parameter, it makes sense to have a dmi
-> blacklist to have a good default experience, which is what you wanted
-> to avoid.
-> So if you just export and use both events at the same time, you will
-> have:
-> - correct ACPI machines will just have an extra KEY_LID_CLOSE event
-> emitted, which will not harm logind
-> - wrong ACPI machines will not have their SW_LID input event updated
-> because it will be kept closed. But given that logind will ignore it,
-> there is no harm either
-> 
-> As Dmitry said, we could also have a KEY_LID_OPEN emitted for
-> symmetrical purposes, but I am not entirely sure if this will confuse
-> userspace or not. On the other hand, there are few users of these
-> states, and we can teach them how to properly use them.
-> 
-> So in the end, I think you should just get rid of the kernel
-> parameter, export SW_LID, KEY_LID_CLOSE, KEY_LID_OPEN in the event
-> node, and only add the KEY_LID_CLOSE|OPEN events on an actual acpi
-> notification.
-> 
-> Then a small hwdb entry set will teach logind/powerd if they need to
-> ignore the SW_LID event or not.
+On Sun, Jul 17, 2016 at 10:57 PM, Xiao Guangrong
+<guangrong.xiao@intel.com> wrote:
+>
+>
+> On 07/16/2016 03:32 AM, Dan Williams wrote:
+>>
+>> acpi_evaluate_object() allocates memory. Free the buffer allocated
+>> during acpi_nfit_add().  Also, make it clear that ->nfit is not used
+>> outside of acpi_nfit_init() context.
+>>
+>> Cc: <stable@vger.kernel.org>
+>> Cc: Vishal Verma <vishal.l.verma@intel.com>
+>> Reported-by: Xiao Guangrong <guangrong.xiao@intel.com>
+>> Reported-by: Haozhong Zhang <haozhong.zhang@intel.com>
+>> Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+>> ---
+>> Change since v1:
+>>
+>> * Fix unitialized use of 'rc' (Haozhong)
+>> * Clarify that their is no use-after-free problem in acpi_nfit_notify()
+>>    (Xiao)
+>>
+>
+> No... This is a real problem, please seem below.
+>
+>
+>>   drivers/acpi/nfit.c |   21 +++++++++------------
+>>   1 file changed, 9 insertions(+), 12 deletions(-)
+>>
+>> diff --git a/drivers/acpi/nfit.c b/drivers/acpi/nfit.c
+>> index d89a02d9ed10..cbdbe13bdbe8 100644
+>> --- a/drivers/acpi/nfit.c
+>> +++ b/drivers/acpi/nfit.c
+>> @@ -2390,7 +2390,7 @@ static int acpi_nfit_add(struct acpi_device *adev)
+>>         struct acpi_table_header *tbl;
+>>         acpi_status status = AE_OK;
+>>         acpi_size sz;
+>> -       int rc;
+>> +       int rc = 0;
+>>
+>>         status = acpi_get_table_with_size(ACPI_SIG_NFIT, 0, &tbl, &sz);
+>>         if (ACPI_FAILURE(status)) {
+>> @@ -2427,12 +2427,15 @@ static int acpi_nfit_add(struct acpi_device *adev)
+>>                         acpi_desc->nfit =
+>>                                 (struct acpi_nfit_header
+>> *)obj->buffer.pointer;
+>>                         sz = obj->buffer.length;
+>> +                       rc = acpi_nfit_init(acpi_desc, sz);
+>>                 } else
+>>                         dev_dbg(dev, "%s invalid type %d, ignoring
+>> _FIT\n",
+>>                                  __func__, (int) obj->type);
+>> -       }
+>> +               acpi_desc->nfit = NULL;
+>> +               kfree(buf.pointer);
+>> +       } else
+>> +               rc = acpi_nfit_init(acpi_desc, sz);
+>>
+>> -       rc = acpi_nfit_init(acpi_desc, sz);
+>>         if (rc) {
+>>                 nvdimm_bus_unregister(acpi_desc->nvdimm_bus);
+>>                 return rc;
+>> @@ -2454,7 +2457,6 @@ static void acpi_nfit_notify(struct acpi_device
+>> *adev, u32 event)
+>>   {
+>>         struct acpi_nfit_desc *acpi_desc = dev_get_drvdata(&adev->dev);
+>>         struct acpi_buffer buf = { ACPI_ALLOCATE_BUFFER, NULL };
+>> -       struct acpi_nfit_header *nfit_saved;
+>>         union acpi_object *obj;
+>>         struct device *dev = &adev->dev;
+>>         acpi_status status;
+>> @@ -2492,21 +2494,16 @@ static void acpi_nfit_notify(struct acpi_device
+>> *adev, u32 event)
+>>                 goto out_unlock;
+>>         }
+>>
+>> -       nfit_saved = acpi_desc->nfit;
+>>         obj = buf.pointer;
+>>         if (obj->type == ACPI_TYPE_BUFFER) {
+>>                 acpi_desc->nfit =
+>>                         (struct acpi_nfit_header *)obj->buffer.pointer;
+>>                 ret = acpi_nfit_init(acpi_desc, obj->buffer.length);
+>
+>
+> The issue is in acpi_nfit_init(), there are some info constructing nfit_spa
+> is directly from acpi_desc->nfit, for example:
+> acpi_nfit_init() -> add_table() -> add_spa():
+>
+> static bool add_spa(struct acpi_nfit_desc *acpi_desc,
+>                 struct nfit_table_prev *prev,
+>                 struct acpi_nfit_system_address *spa)
+> {
+>    ...
+>         list_for_each_entry(nfit_spa, &prev->spas, list) {
+>                 if (memcmp(nfit_spa->spa, spa, length) == 0) {      // A
+>                         list_move_tail(&nfit_spa->list, &acpi_desc->spas);
+>                         return true;
+>                 }
+>         }
+>    ...
+>                 return false;
+>         INIT_LIST_HEAD(&nfit_spa->list);
+>         nfit_spa->spa = spa;                // B
+>         list_add_tail(&nfit_spa->list, &acpi_desc->spas);
+>   ...
+> }
+>
+> Note at point B, @spa is from acpi_desc->nfit. At point A, this @spa will be
+> used
+> to check if it has already existed if hotplug event happens later.
+>
 
-So user-space would have its own blacklist (likely in udev through an
-hwdb), instead of having it in the kernel? That seems like a fine idea
-to me, and one of the first consumers, logind, would have all the
-necessary data straight away.
+
+Argh, yes!  We need a unit test for this case.
+
+Another problem is that the old and new nfit entries have different
+lifetimes, especially if we ever want to support delete.  Another
+problem looking at this code is that the sizing of the idt and flush
+entries is wrong.  We should not allow those entries to change size
+during hotplug.
