@@ -1,760 +1,249 @@
-From: Sudeep Holla <sudeep.holla@arm.com>
-Subject: [PATCH v10 2/7] ACPI / processor_idle: Add support for Low Power
- Idle(LPI) states
-Date: Tue, 19 Jul 2016 18:52:54 +0100
-Message-ID: <1468950779-21745-3-git-send-email-sudeep.holla@arm.com>
-References: <1468950779-21745-1-git-send-email-sudeep.holla@arm.com>
+From: Vishal Verma <vishal.l.verma@intel.com>
+Subject: Re: [PATCH 3/3] nfit: do an ARS rescan on hitting a latent media
+ error
+Date: Tue, 19 Jul 2016 11:55:28 -0600
+Message-ID: <20160719175528.GD12960@omniknight.lm.intel.com>
+References: <1468889100-30698-1-git-send-email-vishal.l.verma@intel.com>
+ <1468889100-30698-4-git-send-email-vishal.l.verma@intel.com>
+ <CAPcyv4iQxw_Fg7ovQsjDOb2LKsY0-MRe_E54M525sgHfTL=FOw@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <1468950779-21745-1-git-send-email-sudeep.holla@arm.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: ACPI List <linux-acpi@vger.kernel.org>, "Rafael J . Wysocki" <rjw@rjwysocki.net>
-Cc: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, PrashanthPrakash <pprakash@codeaurora.org>, Al Stone <al.stone@linaro.org>, Vikas Sajjan <vikas.cha.sajjan@hpe.com>, Daniel Lezcano <daniel.lezcano@linaro.org>, LKML <linux-kernel@vger.kernel.org>, Ashwin Chaugule <ashwin.chaugule@linaro.org>, Sudeep Holla <sudeep.holla@arm.com>, ALKML <linux-arm-kernel@lists.infradead.org>, Sunil <sunil.vl@hpe.com>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga14.intel.com ([192.55.52.115]:60163 "EHLO mga14.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753489AbcGSR4A (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 19 Jul 2016 13:56:00 -0400
+Content-Disposition: inline
+In-Reply-To: <CAPcyv4iQxw_Fg7ovQsjDOb2LKsY0-MRe_E54M525sgHfTL=FOw@mail.gmail.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Dan Williams <dan.j.williams@intel.com>
+Cc: "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Tony Luck <tony.luck@intel.com>, Linux ACPI <linux-acpi@vger.kernel.org>
 
-ACPI 6.0 introduced an optional object _LPI that provides an alternate
-method to describe Low Power Idle states. It defines the local power
-states for each node in a hierarchical processor topology. The OSPM can
-use _LPI object to select a local power state for each level of processor
-hierarchy in the system. They used to produce a composite power state
-request that is presented to the platform by the OSPM.
+On 07/19, Dan Williams wrote:
+> On Mon, Jul 18, 2016 at 5:45 PM, Vishal Verma <vishal.l.verma@intel.com> wrote:
+> > When a latent (unknown to 'badblocks') error is encountered, it will
+> > trigger a machine check exception. On a system with machine check
+> > recovery, this will only SIGBUS the process(es) which had the bad page
+> > mapped (as opposed to a kernel panic on platforms without machine
+> > check recovery features). In the former case, we want to trigger a full
+> > rescan of that nvdimm bus. This will allow any additional, new errors
+> > to be captured in the block devices' badblocks lists, and offending
+> > operations on them can be trapped early, avoiding machine checks.
+> >
+> > This is done by registering a callback function with the
+> > x86_mce_decoder_chain and calling the new ars_rescan functionality with
+> > the address in the mce notificatiion.
+> >
+> > Cc: Dan Williams <dan.j.williams@intel.com>
+> > Cc: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+> > Cc: Tony Luck <tony.luck@intel.com>
+> > Cc: <linux-acpi@vger.kernel.org>
+> > Cc: <linux-nvdimm@lists.01.org>
+> > Signed-off-by: Vishal Verma <vishal.l.verma@intel.com>
+> > ---
+> >  drivers/acpi/nfit.c | 102 ++++++++++++++++++++++++++++++++++++++++++++++++++++
+> >  drivers/acpi/nfit.h |   1 +
+> >  2 files changed, 103 insertions(+)
+> >
+> > diff --git a/drivers/acpi/nfit.c b/drivers/acpi/nfit.c
+> > index def9505..0d2d7a3 100644
+> > --- a/drivers/acpi/nfit.c
+> > +++ b/drivers/acpi/nfit.c
+> > @@ -12,6 +12,7 @@
+> >   */
+> >  #include <linux/list_sort.h>
+> >  #include <linux/libnvdimm.h>
+> > +#include <linux/notifier.h>
+> >  #include <linux/module.h>
+> >  #include <linux/mutex.h>
+> >  #include <linux/ndctl.h>
+> > @@ -23,6 +24,7 @@
+> >  #include <linux/io.h>
+> >  #include <linux/nd.h>
+> >  #include <asm/cacheflush.h>
+> > +#include <asm/mce.h>
+> >  #include "nfit.h"
+> >
+> >  /*
+> > @@ -50,6 +52,9 @@ module_param(disable_vendor_specific, bool, S_IRUGO);
+> >  MODULE_PARM_DESC(disable_vendor_specific,
+> >                 "Limit commands to the publicly specified set\n");
+> >
+> > +static LIST_HEAD(acpi_descs);
+> > +static DEFINE_MUTEX(acpi_desc_lock);
+> > +
+> >  static struct workqueue_struct *nfit_wq;
+> >
+> >  struct nfit_table_prev {
+> > @@ -2382,6 +2387,7 @@ static int acpi_nfit_check_deletions(struct acpi_nfit_desc *acpi_desc,
+> >
+> >  int acpi_nfit_init(struct acpi_nfit_desc *acpi_desc, acpi_size sz)
+> >  {
+> > +       struct acpi_nfit_desc *acpi_desc_entry;
+> >         struct device *dev = acpi_desc->dev;
+> >         struct nfit_table_prev prev;
+> >         const void *end;
+> > @@ -2439,6 +2445,25 @@ int acpi_nfit_init(struct acpi_nfit_desc *acpi_desc, acpi_size sz)
+> >
+> >         rc = acpi_nfit_register_regions(acpi_desc);
+> >
+> > +       /*
+> > +        * We may get here due to an update of the nfit via _FIT.
+> > +        * Check if the acpi_desc we're (re)initializing is already
+> > +        * present in the list, and if so, don't re-add it
+> > +        */
+> > +       mutex_lock(&acpi_desc_lock);
+> > +       if (list_empty(&acpi_descs))
+> > +               list_add_tail(&acpi_desc->list, &acpi_descs);
+> 
+> No need to special case list_empty(), it's covered below and this
+> isn't a fast path.
+> 
+> > +       else {
+> > +               int found = 0;
+> > +
+> > +               list_for_each_entry(acpi_desc_entry, &acpi_descs, list)
+> > +                       if (acpi_desc_entry == acpi_desc)
+> > +                               found = 1;
+> > +               if (found == 0)
+> > +                       list_add_tail(&acpi_desc->list, &acpi_descs);
+> > +       }
+> > +       mutex_unlock(&acpi_desc_lock);
+> > +
+> >   out_unlock:
+> >         mutex_unlock(&acpi_desc->init_mutex);
+> >         return rc;
+> > @@ -2522,6 +2547,69 @@ static int acpi_nfit_ars_rescan(struct nvdimm_bus_descriptor *nd_desc)
+> >         return 0;
+> >  }
+> >
+> > +static int nfit_handle_mce(struct notifier_block *nb, unsigned long val,
+> > +                       void *data)
+> > +{
+> > +       struct mce *mce = (struct mce *)data;
+> > +       struct acpi_nfit_desc *acpi_desc;
+> > +       struct nfit_spa *nfit_spa;
+> > +
+> > +       /* We only care about memory errors */
+> > +       if (!(mce->status & MCACOD))
+> > +               return NOTIFY_DONE;
+> > +
+> > +       /*
+> > +        * mce->addr contains the physical addr accessed that caused the
+> > +        * machine check. We need to walk through the list of NFITs, and see
+> > +        * if any of them matches that address, and only then start a scrub.
+> > +        */
+> > +       mutex_lock(&acpi_desc_lock);
+> > +       if (list_empty(&acpi_descs))
+> > +               goto out;
+> 
+> Again, no need to check for empty, list_for_each_entry() already does that...
+> 
+> > +
+> > +       list_for_each_entry(acpi_desc, &acpi_descs, list) {
+> > +               struct device *dev = acpi_desc->dev;
+> > +               int found_match = 0;
+> > +
+> > +               list_for_each_entry(nfit_spa, &acpi_desc->spas, list) {
+> > +                       struct acpi_nfit_system_address *spa = nfit_spa->spa;
+> > +
+> > +                       if (nfit_spa_type(spa) != NFIT_SPA_PM)
+> > +                               continue;
+> > +                       /* find the spa that covers the mce addr */
+> > +                       if (spa->address > mce->addr)
+> > +                               continue;
+> > +                       if ((spa->address + spa->length - 1) < mce->addr)
+> > +                               continue;
+> > +                       found_match = 1;
+> > +                       dev_dbg(dev, "%s: addr in SPA %d (0x%llx, 0x%llx)\n",
+> > +                               __func__, spa->range_index, spa->address,
+> > +                               spa->length);
+> > +                       /*
+> > +                        * We can break at the first match because we're going
+> > +                        * to rescan all the SPA ranges. There shouldn't be any
+> > +                        * aliasing anyway.
+> > +                        */
+> > +                       break;
+> > +               }
+> > +
+> > +               /*
+> > +                * We can ignore an -EBUSY here because if an ARS is already
+> > +                * in progress, just let that be the last authoritative one
+> > +                */
+> > +               if (found_match)
+> > +                       acpi_nfit_ars_rescan(&acpi_desc->nd_desc);
+> > +       }
+> > +
+> > + out:
+> > +       mutex_unlock(&acpi_desc_lock);
+> > +       return NOTIFY_DONE;
+> > +}
+> > +
+> > +static struct notifier_block nfit_mce_dec = {
+> > +       .notifier_call  = nfit_handle_mce,
+> > +};
+> > +
+> >  void acpi_nfit_desc_init(struct acpi_nfit_desc *acpi_desc, struct device *dev)
+> >  {
+> >         struct nvdimm_bus_descriptor *nd_desc;
+> > @@ -2616,6 +2704,9 @@ static int acpi_nfit_remove(struct acpi_device *adev)
+> >         acpi_desc->cancel = 1;
+> >         flush_workqueue(nfit_wq);
+> >         nvdimm_bus_unregister(acpi_desc->nvdimm_bus);
+> > +       mutex_lock(&acpi_desc_lock);
+> > +       list_del(&acpi_desc->list);
+> > +       mutex_unlock(&acpi_desc_lock);
+> >         return 0;
+> >  }
+> >
+> > @@ -2725,13 +2816,24 @@ static __init int nfit_init(void)
+> >         if (!nfit_wq)
+> >                 return -ENOMEM;
+> >
+> > +       INIT_LIST_HEAD(&acpi_descs);
+> > +       mce_register_decode_chain(&nfit_mce_dec);
+> > +
+> >         return acpi_bus_register_driver(&acpi_nfit_driver);
+> >  }
+> >
+> >  static __exit void nfit_exit(void)
+> >  {
+> > +       struct acpi_nfit_desc *acpi_desc, *next;
+> > +
+> > +       mce_unregister_decode_chain(&nfit_mce_dec);
+> >         acpi_bus_unregister_driver(&acpi_nfit_driver);
+> >         destroy_workqueue(nfit_wq);
+> > +       mutex_lock(&acpi_desc_lock);
+> > +       if (list_empty(&acpi_descs))
+> > +               list_for_each_entry_safe(acpi_desc, next, &acpi_descs, list)
+> > +                       list_del(&acpi_desc->list);
+> 
+> We should WARN here, since there should be no way, outside of a bug,
+> that 'acpi_descs' is still populated after
+> acpi_bus_unregister_driver().
 
-Since multiple processors affect the idle state for any non-leaf hierarchy
-node, coordination of idle state requests between the processors is
-required. ACPI supports two different coordination schemes: Platform
-coordinated and  OS initiated.
+Agreed, also just spotted another bug - it should've been
+if (!list_empty()) ...
 
-This patch adds initial support for Platform coordination scheme of LPI.
+> 
+> > +       mutex_unlock(&acpi_desc_lock);
+> >  }
+> >
+> >  module_init(nfit_init);
+> > diff --git a/drivers/acpi/nfit.h b/drivers/acpi/nfit.h
+> > index db95c5d..cf4d42d 100644
+> > --- a/drivers/acpi/nfit.h
+> > +++ b/drivers/acpi/nfit.h
+> > @@ -147,6 +147,7 @@ struct acpi_nfit_desc {
+> >         struct nd_cmd_ars_status *ars_status;
+> >         size_t ars_status_size;
+> >         struct work_struct work;
+> > +       struct list_head list;
+> >         unsigned int cancel:1;
+> >         unsigned long dimm_cmd_force_en;
+> >         unsigned long bus_cmd_force_en;
+> 
+> Outside of the minor comments above, this looks good to me.
 
-Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Signed-off-by: Sudeep Holla <sudeep.holla@arm.com>
----
- drivers/acpi/bus.c              |  14 +-
- drivers/acpi/processor_driver.c |   2 +-
- drivers/acpi/processor_idle.c   | 462 +++++++++++++++++++++++++++++++++++-----
- include/acpi/processor.h        |  24 ++-
- include/linux/acpi.h            |   4 +
- 5 files changed, 446 insertions(+), 60 deletions(-)
-
-diff --git a/drivers/acpi/bus.c b/drivers/acpi/bus.c
-index 262ca31b86d9..80ebb05e387c 100644
---- a/drivers/acpi/bus.c
-+++ b/drivers/acpi/bus.c
-@@ -302,6 +302,14 @@ acpi_status acpi_run_osc(acpi_handle handle, struct acpi_osc_context *context)
- EXPORT_SYMBOL(acpi_run_osc);
- 
- bool osc_sb_apei_support_acked;
-+
-+/*
-+ * ACPI 6.0 Section 8.4.4.2 Idle State Coordination
-+ * OSPM supports platform coordinated low power idle(LPI) states
-+ */
-+bool osc_pc_lpi_support_confirmed;
-+EXPORT_SYMBOL_GPL(osc_pc_lpi_support_confirmed);
-+
- static u8 sb_uuid_str[] = "0811B06E-4A27-44F9-8D60-3CBBC22E7B48";
- static void acpi_bus_osc_support(void)
- {
-@@ -322,6 +330,7 @@ static void acpi_bus_osc_support(void)
- 		capbuf[OSC_SUPPORT_DWORD] |= OSC_SB_PPC_OST_SUPPORT;
- 
- 	capbuf[OSC_SUPPORT_DWORD] |= OSC_SB_HOTPLUG_OST_SUPPORT;
-+	capbuf[OSC_SUPPORT_DWORD] |= OSC_SB_PCLPI_SUPPORT;
- 
- 	if (!ghes_disable)
- 		capbuf[OSC_SUPPORT_DWORD] |= OSC_SB_APEI_SUPPORT;
-@@ -329,9 +338,12 @@ static void acpi_bus_osc_support(void)
- 		return;
- 	if (ACPI_SUCCESS(acpi_run_osc(handle, &context))) {
- 		u32 *capbuf_ret = context.ret.pointer;
--		if (context.ret.length > OSC_SUPPORT_DWORD)
-+		if (context.ret.length > OSC_SUPPORT_DWORD) {
- 			osc_sb_apei_support_acked =
- 				capbuf_ret[OSC_SUPPORT_DWORD] & OSC_SB_APEI_SUPPORT;
-+			osc_pc_lpi_support_confirmed =
-+				capbuf_ret[OSC_SUPPORT_DWORD] & OSC_SB_PCLPI_SUPPORT;
-+		}
- 		kfree(context.ret.pointer);
- 	}
- 	/* do we need to check other returned cap? Sounds no */
-diff --git a/drivers/acpi/processor_driver.c b/drivers/acpi/processor_driver.c
-index d2fa8cb82d2b..0ca14ac7bb28 100644
---- a/drivers/acpi/processor_driver.c
-+++ b/drivers/acpi/processor_driver.c
-@@ -90,7 +90,7 @@ static void acpi_processor_notify(acpi_handle handle, u32 event, void *data)
- 						  pr->performance_platform_limit);
- 		break;
- 	case ACPI_PROCESSOR_NOTIFY_POWER:
--		acpi_processor_cst_has_changed(pr);
-+		acpi_processor_power_state_has_changed(pr);
- 		acpi_bus_generate_netlink_event(device->pnp.device_class,
- 						  dev_name(&device->dev), event, 0);
- 		break;
-diff --git a/drivers/acpi/processor_idle.c b/drivers/acpi/processor_idle.c
-index ca0de35d1c3a..fced1df535bd 100644
---- a/drivers/acpi/processor_idle.c
-+++ b/drivers/acpi/processor_idle.c
-@@ -303,7 +303,6 @@ static int acpi_processor_get_power_info_cst(struct acpi_processor *pr)
- 	struct acpi_buffer buffer = { ACPI_ALLOCATE_BUFFER, NULL };
- 	union acpi_object *cst;
- 
--
- 	if (nocst)
- 		return -ENODEV;
- 
-@@ -576,7 +575,7 @@ static int acpi_processor_power_verify(struct acpi_processor *pr)
- 	return (working);
- }
- 
--static int acpi_processor_get_power_info(struct acpi_processor *pr)
-+static int acpi_processor_get_cstate_info(struct acpi_processor *pr)
- {
- 	unsigned int i;
- 	int result;
-@@ -810,31 +809,12 @@ static void acpi_idle_enter_freeze(struct cpuidle_device *dev,
- 	acpi_idle_do_entry(cx);
- }
- 
--/**
-- * acpi_processor_setup_cpuidle_cx - prepares and configures CPUIDLE
-- * device i.e. per-cpu data
-- *
-- * @pr: the ACPI processor
-- * @dev : the cpuidle device
-- */
- static int acpi_processor_setup_cpuidle_cx(struct acpi_processor *pr,
- 					   struct cpuidle_device *dev)
- {
- 	int i, count = CPUIDLE_DRIVER_STATE_START;
- 	struct acpi_processor_cx *cx;
- 
--	if (!pr->flags.power_setup_done)
--		return -EINVAL;
--
--	if (pr->flags.power == 0) {
--		return -EINVAL;
--	}
--
--	if (!dev)
--		return -EINVAL;
--
--	dev->cpu = pr->id;
--
- 	if (max_cstate == 0)
- 		max_cstate = 1;
- 
-@@ -857,31 +837,13 @@ static int acpi_processor_setup_cpuidle_cx(struct acpi_processor *pr,
- 	return 0;
- }
- 
--/**
-- * acpi_processor_setup_cpuidle states- prepares and configures cpuidle
-- * global state data i.e. idle routines
-- *
-- * @pr: the ACPI processor
-- */
--static int acpi_processor_setup_cpuidle_states(struct acpi_processor *pr)
-+static int acpi_processor_setup_cstates(struct acpi_processor *pr)
- {
- 	int i, count = CPUIDLE_DRIVER_STATE_START;
- 	struct acpi_processor_cx *cx;
- 	struct cpuidle_state *state;
- 	struct cpuidle_driver *drv = &acpi_idle_driver;
- 
--	if (!pr->flags.power_setup_done)
--		return -EINVAL;
--
--	if (pr->flags.power == 0)
--		return -EINVAL;
--
--	drv->safe_state_index = -1;
--	for (i = CPUIDLE_DRIVER_STATE_START; i < CPUIDLE_STATE_MAX; i++) {
--		drv->states[i].name[0] = '\0';
--		drv->states[i].desc[0] = '\0';
--	}
--
- 	if (max_cstate == 0)
- 		max_cstate = 1;
- 
-@@ -893,7 +855,7 @@ static int acpi_processor_setup_cpuidle_states(struct acpi_processor *pr)
- 
- 		state = &drv->states[count];
- 		snprintf(state->name, CPUIDLE_NAME_LEN, "C%d", i);
--		strncpy(state->desc, cx->desc, CPUIDLE_DESC_LEN);
-+		strlcpy(state->desc, cx->desc, CPUIDLE_DESC_LEN);
- 		state->exit_latency = cx->latency;
- 		state->target_residency = cx->latency * latency_factor;
- 		state->enter = acpi_idle_enter;
-@@ -952,7 +914,7 @@ static inline void acpi_processor_cstate_first_run_checks(void)
- 
- static inline int disabled_by_idle_boot_param(void) { return 0; }
- static inline void acpi_processor_cstate_first_run_checks(void) { }
--static int acpi_processor_get_power_info(struct acpi_processor *pr)
-+static int acpi_processor_get_cstate_info(struct acpi_processor *pr)
- {
- 	return -ENODEV;
- }
-@@ -963,13 +925,409 @@ static int acpi_processor_setup_cpuidle_cx(struct acpi_processor *pr,
- 	return -EINVAL;
- }
- 
--static int acpi_processor_setup_cpuidle_states(struct acpi_processor *pr)
-+static int acpi_processor_setup_cstates(struct acpi_processor *pr)
- {
- 	return -EINVAL;
- }
- 
- #endif /* CONFIG_ACPI_PROCESSOR_CSTATE */
- 
-+struct acpi_lpi_states_array {
-+	unsigned int size;
-+	unsigned int composite_states_size;
-+	struct acpi_lpi_state *entries;
-+	struct acpi_lpi_state *composite_states[ACPI_PROCESSOR_MAX_POWER];
-+};
-+
-+static int obj_get_integer(union acpi_object *obj, u32 *value)
-+{
-+	if (obj->type != ACPI_TYPE_INTEGER)
-+		return -EINVAL;
-+
-+	*value = obj->integer.value;
-+	return 0;
-+}
-+
-+static int acpi_processor_evaluate_lpi(acpi_handle handle,
-+				       struct acpi_lpi_states_array *info)
-+{
-+	acpi_status status;
-+	int ret = 0;
-+	int pkg_count, state_idx = 1, loop;
-+	struct acpi_buffer buffer = { ACPI_ALLOCATE_BUFFER, NULL };
-+	union acpi_object *lpi_data;
-+	struct acpi_lpi_state *lpi_state;
-+
-+	status = acpi_evaluate_object(handle, "_LPI", NULL, &buffer);
-+	if (ACPI_FAILURE(status)) {
-+		ACPI_DEBUG_PRINT((ACPI_DB_INFO, "No _LPI, giving up\n"));
-+		return -ENODEV;
-+	}
-+
-+	lpi_data = buffer.pointer;
-+
-+	/* There must be at least 4 elements = 3 elements + 1 package */
-+	if (!lpi_data || lpi_data->type != ACPI_TYPE_PACKAGE ||
-+	    lpi_data->package.count < 4) {
-+		pr_debug("not enough elements in _LPI\n");
-+		ret = -ENODATA;
-+		goto end;
-+	}
-+
-+	pkg_count = lpi_data->package.elements[2].integer.value;
-+
-+	/* Validate number of power states. */
-+	if (pkg_count < 1 || pkg_count != lpi_data->package.count - 3) {
-+		pr_debug("count given by _LPI is not valid\n");
-+		ret = -ENODATA;
-+		goto end;
-+	}
-+
-+	lpi_state = kcalloc(pkg_count, sizeof(*lpi_state), GFP_KERNEL);
-+	if (!lpi_state) {
-+		ret = -ENOMEM;
-+		goto end;
-+	}
-+
-+	info->size = pkg_count;
-+	info->entries = lpi_state;
-+
-+	/* LPI States start at index 3 */
-+	for (loop = 3; state_idx <= pkg_count; loop++, state_idx++, lpi_state++) {
-+		union acpi_object *element, *pkg_elem, *obj;
-+
-+		element = &lpi_data->package.elements[loop];
-+		if (element->type != ACPI_TYPE_PACKAGE || element->package.count < 7)
-+			continue;
-+
-+		pkg_elem = element->package.elements;
-+
-+		obj = pkg_elem + 6;
-+		if (obj->type == ACPI_TYPE_BUFFER) {
-+			struct acpi_power_register *reg;
-+
-+			reg = (struct acpi_power_register *)obj->buffer.pointer;
-+			if (reg->space_id != ACPI_ADR_SPACE_SYSTEM_IO &&
-+			    reg->space_id != ACPI_ADR_SPACE_FIXED_HARDWARE)
-+				continue;
-+
-+			lpi_state->address = reg->address;
-+			lpi_state->entry_method =
-+				reg->space_id == ACPI_ADR_SPACE_FIXED_HARDWARE ?
-+				ACPI_CSTATE_FFH : ACPI_CSTATE_SYSTEMIO;
-+		} else if (obj->type == ACPI_TYPE_INTEGER) {
-+			lpi_state->entry_method = ACPI_CSTATE_INTEGER;
-+			lpi_state->address = obj->integer.value;
-+		} else {
-+			continue;
-+		}
-+
-+		/* elements[7,8] skipped for now i.e. Residency/Usage counter*/
-+
-+		obj = pkg_elem + 9;
-+		if (obj->type == ACPI_TYPE_STRING)
-+			strlcpy(lpi_state->desc, obj->string.pointer,
-+				ACPI_CX_DESC_LEN);
-+
-+		lpi_state->index = state_idx;
-+		if (obj_get_integer(pkg_elem + 0, &lpi_state->min_residency)) {
-+			pr_debug("No min. residency found, assuming 10 us\n");
-+			lpi_state->min_residency = 10;
-+		}
-+
-+		if (obj_get_integer(pkg_elem + 1, &lpi_state->wake_latency)) {
-+			pr_debug("No wakeup residency found, assuming 10 us\n");
-+			lpi_state->wake_latency = 10;
-+		}
-+
-+		if (obj_get_integer(pkg_elem + 2, &lpi_state->flags))
-+			lpi_state->flags = 0;
-+
-+		if (obj_get_integer(pkg_elem + 3, &lpi_state->arch_flags))
-+			lpi_state->arch_flags = 0;
-+
-+		if (obj_get_integer(pkg_elem + 4, &lpi_state->res_cnt_freq))
-+			lpi_state->res_cnt_freq = 1;
-+
-+		if (obj_get_integer(pkg_elem + 5, &lpi_state->enable_parent_state))
-+			lpi_state->enable_parent_state = 0;
-+	}
-+
-+	acpi_handle_debug(handle, "Found %d power states\n", state_idx);
-+end:
-+	kfree(buffer.pointer);
-+	return ret;
-+}
-+
-+/*
-+ * flat_state_cnt - the number of composite LPI states after the process of flattening
-+ */
-+static int flat_state_cnt;
-+
-+/**
-+ * combine_lpi_states - combine local and parent LPI states to form a composite LPI state
-+ *
-+ * @local: local LPI state
-+ * @parent: parent LPI state
-+ * @result: composite LPI state
-+ */
-+static bool combine_lpi_states(struct acpi_lpi_state *local,
-+			       struct acpi_lpi_state *parent,
-+			       struct acpi_lpi_state *result)
-+{
-+	if (parent->entry_method == ACPI_CSTATE_INTEGER) {
-+		if (!parent->address) /* 0 means autopromotable */
-+			return false;
-+		result->address = local->address + parent->address;
-+	} else {
-+		result->address = parent->address;
-+	}
-+
-+	result->min_residency = max(local->min_residency, parent->min_residency);
-+	result->wake_latency = local->wake_latency + parent->wake_latency;
-+	result->enable_parent_state = parent->enable_parent_state;
-+	result->entry_method = local->entry_method;
-+
-+	result->flags = parent->flags;
-+	result->arch_flags = parent->arch_flags;
-+	result->index = parent->index;
-+
-+	strlcpy(result->desc, local->desc, ACPI_CX_DESC_LEN);
-+	strlcat(result->desc, "+", ACPI_CX_DESC_LEN);
-+	strlcat(result->desc, parent->desc, ACPI_CX_DESC_LEN);
-+	return true;
-+}
-+
-+#define ACPI_LPI_STATE_FLAGS_ENABLED			BIT(0)
-+
-+static void stash_composite_state(struct acpi_lpi_states_array *curr_level,
-+				  struct acpi_lpi_state *t)
-+{
-+	curr_level->composite_states[curr_level->composite_states_size++] = t;
-+}
-+
-+static int flatten_lpi_states(struct acpi_processor *pr,
-+			      struct acpi_lpi_states_array *curr_level,
-+			      struct acpi_lpi_states_array *prev_level)
-+{
-+	int i, j, state_count = curr_level->size;
-+	struct acpi_lpi_state *p, *t = curr_level->entries;
-+
-+	curr_level->composite_states_size = 0;
-+	for (j = 0; j < state_count; j++, t++) {
-+		struct acpi_lpi_state *flpi;
-+
-+		if (!(t->flags & ACPI_LPI_STATE_FLAGS_ENABLED))
-+			continue;
-+
-+		if (flat_state_cnt >= ACPI_PROCESSOR_MAX_POWER) {
-+			pr_warn("Limiting number of LPI states to max (%d)\n",
-+				ACPI_PROCESSOR_MAX_POWER);
-+			pr_warn("Please increase ACPI_PROCESSOR_MAX_POWER if needed.\n");
-+			break;
-+		}
-+
-+		flpi = &pr->power.lpi_states[flat_state_cnt];
-+
-+		if (!prev_level) { /* leaf/processor node */
-+			memcpy(flpi, t, sizeof(*t));
-+			stash_composite_state(curr_level, flpi);
-+			flat_state_cnt++;
-+			continue;
-+		}
-+
-+		for (i = 0; i < prev_level->composite_states_size; i++) {
-+			p = prev_level->composite_states[i];
-+			if (t->index <= p->enable_parent_state &&
-+			    combine_lpi_states(p, t, flpi)) {
-+				stash_composite_state(curr_level, flpi);
-+				flat_state_cnt++;
-+			}
-+		}
-+	}
-+
-+	kfree(curr_level->entries);
-+	return 0;
-+}
-+
-+static int acpi_processor_get_lpi_info(struct acpi_processor *pr)
-+{
-+	int ret, i;
-+	acpi_status status;
-+	acpi_handle handle = pr->handle, pr_ahandle;
-+	struct acpi_device *d = NULL;
-+	struct acpi_lpi_states_array info[2], *tmp, *prev, *curr;
-+
-+	if (!osc_pc_lpi_support_confirmed)
-+		return -EOPNOTSUPP;
-+
-+	if (!acpi_has_method(handle, "_LPI"))
-+		return -EINVAL;
-+
-+	flat_state_cnt = 0;
-+	prev = &info[0];
-+	curr = &info[1];
-+	handle = pr->handle;
-+	ret = acpi_processor_evaluate_lpi(handle, prev);
-+	if (ret)
-+		return ret;
-+	flatten_lpi_states(pr, prev, NULL);
-+
-+	while (ACPI_SUCCESS(status = acpi_get_parent(handle, &pr_ahandle))) {
-+		acpi_bus_get_device(pr_ahandle, &d);
-+		handle = pr_ahandle;
-+
-+		if (strcmp(acpi_device_hid(d), ACPI_PROCESSOR_CONTAINER_HID))
-+			break;
-+
-+		/* can be optional ? */
-+		if (!acpi_has_method(handle, "_LPI"))
-+			break;
-+
-+		ret = acpi_processor_evaluate_lpi(handle, curr);
-+		if (ret)
-+			break;
-+
-+		/* flatten all the LPI states in this level of hierarchy */
-+		flatten_lpi_states(pr, curr, prev);
-+
-+		tmp = prev, prev = curr, curr = tmp;
-+	}
-+
-+	pr->power.count = flat_state_cnt;
-+	/* reset the index after flattening */
-+	for (i = 0; i < pr->power.count; i++)
-+		pr->power.lpi_states[i].index = i;
-+
-+	/* Tell driver that _LPI is supported. */
-+	pr->flags.has_lpi = 1;
-+	pr->flags.power = 1;
-+
-+	return 0;
-+}
-+
-+int __weak acpi_processor_ffh_lpi_probe(unsigned int cpu)
-+{
-+	return -ENODEV;
-+}
-+
-+int __weak acpi_processor_ffh_lpi_enter(struct acpi_lpi_state *lpi)
-+{
-+	return -ENODEV;
-+}
-+
-+/**
-+ * acpi_idle_lpi_enter - enters an ACPI any LPI state
-+ * @dev: the target CPU
-+ * @drv: cpuidle driver containing cpuidle state info
-+ * @index: index of target state
-+ *
-+ * Return: 0 for success or negative value for error
-+ */
-+static int acpi_idle_lpi_enter(struct cpuidle_device *dev,
-+			       struct cpuidle_driver *drv, int index)
-+{
-+	struct acpi_processor *pr;
-+	struct acpi_lpi_state *lpi;
-+
-+	pr = __this_cpu_read(processors);
-+
-+	if (unlikely(!pr))
-+		return -EINVAL;
-+
-+	lpi = &pr->power.lpi_states[index];
-+	if (lpi->entry_method == ACPI_CSTATE_FFH)
-+		return acpi_processor_ffh_lpi_enter(lpi);
-+
-+	return -EINVAL;
-+}
-+
-+static int acpi_processor_setup_lpi_states(struct acpi_processor *pr)
-+{
-+	int i;
-+	struct acpi_lpi_state *lpi;
-+	struct cpuidle_state *state;
-+	struct cpuidle_driver *drv = &acpi_idle_driver;
-+
-+	if (!pr->flags.has_lpi)
-+		return -EOPNOTSUPP;
-+
-+	for (i = 0; i < pr->power.count && i < CPUIDLE_STATE_MAX; i++) {
-+		lpi = &pr->power.lpi_states[i];
-+
-+		state = &drv->states[i];
-+		snprintf(state->name, CPUIDLE_NAME_LEN, "LPI-%d", i);
-+		strlcpy(state->desc, lpi->desc, CPUIDLE_DESC_LEN);
-+		state->exit_latency = lpi->wake_latency;
-+		state->target_residency = lpi->min_residency;
-+		if (lpi->arch_flags)
-+			state->flags |= CPUIDLE_FLAG_TIMER_STOP;
-+		state->enter = acpi_idle_lpi_enter;
-+		drv->safe_state_index = i;
-+	}
-+
-+	drv->state_count = i;
-+
-+	return 0;
-+}
-+
-+/**
-+ * acpi_processor_setup_cpuidle_states- prepares and configures cpuidle
-+ * global state data i.e. idle routines
-+ *
-+ * @pr: the ACPI processor
-+ */
-+static int acpi_processor_setup_cpuidle_states(struct acpi_processor *pr)
-+{
-+	int i;
-+	struct cpuidle_driver *drv = &acpi_idle_driver;
-+
-+	if (!pr->flags.power_setup_done || !pr->flags.power)
-+		return -EINVAL;
-+
-+	drv->safe_state_index = -1;
-+	for (i = CPUIDLE_DRIVER_STATE_START; i < CPUIDLE_STATE_MAX; i++) {
-+		drv->states[i].name[0] = '\0';
-+		drv->states[i].desc[0] = '\0';
-+	}
-+
-+	if (pr->flags.has_lpi)
-+		return acpi_processor_setup_lpi_states(pr);
-+
-+	return acpi_processor_setup_cstates(pr);
-+}
-+
-+/**
-+ * acpi_processor_setup_cpuidle_dev - prepares and configures CPUIDLE
-+ * device i.e. per-cpu data
-+ *
-+ * @pr: the ACPI processor
-+ * @dev : the cpuidle device
-+ */
-+static int acpi_processor_setup_cpuidle_dev(struct acpi_processor *pr,
-+					    struct cpuidle_device *dev)
-+{
-+	if (!pr->flags.power_setup_done || !pr->flags.power || !dev)
-+		return -EINVAL;
-+
-+	dev->cpu = pr->id;
-+	if (pr->flags.has_lpi)
-+		return acpi_processor_ffh_lpi_probe(pr->id);
-+
-+	return acpi_processor_setup_cpuidle_cx(pr, dev);
-+}
-+
-+static int acpi_processor_get_power_info(struct acpi_processor *pr)
-+{
-+	int ret;
-+
-+	ret = acpi_processor_get_lpi_info(pr);
-+	if (ret)
-+		ret = acpi_processor_get_cstate_info(pr);
-+
-+	return ret;
-+}
-+
- int acpi_processor_hotplug(struct acpi_processor *pr)
- {
- 	int ret = 0;
-@@ -978,18 +1336,15 @@ int acpi_processor_hotplug(struct acpi_processor *pr)
- 	if (disabled_by_idle_boot_param())
- 		return 0;
- 
--	if (nocst)
--		return -ENODEV;
--
- 	if (!pr->flags.power_setup_done)
- 		return -ENODEV;
- 
- 	dev = per_cpu(acpi_cpuidle_device, pr->id);
- 	cpuidle_pause_and_lock();
- 	cpuidle_disable_device(dev);
--	acpi_processor_get_power_info(pr);
--	if (pr->flags.power) {
--		acpi_processor_setup_cpuidle_cx(pr, dev);
-+	ret = acpi_processor_get_power_info(pr);
-+	if (!ret && pr->flags.power) {
-+		acpi_processor_setup_cpuidle_dev(pr, dev);
- 		ret = cpuidle_enable_device(dev);
- 	}
- 	cpuidle_resume_and_unlock();
-@@ -997,7 +1352,7 @@ int acpi_processor_hotplug(struct acpi_processor *pr)
- 	return ret;
- }
- 
--int acpi_processor_cst_has_changed(struct acpi_processor *pr)
-+int acpi_processor_power_state_has_changed(struct acpi_processor *pr)
- {
- 	int cpu;
- 	struct acpi_processor *_pr;
-@@ -1006,9 +1361,6 @@ int acpi_processor_cst_has_changed(struct acpi_processor *pr)
- 	if (disabled_by_idle_boot_param())
- 		return 0;
- 
--	if (nocst)
--		return -ENODEV;
--
- 	if (!pr->flags.power_setup_done)
- 		return -ENODEV;
- 
-@@ -1045,7 +1397,7 @@ int acpi_processor_cst_has_changed(struct acpi_processor *pr)
- 			acpi_processor_get_power_info(_pr);
- 			if (_pr->flags.power) {
- 				dev = per_cpu(acpi_cpuidle_device, cpu);
--				acpi_processor_setup_cpuidle_cx(_pr, dev);
-+				acpi_processor_setup_cpuidle_dev(_pr, dev);
- 				cpuidle_enable_device(dev);
- 			}
- 		}
-@@ -1092,7 +1444,7 @@ int acpi_processor_power_init(struct acpi_processor *pr)
- 			return -ENOMEM;
- 		per_cpu(acpi_cpuidle_device, pr->id) = dev;
- 
--		acpi_processor_setup_cpuidle_cx(pr, dev);
-+		acpi_processor_setup_cpuidle_dev(pr, dev);
- 
- 		/* Register per-cpu cpuidle_device. Cpuidle driver
- 		 * must already be registered before registering device
-diff --git a/include/acpi/processor.h b/include/acpi/processor.h
-index 48779d678122..e2dcb0c51554 100644
---- a/include/acpi/processor.h
-+++ b/include/acpi/processor.h
-@@ -39,6 +39,7 @@
- #define ACPI_CSTATE_SYSTEMIO	0
- #define ACPI_CSTATE_FFH		1
- #define ACPI_CSTATE_HALT	2
-+#define ACPI_CSTATE_INTEGER	3
- 
- #define ACPI_CX_DESC_LEN	32
- 
-@@ -67,9 +68,25 @@ struct acpi_processor_cx {
- 	char desc[ACPI_CX_DESC_LEN];
- };
- 
-+struct acpi_lpi_state {
-+	u32 min_residency;
-+	u32 wake_latency; /* worst case */
-+	u32 flags;
-+	u32 arch_flags;
-+	u32 res_cnt_freq;
-+	u32 enable_parent_state;
-+	u64 address;
-+	u8 index;
-+	u8 entry_method;
-+	char desc[ACPI_CX_DESC_LEN];
-+};
-+
- struct acpi_processor_power {
- 	int count;
--	struct acpi_processor_cx states[ACPI_PROCESSOR_MAX_POWER];
-+	union {
-+		struct acpi_processor_cx states[ACPI_PROCESSOR_MAX_POWER];
-+		struct acpi_lpi_state lpi_states[ACPI_PROCESSOR_MAX_POWER];
-+	};
- 	int timer_broadcast_on_state;
- };
- 
-@@ -189,6 +206,7 @@ struct acpi_processor_flags {
- 	u8 bm_control:1;
- 	u8 bm_check:1;
- 	u8 has_cst:1;
-+	u8 has_lpi:1;
- 	u8 power_setup_done:1;
- 	u8 bm_rld_set:1;
- 	u8 need_hotplug_init:1;
-@@ -371,7 +389,7 @@ extern struct cpuidle_driver acpi_idle_driver;
- #ifdef CONFIG_ACPI_PROCESSOR_IDLE
- int acpi_processor_power_init(struct acpi_processor *pr);
- int acpi_processor_power_exit(struct acpi_processor *pr);
--int acpi_processor_cst_has_changed(struct acpi_processor *pr);
-+int acpi_processor_power_state_has_changed(struct acpi_processor *pr);
- int acpi_processor_hotplug(struct acpi_processor *pr);
- #else
- static inline int acpi_processor_power_init(struct acpi_processor *pr)
-@@ -384,7 +402,7 @@ static inline int acpi_processor_power_exit(struct acpi_processor *pr)
- 	return -ENODEV;
- }
- 
--static inline int acpi_processor_cst_has_changed(struct acpi_processor *pr)
-+static inline int acpi_processor_power_state_has_changed(struct acpi_processor *pr)
- {
- 	return -ENODEV;
- }
-diff --git a/include/linux/acpi.h b/include/linux/acpi.h
-index 288fac5294f5..65754566ae17 100644
---- a/include/linux/acpi.h
-+++ b/include/linux/acpi.h
-@@ -444,8 +444,12 @@ acpi_status acpi_run_osc(acpi_handle handle, struct acpi_osc_context *context);
- #define OSC_SB_HOTPLUG_OST_SUPPORT		0x00000008
- #define OSC_SB_APEI_SUPPORT			0x00000010
- #define OSC_SB_CPC_SUPPORT			0x00000020
-+#define OSC_SB_CPCV2_SUPPORT			0x00000040
-+#define OSC_SB_PCLPI_SUPPORT			0x00000080
-+#define OSC_SB_OSLPI_SUPPORT			0x00000100
- 
- extern bool osc_sb_apei_support_acked;
-+extern bool osc_pc_lpi_support_confirmed;
- 
- /* PCI Host Bridge _OSC: Capabilities DWORD 2: Support Field */
- #define OSC_PCI_EXT_CONFIG_SUPPORT		0x00000001
--- 
-2.7.4
+Ok, I'll fix these up and resend. Thanks!
