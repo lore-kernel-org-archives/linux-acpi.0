@@ -1,223 +1,127 @@
-From: Vishal Verma <vishal.l.verma-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH 2/3] nfit, libnvdimm: allow an ARS rescan to be triggered
- on demand
-Date: Tue, 19 Jul 2016 11:45:41 -0600
-Message-ID: <20160719174540.GC12960@omniknight.lm.intel.com>
-References: <1468889100-30698-1-git-send-email-vishal.l.verma@intel.com>
- <1468889100-30698-3-git-send-email-vishal.l.verma@intel.com>
- <CAPcyv4guVe2Mm_EaBMMRqpfCahR_E0xbhtE30VoDAb+sqvK=AQ@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <CAPcyv4guVe2Mm_EaBMMRqpfCahR_E0xbhtE30VoDAb+sqvK=AQ-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
-List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
- <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
-List-Post: <mailto:linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-List-Help: <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
- <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
-Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
-Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-To: Dan Williams <dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: Linux ACPI <linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "Rafael J. Wysocki" <rafael.j.wysocki-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Tony Luck <tony.luck-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org" <linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+From: Sudeep Holla <sudeep.holla@arm.com>
+Subject: [PATCH v10 0/7] ACPI / processor_idle: Add ACPI v6.0 LPI support
+Date: Tue, 19 Jul 2016 18:52:52 +0100
+Message-ID: <1468950779-21745-1-git-send-email-sudeep.holla@arm.com>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from foss.arm.com ([217.140.101.70]:37445 "EHLO foss.arm.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753075AbcGSRxh (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 19 Jul 2016 13:53:37 -0400
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: ACPI List <linux-acpi@vger.kernel.org>, "Rafael J . Wysocki" <rjw@rjwysocki.net>
+Cc: Sudeep Holla <sudeep.holla@arm.com>, Vikas Sajjan <vikas.cha.sajjan@hpe.com>, Sunil <sunil.vl@hpe.com>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, PrashanthPrakash <pprakash@codeaurora.org>, Al Stone <al.stone@linaro.org>, Ashwin Chaugule <ashwin.chaugule@linaro.org>, Daniel Lezcano <daniel.lezcano@linaro.org>, LKML <linux-kernel@vger.kernel.org>, ALKML <linux-arm-kernel@lists.infradead.org>
 
-On 07/19, Dan Williams wrote:
-> On Mon, Jul 18, 2016 at 5:44 PM, Vishal Verma <vishal.l.verma-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org> wrote:
-> > Normally, an ARS (Address Range Scrub) only happens at
-> > boot/initialization time. There can however arise situations where a
-> > bus-wide rescan is needed - notably, in the case of discovering a latent
-> > media error, we should do a full rescan to figure out what other sectors
-> > are bad, and thus potentially avoid triggering an mce on them in the
-> > future. Also provide a sysfs trigger to start a bus-wide rescan.
-> >
-> > Cc: Dan Williams <dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-> > Cc: Rafael J. Wysocki <rafael.j.wysocki-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-> > Cc: <linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-> > Cc: <linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-> > Signed-off-by: Vishal Verma <vishal.l.verma-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-> > ---
-> >  drivers/acpi/nfit.c       | 36 ++++++++++++++++++++++++++++++++----
-> >  drivers/acpi/nfit.h       |  1 +
-> >  drivers/nvdimm/core.c     | 17 +++++++++++++++++
-> >  include/linux/libnvdimm.h |  1 +
-> >  4 files changed, 51 insertions(+), 4 deletions(-)
-> >
-> > diff --git a/drivers/acpi/nfit.c b/drivers/acpi/nfit.c
-> > index ac6ddcc0..def9505 100644
-> > --- a/drivers/acpi/nfit.c
-> > +++ b/drivers/acpi/nfit.c
-> > @@ -2138,8 +2138,9 @@ static void acpi_nfit_async_scrub(struct acpi_nfit_desc *acpi_desc,
-> >         unsigned int tmo = scrub_timeout;
-> >         int rc;
-> >
-> > -       if (nfit_spa->ars_done || !nfit_spa->nd_region)
-> > -               return;
-> > +       if (!nfit_spa->ars_rescan)
-> > +               if (nfit_spa->ars_done || !nfit_spa->nd_region)
-> > +                       return;
-> 
-> Do we need a new flag? Why not just clear ->ars_done?
+ACPI 6.0 introduced LPI(Low Power Idle) states that provides an alternate
+method to describe processor idle states. It extends the specification
+to allow the expression of idle states like C-states selectable by the
+OSPM when a processor goes idle, but may affect more than one processor,
+and may affect other system components.
 
-This is what I had started out with - clearing the done flag, but the
-done flag gets set at the end of acpi_nfit_scrub if a region has been
-registered for that SPA. In the rescan case, we'll almost always have
-our regions registered, so the done flag will get set here, and
-acpi_nfit_async_scrub won't look at it at all..
+LPI extensions leverages the processor container device(again introduced
+in ACPI 6.0) allowing to express which parts of the system are affected
+by a given LPI state. It defines the local power states for each node
+in a hierarchical processor topology. The OSPM can use _LPI object to
+select a local power state for each level of processor hierarchy in the
+system. They used to produce a composite power state request that is
+presented to the platform by the OSPM.
 
-> 
-> >
-> >         rc = ars_start(acpi_desc, nfit_spa);
-> >         /*
-> > @@ -2227,7 +2228,9 @@ static void acpi_nfit_scrub(struct work_struct *work)
-> >          * firmware initiated scrubs to complete and then we go search for the
-> >          * affected spa regions to mark them scanned.  In the second phase we
-> >          * initiate a directed scrub for every range that was not scrubbed in
-> > -        * phase 1.
-> > +        * phase 1. If we're called for a 'rescan', we harmlessly pass through
-> > +        * the first phase, but really only care about running phase 2, where
-> > +        * regions can be notified of new poison.
-> >          */
-> 
-> I don't think we need to distinguish the initial scan case from the
-> re-scan case in acpi_nfit_scrub().  Whether it's a scan or a re-scan
-> doesn't matter to acpi_nfit_scrub().
+Since multiple processors affect the idle state for any non-leaf hierarchy
+node, coordination of idle state requests between the processors is
+required. ACPI supports two different coordination schemes: Platform
+coordinated and  OS initiated.
 
-Right, other than the above flag, we don't really distinguish betweent
-the two. The comment was just a clarification/note that nothing
-meaningful happens in this function for the rescan case.
-> 
-> >
-> >         /* process platform firmware initiated scrubs */
-> > @@ -2336,8 +2339,10 @@ static void acpi_nfit_scrub(struct work_struct *work)
-> >                         acpi_nfit_register_region(acpi_desc, nfit_spa);
-> >         }
-> >
-> > -       list_for_each_entry(nfit_spa, &acpi_desc->spas, list)
-> > +       list_for_each_entry(nfit_spa, &acpi_desc->spas, list) {
-> >                 acpi_nfit_async_scrub(acpi_desc, nfit_spa);
-> > +               nfit_spa->ars_rescan = 0;
-> > +       }
-> >         mutex_unlock(&acpi_desc->init_mutex);
-> >  }
-> >
-> > @@ -2495,6 +2500,28 @@ static int acpi_nfit_clear_to_send(struct nvdimm_bus_descriptor *nd_desc,
-> >         return 0;
-> >  }
-> >
-> > +static int acpi_nfit_ars_rescan(struct nvdimm_bus_descriptor *nd_desc)
-> > +{
-> > +       struct acpi_nfit_desc *acpi_desc = to_acpi_nfit_desc(nd_desc);
-> > +       struct device *dev = acpi_desc->dev;
-> > +       struct nfit_spa *nfit_spa;
-> > +
-> > +       if (work_busy(&acpi_desc->work))
-> > +               return -EBUSY;
-> 
-> How does userspace figure out when the queue is not busy?  See below
-> in the notes about the ars_rescan attribute.
-> 
-> > +
-> > +       list_for_each_entry(nfit_spa, &acpi_desc->spas, list) {
-> > +               struct acpi_nfit_system_address *spa = nfit_spa->spa;
-> > +
-> > +               if (nfit_spa_type(spa) != NFIT_SPA_PM)
-> > +                       continue;
-> > +
-> > +               nfit_spa->ars_rescan = 1;
-> > +       }
-> > +       queue_work(nfit_wq, &acpi_desc->work);
-> > +       dev_info(dev, "%s: ars_rescan triggered\n", __func__);
-> > +       return 0;
-> > +}
-> > +
-> >  void acpi_nfit_desc_init(struct acpi_nfit_desc *acpi_desc, struct device *dev)
-> >  {
-> >         struct nvdimm_bus_descriptor *nd_desc;
-> > @@ -2507,6 +2534,7 @@ void acpi_nfit_desc_init(struct acpi_nfit_desc *acpi_desc, struct device *dev)
-> >         nd_desc->ndctl = acpi_nfit_ctl;
-> >         nd_desc->flush_probe = acpi_nfit_flush_probe;
-> >         nd_desc->clear_to_send = acpi_nfit_clear_to_send;
-> > +       nd_desc->ars_rescan = acpi_nfit_ars_rescan;
-> >         nd_desc->attr_groups = acpi_nfit_attribute_groups;
-> >
-> >         INIT_LIST_HEAD(&acpi_desc->spa_maps);
-> > diff --git a/drivers/acpi/nfit.h b/drivers/acpi/nfit.h
-> > index 02b9ea1..db95c5d 100644
-> > --- a/drivers/acpi/nfit.h
-> > +++ b/drivers/acpi/nfit.h
-> > @@ -78,6 +78,7 @@ struct nfit_spa {
-> >         struct list_head list;
-> >         struct nd_region *nd_region;
-> >         unsigned int ars_done:1;
-> > +       unsigned int ars_rescan:1;
-> >         u32 clear_err_unit;
-> >         u32 max_ars;
-> >  };
-> > diff --git a/drivers/nvdimm/core.c b/drivers/nvdimm/core.c
-> > index be89764..54f6fd5 100644
-> > --- a/drivers/nvdimm/core.c
-> > +++ b/drivers/nvdimm/core.c
-> > @@ -313,10 +313,27 @@ static ssize_t wait_probe_show(struct device *dev,
-> >  }
-> >  static DEVICE_ATTR_RO(wait_probe);
-> >
-> > +static ssize_t ars_rescan_store(struct device *dev,
-> > +               struct device_attribute *attr, const char *buf, size_t size)
-> > +{
-> > +       struct nvdimm_bus *nvdimm_bus = to_nvdimm_bus(dev);
-> > +       struct nvdimm_bus_descriptor *nd_desc = nvdimm_bus->nd_desc;
-> > +       int rc;
-> > +
-> > +       if (nd_desc->ars_rescan) {
-> > +               rc = nd_desc->ars_rescan(nd_desc);
-> > +               if (rc)
-> > +                       return rc;
-> > +       }
-> > +       return size;
-> > +}
-> > +static DEVICE_ATTR_WO(ars_rescan);
-> 
-> A few notes:
-> 
-> 1/ ARS is unique to the nfit driver so let's make this nfit specific,
-> i.e. add it to acpi_nfit_attribute_group.
-> 
-> 2/ Let's just call the attribute scrub and not distinguish it as "re-"
-> 
-> 3/ Userspace may want to know when scanning is complete so let's make
-> this attribute read/write and on read return a count of the number of
-> completed scans since the driver was loaded.  For notification of last
-> completion use sysfs_notify_dirent_safe() to make this scrub attribute
-> select()/poll() capable.
+This series aims at providing basic and initial support for platform
+coordinated LPI states.
 
-Ok, sounds reasonable.
+v9[9]->v10:
+	- Incorporated all the review comments from Rafael
+	- Mainly removed allocation of memory for all the levels in
+	  the hierarchy and remove the recursion in flatten_lpi_tree
+	  logic
 
-> 
-> > +
-> >  static struct attribute *nvdimm_bus_attributes[] = {
-> >         &dev_attr_commands.attr,
-> >         &dev_attr_wait_probe.attr,
-> >         &dev_attr_provider.attr,
-> > +       &dev_attr_ars_rescan.attr,
-> >         NULL,
-> >  };
-> >
-> > diff --git a/include/linux/libnvdimm.h b/include/linux/libnvdimm.h
-> > index 0c3c30c..1c6867a 100644
-> > --- a/include/linux/libnvdimm.h
-> > +++ b/include/linux/libnvdimm.h
-> > @@ -74,6 +74,7 @@ struct nvdimm_bus_descriptor {
-> >         int (*flush_probe)(struct nvdimm_bus_descriptor *nd_desc);
-> >         int (*clear_to_send)(struct nvdimm_bus_descriptor *nd_desc,
-> >                         struct nvdimm *nvdimm, unsigned int cmd);
-> > +       int (*ars_rescan)(struct nvdimm_bus_descriptor *nd_desc);
-> >  };
-> >
-> >  struct nd_cmd_desc {
-> > --
-> > 2.7.4
-> >
+v8[8]->v9:
+	- Split the psci and arm64 changes into separate patches as
+	  suggested by Lorenzo and added his ACKs
+	- Renamed CPU_IDLE_ENTER_WRAPPED to CPU_PM_CPU_IDLE_ENTER
+
+v7[7]->v8:
+	- Replaced HAVE_GENERIC_CPUIDLE_ENTER with CPU_IDLE_ENTER_WRAPPED
+	  macro, which is more cleaner and definately less confusing :)
+	  (Thanks to Rafael for the suggestion)
+
+v6[6]->v7:
+	- Removed cpuidle-arm.h and introduced HAVE_GENERIC_CPUIDLE_ENTER
+	  and move the common code to cpuidle_generic_enter{,_state}
+	- Factored out common code between psci_{dt,acpi}_cpu_init_idle
+
+v5[5]->v6:
+	- Added support for autopromotable state by not flattening them
+	- Moved arm_enter_idle_state to cpuidle-arm.h as it can be reused
+	  in ARM64 backend for ACPI LPI
+	- Other review comments(mainly for ARM64 from Lorenzo)
+	- Dropped support for skipping PM notifier as it needs to be fixed
+	  in GICv3 code(will be done separately)
+
+v4[4]->v5:
+	- Addressed all the comments from Rafael
+	- Added support for retention mode(Prashant)
+	- Handled acpi_processor_get_power_info return value correctly(Vikas)
+	- Dropped __init from arm_cpuidle_init
+	- Merged psci prepartory patch into arm64 lpi support
+
+v3[3]->v4:
+	- Dropped the preparatory patches that are merged already
+	- Added ARM64 arch specific callback implementations
+	- Addressed most of the review comments from Rafael
+
+v2[2]->v3:
+        - rebased against v4.4-rc3
+        - fixed couple of issues reported by Prashanth and review comments
+          from Ashwin
+
+v1[1]->v2[2]:
+        - Fixed support for ACPI0010 processor container
+        - moved sleep state code out of processor_idle
+
+Code is also available @[9]
+
+Regards,
+Sudeep
+
+[1] http://marc.info/?l=linux-acpi&m=143871041601132&w=2
+[2] http://marc.info/?l=linux-acpi&m=144241209800788&w=2
+[3] http://marc.info/?l=linux-acpi&m=144906557814813&w=2
+[4] http://marc.info/?l=linux-acpi&m=146106902731359&w=2
+[5] http://marc.info/?l=linux-acpi&m=146298107608349&w=2
+[6] http://marc.info/?l=linux-acpi&m=146591573516602&w=2
+[7] http://marc.info/?l=linux-acpi&m=146712226917361&w=2
+[8] http://marc.info/?l=linux-acpi&m=146791146605094&w=2
+[9] http://marc.info/?l=linux-arm-kernel&m=146799779029061&w=2
+[10] git://git.kernel.org/pub/scm/linux/kernel/git/sudeep.holla/linux.git for_review/arm64_lpi
+
+
+Sudeep Holla (7):
+  ACPI / processor_idle: introduce ACPI_PROCESSOR_CSTATE
+  ACPI / processor_idle: Add support for Low Power Idle(LPI) states
+  arm64: cpuidle: drop __init section marker to arm_cpuidle_init
+  cpuidle: introduce CPU_PM_CPU_IDLE_ENTER macro for ARM{32,64}
+  drivers: firmware: psci: initialise idle states using ACPI LPI
+  arm64: add support for ACPI Low Power Idle(LPI)
+  ACPI : enable ACPI_PROCESSOR_IDLE on ARM64
+
+ arch/arm64/kernel/cpuidle.c     |  20 +-
+ drivers/acpi/Kconfig            |   6 +-
+ drivers/acpi/bus.c              |  14 +-
+ drivers/acpi/processor_driver.c |   2 +-
+ drivers/acpi/processor_idle.c   | 538 ++++++++++++++++++++++++++++++++++------
+ drivers/cpuidle/cpuidle-arm.c   |  26 +-
+ drivers/firmware/psci.c         |  66 ++++-
+ include/acpi/processor.h        |  26 +-
+ include/linux/acpi.h            |   4 +
+ include/linux/cpuidle.h         |  18 ++
+ 10 files changed, 605 insertions(+), 115 deletions(-)
+
+-- 
+2.7.4
+
