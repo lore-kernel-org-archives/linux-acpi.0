@@ -1,177 +1,44 @@
-From: Jerry Hoemann <jerry.hoemann-ZPxbGqLxI0U@public.gmane.org>
-Subject: Re: [PATCH] acpi, nfit: fix acpi_check_dsm() vs zero functions
- implemented
-Date: Tue, 19 Jul 2016 11:11:53 -0600
-Message-ID: <20160719171153.GA121461@tevye.fc.hp.com>
-References: <146679026571.24395.11569929364936343871.stgit@dwillia2-desk3.amr.corp.intel.com>
-Reply-To: Jerry.Hoemann-ZPxbGqLxI0U@public.gmane.org
+From: "Verma, Vishal L" <vishal.l.verma@intel.com>
+Subject: Re: [PATCH 1/3] pmem: clarify a debug print in pmem_clear_poison
+Date: Tue, 19 Jul 2016 17:15:25 +0000
+Message-ID: <1468948496.30121.60.camel@intel.com>
+References: <1468889100-30698-1-git-send-email-vishal.l.verma@intel.com>
+	 <1468889100-30698-2-git-send-email-vishal.l.verma@intel.com>
+	 <CAPcyv4gpRGJLVfoC3o-rVypQtppkAKg1hObr=1EhcT3Y3g8KUw@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <146679026571.24395.11569929364936343871.stgit-p8uTFz9XbKj2zm6wflaqv1nYeNYlB/vhral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
- <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
-List-Post: <mailto:linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-List-Help: <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
- <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
-Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
-Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-To: Dan Williams <dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: Xiao Guangrong <guangrong.xiao-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org, Marvin Spinhirne <spin-ZPxbGqLxI0U@public.gmane.org>, "Rafael J. Wysocki" <rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org>, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Len Brown <lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga02.intel.com ([134.134.136.20]:4182 "EHLO mga02.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753034AbcGSRPe (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 19 Jul 2016 13:15:34 -0400
+In-Reply-To: <CAPcyv4gpRGJLVfoC3o-rVypQtppkAKg1hObr=1EhcT3Y3g8KUw@mail.gmail.com>
+Content-Language: en-US
+Content-ID: <5C8E6D11FD483341ADC3BB7B3F7C54B3@intel.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: "Williams, Dan J" <dan.j.williams@intel.com>
+Cc: "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, "Luck, Tony" <tony.luck@intel.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>
 
-On Fri, Jun 24, 2016 at 10:44:25AM -0700, Dan Williams wrote:
-> QEMU 2.6 implements nascent support for nvdimm DSMs. Depending on
-> configuration it may only implement the function0 dsm to indicate that
-> no other DSMs are available. Commit 31eca76ba2fc "nfit, libnvdimm:
-> limited/whitelisted dimm command marshaling mechanism" breaks QEMU, but
-> QEMU is spec compliant.  Per the spec the way to indicate that no
-> functions are supported is:
-> 
->     If Function Index is zero, the return is a buffer containing one bit
->     for each function index, starting with zero. Bit 0 indicates whether
->     there is support for any functions other than function 0 for the
->     specified UUID and Revision ID. If set to zero, no functions are
->     supported (other than function zero) for the specified UUID and
->     Revision ID.
-
-
-Dan,
-
-This breaks calling DSM on HPE platforms and is a regression.
-
-E-mail context can be found at:
-
-	https://lists.01.org/pipermail/linux-nvdimm/2016-June/006099.html
-
-The problem with this change is that it assumes that ACPI returning an
-object means that the UUID is supported on that platform.
-
-However, looking at ACPI v 6.1 section 9.1.1, the example for 
-evaluating a _DSM shows that if the UUID is not supported at all,
-a zeroed out buffer of length 1 is returned:
-
-	//
-	// If not one of the UUIDs we recognize, then return a buffer
-	// with bit 0 set to 0 indicating no functions supported.
-	//
-	return(Buffer(){0})
-
-HPE firmware has been following this practice for a long long time.
-I suspect other manufacturer's firmware do so as well.
-
-The problem is that this creates an ambiguity and the linux code
-is no longer differentiating the case where the DSM/UUID is
-supported but only implements function 0 (the QEMU case you're
-trying to accommodate) and the case that the DSM/UUID is not
-supported at all.
-
-The result is that the code in acpi_nfit_add_dimm:
-
-      for (i = NVDIMM_FAMILY_INTEL; i <= NVDIMM_FAMILY_HPE2; i++)
--             if (acpi_check_dsm(adev_dimm->handle, to_nfit_uuid(i), 1, 1))
-+             if (acpi_check_dsm(adev_dimm->handle, to_nfit_uuid(i), 1, 0))
-                      break;
-
-
-always matches NVDIMM_FAMILY_INTEL.  This is either because its
-is an Intel nvdimm, or because the unsupported UUID returns back
-a zeroed out buffer of length 1.
-
-
-As nfit_mem->family always equals NVDIMM_FAMILY_INTEL, no subsequent
-DSM call will succeed for NVDIMM_FAMILY_HPE1 or any other
-family.
-
-I don't have a fix as of yet, but wanted to make you aware of
-the problem.
-
-
-
-
-> 
-> Update the nfit driver to determine the family (interface UUID) without
-> requiring the implementation to define any other functions, i.e.
-> short-circuit acpi_check_dsm() to succeed per the spec.  The nfit driver
-> appears to be the only user passing funcs==0 to acpi_check_dsm(), so
-> this behavior change of the common routine should be limited to the
-> probing done by the nfit driver.
-> 
-> Cc: "Rafael J. Wysocki" <rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org>
-> Cc: Len Brown <lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-> Cc: Jerry Hoemann <jerry.hoemann-ZPxbGqLxI0U@public.gmane.org>
-> Fixes: 31eca76ba2fc ("nfit, libnvdimm: limited/whitelisted dimm command marshaling mechanism")
-> Reported-by: Xiao Guangrong <guangrong.xiao-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
-> Tested-by: Xiao Guangrong <guangrong.xiao-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
-> Signed-off-by: Dan Williams <dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-> ---
->  drivers/acpi/nfit.c  |    6 +++---
->  drivers/acpi/utils.c |    6 +++---
->  2 files changed, 6 insertions(+), 6 deletions(-)
-> 
-> diff --git a/drivers/acpi/nfit.c b/drivers/acpi/nfit.c
-> index 2215fc847fa9..32579a7b71d5 100644
-> --- a/drivers/acpi/nfit.c
-> +++ b/drivers/acpi/nfit.c
-> @@ -1131,11 +1131,11 @@ static int acpi_nfit_add_dimm(struct acpi_nfit_desc *acpi_desc,
->  
->  	/*
->  	 * Until standardization materializes we need to consider up to 3
-> -	 * different command sets.  Note, that checking for function0 (bit0)
-> -	 * tells us if any commands are reachable through this uuid.
-> +	 * different command sets.  Note, that checking for zero functions
-> +	 * tells us if any commands might be reachable through this uuid.
->  	 */
->  	for (i = NVDIMM_FAMILY_INTEL; i <= NVDIMM_FAMILY_HPE2; i++)
-> -		if (acpi_check_dsm(adev_dimm->handle, to_nfit_uuid(i), 1, 1))
-> +		if (acpi_check_dsm(adev_dimm->handle, to_nfit_uuid(i), 1, 0))
->  			break;
-
-
-At this point i will always == NVDIMM_FAMILY_INTEL.
-
-
->  
->  	/* limit the supported commands to those that are publicly documented */
-> diff --git a/drivers/acpi/utils.c b/drivers/acpi/utils.c
-> index 22c09952e177..b4de130f2d57 100644
-> --- a/drivers/acpi/utils.c
-> +++ b/drivers/acpi/utils.c
-> @@ -680,9 +680,6 @@ bool acpi_check_dsm(acpi_handle handle, const u8 *uuid, u64 rev, u64 funcs)
->  	u64 mask = 0;
->  	union acpi_object *obj;
->  
-> -	if (funcs == 0)
-> -		return false;
-> -
->  	obj = acpi_evaluate_dsm(handle, uuid, rev, 0, NULL);
->  	if (!obj)
->  		return false;
-> @@ -695,6 +692,9 @@ bool acpi_check_dsm(acpi_handle handle, const u8 *uuid, u64 rev, u64 funcs)
->  			mask |= (((u64)obj->buffer.pointer[i]) << (i * 8));
->  	ACPI_FREE(obj);
-
-
-Unsupported UUID will get an object.  A zeroed out buffer of length 1.
-So, acpi_check_dsm is saying supported when it is not.
-
-
->  
-> +	if (funcs == 0)
-> +		return true;
-> +
->  	/*
->  	 * Bit 0 indicates whether there's support for any functions other than
->  	 * function 0 for the specified UUID and revision.
-
-
-
--- 
-
------------------------------------------------------------------------------
-Jerry Hoemann                  Software Engineer   Hewlett Packard Enterprise
------------------------------------------------------------------------------
+T24gVHVlLCAyMDE2LTA3LTE5IGF0IDA4OjUzIC0wNzAwLCBEYW4gV2lsbGlhbXMgd3JvdGU6DQo+
+IE9uIE1vbiwgSnVsIDE4LCAyMDE2IGF0IDU6NDQgUE0sIFZpc2hhbCBWZXJtYSA8dmlzaGFsLmwu
+dmVybWFAaW50ZWwuY28NCj4gbT4gd3JvdGU6DQo+ID4gUHJlZml4IHRoZSBzZWN0b3IgbnVtYmVy
+IGJlaW5nIGNsZWFyZWQgd2l0aCBhICcweCcgdG8gbWFrZSBpdCBjbGVhcg0KPiA+IHRoYXQNCj4g
+PiB0aGlzIGlzIGEgaGV4IHZhbHVlLg0KPiA+IA0KPiA+IFNpZ25lZC1vZmYtYnk6IFZpc2hhbCBW
+ZXJtYSA8dmlzaGFsLmwudmVybWFAaW50ZWwuY29tPg0KPiA+IC0tLQ0KPiA+IMKgZHJpdmVycy9u
+dmRpbW0vcG1lbS5jIHwgMiArLQ0KPiA+IMKgMSBmaWxlIGNoYW5nZWQsIDEgaW5zZXJ0aW9uKCsp
+LCAxIGRlbGV0aW9uKC0pDQo+ID4gDQo+ID4gZGlmZiAtLWdpdCBhL2RyaXZlcnMvbnZkaW1tL3Bt
+ZW0uYyBiL2RyaXZlcnMvbnZkaW1tL3BtZW0uYw0KPiA+IGluZGV4IDYwOGZjNDQuLjI5YWIyNWIg
+MTAwNjQ0DQo+ID4gLS0tIGEvZHJpdmVycy9udmRpbW0vcG1lbS5jDQo+ID4gKysrIGIvZHJpdmVy
+cy9udmRpbW0vcG1lbS5jDQo+ID4gQEAgLTU3LDcgKzU3LDcgQEAgc3RhdGljIHZvaWQgcG1lbV9j
+bGVhcl9wb2lzb24oc3RydWN0IHBtZW1fZGV2aWNlDQo+ID4gKnBtZW0sIHBoeXNfYWRkcl90IG9m
+ZnNldCwNCj4gPiDCoMKgwqDCoMKgwqDCoMKgY2xlYXJlZCA9IG52ZGltbV9jbGVhcl9wb2lzb24o
+ZGV2LCBwbWVtLT5waHlzX2FkZHIgKyBvZmZzZXQsDQo+ID4gbGVuKTsNCj4gPiANCj4gPiDCoMKg
+wqDCoMKgwqDCoMKgaWYgKGNsZWFyZWQgPiAwICYmIGNsZWFyZWQgLyA1MTIpIHsNCj4gPiAtwqDC
+oMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgZGV2X2RiZyhkZXYsICIlczogJWxseCBjbGVhciAl
+bGQgc2VjdG9yJXNcbiIsDQo+ID4gK8KgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoGRldl9k
+YmcoZGV2LCAiJXM6IDB4JWxseCBjbGVhciAlbGQgc2VjdG9yJXNcbiIsDQo+IA0KPiAlI2xseCBp
+cyBhIGJpdCBzbWFsbGVyIC8gbW9yZSByZWFkYWJsZS7CoMKgU2hhbGwgSSBqdXN0IGZpeCB0aGlz
+IHVwIG9uDQo+IGFwcGx5aW5nPw0KDQpUSUwgOikgWWVzIHlvdSBjYW4gZG8gdGhlIGZpeHVwLCB0
+aGFua3Mh
