@@ -1,196 +1,54 @@
-From: Alex Williamson <alex.williamson@redhat.com>
-Subject: Re: [PATCH V10 4/9] vfio: platform: add support for ACPI probe
-Date: Mon, 18 Jul 2016 18:24:48 -0600
-Message-ID: <20160718182448.7b11a7af@t450s.home>
-References: <1468883367-2854-1-git-send-email-okaya@codeaurora.org>
-	<1468883367-2854-5-git-send-email-okaya@codeaurora.org>
-	<20160718180049.78db3dfb@t450s.home>
-	<b4655a0ba9152e6b2951e379e1615dad@codeaurora.org>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-msm-owner@vger.kernel.org>
-In-Reply-To: <b4655a0ba9152e6b2951e379e1615dad@codeaurora.org>
-Sender: linux-arm-msm-owner@vger.kernel.org
-To: okaya@codeaurora.org
-Cc: kvm@vger.kernel.org, timur@codeaurora.org, cov@codeaurora.org, jcm@redhat.com, eric.auger@redhat.com, linux-acpi@vger.kernel.org, agross@codeaurora.org, linux-arm-msm@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Baptiste Reynal <b.reynal@virtualopensystems.com>, linux-kernel@vger.kernel.org
+From: Vishal Verma <vishal.l.verma@intel.com>
+Subject: [PATCH 0/3] ARS rescanning triggered by latent errors or userspace
+Date: Mon, 18 Jul 2016 18:44:57 -0600
+Message-ID: <1468889100-30698-1-git-send-email-vishal.l.verma@intel.com>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga14.intel.com ([192.55.52.115]:14446 "EHLO mga14.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751492AbcGSApg (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 18 Jul 2016 20:45:36 -0400
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: linux-nvdimm@lists.01.org
+Cc: Dan Williams <dan.j.williams@intel.com>, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Tony Luck <tony.luck@intel.com>, linux-acpi@vger.kernel.org, Vishal Verma <vishal.l.verma@intel.com>
 
-On Mon, 18 Jul 2016 20:16:50 -0400
-okaya@codeaurora.org wrote:
+This series adds on-demand ARS scanning on both, discovery of
+latent media errors, and a sysfs trigger from userspace.
 
-> On 2016-07-18 20:00, Alex Williamson wrote:
-> > On Mon, 18 Jul 2016 19:09:22 -0400
-> > Sinan Kaya <okaya@codeaurora.org> wrote:
-> >   
-> >> The code is using the compatible DT string to associate a reset driver
-> >> with the actual device itself. The compatible string does not exist on
-> >> ACPI based systems. HID is the unique identifier for a device driver
-> >> instead.
-> >> 
-> >> Signed-off-by: Sinan Kaya <okaya@codeaurora.org>
-> >> ---
-> >>  drivers/vfio/platform/vfio_platform_common.c  | 69 
-> >> +++++++++++++++++++++++++--
-> >>  drivers/vfio/platform/vfio_platform_private.h |  1 +
-> >>  2 files changed, 65 insertions(+), 5 deletions(-)
-> >> 
-> >> diff --git a/drivers/vfio/platform/vfio_platform_common.c 
-> >> b/drivers/vfio/platform/vfio_platform_common.c
-> >> index 6be92c3..a5299f6 100644
-> >> --- a/drivers/vfio/platform/vfio_platform_common.c
-> >> +++ b/drivers/vfio/platform/vfio_platform_common.c
-> >> @@ -13,6 +13,7 @@
-> >>   */
-> >> 
-> >>  #include <linux/device.h>
-> >> +#include <linux/acpi.h>
-> >>  #include <linux/iommu.h>
-> >>  #include <linux/module.h>
-> >>  #include <linux/mutex.h>
-> >> @@ -49,6 +50,32 @@ static vfio_platform_reset_fn_t 
-> >> vfio_platform_lookup_reset(const char *compat,
-> >>  	return reset_fn;
-> >>  }
-> >> 
-> >> +static int vfio_platform_acpi_probe(struct vfio_platform_device 
-> >> *vdev,
-> >> +				    struct device *dev)
-> >> +{
-> >> +	struct acpi_device *adev;
-> >> +
-> >> +	if (acpi_disabled)
-> >> +		return -EPERM;
-> >> +
-> >> +	adev = ACPI_COMPANION(dev);  
-> > 
-> > I didn't necessarily have a problem with this being set in the
-> > declaration.  
-> 
-> I think this is better. If ACPI is disabled, it is dangerous to call an 
-> ACPI API.
+The rescanning part is easy to test using the nfit_test framework
+- create a namespace (this will by default have bad sectors in
+the middle), clear the bad sectors by writing to them, trigger
+the rescan through sysfs, and the bad sectors will reappear in
+/sys/block/<pmemX>/badblocks.
 
-Ok, fair enough.
+For the mce handling, I've tested the notifier chain callback
+being called with a mock struct mce (called via another sysfs
+trigger - this isn't included in the patch obviously), which
+has the address field set to a known address in a SPA range,
+and the status field with the MCACOD flag set.
 
-> >   
-> >> +	if (!adev) {
-> >> +		pr_err("VFIO: ACPI companion device not found for %s\n",
-> >> +			vdev->name);
-> >> +		return -ENODEV;
-> >> +	}
-> >> +
-> >> +#ifdef CONFIG_ACPI
-> >> +	vdev->acpihid = acpi_device_hid(adev);
-> >> +	if (!vdev->acpihid) {
-> >> +		pr_err("VFIO: cannot find ACPI HID for %s\n",
-> >> +		       vdev->name);
-> >> +		return -EINVAL;
-> >> +	}
-> >> +#endif
-> >> +	return WARN_ON(!vdev->acpihid) ? -ENOENT : 0;  
-> > 
-> > ?!?!  The point was that that entire if{} branch is unnecessary.  The
-> > WARN_ON handles the (impossible) case of !vdev->acpihid.  We just need:
-> > 
-> > #ifdef CONFIG_ACPI
-> > 	vdev->acpihid = acpi_device_hid(adev);
-> > #endif
-> > 	return WARN_ON(!vdev->acpihid) ? -ENOENT : 0;
-> >   
-> 
-> OK, got it now. I thought you were trying to get rid of #else
-> 
-> > nit, might make sense to replace EPERM with ENOENT and use EINVAL here.
-> >   
-> 
-> Sure, will take carr of it.
-> 
-> Anything else I need to take care of?
+What I haven't easily been able to test is the same callback
+path with a 'real world' mce, being called as part of the
+x86_mce_decoder_chain notifier. I'd therefore appreciate a
+closer look at the initial filtering done in nfit_handle_mce
+(patch 3/3) from Tony or anyone more familiar with mce handling.
 
-Not that I see, maybe just send a new version of this patch if the
-changes don't trickle through too much.  Thanks,
+The series is based on v4.7-rc7, and a tree is available at
+https://git.kernel.org/cgit/linux/kernel/git/vishal/nvdimm.git/log/?h=ars-ondemand
 
-Alex
 
- 
-> >> +}
-> >> +
-> >>  static bool vfio_platform_has_reset(struct vfio_platform_device 
-> >> *vdev)
-> >>  {
-> >>  	return vdev->of_reset ? true : false;
-> >> @@ -547,6 +574,37 @@ static const struct vfio_device_ops 
-> >> vfio_platform_ops = {
-> >>  	.mmap		= vfio_platform_mmap,
-> >>  };
-> >> 
-> >> +int vfio_platform_of_probe(struct vfio_platform_device *vdev,
-> >> +			   struct device *dev)
-> >> +{
-> >> +	int ret;
-> >> +
-> >> +	ret = device_property_read_string(dev, "compatible",
-> >> +					  &vdev->compat);
-> >> +	if (ret)
-> >> +		pr_err("VFIO: cannot retrieve compat for %s\n",
-> >> +			vdev->name);
-> >> +
-> >> +	return ret;
-> >> +}
-> >> +
-> >> +/*
-> >> + * There can be two kernel build combinations. One build where
-> >> + * ACPI is not selected in Kconfig and another one with the ACPI 
-> >> Kconfig.
-> >> + *
-> >> + * In the first case, vfio_platform_acpi_probe will return since
-> >> + * acpi_disabled is 1. DT user will not see any kind of messages from
-> >> + * ACPI.
-> >> + *
-> >> + * In the second case, both DT and ACPI is compiled in but the system 
-> >> is
-> >> + * booting with any of these combinations.
-> >> + *
-> >> + * If the firmware is DT type, then acpi_disabled is 1. The ACPI 
-> >> probe routine
-> >> + * terminates immediately without any messages.
-> >> + *
-> >> + * If the firmware is ACPI type, then acpi_disabled is 0. All other 
-> >> checks are
-> >> + * valid checks. We cannot claim that this system is DT.
-> >> + */
-> >>  int vfio_platform_probe_common(struct vfio_platform_device *vdev,
-> >>  			       struct device *dev)
-> >>  {
-> >> @@ -556,11 +614,12 @@ int vfio_platform_probe_common(struct 
-> >> vfio_platform_device *vdev,
-> >>  	if (!vdev)
-> >>  		return -EINVAL;
-> >> 
-> >> -	ret = device_property_read_string(dev, "compatible", &vdev->compat);
-> >> -	if (ret) {
-> >> -		pr_err("VFIO: cannot retrieve compat for %s\n", vdev->name);
-> >> -		return -EINVAL;
-> >> -	}
-> >> +	ret = vfio_platform_acpi_probe(vdev, dev);
-> >> +	if (ret)
-> >> +		ret = vfio_platform_of_probe(vdev, dev);
-> >> +
-> >> +	if (ret)
-> >> +		return ret;
-> >> 
-> >>  	vdev->device = dev;
-> >> 
-> >> diff --git a/drivers/vfio/platform/vfio_platform_private.h 
-> >> b/drivers/vfio/platform/vfio_platform_private.h
-> >> index 71ed7d1..ba9e4f8 100644
-> >> --- a/drivers/vfio/platform/vfio_platform_private.h
-> >> +++ b/drivers/vfio/platform/vfio_platform_private.h
-> >> @@ -58,6 +58,7 @@ struct vfio_platform_device {
-> >>  	struct mutex			igate;
-> >>  	struct module			*parent_module;
-> >>  	const char			*compat;
-> >> +	const char			*acpihid;
-> >>  	struct module			*reset_module;
-> >>  	struct device			*device;
-> >>   
+Vishal Verma (3):
+  pmem: clarify a debug print in pmem_clear_poison
+  nfit, libnvdimm: allow an ARS rescan to be triggered on demand
+  nfit: do an ARS rescan on hitting a latent media error
+
+ drivers/acpi/nfit.c       | 138 ++++++++++++++++++++++++++++++++++++++++++++--
+ drivers/acpi/nfit.h       |   2 +
+ drivers/nvdimm/core.c     |  17 ++++++
+ drivers/nvdimm/pmem.c     |   2 +-
+ include/linux/libnvdimm.h |   1 +
+ 5 files changed, 155 insertions(+), 5 deletions(-)
+
+-- 
+2.7.4
+
