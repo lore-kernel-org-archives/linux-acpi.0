@@ -1,26 +1,26 @@
 From: Dou Liyang <douly.fnst@cn.fujitsu.com>
-Subject: [PATCH v8 2/7] x86, acpi, cpu-hotplug: Enable acpi to register all possible cpus at boot time.
-Date: Tue, 19 Jul 2016 15:28:03 +0800
-Message-ID: <1468913288-16605-3-git-send-email-douly.fnst@cn.fujitsu.com>
-References: <1468913288-16605-1-git-send-email-douly.fnst@cn.fujitsu.com>
+Subject: [PATCH v8 0/7] Make cpuid <-> nodeid mapping persistent
+Date: Tue, 19 Jul 2016 15:28:01 +0800
+Message-ID: <1468913288-16605-1-git-send-email-douly.fnst@cn.fujitsu.com>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 Return-path: <owner-linux-mm@kvack.org>
-In-Reply-To: <1468913288-16605-1-git-send-email-douly.fnst@cn.fujitsu.com>
 Sender: owner-linux-mm@kvack.org
 To: cl@linux.com, tj@kernel.org, mika.j.penttila@gmail.com, mingo@redhat.com, akpm@linux-foundation.org, rjw@rjwysocki.net, hpa@zytor.com, yasu.isimatu@gmail.com, isimatu.yasuaki@jp.fujitsu.com, kamezawa.hiroyu@jp.fujitsu.com, izumi.taku@jp.fujitsu.com, gongzhaogang@inspur.com, len.brown@intel.com, lenb@kernel.org, tglx@linutronix.de, chen.tang@easystack.cn, rafael@kernel.org
-Cc: x86@kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linux-mm@kvack.org, Gu Zheng <guz.fnst@cn.fujitsu.com>, Tang Chen <tangchen@cn.fujitsu.com>, Zhu Guihua <zhugh.fnst@cn.fujitsu.com>, Dou Liyang <douly.fnst@cn.fujitsu.com>
+Cc: x86@kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linux-mm@kvack.org, Dou Liyang <douly.fnst@cn.fujitsu.com>
 List-Id: linux-acpi@vger.kernel.org
-
-From: Gu Zheng <guz.fnst@cn.fujitsu.com>
 
 [Problem]
 
-cpuid <-> nodeid mapping is firstly established at boot time. And workqueue caches
+cpuid <-> nodeid mapping is firstly established at boot time. And workque=
+ue caches
 the mapping in wq_numa_possible_cpumask in wq_numa_init() at boot time.
 
-When doing node online/offline, cpuid <-> nodeid mapping is established/destroyed,
-which means, cpuid <-> nodeid mapping will change if node hotplug happens. But
+When doing node online/offline, cpuid <-> nodeid mapping is established/d=
+estroyed,
+which means, cpuid <-> nodeid mapping will change if node hotplug happens=
+. But
 workqueue does not update wq_numa_possible_cpumask.
 
 So here is the problem:
@@ -50,48 +50,58 @@ node 1 | 15-29, 75-89
 node 4 | 30-59
 node 5 | 90-119
 
-But in wq_numa_possible_cpumask, cpu30 is still mapped to node2, and the like.
+But in wq_numa_possible_cpumask, cpu30 is still mapped to node2, and the =
+like.
 
-When a pool workqueue is initialized, if its cpumask belongs to a node, its
-pool->node will be mapped to that node. And memory used by this workqueue will
+When a pool workqueue is initialized, if its cpumask belongs to a node, i=
+ts
+pool->node will be mapped to that node. And memory used by this workqueue=
+ will
 also be allocated on that node.
 
-static struct worker_pool *get_unbound_pool(const struct workqueue_attrs *attrs){
+static struct worker_pool *get_unbound_pool(const struct workqueue_attrs =
+*attrs){
 ...
-        /* if cpumask is contained inside a NUMA node, we belong to that node */
+        /* if cpumask is contained inside a NUMA node, we belong to that =
+node */
         if (wq_numa_enabled) {
                 for_each_node(node) {
                         if (cpumask_subset(pool->attrs->cpumask,
-                                           wq_numa_possible_cpumask[node])) {
-                                pool->node = node;
+                                           wq_numa_possible_cpumask[node]=
+)) {
+                                pool->node =3D node;
                                 break;
                         }
                 }
         }
 
-Since wq_numa_possible_cpumask is not updated, it could be mapped to an offline node,
+Since wq_numa_possible_cpumask is not updated, it could be mapped to an o=
+ffline node,
 which will lead to memory allocation failure:
 
- SLUB: Unable to allocate memory on node 2 (gfp=0x80d0)
-  cache: kmalloc-192, object size: 192, buffer size: 192, default order: 1, min order: 0
+ SLUB: Unable to allocate memory on node 2 (gfp=3D0x80d0)
+  cache: kmalloc-192, object size: 192, buffer size: 192, default order: =
+1, min order: 0
   node 0: slabs: 6172, objs: 259224, free: 245741
   node 1: slabs: 3261, objs: 136962, free: 127656
 
 It happens here:
 
 create_worker(struct worker_pool *pool)
- |--> worker = alloc_worker(pool->node);
+ |--> worker =3D alloc_worker(pool->node);
 
 static struct worker *alloc_worker(int node)
 {
         struct worker *worker;
 
-        worker = kzalloc_node(sizeof(*worker), GFP_KERNEL, node); --> Here, useing the wrong node.
+        worker =3D kzalloc_node(sizeof(*worker), GFP_KERNEL, node); --> H=
+ere, useing the wrong node.
 
         ......
 
         return worker;
 }
+
 
 [Solution]
 
@@ -101,133 +111,133 @@ There are four mappings in the kernel:
 3. cpuid (logical cpu id)     <->   apicid
 4. cpuid (logical cpu id)     <->   nodeid
 
-1. pxm (proximity domain) is provided by ACPI firmware in SRAT, and nodeid <-> pxm
-   mapping is setup at boot time. This mapping is persistent, won't change.
+1. pxm (proximity domain) is provided by ACPI firmware in SRAT, and nodei=
+d <-> pxm
+   mapping is setup at boot time. This mapping is persistent, won't chang=
+e.
 
-2. apicid <-> nodeid mapping is setup using info in 1. The mapping is setup at boot
-   time and CPU hotadd time, and cleared at CPU hotremove time. This mapping is also
+2. apicid <-> nodeid mapping is setup using info in 1. The mapping is set=
+up at boot
+   time and CPU hotadd time, and cleared at CPU hotremove time. This mapp=
+ing is also
    persistent.
 
-3. cpuid <-> apicid mapping is setup at boot time and CPU hotadd time. cpuid is
-   allocated, lower ids first, and released at CPU hotremove time, reused for other
+3. cpuid <-> apicid mapping is setup at boot time and CPU hotadd time. cp=
+uid is
+   allocated, lower ids first, and released at CPU hotremove time, reused=
+ for other
    hotadded CPUs. So this mapping is not persistent.
 
-4. cpuid <-> nodeid mapping is also setup at boot time and CPU hotadd time, and
-   cleared at CPU hotremove time. As a result of 3, this mapping is not persistent.
+4. cpuid <-> nodeid mapping is also setup at boot time and CPU hotadd tim=
+e, and
+   cleared at CPU hotremove time. As a result of 3, this mapping is not p=
+ersistent.
 
-To fix this problem, we establish cpuid <-> nodeid mapping for all the possible
-cpus at boot time, and make it persistent. And according to init_cpu_to_node(),
-cpuid <-> nodeid mapping is based on apicid <-> nodeid mapping and cpuid <-> apicid
+To fix this problem, we establish cpuid <-> nodeid mapping for all the po=
+ssible
+cpus at boot time, and make it persistent. And according to init_cpu_to_n=
+ode(),
+cpuid <-> nodeid mapping is based on apicid <-> nodeid mapping and cpuid =
+<-> apicid
 mapping. So the key point is obtaining all cpus' apicid.
 
-apicid can be obtained by _MAT (Multiple APIC Table Entry) method or found in
-MADT (Multiple APIC Description Table). So we finish the job in the following steps:
+apicid can be obtained by _MAT (Multiple APIC Table Entry) method or foun=
+d in
+MADT (Multiple APIC Description Table). So we finish the job in the follo=
+wing steps:
 
-1. Enable apic registeration flow to handle both enabled and disabled cpus.
-   This is done by introducing an extra parameter to generic_processor_info to let the
+1. Enable apic registeration flow to handle both enabled and disabled cpu=
+s.
+   This is done by introducing an extra parameter to generic_processor_in=
+fo to let the
    caller control if disabled cpus are ignored.
 
-2. Introduce a new array storing all possible cpuid <-> apicid mapping. And also modify
-   the way cpuid is calculated. Establish all possible cpuid <-> apicid mapping when
+2. Introduce a new array storing all possible cpuid <-> apicid mapping. A=
+nd also modify
+   the way cpuid is calculated. Establish all possible cpuid <-> apicid m=
+apping when
    registering local apic. Store the mapping in this array.
 
-3. Enable _MAT and MADT relative apis to return non-presnet or disabled cpus' apicid.
-   This is also done by introducing an extra parameter to these apis to let the caller
+3. Enable _MAT and MADT relative apis to return non-presnet or disabled c=
+pus' apicid.
+   This is also done by introducing an extra parameter to these apis to l=
+et the caller
    control if disabled cpus are ignored.
 
 4. Establish all possible cpuid <-> nodeid mapping.
    This is done via an additional acpi namespace walk for processors.
 
-This patch finished step 1.
 
-Signed-off-by: Gu Zheng <guz.fnst@cn.fujitsu.com>
-Signed-off-by: Tang Chen <tangchen@cn.fujitsu.com>
-Signed-off-by: Zhu Guihua <zhugh.fnst@cn.fujitsu.com>
-Signed-off-by: Dou Liyang <douly.fnst@cn.fujitsu.com>
----
- arch/x86/kernel/apic/apic.c | 26 +++++++++++++++++++-------
- 1 file changed, 19 insertions(+), 7 deletions(-)
+For previous discussion, please refer to:
+https://lkml.org/lkml/2015/2/27/145
+https://lkml.org/lkml/2015/3/25/989
+https://lkml.org/lkml/2015/5/14/244
+https://lkml.org/lkml/2015/7/7/200
+https://lkml.org/lkml/2015/9/27/209
+https://lkml.org/lkml/2016/5/19/212
 
-diff --git a/arch/x86/kernel/apic/apic.c b/arch/x86/kernel/apic/apic.c
-index 60078a6..8e3c377 100644
---- a/arch/x86/kernel/apic/apic.c
-+++ b/arch/x86/kernel/apic/apic.c
-@@ -1998,7 +1998,7 @@ void disconnect_bsp_APIC(int virt_wire_setup)
- 	apic_write(APIC_LVT1, value);
- }
- 
--int generic_processor_info(int apicid, int version)
-+static int __generic_processor_info(int apicid, int version, bool enabled)
- {
- 	int cpu, max = nr_cpu_ids;
- 	bool boot_cpu_detected = physid_isset(boot_cpu_physical_apicid,
-@@ -2032,7 +2032,8 @@ int generic_processor_info(int apicid, int version)
- 			   " Processor %d/0x%x ignored.\n",
- 			   thiscpu, apicid);
- 
--		disabled_cpus++;
-+		if (enabled)
-+			disabled_cpus++;
- 		return -ENODEV;
- 	}
- 
-@@ -2049,7 +2050,8 @@ int generic_processor_info(int apicid, int version)
- 			" reached. Keeping one slot for boot cpu."
- 			"  Processor %d/0x%x ignored.\n", max, thiscpu, apicid);
- 
--		disabled_cpus++;
-+		if (enabled)
-+			disabled_cpus++;
- 		return -ENODEV;
- 	}
- 
-@@ -2060,11 +2062,14 @@ int generic_processor_info(int apicid, int version)
- 			"ACPI: NR_CPUS/possible_cpus limit of %i reached."
- 			"  Processor %d/0x%x ignored.\n", max, thiscpu, apicid);
- 
--		disabled_cpus++;
-+		if (enabled)
-+			disabled_cpus++;
- 		return -EINVAL;
- 	}
- 
--	num_processors++;
-+	if (enabled)
-+		num_processors++;
-+
- 	if (apicid == boot_cpu_physical_apicid) {
- 		/*
- 		 * x86_bios_cpu_apicid is required to have processors listed
-@@ -2106,7 +2111,8 @@ int generic_processor_info(int apicid, int version)
- 			apic_version[boot_cpu_physical_apicid], cpu, version);
- 	}
- 
--	physid_set(apicid, phys_cpu_present_map);
-+	if (enabled)
-+		physid_set(apicid, phys_cpu_present_map);
- 	if (apicid > max_physical_apicid)
- 		max_physical_apicid = apicid;
- 
-@@ -2119,11 +2125,17 @@ int generic_processor_info(int apicid, int version)
- 		apic->x86_32_early_logical_apicid(cpu);
- #endif
- 	set_cpu_possible(cpu, true);
--	set_cpu_present(cpu, true);
-+	if (enabled)
-+		set_cpu_present(cpu, true);
- 
- 	return cpu;
- }
- 
-+int generic_processor_info(int apicid, int version)
-+{
-+	return __generic_processor_info(apicid, version, true);
-+}
-+
- int hard_smp_processor_id(void)
- {
- 	return read_apic_id();
--- 
+Change log v7 -> v8:
+1. Provide the mechanism to validate processors in the ACPI tables.
+2. Provide the interface to validate the proc_id when setting the mapping=
+.=20
+
+Change log v6 -> v7:
+1. Fix arm64 build failure.
+
+Change log v5 -> v6:
+1. Define func acpi_map_cpu2node() for x86 and ia64 respectively.
+
+Change log v4 -> v5:
+1. Remove useless code in patch 1.
+2. Small improvement of commit message.
+
+Change log v3 -> v4:
+1. Fix the kernel panic at boot time. The cause is that I tried to build =
+zonelists
+   before per cpu areas were initialized.
+
+Change log v2 -> v3:
+1. Online memory-less nodes at boot time to map cpus of memory-less nodes=
+.
+2. Build zonelists for memory-less nodes so that memory allocator will fa=
+ll=20
+   back to proper nodes automatically.
+
+Change log v1 -> v2:
+1. Split code movement and actual changes. Add patch 1.
+2. Synchronize best near online node record when node hotplug happens. In=
+ patch 2.
+3. Fix some comment.
+
+Dou Liyang (2):
+  Provide the mechanism to validate processors in the ACPI tables
+  Provide the interface to validate the proc_id which they give
+
+Gu Zheng (4):
+  x86, acpi, cpu-hotplug: Enable acpi to register all possible cpus at
+    boot time.
+  x86, acpi, cpu-hotplug: Introduce cpuid_to_apicid[] array to store
+    persistent cpuid <-> apicid mapping.
+  x86, acpi, cpu-hotplug: Enable MADT APIs to return disabled apicid.
+  x86, acpi, cpu-hotplug: Set persistent cpuid <-> nodeid mapping when
+    booting.
+
+Tang Chen (1):
+  x86, memhp, numa: Online memory-less nodes at boot time.
+
+ arch/ia64/kernel/acpi.c       |   3 +-
+ arch/x86/include/asm/mpspec.h |   1 +
+ arch/x86/kernel/acpi/boot.c   |  10 ++--
+ arch/x86/kernel/apic/apic.c   |  85 +++++++++++++++++++++++++---
+ arch/x86/mm/numa.c            |  27 +++++----
+ drivers/acpi/acpi_processor.c | 105 ++++++++++++++++++++++++++++++++++-
+ drivers/acpi/bus.c            |   3 +
+ drivers/acpi/processor_core.c | 126 +++++++++++++++++++++++++++++++++++-=
+------
+ include/linux/acpi.h          |   5 ++
+ 9 files changed, 314 insertions(+), 51 deletions(-)
+
+--=20
 2.5.5
 
 
@@ -236,4 +246,4 @@ index 60078a6..8e3c377 100644
 To unsubscribe, send a message with 'unsubscribe linux-mm' in
 the body to majordomo@kvack.org.  For more info on Linux MM,
 see: http://www.linux-mm.org/ .
-Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
+Don't email: <a href=3Dmailto:"dont@kvack.org"> email@kvack.org </a>
