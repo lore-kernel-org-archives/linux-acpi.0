@@ -1,120 +1,76 @@
-From: Lv Zheng <lv.zheng@intel.com>
-Subject: [PATCH v2 2/2] tools/power/acpi/acpidbg: Use new flushing mechanism
-Date: Tue, 19 Jul 2016 18:00:45 +0800
-Message-ID: <2ebe9abbd56405eb1c1bf43c144605177d0f4ecc.1468922310.git.lv.zheng@intel.com>
-References: <cover.1468464391.git.lv.zheng@intel.com> <cover.1468922310.git.lv.zheng@intel.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <cover.1468922310.git.lv.zheng@intel.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <len.brown@intel.com>
-Cc: Lv Zheng <lv.zheng@intel.com>, Lv Zheng <zetalog@gmail.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
+From: Mark Brown <broonie@kernel.org>
+Subject: Re: [PATCH v2 3/3] acpi spi: Initialize modalias from of_compatible
+Date: Tue, 19 Jul 2016 11:22:13 +0100
+Message-ID: <20160719102213.GZ30372@sirena.org.uk>
+References: <cover.1468409668.git.leonard.crestez@intel.com>
+ <1d26e956f12fcd86ad915659adeb86e242b96ac7.1468409668.git.leonard.crestez@intel.com>
+Mime-Version: 1.0
+Content-Type: multipart/signed; micalg=pgp-sha256;
+	protocol="application/pgp-signature"; boundary="0tC/8VcTcTa+VwnR"
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mezzanine.sirena.org.uk ([106.187.55.193]:60838 "EHLO
+	mezzanine.sirena.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750769AbcGSKWb (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 19 Jul 2016 06:22:31 -0400
+Content-Disposition: inline
+In-Reply-To: <1d26e956f12fcd86ad915659adeb86e242b96ac7.1468409668.git.leonard.crestez@intel.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Crestez Dan Leonard <leonard.crestez@intel.com>
+Cc: linux-acpi@vger.kernel.org, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Jarkko Nikula <jarkko.nikula@intel.com>, Mika Westerberg <mika.westerberg@linux.intel.com>, Len Brown <lenb@kernel.org>, linux-i2c@vger.kernel.org, Wolfram Sang <wsa@the-dreams.de>, linux-spi@vger.kernel.org, linux-kernel@vger.kernel.org, Octavian Purdila <octavian.purdila@intel.com>
 
-This patch converts tools/power/acpi/tools/acpidbg/acpidbg to use the new
-flushing mechanism.
 
-Signed-off-by: Lv Zheng <lv.zheng@intel.com>
----
- tools/power/acpi/tools/acpidbg/acpidbg.c |   51 ++++--------------------------
- 1 file changed, 7 insertions(+), 44 deletions(-)
+--0tC/8VcTcTa+VwnR
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-diff --git a/tools/power/acpi/tools/acpidbg/acpidbg.c b/tools/power/acpi/tools/acpidbg/acpidbg.c
-index a88ac45..0aba129 100644
---- a/tools/power/acpi/tools/acpidbg/acpidbg.c
-+++ b/tools/power/acpi/tools/acpidbg/acpidbg.c
-@@ -15,7 +15,9 @@
- #include <stdbool.h>
- #include <fcntl.h>
- #include <assert.h>
-+#include <sys/ioctl.h>
- #include <linux/circ_buf.h>
-+#include <linux/acpi-ioctls.h>
- 
- #define ACPI_AML_FILE		"/sys/kernel/debug/acpi/acpidbg"
- #define ACPI_AML_SEC_TICK	1
-@@ -83,7 +85,6 @@ static const char *acpi_aml_file_path = ACPI_AML_FILE;
- static unsigned long acpi_aml_mode = ACPI_AML_INTERACTIVE;
- static bool acpi_aml_exit;
- 
--static bool acpi_aml_batch_drain;
- static unsigned long acpi_aml_batch_state;
- static char acpi_aml_batch_prompt;
- static char acpi_aml_batch_roll;
-@@ -239,11 +240,9 @@ static int acpi_aml_write_batch_log(int fd, struct circ_buf *crc)
- 
- 	p = &crc->buf[crc->tail];
- 	len = circ_count_to_end(crc);
--	if (!acpi_aml_batch_drain) {
--		len = write(fd, p, len);
--		if (len < 0)
--			perror("write");
--	}
-+	len = write(fd, p, len);
-+	if (len < 0)
-+		perror("write");
- 	if (len > 0)
- 		crc->tail = (crc->tail + len) & (ACPI_AML_BUF_SIZE - 1);
- 	return len;
-@@ -270,10 +269,7 @@ static void acpi_aml_loop(int fd)
- 	if (acpi_aml_mode == ACPI_AML_BATCH) {
- 		acpi_aml_log_state = ACPI_AML_LOG_START;
- 		acpi_aml_batch_pos = acpi_aml_batch_cmd;
--		if (acpi_aml_batch_drain)
--			acpi_aml_batch_state = ACPI_AML_BATCH_READ_LOG;
--		else
--			acpi_aml_batch_state = ACPI_AML_BATCH_WRITE_CMD;
-+		acpi_aml_batch_state = ACPI_AML_BATCH_WRITE_CMD;
- 	}
- 	acpi_aml_exit = false;
- 	while (!acpi_aml_exit) {
-@@ -330,39 +326,6 @@ static void acpi_aml_loop(int fd)
- 	}
- }
- 
--static bool acpi_aml_readable(int fd)
--{
--	fd_set rfds;
--	struct timeval tv;
--	int ret;
--	int maxfd = 0;
--
--	tv.tv_sec = 0;
--	tv.tv_usec = ACPI_AML_USEC_PEEK;
--	FD_ZERO(&rfds);
--	maxfd = acpi_aml_set_fd(fd, maxfd, &rfds);
--	ret = select(maxfd+1, &rfds, NULL, NULL, &tv);
--	if (ret < 0)
--		perror("select");
--	if (ret > 0 && FD_ISSET(fd, &rfds))
--		return true;
--	return false;
--}
--
--/*
-- * This is a userspace IO flush implementation, replying on the prompt
-- * characters and can be turned into a flush() call after kernel implements
-- * .flush() filesystem operation.
-- */
--static void acpi_aml_flush(int fd)
--{
--	while (acpi_aml_readable(fd)) {
--		acpi_aml_batch_drain = true;
--		acpi_aml_loop(fd);
--		acpi_aml_batch_drain = false;
--	}
--}
--
- void usage(FILE *file, char *progname)
- {
- 	fprintf(file, "usage: %s [-b cmd] [-f file] [-h]\n", progname);
-@@ -426,7 +389,7 @@ int main(int argc, char **argv)
- 	acpi_aml_set_fl(STDOUT_FILENO, O_NONBLOCK);
- 
- 	if (acpi_aml_mode == ACPI_AML_BATCH)
--		acpi_aml_flush(fd);
-+		ioctl(fd, ACPI_IOCTL_DEBUGGER_FLUSH);
- 	acpi_aml_loop(fd);
- 
- exit:
--- 
-1.7.10
+On Wed, Jul 13, 2016 at 02:53:42PM +0300, Crestez Dan Leonard wrote:
+> When using devicetree spi_device.modalias is set to the compatible
+> string with the vendor prefix removed. For SPI devices described via
+> ACPI the i2c_board_info.type string is initialized by acpi_device_hid.
+> When using ACPI and DT ids this string ends up something like "PRP0001".
+
+Please submit patches using subject lines reflecting the style for the
+subsystem.  This makes it easier for people to identify relevant
+patches.  Look at what existing commits in the area you're changing are
+doing and make sure your subject lines visually resemble what they're
+doing.
+
+> Change acpi_register_spi_device to use the of_compatible property if
+> present. This makes it easier to instantiate spi drivers through ACPI
+> with DT ids.
+
+This is basically fine but...
+
+> +	if (adev->data.of_compatible) {
+> +		ret = acpi_of_modalias(adev, spi->modalias, sizeof(spi->modalias));
+> +		if (ret) {
+> +			spi_dev_put(spi);
+> +			return AE_NOT_FOUND;
+> +		}
+
+The only reason this could fail currently is that there wasn't a
+compatible in the first place so why don't we just handle it like the no
+compatible case?  It's probably not realistic but it seems like there's
+a small chance this could regress some platform if we do add more error
+detection in acpi_of_modalias().
+
+I'm still not sure why if we want to translate ACPI into DT why we don't
+actually translate and avoid all this special casing and churn.
+
+--0tC/8VcTcTa+VwnR
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2
+
+iQEcBAEBCAAGBQJXjf9UAAoJECTWi3JdVIfQjoEH/jMFF3z4brk2Hp4vGQPgsW8B
+Q7VIRuCfmaiU2wRv24WbLRx0UMYEXbtg61tOMMfv47NE4K1TR60W4EdoVgB1VQ9Z
+ihr7riF3hqB3dcxpN6RalLxArQJkuSXh3LunxgQHmW6xsytWpH6I8XCP4d2jY39D
+n37qxM8K/BuYBrFYEKSFUjRQBy8XjeUxprA/BgK512Avknpvj+r0LnhV7ptypsRD
+tUkuupmVWVxD3C7aTvGfDPf6zcfRmPlRgAAnNbFOxqrYW5eg2GxflystklLAsY6A
+v7Eexp1DymKNCT7UsiUqBvE3260uJrQA8dWUqevjm5ZPFnnvCm+8Iv9V2978AZA=
+=OX7b
+-----END PGP SIGNATURE-----
+
+--0tC/8VcTcTa+VwnR--
