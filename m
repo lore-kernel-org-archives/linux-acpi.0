@@ -1,14 +1,16 @@
-From: Dan Williams <dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH 3/3] nfit: do an ARS rescan on hitting a latent media error
-Date: Tue, 19 Jul 2016 09:24:26 -0700
-Message-ID: <CAPcyv4iQxw_Fg7ovQsjDOb2LKsY0-MRe_E54M525sgHfTL=FOw@mail.gmail.com>
-References: <1468889100-30698-1-git-send-email-vishal.l.verma@intel.com>
- <1468889100-30698-4-git-send-email-vishal.l.verma@intel.com>
+From: Jerry Hoemann <jerry.hoemann-ZPxbGqLxI0U@public.gmane.org>
+Subject: Re: [PATCH] acpi, nfit: fix acpi_check_dsm() vs zero functions
+ implemented
+Date: Tue, 19 Jul 2016 11:11:53 -0600
+Message-ID: <20160719171153.GA121461@tevye.fc.hp.com>
+References: <146679026571.24395.11569929364936343871.stgit@dwillia2-desk3.amr.corp.intel.com>
+Reply-To: Jerry.Hoemann-ZPxbGqLxI0U@public.gmane.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-In-Reply-To: <1468889100-30698-4-git-send-email-vishal.l.verma-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <146679026571.24395.11569929364936343871.stgit-p8uTFz9XbKj2zm6wflaqv1nYeNYlB/vhral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -18,227 +20,158 @@ List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
 Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-To: Vishal Verma <vishal.l.verma-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: Linux ACPI <linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "Rafael J. Wysocki" <rafael.j.wysocki-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Tony Luck <tony.luck-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org" <linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+To: Dan Williams <dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: Xiao Guangrong <guangrong.xiao-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org, Marvin Spinhirne <spin-ZPxbGqLxI0U@public.gmane.org>, "Rafael J. Wysocki" <rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org>, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Len Brown <lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On Mon, Jul 18, 2016 at 5:45 PM, Vishal Verma <vishal.l.verma-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org> wrote:
-> When a latent (unknown to 'badblocks') error is encountered, it will
-> trigger a machine check exception. On a system with machine check
-> recovery, this will only SIGBUS the process(es) which had the bad page
-> mapped (as opposed to a kernel panic on platforms without machine
-> check recovery features). In the former case, we want to trigger a full
-> rescan of that nvdimm bus. This will allow any additional, new errors
-> to be captured in the block devices' badblocks lists, and offending
-> operations on them can be trapped early, avoiding machine checks.
->
-> This is done by registering a callback function with the
-> x86_mce_decoder_chain and calling the new ars_rescan functionality with
-> the address in the mce notificatiion.
->
-> Cc: Dan Williams <dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-> Cc: Rafael J. Wysocki <rafael.j.wysocki-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-> Cc: Tony Luck <tony.luck-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-> Cc: <linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-> Cc: <linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-> Signed-off-by: Vishal Verma <vishal.l.verma-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+On Fri, Jun 24, 2016 at 10:44:25AM -0700, Dan Williams wrote:
+> QEMU 2.6 implements nascent support for nvdimm DSMs. Depending on
+> configuration it may only implement the function0 dsm to indicate that
+> no other DSMs are available. Commit 31eca76ba2fc "nfit, libnvdimm:
+> limited/whitelisted dimm command marshaling mechanism" breaks QEMU, but
+> QEMU is spec compliant.  Per the spec the way to indicate that no
+> functions are supported is:
+> 
+>     If Function Index is zero, the return is a buffer containing one bit
+>     for each function index, starting with zero. Bit 0 indicates whether
+>     there is support for any functions other than function 0 for the
+>     specified UUID and Revision ID. If set to zero, no functions are
+>     supported (other than function zero) for the specified UUID and
+>     Revision ID.
+
+
+Dan,
+
+This breaks calling DSM on HPE platforms and is a regression.
+
+E-mail context can be found at:
+
+	https://lists.01.org/pipermail/linux-nvdimm/2016-June/006099.html
+
+The problem with this change is that it assumes that ACPI returning an
+object means that the UUID is supported on that platform.
+
+However, looking at ACPI v 6.1 section 9.1.1, the example for 
+evaluating a _DSM shows that if the UUID is not supported at all,
+a zeroed out buffer of length 1 is returned:
+
+	//
+	// If not one of the UUIDs we recognize, then return a buffer
+	// with bit 0 set to 0 indicating no functions supported.
+	//
+	return(Buffer(){0})
+
+HPE firmware has been following this practice for a long long time.
+I suspect other manufacturer's firmware do so as well.
+
+The problem is that this creates an ambiguity and the linux code
+is no longer differentiating the case where the DSM/UUID is
+supported but only implements function 0 (the QEMU case you're
+trying to accommodate) and the case that the DSM/UUID is not
+supported at all.
+
+The result is that the code in acpi_nfit_add_dimm:
+
+      for (i = NVDIMM_FAMILY_INTEL; i <= NVDIMM_FAMILY_HPE2; i++)
+-             if (acpi_check_dsm(adev_dimm->handle, to_nfit_uuid(i), 1, 1))
++             if (acpi_check_dsm(adev_dimm->handle, to_nfit_uuid(i), 1, 0))
+                      break;
+
+
+always matches NVDIMM_FAMILY_INTEL.  This is either because its
+is an Intel nvdimm, or because the unsupported UUID returns back
+a zeroed out buffer of length 1.
+
+
+As nfit_mem->family always equals NVDIMM_FAMILY_INTEL, no subsequent
+DSM call will succeed for NVDIMM_FAMILY_HPE1 or any other
+family.
+
+I don't have a fix as of yet, but wanted to make you aware of
+the problem.
+
+
+
+
+> 
+> Update the nfit driver to determine the family (interface UUID) without
+> requiring the implementation to define any other functions, i.e.
+> short-circuit acpi_check_dsm() to succeed per the spec.  The nfit driver
+> appears to be the only user passing funcs==0 to acpi_check_dsm(), so
+> this behavior change of the common routine should be limited to the
+> probing done by the nfit driver.
+> 
+> Cc: "Rafael J. Wysocki" <rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org>
+> Cc: Len Brown <lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+> Cc: Jerry Hoemann <jerry.hoemann-ZPxbGqLxI0U@public.gmane.org>
+> Fixes: 31eca76ba2fc ("nfit, libnvdimm: limited/whitelisted dimm command marshaling mechanism")
+> Reported-by: Xiao Guangrong <guangrong.xiao-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
+> Tested-by: Xiao Guangrong <guangrong.xiao-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
+> Signed-off-by: Dan Williams <dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 > ---
->  drivers/acpi/nfit.c | 102 ++++++++++++++++++++++++++++++++++++++++++++++++++++
->  drivers/acpi/nfit.h |   1 +
->  2 files changed, 103 insertions(+)
->
+>  drivers/acpi/nfit.c  |    6 +++---
+>  drivers/acpi/utils.c |    6 +++---
+>  2 files changed, 6 insertions(+), 6 deletions(-)
+> 
 > diff --git a/drivers/acpi/nfit.c b/drivers/acpi/nfit.c
-> index def9505..0d2d7a3 100644
+> index 2215fc847fa9..32579a7b71d5 100644
 > --- a/drivers/acpi/nfit.c
 > +++ b/drivers/acpi/nfit.c
-> @@ -12,6 +12,7 @@
->   */
->  #include <linux/list_sort.h>
->  #include <linux/libnvdimm.h>
-> +#include <linux/notifier.h>
->  #include <linux/module.h>
->  #include <linux/mutex.h>
->  #include <linux/ndctl.h>
-> @@ -23,6 +24,7 @@
->  #include <linux/io.h>
->  #include <linux/nd.h>
->  #include <asm/cacheflush.h>
-> +#include <asm/mce.h>
->  #include "nfit.h"
->
->  /*
-> @@ -50,6 +52,9 @@ module_param(disable_vendor_specific, bool, S_IRUGO);
->  MODULE_PARM_DESC(disable_vendor_specific,
->                 "Limit commands to the publicly specified set\n");
->
-> +static LIST_HEAD(acpi_descs);
-> +static DEFINE_MUTEX(acpi_desc_lock);
-> +
->  static struct workqueue_struct *nfit_wq;
->
->  struct nfit_table_prev {
-> @@ -2382,6 +2387,7 @@ static int acpi_nfit_check_deletions(struct acpi_nfit_desc *acpi_desc,
->
->  int acpi_nfit_init(struct acpi_nfit_desc *acpi_desc, acpi_size sz)
->  {
-> +       struct acpi_nfit_desc *acpi_desc_entry;
->         struct device *dev = acpi_desc->dev;
->         struct nfit_table_prev prev;
->         const void *end;
-> @@ -2439,6 +2445,25 @@ int acpi_nfit_init(struct acpi_nfit_desc *acpi_desc, acpi_size sz)
->
->         rc = acpi_nfit_register_regions(acpi_desc);
->
-> +       /*
-> +        * We may get here due to an update of the nfit via _FIT.
-> +        * Check if the acpi_desc we're (re)initializing is already
-> +        * present in the list, and if so, don't re-add it
-> +        */
-> +       mutex_lock(&acpi_desc_lock);
-> +       if (list_empty(&acpi_descs))
-> +               list_add_tail(&acpi_desc->list, &acpi_descs);
+> @@ -1131,11 +1131,11 @@ static int acpi_nfit_add_dimm(struct acpi_nfit_desc *acpi_desc,
+>  
+>  	/*
+>  	 * Until standardization materializes we need to consider up to 3
+> -	 * different command sets.  Note, that checking for function0 (bit0)
+> -	 * tells us if any commands are reachable through this uuid.
+> +	 * different command sets.  Note, that checking for zero functions
+> +	 * tells us if any commands might be reachable through this uuid.
+>  	 */
+>  	for (i = NVDIMM_FAMILY_INTEL; i <= NVDIMM_FAMILY_HPE2; i++)
+> -		if (acpi_check_dsm(adev_dimm->handle, to_nfit_uuid(i), 1, 1))
+> +		if (acpi_check_dsm(adev_dimm->handle, to_nfit_uuid(i), 1, 0))
+>  			break;
 
-No need to special case list_empty(), it's covered below and this
-isn't a fast path.
 
-> +       else {
-> +               int found = 0;
-> +
-> +               list_for_each_entry(acpi_desc_entry, &acpi_descs, list)
-> +                       if (acpi_desc_entry == acpi_desc)
-> +                               found = 1;
-> +               if (found == 0)
-> +                       list_add_tail(&acpi_desc->list, &acpi_descs);
-> +       }
-> +       mutex_unlock(&acpi_desc_lock);
-> +
->   out_unlock:
->         mutex_unlock(&acpi_desc->init_mutex);
->         return rc;
-> @@ -2522,6 +2547,69 @@ static int acpi_nfit_ars_rescan(struct nvdimm_bus_descriptor *nd_desc)
->         return 0;
->  }
->
-> +static int nfit_handle_mce(struct notifier_block *nb, unsigned long val,
-> +                       void *data)
-> +{
-> +       struct mce *mce = (struct mce *)data;
-> +       struct acpi_nfit_desc *acpi_desc;
-> +       struct nfit_spa *nfit_spa;
-> +
-> +       /* We only care about memory errors */
-> +       if (!(mce->status & MCACOD))
-> +               return NOTIFY_DONE;
-> +
-> +       /*
-> +        * mce->addr contains the physical addr accessed that caused the
-> +        * machine check. We need to walk through the list of NFITs, and see
-> +        * if any of them matches that address, and only then start a scrub.
-> +        */
-> +       mutex_lock(&acpi_desc_lock);
-> +       if (list_empty(&acpi_descs))
-> +               goto out;
+At this point i will always == NVDIMM_FAMILY_INTEL.
 
-Again, no need to check for empty, list_for_each_entry() already does that...
 
-> +
-> +       list_for_each_entry(acpi_desc, &acpi_descs, list) {
-> +               struct device *dev = acpi_desc->dev;
-> +               int found_match = 0;
-> +
-> +               list_for_each_entry(nfit_spa, &acpi_desc->spas, list) {
-> +                       struct acpi_nfit_system_address *spa = nfit_spa->spa;
-> +
-> +                       if (nfit_spa_type(spa) != NFIT_SPA_PM)
-> +                               continue;
-> +                       /* find the spa that covers the mce addr */
-> +                       if (spa->address > mce->addr)
-> +                               continue;
-> +                       if ((spa->address + spa->length - 1) < mce->addr)
-> +                               continue;
-> +                       found_match = 1;
-> +                       dev_dbg(dev, "%s: addr in SPA %d (0x%llx, 0x%llx)\n",
-> +                               __func__, spa->range_index, spa->address,
-> +                               spa->length);
-> +                       /*
-> +                        * We can break at the first match because we're going
-> +                        * to rescan all the SPA ranges. There shouldn't be any
-> +                        * aliasing anyway.
-> +                        */
-> +                       break;
-> +               }
-> +
-> +               /*
-> +                * We can ignore an -EBUSY here because if an ARS is already
-> +                * in progress, just let that be the last authoritative one
-> +                */
-> +               if (found_match)
-> +                       acpi_nfit_ars_rescan(&acpi_desc->nd_desc);
-> +       }
-> +
-> + out:
-> +       mutex_unlock(&acpi_desc_lock);
-> +       return NOTIFY_DONE;
-> +}
-> +
-> +static struct notifier_block nfit_mce_dec = {
-> +       .notifier_call  = nfit_handle_mce,
-> +};
-> +
->  void acpi_nfit_desc_init(struct acpi_nfit_desc *acpi_desc, struct device *dev)
->  {
->         struct nvdimm_bus_descriptor *nd_desc;
-> @@ -2616,6 +2704,9 @@ static int acpi_nfit_remove(struct acpi_device *adev)
->         acpi_desc->cancel = 1;
->         flush_workqueue(nfit_wq);
->         nvdimm_bus_unregister(acpi_desc->nvdimm_bus);
-> +       mutex_lock(&acpi_desc_lock);
-> +       list_del(&acpi_desc->list);
-> +       mutex_unlock(&acpi_desc_lock);
->         return 0;
->  }
->
-> @@ -2725,13 +2816,24 @@ static __init int nfit_init(void)
->         if (!nfit_wq)
->                 return -ENOMEM;
->
-> +       INIT_LIST_HEAD(&acpi_descs);
-> +       mce_register_decode_chain(&nfit_mce_dec);
-> +
->         return acpi_bus_register_driver(&acpi_nfit_driver);
->  }
->
->  static __exit void nfit_exit(void)
->  {
-> +       struct acpi_nfit_desc *acpi_desc, *next;
-> +
-> +       mce_unregister_decode_chain(&nfit_mce_dec);
->         acpi_bus_unregister_driver(&acpi_nfit_driver);
->         destroy_workqueue(nfit_wq);
-> +       mutex_lock(&acpi_desc_lock);
-> +       if (list_empty(&acpi_descs))
-> +               list_for_each_entry_safe(acpi_desc, next, &acpi_descs, list)
-> +                       list_del(&acpi_desc->list);
+>  
+>  	/* limit the supported commands to those that are publicly documented */
+> diff --git a/drivers/acpi/utils.c b/drivers/acpi/utils.c
+> index 22c09952e177..b4de130f2d57 100644
+> --- a/drivers/acpi/utils.c
+> +++ b/drivers/acpi/utils.c
+> @@ -680,9 +680,6 @@ bool acpi_check_dsm(acpi_handle handle, const u8 *uuid, u64 rev, u64 funcs)
+>  	u64 mask = 0;
+>  	union acpi_object *obj;
+>  
+> -	if (funcs == 0)
+> -		return false;
+> -
+>  	obj = acpi_evaluate_dsm(handle, uuid, rev, 0, NULL);
+>  	if (!obj)
+>  		return false;
+> @@ -695,6 +692,9 @@ bool acpi_check_dsm(acpi_handle handle, const u8 *uuid, u64 rev, u64 funcs)
+>  			mask |= (((u64)obj->buffer.pointer[i]) << (i * 8));
+>  	ACPI_FREE(obj);
 
-We should WARN here, since there should be no way, outside of a bug,
-that 'acpi_descs' is still populated after
-acpi_bus_unregister_driver().
 
-> +       mutex_unlock(&acpi_desc_lock);
->  }
->
->  module_init(nfit_init);
-> diff --git a/drivers/acpi/nfit.h b/drivers/acpi/nfit.h
-> index db95c5d..cf4d42d 100644
-> --- a/drivers/acpi/nfit.h
-> +++ b/drivers/acpi/nfit.h
-> @@ -147,6 +147,7 @@ struct acpi_nfit_desc {
->         struct nd_cmd_ars_status *ars_status;
->         size_t ars_status_size;
->         struct work_struct work;
-> +       struct list_head list;
->         unsigned int cancel:1;
->         unsigned long dimm_cmd_force_en;
->         unsigned long bus_cmd_force_en;
+Unsupported UUID will get an object.  A zeroed out buffer of length 1.
+So, acpi_check_dsm is saying supported when it is not.
 
-Outside of the minor comments above, this looks good to me.
+
+>  
+> +	if (funcs == 0)
+> +		return true;
+> +
+>  	/*
+>  	 * Bit 0 indicates whether there's support for any functions other than
+>  	 * function 0 for the specified UUID and revision.
+
+
+
+-- 
+
+-----------------------------------------------------------------------------
+Jerry Hoemann                  Software Engineer   Hewlett Packard Enterprise
+-----------------------------------------------------------------------------
