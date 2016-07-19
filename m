@@ -1,84 +1,80 @@
-From: Bjorn Helgaas <helgaas@kernel.org>
-Subject: Re: [PATCH V7 3/8] PCI/MSI: Setup MSI domain on a per-device basis
- using IORT ACPI table
-Date: Tue, 19 Jul 2016 16:42:27 -0500
-Message-ID: <20160719214227.GB18635@localhost>
-References: <1466420541-20101-1-git-send-email-tn@semihalf.com>
- <1466420541-20101-4-git-send-email-tn@semihalf.com>
+From: Alex Williamson <alex.williamson@redhat.com>
+Subject: Re: [PATCH V11 0/9] vfio, platform: add ACPI support
+Date: Tue, 19 Jul 2016 15:50:25 -0600
+Message-ID: <20160719155025.7b7c1e32@t450s.home>
+References: <1468933309-19735-1-git-send-email-okaya@codeaurora.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-pci-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <1466420541-20101-4-git-send-email-tn@semihalf.com>
-Sender: linux-pci-owner@vger.kernel.org
-To: Tomasz Nowicki <tn@semihalf.com>
-Cc: marc.zyngier@arm.com, tglx@linutronix.de, jason@lakedaemon.net, rjw@rjwysocki.net, bhelgaas@google.com, lorenzo.pieralisi@arm.com, robert.richter@caviumnetworks.com, shijie.huang@arm.com, Suravee.Suthikulpanit@amd.com, hanjun.guo@linaro.org, al.stone@linaro.org, graeme.gregory@linaro.org, Catalin.Marinas@arm.com, will.deacon@arm.com, linux-kernel@vger.kernel.org, okaya@codeaurora.org, linux-acpi@vger.kernel.org, ddaney.cavm@gmail.com, linux-pci@vger.kernel.org, mw@semihalf.com, andrea.gallo@linaro.org, linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
+Return-path: <kvm-owner@vger.kernel.org>
+In-Reply-To: <1468933309-19735-1-git-send-email-okaya@codeaurora.org>
+Sender: kvm-owner@vger.kernel.org
+To: Sinan Kaya <okaya@codeaurora.org>
+Cc: kvm@vger.kernel.org, timur@codeaurora.org, cov@codeaurora.org, jcm@redhat.com, eric.auger@redhat.com, linux-acpi@vger.kernel.org, agross@codeaurora.org, linux-arm-msm@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Mon, Jun 20, 2016 at 01:02:16PM +0200, Tomasz Nowicki wrote:
-> It is possible to provide information about which MSI controller to
-> use on a per-device basis for DT. This patch supply this with ACPI support.
-> 
-> Currently, IORT is the only one ACPI table which can provide such mapping.
-> In order to plug IORT into MSI infrastructure we are adding ACPI
-> equivalents for finding PCI device domain and its RID translation
-> (pci_msi_domain_get_msi_rid and pci_msi_domain_get_msi_rid calls).
-> 
-> Signed-off-by: Tomasz Nowicki <tn@semihalf.com>
-> Acked-by: Marc Zyngier <marc.zyngier@arm.com>
+On Tue, 19 Jul 2016 09:01:40 -0400
+Sinan Kaya <okaya@codeaurora.org> wrote:
 
-Acked-by: Bjorn Helgaas <bhelgaas@google.com>
+> The current code only supports the device tree based platforms.
+> The code checks for the presence of a reset driver and calls the reset
+> function pointer by looking up the reset driver as a module.
+> 
+> ACPI defines _RST method to perform device level reset. After the _RST
+> method is executed, the OS can resume using the device.
+> 
+> The patchset is moving the device tree specific pieces out of the code
+> to common functions so that ACPI support is added without impacting the
+> rest of the code.
+> 
+> During probe, the ACPI HID of the object will be saved and will be used to
+> determine if this is an ACPI capable platform or not. If acpihid is NULL
+> then, device tree functions are called.
+> 
+> In addition to plumbing ACPI support, reset functionality is now a
+> requirement by default.
+> 
+> The code was allowing platform devices to be used without a supporting
+> VFIO reset driver. The hardware can be left in some inconsistent state
+> after a guest machine abort.
+> 
+> The reset driver will put the hardware back to safe state and disable
+> interrupts before returning the control back to the host machine.
+> 
+> Adding a new reset_required kernel module option to platform
+> VFIO drivers with a default value of true.
+> 
+> New requirements are:
+> 1. A reset function needs to be implemented by the corresponding driver
+> via DT/ACPI.
+> 2. The reset function needs to be discovered via DT/ACPI.
+> 
+> The probe of the driver will fail if any of the above conditions are
+> not satisfied.
+> 
+> Changes from V10:
+> 1. Get rid of redundant if check in the acpi_probe since we are now using
+> WARN_ON.
+> 2. Change the error code order according to Alex's recommendation.
+> 
+> Sinan Kaya (9):
+>   vfio: platform: rename reset function
+>   vfio: platform: move reset call to a common function
+>   vfio: platform: determine reset capability
+>   vfio: platform: add support for ACPI probe
+>   vfio: platform: add extra debug info argument to call reset
+>   vfio: platform: call _RST method when using ACPI
+>   vfio, platform: make reset driver a requirement by default
+>   vfio: platform: check reset call return code during open
+>   vfio: platform: check reset call return code during release
+> 
+>  drivers/vfio/platform/vfio_amba.c             |   1 +
+>  drivers/vfio/platform/vfio_platform.c         |   5 +
+>  drivers/vfio/platform/vfio_platform_common.c  | 192 +++++++++++++++++++++-----
+>  drivers/vfio/platform/vfio_platform_private.h |   9 +-
+>  4 files changed, 173 insertions(+), 34 deletions(-)
+> 
 
-I assume this will be merged along with the rest of the series via
-some non-PCI tree.
+Applied to next branch for v4.8.  Thanks,
 
-> ---
->  drivers/pci/msi.c | 11 ++++++++---
->  1 file changed, 8 insertions(+), 3 deletions(-)
-> 
-> diff --git a/drivers/pci/msi.c b/drivers/pci/msi.c
-> index a080f44..1d45e81 100644
-> --- a/drivers/pci/msi.c
-> +++ b/drivers/pci/msi.c
-> @@ -18,6 +18,7 @@
->  #include <linux/smp.h>
->  #include <linux/errno.h>
->  #include <linux/io.h>
-> +#include <linux/iort.h>
->  #include <linux/slab.h>
->  #include <linux/irqdomain.h>
->  #include <linux/of_irq.h>
-> @@ -1364,8 +1365,8 @@ u32 pci_msi_domain_get_msi_rid(struct irq_domain *domain, struct pci_dev *pdev)
->  	pci_for_each_dma_alias(pdev, get_msi_id_cb, &rid);
->  
->  	of_node = irq_domain_get_of_node(domain);
-> -	if (of_node)
-> -		rid = of_msi_map_rid(&pdev->dev, of_node, rid);
-> +	rid = of_node ? of_msi_map_rid(&pdev->dev, of_node, rid) :
-> +			iort_msi_map_rid(&pdev->dev, rid);
->  
->  	return rid;
->  }
-> @@ -1381,9 +1382,13 @@ u32 pci_msi_domain_get_msi_rid(struct irq_domain *domain, struct pci_dev *pdev)
->   */
->  struct irq_domain *pci_msi_get_device_domain(struct pci_dev *pdev)
->  {
-> +	struct irq_domain *dom;
->  	u32 rid = 0;
->  
->  	pci_for_each_dma_alias(pdev, get_msi_id_cb, &rid);
-> -	return of_msi_map_get_device_domain(&pdev->dev, rid);
-> +	dom = of_msi_map_get_device_domain(&pdev->dev, rid);
-> +	if (!dom)
-> +		dom = iort_get_device_domain(&pdev->dev, rid);
-> +	return dom;
->  }
->  #endif /* CONFIG_PCI_MSI_IRQ_DOMAIN */
-> -- 
-> 1.9.1
-> 
-> 
-> _______________________________________________
-> linux-arm-kernel mailing list
-> linux-arm-kernel@lists.infradead.org
-> http://lists.infradead.org/mailman/listinfo/linux-arm-kernel
+Alex
