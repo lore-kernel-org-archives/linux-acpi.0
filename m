@@ -1,172 +1,210 @@
 From: Dou Liyang <douly.fnst@cn.fujitsu.com>
-Subject: [PATCH v8 6/7] Provide the mechanism to validate processors in the ACPI tables
-Date: Tue, 19 Jul 2016 15:28:07 +0800
-Message-ID: <1468913288-16605-7-git-send-email-douly.fnst@cn.fujitsu.com>
+Subject: [PATCH v8 5/7] x86, acpi, cpu-hotplug: Set persistent cpuid <-> nodeid mapping when booting.
+Date: Tue, 19 Jul 2016 15:28:06 +0800
+Message-ID: <1468913288-16605-6-git-send-email-douly.fnst@cn.fujitsu.com>
 References: <1468913288-16605-1-git-send-email-douly.fnst@cn.fujitsu.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain
 Return-path: <owner-linux-mm@kvack.org>
 In-Reply-To: <1468913288-16605-1-git-send-email-douly.fnst@cn.fujitsu.com>
 Sender: owner-linux-mm@kvack.org
 To: cl@linux.com, tj@kernel.org, mika.j.penttila@gmail.com, mingo@redhat.com, akpm@linux-foundation.org, rjw@rjwysocki.net, hpa@zytor.com, yasu.isimatu@gmail.com, isimatu.yasuaki@jp.fujitsu.com, kamezawa.hiroyu@jp.fujitsu.com, izumi.taku@jp.fujitsu.com, gongzhaogang@inspur.com, len.brown@intel.com, lenb@kernel.org, tglx@linutronix.de, chen.tang@easystack.cn, rafael@kernel.org
-Cc: x86@kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linux-mm@kvack.org, Dou Liyang <douly.fnst@cn.fujitsu.com>
+Cc: x86@kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linux-mm@kvack.org, Gu Zheng <guz.fnst@cn.fujitsu.com>, Tang Chen <tangchen@cn.fujitsu.com>, Zhu Guihua <zhugh.fnst@cn.fujitsu.com>, Dou Liyang <douly.fnst@cn.fujitsu.com>
 List-Id: linux-acpi@vger.kernel.org
 
-[Problem]
+From: Gu Zheng <guz.fnst@cn.fujitsu.com>
 
-When we set cpuid <-> nodeid mapping to be persistent, it will use the DS=
-DT
-As we know, the ACPI tables are just like user's input in that respect, a=
-nd
-we don't crash if user's input is unreasonable.
+The whole patch-set aims at making cpuid <-> nodeid mapping persistent. So that,
+when node online/offline happens, cache based on cpuid <-> nodeid mapping such as
+wq_numa_possible_cpumask will not cause any problem.
+It contains 4 steps:
+1. Enable apic registeration flow to handle both enabled and disabled cpus.
+2. Introduce a new array storing all possible cpuid <-> apicid mapping.
+3. Enable _MAT and MADT relative apis to return non-presnet or disabled cpus' apicid.
+4. Establish all possible cpuid <-> nodeid mapping.
 
-Such as, the mapping of the proc_id and pxm in some machine's ACPI table =
-is
-like this:=20
+This patch finishes step 4.
 
-proc_id   |    pxm
---------------------
-0      <->      0
-1      <->      0
-2       <->     1
-3      <->      1
-89      <->     0
-89      <->     0
-89      <->     0
-89      <->     1
-89      <->     1
-89      <->     2
-89      <->     3
-.....
+This patch set the persistent cpuid <-> nodeid mapping for all enabled/disabled
+processors at boot time via an additional acpi namespace walk for processors.
 
-We can't be sure which one is correct to the proc_id 89. We may map a wro=
-ng
-node to a cpu. When pages are allocated, this may cause a kernal panic.
-
-So, we should provide mechanisms to validate the ACPI tables, just like w=
-e
-do validation to check user's input in web project.
-
-The mechanism is that the processor objects which have the duplicate IDs
-are not valid.
-
-[Solution]
-
-We add a validation function, like this:
-=20
- foreach Processor in DSDT
-  proc_id=3D get_ACPI_Processor_number(Processor)
-   if(the proc_id has alreadly existed )
-     mark both of them as being unreasonable;
-				   =20
-The function will record the unique or duplicate processor IDs.
-
-The duplicate processor IDs such as 89 are regarded as the unreasonable I=
-DS
-which mean that the processor objects in question are not valid.=20
-
+Signed-off-by: Gu Zheng <guz.fnst@cn.fujitsu.com>
+Signed-off-by: Tang Chen <tangchen@cn.fujitsu.com>
+Signed-off-by: Zhu Guihua <zhugh.fnst@cn.fujitsu.com>
 Signed-off-by: Dou Liyang <douly.fnst@cn.fujitsu.com>
 ---
- drivers/acpi/acpi_processor.c | 79 +++++++++++++++++++++++++++++++++++++=
-++++++
- 1 file changed, 79 insertions(+)
+ arch/ia64/kernel/acpi.c       |  3 +-
+ arch/x86/kernel/acpi/boot.c   |  4 ++-
+ drivers/acpi/acpi_processor.c |  5 ++++
+ drivers/acpi/bus.c            |  3 ++
+ drivers/acpi/processor_core.c | 65 +++++++++++++++++++++++++++++++++++++++++++
+ include/linux/acpi.h          |  2 ++
+ 6 files changed, 80 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/acpi/acpi_processor.c b/drivers/acpi/acpi_processor.=
-c
-index 0c15828..346fbfc 100644
+diff --git a/arch/ia64/kernel/acpi.c b/arch/ia64/kernel/acpi.c
+index b1698bc..bb36515 100644
+--- a/arch/ia64/kernel/acpi.c
++++ b/arch/ia64/kernel/acpi.c
+@@ -796,7 +796,7 @@ int acpi_isa_irq_to_gsi(unsigned isa_irq, u32 *gsi)
+  *  ACPI based hotplug CPU support
+  */
+ #ifdef CONFIG_ACPI_HOTPLUG_CPU
+-static int acpi_map_cpu2node(acpi_handle handle, int cpu, int physid)
++int acpi_map_cpu2node(acpi_handle handle, int cpu, int physid)
+ {
+ #ifdef CONFIG_ACPI_NUMA
+ 	/*
+@@ -811,6 +811,7 @@ static int acpi_map_cpu2node(acpi_handle handle, int cpu, int physid)
+ #endif
+ 	return 0;
+ }
++EXPORT_SYMBOL(acpi_map_cpu2node);
+ 
+ int additional_cpus __initdata = -1;
+ 
+diff --git a/arch/x86/kernel/acpi/boot.c b/arch/x86/kernel/acpi/boot.c
+index 37248c3..0900264f 100644
+--- a/arch/x86/kernel/acpi/boot.c
++++ b/arch/x86/kernel/acpi/boot.c
+@@ -695,7 +695,7 @@ static void __init acpi_set_irq_model_ioapic(void)
+ #ifdef CONFIG_ACPI_HOTPLUG_CPU
+ #include <acpi/processor.h>
+ 
+-static void acpi_map_cpu2node(acpi_handle handle, int cpu, int physid)
++int acpi_map_cpu2node(acpi_handle handle, int cpu, int physid)
+ {
+ #ifdef CONFIG_ACPI_NUMA
+ 	int nid;
+@@ -706,7 +706,9 @@ static void acpi_map_cpu2node(acpi_handle handle, int cpu, int physid)
+ 		numa_set_node(cpu, nid);
+ 	}
+ #endif
++	return 0;
+ }
++EXPORT_SYMBOL(acpi_map_cpu2node);
+ 
+ int acpi_map_cpu(acpi_handle handle, phys_cpuid_t physid, int *pcpu)
+ {
+diff --git a/drivers/acpi/acpi_processor.c b/drivers/acpi/acpi_processor.c
+index e85b19a..0c15828 100644
 --- a/drivers/acpi/acpi_processor.c
 +++ b/drivers/acpi/acpi_processor.c
-@@ -581,8 +581,87 @@ static struct acpi_scan_handler processor_container_=
-handler =3D {
- 	.attach =3D acpi_processor_container_attach,
- };
-=20
-+/* The number of the unique processor IDs */
-+static int nr_unique_ids;
-+
-+/* The number of the duplicate processor IDs */
-+static int nr_duplicate_ids;
-+
-+/* Used to store the unique processor IDs */
-+static int unique_processor_ids[] =3D {
-+	[0 ... NR_CPUS - 1] =3D -1,
-+};
-+
-+/* Used to store the duplicate processor IDs */
-+static int duplicate_processor_ids[] =3D {
-+	[0 ... NR_CPUS - 1] =3D -1,
-+};
-+
-+static void processor_validated_ids_update(int proc_id)
+@@ -182,6 +182,11 @@ int __weak arch_register_cpu(int cpu)
+ 
+ void __weak arch_unregister_cpu(int cpu) {}
+ 
++int __weak acpi_map_cpu2node(acpi_handle handle, int cpu, int physid)
 +{
-+	int i;
-+
-+	if (nr_unique_ids =3D=3D NR_CPUS||nr_duplicate_ids =3D=3D NR_CPUS)
-+		return;
-+
-+	/*
-+	 * Firstly, compare the proc_id with duplicate IDs, if the proc_id is
-+	 * already in the IDs, do nothing.
-+	 */
-+	for (i =3D 0; i < nr_duplicate_ids; i++) {
-+		if (duplicate_processor_ids[i] =3D=3D proc_id)
-+			return;
-+	}
-+
-+	/*
-+	 * Secondly, compare the proc_id with unique IDs, if the proc_id is in
-+	 * the IDs, put it in the duplicate IDs.
-+	 */
-+	for (i =3D 0; i < nr_unique_ids; i++) {
-+		if (unique_processor_ids[i] =3D=3D proc_id) {
-+			duplicate_processor_ids[nr_duplicate_ids] =3D proc_id;
-+			nr_duplicate_ids++;
-+			return;
-+		}
-+	}
-+
-+	/*
-+	 * Lastly, the proc_id is a unique ID, put it in the unique IDs.
-+	 */
-+	unique_processor_ids[nr_unique_ids] =3D proc_id;
-+	nr_unique_ids++;
++	return -ENODEV;
 +}
 +
-+static acpi_status acpi_processor_ids_walk(acpi_handle handle,
-+						u32 lvl,
-+						void *context,
-+						void **rv)
+ static int acpi_processor_hotadd_init(struct acpi_processor *pr)
+ {
+ 	unsigned long long sta;
+diff --git a/drivers/acpi/bus.c b/drivers/acpi/bus.c
+index 262ca31..d8b7272 100644
+--- a/drivers/acpi/bus.c
++++ b/drivers/acpi/bus.c
+@@ -1124,6 +1124,9 @@ static int __init acpi_init(void)
+ 	acpi_sleep_proc_init();
+ 	acpi_wakeup_device_init();
+ 	acpi_debugger_init();
++#ifdef CONFIG_ACPI_HOTPLUG_CPU
++	acpi_set_processor_mapping();
++#endif
+ 	return 0;
+ }
+ 
+diff --git a/drivers/acpi/processor_core.c b/drivers/acpi/processor_core.c
+index 824b98b..69fb027 100644
+--- a/drivers/acpi/processor_core.c
++++ b/drivers/acpi/processor_core.c
+@@ -261,6 +261,71 @@ int acpi_get_cpuid(acpi_handle handle, int type, u32 acpi_id)
+ }
+ EXPORT_SYMBOL_GPL(acpi_get_cpuid);
+ 
++#ifdef CONFIG_ACPI_HOTPLUG_CPU
++static bool map_processor(acpi_handle handle, phys_cpuid_t *phys_id, int *cpuid)
 +{
++	int type;
++	u32 acpi_id;
 +	acpi_status status;
-+	union acpi_object object =3D { 0 };
-+	struct acpi_buffer buffer =3D { sizeof(union acpi_object), &object };
++	acpi_object_type acpi_type;
++	unsigned long long tmp;
++	union acpi_object object = { 0 };
++	struct acpi_buffer buffer = { sizeof(union acpi_object), &object };
 +
-+	status =3D acpi_evaluate_object(handle, NULL, NULL, &buffer);
++	status = acpi_get_type(handle, &acpi_type);
 +	if (ACPI_FAILURE(status))
-+		acpi_handle_info(handle, "Not get the processor object\n");
-+	else
-+		processor_validated_ids_update(object.processor.proc_id);
++		return false;
 +
++	switch (acpi_type) {
++	case ACPI_TYPE_PROCESSOR:
++		status = acpi_evaluate_object(handle, NULL, NULL, &buffer);
++		if (ACPI_FAILURE(status))
++			return false;
++		acpi_id = object.processor.proc_id;
++		break;
++	case ACPI_TYPE_DEVICE:
++		status = acpi_evaluate_integer(handle, "_UID", NULL, &tmp);
++		if (ACPI_FAILURE(status))
++			return false;
++		acpi_id = tmp;
++		break;
++	default:
++		return false;
++	}
++
++	type = (acpi_type == ACPI_TYPE_DEVICE) ? 1 : 0;
++
++	*phys_id = __acpi_get_phys_id(handle, type, acpi_id, false);
++	*cpuid = acpi_map_cpuid(*phys_id, acpi_id);
++	if (*cpuid == -1)
++		return false;
++
++	return true;
++}
++
++static acpi_status __init
++set_processor_node_mapping(acpi_handle handle, u32 lvl, void *context,
++			   void **rv)
++{
++	phys_cpuid_t phys_id;
++	int cpu_id;
++
++	if (!map_processor(handle, &phys_id, &cpu_id))
++		return AE_ERROR;
++
++	acpi_map_cpu2node(handle, cpu_id, phys_id);
 +	return AE_OK;
 +}
 +
-+static void acpi_processor_duplication_valiate(void)
++void __init acpi_set_processor_mapping(void)
 +{
-+	/* Search all processor nodes in ACPI namespace */
++	/* Set persistent cpu <-> node mapping for all processors. */
 +	acpi_walk_namespace(ACPI_TYPE_PROCESSOR, ACPI_ROOT_OBJECT,
-+						ACPI_UINT32_MAX,
-+						acpi_processor_ids_walk,
-+						NULL, NULL, NULL);
++			    ACPI_UINT32_MAX, set_processor_node_mapping,
++			    NULL, NULL, NULL);
 +}
++#endif
 +
- void __init acpi_processor_init(void)
- {
-+	acpi_processor_duplication_valiate();
- 	acpi_scan_add_handler_with_hotplug(&processor_handler, "processor");
- 	acpi_scan_add_handler(&processor_container_handler);
- }
---=20
+ #ifdef CONFIG_ACPI_HOTPLUG_IOAPIC
+ static int get_ioapic_id(struct acpi_subtable_header *entry, u32 gsi_base,
+ 			 u64 *phys_addr, int *ioapic_id)
+diff --git a/include/linux/acpi.h b/include/linux/acpi.h
+index 288fac5..53b3014 100644
+--- a/include/linux/acpi.h
++++ b/include/linux/acpi.h
+@@ -258,6 +258,8 @@ static inline bool invalid_phys_cpuid(phys_cpuid_t phys_id)
+ /* Arch dependent functions for cpu hotplug support */
+ int acpi_map_cpu(acpi_handle handle, phys_cpuid_t physid, int *pcpu);
+ int acpi_unmap_cpu(int cpu);
++int acpi_map_cpu2node(acpi_handle handle, int cpu, int physid);
++void __init acpi_set_processor_mapping(void);
+ #endif /* CONFIG_ACPI_HOTPLUG_CPU */
+ 
+ #ifdef CONFIG_ACPI_HOTPLUG_IOAPIC
+-- 
 2.5.5
 
 
@@ -175,4 +213,4 @@ handler =3D {
 To unsubscribe, send a message with 'unsubscribe linux-mm' in
 the body to majordomo@kvack.org.  For more info on Linux MM,
 see: http://www.linux-mm.org/ .
-Don't email: <a href=3Dmailto:"dont@kvack.org"> email@kvack.org </a>
+Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
