@@ -1,56 +1,382 @@
 From: Dan Williams <dan.j.williams@intel.com>
-Subject: Re: [PATCH] acpi, nfit: fix acpi_check_dsm() vs zero functions implemented
-Date: Tue, 19 Jul 2016 15:53:28 -0700
-Message-ID: <CAPcyv4g1+RPCMqSLY6daYATkEvRVRre=KkKeu25L9jQOsMjjiQ@mail.gmail.com>
-References: <146679026571.24395.11569929364936343871.stgit@dwillia2-desk3.amr.corp.intel.com>
- <20160719171153.GA121461@tevye.fc.hp.com> <cfd9968d-9835-0ef1-fafd-54fd3b892d1c@hpe.com>
- <CAPcyv4gqmjMFveV+iE2NbvWnTb5kdy8w54VDgLYxeMJ5NJyzbw@mail.gmail.com>
- <CAPcyv4hbyq7MVQrTxYixo+fP7R=wV-Nt84NNfVJKrYWwUSJg=Q@mail.gmail.com> <20160719224644.GJ140413@tevye.fc.hp.com>
+Subject: [PATCH v3 1/2] nfit: fix _FIT evaluation memory leak + use after
+ free
+Date: Tue, 19 Jul 2016 16:12:26 -0700
+Message-ID: <146896992879.19125.6684253593375468344.stgit@dwillia2-desk3.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-oi0-f49.google.com ([209.85.218.49]:35630 "EHLO
-	mail-oi0-f49.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751785AbcGSWxa (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 19 Jul 2016 18:53:30 -0400
-Received: by mail-oi0-f49.google.com with SMTP id l72so47270615oig.2
-        for <linux-acpi@vger.kernel.org>; Tue, 19 Jul 2016 15:53:29 -0700 (PDT)
-In-Reply-To: <20160719224644.GJ140413@tevye.fc.hp.com>
+Received: from mga03.intel.com ([134.134.136.65]:8182 "EHLO mga03.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752166AbcGSXOh (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 19 Jul 2016 19:14:37 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Jerry Hoemann <Jerry.Hoemann@hpe.com>
-Cc: Linda Knippers <linda.knippers@hpe.com>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Linux ACPI <linux-acpi@vger.kernel.org>, Xiao Guangrong <guangrong.xiao@linux.intel.com>, Len Brown <lenb@kernel.org>, Marvin Spinhirne <spin@hpe.com>
+To: linux-nvdimm@lists.01.org
+Cc: Vishal Verma <vishal.l.verma@intel.com>, linux-acpi@vger.kernel.org, Xiao Guangrong <guangrong.xiao@intel.com>, Haozhong Zhang <haozhong.zhang@intel.com>
 
-On Tue, Jul 19, 2016 at 3:46 PM, Jerry Hoemann <jerry.hoemann@hpe.com> wrote:
-> On Tue, Jul 19, 2016 at 01:01:16PM -0700, Dan Williams wrote:
->> On Tue, Jul 19, 2016 at 11:52 AM, Dan Williams <dan.j.williams@intel.com> wrote:
->> > On Tue, Jul 19, 2016 at 11:50 AM, Linda Knippers <linda.knippers@hpe.com> wrote:
->> >> On 7/19/2016 1:11 PM, Jerry Hoemann wrote:
->> [..]
->> >>> As nfit_mem->family always equals NVDIMM_FAMILY_INTEL, no subsequent
->> >>> DSM call will succeed for NVDIMM_FAMILY_HPE1 or any other
->> >>> family.
->> >>>
->> >>> I don't have a fix as of yet, but wanted to make you aware of
->> >>> the problem.
->> >>
->> >> Could we try the all known UUIDs looking for one that returns a non-zero
->> >> value?
->> >>
->> >
->> > Yes, that seems like the way forward, and also make not finding a DSM
->> > family non-fatal.
->>
->> Actually, all we need is that last bit...  Jerry, Xiao, can you try
->> the attached patch on top for v4.7-rc6 to see if it works in both HPe
->> and QEMU 2.6 environments respectively?
->
-> Dan,
->
-> I applied this patch on top of the SLES 12 sp2 kernel I was testing
-> with last night.
->
-> The proposed patch below works for HPE nvdimms.
+acpi_evaluate_object() allocates memory. Free the buffer allocated
+during acpi_nfit_add(). In order for this memory to be freed
+acpi_nfit_init() needs to be converted to duplicate the nfit contents in
+its internal allocation.  Use zero-length arrays to minimize the thrash
+with the rest of the nfit driver implementation.
 
-Thanks Jerry, I'll add your Tested-by and push it for v4.7-final after
-Xiao has a chance to confirm.
+All of the add_<nfit-sub-table>() routines now validate a minimum table
+size and expect hotplugged tables to match the size of the original
+table to count as a duplicate. For variable length tables, like 'idt'
+and 'flush', we calculate the dynamic size. Note that hotplug by
+definition cannot change the interleave as it would cause data
+corruption of in-use namespaces.
+
+Cc: Vishal Verma <vishal.l.verma@intel.com>
+Reported-by: Xiao Guangrong <guangrong.xiao@intel.com>
+Reported-by: Haozhong Zhang <haozhong.zhang@intel.com>
+Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+---
+Changes since v2:
+
+* Fix use after free of the _FIT data.  The data is now copied to a
+  private allocation that has the same lifetime as the nfit_* object.
+  (Xiao)
+
+ drivers/acpi/nfit.c |  127 ++++++++++++++++++++++++++++++++++++---------------
+ drivers/acpi/nfit.h |   12 ++---
+ 2 files changed, 95 insertions(+), 44 deletions(-)
+
+diff --git a/drivers/acpi/nfit.c b/drivers/acpi/nfit.c
+index d89a02d9ed10..54a4ee0a90e0 100644
+--- a/drivers/acpi/nfit.c
++++ b/drivers/acpi/nfit.c
+@@ -374,22 +374,25 @@ static bool add_spa(struct acpi_nfit_desc *acpi_desc,
+ 		struct nfit_table_prev *prev,
+ 		struct acpi_nfit_system_address *spa)
+ {
+-	size_t length = min_t(size_t, sizeof(*spa), spa->header.length);
+ 	struct device *dev = acpi_desc->dev;
+ 	struct nfit_spa *nfit_spa;
+ 
++	if (spa->header.length != sizeof(*spa))
++		return false;
++
+ 	list_for_each_entry(nfit_spa, &prev->spas, list) {
+-		if (memcmp(nfit_spa->spa, spa, length) == 0) {
++		if (memcmp(nfit_spa->spa, spa, sizeof(*spa)) == 0) {
+ 			list_move_tail(&nfit_spa->list, &acpi_desc->spas);
+ 			return true;
+ 		}
+ 	}
+ 
+-	nfit_spa = devm_kzalloc(dev, sizeof(*nfit_spa), GFP_KERNEL);
++	nfit_spa = devm_kzalloc(dev, sizeof(*nfit_spa) + sizeof(*spa),
++			GFP_KERNEL);
+ 	if (!nfit_spa)
+ 		return false;
+ 	INIT_LIST_HEAD(&nfit_spa->list);
+-	nfit_spa->spa = spa;
++	memcpy(nfit_spa->spa, spa, sizeof(*spa));
+ 	list_add_tail(&nfit_spa->list, &acpi_desc->spas);
+ 	dev_dbg(dev, "%s: spa index: %d type: %s\n", __func__,
+ 			spa->range_index,
+@@ -401,21 +404,24 @@ static bool add_memdev(struct acpi_nfit_desc *acpi_desc,
+ 		struct nfit_table_prev *prev,
+ 		struct acpi_nfit_memory_map *memdev)
+ {
+-	size_t length = min_t(size_t, sizeof(*memdev), memdev->header.length);
+ 	struct device *dev = acpi_desc->dev;
+ 	struct nfit_memdev *nfit_memdev;
+ 
++	if (memdev->header.length != sizeof(*memdev))
++		return false;
++
+ 	list_for_each_entry(nfit_memdev, &prev->memdevs, list)
+-		if (memcmp(nfit_memdev->memdev, memdev, length) == 0) {
++		if (memcmp(nfit_memdev->memdev, memdev, sizeof(*memdev)) == 0) {
+ 			list_move_tail(&nfit_memdev->list, &acpi_desc->memdevs);
+ 			return true;
+ 		}
+ 
+-	nfit_memdev = devm_kzalloc(dev, sizeof(*nfit_memdev), GFP_KERNEL);
++	nfit_memdev = devm_kzalloc(dev, sizeof(*nfit_memdev) + sizeof(*memdev),
++			GFP_KERNEL);
+ 	if (!nfit_memdev)
+ 		return false;
+ 	INIT_LIST_HEAD(&nfit_memdev->list);
+-	nfit_memdev->memdev = memdev;
++	memcpy(nfit_memdev->memdev, memdev, sizeof(*memdev));
+ 	list_add_tail(&nfit_memdev->list, &acpi_desc->memdevs);
+ 	dev_dbg(dev, "%s: memdev handle: %#x spa: %d dcr: %d\n",
+ 			__func__, memdev->device_handle, memdev->range_index,
+@@ -423,25 +429,42 @@ static bool add_memdev(struct acpi_nfit_desc *acpi_desc,
+ 	return true;
+ }
+ 
++/*
++ * An implementation may provide a truncated control region if no block windows
++ * are defined.
++ */
++static size_t sizeof_dcr(struct acpi_nfit_control_region *dcr)
++{
++	if (dcr->header.length < offsetof(struct acpi_nfit_control_region,
++				window_size))
++		return 0;
++	if (dcr->windows)
++		return sizeof(*dcr);
++	return offsetof(struct acpi_nfit_control_region, window_size);
++}
++
+ static bool add_dcr(struct acpi_nfit_desc *acpi_desc,
+ 		struct nfit_table_prev *prev,
+ 		struct acpi_nfit_control_region *dcr)
+ {
+-	size_t length = min_t(size_t, sizeof(*dcr), dcr->header.length);
+ 	struct device *dev = acpi_desc->dev;
+ 	struct nfit_dcr *nfit_dcr;
+ 
++	if (!sizeof_dcr(dcr))
++		return false;
++
+ 	list_for_each_entry(nfit_dcr, &prev->dcrs, list)
+-		if (memcmp(nfit_dcr->dcr, dcr, length) == 0) {
++		if (memcmp(nfit_dcr->dcr, dcr, sizeof_dcr(dcr)) == 0) {
+ 			list_move_tail(&nfit_dcr->list, &acpi_desc->dcrs);
+ 			return true;
+ 		}
+ 
+-	nfit_dcr = devm_kzalloc(dev, sizeof(*nfit_dcr), GFP_KERNEL);
++	nfit_dcr = devm_kzalloc(dev, sizeof(*nfit_dcr) + sizeof(*dcr),
++			GFP_KERNEL);
+ 	if (!nfit_dcr)
+ 		return false;
+ 	INIT_LIST_HEAD(&nfit_dcr->list);
+-	nfit_dcr->dcr = dcr;
++	memcpy(nfit_dcr->dcr, dcr, sizeof_dcr(dcr));
+ 	list_add_tail(&nfit_dcr->list, &acpi_desc->dcrs);
+ 	dev_dbg(dev, "%s: dcr index: %d windows: %d\n", __func__,
+ 			dcr->region_index, dcr->windows);
+@@ -452,71 +475,102 @@ static bool add_bdw(struct acpi_nfit_desc *acpi_desc,
+ 		struct nfit_table_prev *prev,
+ 		struct acpi_nfit_data_region *bdw)
+ {
+-	size_t length = min_t(size_t, sizeof(*bdw), bdw->header.length);
+ 	struct device *dev = acpi_desc->dev;
+ 	struct nfit_bdw *nfit_bdw;
+ 
++	if (bdw->header.length != sizeof(*bdw))
++		return false;
+ 	list_for_each_entry(nfit_bdw, &prev->bdws, list)
+-		if (memcmp(nfit_bdw->bdw, bdw, length) == 0) {
++		if (memcmp(nfit_bdw->bdw, bdw, sizeof(*bdw)) == 0) {
+ 			list_move_tail(&nfit_bdw->list, &acpi_desc->bdws);
+ 			return true;
+ 		}
+ 
+-	nfit_bdw = devm_kzalloc(dev, sizeof(*nfit_bdw), GFP_KERNEL);
++	nfit_bdw = devm_kzalloc(dev, sizeof(*nfit_bdw) + sizeof(*bdw),
++			GFP_KERNEL);
+ 	if (!nfit_bdw)
+ 		return false;
+ 	INIT_LIST_HEAD(&nfit_bdw->list);
+-	nfit_bdw->bdw = bdw;
++	memcpy(nfit_bdw->bdw, bdw, sizeof(*bdw));
+ 	list_add_tail(&nfit_bdw->list, &acpi_desc->bdws);
+ 	dev_dbg(dev, "%s: bdw dcr: %d windows: %d\n", __func__,
+ 			bdw->region_index, bdw->windows);
+ 	return true;
+ }
+ 
++static size_t sizeof_idt(struct acpi_nfit_interleave *idt)
++{
++	if (idt->header.length < sizeof(*idt))
++		return 0;
++	return sizeof(*idt) + sizeof(u32) * (idt->line_count - 1);
++}
++
+ static bool add_idt(struct acpi_nfit_desc *acpi_desc,
+ 		struct nfit_table_prev *prev,
+ 		struct acpi_nfit_interleave *idt)
+ {
+-	size_t length = min_t(size_t, sizeof(*idt), idt->header.length);
+ 	struct device *dev = acpi_desc->dev;
+ 	struct nfit_idt *nfit_idt;
+ 
+-	list_for_each_entry(nfit_idt, &prev->idts, list)
+-		if (memcmp(nfit_idt->idt, idt, length) == 0) {
++	if (!sizeof_idt(idt))
++		return false;
++
++	list_for_each_entry(nfit_idt, &prev->idts, list) {
++		if (sizeof_idt(nfit_idt->idt) != sizeof_idt(idt))
++			continue;
++
++		if (memcmp(nfit_idt->idt, idt, sizeof_idt(idt)) == 0) {
+ 			list_move_tail(&nfit_idt->list, &acpi_desc->idts);
+ 			return true;
+ 		}
++	}
+ 
+-	nfit_idt = devm_kzalloc(dev, sizeof(*nfit_idt), GFP_KERNEL);
++	nfit_idt = devm_kzalloc(dev, sizeof(*nfit_idt) + sizeof_idt(idt),
++			GFP_KERNEL);
+ 	if (!nfit_idt)
+ 		return false;
+ 	INIT_LIST_HEAD(&nfit_idt->list);
+-	nfit_idt->idt = idt;
++	memcpy(nfit_idt->idt, idt, sizeof_idt(idt));
+ 	list_add_tail(&nfit_idt->list, &acpi_desc->idts);
+ 	dev_dbg(dev, "%s: idt index: %d num_lines: %d\n", __func__,
+ 			idt->interleave_index, idt->line_count);
+ 	return true;
+ }
+ 
++static size_t sizeof_flush(struct acpi_nfit_flush_address *flush)
++{
++	if (flush->header.length < sizeof(*flush))
++		return 0;
++	return sizeof(*flush) + sizeof(u64) * (flush->hint_count - 1);
++}
++
+ static bool add_flush(struct acpi_nfit_desc *acpi_desc,
+ 		struct nfit_table_prev *prev,
+ 		struct acpi_nfit_flush_address *flush)
+ {
+-	size_t length = min_t(size_t, sizeof(*flush), flush->header.length);
+ 	struct device *dev = acpi_desc->dev;
+ 	struct nfit_flush *nfit_flush;
+ 
+-	list_for_each_entry(nfit_flush, &prev->flushes, list)
+-		if (memcmp(nfit_flush->flush, flush, length) == 0) {
++	if (!sizeof_flush(flush))
++		return false;
++
++	list_for_each_entry(nfit_flush, &prev->flushes, list) {
++		if (sizeof_flush(nfit_flush->flush) != sizeof_flush(flush))
++			continue;
++
++		if (memcmp(nfit_flush->flush, flush,
++					sizeof_flush(flush)) == 0) {
+ 			list_move_tail(&nfit_flush->list, &acpi_desc->flushes);
+ 			return true;
+ 		}
++	}
+ 
+-	nfit_flush = devm_kzalloc(dev, sizeof(*nfit_flush), GFP_KERNEL);
++	nfit_flush = devm_kzalloc(dev, sizeof(*nfit_flush)
++			+ sizeof_flush(flush), GFP_KERNEL);
+ 	if (!nfit_flush)
+ 		return false;
+ 	INIT_LIST_HEAD(&nfit_flush->list);
+-	nfit_flush->flush = flush;
++	memcpy(nfit_flush->flush, flush, sizeof_flush(flush));
+ 	list_add_tail(&nfit_flush->list, &acpi_desc->flushes);
+ 	dev_dbg(dev, "%s: nfit_flush handle: %d hint_count: %d\n", __func__,
+ 			flush->device_handle, flush->hint_count);
+@@ -2390,7 +2444,7 @@ static int acpi_nfit_add(struct acpi_device *adev)
+ 	struct acpi_table_header *tbl;
+ 	acpi_status status = AE_OK;
+ 	acpi_size sz;
+-	int rc;
++	int rc = 0;
+ 
+ 	status = acpi_get_table_with_size(ACPI_SIG_NFIT, 0, &tbl, &sz);
+ 	if (ACPI_FAILURE(status)) {
+@@ -2427,12 +2481,15 @@ static int acpi_nfit_add(struct acpi_device *adev)
+ 			acpi_desc->nfit =
+ 				(struct acpi_nfit_header *)obj->buffer.pointer;
+ 			sz = obj->buffer.length;
++			rc = acpi_nfit_init(acpi_desc, sz);
+ 		} else
+ 			dev_dbg(dev, "%s invalid type %d, ignoring _FIT\n",
+ 				 __func__, (int) obj->type);
+-	}
++		acpi_desc->nfit = NULL;
++		kfree(buf.pointer);
++	} else
++		rc = acpi_nfit_init(acpi_desc, sz);
+ 
+-	rc = acpi_nfit_init(acpi_desc, sz);
+ 	if (rc) {
+ 		nvdimm_bus_unregister(acpi_desc->nvdimm_bus);
+ 		return rc;
+@@ -2454,7 +2511,6 @@ static void acpi_nfit_notify(struct acpi_device *adev, u32 event)
+ {
+ 	struct acpi_nfit_desc *acpi_desc = dev_get_drvdata(&adev->dev);
+ 	struct acpi_buffer buf = { ACPI_ALLOCATE_BUFFER, NULL };
+-	struct acpi_nfit_header *nfit_saved;
+ 	union acpi_object *obj;
+ 	struct device *dev = &adev->dev;
+ 	acpi_status status;
+@@ -2492,21 +2548,16 @@ static void acpi_nfit_notify(struct acpi_device *adev, u32 event)
+ 		goto out_unlock;
+ 	}
+ 
+-	nfit_saved = acpi_desc->nfit;
+ 	obj = buf.pointer;
+ 	if (obj->type == ACPI_TYPE_BUFFER) {
+ 		acpi_desc->nfit =
+ 			(struct acpi_nfit_header *)obj->buffer.pointer;
+ 		ret = acpi_nfit_init(acpi_desc, obj->buffer.length);
+-		if (ret) {
+-			/* Merge failed, restore old nfit, and exit */
+-			acpi_desc->nfit = nfit_saved;
++		if (ret)
+ 			dev_err(dev, "failed to merge updated NFIT\n");
+-		}
+-	} else {
+-		/* Bad _FIT, restore old nfit */
++	} else
+ 		dev_err(dev, "Invalid _FIT\n");
+-	}
++	acpi_desc->nfit = NULL;
+ 	kfree(buf.pointer);
+ 
+  out_unlock:
+diff --git a/drivers/acpi/nfit.h b/drivers/acpi/nfit.h
+index 80fb2c0ac8bf..402f8c31adc7 100644
+--- a/drivers/acpi/nfit.h
++++ b/drivers/acpi/nfit.h
+@@ -78,37 +78,37 @@ enum {
+ };
+ 
+ struct nfit_spa {
+-	struct acpi_nfit_system_address *spa;
+ 	struct list_head list;
+ 	struct nd_region *nd_region;
+ 	unsigned int ars_done:1;
+ 	u32 clear_err_unit;
+ 	u32 max_ars;
++	struct acpi_nfit_system_address spa[0];
+ };
+ 
+ struct nfit_dcr {
+-	struct acpi_nfit_control_region *dcr;
+ 	struct list_head list;
++	struct acpi_nfit_control_region dcr[0];
+ };
+ 
+ struct nfit_bdw {
+-	struct acpi_nfit_data_region *bdw;
+ 	struct list_head list;
++	struct acpi_nfit_data_region bdw[0];
+ };
+ 
+ struct nfit_idt {
+-	struct acpi_nfit_interleave *idt;
+ 	struct list_head list;
++	struct acpi_nfit_interleave idt[0];
+ };
+ 
+ struct nfit_flush {
+-	struct acpi_nfit_flush_address *flush;
+ 	struct list_head list;
++	struct acpi_nfit_flush_address flush[0];
+ };
+ 
+ struct nfit_memdev {
+-	struct acpi_nfit_memory_map *memdev;
+ 	struct list_head list;
++	struct acpi_nfit_memory_map memdev[0];
+ };
+ 
+ /* assembled tables for a given dimm/memory-device */
+
