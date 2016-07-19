@@ -1,18 +1,16 @@
-From: Jerry Hoemann <jerry.hoemann-ZPxbGqLxI0U@public.gmane.org>
-Subject: Re: [PATCH] acpi, nfit: fix acpi_check_dsm() vs zero functions
- implemented
-Date: Tue, 19 Jul 2016 13:00:49 -0600
-Message-ID: <20160719190048.GG140413@tevye.fc.hp.com>
+From: Dan Williams <dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH] acpi,
+ nfit: fix acpi_check_dsm() vs zero functions implemented
+Date: Tue, 19 Jul 2016 13:01:16 -0700
+Message-ID: <CAPcyv4hbyq7MVQrTxYixo+fP7R=wV-Nt84NNfVJKrYWwUSJg=Q@mail.gmail.com>
 References: <146679026571.24395.11569929364936343871.stgit@dwillia2-desk3.amr.corp.intel.com>
  <20160719171153.GA121461@tevye.fc.hp.com>
  <cfd9968d-9835-0ef1-fafd-54fd3b892d1c@hpe.com>
  <CAPcyv4gqmjMFveV+iE2NbvWnTb5kdy8w54VDgLYxeMJ5NJyzbw@mail.gmail.com>
-Reply-To: Jerry.Hoemann-ZPxbGqLxI0U@public.gmane.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-Content-Disposition: inline
 In-Reply-To: <CAPcyv4gqmjMFveV+iE2NbvWnTb5kdy8w54VDgLYxeMJ5NJyzbw-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
@@ -23,95 +21,28 @@ List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
 Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-To: Dan Williams <dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+To: Linda Knippers <linda.knippers-ZPxbGqLxI0U@public.gmane.org>
 Cc: Xiao Guangrong <guangrong.xiao-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, "linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org" <linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>, Marvin Spinhirne <spin-ZPxbGqLxI0U@public.gmane.org>, "Rafael J. Wysocki" <rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org>, Linux ACPI <linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Len Brown <lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On Tue, Jul 19, 2016 at 11:52:53AM -0700, Dan Williams wrote:
+On Tue, Jul 19, 2016 at 11:52 AM, Dan Williams <dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org> wrote:
 > On Tue, Jul 19, 2016 at 11:50 AM, Linda Knippers <linda.knippers-ZPxbGqLxI0U@public.gmane.org> wrote:
-> >
-> >
-> > On 7/19/2016 1:11 PM, Jerry Hoemann wrote:
-> >> On Fri, Jun 24, 2016 at 10:44:25AM -0700, Dan Williams wrote:
-> >>> QEMU 2.6 implements nascent support for nvdimm DSMs. Depending on
-> >>> configuration it may only implement the function0 dsm to indicate that
-> >>> no other DSMs are available. Commit 31eca76ba2fc "nfit, libnvdimm:
-> >>> limited/whitelisted dimm command marshaling mechanism" breaks QEMU, but
-> >>> QEMU is spec compliant.  Per the spec the way to indicate that no
-> >>> functions are supported is:
-> >>>
-> >>>     If Function Index is zero, the return is a buffer containing one bit
-> >>>     for each function index, starting with zero. Bit 0 indicates whether
-> >>>     there is support for any functions other than function 0 for the
-> >>>     specified UUID and Revision ID. If set to zero, no functions are
-> >>>     supported (other than function zero) for the specified UUID and
-> >>>     Revision ID.
-> >>
-> >>
-> >> Dan,
-> >>
-> >> This breaks calling DSM on HPE platforms and is a regression.
-> >>
-> >> E-mail context can be found at:
-> >>
-> >>       https://lists.01.org/pipermail/linux-nvdimm/2016-June/006099.html
-> >>
-> >> The problem with this change is that it assumes that ACPI returning an
-> >> object means that the UUID is supported on that platform.
-> >>
-> >> However, looking at ACPI v 6.1 section 9.1.1, the example for
-> >> evaluating a _DSM shows that if the UUID is not supported at all,
-> >> a zeroed out buffer of length 1 is returned:
-> >>
-> >>       //
-> >>       // If not one of the UUIDs we recognize, then return a buffer
-> >>       // with bit 0 set to 0 indicating no functions supported.
-> >>       //
-> >>       return(Buffer(){0})
-> >>
-> >> HPE firmware has been following this practice for a long long time.
-> >> I suspect other manufacturer's firmware do so as well.
-> >>
-> >> The problem is that this creates an ambiguity and the linux code
-> >> is no longer differentiating the case where the DSM/UUID is
-> >> supported but only implements function 0 (the QEMU case you're
-> >> trying to accommodate) and the case that the DSM/UUID is not
-> >> supported at all.
-> >>
-> >> The result is that the code in acpi_nfit_add_dimm:
-> >>
-> >>       for (i = NVDIMM_FAMILY_INTEL; i <= NVDIMM_FAMILY_HPE2; i++)
-> >> -             if (acpi_check_dsm(adev_dimm->handle, to_nfit_uuid(i), 1, 1))
-> >> +             if (acpi_check_dsm(adev_dimm->handle, to_nfit_uuid(i), 1, 0))
-> >>                       break;
-> >>
-> >>
-> >> always matches NVDIMM_FAMILY_INTEL.  This is either because its
-> >> is an Intel nvdimm, or because the unsupported UUID returns back
-> >> a zeroed out buffer of length 1.
-> >>
-> >>
-> >> As nfit_mem->family always equals NVDIMM_FAMILY_INTEL, no subsequent
-> >> DSM call will succeed for NVDIMM_FAMILY_HPE1 or any other
-> >> family.
-> >>
-> >> I don't have a fix as of yet, but wanted to make you aware of
-> >> the problem.
-> >
-> > Could we try the all known UUIDs looking for one that returns a non-zero
-> > value?
-> >
-> 
+>> On 7/19/2016 1:11 PM, Jerry Hoemann wrote:
+[..]
+>>> As nfit_mem->family always equals NVDIMM_FAMILY_INTEL, no subsequent
+>>> DSM call will succeed for NVDIMM_FAMILY_HPE1 or any other
+>>> family.
+>>>
+>>> I don't have a fix as of yet, but wanted to make you aware of
+>>> the problem.
+>>
+>> Could we try the all known UUIDs looking for one that returns a non-zero
+>> value?
+>>
+>
 > Yes, that seems like the way forward, and also make not finding a DSM
 > family non-fatal.
 
-Reverting this change would address for HPE, but I do not fully understand
-the nature of the problem this change was attempting to address.
-
-Can you expand a bit?
-
--- 
-
------------------------------------------------------------------------------
-Jerry Hoemann                  Software Engineer   Hewlett Packard Enterprise
------------------------------------------------------------------------------
+Actually, all we need is that last bit...  Jerry, Xiao, can you try
+the attached patch on top for v4.7-rc6 to see if it works in both HPe
+and QEMU 2.6 environments respectively?
