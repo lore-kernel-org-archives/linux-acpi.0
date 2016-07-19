@@ -1,48 +1,133 @@
-From: Dan Williams <dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH] acpi,
- nfit: fix acpi_check_dsm() vs zero functions implemented
-Date: Tue, 19 Jul 2016 13:01:16 -0700
-Message-ID: <CAPcyv4hbyq7MVQrTxYixo+fP7R=wV-Nt84NNfVJKrYWwUSJg=Q@mail.gmail.com>
-References: <146679026571.24395.11569929364936343871.stgit@dwillia2-desk3.amr.corp.intel.com>
- <20160719171153.GA121461@tevye.fc.hp.com>
- <cfd9968d-9835-0ef1-fafd-54fd3b892d1c@hpe.com>
- <CAPcyv4gqmjMFveV+iE2NbvWnTb5kdy8w54VDgLYxeMJ5NJyzbw@mail.gmail.com>
+From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Subject: Re: [PATCH v8 5/7] x86, acpi, cpu-hotplug: Set persistent cpuid <-> nodeid mapping when booting.
+Date: Tue, 19 Jul 2016 22:06:38 +0200
+Message-ID: <1699870.UOpnC170VZ@vostro.rjw.lan>
+References: <1468913288-16605-1-git-send-email-douly.fnst@cn.fujitsu.com> <1468913288-16605-6-git-send-email-douly.fnst@cn.fujitsu.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-In-Reply-To: <CAPcyv4gqmjMFveV+iE2NbvWnTb5kdy8w54VDgLYxeMJ5NJyzbw-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
-List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
- <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
-List-Post: <mailto:linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-List-Help: <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
- <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
-Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
-Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-To: Linda Knippers <linda.knippers-ZPxbGqLxI0U@public.gmane.org>
-Cc: Xiao Guangrong <guangrong.xiao-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, "linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org" <linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>, Marvin Spinhirne <spin-ZPxbGqLxI0U@public.gmane.org>, "Rafael J. Wysocki" <rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org>, Linux ACPI <linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Len Brown <lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7Bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from cloudserver094114.home.net.pl ([79.96.170.134]:41616 "HELO
+	cloudserver094114.home.net.pl" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with SMTP id S1751557AbcGSUBq (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 19 Jul 2016 16:01:46 -0400
+In-Reply-To: <1468913288-16605-6-git-send-email-douly.fnst@cn.fujitsu.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Dou Liyang <douly.fnst@cn.fujitsu.com>
+Cc: cl@linux.com, tj@kernel.org, mika.j.penttila@gmail.com, mingo@redhat.com, akpm@linux-foundation.org, hpa@zytor.com, yasu.isimatu@gmail.com, isimatu.yasuaki@jp.fujitsu.com, kamezawa.hiroyu@jp.fujitsu.com, izumi.taku@jp.fujitsu.com, gongzhaogang@inspur.com, len.brown@intel.com, lenb@kernel.org, tglx@linutronix.de, chen.tang@easystack.cn, rafael@kernel.org, x86@kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linux-mm@kvack.org, Gu Zheng <guz.fnst@cn.fujitsu.com>, Tang Chen <tangchen@cn.fujitsu.com>, Zhu Guihua <zhugh.fnst@cn.fujitsu.com>
 
-On Tue, Jul 19, 2016 at 11:52 AM, Dan Williams <dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org> wrote:
-> On Tue, Jul 19, 2016 at 11:50 AM, Linda Knippers <linda.knippers-ZPxbGqLxI0U@public.gmane.org> wrote:
->> On 7/19/2016 1:11 PM, Jerry Hoemann wrote:
-[..]
->>> As nfit_mem->family always equals NVDIMM_FAMILY_INTEL, no subsequent
->>> DSM call will succeed for NVDIMM_FAMILY_HPE1 or any other
->>> family.
->>>
->>> I don't have a fix as of yet, but wanted to make you aware of
->>> the problem.
->>
->> Could we try the all known UUIDs looking for one that returns a non-zero
->> value?
->>
->
-> Yes, that seems like the way forward, and also make not finding a DSM
-> family non-fatal.
+On Tuesday, July 19, 2016 03:28:06 PM Dou Liyang wrote:
+> From: Gu Zheng <guz.fnst@cn.fujitsu.com>
+> 
+> The whole patch-set aims at making cpuid <-> nodeid mapping persistent. So that,
+> when node online/offline happens, cache based on cpuid <-> nodeid mapping such as
+> wq_numa_possible_cpumask will not cause any problem.
+> It contains 4 steps:
+> 1. Enable apic registeration flow to handle both enabled and disabled cpus.
+> 2. Introduce a new array storing all possible cpuid <-> apicid mapping.
+> 3. Enable _MAT and MADT relative apis to return non-presnet or disabled cpus' apicid.
+> 4. Establish all possible cpuid <-> nodeid mapping.
+> 
+> This patch finishes step 4.
+> 
+> This patch set the persistent cpuid <-> nodeid mapping for all enabled/disabled
+> processors at boot time via an additional acpi namespace walk for processors.
+> 
+> Signed-off-by: Gu Zheng <guz.fnst@cn.fujitsu.com>
+> Signed-off-by: Tang Chen <tangchen@cn.fujitsu.com>
+> Signed-off-by: Zhu Guihua <zhugh.fnst@cn.fujitsu.com>
+> Signed-off-by: Dou Liyang <douly.fnst@cn.fujitsu.com>
+> ---
+>  arch/ia64/kernel/acpi.c       |  3 +-
+>  arch/x86/kernel/acpi/boot.c   |  4 ++-
+>  drivers/acpi/acpi_processor.c |  5 ++++
+>  drivers/acpi/bus.c            |  3 ++
+>  drivers/acpi/processor_core.c | 65 +++++++++++++++++++++++++++++++++++++++++++
+>  include/linux/acpi.h          |  2 ++
+>  6 files changed, 80 insertions(+), 2 deletions(-)
+> 
+> diff --git a/arch/ia64/kernel/acpi.c b/arch/ia64/kernel/acpi.c
+> index b1698bc..bb36515 100644
+> --- a/arch/ia64/kernel/acpi.c
+> +++ b/arch/ia64/kernel/acpi.c
+> @@ -796,7 +796,7 @@ int acpi_isa_irq_to_gsi(unsigned isa_irq, u32 *gsi)
+>   *  ACPI based hotplug CPU support
+>   */
+>  #ifdef CONFIG_ACPI_HOTPLUG_CPU
+> -static int acpi_map_cpu2node(acpi_handle handle, int cpu, int physid)
+> +int acpi_map_cpu2node(acpi_handle handle, int cpu, int physid)
+>  {
+>  #ifdef CONFIG_ACPI_NUMA
+>  	/*
+> @@ -811,6 +811,7 @@ static int acpi_map_cpu2node(acpi_handle handle, int cpu, int physid)
+>  #endif
+>  	return 0;
+>  }
+> +EXPORT_SYMBOL(acpi_map_cpu2node);
+>  
+>  int additional_cpus __initdata = -1;
+>  
+> diff --git a/arch/x86/kernel/acpi/boot.c b/arch/x86/kernel/acpi/boot.c
+> index 37248c3..0900264f 100644
+> --- a/arch/x86/kernel/acpi/boot.c
+> +++ b/arch/x86/kernel/acpi/boot.c
+> @@ -695,7 +695,7 @@ static void __init acpi_set_irq_model_ioapic(void)
+>  #ifdef CONFIG_ACPI_HOTPLUG_CPU
+>  #include <acpi/processor.h>
+>  
+> -static void acpi_map_cpu2node(acpi_handle handle, int cpu, int physid)
+> +int acpi_map_cpu2node(acpi_handle handle, int cpu, int physid)
+>  {
+>  #ifdef CONFIG_ACPI_NUMA
+>  	int nid;
+> @@ -706,7 +706,9 @@ static void acpi_map_cpu2node(acpi_handle handle, int cpu, int physid)
+>  		numa_set_node(cpu, nid);
+>  	}
+>  #endif
+> +	return 0;
+>  }
+> +EXPORT_SYMBOL(acpi_map_cpu2node);
+>  
+>  int acpi_map_cpu(acpi_handle handle, phys_cpuid_t physid, int *pcpu)
+>  {
+> diff --git a/drivers/acpi/acpi_processor.c b/drivers/acpi/acpi_processor.c
+> index e85b19a..0c15828 100644
+> --- a/drivers/acpi/acpi_processor.c
+> +++ b/drivers/acpi/acpi_processor.c
+> @@ -182,6 +182,11 @@ int __weak arch_register_cpu(int cpu)
+>  
+>  void __weak arch_unregister_cpu(int cpu) {}
+>  
+> +int __weak acpi_map_cpu2node(acpi_handle handle, int cpu, int physid)
+> +{
+> +	return -ENODEV;
+> +}
+> +
+>  static int acpi_processor_hotadd_init(struct acpi_processor *pr)
+>  {
+>  	unsigned long long sta;
+> diff --git a/drivers/acpi/bus.c b/drivers/acpi/bus.c
+> index 262ca31..d8b7272 100644
+> --- a/drivers/acpi/bus.c
+> +++ b/drivers/acpi/bus.c
+> @@ -1124,6 +1124,9 @@ static int __init acpi_init(void)
+>  	acpi_sleep_proc_init();
+>  	acpi_wakeup_device_init();
+>  	acpi_debugger_init();
+> +#ifdef CONFIG_ACPI_HOTPLUG_CPU
+> +	acpi_set_processor_mapping();
+> +#endif
 
-Actually, all we need is that last bit...  Jerry, Xiao, can you try
-the attached patch on top for v4.7-rc6 to see if it works in both HPe
-and QEMU 2.6 environments respectively?
+This doesn't look nice.
+
+What about providing an empty definition of acpi_set_processor_mapping()
+for CONFIG_ACPI_HOTPLUG_CPU unset?
+
+>  	return 0;
+>  }
+
+Thanks,
+Rafael
+
