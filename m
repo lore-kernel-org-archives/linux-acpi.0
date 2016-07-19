@@ -1,98 +1,146 @@
-From: Dou Liyang <douly.fnst@cn.fujitsu.com>
-Subject: [PATCH v8 7/7] Provide the interface to validate the proc_id which they give
-Date: Tue, 19 Jul 2016 15:28:08 +0800
-Message-ID: <1468913288-16605-8-git-send-email-douly.fnst@cn.fujitsu.com>
-References: <1468913288-16605-1-git-send-email-douly.fnst@cn.fujitsu.com>
-Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <owner-linux-mm@kvack.org>
-In-Reply-To: <1468913288-16605-1-git-send-email-douly.fnst@cn.fujitsu.com>
-Sender: owner-linux-mm@kvack.org
-To: cl@linux.com, tj@kernel.org, mika.j.penttila@gmail.com, mingo@redhat.com, akpm@linux-foundation.org, rjw@rjwysocki.net, hpa@zytor.com, yasu.isimatu@gmail.com, isimatu.yasuaki@jp.fujitsu.com, kamezawa.hiroyu@jp.fujitsu.com, izumi.taku@jp.fujitsu.com, gongzhaogang@inspur.com, len.brown@intel.com, lenb@kernel.org, tglx@linutronix.de, chen.tang@easystack.cn, rafael@kernel.org
-Cc: x86@kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linux-mm@kvack.org, Dou Liyang <douly.fnst@cn.fujitsu.com>
+From: Lv Zheng <lv.zheng@intel.com>
+Subject: [PATCH v4 1/2] ACPI / button: Add KEY_LID_OPEN/KEY_LID_CLOSE for new usage model
+Date: Tue, 19 Jul 2016 16:11:02 +0800
+Message-ID: <1b96ee1e5b5ebbed0096adde410a9fd0b7930848.1468915808.git.lv.zheng@intel.com>
+References: <cbdaec17aba78c61f466efff8883d49067f2dad5.1463472125.git.lv.zheng@intel.com>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga09.intel.com ([134.134.136.24]:21165 "EHLO mga09.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753242AbcGSILT (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 19 Jul 2016 04:11:19 -0400
+In-Reply-To: <cbdaec17aba78c61f466efff8883d49067f2dad5.1463472125.git.lv.zheng@intel.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <len.brown@intel.com>
+Cc: Lv Zheng <lv.zheng@intel.com>, Lv Zheng <zetalog@gmail.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Dmitry Torokhov <dmitry.torokhov@gmail.com>, Benjamin Tissoires <benjamin.tissoires@gmail.com>, "Bastien Nocera:" <hadess@hadess.net>, linux-input@vger.kernel.org
 
-When we want to identify whether the proc_id is unreasonable or not, we
-can call the "acpi_processor_validate_proc_id" function. It will search
-in the duplicate IDs. If we find the proc_id in the IDs, we return true
-to the call function. Conversely, false represents available.
+There are many AML tables reporting wrong initial lid state, and some of
+them never report lid open state. As a proxy layer acting between, ACPI
+button driver is not able to handle all such cases, but need to re-define
+the usage model of the ACPI lid. That is:
+1. It's initial state is not reliable;
+2. There may not be an open event;
+3. Userspace should only take action against the close event which is
+   reliable, always sent after a real lid close.
 
-When we establish all possible cpuid <-> nodeid mapping, we will use the
-proc_id from ACPI table.
+OTOH, using an input switch event for the lid device on such platforms can
+cause the loss of the close event, but the platforms purposely want to use
+these close events to trigger power saving actions.
 
-We do validation when we get the proc_id. If the result is true, we will
-stop the mapping.
+So we need to introduce a new ABI, which is input key events based, not
+input switch events based.
 
-Signed-off-by: Dou Liyang <douly.fnst@cn.fujitsu.com>
+This patch adds a set of new input key events so that the new userspace
+programs can use them to handle this usage model correctly. And in the
+meanwhile, the old input switch event is kept so that no old programs will
+be broken by the ABI change.
+
+Signed-off-by: Lv Zheng <lv.zheng@intel.com>
+Cc: Dmitry Torokhov <dmitry.torokhov@gmail.com>
+Cc: Benjamin Tissoires <benjamin.tissoires@gmail.com>
+Cc: Bastien Nocera: <hadess@hadess.net>
+Cc: linux-input@vger.kernel.org
 ---
- drivers/acpi/acpi_processor.c | 16 ++++++++++++++++
- drivers/acpi/processor_core.c |  4 ++++
- include/linux/acpi.h          |  3 +++
- 3 files changed, 23 insertions(+)
+ drivers/acpi/button.c                  |   34 +++++++++++++++++++++++++++++++-
+ include/uapi/linux/input-event-codes.h |    7 +++++++
+ 2 files changed, 40 insertions(+), 1 deletion(-)
 
-diff --git a/drivers/acpi/acpi_processor.c b/drivers/acpi/acpi_processor.c
-index 346fbfc..ae6dae9 100644
---- a/drivers/acpi/acpi_processor.c
-+++ b/drivers/acpi/acpi_processor.c
-@@ -659,6 +659,22 @@ static void acpi_processor_duplication_valiate(void)
- 						NULL, NULL, NULL);
- }
+diff --git a/drivers/acpi/button.c b/drivers/acpi/button.c
+index 148f4e5..dd16879 100644
+--- a/drivers/acpi/button.c
++++ b/drivers/acpi/button.c
+@@ -104,6 +104,8 @@ struct acpi_button {
+ 	struct input_dev *input;
+ 	char phys[32];			/* for input device */
+ 	unsigned long pushed;
++	int last_state;
++	unsigned long timestamp;
+ 	bool suspended;
+ };
  
-+bool acpi_processor_validate_proc_id(int proc_id)
-+{
-+	int i;
+@@ -111,6 +113,10 @@ static BLOCKING_NOTIFIER_HEAD(acpi_lid_notifier);
+ static struct acpi_device *lid_device;
+ static u8 lid_init_state = ACPI_BUTTON_LID_INIT_METHOD;
+ 
++static unsigned long lid_report_interval __read_mostly = 500;
++module_param(lid_report_interval, ulong, 0644);
++MODULE_PARM_DESC(lid_report_interval, "Interval (ms) between lid key events");
 +
+ /* --------------------------------------------------------------------------
+                               FS Interface (/proc)
+    -------------------------------------------------------------------------- */
+@@ -133,12 +139,34 @@ static int acpi_lid_evaluate_state(struct acpi_device *device)
+ static int acpi_lid_notify_state(struct acpi_device *device, int state)
+ {
+ 	struct acpi_button *button = acpi_driver_data(device);
++	int keycode;
++	unsigned long timeout;
+ 	int ret;
+ 
+-	/* input layer checks if event is redundant */
 +	/*
-+	 * compare the proc_id with duplicate IDs, if the proc_id is already
-+	 * in the duplicate IDs, return true, otherwise, return false.
++	 * Send the switch event.
++	 * The input layer checks if the event is redundant.
 +	 */
-+	for (i = 0; i < nr_duplicate_ids; i++) {
-+		if (duplicate_processor_ids[i] == proc_id)
-+			return true;
+ 	input_report_switch(button->input, SW_LID, !state);
+ 	input_sync(button->input);
+ 
++	/*
++	 * Send the key event.
++	 * The input layer doesn't check if the event is redundant.
++	 */
++	timeout = button->timestamp +
++		  msecs_to_jiffies(lid_report_interval);
++	if (button->last_state != !!state ||
++	    time_after(jiffies, timeout)) {
++		keycode = state ? KEY_LID_OPEN : KEY_LID_CLOSE;
++		input_report_key(button->input, keycode, 1);
++		input_sync(button->input);
++		input_report_key(button->input, keycode, 0);
++		input_sync(button->input);
++		button->last_state = !!state;
++		button->timestamp = jiffies;
 +	}
 +
-+	return false;
-+}
-+
- void __init acpi_processor_init(void)
- {
- 	acpi_processor_duplication_valiate();
-diff --git a/drivers/acpi/processor_core.c b/drivers/acpi/processor_core.c
-index 69fb027..b8fad20 100644
---- a/drivers/acpi/processor_core.c
-+++ b/drivers/acpi/processor_core.c
-@@ -282,6 +282,10 @@ static bool map_processor(acpi_handle handle, phys_cpuid_t *phys_id, int *cpuid)
- 		if (ACPI_FAILURE(status))
- 			return false;
- 		acpi_id = object.processor.proc_id;
-+
-+		/* validate the acpi_id */
-+		if(acpi_processor_validate_proc_id(acpi_id))
-+			return false;
- 		break;
- 	case ACPI_TYPE_DEVICE:
- 		status = acpi_evaluate_integer(handle, "_UID", NULL, &tmp);
-diff --git a/include/linux/acpi.h b/include/linux/acpi.h
-index 53b3014..94ceae1 100644
---- a/include/linux/acpi.h
-+++ b/include/linux/acpi.h
-@@ -254,6 +254,9 @@ static inline bool invalid_phys_cpuid(phys_cpuid_t phys_id)
- 	return phys_id == PHYS_CPUID_INVALID;
- }
+ 	if (state)
+ 		pm_wakeup_event(&device->dev, 0);
  
-+/*validate the processor object's proc_id*/
-+bool acpi_processor_validate_proc_id(int proc_id);
-+
- #ifdef CONFIG_ACPI_HOTPLUG_CPU
- /* Arch dependent functions for cpu hotplug support */
- int acpi_map_cpu(acpi_handle handle, phys_cpuid_t physid, int *pcpu);
+@@ -407,6 +435,8 @@ static int acpi_button_add(struct acpi_device *device)
+ 		strcpy(name, ACPI_BUTTON_DEVICE_NAME_LID);
+ 		sprintf(class, "%s/%s",
+ 			ACPI_BUTTON_CLASS, ACPI_BUTTON_SUBCLASS_LID);
++		button->last_state = !!acpi_lid_evaluate_state(device);
++		button->timestamp = jiffies;
+ 	} else {
+ 		printk(KERN_ERR PREFIX "Unsupported hid [%s]\n", hid);
+ 		error = -ENODEV;
+@@ -436,6 +466,8 @@ static int acpi_button_add(struct acpi_device *device)
+ 
+ 	case ACPI_BUTTON_TYPE_LID:
+ 		input_set_capability(input, EV_SW, SW_LID);
++		input_set_capability(input, EV_KEY, KEY_LID_OPEN);
++		input_set_capability(input, EV_KEY, KEY_LID_CLOSE);
+ 		break;
+ 	}
+ 
+diff --git a/include/uapi/linux/input-event-codes.h b/include/uapi/linux/input-event-codes.h
+index 737fa32..b062fe1 100644
+--- a/include/uapi/linux/input-event-codes.h
++++ b/include/uapi/linux/input-event-codes.h
+@@ -641,6 +641,13 @@
+  * e.g. teletext or data broadcast application (MHEG, MHP, HbbTV, etc.)
+  */
+ #define KEY_DATA			0x275
++/*
++ * Key events sent by the lid drivers.
++ * The drivers may not be able to send paired "open"/"close" events, in
++ * which case, they send KEY_LID_OPEN/KEY_LID_CLOSE instead of SW_LID.
++ */
++#define KEY_LID_OPEN			0x278
++#define KEY_LID_CLOSE			0x279
+ 
+ #define BTN_TRIGGER_HAPPY		0x2c0
+ #define BTN_TRIGGER_HAPPY1		0x2c0
 -- 
-2.5.5
+1.7.10
 
-
-
---
-To unsubscribe, send a message with 'unsubscribe linux-mm' in
-the body to majordomo@kvack.org.  For more info on Linux MM,
-see: http://www.linux-mm.org/ .
-Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
