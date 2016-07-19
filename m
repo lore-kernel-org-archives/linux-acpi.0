@@ -1,151 +1,39 @@
 From: Sinan Kaya <okaya@codeaurora.org>
-Subject: [PATCH V11 7/9] vfio,
- platform: make reset driver a requirement by default
-Date: Tue, 19 Jul 2016 09:01:47 -0400
-Message-ID: <1468933309-19735-8-git-send-email-okaya@codeaurora.org>
-References: <1468933309-19735-1-git-send-email-okaya@codeaurora.org>
+Subject: Re: [PATCH V10 4/9] vfio: platform: add support for ACPI probe
+Date: Tue, 19 Jul 2016 10:49:54 -0400
+Message-ID: <73439c6b-c9fc-6a5d-c90c-6b8d5cd5f3f5@codeaurora.org>
+References: <1468883367-2854-1-git-send-email-okaya@codeaurora.org>
+ <1468883367-2854-5-git-send-email-okaya@codeaurora.org>
+ <20160718180049.78db3dfb@t450s.home>
+ <b4655a0ba9152e6b2951e379e1615dad@codeaurora.org>
+ <20160718182448.7b11a7af@t450s.home>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset=windows-1252
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <1468933309-19735-1-git-send-email-okaya@codeaurora.org>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: kvm@vger.kernel.org, timur@codeaurora.org, cov@codeaurora.org, jcm@redhat.com, alex.williamson@redhat.com, eric.auger@redhat.com
-Cc: Baptiste Reynal <b.reynal@virtualopensystems.com>, linux-arm-msm@vger.kernel.org, linux-kernel@vger.kernel.org, Sinan Kaya <okaya@codeaurora.org>, linux-acpi@vger.kernel.org, agross@codeaurora.org, linux-arm-kernel@lists.infradead.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20160718182448.7b11a7af@t450s.home>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Alex Williamson <alex.williamson@redhat.com>
+Cc: kvm@vger.kernel.org, timur@codeaurora.org, cov@codeaurora.org, jcm@redhat.com, eric.auger@redhat.com, linux-acpi@vger.kernel.org, agross@codeaurora.org, linux-arm-msm@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Baptiste Reynal <b.reynal@virtualopensystems.com>, linux-kernel@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-The code was allowing platform devices to be used without a supporting
-VFIO reset driver. The hardware can be left in some inconsistent state
-after a guest machine abort.
+On 7/18/2016 8:24 PM, Alex Williamson wrote:
+>>> nit, might make sense to replace EPERM with ENOENT and use EINVAL here.
+>>> > >   
+>> > 
+>> > Sure, will take carr of it.
+>> > 
+>> > Anything else I need to take care of?
+> Not that I see, maybe just send a new version of this patch if the
+> changes don't trickle through too much.  Thanks,
 
-The reset driver will put the hardware back to safe state and disable
-interrupts before returning the control back to the host machine.
+I posted V11 with the discussed change. 
 
-Adding a new reset_required kernel module option to platform VFIO drivers.
-The default value is true for the DT and ACPI based drivers.
-The reset requirement value for AMBA drivers is set to false and is
-unchangeable to maintain the existing functionality.
+[PATCH V11 0/9] vfio, platform: add ACPI support
 
-New requirements are:
-1. A reset function needs to be implemented by the corresponding driver
-via DT/ACPI.
-2. The reset function needs to be discovered via DT/ACPI.
+Do you see this making to 4.8 kernel?
 
-The probe of the driver will fail if any of the above conditions are
-not satisfied.
-
-Signed-off-by: Sinan Kaya <okaya@codeaurora.org>
----
- drivers/vfio/platform/vfio_amba.c             |  1 +
- drivers/vfio/platform/vfio_platform.c         |  5 +++++
- drivers/vfio/platform/vfio_platform_common.c  | 15 +++++++++++----
- drivers/vfio/platform/vfio_platform_private.h |  2 ++
- 4 files changed, 19 insertions(+), 4 deletions(-)
-
-diff --git a/drivers/vfio/platform/vfio_amba.c b/drivers/vfio/platform/vfio_amba.c
-index a66479b..31372fb 100644
---- a/drivers/vfio/platform/vfio_amba.c
-+++ b/drivers/vfio/platform/vfio_amba.c
-@@ -68,6 +68,7 @@ static int vfio_amba_probe(struct amba_device *adev, const struct amba_id *id)
- 	vdev->get_resource = get_amba_resource;
- 	vdev->get_irq = get_amba_irq;
- 	vdev->parent_module = THIS_MODULE;
-+	vdev->reset_required = false;
- 
- 	ret = vfio_platform_probe_common(vdev, &adev->dev);
- 	if (ret) {
-diff --git a/drivers/vfio/platform/vfio_platform.c b/drivers/vfio/platform/vfio_platform.c
-index b1cc3a7..6561751 100644
---- a/drivers/vfio/platform/vfio_platform.c
-+++ b/drivers/vfio/platform/vfio_platform.c
-@@ -23,6 +23,10 @@
- #define DRIVER_AUTHOR   "Antonios Motakis <a.motakis@virtualopensystems.com>"
- #define DRIVER_DESC     "VFIO for platform devices - User Level meta-driver"
- 
-+static bool reset_required = true;
-+module_param(reset_required, bool, 0444);
-+MODULE_PARM_DESC(reset_required, "override reset requirement (default: 1)");
-+
- /* probing devices from the linux platform bus */
- 
- static struct resource *get_platform_resource(struct vfio_platform_device *vdev,
-@@ -66,6 +70,7 @@ static int vfio_platform_probe(struct platform_device *pdev)
- 	vdev->get_resource = get_platform_resource;
- 	vdev->get_irq = get_platform_irq;
- 	vdev->parent_module = THIS_MODULE;
-+	vdev->reset_required = reset_required;
- 
- 	ret = vfio_platform_probe_common(vdev, &pdev->dev);
- 	if (ret)
-diff --git a/drivers/vfio/platform/vfio_platform_common.c b/drivers/vfio/platform/vfio_platform_common.c
-index 20abba2d..8e35b5b 100644
---- a/drivers/vfio/platform/vfio_platform_common.c
-+++ b/drivers/vfio/platform/vfio_platform_common.c
-@@ -115,10 +115,10 @@ static bool vfio_platform_has_reset(struct vfio_platform_device *vdev)
- 	return vdev->of_reset ? true : false;
- }
- 
--static void vfio_platform_get_reset(struct vfio_platform_device *vdev)
-+static int vfio_platform_get_reset(struct vfio_platform_device *vdev)
- {
- 	if (VFIO_PLATFORM_IS_ACPI(vdev))
--		return;
-+		return vfio_platform_acpi_has_reset(vdev) ? 0 : -ENOENT;
- 
- 	vdev->of_reset = vfio_platform_lookup_reset(vdev->compat,
- 						    &vdev->reset_module);
-@@ -127,6 +127,8 @@ static void vfio_platform_get_reset(struct vfio_platform_device *vdev)
- 		vdev->of_reset = vfio_platform_lookup_reset(vdev->compat,
- 							&vdev->reset_module);
- 	}
-+
-+	return vdev->of_reset ? 0 : -ENOENT;
- }
- 
- static void vfio_platform_put_reset(struct vfio_platform_device *vdev)
-@@ -667,6 +669,13 @@ int vfio_platform_probe_common(struct vfio_platform_device *vdev,
- 
- 	vdev->device = dev;
- 
-+	ret = vfio_platform_get_reset(vdev);
-+	if (ret && vdev->reset_required) {
-+		pr_err("vfio: no reset function found for device %s\n",
-+		       vdev->name);
-+		return ret;
-+	}
-+
- 	group = iommu_group_get(dev);
- 	if (!group) {
- 		pr_err("VFIO: No IOMMU group for device %s\n", vdev->name);
-@@ -679,8 +688,6 @@ int vfio_platform_probe_common(struct vfio_platform_device *vdev,
- 		return ret;
- 	}
- 
--	vfio_platform_get_reset(vdev);
--
- 	mutex_init(&vdev->igate);
- 
- 	return 0;
-diff --git a/drivers/vfio/platform/vfio_platform_private.h b/drivers/vfio/platform/vfio_platform_private.h
-index ba9e4f8..85ffe5d 100644
---- a/drivers/vfio/platform/vfio_platform_private.h
-+++ b/drivers/vfio/platform/vfio_platform_private.h
-@@ -73,6 +73,8 @@ struct vfio_platform_device {
- 		(*get_resource)(struct vfio_platform_device *vdev, int i);
- 	int	(*get_irq)(struct vfio_platform_device *vdev, int i);
- 	int	(*of_reset)(struct vfio_platform_device *vdev);
-+
-+	bool				reset_required;
- };
- 
- typedef int (*vfio_platform_reset_fn_t)(struct vfio_platform_device *vdev);
 -- 
-1.8.2.1
+Sinan Kaya
+Qualcomm Datacenter Technologies, Inc. as an affiliate of Qualcomm Technologies, Inc.
+Qualcomm Technologies, Inc. is a member of the Code Aurora Forum, a Linux Foundation Collaborative Project.
