@@ -1,49 +1,47 @@
-From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [PATCH] ACPI / PMIC: remove modular references from non-modular code
-Date: Tue, 19 Jul 2016 22:09:30 +0200
-Message-ID: <2014296.Y0F3yzq3m9@vostro.rjw.lan>
-References: <20160711220516.3371-1-paul.gortmaker@windriver.com>
+From: Bjorn Helgaas <helgaas@kernel.org>
+Subject: Re: [RFC PATCH 0/3] ECAM quirks handling for ARM64 platforms
+Date: Tue, 19 Jul 2016 16:17:53 -0500
+Message-ID: <20160719211753.GA17840@localhost>
+References: <1464856864-18049-1-git-send-email-tn@semihalf.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7Bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20160711220516.3371-1-paul.gortmaker@windriver.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Paul Gortmaker <paul.gortmaker@windriver.com>
-Cc: linux-kernel@vger.kernel.org, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail.kernel.org ([198.145.29.136]:53046 "EHLO mail.kernel.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751660AbcGSVSC (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 19 Jul 2016 17:18:02 -0400
+Content-Disposition: inline
+In-Reply-To: <1464856864-18049-1-git-send-email-tn@semihalf.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Tomasz Nowicki <tn@semihalf.com>
+Cc: arnd@arndb.de, will.deacon@arm.com, catalin.marinas@arm.com, rafael@kernel.org, hanjun.guo@linaro.org, Lorenzo.Pieralisi@arm.com, okaya@codeaurora.org, jchandra@broadcom.com, robert.richter@caviumnetworks.com, mw@semihalf.com, Liviu.Dudau@arm.com, ddaney@caviumnetworks.com, wangyijing@huawei.com, Suravee.Suthikulpanit@amd.com, msalter@redhat.com, linux-pci@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linaro-acpi@lists.linaro.org, jcm@redhat.com, andrea.gallo@linaro.org, dhdang@apm.com, jeremy.linton@arm.com, liudongdong3@huawei.com, cov@codeaurora.org
 
-On Monday, July 11, 2016 06:05:16 PM Paul Gortmaker wrote:
-> The Kconfig currently controlling compilation of these files are:
+On Thu, Jun 02, 2016 at 10:41:00AM +0200, Tomasz Nowicki wrote:
+> This series bases on pending ACPI PCI support for ARM64:
+> https://lkml.org/lkml/2016/5/30/468
 > 
-> drivers/acpi/Kconfig:menuconfig PMIC_OPREGION
-> drivers/acpi/Kconfig:   bool "PMIC (Power Management Integrated Circuit) operation region support"
+> Quirk handling relies on an idea of matching MCFG OEM ID and OEM revision
+> (the ones from standard header of MCFG table). Linker section is used
+> so that quirks can be registered using special macro (see patches) and
+> kept self contained.
 > 
-> drivers/acpi/Kconfig:config BXT_WC_PMIC_OPREGION
-> drivers/acpi/Kconfig:   bool "ACPI operation region support for BXT WhiskeyCove PMIC"
+> As an example, last patch presents above mechanism usage for ThunderX PEM driver.
 > 
-> drivers/acpi/Kconfig:config XPOWER_PMIC_OPREGION
-> drivers/acpi/Kconfig:   bool "ACPI operation region support for XPower AXP288 PMIC"
+> Tomasz Nowicki (3):
+>   pci, acpi: Match PCI config space accessors against platfrom specific
+>     ECAM quirks.
+>   arm64, pci: Start using quirks handling for ACPI based PCI host
+>     controller.
+>   pci, pci-thunder-pem: Add ACPI support for ThunderX PEM.
 > 
-> ...meaning they currently are not being built as a module by anyone.
-> 
-> Lets remove the couple traces of modular infrastructure use, so that
-> when reading the code there is no doubt it is builtin-only.
-> 
-> We delete the MODULE_LICENSE tag etc. since all that information
-> is already contained at the top of the file in the comments.
-> 
-> One file was using module_init.  Since module_init translates to
-> device_initcall in the non-modular case, the init ordering remains
-> unchanged with this commit.
-> 
-> In one case we replace the module.h with export.h since that file
-> is exporting some symbols, but does not use __init.  The other two
-> are using __init and so module.h gets replaced with init.h there.
-> 
-> Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-> Cc: Len Brown <lenb@kernel.org>
-> Cc: linux-acpi@vger.kernel.org
-> Signed-off-by: Paul Gortmaker <paul.gortmaker@windriver.com>
+>  arch/arm64/kernel/pci.c            |   7 +-
+>  drivers/acpi/pci_mcfg.c            |  32 +++++++++
+>  drivers/pci/host/pci-thunder-pem.c | 132 +++++++++++++++++++++++++++++++++----
+>  include/asm-generic/vmlinux.lds.h  |   7 ++
+>  include/linux/pci-acpi.h           |  19 ++++++
+>  5 files changed, 181 insertions(+), 16 deletions(-)
 
-Applied, thanks!
+Is this series superceded by Dongdong's series of 6/13 ("[RFC,V2,1/2]
+ACPI/PCI: Match PCI config space accessors against platfrom specific ECAM
+quirks")?
