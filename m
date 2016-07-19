@@ -1,173 +1,46 @@
 From: Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>
-Subject: [PATCH v2] acpi: move int340x_thermal.c to dptf folder
-Date: Tue, 19 Jul 2016 14:57:49 -0700
-Message-ID: <1468965469-5744-1-git-send-email-srinivas.pandruvada@linux.intel.com>
+Subject: Re: [PATCH v5] acpi: dptf_power: Add DPTF power participant
+Date: Tue, 19 Jul 2016 15:01:23 -0700
+Message-ID: <1468965683.4150.1.camel@linux.intel.com>
+References: <1468788332-32518-1-git-send-email-srinivas.pandruvada@linux.intel.com>
+	 <1468788332-32518-2-git-send-email-srinivas.pandruvada@linux.intel.com>
+	 <CAJZ5v0gJr_tqGL+4z_idFRFZCzt91g6uv+sXdA7=5WddzW8k8Q@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga02.intel.com ([134.134.136.20]:64549 "EHLO mga02.intel.com"
+Received: from mga03.intel.com ([134.134.136.65]:59786 "EHLO mga03.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752214AbcGSV76 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 19 Jul 2016 17:59:58 -0400
+	id S1752214AbcGSWDN (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 19 Jul 2016 18:03:13 -0400
+In-Reply-To: <CAJZ5v0gJr_tqGL+4z_idFRFZCzt91g6uv+sXdA7=5WddzW8k8Q@mail.gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: rjw@rjwysocki.net
-Cc: linux-acpi@vger.kernel.org, rui.zhang@intel.com, Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>
+To: "Rafael J. Wysocki" <rafael@kernel.org>, Zhang Rui <rui.zhang@intel.com>
+Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>
 
-Since dptf has its own folder under ACPI, move this file also
-there.
+On Tue, 2016-07-19 at 01:00 +0200, Rafael J. Wysocki wrote:
+> >=20
+> On Sun, Jul 17, 2016 at 10:45 PM, Srinivas Pandruvada
+> <srinivas.pandruvada@linux.intel.com> wrote:
+> > This driver adds support for Dynamic Platform and Thermal Framework
+> > (DPTF) Platform Power Participant device (INT3407) support.
+> >=20
+[...]
+> >=C2=A0
+> You had a patch moving some other DPTF stuff to the dptf
+> subdirectory,
+> can you please resend it?
+>=20
+Sent again. But want to get Rui's opinion on the patch.
 
-Signed-off-by: Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>
----
-v2:
-Resent after dptf_power patch was updated with include file path
+Thanks,
+Srinivas
 
-
- drivers/acpi/Makefile               |  1 -
- drivers/acpi/dptf/Makefile          |  3 +++
- drivers/acpi/dptf/int340x_thermal.c | 53 +++++++++++++++++++++++++++++++++++++
- drivers/acpi/int340x_thermal.c      | 53 -------------------------------------
- 4 files changed, 56 insertions(+), 54 deletions(-)
- create mode 100644 drivers/acpi/dptf/int340x_thermal.c
- delete mode 100644 drivers/acpi/int340x_thermal.c
-
-diff --git a/drivers/acpi/Makefile b/drivers/acpi/Makefile
-index f6d0cc0..0325a53 100644
---- a/drivers/acpi/Makefile
-+++ b/drivers/acpi/Makefile
-@@ -44,7 +44,6 @@ acpi-y				+= acpi_lpss.o acpi_apd.o
- acpi-y				+= acpi_platform.o
- acpi-y				+= acpi_pnp.o
- acpi-$(CONFIG_ARM_AMBA)	+= acpi_amba.o
--acpi-y				+= int340x_thermal.o
- acpi-y				+= power.o
- acpi-y				+= event.o
- acpi-$(CONFIG_ACPI_REDUCED_HARDWARE_ONLY) += evged.o
-diff --git a/drivers/acpi/dptf/Makefile b/drivers/acpi/dptf/Makefile
-index 62cbe87..06ea880 100644
---- a/drivers/acpi/dptf/Makefile
-+++ b/drivers/acpi/dptf/Makefile
-@@ -1 +1,4 @@
-+obj-$(CONFIG_ACPI)             += int340x_thermal.o
- obj-$(CONFIG_DPTF_POWER)	+= dptf_power.o
-+
-+ccflags-y += -Idrivers/acpi
-diff --git a/drivers/acpi/dptf/int340x_thermal.c b/drivers/acpi/dptf/int340x_thermal.c
-new file mode 100644
-index 0000000..33505c6
---- /dev/null
-+++ b/drivers/acpi/dptf/int340x_thermal.c
-@@ -0,0 +1,53 @@
-+/*
-+ * ACPI support for int340x thermal drivers
-+ *
-+ * Copyright (C) 2014, Intel Corporation
-+ * Authors: Zhang Rui <rui.zhang@intel.com>
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License version 2 as
-+ * published by the Free Software Foundation.
-+ */
-+
-+#include <linux/acpi.h>
-+#include <linux/module.h>
-+
-+#include "internal.h"
-+
-+#define INT3401_DEVICE 0X01
-+static const struct acpi_device_id int340x_thermal_device_ids[] = {
-+	{"INT3400"},
-+	{"INT3401", INT3401_DEVICE},
-+	{"INT3402"},
-+	{"INT3403"},
-+	{"INT3404"},
-+	{"INT3406"},
-+	{"INT3407"},
-+	{"INT3408"},
-+	{"INT3409"},
-+	{"INT340A"},
-+	{"INT340B"},
-+	{""},
-+};
-+
-+static int int340x_thermal_handler_attach(struct acpi_device *adev,
-+					const struct acpi_device_id *id)
-+{
-+	if (IS_ENABLED(CONFIG_INT340X_THERMAL))
-+		acpi_create_platform_device(adev);
-+	/* Intel SoC DTS thermal driver needs INT3401 to set IRQ descriptor */
-+	else if (IS_ENABLED(CONFIG_INTEL_SOC_DTS_THERMAL) &&
-+		 id->driver_data == INT3401_DEVICE)
-+		acpi_create_platform_device(adev);
-+	return 1;
-+}
-+
-+static struct acpi_scan_handler int340x_thermal_handler = {
-+	.ids = int340x_thermal_device_ids,
-+	.attach = int340x_thermal_handler_attach,
-+};
-+
-+void __init acpi_int340x_thermal_init(void)
-+{
-+	acpi_scan_add_handler(&int340x_thermal_handler);
-+}
-diff --git a/drivers/acpi/int340x_thermal.c b/drivers/acpi/int340x_thermal.c
-deleted file mode 100644
-index 33505c6..0000000
---- a/drivers/acpi/int340x_thermal.c
-+++ /dev/null
-@@ -1,53 +0,0 @@
--/*
-- * ACPI support for int340x thermal drivers
-- *
-- * Copyright (C) 2014, Intel Corporation
-- * Authors: Zhang Rui <rui.zhang@intel.com>
-- *
-- * This program is free software; you can redistribute it and/or modify
-- * it under the terms of the GNU General Public License version 2 as
-- * published by the Free Software Foundation.
-- */
--
--#include <linux/acpi.h>
--#include <linux/module.h>
--
--#include "internal.h"
--
--#define INT3401_DEVICE 0X01
--static const struct acpi_device_id int340x_thermal_device_ids[] = {
--	{"INT3400"},
--	{"INT3401", INT3401_DEVICE},
--	{"INT3402"},
--	{"INT3403"},
--	{"INT3404"},
--	{"INT3406"},
--	{"INT3407"},
--	{"INT3408"},
--	{"INT3409"},
--	{"INT340A"},
--	{"INT340B"},
--	{""},
--};
--
--static int int340x_thermal_handler_attach(struct acpi_device *adev,
--					const struct acpi_device_id *id)
--{
--	if (IS_ENABLED(CONFIG_INT340X_THERMAL))
--		acpi_create_platform_device(adev);
--	/* Intel SoC DTS thermal driver needs INT3401 to set IRQ descriptor */
--	else if (IS_ENABLED(CONFIG_INTEL_SOC_DTS_THERMAL) &&
--		 id->driver_data == INT3401_DEVICE)
--		acpi_create_platform_device(adev);
--	return 1;
--}
--
--static struct acpi_scan_handler int340x_thermal_handler = {
--	.ids = int340x_thermal_device_ids,
--	.attach = int340x_thermal_handler_attach,
--};
--
--void __init acpi_int340x_thermal_init(void)
--{
--	acpi_scan_add_handler(&int340x_thermal_handler);
--}
--- 
-2.5.5
-
+> Thanks,
+> Rafael
+--
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
