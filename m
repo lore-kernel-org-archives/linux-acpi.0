@@ -1,69 +1,115 @@
-From: Dan Williams <dan.j.williams@intel.com>
-Subject: Re: [PATCH 2/3] nfit, libnvdimm: allow an ARS rescan to be triggered
- on demand
-Date: Tue, 19 Jul 2016 11:00:05 -0700
-Message-ID: <CAPcyv4gdbB7=qT=5Q=aQqJrgoYaKsZDX9mrkAA8D0XVZbb9sbA@mail.gmail.com>
-References: <1468889100-30698-1-git-send-email-vishal.l.verma@intel.com>
- <1468889100-30698-3-git-send-email-vishal.l.verma@intel.com>
- <CAPcyv4guVe2Mm_EaBMMRqpfCahR_E0xbhtE30VoDAb+sqvK=AQ@mail.gmail.com> <20160719174540.GC12960@omniknight.lm.intel.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-oi0-f43.google.com ([209.85.218.43]:34209 "EHLO
-	mail-oi0-f43.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753617AbcGSSAI (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 19 Jul 2016 14:00:08 -0400
-Received: by mail-oi0-f43.google.com with SMTP id l65so36790537oib.1
-        for <linux-acpi@vger.kernel.org>; Tue, 19 Jul 2016 11:00:06 -0700 (PDT)
-In-Reply-To: <20160719174540.GC12960@omniknight.lm.intel.com>
-Sender: linux-acpi-owner@vger.kernel.org
+From: fu.wei-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org
+Subject: [PATCH v8 0/9]  acpi, clocksource: add GTDT driver and GTDT support in arm_arch_timer
+Date: Wed, 20 Jul 2016 02:17:55 +0800
+Message-ID: <1468952284-28942-1-git-send-email-fu.wei@linaro.org>
+Return-path: <linux-watchdog-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: linux-watchdog-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org, lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, daniel.lezcano-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org, tglx-hfZtesqFncYOwBW4kG4KsQ@public.gmane.org, marc.zyngier-5wv7dgnIgG8@public.gmane.org, lorenzo.pieralisi-5wv7dgnIgG8@public.gmane.org, sudeep.holla-5wv7dgnIgG8@public.gmane.org, hanjun.guo-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org
+Cc: linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linaro-acpi-cunTk1MwBs8s++Sfvej+rw@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, rruigrok-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org, harba-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org, cov-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org, timur-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org, graeme.gregory-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org, al.stone-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org, jcm-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, wei-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, arnd-r2nGTMty4D4@public.gmane.org, wim-IQzOog9fTRqzQB+pC5nmwQ@public.gmane.org, catalin.marinas-5wv7dgnIgG8@public.gmane.org, will.deacon-5wv7dgnIgG8@public.gmane.org, Suravee.Suthikulpanit-5C7GfCeVMHo@public.gmane.org, leo.duran-5C7GfCeVMHo@public.gmane.org, linux-0h96xk9xTtrk1uMJSBkQmQ@public.gmane.org, linux-watchdog-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Fu Wei <fu.wei-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
-To: Vishal Verma <vishal.l.verma@intel.com>
-Cc: "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Tony Luck <tony.luck@intel.com>, Linux ACPI <linux-acpi@vger.kernel.org>
 
-On Tue, Jul 19, 2016 at 10:45 AM, Vishal Verma <vishal.l.verma@intel.com> wrote:
-> On 07/19, Dan Williams wrote:
->> On Mon, Jul 18, 2016 at 5:44 PM, Vishal Verma <vishal.l.verma@intel.com> wrote:
->> > Normally, an ARS (Address Range Scrub) only happens at
->> > boot/initialization time. There can however arise situations where a
->> > bus-wide rescan is needed - notably, in the case of discovering a latent
->> > media error, we should do a full rescan to figure out what other sectors
->> > are bad, and thus potentially avoid triggering an mce on them in the
->> > future. Also provide a sysfs trigger to start a bus-wide rescan.
->> >
->> > Cc: Dan Williams <dan.j.williams@intel.com>
->> > Cc: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
->> > Cc: <linux-acpi@vger.kernel.org>
->> > Cc: <linux-nvdimm@lists.01.org>
->> > Signed-off-by: Vishal Verma <vishal.l.verma@intel.com>
->> > ---
->> >  drivers/acpi/nfit.c       | 36 ++++++++++++++++++++++++++++++++----
->> >  drivers/acpi/nfit.h       |  1 +
->> >  drivers/nvdimm/core.c     | 17 +++++++++++++++++
->> >  include/linux/libnvdimm.h |  1 +
->> >  4 files changed, 51 insertions(+), 4 deletions(-)
->> >
->> > diff --git a/drivers/acpi/nfit.c b/drivers/acpi/nfit.c
->> > index ac6ddcc0..def9505 100644
->> > --- a/drivers/acpi/nfit.c
->> > +++ b/drivers/acpi/nfit.c
->> > @@ -2138,8 +2138,9 @@ static void acpi_nfit_async_scrub(struct acpi_nfit_desc *acpi_desc,
->> >         unsigned int tmo = scrub_timeout;
->> >         int rc;
->> >
->> > -       if (nfit_spa->ars_done || !nfit_spa->nd_region)
->> > -               return;
->> > +       if (!nfit_spa->ars_rescan)
->> > +               if (nfit_spa->ars_done || !nfit_spa->nd_region)
->> > +                       return;
->>
->> Do we need a new flag? Why not just clear ->ars_done?
->
-> This is what I had started out with - clearing the done flag, but the
-> done flag gets set at the end of acpi_nfit_scrub if a region has been
-> registered for that SPA. In the rescan case, we'll almost always have
-> our regions registered, so the done flag will get set here, and
-> acpi_nfit_async_scrub won't look at it at all..
+From: Fu Wei <fu.wei-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
 
-Maybe just flip the polarity of ->ars_done to ->ars_do?  Seems we
-should be able to get away with not adding a new flag.
+This patchset:
+    (1)Preparation for adding GTDT support in arm_arch_timer:
+        1. Move some enums and marcos to header file;
+        2. Add a new enum for spi type;
+        3. Improve printk relevant code;
+        4. use readq to get 64-bit CNTVCT.
+
+    (2)Introduce ACPI GTDT parser: drivers/acpi/arm64/acpi_gtdt.c
+    Parse all kinds of timer in GTDT table of ACPI:arch timer,
+    memory-mapped timer and SBSA Generic Watchdog timer.
+    This driver can help to simplify all the relevant timer drivers,
+    and separate all the ACPI GTDT knowledge from them.
+
+    (3)Simplify ACPI code for arm_arch_timer
+
+    (4)Add GTDT support for ARM memory-mapped timer
+
+This patchset has been tested on the following platforms:
+    (1)ARM Foundation v8 model
+
+Changelog:
+v8: https://lkml.org/lkml/2016/7/
+    Improve "pr_fmt(fmt)" definition: add "ACPI" in front of "GTDT",
+    and also improve printk message.
+    Simplify is_timer_block and is_watchdog.
+    Merge acpi_gtdt_desc_init and gtdt_arch_timer_init into acpi_gtdt_init();
+    Delete __init in include/linux/acpi.h for GTDT API
+    Make ARM64 select GTDT.
+    Delete "#include <linux/module.h>" from acpi_gtdt.c
+    Simplify GT block parse code.
+
+v7: https://lkml.org/lkml/2016/7/13/769
+    Move the GTDT driver to drivers/acpi/arm64
+    Add add the ARM64-specific ACPI Support maintainers in MAINTAINERS
+    Merge 3 patches of GTDT parser driver.
+    Fix the for_each_platform_timer bug.
+
+v6: https://lkml.org/lkml/2016/6/29/580
+    split the GTDT driver to 4 parts: basic, arch_timer, memory-mapped timer,
+    and SBSA Generic Watchdog timer
+    Improve driver by suggestions and example code from Daniel Lezcano
+
+v5: https://lkml.org/lkml/2016/5/24/356
+    Sorting out all patches, simplify the API of GTDT driver:
+    GTDT driver just fills the data struct for arm_arch_timer driver.
+
+v4: https://lists.linaro.org/pipermail/linaro-acpi/2016-March/006667.html
+    Delete the kvm relevant patches
+    Separate two patches for sorting out the code for arm_arch_timer.
+    Improve irq info export code to allow missing irq info in GTDT table.
+
+v3: https://lkml.org/lkml/2016/2/1/658
+    Improve GTDT driver code:
+      (1)improve pr_* by defining pr_fmt(fmt)
+      (2)simplify gtdt_sbsa_gwdt_init
+      (3)improve gtdt_arch_timer_data_init, if table is NULL, it will try
+      to get GTDT table.
+    Move enum ppi_nr to arm_arch_timer.h, and add enum spi_nr.
+    Add arm_arch_timer get ppi from DT and GTDT support for kvm.
+
+v2: https://lkml.org/lkml/2015/12/2/10
+    Rebase to latest kernel version(4.4-rc3).
+    Fix the bug about the config problem,
+    use CONFIG_ACPI_GTDT instead of CONFIG_ACPI in arm_arch_timer.c
+
+v1: The first upstreaming version: https://lkml.org/lkml/2015/10/28/553
+
+Fu Wei (9):
+  clocksource/drivers/arm_arch_timer: Move enums and defines to header
+    file
+  clocksource/drivers/arm_arch_timer: Add a new enum for spi type
+  clocksource/drivers/arm_arch_timer: Improve printk relevant code
+  clocksource/drivers/arm_arch_timer: use readq to get 64-bit CNTVCT
+  acpi/arm64: Add GTDT table parse driver
+  clocksource/drivers/arm_arch_timer: Simplify ACPI support code.
+  acpi/arm64: Add memory-mapped timer support in GTDT driver
+  clocksource/drivers/arm_arch_timer: Add GTDT support for memory-mapped
+    timer
+  acpi/arm64: Add SBSA Generic Watchdog support in GTDT driver
+
+ arch/arm64/Kconfig                   |   1 +
+ drivers/acpi/Kconfig                 |   5 +
+ drivers/acpi/Makefile                |   1 +
+ drivers/acpi/arm64/Kconfig           |   5 +
+ drivers/acpi/arm64/Makefile          |   1 +
+ drivers/acpi/arm64/acpi_gtdt.c       | 312 +++++++++++++++++++++++++++++++++++
+ drivers/clocksource/Kconfig          |   2 +-
+ drivers/clocksource/arm_arch_timer.c | 233 +++++++++++++++++---------
+ drivers/watchdog/Kconfig             |   1 +
+ include/clocksource/arm_arch_timer.h |  32 ++++
+ include/linux/acpi.h                 |   7 +
+ 11 files changed, 522 insertions(+), 78 deletions(-)
+ create mode 100644 drivers/acpi/arm64/Kconfig
+ create mode 100644 drivers/acpi/arm64/Makefile
+ create mode 100644 drivers/acpi/arm64/acpi_gtdt.c
+
+-- 
+2.5.5
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-watchdog" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
