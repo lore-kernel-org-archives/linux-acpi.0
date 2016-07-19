@@ -1,90 +1,39 @@
-From: joeyli <jlee@suse.com>
-Subject: Re: [PATCH v2] tools/testing/nvdimm: add virtual ramdisk range
-Date: Tue, 19 Jul 2016 14:53:51 +0800
-Message-ID: <20160719065351.GA30398@linux-rxt1.site>
-References: <146861130048.16896.9105590813517990661.stgit@dwillia2-desk3.amr.corp.intel.com>
- <20160717093614.GM27155@linux-rxt1.site>
- <CAA9_cmenwSpW51J8tF-4hDQ9fNt1hjUZ+jdACzVNvWivuUa8tg@mail.gmail.com>
+From: Mika Westerberg <mika.westerberg-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
+Subject: Re: [PATCH v2 2/3] acpi i2c: Initialize info.type from of_compatible
+Date: Tue, 19 Jul 2016 10:07:05 +0300
+Message-ID: <20160719070705.GN14693@lahna.fi.intel.com>
+References: <cover.1468409668.git.leonard.crestez@intel.com>
+ <4b9ea75003d78406307cbb392150fb038b1b72f7.1468409668.git.leonard.crestez@intel.com>
+ <CAJZ5v0jz-E0RTBWVzO0Vc_jChUSeSseFeewi1UtsjLudoVP7Pw@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp.nue.novell.com ([195.135.221.5]:57471 "EHLO
-	smtp.nue.novell.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752269AbcGSGyN (ORCPT
-	<rfc822;groupwise-linux-acpi@vger.kernel.org:0:0>);
-	Tue, 19 Jul 2016 02:54:13 -0400
+Return-path: <linux-spi-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <CAA9_cmenwSpW51J8tF-4hDQ9fNt1hjUZ+jdACzVNvWivuUa8tg@mail.gmail.com>
-Sender: linux-acpi-owner@vger.kernel.org
+In-Reply-To: <CAJZ5v0jz-E0RTBWVzO0Vc_jChUSeSseFeewi1UtsjLudoVP7Pw-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+Sender: linux-spi-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: "Rafael J. Wysocki" <rafael-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: Crestez Dan Leonard <leonard.crestez-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, ACPI Devel Maling List <linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "Rafael J. Wysocki" <rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org>, Jarkko Nikula <jarkko.nikula-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Len Brown <lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, linux-i2c <linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Wolfram Sang <wsa-z923LK4zBo2bacvFa/9K2g@public.gmane.org>, linux-spi <linux-spi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Mark Brown <broonie-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Linux Kernel Mailing List <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Octavian Purdila <octavian.purdila-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
-To: Dan Williams <dan.j.williams@intel.com>
-Cc: Linux ACPI <linux-acpi@vger.kernel.org>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>
 
-On Sun, Jul 17, 2016 at 09:05:19AM -0700, Dan Williams wrote:
-> On Sun, Jul 17, 2016 at 2:36 AM, joeyli <jlee@suse.com> wrote:
-> > Hi Dan,
+On Wed, Jul 13, 2016 at 02:20:57PM +0200, Rafael J. Wysocki wrote:
+> On Wed, Jul 13, 2016 at 1:53 PM, Crestez Dan Leonard
+> <leonard.crestez-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org> wrote:
+> > When using devicetree i2c_board_info.type is set to the compatible
+> > string with the vendor prefix removed. For I2C devices described via
+> > ACPI the i2c_board_info.type string is set to the ACPI device name. When
+> > using ACPI and DT ids this string ends up something like "PRP0001:00".
 > >
-> > On Fri, Jul 15, 2016 at 12:35:58PM -0700, Dan Williams wrote:
-> >> Test the virtual disk ranges that platform firmware like EDK2/OVMF might
-> >> emit.
-> >>
-> >> Cc: "Lee, Chun-Yi" <jlee@suse.com>
-> >> Signed-off-by: Dan Williams <dan.j.williams@intel.com>
-> >> ---
-> >> Changes since v1:
-> >>
-> >> * Move this test range to nfit_test.1 to not break the spa ordering
-> >>   expected by the nfit_test.0 tests.
-> >>
+> > If the of_compatible property is present try to use that instead. This
+> > makes it easier to instantiate i2c drivers through ACPI with DT ids.
 > >
-> > I reviewed and tested this patch by nvdimm testing driver.
-> > Please feel free to add
-> >         Reviewed-by: Lee, Chun-Yi <jlee@suse.com>
-> >
-> > But I have a question to run nfit testing driver on OVMF. I always got
-> > "coherent allocation failed" as below:
-> >
-> > [   86.530950] platform nfit_test.0: swiotlb buffer is full (sz: 134217728 bytes)
-> > [   86.530954] swiotlb: coherent allocation failed for device nfit_test.0 size=134217728
-> > [   86.530956] CPU: 0 PID: 1291 Comm: insmod Tainted: G           OE   4.7.0-rc7-default+ #323
-> > [   86.530958] Hardware name: QEMU Standard PC (i440FX + PIIX, 1996), BIOS 0.0.0 02/06/2015
-> > [   86.530959]  0000000000000000 ffff880234e63bb0 ffffffff81334e5c 0000000008000000
-> > [   86.530961]  ffff880232fa5998 ffff880234e63bf0 ffffffff8135eb79 ffff88020000000f
-> > [   86.530963]  00000000024002c0 ffff880232fa5998 0000000008000000 ffff880234e63c68
-> > [   86.530965] Call Trace:
-> > [   86.530971]  [<ffffffff81334e5c>] dump_stack+0x63/0x87
-> > [   86.530975]  [<ffffffff8135eb79>] swiotlb_alloc_coherent+0x149/0x160
-> > [   86.530978]  [<ffffffff810611d3>] x86_swiotlb_alloc_coherent+0x43/0x50
-> > [   86.530981]  [<ffffffffa054db3a>] dma_alloc_attrs.constprop.10+0x5a/0x80 [nfit_test]
-> > [   86.530984]  [<ffffffffa00d618c>] nfit_test_init+0x18c/0x1000 [nfit_test]
-> > [   86.530985]  [<ffffffffa00d6000>] ? 0xffffffffa00d6000
-> > [   86.530988]  [<ffffffff81002190>] do_one_initcall+0x50/0x190
-> > [   86.530992]  [<ffffffff811eef00>] ? kmem_cache_alloc_trace+0x170/0x220
-> > [   86.530995]  [<ffffffff8118dbfc>] ? do_init_module+0x27/0x1e2
-> > [   86.530997]  [<ffffffff8118dc35>] do_init_module+0x60/0x1e2
-> > [   86.531000]  [<ffffffff81108fb1>] load_module+0x1411/0x1c20
-> > [   86.531002]  [<ffffffff81105cb0>] ? __symbol_put+0x40/0x40
-> > [   86.531006]  [<ffffffff812dfbbd>] ? ima_post_read_file+0x3d/0x80
-> > [   86.531009]  [<ffffffff811099c9>] SYSC_finit_module+0xa9/0xd0
-> > [   86.531011]  [<ffffffff81109a0e>] SyS_finit_module+0xe/0x10
-> > [   86.531013]  [<ffffffff81003a62>] do_syscall_64+0x62/0x110
-> > [   86.531016]  [<ffffffff81630a61>] entry_SYSCALL64_slow_path+0x25/0x25
-> > [   86.531018] platform nfit_test.0: need 128M of free cma
-> >
-> > I tried to add "swiotlb=65536" and "cma=128M" or "cma=256M", even "cma=2G" kernel
-> > parameters, but nfit-test.ko still can NOT allocate DMA success.
-> >
-> > So, I always add a patch to change the DIMM_SIZE to SZ_1M, that means test0
-> > only uses 4M. Then the nfit-test.ko works for testing.
-> >
-> > Did I miss anything before running the nfit testing driver?
+> > Signed-off-by: Crestez Dan Leonard <leonard.crestez-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 > 
-> The CMA dependency is a hassle, so for v4.8 I'm replacing it with vmalloc:
-> 
-> https://patchwork.kernel.org/patch/9199761/
-> https://patchwork.kernel.org/patch/9199763/
+> Looks good to me, but Mika needs to have a look at it too.
 
-Those patches work great!
+Looks good to me,
 
-Thanks a lot!
-Joey Lee
+Reviewed-by: Mika Westerberg <mika.westerberg-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
+--
+To unsubscribe from this list: send the line "unsubscribe linux-spi" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
