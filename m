@@ -1,47 +1,84 @@
 From: Bjorn Helgaas <helgaas@kernel.org>
-Subject: Re: [RFC PATCH 0/3] ECAM quirks handling for ARM64 platforms
-Date: Tue, 19 Jul 2016 16:17:53 -0500
-Message-ID: <20160719211753.GA17840@localhost>
-References: <1464856864-18049-1-git-send-email-tn@semihalf.com>
+Subject: Re: [PATCH V7 3/8] PCI/MSI: Setup MSI domain on a per-device basis
+ using IORT ACPI table
+Date: Tue, 19 Jul 2016 16:42:27 -0500
+Message-ID: <20160719214227.GB18635@localhost>
+References: <1466420541-20101-1-git-send-email-tn@semihalf.com>
+ <1466420541-20101-4-git-send-email-tn@semihalf.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.136]:53046 "EHLO mail.kernel.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751660AbcGSVSC (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 19 Jul 2016 17:18:02 -0400
+Return-path: <linux-pci-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <1464856864-18049-1-git-send-email-tn@semihalf.com>
-Sender: linux-acpi-owner@vger.kernel.org
-List-Id: linux-acpi@vger.kernel.org
+In-Reply-To: <1466420541-20101-4-git-send-email-tn@semihalf.com>
+Sender: linux-pci-owner@vger.kernel.org
 To: Tomasz Nowicki <tn@semihalf.com>
-Cc: arnd@arndb.de, will.deacon@arm.com, catalin.marinas@arm.com, rafael@kernel.org, hanjun.guo@linaro.org, Lorenzo.Pieralisi@arm.com, okaya@codeaurora.org, jchandra@broadcom.com, robert.richter@caviumnetworks.com, mw@semihalf.com, Liviu.Dudau@arm.com, ddaney@caviumnetworks.com, wangyijing@huawei.com, Suravee.Suthikulpanit@amd.com, msalter@redhat.com, linux-pci@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linaro-acpi@lists.linaro.org, jcm@redhat.com, andrea.gallo@linaro.org, dhdang@apm.com, jeremy.linton@arm.com, liudongdong3@huawei.com, cov@codeaurora.org
+Cc: marc.zyngier@arm.com, tglx@linutronix.de, jason@lakedaemon.net, rjw@rjwysocki.net, bhelgaas@google.com, lorenzo.pieralisi@arm.com, robert.richter@caviumnetworks.com, shijie.huang@arm.com, Suravee.Suthikulpanit@amd.com, hanjun.guo@linaro.org, al.stone@linaro.org, graeme.gregory@linaro.org, Catalin.Marinas@arm.com, will.deacon@arm.com, linux-kernel@vger.kernel.org, okaya@codeaurora.org, linux-acpi@vger.kernel.org, ddaney.cavm@gmail.com, linux-pci@vger.kernel.org, mw@semihalf.com, andrea.gallo@linaro.org, linux-arm-kernel@lists.infradead.org
+List-Id: linux-acpi@vger.kernel.org
 
-On Thu, Jun 02, 2016 at 10:41:00AM +0200, Tomasz Nowicki wrote:
-> This series bases on pending ACPI PCI support for ARM64:
-> https://lkml.org/lkml/2016/5/30/468
+On Mon, Jun 20, 2016 at 01:02:16PM +0200, Tomasz Nowicki wrote:
+> It is possible to provide information about which MSI controller to
+> use on a per-device basis for DT. This patch supply this with ACPI support.
 > 
-> Quirk handling relies on an idea of matching MCFG OEM ID and OEM revision
-> (the ones from standard header of MCFG table). Linker section is used
-> so that quirks can be registered using special macro (see patches) and
-> kept self contained.
+> Currently, IORT is the only one ACPI table which can provide such mapping.
+> In order to plug IORT into MSI infrastructure we are adding ACPI
+> equivalents for finding PCI device domain and its RID translation
+> (pci_msi_domain_get_msi_rid and pci_msi_domain_get_msi_rid calls).
 > 
-> As an example, last patch presents above mechanism usage for ThunderX PEM driver.
-> 
-> Tomasz Nowicki (3):
->   pci, acpi: Match PCI config space accessors against platfrom specific
->     ECAM quirks.
->   arm64, pci: Start using quirks handling for ACPI based PCI host
->     controller.
->   pci, pci-thunder-pem: Add ACPI support for ThunderX PEM.
-> 
->  arch/arm64/kernel/pci.c            |   7 +-
->  drivers/acpi/pci_mcfg.c            |  32 +++++++++
->  drivers/pci/host/pci-thunder-pem.c | 132 +++++++++++++++++++++++++++++++++----
->  include/asm-generic/vmlinux.lds.h  |   7 ++
->  include/linux/pci-acpi.h           |  19 ++++++
->  5 files changed, 181 insertions(+), 16 deletions(-)
+> Signed-off-by: Tomasz Nowicki <tn@semihalf.com>
+> Acked-by: Marc Zyngier <marc.zyngier@arm.com>
 
-Is this series superceded by Dongdong's series of 6/13 ("[RFC,V2,1/2]
-ACPI/PCI: Match PCI config space accessors against platfrom specific ECAM
-quirks")?
+Acked-by: Bjorn Helgaas <bhelgaas@google.com>
+
+I assume this will be merged along with the rest of the series via
+some non-PCI tree.
+
+> ---
+>  drivers/pci/msi.c | 11 ++++++++---
+>  1 file changed, 8 insertions(+), 3 deletions(-)
+> 
+> diff --git a/drivers/pci/msi.c b/drivers/pci/msi.c
+> index a080f44..1d45e81 100644
+> --- a/drivers/pci/msi.c
+> +++ b/drivers/pci/msi.c
+> @@ -18,6 +18,7 @@
+>  #include <linux/smp.h>
+>  #include <linux/errno.h>
+>  #include <linux/io.h>
+> +#include <linux/iort.h>
+>  #include <linux/slab.h>
+>  #include <linux/irqdomain.h>
+>  #include <linux/of_irq.h>
+> @@ -1364,8 +1365,8 @@ u32 pci_msi_domain_get_msi_rid(struct irq_domain *domain, struct pci_dev *pdev)
+>  	pci_for_each_dma_alias(pdev, get_msi_id_cb, &rid);
+>  
+>  	of_node = irq_domain_get_of_node(domain);
+> -	if (of_node)
+> -		rid = of_msi_map_rid(&pdev->dev, of_node, rid);
+> +	rid = of_node ? of_msi_map_rid(&pdev->dev, of_node, rid) :
+> +			iort_msi_map_rid(&pdev->dev, rid);
+>  
+>  	return rid;
+>  }
+> @@ -1381,9 +1382,13 @@ u32 pci_msi_domain_get_msi_rid(struct irq_domain *domain, struct pci_dev *pdev)
+>   */
+>  struct irq_domain *pci_msi_get_device_domain(struct pci_dev *pdev)
+>  {
+> +	struct irq_domain *dom;
+>  	u32 rid = 0;
+>  
+>  	pci_for_each_dma_alias(pdev, get_msi_id_cb, &rid);
+> -	return of_msi_map_get_device_domain(&pdev->dev, rid);
+> +	dom = of_msi_map_get_device_domain(&pdev->dev, rid);
+> +	if (!dom)
+> +		dom = iort_get_device_domain(&pdev->dev, rid);
+> +	return dom;
+>  }
+>  #endif /* CONFIG_PCI_MSI_IRQ_DOMAIN */
+> -- 
+> 1.9.1
+> 
+> 
+> _______________________________________________
+> linux-arm-kernel mailing list
+> linux-arm-kernel@lists.infradead.org
+> http://lists.infradead.org/mailman/listinfo/linux-arm-kernel
