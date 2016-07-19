@@ -1,62 +1,53 @@
-From: Wolfram Sang <wsa@the-dreams.de>
-Subject: Re: [PATCH v3 2/2] power: Adds support for Smart Battery System
- Manager
-Date: Tue, 19 Jul 2016 06:17:29 +0200
-Message-ID: <20160719041729.GC1640@katana>
-References: <1bIiDr-0004G1-0P>
- <1468349295-4935-1-git-send-email-karl-heinz@schneider-inet.de>
- <1468349295-4935-3-git-send-email-karl-heinz@schneider-inet.de>
+From: "Zheng, Lv" <lv.zheng@intel.com>
+Subject: RE: [RFC PATCH 3/3] ACPI / PM: Fix EC polling issue by implementing
+ prepare_late/finish_early suspend_ops callbacks
+Date: Tue, 19 Jul 2016 04:40:03 +0000
+Message-ID: <1AE640813FDE7649BE1B193DEA596E883BC04D26@SHSMSX101.ccr.corp.intel.com>
+References: <cover.1467100803.git.lv.zheng@intel.com>
+ <48245fbc4b0510a7af281986ccc1a2a583766f73.1467100803.git.lv.zheng@intel.com>
+ <1607219.k0v9zRxBvM@vostro.rjw.lan>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="GPJrCs/72TxItFYR"
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from sauhun.de ([89.238.76.85]:56320 "EHLO pokefinder.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750769AbcGSERg (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 19 Jul 2016 00:17:36 -0400
-Content-Disposition: inline
-In-Reply-To: <1468349295-4935-3-git-send-email-karl-heinz@schneider-inet.de>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1607219.k0v9zRxBvM@vostro.rjw.lan>
+Content-Language: en-US
+Sender: linux-kernel-owner@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>, "Brown, Len" <len.brown@intel.com>, Lv Zheng <zetalog@gmail.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
-To: Karl-Heinz Schneider <karl-heinz@schneider-inet.de>
-Cc: devicetree@vger.kernel.org, linux-pm@vger.kernel.org, linux-acpi@vger.kernel.org, linux-i2c@vger.kernel.org, Rob Herring <robh+dt@kernel.org>, Mark Rutland <mark.rutland@arm.com>, Sebastian Reichel <sre@kernel.org>, Dmitry Eremin-Solenikov <dbaryshkov@gmail.com>, David Woodhouse <dwmw2@infradead.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Peter Rosin <peda@axentia.se>, Phil Reid <preid@electromag.com.au>
 
-
---GPJrCs/72TxItFYR
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-
-
-> +	data->muxc = i2c_mux_alloc(adapter, dev, SBSM_MAX_BATS, 0,
-> +				   I2C_MUX_LOCKED, &sbsm_select, NULL);
-> +	if (!data->muxc) {
-> +		dev_err(dev, "failed to alloc i2c mux\n");
-
-Don't print errors on ENOMEM.
-
-Other than that, looks good to me, yet Peter has more insight to
-i2c-muxes these days.
-
-
---GPJrCs/72TxItFYR
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iQIcBAEBAgAGBQJXjanZAAoJEBQN5MwUoCm2GIYQAKSkSVgD9XZRQ9tPpAuqkWpY
-32tKIbgXaBX3ZCj2VIftzI9U7S7EgipDl9D2ikVUOOf+WVWmtSbp4nKhA1S8TQlv
-0vQo2w7WdB0a51fOrl/aMh+bkrKdPKK8iXPP75uY5j2P0GVXhEJau9x/Sm47SNur
-jL0GTbahD8QR+dgbpTFT4GYGyxK9uPXcLuRRtM2xYFJ1acw7gvMBqUHTkhKS6sjV
-xah6NGxN0n7imil/FF3OC/I1/+hq9Y95OILCiQCD8GpsSCy8v3XWEcXeQof+5Bgx
-m2WhWW2fOTrtFY1+QVc/9XLgC85AEYSfndGQ3B/9UT3T4hGma7+IBCkeGL7Mf/nr
-ESbV/8YGcOBUf084VuCjgBiWdC9BNQttF7hkHN9PjSGeJDu+BVBzC0spy8eotFby
-G59HxYWLk8gcvuKDQCwXJZTlRCuizLd1KcNCnIhQHrGQ5vqTrYS6lD4j9a9xNM8n
-owWgmazfEiS5xMCWNcoGWWa2+3dc4iGlQGlx1Da7NnA4FipFbjcUWwjFTuPztAWw
-NenSieMlOeXM5PBkUPnE9C9iXav/sPTf2MsdhLzJrCaSoXnDHCU39tWPivGVSISU
-2Lw5wEsBeuUga17vxXe4kptLRhFX3jqZHbFk/9nz9cIfb+nIjoVYPHvsh9sQtBoZ
-GvWSWCSNM5pacXzscB/W
-=dzDV
------END PGP SIGNATURE-----
-
---GPJrCs/72TxItFYR--
+SGksIFJhZmFlbA0KDQo+IEZyb206IGxpbnV4LWFjcGktb3duZXJAdmdlci5rZXJuZWwub3JnIFtt
+YWlsdG86bGludXgtYWNwaS0NCj4gb3duZXJAdmdlci5rZXJuZWwub3JnXSBPbiBCZWhhbGYgT2Yg
+UmFmYWVsIEouIFd5c29ja2kNCj4gU3ViamVjdDogUmU6IFtSRkMgUEFUQ0ggMy8zXSBBQ1BJIC8g
+UE06IEZpeCBFQyBwb2xsaW5nIGlzc3VlIGJ5DQo+IGltcGxlbWVudGluZyBwcmVwYXJlX2xhdGUv
+ZmluaXNoX2Vhcmx5IHN1c3BlbmRfb3BzIGNhbGxiYWNrcw0KPiANCj4gT24gVHVlc2RheSwgSnVu
+ZSAyOCwgMjAxNiAwNDowNDo0NiBQTSBMdiBaaGVuZyB3cm90ZToNCj4gPiBfUFRTL19XQUsgbWF5
+IGNvbnRhaW4gRUMgdHJhbnNhY3Rpb25zLCBpdCBpcyBiZXR0ZXIgdG8gaGF2ZSB0aGVtDQo+IGhh
+bmRsZWQNCj4gPiB3aXRoIElSUSBlbmFibGVkLiBUaGlzIHBhdGNoIG1vdmVzIHRoZSAyIHN1c3Bl
+bmQgUE0gb3BzIGZyb20gbm9pcnENCj4gc3RhZ2UNCj4gPiB0byBsYXRlL2Vhcmx5IHN0YWdlLg0K
+PiA+DQo+ID4gU2lnbmVkLW9mZi1ieTogTHYgWmhlbmcgPGx2LnpoZW5nQGludGVsLmNvbT4NCj4g
+DQo+IFRoZXJlIGFyZSBzeXN0ZW1zIHRoYXQgd29uJ3Qgd29yayB3aXRoIHRoaXMgcGF0Y2ggYXBw
+bGllZCwgc28gSSBkb24ndA0KPiBzZWUgYSBwb2ludCBpbiBhcHBseWluZyB0aGUgb3RoZXIgdHdv
+Lg0KW0x2IFpoZW5nXSANCkkgc2VlLg0KVGhlbiBpbnN0ZWFkIG9mIG1vdmluZyBfV0FLL19QVFMg
+b3V0IG9mIG5vaXJxIHN0YWdlLCB3ZSBuZWVkIHRvIHRoaW5rIGFib3V0IHR1bmluZyB0aGUgcGVy
+Zm9ybWFuY2Ugb2YgdGhlIEVDIHBvbGxpbmcgbW9kZS4NCg0KVGhhbmtzIGFuZCBiZXN0IHJlZ2Fy
+ZHMNCi1Mdg0KDQo+IA0KPiA+IC0tLQ0KPiA+ICBkcml2ZXJzL2FjcGkvc2xlZXAuYyB8ICAgIDUg
+KysrLS0NCj4gPiAgMSBmaWxlIGNoYW5nZWQsIDMgaW5zZXJ0aW9ucygrKSwgMiBkZWxldGlvbnMo
+LSkNCj4gPg0KPiA+IGRpZmYgLS1naXQgYS9kcml2ZXJzL2FjcGkvc2xlZXAuYyBiL2RyaXZlcnMv
+YWNwaS9zbGVlcC5jDQo+ID4gaW5kZXggZDMwZmNlN2YuLmM1YzM3NGM5IDEwMDY0NA0KPiA+IC0t
+LSBhL2RyaXZlcnMvYWNwaS9zbGVlcC5jDQo+ID4gKysrIGIvZHJpdmVycy9hY3BpL3NsZWVwLmMN
+Cj4gPiBAQCAtNTk1LDkgKzU5NSwxMCBAQCBzdGF0aWMgaW50DQo+IGFjcGlfc3VzcGVuZF9zdGF0
+ZV92YWxpZChzdXNwZW5kX3N0YXRlX3QgcG1fc3RhdGUpDQo+ID4gIHN0YXRpYyBjb25zdCBzdHJ1
+Y3QgcGxhdGZvcm1fc3VzcGVuZF9vcHMgYWNwaV9zdXNwZW5kX29wcyA9IHsNCj4gPiAgCS52YWxp
+ZCA9IGFjcGlfc3VzcGVuZF9zdGF0ZV92YWxpZCwNCj4gPiAgCS5iZWdpbiA9IGFjcGlfc3VzcGVu
+ZF9iZWdpbiwNCj4gPiAtCS5wcmVwYXJlX25vaXJxID0gYWNwaV9wbV9wcmVwYXJlLA0KPiA+ICsJ
+LnByZXBhcmVfbGF0ZSA9IF9fYWNwaV9wbV9wcmVwYXJlLA0KPiA+ICsJLnByZXBhcmVfbm9pcnEg
+PSBhY3BpX3BtX3ByZV9zdXNwZW5kLA0KPiA+ICAJLmVudGVyID0gYWNwaV9zdXNwZW5kX2VudGVy
+LA0KPiA+IC0JLmZpbmlzaF9ub2lycSA9IGFjcGlfcG1fZmluaXNoLA0KPiA+ICsJLmZpbmlzaF9l
+YXJseSA9IGFjcGlfcG1fZmluaXNoLA0KPiA+ICAJLmVuZCA9IGFjcGlfcG1fZW5kLA0KPiA+ICB9
+Ow0KPiA+DQo+ID4NCj4gDQo+IFRoYW5rcywNCj4gUmFmYWVsDQo+IA0KPiAtLQ0KPiBUbyB1bnN1
+YnNjcmliZSBmcm9tIHRoaXMgbGlzdDogc2VuZCB0aGUgbGluZSAidW5zdWJzY3JpYmUgbGludXgt
+YWNwaSIgaW4NCj4gdGhlIGJvZHkgb2YgYSBtZXNzYWdlIHRvIG1ham9yZG9tb0B2Z2VyLmtlcm5l
+bC5vcmcNCj4gTW9yZSBtYWpvcmRvbW8gaW5mbyBhdCAgaHR0cDovL3ZnZXIua2VybmVsLm9yZy9t
+YWpvcmRvbW8taW5mby5odG1sDQo=
