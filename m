@@ -1,37 +1,45 @@
 From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [PATCH] ACPI / PCI: make pci_slot explicitly non-modular
-Date: Tue, 19 Jul 2016 22:09:42 +0200
-Message-ID: <6027845.iyXT4j8ZXN@vostro.rjw.lan>
-References: <20160711221723.5072-1-paul.gortmaker@windriver.com>
+Subject: Re: [PATCH] ACPI / PMIC: remove modular references from non-modular code
+Date: Tue, 19 Jul 2016 22:09:30 +0200
+Message-ID: <2014296.Y0F3yzq3m9@vostro.rjw.lan>
+References: <20160711220516.3371-1-paul.gortmaker@windriver.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7Bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cloudserver094114.home.net.pl ([79.96.170.134]:44170 "HELO
-	cloudserver094114.home.net.pl" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with SMTP id S1752143AbcGSUEt (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 19 Jul 2016 16:04:49 -0400
-In-Reply-To: <20160711221723.5072-1-paul.gortmaker@windriver.com>
-Sender: linux-acpi-owner@vger.kernel.org
-List-Id: linux-acpi@vger.kernel.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20160711220516.3371-1-paul.gortmaker@windriver.com>
+Sender: linux-kernel-owner@vger.kernel.org
 To: Paul Gortmaker <paul.gortmaker@windriver.com>
 Cc: linux-kernel@vger.kernel.org, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org
+List-Id: linux-acpi@vger.kernel.org
 
-On Monday, July 11, 2016 06:17:23 PM Paul Gortmaker wrote:
-> The Kconfig for this file is:
+On Monday, July 11, 2016 06:05:16 PM Paul Gortmaker wrote:
+> The Kconfig currently controlling compilation of these files are:
 > 
-> drivers/acpi/Kconfig:config ACPI_PCI_SLOT
-> drivers/acpi/Kconfig:   bool "PCI slot detection driver"
+> drivers/acpi/Kconfig:menuconfig PMIC_OPREGION
+> drivers/acpi/Kconfig:   bool "PMIC (Power Management Integrated Circuit) operation region support"
 > 
-> ...and so it is not built as a module.  Hence including module.h
-> and everything that comes with it just for the no-op MODULE_LICENSE
-> and friends is rather heavy handed.
+> drivers/acpi/Kconfig:config BXT_WC_PMIC_OPREGION
+> drivers/acpi/Kconfig:   bool "ACPI operation region support for BXT WhiskeyCove PMIC"
 > 
-> The license/author info is found at the top of the file, so we
-> just remove the MODULE_LICENSE etc and the include of module.h
+> drivers/acpi/Kconfig:config XPOWER_PMIC_OPREGION
+> drivers/acpi/Kconfig:   bool "ACPI operation region support for XPower AXP288 PMIC"
 > 
-> We delete the DRIVER_VERSION macro as well since it is unused.
+> ...meaning they currently are not being built as a module by anyone.
+> 
+> Lets remove the couple traces of modular infrastructure use, so that
+> when reading the code there is no doubt it is builtin-only.
+> 
+> We delete the MODULE_LICENSE tag etc. since all that information
+> is already contained at the top of the file in the comments.
+> 
+> One file was using module_init.  Since module_init translates to
+> device_initcall in the non-modular case, the init ordering remains
+> unchanged with this commit.
+> 
+> In one case we replace the module.h with export.h since that file
+> is exporting some symbols, but does not use __init.  The other two
+> are using __init and so module.h gets replaced with init.h there.
 > 
 > Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>
 > Cc: Len Brown <lenb@kernel.org>
@@ -39,4 +47,3 @@ On Monday, July 11, 2016 06:17:23 PM Paul Gortmaker wrote:
 > Signed-off-by: Paul Gortmaker <paul.gortmaker@windriver.com>
 
 Applied, thanks!
-
