@@ -1,177 +1,63 @@
-From: Vishal Verma <vishal.l.verma-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH 2/3] nfit,
- libnvdimm: allow an ARS rescan to be triggered on demand
-Date: Mon, 18 Jul 2016 18:44:59 -0600
-Message-ID: <1468889100-30698-3-git-send-email-vishal.l.verma@intel.com>
-References: <1468889100-30698-1-git-send-email-vishal.l.verma@intel.com>
+From: Wolfram Sang <wsa@the-dreams.de>
+Subject: Re: [PATCH v3 1/2] Documentation: Add sbs-manager device tree node
+ documentation
+Date: Tue, 19 Jul 2016 06:14:32 +0200
+Message-ID: <20160719041432.GB1640@katana>
+References: <1bIiDr-0004G1-0P>
+ <1468349295-4935-1-git-send-email-karl-heinz@schneider-inet.de>
+ <1468349295-4935-2-git-send-email-karl-heinz@schneider-inet.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-In-Reply-To: <1468889100-30698-1-git-send-email-vishal.l.verma-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
- <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
-List-Post: <mailto:linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-List-Help: <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
- <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
-Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
-Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-To: linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
-Cc: linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, "Rafael J. Wysocki" <rafael.j.wysocki-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Tony Luck <tony.luck-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="OwLcNYc0lM97+oe1"
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from sauhun.de ([89.238.76.85]:56305 "EHLO pokefinder.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750769AbcGSEOx (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 19 Jul 2016 00:14:53 -0400
+Content-Disposition: inline
+In-Reply-To: <1468349295-4935-2-git-send-email-karl-heinz@schneider-inet.de>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Karl-Heinz Schneider <karl-heinz@schneider-inet.de>
+Cc: devicetree@vger.kernel.org, linux-pm@vger.kernel.org, linux-acpi@vger.kernel.org, linux-i2c@vger.kernel.org, Rob Herring <robh+dt@kernel.org>, Mark Rutland <mark.rutland@arm.com>, Sebastian Reichel <sre@kernel.org>, Dmitry Eremin-Solenikov <dbaryshkov@gmail.com>, David Woodhouse <dwmw2@infradead.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Peter Rosin <peda@axentia.se>, Phil Reid <preid@electromag.com.au>
 
-Normally, an ARS (Address Range Scrub) only happens at
-boot/initialization time. There can however arise situations where a
-bus-wide rescan is needed - notably, in the case of discovering a latent
-media error, we should do a full rescan to figure out what other sectors
-are bad, and thus potentially avoid triggering an mce on them in the
-future. Also provide a sysfs trigger to start a bus-wide rescan.
 
-Cc: Dan Williams <dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: Rafael J. Wysocki <rafael.j.wysocki-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: <linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Cc: <linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-Signed-off-by: Vishal Verma <vishal.l.verma-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
----
- drivers/acpi/nfit.c       | 36 ++++++++++++++++++++++++++++++++----
- drivers/acpi/nfit.h       |  1 +
- drivers/nvdimm/core.c     | 17 +++++++++++++++++
- include/linux/libnvdimm.h |  1 +
- 4 files changed, 51 insertions(+), 4 deletions(-)
+--OwLcNYc0lM97+oe1
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-diff --git a/drivers/acpi/nfit.c b/drivers/acpi/nfit.c
-index ac6ddcc0..def9505 100644
---- a/drivers/acpi/nfit.c
-+++ b/drivers/acpi/nfit.c
-@@ -2138,8 +2138,9 @@ static void acpi_nfit_async_scrub(struct acpi_nfit_desc *acpi_desc,
- 	unsigned int tmo = scrub_timeout;
- 	int rc;
- 
--	if (nfit_spa->ars_done || !nfit_spa->nd_region)
--		return;
-+	if (!nfit_spa->ars_rescan)
-+		if (nfit_spa->ars_done || !nfit_spa->nd_region)
-+			return;
- 
- 	rc = ars_start(acpi_desc, nfit_spa);
- 	/*
-@@ -2227,7 +2228,9 @@ static void acpi_nfit_scrub(struct work_struct *work)
- 	 * firmware initiated scrubs to complete and then we go search for the
- 	 * affected spa regions to mark them scanned.  In the second phase we
- 	 * initiate a directed scrub for every range that was not scrubbed in
--	 * phase 1.
-+	 * phase 1. If we're called for a 'rescan', we harmlessly pass through
-+	 * the first phase, but really only care about running phase 2, where
-+	 * regions can be notified of new poison.
- 	 */
- 
- 	/* process platform firmware initiated scrubs */
-@@ -2336,8 +2339,10 @@ static void acpi_nfit_scrub(struct work_struct *work)
- 			acpi_nfit_register_region(acpi_desc, nfit_spa);
- 	}
- 
--	list_for_each_entry(nfit_spa, &acpi_desc->spas, list)
-+	list_for_each_entry(nfit_spa, &acpi_desc->spas, list) {
- 		acpi_nfit_async_scrub(acpi_desc, nfit_spa);
-+		nfit_spa->ars_rescan = 0;
-+	}
- 	mutex_unlock(&acpi_desc->init_mutex);
- }
- 
-@@ -2495,6 +2500,28 @@ static int acpi_nfit_clear_to_send(struct nvdimm_bus_descriptor *nd_desc,
- 	return 0;
- }
- 
-+static int acpi_nfit_ars_rescan(struct nvdimm_bus_descriptor *nd_desc)
-+{
-+	struct acpi_nfit_desc *acpi_desc = to_acpi_nfit_desc(nd_desc);
-+	struct device *dev = acpi_desc->dev;
-+	struct nfit_spa *nfit_spa;
-+
-+	if (work_busy(&acpi_desc->work))
-+		return -EBUSY;
-+
-+	list_for_each_entry(nfit_spa, &acpi_desc->spas, list) {
-+		struct acpi_nfit_system_address *spa = nfit_spa->spa;
-+
-+		if (nfit_spa_type(spa) != NFIT_SPA_PM)
-+			continue;
-+
-+		nfit_spa->ars_rescan = 1;
-+	}
-+	queue_work(nfit_wq, &acpi_desc->work);
-+	dev_info(dev, "%s: ars_rescan triggered\n", __func__);
-+	return 0;
-+}
-+
- void acpi_nfit_desc_init(struct acpi_nfit_desc *acpi_desc, struct device *dev)
- {
- 	struct nvdimm_bus_descriptor *nd_desc;
-@@ -2507,6 +2534,7 @@ void acpi_nfit_desc_init(struct acpi_nfit_desc *acpi_desc, struct device *dev)
- 	nd_desc->ndctl = acpi_nfit_ctl;
- 	nd_desc->flush_probe = acpi_nfit_flush_probe;
- 	nd_desc->clear_to_send = acpi_nfit_clear_to_send;
-+	nd_desc->ars_rescan = acpi_nfit_ars_rescan;
- 	nd_desc->attr_groups = acpi_nfit_attribute_groups;
- 
- 	INIT_LIST_HEAD(&acpi_desc->spa_maps);
-diff --git a/drivers/acpi/nfit.h b/drivers/acpi/nfit.h
-index 02b9ea1..db95c5d 100644
---- a/drivers/acpi/nfit.h
-+++ b/drivers/acpi/nfit.h
-@@ -78,6 +78,7 @@ struct nfit_spa {
- 	struct list_head list;
- 	struct nd_region *nd_region;
- 	unsigned int ars_done:1;
-+	unsigned int ars_rescan:1;
- 	u32 clear_err_unit;
- 	u32 max_ars;
- };
-diff --git a/drivers/nvdimm/core.c b/drivers/nvdimm/core.c
-index be89764..54f6fd5 100644
---- a/drivers/nvdimm/core.c
-+++ b/drivers/nvdimm/core.c
-@@ -313,10 +313,27 @@ static ssize_t wait_probe_show(struct device *dev,
- }
- static DEVICE_ATTR_RO(wait_probe);
- 
-+static ssize_t ars_rescan_store(struct device *dev,
-+		struct device_attribute *attr, const char *buf, size_t size)
-+{
-+	struct nvdimm_bus *nvdimm_bus = to_nvdimm_bus(dev);
-+	struct nvdimm_bus_descriptor *nd_desc = nvdimm_bus->nd_desc;
-+	int rc;
-+
-+	if (nd_desc->ars_rescan) {
-+		rc = nd_desc->ars_rescan(nd_desc);
-+		if (rc)
-+			return rc;
-+	}
-+	return size;
-+}
-+static DEVICE_ATTR_WO(ars_rescan);
-+
- static struct attribute *nvdimm_bus_attributes[] = {
- 	&dev_attr_commands.attr,
- 	&dev_attr_wait_probe.attr,
- 	&dev_attr_provider.attr,
-+	&dev_attr_ars_rescan.attr,
- 	NULL,
- };
- 
-diff --git a/include/linux/libnvdimm.h b/include/linux/libnvdimm.h
-index 0c3c30c..1c6867a 100644
---- a/include/linux/libnvdimm.h
-+++ b/include/linux/libnvdimm.h
-@@ -74,6 +74,7 @@ struct nvdimm_bus_descriptor {
- 	int (*flush_probe)(struct nvdimm_bus_descriptor *nd_desc);
- 	int (*clear_to_send)(struct nvdimm_bus_descriptor *nd_desc,
- 			struct nvdimm *nvdimm, unsigned int cmd);
-+	int (*ars_rescan)(struct nvdimm_bus_descriptor *nd_desc);
- };
- 
- struct nd_cmd_desc {
--- 
-2.7.4
+> +batman@0a {
+> +    compatible = "lltc,ltc1760";
+> +    reg = <0x0a>;
+> +    #address-cells = <1>;
+> +    #size-cells = <0>;
+> +
+> +    i2c@1 {
+> +        #address-cells = <1>;
+> +        #size-cells = <0>;
+
+Rob, aren't those two lines inherited from above?
+
+
+--OwLcNYc0lM97+oe1
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iQIcBAEBAgAGBQJXjakoAAoJEBQN5MwUoCm2qhQP/2aFO0ch+wWVsRAHz84bU2d6
+VYYB7jzAunwZIbBhRUZDdycApy1PWqLI0Fiq2QFise7OFqvCFuDB5HxvM5Dt8qHq
+rnpg2b5jKtjbWfhXp+QGUDyoWdI9qv5irPHXzilnwkBmK8BkLZ1khFpJ1NsIuqbW
+6tmjBjFDr7WOYq3nkAREKTRRBHJM43usFHTVS0WWqbGMHouVBsgCPHp2IVn0gnk8
+ng6UUsORBrYziM83V4upbIYRrlcrGHQd1sTnJYd0y6O/otD0WA/RqgWrK6eI5Ifx
+PwpwgARRcYzkZ0FX3fRNI7EOezwfSH3+Le1Tr3d4WyDmSoDxsJH1cpGe0Sx2pLEx
+/UEYTLiYYeS7UFctrFIn3VnF5AIZJQZvzuDVEnwAGY+qHFbsuYAAEJQ0R9dL8cwT
+0w/e/VNnSE/W5bPeIySVQepBPUwOpm4TsS0kYnpBkbP+T3bhw/Fru0y6g0EzfSqA
+74Foy1+t5z3P0XLQLkPKEkJqUkrH5LbaXiP5sookZqWEtzkybiq/tPrDbsmXW2o+
+Dee5am5dukowJgiSyrpv5A78cMX9yP7j9HWHMOwuBLDJBO3ZbNbowpHnNRpNQvkr
+AQI92E8pjZrQQJmDepb/V+ImntvvkN0r6CcLSEBk5R9yoFFGjK9EDQNTRDmqFV2S
+kM2sjycRi1a8aNjdVj61
+=29jR
+-----END PGP SIGNATURE-----
+
+--OwLcNYc0lM97+oe1--
