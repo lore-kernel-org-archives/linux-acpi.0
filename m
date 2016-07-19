@@ -1,186 +1,128 @@
-From: fu.wei@linaro.org
-Subject: [PATCH v8 3/9] clocksource/drivers/arm_arch_timer: Improve printk
- relevant code
-Date: Wed, 20 Jul 2016 02:17:58 +0800
-Message-ID: <1468952284-28942-4-git-send-email-fu.wei@linaro.org>
-References: <1468952284-28942-1-git-send-email-fu.wei@linaro.org>
+From: Fu Wei <fu.wei-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
+Subject: Re: [PATCH v7 4/9] acpi/arm64: Add GTDT table parse driver
+Date: Wed, 20 Jul 2016 02:25:35 +0800
+Message-ID: <CADyBb7uiu2d-6bkA6qg9rWCePrZPtv3aMktXUvn7UciiR-WLhA@mail.gmail.com>
+References: <1468432402-4872-1-git-send-email-fu.wei@linaro.org>
+ <1580087.dlcVOb6fx1@vostro.rjw.lan> <CADyBb7tLyABzWFEW_8A3bK9XeWiHJjh7TqWQc=vDn5O_WUJX5w@mail.gmail.com>
+ <16716612.zdLA2RMyjn@vostro.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <1468952284-28942-1-git-send-email-fu.wei@linaro.org>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: rjw@rjwysocki.net, lenb@kernel.org, daniel.lezcano@linaro.org, tglx@linutronix.de, marc.zyngier@arm.com, lorenzo.pieralisi@arm.com, sudeep.holla@arm.com, hanjun.guo@linaro.org
-Cc: wei@redhat.com, harba@codeaurora.org, Fu Wei <fu.wei@linaro.org>, al.stone@linaro.org, graeme.gregory@linaro.org, linaro-acpi@lists.linaro.org, jcm@redhat.com, timur@codeaurora.org, linux@roeck-us.net, will.deacon@arm.com, rruigrok@codeaurora.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, wim@iguana.be, arnd@arndb.de, cov@codeaurora.org, Suravee.Suthikulpanit@amd.com, catalin.marinas@arm.com, leo.duran@amd.com, linux-arm-kernel@lists.infradead.org, linux-watchdog@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-watchdog-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <16716612.zdLA2RMyjn-sKB8Sp2ER+y1GS7QM15AGw@public.gmane.org>
+Sender: linux-watchdog-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: "Rafael J. Wysocki" <rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org>
+Cc: "Rafael J. Wysocki" <rafael-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Len Brown <lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Daniel Lezcano <daniel.lezcano-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Thomas Gleixner <tglx-hfZtesqFncYOwBW4kG4KsQ@public.gmane.org>, Marc Zyngier <marc.zyngier-5wv7dgnIgG8@public.gmane.org>, Lorenzo Pieralisi <lorenzo.pieralisi-5wv7dgnIgG8@public.gmane.org>, Sudeep Holla <sudeep.holla-5wv7dgnIgG8@public.gmane.org>, Hanjun Guo <hanjun.guo-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, "linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org" <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>, "linaro-acpi-cunTk1MwBs8s++Sfvej+rw@public.gmane.org" <linaro-acpi-cunTk1MwBs8s++Sfvej+rw@public.gmane.org>, Linux Kernel Mailing List <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, ACPI Devel Maling List <linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, rruigrok-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org, harba-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org, Christopher Covington <cov-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, Timur Tabi <timur-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, G Gregory <graeme.gregory-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Al Stone <al.stone-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Jon Masters <jcm-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, wei-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>, Wim Van Sebroeck <wim-IQzOog9fTRqzQB+pC5nmwQ@public.gmane.org>, Catal
 List-Id: linux-acpi@vger.kernel.org
 
-From: Fu Wei <fu.wei@linaro.org>
+Hi Rafael,
 
-This patch defines pr_fmt(fmt) for all pr_* functions,
-then the pr_* doesn't need to add "arch_timer:" everytime.
+On 16 July 2016 at 20:35, Rafael J. Wysocki <rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org> wrote:
+> On Saturday, July 16, 2016 10:24:35 AM Fu Wei wrote:
+>> Hi Rafeal,
+>>
+>> On 16 July 2016 at 05:22, Rafael J. Wysocki <rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org> wrote:
+>> > On Saturday, July 16, 2016 12:32:14 AM Fu Wei wrote:
+>> >> Hi Rafael,
+>> >>
+>> >> On 15 July 2016 at 21:07, Rafael J. Wysocki <rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org> wrote:
+>> >> > On Friday, July 15, 2016 02:15:27 PM Rafael J. Wysocki wrote:
+>> >> >> On Friday, July 15, 2016 03:32:35 PM Fu Wei wrote:
+>> >> >> > Hi Rafael,
+>> >> >> >
+>> >> >
+>> >> > [cut]
+>> >> >
+>> >> >> > >
+>> >> >> > >> +               return 0;
+>> >> >> > >> +       }
+>> >> >> > >> +
+>> >> >> > >> +       if (!gtdt->platform_timer_count) {
+>> >> >> > >> +               pr_info("No Platform Timer.\n");
+>> >> >> > >> +               return 0;
+>> >> >> > >> +       }
+>> >> >> > >> +
+>> >> >> > >> +       acpi_gtdt_desc.platform_timer_start = (void *)gtdt +
+>> >> >> > >> +                                             gtdt->platform_timer_offset;
+>> >> >> > >> +       if (acpi_gtdt_desc.platform_timer_start <
+>> >> >> > >> +           (void *)table + sizeof(struct acpi_table_gtdt)) {
+>> >> >> > >> +               pr_err(FW_BUG "Platform Timer pointer error.\n");
+>> >> >> > >
+>> >> >> > > Why pr_err()?
+>> >> >> >
+>> >> >> > if (true), that means the GTDT table has bugs.
+>> >> >> >
+>> >> >>
+>> >> >> And that's not a very useful piece of information unless you're debugging the
+>> >> >> platform, is it?
+>> >> >
+>> >> > FWIW, I'm not a big fan of printing "your firmware is buggy" type of messages
+>> >> > (especially at the "error" log level or higher) unless they can be clearly
+>> >> > connected to a specific type of functional failure.
+>> >> >
+>> >> > So if you want to pring an error-level message, something like "I cannot do X
+>> >> > because of the firmware bug Y" would be better IMO.
+>> >>
+>> >> So can I do this:
+>> >> pr_err(FW_BUG "Can NOT init platform_timer pointer, because of the
+>> >> GTDT table bug\n");
+>> >>
+>> >> or pr_debug(FW_BUG "Can NOT init platform_timer_start, because of
+>> >> platform_timer_offset bug in GTDT\n");
+>> >>
+>> >> or just delete it?
+>> >>
+>> >> which one do you prefer?  I think maybe should provide some clue for
+>> >> users to fix the problem  :-)
+>> >
+>> > And how exactly would they fix it then?
+>> >
+>> >>
+>> >> any thought ?
+>> >
+>> > If you print variable or function names and the like, the message should be
+>> > a debug one, because that's information that can only be understood by
+>> > developers (some developers are users too, but they are a minority).
+>> >
+>> > If you want to report an error, say what is not working (or not available
+>> > etc) and why (if you know the reason at the time the message is printed).
+>>
+>> Great thanks, I guess I got you point.
+>>
+>> maybe just a very simple message like:
+>> pr_err(FW_BUG "Failed to init table: GTDT table is buggy.\n");
+>
+> To understand this message one needs to know what "table" means here
+> and what "GTDT" is.  Also the prefix already will be something like
+> "ACPI: GTDT:", so repeating part of it is not really useful IMO.
+>
+> Can you tell me please what's not going to work when that message is printed?
+>
+> Will the system boot at all then?  If so, the functionality will be limited
+> somehow I suppose.  How is it going to be limited?
 
-Also delete some Blank Spaces in arch_timer_banner,
-according to the suggestion from checkpatch.pl.
+when that message is printed, all kind of platform timer(memory-mapped
+timer and SBSA watchdog) can't work.
+actually, I think system can boot without them.
+I have updated this on my v8(just posted), let's discuss this on v8 :-)
 
-No functional change.
+>
+>> I will also check other pr_* , if I can update them
+>
+> OK, great!
+>
+> Thanks,
+> Rafael
+>
 
-Signed-off-by: Fu Wei <fu.wei@linaro.org>
----
- drivers/clocksource/arm_arch_timer.c | 53 ++++++++++++++++++------------------
- 1 file changed, 27 insertions(+), 26 deletions(-)
 
-diff --git a/drivers/clocksource/arm_arch_timer.c b/drivers/clocksource/arm_arch_timer.c
-index 966c574..e6fd42d 100644
---- a/drivers/clocksource/arm_arch_timer.c
-+++ b/drivers/clocksource/arm_arch_timer.c
-@@ -29,6 +29,9 @@
- 
- #include <clocksource/arm_arch_timer.h>
- 
-+#undef pr_fmt
-+#define pr_fmt(fmt) "arch_timer: " fmt
-+
- #define CNTTIDR		0x08
- #define CNTTIDR_VIRT(n)	(BIT(1) << ((n) * 4))
- 
-@@ -388,24 +391,24 @@ arch_timer_detect_rate(void __iomem *cntbase, struct device_node *np)
- 
- 	/* Check the timer frequency. */
- 	if (arch_timer_rate == 0)
--		pr_warn("Architected timer frequency not available\n");
-+		pr_warn("frequency not available\n");
- }
- 
- static void arch_timer_banner(unsigned type)
- {
--	pr_info("Architected %s%s%s timer(s) running at %lu.%02luMHz (%s%s%s).\n",
--		     type & ARCH_CP15_TIMER ? "cp15" : "",
--		     type == (ARCH_CP15_TIMER | ARCH_MEM_TIMER) ?  " and " : "",
--		     type & ARCH_MEM_TIMER ? "mmio" : "",
--		     (unsigned long)arch_timer_rate / 1000000,
--		     (unsigned long)(arch_timer_rate / 10000) % 100,
--		     type & ARCH_CP15_TIMER ?
--		     (arch_timer_uses_ppi == VIRT_PPI) ? "virt" : "phys" :
--			"",
--		     type == (ARCH_CP15_TIMER | ARCH_MEM_TIMER) ?  "/" : "",
--		     type & ARCH_MEM_TIMER ?
--			arch_timer_mem_use_virtual ? "virt" : "phys" :
--			"");
-+	pr_info("%s%s%s timer(s) running at %lu.%02luMHz (%s%s%s).\n",
-+		type & ARCH_CP15_TIMER ? "cp15" : "",
-+		type == (ARCH_CP15_TIMER | ARCH_MEM_TIMER) ?  " and " : "",
-+		type & ARCH_MEM_TIMER ? "mmio" : "",
-+		(unsigned long)arch_timer_rate / 1000000,
-+		(unsigned long)(arch_timer_rate / 10000) % 100,
-+		type & ARCH_CP15_TIMER ?
-+		(arch_timer_uses_ppi == VIRT_PPI) ? "virt" : "phys" :
-+		"",
-+		type == (ARCH_CP15_TIMER | ARCH_MEM_TIMER) ?  "/" : "",
-+		type & ARCH_MEM_TIMER ?
-+		arch_timer_mem_use_virtual ? "virt" : "phys" :
-+		"");
- }
- 
- u32 arch_timer_get_rate(void)
-@@ -498,8 +501,7 @@ static void __init arch_counter_register(unsigned type)
- 
- static void arch_timer_stop(struct clock_event_device *clk)
- {
--	pr_debug("arch_timer_teardown disable IRQ%d cpu #%d\n",
--		 clk->irq, smp_processor_id());
-+	pr_debug("disable IRQ%d cpu #%d\n", clk->irq, smp_processor_id());
- 
- 	disable_percpu_irq(arch_timer_ppi[arch_timer_uses_ppi]);
- 	if (arch_timer_has_nonsecure_ppi())
-@@ -597,8 +599,7 @@ static int __init arch_timer_register(void)
- 	}
- 
- 	if (err) {
--		pr_err("arch_timer: can't register interrupt %d (%d)\n",
--		       ppi, err);
-+		pr_err("can't register interrupt %d (%d)\n", ppi, err);
- 		goto out_free;
- 	}
- 
-@@ -650,7 +651,7 @@ static int __init arch_timer_mem_register(void __iomem *base, unsigned int irq)
- 
- 	ret = request_irq(irq, func, IRQF_TIMER, "arch_mem_timer", &t->evt);
- 	if (ret) {
--		pr_err("arch_timer: Failed to request mem timer irq\n");
-+		pr_err("Failed to request mem timer irq\n");
- 		kfree(t);
- 	}
- 
-@@ -727,7 +728,7 @@ static void __init arch_timer_init(void)
- 		}
- 
- 		if (!has_ppi) {
--			pr_warn("arch_timer: No interrupt available, giving up\n");
-+			pr_warn("No interrupt available, giving up\n");
- 			return;
- 		}
- 	}
-@@ -743,7 +744,7 @@ static void __init arch_timer_of_init(struct device_node *np)
- 	int i;
- 
- 	if (arch_timers_present & ARCH_CP15_TIMER) {
--		pr_warn("arch_timer: multiple nodes in dt, skipping\n");
-+		pr_warn("multiple nodes in dt, skipping\n");
- 		return;
- 	}
- 
-@@ -778,7 +779,7 @@ static void __init arch_timer_mem_init(struct device_node *np)
- 	arch_timers_present |= ARCH_MEM_TIMER;
- 	cntctlbase = of_iomap(np, 0);
- 	if (!cntctlbase) {
--		pr_err("arch_timer: Can't find CNTCTLBase\n");
-+		pr_err("Can't find CNTCTLBase\n");
- 		return;
- 	}
- 
-@@ -793,7 +794,7 @@ static void __init arch_timer_mem_init(struct device_node *np)
- 		u32 cntacr;
- 
- 		if (of_property_read_u32(frame, "frame-number", &n)) {
--			pr_err("arch_timer: Missing frame-number\n");
-+			pr_err("Missing frame-number\n");
- 			of_node_put(frame);
- 			goto out;
- 		}
-@@ -821,7 +822,7 @@ static void __init arch_timer_mem_init(struct device_node *np)
- 
- 	base = arch_counter_base = of_iomap(best_frame, 0);
- 	if (!base) {
--		pr_err("arch_timer: Can't map frame's registers\n");
-+		pr_err("Can't map frame's registers\n");
- 		goto out;
- 	}
- 
-@@ -831,7 +832,7 @@ static void __init arch_timer_mem_init(struct device_node *np)
- 		irq = irq_of_parse_and_map(best_frame, PHYS_SPI);
- 
- 	if (!irq) {
--		pr_err("arch_timer: Frame missing %s irq",
-+		pr_err("Frame missing %s irq",
- 		       arch_timer_mem_use_virtual ? "virt" : "phys");
- 		goto out;
- 	}
-@@ -869,7 +870,7 @@ static int __init arch_timer_acpi_init(struct acpi_table_header *table)
- 	struct acpi_table_gtdt *gtdt;
- 
- 	if (arch_timers_present & ARCH_CP15_TIMER) {
--		pr_warn("arch_timer: already initialized, skipping\n");
-+		pr_warn("already initialized, skipping\n");
- 		return -EINVAL;
- 	}
- 
+
 -- 
-2.5.5
+Best regards,
+
+Fu Wei
+Software Engineer
+Red Hat
+--
+To unsubscribe from this list: send the line "unsubscribe linux-watchdog" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
