@@ -1,15 +1,14 @@
 From: Dan Williams <dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH 2/3] nfit, libnvdimm: allow an ARS rescan to be triggered
- on demand
-Date: Tue, 19 Jul 2016 09:15:16 -0700
-Message-ID: <CAPcyv4guVe2Mm_EaBMMRqpfCahR_E0xbhtE30VoDAb+sqvK=AQ@mail.gmail.com>
+Subject: Re: [PATCH 3/3] nfit: do an ARS rescan on hitting a latent media error
+Date: Tue, 19 Jul 2016 09:24:26 -0700
+Message-ID: <CAPcyv4iQxw_Fg7ovQsjDOb2LKsY0-MRe_E54M525sgHfTL=FOw@mail.gmail.com>
 References: <1468889100-30698-1-git-send-email-vishal.l.verma@intel.com>
- <1468889100-30698-3-git-send-email-vishal.l.verma@intel.com>
+ <1468889100-30698-4-git-send-email-vishal.l.verma@intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-In-Reply-To: <1468889100-30698-3-git-send-email-vishal.l.verma-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+In-Reply-To: <1468889100-30698-4-git-send-email-vishal.l.verma-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -23,184 +22,223 @@ To: Vishal Verma <vishal.l.verma-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Cc: Linux ACPI <linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "Rafael J. Wysocki" <rafael.j.wysocki-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Tony Luck <tony.luck-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org" <linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On Mon, Jul 18, 2016 at 5:44 PM, Vishal Verma <vishal.l.verma-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org> wrote:
-> Normally, an ARS (Address Range Scrub) only happens at
-> boot/initialization time. There can however arise situations where a
-> bus-wide rescan is needed - notably, in the case of discovering a latent
-> media error, we should do a full rescan to figure out what other sectors
-> are bad, and thus potentially avoid triggering an mce on them in the
-> future. Also provide a sysfs trigger to start a bus-wide rescan.
+On Mon, Jul 18, 2016 at 5:45 PM, Vishal Verma <vishal.l.verma-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org> wrote:
+> When a latent (unknown to 'badblocks') error is encountered, it will
+> trigger a machine check exception. On a system with machine check
+> recovery, this will only SIGBUS the process(es) which had the bad page
+> mapped (as opposed to a kernel panic on platforms without machine
+> check recovery features). In the former case, we want to trigger a full
+> rescan of that nvdimm bus. This will allow any additional, new errors
+> to be captured in the block devices' badblocks lists, and offending
+> operations on them can be trapped early, avoiding machine checks.
+>
+> This is done by registering a callback function with the
+> x86_mce_decoder_chain and calling the new ars_rescan functionality with
+> the address in the mce notificatiion.
 >
 > Cc: Dan Williams <dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 > Cc: Rafael J. Wysocki <rafael.j.wysocki-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+> Cc: Tony Luck <tony.luck-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 > Cc: <linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 > Cc: <linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
 > Signed-off-by: Vishal Verma <vishal.l.verma-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 > ---
->  drivers/acpi/nfit.c       | 36 ++++++++++++++++++++++++++++++++----
->  drivers/acpi/nfit.h       |  1 +
->  drivers/nvdimm/core.c     | 17 +++++++++++++++++
->  include/linux/libnvdimm.h |  1 +
->  4 files changed, 51 insertions(+), 4 deletions(-)
+>  drivers/acpi/nfit.c | 102 ++++++++++++++++++++++++++++++++++++++++++++++++++++
+>  drivers/acpi/nfit.h |   1 +
+>  2 files changed, 103 insertions(+)
 >
 > diff --git a/drivers/acpi/nfit.c b/drivers/acpi/nfit.c
-> index ac6ddcc0..def9505 100644
+> index def9505..0d2d7a3 100644
 > --- a/drivers/acpi/nfit.c
 > +++ b/drivers/acpi/nfit.c
-> @@ -2138,8 +2138,9 @@ static void acpi_nfit_async_scrub(struct acpi_nfit_desc *acpi_desc,
->         unsigned int tmo = scrub_timeout;
->         int rc;
+> @@ -12,6 +12,7 @@
+>   */
+>  #include <linux/list_sort.h>
+>  #include <linux/libnvdimm.h>
+> +#include <linux/notifier.h>
+>  #include <linux/module.h>
+>  #include <linux/mutex.h>
+>  #include <linux/ndctl.h>
+> @@ -23,6 +24,7 @@
+>  #include <linux/io.h>
+>  #include <linux/nd.h>
+>  #include <asm/cacheflush.h>
+> +#include <asm/mce.h>
+>  #include "nfit.h"
 >
-> -       if (nfit_spa->ars_done || !nfit_spa->nd_region)
-> -               return;
-> +       if (!nfit_spa->ars_rescan)
-> +               if (nfit_spa->ars_done || !nfit_spa->nd_region)
-> +                       return;
-
-Do we need a new flag? Why not just clear ->ars_done?
-
+>  /*
+> @@ -50,6 +52,9 @@ module_param(disable_vendor_specific, bool, S_IRUGO);
+>  MODULE_PARM_DESC(disable_vendor_specific,
+>                 "Limit commands to the publicly specified set\n");
 >
->         rc = ars_start(acpi_desc, nfit_spa);
->         /*
-> @@ -2227,7 +2228,9 @@ static void acpi_nfit_scrub(struct work_struct *work)
->          * firmware initiated scrubs to complete and then we go search for the
->          * affected spa regions to mark them scanned.  In the second phase we
->          * initiate a directed scrub for every range that was not scrubbed in
-> -        * phase 1.
-> +        * phase 1. If we're called for a 'rescan', we harmlessly pass through
-> +        * the first phase, but really only care about running phase 2, where
-> +        * regions can be notified of new poison.
->          */
-
-I don't think we need to distinguish the initial scan case from the
-re-scan case in acpi_nfit_scrub().  Whether it's a scan or a re-scan
-doesn't matter to acpi_nfit_scrub().
-
+> +static LIST_HEAD(acpi_descs);
+> +static DEFINE_MUTEX(acpi_desc_lock);
+> +
+>  static struct workqueue_struct *nfit_wq;
 >
->         /* process platform firmware initiated scrubs */
-> @@ -2336,8 +2339,10 @@ static void acpi_nfit_scrub(struct work_struct *work)
->                         acpi_nfit_register_region(acpi_desc, nfit_spa);
->         }
+>  struct nfit_table_prev {
+> @@ -2382,6 +2387,7 @@ static int acpi_nfit_check_deletions(struct acpi_nfit_desc *acpi_desc,
 >
-> -       list_for_each_entry(nfit_spa, &acpi_desc->spas, list)
-> +       list_for_each_entry(nfit_spa, &acpi_desc->spas, list) {
->                 acpi_nfit_async_scrub(acpi_desc, nfit_spa);
-> +               nfit_spa->ars_rescan = 0;
+>  int acpi_nfit_init(struct acpi_nfit_desc *acpi_desc, acpi_size sz)
+>  {
+> +       struct acpi_nfit_desc *acpi_desc_entry;
+>         struct device *dev = acpi_desc->dev;
+>         struct nfit_table_prev prev;
+>         const void *end;
+> @@ -2439,6 +2445,25 @@ int acpi_nfit_init(struct acpi_nfit_desc *acpi_desc, acpi_size sz)
+>
+>         rc = acpi_nfit_register_regions(acpi_desc);
+>
+> +       /*
+> +        * We may get here due to an update of the nfit via _FIT.
+> +        * Check if the acpi_desc we're (re)initializing is already
+> +        * present in the list, and if so, don't re-add it
+> +        */
+> +       mutex_lock(&acpi_desc_lock);
+> +       if (list_empty(&acpi_descs))
+> +               list_add_tail(&acpi_desc->list, &acpi_descs);
+
+No need to special case list_empty(), it's covered below and this
+isn't a fast path.
+
+> +       else {
+> +               int found = 0;
+> +
+> +               list_for_each_entry(acpi_desc_entry, &acpi_descs, list)
+> +                       if (acpi_desc_entry == acpi_desc)
+> +                               found = 1;
+> +               if (found == 0)
+> +                       list_add_tail(&acpi_desc->list, &acpi_descs);
 > +       }
+> +       mutex_unlock(&acpi_desc_lock);
+> +
+>   out_unlock:
 >         mutex_unlock(&acpi_desc->init_mutex);
->  }
->
-> @@ -2495,6 +2500,28 @@ static int acpi_nfit_clear_to_send(struct nvdimm_bus_descriptor *nd_desc,
+>         return rc;
+> @@ -2522,6 +2547,69 @@ static int acpi_nfit_ars_rescan(struct nvdimm_bus_descriptor *nd_desc)
 >         return 0;
 >  }
 >
-> +static int acpi_nfit_ars_rescan(struct nvdimm_bus_descriptor *nd_desc)
+> +static int nfit_handle_mce(struct notifier_block *nb, unsigned long val,
+> +                       void *data)
 > +{
-> +       struct acpi_nfit_desc *acpi_desc = to_acpi_nfit_desc(nd_desc);
-> +       struct device *dev = acpi_desc->dev;
+> +       struct mce *mce = (struct mce *)data;
+> +       struct acpi_nfit_desc *acpi_desc;
 > +       struct nfit_spa *nfit_spa;
 > +
-> +       if (work_busy(&acpi_desc->work))
-> +               return -EBUSY;
+> +       /* We only care about memory errors */
+> +       if (!(mce->status & MCACOD))
+> +               return NOTIFY_DONE;
+> +
+> +       /*
+> +        * mce->addr contains the physical addr accessed that caused the
+> +        * machine check. We need to walk through the list of NFITs, and see
+> +        * if any of them matches that address, and only then start a scrub.
+> +        */
+> +       mutex_lock(&acpi_desc_lock);
+> +       if (list_empty(&acpi_descs))
+> +               goto out;
 
-How does userspace figure out when the queue is not busy?  See below
-in the notes about the ars_rescan attribute.
+Again, no need to check for empty, list_for_each_entry() already does that...
 
 > +
-> +       list_for_each_entry(nfit_spa, &acpi_desc->spas, list) {
-> +               struct acpi_nfit_system_address *spa = nfit_spa->spa;
+> +       list_for_each_entry(acpi_desc, &acpi_descs, list) {
+> +               struct device *dev = acpi_desc->dev;
+> +               int found_match = 0;
 > +
-> +               if (nfit_spa_type(spa) != NFIT_SPA_PM)
-> +                       continue;
+> +               list_for_each_entry(nfit_spa, &acpi_desc->spas, list) {
+> +                       struct acpi_nfit_system_address *spa = nfit_spa->spa;
 > +
-> +               nfit_spa->ars_rescan = 1;
+> +                       if (nfit_spa_type(spa) != NFIT_SPA_PM)
+> +                               continue;
+> +                       /* find the spa that covers the mce addr */
+> +                       if (spa->address > mce->addr)
+> +                               continue;
+> +                       if ((spa->address + spa->length - 1) < mce->addr)
+> +                               continue;
+> +                       found_match = 1;
+> +                       dev_dbg(dev, "%s: addr in SPA %d (0x%llx, 0x%llx)\n",
+> +                               __func__, spa->range_index, spa->address,
+> +                               spa->length);
+> +                       /*
+> +                        * We can break at the first match because we're going
+> +                        * to rescan all the SPA ranges. There shouldn't be any
+> +                        * aliasing anyway.
+> +                        */
+> +                       break;
+> +               }
+> +
+> +               /*
+> +                * We can ignore an -EBUSY here because if an ARS is already
+> +                * in progress, just let that be the last authoritative one
+> +                */
+> +               if (found_match)
+> +                       acpi_nfit_ars_rescan(&acpi_desc->nd_desc);
 > +       }
-> +       queue_work(nfit_wq, &acpi_desc->work);
-> +       dev_info(dev, "%s: ars_rescan triggered\n", __func__);
-> +       return 0;
+> +
+> + out:
+> +       mutex_unlock(&acpi_desc_lock);
+> +       return NOTIFY_DONE;
 > +}
+> +
+> +static struct notifier_block nfit_mce_dec = {
+> +       .notifier_call  = nfit_handle_mce,
+> +};
 > +
 >  void acpi_nfit_desc_init(struct acpi_nfit_desc *acpi_desc, struct device *dev)
 >  {
 >         struct nvdimm_bus_descriptor *nd_desc;
-> @@ -2507,6 +2534,7 @@ void acpi_nfit_desc_init(struct acpi_nfit_desc *acpi_desc, struct device *dev)
->         nd_desc->ndctl = acpi_nfit_ctl;
->         nd_desc->flush_probe = acpi_nfit_flush_probe;
->         nd_desc->clear_to_send = acpi_nfit_clear_to_send;
-> +       nd_desc->ars_rescan = acpi_nfit_ars_rescan;
->         nd_desc->attr_groups = acpi_nfit_attribute_groups;
+> @@ -2616,6 +2704,9 @@ static int acpi_nfit_remove(struct acpi_device *adev)
+>         acpi_desc->cancel = 1;
+>         flush_workqueue(nfit_wq);
+>         nvdimm_bus_unregister(acpi_desc->nvdimm_bus);
+> +       mutex_lock(&acpi_desc_lock);
+> +       list_del(&acpi_desc->list);
+> +       mutex_unlock(&acpi_desc_lock);
+>         return 0;
+>  }
 >
->         INIT_LIST_HEAD(&acpi_desc->spa_maps);
+> @@ -2725,13 +2816,24 @@ static __init int nfit_init(void)
+>         if (!nfit_wq)
+>                 return -ENOMEM;
+>
+> +       INIT_LIST_HEAD(&acpi_descs);
+> +       mce_register_decode_chain(&nfit_mce_dec);
+> +
+>         return acpi_bus_register_driver(&acpi_nfit_driver);
+>  }
+>
+>  static __exit void nfit_exit(void)
+>  {
+> +       struct acpi_nfit_desc *acpi_desc, *next;
+> +
+> +       mce_unregister_decode_chain(&nfit_mce_dec);
+>         acpi_bus_unregister_driver(&acpi_nfit_driver);
+>         destroy_workqueue(nfit_wq);
+> +       mutex_lock(&acpi_desc_lock);
+> +       if (list_empty(&acpi_descs))
+> +               list_for_each_entry_safe(acpi_desc, next, &acpi_descs, list)
+> +                       list_del(&acpi_desc->list);
+
+We should WARN here, since there should be no way, outside of a bug,
+that 'acpi_descs' is still populated after
+acpi_bus_unregister_driver().
+
+> +       mutex_unlock(&acpi_desc_lock);
+>  }
+>
+>  module_init(nfit_init);
 > diff --git a/drivers/acpi/nfit.h b/drivers/acpi/nfit.h
-> index 02b9ea1..db95c5d 100644
+> index db95c5d..cf4d42d 100644
 > --- a/drivers/acpi/nfit.h
 > +++ b/drivers/acpi/nfit.h
-> @@ -78,6 +78,7 @@ struct nfit_spa {
->         struct list_head list;
->         struct nd_region *nd_region;
->         unsigned int ars_done:1;
-> +       unsigned int ars_rescan:1;
->         u32 clear_err_unit;
->         u32 max_ars;
->  };
-> diff --git a/drivers/nvdimm/core.c b/drivers/nvdimm/core.c
-> index be89764..54f6fd5 100644
-> --- a/drivers/nvdimm/core.c
-> +++ b/drivers/nvdimm/core.c
-> @@ -313,10 +313,27 @@ static ssize_t wait_probe_show(struct device *dev,
->  }
->  static DEVICE_ATTR_RO(wait_probe);
->
-> +static ssize_t ars_rescan_store(struct device *dev,
-> +               struct device_attribute *attr, const char *buf, size_t size)
-> +{
-> +       struct nvdimm_bus *nvdimm_bus = to_nvdimm_bus(dev);
-> +       struct nvdimm_bus_descriptor *nd_desc = nvdimm_bus->nd_desc;
-> +       int rc;
-> +
-> +       if (nd_desc->ars_rescan) {
-> +               rc = nd_desc->ars_rescan(nd_desc);
-> +               if (rc)
-> +                       return rc;
-> +       }
-> +       return size;
-> +}
-> +static DEVICE_ATTR_WO(ars_rescan);
+> @@ -147,6 +147,7 @@ struct acpi_nfit_desc {
+>         struct nd_cmd_ars_status *ars_status;
+>         size_t ars_status_size;
+>         struct work_struct work;
+> +       struct list_head list;
+>         unsigned int cancel:1;
+>         unsigned long dimm_cmd_force_en;
+>         unsigned long bus_cmd_force_en;
 
-A few notes:
-
-1/ ARS is unique to the nfit driver so let's make this nfit specific,
-i.e. add it to acpi_nfit_attribute_group.
-
-2/ Let's just call the attribute scrub and not distinguish it as "re-"
-
-3/ Userspace may want to know when scanning is complete so let's make
-this attribute read/write and on read return a count of the number of
-completed scans since the driver was loaded.  For notification of last
-completion use sysfs_notify_dirent_safe() to make this scrub attribute
-select()/poll() capable.
-
-> +
->  static struct attribute *nvdimm_bus_attributes[] = {
->         &dev_attr_commands.attr,
->         &dev_attr_wait_probe.attr,
->         &dev_attr_provider.attr,
-> +       &dev_attr_ars_rescan.attr,
->         NULL,
->  };
->
-> diff --git a/include/linux/libnvdimm.h b/include/linux/libnvdimm.h
-> index 0c3c30c..1c6867a 100644
-> --- a/include/linux/libnvdimm.h
-> +++ b/include/linux/libnvdimm.h
-> @@ -74,6 +74,7 @@ struct nvdimm_bus_descriptor {
->         int (*flush_probe)(struct nvdimm_bus_descriptor *nd_desc);
->         int (*clear_to_send)(struct nvdimm_bus_descriptor *nd_desc,
->                         struct nvdimm *nvdimm, unsigned int cmd);
-> +       int (*ars_rescan)(struct nvdimm_bus_descriptor *nd_desc);
->  };
->
->  struct nd_cmd_desc {
-> --
-> 2.7.4
->
+Outside of the minor comments above, this looks good to me.
