@@ -1,173 +1,172 @@
 From: Dou Liyang <douly.fnst@cn.fujitsu.com>
-Subject: [PATCH v8 3/7] x86, acpi, cpu-hotplug: Introduce cpuid_to_apicid[] array to store persistent cpuid <-> apicid mapping.
-Date: Tue, 19 Jul 2016 15:28:04 +0800
-Message-ID: <1468913288-16605-4-git-send-email-douly.fnst@cn.fujitsu.com>
+Subject: [PATCH v8 6/7] Provide the mechanism to validate processors in the ACPI tables
+Date: Tue, 19 Jul 2016 15:28:07 +0800
+Message-ID: <1468913288-16605-7-git-send-email-douly.fnst@cn.fujitsu.com>
 References: <1468913288-16605-1-git-send-email-douly.fnst@cn.fujitsu.com>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 Return-path: <owner-linux-mm@kvack.org>
 In-Reply-To: <1468913288-16605-1-git-send-email-douly.fnst@cn.fujitsu.com>
 Sender: owner-linux-mm@kvack.org
 To: cl@linux.com, tj@kernel.org, mika.j.penttila@gmail.com, mingo@redhat.com, akpm@linux-foundation.org, rjw@rjwysocki.net, hpa@zytor.com, yasu.isimatu@gmail.com, isimatu.yasuaki@jp.fujitsu.com, kamezawa.hiroyu@jp.fujitsu.com, izumi.taku@jp.fujitsu.com, gongzhaogang@inspur.com, len.brown@intel.com, lenb@kernel.org, tglx@linutronix.de, chen.tang@easystack.cn, rafael@kernel.org
-Cc: x86@kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linux-mm@kvack.org, Gu Zheng <guz.fnst@cn.fujitsu.com>, Tang Chen <tangchen@cn.fujitsu.com>, Zhu Guihua <zhugh.fnst@cn.fujitsu.com>, Dou Liyang <douly.fnst@cn.fujitsu.com>
+Cc: x86@kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linux-mm@kvack.org, Dou Liyang <douly.fnst@cn.fujitsu.com>
 List-Id: linux-acpi@vger.kernel.org
 
-From: Gu Zheng <guz.fnst@cn.fujitsu.com>
+[Problem]
 
-The whole patch-set aims at making cpuid <-> nodeid mapping persistent. So that,
-when node online/offline happens, cache based on cpuid <-> nodeid mapping such as
-wq_numa_possible_cpumask will not cause any problem.
-It contains 4 steps:
-1. Enable apic registeration flow to handle both enabled and disabled cpus.
-2. Introduce a new array storing all possible cpuid <-> apicid mapping.
-3. Enable _MAT and MADT relative apis to return non-presnet or disabled cpus' apicid.
-4. Establish all possible cpuid <-> nodeid mapping.
+When we set cpuid <-> nodeid mapping to be persistent, it will use the DS=
+DT
+As we know, the ACPI tables are just like user's input in that respect, a=
+nd
+we don't crash if user's input is unreasonable.
 
-This patch finishes step 2.
+Such as, the mapping of the proc_id and pxm in some machine's ACPI table =
+is
+like this:=20
 
-In this patch, we introduce a new static array named cpuid_to_apicid[],
-which is large enough to store info for all possible cpus.
+proc_id   |    pxm
+--------------------
+0      <->      0
+1      <->      0
+2       <->     1
+3      <->      1
+89      <->     0
+89      <->     0
+89      <->     0
+89      <->     1
+89      <->     1
+89      <->     2
+89      <->     3
+.....
 
-And then, we modify the cpuid calculation. In generic_processor_info(),
-it simply finds the next unused cpuid. And it is also why the cpuid <-> nodeid
-mapping changes with node hotplug.
+We can't be sure which one is correct to the proc_id 89. We may map a wro=
+ng
+node to a cpu. When pages are allocated, this may cause a kernal panic.
 
-After this patch, we find the next unused cpuid, map it to an apicid,
-and store the mapping in cpuid_to_apicid[], so that cpuid <-> apicid
-mapping will be persistent.
+So, we should provide mechanisms to validate the ACPI tables, just like w=
+e
+do validation to check user's input in web project.
 
-And finally we will use this array to make cpuid <-> nodeid persistent.
+The mechanism is that the processor objects which have the duplicate IDs
+are not valid.
 
-cpuid <-> apicid mapping is established at local apic registeration time.
-But non-present or disabled cpus are ignored.
+[Solution]
 
-In this patch, we establish all possible cpuid <-> apicid mapping when
-registering local apic.
+We add a validation function, like this:
+=20
+ foreach Processor in DSDT
+  proc_id=3D get_ACPI_Processor_number(Processor)
+   if(the proc_id has alreadly existed )
+     mark both of them as being unreasonable;
+				   =20
+The function will record the unique or duplicate processor IDs.
 
-Signed-off-by: Gu Zheng <guz.fnst@cn.fujitsu.com>
-Signed-off-by: Tang Chen <tangchen@cn.fujitsu.com>
-Signed-off-by: Zhu Guihua <zhugh.fnst@cn.fujitsu.com>
+The duplicate processor IDs such as 89 are regarded as the unreasonable I=
+DS
+which mean that the processor objects in question are not valid.=20
+
 Signed-off-by: Dou Liyang <douly.fnst@cn.fujitsu.com>
 ---
- arch/x86/include/asm/mpspec.h |  1 +
- arch/x86/kernel/acpi/boot.c   |  6 ++---
- arch/x86/kernel/apic/apic.c   | 61 ++++++++++++++++++++++++++++++++++++++++---
- 3 files changed, 61 insertions(+), 7 deletions(-)
+ drivers/acpi/acpi_processor.c | 79 +++++++++++++++++++++++++++++++++++++=
+++++++
+ 1 file changed, 79 insertions(+)
 
-diff --git a/arch/x86/include/asm/mpspec.h b/arch/x86/include/asm/mpspec.h
-index b07233b..db902d8 100644
---- a/arch/x86/include/asm/mpspec.h
-+++ b/arch/x86/include/asm/mpspec.h
-@@ -86,6 +86,7 @@ static inline void early_reserve_e820_mpc_new(void) { }
- #endif
- 
- int generic_processor_info(int apicid, int version);
-+int __generic_processor_info(int apicid, int version, bool enabled);
- 
- #define PHYSID_ARRAY_SIZE	BITS_TO_LONGS(MAX_LOCAL_APIC)
- 
-diff --git a/arch/x86/kernel/acpi/boot.c b/arch/x86/kernel/acpi/boot.c
-index 9414f84..37248c3 100644
---- a/arch/x86/kernel/acpi/boot.c
-+++ b/arch/x86/kernel/acpi/boot.c
-@@ -174,15 +174,13 @@ static int acpi_register_lapic(int id, u8 enabled)
- 		return -EINVAL;
- 	}
- 
--	if (!enabled) {
-+	if (!enabled)
- 		++disabled_cpus;
--		return -EINVAL;
--	}
- 
- 	if (boot_cpu_physical_apicid != -1U)
- 		ver = apic_version[boot_cpu_physical_apicid];
- 
--	return generic_processor_info(id, ver);
-+	return __generic_processor_info(id, ver, enabled);
- }
- 
- static int __init
-diff --git a/arch/x86/kernel/apic/apic.c b/arch/x86/kernel/apic/apic.c
-index 8e3c377..366fbbc 100644
---- a/arch/x86/kernel/apic/apic.c
-+++ b/arch/x86/kernel/apic/apic.c
-@@ -1998,7 +1998,53 @@ void disconnect_bsp_APIC(int virt_wire_setup)
- 	apic_write(APIC_LVT1, value);
- }
- 
--static int __generic_processor_info(int apicid, int version, bool enabled)
-+/*
-+ * The number of allocated logical CPU IDs. Since logical CPU IDs are allocated
-+ * contiguously, it equals to current allocated max logical CPU ID plus 1.
-+ * All allocated CPU ID should be in [0, nr_logical_cpuidi), so the maximum of
-+ * nr_logical_cpuids is nr_cpu_ids.
-+ *
-+ * NOTE: Reserve 0 for BSP.
-+ */
-+static int nr_logical_cpuids = 1;
+diff --git a/drivers/acpi/acpi_processor.c b/drivers/acpi/acpi_processor.=
+c
+index 0c15828..346fbfc 100644
+--- a/drivers/acpi/acpi_processor.c
++++ b/drivers/acpi/acpi_processor.c
+@@ -581,8 +581,87 @@ static struct acpi_scan_handler processor_container_=
+handler =3D {
+ 	.attach =3D acpi_processor_container_attach,
+ };
+=20
++/* The number of the unique processor IDs */
++static int nr_unique_ids;
 +
-+/*
-+ * Used to store mapping between logical CPU IDs and APIC IDs.
-+ */
-+static int cpuid_to_apicid[] = {
-+	[0 ... NR_CPUS - 1] = -1,
++/* The number of the duplicate processor IDs */
++static int nr_duplicate_ids;
++
++/* Used to store the unique processor IDs */
++static int unique_processor_ids[] =3D {
++	[0 ... NR_CPUS - 1] =3D -1,
 +};
 +
-+/*
-+ * Should use this API to allocate logical CPU IDs to keep nr_logical_cpuids
-+ * and cpuid_to_apicid[] synchronized.
-+ */
-+static int allocate_logical_cpuid(int apicid)
++/* Used to store the duplicate processor IDs */
++static int duplicate_processor_ids[] =3D {
++	[0 ... NR_CPUS - 1] =3D -1,
++};
++
++static void processor_validated_ids_update(int proc_id)
 +{
 +	int i;
 +
++	if (nr_unique_ids =3D=3D NR_CPUS||nr_duplicate_ids =3D=3D NR_CPUS)
++		return;
++
 +	/*
-+	 * cpuid <-> apicid mapping is persistent, so when a cpu is up,
-+	 * check if the kernel has allocated a cpuid for it.
++	 * Firstly, compare the proc_id with duplicate IDs, if the proc_id is
++	 * already in the IDs, do nothing.
 +	 */
-+	for (i = 0; i < nr_logical_cpuids; i++) {
-+		if (cpuid_to_apicid[i] == apicid)
-+			return i;
++	for (i =3D 0; i < nr_duplicate_ids; i++) {
++		if (duplicate_processor_ids[i] =3D=3D proc_id)
++			return;
 +	}
 +
-+	/* Allocate a new cpuid. */
-+	if (nr_logical_cpuids >= nr_cpu_ids) {
-+		WARN_ONCE(1, "Only %d processors supported."
-+			     "Processor %d/0x%x and the rest are ignored.\n",
-+			     nr_cpu_ids - 1, nr_logical_cpuids, apicid);
-+		return -1;
-+	}
-+
-+	cpuid_to_apicid[nr_logical_cpuids] = apicid;
-+	return nr_logical_cpuids++;
-+}
-+
-+int __generic_processor_info(int apicid, int version, bool enabled)
- {
- 	int cpu, max = nr_cpu_ids;
- 	bool boot_cpu_detected = physid_isset(boot_cpu_physical_apicid,
-@@ -2079,8 +2125,17 @@ static int __generic_processor_info(int apicid, int version, bool enabled)
- 		 * for BSP.
- 		 */
- 		cpu = 0;
--	} else
--		cpu = cpumask_next_zero(-1, cpu_present_mask);
-+
-+		/* Logical cpuid 0 is reserved for BSP. */
-+		cpuid_to_apicid[0] = apicid;
-+	} else {
-+		cpu = allocate_logical_cpuid(apicid);
-+		if (cpu < 0) {
-+			if (enabled)
-+				disabled_cpus++;
-+			return -EINVAL;
++	/*
++	 * Secondly, compare the proc_id with unique IDs, if the proc_id is in
++	 * the IDs, put it in the duplicate IDs.
++	 */
++	for (i =3D 0; i < nr_unique_ids; i++) {
++		if (unique_processor_ids[i] =3D=3D proc_id) {
++			duplicate_processor_ids[nr_duplicate_ids] =3D proc_id;
++			nr_duplicate_ids++;
++			return;
 +		}
 +	}
- 
- 	/*
- 	 * This can happen on physical hotplug. The sanity check at boot time
--- 
++
++	/*
++	 * Lastly, the proc_id is a unique ID, put it in the unique IDs.
++	 */
++	unique_processor_ids[nr_unique_ids] =3D proc_id;
++	nr_unique_ids++;
++}
++
++static acpi_status acpi_processor_ids_walk(acpi_handle handle,
++						u32 lvl,
++						void *context,
++						void **rv)
++{
++	acpi_status status;
++	union acpi_object object =3D { 0 };
++	struct acpi_buffer buffer =3D { sizeof(union acpi_object), &object };
++
++	status =3D acpi_evaluate_object(handle, NULL, NULL, &buffer);
++	if (ACPI_FAILURE(status))
++		acpi_handle_info(handle, "Not get the processor object\n");
++	else
++		processor_validated_ids_update(object.processor.proc_id);
++
++	return AE_OK;
++}
++
++static void acpi_processor_duplication_valiate(void)
++{
++	/* Search all processor nodes in ACPI namespace */
++	acpi_walk_namespace(ACPI_TYPE_PROCESSOR, ACPI_ROOT_OBJECT,
++						ACPI_UINT32_MAX,
++						acpi_processor_ids_walk,
++						NULL, NULL, NULL);
++}
++
+ void __init acpi_processor_init(void)
+ {
++	acpi_processor_duplication_valiate();
+ 	acpi_scan_add_handler_with_hotplug(&processor_handler, "processor");
+ 	acpi_scan_add_handler(&processor_container_handler);
+ }
+--=20
 2.5.5
 
 
@@ -176,4 +175,4 @@ index 8e3c377..366fbbc 100644
 To unsubscribe, send a message with 'unsubscribe linux-mm' in
 the body to majordomo@kvack.org.  For more info on Linux MM,
 see: http://www.linux-mm.org/ .
-Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
+Don't email: <a href=3Dmailto:"dont@kvack.org"> email@kvack.org </a>
