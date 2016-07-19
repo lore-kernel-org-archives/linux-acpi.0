@@ -1,7 +1,7 @@
 From: Sinan Kaya <okaya@codeaurora.org>
-Subject: [PATCH V11 2/9] vfio: platform: move reset call to a common function
-Date: Tue, 19 Jul 2016 09:01:42 -0400
-Message-ID: <1468933309-19735-3-git-send-email-okaya@codeaurora.org>
+Subject: [PATCH V11 4/9] vfio: platform: add support for ACPI probe
+Date: Tue, 19 Jul 2016 09:01:44 -0400
+Message-ID: <1468933309-19735-5-git-send-email-okaya@codeaurora.org>
 References: <1468933309-19735-1-git-send-email-okaya@codeaurora.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -21,77 +21,124 @@ To: kvm@vger.kernel.org, timur@codeaurora.org, cov@codeaurora.org, jcm@redhat.co
 Cc: Baptiste Reynal <b.reynal@virtualopensystems.com>, linux-arm-msm@vger.kernel.org, linux-kernel@vger.kernel.org, Sinan Kaya <okaya@codeaurora.org>, linux-acpi@vger.kernel.org, agross@codeaurora.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-acpi@vger.kernel.org
 
-The reset call sequence seems to replicate itself multiple times
-across the file. Grouping them together for maintenance reasons.
+The code is using the compatible DT string to associate a reset driver
+with the actual device itself. The compatible string does not exist on
+ACPI based systems. HID is the unique identifier for a device driver
+instead.
 
 Signed-off-by: Sinan Kaya <okaya@codeaurora.org>
-Reviewed-by: Eric Auger <eric.auger@linaro.org>
-Reviewed-by: Baptiste Reynal <b.reynal@virtualopensystems.com>
 ---
- drivers/vfio/platform/vfio_platform_common.c | 30 +++++++++++++---------------
- 1 file changed, 14 insertions(+), 16 deletions(-)
+ drivers/vfio/platform/vfio_platform_common.c  | 64 ++++++++++++++++++++++++---
+ drivers/vfio/platform/vfio_platform_private.h |  1 +
+ 2 files changed, 60 insertions(+), 5 deletions(-)
 
 diff --git a/drivers/vfio/platform/vfio_platform_common.c b/drivers/vfio/platform/vfio_platform_common.c
-index 08fd7c2..3e2a7c0 100644
+index 6be92c3..6aa45e5 100644
 --- a/drivers/vfio/platform/vfio_platform_common.c
 +++ b/drivers/vfio/platform/vfio_platform_common.c
-@@ -134,6 +134,17 @@ static void vfio_platform_regions_cleanup(struct vfio_platform_device *vdev)
- 	kfree(vdev->regions);
+@@ -13,6 +13,7 @@
+  */
+ 
+ #include <linux/device.h>
++#include <linux/acpi.h>
+ #include <linux/iommu.h>
+ #include <linux/module.h>
+ #include <linux/mutex.h>
+@@ -49,6 +50,27 @@ static vfio_platform_reset_fn_t vfio_platform_lookup_reset(const char *compat,
+ 	return reset_fn;
  }
  
-+static int vfio_platform_call_reset(struct vfio_platform_device *vdev)
++static int vfio_platform_acpi_probe(struct vfio_platform_device *vdev,
++				    struct device *dev)
 +{
-+	if (vdev->of_reset) {
-+		dev_info(vdev->device, "reset\n");
-+		return vdev->of_reset(vdev);
++	struct acpi_device *adev;
++
++	if (acpi_disabled)
++		return -ENOENT;
++
++	adev = ACPI_COMPANION(dev);
++	if (!adev) {
++		pr_err("VFIO: ACPI companion device not found for %s\n",
++			vdev->name);
++		return -ENODEV;
 +	}
 +
-+	dev_warn(vdev->device, "no reset function found!\n");
-+	return -EINVAL;
++#ifdef CONFIG_ACPI
++	vdev->acpihid = acpi_device_hid(adev);
++#endif
++	return WARN_ON(!vdev->acpihid) ? -EINVAL : 0;
 +}
 +
- static void vfio_platform_release(void *device_data)
+ static bool vfio_platform_has_reset(struct vfio_platform_device *vdev)
  {
- 	struct vfio_platform_device *vdev = device_data;
-@@ -141,12 +152,7 @@ static void vfio_platform_release(void *device_data)
- 	mutex_lock(&driver_lock);
+ 	return vdev->of_reset ? true : false;
+@@ -547,6 +569,37 @@ static const struct vfio_device_ops vfio_platform_ops = {
+ 	.mmap		= vfio_platform_mmap,
+ };
  
- 	if (!(--vdev->refcnt)) {
--		if (vdev->of_reset) {
--			dev_info(vdev->device, "reset\n");
--			vdev->of_reset(vdev);
--		} else {
--			dev_warn(vdev->device, "no reset function found!\n");
--		}
-+		vfio_platform_call_reset(vdev);
- 		vfio_platform_regions_cleanup(vdev);
- 		vfio_platform_irq_cleanup(vdev);
- 	}
-@@ -175,12 +181,7 @@ static int vfio_platform_open(void *device_data)
- 		if (ret)
- 			goto err_irq;
++int vfio_platform_of_probe(struct vfio_platform_device *vdev,
++			   struct device *dev)
++{
++	int ret;
++
++	ret = device_property_read_string(dev, "compatible",
++					  &vdev->compat);
++	if (ret)
++		pr_err("VFIO: cannot retrieve compat for %s\n",
++			vdev->name);
++
++	return ret;
++}
++
++/*
++ * There can be two kernel build combinations. One build where
++ * ACPI is not selected in Kconfig and another one with the ACPI Kconfig.
++ *
++ * In the first case, vfio_platform_acpi_probe will return since
++ * acpi_disabled is 1. DT user will not see any kind of messages from
++ * ACPI.
++ *
++ * In the second case, both DT and ACPI is compiled in but the system is
++ * booting with any of these combinations.
++ *
++ * If the firmware is DT type, then acpi_disabled is 1. The ACPI probe routine
++ * terminates immediately without any messages.
++ *
++ * If the firmware is ACPI type, then acpi_disabled is 0. All other checks are
++ * valid checks. We cannot claim that this system is DT.
++ */
+ int vfio_platform_probe_common(struct vfio_platform_device *vdev,
+ 			       struct device *dev)
+ {
+@@ -556,11 +609,12 @@ int vfio_platform_probe_common(struct vfio_platform_device *vdev,
+ 	if (!vdev)
+ 		return -EINVAL;
  
--		if (vdev->of_reset) {
--			dev_info(vdev->device, "reset\n");
--			vdev->of_reset(vdev);
--		} else {
--			dev_warn(vdev->device, "no reset function found!\n");
--		}
-+		vfio_platform_call_reset(vdev);
- 	}
+-	ret = device_property_read_string(dev, "compatible", &vdev->compat);
+-	if (ret) {
+-		pr_err("VFIO: cannot retrieve compat for %s\n", vdev->name);
+-		return -EINVAL;
+-	}
++	ret = vfio_platform_acpi_probe(vdev, dev);
++	if (ret)
++		ret = vfio_platform_of_probe(vdev, dev);
++
++	if (ret)
++		return ret;
  
- 	vdev->refcnt++;
-@@ -312,10 +313,7 @@ static long vfio_platform_ioctl(void *device_data,
- 		return ret;
+ 	vdev->device = dev;
  
- 	} else if (cmd == VFIO_DEVICE_RESET) {
--		if (vdev->of_reset)
--			return vdev->of_reset(vdev);
--		else
--			return -EINVAL;
-+		return vfio_platform_call_reset(vdev);
- 	}
+diff --git a/drivers/vfio/platform/vfio_platform_private.h b/drivers/vfio/platform/vfio_platform_private.h
+index 71ed7d1..ba9e4f8 100644
+--- a/drivers/vfio/platform/vfio_platform_private.h
++++ b/drivers/vfio/platform/vfio_platform_private.h
+@@ -58,6 +58,7 @@ struct vfio_platform_device {
+ 	struct mutex			igate;
+ 	struct module			*parent_module;
+ 	const char			*compat;
++	const char			*acpihid;
+ 	struct module			*reset_module;
+ 	struct device			*device;
  
- 	return -ENOTTY;
 -- 
 1.8.2.1
