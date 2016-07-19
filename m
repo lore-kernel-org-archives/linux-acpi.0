@@ -1,75 +1,51 @@
 From: Sinan Kaya <okaya@codeaurora.org>
-Subject: [PATCH V11 0/9] vfio, platform: add ACPI support
-Date: Tue, 19 Jul 2016 09:01:40 -0400
-Message-ID: <1468933309-19735-1-git-send-email-okaya@codeaurora.org>
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp.codeaurora.org ([198.145.29.96]:58746 "EHLO
-	smtp.codeaurora.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752975AbcGSNCC (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 19 Jul 2016 09:02:02 -0400
-Sender: linux-acpi-owner@vger.kernel.org
-List-Id: linux-acpi@vger.kernel.org
+Subject: [PATCH V11 3/9] vfio: platform: determine reset capability
+Date: Tue, 19 Jul 2016 09:01:43 -0400
+Message-ID: <1468933309-19735-4-git-send-email-okaya@codeaurora.org>
+References: <1468933309-19735-1-git-send-email-okaya@codeaurora.org>
+Return-path: <kvm-owner@vger.kernel.org>
+In-Reply-To: <1468933309-19735-1-git-send-email-okaya@codeaurora.org>
+Sender: kvm-owner@vger.kernel.org
 To: kvm@vger.kernel.org, timur@codeaurora.org, cov@codeaurora.org, jcm@redhat.com, alex.williamson@redhat.com, eric.auger@redhat.com
-Cc: linux-acpi@vger.kernel.org, agross@codeaurora.org, linux-arm-msm@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Sinan Kaya <okaya@codeaurora.org>
+Cc: linux-acpi@vger.kernel.org, agross@codeaurora.org, linux-arm-msm@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Sinan Kaya <okaya@codeaurora.org>, Baptiste Reynal <b.reynal@virtualopensystems.com>, linux-kernel@vger.kernel.org
+List-Id: linux-acpi@vger.kernel.org
 
-The current code only supports the device tree based platforms.
-The code checks for the presence of a reset driver and calls the reset
-function pointer by looking up the reset driver as a module.
+Creating a new function to determine if this driver supports reset
+function or not. This is an attempt to abstract device tree calls
+from the rest of the code.
 
-ACPI defines _RST method to perform device level reset. After the _RST
-method is executed, the OS can resume using the device.
+Signed-off-by: Sinan Kaya <okaya@codeaurora.org>
+Reviewed-by: Eric Auger <eric.auger@linaro.org>
+Reviewed-by: Baptiste Reynal <b.reynal@virtualopensystems.com>
+---
+ drivers/vfio/platform/vfio_platform_common.c | 7 ++++++-
+ 1 file changed, 6 insertions(+), 1 deletion(-)
 
-The patchset is moving the device tree specific pieces out of the code
-to common functions so that ACPI support is added without impacting the
-rest of the code.
-
-During probe, the ACPI HID of the object will be saved and will be used to
-determine if this is an ACPI capable platform or not. If acpihid is NULL
-then, device tree functions are called.
-
-In addition to plumbing ACPI support, reset functionality is now a
-requirement by default.
-
-The code was allowing platform devices to be used without a supporting
-VFIO reset driver. The hardware can be left in some inconsistent state
-after a guest machine abort.
-
-The reset driver will put the hardware back to safe state and disable
-interrupts before returning the control back to the host machine.
-
-Adding a new reset_required kernel module option to platform
-VFIO drivers with a default value of true.
-
-New requirements are:
-1. A reset function needs to be implemented by the corresponding driver
-via DT/ACPI.
-2. The reset function needs to be discovered via DT/ACPI.
-
-The probe of the driver will fail if any of the above conditions are
-not satisfied.
-
-Changes from V10:
-1. Get rid of redundant if check in the acpi_probe since we are now using
-WARN_ON.
-2. Change the error code order according to Alex's recommendation.
-
-Sinan Kaya (9):
-  vfio: platform: rename reset function
-  vfio: platform: move reset call to a common function
-  vfio: platform: determine reset capability
-  vfio: platform: add support for ACPI probe
-  vfio: platform: add extra debug info argument to call reset
-  vfio: platform: call _RST method when using ACPI
-  vfio, platform: make reset driver a requirement by default
-  vfio: platform: check reset call return code during open
-  vfio: platform: check reset call return code during release
-
- drivers/vfio/platform/vfio_amba.c             |   1 +
- drivers/vfio/platform/vfio_platform.c         |   5 +
- drivers/vfio/platform/vfio_platform_common.c  | 192 +++++++++++++++++++++-----
- drivers/vfio/platform/vfio_platform_private.h |   9 +-
- 4 files changed, 173 insertions(+), 34 deletions(-)
-
+diff --git a/drivers/vfio/platform/vfio_platform_common.c b/drivers/vfio/platform/vfio_platform_common.c
+index 3e2a7c0..6be92c3 100644
+--- a/drivers/vfio/platform/vfio_platform_common.c
++++ b/drivers/vfio/platform/vfio_platform_common.c
+@@ -49,6 +49,11 @@ static vfio_platform_reset_fn_t vfio_platform_lookup_reset(const char *compat,
+ 	return reset_fn;
+ }
+ 
++static bool vfio_platform_has_reset(struct vfio_platform_device *vdev)
++{
++	return vdev->of_reset ? true : false;
++}
++
+ static void vfio_platform_get_reset(struct vfio_platform_device *vdev)
+ {
+ 	vdev->of_reset = vfio_platform_lookup_reset(vdev->compat,
+@@ -214,7 +219,7 @@ static long vfio_platform_ioctl(void *device_data,
+ 		if (info.argsz < minsz)
+ 			return -EINVAL;
+ 
+-		if (vdev->of_reset)
++		if (vfio_platform_has_reset(vdev))
+ 			vdev->flags |= VFIO_DEVICE_FLAGS_RESET;
+ 		info.flags = vdev->flags;
+ 		info.num_regions = vdev->num_regions;
 -- 
 1.8.2.1
 
