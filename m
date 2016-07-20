@@ -1,75 +1,115 @@
-From: Mark Brown <broonie@kernel.org>
-Subject: Re: [PATCH v2 3/3] acpi spi: Initialize modalias from of_compatible
-Date: Wed, 20 Jul 2016 12:37:53 +0100
-Message-ID: <20160720113753.GF6509@sirena.org.uk>
-References: <cover.1468409668.git.leonard.crestez@intel.com>
- <1d26e956f12fcd86ad915659adeb86e242b96ac7.1468409668.git.leonard.crestez@intel.com>
- <20160719102213.GZ30372@sirena.org.uk>
- <a9507dd1-93cf-547a-3bf1-1d7a18fcc761@intel.com>
+From: Alexey Klimov <alexey.klimov@arm.com>
+Subject: Re: [PATCH 4/5] ACPI/CPPC: set a non-zero value for
+ transition_latency
+Date: Wed, 20 Jul 2016 16:51:18 +0100
+Message-ID: <20160720155117.GA6572@arm.com>
+References: <1467309758-26536-1-git-send-email-pprakash@codeaurora.org>
+ <1467309758-26536-5-git-send-email-pprakash@codeaurora.org>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
-	protocol="application/pgp-signature"; boundary="SxgehGEc6vB0cZwN"
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <a9507dd1-93cf-547a-3bf1-1d7a18fcc761@intel.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Crestez Dan Leonard <leonard.crestez@intel.com>
-Cc: linux-acpi@vger.kernel.org, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Jarkko Nikula <jarkko.nikula@intel.com>, Mika Westerberg <mika.westerberg@linux.intel.com>, Len Brown <lenb@kernel.org>, linux-i2c@vger.kernel.org, Wolfram Sang <wsa@the-dreams.de>, linux-spi@vger.kernel.org, linux-kernel@vger.kernel.org, Octavian Purdila <octavian.purdila@intel.com>
-List-Id: linux-acpi@vger.kernel.org
-
-
---SxgehGEc6vB0cZwN
 Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from foss.arm.com ([217.140.101.70]:43063 "EHLO foss.arm.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755025AbcGTPvZ (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 20 Jul 2016 11:51:25 -0400
 Content-Disposition: inline
+In-Reply-To: <1467309758-26536-5-git-send-email-pprakash@codeaurora.org>
+Sender: linux-acpi-owner@vger.kernel.org
+List-Id: linux-acpi@vger.kernel.org
+To: Prashanth Prakash <pprakash@codeaurora.org>
+Cc: linux-acpi@vger.kernel.org, rjw@rjwysocki.net, hotran@apm.com, cov@codeaurora.org
 
-On Wed, Jul 20, 2016 at 02:21:55PM +0300, Crestez Dan Leonard wrote:
-> On 07/19/2016 01:22 PM, Mark Brown wrote:
+Hi Prashanth,
 
-> > Please submit patches using subject lines reflecting the style for the
-> > subsystem.  This makes it easier for people to identify relevant
-> > patches.  Look at what existing commits in the area you're changing are
-> > doing and make sure your subject lines visually resemble what they're
-> > doing.
+On Thu, Jun 30, 2016 at 12:02:37PM -0600, Prashanth Prakash wrote:
+> Compute the expected transition latency for frequency transitions
+> using the values from the PCCT tables when the desired perf
+> register is in PCC.
+> 
+> Signed-off-by: Prashanth Prakash <pprakash@codeaurora.org>
+> ---
+>  drivers/acpi/cppc_acpi.c       | 47 ++++++++++++++++++++++++++++++++++++++++--
+>  drivers/cpufreq/cppc_cpufreq.c |  1 +
+>  include/acpi/cppc_acpi.h       |  1 +
+>  3 files changed, 47 insertions(+), 2 deletions(-)
+> 
+> diff --git a/drivers/acpi/cppc_acpi.c b/drivers/acpi/cppc_acpi.c
+> index 8dee6d5..7844e4c 100644
+> --- a/drivers/acpi/cppc_acpi.c
+> +++ b/drivers/acpi/cppc_acpi.c
+> @@ -85,7 +85,7 @@ static void __iomem *pcc_comm_addr;
+>  static int pcc_subspace_idx = -1;
+>  static bool pcc_channel_acquired;
+>  static ktime_t deadline;
+> -static unsigned int pcc_mpar, pcc_mrtt;
+> +static unsigned int pcc_mpar, pcc_mrtt, pcc_nominal;
+>  
+>  /* pcc mapped address + header size + offset within PCC subspace */
+>  #define GET_PCC_VADDR(offs) (pcc_comm_addr + 0x8 + (offs))
+> @@ -462,7 +462,6 @@ static int register_pcc_channel(int pcc_subspace_idx)
+>  			return -ENODEV;
+>  		}
+>  
+> -
+>  		/*
+>  		 * cppc_ss->latency is just a Nominal value. In reality
+>  		 * the remote processor could be much slower to reply.
+> @@ -472,6 +471,7 @@ static int register_pcc_channel(int pcc_subspace_idx)
+>  		deadline = ns_to_ktime(usecs_lat * NSEC_PER_USEC);
+>  		pcc_mrtt = cppc_ss->min_turnaround_time;
+>  		pcc_mpar = cppc_ss->max_access_rate;
+> +		pcc_nominal = cppc_ss->latency;
+>  
+>  		pcc_comm_addr = acpi_os_ioremap(cppc_ss->base_address, cppc_ss->length);
+>  		if (!pcc_comm_addr) {
+> @@ -1034,3 +1034,46 @@ int cppc_set_perf(int cpu, struct cppc_perf_ctrls *perf_ctrls)
+>  	return ret;
+>  }
+>  EXPORT_SYMBOL_GPL(cppc_set_perf);
+> +
+> +/**
+> + * cppc_get_transition_latency - returns frequency transition latency in ns
+> + *
+> + * ACPI CPPC does not explicitly specifiy how a platform can specify the
+> + * transition latency for perfromance change requests. The closest we have
+> + * is the timing information from the PCCT tables which provides the info
+> + * on the number and frequency of PCC commands the platform can handle.
+> + */
+> +unsigned int cppc_get_transition_latency(int cpu_num)
+> +{
+> +	/*
+> +	 * Expected transition latency is based on the PCCT timing values
+> +	 * Below are definition from ACPI spec:
+> +	 * pcc_nominal- Expected latency to process a command, in microseconds
+> +	 * pcc_mpar   - The maximum number of periodic requests that the subspace
+> +	 *              channel can support, reported in commands per minute. 0
+> +	 *              indicates no limitation.
+> +	 * pcc_mrtt   - The minimum amount of time that OSPM must wait after the
+> +	 *              completion of a command before issuing the next command,
+> +	 *              in microseconds.
+> +	 */
+> +	unsigned int latency_ns = 0;
+> +	struct cpc_desc *cpc_desc;
+> +	struct cpc_register_resource *desired_reg;
+> +
+> +	cpc_desc = per_cpu(cpc_desc_ptr, cpu_num);
+> +	if (!cpc_desc)
+> +		return CPUFREQ_ETERNAL;
+> +
+> +	desired_reg = &cpc_desc->cpc_regs[DESIRED_PERF];
+> +	if (!CPC_IN_PCC(desired_reg))
+> +		return CPUFREQ_ETERNAL;
+> +
+> +	if (pcc_mpar)
+> +		latency_ns = 60 * (1000 * 1000 * 1000 / pcc_mpar);
+> +
+> +	latency_ns = max(latency_ns, pcc_nominal * 1000);
+> +	latency_ns = max(latency_ns, pcc_mrtt * 1000);
 
-> So the prefix should be something like "spi: acpi: "?
+How transition latency is used?
+If it is used in the sense of "wait this amount of time before sending next request"
+or this behaviour is inherited because of using this latency as a sample time,
+then I would say it should be a sum of pcc_nominal and pcc_mrtt here.
 
-Yes.
-
-> >> +	if (adev->data.of_compatible) {
-> >> +		ret = acpi_of_modalias(adev, spi->modalias, sizeof(spi->modalias));
-> >> +		if (ret) {
-> >> +			spi_dev_put(spi);
-> >> +			return AE_NOT_FOUND;
-> >> +		}
-
-> > The only reason this could fail currently is that there wasn't a
-> > compatible in the first place so why don't we just handle it like the no
-> > compatible case?  It's probably not realistic but it seems like there's
-> > a small chance this could regress some platform if we do add more error
-> > detection in acpi_of_modalias().
-
-> If acpi_of_modalias fails for some new reason wouldn't it be better to
-> fail explicitly rather than ignore it?
-
-The current code will happily proceed to create a device without doing
-this parsing so clearly we can do that.  It's not clear to me that it's
-better to refuse to create the device at all than to soldier on and
-create a device with only the native ACPI information, perhaps it just
-needs a comment explaining why we do that.
-
---SxgehGEc6vB0cZwN
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2
-
-iQEcBAEBCAAGBQJXj2KRAAoJECTWi3JdVIfQ+3cH/j/95PTTAtamo6IZMtlDeQHY
-MW/1vLd4ZEHEvU9i/dokwjR4dLAj7+wcFIGBzNLqygQeY4RLWS0YzTR2VFsFaFwU
-h29n2YH1htn5cCqMxZxw/a9suISSExZcLdFxH8msBoqddNXEqeEZ9fZROLBZiJQd
-XkUbTYvneodtv52Cn0LsJemT3QbQMvPWGaeu9pnWf6VGW6wYcIJZ2yr8fGN22Qw2
-ZOFYwsC1zErjLYj4z0YOS3JFn3WsRTvd22q8sUmzx0IBKAZpVQYflpzDNZT8qlFq
-4AmqIOZdC6RVVp2W4iNKtBFxpwbXfmdK41vPJCU/ClEH9HHPKus7NgfXDKbDlhA=
-=+bTh
------END PGP SIGNATURE-----
-
---SxgehGEc6vB0cZwN--
+Best regards,
+Alexey
