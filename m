@@ -1,148 +1,215 @@
-From: Markus Mayer <mmayer-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
-Subject: Re: [PATCH v3 0/7] lib: string: add functions to
-	case-convert strings
-Date: Wed, 20 Jul 2016 13:28:16 -0700
-Message-ID: <20160720202816.GA18480@lbrmn-mmayer.ric.broadcom.com>
-References: <1468017794-4818-1-git-send-email-mmayer@broadcom.com>
- <9b88baed-a067-fcfd-d087-66e36f3060d7@mellanox.com>
- <CAGt4E5t0TGMxiUfV5Mx+EGyAYAmTOCEJe4QxjpjujvZfPwvYuQ@mail.gmail.com>
- <20160713225236.GA30571@lbrmn-mmayer.ric.broadcom.com>
+From: Aaron Durbin <adurbin@google.com>
+Subject: Re: ACPI device using sub-resource of PCI device
+Date: Wed, 20 Jul 2016 17:06:24 -0500
+Message-ID: <CAE2855scKYvgqTvCtZBZ06GwS1CQTXCe5DyjLF0jGjeMJcEXAw@mail.gmail.com>
+References: <CAE2855tofJV=HV2dYuC+1=pi2mb942zrRF7f0+wqxPPay44RGA@mail.gmail.com>
+ <CAJZ5v0hh1ve=w590D4XncheNVsrmr7f6k1msdr+dzT4UoUa+JQ@mail.gmail.com>
+ <CAE2855vrhS7gKGFWEjZy-Hp2S8fNuJskG=WWDSuiBLhq_tDh8A@mail.gmail.com>
+ <CAE2855uR=wkxb2xzM4OcG1czffrBXR=1RX8Ms0AfVJ8hzDnUjQ@mail.gmail.com>
+ <CAE2855vfhaCVGg-6mBWcU0tQ8akyiAhjv5SrD6xoaj1SbwETDA@mail.gmail.com>
+ <CAE2855t5M2=OVXTBfosdNjqg6jUpM-PK02eP6KHC82eKk71-4w@mail.gmail.com> <20160720193543.GA4186@localhost>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <nouveau-bounces-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20160713225236.GA30571-opzSsqMRwNylyEujtbL6/5Ym1tgvmhRUMm0uRHvK7Nw@public.gmane.org>
-List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/nouveau>,
- <mailto:nouveau-request-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org?subject=unsubscribe>
-List-Archive: <https://lists.freedesktop.org/archives/nouveau>
-List-Post: <mailto:nouveau-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org>
-List-Help: <mailto:nouveau-request-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/nouveau>,
- <mailto:nouveau-request-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org?subject=subscribe>
-Errors-To: nouveau-bounces-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org
-Sender: "Nouveau" <nouveau-bounces-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org>
-To: Chris Metcalf <cmetcalf-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Rasmus Villemoes <linux-qQsb+v5E8BnlAoU/VqSP6n9LOBIZ5rWg@public.gmane.org>
-Cc: devel-gWbeCf7V1WCQmaza687I9mD2FQJk+8+b@public.gmane.org, Kees Cook <keescook-F7+t8E8rja9g9hUCZPvPmw@public.gmane.org>, linux-scsi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-pm-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, nouveau-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org, speakup-UPO/6gOIxNZglr+F8WMZYdi2O/JbrIOy@public.gmane.org, Linux Kernel <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, dri-devel-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, target-devel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Al Viro <viro-RmSDqhL/yNMiFSDQTTA3OLVCufUGDwFn@public.gmane.org>, Andrew Morton <akpm-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org>
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-io0-f177.google.com ([209.85.223.177]:34704 "EHLO
+	mail-io0-f177.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754808AbcGTWG0 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 20 Jul 2016 18:06:26 -0400
+Received: by mail-io0-f177.google.com with SMTP id q83so60235564iod.1
+        for <linux-acpi@vger.kernel.org>; Wed, 20 Jul 2016 15:06:26 -0700 (PDT)
+In-Reply-To: <20160720193543.GA4186@localhost>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Bjorn Helgaas <helgaas@kernel.org>
+Cc: "Rafael J. Wysocki" <rafael@kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>
 
-T24gV2VkLCBKdWwgMTMsIDIwMTYgYXQgMDM6NTI6MzhQTSAtMDcwMCwgTWFya3VzIE1heWVyIHdy
-b3RlOgo+IE9uIFNhdCwgSnVsIDA5LCAyMDE2IGF0IDA5OjExOjA1UE0gLTA3MDAsIE1hcmt1cyBN
-YXllciB3cm90ZToKPj4gT24gOSBKdWx5IDIwMTYgYXQgMjA6MTMsIENocmlzIE1ldGNhbGYgPGNt
-ZXRjYWxmQG1lbGxhbm94LmNvbT4gd3JvdGU6Cj4+PiBPbiA3LzgvMjAxNiA2OjQzIFBNLCBNYXJr
-dXMgTWF5ZXIgd3JvdGU6Cj4+Pj4KPj4+PiBUaGlzIHNlcmllcyBpbnRyb2R1Y2VzIGEgZmFtaWx5
-IG9mIGdlbmVyaWMgc3RyaW5nIGNhc2UgY29udmVyc2lvbgo+Pj4+IGZ1bmN0aW9ucy4gVGhpcyBr
-aW5kIG9mIGZ1bmN0aW9uYWxpdHkgaXMgbmVlZGVkIGluIHNldmVyYWwgcGxhY2VzIGluCj4+Pj4g
-dGhlIGtlcm5lbC4gUmlnaHQgbm93LCBldmVyeWJvZHkgc2VlbXMgdG8gYmUgaW1wbGVtZW50aW5n
-IHRoZWlyIG93bgo+Pj4+IGNvcHkgb2YgdGhpcyBmdW5jdGlvbmFsaXR5Lgo+Pj4+Cj4+Pj4gQmFz
-ZWQgb24gdGhlIGRpc2N1c3Npb24gb2YgdGhlIHByZXZpb3VzIHZlcnNpb24gb2YgdGhpcyBzZXJp
-ZXNbMV0gYW5kCj4+Pj4gdGhlIHVzZSBjYXNlcyBmb3VuZCBpbiB0aGUga2VybmVsLCBpdCBkb2Vz
-IGxvb2sgbGlrZSBoYXZpbmcgc2V2ZXJhbAo+Pj4+IGZsYXZvdXJzIG9mIGNhc2UgY29udmVyc2lv
-biBmdW5jdGlvbnMgaXMgYmVuZWZpY2lhbC4gVGhlIHVzZSBjYXNlcyBmYWxsCj4+Pj4gaW50byB0
-aHJlZSBjYXRlZ29yaWVzOgo+Pj4+ICAgICAgLSBjb3B5aW5nIGEgc3RyaW5nIGFuZCBjb252ZXJ0
-aW5nIHRoZSBjYXNlIHdoaWxlIHNwZWNpZnlpbmcgYQo+Pj4+ICAgICAgICBtYXhpbXVtIGxlbmd0
-aCB0byBtaW1pYyBzdHJsY3B5KCkKPj4+PiAgICAgIC0gY29weWluZyBhIHN0cmluZyBhbmQgY29u
-dmVydGluZyB0aGUgY2FzZSB3aXRob3V0IHNwZWNpZnlpbmcgYQo+Pj4+ICAgICAgICBsZW5ndGgg
-dG8gbWltaWMgc3RyY3B5KCkKPj4+PiAgICAgIC0gY29udmVydGluZyB0aGUgY2FzZSBvZiBhIHN0
-cmluZyBpbi1wbGFjZSAoaS5lLiBtb2RpZnlpbmcgdGhlCj4+Pj4gICAgICAgIHN0cmluZyB0aGF0
-IHdhcyBwYXNzZWQgaW4pCj4+Pj4KPj4+PiBDb25zZXF1ZW50bHksIEkgYW0gcHJvcG9zaW5nIHRo
-ZXNlIG5ldyBmdW5jdGlvbnM6Cj4+Pj4gICAgICB2b2lkIHN0cmxjcHl0b3VwcGVyKGNoYXIgKmRz
-dCwgY29uc3QgY2hhciAqc3JjLCBzaXplX3QgbGVuKTsKPj4+PiAgICAgIHZvaWQgc3RybGNweXRv
-bG93ZXIoY2hhciAqZHN0LCBjb25zdCBjaGFyICpzcmMsIHNpemVfdCBsZW4pOwo+Pj4+ICAgICAg
-dm9pZCBzdHJjcHl0b3VwcGVyKGNoYXIgKmRzdCwgY29uc3QgY2hhciAqc3JjKTsKPj4+PiAgICAg
-IHZvaWQgc3RyY3B5dG9sb3dlcihjaGFyICpkc3QsIGNvbnN0IGNoYXIgKnNyYyk7Cj4+Pj4gICAg
-ICB2b2lkIHN0cnRvdXBwZXIoY2hhciAqcyk7Cj4+Pj4gICAgICB2b2lkIHN0cnRvbG93ZXIoY2hh
-ciAqcyk7Cj4+Pgo+Pj4KPj4+IFlvdSBtYXkgd2FudCB0byByZWFkIHRoZSBhcnRpY2xlIGhlcmU6
-Cj4+Pgo+Pj4gaHR0cHM6Ly9sd24ubmV0L0FydGljbGVzLzY1OTIxNC8KPj4gCj4+IEknbGwgcmVh
-ZCB0aGF0LiBUaGFua3MuCj4gCj4gSXQgZG9lc24ndCBsb29rIGxpa2UgdGhlcmUgaXMgZ29pbmcg
-dG8gYmUgdGhlIGRhbmdlciBvZiAibWFzcyBjaGFuZ2VzIi4gCj4gU28gZmFyLCBJIGhhdmUgdHdv
-IEFDS3MgKG9uZSB3aGVyZSB0aGUgc2VtYW50aWNzIGRvZXNuJ3QgY2hhbmdlLAo+IGJlY2F1c2Ug
-aXQncyB1c2luZyBzdHJ0b2xvd2VyKCkpIGFuZCB0aGUgb3RoZXIgaW4gYSBkcml2ZXIgaW4gc3Rh
-Z2luZy4KPiAKPiBCdXQgSSB1bmRlcnN0YW5kIHRoZSBjb25jZXJuIGFuZCB3aWxsIGtlZXAgYW4g
-ZXllIG91dCBpZiB0aGVyZSBhcmUKPiBvdGhlciBBQ0tzLgo+ICAKPj4+IGFuZCBmb2xsb3cgdXAg
-c29tZSBvZiB0aGUgZGlzY3Vzc2lvbiB0aHJlYWRzIG9uIExLTUwgYWJvdXQgdGhlIGJlc3QKPj4+
-IHNlbWFudGljcyB0byBhZHZlcnRpc2UgZm9yIHRoZSBzdHJsY3B5L3N0cnNjcHkgdmFyaWFudHMu
-ICBJdCBtaWdodAo+Pj4gYmUgaGVscGZ1bCB0byByZXR1cm4gc29tZSBraW5kIG9mIG92ZXJmbG93
-L3RydW5jYXRpb24gZXJyb3IgZnJvbQo+Pj4geW91ciBjb3B5IGZ1bmN0aW9ucyBzbyBwZW9wbGUg
-Y2FuIGVycm9yLWNoZWNrIHRoZSByZXN1bHQuCj4+IAo+PiBJIGFtIGluY2xpbmVkIHRvIGFncmVl
-LiBIb3dldmVyLCBldmVyeWJvZHkgaGFzIGJlZW4gdGVsbGluZyBtZSB0aGF0Cj4+IHRoZXNlIGZ1
-bmN0aW9ucyBzaG91bGQgYmUgdm9pZC4gT3JpZ2luYWxseSB0aGV5IHdlcmVuJ3QuCj4gCj4gV2hh
-dCBhYm91dCBzb21ldGhpbmcgbGlrZSB0aGlzPyAgSXQgbWlnaHQgYWxzbyB3b3JrIHRvIGtlZXAg
-dGhlIGZvdXIKPiBzdGF0aWMgaW5saW5lIGZ1bmN0aW9ucyBhcyAidm9pZCIgKHNpbmNlIHRoZXkg
-d29uJ3QgZXZlciByZXR1cm4gRTJCSUcKPiBhbnl3YXkpIGFuZCBqdXN0IGhhdmUgc3RybGNweXRv
-KiByZXR1cm4gYW4gaW50ZWdlciAoc2luY2UgdGhhdCdzIHdoZXJlCj4gdGhlIGJ1ZmZlciBjb3Vs
-ZCBiZSB0b28gc21hbGwpLgo+IAo+IFJhc211cywgd2hhdCdzIHlvdXIgdGFrZT8gCgpQaW5nLiBB
-bnkgdGhvdWdodHMgb24gdGhpcyBwcm9wb3NhbD8gRG9lcyBpdCBtYWtlIHNlbnNlIGZvciBtZSB0
-byBzZW50IG91dCBhCm5ldyByZXZpc2lvbiBvZiB0aGUgcGF0Y2ggc2V0IGluY29ycG9yYXRpbmcg
-dGhlc2UgY2hhbmdlcyAtLSBhdCBsZWFzdCBmb3IKdGhlIHN0cmxjcHl0byogZnVuY3Rpb25zPwoK
-VGhhbmtzLAotTWFya3VzCiAKPiBkaWZmIC0tZ2l0IGEvaW5jbHVkZS9saW51eC9zdHJpbmcuaCBi
-L2luY2x1ZGUvbGludXgvc3RyaW5nLmgKPiBpbmRleCBhZTgyZDEzLi42Y2M4NWRjIDEwMDY0NAo+
-IC0tLSBhL2luY2x1ZGUvbGludXgvc3RyaW5nLmgKPiArKysgYi9pbmNsdWRlL2xpbnV4L3N0cmlu
-Zy5oCj4gQEAgLTExNiw4ICsxMTYsOCBAQCBleHRlcm4gdm9pZCAqIG1lbWNocihjb25zdCB2b2lk
-ICosaW50LF9fa2VybmVsX3NpemVfdCk7Cj4gICNlbmRpZgo+ICB2b2lkICptZW1jaHJfaW52KGNv
-bnN0IHZvaWQgKnMsIGludCBjLCBzaXplX3Qgbik7Cj4gIGNoYXIgKnN0cnJlcGxhY2UoY2hhciAq
-cywgY2hhciBvbGQsIGNoYXIgbmV3KTsKPiAtZXh0ZXJuIHZvaWQgc3RybGNweXRvdXBwZXIoY2hh
-ciAqZHN0LCBjb25zdCBjaGFyICpzcmMsIHNpemVfdCBsZW4pOwo+IC1leHRlcm4gdm9pZCBzdHJs
-Y3B5dG9sb3dlcihjaGFyICpkc3QsIGNvbnN0IGNoYXIgKnNyYywgc2l6ZV90IGxlbik7Cj4gK2V4
-dGVybiBpbnQgc3RybGNweXRvdXBwZXIoY2hhciAqZHN0LCBjb25zdCBjaGFyICpzcmMsIHNpemVf
-dCBsZW4pOwo+ICtleHRlcm4gaW50IHN0cmxjcHl0b2xvd2VyKGNoYXIgKmRzdCwgY29uc3QgY2hh
-ciAqc3JjLCBzaXplX3QgbGVuKTsKPiAgCj4gIGV4dGVybiB2b2lkIGtmcmVlX2NvbnN0KGNvbnN0
-IHZvaWQgKngpOwo+ICAKPiBAQCAtMTc1LDM4ICsxNzUsNDYgQEAgc3RhdGljIGlubGluZSBjb25z
-dCBjaGFyICprYmFzZW5hbWUoY29uc3QgY2hhciAqcGF0aCkKPiAgICogc3RyY3B5dG91cHBlciAt
-IENvcHkgc3RyaW5nIGFuZCBjb252ZXJ0IHRvIHVwcGVyY2FzZS4KPiAgICogQGRzdDogVGhlIGJ1
-ZmZlciB0byBzdG9yZSB0aGUgcmVzdWx0Lgo+ICAgKiBAc3JjOiBUaGUgc3RyaW5nIHRvIGNvbnZl
-cnQgdG8gdXBwZXJjYXNlLgo+ICsgKgo+ICsgKiBSZXR1cm5zIHRoZSBudW1iZXIgb2YgY2hhcmFj
-dGVycyBjb3BpZWQuCj4gICAqLwo+IC1zdGF0aWMgaW5saW5lIHZvaWQgc3RyY3B5dG91cHBlcihj
-aGFyICpkc3QsIGNvbnN0IGNoYXIgKnNyYykKPiArc3RhdGljIGlubGluZSBpbnQgc3RyY3B5dG91
-cHBlcihjaGFyICpkc3QsIGNvbnN0IGNoYXIgKnNyYykKPiAgewo+IC0Jc3RybGNweXRvdXBwZXIo
-ZHN0LCBzcmMsIH4oc2l6ZV90KTApOwo+ICsJcmV0dXJuIHN0cmxjcHl0b3VwcGVyKGRzdCwgc3Jj
-LCB+KHNpemVfdCkwKTsKPiAgfQo+ICAKPiAgLyoqCj4gICAqIHN0cmNweXRvbG93ZXIgLSBDb3B5
-IHN0cmluZyBhbmQgY29udmVydCB0byBsb3dlcmNhc2UuCj4gICAqIEBkc3Q6IFRoZSBidWZmZXIg
-dG8gc3RvcmUgdGhlIHJlc3VsdC4KPiAgICogQHNyYzogVGhlIHN0cmluZyB0byBjb252ZXJ0IHRv
-IGxvd2VyY2FzZS4KPiArICoKPiArICogUmV0dXJucyB0aGUgbnVtYmVyIG9mIGNoYXJhY3RlcnMg
-Y29waWVkLgo+ICAgKi8KPiAtc3RhdGljIGlubGluZSB2b2lkIHN0cmNweXRvbG93ZXIoY2hhciAq
-ZHN0LCBjb25zdCBjaGFyICpzcmMpCj4gK3N0YXRpYyBpbmxpbmUgaW50IHN0cmNweXRvbG93ZXIo
-Y2hhciAqZHN0LCBjb25zdCBjaGFyICpzcmMpCj4gIHsKPiAtCXN0cmxjcHl0b2xvd2VyKGRzdCwg
-c3JjLCB+KHNpemVfdCkwKTsKPiArCXJldHVybiBzdHJsY3B5dG9sb3dlcihkc3QsIHNyYywgfihz
-aXplX3QpMCk7Cj4gIH0KPiAgCj4gIC8qKgo+ICAgKiBzdHJ0b3VwcGVyIC0gQ29udmVydCBzdHJp
-bmcgdG8gdXBwZXJjYXNlLgo+ICAgKiBAczogVGhlIHN0cmluZyB0byBvcGVyYXRlIG9uLgo+ICsg
-Kgo+ICsgKiBSZXR1cm5zIHRoZSBudW1iZXIgb2YgY2hhcmFjdGVycyBjb3BpZWQuCj4gICAqLwo+
-IC1zdGF0aWMgaW5saW5lIHZvaWQgc3RydG91cHBlcihjaGFyICpzKQo+ICtzdGF0aWMgaW5saW5l
-IGludCBzdHJ0b3VwcGVyKGNoYXIgKnMpCj4gIHsKPiAtCXN0cmxjcHl0b3VwcGVyKHMsIHMsIH4o
-c2l6ZV90KTApOwo+ICsJcmV0dXJuIHN0cmxjcHl0b3VwcGVyKHMsIHMsIH4oc2l6ZV90KTApOwo+
-ICB9Cj4gIAo+ICAvKioKPiAgICogc3RydG9sb3dlciAtIENvbnZlcnQgc3RyaW5nIHRvIGxvd2Vy
-Y2FzZS4KPiAgICogQHM6IFRoZSBzdHJpbmcgdG8gb3BlcmF0ZSBvbi4KPiArICoKPiArICogUmV0
-dXJucyB0aGUgbnVtYmVyIG9mIGNoYXJhY3RlcnMgY29waWVkLgo+ICAgKi8KPiAtc3RhdGljIGlu
-bGluZSB2b2lkIHN0cnRvbG93ZXIoY2hhciAqcykKPiArc3RhdGljIGlubGluZSBpbnQgc3RydG9s
-b3dlcihjaGFyICpzKQo+ICB7Cj4gLQlzdHJsY3B5dG9sb3dlcihzLCBzLCB+KHNpemVfdCkwKTsK
-PiArCXJldHVybiBzdHJsY3B5dG9sb3dlcihzLCBzLCB+KHNpemVfdCkwKTsKPiAgfQo+ICAKPiAg
-I2VuZGlmIC8qIF9MSU5VWF9TVFJJTkdfSF8gKi8KPiBkaWZmIC0tZ2l0IGEvbGliL3N0cmluZy5j
-IGIvbGliL3N0cmluZy5jCj4gaW5kZXggNzkwM2UxMC4uZDM2ZDVmYjIgMTAwNjQ0Cj4gLS0tIGEv
-bGliL3N0cmluZy5jCj4gKysrIGIvbGliL3N0cmluZy5jCj4gQEAgLTk1OCwxNyArOTU4LDIxIEBA
-IEVYUE9SVF9TWU1CT0woc3RycmVwbGFjZSk7Cj4gICAqIEBkc3Q6IFRoZSBidWZmZXIgdG8gc3Rv
-cmUgdGhlIHJlc3VsdC4KPiAgICogQHNyYzogVGhlIHN0cmluZyB0byBjb252ZXJ0IHRvIHVwcGVy
-Y2FzZS4KPiAgICogQGxlbjogTWF4aW11bSBzdHJpbmcgbGVuZ3RoLiBNYXkgYmUgU0laRV9NQVgg
-dG8gc2V0IG5vIGxpbWl0Lgo+ICsgKgo+ICsgKiBSZXR1cm5zIHRoZSBudW1iZXIgb2YgY2hhcmFj
-dGVycyBjb3BpZWQgb3IgLUUyQklHIGlmIEBkc3Qgd2Fzbid0IGJpZyBlbm91Z2guCj4gICAqLwo+
-IC12b2lkIHN0cmxjcHl0b3VwcGVyKGNoYXIgKmRzdCwgY29uc3QgY2hhciAqc3JjLCBzaXplX3Qg
-bGVuKQo+ICtpbnQgc3RybGNweXRvdXBwZXIoY2hhciAqZHN0LCBjb25zdCBjaGFyICpzcmMsIHNp
-emVfdCBsZW4pCj4gIHsKPiAgCXNpemVfdCBpOwo+ICAKPiAgCWlmICghbGVuKQo+IC0JCXJldHVy
-bjsKPiArCQlyZXR1cm4gLUUyQklHOwo+ICAKPiAgCWZvciAoaSA9IDA7IGkgPCBsZW4gJiYgc3Jj
-W2ldOyArK2kpCj4gIAkJZHN0W2ldID0gdG91cHBlcihzcmNbaV0pOwo+ICAJZHN0W2kgPCBsZW4g
-PyBpIDogaSAtIDFdID0gJ1wwJzsKPiArCj4gKwlyZXR1cm4gKGkgPCBsZW4pID8gaSA6IC1FMkJJ
-RzsKPiAgfQo+ICBFWFBPUlRfU1lNQk9MKHN0cmxjcHl0b3VwcGVyKTsKPiAgCj4gQEAgLTk3Nywx
-NiArOTgxLDIwIEBAIEVYUE9SVF9TWU1CT0woc3RybGNweXRvdXBwZXIpOwo+ICAgKiBAZHN0OiBU
-aGUgYnVmZmVyIHRvIHN0b3JlIHRoZSByZXN1bHQuCj4gICAqIEBzcmM6IFRoZSBzdHJpbmcgdG8g
-Y29udmVydCB0byBsb3dlcmNhc2UuCj4gICAqIEBsZW46IE1heGltdW0gc3RyaW5nIGxlbmd0aC4g
-TWF5IGJlIFNJWkVfTUFYIHRvIHNldCBubyBsaW1pdC4KPiArICoKPiArICogUmV0dXJucyB0aGUg
-bnVtYmVyIG9mIGNoYXJhY3RlcnMgY29waWVkIG9yIC1FMkJJRyBpZiBAZHN0IHdhc24ndCBiaWcg
-ZW5vdWdoLgo+ICAgKi8KPiAtdm9pZCBzdHJsY3B5dG9sb3dlcihjaGFyICpkc3QsIGNvbnN0IGNo
-YXIgKnNyYywgc2l6ZV90IGxlbikKPiAraW50IHN0cmxjcHl0b2xvd2VyKGNoYXIgKmRzdCwgY29u
-c3QgY2hhciAqc3JjLCBzaXplX3QgbGVuKQo+ICB7Cj4gIAlzaXplX3QgaTsKPiAgCj4gIAlpZiAo
-IWxlbikKPiAtCQlyZXR1cm47Cj4gKwkJcmV0dXJuIC1FMkJJRzsKPiAgCj4gIAlmb3IgKGkgPSAw
-OyBpIDwgbGVuICYmIHNyY1tpXTsgKytpKQo+ICAJCWRzdFtpXSA9IHRvbG93ZXIoc3JjW2ldKTsK
-PiAgCWRzdFtpIDwgbGVuID8gaSA6IGkgLSAxXSA9ICdcMCc7Cj4gKwo+ICsJcmV0dXJuIChpIDwg
-bGVuKSA/IGkgOiAtRTJCSUc7Cj4gIH0KPiAgRVhQT1JUX1NZTUJPTChzdHJsY3B5dG9sb3dlcik7
-Cl9fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fCk5vdXZlYXUg
-bWFpbGluZyBsaXN0Ck5vdXZlYXVAbGlzdHMuZnJlZWRlc2t0b3Aub3JnCmh0dHBzOi8vbGlzdHMu
-ZnJlZWRlc2t0b3Aub3JnL21haWxtYW4vbGlzdGluZm8vbm91dmVhdQo=
+On Wed, Jul 20, 2016 at 2:35 PM, Bjorn Helgaas <helgaas@kernel.org> wrote:
+> On Tue, Jun 28, 2016 at 09:41:19PM -0700, Aaron Durbin wrote:
+>> On Fri, Jun 24, 2016 at 12:34 PM, Aaron Durbin <adurbin@google.com> wrote:
+>> > On Tue, Jun 14, 2016 at 12:04 PM, Aaron Durbin <adurbin@google.com> wrote:
+>> >> On Wed, May 18, 2016 at 3:32 PM, Aaron Durbin <adurbin@google.com> wrote:
+>> >>> On Wed, May 18, 2016 at 4:25 PM, Rafael J. Wysocki <rafael@kernel.org> wrote:
+>> >>>> On Wed, May 18, 2016 at 5:54 PM, Aaron Durbin <adurbin@google.com> wrote:
+>> >>>>> Hi,
+>> >>>>>
+>> >>>>> We're currently running into a problem of resource conflicts with a
+>> >>>>> PCI device and ACPI devices.
+>> >>>>>
+>> >>>>> [    0.243534] pci 0000:00:0d.0: can't claim BAR 0 [mem
+>> >>>>> 0xd0000000-0xd0ffffff 64bit]: address conflict with INT3452:03 [mem
+>> >>>>> 0xd0c00000-0xd0c03fff]
+>> >>>>>
+>> >>>>> The PCI BAR covers a large amount mmio resources, however, there are
+>> >>>>> ACPI devices with their own HID (for probing) which uses resources
+>> >>>>> that are a subset of the PCI BAR.
+>> >>>>>
+>> >>>>> Short of re-structuring the linux driver is there anything that can be
+>> >>>>> done with ASL to properly have the ACPI device use a sub-resource of
+>> >>>>> the PCI device during the ACPI/PCI probing?
+>> >>>>
+>> >>>> Do you have an ACPI device object corresponding to the PCI device?
+>> >>>
+>> >>> I've been debugging this by proxy, and I did request that test. The
+>> >>> following is the overall structure:
+>> >>>
+>> >>> scope (\_SB.PCI0) {
+>> >>>
+>> >>> Device (P2S)
+>> >>> {
+>> >>>         Name (_ADR, 0x000D0000)
+>> >>>         Device (GPO0)
+>> >>>         {
+>> >>>                 Name (_ADR, 0)
+>> >>>                 Name (_HID, "INT3452")
+>> >>>                 Name (_CID, "INT3452")
+>> >>>         }
+>> >>> }
+>> >>> }
+>> >>>
+>> >>> There are _STA methods in both Devices. The GP0 device has a _CRS
+>> >>> method which just returns a ResourceTemplate which is filled in with
+>> >>> static values. The PCI bar is at a fixed address from the firmware
+>> >>> which allows the fixed calculations. However there is no specific
+>> >>> reference to the P2S device's resources proper -- only the parent
+>> >>> child relationship within the ASL. I'm not sure how to directly say "I
+>> >>> want this sub-region of this other device's resource for my resource."
+>> >>> That seems like the right thing, but it's not clear if that's implied
+>> >>> by hierarchy of the devices.
+>> >>>
+>> >>> Lastly, if it helps, the kernel being used is based on v4.4 (no core
+>> >>> patches on top).
+>> >>>
+>> >>
+>> >> Hi Rafael,
+>> >>
+>> >> I haven't tried a newer kernel yet, but are you of the opinion that
+>> >> having the Devices as parent-child within the ASL should work? I'm
+>> >> wondering if there's already a patch in newer kernels that doesn't
+>> >> report the conflict and works as expected once there are child Devices
+>> >> under the P2S device.
+>> >>
+>> >
+>> > I've been looking at this more closely. A child ACPI device under a
+>> > ACPI PCI device doesn't change the resource conflict even when a _CRS
+>> > method is added to the ACPI PCI device.  Below is my sleuthing which
+>> > is probably not a surprise to anyone here, but please correct me where
+>> > I am wrong.
+>> >
+>> > acpi_init() and pci_subsys_init() are both subsys_initcalls during
+>> > boot up. I'm not sure if the ordering is dumb luck or not, but
+>> > acpi_init() is called prior to pci_subsys_init(). The conflict error
+>> > is spit out from pcibios_resource_survey() by way of pci_subsys_init()
+>> >  subsys_initcall. However, the PCI device scanning is kicked off prior
+>> > to this through acpi_scan_init() by way of acpi_init()
+>> > subsys_initcall.  The conflict error occurs because there's already
+>> > the child ACPI device in the resource tree. I'm not sure when/where
+>> > those ACPI devices' resources are added, but clearly they are sitting
+>> > in there since the conflict was found.
+>
+> I think the acpi_init()/pci_subsys_init() ordering is correct.  The
+> ACPI namespace is primary.  A PCI hierarchy originates at a PCI host
+> bridge in the ACPI namespace, so we should enumerate the ACPI
+> namespace first, and when we find a PCI host bridge, we should
+> enumerate the PCI devices below it.
+>
+> That said, I think it is correct mostly by accident and it would be
+> nice if it were more explicit.
+>
+>> > Somewhere along the way a PCI device from a scan is linked with the
+>> > ACPI device for that same PCI device in sysfs.  This is with me
+>> > putting a _HID and _CID in the PCI ACPI device.
+>> > # readlink -f /sys/devices/LNXSYSTM:00/LNXSYBUS:00/PNP0A08:00/INT5A92:00/physical_node
+>> > /sys/devices/pci0000:00/0000:00:0d.0
+>> > # readlink -f /sys/devices/pci0000\:00/0000\:00\:0d.0/firmware_node/
+>> > /sys/devices/LNXSYSTM:00/LNXSYBUS:00/PNP0A08:00/INT5A92:00
+>> >
+>> > So the hierarchy is known eventually, but it's clearly not honored
+>> > when adding resources. The current ACPI support doesn't handle
+>> > PciBarTarget which initially sounds (from ACPI spec) like the way to
+>> > go for referencing a resource in a PCI device from an ACPI device.
+>
+> Yes, I think PCIBARTarget looks like the right way to do this.  It
+> doesn't *seem* like it'd be that hard to implement; have you looked
+> into that at all?
+>
+
+I just noticed that linux has no support for it. With the ability of
+the BAR to be reassigned it sounds way more complicated unless you
+were considering the support to be one-shot. During ACPI scan one
+would have to see if the _CRS is using PciBarTarget and defer resource
+probing until PCI devices' resources were added. However, that
+deferral should likely happen before the device is added to the system
+such that driver probing doesn't occur on a partially resolved ACPI
+device (we need the PCI device and its resources before a driver
+should engage it).
+
+> Without PCIBARTarget, the AML contains fixed register addresses, so it
+> will break if Linux reassigns the BAR.
+
+Understood. Do we need to worry about reassignment when a driver is
+bound to a device? If so that complicates everything. I'm also not
+sure how one would go about suspending the dependent child while a BAR
+is being reassigned -- resources need to be removed and re-added for
+both the PCI parent and the ACPI child device.
+
+>
+>> > So
+>> > that's out of the question currently, but maybe someone has a patch
+>> > for that? I don't think reordering the acpi_init() and
+>> > pci_subsys_init() would do anything different except change which
+>> > device discovers the conflict.
+>> >
+>> > Is there a way to honor the ACPI device hierarchy during resource
+>> > addition for the PCI devices? The conflict is found because of the
+>> > presence of a child device claiming resources through _CRS.
+>> > Alternatively, is there a good way to defer the probing of an ACPI
+>> > device until one knows PCI resources have been added?
+>> >
+>> > Any insights would be very helpful. Thank you.
+>>
+>> I stumbled upon the hierarchy connection. That's all handled with the
+>> platform_notify() end of things when device_add() is done on the pci
+>> device. I was thinking we could take advantage of this when adding
+>> resources, but a struct resource has no struct device. It's just a
+>> name description for the resource at hand. However, platform devices
+>> are added when the ACPI tree is parsed along with adding the resources
+>> associated with them (PciBarTarget would be helpful here) so those
+>> resources are sitting in the resource tree when PCI BARs are added.
+>>
+>> The following suggestion is sort of hacky, but it's the best I could
+>> come up with provided the currently supported infrastructure. In
+>> pci_claim_resource() do request_resource_conflict() as before. If it
+>> fails do the following: 1. check if the device has an ACPI companion.
+>> 2. For any children hanging off the ACPI companion device. check if
+>> that device's name matches the conflict resource's name. 3. If so,
+>> insert_resource_conflict() to place the BAR within the tree itself.
+>
+> I think the best solution would be to implement PCIBARTarget, but if
+> that's impossible, this seems like a plausible workaround.
+
+I'm not sure I'm in a position to do it correctly as I'm not an ACPI
+subystem expert. I was hoping someone already had this on their radar
+for such support. I could take a stab at it, but the nuances listed
+above makes me think it's beyond me currently w/ my current ACPI
+subsystem knowledge. Perhaps there's an easy way to deal w/ deferrals
+and removal of devices from the system to handle resource updates?
+What am I missing w.r.t. your comment about not seeming that hard?
+
+>
+> I don't know if the conflict would necessarily have to be with the
+> ACPI companion itself.  It seems like you could have some hierarchy of
+> ACPI devices where the leaf conflicts with a PCI BAR.  Maybe if a
+> resource of *any* ACPI device below a PCI host bridge conflicts with a
+> PCI BAR, we should insert the PCI BAR as a parent?
+
+I was going to attempt to see if the resource name matches a child.
+Your suggestion seems to allow any conflict -- even if it's a true
+conflict. That's why I specifically created an ACPI device for the PCI
+one with a true ACPI device nested under that. There's a parent-child
+relationship which is explicit that we can leverage in the kernel.
+
+>
+> And since moving that BAR would break the AML, we should probably mark
+> the BAR as IORESOURCE_PCI_FIXED.
+>
+> Bjorn
