@@ -1,194 +1,60 @@
-From: Dan Williams <dan.j.williams@intel.com>
-Subject: [PATCH v3 2/2] nfit: cleanup acpi_nfit_init calling convention
-Date: Tue, 19 Jul 2016 16:12:47 -0700
-Message-ID: <146896995110.19125.14096272615930854997.stgit@dwillia2-desk3.amr.corp.intel.com>
-References: <146896992879.19125.6684253593375468344.stgit@dwillia2-desk3.amr.corp.intel.com>
+From: Dou Liyang <douly.fnst@cn.fujitsu.com>
+Subject: Re: [PATCH v8 7/7] Provide the interface to validate the proc_id
+ which they give
+Date: Wed, 20 Jul 2016 08:55:11 +0800
+Message-ID: <438ce500-ec84-9f55-0422-d033a1f4590f@cn.fujitsu.com>
+References: <1468913288-16605-1-git-send-email-douly.fnst@cn.fujitsu.com>
+ <1468913288-16605-8-git-send-email-douly.fnst@cn.fujitsu.com>
+ <20160719185320.GN3078@mtj.duckdns.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=UTF-8;
+	format=flowed
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga11.intel.com ([192.55.52.93]:44051 "EHLO mga11.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751701AbcGSXPS (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 19 Jul 2016 19:15:18 -0400
-In-Reply-To: <146896992879.19125.6684253593375468344.stgit@dwillia2-desk3.amr.corp.intel.com>
+Received: from cn.fujitsu.com ([59.151.112.132]:32937 "EHLO
+	heian.cn.fujitsu.com" rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1752338AbcGTA5F (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 19 Jul 2016 20:57:05 -0400
+In-Reply-To: <20160719185320.GN3078@mtj.duckdns.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-nvdimm@lists.01.org
-Cc: "Lee, Chun-Yi" <jlee@suse.com>, linux-acpi@vger.kernel.org
+To: Tejun Heo <tj@kernel.org>
+Cc: cl@linux.com, mika.j.penttila@gmail.com, mingo@redhat.com, akpm@linux-foundation.org, rjw@rjwysocki.net, hpa@zytor.com, yasu.isimatu@gmail.com, isimatu.yasuaki@jp.fujitsu.com, kamezawa.hiroyu@jp.fujitsu.com, izumi.taku@jp.fujitsu.com, gongzhaogang@inspur.com, len.brown@intel.com, lenb@kernel.org, tglx@linutronix.de, chen.tang@easystack.cn, rafael@kernel.org, x86@kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linux-mm@kvack.org
 
-Pass the nfit buffer as a parameter rather than hanging it off of
-acpi_desc.
 
-Reviewed-by: "Lee, Chun-Yi" <jlee@suse.com>
-Signed-off-by: Dan Williams <dan.j.williams@intel.com>
----
-Changes since v2:
 
-* Only context changes due to v3 of patch1
+=E5=9C=A8 2016=E5=B9=B407=E6=9C=8820=E6=97=A5 02:53, Tejun Heo =E5=86=99=
+=E9=81=93:
+> On Tue, Jul 19, 2016 at 03:28:08PM +0800, Dou Liyang wrote:
+>> When we want to identify whether the proc_id is unreasonable or not,=
+ we
+>> can call the "acpi_processor_validate_proc_id" function. It will sea=
+rch
+>> in the duplicate IDs. If we find the proc_id in the IDs, we return t=
+rue
+>> to the call function. Conversely, false represents available.
+>>
+>> When we establish all possible cpuid <-> nodeid mapping, we will use=
+ the
+>> proc_id from ACPI table.
+>>
+>> We do validation when we get the proc_id. If the result is true, we =
+will
+>> stop the mapping.
+> The patch title probably should include "acpi:" header.  I can't tell
+> much about the specifics of the acpi changes but I think this is the
+> right approach for handling cpu hotplugs.
 
- drivers/acpi/nfit.c              |   48 +++++++++++++-------------------------
- drivers/acpi/nfit.h              |    3 +-
- tools/testing/nvdimm/test/nfit.c |    7 +++---
- 3 files changed, 22 insertions(+), 36 deletions(-)
+I will change the title in the next version.
 
-diff --git a/drivers/acpi/nfit.c b/drivers/acpi/nfit.c
-index 54a4ee0a90e0..fb80f32db525 100644
---- a/drivers/acpi/nfit.c
-+++ b/drivers/acpi/nfit.c
-@@ -2291,12 +2291,11 @@ static int acpi_nfit_check_deletions(struct acpi_nfit_desc *acpi_desc,
- 	return 0;
- }
- 
--int acpi_nfit_init(struct acpi_nfit_desc *acpi_desc, acpi_size sz)
-+int acpi_nfit_init(struct acpi_nfit_desc *acpi_desc, void *data, acpi_size sz)
- {
- 	struct device *dev = acpi_desc->dev;
- 	struct nfit_table_prev prev;
- 	const void *end;
--	u8 *data;
- 	int rc;
- 
- 	mutex_lock(&acpi_desc->init_mutex);
-@@ -2321,7 +2320,6 @@ int acpi_nfit_init(struct acpi_nfit_desc *acpi_desc, acpi_size sz)
- 	list_cut_position(&prev.flushes, &acpi_desc->flushes,
- 				acpi_desc->flushes.prev);
- 
--	data = (u8 *) acpi_desc->nfit;
- 	end = data + sz;
- 	while (!IS_ERR_OR_NULL(data))
- 		data = add_table(acpi_desc, &prev, data, end);
-@@ -2461,40 +2459,30 @@ static int acpi_nfit_add(struct acpi_device *adev)
- 	if (!acpi_desc->nvdimm_bus)
- 		return -ENOMEM;
- 
--	/*
--	 * Save the acpi header for later and then skip it,
--	 * making nfit point to the first nfit table header.
--	 */
-+	/* Save the acpi header for exporting the revision via sysfs */
- 	acpi_desc->acpi_header = *tbl;
--	acpi_desc->nfit = (void *) tbl + sizeof(struct acpi_table_nfit);
--	sz -= sizeof(struct acpi_table_nfit);
- 
- 	/* Evaluate _FIT and override with that if present */
- 	status = acpi_evaluate_object(adev->handle, "_FIT", NULL, &buf);
- 	if (ACPI_SUCCESS(status) && buf.length > 0) {
--		union acpi_object *obj;
--		/*
--		 * Adjust for the acpi_object header of the _FIT
--		 */
--		obj = buf.pointer;
--		if (obj->type == ACPI_TYPE_BUFFER) {
--			acpi_desc->nfit =
--				(struct acpi_nfit_header *)obj->buffer.pointer;
--			sz = obj->buffer.length;
--			rc = acpi_nfit_init(acpi_desc, sz);
--		} else
-+		union acpi_object *obj = buf.pointer;
-+
-+		if (obj->type == ACPI_TYPE_BUFFER)
-+			rc = acpi_nfit_init(acpi_desc, obj->buffer.pointer,
-+					obj->buffer.length);
-+		else
- 			dev_dbg(dev, "%s invalid type %d, ignoring _FIT\n",
- 				 __func__, (int) obj->type);
--		acpi_desc->nfit = NULL;
- 		kfree(buf.pointer);
- 	} else
--		rc = acpi_nfit_init(acpi_desc, sz);
-+		/* skip over the lead-in header table */
-+		rc = acpi_nfit_init(acpi_desc, (void *) tbl
-+				+ sizeof(struct acpi_table_nfit),
-+				sz - sizeof(struct acpi_table_nfit));
- 
--	if (rc) {
-+	if (rc)
- 		nvdimm_bus_unregister(acpi_desc->nvdimm_bus);
--		return rc;
--	}
--	return 0;
-+	return rc;
- }
- 
- static int acpi_nfit_remove(struct acpi_device *adev)
-@@ -2511,8 +2499,8 @@ static void acpi_nfit_notify(struct acpi_device *adev, u32 event)
- {
- 	struct acpi_nfit_desc *acpi_desc = dev_get_drvdata(&adev->dev);
- 	struct acpi_buffer buf = { ACPI_ALLOCATE_BUFFER, NULL };
--	union acpi_object *obj;
- 	struct device *dev = &adev->dev;
-+	union acpi_object *obj;
- 	acpi_status status;
- 	int ret;
- 
-@@ -2550,14 +2538,12 @@ static void acpi_nfit_notify(struct acpi_device *adev, u32 event)
- 
- 	obj = buf.pointer;
- 	if (obj->type == ACPI_TYPE_BUFFER) {
--		acpi_desc->nfit =
--			(struct acpi_nfit_header *)obj->buffer.pointer;
--		ret = acpi_nfit_init(acpi_desc, obj->buffer.length);
-+		ret = acpi_nfit_init(acpi_desc, obj->buffer.pointer,
-+				obj->buffer.length);
- 		if (ret)
- 			dev_err(dev, "failed to merge updated NFIT\n");
- 	} else
- 		dev_err(dev, "Invalid _FIT\n");
--	acpi_desc->nfit = NULL;
- 	kfree(buf.pointer);
- 
-  out_unlock:
-diff --git a/drivers/acpi/nfit.h b/drivers/acpi/nfit.h
-index 402f8c31adc7..b63a583a678f 100644
---- a/drivers/acpi/nfit.h
-+++ b/drivers/acpi/nfit.h
-@@ -135,7 +135,6 @@ struct nfit_mem {
- struct acpi_nfit_desc {
- 	struct nvdimm_bus_descriptor nd_desc;
- 	struct acpi_table_header acpi_header;
--	struct acpi_nfit_header *nfit;
- 	struct mutex init_mutex;
- 	struct list_head memdevs;
- 	struct list_head flushes;
-@@ -201,6 +200,6 @@ static inline struct acpi_nfit_desc *to_acpi_desc(
- }
- 
- const u8 *to_nfit_uuid(enum nfit_uuids id);
--int acpi_nfit_init(struct acpi_nfit_desc *nfit, acpi_size sz);
-+int acpi_nfit_init(struct acpi_nfit_desc *acpi_desc, void *nfit, acpi_size sz);
- void acpi_nfit_desc_init(struct acpi_nfit_desc *acpi_desc, struct device *dev);
- #endif /* __NFIT_H__ */
-diff --git a/tools/testing/nvdimm/test/nfit.c b/tools/testing/nvdimm/test/nfit.c
-index f458ba906f13..78cba1e3b1da 100644
---- a/tools/testing/nvdimm/test/nfit.c
-+++ b/tools/testing/nvdimm/test/nfit.c
-@@ -1460,7 +1460,6 @@ static int nfit_test_probe(struct platform_device *pdev)
- 	nfit_test->setup(nfit_test);
- 	acpi_desc = &nfit_test->acpi_desc;
- 	acpi_nfit_desc_init(acpi_desc, &pdev->dev);
--	acpi_desc->nfit = nfit_test->nfit_buf;
- 	acpi_desc->blk_do_io = nfit_test_blk_do_io;
- 	nd_desc = &acpi_desc->nd_desc;
- 	nd_desc->provider_name = NULL;
-@@ -1469,7 +1468,8 @@ static int nfit_test_probe(struct platform_device *pdev)
- 	if (!acpi_desc->nvdimm_bus)
- 		return -ENXIO;
- 
--	rc = acpi_nfit_init(acpi_desc, nfit_test->nfit_size);
-+	rc = acpi_nfit_init(acpi_desc, nfit_test->nfit_buf,
-+			nfit_test->nfit_size);
- 	if (rc) {
- 		nvdimm_bus_unregister(acpi_desc->nvdimm_bus);
- 		return rc;
-@@ -1481,7 +1481,8 @@ static int nfit_test_probe(struct platform_device *pdev)
- 	nfit_test->setup_hotplug = 1;
- 	nfit_test->setup(nfit_test);
- 
--	rc = acpi_nfit_init(acpi_desc, nfit_test->nfit_size);
-+	rc = acpi_nfit_init(acpi_desc, nfit_test->nfit_buf,
-+			nfit_test->nfit_size);
- 	if (rc) {
- 		nvdimm_bus_unregister(acpi_desc->nvdimm_bus);
- 		return rc;
+Thanks.
+> Thanks.
+>
 
+
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
