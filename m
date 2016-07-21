@@ -1,260 +1,107 @@
-From: "Rafael J. Wysocki" <rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org>
-Subject: Re: [PATCH v8 5/9] acpi/arm64: Add GTDT table parse driver
-Date: Thu, 21 Jul 2016 15:28:27 +0200
-Message-ID: <2091912.arUKSr7MLh@vostro.rjw.lan>
-References: <1468952284-28942-1-git-send-email-fu.wei@linaro.org> <1468952284-28942-6-git-send-email-fu.wei@linaro.org>
+From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Subject: Re: [PATCH v10 2/7] ACPI / processor_idle: Add support for Low Power Idle(LPI) states
+Date: Thu, 21 Jul 2016 15:34:05 +0200
+Message-ID: <21001224.LAfp2rRWeu@vostro.rjw.lan>
+References: <1468950779-21745-1-git-send-email-sudeep.holla@arm.com> <1468950779-21745-3-git-send-email-sudeep.holla@arm.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7Bit
-Return-path: <linux-watchdog-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1468952284-28942-6-git-send-email-fu.wei-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
-Sender: linux-watchdog-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: fu.wei-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org
-Cc: lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, daniel.lezcano-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org, tglx-hfZtesqFncYOwBW4kG4KsQ@public.gmane.org, marc.zyngier-5wv7dgnIgG8@public.gmane.org, lorenzo.pieralisi-5wv7dgnIgG8@public.gmane.org, sudeep.holla-5wv7dgnIgG8@public.gmane.org, hanjun.guo-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linaro-acpi-cunTk1MwBs8s++Sfvej+rw@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, rruigrok-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org, harba-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org, cov-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org, timur-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org, graeme.gregory-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org, al.stone-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org, jcm-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, wei-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, arnd-r2nGTMty4D4@public.gmane.org, wim-IQzOog9fTRqzQB+pC5nmwQ@public.gmane.org, catalin.marinas-5wv7dgnIgG8@public.gmane.org, will.deacon-5wv7dgnIgG8@public.gmane.org, Suravee.Suthikulpanit-5C7GfCeVMHo@public.gmane.org, leo.duran-5C7GfCeVMHo@public.gmane.org, linux-0h96xk9xTtrk1uMJSBkQmQ@public.gmane.org, linux-watchdog-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1468950779-21745-3-git-send-email-sudeep.holla@arm.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Sudeep Holla <sudeep.holla@arm.com>
+Cc: ACPI List <linux-acpi@vger.kernel.org>, Vikas Sajjan <vikas.cha.sajjan@hpe.com>, Sunil <sunil.vl@hpe.com>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, PrashanthPrakash <pprakash@codeaurora.org>, Al Stone <al.stone@linaro.org>, Ashwin Chaugule <ashwin.chaugule@linaro.org>, Daniel Lezcano <daniel.lezcano@linaro.org>, LKML <linux-kernel@vger.kernel.org>, ALKML <linux-arm-kernel@lists.infradead.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On Wednesday, July 20, 2016 02:18:00 AM fu.wei-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org wrote:
-> From: Fu Wei <fu.wei-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
+On Tuesday, July 19, 2016 06:52:54 PM Sudeep Holla wrote:
+> ACPI 6.0 introduced an optional object _LPI that provides an alternate
+> method to describe Low Power Idle states. It defines the local power
+> states for each node in a hierarchical processor topology. The OSPM can
+> use _LPI object to select a local power state for each level of processor
+> hierarchy in the system. They used to produce a composite power state
+> request that is presented to the platform by the OSPM.
 > 
-> This patch adds support for parsing arch timer in GTDT,
-> provides some kernel APIs to parse all the PPIs and
-> always-on info in GTDT and export them.
+> Since multiple processors affect the idle state for any non-leaf hierarchy
+> node, coordination of idle state requests between the processors is
+> required. ACPI supports two different coordination schemes: Platform
+> coordinated and  OS initiated.
 > 
-> By this driver, we can simplify arm_arch_timer drivers, and
-> separate the ACPI GTDT knowledge from it.
+> This patch adds initial support for Platform coordination scheme of LPI.
 > 
-> Signed-off-by: Fu Wei <fu.wei-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
-> Signed-off-by: Hanjun Guo <hanjun.guo-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
+> Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+> Signed-off-by: Sudeep Holla <sudeep.holla@arm.com>
 > ---
->  arch/arm64/Kconfig             |   1 +
->  drivers/acpi/Kconfig           |   5 ++
->  drivers/acpi/Makefile          |   1 +
->  drivers/acpi/arm64/Kconfig     |   5 ++
->  drivers/acpi/arm64/Makefile    |   1 +
->  drivers/acpi/arm64/acpi_gtdt.c | 152 +++++++++++++++++++++++++++++++++++++++++
->  drivers/clocksource/Kconfig    |   1 -
->  include/linux/acpi.h           |   6 ++
->  8 files changed, 171 insertions(+), 1 deletion(-)
+>  drivers/acpi/bus.c              |  14 +-
+>  drivers/acpi/processor_driver.c |   2 +-
+>  drivers/acpi/processor_idle.c   | 462 +++++++++++++++++++++++++++++++++++-----
+>  include/acpi/processor.h        |  24 ++-
+>  include/linux/acpi.h            |   4 +
+>  5 files changed, 446 insertions(+), 60 deletions(-)
 > 
-> diff --git a/arch/arm64/Kconfig b/arch/arm64/Kconfig
-> index 5a0a691..0b9fba7 100644
-> --- a/arch/arm64/Kconfig
-> +++ b/arch/arm64/Kconfig
-> @@ -2,6 +2,7 @@ config ARM64
->  	def_bool y
->  	select ACPI_CCA_REQUIRED if ACPI
->  	select ACPI_GENERIC_GSI if ACPI
-> +	select ACPI_GTDT if ACPI
->  	select ACPI_REDUCED_HARDWARE_ONLY if ACPI
->  	select ARCH_HAS_DEVMEM_IS_ALLOWED
->  	select ARCH_HAS_ATOMIC64_DEC_IF_POSITIVE
-> diff --git a/drivers/acpi/Kconfig b/drivers/acpi/Kconfig
-> index b7e2e77..1cdc7d2 100644
-> --- a/drivers/acpi/Kconfig
-> +++ b/drivers/acpi/Kconfig
-> @@ -521,4 +521,9 @@ config XPOWER_PMIC_OPREGION
->  
->  endif
->  
-> +if ARM64
-> +source "drivers/acpi/arm64/Kconfig"
-> +
-> +endif
-> +
->  endif	# ACPI
-> diff --git a/drivers/acpi/Makefile b/drivers/acpi/Makefile
-> index 251ce85..1a94ff7 100644
-> --- a/drivers/acpi/Makefile
-> +++ b/drivers/acpi/Makefile
-> @@ -99,5 +99,6 @@ obj-$(CONFIG_ACPI_EXTLOG)	+= acpi_extlog.o
->  obj-$(CONFIG_PMIC_OPREGION)	+= pmic/intel_pmic.o
->  obj-$(CONFIG_CRC_PMIC_OPREGION) += pmic/intel_pmic_crc.o
->  obj-$(CONFIG_XPOWER_PMIC_OPREGION) += pmic/intel_pmic_xpower.o
-> +obj-$(CONFIG_ARM64)	+= arm64/
->  
->  video-objs			+= acpi_video.o video_detect.o
-> diff --git a/drivers/acpi/arm64/Kconfig b/drivers/acpi/arm64/Kconfig
-> new file mode 100644
-> index 0000000..80201be
-> --- /dev/null
-> +++ b/drivers/acpi/arm64/Kconfig
-> @@ -0,0 +1,5 @@
-> +#
-> +# ACPI Configuration for ARM64
-> +#
-> +config ACPI_GTDT
-> +	bool
-> diff --git a/drivers/acpi/arm64/Makefile b/drivers/acpi/arm64/Makefile
-> new file mode 100644
-> index 0000000..466de6b
-> --- /dev/null
-> +++ b/drivers/acpi/arm64/Makefile
-> @@ -0,0 +1 @@
-> +obj-$(CONFIG_ACPI_GTDT)		+= acpi_gtdt.o
-> diff --git a/drivers/acpi/arm64/acpi_gtdt.c b/drivers/acpi/arm64/acpi_gtdt.c
-> new file mode 100644
-> index 0000000..e1cfc9e
-> --- /dev/null
-> +++ b/drivers/acpi/arm64/acpi_gtdt.c
-> @@ -0,0 +1,152 @@
-> +/*
-> + * ARM Specific GTDT table Support
-> + *
-> + * Copyright (C) 2016, Linaro Ltd.
-> + * Author: Daniel Lezcano <daniel.lezcano-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
-> + *         Fu Wei <fu.wei-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
-> + *         Hanjun Guo <hanjun.guo-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
-> + *
-> + * This program is free software; you can redistribute it and/or modify
-> + * it under the terms of the GNU General Public License version 2 as
-> + * published by the Free Software Foundation.
-> + */
-> +
-> +#include <linux/acpi.h>
-> +#include <linux/init.h>
-> +#include <linux/kernel.h>
-> +
-> +#include <clocksource/arm_arch_timer.h>
-> +
-> +#undef pr_fmt
-> +#define pr_fmt(fmt) "ACPI GTDT: " fmt
-> +
-> +typedef struct {
-> +	struct acpi_table_gtdt *gtdt;
-> +	void *platform_timer_start;
-> +	void *gtdt_end;
-> +} acpi_gtdt_desc_t;
-> +
-> +static acpi_gtdt_desc_t acpi_gtdt_desc __initdata;
-> +
-> +static inline void *next_platform_timer(void *platform_timer)
+
+[cut]
+
+> +static int acpi_processor_get_lpi_info(struct acpi_processor *pr)
 > +{
-> +	struct acpi_gtdt_header *gh = platform_timer;
+> +	int ret, i;
+> +	acpi_status status;
+> +	acpi_handle handle = pr->handle, pr_ahandle;
+> +	struct acpi_device *d = NULL;
+> +	struct acpi_lpi_states_array info[2], *tmp, *prev, *curr;
 > +
-> +	platform_timer += gh->length;
-> +	if (platform_timer < acpi_gtdt_desc.gtdt_end)
-> +		return platform_timer;
+> +	if (!osc_pc_lpi_support_confirmed)
+> +		return -EOPNOTSUPP;
 > +
-> +	return NULL;
-> +}
+> +	if (!acpi_has_method(handle, "_LPI"))
+> +		return -EINVAL;
 > +
-> +#define for_each_platform_timer(_g)				\
-> +	for (_g = acpi_gtdt_desc.platform_timer_start; _g;	\
-> +	     _g = next_platform_timer(_g))
+> +	flat_state_cnt = 0;
+> +	prev = &info[0];
+> +	curr = &info[1];
+> +	handle = pr->handle;
+> +	ret = acpi_processor_evaluate_lpi(handle, prev);
+> +	if (ret)
+> +		return ret;
+> +	flatten_lpi_states(pr, prev, NULL);
 > +
-> +static inline bool is_timer_block(void *platform_timer)
-> +{
-> +	struct acpi_gtdt_header *gh = platform_timer;
+> +	while (ACPI_SUCCESS(status = acpi_get_parent(handle, &pr_ahandle))) {
+
+I should have mentioned that earlier, but forgot, sorry about that.
+
+Assignments under while () etc are generally discouraged as (a) error-prone
+and (b) confusing to static analysis tools.
+
+So I'd do
+
+	status = acpi_get_parent(handle, &pr_ahandle);
+	while (ACPI_SUCCESS(status)) {
+
+> +		acpi_bus_get_device(pr_ahandle, &d);
+> +		handle = pr_ahandle;
 > +
-> +	return gh->type == ACPI_GTDT_TYPE_TIMER_BLOCK;
-> +}
+> +		if (strcmp(acpi_device_hid(d), ACPI_PROCESSOR_CONTAINER_HID))
+> +			break;
 > +
-> +static inline bool is_watchdog(void *platform_timer)
-> +{
-> +	struct acpi_gtdt_header *gh = platform_timer;
+> +		/* can be optional ? */
+> +		if (!acpi_has_method(handle, "_LPI"))
+> +			break;
 > +
-> +	return gh->type == ACPI_GTDT_TYPE_WATCHDOG;
-> +}
+> +		ret = acpi_processor_evaluate_lpi(handle, curr);
+> +		if (ret)
+> +			break;
 > +
-> +static int __init map_generic_timer_interrupt(u32 interrupt, u32 flags)
-> +{
-> +	int trigger, polarity;
+> +		/* flatten all the LPI states in this level of hierarchy */
+> +		flatten_lpi_states(pr, curr, prev);
 > +
-> +	if (!interrupt)
-> +		return 0;
-> +
-> +	trigger = (flags & ACPI_GTDT_INTERRUPT_MODE) ? ACPI_EDGE_SENSITIVE
-> +			: ACPI_LEVEL_SENSITIVE;
-> +
-> +	polarity = (flags & ACPI_GTDT_INTERRUPT_POLARITY) ? ACPI_ACTIVE_LOW
-> +			: ACPI_ACTIVE_HIGH;
-> +
-> +	return acpi_register_gsi(NULL, interrupt, trigger, polarity);
-> +}
-> +
-> +/*
-> + * Map the PPIs of per-cpu arch_timer.
-> + * @type: the type of PPI
-> + * Returns 0 if error.
-> + */
-> +int __init acpi_gtdt_map_ppi(int type)
-> +{
-> +	struct acpi_table_gtdt *gtdt = acpi_gtdt_desc.gtdt;
-> +
-> +	switch (type) {
-> +	case PHYS_SECURE_PPI:
-> +		return map_generic_timer_interrupt(gtdt->secure_el1_interrupt,
-> +						   gtdt->secure_el1_flags);
-> +	case PHYS_NONSECURE_PPI:
-> +		return map_generic_timer_interrupt(gtdt->non_secure_el1_interrupt,
-> +						   gtdt->non_secure_el1_flags);
-> +	case VIRT_PPI:
-> +		return map_generic_timer_interrupt(gtdt->virtual_timer_interrupt,
-> +						   gtdt->virtual_timer_flags);
-> +
-> +	case HYP_PPI:
-> +		return map_generic_timer_interrupt(gtdt->non_secure_el2_interrupt,
-> +						   gtdt->non_secure_el2_flags);
-> +	default:
-> +		pr_err("Map PPI failed: invalid type.\n");
+> +		tmp = prev, prev = curr, curr = tmp;
+
+
+		status = acpi_get_parent(handle, &pr_ahandle);
 > +	}
 > +
-> +	return 0;
-> +}
-> +
-> +/*
-> + * acpi_gtdt_c3stop - got c3stop info from GTDT
-> + *
-> + * Returns 1 if the timer is powered in deep idle state, 0 otherwise.
-> + */
-> +bool __init acpi_gtdt_c3stop(void)
-> +{
-> +	struct acpi_table_gtdt *gtdt = acpi_gtdt_desc.gtdt;
-> +
-> +	return !(gtdt->non_secure_el1_flags & ACPI_GTDT_ALWAYS_ON);
-> +}
-> +
-> +/*
-> + * Get some basic info from GTDT table, and init the global variables above
-> + * for all timers initialization of Generic Timer.
-> + * This function does some validation on GTDT table.
-> + */
-> +int __init acpi_gtdt_init(struct acpi_table_header *table)
-> +{
-> +	void *start;
-> +	struct acpi_table_gtdt *gtdt;
-> +
-> +	gtdt = container_of(table, struct acpi_table_gtdt, header);
-> +
-> +	acpi_gtdt_desc.gtdt = gtdt;
-> +	acpi_gtdt_desc.gtdt_end = (void *)table + table->length;
-> +
-> +	if (table->revision < 2) {
-> +		pr_debug("Revision:%d doesn't support Platform Timers.\n",
-> +			 table->revision);
-> +		return 0;
-> +	}
-> +
-> +	if (!gtdt->platform_timer_count) {
-> +		pr_debug("No Platform Timer.\n");
-> +		return 0;
-> +	}
-> +
-> +	start = (void *)gtdt + gtdt->platform_timer_offset;
-> +	if (start < (void *)table + sizeof(struct acpi_table_gtdt)) {
-> +		pr_err(FW_BUG "Failed to init table: ACPI/GTDT is buggy.\n");
 
-I would prefer something like
-
-		pr_err(FW_BUG "Failed to retrieve timer information from firmware (invalid data)\n");
-
-which is clear enough IMO and doesn't require whoever reads this message
-to know anything about ACPI/GTDT etc.
+Apart from this the patch looks OK to me, so please only update this one
+and I'll queue up the series.
 
 Thanks,
 Rafael
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-watchdog" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
