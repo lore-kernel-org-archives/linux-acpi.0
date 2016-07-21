@@ -1,132 +1,68 @@
-From: Namhyung Kim <namhyung-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: [PATCH v3 1/2] pstore: Split pstore fragile flags
-Date: Thu, 21 Jul 2016 09:59:17 +0900
-Message-ID: <1469062758-1190-1-git-send-email-namhyung@kernel.org>
-Return-path: <linux-efi-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Sender: linux-efi-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Kees Cook <keescook-F7+t8E8rja9g9hUCZPvPmw@public.gmane.org>
-Cc: LKML <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Anton Vorontsov <anton-9xeibp6oKSgdnm+yROfE0A@public.gmane.org>, Colin Cross <ccross-z5hGa2qSFaRBDgjK7y7TUQ@public.gmane.org>, Tony Luck <tony.luck-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "Rafael J. Wysocki" <rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org>, Len Brown <lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Matt Fleming <matt-mF/unelCI9GS6iBeEJttW/XRex20P6io@public.gmane.org>, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-efi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+From: Vishal Verma <vishal.l.verma@intel.com>
+Subject: [PATCH v2 0/3] ARS rescanning triggered by latent errors or userspace
+Date: Wed, 20 Jul 2016 19:50:47 -0600
+Message-ID: <1469065850-32401-1-git-send-email-vishal.l.verma@intel.com>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga02.intel.com ([134.134.136.20]:37085 "EHLO mga02.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752832AbcGUBvi (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 20 Jul 2016 21:51:38 -0400
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: linux-nvdimm@lists.01.org
+Cc: Dan Williams <dan.j.williams@intel.com>, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Tony Luck <tony.luck@intel.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Vishal Verma <vishal.l.verma@intel.com>
 
-This patch adds new PSTORE_FLAGS for each pstore type so that they can
-be enabled separately.  This is a preparation for ongoing virtio-pstore
-work to support those types flexibly.
+Changes in v2:
+- Rework the ars_done flag in nfit_spa to be ars_required, and reuse it for
+  rescanning (Dan)
+- Rename the ars_rescan attribute to simply 'scrub', and move into the nfit
+  group since only nfit buses have this capability (Dan)
+- Make the scrub attribute RW, and on reads return the number of times a
+  scrub has happened since driver load. This prompted some additional
+  refactoring, notably the new helpers acpi_nfit_desc_alloc_register, and
+  to_nvdimm_bus_dev. These are all in patch 2. (Dan)
+- Remove some redundant list_empty checks in patch 3 (Dan)
+- If the acpi_descs lists is not empty at driver unload time, WARN() (Dan)
 
-The PSTORE_FLAGS_FRAGILE is changed to PSTORE_FLAGS_DMESG to preserve the
-original behavior.
+This series adds on-demand ARS scanning on both, discovery of
+latent media errors, and a sysfs trigger from userspace.
 
-Cc: "Rafael J. Wysocki" <rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org>
-Cc: Len Brown <lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: Matt Fleming <matt-mF/unelCI9GS6iBeEJttW/XRex20P6io@public.gmane.org>
-Cc: linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: linux-efi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Signed-off-by: Namhyung Kim <namhyung-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
----
- drivers/acpi/apei/erst.c          |  2 +-
- drivers/firmware/efi/efi-pstore.c |  2 +-
- fs/pstore/platform.c              | 21 +++++++++++++--------
- fs/pstore/ram.c                   |  2 ++
- include/linux/pstore.h            |  7 ++++++-
- 5 files changed, 23 insertions(+), 11 deletions(-)
+The rescanning part is easy to test using the nfit_test framework
+- create a namespace (this will by default have bad sectors in
+the middle), clear the bad sectors by writing to them, trigger
+the rescan through sysfs, and the bad sectors will reappear in
+/sys/block/<pmemX>/badblocks.
 
-diff --git a/drivers/acpi/apei/erst.c b/drivers/acpi/apei/erst.c
-index 006c3894c6ea..f0cb7b0fbac8 100644
---- a/drivers/acpi/apei/erst.c
-+++ b/drivers/acpi/apei/erst.c
-@@ -937,7 +937,7 @@ static int erst_clearer(enum pstore_type_id type, u64 id, int count,
- static struct pstore_info erst_info = {
- 	.owner		= THIS_MODULE,
- 	.name		= "erst",
--	.flags		= PSTORE_FLAGS_FRAGILE,
-+	.flags		= PSTORE_FLAGS_DMESG,
- 	.open		= erst_open_pstore,
- 	.close		= erst_close_pstore,
- 	.read		= erst_reader,
-diff --git a/drivers/firmware/efi/efi-pstore.c b/drivers/firmware/efi/efi-pstore.c
-index eac76a79a880..dcb61a6f7ea7 100644
---- a/drivers/firmware/efi/efi-pstore.c
-+++ b/drivers/firmware/efi/efi-pstore.c
-@@ -356,7 +356,7 @@ static int efi_pstore_erase(enum pstore_type_id type, u64 id, int count,
- static struct pstore_info efi_pstore_info = {
- 	.owner		= THIS_MODULE,
- 	.name		= "efi",
--	.flags		= PSTORE_FLAGS_FRAGILE,
-+	.flags		= PSTORE_FLAGS_DMESG,
- 	.open		= efi_pstore_open,
- 	.close		= efi_pstore_close,
- 	.read		= efi_pstore_read,
-diff --git a/fs/pstore/platform.c b/fs/pstore/platform.c
-index 588461bb2dd4..6e86b7ea095d 100644
---- a/fs/pstore/platform.c
-+++ b/fs/pstore/platform.c
-@@ -467,13 +467,14 @@ int pstore_register(struct pstore_info *psi)
- 	if (pstore_is_mounted())
- 		pstore_get_records(0);
- 
--	pstore_register_kmsg();
--
--	if ((psi->flags & PSTORE_FLAGS_FRAGILE) == 0) {
-+	if (psi->flags & PSTORE_FLAGS_DMESG)
-+		pstore_register_kmsg();
-+	if (psi->flags & PSTORE_FLAGS_CONSOLE)
- 		pstore_register_console();
-+	if (psi->flags & PSTORE_FLAGS_FTRACE)
- 		pstore_register_ftrace();
-+	if (psi->flags & PSTORE_FLAGS_PMSG)
- 		pstore_register_pmsg();
--	}
- 
- 	if (pstore_update_ms >= 0) {
- 		pstore_timer.expires = jiffies +
-@@ -497,10 +498,14 @@ EXPORT_SYMBOL_GPL(pstore_register);
- 
- void pstore_unregister(struct pstore_info *psi)
- {
--	pstore_unregister_pmsg();
--	pstore_unregister_ftrace();
--	pstore_unregister_console();
--	pstore_unregister_kmsg();
-+	if (psi->flags & PSTORE_FLAGS_PMSG)
-+		pstore_unregister_pmsg();
-+	if (psi->flags & PSTORE_FLAGS_FTRACE)
-+		pstore_unregister_ftrace();
-+	if (psi->flags & PSTORE_FLAGS_CONSOLE)
-+		pstore_unregister_console();
-+	if (psi->flags & PSTORE_FLAGS_DMESG)
-+		pstore_unregister_kmsg();
- 
- 	free_buf_for_compression();
- 
-diff --git a/fs/pstore/ram.c b/fs/pstore/ram.c
-index bd9812e83461..d08bfd611b11 100644
---- a/fs/pstore/ram.c
-+++ b/fs/pstore/ram.c
-@@ -539,6 +539,8 @@ static int ramoops_probe(struct platform_device *pdev)
- 		goto fail_clear;
- 	}
- 
-+	cxt->pstore.flags = PSTORE_FLAGS_ALL;
-+
- 	err = pstore_register(&cxt->pstore);
- 	if (err) {
- 		pr_err("registering with pstore failed\n");
-diff --git a/include/linux/pstore.h b/include/linux/pstore.h
-index 831479f8df8f..3ba0c1af40e5 100644
---- a/include/linux/pstore.h
-+++ b/include/linux/pstore.h
-@@ -73,7 +73,12 @@ struct pstore_info {
- 	void		*data;
- };
- 
--#define	PSTORE_FLAGS_FRAGILE	1
-+#define PSTORE_FLAGS_DMESG	(1 << 0)
-+#define PSTORE_FLAGS_CONSOLE	(1 << 1)
-+#define PSTORE_FLAGS_FTRACE	(1 << 2)
-+#define PSTORE_FLAGS_PMSG	(1 << 3)
-+
-+#define PSTORE_FLAGS_ALL	((1 << 4) - 1)
- 
- extern int pstore_register(struct pstore_info *);
- extern void pstore_unregister(struct pstore_info *);
+For the mce handling, I've tested the notifier chain callback
+being called with a mock struct mce (called via another sysfs
+trigger - this isn't included in the patch obviously), which
+has the address field set to a known address in a SPA range,
+and the status field with the MCACOD flag set.
+
+What I haven't easily been able to test is the same callback
+path with a 'real world' mce, being called as part of the
+x86_mce_decoder_chain notifier. I'd therefore appreciate a
+closer look at the initial filtering done in nfit_handle_mce
+(patch 3/3) from Tony or anyone more familiar with mce handling.
+
+The series is based on v4.7-rc7, and a tree is available at
+https://git.kernel.org/cgit/linux/kernel/git/vishal/nvdimm.git/log/?h=ars-ondemand
+
+
+
+Vishal Verma (3):
+  pmem: clarify a debug print in pmem_clear_poison
+  nfit, libnvdimm: allow an ARS scrub to be triggered on demand
+  nfit: do an ARS scrub on hitting a latent media error
+
+ drivers/acpi/nfit.c              | 214 +++++++++++++++++++++++++++++++++++----
+ drivers/acpi/nfit.h              |   5 +-
+ drivers/nvdimm/core.c            |   7 ++
+ drivers/nvdimm/pmem.c            |   2 +-
+ include/linux/libnvdimm.h        |   1 +
+ tools/testing/nvdimm/test/nfit.c |  16 +++
+ 6 files changed, 224 insertions(+), 21 deletions(-)
+
 -- 
-2.8.0
+2.7.4
+
