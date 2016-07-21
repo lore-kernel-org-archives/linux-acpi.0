@@ -1,43 +1,148 @@
-From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [PATCH] tools/power/acpi/tools/acpidbg: Add multi-commands support in batch mode
-Date: Thu, 21 Jul 2016 15:45:14 +0200
-Message-ID: <1843492.Yub8jGoblF@vostro.rjw.lan>
-References: <cover.1468464391.git.lv.zheng@intel.com> <804f8558b9e65d6022cdb982e1772194ba52d292.1469002094.git.lv.zheng@intel.com>
+From: Sudeep Holla <sudeep.holla@arm.com>
+Subject: Re: [PATCH v10 2/7] ACPI / processor_idle: Add support for Low Power
+ Idle(LPI) states
+Date: Thu, 21 Jul 2016 16:55:27 +0100
+Message-ID: <8b69bd1a-a729-cca4-43f1-84ff4de111a4@arm.com>
+References: <1468950779-21745-1-git-send-email-sudeep.holla@arm.com>
+ <1468950779-21745-3-git-send-email-sudeep.holla@arm.com>
+ <21001224.LAfp2rRWeu@vostro.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cloudserver094114.home.net.pl ([79.96.170.134]:63863 "HELO
-	cloudserver094114.home.net.pl" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with SMTP id S1750728AbcGUNkU (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 21 Jul 2016 09:40:20 -0400
-In-Reply-To: <804f8558b9e65d6022cdb982e1772194ba52d292.1469002094.git.lv.zheng@intel.com>
+Received: from foss.arm.com ([217.140.101.70]:48895 "EHLO foss.arm.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753100AbcGUPze (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 21 Jul 2016 11:55:34 -0400
+In-Reply-To: <21001224.LAfp2rRWeu@vostro.rjw.lan>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Lv Zheng <lv.zheng@intel.com>
-Cc: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Len Brown <len.brown@intel.com>, Lv Zheng <zetalog@gmail.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: Sudeep Holla <sudeep.holla@arm.com>, ACPI List <linux-acpi@vger.kernel.org>, Vikas Sajjan <vikas.cha.sajjan@hpe.com>, Sunil <sunil.vl@hpe.com>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, PrashanthPrakash <pprakash@codeaurora.org>, Al Stone <al.stone@linaro.org>, Ashwin Chaugule <ashwin.chaugule@linaro.org>, Daniel Lezcano <daniel.lezcano@linaro.org>, LKML <linux-kernel@vger.kernel.org>, ALKML <linux-arm-kernel@lists.infradead.org>
 
-On Wednesday, July 20, 2016 04:12:08 PM Lv Zheng wrote:
-> This patch adds multi-commands support for the batch mode. The same mode
-> can be seen in acpiexec.
-> 
-> However people may think this is not useful for an in-kernel debugger,
-> because the in-kernel debugger is always running, never exits. So we can
-> run another command by running another acpidbg batch mode instance.
-> 
-> But this mode should still be useful for acpidbg. The reason is: when the
-> in-kernel debugger has entered the single-stepping mode, ending acpidbg
-> (which closes the debugger IO interface) will lead to the end of the
-> single-stepping mode.
-> 
-> So we need the acpidbg multi-commands batch mode in order to execute
-> multiple single-stepping mode commands in the batch mode.
-> 
-> Signed-off-by: Lv Zheng <lv.zheng@intel.com>
 
-Does this depend on the kernel flushing support series?
 
-Thanks,
-Rafael
+On 21/07/16 14:34, Rafael J. Wysocki wrote:
+> On Tuesday, July 19, 2016 06:52:54 PM Sudeep Holla wrote:
+>> ACPI 6.0 introduced an optional object _LPI that provides an alternate
+>> method to describe Low Power Idle states. It defines the local power
+>> states for each node in a hierarchical processor topology. The OSPM can
+>> use _LPI object to select a local power state for each level of processor
+>> hierarchy in the system. They used to produce a composite power state
+>> request that is presented to the platform by the OSPM.
+>>
+>> Since multiple processors affect the idle state for any non-leaf hierarchy
+>> node, coordination of idle state requests between the processors is
+>> required. ACPI supports two different coordination schemes: Platform
+>> coordinated and  OS initiated.
+>>
+>> This patch adds initial support for Platform coordination scheme of LPI.
+>>
+>> Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+>> Signed-off-by: Sudeep Holla <sudeep.holla@arm.com>
+>> ---
+>>  drivers/acpi/bus.c              |  14 +-
+>>  drivers/acpi/processor_driver.c |   2 +-
+>>  drivers/acpi/processor_idle.c   | 462 +++++++++++++++++++++++++++++++++++-----
+>>  include/acpi/processor.h        |  24 ++-
+>>  include/linux/acpi.h            |   4 +
+>>  5 files changed, 446 insertions(+), 60 deletions(-)
+>>
+>
+> [cut]
+>
+>> +static int acpi_processor_get_lpi_info(struct acpi_processor *pr)
+>> +{
+>> +	int ret, i;
+>> +	acpi_status status;
+>> +	acpi_handle handle = pr->handle, pr_ahandle;
+>> +	struct acpi_device *d = NULL;
+>> +	struct acpi_lpi_states_array info[2], *tmp, *prev, *curr;
+>> +
+>> +	if (!osc_pc_lpi_support_confirmed)
+>> +		return -EOPNOTSUPP;
+>> +
+>> +	if (!acpi_has_method(handle, "_LPI"))
+>> +		return -EINVAL;
+>> +
+>> +	flat_state_cnt = 0;
+>> +	prev = &info[0];
+>> +	curr = &info[1];
+>> +	handle = pr->handle;
+>> +	ret = acpi_processor_evaluate_lpi(handle, prev);
+>> +	if (ret)
+>> +		return ret;
+>> +	flatten_lpi_states(pr, prev, NULL);
+>> +
+>> +	while (ACPI_SUCCESS(status = acpi_get_parent(handle, &pr_ahandle))) {
+>
+> I should have mentioned that earlier, but forgot, sorry about that.
+>
+> Assignments under while () etc are generally discouraged as (a) error-prone
+> and (b) confusing to static analysis tools.
+>
+> So I'd do
+>
+> 	status = acpi_get_parent(handle, &pr_ahandle);
+> 	while (ACPI_SUCCESS(status)) {
+>
 
+Sure, will update accordingly.
+
+>> +		acpi_bus_get_device(pr_ahandle, &d);
+>> +		handle = pr_ahandle;
+>> +
+>> +		if (strcmp(acpi_device_hid(d), ACPI_PROCESSOR_CONTAINER_HID))
+>> +			break;
+>> +
+>> +		/* can be optional ? */
+>> +		if (!acpi_has_method(handle, "_LPI"))
+>> +			break;
+>> +
+>> +		ret = acpi_processor_evaluate_lpi(handle, curr);
+>> +		if (ret)
+>> +			break;
+>> +
+>> +		/* flatten all the LPI states in this level of hierarchy */
+>> +		flatten_lpi_states(pr, curr, prev);
+>> +
+>> +		tmp = prev, prev = curr, curr = tmp;
+>
+>
+> 		status = acpi_get_parent(handle, &pr_ahandle);
+>> +	}
+>> +
+>
+
+OK
+
+> Apart from this the patch looks OK to me, so please only update this one
+> and I'll queue up the series.
+>
+
+Thanks, will do it shortly.
+
+Also I found a bug in my testing creating some fake tables to test this
+non-recursive logic. I have missed a pointer update in the inner loop. I
+will include the below one liner in the update.
+
+
+-->8
+
+diff --git i/drivers/acpi/processor_idle.c w/drivers/acpi/processor_idle.c
+index fced1df535bd..c8800b55268d 100644
+--- i/drivers/acpi/processor_idle.c
++++ w/drivers/acpi/processor_idle.c
+@@ -1142,6 +1142,7 @@ static int flatten_lpi_states(struct 
+acpi_processor *pr,
+                             combine_lpi_states(p, t, flpi)) {
+                                 stash_composite_state(curr_level, flpi);
+                                 flat_state_cnt++;
++                               flpi++;
+                         }
+                 }
+         }
+
+-- 
+Regards,
+Sudeep
