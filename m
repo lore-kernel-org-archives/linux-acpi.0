@@ -1,152 +1,258 @@
 From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [PATCH v4 1/2] ACPI / button: Add KEY_LID_OPEN/KEY_LID_CLOSE for new usage model
-Date: Thu, 21 Jul 2016 15:35:36 +0200
-Message-ID: <6943722.0LO9QHJXWg@vostro.rjw.lan>
-References: <cbdaec17aba78c61f466efff8883d49067f2dad5.1463472125.git.lv.zheng@intel.com> <1b96ee1e5b5ebbed0096adde410a9fd0b7930848.1468915808.git.lv.zheng@intel.com>
+Subject: Re: [PATCH v2 1/2] ACPI / debugger: Add kernel flushing support
+Date: Thu, 21 Jul 2016 15:43:30 +0200
+Message-ID: <4768363.WDVt5y7Fcm@vostro.rjw.lan>
+References: <cover.1468464391.git.lv.zheng@intel.com> <cover.1468922310.git.lv.zheng@intel.com> <97e2430e92d486c7ca46aa8e0e602600317d5e7b.1468922310.git.lv.zheng@intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7Bit
-Return-path: <linux-input-owner@vger.kernel.org>
-In-Reply-To: <1b96ee1e5b5ebbed0096adde410a9fd0b7930848.1468915808.git.lv.zheng@intel.com>
-Sender: linux-input-owner@vger.kernel.org
-To: Lv Zheng <lv.zheng@intel.com>, Dmitry Torokhov <dmitry.torokhov@gmail.com>
-Cc: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Len Brown <len.brown@intel.com>, Lv Zheng <zetalog@gmail.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Benjamin Tissoires <benjamin.tissoires@gmail.com>, "Bastien Nocera:" <hadess@hadess.net>, linux-input@vger.kernel.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <97e2430e92d486c7ca46aa8e0e602600317d5e7b.1468922310.git.lv.zheng@intel.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Lv Zheng <lv.zheng@intel.com>
+Cc: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Len Brown <len.brown@intel.com>, Lv Zheng <zetalog@gmail.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Tuesday, July 19, 2016 04:11:02 PM Lv Zheng wrote:
-> There are many AML tables reporting wrong initial lid state, and some of
-> them never report lid open state. As a proxy layer acting between, ACPI
-> button driver is not able to handle all such cases, but need to re-define
-> the usage model of the ACPI lid. That is:
-> 1. It's initial state is not reliable;
-> 2. There may not be an open event;
-> 3. Userspace should only take action against the close event which is
->    reliable, always sent after a real lid close.
-> 
-> OTOH, using an input switch event for the lid device on such platforms can
-> cause the loss of the close event, but the platforms purposely want to use
-> these close events to trigger power saving actions.
-> 
-> So we need to introduce a new ABI, which is input key events based, not
-> input switch events based.
-> 
-> This patch adds a set of new input key events so that the new userspace
-> programs can use them to handle this usage model correctly. And in the
-> meanwhile, the old input switch event is kept so that no old programs will
-> be broken by the ABI change.
+On Tuesday, July 19, 2016 06:00:39 PM Lv Zheng wrote:
+> This patch adds debugger log flushing support in kernel via .ioctl()
+> callback. The in-kernel flushing is more efficient, because it reduces
+> useless log IOs by bypassing log user_read/kern_write during the flush
+> period.
 > 
 > Signed-off-by: Lv Zheng <lv.zheng@intel.com>
-> Cc: Dmitry Torokhov <dmitry.torokhov@gmail.com>
-> Cc: Benjamin Tissoires <benjamin.tissoires@gmail.com>
-> Cc: Bastien Nocera: <hadess@hadess.net>
-> Cc: linux-input@vger.kernel.org
 
-Dmitry, any objections here?
+Overall, this is an optimization, right?
+
+So is adding a new IOCTL really worth it?
 
 > ---
->  drivers/acpi/button.c                  |   34 +++++++++++++++++++++++++++++++-
->  include/uapi/linux/input-event-codes.h |    7 +++++++
->  2 files changed, 40 insertions(+), 1 deletion(-)
+>  drivers/acpi/acpi_dbg.c     |   98 +++++++++++++++++++++++++++++++++++++++++--
+>  include/linux/acpi-ioctls.h |   21 ++++++++++
+>  2 files changed, 115 insertions(+), 4 deletions(-)
+>  create mode 100644 include/linux/acpi-ioctls.h
 > 
-> diff --git a/drivers/acpi/button.c b/drivers/acpi/button.c
-> index 148f4e5..dd16879 100644
-> --- a/drivers/acpi/button.c
-> +++ b/drivers/acpi/button.c
-> @@ -104,6 +104,8 @@ struct acpi_button {
->  	struct input_dev *input;
->  	char phys[32];			/* for input device */
->  	unsigned long pushed;
-> +	int last_state;
-> +	unsigned long timestamp;
->  	bool suspended;
->  };
->  
-> @@ -111,6 +113,10 @@ static BLOCKING_NOTIFIER_HEAD(acpi_lid_notifier);
->  static struct acpi_device *lid_device;
->  static u8 lid_init_state = ACPI_BUTTON_LID_INIT_METHOD;
->  
-> +static unsigned long lid_report_interval __read_mostly = 500;
-> +module_param(lid_report_interval, ulong, 0644);
-> +MODULE_PARM_DESC(lid_report_interval, "Interval (ms) between lid key events");
-> +
->  /* --------------------------------------------------------------------------
->                                FS Interface (/proc)
->     -------------------------------------------------------------------------- */
-> @@ -133,12 +139,34 @@ static int acpi_lid_evaluate_state(struct acpi_device *device)
->  static int acpi_lid_notify_state(struct acpi_device *device, int state)
->  {
->  	struct acpi_button *button = acpi_driver_data(device);
-> +	int keycode;
-> +	unsigned long timeout;
->  	int ret;
->  
-> -	/* input layer checks if event is redundant */
-> +	/*
-> +	 * Send the switch event.
-> +	 * The input layer checks if the event is redundant.
-> +	 */
->  	input_report_switch(button->input, SW_LID, !state);
->  	input_sync(button->input);
->  
-> +	/*
-> +	 * Send the key event.
-> +	 * The input layer doesn't check if the event is redundant.
-> +	 */
-> +	timeout = button->timestamp +
-> +		  msecs_to_jiffies(lid_report_interval);
-> +	if (button->last_state != !!state ||
-> +	    time_after(jiffies, timeout)) {
-> +		keycode = state ? KEY_LID_OPEN : KEY_LID_CLOSE;
-> +		input_report_key(button->input, keycode, 1);
-> +		input_sync(button->input);
-> +		input_report_key(button->input, keycode, 0);
-> +		input_sync(button->input);
-> +		button->last_state = !!state;
-> +		button->timestamp = jiffies;
-> +	}
-> +
->  	if (state)
->  		pm_wakeup_event(&device->dev, 0);
->  
-> @@ -407,6 +435,8 @@ static int acpi_button_add(struct acpi_device *device)
->  		strcpy(name, ACPI_BUTTON_DEVICE_NAME_LID);
->  		sprintf(class, "%s/%s",
->  			ACPI_BUTTON_CLASS, ACPI_BUTTON_SUBCLASS_LID);
-> +		button->last_state = !!acpi_lid_evaluate_state(device);
-> +		button->timestamp = jiffies;
->  	} else {
->  		printk(KERN_ERR PREFIX "Unsupported hid [%s]\n", hid);
->  		error = -ENODEV;
-> @@ -436,6 +466,8 @@ static int acpi_button_add(struct acpi_device *device)
->  
->  	case ACPI_BUTTON_TYPE_LID:
->  		input_set_capability(input, EV_SW, SW_LID);
-> +		input_set_capability(input, EV_KEY, KEY_LID_OPEN);
-> +		input_set_capability(input, EV_KEY, KEY_LID_CLOSE);
->  		break;
->  	}
->  
-> diff --git a/include/uapi/linux/input-event-codes.h b/include/uapi/linux/input-event-codes.h
-> index 737fa32..b062fe1 100644
-> --- a/include/uapi/linux/input-event-codes.h
-> +++ b/include/uapi/linux/input-event-codes.h
-> @@ -641,6 +641,13 @@
->   * e.g. teletext or data broadcast application (MHEG, MHP, HbbTV, etc.)
->   */
->  #define KEY_DATA			0x275
-> +/*
-> + * Key events sent by the lid drivers.
-> + * The drivers may not be able to send paired "open"/"close" events, in
-> + * which case, they send KEY_LID_OPEN/KEY_LID_CLOSE instead of SW_LID.
-> + */
-> +#define KEY_LID_OPEN			0x278
-> +#define KEY_LID_CLOSE			0x279
->  
->  #define BTN_TRIGGER_HAPPY		0x2c0
->  #define BTN_TRIGGER_HAPPY1		0x2c0
+> diff --git a/drivers/acpi/acpi_dbg.c b/drivers/acpi/acpi_dbg.c
+> index dee8692..6ac1388 100644
+> --- a/drivers/acpi/acpi_dbg.c
+> +++ b/drivers/acpi/acpi_dbg.c
+> @@ -22,6 +22,7 @@
+>  #include <linux/debugfs.h>
+>  #include <linux/circ_buf.h>
+>  #include <linux/acpi.h>
+> +#include <linux/acpi-ioctls.h>
 
-To this part in particular?
+That should go into the uapi directory at least.
+
+>  #include "internal.h"
+>  
+>  #define ACPI_AML_BUF_ALIGN	(sizeof (acpi_size))
+> @@ -46,6 +47,8 @@
+>  #define ACPI_AML_KERN		(ACPI_AML_IN_KERN | ACPI_AML_OUT_KERN)
+>  #define ACPI_AML_BUSY		(ACPI_AML_USER | ACPI_AML_KERN)
+>  #define ACPI_AML_OPEN		(ACPI_AML_OPENED | ACPI_AML_CLOSED)
+> +#define ACPI_AML_FLUSHING_LOG	0x0040 /* flushing log output */
+> +#define ACPI_AML_WAITING_CMD	0x0080 /* waiting for cmd input */
+>  
+>  struct acpi_aml_io {
+>  	wait_queue_head_t wait;
+> @@ -120,6 +123,20 @@ static inline bool __acpi_aml_busy(void)
+>  	return false;
+>  }
+>  
+> +static inline bool __acpi_aml_waiting_cmd(void)
+> +{
+> +	if (acpi_aml_io.flags & ACPI_AML_WAITING_CMD)
+> +		return true;
+> +	return false;
+
+Oh well.
+
+What about
+
+	return !!(acpi_aml_io.flags & ACPI_AML_WAITING_CMD);
+
+> +}
+> +
+> +static inline bool __acpi_aml_flushing_log(void)
+> +{
+> +	if (acpi_aml_io.flags & ACPI_AML_FLUSHING_LOG)
+> +		return true;
+> +	return false;
+
+And analogously here?
+
+> +}
+> +
+>  static inline bool __acpi_aml_opened(void)
+>  {
+>  	if (acpi_aml_io.flags & ACPI_AML_OPEN)
+> @@ -152,6 +169,26 @@ static bool acpi_aml_busy(void)
+>  	return ret;
+>  }
+>  
+> +static inline bool acpi_aml_waiting_cmd(void)
+> +{
+> +	bool ret;
+> +
+> +	mutex_lock(&acpi_aml_io.lock);
+> +	ret = __acpi_aml_waiting_cmd();
+> +	mutex_unlock(&acpi_aml_io.lock);
+> +	return ret;
+> +}
+> +
+> +static inline bool acpi_aml_flushing_log(void)
+> +{
+> +	bool ret;
+> +
+> +	mutex_lock(&acpi_aml_io.lock);
+> +	ret = __acpi_aml_flushing_log();
+> +	mutex_unlock(&acpi_aml_io.lock);
+> +	return ret;
+> +}
+> +
+>  static bool acpi_aml_used(void)
+>  {
+>  	bool ret;
+> @@ -183,7 +220,8 @@ static bool acpi_aml_kern_writable(void)
+>  
+>  	mutex_lock(&acpi_aml_io.lock);
+>  	ret = !__acpi_aml_access_ok(ACPI_AML_OUT_KERN) ||
+> -	      __acpi_aml_writable(&acpi_aml_io.out_crc, ACPI_AML_OUT_KERN);
+> +	      __acpi_aml_writable(&acpi_aml_io.out_crc, ACPI_AML_OUT_KERN) ||
+> +	      __acpi_aml_flushing_log();
+>  	mutex_unlock(&acpi_aml_io.lock);
+>  	return ret;
+>  }
+> @@ -264,6 +302,9 @@ static int acpi_aml_write_kern(const char *buf, int len)
+>  	int n;
+>  	char *p;
+>  
+> +	if (acpi_aml_flushing_log())
+> +		return len;
+> +
+>  	ret = acpi_aml_lock_write(crc, ACPI_AML_OUT_KERN);
+>  	if (ret < 0)
+>  		return ret;
+> @@ -458,9 +499,18 @@ static int acpi_aml_wait_command_ready(bool single_step,
+>  	else
+>  		acpi_os_printf("\n%1c ", ACPI_DEBUGGER_COMMAND_PROMPT);
+>  
+> +	mutex_lock(&acpi_aml_io.lock);
+> +	acpi_aml_io.flags |= ACPI_AML_WAITING_CMD;
+> +	wake_up_interruptible(&acpi_aml_io.wait);
+> +	mutex_unlock(&acpi_aml_io.lock);
+> +
+>  	status = acpi_os_get_line(buffer, length, NULL);
+>  	if (ACPI_FAILURE(status))
+>  		return -EINVAL;
+> +
+> +	mutex_lock(&acpi_aml_io.lock);
+> +	acpi_aml_io.flags &= ~ACPI_AML_WAITING_CMD;
+> +	mutex_unlock(&acpi_aml_io.lock);
+>  	return 0;
+>  }
+>  
+> @@ -593,9 +643,11 @@ static int acpi_aml_read_user(char __user *buf, int len)
+>  	smp_rmb();
+>  	p = &crc->buf[crc->tail];
+>  	n = min(len, circ_count_to_end(crc));
+> -	if (copy_to_user(buf, p, n)) {
+> -		ret = -EFAULT;
+> -		goto out;
+> +	if (!acpi_aml_flushing_log()) {
+> +		if (copy_to_user(buf, p, n)) {
+> +			ret = -EFAULT;
+> +			goto out;
+> +		}
+>  	}
+>  	/* sync tail after removing logs */
+>  	smp_mb();
+> @@ -731,10 +783,48 @@ static unsigned int acpi_aml_poll(struct file *file, poll_table *wait)
+>  	return masks;
+>  }
+>  
+> +static int acpi_aml_flush(void)
+> +{
+> +	int ret;
+> +
+> +	/*
+> +	 * Discard output buffer and put the driver into a state waiting
+> +	 * for the new user input.
+> +	 */
+> +	mutex_lock(&acpi_aml_io.lock);
+> +	acpi_aml_io.flags |= ACPI_AML_FLUSHING_LOG;
+> +	mutex_unlock(&acpi_aml_io.lock);
+> +
+> +	ret = wait_event_interruptible(acpi_aml_io.wait,
+> +		acpi_aml_waiting_cmd());
+> +	(void)acpi_aml_read_user(NULL, ACPI_AML_BUF_SIZE);
+> +
+> +	mutex_lock(&acpi_aml_io.lock);
+> +	acpi_aml_io.flags &= ~ACPI_AML_FLUSHING_LOG;
+> +	mutex_unlock(&acpi_aml_io.lock);
+> +	return ret;
+> +}
+> +
+> +static long acpi_aml_ioctl(struct file *file,
+> +			   unsigned int cmd, unsigned long arg)
+> +{
+> +	long ret = -EINVAL;
+> +
+> +	switch (cmd) {
+> +	case ACPI_IOCTL_DEBUGGER_FLUSH:
+> +		ret = acpi_aml_flush();
+> +		break;
+> +	default:
+> +		break;
+> +	}
+> +	return ret;
+
+	return cmd == ACPI_IOCTL_DEBUGGER_FLUSH ? acpi_aml_flush() : -EINVAL;
+
+> +}
+> +
+>  static const struct file_operations acpi_aml_operations = {
+>  	.read		= acpi_aml_read,
+>  	.write		= acpi_aml_write,
+>  	.poll		= acpi_aml_poll,
+> +	.unlocked_ioctl	= acpi_aml_ioctl,
+>  	.open		= acpi_aml_open,
+>  	.release	= acpi_aml_release,
+>  	.llseek		= generic_file_llseek,
+> diff --git a/include/linux/acpi-ioctls.h b/include/linux/acpi-ioctls.h
+> new file mode 100644
+> index 0000000..56b8170
+> --- /dev/null
+> +++ b/include/linux/acpi-ioctls.h
+
+include/uapi/linux/
+
+> @@ -0,0 +1,21 @@
+> +/*
+> + * ACPI IOCTL collections
+> + *
+> + * Copyright (C) 2016, Intel Corporation
+> + * Authors: Lv Zheng <lv.zheng@intel.com>
+> + *
+> + * This program is free software; you can redistribute it and/or modify
+> + * it under the terms of the GNU General Public License version 2 as
+> + * published by the Free Software Foundation.
+> + */
+> +
+> +#ifndef _LINUX_ACPI_IOCTLS_H
+> +#define _LINUX_ACPI_IOCTLS_H
+> +
+> +#include <linux/ioctl.h>
+> +
+> +#define ACPI_IOCTL_IDENT		'a'
+> +
+> +#define ACPI_IOCTL_DEBUGGER_FLUSH	_IO(ACPI_IOCTL_IDENT, 0x80)
+> +
+> +#endif /* _LINUX_ACPI_IOCTLS_H */
+> 
+
+Plus patches that change the ABI should be CCed to the ABI review list for,
+well, review.
 
 Thanks,
 Rafael
-
