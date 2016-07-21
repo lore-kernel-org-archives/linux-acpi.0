@@ -1,59 +1,233 @@
-From: Dmitry Torokhov <dmitry.torokhov@gmail.com>
-Subject: Re: [PATCH v4 1/2] ACPI / button: Add KEY_LID_OPEN/KEY_LID_CLOSE for
- new usage model
-Date: Thu, 21 Jul 2016 13:33:22 -0700
-Message-ID: <20160721203322.GB9841@dtor-ws>
-References: <cbdaec17aba78c61f466efff8883d49067f2dad5.1463472125.git.lv.zheng@intel.com>
- <1b96ee1e5b5ebbed0096adde410a9fd0b7930848.1468915808.git.lv.zheng@intel.com>
- <6943722.0LO9QHJXWg@vostro.rjw.lan>
+From: Linda Knippers <linda.knippers-ZPxbGqLxI0U@public.gmane.org>
+Subject: Re: [PATCH v2 3/3] nfit: do an ARS scrub on hitting a latent media
+ error
+Date: Thu, 21 Jul 2016 16:54:26 -0400
+Message-ID: <b8252ea0-2c3b-c26f-82c0-a3728f61d27d@hpe.com>
+References: <1469065850-32401-1-git-send-email-vishal.l.verma@intel.com>
+ <1469065850-32401-4-git-send-email-vishal.l.verma@intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-pa0-f68.google.com ([209.85.220.68]:34025 "EHLO
-	mail-pa0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753877AbcGUUd0 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 21 Jul 2016 16:33:26 -0400
-Content-Disposition: inline
-In-Reply-To: <6943722.0LO9QHJXWg@vostro.rjw.lan>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+In-Reply-To: <1469065850-32401-4-git-send-email-vishal.l.verma-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
+ <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
+List-Post: <mailto:linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+List-Help: <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
+ <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
+Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
+Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+To: Vishal Verma <vishal.l.verma-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
+Cc: linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Tony Luck <tony.luck-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "Rafael J. Wysocki" <rafael.j.wysocki-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: Lv Zheng <lv.zheng@intel.com>, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Len Brown <len.brown@intel.com>, Lv Zheng <zetalog@gmail.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Benjamin Tissoires <benjamin.tissoires@gmail.com>, "Bastien Nocera:" <hadess@hadess.net>, linux-input@vger.kernel.org
 
-On Thu, Jul 21, 2016 at 03:35:36PM +0200, Rafael J. Wysocki wrote:
-> On Tuesday, July 19, 2016 04:11:02 PM Lv Zheng wrote:
-> > There are many AML tables reporting wrong initial lid state, and some of
-> > them never report lid open state. As a proxy layer acting between, ACPI
-> > button driver is not able to handle all such cases, but need to re-define
-> > the usage model of the ACPI lid. That is:
-> > 1. It's initial state is not reliable;
-> > 2. There may not be an open event;
-> > 3. Userspace should only take action against the close event which is
-> >    reliable, always sent after a real lid close.
-> > 
-> > OTOH, using an input switch event for the lid device on such platforms can
-> > cause the loss of the close event, but the platforms purposely want to use
-> > these close events to trigger power saving actions.
-> > 
-> > So we need to introduce a new ABI, which is input key events based, not
-> > input switch events based.
-> > 
-> > This patch adds a set of new input key events so that the new userspace
-> > programs can use them to handle this usage model correctly. And in the
-> > meanwhile, the old input switch event is kept so that no old programs will
-> > be broken by the ABI change.
-> > 
-> > Signed-off-by: Lv Zheng <lv.zheng@intel.com>
-> > Cc: Dmitry Torokhov <dmitry.torokhov@gmail.com>
-> > Cc: Benjamin Tissoires <benjamin.tissoires@gmail.com>
-> > Cc: Bastien Nocera: <hadess@hadess.net>
-> > Cc: linux-input@vger.kernel.org
+
+
+On 7/20/2016 9:50 PM, Vishal Verma wrote:
+> When a latent (unknown to 'badblocks') error is encountered, it will
+> trigger a machine check exception. On a system with machine check
+> recovery, this will only SIGBUS the process(es) which had the bad page
+> mapped (as opposed to a kernel panic on platforms without machine
+> check recovery features). In the former case, we want to trigger a full
+> rescan of that nvdimm bus. This will allow any additional, new errors
+> to be captured in the block devices' badblocks lists, and offending
+> operations on them can be trapped early, avoiding machine checks.
+
+Do we really need to rescan all SPA ranges?  If the problem is with
+an NVDIMM, wouldn't the blast radius be the device or it's interleave set,
+which would be part of the same SPA range?
+
+I don't know what the overhead associated with a scan is which is why I'm asking.
+
+-- ljk
+
 > 
-> Dmitry, any objections here?
-
-Yes I have (see the other email).
-
-Thanks.
-
--- 
-Dmitry
+> This is done by registering a callback function with the
+> x86_mce_decoder_chain and calling the new ars_rescan functionality with
+> the address in the mce notificatiion.
+> 
+> Cc: Dan Williams <dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+> Cc: Rafael J. Wysocki <rafael.j.wysocki-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+> Cc: Tony Luck <tony.luck-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+> Cc: <linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+> Cc: <linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+> Signed-off-by: Vishal Verma <vishal.l.verma-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+> ---
+>  drivers/acpi/nfit.c | 89 +++++++++++++++++++++++++++++++++++++++++++++++++++++
+>  drivers/acpi/nfit.h |  1 +
+>  2 files changed, 90 insertions(+)
+> 
+> diff --git a/drivers/acpi/nfit.c b/drivers/acpi/nfit.c
+> index 4e65255..c9f1ee4 100644
+> --- a/drivers/acpi/nfit.c
+> +++ b/drivers/acpi/nfit.c
+> @@ -12,6 +12,7 @@
+>   */
+>  #include <linux/list_sort.h>
+>  #include <linux/libnvdimm.h>
+> +#include <linux/notifier.h>
+>  #include <linux/module.h>
+>  #include <linux/mutex.h>
+>  #include <linux/ndctl.h>
+> @@ -24,6 +25,7 @@
+>  #include <linux/io.h>
+>  #include <linux/nd.h>
+>  #include <asm/cacheflush.h>
+> +#include <asm/mce.h>
+>  #include "nfit.h"
+>  
+>  /*
+> @@ -51,6 +53,9 @@ module_param(disable_vendor_specific, bool, S_IRUGO);
+>  MODULE_PARM_DESC(disable_vendor_specific,
+>  		"Limit commands to the publicly specified set\n");
+>  
+> +static LIST_HEAD(acpi_descs);
+> +static DEFINE_MUTEX(acpi_desc_lock);
+> +
+>  static struct workqueue_struct *nfit_wq;
+>  
+>  struct nfit_table_prev {
+> @@ -2416,9 +2421,11 @@ static int acpi_nfit_check_deletions(struct acpi_nfit_desc *acpi_desc,
+>  
+>  int acpi_nfit_init(struct acpi_nfit_desc *acpi_desc, acpi_size sz)
+>  {
+> +	struct acpi_nfit_desc *acpi_desc_entry;
+>  	struct device *dev = acpi_desc->dev;
+>  	struct nfit_table_prev prev;
+>  	const void *end;
+> +	int found = 0;
+>  	u8 *data;
+>  	int rc;
+>  
+> @@ -2473,6 +2480,19 @@ int acpi_nfit_init(struct acpi_nfit_desc *acpi_desc, acpi_size sz)
+>  
+>  	rc = acpi_nfit_register_regions(acpi_desc);
+>  
+> +	/*
+> +	 * We may get here due to an update of the nfit via _FIT.
+> +	 * Check if the acpi_desc we're (re)initializing is already
+> +	 * present in the list, and if so, don't re-add it
+> +	 */
+> +	mutex_lock(&acpi_desc_lock);
+> +	list_for_each_entry(acpi_desc_entry, &acpi_descs, list)
+> +		if (acpi_desc_entry == acpi_desc)
+> +			found = 1;
+> +	if (found == 0)
+> +		list_add_tail(&acpi_desc->list, &acpi_descs);
+> +	mutex_unlock(&acpi_desc_lock);
+> +
+>   out_unlock:
+>  	mutex_unlock(&acpi_desc->init_mutex);
+>  	return rc;
+> @@ -2555,6 +2575,65 @@ static int acpi_nfit_ars_rescan(struct acpi_nfit_desc *acpi_desc)
+>  	return 0;
+>  }
+>  
+> +static int nfit_handle_mce(struct notifier_block *nb, unsigned long val,
+> +			void *data)
+> +{
+> +	struct mce *mce = (struct mce *)data;
+> +	struct acpi_nfit_desc *acpi_desc;
+> +	struct nfit_spa *nfit_spa;
+> +
+> +	/* We only care about memory errors */
+> +	if (!(mce->status & MCACOD))
+> +		return NOTIFY_DONE;
+> +
+> +	/*
+> +	 * mce->addr contains the physical addr accessed that caused the
+> +	 * machine check. We need to walk through the list of NFITs, and see
+> +	 * if any of them matches that address, and only then start a scrub.
+> +	 */
+> +	mutex_lock(&acpi_desc_lock);
+> +	list_for_each_entry(acpi_desc, &acpi_descs, list) {
+> +		struct device *dev = acpi_desc->dev;
+> +		int found_match = 0;
+> +
+> +		list_for_each_entry(nfit_spa, &acpi_desc->spas, list) {
+> +			struct acpi_nfit_system_address *spa = nfit_spa->spa;
+> +
+> +			if (nfit_spa_type(spa) != NFIT_SPA_PM)
+> +				continue;
+> +			/* find the spa that covers the mce addr */
+> +			if (spa->address > mce->addr)
+> +				continue;
+> +			if ((spa->address + spa->length - 1) < mce->addr)
+> +				continue;
+> +			found_match = 1;
+> +			dev_dbg(dev, "%s: addr in SPA %d (0x%llx, 0x%llx)\n",
+> +				__func__, spa->range_index, spa->address,
+> +				spa->length);
+> +			/*
+> +			 * We can break at the first match because we're going
+> +			 * to rescan all the SPA ranges. There shouldn't be any
+> +			 * aliasing anyway.
+> +			 */
+> +			break;
+> +		}
+> +
+> +		/*
+> +		 * We can ignore an -EBUSY here because if an ARS is already
+> +		 * in progress, just let that be the last authoritative one
+> +		 */
+> +		if (found_match)
+> +			acpi_nfit_ars_rescan(acpi_desc);
+> +	}
+> +
+> +	mutex_unlock(&acpi_desc_lock);
+> +	return NOTIFY_DONE;
+> +}
+> +
+> +static struct notifier_block nfit_mce_dec = {
+> +	.notifier_call	= nfit_handle_mce,
+> +};
+> +
+>  void acpi_nfit_desc_init(struct acpi_nfit_desc *acpi_desc, struct device *dev)
+>  {
+>  	struct nvdimm_bus_descriptor *nd_desc;
+> @@ -2676,6 +2755,9 @@ static int acpi_nfit_remove(struct acpi_device *adev)
+>  	flush_workqueue(nfit_wq);
+>  	sysfs_put(acpi_desc->scrub_count_state);
+>  	nvdimm_bus_unregister(acpi_desc->nvdimm_bus);
+> +	mutex_lock(&acpi_desc_lock);
+> +	list_del(&acpi_desc->list);
+> +	mutex_unlock(&acpi_desc_lock);
+>  	return 0;
+>  }
+>  
+> @@ -2782,13 +2864,20 @@ static __init int nfit_init(void)
+>  	if (!nfit_wq)
+>  		return -ENOMEM;
+>  
+> +	INIT_LIST_HEAD(&acpi_descs);
+> +	mce_register_decode_chain(&nfit_mce_dec);
+> +
+>  	return acpi_bus_register_driver(&acpi_nfit_driver);
+>  }
+>  
+>  static __exit void nfit_exit(void)
+>  {
+> +	mce_unregister_decode_chain(&nfit_mce_dec);
+>  	acpi_bus_unregister_driver(&acpi_nfit_driver);
+>  	destroy_workqueue(nfit_wq);
+> +	mutex_lock(&acpi_desc_lock);
+> +	WARN_ON(!list_empty(&acpi_descs));
+> +	mutex_unlock(&acpi_desc_lock);
+>  }
+>  
+>  module_init(nfit_init);
+> diff --git a/drivers/acpi/nfit.h b/drivers/acpi/nfit.h
+> index 954d2aa..d2aec6f 100644
+> --- a/drivers/acpi/nfit.h
+> +++ b/drivers/acpi/nfit.h
+> @@ -146,6 +146,7 @@ struct acpi_nfit_desc {
+>  	struct nd_cmd_ars_status *ars_status;
+>  	size_t ars_status_size;
+>  	struct work_struct work;
+> +	struct list_head list;
+>  	struct kernfs_node *scrub_count_state;
+>  	unsigned int scrub_count;
+>  	unsigned int cancel:1;
+> 
