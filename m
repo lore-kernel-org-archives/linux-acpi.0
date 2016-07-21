@@ -1,148 +1,85 @@
-From: Sudeep Holla <sudeep.holla@arm.com>
-Subject: Re: [PATCH v10 2/7] ACPI / processor_idle: Add support for Low Power
- Idle(LPI) states
-Date: Thu, 21 Jul 2016 16:55:27 +0100
-Message-ID: <8b69bd1a-a729-cca4-43f1-84ff4de111a4@arm.com>
-References: <1468950779-21745-1-git-send-email-sudeep.holla@arm.com>
- <1468950779-21745-3-git-send-email-sudeep.holla@arm.com>
- <21001224.LAfp2rRWeu@vostro.rjw.lan>
+From: Dan Williams <dan.j.williams@intel.com>
+Subject: Re: [PATCH v2 2/3] nfit, libnvdimm: allow an ARS scrub to be
+ triggered on demand
+Date: Thu, 21 Jul 2016 08:56:00 -0700
+Message-ID: <CAPcyv4jpmnGf6e_Akot4fuvckVZQAAnQmSLs8Ytd3sqHLj6UrQ@mail.gmail.com>
+References: <1469065850-32401-1-git-send-email-vishal.l.verma@intel.com> <1469065850-32401-3-git-send-email-vishal.l.verma@intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from foss.arm.com ([217.140.101.70]:48895 "EHLO foss.arm.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753100AbcGUPze (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 21 Jul 2016 11:55:34 -0400
-In-Reply-To: <21001224.LAfp2rRWeu@vostro.rjw.lan>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1469065850-32401-3-git-send-email-vishal.l.verma@intel.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Vishal Verma <vishal.l.verma@intel.com>
+Cc: "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Tony Luck <tony.luck@intel.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Linux ACPI <linux-acpi@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: Sudeep Holla <sudeep.holla@arm.com>, ACPI List <linux-acpi@vger.kernel.org>, Vikas Sajjan <vikas.cha.sajjan@hpe.com>, Sunil <sunil.vl@hpe.com>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, PrashanthPrakash <pprakash@codeaurora.org>, Al Stone <al.stone@linaro.org>, Ashwin Chaugule <ashwin.chaugule@linaro.org>, Daniel Lezcano <daniel.lezcano@linaro.org>, LKML <linux-kernel@vger.kernel.org>, ALKML <linux-arm-kernel@lists.infradead.org>
 
-
-
-On 21/07/16 14:34, Rafael J. Wysocki wrote:
-> On Tuesday, July 19, 2016 06:52:54 PM Sudeep Holla wrote:
->> ACPI 6.0 introduced an optional object _LPI that provides an alternate
->> method to describe Low Power Idle states. It defines the local power
->> states for each node in a hierarchical processor topology. The OSPM can
->> use _LPI object to select a local power state for each level of processor
->> hierarchy in the system. They used to produce a composite power state
->> request that is presented to the platform by the OSPM.
->>
->> Since multiple processors affect the idle state for any non-leaf hierarchy
->> node, coordination of idle state requests between the processors is
->> required. ACPI supports two different coordination schemes: Platform
->> coordinated and  OS initiated.
->>
->> This patch adds initial support for Platform coordination scheme of LPI.
->>
->> Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>
->> Signed-off-by: Sudeep Holla <sudeep.holla@arm.com>
->> ---
->>  drivers/acpi/bus.c              |  14 +-
->>  drivers/acpi/processor_driver.c |   2 +-
->>  drivers/acpi/processor_idle.c   | 462 +++++++++++++++++++++++++++++++++++-----
->>  include/acpi/processor.h        |  24 ++-
->>  include/linux/acpi.h            |   4 +
->>  5 files changed, 446 insertions(+), 60 deletions(-)
->>
+On Wed, Jul 20, 2016 at 6:50 PM, Vishal Verma <vishal.l.verma@intel.com> wrote:
+> Normally, an ARS (Address Range Scrub) only happens at
+> boot/initialization time. There can however arise situations where a
+> bus-wide rescan is needed - notably, in the case of discovering a latent
+> media error, we should do a full rescan to figure out what other sectors
+> are bad, and thus potentially avoid triggering an mce on them in the
+> future. Also provide a sysfs trigger to start a bus-wide scrub.
 >
-> [cut]
->
->> +static int acpi_processor_get_lpi_info(struct acpi_processor *pr)
->> +{
->> +	int ret, i;
->> +	acpi_status status;
->> +	acpi_handle handle = pr->handle, pr_ahandle;
->> +	struct acpi_device *d = NULL;
->> +	struct acpi_lpi_states_array info[2], *tmp, *prev, *curr;
->> +
->> +	if (!osc_pc_lpi_support_confirmed)
->> +		return -EOPNOTSUPP;
->> +
->> +	if (!acpi_has_method(handle, "_LPI"))
->> +		return -EINVAL;
->> +
->> +	flat_state_cnt = 0;
->> +	prev = &info[0];
->> +	curr = &info[1];
->> +	handle = pr->handle;
->> +	ret = acpi_processor_evaluate_lpi(handle, prev);
->> +	if (ret)
->> +		return ret;
->> +	flatten_lpi_states(pr, prev, NULL);
->> +
->> +	while (ACPI_SUCCESS(status = acpi_get_parent(handle, &pr_ahandle))) {
->
-> I should have mentioned that earlier, but forgot, sorry about that.
->
-> Assignments under while () etc are generally discouraged as (a) error-prone
-> and (b) confusing to static analysis tools.
->
-> So I'd do
->
-> 	status = acpi_get_parent(handle, &pr_ahandle);
-> 	while (ACPI_SUCCESS(status)) {
+> Cc: Dan Williams <dan.j.williams@intel.com>
+> Cc: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+> Cc: <linux-acpi@vger.kernel.org>
+> Cc: <linux-nvdimm@lists.01.org>
+> Signed-off-by: Vishal Verma <vishal.l.verma@intel.com>
+> ---
+>  drivers/acpi/nfit.c              | 123 +++++++++++++++++++++++++++++++++------
+>  drivers/acpi/nfit.h              |   4 +-
+>  drivers/nvdimm/core.c            |   7 +++
+>  include/linux/libnvdimm.h        |   1 +
+>  tools/testing/nvdimm/test/nfit.c |  16 +++++
+>  5 files changed, 131 insertions(+), 20 deletions(-)
 >
 
-Sure, will update accordingly.
+Looks good, just a couple nits:
 
->> +		acpi_bus_get_device(pr_ahandle, &d);
->> +		handle = pr_ahandle;
->> +
->> +		if (strcmp(acpi_device_hid(d), ACPI_PROCESSOR_CONTAINER_HID))
->> +			break;
->> +
->> +		/* can be optional ? */
->> +		if (!acpi_has_method(handle, "_LPI"))
->> +			break;
->> +
->> +		ret = acpi_processor_evaluate_lpi(handle, curr);
->> +		if (ret)
->> +			break;
->> +
->> +		/* flatten all the LPI states in this level of hierarchy */
->> +		flatten_lpi_states(pr, curr, prev);
->> +
->> +		tmp = prev, prev = curr, curr = tmp;
+[..]
+> @@ -2138,7 +2172,7 @@ static void acpi_nfit_async_scrub(struct acpi_nfit_desc *acpi_desc,
+>         unsigned int tmo = scrub_timeout;
+>         int rc;
 >
+> -       if (nfit_spa->ars_done || !nfit_spa->nd_region)
+> +       if (!(nfit_spa->ars_required && nfit_spa->nd_region))
+>                 return;
+
+Why is nd_region part of this check?  Can't this just be:
+
+    if (!nfit_spa->ars_requested)
+        return;
+
+[..]
 >
-> 		status = acpi_get_parent(handle, &pr_ahandle);
->> +	}
->> +
->
+> +static struct acpi_nfit_desc *acpi_nfit_desc_alloc_register(struct device *dev)
+> +{
+> +       struct acpi_nfit_desc *acpi_desc;
+> +       struct kernfs_node *nfit;
+> +       struct device *bus_dev;
+> +
+> +       acpi_desc = devm_kzalloc(dev, sizeof(*acpi_desc), GFP_KERNEL);
+> +       if (!acpi_desc)
+> +               return ERR_PTR(-ENOMEM);
+> +
+> +       acpi_nfit_desc_init(acpi_desc, dev);
+> +
+> +       acpi_desc->nvdimm_bus = nvdimm_bus_register(dev, &acpi_desc->nd_desc);
+> +       if (!acpi_desc->nvdimm_bus)
+> +               return ERR_PTR(-ENOMEM);
+> +
+> +       bus_dev = to_nvdimm_bus_dev(acpi_desc->nvdimm_bus);
+> +       nfit = sysfs_get_dirent(bus_dev->kobj.sd, "nfit");
+> +       if (!nfit) {
+> +               dev_err(dev, "sysfs_get_dirent 'nfit' failed\n");
+> +               return ERR_PTR(-ENODEV);
+> +       }
+> +       acpi_desc->scrub_count_state = sysfs_get_dirent(nfit, "scrub");
 
-OK
+Missing sysfs_put(nfit) here?
 
-> Apart from this the patch looks OK to me, so please only update this one
-> and I'll queue up the series.
->
-
-Thanks, will do it shortly.
-
-Also I found a bug in my testing creating some fake tables to test this
-non-recursive logic. I have missed a pointer update in the inner loop. I
-will include the below one liner in the update.
-
-
--->8
-
-diff --git i/drivers/acpi/processor_idle.c w/drivers/acpi/processor_idle.c
-index fced1df535bd..c8800b55268d 100644
---- i/drivers/acpi/processor_idle.c
-+++ w/drivers/acpi/processor_idle.c
-@@ -1142,6 +1142,7 @@ static int flatten_lpi_states(struct 
-acpi_processor *pr,
-                             combine_lpi_states(p, t, flpi)) {
-                                 stash_composite_state(curr_level, flpi);
-                                 flat_state_cnt++;
-+                               flpi++;
-                         }
-                 }
-         }
-
--- 
-Regards,
-Sudeep
+> +       if (!acpi_desc->scrub_count_state) {
+> +               dev_err(dev, "sysfs_get_dirent 'scrub' failed\n");
+> +               return ERR_PTR(-ENODEV);
+> +       }
