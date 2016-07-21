@@ -1,242 +1,132 @@
-From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: ACPI device using sub-resource of PCI device
-Date: Thu, 21 Jul 2016 02:40:53 +0200
-Message-ID: <9194227.5BmSSJ8mhr@vostro.rjw.lan>
-References: <CAE2855tofJV=HV2dYuC+1=pi2mb942zrRF7f0+wqxPPay44RGA@mail.gmail.com> <1787767.fkqrmkTfXg@vostro.rjw.lan> <CAE2855vSk3Pawuzj_Zs=ztia3EeEhd_NbFU=_1TxZyq7w83uVA@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7Bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cloudserver094114.home.net.pl ([79.96.170.134]:55083 "HELO
-	cloudserver094114.home.net.pl" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with SMTP id S1753019AbcGUAgA (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 20 Jul 2016 20:36:00 -0400
-In-Reply-To: <CAE2855vSk3Pawuzj_Zs=ztia3EeEhd_NbFU=_1TxZyq7w83uVA@mail.gmail.com>
-Sender: linux-acpi-owner@vger.kernel.org
+From: Namhyung Kim <namhyung-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Subject: [PATCH v3 1/2] pstore: Split pstore fragile flags
+Date: Thu, 21 Jul 2016 09:59:17 +0900
+Message-ID: <1469062758-1190-1-git-send-email-namhyung@kernel.org>
+Return-path: <linux-efi-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: linux-efi-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Kees Cook <keescook-F7+t8E8rja9g9hUCZPvPmw@public.gmane.org>
+Cc: LKML <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Anton Vorontsov <anton-9xeibp6oKSgdnm+yROfE0A@public.gmane.org>, Colin Cross <ccross-z5hGa2qSFaRBDgjK7y7TUQ@public.gmane.org>, Tony Luck <tony.luck-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "Rafael J. Wysocki" <rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org>, Len Brown <lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Matt Fleming <matt-mF/unelCI9GS6iBeEJttW/XRex20P6io@public.gmane.org>, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-efi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
-To: Aaron Durbin <adurbin@google.com>
-Cc: Bjorn Helgaas <helgaas@kernel.org>, "Rafael J. Wysocki" <rafael@kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux PCI <linux-pci@vger.kernel.org>
 
-On Wednesday, July 20, 2016 06:02:08 PM Aaron Durbin wrote:
-> On Wed, Jul 20, 2016 at 5:46 PM, Rafael J. Wysocki <rjw@rjwysocki.net> wrote:
-> > On Wednesday, July 20, 2016 02:35:43 PM Bjorn Helgaas wrote:
-> >> On Tue, Jun 28, 2016 at 09:41:19PM -0700, Aaron Durbin wrote:
-> >> > On Fri, Jun 24, 2016 at 12:34 PM, Aaron Durbin <adurbin@google.com> wrote:
-> >> > > On Tue, Jun 14, 2016 at 12:04 PM, Aaron Durbin <adurbin@google.com> wrote:
-> >> > >> On Wed, May 18, 2016 at 3:32 PM, Aaron Durbin <adurbin@google.com> wrote:
-> >> > >>> On Wed, May 18, 2016 at 4:25 PM, Rafael J. Wysocki <rafael@kernel.org> wrote:
-> >> > >>>> On Wed, May 18, 2016 at 5:54 PM, Aaron Durbin <adurbin@google.com> wrote:
-> >> > >>>>> Hi,
-> >> > >>>>>
-> >> > >>>>> We're currently running into a problem of resource conflicts with a
-> >> > >>>>> PCI device and ACPI devices.
-> >> > >>>>>
-> >> > >>>>> [    0.243534] pci 0000:00:0d.0: can't claim BAR 0 [mem
-> >> > >>>>> 0xd0000000-0xd0ffffff 64bit]: address conflict with INT3452:03 [mem
-> >> > >>>>> 0xd0c00000-0xd0c03fff]
-> >> > >>>>>
-> >> > >>>>> The PCI BAR covers a large amount mmio resources, however, there are
-> >> > >>>>> ACPI devices with their own HID (for probing) which uses resources
-> >> > >>>>> that are a subset of the PCI BAR.
-> >> > >>>>>
-> >> > >>>>> Short of re-structuring the linux driver is there anything that can be
-> >> > >>>>> done with ASL to properly have the ACPI device use a sub-resource of
-> >> > >>>>> the PCI device during the ACPI/PCI probing?
-> >> > >>>>
-> >> > >>>> Do you have an ACPI device object corresponding to the PCI device?
-> >> > >>>
-> >> > >>> I've been debugging this by proxy, and I did request that test. The
-> >> > >>> following is the overall structure:
-> >> > >>>
-> >> > >>> scope (\_SB.PCI0) {
-> >> > >>>
-> >> > >>> Device (P2S)
-> >> > >>> {
-> >> > >>>         Name (_ADR, 0x000D0000)
-> >> > >>>         Device (GPO0)
-> >> > >>>         {
-> >> > >>>                 Name (_ADR, 0)
-> >> > >>>                 Name (_HID, "INT3452")
-> >> > >>>                 Name (_CID, "INT3452")
-> >> > >>>         }
-> >> > >>> }
-> >> > >>> }
-> >> > >>>
-> >> > >>> There are _STA methods in both Devices. The GP0 device has a _CRS
-> >> > >>> method which just returns a ResourceTemplate which is filled in with
-> >> > >>> static values. The PCI bar is at a fixed address from the firmware
-> >> > >>> which allows the fixed calculations. However there is no specific
-> >> > >>> reference to the P2S device's resources proper -- only the parent
-> >> > >>> child relationship within the ASL. I'm not sure how to directly say "I
-> >> > >>> want this sub-region of this other device's resource for my resource."
-> >> > >>> That seems like the right thing, but it's not clear if that's implied
-> >> > >>> by hierarchy of the devices.
-> >> > >>>
-> >> > >>> Lastly, if it helps, the kernel being used is based on v4.4 (no core
-> >> > >>> patches on top).
-> >> > >>>
-> >> > >>
-> >> > >> Hi Rafael,
-> >> > >>
-> >> > >> I haven't tried a newer kernel yet, but are you of the opinion that
-> >> > >> having the Devices as parent-child within the ASL should work? I'm
-> >> > >> wondering if there's already a patch in newer kernels that doesn't
-> >> > >> report the conflict and works as expected once there are child Devices
-> >> > >> under the P2S device.
-> >> > >>
-> >> > >
-> >> > > I've been looking at this more closely. A child ACPI device under a
-> >> > > ACPI PCI device doesn't change the resource conflict even when a _CRS
-> >> > > method is added to the ACPI PCI device.  Below is my sleuthing which
-> >> > > is probably not a surprise to anyone here, but please correct me where
-> >> > > I am wrong.
-> >> > >
-> >> > > acpi_init() and pci_subsys_init() are both subsys_initcalls during
-> >> > > boot up. I'm not sure if the ordering is dumb luck or not, but
-> >> > > acpi_init() is called prior to pci_subsys_init(). The conflict error
-> >> > > is spit out from pcibios_resource_survey() by way of pci_subsys_init()
-> >> > >  subsys_initcall. However, the PCI device scanning is kicked off prior
-> >> > > to this through acpi_scan_init() by way of acpi_init()
-> >> > > subsys_initcall.  The conflict error occurs because there's already
-> >> > > the child ACPI device in the resource tree. I'm not sure when/where
-> >> > > those ACPI devices' resources are added, but clearly they are sitting
-> >> > > in there since the conflict was found.
-> >>
-> >> I think the acpi_init()/pci_subsys_init() ordering is correct.  The
-> >> ACPI namespace is primary.  A PCI hierarchy originates at a PCI host
-> >> bridge in the ACPI namespace, so we should enumerate the ACPI
-> >> namespace first, and when we find a PCI host bridge, we should
-> >> enumerate the PCI devices below it.
-> >>
-> >> That said, I think it is correct mostly by accident and it would be
-> >> nice if it were more explicit.
-> >
-> > No, it isn't by accident.
-> >
-> > The enumeration of PCI devices under a PCI host bridge discovered via ACPI
-> > starts in acpi_pci_root_add() which quite explicitly is only called after
-> > enumerating the ACPI namespace entirely.
-> >
-> > acpi_bus_scan() has two passes now, one is to call acpi_bus_check_add() for
-> > all namespace objects and the other is the acpi_bus_attach() pass where
-> > all things like acpi_pci_root_add() are called.
-> >
-> >> > > Somewhere along the way a PCI device from a scan is linked with the
-> >> > > ACPI device for that same PCI device in sysfs.  This is with me
-> >> > > putting a _HID and _CID in the PCI ACPI device.
-> >> > > # readlink -f /sys/devices/LNXSYSTM:00/LNXSYBUS:00/PNP0A08:00/INT5A92:00/physical_node
-> >> > > /sys/devices/pci0000:00/0000:00:0d.0
-> >> > > # readlink -f /sys/devices/pci0000\:00/0000\:00\:0d.0/firmware_node/
-> >> > > /sys/devices/LNXSYSTM:00/LNXSYBUS:00/PNP0A08:00/INT5A92:00
-> >> > >
-> >> > > So the hierarchy is known eventually, but it's clearly not honored
-> >> > > when adding resources. The current ACPI support doesn't handle
-> >> > > PciBarTarget which initially sounds (from ACPI spec) like the way to
-> >> > > go for referencing a resource in a PCI device from an ACPI device.
-> >>
-> >> Yes, I think PCIBARTarget looks like the right way to do this.  It
-> >> doesn't *seem* like it'd be that hard to implement; have you looked
-> >> into that at all?
-> >>
-> >> Without PCIBARTarget, the AML contains fixed register addresses, so it
-> >> will break if Linux reassigns the BAR.
-> >
-> > Right.
-> >
-> >> > > So
-> >> > > that's out of the question currently, but maybe someone has a patch
-> >> > > for that? I don't think reordering the acpi_init() and
-> >> > > pci_subsys_init() would do anything different except change which
-> >> > > device discovers the conflict.
-> >> > >
-> >> > > Is there a way to honor the ACPI device hierarchy during resource
-> >> > > addition for the PCI devices? The conflict is found because of the
-> >> > > presence of a child device claiming resources through _CRS.
-> >> > > Alternatively, is there a good way to defer the probing of an ACPI
-> >> > > device until one knows PCI resources have been added?
-> >> > >
-> >> > > Any insights would be very helpful. Thank you.
-> >> >
-> >> > I stumbled upon the hierarchy connection. That's all handled with the
-> >> > platform_notify() end of things when device_add() is done on the pci
-> >> > device. I was thinking we could take advantage of this when adding
-> >> > resources, but a struct resource has no struct device. It's just a
-> >> > name description for the resource at hand. However, platform devices
-> >> > are added when the ACPI tree is parsed along with adding the resources
-> >> > associated with them (PciBarTarget would be helpful here) so those
-> >> > resources are sitting in the resource tree when PCI BARs are added.
-> >> >
-> >> > The following suggestion is sort of hacky, but it's the best I could
-> >> > come up with provided the currently supported infrastructure. In
-> >> > pci_claim_resource() do request_resource_conflict() as before. If it
-> >> > fails do the following: 1. check if the device has an ACPI companion.
-> >> > 2. For any children hanging off the ACPI companion device. check if
-> >> > that device's name matches the conflict resource's name. 3. If so,
-> >> > insert_resource_conflict() to place the BAR within the tree itself.
-> >>
-> >> I think the best solution would be to implement PCIBARTarget, but if
-> >> that's impossible, this seems like a plausible workaround.
-> >>
-> >> I don't know if the conflict would necessarily have to be with the
-> >> ACPI companion itself.  It seems like you could have some hierarchy of
-> >> ACPI devices where the leaf conflicts with a PCI BAR.  Maybe if a
-> >> resource of *any* ACPI device below a PCI host bridge conflicts with a
-> >> PCI BAR, we should insert the PCI BAR as a parent?
-> >>
-> >> And since moving that BAR would break the AML, we should probably mark
-> >> the BAR as IORESOURCE_PCI_FIXED.
-> >
-> > Isn't the problem a probe ordering issue, though?
-> 
-> No. Not just ordering. There's no parent-child relationship taken into
-> account when PCI devices are added to the resource tree. Deferring
-> adding an ACPI device's resources would likely fail similarly because
-> one doesn't take into account the proper parent. One lives in PCI land
-> -- the other in ACPI land.
+This patch adds new PSTORE_FLAGS for each pstore type so that they can
+be enabled separately.  This is a preparation for ongoing virtio-pstore
+work to support those types flexibly.
 
-What exactly do you mean by "PCI land" and "ACPI land"?
+The PSTORE_FLAGS_FRAGILE is changed to PSTORE_FLAGS_DMESG to preserve the
+original behavior.
 
-All PCI resources are derived from the host bridge ones that come from
-ACPI anyway.
+Cc: "Rafael J. Wysocki" <rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org>
+Cc: Len Brown <lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: Matt Fleming <matt-mF/unelCI9GS6iBeEJttW/XRex20P6io@public.gmane.org>
+Cc: linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: linux-efi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Signed-off-by: Namhyung Kim <namhyung-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+---
+ drivers/acpi/apei/erst.c          |  2 +-
+ drivers/firmware/efi/efi-pstore.c |  2 +-
+ fs/pstore/platform.c              | 21 +++++++++++++--------
+ fs/pstore/ram.c                   |  2 ++
+ include/linux/pstore.h            |  7 ++++++-
+ 5 files changed, 23 insertions(+), 11 deletions(-)
 
-> Currently, the issue is manifesting that the ACPI device's resources
-> are added into the resource tree. PCI devices the follow trying to add
-> their own resources. Conflicts ensue without taking into account the
-> proper hierarchy. To make matters worse, struct resource doesn't have
-> a struct device -- only a name. That means there's no way of knowing
-> who owns what resource. All that information is unavailable. That's
-> why the semi-hacky proposal was to see if there is an ACPI companion
-> device and see if it has children. If it's children's names match the
-> conflicting resource it's a good bet that the PCI device's resources
-> should be placed as the parent in the resource tree.
-
-That really looks like a broken hierarchy of devices somewhere.
-
-And one more thing: a struct acpi_device object is not a device in general
-(althogh some pieces of code in the kernel, arguably incorrectly, treat it
-this way).  It is an abstract representation of a firmware entity (a node
-in the ACPI namespace).
-
-There really should be a "physical device" thing corresponding to it and
-that should be a child of the PCI device object in question.
-
-> > Do we assign BARs for endpoints during enumeration or only when we find a
-> > matching driver?
-> 
-> BARs look to be assigned during enumeration. There's where conflicts
-> are found and resources reassigned in the current failing case.
-
-OK
-
-You seem to be saying that we insert some resources for ACPI device objects
-that correspond to the children of ACPI companions of PCI devices before we
-assign the BARs for their parent devices.
-
-To me, that sounds very suspicious.
-
-Where in the code are the ACPI resources inserted, exactly?
-
-Thanks,
-Rafael
-
+diff --git a/drivers/acpi/apei/erst.c b/drivers/acpi/apei/erst.c
+index 006c3894c6ea..f0cb7b0fbac8 100644
+--- a/drivers/acpi/apei/erst.c
++++ b/drivers/acpi/apei/erst.c
+@@ -937,7 +937,7 @@ static int erst_clearer(enum pstore_type_id type, u64 id, int count,
+ static struct pstore_info erst_info = {
+ 	.owner		= THIS_MODULE,
+ 	.name		= "erst",
+-	.flags		= PSTORE_FLAGS_FRAGILE,
++	.flags		= PSTORE_FLAGS_DMESG,
+ 	.open		= erst_open_pstore,
+ 	.close		= erst_close_pstore,
+ 	.read		= erst_reader,
+diff --git a/drivers/firmware/efi/efi-pstore.c b/drivers/firmware/efi/efi-pstore.c
+index eac76a79a880..dcb61a6f7ea7 100644
+--- a/drivers/firmware/efi/efi-pstore.c
++++ b/drivers/firmware/efi/efi-pstore.c
+@@ -356,7 +356,7 @@ static int efi_pstore_erase(enum pstore_type_id type, u64 id, int count,
+ static struct pstore_info efi_pstore_info = {
+ 	.owner		= THIS_MODULE,
+ 	.name		= "efi",
+-	.flags		= PSTORE_FLAGS_FRAGILE,
++	.flags		= PSTORE_FLAGS_DMESG,
+ 	.open		= efi_pstore_open,
+ 	.close		= efi_pstore_close,
+ 	.read		= efi_pstore_read,
+diff --git a/fs/pstore/platform.c b/fs/pstore/platform.c
+index 588461bb2dd4..6e86b7ea095d 100644
+--- a/fs/pstore/platform.c
++++ b/fs/pstore/platform.c
+@@ -467,13 +467,14 @@ int pstore_register(struct pstore_info *psi)
+ 	if (pstore_is_mounted())
+ 		pstore_get_records(0);
+ 
+-	pstore_register_kmsg();
+-
+-	if ((psi->flags & PSTORE_FLAGS_FRAGILE) == 0) {
++	if (psi->flags & PSTORE_FLAGS_DMESG)
++		pstore_register_kmsg();
++	if (psi->flags & PSTORE_FLAGS_CONSOLE)
+ 		pstore_register_console();
++	if (psi->flags & PSTORE_FLAGS_FTRACE)
+ 		pstore_register_ftrace();
++	if (psi->flags & PSTORE_FLAGS_PMSG)
+ 		pstore_register_pmsg();
+-	}
+ 
+ 	if (pstore_update_ms >= 0) {
+ 		pstore_timer.expires = jiffies +
+@@ -497,10 +498,14 @@ EXPORT_SYMBOL_GPL(pstore_register);
+ 
+ void pstore_unregister(struct pstore_info *psi)
+ {
+-	pstore_unregister_pmsg();
+-	pstore_unregister_ftrace();
+-	pstore_unregister_console();
+-	pstore_unregister_kmsg();
++	if (psi->flags & PSTORE_FLAGS_PMSG)
++		pstore_unregister_pmsg();
++	if (psi->flags & PSTORE_FLAGS_FTRACE)
++		pstore_unregister_ftrace();
++	if (psi->flags & PSTORE_FLAGS_CONSOLE)
++		pstore_unregister_console();
++	if (psi->flags & PSTORE_FLAGS_DMESG)
++		pstore_unregister_kmsg();
+ 
+ 	free_buf_for_compression();
+ 
+diff --git a/fs/pstore/ram.c b/fs/pstore/ram.c
+index bd9812e83461..d08bfd611b11 100644
+--- a/fs/pstore/ram.c
++++ b/fs/pstore/ram.c
+@@ -539,6 +539,8 @@ static int ramoops_probe(struct platform_device *pdev)
+ 		goto fail_clear;
+ 	}
+ 
++	cxt->pstore.flags = PSTORE_FLAGS_ALL;
++
+ 	err = pstore_register(&cxt->pstore);
+ 	if (err) {
+ 		pr_err("registering with pstore failed\n");
+diff --git a/include/linux/pstore.h b/include/linux/pstore.h
+index 831479f8df8f..3ba0c1af40e5 100644
+--- a/include/linux/pstore.h
++++ b/include/linux/pstore.h
+@@ -73,7 +73,12 @@ struct pstore_info {
+ 	void		*data;
+ };
+ 
+-#define	PSTORE_FLAGS_FRAGILE	1
++#define PSTORE_FLAGS_DMESG	(1 << 0)
++#define PSTORE_FLAGS_CONSOLE	(1 << 1)
++#define PSTORE_FLAGS_FTRACE	(1 << 2)
++#define PSTORE_FLAGS_PMSG	(1 << 3)
++
++#define PSTORE_FLAGS_ALL	((1 << 4) - 1)
+ 
+ extern int pstore_register(struct pstore_info *);
+ extern void pstore_unregister(struct pstore_info *);
+-- 
+2.8.0
