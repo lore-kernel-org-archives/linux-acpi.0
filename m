@@ -1,125 +1,164 @@
 From: Lv Zheng <lv.zheng@intel.com>
-Subject: [PATCH v3 2/3] tools/power/acpi/acpidbg: Use new flushing mechanism
-Date: Fri, 22 Jul 2016 12:17:05 +0800
-Message-ID: <b8d45e07cbdb73252e5b152bbf31afec321f5a1c.1469155242.git.lv.zheng@intel.com>
+Subject: [PATCH v3 3/3] tools/power/acpi/acpidbg: Add multi-commands support in batch mode
+Date: Fri, 22 Jul 2016 12:17:11 +0800
+Message-ID: <725757400a929d0c53c1c77c8d9dc77ce955070d.1469155242.git.lv.zheng@intel.com>
 References: <cover.1468464391.git.lv.zheng@intel.com> <cover.1469155242.git.lv.zheng@intel.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga11.intel.com ([192.55.52.93]:27842 "EHLO mga11.intel.com"
+Received: from mga02.intel.com ([134.134.136.20]:11721 "EHLO mga02.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751907AbcGVERJ (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 22 Jul 2016 00:17:09 -0400
+	id S1752508AbcGVERb (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 22 Jul 2016 00:17:31 -0400
 In-Reply-To: <cover.1469155242.git.lv.zheng@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <len.brown@intel.com>
 Cc: Lv Zheng <lv.zheng@intel.com>, Lv Zheng <zetalog@gmail.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
 
-This patch converts tools/power/acpi/tools/acpidbg/acpidbg to use the new
-flushing mechanism.
+This patch adds multi-commands support for the batch mode. The same mode
+can be seen in acpiexec.
+
+However people may think this is not useful for an in-kernel debugger,
+because the in-kernel debugger is always running, never exits. So we can
+run another command by running another acpidbg batch mode instance.
+
+But this mode should still be useful for acpidbg. The reason is: when the
+in-kernel debugger has entered the single-stepping mode, ending acpidbg
+(which closes the debugger IO interface) will lead to the end of the
+single-stepping mode.
+
+So we need the acpidbg multi-commands batch mode in order to execute
+multiple single-stepping mode commands in the batch mode.
 
 Signed-off-by: Lv Zheng <lv.zheng@intel.com>
 ---
- tools/power/acpi/tools/acpidbg/acpidbg.c |   51 ++++--------------------------
- 1 file changed, 7 insertions(+), 44 deletions(-)
+ tools/power/acpi/tools/acpidbg/acpidbg.c |   77 +++++++++++++++++++++++++-----
+ 1 file changed, 64 insertions(+), 13 deletions(-)
 
 diff --git a/tools/power/acpi/tools/acpidbg/acpidbg.c b/tools/power/acpi/tools/acpidbg/acpidbg.c
-index a88ac45..f5542b9 100644
+index f5542b9..99a8f766 100644
 --- a/tools/power/acpi/tools/acpidbg/acpidbg.c
 +++ b/tools/power/acpi/tools/acpidbg/acpidbg.c
-@@ -15,7 +15,9 @@
- #include <stdbool.h>
- #include <fcntl.h>
- #include <assert.h>
-+#include <sys/ioctl.h>
- #include <linux/circ_buf.h>
-+#include <uapi/linux/acpi-ioctls.h>
- 
- #define ACPI_AML_FILE		"/sys/kernel/debug/acpi/acpidbg"
- #define ACPI_AML_SEC_TICK	1
-@@ -83,7 +85,6 @@ static const char *acpi_aml_file_path = ACPI_AML_FILE;
- static unsigned long acpi_aml_mode = ACPI_AML_INTERACTIVE;
- static bool acpi_aml_exit;
- 
--static bool acpi_aml_batch_drain;
- static unsigned long acpi_aml_batch_state;
- static char acpi_aml_batch_prompt;
+@@ -90,6 +90,7 @@ static char acpi_aml_batch_prompt;
  static char acpi_aml_batch_roll;
-@@ -239,11 +240,9 @@ static int acpi_aml_write_batch_log(int fd, struct circ_buf *crc)
+ static unsigned long acpi_aml_log_state;
+ static char *acpi_aml_batch_cmd = NULL;
++static char *acpi_aml_batch_cmds = NULL;
+ static char *acpi_aml_batch_pos = NULL;
  
- 	p = &crc->buf[crc->tail];
- 	len = circ_count_to_end(crc);
--	if (!acpi_aml_batch_drain) {
--		len = write(fd, p, len);
--		if (len < 0)
--			perror("write");
--	}
-+	len = write(fd, p, len);
-+	if (len < 0)
-+		perror("write");
- 	if (len > 0)
- 		crc->tail = (crc->tail + len) & (ACPI_AML_BUF_SIZE - 1);
- 	return len;
-@@ -270,10 +269,7 @@ static void acpi_aml_loop(int fd)
- 	if (acpi_aml_mode == ACPI_AML_BATCH) {
- 		acpi_aml_log_state = ACPI_AML_LOG_START;
- 		acpi_aml_batch_pos = acpi_aml_batch_cmd;
--		if (acpi_aml_batch_drain)
--			acpi_aml_batch_state = ACPI_AML_BATCH_READ_LOG;
--		else
--			acpi_aml_batch_state = ACPI_AML_BATCH_WRITE_CMD;
-+		acpi_aml_batch_state = ACPI_AML_BATCH_WRITE_CMD;
- 	}
- 	acpi_aml_exit = false;
- 	while (!acpi_aml_exit) {
-@@ -330,39 +326,6 @@ static void acpi_aml_loop(int fd)
+ static int acpi_aml_set_fl(int fd, int flags)
+@@ -326,12 +327,65 @@ static void acpi_aml_loop(int fd)
  	}
  }
  
--static bool acpi_aml_readable(int fd)
--{
--	fd_set rfds;
--	struct timeval tv;
--	int ret;
--	int maxfd = 0;
--
--	tv.tv_sec = 0;
--	tv.tv_usec = ACPI_AML_USEC_PEEK;
--	FD_ZERO(&rfds);
--	maxfd = acpi_aml_set_fd(fd, maxfd, &rfds);
--	ret = select(maxfd+1, &rfds, NULL, NULL, &tv);
--	if (ret < 0)
--		perror("select");
--	if (ret > 0 && FD_ISSET(fd, &rfds))
--		return true;
--	return false;
--}
--
--/*
-- * This is a userspace IO flush implementation, replying on the prompt
-- * characters and can be turned into a flush() call after kernel implements
-- * .flush() filesystem operation.
-- */
--static void acpi_aml_flush(int fd)
--{
--	while (acpi_aml_readable(fd)) {
--		acpi_aml_batch_drain = true;
--		acpi_aml_loop(fd);
--		acpi_aml_batch_drain = false;
--	}
--}
--
++static void acpi_aml_delete_batch(void)
++{
++	if (acpi_aml_batch_cmd) {
++		free(acpi_aml_batch_cmd);
++		acpi_aml_batch_cmd = NULL;
++	}
++}
++
++static bool acpi_aml_create_batch(char *cmd)
++{
++	int len;
++
++	acpi_aml_delete_batch();
++	len = strlen(cmd);
++	acpi_aml_batch_cmd = calloc(len + 2, 1);
++	if (!acpi_aml_batch_cmd) {
++		perror("calloc");
++		return false;
++	}
++	memcpy(acpi_aml_batch_cmd, cmd, len);
++	acpi_aml_batch_cmd[len] = '\n';
++	return true;
++}
++
++static void acpi_aml_batch(int fd)
++{
++	char *ptr, *cmd;
++	bool run = false;
++
++	cmd = ptr = acpi_aml_batch_cmds;
++	while (*ptr) {
++		if (*ptr == ',') {
++			/* Convert commas to spaces */
++			*ptr = ' ';
++		} else if (*ptr == ';') {
++			*ptr = '\0';
++			run = true;
++		}
++		ptr++;
++		if (run || (*ptr == '\0')) {
++			if (!acpi_aml_create_batch(cmd))
++				return;
++			ioctl(fd, ACPI_IOCTL_DEBUGGER_FLUSH);
++			acpi_aml_loop(fd);
++			run = 0;
++			cmd = ptr;
++			acpi_aml_delete_batch();
++		}
++	}
++}
++
  void usage(FILE *file, char *progname)
  {
  	fprintf(file, "usage: %s [-b cmd] [-f file] [-h]\n", progname);
-@@ -426,7 +389,7 @@ int main(int argc, char **argv)
+ 	fprintf(file, "\nOptions:\n");
+-	fprintf(file, "  -b     Specify command to be executed in batch mode\n");
+-	fprintf(file, "  -f     Specify interface file other than");
++	fprintf(file, "  -b     Specify commands to be executed in batch mode\n");
++	fprintf(file, "         Use ';' as command delimiters\n");
++	fprintf(file, "         Use ',' as spaces\n");
++	fprintf(file, "  -f     Specify interface file other than\n");
+ 	fprintf(file, "         /sys/kernel/debug/acpi/acpidbg\n");
+ 	fprintf(file, "  -h     Print this help message\n");
+ }
+@@ -340,27 +394,23 @@ int main(int argc, char **argv)
+ {
+ 	int fd = -1;
+ 	int ch;
+-	int len;
+ 	int ret = EXIT_SUCCESS;
+ 
+ 	while ((ch = getopt(argc, argv, "b:f:h")) != -1) {
+ 		switch (ch) {
+ 		case 'b':
+-			if (acpi_aml_batch_cmd) {
++			if (acpi_aml_batch_cmds) {
+ 				fprintf(stderr, "Already specify %s\n",
+-					acpi_aml_batch_cmd);
++					acpi_aml_batch_cmds);
+ 				ret = EXIT_FAILURE;
+ 				goto exit;
+ 			}
+-			len = strlen(optarg);
+-			acpi_aml_batch_cmd = calloc(len + 2, 1);
+-			if (!acpi_aml_batch_cmd) {
+-				perror("calloc");
++			acpi_aml_batch_cmds = strdup(optarg);
++			if (!acpi_aml_batch_cmds) {
++				perror("strdup");
+ 				ret = EXIT_FAILURE;
+ 				goto exit;
+ 			}
+-			memcpy(acpi_aml_batch_cmd, optarg, len);
+-			acpi_aml_batch_cmd[len] = '\n';
+ 			acpi_aml_mode = ACPI_AML_BATCH;
+ 			break;
+ 		case 'f':
+@@ -389,8 +439,9 @@ int main(int argc, char **argv)
  	acpi_aml_set_fl(STDOUT_FILENO, O_NONBLOCK);
  
  	if (acpi_aml_mode == ACPI_AML_BATCH)
--		acpi_aml_flush(fd);
-+		ioctl(fd, ACPI_IOCTL_DEBUGGER_FLUSH);
- 	acpi_aml_loop(fd);
+-		ioctl(fd, ACPI_IOCTL_DEBUGGER_FLUSH);
+-	acpi_aml_loop(fd);
++		acpi_aml_batch(fd);
++	else
++		acpi_aml_loop(fd);
  
  exit:
+ 	if (fd >= 0)
 -- 
 1.7.10
 
