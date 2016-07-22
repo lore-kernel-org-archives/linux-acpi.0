@@ -1,164 +1,273 @@
-From: Lv Zheng <lv.zheng@intel.com>
-Subject: [PATCH v3 3/3] tools/power/acpi/acpidbg: Add multi-commands support in batch mode
-Date: Fri, 22 Jul 2016 12:17:11 +0800
-Message-ID: <725757400a929d0c53c1c77c8d9dc77ce955070d.1469155242.git.lv.zheng@intel.com>
-References: <cover.1468464391.git.lv.zheng@intel.com> <cover.1469155242.git.lv.zheng@intel.com>
+From: Dmitry Torokhov <dmitry.torokhov@gmail.com>
+Subject: Re: [PATCH v4 2/2] ACPI / button: Add document for ACPI control
+ method lid device restrictions
+Date: Thu, 21 Jul 2016 21:37:07 -0700
+Message-ID: <20160722043707.GB7060@dtor-ws>
+References: <cbdaec17aba78c61f466efff8883d49067f2dad5.1463472125.git.lv.zheng@intel.com>
+ <84ca7337d20620946b671f212abfc82698ddcbf4.1468915808.git.lv.zheng@intel.com>
+ <20160721203246.GA9841@dtor-ws>
+ <1AE640813FDE7649BE1B193DEA596E883BC05AAA@SHSMSX101.ccr.corp.intel.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga02.intel.com ([134.134.136.20]:11721 "EHLO mga02.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752508AbcGVERb (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 22 Jul 2016 00:17:31 -0400
-In-Reply-To: <cover.1469155242.git.lv.zheng@intel.com>
+Received: from mail-pf0-f196.google.com ([209.85.192.196]:35457 "EHLO
+	mail-pf0-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750789AbcGVEhL (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 22 Jul 2016 00:37:11 -0400
+Content-Disposition: inline
+In-Reply-To: <1AE640813FDE7649BE1B193DEA596E883BC05AAA@SHSMSX101.ccr.corp.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <len.brown@intel.com>
-Cc: Lv Zheng <lv.zheng@intel.com>, Lv Zheng <zetalog@gmail.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
+To: "Zheng, Lv" <lv.zheng@intel.com>
+Cc: "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, "Brown, Len" <len.brown@intel.com>, Lv Zheng <zetalog@gmail.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Benjamin Tissoires <benjamin.tissoires@gmail.com>, "Bastien Nocera:" <hadess@hadess.net>, "linux-input@vger.kernel.org" <linux-input@vger.kernel.org>
 
-This patch adds multi-commands support for the batch mode. The same mode
-can be seen in acpiexec.
+Hi Lv,
 
-However people may think this is not useful for an in-kernel debugger,
-because the in-kernel debugger is always running, never exits. So we can
-run another command by running another acpidbg batch mode instance.
+On Fri, Jul 22, 2016 at 12:24:50AM +0000, Zheng, Lv wrote:
+> Hi, Dmitry
+> 
+> 
+> Thanks for the review.
+> 
+> > From: Dmitry Torokhov [mailto:dmitry.torokhov@gmail.com]
+> > Subject: Re: [PATCH v4 2/2] ACPI / button: Add document for ACPI control
+> > method lid device restrictions
+> > 
+> > On Tue, Jul 19, 2016 at 04:11:21PM +0800, Lv Zheng wrote:
+> > > This patch adds documentation for the usage model of the control
+> > method lid
+> > > device.
+> > >
+> > > Signed-off-by: Lv Zheng <lv.zheng@intel.com>
+> > > Cc: Dmitry Torokhov <dmitry.torokhov@gmail.com>
+> > > Cc: Benjamin Tissoires <benjamin.tissoires@gmail.com>
+> > > Cc: Bastien Nocera: <hadess@hadess.net>
+> > > Cc: linux-input@vger.kernel.org
+> > > ---
+> > >  Documentation/acpi/acpi-lid.txt |   89
+> > +++++++++++++++++++++++++++++++++++++++
+> > >  1 file changed, 89 insertions(+)
+> > >  create mode 100644 Documentation/acpi/acpi-lid.txt
+> > >
+> > > diff --git a/Documentation/acpi/acpi-lid.txt b/Documentation/acpi/acpi-
+> > lid.txt
+> > > new file mode 100644
+> > > index 0000000..2addedc
+> > > --- /dev/null
+> > > +++ b/Documentation/acpi/acpi-lid.txt
+> > > @@ -0,0 +1,89 @@
+> > > +Usage Model of the ACPI Control Method Lid Device
+> > > +
+> > > +Copyright (C) 2016, Intel Corporation
+> > > +Author: Lv Zheng <lv.zheng@intel.com>
+> > > +
+> > > +
+> > > +Abstract:
+> > > +
+> > > +Platforms containing lids convey lid state (open/close) to OSPMs using
+> > a
+> > > +control method lid device. To implement this, the AML tables issue
+> > > +Notify(lid_device, 0x80) to notify the OSPMs whenever the lid state has
+> > > +changed. The _LID control method for the lid device must be
+> > implemented to
+> > > +report the "current" state of the lid as either "opened" or "closed".
+> > > +
+> > > +This document describes the restrictions and the expections of the
+> > Linux
+> > > +ACPI lid device driver.
+> > > +
+> > > +
+> > > +1. Restrictions of the returning value of the _LID control method
+> > > +
+> > > +The _LID control method is described to return the "current" lid state.
+> > > +However the word of "current" has ambiguity, many AML tables return
+> > the lid
+> > 
+> > Can this be fixed in the next ACPI revision?
+> [Lv Zheng] 
+> Even this is fixed in the ACPI specification, there are platforms already doing this.
+> Especially platforms from Microsoft.
+> So the de-facto standard OS won't care about the change.
+> And we can still see such platforms.
+> 
+> Here is an example from Surface 3:
+> 
+> DefinitionBlock ("dsdt.aml", "DSDT", 2, "ALASKA", "A M I ", 0x01072009)
+> {
+>     Scope (_SB)
+>     {
+>         Device (PCI0)
+>         {
+>             Name (_HID, EisaId ("PNP0A08"))  // _HID: Hardware ID
+>             Name (_CID, EisaId ("PNP0A03"))  // _CID: Compatible ID
+>             Device (SPI1)
+>             {
+>                 Name (_HID, "8086228E")  // _HID: Hardware ID
+>                 Device (NTRG)
+>                 {
+>                     Name (_HID, "MSHW0037")  // _HID: Hardware ID
+>                 }
+>             }
+>         }
+> 
+>         Device (LID)
+>         {
+>             Name (_HID, EisaId ("PNP0C0D"))
+>             Name (LIDB, Zero)
 
-But this mode should still be useful for acpidbg. The reason is: when the
-in-kernel debugger has entered the single-stepping mode, ending acpidbg
-(which closes the debugger IO interface) will lead to the end of the
-single-stepping mode.
+Start with lid closed? In any case might be wrong.
 
-So we need the acpidbg multi-commands batch mode in order to execute
-multiple single-stepping mode commands in the batch mode.
+>             Method (_LID, 0, NotSerialized)
+>             {
+>                 Return (LIDB)
 
-Signed-off-by: Lv Zheng <lv.zheng@intel.com>
----
- tools/power/acpi/tools/acpidbg/acpidbg.c |   77 +++++++++++++++++++++++++-----
- 1 file changed, 64 insertions(+), 13 deletions(-)
+So "_LID" returns the last state read by "_EC4". "_EC4" is
+edge-triggered and will be evaluated every time gpio changes state.
 
-diff --git a/tools/power/acpi/tools/acpidbg/acpidbg.c b/tools/power/acpi/tools/acpidbg/acpidbg.c
-index f5542b9..99a8f766 100644
---- a/tools/power/acpi/tools/acpidbg/acpidbg.c
-+++ b/tools/power/acpi/tools/acpidbg/acpidbg.c
-@@ -90,6 +90,7 @@ static char acpi_aml_batch_prompt;
- static char acpi_aml_batch_roll;
- static unsigned long acpi_aml_log_state;
- static char *acpi_aml_batch_cmd = NULL;
-+static char *acpi_aml_batch_cmds = NULL;
- static char *acpi_aml_batch_pos = NULL;
- 
- static int acpi_aml_set_fl(int fd, int flags)
-@@ -326,12 +327,65 @@ static void acpi_aml_loop(int fd)
- 	}
- }
- 
-+static void acpi_aml_delete_batch(void)
-+{
-+	if (acpi_aml_batch_cmd) {
-+		free(acpi_aml_batch_cmd);
-+		acpi_aml_batch_cmd = NULL;
-+	}
-+}
-+
-+static bool acpi_aml_create_batch(char *cmd)
-+{
-+	int len;
-+
-+	acpi_aml_delete_batch();
-+	len = strlen(cmd);
-+	acpi_aml_batch_cmd = calloc(len + 2, 1);
-+	if (!acpi_aml_batch_cmd) {
-+		perror("calloc");
-+		return false;
-+	}
-+	memcpy(acpi_aml_batch_cmd, cmd, len);
-+	acpi_aml_batch_cmd[len] = '\n';
-+	return true;
-+}
-+
-+static void acpi_aml_batch(int fd)
-+{
-+	char *ptr, *cmd;
-+	bool run = false;
-+
-+	cmd = ptr = acpi_aml_batch_cmds;
-+	while (*ptr) {
-+		if (*ptr == ',') {
-+			/* Convert commas to spaces */
-+			*ptr = ' ';
-+		} else if (*ptr == ';') {
-+			*ptr = '\0';
-+			run = true;
-+		}
-+		ptr++;
-+		if (run || (*ptr == '\0')) {
-+			if (!acpi_aml_create_batch(cmd))
-+				return;
-+			ioctl(fd, ACPI_IOCTL_DEBUGGER_FLUSH);
-+			acpi_aml_loop(fd);
-+			run = 0;
-+			cmd = ptr;
-+			acpi_aml_delete_batch();
-+		}
-+	}
-+}
-+
- void usage(FILE *file, char *progname)
- {
- 	fprintf(file, "usage: %s [-b cmd] [-f file] [-h]\n", progname);
- 	fprintf(file, "\nOptions:\n");
--	fprintf(file, "  -b     Specify command to be executed in batch mode\n");
--	fprintf(file, "  -f     Specify interface file other than");
-+	fprintf(file, "  -b     Specify commands to be executed in batch mode\n");
-+	fprintf(file, "         Use ';' as command delimiters\n");
-+	fprintf(file, "         Use ',' as spaces\n");
-+	fprintf(file, "  -f     Specify interface file other than\n");
- 	fprintf(file, "         /sys/kernel/debug/acpi/acpidbg\n");
- 	fprintf(file, "  -h     Print this help message\n");
- }
-@@ -340,27 +394,23 @@ int main(int argc, char **argv)
- {
- 	int fd = -1;
- 	int ch;
--	int len;
- 	int ret = EXIT_SUCCESS;
- 
- 	while ((ch = getopt(argc, argv, "b:f:h")) != -1) {
- 		switch (ch) {
- 		case 'b':
--			if (acpi_aml_batch_cmd) {
-+			if (acpi_aml_batch_cmds) {
- 				fprintf(stderr, "Already specify %s\n",
--					acpi_aml_batch_cmd);
-+					acpi_aml_batch_cmds);
- 				ret = EXIT_FAILURE;
- 				goto exit;
- 			}
--			len = strlen(optarg);
--			acpi_aml_batch_cmd = calloc(len + 2, 1);
--			if (!acpi_aml_batch_cmd) {
--				perror("calloc");
-+			acpi_aml_batch_cmds = strdup(optarg);
-+			if (!acpi_aml_batch_cmds) {
-+				perror("strdup");
- 				ret = EXIT_FAILURE;
- 				goto exit;
- 			}
--			memcpy(acpi_aml_batch_cmd, optarg, len);
--			acpi_aml_batch_cmd[len] = '\n';
- 			acpi_aml_mode = ACPI_AML_BATCH;
- 			break;
- 		case 'f':
-@@ -389,8 +439,9 @@ int main(int argc, char **argv)
- 	acpi_aml_set_fl(STDOUT_FILENO, O_NONBLOCK);
- 
- 	if (acpi_aml_mode == ACPI_AML_BATCH)
--		ioctl(fd, ACPI_IOCTL_DEBUGGER_FLUSH);
--	acpi_aml_loop(fd);
-+		acpi_aml_batch(fd);
-+	else
-+		acpi_aml_loop(fd);
- 
- exit:
- 	if (fd >= 0)
+>             }
+>         }
+> 
+>         Device (GPO0)
+>         {
+>             Name (_HID, "INT33FF")  // _HID: Hardware ID
+>             OperationRegion (GPOR, GeneralPurposeIo, Zero, One)
+>             Field (GPOR, ByteAcc, NoLock, Preserve)
+>             {
+>                 Connection (
+>                     GpioIo (Shared, PullNone, 0x0000, 0x0000, IoRestrictionNone,
+>                         "\\_SB.GPO0", 0x00, ResourceConsumer, ,
+>                         )
+>                         {   // Pin list
+>                             0x004C
+>                         }
+>                 ), 
+>                 HELD,   1
+
+Is it possible to read state of this GPIO from userspace on startup to
+correct the initial state?
+
+>             }
+>             Method (_E4C, 0, Serialized)
+>             {
+>                 If (LEqual(HELD, One))
+>                 {
+>                     Store(One, ^^LID.LIDB)
+> 
+> There is no "open" event generated by "Surface 3".
+
+Right so we update the state correctly, we just forgot to send the
+notification. Nothing that polling can't fix.
+
+> 
+>                 }
+>                 Else
+>                 {
+>                     Store(Zero, ^^LID.LIDB)
+>                     Notify (LID, 0x80)
+> 
+> There is only "close" event generated by "Surface 3".
+> Thus they are not paired.
+> 
+>                 }
+>                 Notify (^^PCI0.SPI1.NTRG, One) // Device Check
+>             }
+>         }
+>     }
+> }
+> 
+> > 
+> > > +state upon the last lid notification instead of returning the lid state
+> > > +upon the last _LID evaluation. There won't be difference when the _LID
+> > > +control method is evaluated during the runtime, the problem is its
+> > initial
+> > > +returning value. When the AML tables implement this control method
+> > with
+> > > +cached value, the initial returning value is likely not reliable. There are
+> > > +simply so many examples always retuning "closed" as initial lid state.
+> > > +
+> > > +2. Restrictions of the lid state change notifications
+> > > +
+> > > +There are many AML tables never notifying when the lid device state is
+> > > +changed to "opened". Thus the "opened" notification is not guaranteed.
+> > > +
+> > > +But it is guaranteed that the AML tables always notify "closed" when
+> > the
+> > > +lid state is changed to "closed". The "closed" notification is normally
+> > > +used to trigger some system power saving operations on Windows.
+> > Since it is
+> > > +fully tested, the "closed" notification is reliable for all AML tables.
+> > > +
+> > > +3. Expections for the userspace users of the ACPI lid device driver
+> > > +
+> > > +The ACPI button driver exports the lid state to the userspace via the
+> > > +following file:
+> > > +  /proc/acpi/button/lid/LID0/state
+> > > +This file actually calls the _LID control method described above. And
+> > given
+> > > +the previous explanation, it is not reliable enough on some platforms.
+> > So
+> > > +it is advised for the userspace program to not to solely rely on this file
+> > > +to determine the actual lid state.
+> > > +
+> > > +The ACPI button driver emits 2 kinds of events to the user space:
+> > > +  SW_LID
+> > > +   When the lid state/event is reliable, the userspace can behave
+> > > +   according to this input switch event.
+> > > +   This is a mode prepared for backward compatiblity.
+> > > +  KEY_EVENT_OPEN/KEY_EVENT_CLOSE
+> > > +   When the lid state/event is not reliable, the userspace should behave
+> > > +   according to these 2 input key events.
+> > > +   New userspace programs may only be prepared for the input key
+> > events.
+> > 
+> > No, absolutely not. If some x86 vendors managed to mess up their
+> > firmware implementations that does not mean that everyone now has to
+> > abandon working perfectly well for them SW_LID events and rush to
+> > switch
+> > to a brand new event.
+> [Lv Zheng] 
+> However there is no clear wording in the ACPI specification asking the vendors to achieve paired lid events.
+> 
+> > 
+> > Apparently were are a few issues, main is that some systems not reporting
+> > "open" event. This can be dealt with by userspace "writing" to the
+> > lid's evdev device EV_SW/SW_LID/0 event upon system resume (and
+> > startup)
+> > for selected systems. This will mean that if system wakes up not because
+> > LID is open we'll incorrectly assume that it is, but we can either add
+> > more smarts to the process emitting SW_LID event or simply say "well,
+> > tough, the hardware is crappy" and bug vendor to see if they can fix the
+> > issue (if not for current firmware them for next).
+> [Lv Zheng] 
+> The problem is there is no vendor actually caring about fixing this "issue".
+> Because Windows works well with their firmware.
+> Then finally becomes a big table customization business for our team.
+
+Well, OK. But you do not expect that we will redo up and down the stack
+lid handling just because MS messed up DSDT on Surface 3? No, let them
+know (they now care about Linux, right?) so Surface 4 works and quirk
+the behavior for Surface 3.
+
+> 
+> > 
+> > As an additional workaround, we can toggle the LID switch off and on
+> > when we get notification, much like your proposed patch does for the key
+> > events.
+> [Lv Zheng] 
+> I think this is doable, I'll refresh my patchset to address your this comment.
+> By inserting open/close events when next close/open event arrives after a certain period,
+> this may fix some issues for the old programs.
+> Where user may be required to open/close lid twice to trigger 2nd suspend.
+> 
+> However, this still cannot fix the problems like "Surface 3".
+> We'll still need a new usage model for such platforms (no open event).
+
+No, for surface 3 you simply need to add polling of "_LID" method to the
+button driver.
+
+What are the other devices that mess up lid handling?
+
+Thanks.
+
 -- 
-1.7.10
-
+Dmitry
