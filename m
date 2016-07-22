@@ -1,39 +1,172 @@
-From: Robert Richter <rric@kernel.org>
-Subject: Re: [RFC PATCH v4 3/5] PCI: Check platform specific ECAM quirks
-Date: Fri, 22 Jul 2016 14:11:00 +0200
-Message-ID: <20160722121100.GN25086@rric.localdomain>
-References: <1467100442-28078-1-git-send-email-tn@semihalf.com>
- <1467100442-28078-4-git-send-email-tn@semihalf.com>
- <577275EA.7010002@codeaurora.org>
- <CADaLNDkhPZuG7UJ4SK_j5v_nXbd782Q17LAcXduG0uEObaFF=g@mail.gmail.com>
- <5773A773.8040700@semihalf.com>
- <5773CE49.1050802@codeaurora.org>
- <CAKv+Gu9=0=qw70o1aYNg=tDyv4TguiG2WwXNK8RbWM1-ZcabUg@mail.gmail.com>
- <20160722113809.GM25086@rric.localdomain>
- <CAKv+Gu9jfHGF3Z=_yA2rR9v3MGWptom4x1Mm=eGxmB0xoBpqoA@mail.gmail.com>
+From: joeyli <jlee@suse.com>
+Subject: Re: [PATCH 2/2] nfit, tools/testing/nvdimm/: unify shutdown paths
+Date: Fri, 22 Jul 2016 20:41:41 +0800
+Message-ID: <20160722124141.GI12939@linux-rxt1.site>
+References: <146915794457.7201.5023729229431647060.stgit@dwillia2-desk3.amr.corp.intel.com>
+ <146915794992.7201.150642033798020654.stgit@dwillia2-desk3.amr.corp.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-pci-owner@vger.kernel.org>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from smtp.nue.novell.com ([195.135.221.5]:59886 "EHLO
+	smtp.nue.novell.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753518AbcGVMlx (ORCPT
+	<rfc822;groupwise-linux-acpi@vger.kernel.org:0:0>);
+	Fri, 22 Jul 2016 08:41:53 -0400
 Content-Disposition: inline
-In-Reply-To: <CAKv+Gu9jfHGF3Z=_yA2rR9v3MGWptom4x1Mm=eGxmB0xoBpqoA@mail.gmail.com>
-Sender: linux-pci-owner@vger.kernel.org
-To: Ard Biesheuvel <ard.biesheuvel@linaro.org>
-Cc: Christopher Covington <cov@codeaurora.org>, Tomasz Nowicki <tn@semihalf.com>, Duc Dang <dhdang@apm.com>, Bjorn Helgaas <helgaas@kernel.org>, Arnd Bergmann <arnd@arndb.de>, Will Deacon <will.deacon@arm.com>, Catalin Marinas <catalin.marinas@arm.com>, Rafael Wysocki <rafael@kernel.org>, Hanjun Guo <hanjun.guo@linaro.org>, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, Sinan Kaya <okaya@codeaurora.org>, Jayachandran C <jchandra@broadcom.com>, Robert Richter <robert.richter@caviumnetworks.com>, Marcin Wojtas <mw@semihalf.com>, Liviu Dudau <Liviu.Dudau@arm.com>, David Daney <ddaney@caviumnetworks.com>, Yijing Wang <wangyijing@huawei.com>, Mark Salter <msalter@redhat.com>, linux-pci@vger.kernel.org, linux-arm <linux-arm-kernel@lists.infradead.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Linaro
+In-Reply-To: <146915794992.7201.150642033798020654.stgit@dwillia2-desk3.amr.corp.intel.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Dan Williams <dan.j.williams@intel.com>
+Cc: linux-nvdimm@lists.01.org, vishal.l.verma@intel.com, linux-acpi@vger.kernel.org
 
-On 22.07.16 14:00:42, Ard Biesheuvel wrote:
-> On 22 July 2016 at 13:38, Robert Richter <rric@kernel.org> wrote:
+Hi Dan,
 
-> > And, we should support some sort of MCFG_OEM_REVISION_ANY to move the
-> > rev handling optional to pci_cfg_fixup::init().
-> >
+On Thu, Jul 21, 2016 at 08:25:50PM -0700, Dan Williams wrote:
+> While testing the new on-demand ARS patches we discovered that
+> differences between the nfit_test and normal nfit driver shutdown paths
+> can leak resources.  Unify the shutdown paths to trigger via a devm_
+> callback when the acpi_desc->dev is unbound from its driver.
 > 
-> xxx_ANY implies 'wildcard', which we don't want in this code. The set
-> of quirky hardware we intend to support is known, and wildcard
-> matching makes it easier to circumvent our policy that from here on,
-> i.e., that all ACPI/arm64 supported hardware shall adhere to the spec.
+> Reported-by: Vishal Verma <vishal.l.verma@intel.com>
+> Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 
-Fine with me, there shouln't be to many revs around to have a quirk
-per rev.
+Reviewed-by: Lee, Chun-Yi <jlee@suse.com>
 
--Robert
+Thanks a lot!
+Joey Lee
+
+> ---
+>  drivers/acpi/nfit.c              |   36 ++++++++++++++++++++++--------------
+>  tools/testing/nvdimm/test/nfit.c |   16 ++--------------
+>  2 files changed, 24 insertions(+), 28 deletions(-)
+> 
+> diff --git a/drivers/acpi/nfit.c b/drivers/acpi/nfit.c
+> index e7eb3b6f1514..be7c2fde16e7 100644
+> --- a/drivers/acpi/nfit.c
+> +++ b/drivers/acpi/nfit.c
+> @@ -2291,6 +2291,16 @@ static int acpi_nfit_check_deletions(struct acpi_nfit_desc *acpi_desc,
+>  	return 0;
+>  }
+>  
+> +static void acpi_nfit_destruct(void *data)
+> +{
+> +	struct acpi_nfit_desc *acpi_desc = data;
+> +
+> +	acpi_desc->cancel = 1;
+> +	flush_workqueue(nfit_wq);
+> +	nvdimm_bus_unregister(acpi_desc->nvdimm_bus);
+> +	acpi_desc->nvdimm_bus = NULL;
+> +}
+> +
+>  int acpi_nfit_init(struct acpi_nfit_desc *acpi_desc, void *data, acpi_size sz)
+>  {
+>  	struct device *dev = acpi_desc->dev;
+> @@ -2298,6 +2308,17 @@ int acpi_nfit_init(struct acpi_nfit_desc *acpi_desc, void *data, acpi_size sz)
+>  	const void *end;
+>  	int rc;
+>  
+> +	if (!acpi_desc->nvdimm_bus) {
+> +		acpi_desc->nvdimm_bus = nvdimm_bus_register(dev,
+> +				&acpi_desc->nd_desc);
+> +		if (!acpi_desc->nvdimm_bus)
+> +			return -ENOMEM;
+> +		rc = devm_add_action_or_reset(dev, acpi_nfit_destruct,
+> +				acpi_desc);
+> +		if (rc)
+> +			return rc;
+> +	}
+> +
+>  	mutex_lock(&acpi_desc->init_mutex);
+>  
+>  	INIT_LIST_HEAD(&prev.spas);
+> @@ -2456,9 +2477,6 @@ static int acpi_nfit_add(struct acpi_device *adev)
+>  	if (!acpi_desc)
+>  		return -ENOMEM;
+>  	acpi_nfit_desc_init(acpi_desc, &adev->dev);
+> -	acpi_desc->nvdimm_bus = nvdimm_bus_register(dev, &acpi_desc->nd_desc);
+> -	if (!acpi_desc->nvdimm_bus)
+> -		return -ENOMEM;
+>  
+>  	/* Save the acpi header for exporting the revision via sysfs */
+>  	acpi_desc->acpi_header = *tbl;
+> @@ -2480,19 +2498,12 @@ static int acpi_nfit_add(struct acpi_device *adev)
+>  		rc = acpi_nfit_init(acpi_desc, (void *) tbl
+>  				+ sizeof(struct acpi_table_nfit),
+>  				sz - sizeof(struct acpi_table_nfit));
+> -
+> -	if (rc)
+> -		nvdimm_bus_unregister(acpi_desc->nvdimm_bus);
+>  	return rc;
+>  }
+>  
+>  static int acpi_nfit_remove(struct acpi_device *adev)
+>  {
+> -	struct acpi_nfit_desc *acpi_desc = dev_get_drvdata(&adev->dev);
+> -
+> -	acpi_desc->cancel = 1;
+> -	flush_workqueue(nfit_wq);
+> -	nvdimm_bus_unregister(acpi_desc->nvdimm_bus);
+> +	/* see acpi_nfit_destruct */
+>  	return 0;
+>  }
+>  
+> @@ -2519,9 +2530,6 @@ static void acpi_nfit_notify(struct acpi_device *adev, u32 event)
+>  		if (!acpi_desc)
+>  			goto out_unlock;
+>  		acpi_nfit_desc_init(acpi_desc, &adev->dev);
+> -		acpi_desc->nvdimm_bus = nvdimm_bus_register(dev, &acpi_desc->nd_desc);
+> -		if (!acpi_desc->nvdimm_bus)
+> -			goto out_unlock;
+>  	} else {
+>  		/*
+>  		 * Finish previous registration before considering new
+> diff --git a/tools/testing/nvdimm/test/nfit.c b/tools/testing/nvdimm/test/nfit.c
+> index 642713f15723..5404efa578a3 100644
+> --- a/tools/testing/nvdimm/test/nfit.c
+> +++ b/tools/testing/nvdimm/test/nfit.c
+> @@ -1465,16 +1465,11 @@ static int nfit_test_probe(struct platform_device *pdev)
+>  	nd_desc->provider_name = NULL;
+>  	nd_desc->module = THIS_MODULE;
+>  	nd_desc->ndctl = nfit_test_ctl;
+> -	acpi_desc->nvdimm_bus = nvdimm_bus_register(&pdev->dev, nd_desc);
+> -	if (!acpi_desc->nvdimm_bus)
+> -		return -ENXIO;
+>  
+>  	rc = acpi_nfit_init(acpi_desc, nfit_test->nfit_buf,
+>  			nfit_test->nfit_size);
+> -	if (rc) {
+> -		nvdimm_bus_unregister(acpi_desc->nvdimm_bus);
+> +	if (rc)
+>  		return rc;
+> -	}
+>  
+>  	if (nfit_test->setup != nfit_test0_setup)
+>  		return 0;
+> @@ -1484,21 +1479,14 @@ static int nfit_test_probe(struct platform_device *pdev)
+>  
+>  	rc = acpi_nfit_init(acpi_desc, nfit_test->nfit_buf,
+>  			nfit_test->nfit_size);
+> -	if (rc) {
+> -		nvdimm_bus_unregister(acpi_desc->nvdimm_bus);
+> +	if (rc)
+>  		return rc;
+> -	}
+>  
+>  	return 0;
+>  }
+>  
+>  static int nfit_test_remove(struct platform_device *pdev)
+>  {
+> -	struct nfit_test *nfit_test = to_nfit_test(&pdev->dev);
+> -	struct acpi_nfit_desc *acpi_desc = &nfit_test->acpi_desc;
+> -
+> -	nvdimm_bus_unregister(acpi_desc->nvdimm_bus);
+> -
+>  	return 0;
+>  }
+>  
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
