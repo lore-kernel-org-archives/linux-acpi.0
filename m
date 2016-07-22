@@ -1,258 +1,45 @@
 From: "Zheng, Lv" <lv.zheng@intel.com>
-Subject: RE: [PATCH v4 2/2] ACPI / button: Add document for ACPI control
- method lid device restrictions
-Date: Fri, 22 Jul 2016 00:24:50 +0000
-Message-ID: <1AE640813FDE7649BE1B193DEA596E883BC05AAA@SHSMSX101.ccr.corp.intel.com>
-References: <cbdaec17aba78c61f466efff8883d49067f2dad5.1463472125.git.lv.zheng@intel.com>
- <84ca7337d20620946b671f212abfc82698ddcbf4.1468915808.git.lv.zheng@intel.com>
- <20160721203246.GA9841@dtor-ws>
+Subject: RE: [PATCH] tools/power/acpi/tools/acpidbg: Add multi-commands
+ support in batch mode
+Date: Fri, 22 Jul 2016 00:26:09 +0000
+Message-ID: <1AE640813FDE7649BE1B193DEA596E883BC05ABD@SHSMSX101.ccr.corp.intel.com>
+References: <cover.1468464391.git.lv.zheng@intel.com>
+ <804f8558b9e65d6022cdb982e1772194ba52d292.1469002094.git.lv.zheng@intel.com>
+ <1843492.Yub8jGoblF@vostro.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga09.intel.com ([134.134.136.24]:33439 "EHLO mga09.intel.com"
+Received: from mga02.intel.com ([134.134.136.20]:63643 "EHLO mga02.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751951AbcGVAY4 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 21 Jul 2016 20:24:56 -0400
-In-Reply-To: <20160721203246.GA9841@dtor-ws>
+	id S1752475AbcGVA0W (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 21 Jul 2016 20:26:22 -0400
+In-Reply-To: <1843492.Yub8jGoblF@vostro.rjw.lan>
 Content-Language: en-US
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Dmitry Torokhov <dmitry.torokhov@gmail.com>
-Cc: "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, "Brown, Len" <len.brown@intel.com>, Lv Zheng <zetalog@gmail.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Benjamin Tissoires <benjamin.tissoires@gmail.com>, "Bastien Nocera:" <hadess@hadess.net>, "linux-input@vger.kernel.org" <linux-input@vger.kernel.org>
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>, "Brown, Len" <len.brown@intel.com>, Lv Zheng <zetalog@gmail.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
 
-Hi, Dmitry
-
-
-Thanks for the review.
-
-> From: Dmitry Torokhov [mailto:dmitry.torokhov@gmail.com]
-> Subject: Re: [PATCH v4 2/2] ACPI / button: Add document for ACPI control
-> method lid device restrictions
-> 
-> On Tue, Jul 19, 2016 at 04:11:21PM +0800, Lv Zheng wrote:
-> > This patch adds documentation for the usage model of the control
-> method lid
-> > device.
-> >
-> > Signed-off-by: Lv Zheng <lv.zheng@intel.com>
-> > Cc: Dmitry Torokhov <dmitry.torokhov@gmail.com>
-> > Cc: Benjamin Tissoires <benjamin.tissoires@gmail.com>
-> > Cc: Bastien Nocera: <hadess@hadess.net>
-> > Cc: linux-input@vger.kernel.org
-> > ---
-> >  Documentation/acpi/acpi-lid.txt |   89
-> +++++++++++++++++++++++++++++++++++++++
-> >  1 file changed, 89 insertions(+)
-> >  create mode 100644 Documentation/acpi/acpi-lid.txt
-> >
-> > diff --git a/Documentation/acpi/acpi-lid.txt b/Documentation/acpi/acpi-
-> lid.txt
-> > new file mode 100644
-> > index 0000000..2addedc
-> > --- /dev/null
-> > +++ b/Documentation/acpi/acpi-lid.txt
-> > @@ -0,0 +1,89 @@
-> > +Usage Model of the ACPI Control Method Lid Device
-> > +
-> > +Copyright (C) 2016, Intel Corporation
-> > +Author: Lv Zheng <lv.zheng@intel.com>
-> > +
-> > +
-> > +Abstract:
-> > +
-> > +Platforms containing lids convey lid state (open/close) to OSPMs using
-> a
-> > +control method lid device. To implement this, the AML tables issue
-> > +Notify(lid_device, 0x80) to notify the OSPMs whenever the lid state has
-> > +changed. The _LID control method for the lid device must be
-> implemented to
-> > +report the "current" state of the lid as either "opened" or "closed".
-> > +
-> > +This document describes the restrictions and the expections of the
-> Linux
-> > +ACPI lid device driver.
-> > +
-> > +
-> > +1. Restrictions of the returning value of the _LID control method
-> > +
-> > +The _LID control method is described to return the "current" lid state.
-> > +However the word of "current" has ambiguity, many AML tables return
-> the lid
-> 
-> Can this be fixed in the next ACPI revision?
-[Lv Zheng] 
-Even this is fixed in the ACPI specification, there are platforms already doing this.
-Especially platforms from Microsoft.
-So the de-facto standard OS won't care about the change.
-And we can still see such platforms.
-
-Here is an example from Surface 3:
-
-DefinitionBlock ("dsdt.aml", "DSDT", 2, "ALASKA", "A M I ", 0x01072009)
-{
-    Scope (_SB)
-    {
-        Device (PCI0)
-        {
-            Name (_HID, EisaId ("PNP0A08"))  // _HID: Hardware ID
-            Name (_CID, EisaId ("PNP0A03"))  // _CID: Compatible ID
-            Device (SPI1)
-            {
-                Name (_HID, "8086228E")  // _HID: Hardware ID
-                Device (NTRG)
-                {
-                    Name (_HID, "MSHW0037")  // _HID: Hardware ID
-                }
-            }
-        }
-
-        Device (LID)
-        {
-            Name (_HID, EisaId ("PNP0C0D"))
-            Name (LIDB, Zero)
-            Method (_LID, 0, NotSerialized)
-            {
-                Return (LIDB)
-            }
-        }
-
-        Device (GPO0)
-        {
-            Name (_HID, "INT33FF")  // _HID: Hardware ID
-            OperationRegion (GPOR, GeneralPurposeIo, Zero, One)
-            Field (GPOR, ByteAcc, NoLock, Preserve)
-            {
-                Connection (
-                    GpioIo (Shared, PullNone, 0x0000, 0x0000, IoRestrictionNone,
-                        "\\_SB.GPO0", 0x00, ResourceConsumer, ,
-                        )
-                        {   // Pin list
-                            0x004C
-                        }
-                ), 
-                HELD,   1
-            }
-            Method (_E4C, 0, Serialized)
-            {
-                If (LEqual(HELD, One))
-                {
-                    Store(One, ^^LID.LIDB)
-
-There is no "open" event generated by "Surface 3".
-
-                }
-                Else
-                {
-                    Store(Zero, ^^LID.LIDB)
-                    Notify (LID, 0x80)
-
-There is only "close" event generated by "Surface 3".
-Thus they are not paired.
-
-                }
-                Notify (^^PCI0.SPI1.NTRG, One) // Device Check
-            }
-        }
-    }
-}
-
-> 
-> > +state upon the last lid notification instead of returning the lid state
-> > +upon the last _LID evaluation. There won't be difference when the _LID
-> > +control method is evaluated during the runtime, the problem is its
-> initial
-> > +returning value. When the AML tables implement this control method
-> with
-> > +cached value, the initial returning value is likely not reliable. There are
-> > +simply so many examples always retuning "closed" as initial lid state.
-> > +
-> > +2. Restrictions of the lid state change notifications
-> > +
-> > +There are many AML tables never notifying when the lid device state is
-> > +changed to "opened". Thus the "opened" notification is not guaranteed.
-> > +
-> > +But it is guaranteed that the AML tables always notify "closed" when
-> the
-> > +lid state is changed to "closed". The "closed" notification is normally
-> > +used to trigger some system power saving operations on Windows.
-> Since it is
-> > +fully tested, the "closed" notification is reliable for all AML tables.
-> > +
-> > +3. Expections for the userspace users of the ACPI lid device driver
-> > +
-> > +The ACPI button driver exports the lid state to the userspace via the
-> > +following file:
-> > +  /proc/acpi/button/lid/LID0/state
-> > +This file actually calls the _LID control method described above. And
-> given
-> > +the previous explanation, it is not reliable enough on some platforms.
-> So
-> > +it is advised for the userspace program to not to solely rely on this file
-> > +to determine the actual lid state.
-> > +
-> > +The ACPI button driver emits 2 kinds of events to the user space:
-> > +  SW_LID
-> > +   When the lid state/event is reliable, the userspace can behave
-> > +   according to this input switch event.
-> > +   This is a mode prepared for backward compatiblity.
-> > +  KEY_EVENT_OPEN/KEY_EVENT_CLOSE
-> > +   When the lid state/event is not reliable, the userspace should behave
-> > +   according to these 2 input key events.
-> > +   New userspace programs may only be prepared for the input key
-> events.
-> 
-> No, absolutely not. If some x86 vendors managed to mess up their
-> firmware implementations that does not mean that everyone now has to
-> abandon working perfectly well for them SW_LID events and rush to
-> switch
-> to a brand new event.
-[Lv Zheng] 
-However there is no clear wording in the ACPI specification asking the vendors to achieve paired lid events.
-
-> 
-> Apparently were are a few issues, main is that some systems not reporting
-> "open" event. This can be dealt with by userspace "writing" to the
-> lid's evdev device EV_SW/SW_LID/0 event upon system resume (and
-> startup)
-> for selected systems. This will mean that if system wakes up not because
-> LID is open we'll incorrectly assume that it is, but we can either add
-> more smarts to the process emitting SW_LID event or simply say "well,
-> tough, the hardware is crappy" and bug vendor to see if they can fix the
-> issue (if not for current firmware them for next).
-[Lv Zheng] 
-The problem is there is no vendor actually caring about fixing this "issue".
-Because Windows works well with their firmware.
-Then finally becomes a big table customization business for our team.
-
-> 
-> As an additional workaround, we can toggle the LID switch off and on
-> when we get notification, much like your proposed patch does for the key
-> events.
-[Lv Zheng] 
-I think this is doable, I'll refresh my patchset to address your this comment.
-By inserting open/close events when next close/open event arrives after a certain period,
-this may fix some issues for the old programs.
-Where user may be required to open/close lid twice to trigger 2nd suspend.
-
-However, this still cannot fix the problems like "Surface 3".
-We'll still need a new usage model for such platforms (no open event).
-I'll send the next version out today, hope you can take a look to see if it's acceptable from your point of view.
-
-> 
-> Speaking of ACPI in general, does Intel have a test suite for ACPI
-> implementors? Could include tests for proper LID behavior?
-> 1. The "swallowing" of input events because kernel state disagrees with
-> the reality
-[Lv Zheng] 
-I think there is test suit in UEFI forum can cover this.
-However, most of the firmware vendors will just test their firmware with Windows.
-
-Thanks
--Lv
-
-> 
-> Thanks.
-> 
-> --
-> Dmitry
+SGksIFJhZmFlbA0KDQo+IEZyb206IFJhZmFlbCBKLiBXeXNvY2tpIFttYWlsdG86cmp3QHJqd3lz
+b2NraS5uZXRdDQo+IFN1YmplY3Q6IFJlOiBbUEFUQ0hdIHRvb2xzL3Bvd2VyL2FjcGkvdG9vbHMv
+YWNwaWRiZzogQWRkIG11bHRpLQ0KPiBjb21tYW5kcyBzdXBwb3J0IGluIGJhdGNoIG1vZGUNCj4g
+DQo+IE9uIFdlZG5lc2RheSwgSnVseSAyMCwgMjAxNiAwNDoxMjowOCBQTSBMdiBaaGVuZyB3cm90
+ZToNCj4gPiBUaGlzIHBhdGNoIGFkZHMgbXVsdGktY29tbWFuZHMgc3VwcG9ydCBmb3IgdGhlIGJh
+dGNoIG1vZGUuIFRoZSBzYW1lDQo+IG1vZGUNCj4gPiBjYW4gYmUgc2VlbiBpbiBhY3BpZXhlYy4N
+Cj4gPg0KPiA+IEhvd2V2ZXIgcGVvcGxlIG1heSB0aGluayB0aGlzIGlzIG5vdCB1c2VmdWwgZm9y
+IGFuIGluLWtlcm5lbCBkZWJ1Z2dlciwNCj4gPiBiZWNhdXNlIHRoZSBpbi1rZXJuZWwgZGVidWdn
+ZXIgaXMgYWx3YXlzIHJ1bm5pbmcsIG5ldmVyIGV4aXRzLiBTbyB3ZSBjYW4NCj4gPiBydW4gYW5v
+dGhlciBjb21tYW5kIGJ5IHJ1bm5pbmcgYW5vdGhlciBhY3BpZGJnIGJhdGNoIG1vZGUgaW5zdGFu
+Y2UuDQo+ID4NCj4gPiBCdXQgdGhpcyBtb2RlIHNob3VsZCBzdGlsbCBiZSB1c2VmdWwgZm9yIGFj
+cGlkYmcuIFRoZSByZWFzb24gaXM6IHdoZW4gdGhlDQo+ID4gaW4ta2VybmVsIGRlYnVnZ2VyIGhh
+cyBlbnRlcmVkIHRoZSBzaW5nbGUtc3RlcHBpbmcgbW9kZSwgZW5kaW5nIGFjcGlkYmcNCj4gPiAo
+d2hpY2ggY2xvc2VzIHRoZSBkZWJ1Z2dlciBJTyBpbnRlcmZhY2UpIHdpbGwgbGVhZCB0byB0aGUg
+ZW5kIG9mIHRoZQ0KPiA+IHNpbmdsZS1zdGVwcGluZyBtb2RlLg0KPiA+DQo+ID4gU28gd2UgbmVl
+ZCB0aGUgYWNwaWRiZyBtdWx0aS1jb21tYW5kcyBiYXRjaCBtb2RlIGluIG9yZGVyIHRvIGV4ZWN1
+dGUNCj4gPiBtdWx0aXBsZSBzaW5nbGUtc3RlcHBpbmcgbW9kZSBjb21tYW5kcyBpbiB0aGUgYmF0
+Y2ggbW9kZS4NCj4gPg0KPiA+IFNpZ25lZC1vZmYtYnk6IEx2IFpoZW5nIDxsdi56aGVuZ0BpbnRl
+bC5jb20+DQo+IA0KPiBEb2VzIHRoaXMgZGVwZW5kIG9uIHRoZSBrZXJuZWwgZmx1c2hpbmcgc3Vw
+cG9ydCBzZXJpZXM/DQpbTHYgWmhlbmddIA0KVGhpcyBkZXBlbmRzIG9uIHRoZSAiZmx1c2giIHN0
+dWZmLg0KVGhhdCdzIHdoeSBJIHNlbnQgaXQgdG8gdGhlIHNhbWUgbWFpbGluZyB0aHJlYWQuDQoN
+ClRoYW5rcw0KLUx2DQo=
