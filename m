@@ -1,157 +1,151 @@
-From: "Zheng, Lv" <lv.zheng@intel.com>
-Subject: RE: [PATCH v2 1/2] ACPI / debugger: Add kernel flushing support
-Date: Fri, 22 Jul 2016 00:34:06 +0000
-Message-ID: <1AE640813FDE7649BE1B193DEA596E883BC05ADC@SHSMSX101.ccr.corp.intel.com>
-References: <cover.1468464391.git.lv.zheng@intel.com>
- <cover.1468922310.git.lv.zheng@intel.com>
- <97e2430e92d486c7ca46aa8e0e602600317d5e7b.1468922310.git.lv.zheng@intel.com>
- <4768363.WDVt5y7Fcm@vostro.rjw.lan>
+From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Subject: Re: ACPI device using sub-resource of PCI device
+Date: Fri, 22 Jul 2016 02:55:56 +0200
+Message-ID: <2300001.Cg2EHxyMN1@vostro.rjw.lan>
+References: <CAE2855tofJV=HV2dYuC+1=pi2mb942zrRF7f0+wqxPPay44RGA@mail.gmail.com> <9194227.5BmSSJ8mhr@vostro.rjw.lan> <CAE2855uTn3EqSuUW0-QD8ES4mm4ifWg-t=JfQ5+4z0YAyUDc_g@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <4768363.WDVt5y7Fcm@vostro.rjw.lan>
-Content-Language: en-US
-Sender: linux-kernel-owner@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>, "Brown, Len" <len.brown@intel.com>, Lv Zheng <zetalog@gmail.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
+Content-Transfer-Encoding: 7Bit
+Return-path: <linux-pci-owner@vger.kernel.org>
+In-Reply-To: <CAE2855uTn3EqSuUW0-QD8ES4mm4ifWg-t=JfQ5+4z0YAyUDc_g@mail.gmail.com>
+Sender: linux-pci-owner@vger.kernel.org
+To: Aaron Durbin <adurbin@google.com>
+Cc: Bjorn Helgaas <helgaas@kernel.org>, "Rafael J. Wysocki" <rafael@kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux PCI <linux-pci@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-SGksDQoNCj4gRnJvbTogbGludXgtYWNwaS1vd25lckB2Z2VyLmtlcm5lbC5vcmcgW21haWx0bzps
-aW51eC1hY3BpLQ0KPiBvd25lckB2Z2VyLmtlcm5lbC5vcmddIE9uIEJlaGFsZiBPZiBSYWZhZWwg
-Si4gV3lzb2NraQ0KPiBTdWJqZWN0OiBSZTogW1BBVENIIHYyIDEvMl0gQUNQSSAvIGRlYnVnZ2Vy
-OiBBZGQga2VybmVsIGZsdXNoaW5nIHN1cHBvcnQNCj4gDQo+IE9uIFR1ZXNkYXksIEp1bHkgMTks
-IDIwMTYgMDY6MDA6MzkgUE0gTHYgWmhlbmcgd3JvdGU6DQo+ID4gVGhpcyBwYXRjaCBhZGRzIGRl
-YnVnZ2VyIGxvZyBmbHVzaGluZyBzdXBwb3J0IGluIGtlcm5lbCB2aWEgLmlvY3RsKCkNCj4gPiBj
-YWxsYmFjay4gVGhlIGluLWtlcm5lbCBmbHVzaGluZyBpcyBtb3JlIGVmZmljaWVudCwgYmVjYXVz
-ZSBpdCByZWR1Y2VzDQo+ID4gdXNlbGVzcyBsb2cgSU9zIGJ5IGJ5cGFzc2luZyBsb2cgdXNlcl9y
-ZWFkL2tlcm5fd3JpdGUgZHVyaW5nIHRoZSBmbHVzaA0KPiA+IHBlcmlvZC4NCj4gPg0KPiA+IFNp
-Z25lZC1vZmYtYnk6IEx2IFpoZW5nIDxsdi56aGVuZ0BpbnRlbC5jb20+DQo+IA0KPiBPdmVyYWxs
-LCB0aGlzIGlzIGFuIG9wdGltaXphdGlvbiwgcmlnaHQ/DQo+IA0KPiBTbyBpcyBhZGRpbmcgYSBu
-ZXcgSU9DVEwgcmVhbGx5IHdvcnRoIGl0Pw0KW0x2IFpoZW5nXSANCkkgd2FzIHRoaW5raW5nIEkg
-Y291bGQgdXNlIGZzeW5jLg0KQnV0IG1vc3Qgb2YgdGhlIGtlcm5lbCBkcml2ZXJzIGltcGxlbWVu
-dCBmc3luYyB0byBmbHVzaCBkYXRhIHRvIHRoZSBzdG9yYWdlIGRldmljZS4NCkFuZCB0dHkgdXNl
-cyBJT0NUTCB0byBmbHVzaCB0aGUgaW5wdXQvb3V0cHV0IHN0cmVhbXMuDQpTbyBJIGNoYW5nZWQg
-bXkgbWluZCB0byB1c2UgaW9jdGwuDQoNCj4gDQo+ID4gLS0tDQo+ID4gIGRyaXZlcnMvYWNwaS9h
-Y3BpX2RiZy5jICAgICB8ICAgOTgNCj4gKysrKysrKysrKysrKysrKysrKysrKysrKysrKysrKysr
-KysrKysrKystLQ0KPiA+ICBpbmNsdWRlL2xpbnV4L2FjcGktaW9jdGxzLmggfCAgIDIxICsrKysr
-KysrKysNCj4gPiAgMiBmaWxlcyBjaGFuZ2VkLCAxMTUgaW5zZXJ0aW9ucygrKSwgNCBkZWxldGlv
-bnMoLSkNCj4gPiAgY3JlYXRlIG1vZGUgMTAwNjQ0IGluY2x1ZGUvbGludXgvYWNwaS1pb2N0bHMu
-aA0KPiA+DQo+ID4gZGlmZiAtLWdpdCBhL2RyaXZlcnMvYWNwaS9hY3BpX2RiZy5jIGIvZHJpdmVy
-cy9hY3BpL2FjcGlfZGJnLmMNCj4gPiBpbmRleCBkZWU4NjkyLi42YWMxMzg4IDEwMDY0NA0KPiA+
-IC0tLSBhL2RyaXZlcnMvYWNwaS9hY3BpX2RiZy5jDQo+ID4gKysrIGIvZHJpdmVycy9hY3BpL2Fj
-cGlfZGJnLmMNCj4gPiBAQCAtMjIsNiArMjIsNyBAQA0KPiA+ICAjaW5jbHVkZSA8bGludXgvZGVi
-dWdmcy5oPg0KPiA+ICAjaW5jbHVkZSA8bGludXgvY2lyY19idWYuaD4NCj4gPiAgI2luY2x1ZGUg
-PGxpbnV4L2FjcGkuaD4NCj4gPiArI2luY2x1ZGUgPGxpbnV4L2FjcGktaW9jdGxzLmg+DQo+IA0K
-PiBUaGF0IHNob3VsZCBnbyBpbnRvIHRoZSB1YXBpIGRpcmVjdG9yeSBhdCBsZWFzdC4NCltMdiBa
-aGVuZ10gDQpPSy4NCkknbGwgY2hlY2sgaXQuDQoNCj4gDQo+ID4gICNpbmNsdWRlICJpbnRlcm5h
-bC5oIg0KPiA+DQo+ID4gICNkZWZpbmUgQUNQSV9BTUxfQlVGX0FMSUdOCShzaXplb2YgKGFjcGlf
-c2l6ZSkpDQo+ID4gQEAgLTQ2LDYgKzQ3LDggQEANCj4gPiAgI2RlZmluZSBBQ1BJX0FNTF9LRVJO
-CQkoQUNQSV9BTUxfSU5fS0VSTiB8DQo+IEFDUElfQU1MX09VVF9LRVJOKQ0KPiA+ICAjZGVmaW5l
-IEFDUElfQU1MX0JVU1kJCShBQ1BJX0FNTF9VU0VSIHwNCj4gQUNQSV9BTUxfS0VSTikNCj4gPiAg
-I2RlZmluZSBBQ1BJX0FNTF9PUEVOCQkoQUNQSV9BTUxfT1BFTkVEIHwNCj4gQUNQSV9BTUxfQ0xP
-U0VEKQ0KPiA+ICsjZGVmaW5lIEFDUElfQU1MX0ZMVVNISU5HX0xPRwkweDAwNDAgLyogZmx1c2hp
-bmcgbG9nDQo+IG91dHB1dCAqLw0KPiA+ICsjZGVmaW5lIEFDUElfQU1MX1dBSVRJTkdfQ01ECTB4
-MDA4MCAvKiB3YWl0aW5nIGZvciBjbWQgaW5wdXQgKi8NCj4gPg0KPiA+ICBzdHJ1Y3QgYWNwaV9h
-bWxfaW8gew0KPiA+ICAJd2FpdF9xdWV1ZV9oZWFkX3Qgd2FpdDsNCj4gPiBAQCAtMTIwLDYgKzEy
-MywyMCBAQCBzdGF0aWMgaW5saW5lIGJvb2wgX19hY3BpX2FtbF9idXN5KHZvaWQpDQo+ID4gIAly
-ZXR1cm4gZmFsc2U7DQo+ID4gIH0NCj4gPg0KPiA+ICtzdGF0aWMgaW5saW5lIGJvb2wgX19hY3Bp
-X2FtbF93YWl0aW5nX2NtZCh2b2lkKQ0KPiA+ICt7DQo+ID4gKwlpZiAoYWNwaV9hbWxfaW8uZmxh
-Z3MgJiBBQ1BJX0FNTF9XQUlUSU5HX0NNRCkNCj4gPiArCQlyZXR1cm4gdHJ1ZTsNCj4gPiArCXJl
-dHVybiBmYWxzZTsNCj4gDQo+IE9oIHdlbGwuDQo+IA0KPiBXaGF0IGFib3V0DQpbTHYgWmhlbmdd
-IA0KT0suDQoNCj4gDQo+IAlyZXR1cm4gISEoYWNwaV9hbWxfaW8uZmxhZ3MgJiBBQ1BJX0FNTF9X
-QUlUSU5HX0NNRCk7DQo+IA0KPiA+ICt9DQo+ID4gKw0KPiA+ICtzdGF0aWMgaW5saW5lIGJvb2wg
-X19hY3BpX2FtbF9mbHVzaGluZ19sb2codm9pZCkNCj4gPiArew0KPiA+ICsJaWYgKGFjcGlfYW1s
-X2lvLmZsYWdzICYgQUNQSV9BTUxfRkxVU0hJTkdfTE9HKQ0KPiA+ICsJCXJldHVybiB0cnVlOw0K
-PiA+ICsJcmV0dXJuIGZhbHNlOw0KPiANCj4gQW5kIGFuYWxvZ291c2x5IGhlcmU/DQpbTHYgWmhl
-bmddIA0KT0suDQoNCj4gDQo+ID4gK30NCj4gPiArDQo+ID4gIHN0YXRpYyBpbmxpbmUgYm9vbCBf
-X2FjcGlfYW1sX29wZW5lZCh2b2lkKQ0KPiA+ICB7DQo+ID4gIAlpZiAoYWNwaV9hbWxfaW8uZmxh
-Z3MgJiBBQ1BJX0FNTF9PUEVOKQ0KPiA+IEBAIC0xNTIsNiArMTY5LDI2IEBAIHN0YXRpYyBib29s
-IGFjcGlfYW1sX2J1c3kodm9pZCkNCj4gPiAgCXJldHVybiByZXQ7DQo+ID4gIH0NCj4gPg0KPiA+
-ICtzdGF0aWMgaW5saW5lIGJvb2wgYWNwaV9hbWxfd2FpdGluZ19jbWQodm9pZCkNCj4gPiArew0K
-PiA+ICsJYm9vbCByZXQ7DQo+ID4gKw0KPiA+ICsJbXV0ZXhfbG9jaygmYWNwaV9hbWxfaW8ubG9j
-ayk7DQo+ID4gKwlyZXQgPSBfX2FjcGlfYW1sX3dhaXRpbmdfY21kKCk7DQo+ID4gKwltdXRleF91
-bmxvY2soJmFjcGlfYW1sX2lvLmxvY2spOw0KPiA+ICsJcmV0dXJuIHJldDsNCj4gPiArfQ0KPiA+
-ICsNCj4gPiArc3RhdGljIGlubGluZSBib29sIGFjcGlfYW1sX2ZsdXNoaW5nX2xvZyh2b2lkKQ0K
-PiA+ICt7DQo+ID4gKwlib29sIHJldDsNCj4gPiArDQo+ID4gKwltdXRleF9sb2NrKCZhY3BpX2Ft
-bF9pby5sb2NrKTsNCj4gPiArCXJldCA9IF9fYWNwaV9hbWxfZmx1c2hpbmdfbG9nKCk7DQo+ID4g
-KwltdXRleF91bmxvY2soJmFjcGlfYW1sX2lvLmxvY2spOw0KPiA+ICsJcmV0dXJuIHJldDsNCj4g
-PiArfQ0KPiA+ICsNCj4gPiAgc3RhdGljIGJvb2wgYWNwaV9hbWxfdXNlZCh2b2lkKQ0KPiA+ICB7
-DQo+ID4gIAlib29sIHJldDsNCj4gPiBAQCAtMTgzLDcgKzIyMCw4IEBAIHN0YXRpYyBib29sIGFj
-cGlfYW1sX2tlcm5fd3JpdGFibGUodm9pZCkNCj4gPg0KPiA+ICAJbXV0ZXhfbG9jaygmYWNwaV9h
-bWxfaW8ubG9jayk7DQo+ID4gIAlyZXQgPSAhX19hY3BpX2FtbF9hY2Nlc3Nfb2soQUNQSV9BTUxf
-T1VUX0tFUk4pIHx8DQo+ID4gLQkgICAgICBfX2FjcGlfYW1sX3dyaXRhYmxlKCZhY3BpX2FtbF9p
-by5vdXRfY3JjLA0KPiBBQ1BJX0FNTF9PVVRfS0VSTik7DQo+ID4gKwkgICAgICBfX2FjcGlfYW1s
-X3dyaXRhYmxlKCZhY3BpX2FtbF9pby5vdXRfY3JjLA0KPiBBQ1BJX0FNTF9PVVRfS0VSTikgfHwN
-Cj4gPiArCSAgICAgIF9fYWNwaV9hbWxfZmx1c2hpbmdfbG9nKCk7DQo+ID4gIAltdXRleF91bmxv
-Y2soJmFjcGlfYW1sX2lvLmxvY2spOw0KPiA+ICAJcmV0dXJuIHJldDsNCj4gPiAgfQ0KPiA+IEBA
-IC0yNjQsNiArMzAyLDkgQEAgc3RhdGljIGludCBhY3BpX2FtbF93cml0ZV9rZXJuKGNvbnN0IGNo
-YXIgKmJ1ZiwNCj4gaW50IGxlbikNCj4gPiAgCWludCBuOw0KPiA+ICAJY2hhciAqcDsNCj4gPg0K
-PiA+ICsJaWYgKGFjcGlfYW1sX2ZsdXNoaW5nX2xvZygpKQ0KPiA+ICsJCXJldHVybiBsZW47DQo+
-ID4gKw0KPiA+ICAJcmV0ID0gYWNwaV9hbWxfbG9ja193cml0ZShjcmMsIEFDUElfQU1MX09VVF9L
-RVJOKTsNCj4gPiAgCWlmIChyZXQgPCAwKQ0KPiA+ICAJCXJldHVybiByZXQ7DQo+ID4gQEAgLTQ1
-OCw5ICs0OTksMTggQEAgc3RhdGljIGludCBhY3BpX2FtbF93YWl0X2NvbW1hbmRfcmVhZHkoYm9v
-bA0KPiBzaW5nbGVfc3RlcCwNCj4gPiAgCWVsc2UNCj4gPiAgCQlhY3BpX29zX3ByaW50ZigiXG4l
-MWMgIiwNCj4gQUNQSV9ERUJVR0dFUl9DT01NQU5EX1BST01QVCk7DQo+ID4NCj4gPiArCW11dGV4
-X2xvY2soJmFjcGlfYW1sX2lvLmxvY2spOw0KPiA+ICsJYWNwaV9hbWxfaW8uZmxhZ3MgfD0gQUNQ
-SV9BTUxfV0FJVElOR19DTUQ7DQo+ID4gKwl3YWtlX3VwX2ludGVycnVwdGlibGUoJmFjcGlfYW1s
-X2lvLndhaXQpOw0KPiA+ICsJbXV0ZXhfdW5sb2NrKCZhY3BpX2FtbF9pby5sb2NrKTsNCj4gPiAr
-DQo+ID4gIAlzdGF0dXMgPSBhY3BpX29zX2dldF9saW5lKGJ1ZmZlciwgbGVuZ3RoLCBOVUxMKTsN
-Cj4gPiAgCWlmIChBQ1BJX0ZBSUxVUkUoc3RhdHVzKSkNCj4gPiAgCQlyZXR1cm4gLUVJTlZBTDsN
-Cj4gPiArDQo+ID4gKwltdXRleF9sb2NrKCZhY3BpX2FtbF9pby5sb2NrKTsNCj4gPiArCWFjcGlf
-YW1sX2lvLmZsYWdzICY9IH5BQ1BJX0FNTF9XQUlUSU5HX0NNRDsNCj4gPiArCW11dGV4X3VubG9j
-aygmYWNwaV9hbWxfaW8ubG9jayk7DQo+ID4gIAlyZXR1cm4gMDsNCj4gPiAgfQ0KPiA+DQo+ID4g
-QEAgLTU5Myw5ICs2NDMsMTEgQEAgc3RhdGljIGludCBhY3BpX2FtbF9yZWFkX3VzZXIoY2hhciBf
-X3VzZXIgKmJ1ZiwNCj4gaW50IGxlbikNCj4gPiAgCXNtcF9ybWIoKTsNCj4gPiAgCXAgPSAmY3Jj
-LT5idWZbY3JjLT50YWlsXTsNCj4gPiAgCW4gPSBtaW4obGVuLCBjaXJjX2NvdW50X3RvX2VuZChj
-cmMpKTsNCj4gPiAtCWlmIChjb3B5X3RvX3VzZXIoYnVmLCBwLCBuKSkgew0KPiA+IC0JCXJldCA9
-IC1FRkFVTFQ7DQo+ID4gLQkJZ290byBvdXQ7DQo+ID4gKwlpZiAoIWFjcGlfYW1sX2ZsdXNoaW5n
-X2xvZygpKSB7DQo+ID4gKwkJaWYgKGNvcHlfdG9fdXNlcihidWYsIHAsIG4pKSB7DQo+ID4gKwkJ
-CXJldCA9IC1FRkFVTFQ7DQo+ID4gKwkJCWdvdG8gb3V0Ow0KPiA+ICsJCX0NCj4gPiAgCX0NCj4g
-PiAgCS8qIHN5bmMgdGFpbCBhZnRlciByZW1vdmluZyBsb2dzICovDQo+ID4gIAlzbXBfbWIoKTsN
-Cj4gPiBAQCAtNzMxLDEwICs3ODMsNDggQEAgc3RhdGljIHVuc2lnbmVkIGludCBhY3BpX2FtbF9w
-b2xsKHN0cnVjdCBmaWxlDQo+ICpmaWxlLCBwb2xsX3RhYmxlICp3YWl0KQ0KPiA+ICAJcmV0dXJu
-IG1hc2tzOw0KPiA+ICB9DQo+ID4NCj4gPiArc3RhdGljIGludCBhY3BpX2FtbF9mbHVzaCh2b2lk
-KQ0KPiA+ICt7DQo+ID4gKwlpbnQgcmV0Ow0KPiA+ICsNCj4gPiArCS8qDQo+ID4gKwkgKiBEaXNj
-YXJkIG91dHB1dCBidWZmZXIgYW5kIHB1dCB0aGUgZHJpdmVyIGludG8gYSBzdGF0ZSB3YWl0aW5n
-DQo+ID4gKwkgKiBmb3IgdGhlIG5ldyB1c2VyIGlucHV0Lg0KPiA+ICsJICovDQo+ID4gKwltdXRl
-eF9sb2NrKCZhY3BpX2FtbF9pby5sb2NrKTsNCj4gPiArCWFjcGlfYW1sX2lvLmZsYWdzIHw9IEFD
-UElfQU1MX0ZMVVNISU5HX0xPRzsNCj4gPiArCW11dGV4X3VubG9jaygmYWNwaV9hbWxfaW8ubG9j
-ayk7DQo+ID4gKw0KPiA+ICsJcmV0ID0gd2FpdF9ldmVudF9pbnRlcnJ1cHRpYmxlKGFjcGlfYW1s
-X2lvLndhaXQsDQo+ID4gKwkJYWNwaV9hbWxfd2FpdGluZ19jbWQoKSk7DQo+ID4gKwkodm9pZClh
-Y3BpX2FtbF9yZWFkX3VzZXIoTlVMTCwgQUNQSV9BTUxfQlVGX1NJWkUpOw0KPiA+ICsNCj4gPiAr
-CW11dGV4X2xvY2soJmFjcGlfYW1sX2lvLmxvY2spOw0KPiA+ICsJYWNwaV9hbWxfaW8uZmxhZ3Mg
-Jj0gfkFDUElfQU1MX0ZMVVNISU5HX0xPRzsNCj4gPiArCW11dGV4X3VubG9jaygmYWNwaV9hbWxf
-aW8ubG9jayk7DQo+ID4gKwlyZXR1cm4gcmV0Ow0KPiA+ICt9DQo+ID4gKw0KPiA+ICtzdGF0aWMg
-bG9uZyBhY3BpX2FtbF9pb2N0bChzdHJ1Y3QgZmlsZSAqZmlsZSwNCj4gPiArCQkJICAgdW5zaWdu
-ZWQgaW50IGNtZCwgdW5zaWduZWQgbG9uZyBhcmcpDQo+ID4gK3sNCj4gPiArCWxvbmcgcmV0ID0g
-LUVJTlZBTDsNCj4gPiArDQo+ID4gKwlzd2l0Y2ggKGNtZCkgew0KPiA+ICsJY2FzZSBBQ1BJX0lP
-Q1RMX0RFQlVHR0VSX0ZMVVNIOg0KPiA+ICsJCXJldCA9IGFjcGlfYW1sX2ZsdXNoKCk7DQo+ID4g
-KwkJYnJlYWs7DQo+ID4gKwlkZWZhdWx0Og0KPiA+ICsJCWJyZWFrOw0KPiA+ICsJfQ0KPiA+ICsJ
-cmV0dXJuIHJldDsNCj4gDQo+IAlyZXR1cm4gY21kID09IEFDUElfSU9DVExfREVCVUdHRVJfRkxV
-U0ggPyBhY3BpX2FtbF9mbHVzaCgpIDoNCj4gLUVJTlZBTDsNCltMdiBaaGVuZ10gDQpPSy4NCg0K
-PiANCj4gPiArfQ0KPiA+ICsNCj4gPiAgc3RhdGljIGNvbnN0IHN0cnVjdCBmaWxlX29wZXJhdGlv
-bnMgYWNwaV9hbWxfb3BlcmF0aW9ucyA9IHsNCj4gPiAgCS5yZWFkCQk9IGFjcGlfYW1sX3JlYWQs
-DQo+ID4gIAkud3JpdGUJCT0gYWNwaV9hbWxfd3JpdGUsDQo+ID4gIAkucG9sbAkJPSBhY3BpX2Ft
-bF9wb2xsLA0KPiA+ICsJLnVubG9ja2VkX2lvY3RsCT0gYWNwaV9hbWxfaW9jdGwsDQo+ID4gIAku
-b3BlbgkJPSBhY3BpX2FtbF9vcGVuLA0KPiA+ICAJLnJlbGVhc2UJPSBhY3BpX2FtbF9yZWxlYXNl
-LA0KPiA+ICAJLmxsc2VlawkJPSBnZW5lcmljX2ZpbGVfbGxzZWVrLA0KPiA+IGRpZmYgLS1naXQg
-YS9pbmNsdWRlL2xpbnV4L2FjcGktaW9jdGxzLmggYi9pbmNsdWRlL2xpbnV4L2FjcGktaW9jdGxz
-LmgNCj4gPiBuZXcgZmlsZSBtb2RlIDEwMDY0NA0KPiA+IGluZGV4IDAwMDAwMDAuLjU2YjgxNzAN
-Cj4gPiAtLS0gL2Rldi9udWxsDQo+ID4gKysrIGIvaW5jbHVkZS9saW51eC9hY3BpLWlvY3Rscy5o
-DQo+IA0KPiBpbmNsdWRlL3VhcGkvbGludXgvDQpbTHYgWmhlbmddIA0KT0suDQoNCj4gDQo+ID4g
-QEAgLTAsMCArMSwyMSBAQA0KPiA+ICsvKg0KPiA+ICsgKiBBQ1BJIElPQ1RMIGNvbGxlY3Rpb25z
-DQo+ID4gKyAqDQo+ID4gKyAqIENvcHlyaWdodCAoQykgMjAxNiwgSW50ZWwgQ29ycG9yYXRpb24N
-Cj4gPiArICogQXV0aG9yczogTHYgWmhlbmcgPGx2LnpoZW5nQGludGVsLmNvbT4NCj4gPiArICoN
-Cj4gPiArICogVGhpcyBwcm9ncmFtIGlzIGZyZWUgc29mdHdhcmU7IHlvdSBjYW4gcmVkaXN0cmli
-dXRlIGl0IGFuZC9vciBtb2RpZnkNCj4gPiArICogaXQgdW5kZXIgdGhlIHRlcm1zIG9mIHRoZSBH
-TlUgR2VuZXJhbCBQdWJsaWMgTGljZW5zZSB2ZXJzaW9uIDIgYXMNCj4gPiArICogcHVibGlzaGVk
-IGJ5IHRoZSBGcmVlIFNvZnR3YXJlIEZvdW5kYXRpb24uDQo+ID4gKyAqLw0KPiA+ICsNCj4gPiAr
-I2lmbmRlZiBfTElOVVhfQUNQSV9JT0NUTFNfSA0KPiA+ICsjZGVmaW5lIF9MSU5VWF9BQ1BJX0lP
-Q1RMU19IDQo+ID4gKw0KPiA+ICsjaW5jbHVkZSA8bGludXgvaW9jdGwuaD4NCj4gPiArDQo+ID4g
-KyNkZWZpbmUgQUNQSV9JT0NUTF9JREVOVAkJJ2EnDQo+ID4gKw0KPiA+ICsjZGVmaW5lIEFDUElf
-SU9DVExfREVCVUdHRVJfRkxVU0gJX0lPKEFDUElfSU9DVExfSURFTlQsDQo+IDB4ODApDQo+ID4g
-Kw0KPiA+ICsjZW5kaWYgLyogX0xJTlVYX0FDUElfSU9DVExTX0ggKi8NCj4gPg0KPiANCj4gUGx1
-cyBwYXRjaGVzIHRoYXQgY2hhbmdlIHRoZSBBQkkgc2hvdWxkIGJlIENDZWQgdG8gdGhlIEFCSSBy
-ZXZpZXcgbGlzdCBmb3IsDQo+IHdlbGwsIHJldmlldy4NCltMdiBaaGVuZ10gDQpPSy4NCg0KVGhh
-bmtzLA0KLUx2DQo=
+On Wednesday, July 20, 2016 08:58:29 PM Aaron Durbin wrote:
+> On Wed, Jul 20, 2016 at 7:40 PM, Rafael J. Wysocki <rjw@rjwysocki.net> wrote:
+> > On Wednesday, July 20, 2016 06:02:08 PM Aaron Durbin wrote:
+
+[...]
+
+> >> > Isn't the problem a probe ordering issue, though?
+> >>
+> >> No. Not just ordering. There's no parent-child relationship taken into
+> >> account when PCI devices are added to the resource tree. Deferring
+> >> adding an ACPI device's resources would likely fail similarly because
+> >> one doesn't take into account the proper parent. One lives in PCI land
+> >> -- the other in ACPI land.
+> >
+> > What exactly do you mean by "PCI land" and "ACPI land"?
+> >
+> > All PCI resources are derived from the host bridge ones that come from
+> > ACPI anyway.
+> 
+> Except that the BARs are queried in the pci devices themselves and
+> those resources are added w/o any communication to/from ACPI. That's
+> all done in the pci subsystem internally. Only if
+
+Well, not quite.
+
+It gets to host bridge resources via pcibios_bus_to_resource() AFAICS and
+those come from ACPI on ACPI-based systems.
+
+> >
+> >> Currently, the issue is manifesting that the ACPI device's resources
+> >> are added into the resource tree. PCI devices the follow trying to add
+> >> their own resources. Conflicts ensue without taking into account the
+> >> proper hierarchy. To make matters worse, struct resource doesn't have
+> >> a struct device -- only a name. That means there's no way of knowing
+> >> who owns what resource. All that information is unavailable. That's
+> >> why the semi-hacky proposal was to see if there is an ACPI companion
+> >> device and see if it has children. If it's children's names match the
+> >> conflicting resource it's a good bet that the PCI device's resources
+> >> should be placed as the parent in the resource tree.
+> >
+> > That really looks like a broken hierarchy of devices somewhere.
+> 
+> Why do you think it's a broken hierarchy? This CL has the heirarchy:
+> https://chromium-review.googlesource.com/#/c/359432/
+> 
+> There is a device, P2S, which would result in an ACPI companion device
+> when the pci_dev is added to the device infrastructure by way of
+> acpi_platform_notify() which does the ACPI companion binding.
+> device_add() is the caller of platform_notify() which is set to
+> acpi_platform_notify() in init_acpi_device_notify() by way of
+> acpi_init().
+> 
+> There are 4 children of the P2S device: GPO0, GPO1, GPO2, GPO3.
+> 
+> Those children devices utilize a sub-resource of the P2S device which
+> has a pci_dev companion. It's BAR0 is the resource.
+
+OK
+
+> >
+> > And one more thing: a struct acpi_device object is not a device in general
+> > (althogh some pieces of code in the kernel, arguably incorrectly, treat it
+> > this way).  It is an abstract representation of a firmware entity (a node
+> > in the ACPI namespace).
+> >
+> > There really should be a "physical device" thing corresponding to it and
+> > that should be a child of the PCI device object in question.
+> 
+> I thought I established that by the sysfs readlink I output I
+> previously provided?
+> 
+> # ls /sys/devices/platform/| grep INT3452
+> INT3452:00
+> INT3452:01
+> INT3452:02
+> INT3452:03
+> 
+> # ls /sys/devices/LNXSYSTM:00/LNXSYBUS:00/PNP0A08:00/device:11 | grep INT3452
+> INT3452:00
+> INT3452:01
+> INT3452:02
+> INT3452:03
+> 
+> # readlink -f /sys/devices/LNXSYSTM:00/LNXSYBUS:00/PNP0A08:00/device:11/INT3452:00/physical_node
+> /sys/devices/platform/INT3452:00
+
+OK
+
+I must have missed that part.
+
+> >
+> >> > Do we assign BARs for endpoints during enumeration or only when we find a
+> >> > matching driver?
+> >>
+> >> BARs look to be assigned during enumeration. There's where conflicts
+> >> are found and resources reassigned in the current failing case.
+> >
+> > OK
+> >
+> > You seem to be saying that we insert some resources for ACPI device objects
+> > that correspond to the children of ACPI companions of PCI devices before we
+> > assign the BARs for their parent devices.
+> 
+> The pci_dev is the one owning the parent resource. Even if there is a
+> companion ACPI device with a resource it doesn't matter because there
+> will still be a conflict because there is no checking against the
+> companion. There are 2 parallel entities without any communication
+> between the PCI subsystem and the ACPI subsystem when resources are
+> being added.
+> 
+> >
+> > To me, that sounds very suspicious.
+> >
+> > Where in the code are the ACPI resources inserted, exactly?
+> 
+> I believe it's through this mechanism:
+> acpi_bus_attach() -> acpi_default_enumeration() ->
+> acpi_create_platform_device() -> platform_device_register_full()
+
+I still would like to understand how and why that is called for child devices
+before the (physical) parent is enumerated.
+
+The theory is that when the PCI host bridge is found in the ACPI namespace,
+it will be enumerated along with the entire PCI bus below it before enumerating
+any _HID devices in the ACPI namespace below the host bridge object.
+
+Therefore all PCI devices should be enumerated before any children of any of
+them that aren't PCI devices themselves.  If BARs are assigned during
+enumeration, they all should be assigned before inserting any resources
+for any non-PCI children of any PCI devices.
+
+If that doesn't happen, the practice doesn't match the theory and that very
+well may be the source of the problem you're seeing.
+
+Thanks,
+Rafael
