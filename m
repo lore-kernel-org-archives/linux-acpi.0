@@ -1,46 +1,53 @@
-From: Vegard Nossum <vegard.nossum@oracle.com>
-Subject: [PATCH] ACPICA: cleanup method properly on error
-Date: Fri, 22 Jul 2016 17:35:09 +0200
-Message-ID: <1469201709-10518-1-git-send-email-vegard.nossum@oracle.com>
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from userp1040.oracle.com ([156.151.31.81]:22512 "EHLO
-	userp1040.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751830AbcGVPfU (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 22 Jul 2016 11:35:20 -0400
-Sender: linux-acpi-owner@vger.kernel.org
+From: Dan Williams <dan.j.williams@intel.com>
+Subject: Re: [PATCH v2 16/17] x86/insn: remove pcommit
+Date: Fri, 22 Jul 2016 08:55:23 -0700
+Message-ID: <CAPcyv4gE8owJZOokGJmxH97CZwkD9uBZys=2-VCBgZy8aLkT8w@mail.gmail.com>
+References: <146812106839.32932.2870621200867047059.stgit@dwillia2-desk3.amr.corp.intel.com>
+ <146812115425.32932.3314855641604340233.stgit@dwillia2-desk3.amr.corp.intel.com>
+ <20160712145757.GV30909@twins.programming.kicks-ass.net> <CAPcyv4iEad1WuX6=5KymjQFrsAOkzQJ3E7iKj7F9wwz63WTKug@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <CAPcyv4iEad1WuX6=5KymjQFrsAOkzQJ3E7iKj7F9wwz63WTKug@mail.gmail.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Peter Zijlstra <peterz@infradead.org>
+Cc: linux-nvdimm <linux-nvdimm@ml01.01.org>, Xiao Guangrong <guangrong.xiao@linux.intel.com>, Josh Poimboeuf <jpoimboe@redhat.com>, Linux ACPI <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, X86 ML <x86@kernel.org>, Adrian Hunter <adrian.hunter@intel.com>, Arnaldo Carvalho de Melo <acme@kernel.org>, Christoph Hellwig <hch@lst.de>, Alexander Shishkin <alexander.shishkin@linux.intel.com>, Ingo Molnar <mingo@redhat.com>, Andy Lutomirski <luto@kernel.org>, "H. Peter Anvin" <hpa@zytor.com>, linux-fsdevel <linux-fsdevel@vger.kernel.org>, Thomas Gleixner <tglx@linutronix.de>, Borislav Petkov <bp@suse.de>, Ross Zwisler <ross.zwisler@linux.intel.com>
 List-Id: linux-acpi@vger.kernel.org
-To: Robert Moore <robert.moore@intel.com>, Lv Zheng <lv.zheng@intel.com>, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>
-Cc: linux-acpi@vger.kernel.org, devel@acpica.org, linux-kernel@vger.kernel.org, Vegard Nossum <vegard.nossum@oracle.com>, stable@vger.kernel.org
 
-If the call to acpi_ds_init_aml_walk() fails, then we have to undo the
-walk state push done by acpi_ds_create_walk_state(). Otherwise, the new
-walk state (which has just been freed) will remain on the thread's
-walk_state_list and be dereferenced in acpi_ps_parse_aml() when we try
-to get the new state.
+On Tue, Jul 12, 2016 at 3:12 PM, Dan Williams <dan.j.williams@intel.com> wrote:
+> On Tue, Jul 12, 2016 at 7:57 AM, Peter Zijlstra <peterz@infradead.org> wrote:
+>> On Sat, Jul 09, 2016 at 08:25:54PM -0700, Dan Williams wrote:
+>>> The pcommit instruction is being deprecated in favor of either ADR
+>>> (asynchronous DRAM refresh: flush-on-power-fail) at the platform level, or
+>>> posted-write-queue flush addresses as defined by the ACPI 6.x NFIT (NVDIMM
+>>> Firmware Interface Table).
+>>
+>>>  arch/x86/include/asm/cpufeatures.h                 |    1
+>>>  arch/x86/include/asm/special_insns.h               |   46 --------------------
+>>>  arch/x86/lib/x86-opcode-map.txt                    |    2 -
+>>>  tools/objtool/arch/x86/insn/x86-opcode-map.txt     |    2 -
+>>>  tools/perf/arch/x86/tests/insn-x86-dat-32.c        |    2 -
+>>>  tools/perf/arch/x86/tests/insn-x86-dat-64.c        |    2 -
+>>>  tools/perf/arch/x86/tests/insn-x86-dat-src.c       |    4 --
+>>
+>> Just deprecated, or is it completely eradicated, removed from history,
+>> will never ever happen and we'll reissue the opcode for something else?
+>>
+>> Because if its only deprecated then removing it from the instruction
+>> decoders seems wrong, old binaries might still contain the opcode.
+>
+> Eradicated.
+>
+> "The new instructions like CLWB and CLFLUSHOPT will be rolled into the
+> SDM but PCOMMIT will be removed from the Extensions doc and not rolled
+> into the SDM." [1]
+>
+> Existing binaries are already gating their usage on the presence of
+> the cpu id flag, that flag and the instruction opcode are reserved
+> going forward.
+>
+> [1]: https://lists.01.org/pipermail/linux-nvdimm/2016-June/005923.html
 
-You can observe this when reading e.g.
-
-    /sys/devices/LNXSYSTM:00/LNXSYBUS:00/PNP0C0F:01/status
-
-Cc: stable@vger.kernel.org
-Signed-off-by: Vegard Nossum <vegard.nossum@oracle.com>
----
- drivers/acpi/acpica/dsmethod.c | 2 ++
- 1 file changed, 2 insertions(+)
-
-diff --git a/drivers/acpi/acpica/dsmethod.c b/drivers/acpi/acpica/dsmethod.c
-index 47c7b52..44b50a6 100644
---- a/drivers/acpi/acpica/dsmethod.c
-+++ b/drivers/acpi/acpica/dsmethod.c
-@@ -596,6 +596,8 @@ cleanup:
- 	/* On error, we must terminate the method properly */
- 
- 	acpi_ds_terminate_control_method(obj_desc, next_walk_state);
-+	if (thread)
-+		acpi_ds_pop_walk_state(thread);
- 	acpi_ds_delete_walk_state(next_walk_state);
- 
- 	return_ACPI_STATUS(status);
--- 
-1.9.1
-
+x86 maintainers, I have the other patches in this series queued in
+-next. Please ack this one and I'll add it for v4.8-rc1, or otherwise
+let me know how you want to handle this patch.
