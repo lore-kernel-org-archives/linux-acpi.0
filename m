@@ -1,65 +1,75 @@
-From: Bjorn Helgaas <helgaas@kernel.org>
-Subject: Re: ACPI device using sub-resource of PCI device
-Date: Fri, 22 Jul 2016 11:40:56 -0500
-Message-ID: <20160722164056.GD20646@localhost>
-References: <CAE2855tofJV=HV2dYuC+1=pi2mb942zrRF7f0+wqxPPay44RGA@mail.gmail.com>
- <CAE2855t5M2=OVXTBfosdNjqg6jUpM-PK02eP6KHC82eKk71-4w@mail.gmail.com>
- <20160720193543.GA4186@localhost>
- <1787767.fkqrmkTfXg@vostro.rjw.lan>
+From: Ingo Molnar <mingo-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Subject: Re: [PATCH v2 16/17] x86/insn: remove pcommit
+Date: Fri, 22 Jul 2016 18:52:46 +0200
+Message-ID: <20160722165246.GA24884@gmail.com>
+References: <146812106839.32932.2870621200867047059.stgit@dwillia2-desk3.amr.corp.intel.com>
+ <146812115425.32932.3314855641604340233.stgit@dwillia2-desk3.amr.corp.intel.com>
+ <20160712145757.GV30909@twins.programming.kicks-ass.net>
+ <CAPcyv4iEad1WuX6=5KymjQFrsAOkzQJ3E7iKj7F9wwz63WTKug@mail.gmail.com>
+ <CAPcyv4gE8owJZOokGJmxH97CZwkD9uBZys=2-VCBgZy8aLkT8w@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-pci-owner@vger.kernel.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <1787767.fkqrmkTfXg@vostro.rjw.lan>
-Sender: linux-pci-owner@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: Aaron Durbin <adurbin@google.com>, "Rafael J. Wysocki" <rafael@kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux PCI <linux-pci@vger.kernel.org>
+In-Reply-To: <CAPcyv4gE8owJZOokGJmxH97CZwkD9uBZys=2-VCBgZy8aLkT8w-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
+ <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
+List-Post: <mailto:linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+List-Help: <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
+ <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
+Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
+Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+To: Dan Williams <dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: Xiao Guangrong <guangrong.xiao-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, Peter Zijlstra <peterz-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, linux-nvdimm <linux-nvdimm-y27Ovi1pjclAfugRpC6u6w@public.gmane.org>, X86 ML <x86-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Arnaldo Carvalho de Melo <acme-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Adrian Hunter <adrian.hunter-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Linux ACPI <linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Alexander Shishkin <alexander.shishkin-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, Ingo Molnar <mingo-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Andy Lutomirski <luto-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Josh Poimboeuf <jpoimboe-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-fsdevel <linux-fsdevel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Thomas Gleixner <tglx-hfZtesqFncYOwBW4kG4KsQ@public.gmane.org>, Borislav Petkov <bp-l3A5Bk7waGM@public.gmane.org>, "H. Peter Anvin" <hpa-YMNOUZJC4hwAvxtiuMwx3w@public.gmane.org>, Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On Thu, Jul 21, 2016 at 12:46:03AM +0200, Rafael J. Wysocki wrote:
-> On Wednesday, July 20, 2016 02:35:43 PM Bjorn Helgaas wrote:
-> > On Tue, Jun 28, 2016 at 09:41:19PM -0700, Aaron Durbin wrote:
-> > > On Fri, Jun 24, 2016 at 12:34 PM, Aaron Durbin <adurbin@google.com> wrote:
 
-> > > > acpi_init() and pci_subsys_init() are both subsys_initcalls during
-> > > > boot up. I'm not sure if the ordering is dumb luck or not, but
-> > > > acpi_init() is called prior to pci_subsys_init(). The conflict error
-> > > > is spit out from pcibios_resource_survey() by way of pci_subsys_init()
-> > > >  subsys_initcall. However, the PCI device scanning is kicked off prior
-> > > > to this through acpi_scan_init() by way of acpi_init()
-> > > > subsys_initcall.  The conflict error occurs because there's already
-> > > > the child ACPI device in the resource tree. I'm not sure when/where
-> > > > those ACPI devices' resources are added, but clearly they are sitting
-> > > > in there since the conflict was found.
-> > 
-> > I think the acpi_init()/pci_subsys_init() ordering is correct.  The
-> > ACPI namespace is primary.  A PCI hierarchy originates at a PCI host
-> > bridge in the ACPI namespace, so we should enumerate the ACPI
-> > namespace first, and when we find a PCI host bridge, we should
-> > enumerate the PCI devices below it.
-> > 
-> > That said, I think it is correct mostly by accident and it would be
-> > nice if it were more explicit.
+* Dan Williams <dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org> wrote:
+
+> On Tue, Jul 12, 2016 at 3:12 PM, Dan Williams <dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org> wrote:
+> > On Tue, Jul 12, 2016 at 7:57 AM, Peter Zijlstra <peterz-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org> wrote:
+> >> On Sat, Jul 09, 2016 at 08:25:54PM -0700, Dan Williams wrote:
+> >>> The pcommit instruction is being deprecated in favor of either ADR
+> >>> (asynchronous DRAM refresh: flush-on-power-fail) at the platform level, or
+> >>> posted-write-queue flush addresses as defined by the ACPI 6.x NFIT (NVDIMM
+> >>> Firmware Interface Table).
+> >>
+> >>>  arch/x86/include/asm/cpufeatures.h                 |    1
+> >>>  arch/x86/include/asm/special_insns.h               |   46 --------------------
+> >>>  arch/x86/lib/x86-opcode-map.txt                    |    2 -
+> >>>  tools/objtool/arch/x86/insn/x86-opcode-map.txt     |    2 -
+> >>>  tools/perf/arch/x86/tests/insn-x86-dat-32.c        |    2 -
+> >>>  tools/perf/arch/x86/tests/insn-x86-dat-64.c        |    2 -
+> >>>  tools/perf/arch/x86/tests/insn-x86-dat-src.c       |    4 --
+> >>
+> >> Just deprecated, or is it completely eradicated, removed from history,
+> >> will never ever happen and we'll reissue the opcode for something else?
+> >>
+> >> Because if its only deprecated then removing it from the instruction
+> >> decoders seems wrong, old binaries might still contain the opcode.
+> >
+> > Eradicated.
+> >
+> > "The new instructions like CLWB and CLFLUSHOPT will be rolled into the
+> > SDM but PCOMMIT will be removed from the Extensions doc and not rolled
+> > into the SDM." [1]
+> >
+> > Existing binaries are already gating their usage on the presence of
+> > the cpu id flag, that flag and the instruction opcode are reserved
+> > going forward.
+> >
+> > [1]: https://lists.01.org/pipermail/linux-nvdimm/2016-June/005923.html
 > 
-> No, it isn't by accident.
-> 
-> The enumeration of PCI devices under a PCI host bridge discovered via ACPI
-> starts in acpi_pci_root_add() which quite explicitly is only called after
-> enumerating the ACPI namespace entirely.
-> 
-> acpi_bus_scan() has two passes now, one is to call acpi_bus_check_add() for
-> all namespace objects and the other is the acpi_bus_attach() pass where
-> all things like acpi_pci_root_add() are called.
+> x86 maintainers, I have the other patches in this series queued in -next. Please 
+> ack this one and I'll add it for v4.8-rc1, or otherwise let me know how you want 
+> to handle this patch.
 
-I meant the ordering between acpi_init() and pci_subsys_init().
-They're both subsys_initcalls, so their ordering is determined by link
-order, which is not at all obvious (at least to me), since acpi_init()
-is in drivers/acpi and pci_subsys_init() is in arch/x86.  If they were
-both in drivers, the drivers/Makefile would make it pretty obvious.
-But finding the order of "arch" relative to "drivers" in Makefile is
-less obvious.
+Since it's just a removal AFAICS that the rest of your series should not depend 
+on, can you submit it to the x86 tree?
 
-acpi_init() has to be before pci_subsys_init(), and it is.  I
-shouldn't have said it was by accident, just that it's non-obvious.
+Thanks,
 
-Bjorn
+	Ingo
