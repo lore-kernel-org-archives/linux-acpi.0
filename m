@@ -1,170 +1,126 @@
-From: joeyli <jlee-IBi9RG/b67k@public.gmane.org>
-Subject: Re: [PATCH 1/2] libnvdimm: move ->module to struct
- nvdimm_bus_descriptor
-Date: Fri, 22 Jul 2016 18:23:25 +0800
-Message-ID: <20160722102325.GH12939@linux-rxt1.site>
-References: <146915794457.7201.5023729229431647060.stgit@dwillia2-desk3.amr.corp.intel.com>
+From: "Zheng, Lv" <lv.zheng@intel.com>
+Subject: RE: [PATCH v5 1/3] ACPI / button: Add missing event to keep SW_LID
+ running without additional event loss
+Date: Fri, 22 Jul 2016 10:26:24 +0000
+Message-ID: <1AE640813FDE7649BE1B193DEA596E883BC05E41@SHSMSX101.ccr.corp.intel.com>
+References: <cbdaec17aba78c61f466efff8883d49067f2dad5.1463472125.git.lv.zheng@intel.com>
+ <0d28076e25047db356eeedbb2d8ae204f0ec893d.1469168549.git.lv.zheng@intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <146915794457.7201.5023729229431647060.stgit-p8uTFz9XbKj2zm6wflaqv1nYeNYlB/vhral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
- <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
-List-Post: <mailto:linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-List-Help: <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
- <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
-Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
-Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-To: Dan Williams <dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga04.intel.com ([192.55.52.120]:17549 "EHLO mga04.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753444AbcGVK03 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 22 Jul 2016 06:26:29 -0400
+In-Reply-To: <0d28076e25047db356eeedbb2d8ae204f0ec893d.1469168549.git.lv.zheng@intel.com>
+Content-Language: en-US
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, "Brown, Len" <len.brown@intel.com>
+Cc: Lv Zheng <zetalog@gmail.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Dmitry Torokhov <dmitry.torokhov@gmail.com>, Benjamin Tissoires <benjamin.tissoires@gmail.com>, "Bastien Nocera:" <hadess@hadess.net>, "linux-input@vger.kernel.org" <linux-input@vger.kernel.org>
 
-On Thu, Jul 21, 2016 at 08:25:44PM -0700, Dan Williams wrote:
-> Let the provider module be explicitly passed in rather than implicitly
-> assumed by the module that calls nvdimm_bus_register().  This is in
-> preparation for unifying the nfit and nfit_test driver teardown paths.
+Hi, Dmitry
+
+I'm considering what the future should be.
+
+What if we drop PATCH 02, stop introducing KEY_LID_XXX events.
+And switch ACPI button driver to lid_init_state=ignore.
+So that whatever the initial state is close or open, no events will be sent to the userspace.
+In the meanwhile, userspace tunes its behavior.
+With PATCH 01, 2nd close can arrive to userspace, so that can be tuned to:
+1. User space stops asking kernel to send open notification.
+2. And only acts against "close" notification.
+
+Thanks and best regards
+-Lv
+
+> From: Zheng, Lv
+> Subject: [PATCH v5 1/3] ACPI / button: Add missing event to keep SW_LID
+> running without additional event loss
 > 
-> Signed-off-by: Dan Williams <dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-
-Reviewed-by: Lee, Chun-Yi <jlee-IBi9RG/b67k@public.gmane.org>
-
-Regards
-Joey Lee
-
+> There are several possibilities that a lid event can be lost. For example,
+> EC event queue full, or the resume order of the underlying drivers.
+> 
+> When the event loss happens, new event may also be lost due to the type
+> of
+> the SW_LID (switch event). The 2nd loss is what we want to avoid.
+> 
+> This patch adds a mechanism to insert lid events as a compensation for
+> the
+> switch event nature of the lid events in order to avoid the 2nd loss.
+> 
+> Signed-off-by: Lv Zheng <lv.zheng@intel.com>
+> Cc: Dmitry Torokhov <dmitry.torokhov@gmail.com>
+> Cc: Benjamin Tissoires <benjamin.tissoires@gmail.com>
+> Cc: Bastien Nocera: <hadess@hadess.net>
+> Cc: linux-input@vger.kernel.org
 > ---
->  drivers/acpi/nfit.c              |    1 +
->  drivers/nvdimm/bus.c             |    2 +-
->  drivers/nvdimm/core.c            |    7 +++----
->  drivers/nvdimm/e820.c            |    1 +
->  drivers/nvdimm/nd-core.h         |    1 -
->  include/linux/libnvdimm.h        |    7 +++----
->  tools/testing/nvdimm/test/nfit.c |    1 +
->  7 files changed, 10 insertions(+), 10 deletions(-)
+>  drivers/acpi/button.c |   21 ++++++++++++++++++++-
+>  1 file changed, 20 insertions(+), 1 deletion(-)
 > 
-> diff --git a/drivers/acpi/nfit.c b/drivers/acpi/nfit.c
-> index fb80f32db525..e7eb3b6f1514 100644
-> --- a/drivers/acpi/nfit.c
-> +++ b/drivers/acpi/nfit.c
-> @@ -2417,6 +2417,7 @@ void acpi_nfit_desc_init(struct acpi_nfit_desc *acpi_desc, struct device *dev)
->  	acpi_desc->blk_do_io = acpi_nfit_blk_region_do_io;
->  	nd_desc = &acpi_desc->nd_desc;
->  	nd_desc->provider_name = "ACPI.NFIT";
-> +	nd_desc->module = THIS_MODULE;
->  	nd_desc->ndctl = acpi_nfit_ctl;
->  	nd_desc->flush_probe = acpi_nfit_flush_probe;
->  	nd_desc->clear_to_send = acpi_nfit_clear_to_send;
-> diff --git a/drivers/nvdimm/bus.c b/drivers/nvdimm/bus.c
-> index 1cc7880320fe..275dd5c0a301 100644
-> --- a/drivers/nvdimm/bus.c
-> +++ b/drivers/nvdimm/bus.c
-> @@ -73,7 +73,7 @@ static struct module *to_bus_provider(struct device *dev)
->  	if (is_nd_pmem(dev) || is_nd_blk(dev)) {
->  		struct nvdimm_bus *nvdimm_bus = walk_to_nvdimm_bus(dev);
->  
-> -		return nvdimm_bus->module;
-> +		return nvdimm_bus->nd_desc->module;
->  	}
->  	return NULL;
->  }
-> diff --git a/drivers/nvdimm/core.c b/drivers/nvdimm/core.c
-> index 757e0cf028bf..e8528756f54f 100644
-> --- a/drivers/nvdimm/core.c
-> +++ b/drivers/nvdimm/core.c
-> @@ -447,8 +447,8 @@ struct attribute_group nvdimm_bus_attribute_group = {
+> diff --git a/drivers/acpi/button.c b/drivers/acpi/button.c
+> index 148f4e5..41fd21d 100644
+> --- a/drivers/acpi/button.c
+> +++ b/drivers/acpi/button.c
+> @@ -104,6 +104,8 @@ struct acpi_button {
+>  	struct input_dev *input;
+>  	char phys[32];			/* for input device */
+>  	unsigned long pushed;
+> +	int sw_last_state;
+> +	unsigned long sw_last_time;
+>  	bool suspended;
 >  };
->  EXPORT_SYMBOL_GPL(nvdimm_bus_attribute_group);
->  
-> -struct nvdimm_bus *__nvdimm_bus_register(struct device *parent,
-> -		struct nvdimm_bus_descriptor *nd_desc, struct module *module)
-> +struct nvdimm_bus *nvdimm_bus_register(struct device *parent,
-> +		struct nvdimm_bus_descriptor *nd_desc)
->  {
->  	struct nvdimm_bus *nvdimm_bus;
->  	int rc;
-> @@ -467,7 +467,6 @@ struct nvdimm_bus *__nvdimm_bus_register(struct device *parent,
->  		return NULL;
->  	}
->  	nvdimm_bus->nd_desc = nd_desc;
-> -	nvdimm_bus->module = module;
->  	nvdimm_bus->dev.parent = parent;
->  	nvdimm_bus->dev.release = nvdimm_bus_release;
->  	nvdimm_bus->dev.groups = nd_desc->attr_groups;
-> @@ -491,7 +490,7 @@ struct nvdimm_bus *__nvdimm_bus_register(struct device *parent,
->  	put_device(&nvdimm_bus->dev);
->  	return NULL;
->  }
-> -EXPORT_SYMBOL_GPL(__nvdimm_bus_register);
-> +EXPORT_SYMBOL_GPL(nvdimm_bus_register);
->  
->  static void set_badblock(struct badblocks *bb, sector_t s, int num)
->  {
-> diff --git a/drivers/nvdimm/e820.c b/drivers/nvdimm/e820.c
-> index 95825b38559a..11ea90120542 100644
-> --- a/drivers/nvdimm/e820.c
-> +++ b/drivers/nvdimm/e820.c
-> @@ -47,6 +47,7 @@ static int e820_pmem_probe(struct platform_device *pdev)
->  
->  	nd_desc.attr_groups = e820_pmem_attribute_groups;
->  	nd_desc.provider_name = "e820";
-> +	nd_desc.module = THIS_MODULE;
->  	nvdimm_bus = nvdimm_bus_register(dev, &nd_desc);
->  	if (!nvdimm_bus)
->  		goto err;
-> diff --git a/drivers/nvdimm/nd-core.h b/drivers/nvdimm/nd-core.h
-> index 6e961f7f43e7..38ce6bbbc170 100644
-> --- a/drivers/nvdimm/nd-core.h
-> +++ b/drivers/nvdimm/nd-core.h
-> @@ -26,7 +26,6 @@ extern int nvdimm_major;
->  struct nvdimm_bus {
->  	struct nvdimm_bus_descriptor *nd_desc;
->  	wait_queue_head_t probe_wait;
-> -	struct module *module;
->  	struct list_head list;
->  	struct device dev;
->  	int id, probe_active;
-> diff --git a/include/linux/libnvdimm.h b/include/linux/libnvdimm.h
-> index d37fda6dd64c..2ab869dece4a 100644
-> --- a/include/linux/libnvdimm.h
-> +++ b/include/linux/libnvdimm.h
-> @@ -70,6 +70,7 @@ struct nd_mapping {
->  struct nvdimm_bus_descriptor {
->  	const struct attribute_group **attr_groups;
->  	unsigned long cmd_mask;
-> +	struct module *module;
->  	char *provider_name;
->  	ndctl_fn ndctl;
->  	int (*flush_probe)(struct nvdimm_bus_descriptor *nd_desc);
-> @@ -128,10 +129,8 @@ static inline struct nd_blk_region_desc *to_blk_region_desc(
->  }
->  
->  int nvdimm_bus_add_poison(struct nvdimm_bus *nvdimm_bus, u64 addr, u64 length);
-> -struct nvdimm_bus *__nvdimm_bus_register(struct device *parent,
-> -		struct nvdimm_bus_descriptor *nfit_desc, struct module *module);
-> -#define nvdimm_bus_register(parent, desc) \
-> -	__nvdimm_bus_register(parent, desc, THIS_MODULE)
-> +struct nvdimm_bus *nvdimm_bus_register(struct device *parent,
-> +		struct nvdimm_bus_descriptor *nfit_desc);
->  void nvdimm_bus_unregister(struct nvdimm_bus *nvdimm_bus);
->  struct nvdimm_bus *to_nvdimm_bus(struct device *dev);
->  struct nvdimm *to_nvdimm(struct device *dev);
-> diff --git a/tools/testing/nvdimm/test/nfit.c b/tools/testing/nvdimm/test/nfit.c
-> index 78cba1e3b1da..642713f15723 100644
-> --- a/tools/testing/nvdimm/test/nfit.c
-> +++ b/tools/testing/nvdimm/test/nfit.c
-> @@ -1463,6 +1463,7 @@ static int nfit_test_probe(struct platform_device *pdev)
->  	acpi_desc->blk_do_io = nfit_test_blk_do_io;
->  	nd_desc = &acpi_desc->nd_desc;
->  	nd_desc->provider_name = NULL;
-> +	nd_desc->module = THIS_MODULE;
->  	nd_desc->ndctl = nfit_test_ctl;
->  	acpi_desc->nvdimm_bus = nvdimm_bus_register(&pdev->dev, nd_desc);
->  	if (!acpi_desc->nvdimm_bus)
 > 
+> @@ -111,6 +113,10 @@ static
+> BLOCKING_NOTIFIER_HEAD(acpi_lid_notifier);
+>  static struct acpi_device *lid_device;
+>  static u8 lid_init_state = ACPI_BUTTON_LID_INIT_METHOD;
+> 
+> +static unsigned long lid_report_interval __read_mostly = 500;
+> +module_param(lid_report_interval, ulong, 0644);
+> +MODULE_PARM_DESC(lid_report_interval, "Interval (ms) between lid key
+> events");
+> +
+>  /* --------------------------------------------------------------------------
+>                                FS Interface (/proc)
+>     -------------------------------------------------------------------------- */
+> @@ -133,11 +139,22 @@ static int acpi_lid_evaluate_state(struct
+> acpi_device *device)
+>  static int acpi_lid_notify_state(struct acpi_device *device, int state)
+>  {
+>  	struct acpi_button *button = acpi_driver_data(device);
+> +	unsigned long sw_tout;
+>  	int ret;
+> 
+> -	/* input layer checks if event is redundant */
+> +	/* Send the switch event */
+> +	sw_tout = button->sw_last_time +
+> +		  msecs_to_jiffies(lid_report_interval);
+> +	if (time_after(jiffies, sw_tout) &&
+> +	    (button->sw_last_state == !!state)) {
+> +		/* Send the complement switch event */
+> +		input_report_switch(button->input, SW_LID, state);
+> +		input_sync(button->input);
+> +	}
+>  	input_report_switch(button->input, SW_LID, !state);
+>  	input_sync(button->input);
+> +	button->sw_last_state = !!state;
+> +	button->sw_last_time = jiffies;
+> 
+>  	if (state)
+>  		pm_wakeup_event(&device->dev, 0);
+> @@ -407,6 +424,8 @@ static int acpi_button_add(struct acpi_device
+> *device)
+>  		strcpy(name, ACPI_BUTTON_DEVICE_NAME_LID);
+>  		sprintf(class, "%s/%s",
+>  			ACPI_BUTTON_CLASS,
+> ACPI_BUTTON_SUBCLASS_LID);
+> +		button->sw_last_state = !!acpi_lid_evaluate_state(device);
+> +		button->sw_last_time = jiffies;
+>  	} else {
+>  		printk(KERN_ERR PREFIX "Unsupported hid [%s]\n", hid);
+>  		error = -ENODEV;
 > --
-> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
-> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 1.7.10
+
