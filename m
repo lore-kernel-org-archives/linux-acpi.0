@@ -1,204 +1,95 @@
-From: Vishal Verma <vishal.l.verma@intel.com>
-Subject: [PATCH v3 3/3] nfit: do an ARS scrub on hitting a latent media error
-Date: Fri, 22 Jul 2016 17:21:33 -0600
-Message-ID: <1469229693-17980-4-git-send-email-vishal.l.verma@intel.com>
-References: <1469229693-17980-1-git-send-email-vishal.l.verma@intel.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1469229693-17980-1-git-send-email-vishal.l.verma@intel.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: linux-nvdimm@lists.01.org
-Cc: Dan Williams <dan.j.williams@intel.com>, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Tony Luck <tony.luck@intel.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Vishal Verma <vishal.l.verma@intel.com>
+From: Markus Mayer <mmayer-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
+Subject: [PATCH v4 0/7] lib: string: add functions to case-convert
+	strings
+Date: Fri, 22 Jul 2016 16:31:02 -0700
+Message-ID: <1469230269-1644-1-git-send-email-mmayer@broadcom.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <nouveau-bounces-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org>
+List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/nouveau>,
+ <mailto:nouveau-request-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org?subject=unsubscribe>
+List-Archive: <https://lists.freedesktop.org/archives/nouveau>
+List-Post: <mailto:nouveau-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org>
+List-Help: <mailto:nouveau-request-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/nouveau>,
+ <mailto:nouveau-request-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org?subject=subscribe>
+Errors-To: nouveau-bounces-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org
+Sender: "Nouveau" <nouveau-bounces-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org>
+To: Andrew Morton <akpm-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org>, Al Viro <viro-RmSDqhL/yNMiFSDQTTA3OLVCufUGDwFn@public.gmane.org>, Rasmus Villemoes <linux-qQsb+v5E8BnlAoU/VqSP6n9LOBIZ5rWg@public.gmane.org>, Chris Metcalf <cmetcalf-d5a29ZRxExrQT0dZR+AlfA@public.gmane.org>, Kees Cook <keescook-F7+t8E8rja9g9hUCZPvPmw@public.gmane.org>
+Cc: devel-gWbeCf7V1WCQmaza687I9mD2FQJk+8+b@public.gmane.org, linux-scsi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-pm-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, nouveau-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org, speakup-UPO/6gOIxNZglr+F8WMZYdi2O/JbrIOy@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, dri-devel-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, target-devel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-When a latent (unknown to 'badblocks') error is encountered, it will
-trigger a machine check exception. On a system with machine check
-recovery, this will only SIGBUS the process(es) which had the bad page
-mapped (as opposed to a kernel panic on platforms without machine
-check recovery features). In the former case, we want to trigger a full
-rescan of that nvdimm bus. This will allow any additional, new errors
-to be captured in the block devices' badblocks lists, and offending
-operations on them can be trapped early, avoiding machine checks.
-
-This is done by registering a callback function with the
-x86_mce_decoder_chain and calling the new ars_rescan functionality with
-the address in the mce notificatiion.
-
-Cc: Dan Williams <dan.j.williams@intel.com>
-Cc: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-Cc: Tony Luck <tony.luck@intel.com>
-Cc: <linux-acpi@vger.kernel.org>
-Cc: <linux-nvdimm@lists.01.org>
-Signed-off-by: Vishal Verma <vishal.l.verma@intel.com>
----
- drivers/acpi/nfit.c | 87 +++++++++++++++++++++++++++++++++++++++++++++++++++++
- drivers/acpi/nfit.h |  1 +
- 2 files changed, 88 insertions(+)
-
-diff --git a/drivers/acpi/nfit.c b/drivers/acpi/nfit.c
-index 6e45183..954b610 100644
---- a/drivers/acpi/nfit.c
-+++ b/drivers/acpi/nfit.c
-@@ -12,6 +12,7 @@
-  */
- #include <linux/list_sort.h>
- #include <linux/libnvdimm.h>
-+#include <linux/notifier.h>
- #include <linux/module.h>
- #include <linux/mutex.h>
- #include <linux/ndctl.h>
-@@ -24,6 +25,7 @@
- #include <linux/io.h>
- #include <linux/nd.h>
- #include <asm/cacheflush.h>
-+#include <asm/mce.h>
- #include "nfit.h"
- 
- /*
-@@ -51,6 +53,9 @@ module_param(disable_vendor_specific, bool, S_IRUGO);
- MODULE_PARM_DESC(disable_vendor_specific,
- 		"Limit commands to the publicly specified set\n");
- 
-+static LIST_HEAD(acpi_descs);
-+static DEFINE_MUTEX(acpi_desc_lock);
-+
- static struct workqueue_struct *nfit_wq;
- 
- struct nfit_table_prev {
-@@ -2395,13 +2400,18 @@ static void acpi_nfit_destruct(void *data)
- 		sysfs_put(acpi_desc->scrub_count_state);
- 	nvdimm_bus_unregister(acpi_desc->nvdimm_bus);
- 	acpi_desc->nvdimm_bus = NULL;
-+	mutex_lock(&acpi_desc_lock);
-+	list_del(&acpi_desc->list);
-+	mutex_unlock(&acpi_desc_lock);
- }
- 
- int acpi_nfit_init(struct acpi_nfit_desc *acpi_desc, void *data, acpi_size sz)
- {
-+	struct acpi_nfit_desc *acpi_desc_entry;
- 	struct device *dev = acpi_desc->dev;
- 	struct nfit_table_prev prev;
- 	const void *end;
-+	int found = 0;
- 	int rc;
- 
- 	acpi_nfit_init_dsms(acpi_desc);
-@@ -2468,6 +2478,19 @@ int acpi_nfit_init(struct acpi_nfit_desc *acpi_desc, void *data, acpi_size sz)
- 
- 	rc = acpi_nfit_register_regions(acpi_desc);
- 
-+	/*
-+	 * We may get here due to an update of the nfit via _FIT.
-+	 * Check if the acpi_desc we're (re)initializing is already
-+	 * present in the list, and if so, don't re-add it
-+	 */
-+	mutex_lock(&acpi_desc_lock);
-+	list_for_each_entry(acpi_desc_entry, &acpi_descs, list)
-+		if (acpi_desc_entry == acpi_desc)
-+			found = 1;
-+	if (found == 0)
-+		list_add_tail(&acpi_desc->list, &acpi_descs);
-+	mutex_unlock(&acpi_desc_lock);
-+
-  out_unlock:
- 	mutex_unlock(&acpi_desc->init_mutex);
- 	return rc;
-@@ -2550,6 +2573,65 @@ static int acpi_nfit_ars_rescan(struct acpi_nfit_desc *acpi_desc)
- 	return 0;
- }
- 
-+static int nfit_handle_mce(struct notifier_block *nb, unsigned long val,
-+			void *data)
-+{
-+	struct mce *mce = (struct mce *)data;
-+	struct acpi_nfit_desc *acpi_desc;
-+	struct nfit_spa *nfit_spa;
-+
-+	/* We only care about memory errors */
-+	if (!(mce->status & MCACOD))
-+		return NOTIFY_DONE;
-+
-+	/*
-+	 * mce->addr contains the physical addr accessed that caused the
-+	 * machine check. We need to walk through the list of NFITs, and see
-+	 * if any of them matches that address, and only then start a scrub.
-+	 */
-+	mutex_lock(&acpi_desc_lock);
-+	list_for_each_entry(acpi_desc, &acpi_descs, list) {
-+		struct device *dev = acpi_desc->dev;
-+		int found_match = 0;
-+
-+		list_for_each_entry(nfit_spa, &acpi_desc->spas, list) {
-+			struct acpi_nfit_system_address *spa = nfit_spa->spa;
-+
-+			if (nfit_spa_type(spa) != NFIT_SPA_PM)
-+				continue;
-+			/* find the spa that covers the mce addr */
-+			if (spa->address > mce->addr)
-+				continue;
-+			if ((spa->address + spa->length - 1) < mce->addr)
-+				continue;
-+			found_match = 1;
-+			dev_dbg(dev, "%s: addr in SPA %d (0x%llx, 0x%llx)\n",
-+				__func__, spa->range_index, spa->address,
-+				spa->length);
-+			/*
-+			 * We can break at the first match because we're going
-+			 * to rescan all the SPA ranges. There shouldn't be any
-+			 * aliasing anyway.
-+			 */
-+			break;
-+		}
-+
-+		/*
-+		 * We can ignore an -EBUSY here because if an ARS is already
-+		 * in progress, just let that be the last authoritative one
-+		 */
-+		if (found_match)
-+			acpi_nfit_ars_rescan(acpi_desc);
-+	}
-+
-+	mutex_unlock(&acpi_desc_lock);
-+	return NOTIFY_DONE;
-+}
-+
-+static struct notifier_block nfit_mce_dec = {
-+	.notifier_call	= nfit_handle_mce,
-+};
-+
- void acpi_nfit_desc_init(struct acpi_nfit_desc *acpi_desc, struct device *dev)
- {
- 	struct nvdimm_bus_descriptor *nd_desc;
-@@ -2724,13 +2806,18 @@ static __init int nfit_init(void)
- 	if (!nfit_wq)
- 		return -ENOMEM;
- 
-+	INIT_LIST_HEAD(&acpi_descs);
-+	mce_register_decode_chain(&nfit_mce_dec);
-+
- 	return acpi_bus_register_driver(&acpi_nfit_driver);
- }
- 
- static __exit void nfit_exit(void)
- {
-+	mce_unregister_decode_chain(&nfit_mce_dec);
- 	acpi_bus_unregister_driver(&acpi_nfit_driver);
- 	destroy_workqueue(nfit_wq);
-+	WARN_ON(!list_empty(&acpi_descs));
- }
- 
- module_init(nfit_init);
-diff --git a/drivers/acpi/nfit.h b/drivers/acpi/nfit.h
-index 33fc2e9..a2d6c6b 100644
---- a/drivers/acpi/nfit.h
-+++ b/drivers/acpi/nfit.h
-@@ -148,6 +148,7 @@ struct acpi_nfit_desc {
- 	struct nd_cmd_ars_status *ars_status;
- 	size_t ars_status_size;
- 	struct work_struct work;
-+	struct list_head list;
- 	struct kernfs_node *scrub_count_state;
- 	unsigned int scrub_count;
- 	unsigned int cancel:1;
--- 
-2.7.4
+VGhpcyBzZXJpZXMgaW50cm9kdWNlcyBhIGZhbWlseSBvZiBnZW5lcmljIHN0cmluZyBjYXNlIGNv
+bnZlcnNpb24KZnVuY3Rpb25zLiBUaGlzIGtpbmQgb2YgZnVuY3Rpb25hbGl0eSBpcyBuZWVkZWQg
+aW4gc2V2ZXJhbCBwbGFjZXMgaW4KdGhlIGtlcm5lbC4gUmlnaHQgbm93LCBldmVyeWJvZHkgc2Vl
+bXMgdG8gYmUgaW1wbGVtZW50aW5nIHRoZWlyIG93bgpjb3B5IG9mIHRoaXMgZnVuY3Rpb25hbGl0
+eS4KCkJhc2VkIG9uIHRoZSBkaXNjdXNzaW9uIG9mIHRoZSBwcmV2aW91cyB2ZXJzaW9uIG9mIHRo
+aXMgc2VyaWVzWzFdIGFuZAp0aGUgdXNlIGNhc2VzIGZvdW5kIGluIHRoZSBrZXJuZWwsIGl0IGRv
+ZXMgbG9vayBsaWtlIGhhdmluZyBzZXZlcmFsCmZsYXZvdXJzIG9mIGNhc2UgY29udmVyc2lvbiBm
+dW5jdGlvbnMgaXMgYmVuZWZpY2lhbC4gVGhlIHVzZSBjYXNlcyBmYWxsCmludG8gdGhyZWUgY2F0
+ZWdvcmllczoKICAgIC0gY29weWluZyBhIHN0cmluZyBhbmQgY29udmVydGluZyB0aGUgY2FzZSB3
+aGlsZSBzcGVjaWZ5aW5nIGEKICAgICAgbWF4aW11bSBsZW5ndGggdG8gbWltaWMgc3RybGNweSgp
+CiAgICAtIGNvcHlpbmcgYSBzdHJpbmcgYW5kIGNvbnZlcnRpbmcgdGhlIGNhc2Ugd2l0aG91dCBz
+cGVjaWZ5aW5nIGEKICAgICAgbGVuZ3RoIHRvIG1pbWljIHN0cmNweSgpCiAgICAtIGNvbnZlcnRp
+bmcgdGhlIGNhc2Ugb2YgYSBzdHJpbmcgaW4tcGxhY2UgKGkuZS4gbW9kaWZ5aW5nIHRoZQogICAg
+ICBzdHJpbmcgdGhhdCB3YXMgcGFzc2VkIGluKQoKQ29uc2VxdWVudGx5LCBJIGFtIHByb3Bvc2lu
+ZyB0aGVzZSBuZXcgZnVuY3Rpb25zOgogICAgaW50IHN0cmxjcHl0b3VwcGVyKGNoYXIgKmRzdCwg
+Y29uc3QgY2hhciAqc3JjLCBzaXplX3QgbGVuKTsKICAgIGludCBzdHJsY3B5dG9sb3dlcihjaGFy
+ICpkc3QsIGNvbnN0IGNoYXIgKnNyYywgc2l6ZV90IGxlbik7CiAgICB2b2lkIHN0cmNweXRvdXBw
+ZXIoY2hhciAqZHN0LCBjb25zdCBjaGFyICpzcmMpOwogICAgdm9pZCBzdHJjcHl0b2xvd2VyKGNo
+YXIgKmRzdCwgY29uc3QgY2hhciAqc3JjKTsKICAgIHZvaWQgc3RydG91cHBlcihjaGFyICpzKTsK
+ICAgIHZvaWQgc3RydG9sb3dlcihjaGFyICpzKTsKClNldmVyYWwgZHJpdmVycyBhcmUgYmVpbmcg
+bW9kaWZpZWQgdG8gbWFrZSB1c2Ugb2YgdGhlIGZ1bmN0aW9ucyBhYm92ZS4KQW5vdGhlciBkcml2
+ZXIgdGhhdCBhbHNvIG1ha2VzIHVzZSBvZiB0aGlzIGZ1bmN0aW9uYWxpdHkgd2lsbCBiZQpzdWJt
+aXR0ZWQgdXBzdHJlYW0gc2hvcnRseSwgd2hpY2ggcHJvbXB0ZWQgdGhpcyB3aG9sZSBleGVyY2lz
+ZS4KClRoZSBjaGFuZ2VzIG1hZGUgaGVyZSBoYXZlIGJlZW4gY29tcGlsZS10ZXN0ZWQsIGJ1dCBu
+b3QgdHJpZWQgb3V0LCBkdWUKdG8gbGFjayBvZiByZXF1aXJlZCBoYXJkd2FyZS4KCkNoYW5nZXMg
+c2luY2UgdjM6CiAgLSBzdHJsY3B5dG91cHBlcigpIGFuZCBzdHJsY3B5dG9sb3dlcigpIHJldHVy
+biBsZW5ndGggb2YgZGVzdGluYXRpb24KICAgIG9yIC1FMkJJRyAoc2VlIFsyXSkKICAtIHdlIHVz
+ZSB+KHNpemVfdCkwIGluc3RlYWQgb2YgLTEgdG8gY29weSBzdHJpbmdzIG9mIGFyYml0cmFyeSBs
+ZW5ndGgKICAgIGluIHN0cmNweXRvKigpIGFuZCBzdHJ0byooKQogIC0gQSBmZXcgQUNLcyBhZGRl
+ZAoKQ2hhbmdlcyBzaW5jZSB2MjoKICAtIHVzZSBzdHJsY3B5KCkgc2VtYW50aWNzIG5vdCBzdHJu
+Y3B5KCkgc2VtYW50aWNzLCBpLmUuIGd1YXJhbnRlZQogICAgTlVMTCB0ZXJtaW5hdGlvbgogIC0g
+YXMgYSByZXN1bHQgc3RybmNweXRvPHVwcGVyfGxvd2VyPiBhcmUgbm93IGNhbGxlZAogICAgc3Ry
+bGNweXRvPHVwcGVyfGxvd2VyPgogIC0gbWFrZSBmdW5jdGlvbnMgdm9pZAogIC0gdXNlIGxlbiA9
+PSAtMSAoU0laRV9NQVgpIGFzIG5vLWxpbWl0IGluZGljYXRvciByYXRoZXIgdGhlbiBsZW4gPT0g
+MAogIC0gY2hhbmdlIFBBVENIIDIvNyB0byBtYXRjaCBzdHJsY3B5KCkgc2VtYW50aWNzCiAgLSBj
+aGFuZ2UgUEFUQ0ggNC83IHRvIG1hdGNoIHN0cmxjcHkoKSBzZW1hbnRpY3MKCkNoYW5nZXMgc2lu
+Y2UgdjE6CiAgLSBleHBhbmRlZCBzdHJ0b2xvd2VyKCkgaW50byBhIGZhbWlseSBvZiBmdW5jdGlv
+bnMgdGhhdCBjb3ZlciB1c2UKICAgIGNhc2VzIHdoZW4gYSBsZW5ndGggYXJndW1lbnQgaXMgb3Ig
+aXNuJ3QgcmVxdWlyZWQgYW5kIHRoYXQgc3VwcG9ydAogICAgY29weWluZyB0aGUgc3RyaW5nIGlu
+dG8gYSBuZXcgYnVmZmVyIG9yIGNoYW5naW5nIGl0IGluLXBsYWNlIAogIC0gY2hhbmdlZCB0aGUg
+ZnVuY3Rpb24gc2VtYW50aWNzIHRvIHJldHVybiBhIHBvaW50ZXIgdG8gdGhlCiAgICB0ZXJtaW5h
+dGluZyAnXDAnIGNoYXJhY3RlciBvZiB0aGUgbW9kaWZpZWQgc3RyaW5nCiAgLSBhZGRlZCBzdHJ0
+b3VwcGVyKCkgZnVuY3Rpb25hbGl0eSBtaXJyb3JpbmcgdGhlIGFib3ZlCiAgLSBkcm9wcGVkIHRo
+ZSBBQ1BJQ0EgcGF0Y2gsIHNpbmNlIHRoYXQgY29kZSBpcyBPUyBpbmRlcGVuZGVudCBhbmQKICAg
+IGNhbid0IHJlbHkgb24gYSBMaW51eCBsaWJyYXJ5IGZ1bmN0aW9uIChzZWUgWzNdKQogIC0gQWRk
+ZWQgdHdvIG5ldyBwYXRjaGVzIHJlcGxhY2luZyBzdHJ0b3VwcGVyKCkgaW1wbGVtZW50YXRpb25z
+CgpbMV0gaHR0cHM6Ly9sa21sLm9yZy9sa21sLzIwMTYvNi8zMC83MjcKWzJdIGh0dHBzOi8vbGtt
+bC5vcmcvbGttbC8yMDE2LzcvMTAvNApbM10gaHR0cHM6Ly9sa21sLm9yZy9sa21sLzIwMTYvNy8x
+LzkKCk1hcmt1cyBNYXllciAoNyk6CiAgbGliOiBzdHJpbmc6IGFkZCBmdW5jdGlvbnMgdG8gY2Fz
+ZS1jb252ZXJ0IHN0cmluZ3MKICBkcm0vbm91dmVhdS9jb3JlOiBtYWtlIHVzZSBvZiBuZXcgc3Ry
+bGNweXRvbG93ZXIoKSBmdW5jdGlvbgogIEFDUEkgLyBkZXZpY2Vfc3lzZnM6IG1ha2UgdXNlIG9m
+IG5ldyBzdHJ0b2xvd2VyKCkgZnVuY3Rpb24KICBzdGFnaW5nOiBzcGVha3VwOiByZXBsYWNlIHNw
+a19zdHJsd3IoKSB3aXRoIHN0cmxjcHl0b2xvd2VyKCkKICBpc2NzaS10YXJnZXQ6IHJlcGxhY2Ug
+aXNjc2lfaW5pdGlhdG9ybmFtZV90b2xvd2VyKCkgd2l0aCBzdHJ0b2xvd2VyKCkKICBkcm0vbm91
+dmVhdS9maWZvL2drMTA0OiBtYWtlIHVzZSBvZiBuZXcgc3RyY3B5dG91cHBlcigpIGZ1bmN0aW9u
+CiAgcG93ZXJfc3VwcGx5OiBtYWtlIHVzZSBvZiBuZXcgc3RyY3B5dG91cHBlcigpIGZ1bmN0aW9u
+CgogZHJpdmVycy9hY3BpL2RldmljZV9zeXNmcy5jICAgICAgICAgICAgICAgICAgICAgIHwgIDQg
+Ky0tCiBkcml2ZXJzL2dwdS9kcm0vbm91dmVhdS9udmttL2NvcmUvZmlybXdhcmUuYyAgICAgfCAg
+OSArLS0tLQogZHJpdmVycy9ncHUvZHJtL25vdXZlYXUvbnZrbS9lbmdpbmUvZmlmby9nazEwNC5j
+IHwgIDUgKy0tCiBkcml2ZXJzL3Bvd2VyL3Bvd2VyX3N1cHBseV9zeXNmcy5jICAgICAgICAgICAg
+ICAgfCAxMyArKystLS0tCiBkcml2ZXJzL3N0YWdpbmcvc3BlYWt1cC9rb2JqZWN0cy5jICAgICAg
+ICAgICAgICAgfCAgMyArLQogZHJpdmVycy9zdGFnaW5nL3NwZWFrdXAvbWFpbi5jICAgICAgICAg
+ICAgICAgICAgIHwgIDMgKy0KIGRyaXZlcnMvc3RhZ2luZy9zcGVha3VwL3NwZWFrdXAuaCAgICAg
+ICAgICAgICAgICB8ICAxIC0KIGRyaXZlcnMvc3RhZ2luZy9zcGVha3VwL3ZhcmhhbmRsZXJzLmMg
+ICAgICAgICAgICB8IDEyIC0tLS0tLS0KIGRyaXZlcnMvdGFyZ2V0L2lzY3NpL2lzY3NpX3Rhcmdl
+dF9uZWdvLmMgICAgICAgICB8IDE3ICstLS0tLS0tLQogaW5jbHVkZS9saW51eC9zdHJpbmcuaCAg
+ICAgICAgICAgICAgICAgICAgICAgICAgIHwgNDAgKysrKysrKysrKysrKysrKysrKysrCiBsaWIv
+c3RyaW5nLmMgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgfCA0NiArKysrKysr
+KysrKysrKysrKysrKysrKysKIDExIGZpbGVzIGNoYW5nZWQsIDk4IGluc2VydGlvbnMoKyksIDU1
+IGRlbGV0aW9ucygtKQoKLS0gCjIuNy40CgpfX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
+X19fX19fX19fX19fX19fXwpOb3V2ZWF1IG1haWxpbmcgbGlzdApOb3V2ZWF1QGxpc3RzLmZyZWVk
+ZXNrdG9wLm9yZwpodHRwczovL2xpc3RzLmZyZWVkZXNrdG9wLm9yZy9tYWlsbWFuL2xpc3RpbmZv
+L25vdXZlYXUK
