@@ -1,274 +1,201 @@
-From: Fu Wei <fu.wei@linaro.org>
-Subject: Re: [PATCH v8 5/9] acpi/arm64: Add GTDT table parse driver
-Date: Sat, 23 Jul 2016 01:57:02 +0800
-Message-ID: <CADyBb7vDHb7o8d3B-gOp_hVK4dksZHg3fOuLMaOfvUX+=wX3vA@mail.gmail.com>
-References: <1468952284-28942-1-git-send-email-fu.wei@linaro.org>
- <1468952284-28942-6-git-send-email-fu.wei@linaro.org> <2091912.arUKSr7MLh@vostro.rjw.lan>
+From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Subject: Re: ACPI device using sub-resource of PCI device
+Date: Fri, 22 Jul 2016 23:04:20 +0200
+Message-ID: <3103060.86QBTjSLk3@vostro.rjw.lan>
+References: <CAE2855tofJV=HV2dYuC+1=pi2mb942zrRF7f0+wqxPPay44RGA@mail.gmail.com> <2300001.Cg2EHxyMN1@vostro.rjw.lan> <CAE2855sjXKkx+0RNYMhfqVQCs+cj8NWp6V2RZMoBjRBgcWi-ew@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <2091912.arUKSr7MLh@vostro.rjw.lan>
-Sender: linux-kernel-owner@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: Len Brown <lenb@kernel.org>, Daniel Lezcano <daniel.lezcano@linaro.org>, Thomas Gleixner <tglx@linutronix.de>, Marc Zyngier <marc.zyngier@arm.com>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Sudeep Holla <sudeep.holla@arm.com>, Hanjun Guo <hanjun.guo@linaro.org>, linux-arm-kernel@lists.infradead.org, Linaro ACPI Mailman List <linaro-acpi@lists.linaro.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, rruigrok@codeaurora.org, harba@codeaurora.org, Christopher Covington <cov@codeaurora.org>, Timur Tabi <timur@codeaurora.org>, G Gregory <graeme.gregory@linaro.org>, Al Stone <al.stone@linaro.org>, Jon Masters <jcm@redhat.com>, wei@redhat.com, Arnd Bergmann <arnd@arndb.de>, Wim Van Sebroeck <wim@iguana.be>, Catalin Marinas <catalin.marinas@arm.com>, Will Deacon <will.deacon@arm.com>, Suravee
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7Bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from cloudserver094114.home.net.pl ([79.96.170.134]:41199 "HELO
+	cloudserver094114.home.net.pl" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with SMTP id S1751174AbcGVU7Z (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 22 Jul 2016 16:59:25 -0400
+In-Reply-To: <CAE2855sjXKkx+0RNYMhfqVQCs+cj8NWp6V2RZMoBjRBgcWi-ew@mail.gmail.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Aaron Durbin <adurbin@google.com>
+Cc: Bjorn Helgaas <helgaas@kernel.org>, "Rafael J. Wysocki" <rafael@kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux PCI <linux-pci@vger.kernel.org>, 'Mika Westerberg' <mika.westerberg@linux.intel.com>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>
 
-Hi Rafael,
+On Friday, July 22, 2016 12:26:03 PM Aaron Durbin wrote:
+> On Thu, Jul 21, 2016 at 7:55 PM, Rafael J. Wysocki <rjw@rjwysocki.net> wrote:
+> > On Wednesday, July 20, 2016 08:58:29 PM Aaron Durbin wrote:
+> >> On Wed, Jul 20, 2016 at 7:40 PM, Rafael J. Wysocki <rjw@rjwysocki.net> wrote:
+> >> > On Wednesday, July 20, 2016 06:02:08 PM Aaron Durbin wrote:
+> >
+> > [...]
+> >
+> >> >> > Isn't the problem a probe ordering issue, though?
+> >> >>
+> >> >> No. Not just ordering. There's no parent-child relationship taken into
+> >> >> account when PCI devices are added to the resource tree. Deferring
+> >> >> adding an ACPI device's resources would likely fail similarly because
+> >> >> one doesn't take into account the proper parent. One lives in PCI land
+> >> >> -- the other in ACPI land.
+> >> >
+> >> > What exactly do you mean by "PCI land" and "ACPI land"?
+> >> >
+> >> > All PCI resources are derived from the host bridge ones that come from
+> >> > ACPI anyway.
+> >>
+> >> Except that the BARs are queried in the pci devices themselves and
+> >> those resources are added w/o any communication to/from ACPI. That's
+> >> all done in the pci subsystem internally. Only if
+> >
+> > Well, not quite.
+> >
+> > It gets to host bridge resources via pcibios_bus_to_resource() AFAICS and
+> > those come from ACPI on ACPI-based systems.
+> 
+> From what I can tell that's just updating resource values that have a
+> translation across a bridge. For a 1:1 mapping nothing is different
+> from the BAR encoded in the PCI device itself. Those windows are just
+> encoded in the bridge device. The only thing adjusted on the resources
+> is an offset. The BAR values are read from the device. That path is
+> just adjusting resources -- it's not adding those individual resources
+> into the resource tree for pci devices. See below.
+> 
+> >
+> >> >
+> >> >> Currently, the issue is manifesting that the ACPI device's resources
+> >> >> are added into the resource tree. PCI devices the follow trying to add
+> >> >> their own resources. Conflicts ensue without taking into account the
+> >> >> proper hierarchy. To make matters worse, struct resource doesn't have
+> >> >> a struct device -- only a name. That means there's no way of knowing
+> >> >> who owns what resource. All that information is unavailable. That's
+> >> >> why the semi-hacky proposal was to see if there is an ACPI companion
+> >> >> device and see if it has children. If it's children's names match the
+> >> >> conflicting resource it's a good bet that the PCI device's resources
+> >> >> should be placed as the parent in the resource tree.
+> >> >
+> >> > That really looks like a broken hierarchy of devices somewhere.
+> >>
+> >> Why do you think it's a broken hierarchy? This CL has the heirarchy:
+> >> https://chromium-review.googlesource.com/#/c/359432/
+> >>
+> >> There is a device, P2S, which would result in an ACPI companion device
+> >> when the pci_dev is added to the device infrastructure by way of
+> >> acpi_platform_notify() which does the ACPI companion binding.
+> >> device_add() is the caller of platform_notify() which is set to
+> >> acpi_platform_notify() in init_acpi_device_notify() by way of
+> >> acpi_init().
+> >>
+> >> There are 4 children of the P2S device: GPO0, GPO1, GPO2, GPO3.
+> >>
+> >> Those children devices utilize a sub-resource of the P2S device which
+> >> has a pci_dev companion. It's BAR0 is the resource.
+> >
+> > OK
+> >
+> >> >
+> >> > And one more thing: a struct acpi_device object is not a device in general
+> >> > (althogh some pieces of code in the kernel, arguably incorrectly, treat it
+> >> > this way).  It is an abstract representation of a firmware entity (a node
+> >> > in the ACPI namespace).
+> >> >
+> >> > There really should be a "physical device" thing corresponding to it and
+> >> > that should be a child of the PCI device object in question.
+> >>
+> >> I thought I established that by the sysfs readlink I output I
+> >> previously provided?
+> >>
+> >> # ls /sys/devices/platform/| grep INT3452
+> >> INT3452:00
+> >> INT3452:01
+> >> INT3452:02
+> >> INT3452:03
+> >>
+> >> # ls /sys/devices/LNXSYSTM:00/LNXSYBUS:00/PNP0A08:00/device:11 | grep INT3452
+> >> INT3452:00
+> >> INT3452:01
+> >> INT3452:02
+> >> INT3452:03
+> >>
+> >> # readlink -f /sys/devices/LNXSYSTM:00/LNXSYBUS:00/PNP0A08:00/device:11/INT3452:00/physical_node
+> >> /sys/devices/platform/INT3452:00
+> >
+> > OK
+> >
+> > I must have missed that part.
+> >
+> >> >
+> >> >> > Do we assign BARs for endpoints during enumeration or only when we find a
+> >> >> > matching driver?
+> >> >>
+> >> >> BARs look to be assigned during enumeration. There's where conflicts
+> >> >> are found and resources reassigned in the current failing case.
+> >> >
+> >> > OK
+> >> >
+> >> > You seem to be saying that we insert some resources for ACPI device objects
+> >> > that correspond to the children of ACPI companions of PCI devices before we
+> >> > assign the BARs for their parent devices.
+> >>
+> >> The pci_dev is the one owning the parent resource. Even if there is a
+> >> companion ACPI device with a resource it doesn't matter because there
+> >> will still be a conflict because there is no checking against the
+> >> companion. There are 2 parallel entities without any communication
+> >> between the PCI subsystem and the ACPI subsystem when resources are
+> >> being added.
+> >>
+> >> >
+> >> > To me, that sounds very suspicious.
+> >> >
+> >> > Where in the code are the ACPI resources inserted, exactly?
+> >>
+> >> I believe it's through this mechanism:
+> >> acpi_bus_attach() -> acpi_default_enumeration() ->
+> >> acpi_create_platform_device() -> platform_device_register_full()
+> >
+> > I still would like to understand how and why that is called for child devices
+> > before the (physical) parent is enumerated.
+> >
+> > The theory is that when the PCI host bridge is found in the ACPI namespace,
+> > it will be enumerated along with the entire PCI bus below it before enumerating
+> > any _HID devices in the ACPI namespace below the host bridge object.
+> >
+> > Therefore all PCI devices should be enumerated before any children of any of
+> > them that aren't PCI devices themselves.  If BARs are assigned during
+> > enumeration, they all should be assigned before inserting any resources
+> > for any non-PCI children of any PCI devices.
+> >
+> > If that doesn't happen, the practice doesn't match the theory and that very
+> > well may be the source of the problem you're seeing.
+> >
+> 
+> I'll sprinkle some WARN_ON()s in the resource code to track down when
+> things are being added to provide a definitive answer to when these
+> resources are being inserted. The current issue is still stands:
+> there is nothing properly tying the 2 sources of resource information
+> together. And ACPI resources are added prior to PCI resources.
 
-On 21 July 2016 at 21:28, Rafael J. Wysocki <rjw@rjwysocki.net> wrote:
-> On Wednesday, July 20, 2016 02:18:00 AM fu.wei@linaro.org wrote:
->> From: Fu Wei <fu.wei@linaro.org>
->>
->> This patch adds support for parsing arch timer in GTDT,
->> provides some kernel APIs to parse all the PPIs and
->> always-on info in GTDT and export them.
->>
->> By this driver, we can simplify arm_arch_timer drivers, and
->> separate the ACPI GTDT knowledge from it.
->>
->> Signed-off-by: Fu Wei <fu.wei@linaro.org>
->> Signed-off-by: Hanjun Guo <hanjun.guo@linaro.org>
->> ---
->>  arch/arm64/Kconfig             |   1 +
->>  drivers/acpi/Kconfig           |   5 ++
->>  drivers/acpi/Makefile          |   1 +
->>  drivers/acpi/arm64/Kconfig     |   5 ++
->>  drivers/acpi/arm64/Makefile    |   1 +
->>  drivers/acpi/arm64/acpi_gtdt.c | 152 +++++++++++++++++++++++++++++++++++++++++
->>  drivers/clocksource/Kconfig    |   1 -
->>  include/linux/acpi.h           |   6 ++
->>  8 files changed, 171 insertions(+), 1 deletion(-)
->>
->> diff --git a/arch/arm64/Kconfig b/arch/arm64/Kconfig
->> index 5a0a691..0b9fba7 100644
->> --- a/arch/arm64/Kconfig
->> +++ b/arch/arm64/Kconfig
->> @@ -2,6 +2,7 @@ config ARM64
->>       def_bool y
->>       select ACPI_CCA_REQUIRED if ACPI
->>       select ACPI_GENERIC_GSI if ACPI
->> +     select ACPI_GTDT if ACPI
->>       select ACPI_REDUCED_HARDWARE_ONLY if ACPI
->>       select ARCH_HAS_DEVMEM_IS_ALLOWED
->>       select ARCH_HAS_ATOMIC64_DEC_IF_POSITIVE
->> diff --git a/drivers/acpi/Kconfig b/drivers/acpi/Kconfig
->> index b7e2e77..1cdc7d2 100644
->> --- a/drivers/acpi/Kconfig
->> +++ b/drivers/acpi/Kconfig
->> @@ -521,4 +521,9 @@ config XPOWER_PMIC_OPREGION
->>
->>  endif
->>
->> +if ARM64
->> +source "drivers/acpi/arm64/Kconfig"
->> +
->> +endif
->> +
->>  endif        # ACPI
->> diff --git a/drivers/acpi/Makefile b/drivers/acpi/Makefile
->> index 251ce85..1a94ff7 100644
->> --- a/drivers/acpi/Makefile
->> +++ b/drivers/acpi/Makefile
->> @@ -99,5 +99,6 @@ obj-$(CONFIG_ACPI_EXTLOG)   += acpi_extlog.o
->>  obj-$(CONFIG_PMIC_OPREGION)  += pmic/intel_pmic.o
->>  obj-$(CONFIG_CRC_PMIC_OPREGION) += pmic/intel_pmic_crc.o
->>  obj-$(CONFIG_XPOWER_PMIC_OPREGION) += pmic/intel_pmic_xpower.o
->> +obj-$(CONFIG_ARM64)  += arm64/
->>
->>  video-objs                   += acpi_video.o video_detect.o
->> diff --git a/drivers/acpi/arm64/Kconfig b/drivers/acpi/arm64/Kconfig
->> new file mode 100644
->> index 0000000..80201be
->> --- /dev/null
->> +++ b/drivers/acpi/arm64/Kconfig
->> @@ -0,0 +1,5 @@
->> +#
->> +# ACPI Configuration for ARM64
->> +#
->> +config ACPI_GTDT
->> +     bool
->> diff --git a/drivers/acpi/arm64/Makefile b/drivers/acpi/arm64/Makefile
->> new file mode 100644
->> index 0000000..466de6b
->> --- /dev/null
->> +++ b/drivers/acpi/arm64/Makefile
->> @@ -0,0 +1 @@
->> +obj-$(CONFIG_ACPI_GTDT)              += acpi_gtdt.o
->> diff --git a/drivers/acpi/arm64/acpi_gtdt.c b/drivers/acpi/arm64/acpi_gtdt.c
->> new file mode 100644
->> index 0000000..e1cfc9e
->> --- /dev/null
->> +++ b/drivers/acpi/arm64/acpi_gtdt.c
->> @@ -0,0 +1,152 @@
->> +/*
->> + * ARM Specific GTDT table Support
->> + *
->> + * Copyright (C) 2016, Linaro Ltd.
->> + * Author: Daniel Lezcano <daniel.lezcano@linaro.org>
->> + *         Fu Wei <fu.wei@linaro.org>
->> + *         Hanjun Guo <hanjun.guo@linaro.org>
->> + *
->> + * This program is free software; you can redistribute it and/or modify
->> + * it under the terms of the GNU General Public License version 2 as
->> + * published by the Free Software Foundation.
->> + */
->> +
->> +#include <linux/acpi.h>
->> +#include <linux/init.h>
->> +#include <linux/kernel.h>
->> +
->> +#include <clocksource/arm_arch_timer.h>
->> +
->> +#undef pr_fmt
->> +#define pr_fmt(fmt) "ACPI GTDT: " fmt
->> +
->> +typedef struct {
->> +     struct acpi_table_gtdt *gtdt;
->> +     void *platform_timer_start;
->> +     void *gtdt_end;
->> +} acpi_gtdt_desc_t;
->> +
->> +static acpi_gtdt_desc_t acpi_gtdt_desc __initdata;
->> +
->> +static inline void *next_platform_timer(void *platform_timer)
->> +{
->> +     struct acpi_gtdt_header *gh = platform_timer;
->> +
->> +     platform_timer += gh->length;
->> +     if (platform_timer < acpi_gtdt_desc.gtdt_end)
->> +             return platform_timer;
->> +
->> +     return NULL;
->> +}
->> +
->> +#define for_each_platform_timer(_g)                          \
->> +     for (_g = acpi_gtdt_desc.platform_timer_start; _g;      \
->> +          _g = next_platform_timer(_g))
->> +
->> +static inline bool is_timer_block(void *platform_timer)
->> +{
->> +     struct acpi_gtdt_header *gh = platform_timer;
->> +
->> +     return gh->type == ACPI_GTDT_TYPE_TIMER_BLOCK;
->> +}
->> +
->> +static inline bool is_watchdog(void *platform_timer)
->> +{
->> +     struct acpi_gtdt_header *gh = platform_timer;
->> +
->> +     return gh->type == ACPI_GTDT_TYPE_WATCHDOG;
->> +}
->> +
->> +static int __init map_generic_timer_interrupt(u32 interrupt, u32 flags)
->> +{
->> +     int trigger, polarity;
->> +
->> +     if (!interrupt)
->> +             return 0;
->> +
->> +     trigger = (flags & ACPI_GTDT_INTERRUPT_MODE) ? ACPI_EDGE_SENSITIVE
->> +                     : ACPI_LEVEL_SENSITIVE;
->> +
->> +     polarity = (flags & ACPI_GTDT_INTERRUPT_POLARITY) ? ACPI_ACTIVE_LOW
->> +                     : ACPI_ACTIVE_HIGH;
->> +
->> +     return acpi_register_gsi(NULL, interrupt, trigger, polarity);
->> +}
->> +
->> +/*
->> + * Map the PPIs of per-cpu arch_timer.
->> + * @type: the type of PPI
->> + * Returns 0 if error.
->> + */
->> +int __init acpi_gtdt_map_ppi(int type)
->> +{
->> +     struct acpi_table_gtdt *gtdt = acpi_gtdt_desc.gtdt;
->> +
->> +     switch (type) {
->> +     case PHYS_SECURE_PPI:
->> +             return map_generic_timer_interrupt(gtdt->secure_el1_interrupt,
->> +                                                gtdt->secure_el1_flags);
->> +     case PHYS_NONSECURE_PPI:
->> +             return map_generic_timer_interrupt(gtdt->non_secure_el1_interrupt,
->> +                                                gtdt->non_secure_el1_flags);
->> +     case VIRT_PPI:
->> +             return map_generic_timer_interrupt(gtdt->virtual_timer_interrupt,
->> +                                                gtdt->virtual_timer_flags);
->> +
->> +     case HYP_PPI:
->> +             return map_generic_timer_interrupt(gtdt->non_secure_el2_interrupt,
->> +                                                gtdt->non_secure_el2_flags);
->> +     default:
->> +             pr_err("Map PPI failed: invalid type.\n");
->> +     }
->> +
->> +     return 0;
->> +}
->> +
->> +/*
->> + * acpi_gtdt_c3stop - got c3stop info from GTDT
->> + *
->> + * Returns 1 if the timer is powered in deep idle state, 0 otherwise.
->> + */
->> +bool __init acpi_gtdt_c3stop(void)
->> +{
->> +     struct acpi_table_gtdt *gtdt = acpi_gtdt_desc.gtdt;
->> +
->> +     return !(gtdt->non_secure_el1_flags & ACPI_GTDT_ALWAYS_ON);
->> +}
->> +
->> +/*
->> + * Get some basic info from GTDT table, and init the global variables above
->> + * for all timers initialization of Generic Timer.
->> + * This function does some validation on GTDT table.
->> + */
->> +int __init acpi_gtdt_init(struct acpi_table_header *table)
->> +{
->> +     void *start;
->> +     struct acpi_table_gtdt *gtdt;
->> +
->> +     gtdt = container_of(table, struct acpi_table_gtdt, header);
->> +
->> +     acpi_gtdt_desc.gtdt = gtdt;
->> +     acpi_gtdt_desc.gtdt_end = (void *)table + table->length;
->> +
->> +     if (table->revision < 2) {
->> +             pr_debug("Revision:%d doesn't support Platform Timers.\n",
->> +                      table->revision);
->> +             return 0;
->> +     }
->> +
->> +     if (!gtdt->platform_timer_count) {
->> +             pr_debug("No Platform Timer.\n");
->> +             return 0;
->> +     }
->> +
->> +     start = (void *)gtdt + gtdt->platform_timer_offset;
->> +     if (start < (void *)table + sizeof(struct acpi_table_gtdt)) {
->> +             pr_err(FW_BUG "Failed to init table: ACPI/GTDT is buggy.\n");
->
-> I would prefer something like
->
->                 pr_err(FW_BUG "Failed to retrieve timer information from firmware (invalid data)\n");
->
-> which is clear enough IMO and doesn't require whoever reads this message
-> to know anything about ACPI/GTDT etc.
+OK, I see what's going on.
 
-OK, NP, I will do, and Thanks for your suggestion :-)
-I will also check other pr_* , see If I can update them
+> PCI devices might be enumerated, but that doesn't mean their
+> *resources* are added.
 
-thanks
+Right.
 
->
-> Thanks,
-> Rafael
->
+> Back to the subsys_initcall topic:
+> 
+> pci_subsys_init() is called *after* acpi_init().
+> 
+> pci_subsys_init() -> pcibios_init() -> pcibios_resource_survey() ->
+> pcibios_allocate_resources() -> pcibios_allocate_dev_resources() ->
+> pci_claim_resource()
 
+So first, the PCI resources are allocated in an additional pass after bus
+enumeration and after enumerating platform devices based on the ACPI namespace.
+That causes resources of the (non-PCI) children to be inserted before the
+resources of the (PCI) parents.
 
+But the problem seems to be that acpi_create_platform_device() doesn't
+check parent resources at all.  Namely, when pdevinfo.parent is set, the
+function should look at the resources of the parent and possibly populate
+the parent field of the new device's resources before passing them to
+platform_device_register_full().
 
--- 
-Best regards,
+Thanks,
+Rafael
 
-Fu Wei
-Software Engineer
-Red Hat
