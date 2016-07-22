@@ -1,141 +1,77 @@
-From: "Williams, Dan J" <dan.j.williams@intel.com>
-Subject: [GIT PULL] libnvdimm regression fix for 4.7-final
-Date: Fri, 22 Jul 2016 21:09:34 +0000
-Message-ID: <1469221772.2244.16.camel@intel.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-7"
-Content-Transfer-Encoding: 8BIT
+From: Vishal Verma <vishal.l.verma@intel.com>
+Subject: [PATCH v3 0/3] ARS rescanning triggered by latent errors or userspace
+Date: Fri, 22 Jul 2016 17:21:30 -0600
+Message-ID: <1469229693-17980-1-git-send-email-vishal.l.verma@intel.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga03.intel.com ([134.134.136.65]:37731 "EHLO mga03.intel.com"
+Received: from mga02.intel.com ([134.134.136.20]:11023 "EHLO mga02.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752662AbcGVVJh convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 22 Jul 2016 17:09:37 -0400
-Content-Language: en-US
-Content-ID: <15A181BF4EE4C549B2DCFA132FA2677C@intel.com>
+	id S1751082AbcGVXWH (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 22 Jul 2016 19:22:07 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "torvalds@linux-foundation.org" <torvalds@linux-foundation.org>
-Cc: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
+To: linux-nvdimm@lists.01.org
+Cc: Dan Williams <dan.j.williams@intel.com>, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Tony Luck <tony.luck@intel.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Vishal Verma <vishal.l.verma@intel.com>
 
-Hi Linus, please pull from:
+Changes in v3:
+- Add a missing sysfs_put (Dan)
+- Improve readability in an expression, making it (!x || !y) instead
+  of !(x && y) (Dan)
+- Only show the 'scrub' attribute if ARS is supported (Linda)
+- For scrub_show(), indicate if a scrub is in progress (Dan)
+- Rebase to nvdimm-for-next + 2 patches from Dan to handle resource leaks
+  with nfit_test
+- Remove an unnecessary mutex lock/unlock in nfit_exit in Patch 3
 
-+AKA- git://git.kernel.org/pub/scm/linux/kernel/git/nvdimm/nvdimm libnvdimm-fixes
 
-...to receive a regression fix for a problem that was introduced in
-v4.7-rc6.
+Changes in v2:
+- Rework the ars_done flag in nfit_spa to be ars_required, and reuse it for
+  rescanning (Dan)
+- Rename the ars_rescan attribute to simply 'scrub', and move into the nfit
+  group since only nfit buses have this capability (Dan)
+- Make the scrub attribute RW, and on reads return the number of times a
+  scrub has happened since driver load. This prompted some additional
+  refactoring, notably the new helpers acpi_nfit_desc_alloc_register, and
+  to_nvdimm_bus_dev. These are all in patch 2. (Dan)
+- Remove some redundant list_empty checks in patch 3 (Dan)
+- If the acpi_descs lists is not empty at driver unload time, WARN() (Dan)
 
-In 4.7-rc1 we introduced auto-probing for the ACPI DSM (device-
-specific-method) format that the platform firmware implements for
-nvdimm devices. We initially fixed a regression in probing the QEMU DSM
-implementation by making acpi+AF8-check+AF8-dsm() tolerant of the way QEMU
-reports the +ACI-0 DSMs supported+ACI- condition. However, that broke HPE
-platforms since that tolerance caused the driver to mistakenly match
-the 1-zero-byte response those platforms give to +ACI-unknown+ACI- commands.
-Instead, we simply make the driver tolerant of not finding any
-supported DSMs. +AKA-This has been tested to work with both QEMU and HPE
-platforms.
+This series adds on-demand ARS scanning on both, discovery of
+latent media errors, and a sysfs trigger from userspace.
 
-This commit has appeared in a -next release with no reported issues.
+The rescanning part is easy to test using the nfit_test framework
+- create a namespace (this will by default have bad sectors in
+the middle), clear the bad sectors by writing to them, trigger
+the rescan through sysfs, and the bad sectors will reappear in
+/sys/block/<pmemX>/badblocks.
 
-The following changes since commit a99cde438de0c4c0cecc1d1af1a55a75b10bfdef:
+For the mce handling, I've tested the notifier chain callback
+being called with a mock struct mce (called via another sysfs
+trigger - this isn't included in the patch obviously), which
+has the address field set to a known address in a SPA range,
+and the status field with the MCACOD flag set.
 
-+AKA- Linux 4.7-rc6 (2016-07-03 23:01:00 -0700)
+What I haven't easily been able to test is the same callback
+path with a 'real world' mce, being called as part of the
+x86_mce_decoder_chain notifier. I'd therefore appreciate a
+closer look at the initial filtering done in nfit_handle_mce
+(patch 3/3) from Tony or anyone more familiar with mce handling.
 
-are available in the git repository at:
+The series is based on v4.7-rc7, and a tree is available at
+https://git.kernel.org/cgit/linux/kernel/git/vishal/nvdimm.git/log/?h=ars-ondemand
 
-+AKA- git://git.kernel.org/pub/scm/linux/kernel/git/nvdimm/nvdimm libnvdimm-fixes
 
-for you to fetch changes up to a72255983f12f31f0c8d8275fb1a781546cfacb7:
+Vishal Verma (3):
+  pmem: clarify a debug print in pmem_clear_poison
+  nfit, libnvdimm: allow an ARS scrub to be triggered on demand
+  nfit: do an ARS scrub on hitting a latent media error
 
-+AKA- nfit: make DIMM DSMs optional (2016-07-19 12:32:39 -0700)
+ drivers/acpi/nfit.c       | 221 ++++++++++++++++++++++++++++++++++++++++++++--
+ drivers/acpi/nfit.h       |   5 +-
+ drivers/nvdimm/core.c     |   7 ++
+ drivers/nvdimm/pmem.c     |   2 +-
+ include/linux/libnvdimm.h |   1 +
+ 5 files changed, 227 insertions(+), 9 deletions(-)
 
-----------------------------------------------------------------
-Dan Williams (1):
-+AKAAoACgAKAAoACg-nfit: make DIMM DSMs optional
+-- 
+2.7.4
 
-+AKA-drivers/acpi/nfit.c+AKAAoAB8- 11 +-+-+-+-+-+------
-+AKA-drivers/acpi/utils.c +AHwAoACg-6 +-+-+----
-+AKA-2 files changed, 9 insertions(+-), 8 deletions(-)
-
-commit a72255983f12f31f0c8d8275fb1a781546cfacb7
-Author: Dan Williams +ADw-dan.j.williams+AEA-intel.com+AD4-
-Date:+AKAAoACg-Tue Jul 19 12:32:39 2016 -0700
-
-+AKAAoACgAKA-nfit: make DIMM DSMs optional
-+AKAAoACgAKA-
-+AKAAoACgAKA-Commit 4995734e973a +ACI-acpi, nfit: fix acpi+AF8-check+AF8-dsm() vs zero functions
-+AKAAoACgAKA-implemented+ACI- attempted to fix a QEMU regression by supporting its usage
-+AKAAoACgAKA-of a zero-mask as a valid response to a DSM-family probe request.
-+AKAAoACgAKA-However, this behavior breaks HP platforms that return a zero-mask by
-+AKAAoACgAKA-default causing the probe to misidentify the DSM-family.
-+AKAAoACgAKA-
-+AKAAoACgAKA-Instead, the QEMU regression can be fixed by simply not requiring the DSM
-+AKAAoACgAKA-family to be identified.
-+AKAAoACgAKA-
-+AKAAoACgAKA-This effectively reverts commit 4995734e973a, and removes the DSM
-+AKAAoACgAKA-requirement from the init path.
-+AKAAoACgAKA-
-+AKAAoACgAKA-Cc: +ACI-Rafael J. Wysocki+ACI- +ADw-rafael+AEA-kernel.org+AD4-
-+AKAAoACgAKA-Cc: Xiao Guangrong +ADw-guangrong.xiao+AEA-linux.intel.com+AD4-
-+AKAAoACgAKA-Cc: Linda Knippers +ADw-linda.knippers+AEA-hpe.com+AD4-
-+AKAAoACgAKA-Fixes: 4995734e973a (+ACI-acpi, nfit: fix acpi+AF8-check+AF8-dsm() vs zero functions implemented+ACI-)
-+AKAAoACgAKA-Reported-by: Jerry Hoemann +ADw-jerry.hoemann+AEA-hpe.com+AD4-
-+AKAAoACgAKA-Tested-by: Jerry Hoemann +ADw-jerry.hoemann+AEA-hpe.com+AD4-
-+AKAAoACgAKA-Signed-off-by: Dan Williams +ADw-dan.j.williams+AEA-intel.com+AD4-
-
-diff --git a/drivers/acpi/nfit.c b/drivers/acpi/nfit.c
-index ac6ddcc080d4..1f0e06065ae6 100644
---- a/drivers/acpi/nfit.c
-+-+-+- b/drivers/acpi/nfit.c
-+AEAAQA- -1131,11 +-1131,11 +AEAAQA- static int acpi+AF8-nfit+AF8-add+AF8-dimm(struct acpi+AF8-nfit+AF8-desc +ACo-acpi+AF8-desc,
-+AKA-
-+AKA-	/+ACo-
-+AKA-	+AKAAKg- Until standardization materializes we need to consider up to 3
--	+AKAAKg- different command sets.+AKAAoA-Note, that checking for zero functions
--	+AKAAKg- tells us if any commands might be reachable through this uuid.
-+-	+AKAAKg- different command sets.+AKAAoA-Note, that checking for function0 (bit0)
-+-	+AKAAKg- tells us if any commands are reachable through this uuid.
-+AKA-	+AKAAKg-/
-+AKA-	for (i +AD0- NVDIMM+AF8-FAMILY+AF8-INTEL+ADs- i +ADwAPQ- NVDIMM+AF8-FAMILY+AF8-HPE2+ADs- i+-+-)
--		if (acpi+AF8-check+AF8-dsm(adev+AF8-dimm-+AD4-handle, to+AF8-nfit+AF8-uuid(i), 1, 0))
-+-		if (acpi+AF8-check+AF8-dsm(adev+AF8-dimm-+AD4-handle, to+AF8-nfit+AF8-uuid(i), 1, 1))
-+AKA-			break+ADs-
-+AKA-
-+AKA-	/+ACo- limit the supported commands to those that are publicly documented +ACo-/
-+AEAAQA- -1151,9 +-1151,10 +AEAAQA- static int acpi+AF8-nfit+AF8-add+AF8-dimm(struct acpi+AF8-nfit+AF8-desc +ACo-acpi+AF8-desc,
-+AKA-		if (disable+AF8-vendor+AF8-specific)
-+AKA-			dsm+AF8-mask +ACYAPQ- +AH4-(1 +ADwAPA- 8)+ADs-
-+AKA-	+AH0- else +AHs-
--		dev+AF8-err(dev, +ACI-unknown dimm command family+AFw-n+ACI-)+ADs-
-+-		dev+AF8-dbg(dev, +ACI-unknown dimm command family+AFw-n+ACI-)+ADs-
-+AKA-		nfit+AF8-mem-+AD4-family +AD0- -1+ADs-
--		return force+AF8-enable+AF8-dimms ? 0 : -ENODEV+ADs-
-+-		/+ACo- DSMs are optional, continue loading the driver... +ACo-/
-+-		return 0+ADs-
-+AKA-	+AH0-
-+AKA-
-+AKA-	uuid +AD0- to+AF8-nfit+AF8-uuid(nfit+AF8-mem-+AD4-family)+ADs-
-diff --git a/drivers/acpi/utils.c b/drivers/acpi/utils.c
-index b4de130f2d57..22c09952e177 100644
---- a/drivers/acpi/utils.c
-+-+-+- b/drivers/acpi/utils.c
-+AEAAQA- -680,6 +-680,9 +AEAAQA- bool acpi+AF8-check+AF8-dsm(acpi+AF8-handle handle, const u8 +ACo-uuid, u64 rev, u64 funcs)
-+AKA-	u64 mask +AD0- 0+ADs-
-+AKA-	union acpi+AF8-object +ACo-obj+ADs-
-+AKA-
-+-	if (funcs +AD0APQ- 0)
-+-		return false+ADs-
-+-
-+AKA-	obj +AD0- acpi+AF8-evaluate+AF8-dsm(handle, uuid, rev, 0, NULL)+ADs-
-+AKA-	if (+ACE-obj)
-+AKA-		return false+ADs-
-+AEAAQA- -692,9 +-695,6 +AEAAQA- bool acpi+AF8-check+AF8-dsm(acpi+AF8-handle handle, const u8 +ACo-uuid, u64 rev, u64 funcs)
-+AKA-			mask +AHwAPQ- (((u64)obj-+AD4-buffer.pointer+AFs-i+AF0-) +ADwAPA- (i +ACo- 8))+ADs-
-+AKA-	ACPI+AF8-FREE(obj)+ADs-
-+AKA-
--	if (funcs +AD0APQ- 0)
--		return true+ADs-
--
-+AKA-	/+ACo-
-+AKA-	+AKAAKg- Bit 0 indicates whether there's support for any functions other than
-+AKA-	+AKAAKg- function 0 for the specified UUID and revision.
