@@ -1,151 +1,151 @@
-From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: ACPI device using sub-resource of PCI device
-Date: Fri, 22 Jul 2016 02:55:56 +0200
-Message-ID: <2300001.Cg2EHxyMN1@vostro.rjw.lan>
-References: <CAE2855tofJV=HV2dYuC+1=pi2mb942zrRF7f0+wqxPPay44RGA@mail.gmail.com> <9194227.5BmSSJ8mhr@vostro.rjw.lan> <CAE2855uTn3EqSuUW0-QD8ES4mm4ifWg-t=JfQ5+4z0YAyUDc_g@mail.gmail.com>
+From: Dan Williams <dan.j.williams@intel.com>
+Subject: [PATCH 1/2] libnvdimm: move ->module to struct nvdimm_bus_descriptor
+Date: Thu, 21 Jul 2016 20:25:44 -0700
+Message-ID: <146915794457.7201.5023729229431647060.stgit@dwillia2-desk3.amr.corp.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7Bit
-Return-path: <linux-pci-owner@vger.kernel.org>
-In-Reply-To: <CAE2855uTn3EqSuUW0-QD8ES4mm4ifWg-t=JfQ5+4z0YAyUDc_g@mail.gmail.com>
-Sender: linux-pci-owner@vger.kernel.org
-To: Aaron Durbin <adurbin@google.com>
-Cc: Bjorn Helgaas <helgaas@kernel.org>, "Rafael J. Wysocki" <rafael@kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux PCI <linux-pci@vger.kernel.org>
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga14.intel.com ([192.55.52.115]:55433 "EHLO mga14.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750884AbcGVD1z (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 21 Jul 2016 23:27:55 -0400
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: linux-nvdimm@lists.01.org
+Cc: linux-acpi@vger.kernel.org, vishal.l.verma@intel.com
 
-On Wednesday, July 20, 2016 08:58:29 PM Aaron Durbin wrote:
-> On Wed, Jul 20, 2016 at 7:40 PM, Rafael J. Wysocki <rjw@rjwysocki.net> wrote:
-> > On Wednesday, July 20, 2016 06:02:08 PM Aaron Durbin wrote:
+Let the provider module be explicitly passed in rather than implicitly
+assumed by the module that calls nvdimm_bus_register().  This is in
+preparation for unifying the nfit and nfit_test driver teardown paths.
 
-[...]
+Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+---
+ drivers/acpi/nfit.c              |    1 +
+ drivers/nvdimm/bus.c             |    2 +-
+ drivers/nvdimm/core.c            |    7 +++----
+ drivers/nvdimm/e820.c            |    1 +
+ drivers/nvdimm/nd-core.h         |    1 -
+ include/linux/libnvdimm.h        |    7 +++----
+ tools/testing/nvdimm/test/nfit.c |    1 +
+ 7 files changed, 10 insertions(+), 10 deletions(-)
 
-> >> > Isn't the problem a probe ordering issue, though?
-> >>
-> >> No. Not just ordering. There's no parent-child relationship taken into
-> >> account when PCI devices are added to the resource tree. Deferring
-> >> adding an ACPI device's resources would likely fail similarly because
-> >> one doesn't take into account the proper parent. One lives in PCI land
-> >> -- the other in ACPI land.
-> >
-> > What exactly do you mean by "PCI land" and "ACPI land"?
-> >
-> > All PCI resources are derived from the host bridge ones that come from
-> > ACPI anyway.
-> 
-> Except that the BARs are queried in the pci devices themselves and
-> those resources are added w/o any communication to/from ACPI. That's
-> all done in the pci subsystem internally. Only if
+diff --git a/drivers/acpi/nfit.c b/drivers/acpi/nfit.c
+index fb80f32db525..e7eb3b6f1514 100644
+--- a/drivers/acpi/nfit.c
++++ b/drivers/acpi/nfit.c
+@@ -2417,6 +2417,7 @@ void acpi_nfit_desc_init(struct acpi_nfit_desc *acpi_desc, struct device *dev)
+ 	acpi_desc->blk_do_io = acpi_nfit_blk_region_do_io;
+ 	nd_desc = &acpi_desc->nd_desc;
+ 	nd_desc->provider_name = "ACPI.NFIT";
++	nd_desc->module = THIS_MODULE;
+ 	nd_desc->ndctl = acpi_nfit_ctl;
+ 	nd_desc->flush_probe = acpi_nfit_flush_probe;
+ 	nd_desc->clear_to_send = acpi_nfit_clear_to_send;
+diff --git a/drivers/nvdimm/bus.c b/drivers/nvdimm/bus.c
+index 1cc7880320fe..275dd5c0a301 100644
+--- a/drivers/nvdimm/bus.c
++++ b/drivers/nvdimm/bus.c
+@@ -73,7 +73,7 @@ static struct module *to_bus_provider(struct device *dev)
+ 	if (is_nd_pmem(dev) || is_nd_blk(dev)) {
+ 		struct nvdimm_bus *nvdimm_bus = walk_to_nvdimm_bus(dev);
+ 
+-		return nvdimm_bus->module;
++		return nvdimm_bus->nd_desc->module;
+ 	}
+ 	return NULL;
+ }
+diff --git a/drivers/nvdimm/core.c b/drivers/nvdimm/core.c
+index 757e0cf028bf..e8528756f54f 100644
+--- a/drivers/nvdimm/core.c
++++ b/drivers/nvdimm/core.c
+@@ -447,8 +447,8 @@ struct attribute_group nvdimm_bus_attribute_group = {
+ };
+ EXPORT_SYMBOL_GPL(nvdimm_bus_attribute_group);
+ 
+-struct nvdimm_bus *__nvdimm_bus_register(struct device *parent,
+-		struct nvdimm_bus_descriptor *nd_desc, struct module *module)
++struct nvdimm_bus *nvdimm_bus_register(struct device *parent,
++		struct nvdimm_bus_descriptor *nd_desc)
+ {
+ 	struct nvdimm_bus *nvdimm_bus;
+ 	int rc;
+@@ -467,7 +467,6 @@ struct nvdimm_bus *__nvdimm_bus_register(struct device *parent,
+ 		return NULL;
+ 	}
+ 	nvdimm_bus->nd_desc = nd_desc;
+-	nvdimm_bus->module = module;
+ 	nvdimm_bus->dev.parent = parent;
+ 	nvdimm_bus->dev.release = nvdimm_bus_release;
+ 	nvdimm_bus->dev.groups = nd_desc->attr_groups;
+@@ -491,7 +490,7 @@ struct nvdimm_bus *__nvdimm_bus_register(struct device *parent,
+ 	put_device(&nvdimm_bus->dev);
+ 	return NULL;
+ }
+-EXPORT_SYMBOL_GPL(__nvdimm_bus_register);
++EXPORT_SYMBOL_GPL(nvdimm_bus_register);
+ 
+ static void set_badblock(struct badblocks *bb, sector_t s, int num)
+ {
+diff --git a/drivers/nvdimm/e820.c b/drivers/nvdimm/e820.c
+index 95825b38559a..11ea90120542 100644
+--- a/drivers/nvdimm/e820.c
++++ b/drivers/nvdimm/e820.c
+@@ -47,6 +47,7 @@ static int e820_pmem_probe(struct platform_device *pdev)
+ 
+ 	nd_desc.attr_groups = e820_pmem_attribute_groups;
+ 	nd_desc.provider_name = "e820";
++	nd_desc.module = THIS_MODULE;
+ 	nvdimm_bus = nvdimm_bus_register(dev, &nd_desc);
+ 	if (!nvdimm_bus)
+ 		goto err;
+diff --git a/drivers/nvdimm/nd-core.h b/drivers/nvdimm/nd-core.h
+index 6e961f7f43e7..38ce6bbbc170 100644
+--- a/drivers/nvdimm/nd-core.h
++++ b/drivers/nvdimm/nd-core.h
+@@ -26,7 +26,6 @@ extern int nvdimm_major;
+ struct nvdimm_bus {
+ 	struct nvdimm_bus_descriptor *nd_desc;
+ 	wait_queue_head_t probe_wait;
+-	struct module *module;
+ 	struct list_head list;
+ 	struct device dev;
+ 	int id, probe_active;
+diff --git a/include/linux/libnvdimm.h b/include/linux/libnvdimm.h
+index d37fda6dd64c..2ab869dece4a 100644
+--- a/include/linux/libnvdimm.h
++++ b/include/linux/libnvdimm.h
+@@ -70,6 +70,7 @@ struct nd_mapping {
+ struct nvdimm_bus_descriptor {
+ 	const struct attribute_group **attr_groups;
+ 	unsigned long cmd_mask;
++	struct module *module;
+ 	char *provider_name;
+ 	ndctl_fn ndctl;
+ 	int (*flush_probe)(struct nvdimm_bus_descriptor *nd_desc);
+@@ -128,10 +129,8 @@ static inline struct nd_blk_region_desc *to_blk_region_desc(
+ }
+ 
+ int nvdimm_bus_add_poison(struct nvdimm_bus *nvdimm_bus, u64 addr, u64 length);
+-struct nvdimm_bus *__nvdimm_bus_register(struct device *parent,
+-		struct nvdimm_bus_descriptor *nfit_desc, struct module *module);
+-#define nvdimm_bus_register(parent, desc) \
+-	__nvdimm_bus_register(parent, desc, THIS_MODULE)
++struct nvdimm_bus *nvdimm_bus_register(struct device *parent,
++		struct nvdimm_bus_descriptor *nfit_desc);
+ void nvdimm_bus_unregister(struct nvdimm_bus *nvdimm_bus);
+ struct nvdimm_bus *to_nvdimm_bus(struct device *dev);
+ struct nvdimm *to_nvdimm(struct device *dev);
+diff --git a/tools/testing/nvdimm/test/nfit.c b/tools/testing/nvdimm/test/nfit.c
+index 78cba1e3b1da..642713f15723 100644
+--- a/tools/testing/nvdimm/test/nfit.c
++++ b/tools/testing/nvdimm/test/nfit.c
+@@ -1463,6 +1463,7 @@ static int nfit_test_probe(struct platform_device *pdev)
+ 	acpi_desc->blk_do_io = nfit_test_blk_do_io;
+ 	nd_desc = &acpi_desc->nd_desc;
+ 	nd_desc->provider_name = NULL;
++	nd_desc->module = THIS_MODULE;
+ 	nd_desc->ndctl = nfit_test_ctl;
+ 	acpi_desc->nvdimm_bus = nvdimm_bus_register(&pdev->dev, nd_desc);
+ 	if (!acpi_desc->nvdimm_bus)
 
-Well, not quite.
-
-It gets to host bridge resources via pcibios_bus_to_resource() AFAICS and
-those come from ACPI on ACPI-based systems.
-
-> >
-> >> Currently, the issue is manifesting that the ACPI device's resources
-> >> are added into the resource tree. PCI devices the follow trying to add
-> >> their own resources. Conflicts ensue without taking into account the
-> >> proper hierarchy. To make matters worse, struct resource doesn't have
-> >> a struct device -- only a name. That means there's no way of knowing
-> >> who owns what resource. All that information is unavailable. That's
-> >> why the semi-hacky proposal was to see if there is an ACPI companion
-> >> device and see if it has children. If it's children's names match the
-> >> conflicting resource it's a good bet that the PCI device's resources
-> >> should be placed as the parent in the resource tree.
-> >
-> > That really looks like a broken hierarchy of devices somewhere.
-> 
-> Why do you think it's a broken hierarchy? This CL has the heirarchy:
-> https://chromium-review.googlesource.com/#/c/359432/
-> 
-> There is a device, P2S, which would result in an ACPI companion device
-> when the pci_dev is added to the device infrastructure by way of
-> acpi_platform_notify() which does the ACPI companion binding.
-> device_add() is the caller of platform_notify() which is set to
-> acpi_platform_notify() in init_acpi_device_notify() by way of
-> acpi_init().
-> 
-> There are 4 children of the P2S device: GPO0, GPO1, GPO2, GPO3.
-> 
-> Those children devices utilize a sub-resource of the P2S device which
-> has a pci_dev companion. It's BAR0 is the resource.
-
-OK
-
-> >
-> > And one more thing: a struct acpi_device object is not a device in general
-> > (althogh some pieces of code in the kernel, arguably incorrectly, treat it
-> > this way).  It is an abstract representation of a firmware entity (a node
-> > in the ACPI namespace).
-> >
-> > There really should be a "physical device" thing corresponding to it and
-> > that should be a child of the PCI device object in question.
-> 
-> I thought I established that by the sysfs readlink I output I
-> previously provided?
-> 
-> # ls /sys/devices/platform/| grep INT3452
-> INT3452:00
-> INT3452:01
-> INT3452:02
-> INT3452:03
-> 
-> # ls /sys/devices/LNXSYSTM:00/LNXSYBUS:00/PNP0A08:00/device:11 | grep INT3452
-> INT3452:00
-> INT3452:01
-> INT3452:02
-> INT3452:03
-> 
-> # readlink -f /sys/devices/LNXSYSTM:00/LNXSYBUS:00/PNP0A08:00/device:11/INT3452:00/physical_node
-> /sys/devices/platform/INT3452:00
-
-OK
-
-I must have missed that part.
-
-> >
-> >> > Do we assign BARs for endpoints during enumeration or only when we find a
-> >> > matching driver?
-> >>
-> >> BARs look to be assigned during enumeration. There's where conflicts
-> >> are found and resources reassigned in the current failing case.
-> >
-> > OK
-> >
-> > You seem to be saying that we insert some resources for ACPI device objects
-> > that correspond to the children of ACPI companions of PCI devices before we
-> > assign the BARs for their parent devices.
-> 
-> The pci_dev is the one owning the parent resource. Even if there is a
-> companion ACPI device with a resource it doesn't matter because there
-> will still be a conflict because there is no checking against the
-> companion. There are 2 parallel entities without any communication
-> between the PCI subsystem and the ACPI subsystem when resources are
-> being added.
-> 
-> >
-> > To me, that sounds very suspicious.
-> >
-> > Where in the code are the ACPI resources inserted, exactly?
-> 
-> I believe it's through this mechanism:
-> acpi_bus_attach() -> acpi_default_enumeration() ->
-> acpi_create_platform_device() -> platform_device_register_full()
-
-I still would like to understand how and why that is called for child devices
-before the (physical) parent is enumerated.
-
-The theory is that when the PCI host bridge is found in the ACPI namespace,
-it will be enumerated along with the entire PCI bus below it before enumerating
-any _HID devices in the ACPI namespace below the host bridge object.
-
-Therefore all PCI devices should be enumerated before any children of any of
-them that aren't PCI devices themselves.  If BARs are assigned during
-enumeration, they all should be assigned before inserting any resources
-for any non-PCI children of any PCI devices.
-
-If that doesn't happen, the practice doesn't match the theory and that very
-well may be the source of the problem you're seeing.
-
-Thanks,
-Rafael
