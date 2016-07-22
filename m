@@ -1,254 +1,258 @@
-From: Linda Knippers <linda.knippers-ZPxbGqLxI0U@public.gmane.org>
-Subject: Re: [PATCH v2 3/3] nfit: do an ARS scrub on hitting a latent media
- error
-Date: Thu, 21 Jul 2016 17:25:18 -0400
-Message-ID: <55fdd656-deb7-56a7-cd4f-2f17599b4c2e@hpe.com>
-References: <1469065850-32401-1-git-send-email-vishal.l.verma@intel.com>
- <1469065850-32401-4-git-send-email-vishal.l.verma@intel.com>
- <b8252ea0-2c3b-c26f-82c0-a3728f61d27d@hpe.com>
- <20160721211039.GH12960@omniknight.lm.intel.com>
+From: "Zheng, Lv" <lv.zheng@intel.com>
+Subject: RE: [PATCH v4 2/2] ACPI / button: Add document for ACPI control
+ method lid device restrictions
+Date: Fri, 22 Jul 2016 00:24:50 +0000
+Message-ID: <1AE640813FDE7649BE1B193DEA596E883BC05AAA@SHSMSX101.ccr.corp.intel.com>
+References: <cbdaec17aba78c61f466efff8883d49067f2dad5.1463472125.git.lv.zheng@intel.com>
+ <84ca7337d20620946b671f212abfc82698ddcbf4.1468915808.git.lv.zheng@intel.com>
+ <20160721203246.GA9841@dtor-ws>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-In-Reply-To: <20160721211039.GH12960-PxNA6LsHknajYZd8rzuJLNh3ngVCH38I@public.gmane.org>
-List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
- <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
-List-Post: <mailto:linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-List-Help: <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
- <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
-Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
-Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-To: Vishal Verma <vishal.l.verma-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Tony Luck <tony.luck-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, "Rafael J.
- Wysocki" <rafael.j.wysocki-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga09.intel.com ([134.134.136.24]:33439 "EHLO mga09.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751951AbcGVAY4 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 21 Jul 2016 20:24:56 -0400
+In-Reply-To: <20160721203246.GA9841@dtor-ws>
+Content-Language: en-US
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Dmitry Torokhov <dmitry.torokhov@gmail.com>
+Cc: "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, "Brown, Len" <len.brown@intel.com>, Lv Zheng <zetalog@gmail.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Benjamin Tissoires <benjamin.tissoires@gmail.com>, "Bastien Nocera:" <hadess@hadess.net>, "linux-input@vger.kernel.org" <linux-input@vger.kernel.org>
+
+Hi, Dmitry
 
 
+Thanks for the review.
 
-On 7/21/2016 5:10 PM, Vishal Verma wrote:
-> On 07/21, Linda Knippers wrote:
->>
->>
->> On 7/20/2016 9:50 PM, Vishal Verma wrote:
->>> When a latent (unknown to 'badblocks') error is encountered, it will
->>> trigger a machine check exception. On a system with machine check
->>> recovery, this will only SIGBUS the process(es) which had the bad page
->>> mapped (as opposed to a kernel panic on platforms without machine
->>> check recovery features). In the former case, we want to trigger a full
->>> rescan of that nvdimm bus. This will allow any additional, new errors
->>> to be captured in the block devices' badblocks lists, and offending
->>> operations on them can be trapped early, avoiding machine checks.
->>
->> Do we really need to rescan all SPA ranges?  If the problem is with
->> an NVDIMM, wouldn't the blast radius be the device or it's interleave set,
->> which would be part of the same SPA range?
->>
->> I don't know what the overhead associated with a scan is which is why I'm asking.
+> From: Dmitry Torokhov [mailto:dmitry.torokhov@gmail.com]
+> Subject: Re: [PATCH v4 2/2] ACPI / button: Add document for ACPI control
+> method lid device restrictions
 > 
-> You're right that we don't _need_ to scan all ranges, and that the scrub
-> can be long-running, but we just take this 'event' as an opportunity to
-> basically refresh everything. Since it is asynchronous, we're not
-> holding anything up.
-
-We're not holding up anything in the kernel but I assume there it's
-not a zero-overhead operation.  The memory controller may be doing something
-or the platform firmware could be doing something which could introduce
-latency spikes.  It's the kind of thing that really annoys some customers
-but maybe following an MCE no one cares about that.
-
--- ljk
+> On Tue, Jul 19, 2016 at 04:11:21PM +0800, Lv Zheng wrote:
+> > This patch adds documentation for the usage model of the control
+> method lid
+> > device.
+> >
+> > Signed-off-by: Lv Zheng <lv.zheng@intel.com>
+> > Cc: Dmitry Torokhov <dmitry.torokhov@gmail.com>
+> > Cc: Benjamin Tissoires <benjamin.tissoires@gmail.com>
+> > Cc: Bastien Nocera: <hadess@hadess.net>
+> > Cc: linux-input@vger.kernel.org
+> > ---
+> >  Documentation/acpi/acpi-lid.txt |   89
+> +++++++++++++++++++++++++++++++++++++++
+> >  1 file changed, 89 insertions(+)
+> >  create mode 100644 Documentation/acpi/acpi-lid.txt
+> >
+> > diff --git a/Documentation/acpi/acpi-lid.txt b/Documentation/acpi/acpi-
+> lid.txt
+> > new file mode 100644
+> > index 0000000..2addedc
+> > --- /dev/null
+> > +++ b/Documentation/acpi/acpi-lid.txt
+> > @@ -0,0 +1,89 @@
+> > +Usage Model of the ACPI Control Method Lid Device
+> > +
+> > +Copyright (C) 2016, Intel Corporation
+> > +Author: Lv Zheng <lv.zheng@intel.com>
+> > +
+> > +
+> > +Abstract:
+> > +
+> > +Platforms containing lids convey lid state (open/close) to OSPMs using
+> a
+> > +control method lid device. To implement this, the AML tables issue
+> > +Notify(lid_device, 0x80) to notify the OSPMs whenever the lid state has
+> > +changed. The _LID control method for the lid device must be
+> implemented to
+> > +report the "current" state of the lid as either "opened" or "closed".
+> > +
+> > +This document describes the restrictions and the expections of the
+> Linux
+> > +ACPI lid device driver.
+> > +
+> > +
+> > +1. Restrictions of the returning value of the _LID control method
+> > +
+> > +The _LID control method is described to return the "current" lid state.
+> > +However the word of "current" has ambiguity, many AML tables return
+> the lid
 > 
->>
->> -- ljk
->>
->>>
->>> This is done by registering a callback function with the
->>> x86_mce_decoder_chain and calling the new ars_rescan functionality with
->>> the address in the mce notificatiion.
->>>
->>> Cc: Dan Williams <dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
->>> Cc: Rafael J. Wysocki <rafael.j.wysocki-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
->>> Cc: Tony Luck <tony.luck-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
->>> Cc: <linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
->>> Cc: <linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
->>> Signed-off-by: Vishal Verma <vishal.l.verma-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
->>> ---
->>>  drivers/acpi/nfit.c | 89 +++++++++++++++++++++++++++++++++++++++++++++++++++++
->>>  drivers/acpi/nfit.h |  1 +
->>>  2 files changed, 90 insertions(+)
->>>
->>> diff --git a/drivers/acpi/nfit.c b/drivers/acpi/nfit.c
->>> index 4e65255..c9f1ee4 100644
->>> --- a/drivers/acpi/nfit.c
->>> +++ b/drivers/acpi/nfit.c
->>> @@ -12,6 +12,7 @@
->>>   */
->>>  #include <linux/list_sort.h>
->>>  #include <linux/libnvdimm.h>
->>> +#include <linux/notifier.h>
->>>  #include <linux/module.h>
->>>  #include <linux/mutex.h>
->>>  #include <linux/ndctl.h>
->>> @@ -24,6 +25,7 @@
->>>  #include <linux/io.h>
->>>  #include <linux/nd.h>
->>>  #include <asm/cacheflush.h>
->>> +#include <asm/mce.h>
->>>  #include "nfit.h"
->>>  
->>>  /*
->>> @@ -51,6 +53,9 @@ module_param(disable_vendor_specific, bool, S_IRUGO);
->>>  MODULE_PARM_DESC(disable_vendor_specific,
->>>  		"Limit commands to the publicly specified set\n");
->>>  
->>> +static LIST_HEAD(acpi_descs);
->>> +static DEFINE_MUTEX(acpi_desc_lock);
->>> +
->>>  static struct workqueue_struct *nfit_wq;
->>>  
->>>  struct nfit_table_prev {
->>> @@ -2416,9 +2421,11 @@ static int acpi_nfit_check_deletions(struct acpi_nfit_desc *acpi_desc,
->>>  
->>>  int acpi_nfit_init(struct acpi_nfit_desc *acpi_desc, acpi_size sz)
->>>  {
->>> +	struct acpi_nfit_desc *acpi_desc_entry;
->>>  	struct device *dev = acpi_desc->dev;
->>>  	struct nfit_table_prev prev;
->>>  	const void *end;
->>> +	int found = 0;
->>>  	u8 *data;
->>>  	int rc;
->>>  
->>> @@ -2473,6 +2480,19 @@ int acpi_nfit_init(struct acpi_nfit_desc *acpi_desc, acpi_size sz)
->>>  
->>>  	rc = acpi_nfit_register_regions(acpi_desc);
->>>  
->>> +	/*
->>> +	 * We may get here due to an update of the nfit via _FIT.
->>> +	 * Check if the acpi_desc we're (re)initializing is already
->>> +	 * present in the list, and if so, don't re-add it
->>> +	 */
->>> +	mutex_lock(&acpi_desc_lock);
->>> +	list_for_each_entry(acpi_desc_entry, &acpi_descs, list)
->>> +		if (acpi_desc_entry == acpi_desc)
->>> +			found = 1;
->>> +	if (found == 0)
->>> +		list_add_tail(&acpi_desc->list, &acpi_descs);
->>> +	mutex_unlock(&acpi_desc_lock);
->>> +
->>>   out_unlock:
->>>  	mutex_unlock(&acpi_desc->init_mutex);
->>>  	return rc;
->>> @@ -2555,6 +2575,65 @@ static int acpi_nfit_ars_rescan(struct acpi_nfit_desc *acpi_desc)
->>>  	return 0;
->>>  }
->>>  
->>> +static int nfit_handle_mce(struct notifier_block *nb, unsigned long val,
->>> +			void *data)
->>> +{
->>> +	struct mce *mce = (struct mce *)data;
->>> +	struct acpi_nfit_desc *acpi_desc;
->>> +	struct nfit_spa *nfit_spa;
->>> +
->>> +	/* We only care about memory errors */
->>> +	if (!(mce->status & MCACOD))
->>> +		return NOTIFY_DONE;
->>> +
->>> +	/*
->>> +	 * mce->addr contains the physical addr accessed that caused the
->>> +	 * machine check. We need to walk through the list of NFITs, and see
->>> +	 * if any of them matches that address, and only then start a scrub.
->>> +	 */
->>> +	mutex_lock(&acpi_desc_lock);
->>> +	list_for_each_entry(acpi_desc, &acpi_descs, list) {
->>> +		struct device *dev = acpi_desc->dev;
->>> +		int found_match = 0;
->>> +
->>> +		list_for_each_entry(nfit_spa, &acpi_desc->spas, list) {
->>> +			struct acpi_nfit_system_address *spa = nfit_spa->spa;
->>> +
->>> +			if (nfit_spa_type(spa) != NFIT_SPA_PM)
->>> +				continue;
->>> +			/* find the spa that covers the mce addr */
->>> +			if (spa->address > mce->addr)
->>> +				continue;
->>> +			if ((spa->address + spa->length - 1) < mce->addr)
->>> +				continue;
->>> +			found_match = 1;
->>> +			dev_dbg(dev, "%s: addr in SPA %d (0x%llx, 0x%llx)\n",
->>> +				__func__, spa->range_index, spa->address,
->>> +				spa->length);
->>> +			/*
->>> +			 * We can break at the first match because we're going
->>> +			 * to rescan all the SPA ranges. There shouldn't be any
->>> +			 * aliasing anyway.
->>> +			 */
->>> +			break;
->>> +		}
->>> +
->>> +		/*
->>> +		 * We can ignore an -EBUSY here because if an ARS is already
->>> +		 * in progress, just let that be the last authoritative one
->>> +		 */
->>> +		if (found_match)
->>> +			acpi_nfit_ars_rescan(acpi_desc);
->>> +	}
->>> +
->>> +	mutex_unlock(&acpi_desc_lock);
->>> +	return NOTIFY_DONE;
->>> +}
->>> +
->>> +static struct notifier_block nfit_mce_dec = {
->>> +	.notifier_call	= nfit_handle_mce,
->>> +};
->>> +
->>>  void acpi_nfit_desc_init(struct acpi_nfit_desc *acpi_desc, struct device *dev)
->>>  {
->>>  	struct nvdimm_bus_descriptor *nd_desc;
->>> @@ -2676,6 +2755,9 @@ static int acpi_nfit_remove(struct acpi_device *adev)
->>>  	flush_workqueue(nfit_wq);
->>>  	sysfs_put(acpi_desc->scrub_count_state);
->>>  	nvdimm_bus_unregister(acpi_desc->nvdimm_bus);
->>> +	mutex_lock(&acpi_desc_lock);
->>> +	list_del(&acpi_desc->list);
->>> +	mutex_unlock(&acpi_desc_lock);
->>>  	return 0;
->>>  }
->>>  
->>> @@ -2782,13 +2864,20 @@ static __init int nfit_init(void)
->>>  	if (!nfit_wq)
->>>  		return -ENOMEM;
->>>  
->>> +	INIT_LIST_HEAD(&acpi_descs);
->>> +	mce_register_decode_chain(&nfit_mce_dec);
->>> +
->>>  	return acpi_bus_register_driver(&acpi_nfit_driver);
->>>  }
->>>  
->>>  static __exit void nfit_exit(void)
->>>  {
->>> +	mce_unregister_decode_chain(&nfit_mce_dec);
->>>  	acpi_bus_unregister_driver(&acpi_nfit_driver);
->>>  	destroy_workqueue(nfit_wq);
->>> +	mutex_lock(&acpi_desc_lock);
->>> +	WARN_ON(!list_empty(&acpi_descs));
->>> +	mutex_unlock(&acpi_desc_lock);
->>>  }
->>>  
->>>  module_init(nfit_init);
->>> diff --git a/drivers/acpi/nfit.h b/drivers/acpi/nfit.h
->>> index 954d2aa..d2aec6f 100644
->>> --- a/drivers/acpi/nfit.h
->>> +++ b/drivers/acpi/nfit.h
->>> @@ -146,6 +146,7 @@ struct acpi_nfit_desc {
->>>  	struct nd_cmd_ars_status *ars_status;
->>>  	size_t ars_status_size;
->>>  	struct work_struct work;
->>> +	struct list_head list;
->>>  	struct kernfs_node *scrub_count_state;
->>>  	unsigned int scrub_count;
->>>  	unsigned int cancel:1;
->>>
+> Can this be fixed in the next ACPI revision?
+[Lv Zheng] 
+Even this is fixed in the ACPI specification, there are platforms already doing this.
+Especially platforms from Microsoft.
+So the de-facto standard OS won't care about the change.
+And we can still see such platforms.
+
+Here is an example from Surface 3:
+
+DefinitionBlock ("dsdt.aml", "DSDT", 2, "ALASKA", "A M I ", 0x01072009)
+{
+    Scope (_SB)
+    {
+        Device (PCI0)
+        {
+            Name (_HID, EisaId ("PNP0A08"))  // _HID: Hardware ID
+            Name (_CID, EisaId ("PNP0A03"))  // _CID: Compatible ID
+            Device (SPI1)
+            {
+                Name (_HID, "8086228E")  // _HID: Hardware ID
+                Device (NTRG)
+                {
+                    Name (_HID, "MSHW0037")  // _HID: Hardware ID
+                }
+            }
+        }
+
+        Device (LID)
+        {
+            Name (_HID, EisaId ("PNP0C0D"))
+            Name (LIDB, Zero)
+            Method (_LID, 0, NotSerialized)
+            {
+                Return (LIDB)
+            }
+        }
+
+        Device (GPO0)
+        {
+            Name (_HID, "INT33FF")  // _HID: Hardware ID
+            OperationRegion (GPOR, GeneralPurposeIo, Zero, One)
+            Field (GPOR, ByteAcc, NoLock, Preserve)
+            {
+                Connection (
+                    GpioIo (Shared, PullNone, 0x0000, 0x0000, IoRestrictionNone,
+                        "\\_SB.GPO0", 0x00, ResourceConsumer, ,
+                        )
+                        {   // Pin list
+                            0x004C
+                        }
+                ), 
+                HELD,   1
+            }
+            Method (_E4C, 0, Serialized)
+            {
+                If (LEqual(HELD, One))
+                {
+                    Store(One, ^^LID.LIDB)
+
+There is no "open" event generated by "Surface 3".
+
+                }
+                Else
+                {
+                    Store(Zero, ^^LID.LIDB)
+                    Notify (LID, 0x80)
+
+There is only "close" event generated by "Surface 3".
+Thus they are not paired.
+
+                }
+                Notify (^^PCI0.SPI1.NTRG, One) // Device Check
+            }
+        }
+    }
+}
+
+> 
+> > +state upon the last lid notification instead of returning the lid state
+> > +upon the last _LID evaluation. There won't be difference when the _LID
+> > +control method is evaluated during the runtime, the problem is its
+> initial
+> > +returning value. When the AML tables implement this control method
+> with
+> > +cached value, the initial returning value is likely not reliable. There are
+> > +simply so many examples always retuning "closed" as initial lid state.
+> > +
+> > +2. Restrictions of the lid state change notifications
+> > +
+> > +There are many AML tables never notifying when the lid device state is
+> > +changed to "opened". Thus the "opened" notification is not guaranteed.
+> > +
+> > +But it is guaranteed that the AML tables always notify "closed" when
+> the
+> > +lid state is changed to "closed". The "closed" notification is normally
+> > +used to trigger some system power saving operations on Windows.
+> Since it is
+> > +fully tested, the "closed" notification is reliable for all AML tables.
+> > +
+> > +3. Expections for the userspace users of the ACPI lid device driver
+> > +
+> > +The ACPI button driver exports the lid state to the userspace via the
+> > +following file:
+> > +  /proc/acpi/button/lid/LID0/state
+> > +This file actually calls the _LID control method described above. And
+> given
+> > +the previous explanation, it is not reliable enough on some platforms.
+> So
+> > +it is advised for the userspace program to not to solely rely on this file
+> > +to determine the actual lid state.
+> > +
+> > +The ACPI button driver emits 2 kinds of events to the user space:
+> > +  SW_LID
+> > +   When the lid state/event is reliable, the userspace can behave
+> > +   according to this input switch event.
+> > +   This is a mode prepared for backward compatiblity.
+> > +  KEY_EVENT_OPEN/KEY_EVENT_CLOSE
+> > +   When the lid state/event is not reliable, the userspace should behave
+> > +   according to these 2 input key events.
+> > +   New userspace programs may only be prepared for the input key
+> events.
+> 
+> No, absolutely not. If some x86 vendors managed to mess up their
+> firmware implementations that does not mean that everyone now has to
+> abandon working perfectly well for them SW_LID events and rush to
+> switch
+> to a brand new event.
+[Lv Zheng] 
+However there is no clear wording in the ACPI specification asking the vendors to achieve paired lid events.
+
+> 
+> Apparently were are a few issues, main is that some systems not reporting
+> "open" event. This can be dealt with by userspace "writing" to the
+> lid's evdev device EV_SW/SW_LID/0 event upon system resume (and
+> startup)
+> for selected systems. This will mean that if system wakes up not because
+> LID is open we'll incorrectly assume that it is, but we can either add
+> more smarts to the process emitting SW_LID event or simply say "well,
+> tough, the hardware is crappy" and bug vendor to see if they can fix the
+> issue (if not for current firmware them for next).
+[Lv Zheng] 
+The problem is there is no vendor actually caring about fixing this "issue".
+Because Windows works well with their firmware.
+Then finally becomes a big table customization business for our team.
+
+> 
+> As an additional workaround, we can toggle the LID switch off and on
+> when we get notification, much like your proposed patch does for the key
+> events.
+[Lv Zheng] 
+I think this is doable, I'll refresh my patchset to address your this comment.
+By inserting open/close events when next close/open event arrives after a certain period,
+this may fix some issues for the old programs.
+Where user may be required to open/close lid twice to trigger 2nd suspend.
+
+However, this still cannot fix the problems like "Surface 3".
+We'll still need a new usage model for such platforms (no open event).
+I'll send the next version out today, hope you can take a look to see if it's acceptable from your point of view.
+
+> 
+> Speaking of ACPI in general, does Intel have a test suite for ACPI
+> implementors? Could include tests for proper LID behavior?
+> 1. The "swallowing" of input events because kernel state disagrees with
+> the reality
+[Lv Zheng] 
+I think there is test suit in UEFI forum can cover this.
+However, most of the firmware vendors will just test their firmware with Windows.
+
+Thanks
+-Lv
+
+> 
+> Thanks.
+> 
+> --
+> Dmitry
