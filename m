@@ -1,41 +1,64 @@
-From: Markus Mayer <mmayer@broadcom.com>
-Subject: [PATCH v4 3/7] ACPI / device_sysfs: make use of new strtolower() function
-Date: Fri, 22 Jul 2016 16:31:05 -0700
-Message-ID: <1469230269-1644-4-git-send-email-mmayer@broadcom.com>
-References: <1469230269-1644-1-git-send-email-mmayer@broadcom.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1469230269-1644-1-git-send-email-mmayer@broadcom.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Rafael Wysocki <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>
-Cc: Markus Mayer <mmayer@broadcom.com>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+From: Dan Williams <dan.j.williams@intel.com>
+Subject: Re: [PATCH v2 16/17] x86/insn: remove pcommit
+Date: Fri, 22 Jul 2016 17:54:46 -0700
+Message-ID: <CAPcyv4iQn_rR5wEb0PUOVL2tsWT_-H08kgPDsKmq1LRqGkxdZQ@mail.gmail.com>
+References: <146812106839.32932.2870621200867047059.stgit@dwillia2-desk3.amr.corp.intel.com>
+ <146812115425.32932.3314855641604340233.stgit@dwillia2-desk3.amr.corp.intel.com>
+ <20160712145757.GV30909@twins.programming.kicks-ass.net> <CAPcyv4iEad1WuX6=5KymjQFrsAOkzQJ3E7iKj7F9wwz63WTKug@mail.gmail.com>
+ <CAPcyv4gE8owJZOokGJmxH97CZwkD9uBZys=2-VCBgZy8aLkT8w@mail.gmail.com> <20160722165246.GA24884@gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-fsdevel-owner@vger.kernel.org>
+In-Reply-To: <20160722165246.GA24884@gmail.com>
+Sender: linux-fsdevel-owner@vger.kernel.org
+To: Ingo Molnar <mingo@kernel.org>
+Cc: Peter Zijlstra <peterz@infradead.org>, linux-nvdimm <linux-nvdimm@ml01.01.org>, Xiao Guangrong <guangrong.xiao@linux.intel.com>, Josh Poimboeuf <jpoimboe@redhat.com>, Linux ACPI <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, X86 ML <x86@kernel.org>, Adrian Hunter <adrian.hunter@intel.com>, Arnaldo Carvalho de Melo <acme@kernel.org>, Christoph Hellwig <hch@lst.de>, Alexander Shishkin <alexander.shishkin@linux.intel.com>, Ingo Molnar <mingo@redhat.com>, Andy Lutomirski <luto@kernel.org>, "H. Peter Anvin" <hpa@zytor.com>, linux-fsdevel <linux-fsdevel@vger.kernel.org>, Thomas Gleixner <tglx@linutronix.de>, Borislav Petkov <bp@suse.de>, Ross Zwisler <ross.zwisler@linux.intel.com>
 List-Id: linux-acpi@vger.kernel.org
 
-Call strtolower() rather than walking the string explicitly to convert
-it to lowercase.
+On Fri, Jul 22, 2016 at 9:52 AM, Ingo Molnar <mingo@kernel.org> wrote:
+>
+> * Dan Williams <dan.j.williams@intel.com> wrote:
+>
+>> On Tue, Jul 12, 2016 at 3:12 PM, Dan Williams <dan.j.williams@intel.com> wrote:
+>> > On Tue, Jul 12, 2016 at 7:57 AM, Peter Zijlstra <peterz@infradead.org> wrote:
+>> >> On Sat, Jul 09, 2016 at 08:25:54PM -0700, Dan Williams wrote:
+>> >>> The pcommit instruction is being deprecated in favor of either ADR
+>> >>> (asynchronous DRAM refresh: flush-on-power-fail) at the platform level, or
+>> >>> posted-write-queue flush addresses as defined by the ACPI 6.x NFIT (NVDIMM
+>> >>> Firmware Interface Table).
+>> >>
+>> >>>  arch/x86/include/asm/cpufeatures.h                 |    1
+>> >>>  arch/x86/include/asm/special_insns.h               |   46 --------------------
+>> >>>  arch/x86/lib/x86-opcode-map.txt                    |    2 -
+>> >>>  tools/objtool/arch/x86/insn/x86-opcode-map.txt     |    2 -
+>> >>>  tools/perf/arch/x86/tests/insn-x86-dat-32.c        |    2 -
+>> >>>  tools/perf/arch/x86/tests/insn-x86-dat-64.c        |    2 -
+>> >>>  tools/perf/arch/x86/tests/insn-x86-dat-src.c       |    4 --
+>> >>
+>> >> Just deprecated, or is it completely eradicated, removed from history,
+>> >> will never ever happen and we'll reissue the opcode for something else?
+>> >>
+>> >> Because if its only deprecated then removing it from the instruction
+>> >> decoders seems wrong, old binaries might still contain the opcode.
+>> >
+>> > Eradicated.
+>> >
+>> > "The new instructions like CLWB and CLFLUSHOPT will be rolled into the
+>> > SDM but PCOMMIT will be removed from the Extensions doc and not rolled
+>> > into the SDM." [1]
+>> >
+>> > Existing binaries are already gating their usage on the presence of
+>> > the cpu id flag, that flag and the instruction opcode are reserved
+>> > going forward.
+>> >
+>> > [1]: https://lists.01.org/pipermail/linux-nvdimm/2016-June/005923.html
+>>
+>> x86 maintainers, I have the other patches in this series queued in -next. Please
+>> ack this one and I'll add it for v4.8-rc1, or otherwise let me know how you want
+>> to handle this patch.
+>
+> Since it's just a removal AFAICS that the rest of your series should not depend
+> on, can you submit it to the x86 tree?
 
-Signed-off-by: Markus Mayer <mmayer@broadcom.com>
-Acked-by: Rafael J. Wysocki <rjw@rjwysocki.net>
----
- drivers/acpi/device_sysfs.c | 4 +---
- 1 file changed, 1 insertion(+), 3 deletions(-)
-
-diff --git a/drivers/acpi/device_sysfs.c b/drivers/acpi/device_sysfs.c
-index 7b2c48f..1db38c7 100644
---- a/drivers/acpi/device_sysfs.c
-+++ b/drivers/acpi/device_sysfs.c
-@@ -200,12 +200,10 @@ static int create_of_modalias(struct acpi_device *acpi_dev, char *modalias,
- 	const union acpi_object *of_compatible, *obj;
- 	int len, count;
- 	int i, nval;
--	char *c;
- 
- 	acpi_get_name(acpi_dev->handle, ACPI_SINGLE_NAME, &buf);
- 	/* DT strings are all in lower case */
--	for (c = buf.pointer; *c != '\0'; c++)
--		*c = tolower(*c);
-+	strtolower(buf.pointer);
- 
- 	len = snprintf(modalias, size, "of:N%sT", (char *)buf.pointer);
- 	ACPI_FREE(buf.pointer);
--- 
-2.7.4
+This patch depends on the previous patches in the series removing
+calls to pcommit_sfence().
