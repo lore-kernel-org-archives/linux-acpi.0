@@ -1,8 +1,8 @@
 From: Dan Williams <dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH v4 2/4] nfit,
- libnvdimm: allow an ARS scrub to be triggered on demand
-Date: Sat, 23 Jul 2016 22:26:43 -0700
-Message-ID: <146933800343.26196.11707211474975930425.stgit@dwillia2-desk3.amr.corp.intel.com>
+Subject: [PATCH v4 1/4] libnvdimm: register nvdimm_bus devices with an
+ nd_bus driver
+Date: Sat, 23 Jul 2016 22:26:38 -0700
+Message-ID: <146933799806.26196.12134730376101293848.stgit@dwillia2-desk3.amr.corp.intel.com>
 References: <146933799257.26196.10157809349693736359.stgit@dwillia2-desk3.amr.corp.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -19,341 +19,441 @@ List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
 Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
 To: linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
-Cc: "Rafael J. Wysocki" <rafael.j.wysocki-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-From: Vishal Verma <vishal.l.verma-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+A recent effort to add a new nvdimm bus provider attribute highlighted a
+race between interrogating nvdimm_bus->nd_desc and nvdimm_bus tear down.
+The typical way to handle these races is to take the device_lock() in
+the attribute method and validate that the device is still active.  In
+order for a device to be 'active' it needs to be associated with a
+driver.  So, we create the small boilerplate for a driver and register
+nvdimm_bus devices on the 'nvdimm_bus_type' bus.
 
-Normally, an ARS (Address Range Scrub) only happens at
-boot/initialization time. There can however arise situations where a
-bus-wide rescan is needed - notably, in the case of discovering a latent
-media error, we should do a full rescan to figure out what other sectors
-are bad, and thus potentially avoid triggering an mce on them in the
-future. Also provide a sysfs trigger to start a bus-wide scrub.
+A result of this change is that ndbusX devices now appear under
+/sys/bus/nd/devices.  In fact this makes /sys/class/nd somewhat
+redundant, but removing that will need to take a long deprecation period
+given its use by ndctl binaries in the field.
 
-Cc: Rafael J. Wysocki <rafael.j.wysocki-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Signed-off-by: Vishal Verma <vishal.l.verma-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+This change naturally pulls code from drivers/nvdimm/core.c to
+drivers/nvdimm/bus.c, so it is a nice code organization clean-up as
+well.
+
+Cc: Vishal Verma <vishal.l.verma-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Signed-off-by: Dan Williams <dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 ---
- drivers/acpi/nfit.c       |  167 +++++++++++++++++++++++++++++++++++++++++++--
- drivers/acpi/nfit.h       |    4 +
- drivers/nvdimm/core.c     |    7 ++
- include/linux/libnvdimm.h |    1 
- 4 files changed, 171 insertions(+), 8 deletions(-)
+ drivers/nvdimm/bus.c  |  188 +++++++++++++++++++++++++++++++++++++++++++++++--
+ drivers/nvdimm/core.c |  127 ---------------------------------
+ 2 files changed, 181 insertions(+), 134 deletions(-)
 
-diff --git a/drivers/acpi/nfit.c b/drivers/acpi/nfit.c
-index be7c2fde16e7..2eaa03dc185a 100644
---- a/drivers/acpi/nfit.c
-+++ b/drivers/acpi/nfit.c
-@@ -15,6 +15,7 @@
- #include <linux/module.h>
- #include <linux/mutex.h>
- #include <linux/ndctl.h>
-+#include <linux/sysfs.h>
- #include <linux/delay.h>
- #include <linux/list.h>
- #include <linux/acpi.h>
-@@ -874,14 +875,87 @@ static ssize_t revision_show(struct device *dev,
- }
- static DEVICE_ATTR_RO(revision);
+diff --git a/drivers/nvdimm/bus.c b/drivers/nvdimm/bus.c
+index 275dd5c0a301..46d7e555b044 100644
+--- a/drivers/nvdimm/bus.c
++++ b/drivers/nvdimm/bus.c
+@@ -31,6 +31,7 @@
+ int nvdimm_major;
+ static int nvdimm_bus_major;
+ static struct class *nd_class;
++static DEFINE_IDA(nd_ida);
  
-+/*
-+ * This shows the number of full Address Range Scrubs that have been
-+ * completed since driver load time. Userspace can wait on this using
-+ * select/poll etc. A '+' at the end indicates an ARS is in progress
-+ */
-+static ssize_t scrub_show(struct device *dev,
-+		struct device_attribute *attr, char *buf)
+ static int to_nd_device_type(struct device *dev)
+ {
+@@ -60,13 +61,6 @@ static int nvdimm_bus_uevent(struct device *dev, struct kobj_uevent_env *env)
+ 			to_nd_device_type(dev));
+ }
+ 
+-static int nvdimm_bus_match(struct device *dev, struct device_driver *drv)
+-{
+-	struct nd_device_driver *nd_drv = to_nd_device_driver(drv);
+-
+-	return !!test_bit(to_nd_device_type(dev), &nd_drv->type);
+-}
+-
+ static struct module *to_bus_provider(struct device *dev)
+ {
+ 	/* pin bus providers while regions are enabled */
+@@ -223,6 +217,8 @@ long nvdimm_clear_poison(struct device *dev, phys_addr_t phys,
+ }
+ EXPORT_SYMBOL_GPL(nvdimm_clear_poison);
+ 
++static int nvdimm_bus_match(struct device *dev, struct device_driver *drv);
++
+ static struct bus_type nvdimm_bus_type = {
+ 	.name = "nd",
+ 	.uevent = nvdimm_bus_uevent,
+@@ -232,6 +228,176 @@ static struct bus_type nvdimm_bus_type = {
+ 	.shutdown = nvdimm_bus_shutdown,
+ };
+ 
++static void nvdimm_bus_release(struct device *dev)
 +{
-+	struct nvdimm_bus_descriptor *nd_desc;
-+	ssize_t rc = -ENXIO;
++	struct nvdimm_bus *nvdimm_bus;
 +
-+	device_lock(dev);
-+	nd_desc = dev_get_drvdata(dev);
-+	if (nd_desc) {
-+		struct acpi_nfit_desc *acpi_desc = to_acpi_desc(nd_desc);
++	nvdimm_bus = container_of(dev, struct nvdimm_bus, dev);
++	ida_simple_remove(&nd_ida, nvdimm_bus->id);
++	kfree(nvdimm_bus);
++}
 +
-+		rc = sprintf(buf, "%d%s", acpi_desc->scrub_count,
-+				(work_busy(&acpi_desc->work)) ? "+\n" : "\n");
++static bool is_nvdimm_bus(struct device *dev)
++{
++	return dev->release == nvdimm_bus_release;
++}
++
++struct nvdimm_bus *walk_to_nvdimm_bus(struct device *nd_dev)
++{
++	struct device *dev;
++
++	for (dev = nd_dev; dev; dev = dev->parent)
++		if (is_nvdimm_bus(dev))
++			break;
++	dev_WARN_ONCE(nd_dev, !dev, "invalid dev, not on nd bus\n");
++	if (dev)
++		return to_nvdimm_bus(dev);
++	return NULL;
++}
++
++struct nvdimm_bus *to_nvdimm_bus(struct device *dev)
++{
++	struct nvdimm_bus *nvdimm_bus;
++
++	nvdimm_bus = container_of(dev, struct nvdimm_bus, dev);
++	WARN_ON(!is_nvdimm_bus(dev));
++	return nvdimm_bus;
++}
++EXPORT_SYMBOL_GPL(to_nvdimm_bus);
++
++struct nvdimm_bus *nvdimm_bus_register(struct device *parent,
++		struct nvdimm_bus_descriptor *nd_desc)
++{
++	struct nvdimm_bus *nvdimm_bus;
++	int rc;
++
++	nvdimm_bus = kzalloc(sizeof(*nvdimm_bus), GFP_KERNEL);
++	if (!nvdimm_bus)
++		return NULL;
++	INIT_LIST_HEAD(&nvdimm_bus->list);
++	INIT_LIST_HEAD(&nvdimm_bus->mapping_list);
++	INIT_LIST_HEAD(&nvdimm_bus->poison_list);
++	init_waitqueue_head(&nvdimm_bus->probe_wait);
++	nvdimm_bus->id = ida_simple_get(&nd_ida, 0, 0, GFP_KERNEL);
++	mutex_init(&nvdimm_bus->reconfig_mutex);
++	if (nvdimm_bus->id < 0) {
++		kfree(nvdimm_bus);
++		return NULL;
 +	}
-+	device_unlock(dev);
-+	return rc;
-+}
-+
-+static int acpi_nfit_ars_rescan(struct acpi_nfit_desc *acpi_desc);
-+
-+static ssize_t scrub_store(struct device *dev,
-+		struct device_attribute *attr, const char *buf, size_t size)
-+{
-+	struct nvdimm_bus_descriptor *nd_desc;
-+	ssize_t rc;
-+	long val;
-+
-+	rc = kstrtol(buf, 0, &val);
-+	if (rc)
-+		return rc;
-+	if (val != 1)
-+		return -EINVAL;
-+
-+	device_lock(dev);
-+	nd_desc = dev_get_drvdata(dev);
-+	if (nd_desc) {
-+		struct acpi_nfit_desc *acpi_desc = to_acpi_desc(nd_desc);
-+
-+		rc = acpi_nfit_ars_rescan(acpi_desc);
++	nvdimm_bus->nd_desc = nd_desc;
++	nvdimm_bus->dev.parent = parent;
++	nvdimm_bus->dev.release = nvdimm_bus_release;
++	nvdimm_bus->dev.groups = nd_desc->attr_groups;
++	nvdimm_bus->dev.bus = &nvdimm_bus_type;
++	dev_set_name(&nvdimm_bus->dev, "ndbus%d", nvdimm_bus->id);
++	rc = device_register(&nvdimm_bus->dev);
++	if (rc) {
++		dev_dbg(&nvdimm_bus->dev, "registration failed: %d\n", rc);
++		goto err;
 +	}
-+	device_unlock(dev);
-+	if (rc)
-+		return rc;
-+	return size;
++
++	return nvdimm_bus;
++ err:
++	put_device(&nvdimm_bus->dev);
++	return NULL;
 +}
-+static DEVICE_ATTR_RW(scrub);
++EXPORT_SYMBOL_GPL(nvdimm_bus_register);
 +
-+static bool ars_supported(struct nvdimm_bus *nvdimm_bus)
++void nvdimm_bus_unregister(struct nvdimm_bus *nvdimm_bus)
 +{
-+	struct nvdimm_bus_descriptor *nd_desc = to_nd_desc(nvdimm_bus);
-+	const unsigned long mask = 1 << ND_CMD_ARS_CAP | 1 << ND_CMD_ARS_START
-+		| 1 << ND_CMD_ARS_STATUS;
++	if (!nvdimm_bus)
++		return;
++	device_unregister(&nvdimm_bus->dev);
++}
++EXPORT_SYMBOL_GPL(nvdimm_bus_unregister);
 +
-+	return (nd_desc->cmd_mask & mask) == mask;
++static int child_unregister(struct device *dev, void *data)
++{
++	/*
++	 * the singular ndctl class device per bus needs to be
++	 * "device_destroy"ed, so skip it here
++	 *
++	 * i.e. remove classless children
++	 */
++	if (dev->class)
++		/* pass */;
++	else
++		nd_device_unregister(dev, ND_SYNC);
++	return 0;
 +}
 +
-+static umode_t nfit_visible(struct kobject *kobj, struct attribute *a, int n)
++static void free_poison_list(struct list_head *poison_list)
 +{
-+	struct device *dev = container_of(kobj, struct device, kobj);
++	struct nd_poison *pl, *next;
++
++	list_for_each_entry_safe(pl, next, poison_list, list) {
++		list_del(&pl->list);
++		kfree(pl);
++	}
++	list_del_init(poison_list);
++}
++
++static int nd_bus_remove(struct device *dev)
++{
 +	struct nvdimm_bus *nvdimm_bus = to_nvdimm_bus(dev);
 +
-+	if (a == &dev_attr_scrub.attr && !ars_supported(nvdimm_bus))
-+		return 0;
-+	return a->mode;
-+}
++	mutex_lock(&nvdimm_bus_list_mutex);
++	list_del_init(&nvdimm_bus->list);
++	mutex_unlock(&nvdimm_bus_list_mutex);
 +
- static struct attribute *acpi_nfit_attributes[] = {
- 	&dev_attr_revision.attr,
-+	&dev_attr_scrub.attr,
- 	NULL,
- };
- 
- static struct attribute_group acpi_nfit_attribute_group = {
- 	.name = "nfit",
- 	.attrs = acpi_nfit_attributes,
-+	.is_visible = nfit_visible,
- };
- 
- static const struct attribute_group *acpi_nfit_attribute_groups[] = {
-@@ -2054,7 +2128,7 @@ static void acpi_nfit_async_scrub(struct acpi_nfit_desc *acpi_desc,
- 	unsigned int tmo = scrub_timeout;
- 	int rc;
- 
--	if (nfit_spa->ars_done || !nfit_spa->nd_region)
-+	if (!nfit_spa->ars_required || !nfit_spa->nd_region)
- 		return;
- 
- 	rc = ars_start(acpi_desc, nfit_spa);
-@@ -2143,7 +2217,9 @@ static void acpi_nfit_scrub(struct work_struct *work)
- 	 * firmware initiated scrubs to complete and then we go search for the
- 	 * affected spa regions to mark them scanned.  In the second phase we
- 	 * initiate a directed scrub for every range that was not scrubbed in
--	 * phase 1.
-+	 * phase 1. If we're called for a 'rescan', we harmlessly pass through
-+	 * the first phase, but really only care about running phase 2, where
-+	 * regions can be notified of new poison.
- 	 */
- 
- 	/* process platform firmware initiated scrubs */
-@@ -2246,14 +2322,17 @@ static void acpi_nfit_scrub(struct work_struct *work)
- 		 * Flag all the ranges that still need scrubbing, but
- 		 * register them now to make data available.
- 		 */
--		if (nfit_spa->nd_region)
--			nfit_spa->ars_done = 1;
--		else
-+		if (!nfit_spa->nd_region) {
-+			nfit_spa->ars_required = 1;
- 			acpi_nfit_register_region(acpi_desc, nfit_spa);
-+		}
- 	}
- 
- 	list_for_each_entry(nfit_spa, &acpi_desc->spas, list)
- 		acpi_nfit_async_scrub(acpi_desc, nfit_spa);
-+	acpi_desc->scrub_count++;
-+	if (acpi_desc->scrub_count_state)
-+		sysfs_notify_dirent(acpi_desc->scrub_count_state);
- 	mutex_unlock(&acpi_desc->init_mutex);
- }
- 
-@@ -2291,12 +2370,48 @@ static int acpi_nfit_check_deletions(struct acpi_nfit_desc *acpi_desc,
- 	return 0;
- }
- 
-+static int acpi_nfit_desc_init_scrub_attr(struct acpi_nfit_desc *acpi_desc)
-+{
-+	struct device *dev = acpi_desc->dev;
-+	struct kernfs_node *nfit;
-+	struct device *bus_dev;
++	nd_synchronize();
++	device_for_each_child(&nvdimm_bus->dev, NULL, child_unregister);
 +
-+	if (!ars_supported(acpi_desc->nvdimm_bus))
-+		return 0;
++	nvdimm_bus_lock(&nvdimm_bus->dev);
++	free_poison_list(&nvdimm_bus->poison_list);
++	nvdimm_bus_unlock(&nvdimm_bus->dev);
 +
-+	bus_dev = to_nvdimm_bus_dev(acpi_desc->nvdimm_bus);
-+	nfit = sysfs_get_dirent(bus_dev->kobj.sd, "nfit");
-+	if (!nfit) {
-+		dev_err(dev, "sysfs_get_dirent 'nfit' failed\n");
-+		return -ENODEV;
-+	}
-+	acpi_desc->scrub_count_state = sysfs_get_dirent(nfit, "scrub");
-+	sysfs_put(nfit);
-+	if (!acpi_desc->scrub_count_state) {
-+		dev_err(dev, "sysfs_get_dirent 'scrub' failed\n");
-+		return -ENODEV;
-+	}
++	nvdimm_bus_destroy_ndctl(nvdimm_bus);
 +
 +	return 0;
 +}
 +
- static void acpi_nfit_destruct(void *data)
- {
- 	struct acpi_nfit_desc *acpi_desc = data;
-+	struct device *bus_dev = to_nvdimm_bus_dev(acpi_desc->nvdimm_bus);
- 
- 	acpi_desc->cancel = 1;
-+	/*
-+	 * Bounce the nvdimm bus lock to make sure any in-flight
-+	 * acpi_nfit_ars_rescan() submissions have had a chance to
-+	 * either submit or see ->cancel set.
-+	 */
-+	device_lock(bus_dev);
-+	device_unlock(bus_dev);
++static int nd_bus_probe(struct device *dev)
++{
++	struct nvdimm_bus *nvdimm_bus = to_nvdimm_bus(dev);
++	int rc;
 +
- 	flush_workqueue(nfit_wq);
-+	if (acpi_desc->scrub_count_state)
-+		sysfs_put(acpi_desc->scrub_count_state);
- 	nvdimm_bus_unregister(acpi_desc->nvdimm_bus);
- 	acpi_desc->nvdimm_bus = NULL;
- }
-@@ -2308,17 +2423,30 @@ int acpi_nfit_init(struct acpi_nfit_desc *acpi_desc, void *data, acpi_size sz)
- 	const void *end;
- 	int rc;
- 
-+	acpi_nfit_init_dsms(acpi_desc);
-+
- 	if (!acpi_desc->nvdimm_bus) {
-+		acpi_nfit_init_dsms(acpi_desc);
-+
- 		acpi_desc->nvdimm_bus = nvdimm_bus_register(dev,
- 				&acpi_desc->nd_desc);
- 		if (!acpi_desc->nvdimm_bus)
- 			return -ENOMEM;
-+
- 		rc = devm_add_action_or_reset(dev, acpi_nfit_destruct,
- 				acpi_desc);
- 		if (rc)
- 			return rc;
-+
-+		rc = acpi_nfit_desc_init_scrub_attr(acpi_desc);
-+		if (rc)
-+			return rc;
- 	}
- 
-+	rc = acpi_nfit_desc_init_scrub_attr(acpi_desc);
++	rc = nvdimm_bus_create_ndctl(nvdimm_bus);
 +	if (rc)
 +		return rc;
 +
- 	mutex_lock(&acpi_desc->init_mutex);
- 
- 	INIT_LIST_HEAD(&prev.spas);
-@@ -2360,8 +2488,6 @@ int acpi_nfit_init(struct acpi_nfit_desc *acpi_desc, void *data, acpi_size sz)
- 	if (rc)
- 		goto out_unlock;
- 
--	acpi_nfit_init_dsms(acpi_desc);
--
- 	rc = acpi_nfit_register_dimms(acpi_desc);
- 	if (rc)
- 		goto out_unlock;
-@@ -2429,6 +2555,33 @@ static int acpi_nfit_clear_to_send(struct nvdimm_bus_descriptor *nd_desc,
- 	return 0;
- }
- 
-+static int acpi_nfit_ars_rescan(struct acpi_nfit_desc *acpi_desc)
-+{
-+	struct device *dev = acpi_desc->dev;
-+	struct nfit_spa *nfit_spa;
++	mutex_lock(&nvdimm_bus_list_mutex);
++	list_add_tail(&nvdimm_bus->list, &nvdimm_bus_list);
++	mutex_unlock(&nvdimm_bus_list_mutex);
 +
-+	if (work_busy(&acpi_desc->work))
-+		return -EBUSY;
-+
-+	if (acpi_desc->cancel)
-+		return 0;
-+
-+	mutex_lock(&acpi_desc->init_mutex);
-+	list_for_each_entry(nfit_spa, &acpi_desc->spas, list) {
-+		struct acpi_nfit_system_address *spa = nfit_spa->spa;
-+
-+		if (nfit_spa_type(spa) != NFIT_SPA_PM)
-+			continue;
-+
-+		nfit_spa->ars_required = 1;
-+	}
-+	queue_work(nfit_wq, &acpi_desc->work);
-+	dev_dbg(dev, "%s: ars_scan triggered\n", __func__);
-+	mutex_unlock(&acpi_desc->init_mutex);
++	/* enable bus provider attributes to look up their local context */
++	dev_set_drvdata(dev, nvdimm_bus->nd_desc);
 +
 +	return 0;
 +}
 +
- void acpi_nfit_desc_init(struct acpi_nfit_desc *acpi_desc, struct device *dev)
++static struct nd_device_driver nd_bus_driver = {
++	.probe = nd_bus_probe,
++	.remove = nd_bus_remove,
++	.drv = {
++		.name = "nd_bus",
++		.suppress_bind_attrs = true,
++		.bus = &nvdimm_bus_type,
++		.owner = THIS_MODULE,
++		.mod_name = KBUILD_MODNAME,
++	},
++};
++
++static int nvdimm_bus_match(struct device *dev, struct device_driver *drv)
++{
++	struct nd_device_driver *nd_drv = to_nd_device_driver(drv);
++
++	if (is_nvdimm_bus(dev) && nd_drv == &nd_bus_driver)
++		return true;
++
++	return !!test_bit(to_nd_device_type(dev), &nd_drv->type);
++}
++
+ static ASYNC_DOMAIN_EXCLUSIVE(nd_async_domain);
+ 
+ void nd_synchronize(void)
+@@ -864,8 +1030,14 @@ int __init nvdimm_bus_init(void)
+ 		goto err_class;
+ 	}
+ 
++	rc = driver_register(&nd_bus_driver.drv);
++	if (rc)
++		goto err_nd_bus;
++
+ 	return 0;
+ 
++ err_nd_bus:
++	class_destroy(nd_class);
+  err_class:
+ 	unregister_chrdev(nvdimm_major, "dimmctl");
+  err_dimm_chrdev:
+@@ -878,8 +1050,10 @@ int __init nvdimm_bus_init(void)
+ 
+ void nvdimm_bus_exit(void)
  {
- 	struct nvdimm_bus_descriptor *nd_desc;
-diff --git a/drivers/acpi/nfit.h b/drivers/acpi/nfit.h
-index b63a583a678f..6ecf337c97aa 100644
---- a/drivers/acpi/nfit.h
-+++ b/drivers/acpi/nfit.h
-@@ -80,7 +80,7 @@ enum {
- struct nfit_spa {
- 	struct list_head list;
- 	struct nd_region *nd_region;
--	unsigned int ars_done:1;
-+	unsigned int ars_required:1;
- 	u32 clear_err_unit;
- 	u32 max_ars;
- 	struct acpi_nfit_system_address spa[0];
-@@ -148,6 +148,8 @@ struct acpi_nfit_desc {
- 	struct nd_cmd_ars_status *ars_status;
- 	size_t ars_status_size;
- 	struct work_struct work;
-+	struct kernfs_node *scrub_count_state;
-+	unsigned int scrub_count;
- 	unsigned int cancel:1;
- 	unsigned long dimm_cmd_force_en;
- 	unsigned long bus_cmd_force_en;
++	driver_unregister(&nd_bus_driver.drv);
+ 	class_destroy(nd_class);
+ 	unregister_chrdev(nvdimm_bus_major, "ndctl");
+ 	unregister_chrdev(nvdimm_major, "dimmctl");
+ 	bus_unregister(&nvdimm_bus_type);
++	ida_destroy(&nd_ida);
+ }
 diff --git a/drivers/nvdimm/core.c b/drivers/nvdimm/core.c
-index 2c98f958fabb..715583f69d28 100644
+index e8528756f54f..2c98f958fabb 100644
 --- a/drivers/nvdimm/core.c
 +++ b/drivers/nvdimm/core.c
-@@ -201,6 +201,13 @@ struct nvdimm_bus_descriptor *to_nd_desc(struct nvdimm_bus *nvdimm_bus)
+@@ -26,7 +26,6 @@
+ 
+ LIST_HEAD(nvdimm_bus_list);
+ DEFINE_MUTEX(nvdimm_bus_list_mutex);
+-static DEFINE_IDA(nd_ida);
+ 
+ void nvdimm_bus_lock(struct device *dev)
+ {
+@@ -195,25 +194,6 @@ u64 nd_fletcher64(void *addr, size_t len, bool le)
+ }
+ EXPORT_SYMBOL_GPL(nd_fletcher64);
+ 
+-static void nvdimm_bus_release(struct device *dev)
+-{
+-	struct nvdimm_bus *nvdimm_bus;
+-
+-	nvdimm_bus = container_of(dev, struct nvdimm_bus, dev);
+-	ida_simple_remove(&nd_ida, nvdimm_bus->id);
+-	kfree(nvdimm_bus);
+-}
+-
+-struct nvdimm_bus *to_nvdimm_bus(struct device *dev)
+-{
+-	struct nvdimm_bus *nvdimm_bus;
+-
+-	nvdimm_bus = container_of(dev, struct nvdimm_bus, dev);
+-	WARN_ON(nvdimm_bus->dev.release != nvdimm_bus_release);
+-	return nvdimm_bus;
+-}
+-EXPORT_SYMBOL_GPL(to_nvdimm_bus);
+-
+ struct nvdimm_bus_descriptor *to_nd_desc(struct nvdimm_bus *nvdimm_bus)
+ {
+ 	/* struct nvdimm_bus definition is private to libnvdimm */
+@@ -221,19 +201,6 @@ struct nvdimm_bus_descriptor *to_nd_desc(struct nvdimm_bus *nvdimm_bus)
  }
  EXPORT_SYMBOL_GPL(to_nd_desc);
  
-+struct device *to_nvdimm_bus_dev(struct nvdimm_bus *nvdimm_bus)
-+{
-+	/* struct nvdimm_bus definition is private to libnvdimm */
-+	return &nvdimm_bus->dev;
-+}
-+EXPORT_SYMBOL_GPL(to_nvdimm_bus_dev);
-+
+-struct nvdimm_bus *walk_to_nvdimm_bus(struct device *nd_dev)
+-{
+-	struct device *dev;
+-
+-	for (dev = nd_dev; dev; dev = dev->parent)
+-		if (dev->release == nvdimm_bus_release)
+-			break;
+-	dev_WARN_ONCE(nd_dev, !dev, "invalid dev, not on nd bus\n");
+-	if (dev)
+-		return to_nvdimm_bus(dev);
+-	return NULL;
+-}
+-
  static bool is_uuid_sep(char sep)
  {
  	if (sep == '\n' || sep == '-' || sep == ':' || sep == '\0')
-diff --git a/include/linux/libnvdimm.h b/include/linux/libnvdimm.h
-index 2ab869dece4a..b519e137b9b7 100644
---- a/include/linux/libnvdimm.h
-+++ b/include/linux/libnvdimm.h
-@@ -137,6 +137,7 @@ struct nvdimm *to_nvdimm(struct device *dev);
- struct nd_region *to_nd_region(struct device *dev);
- struct nd_blk_region *to_nd_blk_region(struct device *dev);
- struct nvdimm_bus_descriptor *to_nd_desc(struct nvdimm_bus *nvdimm_bus);
-+struct device *to_nvdimm_bus_dev(struct nvdimm_bus *nvdimm_bus);
- const char *nvdimm_name(struct nvdimm *nvdimm);
- unsigned long nvdimm_cmd_mask(struct nvdimm *nvdimm);
- void *nvdimm_provider_data(struct nvdimm *nvdimm);
+@@ -447,51 +414,6 @@ struct attribute_group nvdimm_bus_attribute_group = {
+ };
+ EXPORT_SYMBOL_GPL(nvdimm_bus_attribute_group);
+ 
+-struct nvdimm_bus *nvdimm_bus_register(struct device *parent,
+-		struct nvdimm_bus_descriptor *nd_desc)
+-{
+-	struct nvdimm_bus *nvdimm_bus;
+-	int rc;
+-
+-	nvdimm_bus = kzalloc(sizeof(*nvdimm_bus), GFP_KERNEL);
+-	if (!nvdimm_bus)
+-		return NULL;
+-	INIT_LIST_HEAD(&nvdimm_bus->list);
+-	INIT_LIST_HEAD(&nvdimm_bus->mapping_list);
+-	INIT_LIST_HEAD(&nvdimm_bus->poison_list);
+-	init_waitqueue_head(&nvdimm_bus->probe_wait);
+-	nvdimm_bus->id = ida_simple_get(&nd_ida, 0, 0, GFP_KERNEL);
+-	mutex_init(&nvdimm_bus->reconfig_mutex);
+-	if (nvdimm_bus->id < 0) {
+-		kfree(nvdimm_bus);
+-		return NULL;
+-	}
+-	nvdimm_bus->nd_desc = nd_desc;
+-	nvdimm_bus->dev.parent = parent;
+-	nvdimm_bus->dev.release = nvdimm_bus_release;
+-	nvdimm_bus->dev.groups = nd_desc->attr_groups;
+-	dev_set_name(&nvdimm_bus->dev, "ndbus%d", nvdimm_bus->id);
+-	rc = device_register(&nvdimm_bus->dev);
+-	if (rc) {
+-		dev_dbg(&nvdimm_bus->dev, "registration failed: %d\n", rc);
+-		goto err;
+-	}
+-
+-	rc = nvdimm_bus_create_ndctl(nvdimm_bus);
+-	if (rc)
+-		goto err;
+-
+-	mutex_lock(&nvdimm_bus_list_mutex);
+-	list_add_tail(&nvdimm_bus->list, &nvdimm_bus_list);
+-	mutex_unlock(&nvdimm_bus_list_mutex);
+-
+-	return nvdimm_bus;
+- err:
+-	put_device(&nvdimm_bus->dev);
+-	return NULL;
+-}
+-EXPORT_SYMBOL_GPL(nvdimm_bus_register);
+-
+ static void set_badblock(struct badblocks *bb, sector_t s, int num)
+ {
+ 	dev_dbg(bb->dev, "Found a poison range (0x%llx, 0x%llx)\n",
+@@ -667,54 +589,6 @@ int nvdimm_bus_add_poison(struct nvdimm_bus *nvdimm_bus, u64 addr, u64 length)
+ }
+ EXPORT_SYMBOL_GPL(nvdimm_bus_add_poison);
+ 
+-static void free_poison_list(struct list_head *poison_list)
+-{
+-	struct nd_poison *pl, *next;
+-
+-	list_for_each_entry_safe(pl, next, poison_list, list) {
+-		list_del(&pl->list);
+-		kfree(pl);
+-	}
+-	list_del_init(poison_list);
+-}
+-
+-static int child_unregister(struct device *dev, void *data)
+-{
+-	/*
+-	 * the singular ndctl class device per bus needs to be
+-	 * "device_destroy"ed, so skip it here
+-	 *
+-	 * i.e. remove classless children
+-	 */
+-	if (dev->class)
+-		/* pass */;
+-	else
+-		nd_device_unregister(dev, ND_SYNC);
+-	return 0;
+-}
+-
+-void nvdimm_bus_unregister(struct nvdimm_bus *nvdimm_bus)
+-{
+-	if (!nvdimm_bus)
+-		return;
+-
+-	mutex_lock(&nvdimm_bus_list_mutex);
+-	list_del_init(&nvdimm_bus->list);
+-	mutex_unlock(&nvdimm_bus_list_mutex);
+-
+-	nd_synchronize();
+-	device_for_each_child(&nvdimm_bus->dev, NULL, child_unregister);
+-
+-	nvdimm_bus_lock(&nvdimm_bus->dev);
+-	free_poison_list(&nvdimm_bus->poison_list);
+-	nvdimm_bus_unlock(&nvdimm_bus->dev);
+-
+-	nvdimm_bus_destroy_ndctl(nvdimm_bus);
+-
+-	device_unregister(&nvdimm_bus->dev);
+-}
+-EXPORT_SYMBOL_GPL(nvdimm_bus_unregister);
+-
+ #ifdef CONFIG_BLK_DEV_INTEGRITY
+ int nd_integrity_init(struct gendisk *disk, unsigned long meta_size)
+ {
+@@ -773,7 +647,6 @@ static __exit void libnvdimm_exit(void)
+ 	nvdimm_bus_exit();
+ 	nd_region_devs_exit();
+ 	nvdimm_devs_exit();
+-	ida_destroy(&nd_ida);
+ }
+ 
+ MODULE_LICENSE("GPL v2");
