@@ -1,112 +1,102 @@
-From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [PATCH v5 1/3] ACPI / button: Add missing event to keep SW_LID running without additional event loss
-Date: Sat, 23 Jul 2016 14:37:07 +0200
-Message-ID: <28281261.FVpbmPGRnZ@vostro.rjw.lan>
-References: <cbdaec17aba78c61f466efff8883d49067f2dad5.1463472125.git.lv.zheng@intel.com> <0d28076e25047db356eeedbb2d8ae204f0ec893d.1469168549.git.lv.zheng@intel.com>
+From: Dan Williams <dan.j.williams@intel.com>
+Subject: [PATCH v4 0/4] ARS rescanning triggered by latent errors or
+ userspace
+Date: Sat, 23 Jul 2016 22:26:32 -0700
+Message-ID: <146933799257.26196.10157809349693736359.stgit@dwillia2-desk3.amr.corp.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7Bit
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cloudserver094114.home.net.pl ([79.96.170.134]:54711 "HELO
-	cloudserver094114.home.net.pl" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with SMTP id S1750786AbcGWMcK (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>);
-	Sat, 23 Jul 2016 08:32:10 -0400
-In-Reply-To: <0d28076e25047db356eeedbb2d8ae204f0ec893d.1469168549.git.lv.zheng@intel.com>
+Received: from mga09.intel.com ([134.134.136.24]:30065 "EHLO mga09.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751258AbcGXF26 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sun, 24 Jul 2016 01:28:58 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Lv Zheng <lv.zheng@intel.com>
-Cc: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Len Brown <len.brown@intel.com>, Lv Zheng <zetalog@gmail.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Dmitry Torokhov <dmitry.torokhov@gmail.com>, Benjamin Tissoires <benjamin.tissoires@gmail.com>, "Bastien Nocera:" <hadess@hadess.net>, linux-input@vger.kernel.org
+To: linux-nvdimm@lists.01.org
+Cc: Vishal Verma <vishal.l.verma@intel.com>, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Tony Luck <tony.luck@intel.com>
 
-On Friday, July 22, 2016 02:24:42 PM Lv Zheng wrote:
-> There are several possibilities that a lid event can be lost. For example,
-> EC event queue full, or the resume order of the underlying drivers.
-> 
-> When the event loss happens, new event may also be lost due to the type of
-> the SW_LID (switch event). The 2nd loss is what we want to avoid.
-> 
-> This patch adds a mechanism to insert lid events as a compensation for the
-> switch event nature of the lid events in order to avoid the 2nd loss.
+Changes since v3 [1]:
 
-Can you please provide a high-level description of the new mechanism here?
+1/ Fixed races of scrub_{store|show} versus driver shutdown.  We need to
+   make sure the nvdimm_bus, nvdimm_bus_descriptor, and acpi_nfit_desc data
+   structures for a given instance remain valid for the duration of an
+   acpi_nfit_ars_rescan() submission.  Patch1 "libnvdimm: register
+   nvdimm_bus devices with an nd_bus driver", which is new for v4, enables
+   use of device_lock() to pin the nvdimm_bus active for this duration.
 
-> 
-> Signed-off-by: Lv Zheng <lv.zheng@intel.com>
-> Cc: Dmitry Torokhov <dmitry.torokhov@gmail.com>
-> Cc: Benjamin Tissoires <benjamin.tissoires@gmail.com>
-> Cc: Bastien Nocera: <hadess@hadess.net>
-> Cc: linux-input@vger.kernel.org
-> ---
->  drivers/acpi/button.c |   21 ++++++++++++++++++++-
->  1 file changed, 20 insertions(+), 1 deletion(-)
-> 
-> diff --git a/drivers/acpi/button.c b/drivers/acpi/button.c
-> index 148f4e5..41fd21d 100644
-> --- a/drivers/acpi/button.c
-> +++ b/drivers/acpi/button.c
-> @@ -104,6 +104,8 @@ struct acpi_button {
->  	struct input_dev *input;
->  	char phys[32];			/* for input device */
->  	unsigned long pushed;
-> +	int sw_last_state;
-> +	unsigned long sw_last_time;
->  	bool suspended;
->  };
->  
-> @@ -111,6 +113,10 @@ static BLOCKING_NOTIFIER_HEAD(acpi_lid_notifier);
->  static struct acpi_device *lid_device;
->  static u8 lid_init_state = ACPI_BUTTON_LID_INIT_METHOD;
->  
-> +static unsigned long lid_report_interval __read_mostly = 500;
-> +module_param(lid_report_interval, ulong, 0644);
-> +MODULE_PARM_DESC(lid_report_interval, "Interval (ms) between lid key events");
-> +
->  /* --------------------------------------------------------------------------
->                                FS Interface (/proc)
->     -------------------------------------------------------------------------- */
-> @@ -133,11 +139,22 @@ static int acpi_lid_evaluate_state(struct acpi_device *device)
->  static int acpi_lid_notify_state(struct acpi_device *device, int state)
->  {
->  	struct acpi_button *button = acpi_driver_data(device);
-> +	unsigned long sw_tout;
->  	int ret;
->  
-> -	/* input layer checks if event is redundant */
-> +	/* Send the switch event */
-> +	sw_tout = button->sw_last_time +
-> +		  msecs_to_jiffies(lid_report_interval);
+2/ Fixed races of scrub_{store|show} versus hotplug.  This was simply
+   some missing acquisitions of acpi_desc->init_mutex.
 
-Is it really necessary to use jiffies here?
+3/ Enforce that scrub_store() only initiates a scrub when writing "1",
+   other values are invalid.  This lets us introduce new values down the
+   road to, for example, disable scrubs after machine checks or other scrub
+   policies.
 
-> +	if (time_after(jiffies, sw_tout) &&
-> +	    (button->sw_last_state == !!state)) {
+4/ Require all three ARS DSMs be available before the 'scrub' attribute
+   becomes visible.
 
-The inner parens are not necessary.
+5/ Fix races of mce notifier chain vs driver shutdown by holding
+   acpi_desc_lock over the acpi_nfit_destruct() event.
 
-And why not just button->sw_last_state == state?
+6/ Given ARM is now re-using the NFIT driver, move the x86 specific
+   machine check code to its own conditionally-compiled file.  As a
+   precursor to this change the nfit source was moved to its own
+   sub-directory in Patch3 "nfit: move to nfit/ sub-directory".
 
-> +		/* Send the complement switch event */
-> +		input_report_switch(button->input, SW_LID, state);
-> +		input_sync(button->input);
-> +	}
->  	input_report_switch(button->input, SW_LID, !state);
->  	input_sync(button->input);
-> +	button->sw_last_state = !!state;
-> +	button->sw_last_time = jiffies;
->  
->  	if (state)
->  		pm_wakeup_event(&device->dev, 0);
-> @@ -407,6 +424,8 @@ static int acpi_button_add(struct acpi_device *device)
->  		strcpy(name, ACPI_BUTTON_DEVICE_NAME_LID);
->  		sprintf(class, "%s/%s",
->  			ACPI_BUTTON_CLASS, ACPI_BUTTON_SUBCLASS_LID);
-> +		button->sw_last_state = !!acpi_lid_evaluate_state(device);
-> +		button->sw_last_time = jiffies;
->  	} else {
->  		printk(KERN_ERR PREFIX "Unsupported hid [%s]\n", hid);
->  		error = -ENODEV;
-> 
+[1]: https://lists.01.org/pipermail/linux-nvdimm/2016-July/006407.html
 
-Thanks,
-Rafael
+---
+Initial cover letter from Vishal:
+
+This series adds on-demand ARS scanning on both, discovery of
+latent media errors, and a sysfs trigger from userspace.
+
+The rescanning part is easy to test using the nfit_test framework
+- create a namespace (this will by default have bad sectors in
+the middle), clear the bad sectors by writing to them, trigger
+the rescan through sysfs, and the bad sectors will reappear in
+/sys/block/<pmemX>/badblocks.
+
+For the mce handling, I've tested the notifier chain callback
+being called with a mock struct mce (called via another sysfs
+trigger - this isn't included in the patch obviously), which
+has the address field set to a known address in a SPA range,
+and the status field with the MCACOD flag set.
+
+What I haven't easily been able to test is the same callback
+path with a 'real world' mce, being called as part of the
+x86_mce_decoder_chain notifier. I'd therefore appreciate a
+closer look at the initial filtering done in nfit_handle_mce
+(patch 3/3) from Tony or anyone more familiar with mce handling.
+
+---
+
+Dan Williams (2):
+      libnvdimm: register nvdimm_bus devices with an nd_bus driver
+      nfit: move to nfit/ sub-directory
+
+Vishal Verma (2):
+      nfit, libnvdimm: allow an ARS scrub to be triggered on demand
+      nfit: do an ARS scrub on hitting a latent media error
+
+
+ drivers/acpi/Kconfig             |   27 -----
+ drivers/acpi/Makefile            |    2 
+ drivers/acpi/nfit/Kconfig        |   26 +++++
+ drivers/acpi/nfit/Makefile       |    3 +
+ drivers/acpi/nfit/core.c         |  187 ++++++++++++++++++++++++++++++++++++--
+ drivers/acpi/nfit/mce.c          |   89 ++++++++++++++++++
+ drivers/acpi/nfit/nfit.h         |   24 +++++
+ drivers/nvdimm/bus.c             |  188 +++++++++++++++++++++++++++++++++++++-
+ drivers/nvdimm/core.c            |  128 +-------------------------
+ include/linux/libnvdimm.h        |    1 
+ tools/testing/nvdimm/Kbuild      |    5 +
+ tools/testing/nvdimm/test/Kbuild |    2 
+ 12 files changed, 512 insertions(+), 170 deletions(-)
+ create mode 100644 drivers/acpi/nfit/Kconfig
+ create mode 100644 drivers/acpi/nfit/Makefile
+ rename drivers/acpi/{nfit.c => nfit/core.c}
+ create mode 100644 drivers/acpi/nfit/mce.c
+ rename drivers/acpi/{nfit.h => nfit/nfit.h}
 
