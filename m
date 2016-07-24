@@ -1,72 +1,82 @@
-From: Bastien Nocera <hadess@hadess.net>
-Subject: Re: [PATCH v4 2/2] ACPI / button: Add document for ACPI control
- method lid device restrictions
-Date: Sun, 24 Jul 2016 13:28:56 +0200
-Message-ID: <1469359736.6761.110.camel@hadess.net>
-References: <cbdaec17aba78c61f466efff8883d49067f2dad5.1463472125.git.lv.zheng@intel.com>	
- <84ca7337d20620946b671f212abfc82698ddcbf4.1468915808.git.lv.zheng@intel.com>	
- <20160721203246.GA9841@dtor-ws>
-	 <1AE640813FDE7649BE1B193DEA596E883BC05AAA@SHSMSX101.ccr.corp.intel.com>	
- <20160722043707.GB7060@dtor-ws>
-	 <CAN+gG=EArk3tPDkyim8eoxOXHHb7QNRXe4o4zAVs+M6x8ZPrSA@mail.gmail.com>	
- <1AE640813FDE7649BE1B193DEA596E883BC05D77@SHSMSX101.ccr.corp.intel.com>
-	 <CAN+gG=FBE1e96qZsbAvV7gCizMByca3m38-qt=8ftsSXYFyQhA@mail.gmail.com>
+From: Dan Williams <dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH v4 2/4] nfit, libnvdimm: allow an ARS scrub to be
+ triggered on demand
+Date: Sun, 24 Jul 2016 07:55:53 -0700
+Message-ID: <CAPcyv4g=x52KnuSxgmAEt0NDqvTYntm=eqW_FJD67K1CyCge0g@mail.gmail.com>
+References: <146933799257.26196.10157809349693736359.stgit@dwillia2-desk3.amr.corp.intel.com>
+ <146933800343.26196.11707211474975930425.stgit@dwillia2-desk3.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-input-owner@vger.kernel.org>
-In-Reply-To: <CAN+gG=FBE1e96qZsbAvV7gCizMByca3m38-qt=8ftsSXYFyQhA@mail.gmail.com>
-Sender: linux-input-owner@vger.kernel.org
-To: Benjamin Tissoires <benjamin.tissoires@gmail.com>, "Zheng, Lv" <lv.zheng@intel.com>
-Cc: Dmitry Torokhov <dmitry.torokhov@gmail.com>, "Zhang, Rui" <rui.zhang@intel.com>, "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, "Brown, Len" <len.brown@intel.com>, Lv Zheng <zetalog@gmail.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-input@vger.kernel.org" <linux-input@vger.kernel.org>
+Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+In-Reply-To: <146933800343.26196.11707211474975930425.stgit-p8uTFz9XbKj2zm6wflaqv1nYeNYlB/vhral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
+ <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
+List-Post: <mailto:linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+List-Help: <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
+ <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
+Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
+Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+To: "linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org" <linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+Cc: Linux ACPI <linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "Rafael J. Wysocki" <rafael.j.wysocki-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On Fri, 2016-07-22 at 11:08 +0200, Benjamin Tissoires wrote:
-> 
-<snip>
-> Then you just need to amend the documentation to say that the
-> fallback
-> of the KEY events is not the "future" but a way to get events on some
-> reduced platforms and it will not be the default.
-> Please make sure userspace knows that the default is the good SW_LID,
-> and some particular cases will need to be handled through the KEY
-> events, not the other way around.
-> 
-> [few thoughts later]
-> 
-> How about:
-> - you send only one patch with the SW_LID ON/OFF or OFF/ON when we
-> receive the notification on buggy platform
-> - in the same patch, you add the documentation saying that on most
-> platforms, LID is reliable but some don't provide a reliable LID
-> state, but you guarantee to send an event when the state changes
-> - in userspace, we add the hwdb which says "on this particular
-> platform, don't rely on the actual state, but wait for events" ->
-> this
-> basically removes the polling on these platforms.
-> 
-> Bastien, Dmitry?
-> 
-> I still don't like relying on userspace to actually set the SW_LID
-> back to open on resume, as we should not rely on some userspace
-> program to set the value (but if logind really wants it, it's up to
-> them).
+On Sat, Jul 23, 2016 at 10:26 PM, Dan Williams <dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org> wrote:
+> From: Vishal Verma <vishal.l.verma-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+>
+> Normally, an ARS (Address Range Scrub) only happens at
+> boot/initialization time. There can however arise situations where a
+> bus-wide rescan is needed - notably, in the case of discovering a latent
+> media error, we should do a full rescan to figure out what other sectors
+> are bad, and thus potentially avoid triggering an mce on them in the
+> future. Also provide a sysfs trigger to start a bus-wide scrub.
+>
+> Cc: Rafael J. Wysocki <rafael.j.wysocki-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+> Signed-off-by: Vishal Verma <vishal.l.verma-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+> Signed-off-by: Dan Williams <dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+> ---
+>  drivers/acpi/nfit.c       |  167 +++++++++++++++++++++++++++++++++++++++++++--
+>  drivers/acpi/nfit.h       |    4 +
+>  drivers/nvdimm/core.c     |    7 ++
+>  include/linux/libnvdimm.h |    1
+>  4 files changed, 171 insertions(+), 8 deletions(-)
+>
+> diff --git a/drivers/acpi/nfit.c b/drivers/acpi/nfit.c
+> index be7c2fde16e7..2eaa03dc185a 100644
+> --- a/drivers/acpi/nfit.c
+> +++ b/drivers/acpi/nfit.c
+[..]
+> @@ -2308,17 +2423,30 @@ int acpi_nfit_init(struct acpi_nfit_desc *acpi_desc, void *data, acpi_size sz)
+>         const void *end;
+>         int rc;
+>
+> +       acpi_nfit_init_dsms(acpi_desc);
+> +
+>         if (!acpi_desc->nvdimm_bus) {
+> +               acpi_nfit_init_dsms(acpi_desc);
+> +
+>                 acpi_desc->nvdimm_bus = nvdimm_bus_register(dev,
+>                                 &acpi_desc->nd_desc);
+>                 if (!acpi_desc->nvdimm_bus)
+>                         return -ENOMEM;
+> +
+>                 rc = devm_add_action_or_reset(dev, acpi_nfit_destruct,
+>                                 acpi_desc);
+>                 if (rc)
+>                         return rc;
+> +
+> +               rc = acpi_nfit_desc_init_scrub_attr(acpi_desc);
+> +               if (rc)
+> +                       return rc;
+>         }
+>
+> +       rc = acpi_nfit_desc_init_scrub_attr(acpi_desc);
+> +       if (rc)
+> +               return rc;
+> +
 
->From my point of view, I would only send the events that can actually
-be generated by the system, not any synthetic ones, because user-space
-would have no way to know that this was synthetic, and how accurate it
-would be.
-
-So we'd have a separate API, or a separate event for the "close to
-Windows behaviour" devices. We'd then use hwdb in udev to tag the
-machines that don't have a reliable LID status, in user-space, so we
-can have a quick turn around for those machines.
-
-That should hopefully give us a way to tag test systems, so we can test
-the new behaviour, though we'll certainly need to have some changes
-made in the stack.
-
-As Benjamin mentioned, it would be nice to have a list of devices that
-don't work today, because of this problem.
-
-Cheers
+Whoops, rebase error.  I was moving acpi_nfit_init_dsms() and
+acpi_nfit_desc_init_scrub_attr() to only run at the initial call to
+acpi_nfit_init().
