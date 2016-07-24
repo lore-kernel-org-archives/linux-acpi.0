@@ -1,49 +1,72 @@
-From: Martin Vajnar <martin.vajnar@gmail.com>
-Subject: Re: [v5] i2c: i801: Allow ACPI SystemIO OpRegion to conflict with PCI BAR
-Date: Sun, 24 Jul 2016 12:08:25 +0200
-Message-ID: <CAHHiRUQXt_ofTsLzwZWJPXe_-wPE-hAeTxbdnJt03V89rAJpNQ@mail.gmail.com>
-References: <1463990658-53854-1-git-send-email-mika.westerberg@linux.intel.com>
- <20160705115142.GO23527@lahna.fi.intel.com> <201607051356.58794@pali>
- <201607051400.58881@pali> <20160705143115.GP23527@lahna.fi.intel.com>
+From: Bastien Nocera <hadess@hadess.net>
+Subject: Re: [PATCH v4 2/2] ACPI / button: Add document for ACPI control
+ method lid device restrictions
+Date: Sun, 24 Jul 2016 13:28:56 +0200
+Message-ID: <1469359736.6761.110.camel@hadess.net>
+References: <cbdaec17aba78c61f466efff8883d49067f2dad5.1463472125.git.lv.zheng@intel.com>	
+ <84ca7337d20620946b671f212abfc82698ddcbf4.1468915808.git.lv.zheng@intel.com>	
+ <20160721203246.GA9841@dtor-ws>
+	 <1AE640813FDE7649BE1B193DEA596E883BC05AAA@SHSMSX101.ccr.corp.intel.com>	
+ <20160722043707.GB7060@dtor-ws>
+	 <CAN+gG=EArk3tPDkyim8eoxOXHHb7QNRXe4o4zAVs+M6x8ZPrSA@mail.gmail.com>	
+ <1AE640813FDE7649BE1B193DEA596E883BC05D77@SHSMSX101.ccr.corp.intel.com>
+	 <CAN+gG=FBE1e96qZsbAvV7gCizMByca3m38-qt=8ftsSXYFyQhA@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-i2c-owner@vger.kernel.org>
-In-Reply-To: <20160705143115.GP23527@lahna.fi.intel.com>
-Sender: linux-i2c-owner@vger.kernel.org
-To: Mika Westerberg <mika.westerberg@linux.intel.com>
-Cc: =?UTF-8?Q?Pali_Roh=C3=A1r?= <pali.rohar@gmail.com>, Jean Delvare <jdelvare@suse.de>, Benjamin Tissoires <benjamin.tissoires@redhat.com>, Wolfram Sang <wsa@the-dreams.de>, Jarkko Nikula <jarkko.nikula@linux.intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Andy Lutomirski <luto@kernel.org>, Mario Limonciello <mario_limonciello@dell.com>, Matt Fleming <matt@codeblueprint.co.uk>, linux-i2c@vger.kernel.org, linux-acpi@vger.kernel.org, Dominique Leuenberger <dimstar@opensuse.org>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-input-owner@vger.kernel.org>
+In-Reply-To: <CAN+gG=FBE1e96qZsbAvV7gCizMByca3m38-qt=8ftsSXYFyQhA@mail.gmail.com>
+Sender: linux-input-owner@vger.kernel.org
+To: Benjamin Tissoires <benjamin.tissoires@gmail.com>, "Zheng, Lv" <lv.zheng@intel.com>
+Cc: Dmitry Torokhov <dmitry.torokhov@gmail.com>, "Zhang, Rui" <rui.zhang@intel.com>, "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, "Brown, Len" <len.brown@intel.com>, Lv Zheng <zetalog@gmail.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-input@vger.kernel.org" <linux-input@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-2016-07-05 16:31 GMT+02:00 Mika Westerberg <mika.westerberg@linux.intel=
-=2Ecom>:
-> On Tue, Jul 05, 2016 at 02:00:58PM +0200, Pali Roh=C3=A1r wrote:
->> On Tuesday 05 July 2016 13:56:58 Pali Roh=C3=A1r wrote:
->> > On Tuesday 05 July 2016 13:51:42 Mika Westerberg wrote:
->> > > So are you able to test what happens when you unload the driver?
->> >
->> > As I wrote in previous email, I do not own these EliteBooks anymor=
-e,
->> > so cannot test it. Just have DSDT dump...
->>
->> What about contacting last contributors to hp_accel.c driver? They
->> probably could test i801 changes if accelerometer still works.
->
-> Good idea.
->
-> Added Martin and Dominique who did the last additions to that driver
-> (hp_accel.c).
->
-> Do you guys still have your HP machines around? If yes, maybe you can
-> try v4.7-rc3+ (it should include commit a7ae81952cda ("i2c: i801: All=
-ow
-> ACPI SystemIO OpRegion to conflict with PCI BAR")) so that you unload
-> i2c-i801.ko and see if accelerometer still works?
+On Fri, 2016-07-22 at 11:08 +0200, Benjamin Tissoires wrote:
+> 
+<snip>
+> Then you just need to amend the documentation to say that the
+> fallback
+> of the KEY events is not the "future" but a way to get events on some
+> reduced platforms and it will not be the default.
+> Please make sure userspace knows that the default is the good SW_LID,
+> and some particular cases will need to be handled through the KEY
+> events, not the other way around.
+> 
+> [few thoughts later]
+> 
+> How about:
+> - you send only one patch with the SW_LID ON/OFF or OFF/ON when we
+> receive the notification on buggy platform
+> - in the same patch, you add the documentation saying that on most
+> platforms, LID is reliable but some don't provide a reliable LID
+> state, but you guarantee to send an event when the state changes
+> - in userspace, we add the hwdb which says "on this particular
+> platform, don't rely on the actual state, but wait for events" ->
+> this
+> basically removes the polling on these platforms.
+> 
+> Bastien, Dmitry?
+> 
+> I still don't like relying on userspace to actually set the SW_LID
+> back to open on resume, as we should not rely on some userspace
+> program to set the value (but if logind really wants it, it's up to
+> them).
 
-I still have the HP ProBook 440 G3. I used v4.7-rc7 for the test. I
-tested all combinations of loading/unloading both hp_accel and
-i2c_i801 modules and whenever the hp_accel was loaded the
-accelerometer worked fine.
+>From my point of view, I would only send the events that can actually
+be generated by the system, not any synthetic ones, because user-space
+would have no way to know that this was synthetic, and how accurate it
+would be.
 
-Regards,
--Martin Vajnar
+So we'd have a separate API, or a separate event for the "close to
+Windows behaviour" devices. We'd then use hwdb in udev to tag the
+machines that don't have a reliable LID status, in user-space, so we
+can have a quick turn around for those machines.
+
+That should hopefully give us a way to tag test systems, so we can test
+the new behaviour, though we'll certainly need to have some changes
+made in the stack.
+
+As Benjamin mentioned, it would be nice to have a list of devices that
+don't work today, because of this problem.
+
+Cheers
