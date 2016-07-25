@@ -1,43 +1,104 @@
-From: Timur Tabi <timur-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>
-Subject: Re: [PATCH v9 4/9] clocksource/drivers/arm_arch_timer: use readq to
- get 64-bit CNTVCT
-Date: Mon, 25 Jul 2016 10:50:29 -0500
-Message-ID: <57963545.6020400@codeaurora.org>
-References: <1469460427-8643-1-git-send-email-fu.wei@linaro.org>
- <1469460427-8643-5-git-send-email-fu.wei@linaro.org>
- <20160725153118.GD19209@arm.com>
+From: Robin Murphy <robin.murphy@arm.com>
+Subject: Re: [RFC PATCH v3 05/13] drivers: iommu: make iommu_fwspec OF
+ agnostic
+Date: Mon, 25 Jul 2016 16:51:00 +0100
+Message-ID: <856415fc-b9bf-ca44-cc70-85d454574e53@arm.com>
+References: <1469013815-24380-1-git-send-email-lorenzo.pieralisi@arm.com>
+ <1469013815-24380-6-git-send-email-lorenzo.pieralisi@arm.com>
+ <1499f802-5f98-b0c0-d3aa-dabcac81e84e@arm.com>
+ <20160725154103.GA28507@red-moon>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: text/plain; charset=windows-1252
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-watchdog-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20160725153118.GD19209-5wv7dgnIgG8@public.gmane.org>
-Sender: linux-watchdog-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Will Deacon <will.deacon-5wv7dgnIgG8@public.gmane.org>, fu.wei-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org
-Cc: rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org, lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, daniel.lezcano-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org, tglx-hfZtesqFncYOwBW4kG4KsQ@public.gmane.org, marc.zyngier-5wv7dgnIgG8@public.gmane.org, lorenzo.pieralisi-5wv7dgnIgG8@public.gmane.org, sudeep.holla-5wv7dgnIgG8@public.gmane.org, hanjun.guo-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linaro-acpi-cunTk1MwBs8s++Sfvej+rw@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, rruigrok-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org, harba-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org, cov-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org, graeme.gregory-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org, al.stone-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org, jcm-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, wei-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, arnd-r2nGTMty4D4@public.gmane.org, wim-IQzOog9fTRqzQB+pC5nmwQ@public.gmane.org, catalin.marinas-5wv7dgnIgG8@public.gmane.org, Suravee.Suthikulpanit-5C7GfCeVMHo@public.gmane.org, leo.duran-5C7GfCeVMHo@public.gmane.org, linux-0h96xk9xTtrk1uMJSBkQmQ@public.gmane.org, linux-watchdog-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Return-path: <linux-pci-owner@vger.kernel.org>
+In-Reply-To: <20160725154103.GA28507@red-moon>
+Sender: linux-pci-owner@vger.kernel.org
+To: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+Cc: iommu@lists.linux-foundation.org, Will Deacon <will.deacon@arm.com>, Hanjun Guo <hanjun.guo@linaro.org>, Joerg Roedel <joro@8bytes.org>, Marc Zyngier <marc.zyngier@arm.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Tomasz Nowicki <tn@semihalf.com>, Jon Masters <jcm@redhat.com>, Sinan Kaya <okaya@codeaurora.org>, linux-acpi@vger.kernel.org, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-acpi@vger.kernel.org
 
-Will Deacon wrote:
->> >  {
->> >-	u32 vct_lo, vct_hi, tmp_hi;
->> >-
->> >-	do {
->> >-		vct_hi = readl_relaxed(arch_counter_base + CNTVCT_HI);
->> >-		vct_lo = readl_relaxed(arch_counter_base + CNTVCT_LO);
->> >-		tmp_hi = readl_relaxed(arch_counter_base + CNTVCT_HI);
->> >-	} while (vct_hi != tmp_hi);
->> >-
->> >-	return ((u64) vct_hi << 32) | vct_lo;
->> >+	return readq(arch_counter_base + CNTVCT_LO);
-> Please drop this patch. It doesn't work.
+On 25/07/16 16:41, Lorenzo Pieralisi wrote:
+[...]
+>>> diff --git a/include/linux/of_iommu.h b/include/linux/of_iommu.h
+>>> index 308791f..2362232 100644
+>>> --- a/include/linux/of_iommu.h
+>>> +++ b/include/linux/of_iommu.h
+>>> @@ -15,13 +15,8 @@ extern void of_iommu_init(void);
+>>>  extern const struct iommu_ops *of_iommu_configure(struct device *dev,
+>>>  					struct device_node *master_np);
+>>>  
+>>> -struct iommu_fwspec {
+>>> -	const struct iommu_ops	*iommu_ops;
+>>> -	struct device_node	*iommu_np;
+>>> -	void			*iommu_priv;
+>>> -	unsigned int		num_ids;
+>>> -	u32			ids[];
+>>> -};
+>>> +void of_iommu_set_ops(struct device_node *np, const struct iommu_ops *ops);
+>>> +const struct iommu_ops *of_iommu_get_ops(struct device_node *np);
+>>
+>> Is there some reason we need to retain the existing definitions of
+>> these? I was assuming we'd be able to move the entire implementation
+>> over to the fwspec code and leave behind nothing more than trivial
+>> wrappers, e.g.:
+>>
+>> #define of_iommu_get_ops(np) iommu_fwspec_get_ops(&(np)->fwnode_handle)
+> 
+> Yep, that's exactly what I did but then I was bitten by config
+> dependencies. If we implement of_iommu_get/set_ops() as wrappers,
+> we have to compile iommu_fwspec_get/set_ops() on arches that may
+> not have struct dev_archdata.iommu, unless we introduce yet another
+> config symbol to avoid compiling that code (see eg iommu_fwspec_init(),
+> we can't compile it on eg x86 even though we do need of_iommu_get_ops()
+> on it - so iommu_fwspec_get_ops(), that lives in the same compilation
+> unit as eg iommu_fwspec_init()).
+> 
+> So short answer is: there is no reason apart from dev_archdata.iommu
+> being arch specific, if we were able to move iommu_fwspec to generic
+> code (ie struct device, somehow) I would certainly get rid of this
+> stupid code duplication (or as I said I can add a config entry for
+> that, more ideas are welcome).
 
-On systems where readq() does work, wouldn't it be more optimal than the 
-above while-loop?
+OK, given Rob's comment as well, I guess breaking that dependency is to
+everyone's benefit. Since it's quite closely related, how about if we
+follow the arch_setup_dma_ops() pattern with an
+arch_{get,set}_iommu_fwspec(dev) type thing?
 
--- 
-Sent by an employee of the Qualcomm Innovation Center, Inc.
-The Qualcomm Innovation Center, Inc. is a member of the
-Code Aurora Forum, hosted by The Linux Foundation.
---
-To unsubscribe from this list: send the line "unsubscribe linux-watchdog" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Robin.
+
+> 
+> Thanks,
+> Lorenzo
+> 
+>>
+>> Robin.
+>>
+>>>  #else
+>>>  
+>>> @@ -39,17 +34,14 @@ static inline const struct iommu_ops *of_iommu_configure(struct device *dev,
+>>>  	return NULL;
+>>>  }
+>>>  
+>>> -struct iommu_fwspec;
+>>> -
+>>> -#endif	/* CONFIG_OF_IOMMU */
+>>> +static inline void of_iommu_set_ops(struct device_node *np,
+>>> +				    const struct iommu_ops *ops)
+>>> +{ }
+>>>  
+>>> -int iommu_fwspec_init(struct device *dev, struct device_node *iommu_np);
+>>> -void iommu_fwspec_free(struct device *dev);
+>>> -int iommu_fwspec_add_ids(struct device *dev, u32 *ids, int num_ids);
+>>> -struct iommu_fwspec *dev_iommu_fwspec(struct device *dev);
+>>> +static inline const struct iommu_ops *
+>>> +of_iommu_get_ops(struct device_node *np) { return NULL; }
+>>>  
+>>> -void of_iommu_set_ops(struct device_node *np, const struct iommu_ops *ops);
+>>> -const struct iommu_ops *of_iommu_get_ops(struct device_node *np);
+>>> +#endif	/* CONFIG_OF_IOMMU */
+>>>  
+>>>  extern struct of_device_id __iommu_of_table;
+>>>  
+>>>
+>>
+> 
