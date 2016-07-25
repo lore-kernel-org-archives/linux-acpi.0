@@ -1,93 +1,243 @@
-From: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
-Subject: Re: [RFC PATCH v3 05/13] drivers: iommu: make iommu_fwspec OF
- agnostic
-Date: Mon, 25 Jul 2016 16:56:21 +0100
-Message-ID: <20160725155620.GB28507@red-moon>
-References: <1469013815-24380-1-git-send-email-lorenzo.pieralisi@arm.com>
- <1469013815-24380-6-git-send-email-lorenzo.pieralisi@arm.com>
- <1499f802-5f98-b0c0-d3aa-dabcac81e84e@arm.com>
- <CAL_JsqKc4aJ1xiJAS6HRKeVO8mrZWpBF0uugvmCgNuUamJF=Eg@mail.gmail.com>
+From: Fu Wei <fu.wei-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
+Subject: Re: [PATCH v8 7/9] acpi/arm64: Add memory-mapped timer support in
+ GTDT driver
+Date: Tue, 26 Jul 2016 00:06:10 +0800
+Message-ID: <CADyBb7uuYrKu6=3kQm0HbqSHZocW7YBooh+PRGB7_rADyfGEkg@mail.gmail.com>
+References: <1468952284-28942-1-git-send-email-fu.wei@linaro.org>
+ <1468952284-28942-8-git-send-email-fu.wei@linaro.org> <20160721124053.GB7982@red-moon>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-pci-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <CAL_JsqKc4aJ1xiJAS6HRKeVO8mrZWpBF0uugvmCgNuUamJF=Eg@mail.gmail.com>
-Sender: linux-pci-owner@vger.kernel.org
-To: Rob Herring <robh@kernel.org>
-Cc: Robin Murphy <robin.murphy@arm.com>, Linux IOMMU <iommu@lists.linux-foundation.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Marc Zyngier <marc.zyngier@arm.com>, Will Deacon <will.deacon@arm.com>, Joerg Roedel <joro@8bytes.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>, Sinan Kaya <okaya@codeaurora.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Hanjun Guo <hanjun.guo@linaro.org>, Tomasz Nowicki <tn@semihalf.com>, Jon Masters <jcm@redhat.com>
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-watchdog-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20160721124053.GB7982@red-moon>
+Sender: linux-watchdog-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Lorenzo Pieralisi <lorenzo.pieralisi-5wv7dgnIgG8@public.gmane.org>
+Cc: "Rafael J. Wysocki" <rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org>, Len Brown <lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Daniel Lezcano <daniel.lezcano-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Thomas Gleixner <tglx-hfZtesqFncYOwBW4kG4KsQ@public.gmane.org>, Marc Zyngier <marc.zyngier-5wv7dgnIgG8@public.gmane.org>, Sudeep Holla <sudeep.holla-5wv7dgnIgG8@public.gmane.org>, Hanjun Guo <hanjun.guo-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, Linaro ACPI Mailman List <linaro-acpi-cunTk1MwBs8s++Sfvej+rw@public.gmane.org>, Linux Kernel Mailing List <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, ACPI Devel Maling List <linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, rruigrok-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org, harba-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org, Christopher Covington <cov-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, Timur Tabi <timur-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, G Gregory <graeme.gregory-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Al Stone <al.stone-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Jon Masters <jcm-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, wei-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>, Wim Van Sebroeck <wim-IQzOog9fTRqzQB+pC5nmwQ@public.gmane.org>, Catalin Marinas <catalin.marinas-5wv7dgnIgG8@public.gmane.org>, Will Deacon <will.deacon-5wv7dgnIgG8@public.gmane.org>, Suravee
 List-Id: linux-acpi@vger.kernel.org
 
-On Mon, Jul 25, 2016 at 10:21:10AM -0500, Rob Herring wrote:
-> On Mon, Jul 25, 2016 at 10:09 AM, Robin Murphy <robin.murphy@arm.com> wrote:
-> > Hi Lorenzo,
-> >
-> > On 20/07/16 12:23, Lorenzo Pieralisi wrote:
-> >> The iommu_fwspec structure, used to hold per device iommu configuration
-> >> data is not OF specific and therefore can be moved to a generic
-> >> and OF independent compilation unit.
-> >>
-> >> In particular, the iommu_fwspec handling hinges on the device_node
-> >> pointer to identify the IOMMU device associated with the iommu_fwspec
-> >> structure, that is easily converted to a more generic fwnode_handle
-> >> pointer that can cater for OF and non-OF (ie ACPI) systems.
-> >>
-> >> Create the files and related Kconfig entry to decouple iommu_fwspec
-> >> structure from the OF iommu kernel layer.
-> >>
-> >> Given that the current iommu_fwspec implementation relies on
-> >> the arch specific struct device.archdata.iommu field in its
-> >> implementation, by making the code standalone and independent
-> >> of the OF layer this patch makes sure that the iommu_fwspec
-> >> kernel code can be selected only on arches implementing the
-> >> struct device.archdata.iommu field by adding an explicit
-> >> arch dependency in its config entry.
-> >>
-> >> Current drivers using the iommu_fwspec for streamid translation
-> >> are converted to the new iommu_fwspec API by simply converting
-> >> the device_node to its fwnode_handle pointer.
-> >>
-> >> Signed-off-by: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
-> >> Cc: Will Deacon <will.deacon@arm.com>
-> >> Cc: Hanjun Guo <hanjun.guo@linaro.org>
-> >> Cc: Robin Murphy <robin.murphy@arm.com>
-> >> Cc: Joerg Roedel <joro@8bytes.org>
-> >> ---
-> >>  drivers/iommu/Kconfig        |   4 ++
-> >>  drivers/iommu/Makefile       |   1 +
-> >>  drivers/iommu/arm-smmu-v3.c  |  13 +++--
-> >>  drivers/iommu/iommu-fwspec.c | 114 +++++++++++++++++++++++++++++++++++++++++++
-> >>  drivers/iommu/of_iommu.c     |  52 --------------------
-> >>  include/linux/iommu-fwspec.h |  60 +++++++++++++++++++++++
-> >>  include/linux/of_iommu.h     |  24 +++------
-> >>  7 files changed, 196 insertions(+), 72 deletions(-)
-> >>  create mode 100644 drivers/iommu/iommu-fwspec.c
-> >>  create mode 100644 include/linux/iommu-fwspec.h
-> >>
-> >> diff --git a/drivers/iommu/Kconfig b/drivers/iommu/Kconfig
-> >> index d1c66af..2b26bfb 100644
-> >> --- a/drivers/iommu/Kconfig
-> >> +++ b/drivers/iommu/Kconfig
-> >> @@ -67,6 +67,10 @@ config OF_IOMMU
-> >>         def_bool y
-> >>         depends on OF && IOMMU_API
-> >>
-> >> +config IOMMU_FWSPEC
-> >> +       def_bool y
-> >> +       depends on ARM64 && IOMMU_API
-> >
-> > I think that could be at least (ARM || ARM64).
-> 
-> Why any arch dependency?
-> 
-> Seems like OF_IOMMU (and ACPI?) should select this.
+Hi Lorenzo,
 
-Absolutely, that's the end goal. Current issue is that the iommu_fwspec
-mechanism relies on dev_archdata.iommu pointer internally to work and
-since that's arch specific I can't select it on arches that do not have
-that field, it would break the compilation.
+On 21 July 2016 at 20:40, Lorenzo Pieralisi <lorenzo.pieralisi-5wv7dgnIgG8@public.gmane.org> wrote:
+> On Wed, Jul 20, 2016 at 02:18:02AM +0800, fu.wei-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org wrote:
+>> From: Fu Wei <fu.wei-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
+>>
+>> This driver adds support for parsing memory-mapped timer in GTDT:
+>> provide a kernel APIs to parse GT Block Structure in GTDT,
+>> export all the info by filling the struct which provided
+>> by parameter(pointer of the struct).
+>>
+>> By this driver, we can add ACPI support for memory-mapped timer in
+>> arm_arch_timer drivers, and separate the ACPI GTDT knowledge from it.
+>
+> "On platforms booting with ACPI, architected memory timers configuration
+> data is provided by firmware through the ACPI GTDT static table.
+>
+> The clocksource architected timer kernel driver requires a firmware
+> interface to collect timer configuration and configure its driver;
+> this infrastructure is present for device tree systems but it is
+> missing on systems booting with ACPI.
+>
+> Implement the kernel infrastructure required to parse the static
+> ACPI GTDT table so that the architected timer clocksource driver can
+> make use of it on systems booting with ACPI, therefore enabling
+> the corresponding timers configuration."
 
-I will follow up with Robin to make sure we will be able to
-implement what you request above.
+Thanks , I  have used it in my v9 patchset
 
-Thanks !
-Lorenzo
+>
+>> Signed-off-by: Fu Wei <fu.wei-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
+>> Signed-off-by: Hanjun Guo <hanjun.guo-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
+>> ---
+>>  drivers/acpi/arm64/acpi_gtdt.c       | 72 ++++++++++++++++++++++++++++++++++++
+>>  include/clocksource/arm_arch_timer.h | 15 ++++++++
+>>  include/linux/acpi.h                 |  1 +
+>>  3 files changed, 88 insertions(+)
+>>
+>> diff --git a/drivers/acpi/arm64/acpi_gtdt.c b/drivers/acpi/arm64/acpi_gtdt.c
+>> index e1cfc9e..b48e443 100644
+>> --- a/drivers/acpi/arm64/acpi_gtdt.c
+>> +++ b/drivers/acpi/arm64/acpi_gtdt.c
+>> @@ -150,3 +150,75 @@ int __init acpi_gtdt_init(struct acpi_table_header *table)
+>>
+>>       return gtdt->platform_timer_count;
+>>  }
+>> +
+>> +static int __init gtdt_parse_gt_block(void *platform_timer,
+>> +                                   struct gt_block_data *data)
+>> +{
+>
+> Nit: you can directly pass a struct acpi_gtdt_timer_block* pointer.
+
+good idea, :-)
+>
+>> +     struct acpi_gtdt_timer_block *block = platform_timer;
+>> +     struct acpi_gtdt_timer_entry *frame;
+>> +     int i;
+>> +
+>> +     if (!block || !data)
+>> +             return -EINVAL;
+>> +
+>> +     if (!block->block_address || !block->timer_count)
+>> +             goto error;
+>
+> Here we jump to print an error and bail out. The only reason
+> why we need a goto is to print a common error message and that's
+> exactly what we do _not_ need, if there is a FW error we want
+> to understand which one is that, otherwise the information you
+> are printing is useless for debugging (provided we can make use
+> of this info, which is questionable anyway).
+
+yes, I have fixed in my v9
+
+>
+>> +     data->cntctlbase_phy = (phys_addr_t)block->block_address;
+>> +     data->timer_count = block->timer_count;
+>> +
+>> +     frame = (void *)block + block->timer_offset;
+>> +     if (frame + block->timer_count != (void *)block + block->header.length)
+>> +             goto error;
+>
+> See above.
+>
+>> +     /*
+>> +      * Get the GT timer Frame data for every GT Block Timer
+>> +      */
+>> +     for (i = 0; i < block->timer_count; i++) {
+>> +             frame += i;
+>
+> This is wrong, if you have multiple frames, pointers would add up and
+> that's not correct.
+
+Great thanks for pointing it out, this is a bug, I have fixed it in my v9.
+
+Thanks for your help
+
+>
+>> +             if (!frame->base_address || !frame->timer_interrupt)
+>> +                     goto error;
+>
+> See above.
+>
+>> +             data->timer[i].frame_nr = frame->frame_number;
+>> +             data->timer[i].cntbase_phy = frame->base_address;
+>> +             data->timer[i].irq =
+>> +                     map_generic_timer_interrupt(frame->timer_interrupt,
+>> +                                                 frame->timer_flags);
+>
+> AFAIK map_generic_timer_interrupt() may fail, you should cater for that.
+>
+>> +             if (frame->virtual_timer_interrupt)
+>> +                     data->timer[i].virt_irq =
+>> +                             map_generic_timer_interrupt(
+>> +                                     frame->virtual_timer_interrupt,
+>> +                                     frame->virtual_timer_flags);
+>
+> Ditto.
+>
+>> +     }
+>> +     return 0;
+>> +
+>> +error:
+>> +     pr_err(FW_BUG "invalid GT Block data.\n");
+>> +     return -EINVAL;
+>
+> See above.
+>
+>> +}
+>> +
+>> +/*
+>> + * Get the GT block info for memory-mapped timer from GTDT table.
+>> + * Please make sure we have called acpi_gtdt_init, because it helps to
+>> + * init the global variables.
+>
+> I already commented on this. I think the second part of this comment
+> is useless (it is a function with one caller, make sure you respect
+> the calling sequence and be done with this).
+
+I have deleted the second part  in my v9 , thanks :-)
+
+>
+> Thanks,
+> Lorenzo
+>
+>> + */
+>> +int __init gtdt_arch_timer_mem_init(struct gt_block_data *data)
+>> +{
+>> +     void *platform_timer;
+>> +     int index = 0;
+>> +     int ret;
+>> +
+>> +     for_each_platform_timer(platform_timer) {
+>> +             if (!is_timer_block(platform_timer))
+>> +                     continue;
+>> +             ret = gtdt_parse_gt_block(platform_timer, data + index);
+>> +             if (ret)
+>> +                     return ret;
+>> +             index++;
+>> +     }
+>> +
+>> +     if (index)
+>> +             pr_info("found %d memory-mapped timer block(s).\n", index);
+>> +
+>> +     return index;
+>> +}
+>> diff --git a/include/clocksource/arm_arch_timer.h b/include/clocksource/arm_arch_timer.h
+>> index 16dcd10..ece6b3b 100644
+>> --- a/include/clocksource/arm_arch_timer.h
+>> +++ b/include/clocksource/arm_arch_timer.h
+>> @@ -56,6 +56,8 @@ enum spi_nr {
+>>  #define ARCH_TIMER_MEM_PHYS_ACCESS   2
+>>  #define ARCH_TIMER_MEM_VIRT_ACCESS   3
+>>
+>> +#define ARCH_TIMER_MEM_MAX_FRAME     8
+>> +
+>>  #define ARCH_TIMER_USR_PCT_ACCESS_EN (1 << 0) /* physical counter */
+>>  #define ARCH_TIMER_USR_VCT_ACCESS_EN (1 << 1) /* virtual counter */
+>>  #define ARCH_TIMER_VIRT_EVT_EN               (1 << 2)
+>> @@ -71,6 +73,19 @@ struct arch_timer_kvm_info {
+>>       int virtual_irq;
+>>  };
+>>
+>> +struct gt_timer_data {
+>> +     int frame_nr;
+>> +     phys_addr_t cntbase_phy;
+>> +     int irq;
+>> +     int virt_irq;
+>> +};
+>> +
+>> +struct gt_block_data {
+>> +     phys_addr_t cntctlbase_phy;
+>> +     int timer_count;
+>> +     struct gt_timer_data timer[ARCH_TIMER_MEM_MAX_FRAME];
+>> +};
+>> +
+>>  #ifdef CONFIG_ARM_ARCH_TIMER
+>>
+>>  extern u32 arch_timer_get_rate(void);
+>> diff --git a/include/linux/acpi.h b/include/linux/acpi.h
+>> index fb8b689..24b1750 100644
+>> --- a/include/linux/acpi.h
+>> +++ b/include/linux/acpi.h
+>> @@ -536,6 +536,7 @@ struct platform_device *acpi_create_platform_device(struct acpi_device *);
+>>  int acpi_gtdt_init(struct acpi_table_header *table);
+>>  int acpi_gtdt_map_ppi(int type);
+>>  bool acpi_gtdt_c3stop(void);
+>> +int gtdt_arch_timer_mem_init(struct gt_block_data *data);
+>>  #endif
+>>
+>>  #else        /* !CONFIG_ACPI */
+>> --
+>> 2.5.5
+>>
+
+
+
+-- 
+Best regards,
+
+Fu Wei
+Software Engineer
+Red Hat
+--
+To unsubscribe from this list: send the line "unsubscribe linux-watchdog" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
