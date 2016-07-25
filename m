@@ -1,89 +1,63 @@
-From: Rob Herring <robh-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: [RFC PATCH v3 05/13] drivers: iommu: make iommu_fwspec OF agnostic
-Date: Mon, 25 Jul 2016 10:21:10 -0500
-Message-ID: <CAL_JsqKc4aJ1xiJAS6HRKeVO8mrZWpBF0uugvmCgNuUamJF=Eg@mail.gmail.com>
-References: <1469013815-24380-1-git-send-email-lorenzo.pieralisi@arm.com>
-	<1469013815-24380-6-git-send-email-lorenzo.pieralisi@arm.com>
-	<1499f802-5f98-b0c0-d3aa-dabcac81e84e@arm.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
-In-Reply-To: <1499f802-5f98-b0c0-d3aa-dabcac81e84e-5wv7dgnIgG8@public.gmane.org>
-List-Unsubscribe: <https://lists.linuxfoundation.org/mailman/options/iommu>,
-	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.linuxfoundation.org/pipermail/iommu/>
-List-Post: <mailto:iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
-List-Help: <mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.linuxfoundation.org/mailman/listinfo/iommu>,
-	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=subscribe>
-Sender: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
-Errors-To: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
-To: Robin Murphy <robin.murphy-5wv7dgnIgG8@public.gmane.org>
-Cc: Jon Masters <jcm-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Marc Zyngier <marc.zyngier-5wv7dgnIgG8@public.gmane.org>, "Rafael J. Wysocki" <rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org>, Will Deacon <will.deacon-5wv7dgnIgG8@public.gmane.org>, "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Sinan Kaya <okaya-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, "linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux IOMMU <iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>, Hanjun Guo <hanjun.guo-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, "linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Tomasz Nowicki <tn-nYOzD4b6Jr9Wk0Htik3J/w@public.gmane.org>, "linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org" <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>
+From: fu.wei@linaro.org
+Subject: [PATCH v9 2/9] clocksource/drivers/arm_arch_timer: Add a new enum for spi type
+Date: Mon, 25 Jul 2016 23:27:00 +0800
+Message-ID: <1469460427-8643-3-git-send-email-fu.wei@linaro.org>
+References: <1469460427-8643-1-git-send-email-fu.wei@linaro.org>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mx1.redhat.com ([209.132.183.28]:47546 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753295AbcGYP1r (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 25 Jul 2016 11:27:47 -0400
+In-Reply-To: <1469460427-8643-1-git-send-email-fu.wei@linaro.org>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: rjw@rjwysocki.net, lenb@kernel.org, daniel.lezcano@linaro.org, tglx@linutronix.de, marc.zyngier@arm.com, lorenzo.pieralisi@arm.com, sudeep.holla@arm.com, hanjun.guo@linaro.org
+Cc: linux-arm-kernel@lists.infradead.org, linaro-acpi@lists.linaro.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, rruigrok@codeaurora.org, harba@codeaurora.org, cov@codeaurora.org, timur@codeaurora.org, graeme.gregory@linaro.org, al.stone@linaro.org, jcm@redhat.com, wei@redhat.com, arnd@arndb.de, wim@iguana.be, catalin.marinas@arm.com, will.deacon@arm.com, Suravee.Suthikulpanit@amd.com, leo.duran@amd.com, linux@roeck-us.net, linux-watchdog@vger.kernel.org, Fu Wei <fu.wei@linaro.org>
 
-On Mon, Jul 25, 2016 at 10:09 AM, Robin Murphy <robin.murphy-5wv7dgnIgG8@public.gmane.org> wrote:
-> Hi Lorenzo,
->
-> On 20/07/16 12:23, Lorenzo Pieralisi wrote:
->> The iommu_fwspec structure, used to hold per device iommu configuration
->> data is not OF specific and therefore can be moved to a generic
->> and OF independent compilation unit.
->>
->> In particular, the iommu_fwspec handling hinges on the device_node
->> pointer to identify the IOMMU device associated with the iommu_fwspec
->> structure, that is easily converted to a more generic fwnode_handle
->> pointer that can cater for OF and non-OF (ie ACPI) systems.
->>
->> Create the files and related Kconfig entry to decouple iommu_fwspec
->> structure from the OF iommu kernel layer.
->>
->> Given that the current iommu_fwspec implementation relies on
->> the arch specific struct device.archdata.iommu field in its
->> implementation, by making the code standalone and independent
->> of the OF layer this patch makes sure that the iommu_fwspec
->> kernel code can be selected only on arches implementing the
->> struct device.archdata.iommu field by adding an explicit
->> arch dependency in its config entry.
->>
->> Current drivers using the iommu_fwspec for streamid translation
->> are converted to the new iommu_fwspec API by simply converting
->> the device_node to its fwnode_handle pointer.
->>
->> Signed-off-by: Lorenzo Pieralisi <lorenzo.pieralisi-5wv7dgnIgG8@public.gmane.org>
->> Cc: Will Deacon <will.deacon-5wv7dgnIgG8@public.gmane.org>
->> Cc: Hanjun Guo <hanjun.guo-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
->> Cc: Robin Murphy <robin.murphy-5wv7dgnIgG8@public.gmane.org>
->> Cc: Joerg Roedel <joro-zLv9SwRftAIdnm+yROfE0A@public.gmane.org>
->> ---
->>  drivers/iommu/Kconfig        |   4 ++
->>  drivers/iommu/Makefile       |   1 +
->>  drivers/iommu/arm-smmu-v3.c  |  13 +++--
->>  drivers/iommu/iommu-fwspec.c | 114 +++++++++++++++++++++++++++++++++++++++++++
->>  drivers/iommu/of_iommu.c     |  52 --------------------
->>  include/linux/iommu-fwspec.h |  60 +++++++++++++++++++++++
->>  include/linux/of_iommu.h     |  24 +++------
->>  7 files changed, 196 insertions(+), 72 deletions(-)
->>  create mode 100644 drivers/iommu/iommu-fwspec.c
->>  create mode 100644 include/linux/iommu-fwspec.h
->>
->> diff --git a/drivers/iommu/Kconfig b/drivers/iommu/Kconfig
->> index d1c66af..2b26bfb 100644
->> --- a/drivers/iommu/Kconfig
->> +++ b/drivers/iommu/Kconfig
->> @@ -67,6 +67,10 @@ config OF_IOMMU
->>         def_bool y
->>         depends on OF && IOMMU_API
->>
->> +config IOMMU_FWSPEC
->> +       def_bool y
->> +       depends on ARM64 && IOMMU_API
->
-> I think that could be at least (ARM || ARM64).
+From: Fu Wei <fu.wei@linaro.org>
 
-Why any arch dependency?
+This patch add a new enum "spi_nr" and use it in the driver.
+Just for code's readability, no functional change.
 
-Seems like OF_IOMMU (and ACPI?) should select this.
+Signed-off-by: Fu Wei <fu.wei@linaro.org>
+---
+ drivers/clocksource/arm_arch_timer.c | 4 ++--
+ include/clocksource/arm_arch_timer.h | 6 ++++++
+ 2 files changed, 8 insertions(+), 2 deletions(-)
 
-Rob
+diff --git a/drivers/clocksource/arm_arch_timer.c b/drivers/clocksource/arm_arch_timer.c
+index 5d7272e..966c574 100644
+--- a/drivers/clocksource/arm_arch_timer.c
++++ b/drivers/clocksource/arm_arch_timer.c
+@@ -826,9 +826,9 @@ static void __init arch_timer_mem_init(struct device_node *np)
+ 	}
+ 
+ 	if (arch_timer_mem_use_virtual)
+-		irq = irq_of_parse_and_map(best_frame, 1);
++		irq = irq_of_parse_and_map(best_frame, VIRT_SPI);
+ 	else
+-		irq = irq_of_parse_and_map(best_frame, 0);
++		irq = irq_of_parse_and_map(best_frame, PHYS_SPI);
+ 
+ 	if (!irq) {
+ 		pr_err("arch_timer: Frame missing %s irq",
+diff --git a/include/clocksource/arm_arch_timer.h b/include/clocksource/arm_arch_timer.h
+index 6f06481..16dcd10 100644
+--- a/include/clocksource/arm_arch_timer.h
++++ b/include/clocksource/arm_arch_timer.h
+@@ -45,6 +45,12 @@ enum ppi_nr {
+ 	MAX_TIMER_PPI
+ };
+ 
++enum spi_nr {
++	PHYS_SPI,
++	VIRT_SPI,
++	MAX_TIMER_SPI
++};
++
+ #define ARCH_TIMER_PHYS_ACCESS		0
+ #define ARCH_TIMER_VIRT_ACCESS		1
+ #define ARCH_TIMER_MEM_PHYS_ACCESS	2
+-- 
+2.5.5
+
