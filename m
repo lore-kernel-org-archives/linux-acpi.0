@@ -1,92 +1,75 @@
-From: Russell King - ARM Linux <linux-I+IVW8TIWO2tmTQ+vhA3Yw@public.gmane.org>
-Subject: Re: [PATCH v9 4/9] clocksource/drivers/arm_arch_timer: use readq to
- get 64-bit CNTVCT
-Date: Mon, 25 Jul 2016 23:49:57 +0100
-Message-ID: <20160725224957.GU1041@n2100.armlinux.org.uk>
-References: <1469460427-8643-1-git-send-email-fu.wei@linaro.org>
- <1469460427-8643-5-git-send-email-fu.wei@linaro.org>
- <20160725153118.GD19209@arm.com>
- <CADyBb7ubKceQiB7+u7sSA=1+9_VMUrGjiabf_FkN2-n4rq7Kgg@mail.gmail.com>
- <20160725163144.GE19209@arm.com>
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: Re: [PATCH v9 0/7] Make cpuid <-> nodeid mapping persistent
+Date: Mon, 25 Jul 2016 16:20:22 -0700
+Message-ID: <20160725162022.e90e9c6c74a5d147e39e5945@linux-foundation.org>
+References: <1469435749-19582-1-git-send-email-douly.fnst@cn.fujitsu.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-watchdog-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20160725163144.GE19209-5wv7dgnIgG8@public.gmane.org>
-Sender: linux-watchdog-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Will Deacon <will.deacon-5wv7dgnIgG8@public.gmane.org>
-Cc: Fu Wei <fu.wei-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Linaro ACPI Mailman List <linaro-acpi-cunTk1MwBs8s++Sfvej+rw@public.gmane.org>, Catalin Marinas <catalin.marinas-5wv7dgnIgG8@public.gmane.org>, rruigrok-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org, Wim Van Sebroeck <wim-IQzOog9fTRqzQB+pC5nmwQ@public.gmane.org>, wei-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, Lorenzo Pieralisi <lorenzo.pieralisi-5wv7dgnIgG8@public.gmane.org>, Al Stone <al.stone-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Timur Tabi <timur-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, Daniel Lezcano <daniel.lezcano-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, ACPI Devel Maling List <linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Guenter Roeck <linux-0h96xk9xTtrk1uMJSBkQmQ@public.gmane.org>, Len Brown <lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, harba-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org, linux-watchdog-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>, Marc Zyngier <marc.zyngier-5wv7dgnIgG8@public.gmane.org>, Jon Masters <jcm-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Christopher Covington <cov-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, Thomas Gleixner <tglx-hfZtesqFncYOwBW4kG4KsQ@public.gmane.org>, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, G Gregory <graeme.gregory-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, "Rafael J. Wysocki" <rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org>, Linux Kernel Mailing List <linux-kernel@vger.k>
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
+Return-path: <owner-linux-mm@kvack.org>
+In-Reply-To: <1469435749-19582-1-git-send-email-douly.fnst@cn.fujitsu.com>
+Sender: owner-linux-mm@kvack.org
+To: Dou Liyang <douly.fnst@cn.fujitsu.com>
+Cc: cl@linux.com, tj@kernel.org, mika.j.penttila@gmail.com, mingo@redhat.com, rjw@rjwysocki.net, hpa@zytor.com, yasu.isimatu@gmail.com, isimatu.yasuaki@jp.fujitsu.com, kamezawa.hiroyu@jp.fujitsu.com, izumi.taku@jp.fujitsu.com, gongzhaogang@inspur.com, len.brown@intel.com, lenb@kernel.org, tglx@linutronix.de, chen.tang@easystack.cn, rafael@kernel.org, x86@kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linux-mm@kvack.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Mon, Jul 25, 2016 at 05:31:45PM +0100, Will Deacon wrote:
-> On Mon, Jul 25, 2016 at 11:55:49PM +0800, Fu Wei wrote:
-> > On 25 July 2016 at 23:31, Will Deacon <will.deacon-5wv7dgnIgG8@public.gmane.org> wrote:
-> > > On Mon, Jul 25, 2016 at 11:27:02PM +0800, fu.wei-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org wrote:
-> > >> From: Fu Wei <fu.wei-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
-> > >>
-> > >> This patch simplify arch_counter_get_cntvct_mem function by
-> > >> using readq to get 64-bit CNTVCT value instead of readl_relaxed.
-> > >>
-> > >> Signed-off-by: Fu Wei <fu.wei-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
-> > >> ---
-> > >>  drivers/clocksource/arm_arch_timer.c | 10 +---------
-> > >>  1 file changed, 1 insertion(+), 9 deletions(-)
-> > >>
-> > >> diff --git a/drivers/clocksource/arm_arch_timer.c b/drivers/clocksource/arm_arch_timer.c
-> > >> index e6fd42d..483d2f9 100644
-> > >> --- a/drivers/clocksource/arm_arch_timer.c
-> > >> +++ b/drivers/clocksource/arm_arch_timer.c
-> > >> @@ -418,15 +418,7 @@ u32 arch_timer_get_rate(void)
-> > >>
-> > >>  static u64 arch_counter_get_cntvct_mem(void)
-> > >>  {
-> > >> -     u32 vct_lo, vct_hi, tmp_hi;
-> > >> -
-> > >> -     do {
-> > >> -             vct_hi = readl_relaxed(arch_counter_base + CNTVCT_HI);
-> > >> -             vct_lo = readl_relaxed(arch_counter_base + CNTVCT_LO);
-> > >> -             tmp_hi = readl_relaxed(arch_counter_base + CNTVCT_HI);
-> > >> -     } while (vct_hi != tmp_hi);
-> > >> -
-> > >> -     return ((u64) vct_hi << 32) | vct_lo;
-> > >> +     return readq(arch_counter_base + CNTVCT_LO);
-> > >
-> > > Please drop this patch. It doesn't work.
-> > 
-> > I am OK to drop this, but could you let me know why it doesn't work?
-> > 
-> > I did get some problem on Foundation model about readq, but it works on Seattle.
-> > I guess that is a problem of model, but not a code problem.
-> > So I just got confused, why readq  doesn't work,  :-)
-> 
-> The kernel really needs to support both of those platforms :/
-> 
-> For the memory-mapped counter registers, the architecture says:
-> 
->   `If the implementation supports 64-bit atomic accesses, then the
->    CNTV_CVAL register must be accessible as an atomic 64-bit value.'
-> 
-> which is borderline tautological. If we take the generous reading that
-> this means AArch64 CPUs can use readq (and I'm not completely
-> comfortable with that assertion, particularly as you say that it breaks
-> the model), then you still need to use readq_relaxed here to avoid a
-> DSB. Furthermore, what are you going to do for AArch32? readq doesn't
-> exist over there, and if you use the generic implementation then it's
-> not atomic. In which case, we end up with the current code, as well as a
-> readq_relaxed guarded by a questionable #ifdef that is known to break a
-> supported platform for an unknown performance improvement. Hardly a big
-> win.
-> 
-> Did you see any performance advantage from this? Given that you've added
-> a DSB, this looks to be extremely premature.
+On Mon, 25 Jul 2016 16:35:42 +0800 Dou Liyang <douly.fnst@cn.fujitsu.com> wrote:
 
-+1, absolutely agreed on the 32-bit ARM bits.
+> [Problem]
+> 
+> cpuid <-> nodeid mapping is firstly established at boot time. And workqueue caches
+> the mapping in wq_numa_possible_cpumask in wq_numa_init() at boot time.
+> 
+> When doing node online/offline, cpuid <-> nodeid mapping is established/destroyed,
+> which means, cpuid <-> nodeid mapping will change if node hotplug happens. But
+> workqueue does not update wq_numa_possible_cpumask.
+> 
+> So here is the problem:
+> 
+> Assume we have the following cpuid <-> nodeid in the beginning:
+> 
+>   Node | CPU
+> ------------------------
+> node 0 |  0-14, 60-74
+> node 1 | 15-29, 75-89
+> node 2 | 30-44, 90-104
+> node 3 | 45-59, 105-119
+> 
+> and we hot-remove node2 and node3, it becomes:
+> 
+>   Node | CPU
+> ------------------------
+> node 0 |  0-14, 60-74
+> node 1 | 15-29, 75-89
+> 
+> and we hot-add node4 and node5, it becomes:
+> 
+>   Node | CPU
+> ------------------------
+> node 0 |  0-14, 60-74
+> node 1 | 15-29, 75-89
+> node 4 | 30-59
+> node 5 | 90-119
+> 
+> But in wq_numa_possible_cpumask, cpu30 is still mapped to node2, and the like.
+> 
+> When a pool workqueue is initialized, if its cpumask belongs to a node, its
+> pool->node will be mapped to that node. And memory used by this workqueue will
+> also be allocated on that node.
 
--- 
-RMK's Patch system: http://www.armlinux.org.uk/developer/patches/
-FTTC broadband for 0.8mile line: currently at 9.6Mbps down 400kbps up
-according to speedtest.net.
+Plan B is to hunt down and fix up all the workqueue structures at
+hotplug-time.  Has that option been evaluated?
+
+
+Your fix is x86-only and this bug presumably affects other
+architectures, yes?  I think a "Plan B" would fix all architectures?
+
+
+Thirdly, what is the merge path for these patches?  Is an x86
+or ACPI maintainer working with you on them?
+
 --
-To unsubscribe from this list: send the line "unsubscribe linux-watchdog" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+To unsubscribe, send a message with 'unsubscribe linux-mm' in
+the body to majordomo@kvack.org.  For more info on Linux MM,
+see: http://www.linux-mm.org/ .
+Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
