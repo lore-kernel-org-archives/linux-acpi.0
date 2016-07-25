@@ -1,100 +1,178 @@
 From: Dou Liyang <douly.fnst@cn.fujitsu.com>
-Subject: [PATCH v9 1/7] x86, memhp, numa: Online memory-less nodes at boot time.
-Date: Mon, 25 Jul 2016 16:35:43 +0800
-Message-ID: <1469435749-19582-2-git-send-email-douly.fnst@cn.fujitsu.com>
+Subject: [PATCH v9 3/7] x86, acpi, cpu-hotplug: Introduce cpuid_to_apicid[] array to store persistent cpuid <-> apicid mapping.
+Date: Mon, 25 Jul 2016 16:35:45 +0800
+Message-ID: <1469435749-19582-4-git-send-email-douly.fnst@cn.fujitsu.com>
 References: <1469435749-19582-1-git-send-email-douly.fnst@cn.fujitsu.com>
 Mime-Version: 1.0
 Content-Type: text/plain
-Return-path: <owner-linux-mm@kvack.org>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from cn.fujitsu.com ([59.151.112.132]:23611 "EHLO
+	heian.cn.fujitsu.com" rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1751700AbcGYIgQ (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 25 Jul 2016 04:36:16 -0400
 In-Reply-To: <1469435749-19582-1-git-send-email-douly.fnst@cn.fujitsu.com>
-Sender: owner-linux-mm@kvack.org
-To: cl@linux.com, tj@kernel.org, mika.j.penttila@gmail.com, mingo@redhat.com, akpm@linux-foundation.org, rjw@rjwysocki.net, hpa@zytor.com, yasu.isimatu@gmail.com, isimatu.yasuaki@jp.fujitsu.com, kamezawa.hiroyu@jp.fujitsu.com, izumi.taku@jp.fujitsu.com, gongzhaogang@inspur.com, len.brown@intel.com, lenb@kernel.org, tglx@linutronix.de, chen.tang@easystack.cn, rafael@kernel.org
-Cc: x86@kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linux-mm@kvack.org, Tang Chen <tangchen@cn.fujitsu.com>, Zhu Guihua <zhugh.fnst@cn.fujitsu.com>, Dou Liyang <douly.fnst@cn.fujitsu.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: cl@linux.com, tj@kernel.org, mika.j.penttila@gmail.com, mingo@redhat.com, akpm@linux-foundation.org, rjw@rjwysocki.net, hpa@zytor.com, yasu.isimatu@gmail.com, isimatu.yasuaki@jp.fujitsu.com, kamezawa.hiroyu@jp.fujitsu.com, izumi.taku@jp.fujitsu.com, gongzhaogang@inspur.com, len.brown@intel.com, lenb@kernel.org, tglx@linutronix.de, chen.tang@easystack.cn, rafael@kernel.org
+Cc: x86@kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linux-mm@kvack.org, Gu Zheng <guz.fnst@cn.fujitsu.com>, Tang Chen <tangchen@cn.fujitsu.com>, Zhu Guihua <zhugh.fnst@cn.fujitsu.com>, Dou Liyang <douly.fnst@cn.fujitsu.com>
 
-From: Tang Chen <tangchen@cn.fujitsu.com>
+From: Gu Zheng <guz.fnst@cn.fujitsu.com>
 
-For now, x86 does not support memory-less node. A node without memory
-will not be onlined, and the cpus on it will be mapped to the other
-online nodes with memory in init_cpu_to_node(). The reason of doing this
-is to ensure each cpu has mapped to a node with memory, so that it will
-be able to allocate local memory for that cpu.
+The whole patch-set aims at making cpuid <-> nodeid mapping persistent. So that,
+when node online/offline happens, cache based on cpuid <-> nodeid mapping such as
+wq_numa_possible_cpumask will not cause any problem.
+It contains 4 steps:
+1. Enable apic registeration flow to handle both enabled and disabled cpus.
+2. Introduce a new array storing all possible cpuid <-> apicid mapping.
+3. Enable _MAT and MADT relative apis to return non-presnet or disabled cpus' apicid.
+4. Establish all possible cpuid <-> nodeid mapping.
 
-But we don't have to do it in this way.
+This patch finishes step 2.
 
-In this series of patches, we are going to construct cpu <-> node mapping
-for all possible cpus at boot time, which is a persistent mapping. It means
-that the cpu will be mapped to the node which it belongs to, and will never
-be changed. If a node has only cpus but no memory, the cpus on it will be
-mapped to a memory-less node. And the memory-less node should be onlined.
+In this patch, we introduce a new static array named cpuid_to_apicid[],
+which is large enough to store info for all possible cpus.
 
-This patch allocate pgdats for all memory-less nodes and online them at
-boot time. Then build zonelists for these nodes. As a result, when cpus
-on these memory-less nodes try to allocate memory from local node, it
-will automatically fall back to the proper zones in the zonelists.
+And then, we modify the cpuid calculation. In generic_processor_info(),
+it simply finds the next unused cpuid. And it is also why the cpuid <-> nodeid
+mapping changes with node hotplug.
 
+After this patch, we find the next unused cpuid, map it to an apicid,
+and store the mapping in cpuid_to_apicid[], so that cpuid <-> apicid
+mapping will be persistent.
+
+And finally we will use this array to make cpuid <-> nodeid persistent.
+
+cpuid <-> apicid mapping is established at local apic registeration time.
+But non-present or disabled cpus are ignored.
+
+In this patch, we establish all possible cpuid <-> apicid mapping when
+registering local apic.
+
+Signed-off-by: Gu Zheng <guz.fnst@cn.fujitsu.com>
+Signed-off-by: Tang Chen <tangchen@cn.fujitsu.com>
 Signed-off-by: Zhu Guihua <zhugh.fnst@cn.fujitsu.com>
 Signed-off-by: Dou Liyang <douly.fnst@cn.fujitsu.com>
 ---
- arch/x86/mm/numa.c | 27 +++++++++++++--------------
- 1 file changed, 13 insertions(+), 14 deletions(-)
+ arch/x86/include/asm/mpspec.h |  1 +
+ arch/x86/kernel/acpi/boot.c   |  6 ++---
+ arch/x86/kernel/apic/apic.c   | 61 ++++++++++++++++++++++++++++++++++++++++---
+ 3 files changed, 61 insertions(+), 7 deletions(-)
 
-diff --git a/arch/x86/mm/numa.c b/arch/x86/mm/numa.c
-index 9c086c5..2a87a28 100644
---- a/arch/x86/mm/numa.c
-+++ b/arch/x86/mm/numa.c
-@@ -723,22 +723,19 @@ void __init x86_numa_init(void)
- 	numa_init(dummy_numa_init);
- }
+diff --git a/arch/x86/include/asm/mpspec.h b/arch/x86/include/asm/mpspec.h
+index b07233b..db902d8 100644
+--- a/arch/x86/include/asm/mpspec.h
++++ b/arch/x86/include/asm/mpspec.h
+@@ -86,6 +86,7 @@ static inline void early_reserve_e820_mpc_new(void) { }
+ #endif
  
--static __init int find_near_online_node(int node)
-+static void __init init_memory_less_node(int nid)
- {
--	int n, val;
--	int min_val = INT_MAX;
--	int best_node = -1;
-+	unsigned long zones_size[MAX_NR_ZONES] = {0};
-+	unsigned long zholes_size[MAX_NR_ZONES] = {0};
+ int generic_processor_info(int apicid, int version);
++int __generic_processor_info(int apicid, int version, bool enabled);
  
--	for_each_online_node(n) {
--		val = node_distance(node, n);
-+	/* Allocate and initialize node data. Memory-less node is now online.*/
-+	alloc_node_data(nid);
-+	free_area_init_node(nid, zones_size, 0, zholes_size);
+ #define PHYSID_ARRAY_SIZE	BITS_TO_LONGS(MAX_LOCAL_APIC)
  
--		if (val < min_val) {
--			min_val = val;
--			best_node = n;
--		}
--	}
--
--	return best_node;
-+	/*
-+	 * All zonelists will be built later in start_kernel() after per cpu
-+	 * areas are initialized.
-+	 */
- }
- 
- /*
-@@ -767,8 +764,10 @@ void __init init_cpu_to_node(void)
- 
- 		if (node == NUMA_NO_NODE)
- 			continue;
-+
- 		if (!node_online(node))
--			node = find_near_online_node(node);
-+			init_memory_less_node(node);
-+
- 		numa_set_node(cpu, node);
+diff --git a/arch/x86/kernel/acpi/boot.c b/arch/x86/kernel/acpi/boot.c
+index 9414f84..37248c3 100644
+--- a/arch/x86/kernel/acpi/boot.c
++++ b/arch/x86/kernel/acpi/boot.c
+@@ -174,15 +174,13 @@ static int acpi_register_lapic(int id, u8 enabled)
+ 		return -EINVAL;
  	}
+ 
+-	if (!enabled) {
++	if (!enabled)
+ 		++disabled_cpus;
+-		return -EINVAL;
+-	}
+ 
+ 	if (boot_cpu_physical_apicid != -1U)
+ 		ver = apic_version[boot_cpu_physical_apicid];
+ 
+-	return generic_processor_info(id, ver);
++	return __generic_processor_info(id, ver, enabled);
  }
+ 
+ static int __init
+diff --git a/arch/x86/kernel/apic/apic.c b/arch/x86/kernel/apic/apic.c
+index 8e3c377..366fbbc 100644
+--- a/arch/x86/kernel/apic/apic.c
++++ b/arch/x86/kernel/apic/apic.c
+@@ -1998,7 +1998,53 @@ void disconnect_bsp_APIC(int virt_wire_setup)
+ 	apic_write(APIC_LVT1, value);
+ }
+ 
+-static int __generic_processor_info(int apicid, int version, bool enabled)
++/*
++ * The number of allocated logical CPU IDs. Since logical CPU IDs are allocated
++ * contiguously, it equals to current allocated max logical CPU ID plus 1.
++ * All allocated CPU ID should be in [0, nr_logical_cpuidi), so the maximum of
++ * nr_logical_cpuids is nr_cpu_ids.
++ *
++ * NOTE: Reserve 0 for BSP.
++ */
++static int nr_logical_cpuids = 1;
++
++/*
++ * Used to store mapping between logical CPU IDs and APIC IDs.
++ */
++static int cpuid_to_apicid[] = {
++	[0 ... NR_CPUS - 1] = -1,
++};
++
++/*
++ * Should use this API to allocate logical CPU IDs to keep nr_logical_cpuids
++ * and cpuid_to_apicid[] synchronized.
++ */
++static int allocate_logical_cpuid(int apicid)
++{
++	int i;
++
++	/*
++	 * cpuid <-> apicid mapping is persistent, so when a cpu is up,
++	 * check if the kernel has allocated a cpuid for it.
++	 */
++	for (i = 0; i < nr_logical_cpuids; i++) {
++		if (cpuid_to_apicid[i] == apicid)
++			return i;
++	}
++
++	/* Allocate a new cpuid. */
++	if (nr_logical_cpuids >= nr_cpu_ids) {
++		WARN_ONCE(1, "Only %d processors supported."
++			     "Processor %d/0x%x and the rest are ignored.\n",
++			     nr_cpu_ids - 1, nr_logical_cpuids, apicid);
++		return -1;
++	}
++
++	cpuid_to_apicid[nr_logical_cpuids] = apicid;
++	return nr_logical_cpuids++;
++}
++
++int __generic_processor_info(int apicid, int version, bool enabled)
+ {
+ 	int cpu, max = nr_cpu_ids;
+ 	bool boot_cpu_detected = physid_isset(boot_cpu_physical_apicid,
+@@ -2079,8 +2125,17 @@ static int __generic_processor_info(int apicid, int version, bool enabled)
+ 		 * for BSP.
+ 		 */
+ 		cpu = 0;
+-	} else
+-		cpu = cpumask_next_zero(-1, cpu_present_mask);
++
++		/* Logical cpuid 0 is reserved for BSP. */
++		cpuid_to_apicid[0] = apicid;
++	} else {
++		cpu = allocate_logical_cpuid(apicid);
++		if (cpu < 0) {
++			if (enabled)
++				disabled_cpus++;
++			return -EINVAL;
++		}
++	}
+ 
+ 	/*
+ 	 * This can happen on physical hotplug. The sanity check at boot time
 -- 
 2.5.5
 
 
 
---
-To unsubscribe, send a message with 'unsubscribe linux-mm' in
-the body to majordomo@kvack.org.  For more info on Linux MM,
-see: http://www.linux-mm.org/ .
-Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
