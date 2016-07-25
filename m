@@ -1,81 +1,141 @@
-From: Wolfram Sang <wsa@the-dreams.de>
-Subject: Re: [PATCH v3 1/2] Documentation: Add sbs-manager device tree node
- documentation
-Date: Mon, 25 Jul 2016 13:24:25 +0200
-Message-ID: <20160725112425.GA1607@katana>
-References: <1bIiDr-0004G1-0P>
- <1468349295-4935-1-git-send-email-karl-heinz@schneider-inet.de>
- <1468349295-4935-2-git-send-email-karl-heinz@schneider-inet.de>
- <20160719041432.GB1640@katana>
- <dfc8249b-08ec-888d-7a11-7c6033a1ab64@axentia.se>
+From: Robin Murphy <robin.murphy@arm.com>
+Subject: Re: [RFC PATCH v3 05/13] drivers: iommu: make iommu_fwspec OF
+ agnostic
+Date: Mon, 25 Jul 2016 16:09:55 +0100
+Message-ID: <1499f802-5f98-b0c0-d3aa-dabcac81e84e@arm.com>
+References: <1469013815-24380-1-git-send-email-lorenzo.pieralisi@arm.com>
+ <1469013815-24380-6-git-send-email-lorenzo.pieralisi@arm.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="uAKRQypu60I7Lcqm"
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from sauhun.de ([89.238.76.85]:51351 "EHLO pokefinder.org"
+Received: from foss.arm.com ([217.140.101.70]:34350 "EHLO foss.arm.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751139AbcGYLYi (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 25 Jul 2016 07:24:38 -0400
-Content-Disposition: inline
-In-Reply-To: <dfc8249b-08ec-888d-7a11-7c6033a1ab64@axentia.se>
+	id S1752141AbcGYPKD (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 25 Jul 2016 11:10:03 -0400
+In-Reply-To: <1469013815-24380-6-git-send-email-lorenzo.pieralisi@arm.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Peter Rosin <peda@axentia.se>
-Cc: Karl-Heinz Schneider <karl-heinz@schneider-inet.de>, devicetree@vger.kernel.org, linux-pm@vger.kernel.org, linux-acpi@vger.kernel.org, linux-i2c@vger.kernel.org, Rob Herring <robh+dt@kernel.org>, Mark Rutland <mark.rutland@arm.com>, Sebastian Reichel <sre@kernel.org>, Dmitry Eremin-Solenikov <dbaryshkov@gmail.com>, David Woodhouse <dwmw2@infradead.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Phil Reid <preid@electromag.com.au>
+To: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, iommu@lists.linux-foundation.org
+Cc: Will Deacon <will.deacon@arm.com>, Hanjun Guo <hanjun.guo@linaro.org>, Joerg Roedel <joro@8bytes.org>, Marc Zyngier <marc.zyngier@arm.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Tomasz Nowicki <tn@semihalf.com>, Jon Masters <jcm@redhat.com>, Sinan Kaya <okaya@codeaurora.org>, linux-acpi@vger.kernel.org, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
+Hi Lorenzo,
 
---uAKRQypu60I7Lcqm
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+On 20/07/16 12:23, Lorenzo Pieralisi wrote:
+> The iommu_fwspec structure, used to hold per device iommu configuration
+> data is not OF specific and therefore can be moved to a generic
+> and OF independent compilation unit.
+> 
+> In particular, the iommu_fwspec handling hinges on the device_node
+> pointer to identify the IOMMU device associated with the iommu_fwspec
+> structure, that is easily converted to a more generic fwnode_handle
+> pointer that can cater for OF and non-OF (ie ACPI) systems.
+> 
+> Create the files and related Kconfig entry to decouple iommu_fwspec
+> structure from the OF iommu kernel layer.
+> 
+> Given that the current iommu_fwspec implementation relies on
+> the arch specific struct device.archdata.iommu field in its
+> implementation, by making the code standalone and independent
+> of the OF layer this patch makes sure that the iommu_fwspec
+> kernel code can be selected only on arches implementing the
+> struct device.archdata.iommu field by adding an explicit
+> arch dependency in its config entry.
+> 
+> Current drivers using the iommu_fwspec for streamid translation
+> are converted to the new iommu_fwspec API by simply converting
+> the device_node to its fwnode_handle pointer.
+> 
+> Signed-off-by: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+> Cc: Will Deacon <will.deacon@arm.com>
+> Cc: Hanjun Guo <hanjun.guo@linaro.org>
+> Cc: Robin Murphy <robin.murphy@arm.com>
+> Cc: Joerg Roedel <joro@8bytes.org>
+> ---
+>  drivers/iommu/Kconfig        |   4 ++
+>  drivers/iommu/Makefile       |   1 +
+>  drivers/iommu/arm-smmu-v3.c  |  13 +++--
+>  drivers/iommu/iommu-fwspec.c | 114 +++++++++++++++++++++++++++++++++++++++++++
+>  drivers/iommu/of_iommu.c     |  52 --------------------
+>  include/linux/iommu-fwspec.h |  60 +++++++++++++++++++++++
+>  include/linux/of_iommu.h     |  24 +++------
+>  7 files changed, 196 insertions(+), 72 deletions(-)
+>  create mode 100644 drivers/iommu/iommu-fwspec.c
+>  create mode 100644 include/linux/iommu-fwspec.h
+> 
+> diff --git a/drivers/iommu/Kconfig b/drivers/iommu/Kconfig
+> index d1c66af..2b26bfb 100644
+> --- a/drivers/iommu/Kconfig
+> +++ b/drivers/iommu/Kconfig
+> @@ -67,6 +67,10 @@ config OF_IOMMU
+>         def_bool y
+>         depends on OF && IOMMU_API
+>  
+> +config IOMMU_FWSPEC
+> +       def_bool y
+> +       depends on ARM64 && IOMMU_API
 
-On Mon, Jul 25, 2016 at 12:33:20PM +0200, Peter Rosin wrote:
-> On 2016-07-19 06:14, Wolfram Sang wrote:
-> >> +batman@0a {
-> >> +    compatible =3D "lltc,ltc1760";
-> >> +    reg =3D <0x0a>;
-> >> +    #address-cells =3D <1>;
-> >> +    #size-cells =3D <0>;
-> >> +
-> >> +    i2c@1 {
-> >> +        #address-cells =3D <1>;
-> >> +        #size-cells =3D <0>;
-> >=20
-> > Rob, aren't those two lines inherited from above?
->=20
-> I too think they are inherited, but am a bit undecided whether I want
-> that fact to be explored or not, as they just happen to match. They do
-> not express the same thing (it is for the i2c-mux number in the parent,
-> and for the i2c device address in the children).
+I think that could be at least (ARM || ARM64).
 
-Ah, I see. If they don't mean the same thing, then we should be rather
-safe than sorry, I guess.
+> +
+>  # IOMMU-agnostic DMA-mapping layer
+>  config IOMMU_DMA
+>  	bool
 
-> But the repetitions are indeed tedious when there are many muxed
-> buses...
+[...]
 
-Yes.
+> diff --git a/include/linux/of_iommu.h b/include/linux/of_iommu.h
+> index 308791f..2362232 100644
+> --- a/include/linux/of_iommu.h
+> +++ b/include/linux/of_iommu.h
+> @@ -15,13 +15,8 @@ extern void of_iommu_init(void);
+>  extern const struct iommu_ops *of_iommu_configure(struct device *dev,
+>  					struct device_node *master_np);
+>  
+> -struct iommu_fwspec {
+> -	const struct iommu_ops	*iommu_ops;
+> -	struct device_node	*iommu_np;
+> -	void			*iommu_priv;
+> -	unsigned int		num_ids;
+> -	u32			ids[];
+> -};
+> +void of_iommu_set_ops(struct device_node *np, const struct iommu_ops *ops);
+> +const struct iommu_ops *of_iommu_get_ops(struct device_node *np);
 
+Is there some reason we need to retain the existing definitions of
+these? I was assuming we'd be able to move the entire implementation
+over to the fwspec code and leave behind nothing more than trivial
+wrappers, e.g.:
 
---uAKRQypu60I7Lcqm
-Content-Type: application/pgp-signature; name="signature.asc"
+#define of_iommu_get_ops(np) iommu_fwspec_get_ops(&(np)->fwnode_handle)
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
+Robin.
 
-iQIcBAEBAgAGBQJXlfbpAAoJEBQN5MwUoCm2bL0QAJ34m0eVW9QnJoeB/YbWxUOf
-8hm7XF1viRXOs92kzCKJnt0g2QnY+TeL9oFScS2GYAXeeFVt7xMJ8PWVcf3hbH2G
-ncqclqEEABBjtf9fAd4qveIZRdYNJPmjCmXbd1uEh6J4pEtfrzY9PYE1SCTfKOYD
-8uKrfpIkpJCKI1urIotEjX47oc7s+KQ9UVBHE6HJSPCBm+I+b3A59qjDEivPsjZ9
-xW/6xnU+JqL03WaQQHDeaLzU9TJmSgu5/FkbFJVitZ49FBBL/LT8wfLVXeqOcjpX
-t2/pJIan8cj8HXjh/sMiCqeyhaAyW55Uo2HLwV6ywwFMKLuYVV5IFiiskpytEA3w
-3tfaekAdrJZnrb+LvxEMr5GFHf2u0AkrBN4Mvn2m5/UyHY3B0vUsmPLiq8YmKZUj
-+3cu4Stg52B3WFatajPjEYK5XqMH2ojY4Tg3wLw/FqFn0v4mkruFPgivdRPg31GM
-ALJ0T0ORnCSw9oEydMvWbH5KISAOflkd7+DLuduBZXaFj2Xbl00r9pT1W0Ie7BBz
-xp7chyv/AakpF/P2R2OoUkT8r3TkBvzelDnTBDDPSBbgO/FgfSzv2Cv9ud7QEUfM
-b8pzpG/+ues3zaSfZxbXSzt0mhOrfz0tDsmqpfIyfDRXefGgPSNk6k6PwT2gts0a
-3NWbINgePl4NN7srNe9Y
-=U6PF
------END PGP SIGNATURE-----
+>  #else
+>  
+> @@ -39,17 +34,14 @@ static inline const struct iommu_ops *of_iommu_configure(struct device *dev,
+>  	return NULL;
+>  }
+>  
+> -struct iommu_fwspec;
+> -
+> -#endif	/* CONFIG_OF_IOMMU */
+> +static inline void of_iommu_set_ops(struct device_node *np,
+> +				    const struct iommu_ops *ops)
+> +{ }
+>  
+> -int iommu_fwspec_init(struct device *dev, struct device_node *iommu_np);
+> -void iommu_fwspec_free(struct device *dev);
+> -int iommu_fwspec_add_ids(struct device *dev, u32 *ids, int num_ids);
+> -struct iommu_fwspec *dev_iommu_fwspec(struct device *dev);
+> +static inline const struct iommu_ops *
+> +of_iommu_get_ops(struct device_node *np) { return NULL; }
+>  
+> -void of_iommu_set_ops(struct device_node *np, const struct iommu_ops *ops);
+> -const struct iommu_ops *of_iommu_get_ops(struct device_node *np);
+> +#endif	/* CONFIG_OF_IOMMU */
+>  
+>  extern struct of_device_id __iommu_of_table;
+>  
+> 
 
---uAKRQypu60I7Lcqm--
