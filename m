@@ -1,58 +1,74 @@
-From: Will Deacon <will.deacon-5wv7dgnIgG8@public.gmane.org>
-Subject: Re: [PATCH v8 4/9] clocksource/drivers/arm_arch_timer: use readq to
- get 64-bit CNTVCT
-Date: Mon, 25 Jul 2016 10:02:59 +0100
-Message-ID: <20160725090258.GA15864@arm.com>
-References: <1468952284-28942-1-git-send-email-fu.wei@linaro.org>
- <1468952284-28942-5-git-send-email-fu.wei@linaro.org>
+From: Pali =?utf-8?B?Um9ow6Fy?= <pali.rohar@gmail.com>
+Subject: Re: [v5] i2c: i801: Allow ACPI SystemIO OpRegion to conflict with
+ PCI BAR
+Date: Mon, 25 Jul 2016 12:19:18 +0200
+Message-ID: <20160725101918.GU29844@pali>
+References: <1463990658-53854-1-git-send-email-mika.westerberg@linux.intel.com>
+ <20160705115142.GO23527@lahna.fi.intel.com>
+ <201607051356.58794@pali>
+ <201607051400.58881@pali>
+ <20160705143115.GP23527@lahna.fi.intel.com>
+ <CAHHiRUQXt_ofTsLzwZWJPXe_-wPE-hAeTxbdnJt03V89rAJpNQ@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-watchdog-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-wm0-f66.google.com ([74.125.82.66]:33509 "EHLO
+	mail-wm0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750928AbcGYKTX (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 25 Jul 2016 06:19:23 -0400
 Content-Disposition: inline
-In-Reply-To: <1468952284-28942-5-git-send-email-fu.wei-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
-Sender: linux-watchdog-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: fu.wei-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org
-Cc: rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org, lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, daniel.lezcano-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org, tglx-hfZtesqFncYOwBW4kG4KsQ@public.gmane.org, marc.zyngier-5wv7dgnIgG8@public.gmane.org, lorenzo.pieralisi-5wv7dgnIgG8@public.gmane.org, sudeep.holla-5wv7dgnIgG8@public.gmane.org, hanjun.guo-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linaro-acpi-cunTk1MwBs8s++Sfvej+rw@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, rruigrok-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org, harba-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org, cov-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org, timur-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org, graeme.gregory-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org, al.stone-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org, jcm-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, wei-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, arnd-r2nGTMty4D4@public.gmane.org, wim-IQzOog9fTRqzQB+pC5nmwQ@public.gmane.org, catalin.marinas-5wv7dgnIgG8@public.gmane.org, Suravee.Suthikulpanit-5C7GfCeVMHo@public.gmane.org, leo.duran-5C7GfCeVMHo@public.gmane.org, linux-0h96xk9xTtrk1uMJSBkQmQ@public.gmane.org, linux-watchdog-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+In-Reply-To: <CAHHiRUQXt_ofTsLzwZWJPXe_-wPE-hAeTxbdnJt03V89rAJpNQ@mail.gmail.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Martin Vajnar <martin.vajnar@gmail.com>
+Cc: Mika Westerberg <mika.westerberg@linux.intel.com>, Jean Delvare <jdelvare@suse.de>, Benjamin Tissoires <benjamin.tissoires@redhat.com>, Wolfram Sang <wsa@the-dreams.de>, Jarkko Nikula <jarkko.nikula@linux.intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Andy Lutomirski <luto@kernel.org>, Mario Limonciello <mario_limonciello@dell.com>, Matt Fleming <matt@codeblueprint.co.uk>, linux-i2c@vger.kernel.org, linux-acpi@vger.kernel.org, Dominique Leuenberger <dimstar@opensuse.org>
 
-On Wed, Jul 20, 2016 at 02:17:59AM +0800, fu.wei-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org wrote:
-> From: Fu Wei <fu.wei-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
-> 
-> This patch simplify arch_counter_get_cntvct_mem function by
-> using readq to get 64-bit CNTVCT value instead of readl_relaxed.
-> 
-> Signed-off-by: Fu Wei <fu.wei-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
-> ---
->  drivers/clocksource/arm_arch_timer.c | 10 +---------
->  1 file changed, 1 insertion(+), 9 deletions(-)
-> 
-> diff --git a/drivers/clocksource/arm_arch_timer.c b/drivers/clocksource/arm_arch_timer.c
-> index e6fd42d..483d2f9 100644
-> --- a/drivers/clocksource/arm_arch_timer.c
-> +++ b/drivers/clocksource/arm_arch_timer.c
-> @@ -418,15 +418,7 @@ u32 arch_timer_get_rate(void)
->  
->  static u64 arch_counter_get_cntvct_mem(void)
->  {
-> -	u32 vct_lo, vct_hi, tmp_hi;
-> -
-> -	do {
-> -		vct_hi = readl_relaxed(arch_counter_base + CNTVCT_HI);
-> -		vct_lo = readl_relaxed(arch_counter_base + CNTVCT_LO);
-> -		tmp_hi = readl_relaxed(arch_counter_base + CNTVCT_HI);
-> -	} while (vct_hi != tmp_hi);
-> -
-> -	return ((u64) vct_hi << 32) | vct_lo;
-> +	return readq(arch_counter_base + CNTVCT_LO);
+On Sunday 24 July 2016 12:08:25 Martin Vajnar wrote:
+> 2016-07-05 16:31 GMT+02:00 Mika Westerberg <mika.westerberg@linux.int=
+el.com>:
+> > On Tue, Jul 05, 2016 at 02:00:58PM +0200, Pali Roh=C3=A1r wrote:
+> >> On Tuesday 05 July 2016 13:56:58 Pali Roh=C3=A1r wrote:
+> >> > On Tuesday 05 July 2016 13:51:42 Mika Westerberg wrote:
+> >> > > So are you able to test what happens when you unload the drive=
+r?
+> >> >
+> >> > As I wrote in previous email, I do not own these EliteBooks anym=
+ore,
+> >> > so cannot test it. Just have DSDT dump...
+> >>
+> >> What about contacting last contributors to hp_accel.c driver? They
+> >> probably could test i801 changes if accelerometer still works.
+> >
+> > Good idea.
+> >
+> > Added Martin and Dominique who did the last additions to that drive=
+r
+> > (hp_accel.c).
+> >
+> > Do you guys still have your HP machines around? If yes, maybe you c=
+an
+> > try v4.7-rc3+ (it should include commit a7ae81952cda ("i2c: i801: A=
+llow
+> > ACPI SystemIO OpRegion to conflict with PCI BAR")) so that you unlo=
+ad
+> > i2c-i801.ko and see if accelerometer still works?
+>=20
+> I still have the HP ProBook 440 G3. I used v4.7-rc7 for the test. I
+> tested all combinations of loading/unloading both hp_accel and
+> i2c_i801 modules and whenever the hp_accel was loaded the
+> accelerometer worked fine.
+>=20
+> Regards,
+> -Martin Vajnar
 
-What's the benefit of doing this? If you use readq here, how can we
-guarantee that (a) the endpoint won't generate a SLVERR or similar and
-(b) that we get an atomic read?
+Great! Thank you for testing.
 
-"If it ain't broke, don't fix it"
-
-Will
+--=20
+Pali Roh=C3=A1r
+pali.rohar@gmail.com
 --
-To unsubscribe from this list: send the line "unsubscribe linux-watchdog" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
