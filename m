@@ -1,46 +1,73 @@
-From: "Rafael J. Wysocki" <rafael@kernel.org>
-Subject: [GIT PULL] PNP update for v4.8-rc1
-Date: Tue, 26 Jul 2016 23:00:27 +0200
-Message-ID: <CAJZ5v0i8UPC_DkdY_taf26y2qV1DCPGXbsqj0Hc_Lh8cbHFsEg@mail.gmail.com>
+From: Lucas Levrel <lucas.levrel@free.fr>
+Subject: Re: Help/info request (in re trip points)
+Date: Tue, 26 Jul 2016 23:01:55 +0200 (CEST)
+Message-ID: <alpine.LNX.2.20.13.1607262256590.2759@localhost>
+References: <alpine.LSU.2.20.13.1607221012230.4463@coulomb.u-pec.fr>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset=ISO-8859-15;
+	format=flowed
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-wm0-f65.google.com ([74.125.82.65]:36461 "EHLO
-	mail-wm0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757179AbcGZVA3 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 26 Jul 2016 17:00:29 -0400
+Received: from smtpfb2-g21.free.fr ([212.27.42.10]:53672 "EHLO
+	smtpfb2-g21.free.fr" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757486AbcGZVJf (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 26 Jul 2016 17:09:35 -0400
+Received: from smtp6-g21.free.fr (smtp6-g21.free.fr [212.27.42.6])
+	by smtpfb2-g21.free.fr (Postfix) with ESMTP id AE4D0CDBDBD
+	for <linux-acpi@vger.kernel.org>; Tue, 26 Jul 2016 23:02:00 +0200 (CEST)
+Received: from [192.168.1.10] (unknown [82.233.253.129])
+	by smtp6-g21.free.fr (Postfix) with ESMTPS id ECD5C7802D6
+	for <linux-acpi@vger.kernel.org>; Tue, 26 Jul 2016 19:22:58 +0200 (CEST)
+In-Reply-To: <alpine.LSU.2.20.13.1607221012230.4463@coulomb.u-pec.fr>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>
+To: linux-acpi@vger.kernel.org
 
-Hi Linus,
 
-Please pull from
+Hi (once more),
 
- git://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm.git \
- pnp-4.8-rc1
+Isn't there anyone who could spare a few minutes to guide me on this?
 
-to receive a PNP subsystem update for v4.8-rc1 as commit
-917c7fc264abb9c470486b157bc7252e53f68fbb
+I found some references to trip_point_?_hyst files, which seem promisin=
+g,=20
+but they aren't there in my sysfs, and I cannot create them (e.g. "touc=
+h:=20
+cannot touch `trip_point_4_hyst': No such file or directory").
 
- PNP: make pnpbios core explicitly non-modular
+Thanks.
 
-on top of commit a99cde438de0c4c0cecc1d1af1a55a75b10bfdef
+Lucas Levrel
 
- Linux 4.7-rc6
+Le 22 juillet 2016, Lucas Levrel a =E9crit :
 
-One simple change to make the PNP core use device_initcall() instead
-of module_init() to run pnpbios_thread_init() (Paul Gortmaker).
-
-Thanks!
-
----------------
-
-Paul Gortmaker (1):
-      PNP: make pnpbios core explicitly non-modular
-
----------------
-
- drivers/pnp/pnpbios/core.c | 3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+> Hi,
+>
+> Is this the right place to request for help and/or information about =
+thermal=20
+> zones? If not, please point me to the right place.
+>
+> I browsed through thermal.c but couldn't find an answer to my questio=
+n (it=20
+> goes without saying I'm not an expert), namely:
+> how are trip point temperatures set at boot, and how are they reset w=
+hen=20
+> crossed?
+>
+> I'm aiming at changing the temperatures at which the fan starts and s=
+tops.=20
+> The kernel parameter thermal.act=3DXXX did change the "fan on" temper=
+ature, but=20
+> not the "fan off" one. I expected the hysteresis T(on)-T(off) to be c=
+onstant,=20
+> and thus I thought T(off) would raise as much as I raised T(on), but =
+this is=20
+> not the case.
+>
+> Any help is greatly appreciated.
+>
+> Lucas Levrel
+--
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
