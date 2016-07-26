@@ -1,131 +1,151 @@
-From: Prashanth Prakash <pprakash@codeaurora.org>
-Subject: [PATCH V2 4/5] ACPI/CPPC: set a non-zero value for transition_latency
-Date: Tue, 26 Jul 2016 13:45:27 -0600
-Message-ID: <1469562328-10201-5-git-send-email-pprakash@codeaurora.org>
-References: <1469562328-10201-1-git-send-email-pprakash@codeaurora.org>
+From: Bjorn Helgaas <helgaas@kernel.org>
+Subject: Re: [PATCH 1/4] x86/ioapic: Support hot-removal of IOAPICs present
+ during boot
+Date: Tue, 26 Jul 2016 15:19:32 -0500
+Message-ID: <20160726201932.GD15037@localhost>
+References: <1469549597-19253-1-git-send-email-rui.y.wang@intel.com>
+ <1469549597-19253-2-git-send-email-rui.y.wang@intel.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp.codeaurora.org ([198.145.29.96]:46257 "EHLO
-	smtp.codeaurora.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756823AbcGZTqD (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 26 Jul 2016 15:46:03 -0400
-In-Reply-To: <1469562328-10201-1-git-send-email-pprakash@codeaurora.org>
+Received: from mail.kernel.org ([198.145.29.136]:46408 "EHLO mail.kernel.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756648AbcGZUTh (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 26 Jul 2016 16:19:37 -0400
+Content-Disposition: inline
+In-Reply-To: <1469549597-19253-2-git-send-email-rui.y.wang@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
-Cc: rjw@rjwysocki.net, alexey.klimov@arm.com, hotran@apm.com, cov@codeaurora.org, pprakash@codeaurora.org
+To: Rui Wang <rui.y.wang@intel.com>
+Cc: tglx@linutronix.de, rjw@rjwysocki.net, tony.luck@intel.com, bhelgaas@google.com, linux-acpi@vger.kernel.org, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org
 
-Compute the expected transition latency for frequency transitions
-using the values from the PCCT tables when the desired perf
-register is in PCC.
+On Wed, Jul 27, 2016 at 12:13:14AM +0800, Rui Wang wrote:
+> IOAPICs present during system boot aren't added to ioapic_list,
+> thus are unable to be hot-removed. Fix it by calling
+> acpi_ioapic_add() during root bus enumeration.
+> 
+> Signed-off-by: Rui Wang <rui.y.wang@intel.com>
+> ---
+>  drivers/acpi/internal.h |  2 --
+>  drivers/acpi/ioapic.c   |  7 ++++---
+>  drivers/acpi/pci_root.c | 13 ++++++++++++-
+>  drivers/pci/setup-bus.c |  5 ++++-
+>  include/linux/acpi.h    |  6 ++++++
+>  5 files changed, 26 insertions(+), 7 deletions(-)
+> 
+> diff --git a/drivers/acpi/internal.h b/drivers/acpi/internal.h
+> index 27cc7fe..6d8e67e 100644
+> --- a/drivers/acpi/internal.h
+> +++ b/drivers/acpi/internal.h
+> @@ -40,10 +40,8 @@ int acpi_sysfs_init(void);
+>  void acpi_container_init(void);
+>  void acpi_memory_hotplug_init(void);
+>  #ifdef	CONFIG_ACPI_HOTPLUG_IOAPIC
+> -int acpi_ioapic_add(struct acpi_pci_root *root);
+>  int acpi_ioapic_remove(struct acpi_pci_root *root);
+>  #else
+> -static inline int acpi_ioapic_add(struct acpi_pci_root *root) { return 0; }
 
-Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Signed-off-by: Prashanth Prakash <pprakash@codeaurora.org>
----
- drivers/acpi/cppc_acpi.c       | 46 ++++++++++++++++++++++++++++++++++++++++--
- drivers/cpufreq/cppc_cpufreq.c |  1 +
- include/acpi/cppc_acpi.h       |  1 +
- 3 files changed, 46 insertions(+), 2 deletions(-)
+It would be nicer if the interface change and header file munging
+were in a separate patch so they wouldn't obscure the meat of the
+change, i.e., the addition of calls to acpi_ioapic_add().
 
-diff --git a/drivers/acpi/cppc_acpi.c b/drivers/acpi/cppc_acpi.c
-index 4a887d4..93abaec 100644
---- a/drivers/acpi/cppc_acpi.c
-+++ b/drivers/acpi/cppc_acpi.c
-@@ -85,7 +85,7 @@ static void __iomem *pcc_comm_addr;
- static int pcc_subspace_idx = -1;
- static bool pcc_channel_acquired;
- static ktime_t deadline;
--static unsigned int pcc_mpar, pcc_mrtt;
-+static unsigned int pcc_mpar, pcc_mrtt, pcc_nominal;
- 
- /* pcc mapped address + header size + offset within PCC subspace */
- #define GET_PCC_VADDR(offs) (pcc_comm_addr + 0x8 + (offs))
-@@ -462,7 +462,6 @@ static int register_pcc_channel(int pcc_subspace_idx)
- 			return -ENODEV;
- 		}
- 
--
- 		/*
- 		 * cppc_ss->latency is just a Nominal value. In reality
- 		 * the remote processor could be much slower to reply.
-@@ -472,6 +471,7 @@ static int register_pcc_channel(int pcc_subspace_idx)
- 		deadline = ns_to_ktime(usecs_lat * NSEC_PER_USEC);
- 		pcc_mrtt = cppc_ss->min_turnaround_time;
- 		pcc_mpar = cppc_ss->max_access_rate;
-+		pcc_nominal = cppc_ss->latency;
- 
- 		pcc_comm_addr = acpi_os_ioremap(cppc_ss->base_address, cppc_ss->length);
- 		if (!pcc_comm_addr) {
-@@ -1036,3 +1036,45 @@ int cppc_set_perf(int cpu, struct cppc_perf_ctrls *perf_ctrls)
- 	return ret;
- }
- EXPORT_SYMBOL_GPL(cppc_set_perf);
-+
-+/**
-+ * cppc_get_transition_latency - returns frequency transition latency in ns
-+ *
-+ * ACPI CPPC does not explicitly specifiy how a platform can specify the
-+ * transition latency for perfromance change requests. The closest we have
-+ * is the timing information from the PCCT tables which provides the info
-+ * on the number and frequency of PCC commands the platform can handle.
-+ */
-+unsigned int cppc_get_transition_latency(int cpu_num)
-+{
-+	/*
-+	 * Expected transition latency is based on the PCCT timing values
-+	 * Below are definition from ACPI spec:
-+	 * pcc_nominal- Expected latency to process a command, in microseconds
-+	 * pcc_mpar   - The maximum number of periodic requests that the subspace
-+	 *              channel can support, reported in commands per minute. 0
-+	 *              indicates no limitation.
-+	 * pcc_mrtt   - The minimum amount of time that OSPM must wait after the
-+	 *              completion of a command before issuing the next command,
-+	 *              in microseconds.
-+	 */
-+	unsigned int latency_ns = 0;
-+	struct cpc_desc *cpc_desc;
-+	struct cpc_register_resource *desired_reg;
-+
-+	cpc_desc = per_cpu(cpc_desc_ptr, cpu_num);
-+	if (!cpc_desc)
-+		return CPUFREQ_ETERNAL;
-+
-+	desired_reg = &cpc_desc->cpc_regs[DESIRED_PERF];
-+	if (!CPC_IN_PCC(desired_reg))
-+		return CPUFREQ_ETERNAL;
-+
-+	if (pcc_mpar)
-+		latency_ns = 60 * (1000 * 1000 * 1000 / pcc_mpar);
-+
-+	latency_ns = max(latency_ns, (pcc_nominal + pcc_mrtt) * 1000);
-+
-+	return latency_ns;
-+}
-+EXPORT_SYMBOL_GPL(cppc_get_transition_latency);
-diff --git a/drivers/cpufreq/cppc_cpufreq.c b/drivers/cpufreq/cppc_cpufreq.c
-index 8882b8e..e6a3359 100644
---- a/drivers/cpufreq/cppc_cpufreq.c
-+++ b/drivers/cpufreq/cppc_cpufreq.c
-@@ -98,6 +98,7 @@ static int cppc_cpufreq_cpu_init(struct cpufreq_policy *policy)
- 	policy->max = cpu->perf_caps.highest_perf;
- 	policy->cpuinfo.min_freq = policy->min;
- 	policy->cpuinfo.max_freq = policy->max;
-+	policy->cpuinfo.transition_latency = cppc_get_transition_latency(cpu_num);
- 	policy->shared_type = cpu->shared_type;
- 
- 	if (policy->shared_type == CPUFREQ_SHARED_TYPE_ANY)
-diff --git a/include/acpi/cppc_acpi.h b/include/acpi/cppc_acpi.h
-index 36ff5c6..7b7e2e1 100644
---- a/include/acpi/cppc_acpi.h
-+++ b/include/acpi/cppc_acpi.h
-@@ -129,5 +129,6 @@ extern int cppc_get_perf_ctrs(int cpu, struct cppc_perf_fb_ctrs *perf_fb_ctrs);
- extern int cppc_set_perf(int cpu, struct cppc_perf_ctrls *perf_ctrls);
- extern int cppc_get_perf_caps(int cpu, struct cppc_perf_caps *caps);
- extern int acpi_get_psd_map(struct cpudata **);
-+extern unsigned int cppc_get_transition_latency(int cpu);
- 
- #endif /* _CPPC_ACPI_H*/
--- 
-Qualcomm Datacenter Technologies on behalf of Qualcomm Technologies, Inc.
-Qualcomm Technologies, Inc. is a member of the
-Code Aurora Forum, a Linux Foundation Collaborative Project.
+>  static inline int acpi_ioapic_remove(struct acpi_pci_root *root) { return 0; }
+>  #endif
+>  #ifdef CONFIG_ACPI_DOCK
+> diff --git a/drivers/acpi/ioapic.c b/drivers/acpi/ioapic.c
+> index ccdc8db..0f272e2 100644
+> --- a/drivers/acpi/ioapic.c
+> +++ b/drivers/acpi/ioapic.c
+> @@ -189,16 +189,17 @@ exit:
+>  	return AE_OK;
+>  }
+>  
+> -int acpi_ioapic_add(struct acpi_pci_root *root)
+> +int acpi_ioapic_add(acpi_handle root_handle)
+>  {
+>  	acpi_status status, retval = AE_OK;
+>  
+> -	status = acpi_walk_namespace(ACPI_TYPE_DEVICE, root->device->handle,
+> +	status = acpi_walk_namespace(ACPI_TYPE_DEVICE, root_handle,
+>  				     UINT_MAX, handle_ioapic_add, NULL,
+> -				     root->device->handle, (void **)&retval);
+> +				     root_handle, (void **)&retval);
+>  
+>  	return ACPI_SUCCESS(status) && ACPI_SUCCESS(retval) ? 0 : -ENODEV;
+>  }
+> +EXPORT_SYMBOL_GPL(acpi_ioapic_add);
 
+What loadable module needs to call this?  It shouldn't be exported
+unless there is such a module.
+
+>  int acpi_ioapic_remove(struct acpi_pci_root *root)
+>  {
+> diff --git a/drivers/acpi/pci_root.c b/drivers/acpi/pci_root.c
+> index ae3fe4e..d818c61 100644
+> --- a/drivers/acpi/pci_root.c
+> +++ b/drivers/acpi/pci_root.c
+> @@ -614,7 +614,18 @@ static int acpi_pci_root_add(struct acpi_device *device,
+>  	if (hotadd) {
+>  		pcibios_resource_survey_bus(root->bus);
+>  		pci_assign_unassigned_root_bus_resources(root->bus);
+> -		acpi_ioapic_add(root);
+> +
+> +		/*
+> +		 * This is only called for the hotadd case. For the boot-time
+> +		 * case, we need to wait until after PCI initialization in
+> +		 * order to deal with IOAPICs mapped in on a PCI BAR.
+> +		 *
+> +		 * This is currently x86-specific, because acpi_ioapic_add()
+> +		 * is an empty function without CONFIG_ACPI_HOTPLUG_IOAPIC.
+> +		 * And CONFIG_ACPI_HOTPLUG_IOAPIC depends on CONFIG_X86_IO_APIC
+> +		 * (see drivers/acpi/Kconfig).
+> +		 */
+> +		acpi_ioapic_add(root->device->handle);
+>  	}
+>  
+>  	pci_lock_rescan_remove();
+> diff --git a/drivers/pci/setup-bus.c b/drivers/pci/setup-bus.c
+> index 55641a3..e32c356 100644
+> --- a/drivers/pci/setup-bus.c
+> +++ b/drivers/pci/setup-bus.c
+> @@ -25,6 +25,7 @@
+>  #include <linux/ioport.h>
+>  #include <linux/cache.h>
+>  #include <linux/slab.h>
+> +#include <linux/acpi.h>
+>  #include "pci.h"
+>  
+>  unsigned int pci_flags;
+> @@ -1779,8 +1780,10 @@ void __init pci_assign_unassigned_resources(void)
+>  {
+>  	struct pci_bus *root_bus;
+>  
+> -	list_for_each_entry(root_bus, &pci_root_buses, node)
+> +	list_for_each_entry(root_bus, &pci_root_buses, node) {
+>  		pci_assign_unassigned_root_bus_resources(root_bus);
+> +		acpi_ioapic_add(ACPI_HANDLE(root_bus->bridge));
+> +	}
+>  }
+>  
+>  void pci_assign_unassigned_bridge_resources(struct pci_dev *bridge)
+> diff --git a/include/linux/acpi.h b/include/linux/acpi.h
+> index 288fac5..f5114dc 100644
+> --- a/include/linux/acpi.h
+> +++ b/include/linux/acpi.h
+> @@ -680,6 +680,12 @@ static inline enum dev_dma_attr acpi_get_dma_attr(struct acpi_device *adev)
+>  
+>  #endif	/* !CONFIG_ACPI */
+>  
+> +#ifdef CONFIG_ACPI_HOTPLUG_IOAPIC
+> +int acpi_ioapic_add(acpi_handle root);
+> +#else
+> +static inline int acpi_ioapic_add(acpi_handle root) { return 0; }
+> +#endif
+> +
+>  #ifdef CONFIG_ACPI
+>  void acpi_os_set_prepare_sleep(int (*func)(u8 sleep_state,
+>  			       u32 pm1a_ctrl,  u32 pm1b_ctrl));
+> -- 
+> 1.8.3.1
+> 
