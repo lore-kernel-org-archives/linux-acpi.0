@@ -1,7 +1,7 @@
 From: Dou Liyang <douly.fnst@cn.fujitsu.com>
-Subject: [PATCH v10 5/7] x86, acpi, cpu-hotplug: Set persistent cpuid <-> nodeid mapping when booting.
-Date: Tue, 26 Jul 2016 14:10:27 +0800
-Message-ID: <1469513429-25464-6-git-send-email-douly.fnst@cn.fujitsu.com>
+Subject: [PATCH v10 3/7] x86, acpi, cpu-hotplug: Introduce cpuid_to_apicid[] array to store persistent cpuid <-> apicid mapping.
+Date: Tue, 26 Jul 2016 14:10:25 +0800
+Message-ID: <1469513429-25464-4-git-send-email-douly.fnst@cn.fujitsu.com>
 References: <1469513429-25464-1-git-send-email-douly.fnst@cn.fujitsu.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -23,190 +23,150 @@ It contains 4 steps:
 3. Enable _MAT and MADT relative apis to return non-presnet or disabled cpus' apicid.
 4. Establish all possible cpuid <-> nodeid mapping.
 
-This patch finishes step 4.
+This patch finishes step 2.
 
-This patch set the persistent cpuid <-> nodeid mapping for all enabled/disabled
-processors at boot time via an additional acpi namespace walk for processors.
+In this patch, we introduce a new static array named cpuid_to_apicid[],
+which is large enough to store info for all possible cpus.
+
+And then, we modify the cpuid calculation. In generic_processor_info(),
+it simply finds the next unused cpuid. And it is also why the cpuid <-> nodeid
+mapping changes with node hotplug.
+
+After this patch, we find the next unused cpuid, map it to an apicid,
+and store the mapping in cpuid_to_apicid[], so that cpuid <-> apicid
+mapping will be persistent.
+
+And finally we will use this array to make cpuid <-> nodeid persistent.
+
+cpuid <-> apicid mapping is established at local apic registeration time.
+But non-present or disabled cpus are ignored.
+
+In this patch, we establish all possible cpuid <-> apicid mapping when
+registering local apic.
 
 Signed-off-by: Gu Zheng <guz.fnst@cn.fujitsu.com>
 Signed-off-by: Tang Chen <tangchen@cn.fujitsu.com>
 Signed-off-by: Zhu Guihua <zhugh.fnst@cn.fujitsu.com>
 Signed-off-by: Dou Liyang <douly.fnst@cn.fujitsu.com>
 ---
- arch/ia64/kernel/acpi.c       |  3 +-
- arch/x86/kernel/acpi/boot.c   |  4 ++-
- drivers/acpi/acpi_processor.c |  5 ++++
- drivers/acpi/bus.c            |  1 +
- drivers/acpi/processor_core.c | 67 +++++++++++++++++++++++++++++++++++++++++++
- include/linux/acpi.h          |  3 ++
- 6 files changed, 81 insertions(+), 2 deletions(-)
+ arch/x86/include/asm/mpspec.h |  1 +
+ arch/x86/kernel/acpi/boot.c   |  6 ++---
+ arch/x86/kernel/apic/apic.c   | 61 ++++++++++++++++++++++++++++++++++++++++---
+ 3 files changed, 61 insertions(+), 7 deletions(-)
 
-diff --git a/arch/ia64/kernel/acpi.c b/arch/ia64/kernel/acpi.c
-index b1698bc..bb36515 100644
---- a/arch/ia64/kernel/acpi.c
-+++ b/arch/ia64/kernel/acpi.c
-@@ -796,7 +796,7 @@ int acpi_isa_irq_to_gsi(unsigned isa_irq, u32 *gsi)
-  *  ACPI based hotplug CPU support
-  */
- #ifdef CONFIG_ACPI_HOTPLUG_CPU
--static int acpi_map_cpu2node(acpi_handle handle, int cpu, int physid)
-+int acpi_map_cpu2node(acpi_handle handle, int cpu, int physid)
- {
- #ifdef CONFIG_ACPI_NUMA
- 	/*
-@@ -811,6 +811,7 @@ static int acpi_map_cpu2node(acpi_handle handle, int cpu, int physid)
+diff --git a/arch/x86/include/asm/mpspec.h b/arch/x86/include/asm/mpspec.h
+index b07233b..db902d8 100644
+--- a/arch/x86/include/asm/mpspec.h
++++ b/arch/x86/include/asm/mpspec.h
+@@ -86,6 +86,7 @@ static inline void early_reserve_e820_mpc_new(void) { }
  #endif
- 	return 0;
- }
-+EXPORT_SYMBOL(acpi_map_cpu2node);
  
- int additional_cpus __initdata = -1;
+ int generic_processor_info(int apicid, int version);
++int __generic_processor_info(int apicid, int version, bool enabled);
+ 
+ #define PHYSID_ARRAY_SIZE	BITS_TO_LONGS(MAX_LOCAL_APIC)
  
 diff --git a/arch/x86/kernel/acpi/boot.c b/arch/x86/kernel/acpi/boot.c
-index 37248c3..0900264f 100644
+index 9414f84..37248c3 100644
 --- a/arch/x86/kernel/acpi/boot.c
 +++ b/arch/x86/kernel/acpi/boot.c
-@@ -695,7 +695,7 @@ static void __init acpi_set_irq_model_ioapic(void)
- #ifdef CONFIG_ACPI_HOTPLUG_CPU
- #include <acpi/processor.h>
- 
--static void acpi_map_cpu2node(acpi_handle handle, int cpu, int physid)
-+int acpi_map_cpu2node(acpi_handle handle, int cpu, int physid)
- {
- #ifdef CONFIG_ACPI_NUMA
- 	int nid;
-@@ -706,7 +706,9 @@ static void acpi_map_cpu2node(acpi_handle handle, int cpu, int physid)
- 		numa_set_node(cpu, nid);
+@@ -174,15 +174,13 @@ static int acpi_register_lapic(int id, u8 enabled)
+ 		return -EINVAL;
  	}
- #endif
-+	return 0;
+ 
+-	if (!enabled) {
++	if (!enabled)
+ 		++disabled_cpus;
+-		return -EINVAL;
+-	}
+ 
+ 	if (boot_cpu_physical_apicid != -1U)
+ 		ver = apic_version[boot_cpu_physical_apicid];
+ 
+-	return generic_processor_info(id, ver);
++	return __generic_processor_info(id, ver, enabled);
  }
-+EXPORT_SYMBOL(acpi_map_cpu2node);
  
- int acpi_map_cpu(acpi_handle handle, phys_cpuid_t physid, int *pcpu)
- {
-diff --git a/drivers/acpi/acpi_processor.c b/drivers/acpi/acpi_processor.c
-index e85b19a..0c15828 100644
---- a/drivers/acpi/acpi_processor.c
-+++ b/drivers/acpi/acpi_processor.c
-@@ -182,6 +182,11 @@ int __weak arch_register_cpu(int cpu)
+ static int __init
+diff --git a/arch/x86/kernel/apic/apic.c b/arch/x86/kernel/apic/apic.c
+index 8e3c377..366fbbc 100644
+--- a/arch/x86/kernel/apic/apic.c
++++ b/arch/x86/kernel/apic/apic.c
+@@ -1998,7 +1998,53 @@ void disconnect_bsp_APIC(int virt_wire_setup)
+ 	apic_write(APIC_LVT1, value);
+ }
  
- void __weak arch_unregister_cpu(int cpu) {}
- 
-+int __weak acpi_map_cpu2node(acpi_handle handle, int cpu, int physid)
+-static int __generic_processor_info(int apicid, int version, bool enabled)
++/*
++ * The number of allocated logical CPU IDs. Since logical CPU IDs are allocated
++ * contiguously, it equals to current allocated max logical CPU ID plus 1.
++ * All allocated CPU ID should be in [0, nr_logical_cpuidi), so the maximum of
++ * nr_logical_cpuids is nr_cpu_ids.
++ *
++ * NOTE: Reserve 0 for BSP.
++ */
++static int nr_logical_cpuids = 1;
++
++/*
++ * Used to store mapping between logical CPU IDs and APIC IDs.
++ */
++static int cpuid_to_apicid[] = {
++	[0 ... NR_CPUS - 1] = -1,
++};
++
++/*
++ * Should use this API to allocate logical CPU IDs to keep nr_logical_cpuids
++ * and cpuid_to_apicid[] synchronized.
++ */
++static int allocate_logical_cpuid(int apicid)
 +{
-+	return -ENODEV;
-+}
++	int i;
 +
- static int acpi_processor_hotadd_init(struct acpi_processor *pr)
- {
- 	unsigned long long sta;
-diff --git a/drivers/acpi/bus.c b/drivers/acpi/bus.c
-index 262ca31..0fe5f54 100644
---- a/drivers/acpi/bus.c
-+++ b/drivers/acpi/bus.c
-@@ -1124,6 +1124,7 @@ static int __init acpi_init(void)
- 	acpi_sleep_proc_init();
- 	acpi_wakeup_device_init();
- 	acpi_debugger_init();
-+	acpi_set_processor_mapping();
- 	return 0;
- }
- 
-diff --git a/drivers/acpi/processor_core.c b/drivers/acpi/processor_core.c
-index 824b98b..e814cd4 100644
---- a/drivers/acpi/processor_core.c
-+++ b/drivers/acpi/processor_core.c
-@@ -261,6 +261,73 @@ int acpi_get_cpuid(acpi_handle handle, int type, u32 acpi_id)
- }
- EXPORT_SYMBOL_GPL(acpi_get_cpuid);
- 
-+#ifdef CONFIG_ACPI_HOTPLUG_CPU
-+static bool map_processor(acpi_handle handle, phys_cpuid_t *phys_id, int *cpuid)
-+{
-+	int type;
-+	u32 acpi_id;
-+	acpi_status status;
-+	acpi_object_type acpi_type;
-+	unsigned long long tmp;
-+	union acpi_object object = { 0 };
-+	struct acpi_buffer buffer = { sizeof(union acpi_object), &object };
-+
-+	status = acpi_get_type(handle, &acpi_type);
-+	if (ACPI_FAILURE(status))
-+		return false;
-+
-+	switch (acpi_type) {
-+	case ACPI_TYPE_PROCESSOR:
-+		status = acpi_evaluate_object(handle, NULL, NULL, &buffer);
-+		if (ACPI_FAILURE(status))
-+			return false;
-+		acpi_id = object.processor.proc_id;
-+		break;
-+	case ACPI_TYPE_DEVICE:
-+		status = acpi_evaluate_integer(handle, "_UID", NULL, &tmp);
-+		if (ACPI_FAILURE(status))
-+			return false;
-+		acpi_id = tmp;
-+		break;
-+	default:
-+		return false;
++	/*
++	 * cpuid <-> apicid mapping is persistent, so when a cpu is up,
++	 * check if the kernel has allocated a cpuid for it.
++	 */
++	for (i = 0; i < nr_logical_cpuids; i++) {
++		if (cpuid_to_apicid[i] == apicid)
++			return i;
 +	}
 +
-+	type = (acpi_type == ACPI_TYPE_DEVICE) ? 1 : 0;
++	/* Allocate a new cpuid. */
++	if (nr_logical_cpuids >= nr_cpu_ids) {
++		WARN_ONCE(1, "Only %d processors supported."
++			     "Processor %d/0x%x and the rest are ignored.\n",
++			     nr_cpu_ids - 1, nr_logical_cpuids, apicid);
++		return -1;
++	}
 +
-+	*phys_id = __acpi_get_phys_id(handle, type, acpi_id, false);
-+	*cpuid = acpi_map_cpuid(*phys_id, acpi_id);
-+	if (*cpuid == -1)
-+		return false;
-+
-+	return true;
++	cpuid_to_apicid[nr_logical_cpuids] = apicid;
++	return nr_logical_cpuids++;
 +}
 +
-+static acpi_status __init
-+set_processor_node_mapping(acpi_handle handle, u32 lvl, void *context,
-+			   void **rv)
-+{
-+	phys_cpuid_t phys_id;
-+	int cpu_id;
++int __generic_processor_info(int apicid, int version, bool enabled)
+ {
+ 	int cpu, max = nr_cpu_ids;
+ 	bool boot_cpu_detected = physid_isset(boot_cpu_physical_apicid,
+@@ -2079,8 +2125,17 @@ static int __generic_processor_info(int apicid, int version, bool enabled)
+ 		 * for BSP.
+ 		 */
+ 		cpu = 0;
+-	} else
+-		cpu = cpumask_next_zero(-1, cpu_present_mask);
 +
-+	if (!map_processor(handle, &phys_id, &cpu_id))
-+		return AE_ERROR;
-+
-+	acpi_map_cpu2node(handle, cpu_id, phys_id);
-+	return AE_OK;
-+}
-+
-+void __init acpi_set_processor_mapping(void)
-+{
-+	/* Set persistent cpu <-> node mapping for all processors. */
-+	acpi_walk_namespace(ACPI_TYPE_PROCESSOR, ACPI_ROOT_OBJECT,
-+			    ACPI_UINT32_MAX, set_processor_node_mapping,
-+			    NULL, NULL, NULL);
-+}
-+#else
-+void __init acpi_set_processor_mapping(void) {}
-+#endif /* CONFIG_ACPI_HOTPLUG_CPU */
-+
- #ifdef CONFIG_ACPI_HOTPLUG_IOAPIC
- static int get_ioapic_id(struct acpi_subtable_header *entry, u32 gsi_base,
- 			 u64 *phys_addr, int *ioapic_id)
-diff --git a/include/linux/acpi.h b/include/linux/acpi.h
-index 288fac5..30df63c 100644
---- a/include/linux/acpi.h
-+++ b/include/linux/acpi.h
-@@ -258,8 +258,11 @@ static inline bool invalid_phys_cpuid(phys_cpuid_t phys_id)
- /* Arch dependent functions for cpu hotplug support */
- int acpi_map_cpu(acpi_handle handle, phys_cpuid_t physid, int *pcpu);
- int acpi_unmap_cpu(int cpu);
-+int acpi_map_cpu2node(acpi_handle handle, int cpu, int physid);
- #endif /* CONFIG_ACPI_HOTPLUG_CPU */
++		/* Logical cpuid 0 is reserved for BSP. */
++		cpuid_to_apicid[0] = apicid;
++	} else {
++		cpu = allocate_logical_cpuid(apicid);
++		if (cpu < 0) {
++			if (enabled)
++				disabled_cpus++;
++			return -EINVAL;
++		}
++	}
  
-+void __init acpi_set_processor_mapping(void);
-+
- #ifdef CONFIG_ACPI_HOTPLUG_IOAPIC
- int acpi_get_ioapic_id(acpi_handle handle, u32 gsi_base, u64 *phys_addr);
- #endif
+ 	/*
+ 	 * This can happen on physical hotplug. The sanity check at boot time
 -- 
 2.5.5
 
