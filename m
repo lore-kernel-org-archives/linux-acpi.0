@@ -1,387 +1,98 @@
 From: Al Stone <ahs3@redhat.com>
-Subject: [RFC DSD v2 03/04] _DSD Formal Language Ruleset
-Date: Tue, 26 Jul 2016 10:36:02 -0600
-Message-ID: <8b92fa2a-6c0d-e10a-4a95-52cbe32b9344@redhat.com>
+Subject: [RFC DSD v2 04/04] Informal ChangeLog
+Date: Tue, 26 Jul 2016 10:37:03 -0600
+Message-ID: <30b3b6e5-4501-f5c4-dd99-aca0664c85eb@redhat.com>
 References: <8a3271a9-7085-353f-6c57-c633671704d2@redhat.com>
 Reply-To: ahs3@redhat.com
 Mime-Version: 1.0
 Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-io0-f173.google.com ([209.85.223.173]:33746 "EHLO
-	mail-io0-f173.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754356AbcGZQgG (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 26 Jul 2016 12:36:06 -0400
-Received: by mail-io0-f173.google.com with SMTP id 38so29457498iol.0
-        for <linux-acpi@vger.kernel.org>; Tue, 26 Jul 2016 09:36:04 -0700 (PDT)
+Received: from mail-io0-f171.google.com ([209.85.223.171]:35224 "EHLO
+	mail-io0-f171.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757190AbcGZQhF (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 26 Jul 2016 12:37:05 -0400
+Received: by mail-io0-f171.google.com with SMTP id m101so29392873ioi.2
+        for <linux-acpi@vger.kernel.org>; Tue, 26 Jul 2016 09:37:05 -0700 (PDT)
 In-Reply-To: <8a3271a9-7085-353f-6c57-c633671704d2@redhat.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: ACPI Devel Mailing List <linux-acpi@vger.kernel.org>
 Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Charles Garcia-Tobin <Charles.Garcia-Tobin@arm.com>, "Hart, Darren" <darren.hart@intel.com>
 
-_DSD Formal Language Ruleset
-============================
-Dated:	2016-07-25
-Status:	DRAFT
-
-
-Contents
---------
-1. Purpose
-2. Formalisms for Describing Property Sets
-    2.1 Notes on Database Structure
-    2.2 Formal Language for Property Sets
-        2.2.1 Set Definition
-        2.2.2 Preamble Definition
-        2.2.3 Set Location
-        2.2.4 Property Definitions
-        2.2.5 Additional Syntactical and Semantic Rules
-        2.2.6 A Brief and Incomplete Example
-3. References
-4. Contributors
-
-
-
-1. Purpose
-----------
-This document specifies the formal language to be used for describing
-property sets to be registered in the common database of device
-properties [1].  This common database is to be used with the ACPI _DSD
-(Device Specific Data) device configuration object along with the Device
-Properties UUID, daffd814-6eba-4d8c-8a91-bc9bbf4aa301 [2].
-
-Definitions of the terms "device properties", "property sets", "property
-subsets", and the process for requesting they be included in the common
-database of device properties are documented independently [3].
-
-
-2. Formalisms for Describing Property Sets
-------------------------------------------
-
-2.1. Notes on Database Structure
---------------------------------
-Given the database structure described in [1], the directory tree for
-a database might look something like the following:
-
---- Path ----------------------------------            -- Entries --
-
-+-- root						1
-     |
-     +-- bus ("acpi"|"pci"|"common")			1..n
-          |
-          +-- vendor directory ("YYDN")			1..n
-             |
-	     + Device ID ("YYDN0007"|...)		1..n
-	        |
-		+ revision ("0"|"1"|...)		1..n
-                   |
-		   + property attributes file		1..n
-		   |
-		   + property subset tree		1..n
-		      |
-		      + property attributes file	1..n
-		      |
-		      + property subset tree		1..n
-
-
-This is just a quick overview of the possible internal structure.  There
-will be only one root, but there are can be one to n subdirectories or
-files of each and every flavor.  In parentheses, we can see what some of
-the values might be, so that we might have a path that looks like this:
-
-/acpi/YYDN/YYDN0007/0/instruction-cycles-per-fortnight
-
-Again, this is just an example, provided to be more concrete about the
-database and its content, and to show how a formal language can be
-geared towards describing that content.
-
-
-2.2. Formal Language for Property Sets
---------------------------------------
-When someone asks to register a property set, what information must they
-provide?  Informally, we need enough information to be able to place a
-file in the database directory, and then stash a bit more information in
-that file to describe a property and its possible values.
-
-
-2.2.1. Set Definition
----------------------
-On a more formal basis, we can use BNF to describe what we need:
-
-    <set-definition> ::= <set-preamble> <set-location> <set-properties>
-
-That is, each property set definition consists of a preamble, some
-location information, and property definitions.
-
-
-2.2.2. Preamble Definition
---------------------------
-The preamble provides an identifying name for the set, defines what type
-of set we have, lists any other sets this one may be derived from, and
-who approved the registration; optionally, we can include who submitted
-it, and who reviewed it, solely for historical records:
-
-    <set-preamble> ::= <set-name> <set-type> [ <parent-sets> ]
-		       <acks> [ <submitters> ] [ <reviewers> ]
-
-    <set-name> ::= "property-set" ":" <name> <EOL>
-
-    <set-type> ::= "set-type" ":" <type-name> <EOL>
-    <type-name> ::= "abstract" | "subset" | "definition"
-
-    <parent-sets> ::= "derived-from" ":" <set-list>
-    <set-list> ::= <full-path-to-parent> { <EOL> <full-path-to-parent> } <EOL>
-
-    <acks> ::= <acked-by> | <acked-by> <acks>
-    <acked-by> ::= "acked-by" ":" <person> <EOL>
-
-    <person> ::= <first-name> <last-name> "<" <email-address> ">"
-
-    <submitters> ::= <submitted-by> | <submitted-by> <submitters>
-    <submitted-by> ::= "submitted-by" ":" <person> <EOL>
-
-    <reviewers> ::= <reviewed-by> | <reviewed-by> <reviewers>
-    <reviewed-by> ::= "reviewed-by" ":" <person> <EOL>
-
-A <name> may not include an <EOL>, commas (",") or slashes ("/").
-
-A property set can be "abstract", a "subset", or a "definition."  A
-definition has no ambiguity: we know precisely where to put the
-information in the database, what the property is, and what type it is.
-A subset is a collection of property definitions for a single device.
-An abstract set could be located in any number of places in the database
-directory tree and is only present in order to provide properties other
-definitions can re-use.
-
-The <submitters>, if not provided, will be gleaned from the email the
-property set was sent in (the From: header, see [3] for details on the
-submission process).  The <reviewers> will be gleaned from emails sent
-in response to a submission on the dsd@acpica.org mailing list; the line
-"Reviewed-by: Name <email@address>" will be the indicator to add such a
-line to the property set definition.  The <acks> are similar in that (1)
-there must be an email on the mailing list with "Acked-by: Name
-<email@address>", but (2) the name used will be checked againt the list
-of database maintainers and must be present there before it is
-considered valid.
-
-There may be multiple <derived-from> lines; <acks>, <submitters> and
-<reviewers> can be multiple lines as well.
-
-
-2.2.3. Set Location
--------------------
-Location information tells us where in the database we need to place the
-device properties being defined in this set:
-
-    <set-location> ::= <abstract-set-location> | <full-set-location>
-    <abstract-set-location> ::= <vendor> [ <bus> ] [ <device-id> ] <revision>
-    <full-set-location> ::= <vendor> <bus> <device-id> <revision>
-
-    <vendor> ::= "vendor" ":" <name> <EOL>
-
-    <bus> ::= "bus" ":" <name> [ "," "shared" ] <EOL>
-
-    <device-id> ::= "device-id" ":" <identifier> <EOL>
-
-    <revision> ::= "revision" ":" <revision-string> <EOL>
-
-    <revision-string> ::= <integral-value> { '.' <integral-value> }
-    <integral-value> ::= any C integer string
-
-These can be assembled into a path in the database:
-
-    /bus-name/vendor-name/device-id-identifier/revision-string
-
-Unless this is an abstract property set for other sets to inherit from,
-all parts of the path must be provided.  For an abstract set, bus and
-vendor are the only required parts.
-
-An <identifier> is the string used by the OS reading a property set to
-connect a device to a device driver (e.g., PNP0010, or ACPI0007).
-
-
-2.2.4. Property Definitions
----------------------------
-A stanza must be provided to describe each individual property that is
-an element of a property set:
-
-    <set-properties> ::= <property-definition> |
-			 <property-definition> <set-properties>
-
-    <property-definition> ::= <property-name> <property-type>
-			      [ <property-usage> ]
-			      [ <property-values> ]
-			      [ <property-description> ]
-			      [ <property-example> ]
-			      [ <property-dependency> ]
-
-    <property-name> ::= "property" ":" <name> <EOL>
-
-    <property-type> ::= "type" ":" <type-name> <EOL>
-    <type-name> ::= "integer" | "string" | "reference" | "package"
-
-    <property-usage> ::= "usage" ":" "required" | "optional" <EOL>
-
-    <property-values> ::= "values" ":" <value-list>
-    <value-list> ::= <value-constraint> | <value-constraint> <value-list>
-    <value-constraint> ::= <string-value> | <integer-value> |
-			   <reference-value> | <subpackage-value>
-    <string-value> ::= "token" ":" <string> <EOL>
-                       "description" ":" <string> <EOL>
-    <integer-value> ::= "integer" ":" <range-list> <EOL>
-                        "description" ":" <string> <EOL>
-    <range-list> ::= <range> { "," <range> }
-    <range> ::= <integer> ".." <integer> | <integer>
-    <reference-value> ::= "reference" ":" <ACPI-name> <EOL>
-                          "description" ":" <string> <EOL>
-    <subpackage-value> ::= "subpackage" ":" <subpackage-definition> <EOL>
-                           "description" ":" <string> <EOL>
-    <subpackage-definition> ::= "{" <field-type> { "," <field-type> } "}"
-    <field-type> ::= "integer" | "reference" | "string" |
-		     <subpackage-definition>
-
-    <property-description> ::= "description" ":" <free-form-text>
-
-    <property-example> ::= "example" ":" <free-form-text>
-
-    <free-form-text> ::= <any-text> <EOL> { " " <any-text> <EOL> } <EOL>
-
-    <property-dependency> ::= "requires" ":" <property-name-list>
-    <property-name-list> ::= <name> { "," <name> }
-
-A <string> starts with the first non-blank character and continues to
-the <EOL>; any white space between the last non-blank and the <EOL> will
-be removed.
-
-
-2.2.5. Additional Syntactical and Semantic Rules
-------------------------------------------------
-Comments start anywhere in a line of text, using the "#", and continue
-to the end of the line ("<EOL>").
-
-Most lines consist of a keyword, followed by a ":", followed by text
-providing a value, followed by an <EOL>.  The only exceptions are
-descriptions and examples that may have several lines of text, with each
-continuation line starting with a " ".  The first line that is either an
-empty line or starts with something other than a " " terminates the
-block of text.
-
-Lines may generally appear in almost any order, within some constraints:
-
-    -- A <set-name> marks the beginning of a property set and all lines
-       after it, until the next <set-name>, will be part of that set.
-       So, a <set-type> will always define the type of the prior
-       <set-name> in the file.
-
-    -- Similarly, a <property-name> marks the beginning of a property
-       definition and all lines after it until the next <property-name>,
-       will be part of that definition.  So, a <property-type> will
-       always define the type of the prior <property-name> in the file.
-
-    -- Set location information always defines the location of the
-       previous <set-name> in the file, and applies identically to all
-       property definitions provided in the set.
-
-    -- Property values, if given, must follow the order given in the
-       BNF: "values:<EOL>" followed by one or more sets of "token:
-       <string><EOL> description: <string><EOL>", or the equivalent
-       "integer: <range><EOL> description: <string> <EOL>".  This is the
-       only rigorous ordering defined.
-
-In general, white space and blank lines are ignored and irrelevant.  The
-text for descriptions and examples is the only time it is relevant, and
-then only to indicate the continuation of the text.
-
-If a property has a <property-dependency>, each <property-name> must be
-a name being defined in the current property set, or a parent set the
-property set is derived from.
-
-If a property does not have a <property-usage> explicitly stated, it is
-assumed to be "optional."  However, if <property-usage> indicates the
-property is "required," and the property also has a
-<property-dependency>, any dependencies also become "required."
-
-If a property set is derived from other sets, the full path to the
-parent sets must be provided.
-
-Properties in derived sets cannot override definitions in sets they
-have inherited from.  If property set A defines a property "some-name",
-and property set B is derived from A, then B cannot also contain a
-property "some-name", and will be considered in error.
-
-As noted in [1], revision strings consist of groupings of ASCII digits
-separated by a '.', or any numeric value commonly used in the C
-language.  Comparison is from left to right, and values are compared
-numerically; any group not present is assumed to be zero.  For example,
-revision '1.4' > '1.3.1', '0x01040000' > '0x01030100', and '20160421' >
-'20160312'.  New revisions must always be greater than any existing
-revisions; i.e., you cannot add revision '1.3.1' if '1.4' already
-exists.
-
-
-
-2.2.6. A Brief and Incomplete Example
--------------------------------------
-property-set:	NIC Device Properties
-set-type:	definition
-bus:		pci
-vendor:		YYDN
-device-id:	YYDN1001
-revision:	0
-derived-from:	/pci/YYDN/YYDN1000/25
-
-property:	phy-mode
-type:		string
-description:
-	Defines the PHY mode to be used for this device.
-values:
-	token:		na
-	description:	none available
-	token:		mii
-	description	media independent interface (MII)
-	token:		gmii
-	description	gigabit MII
-	token:		sgmii
-	description	serial gigabit MII
-example:
-	Package (2) { "phy-mode", "gmii" }
-
-property:	phy-channel
-type:		integer
-values:
-	integer:	0..255
-	description:	hex value of the PHY channel number
-description:
-	If present, defines the PHY channel number (in hex) to be used
-	by this device.
-example:
-	Package (2) { "phy-channel", 3 }
-
-submitted-by:	N. Bonaparte <nb@waterloo.be>
-acked-by:	A. Wellesley <duke@wellington.co.uk>
-
-
-3. References
--------------
-[1] See document entitled "_DSD Property Database Ruleset"
-
-[2]
-http://www.uefi.org/sites/default/files/resources/_DSD-device-properties-UUID.pdf
-
-[3] See document entitled "_DSD Property Registration Ruleset"
-
-
-4. Contributors
----------------
-In alphabetical order, by first name:
-
-Al Stone <ahs3@redhat.com>
-Charles Garcia-Tobin <charles.garcia-tobin@arm.com>
-Darren Hart <darren.hart@intel.com>
-David Woodhouse <david.woodhouse@intel.com>
-Mark Doran <mark.doran@intel.com>
-Rafael Wysocki <rafael.j.wysocki@intel.com>
-Robert Gough <robert.gough@intel.com>
+===== v0.0.11 ==========================================================
+
+Parser/Tools:
+=============
+-- Updated the tools to reflect the documentation changes below
+
+Documentation:
+==============
+-- [Robert Gough] db doc:
+>>> Section 2.1, I believe the top level directories should not be vendors,
+>>> but bus types. The next level would then be vendors, based on the
+>>> bus-assigned Vendor ID. For example, bus types would include ACPI, PCI,
+>>> USB, etc. Subdirectories would then be bus-specific. So for example,
+>>> Intel would own properties under ACPI/INTC and PCI/0x8086. This would
+>>> provide an unambiguous mechanism for determining ownership of property
+>>> definition.
+	-- changed in database_rules.txt
+
+-- [Robert Gough] db doc:
+>>> In section 2.2, I believe the requirement for "00-base-sets" as well as
+>>> the '/' character should be removed from this doc and included in the
+>>> 0003-formal-language document, but I haven't gotten there yet.
+	-- changed in database_rules.txt
+	-- removed the mention of 00-base-sets as an implementation
+	   detail; there's no real need for us to specify that level
+	   of info to be used by the tools.
+
+-- Explain clearly that "derives-from: B, C" implies an order of use for
+>> common names -- e.g., that B/foo takes precedence over C/foo, which will
+>> be ignored.
+	-- changed in database_rules.txt
+
+-- Consensus: overriding a property definition is not allowed.
+	-- stated explicitly in database_rules.txt
+	-- stated explicitly in formal_language.txt
+
+-- [Robert Gough] db doc:
+>>> Furthermore, I'd like to suggest that using a different scheme for
+>>> versioning may be more useful. It may make sense for a given property
+>>> set to map to a specification which uses versioning beyond simple
+>>> integers, and it may be preferable to have those versions match the
+>>> property set versions; so something like 1.3.5 or 0x01030500, for a
+>>> major.minor.secondary.tertiary scheme, or something like this <solicit
+>>> discussion...>. Also, to go along with this, in section 4 I would
+>>> recommend stating that any "new revision" must be greater than any
+>>> previously defined revision- such that one cannot create version 1.3.1
+>>> after version 1.4 has been defined.
+	-- relaxed the definition of a revision string to be any C
+	   integer string (0x0, 007, 0b01000010) -- for example,
+	   20150419, 0x01030500, 1.5.3.1, 12
+	-- added proper text to database_rules.txt
+	-- added proper text to formal_language.txt
+
+-- Consensus: amendments to the text on making changes need to say:
+>>
+>> (1) *No* changes to an accepted property set is too strict.
+>>
+>> (2) Changes to a property set are only allowed in new revisions.
+>>
+>> (3) Changes to an accepted property set are allowed if either:
+>>
+>>     (a) The change is an obvious typographical error, or,
+>>
+>>     (b) The change is an erratum, meant to correct the property set
+>>         so that it accurately reflects shipping firmware, or,
+>>
+>>     (c) The change is to an existing data validation rule to make it
+>>         stricter, which ensures we maintain backwards compatibility.
+>>         The change cannot not change the types of values, or allow
+>>         for a broader range of values.
+	-- added the text above to process_rules.txt
+	-- added pointer to the text above in process_rules.txt to
+	   database_rules.txt
+	-- minor rewrites, but content remains the same
 
 
