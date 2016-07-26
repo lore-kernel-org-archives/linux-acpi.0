@@ -1,117 +1,261 @@
 From: Al Stone <ahs3@redhat.com>
-Subject: [RFC DSD v2 00/04] How to Use the ACPI _DSD Device Properties UUIDs
-Date: Tue, 26 Jul 2016 10:31:10 -0600
-Message-ID: <8a3271a9-7085-353f-6c57-c633671704d2@redhat.com>
+Subject: [RFC DSD v2 01/04] _DSD Property Registration Ruleset
+Date: Tue, 26 Jul 2016 10:32:50 -0600
+Message-ID: <9476aa82-1253-d68b-c68c-1bc038f2a8b2@redhat.com>
+References: <8a3271a9-7085-353f-6c57-c633671704d2@redhat.com>
 Reply-To: ahs3@redhat.com
 Mime-Version: 1.0
 Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-it0-f51.google.com ([209.85.214.51]:38375 "EHLO
-	mail-it0-f51.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754393AbcGZQbO (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 26 Jul 2016 12:31:14 -0400
-Received: by mail-it0-f51.google.com with SMTP id j124so20510406ith.1
-        for <linux-acpi@vger.kernel.org>; Tue, 26 Jul 2016 09:31:13 -0700 (PDT)
+Received: from mail-it0-f43.google.com ([209.85.214.43]:36561 "EHLO
+	mail-it0-f43.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752785AbcGZQcw (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 26 Jul 2016 12:32:52 -0400
+Received: by mail-it0-f43.google.com with SMTP id f6so119223774ith.1
+        for <linux-acpi@vger.kernel.org>; Tue, 26 Jul 2016 09:32:52 -0700 (PDT)
+In-Reply-To: <8a3271a9-7085-353f-6c57-c633671704d2@redhat.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: ACPI Devel Mailing List <linux-acpi@vger.kernel.org>
-Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Charles Garcia-Tobin <Charles.Garcia-Tobin@arm.com>, "Hart, Darren" <darren.hart@intel.com>, Al Stone <ahs3@redhat.com>
+Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Charles Garcia-Tobin <Charles.Garcia-Tobin@arm.com>, "Hart, Darren" <darren.hart@intel.com>
 
-[My apologies if this is a duplicate; operator error on my part]
+_DSD Property Registration Ruleset
+==================================
+Dated:	2016-07-25
+Status:	DRAFT
 
-In the three documents that follow, we lay out a process for defining
-the use cases of device properties returned by the ACPI _DSD (Device
-Specific Data) object in Data Structures associated with the Device
-Properties UUID [0] and the Hierarchical Properties Extension UUID [1].
-The term "_DSD device properties" below refers to the data formats
-associated with those two UUIDs only.  All other UUIDs used with _DSD
-are outside the scope of what is described here.
 
-The goal of these documents is to: (1) make clear to OS vendors which of
-the use cases of _DSD device properties need to be supported; (2) be
-clear on what those use cases should mean to the OS; and, (3) have all
-OSs use the same definitions for those use cases.
+Contents
+--------
+1. Purpose
+2. Properties, Property Sets and Property Subsets
+3. What Can Be Registered
+    3.1. Individual Properties Cannot Be Registered
+    3.2. Device ID Requirement
+    3.3. What Property Sets Are Eligible for Registration
+4. Who Can Register Property Sets
+5. How To Submit a Property Set for Registration
+6. Review Process
+7. Maintainers of the Database
+8. Immutability of Registered Property Set Definitions
+9. References
+10. Contributors
 
-The first document describes basic context and essential terminology for
-the process of submitting a use case for the _DSD device properties to a
-central location so that it can be reviewed and tracked.
 
-The next document describes a database for storing the use cases of _DSD
-device properties that have been reviewed and agreed upon.  The idea is
-to make this database publicly available so that OS developers and
-firmware creators can easily see what is already defined, what is in
-use, and what is not defined.
+1. Purpose
+----------
+This document specifies the rules regarding the registration and formal
+definition of device properties to be used with the ACPI _DSD (Device
+Specific Data) device configuration object along with the Device
+Properties UUID, daffd814-6eba-4d8c-8a91-bc9bbf4aa301 [1].
 
-The final document provides a formal language for describing the use
-cases of _DSD device properties.  The goal is to make it relatively easy
-to define new use cases of the _DSD device properties, by stating
-clearly what those definitions must look like.  This also makes building
-automated tools easier, allowing us to keep the process simpler, permit
-validation of the content, assist with documentation, and perform basic
-record keeping.
 
-A copy of the ChangeLog is also attached so that you can see what the
-primary changes were for this second version.
+2. Properties, Property Sets and Property Subsets
+-------------------------------------------------
+A device property is a data item consisting of a string key and a value
+(of a specific type) associated with it.
 
-Why should you care?
+In the ACPI _DSD context it is an element of the sub-package following
+the Device Properties UUID in the _DSD return package as specified in
+the Device Properties UUID definition document [1].
 
-If you write ACPI firmware, you may need to provide a _DSD object; if
-you decide to create your own UUID, you will need to clearly document
-the content returned by your _DSD UUID so that an OS can use it
-properly.  However, if you need to use _DSD device properties, the
-documents here are intended to make it clear what needs to be done so
-that use cases are documented and consistent for all OSs.
+It also may be regarded as the definition of a key and the associated
+data type that can be returned by _DSD in the Device Properties UUID
+sub-package for a given device.  That is, what can be stored in the
+database described for retaining a permanent record of these device
+properties [2].
 
-If you work with OS drivers using ACPI, you may need to consult one of
-the use cases of the _DSD device properties.  What these documents lay
-out is a standard mechanism for describing these use cases, independent
-of OS, with a uniform way to determine what is available, and what their
-values are.  Ideally, there would be no need to reverse engineer, or
-worse, guess at, the device properties available for a specific device.
+A property set is a collection of properties applicable to a hardware
+entity like a device.  In the ACPI _DSD context it is the set of all
+properties that can be returned in the Device Properties UUID sub-package
+for the device in question.
 
-Finally, we hope to arrive at a time when OS changes requiring use cases
-in the _DSD device properties do not get accepted unless they have been
-registered and documented as described here.  We want to get to the
-point where use cases of _DSD device properties are unambiguous, well
-documented, visible to all who need them, and usable across any number
-of OSs.
+Property subsets are nested collections of properties.  Each of them is
+associated with an additional key (name) allowing the subset to be
+referred to as a whole (and to be treated as a separate entity).  The
+canonical representation of property subsets is via the mechanism
+specified in the Hierarchical Properties Extension UUID definition
+document [3].
 
-If you have any comments, improvements or suggestions, let us know.  We
-believe the basic content is sound, but more eyes are always better.  We
-would also like to have this process up and running by August; it has
-been postponed far too long as it is.
+Property sets may be hierarchical.  That is, a property set may contain
+multiple property subsets that each may contain property subsets of its
+own and so on.
 
-Comment here, or if you would rather, you can find the documents on
-github and suggest patches there:
 
-	https://github.com/ahs3/dsd/tree/master/documentation
+3. What Can Be Registered
+-------------------------
+The goal of the registration of device properties is to make records of
+what properties can be used with what devices.  That requires a way to
+identify devices the properties are applicable to unambiguously and so
+it implies that properties should be bound to Device IDs.
 
-Thanks.
+Moreover, in general, the interpretation of a single property may only
+be meaningful if it is taken into consideration along with some other
+properties applicable to the same device.  Thus every meaningful
+property has to belong to a property set that can be related to a
+specific device via its Device ID.
 
-Contributors:
-    Al Stone <ahs3@redhat.com>
-    Charles Garcia-Tobin <charles.garcia-tobin@arm.com>
-    Darren Hart <darren.hart@intel.com>
-    David Woodhouse <david.woodhouse@intel.com>
-    Mark Doran <mark.doran@intel.com>
-    Rafael Wysocki <rafael.j.wysocki@intel.com>
-    Robert Gough <robert.gough@intel.com>
-    (...my apologies if anyone has not been mentioned...)
+The above observations lead to the following rules:
 
-References:
-[0]
-http://www.uefi.org/sites/default/files/resources/_DSD-device-properties-UUID.pdf
+3.1. Individual Properties Cannot Be Registered
+-----------------------------------------------
+The common device properties database [2] holds property sets, not
+individual properties.
+
+Even if the given property set consists of a single property, it still
+has to be registered as a set.
+
+
+3.2. Device ID Requirement
+--------------------------
+For every property set in the database, with the exception of property
+sets created for the sole purpose of inheritance (see the section
+entitled "Inheritance" below), there must be at least one Device ID
+associated with it.  That can be a PNP or ACPI device ID, a device ID
+that can be returned by the ACPI _CID object, a PCI Class Code that can
+be returned by the ACPI _CLS object, or generally a device ID that can
+be used by an Operating System to find a matching driver for the device.
+In any case, it must be well defined in a way that is not OS-specific.
+
+
+3.3. What Property Sets Are Eligible for Registration
+-----------------------------------------------------
+Property sets eligible for registration must follow the guidance given
+by the Device Properties UUID definition document [1].
+
+_DSD properties are intended to be used in addition to, and not instead
+of, the existing mechanisms defined by the ACPI specification.
+Therefore, as a rule, they should only be used if the ACPI specification
+does not make direct provisions for handling the underlying use case.
+Property sets that do not follow that rule generally cannot be registered.
+
+[Note: Examples are given in [1].]
+
+
+4. Who Can Register Property Sets
+---------------------------------
+Since it is required to bind property sets to Device IDs, they can only
+be registered by the owners of those Device IDs or by their authorized
+representatives.
+
+A request to register a property set for a given Device ID is equivalent
+to the statement: "I endorse the use of this set of properties with
+devices identified by that Device ID".
+
+
+5. How To Submit a Property Set for Registration
+------------------------------------------------
+Property sets are submitted for registration along with the Device IDs
+they are associated with by sending an e-mail message to dsd@acpica.org
+(public mailing list) and (optionally) to the maintainers of the common
+device properties database [2].  The preferred format for the contents
+of the e-mail message are described in [3].
+
+
+6. Review Process
+-----------------
+The purpose of the device properties review process is to catch possible
+problems with the submitted property sets before they are registered and
+therefore avoid putting invalid content into the database [2].  This is
+critical in light of the immutability of registered property sets as
+described later in this document.
+
+Submitted property sets can be reviewed by all of the subscribers of the
+dsd@acpica.org mailing list and the reviewers' comments will only be taken
+into consideration by the database maintainers if they are sent to that
+list.
+
+Generally, the comments should point out potential problems with the
+submitted property set.  The only situation in which the submitter of a
+property set may be requested to make changes to it is when there are
+valid concerns about the material as submitted.  Review comments that
+do not follow this rule will be discarded.
+
+After a review period typically lasting between one to two weeks, the
+database maintainers decide whether or not to include the property set
+into the database and communicate their decision by sending an e-mail
+message to the list.
+
+
+7. Maintainers of The Database
+------------------------------
+The maintainership of the common database of device properties is a
+service to the community of all of the existing users of it.
+
+Maintainers are appointed by that community on a consensus basis.  They
+must be generally trusted and possess sufficient industry experience to
+be able to serve in their role effectively.
+
+
+8. Immutability of Registered Property Set Definitions
+------------------------------------------------------
+All property set definitions, once registered and in the database [2],
+are essentially immutable.  It is not allowed to remove existing content
+from the database, and only a limited set of very specific modifications
+may be made to an existing property set.
+
+Changes to an accepted property set are only allowed if:
+
+    1)  The change corrects an obvious typographical error, or
+
+    2)  The change is an erratum, meant to correct the property set so
+        that it accurately reflects shipping firmware, or
+
+    3)  The change is to an existing data validation rule to make it
+        stricter, which ensures that backward compatibility can be
+	maintained.  The change cannot modify the types of values, or
+	allow for a broader range of values.
+
+The only way in which one property set can be superseded by another one
+is to register a new revision of the property set in question.
+
+Moreover, when creating a new revision of a property set, it is invalid
+to redefine property keys (that is, associate them with different data
+types or give them different meaning).  New revisions can only add
+properties to the set.  If one of the properties in the current (most
+recent) revision of a property set is to be deprecated in the next
+revision, the correct way to do that is to remove it from the new set
+entirely and define a new property with a new key as a replacement for
+it.
+
+If there are multiple revisions of a property set registered, platform
+firmware is required to provide properties from the most recent one.
+However, for the sake of backwards compatibility with existing Operating
+Systems, it may also provide properties that are not present in the most
+recent revision of the set, but were present in the previous revisions
+of it.
+
+Operating Systems are required to use properties from the most recent
+revision of a property set they are aware of.  However, if those
+properties are not provided by platform firmware, the OS may fall back
+to using properties from the previous revisions of the property set that
+are not present in the most recent one.
+
+
+9. References
+-------------
 [1]
+http://www.uefi.org/sites/default/files/resources/_DSD-device-properties-UUID.pdf
+
+[2] See document entitled "_DSD Property Database Ruleset".
+
+[3]
 http://www.uefi.org/sites/default/files/resources/_DSD-hierarchical-data-extension-UUID-v1.pdf
 
+[4] See document entitled "_DSD Formal Language Ruleset".
 
--- 
-ciao,
-al
------------------------------------
-Al Stone
-Software Engineer
-Red Hat, Inc.
-ahs3@redhat.com
------------------------------------
+
+10. Contributors
+----------------
+In alphabetical order, by first name:
+
+Al Stone <ahs3@redhat.com>
+Charles Garcia-Tobin <charles.garcia-tobin@arm.com>
+Darren Hart <darren.hart@intel.com>
+David Woodhouse <david.woodhouse@intel.com>
+Mark Doran <mark.doran@intel.com>
+Rafael Wysocki <rafael.j.wysocki@intel.com>
+Robert Gough <robert.gough@intel.com>
+
+
