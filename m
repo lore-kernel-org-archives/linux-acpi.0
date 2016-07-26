@@ -1,90 +1,165 @@
-From: "Moore, Robert" <robert.moore@intel.com>
-Subject: RE: [PATCH] ACPICA: cleanup method properly on error
-Date: Tue, 26 Jul 2016 20:28:49 +0000
-Message-ID: <94F2FBAB4432B54E8AACC7DFDE6C92E37E4CDC04@ORSMSX110.amr.corp.intel.com>
-References: <1469201709-10518-1-git-send-email-vegard.nossum@oracle.com>
- <94F2FBAB4432B54E8AACC7DFDE6C92E37E4CD2A1@ORSMSX110.amr.corp.intel.com>
+From: Bjorn Helgaas <helgaas@kernel.org>
+Subject: Re: [PATCH 1/4] x86/ioapic: Support hot-removal of IOAPICs present
+ during boot
+Date: Tue, 26 Jul 2016 15:46:40 -0500
+Message-ID: <20160726204640.GA17664@localhost>
+References: <1469549597-19253-1-git-send-email-rui.y.wang@intel.com>
+ <1469549597-19253-2-git-send-email-rui.y.wang@intel.com>
+ <20160726201932.GD15037@localhost>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga04.intel.com ([192.55.52.120]:64169 "EHLO mga04.intel.com"
+Received: from mail.kernel.org ([198.145.29.136]:50558 "EHLO mail.kernel.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753947AbcGZU2v convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 26 Jul 2016 16:28:51 -0400
-In-Reply-To: <94F2FBAB4432B54E8AACC7DFDE6C92E37E4CD2A1@ORSMSX110.amr.corp.intel.com>
-Content-Language: en-US
+	id S1752550AbcGZUqp (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 26 Jul 2016 16:46:45 -0400
+Content-Disposition: inline
+In-Reply-To: <20160726201932.GD15037@localhost>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Moore, Robert" <robert.moore@intel.com>, Vegard Nossum <vegard.nossum@oracle.com>, "Zheng, Lv" <lv.zheng@intel.com>, "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>
-Cc: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "stable@vger.kernel.org" <stable@vger.kernel.org>, "devel@acpica.org" <devel@acpica.org>
+To: Rui Wang <rui.y.wang@intel.com>
+Cc: tglx@linutronix.de, rjw@rjwysocki.net, tony.luck@intel.com, bhelgaas@google.com, linux-acpi@vger.kernel.org, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org
 
-    /* Put the new state at the head of the walk list */
+On Tue, Jul 26, 2016 at 03:19:32PM -0500, Bjorn Helgaas wrote:
+> On Wed, Jul 27, 2016 at 12:13:14AM +0800, Rui Wang wrote:
+> > IOAPICs present during system boot aren't added to ioapic_list,
+> > thus are unable to be hot-removed. Fix it by calling
+> > acpi_ioapic_add() during root bus enumeration.
+> > 
+> > Signed-off-by: Rui Wang <rui.y.wang@intel.com>
 
-    if (Thread)
-    {
-        AcpiDsPushWalkState (WalkState, Thread);
-    }
+I should have added:
 
-Is there any chance that Thread could be zero?
+Acked-by: Bjorn Helgaas <bhelgaas@google.com>
 
+The comments below are minor, and I'm happy if Rafael merges this
+series via his tree.
 
-> -----Original Message-----
-> From: Devel [mailto:devel-bounces@acpica.org] On Behalf Of Moore, Robert
-> Sent: Tuesday, July 26, 2016 7:40 AM
-> To: Vegard Nossum <vegard.nossum@oracle.com>; Zheng, Lv
-> <lv.zheng@intel.com>; Wysocki, Rafael J <rafael.j.wysocki@intel.com>
-> Cc: linux-acpi@vger.kernel.org; linux-kernel@vger.kernel.org;
-> stable@vger.kernel.org; devel@acpica.org
-> Subject: Re: [Devel] [PATCH] ACPICA: cleanup method properly on error
-> 
-> We'll look at this.
-> Thanks.
-> 
-> 
-> > -----Original Message-----
-> > From: Vegard Nossum [mailto:vegard.nossum@oracle.com]
-> > Sent: Friday, July 22, 2016 8:35 AM
-> > To: Moore, Robert <robert.moore@intel.com>; Zheng, Lv
-> > <lv.zheng@intel.com>; Wysocki, Rafael J <rafael.j.wysocki@intel.com>
-> > Cc: linux-acpi@vger.kernel.org; devel@acpica.org; linux-
-> > kernel@vger.kernel.org; Vegard Nossum <vegard.nossum@oracle.com>;
-> > stable@vger.kernel.org
-> > Subject: [PATCH] ACPICA: cleanup method properly on error
-> >
-> > If the call to acpi_ds_init_aml_walk() fails, then we have to undo the
-> > walk state push done by acpi_ds_create_walk_state(). Otherwise, the
-> > new walk state (which has just been freed) will remain on the thread's
-> > walk_state_list and be dereferenced in acpi_ps_parse_aml() when we try
-> > to get the new state.
-> >
-> > You can observe this when reading e.g.
-> >
-> >     /sys/devices/LNXSYSTM:00/LNXSYBUS:00/PNP0C0F:01/status
-> >
-> > Cc: stable@vger.kernel.org
-> > Signed-off-by: Vegard Nossum <vegard.nossum@oracle.com>
 > > ---
-> >  drivers/acpi/acpica/dsmethod.c | 2 ++
-> >  1 file changed, 2 insertions(+)
-> >
-> > diff --git a/drivers/acpi/acpica/dsmethod.c
-> > b/drivers/acpi/acpica/dsmethod.c index 47c7b52..44b50a6 100644
-> > --- a/drivers/acpi/acpica/dsmethod.c
-> > +++ b/drivers/acpi/acpica/dsmethod.c
-> > @@ -596,6 +596,8 @@ cleanup:
-> >  	/* On error, we must terminate the method properly */
-> >
-> >  	acpi_ds_terminate_control_method(obj_desc, next_walk_state);
-> > +	if (thread)
-> > +		acpi_ds_pop_walk_state(thread);
-> >  	acpi_ds_delete_walk_state(next_walk_state);
-> >
-> >  	return_ACPI_STATUS(status);
-> > --
-> > 1.9.1
+> >  drivers/acpi/internal.h |  2 --
+> >  drivers/acpi/ioapic.c   |  7 ++++---
+> >  drivers/acpi/pci_root.c | 13 ++++++++++++-
+> >  drivers/pci/setup-bus.c |  5 ++++-
+> >  include/linux/acpi.h    |  6 ++++++
+> >  5 files changed, 26 insertions(+), 7 deletions(-)
+> > 
+> > diff --git a/drivers/acpi/internal.h b/drivers/acpi/internal.h
+> > index 27cc7fe..6d8e67e 100644
+> > --- a/drivers/acpi/internal.h
+> > +++ b/drivers/acpi/internal.h
+> > @@ -40,10 +40,8 @@ int acpi_sysfs_init(void);
+> >  void acpi_container_init(void);
+> >  void acpi_memory_hotplug_init(void);
+> >  #ifdef	CONFIG_ACPI_HOTPLUG_IOAPIC
+> > -int acpi_ioapic_add(struct acpi_pci_root *root);
+> >  int acpi_ioapic_remove(struct acpi_pci_root *root);
+> >  #else
+> > -static inline int acpi_ioapic_add(struct acpi_pci_root *root) { return 0; }
 > 
-> _______________________________________________
-> Devel mailing list
-> Devel@acpica.org
-> https://lists.acpica.org/mailman/listinfo/devel
+> It would be nicer if the interface change and header file munging
+> were in a separate patch so they wouldn't obscure the meat of the
+> change, i.e., the addition of calls to acpi_ioapic_add().
+> 
+> >  static inline int acpi_ioapic_remove(struct acpi_pci_root *root) { return 0; }
+> >  #endif
+> >  #ifdef CONFIG_ACPI_DOCK
+> > diff --git a/drivers/acpi/ioapic.c b/drivers/acpi/ioapic.c
+> > index ccdc8db..0f272e2 100644
+> > --- a/drivers/acpi/ioapic.c
+> > +++ b/drivers/acpi/ioapic.c
+> > @@ -189,16 +189,17 @@ exit:
+> >  	return AE_OK;
+> >  }
+> >  
+> > -int acpi_ioapic_add(struct acpi_pci_root *root)
+> > +int acpi_ioapic_add(acpi_handle root_handle)
+> >  {
+> >  	acpi_status status, retval = AE_OK;
+> >  
+> > -	status = acpi_walk_namespace(ACPI_TYPE_DEVICE, root->device->handle,
+> > +	status = acpi_walk_namespace(ACPI_TYPE_DEVICE, root_handle,
+> >  				     UINT_MAX, handle_ioapic_add, NULL,
+> > -				     root->device->handle, (void **)&retval);
+> > +				     root_handle, (void **)&retval);
+> >  
+> >  	return ACPI_SUCCESS(status) && ACPI_SUCCESS(retval) ? 0 : -ENODEV;
+> >  }
+> > +EXPORT_SYMBOL_GPL(acpi_ioapic_add);
+> 
+> What loadable module needs to call this?  It shouldn't be exported
+> unless there is such a module.
+> 
+> >  int acpi_ioapic_remove(struct acpi_pci_root *root)
+> >  {
+> > diff --git a/drivers/acpi/pci_root.c b/drivers/acpi/pci_root.c
+> > index ae3fe4e..d818c61 100644
+> > --- a/drivers/acpi/pci_root.c
+> > +++ b/drivers/acpi/pci_root.c
+> > @@ -614,7 +614,18 @@ static int acpi_pci_root_add(struct acpi_device *device,
+> >  	if (hotadd) {
+> >  		pcibios_resource_survey_bus(root->bus);
+> >  		pci_assign_unassigned_root_bus_resources(root->bus);
+> > -		acpi_ioapic_add(root);
+> > +
+> > +		/*
+> > +		 * This is only called for the hotadd case. For the boot-time
+> > +		 * case, we need to wait until after PCI initialization in
+> > +		 * order to deal with IOAPICs mapped in on a PCI BAR.
+> > +		 *
+> > +		 * This is currently x86-specific, because acpi_ioapic_add()
+> > +		 * is an empty function without CONFIG_ACPI_HOTPLUG_IOAPIC.
+> > +		 * And CONFIG_ACPI_HOTPLUG_IOAPIC depends on CONFIG_X86_IO_APIC
+> > +		 * (see drivers/acpi/Kconfig).
+> > +		 */
+> > +		acpi_ioapic_add(root->device->handle);
+> >  	}
+> >  
+> >  	pci_lock_rescan_remove();
+> > diff --git a/drivers/pci/setup-bus.c b/drivers/pci/setup-bus.c
+> > index 55641a3..e32c356 100644
+> > --- a/drivers/pci/setup-bus.c
+> > +++ b/drivers/pci/setup-bus.c
+> > @@ -25,6 +25,7 @@
+> >  #include <linux/ioport.h>
+> >  #include <linux/cache.h>
+> >  #include <linux/slab.h>
+> > +#include <linux/acpi.h>
+> >  #include "pci.h"
+> >  
+> >  unsigned int pci_flags;
+> > @@ -1779,8 +1780,10 @@ void __init pci_assign_unassigned_resources(void)
+> >  {
+> >  	struct pci_bus *root_bus;
+> >  
+> > -	list_for_each_entry(root_bus, &pci_root_buses, node)
+> > +	list_for_each_entry(root_bus, &pci_root_buses, node) {
+> >  		pci_assign_unassigned_root_bus_resources(root_bus);
+> > +		acpi_ioapic_add(ACPI_HANDLE(root_bus->bridge));
+> > +	}
+> >  }
+> >  
+> >  void pci_assign_unassigned_bridge_resources(struct pci_dev *bridge)
+> > diff --git a/include/linux/acpi.h b/include/linux/acpi.h
+> > index 288fac5..f5114dc 100644
+> > --- a/include/linux/acpi.h
+> > +++ b/include/linux/acpi.h
+> > @@ -680,6 +680,12 @@ static inline enum dev_dma_attr acpi_get_dma_attr(struct acpi_device *adev)
+> >  
+> >  #endif	/* !CONFIG_ACPI */
+> >  
+> > +#ifdef CONFIG_ACPI_HOTPLUG_IOAPIC
+> > +int acpi_ioapic_add(acpi_handle root);
+> > +#else
+> > +static inline int acpi_ioapic_add(acpi_handle root) { return 0; }
+> > +#endif
+> > +
+> >  #ifdef CONFIG_ACPI
+> >  void acpi_os_set_prepare_sleep(int (*func)(u8 sleep_state,
+> >  			       u32 pm1a_ctrl,  u32 pm1b_ctrl));
+> > -- 
+> > 1.8.3.1
+> > 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
