@@ -1,82 +1,132 @@
-From: Marc Zyngier <marc.zyngier@arm.com>
-Subject: Re: [PATCH V7 1/8] ACPI: I/O Remapping Table (IORT) initial support
-Date: Tue, 26 Jul 2016 15:48:49 +0100
-Message-ID: <20160726154849.350d9c1c@arm.com>
-References: <1466420541-20101-2-git-send-email-tn@semihalf.com>
-	<1466598909-27504-1-git-send-email-tn@semihalf.com>
-	<576A91CC.3000101@arm.com>
-	<576A9824.1060400@semihalf.com>
-	<576AA603.3080505@arm.com>
-	<576B3CBD.60309@huawei.com>
-	<57976353.7080500@codeaurora.org>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from foss.arm.com ([217.140.101.70]:40273 "EHLO foss.arm.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754485AbcGZOtN (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 26 Jul 2016 10:49:13 -0400
-In-Reply-To: <57976353.7080500@codeaurora.org>
-Sender: linux-acpi-owner@vger.kernel.org
+From: Rui Wang <rui.y.wang@intel.com>
+Subject: [PATCH 1/4] x86/ioapic: Support hot-removal of IOAPICs present during boot
+Date: Wed, 27 Jul 2016 00:13:14 +0800
+Message-ID: <1469549597-19253-2-git-send-email-rui.y.wang@intel.com>
+References: <1469549597-19253-1-git-send-email-rui.y.wang@intel.com>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1469549597-19253-1-git-send-email-rui.y.wang@intel.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: helgaas@kernel.org, tglx@linutronix.de, rjw@rjwysocki.net, tony.luck@intel.com
+Cc: bhelgaas@google.com, linux-acpi@vger.kernel.org, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, rui.y.wang@intel.com
 List-Id: linux-acpi@vger.kernel.org
-To: Christopher Covington <cov@codeaurora.org>
-Cc: Hanjun Guo <guohanjun@huawei.com>, Tomasz Nowicki <tn@semihalf.com>, tglx@linutronix.de, jason@lakedaemon.net, rjw@rjwysocki.net, bhelgaas@google.com, lorenzo.pieralisi@arm.com, robert.richter@caviumnetworks.com, shijie.huang@arm.com, Suravee.Suthikulpanit@amd.com, hanjun.guo@linaro.org, al.stone@linaro.org, mw@semihalf.com, graeme.gregory@linaro.org, Catalin.Marinas@arm.com, will.deacon@arm.com, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org, ddaney.cavm@gmail.com, okaya@codeaurora.org, andrea.gallo@linaro.org, linux-pci@vger.kernel.org
 
-On Tue, 26 Jul 2016 09:19:15 -0400
-Christopher Covington <cov@codeaurora.org> wrote:
+IOAPICs present during system boot aren't added to ioapic_list,
+thus are unable to be hot-removed. Fix it by calling
+acpi_ioapic_add() during root bus enumeration.
 
-Hi Christopher,
+Signed-off-by: Rui Wang <rui.y.wang@intel.com>
+---
+ drivers/acpi/internal.h |  2 --
+ drivers/acpi/ioapic.c   |  7 ++++---
+ drivers/acpi/pci_root.c | 13 ++++++++++++-
+ drivers/pci/setup-bus.c |  5 ++++-
+ include/linux/acpi.h    |  6 ++++++
+ 5 files changed, 26 insertions(+), 7 deletions(-)
 
-> Hi Marc,
-> 
-> On 06/22/2016 09:34 PM, Hanjun Guo wrote:
-> > On 2016/6/22 22:51, Marc Zyngier wrote:  
-> >> On 22/06/16 14:52, Tomasz Nowicki wrote:  
-> >>> On 22.06.2016 15:25, Marc Zyngier wrote:  
-> >>>> On 22/06/16 13:35, Tomasz Nowicki wrote:  
-> >>>>> IORT shows representation of IO topology for ARM based systems.
-> >>>>> It describes how various components are connected together on
-> >>>>> parent-child basis e.g. PCI RC -> SMMU -> ITS. Also see IORT spec.
-> >>>>> http://infocenter.arm.com/help/topic/com.arm.doc.den0049b/DEN0049B_IO_Remapping_Table.pdf
-> >>>>>
-> >>>>> Initial support allows to detect IORT table presence and save its
-> >>>>> root pointer obtained through acpi_get_table(). The pointer validity
-> >>>>> depends on acpi_gbl_permanent_mmap because if acpi_gbl_permanent_mmap
-> >>>>> is not set while using IORT nodes we would dereference unmapped pointers.
-> >>>>>
-> >>>>> For the aforementioned reason call iort_table_detect() from acpi_init()
-> >>>>> which guarantees acpi_gbl_permanent_mmap to be set at that point.
-> >>>>>
-> >>>>> Add generic helpers which are helpful for scanning and retrieving
-> >>>>> information from IORT table content. List of the most important helpers:
-> >>>>> - iort_find_dev_node() finds IORT node for a given device
-> >>>>> - iort_node_map_rid() maps device RID and returns IORT node which provides
-> >>>>>    final translation
-> >>>>>
-> >>>>> Signed-off-by: Tomasz Nowicki <tn@semihalf.com>
-> >>>>> ---
-> >>>>>   drivers/acpi/Kconfig  |   3 +
-> >>>>>   drivers/acpi/Makefile |   1 +
-> >>>>>   drivers/acpi/bus.c    |   2 +
-> >>>>>   drivers/acpi/iort.c   | 217 ++++++++++++++++++++++++++++++++++++++++++++++++++
-> >>>>>   include/linux/iort.h  |  30 +++++++
-> >>>>>   5 files changed, 253 insertions(+)
-> >>>>>   create mode 100644 drivers/acpi/iort.c
-> >>>>>   create mode 100644 include/linux/iort.h  
-> 
-> > I tracked Marc's tree on git.kernel.org, it's  acpi_os_free(buffer.pointer) there so
-> > my worry is gone :)  
-> 
-> Do you plan on submitting this during the 4.8 merge window?
-
-Short of having received the necessary Ack from the ACPI maintainer,
-the answer is unfortunately negative. I'm hoping that the new split
-ACPI maintenance between generic code and arm64 will help getting
-things moving for 4.9.
-
-Thanks,
-
-	M.
+diff --git a/drivers/acpi/internal.h b/drivers/acpi/internal.h
+index 27cc7fe..6d8e67e 100644
+--- a/drivers/acpi/internal.h
++++ b/drivers/acpi/internal.h
+@@ -40,10 +40,8 @@ int acpi_sysfs_init(void);
+ void acpi_container_init(void);
+ void acpi_memory_hotplug_init(void);
+ #ifdef	CONFIG_ACPI_HOTPLUG_IOAPIC
+-int acpi_ioapic_add(struct acpi_pci_root *root);
+ int acpi_ioapic_remove(struct acpi_pci_root *root);
+ #else
+-static inline int acpi_ioapic_add(struct acpi_pci_root *root) { return 0; }
+ static inline int acpi_ioapic_remove(struct acpi_pci_root *root) { return 0; }
+ #endif
+ #ifdef CONFIG_ACPI_DOCK
+diff --git a/drivers/acpi/ioapic.c b/drivers/acpi/ioapic.c
+index ccdc8db..0f272e2 100644
+--- a/drivers/acpi/ioapic.c
++++ b/drivers/acpi/ioapic.c
+@@ -189,16 +189,17 @@ exit:
+ 	return AE_OK;
+ }
+ 
+-int acpi_ioapic_add(struct acpi_pci_root *root)
++int acpi_ioapic_add(acpi_handle root_handle)
+ {
+ 	acpi_status status, retval = AE_OK;
+ 
+-	status = acpi_walk_namespace(ACPI_TYPE_DEVICE, root->device->handle,
++	status = acpi_walk_namespace(ACPI_TYPE_DEVICE, root_handle,
+ 				     UINT_MAX, handle_ioapic_add, NULL,
+-				     root->device->handle, (void **)&retval);
++				     root_handle, (void **)&retval);
+ 
+ 	return ACPI_SUCCESS(status) && ACPI_SUCCESS(retval) ? 0 : -ENODEV;
+ }
++EXPORT_SYMBOL_GPL(acpi_ioapic_add);
+ 
+ int acpi_ioapic_remove(struct acpi_pci_root *root)
+ {
+diff --git a/drivers/acpi/pci_root.c b/drivers/acpi/pci_root.c
+index ae3fe4e..d818c61 100644
+--- a/drivers/acpi/pci_root.c
++++ b/drivers/acpi/pci_root.c
+@@ -614,7 +614,18 @@ static int acpi_pci_root_add(struct acpi_device *device,
+ 	if (hotadd) {
+ 		pcibios_resource_survey_bus(root->bus);
+ 		pci_assign_unassigned_root_bus_resources(root->bus);
+-		acpi_ioapic_add(root);
++
++		/*
++		 * This is only called for the hotadd case. For the boot-time
++		 * case, we need to wait until after PCI initialization in
++		 * order to deal with IOAPICs mapped in on a PCI BAR.
++		 *
++		 * This is currently x86-specific, because acpi_ioapic_add()
++		 * is an empty function without CONFIG_ACPI_HOTPLUG_IOAPIC.
++		 * And CONFIG_ACPI_HOTPLUG_IOAPIC depends on CONFIG_X86_IO_APIC
++		 * (see drivers/acpi/Kconfig).
++		 */
++		acpi_ioapic_add(root->device->handle);
+ 	}
+ 
+ 	pci_lock_rescan_remove();
+diff --git a/drivers/pci/setup-bus.c b/drivers/pci/setup-bus.c
+index 55641a3..e32c356 100644
+--- a/drivers/pci/setup-bus.c
++++ b/drivers/pci/setup-bus.c
+@@ -25,6 +25,7 @@
+ #include <linux/ioport.h>
+ #include <linux/cache.h>
+ #include <linux/slab.h>
++#include <linux/acpi.h>
+ #include "pci.h"
+ 
+ unsigned int pci_flags;
+@@ -1779,8 +1780,10 @@ void __init pci_assign_unassigned_resources(void)
+ {
+ 	struct pci_bus *root_bus;
+ 
+-	list_for_each_entry(root_bus, &pci_root_buses, node)
++	list_for_each_entry(root_bus, &pci_root_buses, node) {
+ 		pci_assign_unassigned_root_bus_resources(root_bus);
++		acpi_ioapic_add(ACPI_HANDLE(root_bus->bridge));
++	}
+ }
+ 
+ void pci_assign_unassigned_bridge_resources(struct pci_dev *bridge)
+diff --git a/include/linux/acpi.h b/include/linux/acpi.h
+index 288fac5..f5114dc 100644
+--- a/include/linux/acpi.h
++++ b/include/linux/acpi.h
+@@ -680,6 +680,12 @@ static inline enum dev_dma_attr acpi_get_dma_attr(struct acpi_device *adev)
+ 
+ #endif	/* !CONFIG_ACPI */
+ 
++#ifdef CONFIG_ACPI_HOTPLUG_IOAPIC
++int acpi_ioapic_add(acpi_handle root);
++#else
++static inline int acpi_ioapic_add(acpi_handle root) { return 0; }
++#endif
++
+ #ifdef CONFIG_ACPI
+ void acpi_os_set_prepare_sleep(int (*func)(u8 sleep_state,
+ 			       u32 pm1a_ctrl,  u32 pm1b_ctrl));
 -- 
-Jazz is not dead. It just smells funny.
+1.8.3.1
