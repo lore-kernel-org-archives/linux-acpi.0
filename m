@@ -1,293 +1,119 @@
-From: "Rafael J. Wysocki" <rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org>
-Subject: Re: [PATCH v9 5/9] acpi/arm64: Add GTDT table parse driver
-Date: Tue, 26 Jul 2016 13:50:39 +0200
-Message-ID: <1754781.CC9jSrYt2s@vostro.rjw.lan>
-References: <1469460427-8643-1-git-send-email-fu.wei@linaro.org> <1469460427-8643-6-git-send-email-fu.wei@linaro.org>
+From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Subject: Re: [PATCH v9 0/7] Make cpuid <-> nodeid mapping persistent
+Date: Tue, 26 Jul 2016 13:53:42 +0200
+Message-ID: <122491145.6BHBUIrED6@vostro.rjw.lan>
+References: <1469435749-19582-1-git-send-email-douly.fnst@cn.fujitsu.com> <20160725162022.e90e9c6c74a5d147e39e5945@linux-foundation.org> <34809745-7e48-29d3-f31b-826414ccdef3@cn.fujitsu.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7Bit
-Return-path: <linux-watchdog-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1469460427-8643-6-git-send-email-fu.wei-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
-Sender: linux-watchdog-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: fu.wei-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org
-Cc: lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, daniel.lezcano-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org, tglx-hfZtesqFncYOwBW4kG4KsQ@public.gmane.org, marc.zyngier-5wv7dgnIgG8@public.gmane.org, lorenzo.pieralisi-5wv7dgnIgG8@public.gmane.org, sudeep.holla-5wv7dgnIgG8@public.gmane.org, hanjun.guo-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linaro-acpi-cunTk1MwBs8s++Sfvej+rw@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, rruigrok-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org, harba-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org, cov-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org, timur-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org, graeme.gregory-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org, al.stone-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org, jcm-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, wei-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, arnd-r2nGTMty4D4@public.gmane.org, wim-IQzOog9fTRqzQB+pC5nmwQ@public.gmane.org, catalin.marinas-5wv7dgnIgG8@public.gmane.org, will.deacon-5wv7dgnIgG8@public.gmane.org, Suravee.Suthikulpanit-5C7GfCeVMHo@public.gmane.org, leo.duran-5C7GfCeVMHo@public.gmane.org, linux-0h96xk9xTtrk1uMJSBkQmQ@public.gmane.org, linux-watchdog-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from cloudserver094114.home.net.pl ([79.96.170.134]:61752 "HELO
+	cloudserver094114.home.net.pl" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with SMTP id S1755408AbcGZLsk convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 26 Jul 2016 07:48:40 -0400
+In-Reply-To: <34809745-7e48-29d3-f31b-826414ccdef3@cn.fujitsu.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Dou Liyang <douly.fnst@cn.fujitsu.com>
+Cc: Andrew Morton <akpm@linux-foundation.org>, cl@linux.com, tj@kernel.org, mika.j.penttila@gmail.com, mingo@redhat.com, hpa@zytor.com, yasu.isimatu@gmail.com, isimatu.yasuaki@jp.fujitsu.com, kamezawa.hiroyu@jp.fujitsu.com, izumi.taku@jp.fujitsu.com, gongzhaogang@inspur.com, len.brown@intel.com, lenb@kernel.org, tglx@linutronix.de, chen.tang@easystack.cn, rafael@kernel.org, x86@kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linux-mm@kvack.org
 
-On Monday, July 25, 2016 11:27:03 PM fu.wei-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org wrote:
-> From: Fu Wei <fu.wei-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
-> 
-> This patch adds support for parsing arch timer in GTDT,
-> provides some kernel APIs to parse all the PPIs and
-> always-on info in GTDT and export them.
-> 
-> By this driver, we can simplify arm_arch_timer drivers, and
-> separate the ACPI GTDT knowledge from it.
-> 
-> Signed-off-by: Fu Wei <fu.wei-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
-> Signed-off-by: Hanjun Guo <hanjun.guo-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
+On Tuesday, July 26, 2016 11:59:38 AM Dou Liyang wrote:
+>=20
+> =E5=9C=A8 2016=E5=B9=B407=E6=9C=8826=E6=97=A5 07:20, Andrew Morton =E5=
+=86=99=E9=81=93:
+> > On Mon, 25 Jul 2016 16:35:42 +0800 Dou Liyang <douly.fnst@cn.fujits=
+u.com> wrote:
+> >
+> >> [Problem]
+> >>
+> >> cpuid <-> nodeid mapping is firstly established at boot time. And =
+workqueue caches
+> >> the mapping in wq_numa_possible_cpumask in wq_numa_init() at boot =
+time.
+> >>
+> >> When doing node online/offline, cpuid <-> nodeid mapping is establ=
+ished/destroyed,
+> >> which means, cpuid <-> nodeid mapping will change if node hotplug =
+happens. But
+> >> workqueue does not update wq_numa_possible_cpumask.
+> >>
+> >> So here is the problem:
+> >>
+> >> Assume we have the following cpuid <-> nodeid in the beginning:
+> >>
+> >>   Node | CPU
+> >> ------------------------
+> >> node 0 |  0-14, 60-74
+> >> node 1 | 15-29, 75-89
+> >> node 2 | 30-44, 90-104
+> >> node 3 | 45-59, 105-119
+> >>
+> >> and we hot-remove node2 and node3, it becomes:
+> >>
+> >>   Node | CPU
+> >> ------------------------
+> >> node 0 |  0-14, 60-74
+> >> node 1 | 15-29, 75-89
+> >>
+> >> and we hot-add node4 and node5, it becomes:
+> >>
+> >>   Node | CPU
+> >> ------------------------
+> >> node 0 |  0-14, 60-74
+> >> node 1 | 15-29, 75-89
+> >> node 4 | 30-59
+> >> node 5 | 90-119
+> >>
+> >> But in wq_numa_possible_cpumask, cpu30 is still mapped to node2, a=
+nd the like.
+> >>
+> >> When a pool workqueue is initialized, if its cpumask belongs to a =
+node, its
+> >> pool->node will be mapped to that node. And memory used by this wo=
+rkqueue will
+> >> also be allocated on that node.
+> >
+> > Plan B is to hunt down and fix up all the workqueue structures at
+> > hotplug-time.  Has that option been evaluated?
+> >
+>=20
+> Yes, the option has been evaluate in this patch:
+> http://www.gossamer-threads.com/lists/linux/kernel/2116748
+>=20
+> >
+> > Your fix is x86-only and this bug presumably affects other
+> > architectures, yes?I think a "Plan B" would fix all architectures?
+> >
+>=20
+> Yes, the bug may presumably affect few architectures which support CP=
+U=20
+> hotplug and NUMA.
+>=20
+> We have sent the "Plan B" in our community and got a lot of advice an=
+d=20
+> ideas. Based on these suggestions, We carefully balance that two plan=
+=2E=20
+> Then we choice the first.
+>=20
+> >
+> > Thirdly, what is the merge path for these patches?  Is an x86
+> > or ACPI maintainer working with you on them?
+>=20
+> Yes, we get a lot of guidance and help from RJ who is an ACPI maintai=
+ner.
 
->From the ACPI perspective:
+=46WIW, the patches are fine by me from the ACPI perspective.
 
-Acked-by: Rafael J. Wysocki <rafael.j.wysocki-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+If you want me to apply them, though, ACKs from the x86 and mm maintain=
+ers
+will be necessary.
 
-and I'm assuming that the patches will go in via some other (non-ACPI) tree.
-
-> ---
->  arch/arm64/Kconfig             |   1 +
->  drivers/acpi/Kconfig           |   5 ++
->  drivers/acpi/Makefile          |   1 +
->  drivers/acpi/arm64/Kconfig     |   5 ++
->  drivers/acpi/arm64/Makefile    |   1 +
->  drivers/acpi/arm64/acpi_gtdt.c | 152 +++++++++++++++++++++++++++++++++++++++++
->  drivers/clocksource/Kconfig    |   1 -
->  include/linux/acpi.h           |   6 ++
->  8 files changed, 171 insertions(+), 1 deletion(-)
-> 
-> diff --git a/arch/arm64/Kconfig b/arch/arm64/Kconfig
-> index 5a0a691..0b9fba7 100644
-> --- a/arch/arm64/Kconfig
-> +++ b/arch/arm64/Kconfig
-> @@ -2,6 +2,7 @@ config ARM64
->  	def_bool y
->  	select ACPI_CCA_REQUIRED if ACPI
->  	select ACPI_GENERIC_GSI if ACPI
-> +	select ACPI_GTDT if ACPI
->  	select ACPI_REDUCED_HARDWARE_ONLY if ACPI
->  	select ARCH_HAS_DEVMEM_IS_ALLOWED
->  	select ARCH_HAS_ATOMIC64_DEC_IF_POSITIVE
-> diff --git a/drivers/acpi/Kconfig b/drivers/acpi/Kconfig
-> index b7e2e77..1cdc7d2 100644
-> --- a/drivers/acpi/Kconfig
-> +++ b/drivers/acpi/Kconfig
-> @@ -521,4 +521,9 @@ config XPOWER_PMIC_OPREGION
->  
->  endif
->  
-> +if ARM64
-> +source "drivers/acpi/arm64/Kconfig"
-> +
-> +endif
-> +
->  endif	# ACPI
-> diff --git a/drivers/acpi/Makefile b/drivers/acpi/Makefile
-> index 251ce85..1a94ff7 100644
-> --- a/drivers/acpi/Makefile
-> +++ b/drivers/acpi/Makefile
-> @@ -99,5 +99,6 @@ obj-$(CONFIG_ACPI_EXTLOG)	+= acpi_extlog.o
->  obj-$(CONFIG_PMIC_OPREGION)	+= pmic/intel_pmic.o
->  obj-$(CONFIG_CRC_PMIC_OPREGION) += pmic/intel_pmic_crc.o
->  obj-$(CONFIG_XPOWER_PMIC_OPREGION) += pmic/intel_pmic_xpower.o
-> +obj-$(CONFIG_ARM64)	+= arm64/
->  
->  video-objs			+= acpi_video.o video_detect.o
-> diff --git a/drivers/acpi/arm64/Kconfig b/drivers/acpi/arm64/Kconfig
-> new file mode 100644
-> index 0000000..80201be
-> --- /dev/null
-> +++ b/drivers/acpi/arm64/Kconfig
-> @@ -0,0 +1,5 @@
-> +#
-> +# ACPI Configuration for ARM64
-> +#
-> +config ACPI_GTDT
-> +	bool
-> diff --git a/drivers/acpi/arm64/Makefile b/drivers/acpi/arm64/Makefile
-> new file mode 100644
-> index 0000000..466de6b
-> --- /dev/null
-> +++ b/drivers/acpi/arm64/Makefile
-> @@ -0,0 +1 @@
-> +obj-$(CONFIG_ACPI_GTDT)		+= acpi_gtdt.o
-> diff --git a/drivers/acpi/arm64/acpi_gtdt.c b/drivers/acpi/arm64/acpi_gtdt.c
-> new file mode 100644
-> index 0000000..cdb2fb1
-> --- /dev/null
-> +++ b/drivers/acpi/arm64/acpi_gtdt.c
-> @@ -0,0 +1,152 @@
-> +/*
-> + * ARM Specific GTDT table Support
-> + *
-> + * Copyright (C) 2016, Linaro Ltd.
-> + * Author: Daniel Lezcano <daniel.lezcano-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
-> + *         Fu Wei <fu.wei-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
-> + *         Hanjun Guo <hanjun.guo-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
-> + *
-> + * This program is free software; you can redistribute it and/or modify
-> + * it under the terms of the GNU General Public License version 2 as
-> + * published by the Free Software Foundation.
-> + */
-> +
-> +#include <linux/acpi.h>
-> +#include <linux/init.h>
-> +#include <linux/kernel.h>
-> +
-> +#include <clocksource/arm_arch_timer.h>
-> +
-> +#undef pr_fmt
-> +#define pr_fmt(fmt) "ACPI GTDT: " fmt
-> +
-> +typedef struct {
-> +	struct acpi_table_gtdt *gtdt;
-> +	void *platform_timer_start;
-> +	void *gtdt_end;
-> +} acpi_gtdt_desc_t;
-> +
-> +static acpi_gtdt_desc_t acpi_gtdt_desc __initdata;
-> +
-> +static inline void *next_platform_timer(void *platform_timer)
-> +{
-> +	struct acpi_gtdt_header *gh = platform_timer;
-> +
-> +	platform_timer += gh->length;
-> +	if (platform_timer < acpi_gtdt_desc.gtdt_end)
-> +		return platform_timer;
-> +
-> +	return NULL;
-> +}
-> +
-> +#define for_each_platform_timer(_g)				\
-> +	for (_g = acpi_gtdt_desc.platform_timer_start; _g;	\
-> +	     _g = next_platform_timer(_g))
-> +
-> +static inline bool is_timer_block(void *platform_timer)
-> +{
-> +	struct acpi_gtdt_header *gh = platform_timer;
-> +
-> +	return gh->type == ACPI_GTDT_TYPE_TIMER_BLOCK;
-> +}
-> +
-> +static inline bool is_watchdog(void *platform_timer)
-> +{
-> +	struct acpi_gtdt_header *gh = platform_timer;
-> +
-> +	return gh->type == ACPI_GTDT_TYPE_WATCHDOG;
-> +}
-> +
-> +static int __init map_gt_gsi(u32 interrupt, u32 flags)
-> +{
-> +	int trigger, polarity;
-> +
-> +	if (!interrupt)
-> +		return 0;
-> +
-> +	trigger = (flags & ACPI_GTDT_INTERRUPT_MODE) ? ACPI_EDGE_SENSITIVE
-> +			: ACPI_LEVEL_SENSITIVE;
-> +
-> +	polarity = (flags & ACPI_GTDT_INTERRUPT_POLARITY) ? ACPI_ACTIVE_LOW
-> +			: ACPI_ACTIVE_HIGH;
-> +
-> +	return acpi_register_gsi(NULL, interrupt, trigger, polarity);
-> +}
-> +
-> +/*
-> + * Map the PPIs of per-cpu arch_timer.
-> + * @type: the type of PPI
-> + * Returns 0 if error.
-> + */
-> +int __init acpi_gtdt_map_ppi(int type)
-> +{
-> +	struct acpi_table_gtdt *gtdt = acpi_gtdt_desc.gtdt;
-> +
-> +	switch (type) {
-> +	case PHYS_SECURE_PPI:
-> +		return map_gt_gsi(gtdt->secure_el1_interrupt,
-> +				  gtdt->secure_el1_flags);
-> +	case PHYS_NONSECURE_PPI:
-> +		return map_gt_gsi(gtdt->non_secure_el1_interrupt,
-> +				  gtdt->non_secure_el1_flags);
-> +	case VIRT_PPI:
-> +		return map_gt_gsi(gtdt->virtual_timer_interrupt,
-> +				  gtdt->virtual_timer_flags);
-> +
-> +	case HYP_PPI:
-> +		return map_gt_gsi(gtdt->non_secure_el2_interrupt,
-> +				  gtdt->non_secure_el2_flags);
-> +	default:
-> +		pr_err("Failed to map timer interrupt: invalid type.\n");
-> +	}
-> +
-> +	return 0;
-> +}
-> +
-> +/*
-> + * acpi_gtdt_c3stop - got c3stop info from GTDT
-> + *
-> + * Returns 1 if the timer is powered in deep idle state, 0 otherwise.
-> + */
-> +bool __init acpi_gtdt_c3stop(void)
-> +{
-> +	struct acpi_table_gtdt *gtdt = acpi_gtdt_desc.gtdt;
-> +
-> +	return !(gtdt->non_secure_el1_flags & ACPI_GTDT_ALWAYS_ON);
-> +}
-> +
-> +/*
-> + * Get some basic info from GTDT table, and init the global variables above
-> + * for all timers initialization of Generic Timer.
-> + * This function does some validation on GTDT table.
-> + */
-> +int __init acpi_gtdt_init(struct acpi_table_header *table)
-> +{
-> +	void *start;
-> +	struct acpi_table_gtdt *gtdt;
-> +
-> +	gtdt = container_of(table, struct acpi_table_gtdt, header);
-> +
-> +	acpi_gtdt_desc.gtdt = gtdt;
-> +	acpi_gtdt_desc.gtdt_end = (void *)table + table->length;
-> +
-> +	if (table->revision < 2) {
-> +		pr_debug("Revision:%d doesn't support Platform Timers.\n",
-> +			 table->revision);
-> +		return 0;
-> +	}
-> +
-> +	if (!gtdt->platform_timer_count) {
-> +		pr_debug("No Platform Timer.\n");
-> +		return 0;
-> +	}
-> +
-> +	start = (void *)gtdt + gtdt->platform_timer_offset;
-> +	if (start < (void *)table + sizeof(struct acpi_table_gtdt)) {
-> +		pr_err(FW_BUG "Failed to retrieve timer info from firmware: invalid data.\n");
-> +		return -EINVAL;
-> +	}
-> +	acpi_gtdt_desc.platform_timer_start = start;
-> +
-> +	return gtdt->platform_timer_count;
-> +}
-> diff --git a/drivers/clocksource/Kconfig b/drivers/clocksource/Kconfig
-> index 47352d2..108dbc3 100644
-> --- a/drivers/clocksource/Kconfig
-> +++ b/drivers/clocksource/Kconfig
-> @@ -205,7 +205,6 @@ config CLKSRC_MPS2
->  config ARM_ARCH_TIMER
->  	bool
->  	select CLKSRC_OF if OF
-> -	select CLKSRC_ACPI if ACPI
->  
->  config ARM_ARCH_TIMER_EVTSTREAM
->  	bool "Support for ARM architected timer event stream generation"
-> diff --git a/include/linux/acpi.h b/include/linux/acpi.h
-> index 288fac5..fb8b689 100644
-> --- a/include/linux/acpi.h
-> +++ b/include/linux/acpi.h
-> @@ -532,6 +532,12 @@ void acpi_walk_dep_device_list(acpi_handle handle);
->  struct platform_device *acpi_create_platform_device(struct acpi_device *);
->  #define ACPI_PTR(_ptr)	(_ptr)
->  
-> +#ifdef CONFIG_ACPI_GTDT
-> +int acpi_gtdt_init(struct acpi_table_header *table);
-> +int acpi_gtdt_map_ppi(int type);
-> +bool acpi_gtdt_c3stop(void);
-> +#endif
-> +
->  #else	/* !CONFIG_ACPI */
->  
->  #define acpi_disabled 1
-> 
+Thanks,
+Rafael
 
 --
-To unsubscribe from this list: send the line "unsubscribe linux-watchdog" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
