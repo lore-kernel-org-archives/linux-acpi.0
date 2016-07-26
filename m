@@ -1,119 +1,123 @@
-From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [PATCH v9 0/7] Make cpuid <-> nodeid mapping persistent
-Date: Tue, 26 Jul 2016 13:53:42 +0200
-Message-ID: <122491145.6BHBUIrED6@vostro.rjw.lan>
-References: <1469435749-19582-1-git-send-email-douly.fnst@cn.fujitsu.com> <20160725162022.e90e9c6c74a5d147e39e5945@linux-foundation.org> <34809745-7e48-29d3-f31b-826414ccdef3@cn.fujitsu.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cloudserver094114.home.net.pl ([79.96.170.134]:61752 "HELO
-	cloudserver094114.home.net.pl" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with SMTP id S1755408AbcGZLsk convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 26 Jul 2016 07:48:40 -0400
-In-Reply-To: <34809745-7e48-29d3-f31b-826414ccdef3@cn.fujitsu.com>
-Sender: linux-acpi-owner@vger.kernel.org
+From: fu.wei-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org
+Subject: [PATCH v10 0/8] acpi, clocksource: add GTDT driver and GTDT support in arm_arch_timer
+Date: Tue, 26 Jul 2016 20:19:17 +0800
+Message-ID: <1469535565-20924-1-git-send-email-fu.wei@linaro.org>
+Return-path: <linux-watchdog-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: linux-watchdog-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org, lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, daniel.lezcano-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org, tglx-hfZtesqFncYOwBW4kG4KsQ@public.gmane.org, marc.zyngier-5wv7dgnIgG8@public.gmane.org, lorenzo.pieralisi-5wv7dgnIgG8@public.gmane.org, sudeep.holla-5wv7dgnIgG8@public.gmane.org, hanjun.guo-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org
+Cc: linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linaro-acpi-cunTk1MwBs8s++Sfvej+rw@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, rruigrok-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org, harba-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org, cov-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org, timur-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org, graeme.gregory-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org, al.stone-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org, jcm-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, wei-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, arnd-r2nGTMty4D4@public.gmane.org, wim-IQzOog9fTRqzQB+pC5nmwQ@public.gmane.org, catalin.marinas-5wv7dgnIgG8@public.gmane.org, will.deacon-5wv7dgnIgG8@public.gmane.org, Suravee.Suthikulpanit-5C7GfCeVMHo@public.gmane.org, leo.duran-5C7GfCeVMHo@public.gmane.org, linux-0h96xk9xTtrk1uMJSBkQmQ@public.gmane.org, linux-watchdog-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Fu Wei <fu.wei-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
-To: Dou Liyang <douly.fnst@cn.fujitsu.com>
-Cc: Andrew Morton <akpm@linux-foundation.org>, cl@linux.com, tj@kernel.org, mika.j.penttila@gmail.com, mingo@redhat.com, hpa@zytor.com, yasu.isimatu@gmail.com, isimatu.yasuaki@jp.fujitsu.com, kamezawa.hiroyu@jp.fujitsu.com, izumi.taku@jp.fujitsu.com, gongzhaogang@inspur.com, len.brown@intel.com, lenb@kernel.org, tglx@linutronix.de, chen.tang@easystack.cn, rafael@kernel.org, x86@kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linux-mm@kvack.org
 
-On Tuesday, July 26, 2016 11:59:38 AM Dou Liyang wrote:
->=20
-> =E5=9C=A8 2016=E5=B9=B407=E6=9C=8826=E6=97=A5 07:20, Andrew Morton =E5=
-=86=99=E9=81=93:
-> > On Mon, 25 Jul 2016 16:35:42 +0800 Dou Liyang <douly.fnst@cn.fujits=
-u.com> wrote:
-> >
-> >> [Problem]
-> >>
-> >> cpuid <-> nodeid mapping is firstly established at boot time. And =
-workqueue caches
-> >> the mapping in wq_numa_possible_cpumask in wq_numa_init() at boot =
-time.
-> >>
-> >> When doing node online/offline, cpuid <-> nodeid mapping is establ=
-ished/destroyed,
-> >> which means, cpuid <-> nodeid mapping will change if node hotplug =
-happens. But
-> >> workqueue does not update wq_numa_possible_cpumask.
-> >>
-> >> So here is the problem:
-> >>
-> >> Assume we have the following cpuid <-> nodeid in the beginning:
-> >>
-> >>   Node | CPU
-> >> ------------------------
-> >> node 0 |  0-14, 60-74
-> >> node 1 | 15-29, 75-89
-> >> node 2 | 30-44, 90-104
-> >> node 3 | 45-59, 105-119
-> >>
-> >> and we hot-remove node2 and node3, it becomes:
-> >>
-> >>   Node | CPU
-> >> ------------------------
-> >> node 0 |  0-14, 60-74
-> >> node 1 | 15-29, 75-89
-> >>
-> >> and we hot-add node4 and node5, it becomes:
-> >>
-> >>   Node | CPU
-> >> ------------------------
-> >> node 0 |  0-14, 60-74
-> >> node 1 | 15-29, 75-89
-> >> node 4 | 30-59
-> >> node 5 | 90-119
-> >>
-> >> But in wq_numa_possible_cpumask, cpu30 is still mapped to node2, a=
-nd the like.
-> >>
-> >> When a pool workqueue is initialized, if its cpumask belongs to a =
-node, its
-> >> pool->node will be mapped to that node. And memory used by this wo=
-rkqueue will
-> >> also be allocated on that node.
-> >
-> > Plan B is to hunt down and fix up all the workqueue structures at
-> > hotplug-time.  Has that option been evaluated?
-> >
->=20
-> Yes, the option has been evaluate in this patch:
-> http://www.gossamer-threads.com/lists/linux/kernel/2116748
->=20
-> >
-> > Your fix is x86-only and this bug presumably affects other
-> > architectures, yes?I think a "Plan B" would fix all architectures?
-> >
->=20
-> Yes, the bug may presumably affect few architectures which support CP=
-U=20
-> hotplug and NUMA.
->=20
-> We have sent the "Plan B" in our community and got a lot of advice an=
-d=20
-> ideas. Based on these suggestions, We carefully balance that two plan=
-=2E=20
-> Then we choice the first.
->=20
-> >
-> > Thirdly, what is the merge path for these patches?  Is an x86
-> > or ACPI maintainer working with you on them?
->=20
-> Yes, we get a lot of guidance and help from RJ who is an ACPI maintai=
-ner.
+From: Fu Wei <fu.wei-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
 
-=46WIW, the patches are fine by me from the ACPI perspective.
+This patchset:
+    (1)Preparation for adding GTDT support in arm_arch_timer:
+        1. Move some enums and marcos to header file;
+        2. Add a new enum for spi type;
+        3. Improve printk relevant code.
 
-If you want me to apply them, though, ACKs from the x86 and mm maintain=
-ers
-will be necessary.
+    (2)Introduce ACPI GTDT parser: drivers/acpi/arm64/acpi_gtdt.c
+    Parse all kinds of timer in GTDT table of ACPI:arch timer,
+    memory-mapped timer and SBSA Generic Watchdog timer.
+    This driver can help to simplify all the relevant timer drivers,
+    and separate all the ACPI GTDT knowledge from them.
 
-Thanks,
-Rafael
+    (3)Simplify ACPI code for arm_arch_timer
+
+    (4)Add GTDT support for ARM memory-mapped timer
+
+This patchset has been tested on the following platforms:
+    (1)ARM Foundation v8 model
+
+Changelog:
+V10: https://lkml.org/lkml/2016/7/26/
+     Drop the "readq" patch.
+     Rebase to latest Linux 4.7. 
+
+V9: https://lkml.org/lkml/2016/7/25/345
+    Improve pr_err message in acpi gtdt driver.
+    Update Commit message for 7/9
+    shorten the irq mapping function name
+    Improve GTDT driver for memory-mapped timer
+
+v8: https://lkml.org/lkml/2016/7/19/660
+    Improve "pr_fmt(fmt)" definition: add "ACPI" in front of "GTDT",
+    and also improve printk message.
+    Simplify is_timer_block and is_watchdog.
+    Merge acpi_gtdt_desc_init and gtdt_arch_timer_init into acpi_gtdt_init();
+    Delete __init in include/linux/acpi.h for GTDT API
+    Make ARM64 select GTDT.
+    Delete "#include <linux/module.h>" from acpi_gtdt.c
+    Simplify GT block parse code.
+
+v7: https://lkml.org/lkml/2016/7/13/769
+    Move the GTDT driver to drivers/acpi/arm64
+    Add add the ARM64-specific ACPI Support maintainers in MAINTAINERS
+    Merge 3 patches of GTDT parser driver.
+    Fix the for_each_platform_timer bug.
+
+v6: https://lkml.org/lkml/2016/6/29/580
+    split the GTDT driver to 4 parts: basic, arch_timer, memory-mapped timer,
+    and SBSA Generic Watchdog timer
+    Improve driver by suggestions and example code from Daniel Lezcano
+
+v5: https://lkml.org/lkml/2016/5/24/356
+    Sorting out all patches, simplify the API of GTDT driver:
+    GTDT driver just fills the data struct for arm_arch_timer driver.
+
+v4: https://lists.linaro.org/pipermail/linaro-acpi/2016-March/006667.html
+    Delete the kvm relevant patches
+    Separate two patches for sorting out the code for arm_arch_timer.
+    Improve irq info export code to allow missing irq info in GTDT table.
+
+v3: https://lkml.org/lkml/2016/2/1/658
+    Improve GTDT driver code:
+      (1)improve pr_* by defining pr_fmt(fmt)
+      (2)simplify gtdt_sbsa_gwdt_init
+      (3)improve gtdt_arch_timer_data_init, if table is NULL, it will try
+      to get GTDT table.
+    Move enum ppi_nr to arm_arch_timer.h, and add enum spi_nr.
+    Add arm_arch_timer get ppi from DT and GTDT support for kvm.
+
+v2: https://lkml.org/lkml/2015/12/2/10
+    Rebase to latest kernel version(4.4-rc3).
+    Fix the bug about the config problem,
+    use CONFIG_ACPI_GTDT instead of CONFIG_ACPI in arm_arch_timer.c
+
+v1: The first upstreaming version: https://lkml.org/lkml/2015/10/28/553
+
+Fu Wei (8):
+  clocksource/drivers/arm_arch_timer: Move enums and defines to header
+    file
+  clocksource/drivers/arm_arch_timer: Add a new enum for spi type
+  clocksource/drivers/arm_arch_timer: Improve printk relevant code
+  acpi/arm64: Add GTDT table parse driver
+  clocksource/drivers/arm_arch_timer: Simplify ACPI support code.
+  acpi/arm64: Add memory-mapped timer support in GTDT driver
+  clocksource/drivers/arm_arch_timer: Add GTDT support for memory-mapped
+    timer
+  acpi/arm64: Add SBSA Generic Watchdog support in GTDT driver
+
+ arch/arm64/Kconfig                   |   1 +
+ drivers/acpi/Kconfig                 |   5 +
+ drivers/acpi/Makefile                |   1 +
+ drivers/acpi/arm64/Kconfig           |   5 +
+ drivers/acpi/arm64/Makefile          |   1 +
+ drivers/acpi/arm64/acpi_gtdt.c       | 309 +++++++++++++++++++++++++++++++++++
+ drivers/clocksource/Kconfig          |   2 +-
+ drivers/clocksource/arm_arch_timer.c | 225 +++++++++++++++++--------
+ drivers/watchdog/Kconfig             |   1 +
+ include/clocksource/arm_arch_timer.h |  32 ++++
+ include/linux/acpi.h                 |   7 +
+ 11 files changed, 518 insertions(+), 71 deletions(-)
+ create mode 100644 drivers/acpi/arm64/Kconfig
+ create mode 100644 drivers/acpi/arm64/Makefile
+ create mode 100644 drivers/acpi/arm64/acpi_gtdt.c
+
+-- 
+2.5.5
 
 --
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
+To unsubscribe from this list: send the line "unsubscribe linux-watchdog" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
