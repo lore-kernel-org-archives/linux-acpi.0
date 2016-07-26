@@ -1,66 +1,82 @@
-From: "Moore, Robert" <robert.moore@intel.com>
-Subject: RE: [PATCH] ACPICA: cleanup method properly on error
-Date: Tue, 26 Jul 2016 14:39:51 +0000
-Message-ID: <94F2FBAB4432B54E8AACC7DFDE6C92E37E4CD2A1@ORSMSX110.amr.corp.intel.com>
-References: <1469201709-10518-1-git-send-email-vegard.nossum@oracle.com>
+From: Marc Zyngier <marc.zyngier@arm.com>
+Subject: Re: [PATCH V7 1/8] ACPI: I/O Remapping Table (IORT) initial support
+Date: Tue, 26 Jul 2016 15:48:49 +0100
+Message-ID: <20160726154849.350d9c1c@arm.com>
+References: <1466420541-20101-2-git-send-email-tn@semihalf.com>
+	<1466598909-27504-1-git-send-email-tn@semihalf.com>
+	<576A91CC.3000101@arm.com>
+	<576A9824.1060400@semihalf.com>
+	<576AA603.3080505@arm.com>
+	<576B3CBD.60309@huawei.com>
+	<57976353.7080500@codeaurora.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga09.intel.com ([134.134.136.24]:32836 "EHLO mga09.intel.com"
+Received: from foss.arm.com ([217.140.101.70]:40273 "EHLO foss.arm.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756568AbcGZOjy convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 26 Jul 2016 10:39:54 -0400
-In-Reply-To: <1469201709-10518-1-git-send-email-vegard.nossum@oracle.com>
-Content-Language: en-US
+	id S1754485AbcGZOtN (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 26 Jul 2016 10:49:13 -0400
+In-Reply-To: <57976353.7080500@codeaurora.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Vegard Nossum <vegard.nossum@oracle.com>, "Zheng, Lv" <lv.zheng@intel.com>, "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>
-Cc: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "devel@acpica.org" <devel@acpica.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "stable@vger.kernel.org" <stable@vger.kernel.org>
+To: Christopher Covington <cov@codeaurora.org>
+Cc: Hanjun Guo <guohanjun@huawei.com>, Tomasz Nowicki <tn@semihalf.com>, tglx@linutronix.de, jason@lakedaemon.net, rjw@rjwysocki.net, bhelgaas@google.com, lorenzo.pieralisi@arm.com, robert.richter@caviumnetworks.com, shijie.huang@arm.com, Suravee.Suthikulpanit@amd.com, hanjun.guo@linaro.org, al.stone@linaro.org, mw@semihalf.com, graeme.gregory@linaro.org, Catalin.Marinas@arm.com, will.deacon@arm.com, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org, ddaney.cavm@gmail.com, okaya@codeaurora.org, andrea.gallo@linaro.org, linux-pci@vger.kernel.org
 
-We'll look at this.
-Thanks.
+On Tue, 26 Jul 2016 09:19:15 -0400
+Christopher Covington <cov@codeaurora.org> wrote:
 
+Hi Christopher,
 
-> -----Original Message-----
-> From: Vegard Nossum [mailto:vegard.nossum@oracle.com]
-> Sent: Friday, July 22, 2016 8:35 AM
-> To: Moore, Robert <robert.moore@intel.com>; Zheng, Lv
-> <lv.zheng@intel.com>; Wysocki, Rafael J <rafael.j.wysocki@intel.com>
-> Cc: linux-acpi@vger.kernel.org; devel@acpica.org; linux-
-> kernel@vger.kernel.org; Vegard Nossum <vegard.nossum@oracle.com>;
-> stable@vger.kernel.org
-> Subject: [PATCH] ACPICA: cleanup method properly on error
+> Hi Marc,
 > 
-> If the call to acpi_ds_init_aml_walk() fails, then we have to undo the
-> walk state push done by acpi_ds_create_walk_state(). Otherwise, the new
-> walk state (which has just been freed) will remain on the thread's
-> walk_state_list and be dereferenced in acpi_ps_parse_aml() when we try
-> to get the new state.
+> On 06/22/2016 09:34 PM, Hanjun Guo wrote:
+> > On 2016/6/22 22:51, Marc Zyngier wrote:  
+> >> On 22/06/16 14:52, Tomasz Nowicki wrote:  
+> >>> On 22.06.2016 15:25, Marc Zyngier wrote:  
+> >>>> On 22/06/16 13:35, Tomasz Nowicki wrote:  
+> >>>>> IORT shows representation of IO topology for ARM based systems.
+> >>>>> It describes how various components are connected together on
+> >>>>> parent-child basis e.g. PCI RC -> SMMU -> ITS. Also see IORT spec.
+> >>>>> http://infocenter.arm.com/help/topic/com.arm.doc.den0049b/DEN0049B_IO_Remapping_Table.pdf
+> >>>>>
+> >>>>> Initial support allows to detect IORT table presence and save its
+> >>>>> root pointer obtained through acpi_get_table(). The pointer validity
+> >>>>> depends on acpi_gbl_permanent_mmap because if acpi_gbl_permanent_mmap
+> >>>>> is not set while using IORT nodes we would dereference unmapped pointers.
+> >>>>>
+> >>>>> For the aforementioned reason call iort_table_detect() from acpi_init()
+> >>>>> which guarantees acpi_gbl_permanent_mmap to be set at that point.
+> >>>>>
+> >>>>> Add generic helpers which are helpful for scanning and retrieving
+> >>>>> information from IORT table content. List of the most important helpers:
+> >>>>> - iort_find_dev_node() finds IORT node for a given device
+> >>>>> - iort_node_map_rid() maps device RID and returns IORT node which provides
+> >>>>>    final translation
+> >>>>>
+> >>>>> Signed-off-by: Tomasz Nowicki <tn@semihalf.com>
+> >>>>> ---
+> >>>>>   drivers/acpi/Kconfig  |   3 +
+> >>>>>   drivers/acpi/Makefile |   1 +
+> >>>>>   drivers/acpi/bus.c    |   2 +
+> >>>>>   drivers/acpi/iort.c   | 217 ++++++++++++++++++++++++++++++++++++++++++++++++++
+> >>>>>   include/linux/iort.h  |  30 +++++++
+> >>>>>   5 files changed, 253 insertions(+)
+> >>>>>   create mode 100644 drivers/acpi/iort.c
+> >>>>>   create mode 100644 include/linux/iort.h  
 > 
-> You can observe this when reading e.g.
+> > I tracked Marc's tree on git.kernel.org, it's  acpi_os_free(buffer.pointer) there so
+> > my worry is gone :)  
 > 
->     /sys/devices/LNXSYSTM:00/LNXSYBUS:00/PNP0C0F:01/status
-> 
-> Cc: stable@vger.kernel.org
-> Signed-off-by: Vegard Nossum <vegard.nossum@oracle.com>
-> ---
->  drivers/acpi/acpica/dsmethod.c | 2 ++
->  1 file changed, 2 insertions(+)
-> 
-> diff --git a/drivers/acpi/acpica/dsmethod.c
-> b/drivers/acpi/acpica/dsmethod.c index 47c7b52..44b50a6 100644
-> --- a/drivers/acpi/acpica/dsmethod.c
-> +++ b/drivers/acpi/acpica/dsmethod.c
-> @@ -596,6 +596,8 @@ cleanup:
->  	/* On error, we must terminate the method properly */
-> 
->  	acpi_ds_terminate_control_method(obj_desc, next_walk_state);
-> +	if (thread)
-> +		acpi_ds_pop_walk_state(thread);
->  	acpi_ds_delete_walk_state(next_walk_state);
-> 
->  	return_ACPI_STATUS(status);
-> --
-> 1.9.1
+> Do you plan on submitting this during the 4.8 merge window?
 
+Short of having received the necessary Ack from the ACPI maintainer,
+the answer is unfortunately negative. I'm hoping that the new split
+ACPI maintenance between generic code and arm64 will help getting
+things moving for 4.9.
+
+Thanks,
+
+	M.
+-- 
+Jazz is not dead. It just smells funny.
