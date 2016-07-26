@@ -1,71 +1,73 @@
-From: Christopher Covington <cov@codeaurora.org>
-Subject: Re: [PATCH V7 1/8] ACPI: I/O Remapping Table (IORT) initial support
-Date: Tue, 26 Jul 2016 09:19:15 -0400
-Message-ID: <57976353.7080500@codeaurora.org>
-References: <1466420541-20101-2-git-send-email-tn@semihalf.com>
- <1466598909-27504-1-git-send-email-tn@semihalf.com>
- <576A91CC.3000101@arm.com> <576A9824.1060400@semihalf.com>
- <576AA603.3080505@arm.com> <576B3CBD.60309@huawei.com>
+From: Timur Tabi <timur-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>
+Subject: Re: [PATCH v9 4/9] clocksource/drivers/arm_arch_timer: use readq to
+ get 64-bit CNTVCT
+Date: Tue, 26 Jul 2016 09:11:49 -0500
+Message-ID: <57976FA5.2070802@codeaurora.org>
+References: <1469460427-8643-1-git-send-email-fu.wei@linaro.org>
+ <1469460427-8643-5-git-send-email-fu.wei@linaro.org>
+ <20160725153118.GD19209@arm.com>
+ <CADyBb7ubKceQiB7+u7sSA=1+9_VMUrGjiabf_FkN2-n4rq7Kgg@mail.gmail.com>
+ <20160725163144.GE19209@arm.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp.codeaurora.org ([198.145.29.96]:44121 "EHLO
-	smtp.codeaurora.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754569AbcGZNTX (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 26 Jul 2016 09:19:23 -0400
-In-Reply-To: <576B3CBD.60309@huawei.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Return-path: <linux-watchdog-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20160725163144.GE19209-5wv7dgnIgG8@public.gmane.org>
+Sender: linux-watchdog-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Will Deacon <will.deacon-5wv7dgnIgG8@public.gmane.org>, Fu Wei <fu.wei-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
+Cc: "Rafael J. Wysocki" <rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org>, Len Brown <lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Daniel Lezcano <daniel.lezcano-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Thomas Gleixner <tglx-hfZtesqFncYOwBW4kG4KsQ@public.gmane.org>, Marc Zyngier <marc.zyngier-5wv7dgnIgG8@public.gmane.org>, Lorenzo Pieralisi <lorenzo.pieralisi-5wv7dgnIgG8@public.gmane.org>, Sudeep Holla <sudeep.holla-5wv7dgnIgG8@public.gmane.org>, Hanjun Guo <hanjun.guo-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, Linaro ACPI Mailman List <linaro-acpi-cunTk1MwBs8s++Sfvej+rw@public.gmane.org>, Linux Kernel Mailing List <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, ACPI Devel Maling List <linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, rruigrok-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org, harba-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org, Christopher Covington <cov-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, G Gregory <graeme.gregory-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Al Stone <al.stone-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Jon Masters <jcm-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, wei-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>, Wim Van Sebroeck <wim-IQzOog9fTRqzQB+pC5nmwQ@public.gmane.org>, Catalin Marinas <catalin.marinas-5wv7dgnIgG8@public.gmane.org>, Suravee Suthikulpanit <Suravee.Suthikulpanit@a>
 List-Id: linux-acpi@vger.kernel.org
-To: Marc Zyngier <marc.zyngier@arm.com>
-Cc: Hanjun Guo <guohanjun@huawei.com>, Tomasz Nowicki <tn@semihalf.com>, tglx@linutronix.de, jason@lakedaemon.net, rjw@rjwysocki.net, bhelgaas@google.com, lorenzo.pieralisi@arm.com, robert.richter@caviumnetworks.com, shijie.huang@arm.com, Suravee.Suthikulpanit@amd.com, hanjun.guo@linaro.org, al.stone@linaro.org, mw@semihalf.com, graeme.gregory@linaro.org, Catalin.Marinas@arm.com, will.deacon@arm.com, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org, ddaney.cavm@gmail.com, okaya@codeaurora.org, andrea.gallo@linaro.org, linux-pci@vger.kernel.org
 
-Hi Marc,
+Will Deacon wrote:
+> The kernel really needs to support both of those platforms :/
+>
+> For the memory-mapped counter registers, the architecture says:
+>
+>    `If the implementation supports 64-bit atomic accesses, then the
+>     CNTV_CVAL register must be accessible as an atomic 64-bit value.'
+>
+> which is borderline tautological. If we take the generous reading that
+> this means AArch64 CPUs can use readq (and I'm not completely
+> comfortable with that assertion, particularly as you say that it breaks
+> the model), then you still need to use readq_relaxed here to avoid a
+> DSB. Furthermore, what are you going to do for AArch32? readq doesn't
+> exist over there, and if you use the generic implementation then it's
+> not atomic. In which case, we end up with the current code, as well as a
+> readq_relaxed guarded by a questionable #ifdef that is known to break a
+> supported platform for an unknown performance improvement. Hardly a big
+> win.
 
-On 06/22/2016 09:34 PM, Hanjun Guo wrote:
-> On 2016/6/22 22:51, Marc Zyngier wrote:
->> On 22/06/16 14:52, Tomasz Nowicki wrote:
->>> On 22.06.2016 15:25, Marc Zyngier wrote:
->>>> On 22/06/16 13:35, Tomasz Nowicki wrote:
->>>>> IORT shows representation of IO topology for ARM based systems.
->>>>> It describes how various components are connected together on
->>>>> parent-child basis e.g. PCI RC -> SMMU -> ITS. Also see IORT spec.
->>>>> http://infocenter.arm.com/help/topic/com.arm.doc.den0049b/DEN0049B_IO_Remapping_Table.pdf
->>>>>
->>>>> Initial support allows to detect IORT table presence and save its
->>>>> root pointer obtained through acpi_get_table(). The pointer validity
->>>>> depends on acpi_gbl_permanent_mmap because if acpi_gbl_permanent_mmap
->>>>> is not set while using IORT nodes we would dereference unmapped pointers.
->>>>>
->>>>> For the aforementioned reason call iort_table_detect() from acpi_init()
->>>>> which guarantees acpi_gbl_permanent_mmap to be set at that point.
->>>>>
->>>>> Add generic helpers which are helpful for scanning and retrieving
->>>>> information from IORT table content. List of the most important helpers:
->>>>> - iort_find_dev_node() finds IORT node for a given device
->>>>> - iort_node_map_rid() maps device RID and returns IORT node which provides
->>>>>    final translation
->>>>>
->>>>> Signed-off-by: Tomasz Nowicki <tn@semihalf.com>
->>>>> ---
->>>>>   drivers/acpi/Kconfig  |   3 +
->>>>>   drivers/acpi/Makefile |   1 +
->>>>>   drivers/acpi/bus.c    |   2 +
->>>>>   drivers/acpi/iort.c   | 217 ++++++++++++++++++++++++++++++++++++++++++++++++++
->>>>>   include/linux/iort.h  |  30 +++++++
->>>>>   5 files changed, 253 insertions(+)
->>>>>   create mode 100644 drivers/acpi/iort.c
->>>>>   create mode 100644 include/linux/iort.h
+I know Fu dropped this patch, and I don't want to kick a dead horse, but 
+I was wondering if it would be okay to do this:
 
-> I tracked Marc's tree on git.kernel.org, it's  acpi_os_free(buffer.pointer) there so
-> my worry is gone :)
+static u64 arch_counter_get_cntvct_mem(void)
+{
+#ifdef readq_relaxed
+	return readq_relaxed(arch_counter_base + CNTVCT_LO);
+#else
+	u32 vct_lo, vct_hi, tmp_hi;
 
-Do you plan on submitting this during the 4.8 merge window?
+	do {
+		vct_hi = readl_relaxed(arch_counter_base + CNTVCT_HI);
+		vct_lo = readl_relaxed(arch_counter_base + CNTVCT_LO);
+		tmp_hi = readl_relaxed(arch_counter_base + CNTVCT_HI);
+	} while (vct_hi != tmp_hi);
 
-Thanks,
-Cov
+	return ((u64) vct_hi << 32) | vct_lo;
+#endif
+}
+
+readq and readq_relaxed are defined in arch/arm64/include/asm/io.h.  Why 
+would the function exist if AArch64 CPUs can't use it?
+
+Do we need something like ARCH_HAS_64BIT_ATOMIC_READ in order to decide 
+whether readq is safe?
 
 -- 
-Qualcomm Datacenter Technologies, Inc. as an affiliate of Qualcomm
-Technologies, Inc. Qualcomm Technologies, Inc. is a member of the Code
-Aurora Forum, a Linux Foundation Collaborative Project.
+Sent by an employee of the Qualcomm Innovation Center, Inc.
+The Qualcomm Innovation Center, Inc. is a member of the
+Code Aurora Forum, hosted by The Linux Foundation.
+--
+To unsubscribe from this list: send the line "unsubscribe linux-watchdog" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
