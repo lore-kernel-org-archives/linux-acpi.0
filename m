@@ -1,40 +1,56 @@
 From: Rui Wang <rui.y.wang@intel.com>
-Subject: [PATCH 0/4] Fixing a set of bugs for ioapic hotplug
-Date: Wed, 27 Jul 2016 00:13:13 +0800
-Message-ID: <1469549597-19253-1-git-send-email-rui.y.wang@intel.com>
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga02.intel.com ([134.134.136.20]:63200 "EHLO mga02.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757201AbcGZQ3e (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 26 Jul 2016 12:29:34 -0400
-Sender: linux-acpi-owner@vger.kernel.org
-List-Id: linux-acpi@vger.kernel.org
+Subject: [PATCH 4/4] x86/ioapic: Fix ioapic failing to request resource
+Date: Wed, 27 Jul 2016 00:13:17 +0800
+Message-ID: <1469549597-19253-5-git-send-email-rui.y.wang@intel.com>
+References: <1469549597-19253-1-git-send-email-rui.y.wang@intel.com>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1469549597-19253-1-git-send-email-rui.y.wang@intel.com>
+Sender: linux-kernel-owner@vger.kernel.org
 To: helgaas@kernel.org, tglx@linutronix.de, rjw@rjwysocki.net, tony.luck@intel.com
 Cc: bhelgaas@google.com, linux-acpi@vger.kernel.org, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, rui.y.wang@intel.com
+List-Id: linux-acpi@vger.kernel.org
 
-Hi all,
+handle_ioapic_add() uses request_resource() to request ACPI "_CRS"
+resources. This can fail with the following error message:
 
-The 1st patch has been discussed before Bjorn went on vacation. I've fixed
-all the issues. Bjorn, please advise how we'll move forward.
+[  247.325693] ACPI: \_SB_.IIO1.AID1: failed to insert resource
 
-The remaining patches fix newly found bugs while testing ioapic hotplug.
+This happens when there are multiple ioapics and DSDT groups their
+"_CRS" resources as the children of a parent resource, as seen from
+/proc/iomem:
 
-Regards,
-Rui
+fec00000-fecfffff : PNP0003:00
+  fec00000-fec003ff : IOAPIC 0
+  fec01000-fec013ff : IOAPIC 1
+  fec40000-fec403ff : IOAPIC 2
 
-Rui Wang (4):
-  x86/ioapic: Support hot-removal of IOAPICs present during boot
-  x86/ioapic: Fix setup_res() failing to get resource
-  x86/ioapic: Fix lost ioapic resource after hot-removal and hotadd
-  x86/ioapic: Fix ioapic failing to request resource
+In this case request_resource() fails because there's a conflicting
+resource which is the parent (fec0000-fecfffff). Fix it by using
+insert_resoure() which can request resources by taking the conflicting
+resource as the parent.
 
- drivers/acpi/internal.h |  2 --
- drivers/acpi/ioapic.c   | 47 +++++++++++++++++++++++++++--------------------
- drivers/acpi/pci_root.c | 13 ++++++++++++-
- drivers/pci/setup-bus.c |  5 ++++-
- include/linux/acpi.h    |  6 ++++++
- 5 files changed, 49 insertions(+), 24 deletions(-)
+Signed-off-by: Rui Wang <rui.y.wang@intel.com>
+---
+ drivers/acpi/ioapic.c | 4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
 
+diff --git a/drivers/acpi/ioapic.c b/drivers/acpi/ioapic.c
+index 80b0b1a..2c38ce0 100644
+--- a/drivers/acpi/ioapic.c
++++ b/drivers/acpi/ioapic.c
+@@ -146,10 +146,12 @@ static acpi_status handle_ioapic_add(acpi_handle handle, u32 lvl,
+ 
+ 	crs_res = &ioapic->res;
+ 	acpi_walk_resources(handle, METHOD_NAME__CRS, setup_res, crs_res);
++	crs_res->name = type;
++	crs_res->flags |= IORESOURCE_BUSY;
+ 	if (crs_res->flags == 0) {
+ 		acpi_handle_warn(handle, "failed to get resource\n");
+ 		goto exit_release;
+-	} else if (request_resource(&iomem_resource, crs_res)) {
++	} else if (insert_resource(&iomem_resource, crs_res)) {
+ 		acpi_handle_warn(handle, "failed to insert resource\n");
+ 		goto exit_release;
+ 	}
 -- 
 1.8.3.1
-
