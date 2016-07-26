@@ -1,168 +1,104 @@
-From: Dou Liyang <douly.fnst@cn.fujitsu.com>
-Subject: [PATCH v10 6/7] acpi: Provide the mechanism to validate processors in the ACPI tables
-Date: Tue, 26 Jul 2016 14:10:28 +0800
-Message-ID: <1469513429-25464-7-git-send-email-douly.fnst@cn.fujitsu.com>
-References: <1469513429-25464-1-git-send-email-douly.fnst@cn.fujitsu.com>
+From: Fu Wei <fu.wei@linaro.org>
+Subject: Re: [PATCH v9 4/9] clocksource/drivers/arm_arch_timer: use readq to
+ get 64-bit CNTVCT
+Date: Tue, 26 Jul 2016 17:21:03 +0800
+Message-ID: <CADyBb7s__Cr1v1UBS+CdSNGcAAZTgPYG+DmzcmwMsDDy8sDnxg@mail.gmail.com>
+References: <1469460427-8643-1-git-send-email-fu.wei@linaro.org>
+ <1469460427-8643-5-git-send-email-fu.wei@linaro.org> <20160725153118.GD19209@arm.com>
+ <CADyBb7ubKceQiB7+u7sSA=1+9_VMUrGjiabf_FkN2-n4rq7Kgg@mail.gmail.com>
+ <20160725163144.GE19209@arm.com> <20160725224957.GU1041@n2100.armlinux.org.uk>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <owner-linux-mm@kvack.org>
-In-Reply-To: <1469513429-25464-1-git-send-email-douly.fnst@cn.fujitsu.com>
-Sender: owner-linux-mm@kvack.org
-To: cl@linux.com, tj@kernel.org, mika.j.penttila@gmail.com, mingo@redhat.com, akpm@linux-foundation.org, rjw@rjwysocki.net, hpa@zytor.com, yasu.isimatu@gmail.com, isimatu.yasuaki@jp.fujitsu.com, kamezawa.hiroyu@jp.fujitsu.com, izumi.taku@jp.fujitsu.com, gongzhaogang@inspur.com, len.brown@intel.com, lenb@kernel.org, tglx@linutronix.de, chen.tang@easystack.cn, rafael@kernel.org
-Cc: x86@kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linux-mm@kvack.org, Dou Liyang <douly.fnst@cn.fujitsu.com>
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20160725224957.GU1041@n2100.armlinux.org.uk>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Russell King - ARM Linux <linux@armlinux.org.uk>
+Cc: Will Deacon <will.deacon@arm.com>, Linaro ACPI Mailman List <linaro-acpi@lists.linaro.org>, Catalin Marinas <catalin.marinas@arm.com>, rruigrok@codeaurora.org, Wim Van Sebroeck <wim@iguana.be>, wei@redhat.com, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Al Stone <al.stone@linaro.org>, Timur Tabi <timur@codeaurora.org>, Daniel Lezcano <daniel.lezcano@linaro.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Guenter Roeck <linux@roeck-us.net>, Len Brown <lenb@kernel.org>, harba@codeaurora.org, linux-watchdog@vger.kernel.org, Arnd Bergmann <arnd@arndb.de>, Marc Zyngier <marc.zyngier@arm.com>, Jon Masters <jcm@redhat.com>, Christopher Covington <cov@codeaurora.org>, Thomas Gleixner <tglx@linutronix.de>, linux-arm-kernel@lists.infradead.org, G Gregory <graeme.gregory@linaro.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Linux Kernel Mailing List <linux-kernel>
 List-Id: linux-acpi@vger.kernel.org
 
-[Problem]
+Hi Russell King,
 
-When we set cpuid <-> nodeid mapping to be persistent, it will use the DSDT
-As we know, the ACPI tables are just like user's input in that respect, and
-we don't crash if user's input is unreasonable.
+On 26 July 2016 at 06:49, Russell King - ARM Linux
+<linux@armlinux.org.uk> wrote:
+> On Mon, Jul 25, 2016 at 05:31:45PM +0100, Will Deacon wrote:
+>> On Mon, Jul 25, 2016 at 11:55:49PM +0800, Fu Wei wrote:
+>> > On 25 July 2016 at 23:31, Will Deacon <will.deacon@arm.com> wrote:
+>> > > On Mon, Jul 25, 2016 at 11:27:02PM +0800, fu.wei@linaro.org wrote:
+>> > >> From: Fu Wei <fu.wei@linaro.org>
+>> > >>
+>> > >> This patch simplify arch_counter_get_cntvct_mem function by
+>> > >> using readq to get 64-bit CNTVCT value instead of readl_relaxed.
+>> > >>
+>> > >> Signed-off-by: Fu Wei <fu.wei@linaro.org>
+>> > >> ---
+>> > >>  drivers/clocksource/arm_arch_timer.c | 10 +---------
+>> > >>  1 file changed, 1 insertion(+), 9 deletions(-)
+>> > >>
+>> > >> diff --git a/drivers/clocksource/arm_arch_timer.c b/drivers/clocksource/arm_arch_timer.c
+>> > >> index e6fd42d..483d2f9 100644
+>> > >> --- a/drivers/clocksource/arm_arch_timer.c
+>> > >> +++ b/drivers/clocksource/arm_arch_timer.c
+>> > >> @@ -418,15 +418,7 @@ u32 arch_timer_get_rate(void)
+>> > >>
+>> > >>  static u64 arch_counter_get_cntvct_mem(void)
+>> > >>  {
+>> > >> -     u32 vct_lo, vct_hi, tmp_hi;
+>> > >> -
+>> > >> -     do {
+>> > >> -             vct_hi = readl_relaxed(arch_counter_base + CNTVCT_HI);
+>> > >> -             vct_lo = readl_relaxed(arch_counter_base + CNTVCT_LO);
+>> > >> -             tmp_hi = readl_relaxed(arch_counter_base + CNTVCT_HI);
+>> > >> -     } while (vct_hi != tmp_hi);
+>> > >> -
+>> > >> -     return ((u64) vct_hi << 32) | vct_lo;
+>> > >> +     return readq(arch_counter_base + CNTVCT_LO);
+>> > >
+>> > > Please drop this patch. It doesn't work.
+>> >
+>> > I am OK to drop this, but could you let me know why it doesn't work?
+>> >
+>> > I did get some problem on Foundation model about readq, but it works on Seattle.
+>> > I guess that is a problem of model, but not a code problem.
+>> > So I just got confused, why readq  doesn't work,  :-)
+>>
+>> The kernel really needs to support both of those platforms :/
+>>
+>> For the memory-mapped counter registers, the architecture says:
+>>
+>>   `If the implementation supports 64-bit atomic accesses, then the
+>>    CNTV_CVAL register must be accessible as an atomic 64-bit value.'
+>>
+>> which is borderline tautological. If we take the generous reading that
+>> this means AArch64 CPUs can use readq (and I'm not completely
+>> comfortable with that assertion, particularly as you say that it breaks
+>> the model), then you still need to use readq_relaxed here to avoid a
+>> DSB. Furthermore, what are you going to do for AArch32? readq doesn't
+>> exist over there, and if you use the generic implementation then it's
+>> not atomic. In which case, we end up with the current code, as well as a
+>> readq_relaxed guarded by a questionable #ifdef that is known to break a
+>> supported platform for an unknown performance improvement. Hardly a big
+>> win.
+>>
+>> Did you see any performance advantage from this? Given that you've added
+>> a DSB, this looks to be extremely premature.
+>
+> +1, absolutely agreed on the 32-bit ARM bits.
 
-Such as, the mapping of the proc_id and pxm in some machine's ACPI table is
-like this:
+Sorry for misunderstanding it, will drop it in v10.
 
-proc_id   |    pxm
---------------------
-0       <->     0
-1       <->     0
-2       <->     1
-3       <->     1
-89      <->     0
-89      <->     0
-89      <->     0
-89      <->     1
-89      <->     1
-89      <->     2
-89      <->     3
-.....
+Great thanks for your help! :-)
 
-We can't be sure which one is correct to the proc_id 89. We may map a wrong
-node to a cpu. When pages are allocated, this may cause a kernal panic.
+>
+> --
+> RMK's Patch system: http://www.armlinux.org.uk/developer/patches/
+> FTTC broadband for 0.8mile line: currently at 9.6Mbps down 400kbps up
+> according to speedtest.net.
 
-So, we should provide mechanisms to validate the ACPI tables, just like we
-do validation to check user's input in web project.
 
-The mechanism is that the processor objects which have the duplicate IDs
-are not valid.
 
-[Solution]
-
-We add a validation function, like this:
-
-foreach Processor in DSDT
-	proc_id= get_ACPI_Processor_number(Processor)
-	if(the proc_id has alreadly existed )
-		mark both of them as being unreasonable;
-
-The function will record the unique or duplicate processor IDs.
-
-The duplicate processor IDs such as 89 are regarded as the unreasonable IDs
-which mean that the processor objects in question are not valid.
-
-Signed-off-by: Dou Liyang <douly.fnst@cn.fujitsu.com>
----
- drivers/acpi/acpi_processor.c | 79 +++++++++++++++++++++++++++++++++++++++++++
- 1 file changed, 79 insertions(+)
-
-diff --git a/drivers/acpi/acpi_processor.c b/drivers/acpi/acpi_processor.c
-index 0c15828..346fbfc 100644
---- a/drivers/acpi/acpi_processor.c
-+++ b/drivers/acpi/acpi_processor.c
-@@ -581,8 +581,87 @@ static struct acpi_scan_handler processor_container_handler = {
- 	.attach = acpi_processor_container_attach,
- };
- 
-+/* The number of the unique processor IDs */
-+static int nr_unique_ids;
-+
-+/* The number of the duplicate processor IDs */
-+static int nr_duplicate_ids;
-+
-+/* Used to store the unique processor IDs */
-+static int unique_processor_ids[] = {
-+	[0 ... NR_CPUS - 1] = -1,
-+};
-+
-+/* Used to store the duplicate processor IDs */
-+static int duplicate_processor_ids[] = {
-+	[0 ... NR_CPUS - 1] = -1,
-+};
-+
-+static void processor_validated_ids_update(int proc_id)
-+{
-+	int i;
-+
-+	if (nr_unique_ids == NR_CPUS||nr_duplicate_ids == NR_CPUS)
-+		return;
-+
-+	/*
-+	 * Firstly, compare the proc_id with duplicate IDs, if the proc_id is
-+	 * already in the IDs, do nothing.
-+	 */
-+	for (i = 0; i < nr_duplicate_ids; i++) {
-+		if (duplicate_processor_ids[i] == proc_id)
-+			return;
-+	}
-+
-+	/*
-+	 * Secondly, compare the proc_id with unique IDs, if the proc_id is in
-+	 * the IDs, put it in the duplicate IDs.
-+	 */
-+	for (i = 0; i < nr_unique_ids; i++) {
-+		if (unique_processor_ids[i] == proc_id) {
-+			duplicate_processor_ids[nr_duplicate_ids] = proc_id;
-+			nr_duplicate_ids++;
-+			return;
-+		}
-+	}
-+
-+	/*
-+	 * Lastly, the proc_id is a unique ID, put it in the unique IDs.
-+	 */
-+	unique_processor_ids[nr_unique_ids] = proc_id;
-+	nr_unique_ids++;
-+}
-+
-+static acpi_status acpi_processor_ids_walk(acpi_handle handle,
-+						u32 lvl,
-+						void *context,
-+						void **rv)
-+{
-+	acpi_status status;
-+	union acpi_object object = { 0 };
-+	struct acpi_buffer buffer = { sizeof(union acpi_object), &object };
-+
-+	status = acpi_evaluate_object(handle, NULL, NULL, &buffer);
-+	if (ACPI_FAILURE(status))
-+		acpi_handle_info(handle, "Not get the processor object\n");
-+	else
-+		processor_validated_ids_update(object.processor.proc_id);
-+
-+	return AE_OK;
-+}
-+
-+static void acpi_processor_duplication_valiate(void)
-+{
-+	/* Search all processor nodes in ACPI namespace */
-+	acpi_walk_namespace(ACPI_TYPE_PROCESSOR, ACPI_ROOT_OBJECT,
-+						ACPI_UINT32_MAX,
-+						acpi_processor_ids_walk,
-+						NULL, NULL, NULL);
-+}
-+
- void __init acpi_processor_init(void)
- {
-+	acpi_processor_duplication_valiate();
- 	acpi_scan_add_handler_with_hotplug(&processor_handler, "processor");
- 	acpi_scan_add_handler(&processor_container_handler);
- }
 -- 
-2.5.5
+Best regards,
 
-
-
---
-To unsubscribe, send a message with 'unsubscribe linux-mm' in
-the body to majordomo@kvack.org.  For more info on Linux MM,
-see: http://www.linux-mm.org/ .
-Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
+Fu Wei
+Software Engineer
+Red Hat
