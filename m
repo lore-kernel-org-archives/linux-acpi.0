@@ -1,306 +1,129 @@
 From: Prashanth Prakash <pprakash@codeaurora.org>
-Subject: [PATCH V2 5/5] ACPI/CPPC: add sysfs support to compute delivered performance
-Date: Tue, 26 Jul 2016 13:45:28 -0600
-Message-ID: <1469562328-10201-6-git-send-email-pprakash@codeaurora.org>
+Subject: [PATCH V2 4/5] ACPI/CPPC: set a non-zero value for transition_latency
+Date: Tue, 26 Jul 2016 13:45:27 -0600
+Message-ID: <1469562328-10201-5-git-send-email-pprakash@codeaurora.org>
 References: <1469562328-10201-1-git-send-email-pprakash@codeaurora.org>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp.codeaurora.org ([198.145.29.96]:46264 "EHLO
+Received: from smtp.codeaurora.org ([198.145.29.96]:46257 "EHLO
 	smtp.codeaurora.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756922AbcGZTqE (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 26 Jul 2016 15:46:04 -0400
+	with ESMTP id S1756823AbcGZTqD (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 26 Jul 2016 15:46:03 -0400
 In-Reply-To: <1469562328-10201-1-git-send-email-pprakash@codeaurora.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: linux-acpi@vger.kernel.org
-Cc: rjw@rjwysocki.net, alexey.klimov@arm.com, hotran@apm.com, cov@codeaurora.org, pprakash@codeaurora.org, Ashwin Chaugule <ashwin.chaugule@linaro.org>
+Cc: rjw@rjwysocki.net, alexey.klimov@arm.com, hotran@apm.com, cov@codeaurora.org, pprakash@codeaurora.org
 
-From: Ashwin Chaugule <ashwin.chaugule@linaro.org>
-
-The CPPC tables contain entries for per CPU feedback counters which
-allows us to compute the delivered performance over a given interval
-of time.
-
-The math for delivered performance per the CPPCv5.0+ spec is:
-  reference perf * delta(delivered perf ctr)/delta(ref perf ctr)
-
-Maintaining deltas of the counters in the kernel is messy, as it
-depends on when the reads are triggered. (e.g. via the cpufreq
-->get() interface). Also the ->get() interace only returns one
-value, so cant return raw values. So instead, leave it to userspace
-to keep track of raw values and do its math for CPUs it cares about.
-
-delivered and reference perf counters are exposed via the same
-sysfs file to avoid the potential "skid", if these values are read
-individually from userspace.
+Compute the expected transition latency for frequency transitions
+using the values from the PCCT tables when the desired perf
+register is in PCC.
 
 Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>
 Signed-off-by: Prashanth Prakash <pprakash@codeaurora.org>
-Signed-off-by: Ashwin Chaugule <ashwin.chaugule@linaro.org>
 ---
- drivers/acpi/cppc_acpi.c | 135 ++++++++++++++++++++++++++++++++++++++++-------
- include/acpi/cppc_acpi.h |   6 +--
- 2 files changed, 120 insertions(+), 21 deletions(-)
+ drivers/acpi/cppc_acpi.c       | 46 ++++++++++++++++++++++++++++++++++++++++--
+ drivers/cpufreq/cppc_cpufreq.c |  1 +
+ include/acpi/cppc_acpi.h       |  1 +
+ 3 files changed, 46 insertions(+), 2 deletions(-)
 
 diff --git a/drivers/acpi/cppc_acpi.c b/drivers/acpi/cppc_acpi.c
-index 93abaec..2ddf1a3 100644
+index 4a887d4..93abaec 100644
 --- a/drivers/acpi/cppc_acpi.c
 +++ b/drivers/acpi/cppc_acpi.c
-@@ -95,6 +95,17 @@ static unsigned int pcc_mpar, pcc_mrtt, pcc_nominal;
- 				(cpc)->cpc_entry.reg.space_id ==	\
- 				ACPI_ADR_SPACE_PLATFORM_COMM)
+@@ -85,7 +85,7 @@ static void __iomem *pcc_comm_addr;
+ static int pcc_subspace_idx = -1;
+ static bool pcc_channel_acquired;
+ static ktime_t deadline;
+-static unsigned int pcc_mpar, pcc_mrtt;
++static unsigned int pcc_mpar, pcc_mrtt, pcc_nominal;
  
-+/* Evalutes to True if reg is a NULL register descriptor */
-+#define IS_NULL_REG(reg) ((reg)->space_id ==  ACPI_ADR_SPACE_SYSTEM_MEMORY && \
-+				(reg)->address == 0 &&			\
-+				(reg)->bit_width == 0 &&		\
-+				(reg)->bit_offset == 0 &&		\
-+				(reg)->access_width == 0)
-+
-+/* Evalutes to True if an optional cpc field is supported */
-+#define CPC_SUPPORTED(cpc) ((cpc)->type == ACPI_TYPE_INTEGER ?		\
-+				!!(cpc)->cpc_entry.int_value :		\
-+				!IS_NULL_REG(&(cpc)->cpc_entry.reg))
- /*
-  * Arbitrary Retries in case the remote processor is slow to respond
-  * to PCC commands. Keeping it high enough to cover emulators where
-@@ -102,6 +113,71 @@ static unsigned int pcc_mpar, pcc_mrtt, pcc_nominal;
-  */
- #define NUM_RETRIES 500
+ /* pcc mapped address + header size + offset within PCC subspace */
+ #define GET_PCC_VADDR(offs) (pcc_comm_addr + 0x8 + (offs))
+@@ -462,7 +462,6 @@ static int register_pcc_channel(int pcc_subspace_idx)
+ 			return -ENODEV;
+ 		}
  
-+struct cppc_attr {
-+	struct attribute attr;
-+	ssize_t (*show)(struct kobject *kobj,
-+			struct attribute *attr, char *buf);
-+	ssize_t (*store)(struct kobject *kobj,
-+			struct attribute *attr, const char *c, ssize_t count);
-+};
-+
-+#define define_one_cppc_ro(_name)		\
-+static struct cppc_attr _name =			\
-+__ATTR(_name, 0444, show_##_name, NULL)
-+
-+#define to_cpc_desc(a) container_of(a, struct cpc_desc, kobj)
-+
-+static ssize_t show_feedback_ctrs(struct kobject *kobj,
-+		struct attribute *attr, char *buf)
-+{
-+	struct cpc_desc *cpc_ptr = to_cpc_desc(kobj);
-+	struct cppc_perf_fb_ctrs fb_ctrs = {0};
-+
-+	cppc_get_perf_ctrs(cpc_ptr->cpu_id, &fb_ctrs);
-+
-+	return scnprintf(buf, PAGE_SIZE, "ref:%llu del:%llu\n",
-+			fb_ctrs.reference, fb_ctrs.delivered);
-+}
-+define_one_cppc_ro(feedback_ctrs);
-+
-+static ssize_t show_reference_perf(struct kobject *kobj,
-+		struct attribute *attr, char *buf)
-+{
-+	struct cpc_desc *cpc_ptr = to_cpc_desc(kobj);
-+	struct cppc_perf_fb_ctrs fb_ctrs = {0};
-+
-+	cppc_get_perf_ctrs(cpc_ptr->cpu_id, &fb_ctrs);
-+
-+	return scnprintf(buf, PAGE_SIZE, "%llu\n",
-+			fb_ctrs.reference_perf);
-+}
-+define_one_cppc_ro(reference_perf);
-+
-+static ssize_t show_wraparound_time(struct kobject *kobj,
-+				struct attribute *attr, char *buf)
-+{
-+	struct cpc_desc *cpc_ptr = to_cpc_desc(kobj);
-+	struct cppc_perf_fb_ctrs fb_ctrs = {0};
-+
-+	cppc_get_perf_ctrs(cpc_ptr->cpu_id, &fb_ctrs);
-+
-+	return scnprintf(buf, PAGE_SIZE, "%llu\n", fb_ctrs.ctr_wrap_time);
-+
-+}
-+define_one_cppc_ro(wraparound_time);
-+
-+static struct attribute *cppc_attrs[] = {
-+	&feedback_ctrs.attr,
-+	&reference_perf.attr,
-+	&wraparound_time.attr,
-+	NULL
-+};
-+
-+static struct kobj_type cppc_ktype = {
-+	.sysfs_ops = &kobj_sysfs_ops,
-+	.default_attrs = cppc_attrs,
-+};
-+
- static int check_pcc_chan(void)
- {
- 	int ret = -EIO;
-@@ -544,6 +620,7 @@ int acpi_cppc_processor_probe(struct acpi_processor *pr)
- 	union acpi_object *out_obj, *cpc_obj;
- 	struct cpc_desc *cpc_ptr;
- 	struct cpc_reg *gas_t;
-+	struct device *cpu_dev;
- 	acpi_handle handle = pr->handle;
- 	unsigned int num_ent, i, cpc_rev;
- 	acpi_status status;
-@@ -667,6 +744,16 @@ int acpi_cppc_processor_probe(struct acpi_processor *pr)
- 	/* Everything looks okay */
- 	pr_debug("Parsed CPC struct for CPU: %d\n", pr->id);
+-
+ 		/*
+ 		 * cppc_ss->latency is just a Nominal value. In reality
+ 		 * the remote processor could be much slower to reply.
+@@ -472,6 +471,7 @@ static int register_pcc_channel(int pcc_subspace_idx)
+ 		deadline = ns_to_ktime(usecs_lat * NSEC_PER_USEC);
+ 		pcc_mrtt = cppc_ss->min_turnaround_time;
+ 		pcc_mpar = cppc_ss->max_access_rate;
++		pcc_nominal = cppc_ss->latency;
  
-+	/* Add per logical CPU nodes for reading its feedback counters. */
-+	cpu_dev = get_cpu_device(pr->id);
-+	if (!cpu_dev)
-+		goto out_free;
-+
-+	ret = kobject_init_and_add(&cpc_ptr->kobj, &cppc_ktype, &cpu_dev->kobj,
-+			"acpi_cppc");
-+	if (ret)
-+		goto out_free;
-+
- 	kfree(output.pointer);
- 	return 0;
- 
-@@ -697,6 +784,7 @@ void acpi_cppc_processor_exit(struct acpi_processor *pr)
- 	struct cpc_desc *cpc_ptr;
- 	unsigned int i;
- 	void __iomem *addr;
-+
- 	cpc_ptr = per_cpu(cpc_desc_ptr, pr->id);
- 
- 	/* Free all the mapped sys mem areas for this CPU */
-@@ -706,6 +794,7 @@ void acpi_cppc_processor_exit(struct acpi_processor *pr)
- 			iounmap(addr);
- 	}
- 
-+	kobject_put(&cpc_ptr->kobj);
- 	kfree(cpc_ptr);
+ 		pcc_comm_addr = acpi_os_ioremap(cppc_ss->base_address, cppc_ss->length);
+ 		if (!pcc_comm_addr) {
+@@ -1036,3 +1036,45 @@ int cppc_set_perf(int cpu, struct cppc_perf_ctrls *perf_ctrls)
+ 	return ret;
  }
- EXPORT_SYMBOL_GPL(acpi_cppc_processor_exit);
-@@ -807,7 +896,7 @@ int cppc_get_perf_caps(int cpunum, struct cppc_perf_caps *perf_caps)
- 	struct cpc_desc *cpc_desc = per_cpu(cpc_desc_ptr, cpunum);
- 	struct cpc_register_resource *highest_reg, *lowest_reg, *ref_perf,
- 								 *nom_perf;
--	u64 high, low, ref, nom;
-+	u64 high, low, nom;
- 	int ret = 0, regs_in_pcc = 0;
- 
- 	if (!cpc_desc) {
-@@ -838,15 +927,9 @@ int cppc_get_perf_caps(int cpunum, struct cppc_perf_caps *perf_caps)
- 	cpc_read(lowest_reg, &low);
- 	perf_caps->lowest_perf = low;
- 
--	cpc_read(ref_perf, &ref);
--	perf_caps->reference_perf = ref;
--
- 	cpc_read(nom_perf, &nom);
- 	perf_caps->nominal_perf = nom;
- 
--	if (!ref)
--		perf_caps->reference_perf = perf_caps->nominal_perf;
--
- 	if (!high || !low || !nom)
- 		ret = -EFAULT;
- 
-@@ -867,8 +950,9 @@ EXPORT_SYMBOL_GPL(cppc_get_perf_caps);
- int cppc_get_perf_ctrs(int cpunum, struct cppc_perf_fb_ctrs *perf_fb_ctrs)
- {
- 	struct cpc_desc *cpc_desc = per_cpu(cpc_desc_ptr, cpunum);
--	struct cpc_register_resource *delivered_reg, *reference_reg;
--	u64 delivered, reference;
-+	struct cpc_register_resource *delivered_reg, *reference_reg,
-+		*ref_perf_reg, *ctr_wrap_reg;
-+	u64 delivered, reference, ref_perf, ctr_wrap_time;
- 	int ret = 0, regs_in_pcc = 0;
- 
- 	if (!cpc_desc) {
-@@ -878,9 +962,19 @@ int cppc_get_perf_ctrs(int cpunum, struct cppc_perf_fb_ctrs *perf_fb_ctrs)
- 
- 	delivered_reg = &cpc_desc->cpc_regs[DELIVERED_CTR];
- 	reference_reg = &cpc_desc->cpc_regs[REFERENCE_CTR];
-+	ref_perf_reg = &cpc_desc->cpc_regs[REFERENCE_PERF];
-+	ctr_wrap_reg = &cpc_desc->cpc_regs[CTR_WRAP_TIME];
+ EXPORT_SYMBOL_GPL(cppc_set_perf);
 +
++/**
++ * cppc_get_transition_latency - returns frequency transition latency in ns
++ *
++ * ACPI CPPC does not explicitly specifiy how a platform can specify the
++ * transition latency for perfromance change requests. The closest we have
++ * is the timing information from the PCCT tables which provides the info
++ * on the number and frequency of PCC commands the platform can handle.
++ */
++unsigned int cppc_get_transition_latency(int cpu_num)
++{
 +	/*
-+	 * If refernce perf register is not supported then we should
-+	 * use the nominal perf value
++	 * Expected transition latency is based on the PCCT timing values
++	 * Below are definition from ACPI spec:
++	 * pcc_nominal- Expected latency to process a command, in microseconds
++	 * pcc_mpar   - The maximum number of periodic requests that the subspace
++	 *              channel can support, reported in commands per minute. 0
++	 *              indicates no limitation.
++	 * pcc_mrtt   - The minimum amount of time that OSPM must wait after the
++	 *              completion of a command before issuing the next command,
++	 *              in microseconds.
 +	 */
-+	if (!CPC_SUPPORTED(ref_perf_reg))
-+		ref_perf_reg = &cpc_desc->cpc_regs[NOMINAL_PERF];
- 
- 	/* Are any of the regs PCC ?*/
--	if (CPC_IN_PCC(delivered_reg) || CPC_IN_PCC(reference_reg)) {
-+	if (CPC_IN_PCC(delivered_reg) || CPC_IN_PCC(reference_reg) ||
-+		CPC_IN_PCC(ctr_wrap_reg) || CPC_IN_PCC(ref_perf_reg)) {
- 		down_write(&pcc_lock);
- 		regs_in_pcc = 1;
- 		/* Ring doorbell once to update PCC subspace */
-@@ -892,21 +986,26 @@ int cppc_get_perf_ctrs(int cpunum, struct cppc_perf_fb_ctrs *perf_fb_ctrs)
- 
- 	cpc_read(delivered_reg, &delivered);
- 	cpc_read(reference_reg, &reference);
-+	cpc_read(ref_perf_reg, &ref_perf);
++	unsigned int latency_ns = 0;
++	struct cpc_desc *cpc_desc;
++	struct cpc_register_resource *desired_reg;
 +
-+	/*
-+	 * Per spec, if ctr_wrap_time optional register is unsupported, then the
-+	 * performance counters are assumed to never wrap during the lifetime of
-+	 * platform
-+	 */
-+	ctr_wrap_time = (u64)(~((u64)0));
-+	if (CPC_SUPPORTED(ctr_wrap_reg))
-+		cpc_read(ctr_wrap_reg, &ctr_wrap_time);
++	cpc_desc = per_cpu(cpc_desc_ptr, cpu_num);
++	if (!cpc_desc)
++		return CPUFREQ_ETERNAL;
++
++	desired_reg = &cpc_desc->cpc_regs[DESIRED_PERF];
++	if (!CPC_IN_PCC(desired_reg))
++		return CPUFREQ_ETERNAL;
++
++	if (pcc_mpar)
++		latency_ns = 60 * (1000 * 1000 * 1000 / pcc_mpar);
++
++	latency_ns = max(latency_ns, (pcc_nominal + pcc_mrtt) * 1000);
++
++	return latency_ns;
++}
++EXPORT_SYMBOL_GPL(cppc_get_transition_latency);
+diff --git a/drivers/cpufreq/cppc_cpufreq.c b/drivers/cpufreq/cppc_cpufreq.c
+index 8882b8e..e6a3359 100644
+--- a/drivers/cpufreq/cppc_cpufreq.c
++++ b/drivers/cpufreq/cppc_cpufreq.c
+@@ -98,6 +98,7 @@ static int cppc_cpufreq_cpu_init(struct cpufreq_policy *policy)
+ 	policy->max = cpu->perf_caps.highest_perf;
+ 	policy->cpuinfo.min_freq = policy->min;
+ 	policy->cpuinfo.max_freq = policy->max;
++	policy->cpuinfo.transition_latency = cppc_get_transition_latency(cpu_num);
+ 	policy->shared_type = cpu->shared_type;
  
--	if (!delivered || !reference) {
-+	if (!delivered || !reference ||	!ref_perf) {
- 		ret = -EFAULT;
- 		goto out_err;
- 	}
- 
- 	perf_fb_ctrs->delivered = delivered;
- 	perf_fb_ctrs->reference = reference;
--
--	perf_fb_ctrs->delivered -= perf_fb_ctrs->prev_delivered;
--	perf_fb_ctrs->reference -= perf_fb_ctrs->prev_reference;
--
--	perf_fb_ctrs->prev_delivered = delivered;
--	perf_fb_ctrs->prev_reference = reference;
--
-+	perf_fb_ctrs->reference_perf = ref_perf;
-+	perf_fb_ctrs->ctr_wrap_time = ctr_wrap_time;
- out_err:
- 	if (regs_in_pcc)
- 		up_write(&pcc_lock);
+ 	if (policy->shared_type == CPUFREQ_SHARED_TYPE_ANY)
 diff --git a/include/acpi/cppc_acpi.h b/include/acpi/cppc_acpi.h
-index 7b7e2e1..c3996ed 100644
+index 36ff5c6..7b7e2e1 100644
 --- a/include/acpi/cppc_acpi.h
 +++ b/include/acpi/cppc_acpi.h
-@@ -63,6 +63,7 @@ struct cpc_desc {
- 	int cpu_id;
- 	struct cpc_register_resource cpc_regs[MAX_CPC_REG_ENT];
- 	struct acpi_psd_package domain_info;
-+	struct kobject kobj;
- };
+@@ -129,5 +129,6 @@ extern int cppc_get_perf_ctrs(int cpu, struct cppc_perf_fb_ctrs *perf_fb_ctrs);
+ extern int cppc_set_perf(int cpu, struct cppc_perf_ctrls *perf_ctrls);
+ extern int cppc_get_perf_caps(int cpu, struct cppc_perf_caps *caps);
+ extern int acpi_get_psd_map(struct cpudata **);
++extern unsigned int cppc_get_transition_latency(int cpu);
  
- /* These are indexes into the per-cpu cpc_regs[]. Order is important. */
-@@ -97,7 +98,6 @@ enum cppc_regs {
- struct cppc_perf_caps {
- 	u32 highest_perf;
- 	u32 nominal_perf;
--	u32 reference_perf;
- 	u32 lowest_perf;
- };
- 
-@@ -109,9 +109,9 @@ struct cppc_perf_ctrls {
- 
- struct cppc_perf_fb_ctrs {
- 	u64 reference;
--	u64 prev_reference;
- 	u64 delivered;
--	u64 prev_delivered;
-+	u64 reference_perf;
-+	u64 ctr_wrap_time;
- };
- 
- /* Per CPU container for runtime CPPC management. */
+ #endif /* _CPPC_ACPI_H*/
 -- 
 Qualcomm Datacenter Technologies on behalf of Qualcomm Technologies, Inc.
 Qualcomm Technologies, Inc. is a member of the
