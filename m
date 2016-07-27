@@ -1,7 +1,7 @@
 From: Rui Wang <rui.y.wang@intel.com>
-Subject: [PATCH v2 4/5] x86/ioapic: Fix lost IOAPIC resource after hot-removal and hotadd
-Date: Wed, 27 Jul 2016 23:44:14 +0800
-Message-ID: <1469634255-24101-5-git-send-email-rui.y.wang@intel.com>
+Subject: [PATCH v2 2/5] x86/ioapic: Support hot-removal of IOAPICs present during boot
+Date: Wed, 27 Jul 2016 23:44:12 +0800
+Message-ID: <1469634255-24101-3-git-send-email-rui.y.wang@intel.com>
 References: <20160726204640.GA17664@localhost>
  <1469634255-24101-1-git-send-email-rui.y.wang@intel.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
@@ -11,117 +11,60 @@ To: helgaas@kernel.org, tglx@linutronix.de, rjw@rjwysocki.net, tony.luck@intel.c
 Cc: bhelgaas@google.com, linux-acpi@vger.kernel.org, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, rui.y.wang@intel.com
 List-Id: linux-acpi@vger.kernel.org
 
-IOAPIC resource at 0xfecxxxxx gets lost from /proc/iomem after
-hot-removing and then hot-adding the IOAPIC device.
-
-After system boot, in /proc/iomem:
-fec00000-fecfffff : PNP0003:00
-  fec00000-fec003ff : IOAPIC 0
-  fec01000-fec013ff : IOAPIC 1
-  fec40000-fec403ff : IOAPIC 2
-  fec80000-fec803ff : IOAPIC 3
-  fecc0000-fecc03ff : IOAPIC 4
-
-Then hot-remove IOAPIC 2 and hot-add it again:
-fec00000-fecfffff : PNP0003:00
-  fec00000-fec003ff : IOAPIC 0
-  fec01000-fec013ff : IOAPIC 1
-  fec80000-fec803ff : IOAPIC 3
-  fecc0000-fecc03ff : IOAPIC 4
-
-The range at 0xfec40000 is lost from /proc/iomem. It is because
-handle_ioapic_add() requests resource from either PCI config BAR or
-ACPI "_CRS", not both. But Intel platforms map the IOxAPIC registers
-both at the PCI config BAR (called MBAR, dynamic), and at the ACPI
-"_CRS" (called ABAR, static). The 0xfecX_YZ00 to 0xfecX_YZFF range
-appears in "_CRS" of each IOAPIC device. Both ranges should be claimed
-from /proc/iomem for exclusive use.
+IOAPICs present during system boot aren't added to ioapic_list,
+thus are unable to be hot-removed. Fix it by calling
+acpi_ioapic_add() during root bus enumeration.
 
 Signed-off-by: Rui Wang <rui.y.wang@intel.com>
 ---
- drivers/acpi/ioapic.c | 36 ++++++++++++++++++++----------------
- 1 file changed, 20 insertions(+), 16 deletions(-)
+ drivers/acpi/pci_root.c | 10 ++++++++++
+ drivers/pci/setup-bus.c |  5 ++++-
+ 2 files changed, 14 insertions(+), 1 deletion(-)
 
-diff --git a/drivers/acpi/ioapic.c b/drivers/acpi/ioapic.c
-index 8ab6d42..ee20111 100644
---- a/drivers/acpi/ioapic.c
-+++ b/drivers/acpi/ioapic.c
-@@ -97,7 +97,7 @@ static acpi_status handle_ioapic_add(acpi_handle handle, u32 lvl,
- 	unsigned long long gsi_base;
- 	struct acpi_pci_ioapic *ioapic;
- 	struct pci_dev *dev = NULL;
--	struct resource *res = NULL;
-+	struct resource *res = NULL, *pci_res = NULL, *crs_res;
- 	char *type = NULL;
+diff --git a/drivers/acpi/pci_root.c b/drivers/acpi/pci_root.c
+index 53f5965..fa9c83a 100644
+--- a/drivers/acpi/pci_root.c
++++ b/drivers/acpi/pci_root.c
+@@ -614,6 +614,16 @@ static int acpi_pci_root_add(struct acpi_device *device,
+ 	if (hotadd) {
+ 		pcibios_resource_survey_bus(root->bus);
+ 		pci_assign_unassigned_root_bus_resources(root->bus);
++		/*
++		 * This is only called for the hotadd case. For the boot-time
++		 * case, we need to wait until after PCI initialization in
++		 * order to deal with IOAPICs mapped in on a PCI BAR.
++		 *
++		 * This is currently x86-specific, because acpi_ioapic_add()
++		 * is an empty function without CONFIG_ACPI_HOTPLUG_IOAPIC.
++		 * And CONFIG_ACPI_HOTPLUG_IOAPIC depends on CONFIG_X86_IO_APIC
++		 * (see drivers/acpi/Kconfig).
++		 */
+ 		acpi_ioapic_add(root->device->handle);
+ 	}
  
- 	if (!acpi_is_ioapic(handle, &type))
-@@ -137,23 +137,28 @@ static acpi_status handle_ioapic_add(acpi_handle handle, u32 lvl,
- 		pci_set_master(dev);
- 		if (pci_request_region(dev, 0, type))
- 			goto exit_disable;
--		res = &dev->resource[0];
-+		pci_res = &dev->resource[0];
- 		ioapic->pdev = dev;
- 	} else {
- 		pci_dev_put(dev);
- 		dev = NULL;
+diff --git a/drivers/pci/setup-bus.c b/drivers/pci/setup-bus.c
+index 55641a3..e32c356 100644
+--- a/drivers/pci/setup-bus.c
++++ b/drivers/pci/setup-bus.c
+@@ -25,6 +25,7 @@
+ #include <linux/ioport.h>
+ #include <linux/cache.h>
+ #include <linux/slab.h>
++#include <linux/acpi.h>
+ #include "pci.h"
+ 
+ unsigned int pci_flags;
+@@ -1779,8 +1780,10 @@ void __init pci_assign_unassigned_resources(void)
+ {
+ 	struct pci_bus *root_bus;
+ 
+-	list_for_each_entry(root_bus, &pci_root_buses, node)
++	list_for_each_entry(root_bus, &pci_root_buses, node) {
+ 		pci_assign_unassigned_root_bus_resources(root_bus);
++		acpi_ioapic_add(ACPI_HANDLE(root_bus->bridge));
 +	}
+ }
  
--		res = &ioapic->res;
--		acpi_walk_resources(handle, METHOD_NAME__CRS, setup_res, res);
--		if (res->flags == 0) {
--			acpi_handle_warn(handle, "failed to get resource\n");
--			goto exit_free;
--		} else if (request_resource(&iomem_resource, res)) {
--			acpi_handle_warn(handle, "failed to insert resource\n");
--			goto exit_free;
--		}
-+	crs_res = &ioapic->res;
-+	acpi_walk_resources(handle, METHOD_NAME__CRS, setup_res, crs_res);
-+	if (crs_res->flags == 0) {
-+		acpi_handle_warn(handle, "failed to get resource\n");
-+		goto exit_release;
-+	} else if (request_resource(&iomem_resource, crs_res)) {
-+		acpi_handle_warn(handle, "failed to insert resource\n");
-+		goto exit_release;
- 	}
- 
-+	/* try pci resource first, then "_CRS" resource */
-+	res = pci_res;
-+	if (!res || !res->flags)
-+		res = crs_res;
-+
- 	if (acpi_register_ioapic(handle, res->start, (u32)gsi_base)) {
- 		acpi_handle_warn(handle, "failed to register IOAPIC\n");
- 		goto exit_release;
-@@ -174,14 +179,13 @@ done:
- exit_release:
- 	if (dev)
- 		pci_release_region(dev, 0);
--	else
--		release_resource(res);
-+	if (ioapic->res.flags && ioapic->res.parent)
-+		release_resource(&ioapic->res);
- exit_disable:
- 	if (dev)
- 		pci_disable_device(dev);
- exit_put:
- 	pci_dev_put(dev);
--exit_free:
- 	kfree(ioapic);
- exit:
- 	mutex_unlock(&ioapic_list_lock);
-@@ -217,9 +221,9 @@ int acpi_ioapic_remove(struct acpi_pci_root *root)
- 			pci_release_region(ioapic->pdev, 0);
- 			pci_disable_device(ioapic->pdev);
- 			pci_dev_put(ioapic->pdev);
--		} else if (ioapic->res.flags && ioapic->res.parent) {
--			release_resource(&ioapic->res);
- 		}
-+		if (ioapic->res.flags && ioapic->res.parent)
-+			release_resource(&ioapic->res);
- 		list_del(&ioapic->list);
- 		kfree(ioapic);
- 	}
+ void pci_assign_unassigned_bridge_resources(struct pci_dev *bridge)
 -- 
 1.8.3.1
