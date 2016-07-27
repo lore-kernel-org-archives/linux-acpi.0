@@ -1,71 +1,135 @@
-From: Lucas Levrel <lucas.levrel@free.fr>
-Subject: Re: Help/info request (in re trip points)
-Date: Tue, 26 Jul 2016 23:01:55 +0200 (CEST)
-Message-ID: <alpine.LNX.2.20.13.1607262256590.2759@localhost>
-References: <alpine.LSU.2.20.13.1607221012230.4463@coulomb.u-pec.fr>
+From: Dou Liyang <douly.fnst@cn.fujitsu.com>
+Subject: Re: [PATCH v9 0/7] Make cpuid <-> nodeid mapping persistent
+Date: Wed, 27 Jul 2016 09:18:19 +0800
+Message-ID: <bf54b057-0d97-4614-f88e-f95b9a8eb88a@cn.fujitsu.com>
+References: <1469435749-19582-1-git-send-email-douly.fnst@cn.fujitsu.com>
+ <20160725162022.e90e9c6c74a5d147e39e5945@linux-foundation.org>
+ <34809745-7e48-29d3-f31b-826414ccdef3@cn.fujitsu.com>
+ <122491145.6BHBUIrED6@vostro.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15;
+Content-Type: text/plain; charset=utf-8;
 	format=flowed
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtpfb2-g21.free.fr ([212.27.42.10]:53672 "EHLO
-	smtpfb2-g21.free.fr" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757486AbcGZVJf (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 26 Jul 2016 17:09:35 -0400
-Received: from smtp6-g21.free.fr (smtp6-g21.free.fr [212.27.42.6])
-	by smtpfb2-g21.free.fr (Postfix) with ESMTP id AE4D0CDBDBD
-	for <linux-acpi@vger.kernel.org>; Tue, 26 Jul 2016 23:02:00 +0200 (CEST)
-Received: from [192.168.1.10] (unknown [82.233.253.129])
-	by smtp6-g21.free.fr (Postfix) with ESMTPS id ECD5C7802D6
-	for <linux-acpi@vger.kernel.org>; Tue, 26 Jul 2016 19:22:58 +0200 (CEST)
-In-Reply-To: <alpine.LSU.2.20.13.1607221012230.4463@coulomb.u-pec.fr>
+Received: from cn.fujitsu.com ([59.151.112.132]:16334 "EHLO
+	heian.cn.fujitsu.com" rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1753177AbcG0BSg (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 26 Jul 2016 21:18:36 -0400
+In-Reply-To: <122491145.6BHBUIrED6@vostro.rjw.lan>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: Andrew Morton <akpm@linux-foundation.org>, cl@linux.com, tj@kernel.org, mika.j.penttila@gmail.com, mingo@redhat.com, hpa@zytor.com, yasu.isimatu@gmail.com, isimatu.yasuaki@jp.fujitsu.com, kamezawa.hiroyu@jp.fujitsu.com, izumi.taku@jp.fujitsu.com, gongzhaogang@inspur.com, len.brown@intel.com, lenb@kernel.org, tglx@linutronix.de, chen.tang@easystack.cn, rafael@kernel.org, x86@kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linux-mm@kvack.org
 
+Hi, RJ
 
-Hi (once more),
+=E5=9C=A8 2016=E5=B9=B407=E6=9C=8826=E6=97=A5 19:53, Rafael J. Wysocki =
+=E5=86=99=E9=81=93:
+> On Tuesday, July 26, 2016 11:59:38 AM Dou Liyang wrote:
+>>
+>> =E5=9C=A8 2016=E5=B9=B407=E6=9C=8826=E6=97=A5 07:20, Andrew Morton =E5=
+=86=99=E9=81=93:
+>>> On Mon, 25 Jul 2016 16:35:42 +0800 Dou Liyang <douly.fnst@cn.fujits=
+u.com> wrote:
+>>>
+>>>> [Problem]
+>>>>
+>>>> cpuid <-> nodeid mapping is firstly established at boot time. And =
+workqueue caches
+>>>> the mapping in wq_numa_possible_cpumask in wq_numa_init() at boot =
+time.
+>>>>
+>>>> When doing node online/offline, cpuid <-> nodeid mapping is establ=
+ished/destroyed,
+>>>> which means, cpuid <-> nodeid mapping will change if node hotplug =
+happens. But
+>>>> workqueue does not update wq_numa_possible_cpumask.
+>>>>
+>>>> So here is the problem:
+>>>>
+>>>> Assume we have the following cpuid <-> nodeid in the beginning:
+>>>>
+>>>>   Node | CPU
+>>>> ------------------------
+>>>> node 0 |  0-14, 60-74
+>>>> node 1 | 15-29, 75-89
+>>>> node 2 | 30-44, 90-104
+>>>> node 3 | 45-59, 105-119
+>>>>
+>>>> and we hot-remove node2 and node3, it becomes:
+>>>>
+>>>>   Node | CPU
+>>>> ------------------------
+>>>> node 0 |  0-14, 60-74
+>>>> node 1 | 15-29, 75-89
+>>>>
+>>>> and we hot-add node4 and node5, it becomes:
+>>>>
+>>>>   Node | CPU
+>>>> ------------------------
+>>>> node 0 |  0-14, 60-74
+>>>> node 1 | 15-29, 75-89
+>>>> node 4 | 30-59
+>>>> node 5 | 90-119
+>>>>
+>>>> But in wq_numa_possible_cpumask, cpu30 is still mapped to node2, a=
+nd the like.
+>>>>
+>>>> When a pool workqueue is initialized, if its cpumask belongs to a =
+node, its
+>>>> pool->node will be mapped to that node. And memory used by this wo=
+rkqueue will
+>>>> also be allocated on that node.
+>>>
+>>> Plan B is to hunt down and fix up all the workqueue structures at
+>>> hotplug-time.  Has that option been evaluated?
+>>>
+>>
+>> Yes, the option has been evaluate in this patch:
+>> http://www.gossamer-threads.com/lists/linux/kernel/2116748
+>>
+>>>
+>>> Your fix is x86-only and this bug presumably affects other
+>>> architectures, yes?I think a "Plan B" would fix all architectures?
+>>>
+>>
+>> Yes, the bug may presumably affect few architectures which support C=
+PU
+>> hotplug and NUMA.
+>>
+>> We have sent the "Plan B" in our community and got a lot of advice a=
+nd
+>> ideas. Based on these suggestions, We carefully balance that two pla=
+n.
+>> Then we choice the first.
+>>
+>>>
+>>> Thirdly, what is the merge path for these patches?  Is an x86
+>>> or ACPI maintainer working with you on them?
+>>
+>> Yes, we get a lot of guidance and help from RJ who is an ACPI mainta=
+iner.
+>
+> FWIW, the patches are fine by me from the ACPI perspective.
+>
+> If you want me to apply them, though, ACKs from the x86 and mm mainta=
+iners
+> will be necessary.
+>
 
-Isn't there anyone who could spare a few minutes to guide me on this?
+I will continue to investigate this bug and wait for maintainers's 	adv=
+ices.
 
-I found some references to trip_point_?_hyst files, which seem promisin=
-g,=20
-but they aren't there in my sysfs, and I cannot create them (e.g. "touc=
-h:=20
-cannot touch `trip_point_4_hyst': No such file or directory").
+> Thanks,
+> Rafael
+>
+>
+>
 
 Thanks.
+Dou
 
-Lucas Levrel
 
-Le 22 juillet 2016, Lucas Levrel a =E9crit :
-
-> Hi,
->
-> Is this the right place to request for help and/or information about =
-thermal=20
-> zones? If not, please point me to the right place.
->
-> I browsed through thermal.c but couldn't find an answer to my questio=
-n (it=20
-> goes without saying I'm not an expert), namely:
-> how are trip point temperatures set at boot, and how are they reset w=
-hen=20
-> crossed?
->
-> I'm aiming at changing the temperatures at which the fan starts and s=
-tops.=20
-> The kernel parameter thermal.act=3DXXX did change the "fan on" temper=
-ature, but=20
-> not the "fan off" one. I expected the hysteresis T(on)-T(off) to be c=
-onstant,=20
-> and thus I thought T(off) would raise as much as I raised T(on), but =
-this is=20
-> not the case.
->
-> Any help is greatly appreciated.
->
-> Lucas Levrel
 --
 To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
 n
