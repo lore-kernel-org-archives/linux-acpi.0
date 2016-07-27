@@ -1,113 +1,84 @@
-From: Zhang Rui <rui.zhang@intel.com>
-Subject: Re: Help/info request (in re trip points)
-Date: Wed, 27 Jul 2016 09:29:51 +0800
-Message-ID: <1469582991.2367.63.camel@intel.com>
-References: <alpine.LSU.2.20.13.1607221012230.4463@coulomb.u-pec.fr>
-	 <alpine.LNX.2.20.13.1607262256590.2759@localhost>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+From: Rui Wang <rui.y.wang@intel.com>
+Subject: Re: [PATCH 1/4] x86/ioapic: Support hot-removal of IOAPICs present during boot boot
+Date: Wed, 27 Jul 2016 10:23:35 +0800
+Message-ID: <1469586215-21578-1-git-send-email-rui.y.wang@intel.com>
+References: <20160726201932.GD15037@localhost>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga01.intel.com ([192.55.52.88]:52855 "EHLO mga01.intel.com"
+Received: from mga02.intel.com ([134.134.136.20]:45135 "EHLO mga02.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932471AbcG0Bab (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 26 Jul 2016 21:30:31 -0400
-In-Reply-To: <alpine.LNX.2.20.13.1607262256590.2759@localhost>
+	id S1161194AbcG0Cjj (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 26 Jul 2016 22:39:39 -0400
+In-Reply-To: <20160726201932.GD15037@localhost>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Lucas Levrel <lucas.levrel@free.fr>, linux-acpi@vger.kernel.org
+To: helgaas@kernel.org
+Cc: tglx@linutronix.de, rjw@rjwysocki.net, tony.luck@intel.com, bhelgaas@google.com, linux-acpi@vger.kernel.org, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, rui.y.wang@intel.com
 
-Hi, Lucas,
+On Wed, July 27, 2016 4:20 AM Bjorn Helgaas wrote:
+> On Wed, Jul 27, 2016 at 12:13:14AM +0800, Rui Wang wrote:
+> > IOAPICs present during system boot aren't added to ioapic_list, thus
+> > are unable to be hot-removed. Fix it by calling
+> > acpi_ioapic_add() during root bus enumeration.
+> >
+> > Signed-off-by: Rui Wang <rui.y.wang@intel.com>
+> > ---
+> >  drivers/acpi/internal.h |  2 --
+> >  drivers/acpi/ioapic.c   |  7 ++++---
+> >  drivers/acpi/pci_root.c | 13 ++++++++++++-  drivers/pci/setup-bus.c |
+> > 5 ++++-
+> >  include/linux/acpi.h    |  6 ++++++
+> >  5 files changed, 26 insertions(+), 7 deletions(-)
+> >
+> > diff --git a/drivers/acpi/internal.h b/drivers/acpi/internal.h index
+> > 27cc7fe..6d8e67e 100644
+> > --- a/drivers/acpi/internal.h
+> > +++ b/drivers/acpi/internal.h
+> > @@ -40,10 +40,8 @@ int acpi_sysfs_init(void);  void
+> > acpi_container_init(void);  void acpi_memory_hotplug_init(void);
+> >  #ifdef	CONFIG_ACPI_HOTPLUG_IOAPIC
+> > -int acpi_ioapic_add(struct acpi_pci_root *root);  int
+> > acpi_ioapic_remove(struct acpi_pci_root *root);  #else -static inline
+> > int acpi_ioapic_add(struct acpi_pci_root *root) { return 0; }
+> 
+> It would be nicer if the interface change and header file munging were in a
+> separate patch so they wouldn't obscure the meat of the change, i.e., the
+> addition of calls to acpi_ioapic_add().
 
-As you have mentioned thermal.c, I think you are using ACPI thermal
-control on your platform, right?
-trip_point_?_hyst files are created by thermal core, if the platform
-thermal driver supports hysteresis, and ACPI thermal driver, which is
-used in your case, does not support=C2=A0hysteresis.
+Sure. I'll split it in a newer version.
 
-On =E4=BA=8C, 2016-07-26 at 23:01 +0200, Lucas Levrel wrote:
-> Hi (once more),
->=20
-> Isn't there anyone who could spare a few minutes to guide me on this?
->=20
-> I found some references to trip_point_?_hyst files, which seem
-> promising,=C2=A0
-> but they aren't there in my sysfs, and I cannot create them (e.g.
-> "touch:=C2=A0
-> cannot touch `trip_point_4_hyst': No such file or directory").
->=20
-> Thanks.
->=20
-> Lucas Levrel
->=20
-> Le 22 juillet 2016, Lucas Levrel a =C3=A9crit :
->=20
-> >=20
-> > Hi,
-> >=20
-> > Is this the right place to request for help and/or information
-> > about thermal=C2=A0
-> > zones? If not, please point me to the right place.
-> >=20
-> > I browsed through thermal.c but couldn't find an answer to my
-> > question (it=C2=A0
-> > goes without saying I'm not an expert), namely:
-> > how are trip point temperatures set at boot,
+> 
+> >  static inline int acpi_ioapic_remove(struct acpi_pci_root *root) {
+> > return 0; }  #endif  #ifdef CONFIG_ACPI_DOCK diff --git
+> > a/drivers/acpi/ioapic.c b/drivers/acpi/ioapic.c index ccdc8db..0f272e2
+> > 100644
+> > --- a/drivers/acpi/ioapic.c
+> > +++ b/drivers/acpi/ioapic.c
+> > @@ -189,16 +189,17 @@ exit:
+> >  	return AE_OK;
+> >  }
+> >
+> > -int acpi_ioapic_add(struct acpi_pci_root *root)
+> > +int acpi_ioapic_add(acpi_handle root_handle)
+> >  {
+> >  	acpi_status status, retval = AE_OK;
+> >
+> > -	status = acpi_walk_namespace(ACPI_TYPE_DEVICE, root->device-
+> >handle,
+> > +	status = acpi_walk_namespace(ACPI_TYPE_DEVICE, root_handle,
+> >  				     UINT_MAX, handle_ioapic_add, NULL,
+> > -				     root->device->handle, (void **)&retval);
+> > +				     root_handle, (void **)&retval);
+> >
+> >  	return ACPI_SUCCESS(status) && ACPI_SUCCESS(retval) ? 0 : -
+> ENODEV;
+> > }
+> > +EXPORT_SYMBOL_GPL(acpi_ioapic_add);
+> 
+> What loadable module needs to call this?  It shouldn't be exported unless
+> there is such a module.
 
-ACPI thermal driver gets the trip point temperature information from
-ACPI tables.
+It's called from the ioapic driver which is built-in. I'll remove the export.
 
-> >  and how are they reset when=C2=A0
-> > crossed?
-> >=20
-Usually, ACPI trip point is not reset when crossed, but it does
-have=C2=A0granularity, which determines when to generate a
-temperature change notification.
-Say, for a platform that the trip point temperature is 50C, and
-granularity is 5C, when the ACPI thermal driver receives a notification
-at 50C, it starts to spin the fan.
-Then next time when the ACPI thermal driver gets a temperature change
-notification, the temperature is either 55C, which means we need to
-take further action to cool the system, or the temperature is 45C and
-we can turn off the fan.
+Thanks
+Rui
 
-In some cases, the trip point may get reset. You can refer to section
-11.1.2 in ACPI spec 6.1. IN this case, a trip point change notification
-will be sent to thermal driver, and ACPI thermal driver will re-
-evaluate the trip point control methods to get new trip point
-temperature. But AFAICS, this is really rare.
-
-> > I'm aiming at changing the temperatures at which the fan starts and
-> > stops.=C2=A0
-> > The kernel parameter thermal.act=3DXXX did change the "fan on"
-> > temperature, but=C2=A0
-> > not the "fan off" one. I expected the hysteresis T(on)-T(off) to be
-> > constant,=C2=A0
-> > and thus I thought T(off) would raise as much as I raised T(on),
-> > but this is=C2=A0
-> > not the case.
-> >=20
-Dynamic trip point can only be supported by platform thermal design.
-Specifying such values in userspace does not make sense, because it's
-not guaranteed that the thermal driver can get notification upon the
-values you specified, thus it would screw up the thermal control
-entirely.
-
-thanks,
-rui
-
-> > Any help is greatly appreciated.
-> >=20
-> > Lucas Levrel
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-acpi"=
-=20
-> in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at=C2=A0=C2=A0http://vger.kernel.org/majordomo-in=
-fo.html
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
