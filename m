@@ -1,7 +1,7 @@
 From: Rui Wang <rui.y.wang@intel.com>
-Subject: [PATCH v2 3/5] x86/ioapic: Fix setup_res() failing to get resource
-Date: Wed, 27 Jul 2016 23:44:13 +0800
-Message-ID: <1469634255-24101-4-git-send-email-rui.y.wang@intel.com>
+Subject: [PATCH v2 5/5] x86/ioapic: Fix ioapic failing to request resource
+Date: Wed, 27 Jul 2016 23:44:15 +0800
+Message-ID: <1469634255-24101-6-git-send-email-rui.y.wang@intel.com>
 References: <20160726204640.GA17664@localhost>
  <1469634255-24101-1-git-send-email-rui.y.wang@intel.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
@@ -11,28 +11,47 @@ To: helgaas@kernel.org, tglx@linutronix.de, rjw@rjwysocki.net, tony.luck@intel.c
 Cc: bhelgaas@google.com, linux-acpi@vger.kernel.org, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, rui.y.wang@intel.com
 List-Id: linux-acpi@vger.kernel.org
 
-setup_res() doesn't actually get any resource because it mistakenly
-checks the return value of acpi_dev_filter_resource_type(), which
-returns 0 on success, and 1 on failure. Fix it by taking the return
-value of non-zero as failing to match the specified resource type.
+handle_ioapic_add() uses request_resource() to request ACPI "_CRS"
+resources. This can fail with the following error message:
+
+[  247.325693] ACPI: \_SB_.IIO1.AID1: failed to insert resource
+
+This happens when there are multiple IOAPICs and DSDT groups their
+"_CRS" resources as the children of a parent resource, as seen from
+/proc/iomem:
+
+fec00000-fecfffff : PNP0003:00
+  fec00000-fec003ff : IOAPIC 0
+  fec01000-fec013ff : IOAPIC 1
+  fec40000-fec403ff : IOAPIC 2
+
+In this case request_resource() fails because there's a conflicting
+resource which is the parent (fec0000-fecfffff). Fix it by using
+insert_resource() which can request resources by taking the conflicting
+resource as the parent.
 
 Signed-off-by: Rui Wang <rui.y.wang@intel.com>
 ---
- drivers/acpi/ioapic.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/acpi/ioapic.c | 4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
 
 diff --git a/drivers/acpi/ioapic.c b/drivers/acpi/ioapic.c
-index 2449377..8ab6d42 100644
+index ee20111..6d7ce6e 100644
 --- a/drivers/acpi/ioapic.c
 +++ b/drivers/acpi/ioapic.c
-@@ -46,7 +46,7 @@ static acpi_status setup_res(struct acpi_resource *acpi_res, void *data)
- 	struct resource_win win;
+@@ -146,10 +146,12 @@ static acpi_status handle_ioapic_add(acpi_handle handle, u32 lvl,
  
- 	res->flags = 0;
--	if (acpi_dev_filter_resource_type(acpi_res, IORESOURCE_MEM) == 0)
-+	if (acpi_dev_filter_resource_type(acpi_res, IORESOURCE_MEM))
- 		return AE_OK;
- 
- 	if (!acpi_dev_resource_memory(acpi_res, res)) {
+ 	crs_res = &ioapic->res;
+ 	acpi_walk_resources(handle, METHOD_NAME__CRS, setup_res, crs_res);
++	crs_res->name = type;
++	crs_res->flags |= IORESOURCE_BUSY;
+ 	if (crs_res->flags == 0) {
+ 		acpi_handle_warn(handle, "failed to get resource\n");
+ 		goto exit_release;
+-	} else if (request_resource(&iomem_resource, crs_res)) {
++	} else if (insert_resource(&iomem_resource, crs_res)) {
+ 		acpi_handle_warn(handle, "failed to insert resource\n");
+ 		goto exit_release;
+ 	}
 -- 
 1.8.3.1
