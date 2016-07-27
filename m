@@ -1,98 +1,124 @@
-From: Lv Zheng <lv.zheng@intel.com>
-Subject: [PATCH] ACPI / EC: Fix a regression by reducing parallel _Qxx evaluations
-Date: Wed, 27 Jul 2016 16:32:41 +0800
-Message-ID: <ca8220945184c65f3cd16418de5cfd34bf0b31ab.1469608346.git.lv.zheng@intel.com>
+From: lucas.levrel@free.fr
+Subject: Re: Help/info request (in re trip points)
+Date: Wed, 27 Jul 2016 12:12:39 +0200 (CEST)
+Message-ID: <alpine.LSU.2.20.13.1607271131590.4472@coulomb.u-pec.fr>
+References: <alpine.LSU.2.20.13.1607221012230.4463@coulomb.u-pec.fr>  <alpine.LNX.2.20.13.1607262256590.2759@localhost> <1469582991.2367.63.camel@intel.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-15;
+	format=flowed
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga09.intel.com ([134.134.136.24]:57372 "EHLO mga09.intel.com"
+Received: from smtp6-g21.free.fr ([212.27.42.6]:35523 "EHLO smtp6-g21.free.fr"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752142AbcG0IhK (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 27 Jul 2016 04:37:10 -0400
+	id S1753630AbcG0KMm (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 27 Jul 2016 06:12:42 -0400
+Received: from [10.12.3.100] (unknown [193.48.143.176])
+	(Authenticated sender: lucas.levrel)
+	by smtp6-g21.free.fr (Postfix) with ESMTPSA id 7BF4078039F
+	for <linux-acpi@vger.kernel.org>; Wed, 27 Jul 2016 08:33:44 +0200 (CEST)
+In-Reply-To: <1469582991.2367.63.camel@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <len.brown@intel.com>
-Cc: Lv Zheng <lv.zheng@intel.com>, Lv Zheng <zetalog@gmail.com>, linux-acpi@vger.kernel.org
+To: linux-acpi@vger.kernel.org
 
-A regression is caused by the following commit:
-  Commit: 02b771b64b73226052d6e731a0987db3b47281e9
-  Subject: ACPI / EC: Fix an issue caused by the serialized _Qxx evaluations
-In this commit, using system workqueue causes that the maximum parallel
-executions of _Qxx can exceed 255. This violates the method reentrancy
-limit in ACPICA and generates the following error log:
-  ACPI Error: Method reached maximum reentrancy limit (255) (20150818/dsmethod-341)
+Hi Rui,
 
-This patch creates a seperate workqueue and limits the number of parallel
-_Qxx evaluations down to a configurable value (can be tuned against number
-of online CPUs).
+=46irst, thank you very much for taking the time to answer!
 
-Since EC events are handled after driver probe, we can create the workqueue
-in acpi_ec_init().
 
-Fixes: 02b771b64b73 (ACPI / EC: Fix an issue caused by the serialized _Qxx evaluations)
-Cc: <stable@vger.kernel.org> # 4.3+
-Reported-and-tested-by: Helen Buus <ubuntu@hbuus.com>
-Signed-off-by: Lv Zheng <lv.zheng@intel.com>
----
- drivers/acpi/ec.c |   13 ++++++++++++-
- 1 file changed, 12 insertions(+), 1 deletion(-)
+Le 27 juillet 2016, Zhang Rui a =E9crit :
+> As you have mentioned thermal.c, I think you are using ACPI thermal
+> control on your platform, right?
+> trip_point_?_hyst files are created by thermal core, if the platform
+> thermal driver supports hysteresis, and ACPI thermal driver, which is
+> used in your case, does not support=A0hysteresis.
 
-diff --git a/drivers/acpi/ec.c b/drivers/acpi/ec.c
-index 999a109..907b450 100644
---- a/drivers/acpi/ec.c
-+++ b/drivers/acpi/ec.c
-@@ -101,6 +101,7 @@ enum ec_command {
- #define ACPI_EC_UDELAY_POLL	550	/* Wait 1ms for EC transaction polling */
- #define ACPI_EC_CLEAR_MAX	100	/* Maximum number of events to query
- 					 * when trying to clear the EC */
-+#define ACPI_EC_MAX_QUERIES	16	/* Maximum number of parallel queries */
- 
- enum {
- 	EC_FLAGS_QUERY_PENDING,		/* Query is pending */
-@@ -121,6 +122,10 @@ static unsigned int ec_delay __read_mostly = ACPI_EC_DELAY;
- module_param(ec_delay, uint, 0644);
- MODULE_PARM_DESC(ec_delay, "Timeout(ms) waited until an EC command completes");
- 
-+static unsigned int ec_max_queries __read_mostly = ACPI_EC_MAX_QUERIES;
-+module_param(ec_max_queries, uint, 0644);
-+MODULE_PARM_DESC(ec_max_queries, "Maximum parallel _Qxx evaluations");
-+
- static bool ec_busy_polling __read_mostly;
- module_param(ec_busy_polling, bool, 0644);
- MODULE_PARM_DESC(ec_busy_polling, "Use busy polling to advance EC transaction");
-@@ -174,6 +179,7 @@ static void acpi_ec_event_processor(struct work_struct *work);
- 
- struct acpi_ec *boot_ec, *first_ec;
- EXPORT_SYMBOL(first_ec);
-+static struct workqueue_struct *ec_query_wq;
- 
- static int EC_FLAGS_CLEAR_ON_RESUME; /* Needs acpi_ec_clear() on boot/resume */
- static int EC_FLAGS_QUERY_HANDSHAKE; /* Needs QR_EC issued when SCI_EVT set */
-@@ -1098,7 +1104,7 @@ static int acpi_ec_query(struct acpi_ec *ec, u8 *data)
- 	 * work queue execution.
- 	 */
- 	ec_dbg_evt("Query(0x%02x) scheduled", value);
--	if (!schedule_work(&q->work)) {
-+	if (!queue_work(ec_query_wq, &q->work)) {
- 		ec_dbg_evt("Query(0x%02x) overlapped", value);
- 		result = -EBUSY;
- 	}
-@@ -1664,6 +1670,10 @@ int __init acpi_ec_init(void)
- {
- 	int result = 0;
- 
-+	ec_query_wq = alloc_workqueue("kec_query", 0, ec_max_queries);
-+	if (!ec_query_wq)
-+		return -ENODEV;
-+
- 	/* Now register the driver for the EC */
- 	result = acpi_bus_register_driver(&acpi_ec_driver);
- 	if (result < 0)
-@@ -1678,5 +1688,6 @@ static void __exit acpi_ec_exit(void)
- {
- 
- 	acpi_bus_unregister_driver(&acpi_ec_driver);
-+	destroy_workqueue(ec_query_wq);
- }
- #endif	/* 0 */
--- 
-1.7.10
+I don't know what my system is using. In fact I know nothing about ACPI=
+=2E I=20
+couldn't find documentation (which doesn't mean there is no doc, just I=
+=20
+couldn't find it) explaining how this works. So I tried to guess,=20
+gathering pieces of information by observing the behaviour of files in=20
+/sys, and looking into code (but not being sure this code is relevant t=
+o=20
+my system!).
 
+What I can say (I still don't know if it is valuable info):
+- there is no hwmon/ directory anywhere under /sys,
+- the thermal_zone* and cooling_device* directories are in
+   /sys/devices/virtual/thermal.
+
+>>> how are trip point temperatures set at boot,
+>
+> ACPI thermal driver gets the trip point temperature information from
+> ACPI tables.
+
+So, from some computer firmware.
+
+>>>  and how are they reset when=A0crossed?
+>>>
+> Usually, ACPI trip point is not reset when crossed, but it does
+> have=A0granularity, which determines when to generate a
+> temperature change notification.
+> Say, for a platform that the trip point temperature is 50C, and
+> granularity is 5C, when the ACPI thermal driver receives a notificati=
+on
+> at 50C, it starts to spin the fan.
+> Then next time when the ACPI thermal driver gets a temperature change
+> notification, the temperature is either 55C, which means we need to
+> take further action to cool the system, or the temperature is 45C and
+> we can turn off the fan.
+>
+> In some cases, the trip point may get reset. You can refer to section
+> 11.1.2 in ACPI spec 6.1. IN this case, a trip point change notificati=
+on
+> will be sent to thermal driver, and ACPI thermal driver will re-
+> evaluate the trip point control methods to get new trip point
+> temperature. But AFAICS, this is really rare.
+
+Maybe I used the word "reset" inappropriately. Simply, I noticed the=20
+contents of trip_point_4_temp changes from 50000 to 45000 when temp=20
+reaches 50000 and the fan starts to spin. If the initial contents of=20
+trip_point_4_temp is 60000 (thanks to the thermal.act kernel parameter)=
+,=20
+it also changes to 45000 when temp reaches 60000 and the fan starts to=20
+spin. So it looks like in my case the turn-off temperature of 45 =B0C i=
+s=20
+chosen independently of the turn-on temperature. (And temp never gets d=
+own=20
+to this so low value of 45, so fan spins endlessly...)
+
+
+>>> I'm aiming at changing the temperatures at which the fan starts and=
+=20
+>>> stops. The kernel parameter thermal.act=3DXXX did change the "fan o=
+n"=20
+>>> temperature, but not the "fan off" one. I expected the hysteresis=20
+>>> T(on)-T(off) to be constant, and thus I thought T(off) would raise =
+as=20
+>>> much as I raised T(on), but this is not the case.
+>>>
+> Dynamic trip point can only be supported by platform thermal design.
+> Specifying such values in userspace does not make sense, because it's
+> not guaranteed that the thermal driver can get notification upon the
+> values you specified, thus it would screw up the thermal control
+> entirely.
+
+Do you mean: if the system has a 5 =B0C granularity, and I had set=20
+trip_point_4_temp to a value not multiple of 5 =B0C, say 53 =B0C, then =
+the=20
+driver would not e.g. turn off the fan when the temperature changes fro=
+m=20
+e.g. 55 to 50, because the driver does not check "temp <=3D=20
+trip_point_4_temp" but rather "temp =3D=3D trip_point_4_temp"?
+
+
+Your insight and help is much appreciated.
+
+Best regards,
+Lucas Levrel
+--
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
