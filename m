@@ -1,218 +1,254 @@
-From: Aaron Durbin <adurbin@google.com>
-Subject: Re: ACPI device using sub-resource of PCI device
-Date: Wed, 27 Jul 2016 23:02:22 -0500
-Message-ID: <CAE2855sk2M_77W7dPUb-G43zaDgiNvH2fwpEUvZKOZCBZ-1UpQ@mail.gmail.com>
-References: <CAE2855tofJV=HV2dYuC+1=pi2mb942zrRF7f0+wqxPPay44RGA@mail.gmail.com>
- <3103060.86QBTjSLk3@vostro.rjw.lan> <CAE2855sB73=1gznGFonGver_FtaCdoAa4-8Bz8sAXCXuBZvxfg@mail.gmail.com>
- <3861743.KWBechkp08@vostro.rjw.lan>
+From: "Williams, Dan J" <dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: [GIT PULL] libnvdimm for 4.8
+Date: Thu, 28 Jul 2016 05:33:00 +0000
+Message-ID: <1469683980.5271.0.camel@intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-pci-owner@vger.kernel.org>
-In-Reply-To: <3861743.KWBechkp08@vostro.rjw.lan>
-Sender: linux-pci-owner@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: Bjorn Helgaas <helgaas@kernel.org>, "Rafael J. Wysocki" <rafael@kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux PCI <linux-pci@vger.kernel.org>, Mika Westerberg <mika.westerberg@linux.intel.com>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Content-Type: text/plain; charset="utf-7"
+Content-Transfer-Encoding: base64
+Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+Content-Language: en-US
+Content-ID: <083D33E6A89950408A16DBCD85E090C4-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
+ <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
+List-Post: <mailto:linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+List-Help: <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
+ <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
+Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
+Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+To: "torvalds-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org" <torvalds-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org>
+Cc: "linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org" <linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On Wed, Jul 27, 2016 at 7:09 PM, Rafael J. Wysocki <rjw@rjwysocki.net> wrote:
-> On Monday, July 25, 2016 02:11:12 PM Aaron Durbin wrote:
->> On Fri, Jul 22, 2016 at 4:04 PM, Rafael J. Wysocki <rjw@rjwysocki.net> wrote:
->> > On Friday, July 22, 2016 12:26:03 PM Aaron Durbin wrote:
->> >> On Thu, Jul 21, 2016 at 7:55 PM, Rafael J. Wysocki <rjw@rjwysocki.net> wrote:
->> >> > On Wednesday, July 20, 2016 08:58:29 PM Aaron Durbin wrote:
->> >> >> On Wed, Jul 20, 2016 at 7:40 PM, Rafael J. Wysocki <rjw@rjwysocki.net> wrote:
->> >> >> > On Wednesday, July 20, 2016 06:02:08 PM Aaron Durbin wrote:
->> >> >
->> >> > [...]
->> >> >
->> >> >> >> > Isn't the problem a probe ordering issue, though?
->> >> >> >>
->> >> >> >> No. Not just ordering. There's no parent-child relationship taken into
->> >> >> >> account when PCI devices are added to the resource tree. Deferring
->> >> >> >> adding an ACPI device's resources would likely fail similarly because
->> >> >> >> one doesn't take into account the proper parent. One lives in PCI land
->> >> >> >> -- the other in ACPI land.
->> >> >> >
->> >> >> > What exactly do you mean by "PCI land" and "ACPI land"?
->> >> >> >
->> >> >> > All PCI resources are derived from the host bridge ones that come from
->> >> >> > ACPI anyway.
->> >> >>
->> >> >> Except that the BARs are queried in the pci devices themselves and
->> >> >> those resources are added w/o any communication to/from ACPI. That's
->> >> >> all done in the pci subsystem internally. Only if
->> >> >
->> >> > Well, not quite.
->> >> >
->> >> > It gets to host bridge resources via pcibios_bus_to_resource() AFAICS and
->> >> > those come from ACPI on ACPI-based systems.
->> >>
->> >> From what I can tell that's just updating resource values that have a
->> >> translation across a bridge. For a 1:1 mapping nothing is different
->> >> from the BAR encoded in the PCI device itself. Those windows are just
->> >> encoded in the bridge device. The only thing adjusted on the resources
->> >> is an offset. The BAR values are read from the device. That path is
->> >> just adjusting resources -- it's not adding those individual resources
->> >> into the resource tree for pci devices. See below.
->> >>
->> >> >
->> >> >> >
->> >> >> >> Currently, the issue is manifesting that the ACPI device's resources
->> >> >> >> are added into the resource tree. PCI devices the follow trying to add
->> >> >> >> their own resources. Conflicts ensue without taking into account the
->> >> >> >> proper hierarchy. To make matters worse, struct resource doesn't have
->> >> >> >> a struct device -- only a name. That means there's no way of knowing
->> >> >> >> who owns what resource. All that information is unavailable. That's
->> >> >> >> why the semi-hacky proposal was to see if there is an ACPI companion
->> >> >> >> device and see if it has children. If it's children's names match the
->> >> >> >> conflicting resource it's a good bet that the PCI device's resources
->> >> >> >> should be placed as the parent in the resource tree.
->> >> >> >
->> >> >> > That really looks like a broken hierarchy of devices somewhere.
->> >> >>
->> >> >> Why do you think it's a broken hierarchy? This CL has the heirarchy:
->> >> >> https://chromium-review.googlesource.com/#/c/359432/
->> >> >>
->> >> >> There is a device, P2S, which would result in an ACPI companion device
->> >> >> when the pci_dev is added to the device infrastructure by way of
->> >> >> acpi_platform_notify() which does the ACPI companion binding.
->> >> >> device_add() is the caller of platform_notify() which is set to
->> >> >> acpi_platform_notify() in init_acpi_device_notify() by way of
->> >> >> acpi_init().
->> >> >>
->> >> >> There are 4 children of the P2S device: GPO0, GPO1, GPO2, GPO3.
->> >> >>
->> >> >> Those children devices utilize a sub-resource of the P2S device which
->> >> >> has a pci_dev companion. It's BAR0 is the resource.
->> >> >
->> >> > OK
->> >> >
->> >> >> >
->> >> >> > And one more thing: a struct acpi_device object is not a device in general
->> >> >> > (althogh some pieces of code in the kernel, arguably incorrectly, treat it
->> >> >> > this way).  It is an abstract representation of a firmware entity (a node
->> >> >> > in the ACPI namespace).
->> >> >> >
->> >> >> > There really should be a "physical device" thing corresponding to it and
->> >> >> > that should be a child of the PCI device object in question.
->> >> >>
->> >> >> I thought I established that by the sysfs readlink I output I
->> >> >> previously provided?
->> >> >>
->> >> >> # ls /sys/devices/platform/| grep INT3452
->> >> >> INT3452:00
->> >> >> INT3452:01
->> >> >> INT3452:02
->> >> >> INT3452:03
->> >> >>
->> >> >> # ls /sys/devices/LNXSYSTM:00/LNXSYBUS:00/PNP0A08:00/device:11 | grep INT3452
->> >> >> INT3452:00
->> >> >> INT3452:01
->> >> >> INT3452:02
->> >> >> INT3452:03
->> >> >>
->> >> >> # readlink -f /sys/devices/LNXSYSTM:00/LNXSYBUS:00/PNP0A08:00/device:11/INT3452:00/physical_node
->> >> >> /sys/devices/platform/INT3452:00
->> >> >
->> >> > OK
->> >> >
->> >> > I must have missed that part.
->> >> >
->> >> >> >
->> >> >> >> > Do we assign BARs for endpoints during enumeration or only when we find a
->> >> >> >> > matching driver?
->> >> >> >>
->> >> >> >> BARs look to be assigned during enumeration. There's where conflicts
->> >> >> >> are found and resources reassigned in the current failing case.
->> >> >> >
->> >> >> > OK
->> >> >> >
->> >> >> > You seem to be saying that we insert some resources for ACPI device objects
->> >> >> > that correspond to the children of ACPI companions of PCI devices before we
->> >> >> > assign the BARs for their parent devices.
->> >> >>
->> >> >> The pci_dev is the one owning the parent resource. Even if there is a
->> >> >> companion ACPI device with a resource it doesn't matter because there
->> >> >> will still be a conflict because there is no checking against the
->> >> >> companion. There are 2 parallel entities without any communication
->> >> >> between the PCI subsystem and the ACPI subsystem when resources are
->> >> >> being added.
->> >> >>
->> >> >> >
->> >> >> > To me, that sounds very suspicious.
->> >> >> >
->> >> >> > Where in the code are the ACPI resources inserted, exactly?
->> >> >>
->> >> >> I believe it's through this mechanism:
->> >> >> acpi_bus_attach() -> acpi_default_enumeration() ->
->> >> >> acpi_create_platform_device() -> platform_device_register_full()
->> >> >
->> >> > I still would like to understand how and why that is called for child devices
->> >> > before the (physical) parent is enumerated.
->> >> >
->> >> > The theory is that when the PCI host bridge is found in the ACPI namespace,
->> >> > it will be enumerated along with the entire PCI bus below it before enumerating
->> >> > any _HID devices in the ACPI namespace below the host bridge object.
->> >> >
->> >> > Therefore all PCI devices should be enumerated before any children of any of
->> >> > them that aren't PCI devices themselves.  If BARs are assigned during
->> >> > enumeration, they all should be assigned before inserting any resources
->> >> > for any non-PCI children of any PCI devices.
->> >> >
->> >> > If that doesn't happen, the practice doesn't match the theory and that very
->> >> > well may be the source of the problem you're seeing.
->> >> >
->> >>
->> >> I'll sprinkle some WARN_ON()s in the resource code to track down when
->> >> things are being added to provide a definitive answer to when these
->> >> resources are being inserted. The current issue is still stands:
->> >> there is nothing properly tying the 2 sources of resource information
->> >> together. And ACPI resources are added prior to PCI resources.
->> >
->> > OK, I see what's going on.
->> >
->> >> PCI devices might be enumerated, but that doesn't mean their
->> >> *resources* are added.
->> >
->> > Right.
->> >
->> >> Back to the subsys_initcall topic:
->> >>
->> >> pci_subsys_init() is called *after* acpi_init().
->> >>
->> >> pci_subsys_init() -> pcibios_init() -> pcibios_resource_survey() ->
->> >> pcibios_allocate_resources() -> pcibios_allocate_dev_resources() ->
->> >> pci_claim_resource()
->> >
->> > So first, the PCI resources are allocated in an additional pass after bus
->> > enumeration and after enumerating platform devices based on the ACPI namespace.
->> > That causes resources of the (non-PCI) children to be inserted before the
->> > resources of the (PCI) parents.
->>
->> What is the proposal for fixing this issue?
->
-> I can think about a couple of ways, but I'm not sure which one is the best
-> candidate from the regression risk perspective etc.
->
-> I need to talk about that to some people who are on vacation ATM.
->
->> > But the problem seems to be that acpi_create_platform_device() doesn't
->> > check parent resources at all.  Namely, when pdevinfo.parent is set, the
->> > function should look at the resources of the parent and possibly populate
->> > the parent field of the new device's resources before passing them to
->> > platform_device_register_full().
->>
->> In the particular issue I reported how would the parent device have
->> any resources if it's a PCI device?
->
-> If we can fix the ordering (so that the resources of parents are always
-> inserted before the resources of their children), then it shouldn't
-> matter whether or not it is a PCI device.
->
-> In any case, though, its ACPI companion will have information on the
-> resources the device is using.
-
-Thanks. Let me know if you want me to do anything.. validate
-something. Take a stab at something, etc.
-
--Aaron
+SGkgTGludXMsIHBsZWFzZSBwdWxsIGZyb206CgorQUtBIGdpdDovL2dpdC5rZXJuZWwub3JnL3B1
+Yi9zY20vbGludXgva2VybmVsL2dpdC9udmRpbW0vbnZkaW1tIHRhZ3MvbGlibnZkaW1tLWZvci00
+LjgKCi4uLnRvIHJlY2VpdmUgdGhlIGxpYm52ZGltbSB1cGRhdGUgZm9yIDQuOC4KClRoaXMgaGFz
+IGJlZW4gaW4gLW5leHQgd2l0aCB0aGUgZm9sbG93aW5nIHJlcG9ydGVkIGNvbmZsaWN0czoKCjEv
+IFRoZSBfX3BtZW0gYWRkcmVzcyBzcGFjZSBoYXMgYmVlbiByZW1vdmVkLiArQUtBLU5ldyB1c2Fn
+ZXMgb2YgX19wbWVtCmNhbWUgaW4gdGhyb3VnaCB0aGUgRE0gdHJlZSB0aGlzIGN5Y2xlLgoKMi8g
+QSBtaW5vciBjb25mbGljdCBpbiB0aGUgcG1lbSBkcml2ZXIgd2l0aCB0aGUgZGV2aWNlX2FkZF9k
+aXNrKCkKY2hhbmdlcyB0aGF0IGNhbWUgaW4gdGhyb3VnaCB0aGUgYmxvY2sgbGF5ZXIuCgozLyBU
+aGUgcmVtb3ZhbCBvZiBwY29tbWl0IGNvbGxpZGVkIHdpdGggbmV3IGVuYWJsaW5nIGluIEtWTS4g
+K0FLQS1BdCB0aGUKdGltZSBvZiB3cml0aW5nIHlvdSBoYXZlIG5vdCB5ZXQgbWVyZ2VkIHRoZSBL
+Vk0gdHJlZS4KCkEgdGVzdCByZXNvbHV0aW9uIGZvciAxIGFuZCAyIGlzIGF2YWlsYWJsZSBoZXJl
+OgoKK0FLQSBnaXQ6Ly9naXQua2VybmVsLm9yZy9wdWIvc2NtL2xpbnV4L2tlcm5lbC9naXQvbnZk
+aW1tL252ZGltbSBsaWJudmRpbW0tZm9yLTQuOC1tZXJnZQoKU3RlcGhlbidzIHJlc29sdXRpb24g
+b2YgdGhlIEtWTSBjb25mbGljdCBpcyBhdmFpbGFibGUgaGVyZToKCitBS0EgaHR0cHM6Ly9sa21s
+Lm9yZy9sa21sLzIwMTYvNy8yNS8xMQoKVGhlIHBjb21taXQgcmVtb3ZhbCBpbiBhcmNoL3g4Ni8g
+aGFzIGFuIGFjayBmcm9tIEluZ28uCgotLS0KClRoZSBmb2xsb3dpbmcgY2hhbmdlcyBzaW5jZSBj
+b21taXQgYTcyMjU1OTgzZjEyZjMxZjBjOGQ4Mjc1ZmIxYTc4MTU0NmNmYWNiNzoKCitBS0EgbmZp
+dDogbWFrZSBESU1NIERTTXMgb3B0aW9uYWwgKDIwMTYtMDctMTkgMTI6MzI6MzkgLTA3MDApCgph
+cmUgYXZhaWxhYmxlIGluIHRoZSBnaXQgcmVwb3NpdG9yeSBhdDoKCitBS0EgZ2l0Oi8vZ2l0Lmtl
+cm5lbC5vcmcvcHViL3NjbS9saW51eC9rZXJuZWwvZ2l0L252ZGltbS9udmRpbW0gdGFncy9saWJu
+dmRpbW0tZm9yLTQuOAoKZm9yIHlvdSB0byBmZXRjaCBjaGFuZ2VzIHVwIHRvIDA2MDYyNjNmMjRm
+M2Q2NDk2MGRlNzQyYzU1ODk0MTkwYjVkZjkwM2I6CgorQUtBIE1lcmdlIGJyYW5jaCAnZm9yLTQu
+OC9saWJudmRpbW0nIGludG8gbGlibnZkaW1tLWZvci1uZXh0ICgyMDE2LTA3LTI0IDA4OjA1OjQ0
+IC0wNzAwKQoKLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
+LS0tLS0tLS0tLS0tLS0tLQpsaWJudmRpbW0gZm9yIDQuOAoKMS8gUmVwbGFjZSBwY29tbWl0IHdp
+dGggQURSIC8gZGlyZWN0ZWQtZmx1c2hpbmc6CitBS0FBb0FDZy1UaGUgcGNvbW1pdCBpbnN0cnVj
+dGlvbiwgd2hpY2ggaGFzIG5vdCBzaGlwcGVkIG9uIGFueSBwcm9kdWN0LCBpcworQUtBQW9BQ2ct
+ZGVwcmVjYXRlZC4gSW5zdGVhZCwgdGhlIHJlcXVpcmVtZW50IGlzIHRoYXQgcGxhdGZvcm1zIGlt
+cGxlbWVudCBlaXRoZXIKK0FLQUFvQUNnLUFEUiwgb3IgcHJvdmlkZSBvbmUgb3IgbW9yZSBmbHVz
+aCBhZGRyZXNzZXMgcGVyIG52ZGltbS4gQURSCitBS0FBb0FDZyhBc3luY2hyb25vdXMgRFJBTSBS
+ZWZyZXNoKSBmbHVzaGVzIGRhdGEgaW4gcG9zdGVkIHdyaXRlIGJ1ZmZlcnMgdG8gdGhlCitBS0FB
+b0FDZy1tZW1vcnkgY29udHJvbGxlciBvbiBhIHBvd2VyLWZhaWwgZXZlbnQuIEZsdXNoIGFkZHJl
+c3NlcyBhcmUgZGVmaW5lZCBpbgorQUtBQW9BQ2ctQUNQSSA2LnggYXMgYW4gTlZESU1NIEZpcm13
+YXJlIEludGVyZmFjZSBUYWJsZSAoTkZJVCkgc3ViLXN0cnVjdHVyZToKK0FLQUFvQUNnIkZsdXNo
+IEhpbnQgQWRkcmVzcyBTdHJ1Y3R1cmUiLiBBIGZsdXNoIGhpbnQgaXMgYW4gbW1pbyBhZGRyZXNz
+IHRoYXQKK0FLQUFvQUNnLXdoZW4gd3JpdHRlbiBhbmQgZmVuY2VkIGFzc3VyZXMgdGhhdCBhbGwg
+cHJldmlvdXMgcG9zdGVkIHdyaXRlcworQUtBQW9BQ2ctdGFyZ2V0aW5nIGEgZ2l2ZW4gZGltbSBo
+YXZlIGJlZW4gZmx1c2hlZCB0byBtZWRpYS4KCjIvIE9uLWRlbWFuZCBBUlMgKGFkZHJlc3MgcmFu
+Z2Ugc2NydWIpOgorQUtBQW9BQ2ctTGludXggdXNlcyB0aGUgcmVzdWx0cyBvZiB0aGUgQUNQSSBB
+UlMgY29tbWFuZHMgdG8gdHJhY2sgYmFkIGJsb2NrcworQUtBQW9BQ2ctaW4gcG1lbSBkZXZpY2Vz
+LitBS0FBb0EtV2hlbiBsYXRlbnQgZXJyb3JzIGFyZSBkZXRlY3RlZCB3ZSByZS1zY3J1YiB0aGUg
+bWVkaWEKK0FLQUFvQUNnLXRvIHJlZnJlc2ggdGhlIGJhZCBibG9jayBsaXN0LCB1c2Vyc3BhY2Ug
+Y2FuIGFsc28gcmVxdWVzdCBhIHJlLXNjcnViIGF0CitBS0FBb0FDZy1hbnkgdGltZS4KCjMvIFN1
+cHBvcnQgZm9yIHRoZSBNaWNyb3NvZnQgRFNNIChkZXZpY2Ugc3BlY2lmaWMgbWV0aG9kKSBjb21t
+YW5kIGZvcm1hdC4KCjQvIFN1cHBvcnQgZm9yIEVESzIvT1ZNRiB2aXJ0dWFsIGRpc2sgZGV2aWNl
+IG1lbW9yeSByYW5nZXMuCgo1LyBWYXJpb3VzIGZpeGVzIGFuZCBjbGVhbnVwcyBhY3Jvc3MgdGhl
+IHN1YnN5c3RlbS4KCi0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
+LS0tLS0tLS0tLS0tLS0tLS0tLS0KRGFuIFdpbGxpYW1zICgzMik6CitBS0FBb0FDZ0FLQUFvQUNn
+LWxpYm52ZGltbTogdXNlIGRldm1fYWRkX2FjdGlvbl9vcl9yZXNldCgpCitBS0FBb0FDZ0FLQUFv
+QUNnLWxpYm52ZGltbTogSVNfRVJSKCkgdXNhZ2UgY2xlYW51cAorQUtBQW9BQ2dBS0FBb0FDZy10
+b29scy90ZXN0aW5nL252ZGltbTogYWRkIHBmbiBkZXZpY2UgZGVwZW5kZW5jeQorQUtBQW9BQ2dB
+S0FBb0FDZy1saWJudmRpbW0sIHBtZW06IGFsbG93IG5maXRfdGVzdCB0byBvdmVycmlkZSBwbWVt
+X2RpcmVjdF9hY2Nlc3MoKQorQUtBQW9BQ2dBS0FBb0FDZy10b29scy90ZXN0aW5nL252ZGltbTog
+cmVwbGFjZSBDT05GSUdfRE1BX0NNQSBkZXBlbmRlbmN5IHdpdGggdm1hbGxvYygpCitBS0FBb0FD
+Z0FLQUFvQUNnLXRvb2xzL3Rlc3RpbmcvbnZkaW1tOiByZW1vdmUgX193cmFwX2Rldm1fbWVtcmVt
+YXBfcGFnZXMgcGxhY2Vob2xkZXIKK0FLQUFvQUNnQUtBQW9BQ2ctbmZpdDogYWx3YXlzIGFzc29j
+aWF0ZSBmbHVzaCBoaW50cworQUtBQW9BQ2dBS0FBb0FDZy1uZml0OiBkb24ndCBvdmVycmlkZSBy
+ZXR1cm4gdmFsdWUgb2YgbmZpdF9tZW1faW5pdAorQUtBQW9BQ2dBS0FBb0FDZy1saWJudmRpbW06
+IGludHJvZHVjZSBkZXZtX252ZGltbV9tZW1yZW1hcCgpLCBjb252ZXJ0IG5maXRfc3BhX21hcCgp
+IHVzZXJzCitBS0FBb0FDZ0FLQUFvQUNnLWxpYm52ZGltbSwgbmZpdDogcmVtb3ZlIG5maXRfc3Bh
+X21hcCgpIGluZnJhc3RydWN0dXJlCitBS0FBb0FDZ0FLQUFvQUNnLWxpYm52ZGltbSwgbmZpdDog
+bW92ZSBmbHVzaCBoaW50IG1hcHBpbmcgdG8gcmVnaW9uLWRldmljZSBkcml2ZXItZGF0YQorQUtB
+QW9BQ2dBS0FBb0FDZy10b29scy90ZXN0aW5nL252ZGltbTogc2ltdWxhdGUgbXVsdGlwbGUgZmx1
+c2ggaGludHMgcGVyLWRpbW0KK0FLQUFvQUNnQUtBQW9BQ2ctbGlibnZkaW1tOiBrZWVwIHJlZ2lv
+biBkYXRhIGFsaXZlIG92ZXIgbmFtZXNwYWNlIHJlbW92YWwKK0FLQUFvQUNnQUtBQW9BQ2ctbGli
+bnZkaW1tOiBpbnRyb2R1Y2UgbnZkaW1tX2ZsdXNoKCkgYW5kIG52ZGltbV9oYXNfZmx1c2goKQor
+QUtBQW9BQ2dBS0FBb0FDZy1saWJudmRpbW06IGN5Y2xlIGZsdXNoIGhpbnRzCitBS0FBb0FDZ0FL
+QUFvQUNnLWxpYm52ZGltbSwgcG1lbTogdXNlIFJFUV9GVUEsIFJFUV9GTFVTSCBmb3IgbnZkaW1t
+X2ZsdXNoKCkKK0FLQUFvQUNnQUtBQW9BQ2ctbGlibnZkaW1tLCBwbWVtOiBmbHVzaCBwb3N0ZWQt
+d3JpdGUgcXVldWVzIG9uIHNodXRkb3duCitBS0FBb0FDZ0FLQUFvQUNnLWZzL2RheDogcmVtb3Zl
+IHdtYl9wbWVtKCkKK0FLQUFvQUNnQUtBQW9BQ2ctbGlibnZkaW1tLCBwbWVtOiB1c2UgbnZkaW1t
+X2ZsdXNoKCkgZm9yIG5hbWVzcGFjZSBJL08gd3JpdGVzCitBS0FBb0FDZ0FLQUFvQUNnLXBtZW06
+IGtpbGwgd21iX3BtZW0oKQorQUtBQW9BQ2dBS0FBb0FDZy1wbWVtOiBraWxsIF9fcG1lbSBhZGRy
+ZXNzIHNwYWNlCitBS0FBb0FDZ0FLQUFvQUNnLXRvb2xzL3Rlc3RpbmcvbnZkaW1tOiBhZGQgdmly
+dHVhbCByYW1kaXNrIHJhbmdlCitBS0FBb0FDZ0FLQUFvQUNnLXRvb2xzL3Rlc3RpbmcvbnZkaW1t
+OiBhZGQgbWFudWZhY3R1cmluZ197ZGF0ZXxsb2NhdGlvbn0gZGltbSBwcm9wZXJ0aWVzCitBS0FB
+b0FDZ0FLQUFvQUNnLW5maXQ6IGZpeCBfRklUIGV2YWx1YXRpb24gbWVtb3J5IGxlYWsgKy0gdXNl
+IGFmdGVyIGZyZWUKK0FLQUFvQUNnQUtBQW9BQ2ctbmZpdDogY2xlYW51cCBhY3BpX25maXRfaW5p
+dCBjYWxsaW5nIGNvbnZlbnRpb24KK0FLQUFvQUNnQUtBQW9BQ2ctbGlibnZkaW1tOiBtb3ZlIC0+
+bW9kdWxlIHRvIHN0cnVjdCBudmRpbW1fYnVzX2Rlc2NyaXB0b3IKK0FLQUFvQUNnQUtBQW9BQ2ct
+bmZpdCwgdG9vbHMvdGVzdGluZy9udmRpbW0vOiB1bmlmeSBzaHV0ZG93biBwYXRocworQUtBQW9B
+Q2dBS0FBb0FDZy1SZXZlcnQgIktWTTogeDg2OiBhZGQgcGNvbW1pdCBzdXBwb3J0IgorQUtBQW9B
+Q2dBS0FBb0FDZy14ODYvaW5zbjogcmVtb3ZlIHBjb21taXQKK0FLQUFvQUNnQUtBQW9BQ2ctbGli
+bnZkaW1tOiByZWdpc3RlciBudmRpbW1fYnVzIGRldmljZXMgd2l0aCBhbiBuZF9idXMgZHJpdmVy
+CitBS0FBb0FDZ0FLQUFvQUNnLW5maXQ6IG1vdmUgdG8gbmZpdC8gc3ViLWRpcmVjdG9yeQorQUtB
+QW9BQ2dBS0FBb0FDZy1NZXJnZSBicmFuY2ggJ2Zvci00LjgvbGlibnZkaW1tJyBpbnRvIGxpYm52
+ZGltbS1mb3ItbmV4dAoKSm9oYW5uZXMgVGh1bXNoaXJuICgxKToKK0FLQUFvQUNnQUtBQW9BQ2ct
+bGlibnZkaW1tOiBpbml0aWFsaXplIHN0cnVjdCBibGtfaW50ZWdyaXR5IHdpdGggMAoKTGVlLCBD
+aHVuLVlpICgxKToKK0FLQUFvQUNnQUtBQW9BQ2ctYWNwaSwgbmZpdDogdHJlYXQgdmlydHVhbCBy
+YW1kaXNrIFNQQSBhcyBwbWVtIHJlZ2lvbgoKTWFya3VzIEVsZnJpbmcgKDEpOgorQUtBQW9BQ2dB
+S0FBb0FDZy1saWJudmRpbW0tYnR0OiBEZWxldGUgYW4gdW5uZWNlc3NhcnkgY2hlY2sgYmVmb3Jl
+IHRoZSBmdW5jdGlvbiBjYWxsICJfX25kX2RldmljZV9yZWdpc3RlciIKClNhamphbiwgVmlrYXMg
+QyAoMik6CitBS0FBb0FDZ0FLQUFvQUNnLW5maXQ6IHVzZSBkZXZtX2FkZF9hY3Rpb25fb3JfcmVz
+ZXQoKQorQUtBQW9BQ2dBS0FBb0FDZy1kYXg6IHVzZSBkZXZtX2FkZF9hY3Rpb25fb3JfcmVzZXQo
+KQoKVmlzaGFsIFZlcm1hICg0KToKK0FLQUFvQUNnQUtBQW9BQ2ctbGlibnZkaW1tLCBidHQ6IHVw
+ZGF0ZSB0aGUgdXNhZ2Ugc2VjdGlvbiBpbiBEb2N1bWVudGF0aW9uCitBS0FBb0FDZ0FLQUFvQUNn
+LXBtZW06IGNsYXJpZnkgYSBkZWJ1ZyBwcmludCBpbiBwbWVtX2NsZWFyX3BvaXNvbgorQUtBQW9B
+Q2dBS0FBb0FDZy1uZml0LCBsaWJudmRpbW06IGFsbG93IGFuIEFSUyBzY3J1YiB0byBiZSB0cmln
+Z2VyZWQgb24gZGVtYW5kCitBS0FBb0FDZ0FLQUFvQUNnLW5maXQ6IGRvIGFuIEFSUyBzY3J1YiBv
+biBoaXR0aW5nIGEgbGF0ZW50IG1lZGlhIGVycm9yCgpzdHVhcnQgaGF5ZXMgKDEpOgorQUtBQW9B
+Q2dBS0FBb0FDZy1uZml0OiBhZGQgTWljcm9zb2Z0IE5WRElNTSBEU00gY29tbWFuZCBzZXQgdG8g
+d2hpdGUgbGlzdAoKK0FLQS1Eb2N1bWVudGF0aW9uL2ZpbGVzeXN0ZW1zL0xvY2tpbmcrQUtBQW9B
+Q2dBS0FBb0FDZ0FLQUFvQUNnQUtBQW9BQ2dBS0FBb0FDZ0FLQUFvQUNnfCtBS0FBb0FDZy0yICst
+LQorQUtBLURvY3VtZW50YXRpb24vbnZkaW1tL2J0dC50eHQrQUtBQW9BQ2dBS0FBb0FDZ0FLQUFv
+QUNnQUtBQW9BQ2dBS0FBb0FDZ0FLQUFvQUNnQUtBQW9BQ2dBS0FBb0F8K0FLQUFvQS0yOCArLS0K
+K0FLQS1hcmNoL3Bvd2VycGMvc3lzZGV2L2F4b25yYW0uYytBS0FBb0FDZ0FLQUFvQUNnQUtBQW9B
+Q2dBS0FBb0FDZ0FLQUFvQUNnQUtBQW9BQ2dBS0FBb0FDZ0FLQXwrQUtBQW9BQ2ctNCArLS0KK0FL
+QS1hcmNoL3g4Ni9pbmNsdWRlL2FzbS9jcHVmZWF0dXJlcy5oK0FLQUFvQUNnQUtBQW9BQ2dBS0FB
+b0FDZ0FLQUFvQUNnQUtBQW9BQ2dBS0FBb0F8K0FLQUFvQUNnLTEgLQorQUtBLWFyY2gveDg2L2lu
+Y2x1ZGUvYXNtL3BtZW0uaCtBS0FBb0FDZ0FLQUFvQUNnQUtBQW9BQ2dBS0FBb0FDZ0FLQUFvQUNn
+QUtBQW9BQ2dBS0FBb0FDZ0FLQUFvQUNnfCtBS0FBb0EtNzcgKy0tLQorQUtBLWFyY2gveDg2L2lu
+Y2x1ZGUvYXNtL3NwZWNpYWxfaW5zbnMuaCtBS0FBb0FDZ0FLQUFvQUNnQUtBQW9BQ2dBS0FBb0FD
+Z0FLQUFvQUNnfCtBS0FBb0EtNDYgLS0KK0FLQS1hcmNoL3g4Ni9pbmNsdWRlL2FzbS92bXguaCtB
+S0FBb0FDZ0FLQUFvQUNnQUtBQW9BQ2dBS0FBb0FDZ0FLQUFvQUNnQUtBQW9BQ2dBS0FBb0FDZ0FL
+QUFvQUNnQUtBfCtBS0FBb0FDZy0xIC0KK0FLQS1hcmNoL3g4Ni9pbmNsdWRlL3VhcGkvYXNtL3Zt
+eC5oK0FLQUFvQUNnQUtBQW9BQ2dBS0FBb0FDZ0FLQUFvQUNnQUtBQW9BQ2dBS0FBb0FDZ0FLQUFv
+QXwrQUtBQW9BQ2ctNCArLS0KK0FLQS1hcmNoL3g4Ni9rdm0vY3B1aWQuYytBS0FBb0FDZ0FLQUFv
+QUNnQUtBQW9BQ2dBS0FBb0FDZ0FLQUFvQUNnQUtBQW9BQ2dBS0FBb0FDZ0FLQUFvQUNnQUtBQW9B
+Q2dBS0FBb0FDZ0FLQXwrQUtBQW9BQ2ctMiArLS0KK0FLQS1hcmNoL3g4Ni9rdm0vY3B1aWQuaCtB
+S0FBb0FDZ0FLQUFvQUNnQUtBQW9BQ2dBS0FBb0FDZ0FLQUFvQUNnQUtBQW9BQ2dBS0FBb0FDZ0FL
+QUFvQUNnQUtBQW9BQ2dBS0FBb0FDZ0FLQXwrQUtBQW9BQ2ctOCAtCitBS0EtYXJjaC94ODYva3Zt
+L3ZteC5jK0FLQUFvQUNnQUtBQW9BQ2dBS0FBb0FDZ0FLQUFvQUNnQUtBQW9BQ2dBS0FBb0FDZ0FL
+QUFvQUNnQUtBQW9BQ2dBS0FBb0FDZ0FLQUFvQUNnQUtBQW9BQ2d8K0FLQUFvQS0zMiArLS0KK0FL
+QS1hcmNoL3g4Ni9saWIveDg2LW9wY29kZS1tYXAudHh0K0FLQUFvQUNnQUtBQW9BQ2dBS0FBb0FD
+Z0FLQUFvQUNnQUtBQW9BQ2dBS0FBb0FDZ0FLQUFvQXwrQUtBQW9BQ2ctMiArLS0KK0FLQS1kcml2
+ZXJzL2FjcGkvS2NvbmZpZytBS0FBb0FDZ0FLQUFvQUNnQUtBQW9BQ2dBS0FBb0FDZ0FLQUFvQUNn
+QUtBQW9BQ2dBS0FBb0FDZ0FLQUFvQUNnQUtBQW9BQ2dBS0FBb0FDZ0FLQXwrQUtBQW9BLTI3ICst
+LQorQUtBLWRyaXZlcnMvYWNwaS9NYWtlZmlsZStBS0FBb0FDZ0FLQUFvQUNnQUtBQW9BQ2dBS0FB
+b0FDZ0FLQUFvQUNnQUtBQW9BQ2dBS0FBb0FDZ0FLQUFvQUNnQUtBQW9BQ2dBS0FBb0FDZ3wrQUtB
+QW9BQ2ctMiArLS0KK0FLQS1kcml2ZXJzL2FjcGkvbmZpdC9LY29uZmlnK0FLQUFvQUNnQUtBQW9B
+Q2dBS0FBb0FDZ0FLQUFvQUNnQUtBQW9BQ2dBS0FBb0FDZ0FLQUFvQUNnQUtBQW9BQ2dBS0FBb0F8
+K0FLQUFvQS0yNiArLQorQUtBLWRyaXZlcnMvYWNwaS9uZml0L01ha2VmaWxlK0FLQUFvQUNnQUtB
+QW9BQ2dBS0FBb0FDZ0FLQUFvQUNnQUtBQW9BQ2dBS0FBb0FDZ0FLQUFvQUNnQUtBQW9BQ2dBS0F8
+K0FLQUFvQUNnLTMgKy0KK0FLQS1kcml2ZXJzL2FjcGkve25maXQuYyA9PiBuZml0L2NvcmUuY30r
+QUtBQW9BQ2dBS0FBb0FDZ0FLQUFvQUNnQUtBQW9BQ2dBS0FBb0FDZ3wgNjQ3ICstKy0rLSstKy0r
+LSstKy0rLSstKy0rLS0tLS0tLS0tLQorQUtBLWRyaXZlcnMvYWNwaS9uZml0L21jZS5jK0FLQUFv
+QUNnQUtBQW9BQ2dBS0FBb0FDZ0FLQUFvQUNnQUtBQW9BQ2dBS0FBb0FDZ0FLQUFvQUNnQUtBQW9B
+Q2dBS0FBb0FDZ0FLQXwrQUtBQW9BLTg5ICstKy0rLQorQUtBLWRyaXZlcnMvYWNwaS97ID0+IG5m
+aXR9L25maXQuaCtBS0FBb0FDZ0FLQUFvQUNnQUtBQW9BQ2dBS0FBb0FDZ0FLQUFvQUNnQUtBQW9B
+Q2dBS0FBb0FDZ3wrQUtBQW9BLTYwICstLQorQUtBLWRyaXZlcnMvYmxvY2svYnJkLmMrQUtBQW9B
+Q2dBS0FBb0FDZ0FLQUFvQUNnQUtBQW9BQ2dBS0FBb0FDZ0FLQUFvQUNnQUtBQW9BQ2dBS0FBb0FD
+Z0FLQUFvQUNnQUtBQW9BQ2dBS0FBb0F8K0FLQUFvQUNnLTQgKy0tCitBS0EtZHJpdmVycy9kYXgv
+ZGF4LmMrQUtBQW9BQ2dBS0FBb0FDZ0FLQUFvQUNnQUtBQW9BQ2dBS0FBb0FDZ0FLQUFvQUNnQUtB
+QW9BQ2dBS0FBb0FDZ0FLQUFvQUNnQUtBQW9BQ2dBS0FBb0FDZ0FLQXwrQUtBQW9BQ2ctNiArLS0K
+K0FLQS1kcml2ZXJzL2RheC9wbWVtLmMrQUtBQW9BQ2dBS0FBb0FDZ0FLQUFvQUNnQUtBQW9BQ2dB
+S0FBb0FDZ0FLQUFvQUNnQUtBQW9BQ2dBS0FBb0FDZ0FLQUFvQUNnQUtBQW9BQ2dBS0FBb0FDZ3wr
+QUtBQW9BLTE0ICstLQorQUtBLWRyaXZlcnMvbnZkaW1tL0tjb25maWcrQUtBQW9BQ2dBS0FBb0FD
+Z0FLQUFvQUNnQUtBQW9BQ2dBS0FBb0FDZ0FLQUFvQUNnQUtBQW9BQ2dBS0FBb0FDZ0FLQUFvQUNn
+QUtBQW9BfCtBS0FBb0FDZy0yICstLQorQUtBLWRyaXZlcnMvbnZkaW1tL2Jsay5jK0FLQUFvQUNn
+QUtBQW9BQ2dBS0FBb0FDZ0FLQUFvQUNnQUtBQW9BQ2dBS0FBb0FDZ0FLQUFvQUNnQUtBQW9BQ2dB
+S0FBb0FDZ0FLQUFvQUNnQUtBfCtBS0FBb0EtMTEgKy0tCitBS0EtZHJpdmVycy9udmRpbW0vYnR0
+X2RldnMuYytBS0FBb0FDZ0FLQUFvQUNnQUtBQW9BQ2dBS0FBb0FDZ0FLQUFvQUNnQUtBQW9BQ2dB
+S0FBb0FDZ0FLQUFvQUNnQUtBQW9BfCtBS0FBb0FDZy0zICstLQorQUtBLWRyaXZlcnMvbnZkaW1t
+L2J1cy5jK0FLQUFvQUNnQUtBQW9BQ2dBS0FBb0FDZ0FLQUFvQUNnQUtBQW9BQ2dBS0FBb0FDZ0FL
+QUFvQUNnQUtBQW9BQ2dBS0FBb0FDZ0FLQUFvQUNnQUtBfCAyMTIgKy0rLSstKy0rLSstLQorQUtB
+LWRyaXZlcnMvbnZkaW1tL2NsYWltLmMrQUtBQW9BQ2dBS0FBb0FDZ0FLQUFvQUNnQUtBQW9BQ2dB
+S0FBb0FDZ0FLQUFvQUNnQUtBQW9BQ2dBS0FBb0FDZ0FLQUFvQUNnQUtBQW9BfCtBS0FBb0FDZy03
+ICstLQorQUtBLWRyaXZlcnMvbnZkaW1tL2NvcmUuYytBS0FBb0FDZ0FLQUFvQUNnQUtBQW9BQ2dB
+S0FBb0FDZ0FLQUFvQUNnQUtBQW9BQ2dBS0FBb0FDZ0FLQUFvQUNnQUtBQW9BQ2dBS0FBb0FDZ3wg
+MjUzICstKy0rLSstLS0tLQorQUtBLWRyaXZlcnMvbnZkaW1tL2RpbW1fZGV2cy5jK0FLQUFvQUNn
+QUtBQW9BQ2dBS0FBb0FDZ0FLQUFvQUNnQUtBQW9BQ2dBS0FBb0FDZ0FLQUFvQUNnQUtBQW9BQ2dB
+S0F8K0FLQUFvQUNnLTUgKy0tCitBS0EtZHJpdmVycy9udmRpbW0vZTgyMC5jK0FLQUFvQUNnQUtB
+QW9BQ2dBS0FBb0FDZ0FLQUFvQUNnQUtBQW9BQ2dBS0FBb0FDZ0FLQUFvQUNnQUtBQW9BQ2dBS0FB
+b0FDZ0FLQUFvQUNnfCtBS0FBb0FDZy0xICstCitBS0EtZHJpdmVycy9udmRpbW0vbmQtY29yZS5o
+K0FLQUFvQUNnQUtBQW9BQ2dBS0FBb0FDZ0FLQUFvQUNnQUtBQW9BQ2dBS0FBb0FDZ0FLQUFvQUNn
+QUtBQW9BQ2dBS0FBb0FDZ3wrQUtBQW9BQ2ctNSArLS0KK0FLQS1kcml2ZXJzL252ZGltbS9uZC5o
+K0FLQUFvQUNnQUtBQW9BQ2dBS0FBb0FDZ0FLQUFvQUNnQUtBQW9BQ2dBS0FBb0FDZ0FLQUFvQUNn
+QUtBQW9BQ2dBS0FBb0FDZ0FLQUFvQUNnQUtBQW9BfCtBS0FBb0EtMTAgKy0tCitBS0EtZHJpdmVy
+cy9udmRpbW0vcG1lbS5jK0FLQUFvQUNnQUtBQW9BQ2dBS0FBb0FDZ0FLQUFvQUNnQUtBQW9BQ2dB
+S0FBb0FDZ0FLQUFvQUNnQUtBQW9BQ2dBS0FBb0FDZ0FLQUFvQUNnfCtBS0FBb0EtODUgKy0tLQor
+QUtBLWRyaXZlcnMvbnZkaW1tL3BtZW0uaCtBS0FBb0FDZ0FLQUFvQUNnQUtBQW9BQ2dBS0FBb0FD
+Z0FLQUFvQUNnQUtBQW9BQ2dBS0FBb0FDZ0FLQUFvQUNnQUtBQW9BQ2dBS0FBb0FDZ3wrQUtBQW9B
+LTI0ICstCitBS0EtZHJpdmVycy9udmRpbW0vcmVnaW9uLmMrQUtBQW9BQ2dBS0FBb0FDZ0FLQUFv
+QUNnQUtBQW9BQ2dBS0FBb0FDZ0FLQUFvQUNnQUtBQW9BQ2dBS0FBb0FDZ0FLQUFvQUNnQUtBfCtB
+S0FBb0EtMTkgKy0tCitBS0EtZHJpdmVycy9udmRpbW0vcmVnaW9uX2RldnMuYytBS0FBb0FDZ0FL
+QUFvQUNnQUtBQW9BQ2dBS0FBb0FDZ0FLQUFvQUNnQUtBQW9BQ2dBS0FBb0FDZ0FLQUFvQXwgMTU0
+ICstKy0rLSstLQorQUtBLWRyaXZlcnMvczM5MC9ibG9jay9kY3NzYmxrLmMrQUtBQW9BQ2dBS0FB
+b0FDZ0FLQUFvQUNnQUtBQW9BQ2dBS0FBb0FDZ0FLQUFvQUNnQUtBQW9BQ2dBS0FBb0F8K0FLQUFv
+QUNnLTYgKy0tCitBS0EtZnMvZGF4LmMrQUtBQW9BQ2dBS0FBb0FDZ0FLQUFvQUNnQUtBQW9BQ2dB
+S0FBb0FDZ0FLQUFvQUNnQUtBQW9BQ2dBS0FBb0FDZ0FLQUFvQUNnQUtBQW9BQ2dBS0FBb0FDZ0FL
+QUFvQUNnQUtBQW9BQ2dBS0FBb0FDZ0FLQXwrQUtBQW9BLTEzICstLQorQUtBLWluY2x1ZGUvbGlu
+dXgvYmxrZGV2LmgrQUtBQW9BQ2dBS0FBb0FDZ0FLQUFvQUNnQUtBQW9BQ2dBS0FBb0FDZ0FLQUFv
+QUNnQUtBQW9BQ2dBS0FBb0FDZ0FLQUFvQUNnQUtBQW9BfCtBS0FBb0FDZy02ICstLQorQUtBLWlu
+Y2x1ZGUvbGludXgvY29tcGlsZXIuaCtBS0FBb0FDZ0FLQUFvQUNnQUtBQW9BQ2dBS0FBb0FDZ0FL
+QUFvQUNnQUtBQW9BQ2dBS0FBb0FDZ0FLQUFvQUNnQUtBQW9BQ2d8K0FLQUFvQUNnLTIgLQorQUtB
+LWluY2x1ZGUvbGludXgvbGlibnZkaW1tLmgrQUtBQW9BQ2dBS0FBb0FDZ0FLQUFvQUNnQUtBQW9B
+Q2dBS0FBb0FDZ0FLQUFvQUNnQUtBQW9BQ2dBS0FBb0FDZ0FLQUFvQXwrQUtBQW9BLTI0ICstLQor
+QUtBLWluY2x1ZGUvbGludXgvbmQuaCtBS0FBb0FDZ0FLQUFvQUNnQUtBQW9BQ2dBS0FBb0FDZ0FL
+QUFvQUNnQUtBQW9BQ2dBS0FBb0FDZ0FLQUFvQUNnQUtBQW9BQ2dBS0FBb0FDZ0FLQUFvQUNnfCtB
+S0FBb0FDZy0zICstLQorQUtBLWluY2x1ZGUvbGludXgvcGZuX3QuaCtBS0FBb0FDZ0FLQUFvQUNn
+QUtBQW9BQ2dBS0FBb0FDZ0FLQUFvQUNnQUtBQW9BQ2dBS0FBb0FDZ0FLQUFvQUNnQUtBQW9BQ2dB
+S0FBb0FDZ3wrQUtBQW9BQ2ctNSArLS0KK0FLQS1pbmNsdWRlL2xpbnV4L3BtZW0uaCtBS0FBb0FD
+Z0FLQUFvQUNnQUtBQW9BQ2dBS0FBb0FDZ0FLQUFvQUNnQUtBQW9BQ2dBS0FBb0FDZ0FLQUFvQUNn
+QUtBQW9BQ2dBS0FBb0FDZ0FLQXwgMTE3ICstLS0tCitBS0EtaW5jbHVkZS91YXBpL2xpbnV4L25k
+Y3RsLmgrQUtBQW9BQ2dBS0FBb0FDZ0FLQUFvQUNnQUtBQW9BQ2dBS0FBb0FDZ0FLQUFvQUNnQUtB
+QW9BQ2dBS0FBb0FDZ0FLQXwrQUtBQW9BQ2ctMSArLQorQUtBLWtlcm5lbC9tZW1yZW1hcC5jK0FL
+QUFvQUNnQUtBQW9BQ2dBS0FBb0FDZ0FLQUFvQUNnQUtBQW9BQ2dBS0FBb0FDZ0FLQUFvQUNnQUtB
+QW9BQ2dBS0FBb0FDZ0FLQUFvQUNnQUtBQW9BQ2dBS0F8K0FLQUFvQUNnLTYgLQorQUtBLXNjcmlw
+dHMvY2hlY2twYXRjaC5wbCtBS0FBb0FDZ0FLQUFvQUNnQUtBQW9BQ2dBS0FBb0FDZ0FLQUFvQUNn
+QUtBQW9BQ2dBS0FBb0FDZ0FLQUFvQUNnQUtBQW9BQ2dBS0FBb0FDZ3wrQUtBQW9BQ2ctMSAtCitB
+S0EtdG9vbHMvb2JqdG9vbC9hcmNoL3g4Ni9pbnNuL3g4Ni1vcGNvZGUtbWFwLnR4dCtBS0FBb0FD
+Z0FLQUFvQXwrQUtBQW9BQ2ctMiArLS0KK0FLQS10b29scy9wZXJmL2FyY2gveDg2L3Rlc3RzL2lu
+c24teDg2LWRhdC0zMi5jK0FLQUFvQUNnQUtBQW9BQ2dBS0FBb0F8K0FLQUFvQUNnLTIgLQorQUtB
+LXRvb2xzL3BlcmYvYXJjaC94ODYvdGVzdHMvaW5zbi14ODYtZGF0LTY0LmMrQUtBQW9BQ2dBS0FB
+b0FDZ0FLQUFvQXwrQUtBQW9BQ2ctMiAtCitBS0EtdG9vbHMvcGVyZi9hcmNoL3g4Ni90ZXN0cy9p
+bnNuLXg4Ni1kYXQtc3JjLmMrQUtBQW9BQ2dBS0FBb0FDZ0FLQXwrQUtBQW9BQ2ctNCAtCitBS0Eu
+Li4vcGVyZi91dGlsL2ludGVsLXB0LWRlY29kZXIveDg2LW9wY29kZS1tYXAudHh0K0FLQUFvQXwr
+QUtBQW9BQ2ctMiArLS0KK0FLQS10b29scy90ZXN0aW5nL252ZGltbS9LYnVpbGQrQUtBQW9BQ2dB
+S0FBb0FDZ0FLQUFvQUNnQUtBQW9BQ2dBS0FBb0FDZ0FLQUFvQUNnQUtBQW9BQ2dBS0FBb0FDZ3wr
+QUtBQW9BLTEwICstLQorQUtBLXRvb2xzL3Rlc3RpbmcvbnZkaW1tL2NvbmZpZ19jaGVjay5jK0FL
+QUFvQUNnQUtBQW9BQ2dBS0FBb0FDZ0FLQUFvQUNnQUtBQW9BQ2dBS0F8K0FLQUFvQUNnLTEgKy0K
+K0FLQS10b29scy90ZXN0aW5nL252ZGltbS9wbWVtLWRheC5jK0FLQUFvQUNnQUtBQW9BQ2dBS0FB
+b0FDZ0FLQUFvQUNnQUtBQW9BQ2dBS0FBb0FDZ0FLQUFvQXwrQUtBQW9BLTU0ICstKy0KK0FLQS10
+b29scy90ZXN0aW5nL252ZGltbS90ZXN0L0tidWlsZCtBS0FBb0FDZ0FLQUFvQUNnQUtBQW9BQ2dB
+S0FBb0FDZ0FLQUFvQUNnQUtBQW9BQ2dBS0F8K0FLQUFvQUNnLTIgKy0tCitBS0EtdG9vbHMvdGVz
+dGluZy9udmRpbW0vdGVzdC9pb21hcC5jK0FLQUFvQUNnQUtBQW9BQ2dBS0FBb0FDZ0FLQUFvQUNn
+QUtBQW9BQ2dBS0FBb0FDZ3wrQUtBQW9BLTM4ICstLQorQUtBLXRvb2xzL3Rlc3RpbmcvbnZkaW1t
+L3Rlc3QvbmZpdC5jK0FLQUFvQUNnQUtBQW9BQ2dBS0FBb0FDZ0FLQUFvQUNnQUtBQW9BQ2dBS0FB
+b0FDZ0FLQXwgMTk5ICstKy0rLS0tLS0KK0FLQS10b29scy90ZXN0aW5nL252ZGltbS90ZXN0L25m
+aXRfdGVzdC5oK0FLQUFvQUNnQUtBQW9BQ2dBS0FBb0FDZ0FLQUFvQUNnQUtBQW9BfCtBS0FBb0FD
+Zy0yICstCitBS0EtNTkgZmlsZXMgY2hhbmdlZCwgMTM2OSBpbnNlcnRpb25zKCstKSwgMTAwOSBk
+ZWxldGlvbnMoLSkKK0FLQS1jcmVhdGUgbW9kZSAxMDA2NDQgZHJpdmVycy9hY3BpL25maXQvS2Nv
+bmZpZworQUtBLWNyZWF0ZSBtb2RlIDEwMDY0NCBkcml2ZXJzL2FjcGkvbmZpdC9NYWtlZmlsZQor
+QUtBLXJlbmFtZSBkcml2ZXJzL2FjcGkve25maXQuYyA9PiBuZml0L2NvcmUuY30gKDg3JSkKK0FL
+QS1jcmVhdGUgbW9kZSAxMDA2NDQgZHJpdmVycy9hY3BpL25maXQvbWNlLmMKK0FLQS1yZW5hbWUg
+ZHJpdmVycy9hY3BpL3sgPT4gbmZpdH0vbmZpdC5oICg4MiUpCitBS0EtY3JlYXRlIG1vZGUgMTAw
+NjQ0IGRyaXZlcnMvbnZkaW1tL3BtZW0uaAorQUtBLWNyZWF0ZSBtb2RlIDEwMDY0NCB0b29scy90
+ZXN0aW5nL252ZGltbS9wbWVtLWRheC5jCl9fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
+X19fX19fX19fX19fX19fCkxpbnV4LW52ZGltbSBtYWlsaW5nIGxpc3QKTGludXgtbnZkaW1tQGxp
+c3RzLjAxLm9yZwpodHRwczovL2xpc3RzLjAxLm9yZy9tYWlsbWFuL2xpc3RpbmZvL2xpbnV4LW52
+ZGltbQo=
