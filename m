@@ -1,54 +1,89 @@
-From: Benjamin Tissoires <benjamin.tissoires@redhat.com>
-Subject: [PATCH] ACPI / button: remove pointer to old lid_sysfs on unbind
-Date: Thu, 28 Jul 2016 12:19:27 +0200
-Message-ID: <1469701167-24257-1-git-send-email-benjamin.tissoires@redhat.com>
+From: Will Deacon <will.deacon@arm.com>
+Subject: Re: [PATCH v9 4/9] clocksource/drivers/arm_arch_timer: use readq to
+ get 64-bit CNTVCT
+Date: Thu, 28 Jul 2016 14:53:21 +0100
+Message-ID: <20160728135321.GH1085@arm.com>
+References: <1469460427-8643-1-git-send-email-fu.wei@linaro.org>
+ <1469460427-8643-5-git-send-email-fu.wei@linaro.org>
+ <20160725153118.GD19209@arm.com>
+ <CADyBb7ubKceQiB7+u7sSA=1+9_VMUrGjiabf_FkN2-n4rq7Kgg@mail.gmail.com>
+ <20160725163144.GE19209@arm.com>
+ <57976FA5.2070802@codeaurora.org>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:54666 "EHLO mx1.redhat.com"
+Received: from foss.arm.com ([217.140.101.70]:49066 "EHLO foss.arm.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753251AbcG1KTc (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 28 Jul 2016 06:19:32 -0400
+	id S1758030AbcG1NxT (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 28 Jul 2016 09:53:19 -0400
+Content-Disposition: inline
+In-Reply-To: <57976FA5.2070802@codeaurora.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+To: Timur Tabi <timur@codeaurora.org>
+Cc: Fu Wei <fu.wei@linaro.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Daniel Lezcano <daniel.lezcano@linaro.org>, Thomas Gleixner <tglx@linutronix.de>, Marc Zyngier <marc.zyngier@arm.com>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Sudeep Holla <sudeep.holla@arm.com>, Hanjun Guo <hanjun.guo@linaro.org>, linux-arm-kernel@lists.infradead.org, Linaro ACPI Mailman List <linaro-acpi@lists.linaro.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, rruigrok@codeaurora.org, harba@codeaurora.org, Christopher Covington <cov@codeaurora.org>, G Gregory <graeme.gregory@linaro.org>, Al Stone <al.stone@linaro.org>, Jon Masters <jcm@redhat.com>, wei@redhat.com, Arnd Bergmann <arnd@arndb.de>, Wim Van Sebroeck <wim@iguana.be>, Catalin Marinas <catalin.marinas@arm.com>, Suravee
 
-When we removed the procfs dir on error or if the driver is
-unbound, the two variables acpi_lid_dir and acpi_button_dir
-were not reset. On the next rebind, those static variables
-were not null and we couldn't re-register the device again.
+On Tue, Jul 26, 2016 at 09:11:49AM -0500, Timur Tabi wrote:
+> Will Deacon wrote:
+> >The kernel really needs to support both of those platforms :/
+> >
+> >For the memory-mapped counter registers, the architecture says:
+> >
+> >   `If the implementation supports 64-bit atomic accesses, then the
+> >    CNTV_CVAL register must be accessible as an atomic 64-bit value.'
+> >
+> >which is borderline tautological. If we take the generous reading that
+> >this means AArch64 CPUs can use readq (and I'm not completely
+> >comfortable with that assertion, particularly as you say that it breaks
+> >the model), then you still need to use readq_relaxed here to avoid a
+> >DSB. Furthermore, what are you going to do for AArch32? readq doesn't
+> >exist over there, and if you use the generic implementation then it's
+> >not atomic. In which case, we end up with the current code, as well as a
+> >readq_relaxed guarded by a questionable #ifdef that is known to break a
+> >supported platform for an unknown performance improvement. Hardly a big
+> >win.
+> 
+> I know Fu dropped this patch, and I don't want to kick a dead horse, but I
+> was wondering if it would be okay to do this:
+> 
+> static u64 arch_counter_get_cntvct_mem(void)
+> {
+> #ifdef readq_relaxed
+> 	return readq_relaxed(arch_counter_base + CNTVCT_LO);
+> #else
+> 	u32 vct_lo, vct_hi, tmp_hi;
+> 
+> 	do {
+> 		vct_hi = readl_relaxed(arch_counter_base + CNTVCT_HI);
+> 		vct_lo = readl_relaxed(arch_counter_base + CNTVCT_LO);
+> 		tmp_hi = readl_relaxed(arch_counter_base + CNTVCT_HI);
+> 	} while (vct_hi != tmp_hi);
+> 
+> 	return ((u64) vct_hi << 32) | vct_lo;
+> #endif
+> }
+> 
+> readq and readq_relaxed are defined in arch/arm64/include/asm/io.h.  Why
+> would the function exist if AArch64 CPUs can't use it?
+> 
+> Do we need something like ARCH_HAS_64BIT_ATOMIC_READ in order to decide
+> whether readq is safe?
 
-Signed-off-by: Benjamin Tissoires <benjamin.tissoires@redhat.com>
----
- drivers/acpi/button.c | 4 ++++
- 1 file changed, 4 insertions(+)
+No, I'm still not ok with this. If you want to use readq_relaxed we need
+the following guarantees:
 
-diff --git a/drivers/acpi/button.c b/drivers/acpi/button.c
-index 5c3b091..e413599 100644
---- a/drivers/acpi/button.c
-+++ b/drivers/acpi/button.c
-@@ -188,9 +188,11 @@ done:
- remove_dev_dir:
- 	remove_proc_entry(acpi_device_bid(device),
- 			  acpi_lid_dir);
-+	acpi_lid_dir = NULL;
- 	acpi_device_dir(device) = NULL;
- remove_lid_dir:
- 	remove_proc_entry(ACPI_BUTTON_SUBCLASS_LID, acpi_button_dir);
-+	acpi_button_dir = NULL;
- remove_button_dir:
- 	remove_proc_entry(ACPI_BUTTON_CLASS, acpi_root_dir);
- 	goto done;
-@@ -207,8 +209,10 @@ static int acpi_button_remove_fs(struct acpi_device *device)
- 			  acpi_device_dir(device));
- 	remove_proc_entry(acpi_device_bid(device),
- 			  acpi_lid_dir);
-+	acpi_lid_dir = NULL;
- 	acpi_device_dir(device) = NULL;
- 	remove_proc_entry(ACPI_BUTTON_SUBCLASS_LID, acpi_button_dir);
-+	acpi_button_dir = NULL;
- 	remove_proc_entry(ACPI_BUTTON_CLASS, acpi_root_dir);
- 
- 	return 0;
--- 
-2.5.5
+  1. readq_relaxed is provided by the architecture
+  2. readq_relaxed is single-copy atomic from the CPU's perspective
+  3. The memory-mapped timer has been integrated in such a way that it
+     can be accessed using 64-bit transactions.
 
+(1) is easy, and you have that above. For (2), we just need to avoid
+include/linux/io-64-nonatomic-*.h. (3), however, is not something we
+can safely probe. If this optimisation really is worthwhile, then we
+need to extend the device-tree binding for the counter so that we can
+tell the kernel that it's ok to use 64-bit accesses for the counter
+without tearing.
+
+I have confirmed this with the architects here at ARM.
+
+Will
