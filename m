@@ -1,172 +1,218 @@
-From: Lukas Wunner <lukas@wunner.de>
-Subject: [PATCH 6/6] thunderbolt: Use Device ROM retrieved from EFI
-Date: Thu, 28 Jul 2016 02:25:41 +0200
-Message-ID: <8743c01825c3d16f812acec7525e5c87f4eed37a.1469616641.git.lukas__11504.6964529485$1469665648$gmane$org@wunner.de>
-References: <cover.1469616641.git.lukas@wunner.de>
+From: Fu Wei <fu.wei@linaro.org>
+Subject: Re: [PATCH v11] acpi, apei, arm64: APEI initial support for aarch64.
+Date: Thu, 28 Jul 2016 11:37:34 +0800
+Message-ID: <CADyBb7st5D11GCgnB5ux6zTJ2aeT26XjGMKaLsQYOHKSPQaJ2A@mail.gmail.com>
+References: <1469640545-5848-1-git-send-email-fu.wei@linaro.org> <7173434.pR4ItzAsEj@vostro.rjw.lan>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mailout3.hostsharing.net ([176.9.242.54]:42997 "EHLO
-	mailout3.hostsharing.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1162467AbcG1A1P (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 27 Jul 2016 20:27:15 -0400
-Received: from h08.hostsharing.net (h08.hostsharing.net [83.223.95.28])
-	(using TLSv1.2 with cipher AECDH-AES256-SHA (256/256 bits))
-	(No client certificate requested)
-	by mailout3.hostsharing.net (Postfix) with ESMTPS id 1A3A6101E4767
-	for <linux-acpi@vger.kernel.org>; Thu, 28 Jul 2016 02:27:14 +0200 (CEST)
-Received: from localhost (4-38-90-81.adsl.cmo.de [81.90.38.4])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-SHA (128/128 bits))
-	(No client certificate requested)
-	by h08.hostsharing.net (Postfix) with ESMTPSA id 8CF63609B7AC
-	for <linux-acpi@vger.kernel.org>; Thu, 28 Jul 2016 02:27:11 +0200 (CEST)
-In-Reply-To: <cover.1469616641.git.lukas@wunner.de>
+Received: from mail-oi0-f46.google.com ([209.85.218.46]:34733 "EHLO
+	mail-oi0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758866AbcG1Dhf (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 27 Jul 2016 23:37:35 -0400
+Received: by mail-oi0-f46.google.com with SMTP id l65so45890118oib.1
+        for <linux-acpi@vger.kernel.org>; Wed, 27 Jul 2016 20:37:35 -0700 (PDT)
+In-Reply-To: <7173434.pR4ItzAsEj@vostro.rjw.lan>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-efi@vger.kernel.org, Matt Fleming <matt@codeblueprint.co.uk>, linux-kernel@vger.kernel.org
-Cc: Andreas Noever <andreas.noever@gmail.com>, Pierre Moreau <pierre.morrow@free.fr>, reverser@put.as, linux-acpi@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: tn@semihalf.com, len.brown@intel.com, pavel@ucw.cz, Catalin Marinas <catalin.marinas@arm.com>, Will Deacon <will.deacon@arm.com>, Thomas Gleixner <tglx@linutronix.de>, mingo@redhat.com, hpa@zytor.com, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, x86@kernel.org, Linaro ACPI Mailman List <linaro-acpi@lists.linaro.org>, linux-arm-kernel@lists.infradead.org, linux-pm@vger.kernel.org, G Gregory <graeme.gregory@linaro.org>, Al Stone <al.stone@linaro.org>, Hanjun Guo <hanjun.guo@linaro.org>, mark.rutland@arm.com, Marc Zyngier <Marc.Zyngier@arm.com>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, rruigrok@codeaurora.org, "Abdulhamid, Harb" <harba@qti.qualcomm.com>, "Baicar, Tyler" <tbaicar@codeaurora.org>, Jon Masters <jcm@redhat.com>, msalter@redhat.com, grant.likely@linaro.org, rrichter@cavium.com, jarkko
 
-Macs with Thunderbolt 1 do not have a unit-specific DROM: The DROM is
-empty with uid 0x1000000000000. (Apple started factory-burning a unit-
-specific DROM with Thunderbolt 2.)
+Hi Rafael,
 
-Instead, the NHI EFI driver supplies a DROM in a device property. Use
-it if available. It's only available when booting with the efistub.
-If it's not available, silently fall back to our hardcoded DROM.
+On 28 July 2016 at 07:12, Rafael J. Wysocki <rjw@rjwysocki.net> wrote:
+> On Thursday, July 28, 2016 01:29:05 AM fu.wei@linaro.org wrote:
+>> From: Tomasz Nowicki <tomasz.nowicki@linaro.org>
+>>
+>> This commit provides APEI arch-specific bits for aarch64
+>>
+>> Meanwhile,
+>> (1)add a new subfunction "hest_ia32_init" for
+>> "acpi_disable_cmcff" which is used by IA-32 Architecture
+>> Corrected Machine Check (CMC).
+>> (2)move HEST type (ACPI_HEST_TYPE_IA32_CORRECTED_CHECK) checking to
+>> a generic place.
+>> (3)select HAVE_ACPI_APEI when EFI and ACPI is set on ARM64,
+>> because arch_apei_get_mem_attribute is using efi_mem_attributes on ARM64.
+>>
+>> [Fu Wei: improve && upstream]
+>>
+>> Signed-off-by: Tomasz Nowicki <tomasz.nowicki@linaro.org>
+>> Tested-by: Jonathan (Zhixiong) Zhang <zjzhang@codeaurora.org>
+>> Signed-off-by: Fu Wei <fu.wei@linaro.org>
+>> Acked-by: Hanjun Guo <hanjun.guo@linaro.org>
+>> Tested-by: Tyler Baicar <tbaicar@codeaurora.org>
+>> Acked-by: Will Deacon <will.deacon@arm.com>
+>
+> You have an impressive list of addresses in the CC, the majority of them
+> probably quite irrelevant.  Any chance to reduce that next time?
+>
+> Boris and Tony need to be CCed, though.
 
-The size of the DROM is always 256 bytes. The number is hardcoded into
-the NHI EFI driver. This commit can deal with an arbitrary size however,
-just in case they ever change that.
+OK, will do, Thanks for reminding me  :-)
 
-A modification is needed in the resume code where we currently read the
-uid of all switches in the hierarchy to detect plug events that occurred
-during sleep. On Thunderbolt 1 root switches this will now lead to a
-mismatch between the uid of the empty DROM and the EFI DROM. Exempt the
-root switch from this check: It's built in, so the uid should never
-change. However we continue to *read* the uid of the root switch, this
-seems like a good way to test its reachability after resume.
+>
+>> ---
+>> Changelog:
+>> v11:https://lkml.org/lkml/2016/7
+>>     Rebase to v4.7-0e06f5c0
+>>
+>> v10:https://lkml.org/lkml/2016/4/14
+>>     Fix the Alphabetical order problem in arch/arm64/Kconfig
+>>
+>> v9: https://lkml.org/lkml/2016/4/5/522
+>>     Improve the comment for arch_apei_flush_tlb_one.
+>>     Using select "HAVE_ACPI_APEI if (ACPI && EFI)" to fix the EFI dependence
+>>     problem.
+>>
+>> v8: https://lkml.org/lkml/2016/3/29/132
+>>     Fix a "undefined reference" bug by selecting EFI when ACPI_APEI is set
+>>     on ARM64.
+>>
+>> v7: https://lkml.org/lkml/2016/3/17/183
+>>     Add comment for arch_apei_flush_tlb_one in arch/arm64/include/asm/acpi.h
+>>
+>> v6: https://lists.linaro.org/pipermail/linaro-acpi/2016-March/006644.html
+>>     Move HEST type (ACPI_HEST_TYPE_IA32_CORRECTED_CHECK) checking to
+>>     a generic place.
+>>     Delete HAVE_ACPI_APEI_HEST_IA32.
+>>
+>> v5: https://lkml.org/lkml/2015/12/10/131
+>>     Add "HAVE_ACPI_APEI_HEST_IA32" instead of
+>>     "#if defined(__i386__) || defined(__x86_64__)".
+>>
+>> v4: https://lkml.org/lkml/2015/12/8/188
+>>     Rebase to latest kernel version(4.4-rc4).
+>>     Move arch_apei_flush_tlb_one into header file as a inline function
+>>     Add a new subfunction "hest_ia_init" for "acpi_disable_cmcff".
+>>
+>> v3: https://lkml.org/lkml/2015/12/3/521
+>>     Remove "acpi_disable_cmcff" from arm64 code,
+>>     and wrap it in hest.c by "#if defined(__i386__) || defined(__x86_64__)"
+>>
+>> v2: https://lkml.org/lkml/2015/12/2/432
+>>     Rebase to latest kernel version(4.4-rc3).
+>>     Move arch_apei_flush_tlb_one() to arch/arm64/kernel/acpi.c
+>>
+>> v1: https://lkml.org/lkml/2015/8/14/199
+>>     Move arch_apei_flush_tlb_one() to arch/arm64/include/asm/apci.h.
+>>     Delete arch/arm64/kernel/apei.c.
+>>     Add "#ifdef CONFIG_ACPI_APEI" for "acpi_disable_cmcff".
+>>
+>>  arch/arm64/Kconfig            |  1 +
+>>  arch/arm64/include/asm/acpi.h | 16 +++++++++++++++-
+>>  arch/x86/kernel/acpi/apei.c   |  3 ---
+>>  drivers/acpi/apei/hest.c      | 18 +++++++++++++++---
+>>  4 files changed, 31 insertions(+), 7 deletions(-)
+>>
+>> diff --git a/arch/arm64/Kconfig b/arch/arm64/Kconfig
+>> index 20d5a60..a301765 100644
+>> --- a/arch/arm64/Kconfig
+>> +++ b/arch/arm64/Kconfig
+>> @@ -49,6 +49,7 @@ config ARM64
+>>       select GENERIC_TIME_VSYSCALL
+>>       select HANDLE_DOMAIN_IRQ
+>>       select HARDIRQS_SW_RESEND
+>> +     select HAVE_ACPI_APEI if (ACPI && EFI)
+>>       select HAVE_ALIGNED_STRUCT_PAGE if SLUB
+>>       select HAVE_ARCH_AUDITSYSCALL
+>>       select HAVE_ARCH_BITREVERSE
+>> diff --git a/arch/arm64/include/asm/acpi.h b/arch/arm64/include/asm/acpi.h
+>> index 5420cb0..d3d02dc 100644
+>> --- a/arch/arm64/include/asm/acpi.h
+>> +++ b/arch/arm64/include/asm/acpi.h
+>> @@ -17,6 +17,7 @@
+>>
+>>  #include <asm/cputype.h>
+>>  #include <asm/smp_plat.h>
+>> +#include <asm/tlbflush.h>
+>>
+>>  /* Macros for consistency checks of the GICC subtable of MADT */
+>>  #define ACPI_MADT_GICC_LENGTH        \
+>> @@ -110,8 +111,21 @@ static inline const char *acpi_get_enable_method(int cpu)
+>>  }
+>>
+>>  #ifdef       CONFIG_ACPI_APEI
+>> +#define acpi_disable_cmcff 1
+>>  pgprot_t arch_apei_get_mem_attribute(phys_addr_t addr);
+>> -#endif
+>> +
+>> +/*
+>> + * Despite its name, this function must still broadcast the TLB
+>> + * invalidation in order to ensure other CPUs don't up with with junk
+>> + * entries as a result of speculation. Unusually, its also called in
+>> + * IRQ context (ghes_iounmap_irq) so if we ever need to use IPIs for
+>> + * TLB broadcasting, then we're in trouble here.
+>> + */
+>> +static inline void arch_apei_flush_tlb_one(unsigned long addr)
+>> +{
+>> +     flush_tlb_kernel_range(addr, addr + PAGE_SIZE);
+>> +}
+>> +#endif /* CONFIG_ACPI_APEI */
+>>
+>>  #ifdef CONFIG_ACPI_NUMA
+>>  int arm64_acpi_numa_init(void);
+>> diff --git a/arch/x86/kernel/acpi/apei.c b/arch/x86/kernel/acpi/apei.c
+>> index c280df6..ea3046e 100644
+>> --- a/arch/x86/kernel/acpi/apei.c
+>> +++ b/arch/x86/kernel/acpi/apei.c
+>> @@ -24,9 +24,6 @@ int arch_apei_enable_cmcff(struct acpi_hest_header *hest_hdr, void *data)
+>>       struct acpi_hest_ia_corrected *cmc;
+>>       struct acpi_hest_ia_error_bank *mc_bank;
+>>
+>> -     if (hest_hdr->type != ACPI_HEST_TYPE_IA32_CORRECTED_CHECK)
+>> -             return 0;
+>> -
+>>       cmc = (struct acpi_hest_ia_corrected *)hest_hdr;
+>>       if (!cmc->enabled)
+>>               return 0;
+>> diff --git a/drivers/acpi/apei/hest.c b/drivers/acpi/apei/hest.c
+>> index 20b3fcf..792a0d9 100644
+>> --- a/drivers/acpi/apei/hest.c
+>> +++ b/drivers/acpi/apei/hest.c
+>> @@ -123,7 +123,18 @@ EXPORT_SYMBOL_GPL(apei_hest_parse);
+>>   */
+>>  static int __init hest_parse_cmc(struct acpi_hest_header *hest_hdr, void *data)
+>>  {
+>> -     return arch_apei_enable_cmcff(hest_hdr, data);
+>> +     if (hest_hdr->type != ACPI_HEST_TYPE_IA32_CORRECTED_CHECK)
+>> +             return 0;
+>> +
+>> +     if (!acpi_disable_cmcff)
+>> +             return !arch_apei_enable_cmcff(hest_hdr, data);
+>> +
+>> +     return 0;
+>> +}
+>> +
+>> +static inline int __init hest_ia32_init(void)
+>> +{
+>> +     return apei_hest_parse(hest_parse_cmc, NULL);
+>>  }
+>>
+>>  struct ghes_arr {
+>> @@ -232,8 +243,9 @@ void __init acpi_hest_init(void)
+>>               goto err;
+>>       }
+>>
+>> -     if (!acpi_disable_cmcff)
+>> -             apei_hest_parse(hest_parse_cmc, NULL);
+>> +     rc = hest_ia32_init();
+>> +     if (rc)
+>> +             goto err;
+>>
+>>       if (!ghes_disable) {
+>>               rc = apei_hest_parse(hest_parse_ghes_count, &ghes_count);
+>>
+>
+> --
+> I speak only for myself.
+> Rafael J. Wysocki, Intel Open Source Technology Center.
 
-Background information: The EFI firmware volume contains ROM files for
-the NHI, GMUX and several other chips as well as key material. Drivers
-do not access those files directly but rather through a file server via
-protocol AC5E4829-A8FD-440B-AF33-9FFE013B12D8. Files are identified by
-GUID, the NHI DROM has 339370BD-CFC6-4454-8EF7-704653120818.
 
-The NHI EFI driver amends that file with a unit-specific uid. The uid
-has 64 bit but its entropy is much lower: 24 bit represent the model,
-24 bit are taken from a serial number, 16 bit are fixed. The NHI EFI
-driver obtains the serial number via the DataHub protocol, copies it
-into the DROM, calculates the CRC and submits the result as a device
-property.
 
-Cc: reverser@put.as
-Cc: Andreas Noever <andreas.noever@gmail.com>
-Tested-by: Lukas Wunner <lukas@wunner.de> [MacBookPro9,1]
-Tested-by: Pierre Moreau <pierre.morrow@free.fr> [MacBookPro11,3]
-Signed-off-by: Lukas Wunner <lukas@wunner.de>
----
- drivers/thunderbolt/Kconfig  |  1 +
- drivers/thunderbolt/eeprom.c | 42 ++++++++++++++++++++++++++++++++++++++++++
- drivers/thunderbolt/switch.c |  2 +-
- 3 files changed, 44 insertions(+), 1 deletion(-)
-
-diff --git a/drivers/thunderbolt/Kconfig b/drivers/thunderbolt/Kconfig
-index c121acc..0056df7 100644
---- a/drivers/thunderbolt/Kconfig
-+++ b/drivers/thunderbolt/Kconfig
-@@ -1,6 +1,7 @@
- menuconfig THUNDERBOLT
- 	tristate "Thunderbolt support for Apple devices"
- 	depends on PCI
-+	select APPLE_PROPERTIES
- 	select CRC32
- 	help
- 	  Cactus Ridge Thunderbolt Controller driver
-diff --git a/drivers/thunderbolt/eeprom.c b/drivers/thunderbolt/eeprom.c
-index 2b9602c..785a171 100644
---- a/drivers/thunderbolt/eeprom.c
-+++ b/drivers/thunderbolt/eeprom.c
-@@ -5,6 +5,7 @@
-  */
- 
- #include <linux/crc32.h>
-+#include <linux/property.h>
- #include <linux/slab.h>
- #include "tb.h"
- 
-@@ -360,6 +361,39 @@ static int tb_drom_parse_entries(struct tb_switch *sw)
- }
- 
- /**
-+ * tb_drom_copy_efi - copy drom supplied by EFI to sw->drom if present
-+ */
-+static int tb_drom_copy_efi(struct tb_switch *sw, u16 *size)
-+{
-+	struct device *dev = &sw->tb->nhi->pdev->dev;
-+	int len, res;
-+
-+	len = device_property_read_u8_array(dev, "ThunderboltDROM", NULL, 0);
-+	if (len < 0 || len < sizeof(struct tb_drom_header))
-+		return -EINVAL;
-+
-+	sw->drom = kmalloc(len, GFP_KERNEL);
-+	if (!sw->drom)
-+		return -ENOMEM;
-+
-+	res = device_property_read_u8_array(dev, "ThunderboltDROM", sw->drom,
-+									len);
-+	if (res)
-+		goto err;
-+
-+	*size = ((struct tb_drom_header *)sw->drom)->data_len +
-+							  TB_DROM_DATA_START;
-+	if (*size > len)
-+		goto err;
-+
-+	return 0;
-+
-+err:
-+	kfree(sw->drom);
-+	return -EINVAL;
-+}
-+
-+/**
-  * tb_drom_read - copy drom to sw->drom and parse it
-  */
- int tb_drom_read(struct tb_switch *sw)
-@@ -374,6 +408,13 @@ int tb_drom_read(struct tb_switch *sw)
- 
- 	if (tb_route(sw) == 0) {
- 		/*
-+		 * Apple's NHI EFI driver supplies a DROM for the root switch
-+		 * in a device property. Use it if available.
-+		 */
-+		if (tb_drom_copy_efi(sw, &size) == 0)
-+			goto parse;
-+
-+		/*
- 		 * The root switch contains only a dummy drom (header only,
- 		 * no entries). Hardcode the configuration here.
- 		 */
-@@ -418,6 +459,7 @@ int tb_drom_read(struct tb_switch *sw)
- 	if (res)
- 		goto err;
- 
-+parse:
- 	header = (void *) sw->drom;
- 
- 	if (header->data_len + TB_DROM_DATA_START != size) {
-diff --git a/drivers/thunderbolt/switch.c b/drivers/thunderbolt/switch.c
-index 1e116f5..91804b8 100644
---- a/drivers/thunderbolt/switch.c
-+++ b/drivers/thunderbolt/switch.c
-@@ -458,7 +458,7 @@ int tb_switch_resume(struct tb_switch *sw)
- 		tb_sw_warn(sw, "uid read failed\n");
- 		return err;
- 	}
--	if (sw->uid != uid) {
-+	if (tb_route(sw) != 0 && sw->uid != uid) {
- 		tb_sw_info(sw,
- 			"changed while suspended (uid %#llx -> %#llx)\n",
- 			sw->uid, uid);
 -- 
-2.8.1
+Best regards,
 
+Fu Wei
+Software Engineer
+Red Hat
