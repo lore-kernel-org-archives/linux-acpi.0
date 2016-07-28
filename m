@@ -1,203 +1,214 @@
 From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [PATCH v11] acpi, apei, arm64: APEI initial support for aarch64.
-Date: Thu, 28 Jul 2016 01:12:46 +0200
-Message-ID: <7173434.pR4ItzAsEj@vostro.rjw.lan>
-References: <1469640545-5848-1-git-send-email-fu.wei@linaro.org>
+Subject: Re: ACPI device using sub-resource of PCI device
+Date: Thu, 28 Jul 2016 02:09:24 +0200
+Message-ID: <3861743.KWBechkp08@vostro.rjw.lan>
+References: <CAE2855tofJV=HV2dYuC+1=pi2mb942zrRF7f0+wqxPPay44RGA@mail.gmail.com> <3103060.86QBTjSLk3@vostro.rjw.lan> <CAE2855sB73=1gznGFonGver_FtaCdoAa4-8Bz8sAXCXuBZvxfg@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7Bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cloudserver094114.home.net.pl ([79.96.170.134]:58054 "HELO
-	cloudserver094114.home.net.pl" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with SMTP id S1163142AbcG0XHn (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 27 Jul 2016 19:07:43 -0400
-In-Reply-To: <1469640545-5848-1-git-send-email-fu.wei@linaro.org>
-Sender: linux-acpi-owner@vger.kernel.org
+Return-path: <linux-pci-owner@vger.kernel.org>
+In-Reply-To: <CAE2855sB73=1gznGFonGver_FtaCdoAa4-8Bz8sAXCXuBZvxfg@mail.gmail.com>
+Sender: linux-pci-owner@vger.kernel.org
+To: Aaron Durbin <adurbin@google.com>
+Cc: Bjorn Helgaas <helgaas@kernel.org>, "Rafael J. Wysocki" <rafael@kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux PCI <linux-pci@vger.kernel.org>, Mika Westerberg <mika.westerberg@linux.intel.com>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>
 List-Id: linux-acpi@vger.kernel.org
-To: fu.wei@linaro.org
-Cc: tn@semihalf.com, len.brown@intel.com, pavel@ucw.cz, catalin.marinas@arm.com, will.deacon@arm.com, tglx@linutronix.de, mingo@redhat.com, hpa@zytor.com, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, x86@kernel.org, linaro-acpi@lists.linaro.org, linux-arm-kernel@lists.infradead.org, linux-pm@vger.kernel.org, graeme.gregory@linaro.org, al.stone@linaro.org, hanjun.guo@linaro.org, mark.rutland@arm.com, Marc.Zyngier@arm.com, lorenzo.pieralisi@arm.com, rruigrok@codeaurora.org, harba@qti.qualcomm.com, tbaicar@codeaurora.org, jcm@redhat.com, msalter@redhat.com, grant.likely@linaro.org, rrichter@cavium.com, jarkko.nikula@linux.intel.com, jon.zhixiong.zhang@gmail.com, Tomasz Nowicki <tomasz.nowicki@linaro.org>, Tony Luck <tony.luck@intel.com>, Borislav Petkov <bp@suse.de>
 
-On Thursday, July 28, 2016 01:29:05 AM fu.wei@linaro.org wrote:
-> From: Tomasz Nowicki <tomasz.nowicki@linaro.org>
+On Monday, July 25, 2016 02:11:12 PM Aaron Durbin wrote:
+> On Fri, Jul 22, 2016 at 4:04 PM, Rafael J. Wysocki <rjw@rjwysocki.net> wrote:
+> > On Friday, July 22, 2016 12:26:03 PM Aaron Durbin wrote:
+> >> On Thu, Jul 21, 2016 at 7:55 PM, Rafael J. Wysocki <rjw@rjwysocki.net> wrote:
+> >> > On Wednesday, July 20, 2016 08:58:29 PM Aaron Durbin wrote:
+> >> >> On Wed, Jul 20, 2016 at 7:40 PM, Rafael J. Wysocki <rjw@rjwysocki.net> wrote:
+> >> >> > On Wednesday, July 20, 2016 06:02:08 PM Aaron Durbin wrote:
+> >> >
+> >> > [...]
+> >> >
+> >> >> >> > Isn't the problem a probe ordering issue, though?
+> >> >> >>
+> >> >> >> No. Not just ordering. There's no parent-child relationship taken into
+> >> >> >> account when PCI devices are added to the resource tree. Deferring
+> >> >> >> adding an ACPI device's resources would likely fail similarly because
+> >> >> >> one doesn't take into account the proper parent. One lives in PCI land
+> >> >> >> -- the other in ACPI land.
+> >> >> >
+> >> >> > What exactly do you mean by "PCI land" and "ACPI land"?
+> >> >> >
+> >> >> > All PCI resources are derived from the host bridge ones that come from
+> >> >> > ACPI anyway.
+> >> >>
+> >> >> Except that the BARs are queried in the pci devices themselves and
+> >> >> those resources are added w/o any communication to/from ACPI. That's
+> >> >> all done in the pci subsystem internally. Only if
+> >> >
+> >> > Well, not quite.
+> >> >
+> >> > It gets to host bridge resources via pcibios_bus_to_resource() AFAICS and
+> >> > those come from ACPI on ACPI-based systems.
+> >>
+> >> From what I can tell that's just updating resource values that have a
+> >> translation across a bridge. For a 1:1 mapping nothing is different
+> >> from the BAR encoded in the PCI device itself. Those windows are just
+> >> encoded in the bridge device. The only thing adjusted on the resources
+> >> is an offset. The BAR values are read from the device. That path is
+> >> just adjusting resources -- it's not adding those individual resources
+> >> into the resource tree for pci devices. See below.
+> >>
+> >> >
+> >> >> >
+> >> >> >> Currently, the issue is manifesting that the ACPI device's resources
+> >> >> >> are added into the resource tree. PCI devices the follow trying to add
+> >> >> >> their own resources. Conflicts ensue without taking into account the
+> >> >> >> proper hierarchy. To make matters worse, struct resource doesn't have
+> >> >> >> a struct device -- only a name. That means there's no way of knowing
+> >> >> >> who owns what resource. All that information is unavailable. That's
+> >> >> >> why the semi-hacky proposal was to see if there is an ACPI companion
+> >> >> >> device and see if it has children. If it's children's names match the
+> >> >> >> conflicting resource it's a good bet that the PCI device's resources
+> >> >> >> should be placed as the parent in the resource tree.
+> >> >> >
+> >> >> > That really looks like a broken hierarchy of devices somewhere.
+> >> >>
+> >> >> Why do you think it's a broken hierarchy? This CL has the heirarchy:
+> >> >> https://chromium-review.googlesource.com/#/c/359432/
+> >> >>
+> >> >> There is a device, P2S, which would result in an ACPI companion device
+> >> >> when the pci_dev is added to the device infrastructure by way of
+> >> >> acpi_platform_notify() which does the ACPI companion binding.
+> >> >> device_add() is the caller of platform_notify() which is set to
+> >> >> acpi_platform_notify() in init_acpi_device_notify() by way of
+> >> >> acpi_init().
+> >> >>
+> >> >> There are 4 children of the P2S device: GPO0, GPO1, GPO2, GPO3.
+> >> >>
+> >> >> Those children devices utilize a sub-resource of the P2S device which
+> >> >> has a pci_dev companion. It's BAR0 is the resource.
+> >> >
+> >> > OK
+> >> >
+> >> >> >
+> >> >> > And one more thing: a struct acpi_device object is not a device in general
+> >> >> > (althogh some pieces of code in the kernel, arguably incorrectly, treat it
+> >> >> > this way).  It is an abstract representation of a firmware entity (a node
+> >> >> > in the ACPI namespace).
+> >> >> >
+> >> >> > There really should be a "physical device" thing corresponding to it and
+> >> >> > that should be a child of the PCI device object in question.
+> >> >>
+> >> >> I thought I established that by the sysfs readlink I output I
+> >> >> previously provided?
+> >> >>
+> >> >> # ls /sys/devices/platform/| grep INT3452
+> >> >> INT3452:00
+> >> >> INT3452:01
+> >> >> INT3452:02
+> >> >> INT3452:03
+> >> >>
+> >> >> # ls /sys/devices/LNXSYSTM:00/LNXSYBUS:00/PNP0A08:00/device:11 | grep INT3452
+> >> >> INT3452:00
+> >> >> INT3452:01
+> >> >> INT3452:02
+> >> >> INT3452:03
+> >> >>
+> >> >> # readlink -f /sys/devices/LNXSYSTM:00/LNXSYBUS:00/PNP0A08:00/device:11/INT3452:00/physical_node
+> >> >> /sys/devices/platform/INT3452:00
+> >> >
+> >> > OK
+> >> >
+> >> > I must have missed that part.
+> >> >
+> >> >> >
+> >> >> >> > Do we assign BARs for endpoints during enumeration or only when we find a
+> >> >> >> > matching driver?
+> >> >> >>
+> >> >> >> BARs look to be assigned during enumeration. There's where conflicts
+> >> >> >> are found and resources reassigned in the current failing case.
+> >> >> >
+> >> >> > OK
+> >> >> >
+> >> >> > You seem to be saying that we insert some resources for ACPI device objects
+> >> >> > that correspond to the children of ACPI companions of PCI devices before we
+> >> >> > assign the BARs for their parent devices.
+> >> >>
+> >> >> The pci_dev is the one owning the parent resource. Even if there is a
+> >> >> companion ACPI device with a resource it doesn't matter because there
+> >> >> will still be a conflict because there is no checking against the
+> >> >> companion. There are 2 parallel entities without any communication
+> >> >> between the PCI subsystem and the ACPI subsystem when resources are
+> >> >> being added.
+> >> >>
+> >> >> >
+> >> >> > To me, that sounds very suspicious.
+> >> >> >
+> >> >> > Where in the code are the ACPI resources inserted, exactly?
+> >> >>
+> >> >> I believe it's through this mechanism:
+> >> >> acpi_bus_attach() -> acpi_default_enumeration() ->
+> >> >> acpi_create_platform_device() -> platform_device_register_full()
+> >> >
+> >> > I still would like to understand how and why that is called for child devices
+> >> > before the (physical) parent is enumerated.
+> >> >
+> >> > The theory is that when the PCI host bridge is found in the ACPI namespace,
+> >> > it will be enumerated along with the entire PCI bus below it before enumerating
+> >> > any _HID devices in the ACPI namespace below the host bridge object.
+> >> >
+> >> > Therefore all PCI devices should be enumerated before any children of any of
+> >> > them that aren't PCI devices themselves.  If BARs are assigned during
+> >> > enumeration, they all should be assigned before inserting any resources
+> >> > for any non-PCI children of any PCI devices.
+> >> >
+> >> > If that doesn't happen, the practice doesn't match the theory and that very
+> >> > well may be the source of the problem you're seeing.
+> >> >
+> >>
+> >> I'll sprinkle some WARN_ON()s in the resource code to track down when
+> >> things are being added to provide a definitive answer to when these
+> >> resources are being inserted. The current issue is still stands:
+> >> there is nothing properly tying the 2 sources of resource information
+> >> together. And ACPI resources are added prior to PCI resources.
+> >
+> > OK, I see what's going on.
+> >
+> >> PCI devices might be enumerated, but that doesn't mean their
+> >> *resources* are added.
+> >
+> > Right.
+> >
+> >> Back to the subsys_initcall topic:
+> >>
+> >> pci_subsys_init() is called *after* acpi_init().
+> >>
+> >> pci_subsys_init() -> pcibios_init() -> pcibios_resource_survey() ->
+> >> pcibios_allocate_resources() -> pcibios_allocate_dev_resources() ->
+> >> pci_claim_resource()
+> >
+> > So first, the PCI resources are allocated in an additional pass after bus
+> > enumeration and after enumerating platform devices based on the ACPI namespace.
+> > That causes resources of the (non-PCI) children to be inserted before the
+> > resources of the (PCI) parents.
 > 
-> This commit provides APEI arch-specific bits for aarch64
-> 
-> Meanwhile,
-> (1)add a new subfunction "hest_ia32_init" for
-> "acpi_disable_cmcff" which is used by IA-32 Architecture
-> Corrected Machine Check (CMC).
-> (2)move HEST type (ACPI_HEST_TYPE_IA32_CORRECTED_CHECK) checking to
-> a generic place.
-> (3)select HAVE_ACPI_APEI when EFI and ACPI is set on ARM64,
-> because arch_apei_get_mem_attribute is using efi_mem_attributes on ARM64.
-> 
-> [Fu Wei: improve && upstream]
-> 
-> Signed-off-by: Tomasz Nowicki <tomasz.nowicki@linaro.org>
-> Tested-by: Jonathan (Zhixiong) Zhang <zjzhang@codeaurora.org>
-> Signed-off-by: Fu Wei <fu.wei@linaro.org>
-> Acked-by: Hanjun Guo <hanjun.guo@linaro.org>
-> Tested-by: Tyler Baicar <tbaicar@codeaurora.org>
-> Acked-by: Will Deacon <will.deacon@arm.com>
+> What is the proposal for fixing this issue?
 
-You have an impressive list of addresses in the CC, the majority of them
-probably quite irrelevant.  Any chance to reduce that next time?
+I can think about a couple of ways, but I'm not sure which one is the best
+candidate from the regression risk perspective etc.
 
-Boris and Tony need to be CCed, though.
+I need to talk about that to some people who are on vacation ATM.
 
-> ---
-> Changelog:
-> v11:https://lkml.org/lkml/2016/7
->     Rebase to v4.7-0e06f5c0
+> > But the problem seems to be that acpi_create_platform_device() doesn't
+> > check parent resources at all.  Namely, when pdevinfo.parent is set, the
+> > function should look at the resources of the parent and possibly populate
+> > the parent field of the new device's resources before passing them to
+> > platform_device_register_full().
 > 
-> v10:https://lkml.org/lkml/2016/4/14
->     Fix the Alphabetical order problem in arch/arm64/Kconfig
-> 
-> v9: https://lkml.org/lkml/2016/4/5/522
->     Improve the comment for arch_apei_flush_tlb_one.
->     Using select "HAVE_ACPI_APEI if (ACPI && EFI)" to fix the EFI dependence
->     problem.
-> 
-> v8: https://lkml.org/lkml/2016/3/29/132
->     Fix a "undefined reference" bug by selecting EFI when ACPI_APEI is set
->     on ARM64.
-> 
-> v7: https://lkml.org/lkml/2016/3/17/183
->     Add comment for arch_apei_flush_tlb_one in arch/arm64/include/asm/acpi.h
-> 
-> v6: https://lists.linaro.org/pipermail/linaro-acpi/2016-March/006644.html
->     Move HEST type (ACPI_HEST_TYPE_IA32_CORRECTED_CHECK) checking to
->     a generic place.
->     Delete HAVE_ACPI_APEI_HEST_IA32.
-> 
-> v5: https://lkml.org/lkml/2015/12/10/131
->     Add "HAVE_ACPI_APEI_HEST_IA32" instead of
->     "#if defined(__i386__) || defined(__x86_64__)".
-> 
-> v4: https://lkml.org/lkml/2015/12/8/188
->     Rebase to latest kernel version(4.4-rc4).
->     Move arch_apei_flush_tlb_one into header file as a inline function
->     Add a new subfunction "hest_ia_init" for "acpi_disable_cmcff".
-> 
-> v3: https://lkml.org/lkml/2015/12/3/521
->     Remove "acpi_disable_cmcff" from arm64 code,
->     and wrap it in hest.c by "#if defined(__i386__) || defined(__x86_64__)"
-> 
-> v2: https://lkml.org/lkml/2015/12/2/432
->     Rebase to latest kernel version(4.4-rc3).
->     Move arch_apei_flush_tlb_one() to arch/arm64/kernel/acpi.c
-> 
-> v1: https://lkml.org/lkml/2015/8/14/199
->     Move arch_apei_flush_tlb_one() to arch/arm64/include/asm/apci.h.
->     Delete arch/arm64/kernel/apei.c.
->     Add "#ifdef CONFIG_ACPI_APEI" for "acpi_disable_cmcff".
-> 
->  arch/arm64/Kconfig            |  1 +
->  arch/arm64/include/asm/acpi.h | 16 +++++++++++++++-
->  arch/x86/kernel/acpi/apei.c   |  3 ---
->  drivers/acpi/apei/hest.c      | 18 +++++++++++++++---
->  4 files changed, 31 insertions(+), 7 deletions(-)
-> 
-> diff --git a/arch/arm64/Kconfig b/arch/arm64/Kconfig
-> index 20d5a60..a301765 100644
-> --- a/arch/arm64/Kconfig
-> +++ b/arch/arm64/Kconfig
-> @@ -49,6 +49,7 @@ config ARM64
->  	select GENERIC_TIME_VSYSCALL
->  	select HANDLE_DOMAIN_IRQ
->  	select HARDIRQS_SW_RESEND
-> +	select HAVE_ACPI_APEI if (ACPI && EFI)
->  	select HAVE_ALIGNED_STRUCT_PAGE if SLUB
->  	select HAVE_ARCH_AUDITSYSCALL
->  	select HAVE_ARCH_BITREVERSE
-> diff --git a/arch/arm64/include/asm/acpi.h b/arch/arm64/include/asm/acpi.h
-> index 5420cb0..d3d02dc 100644
-> --- a/arch/arm64/include/asm/acpi.h
-> +++ b/arch/arm64/include/asm/acpi.h
-> @@ -17,6 +17,7 @@
->  
->  #include <asm/cputype.h>
->  #include <asm/smp_plat.h>
-> +#include <asm/tlbflush.h>
->  
->  /* Macros for consistency checks of the GICC subtable of MADT */
->  #define ACPI_MADT_GICC_LENGTH	\
-> @@ -110,8 +111,21 @@ static inline const char *acpi_get_enable_method(int cpu)
->  }
->  
->  #ifdef	CONFIG_ACPI_APEI
-> +#define acpi_disable_cmcff 1
->  pgprot_t arch_apei_get_mem_attribute(phys_addr_t addr);
-> -#endif
-> +
-> +/*
-> + * Despite its name, this function must still broadcast the TLB
-> + * invalidation in order to ensure other CPUs don't up with with junk
-> + * entries as a result of speculation. Unusually, its also called in
-> + * IRQ context (ghes_iounmap_irq) so if we ever need to use IPIs for
-> + * TLB broadcasting, then we're in trouble here.
-> + */
-> +static inline void arch_apei_flush_tlb_one(unsigned long addr)
-> +{
-> +	flush_tlb_kernel_range(addr, addr + PAGE_SIZE);
-> +}
-> +#endif /* CONFIG_ACPI_APEI */
->  
->  #ifdef CONFIG_ACPI_NUMA
->  int arm64_acpi_numa_init(void);
-> diff --git a/arch/x86/kernel/acpi/apei.c b/arch/x86/kernel/acpi/apei.c
-> index c280df6..ea3046e 100644
-> --- a/arch/x86/kernel/acpi/apei.c
-> +++ b/arch/x86/kernel/acpi/apei.c
-> @@ -24,9 +24,6 @@ int arch_apei_enable_cmcff(struct acpi_hest_header *hest_hdr, void *data)
->  	struct acpi_hest_ia_corrected *cmc;
->  	struct acpi_hest_ia_error_bank *mc_bank;
->  
-> -	if (hest_hdr->type != ACPI_HEST_TYPE_IA32_CORRECTED_CHECK)
-> -		return 0;
-> -
->  	cmc = (struct acpi_hest_ia_corrected *)hest_hdr;
->  	if (!cmc->enabled)
->  		return 0;
-> diff --git a/drivers/acpi/apei/hest.c b/drivers/acpi/apei/hest.c
-> index 20b3fcf..792a0d9 100644
-> --- a/drivers/acpi/apei/hest.c
-> +++ b/drivers/acpi/apei/hest.c
-> @@ -123,7 +123,18 @@ EXPORT_SYMBOL_GPL(apei_hest_parse);
->   */
->  static int __init hest_parse_cmc(struct acpi_hest_header *hest_hdr, void *data)
->  {
-> -	return arch_apei_enable_cmcff(hest_hdr, data);
-> +	if (hest_hdr->type != ACPI_HEST_TYPE_IA32_CORRECTED_CHECK)
-> +		return 0;
-> +
-> +	if (!acpi_disable_cmcff)
-> +		return !arch_apei_enable_cmcff(hest_hdr, data);
-> +
-> +	return 0;
-> +}
-> +
-> +static inline int __init hest_ia32_init(void)
-> +{
-> +	return apei_hest_parse(hest_parse_cmc, NULL);
->  }
->  
->  struct ghes_arr {
-> @@ -232,8 +243,9 @@ void __init acpi_hest_init(void)
->  		goto err;
->  	}
->  
-> -	if (!acpi_disable_cmcff)
-> -		apei_hest_parse(hest_parse_cmc, NULL);
-> +	rc = hest_ia32_init();
-> +	if (rc)
-> +		goto err;
->  
->  	if (!ghes_disable) {
->  		rc = apei_hest_parse(hest_parse_ghes_count, &ghes_count);
-> 
+> In the particular issue I reported how would the parent device have
+> any resources if it's a PCI device?
 
--- 
-I speak only for myself.
-Rafael J. Wysocki, Intel Open Source Technology Center.
+If we can fix the ordering (so that the resources of parents are always
+inserted before the resources of their children), then it shouldn't
+matter whether or not it is a PCI device.
+
+In any case, though, its ACPI companion will have information on the
+resources the device is using.
+
+Thanks,
+Rafael
