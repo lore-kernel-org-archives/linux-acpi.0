@@ -1,65 +1,54 @@
-From: Suzuki K Poulose <Suzuki.Poulose@arm.com>
-Subject: Re: [PATCH v11] acpi, apei, arm64: APEI initial support for aarch64.
-Date: Thu, 28 Jul 2016 10:39:51 +0100
-Message-ID: <f018fd18-03e7-3247-7d65-af430092230e@arm.com>
-References: <1469640545-5848-1-git-send-email-fu.wei@linaro.org>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
-Content-Transfer-Encoding: 7bit
+From: Benjamin Tissoires <benjamin.tissoires@redhat.com>
+Subject: [PATCH] ACPI / button: remove pointer to old lid_sysfs on unbind
+Date: Thu, 28 Jul 2016 12:19:27 +0200
+Message-ID: <1469701167-24257-1-git-send-email-benjamin.tissoires@redhat.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from foss.arm.com ([217.140.101.70]:48100 "EHLO foss.arm.com"
+Received: from mx1.redhat.com ([209.132.183.28]:54666 "EHLO mx1.redhat.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752508AbcG1Jj7 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 28 Jul 2016 05:39:59 -0400
-In-Reply-To: <1469640545-5848-1-git-send-email-fu.wei@linaro.org>
+	id S1753251AbcG1KTc (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 28 Jul 2016 06:19:32 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: fu.wei@linaro.org, tn@semihalf.com, rjw@rjwysocki.net, len.brown@intel.com, pavel@ucw.cz, catalin.marinas@arm.com, will.deacon@arm.com, tglx@linutronix.de, mingo@redhat.com, hpa@zytor.com
-Cc: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, x86@kernel.org, linaro-acpi@lists.linaro.org, linux-arm-kernel@lists.infradead.org, linux-pm@vger.kernel.org, graeme.gregory@linaro.org, al.stone@linaro.org, hanjun.guo@linaro.org, mark.rutland@arm.com, Marc.Zyngier@arm.com, lorenzo.pieralisi@arm.com, rruigrok@codeaurora.org, harba@qti.qualcomm.com, tbaicar@codeaurora.org, jcm@redhat.com, msalter@redhat.com, grant.likely@linaro.org, rrichter@cavium.com, jarkko.nikula@linux.intel.com, jon.zhixiong.zhang@gmail.com, Tomasz Nowicki <tomasz.nowicki@linaro.org>
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
-On 27/07/16 18:29, fu.wei@linaro.org wrote:
-> From: Tomasz Nowicki <tomasz.nowicki@linaro.org>
->
-> This commit provides APEI arch-specific bits for aarch64
->
-> Meanwhile,
-> (1)add a new subfunction "hest_ia32_init" for
-> "acpi_disable_cmcff" which is used by IA-32 Architecture
-> Corrected Machine Check (CMC).
-> (2)move HEST type (ACPI_HEST_TYPE_IA32_CORRECTED_CHECK) checking to
-> a generic place.
-> (3)select HAVE_ACPI_APEI when EFI and ACPI is set on ARM64,
-> because arch_apei_get_mem_attribute is using efi_mem_attributes on ARM64.
->
-> [Fu Wei: improve && upstream]
->
+When we removed the procfs dir on error or if the driver is
+unbound, the two variables acpi_lid_dir and acpi_button_dir
+were not reset. On the next rebind, those static variables
+were not null and we couldn't re-register the device again.
 
+Signed-off-by: Benjamin Tissoires <benjamin.tissoires@redhat.com>
+---
+ drivers/acpi/button.c | 4 ++++
+ 1 file changed, 4 insertions(+)
 
-> diff --git a/arch/arm64/include/asm/acpi.h b/arch/arm64/include/asm/acpi.h
-> index 5420cb0..d3d02dc 100644
-> --- a/arch/arm64/include/asm/acpi.h
-> +++ b/arch/arm64/include/asm/acpi.h
-> @@ -17,6 +17,7 @@
->
->  #include <asm/cputype.h>
->  #include <asm/smp_plat.h>
-> +#include <asm/tlbflush.h>
->
->  /* Macros for consistency checks of the GICC subtable of MADT */
->  #define ACPI_MADT_GICC_LENGTH	\
-> @@ -110,8 +111,21 @@ static inline const char *acpi_get_enable_method(int cpu)
->  }
->
->  #ifdef	CONFIG_ACPI_APEI
-> +#define acpi_disable_cmcff 1
->  pgprot_t arch_apei_get_mem_attribute(phys_addr_t addr);
-> -#endif
-> +
-> +/*
-> + * Despite its name, this function must still broadcast the TLB
-> + * invalidation in order to ensure other CPUs don't up with with junk
+diff --git a/drivers/acpi/button.c b/drivers/acpi/button.c
+index 5c3b091..e413599 100644
+--- a/drivers/acpi/button.c
++++ b/drivers/acpi/button.c
+@@ -188,9 +188,11 @@ done:
+ remove_dev_dir:
+ 	remove_proc_entry(acpi_device_bid(device),
+ 			  acpi_lid_dir);
++	acpi_lid_dir = NULL;
+ 	acpi_device_dir(device) = NULL;
+ remove_lid_dir:
+ 	remove_proc_entry(ACPI_BUTTON_SUBCLASS_LID, acpi_button_dir);
++	acpi_button_dir = NULL;
+ remove_button_dir:
+ 	remove_proc_entry(ACPI_BUTTON_CLASS, acpi_root_dir);
+ 	goto done;
+@@ -207,8 +209,10 @@ static int acpi_button_remove_fs(struct acpi_device *device)
+ 			  acpi_device_dir(device));
+ 	remove_proc_entry(acpi_device_bid(device),
+ 			  acpi_lid_dir);
++	acpi_lid_dir = NULL;
+ 	acpi_device_dir(device) = NULL;
+ 	remove_proc_entry(ACPI_BUTTON_SUBCLASS_LID, acpi_button_dir);
++	acpi_button_dir = NULL;
+ 	remove_proc_entry(ACPI_BUTTON_CLASS, acpi_root_dir);
+ 
+ 	return 0;
+-- 
+2.5.5
 
-Please fix the comment above ^^^.
-
-
-Suzuki
