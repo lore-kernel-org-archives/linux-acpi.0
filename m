@@ -1,119 +1,192 @@
-From: Benjamin Tissoires <benjamin.tissoires@redhat.com>
-Subject: Re: [PATCH] ACPI / button: remove pointer to old lid_sysfs on unbind
-Date: Fri, 29 Jul 2016 09:53:35 +0200
-Message-ID: <20160729075335.GP19383@mail.corp.redhat.com>
-References: <1469701167-24257-1-git-send-email-benjamin.tissoires@redhat.com>
- <1AE640813FDE7649BE1B193DEA596E883BC07E6E@SHSMSX101.ccr.corp.intel.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
+From: fu.wei@linaro.org
+Subject: [PATCH v12] acpi, apei, arm64: APEI initial support for aarch64.
+Date: Fri, 29 Jul 2016 16:57:44 +0800
+Message-ID: <1469782664-12611-1-git-send-email-fu.wei@linaro.org>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:60058 "EHLO mx1.redhat.com"
+Received: from mx1.redhat.com ([209.132.183.28]:48434 "EHLO mx1.redhat.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750817AbcG2Hxk (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 29 Jul 2016 03:53:40 -0400
-Content-Disposition: inline
-In-Reply-To: <1AE640813FDE7649BE1B193DEA596E883BC07E6E@SHSMSX101.ccr.corp.intel.com>
+	id S1752672AbcG2I7m (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 29 Jul 2016 04:59:42 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Zheng, Lv" <lv.zheng@intel.com>
-Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
+To: tn@semihalf.com, rjw@rjwysocki.net, len.brown@intel.com, pavel@ucw.cz, bp@suse.de, hanjun.guo@linaro.org, jon.zhixiong.zhang@gmail.com, jcm@redhat.com, catalin.marinas@arm.com, will.deacon@arm.com, mark.rutland@arm.com, Marc.Zyngier@arm.com, lorenzo.pieralisi@arm.com, tglx@linutronix.de, mingo@redhat.com, hpa@zytor.com, matt.fleming@intel.com, tony.luck@intel.com
+Cc: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, x86@kernel.org, linaro-acpi@lists.linaro.org, linux-arm-kernel@lists.infradead.org, linux-pm@vger.kernel.org, Tomasz Nowicki <tomasz.nowicki@linaro.org>, Fu Wei <fu.wei@linaro.org>
 
-On Jul 29 2016 or thereabouts, Zheng, Lv wrote:
-> Hi, Benjamin
-> 
-> > From: linux-acpi-owner@vger.kernel.org [mailto:linux-acpi-
-> > owner@vger.kernel.org] On Behalf Of Benjamin Tissoires
-> > Subject: [PATCH] ACPI / button: remove pointer to old lid_sysfs on unbind
-> > 
-> > When we removed the procfs dir on error or if the driver is
-> > unbound, the two variables acpi_lid_dir and acpi_button_dir
-> > were not reset. On the next rebind, those static variables
-> > were not null and we couldn't re-register the device again.
-> > 
-> > Signed-off-by: Benjamin Tissoires <benjamin.tissoires@redhat.com>
-> > ---
-> >  drivers/acpi/button.c | 4 ++++
-> >  1 file changed, 4 insertions(+)
-> > 
-> > diff --git a/drivers/acpi/button.c b/drivers/acpi/button.c
-> > index 5c3b091..e413599 100644
-> > --- a/drivers/acpi/button.c
-> > +++ b/drivers/acpi/button.c
-> > @@ -188,9 +188,11 @@ done:
-> [Lv Zheng] 
-> I have a concern here for acpi_button_add_fs().
-> It looks like that this function doesn't support 2 lid devices.
-> So why do we need /proc/acpi/button/lid/LID0 folder?
+From: Tomasz Nowicki <tomasz.nowicki@linaro.org>
 
-History I guess?
+This commit provides APEI arch-specific bits for aarch64
 
-- (re)introduced in b34a803 "[ACPI] restore /proc/acpi/button/ (ala 2.6.12)"
-  (2005-08-03)
-- procfs cleaned up in 912b742 "ACPI button: remove unused procfs I/F"
-  (2011-03-23)
+Meanwhile,
+(1)add a new subfunction "hest_ia32_init" for
+"acpi_disable_cmcff" which is used by IA-32 Architecture
+Corrected Machine Check (CMC).
+(2)move HEST type (ACPI_HEST_TYPE_IA32_CORRECTED_CHECK) checking to
+a generic place.
+(3)select HAVE_ACPI_APEI when EFI and ACPI is set on ARM64,
+because arch_apei_get_mem_attribute is using efi_mem_attributes on ARM64.
 
-And I would believe given that it was introduced prior 2.6.12, it's now
-kernel ABI.
+[Fu Wei: improve && upstream]
 
-> 
-> >  remove_dev_dir:
-> >  	remove_proc_entry(acpi_device_bid(device),
-> >  			  acpi_lid_dir);
-> > +	acpi_lid_dir = NULL;
-> >  	acpi_device_dir(device) = NULL;
-> >  remove_lid_dir:
-> >  	remove_proc_entry(ACPI_BUTTON_SUBCLASS_LID,
-> > acpi_button_dir);
-> [Lv Zheng] 
-> Should acpi_lid_dir = NULL be put here?
+Signed-off-by: Tomasz Nowicki <tomasz.nowicki@linaro.org>
+Tested-by: Jonathan (Zhixiong) Zhang <zjzhang@codeaurora.org>
+Signed-off-by: Fu Wei <fu.wei@linaro.org>
+Acked-by: Hanjun Guo <hanjun.guo@linaro.org>
+Tested-by: Tyler Baicar <tbaicar@codeaurora.org>
+Acked-by: Will Deacon <will.deacon@arm.com>
+---
+Changelog:
+v12:https://lkml.org/lkml/2016/7/29/
+    Fix a comment problem(redundant "with")
+    Rebase to 4.7.0-g680eee2
 
-Right
+v11:https://lkml.org/lkml/2016/7/27/427
+    Rebase to v4.7-0e06f5c0
 
-> 
-> > +	acpi_button_dir = NULL;
-> >  remove_button_dir:
-> >  	remove_proc_entry(ACPI_BUTTON_CLASS, acpi_root_dir);
-> [Lv Zheng] 
-> Should acpi_button_dir = NULL be put here?
-> 
+v10:https://lkml.org/lkml/2016/4/14
+    Fix the Alphabetical order problem in arch/arm64/Kconfig
 
-Right
+v9: https://lkml.org/lkml/2016/4/5/522
+    Improve the comment for arch_apei_flush_tlb_one.
+    Using select "HAVE_ACPI_APEI if (ACPI && EFI)" to fix the EFI dependence
+    problem.
 
-> >  	goto done;
-> > @@ -207,8 +209,10 @@ static int acpi_button_remove_fs(struct
-> > acpi_device *device)
-> >  			  acpi_device_dir(device));
-> >  	remove_proc_entry(acpi_device_bid(device),
-> >  			  acpi_lid_dir);
-> > +	acpi_lid_dir = NULL;
-> >  	acpi_device_dir(device) = NULL;
-> >  	remove_proc_entry(ACPI_BUTTON_SUBCLASS_LID,
-> > acpi_button_dir);
-> [Lv Zheng] 
-> Should acpi_lid_dir = NULL be put here?
-> 
-> > +	acpi_button_dir = NULL;
-> >  	remove_proc_entry(ACPI_BUTTON_CLASS, acpi_root_dir);
-> [Lv Zheng] 
-> Should acpi_button_dir = NULL be put here?
+v8: https://lkml.org/lkml/2016/3/29/132
+    Fix a "undefined reference" bug by selecting EFI when ACPI_APEI is set
+    on ARM64.
 
-Right for these too to, but it won't change the result in the end :)
+v7: https://lkml.org/lkml/2016/3/17/183
+    Add comment for arch_apei_flush_tlb_one in arch/arm64/include/asm/acpi.h
 
-I'll send a v2 ASAP.
+v6: https://lists.linaro.org/pipermail/linaro-acpi/2016-March/006644.html
+    Move HEST type (ACPI_HEST_TYPE_IA32_CORRECTED_CHECK) checking to
+    a generic place.
+    Delete HAVE_ACPI_APEI_HEST_IA32.
 
-Cheers,
-Benjamin
+v5: https://lkml.org/lkml/2015/12/10/131
+    Add "HAVE_ACPI_APEI_HEST_IA32" instead of
+    "#if defined(__i386__) || defined(__x86_64__)".
 
-> 
-> Thanks and best regards
-> Lv
-> 
-> > 
-> >  	return 0;
-> > --
-> > 2.5.5
-> > 
-> > --
-> > To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
-> > the body of a message to majordomo@vger.kernel.org
-> > More majordomo info at  http://vger.kernel.org/majordomo-info.html
+v4: https://lkml.org/lkml/2015/12/8/188
+    Rebase to latest kernel version(4.4-rc4).
+    Move arch_apei_flush_tlb_one into header file as a inline function
+    Add a new subfunction "hest_ia_init" for "acpi_disable_cmcff".
+
+v3: https://lkml.org/lkml/2015/12/3/521
+    Remove "acpi_disable_cmcff" from arm64 code,
+    and wrap it in hest.c by "#if defined(__i386__) || defined(__x86_64__)"
+
+v2: https://lkml.org/lkml/2015/12/2/432
+    Rebase to latest kernel version(4.4-rc3).
+    Move arch_apei_flush_tlb_one() to arch/arm64/kernel/acpi.c
+
+v1: https://lkml.org/lkml/2015/8/14/199
+    Move arch_apei_flush_tlb_one() to arch/arm64/include/asm/apci.h.
+    Delete arch/arm64/kernel/apei.c.
+    Add "#ifdef CONFIG_ACPI_APEI" for "acpi_disable_cmcff".
+
+ arch/arm64/Kconfig            |  1 +
+ arch/arm64/include/asm/acpi.h | 16 +++++++++++++++-
+ arch/x86/kernel/acpi/apei.c   |  3 ---
+ drivers/acpi/apei/hest.c      | 18 +++++++++++++++---
+ 4 files changed, 31 insertions(+), 7 deletions(-)
+
+diff --git a/arch/arm64/Kconfig b/arch/arm64/Kconfig
+index 9f8b99e..3268299 100644
+--- a/arch/arm64/Kconfig
++++ b/arch/arm64/Kconfig
+@@ -50,6 +50,7 @@ config ARM64
+ 	select GENERIC_TIME_VSYSCALL
+ 	select HANDLE_DOMAIN_IRQ
+ 	select HARDIRQS_SW_RESEND
++	select HAVE_ACPI_APEI if (ACPI && EFI)
+ 	select HAVE_ALIGNED_STRUCT_PAGE if SLUB
+ 	select HAVE_ARCH_AUDITSYSCALL
+ 	select HAVE_ARCH_BITREVERSE
+diff --git a/arch/arm64/include/asm/acpi.h b/arch/arm64/include/asm/acpi.h
+index 5420cb0..7cdf681 100644
+--- a/arch/arm64/include/asm/acpi.h
++++ b/arch/arm64/include/asm/acpi.h
+@@ -17,6 +17,7 @@
+ 
+ #include <asm/cputype.h>
+ #include <asm/smp_plat.h>
++#include <asm/tlbflush.h>
+ 
+ /* Macros for consistency checks of the GICC subtable of MADT */
+ #define ACPI_MADT_GICC_LENGTH	\
+@@ -110,8 +111,21 @@ static inline const char *acpi_get_enable_method(int cpu)
+ }
+ 
+ #ifdef	CONFIG_ACPI_APEI
++#define acpi_disable_cmcff 1
+ pgprot_t arch_apei_get_mem_attribute(phys_addr_t addr);
+-#endif
++
++/*
++ * Despite its name, this function must still broadcast the TLB
++ * invalidation in order to ensure other CPUs don't up with junk
++ * entries as a result of speculation. Unusually, its also called in
++ * IRQ context (ghes_iounmap_irq) so if we ever need to use IPIs for
++ * TLB broadcasting, then we're in trouble here.
++ */
++static inline void arch_apei_flush_tlb_one(unsigned long addr)
++{
++	flush_tlb_kernel_range(addr, addr + PAGE_SIZE);
++}
++#endif /* CONFIG_ACPI_APEI */
+ 
+ #ifdef CONFIG_ACPI_NUMA
+ int arm64_acpi_numa_init(void);
+diff --git a/arch/x86/kernel/acpi/apei.c b/arch/x86/kernel/acpi/apei.c
+index c280df6..ea3046e 100644
+--- a/arch/x86/kernel/acpi/apei.c
++++ b/arch/x86/kernel/acpi/apei.c
+@@ -24,9 +24,6 @@ int arch_apei_enable_cmcff(struct acpi_hest_header *hest_hdr, void *data)
+ 	struct acpi_hest_ia_corrected *cmc;
+ 	struct acpi_hest_ia_error_bank *mc_bank;
+ 
+-	if (hest_hdr->type != ACPI_HEST_TYPE_IA32_CORRECTED_CHECK)
+-		return 0;
+-
+ 	cmc = (struct acpi_hest_ia_corrected *)hest_hdr;
+ 	if (!cmc->enabled)
+ 		return 0;
+diff --git a/drivers/acpi/apei/hest.c b/drivers/acpi/apei/hest.c
+index 20b3fcf..792a0d9 100644
+--- a/drivers/acpi/apei/hest.c
++++ b/drivers/acpi/apei/hest.c
+@@ -123,7 +123,18 @@ EXPORT_SYMBOL_GPL(apei_hest_parse);
+  */
+ static int __init hest_parse_cmc(struct acpi_hest_header *hest_hdr, void *data)
+ {
+-	return arch_apei_enable_cmcff(hest_hdr, data);
++	if (hest_hdr->type != ACPI_HEST_TYPE_IA32_CORRECTED_CHECK)
++		return 0;
++
++	if (!acpi_disable_cmcff)
++		return !arch_apei_enable_cmcff(hest_hdr, data);
++
++	return 0;
++}
++
++static inline int __init hest_ia32_init(void)
++{
++	return apei_hest_parse(hest_parse_cmc, NULL);
+ }
+ 
+ struct ghes_arr {
+@@ -232,8 +243,9 @@ void __init acpi_hest_init(void)
+ 		goto err;
+ 	}
+ 
+-	if (!acpi_disable_cmcff)
+-		apei_hest_parse(hest_parse_cmc, NULL);
++	rc = hest_ia32_init();
++	if (rc)
++		goto err;
+ 
+ 	if (!ghes_disable) {
+ 		rc = apei_hest_parse(hest_parse_ghes_count, &ghes_count);
+-- 
+2.5.5
+
