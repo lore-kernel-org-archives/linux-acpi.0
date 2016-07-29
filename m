@@ -1,137 +1,93 @@
 From: "Zheng, Lv" <lv.zheng@intel.com>
-Subject: RE: [PATCH] ACPI / EC: Fix a regression by reducing parallel _Qxx
- evaluations
-Date: Fri, 29 Jul 2016 03:58:20 +0000
-Message-ID: <1AE640813FDE7649BE1B193DEA596E883BC07E41@SHSMSX101.ccr.corp.intel.com>
-References: <ca8220945184c65f3cd16418de5cfd34bf0b31ab.1469608346.git.lv.zheng@intel.com>
+Subject: RE: [PATCH] ACPI / button: remove pointer to old lid_sysfs on unbind
+Date: Fri, 29 Jul 2016 04:35:37 +0000
+Message-ID: <1AE640813FDE7649BE1B193DEA596E883BC07E6E@SHSMSX101.ccr.corp.intel.com>
+References: <1469701167-24257-1-git-send-email-benjamin.tissoires@redhat.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 8BIT
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga11.intel.com ([192.55.52.93]:2519 "EHLO mga11.intel.com"
+Received: from mga04.intel.com ([192.55.52.120]:20842 "EHLO mga04.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751123AbcG2D6Z convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 28 Jul 2016 23:58:25 -0400
-In-Reply-To: <ca8220945184c65f3cd16418de5cfd34bf0b31ab.1469608346.git.lv.zheng@intel.com>
+	id S1750721AbcG2Efm convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 29 Jul 2016 00:35:42 -0400
+In-Reply-To: <1469701167-24257-1-git-send-email-benjamin.tissoires@redhat.com>
 Content-Language: en-US
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, "Brown, Len" <len.brown@intel.com>
-Cc: Lv Zheng <zetalog@gmail.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
+To: Benjamin Tissoires <benjamin.tissoires@redhat.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
 
-Hi, Rafael
+Hi, Benjamin
 
-> From: Zheng, Lv
-> Subject: [PATCH] ACPI / EC: Fix a regression by reducing parallel _Qxx
-> evaluations
+> From: linux-acpi-owner@vger.kernel.org [mailto:linux-acpi-
+> owner@vger.kernel.org] On Behalf Of Benjamin Tissoires
+> Subject: [PATCH] ACPI / button: remove pointer to old lid_sysfs on unbind
 > 
-> A regression is caused by the following commit:
->   Commit: 02b771b64b73226052d6e731a0987db3b47281e9
->   Subject: ACPI / EC: Fix an issue caused by the serialized _Qxx evaluations
-> In this commit, using system workqueue causes that the maximum parallel
-> executions of _Qxx can exceed 255. This violates the method reentrancy
-> limit in ACPICA and generates the following error log:
->   ACPI Error: Method reached maximum reentrancy limit (255)
-> (20150818/dsmethod-341)
+> When we removed the procfs dir on error or if the driver is
+> unbound, the two variables acpi_lid_dir and acpi_button_dir
+> were not reset. On the next rebind, those static variables
+> were not null and we couldn't re-register the device again.
 > 
-> This patch creates a seperate workqueue and limits the number of parallel
-> _Qxx evaluations down to a configurable value (can be tuned against
-> number
-> of online CPUs).
-> 
-> Since EC events are handled after driver probe, we can create the
-> workqueue
-> in acpi_ec_init().
-> 
-> Fixes: 02b771b64b73 (ACPI / EC: Fix an issue caused by the serialized _Qxx
-> evaluations)
-> Cc: <stable@vger.kernel.org> # 4.3+
-> Reported-and-tested-by: Helen Buus <ubuntu@hbuus.com>
-[Lv Zheng] 
-I'm sorry that I forgot to mention the bug link.
-It's actually recorded in kernel Bugzilla.
-The bug can be found here:
-Link: https://bugzilla.kernel.org/show_bug.cgi?id=135691
-Hope you can help to add this useful information if this patch is acceptable.
-
-Best regards
--Lv
-
-> Signed-off-by: Lv Zheng <lv.zheng@intel.com>
+> Signed-off-by: Benjamin Tissoires <benjamin.tissoires@redhat.com>
 > ---
->  drivers/acpi/ec.c |   13 ++++++++++++-
->  1 file changed, 12 insertions(+), 1 deletion(-)
+>  drivers/acpi/button.c | 4 ++++
+>  1 file changed, 4 insertions(+)
 > 
-> diff --git a/drivers/acpi/ec.c b/drivers/acpi/ec.c
-> index 999a109..907b450 100644
-> --- a/drivers/acpi/ec.c
-> +++ b/drivers/acpi/ec.c
-> @@ -101,6 +101,7 @@ enum ec_command {
->  #define ACPI_EC_UDELAY_POLL	550	/* Wait 1ms for EC
-> transaction polling */
->  #define ACPI_EC_CLEAR_MAX	100	/* Maximum number of events to
-> query
->  					 * when trying to clear the EC */
-> +#define ACPI_EC_MAX_QUERIES	16	/* Maximum number of
-> parallel queries */
-> 
->  enum {
->  	EC_FLAGS_QUERY_PENDING,		/* Query is pending */
-> @@ -121,6 +122,10 @@ static unsigned int ec_delay __read_mostly =
-> ACPI_EC_DELAY;
->  module_param(ec_delay, uint, 0644);
->  MODULE_PARM_DESC(ec_delay, "Timeout(ms) waited until an EC
-> command completes");
-> 
-> +static unsigned int ec_max_queries __read_mostly =
-> ACPI_EC_MAX_QUERIES;
-> +module_param(ec_max_queries, uint, 0644);
-> +MODULE_PARM_DESC(ec_max_queries, "Maximum parallel _Qxx
-> evaluations");
-> +
->  static bool ec_busy_polling __read_mostly;
->  module_param(ec_busy_polling, bool, 0644);
->  MODULE_PARM_DESC(ec_busy_polling, "Use busy polling to advance EC
-> transaction");
-> @@ -174,6 +179,7 @@ static void acpi_ec_event_processor(struct
-> work_struct *work);
-> 
->  struct acpi_ec *boot_ec, *first_ec;
->  EXPORT_SYMBOL(first_ec);
-> +static struct workqueue_struct *ec_query_wq;
-> 
->  static int EC_FLAGS_CLEAR_ON_RESUME; /* Needs acpi_ec_clear() on
-> boot/resume */
->  static int EC_FLAGS_QUERY_HANDSHAKE; /* Needs QR_EC issued when
-> SCI_EVT set */
-> @@ -1098,7 +1104,7 @@ static int acpi_ec_query(struct acpi_ec *ec, u8
-> *data)
->  	 * work queue execution.
->  	 */
->  	ec_dbg_evt("Query(0x%02x) scheduled", value);
-> -	if (!schedule_work(&q->work)) {
-> +	if (!queue_work(ec_query_wq, &q->work)) {
->  		ec_dbg_evt("Query(0x%02x) overlapped", value);
->  		result = -EBUSY;
->  	}
-> @@ -1664,6 +1670,10 @@ int __init acpi_ec_init(void)
->  {
->  	int result = 0;
-> 
-> +	ec_query_wq = alloc_workqueue("kec_query", 0, ec_max_queries);
-> +	if (!ec_query_wq)
-> +		return -ENODEV;
-> +
->  	/* Now register the driver for the EC */
->  	result = acpi_bus_register_driver(&acpi_ec_driver);
->  	if (result < 0)
-> @@ -1678,5 +1688,6 @@ static void __exit acpi_ec_exit(void)
->  {
-> 
->  	acpi_bus_unregister_driver(&acpi_ec_driver);
-> +	destroy_workqueue(ec_query_wq);
->  }
->  #endif	/* 0 */
-> --
-> 1.7.10
+> diff --git a/drivers/acpi/button.c b/drivers/acpi/button.c
+> index 5c3b091..e413599 100644
+> --- a/drivers/acpi/button.c
+> +++ b/drivers/acpi/button.c
+> @@ -188,9 +188,11 @@ done:
+[Lv Zheng] 
+I have a concern here for acpi_button_add_fs().
+It looks like that this function doesn't support 2 lid devices.
+So why do we need /proc/acpi/button/lid/LID0 folder?
 
+>  remove_dev_dir:
+>  	remove_proc_entry(acpi_device_bid(device),
+>  			  acpi_lid_dir);
+> +	acpi_lid_dir = NULL;
+>  	acpi_device_dir(device) = NULL;
+>  remove_lid_dir:
+>  	remove_proc_entry(ACPI_BUTTON_SUBCLASS_LID,
+> acpi_button_dir);
+[Lv Zheng] 
+Should acpi_lid_dir = NULL be put here?
+
+> +	acpi_button_dir = NULL;
+>  remove_button_dir:
+>  	remove_proc_entry(ACPI_BUTTON_CLASS, acpi_root_dir);
+[Lv Zheng] 
+Should acpi_button_dir = NULL be put here?
+
+>  	goto done;
+> @@ -207,8 +209,10 @@ static int acpi_button_remove_fs(struct
+> acpi_device *device)
+>  			  acpi_device_dir(device));
+>  	remove_proc_entry(acpi_device_bid(device),
+>  			  acpi_lid_dir);
+> +	acpi_lid_dir = NULL;
+>  	acpi_device_dir(device) = NULL;
+>  	remove_proc_entry(ACPI_BUTTON_SUBCLASS_LID,
+> acpi_button_dir);
+[Lv Zheng] 
+Should acpi_lid_dir = NULL be put here?
+
+> +	acpi_button_dir = NULL;
+>  	remove_proc_entry(ACPI_BUTTON_CLASS, acpi_root_dir);
+[Lv Zheng] 
+Should acpi_button_dir = NULL be put here?
+
+Thanks and best regards
+Lv
+
+> 
+>  	return 0;
+> --
+> 2.5.5
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
