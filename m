@@ -1,84 +1,137 @@
-From: Fu Wei <fu.wei@linaro.org>
-Subject: Re: [PATCH v11] acpi, apei, arm64: APEI initial support for aarch64.
-Date: Fri, 29 Jul 2016 10:25:45 +0800
-Message-ID: <CADyBb7vWiX1zSkxF4Z3A+LUBuC3dAhr0G8z_dNogakJM1KTJ0w@mail.gmail.com>
-References: <1469640545-5848-1-git-send-email-fu.wei@linaro.org> <f018fd18-03e7-3247-7d65-af430092230e@arm.com>
+From: "Zheng, Lv" <lv.zheng@intel.com>
+Subject: RE: [PATCH] ACPI / EC: Fix a regression by reducing parallel _Qxx
+ evaluations
+Date: Fri, 29 Jul 2016 03:58:20 +0000
+Message-ID: <1AE640813FDE7649BE1B193DEA596E883BC07E41@SHSMSX101.ccr.corp.intel.com>
+References: <ca8220945184c65f3cd16418de5cfd34bf0b31ab.1469608346.git.lv.zheng@intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-oi0-f53.google.com ([209.85.218.53]:33368 "EHLO
-	mail-oi0-f53.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750923AbcG2CZr (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 28 Jul 2016 22:25:47 -0400
-Received: by mail-oi0-f53.google.com with SMTP id j185so88572726oih.0
-        for <linux-acpi@vger.kernel.org>; Thu, 28 Jul 2016 19:25:46 -0700 (PDT)
-In-Reply-To: <f018fd18-03e7-3247-7d65-af430092230e@arm.com>
+Received: from mga11.intel.com ([192.55.52.93]:2519 "EHLO mga11.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751123AbcG2D6Z convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 28 Jul 2016 23:58:25 -0400
+In-Reply-To: <ca8220945184c65f3cd16418de5cfd34bf0b31ab.1469608346.git.lv.zheng@intel.com>
+Content-Language: en-US
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Suzuki K Poulose <Suzuki.Poulose@arm.com>
-Cc: tn@semihalf.com, "Rafael J. Wysocki" <rjw@rjwysocki.net>, len.brown@intel.com, pavel@ucw.cz, Catalin Marinas <catalin.marinas@arm.com>, Will Deacon <will.deacon@arm.com>, Thomas Gleixner <tglx@linutronix.de>, mingo@redhat.com, hpa@zytor.com, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, x86@kernel.org, Linaro ACPI Mailman List <linaro-acpi@lists.linaro.org>, linux-arm-kernel@lists.infradead.org, linux-pm@vger.kernel.org, G Gregory <graeme.gregory@linaro.org>, Al Stone <al.stone@linaro.org>, Hanjun Guo <hanjun.guo@linaro.org>, mark.rutland@arm.com, Marc Zyngier <Marc.Zyngier@arm.com>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, rruigrok@codeaurora.org, "Abdulhamid, Harb" <harba@qti.qualcomm.com>, "Baicar, Tyler" <tbaicar@codeaurora.org>, Jon Masters <jcm@redhat.com>, Mark Salter <msalter@redhat.com>
+To: "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, "Brown, Len" <len.brown@intel.com>
+Cc: Lv Zheng <zetalog@gmail.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
 
-Hi Suzuki,
+Hi, Rafael
 
-On 28 July 2016 at 17:39, Suzuki K Poulose <Suzuki.Poulose@arm.com> wrote:
-> On 27/07/16 18:29, fu.wei@linaro.org wrote:
->>
->> From: Tomasz Nowicki <tomasz.nowicki@linaro.org>
->>
->> This commit provides APEI arch-specific bits for aarch64
->>
->> Meanwhile,
->> (1)add a new subfunction "hest_ia32_init" for
->> "acpi_disable_cmcff" which is used by IA-32 Architecture
->> Corrected Machine Check (CMC).
->> (2)move HEST type (ACPI_HEST_TYPE_IA32_CORRECTED_CHECK) checking to
->> a generic place.
->> (3)select HAVE_ACPI_APEI when EFI and ACPI is set on ARM64,
->> because arch_apei_get_mem_attribute is using efi_mem_attributes on ARM64.
->>
->> [Fu Wei: improve && upstream]
->>
->
->
->> diff --git a/arch/arm64/include/asm/acpi.h b/arch/arm64/include/asm/acpi.h
->> index 5420cb0..d3d02dc 100644
->> --- a/arch/arm64/include/asm/acpi.h
->> +++ b/arch/arm64/include/asm/acpi.h
->> @@ -17,6 +17,7 @@
->>
->>  #include <asm/cputype.h>
->>  #include <asm/smp_plat.h>
->> +#include <asm/tlbflush.h>
->>
->>  /* Macros for consistency checks of the GICC subtable of MADT */
->>  #define ACPI_MADT_GICC_LENGTH  \
->> @@ -110,8 +111,21 @@ static inline const char *acpi_get_enable_method(int
->> cpu)
->>  }
->>
->>  #ifdef CONFIG_ACPI_APEI
->> +#define acpi_disable_cmcff 1
->>  pgprot_t arch_apei_get_mem_attribute(phys_addr_t addr);
->> -#endif
->> +
->> +/*
->> + * Despite its name, this function must still broadcast the TLB
->> + * invalidation in order to ensure other CPUs don't up with with junk
->
->
-> Please fix the comment above ^^^.
+> From: Zheng, Lv
+> Subject: [PATCH] ACPI / EC: Fix a regression by reducing parallel _Qxx
+> evaluations
+> 
+> A regression is caused by the following commit:
+>   Commit: 02b771b64b73226052d6e731a0987db3b47281e9
+>   Subject: ACPI / EC: Fix an issue caused by the serialized _Qxx evaluations
+> In this commit, using system workqueue causes that the maximum parallel
+> executions of _Qxx can exceed 255. This violates the method reentrancy
+> limit in ACPICA and generates the following error log:
+>   ACPI Error: Method reached maximum reentrancy limit (255)
+> (20150818/dsmethod-341)
+> 
+> This patch creates a seperate workqueue and limits the number of parallel
+> _Qxx evaluations down to a configurable value (can be tuned against
+> number
+> of online CPUs).
+> 
+> Since EC events are handled after driver probe, we can create the
+> workqueue
+> in acpi_ec_init().
+> 
+> Fixes: 02b771b64b73 (ACPI / EC: Fix an issue caused by the serialized _Qxx
+> evaluations)
+> Cc: <stable@vger.kernel.org> # 4.3+
+> Reported-and-tested-by: Helen Buus <ubuntu@hbuus.com>
+[Lv Zheng] 
+I'm sorry that I forgot to mention the bug link.
+It's actually recorded in kernel Bugzilla.
+The bug can be found here:
+Link: https://bugzilla.kernel.org/show_bug.cgi?id=135691
+Hope you can help to add this useful information if this patch is acceptable.
 
-Thanks for pointing it out, the fixed patch will out in minutes.
+Best regards
+-Lv
 
->
->
-> Suzuki
+> Signed-off-by: Lv Zheng <lv.zheng@intel.com>
+> ---
+>  drivers/acpi/ec.c |   13 ++++++++++++-
+>  1 file changed, 12 insertions(+), 1 deletion(-)
+> 
+> diff --git a/drivers/acpi/ec.c b/drivers/acpi/ec.c
+> index 999a109..907b450 100644
+> --- a/drivers/acpi/ec.c
+> +++ b/drivers/acpi/ec.c
+> @@ -101,6 +101,7 @@ enum ec_command {
+>  #define ACPI_EC_UDELAY_POLL	550	/* Wait 1ms for EC
+> transaction polling */
+>  #define ACPI_EC_CLEAR_MAX	100	/* Maximum number of events to
+> query
+>  					 * when trying to clear the EC */
+> +#define ACPI_EC_MAX_QUERIES	16	/* Maximum number of
+> parallel queries */
+> 
+>  enum {
+>  	EC_FLAGS_QUERY_PENDING,		/* Query is pending */
+> @@ -121,6 +122,10 @@ static unsigned int ec_delay __read_mostly =
+> ACPI_EC_DELAY;
+>  module_param(ec_delay, uint, 0644);
+>  MODULE_PARM_DESC(ec_delay, "Timeout(ms) waited until an EC
+> command completes");
+> 
+> +static unsigned int ec_max_queries __read_mostly =
+> ACPI_EC_MAX_QUERIES;
+> +module_param(ec_max_queries, uint, 0644);
+> +MODULE_PARM_DESC(ec_max_queries, "Maximum parallel _Qxx
+> evaluations");
+> +
+>  static bool ec_busy_polling __read_mostly;
+>  module_param(ec_busy_polling, bool, 0644);
+>  MODULE_PARM_DESC(ec_busy_polling, "Use busy polling to advance EC
+> transaction");
+> @@ -174,6 +179,7 @@ static void acpi_ec_event_processor(struct
+> work_struct *work);
+> 
+>  struct acpi_ec *boot_ec, *first_ec;
+>  EXPORT_SYMBOL(first_ec);
+> +static struct workqueue_struct *ec_query_wq;
+> 
+>  static int EC_FLAGS_CLEAR_ON_RESUME; /* Needs acpi_ec_clear() on
+> boot/resume */
+>  static int EC_FLAGS_QUERY_HANDSHAKE; /* Needs QR_EC issued when
+> SCI_EVT set */
+> @@ -1098,7 +1104,7 @@ static int acpi_ec_query(struct acpi_ec *ec, u8
+> *data)
+>  	 * work queue execution.
+>  	 */
+>  	ec_dbg_evt("Query(0x%02x) scheduled", value);
+> -	if (!schedule_work(&q->work)) {
+> +	if (!queue_work(ec_query_wq, &q->work)) {
+>  		ec_dbg_evt("Query(0x%02x) overlapped", value);
+>  		result = -EBUSY;
+>  	}
+> @@ -1664,6 +1670,10 @@ int __init acpi_ec_init(void)
+>  {
+>  	int result = 0;
+> 
+> +	ec_query_wq = alloc_workqueue("kec_query", 0, ec_max_queries);
+> +	if (!ec_query_wq)
+> +		return -ENODEV;
+> +
+>  	/* Now register the driver for the EC */
+>  	result = acpi_bus_register_driver(&acpi_ec_driver);
+>  	if (result < 0)
+> @@ -1678,5 +1688,6 @@ static void __exit acpi_ec_exit(void)
+>  {
+> 
+>  	acpi_bus_unregister_driver(&acpi_ec_driver);
+> +	destroy_workqueue(ec_query_wq);
+>  }
+>  #endif	/* 0 */
+> --
+> 1.7.10
 
-
-
--- 
-Best regards,
-
-Fu Wei
-Software Engineer
-Red Hat
