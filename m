@@ -1,56 +1,43 @@
 From: Benjamin Tissoires <benjamin.tissoires@redhat.com>
-Subject: [PATCH v2] ACPI / button: remove pointer to old lid_sysfs on unbind
-Date: Fri, 29 Jul 2016 17:08:41 +0200
-Message-ID: <1469804921-23086-1-git-send-email-benjamin.tissoires@redhat.com>
+Subject: [PATCH 0/2] Add support for Microsoft Surface 3 power
+Date: Fri, 29 Jul 2016 17:49:24 +0200
+Message-ID: <1469807366-24642-1-git-send-email-benjamin.tissoires@redhat.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:48906 "EHLO mx1.redhat.com"
+Received: from mx1.redhat.com ([209.132.183.28]:40000 "EHLO mx1.redhat.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751544AbcG2PIq (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 29 Jul 2016 11:08:46 -0400
+	id S1751531AbcG2Ptd (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 29 Jul 2016 11:49:33 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Lv Zheng <lv.zheng@intel.com>
-Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+To: Stephen Just <stephenjust@gmail.com>, Robert Moore <robert.moore@intel.com>, Lv Zheng <lv.zheng@intel.com>, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Len Brown <lenb@kernel.org>, Sebastian Reichel <sre@kernel.org>, Dmitry Eremin-Solenikov <dbaryshkov@gmail.com>, David Woodhouse <dwmw2@infradead.org>
+Cc: linux-acpi@vger.kernel.org, devel@acpica.org, linux-pm@vger.kernel.org, linux-kernel@vger.kernel.org
 
-When we removed the procfs dir on error or if the driver is
-unbound, the two variables acpi_lid_dir and acpi_button_dir
-were not reset. On the next rebind, those static variables
-were not null and we couldn't re-register the device again.
+Hi,
 
-Signed-off-by: Benjamin Tissoires <benjamin.tissoires@redhat.com>
+The MS Surface 3 is a reduced platform which doesn't use a regular chip
+to report the battery information. Instead, they use ACPI Operation Region
+to do the processing in the MSHW0011 driver.
 
---
-changes in v2:
-- put the NULL assignments at their correct place
----
- drivers/acpi/button.c | 4 ++++
- 1 file changed, 4 insertions(+)
+This series aims at adding a reverse-engineered driver.
+I am not sure whether the ACPICA patch is required because of a bug in the
+ACPICA parsing or if MS just screwed up the DSDT. Anyway, it's there
+and was judged as acceptable while we find out the exact issue (in
+https://bugzilla.kernel.org/show_bug.cgi?id=106231 )
 
-diff --git a/drivers/acpi/button.c b/drivers/acpi/button.c
-index 5c3b091..a3873b3 100644
---- a/drivers/acpi/button.c
-+++ b/drivers/acpi/button.c
-@@ -191,8 +191,10 @@ remove_dev_dir:
- 	acpi_device_dir(device) = NULL;
- remove_lid_dir:
- 	remove_proc_entry(ACPI_BUTTON_SUBCLASS_LID, acpi_button_dir);
-+	acpi_lid_dir = NULL;
- remove_button_dir:
- 	remove_proc_entry(ACPI_BUTTON_CLASS, acpi_root_dir);
-+	acpi_button_dir = NULL;
- 	goto done;
- }
- 
-@@ -209,7 +211,9 @@ static int acpi_button_remove_fs(struct acpi_device *device)
- 			  acpi_lid_dir);
- 	acpi_device_dir(device) = NULL;
- 	remove_proc_entry(ACPI_BUTTON_SUBCLASS_LID, acpi_button_dir);
-+	acpi_lid_dir = NULL;
- 	remove_proc_entry(ACPI_BUTTON_CLASS, acpi_root_dir);
-+	acpi_button_dir = NULL;
- 
- 	return 0;
- }
+Cheers,
+Benjamin
+
+Benjamin Tissoires (2):
+  ACPICA: adapt buffer length for Field Attrib Raw Process in Ops Region
+  power: surface3_power: MSHW0011 rev-eng implementation
+
+ drivers/acpi/acpica/exfield.c  |  11 +
+ drivers/power/Kconfig          |   8 +
+ drivers/power/Makefile         |   1 +
+ drivers/power/surface3_power.c | 724 +++++++++++++++++++++++++++++++++++++++++
+ 4 files changed, 744 insertions(+)
+ create mode 100644 drivers/power/surface3_power.c
+
 -- 
 2.5.5
 
