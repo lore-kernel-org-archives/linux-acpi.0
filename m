@@ -1,128 +1,84 @@
-From: "Zheng, Lv" <lv.zheng@intel.com>
-Subject: RE: [PATCH 1/2] ACPICA: adapt buffer length for Field Attrib Raw
- Process in Ops Region
-Date: Mon, 1 Aug 2016 05:58:05 +0000
-Message-ID: <1AE640813FDE7649BE1B193DEA596E883BC0844E@SHSMSX101.ccr.corp.intel.com>
-References: <1469807366-24642-1-git-send-email-benjamin.tissoires@redhat.com>
- <1469807366-24642-2-git-send-email-benjamin.tissoires@redhat.com>
+From: joeyli <jlee-IBi9RG/b67k@public.gmane.org>
+Subject: Re: [PATCH] libnvdimm, nd_blk: mask off reserved status bits
+Date: Mon, 1 Aug 2016 14:00:49 +0800
+Message-ID: <20160801060049.GI9236@linux-rxt1.site>
+References: <20160729205912.20436-1-ross.zwisler@linux.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga04.intel.com ([192.55.52.120]:50607 "EHLO mga04.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750726AbcHAF6T convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 1 Aug 2016 01:58:19 -0400
-In-Reply-To: <1469807366-24642-2-git-send-email-benjamin.tissoires@redhat.com>
-Content-Language: en-US
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <20160729205912.20436-1-ross.zwisler-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
+List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
+ <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
+List-Post: <mailto:linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+List-Help: <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
+ <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
+Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
+Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+To: Ross Zwisler <ross.zwisler-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
+Cc: linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org, "Rafael J. Wysocki" <rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org>, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, stable-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Len Brown <lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
-To: Benjamin Tissoires <benjamin.tissoires@redhat.com>, Stephen Just <stephenjust@gmail.com>, "Moore, Robert" <robert.moore@intel.com>, "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>, Len Brown <lenb@kernel.org>, Sebastian Reichel <sre@kernel.org>, Dmitry Eremin-Solenikov <dbaryshkov@gmail.com>, David Woodhouse <dwmw2@infradead.org>
-Cc: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "devel@acpica.org" <devel@acpica.org>, "linux-pm@vger.kernel.org" <linux-pm@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
 
-Hi,
+Hi Ross,
 
-> From: Benjamin Tissoires [mailto:benjamin.tissoires@redhat.com]
-> Subject: [PATCH 1/2] ACPICA: adapt buffer length for Field Attrib Raw
-> Process in Ops Region
+On Fri, Jul 29, 2016 at 02:59:12PM -0600, Ross Zwisler wrote:
+> The "NVDIMM Block Window Driver Writer's Guide":
 > 
-> Detected on the Surface 3:
-> The MSHW0011 driver uses Field Attrib Raw Process to return information
-> for the ACPI Battery. The DSDT declares a parameter of 2 though
-> functions like _BST or _BIX require a much bigger out buffer.
+> http://pmem.io/documents/
+> http://pmem.io/documents/NVDIMM_DriverWritersGuide-July-2016.pdf
 > 
-> It looks like the incoming buffer has the requested size and we can
-> work around the issue by using this input size as the output and
-> parameters size.
+> defines the layout of the block window status register.  For the July 2016
+> version of the spec linked to above, this happens in Figure 4 on page 26.
 > 
-> Link: https://bugzilla.kernel.org/show_bug.cgi?id=106231
+> The only bits defined in this spec are bits 31, 5, 4, 2, 1 and 0.  The rest
+> of the bits in the status register are reserved, and there is a warning
+> following the diagram that says:
 > 
-> Signed-off-by: Benjamin Tissoires <benjamin.tissoires@redhat.com>
+>   Note: The driver cannot assume the value of the RESERVED bits in the
+>   status register are zero. These reserved bits need to be masked off, and
+>   the driver must avoid checking the state of those bits.
+> 
+> This change ensures that for hardware implementations that set these
+> reserved bits in the status register, the driver won't incorrectly fail the
+> block I/Os.
+> 
+> Signed-off-by: Ross Zwisler <ross.zwisler-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
+> Cc: Dan Williams <dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+> Cc: stable-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 > ---
->  drivers/acpi/acpica/exfield.c | 11 +++++++++++
->  1 file changed, 11 insertions(+)
+>  drivers/acpi/nfit.c | 3 ++-
+>  1 file changed, 2 insertions(+), 1 deletion(-)
 > 
-> diff --git a/drivers/acpi/acpica/exfield.c b/drivers/acpi/acpica/exfield.c
-> index d7d3ee3..a1bd041 100644
-> --- a/drivers/acpi/acpica/exfield.c
-> +++ b/drivers/acpi/acpica/exfield.c
-> @@ -413,6 +413,17 @@ acpi_ex_write_data_to_field(union
-> acpi_operand_object *source_desc,
->  			 *     Data[x-1]: (Bytes 2-x of the arbitrary length
-> data buffer)
->  			 */
->  			length += 2;
-> +
-> +			/*
-> +			 * When using Field Attrib Raw Process, it looks like
-> +			 * the parameter access_length can be wrong and
-> the
-> +			 * required output buffer can be much bigger.
-> +			 * So just take the incoming buffer length as the
-> +			 * reference.
-> +			 */
-> +			if (accessor_type ==
-> AML_FIELD_ATTRIB_RAW_PROCESS)
-> +				length = source_desc->buffer.length;
-> +
-[Lv Zheng] 
-I think the related code is:
+> diff --git a/drivers/acpi/nfit.c b/drivers/acpi/nfit.c
+> index 1f0e060..375c10f 100644
+> --- a/drivers/acpi/nfit.c
+> +++ b/drivers/acpi/nfit.c
 
-            OperationRegion (OR02, GenericSerialBus, Zero, 0x0100)
-            Field (OR02, BufferAcc, NoLock, Preserve)
-            {
-                Connection (BX00), 
-                AccessAs (BufferAcc, AttribRawProcessBytes (0x02)), 
-                BB00,   8
-            }
-            Name (SPB0, Buffer (0x80) {})
-            CreateByteField (SPB0, Zero, STA2)
-            CreateByteField (SPB0, One, LEN0)
-            CreateByteField (SPB0, 0x02, CMD0)
-            CreateByteField (SPB0, 0x03, DAT0)
-            CreateByteField (SPB0, 0x04, DAT1)
-            CreateDWordField (SPB0, 0x05, DAT2)
-            CreateField (SPB0, 0x10, 0x0320, DAT3)
-            Method (RSPB, 3, NotSerialized)
-            {
-                CMD0 = One
-                LEN0 = 0x08
-                DAT0 = Arg0
-                DAT1 = Arg1
-                DAT2 = Arg2
-                SPB0 = ^^I2Z1.BB00 = SPB0 /* \_SB_.BAT0.SPB0 */
-                ...
-            }
-And we have confirmed that the iASL disassembly result is correct.
+The drivers/acpi/nfit.c is moved to drivers/acpi/nfit/core.c
 
-Then this issue is not a parser issue, but looks like an issue either in interpreter or in BIOS as:
+> @@ -1396,11 +1396,12 @@ static u32 read_blk_stat(struct nfit_blk *nfit_blk, unsigned int bw)
+>  {
+>  	struct nfit_blk_mmio *mmio = &nfit_blk->mmio[DCR];
+>  	u64 offset = nfit_blk->stat_offset + mmio->size * bw;
+> +	const u32 STATUS_MASK = 0x80000037;
+>  
+>  	if (mmio->num_lines)
+>  		offset = to_interleave_offset(offset, mmio);
+>  
+> -	return readl(mmio->addr.base + offset);
+> +	return readl(mmio->addr.base + offset) & STATUS_MASK;
+>  }
+>  
+>  static void write_blk_ctl(struct nfit_blk *nfit_blk, unsigned int bw,
+> -- 
+> 2.9.0
 
-1. The following line triggers i2c operation region handlers:
-    SPB0 = ^^I2Z1.BB00 = SPB0
-    Where:
-    SPB0 is sized as 0x80, BB00 is sized as 0x02.
-    And in spec 19.6.1 AccessAs (Change Field Unit Access), it is said that AttribRawProcessBytes(AccessLength) requires an AccessLength parameter.
-    However in this case, the length of the output buffer is not correct, much smaller than the container buffer.
-    So this firstly looks like a BIOS issue. And then needn't be fixed in OS.
-2. If this is not a BIOS bug but an interpreter bug, then SPB0 should be a buffer passing to the i2c region handler.
-    The bug should be something related to "data type conversion".
-    Please refer to:
-    19.2.5.4 Implicit Source Operand Conversion
-    19.2.5.5 Implicit Result Object Conversion
-    It looks like that we have troubles in either 1st Store or 2nd Store.
-    If so, it seems we shouldn't fix this issue here. And thus this fix also looks invalid.
+Other parts are good to me.
 
-IMO (may be wrong), this bug finally may cause dissension among different parties (BIOS, Windows, ACPICA, spec).
+Reviewed-by: Lee, Chun-Yi <jlee-IBi9RG/b67k@public.gmane.org>
 
-However, for the time being, is that possible to work this issue around in the i2c operation region driver?
-
-Thanks and best regards
--Lv
-
-
->  			function = ACPI_WRITE | (accessor_type << 16);
->  		} else {	/* IPMI */
-> 
-> --
-> 2.5.5
-
+Regards
+Joey Lee
