@@ -1,35 +1,77 @@
-From: Baole Ni <baolex.ni@intel.com>
-Subject: [PATCH 0817/1285] Replace numeric parameter like 0444 with macro
-Date: Tue,  2 Aug 2016 19:49:18 +0800
-Message-ID: <20160802114918.4433-1-baolex.ni@intel.com>
-Return-path: <linux-pci-owner@vger.kernel.org>
-Sender: linux-pci-owner@vger.kernel.org
-To: rjw@rjwysocki.net, lenb@kernel.org, bhelgaas@google.com, rjui@broadcom.com, sbranden@broadcom.com, m.chehab@samsung.com, pawel@osciak.com, m.szyprowski@samsung.com, kyungmin.park@samsung.com, k.kozlowski@samsung.com
-Cc: linux-acpi@vger.kernel.org, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, chuansheng.liu@intel.com, baolex.ni@intel.com
+From: Sudeep Holla <sudeep.holla@arm.com>
+Subject: Re: [PATCH v10 7/7] ACPI : enable ACPI_PROCESSOR_IDLE on ARM64
+Date: Tue, 2 Aug 2016 14:00:16 +0100
+Message-ID: <4963f55a-d014-ec7b-2d9d-471fb3f29204@arm.com>
+References: <1468950779-21745-1-git-send-email-sudeep.holla@arm.com>
+ <1468950779-21745-8-git-send-email-sudeep.holla@arm.com>
+ <579BA8DE.3050802@codeaurora.org>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"; Format="flowed"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <579BA8DE.3050802@codeaurora.org>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Christopher Covington <cov@codeaurora.org>, ACPI List <linux-acpi@vger.kernel.org>
+Cc: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Prashanth Prakash <pprakash@codeaurora.org>, Al Stone <al.stone@linaro.org>, Vikas Sajjan <vikas.cha.sajjan@hpe.com>, Daniel Lezcano <daniel.lezcano@linaro.org>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, LKML <linux-kernel@vger.kernel.org>, Ashwin Chaugule <ashwin.chaugule@linaro.org>, Sudeep Holla <sudeep.holla@arm.com>, ALKML <linux-arm-kernel@lists.infradead.org>, Sunil <sunil.vl@hpe.com>
 List-Id: linux-acpi@vger.kernel.org
 
-I find that the developers often just specified the numeric value
-when calling a macro which is defined with a parameter for access permission.
-As we know, these numeric value for access permission have had the corresponding macro,
-and that using macro can improve the robustness and readability of the code,
-thus, I suggest replacing the numeric parameter with the macro.
 
-Signed-off-by: Chuansheng Liu <chuansheng.liu@intel.com>
-Signed-off-by: Baole Ni <baolex.ni@intel.com>
----
- drivers/pci/hotplug/acpi_pcihp.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/drivers/pci/hotplug/acpi_pcihp.c b/drivers/pci/hotplug/acpi_pcihp.c
-index a5e66df..10b6d91 100644
---- a/drivers/pci/hotplug/acpi_pcihp.c
-+++ b/drivers/pci/hotplug/acpi_pcihp.c
-@@ -223,5 +223,5 @@ int acpi_pci_detect_ejectable(acpi_handle handle)
- }
- EXPORT_SYMBOL_GPL(acpi_pci_detect_ejectable);
- 
--module_param(debug_acpi, bool, 0644);
-+module_param(debug_acpi, bool, S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH);
- MODULE_PARM_DESC(debug_acpi, "Debugging mode for ACPI enabled or not");
+On 29/07/16 20:05, Christopher Covington wrote:
+> Hi Sudeep,
+>
+> On 07/19/2016 01:52 PM, Sudeep Holla wrote:
+>> Now that ACPI processor idle driver supports LPI(Low Power Idle), lets
+>> enable ACPI_PROCESSOR_IDLE for ARM64 too.
+>>
+>> This patch just removes the IA64 and X86 dependency on ACPI_PROCESSOR_IDLE
+>>
+>> Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+>> Signed-off-by: Sudeep Holla <sudeep.holla@arm.com>
+>> ---
+>>  drivers/acpi/Kconfig | 2 +-
+>>  1 file changed, 1 insertion(+), 1 deletion(-)
+>>
+>> diff --git a/drivers/acpi/Kconfig b/drivers/acpi/Kconfig
+>> index 1358fb7d7a68..d74275c0f374 100644
+>> --- a/drivers/acpi/Kconfig
+>> +++ b/drivers/acpi/Kconfig
+>> @@ -238,7 +238,7 @@ config ACPI_CPPC_LIB
+>>  config ACPI_PROCESSOR
+>>  	tristate "Processor"
+>>  	depends on X86 || IA64 || ARM64
+>> -	select ACPI_PROCESSOR_IDLE if X86 || IA64
+>> +	select ACPI_PROCESSOR_IDLE
+>>  	select ACPI_CPU_FREQ_PSS if X86 || IA64
+>>  	default y
+>>  	help
+>>
+>
+> This causes a boot hang on QDF2432. cpuidle.off=1 works around the
+> problem. I understand you're working on a fix to the problem in GICv3
+> code. If there's anything I can do to help, please let me know.
+
+Sorry for the late response, I was away. Yes it's to do with GICv3 and
+retention states. I exchanged mails with QCOM guys in private. To summarize:
+
+We don't need any additional support in Linux to support that. Infact we
+need to remove disabling the redistributor in the powerdown path. PSCI
+implementation also do the same for Group0(aka secure/EL3 interrupts)
+and we currently do that for Group1(aka EL1N interrupts) in Linux. The
+plan was to move that to EL3 code, to align with GICv2 code.
+
+Hence the changes in Linux is just removal of the GICv3 PM notifier
+partially. I will need to check with Trusted Firmware team and do some
+testing before I post that change. I will plan to do that later this week.
+
 -- 
-2.9.2
+Regards,
+Sudeep
