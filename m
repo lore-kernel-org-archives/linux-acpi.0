@@ -1,12 +1,16 @@
 From: Baole Ni <baolex.ni@intel.com>
-Subject: [PATCH 0042/1285] Replace numeric parameter like 0444 with macro
-Date: Tue,  2 Aug 2016 18:36:35 +0800
-Message-ID: <20160802103635.16571-1-baolex.ni@intel.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: rjw@rjwysocki.net, lenb@kernel.org, x86@kernel.org, hpa@zytor.com
-Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, chuansheng.liu@intel.com, baolex.ni@intel.com, travis@sgi.com
+Subject: [PATCH 0818/1285] Replace numeric parameter like 0444 with macro
+Date: Tue,  2 Aug 2016 19:49:23 +0800
+Message-ID: <20160802114923.4500-1-baolex.ni@intel.com>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga03.intel.com ([134.134.136.65]:38744 "EHLO mga03.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S934532AbcHBM1H (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 2 Aug 2016 08:27:07 -0400
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: rjw@rjwysocki.net, lenb@kernel.org, bhelgaas@google.com, rjui@broadcom.com, sbranden@broadcom.com, m.chehab@samsung.com, pawel@osciak.com, m.szyprowski@samsung.com, kyungmin.park@samsung.com, k.kozlowski@samsung.com
+Cc: linux-acpi@vger.kernel.org, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, chuansheng.liu@intel.com, baolex.ni@intel.com
 
 I find that the developers often just specified the numeric value
 when calling a macro which is defined with a parameter for access permission.
@@ -17,21 +21,22 @@ thus, I suggest replacing the numeric parameter with the macro.
 Signed-off-by: Chuansheng Liu <chuansheng.liu@intel.com>
 Signed-off-by: Baole Ni <baolex.ni@intel.com>
 ---
- drivers/acpi/battery.c | 2 +-
+ drivers/pci/hotplug/acpiphp_core.c | 2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/drivers/acpi/battery.c b/drivers/acpi/battery.c
-index ab23479..5fa6d51 100644
---- a/drivers/acpi/battery.c
-+++ b/drivers/acpi/battery.c
-@@ -70,7 +70,7 @@ static async_cookie_t async_cookie;
- static int battery_bix_broken_package;
- static int battery_notification_delay_ms;
- static unsigned int cache_time = 1000;
--module_param(cache_time, uint, 0644);
-+module_param(cache_time, uint, S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH);
- MODULE_PARM_DESC(cache_time, "cache time in milliseconds");
+diff --git a/drivers/pci/hotplug/acpiphp_core.c b/drivers/pci/hotplug/acpiphp_core.c
+index 3c81fc8..66365dc 100644
+--- a/drivers/pci/hotplug/acpiphp_core.c
++++ b/drivers/pci/hotplug/acpiphp_core.c
+@@ -61,7 +61,7 @@ MODULE_AUTHOR(DRIVER_AUTHOR);
+ MODULE_DESCRIPTION(DRIVER_DESC);
+ MODULE_LICENSE("GPL");
+ MODULE_PARM_DESC(disable, "disable acpiphp driver");
+-module_param_named(disable, acpiphp_disabled, bool, 0444);
++module_param_named(disable, acpiphp_disabled, bool, S_IRUSR | S_IRGRP | S_IROTH);
  
- #ifdef CONFIG_ACPI_PROCFS_POWER
+ static int enable_slot(struct hotplug_slot *slot);
+ static int disable_slot(struct hotplug_slot *slot);
 -- 
 2.9.2
+
