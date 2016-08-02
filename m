@@ -1,77 +1,86 @@
-From: Sudeep Holla <sudeep.holla@arm.com>
-Subject: Re: [PATCH v10 7/7] ACPI : enable ACPI_PROCESSOR_IDLE on ARM64
-Date: Tue, 2 Aug 2016 14:00:16 +0100
-Message-ID: <4963f55a-d014-ec7b-2d9d-471fb3f29204@arm.com>
-References: <1468950779-21745-1-git-send-email-sudeep.holla@arm.com>
- <1468950779-21745-8-git-send-email-sudeep.holla@arm.com>
- <579BA8DE.3050802@codeaurora.org>
+From: Ross Zwisler <ross.zwisler-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
+Subject: [PATCH v2] libnvdimm, nd_blk: mask off reserved status bits
+Date: Tue,  2 Aug 2016 12:26:53 -0600
+Message-ID: <20160802182653.6647-1-ross.zwisler@linux.intel.com>
+References: <20160729205912.20436-1-ross.zwisler@linux.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"; Format="flowed"
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <579BA8DE.3050802@codeaurora.org>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Christopher Covington <cov@codeaurora.org>, ACPI List <linux-acpi@vger.kernel.org>
-Cc: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Prashanth Prakash <pprakash@codeaurora.org>, Al Stone <al.stone@linaro.org>, Vikas Sajjan <vikas.cha.sajjan@hpe.com>, Daniel Lezcano <daniel.lezcano@linaro.org>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, LKML <linux-kernel@vger.kernel.org>, Ashwin Chaugule <ashwin.chaugule@linaro.org>, Sudeep Holla <sudeep.holla@arm.com>, ALKML <linux-arm-kernel@lists.infradead.org>, Sunil <sunil.vl@hpe.com>
+Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+In-Reply-To: <20160729205912.20436-1-ross.zwisler-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
+List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
+ <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
+List-Post: <mailto:linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+List-Help: <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
+ <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
+Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
+Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+To: linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org, "Rafael J. Wysocki" <rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org>, "Lee,
+ Chun-Yi" <jlee-IBi9RG/b67k@public.gmane.org>, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, stable-u79uwXL29TY76Z2rM5mHXA@public.gmane.org#v4.2+, Len Brown <lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
+The "NVDIMM Block Window Driver Writer's Guide":
 
+http://pmem.io/documents/
+http://pmem.io/documents/NVDIMM_DriverWritersGuide-July-2016.pdf
 
-On 29/07/16 20:05, Christopher Covington wrote:
-> Hi Sudeep,
->
-> On 07/19/2016 01:52 PM, Sudeep Holla wrote:
->> Now that ACPI processor idle driver supports LPI(Low Power Idle), lets
->> enable ACPI_PROCESSOR_IDLE for ARM64 too.
->>
->> This patch just removes the IA64 and X86 dependency on ACPI_PROCESSOR_IDLE
->>
->> Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>
->> Signed-off-by: Sudeep Holla <sudeep.holla@arm.com>
->> ---
->>  drivers/acpi/Kconfig | 2 +-
->>  1 file changed, 1 insertion(+), 1 deletion(-)
->>
->> diff --git a/drivers/acpi/Kconfig b/drivers/acpi/Kconfig
->> index 1358fb7d7a68..d74275c0f374 100644
->> --- a/drivers/acpi/Kconfig
->> +++ b/drivers/acpi/Kconfig
->> @@ -238,7 +238,7 @@ config ACPI_CPPC_LIB
->>  config ACPI_PROCESSOR
->>  	tristate "Processor"
->>  	depends on X86 || IA64 || ARM64
->> -	select ACPI_PROCESSOR_IDLE if X86 || IA64
->> +	select ACPI_PROCESSOR_IDLE
->>  	select ACPI_CPU_FREQ_PSS if X86 || IA64
->>  	default y
->>  	help
->>
->
-> This causes a boot hang on QDF2432. cpuidle.off=1 works around the
-> problem. I understand you're working on a fix to the problem in GICv3
-> code. If there's anything I can do to help, please let me know.
+defines the layout of the block window status register.  For the July 2016
+version of the spec linked to above, this happens in Figure 4 on page 26.
 
-Sorry for the late response, I was away. Yes it's to do with GICv3 and
-retention states. I exchanged mails with QCOM guys in private. To summarize:
+The only bits defined in this spec are bits 31, 5, 4, 2, 1 and 0.  The rest
+of the bits in the status register are reserved, and there is a warning
+following the diagram that says:
 
-We don't need any additional support in Linux to support that. Infact we
-need to remove disabling the redistributor in the powerdown path. PSCI
-implementation also do the same for Group0(aka secure/EL3 interrupts)
-and we currently do that for Group1(aka EL1N interrupts) in Linux. The
-plan was to move that to EL3 code, to align with GICv2 code.
+  Note: The driver cannot assume the value of the RESERVED bits in the
+  status register are zero. These reserved bits need to be masked off, and
+  the driver must avoid checking the state of those bits.
 
-Hence the changes in Linux is just removal of the GICv3 PM notifier
-partially. I will need to check with Trusted Firmware team and do some
-testing before I post that change. I will plan to do that later this week.
+This change ensures that for hardware implementations that set these
+reserved bits in the status register, the driver won't incorrectly fail the
+block I/Os.
 
+Signed-off-by: Ross Zwisler <ross.zwisler-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
+Reviewed-by: Lee, Chun-Yi <jlee-IBi9RG/b67k@public.gmane.org>
+Cc: Dan Williams <dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: stable-u79uwXL29TY76Z2rM5mHXA@public.gmane.org # v4.2+
+---
+
+Changes from V1:
+ - Rebased onto the v4.8 merge tree.  As Joey points out the ND BLK code
+   recently moved from drivers/acpi/nfit.c to drivers/acpi/nfit/core.c.
+   Since we were in the merge window for v4.8 I didn't know what to use as
+   a baseline, so I just used v4.7, which was apparently incorrect.  Sorry
+   about that.
+
+ - Added Joey's reviewed-by.
+
+For stable kernels v4.2 and beyond the v1 patch for drivers/acpi/nfit.c
+applies cleanly and should be used.
+
+---
+ drivers/acpi/nfit/core.c | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
+
+diff --git a/drivers/acpi/nfit/core.c b/drivers/acpi/nfit/core.c
+index 8c234dd..80cc7c0 100644
+--- a/drivers/acpi/nfit/core.c
++++ b/drivers/acpi/nfit/core.c
+@@ -1527,11 +1527,12 @@ static u32 read_blk_stat(struct nfit_blk *nfit_blk, unsigned int bw)
+ {
+ 	struct nfit_blk_mmio *mmio = &nfit_blk->mmio[DCR];
+ 	u64 offset = nfit_blk->stat_offset + mmio->size * bw;
++	const u32 STATUS_MASK = 0x80000037;
+ 
+ 	if (mmio->num_lines)
+ 		offset = to_interleave_offset(offset, mmio);
+ 
+-	return readl(mmio->addr.base + offset);
++	return readl(mmio->addr.base + offset) & STATUS_MASK;
+ }
+ 
+ static void write_blk_ctl(struct nfit_blk *nfit_blk, unsigned int bw,
 -- 
-Regards,
-Sudeep
+2.9.0
