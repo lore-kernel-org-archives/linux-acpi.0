@@ -1,7 +1,7 @@
 From: Baole Ni <baolex.ni@intel.com>
-Subject: [PATCH 0050/1285] Replace numeric parameter like 0444 with macro
-Date: Tue,  2 Aug 2016 18:37:06 +0800
-Message-ID: <20160802103706.17099-1-baolex.ni@intel.com>
+Subject: [PATCH 0053/1285] Replace numeric parameter like 0444 with macro
+Date: Tue,  2 Aug 2016 18:37:18 +0800
+Message-ID: <20160802103718.17297-1-baolex.ni@intel.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Sender: linux-kernel-owner@vger.kernel.org
 To: rjw@rjwysocki.net, lenb@kernel.org, x86@kernel.org, hpa@zytor.com
@@ -17,21 +17,62 @@ thus, I suggest replacing the numeric parameter with the macro.
 Signed-off-by: Chuansheng Liu <chuansheng.liu@intel.com>
 Signed-off-by: Baole Ni <baolex.ni@intel.com>
 ---
- drivers/acpi/processor_perflib.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/acpi/sysfs.c | 16 ++++++++--------
+ 1 file changed, 8 insertions(+), 8 deletions(-)
 
-diff --git a/drivers/acpi/processor_perflib.c b/drivers/acpi/processor_perflib.c
-index bb01dea..b0b209d 100644
---- a/drivers/acpi/processor_perflib.c
-+++ b/drivers/acpi/processor_perflib.c
-@@ -59,7 +59,7 @@ static DEFINE_MUTEX(performance_mutex);
-  *  1 -> ignore _PPC totally -> forced by user through boot param
-  */
- static int ignore_ppc = -1;
--module_param(ignore_ppc, int, 0644);
-+module_param(ignore_ppc, int, S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH);
- MODULE_PARM_DESC(ignore_ppc, "If the frequency of your machine gets wrongly" \
- 		 "limited by BIOS, this should help");
+diff --git a/drivers/acpi/sysfs.c b/drivers/acpi/sysfs.c
+index 4b3a9e2..2830b21 100644
+--- a/drivers/acpi/sysfs.c
++++ b/drivers/acpi/sysfs.c
+@@ -161,8 +161,8 @@ static const struct kernel_param_ops param_ops_debug_level = {
+ 	.get = param_get_debug_level,
+ };
  
+-module_param_cb(debug_layer, &param_ops_debug_layer, &acpi_dbg_layer, 0644);
+-module_param_cb(debug_level, &param_ops_debug_level, &acpi_dbg_level, 0644);
++module_param_cb(debug_layer, &param_ops_debug_layer, &acpi_dbg_layer, S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH);
++module_param_cb(debug_level, &param_ops_debug_level, &acpi_dbg_level, S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH);
+ 
+ static char trace_method_name[1024];
+ 
+@@ -223,9 +223,9 @@ static const struct kernel_param_ops param_ops_trace_attrib = {
+ 	.get = param_get_uint,
+ };
+ 
+-module_param_cb(trace_method_name, &param_ops_trace_method, &trace_method_name, 0644);
+-module_param_cb(trace_debug_layer, &param_ops_trace_attrib, &acpi_gbl_trace_dbg_layer, 0644);
+-module_param_cb(trace_debug_level, &param_ops_trace_attrib, &acpi_gbl_trace_dbg_level, 0644);
++module_param_cb(trace_method_name, &param_ops_trace_method, &trace_method_name, S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH);
++module_param_cb(trace_debug_layer, &param_ops_trace_attrib, &acpi_gbl_trace_dbg_layer, S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH);
++module_param_cb(trace_debug_level, &param_ops_trace_attrib, &acpi_gbl_trace_dbg_level, S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH);
+ 
+ static int param_set_trace_state(const char *val, struct kernel_param *kp)
+ {
+@@ -280,14 +280,14 @@ static int param_get_trace_state(char *buffer, struct kernel_param *kp)
+ }
+ 
+ module_param_call(trace_state, param_set_trace_state, param_get_trace_state,
+-		  NULL, 0644);
++		  NULL, S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH);
+ #endif /* CONFIG_ACPI_DEBUG */
+ 
+ 
+ /* /sys/modules/acpi/parameters/aml_debug_output */
+ 
+ module_param_named(aml_debug_output, acpi_gbl_enable_aml_debug_object,
+-		   byte, 0644);
++		   byte, S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH);
+ MODULE_PARM_DESC(aml_debug_output,
+ 		 "To enable/disable the ACPI Debug Object output.");
+ 
+@@ -301,7 +301,7 @@ static int param_get_acpica_version(char *buffer, struct kernel_param *kp)
+ 	return result;
+ }
+ 
+-module_param_call(acpica_version, NULL, param_get_acpica_version, NULL, 0444);
++module_param_call(acpica_version, NULL, param_get_acpica_version, NULL, S_IRUSR | S_IRGRP | S_IROTH);
+ 
+ /*
+  * ACPI table sysfs I/F:
 -- 
 2.9.2
