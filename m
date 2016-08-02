@@ -1,60 +1,37 @@
-From: "Zheng, Lv" <lv.zheng@intel.com>
-Subject: RE: [PATCH] ACPI / EC: Fix a regression by reducing parallel _Qxx
- evaluations
-Date: Tue, 2 Aug 2016 11:08:17 +0000
-Message-ID: <1AE640813FDE7649BE1B193DEA596E883BC08E1A@SHSMSX101.ccr.corp.intel.com>
-References: <ca8220945184c65f3cd16418de5cfd34bf0b31ab.1469608346.git.lv.zheng@intel.com>
- <1AE640813FDE7649BE1B193DEA596E883BC07E41@SHSMSX101.ccr.corp.intel.com>
- <1679499.0i0bVJIctl@vostro.rjw.lan>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga01.intel.com ([192.55.52.88]:52259 "EHLO mga01.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753669AbcHBLLZ (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 2 Aug 2016 07:11:25 -0400
-In-Reply-To: <1679499.0i0bVJIctl@vostro.rjw.lan>
-Content-Language: en-US
-Sender: linux-acpi-owner@vger.kernel.org
+From: Baole Ni <baolex.ni@intel.com>
+Subject: [PATCH 0052/1285] Replace numeric parameter like 0444 with macro
+Date: Tue,  2 Aug 2016 18:37:14 +0800
+Message-ID: <20160802103714.17231-1-baolex.ni@intel.com>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: rjw@rjwysocki.net, lenb@kernel.org, x86@kernel.org, hpa@zytor.com
+Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, chuansheng.liu@intel.com, baolex.ni@intel.com, travis@sgi.com
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>, "Brown, Len" <len.brown@intel.com>, Lv Zheng <zetalog@gmail.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
 
-SGksIFJhZmFlbA0KDQo+IEZyb206IFJhZmFlbCBKLiBXeXNvY2tpIFttYWlsdG86cmp3QHJqd3lz
-b2NraS5uZXRdDQo+IFN1YmplY3Q6IFJlOiBbUEFUQ0hdIEFDUEkgLyBFQzogRml4IGEgcmVncmVz
-c2lvbiBieSByZWR1Y2luZyBwYXJhbGxlbCBfUXh4DQo+IGV2YWx1YXRpb25zDQo+IA0KPiBPbiBG
-cmlkYXksIEp1bHkgMjksIDIwMTYgMDM6NTg6MjAgQU0gWmhlbmcsIEx2IHdyb3RlOg0KPiA+IEhp
-LCBSYWZhZWwNCj4gPg0KPiA+ID4gRnJvbTogWmhlbmcsIEx2DQo+ID4gPiBTdWJqZWN0OiBbUEFU
-Q0hdIEFDUEkgLyBFQzogRml4IGEgcmVncmVzc2lvbiBieSByZWR1Y2luZyBwYXJhbGxlbCBfUXh4
-DQo+ID4gPiBldmFsdWF0aW9ucw0KPiA+ID4NCj4gPiA+IEEgcmVncmVzc2lvbiBpcyBjYXVzZWQg
-YnkgdGhlIGZvbGxvd2luZyBjb21taXQ6DQo+ID4gPiAgIENvbW1pdDogMDJiNzcxYjY0YjczMjI2
-MDUyZDZlNzMxYTA5ODdkYjNiNDcyODFlOQ0KPiA+ID4gICBTdWJqZWN0OiBBQ1BJIC8gRUM6IEZp
-eCBhbiBpc3N1ZSBjYXVzZWQgYnkgdGhlIHNlcmlhbGl6ZWQgX1F4eA0KPiBldmFsdWF0aW9ucw0K
-PiA+ID4gSW4gdGhpcyBjb21taXQsIHVzaW5nIHN5c3RlbSB3b3JrcXVldWUgY2F1c2VzIHRoYXQg
-dGhlIG1heGltdW0NCj4gcGFyYWxsZWwNCj4gPiA+IGV4ZWN1dGlvbnMgb2YgX1F4eCBjYW4gZXhj
-ZWVkIDI1NS4gVGhpcyB2aW9sYXRlcyB0aGUgbWV0aG9kDQo+IHJlZW50cmFuY3kNCj4gPiA+IGxp
-bWl0IGluIEFDUElDQSBhbmQgZ2VuZXJhdGVzIHRoZSBmb2xsb3dpbmcgZXJyb3IgbG9nOg0KPiA+
-ID4gICBBQ1BJIEVycm9yOiBNZXRob2QgcmVhY2hlZCBtYXhpbXVtIHJlZW50cmFuY3kgbGltaXQg
-KDI1NSkNCj4gPiA+ICgyMDE1MDgxOC9kc21ldGhvZC0zNDEpDQo+ID4gPg0KPiA+ID4gVGhpcyBw
-YXRjaCBjcmVhdGVzIGEgc2VwZXJhdGUgd29ya3F1ZXVlIGFuZCBsaW1pdHMgdGhlIG51bWJlciBv
-Zg0KPiBwYXJhbGxlbA0KPiA+ID4gX1F4eCBldmFsdWF0aW9ucyBkb3duIHRvIGEgY29uZmlndXJh
-YmxlIHZhbHVlIChjYW4gYmUgdHVuZWQgYWdhaW5zdA0KPiA+ID4gbnVtYmVyDQo+ID4gPiBvZiBv
-bmxpbmUgQ1BVcykuDQo+ID4gPg0KPiA+ID4gU2luY2UgRUMgZXZlbnRzIGFyZSBoYW5kbGVkIGFm
-dGVyIGRyaXZlciBwcm9iZSwgd2UgY2FuIGNyZWF0ZSB0aGUNCj4gPiA+IHdvcmtxdWV1ZQ0KPiA+
-ID4gaW4gYWNwaV9lY19pbml0KCkuDQo+ID4gPg0KPiA+ID4gRml4ZXM6IDAyYjc3MWI2NGI3MyAo
-QUNQSSAvIEVDOiBGaXggYW4gaXNzdWUgY2F1c2VkIGJ5IHRoZSBzZXJpYWxpemVkDQo+IF9ReHgN
-Cj4gPiA+IGV2YWx1YXRpb25zKQ0KPiA+ID4gQ2M6IDxzdGFibGVAdmdlci5rZXJuZWwub3JnPiAj
-IDQuMysNCj4gPiA+IFJlcG9ydGVkLWFuZC10ZXN0ZWQtYnk6IEhlbGVuIEJ1dXMgPHVidW50dUBo
-YnV1cy5jb20+DQo+ID4gW0x2IFpoZW5nXQ0KPiA+IEknbSBzb3JyeSB0aGF0IEkgZm9yZ290IHRv
-IG1lbnRpb24gdGhlIGJ1ZyBsaW5rLg0KPiA+IEl0J3MgYWN0dWFsbHkgcmVjb3JkZWQgaW4ga2Vy
-bmVsIEJ1Z3ppbGxhLg0KPiA+IFRoZSBidWcgY2FuIGJlIGZvdW5kIGhlcmU6DQo+ID4gTGluazog
-aHR0cHM6Ly9idWd6aWxsYS5rZXJuZWwub3JnL3Nob3dfYnVnLmNnaT9pZD0xMzU2OTENCj4gPiBI
-b3BlIHlvdSBjYW4gaGVscCB0byBhZGQgdGhpcyB1c2VmdWwgaW5mb3JtYXRpb24gaWYgdGhpcyBw
-YXRjaCBpcw0KPiBhY2NlcHRhYmxlLg0KPiANCj4gSSBkaWQgdGhhdCwgYnV0IGR1ZSB0byB0aGUg
-cHJvYmxlbSByZXBvcnRlZCBhZ2FpbnN0IHRoaXMgcGF0Y2gNCj4gKGh0dHBzOi8vcGF0Y2h3b3Jr
-Lmtlcm5lbC5vcmcvcGF0Y2gvOTI1MjY0NS8pLCBJJ20gZ29pbmcgdG8gZHJvcCBpdCBmcm9tDQo+
-IGxpbnV4LW5leHQgYW5kIEknbGwgYmUgd2FpdGluZyBmb3IgYW4gdXBkYXRlIHdpdGggdGhhdCBw
-cm9ibGVtIGFkZHJlc3NlZC4NCg0KW0x2IFpoZW5nXSANCk9LLCBJJ2xsIHJlLXNlbmQgYW4gdXBk
-YXRlIG9mIHRoaXMgcGF0Y2guDQpTb3JyeSBmb3IgdGhlIHByb2JsZW0uDQoNClRoYW5rcw0KTHYN
-Cg==
+I find that the developers often just specified the numeric value
+when calling a macro which is defined with a parameter for access permission.
+As we know, these numeric value for access permission have had the corresponding macro,
+and that using macro can improve the robustness and readability of the code,
+thus, I suggest replacing the numeric parameter with the macro.
+
+Signed-off-by: Chuansheng Liu <chuansheng.liu@intel.com>
+Signed-off-by: Baole Ni <baolex.ni@intel.com>
+---
+ drivers/acpi/sbs.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/drivers/acpi/sbs.c b/drivers/acpi/sbs.c
+index ad0b13a..e27ecbf 100644
+--- a/drivers/acpi/sbs.c
++++ b/drivers/acpi/sbs.c
+@@ -55,7 +55,7 @@ MODULE_DESCRIPTION("Smart Battery System ACPI interface driver");
+ MODULE_LICENSE("GPL");
+ 
+ static unsigned int cache_time = 1000;
+-module_param(cache_time, uint, 0644);
++module_param(cache_time, uint, S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH);
+ MODULE_PARM_DESC(cache_time, "cache time in milliseconds");
+ 
+ static bool sbs_manager_broken;
+-- 
+2.9.2
