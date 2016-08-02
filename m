@@ -1,115 +1,60 @@
-From: Dou Liyang <douly.fnst@cn.fujitsu.com>
-Subject: Re: [PATCH v10 2/7] x86, acpi, cpu-hotplug: Enable acpi to register
- all possible cpus at boot time.
-Date: Tue, 2 Aug 2016 15:30:38 +0800
-Message-ID: <31882463-3647-15eb-1410-47bbb87a69d7@cn.fujitsu.com>
-References: <1469513429-25464-1-git-send-email-douly.fnst@cn.fujitsu.com>
- <1469513429-25464-3-git-send-email-douly.fnst@cn.fujitsu.com>
- <alpine.DEB.2.11.1607291526210.19896@nanos>
+From: "Zheng, Lv" <lv.zheng@intel.com>
+Subject: RE: [PATCH] ACPI / EC: Fix a regression by reducing parallel _Qxx
+ evaluations
+Date: Tue, 2 Aug 2016 11:08:17 +0000
+Message-ID: <1AE640813FDE7649BE1B193DEA596E883BC08E1A@SHSMSX101.ccr.corp.intel.com>
+References: <ca8220945184c65f3cd16418de5cfd34bf0b31ab.1469608346.git.lv.zheng@intel.com>
+ <1AE640813FDE7649BE1B193DEA596E883BC07E41@SHSMSX101.ccr.corp.intel.com>
+ <1679499.0i0bVJIctl@vostro.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"; format=flowed
-Content-Transfer-Encoding: 8bit
-Return-path: <owner-linux-mm@kvack.org>
-In-Reply-To: <alpine.DEB.2.11.1607291526210.19896@nanos>
-Sender: owner-linux-mm@kvack.org
-To: Thomas Gleixner <tglx@linutronix.de>
-Cc: cl@linux.com, tj@kernel.org, mika.j.penttila@gmail.com, mingo@redhat.com, akpm@linux-foundation.org, rjw@rjwysocki.net, hpa@zytor.com, yasu.isimatu@gmail.com, isimatu.yasuaki@jp.fujitsu.com, kamezawa.hiroyu@jp.fujitsu.com, izumi.taku@jp.fujitsu.com, gongzhaogang@inspur.com, len.brown@intel.com, lenb@kernel.org, chen.tang@easystack.cn, rafael@kernel.org, x86@kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linux-mm@kvack.org, Gu Zheng <guz.fnst@cn.fujitsu.com>, Tang Chen <tangchen@cn.fujitsu.com>, Zhu Guihua <zhugh.fnst@cn.fujitsu.com>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga01.intel.com ([192.55.52.88]:52259 "EHLO mga01.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753669AbcHBLLZ (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 2 Aug 2016 07:11:25 -0400
+In-Reply-To: <1679499.0i0bVJIctl@vostro.rjw.lan>
+Content-Language: en-US
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>, "Brown, Len" <len.brown@intel.com>, Lv Zheng <zetalog@gmail.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
 
-Hi tglx,
-
-在 2016年07月29日 21:36, Thomas Gleixner 写道:
-> On Tue, 26 Jul 2016, Dou Liyang wrote:
->
->> 1. Enable apic registeration flow to handle both enabled and disabled cpus.
->>    This is done by introducing an extra parameter to generic_processor_info to
->>    let the caller control if disabled cpus are ignored.
->
-> If I'm reading the patch correctly then the 'enabled' argument controls more
-> than the disabled cpus accounting. It also controls the modification of
-> num_processors and the present mask.
-
-In the patch, they both need mapping to a logic cpu.
-As you said, the 'enabled' controls extra functions:
-
-1. num_processors parameter
-2. physid_set method
-3. set_cpu_present method
-
->
->> -int generic_processor_info(int apicid, int version)
->> +static int __generic_processor_info(int apicid, int version, bool enabled)
->>  {
->>  	int cpu, max = nr_cpu_ids;
->>  	bool boot_cpu_detected = physid_isset(boot_cpu_physical_apicid,
->> @@ -2032,7 +2032,8 @@ int generic_processor_info(int apicid, int version)
->>  			   " Processor %d/0x%x ignored.\n",
->>  			   thiscpu, apicid);
->>
->> -		disabled_cpus++;
->> +		if (enabled)
->> +			disabled_cpus++;
->>  		return -ENODEV;
->>  	}
->>
->> @@ -2049,7 +2050,8 @@ int generic_processor_info(int apicid, int version)
->>  			" reached. Keeping one slot for boot cpu."
->>  			"  Processor %d/0x%x ignored.\n", max, thiscpu, apicid);
->>
->> -		disabled_cpus++;
->> +		if (enabled)
->> +			disabled_cpus++;
->
-> This is utterly confusing. That code path cannot be reached when enabled is
-> false, because num_processors is 0 as we never increment it when enabled is
-> false.
->
-> That said, I really do not like this 'slap some argument on it and make it
-> work somehow' approach.
->
-> The proper solution for this is to seperate out the functionality which you
-> need for the preparation run (enabled = false) and make sure that the
-> information you need for the real run (enabled = true) is properly cached
-> somewhere so we don't have to evaluate the same thing over and over.
-
-Thank you very much for your advice. That solution is very good for me.
-
-I thought about the differences between them carefully. Firstly, I
-intend to separate out the functionality in two functions. It's simple
-but not good. Then, I try to put them together to judge just once.
-
-After, considering the judgment statement independence and the order of
-assignment. I remove all the "if (enabled)" code and do the unified
-judgment like this:
-
-@@ -2180,12 +2176,19 @@ int __generic_processor_info(int apicid, int
-version, bool enabled)
-                 apic->x86_32_early_logical_apicid(cpu);
-  #endif
-         set_cpu_possible(cpu, true);
--       if (enabled)
-+
-+       if (enabled){
-+               num_processors++;
-+               physid_set(apicid, phys_cpu_present_map);
-                 set_cpu_present(cpu, true);
-+       }else{
-+               disabled_cpus++;
-+       }
-
-         return cpu;
-  }
-
-I hope that patch could consistent with your advice. And I will submit
-the detailed modification in the next version patches.
-
-Thanks,
-
-Dou.
-
-
---
-To unsubscribe, send a message with 'unsubscribe linux-mm' in
-the body to majordomo@kvack.org.  For more info on Linux MM,
-see: http://www.linux-mm.org/ .
-Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
+SGksIFJhZmFlbA0KDQo+IEZyb206IFJhZmFlbCBKLiBXeXNvY2tpIFttYWlsdG86cmp3QHJqd3lz
+b2NraS5uZXRdDQo+IFN1YmplY3Q6IFJlOiBbUEFUQ0hdIEFDUEkgLyBFQzogRml4IGEgcmVncmVz
+c2lvbiBieSByZWR1Y2luZyBwYXJhbGxlbCBfUXh4DQo+IGV2YWx1YXRpb25zDQo+IA0KPiBPbiBG
+cmlkYXksIEp1bHkgMjksIDIwMTYgMDM6NTg6MjAgQU0gWmhlbmcsIEx2IHdyb3RlOg0KPiA+IEhp
+LCBSYWZhZWwNCj4gPg0KPiA+ID4gRnJvbTogWmhlbmcsIEx2DQo+ID4gPiBTdWJqZWN0OiBbUEFU
+Q0hdIEFDUEkgLyBFQzogRml4IGEgcmVncmVzc2lvbiBieSByZWR1Y2luZyBwYXJhbGxlbCBfUXh4
+DQo+ID4gPiBldmFsdWF0aW9ucw0KPiA+ID4NCj4gPiA+IEEgcmVncmVzc2lvbiBpcyBjYXVzZWQg
+YnkgdGhlIGZvbGxvd2luZyBjb21taXQ6DQo+ID4gPiAgIENvbW1pdDogMDJiNzcxYjY0YjczMjI2
+MDUyZDZlNzMxYTA5ODdkYjNiNDcyODFlOQ0KPiA+ID4gICBTdWJqZWN0OiBBQ1BJIC8gRUM6IEZp
+eCBhbiBpc3N1ZSBjYXVzZWQgYnkgdGhlIHNlcmlhbGl6ZWQgX1F4eA0KPiBldmFsdWF0aW9ucw0K
+PiA+ID4gSW4gdGhpcyBjb21taXQsIHVzaW5nIHN5c3RlbSB3b3JrcXVldWUgY2F1c2VzIHRoYXQg
+dGhlIG1heGltdW0NCj4gcGFyYWxsZWwNCj4gPiA+IGV4ZWN1dGlvbnMgb2YgX1F4eCBjYW4gZXhj
+ZWVkIDI1NS4gVGhpcyB2aW9sYXRlcyB0aGUgbWV0aG9kDQo+IHJlZW50cmFuY3kNCj4gPiA+IGxp
+bWl0IGluIEFDUElDQSBhbmQgZ2VuZXJhdGVzIHRoZSBmb2xsb3dpbmcgZXJyb3IgbG9nOg0KPiA+
+ID4gICBBQ1BJIEVycm9yOiBNZXRob2QgcmVhY2hlZCBtYXhpbXVtIHJlZW50cmFuY3kgbGltaXQg
+KDI1NSkNCj4gPiA+ICgyMDE1MDgxOC9kc21ldGhvZC0zNDEpDQo+ID4gPg0KPiA+ID4gVGhpcyBw
+YXRjaCBjcmVhdGVzIGEgc2VwZXJhdGUgd29ya3F1ZXVlIGFuZCBsaW1pdHMgdGhlIG51bWJlciBv
+Zg0KPiBwYXJhbGxlbA0KPiA+ID4gX1F4eCBldmFsdWF0aW9ucyBkb3duIHRvIGEgY29uZmlndXJh
+YmxlIHZhbHVlIChjYW4gYmUgdHVuZWQgYWdhaW5zdA0KPiA+ID4gbnVtYmVyDQo+ID4gPiBvZiBv
+bmxpbmUgQ1BVcykuDQo+ID4gPg0KPiA+ID4gU2luY2UgRUMgZXZlbnRzIGFyZSBoYW5kbGVkIGFm
+dGVyIGRyaXZlciBwcm9iZSwgd2UgY2FuIGNyZWF0ZSB0aGUNCj4gPiA+IHdvcmtxdWV1ZQ0KPiA+
+ID4gaW4gYWNwaV9lY19pbml0KCkuDQo+ID4gPg0KPiA+ID4gRml4ZXM6IDAyYjc3MWI2NGI3MyAo
+QUNQSSAvIEVDOiBGaXggYW4gaXNzdWUgY2F1c2VkIGJ5IHRoZSBzZXJpYWxpemVkDQo+IF9ReHgN
+Cj4gPiA+IGV2YWx1YXRpb25zKQ0KPiA+ID4gQ2M6IDxzdGFibGVAdmdlci5rZXJuZWwub3JnPiAj
+IDQuMysNCj4gPiA+IFJlcG9ydGVkLWFuZC10ZXN0ZWQtYnk6IEhlbGVuIEJ1dXMgPHVidW50dUBo
+YnV1cy5jb20+DQo+ID4gW0x2IFpoZW5nXQ0KPiA+IEknbSBzb3JyeSB0aGF0IEkgZm9yZ290IHRv
+IG1lbnRpb24gdGhlIGJ1ZyBsaW5rLg0KPiA+IEl0J3MgYWN0dWFsbHkgcmVjb3JkZWQgaW4ga2Vy
+bmVsIEJ1Z3ppbGxhLg0KPiA+IFRoZSBidWcgY2FuIGJlIGZvdW5kIGhlcmU6DQo+ID4gTGluazog
+aHR0cHM6Ly9idWd6aWxsYS5rZXJuZWwub3JnL3Nob3dfYnVnLmNnaT9pZD0xMzU2OTENCj4gPiBI
+b3BlIHlvdSBjYW4gaGVscCB0byBhZGQgdGhpcyB1c2VmdWwgaW5mb3JtYXRpb24gaWYgdGhpcyBw
+YXRjaCBpcw0KPiBhY2NlcHRhYmxlLg0KPiANCj4gSSBkaWQgdGhhdCwgYnV0IGR1ZSB0byB0aGUg
+cHJvYmxlbSByZXBvcnRlZCBhZ2FpbnN0IHRoaXMgcGF0Y2gNCj4gKGh0dHBzOi8vcGF0Y2h3b3Jr
+Lmtlcm5lbC5vcmcvcGF0Y2gvOTI1MjY0NS8pLCBJJ20gZ29pbmcgdG8gZHJvcCBpdCBmcm9tDQo+
+IGxpbnV4LW5leHQgYW5kIEknbGwgYmUgd2FpdGluZyBmb3IgYW4gdXBkYXRlIHdpdGggdGhhdCBw
+cm9ibGVtIGFkZHJlc3NlZC4NCg0KW0x2IFpoZW5nXSANCk9LLCBJJ2xsIHJlLXNlbmQgYW4gdXBk
+YXRlIG9mIHRoaXMgcGF0Y2guDQpTb3JyeSBmb3IgdGhlIHByb2JsZW0uDQoNClRoYW5rcw0KTHYN
+Cg==
