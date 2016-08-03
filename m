@@ -1,59 +1,156 @@
-From: <x9ahoukatsu@med.kagawa-u.ac.jp>
-Subject: RE: linux-acpi
-Date: Wed, 3 Aug 2016 10:24:17 -0400
-Message-ID: <000101d1edc4$e3f77420$c0a80001@verizon.net>
-Reply-To: <linux-acpi@vger.kernel.org>
-Mime-Version: 1.0
-Content-Type: application/zip; name="zgkfyihl_linux-acpi.zip"
-Content-Transfer-Encoding: base64
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from static-173-59-115-46.phlapa.fios.verizon.net ([173.59.115.46]:49698
-	"HELO verizon.net" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with SMTP id S932195AbcHCOYR (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 3 Aug 2016 10:24:17 -0400
-Content-Disposition: attachment
-Sender: linux-acpi-owner@vger.kernel.org
+From: Eduardo Valentin <edubezval@gmail.com>
+Subject: [GIT PULL] Thermal SoC management updates for v4.8-rc1
+Date: Wed,  3 Aug 2016 15:58:47 -0700
+Message-ID: <1470265127-22631-1-git-send-email-edubezval@gmail.com>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Rui Zhang <rui.zhang@intel.com>
+Cc: Eduardo Valentin <edubezval@gmail.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux PM <linux-pm@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi <linux-acpi@vger.kernel.org>
 
-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
-AQBWAAAAiAgAAAAA
+Hello Rui,
+
+Please pull from
+
+  git://git.kernel.org/pub/scm/linux/kernel/git/evalenti/linux-soc-thermal linus
+
+to receive Thermal SoC Management updates for v4.8-rc1 with top-most
+
+95170abf9a3320a2e4215ce9106569e5344b87f0:
+
+  thermal: trivial: fix the typo (2016-07-01 20:05:59 -0700)
+
+on top of commit b02b1fbdd338f70e49efa9ca9899214134526701:
+
+  Merge tag 'scsi-fixes' of git://git.kernel.org/pub/scm/linux/kernel/git/jejb/scsi (2016-05-29 13:28:39 -0700)
+
+----------------------------------------------------------------
+Caesar Wang (4):
+      thermal: rockchip: add the set_trips function
+      thermal: rockchip: fixes the period time for tsadc
+      thermal: rockchip: fixes the exception interrupts
+      thermal: trivial: fix the typo
+
+Eduardo Valentin (65):
+      thermal: core: prevent zones with no types to be registered
+      thermal: core: group thermal_zone DEVICE_ATTR's declarations
+      thermal: core: group device_create_file() calls that are always created
+      thermal: core: use dev.groups to manage always present tz attributes
+      thermal: core: move emul_temp creation to tz->device.groups
+      thermal: core: move mode attribute to tz->device.groups
+      thermal: core: move passive attr to tz->device.groups
+      thermal: core: improve power actor documentation
+      thermal: core: move power actor code out of sysfs I/F section
+      thermal: core: remove useless empty line
+      thermal: core: fix style on remove_trip_attrs()
+      thermal: core: move the trip attrs to the tz sysfs I/F section
+      thermal: core: create tz->device.groups dynamically
+      thermal: core: move trips attributes to tz->device.groups
+      thermal: core: remove unnecessary device_remove() calls
+      thermal: core: split passive_store
+      thermal: core: split policy_store
+      thermal: core: split available_policies_show()
+      thermal: core: move to_thermal_zone() macro to header file
+      thermal: core: treat correctly the return value of *scanf calls
+      thermal: core: match parenthesis on code alignment
+      thermal: core: move thermal_zone sysfs to thermal_sysfs.c
+      thermal: core: move to_cooling_device macro to header file
+      thermal: core: move cooling device sysfs to thermal_sysfs.c
+      thermal: core: remove a couple of style issues on helpers
+      thermal: core: introduce thermal_helpers.c
+      thermal: core: group functions related to governor handling
+      thermal: core: move idr handling to device management section
+      thermal: core: small style fix on __unbind() helper
+      thermal: core: move __unbind() helper to where it is used
+      thermal: core: move bind_cdev() to where it is used
+      thermal: core: move bind_tz() to where it is used
+      thermal: core: fix couple of style issues on __bind() helper
+      thermal: core: move __bind() to where it is used
+      thermal: core: add inline to print_bind_err_msg()
+      thermal: core: move notify to the zone update section
+      thermal: core: add a comment describing the main update loop
+      thermal: core: add a comment describing the power actor section
+      thermal: core: add a comment describing the device management section
+      thermal: sysfs: remove symbols of emul_temp when config is disabled
+      thermal: core: remove FSF address in the GPL notice
+      thermal: core: small style fix when checking for __find_governor()
+      thermal: core: standardize line breaking alignment
+      thermal: core: remove void function return statements
+      thermal: core: remove style warnings and checks
+      thermal: core: improve kerneldoc entry of thermal_cooling_device_unregister
+      thermal: core: use kzalloc(sizeof(*ptr),...)
+      thermal: sysfs: use kcalloc() instead of kzalloc()
+      thermal: sysfs: lock tz in type_show
+      thermal: sysfs: lock tz while on access to mode properties
+      thermal: sysfs: lock tz while on trip_point_type properties
+      thermal: sysfs: lock tz while on trip_point_temp properties
+      thermal: sysfs: lock tz while on trip_point_hyst properties
+      thermal: sysfs: lock tz while on passive properties
+      thermal: sysfs: lock tz while on policy properties
+      thermal: sysfs: improve locking of emul_temp_store()
+      thermal: sysfs: lock tz when access sustainable power properties
+      thermal: sysfs: lock tz when access tzp properties
+      thermal: sysfs: lock cdev while accessing type
+      thermal: sysfs: lock cdev while accessing max_state
+      thermal: sysfs: lock cdev while accessing cur_state
+      thermal: sysfs: serialize access to instances
+      thermal: sysfs: add comments describing locking strategy
+      thermal: qcom: remove declare local symbols as static
+      thermal: core: move slop and offset helpers to thermal_helpers.c
+
+Keerthy (1):
+      thermal: of-thermal: Fix setting of set_emul_temp hook
+
+Rajendra Nayak (6):
+      thermal: qcom: tsens: Add a skeletal TSENS drivers
+      thermal: qcom: tsens-8916: Add support for 8916 family of SoCs
+      thermal: qcom: tsens-8974: Add support for 8974 family of SoCs
+      thermal: core: export apis to get slope and offset
+      thermal: qcom: tsens-8960: Add support for 8960 family of SoCs
+      thermal: qcom: tsens-8996: Add support for 8996 family of SoCs
+
+Sascha Hauer (4):
+      thermal: Add support for hardware-tracked trip points
+      thermal: of: implement .set_trips for device tree thermal zones
+      thermal: streamline get_trend callbacks
+      thermal: bang-bang governor: act on lower trip boundary
+
+ .../devicetree/bindings/thermal/qcom-tsens.txt     |   21 +
+ .../devicetree/bindings/thermal/thermal.txt        |   10 +-
+ Documentation/thermal/sysfs-api.txt                |   19 +
+ drivers/acpi/thermal.c                             |    1 -
+ drivers/platform/x86/acerhdf.c                     |    1 -
+ drivers/thermal/Kconfig                            |    5 +
+ drivers/thermal/Makefile                           |    4 +-
+ drivers/thermal/gov_bang_bang.c                    |    2 +-
+ drivers/thermal/imx_thermal.c                      |    1 -
+ drivers/thermal/of-thermal.c                       |   47 +-
+ drivers/thermal/qcom/Kconfig                       |   11 +
+ drivers/thermal/qcom/Makefile                      |    2 +
+ drivers/thermal/qcom/tsens-8916.c                  |  113 ++
+ drivers/thermal/qcom/tsens-8960.c                  |  292 ++++
+ drivers/thermal/qcom/tsens-8974.c                  |  244 ++++
+ drivers/thermal/qcom/tsens-8996.c                  |   84 ++
+ drivers/thermal/qcom/tsens-common.c                |  141 ++
+ drivers/thermal/qcom/tsens.c                       |  200 +++
+ drivers/thermal/qcom/tsens.h                       |   94 ++
+ drivers/thermal/rockchip_thermal.c                 |   93 +-
+ drivers/thermal/thermal_core.c                     | 1395 +++++---------------
+ drivers/thermal/thermal_core.h                     |   26 +
+ drivers/thermal/thermal_helpers.c                  |  174 +++
+ drivers/thermal/thermal_sysfs.c                    |  855 ++++++++++++
+ drivers/thermal/ti-soc-thermal/ti-thermal-common.c |   30 +-
+ include/linux/thermal.h                            |   28 +-
+ 26 files changed, 2778 insertions(+), 1115 deletions(-)
+ create mode 100644 Documentation/devicetree/bindings/thermal/qcom-tsens.txt
+ create mode 100644 drivers/thermal/qcom/Kconfig
+ create mode 100644 drivers/thermal/qcom/Makefile
+ create mode 100644 drivers/thermal/qcom/tsens-8916.c
+ create mode 100644 drivers/thermal/qcom/tsens-8960.c
+ create mode 100644 drivers/thermal/qcom/tsens-8974.c
+ create mode 100644 drivers/thermal/qcom/tsens-8996.c
+ create mode 100644 drivers/thermal/qcom/tsens-common.c
+ create mode 100644 drivers/thermal/qcom/tsens.c
+ create mode 100644 drivers/thermal/qcom/tsens.h
+ create mode 100644 drivers/thermal/thermal_helpers.c
+ create mode 100644 drivers/thermal/thermal_sysfs.c
