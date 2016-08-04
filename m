@@ -1,68 +1,117 @@
-From: Chris Wilson <chris@chris-wilson.co.uk>
-Subject: Re: [PATCH] backlight: Avoid double fbcon backlight
- handling
-Date: Thu, 4 Aug 2016 10:57:29 +0100
-Message-ID: <20160804095729.GN12611@nuc-i3427.alporthouse.com>
-References: <1467286256-8870-1-git-send-email-chris@chris-wilson.co.uk>
- <20160712122119.GR23520@phenom.ffwll.local>
- <87a8gsq540.fsf@intel.com>
- <20160804095027.GB6232@phenom.ffwll.local>
+From: Borislav Petkov <bp@suse.de>
+Subject: Re: [PATCH v12] acpi, apei, arm64: APEI initial support for aarch64.
+Date: Thu, 4 Aug 2016 11:48:38 +0200
+Message-ID: <20160804094838.GB8093@nazgul.tnic>
+References: <1469782664-12611-1-git-send-email-fu.wei@linaro.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <intel-gfx-bounces@lists.freedesktop.org>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 8bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20160804095027.GB6232@phenom.ffwll.local>
-List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/intel-gfx>,
- <mailto:intel-gfx-request@lists.freedesktop.org?subject=unsubscribe>
-List-Archive: <https://lists.freedesktop.org/archives/intel-gfx>
-List-Post: <mailto:intel-gfx@lists.freedesktop.org>
-List-Help: <mailto:intel-gfx-request@lists.freedesktop.org?subject=help>
-List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/intel-gfx>,
- <mailto:intel-gfx-request@lists.freedesktop.org?subject=subscribe>
-Errors-To: intel-gfx-bounces@lists.freedesktop.org
-Sender: "Intel-gfx" <intel-gfx-bounces@lists.freedesktop.org>
-To: Daniel Vetter <daniel@ffwll.ch>
-Cc: Milo Kim <milo.kim@ti.com>, Krzysztof Kozlowski <k.kozlowski@samsung.com>, David Airlie <airlied@linux.ie>, nouveau@lists.freedesktop.org, Jon Nettleton <jon.nettleton@gmail.com>, Nicolas Ferre <nicolas.ferre@atmel.com>, linux-fbdev@vger.kernel.org, dri-devel@lists.freedesktop.org, Thierry Reding <thierry.reding@gmail.com>, Paul Mackerras <paulus@samba.org>, Laurent Pinchart <laurent.pinchart@ideasonboard.com>, Daniel Vetter <daniel.vetter@intel.com>, Lee Jones <lee.jones@linaro.org>, Daniel Drake <dsd@laptop.org>, Jens Frederich <jfrederich@gmail.com>, linux-acpi@vger.kernel.org, Bruno =?iso-8859-1?Q?Pr=E9mont?= <bonbons@linux-vserver.org>, Tomi Valkeinen <tomi.valkeinen@ti.com>, Ben Skeggs <bskeggs@redhat.com>, Zhang Rui <rui.zhang@intel.com>, Jean-Christophe Plagniol-Villard <plagnioj@jcrosoft.com>, Michael Hennerich <michael.hennerich@analog.com>, intel-gfx@lists.f
+In-Reply-To: <1469782664-12611-1-git-send-email-fu.wei@linaro.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: fu.wei@linaro.org
+Cc: tn@semihalf.com, rjw@rjwysocki.net, len.brown@intel.com, pavel@ucw.cz, bp@suse.de, hanjun.guo@linaro.org, jon.zhixiong.zhang@gmail.com, jcm@redhat.com, catalin.marinas@arm.com, will.deacon@arm.com, mark.rutland@arm.com, Marc.Zyngier@arm.com, lorenzo.pieralisi@arm.com, tglx@linutronix.de, mingo@redhat.com, hpa@zytor.com, matt.fleming@intel.com, tony.luck@intel.com, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, x86@kernel.org, linaro-acpi@lists.linaro.org, linux-arm-kernel@lists.infradead.org, linux-pm@vger.kernel.org, Tomasz Nowicki <tomasz.nowicki@linaro.org>
 List-Id: linux-acpi@vger.kernel.org
 
-T24gVGh1LCBBdWcgMDQsIDIwMTYgYXQgMTE6NTA6MjdBTSArMDIwMCwgRGFuaWVsIFZldHRlciB3
-cm90ZToKPiBPbiBUaHUsIEF1ZyAwNCwgMjAxNiBhdCAxMjowMjoyM1BNICswMzAwLCBKYW5pIE5p
-a3VsYSB3cm90ZToKPiA+IE9uIFR1ZSwgMTIgSnVsIDIwMTYsIERhbmllbCBWZXR0ZXIgPGRhbmll
-bEBmZndsbC5jaD4gd3JvdGU6Cj4gPiA+IE9uIFRodSwgSnVuIDMwLCAyMDE2IGF0IDEyOjMwOjU2
-UE0gKzAxMDAsIENocmlzIFdpbHNvbiB3cm90ZToKPiA+ID4+IEJhY2tsaWdodHMgY29udHJvbGxl
-ZCBieSBpOTE1LmtvIGFuZCBvbmx5IGFzc29jaWF0ZWQgd2l0aCBpdHMgY29ubmVjdG9ycwo+ID4g
-Pj4gYW5kIGFsc28gb25seSBhc3NvY2lhdGVkIHdpdGggdGhlIGludGVsX2RybWZiIGZiY29uLCBj
-b250cm9sbGVkIGJ5Cj4gPiA+PiBpOTE1LmtvLiBJbiB0aGlzIHNpdHVhdGlvbiwgd2UgYWxyZWFk
-eSBoYW5kbGUgYWRqdXN0aW5nIHRoZSBiYWNrbGlnaHQKPiA+ID4+IHdoZW4gdGhlIGZiY29uIGlz
-IGJsYW5rZWQvdW5ibGFua2VkIGFuZCBkbyBub3QgcmVxdWlyZSBiYWNrbGlnaHQgdHJ5aW5nCj4g
-PiA+PiB0byBkbyB0aGUgc2FtZS4KPiA+ID4+IAo+ID4gPj4gQXR0ZW1wdGluZyB0byByZWdpc3Rl
-ciB3aXRoIHRoZSBmYmRldiBhcyBhIGNsaWVudCBjYXVzZXMgbG9ja2RlcCB0byB3YXJuCj4gPiA+
-PiBhYm91dCBhIGRlcGVuZGVuY3kgY3ljbGU6Cj4gPiA+Cj4gPiA+IFRoZSBmYmRldiBub3RpZmll
-ciBzdHJpa2VzIGFnYWluIQo+ID4gPgo+ID4gPiBMYXN0IHRpbWUgSSBsb29rZWQgaW50byB0aGlz
-IEkgdGhpbmsgdGhlIHByb3BlciBzb2x1dGlvbiB3b3VsZCBiZSB0byBzcGxpdAo+ID4gPiB0aGUg
-YmFja2xpZ2h0IHBhcnQgZnJvbSB0aGUgb3RoZXIgZmJkZXYgbm90aWZpZXIgKHdoaWNoIGlzIHVz
-ZWQgYnkgZmJjb24KPiA+ID4gZm9yIHJlYWN0aW5nIHRvIGZiZGV2IGRldmljZSByZWcvdW5yZWcg
-ZXZlbnRzKS4KPiA+ID4KPiA+ID4gSSB0aGluayB0aGF0IHdvdWxkIGZpeCB0aGlzIHRvbywgd2l0
-aCB0aGUgYWRkZWQgYm9udXMgb2Ygc2xpZ2h0bHkKPiA+ID4gdW50YW5nbGluZyB0aGUgZmJjb24g
-bG9ja2luZyBtZXNzLiBBbmQgaXQncyBhbHNvIHRoZSBvbmUgcGFydCBvZgo+ID4gPiB1bnRhbmds
-aW5nIHRoaXMgbWVzcyB3aGljaCBzaG91bGQgYmUgcG9zc2libGUgd2l0aG91dCBhbnkgdHJvdWJs
-ZSAtIEkndmUKPiA+ID4gc2ltcGx5IG5ldmVyIGRvbmUgaXQgc2luY2UgZW50aXJlbHkgZ2V0dGlu
-ZyByaWQgb2YgdGhlIGZiZGV2IG5vdGlmaWVyIGZvcgo+ID4gPiBmYmNvbiBpcyBhIGxvdCBtb3Jl
-IHdvcmsuCj4gPiAKPiA+IFNvIHdoYXQgZG8gd2UgZG8gd2l0aCB0aGlzPyBJdCBmaXhlcyBhIHBy
-b2JsZW0gdXBzdHJlYW0uIFRoZXJlJ3Mgbm8KPiA+IEZpeGVzOiB0byBpZGVudGlmeSB0aGUgYmFk
-IGNvbW1pdC4gQW55IGlkZWEgb24gdGhhdD8gSXQncyBlaXRoZXIgdGhpcyBvcgo+ID4gd2UgZGln
-IG91dCB0aGUgYmFkIGNvbW1pdCAoQ2hyaXMgcHJvYmFibHkga25vd3Mgd2hpY2ggb25lPykgYW5k
-IHJldmVydC4KPiAKPiBUaGUgcmVhbCB0cm91YmxlIGlzIHRoZSBkcm1fZm9yX2VhY2hfY29ubmVj
-dG9yIGluCj4gZHJtX2Nvbm5lY3Rvcl9yZWdpc3Rlcl9hbGwoKS4gVGhpcyBpbnRyb2R1Y2VkIHRo
-ZSBuZXcgZGVwZW5jeS4gVGhlIHByb3Blcgo+IGZpeCBpbW8gaXMgdG8gZml4IHVwIHRoZSBjb25u
-ZWN0b3JfbGlzdCBsb2NraW5nLCBidXQgZm9yIDQuOCB3ZSBjb3VsZCBkbwo+IHRoZSBzYW1lIGhh
-Y2srY29tbWVudCBsaWtlIHdlIGRvIGluIHVucmVnaXN0ZXJfYWxsLiBJdCdzIG5vdCB0aGUgb25s
-eQo+IHBsYWNlIHRoYXQncyBicm9rZW4gYW55d2F5LCBhbmQgbXVjaCBsZXNzIGludmFzaXZlIHRo
-YW4gdGhpcyBoZXJlLgoKWW91IHN0aWxsIGhhdmUgdGhlIHVuZGVybHlpbmcgaXNzdWUgb2YgbXVs
-dGlwbGUgZHJpdmVycyB0cnlpbmcgdG8KY29udHJvbCB0aGUgc2FtZSBwaWVjZSBvZiBoYXJkd2Fy
-ZSwgY2F1c2luZyBkdXBsaWNhdGUgd29yayAoYXQgYmVzdCkuCi1DaHJpcwoKLS0gCkNocmlzIFdp
-bHNvbiwgSW50ZWwgT3BlbiBTb3VyY2UgVGVjaG5vbG9neSBDZW50cmUKX19fX19fX19fX19fX19f
-X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX18KSW50ZWwtZ2Z4IG1haWxpbmcgbGlzdApJ
-bnRlbC1nZnhAbGlzdHMuZnJlZWRlc2t0b3Aub3JnCmh0dHBzOi8vbGlzdHMuZnJlZWRlc2t0b3Au
-b3JnL21haWxtYW4vbGlzdGluZm8vaW50ZWwtZ2Z4Cg==
+On Fri, Jul 29, 2016 at 04:57:44PM +0800, fu.wei@linaro.org wrote:
+> From: Tomasz Nowicki <tomasz.nowicki@linaro.org>
+> 
+> This commit provides APEI arch-specific bits for aarch64
+> 
+> Meanwhile,
+> (1)add a new subfunction "hest_ia32_init" for
+> "acpi_disable_cmcff" which is used by IA-32 Architecture
+> Corrected Machine Check (CMC).
+> (2)move HEST type (ACPI_HEST_TYPE_IA32_CORRECTED_CHECK) checking to
+> a generic place.
+> (3)select HAVE_ACPI_APEI when EFI and ACPI is set on ARM64,
+> because arch_apei_get_mem_attribute is using efi_mem_attributes on ARM64.
+> 
+> [Fu Wei: improve && upstream]
+> 
+> Signed-off-by: Tomasz Nowicki <tomasz.nowicki@linaro.org>
+> Tested-by: Jonathan (Zhixiong) Zhang <zjzhang@codeaurora.org>
+> Signed-off-by: Fu Wei <fu.wei@linaro.org>
+> Acked-by: Hanjun Guo <hanjun.guo@linaro.org>
+> Tested-by: Tyler Baicar <tbaicar@codeaurora.org>
+> Acked-by: Will Deacon <will.deacon@arm.com>
+> ---
+
+...
+
+> @@ -110,8 +111,21 @@ static inline const char *acpi_get_enable_method(int cpu)
+>  }
+>  
+>  #ifdef	CONFIG_ACPI_APEI
+> +#define acpi_disable_cmcff 1
+
+What does that mean? ARM doesn't have firmware-first mode?
+
+A piece of comment please.
+
+>  pgprot_t arch_apei_get_mem_attribute(phys_addr_t addr);
+> -#endif
+> +
+> +/*
+> + * Despite its name, this function must still broadcast the TLB
+> + * invalidation in order to ensure other CPUs don't up with junk
+						      ^
+						     end
+
+> + * entries as a result of speculation. Unusually, its also called in
+> + * IRQ context (ghes_iounmap_irq) so if we ever need to use IPIs for
+> + * TLB broadcasting, then we're in trouble here.
+> + */
+> +static inline void arch_apei_flush_tlb_one(unsigned long addr)
+> +{
+> +	flush_tlb_kernel_range(addr, addr + PAGE_SIZE);
+> +}
+> +#endif /* CONFIG_ACPI_APEI */
+>  
+>  #ifdef CONFIG_ACPI_NUMA
+>  int arm64_acpi_numa_init(void);
+> diff --git a/arch/x86/kernel/acpi/apei.c b/arch/x86/kernel/acpi/apei.c
+> index c280df6..ea3046e 100644
+> --- a/arch/x86/kernel/acpi/apei.c
+> +++ b/arch/x86/kernel/acpi/apei.c
+
+...
+
+> diff --git a/drivers/acpi/apei/hest.c b/drivers/acpi/apei/hest.c
+> index 20b3fcf..792a0d9 100644
+> --- a/drivers/acpi/apei/hest.c
+> +++ b/drivers/acpi/apei/hest.c
+> @@ -232,8 +243,9 @@ void __init acpi_hest_init(void)
+>  		goto err;
+>  	}
+>  
+> -	if (!acpi_disable_cmcff)
+> -		apei_hest_parse(hest_parse_cmc, NULL);
+> +	rc = hest_ia32_init();
+
+Why do you need a separate hest_ia32_init() here?
+
+You can do
+
+	rc = apei_hest_parse(hest_parse_cmc, NULL);
+
+directly here AFAICT.
+
+> +	if (rc)
+> +		goto err;
+>  
+>  	if (!ghes_disable) {
+>  		rc = apei_hest_parse(hest_parse_ghes_count, &ghes_count);
+> -- 
+> 2.5.5
+> 
+
+-- 
+Regards/Gruss,
+    Boris.
+
+ECO tip #101: Trim your mails when you reply.
+
+SUSE Linux GmbH, GF: Felix Imendörffer, Jane Smithard, Graham Norton, HRB 21284 (AG Nürnberg)
+--
