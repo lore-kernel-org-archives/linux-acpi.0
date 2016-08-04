@@ -1,110 +1,143 @@
 From: Lv Zheng <lv.zheng@intel.com>
-Subject: [PATCH 28/30] ACPICA: OSL: Cleanup the inclusion order of the compiler-specific headers
-Date: Thu,  4 Aug 2016 16:45:40 +0800
-Message-ID: <0c47f2f578a71588c5c3c166cc1f9cb167756c71.1470299677.git.lv.zheng@intel.com>
+Subject: [PATCH 29/30] ACPICA: OSL: Fix a regression that old GCC requires a workaround for strchr()
+Date: Thu,  4 Aug 2016 16:45:47 +0800
+Message-ID: <17dc52dc23f994d66268f11fd8b7b59c4229abc0.1470299677.git.lv.zheng@intel.com>
 References: <cover.1470299677.git.lv.zheng@intel.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga09.intel.com ([134.134.136.24]:32657 "EHLO mga09.intel.com"
+Received: from mga14.intel.com ([192.55.52.115]:45070 "EHLO mga14.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932416AbcHDIpr (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 4 Aug 2016 04:45:47 -0400
+	id S932351AbcHDIp7 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 4 Aug 2016 04:45:59 -0400
 In-Reply-To: <cover.1470299677.git.lv.zheng@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <len.brown@intel.com>
 Cc: Lv Zheng <lv.zheng@intel.com>, Lv Zheng <zetalog@gmail.com>, linux-acpi@vger.kernel.org, Bob Moore <robert.moore@intel.com>
 
-ACPICA commit a760a98ec84b1ec782e0bff5f6612af6fb89c10c
+ACPICA commit be836c36454a624a4fb1d17234080ef8c07993fc
 
-Originally compiler specific headers are included by the host-specific
-headers. This makes build configuration management very inconvenient. And
-many inclusion order issues can be hidden accross different host OSes. It
-will then likely that some host builds will be broken just because of
-fixing some inclusion order issues for other host builds.
+There is a GCC false-warning issue on specific GCC versions that
+"strchr" will be preprocessed and extracted to contain
+!__buildin_constant_p() checker and it surely is a constant logical
+value "1" for strchr() arguments. Then -Wlogical-op errorneously reports a
+warning.
 
-This patch splits the compiler-specific header inclusions out of the
-host-specific headers so that compiler-specific inclusion order issues will
-not get entangled in the host-specific inclusion orders.
+The regression is triggered after the standard headers are re-ordered in
+the EFI porting task. This patch fixes this regression by moving the
+workaround to a new position after including all other standard headers.
 
-Note that intel compiler defines __GNUC__, so this patch contains special
-handling because acintel.h and acgcc.h should be mutual exclusive.
-
-Link: https://github.com/acpica/acpica/commit/a760a98e
-Link: https://bugs.acpica.org/show_bug.cgi?id=1303
+Link: https://github.com/acpica/acpica/commit/be836c36
 Signed-off-by: Lv Zheng <lv.zheng@intel.com>
 Signed-off-by: Bob Moore <robert.moore@intel.com>
 ---
- include/acpi/platform/acenv.h   |   13 ++++++++++++-
- include/acpi/platform/acenvex.h |    8 +++++---
- include/acpi/platform/aclinux.h |    4 ----
- 3 files changed, 17 insertions(+), 8 deletions(-)
+ include/acpi/platform/acenvex.h |    5 +++-
+ include/acpi/platform/acgcc.h   |   11 --------
+ include/acpi/platform/acgccex.h |   58 +++++++++++++++++++++++++++++++++++++++
+ 3 files changed, 62 insertions(+), 12 deletions(-)
+ create mode 100644 include/acpi/platform/acgccex.h
 
-diff --git a/include/acpi/platform/acenv.h b/include/acpi/platform/acenv.h
-index f9af0e0..34cce72 100644
---- a/include/acpi/platform/acenv.h
-+++ b/include/acpi/platform/acenv.h
-@@ -166,10 +166,21 @@
- /******************************************************************************
-  *
-  * Host configuration files. The compiler configuration files are included
-- * by the host files.
-+ * first.
-  *
-  *****************************************************************************/
- 
-+#if defined(__GNUC__) && !defined(__INTEL_COMPILER)
-+#include <acpi/platform/acgcc.h>
-+
-+#elif defined(_MSC_VER)
-+#include "acmsvc.h"
-+
-+#elif defined(__INTEL_COMPILER)
-+#include "acintel.h"
-+
-+#endif
-+
- #if defined(_LINUX) || defined(__linux__)
- #include <acpi/platform/aclinux.h>
- 
 diff --git a/include/acpi/platform/acenvex.h b/include/acpi/platform/acenvex.h
-index 58ca39c..060fb08 100644
+index 060fb08..b3171b9 100644
 --- a/include/acpi/platform/acenvex.h
 +++ b/include/acpi/platform/acenvex.h
-@@ -56,9 +56,6 @@
- #if defined(_LINUX) || defined(__linux__)
- #include <acpi/platform/aclinuxex.h>
- 
--#elif defined(WIN32)
--#include "acwinex.h"
--
- #elif defined(__DragonFly__)
- #include "acdragonflyex.h"
- 
-@@ -72,6 +69,11 @@
+@@ -69,7 +69,10 @@
  
  #endif
  
-+#if defined(_MSC_VER)
-+#include "acmsvcex.h"
+-#if defined(_MSC_VER)
++#if defined(__GNUC__) && !defined(__INTEL_COMPILER)
++#include "acgccex.h"
 +
++#elif defined(_MSC_VER)
+ #include "acmsvcex.h"
+ 
+ #endif
+diff --git a/include/acpi/platform/acgcc.h b/include/acpi/platform/acgcc.h
+index 9f79e98..8f66aaa 100644
+--- a/include/acpi/platform/acgcc.h
++++ b/include/acpi/platform/acgcc.h
+@@ -70,17 +70,6 @@
+  */
+ #define ACPI_UNUSED_VAR __attribute__ ((unused))
+ 
+-/*
+- * Some versions of gcc implement strchr() with a buggy macro. So,
+- * undef it here. Prevents error messages of this form (usually from the
+- * file getopt.c):
+- *
+- * error: logical '&&' with non-zero constant will always evaluate as true
+- */
+-#ifdef strchr
+-#undef strchr
+-#endif
+-
+ /* GCC supports __VA_ARGS__ in macros */
+ 
+ #define COMPILER_VA_MACRO               1
+diff --git a/include/acpi/platform/acgccex.h b/include/acpi/platform/acgccex.h
+new file mode 100644
+index 0000000..46ead2c
+--- /dev/null
++++ b/include/acpi/platform/acgccex.h
+@@ -0,0 +1,58 @@
++/******************************************************************************
++ *
++ * Name: acgccex.h - Extra GCC specific defines, etc.
++ *
++ *****************************************************************************/
++
++/*
++ * Copyright (C) 2000 - 2016, Intel Corp.
++ * All rights reserved.
++ *
++ * Redistribution and use in source and binary forms, with or without
++ * modification, are permitted provided that the following conditions
++ * are met:
++ * 1. Redistributions of source code must retain the above copyright
++ *    notice, this list of conditions, and the following disclaimer,
++ *    without modification.
++ * 2. Redistributions in binary form must reproduce at minimum a disclaimer
++ *    substantially similar to the "NO WARRANTY" disclaimer below
++ *    ("Disclaimer") and any redistribution must be conditioned upon
++ *    including a substantially similar Disclaimer requirement for further
++ *    binary redistribution.
++ * 3. Neither the names of the above-listed copyright holders nor the names
++ *    of any contributors may be used to endorse or promote products derived
++ *    from this software without specific prior written permission.
++ *
++ * Alternatively, this software may be distributed under the terms of the
++ * GNU General Public License ("GPL") version 2 as published by the Free
++ * Software Foundation.
++ *
++ * NO WARRANTY
++ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
++ * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
++ * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTIBILITY AND FITNESS FOR
++ * A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
++ * HOLDERS OR CONTRIBUTORS BE LIABLE FOR SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
++ * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
++ * OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
++ * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT,
++ * STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING
++ * IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
++ * POSSIBILITY OF SUCH DAMAGES.
++ */
++
++#ifndef __ACGCCEX_H__
++#define __ACGCCEX_H__
++
++/*
++ * Some versions of gcc implement strchr() with a buggy macro. So,
++ * undef it here. Prevents error messages of this form (usually from the
++ * file getopt.c):
++ *
++ * error: logical '&&' with non-zero constant will always evaluate as true
++ */
++#ifdef strchr
++#undef strchr
 +#endif
 +
- /*! [End] no source code translation !*/
- 
- #endif				/* __ACENVEX_H__ */
-diff --git a/include/acpi/platform/aclinux.h b/include/acpi/platform/aclinux.h
-index 1380ec7..a5d98d1 100644
---- a/include/acpi/platform/aclinux.h
-+++ b/include/acpi/platform/aclinux.h
-@@ -215,8 +215,4 @@
- 
- #endif				/* __KERNEL__ */
- 
--/* Linux uses GCC */
--
--#include <acpi/platform/acgcc.h>
--
- #endif				/* __ACLINUX_H__ */
++#endif				/* __ACGCCEX_H__ */
 -- 
 1.7.10
 
