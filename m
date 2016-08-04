@@ -1,12 +1,12 @@
 From: Lv Zheng <lv.zheng@intel.com>
-Subject: [PATCH 16/30] ACPICA: OSL: Add correct acpi_gbl_debug_timeout export to allow acpiexec to link
-Date: Thu,  4 Aug 2016 16:44:11 +0800
-Message-ID: <c838962d2be3a007ba989a3c1b55e9e8564f01f1.1470299677.git.lv.zheng@intel.com>
+Subject: [PATCH 19/30] ACPICA: Clib: Fix build issues when ACPI_USE_STANDARD_HEADERS is not defined by converting size_t to acpi_size
+Date: Thu,  4 Aug 2016 16:44:31 +0800
+Message-ID: <2347c3381fa2440806e52808cb17c502d006ff9e.1470299677.git.lv.zheng@intel.com>
 References: <cover.1470299677.git.lv.zheng@intel.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga04.intel.com ([192.55.52.120]:31644 "EHLO mga04.intel.com"
+Received: from mga01.intel.com ([192.55.52.88]:29136 "EHLO mga01.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757289AbcHDIom (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	id S1757242AbcHDIom (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
 	Thu, 4 Aug 2016 04:44:42 -0400
 In-Reply-To: <cover.1470299677.git.lv.zheng@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
@@ -14,51 +14,42 @@ List-Id: linux-acpi@vger.kernel.org
 To: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <len.brown@intel.com>
 Cc: Lv Zheng <lv.zheng@intel.com>, Lv Zheng <zetalog@gmail.com>, linux-acpi@vger.kernel.org, Bob Moore <robert.moore@intel.com>
 
-ACPICA commit 408198c8c9786f9f104ee925020c3ab1701906e4
+ACPICA commit 7cf411136c69ef0b8f184b96599eb45c15b89226
 
-The acpi_gbl_debug_timeout which is used by acpiexec -et option now is only
-implemented in oswinxf.c and used for WIN32 builds. This makes it very
-difficult to remember that we need to add this variable to other os
-specific layer files in order for linking. This patch makes it a global
-option dependent on ACPI_APPLICATION so that it can always be linked by the
-applications. Lv Zheng.
+When standard size_t is not defined due to ACPI_USE_STANDARD_HEADERS=n,
+we shouldn't use size_t, but should use acpi_size instead. This fixes such
+build issue. Lv Zheng.
 
-Link: https://github.com/acpica/acpica/commit/408198c8
-Link: https://bugs.acpica.org/show_bug.cgi?id=1295
+Link: https://github.com/acpica/acpica/commit/7cf41113
+Link: https://bugs.acpica.org/show_bug.cgi?id=1296
 Signed-off-by: Lv Zheng <lv.zheng@intel.com>
 Signed-off-by: Bob Moore <robert.moore@intel.com>
 ---
- drivers/acpi/acpica/acglobal.h                         |    1 +
- tools/power/acpi/os_specific/service_layers/osunixxf.c |    3 ---
- 2 files changed, 1 insertion(+), 3 deletions(-)
+ tools/power/acpi/tools/acpidump/apfiles.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/acpi/acpica/acglobal.h b/drivers/acpi/acpica/acglobal.h
-index 8c2c504..750fa82 100644
---- a/drivers/acpi/acpica/acglobal.h
-+++ b/drivers/acpi/acpica/acglobal.h
-@@ -383,6 +383,7 @@ ACPI_GLOBAL(const char, *acpi_gbl_pld_shape_list[]);
+diff --git a/tools/power/acpi/tools/acpidump/apfiles.c b/tools/power/acpi/tools/acpidump/apfiles.c
+index 5fcd970..c527521 100644
+--- a/tools/power/acpi/tools/acpidump/apfiles.c
++++ b/tools/power/acpi/tools/acpidump/apfiles.c
+@@ -134,7 +134,7 @@ int ap_write_to_binary_file(struct acpi_table_header *table, u32 instance)
+ 	char filename[ACPI_NAME_SIZE + 16];
+ 	char instance_str[16];
+ 	ACPI_FILE file;
+-	size_t actual;
++	acpi_size actual;
+ 	u32 table_length;
  
- ACPI_INIT_GLOBAL(ACPI_FILE, acpi_gbl_debug_file, NULL);
- ACPI_INIT_GLOBAL(ACPI_FILE, acpi_gbl_output_file, NULL);
-+ACPI_INIT_GLOBAL(u8, acpi_gbl_debug_timeout, FALSE);
+ 	/* Obtain table length */
+@@ -211,7 +211,7 @@ struct acpi_table_header *ap_get_table_from_file(char *pathname,
+ 	struct acpi_table_header *buffer = NULL;
+ 	ACPI_FILE file;
+ 	u32 file_size;
+-	size_t actual;
++	acpi_size actual;
  
- /* Print buffer */
+ 	/* Must use binary mode */
  
-diff --git a/tools/power/acpi/os_specific/service_layers/osunixxf.c b/tools/power/acpi/os_specific/service_layers/osunixxf.c
-index 88aa66e..8d8003c 100644
---- a/tools/power/acpi/os_specific/service_layers/osunixxf.c
-+++ b/tools/power/acpi/os_specific/service_layers/osunixxf.c
-@@ -63,10 +63,7 @@
- #define _COMPONENT          ACPI_OS_SERVICES
- ACPI_MODULE_NAME("osunixxf")
- 
--u8 acpi_gbl_debug_timeout = FALSE;
--
- /* Upcalls to acpi_exec */
--
- void
- ae_table_override(struct acpi_table_header *existing_table,
- 		  struct acpi_table_header **new_table);
 -- 
 1.7.10
 
