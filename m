@@ -1,128 +1,114 @@
 From: Lv Zheng <lv.zheng@intel.com>
-Subject: [PATCH 20/30] ACPICA: Clib: Cleanup va_arg related code
-Date: Thu,  4 Aug 2016 16:44:38 +0800
-Message-ID: <ad7298c4a518d13b08b44ad89684b10281a731e3.1470299677.git.lv.zheng@intel.com>
+Subject: [PATCH 23/30] ACPICA: MSVC9: Fix <sys/stat.h> inclusion order issue
+Date: Thu,  4 Aug 2016 16:44:59 +0800
+Message-ID: <16ff40db65bc227fae5cb6c011d6422092052630.1470299677.git.lv.zheng@intel.com>
 References: <cover.1470299677.git.lv.zheng@intel.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga02.intel.com ([134.134.136.20]:15310 "EHLO mga02.intel.com"
+Received: from mga04.intel.com ([192.55.52.120]:26949 "EHLO mga04.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755801AbcHDIop (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 4 Aug 2016 04:44:45 -0400
+	id S1757439AbcHDIpQ (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 4 Aug 2016 04:45:16 -0400
 In-Reply-To: <cover.1470299677.git.lv.zheng@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <len.brown@intel.com>
 Cc: Lv Zheng <lv.zheng@intel.com>, Lv Zheng <zetalog@gmail.com>, linux-acpi@vger.kernel.org, Bob Moore <robert.moore@intel.com>
 
-ACPICA commit 32701b33cdc48d9bc43da8c9274cf172135b68fc
+ACPICA commit 9bb265c2afb9910e46f820d6759648580edabd09
 
-We in fact is always using the compiler specific stdarg.h for GCC even
-when ACPI_USE_STANDARD_HEADERS is not defined. So that the va_arg usages
-can always be correct for different compiler options.
+When /Za is specified, headers of some Windows SDKs contain bugs breaking
+VC builds, and MSVC9's default SDK is one of such header-buggy library.
 
-Likewise, the va_arg implemented in acenv.h is actually MSVC specific,
-this patch also moves it to acmsvc.h and tunes acwin.h to correctly use
-it.
+In order to solve this issue, many VC developers stop using /Za. However
+we've been asked to have this fixed without removing /Za.
 
-After cleaning up, this patch removes all <stdarg.h> inclusions from
-other files, but doesn't touch the BSD headers. Lv Zheng.
+In MSVC9 default SDK, this issue can be fixed by restricting <sys/stat.h>
+to be the last standard file included by every source file in the projects.
+This patch thus moves <sys/stat.h> inclusion to "acapps.h", so that this
+issue can be fixed by ensuring that "acapps.h" is always the last standard
+file included by all of the ACPICA source files. This is in fact also a
+useful cleanup because applications can only include one header (e.x.,
+acpidump.h) instead of including acapps.h separately. Lv Zheng.
 
-Link: https://github.com/acpica/acpica/commit/32701b33
-Link: https://bugs.acpica.org/show_bug.cgi?id=1298
+Except some harmless header inclusion re-ordering, Linux kernel is not
+affected by this change.
+
+Link: https://github.com/acpica/acpica/commit/9bb265c2
 Signed-off-by: Lv Zheng <lv.zheng@intel.com>
 Signed-off-by: Bob Moore <robert.moore@intel.com>
 ---
- include/acpi/platform/acenv.h   |   40 ---------------------------------------
- include/acpi/platform/acgcc.h   |    6 ++++++
- include/acpi/platform/aclinux.h |    1 -
- 3 files changed, 6 insertions(+), 41 deletions(-)
+ drivers/acpi/acpica/acapps.h               |    4 ++++
+ include/acpi/platform/acenv.h              |    3 ++-
+ tools/power/acpi/tools/acpidump/acpidump.h |    1 +
+ tools/power/acpi/tools/acpidump/apfiles.c  |    1 -
+ tools/power/acpi/tools/acpidump/apmain.c   |    1 -
+ 5 files changed, 7 insertions(+), 3 deletions(-)
 
+diff --git a/drivers/acpi/acpica/acapps.h b/drivers/acpi/acpica/acapps.h
+index 247f30c..bc38534 100644
+--- a/drivers/acpi/acpica/acapps.h
++++ b/drivers/acpi/acpica/acapps.h
+@@ -44,6 +44,10 @@
+ #ifndef _ACAPPS
+ #define _ACAPPS
+ 
++#ifdef ACPI_USE_STANDARD_HEADERS
++#include <sys/stat.h>
++#endif				/* ACPI_USE_STANDARD_HEADERS */
++
+ /* Common info for tool signons */
+ 
+ #define ACPICA_NAME                 "Intel ACPI Component Architecture"
 diff --git a/include/acpi/platform/acenv.h b/include/acpi/platform/acenv.h
-index 50ae2d6..f405113 100644
+index 1e2fe95..3dbfa27 100644
 --- a/include/acpi/platform/acenv.h
 +++ b/include/acpi/platform/acenv.h
-@@ -342,52 +342,12 @@
- 
- /* Use the standard headers from the standard locations */
- 
--#include <stdarg.h>
- #include <stdlib.h>
- #include <string.h>
- #include <ctype.h>
+@@ -350,7 +350,8 @@
+ #include <stdio.h>
+ #include <fcntl.h>
+ #include <errno.h>
+-#include <sys/stat.h>
++#include <time.h>
++#include <signal.h>
+ #endif
  
  #endif				/* ACPI_USE_STANDARD_HEADERS */
+diff --git a/tools/power/acpi/tools/acpidump/acpidump.h b/tools/power/acpi/tools/acpidump/acpidump.h
+index 9f7db00..00423fc 100644
+--- a/tools/power/acpi/tools/acpidump/acpidump.h
++++ b/tools/power/acpi/tools/acpidump/acpidump.h
+@@ -55,6 +55,7 @@
+ #include <acpi/acpi.h>
+ #include "accommon.h"
+ #include "actables.h"
++#include "acapps.h"
  
--/* We will be linking to the standard Clib functions */
--
--#else
--
--/******************************************************************************
-- *
-- * Not using native C library, use local implementations
-- *
-- *****************************************************************************/
--
--/*
-- * Use local definitions of C library macros and functions. These function
-- * implementations may not be as efficient as an inline or assembly code
-- * implementation provided by a native C library, but they are functionally
-- * equivalent.
-- */
--#ifndef va_arg
--
--#ifndef _VALIST
--#define _VALIST
--typedef char *va_list;
--#endif				/* _VALIST */
--
--/* Storage alignment properties */
--
--#define  _AUPBND                (sizeof (acpi_native_int) - 1)
--#define  _ADNBND                (sizeof (acpi_native_int) - 1)
--
--/* Variable argument list macro definitions */
--
--#define _bnd(X, bnd)            (((sizeof (X)) + (bnd)) & (~(bnd)))
--#define va_arg(ap, T)           (*(T *)(((ap) += (_bnd (T, _AUPBND))) - (_bnd (T,_ADNBND))))
--#define va_end(ap)              (ap = (va_list) NULL)
--#define va_start(ap, A)         (void) ((ap) = (((char *) &(A)) + (_bnd (A,_AUPBND))))
--
--#endif				/* va_arg */
--
--/* Use the local (ACPICA) definitions of the clib functions */
--
- #endif				/* ACPI_USE_SYSTEM_CLIBRARY */
+ /* Globals */
  
- #ifndef ACPI_FILE
-diff --git a/include/acpi/platform/acgcc.h b/include/acpi/platform/acgcc.h
-index c5a216c..9f79e98 100644
---- a/include/acpi/platform/acgcc.h
-+++ b/include/acpi/platform/acgcc.h
-@@ -44,6 +44,12 @@
- #ifndef __ACGCC_H__
- #define __ACGCC_H__
+diff --git a/tools/power/acpi/tools/acpidump/apfiles.c b/tools/power/acpi/tools/acpidump/apfiles.c
+index c527521..44a0010 100644
+--- a/tools/power/acpi/tools/acpidump/apfiles.c
++++ b/tools/power/acpi/tools/acpidump/apfiles.c
+@@ -42,7 +42,6 @@
+  */
  
-+/*
-+ * Use compiler specific <stdarg.h> is a good practice for even when
-+ * -nostdinc is specified (i.e., ACPI_USE_STANDARD_HEADERS undefined.
-+ */
-+#include <stdarg.h>
-+
- #define ACPI_INLINE             __inline__
+ #include "acpidump.h"
+-#include "acapps.h"
  
- /* Function name is used for debug output. Non-ANSI, compiler-dependent */
-diff --git a/include/acpi/platform/aclinux.h b/include/acpi/platform/aclinux.h
-index cde6f33..447c33f 100644
---- a/include/acpi/platform/aclinux.h
-+++ b/include/acpi/platform/aclinux.h
-@@ -180,7 +180,6 @@
+ /* Local prototypes */
  
- #else				/* !__KERNEL__ */
+diff --git a/tools/power/acpi/tools/acpidump/apmain.c b/tools/power/acpi/tools/acpidump/apmain.c
+index cd6c097..17ce0d7 100644
+--- a/tools/power/acpi/tools/acpidump/apmain.c
++++ b/tools/power/acpi/tools/acpidump/apmain.c
+@@ -43,7 +43,6 @@
  
--#include <stdarg.h>
- #include <string.h>
- #include <stdlib.h>
- #include <ctype.h>
+ #define _DECLARE_GLOBALS
+ #include "acpidump.h"
+-#include "acapps.h"
+ 
+ /*
+  * acpidump - A portable utility for obtaining system ACPI tables and dumping
 -- 
 1.7.10
 
