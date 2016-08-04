@@ -1,122 +1,60 @@
-From: Borislav Petkov <bp@suse.de>
-Subject: Re: [PATCH v12] acpi, apei, arm64: APEI initial support for aarch64.
-Date: Thu, 4 Aug 2016 12:30:28 +0200
-Message-ID: <20160804103028.GA8152@nazgul.tnic>
-References: <1469782664-12611-1-git-send-email-fu.wei@linaro.org>
- <20160804094838.GB8093@nazgul.tnic>
+From: <info@kunstreich-im-pott.de>
+Subject: RE: linux-acpi
+Date: Thu, 4 Aug 2016 07:34:22 -0400
+Message-ID: <000101d1ee76$31d2385e$c0a80001@proserv.net.br>
+Reply-To: <linux-acpi@vger.kernel.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 8bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20160804094838.GB8093@nazgul.tnic>
-Sender: linux-kernel-owner@vger.kernel.org
-To: fu.wei@linaro.org
-Cc: tn@semihalf.com, rjw@rjwysocki.net, len.brown@intel.com, pavel@ucw.cz, hanjun.guo@linaro.org, jon.zhixiong.zhang@gmail.com, jcm@redhat.com, catalin.marinas@arm.com, will.deacon@arm.com, mark.rutland@arm.com, Marc.Zyngier@arm.com, lorenzo.pieralisi@arm.com, tglx@linutronix.de, mingo@redhat.com, hpa@zytor.com, matt.fleming@intel.com, tony.luck@intel.com, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, x86@kernel.org, linaro-acpi@lists.linaro.org, linux-arm-kernel@lists.infradead.org, linux-pm@vger.kernel.org
+Content-Type: application/zip; name="lsjcslxezf_linux-acpi.zip"
+Content-Transfer-Encoding: base64
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from 42.136.196.200.proserv.net.br ([200.196.136.42]:48788 "HELO
+	proserv.net.br" rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org
+	with SMTP id S1754054AbcHDLeW (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 4 Aug 2016 07:34:22 -0400
+Content-Disposition: attachment
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: linux-acpi <linux-acpi@vger.kernel.org>
 
-Tomasz's linaro address bounces, adding one I've found on lkml to CC
-instead.
-
-On Thu, Aug 04, 2016 at 11:48:38AM +0200, Borislav Petkov wrote:
-> On Fri, Jul 29, 2016 at 04:57:44PM +0800, fu.wei@linaro.org wrote:
-> > From: Tomasz Nowicki <tomasz.nowicki@linaro.org>
-> > 
-> > This commit provides APEI arch-specific bits for aarch64
-> > 
-> > Meanwhile,
-> > (1)add a new subfunction "hest_ia32_init" for
-> > "acpi_disable_cmcff" which is used by IA-32 Architecture
-> > Corrected Machine Check (CMC).
-> > (2)move HEST type (ACPI_HEST_TYPE_IA32_CORRECTED_CHECK) checking to
-> > a generic place.
-> > (3)select HAVE_ACPI_APEI when EFI and ACPI is set on ARM64,
-> > because arch_apei_get_mem_attribute is using efi_mem_attributes on ARM64.
-> > 
-> > [Fu Wei: improve && upstream]
-> > 
-> > Signed-off-by: Tomasz Nowicki <tomasz.nowicki@linaro.org>
-> > Tested-by: Jonathan (Zhixiong) Zhang <zjzhang@codeaurora.org>
-> > Signed-off-by: Fu Wei <fu.wei@linaro.org>
-> > Acked-by: Hanjun Guo <hanjun.guo@linaro.org>
-> > Tested-by: Tyler Baicar <tbaicar@codeaurora.org>
-> > Acked-by: Will Deacon <will.deacon@arm.com>
-> > ---
-> 
-> ...
-> 
-> > @@ -110,8 +111,21 @@ static inline const char *acpi_get_enable_method(int cpu)
-> >  }
-> >  
-> >  #ifdef	CONFIG_ACPI_APEI
-> > +#define acpi_disable_cmcff 1
-> 
-> What does that mean? ARM doesn't have firmware-first mode?
-> 
-> A piece of comment please.
-> 
-> >  pgprot_t arch_apei_get_mem_attribute(phys_addr_t addr);
-> > -#endif
-> > +
-> > +/*
-> > + * Despite its name, this function must still broadcast the TLB
-> > + * invalidation in order to ensure other CPUs don't up with junk
-> 						      ^
-> 						     end
-> 
-> > + * entries as a result of speculation. Unusually, its also called in
-> > + * IRQ context (ghes_iounmap_irq) so if we ever need to use IPIs for
-> > + * TLB broadcasting, then we're in trouble here.
-> > + */
-> > +static inline void arch_apei_flush_tlb_one(unsigned long addr)
-> > +{
-> > +	flush_tlb_kernel_range(addr, addr + PAGE_SIZE);
-> > +}
-> > +#endif /* CONFIG_ACPI_APEI */
-> >  
-> >  #ifdef CONFIG_ACPI_NUMA
-> >  int arm64_acpi_numa_init(void);
-> > diff --git a/arch/x86/kernel/acpi/apei.c b/arch/x86/kernel/acpi/apei.c
-> > index c280df6..ea3046e 100644
-> > --- a/arch/x86/kernel/acpi/apei.c
-> > +++ b/arch/x86/kernel/acpi/apei.c
-> 
-> ...
-> 
-> > diff --git a/drivers/acpi/apei/hest.c b/drivers/acpi/apei/hest.c
-> > index 20b3fcf..792a0d9 100644
-> > --- a/drivers/acpi/apei/hest.c
-> > +++ b/drivers/acpi/apei/hest.c
-> > @@ -232,8 +243,9 @@ void __init acpi_hest_init(void)
-> >  		goto err;
-> >  	}
-> >  
-> > -	if (!acpi_disable_cmcff)
-> > -		apei_hest_parse(hest_parse_cmc, NULL);
-> > +	rc = hest_ia32_init();
-> 
-> Why do you need a separate hest_ia32_init() here?
-> 
-> You can do
-> 
-> 	rc = apei_hest_parse(hest_parse_cmc, NULL);
-> 
-> directly here AFAICT.
-> 
-> > +	if (rc)
-> > +		goto err;
-> >  
-> >  	if (!ghes_disable) {
-> >  		rc = apei_hest_parse(hest_parse_ghes_count, &ghes_count);
-> > -- 
-> > 2.5.5
-> > 
-
--- 
-Regards/Gruss,
-    Boris.
-
-ECO tip #101: Trim your mails when you reply.
-
-SUSE Linux GmbH, GF: Felix Imendörffer, Jane Smithard, Graham Norton, HRB 21284 (AG Nürnberg)
---
+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
