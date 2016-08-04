@@ -1,34 +1,45 @@
-From: Eduardo Valentin <edubezval@gmail.com>
+From: Zhang Rui <rui.zhang@intel.com>
 Subject: Re: [GIT PULL] Thermal SoC management updates for v4.8-rc1
-Date: Wed, 3 Aug 2016 16:26:42 -0700
-Message-ID: <20160803232638.GA25554@localhost.localdomain>
+Date: Thu, 04 Aug 2016 13:21:59 +0800
+Message-ID: <1470288119.26646.5.camel@intel.com>
 References: <1470265127-22631-1-git-send-email-edubezval@gmail.com>
+	 <20160803232638.GA25554@localhost.localdomain>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 8bit
 Return-path: <linux-pm-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <1470265127-22631-1-git-send-email-edubezval@gmail.com>
+In-Reply-To: <20160803232638.GA25554@localhost.localdomain>
 Sender: linux-pm-owner@vger.kernel.org
-To: Rui Zhang <rui.zhang@intel.com>
+To: Eduardo Valentin <edubezval@gmail.com>
 Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux PM <linux-pm@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On Wed, Aug 03, 2016 at 03:58:47PM -0700, Eduardo Valentin wrote:
-> Hello Rui,
+On 三, 2016-08-03 at 16:26 -0700, Eduardo Valentin wrote:
+> On Wed, Aug 03, 2016 at 03:58:47PM -0700, Eduardo Valentin wrote:
+> > 
+> > Hello Rui,
+> > 
+> > Please pull from
+> So, forgot to mention that I have been away from upstream work for
+> some
+> time now, and I am still catching up on my emails.
 > 
-> Please pull from
+> I've just realized that this may be a bit too late for the pull. I
+> saw
+> that you had some comments on the thermal subsystem reorg. Let me
+> know
+> if this pull still causes troubles. We can always post pone to next
+> merge window.
+> 
+Yes, there are two updated patch from me to fix two different problems,
+which are not included in your pull request, plus, I believe there is
+still another problem reported by lkp, which is not addressed yet.
+> 
+> Let me know how you want to handle this one.
+> 
+I believe a new pull request without the thermal reorg and locking
+changes is needed.
 
-So, forgot to mention that I have been away from upstream work for some
-time now, and I am still catching up on my emails.
+thanks,
+rui
 
-I've just realized that this may be a bit too late for the pull. I saw
-that you had some comments on the thermal subsystem reorg. Let me know
-if this pull still causes troubles. We can always post pone to next
-merge window.
-
-
-Let me know how you want to handle this one.
-
-BR,
-
-Eduardo Valentin
