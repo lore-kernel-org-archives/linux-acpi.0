@@ -1,12 +1,12 @@
 From: Lv Zheng <lv.zheng@intel.com>
-Subject: [PATCH 17/30] ACPICA: acpidump: Fix a duplicate variable definition
-Date: Thu,  4 Aug 2016 16:44:17 +0800
-Message-ID: <94dfdb4d48a4301bab465256a8cfe5f293914da4.1470299677.git.lv.zheng@intel.com>
+Subject: [PATCH 18/30] ACPICA: Applications: Enable USE_NATIVE_ALLOCATE_ZEROED environment for all applications
+Date: Thu,  4 Aug 2016 16:44:24 +0800
+Message-ID: <5a493f634c1529730884033c3ef928f7efcc1240.1470299677.git.lv.zheng@intel.com>
 References: <cover.1470299677.git.lv.zheng@intel.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga14.intel.com ([192.55.52.115]:8322 "EHLO mga14.intel.com"
+Received: from mga14.intel.com ([192.55.52.115]:40655 "EHLO mga14.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757233AbcHDIom (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	id S1757236AbcHDIom (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
 	Thu, 4 Aug 2016 04:44:42 -0400
 In-Reply-To: <cover.1470299677.git.lv.zheng@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
@@ -14,49 +14,38 @@ List-Id: linux-acpi@vger.kernel.org
 To: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <len.brown@intel.com>
 Cc: Lv Zheng <lv.zheng@intel.com>, Lv Zheng <zetalog@gmail.com>, linux-acpi@vger.kernel.org, Bob Moore <robert.moore@intel.com>
 
-ACPICA commit 080f99d5b29313380accd00d2b9768e809eb417b
+ACPICA commit 56920e2093d612ac6338dd8eb0fa89231446198f
 
-acpi_gbl_integer_byte_width has already been instantiated by ACPI_GLOBAL() in
-acglobal.h. Lv Zheng.
+We now safe to enable USE_NATIVE_ALLOCATE_ZEROED for all applications as
+there are implementations in oswinxf.c, osunixxf.c and osefixf.c. Lv Zheng.
 
-Link: https://github.com/acpica/acpica/commit/080f99d5
-Link: https://bugs.acpica.org/show_bug.cgi?id=1301
+Link: https://github.com/acpica/acpica/commit/56920e20
 Signed-off-by: Lv Zheng <lv.zheng@intel.com>
 Signed-off-by: Bob Moore <robert.moore@intel.com>
 ---
- tools/power/acpi/tools/acpidump/acpidump.h |    6 ------
- tools/power/acpi/tools/acpidump/apmain.c   |    1 +
- 2 files changed, 1 insertion(+), 6 deletions(-)
+ include/acpi/platform/acenv.h |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/tools/power/acpi/tools/acpidump/acpidump.h b/tools/power/acpi/tools/acpidump/acpidump.h
-index 025c232..94dd8a1 100644
---- a/tools/power/acpi/tools/acpidump/acpidump.h
-+++ b/tools/power/acpi/tools/acpidump/acpidump.h
-@@ -72,12 +72,6 @@ EXTERN ACPI_FILE INIT_GLOBAL(gbl_output_file, NULL);
- EXTERN char INIT_GLOBAL(*gbl_output_filename, NULL);
- EXTERN u64 INIT_GLOBAL(gbl_rsdp_base, 0);
+diff --git a/include/acpi/platform/acenv.h b/include/acpi/platform/acenv.h
+index ed959e5..50ae2d6 100644
+--- a/include/acpi/platform/acenv.h
++++ b/include/acpi/platform/acenv.h
+@@ -78,6 +78,7 @@
+ 	(defined ACPI_EXAMPLE_APP)
+ #define ACPI_APPLICATION
+ #define ACPI_SINGLE_THREADED
++#define USE_NATIVE_ALLOCATE_ZEROED
+ #endif
  
--/* Globals required for use with ACPICA modules */
--
--#ifdef _DECLARE_GLOBALS
--u8 acpi_gbl_integer_byte_width = 8;
--#endif
--
- /* Action table used to defer requested options */
+ /* iASL configuration */
+@@ -124,7 +125,6 @@
  
- struct ap_dump_action {
-diff --git a/tools/power/acpi/tools/acpidump/apmain.c b/tools/power/acpi/tools/acpidump/apmain.c
-index 7692e6b..cd6c097 100644
---- a/tools/power/acpi/tools/acpidump/apmain.c
-+++ b/tools/power/acpi/tools/acpidump/apmain.c
-@@ -315,6 +315,7 @@ int ACPI_SYSTEM_XFACE acpi_main(int argc, char *argv[])
- 	ACPI_DEBUG_INITIALIZE();	/* For debug version only */
- 	acpi_os_initialize();
- 	gbl_output_file = ACPI_FILE_OUT;
-+	acpi_gbl_integer_byte_width = 8;
+ #ifdef ACPI_DUMP_APP
+ #define ACPI_USE_NATIVE_MEMORY_MAPPING
+-#define USE_NATIVE_ALLOCATE_ZEROED
+ #endif
  
- 	/* Process command line options */
- 
+ /* acpi_names/Example configuration. Hardware disabled */
 -- 
 1.7.10
 
