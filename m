@@ -1,25 +1,27 @@
 From: Lv Zheng <lv.zheng@intel.com>
-Subject: [PATCH 01/30] ACPICA: Fix deconstification warnings (-Wcast-qual) with function traces.
-Date: Thu,  4 Aug 2016 16:36:34 +0800
-Message-ID: <3faa428e2bebdc04db07e61580c80212e34f434e.1470299677.git.lv.zheng@intel.com>
-References: <cover.1470299677.git.lv.zheng@intel.com>
+Subject: [UPDATE PATCH 01/30] ACPICA: Fix deconstification warnings (-Wcast-qual) with function traces.
+Date: Thu,  4 Aug 2016 16:42:19 +0800
+Message-ID: <3faa428e2bebdc04db07e61580c80212e34f434e.1470299678.git.lv.zheng@intel.com>
+References: <cover.1470299677.git.lv.zheng@intel.com> <3faa428e2bebdc04db07e61580c80212e34f434e.1470299677.git.lv.zheng@intel.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga01.intel.com ([192.55.52.88]:43002 "EHLO mga01.intel.com"
+Received: from mga02.intel.com ([134.134.136.20]:46329 "EHLO mga02.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752605AbcHDIl2 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 4 Aug 2016 04:41:28 -0400
+	id S932352AbcHDImg (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 4 Aug 2016 04:42:36 -0400
 In-Reply-To: <cover.1470299677.git.lv.zheng@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <len.brown@intel.com>
-Cc: Lv Zheng <lv.zheng@intel.com>, Lv Zheng <zetalog@gmail.com>, linux-acpi@vger.kernel.org, Bob Moore <robert.moore@intel.com>
+Cc: Lv Zheng <lv.zheng@intel.com>, Lv Zheng <zetalog@gmail.com>, linux-acpi@vger.kernel.org, Jung-uk Kim <jkim@FreeBSD.org>, Bob Moore <robert.moore@intel.com>
 
-From: Jung-uk Kim <jkim@free_BSD.org>
+From: Jung-uk Kim <jkim@FreeBSD.org>
+
+(update due to email address wrongly converted by acpisrc)
 
 ACPICA commit f722da0372261331b74d3ac67645bba912a21643
 
 Link: https://github.com/acpica/acpica/commit/f722da03
-Signed-off-by: Jung-uk Kim <jkim@free_BSD.org>
+Signed-off-by: Jung-uk Kim <jkim@FreeBSD.org>
 Signed-off-by: Bob Moore <robert.moore@intel.com>
 Signed-off-by: Lv Zheng <lv.zheng@intel.com>
 ---
