@@ -1,60 +1,54 @@
-From: <info@kunstreich-im-pott.de>
-Subject: RE: linux-acpi
-Date: Thu, 4 Aug 2016 07:34:22 -0400
-Message-ID: <000101d1ee76$31d2385e$c0a80001@proserv.net.br>
-Reply-To: <linux-acpi@vger.kernel.org>
+From: Matt Fleming <matt@codeblueprint.co.uk>
+Subject: Re: [PATCH 0/6] Apple device properties
+Date: Thu, 4 Aug 2016 15:57:10 +0100
+Message-ID: <20160804145710.GL3636@codeblueprint.co.uk>
+References: <cover.1469616641.git.lukas@wunner.de>
 Mime-Version: 1.0
-Content-Type: application/zip; name="lsjcslxezf_linux-acpi.zip"
-Content-Transfer-Encoding: base64
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from 42.136.196.200.proserv.net.br ([200.196.136.42]:48788 "HELO
-	proserv.net.br" rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org
-	with SMTP id S1754054AbcHDLeW (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 4 Aug 2016 07:34:22 -0400
-Content-Disposition: attachment
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <cover.1469616641.git.lukas@wunner.de>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Lukas Wunner <lukas@wunner.de>
+Cc: linux-efi@vger.kernel.org, linux-kernel@vger.kernel.org, Andreas Noever <andreas.noever@gmail.com>, Pierre Moreau <pierre.morrow@free.fr>, reverser@put.as, grub-devel@gnu.org, x86@kernel.org, Aleksey Makarov <aleksey.makarov@linaro.org>, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Mika Westerberg <mika.westerberg@linux.intel.com>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-acpi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi <linux-acpi@vger.kernel.org>
 
-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
+On Thu, 28 Jul, at 02:25:41AM, Lukas Wunner wrote:
+> Apple EFI drivers supply device properties which are needed to support
+> Macs optimally.
+> 
+> This series extends the efistub to retrieve the device properties before
+> ExitBootServices is called (patch [1/6]). They are assigned to devices
+> in an fs_initcall (patch [5/6]). As a first use case, the Thunderbolt
+> driver is amended to take advantage of the Device ROM supplied by EFI
+> (patch [6/6]).
+> 
+> A by-product is a parser for EFI Device Paths which finds the struct
+> device corresponding to a given path. This is needed to assign
+> properties to their devices (patch [3/6]).
+> 
+> 
+> I've pushed these patches to GitHub where they can be reviewed more
+> comfortably with green/red highlighting:
+> https://github.com/l1k/linux/commits/apple_properties_v1
+> 
+> 
+> It would be good if one of the resident EFI experts could look over
+> patch [1/6] to see if I've made any mistakes that might prevent this
+> from working on 32 bit. It was only tested on 64 bit, I don't know
+> anyone with an older Mac who could test this.
+> 
+> Specifically, is the following okay:
+> efi_early->call((unsigned long)sys_table->boottime->locate_protocol, ...)
+
+This probably isn't going to work with EFI mixed mode because you
+can't jump through pointers at runtime - that's the whole point of the
+setup_boot_services*bits() code.
+
+> It would be convenient to have LocateProtocol or LocateHandleBuffer in
+> struct efi_config so that they can be called with efi_call_early().
+> Would a patch to add those be entertained? Right now we only offer
+> LocateHandle and HandleProtocol, which is somewhat cumbersome and
+> needs more code as the setup_pci() functions show.
+
+Yes, go for it. Doing this would make it work with EFI mixed mode too.
