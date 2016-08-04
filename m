@@ -1,12 +1,12 @@
 From: Lv Zheng <lv.zheng@intel.com>
-Subject: [PATCH 15/30] ACPICA: Debugger: Fix wrong inclusions in dbfileio.c
-Date: Thu,  4 Aug 2016 16:44:04 +0800
-Message-ID: <fa2e127b5f5e24978766ddc240eb931334d39072.1470299677.git.lv.zheng@intel.com>
+Subject: [PATCH 16/30] ACPICA: OSL: Add correct acpi_gbl_debug_timeout export to allow acpiexec to link
+Date: Thu,  4 Aug 2016 16:44:11 +0800
+Message-ID: <c838962d2be3a007ba989a3c1b55e9e8564f01f1.1470299677.git.lv.zheng@intel.com>
 References: <cover.1470299677.git.lv.zheng@intel.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga03.intel.com ([134.134.136.65]:61718 "EHLO mga03.intel.com"
+Received: from mga04.intel.com ([192.55.52.120]:31644 "EHLO mga04.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757194AbcHDIom (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	id S1757289AbcHDIom (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
 	Thu, 4 Aug 2016 04:44:42 -0400
 In-Reply-To: <cover.1470299677.git.lv.zheng@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
@@ -14,93 +14,51 @@ List-Id: linux-acpi@vger.kernel.org
 To: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <len.brown@intel.com>
 Cc: Lv Zheng <lv.zheng@intel.com>, Lv Zheng <zetalog@gmail.com>, linux-acpi@vger.kernel.org, Bob Moore <robert.moore@intel.com>
 
-ACPICA commit 649eb441fbef21965d10a1aca6ff41dcf23f8e05
+ACPICA commit 408198c8c9786f9f104ee925020c3ab1701906e4
 
-dbfileio.c implements debugger functionalities that can only be used by the
-application layer debugger (acpiexec), thus it should always include
-<acapps.h> and thus shouldn't include <stdio.h> separately. Lv Zheng.
+The acpi_gbl_debug_timeout which is used by acpiexec -et option now is only
+implemented in oswinxf.c and used for WIN32 builds. This makes it very
+difficult to remember that we need to add this variable to other os
+specific layer files in order for linking. This patch makes it a global
+option dependent on ACPI_APPLICATION so that it can always be linked by the
+applications. Lv Zheng.
 
-Link: https://github.com/acpica/acpica/commit/649eb441
-Link: https://bugs.acpica.org/show_bug.cgi?id=1292
+Link: https://github.com/acpica/acpica/commit/408198c8
+Link: https://bugs.acpica.org/show_bug.cgi?id=1295
 Signed-off-by: Lv Zheng <lv.zheng@intel.com>
 Signed-off-by: Bob Moore <robert.moore@intel.com>
 ---
- drivers/acpi/acpica/dbfileio.c |   20 ++++++--------------
- 1 file changed, 6 insertions(+), 14 deletions(-)
+ drivers/acpi/acpica/acglobal.h                         |    1 +
+ tools/power/acpi/os_specific/service_layers/osunixxf.c |    3 ---
+ 2 files changed, 1 insertion(+), 3 deletions(-)
 
-diff --git a/drivers/acpi/acpica/dbfileio.c b/drivers/acpi/acpica/dbfileio.c
-index 4832879..6f05b8c 100644
---- a/drivers/acpi/acpica/dbfileio.c
-+++ b/drivers/acpi/acpica/dbfileio.c
-@@ -46,14 +46,12 @@
- #include "accommon.h"
- #include "acdebug.h"
- #include "actables.h"
--#include <stdio.h>
--#ifdef ACPI_APPLICATION
--#include "acapps.h"
--#endif
+diff --git a/drivers/acpi/acpica/acglobal.h b/drivers/acpi/acpica/acglobal.h
+index 8c2c504..750fa82 100644
+--- a/drivers/acpi/acpica/acglobal.h
++++ b/drivers/acpi/acpica/acglobal.h
+@@ -383,6 +383,7 @@ ACPI_GLOBAL(const char, *acpi_gbl_pld_shape_list[]);
  
- #define _COMPONENT          ACPI_CA_DEBUGGER
- ACPI_MODULE_NAME("dbfileio")
+ ACPI_INIT_GLOBAL(ACPI_FILE, acpi_gbl_debug_file, NULL);
+ ACPI_INIT_GLOBAL(ACPI_FILE, acpi_gbl_output_file, NULL);
++ACPI_INIT_GLOBAL(u8, acpi_gbl_debug_timeout, FALSE);
  
-+#ifdef ACPI_APPLICATION
-+#include "acapps.h"
- #ifdef ACPI_DEBUGGER
- /*******************************************************************************
-  *
-@@ -69,8 +67,6 @@ ACPI_MODULE_NAME("dbfileio")
- void acpi_db_close_debug_file(void)
- {
+ /* Print buffer */
  
--#ifdef ACPI_APPLICATION
+diff --git a/tools/power/acpi/os_specific/service_layers/osunixxf.c b/tools/power/acpi/os_specific/service_layers/osunixxf.c
+index 88aa66e..8d8003c 100644
+--- a/tools/power/acpi/os_specific/service_layers/osunixxf.c
++++ b/tools/power/acpi/os_specific/service_layers/osunixxf.c
+@@ -63,10 +63,7 @@
+ #define _COMPONENT          ACPI_OS_SERVICES
+ ACPI_MODULE_NAME("osunixxf")
+ 
+-u8 acpi_gbl_debug_timeout = FALSE;
 -
- 	if (acpi_gbl_debug_file) {
- 		fclose(acpi_gbl_debug_file);
- 		acpi_gbl_debug_file = NULL;
-@@ -78,7 +74,6 @@ void acpi_db_close_debug_file(void)
- 		acpi_os_printf("Debug output file %s closed\n",
- 			       acpi_gbl_db_debug_filename);
- 	}
--#endif
- }
- 
- /*******************************************************************************
-@@ -96,8 +91,6 @@ void acpi_db_close_debug_file(void)
- void acpi_db_open_debug_file(char *name)
- {
- 
--#ifdef ACPI_APPLICATION
+ /* Upcalls to acpi_exec */
 -
- 	acpi_db_close_debug_file();
- 	acpi_gbl_debug_file = fopen(name, "w+");
- 	if (!acpi_gbl_debug_file) {
-@@ -109,8 +102,6 @@ void acpi_db_open_debug_file(char *name)
- 	strncpy(acpi_gbl_db_debug_filename, name,
- 		sizeof(acpi_gbl_db_debug_filename));
- 	acpi_gbl_db_output_to_file = TRUE;
--
--#endif
- }
- #endif
- 
-@@ -152,12 +143,13 @@ acpi_status acpi_db_load_tables(struct acpi_new_table_desc *list_head)
- 			return (status);
- 		}
- 
--		fprintf(stderr,
--			"Acpi table [%4.4s] successfully installed and loaded\n",
--			table->signature);
-+		acpi_os_printf
-+		    ("Acpi table [%4.4s] successfully installed and loaded\n",
-+		     table->signature);
- 
- 		table_list_head = table_list_head->next;
- 	}
- 
- 	return (AE_OK);
- }
-+#endif
+ void
+ ae_table_override(struct acpi_table_header *existing_table,
+ 		  struct acpi_table_header **new_table);
 -- 
 1.7.10
 
